@@ -253,12 +253,17 @@ git commit -m "feat(fabrica): worker + estructura del libro y entidades detectad
 - [ ] **Step 3: Implementar. El prompt del capítulo (usarlo textual):**
 
 ```typescript
-const PROMPT_CAPITULO = (nombre: string, capitulo: string, materiales: string, nombresCorregidos: string) => `
+const PROMPT_CAPITULO = (nombre: string, capitulo: string, materiales: string, historiaCompleta: string, nombresCorregidos: string) => `
 Estás escribiendo el libro de la vida de ${nombre}, a partir de lo que él mismo contó
 en entrevistas grabadas. Este es el capítulo «${capitulo}».
 
-MATERIAL CRUDO (transcripciones textuales de su voz):
+MATERIAL PRINCIPAL (las respuestas de las preguntas de este capítulo, textuales):
 ${materiales}
+
+LA HISTORIA COMPLETA (todas las entrevistas — buscá acá cualquier cosa que pertenezca
+a este capítulo aunque la haya contado otro día, emocionado, en medio de otro tema;
+NO traigas lo que claramente pertenece a otro capítulo):
+${historiaCompleta}
 
 CORRECCIONES DE NOMBRES (la transcripción automática oyó mal; usar SIEMPRE la forma corregida):
 ${nombresCorregidos}
