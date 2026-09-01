@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => ({
   transcribirYActualizar: vi.fn(),
   evaluarRespuesta: vi.fn(),
   detectarIntencion: vi.fn(),
+  generarPreguntasAdaptativas: vi.fn(),
   estado: { narrador: null as any, enviosRepregunta: [] as any[], capturas: [] as any[] },
 }));
 
@@ -46,6 +47,7 @@ vi.mock('../src/ia/transcribir.js', () => ({ transcribirYActualizar: mocks.trans
 vi.mock('../src/ia/cerebro.js', () => ({
   evaluarRespuesta: mocks.evaluarRespuesta, detectarIntencion: mocks.detectarIntencion, generarReconocimiento: vi.fn(),
 }));
+vi.mock('../src/ia/adaptativas.js', () => ({ generarPreguntasAdaptativas: mocks.generarPreguntasAdaptativas }));
 
 import { procesarEntrante } from '../src/flujo/procesar.js';
 
@@ -57,7 +59,7 @@ beforeEach(() => {
   mocks.estado.narrador = null;
   mocks.estado.enviosRepregunta = [];
   mocks.estado.capturas = [];
-  for (const fn of [mocks.enviarTexto, mocks.descargarAudio, mocks.guardarRespuestaAudio, mocks.transcribirYActualizar, mocks.evaluarRespuesta, mocks.detectarIntencion]) fn.mockReset();
+  for (const fn of [mocks.enviarTexto, mocks.descargarAudio, mocks.guardarRespuestaAudio, mocks.transcribirYActualizar, mocks.evaluarRespuesta, mocks.detectarIntencion, mocks.generarPreguntasAdaptativas]) fn.mockReset();
   mocks.enviarTexto.mockResolvedValue('wamid.mock');
   mocks.descargarAudio.mockResolvedValue(Buffer.from('audio-falso'));
   mocks.guardarRespuestaAudio.mockResolvedValue({ id: 'r-audio', audioPath: 'p' });
@@ -95,6 +97,20 @@ describe('procesarEntrante', () => {
     expect(mocks.enviarTexto).toHaveBeenCalledTimes(1);
     expect(mocks.enviarTexto).toHaveBeenCalledWith(TEL, expect.stringContaining('sentía'));
     expect(insert('envios')?.p).toMatchObject({ tipo: 'repregunta', pregunta_orden: 5 });
+  });
+
+  it('(e) al responder la pregunta 25 se disparan las 5 adaptativas', async () => {
+    mocks.estado.narrador = narradorEn('activo', 25);
+    const m: MensajeEntrante = { telefono: TEL, tipo: 'audio', mediaId: 'media-1', waMessageId: 'w' };
+    await procesarEntrante(m);
+    expect(mocks.generarPreguntasAdaptativas).toHaveBeenCalledWith('n1');
+  });
+
+  it('no dispara las adaptativas en una pregunta cualquiera', async () => {
+    mocks.estado.narrador = narradorEn('activo', 12);
+    const m: MensajeEntrante = { telefono: TEL, tipo: 'audio', mediaId: 'media-1', waMessageId: 'w' };
+    await procesarEntrante(m);
+    expect(mocks.generarPreguntasAdaptativas).not.toHaveBeenCalled();
   });
 
   it('(d) un texto "no quiero seguir" pausa al narrador', async () => {

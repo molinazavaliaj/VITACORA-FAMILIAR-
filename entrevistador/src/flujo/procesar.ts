@@ -5,6 +5,9 @@ import { descargarAudio } from '../whatsapp/media.js';
 import { guardarRespuestaAudio } from '../db/respuestas.js';
 import { transcribirYActualizar } from '../ia/transcribir.js';
 import { evaluarRespuesta, detectarIntencion } from '../ia/cerebro.js';
+import { generarPreguntasAdaptativas } from '../ia/adaptativas.js';
+
+const ULTIMA_FIJA = 25; // después de la 25 vienen las 5 adaptativas
 
 type Narrador = {
   id: string;
@@ -151,8 +154,9 @@ async function trasResponder(
     }
   }
 
-  // Paso 8: al completar la respuesta 25, generar las 5 preguntas adaptativas.
-  // TODO Task 9: if (orden === 25) await generarPreguntasAdaptativas(narrador.id);
+  // Paso 8: al completar la respuesta 25, el cerebro estudia toda la historia
+  // y genera las 5 preguntas finales a medida (órdenes 26-30).
+  if (orden === ULTIMA_FIJA) await generarPreguntasAdaptativas(narrador.id);
 
   // Paso 7: al responder la última pregunta, cerrar la bitácora y entregar los saludos.
   // TODO Task 10: if (esLaUltima(orden)) await cerrarBitacora(narrador.id);
