@@ -2,6 +2,7 @@ import { fileURLToPath } from 'node:url';
 import { obtenerClienteDb } from './db.js';
 import { generarEstructura } from './libro/estructura.js';
 import { generarPrevisualizacion } from './libro/previsualizar.js';
+import { generarPaquete } from './libro/generar-paquete.js';
 
 const INTERVALO_MS = 60_000;
 
@@ -107,12 +108,40 @@ async function generarPrevisualizacionesFaltantes(): Promise<void> {
 }
 
 /**
- * Branch (b): pedidos en estado 'pagado' → armar PDF/audiolibro (playwright).
- * Implementado en Task 9. Por ahora es un no-op para que tick() ya tenga el
- * hueco donde va a enchufarse.
+ * Branch (b): pedidos en estado 'pagado' → armar el libro y el audiolibro
+ * (generarPaquete). Antes de nada, cada pedido se reclama poniéndolo en
+ * 'generando' — así si el tick tarda más que el intervalo y se solapa con el
+ * próximo (o dos instancias del worker corren a la vez), el segundo no lo
+ * vuelve a tomar. generarPaquete es responsable de dejarlo en 'entregado' o
+ * 'fallido'; acá no hay try/catch porque esa responsabilidad ya es suya —
+ * ver su propio manejo de errores.
  */
 export async function procesarPedidosPagados(): Promise<void> {
-  // Task 9: leer pedidos.estado = 'pagado', generar libro_pdf_path / audiolibro_paths.
+  const db = obtenerClienteDb();
+
+  const { data: pedidos, error } = await db
+    .from('pedidos')
+    .select('id, narrador_id')
+    .eq('estado', 'pagado');
+
+  if (error) {
+    console.error('tick: no se pudieron leer los pedidos pagados:', error.message);
+    return;
+  }
+
+  for (const pedido of (pedidos ?? []) as { id: string; narrador_id: string }[]) {
+    const { error: errorClaim } = await db
+      .from('pedidos')
+      .update({ estado: 'generando' })
+      .eq('id', pedido.id);
+
+    if (errorClaim) {
+      console.error(`tick: no se pudo reclamar el pedido ${pedido.id}:`, errorClaim.message);
+      continue;
+    }
+
+    await generarPaquete(pedido);
+  }
 }
 
 export function iniciarWorker(): void {

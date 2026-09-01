@@ -1,8 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-const { generarEstructuraMock, generarPrevisualizacionMock, obtenerClienteDbMock } = vi.hoisted(() => ({
+const { generarEstructuraMock, generarPrevisualizacionMock, generarPaqueteMock, obtenerClienteDbMock } = vi.hoisted(() => ({
   generarEstructuraMock: vi.fn().mockResolvedValue(undefined),
   generarPrevisualizacionMock: vi.fn().mockResolvedValue(undefined),
+  generarPaqueteMock: vi.fn().mockResolvedValue(undefined),
   obtenerClienteDbMock: vi.fn(),
 }));
 
@@ -12,6 +13,10 @@ vi.mock('../src/libro/estructura.js', () => ({
 
 vi.mock('../src/libro/previsualizar.js', () => ({
   generarPrevisualizacion: generarPrevisualizacionMock,
+}));
+
+vi.mock('../src/libro/generar-paquete.js', () => ({
+  generarPaquete: generarPaqueteMock,
 }));
 
 vi.mock('../src/db.js', async () => {
@@ -27,13 +32,28 @@ import { tick } from '../src/worker.js';
 function construirClienteDbMock(opciones: {
   narradores: { id: string }[];
   archivosPorNarrador: Record<string, string[]>;
+  pedidosPagados?: { id: string; narrador_id: string }[];
+  pedidosUpdateMock?: ReturnType<typeof vi.fn>;
 }) {
+  const pedidosUpdate =
+    opciones.pedidosUpdateMock ?? vi.fn().mockResolvedValue({ data: null, error: null });
+
   return {
     from: vi.fn((tabla: string) => {
       if (tabla === 'narradores') {
         return {
           select: () => ({
             in: () => Promise.resolve({ data: opciones.narradores, error: null }),
+          }),
+        };
+      }
+      if (tabla === 'pedidos') {
+        return {
+          select: () => ({
+            eq: () => Promise.resolve({ data: opciones.pedidosPagados ?? [], error: null }),
+          }),
+          update: (valores: Record<string, unknown>) => ({
+            eq: (_col: string, id: string) => pedidosUpdate(valores, id),
           }),
         };
       }
@@ -177,5 +197,93 @@ describe('tick — branch a2 (previsualización)', () => {
     await expect(tick()).resolves.toBeUndefined();
 
     expect(generarPrevisualizacionMock).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('tick — branch b (pedidos pagados)', () => {
+  beforeEach(() => {
+    generarPaqueteMock.mockClear();
+  });
+
+  it('reclama el pedido pagado (estado generando) ANTES de generarPaquete, y lo llama con el pedido', async () => {
+    const pedidosUpdateMock = vi.fn().mockResolvedValue({ data: null, error: null });
+    const llamadasEnOrden: string[] = [];
+    pedidosUpdateMock.mockImplementation((valores: Record<string, unknown>) => {
+      llamadasEnOrden.push(`update:${valores.estado}`);
+      return Promise.resolve({ data: null, error: null });
+    });
+    generarPaqueteMock.mockImplementationOnce(async () => {
+      llamadasEnOrden.push('generarPaquete');
+    });
+
+    obtenerClienteDbMock.mockReturnValue(
+      construirClienteDbMock({
+        narradores: [],
+        archivosPorNarrador: {},
+        pedidosPagados: [{ id: 'pedido-1', narrador_id: 'narrador-1' }],
+        pedidosUpdateMock,
+      })
+    );
+
+    await tick();
+
+    expect(pedidosUpdateMock).toHaveBeenCalledWith({ estado: 'generando' }, 'pedido-1');
+    expect(generarPaqueteMock).toHaveBeenCalledTimes(1);
+    expect(generarPaqueteMock).toHaveBeenCalledWith({ id: 'pedido-1', narrador_id: 'narrador-1' });
+    // el claim (update a 'generando') pasa ANTES que generarPaquete — así un
+    // segundo tick solapado no vuelve a tomar el mismo pedido.
+    expect(llamadasEnOrden).toEqual(['update:generando', 'generarPaquete']);
+  });
+
+  it('sin pedidos pagados, no llama a generarPaquete', async () => {
+    obtenerClienteDbMock.mockReturnValue(
+      construirClienteDbMock({
+        narradores: [],
+        archivosPorNarrador: {},
+        pedidosPagados: [],
+      })
+    );
+
+    await tick();
+
+    expect(generarPaqueteMock).not.toHaveBeenCalled();
+  });
+
+  it('procesa varios pedidos pagados, cada uno reclamado y pasado a generarPaquete', async () => {
+    obtenerClienteDbMock.mockReturnValue(
+      construirClienteDbMock({
+        narradores: [],
+        archivosPorNarrador: {},
+        pedidosPagados: [
+          { id: 'pedido-1', narrador_id: 'narrador-1' },
+          { id: 'pedido-2', narrador_id: 'narrador-2' },
+        ],
+      })
+    );
+
+    await tick();
+
+    expect(generarPaqueteMock).toHaveBeenCalledTimes(2);
+    expect(generarPaqueteMock).toHaveBeenCalledWith({ id: 'pedido-1', narrador_id: 'narrador-1' });
+    expect(generarPaqueteMock).toHaveBeenCalledWith({ id: 'pedido-2', narrador_id: 'narrador-2' });
+  });
+
+  it('si falla el claim (update) de un pedido, no llama a generarPaquete para ese pedido', async () => {
+    const pedidosUpdateMock = vi
+      .fn()
+      .mockResolvedValue({ data: null, error: { message: 'fallo de red' } });
+
+    obtenerClienteDbMock.mockReturnValue(
+      construirClienteDbMock({
+        narradores: [],
+        archivosPorNarrador: {},
+        pedidosPagados: [{ id: 'pedido-1', narrador_id: 'narrador-1' }],
+        pedidosUpdateMock,
+      })
+    );
+
+    await expect(tick()).resolves.toBeUndefined();
+
+    expect(generarPaqueteMock).not.toHaveBeenCalled();
   });
 });
