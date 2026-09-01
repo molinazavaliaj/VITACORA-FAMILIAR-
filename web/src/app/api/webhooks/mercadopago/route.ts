@@ -36,14 +36,20 @@ export async function POST(request: NextRequest) {
         .eq("estado", "pendiente");
 
       if (error) {
+        // Un error acá es NUESTRO (la base, no la notificación) — devolver
+        // 500 para que MP reintente, en vez de un 200 que lo daría por hecho
+        // y dejaría el pedido cobrado pero marcado "pendiente" para siempre.
         console.error("webhook mercadopago: fallo actualizar el pedido", error);
+        return NextResponse.json({ error: "No se pudo actualizar el pedido." }, { status: 500 });
       }
     }
   } catch (err) {
+    // Esto sí puede ser una notificación irrelevante/mal formada (o un
+    // problema transitorio consultando la API de MP) — acá el 200 es
+    // correcto para no generar reintentos infinitos por algo que no es
+    // culpa nuestra.
     console.error("webhook mercadopago: fallo consultar el pago", err);
   }
 
-  // MP reintenta si no responde 200, así que siempre devolvemos 200 acá
-  // (incluso ante errores nuestros) para no generar reintentos infinitos.
   return NextResponse.json({ received: true }, { status: 200 });
 }

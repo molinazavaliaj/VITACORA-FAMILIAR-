@@ -3,6 +3,7 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { crearCheckout } from "@/lib/pagos";
+import { obtenerPrecio } from "@/lib/precios";
 
 const MENSAJE_ERROR_GENERICO = "No pudimos iniciar el pago. Intenta de nuevo.";
 const ESTADOS_QUE_PERMITEN_COMPRA = ["completado", "cerrado_anticipado"];
@@ -111,11 +112,7 @@ export async function POST() {
     pedidoId = pedidoExistente.id;
   } else {
     const proveedor = datosFamilia.region === "ES" ? "stripe" : "mercadopago";
-    const moneda = datosFamilia.region === "ES" ? "EUR" : "ARS";
-    const monto =
-      datosFamilia.region === "ES"
-        ? Number(process.env.PRECIO_EUR || "49")
-        : Number(process.env.PRECIO_ARS || "49999");
+    const { monto, moneda } = obtenerPrecio(datosFamilia.region);
 
     const { data: pedidoCreado, error: errorCrear } = await admin
       .from("pedidos")

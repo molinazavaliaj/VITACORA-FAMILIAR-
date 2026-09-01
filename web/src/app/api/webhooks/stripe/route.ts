@@ -31,7 +31,12 @@ export async function POST(request: NextRequest) {
         .eq("estado", "pendiente");
 
       if (error) {
+        // Un error acá es NUESTRO (la base, no la notificación) — devolver
+        // 500 para que Stripe reintente, en vez de un 200 que lo daría por
+        // hecho y dejaría el pedido cobrado pero marcado "pendiente" para
+        // siempre.
         console.error("webhook stripe: fallo actualizar el pedido", error);
+        return NextResponse.json({ error: "No se pudo actualizar el pedido." }, { status: 500 });
       }
     }
   }

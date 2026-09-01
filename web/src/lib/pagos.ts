@@ -1,5 +1,6 @@
 import Stripe from "stripe";
 import { MercadoPagoConfig, Preference } from "mercadopago";
+import { obtenerPrecio } from "@/lib/precios";
 
 // Crea el link de pago (Stripe para ES, Mercado Pago para AR). Los clientes
 // de cada SDK se instancian recién acá adentro para que las variables de
@@ -14,7 +15,7 @@ export async function crearCheckout(pedido: Pedido): Promise<{ urlPago: string }
 
   if (pedido.region === "ES") {
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
-    const precioEur = Number(process.env.PRECIO_EUR || "49");
+    const { monto: precioEur } = obtenerPrecio("ES");
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
@@ -23,7 +24,10 @@ export async function crearCheckout(pedido: Pedido): Promise<{ urlPago: string }
         {
           price_data: {
             currency: "eur",
-            unit_amount: precioEur * 100,
+            // Math.round: precios con decimales (19.99) dan un *100 no entero
+            // por coma flotante (1998.9999999999998) — Stripe exige centavos
+            // como entero.
+            unit_amount: Math.round(precioEur * 100),
             product_data: { name: NOMBRE_PRODUCTO },
           },
           quantity: 1,
@@ -41,7 +45,7 @@ export async function crearCheckout(pedido: Pedido): Promise<{ urlPago: string }
     return { urlPago: session.url };
   }
 
-  const precioArs = process.env.PRECIO_ARS || "49999";
+  const { monto: precioArs } = obtenerPrecio("AR");
   const client = new MercadoPagoConfig({ accessToken: process.env.MP_ACCESS_TOKEN! });
 
   const preference = await new Preference(client).create({
@@ -51,7 +55,7 @@ export async function crearCheckout(pedido: Pedido): Promise<{ urlPago: string }
           id: "vitacora",
           title: NOMBRE_PRODUCTO,
           quantity: 1,
-          unit_price: Number(precioArs),
+          unit_price: precioArs,
           currency_id: "ARS",
         },
       ],

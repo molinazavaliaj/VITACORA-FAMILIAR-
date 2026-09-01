@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
+import { obtenerPrecio } from "@/lib/precios";
 import { BotonComprar } from "./acciones";
 
 const MENSAJE_ERROR_CARGA = "No pudimos cargar la previsualización. Actualiza la página en un momento.";
@@ -90,10 +91,8 @@ export default async function Comprar() {
   const nombresArchivos = new Set((archivos ?? []).map((archivo) => archivo.name));
   const previewListo = nombresArchivos.has("preview.pdf");
 
-  const precio =
-    datosFamilia.region === "ES"
-      ? `${process.env.PRECIO_EUR || "49"} €`
-      : `$${process.env.PRECIO_ARS || "49999"} ARS`;
+  const { monto: montoPrecio, moneda: monedaPrecio } = obtenerPrecio(datosFamilia.region);
+  const precio = monedaPrecio === "EUR" ? `${montoPrecio} €` : `$${montoPrecio} ARS`;
 
   return (
     <div className="flex flex-1 flex-col items-center bg-white px-6 py-16 text-zinc-900">

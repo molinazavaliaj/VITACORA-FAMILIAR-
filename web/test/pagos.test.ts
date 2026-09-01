@@ -163,6 +163,21 @@ describe('crearCheckout', () => {
     expect(args.body.back_urls.failure).toBe('https://vitacorafamiliar.com/comprar');
     expect(MercadoPagoConfig).toHaveBeenCalledWith({ accessToken: 'TEST-token' });
   });
+
+  it('redondea los centavos de un precio con decimales (evita el error de coma flotante de *100)', async () => {
+    process.env.PRECIO_EUR = '19.99';
+    const mockCreate = vi.fn().mockResolvedValue({ url: 'https://checkout.stripe.com/xyz' });
+    (Stripe as unknown as ReturnType<typeof vi.fn>).mockImplementation(function () {
+      return { checkout: { sessions: { create: mockCreate } } };
+    });
+
+    await crearCheckout({ id: 'pedido-3', region: 'ES', email: 'martina@test.com' });
+
+    const args = mockCreate.mock.calls[0][0] as {
+      line_items: { price_data: { unit_amount: number } }[];
+    };
+    expect(args.line_items[0].price_data.unit_amount).toBe(1999);
+  });
 });
 
 // --- POST /api/webhooks/stripe -------------------------------------------
@@ -220,6 +235,30 @@ describe('POST /api/webhooks/stripe', () => {
     expect(respuesta.status).toBe(400);
     expect(admin.from).not.toHaveBeenCalled();
   });
+
+  it('si falla la actualización del pedido en la base responde 500 (para que Stripe reintente)', async () => {
+    const evento = {
+      type: 'checkout.session.completed',
+      data: { object: { id: 'cs_test_2', metadata: { pedido_id: 'pedido-5' } } },
+    };
+    const mockConstructEvent = vi.fn().mockReturnValue(evento);
+    (Stripe as unknown as ReturnType<typeof vi.fn>).mockImplementation(function () {
+      return { webhooks: { constructEvent: mockConstructEvent } };
+    });
+    const admin = crearAdminFake({
+      pedidos: [{ data: null, error: { message: 'fallo de conexion' } }],
+    });
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+
+    const request = {
+      text: async () => JSON.stringify(evento),
+      headers: { get: (k: string) => (k === 'stripe-signature' ? 'firma-valida' : null) },
+    } as never;
+
+    const respuesta = await POST_WEBHOOK_STRIPE(request);
+
+    expect(respuesta.status).toBe(500);
+  });
 });
 
 // --- POST /api/webhooks/mercadopago ---------------------------------------
@@ -269,6 +308,28 @@ describe('POST /api/webhooks/mercadopago', () => {
 
     expect(respuesta.status).toBe(200);
     expect(admin.from).not.toHaveBeenCalled();
+  });
+
+  it('si falla la actualización del pedido en la base responde 500 (para que MP reintente)', async () => {
+    const mockPaymentGet = vi
+      .fn()
+      .mockResolvedValue({ id: 999, status: 'approved', external_reference: 'pedido-6' });
+    (Payment as unknown as ReturnType<typeof vi.fn>).mockImplementation(function () {
+      return { get: mockPaymentGet };
+    });
+    const admin = crearAdminFake({
+      pedidos: [{ data: null, error: { message: 'fallo de conexion' } }],
+    });
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+
+    const request = {
+      url: 'https://vitacorafamiliar.com/api/webhooks/mercadopago?data.id=999&type=payment',
+      json: async () => ({}),
+    } as never;
+
+    const respuesta = await POST_WEBHOOK_MP(request);
+
+    expect(respuesta.status).toBe(500);
   });
 });
 
