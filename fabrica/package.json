@@ -7,6 +7,7 @@
     "dev": "tsx watch src/worker.ts",
     "test": "vitest run",
     "build": "tsc",
+    "set-dorado": "tsx src/cargar-set-dorado.ts",
     "start": "node dist/worker.js"
   },
   "dependencies": {
