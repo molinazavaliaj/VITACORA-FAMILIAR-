@@ -510,7 +510,7 @@ git commit -m "feat(entrevistador): transcripcion whisper con duracion"
 
 **Interfaces:**
 - Produces (todas usan `claude-opus-5` vía `@anthropic-ai/sdk`):
-  - `generarReconocimiento(comoLeDicen: string, transcripcionAyer: string, preguntaDeHoy: string, historiaHastaAhora: string): Promise<string>` — 1-2 frases cálidas y específicas: reconoce lo de ayer Y, si el narrador ya adelantó el tema de la pregunta de hoy en cualquier respuesta anterior, lo referencia ("usted ya me adelantó algo de esto cuando contó...") para que la pregunta fija se sienta personal. `historiaHastaAhora` = todas las transcripciones previas concatenadas (entran cómodas en contexto).
+  - `generarReconocimiento(comoLeDicen: string, transcripcionAyer: string, preguntaDeHoy: string, historiaHastaAhora: string, arbol: Record<string, string>): Promise<string>` (`arbol` = `narrador.contexto.arbol ?? {}`) — 1-2 frases cálidas y específicas: reconoce lo de ayer Y, si el narrador ya adelantó el tema de la pregunta de hoy en cualquier respuesta anterior, lo referencia ("usted ya me adelantó algo de esto cuando contó...") para que la pregunta fija se sienta personal. `historiaHastaAhora` = todas las transcripciones previas concatenadas (entran cómodas en contexto).
   - `evaluarRespuesta(pregunta: string, transcripcion: string, duracionSegundos: number): Promise<{ suficiente: boolean; repregunta?: string }>` — `suficiente: false` solo si es corta (<40 s) O superficial; incluye la repregunta lista para enviar.
   - `detectarIntencion(texto: string): Promise<'quiere_parar' | 'normal'>` — para mensajes de texto del narrador.
 
@@ -575,12 +575,13 @@ function textoDe(respuesta: Anthropic.Message): string {
 
 export async function generarReconocimiento(
   comoLeDicen: string, transcripcionAyer: string, preguntaDeHoy: string, historiaHastaAhora: string,
+  arbol: Record<string, string> = {},
 ): Promise<string> {
   const respuesta = await cliente.messages.create({
     model: MODELO, max_tokens: 400, system: ESTILO,
     messages: [{
       role: 'user',
-      content: `Ayer ${comoLeDicen} contó esto en la entrevista:\n\n"${transcripcionAyer}"\n\nLa pregunta que le vas a hacer HOY es: "${preguntaDeHoy}"\n\nTodo lo que contó hasta ahora en las entrevistas anteriores:\n${historiaHastaAhora}\n\nEscribí la apertura del mensaje de hoy (1 o 2 frases, máximo 50 palabras, sin saludo ni comillas):\n1. Un reconocimiento cálido y ESPECÍFICO de algo que contó ayer (un detalle concreto, no una generalidad).\n2. SOLO si en alguna respuesta anterior ya adelantó el tema de la pregunta de hoy: sumá una frase que lo referencie ("usted ya me adelantó algo de esto cuando me contó de...") para que hoy lo cuente con calma y desde el principio. Si no lo adelantó, no agregues nada.`,
+      content: `Ayer ${comoLeDicen} contó esto en la entrevista:\n\n"${transcripcionAyer}"\n\nLa pregunta que le vas a hacer HOY es: "${preguntaDeHoy}"\n\nTodo lo que contó hasta ahora en las entrevistas anteriores:\n${historiaHastaAhora}\n\nLas personas de su vida según su familia (usá los nombres con naturalidad cuando vengan al caso, y SIEMPRE con esta escritura): ${JSON.stringify(arbol)}\n\nEscribí la apertura del mensaje de hoy (1 o 2 frases, máximo 50 palabras, sin saludo ni comillas):\n1. Un reconocimiento cálido y ESPECÍFICO de algo que contó ayer (un detalle concreto, no una generalidad).\n2. SOLO si en alguna respuesta anterior ya adelantó el tema de la pregunta de hoy: sumá una frase que lo referencie ("usted ya me adelantó algo de esto cuando me contó de...") para que hoy lo cuente con calma y desde el principio. Si no lo adelantó, no agregues nada.`,
     }],
   });
   return textoDe(respuesta);
