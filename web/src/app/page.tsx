@@ -5,7 +5,7 @@ const PASOS = [
     numero: "1",
     titulo: "Lo registrás",
     texto:
-      "Nos contás quién es él, cómo le dicen y a qué hora del día prefiere que lo llamemos.",
+      "Nos cuentas quién es él, cómo le dicen y a qué hora del día prefiere que lo llamemos.",
   },
   {
     numero: "2",

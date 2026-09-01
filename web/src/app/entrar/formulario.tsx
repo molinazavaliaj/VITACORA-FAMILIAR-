@@ -26,7 +26,7 @@ export default function FormularioEntrar({ urlBase }: { urlBase: string }) {
     setEnviando(false);
 
     if (errorEnvio) {
-      setError("No pudimos enviar el enlace. Probá de nuevo en un momento.");
+      setError("No pudimos enviar el enlace. Prueba de nuevo en un momento.");
       return;
     }
 
@@ -36,7 +36,7 @@ export default function FormularioEntrar({ urlBase }: { urlBase: string }) {
   return (
     <div className="flex flex-1 flex-col items-center justify-center bg-white px-6 py-24 text-zinc-900">
       <div className="w-full max-w-sm text-center">
-        <h1 className="text-2xl font-semibold text-zinc-900">Entrá</h1>
+        <h1 className="text-2xl font-semibold text-zinc-900">Entra</h1>
         <p className="mt-2 text-sm leading-relaxed text-zinc-600">
           Te mandamos un enlace mágico a tu correo. Sin contraseñas.
         </p>
