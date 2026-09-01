@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { cargarConfig } from '../config.js';
+import { extraerTexto } from './comun.js';
 
 // El prompt del capítulo — el corazón del producto. Se usa textual, no se
 // resume ni se reordena: cada palabra acá decide si el libro suena a él o
@@ -38,13 +39,6 @@ REGLAS — este libro es SU voz, no la tuya:
    «cabe destacar». Si una frase la podría haber escrito un robot, sacala.
 
 Devolvé SOLO el texto del capítulo en Markdown (sin el título del capítulo).`;
-
-function extraerTexto(bloques: Array<{ type: string; text?: string }>): string {
-  return bloques
-    .filter((bloque): bloque is { type: 'text'; text: string } => bloque.type === 'text' && typeof bloque.text === 'string')
-    .map((bloque) => bloque.text)
-    .join('\n');
-}
 
 /**
  * Escribe un capítulo del libro con la voz del narrador. `materiales` son las

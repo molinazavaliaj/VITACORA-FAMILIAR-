@@ -6,20 +6,13 @@ import { escribirCapitulo } from './escribir-capitulo.js';
 import { construirHtmlLibro } from './plantilla-html.js';
 import { generarAudiolibro } from '../audio/audiolibro.js';
 import type { Estructura } from './estructura.js';
-import { armarMaterial, descargarJson, formatearNombresCorregidos, type Nombres } from './comun.js';
+import { armarMaterial, descargarJson, extraerTexto, formatearNombresCorregidos, type Nombres } from './comun.js';
 
 const RUTA_ESTRUCTURA = (narradorId: string) => `${narradorId}/paquete/estructura.json`;
 const RUTA_NOMBRES = (narradorId: string) => `${narradorId}/paquete/nombres.json`;
 const RUTA_LIBRO_PDF = (narradorId: string) => `${narradorId}/paquete/libro.pdf`;
 
 const INSTRUCCION_EDITOR = `Revisá coherencia entre capítulos, agregá referencias cruzadas naturales donde ayuden, y escribí la apertura «A mis lectores» y el cierre, ambos en su voz, a partir de toda la historia. Armá también la página «Sus frases»: sus dichos, refranes y muletillas de siempre, tal cual los dice él — los que respondió cuando se le preguntó y los que se le escaparon a lo largo de todas las entrevistas. Devolvé el libro completo en Markdown.`;
-
-function extraerTexto(bloques: Array<{ type: string; text?: string }>): string {
-  return bloques
-    .filter((bloque): bloque is { type: 'text'; text: string } => bloque.type === 'text' && typeof bloque.text === 'string')
-    .map((bloque) => bloque.text)
-    .join('\n');
-}
 
 /**
  * La pasada de editor: una sola llamada con el libro entero (todos los

@@ -147,5 +147,13 @@ export async function generarAudiolibro(
     .upload(rutaCompleto, bufferCompleto, { contentType: 'audio/mpeg', upsert: true });
   if (errorCompleto) throw new Error(`No se pudo subir ${rutaCompleto}: ${errorCompleto.message}`);
 
-  return { capitulos: rutasCapitulos, bonus: rutaBonus, completo: rutaCompleto };
+  // La clave `bonus` va del todo ausente cuando no hay saludos — no
+  // `bonus: undefined` — para que el pedido en la base (`audiolibro_paths`
+  // jsonb) no guarde una clave fantasma que después alguien lea como "sí
+  // hay bonus, pero vacío".
+  return {
+    capitulos: rutasCapitulos,
+    completo: rutaCompleto,
+    ...(rutaBonus ? { bonus: rutaBonus } : {}),
+  };
 }

@@ -8,6 +8,19 @@ import { obtenerClienteDb, type Pregunta, type Respuesta } from '../db.js';
 
 export type Nombres = { correcciones: { original: string; corregido: string }[] };
 
+/**
+ * Junta los bloques de texto de una respuesta del SDK de Anthropic
+ * (`finalMessage().content`) en un solo string. Lo usan todas las llamadas
+ * a `claude-fable-5` de la fábrica (capítulo, editor, detección de
+ * entidades) — el shape de la respuesta es siempre el mismo.
+ */
+export function extraerTexto(bloques: Array<{ type: string; text?: string }>): string {
+  return bloques
+    .filter((bloque): bloque is { type: 'text'; text: string } => bloque.type === 'text' && typeof bloque.text === 'string')
+    .map((bloque) => bloque.text)
+    .join('\n');
+}
+
 export function textoRespuesta(r: Pick<Respuesta, 'transcripcion' | 'texto_directo'>): string | null {
   const texto = r.transcripcion?.trim() || r.texto_directo;
   return texto && texto.trim() !== '' ? texto : null;

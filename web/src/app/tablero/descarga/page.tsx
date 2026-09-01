@@ -134,7 +134,7 @@ function SinPedido() {
     <Contenedor>
       <h1 className="text-2xl font-semibold text-zinc-900">Todavía no compraste el libro</h1>
       <p className="mt-2 text-sm leading-relaxed text-zinc-600">
-        Cuando lo compres, tus descargas van a aparecer acá.
+        Cuando lo compres, tus descargas van a aparecer aquí.
       </p>
       <Link
         href="/comprar"
@@ -151,7 +151,7 @@ function PagoIncompleto() {
     <Contenedor>
       <h1 className="text-2xl font-semibold text-zinc-900">Tu pago no se completó</h1>
       <p className="mt-2 text-sm leading-relaxed text-zinc-600">
-        Podés intentar de nuevo cuando quieras — no perdiste nada de lo ya armado.
+        Puedes intentar de nuevo cuando quieras — no perdiste nada de lo ya armado.
       </p>
       <Link
         href="/comprar"
@@ -205,7 +205,7 @@ function Entregado({
         El libro y el audiolibro de {comoLeDicen}
       </h1>
       <p className="mt-2 text-sm leading-relaxed text-zinc-600">
-        Ya está listo. Queda acá para siempre — volvé cuando quieras.
+        Ya está listo. Queda aquí para siempre — vuelve cuando quieras.
       </p>
 
       <div className="mt-8 flex flex-col gap-3">
