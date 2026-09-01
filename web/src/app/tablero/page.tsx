@@ -8,6 +8,8 @@ const TOTAL_PREGUNTAS = 30;
 const MINIMO_RESPUESTAS_CIERRE_ANTICIPADO = 10;
 const ESTADOS_QUE_PERMITEN_CIERRE = ["activo", "pausado"];
 
+const MENSAJE_ERROR_CARGA = "No pudimos cargar el tablero. Actualiza la página en un momento.";
+
 const ESTADO_EN_HUMANO: Record<string, string> = {
   invitado: "Le mandamos la invitación, falta que acepte",
   acepto: "Aceptó — pronto le llega la primera pregunta",
@@ -71,22 +73,32 @@ export default async function Tablero() {
 
   const admin = crearClienteServidor();
 
-  const { data: familia } = await admin
+  const { data: familia, error: errorFamilia } = await admin
     .from("familias")
     .select("id")
     .eq("auth_user_id", user.id)
     .maybeSingle();
 
+  if (errorFamilia) {
+    console.error("tablero: fallo la busqueda de familia", errorFamilia);
+    return <EstadoError />;
+  }
+
   if (!familia) {
     redirect("/registro");
   }
 
-  const { data: narradores } = await admin
+  const { data: narradores, error: errorNarradores } = await admin
     .from("narradores")
     .select("id, nombre, como_le_dicen, estado, dia_actual, alerta_silencio")
     .eq("familia_id", (familia as { id: string }).id)
     .order("created_at", { ascending: false })
     .limit(1);
+
+  if (errorNarradores) {
+    console.error("tablero: fallo la busqueda de narradores", errorNarradores);
+    return <EstadoError />;
+  }
 
   const narrador = (narradores as Narrador[] | null)?.[0];
 
@@ -94,19 +106,31 @@ export default async function Tablero() {
     redirect("/registro");
   }
 
-  const [{ data: preguntasFijas }, { data: preguntasNarrador }, { data: respuestas }] =
-    await Promise.all([
-      admin.from("preguntas").select("narrador_id, orden, texto, capitulo").is("narrador_id", null),
-      admin
-        .from("preguntas")
-        .select("narrador_id, orden, texto, capitulo")
-        .eq("narrador_id", narrador.id),
-      admin
-        .from("respuestas")
-        .select("id, pregunta_orden, audio_path, texto_directo, es_repregunta, recibido_at")
-        .eq("narrador_id", narrador.id)
-        .order("pregunta_orden", { ascending: true }),
-    ]);
+  const [
+    { data: preguntasFijas, error: errorPreguntasFijas },
+    { data: preguntasNarrador, error: errorPreguntasNarrador },
+    { data: respuestas, error: errorRespuestas },
+  ] = await Promise.all([
+    admin.from("preguntas").select("narrador_id, orden, texto, capitulo").is("narrador_id", null),
+    admin
+      .from("preguntas")
+      .select("narrador_id, orden, texto, capitulo")
+      .eq("narrador_id", narrador.id),
+    admin
+      .from("respuestas")
+      .select("id, pregunta_orden, audio_path, texto_directo, es_repregunta, recibido_at")
+      .eq("narrador_id", narrador.id)
+      .order("pregunta_orden", { ascending: true }),
+  ]);
+
+  if (errorPreguntasFijas || errorPreguntasNarrador || errorRespuestas) {
+    console.error("tablero: fallo la carga de preguntas/respuestas", {
+      errorPreguntasFijas,
+      errorPreguntasNarrador,
+      errorRespuestas,
+    });
+    return <EstadoError />;
+  }
 
   const preguntasPorOrden = new Map<number, Pregunta>();
   for (const pregunta of (preguntasFijas as Pregunta[] | null) ?? []) {
@@ -195,6 +219,14 @@ export default async function Tablero() {
 
         {puedeSolicitarCierre ? <CierreAnticipado narradorId={narrador.id} /> : null}
       </div>
+    </div>
+  );
+}
+
+function EstadoError() {
+  return (
+    <div className="flex flex-1 flex-col items-center justify-center bg-white px-6 py-16 text-center text-zinc-900">
+      <p className="text-sm text-zinc-600">{MENSAJE_ERROR_CARGA}</p>
     </div>
   );
 }
