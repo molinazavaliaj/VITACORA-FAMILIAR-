@@ -63,6 +63,11 @@ const HORA_PREFERIDA_DEFAULT = '10:00';
 const ANIO_MIN = 1900;
 const ANIO_MAX = 2015;
 
+// E.164: '+' seguido de 8 a 15 dígitos. Suficiente para rechazar entradas
+// sin números (texto suelto) o con muy pocos dígitos como para ser un
+// WhatsApp real, sin ser estricto sobre el plan de numeración exacto.
+const TELEFONO_E164 = /^\+\d{8,15}$/;
+
 export function normalizarTelefono(telefono: string, region: Region): string {
   const limpio = telefono.trim().replace(/[\s-]/g, '');
   if (limpio.startsWith('+')) return limpio;
@@ -117,6 +122,14 @@ export function validarYConstruir(body: RegistroBody): ResultadoValidacion {
   }
 
   const telefono = normalizarTelefono(narrador.telefonoWhatsapp, region);
+  if (!TELEFONO_E164.test(telefono)) {
+    return {
+      ok: false,
+      status: 400,
+      mensaje: 'El WhatsApp no parece un número válido. Revísalo e intenta de nuevo.',
+    };
+  }
+
   const zonaHoraria = esNoVacio(narrador.zonaHoraria)
     ? narrador.zonaHoraria
     : REGION_CONFIG[region].zonaHoraria;

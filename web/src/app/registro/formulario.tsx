@@ -114,7 +114,7 @@ export default function FormularioRegistro() {
                 className={inputClase}
               />
             </Campo>
-            <Campo etiqueta="Qué sos del narrador">
+            <Campo etiqueta="Qué es el narrador de ti (hija, nieto, sobrina...)">
               <input
                 type="text"
                 required

@@ -123,6 +123,32 @@ describe('validarYConstruir', () => {
     }
   });
 
+  it('rechaza un WhatsApp que no tiene dígitos (solo letras)', () => {
+    const resultado = validarYConstruir(
+      cuerpoValido({ telefonoWhatsapp: 'abcdefgh' }) as never,
+    );
+    expect(resultado.ok).toBe(false);
+    if (!resultado.ok) expect(resultado.status).toBe(400);
+  });
+
+  it('rechaza un WhatsApp con muy pocos dígitos', () => {
+    const resultado = validarYConstruir(
+      cuerpoValido({ telefonoWhatsapp: '123' }) as never,
+    );
+    expect(resultado.ok).toBe(false);
+    if (!resultado.ok) expect(resultado.status).toBe(400);
+  });
+
+  it('acepta un WhatsApp válido normalizado', () => {
+    const resultado = validarYConstruir(
+      cuerpoValido({ telefonoWhatsapp: '1155551234' }, { region: 'AR' }) as never,
+    );
+    expect(resultado.ok).toBe(true);
+    if (resultado.ok) {
+      expect(resultado.narrador.telefono_whatsapp).toBe('+5491155551234');
+    }
+  });
+
   it('usa la hora preferida por defecto 10:00 si no viene', () => {
     const resultado = validarYConstruir(cuerpoValido() as never);
     expect(resultado.ok).toBe(true);
