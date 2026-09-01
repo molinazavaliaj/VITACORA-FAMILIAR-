@@ -10,7 +10,8 @@ const mocks = vi.hoisted(() => ({
   evaluarRespuesta: vi.fn(),
   detectarIntencion: vi.fn(),
   generarPreguntasAdaptativas: vi.fn(),
-  estado: { narrador: null as any, enviosRepregunta: [] as any[], capturas: [] as any[] },
+  cerrarBitacora: vi.fn(),
+  estado: { narrador: null as any, enviosRepregunta: [] as any[], capturas: [] as any[], ultimoOrden: 30 },
 }));
 
 // Cliente de base falso: un "constructor de consultas" encadenable que resuelve
@@ -21,7 +22,7 @@ vi.mock('../src/db/cliente.js', () => {
     if (op === 'insert' || op === 'update') return { data: null, error: null };
     if (tabla === 'narradores') return { data: mocks.estado.narrador };
     if (tabla === 'envios') return { data: mocks.estado.enviosRepregunta };
-    if (tabla === 'preguntas') return { data: { texto: 'PREGUNTA_MOCK' } };
+    if (tabla === 'preguntas') return { data: { texto: 'PREGUNTA_MOCK', orden: mocks.estado.ultimoOrden } };
     return { data: null };
   }
   function crearBuilder(tabla: string) {
@@ -48,6 +49,7 @@ vi.mock('../src/ia/cerebro.js', () => ({
   evaluarRespuesta: mocks.evaluarRespuesta, detectarIntencion: mocks.detectarIntencion, generarReconocimiento: vi.fn(),
 }));
 vi.mock('../src/ia/adaptativas.js', () => ({ generarPreguntasAdaptativas: mocks.generarPreguntasAdaptativas }));
+vi.mock('../src/flujo/cierre.js', () => ({ cerrarBitacora: mocks.cerrarBitacora }));
 
 import { procesarEntrante } from '../src/flujo/procesar.js';
 
@@ -59,7 +61,8 @@ beforeEach(() => {
   mocks.estado.narrador = null;
   mocks.estado.enviosRepregunta = [];
   mocks.estado.capturas = [];
-  for (const fn of [mocks.enviarTexto, mocks.descargarAudio, mocks.guardarRespuestaAudio, mocks.transcribirYActualizar, mocks.evaluarRespuesta, mocks.detectarIntencion, mocks.generarPreguntasAdaptativas]) fn.mockReset();
+  mocks.estado.ultimoOrden = 30;
+  for (const fn of [mocks.enviarTexto, mocks.descargarAudio, mocks.guardarRespuestaAudio, mocks.transcribirYActualizar, mocks.evaluarRespuesta, mocks.detectarIntencion, mocks.generarPreguntasAdaptativas, mocks.cerrarBitacora]) fn.mockReset();
   mocks.enviarTexto.mockResolvedValue('wamid.mock');
   mocks.descargarAudio.mockResolvedValue(Buffer.from('audio-falso'));
   mocks.guardarRespuestaAudio.mockResolvedValue({ id: 'r-audio', audioPath: 'p' });
@@ -111,6 +114,20 @@ describe('procesarEntrante', () => {
     const m: MensajeEntrante = { telefono: TEL, tipo: 'audio', mediaId: 'media-1', waMessageId: 'w' };
     await procesarEntrante(m);
     expect(mocks.generarPreguntasAdaptativas).not.toHaveBeenCalled();
+  });
+
+  it('(f) responder la última pregunta dispara el cierre con los saludos', async () => {
+    mocks.estado.narrador = narradorEn('activo', 30);
+    const m: MensajeEntrante = { telefono: TEL, tipo: 'audio', mediaId: 'media-1', waMessageId: 'w' };
+    await procesarEntrante(m);
+    expect(mocks.cerrarBitacora).toHaveBeenCalledWith('n1');
+  });
+
+  it('no cierra si todavía quedan preguntas por delante', async () => {
+    mocks.estado.narrador = narradorEn('activo', 26);
+    const m: MensajeEntrante = { telefono: TEL, tipo: 'audio', mediaId: 'media-1', waMessageId: 'w' };
+    await procesarEntrante(m);
+    expect(mocks.cerrarBitacora).not.toHaveBeenCalled();
   });
 
   it('(d) un texto "no quiero seguir" pausa al narrador', async () => {

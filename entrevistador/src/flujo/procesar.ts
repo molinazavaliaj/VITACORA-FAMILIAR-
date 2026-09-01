@@ -6,6 +6,7 @@ import { guardarRespuestaAudio } from '../db/respuestas.js';
 import { transcribirYActualizar } from '../ia/transcribir.js';
 import { evaluarRespuesta, detectarIntencion } from '../ia/cerebro.js';
 import { generarPreguntasAdaptativas } from '../ia/adaptativas.js';
+import { cerrarBitacora } from './cierre.js';
 
 const ULTIMA_FIJA = 25; // después de la 25 vienen las 5 adaptativas
 
@@ -37,6 +38,16 @@ async function textoDePregunta(narradorId: string, orden: number): Promise<strin
     .order('narrador_id', { nullsFirst: false })
     .limit(1).maybeSingle();
   return (data as { texto?: string } | null)?.texto ?? '';
+}
+
+/** ¿Este orden es la última pregunta que existe para este narrador? */
+async function esLaUltimaPregunta(narradorId: string, orden: number): Promise<boolean> {
+  if (orden < ULTIMA_FIJA) return false; // atajo: antes de la 25 nunca es la última
+  const { data } = await db.from('preguntas').select('orden')
+    .or(`narrador_id.eq.${narradorId},narrador_id.is.null`)
+    .order('orden', { ascending: false }).limit(1).maybeSingle();
+  const ultima = (data as { orden?: number } | null)?.orden;
+  return ultima !== undefined && orden >= ultima;
 }
 
 async function marcarRespondido(narradorId: string): Promise<void> {
@@ -158,6 +169,7 @@ async function trasResponder(
   // y genera las 5 preguntas finales a medida (órdenes 26-30).
   if (orden === ULTIMA_FIJA) await generarPreguntasAdaptativas(narrador.id);
 
-  // Paso 7: al responder la última pregunta, cerrar la bitácora y entregar los saludos.
-  // TODO Task 10: if (esLaUltima(orden)) await cerrarBitacora(narrador.id);
+  // Paso 7: si acaba de responder la última pregunta que existe para él,
+  // se despide y le entrega los saludos que grabó su familia.
+  if (await esLaUltimaPregunta(narrador.id, orden)) await cerrarBitacora(narrador.id);
 }
