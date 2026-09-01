@@ -42,6 +42,23 @@ export async function evaluarRespuesta(
   return JSON.parse(textoDe(respuesta));
 }
 
+/**
+ * Reemplaza una pregunta fija cuyo capítulo no aplica a esta vida
+ * (ej. "Los hijos" si no tuvo hijos): pregunta por lo más rico que ya contó.
+ */
+export async function generarPreguntaReemplazo(
+  comoLeDicen: string, historiaCompleta: string, capitulos: string[], capituloQueNoAplica: string,
+): Promise<{ texto: string; capitulo: string }> {
+  const respuesta = await cliente.messages.create({
+    model: MODELO, max_tokens: 500, system: ESTILO,
+    messages: [{
+      role: 'user',
+      content: `Sos el biógrafo de ${comoLeDicen}. Esto es lo que contó hasta ahora:\n\n${historiaCompleta}\n\nLa pregunta que tocaba hoy era del capítulo «${capituloQueNoAplica}», que NO aplica a su vida. Necesitás reemplazarla por una pregunta que aproveche mejor este día.\n\nBuscá en lo que ya contó: una persona que nombró y no exploró, una época con huecos, algo que claramente disfrutó contar y da para más. La pregunta debe sonar a que LO ESCUCHASTE (referí lo que él contó), tratarlo de usted, y ser una sola pregunta clara. Jamás menciones el tema que no aplica ni que estás reemplazando nada.\n\nCapítulos disponibles del libro: ${capitulos.join(', ')}.\n\nRespondé SOLO con JSON: {"texto": "...", "capitulo": "..."}`,
+    }],
+  });
+  return JSON.parse(textoDe(respuesta));
+}
+
 export async function detectarIntencion(texto: string): Promise<'quiere_parar' | 'normal'> {
   const respuesta = await cliente.messages.create({
     model: MODELO, max_tokens: 50,
