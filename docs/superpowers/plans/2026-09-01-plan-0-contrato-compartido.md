@@ -262,18 +262,9 @@ git commit -m "feat: bucket privado de audios con convencion de carpetas"
 **Interfaces:**
 - Produces: filas en `preguntas` con `narrador_id = null`, `orden` 1..25, `tipo = 'fija'`. El entrevistador las lee por `orden`; la web lee `capitulo` para armar el índice del libro.
 
-- [ ] **Step 1: Escribir el seed con las preguntas provisionales**
+- [ ] **Step 1: El seed definitivo ya está escrito**
 
-Las 25 preguntas definitivas salen de la sesión de brainstorming pendiente (spec §10.1) y reemplazarán este archivo **con el mismo formato**. Para desbloquear el desarrollo, se cargan 3 provisionales reales que permiten probar todo el flujo de punta a punta:
-
-```sql
--- PROVISIONAL: 3 preguntas para desarrollo. La sesión de brainstorming de preguntas
--- reemplaza este archivo por las 25 definitivas (mismo formato, orden 1..25).
-insert into preguntas (narrador_id, orden, texto, capitulo, tipo) values
-  (null, 1, 'Cuénteme de la casa donde pasó su infancia. ¿Cómo era? ¿Qué es lo primero que le viene a la memoria cuando piensa en ella?', 'Infancia', 'fija'),
-  (null, 2, '¿Cómo eran su mamá y su papá? Cuénteme cómo los recuerda, qué hacían, cómo era vivir con ellos.', 'La familia', 'fija'),
-  (null, 3, '¿Cómo conoció al amor de su vida? Cuénteme ese día, dónde fue, qué pensó cuando la/lo vio.', 'El amor', 'fija');
-```
+Las 25 preguntas definitivas fueron firmadas por los dos socios en la sesión de brainstorming del 2026-09-01 y ya viven en `supabase/seed.sql` (8 capítulos: La infancia ×4, Las raíces ×3, La juventud ×5, El amor ×3, El oficio ×3, Los hijos ×3, Las pruebas ×2, La sabiduría ×2). No tocar los textos sin acuerdo de ambos socios.
 
 - [ ] **Step 2: Aplicar el seed**
 
