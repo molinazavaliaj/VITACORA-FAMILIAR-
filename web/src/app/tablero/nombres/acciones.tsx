@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export type EntidadPrefill = {
   texto: string;
@@ -42,13 +43,7 @@ export function FormularioNombres({ entidades }: { entidades: EntidadPrefill[] }
   const [error, setError] = useState<string | null>(null);
   const [guardado, setGuardado] = useState(false);
 
-  if (entidades.length === 0) {
-    return (
-      <p className="text-sm text-zinc-500">
-        Todavía no detectamos nombres para revisar. En cuanto arme el libro, van a aparecer acá.
-      </p>
-    );
-  }
+  const sinEntidades = entidades.length === 0;
 
   async function guardar() {
     setGuardando(true);
@@ -82,29 +77,36 @@ export function FormularioNombres({ entidades }: { entidades: EntidadPrefill[] }
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-5">
-        {entidades.map((entidad, indice) => (
-          <div key={indice}>
-            <label className="text-sm font-medium text-zinc-900" htmlFor={`nombre-${indice}`}>
-              {entidad.texto}
-            </label>
-            <p className="text-xs text-zinc-500">{entidad.contexto}</p>
-            <input
-              id={`nombre-${indice}`}
-              type="text"
-              value={valores[indice] ?? ""}
-              onChange={(evento) =>
-                setValores((actual) => {
-                  const copia = [...actual];
-                  copia[indice] = evento.target.value;
-                  return copia;
-                })
-              }
-              className="mt-1 h-10 w-full rounded-md border border-zinc-300 px-3 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none"
-            />
-          </div>
-        ))}
-      </div>
+      {sinEntidades ? (
+        <p className="text-sm text-zinc-500">
+          Todavía no detectamos nombres para revisar. Puedes confirmar igual para seguir adelante
+          — si más adelante aparece alguno, se puede corregir después.
+        </p>
+      ) : (
+        <div className="flex flex-col gap-5">
+          {entidades.map((entidad, indice) => (
+            <div key={indice}>
+              <label className="text-sm font-medium text-zinc-900" htmlFor={`nombre-${indice}`}>
+                {entidad.texto}
+              </label>
+              <p className="text-xs text-zinc-500">{entidad.contexto}</p>
+              <input
+                id={`nombre-${indice}`}
+                type="text"
+                value={valores[indice] ?? ""}
+                onChange={(evento) =>
+                  setValores((actual) => {
+                    const copia = [...actual];
+                    copia[indice] = evento.target.value;
+                    return copia;
+                  })
+                }
+                className="mt-1 h-10 w-full rounded-md border border-zinc-300 px-3 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none"
+              />
+            </div>
+          ))}
+        </div>
+      )}
 
       <div className="flex items-center gap-3">
         <button
@@ -113,11 +115,20 @@ export function FormularioNombres({ entidades }: { entidades: EntidadPrefill[] }
           disabled={guardando}
           className="h-10 rounded-full bg-zinc-900 px-5 text-sm font-medium text-white transition-colors hover:bg-zinc-700 disabled:opacity-60"
         >
-          {guardando ? "Guardando..." : "Guardar"}
+          {guardando ? "Guardando..." : sinEntidades ? "Confirmar sin correcciones" : "Guardar"}
         </button>
         {guardado ? <span className="text-sm text-zinc-600">Guardado ✓</span> : null}
         {error ? <span className="text-sm text-red-600">{error}</span> : null}
       </div>
+
+      {guardado ? (
+        <Link
+          href="/comprar"
+          className="text-sm font-medium text-zinc-900 underline underline-offset-2"
+        >
+          Siguiente paso: ver la previsualización →
+        </Link>
+      ) : null}
     </div>
   );
 }

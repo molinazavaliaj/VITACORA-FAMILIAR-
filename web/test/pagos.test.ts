@@ -331,6 +331,26 @@ describe('POST /api/webhooks/mercadopago', () => {
 
     expect(respuesta.status).toBe(500);
   });
+
+  it('si la consulta a la API de MP tira (red caída, 5xx transitorio) responde 500 para que MP reintente', async () => {
+    const mockPaymentGet = vi.fn().mockRejectedValue(new Error('fetch failed'));
+    (Payment as unknown as ReturnType<typeof vi.fn>).mockImplementation(function () {
+      return { get: mockPaymentGet };
+    });
+    const admin = crearAdminFake({});
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+
+    const request = {
+      url: 'https://vitacorafamiliar.com/api/webhooks/mercadopago?data.id=111&type=payment',
+      json: async () => ({}),
+    } as never;
+
+    const respuesta = await POST_WEBHOOK_MP(request);
+
+    expect(respuesta.status).toBe(500);
+    // no llegamos a mirar la base — la falla fue consultando a MP, no nuestra.
+    expect(admin.from).not.toHaveBeenCalled();
+  });
 });
 
 // --- POST /api/checkout ---------------------------------------------------

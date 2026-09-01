@@ -81,6 +81,22 @@ describe('agruparCapitulos', () => {
 
     expect(agruparCapitulos(preguntas, [])).toEqual([]);
   });
+
+  it('dedupe: la pregunta del narrador pisa a la fija con el mismo orden (no duplica en el libro)', () => {
+    // Mismo criterio que la web (tablero/page.tsx): un reemplazo o
+    // adaptativa con el mismo `orden` que una fija gana — la fija no debe
+    // aparecer también con su propio capítulo, o el material de esa
+    // respuesta queda duplicado en el libro.
+    const preguntas: Pregunta[] = [
+      { narrador_id: null, orden: 19, texto: '¿Y tus hijos?', capitulo: 'Los hijos', tipo: 'fija' },
+      { narrador_id: 'narrador-1', orden: 19, texto: '¿Y tus raíces?', capitulo: 'Las raíces', tipo: 'adaptativa' },
+    ];
+    const ordenesRespondidos = [19];
+
+    const capitulos = agruparCapitulos(preguntas, ordenesRespondidos);
+
+    expect(capitulos).toEqual([{ nombre: 'Las raíces', ordenes: [19] }]);
+  });
 });
 
 describe('parsearJsonEntidades', () => {
@@ -123,12 +139,12 @@ describe('parsearJsonEntidades', () => {
     warnSpy.mockRestore();
   });
 
-  it('devuelve vacío si el JSON no parsea', () => {
-    expect(parsearJsonEntidades('no es json')).toEqual([]);
+  it('devuelve null (falla de parseo, no vacío legítimo) si el JSON no parsea', () => {
+    expect(parsearJsonEntidades('no es json')).toBeNull();
   });
 
-  it('devuelve vacío si el JSON parsea pero no es un array', () => {
-    expect(parsearJsonEntidades('{"texto":"x"}')).toEqual([]);
+  it('devuelve null (falla de parseo, no vacío legítimo) si el JSON parsea pero no es un array', () => {
+    expect(parsearJsonEntidades('{"texto":"x"}')).toBeNull();
   });
 });
 
@@ -294,6 +310,33 @@ describe('generarEstructura', () => {
 
     await expect(generarEstructura('narrador-x')).rejects.toThrow(/narrador-x/);
     expect(streamMock).not.toHaveBeenCalled();
+    expect(db.upload).not.toHaveBeenCalled();
+  });
+
+  it('si el modelo responde algo no interpretable como entidades, tira y NO sube estructura.json (para que el tick reintente)', async () => {
+    const db = construirDbFake({
+      narrador: {
+        data: { id: 'narrador-1', nombre: 'Roberto', como_le_dicen: 'Beto', contexto: {}, foto_url: null, estado: 'armando_paquete' },
+        error: null,
+      },
+      preguntasFijas: {
+        data: [{ narrador_id: null, orden: 1, texto: '¿Dónde naciste?', capitulo: 'Infancia', tipo: 'fija' }],
+        error: null,
+      },
+      respuestas: {
+        data: [{ narrador_id: 'narrador-1', pregunta_orden: 1, transcripcion: 'Nací en Rosario.', texto_directo: null, es_repregunta: false, audio_path: null, duracion_segundos: 30 }],
+        error: null,
+      },
+    });
+    (obtenerClienteDb as unknown as ReturnType<typeof vi.fn>).mockReturnValue(db);
+
+    // Respuesta del modelo que no parsea como JSON — distinto de "[]" (lista
+    // vacía legítima).
+    finalMessageMock.mockResolvedValue({
+      content: [{ type: 'text', text: 'esto no es JSON en absoluto' }],
+    });
+
+    await expect(generarEstructura('narrador-1')).rejects.toThrow(/narrador-1/);
     expect(db.upload).not.toHaveBeenCalled();
   });
 });

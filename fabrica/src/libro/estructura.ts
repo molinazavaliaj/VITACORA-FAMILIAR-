@@ -12,6 +12,17 @@ export type Estructura = {
  * Agrupa los `orden` respondidos por `capitulo`, en el orden de la primera
  * aparición del capítulo entre las preguntas. Los órdenes sin respuesta no
  * aparecen — así soporta el cierre anticipado (narrador que no llegó a las 25).
+ *
+ * Dedupe por `orden`: si hay una fija y una pregunta propia del narrador
+ * (adaptativa o reemplazo) con el mismo `orden`, la del narrador pisa a la
+ * fija — mismo criterio que usa la web en tablero/page.tsx ("las propias
+ * pisan a la fija"). Sin este dedupe, un `orden` con las dos entradas
+ * aparecía DOS veces en el libro, una por cada capítulo. Se asume que
+ * `preguntas` llega con las fijas antes que las del narrador para un mismo
+ * `orden` (así lo arma `generarEstructura`), porque `Map.set` sobre una
+ * clave existente actualiza el valor pero conserva la posición original en
+ * la iteración — así el capítulo ganador es el de la pregunta del narrador,
+ * pero en el lugar donde el `orden` apareció por primera vez.
  */
 export function agruparCapitulos(
   preguntas: Pick<Pregunta, 'orden' | 'capitulo'>[],
@@ -19,10 +30,15 @@ export function agruparCapitulos(
 ): { nombre: string; ordenes: number[] }[] {
   const respondidos = new Set(ordenesRespondidos);
 
+  const preguntaPorOrden = new Map<number, Pick<Pregunta, 'orden' | 'capitulo'>>();
+  for (const pregunta of preguntas) {
+    preguntaPorOrden.set(pregunta.orden, pregunta);
+  }
+
   const resultado: { nombre: string; ordenes: number[] }[] = [];
   const indicePorCapitulo = new Map<string, number>();
 
-  for (const pregunta of preguntas) {
+  for (const pregunta of preguntaPorOrden.values()) {
     if (!respondidos.has(pregunta.orden)) continue;
 
     let indice = indicePorCapitulo.get(pregunta.capitulo);
@@ -61,8 +77,17 @@ function esEntidadValida(valor: unknown): valor is Estructura['entidades'][numbe
  * tipado que consumen tareas posteriores y la UI de corrección de nombres —
  * una entrada mal formada ahí puede romper ese consumidor, así que se filtra
  * en vez de dejarla pasar con un cast sin validar.
+ *
+ * Devuelve `null` cuando el texto NO es interpretable como la lista que se
+ * pidió (no parsea como JSON, o parsea pero no es un array) — eso es una
+ * FALLA de la respuesta del modelo, distinta de una lista genuinamente
+ * vacía. `generarEstructura` usa esa distinción para reintentar en vez de
+ * persistir un `estructura.json` con `entidades: []` que en realidad es "no
+ * pudimos leer la respuesta". Un array válido con entradas mal formadas (o
+ * ninguna entrada) sí es un `[]` legítimo: el modelo respondió en forma,
+ * simplemente no encontró nada que listar.
  */
-export function parsearJsonEntidades(texto: string): Estructura['entidades'] {
+export function parsearJsonEntidades(texto: string): Estructura['entidades'] | null {
   // El prompt pide JSON puro, pero por las dudas sacamos fences de markdown.
   const limpio = texto
     .trim()
@@ -74,9 +99,9 @@ export function parsearJsonEntidades(texto: string): Estructura['entidades'] {
   try {
     parseado = JSON.parse(limpio);
   } catch {
-    return [];
+    return null;
   }
-  if (!Array.isArray(parseado)) return [];
+  if (!Array.isArray(parseado)) return null;
 
   const validas = parseado.filter(esEntidadValida);
   const descartadas = parseado.length - validas.length;
@@ -90,7 +115,7 @@ async function detectarEntidades(
   cliente: Anthropic,
   narrador: Narrador,
   transcripciones: string[]
-): Promise<Estructura['entidades']> {
+): Promise<Estructura['entidades'] | null> {
   if (transcripciones.length === 0) return [];
 
   const arbol = narrador.contexto?.arbol ?? {};
@@ -180,6 +205,17 @@ export async function generarEstructura(narradorId: string): Promise<Estructura>
     .filter((texto): texto is string => Boolean(texto));
 
   const entidades = await detectarEntidades(cliente, narrador as Narrador, transcripciones);
+
+  if (entidades === null) {
+    // El modelo respondió algo que no pudimos interpretar como la lista de
+    // entidades (no es JSON, o no es un array) — no es lo mismo que "no
+    // encontró ninguna". Tirar acá, ANTES de subir nada, así el tick de
+    // arriba loguea el error y lo reintenta el próximo minuto en vez de
+    // dejar un estructura.json con entidades vacías por error.
+    throw new Error(
+      `No se pudo interpretar la respuesta del modelo para las entidades de ${narradorId}; se reintenta en el próximo tick.`
+    );
+  }
 
   const estructura: Estructura = {
     titulo: `${(narrador as Narrador).nombre} — La historia de una vida`,

@@ -27,16 +27,27 @@ vi.mock('../src/db.js', async () => {
   };
 });
 
-import { tick } from '../src/worker.js';
+import { tick, procesarPedidosPagados } from '../src/worker.js';
 
+/**
+ * Fake de `db.from('pedidos')` que distingue las dos consultas por `estado`
+ * ('pagado' para el branch normal, 'generando' para el chequeo de
+ * huérfanos), y las dos formas de `update`:
+ *   - el claim CAS: `.update({estado:'generando'}).eq('id',x).eq('estado','pagado').select('id')`
+ *   - el reset de huérfanos: `.update({estado:'pagado'}).eq('id',x).eq('estado','generando')` (sin `.select`)
+ * `claimarPedido`/`resetearPedidoHuerfano` son fixtures por test — devuelven
+ * `{ data, error }` para cada llamada, como el resto de los fakes del repo.
+ */
 function construirClienteDbMock(opciones: {
   narradores: { id: string }[];
   archivosPorNarrador: Record<string, string[]>;
   pedidosPagados?: { id: string; narrador_id: string }[];
-  pedidosUpdateMock?: ReturnType<typeof vi.fn>;
+  pedidosGenerando?: { id: string }[];
+  claimarPedido?: (id: string) => { data: unknown; error: unknown };
+  resetearPedidoHuerfano?: (id: string) => { data: unknown; error: unknown };
 }) {
-  const pedidosUpdate =
-    opciones.pedidosUpdateMock ?? vi.fn().mockResolvedValue({ data: null, error: null });
+  const claimarPedido = opciones.claimarPedido ?? ((id: string) => ({ data: [{ id }], error: null }));
+  const resetearPedidoHuerfano = opciones.resetearPedidoHuerfano ?? (() => ({ data: null, error: null }));
 
   return {
     from: vi.fn((tabla: string) => {
@@ -50,10 +61,23 @@ function construirClienteDbMock(opciones: {
       if (tabla === 'pedidos') {
         return {
           select: () => ({
-            eq: () => Promise.resolve({ data: opciones.pedidosPagados ?? [], error: null }),
+            eq: (_col: string, valor: string) => {
+              if (valor === 'pagado') return Promise.resolve({ data: opciones.pedidosPagados ?? [], error: null });
+              if (valor === 'generando') return Promise.resolve({ data: opciones.pedidosGenerando ?? [], error: null });
+              return Promise.resolve({ data: [], error: null });
+            },
           }),
           update: (valores: Record<string, unknown>) => ({
-            eq: (_col: string, id: string) => pedidosUpdate(valores, id),
+            eq: (_c1: string, id: string) => ({
+              eq: (_c2: string, _estadoEsperado: string) => {
+                if (valores.estado === 'generando') {
+                  // el claim CAS siempre termina en .select('id')
+                  return { select: (_cols: string) => Promise.resolve(claimarPedido(id)) };
+                }
+                // el reset de huérfanos no encadena .select()
+                return Promise.resolve(resetearPedidoHuerfano(id));
+              },
+            }),
           }),
         };
       }
@@ -203,17 +227,17 @@ describe('tick — branch a2 (previsualización)', () => {
 describe('tick — branch b (pedidos pagados)', () => {
   beforeEach(() => {
     generarPaqueteMock.mockClear();
+    generarPaqueteMock.mockResolvedValue(undefined);
   });
 
-  it('reclama el pedido pagado (estado generando) ANTES de generarPaquete, y lo llama con el pedido', async () => {
-    const pedidosUpdateMock = vi.fn().mockResolvedValue({ data: null, error: null });
+  it('reclama el pedido pagado con compare-and-swap ANTES de generarPaquete, y lo llama con el pedido', async () => {
     const llamadasEnOrden: string[] = [];
-    pedidosUpdateMock.mockImplementation((valores: Record<string, unknown>) => {
-      llamadasEnOrden.push(`update:${valores.estado}`);
-      return Promise.resolve({ data: null, error: null });
-    });
-    generarPaqueteMock.mockImplementationOnce(async () => {
-      llamadasEnOrden.push('generarPaquete');
+    const claimarPedido = (id: string) => {
+      llamadasEnOrden.push(`claim:${id}`);
+      return { data: [{ id }], error: null };
+    };
+    generarPaqueteMock.mockImplementationOnce(async (pedido: { id: string }) => {
+      llamadasEnOrden.push(`generarPaquete:${pedido.id}`);
     });
 
     obtenerClienteDbMock.mockReturnValue(
@@ -221,18 +245,17 @@ describe('tick — branch b (pedidos pagados)', () => {
         narradores: [],
         archivosPorNarrador: {},
         pedidosPagados: [{ id: 'pedido-1', narrador_id: 'narrador-1' }],
-        pedidosUpdateMock,
+        claimarPedido,
       })
     );
 
     await tick();
 
-    expect(pedidosUpdateMock).toHaveBeenCalledWith({ estado: 'generando' }, 'pedido-1');
     expect(generarPaqueteMock).toHaveBeenCalledTimes(1);
     expect(generarPaqueteMock).toHaveBeenCalledWith({ id: 'pedido-1', narrador_id: 'narrador-1' });
-    // el claim (update a 'generando') pasa ANTES que generarPaquete — así un
+    // el claim (CAS a 'generando') pasa ANTES que generarPaquete — así un
     // segundo tick solapado no vuelve a tomar el mismo pedido.
-    expect(llamadasEnOrden).toEqual(['update:generando', 'generarPaquete']);
+    expect(llamadasEnOrden).toEqual(['claim:pedido-1', 'generarPaquete:pedido-1']);
   });
 
   it('sin pedidos pagados, no llama a generarPaquete', async () => {
@@ -269,21 +292,110 @@ describe('tick — branch b (pedidos pagados)', () => {
   });
 
   it('si falla el claim (update) de un pedido, no llama a generarPaquete para ese pedido', async () => {
-    const pedidosUpdateMock = vi
-      .fn()
-      .mockResolvedValue({ data: null, error: { message: 'fallo de red' } });
+    const claimarPedido = () => ({ data: null, error: { message: 'fallo de red' } });
 
     obtenerClienteDbMock.mockReturnValue(
       construirClienteDbMock({
         narradores: [],
         archivosPorNarrador: {},
         pedidosPagados: [{ id: 'pedido-1', narrador_id: 'narrador-1' }],
-        pedidosUpdateMock,
+        claimarPedido,
       })
     );
 
     await expect(tick()).resolves.toBeUndefined();
 
     expect(generarPaqueteMock).not.toHaveBeenCalled();
+  });
+
+  // --- I4: el claim es compare-and-swap, no un update ciego -------------
+
+  it('si el CAS no devuelve ninguna fila (ya reclamado por otro proceso), no llama a generarPaquete', async () => {
+    const claimarPedido = () => ({ data: [], error: null });
+
+    obtenerClienteDbMock.mockReturnValue(
+      construirClienteDbMock({
+        narradores: [],
+        archivosPorNarrador: {},
+        pedidosPagados: [{ id: 'pedido-1', narrador_id: 'narrador-1' }],
+        claimarPedido,
+      })
+    );
+
+    await procesarPedidosPagados();
+
+    expect(generarPaqueteMock).not.toHaveBeenCalled();
+  });
+
+  // --- C3: pedidos huérfanos en 'generando' ------------------------------
+
+  it('un pedido huérfano en generando (no reclamado por este proceso) se resetea a pagado', async () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const resetearPedidoHuerfano = vi.fn().mockReturnValue({ data: null, error: null });
+
+    obtenerClienteDbMock.mockReturnValue(
+      construirClienteDbMock({
+        narradores: [],
+        archivosPorNarrador: {},
+        pedidosGenerando: [{ id: 'pedido-huerfano' }],
+        resetearPedidoHuerfano,
+      })
+    );
+
+    await procesarPedidosPagados();
+
+    expect(resetearPedidoHuerfano).toHaveBeenCalledWith('pedido-huerfano');
+    expect(warnSpy).toHaveBeenCalled();
+    warnSpy.mockRestore();
+  });
+
+  it('un pedido en generando reclamado por ESTE proceso (mid-run) no se resetea', async () => {
+    let avisarLlamado!: () => void;
+    let resolverGenerarPaquete!: () => void;
+    const generarPaqueteInvocado = new Promise<void>((resolve) => {
+      avisarLlamado = resolve;
+    });
+    const generarPaquetePendiente = new Promise<void>((resolve) => {
+      resolverGenerarPaquete = resolve;
+    });
+    generarPaqueteMock.mockImplementationOnce(async () => {
+      avisarLlamado();
+      await generarPaquetePendiente;
+    });
+
+    obtenerClienteDbMock.mockReturnValue(
+      construirClienteDbMock({
+        narradores: [],
+        archivosPorNarrador: {},
+        pedidosPagados: [{ id: 'pedido-1', narrador_id: 'narrador-1' }],
+      })
+    );
+
+    // Primera "instancia": reclama pedido-1 y se queda a mitad de
+    // generarPaquete (todavía no resolvió) — pedido-1 sigue en el Set de
+    // este proceso mientras tanto.
+    const primeraLlamada = procesarPedidosPagados();
+    await generarPaqueteInvocado;
+
+    // Segunda "instancia" (simula el tick siguiente): en la base, pedido-1
+    // sigue en 'generando' — pero como sigue en el Set de este proceso, el
+    // chequeo de huérfanos NO debe tocarlo.
+    const resetearPedidoHuerfano = vi.fn().mockReturnValue({ data: null, error: null });
+    obtenerClienteDbMock.mockReturnValue(
+      construirClienteDbMock({
+        narradores: [],
+        archivosPorNarrador: {},
+        pedidosPagados: [],
+        pedidosGenerando: [{ id: 'pedido-1' }],
+        resetearPedidoHuerfano,
+      })
+    );
+
+    await procesarPedidosPagados();
+
+    expect(resetearPedidoHuerfano).not.toHaveBeenCalled();
+
+    resolverGenerarPaquete();
+    await primeraLlamada;
   });
 });

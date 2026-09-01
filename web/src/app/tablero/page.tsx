@@ -112,6 +112,7 @@ export default async function Tablero() {
     { data: preguntasFijas, error: errorPreguntasFijas },
     { data: preguntasNarrador, error: errorPreguntasNarrador },
     { data: respuestas, error: errorRespuestas },
+    { data: pedidos, error: errorPedidos },
   ] = await Promise.all([
     admin.from("preguntas").select("narrador_id, orden, texto, capitulo").is("narrador_id", null),
     admin
@@ -123,16 +124,20 @@ export default async function Tablero() {
       .select("id, pregunta_orden, audio_path, texto_directo, es_repregunta, recibido_at")
       .eq("narrador_id", narrador.id)
       .order("pregunta_orden", { ascending: true }),
+    admin.from("pedidos").select("id").eq("narrador_id", narrador.id).limit(1),
   ]);
 
-  if (errorPreguntasFijas || errorPreguntasNarrador || errorRespuestas) {
-    console.error("tablero: fallo la carga de preguntas/respuestas", {
+  if (errorPreguntasFijas || errorPreguntasNarrador || errorRespuestas || errorPedidos) {
+    console.error("tablero: fallo la carga de preguntas/respuestas/pedidos", {
       errorPreguntasFijas,
       errorPreguntasNarrador,
       errorRespuestas,
+      errorPedidos,
     });
     return <EstadoError />;
   }
+
+  const tienePedido = ((pedidos as { id: string }[] | null) ?? []).length > 0;
 
   const preguntasPorOrden = new Map<number, Pregunta>();
   for (const pregunta of (preguntasFijas as Pregunta[] | null) ?? []) {
@@ -158,9 +163,12 @@ export default async function Tablero() {
     totalRespondidas >= MINIMO_RESPUESTAS_CIERRE_ANTICIPADO;
 
   // El libro solo empieza a armarse cuando el narrador termina — recién ahí
-  // tiene sentido pedirle a la familia que revise los nombres.
+  // tiene sentido pedirle a la familia que revise los nombres y ver la
+  // previsualización.
+  const libroEnMarcha = ESTADOS_CON_LIBRO_EN_MARCHA.includes(narrador.estado);
+
   let avisoNombres: "pendiente" | "hecho" | null = null;
-  if (ESTADOS_CON_LIBRO_EN_MARCHA.includes(narrador.estado)) {
+  if (libroEnMarcha) {
     const { data: archivosPaquete, error: errorPaquete } = await admin.storage
       .from("audios")
       .list(`${narrador.id}/paquete`);
@@ -188,6 +196,17 @@ export default async function Tablero() {
           </div>
         ) : null}
 
+        {libroEnMarcha ? (
+          <div className="mb-8">
+            <Link
+              href="/comprar"
+              className="block rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-sm font-medium text-zinc-900 transition-colors hover:bg-zinc-100"
+            >
+              Ver la previsualización y conseguir su libro →
+            </Link>
+          </div>
+        ) : null}
+
         <h1 className="text-2xl font-semibold text-zinc-900">{narrador.como_le_dicen}</h1>
         <p className="mt-2 text-sm leading-relaxed text-zinc-600">
           {ESTADO_EN_HUMANO[narrador.estado] ?? narrador.estado}
@@ -196,6 +215,17 @@ export default async function Tablero() {
         <div className="mt-6">
           <BarraProgreso diaActual={narrador.dia_actual} respondidas={totalRespondidas} />
         </div>
+
+        <nav className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm">
+          <Link href="/tablero/saludos" className="font-medium text-zinc-900 underline underline-offset-2">
+            Los saludos de la familia
+          </Link>
+          {tienePedido ? (
+            <Link href="/tablero/descarga" className="font-medium text-zinc-900 underline underline-offset-2">
+              Tu descarga
+            </Link>
+          ) : null}
+        </nav>
 
         <div className="mt-10 flex flex-col gap-6">
           {ordenesRespondidos.length === 0 ? (
