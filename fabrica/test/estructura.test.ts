@@ -23,7 +23,7 @@ vi.mock('../src/db.js', async () => {
   };
 });
 
-import { agruparCapitulos } from '../src/libro/estructura.js';
+import { agruparCapitulos, parsearJsonEntidades } from '../src/libro/estructura.js';
 
 describe('agruparCapitulos', () => {
   it('agrupa los órdenes respondidos por capítulo, en orden de primera aparición', () => {
@@ -77,5 +77,54 @@ describe('agruparCapitulos', () => {
     ];
 
     expect(agruparCapitulos(preguntas, [])).toEqual([]);
+  });
+});
+
+describe('parsearJsonEntidades', () => {
+  it('mantiene solo las entradas válidas y descarta las mal formadas', () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    const json = JSON.stringify([
+      { texto: 'Roberto', tipo: 'persona', contexto: 'el narrador' },
+      { texto: 'Buenos Aires', tipo: 'lugar', contexto: 'ciudad natal' },
+      { texto: 'Sin tipo', contexto: 'falta tipo' }, // falta tipo
+      { texto: 'Mala', tipo: 'animal', contexto: 'tipo inválido' }, // tipo fuera de enum
+      { texto: '   ', tipo: 'persona', contexto: 'texto vacío' }, // texto vacío
+      'un string suelto', // no es objeto
+      { texto: 'Sin contexto', tipo: 'lugar' }, // falta contexto
+    ]);
+
+    const entidades = parsearJsonEntidades(json);
+
+    expect(entidades).toEqual([
+      { texto: 'Roberto', tipo: 'persona', contexto: 'el narrador' },
+      { texto: 'Buenos Aires', tipo: 'lugar', contexto: 'ciudad natal' },
+    ]);
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+
+    warnSpy.mockRestore();
+  });
+
+  it('devuelve vacío si todas las entradas están mal formadas', () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    const json = JSON.stringify([
+      { texto: '', tipo: 'persona', contexto: 'texto vacío' },
+      { texto: 'Alguien', tipo: 'planeta', contexto: 'tipo inválido' },
+      42,
+    ]);
+
+    expect(parsearJsonEntidades(json)).toEqual([]);
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+
+    warnSpy.mockRestore();
+  });
+
+  it('devuelve vacío si el JSON no parsea', () => {
+    expect(parsearJsonEntidades('no es json')).toEqual([]);
+  });
+
+  it('devuelve vacío si el JSON parsea pero no es un array', () => {
+    expect(parsearJsonEntidades('{"texto":"x"}')).toEqual([]);
   });
 });

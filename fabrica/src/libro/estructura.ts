@@ -44,20 +44,46 @@ function extraerTexto(bloques: Array<{ type: string; text?: string }>): string {
     .join('\n');
 }
 
-function parsearJsonEntidades(texto: string): Estructura['entidades'] {
+function esEntidadValida(valor: unknown): valor is Estructura['entidades'][number] {
+  if (typeof valor !== 'object' || valor === null) return false;
+  const candidato = valor as Record<string, unknown>;
+  return (
+    typeof candidato.texto === 'string' &&
+    candidato.texto.trim() !== '' &&
+    (candidato.tipo === 'persona' || candidato.tipo === 'lugar') &&
+    typeof candidato.contexto === 'string'
+  );
+}
+
+/**
+ * Parsea el JSON de entidades que devuelve el modelo y descarta cualquier
+ * entrada que no tenga la forma esperada. `estructura.json` es un contrato
+ * tipado que consumen tareas posteriores y la UI de corrección de nombres —
+ * una entrada mal formada ahí puede romper ese consumidor, así que se filtra
+ * en vez de dejarla pasar con un cast sin validar.
+ */
+export function parsearJsonEntidades(texto: string): Estructura['entidades'] {
   // El prompt pide JSON puro, pero por las dudas sacamos fences de markdown.
   const limpio = texto
     .trim()
     .replace(/^```(?:json)?\s*/i, '')
     .replace(/```\s*$/, '')
     .trim();
+
+  let parseado: unknown;
   try {
-    const parseado = JSON.parse(limpio);
-    if (Array.isArray(parseado)) return parseado as Estructura['entidades'];
-    return [];
+    parseado = JSON.parse(limpio);
   } catch {
     return [];
   }
+  if (!Array.isArray(parseado)) return [];
+
+  const validas = parseado.filter(esEntidadValida);
+  const descartadas = parseado.length - validas.length;
+  if (descartadas > 0) {
+    console.warn(`parsearJsonEntidades: se descartaron ${descartadas} entidad(es) mal formada(s) del modelo`);
+  }
+  return validas;
 }
 
 async function detectarEntidades(
@@ -147,7 +173,7 @@ export async function generarEstructura(narradorId: string): Promise<Estructura>
   const capitulos = agruparCapitulos(preguntas, ordenesRespondidos);
 
   const transcripciones = respuestasList
-    .map((r) => r.transcripcion ?? r.texto_directo)
+    .map((r) => r.transcripcion?.trim() || r.texto_directo)
     .filter((texto): texto is string => Boolean(texto));
 
   const entidades = await detectarEntidades(cliente, narrador as Narrador, transcripciones);
