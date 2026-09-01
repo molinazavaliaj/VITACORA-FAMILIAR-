@@ -62,8 +62,9 @@ Tres piezas, dos dueños:
 └──────────────────────────────────────────────────────┘
 ```
 
-- **Servicio Entrevistador:** Node/TypeScript chico (webhook + trabajos programados), desplegado en Railway o Fly.io. Repo propio.
-- **Web Comprador:** Next.js en Vercel. Repo propio. Incluye la fábrica del libro/audiolibro y los pagos.
+- **Servicio Entrevistador:** Node/TypeScript chico (webhook + trabajos programados), desplegado en Railway o Fly.io.
+- **Web Comprador:** Next.js en Vercel. Incluye la fábrica del libro/audiolibro y los pagos.
+- **Un solo repo (monorepo) con propiedad exclusiva por carpeta** *(ajuste post-aprobación, mismo aislamiento y menos fricción)*: `/entrevistador` (socio 1), `/web` (socio 2), `/supabase` (migraciones — contrato compartido), `/docs` (specs y planes). Cada servicio se despliega desde su carpeta (Railway y Vercel soportan root directory). Nadie toca la carpeta del otro; solo `/supabase` requiere avisar antes de cambiar.
 - **Ningún servicio llama al otro por API en v1.** Se comunican solo por la base de datos. Cada socio desarrolla y despliega sin coordinar, salvo cambios de esquema (migraciones versionadas, con aviso al otro).
 
 ### El contrato: esquema de datos (conceptual)
