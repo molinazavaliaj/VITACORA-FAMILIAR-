@@ -23,7 +23,11 @@ function textoRespuesta(r: Pick<Respuesta, 'transcripcion' | 'texto_directo'>): 
 }
 
 function escaparHtml(texto: string): string {
-  return texto.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  return texto
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }
 
 /**
@@ -255,8 +259,15 @@ export async function generarPrevisualizacion(narradorId: string): Promise<void>
       : '<p>Todavía no hay suficiente material para este capítulo.</p>',
   });
 
-  await generarPdf(db, narradorId, html);
+  // Orden importa: preview.pdf es el archivo que tick() usa como gate (branch
+  // a2 en worker.ts) para decidir "ya está la previsualización, no la
+  // regenero". Si lo subiéramos primero y el audio fallara después (ffmpeg
+  // ausente, por ejemplo), el narrador quedaría con preview.pdf pero sin
+  // muestra_audiolibro.mp3 para siempre — el gate ya estaría cumplido y el
+  // tick jamás reintentaría. Por eso el audio va primero y el PDF último:
+  // cualquier falla antes del PDF deja todo el proceso reintentable.
   await generarMuestraAudio(db, narradorId, respuestasList);
+  await generarPdf(db, narradorId, html);
 }
 
 async function generarPdf(

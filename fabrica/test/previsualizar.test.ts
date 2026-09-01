@@ -282,6 +282,56 @@ describe('generarPrevisualizacion', () => {
       expect.anything(),
       { contentType: 'audio/mpeg', upsert: true }
     );
+
+    // Orden: la muestra de audio sube ANTES que el PDF. preview.pdf es el
+    // archivo que tick() usa como gate para no reintentar — si se subiera
+    // primero y el audio fallara después, el narrador quedaría sin muestra
+    // para siempre porque el gate ya estaría cumplido.
+    const rutasSubidasEnOrden = db.upload.mock.calls.map((llamada) => llamada[0]);
+    expect(rutasSubidasEnOrden).toEqual([
+      'narrador-1/paquete/muestra_audiolibro.mp3',
+      'narrador-1/paquete/preview.pdf',
+    ]);
+  });
+
+  it('si falla el corte de audio (ffmpeg), no sube preview.pdf — queda reintentable', async () => {
+    const estructura = { titulo: 'T', capitulos: [{ nombre: 'Infancia', ordenes: [1] }], entidades: [] };
+    const nombres = { correcciones: [] };
+
+    const db = construirDbFake({
+      narrador: { data: { id: 'narrador-1', nombre: 'Roberto', foto_url: null }, error: null },
+      preguntasFijas: {
+        data: [{ narrador_id: null, orden: 1, texto: '¿Dónde naciste?', capitulo: 'Infancia' }],
+        error: null,
+      },
+      preguntasNarrador: { data: [], error: null },
+      respuestas: {
+        data: [
+          { pregunta_orden: 1, transcripcion: 'En Rosario.', texto_directo: null, es_repregunta: false, audio_path: 'narrador-1/dia_01.ogg' },
+        ],
+        error: null,
+      },
+      descargas: {
+        'narrador-1/paquete/estructura.json': { data: blobFake(JSON.stringify(estructura)), error: null },
+        'narrador-1/paquete/nombres.json': { data: blobFake(JSON.stringify(nombres)), error: null },
+        'narrador-1/dia_01.ogg': { data: blobFake('audio-crudo'), error: null },
+      },
+    });
+    (obtenerClienteDb as unknown as ReturnType<typeof vi.fn>).mockReturnValue(db);
+    escribirCapituloMock.mockResolvedValue('Capítulo corto.');
+    // ffmpeg ausente del PATH, por ejemplo: el mock devuelve error por callback.
+    execFileMock.mockImplementationOnce(
+      (_cmd: string, _args: string[], callback: (err: Error | null) => void) => {
+        callback(new Error('spawn ffmpeg ENOENT'));
+      }
+    );
+
+    await expect(generarPrevisualizacion('narrador-1')).rejects.toThrow(/ffmpeg/);
+
+    // El PDF nunca se generó ni se subió — la próxima corrida de tick()
+    // puede reintentar todo desde cero.
+    expect(launchMock).not.toHaveBeenCalled();
+    expect(db.upload).not.toHaveBeenCalled();
   });
 
   it('si ninguna respuesta tiene audio, omite la muestra sin tirar', async () => {

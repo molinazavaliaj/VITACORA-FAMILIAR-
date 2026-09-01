@@ -117,15 +117,27 @@ export default async function TableroNombres() {
     }
   }
 
-  const corregidoPorOriginal = new Map(
-    (nombres.correcciones ?? []).map((correccion) => [correccion.original, correccion.corregido]),
-  );
+  // Cola por nombre original, no un valor único: dos entidades detectadas
+  // con el mismo texto (dos "Juan" distintos) pueden tener correcciones
+  // distintas guardadas. Un Map de un solo valor por clave haría que ambas
+  // filas se prellenen con la misma corrección — acá cada fila consume, en
+  // orden, la siguiente corrección guardada para ese nombre.
+  const corregidosPorOriginal = new Map<string, string[]>();
+  for (const correccion of nombres.correcciones ?? []) {
+    const cola = corregidosPorOriginal.get(correccion.original) ?? [];
+    cola.push(correccion.corregido);
+    corregidosPorOriginal.set(correccion.original, cola);
+  }
 
-  const entidades = (estructura.entidades ?? []).map((entidad) => ({
-    texto: entidad.texto,
-    contexto: entidad.contexto,
-    valorInicial: corregidoPorOriginal.get(entidad.texto) ?? entidad.texto,
-  }));
+  const entidades = (estructura.entidades ?? []).map((entidad) => {
+    const cola = corregidosPorOriginal.get(entidad.texto);
+    const valorInicial = cola && cola.length > 0 ? cola.shift()! : entidad.texto;
+    return {
+      texto: entidad.texto,
+      contexto: entidad.contexto,
+      valorInicial,
+    };
+  });
 
   return (
     <div className="flex flex-1 flex-col items-center bg-white px-6 py-16 text-zinc-900">

@@ -9,11 +9,35 @@ export type EntidadPrefill = {
   valorInicial: string;
 };
 
+export type Correccion = { original: string; corregido: string };
+
+/**
+ * Arma la lista de correcciones a partir de las filas del form, por índice
+ * (no por `texto`): dos entidades con el mismo nombre detectado (dos "Juan"
+ * distintos) son filas separadas, y cada una que cambió manda su propia
+ * entrada — aunque compartan `original`, no se deduplican ni se pisan entre
+ * sí. Es una lista para reemplazo textual en la fábrica, no un mapa por
+ * nombre.
+ */
+export function construirCorreccionesCambiadas(
+  entidades: EntidadPrefill[],
+  valores: string[],
+): Correccion[] {
+  return entidades
+    .map((entidad, indice) => ({
+      original: entidad.texto,
+      corregido: (valores[indice] ?? entidad.texto).trim(),
+    }))
+    .filter((correccion) => correccion.corregido !== "" && correccion.corregido !== correccion.original);
+}
+
 export function FormularioNombres({ entidades }: { entidades: EntidadPrefill[] }) {
   const router = useRouter();
-  const [valores, setValores] = useState<Record<string, string>>(
-    Object.fromEntries(entidades.map((entidad) => [entidad.texto, entidad.valorInicial])),
-  );
+  // Se indexa por posición, no por `texto`: dos entidades detectadas con el
+  // mismo nombre (dos "Juan" distintos — el padre y el vecino) son filas
+  // distintas y no pueden compartir clave de estado, o la segunda pisa a la
+  // primera y una de las dos correcciones se pierde en silencio.
+  const [valores, setValores] = useState<string[]>(entidades.map((entidad) => entidad.valorInicial));
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [guardado, setGuardado] = useState(false);
@@ -31,12 +55,7 @@ export function FormularioNombres({ entidades }: { entidades: EntidadPrefill[] }
     setError(null);
     setGuardado(false);
 
-    const correcciones = entidades
-      .map((entidad) => ({
-        original: entidad.texto,
-        corregido: (valores[entidad.texto] ?? entidad.texto).trim(),
-      }))
-      .filter((correccion) => correccion.corregido !== "" && correccion.corregido !== correccion.original);
+    const correcciones = construirCorreccionesCambiadas(entidades, valores);
 
     try {
       const respuesta = await fetch("/api/nombres", {
@@ -64,21 +83,22 @@ export function FormularioNombres({ entidades }: { entidades: EntidadPrefill[] }
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-5">
-        {entidades.map((entidad) => (
-          <div key={entidad.texto}>
-            <label
-              className="text-sm font-medium text-zinc-900"
-              htmlFor={`nombre-${entidad.texto}`}
-            >
+        {entidades.map((entidad, indice) => (
+          <div key={indice}>
+            <label className="text-sm font-medium text-zinc-900" htmlFor={`nombre-${indice}`}>
               {entidad.texto}
             </label>
             <p className="text-xs text-zinc-500">{entidad.contexto}</p>
             <input
-              id={`nombre-${entidad.texto}`}
+              id={`nombre-${indice}`}
               type="text"
-              value={valores[entidad.texto] ?? ""}
+              value={valores[indice] ?? ""}
               onChange={(evento) =>
-                setValores((actual) => ({ ...actual, [entidad.texto]: evento.target.value }))
+                setValores((actual) => {
+                  const copia = [...actual];
+                  copia[indice] = evento.target.value;
+                  return copia;
+                })
               }
               className="mt-1 h-10 w-full rounded-md border border-zinc-300 px-3 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none"
             />
