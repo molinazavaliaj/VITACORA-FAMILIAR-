@@ -8,11 +8,15 @@ export type Narrador = {
   nombre: string;
   como_le_dicen: string;
   contexto: {
+    // El árbol NO son listas: la web lo guarda como texto libre por vínculo,
+    // tal cual lo escribió la familia en el formulario ("Ramón y Haydée",
+    // "Claudia, Sergio y la Vanesa", o "no tuvo" cuando no hubo). Ver
+    // web/src/lib/registro.ts. Tratarlo como array lo desarma letra por letra.
     arbol?: {
-      padres?: string[];
-      hermanos?: string[];
-      conyuge?: string[];
-      hijos?: string[];
+      padres?: string;
+      hermanos?: string;
+      conyuge?: string;
+      hijos?: string;
     };
     [clave: string]: unknown;
   };

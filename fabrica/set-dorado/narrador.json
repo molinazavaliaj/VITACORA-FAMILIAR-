@@ -17,10 +17,10 @@
       "vinculoComprador": "hija",
       "datosExtra": "Jubilado. Tuvo taller propio en Villa Domínico entre 1981 y 2016. Hincha de Independiente.",
       "arbol": {
-        "padres": ["Ramón", "Haydée"],
-        "hermanos": ["el Rubén (fallecido)", "la Marta"],
-        "conyuge": ["Élida"],
-        "hijos": ["Claudia", "Sergio", "la Vanesa"]
+        "padres": "Ramón y Haydée",
+        "hermanos": "el Rubén (fallecido) y la Marta",
+        "conyuge": "Élida",
+        "hijos": "Claudia, Sergio y la Vanesa"
       }
     }
   }

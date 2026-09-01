@@ -94,12 +94,15 @@ async function detectarEntidades(
   if (transcripciones.length === 0) return [];
 
   const arbol = narrador.contexto?.arbol ?? {};
-  const nombresConocidos = [
-    ...(arbol.padres ?? []),
-    ...(arbol.hermanos ?? []),
-    ...(arbol.conyuge ?? []),
-    ...(arbol.hijos ?? []),
-  ];
+  // Cada vínculo viene como una frase escrita por la familia ("Ramón y
+  // Haydée"), no como una lista: se usa el valor tal cual. Si se spreadeara,
+  // un string se desarmaría en letras sueltas y la pista quedaría en "R, a, m".
+  // 'no tuvo' es la marca que pone el formulario cuando no hubo pareja o
+  // hijos: no es un nombre y no tiene que entrar como si lo fuera.
+  const nombresConocidos = [arbol.padres, arbol.hermanos, arbol.conyuge, arbol.hijos]
+    .filter((vinculo): vinculo is string => typeof vinculo === 'string' && vinculo.trim() !== '')
+    .map((vinculo) => vinculo.trim())
+    .filter((vinculo) => vinculo.toLowerCase() !== 'no tuvo');
 
   const pistaNombres =
     nombresConocidos.length > 0

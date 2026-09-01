@@ -5,15 +5,27 @@
 //   npm run set-dorado
 //
 // Es idempotente a lo bruto: si el narrador del set dorado ya existe (se lo
-// identifica por el teléfono), se le borran respuestas, preguntas adaptativas
-// y saludos, y se recarga todo de cero. Así, si retocás una respuesta en el
-// JSON, volvés a correr el script y la base queda como el JSON.
+// identifica por el teléfono), se borra TODO lo suyo — respuestas, preguntas
+// adaptativas, saludos, pedidos y los archivos de {narrador_id}/paquete/ en
+// Storage — y se recarga de cero. Lo de Storage no es un detalle: el worker
+// decide si tiene que trabajar mirando si ya existen estructura.json y
+// preview.pdf, así que si no se borran, la segunda corrida deja el libro
+// viejo y parece que la fábrica se colgó.
+//
+// Variable de entorno opcional:
+//
+//   SET_DORADO_AUTH_USER_ID   uuid de un usuario de auth.users. La web resuelve
+//                             todo con .eq('auth_user_id', user.id), así que sin
+//                             esto el set dorado existe pero es invisible desde
+//                             el navegador. Si no se pasa, el script avisa y
+//                             deja el SQL para hacerlo a mano.
 //
 // OJO: es una herramienta de desarrollo. Escribe en tablas que según
 // supabase/CONTRATO.md son del entrevistador (preguntas, respuestas) — nunca
 // correrla apuntando a la base de producción con narradores reales.
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { obtenerClienteDb } from './db.js';
 
 type SetDoradoNarrador = {
@@ -44,12 +56,32 @@ function leerJson<T>(nombre: string): T {
   return JSON.parse(readFileSync(ruta, 'utf8')) as T;
 }
 
+/**
+ * Borra todo lo que el set dorado dejó en `{narrador_id}/paquete/` la vez
+ * anterior. Sin esto, el worker ve el estructura.json viejo y se saltea al
+ * narrador: la recarga no recargaría nada.
+ */
+async function vaciarPaquete(db: SupabaseClient, narradorId: string): Promise<number> {
+  const carpeta = `${narradorId}/paquete`;
+  const { data: archivos, error } = await db.storage.from('audios').list(carpeta);
+  if (error) throw new Error(`No se pudo listar ${carpeta}: ${error.message}`);
+  if (!archivos || archivos.length === 0) return 0;
+
+  const rutas = archivos.map((archivo) => `${carpeta}/${archivo.name}`);
+  const { error: errorBorrado } = await db.storage.from('audios').remove(rutas);
+  if (errorBorrado) throw new Error(`No se pudo vaciar ${carpeta}: ${errorBorrado.message}`);
+  return rutas.length;
+}
+
 export async function cargarSetDorado(): Promise<void> {
   const db = obtenerClienteDb();
   const { familia, narrador } = leerJson<SetDoradoNarrador>('narrador.json');
   const respuestas = leerJson<EntradaRespuesta[]>('respuestas.json');
+  const authUserId = process.env.SET_DORADO_AUTH_USER_ID?.trim() || null;
 
   // 1. Familia: se reusa la del set dorado si ya está.
+  const filaFamilia = authUserId ? { ...familia, auth_user_id: authUserId } : familia;
+
   const { data: familiaExistente, error: errorBuscarFamilia } = await db
     .from('familias')
     .select('id')
@@ -59,8 +91,15 @@ export async function cargarSetDorado(): Promise<void> {
   if (errorBuscarFamilia) throw new Error(`No se pudo buscar la familia: ${errorBuscarFamilia.message}`);
 
   let familiaId = familiaExistente?.id as string | undefined;
-  if (!familiaId) {
-    const { data, error } = await db.from('familias').insert(familia).select('id').single();
+  if (familiaId) {
+    // Si esta corrida trae el uuid de auth, se lo pegamos a la familia que ya
+    // estaba (típico: primero se cargó el set y después se creó el usuario).
+    if (authUserId) {
+      const { error } = await db.from('familias').update({ auth_user_id: authUserId }).eq('id', familiaId);
+      if (error) throw new Error(`No se pudo asociar la familia al usuario de auth: ${error.message}`);
+    }
+  } else {
+    const { data, error } = await db.from('familias').insert(filaFamilia).select('id').single();
     if (error) throw new Error(`No se pudo crear la familia: ${error.message}`);
     familiaId = data.id as string;
   }
@@ -86,14 +125,19 @@ export async function cargarSetDorado(): Promise<void> {
 
   let narradorId: string;
   let recargado = false;
+  let archivosBorrados = 0;
   if (narradorExistente) {
     narradorId = narradorExistente.id as string;
     recargado = true;
 
-    for (const tabla of ['respuestas', 'saludos'] as const) {
+    // Los pedidos van primero: si quedara uno viejo en 'entregado' apuntando a
+    // un PDF que estamos por borrar, la web mostraría una descarga rota.
+    for (const tabla of ['pedidos', 'respuestas', 'saludos'] as const) {
       const { error } = await db.from(tabla).delete().eq('narrador_id', narradorId);
       if (error) throw new Error(`No se pudo limpiar ${tabla}: ${error.message}`);
     }
+
+    archivosBorrados = await vaciarPaquete(db, narradorId);
     // Solo las adaptativas de ESTE narrador; las 25 fijas son globales
     // (narrador_id null) y no se tocan nunca.
     const { error: errorPreguntas } = await db.from('preguntas').delete().eq('narrador_id', narradorId);
@@ -143,15 +187,36 @@ export async function cargarSetDorado(): Promise<void> {
   console.log(
     [
       `Set dorado ${recargado ? 'recargado' : 'cargado'}.`,
-      `  familia:   ${familia.nombre} <${familia.email}> (${familiaId})`,
-      `  narrador:  ${narrador.nombre} — ${narrador.telefono_whatsapp} (${narradorId})`,
-      `  estado:    completado, día 30`,
-      `  preguntas: ${preguntasAdaptativas.length} adaptativas (26-30)`,
+      `  familia:    ${familia.nombre} <${familia.email}> (${familiaId})`,
+      `  narrador:   ${narrador.nombre} — ${narrador.telefono_whatsapp} (${narradorId})`,
+      `  estado:     completado, día 30`,
+      `  preguntas:  ${preguntasAdaptativas.length} adaptativas (26-30)`,
       `  respuestas: ${filasRespuestas.length} — ${palabras} palabras en total`,
+      recargado ? `  paquete:    ${archivosBorrados} archivo(s) viejo(s) borrado(s) de Storage` : null,
+      `  auth:       ${authUserId ? `familia asociada a ${authUserId}` : 'sin asociar (ver aviso)'}`,
       '',
       'El próximo tick del worker le va a generar la estructura.',
-    ].join('\n')
+    ]
+      .filter((linea): linea is string => linea !== null)
+      .join('\n')
   );
+
+  if (!authUserId) {
+    console.warn(
+      [
+        '',
+        'AVISO: la familia del set dorado no tiene auth_user_id, así que no se ve',
+        'desde la web (todas las rutas resuelven por .eq("auth_user_id", user.id)).',
+        'Creá el usuario en Supabase Auth y volvé a correr el script con:',
+        '',
+        '  SET_DORADO_AUTH_USER_ID=<uuid> npm run set-dorado',
+        '',
+        'o hacelo a mano en el SQL editor:',
+        '',
+        `  update familias set auth_user_id = '<uuid>' where email = '${familia.email}';`,
+      ].join('\n')
+    );
+  }
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {

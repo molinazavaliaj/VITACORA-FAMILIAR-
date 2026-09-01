@@ -194,7 +194,8 @@ describe('generarEstructura', () => {
           id: 'narrador-1',
           nombre: 'Roberto',
           como_le_dicen: 'Beto',
-          contexto: { arbol: { conyuge: ['Rosario'], hijos: ['Martín'] } },
+          // Texto libre por vínculo, como lo guarda la web — no arrays.
+          contexto: { arbol: { conyuge: 'Rosario', hijos: 'Martín', padres: 'no tuvo' } },
           foto_url: null,
           estado: 'armando_paquete',
         },
@@ -240,7 +241,11 @@ describe('generarEstructura', () => {
     const prompt = llamada.messages[0].content;
     expect(prompt).toContain('Nací en Rosorio.');
     expect(prompt).toContain('La conocí bailando.');
+    // El árbol viaja como frase entera, no desarmado en letras, y el 'no tuvo'
+    // del formulario no se cuela como si fuera un nombre confirmado.
     expect(prompt).toContain('Rosario, Martín');
+    expect(prompt).not.toContain('no tuvo');
+    expect(prompt).not.toContain('R, o, s');
 
     expect(estructura).toEqual({
       titulo: 'Roberto — La historia de una vida',
