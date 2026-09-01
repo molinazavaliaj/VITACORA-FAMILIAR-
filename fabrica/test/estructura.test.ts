@@ -7,11 +7,13 @@ import type { Pregunta } from '../src/db.js';
 const finalMessageMock = vi.fn();
 const streamMock = vi.fn(() => ({ finalMessage: finalMessageMock }));
 
+// OJO: mockImplementation necesita una function de verdad (no arrow): el
+// código real hace `new Anthropic(...)` y una arrow no puede ser constructor.
 vi.mock('@anthropic-ai/sdk', () => {
   return {
-    default: vi.fn().mockImplementation(() => ({
-      messages: { stream: streamMock },
-    })),
+    default: vi.fn().mockImplementation(function () {
+      return { messages: { stream: streamMock } };
+    }),
   };
 });
 
@@ -23,7 +25,8 @@ vi.mock('../src/db.js', async () => {
   };
 });
 
-import { agruparCapitulos, parsearJsonEntidades } from '../src/libro/estructura.js';
+import { obtenerClienteDb } from '../src/db.js';
+import { agruparCapitulos, generarEstructura, parsearJsonEntidades } from '../src/libro/estructura.js';
 
 describe('agruparCapitulos', () => {
   it('agrupa los órdenes respondidos por capítulo, en orden de primera aparición', () => {
@@ -126,5 +129,166 @@ describe('parsearJsonEntidades', () => {
 
   it('devuelve vacío si el JSON parsea pero no es un array', () => {
     expect(parsearJsonEntidades('{"texto":"x"}')).toEqual([]);
+  });
+});
+
+// --- generarEstructura ------------------------------------------------------
+// Este bloque es el que realmente ejercita `new Anthropic(...)` →
+// messages.stream → finalMessage; los helpers puros de arriba nunca tocan el SDK.
+
+function construirBuilder(resultado: unknown) {
+  const builder: Record<string, unknown> = {
+    select: () => builder,
+    eq: () => builder,
+    is: () => builder,
+    order: () => builder,
+    single: () => Promise.resolve(resultado),
+    then: (resolve: (v: unknown) => unknown, reject?: (e: unknown) => unknown) =>
+      Promise.resolve(resultado).then(resolve, reject),
+  };
+  return builder;
+}
+
+function construirDbFake(opciones: {
+  narrador?: { data: unknown; error: unknown };
+  preguntasFijas?: { data: unknown; error: unknown };
+  preguntasNarrador?: { data: unknown; error: unknown };
+  respuestas?: { data: unknown; error: unknown };
+}) {
+  let fromPreguntasContador = 0;
+  const from = vi.fn((tabla: string) => {
+    if (tabla === 'narradores') return construirBuilder(opciones.narrador ?? { data: null, error: null });
+    if (tabla === 'preguntas') {
+      // primera llamada: fijas (is narrador_id null); segunda: del narrador (eq)
+      const llamada = fromPreguntasContador++;
+      return construirBuilder(
+        llamada === 0
+          ? opciones.preguntasFijas ?? { data: [], error: null }
+          : opciones.preguntasNarrador ?? { data: [], error: null }
+      );
+    }
+    if (tabla === 'respuestas') return construirBuilder(opciones.respuestas ?? { data: [], error: null });
+    throw new Error(`tabla no mockeada: ${tabla}`);
+  });
+
+  const upload = vi.fn().mockResolvedValue({ data: { path: 'x' }, error: null });
+  const storage = { from: vi.fn(() => ({ upload })) };
+
+  return { from, storage, upload };
+}
+
+describe('generarEstructura', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    streamMock.mockImplementation(() => ({ finalMessage: finalMessageMock }));
+    process.env.SUPABASE_URL = 'https://x.supabase.co';
+    process.env.SUPABASE_SERVICE_ROLE_KEY = 'clave-service-role';
+    process.env.ANTHROPIC_API_KEY = 'clave-anthropic';
+    process.env.OPENAI_API_KEY = 'clave-openai';
+  });
+
+  it('arma capítulos, detecta entidades vía el modelo y sube estructura.json', async () => {
+    const db = construirDbFake({
+      narrador: {
+        data: {
+          id: 'narrador-1',
+          nombre: 'Roberto',
+          como_le_dicen: 'Beto',
+          contexto: { arbol: { conyuge: ['Rosario'], hijos: ['Martín'] } },
+          foto_url: null,
+          estado: 'armando_paquete',
+        },
+        error: null,
+      },
+      preguntasFijas: {
+        data: [
+          { narrador_id: null, orden: 1, texto: '¿Dónde naciste?', capitulo: 'Infancia', tipo: 'fija' },
+          { narrador_id: null, orden: 2, texto: '¿Cómo era tu casa?', capitulo: 'Infancia', tipo: 'fija' },
+          { narrador_id: null, orden: 3, texto: '¿Cómo conociste a tu pareja?', capitulo: 'El amor', tipo: 'fija' },
+        ],
+        error: null,
+      },
+      preguntasNarrador: { data: [], error: null },
+      respuestas: {
+        data: [
+          { narrador_id: 'narrador-1', pregunta_orden: 1, transcripcion: 'Nací en Rosorio.', texto_directo: null, es_repregunta: false, audio_path: null, duracion_segundos: 30 },
+          { narrador_id: 'narrador-1', pregunta_orden: 3, transcripcion: null, texto_directo: 'La conocí bailando.', es_repregunta: false, audio_path: null, duracion_segundos: null },
+        ],
+        error: null,
+      },
+    });
+    (obtenerClienteDb as unknown as ReturnType<typeof vi.fn>).mockReturnValue(db);
+
+    finalMessageMock.mockResolvedValue({
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify([
+            { texto: 'Rosario', tipo: 'persona', contexto: 'su esposa' },
+            { texto: 'Rosorio', tipo: 'lugar', contexto: 'donde nació (posible error de transcripción)' },
+          ]),
+        },
+      ],
+    });
+
+    const estructura = await generarEstructura('narrador-1');
+
+    // El SDK se instanció y se llamó una sola vez, con las transcripciones y
+    // la pista de nombres confirmados del árbol familiar.
+    expect(streamMock).toHaveBeenCalledTimes(1);
+    const llamada = streamMock.mock.calls[0][0] as { messages: { content: string }[] };
+    const prompt = llamada.messages[0].content;
+    expect(prompt).toContain('Nací en Rosorio.');
+    expect(prompt).toContain('La conocí bailando.');
+    expect(prompt).toContain('Rosario, Martín');
+
+    expect(estructura).toEqual({
+      titulo: 'Roberto — La historia de una vida',
+      capitulos: [
+        { nombre: 'Infancia', ordenes: [1] },
+        { nombre: 'El amor', ordenes: [3] },
+      ],
+      entidades: [
+        { texto: 'Rosario', tipo: 'persona', contexto: 'su esposa' },
+        { texto: 'Rosorio', tipo: 'lugar', contexto: 'donde nació (posible error de transcripción)' },
+      ],
+    });
+
+    expect(db.storage.from).toHaveBeenCalledWith('audios');
+    expect(db.upload).toHaveBeenCalledWith(
+      'narrador-1/paquete/estructura.json',
+      JSON.stringify(estructura),
+      { contentType: 'application/json', upsert: true }
+    );
+  });
+
+  it('sin transcripciones no llama al modelo y las entidades quedan vacías', async () => {
+    const db = construirDbFake({
+      narrador: {
+        data: { id: 'narrador-1', nombre: 'Ana', como_le_dicen: 'Ana', contexto: {}, foto_url: null, estado: 'armando_paquete' },
+        error: null,
+      },
+      preguntasFijas: {
+        data: [{ narrador_id: null, orden: 1, texto: '¿Dónde naciste?', capitulo: 'Infancia', tipo: 'fija' }],
+        error: null,
+      },
+      respuestas: { data: [], error: null },
+    });
+    (obtenerClienteDb as unknown as ReturnType<typeof vi.fn>).mockReturnValue(db);
+
+    const estructura = await generarEstructura('narrador-1');
+
+    expect(streamMock).not.toHaveBeenCalled();
+    expect(estructura).toEqual({ titulo: 'Ana — La historia de una vida', capitulos: [], entidades: [] });
+    expect(db.upload).toHaveBeenCalledTimes(1);
+  });
+
+  it('tira si el narrador no existe, sin llamar al modelo ni subir nada', async () => {
+    const db = construirDbFake({ narrador: { data: null, error: { message: 'no rows' } } });
+    (obtenerClienteDb as unknown as ReturnType<typeof vi.fn>).mockReturnValue(db);
+
+    await expect(generarEstructura('narrador-x')).rejects.toThrow(/narrador-x/);
+    expect(streamMock).not.toHaveBeenCalled();
+    expect(db.upload).not.toHaveBeenCalled();
   });
 });
