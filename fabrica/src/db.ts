@@ -34,6 +34,8 @@ export type Respuesta = {
   texto_directo: string | null;
   transcripcion: string | null;
   es_repregunta: boolean;
+  audio_path: string | null;
+  duracion_segundos: number | null;
 };
 
 let cliente: SupabaseClient | undefined;

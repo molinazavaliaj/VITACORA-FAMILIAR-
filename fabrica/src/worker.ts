@@ -1,6 +1,7 @@
 import { fileURLToPath } from 'node:url';
 import { obtenerClienteDb } from './db.js';
 import { generarEstructura } from './libro/estructura.js';
+import { generarPrevisualizacion } from './libro/previsualizar.js';
 
 const INTERVALO_MS = 60_000;
 
@@ -16,6 +17,7 @@ export async function tick(): Promise<void> {
   corriendo = true;
   try {
     await generarEstructurasFaltantes();
+    await generarPrevisualizacionesFaltantes();
     await procesarPedidosPagados();
   } finally {
     corriendo = false;
@@ -56,6 +58,50 @@ async function generarEstructurasFaltantes(): Promise<void> {
       await generarEstructura(narrador.id);
     } catch (err) {
       console.error(`tick: falló generarEstructura para ${narrador.id}:`, err);
+    }
+  }
+}
+
+/**
+ * Branch (a2): narradores completado/cerrado_anticipado que YA tienen
+ * estructura.json Y nombres.json (la familia corrigió los nombres) pero
+ * todavía no tienen preview.pdf → generarPrevisualizacion. El momento de
+ * enamorar: el capítulo 1 escrito de verdad, con los nombres bien.
+ */
+async function generarPrevisualizacionesFaltantes(): Promise<void> {
+  const db = obtenerClienteDb();
+
+  const { data: narradores, error } = await db
+    .from('narradores')
+    .select('id')
+    .in('estado', ['completado', 'cerrado_anticipado']);
+
+  if (error) {
+    console.error('tick: no se pudieron leer los narradores listos para previsualizar:', error.message);
+    return;
+  }
+
+  for (const narrador of (narradores ?? []) as { id: string }[]) {
+    const { data: archivos, error: errorStorage } = await db.storage
+      .from('audios')
+      .list(`${narrador.id}/paquete`);
+
+    if (errorStorage) {
+      console.error(`tick: no se pudo listar el paquete de ${narrador.id}:`, errorStorage.message);
+      continue;
+    }
+
+    const nombresArchivos = new Set((archivos ?? []).map((archivo) => archivo.name));
+    const tieneEstructura = nombresArchivos.has('estructura.json');
+    const tieneNombres = nombresArchivos.has('nombres.json');
+    const tienePreview = nombresArchivos.has('preview.pdf');
+
+    if (!tieneEstructura || !tieneNombres || tienePreview) continue;
+
+    try {
+      await generarPrevisualizacion(narrador.id);
+    } catch (err) {
+      console.error(`tick: falló generarPrevisualizacion para ${narrador.id}:`, err);
     }
   }
 }

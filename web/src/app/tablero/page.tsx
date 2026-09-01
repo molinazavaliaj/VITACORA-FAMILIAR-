@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
@@ -7,6 +8,7 @@ import { BannerAlertaSilencio, CierreAnticipado } from "./acciones";
 const TOTAL_PREGUNTAS = 30;
 const MINIMO_RESPUESTAS_CIERRE_ANTICIPADO = 10;
 const ESTADOS_QUE_PERMITEN_CIERRE = ["activo", "pausado"];
+const ESTADOS_CON_LIBRO_EN_MARCHA = ["completado", "cerrado_anticipado"];
 
 const MENSAJE_ERROR_CARGA = "No pudimos cargar el tablero. Actualiza la página en un momento.";
 
@@ -155,12 +157,34 @@ export default async function Tablero() {
     ESTADOS_QUE_PERMITEN_CIERRE.includes(narrador.estado) &&
     totalRespondidas >= MINIMO_RESPUESTAS_CIERRE_ANTICIPADO;
 
+  // El libro solo empieza a armarse cuando el narrador termina — recién ahí
+  // tiene sentido pedirle a la familia que revise los nombres.
+  let avisoNombres: "pendiente" | "hecho" | null = null;
+  if (ESTADOS_CON_LIBRO_EN_MARCHA.includes(narrador.estado)) {
+    const { data: archivosPaquete, error: errorPaquete } = await admin.storage
+      .from("audios")
+      .list(`${narrador.id}/paquete`);
+
+    if (errorPaquete) {
+      console.error("tablero: fallo la busqueda del paquete", errorPaquete);
+    } else {
+      const tieneNombres = (archivosPaquete ?? []).some((archivo) => archivo.name === "nombres.json");
+      avisoNombres = tieneNombres ? "hecho" : "pendiente";
+    }
+  }
+
   return (
     <div className="flex flex-1 flex-col items-center bg-white px-6 py-16 text-zinc-900">
       <div className="w-full max-w-lg">
         {narrador.alerta_silencio ? (
           <div className="mb-8">
             <BannerAlertaSilencio narradorId={narrador.id} />
+          </div>
+        ) : null}
+
+        {avisoNombres ? (
+          <div className="mb-8">
+            <AvisoNombres estado={avisoNombres} />
           </div>
         ) : null}
 
@@ -220,6 +244,25 @@ export default async function Tablero() {
         {puedeSolicitarCierre ? <CierreAnticipado narradorId={narrador.id} /> : null}
       </div>
     </div>
+  );
+}
+
+function AvisoNombres({ estado }: { estado: "pendiente" | "hecho" }) {
+  if (estado === "hecho") {
+    return (
+      <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4">
+        <p className="text-sm text-zinc-600">Nombres revisados ✓</p>
+      </div>
+    );
+  }
+
+  return (
+    <Link
+      href="/tablero/nombres"
+      className="block rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-sm font-medium text-zinc-900 transition-colors hover:bg-zinc-100"
+    >
+      Revisa los nombres antes de que imprimamos su libro →
+    </Link>
   );
 }
 
