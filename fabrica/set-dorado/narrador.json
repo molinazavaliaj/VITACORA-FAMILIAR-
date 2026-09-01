@@ -1,0 +1,27 @@
+{
+  "familia": {
+    "email": "set-dorado@vitacorafamiliar.com",
+    "nombre": "Claudia Benítez",
+    "region": "AR"
+  },
+  "narrador": {
+    "nombre": "Osvaldo Benítez",
+    "como_le_dicen": "Don Osvaldo",
+    "telefono_whatsapp": "+5491100000001",
+    "hora_preferida": "10:00",
+    "zona_horaria": "America/Argentina/Buenos_Aires",
+    "contexto": {
+      "lugarNacimiento": "Avellaneda, Buenos Aires",
+      "anioNacimiento": 1952,
+      "oficio": "mecánico",
+      "vinculoComprador": "hija",
+      "datosExtra": "Jubilado. Tuvo taller propio en Villa Domínico entre 1981 y 2016. Hincha de Independiente.",
+      "arbol": {
+        "padres": "Ramón y Haydée",
+        "hermanos": "el Rubén (fallecido) y la Marta",
+        "conyuge": "Élida",
+        "hijos": "Claudia, Sergio y la Vanesa"
+      }
+    }
+  }
+}

@@ -11,7 +11,7 @@ migración en `supabase/migrations/` + actualizar este archivo + avisar al otro 
 | `narradores` | web (crea, edita datos) / entrevistador (solo `estado`, `dia_actual`, `ultima_respuesta_at`, `alerta_silencio`) | ambos | Única tabla compartida. La web también apaga `alerta_silencio`. |
 | `preguntas` | entrevistador (adaptativas y reemplazos) / seed (fijas) | web | Fijas: `narrador_id = null`. |
 | `respuestas` | entrevistador | web | La web NUNCA escribe acá. |
-| `saludos` | web (crea) / entrevistador (solo `entregado`) | ambos | |
+| `saludos` | web (crea y borra antes de la entrega) / entrevistador (solo `entregado`) | ambos | |
 | `pedidos` | web y fábrica | — | El entrevistador no la mira. |
 | `envios` | entrevistador | — | Log de salientes; idempotencia del scheduler. |
 

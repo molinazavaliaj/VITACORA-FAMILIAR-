@@ -1,0 +1,12 @@
+# La fábrica corre ffmpeg (audiolibro: loudnorm + concat) y Playwright/Chromium
+# (libro y previsualización → PDF) — ninguno de los dos viene con la imagen
+# base de Railway, hay que pedirlos explícitamente.
+
+[phases.setup]
+nixPkgs = ["ffmpeg"]
+
+[phases.install]
+cmds = ["npm install", "npx playwright install --with-deps chromium"]
+
+[phases.build]
+cmds = ["npm run build"]
