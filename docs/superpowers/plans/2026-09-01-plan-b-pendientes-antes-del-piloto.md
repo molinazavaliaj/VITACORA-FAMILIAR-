@@ -4,6 +4,8 @@ La revisión final de la rama `plan-b-web` (2026-09-01) aprobó el merge con 6 f
 
 ## Antes del piloto (orden sugerido)
 
+0. **SMTP propio para los mails de login** (descubierto en el primer deploy, 2026-09-01): el emisor gratuito de Supabase permite solo 2-4 emails/hora — inviable con usuarios reales. Conectar Resend (gratis hasta 3.000/mes) en Supabase → Authentication → SMTP Settings, con un dominio propio verificado. Nota: los magic links exigen abrir el link en el mismo navegador donde se pidió; considerar cambiar a OTP de 6 dígitos (mismo `signInWithOtp`, template de email con `{{ .Token }}`) que no tiene esa fricción.
+
 1. **Middleware de supabase-ssr** (`web/src/middleware.ts`): sin él, el refresh del token puede fallar durante el render para usuarios que vuelven días después — y este producto vive 30 días. Patrón estándar de la doc de `@supabase/ssr`.
 2. **ffmpeg: forzar parámetros de stream en `normalizarAMp3`** (`fabrica/src/audio/ffmpeg.ts`): agregar `-ar 44100 -ac 1` y bitrate fijo — el concat con `-c copy` puede romper el audiolibro si TTS (24kHz mono) y audios de teléfono (48kHz) difieren. Solo se detecta escuchando el audiolibro real.
 3. **Prueba de punta a punta con el set dorado en los deploys reales** (paso 4 de la Task 10, nunca corrido): cargar a Osvaldo → estructura → nombres → previsualización → pago de prueba → leer el libro entero y escuchar el audiolibro completo. Varios riesgos solo aparecen acá (límite de body de Vercel ~4.5MB en saludos, nixpacks/devDeps en Railway, calidad del PDF).
