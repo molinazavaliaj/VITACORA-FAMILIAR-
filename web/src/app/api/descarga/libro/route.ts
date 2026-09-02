@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
+import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 
 const MENSAJE_ERROR_GENERICO = "No pudimos generar la descarga. Intenta de nuevo.";
@@ -11,23 +10,7 @@ type Narrador = { id: string };
 type Pedido = { id: string; estado: string; libro_pdf_path: string | null };
 
 export async function GET() {
-  const cookieStore = await cookies();
-  const supabaseSesion = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, options),
-          );
-        },
-      },
-    },
-  );
+  const supabaseSesion = await crearClienteSesion();
 
   const {
     data: { user },
