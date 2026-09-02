@@ -6,11 +6,23 @@ import { escribirCapitulo } from './escribir-capitulo.js';
 import { construirHtmlLibro } from './plantilla-html.js';
 import { generarAudiolibro } from '../audio/audiolibro.js';
 import type { Estructura } from './estructura.js';
-import { armarMaterial, descargarJson, extraerTexto, formatearNombresCorregidos, type Nombres } from './comun.js';
+import {
+  armarMaterial,
+  borrarArchivos,
+  descargarJson,
+  descargarTextoOpcional,
+  extraerTexto,
+  formatearNombresCorregidos,
+  subirTexto,
+  type Nombres,
+} from './comun.js';
 
 const RUTA_ESTRUCTURA = (narradorId: string) => `${narradorId}/paquete/estructura.json`;
 const RUTA_NOMBRES = (narradorId: string) => `${narradorId}/paquete/nombres.json`;
 const RUTA_LIBRO_PDF = (narradorId: string) => `${narradorId}/paquete/libro.pdf`;
+const RUTA_BORRADOR_CAP = (narradorId: string, numeroCapitulo: number) =>
+  `${narradorId}/paquete/borrador_cap_${String(numeroCapitulo).padStart(2, '0')}.md`;
+const RUTA_BORRADOR_LIBRO = (narradorId: string) => `${narradorId}/paquete/borrador_libro.md`;
 
 const INSTRUCCION_EDITOR = `Revisá coherencia entre capítulos, agregá referencias cruzadas naturales donde ayuden, y escribí la apertura «A mis lectores» y el cierre, ambos en su voz, a partir de toda la historia. Armá también la página «Sus frases»: sus dichos, refranes y muletillas de siempre, tal cual los dice él — los que respondió cuando se le preguntó y los que se le escaparon a lo largo de todas las entrevistas. Devolvé el libro completo en Markdown.`;
 
@@ -106,20 +118,41 @@ export async function generarPaquete(pedido: { id: string; narrador_id: string }
     const historiaCompleta = armarMaterial(todosLosOrdenes, preguntasPorOrden, respuestasPorOrden);
     const nombresCorregidos = formatearNombresCorregidos(nombres.correcciones);
 
-    // 1a. Un capítulo por vez, con su voz.
+    // 1a. Un capítulo por vez, con su voz. Cada uno se cachea en Storage
+    // apenas se genera (ANTES de los pasos baratos que pueden fallar más
+    // adelante: PDF, audiolibro) — si un reintento cae acá, reusa lo que ya
+    // pagó en vez de volver a pagarle al modelo por lo mismo.
     const capitulosTexto: { nombre: string; texto: string }[] = [];
-    for (const capitulo of estructura.capitulos) {
-      const material = armarMaterial(capitulo.ordenes, preguntasPorOrden, respuestasPorOrden);
-      const texto = await escribirCapitulo(narrador, capitulo.nombre, material, historiaCompleta, nombresCorregidos);
+    for (let i = 0; i < estructura.capitulos.length; i++) {
+      const capitulo = estructura.capitulos[i];
+      const rutaBorrador = RUTA_BORRADOR_CAP(narradorId, i + 1);
+
+      const cacheado = await descargarTextoOpcional(db, rutaBorrador);
+      let texto: string;
+      if (cacheado !== null) {
+        texto = cacheado;
+      } else {
+        const material = armarMaterial(capitulo.ordenes, preguntasPorOrden, respuestasPorOrden);
+        texto = await escribirCapitulo(narrador, capitulo.nombre, material, historiaCompleta, nombresCorregidos);
+        await subirTexto(db, rutaBorrador, texto);
+      }
       capitulosTexto.push({ nombre: capitulo.nombre, texto });
     }
 
     // 1b. Pasada de editor con el libro entero: coherencia, apertura, cierre,
-    // "Sus frases".
+    // "Sus frases". Mismo checkpoint: se cachea antes del PDF.
     const borrador = capitulosTexto.map((c) => `# ${c.nombre}\n\n${c.texto}`).join('\n\n');
-    const config = cargarConfig();
-    const cliente = new Anthropic({ apiKey: config.anthropicApiKey });
-    const libroMarkdown = await editarLibro(cliente, borrador);
+    const rutaBorradorLibro = RUTA_BORRADOR_LIBRO(narradorId);
+    const libroCacheado = await descargarTextoOpcional(db, rutaBorradorLibro);
+    let libroMarkdown: string;
+    if (libroCacheado !== null) {
+      libroMarkdown = libroCacheado;
+    } else {
+      const config = cargarConfig();
+      const cliente = new Anthropic({ apiKey: config.anthropicApiKey });
+      libroMarkdown = await editarLibro(cliente, borrador);
+      await subirTexto(db, rutaBorradorLibro, libroMarkdown);
+    }
 
     // 1c. HTML → PDF (A5, imprenta) → Storage.
     const contexto = narrador.contexto as { anioNacimiento?: number } | null | undefined;
@@ -150,6 +183,20 @@ export async function generarPaquete(pedido: { id: string; narrador_id: string }
       })
       .eq('id', pedido.id);
     if (errorUpdate) throw new Error(`No se pudo actualizar el pedido ${pedido.id}: ${errorUpdate.message}`);
+
+    // 4. Limpieza: los borradores eran solo scaffolding para no repagarle al
+    // modelo en un reintento — con el pedido ya entregado no hacen falta.
+    // Si el borrado falla no es motivo para marcar el pedido 'fallido' (ya
+    // se entregó bien), así que se loguea y se sigue.
+    try {
+      const rutasBorradores = [
+        ...estructura.capitulos.map((_, i) => RUTA_BORRADOR_CAP(narradorId, i + 1)),
+        RUTA_BORRADOR_LIBRO(narradorId),
+      ];
+      await borrarArchivos(db, rutasBorradores);
+    } catch (errorLimpieza) {
+      console.error(`generarPaquete: no se pudieron borrar los borradores de ${narradorId}:`, errorLimpieza);
+    }
   } catch (err) {
     console.error(`generarPaquete: falló para el pedido ${pedido.id}:`, err);
     const { error: errorFallo } = await db.from('pedidos').update({ estado: 'fallido' }).eq('id', pedido.id);

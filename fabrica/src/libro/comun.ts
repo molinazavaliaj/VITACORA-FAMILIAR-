@@ -126,3 +126,49 @@ export async function descargarJson<T>(
     throw new Error(`${descripcion} (${ruta}) no es JSON válido: ${(err as Error).message}`);
   }
 }
+
+/**
+ * Descarga un archivo de texto de Storage si existe; a diferencia de
+ * `descargarJson`, acá "no existe" es un resultado válido (null), no un
+ * error — lo usan los checkpoints de borrador: si no hay nada cacheado, el
+ * llamador genera de cero.
+ */
+export async function descargarTextoOpcional(
+  db: ReturnType<typeof obtenerClienteDb>,
+  ruta: string
+): Promise<string | null> {
+  const { data, error } = await db.storage.from('audios').download(ruta);
+  if (error || !data) return null;
+  return typeof data.text === 'function' ? await data.text() : String(data);
+}
+
+/**
+ * Sube un archivo de texto a Storage (upsert). Se usa para cachear la salida
+ * cara del modelo (borrador de capítulo, pasada de editor) ANTES de los
+ * pasos baratos que pueden fallar (PDF, audio) — así un reintento no vuelve
+ * a pagarle al modelo por algo que ya escribió.
+ */
+export async function subirTexto(
+  db: ReturnType<typeof obtenerClienteDb>,
+  ruta: string,
+  contenido: string
+): Promise<void> {
+  const { error } = await db.storage.from('audios').upload(ruta, contenido, {
+    contentType: 'text/markdown',
+    upsert: true,
+  });
+  if (error) throw new Error(`No se pudo subir ${ruta}: ${error.message}`);
+}
+
+/**
+ * Borra una lista de archivos de Storage. Se usa para limpiar los borradores
+ * cacheados una vez que el paquete se entregó y ya no hacen falta.
+ */
+export async function borrarArchivos(
+  db: ReturnType<typeof obtenerClienteDb>,
+  rutas: string[]
+): Promise<void> {
+  if (rutas.length === 0) return;
+  const { error } = await db.storage.from('audios').remove(rutas);
+  if (error) throw new Error(`No se pudieron borrar (${rutas.join(', ')}): ${error.message}`);
+}

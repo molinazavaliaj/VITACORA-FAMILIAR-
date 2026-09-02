@@ -283,15 +283,72 @@ describe('generarPrevisualizacion', () => {
       { contentType: 'audio/mpeg', upsert: true }
     );
 
-    // Orden: la muestra de audio sube ANTES que el PDF. preview.pdf es el
-    // archivo que tick() usa como gate para no reintentar — si se subiera
-    // primero y el audio fallara después, el narrador quedaría sin muestra
-    // para siempre porque el gate ya estaría cumplido.
+    // Checkpoint: el borrador del capítulo 1 se cachea en cuanto el modelo
+    // lo devuelve, para que un reintento no vuelva a pagarle.
+    expect(db.upload).toHaveBeenCalledWith(
+      'narrador-1/paquete/borrador_preview_cap1.md',
+      'Nací en Rosario, en la casa de mi abuela.',
+      { contentType: 'text/markdown', upsert: true }
+    );
+
+    // Orden: el borrador se cachea apenas se genera (antes que nada más), y
+    // la muestra de audio sube ANTES que el PDF. preview.pdf es el archivo
+    // que tick() usa como gate para no reintentar — si se subiera primero y
+    // el audio fallara después, el narrador quedaría sin muestra para
+    // siempre porque el gate ya estaría cumplido.
     const rutasSubidasEnOrden = db.upload.mock.calls.map((llamada) => llamada[0]);
     expect(rutasSubidasEnOrden).toEqual([
+      'narrador-1/paquete/borrador_preview_cap1.md',
       'narrador-1/paquete/muestra_audiolibro.mp3',
       'narrador-1/paquete/preview.pdf',
     ]);
+  });
+
+  it('si ya existe un borrador cacheado del capítulo 1, lo reusa y no vuelve a pagarle al modelo', async () => {
+    const estructura = {
+      titulo: 'Roberto — La historia de una vida',
+      capitulos: [{ nombre: 'Infancia', ordenes: [1] }],
+      entidades: [],
+    };
+    const nombres = { correcciones: [] };
+
+    const db = construirDbFake({
+      narrador: { data: { id: 'narrador-1', nombre: 'Roberto', foto_url: null }, error: null },
+      preguntasFijas: {
+        data: [{ narrador_id: null, orden: 1, texto: '¿Dónde naciste?', capitulo: 'Infancia' }],
+        error: null,
+      },
+      preguntasNarrador: { data: [], error: null },
+      respuestas: {
+        data: [{ pregunta_orden: 1, transcripcion: 'En Rosario.', texto_directo: null, es_repregunta: false, audio_path: null }],
+        error: null,
+      },
+      descargas: {
+        'narrador-1/paquete/estructura.json': { data: blobFake(JSON.stringify(estructura)), error: null },
+        'narrador-1/paquete/nombres.json': { data: blobFake(JSON.stringify(nombres)), error: null },
+        'narrador-1/paquete/borrador_preview_cap1.md': {
+          data: blobFake('Capítulo 1 ya pagado en un reintento anterior.'),
+          error: null,
+        },
+      },
+    });
+    (obtenerClienteDb as unknown as ReturnType<typeof vi.fn>).mockReturnValue(db);
+
+    await generarPrevisualizacion('narrador-1');
+
+    // No le pagó al modelo de nuevo.
+    expect(escribirCapituloMock).not.toHaveBeenCalled();
+
+    // Tampoco vuelve a subir el borrador (ya estaba).
+    expect(db.upload).not.toHaveBeenCalledWith(
+      'narrador-1/paquete/borrador_preview_cap1.md',
+      expect.anything(),
+      expect.anything()
+    );
+
+    // Y el PDF se arma con el texto cacheado.
+    const htmlGenerado = setContentMock.mock.calls[0][0] as string;
+    expect(htmlGenerado).toContain('Capítulo 1 ya pagado en un reintento anterior.');
   });
 
   it('si falla el corte de audio (ffmpeg), no sube preview.pdf — queda reintentable', async () => {
@@ -329,9 +386,16 @@ describe('generarPrevisualizacion', () => {
     await expect(generarPrevisualizacion('narrador-1')).rejects.toThrow(/ffmpeg/);
 
     // El PDF nunca se generó ni se subió — la próxima corrida de tick()
-    // puede reintentar todo desde cero.
+    // puede reintentar el PDF/audio desde cero. El borrador del capítulo 1
+    // sí quedó cacheado (se subió ANTES del paso que falló) — es justamente
+    // lo que evita pagarle al modelo de nuevo en el reintento.
     expect(launchMock).not.toHaveBeenCalled();
-    expect(db.upload).not.toHaveBeenCalled();
+    expect(db.upload).toHaveBeenCalledTimes(1);
+    expect(db.upload).toHaveBeenCalledWith(
+      'narrador-1/paquete/borrador_preview_cap1.md',
+      'Capítulo corto.',
+      { contentType: 'text/markdown', upsert: true }
+    );
   });
 
   it('si ninguna respuesta tiene audio, omite la muestra sin tirar', async () => {

@@ -7,7 +7,16 @@ import path from 'node:path';
 import { obtenerClienteDb, type Narrador, type Pregunta, type Respuesta } from '../db.js';
 import { escribirCapitulo } from './escribir-capitulo.js';
 import type { Estructura } from './estructura.js';
-import { armarMaterial, capituloMarkdownAHtml, descargarJson, escaparHtml, formatearNombresCorregidos, type Nombres } from './comun.js';
+import {
+  armarMaterial,
+  capituloMarkdownAHtml,
+  descargarJson,
+  descargarTextoOpcional,
+  escaparHtml,
+  formatearNombresCorregidos,
+  subirTexto,
+  type Nombres,
+} from './comun.js';
 
 export { formatearNombresCorregidos, capituloMarkdownAHtml, armarMaterial };
 export type { Nombres };
@@ -18,6 +27,7 @@ const RUTA_ESTRUCTURA = (narradorId: string) => `${narradorId}/paquete/estructur
 const RUTA_NOMBRES = (narradorId: string) => `${narradorId}/paquete/nombres.json`;
 const RUTA_PREVIEW_PDF = (narradorId: string) => `${narradorId}/paquete/preview.pdf`;
 const RUTA_MUESTRA_AUDIO = (narradorId: string) => `${narradorId}/paquete/muestra_audiolibro.mp3`;
+const RUTA_BORRADOR_PREVIEW_CAP1 = (narradorId: string) => `${narradorId}/paquete/borrador_preview_cap1.md`;
 
 function construirHtmlPreview(opciones: {
   titulo: string;
@@ -135,15 +145,27 @@ export async function generarPrevisualizacion(narradorId: string): Promise<void>
   const nombresCorregidos = formatearNombresCorregidos(nombres.correcciones);
 
   const primerCapitulo = estructura.capitulos[0];
-  const primerCapituloTexto = primerCapitulo
-    ? await escribirCapitulo(
+  let primerCapituloTexto = '';
+  if (primerCapitulo) {
+    // Checkpoint: si un reintento anterior ya pagó al modelo por el
+    // capítulo 1, se reusa en vez de volver a pagar — el paso caro va
+    // ANTES que el PDF/audio (los pasos baratos que pueden fallar), y su
+    // resultado se cachea apenas se genera.
+    const rutaBorrador = RUTA_BORRADOR_PREVIEW_CAP1(narradorId);
+    const cacheado = await descargarTextoOpcional(db, rutaBorrador);
+    if (cacheado !== null) {
+      primerCapituloTexto = cacheado;
+    } else {
+      primerCapituloTexto = await escribirCapitulo(
         narrador,
         primerCapitulo.nombre,
         armarMaterial(primerCapitulo.ordenes, preguntasPorOrden, respuestasPorOrden),
         historiaCompleta,
         nombresCorregidos
-      )
-    : '';
+      );
+      await subirTexto(db, rutaBorrador, primerCapituloTexto);
+    }
+  }
 
   const html = construirHtmlPreview({
     titulo: estructura.titulo,
