@@ -1,4 +1,17 @@
-# Estado del proyecto — actualizado 2026-09-01 (noche)
+# Estado del proyecto — actualizado 2026-09-01 (medianoche)
+
+## 🎉 ÚLTIMA HORA: el primer libro completo ya existe
+
+La prueba de punta a punta con el set dorado (Osvaldo) se corrió ENTERA en producción:
+carga → estructura → corrección de nombres → previsualización → pago simulado → **libro
+completo de 8 capítulos en PDF + audiolibro ensamblado → página de descarga funcionando**.
+La calidad del texto es genuinamente buena (voz oral real, cero perfume a IA). Costo de
+producción medido: ~USD 5 de API por libro, contra 49€ de precio.
+
+Bugs de producción cazados y arreglados en vivo durante la prueba (ya en main):
+- Middleware de sesión de Supabase que faltaba (las páginas crasheaban al renovar el token) → helper único `web/src/lib/supabase/sesion.ts` + `web/src/middleware.ts`.
+- **Railway usa Railpack y IGNORA `nixpacks.toml`** → la fábrica ahora tiene `fabrica/Dockerfile` explícito (node 22 + ffmpeg + Chromium adentro de node_modules). Dato clave para el deploy del entrevistador: **usar Dockerfile también**, no confiar en nixpacks.toml.
+- Los reintentos re-pagaban al modelo por capítulos ya escritos → "memoria de borradores" en Storage (`borrador_cap_NN.md`): cada texto caro se guarda apenas se genera y los reintentos lo reutilizan gratis.
 
 ## Lo que ya está VIVO en producción (lado Naza)
 
