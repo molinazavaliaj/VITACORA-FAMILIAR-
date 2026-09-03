@@ -45,23 +45,53 @@ describe('construirHtmlLibro', () => {
     expect(html).toContain('</html>');
   });
 
-  it('la portada tiene título, año y foto', () => {
+  it('la portada tiene el nombre del narrador (extraído del título) y el año', () => {
     const html = construir();
-    expect(html).toContain('Roberto — La historia de una vida');
+    expect(html).toContain('Roberto');
     expect(html).toContain('1945');
+  });
+
+  it('la portada trae la franja de lomo con el acento por default', () => {
+    const html = construir();
+    expect(html).toContain('#6e2618');
+    expect(html).toContain('class="franja"');
+  });
+
+  it('la franja de lomo usa el acento pasado por parámetro', () => {
+    const html = construir({ acento: '#1e3a5f' });
+    expect(html).toContain('#1e3a5f');
+    expect(html).not.toContain('#6e2618');
+  });
+
+  it('el frontispicio aparece con la foto entera cuando hay foto', () => {
+    const html = construir();
+    expect(html).toContain('class="frontispicio-img"');
     expect(html).toContain('https://x/foto.jpg');
   });
 
-  it('la portada no rompe si falta la foto', () => {
+  it('sin foto no hay ni <img> ni el bloque de frontispicio', () => {
     const html = construir({ fotoUrl: null });
     expect(html).not.toContain('<img');
+    expect(html).not.toContain('class="frontispicio-img"');
   });
 
-  it('el índice lista los capítulos', () => {
+  it('cada capítulo del índice arranca con su numeral de capítulo', () => {
     const html = construir();
-    expect(html).toContain('Índice');
-    expect(html).toContain('<li>Infancia</li>');
-    expect(html).toContain('<li>El amor</li>');
+    // Infancia es el 1° capítulo real del índice, El amor el 2°.
+    expect(html).toContain('<div class="numeral">01</div>');
+    expect(html).toContain('<div class="numeral">02</div>');
+    expect(html).toContain('<div class="cap-nombre">Infancia</div>');
+    expect(html).toContain('<div class="cap-nombre">El amor</div>');
+  });
+
+  it('la contratapa está presente, con la marca de la colección', () => {
+    const html = construir();
+    expect(html).toContain('VITÁCORA FAMILIAR · UNA COLECCIÓN DE VIDAS CONTADAS');
+  });
+
+  it('el colofón está presente', () => {
+    const html = construir();
+    expect(html).toContain('Este libro fue contado por');
   });
 
   it('contiene TODOS los encabezados del markdown, incluidos los que no vienen del índice', () => {
