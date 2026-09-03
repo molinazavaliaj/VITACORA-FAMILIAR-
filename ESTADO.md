@@ -42,6 +42,18 @@ la prioridad número 1 del proyecto es:
 Los compradores de los 3 pilotos van a ser la cuenta de Naza (sin dominio propio los mails
 de login solo le llegan a él) — los narradores solo necesitan WhatsApp.
 
+4. **Propuesta de Naza al guion (a consensuar entre ambos): "la vida en 5 minutos" como
+   pregunta fija del día 26.** Texto propuesto:
+   > «Ya me contó su vida entera, capítulo por capítulo. Hoy le pido algo distinto:
+   > imagínese que tiene cinco minutos con alguien que no lo conoce, y quiere que sepa
+   > quién es usted. Cuénteme su vida en cinco minutos. Lo que no puede faltar.»
+   Razón: después de revivir todo, el resumen revela cómo el narrador estructura su propia
+   vida (material de prólogo para el editor) y produce LA pieza compartible del producto:
+   "su vida en 5 minutos con su voz" — candidata a muestra de la previsualización.
+   Implementación si estás de acuerdo: se agrega al seed como fija orden 26 (avisamos y lo
+   hace Naza en `supabase/seed.sql` + migración) y tus adaptativas pasan a generar 4
+   (órdenes 27-30) en vez de 5. Decínos y lo aplicamos coordinados.
+
 ## Lo que falta para que el sistema COMPLETO respire (lado Socio 1)
 
 El código del entrevistador está terminado y mergeado (¡enorme!). Faltan sus dos pasos finales:
