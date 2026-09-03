@@ -44,7 +44,7 @@
     <div style="font-family: Archivo, Arial, sans-serif; font-size: 10px; letter-spacing: 0.24em; color: #a8a29e;">MECÁNICO · PADRE · TRES HIJOS · CUATRO NIETOS</div>
   </div>
 
-  <div style="position: absolute; top: 0; right: 0; bottom: 0; width: 52px; background: #6e2618; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 26px 0; box-sizing: border-box;">
+  <div style="position: absolute; top: 0; right: 0; bottom: 0; width: 52px; background: {{acento}}; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 26px 0; box-sizing: border-box;">
     <div style="font-family: 'Playfair Display', Georgia, serif; font-style: italic; font-size: 17px; color: #faf7f1;">N°1</div>
     <div style="writing-mode: vertical-rl; font-family: Archivo, Arial, sans-serif; font-size: 10px; letter-spacing: 0.32em; color: #faf7f1;">LA HISTORIA DE UNA VIDA · AVELLANEDA · 1952 —</div>
     <svg width="34" height="34" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -54,5 +54,12 @@
   </div>
 </div>
 </x-dc>
+<script data-dc-script data-props='{"acento":{"editor":"color","default":"#6e2618","options":["#6e2618","#1e3a5f","#2d4a3e","#1c1917"],"section":"Lomo"}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { acento: this.props.acento ?? '#6e2618' };
+  }
+}
+</script>
 </body>
 </html>
