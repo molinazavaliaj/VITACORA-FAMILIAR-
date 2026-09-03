@@ -362,10 +362,13 @@ function construirEstilos(acento: string): string {
   .frontispicio-pie .nombre { font-family: 'Playfair Display', Georgia, serif; font-style: italic; font-size: 40px; line-height: 1.05; }
   .frontispicio-pie .tag { font-family: Archivo, Arial, sans-serif; font-size: 10px; letter-spacing: 0.3em; color: rgba(250,247,241,0.7); }
 
-  /* Apertura de capítulo (calcada de AperturaCapitulo.dc.html) */
+  /* Apertura de capítulo (calcada de AperturaCapitulo.dc.html, con un
+     ajuste pedido por Naza el 2026-09-03: el mockup sangraba el numeral
+     fuera de la página y quedaba ilegible — acá entra ENTERO, igual de
+     protagonista). */
   .apertura .numeral {
-    position: absolute; top: 46px; right: -74px;
-    font-family: 'Playfair Display', Georgia, serif; font-weight: 900; font-size: 330px; line-height: 0.8; color: var(--tinta);
+    position: absolute; top: 72px; right: 30px;
+    font-family: 'Playfair Display', Georgia, serif; font-weight: 900; font-size: 250px; line-height: 0.8; color: var(--tinta);
   }
   .apertura .marca-narrador { position: absolute; top: 40px; left: 44px; font-family: Archivo, Arial, sans-serif; font-size: 10px; letter-spacing: 0.3em; color: var(--gris1); text-transform: uppercase; }
   .apertura .marca-cap { position: absolute; top: 40px; right: 44px; font-family: Archivo, Arial, sans-serif; font-size: 10px; letter-spacing: 0.3em; color: var(--acento); font-weight: 600; }
