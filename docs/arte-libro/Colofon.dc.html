@@ -7,7 +7,7 @@
 <body>
 <x-dc>
 <helmet>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,500;1,900&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&family=Archivo:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,500;1,900&amp;family=Source+Serif+4:ital,wght@0,400;0,600;1,400&amp;family=Archivo:wght@400;500;600;700&amp;display=swap">
   <style>
     body { margin: 0; }
     a { color: #6e2618; } a:hover { color: #4a1910; }
@@ -15,31 +15,57 @@
 </helmet>
 <div style="width: 559px; height: 794px; background: #faf7f1; color: #1c1917; box-sizing: border-box; font-family: 'Source Serif 4', Georgia, serif; position: relative; overflow: hidden;">
 
-  <div style="position: absolute; top: 100px; left: 44px; right: 44px; text-align: center; font-family: 'Playfair Display', Georgia, serif; font-style: italic; font-size: 22px; line-height: 1.6; color: #44403c;">«Acá adentro<br>están todos vivos.»</div>
+  <svg style="position: absolute; inset: 0; opacity: 0.5;" width="559" height="794" xmlns="http://www.w3.org/2000/svg">
+    <filter id="granoCol">
+      <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2" seed="11"></feTurbulence>
+      <feColorMatrix type="matrix" values="0 0 0 0 0.42  0 0 0 0 0.38  0 0 0 0 0.33  0 0 0 0.06 0"></feColorMatrix>
+    </filter>
+    <rect width="559" height="794" filter="url(#granoCol)"></rect>
+  </svg>
 
-  <div style="position: absolute; top: 300px; left: 0; right: 0; display: flex; flex-direction: column; align-items: center; gap: 30px;">
-    <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="32" cy="32" r="30" stroke="#1c1917" stroke-width="1.1"></circle>
-      <circle cx="32" cy="32" r="25.5" stroke="#1c1917" stroke-width="0.55"></circle>
-      <text x="32" y="39" text-anchor="middle" font-family="Playfair Display, Georgia, serif" font-size="17" font-style="italic" fill="#1c1917">V·F</text>
-      <circle cx="32" cy="4.5" r="1.3" fill="#6e2618"></circle>
-      <circle cx="32" cy="59.5" r="1.3" fill="#6e2618"></circle>
+  <svg style="position: absolute; top: 46px; left: 32px;" width="11" height="11" viewBox="0 0 11 11" xmlns="http://www.w3.org/2000/svg">
+    <path d="M5.5 0 V11 M0 5.5 H11" stroke="#c9a795" stroke-width="1"></path>
+  </svg>
+  <svg style="position: absolute; top: 46px; right: 32px;" width="11" height="11" viewBox="0 0 11 11" xmlns="http://www.w3.org/2000/svg">
+    <path d="M5.5 0 V11 M0 5.5 H11" stroke="#c9a795" stroke-width="1"></path>
+  </svg>
+  <svg style="position: absolute; bottom: 46px; left: 32px;" width="11" height="11" viewBox="0 0 11 11" xmlns="http://www.w3.org/2000/svg">
+    <path d="M5.5 0 V11 M0 5.5 H11" stroke="#c9a795" stroke-width="1"></path>
+  </svg>
+  <svg style="position: absolute; bottom: 46px; right: 32px;" width="11" height="11" viewBox="0 0 11 11" xmlns="http://www.w3.org/2000/svg">
+    <path d="M5.5 0 V11 M0 5.5 H11" stroke="#c9a795" stroke-width="1"></path>
+  </svg>
+
+  <div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 38px; text-align: center; padding: 0 60px;">
+
+    <svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="90" cy="90" r="88" stroke="#1c1917" stroke-width="1.4"></circle>
+      <circle cx="90" cy="90" r="76" stroke="#1c1917" stroke-width="0.6"></circle>
+      <text x="90" y="106" text-anchor="middle" font-family="Playfair Display, Georgia, serif" font-size="52" font-style="italic" fill="#1c1917">O·B</text>
+      <circle cx="90" cy="2.5" r="2" fill="#6e2618"></circle>
+      <circle cx="90" cy="177.5" r="2" fill="#6e2618"></circle>
+      <circle cx="2.5" cy="90" r="2" fill="#6e2618"></circle>
+      <circle cx="177.5" cy="90" r="2" fill="#6e2618"></circle>
     </svg>
 
-    <div style="display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center;">
-      <div style="font-size: 14.5px; line-height: 1.8; color: #57534e;">Este libro fue contado por</div>
-      <div style="font-family: 'Playfair Display', Georgia, serif; font-weight: 900; font-size: 30px; letter-spacing: 0.01em;">OSVALDO BENÍTEZ</div>
-      <div style="font-size: 14.5px; line-height: 1.8; color: #57534e; max-width: 300px;">a lo largo de treinta conversaciones, con su propia voz, y guardado para siempre por</div>
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
+      <div style="font-size: 14.5px; line-height: 1.75; color: #57534e;">Este libro fue contado por</div>
+      <div style="font-family: 'Playfair Display', Georgia, serif; font-weight: 900; font-size: 27px; letter-spacing: 0.02em;">OSVALDO BENÍTEZ</div>
+      <div style="font-size: 14.5px; line-height: 1.75; color: #57534e; max-width: 300px;">a lo largo de treinta conversaciones, con su propia voz, y guardado para siempre por</div>
     </div>
 
-    <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 11px;">
       <div style="font-family: Archivo, Arial, sans-serif; font-size: 15px; letter-spacing: 0.38em; font-weight: 700; color: #1c1917;">VITÁCORA FAMILIAR</div>
-      <div style="width: 36px; height: 1px; background: #6e2618;"></div>
+      <div style="display: flex; align-items: center; gap: 9px;">
+        <div style="width: 30px; height: 1px; background: #e2ddd3;"></div>
+        <div style="width: 4px; height: 4px; border: 1px solid #6e2618; border-radius: 50%;"></div>
+        <div style="width: 30px; height: 1px; background: #e2ddd3;"></div>
+      </div>
       <div style="font-family: Archivo, Arial, sans-serif; font-size: 10px; letter-spacing: 0.26em; color: #a8a29e;">MMXXVI</div>
     </div>
   </div>
 
-  <div style="position: absolute; bottom: 46px; left: 0; right: 0; text-align: center; font-family: Archivo, Arial, sans-serif; font-size: 9px; letter-spacing: 0.24em; color: #d6d1c7;">EL QUE SE SIENTA SEGUIDO, QUEDA</div>
+  <div style="position: absolute; bottom: 44px; left: 0; right: 0; text-align: center; font-family: 'Playfair Display', Georgia, serif; font-style: italic; font-size: 13px; color: #a8a29e;">«Acá adentro están todos vivos.»</div>
 </div>
 </x-dc>
 </body>

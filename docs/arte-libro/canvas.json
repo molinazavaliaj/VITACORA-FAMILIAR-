@@ -7,7 +7,8 @@
     { "file": "PaginaCita.dc.html", "title": "Página de cita", "x": 0, "y": 940, "w": 559, "h": 794 },
     { "file": "LayoutFoto.dc.html", "title": "Layout con foto", "x": 660, "y": 940, "w": 559, "h": 794 },
     { "file": "SusFrases.dc.html", "title": "Sus frases", "x": 1320, "y": 940, "w": 559, "h": 794 },
-    { "file": "Colofon.dc.html", "title": "Colofón", "x": 1980, "y": 940, "w": 559, "h": 794 }
+    { "file": "Colofon.dc.html", "title": "Colofón (última página interior)", "x": 1980, "y": 940, "w": 559, "h": 794 },
+    { "file": "Contratapa.dc.html", "title": "Contratapa", "x": 0, "y": 1880, "w": 559, "h": 794 }
   ],
   "annotations": [
     { "id": "direccion", "x": 0, "y": -170, "w": 420, "text": "EDITORIAL ELEGANTE CON CORAZÓN CLÁSICO\nPapel cálido + tinta + vino sobrio. Playfair Display (títulos) · Source Serif (lectura) · Archivo (etiquetas).\nLa firma: el monograma del narrador + la franja de lomo en la tapa + el vino en folios y detalles." },

@@ -1,0 +1,55 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,500;1,900&amp;family=Source+Serif+4:ital,wght@0,400;0,600;1,400&amp;family=Archivo:wght@400;500;600;700&amp;display=swap">
+  <style>
+    body { margin: 0; }
+    a { color: #6e2618; } a:hover { color: #4a1910; }
+  </style>
+</helmet>
+<div style="width: 559px; height: 794px; background: #faf7f1; color: #1c1917; box-sizing: border-box; font-family: 'Source Serif 4', Georgia, serif; position: relative; overflow: hidden;">
+
+  <svg style="position: absolute; inset: 0; opacity: 0.5;" width="559" height="794" xmlns="http://www.w3.org/2000/svg">
+    <filter id="granoCt">
+      <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2" seed="4"></feTurbulence>
+      <feColorMatrix type="matrix" values="0 0 0 0 0.42  0 0 0 0 0.38  0 0 0 0 0.33  0 0 0 0.06 0"></feColorMatrix>
+    </filter>
+    <rect width="559" height="794" filter="url(#granoCt)"></rect>
+  </svg>
+
+  <div style="position: absolute; top: 0; left: 0; bottom: 0; width: 52px; background: #6e2618; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 26px 0; box-sizing: border-box;">
+    <svg width="34" height="34" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="17" cy="17" r="15.8" stroke="#faf7f1" stroke-width="1"></circle>
+      <text x="17" y="22" text-anchor="middle" font-family="Playfair Display, Georgia, serif" font-size="10" font-style="italic" fill="#faf7f1">V·F</text>
+    </svg>
+    <div style="writing-mode: vertical-rl; font-family: Archivo, Arial, sans-serif; font-size: 10px; letter-spacing: 0.32em; color: #faf7f1;">VITÁCORA FAMILIAR · UNA COLECCIÓN DE VIDAS CONTADAS</div>
+    <div style="font-family: 'Playfair Display', Georgia, serif; font-style: italic; font-size: 17px; color: #faf7f1;">N°1</div>
+  </div>
+
+  <svg style="position: absolute; bottom: -130px; right: -130px;" width="300" height="300" viewBox="0 0 300 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="150" cy="150" r="148" stroke="#eee9df" stroke-width="1.2"></circle>
+  </svg>
+
+  <div style="position: absolute; left: 116px; right: 56px; top: 200px; display: flex; flex-direction: column; gap: 26px;">
+    <div style="font-family: 'Playfair Display', Georgia, serif; font-weight: 900; font-size: 60px; line-height: 1; color: #6e2618;">“</div>
+    <div style="font-family: 'Playfair Display', Georgia, serif; font-style: italic; font-weight: 500; font-size: 34px; line-height: 1.32; margin-top: -34px;">Si algo hace ruido,<br>no le subas la radio.<br>Abrí el capó y mirá.</div>
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <div style="width: 32px; height: 1px; background: #1c1917;"></div>
+      <div style="font-family: Archivo, Arial, sans-serif; font-size: 10px; letter-spacing: 0.28em; color: #57534e;">OSVALDO BENÍTEZ</div>
+    </div>
+  </div>
+
+  <div style="position: absolute; left: 116px; bottom: 52px; right: 56px; display: flex; flex-direction: column; gap: 8px;">
+    <div style="font-size: 13.5px; line-height: 1.7; color: #57534e; max-width: 330px;">Treinta conversaciones. Una vida entera. Un libro que se lee con los ojos y se escucha con su voz.</div>
+    <div style="font-family: Archivo, Arial, sans-serif; font-size: 9px; letter-spacing: 0.26em; color: #a8a29e;">LA HISTORIA DE UNA VIDA · AVELLANEDA · 1952 —</div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>
