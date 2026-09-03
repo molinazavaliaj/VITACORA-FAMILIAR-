@@ -1,16 +1,18 @@
 {
   "artboards": [
     { "file": "Main.dc.html", "title": "Portada", "x": 0, "y": 0, "w": 559, "h": 794 },
-    { "file": "AperturaCapitulo.dc.html", "title": "Apertura de capítulo", "x": 660, "y": 0, "w": 559, "h": 794 },
-    { "file": "PaginaTexto.dc.html", "title": "Página de texto denso", "x": 1320, "y": 0, "w": 559, "h": 794 },
-    { "file": "PaginaCita.dc.html", "title": "Página de cita", "x": 1980, "y": 0, "w": 559, "h": 794 },
-    { "file": "LayoutFoto.dc.html", "title": "Layout con foto", "x": 0, "y": 940, "w": 559, "h": 794 },
-    { "file": "SusFrases.dc.html", "title": "Sus frases", "x": 660, "y": 940, "w": 559, "h": 794 },
-    { "file": "Colofon.dc.html", "title": "Colofón", "x": 1320, "y": 940, "w": 559, "h": 794 }
+    { "file": "Frontispicio.dc.html", "title": "Frontispicio (retrato)", "x": 660, "y": 0, "w": 559, "h": 794 },
+    { "file": "AperturaCapitulo.dc.html", "title": "Apertura de capítulo", "x": 1320, "y": 0, "w": 559, "h": 794 },
+    { "file": "PaginaTexto.dc.html", "title": "Página de texto denso", "x": 1980, "y": 0, "w": 559, "h": 794 },
+    { "file": "PaginaCita.dc.html", "title": "Página de cita", "x": 0, "y": 940, "w": 559, "h": 794 },
+    { "file": "LayoutFoto.dc.html", "title": "Layout con foto", "x": 660, "y": 940, "w": 559, "h": 794 },
+    { "file": "SusFrases.dc.html", "title": "Sus frases", "x": 1320, "y": 940, "w": 559, "h": 794 },
+    { "file": "Colofon.dc.html", "title": "Colofón", "x": 1980, "y": 940, "w": 559, "h": 794 }
   ],
   "annotations": [
     { "id": "direccion", "x": 0, "y": -170, "w": 420, "text": "EDITORIAL ELEGANTE CON CORAZÓN CLÁSICO\nPapel cálido + tinta + vino sobrio. Playfair Display (títulos) · Source Serif (lectura) · Archivo (etiquetas).\nLa firma: el monograma del narrador + la franja de lomo en la tapa + el vino en folios y detalles." },
-    { "id": "nota-franja", "x": 460, "y": -170, "w": 300, "text": "LA FRANJA DE LA TAPA (idea de Naza, 3/9): banda vertical vino a sangre completa en el borde derecho, con el texto en papel y el sello O·B abajo. Es el 'lomo' de la colección: todos los Vitácora alineados en una biblioteca muestran su franja." }
+    { "id": "nota-franja", "x": 460, "y": -170, "w": 300, "text": "LA FRANJA DE LA TAPA (idea de Naza, 3/9): banda vertical vino a sangre completa en el borde derecho, con el texto en papel y el sello O·B abajo. Es el 'lomo' de la colección: todos los Vitácora alineados en una biblioteca muestran su franja." },
+    { "id": "orden-libro", "x": 790, "y": -170, "w": 300, "text": "ORDEN DEL LIBRO: Tapa → Frontispicio (retrato entero) → A mis lectores → capítulos (apertura + texto + citas + fotos) → Sus frases → Saludos → Colofón." }
   ],
   "launch": { "view": "canvas" }
 }
