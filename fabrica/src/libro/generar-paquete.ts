@@ -215,6 +215,10 @@ async function generarPdf(
   try {
     const page = await browser.newPage();
     await page.setContent(html);
+    // La plantilla pagina el texto con un script embebido (reparte los
+    // bloques en lienzos A5 y numera folios); imprimir antes de esa marca
+    // sacaría el PDF a medio armar.
+    await page.waitForFunction('window.__libroPaginado === true', { timeout: 60_000 });
     const pdf = await page.pdf({ format: 'A5', printBackground: true });
 
     const { error } = await db.storage.from('audios').upload(RUTA_LIBRO_PDF(narradorId), pdf, {

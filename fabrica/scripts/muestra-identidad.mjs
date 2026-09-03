@@ -175,6 +175,9 @@ async function main() {
     // setContent + page.pdf() directo a veces el PDF sale con la fuente de
     // sistema si la red es lenta.
     await page.waitForLoadState('networkidle');
+    // La plantilla pagina el texto con su script embebido; esperar la marca
+    // para no imprimir el libro a medio armar.
+    await page.waitForFunction('window.__libroPaginado === true', { timeout: 60_000 });
     const pdf = await page.pdf({ format: 'A5', printBackground: true });
     const rutaPdf = path.join(RUTA_FABRICA, 'muestra-identidad.pdf');
     await writeFile(rutaPdf, pdf);

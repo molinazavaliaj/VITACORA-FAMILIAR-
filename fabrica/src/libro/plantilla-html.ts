@@ -8,11 +8,17 @@ import { escaparHtml } from './comun.js';
 // consume el libro completo (portada, frontispicio, capítulos, sus frases,
 // saludos, colofón, contratapa) para Playwright → PDF A5.
 //
-// La fábrica renderiza UN solo HTML que fluye y se pagina sola (no hay forma
-// de dirigirnos a una página física puntual desde acá) — así que los
-// ornamentos "por página" del mockup (cruces de registro, círculo cortado,
-// cabecera corrida) se aplican una vez por BLOQUE DE CAPÍTULO, no una vez por
-// página física. Es la traducción pragmática que pide la spec.
+// La fábrica renderiza UN solo HTML, pero la paginación del texto corrido la
+// hacemos NOSOTROS con un script embebido que corre en el navegador antes de
+// imprimir (ver construirScriptPaginador): reparte los bloques de cada
+// sección en lienzos A5 de margen CERO. ¿Por qué? Chromium recorta TODO al
+// área de contenido cuando @page tiene márgenes — el fondo crema no llega
+// nunca al borde de la hoja (queda un parche amarillo flotando en blanco, se
+// verificó empíricamente: ni background en html ni un position:fixed
+// desbordado pintan el margen). Paginar a mano además habilita los
+// ornamentos POR PÁGINA física del mockup (cabecera corrida, riel lateral,
+// cruces, círculo) y los folios (números de página), que Chromium no puede
+// poner solo (ignora los margin-boxes de @page).
 // ---------------------------------------------------------------------------
 
 /**
@@ -274,14 +280,12 @@ function svgCruz(top: number, left?: number, right?: number): string {
 // --- Hoja de estilos ---------------------------------------------------------
 
 /**
- * A5 a 96dpi es EXACTAMENTE 559×794px (148×210mm) — por eso las páginas de
- * "arte" (portada, frontispicio, apertura de capítulo, sus frases, colofón,
- * contratapa) se construyen como lienzos fijos de 559×794px con margen de
- * página CERO, calcados casi literal de los mockups. Las páginas de TEXTO
- * corrido (que pueden partirse en varias páginas físicas) usan una página
- * con nombre (`texto`, CSS Named Pages — soportado por Chromium al imprimir)
- * con el margen real de PaginaTexto.dc.html convertido de px a mm
- * (72/64/92/70px → 19.05/16.93/24.34/18.52mm).
+ * A5 a 96dpi es EXACTAMENTE 559×794px (148×210mm) — TODAS las páginas
+ * (las de arte Y las de texto que arma el paginador embebido) son lienzos
+ * de 148mm×210mm con margen de página CERO, calcados casi literal de los
+ * mockups. Los "márgenes" de las páginas de texto son la columna interior
+ * (.columna-texto, el padding 92/64/70/72px de PaginaTexto.dc.html); el
+ * papel crema llega así hasta el borde físico de la hoja en todo el libro.
  */
 function construirEstilos(acento: string): string {
   return `
@@ -299,18 +303,19 @@ function construirEstilos(acento: string): string {
     --tostado: #c9a795;
   }
   @page { size: A5; margin: 0; }
-  @page texto { size: A5; margin: 24.34mm 16.93mm 18.52mm 19.05mm; }
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
+  html, body {
+    background: var(--papel);
+  }
   body {
     font-family: 'Source Serif 4', Georgia, 'Times New Roman', serif;
     color: var(--tinta);
-    background: var(--papel);
   }
 
   .lienzo {
-    width: 559px;
-    height: 794px;
+    width: 148mm;
+    height: 210mm;
     position: relative;
     overflow: hidden;
     background: var(--papel);
@@ -357,42 +362,60 @@ function construirEstilos(acento: string): string {
   .frontispicio-pie .nombre { font-family: 'Playfair Display', Georgia, serif; font-style: italic; font-size: 40px; line-height: 1.05; }
   .frontispicio-pie .tag { font-family: Archivo, Arial, sans-serif; font-size: 10px; letter-spacing: 0.3em; color: rgba(250,247,241,0.7); }
 
-  /* Apertura de capítulo */
+  /* Apertura de capítulo (calcada de AperturaCapitulo.dc.html) */
   .apertura .numeral {
     position: absolute; top: 46px; right: -74px;
-    font-family: 'Playfair Display', Georgia, serif; font-weight: 900; font-size: 300px; line-height: 0.8; color: var(--tinta);
+    font-family: 'Playfair Display', Georgia, serif; font-weight: 900; font-size: 330px; line-height: 0.8; color: var(--tinta);
   }
-  .apertura .cuerpo-apertura { position: absolute; top: 380px; left: 44px; right: 100px; display: flex; flex-direction: column; gap: 16px; }
+  .apertura .marca-narrador { position: absolute; top: 40px; left: 44px; font-family: Archivo, Arial, sans-serif; font-size: 10px; letter-spacing: 0.3em; color: var(--gris1); text-transform: uppercase; }
+  .apertura .marca-cap { position: absolute; top: 40px; right: 44px; font-family: Archivo, Arial, sans-serif; font-size: 10px; letter-spacing: 0.3em; color: var(--acento); font-weight: 600; }
+  .apertura .cuerpo-apertura { position: absolute; top: 356px; left: 44px; right: 100px; display: flex; flex-direction: column; gap: 16px; }
   .apertura .cap-nombre { font-family: Archivo, Arial, sans-serif; font-weight: 700; font-size: 13px; letter-spacing: 0.4em; text-transform: uppercase; }
   .apertura .regla-acento { width: 44px; height: 1px; background: var(--acento); }
   .apertura .medallion-wrap { margin-top: 6px; }
 
-  /* Cabecera corrida sobre el cuerpo de texto (una vez por bloque de capítulo) */
-  .cuerpo-texto { page: texto; position: relative; }
-  .cabecera-corrida {
+  /* Páginas de texto: las arma el paginador embebido moviendo los bloques de
+     cada <section class="fuente-texto"> a lienzos con este cromo por página
+     (PaginaTexto.dc.html: cabecera corrida, riel lateral, cruces, círculo,
+     pie con ornamento y folio). La fuente queda visible tal cual si el
+     script no corre (fallback legible, sin cromo). */
+  .cabecera-pagina {
+    position: absolute; top: 42px; left: 72px; right: 64px;
     display: flex; align-items: baseline; justify-content: space-between;
-    border-bottom: 1px solid var(--linea); padding-bottom: 10px; margin-bottom: 32px;
+    border-bottom: 1px solid var(--linea); padding-bottom: 10px;
   }
-  .cabecera-corrida .narrador { font-family: 'Playfair Display', Georgia, serif; font-style: italic; font-size: 13px; color: var(--gris1); }
-  .cabecera-corrida .cap { font-family: Archivo, Arial, sans-serif; font-weight: 600; font-size: 10px; letter-spacing: 0.32em; color: var(--acento); text-transform: uppercase; }
+  .cabecera-pagina .etiqueta { font-family: Archivo, Arial, sans-serif; font-weight: 600; font-size: 10px; letter-spacing: 0.32em; color: var(--acento); text-transform: uppercase; }
+  .cabecera-pagina .narrador { font-family: 'Playfair Display', Georgia, serif; font-style: italic; font-size: 13px; color: var(--gris1); }
+  .riel { position: absolute; left: 30px; top: 130px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .riel .riel-texto { writing-mode: vertical-rl; transform: rotate(180deg); font-family: Archivo, Arial, sans-serif; font-size: 9px; letter-spacing: 0.3em; color: var(--marfil2); text-transform: uppercase; }
+  .riel .riel-linea { width: 1px; height: 64px; background: linear-gradient(to bottom, var(--linea) 0%, var(--linea) 45%, transparent 45%, transparent 55%, var(--linea) 55%, var(--linea) 100%); }
+  .riel .riel-punto { width: 5px; height: 5px; border: 1px solid var(--acento); border-radius: 50%; }
+  .pie-pagina { position: absolute; bottom: 44px; left: 72px; right: 64px; display: flex; justify-content: space-between; align-items: center; }
+  .pie-pagina .adorno { display: flex; align-items: center; gap: 8px; }
+  .pie-pagina .adorno .p { width: 4px; height: 4px; border: 1px solid var(--acento); border-radius: 50%; }
+  .pie-pagina .adorno .r { width: 28px; height: 1px; background: var(--linea); }
+  .folio { font-family: Archivo, Arial, sans-serif; font-size: 11px; letter-spacing: 0.2em; color: var(--acento); }
+  .columna-texto { position: absolute; top: 92px; left: 72px; right: 64px; bottom: 70px; overflow: hidden; }
 
-  .cuerpo-texto p, .pagina-simple p { font-size: 15px; line-height: 1.78; color: var(--gris5); margin: 0 0 15px; text-align: justify; }
-  .cuerpo-texto p + p, .pagina-simple p + p { text-indent: 22px; }
-  .cuerpo-texto h2, .pagina-simple h2 { font-family: 'Playfair Display', Georgia, serif; font-weight: 700; font-size: 20px; margin: 30px 0 14px; }
-  .cuerpo-texto h3, .pagina-simple h3 { font-family: Archivo, Arial, sans-serif; font-weight: 600; font-size: 11px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--acento); margin: 28px 0 12px; }
-  .cuerpo-texto blockquote, .pagina-simple blockquote {
+  .columna-texto p, .fuente-texto p { font-size: 15px; line-height: 1.78; color: var(--gris5); margin: 0 0 15px; text-align: justify; }
+  .columna-texto p + p, .fuente-texto p + p { text-indent: 22px; }
+  /* Un párrafo partido por el corte de página: la primera mitad justifica
+     también su última línea (como una línea del medio en un libro real) y la
+     continuación arranca sin sangría. */
+  .columna-texto p.sigue { text-align-last: justify; }
+  .columna-texto p.continuacion { text-indent: 0; }
+  .columna-texto h2, .fuente-texto h2 { font-family: 'Playfair Display', Georgia, serif; font-weight: 700; font-size: 20px; margin: 30px 0 14px; }
+  .columna-texto h3, .fuente-texto h3 { font-family: Archivo, Arial, sans-serif; font-weight: 600; font-size: 11px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--acento); margin: 28px 0 12px; }
+  .columna-texto blockquote, .fuente-texto blockquote {
     font-family: 'Playfair Display', Georgia, serif; font-style: italic; font-size: 21px; line-height: 1.5;
     margin: 22px 0; padding: 2px 0 2px 20px; border-left: 2px solid var(--acento); color: var(--tinta);
   }
-  .cuerpo-texto ul, .pagina-simple ul { margin: 0 0 16px; padding-left: 20px; }
-  .cuerpo-texto li, .pagina-simple li { font-size: 15px; line-height: 1.7; color: var(--gris5); margin-bottom: 10px; text-align: justify; }
+  .columna-texto ul, .fuente-texto ul { margin: 0 0 16px; padding-left: 20px; }
+  .columna-texto li, .fuente-texto li { font-size: 15px; line-height: 1.7; color: var(--gris5); margin-bottom: 10px; text-align: justify; }
 
   .separador-escena { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 6px 0 22px; }
   .separador-escena .linea-sep { width: 44px; height: 1px; background: var(--linea); }
 
-  /* Páginas simples (apertura del libro / cierre): mismo cuerpo de texto,
-     encabezado más liviano, sin numeral gigante. */
-  .pagina-simple { page: texto; }
   .titulo-simple {
     font-family: 'Playfair Display', Georgia, serif; font-style: italic; font-weight: 400; font-size: 30px;
     margin: 0 0 10px;
@@ -410,9 +433,6 @@ function construirEstilos(acento: string): string {
   }
   .sus-frases-hero { font-family: 'Playfair Display', Georgia, serif; font-style: italic; font-weight: 500; font-size: 40px; line-height: 1.2; margin: 0 0 12px; }
   .sus-frases-hero-tag { font-family: Archivo, Arial, sans-serif; font-size: 10px; letter-spacing: 0.2em; color: var(--acento); font-weight: 600; text-transform: uppercase; }
-  .sus-frases-lista { display: flex; flex-direction: column; gap: 4px; margin-top: 26px; padding-top: 22px; border-top: 1px solid var(--linea); }
-  .sus-frases-lista blockquote { font-family: 'Playfair Display', Georgia, serif; font-style: italic; font-size: 17px; line-height: 1.4; margin: 10px 0; padding: 0; border: none; color: var(--tinta); }
-  .sus-frases-lista p { font-size: 14px; line-height: 1.6; color: var(--gris3); }
   .sus-frases-narrador { position: absolute; left: 44px; bottom: 46px; font-family: Archivo, Arial, sans-serif; font-size: 10px; letter-spacing: 0.26em; color: var(--gris1); text-transform: uppercase; }
 
   /* Saludos */
@@ -487,19 +507,22 @@ function construirFrontispicio(opts: { fotoUrl: string; nombreNarrador: string; 
   </div>`;
 }
 
-function construirAperturaCapitulo(opts: { numero: number; nombreCapitulo: string; mono: string }): string {
-  const { numero, nombreCapitulo, mono } = opts;
+function construirAperturaCapitulo(opts: { numero: number; nombreCapitulo: string; nombreNarrador: string; mono: string }): string {
+  const { numero, nombreCapitulo, nombreNarrador, mono } = opts;
   const numeroTexto = String(numero).padStart(2, '0');
   return `<div class="lienzo apertura quiebre">
     ${svgCruz(46, 32)}
     ${svgCruz(46, undefined, 32)}
     ${svgCirculoCortado({ top: -120, right: -120, size: 280, segundoAnillo: true })}
+    <div class="marca-narrador">${escaparHtml(nombreNarrador)}</div>
+    <div class="marca-cap">CAP.</div>
     <div class="numeral">${numeroTexto}</div>
     <div class="cuerpo-apertura">
       <div class="cap-nombre">${escaparHtml(nombreCapitulo)}</div>
       <div class="regla-acento"></div>
       <div class="medallion-wrap">${svgMedallion({ size: 40, texto: mono, colorAro: '#1c1917', colorTexto: '#1c1917' })}</div>
     </div>
+    <div class="pie-pagina"><span></span><span class="folio"></span></div>
   </div>`;
 }
 
@@ -511,24 +534,18 @@ function construirCapitulo(opts: {
 }): string {
   const { numero, seccion, nombreNarrador, mono } = opts;
   const nombreCapitulo = seccion.titulo ?? '';
-  return `${construirAperturaCapitulo({ numero, nombreCapitulo, mono })}
-  <section class="pagina-simple antes">
-    <div class="cuerpo-texto">
-      <div class="cabecera-corrida">
-        <div class="narrador">${escaparHtml(nombreNarrador)}</div>
-        <div class="cap">CAP. ${String(numero).padStart(2, '0')}</div>
-      </div>
-      ${seccion.html}
-    </div>
+  const rail = `CAP. ${String(numero).padStart(2, '0')} · ${nombreCapitulo}`;
+  return `${construirAperturaCapitulo({ numero, nombreCapitulo, nombreNarrador, mono })}
+  <section class="fuente-texto antes" data-etiqueta="${escaparHtml(nombreCapitulo)}" data-rail="${escaparHtml(rail)}">
+    ${seccion.html}
   </section>`;
 }
 
 function construirPaginaSimple(seccion: SeccionLibro): string {
-  return `<section class="pagina-simple antes">
-    <div class="cuerpo-texto">
-      ${seccion.titulo ? `<h1 class="titulo-simple">${escaparHtml(seccion.titulo)}</h1><div class="titulo-simple-regla"></div>` : ''}
-      ${seccion.html}
-    </div>
+  const titulo = seccion.titulo ?? '';
+  return `<section class="fuente-texto antes" data-etiqueta="${escaparHtml(titulo)}" data-rail="${escaparHtml(titulo)}" data-primera="portadilla">
+    ${titulo ? `<h1 class="titulo-simple">${escaparHtml(titulo)}</h1><div class="titulo-simple-regla"></div>` : ''}
+    ${seccion.html}
   </section>`;
 }
 
@@ -549,18 +566,24 @@ function construirSusFrases(opts: { seccion: SeccionLibro; nombreNarrador: strin
     ? `<div class="sus-frases-hero">«${fraseHeroe}»</div>
        <div class="sus-frases-hero-tag">Si se lleva una sola de todo el libro, es esta</div>`
     : '';
+  const titulo = seccion.titulo ?? 'Sus frases';
+  // La página de arte lleva SOLO el título y la frase héroe (entra siempre);
+  // el listado completo fluye después por el paginador, para que ninguna
+  // frase se pierda por un overflow:hidden — antes se cortaban en silencio.
   return `<div class="lienzo quiebre">
     ${svgCirculoCortado({ top: -30, left: 300, size: 240, color: '#f2eee5' })}
     <div class="sus-frases-eyebrow">TAL CUAL LAS DICE · PARA QUE NO SE PIERDAN</div>
     <div style="position:absolute; top:48px; left:44px; right:100px;">
-      <div class="sus-frases-titulo">${escaparHtml(seccion.titulo ?? 'Sus frases')}</div>
+      <div class="sus-frases-titulo">${escaparHtml(titulo)}</div>
     </div>
-    <div style="position:absolute; top:230px; left:44px; right:44px; bottom:80px; overflow:hidden;">
+    <div style="position:absolute; top:230px; left:44px; right:44px;">
       ${heroHtml}
-      <div class="sus-frases-lista">${resto}</div>
     </div>
     <div class="sus-frases-narrador">${escaparHtml(nombreNarrador)}</div>
-  </div>`;
+  </div>
+  <section class="fuente-texto antes" data-etiqueta="${escaparHtml(titulo)}" data-rail="${escaparHtml(titulo)}">
+    ${resto}
+  </section>`;
 }
 
 function construirSaludos(saludos: { nombre: string; vinculo: string }[]): string {
@@ -568,12 +591,10 @@ function construirSaludos(saludos: { nombre: string; vinculo: string }[]): strin
   const items = saludos
     .map((s) => `<li>${escaparHtml(s.nombre)} <span class="vinculo">(${escaparHtml(s.vinculo)})</span></li>`)
     .join('\n');
-  return `<section class="saludos antes">
-    <div class="cuerpo-texto">
-      <h1 class="saludos-titulo">Los saludos de la familia</h1>
-      <div class="titulo-simple-regla"></div>
-      <ul class="saludos-lista">${items}</ul>
-    </div>
+  return `<section class="fuente-texto antes saludos" data-etiqueta="Los saludos" data-rail="Los saludos de la familia" data-primera="portadilla">
+    <h1 class="saludos-titulo">Los saludos de la familia</h1>
+    <div class="titulo-simple-regla"></div>
+    <ul class="saludos-lista">${items}</ul>
   </section>`;
 }
 
@@ -626,6 +647,228 @@ function construirContratapa(opts: { fraseHeroe: string | null; nombreNarrador: 
       <div class="tag">LA HISTORIA DE UNA VIDA${anioNacimiento ? ` · DESDE ${escaparHtml(String(anioNacimiento))}` : ''}</div>
     </div>
   </div>`;
+}
+
+// --- Paginador embebido ------------------------------------------------------
+
+/**
+ * El script que corre DENTRO del navegador (Playwright) antes de imprimir:
+ * reparte los bloques de cada `<section class="fuente-texto">` en lienzos A5
+ * completos con el cromo de PaginaTexto.dc.html (cabecera corrida, riel,
+ * cruces, círculo, pie con folio), partiendo párrafos largos por palabras y
+ * listas por ítems. Al terminar numera los folios y marca
+ * `window.__libroPaginado = true` — quien imprime debe esperar esa marca.
+ * Si algo falla, la marca se pone igual (el fallback es la fuente sin cromo,
+ * nunca un PDF colgado ni contenido perdido).
+ */
+function construirScriptPaginador(): string {
+  return `<script>
+(function () {
+  var HOLGURA = 1; // px de tolerancia al medir desbordes
+
+  function desborda(col) {
+    return col.scrollHeight > col.clientHeight + HOLGURA;
+  }
+
+  function esEncabezado(el) {
+    return /^H[1-3]$/.test(el.tagName)
+      || el.classList.contains('titulo-simple-regla')
+      || el.classList.contains('separador-escena');
+  }
+
+  // Cromo fijo de cada página de texto (círculo cortado + cruces de registro).
+  var ORNAMENTOS =
+    '<svg style="position:absolute;top:-120px;right:-120px;pointer-events:none;" width="280" height="280" viewBox="0 0 280 280" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+    '<circle cx="140" cy="140" r="138" stroke="#eee9df" stroke-width="1.2"></circle>' +
+    '<circle cx="140" cy="140" r="112" stroke="#f2eee5" stroke-width="0.8"></circle></svg>' +
+    '<svg style="position:absolute;top:46px;left:32px;pointer-events:none;" width="11" height="11" viewBox="0 0 11 11" xmlns="http://www.w3.org/2000/svg"><path d="M5.5 0 V11 M0 5.5 H11" stroke="#c9a795" stroke-width="1"></path></svg>' +
+    '<svg style="position:absolute;bottom:46px;right:32px;pointer-events:none;" width="11" height="11" viewBox="0 0 11 11" xmlns="http://www.w3.org/2000/svg"><path d="M5.5 0 V11 M0 5.5 H11" stroke="#c9a795" stroke-width="1"></path></svg>';
+
+  function crearPagina(fuente, meta, esPrimera) {
+    var lienzo = document.createElement('div');
+    lienzo.className = 'lienzo pagina-texto quiebre';
+    var html = ORNAMENTOS;
+    var sinCabecera = esPrimera && meta.portadilla;
+    if (!sinCabecera) {
+      html += '<div class="cabecera-pagina"><span class="etiqueta"></span><span class="narrador"></span></div>';
+    }
+    html += '<div class="riel"><span class="riel-texto"></span><span class="riel-linea"></span><span class="riel-punto"></span></div>';
+    html += '<div class="pie-pagina"><span class="adorno"><span class="p"></span><span class="r"></span></span><span class="folio"></span></div>';
+    html += '<div class="columna-texto"></div>';
+    lienzo.innerHTML = html;
+    // Los textos van por textContent (nunca innerHTML) — vienen del narrador.
+    var etiqueta = lienzo.querySelector('.cabecera-pagina .etiqueta');
+    if (etiqueta) etiqueta.textContent = meta.etiqueta;
+    var narrador = lienzo.querySelector('.cabecera-pagina .narrador');
+    if (narrador) narrador.textContent = meta.narrador;
+    lienzo.querySelector('.riel-texto').textContent = meta.rail;
+    fuente.parentNode.insertBefore(lienzo, fuente);
+    return lienzo.querySelector('.columna-texto');
+  }
+
+  // Aplana un párrafo a tokens palabra/espacio recordando si van en <strong>
+  // (la única marca inline que emite la plantilla).
+  function tokenizar(p) {
+    var toks = [];
+    function volcar(texto, strong) {
+      var partes = texto.split(/(\\s+)/);
+      for (var i = 0; i < partes.length; i++) {
+        if (partes[i]) toks.push({ tx: partes[i], strong: strong });
+      }
+    }
+    for (var n = p.firstChild; n; n = n.nextSibling) {
+      if (n.nodeType === Node.TEXT_NODE) volcar(n.textContent, false);
+      else volcar(n.textContent, n.tagName === 'STRONG');
+    }
+    return toks;
+  }
+
+  function armarDesdeTokens(toks, desde, hasta, clase) {
+    var p = document.createElement('p');
+    if (clase) p.className = clase;
+    var strongActual = null;
+    for (var i = desde; i < hasta; i++) {
+      var t = toks[i];
+      if (t.strong) {
+        if (!strongActual) {
+          strongActual = document.createElement('strong');
+          p.appendChild(strongActual);
+        }
+        strongActual.appendChild(document.createTextNode(t.tx));
+      } else {
+        strongActual = null;
+        p.appendChild(document.createTextNode(t.tx));
+      }
+    }
+    return p;
+  }
+
+  // Parte un párrafo desbordado: deja en la columna la porción más grande
+  // que entra (con la última línea justificada) y devuelve el resto como
+  // párrafo de continuación. Devuelve null si no vale la pena partir (que
+  // el párrafo entero pase a la página siguiente).
+  var MIN_TOKENS = 12; // ~6 palabras: no dejar una línea viuda suelta
+  function partirParrafo(p, col) {
+    var toks = tokenizar(p);
+    col.removeChild(p);
+    if (toks.length < MIN_TOKENS * 2) return { resto: p, partido: false };
+    var lo = 1, hi = toks.length - 1, mejor = 0;
+    var prueba = null;
+    while (lo <= hi) {
+      var mid = (lo + hi) >> 1;
+      if (prueba) col.removeChild(prueba);
+      prueba = armarDesdeTokens(toks, 0, mid, 'sigue');
+      col.appendChild(prueba);
+      if (!desborda(col)) { mejor = mid; lo = mid + 1; } else { hi = mid - 1; }
+    }
+    if (prueba) col.removeChild(prueba);
+    if (mejor < MIN_TOKENS || toks.length - mejor < MIN_TOKENS) {
+      return { resto: p, partido: false };
+    }
+    col.appendChild(armarDesdeTokens(toks, 0, mejor, 'sigue'));
+    return { resto: armarDesdeTokens(toks, mejor, toks.length, 'continuacion'), partido: true };
+  }
+
+  // Parte una lista desbordada moviendo ítems del final a una lista resto.
+  function partirLista(ul, col) {
+    var resto = ul.cloneNode(false);
+    while (ul.children.length > 1 && desborda(col)) {
+      resto.insertBefore(ul.lastElementChild, resto.firstChild);
+    }
+    if (desborda(col)) {
+      while (resto.firstChild) ul.appendChild(resto.firstChild);
+      col.removeChild(ul);
+      return { resto: ul, partido: false };
+    }
+    return { resto: resto.children.length ? resto : null, partido: true };
+  }
+
+  function paginarFuente(fuente, narrador) {
+    var meta = {
+      etiqueta: fuente.getAttribute('data-etiqueta') || '',
+      rail: fuente.getAttribute('data-rail') || '',
+      narrador: narrador,
+      portadilla: fuente.getAttribute('data-primera') === 'portadilla',
+    };
+    var cola = [];
+    while (fuente.firstElementChild) {
+      cola.push(fuente.firstElementChild);
+      fuente.removeChild(fuente.firstElementChild);
+    }
+    if (cola.length === 0) { fuente.remove(); return; }
+
+    var col = crearPagina(fuente, meta, true);
+    while (cola.length) {
+      var bloque = cola.shift();
+      col.appendChild(bloque);
+      if (!desborda(col)) continue;
+
+      var resto = null;
+      if (bloque.tagName === 'P') {
+        resto = partirParrafo(bloque, col).resto;
+      } else if (bloque.tagName === 'UL') {
+        resto = partirLista(bloque, col).resto;
+      } else {
+        col.removeChild(bloque);
+        resto = bloque;
+      }
+
+      // Caso extremo: un bloque solo más alto que la página entera — se
+      // coloca igual (se recorta) antes que ciclar para siempre.
+      if (col.children.length === 0 && resto) {
+        col.appendChild(resto);
+        resto = null;
+      }
+
+      // No dejar un título/separador huérfano al pie de la página: viaja
+      // junto con el bloque que lo sigue.
+      var arrastre = [];
+      while (col.children.length > 1 && col.lastElementChild && esEncabezado(col.lastElementChild)) {
+        arrastre.unshift(col.lastElementChild);
+        col.removeChild(col.lastElementChild);
+      }
+      if (resto) arrastre.push(resto);
+      for (var i = arrastre.length - 1; i >= 0; i--) cola.unshift(arrastre[i]);
+
+      if (cola.length) col = crearPagina(fuente, meta, false);
+    }
+    fuente.remove();
+  }
+
+  function numerarFolios() {
+    var lienzos = document.querySelectorAll('.lienzo');
+    for (var i = 0; i < lienzos.length; i++) {
+      var folio = lienzos[i].querySelector('.folio');
+      if (folio) folio.textContent = String(i + 1);
+    }
+  }
+
+  function paginar() {
+    try {
+      var narrador = document.body.getAttribute('data-narrador') || '';
+      var fuentes = document.querySelectorAll('section.fuente-texto');
+      for (var i = 0; i < fuentes.length; i++) paginarFuente(fuentes[i], narrador);
+      numerarFolios();
+    } catch (err) {
+      console.error('paginador del libro falló, queda el flujo sin cromo:', err);
+    } finally {
+      window.__libroPaginado = true;
+    }
+  }
+
+  function arrancar() {
+    // Las fuentes cambian la métrica del texto: medir recién cuando cargaron.
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(paginar, paginar);
+    } else {
+      paginar();
+    }
+  }
+
+  if (document.readyState === 'complete') arrancar();
+  else window.addEventListener('load', arrancar);
+})();
+</` + `script>`;
 }
 
 // --- Ensamblado final ---------------------------------------------------------
@@ -681,13 +924,14 @@ export function construirHtmlLibro(datos: {
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,500;1,900&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&family=Archivo:wght@400;500;600;700&display=swap">
 <style>${construirEstilos(acento)}</style>
 </head>
-<body>
+<body data-narrador="${escaparHtml(nombreNarrador)}">
 ${portadaHtml}
 ${frontispicioHtml}
 ${contenidoHtml}
 ${saludosHtml}
 ${colofonHtml}
 ${contratapaHtml}
+${construirScriptPaginador()}
 </body>
 </html>`;
 }

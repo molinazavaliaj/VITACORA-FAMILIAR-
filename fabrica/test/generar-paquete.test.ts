@@ -12,13 +12,16 @@ vi.mock('../src/audio/audiolibro.js', () => ({
   generarAudiolibro: generarAudiolibroMock,
 }));
 
-const { setContentMock, pdfMock, newPageMock, closeMock, launchMock } = vi.hoisted(() => {
+const { setContentMock, pdfMock, waitForFunctionMock, newPageMock, closeMock, launchMock } = vi.hoisted(() => {
   const setContentMock = vi.fn();
   const pdfMock = vi.fn().mockResolvedValue(Buffer.from('%PDF-fake%'));
-  const newPageMock = vi.fn().mockResolvedValue({ setContent: setContentMock, pdf: pdfMock });
+  const waitForFunctionMock = vi.fn().mockResolvedValue(undefined);
+  const newPageMock = vi
+    .fn()
+    .mockResolvedValue({ setContent: setContentMock, pdf: pdfMock, waitForFunction: waitForFunctionMock });
   const closeMock = vi.fn();
   const launchMock = vi.fn().mockResolvedValue({ newPage: newPageMock, close: closeMock });
-  return { setContentMock, pdfMock, newPageMock, closeMock, launchMock };
+  return { setContentMock, pdfMock, waitForFunctionMock, newPageMock, closeMock, launchMock };
 });
 vi.mock('playwright', () => ({
   chromium: { launch: launchMock },
@@ -205,6 +208,11 @@ describe('generarPaquete', () => {
     expect(htmlGenerado).toContain('A mis lectores');
     expect(htmlGenerado).toContain('https://x/foto.jpg');
     expect(htmlGenerado).toContain('1945');
+    // ... y el PDF esperó a que el paginador embebido terminara.
+    expect(waitForFunctionMock).toHaveBeenCalledWith(
+      'window.__libroPaginado === true',
+      expect.anything()
+    );
     expect(closeMock).toHaveBeenCalledTimes(1);
 
     expect(db.upload).toHaveBeenCalledWith(
