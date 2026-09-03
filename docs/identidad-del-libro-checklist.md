@@ -3,10 +3,27 @@
 > Sesión pendiente, con los dos socios en Discord. Este documento junta las decisiones a
 > tomar para que un libro de Vitácora Familiar se reconozca a tres metros de distancia.
 >
-> **Dirección de arte propuesta por Naza:** "cuento de hadas pero serio — como un templo
-> escondido". Traducción: objeto atemporal y artesanal, con solemnidad cálida; un libro que
-> parece encontrado en una biblioteca antigua, no impreso ayer. Referencias a explorar:
-> grabados clásicos, exlibris, marcos ornamentales sobrios, dorados MUY sutiles.
+> **DOS direcciones candidatas — se decide en la sesión viendo maquetas de ambas:**
+>
+> **A. "Templo escondido"** (primera intuición): objeto atemporal y artesanal, solemnidad
+> cálida; libro encontrado en una biblioteca antigua. Refs: grabados, exlibris, marcos
+> ornamentales, dorados sutiles. Pinterest: `folio society book design`, `vintage book
+> cover ornate`, `illuminated letter`.
+>
+> **B. "El abuelo tenía toda la onda"** (pivote de Naza mirando refs): editorial/fashion —
+> la vida tratada como Vogue trata a una leyenda. Tipografía grande, mucho aire, fotos
+> protagonistas, dignidad con estilo. El libro que Martina fotografía para Instagram.
+> Refs Pinterest: `editorial book design modern`, `kinfolk magazine layout`, `coffee
+> table book design`, `fashion lookbook layout`, `duotone photography book`.
+
+## 💡 Feature acoplada a la dirección B (backlog v1.1, post-pilotos): las fotos de la familia
+
+- Martina sube una carpeta de fotos desde la web (nueva sección del tablero).
+- Cada capítulo abre con una foto de esa época; fotos intercaladas en las páginas.
+- Curaduría: Martina etiqueta cada foto por etapa de vida (o la IA sugiere el capítulo).
+- Diseño tolerante a calidad despareja (scans viejos, fotos comprimidas de WhatsApp):
+  tratamiento uniforme (duotono/B&N elegante) que empareja todo y da identidad.
+- Duplica el valor percibido de los 49€: de "libro" a objeto editorial de una vida.
 
 ## La marca dentro del libro
 
