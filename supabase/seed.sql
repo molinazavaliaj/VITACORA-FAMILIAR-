@@ -42,4 +42,7 @@ insert into preguntas (narrador_id, orden, texto, capitulo, tipo) values
 
   -- LA SABIDURÍA
   (null, 24, 'Mirando toda su vida: ¿cuáles fueron sus alegrías más grandes, y de qué está más orgulloso? Y regálenos también esas frases o refranes que usted repite desde siempre — esos que en su familia ya son suyos.', 'La sabiduría', 'fija'),
-  (null, 25, 'Si sus nietos, y los hijos de sus nietos, escucharan esto dentro de cincuenta años... ¿qué quiere decirles? Este es su mensaje para ellos. Tómese todo el tiempo del mundo.', 'La sabiduría', 'fija');
+  (null, 25, 'Si sus nietos, y los hijos de sus nietos, escucharan esto dentro de cincuenta años... ¿qué quiere decirles? Este es su mensaje para ellos. Tómese todo el tiempo del mundo.', 'La sabiduría', 'fija'),
+
+  -- LA VIDA EN 5 MINUTOS (aprobada por ambos socios el 2026-09-03; las adaptativas pasan a ser 4: órdenes 27-30)
+  (null, 26, 'Ya me contó su vida entera, capítulo por capítulo. Hoy le pido algo distinto: imagínese que tiene cinco minutos con alguien que no lo conoce, y quiere que sepa quién es usted. Cuénteme su vida en cinco minutos. Lo que no puede faltar.', 'La sabiduría', 'fija');

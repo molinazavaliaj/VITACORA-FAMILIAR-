@@ -42,8 +42,11 @@ la prioridad número 1 del proyecto es:
 Los compradores de los 3 pilotos van a ser la cuenta de Naza (sin dominio propio los mails
 de login solo le llegan a él) — los narradores solo necesitan WhatsApp.
 
-4. **Propuesta de Naza al guion (a consensuar entre ambos): "la vida en 5 minutos" como
-   pregunta fija del día 26.** Texto propuesto:
+4. ✅ **APROBADA POR AMBOS Y YA APLICADA: "la vida en 5 minutos" es la pregunta fija del
+   día 26** (está en `supabase/seed.sql` y en la base viva — 26 fijas globales ahora).
+   **Te queda un ajuste en tu módulo:** el generador de adaptativas debe crear **4**
+   preguntas (órdenes 27-30) en vez de 5 (26-30), y dispararse al completarse la
+   respuesta 26 (no la 25). Texto aplicado:
    > «Ya me contó su vida entera, capítulo por capítulo. Hoy le pido algo distinto:
    > imagínese que tiene cinco minutos con alguien que no lo conoce, y quiere que sepa
    > quién es usted. Cuénteme su vida en cinco minutos. Lo que no puede faltar.»
