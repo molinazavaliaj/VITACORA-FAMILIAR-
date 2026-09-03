@@ -1,13 +1,28 @@
 import { escaparHtml } from './comun.js';
 
 /**
+ * Da formato inline a un fragmento de texto: escapa HTML y convierte
+ * `**negrita**` a `<strong>`. El escape va primero — los asteriscos no se
+ * tocan al escapar, así que el orden no cambia el resultado, pero deja en
+ * claro que nunca metemos markup del texto del narrador sin pasar por
+ * `escaparHtml`.
+ */
+function formatearInline(texto: string): string {
+  return escaparHtml(texto).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+}
+
+/**
  * Convierte el libro entero en Markdown (que devuelve la pasada de editor —
  * un único documento con `# Encabezado` marcando cada página: "A mis
  * lectores", cada capítulo, "Sus frases", el cierre) a HTML. Cada encabezado
- * arranca una `<section>` nueva con salto de página antes (CSS
- * `page-break-before`); párrafos y líneas "> cita" se procesan igual que en
- * la previsualización de un capítulo — no es un parser de Markdown general,
- * el prompt solo pide estas formas.
+ * de nivel 1 arranca una `<section>` nueva con salto de página antes (CSS
+ * `page-break-before`). Dentro de un capítulo también reconocemos:
+ * `##`/`###` como subtítulos, `**negrita**` inline, y líneas `- ` como
+ * ítems de lista — no es un parser de Markdown general, el prompt solo pide
+ * estas formas. Ojo: una lista se detecta solo por `- ` al arranque de la
+ * línea (después de trim); no partimos una línea por " - " en el medio,
+ * porque el modelo a veces usa raya (—) para asides y eso NO es un ítem de
+ * lista.
  */
 function libroMarkdownAHtml(markdown: string): string {
   const lineas = markdown.split(/\r?\n/);
@@ -16,14 +31,24 @@ function libroMarkdownAHtml(markdown: string): string {
   let tituloActual: string | null = null;
   let bloquesSeccion: string[] = [];
   let parrafoActual: string[] = [];
-  let tipoActual: 'p' | 'blockquote' | null = null;
+  let itemsLista: string[] = [];
+  let tipoActual: 'p' | 'blockquote' | 'lista' | null = null;
 
   function cerrarParrafo() {
+    if (tipoActual === 'lista') {
+      if (itemsLista.length > 0) {
+        const items = itemsLista.map((item) => `<li>${formatearInline(item)}</li>`).join('');
+        bloquesSeccion.push(`<ul>${items}</ul>`);
+      }
+      itemsLista = [];
+      tipoActual = null;
+      return;
+    }
     if (parrafoActual.length === 0) return;
     const contenido = parrafoActual.join(' ').trim();
     if (contenido) {
       const etiqueta = tipoActual === 'blockquote' ? 'blockquote' : 'p';
-      bloquesSeccion.push(`<${etiqueta}>${escaparHtml(contenido)}</${etiqueta}>`);
+      bloquesSeccion.push(`<${etiqueta}>${formatearInline(contenido)}</${etiqueta}>`);
     }
     parrafoActual = [];
     tipoActual = null;
@@ -58,6 +83,21 @@ function libroMarkdownAHtml(markdown: string): string {
       continue;
     }
 
+    const matchSubtitulo = linea.match(/^(#{2,3})\s+(.*)$/);
+    if (matchSubtitulo) {
+      cerrarParrafo();
+      const etiqueta = matchSubtitulo[1].length === 2 ? 'h2' : 'h3';
+      bloquesSeccion.push(`<${etiqueta}>${formatearInline(matchSubtitulo[2])}</${etiqueta}>`);
+      continue;
+    }
+
+    if (linea.startsWith('- ')) {
+      if (tipoActual !== 'lista') cerrarParrafo();
+      tipoActual = 'lista';
+      itemsLista.push(linea.replace(/^-\s+/, ''));
+      continue;
+    }
+
     const esCita = linea.startsWith('>');
     const tipo: 'p' | 'blockquote' = esCita ? 'blockquote' : 'p';
     if (tipoActual !== null && tipoActual !== tipo) cerrarParrafo();
@@ -83,8 +123,12 @@ const ESTILOS = `
   .indice li { margin-bottom: 8px; }
   .capitulo { page-break-before: always; }
   .capitulo h1 { font-size: 22px; font-weight: normal; text-align: center; margin-bottom: 32px; }
+  .capitulo h2 { font-size: 17px; font-weight: bold; margin: 28px 0 12px; }
+  .capitulo h3 { font-size: 15px; font-weight: bold; margin: 24px 0 10px; }
   .capitulo p { margin: 0 0 16px; text-align: justify; }
   .capitulo blockquote { margin: 24px 12px; padding-left: 16px; border-left: 3px solid #999; font-style: italic; }
+  .capitulo ul { margin: 0 0 16px; padding-left: 22px; }
+  .capitulo li { margin-bottom: 10px; text-align: justify; }
   .saludos { page-break-before: always; }
   .saludos h2 { font-size: 16px; text-transform: uppercase; letter-spacing: 0.08em; color: #555; }
   .saludos ul { list-style: none; padding: 0; }
@@ -114,6 +158,16 @@ export function construirHtmlLibro(datos: {
         `<li>${escaparHtml(s.nombre)} <span class="vinculo">(${escaparHtml(s.vinculo)})</span></li>`
     )
     .join('\n');
+  // Sin saludos no hay nada que mostrar — omitimos la página entera en vez
+  // de dejar un título "LOS SALUDOS DE LA FAMILIA" flotando sobre una lista
+  // vacía, que es lo que se vio en el primer PDF real.
+  const seccionSaludos =
+    saludos.length > 0
+      ? `<section class="saludos">
+    <h2>Los saludos de la familia</h2>
+    <ul>${saludosHtml}</ul>
+  </section>`
+      : '';
 
   return `<!DOCTYPE html>
 <html lang="es">
@@ -133,10 +187,7 @@ export function construirHtmlLibro(datos: {
     <ol>${indiceHtml}</ol>
   </section>
   ${cuerpoHtml}
-  <section class="saludos">
-    <h2>Los saludos de la familia</h2>
-    <ul>${saludosHtml}</ul>
-  </section>
+  ${seccionSaludos}
 </body>
 </html>`;
 }

@@ -88,8 +88,14 @@ describe('construirHtmlLibro', () => {
     expect(html).toContain('nieto');
   });
 
-  it('sin saludos, la página existe pero no lista a nadie', () => {
+  it('sin saludos, la página se omite entera', () => {
     const html = construir({ saludos: [] });
+    expect(html).not.toContain('Los saludos de la familia');
+    expect(html).not.toContain('class="saludos"');
+  });
+
+  it('con al menos un saludo, la página aparece (comportamiento existente)', () => {
+    const html = construir({ saludos: [{ nombre: 'Marta', vinculo: 'hija' }] });
     expect(html).toContain('Los saludos de la familia');
   });
 
@@ -97,5 +103,36 @@ describe('construirHtmlLibro', () => {
     const html = construir({ libroMarkdown: '# Infancia\n\nEl & la <cosa>.' });
     expect(html).toContain('El &amp; la &lt;cosa&gt;.');
     expect(html).not.toContain('<cosa>');
+  });
+
+  it('### dentro de un capítulo se renderiza como subtítulo, no como texto literal', () => {
+    const html = construir({ libroMarkdown: '# Infancia\n\n### Sub\n\nTexto después.' });
+    expect(html).toContain('<h3>Sub</h3>');
+    expect(html).not.toContain('###');
+  });
+
+  it('## dentro de un capítulo se renderiza como subtítulo de nivel 2', () => {
+    const html = construir({ libroMarkdown: '# Infancia\n\n## Título mediano\n\nTexto.' });
+    expect(html).toContain('<h2>Título mediano</h2>');
+    expect(html).not.toContain('##');
+  });
+
+  it('**negrita** se renderiza como <strong>', () => {
+    const html = construir({ libroMarkdown: '# Sus frases\n\nEsto es **importante** de verdad.' });
+    expect(html).toContain('<strong>importante</strong>');
+    expect(html).not.toContain('**');
+  });
+
+  it('una lista de 3 ítems "- " se renderiza como <ul> con 3 <li>', () => {
+    const html = construir({
+      libroMarkdown:
+        '# Sus frases\n\n- **Al mal tiempo** — buena cara.\n- **Más vale tarde** — que nunca.\n- **En boca cerrada** — no entran moscas.',
+    });
+    const matchUl = html.match(/<ul>[\s\S]*?<\/ul>/);
+    expect(matchUl).not.toBeNull();
+    const liCount = (matchUl?.[0].match(/<li>/g) ?? []).length;
+    expect(liCount).toBe(3);
+    expect(html).toContain('<strong>Al mal tiempo</strong>');
+    expect(html).toContain('— buena cara.');
   });
 });
