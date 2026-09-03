@@ -16,6 +16,23 @@
 > Refs Pinterest: `editorial book design modern`, `kinfolk magazine layout`, `coffee
 > table book design`, `fashion lookbook layout`, `duotone photography book`.
 
+## 📌 Lectura de las refs de Naza (carpeta "refes de arte para vitacora", 2026-09-03)
+
+Naza juntó 16 refs. Análisis para la sesión:
+- Las refs clásicas (tapas victorianas oro, cartuchos grabados, marcos) son hermosas pero
+  difíciles de ejecutar bien en un PDF auto-generado (sin dorado real, necesitan assets
+  ilustrados; el estilo perdona poco la variación de contenido).
+- La "SEGUNDA OPCIÓN" tiene dos almas: el LOOK-BOOK B/N y el layout negro elegante
+  (✅ perfectos para "el abuelo con onda") vs. los templates brutalistas de moda
+  (❌ demasiado fríos para esta historia).
+- **Dirección recomendada por Claude, a validar entre los dos: "Editorial Elegante con
+  corazón clásico"** — tipografía + aire + fotos duotono B/N (se ejecuta con código, se ve
+  siempre bien con contenido variable), robándole al mundo clásico DOS elementos:
+  1. **El monograma del narrador** (ref del logo R•J): las iniciales del abuelo dibujadas
+     en el estilo de la casa, en tapa e índice. Cada libro es suyo, todos son nuestros.
+  2. **El medallón de capítulo minimalista** (refs de cartuchos reinterpretadas a línea
+     fina): círculo con el número + línea limpia con el título.
+
 ## 💡 Feature acoplada a la dirección B (backlog v1.1, post-pilotos): las fotos de la familia
 
 - Martina sube una carpeta de fotos desde la web (nueva sección del tablero).
