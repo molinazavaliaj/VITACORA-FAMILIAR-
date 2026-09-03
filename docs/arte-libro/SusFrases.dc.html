@@ -7,53 +7,50 @@
 <body>
 <x-dc>
 <helmet>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,500&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&family=Archivo:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,500;1,900&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&family=Archivo:wght@400;500;600;700&display=swap">
   <style>
     body { margin: 0; }
     a { color: #6e2618; } a:hover { color: #4a1910; }
   </style>
 </helmet>
-<div style="width: 559px; height: 794px; background: #faf7f1; color: #1c1917; padding: 56px 52px; box-sizing: border-box; font-family: 'Source Serif 4', Georgia, serif; display: flex; flex-direction: column;">
+<div style="width: 559px; height: 794px; background: #faf7f1; color: #1c1917; box-sizing: border-box; font-family: 'Source Serif 4', Georgia, serif; position: relative; overflow: hidden;">
 
-  <div style="display: flex; align-items: center; gap: 18px;">
-    <svg width="52" height="52" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="26" cy="26" r="24.5" stroke="#1c1917" stroke-width="1.1"></circle>
-      <text x="26" y="34" text-anchor="middle" font-family="Playfair Display, Georgia, serif" font-size="20" font-style="italic" fill="#6e2618">”</text>
-    </svg>
-    <div style="display: flex; flex-direction: column; gap: 3px;">
-      <div style="font-family: 'Playfair Display', Georgia, serif; font-style: italic; font-weight: 500; font-size: 32px;">Sus frases</div>
-      <div style="font-family: Archivo, Arial, sans-serif; font-size: 10px; letter-spacing: 0.26em; color: #78716c;">TAL CUAL LAS DICE, PARA QUE NO SE PIERDAN</div>
+  <div style="position: absolute; top: 48px; left: 44px;">
+    <div style="font-family: 'Playfair Display', Georgia, serif; font-weight: 900; font-size: 72px; line-height: 0.95; letter-spacing: -0.01em;">SUS<br><span style="font-style: italic; font-weight: 400;">frases</span></div>
+  </div>
+  <div style="position: absolute; top: 56px; right: 44px; writing-mode: vertical-rl; font-family: Archivo, Arial, sans-serif; font-size: 10px; letter-spacing: 0.3em; color: #a8a29e;">TAL CUAL LAS DICE · PARA QUE NO SE PIERDAN</div>
+
+  <div style="position: absolute; top: 250px; left: 44px; right: 44px; display: flex; flex-direction: column; gap: 32px;">
+
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+      <div style="font-family: 'Playfair Display', Georgia, serif; font-style: italic; font-weight: 500; font-size: 30px; line-height: 1.25;">«Si algo hace ruido, no le subas la radio. Abrí el capó y mirá.»</div>
+      <div style="font-family: Archivo, Arial, sans-serif; font-size: 10px; letter-spacing: 0.24em; color: #6e2618; font-weight: 600;">SI SE LLEVA UNA SOLA DE TODO EL LIBRO, ES ESTA</div>
+    </div>
+
+    <div style="width: 100%; height: 1px; background: #e2ddd3;"></div>
+
+    <div style="display: flex; flex-direction: column; gap: 24px;">
+      <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 24px;">
+        <div style="font-family: 'Playfair Display', Georgia, serif; font-style: italic; font-size: 19px; line-height: 1.35;">«Por los que están y por los que no.»</div>
+        <div style="font-family: Archivo, Arial, sans-serif; font-size: 9px; letter-spacing: 0.2em; color: #a8a29e; white-space: nowrap;">EL BRINDIS DE RAMÓN</div>
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 24px;">
+        <div style="font-family: 'Playfair Display', Georgia, serif; font-style: italic; font-size: 19px; line-height: 1.35;">«El mar no se cruza dos veces.»</div>
+        <div style="font-family: Archivo, Arial, sans-serif; font-size: 9px; letter-spacing: 0.2em; color: #a8a29e; white-space: nowrap;">EL NONNO VICENTE</div>
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 24px;">
+        <div style="font-family: 'Playfair Display', Georgia, serif; font-style: italic; font-size: 19px; line-height: 1.35;">«No hay tornillo que no salga,<br>hay paciencia que falta.»</div>
+        <div style="font-family: Archivo, Arial, sans-serif; font-size: 9px; letter-spacing: 0.2em; color: #a8a29e; white-space: nowrap;">DEL TALLER</div>
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 24px;">
+        <div style="font-family: 'Playfair Display', Georgia, serif; font-style: italic; font-size: 19px; line-height: 1.35;">«De la que más querés<br>es de la que menos hablás.»</div>
+        <div style="font-family: Archivo, Arial, sans-serif; font-size: 9px; letter-spacing: 0.2em; color: #a8a29e; white-space: nowrap;">TEORÍA DE VIEJO</div>
+      </div>
     </div>
   </div>
 
-  <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 30px; margin-top: 8px;">
-
-    <div style="display: flex; flex-direction: column; gap: 6px;">
-      <div style="font-family: 'Playfair Display', Georgia, serif; font-style: italic; font-size: 21px; line-height: 1.4;">«Por los que están y por los que no.»</div>
-      <div style="font-family: Archivo, Arial, sans-serif; font-size: 10px; letter-spacing: 0.22em; color: #6e2618;">EL BRINDIS DE SU PADRE, RAMÓN — AHORA LO DICE ÉL</div>
-    </div>
-
-    <div style="display: flex; flex-direction: column; gap: 6px;">
-      <div style="font-family: 'Playfair Display', Georgia, serif; font-style: italic; font-size: 21px; line-height: 1.4;">«El mar no se cruza dos veces.»</div>
-      <div style="font-family: Archivo, Arial, sans-serif; font-size: 10px; letter-spacing: 0.22em; color: #6e2618;">EL NONNO VICENTE, QUE VINO DE MOLISE A LOS DIECISIETE</div>
-    </div>
-
-    <div style="display: flex; flex-direction: column; gap: 6px;">
-      <div style="font-family: 'Playfair Display', Georgia, serif; font-style: italic; font-size: 21px; line-height: 1.4;">«No hay tornillo que no salga,<br>hay paciencia que falta.»</div>
-      <div style="font-family: Archivo, Arial, sans-serif; font-size: 10px; letter-spacing: 0.22em; color: #6e2618;">DEL TALLER · CALOR, PENETRANTE, ESPERAR, VOLVER MAÑANA</div>
-    </div>
-
-    <div style="display: flex; flex-direction: column; gap: 6px;">
-      <div style="font-family: 'Playfair Display', Georgia, serif; font-style: italic; font-size: 21px; line-height: 1.4;">«Si algo hace ruido, no le subas la radio.<br>Abrí el capó y mirá.»</div>
-      <div style="font-family: Archivo, Arial, sans-serif; font-size: 10px; letter-spacing: 0.22em; color: #6e2618;">SI SE LLEVA UNA SOLA DE TODO EL LIBRO, ES ESTA</div>
-    </div>
-
-  </div>
-
-  <div style="display: flex; justify-content: space-between; align-items: center; font-family: Archivo, Arial, sans-serif; font-size: 11px; letter-spacing: 0.18em; color: #a8a29e;">
-    <div>SUS FRASES</div>
-    <div style="color: #6e2618;">58</div>
-  </div>
+  <div style="position: absolute; left: 44px; bottom: 46px; font-family: Archivo, Arial, sans-serif; font-size: 10px; letter-spacing: 0.26em; color: #a8a29e;">OSVALDO BENÍTEZ</div>
+  <div style="position: absolute; right: 44px; bottom: 46px; font-family: Archivo, Arial, sans-serif; font-size: 11px; letter-spacing: 0.2em; color: #6e2618;">58</div>
 </div>
 </x-dc>
 </body>
