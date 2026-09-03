@@ -20,6 +20,28 @@ Bugs de producción cazados y arreglados en vivo durante la prueba (ya en main):
 - **Emails**: Supabase usa SMTP propio vía Resend (el gratuito de Supabase permite 2-4 mails/hora — inviable). Hasta tener dominio propio, Resend solo entrega a nazamateos@gmail.com.
 - **Pagos**: env vars con placeholders — Stripe/Mercado Pago quedan para una sesión propia (cuentas + webhooks). Todo lo demás funciona.
 
+## 🚦 DECISIÓN NUEVA (2026-09-03): arrancan 3 pilotos REALES — tu deploy es el camino crítico
+
+Naza tiene 3 personas reales listas para probar el producto entero (narradores de verdad,
+audios de verdad, Whisper de verdad). **Nada de eso puede arrancar sin tu mitad**, así que
+la prioridad número 1 del proyecto es:
+
+1. **Deploy de `entrevistador/` en Railway HOY** — ⚠️ usá un **Dockerfile** como el de
+   `fabrica/Dockerfile` (adaptado: sin Chromium ni ffmpeg, solo node+build): Railway usa
+   Railpack e **ignora `nixpacks.toml`** — lo aprendimos a los golpes con la fábrica.
+   Agregá el servicio DENTRO del proyecto Railway `vitacora-familiar` existente.
+2. **Meta/WhatsApp**: verificación + las 3 plantillas de `entrevistador/PLANTILLAS.md`.
+   Es EL trámite lento — cada día que no está iniciado es un día que los pilotos no arrancan.
+3. **Pedido de Naza — "modo rápido" para pilotos** (cambio chico en tu scheduler): un flag
+   por narrador (p. ej. `contexto.modoRapido = true`) para que la SIGUIENTE pregunta salga
+   apenas responde la anterior, en vez de esperar al día siguiente. Un piloto con ganas
+   termina las 30 en pocos días y tenemos el primer libro REAL la semana que viene.
+   (Respetar igual la ventana de 24 hs de WhatsApp: si respondió hace minutos, se puede
+   mandar la siguiente como mensaje libre, sin plantilla.)
+
+Los compradores de los 3 pilotos van a ser la cuenta de Naza (sin dominio propio los mails
+de login solo le llegan a él) — los narradores solo necesitan WhatsApp.
+
 ## Lo que falta para que el sistema COMPLETO respire (lado Socio 1)
 
 El código del entrevistador está terminado y mergeado (¡enorme!). Faltan sus dos pasos finales:
