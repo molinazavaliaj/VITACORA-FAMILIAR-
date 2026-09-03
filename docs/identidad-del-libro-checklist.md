@@ -35,11 +35,33 @@ Naza juntó 16 refs. Análisis para la sesión:
 
 ## 💡 Feature acoplada a la dirección B (backlog v1.1, post-pilotos): las fotos de la familia
 
-- Martina sube una carpeta de fotos desde la web (nueva sección del tablero).
-- Cada capítulo abre con una foto de esa época; fotos intercaladas en las páginas.
-- Curaduría: Martina etiqueta cada foto por etapa de vida (o la IA sugiere el capítulo).
-- Diseño tolerante a calidad despareja (scans viejos, fotos comprimidas de WhatsApp):
-  tratamiento uniforme (duotono/B&N elegante) que empareja todo y da identidad.
+**Cómo funciona (acordado 2026-09-03) — el diseño es código, la curaduría es IA:**
+
+1. **Plantillas con huecos, no diseño generativo.** El libro se arma con 4-5 layouts de
+   página fijos diseñados por nosotros: (a) apertura de capítulo con foto grande,
+   (b) página de texto con foto chica y epígrafe, (c) doble página de fotos,
+   (d) página tipográfica de cita (la mejor frase del capítulo, enorme, con el medallón),
+   (e) página de texto pura. El código garantiza que toda página se vea bien siempre.
+2. **La IA hace de editora fotográfica** (un paso más en la cadena de la fábrica:
+   estructura → curaduría de fotos → capítulos → PDF): mira cada foto que subió la
+   familia + sus etiquetas, la asigna al capítulo que corresponde, elige la foto de
+   apertura de cada capítulo, ordena el resto, elige qué layout usar según cuántas fotos
+   hay, y escribe epígrafes SOLO con datos reales ("Élida y Osvaldo, 1974").
+3. **Capítulo sin fotos = página de cita tipográfica**, nunca relleno. En el estilo
+   editorial, la página solo-tipografía es de las más lindas del libro.
+4. **Línea roja: JAMÁS generar imágenes de la familia con IA.** Las fotos son las reales;
+   el único tratamiento es el duotono B/N parejo (filtro CSS, gratis) que empareja
+   calidad despareja (scans, WhatsApp) y da identidad.
+5. Web: Martina sube la carpeta desde una sección nueva del tablero y etiqueta cada foto
+   por etapa de vida (la IA sugiere).
+6. Costo extra por libro: centavos (una llamada más de visión).
+
+**Cómo dejamos las plantillas listas → en la sesión de dirección de arte** se diseñan
+los 4-5 layouts de arriba como maquetas HTML reales (con el contenido de Osvaldo como
+material), y la ganadora se implementa directo en `fabrica/src/libro/plantilla-html.ts`.
+Así, cuando llegue la feature de fotos, los huecos ya existen: solo se conecta la
+curaduría.
+
 - Duplica el valor percibido de los 49€: de "libro" a objeto editorial de una vida.
 
 ## La marca dentro del libro
