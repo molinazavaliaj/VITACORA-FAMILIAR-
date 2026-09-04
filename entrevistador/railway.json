@@ -1,4 +1,13 @@
 {
-  "build": { "builder": "NIXPACKS", "buildCommand": "npm run build" },
-  "deploy": { "startCommand": "npm start", "healthcheckPath": "/salud" }
+  "$schema": "https://railway.app/railway.schema.json",
+  "build": {
+    "builder": "DOCKERFILE",
+    "dockerfilePath": "Dockerfile"
+  },
+  "deploy": {
+    "healthcheckPath": "/salud",
+    "numReplicas": 1,
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 10
+  }
 }

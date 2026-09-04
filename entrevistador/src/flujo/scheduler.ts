@@ -63,72 +63,102 @@ async function tieneRespuesta(narradorId: string, orden: number): Promise<boolea
 
 // ── Los 4 trabajos del tick ────────────────────────────────────────────
 
+/**
+ * Corre el trabajo de UN narrador sin que su error contagie a los demás.
+ * Sin esto, un solo narrador problemático (WhatsApp lo rechaza, token vencido)
+ * dejaba sin mensaje a todo el resto en ese tick.
+ */
+async function aislado(narradorId: string, trabajo: () => Promise<void>): Promise<void> {
+  try {
+    await trabajo();
+  } catch (err) {
+    console.error(`Falló el trabajo del narrador ${narradorId}:`, err);
+  }
+}
+
 /** 1. Bienvenida: a los invitados que todavía no la recibieron. */
 async function enviarBienvenidas(): Promise<void> {
   for (const n of await narradoresEn(['invitado'])) {
-    if (await ultimoEnvio(n.id, 'bienvenida')) continue;
-    const { data: familia } = await db.from('familias').select('nombre').eq('id', n.familia_id).maybeSingle();
-    const vinculo = n.contexto?.vinculoComprador;
-    const nombreFamilia = (familia as { nombre?: string } | null)?.nombre ?? 'su familia';
-    const quienRegala = vinculo ? `su ${vinculo} ${nombreFamilia}` : nombreFamilia;
-    const waId = await enviarPlantilla(n.telefono_whatsapp, 'bienvenida', [n.como_le_dicen, quienRegala]);
-    await registrarEnvio(n.id, 'bienvenida', waId);
+    await aislado(n.id, async () => {
+      if (await ultimoEnvio(n.id, 'bienvenida')) return;
+      const { data: familia } = await db.from('familias').select('nombre').eq('id', n.familia_id).maybeSingle();
+      const vinculo = n.contexto?.vinculoComprador;
+      const nombreFamilia = (familia as { nombre?: string } | null)?.nombre ?? 'su familia';
+      const quienRegala = vinculo ? `su ${vinculo} ${nombreFamilia}` : nombreFamilia;
+      const waId = await enviarPlantilla(n.telefono_whatsapp, 'bienvenida', [n.como_le_dicen, quienRegala]);
+      await registrarEnvio(n.id, 'bienvenida', waId);
+    });
   }
 }
 
 /** 2. La pregunta del día, a la hora de cada uno. */
 async function enviarPreguntasDelDia(ahora: Date): Promise<void> {
   for (const n of await narradoresEn(['acepto', 'activo'])) {
-    if (!esHoraDeEnviar(n.hora_preferida, n.zona_horaria, ahora)) continue;
+    await aislado(n.id, async () => {
+      if (!esHoraDeEnviar(n.hora_preferida, n.zona_horaria, ahora)) return;
 
-    // Si hay pregunta vigente sin responder, se reenvía LA MISMA (no avanza el orden).
-    const vigenteRespondida = n.dia_actual === 0 || await tieneRespuesta(n.id, n.dia_actual);
-    const orden = vigenteRespondida ? n.dia_actual + 1 : n.dia_actual;
+      // Si hay pregunta vigente sin responder, se reenvía LA MISMA (no avanza el orden).
+      const vigenteRespondida = n.dia_actual === 0 || await tieneRespuesta(n.id, n.dia_actual);
+      const orden = vigenteRespondida ? n.dia_actual + 1 : n.dia_actual;
 
-    // Idempotencia: si ya salió hoy esa pregunta, no se repite.
-    const envio = await ultimoEnvio(n.id, 'pregunta', orden);
-    if (envio && fechaLocal(new Date(envio.enviado_at), n.zona_horaria) === fechaLocal(ahora, n.zona_horaria)) continue;
+      // Idempotencia: si ya salió hoy esa pregunta, no se repite.
+      const envio = await ultimoEnvio(n.id, 'pregunta', orden);
+      if (envio && fechaLocal(new Date(envio.enviado_at), n.zona_horaria) === fechaLocal(ahora, n.zona_horaria)) return;
 
-    await enviarPregunta(n, orden, { plantilla: true });
+      await enviarPregunta(n, orden, { plantilla: true });
+    });
   }
 }
 
 /** 3. Recordatorio suave: 6 hs después de la pregunta, si todavía no respondió. */
 async function enviarRecordatorios(ahora: Date): Promise<void> {
   for (const n of await narradoresEn(['activo'])) {
-    if (n.dia_actual < 1) continue;
-    const envio = await ultimoEnvio(n.id, 'pregunta', n.dia_actual);
-    if (!envio) continue;
-    const enviado = new Date(envio.enviado_at);
-    if (fechaLocal(enviado, n.zona_horaria) !== fechaLocal(ahora, n.zona_horaria)) continue;
-    if (ahora.getTime() - enviado.getTime() < HORAS_RECORDATORIO * 3600_000) continue;
-    if (await tieneRespuesta(n.id, n.dia_actual)) continue;
+    await aislado(n.id, async () => {
+      if (n.dia_actual < 1) return;
+      const envio = await ultimoEnvio(n.id, 'pregunta', n.dia_actual);
+      if (!envio) return;
+      const enviado = new Date(envio.enviado_at);
+      if (fechaLocal(enviado, n.zona_horaria) !== fechaLocal(ahora, n.zona_horaria)) return;
+      if (ahora.getTime() - enviado.getTime() < HORAS_RECORDATORIO * 3600_000) return;
+      if (await tieneRespuesta(n.id, n.dia_actual)) return;
 
-    const recordatorio = await ultimoEnvio(n.id, 'recordatorio');
-    if (recordatorio && fechaLocal(new Date(recordatorio.enviado_at), n.zona_horaria) === fechaLocal(ahora, n.zona_horaria)) continue;
+      const recordatorio = await ultimoEnvio(n.id, 'recordatorio');
+      if (recordatorio && fechaLocal(new Date(recordatorio.enviado_at), n.zona_horaria) === fechaLocal(ahora, n.zona_horaria)) return;
 
-    const waId = await enviarPlantilla(n.telefono_whatsapp, 'recordatorio', [n.como_le_dicen]);
-    await registrarEnvio(n.id, 'recordatorio', waId, n.dia_actual);
+      const waId = await enviarPlantilla(n.telefono_whatsapp, 'recordatorio', [n.como_le_dicen]);
+      await registrarEnvio(n.id, 'recordatorio', waId, n.dia_actual);
+    });
   }
 }
 
 /** 4. Tres días de silencio: se prende la alerta para que la web avise a la familia. */
 async function prenderAlertasDeSilencio(ahora: Date): Promise<void> {
   for (const n of await narradoresEn(['activo'])) {
-    if (n.alerta_silencio || !n.ultima_respuesta_at) continue;
-    const dias = (ahora.getTime() - new Date(n.ultima_respuesta_at).getTime()) / 86_400_000;
-    if (dias < DIAS_SILENCIO) continue;
-    await db.from('narradores').update({ alerta_silencio: true }).eq('id', n.id);
+    await aislado(n.id, async () => {
+      if (n.alerta_silencio || !n.ultima_respuesta_at) return;
+      const dias = (ahora.getTime() - new Date(n.ultima_respuesta_at).getTime()) / 86_400_000;
+      if (dias < DIAS_SILENCIO) return;
+      await db.from('narradores').update({ alerta_silencio: true }).eq('id', n.id);
+    });
   }
 }
 
 // ── El tick y el cron ──────────────────────────────────────────────────
 
 export async function tick(ahora: Date = new Date()): Promise<void> {
-  await enviarBienvenidas();
-  await enviarPreguntasDelDia(ahora);
-  await enviarRecordatorios(ahora);
-  await prenderAlertasDeSilencio(ahora);
+  // Cada fase por separado: si una falla (la base no responde), las otras corren igual.
+  for (const [nombre, fase] of [
+    ['bienvenidas', () => enviarBienvenidas()],
+    ['preguntas', () => enviarPreguntasDelDia(ahora)],
+    ['recordatorios', () => enviarRecordatorios(ahora)],
+    ['alertas', () => prenderAlertasDeSilencio(ahora)],
+  ] as const) {
+    try {
+      await fase();
+    } catch (err) {
+      console.error(`Falló la fase '${nombre}' del tick:`, err);
+    }
+  }
 }
 
 let corriendo = false;

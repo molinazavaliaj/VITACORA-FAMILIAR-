@@ -153,6 +153,22 @@ describe('tick', () => {
     expect(update('narradores')?.p).toMatchObject({ dia_actual: 4 });
   });
 
+  it('(e) si un narrador falla, los demás reciben igual su pregunta', async () => {
+    mocks.filas.narradores = [
+      narrador({ id: 'roto', estado: 'activo', dia_actual: 0, telefono_whatsapp: '+5491100000000' }),
+      narrador({ id: 'sano', estado: 'activo', dia_actual: 0, telefono_whatsapp: '+5491155551234' }),
+    ];
+    // El primero explota (token vencido, WhatsApp lo rechaza); el segundo tiene que salir igual.
+    mocks.enviarPlantilla
+      .mockRejectedValueOnce(new Error('WhatsApp rechazó el envío: token vencido'))
+      .mockResolvedValue('wamid.p');
+    await tick(A_LAS_10_05);
+    expect(mocks.enviarPlantilla).toHaveBeenCalledTimes(2);
+    expect(mocks.enviarPlantilla).toHaveBeenLastCalledWith(
+      '+5491155551234', 'pregunta_diaria', expect.any(Array),
+    );
+  });
+
   it('(d) tres días de silencio prenden la alerta para la familia', async () => {
     mocks.filas.narradores = [narrador({
       estado: 'activo', dia_actual: 7, ultima_respuesta_at: '2026-08-27T10:00:00Z', alerta_silencio: false,
