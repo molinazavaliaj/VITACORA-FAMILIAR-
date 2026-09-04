@@ -13,7 +13,9 @@ export function cargarConfig() {
     waToken: exigir('WA_TOKEN'),
     waPhoneNumberId: exigir('WA_PHONE_NUMBER_ID'),
     waVerifyToken: exigir('WA_VERIFY_TOKEN'),
-    puerto: Number(process.env.PUERTO ?? 3001),
+    // Railway (y casi todo PaaS) inyecta PORT y espera que el proceso escuche ahi.
+    // PUERTO queda como alias para desarrollo local.
+    puerto: Number(process.env.PORT ?? process.env.PUERTO ?? 3001),
   };
 }
 export type Config = ReturnType<typeof cargarConfig>;
