@@ -46,12 +46,11 @@ vi.mock('../src/db/cliente.js', () => {
 
 import { generarPreguntasAdaptativas } from '../src/ia/adaptativas.js';
 
-const CINCO = JSON.stringify([
+const CUATRO = JSON.stringify([
   { texto: 'Hábleme de su hermano Tito, que nombró varias veces.', capitulo: 'Las raíces' },
   { texto: '¿Cómo fue volver al barrio después de tantos años?', capitulo: 'La sabiduría' },
   { texto: 'Cuénteme más de aquel viaje a Mar del Plata.', capitulo: 'La juventud' },
   { texto: '¿Qué pasó con el taller cuando su padre ya no estuvo?', capitulo: 'El oficio' },
-  { texto: '¿Qué le hubiera gustado decirle a su madre?', capitulo: 'Las pruebas' },
 ]);
 
 beforeEach(() => {
@@ -62,12 +61,12 @@ beforeEach(() => {
 });
 
 describe('generarPreguntasAdaptativas', () => {
-  it('inserta exactamente 5 preguntas con orden 26-30', async () => {
-    mocks.crear.mockResolvedValueOnce({ content: [{ type: 'text', text: CINCO }] });
+  it('inserta exactamente 4 preguntas con orden 27-30', async () => {
+    mocks.crear.mockResolvedValueOnce({ content: [{ type: 'text', text: CUATRO }] });
     await generarPreguntasAdaptativas('n1');
     const insert = mocks.capturas.find((c) => c.tabla === 'preguntas');
-    expect(insert.p).toHaveLength(5);
-    expect(insert.p.map((f: any) => f.orden)).toEqual([26, 27, 28, 29, 30]);
+    expect(insert.p).toHaveLength(4);
+    expect(insert.p.map((f: any) => f.orden)).toEqual([27, 28, 29, 30]);
     expect(insert.p[0]).toMatchObject({ narrador_id: 'n1', tipo: 'adaptativa', capitulo: 'Las raíces' });
   });
 

@@ -4,30 +4,31 @@ import { db } from '../db/cliente.js';
 import { armarHistoria } from '../db/historia.js';
 
 const MODELO = 'claude-opus-5';
-const PRIMERA_ADAPTATIVA = 26;
-const CANTIDAD = 5;
+const PRIMERA_ADAPTATIVA = 27;
+const CANTIDAD = 4;
 
 const cliente = new Anthropic({ apiKey: cargarConfig().anthropicKey });
 
 const PROMPT_ADAPTATIVAS = (nombre: string, historiaCompleta: string, capitulos: string[]) => `
-Leíste la historia de vida completa que ${nombre} contó en 25 entrevistas:
+Leíste la historia de vida completa que ${nombre} contó en 26 entrevistas
+(las 25 del guion capítulo por capítulo, más su vida entera resumida en cinco minutos):
 
 ${historiaCompleta}
 
-Sos su biógrafo y te quedan exactamente 5 preguntas para completar el libro. Buscá:
+Sos su biógrafo y te quedan exactamente 4 preguntas para completar el libro. Buscá:
 - Personas que nombró varias veces pero nunca exploró (un hermano, un amigo, un maestro).
 - Épocas o momentos con huecos evidentes.
 - Temas emocionales que tocó de pasada y merecen profundidad.
 - Algo que claramente disfrutó contar y da para más.
 
-Generá las 5 preguntas en el orden en que se las harías. Cada una debe sonar a que LO ESCUCHASTE
+Generá las 4 preguntas en el orden en que se las harías. Cada una debe sonar a que LO ESCUCHASTE
 (referí lo que él contó), tratarlo de usted, y ser una sola pregunta clara.
 Capítulos disponibles del libro: ${capitulos.join(', ')}.
 
-Respondé SOLO con JSON: [{"texto": "...", "capitulo": "..."}, ...] (exactamente 5).`;
+Respondé SOLO con JSON: [{"texto": "...", "capitulo": "..."}, ...] (exactamente 4).`;
 
 /**
- * Genera las 5 preguntas finales personalizadas (órdenes 26-30).
+ * Genera las 4 preguntas finales personalizadas (órdenes 27-30).
  * Idempotente: si ya existen, no hace nada.
  */
 export async function generarPreguntasAdaptativas(narradorId: string): Promise<void> {

@@ -1,27 +1,13 @@
 import cron from 'node-cron';
 import { db } from '../db/cliente.js';
-import { enviarPlantilla, enviarAudioPorLink } from '../whatsapp/enviar.js';
-import { generarReconocimiento, generarPreguntaReemplazo } from '../ia/cerebro.js';
-import { generarAudioVoz } from '../ia/voz.js';
-import { armarHistoria, ultimaTranscripcion } from '../db/historia.js';
+import { enviarPlantilla } from '../whatsapp/enviar.js';
+import { enviarPregunta, type Narrador } from './preguntar.js';
+
+export { capituloNoAplica } from './preguntar.js';
 
 const VENTANA_MINUTOS = 15;   // el cron corre cada 15 min
 const HORAS_RECORDATORIO = 6; // recién después de 6 hs sin responder
 const DIAS_SILENCIO = 3;      // 3 días sin señales → avisamos a la familia
-
-type Narrador = {
-  id: string;
-  familia_id: string;
-  como_le_dicen: string;
-  telefono_whatsapp: string;
-  hora_preferida: string;
-  zona_horaria: string;
-  contexto: Record<string, any>;
-  estado: string;
-  dia_actual: number;
-  ultima_respuesta_at: string | null;
-  alerta_silencio: boolean;
-};
 
 // ── Helpers de tiempo (puros, testeables) ──────────────────────────────
 
@@ -45,14 +31,6 @@ export function esHoraDeEnviar(horaPreferida: string, zona: string, ahora: Date)
   const preferida = h * 60 + m;
   const actual = minutosLocales(ahora, zona);
   return actual >= preferida && actual < preferida + VENTANA_MINUTOS;
-}
-
-/** Capítulos que no aplican a esta vida, según el árbol que cargó la familia. */
-export function capituloNoAplica(contexto: Record<string, any>, capitulo: string): boolean {
-  const arbol = contexto?.arbol ?? {};
-  if (capitulo === 'Los hijos' && arbol.hijos === 'no tuvo') return true;
-  if (capitulo === 'El amor' && arbol.conyuge === 'no tuvo') return true;
-  return false;
 }
 
 // ── Consultas cortas a la base ─────────────────────────────────────────
@@ -83,16 +61,6 @@ async function tieneRespuesta(narradorId: string, orden: number): Promise<boolea
   return (data?.length ?? 0) > 0;
 }
 
-/** La pregunta de ese orden: la propia del narrador si existe, si no la fija global. */
-async function preguntaDeOrden(narradorId: string, orden: number) {
-  const { data } = await db.from('preguntas').select('texto,capitulo,narrador_id')
-    .or(`narrador_id.eq.${narradorId},narrador_id.is.null`)
-    .eq('orden', orden)
-    .order('narrador_id', { nullsFirst: false })
-    .limit(1).maybeSingle();
-  return data as { texto: string; capitulo: string; narrador_id: string | null } | null;
-}
-
 // ── Los 4 trabajos del tick ────────────────────────────────────────────
 
 /** 1. Bienvenida: a los invitados que todavía no la recibieron. */
@@ -121,57 +89,8 @@ async function enviarPreguntasDelDia(ahora: Date): Promise<void> {
     const envio = await ultimoEnvio(n.id, 'pregunta', orden);
     if (envio && fechaLocal(new Date(envio.enviado_at), n.zona_horaria) === fechaLocal(ahora, n.zona_horaria)) continue;
 
-    const pregunta = await preguntaDeOrden(n.id, orden);
-    if (!pregunta) continue; // no hay más preguntas: el cierre lo maneja la Task 10
-
-    let texto = pregunta.texto;
-    // Regla de reemplazo: el capítulo no aplica a esta vida y todavía no hay reemplazo propio.
-    if (pregunta.narrador_id === null && capituloNoAplica(n.contexto, pregunta.capitulo)) {
-      texto = await crearReemplazo(n, orden, pregunta.capitulo);
-    }
-
-    const reconocimiento = n.dia_actual === 0
-      ? 'Hoy empezamos este viaje.'
-      : await generarReconocimiento(
-          n.como_le_dicen,
-          await ultimaTranscripcion(n.id),
-          texto,
-          await armarHistoria(n.id),
-          n.contexto?.arbol ?? {},
-          n.contexto?.anioNacimiento,
-        );
-
-    const waId = await enviarPlantilla(n.telefono_whatsapp, 'pregunta_diaria', [reconocimiento, texto]);
-    await enviarVozDeLaPregunta(n, orden, `${reconocimiento} ${texto}`);
-
-    const avance: Record<string, unknown> = { dia_actual: orden };
-    if (n.estado === 'acepto') avance.estado = 'activo';
-    await db.from('narradores').update(avance).eq('id', n.id);
-    await registrarEnvio(n.id, 'pregunta', waId, orden);
+    await enviarPregunta(n, orden, { plantilla: true });
   }
-}
-
-/** Genera y guarda una pregunta personalizada que reemplaza a la fija que no aplica. */
-async function crearReemplazo(n: Narrador, orden: number, capituloQueNoAplica: string): Promise<string> {
-  const { data: caps } = await db.from('preguntas').select('capitulo').is('narrador_id', null);
-  const capitulos = [...new Set(((caps as { capitulo: string }[] | null) ?? []).map((c) => c.capitulo))]
-    .filter((c) => c !== capituloQueNoAplica);
-  const nueva = await generarPreguntaReemplazo(
-    n.como_le_dicen, await armarHistoria(n.id), capitulos, capituloQueNoAplica,
-  );
-  await db.from('preguntas').insert({
-    narrador_id: n.id, orden, texto: nueva.texto, capitulo: nueva.capitulo, tipo: 'adaptativa',
-  });
-  return nueva.texto;
-}
-
-/** La versión hablada de la pregunta: se sube a Storage y se manda por link firmado. */
-async function enviarVozDeLaPregunta(n: Narrador, orden: number, contenido: string): Promise<void> {
-  const audio = await generarAudioVoz(contenido);
-  const path = `${n.id}/sistema/pregunta_${String(orden).padStart(2, '0')}.mp3`;
-  await db.storage.from('audios').upload(path, audio, { contentType: 'audio/mpeg', upsert: true });
-  const { data } = await db.storage.from('audios').createSignedUrl(path, 3600);
-  if (data?.signedUrl) await enviarAudioPorLink(n.telefono_whatsapp, data.signedUrl);
 }
 
 /** 3. Recordatorio suave: 6 hs después de la pregunta, si todavía no respondió. */

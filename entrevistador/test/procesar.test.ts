@@ -11,6 +11,7 @@ const mocks = vi.hoisted(() => ({
   detectarIntencion: vi.fn(),
   generarPreguntasAdaptativas: vi.fn(),
   cerrarBitacora: vi.fn(),
+  enviarPregunta: vi.fn(),
   estado: { narrador: null as any, enviosRepregunta: [] as any[], capturas: [] as any[], ultimoOrden: 30 },
 }));
 
@@ -50,6 +51,10 @@ vi.mock('../src/ia/cerebro.js', () => ({
 }));
 vi.mock('../src/ia/adaptativas.js', () => ({ generarPreguntasAdaptativas: mocks.generarPreguntasAdaptativas }));
 vi.mock('../src/flujo/cierre.js', () => ({ cerrarBitacora: mocks.cerrarBitacora }));
+vi.mock('../src/flujo/preguntar.js', () => ({
+  enviarPregunta: mocks.enviarPregunta,
+  esModoRapido: (c: any) => c?.modoRapido === true,
+}));
 
 import { procesarEntrante } from '../src/flujo/procesar.js';
 
@@ -62,7 +67,7 @@ beforeEach(() => {
   mocks.estado.enviosRepregunta = [];
   mocks.estado.capturas = [];
   mocks.estado.ultimoOrden = 30;
-  for (const fn of [mocks.enviarTexto, mocks.descargarAudio, mocks.guardarRespuestaAudio, mocks.transcribirYActualizar, mocks.evaluarRespuesta, mocks.detectarIntencion, mocks.generarPreguntasAdaptativas, mocks.cerrarBitacora]) fn.mockReset();
+  for (const fn of [mocks.enviarTexto, mocks.descargarAudio, mocks.guardarRespuestaAudio, mocks.transcribirYActualizar, mocks.evaluarRespuesta, mocks.detectarIntencion, mocks.generarPreguntasAdaptativas, mocks.cerrarBitacora, mocks.enviarPregunta]) fn.mockReset();
   mocks.enviarTexto.mockResolvedValue('wamid.mock');
   mocks.descargarAudio.mockResolvedValue(Buffer.from('audio-falso'));
   mocks.guardarRespuestaAudio.mockResolvedValue({ id: 'r-audio', audioPath: 'p' });
@@ -71,8 +76,8 @@ beforeEach(() => {
   mocks.detectarIntencion.mockResolvedValue('normal');
 });
 
-const narradorEn = (estado: string, dia_actual = 0) => ({
-  id: 'n1', telefono_whatsapp: TEL, como_le_dicen: 'Don Osvaldo', estado, dia_actual,
+const narradorEn = (estado: string, dia_actual = 0, contexto: Record<string, any> = {}) => ({
+  id: 'n1', telefono_whatsapp: TEL, como_le_dicen: 'Don Osvaldo', estado, dia_actual, contexto,
 });
 
 describe('procesarEntrante', () => {
@@ -102,8 +107,8 @@ describe('procesarEntrante', () => {
     expect(insert('envios')?.p).toMatchObject({ tipo: 'repregunta', pregunta_orden: 5 });
   });
 
-  it('(e) al responder la pregunta 25 se disparan las 5 adaptativas', async () => {
-    mocks.estado.narrador = narradorEn('activo', 25);
+  it('(e) al responder la pregunta 26 se disparan las 4 adaptativas', async () => {
+    mocks.estado.narrador = narradorEn('activo', 26);
     const m: MensajeEntrante = { telefono: TEL, tipo: 'audio', mediaId: 'media-1', waMessageId: 'w' };
     await procesarEntrante(m);
     expect(mocks.generarPreguntasAdaptativas).toHaveBeenCalledWith('n1');
@@ -128,6 +133,39 @@ describe('procesarEntrante', () => {
     const m: MensajeEntrante = { telefono: TEL, tipo: 'audio', mediaId: 'media-1', waMessageId: 'w' };
     await procesarEntrante(m);
     expect(mocks.cerrarBitacora).not.toHaveBeenCalled();
+  });
+
+  it('(g) modo rápido: tras una respuesta suficiente, la siguiente pregunta sale al instante', async () => {
+    mocks.estado.narrador = narradorEn('activo', 7, { modoRapido: true });
+    const m: MensajeEntrante = { telefono: TEL, tipo: 'audio', mediaId: 'media-1', waMessageId: 'w' };
+    await procesarEntrante(m);
+    // Como el narrador acaba de escribir, la ventana de 24 hs está abierta: texto libre.
+    expect(mocks.enviarPregunta).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'n1' }), 8, { plantilla: false },
+    );
+  });
+
+  it('sin modo rápido, la siguiente pregunta la manda el scheduler al día siguiente', async () => {
+    mocks.estado.narrador = narradorEn('activo', 7);
+    const m: MensajeEntrante = { telefono: TEL, tipo: 'audio', mediaId: 'media-1', waMessageId: 'w' };
+    await procesarEntrante(m);
+    expect(mocks.enviarPregunta).not.toHaveBeenCalled();
+  });
+
+  it('modo rápido: si salió una repregunta, NO avanza hasta que la responda', async () => {
+    mocks.estado.narrador = narradorEn('activo', 7, { modoRapido: true });
+    mocks.evaluarRespuesta.mockResolvedValue({ suficiente: false, repregunta: '¿Y qué sentía?' });
+    const m: MensajeEntrante = { telefono: TEL, tipo: 'audio', mediaId: 'media-1', waMessageId: 'w' };
+    await procesarEntrante(m);
+    expect(mocks.enviarPregunta).not.toHaveBeenCalled();
+  });
+
+  it('modo rápido: en la última pregunta cierra y no intenta mandar otra', async () => {
+    mocks.estado.narrador = narradorEn('activo', 30, { modoRapido: true });
+    const m: MensajeEntrante = { telefono: TEL, tipo: 'audio', mediaId: 'media-1', waMessageId: 'w' };
+    await procesarEntrante(m);
+    expect(mocks.cerrarBitacora).toHaveBeenCalledWith('n1');
+    expect(mocks.enviarPregunta).not.toHaveBeenCalled();
   });
 
   it('(d) un texto "no quiero seguir" pausa al narrador', async () => {

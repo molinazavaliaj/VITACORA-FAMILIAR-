@@ -78,7 +78,8 @@ vi.mock('../src/db/historia.js', () => ({
   armarHistoria: mocks.armarHistoria, ultimaTranscripcion: mocks.ultimaTranscripcion, traerRespuestas: vi.fn(),
 }));
 
-import { tick, esHoraDeEnviar, capituloNoAplica, fechaLocal } from '../src/flujo/scheduler.js';
+import { tick, esHoraDeEnviar, fechaLocal } from '../src/flujo/scheduler.js';
+import { capituloNoAplica } from '../src/flujo/preguntar.js';
 
 const ZONA = 'America/Argentina/Buenos_Aires';
 // 2026-09-01 13:05 UTC = 10:05 en Buenos Aires (dentro de la ventana de las 10:00).

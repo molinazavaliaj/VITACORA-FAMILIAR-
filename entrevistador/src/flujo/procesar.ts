@@ -7,16 +7,9 @@ import { transcribirYActualizar } from '../ia/transcribir.js';
 import { evaluarRespuesta, detectarIntencion } from '../ia/cerebro.js';
 import { generarPreguntasAdaptativas } from '../ia/adaptativas.js';
 import { cerrarBitacora } from './cierre.js';
+import { enviarPregunta, esModoRapido, type Narrador } from './preguntar.js';
 
-const ULTIMA_FIJA = 25; // después de la 25 vienen las 5 adaptativas
-
-type Narrador = {
-  id: string;
-  telefono_whatsapp: string;
-  como_le_dicen: string;
-  estado: string;
-  dia_actual: number;
-};
+const ULTIMA_FIJA = 26; // después de la 26 ('su vida en 5 minutos') vienen las 4 adaptativas
 
 async function buscarNarrador(telefono: string): Promise<Narrador | null> {
   const { data } = await db.from('narradores').select('*').eq('telefono_whatsapp', telefono).maybeSingle();
@@ -154,6 +147,7 @@ async function trasResponder(
   transcripcion: string, duracionSegundos: number, _respuestaId: string,
 ): Promise<void> {
   // Paso 6: solo la PRIMERA respuesta a una pregunta se evalúa (las de la repregunta, no).
+  let repreguntaEnviada = false;
   if (!esRepregunta) {
     const pregunta = await textoDePregunta(narrador.id, orden);
     const evaluacion = await evaluarRespuesta(pregunta, transcripcion, duracionSegundos);
@@ -162,14 +156,26 @@ async function trasResponder(
       await db.from('envios').insert({
         narrador_id: narrador.id, tipo: 'repregunta', pregunta_orden: orden, wa_message_id: waId,
       });
+      repreguntaEnviada = true;
     }
   }
 
-  // Paso 8: al completar la respuesta 25, el cerebro estudia toda la historia
-  // y genera las 5 preguntas finales a medida (órdenes 26-30).
+  // Paso 8: al completar la respuesta 26, el cerebro estudia toda la historia
+  // y genera las 4 preguntas finales a medida (órdenes 27-30).
   if (orden === ULTIMA_FIJA) await generarPreguntasAdaptativas(narrador.id);
 
   // Paso 7: si acaba de responder la última pregunta que existe para él,
   // se despide y le entrega los saludos que grabó su familia.
-  if (await esLaUltimaPregunta(narrador.id, orden)) await cerrarBitacora(narrador.id);
+  if (await esLaUltimaPregunta(narrador.id, orden)) {
+    await cerrarBitacora(narrador.id);
+    return;
+  }
+
+  // Modo rápido (pilotos): la siguiente pregunta sale YA, sin esperar al día siguiente.
+  // Como el narrador acaba de escribir, la ventana de 24 hs está abierta: va como texto
+  // libre y no depende de que la plantilla esté aprobada.
+  // Si salió una repregunta, esperamos su respuesta antes de avanzar.
+  if (!repreguntaEnviada && esModoRapido(narrador.contexto)) {
+    await enviarPregunta(narrador, orden + 1, { plantilla: false });
+  }
 }
