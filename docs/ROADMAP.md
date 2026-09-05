@@ -99,17 +99,20 @@ No los aprueba uno solo. **Hace falta una sesión dedicada** para definir el ton
 No hay dueños de área definidos todavía. Se construye en conjunto y los roles se van
 definiendo a medida que avanza. El Instagram lo operan los dos.
 
-### 4. ⚠️ La identidad de marca NO está cerrada
+### 4. La identidad de marca: falta la pasada conjunta
 
-El spec de marca del 05/09 da por "cementadas" cosas que **Joaquín no acordó**: la frase de
-la casa, la paleta, las tipografías y los pilares de comunicación.
+El spec de marca del 05/09 es una propuesta muy avanzada de Naza: nombre, frase de la casa,
+paleta, tipografías, pilares de comunicación y relevamiento de competencia. Buen material y
+mucho terreno ganado.
 
-**Lo único acordado hoy es el NOMBRE: Vitácora Familiar.**
+Como todavía no hay roles definidos, cada uno avanza donde puede y después se revisa junto
+— es el modo de trabajo acordado y funciona. Lo que falta acá es esa pasada conjunta.
 
-Todo lo demás sale de la sesión de branding (ver Frente 3). Nota honesta: la paleta y las
-tipografías **ya están implementadas en la plantilla del libro**, así que reabrirlas tiene
-un costo de trabajo — la sesión decide qué se conserva y qué se cambia, pero se decide
-entre los dos.
+**Acordado hoy: el nombre, Vitácora Familiar.** El resto (slogan, logo, paleta,
+tipografías, pilares, buyer personas) se cierra en la sesión de branding, con el spec de
+Naza como insumo principal. Dato práctico para esa sesión: la paleta y las tipografías ya
+están implementadas en la plantilla del libro, así que cambiarlas tiene costo de trabajo —
+se decide con eso a la vista.
 
 ---
 
@@ -203,7 +206,7 @@ los dos socios.
 **Insumos para la sesión (leer antes, no son decisiones tomadas):**
 - `docs/identidad-del-libro-checklist.md` — las dos direcciones candidatas y las refs
 - `docs/superpowers/specs/2026-09-05-marca-y-pilares-comunicacion-design.md` — la propuesta
-  de Naza: pilares, voz de marca, competencia relevada. **Material para discutir, no acordado.**
+  de Naza: pilares, voz de marca, competencia relevada. Es el punto de partida de la sesión.
 
 **Bloquea:** el logo (3.2) bloquea el registro de marca en INPI. Los pilares (3.4) y las
 buyer personas (3.5) bloquean todo el contenido del Frente 7.
@@ -354,10 +357,11 @@ queda para después del lanzamiento.
 6. **La marca se registra como VITÁCORA FAMILIAR mixta, clases 41 + 9.**
 7. **Notion es el cerebro de negocio; el repo, el técnico.** Sin Obsidian, sin duplicar.
 8. **Los agentes automáticos quedan para después del lanzamiento.**
-9. **De la marca solo está acordado el nombre.** Slogan, logo, paleta, pilares y buyer
-   personas se definen en la sesión, entre los dos.
-10. **Los textos se definen entre los dos**, en una sesión dedicada. Nadie publica copy antes.
-11. **Roles: ambos responsables**, se definen a medida que avanza el proyecto.
+9. **De la marca está acordado el nombre.** Slogan, logo, paleta, pilares y buyer personas
+   se cierran en la sesión de branding, partiendo del spec de Naza.
+10. **Los textos se definen entre los dos**, en una sesión dedicada.
+11. **Roles: ambos responsables.** Cada uno avanza donde puede y se revisa en conjunto; los
+    roles se van definiendo a medida que el proyecto avanza.
 
 ---
 
