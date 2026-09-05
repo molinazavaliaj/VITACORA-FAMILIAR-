@@ -74,35 +74,42 @@ fiscal, fue la cuenta de Facebook nueva.
 
 ---
 
-## ⚖️ CONTRADICCIONES A RESOLVER ENTRE LOS SOCIOS
+## ⚖️ A RESOLVER ENTRE LOS SOCIOS
 
-Este roadmap (Joaquín, 04/09) y el spec de marca (Naza, 05/09) se escribieron en paralelo
-sin verse. Hay tres cosas que **no coinciden y hay que zanjar antes de ejecutar**:
+El roadmap (Joaquín, 04/09) y el spec de marca (Naza, 05/09) se escribieron en paralelo sin
+verse. Resuelto y pendiente:
 
-### 1. ¿Mercado de lanzamiento: Argentina o España? ⚠️ la más importante
+### 1. Mercado de lanzamiento: LOS DOS ✅ acordado
 
-- **Roadmap:** Argentina primero, ~ARS 65.000. Razón: **Stripe no opera con empresas
-  argentinas**, así que hoy no hay forma de cobrarle a un español.
-- **Spec de marca:** asume los dos mercados con ads localizados y precio 49€.
+Vamos a España **y** Argentina, como decía el spec original. Pero hay un bloqueante:
+**Stripe no opera con empresas argentinas**, así que con el monotributo de Joaquín no se le
+puede cobrar a un español.
 
-> **❓ PREGUNTA QUE DECIDE TODO — para Naza: ¿podés darte de alta como autónomo en España
-> y abrir Stripe?** Si la respuesta es sí, España vuelve al juego y el plan cambia:
-> es el mercado que paga mejor y el spec de marca ya está escrito para él.
-> Si es no, Argentina primero y España espera a un merchant of record.
+> **❓ NAZA: chequeá si podés darte de alta como autónomo en España y abrir Stripe, y
+> confirmalo.** Si podés, España queda destrabada a 49€. Si no, España espera a un
+> merchant of record (Paddle / Lemon Squeezy) y arranca solo Argentina a ~ARS 65.000.
 
-### 2. ¿Quién aprueba los textos?
+### 2. Los textos se definen ENTRE LOS DOS ✅ acordado
 
-- **Spec de marca:** "los textos que lee una persona los aprueba Naza, uno por uno".
-- **Roadmap:** Joaquín dirige marca y contenido (es su oficio: marketing y producción).
+No los aprueba uno solo. **Hace falta una sesión dedicada** para definir el tono, los
+ángulos y quién escribe qué. Hasta esa sesión no se publica copy.
 
-> **Propuesta:** Joaquín escribe y dirige; Naza tiene **derecho de veto sobre el tono**
-> (defiende que no se enferme el mensaje ni se mencione la muerte). Ninguno de los dos
-> publica textos que el otro no vio. Confirmar entre ambos.
+### 3. Roles: ambos responsables por ahora ✅ acordado
 
-### 3. ¿Quién opera el Instagram?
+No hay dueños de área definidos todavía. Se construye en conjunto y los roles se van
+definiendo a medida que avanza. El Instagram lo operan los dos.
 
-Naza creó @vitacorafamiliar; Joaquín también dice haberlo creado. Definir una sola cuenta
-y un solo responsable operativo antes de publicar nada.
+### 4. ⚠️ La identidad de marca NO está cerrada
+
+El spec de marca del 05/09 da por "cementadas" cosas que **Joaquín no acordó**: la frase de
+la casa, la paleta, las tipografías y los pilares de comunicación.
+
+**Lo único acordado hoy es el NOMBRE: Vitácora Familiar.**
+
+Todo lo demás sale de la sesión de branding (ver Frente 3). Nota honesta: la paleta y las
+tipografías **ya están implementadas en la plantilla del libro**, así que reabrirlas tiene
+un costo de trabajo — la sesión decide qué se conserva y qué se cambia, pero se decide
+entre los dos.
 
 ---
 
@@ -177,24 +184,29 @@ el CAC es la diferencia entre un negocio y una fuga de plata.
 
 ## FRENTE 3 — Marca y dirección de arte
 
-| # | Tarea | Quién | Estado |
+**Estado real: solo el NOMBRE está acordado.** Todo lo demás se define en la sesión, entre
+los dos socios.
+
+### Orden de la sesión (así, en este orden)
+
+| # | Qué se define | Quién | Estado |
 |---|---|---|---|
-| 3.1 | **Sesión de dirección de arte** en Discord con `docs/identidad-del-libro-checklist.md` | **A** | ☐ |
-| 3.2 | Definir logo, ornamento propio, tipografías, sistema de portada, paleta | **A** | ☐ |
-| 3.3 | Implementar la dirección ganadora en `fabrica/src/libro/plantilla-html.ts` | **N** | ☐ |
-| 3.4 | Aplicar la identidad a la web y a las redes | **N** / **J** | ☐ |
+| 3.1 | **Slogan** | **A** | ☐ |
+| 3.2 | **Logo / monograma V·F** | **A** | ☐ |
+| 3.3 | **Paleta y tipografías** (revisando lo ya implementado en el libro: qué se conserva, qué se cambia) | **A** | ☐ |
+| 3.4 | **Pilares de comunicación** → de ahí salen los ángulos a testear | **A** | ☐ |
+| 3.5 | **Buyer personas** — para imaginar y guionar el contenido | **A** | ☐ |
+| 3.6 | Ornamento propio, sistema de portada y los 4-5 layouts de página del libro | **A** | ☐ |
+| 3.7 | Implementar la dirección ganadora en `fabrica/src/libro/plantilla-html.ts` | **N** | ☐ |
+| 3.8 | Aplicar la identidad a la web y a las redes | **A** | ☐ |
 
-**Ya está decidido por Naza (spec del 05/09), no volver a discutirlo:** el nombre está
-cementado; la paleta es papel crema `#faf7f1`, vino `#6e2618`, tinta `#1c1917`; las
-tipografías son Playfair Display (frases grandes) y Archivo (etiquetas); el feed de
-Instagram debe parecer páginas del libro. La frase de la casa es
-**"Se lee con los ojos y se escucha con su voz."**
+**Insumos para la sesión (leer antes, no son decisiones tomadas):**
+- `docs/identidad-del-libro-checklist.md` — las dos direcciones candidatas y las refs
+- `docs/superpowers/specs/2026-09-05-marca-y-pilares-comunicacion-design.md` — la propuesta
+  de Naza: pilares, voz de marca, competencia relevada. **Material para discutir, no acordado.**
 
-**Lo que falta y sale de la sesión:** el **logo/monograma V·F**, el ornamento propio, el
-sistema de portada y los 4-5 layouts de página del libro.
-
-**Prioridad alta y temprana:** el logo bloquea el registro de marca y todo el contenido.
-Joaquín dirige la ejecución; Naza ya fijó la dirección y valida.
+**Bloquea:** el logo (3.2) bloquea el registro de marca en INPI. Los pilares (3.4) y las
+buyer personas (3.5) bloquean todo el contenido del Frente 7.
 
 ---
 
@@ -333,21 +345,26 @@ queda para después del lanzamiento.
 
 ## 📌 Decisiones tomadas (2026-09-04)
 
-1. **Argentina es el mercado de lanzamiento.** Stripe no opera con empresas argentinas.
-2. **Precio ~ARS 65.000**, a la par del competidor de llenar a mano.
+1. **Los dos mercados: España y Argentina.** Pendiente confirmar si Naza puede abrir Stripe
+   como autónomo español; si no, España espera a un merchant of record.
+2. **Precio Argentina ~ARS 65.000** (a la par del competidor de llenar a mano) · **España 49€**.
 3. **"Lanzado" = 1 libro real terminado + web + marca + pilotos**, no ventas a desconocidos.
 4. **Joaquín no toca Facebook.** Naza opera todo lo de Meta.
 5. **Se factura como monotributista de Joaquín** (sirve para verificar el negocio en Meta).
 6. **La marca se registra como VITÁCORA FAMILIAR mixta, clases 41 + 9.**
 7. **Notion es el cerebro de negocio; el repo, el técnico.** Sin Obsidian, sin duplicar.
 8. **Los agentes automáticos quedan para después del lanzamiento.**
+9. **De la marca solo está acordado el nombre.** Slogan, logo, paleta, pilares y buyer
+   personas se definen en la sesión, entre los dos.
+10. **Los textos se definen entre los dos**, en una sesión dedicada. Nadie publica copy antes.
+11. **Roles: ambos responsables**, se definen a medida que avanza el proyecto.
 
 ---
 
 ## ❓ Abiertas
 
 - ¿Naza tiene un portfolio comercial previo en Meta? (define la vía rápida — **urgente**)
-- ¿Naza puede abrir Stripe como autónomo español? (**decide el mercado de lanzamiento**)
+- ¿Naza puede abrir Stripe como autónomo español? (**destraba España a 49€**) — confirmar
 - ¿Quién es el narrador argentino del piloto?
-- ¿Quién aprueba los textos y quién opera el Instagram? (ver contradicciones)
+- Sesión de textos y de branding: fecha
 - ¿El merchant of record paga a Argentina? (plan B para España)
