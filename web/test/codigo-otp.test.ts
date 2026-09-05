@@ -18,9 +18,14 @@ describe('esCodigoCompleto', () => {
     expect(esCodigoCompleto('123 456')).toBe(true);
   });
 
-  it('rechaza códigos cortos, largos o con letras', () => {
+  it('acepta códigos de hasta 10 dígitos (Supabase es configurable — un 8 real dejó el botón muerto el 2026-09-05)', () => {
+    expect(esCodigoCompleto('14468732')).toBe(true);
+    expect(esCodigoCompleto('1234567890')).toBe(true);
+  });
+
+  it('rechaza códigos cortos, larguísimos o con letras', () => {
     expect(esCodigoCompleto('12345')).toBe(false);
-    expect(esCodigoCompleto('1234567')).toBe(false);
+    expect(esCodigoCompleto('12345678901')).toBe(false);
     expect(esCodigoCompleto('12a456')).toBe(false);
     expect(esCodigoCompleto('')).toBe(false);
   });
