@@ -11,6 +11,12 @@ const execFileAsync = promisify(execFile);
  * mp3. `extensionEntrada` sin el punto (ej. "ogg", "webm", "mp3") — los
  * distintos orígenes (respuestas grabadas, saludos, TTS) no siempre traen el
  * mismo formato.
+ *
+ * Los parámetros de stream van FIJOS (-ar 44100 -ac 1 -b:a 128k): el
+ * audiolibro se arma después con `concat -c copy`, que NO recodifica — si un
+ * segmento saliera con otro sample rate o canales (TTS a 24kHz mono vs. audio
+ * de teléfono a 48kHz), el mp3 final se corrompe o cambia de velocidad al
+ * cruzar la juntura. Todos los segmentos tienen que ser idénticos acá.
  */
 export async function normalizarAMp3(buffer: Buffer, extensionEntrada: string): Promise<Buffer> {
   const dirTemp = await mkdtemp(path.join(tmpdir(), 'vitacora-audiolibro-'));
@@ -25,6 +31,12 @@ export async function normalizarAMp3(buffer: Buffer, extensionEntrada: string): 
       entradaPath,
       '-af',
       'loudnorm',
+      '-ar',
+      '44100',
+      '-ac',
+      '1',
+      '-b:a',
+      '128k',
       '-acodec',
       'libmp3lame',
       salidaPath,
