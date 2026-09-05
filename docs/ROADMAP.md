@@ -8,7 +8,9 @@
 > - **[A]** = Ambos
 >
 > Fuentes relacionadas: `ESTADO.md` (estado técnico) · `GASTOS.md` (plata) ·
-> `supabase/CONTRATO.md` (contrato de datos) · Notion (marca, contenido, decisiones).
+> `supabase/CONTRATO.md` (contrato de datos) ·
+> `docs/superpowers/specs/2026-09-05-marca-y-pilares-comunicacion-design.md` (marca) ·
+> `docs/identidad-del-libro-checklist.md` (libro) · Notion (contenido, decisiones).
 
 ---
 
@@ -69,6 +71,38 @@ perderla también, sin ganar nada. Instagram y TikTok los sigue manejando él.
 **Buena noticia:** ser monotributista **sirve** para la verificación de negocio (constancia
 de AFIP + comprobante de domicilio + dominio propio). El problema nunca fue la situación
 fiscal, fue la cuenta de Facebook nueva.
+
+---
+
+## ⚖️ CONTRADICCIONES A RESOLVER ENTRE LOS SOCIOS
+
+Este roadmap (Joaquín, 04/09) y el spec de marca (Naza, 05/09) se escribieron en paralelo
+sin verse. Hay tres cosas que **no coinciden y hay que zanjar antes de ejecutar**:
+
+### 1. ¿Mercado de lanzamiento: Argentina o España? ⚠️ la más importante
+
+- **Roadmap:** Argentina primero, ~ARS 65.000. Razón: **Stripe no opera con empresas
+  argentinas**, así que hoy no hay forma de cobrarle a un español.
+- **Spec de marca:** asume los dos mercados con ads localizados y precio 49€.
+
+> **❓ PREGUNTA QUE DECIDE TODO — para Naza: ¿podés darte de alta como autónomo en España
+> y abrir Stripe?** Si la respuesta es sí, España vuelve al juego y el plan cambia:
+> es el mercado que paga mejor y el spec de marca ya está escrito para él.
+> Si es no, Argentina primero y España espera a un merchant of record.
+
+### 2. ¿Quién aprueba los textos?
+
+- **Spec de marca:** "los textos que lee una persona los aprueba Naza, uno por uno".
+- **Roadmap:** Joaquín dirige marca y contenido (es su oficio: marketing y producción).
+
+> **Propuesta:** Joaquín escribe y dirige; Naza tiene **derecho de veto sobre el tono**
+> (defiende que no se enferme el mensaje ni se mencione la muerte). Ninguno de los dos
+> publica textos que el otro no vio. Confirmar entre ambos.
+
+### 3. ¿Quién opera el Instagram?
+
+Naza creó @vitacorafamiliar; Joaquín también dice haberlo creado. Definir una sola cuenta
+y un solo responsable operativo antes de publicar nada.
 
 ---
 
@@ -150,8 +184,17 @@ el CAC es la diferencia entre un negocio y una fuga de plata.
 | 3.3 | Implementar la dirección ganadora en `fabrica/src/libro/plantilla-html.ts` | **N** | ☐ |
 | 3.4 | Aplicar la identidad a la web y a las redes | **N** / **J** | ☐ |
 
+**Ya está decidido por Naza (spec del 05/09), no volver a discutirlo:** el nombre está
+cementado; la paleta es papel crema `#faf7f1`, vino `#6e2618`, tinta `#1c1917`; las
+tipografías son Playfair Display (frases grandes) y Archivo (etiquetas); el feed de
+Instagram debe parecer páginas del libro. La frase de la casa es
+**"Se lee con los ojos y se escucha con su voz."**
+
+**Lo que falta y sale de la sesión:** el **logo/monograma V·F**, el ornamento propio, el
+sistema de portada y los 4-5 layouts de página del libro.
+
 **Prioridad alta y temprana:** el logo bloquea el registro de marca y todo el contenido.
-Joaquín dirige (es su oficio); Naza aporta refs y valida.
+Joaquín dirige la ejecución; Naza ya fijó la dirección y valida.
 
 ---
 
@@ -163,7 +206,7 @@ Basado en el relevamiento del 2026-09-04 (documento en Drive).
 |---|---|---|---|
 | 4.1 | Contratar Agente de la Propiedad Industrial matriculado | **J** | ☐ |
 | 4.2 | Presentar **VITÁCORA FAMILIAR** como marca **mixta** (con logo), clases **41 + 9** | **J** | ☐ |
-| 4.3 | Registrar dominios defensivos: `.com.ar` + `bitacorafamiliar.com` (con B) redirigiendo | **J** | ☐ |
+| 4.3 | ~~`.com` · `.es` · `.com.ar`~~ **ya comprados por Naza (05/09)**. Falta: `bitacorafamiliar.com` y `.com.ar` (con B, defensivos, redirigen a la V) | **J** | ☐ |
 | 4.4 | Reservar handles defensivos (Facebook, TikTok, YouTube, y los de B) | **J** | ☐ |
 
 **No intentar registrar "Vitácora" sola:** choca fonéticamente con "BITÁCORA" (clase 41,
@@ -239,7 +282,8 @@ al algoritmo a buscar curiosos en vez de compradores.
 | 8.1 | Cuenta de Mercado Pago + credenciales + webhook | **J** | ☐ |
 | 8.2 | Configurar `PRECIO_ARS` | **N** | ☐ |
 | 8.3 | Prueba de pago en sandbox de punta a punta | **A** | ☐ |
-| 8.4 | España: evaluar merchant of record (Paddle / Lemon Squeezy) — verificar si paga a Argentina | **J** | ☐ post 1-oct |
+| 8.4 | **Averiguar si Naza puede darse de alta como autónomo en España y abrir Stripe** — reabre el mercado de 49€ | **N** | ☐ **urgente** |
+| 8.5 | Si 8.4 es no: evaluar merchant of record (Paddle / Lemon Squeezy) y si paga a Argentina | **J** | ☐ post 1-oct |
 
 **Precio: ~ARS 65.000.** Es lo que sale hoy en Argentina un libro de preguntas que el abuelo
 tiene que **llenar a mano**. Mismo precio, producto incomparablemente mejor: responde por
@@ -303,5 +347,7 @@ queda para después del lanzamiento.
 ## ❓ Abiertas
 
 - ¿Naza tiene un portfolio comercial previo en Meta? (define la vía rápida — **urgente**)
+- ¿Naza puede abrir Stripe como autónomo español? (**decide el mercado de lanzamiento**)
 - ¿Quién es el narrador argentino del piloto?
-- ¿El merchant of record paga a Argentina? (destraba España)
+- ¿Quién aprueba los textos y quién opera el Instagram? (ver contradicciones)
+- ¿El merchant of record paga a Argentina? (plan B para España)
