@@ -5,9 +5,10 @@
 | 2026-09-01 | Railway plan Hobby (infra: fábrica + futuro entrevistador) | USD 5/mes | Naza | Recurrente |
 | 2026-09-01 | Crédito API Anthropic (el escritor de los libros) | USD 10 | Naza | Consumible |
 | 2026-09-01 | Crédito API OpenAI (transcripción + voz del biógrafo) | USD 5 | Naza | Consumible |
+| 2026-09-05 | Dominio vitacorafamiliar (registro año 1) | 15€ | Naza | Recurrente (anual) |
 | — | Vercel, Supabase, Resend, GitHub | USD 0 | — | Gratis (planes free) |
 
-**Total puesto hasta hoy: ~USD 20** + USD 5/mes de Railway.
+**Total puesto hasta hoy: ~USD 20 + 15€** + USD 5/mes de Railway.
 
 ## Qué se consumió del crédito de Anthropic (~USD 8.50 de los 10)
 
@@ -24,7 +25,7 @@
 ## Gastos por venir (estimados)
 
 - Recarga Anthropic pre-pilotos: USD 10-20.
-- Dominio propio (vitacorafamiliar.com o similar): ~USD 10-15/año.
+- ~~Dominio propio~~ → comprado el 2026-09-05 (15€, ver tabla). Renovación anual.
 - Meta/WhatsApp: por conversación (~USD 1-2 por narrador por los 30 días).
 - Cuando haya ventas reales: Vercel Pro (USD 20/mes, lo piden sus términos comerciales)
   y Supabase Pro (USD 25/mes cuando el storage supere 1 GB ≈ 15 narradores).
