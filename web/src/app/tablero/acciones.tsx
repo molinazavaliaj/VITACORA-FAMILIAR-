@@ -11,7 +11,13 @@ async function patchNarrador(narradorId: string, accion: "apagar_alerta" | "cier
   });
 }
 
-export function BannerAlertaSilencio({ narradorId }: { narradorId: string }) {
+export function BannerAlertaSilencio({
+  narradorId,
+  comoLeDicen,
+}: {
+  narradorId: string;
+  comoLeDicen: string;
+}) {
   const router = useRouter();
   const [enviando, setEnviando] = useState(false);
   const [oculto, setOculto] = useState(false);
@@ -40,8 +46,8 @@ export function BannerAlertaSilencio({ narradorId }: { narradorId: string }) {
   return (
     <div className="flex flex-col gap-3 rounded-lg border border-red-200 bg-red-50 p-4 sm:flex-row sm:items-center sm:justify-between">
       <p className="text-sm leading-relaxed text-red-800">
-        Tu papá lleva 3 días sin responder — un llamadito tuyo ayuda más que cualquier
-        recordatorio nuestro
+        {comoLeDicen} lleva 3 días sin responder — un llamadito tuyo ayuda más que
+        cualquier recordatorio nuestro
       </p>
       <div className="flex shrink-0 flex-col items-start gap-1 sm:items-end">
         <button
@@ -50,7 +56,7 @@ export function BannerAlertaSilencio({ narradorId }: { narradorId: string }) {
           disabled={enviando}
           className="h-10 rounded-full bg-red-700 px-5 text-sm font-medium text-white transition-colors hover:bg-red-800 disabled:opacity-60"
         >
-          {enviando ? "Marcando..." : "Ya lo llamé"}
+          {enviando ? "Marcando..." : "Ya hablamos"}
         </button>
         {error ? <p className="text-xs text-red-700">{error}</p> : null}
       </div>

@@ -102,9 +102,56 @@ describe('normalizarTelefono', () => {
   it('limpia espacios y guiones antes de normalizar', () => {
     expect(normalizarTelefono('11 5555-1234', 'AR')).toBe('+5491155551234');
   });
+
+  it('AR: saca el 0 inicial del código de área ("011...")', () => {
+    expect(normalizarTelefono('011 5555 1234', 'AR')).toBe('+5491155551234');
+  });
+
+  it('AR: saca el 15 de móvil después del código de área ("011 15...")', () => {
+    expect(normalizarTelefono('011 15 5555 1234', 'AR')).toBe('+5491155551234');
+  });
+
+  it('AR: saca 0 y 15 también con código de área del interior (0341 córdoba/rosario)', () => {
+    expect(normalizarTelefono('0341 15 555 1234', 'AR')).toBe('+5493415551234');
+  });
+
+  it('AR: agrega el 9 de WhatsApp si vino +54 sin 9', () => {
+    expect(normalizarTelefono('+541155551234', 'AR')).toBe('+5491155551234');
+  });
+
+  it('AR: no toca un +549 ya correcto ni un + de otro país', () => {
+    expect(normalizarTelefono('+5491155551234', 'AR')).toBe('+5491155551234');
+    expect(normalizarTelefono('+34612345678', 'AR')).toBe('+34612345678');
+  });
 });
 
 describe('validarYConstruir', () => {
+  it('rechaza una zona horaria que no es IANA (rompería el scheduler del entrevistador)', () => {
+    const resultado = validarYConstruir(cuerpoValido({ zonaHoraria: 'basura/inexistente' }) as never);
+    expect(resultado.ok).toBe(false);
+    if (!resultado.ok) expect(resultado.status).toBe(400);
+  });
+
+  it('acepta una zona horaria IANA válida distinta de la default', () => {
+    const resultado = validarYConstruir(cuerpoValido({ zonaHoraria: 'America/Argentina/Cordoba' }) as never);
+    expect(resultado.ok).toBe(true);
+    if (resultado.ok) expect(resultado.narrador.zona_horaria).toBe('America/Argentina/Cordoba');
+  });
+
+  it('rechaza una hora preferida con formato inválido', () => {
+    for (const hora of ['99:99', '25:00', '9:00', 'diez', '10:60']) {
+      const resultado = validarYConstruir(cuerpoValido({ horaPreferida: hora }) as never);
+      expect(resultado.ok, `debería rechazar "${hora}"`).toBe(false);
+      if (!resultado.ok) expect(resultado.status).toBe(400);
+    }
+  });
+
+  it('acepta una hora preferida HH:MM válida', () => {
+    const resultado = validarYConstruir(cuerpoValido({ horaPreferida: '19:30' }) as never);
+    expect(resultado.ok).toBe(true);
+    if (resultado.ok) expect(resultado.narrador.hora_preferida).toBe('19:30');
+  });
+
   it('rechaza un año de nacimiento fuera de rango', () => {
     const resultado = validarYConstruir(
       cuerpoValido({ contexto: { anioNacimiento: 1850 } }) as never,

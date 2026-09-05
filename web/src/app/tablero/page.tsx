@@ -169,7 +169,7 @@ export default async function Tablero() {
       <div className="w-full max-w-lg">
         {narrador.alerta_silencio ? (
           <div className="mb-8">
-            <BannerAlertaSilencio narradorId={narrador.id} />
+            <BannerAlertaSilencio narradorId={narrador.id} comoLeDicen={narrador.como_le_dicen} />
           </div>
         ) : null}
 
