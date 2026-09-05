@@ -62,6 +62,39 @@ Opciones sobre la mesa si la conversión viniera floja (ninguna decidida):
 
 Regla acordada: no tocar el modelo hasta tener los datos de los 3 pilotos.
 
+## 📈 Escenarios con ads y las dos palancas (charlado Naza + Claude, 2026-09-05)
+
+**La cuenta por cada 100 registros freemium traídos por ads** (supuestos a validar:
+registro a ~3€, 60% abandona temprano, WhatsApp ~1€/usuario):
+costos fijos del lote ≈ 720€ (300 ads + 220 IA entrevistas + 100 WhatsApp + ~100 libros).
+
+| Compran de 100 | A 49€ (solo digital) | Con escalón impreso 99€ (ticket prom. 74€, −20€ imprenta) |
+|---|---|---|
+| 10 | **−230€ (pérdida)** | −80€ (casi empata) |
+| 20 | +260€ | **+660€** |
+| 30 | +670€ | **+1.300€** |
+
+Lectura: a 49€ solo-digital, los ads exigen convertir >1 de cada 7. Con ticket más
+alto hay margen de error. Los pilotos + una campañita chica deben medir LOS TRES
+números: costo real por registro, % que completa, % que compra.
+
+**Palanca 1 — ticket más alto (precios de mercado verificados 2026-09-05):**
+Storyworth cobra $59/$109/$199 CON libro impreso incluido; Remento $99 con tapa
+dura de 200 págs. y vende copias extra a $69. Opciones nuestras: escalón impreso
+89-99€ (imprenta bajo demanda ~15-25€), copias extra 29-39€, digital quizás a 59€.
+El diferencial se mantiene en todos los escalones: nadie da la voz real en castellano.
+
+**Palanca 2 — crecer sin ads (el producto es viral por diseño):**
+1. **CTA en los saludos** ⭐ feature chica post-pilotos: por cada libro, 5-10
+   parientes YA entran a la web a grabar su saludo — al terminar, botón
+   "¿Y la historia de tu mamá? Empezala gratis". Cliente por esta vía: 0€ de
+   adquisición → ~39€ limpios contra ~13€ del de ads.
+2. **QR en la última página del libro**: "Este libro se hizo con Vitácora
+   Familiar" — cada PDF reenviado y cada impreso en un living es un anuncio
+   eterno que pagó el cliente.
+3. **"La vida en 5 minutos"** (pregunta 26): la pieza compartible por diseño.
+4. **Referido familiar**: descuento a la segunda familia del mismo clan.
+
 ## Gastos por venir (estimados)
 
 - Recarga Anthropic pre-pilotos: USD 10-20.
