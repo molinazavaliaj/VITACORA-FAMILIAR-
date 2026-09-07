@@ -131,7 +131,24 @@ se decide con eso a la vista.
 | 1.9 | Conseguir línea telefónica dedicada (sin WhatsApp común activo) | **J** | ☐ |
 | 1.10 | Verificación del negocio con documentación de Joaquín | **A** | ☐ post 1-oct |
 | 1.11 | Cuenta publicitaria — ⚠️ moneda **ARS**, no se cambia nunca más | **N** | ☐ post 1-oct |
-| 1.12 | Producción: número propio, display name, token permanente (System User), webhook a Railway | **A** | ☐ post 1-oct |
+| 1.12 | Producción: número propio, display name, token permanente (System User) | **A** | ☐ post 1-oct |
+
+### ✅ El entrevistador ya está desplegado (2026-09-07)
+
+Corriendo en Railway, en el proyecto de Joaquín (los servicios no se hablan entre sí, solo
+por Supabase, así que estar en proyectos separados no cambia nada técnicamente).
+
+    URL          https://vitacora-familiar-production.up.railway.app
+    Salud        GET /salud → {"ok":true}
+    Webhook      https://vitacora-familiar-production.up.railway.app/webhook
+    Verify token vitacora-0f5a991473f6c297
+    Suscribir a  el campo `messages`
+
+Verificado el 07/09: `/salud` responde 200, el webhook devuelve el challenge con el token
+correcto y da 403 con uno incorrecto — o sea que **la verificación de Meta va a pasar en
+verde apenas se conecte**.
+
+Falta solo pegar el `WA_TOKEN` y el `WA_PHONE_NUMBER_ID` nuevos cuando exista la cuenta.
 
 ### ⚠️ Trampas ya aprendidas (no volver a pisarlas)
 
@@ -367,7 +384,10 @@ queda para después del lanzamiento.
 
 ## ❓ Abiertas
 
-- ¿Naza tiene un portfolio comercial previo en Meta? (define la vía rápida — **urgente**)
+- **¿Quién crea el portfolio de Meta?** Naza no tiene Facebook y la cuenta de Joaquín está
+  deshabilitada. Camino elegido: una persona de confianza con cuenta vieja y real crea el
+  portfolio y suma a Joaquín como admin. Con eso sale el **número de prueba**, que no
+  necesita verificación de negocio y alcanza para los pilotos (5 destinatarios).
 - ¿Naza puede abrir Stripe como autónomo español? (**destraba España a 49€**) — confirmar
 - ¿Quién es el narrador argentino del piloto?
 - Sesión de textos y de branding: fecha
