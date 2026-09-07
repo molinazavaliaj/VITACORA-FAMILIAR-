@@ -173,19 +173,50 @@ y acá se lo cuenta hablando y le queda su voz grabada.
 2. **Nunca fotos de stock de abuelos sonrientes.** Se reconocen a un kilómetro y
    dicen "esto no es real". Preferible una foto de familia auténtica —con permiso—
    o solo tipografía y fotos del libro.
-3. **Nunca testimonios inventados.** **Todavía no hay clientes.** Una landing sin
-   testimonios es honesta; una con testimonios falsos es fraude y además es la
-   clase de cosa que hunde una marca chica. La prueba social se agrega **después
-   de los pilotos**, con nombre y permiso.
+3. **Testimonios: sí va a haber, pero reales.** Decisión del 07/09: se consiguen
+   **5 personas que prueben el producto antes de salir a la venta** y dejen una
+   reseña real. Hasta entonces, la sección se construye con **texto de relleno
+   marcado como tal** (ver §7bis) — sirve para diseñar, no para publicar.
+   **Regla dura: la landing no se publica con testimonios inventados.** Si el
+   lanzamiento llega antes que las reseñas, la sección se oculta hasta tenerlas.
+   No es escrúpulo: son reseñas falsas en publicidad, lo más fácil de denunciar
+   bajo Lealtad Comercial y Defensa del Consumidor, y hunde a una marca chica.
 4. **Nunca urgencia falsa:** contadores, "quedan 3 lugares", descuentos que
    vencen. Este producto ya tiene la urgencia más real que existe; inventar una de
    marketing la abarata.
 5. **Nunca prometer lo que no hay:** el libro impreso físico no existe todavía
    (es fase 2). Se entrega **PDF listo para imprimir** + audiolibro. Decirlo así.
 
-**Qué usar en lugar de testimonios,** mientras no los haya: las páginas reales del
-libro de Osvaldo (el piloto), la captura real de WhatsApp, y el hecho de que en
-castellano no existe nada parecido.
+**Mientras tanto**, el resto de la prueba: las páginas reales del libro de Osvaldo
+(el piloto), la captura real de WhatsApp, y que en castellano no existe nada
+parecido.
+
+---
+
+## 7bis. Testimonios — cómo se hace bien
+
+**En la maqueta** se usan cinco de relleno, con largos desparejos (los reales
+nunca miden todos lo mismo, y una sección diseñada con cinco textos iguales se
+rompe apenas entran los verdaderos). Cada uno lleva en el código un
+`{/* PLACEHOLDER — reemplazar por reseña real */}`, y mientras la landing no
+esté publicada conviene que se vean marcados en pantalla.
+
+**Los cinco reales** salen de las 5 personas que prueben el producto antes de la
+venta. Un testimonio bueno no sale de "¿te gustó?" — sale de preguntas que
+obligan a un detalle concreto:
+
+1. ¿Qué pensabas que iba a pasar cuando lo anotaste, y qué pasó en realidad?
+2. ¿Hubo algún momento en que te sorprendió algo que contó? ¿Cuál?
+3. ¿Cómo reaccionó él/ella cuando recibió los saludos de la familia?
+4. ¿Qué le dirías a alguien que duda porque cree que su papá no va a saber usarlo?
+5. ¿Qué hiciste con el libro cuando lo tuviste?
+
+La 4 es la más valiosa: **un cliente desarmando la objeción principal convence
+mucho más que nosotros haciéndolo.** La 2 y la 3 son las que dan la frase que
+emociona.
+
+**Cada testimonio publicado necesita:** nombre real, ciudad, permiso explícito por
+escrito, y —si se usa foto— permiso aparte para la imagen.
 
 ---
 
@@ -239,3 +270,4 @@ El formulario de alta es donde se gana o se pierde todo el trabajo de arriba.
 - [ ] Un fragmento del audiolibro que se pueda escuchar en la página
 - [ ] Metadatos y Open Graph, para que el link se vea bien cuando lo compartan
 - [ ] El pixel configurado con el evento correcto (alta, no compra)
+- [ ] **Los 5 testimonios reales, con permiso por escrito** — o la sección oculta
