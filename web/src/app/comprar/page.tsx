@@ -1,8 +1,10 @@
 import { redirect } from "next/navigation";
 import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
+import Link from "next/link";
 import { obtenerPrecio } from "@/lib/precios";
 import { BotonComprar } from "./acciones";
+import { PasosDelLibro, VolverAlTablero } from "../tablero/pasos";
 
 const MENSAJE_ERROR_CARGA = "No pudimos cargar la previsualización. Actualiza la página en un momento.";
 const ESTADOS_CON_LIBRO_EN_MARCHA = ["completado", "cerrado_anticipado"];
@@ -73,6 +75,7 @@ export default async function Comprar() {
 
   const nombresArchivos = new Set((archivos ?? []).map((archivo) => archivo.name));
   const previewListo = nombresArchivos.has("preview.pdf");
+  const nombresRevisados = nombresArchivos.has("nombres.json");
 
   const { monto: montoPrecio, moneda: monedaPrecio } = obtenerPrecio(datosFamilia.region);
   const precio = monedaPrecio === "EUR" ? `${montoPrecio} €` : `$${montoPrecio} ARS`;
@@ -80,6 +83,10 @@ export default async function Comprar() {
   return (
     <div className="flex flex-1 flex-col items-center bg-white px-6 py-16 text-zinc-900">
       <div className="w-full max-w-lg">
+        <div className="mb-8 flex flex-col gap-4">
+          <VolverAlTablero />
+          <PasosDelLibro actual={3} />
+        </div>
         <h1 className="text-2xl font-semibold text-zinc-900">
           El libro y el audiolibro de {narrador.como_le_dicen}
         </h1>
@@ -121,7 +128,16 @@ export default async function Comprar() {
         <div className="mt-10 flex flex-col items-start gap-3 border-t border-zinc-100 pt-8">
           <p className="text-lg font-semibold text-zinc-900">{precio}</p>
           <p className="text-sm text-zinc-600">Libro impreso + audiolibro con su voz real.</p>
-          <BotonComprar />
+          {nombresRevisados ? (
+            <BotonComprar />
+          ) : (
+            <Link
+              href="/tablero/nombres"
+              className="block rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-sm font-medium text-zinc-900 transition-colors hover:bg-zinc-100"
+            >
+              Antes de comprar, revisa los nombres de su historia →
+            </Link>
+          )}
         </div>
       </div>
     </div>

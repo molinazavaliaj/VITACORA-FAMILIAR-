@@ -68,7 +68,10 @@ function construirBuilder(resultado: unknown, onCall?: (metodo: string, args: un
   return builder;
 }
 
-function crearAdminFake(secuencia: Record<string, unknown[]>) {
+function crearAdminFake(
+  secuencia: Record<string, unknown[]>,
+  opciones: { list?: (ruta: string) => Promise<{ data: unknown; error: unknown }> } = {},
+) {
   const contadores: Record<string, number> = {};
   const llamadas: Record<string, unknown[][]> = {};
   const from = vi.fn((tabla: string) => {
@@ -80,7 +83,13 @@ function crearAdminFake(secuencia: Record<string, unknown[]>) {
       llamadas[tabla].push([metodo, ...args]);
     });
   });
-  return { from, llamadas };
+  // Por defecto los nombres ya están revisados, que es el caso feliz que los
+  // tests históricos asumen; cada test puede pisar `list` para simular otro.
+  const list = vi.fn(
+    opciones.list ?? (() => Promise.resolve({ data: [{ name: 'nombres.json' }], error: null })),
+  );
+  const storage = { from: vi.fn(() => ({ list })) };
+  return { from, llamadas, storage, list };
 }
 
 function mockSesion(usuario: { id: string; email: string } | null) {
@@ -374,6 +383,28 @@ describe('POST /api/checkout', () => {
 
     expect(respuesta.status).toBe(409);
     expect(admin.llamadas.pedidos).toBeUndefined();
+  });
+
+  it('narrador listo pero con los nombres sin revisar responde 409 y no toca pedidos', async () => {
+    mockSesion({ id: 'user-1', email: 'martina@test.com' });
+    const admin = crearAdminFake(
+      {
+        familias: [{ data: { id: 'familia-1', email: 'martina@test.com', region: 'ES' }, error: null }],
+        narradores: [{ data: [{ id: 'narrador-1', estado: 'completado' }], error: null }],
+      },
+      { list: () => Promise.resolve({ data: [{ name: 'estructura.json' }], error: null }) },
+    );
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+
+    const respuesta = await POST_CHECKOUT();
+    const cuerpo = await respuesta.json();
+
+    expect(respuesta.status).toBe(409);
+    expect(cuerpo.error).toBe(
+      'Antes de comprar, revisa los nombres de su historia desde el tablero.',
+    );
+    expect(admin.llamadas.pedidos).toBeUndefined();
+    expect(admin.list.mock.calls[0][0]).toBe('narrador-1/paquete');
   });
 
   it('si ya existe un pedido pagado para el narrador responde 409', async () => {

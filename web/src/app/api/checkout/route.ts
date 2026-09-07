@@ -71,6 +71,29 @@ export async function POST() {
     );
   }
 
+  // La fábrica no puede armar el libro sin nombres.json (lo escribe la familia
+  // al revisar los nombres en /tablero/nombres). Cobrar antes de ese paso deja
+  // un pedido pagado que solo puede fallar — se corta acá, antes de la plata.
+  const { data: archivosPaquete, error: errorPaquete } = await admin.storage
+    .from("audios")
+    .list(`${narrador.id}/paquete`);
+
+  if (errorPaquete) {
+    console.error("checkout: fallo listar el paquete", errorPaquete);
+    return NextResponse.json({ error: MENSAJE_ERROR_GENERICO }, { status: 500 });
+  }
+
+  const nombresRevisados = (archivosPaquete ?? []).some(
+    (archivo: { name: string }) => archivo.name === "nombres.json",
+  );
+
+  if (!nombresRevisados) {
+    return NextResponse.json(
+      { error: "Antes de comprar, revisa los nombres de su historia desde el tablero." },
+      { status: 409 },
+    );
+  }
+
   const { data: pedidosExistentes, error: errorPedidos } = await admin
     .from("pedidos")
     .select("id, estado")

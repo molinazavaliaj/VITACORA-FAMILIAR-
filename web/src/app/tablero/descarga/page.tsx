@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
+import { PasosDelLibro, VolverAlTablero } from "../pasos";
 
 const MENSAJE_ERROR_CARGA = "No pudimos cargar tu descarga. Actualiza la página en un momento.";
 
@@ -96,10 +97,22 @@ export default async function TableroDescarga() {
   return <EstadoError />;
 }
 
-function Contenedor({ children }: { children: React.ReactNode }) {
+function Contenedor({
+  children,
+  paso,
+}: {
+  children: React.ReactNode;
+  paso?: 4;
+}) {
   return (
     <div className="flex flex-1 flex-col items-center bg-white px-6 py-16 text-zinc-900">
-      <div className="w-full max-w-lg">{children}</div>
+      <div className="w-full max-w-lg">
+        <div className="mb-8 flex flex-col gap-4">
+          <VolverAlTablero />
+          {paso ? <PasosDelLibro actual={paso} /> : null}
+        </div>
+        {children}
+      </div>
     </div>
   );
 }
@@ -152,7 +165,7 @@ function EnFabricacion() {
       {/* Nadie se queda mirando esta pantalla activamente — se refresca sola
           cada 60s hasta que el estado cambie a 'entregado' o 'fallido'. */}
       <meta httpEquiv="refresh" content="60" />
-      <Contenedor>
+      <Contenedor paso={4}>
         <h1 className="text-2xl font-semibold text-zinc-900">Estamos imprimiendo su historia</h1>
         <p className="mt-2 text-sm leading-relaxed text-zinc-600">
           Esto tarda unos minutos. Vuelve a esta página en un rato.
@@ -183,7 +196,7 @@ function Entregado({
   const tieneCompleto = Boolean(audiolibroPaths?.completo);
 
   return (
-    <Contenedor>
+    <Contenedor paso={4}>
       <h1 className="text-2xl font-semibold text-zinc-900">
         El libro y el audiolibro de {comoLeDicen}
       </h1>

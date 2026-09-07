@@ -3,6 +3,7 @@ import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { firmarTokenSaludo } from "@/lib/token-saludo";
 import { EnlaceCompartir, ListaSaludos } from "./acciones";
+import { VolverAlTablero } from "../pasos";
 
 const MENSAJE_ERROR_CARGA = "No pudimos cargar los saludos. Actualiza la página en un momento.";
 
@@ -83,6 +84,9 @@ export default async function TableroSaludos() {
   return (
     <div className="flex flex-1 flex-col items-center bg-white px-6 py-16 text-zinc-900">
       <div className="w-full max-w-lg">
+        <div className="mb-8">
+          <VolverAlTablero />
+        </div>
         <h1 className="text-2xl font-semibold text-zinc-900">
           Saludos para {narrador.como_le_dicen}
         </h1>

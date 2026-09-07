@@ -3,6 +3,7 @@ import Link from "next/link";
 import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { BannerAlertaSilencio, CierreAnticipado } from "./acciones";
+import { PasosDelLibro, type PasoActual } from "./pasos";
 
 const TOTAL_PREGUNTAS = 30;
 const MINIMO_RESPUESTAS_CIERRE_ANTICIPADO = 10;
@@ -107,7 +108,12 @@ export default async function Tablero() {
       .select("id, pregunta_orden, audio_path, texto_directo, es_repregunta, recibido_at")
       .eq("narrador_id", narrador.id)
       .order("pregunta_orden", { ascending: true }),
-    admin.from("pedidos").select("id").eq("narrador_id", narrador.id).limit(1),
+    admin
+      .from("pedidos")
+      .select("id, estado")
+      .eq("narrador_id", narrador.id)
+      .order("created_at", { ascending: false })
+      .limit(1),
   ]);
 
   if (errorPreguntasFijas || errorPreguntasNarrador || errorRespuestas || errorPedidos) {
@@ -120,7 +126,11 @@ export default async function Tablero() {
     return <EstadoError />;
   }
 
-  const tienePedido = ((pedidos as { id: string }[] | null) ?? []).length > 0;
+  const pedido = ((pedidos as { id: string; estado: string }[] | null) ?? [])[0];
+  const tienePedido = Boolean(pedido);
+  const pedidoEnCamino = Boolean(
+    pedido && ["pagado", "generando", "entregado"].includes(pedido.estado),
+  );
 
   const preguntasPorOrden = new Map<number, Pregunta>();
   for (const pregunta of (preguntasFijas as Pregunta[] | null) ?? []) {
@@ -173,19 +183,43 @@ export default async function Tablero() {
           </div>
         ) : null}
 
+        {libroEnMarcha ? (
+          <div className="mb-8">
+            <PasosDelLibro
+              actual={
+                (avisoNombres === "pendiente" ? 2 : pedidoEnCamino ? 4 : 3) as PasoActual
+              }
+            />
+          </div>
+        ) : null}
+
         {avisoNombres ? (
           <div className="mb-8">
             <AvisoNombres estado={avisoNombres} />
           </div>
         ) : null}
 
-        {libroEnMarcha ? (
+        {/* Un solo próximo paso a la vez: mientras los nombres estén sin
+            revisar, la única puerta es esa — la compra recién se ofrece
+            después (y el pedido ya hecho lleva directo a la descarga). */}
+        {libroEnMarcha && avisoNombres === "hecho" && !pedidoEnCamino ? (
           <div className="mb-8">
             <Link
               href="/comprar"
               className="block rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-sm font-medium text-zinc-900 transition-colors hover:bg-zinc-100"
             >
               Ver la previsualización y conseguir su libro →
+            </Link>
+          </div>
+        ) : null}
+
+        {pedidoEnCamino ? (
+          <div className="mb-8">
+            <Link
+              href="/tablero/descarga"
+              className="block rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-sm font-medium text-zinc-900 transition-colors hover:bg-zinc-100"
+            >
+              Su libro — verlo o descargarlo →
             </Link>
           </div>
         ) : null}

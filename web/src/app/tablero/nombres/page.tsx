@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { FormularioNombres } from "./acciones";
+import { PasosDelLibro, VolverAlTablero } from "../pasos";
 
 const MENSAJE_ERROR_CARGA = "No pudimos cargar los nombres. Actualiza la página en un momento.";
 
@@ -125,6 +126,10 @@ export default async function TableroNombres() {
   return (
     <div className="flex flex-1 flex-col items-center bg-white px-6 py-16 text-zinc-900">
       <div className="w-full max-w-lg">
+        <div className="mb-8 flex flex-col gap-4">
+          <VolverAlTablero />
+          <PasosDelLibro actual={2} />
+        </div>
         <h1 className="text-2xl font-semibold text-zinc-900">
           Nombres de {narrador.como_le_dicen}
         </h1>
@@ -156,6 +161,9 @@ function EstadoSinEstructura({ comoLeDicen }: { comoLeDicen: string }) {
         Todavía estamos armando el libro de {comoLeDicen}. La revisión de nombres va a estar
         lista pronto.
       </p>
+      <div className="mt-6">
+        <VolverAlTablero />
+      </div>
     </div>
   );
 }
