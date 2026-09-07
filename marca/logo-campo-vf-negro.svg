@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 290" width="200" height="290" role="img" aria-label="Vitácora Familiar">
+    <defs><style>@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500&amp;display=swap');</style></defs>
+    <title>Vitácora Familiar — El Campo V·F</title>
+    <line x1="100.0" y1="20.32" x2="100.0" y2="269.68" stroke="#14140F" stroke-width="0.9" stroke-dasharray="3 4" opacity="0.55"/>
+    <path d="M100.0 12.00 l5.2 5.2 l-5.2 5.2 l-5.2 -5.2 Z" fill="#14140F" opacity="0.75"/>
+    <path d="M100.0 278.00 l5.2 -5.2 l-5.2 -5.2 l-5.2 5.2 Z" fill="#14140F" opacity="0.75"/>
+    <ellipse cx="86.14" cy="145.00" rx="13.86" ry="17.63" fill="none" stroke="#14140F" stroke-width="1.15"/>
+    <ellipse cx="113.86" cy="145.00" rx="13.86" ry="17.63" fill="none" stroke="#14140F" stroke-width="1.15"/>
+    <ellipse cx="73.23" cy="145.00" rx="26.77" ry="34.07" fill="none" stroke="#14140F" stroke-width="1.15"/>
+    <ellipse cx="126.77" cy="145.00" rx="26.77" ry="34.07" fill="none" stroke="#14140F" stroke-width="1.15"/>
+    <ellipse cx="60.65" cy="145.00" rx="39.35" ry="50.08" fill="none" stroke="#14140F" stroke-width="1.15"/>
+    <ellipse cx="139.35" cy="145.00" rx="39.35" ry="50.08" fill="none" stroke="#14140F" stroke-width="1.15"/>
+    <ellipse cx="48.29" cy="145.00" rx="51.71" ry="65.82" fill="none" stroke="#14140F" stroke-width="1.15"/>
+    <ellipse cx="151.71" cy="145.00" rx="51.71" ry="65.82" fill="none" stroke="#14140F" stroke-width="1.15"/>
+    <ellipse cx="36.08" cy="145.00" rx="63.92" ry="81.36" fill="none" stroke="#14140F" stroke-width="1.15"/>
+    <ellipse cx="163.92" cy="145.00" rx="63.92" ry="81.36" fill="none" stroke="#14140F" stroke-width="1.15"/>
+    <ellipse cx="23.99" cy="145.00" rx="76.01" ry="96.74" fill="none" stroke="#14140F" stroke-width="1.15"/>
+    <ellipse cx="176.01" cy="145.00" rx="76.01" ry="96.74" fill="none" stroke="#14140F" stroke-width="1.15"/>
+    <ellipse cx="12.00" cy="145.00" rx="88.00" ry="112.00" fill="none" stroke="#14140F" stroke-width="1.15"/>
+    <ellipse cx="188.00" cy="145.00" rx="88.00" ry="112.00" fill="none" stroke="#14140F" stroke-width="1.15"/>
+    <ellipse cx="52.00" cy="145.00" rx="33.5" ry="43" fill="#FFFFFF"/>
+    <ellipse cx="148.00" cy="145.00" rx="33.5" ry="43" fill="#FFFFFF"/>
+    <text x="52.00" y="171.00" text-anchor="middle" font-family="Playfair Display, Georgia, serif" font-weight="500" font-size="76.0" fill="#14140F">V</text>
+    <text x="148.00" y="171.00" text-anchor="middle" font-family="Playfair Display, Georgia, serif" font-weight="500" font-size="76.0" fill="#14140F">F</text>
+</svg>

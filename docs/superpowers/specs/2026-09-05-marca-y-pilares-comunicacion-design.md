@@ -66,8 +66,10 @@ muerte ni enferma el mensaje. El enemigo es "el algún día", no la parca.
 
 ### La frase de la casa
 
-**"Se lee con los ojos y se escucha con su voz."** (Ya impresa en la
-contratapa.) Es el diferenciador contra todo lo que existe en castellano:
+~~**"Se lee con los ojos y se escucha con su voz."**~~ **ELIMINADA el
+2026-09-07 por Joaquín: no se usa más, en ningún lado.** La frase de la casa es
+**"Para las vidas que merecen su propio libro"** — ver `docs/identidad-de-marca.md`.
+(Estaba impresa en la contratapa.) Es el diferenciador contra todo lo que existe en castellano:
 nadie más tiene la voz real.
 
 ## 4. Voz de marca
@@ -117,7 +119,9 @@ https://claude.ai/code/artifact/7082af64-6171-48f1-bf19-09b70f67f4ca
 
 - **De marca** (junto al logo, web, bio): **"En cada familia hay un libro sin escribir."**
 - **De campaña** (reels, ads, post fijado): **"Hay preguntas que un día ya no se pueden hacer."**
-- Frase de producto (no slogan): "se lee con los ojos y se escucha con su voz".
+- ~~Frase de producto: "se lee con los ojos y se escucha con su voz"~~ — **ELIMINADA
+  el 2026-09-07.** No se usa más. La frase de la casa es "Para las vidas que
+  merecen su propio libro".
 - Descartados los descriptivos ("guarda tu historia...", "inmortalizamos vidas...").
 
 ### Logo — "El Campo V·F"
@@ -134,8 +138,12 @@ de una manzana + el toroide como símbolo de "para siempre"):
 - **Versión chica (avatar/favicon, desde ~40px): SOLO EL TOROIDE** — los 7
   anillos sin letras. Elegida contra alternativas con letras porque a 24-40px
   las letras se empastan y los anillos solos se reconocen igual.
-- Otras versiones del manual: positivo (negro sobre blanco), reducido
-  (3 anillos, tamaños intermedios), lockup horizontal, apilado.
+- ~~Otras versiones del manual: positivo, reducido (3 anillos), lockup
+  horizontal, apilado.~~ **CORREGIDO el 2026-09-07 por Joaquín:** el reducido
+  de 3 anillos y el apilado **se eliminan, no se usan nunca**. Queda: Campo
+  completo (en las dos polaridades), toroide solo para tamaños chicos, y lockup
+  horizontal **con el toroide solo**. Regla: o el Campo completo, o el toroide
+  solo; nada intermedio.
 - Archivos: `marca/avatar-ig-vf-negro-1024.png` (principal para IG) y
   `marca/avatar-ig-vf-blanco-1024.png` (alternativa en negativo).
 - El sello-vf-vino/crema de Higgsfield queda de ARCHIVO (ya no es la identidad).

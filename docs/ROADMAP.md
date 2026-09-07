@@ -204,29 +204,56 @@ el CAC es la diferencia entre un negocio y una fuga de plata.
 
 ## FRENTE 3 — Marca y dirección de arte
 
-**Estado real: solo el NOMBRE está acordado.** Todo lo demás se define en la sesión, entre
-los dos socios.
-
-### Orden de la sesión (así, en este orden)
+**Estado: casi cerrado.** Sesión del 2026-09-07 entre los dos socios (cada uno con
+su Claude). Fuentes de verdad:
+`docs/identidad-de-marca.md` (las decisiones y su porqué) ·
+`docs/design.md` (los tokens y reglas para construir) ·
+`marca/Manual-de-marca-Vitacora-Familiar.pdf` (el manual visual) ·
+`marca/*.svg` (el logo en vector).
 
 | # | Qué se define | Quién | Estado |
 |---|---|---|---|
-| 3.1 | **Slogan** | **A** | ☐ |
-| 3.2 | **Logo / monograma V·F** | **A** | ☐ |
-| 3.3 | **Paleta y tipografías** (revisando lo ya implementado en el libro: qué se conserva, qué se cambia) | **A** | ☐ |
-| 3.4 | **Pilares de comunicación** → de ahí salen los ángulos a testear | **A** | ☐ |
-| 3.5 | **Buyer personas** — para imaginar y guionar el contenido | **A** | ☐ |
-| 3.6 | Ornamento propio, sistema de portada y los 4-5 layouts de página del libro | **A** | ☐ |
-| 3.7 | Implementar la dirección ganadora en `fabrica/src/libro/plantilla-html.ts` | **N** | ☐ |
+| 3.1 | **Slogan** — "En cada familia hay un libro sin escribir" + descriptor, gancho de campaña y frase de la casa | **A** | ✅ 07/09 |
+| 3.2 | **Logo / monograma** — "El Campo V·F", toroide de 7 anillos. Vectorizado en `marca/*.svg` | **A** | ✅ 07/09 |
+| 3.3 | **Paleta y tipografías** — negro/blanco + violeta secundario, escala de grises; Playfair + Archivo + Source Serif 4 | **A** | ✅ 07/09 |
+| 3.4 | **Pilares de comunicación** → de ahí salen los ángulos a testear | **A** | ☐ sesión del 08/09 |
+| 3.5 | **Buyer personas** — para imaginar y guionar el contenido | **A** | ☐ sesión del 08/09 |
+| 3.6 | Ornamento propio, sistema de portada y los 4-5 layouts de página del libro | **A** | ☐ sesión del 08/09 |
+| 3.7 | Aplicar la paleta nueva en `fabrica/src/libro/plantilla-html.ts` — **cambios especificados línea por línea en `docs/design.md` §7** | **N** | ☐ |
 | 3.8 | Aplicar la identidad a la web y a las redes | **A** | ☐ |
 
-**Insumos para la sesión (leer antes, no son decisiones tomadas):**
-- `docs/identidad-del-libro-checklist.md` — las dos direcciones candidatas y las refs
-- `docs/superpowers/specs/2026-09-05-marca-y-pilares-comunicacion-design.md` — la propuesta
-  de Naza: pilares, voz de marca, competencia relevada. Es el punto de partida de la sesión.
+### Lo que se resolvió el 07/09
 
-**Bloquea:** el logo (3.2) bloquea el registro de marca en INPI. Los pilares (3.4) y las
-buyer personas (3.5) bloquean todo el contenido del Frente 7.
+- **Slogan:** "En cada familia hay un libro sin escribir." **Descriptor:** "Un
+  biógrafo entrevista y escribe el libro de una vida. La de tu papá, la de tu
+  abuela, la tuya." **Campaña:** "Hay preguntas que un día ya no se pueden hacer."
+  **Frase de la casa:** "Para las vidas que merecen su propio libro".
+- **Eliminada** la frase "Se lee con los ojos y se escucha con su voz" — no se usa
+  más en ningún lado. Queda un borrado pendiente en `fabrica/` (§7 de design.md).
+- **Voz de marca:** castellano neutro de "tú". El voseo vive solo en los ads argentinos.
+- **Logo:** o el Campo completo, o el toroide solo. El reducido de 3 anillos y el
+  apilado quedan eliminados.
+- **Caso de uso nuevo — el auto-narrador:** alguien que se hace el libro de su
+  propia vida. El copy lo abre desde hoy; el producto lo soporta después de los
+  pilotos. **Toca la ruta crítica:** la plantilla `bienvenida` de WhatsApp asume
+  que lo anotó otra persona (`{{2}}="su hija Martina"`).
+- **Corrección de accesibilidad:** el violeta `#5D3FD3` no se lee sobre negro
+  (2.74:1). Se agregó `#8F7BE0` para fondos oscuros.
+
+### El fantasma del costo de cambiar la paleta: no existía
+
+El roadmap advertía que cambiar paleta y tipografías "tiene costo de trabajo" y
+eso pesaba en la decisión. Se fue a medir: **son 5 líneas de código**, todo
+centralizado en variables CSS. Las tipografías del manual son **exactamente** las
+ya implementadas, así que ahí el costo es cero.
+
+Lo que sí es trabajo real: el vino se usaba en **15 lugares** como jerarquía
+visual. Con el acento en negro el diseño se aplana, así que hace falta **una
+pasada de diseño en monocromo** (grosor, tamaño y aire en vez de color) y verla
+impresa antes de darla por buena.
+
+**Bloquea:** el logo (3.2) ya no bloquea nada — **el INPI se puede presentar.**
+Los pilares (3.4) y las buyer personas (3.5) siguen bloqueando el Frente 7.
 
 ---
 
@@ -249,8 +276,17 @@ similitud **fonética**, y en español V y B suenan igual.
 aceptando sistemáticamente el patrón "bitácora + palabra distintiva" (conviven BITÁCORA
 SALUD, BITÁCORA CREATIVA, BITÁCORA PÚBLICA... todas en clase 41).
 
-**Depende del logo (3.2).** Argentina es "primero en registrar", no "primero en usar":
-la fecha de presentación fija la prioridad. **Presentar apenas haya logo.**
+**✅ DESTRABADO el 2026-09-07: el logo ya existe** ("El Campo V·F", en vector en
+`marca/logo-campo-vf-negro.svg`). Argentina es "primero en registrar", no "primero
+en usar": la fecha de presentación fija la prioridad. **Presentar ya.**
+
+Dos datos para el agente de marca:
+- Presentar el logo **también en blanco y negro**, no solo en una versión de color.
+  Registrar una sola combinación cromática limita la protección a esa combinación;
+  en blanco y negro cubre cualquiera. Como la marca es monocroma por definición,
+  sale gratis.
+- El toroide de siete anillos es un elemento figurativo **mucho más distintivo**
+  que el sello de iniciales anterior: marca más fuerte y más fácil de defender.
 
 ---
 
