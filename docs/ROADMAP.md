@@ -10,7 +10,10 @@
 > Fuentes relacionadas: `ESTADO.md` (estado técnico) · `GASTOS.md` (plata) ·
 > `supabase/CONTRATO.md` (contrato de datos) ·
 > `docs/superpowers/specs/2026-09-05-marca-y-pilares-comunicacion-design.md` (marca) ·
-> `docs/identidad-del-libro-checklist.md` (libro) · Notion (contenido, decisiones).
+> `docs/identidad-de-marca.md` (marca: decisiones) · `docs/design.md` (tokens) ·
+> `docs/identidad-del-libro-checklist.md` (libro) ·
+> `docs/flujo-y-monetizacion.md` (flujo del usuario y cobro) ·
+> `docs/brief-landing.md` (landing) · Notion (contenido, decisiones).
 
 ---
 
@@ -219,8 +222,9 @@ su Claude). Fuentes de verdad:
 | 3.4 | **Pilares de comunicación** → de ahí salen los ángulos a testear | **A** | ☐ sesión del 08/09 |
 | 3.5 | **Buyer personas** — para imaginar y guionar el contenido | **A** | ☐ sesión del 08/09 |
 | 3.6 | Ornamento propio, sistema de portada y los 4-5 layouts de página del libro | **A** | ☐ sesión del 08/09 |
-| 3.7 | Aplicar la paleta nueva en `fabrica/src/libro/plantilla-html.ts` — **cambios especificados línea por línea en `docs/design.md` §7** | **N** | ☐ |
-| 3.8 | Aplicar la identidad a la web y a las redes | **A** | ☐ |
+| 3.7 | **Flujo de experiencia del usuario y estrategia de monetización** — ver abajo y `docs/flujo-y-monetizacion.md` | **A** | ☐ |
+| 3.8 | Aplicar la paleta nueva en `fabrica/src/libro/plantilla-html.ts` — **cambios especificados línea por línea en `docs/design.md` §7** | **N** | ☐ |
+| 3.9 | Aplicar la identidad a la web y a las redes | **A** | ☐ |
 
 ### Lo que se resolvió el 07/09
 
@@ -254,6 +258,103 @@ impresa antes de darla por buena.
 
 **Bloquea:** el logo (3.2) ya no bloquea nada — **el INPI se puede presentar.**
 Los pilares (3.4) y las buyer personas (3.5) siguen bloqueando el Frente 7.
+
+---
+
+### 3.7 · Flujo de experiencia y monetización — abierto por Joaquín el 07/09
+
+Va **después de los layouts del libro** en el orden de trabajo. Material completo
+en `docs/flujo-y-monetizacion.md`; acá el resumen y lo que hay que decidir.
+
+**El problema, en una línea: nuestros clientes queman tokens durante 30 días antes
+de poner un peso.** Es el riesgo estructural del modelo. La pregunta a responder es
+una sola: **¿cuál es el momento más temprano en que alguien puede pagar sin romper
+la promesa de "probá gratis"?**
+
+#### Una cuenta, varios familiares
+
+Martina tiene que poder anotar a su papá, a su suegra y a su tía **sin registrarse
+de nuevo cada vez**, y manejar todos los libros desde el mismo panel.
+
+**✅ La base ya lo soporta:** `narradores.familia_id` es una FK y `pedidos` lleva
+`familia_id` **y** `narrador_id` — un pedido por libro. **No hay cambio de esquema,
+no toca `supabase/CONTRATO.md`.**
+
+**⚠️ Pero el tablero descarta todos menos el primero.** Las cuatro páginas hacen
+`narradores[0]` con `.limit(1)`:
+
+    web/src/app/tablero/page.tsx:82,89
+    web/src/app/tablero/saludos/page.tsx:56
+    web/src/app/tablero/nombres/page.tsx:62
+    web/src/app/tablero/descarga/page.tsx:47
+
+Si alguien anota a un segundo familiar, **ese narrador no aparece en ningún lado y
+no salta ningún error.** Hoy se arregla con un selector; con clientes encima son
+cuatro páginas, rutas y estados a la vez.
+
+**Y no es solo un arreglo: el segundo libro es la venta más barata que vamos a
+tener.** Sin costo de adquisición, ya confía, ya vio el resultado.
+
+#### Los momentos donde se puede pedir plata
+
+| Momento | Gastado hasta ahí |
+|---|---|
+| **A** · al registrar, antes de que el abuelo acepte | ~USD 0 |
+| **B** · cuando el narrador dice que sí | ~USD 0.10 |
+| **C** · con el primer audio (día 2-3) | ~USD 0.30 |
+| **D** · al terminar las 30 respuestas *(diseño actual)* | ~USD 3-4 |
+| **E** · upsells después de comprar | — |
+
+**La opción C merece atención.** El diseño actual asume que el pico emocional es el
+día 30. Probablemente no lo sea: el pico es **la primera vez que ella escucha a su
+papá contando algo que no sabía**, que pasa el día 2 o 3, cuando llevamos gastados
+30 centavos. A esa altura ya tiene la prueba completa de que el producto funciona.
+Cobrar ahí es **diez veces más barato que en el día 30**. Requiere que la
+previsualización valga sola a esa altura — y el preview ya existe: es correrlo
+antes, no construirlo.
+
+#### Los upsells
+
+Cuadro con **NFC** (acercás el celular al marco y escuchás el audiolibro),
+**impresión física**, **impresión a color**, **más fotos**, **elegir la estética
+del libro**, y **mensajes de la familia sobre él** (distinto de los saludos: los
+saludos son *para* él, esto es *sobre* él — y cada familiar que escribe es alguien
+más que va a querer el libro).
+
+**El upsell no es un extra: es lo que hace viable la pauta.** De los escenarios ya
+calculados en `GASTOS.md`, por cada 100 registros traídos por ads:
+
+| Compran de 100 | Solo digital 49€ | Con escalón impreso 99€ |
+|---|---|---|
+| 10 | **−230€ (pérdida)** | −80€ |
+| 20 | +260€ | **+660€** |
+| 30 | +670€ | **+1.300€** |
+
+⚠️ **"Elegir la estética del libro" choca con la marca:** la paleta se cerró en
+blanco y negro, sin colores de tapa. Si ese upsell se vende, hay que reabrir esa
+decisión a propósito, no de rebote.
+
+#### La tensión a resolver a propósito
+
+`GASTOS.md` tiene una **regla acordada el 05/09: no tocar el modelo hasta tener los
+datos de los 3 pilotos** — y la duda que la originó (Naza) es exactamente esta.
+
+**La salida no es romper el acuerdo ni esperar de brazos cruzados:**
+
+1. **Diseñar el flujo completo ahora** (momentos de venta, pantallas, upsells,
+   panel multi-narrador). Hay que construirlo igual y no compromete ninguna decisión.
+2. **Dejar configurable CUÁNDO se cobra**, como ya lo es el precio por región: que
+   mover el cobro del día 30 al día 3 sea cambiar un valor, no reescribir el producto.
+3. **Decidir el cuándo con los datos de los pilotos**, como estaba acordado.
+
+#### Qué se decide en la sesión
+
+1. ¿Se arregla ahora el `limit(1)` del tablero o después de los pilotos?
+2. ¿Cuál es el momento de cobro por defecto: A, B, C o D?
+3. ¿Se construye la previsualización temprana que haría posible la opción C?
+4. ¿Cuáles de los seis upsells entran en la v1?
+5. ¿Se reabre la estética elegible del libro, que la paleta cerró?
+6. ¿Cómo se ordena el registro para que anotar a un segundo familiar sea obvio?
 
 ---
 
@@ -427,4 +528,6 @@ queda para después del lanzamiento.
 - ¿Naza puede abrir Stripe como autónomo español? (**destraba España a 49€**) — confirmar
 - ¿Quién es el narrador argentino del piloto?
 - Sesión de textos y de branding: fecha
+- **¿Cuál es el momento de cobro por defecto?** (3.7 — decide si el modelo cierra)
+- **¿Se arregla el `limit(1)` del tablero antes de los pilotos?** (3.7)
 - ¿El merchant of record paga a Argentina? (plan B para España)
