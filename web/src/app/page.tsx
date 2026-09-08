@@ -101,7 +101,7 @@ function BotonEmpezar({ oscuro = false }: { oscuro?: boolean }) {
   return (
     <Link
       href="/entrar"
-      className={`inline-flex h-13 items-center justify-center rounded-md px-8 text-base font-medium transition-colors [font-family:var(--fuente-micro)] ${
+      className={`inline-flex h-13 items-center justify-center rounded-full px-8 text-base font-medium transition-colors [font-family:var(--fuente-micro)] ${
         oscuro
           ? "bg-[#8F7BE0] text-[#14140F] hover:bg-[#A296E6]"
           : "bg-[#5D3FD3] text-white hover:bg-[#4F35BC]"
@@ -199,7 +199,7 @@ export default function Home() {
           </h1>
           <p className="max-w-xl text-lg leading-relaxed text-[#D4D4CE] [font-family:var(--fuente-cuerpo)] font-light sm:text-xl">
             Un biógrafo entrevista y escribe el libro de una vida. La de tu
-            papá, la de tu abuela, la tuya.
+            papá, la de tu abuela, <strong className="font-normal text-white">la tuya</strong>.
           </p>
           <BotonEmpezar oscuro />
           <MaterialPendiente
@@ -339,7 +339,7 @@ export default function Home() {
             <Aparece>
               <Link
                 href="/entrar"
-                className="inline-flex h-13 items-center justify-center rounded-md bg-[#8F7BE0] px-8 text-base font-medium text-[#14140F] transition-colors hover:bg-[#A296E6] [font-family:var(--fuente-micro)]"
+                className="inline-flex h-13 items-center justify-center rounded-full bg-[#8F7BE0] px-8 text-base font-medium text-[#14140F] transition-colors hover:bg-[#A296E6] [font-family:var(--fuente-micro)]"
               >
                 Empezar gratis
               </Link>
