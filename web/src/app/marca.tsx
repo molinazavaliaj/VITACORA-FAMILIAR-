@@ -34,8 +34,11 @@ function Anillos({ grosor }: { grosor: number }) {
  */
 export function CampoVF({ halo, className }: { halo: string; className?: string }) {
   return (
+    // OJO: los SVG de marca/ traen viewBox "0 0 200 290", que recorta los
+    // anillos exteriores por los costados (el dibujo real mide ~352 de ancho:
+    // cx 12 ± rx 88). Acá va el marco corregido, completo.
     <svg
-      viewBox="0 0 200 290"
+      viewBox="-78 8 356 278"
       className={className}
       role="img"
       aria-label="Vitácora Familiar"
@@ -55,7 +58,7 @@ export function CampoVF({ halo, className }: { halo: string; className?: string 
 /** El toroide solo, para tamaños chicos (mínimo 24px). */
 export function Toroide({ className }: { className?: string }) {
   return (
-    <svg viewBox="8 29 184 232" className={className} role="img" aria-label="Vitácora Familiar">
+    <svg viewBox="-78 31 356 228" className={className} role="img" aria-label="Vitácora Familiar">
       <Anillos grosor={1.35} />
     </svg>
   );
