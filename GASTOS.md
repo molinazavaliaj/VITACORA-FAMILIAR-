@@ -8,6 +8,7 @@
 | 2026-09-05 | Dominio vitacorafamiliar (registro año 1) | 15€ | Naza | Recurrente (anual) |
 | 2026-09-05 | Recarga crédito API Anthropic (pre-pilotos) | 20€ | Naza | Consumible |
 | ~2026-09-03 | Créditos API Anthropic + OpenAI del entrevistador (montos a confirmar por Joaquín) | ~USD 10-20 | Joaquín | Consumible |
+| 2026-09-08 | Prueba dirigida del cerebro contra el set dorado (`npm run prueba-cerebro`) | ~USD 1 | Joaquín | Consumible |
 | — | Vercel, Supabase, Resend, GitHub | USD 0 | — | Gratis (planes free) |
 
 **Total puesto hasta hoy: ~USD 20 + 35€ (Naza) + ~USD 10-20 (Joaquín)** + USD 5/mes de Railway.
@@ -23,6 +24,14 @@
 - "Matrícula" de aprendizaje: reintentos que re-pagaban capítulos antes del fix de
   borradores ≈ USD 4 (ya no puede volver a pasar).
 - **Saldo actual: ~USD 1.50 → recargar USD 10-20 antes de los pilotos.**
+
+## Qué se consumió de la key de Joaquín (entrevistador)
+
+- Prueba dirigida del cerebro del 2026-09-08 ≈ **USD 1**: reconocimientos, evaluación
+  de respuestas, las 4 adaptativas y la pregunta de reemplazo, corridas contra las 30
+  respuestas reales del set dorado. Encontró el bug del día 26 (ver `ESTADO.md`).
+  Es repetible con `npm run prueba-cerebro` y se puede correr por secciones (A/B/C/D)
+  para gastar menos.
 
 ## Costo unitario por cliente (dato de negocio — acordado 2026-09-05)
 

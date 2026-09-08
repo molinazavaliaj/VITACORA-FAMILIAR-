@@ -396,16 +396,41 @@ Dos datos para el agente de marca:
 | # | Tarea | Quién | Estado |
 |---|---|---|---|
 | 5.1 | Recargar USD 20 de crédito Anthropic (quedan ~USD 3) | **J** | ☐ |
-| 5.2 | Construir el arnés que simula WhatsApp y correr un narrador completo | **J** | ☐ |
+| 5.2 | ~~Arnés completo que simula WhatsApp~~ → **reemplazado por la prueba dirigida del cerebro** (ver abajo) | **J** | ✅ 08/09 |
 | 5.3 | Generar el libro de ese narrador con la fábrica | **N** | ☐ |
 | 5.4 | Leerlo entre los dos y ajustar prompts si hace falta | **A** | ☐ |
 
-**Qué prueba (nivel 1, respuestas de texto):** las 26 preguntas fijas, los reconocimientos
-del cerebro, las repreguntas, las 4 adaptativas, el cierre, y el libro final.
-**Qué no prueba todavía:** la transcripción con Whisper (nivel 2, necesita saldo de OpenAI).
+### Por qué cambió el plan (08/09)
 
-Es la única forma de ver la calidad completa **antes** de exponerla a un abuelo real, y
-antes de gastar un peso en publicidad.
+El arnés completo iba a simular los 30 intercambios pasando por webhook, scheduler y
+`procesarEntrante`. Esa cañería **ya la cubren los tests unitarios**; lo que nunca había
+corrido de verdad eran las funciones de IA que conversan con el narrador. Y el material
+para probarlas ya existía: las **30 respuestas reales del set dorado de Osvaldo**.
+
+Así que en vez de simular la conversación, se le dieron esas transcripciones directo al
+cerebro. **USD 1 y 20 minutos**, contra USD 3-5 y un par de horas del arnés completo.
+
+### Qué se probó y qué salió (`entrevistador/scripts/prueba-cerebro.ts`)
+
+| Bloque | Resultado |
+|---|---|
+| **A** · Reconocimientos (la apertura diaria) | ✅ Enganchan detalles concretos y recuerdan cosas de 10 días atrás |
+| **B** · Evaluación y repreguntas | ✅ 3 de 3, incluido el caso difícil: respuesta larga a la que le faltaba la parte más valiosa |
+| **C** · Las 4 adaptativas (27-30) | ❌ **Bug encontrado** → arreglado |
+| **D** · Pregunta de reemplazo | ⚠️ Funciona, pero no sabe qué preguntas fijas quedan por delante (deuda menor) |
+
+**El bug (`fix 6eeb3cf`):** con `max_tokens: 2000` el modelo devolvía el JSON de las
+adaptativas cortado a la mitad. `JSON.parse` explotaba, `trasResponder` se cortaba, y
+**el narrador respondía la 26 y nunca recibía la 27** — sin error visible ni reintento,
+después de 26 días de entrevistas. Arreglado con más tokens, prompt con límite de largo
+(las preguntas salían de 70-90 palabras, ilegibles en el celular), parser tolerante con
+un reintento, y una red de seguridad que las regenera si igual faltan. 5 tests nuevos.
+
+**Qué sigue sin probarse:** Whisper y TTS (falta saldo de OpenAI, ~USD 5) y WhatsApp de
+punta a punta (falta la cuenta de Meta). Nada de eso lo destraba esta prueba.
+
+**Corrió con el prompt real de producción**, no con una copia: el script importa
+`PROMPT_ADAPTATIVAS` y `parsearCuatro` del módulo. Si el prompt cambia, la prueba cambia.
 
 ---
 
@@ -482,7 +507,7 @@ queda para después del lanzamiento.
 
 | Semana | Foco | Hitos |
 |---|---|---|
-| **1** · 5-11 sep | Cimientos | Dominio vivo · legales · Página creada · **arnés corrido** · sesión de marca |
+| **1** · 5-11 sep | Cimientos | Dominio vivo · legales · Página creada · ✅ **prueba del cerebro corrida (08/09)** · sesión de marca |
 | **2** · 12-18 sep | Destrabar | **WhatsApp vivo (12)** · pilotos arrancan · logo listo · INPI presentado |
 | **3** · 19-25 sep | Ejecutar | Pilotos respondiendo · marca aplicada a web y libro · contenido publicándose |
 | **4** · 26 sep-1 oct | Cerrar | **Libro real terminado** · checkout andando · lanzamiento suave |
@@ -495,7 +520,7 @@ queda para después del lanzamiento.
 |---|---|
 | **Meta vuelve a bloquear** | Naza opera con cuenta con historial · vía rápida con portfolio existente · plan C: BSP tipo 360dialog |
 | **El piloto no termina las 30 respuestas** | Dos pilotos en paralelo · modo rápido · son familia, se los puede empujar por teléfono |
-| **La calidad del libro no emociona** | El arnés esta semana nos lo dice antes de gastar en publicidad |
+| **La calidad del libro no emociona** | ✅ Probado el 08/09: el libro (set dorado) y la entrevista (prueba dirigida) dan la talla |
 | **No poder cobrarle a España** | Argentina primero · merchant of record a evaluar después |
 
 ---
