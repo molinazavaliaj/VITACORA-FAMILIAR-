@@ -313,8 +313,11 @@ export default function Home() {
           </Aparece>
         </section>
 
+        {/* Oscurece de a poco hacia el cierre emocional */}
+        <div className="h-[38vh] bg-gradient-to-b from-white to-[#14140F]" aria-hidden />
+
         {/* 6 · El cierre emocional */}
-        <section className="bg-[#14140F] py-28 text-white sm:py-36">
+        <section className="bg-[#14140F] pb-28 pt-10 text-white sm:pb-36 sm:pt-14">
           <div className="mx-auto flex w-full max-w-3xl flex-col items-center gap-8 px-6 text-center">
             <Aparece>
               <Etiqueta clara>El último día</Etiqueta>
@@ -344,8 +347,11 @@ export default function Home() {
           </div>
         </section>
 
+        {/* Vuelve la luz, de a poco */}
+        <div className="h-[38vh] bg-gradient-to-b from-[#14140F] to-[#F7F7F5]" aria-hidden />
+
         {/* Testimonios — PLACEHOLDER: ocultar u obtener las 5 reseñas reales antes de publicar */}
-        <section className="border-t border-[#EBEBE7] bg-[#F7F7F5] py-24 sm:py-28">
+        <section className="bg-[#F7F7F5] pb-24 pt-6 sm:pb-28">
           <div className="mx-auto w-full max-w-4xl px-6">
             <Aparece>
               <Etiqueta>Familias que ya lo hicieron</Etiqueta>
@@ -448,14 +454,17 @@ export default function Home() {
         </section>
       </main>
 
-      <footer className="border-t border-[#EBEBE7] py-14">
+      {/* La página termina como empezó: fundiéndose al negro */}
+      <div className="h-[38vh] bg-gradient-to-b from-[#F7F7F5] to-[#14140F]" aria-hidden />
+
+      <footer className="bg-[#14140F] pb-16 pt-4 text-white">
         <div className="mx-auto flex w-full max-w-3xl flex-col items-center gap-5 px-6 text-center">
-          <Toroide className="h-8 w-auto text-[#14140F]" />
+          <Toroide className="h-8 w-auto text-white" />
           <p className="text-[15px] italic [font-family:var(--fuente-titulo)]">
             Para las vidas que merecen su propio libro
           </p>
-          <div className="flex items-center gap-6 text-[12px] text-[#5F5F55] [font-family:var(--fuente-micro)]">
-            <Link href="/legal/privacidad" className="transition-colors hover:text-[#14140F]">
+          <div className="flex items-center gap-6 text-[12px] text-[#AEAEA6] [font-family:var(--fuente-micro)]">
+            <Link href="/legal/privacidad" className="transition-colors hover:text-white">
               Política de privacidad
             </Link>
             <span aria-hidden>·</span>
