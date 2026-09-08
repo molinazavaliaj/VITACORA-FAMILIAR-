@@ -96,11 +96,16 @@ const TESTIMONIOS_DE_RELLENO = [
   "[Reseña real pendiente — una frase.]",
 ] as const;
 
-function BotonEmpezar() {
+function BotonEmpezar({ oscuro = false }: { oscuro?: boolean }) {
+  // El par del violeta (design.md): #5D3FD3 sobre claro, #8F7BE0 sobre oscuro.
   return (
     <Link
       href="/entrar"
-      className="inline-flex h-13 items-center justify-center rounded-md bg-[#5D3FD3] px-8 text-base font-medium text-white transition-colors hover:bg-[#4F35BC] [font-family:var(--fuente-micro)]"
+      className={`inline-flex h-13 items-center justify-center rounded-md px-8 text-base font-medium transition-colors [font-family:var(--fuente-micro)] ${
+        oscuro
+          ? "bg-[#8F7BE0] text-[#14140F] hover:bg-[#A296E6]"
+          : "bg-[#5D3FD3] text-white hover:bg-[#4F35BC]"
+      }`}
     >
       Empezar gratis
     </Link>
@@ -120,12 +125,24 @@ function Etiqueta({ children, clara = false }: { children: string; clara?: boole
 // Espacio reservado para un material real que todavía no está (fotos del libro
 // de Osvaldo, captura de WhatsApp, fragmento del audiolibro). Visible como
 // pendiente a propósito: la landing no se publica con estos bloques.
-function MaterialPendiente({ etiqueta, className = "" }: { etiqueta: string; className?: string }) {
+function MaterialPendiente({
+  etiqueta,
+  className = "",
+  oscuro = false,
+}: {
+  etiqueta: string;
+  className?: string;
+  oscuro?: boolean;
+}) {
   return (
     <div
-      className={`flex items-center justify-center border border-dashed border-[#AEAEA6] bg-[#F7F7F5] p-6 text-center ${className}`}
+      className={`flex items-center justify-center border border-dashed p-6 text-center ${
+        oscuro ? "border-[#45453C] bg-[#1C1C16]" : "border-[#AEAEA6] bg-[#F7F7F5]"
+      } ${className}`}
     >
-      <p className="text-[10px] uppercase leading-relaxed text-[#5F5F55] [font-family:var(--fuente-micro)] [letter-spacing:0.24em]">
+      <p
+        className={`text-[10px] uppercase leading-relaxed [font-family:var(--fuente-micro)] [letter-spacing:0.24em] ${oscuro ? "text-[#AEAEA6]" : "text-[#5F5F55]"}`}
+      >
         {etiqueta}
       </p>
     </div>
@@ -156,42 +173,49 @@ export default function Home() {
           .aparece { animation: none; }
         }
       `}</style>
-      {/* Encabezado mínimo */}
-      <header className="mx-auto flex w-full max-w-5xl items-center justify-between px-6 pt-8">
-        <div className="flex items-center gap-3">
-          <Toroide className="h-7 w-auto text-[#14140F]" />
-          <span className="text-[11px] uppercase [font-family:var(--fuente-micro)] [letter-spacing:0.3em]">
-            Vitácora Familiar
-          </span>
-        </div>
-        <Link
-          href="/entrar"
-          className="text-sm text-[#45453C] underline decoration-[#AEAEA6] underline-offset-4 transition-colors hover:text-[#14140F] [font-family:var(--fuente-micro)]"
-        >
-          Entrar
-        </Link>
-      </header>
+      {/* Apertura en negro: el campo abre la página y la luz llega bajando */}
+      <div className="bg-[#14140F] text-white">
+        {/* Encabezado mínimo */}
+        <header className="mx-auto flex w-full max-w-5xl items-center justify-between px-6 pt-8">
+          <div className="flex items-center gap-3">
+            <Toroide className="h-7 w-auto text-white" />
+            <span className="text-[11px] uppercase [font-family:var(--fuente-micro)] [letter-spacing:0.3em]">
+              Vitácora Familiar
+            </span>
+          </div>
+          <Link
+            href="/entrar"
+            className="text-sm text-[#D4D4CE] underline decoration-[#5F5F55] underline-offset-4 transition-colors hover:text-white [font-family:var(--fuente-micro)]"
+          >
+            Entrar
+          </Link>
+        </header>
 
-      <main className="flex flex-1 flex-col">
         {/* 1 · Hero */}
-        <section className="mx-auto flex w-full max-w-3xl flex-col items-center gap-8 px-6 pb-24 pt-20 text-center sm:pb-32 sm:pt-24">
-          <CampoVF halo="#FFFFFF" className="h-[150px] w-auto text-[#14140F]" />
+        <section className="mx-auto flex w-full max-w-3xl flex-col items-center gap-8 px-6 pb-10 pt-20 text-center sm:pt-24">
+          <CampoVF halo="#14140F" className="h-[150px] w-auto text-white" />
           <h1 className="text-4xl leading-[1.12] [font-family:var(--fuente-titulo)] font-medium [letter-spacing:-0.02em] sm:text-6xl sm:leading-[1.08]">
             En cada familia hay un libro sin escribir.
           </h1>
-          <p className="max-w-xl text-lg leading-relaxed text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light sm:text-xl">
+          <p className="max-w-xl text-lg leading-relaxed text-[#D4D4CE] [font-family:var(--fuente-cuerpo)] font-light sm:text-xl">
             Un biógrafo entrevista y escribe el libro de una vida. La de tu
             papá, la de tu abuela, la tuya.
           </p>
-          <BotonEmpezar />
+          <BotonEmpezar oscuro />
           <MaterialPendiente
+            oscuro
             etiqueta="Foto real del libro de Osvaldo — pendiente, con su permiso"
             className="mt-6 h-64 w-full max-w-xl"
           />
         </section>
 
+        {/* La página se aclara de a poco: del negro del campo al papel */}
+        <div className="h-[38vh] bg-gradient-to-b from-[#14140F] to-[#F7F7F5]" aria-hidden />
+      </div>
+
+      <main className="flex flex-1 flex-col">
         {/* 2 · Cómo funciona — va segundo a propósito (brief §4) */}
-        <section className="border-t border-[#EBEBE7] bg-[#F7F7F5] py-24 sm:py-28">
+        <section className="bg-[#F7F7F5] pb-24 pt-4 sm:pb-28">
           <div className="mx-auto w-full max-w-4xl px-6">
             <Aparece>
               <Etiqueta>Cómo funciona</Etiqueta>
