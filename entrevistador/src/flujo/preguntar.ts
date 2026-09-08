@@ -3,6 +3,7 @@ import { enviarPlantilla, enviarTexto, enviarAudioPorLink } from '../whatsapp/en
 import { generarReconocimiento, generarPreguntaReemplazo } from '../ia/cerebro.js';
 import { generarAudioVoz } from '../ia/voz.js';
 import { armarHistoria, ultimaTranscripcion } from '../db/historia.js';
+import { generarPreguntasAdaptativas, PRIMERA_ADAPTATIVA, ULTIMA_ADAPTATIVA } from '../ia/adaptativas.js';
 
 export type Narrador = {
   id: string;
@@ -77,7 +78,14 @@ async function enviarVozDeLaPregunta(n: Narrador, orden: number, contenido: stri
 export async function enviarPregunta(
   n: Narrador, orden: number, { plantilla }: { plantilla: boolean },
 ): Promise<boolean> {
-  const pregunta = await preguntaDeOrden(n.id, orden);
+  let pregunta = await preguntaDeOrden(n.id, orden);
+  // Red de seguridad: las 27-30 se generan el día 26. Si esa generación falló
+  // (el modelo devolvió algo raro, se cayó la API), el narrador quedaría clavado
+  // para siempre después de 26 días de entrevistas. Reintentamos acá.
+  if (!pregunta && orden >= PRIMERA_ADAPTATIVA && orden <= ULTIMA_ADAPTATIVA) {
+    await generarPreguntasAdaptativas(n.id);
+    pregunta = await preguntaDeOrden(n.id, orden);
+  }
   if (!pregunta) return false; // no hay más preguntas: el cierre lo maneja procesar
 
   let texto = pregunta.texto;

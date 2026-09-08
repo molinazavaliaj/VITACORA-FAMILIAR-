@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
+  generarPreguntasAdaptativas: vi.fn(),
   enviarPlantilla: vi.fn(),
   enviarAudioPorLink: vi.fn(),
   generarReconocimiento: vi.fn(),
@@ -74,6 +75,10 @@ vi.mock('../src/ia/cerebro.js', () => ({
   evaluarRespuesta: vi.fn(), detectarIntencion: vi.fn(),
 }));
 vi.mock('../src/ia/voz.js', () => ({ generarAudioVoz: mocks.generarAudioVoz, VOZ: 'nova' }));
+vi.mock('../src/ia/adaptativas.js', () => ({
+  generarPreguntasAdaptativas: mocks.generarPreguntasAdaptativas,
+  PRIMERA_ADAPTATIVA: 27, ULTIMA_ADAPTATIVA: 30,
+}));
 vi.mock('../src/db/historia.js', () => ({
   armarHistoria: mocks.armarHistoria, ultimaTranscripcion: mocks.ultimaTranscripcion, traerRespuestas: vi.fn(),
 }));
@@ -178,5 +183,20 @@ describe('tick', () => {
     const alerta = mocks.capturas.filter((c) => c.op === 'update' && c.tabla === 'narradores')
       .find((c) => c.p.alerta_silencio === true);
     expect(alerta).toBeTruthy();
+  });
+
+  it('(f) si faltan las adaptativas, las regenera en vez de dejarlo clavado en el día 26', async () => {
+    mocks.filas.narradores = [narrador({ estado: 'activo', dia_actual: 26 })];
+    mocks.filas.respuestas = [{ pregunta_orden: 26 }]; // ya respondió la 26 → toca la 27
+    mocks.filas.preguntas = [];                        // pero las 27-30 no se generaron
+    // Al regenerarlas aparecen en la base: el envío tiene que salir igual.
+    mocks.generarPreguntasAdaptativas.mockImplementation(async () => {
+      mocks.filas.preguntas = [{ texto: 'PREGUNTA_27', capitulo: 'Las raíces', narrador_id: 'n1' }];
+    });
+    await tick(A_LAS_10_05);
+    expect(mocks.generarPreguntasAdaptativas).toHaveBeenCalledWith('n1');
+    expect(mocks.enviarPlantilla).toHaveBeenCalledWith(
+      '+5491155551234', 'pregunta_diaria', [expect.any(String), 'PREGUNTA_27'],
+    );
   });
 });

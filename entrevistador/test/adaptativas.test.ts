@@ -76,4 +76,31 @@ describe('generarPreguntasAdaptativas', () => {
     expect(mocks.crear).not.toHaveBeenCalled();
     expect(mocks.capturas).toHaveLength(0);
   });
+
+  it('reintenta si el modelo devuelve el JSON cortado (era el bug del día 26)', async () => {
+    mocks.crear
+      .mockResolvedValueOnce({ content: [{ type: 'text', text: CUATRO.slice(0, 180) }] }) // cortado
+      .mockResolvedValueOnce({ content: [{ type: 'text', text: CUATRO }] });
+    await generarPreguntasAdaptativas('n1');
+    expect(mocks.crear).toHaveBeenCalledTimes(2);
+    expect(mocks.capturas.find((c) => c.tabla === 'preguntas').p).toHaveLength(4);
+  });
+
+  it('pide 4000 tokens: con 2000 el JSON no entraba', async () => {
+    mocks.crear.mockResolvedValueOnce({ content: [{ type: 'text', text: CUATRO }] });
+    await generarPreguntasAdaptativas('n1');
+    expect(mocks.crear.mock.calls[0][0].max_tokens).toBe(4000);
+  });
+
+  it('tolera que venga envuelto en ```json', async () => {
+    mocks.crear.mockResolvedValueOnce({ content: [{ type: 'text', text: '```json\n' + CUATRO + '\n```' }] });
+    await generarPreguntasAdaptativas('n1');
+    expect(mocks.capturas.find((c) => c.tabla === 'preguntas').p).toHaveLength(4);
+  });
+
+  it('si los dos intentos fallan, avisa con un error claro (no guarda nada a medias)', async () => {
+    mocks.crear.mockResolvedValue({ content: [{ type: 'text', text: 'no soy JSON' }] });
+    await expect(generarPreguntasAdaptativas('n1')).rejects.toThrow(/No pude generar/);
+    expect(mocks.capturas).toHaveLength(0);
+  });
 });

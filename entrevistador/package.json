@@ -7,7 +7,8 @@
     "dev": "tsx watch src/servidor.ts",
     "build": "tsc",
     "start": "node dist/servidor.js",
-    "test": "vitest run"
+    "test": "vitest run",
+    "prueba-cerebro": "tsx scripts/prueba-cerebro.ts"
   },
   "keywords": [],
   "author": "",
