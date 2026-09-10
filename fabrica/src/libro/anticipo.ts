@@ -1,7 +1,13 @@
 import { chromium } from 'playwright';
 import { obtenerClienteDb, type Narrador, type Pregunta, type Respuesta } from '../db.js';
 import { escribirParrafoAnticipo } from './parrafo-anticipo.js';
-import { armarMaterial, capituloMarkdownAHtml, escaparHtml, recortarMuestraDeAudio } from './comun.js';
+import {
+  armarMaterial,
+  capituloMarkdownAHtml,
+  escaparHtml,
+  recortarMuestraDeAudio,
+  subirTexto,
+} from './comun.js';
 
 /**
  * El anticipo: lo que ve la familia a la tercera respuesta, antes de decidir
@@ -15,6 +21,18 @@ import { armarMaterial, capituloMarkdownAHtml, escaparHtml, recortarMuestraDeAud
  */
 const RUTA_ANTICIPO_PDF = (narradorId: string) => `${narradorId}/paquete/anticipo.pdf`;
 const RUTA_ANTICIPO_MUESTRA = (narradorId: string) => `${narradorId}/paquete/anticipo_muestra.mp3`;
+const RUTA_ANTICIPO_JSON = (narradorId: string) => `${narradorId}/paquete/anticipo.json`;
+
+/**
+ * Lo mismo que muestra el PDF, en datos, para que la web lo pinte como página
+ * de verdad en vez de incrustar un PDF. Es la pantalla donde se decide la
+ * compra: tiene que leerse bien en un teléfono, y un PDF embebido no se lee.
+ */
+export type DatosAnticipo = {
+  nombre: string;
+  capitulos: string[];
+  parrafo: string;
+};
 
 /**
  * El índice que se le muestra a la familia: los capítulos del libro, que ya
@@ -138,12 +156,18 @@ export async function generarAnticipo(narradorId: string): Promise<void> {
 
   const parrafo = await escribirParrafoAnticipo(narrador, material);
 
-  const html = construirHtmlAnticipo({
+  const datos: DatosAnticipo = {
     nombre: narrador.nombre,
     capitulos: indiceTentativo(preguntas),
     parrafo,
-  });
+  };
 
+  const html = construirHtmlAnticipo(datos);
+
+  // El orden es el de siempre: lo caro primero, el candado último. El JSON va
+  // antes que el PDF porque es lo que lee la web — si el PDF existiera sin el
+  // JSON, el link del mail abriría una página vacía.
+  await subirTexto(db, RUTA_ANTICIPO_JSON(narradorId), JSON.stringify(datos, null, 2));
   await recortarMuestraDeAudio(db, respuestasList, RUTA_ANTICIPO_MUESTRA(narradorId));
   await generarPdf(db, narradorId, html);
 }

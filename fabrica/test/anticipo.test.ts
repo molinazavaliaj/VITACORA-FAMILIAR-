@@ -136,6 +136,33 @@ describe('generarAnticipo', () => {
     expect(rutasSubidas).toContain('n1/paquete/anticipo.pdf');
   });
 
+  it('deja los datos en anticipo.json para que la web los pinte como pagina', async () => {
+    const db = construirDbFake({});
+    (obtenerClienteDb as unknown as ReturnType<typeof vi.fn>).mockReturnValue(db);
+
+    await generarAnticipo('n1');
+
+    const subidaJson = db.upload.mock.calls.find((c) => c[0] === 'n1/paquete/anticipo.json');
+    expect(subidaJson).toBeDefined();
+    expect(JSON.parse(subidaJson![1] as string)).toEqual({
+      nombre: 'Osvaldo Benitez',
+      capitulos: ['Los primeros anios', 'La infancia', 'El oficio'],
+      parrafo: 'Naci en Rosario, en una casa chiquita de barrio.',
+    });
+  });
+
+  it('sube el JSON antes que el PDF: sin datos, el link del mail abre una pagina vacia', async () => {
+    const db = construirDbFake({});
+    (obtenerClienteDb as unknown as ReturnType<typeof vi.fn>).mockReturnValue(db);
+
+    await generarAnticipo('n1');
+
+    const rutas = db.upload.mock.calls.map((c) => c[0]);
+    expect(rutas.indexOf('n1/paquete/anticipo.json')).toBeLessThan(
+      rutas.indexOf('n1/paquete/anticipo.pdf')
+    );
+  });
+
   it('sube el audio ANTES que el PDF: el PDF es el candado y tiene que ir ultimo', async () => {
     const db = construirDbFake({});
     (obtenerClienteDb as unknown as ReturnType<typeof vi.fn>).mockReturnValue(db);
