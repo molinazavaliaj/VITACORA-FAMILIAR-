@@ -16,24 +16,29 @@
 **Vitácora Familiar** entrevista por WhatsApp a una persona mayor durante 30 días
 y le entrega a su familia **el libro de su vida + el audiolibro con su propia voz**.
 
+> ⚠️ **Actualizado el 2026-09-10.** Cambió el modelo de cobro, salieron los
+> saludos y entró el ángulo de Navidad. Las personas y los pilares viven ahora en
+> `docs/identidad-de-marca.md` §7 y §8; el flujo de cobro, en
+> `docs/flujo-y-monetizacion.md`.
+
 Cómo funciona de verdad:
 
-1. La hija entra a la web y **anota a su papá**: nombre, WhatsApp, hora preferida
-   y 3-4 datos de contexto. **Gratis.**
-2. Él recibe un mensaje de WhatsApp que le explica quién lo anotó y le pide
-   permiso. Sin su "sí", no arranca nada.
-3. Cada mañana, a su hora, le llega **una pregunta**. Él contesta **con un audio
-   de WhatsApp**, como hace todos los días. Nada que instalar, nada que aprender.
-4. Mientras tanto, ella ve el progreso en su tablero, escucha los audios a medida
-   que llegan, y junta los saludos grabados del resto de la familia con un link.
-5. Al terminar, él recibe por WhatsApp los saludos de todos —grabó 30 días para su
-   familia sin saber que su familia grababa para él— y ella recibe la
-   previsualización del libro.
-6. **Recién ahí se paga**, y se descarga el libro (PDF listo para imprimir) y el
-   audiolibro.
+1. Martina entra a la web, **anota a su abuelo** (nombre, WhatsApp, hora
+   preferida, contexto) y **deja la tarjeta**. Empieza la **prueba gratis**.
+2. Él recibe un WhatsApp que le explica quién lo anotó y le pide permiso. Sin su
+   "sí", no arranca nada.
+3. Cada mañana le llega **una pregunta**. Contesta **con un audio de WhatsApp**,
+   como hace todos los días. Nada que instalar, nada que aprender.
+4. Ella ve **la previsualización del libro creciendo** mientras él responde.
+5. **Al terminar el capítulo 1** (unas 3 preguntas, unos 3 días) **termina la
+   prueba y se cobra.** Ahí ya vio páginas reales escritas con la voz de su abuelo.
+6. Siguen los 30 días. Al final se entrega **el libro**: PDF + audiolibro con su
+   voz real.
+7. **Upsells:** libro impreso (B/N o color, con QR en la contratapa) y **marcos
+   con NFC** para repartir en la familia.
 
-**Modelo:** freemium puro. Grabar los 30 días es gratis. Se cobra al final, con la
-emoción en su punto más alto. Pago único.
+**Modelo:** prueba gratis con tarjeta el día cero, cobro al terminar el capítulo 1.
+Pago único de la base + upsells.
 
 **Precio:** ~ARS 65.000 (Argentina). España queda diferida hasta resolver el cobro.
 
@@ -41,18 +46,22 @@ emoción en su punto más alto. Pago único.
 
 ## 2. El objetivo de la landing — leer esto antes de escribir una línea
 
-**La landing NO vende el libro. Consigue el registro gratuito del narrador.**
+**La landing consigue que Martina empiece la prueba dejando la tarjeta.**
 
-Es la diferencia más importante de todo este documento. El dinero llega 30 días
-después; lo que la landing tiene que producir hoy es **un alta**. Todo —el CTA,
-la estructura, el orden de los argumentos— se ordena alrededor de eso.
+No vende el libro (eso pasa tres días después, cuando ve la previsualización) ni
+consigue un alta gratis sin compromiso (eso ya no existe). Todo —el CTA, la
+estructura, el orden de los argumentos— se ordena alrededor de ese único acto.
 
-- **CTA único en toda la página: "Empezar gratis".** Nunca "Comprar", nunca
-  "Ver precios". Se repite idéntico las veces que haga falta. Un solo verbo en
-  toda la landing.
-- **Métrica de éxito:** altas de narrador. El evento que se manda al pixel es
-  *"el narrador aceptó y empezó"*, no la compra (la compra cae fuera de la ventana
-  de atribución de 7 días de Meta y el algoritmo nunca la ve).
+- **CTA único en toda la página. Propuesta: "Probar gratis"**, con microcopy fijo
+  debajo: *"Sin cargo hasta el primer capítulo. Cancelás cuando quieras."*
+  ⚠️ **A aprobar entre los dos socios** — reemplaza a "Empezar gratis", que dejó
+  de ser cierto el día que entró la tarjeta. Nunca "Comprar", nunca "Ver precios".
+- **La tarjeta es la fricción principal de la página.** Todo lo que está antes del
+  botón existe para que dejarla se sienta razonable: por eso la previsualización
+  aparece explicada **antes** del precio.
+- **Métrica de éxito:** pruebas iniciadas. El evento del pixel es *"empezó la
+  prueba"*, que además ahora cae **dentro** de la ventana de atribución de 7 días
+  de Meta — problema que el modelo viejo no resolvía.
 - **Fricción mínima en el formulario.** Cada campo extra cuesta altas. Lo
   imprescindible: nombre del narrador, su WhatsApp, hora preferida, email de quien
   lo anota. Los datos de contexto pueden pedirse después del alta.
@@ -61,22 +70,25 @@ la estructura, el orden de los argumentos— se ordena alrededor de eso.
 
 ## 3. A quién le habla
 
-**Martina, 42, Buenos Aires.** Trabaja, tiene hijos chicos, ve a su papá los
-domingos. Ya regaló marcos con fotos, un álbum, una taza. Carga una culpa suave y
-permanente: ve poco a su viejo y lo sabe.
+> **Fuente de verdad: `docs/identidad-de-marca.md` §8.** Acá va solo lo que la
+> landing necesita tener a mano.
 
-**Su miedo no es el precio. Es la vergüenza:** que le regale algo a su papá, él no
-lo use, y quede ahí el regalo, reprochándole. **Compra cuando le sacás ese miedo,
-no cuando la emocionás más.** Esto define el orden de la página (ver §4).
+**Martina, 42 — la que compra.** Nieta o hija, organiza la Navidad. Compra el
+libro **para ella**, sobre la vida de su abuelo — y **para que dentro de veinte
+años sus hijos tengan dónde ir a buscar las historias de su bisabuelo**. Ese
+argumento es el más fuerte que tenemos: decilo explícito, no lo insinúes.
 
-Dos figuras más a tener en cuenta:
+**Su miedo no es el precio: es que él no quiera o no sepa.** Compra cuando le
+sacás ese miedo, no cuando la emocionás más. Esto define el orden de la página.
 
-- **Don Roberto, 76** — el narrador. No paga, pero **tiene derecho a veto**: si
-  dice "dejate de joder con eso", la venta muere. Puede llegar a la landing porque
-  su hija se la mandó. Que no encuentre nada que lo asuste.
-- **Nicolás, 36**, va a ser padre y quiere dejarle su historia a su hijo. Se hace
-  el libro **de su propia vida**. Segmento chico pero de conversión alta: decide y
-  compra solo, sin convencer a nadie. Es el único caso donde se dice "la tuya".
+Dos figuras más:
+
+- **Don Roberto, 78** — el narrador. No paga, pero **tiene derecho de veto**.
+  Puede llegar a la landing porque se la mandaron: que no encuentre nada que lo
+  asuste. Lo que lo destraba es *"es para tus nietos"*, nunca *"contá tu vida"*.
+- **El Cormillot, 60-80** — se hace el libro de su propia vida. Decide y compra
+  solo. **Sección propia y corta**, no el caso principal. Es el único lugar de la
+  landing donde se puede decir **"la tuya"**.
 
 ---
 
@@ -89,12 +101,15 @@ Dos figuras más a tener en cuenta:
 | 1 | **Hero** | Slogan + descriptor + CTA + una imagen real del libro |
 | 2 | **Cómo funciona, en 3 pasos** | **Desarma la objeción principal antes de que aparezca** |
 | 3 | **"Solo tiene que mandar un audio"** | La prueba visual: una captura real de WhatsApp |
-| 4 | **El objeto** | Fotos de páginas reales del libro. Justifica el precio |
-| 5 | **La voz** | El audiolibro: el diferencial que nadie más tiene en castellano |
-| 6 | **El cierre emocional** | Los saludos de la familia entregados el último día |
-| 7 | **Precio, transparente** | Qué es gratis, cuánto sale, cuándo se paga |
-| 8 | **Preguntas** | Las objeciones que quedan, respondidas en su idioma |
-| 9 | **CTA final** | El mismo botón |
+| 4 | **La previsualización** | Ella ve el libro creciendo mientras él responde. **Es lo que justifica dejar la tarjeta** |
+| 5 | **El objeto** | Páginas reales. Los tres formatos, con el impreso marcado como upsell |
+| 6 | **La voz** | El audiolibro y el QR de la contratapa: el diferencial que nadie tiene en castellano |
+| 7 | **Navidad** | Un libro y un marco para cada uno. El ángulo del lanzamiento |
+| 8 | **Lo que queda para siempre** | El cierre emocional: dentro de veinte años, sus hijos lo escuchan |
+| 9 | **Precio, transparente** | Qué incluye la prueba, cuándo se cobra, qué son los upsells |
+| 10 | **"¿Y si el libro es el tuyo?"** | Sección corta para el auto-narrador |
+| 11 | **Preguntas** | Las objeciones que quedan, en su idioma |
+| 12 | **CTA final** | El mismo botón |
 
 **Por qué "cómo funciona" va segundo y no penúltimo:** el freno de Martina no es
 el deseo, es imaginarse explicándole una app a su papá de 78 por teléfono. Si esa
@@ -112,7 +127,8 @@ Estas frases están cerradas. **No inventar variantes** sin pasar por los dos so
 |---|---|
 | **Hero, titular** | En cada familia hay un libro sin escribir. |
 | **Hero, bajada** | Un biógrafo entrevista y escribe el libro de una vida. La de tu papá, la de tu abuela, la tuya. |
-| **CTA** | Empezar gratis |
+| **CTA** | Probar gratis ⚠️ *a aprobar — reemplaza a "Empezar gratis"* |
+| **Microcopy del CTA** | Sin cargo hasta el primer capítulo. Cancelás cuando quieras. |
 | **Sección emocional** | Hay preguntas que un día ya no se pueden hacer. |
 | **Sección del objeto** | Una vida merece un libro. |
 | **Cierre / pie** | Para las vidas que merecen su propio libro |
@@ -155,7 +171,8 @@ la página, no escondida en un FAQ colapsado.
 | **"¿Y si no quiere / le da vergüenza?"** | Le pedimos permiso antes de empezar y él decide. Puede parar cuando quiera y retomar cuando quiera |
 | **"¿Quién escucha los audios de mi papá?"** | Solo su familia. Los audios son privados, se usan únicamente para su libro, y se pueden borrar todos cuando quiera |
 | **"¿Y si empieza y no termina?"** | Los 30 días son 30 preguntas, no 30 días de calendario: si un día no contesta, la pregunta espera. Y con 10 respuestas ya se puede hacer el libro |
-| **"¿Cuánto sale?"** | Decirlo, claro y temprano. Empezar es gratis; se paga al final, solo si querés el libro |
+| **"¿Cuánto sale?"** | Decirlo claro y temprano. La prueba es gratis hasta el primer capítulo; ahí se cobra, y recién entonces se ve el precio de los upsells |
+| **"¿Por qué me piden la tarjeta si es gratis?"** | Porque cada entrevista tiene un costo real desde el primer día. No se cobra nada hasta el primer capítulo y se cancela con un clic |
 
 **Sobre el precio: no lo escondas.** Con un producto emocional y desconocido, no
 mostrar el precio se lee como trampa. El encuadre correcto es el competidor:
@@ -207,7 +224,7 @@ obligan a un detalle concreto:
 
 1. ¿Qué pensabas que iba a pasar cuando lo anotaste, y qué pasó en realidad?
 2. ¿Hubo algún momento en que te sorprendió algo que contó? ¿Cuál?
-3. ¿Cómo reaccionó él/ella cuando recibió los saludos de la familia?
+3. ¿Qué pasó en la familia cuando vieron el libro terminado?
 4. ¿Qué le dirías a alguien que duda porque cree que su papá no va a saber usarlo?
 5. ¿Qué hiciste con el libro cuando lo tuviste?
 

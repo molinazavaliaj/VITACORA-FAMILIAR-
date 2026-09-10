@@ -1,11 +1,10 @@
 # Flujo de experiencia y estrategia de monetización
 
-> **Estado: A DEFINIR.** Tema abierto por Joaquín el 2026-09-07. Este documento
-> junta el material masticado para esa sesión: lo que ya está resuelto sin que lo
-> supiéramos, los números que ya existen, y las decisiones a tomar.
+> **Estado: DECIDIDO el 2026-09-10.** Abierto por Joaquín el 07/09, cerrado en la
+> sesión del 10/09. Las decisiones están al final (§7); lo de arriba es el análisis
+> que las sostiene y se deja como registro del porqué.
 >
-> **No hay decisiones tomadas acá todavía.** Va después de los layouts del libro
-> en el orden de trabajo (punto 3.7 del ROADMAP).
+> **Manda sobre:** el diseño de la landing y del panel del usuario.
 
 ---
 
@@ -130,35 +129,97 @@ quiere el libro. Es el único upsell que además trae ventas nuevas.
 
 ---
 
-## 6. La tensión que hay que resolver a propósito
+## 6. Las decisiones — 2026-09-10
 
-`GASTOS.md` tiene una **regla acordada el 05/09**: *"no tocar el modelo hasta
-tener los datos de los 3 pilotos"*. Y la duda que la originó (Naza) es
-exactamente la que plantea Joaquín ahora.
+### 6.1 · Cobro el día cero, con prueba hasta el fin del capítulo 1
 
-**La salida no es romper el acuerdo ni esperar de brazos cruzados:**
+**El usuario pone la tarjeta al registrarse** y tiene **prueba gratis hasta que
+su narrador termina el capítulo 1** (unas 3 preguntas, unos 3 días). Si cancela
+antes, no se le cobra.
 
-- **Diseñar el flujo completo ahora** — los momentos de venta, la pantalla de
-  cada uno, los upsells, el panel multi-narrador. Todo eso hay que construirlo
-  igual, y hacerlo ahora no compromete ninguna decisión.
-- **Dejar configurable CUÁNDO se cobra**, igual que el precio ya es configurable
-  por región. Que mover el cobro del día 30 al día 3 sea cambiar un valor, no
-  reescribir el producto.
-- **Decidir el cuándo con los datos de los pilotos**, como estaba acordado.
+Es la opción **C del cuadro de arriba, adelantada al momento A**: se pide el
+compromiso cuando la atención está alta (recién llegado del anuncio) y se cobra
+cuando ya vio la prueba (la previsualización del capítulo 1).
 
-Así se avanza sin apostar a ciegas y sin romper lo que los dos ya habían firmado.
+**Lo que cambia en el copy:** se cae **"Empezar gratis"**. Ahora es una **prueba
+gratis**, y hay que decir con todas las letras qué pasa cuando termina.
+
+**Lo que cambia en el producto:** hace falta cobro con tarjeta guardada y período
+de prueba en Mercado Pago — bastante más que un pago único. **Pasa a camino
+crítico** (tarea 8.1 del ROADMAP).
+
+### 6.2 · Previsualización progresiva
+
+El comprador ve **el libro creciendo** mientras su narrador responde, no solo al
+final. Es lo que convierte la prueba en venta: al tercer día no se imagina el
+producto, lo está leyendo.
+
+### 6.3 · Panel multi-narrador AHORA
+
+Se arregla el `limit(1)` ya, no después de los pilotos. Es prerequisito del panel
+donde el usuario arma varios libros ("proyectos") desde la misma cuenta.
+
+### 6.4 · Todos los upsells entran
+
+Audiolibro + PDF, libro impreso B/N, libro impreso a color, y marcos con NFC.
+**Se cobran antes de producirse**, y la entrevista de 30 días da el margen de
+producción. Detalle en `GASTOS.md`.
+
+**Fase 2:** que el usuario elija la estética del libro.
+
+### 6.5 · Los saludos salen de la fase 1
+
+El receptor del regalo ya no es el narrador sino quien compra, así que grabarle
+sorpresas a él perdió sentido. Y en el caso del auto-narrador nunca lo tuvo.
+
+**Ya ejecutado en `entrevistador/`** (el cierre ya no los entrega). **Pendiente
+en `web/`** — ver §8. La tabla `saludos` **se deja en la base**: no cuesta nada y
+la fase 2 puede revivirlos como material *sobre* el narrador para el libro.
+
+### 6.6 · Fotos por capítulo — el problema abierto
+
+Ver §8. Es lo único de este documento que todavía no tiene solución cerrada.
 
 ---
 
-## 7. Decisiones a tomar en la sesión
+## 7. Lo que ya no aplica
 
-1. **Panel multi-narrador:** ¿se arregla ahora el `limit(1)` o se deja para
-   después de los pilotos? (Recomendación: ahora — es barato y es la venta más
-   barata que vamos a tener.)
-2. **¿Cuál es el momento de cobro por defecto?** A, B, C o D.
-3. **¿Se construye la previsualización temprana** que haría posible la opción C?
-4. **¿Cuáles de los seis upsells entran en la v1** y cuáles quedan para fase 2?
-5. **¿Se reabre la decisión de la estética elegible del libro**, que la paleta
-   cerró? Es un upsell contra una decisión de marca: hay que elegir a propósito.
-6. **¿Cómo se ordena el flujo de registro** para que anotar a un segundo familiar
-   sea obvio y no un callejón?
+- ~~"No tocar el modelo hasta tener los datos de los 3 pilotos"~~ (regla del
+  05/09). **Dada de baja por los dos socios el 10/09.** Se decide ahora y se
+  ajusta con los datos, en vez de esperarlos.
+- ~~El CTA "Empezar gratis"~~ del brief de la landing.
+- ~~Los saludos como canal de adquisición a 0€.~~ Los reemplazan los marcos NFC.
+
+---
+
+## 8. Fotos por capítulo — a resolver
+
+Es el pendiente que destraba tanto el libro ilustrado como los marcos.
+
+**Hoy:** `narradores.foto_url` guarda **una sola** foto, la de portada.
+
+### Lo que hace falta
+
+| Necesidad | Requisito |
+|---|---|
+| Fotos repartidas por capítulos del libro | Varias fotos, cada una con capítulo y epígrafe |
+| Impresión del libro | ~300 ppp al tamaño de impresión (una foto de 10×15 cm pide ~1200×1800 px) |
+| Marco enmarcado (20×25 cm) | ~2400×3000 px — el requisito más exigente |
+
+### Recomendación
+
+1. **Tabla `fotos` nueva** (`narrador_id`, `capitulo`, `storage_path`,
+   `epigrafe`, `orden`) en vez de meterlas en `contexto`. Es una feature central
+   ahora, no un dato suelto. **Toca `supabase/CONTRATO.md` → lo acuerdan los dos.**
+2. **El momento de cargarlas es la previsualización.** Cuando ella ve el capítulo
+   1 escrito, ahí aparece el hueco: *"¿tenés una foto de esta época?"*. Es
+   contextual y llega justo cuando está más enganchada — mucho mejor que un
+   formulario de 20 fotos el día cero.
+3. **Subir el original, sin redimensionar.** El error clásico es que la web
+   comprima antes de subir y después no alcance para imprimir. Validar la
+   resolución **en la subida** y avisar en el momento, no cuando ya es tarde.
+4. **Instrucciones en castellano, no en píxeles:** *"apoyá la foto en una mesa,
+   con luz de día, sin flash y sin sombra encima"*. La mayoría son fotos de papel
+   sacadas con el celular.
+5. **Para el marco se elige una**, aparte de las del libro: es otro producto y
+   otro recorte.

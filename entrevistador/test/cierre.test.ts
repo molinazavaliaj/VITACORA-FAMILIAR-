@@ -5,7 +5,6 @@ const mocks = vi.hoisted(() => ({
   enviarAudioPorLink: vi.fn(),
   filas: {
     narrador: { como_le_dicen: 'Don Osvaldo', telefono_whatsapp: '+5491155551234', estado: 'activo' } as any,
-    saludos: [] as any[],
   },
   capturas: [] as any[],
 }));
@@ -20,7 +19,6 @@ vi.mock('../src/db/cliente.js', () => {
     const resolver = () => {
       if (b._op !== 'select') return { data: null, error: null };
       if (tabla === 'narradores') return { data: mocks.filas.narrador };
-      if (tabla === 'saludos') return { data: mocks.filas.saludos };
       return { data: null };
     };
     b.single = () => Promise.resolve(resolver());
@@ -50,41 +48,25 @@ const updates = (tabla: string) => mocks.capturas.filter((c) => c.op === 'update
 beforeEach(() => {
   mocks.capturas = [];
   mocks.filas.narrador = { como_le_dicen: 'Don Osvaldo', telefono_whatsapp: '+5491155551234', estado: 'activo' };
-  mocks.filas.saludos = [];
   mocks.enviarTexto.mockReset().mockResolvedValue('wamid.t');
   mocks.enviarAudioPorLink.mockReset().mockResolvedValue('wamid.a');
 });
 
 describe('cerrarBitacora', () => {
-  it('entrega los saludos en orden, los marca entregados y completa al narrador', async () => {
-    mocks.filas.saludos = [
-      { id: 's1', nombre: 'Martina', vinculo: 'hija', audio_path: 'n1/saludos/s1.webm' },
-      { id: 's2', nombre: 'Tomás', vinculo: 'nieto', audio_path: 'n1/saludos/s2.webm' },
-    ];
-    await cerrarBitacora('n1', 0); // sin pausa en los tests
-
+  it('se despide y deja al narrador completado', async () => {
+    await cerrarBitacora('n1');
     const textos = mocks.enviarTexto.mock.calls.map((c) => c[1]);
+    expect(textos).toHaveLength(1);
     expect(textos[0]).toContain('final del viaje');
-    expect(textos[0]).toContain('su familia también estuvo grabando');
-    expect(textos[1]).toBe('De Martina (hija):');
-    expect(textos[2]).toBe('De Tomás (nieto):');
-
-    expect(mocks.enviarAudioPorLink).toHaveBeenCalledTimes(2);
-    expect(mocks.enviarAudioPorLink).toHaveBeenNthCalledWith(1, '+5491155551234', 'https://firmada/n1/saludos/s1.webm');
-
-    expect(updates('saludos').map((u) => u.filtros.id)).toEqual(['s1', 's2']);
-    expect(updates('saludos')[0].p).toEqual({ entregado: true });
     expect(updates('narradores')[0].p).toEqual({ estado: 'completado' });
-    expect(inserts('envios').map((i) => i.p.tipo)).toEqual(['despedida', 'saludo_final', 'saludo_final']);
+    expect(inserts('envios').map((i) => i.p.tipo)).toEqual(['despedida']);
   });
 
-  it('sin saludos, se despide sin prometer la sorpresa', async () => {
-    await cerrarBitacora('n1', 0);
-    const texto = mocks.enviarTexto.mock.calls[0][1];
-    expect(texto).toContain('final del viaje');
-    expect(texto).not.toContain('sorpresa');
+  it('ya no promete sorpresas ni manda audios: los saludos salieron de la fase 1', async () => {
+    await cerrarBitacora('n1');
+    expect(mocks.enviarTexto.mock.calls[0][1]).not.toContain('sorpresa');
     expect(mocks.enviarAudioPorLink).not.toHaveBeenCalled();
-    expect(updates('narradores')[0].p).toEqual({ estado: 'completado' });
+    expect(updates('saludos')).toHaveLength(0);
   });
 
   it('no repite la despedida si ya estaba completado', async () => {
