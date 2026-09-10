@@ -359,9 +359,160 @@ en el código con Source Serif 4.
 
 ---
 
+## 7. Pilares de comunicación — DECIDIDO el 2026-09-10
+
+Cuatro, **en orden de embudo**: el 1 abre, el 2 da sentido, el 3 vende, el 4
+sostiene el precio. Reemplazan los tres del spec del 05/09.
+
+### 1 · LO QUE SE PIERDE — el que abre
+
+> **Las fotos quedan. Los recuerdos se van.**
+
+Tenés mil fotos de tu abuelo y ni una sola de sus historias. La cara la guarda
+el celular. La voz, lo que vivió y cómo lo cuenta, no la guarda nadie.
+
+- **Contra qué compite:** el álbum, el celular lleno de fotos, el "algún día le pregunto".
+- **Dónde vive:** hooks de reels, primera línea de los ads, apertura de la landing.
+
+### 2 · LO QUE SE HEREDA — el que da sentido (y destraba al narrador)
+
+> **Ochenta años de aprender, y hoy vive todo en una sola cabeza.**
+
+No es nostalgia: es transmisión. Lo que aprendió en toda una vida le sirve a los
+**descendientes** — a los hijos, a los nietos, a los que todavía no nacieron.
+
+**El corazón del producto está acá:** el día que el narrador no esté, sus
+historias no se pueden volver a pedir. Solo siguen existiendo si alguien las
+guardó a tiempo. Ese es el valor que crece con los años, y es el argumento que
+justifica el precio mejor que ningún otro.
+
+**Es el único pilar que le habla al NARRADOR.** A un abuelo, "contá tu vida" le
+suena a vanidad y se planta; "esto es para los que vienen" le suena a deber, y
+ahí acepta. **Es el argumento que desarma el veto.**
+
+- **Dónde vive:** la sección de sentido de la landing, el mensaje que se le
+  reenvía al narrador, el contenido orgánico.
+
+### 3 · EL REGALO QUE NO EXISTÍA — el que vende (ángulo de lanzamiento)
+
+> **Este año, algo que no se puede comprar hecho.**
+
+Todos los años el mismo problema y todos los años lo mismo. Este año hay algo
+que antes no existía: la historia de la familia, y un pedazo de esa historia
+para cada uno.
+
+**Se multiplica solo:** un libro, y un marco con NFC para cada primo y cada tío.
+Todos escuchan la misma voz el mismo día.
+
+- **Dónde vive:** la campaña de octubre a diciembre. Es el ángulo con el que sale
+  el producto.
+
+### 4 · EL LIBRO — el que sostiene el precio
+
+> **Una vida merece un libro.** *(frase ya aprobada; este es su lugar definitivo)*
+
+**"El libro" es la obra, no el papel.** Se entrega en tres formatos y los tres
+son el libro:
+
+| Formato | Estado |
+|---|---|
+| **PDF** | Base, incluido |
+| **Audiolibro** con la voz real | Base, incluido |
+| **Libro impreso** | **Upsell — hay que comunicarlo, no darlo por incluido** |
+
+El impreso lleva un **QR en la contratapa** que hace sonar su voz. Ese es el
+detalle que convierte el objeto en algo que nadie más tiene en castellano.
+
+- **Dónde vive:** fotos de páginas reales, la sección de precio, los upsells.
+
+### Reglas duras de escritura
+
+- **Nunca la muerte.** El enemigo es el olvido, no el final. "Se va con él" sí;
+  "antes de que se muera" no. Meta frena los anuncios que dan por sentada una
+  circunstancia personal de quien mira.
+- **Nunca "el libro de TU vida"** cuando el narrador es otro. La forma segura es
+  **"el libro de una vida"**.
+- **Nunca prometer que el narrador va a disfrutarlo.** Prometemos que para él va
+  a ser fácil. Lo otro no lo controlamos.
+- **"Antecesores" no.** Son los que vinieron antes. Se dice **descendientes**,
+  "los que vienen", "tus hijos", "tus nietos".
+- **"El libro" nunca significa solo el impreso.** Si la pieza habla del objeto
+  físico, tiene que decir que es un upsell.
+
+---
+
+## 8. Buyer personas — DECIDIDO el 2026-09-10
+
+### 8.1 · Cómo se usa esto: cuatro ejes, no una lista
+
+El error que veníamos arrastrando era mezclar cuatro preguntas distintas en una
+sola lista de "targets". Separadas, **cada pieza de comunicación declara a qué
+eje le habla** antes de escribirse:
+
+| Eje | Quién / cuándo | Qué decide |
+|---|---|---|
+| **Quién paga** | La nieta o el hijo, 30-55 | El copy de **la landing y los ads** |
+| **Quién narra** | El abuelo o el padre, 70-90 | El copy de **WhatsApp** y el mensaje que se le reenvía |
+| **Cuándo compra** | Navidad — de octubre a diciembre | **La campaña** y la estacionalidad |
+| **Por qué compra** | Pilares 1 y 3 | **El gancho** de cada pieza |
+
+**La regla práctica:** antes de escribir cualquier pieza, se responde *"¿a qué
+eje le habla?"*. Una pieza que le habla a dos ejes a la vez no convierte a
+ninguno — se parte en dos piezas.
+
+### 8.2 · Martina, 42 — LA QUE COMPRA *(principal)*
+
+Nieta o hija. Es la que organiza la Navidad. Tiene el celular lleno de fotos del
+abuelo y ninguna de sus historias. Todos los años dice "hay que grabarlo antes de
+que se le olvide" y todos los años no pasa.
+
+- **Compra el libro para ella**, sobre la vida de su abuelo. No es un regalo *para él*.
+- **Pero no lo compra solo para ella:** lo compra para que dentro de veinte años
+  sus hijos tengan dónde ir a buscar las historias de su bisabuelo. Ese es el
+  argumento más fuerte que tenemos y hay que decirlo explícito.
+- En diciembre reparte marcos con NFC a primos y tíos.
+- **Su miedo no es el precio: es que él no quiera o no sepa.** Se le saca
+  mostrándole que él solo manda un audio de WhatsApp.
+- **Lo que cierra la venta:** ver la previsualización real al tercer día. Ya no
+  se lo imagina, lo está leyendo.
+
+### 8.3 · El Cormillot, 60-80 — EL QUE SE COMPRA A SÍ MISMO *(secundaria)*
+
+Hombre con obra propia, o con una vida que da para un libro, y consciencia del
+tiempo que le queda. Sabe que su historia vale. **Compra y narra: es la misma persona.**
+
+- **Decide y compra solo.** Mucha conversión, poco volumen.
+- No hay que venderle el producto: hay que convencerlo de que **la escritura va a
+  estar a la altura**. Por eso a él se le muestra **una página real**.
+- **En la landing no es el caso principal**: se lo nombra en una sección propia
+  para que se reconozca y siga solo.
+- Es el único caso donde se puede decir **"la tuya"**.
+
+### 8.4 · El primo del marco — EL QUE LLEGA SOLO *(enero)*
+
+Recibió el marco con NFC en Navidad, acercó el celular, escuchó a su abuelo
+contando algo que no sabía. Ahora quiere el libro impreso.
+
+- **Costo de adquisición: cero.** Ya vio el producto entero funcionando.
+- Es la venta más barata que vamos a tener, y sale directo del ángulo de Navidad.
+- **Lo que necesita es una reimpresión, no una entrevista nueva.** Producto
+  distinto y mucho más barato de servir. Tiene que existir como tal.
+
+### 8.5 · Don Roberto, 78 — EL NARRADOR *(no paga, pero puede matar la venta)*
+
+Si dice "dejate de joder con eso", no hay libro. Es el único que puede terminar
+la venta sin haberla empezado.
+
+- **Lo destraba el pilar 2:** "es para tus nietos", nunca "contá tu vida".
+- **Lo espanta:** una app, una cámara, sentirse un caso de estudio.
+- Puede caer en la landing porque se la mandaron. **Que no encuentre nada que lo asuste.**
+
+---
+
 ## Abierto
 
-- Pilares de comunicación (revisar los tres del spec del 05/09 y cerrarlos)
-- Buyer personas
-- Ornamento propio, sistema de portada y los 4-5 layouts de página del libro
+- ~~Pilares de comunicación~~ → **cerrados el 10/09** (punto 7)
+- ~~Buyer personas~~ → **cerradas el 10/09** (punto 8)
+- Ornamento propio, sistema de portada y layouts del libro → **diferido a propósito**
+  hasta tener 2-3 libros reales y la lectura de Florencia (ver ROADMAP 3.6)
 - Grosor mínimo de línea del toroide en mm (ver punto 4)

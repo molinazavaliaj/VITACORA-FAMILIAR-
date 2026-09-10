@@ -1,5 +1,11 @@
 # Prompt de la landing — texto para copiar y pegar
 
+> 🛑 **OBSOLETO desde el 2026-09-10.** Este prompt describe el modelo viejo
+> (freemium de 30 días, saludos de la familia, cobro al final). **No usarlo.**
+> La landing se rehace desde cero con `docs/brief-landing.md`, los pilares de
+> `docs/identidad-de-marca.md` §7 y las personas de §8.
+> Se deja como registro de la primera versión.
+
 > Versión compacta y **autocontenida** de `docs/brief-landing.md`, pensada para
 > pegar en el campo de "instrucciones adicionales" de cualquier herramienta de
 > diseño o generación (v0, Lovable, Figma Make, otro Claude). No necesita ningún

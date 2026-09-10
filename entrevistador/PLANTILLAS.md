@@ -2,7 +2,7 @@
 
 Meta obliga a usar plantillas aprobadas para **iniciar** una conversación (fuera de la
 ventana de 24 hs desde el último mensaje del narrador). Las respuestas dentro de esa
-ventana —repreguntas, confirmaciones, despedida, saludos— van como texto libre y no
+ventana —repreguntas, confirmaciones, despedida— van como texto libre y no
 necesitan plantilla.
 
 La aprobación tarda de horas a días: **cargarlas cuanto antes**.

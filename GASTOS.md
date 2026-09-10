@@ -8,6 +8,7 @@
 | 2026-09-05 | Dominio vitacorafamiliar (registro año 1) | 15€ | Naza | Recurrente (anual) |
 | 2026-09-05 | Recarga crédito API Anthropic (pre-pilotos) | 20€ | Naza | Consumible |
 | ~2026-09-03 | Créditos API Anthropic + OpenAI del entrevistador (montos a confirmar por Joaquín) | ~USD 10-20 | Joaquín | Consumible |
+| 2026-09-08 | Prueba dirigida del cerebro contra el set dorado (`npm run prueba-cerebro`) | ~USD 1 | Joaquín | Consumible |
 | — | Vercel, Supabase, Resend, GitHub | USD 0 | — | Gratis (planes free) |
 
 **Total puesto hasta hoy: ~USD 20 + 35€ (Naza) + ~USD 10-20 (Joaquín)** + USD 5/mes de Railway.
@@ -23,6 +24,14 @@
 - "Matrícula" de aprendizaje: reintentos que re-pagaban capítulos antes del fix de
   borradores ≈ USD 4 (ya no puede volver a pasar).
 - **Saldo actual: ~USD 1.50 → recargar USD 10-20 antes de los pilotos.**
+
+## Qué se consumió de la key de Joaquín (entrevistador)
+
+- Prueba dirigida del cerebro del 2026-09-08 ≈ **USD 1**: reconocimientos, evaluación
+  de respuestas, las 4 adaptativas y la pregunta de reemplazo, corridas contra las 30
+  respuestas reales del set dorado. Encontró el bug del día 26 (ver `ESTADO.md`).
+  Es repetible con `npm run prueba-cerebro` y se puede correr por secciones (A/B/C/D)
+  para gastar menos.
 
 ## Costo unitario por cliente (dato de negocio — acordado 2026-09-05)
 
@@ -40,27 +49,50 @@ La entrevista gasta día a día — el que abandona el día 5 costó ~USD 1, no 
 costo completo solo lo paga quien llegó al final… que es justo el que más
 probablemente compra (30 días de vínculo emocional + el libro ya existe).
 
-## ⚖️ La cuenta del freemium (decisión pendiente POST-pilotos — Naza + Joaquín)
+## 💳 El modelo de cobro — DECIDIDO el 2026-09-10
 
-Duda planteada por Naza (2026-09-05): si un usuario freemium cuesta hasta USD 9-11
-y encima pagamos el ad que lo trajo, ¿cierra 49€? ¿O hay que cobrar para empezar?
+**Se acabó el "empezar gratis".** El usuario pone la tarjeta el **día cero** y
+tiene una **prueba gratis hasta terminar el capítulo 1** (unas 3 preguntas, unos
+3 días). Si cancela antes, no se le cobra nada.
 
-La cuenta que hay que hacer (con datos reales de los pilotos, no a ciegas):
-**margen por venta (~44€) ÷ costo por usuario gratis (~USD 2-4 promedio, contando
-abandonos tempranos) = cuántos gratis banca cada venta** (≈ 10-15). O sea: el
-freemium cierra si convierte más de ~1 de cada 10. Los pilotos deben medir
-EXACTAMENTE eso: qué % termina los 30 días y qué % compra.
+**Por qué se decidió así:**
 
-Opciones sobre la mesa si la conversión viniera floja (ninguna decidida):
-1. **Seña de entrada** (ej. 9€ al empezar, descontados del precio final) —
-   filtra curiosos sin matar el "probá gratis".
-2. **Recorte del gratis**: entrevista completa gratis pero previsualización más
-   corta (ya existe el preview velado — es la palanca de conversión).
-3. **Pago adelantado con garantía de devolución** — modelo Storyworth.
-4. Subir el precio (los comparables cobran USD 99+ por menos producto: sin voz
-   real, sin audiolibro).
+- **Se cobra en el pico de atención**, no 30 días después. La persona llega
+  desde un anuncio con el deseo arriba; pedirle la tarjeta ahí es más fácil que
+  pedírsela cuando ya se enfrió.
+- **El costo de un curioso se desploma:** de ~USD 2-4 promedio a **~USD 0.30**.
+  Quien abandona en la prueba nos costó tres preguntas, no media entrevista.
+- **La prueba vale sola:** ella ve la **previsualización creciendo** mientras su
+  abuelo responde. Al tercer día no se está imaginando el producto — lo está
+  leyendo. Ese es el momento de la conversión.
+- **Filtra sin matar la promesa.** Sigue habiendo prueba gratis; lo que ya no hay
+  es 30 días de tokens regalados a alguien que nunca pensó comprar.
 
-Regla acordada: no tocar el modelo hasta tener los datos de los 3 pilotos.
+**El momento D (día 30) deja de ser el momento de cobro y pasa a ser el momento
+de los upsells**, cuando el libro ya existe y ella lo tiene en la mano.
+
+> **Nota:** esto reemplaza la regla del 2026-09-05 que decía "no tocar el modelo
+> hasta tener los datos de los 3 pilotos". Los dos socios la dieron de baja el
+> 10/09: se decide ahora y se ajusta con los datos, en vez de esperarlos.
+
+## 🎁 Catálogo de upsells — TODOS entran (2026-09-10)
+
+Se venden **después** de cobrar la base, y se producen después de venderlos.
+La entrevista dura 30 días: hay tiempo de sobra para producir lo físico, incluso
+los marcos, siempre que las fotos se carguen temprano.
+
+| Producto | Qué es |
+|---|---|
+| **Audiolibro + PDF** | El paquete base digital |
+| **Libro impreso B/N** | El libro físico, con QR en la contratapa |
+| **Libro impreso a color** | Escalón sobre el anterior |
+| **Marcos con NFC** | Varios, para repartir en la familia: se acerca el celular y suena el audiolibro o se abre el PDF |
+
+**El QR de la contratapa** es parte del producto base impreso, no un extra:
+lleva al audiolibro y deja escuchar fragmentos con la voz real.
+
+**Diferido a fase 2:** que el usuario elija la estética del libro. Se decide
+cuando el producto esté andando y se pueda pulir bien la estética completa.
 
 ## 📈 Escenarios con ads y las dos palancas (charlado Naza + Claude, 2026-09-05)
 
@@ -78,6 +110,11 @@ Lectura: a 49€ solo-digital, los ads exigen convertir >1 de cada 7. Con ticket
 alto hay margen de error. Los pilotos + una campañita chica deben medir LOS TRES
 números: costo real por registro, % que completa, % que compra.
 
+> ⚠️ **Estos escenarios son del modelo viejo (freemium de 30 días).** Con el cobro
+> el día cero decidido el 10/09, el costo del lote baja fuerte: los 220€ de IA de
+> las entrevistas y los 100€ de WhatsApp solo se gastan en quien pasó la prueba.
+> **Hay que rehacer la cuenta** — queda pendiente.
+
 **Palanca 1 — ticket más alto (precios de mercado verificados 2026-09-05):**
 Storyworth cobra $59/$109/$199 CON libro impreso incluido; Remento $99 con tapa
 dura de 200 págs. y vende copias extra a $69. Opciones nuestras: escalón impreso
@@ -85,10 +122,11 @@ dura de 200 págs. y vende copias extra a $69. Opciones nuestras: escalón impre
 El diferencial se mantiene en todos los escalones: nadie da la voz real en castellano.
 
 **Palanca 2 — crecer sin ads (el producto es viral por diseño):**
-1. **CTA en los saludos** ⭐ feature chica post-pilotos: por cada libro, 5-10
-   parientes YA entran a la web a grabar su saludo — al terminar, botón
-   "¿Y la historia de tu mamá? Empezala gratis". Cliente por esta vía: 0€ de
-   adquisición → ~39€ limpios contra ~13€ del de ads.
+1. ~~**CTA en los saludos**~~ — **eliminado el 2026-09-10**: los saludos salen de
+   la fase 1 (el receptor del regalo ya no es el narrador). **Lo reemplazan los
+   marcos con NFC**, y rinden más: cada marco es un objeto físico en el living de
+   un familiar que suena con la voz del abuelo. El que lo recibe pide **su copia
+   impresa** — venta con 0€ de adquisición y sin entrevista nueva que pagar.
 2. **QR en la última página del libro**: "Este libro se hizo con Vitácora
    Familiar" — cada PDF reenviado y cada impreso en un living es un anuncio
    eterno que pagó el cliente.

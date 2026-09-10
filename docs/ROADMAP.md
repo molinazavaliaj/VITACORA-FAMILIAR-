@@ -1,4 +1,4 @@
-# ROADMAP — Lanzamiento 1 de octubre de 2026
+# ROADMAP — Lanzamiento 15 de octubre de 2026
 
 > **Documento vivo.** Es la fuente de verdad de QUÉ sigue y QUIÉN lo hace.
 > Acordado por los dos socios el 2026-09-04. Al completar una tarea, marcala acá.
@@ -17,7 +17,7 @@
 
 ---
 
-## 🎯 Qué significa "lanzado el 1 de octubre"
+## 🎯 Qué significa "lanzado" (15 de octubre)
 
 **No** es vender a desconocidos con ads corriendo. Es tener la prueba de que el producto
 existe, funciona y emociona:
@@ -219,10 +219,10 @@ su Claude). Fuentes de verdad:
 | 3.1 | **Slogan** — "En cada familia hay un libro sin escribir" + descriptor, gancho de campaña y frase de la casa | **A** | ✅ 07/09 |
 | 3.2 | **Logo / monograma** — "El Campo V·F", toroide de 7 anillos. Vectorizado en `marca/*.svg` | **A** | ✅ 07/09 |
 | 3.3 | **Paleta y tipografías** — negro/blanco + violeta secundario, escala de grises; Playfair + Archivo + Source Serif 4 | **A** | ✅ 07/09 |
-| 3.4 | **Pilares de comunicación** → de ahí salen los ángulos a testear | **A** | ☐ sesión del 08/09 |
-| 3.5 | **Buyer personas** — para imaginar y guionar el contenido | **A** | ☐ sesión del 08/09 |
-| 3.6 | Ornamento propio, sistema de portada y los 4-5 layouts de página del libro | **A** | ☐ sesión del 08/09 |
-| 3.7 | **Flujo de experiencia del usuario y estrategia de monetización** — ver abajo y `docs/flujo-y-monetizacion.md` | **A** | ☐ |
+| 3.4 | **Pilares de comunicación** — 4, en `identidad-de-marca.md` §7 | **A** | ✅ 10/09 |
+| 3.5 | **Buyer personas** — 3 compradores + el narrador, en §8 | **A** | ✅ 10/09 |
+| 3.6 | Ornamento propio, sistema de portada y los 4-5 layouts de página del libro | **A** | ⏸️ **diferido** — ver abajo |
+| 3.7 | **Flujo de experiencia del usuario y estrategia de monetización** | **A** | ✅ 10/09 — decisiones en `flujo-y-monetizacion.md` §6 |
 | 3.8 | Aplicar la paleta nueva en `fabrica/src/libro/plantilla-html.ts` — **cambios especificados línea por línea en `docs/design.md` §7** | **N** | ☐ |
 | 3.9 | Aplicar la identidad a la web y a las redes | **A** | ☐ |
 
@@ -257,14 +257,39 @@ pasada de diseño en monocromo** (grosor, tamaño y aire en vez de color) y verl
 impresa antes de darla por buena.
 
 **Bloquea:** el logo (3.2) ya no bloquea nada — **el INPI se puede presentar.**
-Los pilares (3.4) y las buyer personas (3.5) siguen bloqueando el Frente 7.
+Los pilares (3.4) y las buyer personas (3.5) siguen bloqueando el Frente 7 **y la landing**.
+
+### 3.6 · Diseño del libro — DIFERIDO a propósito (decisión de Joaquín, 10/09)
+
+**No se decide en abstracto.** El ornamento, el sistema de portada y los layouts se
+resuelven **mirando 2-3 libros reales ya hechos con historias verdaderas**, no antes:
+ahí se ve cómo quedaron los capítulos, los títulos, dónde cayeron las fotos y qué se
+rompe. Decidirlo ahora es diseñar a ciegas y después rehacerlo.
+
+**Entra una persona nueva al proceso: Florencia, escritora.** Va a leer los libros que
+escribió nuestro biógrafo para evaluar **la calidad de la escritura** — si la prosa se
+sostiene, si la voz del narrador sobrevive, qué hay que pulirle a los prompts. Y con
+ella se revisa también **la estética del libro terminado**.
+
+**El momento correcto: después de los 3 libros piloto y ANTES de mandar a imprimir.**
+Imprimir es el punto de no retorno; ahí sí hay que tener el diseño cerrado.
+
+| Paso | Quién | Cuándo |
+|---|---|---|
+| Terminar los 3 libros piloto | **A** | tras los pilotos |
+| Florencia lee y evalúa la calidad de la escritura | **Florencia + A** | tras los libros |
+| Ajustar los prompts del biógrafo con lo que marque | **N** (fábrica) | después |
+| Revisar la estética del libro terminado con Florencia | **A** | después |
+| Cerrar ornamento, portada y layouts (3.6) | **A** | antes de imprimir |
 
 ---
 
-### 3.7 · Flujo de experiencia y monetización — abierto por Joaquín el 07/09
+### 3.7 · Flujo de experiencia y monetización — CERRADO el 10/09
 
-Va **después de los layouts del libro** en el orden de trabajo. Material completo
-en `docs/flujo-y-monetizacion.md`; acá el resumen y lo que hay que decidir.
+**Reordenado el 10/09:** ya no va después de los layouts del libro (3.6, diferido).
+Pasa a ir **junto con los pilares**, porque es lo que define qué promete la landing y
+qué pantallas tiene el panel. Material completo en `docs/flujo-y-monetizacion.md`;
+acá el resumen y lo que hay que decidir.
 
 **El problema, en una línea: nuestros clientes queman tokens durante 30 días antes
 de poner un peso.** Es el riesgo estructural del modelo. La pregunta a responder es
@@ -330,31 +355,64 @@ calculados en `GASTOS.md`, por cada 100 registros traídos por ads:
 | 20 | +260€ | **+660€** |
 | 30 | +670€ | **+1.300€** |
 
-⚠️ **"Elegir la estética del libro" choca con la marca:** la paleta se cerró en
-blanco y negro, sin colores de tapa. Si ese upsell se vende, hay que reabrir esa
-decisión a propósito, no de rebote.
+⚠️ **"Elegir la estética del libro" choca con la marca** (la paleta se cerró en
+blanco y negro, sin colores de tapa) → **resuelto: queda para fase 2**, cuando el
+producto esté andando y se pueda pulir la estética completa.
 
-#### La tensión a resolver a propósito
+#### Lo que se decidió el 10/09
 
-`GASTOS.md` tiene una **regla acordada el 05/09: no tocar el modelo hasta tener los
-datos de los 3 pilotos** — y la duda que la originó (Naza) es exactamente esta.
+1. **Cobro el día cero con tarjeta**, prueba gratis hasta terminar el capítulo 1
+   (~3 preguntas, ~3 días). Se cae "Empezar gratis".
+2. **Previsualización progresiva:** ella ve el libro creciendo mientras él responde.
+3. **Panel multi-narrador ahora** (se arregla el `limit(1)`).
+4. **Todos los upsells entran:** PDF + audiolibro (base), impreso B/N, impreso a
+   color, marcos con NFC. Se cobran antes de producirse.
+5. **La estética elegible del libro:** fase 2.
+6. **Los saludos salen de la fase 1.** Ya ejecutado en `entrevistador/`; pendiente
+   en `web/`. La tabla se deja en la base.
+7. **Dada de baja** la regla del 05/09 de "no tocar el modelo hasta los pilotos".
 
-**La salida no es romper el acuerdo ni esperar de brazos cruzados:**
+Detalle y porqué en `docs/flujo-y-monetizacion.md` §6.
 
-1. **Diseñar el flujo completo ahora** (momentos de venta, pantallas, upsells,
-   panel multi-narrador). Hay que construirlo igual y no compromete ninguna decisión.
-2. **Dejar configurable CUÁNDO se cobra**, como ya lo es el precio por región: que
-   mover el cobro del día 30 al día 3 sea cambiar un valor, no reescribir el producto.
-3. **Decidir el cuándo con los datos de los pilotos**, como estaba acordado.
+---
 
-#### Qué se decide en la sesión
+## 🎄 EL ÁNGULO DE LANZAMIENTO — Navidad (decidido 10/09)
 
-1. ¿Se arregla ahora el `limit(1)` del tablero o después de los pilotos?
-2. ¿Cuál es el momento de cobro por defecto: A, B, C o D?
-3. ¿Se construye la previsualización temprana que haría posible la opción C?
-4. ¿Cuáles de los seis upsells entran en la v1?
-5. ¿Se reabre la estética elegible del libro, que la paleta cerró?
-6. ¿Cómo se ordena el registro para que anotar a un segundo familiar sea obvio?
+**Lanzamiento ~15 de octubre**, comunicando Vitácora como el gran regalo de las
+fiestas. El flujo completo:
+
+    15 oct ....... sale la comunicación
+    oct-nov ...... Martina compra para ella el libro sobre su abuelo
+    30 días ...... él responde · ella ve la preview · nosotros producimos lo físico
+    diciembre .... llega el libro impreso + un marco con NFC para cada familiar
+    24 dic ....... la familia entera escucha la misma voz el mismo día
+    enero ........ los primos piden su copia — adquisición 0€, sin entrevista nueva
+
+**Por qué este ángulo:** un solo cliente produce un libro y **muchos regalos**.
+Cada marco es un objeto físico en el living de un familiar que suena con la voz
+del abuelo — y el que lo recibe pide su copia impresa.
+
+⚠️ **Mueve la fecha de lanzamiento del 1 al 15 de octubre.**
+
+---
+
+## FRENTE 3bis — Fotos por capítulo *(nuevo, 10/09)*
+
+Destraba el libro ilustrado **y** los marcos. Hoy `narradores.foto_url` guarda una
+sola foto.
+
+| # | Tarea | Quién | Estado |
+|---|---|---|---|
+| 3b.1 | Acordar la tabla `fotos` (narrador, capítulo, epígrafe, orden) — **toca `CONTRATO.md`** | **A** | ☐ |
+| 3b.2 | Subida desde el panel, pidiéndolas **en la previsualización** de cada capítulo | **N** | ☐ |
+| 3b.3 | Validar resolución en la subida (marco 20×25 cm pide ~2400×3000 px) y no recomprimir | **N** | ☐ |
+| 3b.4 | Que la fábrica ubique las fotos en su capítulo | **N** | ☐ |
+| 3b.5 | Selección de la foto del marco (recorte distinto al del libro) | **N** | ☐ |
+
+**Proveedores: ya resueltos** — gráficas, marcos y tags NFC conseguidos por
+Joaquín. Lo que falta es el camino de la foto, no quién la imprime.
+
+Detalle técnico en `docs/flujo-y-monetizacion.md` §8.
 
 ---
 
@@ -396,16 +454,41 @@ Dos datos para el agente de marca:
 | # | Tarea | Quién | Estado |
 |---|---|---|---|
 | 5.1 | Recargar USD 20 de crédito Anthropic (quedan ~USD 3) | **J** | ☐ |
-| 5.2 | Construir el arnés que simula WhatsApp y correr un narrador completo | **J** | ☐ |
+| 5.2 | ~~Arnés completo que simula WhatsApp~~ → **reemplazado por la prueba dirigida del cerebro** (ver abajo) | **J** | ✅ 08/09 |
 | 5.3 | Generar el libro de ese narrador con la fábrica | **N** | ☐ |
 | 5.4 | Leerlo entre los dos y ajustar prompts si hace falta | **A** | ☐ |
 
-**Qué prueba (nivel 1, respuestas de texto):** las 26 preguntas fijas, los reconocimientos
-del cerebro, las repreguntas, las 4 adaptativas, el cierre, y el libro final.
-**Qué no prueba todavía:** la transcripción con Whisper (nivel 2, necesita saldo de OpenAI).
+### Por qué cambió el plan (08/09)
 
-Es la única forma de ver la calidad completa **antes** de exponerla a un abuelo real, y
-antes de gastar un peso en publicidad.
+El arnés completo iba a simular los 30 intercambios pasando por webhook, scheduler y
+`procesarEntrante`. Esa cañería **ya la cubren los tests unitarios**; lo que nunca había
+corrido de verdad eran las funciones de IA que conversan con el narrador. Y el material
+para probarlas ya existía: las **30 respuestas reales del set dorado de Osvaldo**.
+
+Así que en vez de simular la conversación, se le dieron esas transcripciones directo al
+cerebro. **USD 1 y 20 minutos**, contra USD 3-5 y un par de horas del arnés completo.
+
+### Qué se probó y qué salió (`entrevistador/scripts/prueba-cerebro.ts`)
+
+| Bloque | Resultado |
+|---|---|
+| **A** · Reconocimientos (la apertura diaria) | ✅ Enganchan detalles concretos y recuerdan cosas de 10 días atrás |
+| **B** · Evaluación y repreguntas | ✅ 3 de 3, incluido el caso difícil: respuesta larga a la que le faltaba la parte más valiosa |
+| **C** · Las 4 adaptativas (27-30) | ❌ **Bug encontrado** → arreglado |
+| **D** · Pregunta de reemplazo | ⚠️ Funciona, pero no sabe qué preguntas fijas quedan por delante (deuda menor) |
+
+**El bug (`fix 6eeb3cf`):** con `max_tokens: 2000` el modelo devolvía el JSON de las
+adaptativas cortado a la mitad. `JSON.parse` explotaba, `trasResponder` se cortaba, y
+**el narrador respondía la 26 y nunca recibía la 27** — sin error visible ni reintento,
+después de 26 días de entrevistas. Arreglado con más tokens, prompt con límite de largo
+(las preguntas salían de 70-90 palabras, ilegibles en el celular), parser tolerante con
+un reintento, y una red de seguridad que las regenera si igual faltan. 5 tests nuevos.
+
+**Qué sigue sin probarse:** Whisper y TTS (falta saldo de OpenAI, ~USD 5) y WhatsApp de
+punta a punta (falta la cuenta de Meta). Nada de eso lo destraba esta prueba.
+
+**Corrió con el prompt real de producción**, no con una copia: el script importa
+`PROMPT_ADAPTATIVAS` y `parsearCuatro` del módulo. Si el prompt cambia, la prueba cambia.
 
 ---
 
@@ -448,7 +531,7 @@ al algoritmo a buscar curiosos en vez de compradores.
 
 | # | Tarea | Quién | Estado |
 |---|---|---|---|
-| 8.1 | Cuenta de Mercado Pago + credenciales + webhook | **J** | ☐ |
+| 8.1 | Cuenta de Mercado Pago + credenciales + webhook — **con tarjeta guardada y período de prueba**, no pago único | **J** | ☐ **camino crítico** |
 | 8.2 | Configurar `PRECIO_ARS` | **N** | ☐ |
 | 8.3 | Prueba de pago en sandbox de punta a punta | **A** | ☐ |
 | 8.4 | **Averiguar si Naza puede darse de alta como autónomo en España y abrir Stripe** — reabre el mercado de 49€ | **N** | ☐ **urgente** |
@@ -482,10 +565,11 @@ queda para después del lanzamiento.
 
 | Semana | Foco | Hitos |
 |---|---|---|
-| **1** · 5-11 sep | Cimientos | Dominio vivo · legales · Página creada · **arnés corrido** · sesión de marca |
+| **1** · 5-11 sep | Cimientos | ✅ prueba del cerebro (08/09) · ✅ **pilares, personas y modelo de cobro cerrados (10/09)** |
 | **2** · 12-18 sep | Destrabar | **WhatsApp vivo (12)** · pilotos arrancan · logo listo · INPI presentado |
 | **3** · 19-25 sep | Ejecutar | Pilotos respondiendo · marca aplicada a web y libro · contenido publicándose |
-| **4** · 26 sep-1 oct | Cerrar | **Libro real terminado** · checkout andando · lanzamiento suave |
+| **4** · 26 sep-1 oct | Cerrar | **Libro real terminado** · checkout con prueba andando |
+| **5** · 1-15 oct | Lanzar | **15 oct: sale la comunicación de Navidad** · landing y panel nuevos vivos |
 
 ---
 
@@ -495,7 +579,7 @@ queda para después del lanzamiento.
 |---|---|
 | **Meta vuelve a bloquear** | Naza opera con cuenta con historial · vía rápida con portfolio existente · plan C: BSP tipo 360dialog |
 | **El piloto no termina las 30 respuestas** | Dos pilotos en paralelo · modo rápido · son familia, se los puede empujar por teléfono |
-| **La calidad del libro no emociona** | El arnés esta semana nos lo dice antes de gastar en publicidad |
+| **La calidad del libro no emociona** | ✅ Probado el 08/09: el libro (set dorado) y la entrevista (prueba dirigida) dan la talla |
 | **No poder cobrarle a España** | Argentina primero · merchant of record a evaluar después |
 
 ---
@@ -528,6 +612,8 @@ queda para después del lanzamiento.
 - ¿Naza puede abrir Stripe como autónomo español? (**destraba España a 49€**) — confirmar
 - ¿Quién es el narrador argentino del piloto?
 - Sesión de textos y de branding: fecha
-- **¿Cuál es el momento de cobro por defecto?** (3.7 — decide si el modelo cierra)
-- **¿Se arregla el `limit(1)` del tablero antes de los pilotos?** (3.7)
+- ~~¿Cuál es el momento de cobro?~~ → **día cero con tarjeta, prueba hasta el capítulo 1** (10/09)
+- ~~¿Se arregla el `limit(1)` del tablero?~~ → **sí, ahora** (10/09)
+- **¿Cómo llegan las fotos de Martina a cada capítulo, en calidad de impresión?** (Frente 3bis)
+- **¿Quién saca los saludos de `web/`?** — en `entrevistador/` ya salieron
 - ¿El merchant of record paga a Argentina? (plan B para España)

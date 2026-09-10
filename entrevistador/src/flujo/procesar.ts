@@ -165,7 +165,7 @@ async function trasResponder(
   if (orden === ULTIMA_FIJA) await generarPreguntasAdaptativas(narrador.id);
 
   // Paso 7: si acaba de responder la última pregunta que existe para él,
-  // se despide y le entrega los saludos que grabó su familia.
+  // se despide y queda 'completado'.
   if (await esLaUltimaPregunta(narrador.id, orden)) {
     await cerrarBitacora(narrador.id);
     return;

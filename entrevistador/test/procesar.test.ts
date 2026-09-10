@@ -121,7 +121,7 @@ describe('procesarEntrante', () => {
     expect(mocks.generarPreguntasAdaptativas).not.toHaveBeenCalled();
   });
 
-  it('(f) responder la última pregunta dispara el cierre con los saludos', async () => {
+  it('(f) responder la última pregunta dispara el cierre', async () => {
     mocks.estado.narrador = narradorEn('activo', 30);
     const m: MensajeEntrante = { telefono: TEL, tipo: 'audio', mediaId: 'media-1', waMessageId: 'w' };
     await procesarEntrante(m);
