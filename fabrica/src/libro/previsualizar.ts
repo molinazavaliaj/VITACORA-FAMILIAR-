@@ -1,9 +1,4 @@
 import { chromium } from 'playwright';
-import { execFile } from 'node:child_process';
-import { promisify } from 'node:util';
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
-import path from 'node:path';
 import { obtenerClienteDb, type Narrador, type Pregunta, type Respuesta } from '../db.js';
 import { escribirCapitulo } from './escribir-capitulo.js';
 import type { Estructura } from './estructura.js';
@@ -14,14 +9,13 @@ import {
   descargarTextoOpcional,
   escaparHtml,
   formatearNombresCorregidos,
+  recortarMuestraDeAudio,
   subirTexto,
   type Nombres,
 } from './comun.js';
 
 export { formatearNombresCorregidos, capituloMarkdownAHtml, armarMaterial };
 export type { Nombres };
-
-const execFileAsync = promisify(execFile);
 
 const RUTA_ESTRUCTURA = (narradorId: string) => `${narradorId}/paquete/estructura.json`;
 const RUTA_NOMBRES = (narradorId: string) => `${narradorId}/paquete/nombres.json`;
@@ -184,7 +178,7 @@ export async function generarPrevisualizacion(narradorId: string): Promise<void>
   // muestra_audiolibro.mp3 para siempre — el gate ya estaría cumplido y el
   // tick jamás reintentaría. Por eso el audio va primero y el PDF último:
   // cualquier falla antes del PDF deja todo el proceso reintentable.
-  await generarMuestraAudio(db, narradorId, respuestasList);
+  await recortarMuestraDeAudio(db, respuestasList, RUTA_MUESTRA_AUDIO(narradorId));
   await generarPdf(db, narradorId, html);
 }
 
@@ -206,50 +200,5 @@ async function generarPdf(
     if (error) throw new Error(`No se pudo subir preview.pdf: ${error.message}`);
   } finally {
     await browser.close();
-  }
-}
-
-async function generarMuestraAudio(
-  db: ReturnType<typeof obtenerClienteDb>,
-  narradorId: string,
-  respuestas: Respuesta[]
-): Promise<void> {
-  const primeraConAudio = respuestas
-    .filter((r): r is Respuesta & { audio_path: string } => Boolean(r.audio_path))
-    .sort((a, b) => a.pregunta_orden - b.pregunta_orden)[0];
-
-  if (!primeraConAudio) {
-    console.warn(`generarMuestraAudio: ${narradorId} no tiene ninguna respuesta con audio, se omite la muestra.`);
-    return;
-  }
-
-  const { data: audioBlob, error: errorAudio } = await db.storage
-    .from('audios')
-    .download(primeraConAudio.audio_path);
-  if (errorAudio || !audioBlob) {
-    throw new Error(`No se pudo descargar el audio de muestra (${primeraConAudio.audio_path}): ${errorAudio?.message ?? 'sin datos'}`);
-  }
-
-  const dirTemp = await mkdtemp(path.join(tmpdir(), 'vitacora-preview-'));
-  const entradaPath = path.join(dirTemp, 'entrada.ogg');
-  const salidaPath = path.join(dirTemp, 'muestra.mp3');
-
-  try {
-    const buffer = Buffer.from(await audioBlob.arrayBuffer());
-    await writeFile(entradaPath, buffer);
-
-    await execFileAsync('ffmpeg', ['-y', '-i', entradaPath, '-t', '60', '-acodec', 'libmp3lame', salidaPath]);
-
-    const salidaBuffer = await readFile(salidaPath);
-
-    const { error: errorSubida } = await db.storage
-      .from('audios')
-      .upload(RUTA_MUESTRA_AUDIO(narradorId), salidaBuffer, {
-        contentType: 'audio/mpeg',
-        upsert: true,
-      });
-    if (errorSubida) throw new Error(`No se pudo subir muestra_audiolibro.mp3: ${errorSubida.message}`);
-  } finally {
-    await rm(dirTemp, { recursive: true, force: true });
   }
 }

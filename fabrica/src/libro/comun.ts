@@ -1,10 +1,18 @@
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
 import { obtenerClienteDb, type Pregunta, type Respuesta } from '../db.js';
 
-// Helpers compartidos entre previsualizar.ts (capítulo 1, para enamorar antes
-// de comprar) y generar-paquete.ts (el libro completo, ya pagado). Viven acá
-// para no duplicar lógica que tiene que comportarse idéntico en los dos
-// lugares — dos implementaciones del mismo "cómo armamos el material de un
-// capítulo" es la clase de divergencia silenciosa que después cuesta cara.
+// Helpers compartidos entre anticipo.ts (la tercera respuesta, antes de
+// pagar), previsualizar.ts (capítulo 1, para enamorar antes de comprar) y
+// generar-paquete.ts (el libro completo, ya pagado). Viven acá para no
+// duplicar lógica que tiene que comportarse idéntico en los tres lugares —
+// dos implementaciones del mismo "cómo armamos el material de un capítulo"
+// es la clase de divergencia silenciosa que después cuesta cara.
+
+const execFileAsync = promisify(execFile);
 
 export type Nombres = { correcciones: { original: string; corregido: string }[] };
 
@@ -171,4 +179,57 @@ export async function borrarArchivos(
   if (rutas.length === 0) return;
   const { error } = await db.storage.from('audios').remove(rutas);
   if (error) throw new Error(`No se pudieron borrar (${rutas.join(', ')}): ${error.message}`);
+}
+
+/**
+ * Recorta los primeros 60 segundos del primer audio que grabó el narrador y
+ * lo deja en `rutaDestino` como mp3. Es la pieza más persuasiva que tenemos
+ * —su voz de verdad— y la única que no le paga a ningún modelo: es ffmpeg
+ * cortando un archivo que él ya mandó.
+ *
+ * Si no hay ninguna respuesta con audio (narrador que responde escribiendo),
+ * no es un error: se avisa y se sigue sin muestra.
+ */
+export async function recortarMuestraDeAudio(
+  db: ReturnType<typeof obtenerClienteDb>,
+  respuestas: Respuesta[],
+  rutaDestino: string
+): Promise<void> {
+  const primeraConAudio = respuestas
+    .filter((r): r is Respuesta & { audio_path: string } => Boolean(r.audio_path))
+    .sort((a, b) => a.pregunta_orden - b.pregunta_orden)[0];
+
+  if (!primeraConAudio) {
+    console.warn(`recortarMuestraDeAudio: no hay respuestas con audio, se omite ${rutaDestino}.`);
+    return;
+  }
+
+  const { data: audioBlob, error: errorAudio } = await db.storage
+    .from('audios')
+    .download(primeraConAudio.audio_path);
+  if (errorAudio || !audioBlob) {
+    throw new Error(
+      `No se pudo descargar el audio de muestra (${primeraConAudio.audio_path}): ${errorAudio?.message ?? 'sin datos'}`
+    );
+  }
+
+  const dirTemp = await mkdtemp(path.join(tmpdir(), 'vitacora-muestra-'));
+  const entradaPath = path.join(dirTemp, 'entrada.ogg');
+  const salidaPath = path.join(dirTemp, 'muestra.mp3');
+
+  try {
+    await writeFile(entradaPath, Buffer.from(await audioBlob.arrayBuffer()));
+
+    await execFileAsync('ffmpeg', ['-y', '-i', entradaPath, '-t', '60', '-acodec', 'libmp3lame', salidaPath]);
+
+    const { error: errorSubida } = await db.storage
+      .from('audios')
+      .upload(rutaDestino, await readFile(salidaPath), {
+        contentType: 'audio/mpeg',
+        upsert: true,
+      });
+    if (errorSubida) throw new Error(`No se pudo subir ${rutaDestino}: ${errorSubida.message}`);
+  } finally {
+    await rm(dirTemp, { recursive: true, force: true });
+  }
 }

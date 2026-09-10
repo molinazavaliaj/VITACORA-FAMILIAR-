@@ -5,6 +5,13 @@ export type Config = {
   supabaseServiceRoleKey: string;
   anthropicApiKey: string;
   openaiApiKey: string;
+  // Opcionales a propósito: el correo del anticipo se agregó después de que
+  // la fábrica ya estaba corriendo en Railway. Si se exigieran acá, el
+  // próximo deploy no arrancaría hasta que alguien cargue las variables —
+  // peor que quedarse sin mandar un mail. Sin ellas, el anticipo se genera
+  // igual y el envío avisa por consola.
+  resendApiKey: string | null;
+  urlBase: string;
 };
 
 export function cargarConfig(): Config {
@@ -19,5 +26,12 @@ export function cargarConfig(): Config {
     );
   }
 
-  return { supabaseUrl, supabaseServiceRoleKey, anthropicApiKey, openaiApiKey };
+  return {
+    supabaseUrl,
+    supabaseServiceRoleKey,
+    anthropicApiKey,
+    openaiApiKey,
+    resendApiKey: process.env.RESEND_API_KEY ?? null,
+    urlBase: process.env.URL_BASE ?? 'https://www.vitacorafamiliar.com',
+  };
 }
