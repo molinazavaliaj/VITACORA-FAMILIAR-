@@ -219,10 +219,10 @@ su Claude). Fuentes de verdad:
 | 3.1 | **Slogan** — "En cada familia hay un libro sin escribir" + descriptor, gancho de campaña y frase de la casa | **A** | ✅ 07/09 |
 | 3.2 | **Logo / monograma** — "El Campo V·F", toroide de 7 anillos. Vectorizado en `marca/*.svg` | **A** | ✅ 07/09 |
 | 3.3 | **Paleta y tipografías** — negro/blanco + violeta secundario, escala de grises; Playfair + Archivo + Source Serif 4 | **A** | ✅ 07/09 |
-| 3.4 | **Pilares de comunicación** → de ahí salen los ángulos a testear | **A** | ☐ sesión del 08/09 |
-| 3.5 | **Buyer personas** — para imaginar y guionar el contenido | **A** | ☐ sesión del 08/09 |
-| 3.6 | Ornamento propio, sistema de portada y los 4-5 layouts de página del libro | **A** | ☐ sesión del 08/09 |
-| 3.7 | **Flujo de experiencia del usuario y estrategia de monetización** — ver abajo y `docs/flujo-y-monetizacion.md` | **A** | ☐ |
+| 3.4 | **Pilares de comunicación** → de ahí salen los ángulos a testear | **A** | 🔄 sesión del 10/09 |
+| 3.5 | **Buyer personas** — para imaginar y guionar el contenido | **A** | 🔄 sesión del 10/09 |
+| 3.6 | Ornamento propio, sistema de portada y los 4-5 layouts de página del libro | **A** | ⏸️ **diferido** — ver abajo |
+| 3.7 | **Flujo de experiencia del usuario y estrategia de monetización** — ver abajo y `docs/flujo-y-monetizacion.md` | **A** | 🔄 **sube de prioridad**: define la landing y el panel |
 | 3.8 | Aplicar la paleta nueva en `fabrica/src/libro/plantilla-html.ts` — **cambios especificados línea por línea en `docs/design.md` §7** | **N** | ☐ |
 | 3.9 | Aplicar la identidad a la web y a las redes | **A** | ☐ |
 
@@ -257,14 +257,39 @@ pasada de diseño en monocromo** (grosor, tamaño y aire en vez de color) y verl
 impresa antes de darla por buena.
 
 **Bloquea:** el logo (3.2) ya no bloquea nada — **el INPI se puede presentar.**
-Los pilares (3.4) y las buyer personas (3.5) siguen bloqueando el Frente 7.
+Los pilares (3.4) y las buyer personas (3.5) siguen bloqueando el Frente 7 **y la landing**.
+
+### 3.6 · Diseño del libro — DIFERIDO a propósito (decisión de Joaquín, 10/09)
+
+**No se decide en abstracto.** El ornamento, el sistema de portada y los layouts se
+resuelven **mirando 2-3 libros reales ya hechos con historias verdaderas**, no antes:
+ahí se ve cómo quedaron los capítulos, los títulos, dónde cayeron las fotos y qué se
+rompe. Decidirlo ahora es diseñar a ciegas y después rehacerlo.
+
+**Entra una persona nueva al proceso: Florencia, escritora.** Va a leer los libros que
+escribió nuestro biógrafo para evaluar **la calidad de la escritura** — si la prosa se
+sostiene, si la voz del narrador sobrevive, qué hay que pulirle a los prompts. Y con
+ella se revisa también **la estética del libro terminado**.
+
+**El momento correcto: después de los 3 libros piloto y ANTES de mandar a imprimir.**
+Imprimir es el punto de no retorno; ahí sí hay que tener el diseño cerrado.
+
+| Paso | Quién | Cuándo |
+|---|---|---|
+| Terminar los 3 libros piloto | **A** | tras los pilotos |
+| Florencia lee y evalúa la calidad de la escritura | **Florencia + A** | tras los libros |
+| Ajustar los prompts del biógrafo con lo que marque | **N** (fábrica) | después |
+| Revisar la estética del libro terminado con Florencia | **A** | después |
+| Cerrar ornamento, portada y layouts (3.6) | **A** | antes de imprimir |
 
 ---
 
 ### 3.7 · Flujo de experiencia y monetización — abierto por Joaquín el 07/09
 
-Va **después de los layouts del libro** en el orden de trabajo. Material completo
-en `docs/flujo-y-monetizacion.md`; acá el resumen y lo que hay que decidir.
+**Reordenado el 10/09:** ya no va después de los layouts del libro (3.6, diferido).
+Pasa a ir **junto con los pilares**, porque es lo que define qué promete la landing y
+qué pantallas tiene el panel. Material completo en `docs/flujo-y-monetizacion.md`;
+acá el resumen y lo que hay que decidir.
 
 **El problema, en una línea: nuestros clientes queman tokens durante 30 días antes
 de poner un peso.** Es el riesgo estructural del modelo. La pregunta a responder es
