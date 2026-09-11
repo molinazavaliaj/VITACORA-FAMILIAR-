@@ -242,7 +242,10 @@ describe('tick — branch b (pedidos pagados)', () => {
 
     obtenerClienteDbMock.mockReturnValue(
       construirClienteDbMock({
-        narradores: [],
+        narradores: [
+          { id: 'narrador-1', estado: 'completado' },
+          { id: 'narrador-2', estado: 'completado' },
+        ],
         archivosPorNarrador: {},
         pedidosPagados: [{ id: 'pedido-1', narrador_id: 'narrador-1' }],
         claimarPedido,
@@ -258,10 +261,52 @@ describe('tick — branch b (pedidos pagados)', () => {
     expect(llamadasEnOrden).toEqual(['claim:pedido-1', 'generarPaquete:pedido-1']);
   });
 
+
+  it('un pedido pagado cuyo narrador todavia NO termino no se reclama ni se genera (pago por adelantado)', async () => {
+    const claimarPedido = vi.fn((id: string) => ({ data: [{ id }], error: null }));
+    obtenerClienteDbMock.mockReturnValue(
+      construirClienteDbMock({
+        narradores: [{ id: 'narrador-1', estado: 'activo' }],
+        archivosPorNarrador: {},
+        pedidosPagados: [{ id: 'pedido-1', narrador_id: 'narrador-1' }],
+        claimarPedido,
+      })
+    );
+
+    await tick();
+
+    expect(claimarPedido).not.toHaveBeenCalled();
+    expect(generarPaqueteMock).not.toHaveBeenCalled();
+  });
+
+  it('con dos pedidos pagados, genera solo el del narrador que termino', async () => {
+    obtenerClienteDbMock.mockReturnValue(
+      construirClienteDbMock({
+        narradores: [
+          { id: 'narrador-1', estado: 'completado' },
+          { id: 'narrador-2', estado: 'activo' },
+        ],
+        archivosPorNarrador: {},
+        pedidosPagados: [
+          { id: 'pedido-1', narrador_id: 'narrador-1' },
+          { id: 'pedido-2', narrador_id: 'narrador-2' },
+        ],
+      })
+    );
+
+    await tick();
+
+    expect(generarPaqueteMock).toHaveBeenCalledTimes(1);
+    expect(generarPaqueteMock).toHaveBeenCalledWith({ id: 'pedido-1', narrador_id: 'narrador-1' });
+  });
+
   it('sin pedidos pagados, no llama a generarPaquete', async () => {
     obtenerClienteDbMock.mockReturnValue(
       construirClienteDbMock({
-        narradores: [],
+        narradores: [
+          { id: 'narrador-1', estado: 'completado' },
+          { id: 'narrador-2', estado: 'completado' },
+        ],
         archivosPorNarrador: {},
         pedidosPagados: [],
       })
@@ -275,7 +320,10 @@ describe('tick — branch b (pedidos pagados)', () => {
   it('procesa varios pedidos pagados, cada uno reclamado y pasado a generarPaquete', async () => {
     obtenerClienteDbMock.mockReturnValue(
       construirClienteDbMock({
-        narradores: [],
+        narradores: [
+          { id: 'narrador-1', estado: 'completado' },
+          { id: 'narrador-2', estado: 'completado' },
+        ],
         archivosPorNarrador: {},
         pedidosPagados: [
           { id: 'pedido-1', narrador_id: 'narrador-1' },
@@ -296,7 +344,10 @@ describe('tick — branch b (pedidos pagados)', () => {
 
     obtenerClienteDbMock.mockReturnValue(
       construirClienteDbMock({
-        narradores: [],
+        narradores: [
+          { id: 'narrador-1', estado: 'completado' },
+          { id: 'narrador-2', estado: 'completado' },
+        ],
         archivosPorNarrador: {},
         pedidosPagados: [{ id: 'pedido-1', narrador_id: 'narrador-1' }],
         claimarPedido,
@@ -315,7 +366,10 @@ describe('tick — branch b (pedidos pagados)', () => {
 
     obtenerClienteDbMock.mockReturnValue(
       construirClienteDbMock({
-        narradores: [],
+        narradores: [
+          { id: 'narrador-1', estado: 'completado' },
+          { id: 'narrador-2', estado: 'completado' },
+        ],
         archivosPorNarrador: {},
         pedidosPagados: [{ id: 'pedido-1', narrador_id: 'narrador-1' }],
         claimarPedido,
@@ -335,7 +389,10 @@ describe('tick — branch b (pedidos pagados)', () => {
 
     obtenerClienteDbMock.mockReturnValue(
       construirClienteDbMock({
-        narradores: [],
+        narradores: [
+          { id: 'narrador-1', estado: 'completado' },
+          { id: 'narrador-2', estado: 'completado' },
+        ],
         archivosPorNarrador: {},
         pedidosGenerando: [{ id: 'pedido-huerfano' }],
         resetearPedidoHuerfano,
@@ -365,7 +422,10 @@ describe('tick — branch b (pedidos pagados)', () => {
 
     obtenerClienteDbMock.mockReturnValue(
       construirClienteDbMock({
-        narradores: [],
+        narradores: [
+          { id: 'narrador-1', estado: 'completado' },
+          { id: 'narrador-2', estado: 'completado' },
+        ],
         archivosPorNarrador: {},
         pedidosPagados: [{ id: 'pedido-1', narrador_id: 'narrador-1' }],
       })
@@ -383,7 +443,10 @@ describe('tick — branch b (pedidos pagados)', () => {
     const resetearPedidoHuerfano = vi.fn().mockReturnValue({ data: null, error: null });
     obtenerClienteDbMock.mockReturnValue(
       construirClienteDbMock({
-        narradores: [],
+        narradores: [
+          { id: 'narrador-1', estado: 'completado' },
+          { id: 'narrador-2', estado: 'completado' },
+        ],
         archivosPorNarrador: {},
         pedidosPagados: [],
         pedidosGenerando: [{ id: 'pedido-1' }],

@@ -11,8 +11,15 @@ import { generarPaquete } from './libro/generar-paquete.js';
 
 const INTERVALO_MS = 60_000;
 
-/** A la tercera respuesta se le muestra el anticipo a la familia y se cobra. */
-const RESPUESTAS_PARA_ANTICIPO = 3;
+/**
+ * A la tercera respuesta se le manda a la familia el anticipo del libro.
+ * Configurable por entorno, como acordaron los socios: mover este momento
+ * tiene que ser cambiar un valor, no reescribir el producto.
+ */
+const RESPUESTAS_PARA_ANTICIPO = Number(process.env.RESPUESTAS_PARA_ANTICIPO ?? 3);
+
+/** El libro se escribe recién cuando el narrador terminó, se haya pagado cuando se haya pagado. */
+const ESTADOS_NARRADOR_LISTO = ['completado', 'cerrado_anticipado'];
 
 let corriendo = false;
 
@@ -308,7 +315,32 @@ export async function procesarPedidosPagados(): Promise<void> {
     return;
   }
 
-  for (const pedido of (pedidos ?? []) as { id: string; narrador_id: string }[]) {
+  const pedidosPagados = (pedidos ?? []) as { id: string; narrador_id: string }[];
+  if (pedidosPagados.length === 0) return;
+
+  // Con el pago por adelantado (11/09) un pedido está 'pagado' desde el día
+  // cero, mucho antes de que haya un libro que escribir. Sin este filtro, el
+  // worker reclamaría el pedido, generarPaquete fallaría por falta de
+  // estructura.json/nombres.json y el pedido quedaría en 'fallido' para que
+  // alguien lo resetee a mano. Solo se generan los del narrador que terminó.
+  const { data: narradores, error: errorNarradores } = await db
+    .from('narradores')
+    .select('id, estado')
+    .in('id', pedidosPagados.map((p) => p.narrador_id));
+
+  if (errorNarradores) {
+    console.error('tick: no se pudieron leer los narradores de los pedidos pagados:', errorNarradores.message);
+    return;
+  }
+
+  const narradoresListos = new Set(
+    ((narradores ?? []) as { id: string; estado: string }[])
+      .filter((n) => ESTADOS_NARRADOR_LISTO.includes(n.estado))
+      .map((n) => n.id)
+  );
+
+  for (const pedido of pedidosPagados) {
+    if (!narradoresListos.has(pedido.narrador_id)) continue;
     const { data: reclamado, error: errorClaim } = await db
       .from('pedidos')
       .update({ estado: 'generando' })
