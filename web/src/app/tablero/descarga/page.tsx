@@ -147,14 +147,17 @@ function PagoIncompleto() {
     <Contenedor>
       <h1 className="text-2xl font-semibold text-zinc-900">Tu pago no se completó</h1>
       <p className="mt-2 text-sm leading-relaxed text-zinc-600">
-        Puedes intentar de nuevo cuando quieras — no perdiste nada de lo ya armado.
+        No perdiste nada de lo ya cargado. Escríbenos y te mandamos un enlace para
+        terminar el pago sin volver a empezar.
       </p>
-      <Link
-        href="/comprar"
+      {/* Volver al checkout público crearía OTRO narrador con el mismo WhatsApp.
+          Hasta tener un "reintentar este pedido", la salida es el correo. */}
+      <a
+        href="mailto:hola@vitacorafamiliar.com?subject=Terminar%20el%20pago"
         className="mt-6 inline-block rounded-lg bg-zinc-900 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-zinc-800"
       >
-        Intentar de nuevo
-      </Link>
+        Escribirnos
+      </a>
     </Contenedor>
   );
 }

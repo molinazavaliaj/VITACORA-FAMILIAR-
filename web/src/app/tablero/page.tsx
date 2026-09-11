@@ -199,20 +199,9 @@ export default async function Tablero() {
           </div>
         ) : null}
 
-        {/* Un solo próximo paso a la vez: mientras los nombres estén sin
-            revisar, la única puerta es esa — la compra recién se ofrece
-            después (y el pedido ya hecho lleva directo a la descarga). */}
-        {libroEnMarcha && avisoNombres === "hecho" && !pedidoEnCamino ? (
-          <div className="mb-8">
-            <Link
-              href="/comprar"
-              className="block rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-sm font-medium text-zinc-900 transition-colors hover:bg-zinc-100"
-            >
-              Ver la previsualización y conseguir su libro →
-            </Link>
-          </div>
-        ) : null}
-
+        {/* Un solo próximo paso a la vez. Con el pago por adelantado el
+            pedido existe desde la compra, así que después de los nombres la
+            única puerta es la del libro (en fabricación o listo). */}
         {pedidoEnCamino ? (
           <div className="mb-8">
             <Link
