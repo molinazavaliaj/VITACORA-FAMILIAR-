@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
+import { familiaDelUsuario } from "@/lib/familia";
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
@@ -13,21 +14,17 @@ export async function GET(request: NextRequest) {
       const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
       if (!error && data.user) {
-        const admin = crearClienteServidor();
-        const { data: familia, error: errorFamilia } = await admin
-          .from("familias")
-          .select("id")
-          .eq("auth_user_id", data.user.id)
-          .maybeSingle();
+        const { familia, error: errorFamilia } = await familiaDelUsuario(
+          crearClienteServidor(),
+          data.user,
+        );
 
         if (errorFamilia) {
-          console.error(
-            "callback auth: fallo la consulta de familias",
-            errorFamilia,
-          );
+          console.error("callback auth: fallo la consulta de familias", errorFamilia);
         }
 
-        const destino = familia ? "/tablero" : "/registro";
+        // Sin familia: nunca compró. Con el pago por adelantado, la puerta es /comprar.
+        const destino = familia ? "/tablero" : "/comprar";
         return NextResponse.redirect(`${origin}${destino}`);
       }
 

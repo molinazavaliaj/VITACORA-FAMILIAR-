@@ -3,17 +3,16 @@ import Link from "next/link";
 import { Playfair_Display, Archivo, Source_Serif_4 } from "next/font/google";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { verificarTokenAnticipo } from "@/lib/token-anticipo";
-import { obtenerPrecio, type Region } from "@/lib/precios";
 import { CampoVF, Toroide } from "../../marca";
 
-// La pantalla donde se decide la compra (docs/flujo-y-monetizacion.md §6.1,
-// modelo del día 3). Llega acá desde el correo que manda la fábrica cuando su
-// narrador contestó la tercera pregunta.
+// Las primeras páginas del libro, con su voz. Llega acá desde el correo que
+// manda la fábrica cuando su narrador contestó la tercera pregunta.
 //
-// Es PÚBLICA a propósito: el link llega por mail y pedirle un código de seis
-// dígitos antes de dejarla escuchar a su padre sería perder la venta en la
-// puerta. El token firmado es la autorización. La sesión se pide recién al
-// pagar, que es cuando hace falta de verdad.
+// Con el pago por adelantado (11/09) esta pantalla ya no vende: ella ya
+// compró. Es el primer "mirá cómo va", la previsualización progresiva. Sigue
+// siendo PÚBLICA a propósito: el link llega por mail y pedirle un código
+// antes de dejarla escuchar a su padre sería arruinar el momento. El token
+// firmado es la autorización.
 //
 // Tipografías cargadas acá, como en la landing: son las dos únicas pantallas
 // pasadas al sistema visual de docs/design.md.
@@ -117,19 +116,6 @@ export default async function PaginaAnticipo({
 
   const hayAudio = nombresArchivos.has("anticipo_muestra.mp3");
 
-  const { data: familia } = await admin
-    .from("familias")
-    .select("region")
-    .eq("id", datosNarrador.familia_id)
-    .maybeSingle();
-  const region = ((familia as { region?: Region } | null)?.region ?? "AR") as Region;
-  const { monto, moneda } = obtenerPrecio(region);
-  const precio = new Intl.NumberFormat(region === "ES" ? "es-ES" : "es-AR", {
-    style: "currency",
-    currency: moneda,
-    maximumFractionDigits: 0,
-  }).format(monto);
-
   return (
     <div
       className={`${playfair.variable} ${archivo.variable} ${sourceSerif.variable} flex flex-1 flex-col bg-white text-[#14140F]`}
@@ -225,34 +211,26 @@ export default async function PaginaAnticipo({
         </div>
       </section>
 
-      {/* ─── La decisión ───────────────────────────────────────────────── */}
+      {/* ─── Y sigue ───────────────────────────────────────────────────── */}
       <section className="mx-auto w-full max-w-2xl px-6 py-20 text-center sm:py-24">
-        <Etiqueta>Hasta acá, gratis</Etiqueta>
+        <Etiqueta>Esto recién empieza</Etiqueta>
         <h2 className="mt-5 text-2xl leading-snug [font-family:var(--fuente-titulo)] font-medium sm:text-3xl">
-          Ahora decides si el libro se termina.
+          Él va a seguir contando, una pregunta por día.
         </h2>
         <p className="mx-auto mt-6 max-w-lg text-[17px] leading-[1.75] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">
-          Él va a seguir contestando una pregunta por día durante 30 días. Al
-          final recibes el libro entero en PDF y el audiolibro completo con su
-          voz.
+          Desde tu panel vas a ver el libro crecer capítulo a capítulo. Cuando
+          esté terminado, te avisamos por correo y lo descargas de ahí: el
+          libro en PDF y el audiolibro con su voz.
         </p>
-
-        <div className="mx-auto mt-10 max-w-sm border-y border-[#EBEBE7] py-8">
-          <p className="text-5xl [font-family:var(--fuente-titulo)] font-medium">{precio}</p>
-          <p className="mt-3 text-[14px] text-[#5F5F55] [font-family:var(--fuente-micro)]">
-            Pago único · el libro y el audiolibro
-          </p>
-        </div>
-
         <div className="mt-10 flex flex-col items-center gap-3">
           <Link
-            href="/comprar"
+            href="/entrar"
             className="inline-flex h-13 items-center justify-center rounded-full bg-[#5D3FD3] px-8 text-base font-medium text-white transition-colors hover:bg-[#4F35BC] [font-family:var(--fuente-micro)]"
           >
-            Quiero el libro de {datos.nombre.split(" ")[0]}
+            Seguir el libro de {datos.nombre.split(" ")[0]}
           </Link>
           <p className="text-[13px] text-[#5F5F55] [font-family:var(--fuente-micro)]">
-            Te pedimos el código que te llega por correo, para entrar a tu cuenta.
+            Entras con tu correo y un código de 6 números.
           </p>
         </div>
       </section>

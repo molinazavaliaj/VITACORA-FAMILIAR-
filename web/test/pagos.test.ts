@@ -28,7 +28,7 @@ import { cookies } from 'next/headers';
 import Stripe from 'stripe';
 import { MercadoPagoConfig, Preference, Payment } from 'mercadopago';
 import { crearCheckout } from '@/lib/pagos';
-import { POST as POST_CHECKOUT } from '../src/app/api/checkout/route';
+import { calcularCompra, EXTRAS_VACIOS } from '@/lib/productos';
 import { POST as POST_WEBHOOK_STRIPE } from '../src/app/api/webhooks/stripe/route';
 import { POST as POST_WEBHOOK_MP } from '../src/app/api/webhooks/mercadopago/route';
 
@@ -127,7 +127,7 @@ describe('crearCheckout', () => {
       return { checkout: { sessions: { create: mockCreate } } };
     });
 
-    const resultado = await crearCheckout({ id: 'pedido-1', region: 'ES', email: 'martina@test.com' });
+    const resultado = await crearCheckout({ id: 'pedido-1', email: 'martina@test.com' }, calcularCompra('ES', EXTRAS_VACIOS));
 
     expect(resultado.urlPago).toBe('https://checkout.stripe.com/xyz');
     expect(mockCreate).toHaveBeenCalledTimes(1);
@@ -144,7 +144,7 @@ describe('crearCheckout', () => {
     expect(args.line_items[0].price_data.unit_amount).toBe(4900);
     expect(args.line_items[0].price_data.currency).toBe('eur');
     expect(args.metadata.pedido_id).toBe('pedido-1');
-    expect(args.success_url).toBe('https://vitacorafamiliar.com/tablero/descarga');
+    expect(args.success_url).toBe('https://vitacorafamiliar.com/comprar/gracias');
     expect(args.cancel_url).toBe('https://vitacorafamiliar.com/comprar');
   });
 
@@ -154,7 +154,7 @@ describe('crearCheckout', () => {
       return { create: mockPreferenceCreate };
     });
 
-    const resultado = await crearCheckout({ id: 'pedido-2', region: 'AR', email: 'juan@test.com' });
+    const resultado = await crearCheckout({ id: 'pedido-2', email: 'juan@test.com' }, calcularCompra('AR', EXTRAS_VACIOS));
 
     expect(resultado.urlPago).toBe('https://mp.example/pref');
     expect(mockPreferenceCreate).toHaveBeenCalledTimes(1);
@@ -168,9 +168,31 @@ describe('crearCheckout', () => {
     expect(args.body.items[0].unit_price).toBe(49999);
     expect(args.body.items[0].currency_id).toBe('ARS');
     expect(args.body.external_reference).toBe('pedido-2');
-    expect(args.body.back_urls.success).toBe('https://vitacorafamiliar.com/tablero/descarga');
+    expect(args.body.back_urls.success).toBe('https://vitacorafamiliar.com/comprar/gracias');
     expect(args.body.back_urls.failure).toBe('https://vitacorafamiliar.com/comprar');
     expect(MercadoPagoConfig).toHaveBeenCalledWith({ accessToken: 'TEST-token' });
+  });
+
+  it('los extras elegidos viajan a Stripe como líneas propias, con su cantidad', async () => {
+    process.env.PRECIO_IMPRESO_BN_EUR = '99';
+    process.env.PRECIO_MARCO_EUR = '29';
+    const mockCreate = vi.fn().mockResolvedValue({ url: 'https://checkout.stripe.com/xyz' });
+    (Stripe as unknown as ReturnType<typeof vi.fn>).mockImplementation(function () {
+      return { checkout: { sessions: { create: mockCreate } } };
+    });
+
+    await crearCheckout({ id: 'pedido-4', email: 'martina@test.com' }, calcularCompra('ES', { impreso: 'bn', marcos: 2 }));
+
+    const args = mockCreate.mock.calls[0][0] as {
+      line_items: { price_data: { unit_amount: number; product_data: { name: string } }; quantity: number }[];
+    };
+    expect(args.line_items.map((l) => [l.price_data.unit_amount, l.quantity])).toEqual([
+      [4900, 1],
+      [9900, 1],
+      [2900, 2],
+    ]);
+    delete process.env.PRECIO_IMPRESO_BN_EUR;
+    delete process.env.PRECIO_MARCO_EUR;
   });
 
   it('redondea los centavos de un precio con decimales (evita el error de coma flotante de *100)', async () => {
@@ -180,7 +202,7 @@ describe('crearCheckout', () => {
       return { checkout: { sessions: { create: mockCreate } } };
     });
 
-    await crearCheckout({ id: 'pedido-3', region: 'ES', email: 'martina@test.com' });
+    await crearCheckout({ id: 'pedido-3', email: 'martina@test.com' }, calcularCompra('ES', EXTRAS_VACIOS));
 
     const args = mockCreate.mock.calls[0][0] as {
       line_items: { price_data: { unit_amount: number } }[];
@@ -201,7 +223,13 @@ describe('POST /api/webhooks/stripe', () => {
     (Stripe as unknown as ReturnType<typeof vi.fn>).mockImplementation(function () {
       return { webhooks: { constructEvent: mockConstructEvent } };
     });
-    const admin = crearAdminFake({ pedidos: [{ data: null, error: null }] });
+    const admin = crearAdminFake({
+      // el update de pedidos devuelve la fila (pago por adelantado: el
+      // pedido ya tiene narrador y familia desde la compra)
+      pedidos: [{ data: [{ id: 'pedido-1', narrador_id: 'narrador-1', familia_id: 'familia-1' }], error: null }],
+      narradores: [{ data: null, error: null }, { data: { como_le_dicen: 'papá' }, error: null }],
+      familias: [{ data: { email: 'martina@test.com' }, error: null }],
+    });
     (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
 
     const request = {
@@ -222,6 +250,11 @@ describe('POST /api/webhooks/stripe', () => {
     const llamadasEq = admin.llamadas.pedidos.filter(([metodo]) => metodo === 'eq');
     expect(llamadasEq).toContainEqual(['eq', 'id', 'pedido-1']);
     expect(llamadasEq).toContainEqual(['eq', 'estado', 'pendiente']);
+
+    // y el narrador arranca: pendiente_pago → invitado (recién ahí le escribe el entrevistador)
+    const updateNarrador = admin.llamadas.narradores.find(([metodo]) => metodo === 'update');
+    expect(updateNarrador?.[1]).toMatchObject({ estado: 'invitado' });
+    expect(admin.llamadas.narradores).toContainEqual(['eq', 'estado', 'pendiente_pago']);
   });
 
   it('firma inválida responde 400 y no escribe en la base de datos', async () => {
@@ -359,122 +392,5 @@ describe('POST /api/webhooks/mercadopago', () => {
     expect(respuesta.status).toBe(500);
     // no llegamos a mirar la base — la falla fue consultando a MP, no nuestra.
     expect(admin.from).not.toHaveBeenCalled();
-  });
-});
-
-// --- POST /api/checkout ---------------------------------------------------
-
-describe('POST /api/checkout', () => {
-  it('sin sesión responde 401', async () => {
-    mockSesion(null);
-    const respuesta = await POST_CHECKOUT();
-    expect(respuesta.status).toBe(401);
-  });
-
-  it('narrador con estado que todavía no permite comprar responde 409', async () => {
-    mockSesion({ id: 'user-1', email: 'martina@test.com' });
-    const admin = crearAdminFake({
-      familias: [{ data: { id: 'familia-1', email: 'martina@test.com', region: 'ES' }, error: null }],
-      narradores: [{ data: [{ id: 'narrador-1', estado: 'activo' }], error: null }],
-    });
-    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
-
-    const respuesta = await POST_CHECKOUT();
-
-    expect(respuesta.status).toBe(409);
-    expect(admin.llamadas.pedidos).toBeUndefined();
-  });
-
-  it('narrador listo pero con los nombres sin revisar responde 409 y no toca pedidos', async () => {
-    mockSesion({ id: 'user-1', email: 'martina@test.com' });
-    const admin = crearAdminFake(
-      {
-        familias: [{ data: { id: 'familia-1', email: 'martina@test.com', region: 'ES' }, error: null }],
-        narradores: [{ data: [{ id: 'narrador-1', estado: 'completado' }], error: null }],
-      },
-      { list: () => Promise.resolve({ data: [{ name: 'estructura.json' }], error: null }) },
-    );
-    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
-
-    const respuesta = await POST_CHECKOUT();
-    const cuerpo = await respuesta.json();
-
-    expect(respuesta.status).toBe(409);
-    expect(cuerpo.error).toBe(
-      'Antes de comprar, revisa los nombres de su historia desde el tablero.',
-    );
-    expect(admin.llamadas.pedidos).toBeUndefined();
-    expect(admin.list.mock.calls[0][0]).toBe('narrador-1/paquete');
-  });
-
-  it('si ya existe un pedido pagado para el narrador responde 409', async () => {
-    mockSesion({ id: 'user-1', email: 'martina@test.com' });
-    const admin = crearAdminFake({
-      familias: [{ data: { id: 'familia-1', email: 'martina@test.com', region: 'ES' }, error: null }],
-      narradores: [{ data: [{ id: 'narrador-1', estado: 'completado' }], error: null }],
-      pedidos: [{ data: [{ id: 'pedido-1', estado: 'pagado' }], error: null }],
-    });
-    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
-
-    const respuesta = await POST_CHECKOUT();
-    const cuerpo = await respuesta.json();
-
-    expect(respuesta.status).toBe(409);
-    expect(cuerpo.error).toBe('Este pedido ya está pagado.');
-    expect(admin.llamadas.pedidos.some(([metodo]) => metodo === 'insert')).toBe(false);
-  });
-
-  it('sin pedido previo crea uno pendiente con el monto y la moneda de la región y devuelve la urlPago', async () => {
-    mockSesion({ id: 'user-1', email: 'martina@test.com' });
-    const admin = crearAdminFake({
-      familias: [{ data: { id: 'familia-1', email: 'martina@test.com', region: 'ES' }, error: null }],
-      narradores: [{ data: [{ id: 'narrador-1', estado: 'completado' }], error: null }],
-      pedidos: [{ data: [], error: null }, { data: { id: 'pedido-nuevo' }, error: null }],
-    });
-    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
-    const mockCreate = vi.fn().mockResolvedValue({ url: 'https://checkout.stripe.com/nuevo' });
-    (Stripe as unknown as ReturnType<typeof vi.fn>).mockImplementation(function () {
-      return { checkout: { sessions: { create: mockCreate } } };
-    });
-
-    const respuesta = await POST_CHECKOUT();
-    const cuerpo = await respuesta.json();
-
-    expect(respuesta.status).toBe(200);
-    expect(cuerpo.urlPago).toBe('https://checkout.stripe.com/nuevo');
-    const llamadaInsert = admin.llamadas.pedidos.find(([metodo]) => metodo === 'insert');
-    expect(llamadaInsert?.[1]).toMatchObject({
-      familia_id: 'familia-1',
-      narrador_id: 'narrador-1',
-      proveedor: 'stripe',
-      estado: 'pendiente',
-      monto: 49,
-      moneda: 'EUR',
-    });
-    expect(mockCreate.mock.calls[0][0]).toMatchObject({ metadata: { pedido_id: 'pedido-nuevo' } });
-  });
-
-  it('reutiliza un pedido pendiente existente en vez de crear uno nuevo', async () => {
-    mockSesion({ id: 'user-1', email: 'juan@test.com' });
-    const admin = crearAdminFake({
-      familias: [{ data: { id: 'familia-2', email: 'juan@test.com', region: 'AR' }, error: null }],
-      narradores: [{ data: [{ id: 'narrador-2', estado: 'cerrado_anticipado' }], error: null }],
-      pedidos: [{ data: [{ id: 'pedido-pendiente', estado: 'pendiente' }], error: null }],
-    });
-    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
-    const mockPreferenceCreate = vi.fn().mockResolvedValue({ init_point: 'https://mp.example/existente' });
-    (Preference as unknown as ReturnType<typeof vi.fn>).mockImplementation(function () {
-      return { create: mockPreferenceCreate };
-    });
-
-    const respuesta = await POST_CHECKOUT();
-    const cuerpo = await respuesta.json();
-
-    expect(respuesta.status).toBe(200);
-    expect(cuerpo.urlPago).toBe('https://mp.example/existente');
-    expect(admin.llamadas.pedidos.some(([metodo]) => metodo === 'insert')).toBe(false);
-    expect(mockPreferenceCreate.mock.calls[0][0]).toMatchObject({
-      body: { external_reference: 'pedido-pendiente' },
-    });
   });
 });

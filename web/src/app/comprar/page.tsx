@@ -1,164 +1,54 @@
-import { redirect } from "next/navigation";
-import { crearClienteSesion } from "@/lib/supabase/sesion";
-import { crearClienteServidor } from "@/lib/supabase/servidor";
+import type { Metadata } from "next";
 import Link from "next/link";
+import { Playfair_Display, Archivo, Source_Serif_4 } from "next/font/google";
 import { obtenerPrecio } from "@/lib/precios";
-import { BotonComprar } from "./acciones";
-import { PasosDelLibro, VolverAlTablero } from "../tablero/pasos";
+import { extrasDisponibles, NOMBRE_BASE } from "@/lib/productos";
+import { Toroide } from "../marca";
+import { Checkout, type Catalogo } from "./formulario";
 
-const MENSAJE_ERROR_CARGA = "No pudimos cargar la previsualización. Actualiza la página en un momento.";
-const ESTADOS_CON_LIBRO_EN_MARCHA = ["completado", "cerrado_anticipado"];
+// La compra, pública y sin cuenta (pago por adelantado, 11/09). Paso a paso
+// como la referencia (Remento): para quién → el narrador → extras → correo y
+// pago. Todo lo que antes hacían /registro + /comprar-con-sesión pasa por acá.
+//
+// El catálogo se arma en el servidor (los precios viven en variables de
+// entorno) y baja al cliente ya resuelto: el navegador nunca decide un precio.
 
-type Familia = { id: string; region: "ES" | "AR" };
-type Narrador = { id: string; como_le_dicen: string; estado: string };
+const playfair = Playfair_Display({ subsets: ["latin"], weight: ["500", "600"], style: ["normal", "italic"], variable: "--fuente-titulo", display: "swap" });
+const archivo = Archivo({ subsets: ["latin"], weight: ["400", "500"], variable: "--fuente-micro", display: "swap" });
+const sourceSerif = Source_Serif_4({ subsets: ["latin"], weight: ["300", "400"], style: ["normal", "italic"], variable: "--fuente-cuerpo", display: "swap" });
 
-export default async function Comprar() {
-  const supabase = await crearClienteSesion();
+export const metadata: Metadata = {
+  title: "Comprar el libro",
+  description: "Un biógrafo entrevista por WhatsApp y escribe el libro de una vida. Pago único.",
+};
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/entrar");
-  }
-
-  const admin = crearClienteServidor();
-
-  const { data: familia, error: errorFamilia } = await admin
-    .from("familias")
-    .select("id, region")
-    .eq("auth_user_id", user.id)
-    .maybeSingle();
-
-  if (errorFamilia) {
-    console.error("comprar: fallo la busqueda de familia", errorFamilia);
-    return <EstadoError />;
-  }
-
-  if (!familia) {
-    redirect("/registro");
-  }
-
-  const datosFamilia = familia as Familia;
-
-  const { data: narradores, error: errorNarradores } = await admin
-    .from("narradores")
-    .select("id, como_le_dicen, estado")
-    .eq("familia_id", datosFamilia.id)
-    .order("created_at", { ascending: false })
-    .limit(1);
-
-  if (errorNarradores) {
-    console.error("comprar: fallo la busqueda de narrador", errorNarradores);
-    return <EstadoError />;
-  }
-
-  const narrador = (narradores as Narrador[] | null)?.[0];
-
-  if (!narrador) {
-    redirect("/registro");
-  }
-
-  if (!ESTADOS_CON_LIBRO_EN_MARCHA.includes(narrador.estado)) {
-    return <EstadoAunNoListo comoLeDicen={narrador.como_le_dicen} />;
-  }
-
-  const { data: archivos, error: errorArchivos } = await admin.storage
-    .from("audios")
-    .list(`${narrador.id}/paquete`);
-
-  if (errorArchivos) {
-    console.error("comprar: fallo listar el paquete", errorArchivos);
-    return <EstadoError />;
-  }
-
-  const nombresArchivos = new Set((archivos ?? []).map((archivo) => archivo.name));
-  const previewListo = nombresArchivos.has("preview.pdf");
-  const nombresRevisados = nombresArchivos.has("nombres.json");
-
-  const { monto: montoPrecio, moneda: monedaPrecio } = obtenerPrecio(datosFamilia.region);
-  const precio = monedaPrecio === "EUR" ? `${montoPrecio} €` : `$${montoPrecio} ARS`;
-
-  return (
-    <div className="flex flex-1 flex-col items-center bg-white px-6 py-16 text-zinc-900">
-      <div className="w-full max-w-lg">
-        <div className="mb-8 flex flex-col gap-4">
-          <VolverAlTablero />
-          <PasosDelLibro actual={3} />
-        </div>
-        <h1 className="text-2xl font-semibold text-zinc-900">
-          El libro y el audiolibro de {narrador.como_le_dicen}
-        </h1>
-        <p className="mt-2 text-sm leading-relaxed text-zinc-600">
-          Así va a quedar. Revisa la previsualización antes de confirmar.
-        </p>
-
-        <div className="mt-8">
-          {previewListo ? (
-            <div className="flex flex-col gap-6">
-              <object
-                data="/api/preview-pdf"
-                type="application/pdf"
-                className="h-96 w-full rounded-lg border border-zinc-200"
-              >
-                <p className="p-4 text-sm text-zinc-500">
-                  Tu navegador no puede mostrar el PDF acá —{" "}
-                  <a className="underline" href="/api/preview-pdf">
-                    ábrelo en una pestaña nueva
-                  </a>
-                  .
-                </p>
-              </object>
-              <div>
-                <p className="mb-2 text-sm font-medium text-zinc-700">
-                  Escucha una muestra de la voz
-                </p>
-                {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
-                <audio controls src="/api/preview-audio" className="w-full" />
-              </div>
-            </div>
-          ) : (
-            <p className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-sm text-zinc-600">
-              Tu previsualización se está preparando… vuelve en un rato.
-            </p>
-          )}
-        </div>
-
-        <div className="mt-10 flex flex-col items-start gap-3 border-t border-zinc-100 pt-8">
-          <p className="text-lg font-semibold text-zinc-900">{precio}</p>
-          <p className="text-sm text-zinc-600">Libro impreso + audiolibro con su voz real.</p>
-          {nombresRevisados ? (
-            <BotonComprar />
-          ) : (
-            <Link
-              href="/tablero/nombres"
-              className="block rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-sm font-medium text-zinc-900 transition-colors hover:bg-zinc-100"
-            >
-              Antes de comprar, revisa los nombres de su historia →
-            </Link>
-          )}
-        </div>
-      </div>
-    </div>
-  );
+function catalogoDe(region: "ES" | "AR") {
+  const { monto, moneda } = obtenerPrecio(region);
+  return {
+    moneda,
+    base: { nombre: NOMBRE_BASE, precio: monto },
+    extras: extrasDisponibles(region),
+  };
 }
 
-function EstadoError() {
-  return (
-    <div className="flex flex-1 flex-col items-center justify-center bg-white px-6 py-16 text-center text-zinc-900">
-      <p className="text-sm text-zinc-600">{MENSAJE_ERROR_CARGA}</p>
-    </div>
-  );
-}
+export default function PaginaComprar() {
+  const catalogo: Catalogo = { ES: catalogoDe("ES"), AR: catalogoDe("AR") };
 
-function EstadoAunNoListo({ comoLeDicen }: { comoLeDicen: string }) {
   return (
-    <div className="flex flex-1 flex-col items-center justify-center bg-white px-6 py-16 text-center text-zinc-900">
-      <p className="text-sm text-zinc-600">
-        Todavía estamos armando el libro de {comoLeDicen}. Te avisamos apenas esté listo para
-        comprar.
-      </p>
+    <div className={`${playfair.variable} ${archivo.variable} ${sourceSerif.variable} flex flex-1 flex-col bg-[#F7F7F5] text-[#14140F]`}>
+      <header className="border-b border-[#EBEBE7] bg-white">
+        <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-5">
+          <Link href="/" className="flex items-center gap-3">
+            <Toroide className="h-6 w-auto" />
+            <span className="text-[11px] uppercase [font-family:var(--fuente-micro)] [letter-spacing:0.3em]">Vitácora Familiar</span>
+          </Link>
+          <Link href="/entrar" className="text-sm text-[#5F5F55] underline decoration-[#D4D4CE] underline-offset-4 hover:text-[#14140F] [font-family:var(--fuente-micro)]">
+            Ya compré · Entrar
+          </Link>
+        </div>
+      </header>
+
+      <Checkout catalogo={catalogo} />
     </div>
   );
 }
