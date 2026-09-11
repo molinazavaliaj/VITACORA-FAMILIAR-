@@ -37,10 +37,12 @@ const sourceSerif = Source_Serif_4({
 // saber usarlo"— se desarma SEGUNDA, antes de que aparezca. Lo demás se apoya
 // en eso.
 //
-// ⚠️ MODELO DE COBRO: día 3, sin tarjeta al registrarse (decidido el 10/09,
-// después de la sesión de Joaquín). Por eso el CTA vuelve a ser "Empezar
-// gratis" y no "Probar gratis": acá no hay tarjeta que dejar. Las líneas que
-// esto cambia respecto de brief-landing.md §5 están marcadas abajo.
+// ⚠️ MODELO DE COBRO (decidido el 11/09, reemplaza a los dos anteriores): SE
+// PAGA ANTES DE EMPEZAR. El CTA compra, no registra. Después del pago llega
+// un mail con el acceso al tablero (código de 6 dígitos, la cuenta se crea
+// sola con el mail del pago); ahí ve el libro crecer y compra los upsells. Si
+// el narrador no acepta, devolución escribiendo a hola@. Las líneas donde esto
+// se aparta de brief-landing.md §5 están marcadas abajo.
 
 // Pilar 4 · El libro es la obra, no el papel. El impreso se comunica como
 // upsell — regla dura de identidad-de-marca.md §7.
@@ -64,9 +66,9 @@ const FORMATOS = [
 
 const PASOS = [
   {
-    titulo: "Lo anotas, gratis",
+    titulo: "Lo anotas",
     texto:
-      "Nos dices su nombre, su WhatsApp y a qué hora prefiere conversar. Le llega un mensaje nuestro contándole que lo anotaste — y no empieza nada hasta que él diga que sí.",
+      "Nos dices su nombre, su WhatsApp y a qué hora prefiere conversar. Le llega un mensaje nuestro contándole que lo anotaste — y no empieza nada hasta que él diga que sí. Si no acepta, te devolvemos el dinero.",
   },
   {
     titulo: "Él solo manda audios",
@@ -102,12 +104,11 @@ const PREGUNTAS = [
       "Son 30 preguntas, no 30 días de calendario: si un día no contesta, la pregunta espera. Y con diez respuestas ya se puede hacer un libro.",
   },
   {
-    // ⚠️ Reescrita respecto del brief: allí la prueba terminaba con un cobro
-    // automático porque la tarjeta se dejaba el día cero. Con el modelo del
-    // día 3 no hay tarjeta hasta que ella decide.
+    // ⚠️ Texto a aprobar. Pago por adelantado, único, con devolución si el
+    // narrador no acepta (por correo, no automática — decisión del 11/09).
     pregunta: "¿Cuánto sale y cuándo se paga?",
     respuesta:
-      "Anotarlo es gratis y no pedimos ninguna tarjeta. Al tercer día ya puedes leer las primeras páginas y escuchar su voz: recién ahí decides si quieres el libro entero. Si no lo quieres, no pagas nada.",
+      "Se paga una sola vez, al comprar, y el precio está a la vista antes de pagar. Incluye el libro en PDF y el audiolibro con su voz. Si él no acepta participar, nos escribes y te devolvemos el dinero completo.",
   },
   {
     pregunta: "¿Se puede tener el libro impreso?",
@@ -128,30 +129,31 @@ const TESTIMONIOS_DE_RELLENO = [
 ] as const;
 
 // El violeta toca UNA sola cosa por pantalla (design.md). Acá es el botón.
-function BotonEmpezar({ enOscuro = false }: { enOscuro?: boolean }) {
+// ⚠️ Texto a aprobar por Naza: reemplaza a "Empezar gratis" (modelo anterior)
+// y a "Probar gratis" (brief §5). Con el pago por adelantado, el botón compra.
+function BotonComprar({ enOscuro = false }: { enOscuro?: boolean }) {
   return (
     <Link
-      href="/entrar"
+      href="/comprar"
       className={`inline-flex h-13 items-center justify-center rounded-full px-8 text-base font-medium transition-colors [font-family:var(--fuente-micro)] ${
         enOscuro
           ? "bg-[#8F7BE0] text-[#14140F] hover:bg-[#A296E6]"
           : "bg-[#5D3FD3] text-white hover:bg-[#4F35BC]"
       }`}
     >
-      Empezar gratis
+      Comprar el libro
     </Link>
   );
 }
 
-// ⚠️ Microcopy reescrito respecto del brief §5. El de allí ("Sin cargo hasta el
-// primer capítulo. Cancelás cuando quieras") describe una prueba con tarjeta,
-// que es el modelo que quedó descartado.
+// ⚠️ Texto a aprobar. Con el pago por adelantado el microcopy dice qué se lleva
+// y que es un solo pago: nada de "sin tarjeta" ni "prueba gratis".
 function MicrocopyCta({ clara = false }: { clara?: boolean }) {
   return (
     <p
       className={`text-[13px] [font-family:var(--fuente-micro)] ${clara ? "text-[#AEAEA6]" : "text-[#5F5F55]"}`}
     >
-      Sin tarjeta. Decides cuando veas las primeras páginas.
+      Pago único · el libro en PDF y el audiolibro con su voz.
     </p>
   );
 }
@@ -227,29 +229,77 @@ export default function Home() {
               Vitácora Familiar
             </span>
           </div>
-          <Link
-            href="/entrar"
-            className="text-sm text-[#D4D4CE] underline decoration-[#5F5F55] underline-offset-4 transition-colors hover:text-white [font-family:var(--fuente-micro)]"
-          >
-            Entrar
-          </Link>
+          <div className="flex items-center gap-6">
+            <Link
+              href="/entrar"
+              className="text-sm text-[#D4D4CE] underline decoration-[#5F5F55] underline-offset-4 transition-colors hover:text-white [font-family:var(--fuente-micro)]"
+            >
+              Entrar
+            </Link>
+            <Link
+              href="/comprar"
+              className="hidden h-10 items-center rounded-full bg-white px-5 text-sm font-medium text-[#14140F] transition-colors hover:bg-[#EBEBE7] [font-family:var(--fuente-micro)] sm:inline-flex"
+            >
+              Comprar el libro
+            </Link>
+          </div>
         </header>
 
-        <section className="mx-auto flex w-full max-w-3xl flex-col items-center gap-8 px-6 pb-10 pt-20 text-center sm:pt-24">
-          <CampoVF halo="#14140F" className="h-32 w-auto sm:h-36" />
-          {/* Slogan y descriptor van SIEMPRE juntos: el slogan solo se lee como
-              "me toca escribirlo a mí" = trabajo. El descriptor lo desarma. */}
-          <h1 className="text-4xl leading-[1.12] [font-family:var(--fuente-titulo)] font-medium [letter-spacing:-0.02em] sm:text-6xl sm:leading-[1.08]">
-            En cada familia hay un libro sin escribir.
-          </h1>
-          <p className="max-w-xl text-lg leading-relaxed text-[#D4D4CE] [font-family:var(--fuente-cuerpo)] font-light sm:text-xl">
-            Un biógrafo entrevista y escribe el libro de una vida. La de tu papá,
-            la de tu abuela, la tuya.
-          </p>
-          <div className="flex flex-col items-center gap-3 pt-2">
-            <BotonEmpezar enOscuro />
+        {/* Dos columnas, como la referencia (Remento): a la izquierda lo que
+            vende, a la derecha el video. En el teléfono se apila: texto, botón,
+            video. El Campo V·F grande dejó de abrir el hero — con dos columnas
+            no cabe; queda el toroide en el encabezado y el Campo en el pie. */}
+        <section className="mx-auto grid w-full max-w-6xl items-center gap-12 px-6 pb-12 pt-16 sm:pt-20 lg:grid-cols-[1.05fr_1fr] lg:gap-16">
+          <div className="flex flex-col gap-7">
+            {/* Slogan y descriptor van SIEMPRE juntos: el slogan solo se lee como
+                "me toca escribirlo a mí" = trabajo. El descriptor lo desarma. */}
+            <h1 className="text-4xl leading-[1.12] [font-family:var(--fuente-titulo)] font-medium [letter-spacing:-0.02em] sm:text-5xl sm:leading-[1.1] lg:text-[3.6rem]">
+              En cada familia hay un libro sin escribir.
+            </h1>
+            <p className="max-w-xl text-lg leading-relaxed text-[#D4D4CE] [font-family:var(--fuente-cuerpo)] font-light sm:text-xl">
+              Un biógrafo entrevista y escribe el libro de una vida. La de tu
+              papá, la de tu abuela, la tuya.
+            </p>
+
+            <div className="flex flex-col gap-3 pt-1 sm:flex-row sm:items-center sm:gap-4">
+              <BotonComprar enOscuro />
+              <a
+                href="#como-funciona"
+                className="inline-flex h-13 items-center justify-center rounded-full border border-[#45453C] px-7 text-base font-medium text-[#D4D4CE] transition-colors hover:border-[#83837A] hover:text-white [font-family:var(--fuente-micro)]"
+              >
+                Cómo funciona ↓
+              </a>
+            </div>
             <MicrocopyCta clara />
+
+            {/* Las cuatro cosas que desarman la objeción, a la vista desde el
+                primer segundo. Cada una contesta un miedo de Martina. */}
+            <ul className="mt-2 flex flex-col gap-2.5 text-[15px] text-[#AEAEA6] [font-family:var(--fuente-cuerpo)] font-light">
+              {[
+                "Él solo habla por WhatsApp. Nadie escribe nada.",
+                "Sin app ni nada que instalar.",
+                "Su voz real, en cada capítulo del audiolibro.",
+                "Lo lees crecer mientras él responde.",
+              ].map((linea) => (
+                <li key={linea} className="flex items-start gap-3">
+                  <span aria-hidden className="mt-[3px] inline-block h-4 w-4 shrink-0 rounded-full border border-[#5F5F55] text-center text-[10px] leading-[14px] text-[#8F7BE0]">
+                    ✓
+                  </span>
+                  {linea}
+                </li>
+              ))}
+            </ul>
           </div>
+
+          {/* El video. Espacio reservado con la proporción real (16:9) para
+              que el layout ya sea el definitivo cuando exista el material. */}
+          <Aparece>
+            <MaterialPendiente
+              etiqueta="Pendiente · video del hero (16:9)"
+              enOscuro
+              className="aspect-video w-full rounded-lg"
+            />
+          </Aparece>
         </section>
 
         {/* Pilar 1 · LO QUE SE PIERDE — el que abre */}
@@ -273,7 +323,7 @@ export default function Home() {
       </div>
 
       {/* ═══ 2 · CÓMO FUNCIONA — desarma la objeción antes de que aparezca ═══ */}
-      <section className="bg-[#F7F7F5] pb-24 pt-4 sm:pb-28">
+      <section id="como-funciona" className="scroll-mt-8 bg-[#F7F7F5] pb-24 pt-4 sm:pb-28">
         <div className="mx-auto w-full max-w-5xl px-6">
           <Aparece>
             <div className="max-w-2xl">
@@ -336,9 +386,9 @@ export default function Home() {
             />
           </Aparece>
           <Aparece>
-            <Etiqueta>Al tercer día</Etiqueta>
+            <Etiqueta>Desde el tercer día</Etiqueta>
             <h2 className="mt-4 text-3xl leading-snug [font-family:var(--fuente-titulo)] font-medium sm:text-4xl">
-              No te lo imaginas: lo estás leyendo.
+              No te lo imaginas: lo vas leyendo.
             </h2>
             <p className="mt-5 text-[17px] leading-[1.7] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">
               A la tercera respuesta te llega un correo con un minuto de su voz y
@@ -348,9 +398,10 @@ export default function Home() {
             </p>
             <p className="mt-4 text-[17px] leading-[1.7] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">
               <strong className="font-normal text-[#14140F]">
-                Recién ahí decides si quieres el libro entero.
-              </strong>{" "}
-              Hasta ese momento no pagaste nada y no te pedimos ninguna tarjeta.
+                Y desde tu panel lo ves crecer día a día
+              </strong>
+              , mucho antes de que esté terminado. No hay que esperar un mes a
+              ciegas.
             </p>
           </Aparece>
         </div>
@@ -498,7 +549,7 @@ export default function Home() {
         <Aparece>
           <Etiqueta>El precio</Etiqueta>
           <h2 className="mt-4 text-3xl leading-snug [font-family:var(--fuente-titulo)] font-medium sm:text-4xl">
-            Empezar es gratis. Pagas cuando ya lo viste.
+            Un solo pago. Sin sorpresas después.
           </h2>
           <div className="mt-10">
             <p className="text-6xl [font-family:var(--fuente-titulo)] font-medium">{precio}</p>
@@ -508,10 +559,11 @@ export default function Home() {
           </div>
           <p className="mx-auto mt-8 max-w-xl text-[16px] leading-[1.7] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">
             Es lo que sale hoy un libro de preguntas que él tendría que llenar a
-            mano. Aquí lo cuenta hablando, y además le queda su voz grabada.
+            mano. Aquí lo cuenta hablando, y además le queda su voz grabada. Si
+            él no acepta participar, te devolvemos el dinero.
           </p>
           <div className="mt-10 flex flex-col items-center gap-3">
-            <BotonEmpezar />
+            <BotonComprar />
             <MicrocopyCta />
           </div>
         </Aparece>
@@ -566,7 +618,7 @@ export default function Home() {
               En cada familia hay un libro sin escribir.
             </h2>
             <div className="mt-10 flex flex-col items-center gap-3">
-              <BotonEmpezar enOscuro />
+              <BotonComprar enOscuro />
               <MicrocopyCta clara />
             </div>
           </Aparece>
@@ -578,6 +630,9 @@ export default function Home() {
               Para las vidas que merecen su propio libro
             </p>
             <nav className="flex items-center gap-6 text-[12px] uppercase text-[#83837A] [font-family:var(--fuente-micro)] [letter-spacing:0.18em]">
+              <Link href="/legal/terminos" className="transition-colors hover:text-white">
+                Términos
+              </Link>
               <Link href="/legal/privacidad" className="transition-colors hover:text-white">
                 Privacidad
               </Link>

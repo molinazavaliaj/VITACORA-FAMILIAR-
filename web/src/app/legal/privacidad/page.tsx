@@ -39,10 +39,10 @@ export default function Privacidad() {
               Puedes pedir acceder a tus datos, corregirlos o borrarlos por completo cuando
               quieras. Alcanza con escribir a{" "}
               <a
-                href="mailto:contacto@vitacorafamiliar.com"
+                href="mailto:hola@vitacorafamiliar.com"
                 className="underline decoration-zinc-300 underline-offset-2"
               >
-                contacto@vitacorafamiliar.com
+                hola@vitacorafamiliar.com
               </a>
               .
             </p>
