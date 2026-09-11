@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pilares y personas — Vitácora Familiar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Archivo:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,300;8..60,400;8..60,600&display=swap">
+<style>
+  :root{
+    --bg:#FFFFFF; --bg-alt:#F7F7F5; --surface:#EBEBE7;
+    --text:#14140F; --text-soft:#45453C; --text-mute:#5F5F55; --text-faint:#83837A;
+    --rule:#AEAEA6; --rule-soft:#D4D4CE;
+    --accent:#5D3FD3; --accent-wash:rgba(93,63,211,.07);
+    --display:"Playfair Display", Georgia, "Times New Roman", serif;
+    --body:"Source Serif 4", Georgia, serif;
+    --util:"Archivo", "Helvetica Neue", Arial, sans-serif;
+    --measure:66ch;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#14140F; --bg-alt:#1B1B16; --surface:#24241E;
+      --text:#F7F7F5; --text-soft:#D4D4CE; --text-mute:#AEAEA6; --text-faint:#83837A;
+      --rule:#45453C; --rule-soft:#2B2B24;
+      --accent:#8F7BE0; --accent-wash:rgba(143,123,224,.10);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#14140F; --bg-alt:#1B1B16; --surface:#24241E;
+    --text:#F7F7F5; --text-soft:#D4D4CE; --text-mute:#AEAEA6; --text-faint:#83837A;
+    --rule:#45453C; --rule-soft:#2B2B24;
+    --accent:#8F7BE0; --accent-wash:rgba(143,123,224,.10);
+  }
+
+  *{box-sizing:border-box}
+  img{max-width:100%}
+  body{
+    margin:0;
+    background:var(--bg); color:var(--text);
+    font-family:var(--body); font-weight:400; font-size:17px; line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:940px; margin:0 auto; padding:0 28px 96px}
+  p,li{color:var(--text-soft); max-width:var(--measure)}
+  strong{color:var(--text); font-weight:600}
+  em{font-style:italic}
+  a{color:var(--accent)}
+
+  /* ── tipografía utilitaria ─────────────────────────── */
+  .eyebrow{
+    font-family:var(--util); font-size:11px; font-weight:600;
+    letter-spacing:.24em; text-transform:uppercase; color:var(--text-faint);
+  }
+  .num{
+    font-family:var(--util); font-size:11px; font-weight:600;
+    letter-spacing:.2em; color:var(--accent);
+  }
+
+  /* ── cabecera ──────────────────────────────────────── */
+  header{padding:72px 0 44px; border-bottom:1px solid var(--rule-soft)}
+  .status{
+    display:inline-flex; align-items:center; gap:9px;
+    font-family:var(--util); font-size:11px; font-weight:600;
+    letter-spacing:.16em; text-transform:uppercase;
+    color:var(--accent); background:var(--accent-wash);
+    padding:6px 13px; border-radius:2px; margin-bottom:26px;
+  }
+  .status::before{content:""; width:5px; height:5px; border-radius:50%; background:var(--accent)}
+  h1{
+    font-family:var(--display); font-weight:500; font-size:clamp(38px,6vw,60px);
+    line-height:1.06; letter-spacing:-.015em; margin:0 0 20px; text-wrap:balance;
+  }
+  .standfirst{font-size:19px; line-height:1.6; color:var(--text-mute); max-width:58ch; margin:0}
+  .meta{
+    display:flex; flex-wrap:wrap; gap:8px 26px; margin-top:30px;
+    font-family:var(--util); font-size:12px; color:var(--text-faint); letter-spacing:.04em;
+  }
+
+  /* ── secciones ─────────────────────────────────────── */
+  section{padding-top:68px}
+  h2{
+    font-family:var(--display); font-weight:500; font-size:clamp(27px,3.6vw,36px);
+    line-height:1.18; letter-spacing:-.01em; margin:10px 0 14px; text-wrap:balance;
+  }
+  .lede{font-size:18px; color:var(--text-mute); margin:0 0 34px}
+  h3{font-family:var(--display); font-weight:600; font-size:21px; line-height:1.3; margin:0 0 8px}
+
+  /* ── pilares: secuencia de embudo ──────────────────── */
+  .pilar{
+    display:grid; grid-template-columns:auto 1fr; gap:0 28px;
+    padding:34px 0; border-top:1px solid var(--rule-soft);
+  }
+  .pilar:first-of-type{border-top:2px solid var(--text)}
+  .pilar-idx{
+    font-family:var(--display); font-size:34px; font-weight:500;
+    color:var(--rule); line-height:1; padding-top:4px; font-variant-numeric:tabular-nums;
+  }
+  .pilar-rol{
+    font-family:var(--util); font-size:11px; font-weight:500; letter-spacing:.16em;
+    text-transform:uppercase; color:var(--text-faint); margin-bottom:12px;
+  }
+  .gancho{
+    font-family:var(--display); font-size:clamp(21px,2.7vw,27px); font-weight:500;
+    line-height:1.28; color:var(--text); margin:14px 0 16px;
+    padding-left:20px; border-left:2px solid var(--accent); text-wrap:balance;
+  }
+  .pilar p{margin:0 0 12px}
+  .campo{
+    display:grid; grid-template-columns:118px 1fr; gap:4px 16px;
+    margin-top:16px; padding-top:14px; border-top:1px dotted var(--rule-soft);
+  }
+  .campo dt{
+    font-family:var(--util); font-size:10.5px; font-weight:600; letter-spacing:.14em;
+    text-transform:uppercase; color:var(--text-faint); padding-top:4px;
+  }
+  .campo dd{margin:0; font-size:15.5px; color:var(--text-soft)}
+
+  /* ── reglas duras ──────────────────────────────────── */
+  .reglas{background:var(--bg-alt); border:1px solid var(--rule-soft); padding:30px 32px; margin-top:38px}
+  .reglas h3{margin-bottom:18px}
+  .reglas ul{list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:15px}
+  .reglas li{padding-left:26px; position:relative; font-size:16px; max-width:70ch}
+  .reglas li::before{
+    content:"✕"; position:absolute; left:0; top:1px;
+    font-family:var(--util); font-size:12px; color:var(--accent); font-weight:600;
+  }
+
+  /* ── tabla chica dentro de un pilar ────────────────── */
+  table.mini{min-width:0; margin:6px 0 16px}
+  table.mini td{padding:9px 16px 9px 0; font-size:15px; border-bottom:1px solid var(--rule-soft)}
+  table.mini tr:last-child td{border-bottom:none}
+  table.mini td:first-child{white-space:normal; width:44%}
+  .tag{
+    display:inline-block; font-family:var(--util); font-size:9.5px; font-weight:600;
+    letter-spacing:.14em; text-transform:uppercase; color:var(--accent);
+    background:var(--accent-wash); padding:3px 8px; border-radius:2px; margin-right:8px;
+    vertical-align:1px;
+  }
+
+  /* ── ejes ──────────────────────────────────────────── */
+  .tabla-wrap{overflow-x:auto; margin:0 0 40px}
+  table{border-collapse:collapse; width:100%; min-width:520px}
+  th,td{text-align:left; padding:13px 18px 13px 0; border-bottom:1px solid var(--rule-soft); vertical-align:top}
+  th{
+    font-family:var(--util); font-size:10.5px; font-weight:600; letter-spacing:.14em;
+    text-transform:uppercase; color:var(--text-faint); border-bottom:1px solid var(--rule);
+  }
+  td{font-size:16px; color:var(--text-soft)}
+  td:first-child{color:var(--text); font-weight:600; white-space:nowrap}
+
+  /* ── personas ──────────────────────────────────────── */
+  .personas{display:grid; gap:22px; grid-template-columns:repeat(auto-fit,minmax(290px,1fr))}
+  .persona{background:var(--bg-alt); border:1px solid var(--rule-soft); padding:26px 26px 28px; display:flex; flex-direction:column}
+  .persona.veto{background:transparent; border-style:dashed}
+  .persona .eyebrow{display:block; margin-bottom:11px}
+  .persona h3{margin-bottom:4px}
+  .persona .quien{font-family:var(--util); font-size:12.5px; color:var(--text-faint); margin:0 0 15px; letter-spacing:.03em}
+  .persona p{font-size:15.5px; margin:0 0 11px; max-width:none}
+  .persona ul{margin:6px 0 0; padding-left:18px; display:flex; flex-direction:column; gap:8px}
+  .persona li{font-size:15px; max-width:none}
+
+  /* ── línea de tiempo de navidad ────────────────────── */
+  .ruta{list-style:none; padding:0; margin:34px 0 0; border-left:1px solid var(--rule)}
+  .ruta li{position:relative; padding:0 0 30px 30px; max-width:64ch}
+  .ruta li:last-child{padding-bottom:0}
+  .ruta li::before{
+    content:""; position:absolute; left:-4.5px; top:7px;
+    width:8px; height:8px; border-radius:50%; background:var(--rule); border:2px solid var(--bg);
+  }
+  .ruta li.hito::before{background:var(--accent); width:10px; height:10px; left:-5.5px}
+  .ruta .mes{
+    font-family:var(--util); font-size:10.5px; font-weight:600; letter-spacing:.16em;
+    text-transform:uppercase; color:var(--text-faint); display:block; margin-bottom:3px;
+  }
+  .ruta li.hito .mes{color:var(--accent)}
+  .ruta b{font-family:var(--display); font-weight:600; font-size:18px; color:var(--text); display:block; margin-bottom:4px}
+  .ruta p{margin:0; font-size:15.5px}
+
+  /* ── alertas ───────────────────────────────────────── */
+  .alerta{border-top:1px solid var(--rule-soft); padding:22px 0}
+  .alerta:first-of-type{border-top:2px solid var(--text)}
+  .alerta h3{font-size:18px; display:flex; gap:11px; align-items:baseline}
+  .alerta h3 span{font-family:var(--util); font-size:11px; font-weight:600; color:var(--accent); letter-spacing:.14em}
+  .alerta p{margin:6px 0 0; font-size:15.5px}
+
+  .cierre{margin-top:60px; padding-top:26px; border-top:2px solid var(--text)}
+  .cierre p{font-family:var(--util); font-size:13px; color:var(--text-faint); letter-spacing:.03em}
+
+  @media (max-width:640px){
+    body{font-size:16px}
+    .wrap{padding:0 20px 72px}
+    .pilar{grid-template-columns:1fr; gap:0}
+    .pilar-idx{font-size:26px; padding-bottom:8px}
+    .campo{grid-template-columns:1fr; gap:2px}
+    .campo dt{padding-top:10px}
+  }
+  @media (prefers-reduced-motion:reduce){*{animation:none!important; transition:none!important}}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="status">Decidido · ya está en el repositorio</div>
+    <h1>Pilares y personas</h1>
+    <p class="standfirst">Cómo hablamos de Vitácora Familiar: las cuatro puertas por las que entra un cliente, y quiénes son. Cerrado en la sesión del 10 de septiembre, junto con el modelo de cobro y el ángulo de lanzamiento.</p>
+    <div class="meta">
+      <span>10 de septiembre de 2026</span>
+      <span>Puntos 3.4 y 3.5 del roadmap</span>
+      <span>Reemplaza los tres pilares del spec del 05/09</span>
+      <span>identidad-de-marca.md §7 y §8</span>
+    </div>
+  </header>
+
+  <section>
+    <div class="eyebrow">Primera parte</div>
+    <h2>Los cuatro pilares</h2>
+    <p class="lede">Están numerados porque es una secuencia real del embudo: el primero abre, el segundo da sentido, el tercero vende y el cuarto sostiene el precio. No son cuatro formas de decir lo mismo — cada uno tiene un trabajo que los otros no hacen.</p>
+
+    <article class="pilar">
+      <div class="pilar-idx">1</div>
+      <div>
+        <div class="pilar-rol">El que abre · capta la atención</div>
+        <h3>Lo que se pierde</h3>
+        <p class="gancho">Las fotos quedan. Los recuerdos se van.</p>
+        <p>Tenés mil fotos de tu abuelo y ni una sola de sus historias. La cara se guarda sola: el celular la guarda, el álbum la guarda. La voz, lo que vivió y cómo lo cuenta, no las guarda nadie.</p>
+        <dl class="campo">
+          <dt>Contra qué compite</dt><dd>El álbum de fotos, el celular lleno de fotos, el «algún día le pregunto».</dd>
+          <dt>Dónde vive</dt><dd>Hooks de reels, primera línea de los ads, apertura de la landing.</dd>
+        </dl>
+      </div>
+    </article>
+
+    <article class="pilar">
+      <div class="pilar-idx">2</div>
+      <div>
+        <div class="pilar-rol">El que da sentido · y destraba al abuelo</div>
+        <h3>Lo que se hereda</h3>
+        <p class="gancho">Ochenta años de aprender, y hoy vive todo en una sola cabeza.</p>
+        <p>No es nostalgia: es transmisión. Lo que aprendió en toda una vida le sirve a los <strong>descendientes</strong> — a los hijos, a los nietos, a los que todavía no nacieron.</p>
+        <p><strong>El corazón del producto está acá.</strong> El día que él no esté, sus historias no se pueden volver a pedir. Solo siguen existiendo si alguien las guardó a tiempo. Es el único valor que crece con los años, y es el que justifica el precio mejor que ningún otro.</p>
+        <p><strong>Es también el único pilar que le habla al narrador.</strong> A un abuelo, «contá tu vida» le suena a vanidad y se planta. «Esto es para los que vienen» le suena a deber, y ahí acepta. Es el argumento que desarma el veto.</p>
+        <dl class="campo">
+          <dt>Dónde vive</dt><dd>La sección de sentido de la landing, el mensaje que le reenviás al abuelo, el contenido orgánico.</dd>
+        </dl>
+      </div>
+    </article>
+
+    <article class="pilar">
+      <div class="pilar-idx">3</div>
+      <div>
+        <div class="pilar-rol">El que vende · ángulo del lanzamiento</div>
+        <h3>El regalo que no existía</h3>
+        <p class="gancho">Este año, algo que no se puede comprar hecho.</p>
+        <p>Todos los años el mismo problema y todos los años lo mismo: una taza, una bufanda, un marco con una foto. Este año hay algo que antes no existía — la historia de la familia, y un pedazo de esa historia para cada uno.</p>
+        <p><strong>Y se multiplica solo:</strong> un libro, y un cuadro con NFC para cada primo y cada tío. Todos escuchan la misma voz el mismo día.</p>
+        <dl class="campo">
+          <dt>Dónde vive</dt><dd>La campaña de octubre a diciembre. Es el ángulo con el que sale el producto.</dd>
+        </dl>
+      </div>
+    </article>
+
+    <article class="pilar">
+      <div class="pilar-idx">4</div>
+      <div>
+        <div class="pilar-rol">El que sostiene el precio</div>
+        <h3>El libro</h3>
+        <p class="gancho">Una vida merece un libro.</p>
+        <p><strong>«El libro» es la obra, no el papel.</strong> Se entrega en tres formatos y los tres son el libro:</p>
+        <table class="mini">
+          <tbody>
+            <tr><td>PDF</td><td>Base, incluido</td></tr>
+            <tr><td>Audiolibro con su voz real</td><td>Base, incluido</td></tr>
+            <tr><td>Libro impreso</td><td><span class="tag">Upsell</span> hay que comunicarlo, no darlo por incluido</td></tr>
+          </tbody>
+        </table>
+        <p>El impreso lleva un <strong>QR en la contratapa</strong> que hace sonar su voz. Ese detalle es lo que nadie más tiene en castellano.</p>
+        <dl class="campo">
+          <dt>Dónde vive</dt><dd>Fotos de páginas reales, la sección de precio, los upsells.</dd>
+          <dt>Nota</dt><dd>«Una vida merece un libro» ya estaba aprobada como frase. Este es su lugar definitivo.</dd>
+        </dl>
+      </div>
+    </article>
+
+    <div class="reglas">
+      <h3>Reglas duras de escritura</h3>
+      <ul>
+        <li><strong>Nunca la muerte.</strong> El enemigo es el olvido, no el final. «Se va con él» sí; «antes de que se muera» no. Además, Meta frena los anuncios que dan por sentada una circunstancia personal de quien mira.</li>
+        <li><strong>Nunca «el libro de tu vida»</strong> cuando el narrador es otro. El libro es de la vida del abuelo. La forma segura es «el libro de una vida».</li>
+        <li><strong>Nunca prometer que el abuelo va a disfrutarlo.</strong> Prometemos que para él va a ser fácil. Lo otro no lo controlamos.</li>
+        <li><strong>«Antecesores» no.</strong> Los antecesores son los que vinieron antes. Se dice <strong>descendientes</strong>, «los que vienen», «tus hijos», «tus nietos».</li>
+        <li><strong>«El libro» nunca significa solo el impreso.</strong> Si la pieza habla del objeto físico, tiene que decir que es un upsell.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">Segunda parte</div>
+    <h2>Quién compra</h2>
+    <p class="lede">Antes de las personas hace falta separar cuatro cosas que veníamos mezclando en una sola lista de «targets». Mezclarlas es lo que hace que una página le hable a todos y no convierta a nadie.</p>
+
+    <div class="tabla-wrap">
+      <table>
+        <thead><tr><th>Eje</th><th>Quién / cuándo</th><th>Qué decide</th></tr></thead>
+        <tbody>
+          <tr><td>Quién paga</td><td>La nieta o el hijo, 30 a 55 años</td><td>El copy de la landing y los ads</td></tr>
+          <tr><td>Quién narra</td><td>El abuelo o el padre, 70 a 90</td><td>El copy de WhatsApp y lo que se le reenvía a él</td></tr>
+          <tr><td>Cuándo compra</td><td>Navidad — de octubre a diciembre</td><td>La campaña y la estacionalidad</td></tr>
+          <tr><td>Por qué compra</td><td>Pilares 1 y 3</td><td>El gancho de cada pieza</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="reglas" style="margin-top:0;margin-bottom:40px">
+      <h3>Cómo se usa, en la práctica</h3>
+      <p style="margin:0 0 4px"><strong>Antes de escribir cualquier pieza se responde una sola pregunta: ¿a qué eje le habla?</strong></p>
+      <p style="margin:0">Una pieza que le habla a dos ejes a la vez no convierte a ninguno — se parte en dos piezas. Es la diferencia entre un anuncio para Martina y un mensaje para su abuelo: los dos hablan del mismo producto y no se parecen en nada.</p>
+    </div>
+
+    <div class="personas">
+
+      <article class="persona">
+        <span class="eyebrow">Principal</span>
+        <h3>Martina, 42</h3>
+        <p class="quien">Compra · nieta / hija · organiza la Navidad</p>
+        <p>Tiene el celular lleno de fotos del abuelo y ninguna de sus historias. Todos los años dice «hay que grabarlo antes de que se le olvide» y todos los años no pasa.</p>
+        <ul>
+          <li>Compra el libro <strong>para ella</strong>, sobre la vida de su abuelo. No es un regalo para él.</li>
+          <li><strong>Pero no solo para ella:</strong> lo compra para que dentro de veinte años sus hijos tengan dónde ir a buscar las historias de su bisabuelo. <strong>Es el argumento más fuerte que tenemos — decilo explícito, no lo insinúes.</strong></li>
+          <li>En diciembre reparte cuadros con NFC a primos y tíos.</li>
+          <li><strong>Su miedo no es el precio: es que él no quiera o no sepa.</strong> Se le saca mostrándole que él solo manda un audio de WhatsApp.</li>
+          <li><strong>Lo que cierra la venta:</strong> ver la previsualización real a los tres días. Ya no se lo imagina, lo está leyendo.</li>
+        </ul>
+      </article>
+
+      <article class="persona">
+        <span class="eyebrow">Secundaria · conversión alta</span>
+        <h3>El Cormillot, 60&nbsp;a&nbsp;80</h3>
+        <p class="quien">Compra y narra · se hace su propio libro</p>
+        <p>Hombre con obra propia, o con una vida que da para un libro, y consciencia del tiempo que le queda. Sabe que su historia vale.</p>
+        <ul>
+          <li><strong>Decide y compra solo.</strong> No tiene que convencer a nadie: mucha conversión, poco volumen.</li>
+          <li>No hay que venderle el producto. Hay que convencerlo de que <strong>la escritura va a estar a la altura</strong>.</li>
+          <li>Por eso a él se le muestra <strong>una página real</strong>, no una promesa.</li>
+          <li>En la landing no es el caso principal: se lo nombra para que se reconozca.</li>
+        </ul>
+      </article>
+
+      <article class="persona">
+        <span class="eyebrow">Consecuencia del ángulo · llega en enero</span>
+        <h3>El primo del cuadro</h3>
+        <p class="quien">Compra · recibió el marco en Navidad</p>
+        <p>Acercó el celular al cuadro, escuchó a su abuelo contando algo que no sabía, y ahora quiere el libro impreso.</p>
+        <ul>
+          <li><strong>Costo de adquisición: cero.</strong> Ya vio el producto entero funcionando.</li>
+          <li>Es la venta más barata que vamos a tener, y sale directo del ángulo de Navidad.</li>
+          <li>Lo que necesita es <strong>una reimpresión</strong>, no una entrevista nueva. Producto distinto, mucho más barato de servir.</li>
+        </ul>
+      </article>
+
+      <article class="persona veto">
+        <span class="eyebrow">No paga · tiene derecho de veto</span>
+        <h3>Don Roberto, 78</h3>
+        <p class="quien">Narra · el abuelo</p>
+        <p>Si dice «dejate de joder con eso», no hay libro. Es el único que puede terminar la venta sin haberla empezado.</p>
+        <ul>
+          <li><strong>Lo destraba el pilar 2:</strong> «es para tus nietos», nunca «contá tu vida».</li>
+          <li><strong>Lo espanta:</strong> una app, una cámara, sentirse un caso de estudio.</li>
+          <li>Puede caer en la landing porque se la mandaron. Que no encuentre nada que lo asuste.</li>
+        </ul>
+      </article>
+
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">Tercera parte</div>
+    <h2>El ángulo de Navidad</h2>
+    <p class="lede">El flujo completo, de la primera publicidad a la venta de rebote. Es lo que la landing tiene que preparar.</p>
+
+    <ol class="ruta">
+      <li class="hito">
+        <span class="mes">15 de octubre</span>
+        <b>Sale el producto</b>
+        <p>Empieza a comunicarse como el gran regalo de estas fiestas. Hay tiempo de sobra: entre que se compra y llega diciembre entran los 30 días de entrevista y la producción de lo físico.</p>
+      </li>
+      <li>
+        <span class="mes">Octubre a noviembre</span>
+        <b>Martina compra para ella</b>
+        <p>Pone la tarjeta el día cero y arranca la prueba. Elige a su abuelo como narrador y, si quiere los cuadros, carga las fotos ahí mismo.</p>
+      </li>
+      <li>
+        <span class="mes">Los 30 días siguientes</span>
+        <b>El abuelo cuenta</b>
+        <p>Una pregunta por día por WhatsApp. Ella va viendo la previsualización crecer mientras él responde. Nosotros, en paralelo, producimos los marcos y la impresión.</p>
+      </li>
+      <li>
+        <span class="mes">Diciembre</span>
+        <b>Llega todo junto</b>
+        <p>El libro impreso, el audiolibro, y un cuadro con NFC para cada familiar de la lista.</p>
+      </li>
+      <li class="hito">
+        <span class="mes">24 de diciembre</span>
+        <b>La familia escucha la misma voz el mismo día</b>
+        <p>Cada uno acerca el celular a su cuadro y escucha al abuelo. Este es el momento del producto — y es también el anuncio más caro que nunca vamos a pagar.</p>
+      </li>
+      <li>
+        <span class="mes">Enero</span>
+        <b>Los primos piden su copia</b>
+        <p>Reimpresiones a costo de adquisición cero. Y algunos se llevan la idea a su otra rama de la familia.</p>
+      </li>
+    </ol>
+  </section>
+
+  <section>
+    <div class="eyebrow">Cuarta parte</div>
+    <h2>Lo que estas decisiones obligan</h2>
+    <p class="lede">Nada de esto es un freno: es lo que hay que tocar para que lo decidido funcione. Va acá para que no aparezca a último momento.</p>
+
+    <div class="alerta">
+      <h3><span>01</span> Se cae «Empezar gratis»</h3>
+      <p>El CTA aprobado dejó de ser cierto el día que entró la tarjeta. <strong>Propuesta: «Probar gratis»</strong>, con microcopy fijo debajo: <em>«Sin cargo hasta el primer capítulo. Cancelás cuando quieras.»</em> Falta que lo aprueben los dos.</p>
+    </div>
+
+    <div class="alerta">
+      <h3><span>02</span> Mercado Pago pasa al camino crítico</h3>
+      <p>Tarjeta guardada más período de prueba es bastante más que un pago único, y la tarea todavía no arrancó. Sin eso no hay día cero — y sin día cero no hay landing que valga.</p>
+    </div>
+
+    <div class="alerta">
+      <h3><span>03</span> Los saludos: hecho la mitad</h3>
+      <p>Ya salieron del entrevistador: el cierre se despide y listo, con los tests actualizados. <strong>Falta el lado de <em>web/</em></strong> — son once archivos. La tabla se deja en la base: no cuesta nada y la fase 2 puede revivirlos como material <em>sobre</em> el narrador.</p>
+    </div>
+
+    <div class="alerta">
+      <h3><span>04</span> Las fotos son el único problema abierto</h3>
+      <p>Los proveedores están resueltos. Lo que falta es el camino de la foto: hoy el narrador tiene <strong>una sola</strong>, la de portada. Hace falta una tabla nueva — y eso toca el contrato de datos, así que lo acuerdan los dos.</p>
+      <p><strong>Dos cosas que conviene decidir bien de entrada:</strong> pedirlas <em>en la previsualización de cada capítulo</em>, que es cuando ella está más enganchada, en vez de un formulario de veinte fotos el día cero. Y <strong>subir el original sin recomprimir</strong>: un marco de 20×25 cm pide unos 2400×3000 px, y el error clásico es que la web achique la foto antes de subirla y después no alcance para imprimir.</p>
+    </div>
+
+    <div class="alerta">
+      <h3><span>05</span> El lanzamiento se mueve al 15 de octubre</h3>
+      <p>Lo pedía el ángulo de Navidad. El roadmap ya está actualizado, con una semana 5 nueva.</p>
+    </div>
+
+    <div class="alerta">
+      <h3><span>06</span> Hay que rehacer la cuenta de los ads</h3>
+      <p>Los escenarios de <em>GASTOS.md</em> están calculados sobre el freemium de 30 días. Con el cobro el día cero, el costo por lote baja fuerte: la IA de las entrevistas y el WhatsApp solo se gastan en quien pasó la prueba. Los números viejos subestiman el margen.</p>
+    </div>
+  </section>
+
+  <div class="cierre">
+    <p>Vitácora Familiar · sesión del 10 de septiembre de 2026 · en el repositorio: <em>docs/identidad-de-marca.md</em> §7 y §8, <em>docs/flujo-y-monetizacion.md</em> §6, <em>docs/brief-landing.md</em></p>
+  </div>
+
+</div>
+
+</body>
+</html>
