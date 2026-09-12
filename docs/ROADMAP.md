@@ -361,8 +361,9 @@ producto esté andando y se pueda pulir la estética completa.
 
 #### Lo que se decidió el 10/09
 
-1. **Cobro el día cero con tarjeta**, prueba gratis hasta terminar el capítulo 1
-   (~3 preguntas, ~3 días). Se cae "Empezar gratis".
+1. ~~Cobro el día cero con tarjeta, prueba gratis hasta el capítulo 1~~ →
+   **ACTUALIZADO el 11/09: pago directo por adelantado, pago único.** La prueba
+   gratis queda como experimento futuro. CTA: "Comprar el libro".
 2. **Previsualización progresiva:** ella ve el libro creciendo mientras él responde.
 3. **Panel multi-narrador ahora** (se arregla el `limit(1)`).
 4. **Todos los upsells entran:** PDF + audiolibro (base), impreso B/N, impreso a
@@ -531,7 +532,7 @@ al algoritmo a buscar curiosos en vez de compradores.
 
 | # | Tarea | Quién | Estado |
 |---|---|---|---|
-| 8.1 | Cuenta de Mercado Pago + credenciales + webhook — **con tarjeta guardada y período de prueba**, no pago único | **J** | ☐ **camino crítico** |
+| 8.1 | Cuenta de Mercado Pago + `MP_ACCESS_TOKEN` en Vercel + webhook a `/api/webhooks/mercadopago` — **pago único** (el código ya existe) | **J** | ☐ **camino crítico** |
 | 8.2 | Configurar `PRECIO_ARS` | **N** | ☐ |
 | 8.3 | Prueba de pago en sandbox de punta a punta | **A** | ☐ |
 | 8.4 | **Averiguar si Naza puede darse de alta como autónomo en España y abrir Stripe** — reabre el mercado de 49€ | **N** | ☐ **urgente** |
@@ -612,7 +613,7 @@ queda para después del lanzamiento.
 - ¿Naza puede abrir Stripe como autónomo español? (**destraba España a 49€**) — confirmar
 - ¿Quién es el narrador argentino del piloto?
 - Sesión de textos y de branding: fecha
-- ~~¿Cuál es el momento de cobro?~~ → **día cero con tarjeta, prueba hasta el capítulo 1** (10/09)
+- ~~¿Cuál es el momento de cobro?~~ → **pago directo por adelantado** (11/09)
 - ~~¿Se arregla el `limit(1)` del tablero?~~ → **sí, ahora** (10/09)
 - **¿Cómo llegan las fotos de Martina a cada capítulo, en calidad de impresión?** (Frente 3bis)
 - **¿Quién saca los saludos de `web/`?** — en `entrevistador/` ya salieron

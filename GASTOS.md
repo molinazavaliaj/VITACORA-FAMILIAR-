@@ -49,31 +49,27 @@ La entrevista gasta día a día — el que abandona el día 5 costó ~USD 1, no 
 costo completo solo lo paga quien llegó al final… que es justo el que más
 probablemente compra (30 días de vínculo emocional + el libro ya existe).
 
-## 💳 El modelo de cobro — DECIDIDO el 2026-09-10
+## 💳 El modelo de cobro — DECIDIDO el 2026-09-11
 
-**Se acabó el "empezar gratis".** El usuario pone la tarjeta el **día cero** y
-tiene una **prueba gratis hasta terminar el capítulo 1** (unas 3 preguntas, unos
-3 días). Si cancela antes, no se le cobra nada.
+**Pago directo por adelantado.** El usuario paga al comprar, pago único, y accede al
+servicio. Sin prueba gratis, sin tarjeta guardada.
 
-**Por qué se decidió así:**
+**Historia:** freemium de 30 días (01/09) → tarjeta + prueba hasta el capítulo 1
+(10/09) → **pago directo (11/09, los dos socios)**. La prueba gratis queda como
+**experimento futuro**: con datos de venta se evalúa si unos días de prueba venden más.
 
-- **Se cobra en el pico de atención**, no 30 días después. La persona llega
-  desde un anuncio con el deseo arriba; pedirle la tarjeta ahí es más fácil que
-  pedírsela cuando ya se enfrió.
-- **El costo de un curioso se desploma:** de ~USD 2-4 promedio a **~USD 0.30**.
-  Quien abandona en la prueba nos costó tres preguntas, no media entrevista.
-- **La prueba vale sola:** ella ve la **previsualización creciendo** mientras su
-  abuelo responde. Al tercer día no se está imaginando el producto — lo está
-  leyendo. Ese es el momento de la conversión.
-- **Filtra sin matar la promesa.** Sigue habiendo prueba gratis; lo que ya no hay
-  es 30 días de tokens regalados a alguien que nunca pensó comprar.
+**Por qué:**
+- Es lo más simple de construir y ya está implementado (PR #1 de Naza).
+- **El costo de un curioso es cero.** Nadie entra sin pagar; toda la IA se gasta
+  en clientes.
+- El anticipo a la 3ª respuesta pasa de palanca de conversión a **primer momento
+  de alegría de quien ya pagó**.
 
-**El momento D (día 30) deja de ser el momento de cobro y pasa a ser el momento
-de los upsells**, cuando el libro ya existe y ella lo tiene en la mano.
+**Precios sin correlación entre monedas:** `PRECIO_EUR` y `PRECIO_ARS` son
+independientes. Argentina puede ser más barata para vender más.
 
-> **Nota:** esto reemplaza la regla del 2026-09-05 que decía "no tocar el modelo
-> hasta tener los datos de los 3 pilotos". Los dos socios la dieron de baja el
-> 10/09: se decide ahora y se ajusta con los datos, en vez de esperarlos.
+> Reemplaza la regla del 05/09 ("no tocar el modelo hasta los pilotos"), dada de
+> baja el 10/09.
 
 ## 🎁 Catálogo de upsells — TODOS entran (2026-09-10)
 
@@ -110,10 +106,11 @@ Lectura: a 49€ solo-digital, los ads exigen convertir >1 de cada 7. Con ticket
 alto hay margen de error. Los pilotos + una campañita chica deben medir LOS TRES
 números: costo real por registro, % que completa, % que compra.
 
-> ⚠️ **Estos escenarios son del modelo viejo (freemium de 30 días).** Con el cobro
-> el día cero decidido el 10/09, el costo del lote baja fuerte: los 220€ de IA de
-> las entrevistas y los 100€ de WhatsApp solo se gastan en quien pasó la prueba.
-> **Hay que rehacer la cuenta** — queda pendiente.
+> ⚠️ **Estos escenarios son del modelo viejo (freemium de 30 días).** Con el pago
+> directo del 11/09, los 220€ de IA y los 100€ de WhatsApp del lote **solo se
+> gastan en quien pagó**: el costo por registro gratis desaparece. La cuenta pasa a
+> ser: ads ÷ compras = CAC, contra un margen de ~44€ por venta base más los extras.
+> **Hay que rehacer la tabla** — queda pendiente.
 
 **Palanca 1 — ticket más alto (precios de mercado verificados 2026-09-05):**
 Storyworth cobra $59/$109/$199 CON libro impreso incluido; Remento $99 con tapa

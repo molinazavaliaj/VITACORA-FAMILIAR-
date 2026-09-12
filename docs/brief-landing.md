@@ -24,21 +24,22 @@ y le entrega a su familia **el libro de su vida + el audiolibro con su propia vo
 Cómo funciona de verdad:
 
 1. Martina entra a la web, **anota a su abuelo** (nombre, WhatsApp, hora
-   preferida, contexto) y **deja la tarjeta**. Empieza la **prueba gratis**.
+   preferida, para quién es) y **paga**. Pago único. Sin cuenta previa: la cuenta
+   se crea con el mail de la compra cuando entra por primera vez.
 2. Él recibe un WhatsApp que le explica quién lo anotó y le pide permiso. Sin su
    "sí", no arranca nada.
 3. Cada mañana le llega **una pregunta**. Contesta **con un audio de WhatsApp**,
    como hace todos los días. Nada que instalar, nada que aprender.
 4. Ella ve **la previsualización del libro creciendo** mientras él responde.
-5. **Al terminar el capítulo 1** (unas 3 preguntas, unos 3 días) **termina la
-   prueba y se cobra.** Ahí ya vio páginas reales escritas con la voz de su abuelo.
+5. **A la 3ª respuesta le llega el anticipo por mail:** un link sin login con lo
+   que su abuelo ya contó, escrito, y el audio. Es el primer momento de alegría.
 6. Siguen los 30 días. Al final se entrega **el libro**: PDF + audiolibro con su
    voz real.
 7. **Upsells:** libro impreso (B/N o color, con QR en la contratapa) y **marcos
    con NFC** para repartir en la familia.
 
-**Modelo:** prueba gratis con tarjeta el día cero, cobro al terminar el capítulo 1.
-Pago único de la base + upsells.
+**Modelo:** pago directo por adelantado, único. Base + extras elegidos en el checkout.
+La prueba gratis queda como experimento futuro (decisión del 11/09).
 
 **Precio:** ~ARS 65.000 (Argentina). España queda diferida hasta resolver el cobro.
 
@@ -46,22 +47,20 @@ Pago único de la base + upsells.
 
 ## 2. El objetivo de la landing — leer esto antes de escribir una línea
 
-**La landing consigue que Martina empiece la prueba dejando la tarjeta.**
+**La landing vende el libro.** Punto. Martina paga antes de que su abuelo diga
+una palabra, así que todo lo que está antes del botón existe para que pagar se
+sienta razonable.
 
-No vende el libro (eso pasa tres días después, cuando ve la previsualización) ni
-consigue un alta gratis sin compromiso (eso ya no existe). Todo —el CTA, la
-estructura, el orden de los argumentos— se ordena alrededor de ese único acto.
-
-- **CTA único en toda la página. Propuesta: "Probar gratis"**, con microcopy fijo
-  debajo: *"Sin cargo hasta el primer capítulo. Cancelás cuando quieras."*
-  ⚠️ **A aprobar entre los dos socios** — reemplaza a "Empezar gratis", que dejó
-  de ser cierto el día que entró la tarjeta. Nunca "Comprar", nunca "Ver precios".
-- **La tarjeta es la fricción principal de la página.** Todo lo que está antes del
-  botón existe para que dejarla se sienta razonable: por eso la previsualización
-  aparece explicada **antes** del precio.
-- **Métrica de éxito:** pruebas iniciadas. El evento del pixel es *"empezó la
-  prueba"*, que además ahora cae **dentro** de la ventana de atribución de 7 días
-  de Meta — problema que el modelo viejo no resolvía.
+- **CTA único en toda la página: "Comprar el libro"**, con microcopy fijo debajo:
+  *"Pago único · el libro en PDF y el audiolibro con su voz."* Ya implementado.
+  Nunca "Ver precios", nunca "Empezar".
+- **El pago es la fricción principal, y el miedo de Martina se desarma ANTES.**
+  Por eso "cómo funciona" y "solo tiene que mandar un audio" van segundo y
+  tercero, antes del precio. Si llega al botón todavía pensando "¿y si no quiere?",
+  no compra.
+- **Métrica de éxito:** compras. El evento del pixel es *"compró"*, que cae
+  **dentro** de la ventana de atribución de 7 días de Meta — el modelo freemium
+  original nunca lo lograba.
 - **Fricción mínima en el formulario.** Cada campo extra cuesta altas. Lo
   imprescindible: nombre del narrador, su WhatsApp, hora preferida, email de quien
   lo anota. Los datos de contexto pueden pedirse después del alta.
@@ -127,8 +126,8 @@ Estas frases están cerradas. **No inventar variantes** sin pasar por los dos so
 |---|---|
 | **Hero, titular** | En cada familia hay un libro sin escribir. |
 | **Hero, bajada** | Un biógrafo entrevista y escribe el libro de una vida. La de tu papá, la de tu abuela, la tuya. |
-| **CTA** | Probar gratis ⚠️ *a aprobar — reemplaza a "Empezar gratis"* |
-| **Microcopy del CTA** | Sin cargo hasta el primer capítulo. Cancelás cuando quieras. |
+| **CTA** | Comprar el libro |
+| **Microcopy del CTA** | Pago único · el libro en PDF y el audiolibro con su voz. |
 | **Sección emocional** | Hay preguntas que un día ya no se pueden hacer. |
 | **Sección del objeto** | Una vida merece un libro. |
 | **Cierre / pie** | Para las vidas que merecen su propio libro |
@@ -171,8 +170,8 @@ la página, no escondida en un FAQ colapsado.
 | **"¿Y si no quiere / le da vergüenza?"** | Le pedimos permiso antes de empezar y él decide. Puede parar cuando quiera y retomar cuando quiera |
 | **"¿Quién escucha los audios de mi papá?"** | Solo su familia. Los audios son privados, se usan únicamente para su libro, y se pueden borrar todos cuando quiera |
 | **"¿Y si empieza y no termina?"** | Los 30 días son 30 preguntas, no 30 días de calendario: si un día no contesta, la pregunta espera. Y con 10 respuestas ya se puede hacer el libro |
-| **"¿Cuánto sale?"** | Decirlo claro y temprano. La prueba es gratis hasta el primer capítulo; ahí se cobra, y recién entonces se ve el precio de los upsells |
-| **"¿Por qué me piden la tarjeta si es gratis?"** | Porque cada entrevista tiene un costo real desde el primer día. No se cobra nada hasta el primer capítulo y se cancela con un clic |
+| **"¿Cuánto sale?"** | Decirlo claro y temprano, con los extras a la vista. Pago único |
+| **"¿Y si mi papá no quiere seguir?"** | Es la objeción del pago por adelantado. Respuesta honesta: con 10 respuestas o más se arma el libro con lo que hay; lo grabado nunca se pierde. Ver política de devolución en términos |
 
 **Sobre el precio: no lo escondas.** Con un producto emocional y desconocido, no
 mostrar el precio se lee como trampa. El encuadre correcto es el competidor:

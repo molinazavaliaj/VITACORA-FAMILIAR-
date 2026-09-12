@@ -131,22 +131,35 @@ quiere el libro. Es el único upsell que además trae ventas nuevas.
 
 ## 6. Las decisiones — 2026-09-10
 
-### 6.1 · Cobro el día cero, con prueba hasta el fin del capítulo 1
+### 6.1 · Pago directo por adelantado — ACTUALIZADO el 11/09
 
-**El usuario pone la tarjeta al registrarse** y tiene **prueba gratis hasta que
-su narrador termina el capítulo 1** (unas 3 preguntas, unos 3 días). Si cancela
-antes, no se le cobra.
+**El usuario paga al comprar.** Pago único, sin prueba gratis, sin tarjeta guardada.
+El acceso al servicio es el acceso a algo ya pagado.
 
-Es la opción **C del cuadro de arriba, adelantada al momento A**: se pide el
-compromiso cuando la atención está alta (recién llegado del anuncio) y se cobra
-cuando ya vio la prueba (la previsualización del capítulo 1).
+> **Historia de esta decisión:** el 10/09 se había acordado "tarjeta el día cero +
+> prueba gratis hasta el capítulo 1". El 11/09 los dos socios lo simplificaron a
+> pago directo. **La prueba gratis queda como experimento futuro:** cuando haya
+> datos de venta, se evalúa si dar unos días de prueba vende más.
 
-**Lo que cambia en el copy:** se cae **"Empezar gratis"**. Ahora es una **prueba
-gratis**, y hay que decir con todas las letras qué pasa cuando termina.
+**Por qué directo:**
+- Es el modelo más simple de construir: pago único en Mercado Pago / Stripe, sin
+  tarjeta guardada ni período de prueba. Ya está implementado (PR #1).
+- El costo de un curioso es **cero**: nadie entra sin pagar.
+- La previsualización a la 3ª respuesta (el "anticipo") deja de ser la palanca de
+  conversión y pasa a ser **el primer momento de alegría de quien ya pagó**: le
+  llega por mail, sin login, con lo que su abuelo ya contó.
 
-**Lo que cambia en el producto:** hace falta cobro con tarjeta guardada y período
-de prueba en Mercado Pago — bastante más que un pago único. **Pasa a camino
-crítico** (tarea 8.1 del ROADMAP).
+**Lo que queda pendiente de esta decisión:** el miedo de Martina ("¿y si mi papá
+no quiere?") ahora se desarma **antes del pago**, en la landing. Por eso "cómo
+funciona" y "solo tiene que mandar un audio" van segundo y tercero.
+
+**El copy:** el CTA es **"Comprar el libro"** con microcopy *"Pago único · el libro
+en PDF y el audiolibro con su voz"*. Ya está en `web/src/app/page.tsx`.
+
+**Precios sin correlación entre monedas.** `PRECIO_EUR` y `PRECIO_ARS` son
+independientes (ya es así en `web/src/lib/precios.ts`). Argentina puede ser más
+barata para ser más accesible y vender más. La región la elige el comprador en el
+paso 2 del checkout, y eso decide moneda, monto y pasarela (Stripe / Mercado Pago).
 
 ### 6.2 · Previsualización progresiva
 
@@ -185,9 +198,10 @@ Ver §8. Es lo único de este documento que todavía no tiene solución cerrada.
 ## 7. Lo que ya no aplica
 
 - ~~"No tocar el modelo hasta tener los datos de los 3 pilotos"~~ (regla del
-  05/09). **Dada de baja por los dos socios el 10/09.** Se decide ahora y se
-  ajusta con los datos, en vez de esperarlos.
-- ~~El CTA "Empezar gratis"~~ del brief de la landing.
+  05/09). **Dada de baja por los dos socios el 10/09.**
+- ~~Freemium de 30 días~~ (01/09) → ~~tarjeta + prueba hasta el cap. 1~~ (10/09) →
+  **pago directo por adelantado (11/09)**.
+- ~~El CTA "Empezar gratis"~~ y ~~"Probar gratis"~~ → **"Comprar el libro"**.
 - ~~Los saludos como canal de adquisición a 0€.~~ Los reemplazan los marcos NFC.
 
 ---
