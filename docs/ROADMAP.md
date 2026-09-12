@@ -533,13 +533,13 @@ al algoritmo a buscar curiosos en vez de compradores.
 | # | Tarea | Quién | Estado |
 |---|---|---|---|
 | 8.1 | Cuenta de Mercado Pago + `MP_ACCESS_TOKEN` en Vercel + webhook a `/api/webhooks/mercadopago` — **pago único** (el código ya existe) | **J** | ☐ **camino crítico** |
-| 8.2 | Configurar `PRECIO_ARS` | **N** | ☐ |
+| 8.2 | Cargar en Vercel los 8 precios definidos el 12/09 (tabla en `GASTOS.md`) | **N** | ☐ **Joaquín se los pasa** |
 | 8.3 | Prueba de pago en sandbox de punta a punta | **A** | ☐ |
 | 8.4 | **Averiguar si Naza puede darse de alta como autónomo en España y abrir Stripe** — reabre el mercado de 49€ | **N** | ☐ **urgente** |
 | 8.5 | Si 8.4 es no: evaluar merchant of record (Paddle / Lemon Squeezy) y si paga a Argentina | **J** | ☐ post 1-oct |
 
-**Precio: ~ARS 65.000.** Es lo que sale hoy en Argentina un libro de preguntas que el abuelo
-tiene que **llenar a mano**. Mismo precio, producto incomparablemente mejor: responde por
+**Precio base: ARS 85.750 / 49 €** (definido el 12/09; antes se hablaba de ~65.000, a la par del
+competidor de llenar a mano). Mismo precio, producto incomparablemente mejor: responde por
 audio de WhatsApp, recibe un libro de editorial, y su voz se escucha por QR/NFC.
 Decisión del 2026-09-04.
 

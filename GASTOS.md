@@ -71,18 +71,24 @@ independientes. Argentina puede ser más barata para vender más.
 > Reemplaza la regla del 05/09 ("no tocar el modelo hasta los pilotos"), dada de
 > baja el 10/09.
 
-## 🎁 Catálogo de upsells — TODOS entran (2026-09-10)
+## 🎁 Catálogo y precios — DEFINIDOS el 2026-09-12
 
-Se venden **después** de cobrar la base, y se producen después de venderlos.
-La entrevista dura 30 días: hay tiempo de sobra para producir lo físico, incluso
-los marcos, siempre que las fotos se carguen temprano.
+| Producto | Argentina | España | Variable en Vercel |
+|---|---|---|---|
+| **Base** — PDF + audiolibro | **ARS 85.750** | **49 €** | `PRECIO_ARS` / `PRECIO_EUR` |
+| **Libro impreso B/N** (tapa dura, QR) | ARS 70.000 | 40 € | `PRECIO_IMPRESO_BN_ARS` / `_EUR` |
+| **Libro impreso a color** | ARS 80.500 | 46 € | `PRECIO_IMPRESO_COLOR_ARS` / `_EUR` |
+| **Marco con NFC** (por unidad) | ARS 35.000 | 20 € | `PRECIO_MARCO_ARS` / `_EUR` |
 
-| Producto | Qué es |
-|---|---|
-| **Audiolibro + PDF** | El paquete base digital |
-| **Libro impreso B/N** | El libro físico, con QR en la contratapa |
-| **Libro impreso a color** | Escalón sobre el anterior |
-| **Marcos con NFC** | Varios, para repartir en la familia: se acerca el celular y suena el audiolibro o se abre el PDF |
+Los extras se venden **después** de la base y se producen después de venderse. Un
+extra sin variable cargada **no aparece** en el checkout (regla de `productos.ts`).
+
+**Pendiente: cargarlos en Vercel.** Joaquín no tiene acceso confirmado → se los pasa a
+Naza cuando vuelva. Hasta entonces la landing vende solo la base con los defaults del
+código (ARS 49.999 / 49 €) — **el precio base en producción está desactualizado**.
+
+> Nota: el roadmap del 04/09 decía "~ARS 65.000, a la par del competidor de llenar a
+> mano". El precio definido hoy es ARS 85.750. Decisión de los socios del 12/09.
 
 **El QR de la contratapa** es parte del producto base impreso, no un extra:
 lleva al audiolibro y deja escuchar fragmentos con la voz real.
