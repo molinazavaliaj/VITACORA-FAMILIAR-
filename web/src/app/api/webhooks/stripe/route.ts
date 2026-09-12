@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
+import { confirmarPago } from "@/lib/confirmar-pago";
+import { enviarMailAcceso } from "@/lib/mail";
 
 // Stripe firma cada request con STRIPE_WEBHOOK_SECRET; constructEvent es lo
 // que valida esa firma contra el cuerpo crudo (sin parsear) del request.
@@ -23,19 +25,18 @@ export async function POST(request: NextRequest) {
     const pedidoId = session.metadata?.pedido_id;
 
     if (pedidoId) {
-      const admin = crearClienteServidor();
-      const { error } = await admin
-        .from("pedidos")
-        .update({ estado: "pagado", referencia_externa: session.id })
-        .eq("id", pedidoId)
-        .eq("estado", "pendiente");
-
-      if (error) {
-        // Un error acá es NUESTRO (la base, no la notificación) — devolver
-        // 500 para que Stripe reintente, en vez de un 200 que lo daría por
-        // hecho y dejaría el pedido cobrado pero marcado "pendiente" para
-        // siempre.
-        console.error("webhook stripe: fallo actualizar el pedido", error);
+      // Todo lo que significa "pagó" vive en confirmarPago (pedido, narrador,
+      // mail de acceso). Un error ahí es NUESTRO (la base, no la
+      // notificación) — devolver 500 para que Stripe reintente, en vez de un
+      // 200 que lo daría por hecho y dejaría el pedido cobrado pero marcado
+      // "pendiente" para siempre.
+      const resultado = await confirmarPago(crearClienteServidor(), {
+        pedidoId,
+        referenciaExterna: session.id,
+        enviarMailAcceso,
+      });
+      if (!resultado.ok) {
+        console.error("webhook stripe: fallo confirmar el pago", resultado.error);
         return NextResponse.json({ error: "No se pudo actualizar el pedido." }, { status: 500 });
       }
     }

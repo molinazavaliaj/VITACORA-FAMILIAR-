@@ -123,10 +123,10 @@ export function FormularioNombres({ entidades }: { entidades: EntidadPrefill[] }
 
       {guardado ? (
         <Link
-          href="/comprar"
+          href="/tablero/descarga"
           className="text-sm font-medium text-zinc-900 underline underline-offset-2"
         >
-          Siguiente paso: ver la previsualización →
+          Siguiente paso: su libro →
         </Link>
       ) : null}
     </div>

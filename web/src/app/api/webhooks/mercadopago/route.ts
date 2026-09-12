@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { MercadoPagoConfig, Payment } from "mercadopago";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
+import { confirmarPago } from "@/lib/confirmar-pago";
+import { enviarMailAcceso } from "@/lib/mail";
 
 // Mercado Pago no firma la notificación como Stripe: la "autenticación" acá
 // es que consultamos el pago DIRECTO contra la API de MP con nuestro propio
@@ -40,18 +42,17 @@ export async function POST(request: NextRequest) {
   // trae referencia, es una notificación irrelevante de verdad (pago
   // rechazado, pendiente, etc.) — un 200 es correcto.
   if (payment.status === "approved" && payment.external_reference) {
-    const admin = crearClienteServidor();
-    const { error } = await admin
-      .from("pedidos")
-      .update({ estado: "pagado", referencia_externa: String(payment.id) })
-      .eq("id", payment.external_reference)
-      .eq("estado", "pendiente");
-
-    if (error) {
-      // Un error acá es NUESTRO (la base, no la notificación) — devolver
-      // 500 para que MP reintente, en vez de un 200 que lo daría por hecho
-      // y dejaría el pedido cobrado pero marcado "pendiente" para siempre.
-      console.error("webhook mercadopago: fallo actualizar el pedido", error);
+    // Misma confirmación que Stripe: pedido, narrador y mail de acceso en un
+    // solo lugar. Un error ahí es NUESTRO (la base, no la notificación) —
+    // devolver 500 para que MP reintente, en vez de un 200 que lo daría por
+    // hecho y dejaría el pedido cobrado pero marcado "pendiente" para siempre.
+    const resultado = await confirmarPago(crearClienteServidor(), {
+      pedidoId: payment.external_reference,
+      referenciaExterna: String(payment.id),
+      enviarMailAcceso,
+    });
+    if (!resultado.ok) {
+      console.error("webhook mercadopago: fallo confirmar el pago", resultado.error);
       return NextResponse.json({ error: "No se pudo actualizar el pedido." }, { status: 500 });
     }
   }

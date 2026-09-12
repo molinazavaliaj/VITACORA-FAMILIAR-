@@ -1,40 +1,38 @@
 import Stripe from "stripe";
 import { MercadoPagoConfig, Preference } from "mercadopago";
-import { obtenerPrecio } from "@/lib/precios";
+import type { Compra } from "@/lib/productos";
 
-// Crea el link de pago (Stripe para ES, Mercado Pago para AR). Los clientes
-// de cada SDK se instancian recién acá adentro para que las variables de
-// entorno se lean en el momento de la llamada, no al importar el módulo.
+// Crea el link de pago (Stripe para ES, Mercado Pago para AR) a partir de una
+// compra ya calculada (productos.ts). Los clientes de cada SDK se instancian
+// recién acá adentro para que las variables de entorno se lean en el momento
+// de la llamada, no al importar el módulo.
+//
+// Pago por adelantado (11/09): el éxito vuelve a /comprar/gracias, no al
+// tablero — la compradora todavía no tiene sesión.
 
-const NOMBRE_PRODUCTO = "Vitácora Familiar — Libro y audiolibro de su vida";
+type Pedido = { id: string; email: string };
 
-type Pedido = { id: string; region: "ES" | "AR"; email: string };
-
-export async function crearCheckout(pedido: Pedido): Promise<{ urlPago: string }> {
+export async function crearCheckout(pedido: Pedido, compra: Compra): Promise<{ urlPago: string }> {
   const urlBase = process.env.URL_BASE;
 
-  if (pedido.region === "ES") {
+  if (compra.region === "ES") {
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
-    const { monto: precioEur } = obtenerPrecio("ES");
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       customer_email: pedido.email,
-      line_items: [
-        {
-          price_data: {
-            currency: "eur",
-            // Math.round: precios con decimales (19.99) dan un *100 no entero
-            // por coma flotante (1998.9999999999998) — Stripe exige centavos
-            // como entero.
-            unit_amount: Math.round(precioEur * 100),
-            product_data: { name: NOMBRE_PRODUCTO },
-          },
-          quantity: 1,
+      line_items: compra.lineas.map((linea) => ({
+        price_data: {
+          currency: "eur",
+          // Math.round: precios con decimales (19.99) dan un *100 no entero
+          // por coma flotante — Stripe exige centavos como entero.
+          unit_amount: Math.round(linea.precioUnitario * 100),
+          product_data: { name: linea.nombre },
         },
-      ],
+        quantity: linea.cantidad,
+      })),
       metadata: { pedido_id: pedido.id },
-      success_url: `${urlBase}/tablero/descarga`,
+      success_url: `${urlBase}/comprar/gracias`,
       cancel_url: `${urlBase}/comprar`,
     });
 
@@ -45,23 +43,20 @@ export async function crearCheckout(pedido: Pedido): Promise<{ urlPago: string }
     return { urlPago: session.url };
   }
 
-  const { monto: precioArs } = obtenerPrecio("AR");
   const client = new MercadoPagoConfig({ accessToken: process.env.MP_ACCESS_TOKEN! });
 
   const preference = await new Preference(client).create({
     body: {
-      items: [
-        {
-          id: "vitacora",
-          title: NOMBRE_PRODUCTO,
-          quantity: 1,
-          unit_price: precioArs,
-          currency_id: "ARS",
-        },
-      ],
+      items: compra.lineas.map((linea) => ({
+        id: linea.id,
+        title: linea.nombre,
+        quantity: linea.cantidad,
+        unit_price: linea.precioUnitario,
+        currency_id: "ARS",
+      })),
       external_reference: pedido.id,
       back_urls: {
-        success: `${urlBase}/tablero/descarga`,
+        success: `${urlBase}/comprar/gracias`,
         failure: `${urlBase}/comprar`,
       },
       auto_return: "approved",

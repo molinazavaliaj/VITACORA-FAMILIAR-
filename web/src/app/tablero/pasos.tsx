@@ -2,7 +2,10 @@ import Link from "next/link";
 
 // El camino del libro, visible en cada pantalla de la etapa final para que la
 // familia siempre sepa dónde está parada y qué le falta. Los números son 1-4.
-const PASOS = ["Su historia", "Los nombres", "Vista previa y pago", "Su libro"] as const;
+// Con el pago por adelantado (11/09) ya no hay paso de pago: se pagó antes de
+// empezar. La vista previa sigue siendo un paso porque es el último "mirá
+// cómo va" antes del libro entero.
+const PASOS = ["Su historia", "Los nombres", "Vista previa", "Su libro"] as const;
 
 export type PasoActual = 1 | 2 | 3 | 4;
 

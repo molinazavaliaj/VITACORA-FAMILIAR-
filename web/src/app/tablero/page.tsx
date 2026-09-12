@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
+import { familiaDelUsuario } from "@/lib/familia";
 import { BannerAlertaSilencio, CierreAnticipado } from "./acciones";
 import { PasosDelLibro, type PasoActual } from "./pasos";
 
@@ -59,11 +60,9 @@ export default async function Tablero() {
 
   const admin = crearClienteServidor();
 
-  const { data: familia, error: errorFamilia } = await admin
-    .from("familias")
-    .select("id")
-    .eq("auth_user_id", user.id)
-    .maybeSingle();
+  // Con el pago por adelantado la familia nace en la compra, sin usuario: la
+  // primera vez que entra, esto la vincula por correo (ver lib/familia.ts).
+  const { familia, error: errorFamilia } = await familiaDelUsuario(admin, user);
 
   if (errorFamilia) {
     console.error("tablero: fallo la busqueda de familia", errorFamilia);
@@ -71,7 +70,8 @@ export default async function Tablero() {
   }
 
   if (!familia) {
-    redirect("/registro");
+    // Entró con un correo que nunca compró nada.
+    redirect("/comprar");
   }
 
   const { data: narradores, error: errorNarradores } = await admin
@@ -199,20 +199,9 @@ export default async function Tablero() {
           </div>
         ) : null}
 
-        {/* Un solo próximo paso a la vez: mientras los nombres estén sin
-            revisar, la única puerta es esa — la compra recién se ofrece
-            después (y el pedido ya hecho lleva directo a la descarga). */}
-        {libroEnMarcha && avisoNombres === "hecho" && !pedidoEnCamino ? (
-          <div className="mb-8">
-            <Link
-              href="/comprar"
-              className="block rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-sm font-medium text-zinc-900 transition-colors hover:bg-zinc-100"
-            >
-              Ver la previsualización y conseguir su libro →
-            </Link>
-          </div>
-        ) : null}
-
+        {/* Un solo próximo paso a la vez. Con el pago por adelantado el
+            pedido existe desde la compra, así que después de los nombres la
+            única puerta es la del libro (en fabricación o listo). */}
         {pedidoEnCamino ? (
           <div className="mb-8">
             <Link

@@ -1,15 +1,59 @@
 @import "tailwindcss";
 
+/* Los tokens de marca, copiados tal cual de docs/design.md §2. Esa es la
+   fuente de verdad: si algo cambia acá y no allá, allá gana.
+
+   Están disponibles en todo el sitio, pero HOY los usa solo la landing. El
+   resto de las pantallas (tablero, registro, entrar) se construyó antes de la
+   marca y todavía no se pasó — cuando se pasen, se usan estos roles y no
+   colores crudos, así una pieza va de claro a oscuro con la clase .oscuro. */
+:root {
+  /* principales */
+  --negro:         #14140F;
+  --blanco:        #FFFFFF;
+
+  /* escala de grises */
+  --grafito:       #2B2B24;
+  --pizarra:       #45453C;
+  --acero:         #5F5F55;
+  --humo:          #83837A;
+  --ceniza:        #AEAEA6;
+  --niebla:        #D4D4CE;
+  --bruma:         #EBEBE7;
+  --papel:         #F7F7F5;
+
+  /* acento — el par */
+  --violeta:       #5D3FD3;  /* sobre fondos claros */
+  --violeta-claro: #8F7BE0;  /* sobre fondos oscuros — el otro no se lee en negro */
+
+  /* roles semánticos */
+  --fondo:         var(--blanco);
+  --texto:         var(--negro);
+  --texto-suave:   var(--pizarra);
+  --texto-menor:   var(--acero);
+  --linea:         var(--niebla);
+  --linea-fuerte:  var(--ceniza);
+  --acento:        var(--violeta);
+}
+
+/* Pieza en negativo: se invierten los roles, no se reescriben los componentes. */
+.oscuro {
+  --fondo:        var(--negro);
+  --texto:        var(--blanco);
+  --texto-suave:  var(--niebla);
+  --texto-menor:  var(--ceniza);
+  --linea:        #2B2B24;
+  --linea-fuerte: var(--pizarra);
+  --acento:       var(--violeta-claro);
+}
+
+/* El cuerpo del sitio queda como estaba a propósito: las tipografías de marca
+   se aplican SOLO en la landing (web/src/app/page.tsx), que es la única
+   pantalla pasada al sistema visual. Cambiarlas acá tocaría todas las páginas
+   de golpe, y esas no están revisadas. */
 :root {
   --background: #ffffff;
   --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
 }
 
 @media (prefers-color-scheme: dark) {
