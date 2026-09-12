@@ -223,9 +223,6 @@ export default async function Tablero() {
         </div>
 
         <nav className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm">
-          <Link href="/tablero/saludos" className="font-medium text-zinc-900 underline underline-offset-2">
-            Los saludos de la familia
-          </Link>
           {tienePedido ? (
             <Link href="/tablero/descarga" className="font-medium text-zinc-900 underline underline-offset-2">
               Tu descarga

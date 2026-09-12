@@ -1,13 +1,12 @@
 // Token del link del anticipo que la fábrica manda por correo.
 //
-// La contraparte de `fabrica/src/libro/token-anticipo.ts`: mismo esquema que el
-// token de saludos (JWT HS256 a mano con node:crypto, firmado con
-// SUPABASE_SERVICE_ROLE_KEY, sin expiración), así los dos servicios lo firman y
-// lo verifican sin ningún secreto nuevo.
+// La contraparte de `fabrica/src/libro/token-anticipo.ts`: JWT HS256 a mano con
+// node:crypto, firmado con SUPABASE_SERVICE_ROLE_KEY, sin expiración, así los
+// dos servicios lo firman y lo verifican sin ningún secreto nuevo.
 //
-// El payload lleva `tipo: 'anticipo'` y acá se comprueba. Sin eso, un link de
-// saludos —que firma { narradorId } con el mismo secreto— serviría para abrir
-// el anticipo y al revés. Son dos permisos distintos.
+// El payload lleva `tipo: 'anticipo'` y acá se comprueba: cualquier otro token
+// firmado con el mismo secreto para otro permiso (el link público del libro
+// cerrado, por ejemplo) no sirve para abrir el anticipo. Son permisos distintos.
 
 import { createHmac, timingSafeEqual } from "node:crypto";
 

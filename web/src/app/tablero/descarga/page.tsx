@@ -195,7 +195,6 @@ function Entregado({
   audiolibroPaths: AudiolibroPaths | null;
 }) {
   const capitulos = audiolibroPaths?.capitulos ?? [];
-  const tieneBonus = Boolean(audiolibroPaths?.bonus);
   const tieneCompleto = Boolean(audiolibroPaths?.completo);
 
   return (
@@ -246,16 +245,6 @@ function Entregado({
         </div>
       ) : null}
 
-      {tieneBonus ? (
-        <div className="mt-8 border-t border-zinc-100 pt-8">
-          <p className="mb-2 text-sm font-medium text-zinc-700">Mensajes para usted (saludos de la familia)</p>
-          {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
-          <audio controls src="/api/descarga/audio/bonus" className="w-full" />
-          <a href="/api/descarga/audio/bonus" className="mt-2 inline-block text-xs text-zinc-500 underline">
-            Descargar
-          </a>
-        </div>
-      ) : null}
     </Contenedor>
   );
 }
