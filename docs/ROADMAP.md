@@ -548,7 +548,7 @@ Decisión del 2026-09-04.
 
 | # | Tarea | Quién | Estado |
 |---|---|---|---|
-| 9.1 | Cargar en Notion lo avanzado desde la última actualización (gastos, decisiones, estado) | **J** | ☐ |
+| 9.1 | Cargar en Notion lo avanzado desde la última actualización | **J** | ✅ 11/09 — 18 decisiones nuevas, 5 revertidas; Marca, Comunicación, Producto y raíz al día |
 | 9.2 | Rutina semanal de actualización del Notion | **J** | ☐ |
 
 **Regla de división (acordada):**
