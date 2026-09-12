@@ -1,61 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
+import { narradorDeLaSesion } from "@/lib/panel";
 
 const MENSAJE_ERROR_GENERICO = "No pudimos guardar los nombres. Intenta de nuevo.";
 const MAXIMO_CORRECCIONES = 200;
 
 type Correccion = { original: string; corregido: string };
 
-async function obtenerNarradorDeLaSesion(): Promise<
+async function obtenerNarradorDeLaSesion(params: URLSearchParams): Promise<
   | { ok: true; narrador: { id: string }; admin: ReturnType<typeof crearClienteServidor> }
   | { ok: false; status: number; error: string }
 > {
-  const supabaseSesion = await crearClienteSesion();
-
-  const {
-    data: { user },
-    error: errorSesion,
-  } = await supabaseSesion.auth.getUser();
-
-  if (errorSesion || !user) {
-    return { ok: false, status: 401, error: "No hay sesión activa." };
-  }
-
   const admin = crearClienteServidor();
-
-  const { data: familia, error: errorFamilia } = await admin
-    .from("familias")
-    .select("id")
-    .eq("auth_user_id", user.id)
-    .maybeSingle();
-
-  if (errorFamilia) {
-    console.error("nombres: fallo la busqueda de familia", errorFamilia);
-    return { ok: false, status: 500, error: MENSAJE_ERROR_GENERICO };
-  }
-
-  if (!familia) {
-    return { ok: false, status: 403, error: "No autorizado." };
-  }
-
-  const { data: narradores, error: errorNarradores } = await admin
-    .from("narradores")
-    .select("id")
-    .eq("familia_id", (familia as { id: string }).id)
-    .order("created_at", { ascending: false })
-    .limit(1);
-
-  if (errorNarradores) {
-    console.error("nombres: fallo la busqueda de narrador", errorNarradores);
-    return { ok: false, status: 500, error: MENSAJE_ERROR_GENERICO };
-  }
-
-  const narrador = (narradores as { id: string }[] | null)?.[0];
-
-  if (!narrador) {
-    return { ok: false, status: 404, error: "Todavía no hay una bitácora para esta familia." };
-  }
+  const acceso = await narradorDeLaSesion(await crearClienteSesion(), admin, params, {
+    mensajeError: MENSAJE_ERROR_GENERICO, soloDuena: true,
+  });
+  if (!acceso.ok) return { ok: false, status: acceso.status, error: acceso.error };
+  const narrador = acceso.narrador;
 
   return { ok: true, narrador, admin };
 }
@@ -87,8 +49,8 @@ function validarCorrecciones(valor: unknown): { ok: true; correcciones: Correcci
   return { ok: true, correcciones };
 }
 
-export async function GET() {
-  const sesion = await obtenerNarradorDeLaSesion();
+export async function GET(request: NextRequest) {
+  const sesion = await obtenerNarradorDeLaSesion(request.nextUrl.searchParams);
   if (!sesion.ok) {
     return NextResponse.json({ error: sesion.error }, { status: sesion.status });
   }
@@ -111,7 +73,7 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
-  const sesion = await obtenerNarradorDeLaSesion();
+  const sesion = await obtenerNarradorDeLaSesion(request.nextUrl.searchParams);
   if (!sesion.ok) {
     return NextResponse.json({ error: sesion.error }, { status: sesion.status });
   }

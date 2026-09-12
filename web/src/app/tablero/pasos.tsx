@@ -38,13 +38,13 @@ export function PasosDelLibro({ actual }: { actual: PasoActual }) {
   );
 }
 
-export function VolverAlTablero() {
+export function VolverAlTablero({ narradorId }: { narradorId?: string }) {
   return (
     <Link
-      href="/tablero"
+      href={narradorId ? `/tablero/${narradorId}/libro` : "/tablero"}
       className="text-sm font-medium text-zinc-500 transition-colors hover:text-zinc-900"
     >
-      ← Volver al tablero
+      ← Volver
     </Link>
   );
 }

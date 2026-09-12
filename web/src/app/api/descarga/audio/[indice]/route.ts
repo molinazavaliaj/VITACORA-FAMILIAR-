@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
+import { narradorDeLaSesion } from "@/lib/panel";
 
 const MENSAJE_ERROR_GENERICO = "No pudimos generar la descarga. Intenta de nuevo.";
 const DURACION_URL_FIRMADA_SEGUNDOS = 3600;
@@ -29,54 +30,12 @@ export async function GET(
 ) {
   const { indice } = await params;
 
-  const supabaseSesion = await crearClienteSesion();
-
-  const {
-    data: { user },
-    error: errorSesion,
-  } = await supabaseSesion.auth.getUser();
-
-  if (errorSesion || !user) {
-    return NextResponse.json({ error: "No hay sesión activa." }, { status: 401 });
-  }
-
   const admin = crearClienteServidor();
-
-  const { data: familia, error: errorFamilia } = await admin
-    .from("familias")
-    .select("id")
-    .eq("auth_user_id", user.id)
-    .maybeSingle();
-
-  if (errorFamilia) {
-    console.error("descarga/audio: fallo la busqueda de familia", errorFamilia);
-    return NextResponse.json({ error: MENSAJE_ERROR_GENERICO }, { status: 500 });
-  }
-
-  if (!familia) {
-    return NextResponse.json({ error: "No autorizado." }, { status: 403 });
-  }
-
-  const { data: narradores, error: errorNarradores } = await admin
-    .from("narradores")
-    .select("id")
-    .eq("familia_id", (familia as Familia).id)
-    .order("created_at", { ascending: false })
-    .limit(1);
-
-  if (errorNarradores) {
-    console.error("descarga/audio: fallo la busqueda de narrador", errorNarradores);
-    return NextResponse.json({ error: MENSAJE_ERROR_GENERICO }, { status: 500 });
-  }
-
-  const narrador = (narradores as Narrador[] | null)?.[0];
-
-  if (!narrador) {
-    return NextResponse.json(
-      { error: "Todavía no hay una bitácora para esta familia." },
-      { status: 404 },
-    );
-  }
+  const acceso = await narradorDeLaSesion(await crearClienteSesion(), admin, request.nextUrl.searchParams, {
+    mensajeError: MENSAJE_ERROR_GENERICO, soloDuena: true,
+  });
+  if (!acceso.ok) return NextResponse.json({ error: acceso.error }, { status: acceso.status });
+  const narrador = acceso.narrador;
 
   const { data: pedidos, error: errorPedidos } = await admin
     .from("pedidos")

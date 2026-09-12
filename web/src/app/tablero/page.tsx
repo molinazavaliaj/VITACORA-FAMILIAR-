@@ -1,350 +1,181 @@
-import { redirect } from "next/navigation";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
-import { familiaDelUsuario } from "@/lib/familia";
-import { BannerAlertaSilencio, CierreAnticipado } from "./acciones";
-import { PasosDelLibro, type PasoActual } from "./pasos";
+import { historiasDelUsuario, type Historia } from "@/lib/panel";
+import { BannerAlertaSilencio } from "./acciones";
+import {
+  BarraProgreso,
+  Contenedor,
+  ESTADO_EN_HUMANO,
+  EstadoError,
+  Etiqueta,
+  ProximoPaso,
+  Tarjeta,
+  Titulo,
+  TOTAL_PREGUNTAS_BASE,
+  formatearDuracion,
+} from "./ui";
 
-const TOTAL_PREGUNTAS = 30;
-const MINIMO_RESPUESTAS_CIERRE_ANTICIPADO = 10;
-const ESTADOS_QUE_PERMITEN_CIERRE = ["activo", "pausado"];
-const ESTADOS_CON_LIBRO_EN_MARCHA = ["completado", "cerrado_anticipado"];
+// Inicio (docs/panel-usuario.md §4): una tarjeta por historia con su estado,
+// su progreso, UN solo próximo paso, y el dato emocional de cuánta voz hay
+// guardada. Las historias donde es invitada van después, marcadas.
 
-const MENSAJE_ERROR_CARGA = "No pudimos cargar el tablero. Actualiza la página en un momento.";
-
-const ESTADO_EN_HUMANO: Record<string, string> = {
-  invitado: "Le mandamos la invitación, falta que acepte",
-  acepto: "Aceptó — pronto le llega la primera pregunta",
-  activo: "Está respondiendo, día a día",
-  pausado: "Pidió una pausa — un llamado tuyo ayuda",
-  completado: "Terminó de contar su historia — ya estamos armando el libro",
-  cerrado_anticipado: "Cerramos la bitácora antes de tiempo — armamos el libro con lo que hay",
+type Resumen = {
+  respondidas: number;
+  total: number;
+  segundos: number;
+  tieneAnticipo: boolean;
 };
 
-type Narrador = {
-  id: string;
-  nombre: string;
-  como_le_dicen: string;
-  estado: string;
-  dia_actual: number;
-  alerta_silencio: boolean;
-};
+async function resumirHistoria(
+  admin: ReturnType<typeof crearClienteServidor>,
+  narradorId: string,
+): Promise<Resumen> {
+  const [{ data: respuestas }, { count: totalPreguntas }, { data: paquete }] = await Promise.all([
+    admin
+      .from("respuestas")
+      .select("pregunta_orden, duracion_segundos, es_repregunta")
+      .eq("narrador_id", narradorId),
+    admin.from("preguntas").select("id", { count: "exact", head: true }).eq("narrador_id", narradorId),
+    admin.storage.from("audios").list(`${narradorId}/paquete`),
+  ]);
 
-type Pregunta = {
-  narrador_id: string | null;
-  orden: number;
-  texto: string;
-  capitulo: string;
-};
+  const filas = (respuestas as { pregunta_orden: number; duracion_segundos: number | null; es_repregunta: boolean }[] | null) ?? [];
+  const ordenes = new Set(filas.filter((r) => !r.es_repregunta).map((r) => r.pregunta_orden));
+  const segundos = filas.reduce((acc, r) => acc + (r.duracion_segundos ?? 0), 0);
+  // Si el guion propio todavía no se copió (narrador anterior a la migración), vale el de 30.
+  const total = totalPreguntas && totalPreguntas > 0 ? totalPreguntas : TOTAL_PREGUNTAS_BASE;
+  const tieneAnticipo = (paquete ?? []).some((a) => a.name.startsWith("anticipo"));
 
-type Respuesta = {
-  id: string;
-  pregunta_orden: number;
-  audio_path: string | null;
-  texto_directo: string | null;
-  es_repregunta: boolean;
-  recibido_at: string;
-};
+  return { respondidas: ordenes.size, total, segundos, tieneAnticipo };
+}
 
-export default async function Tablero() {
+/** El único próximo paso de una historia, según dónde está. */
+function proximoPaso(h: Historia, r: Resumen): { href: string; texto: string } | null {
+  const id = h.narrador.id;
+  const esDuena = h.rol === "duena";
+  switch (h.narrador.estado) {
+    case "completado":
+    case "cerrado_anticipado":
+      return esDuena
+        ? { href: `/tablero/${id}/libro`, texto: "Ya terminó de contar — dale los últimos retoques y cerrá su libro" }
+        : { href: `/tablero/${id}`, texto: "Ya terminó de contar — leé su historia" };
+    case "pausado":
+      return { href: `/tablero/${id}`, texto: "Pidió una pausa — mirá qué pasó" };
+    case "activo":
+      if (r.tieneAnticipo && r.respondidas < 6) return { href: `/tablero/${id}`, texto: "Ya podés leer el capítulo 1" };
+      if (r.respondidas > 0) return { href: `/tablero/${id}`, texto: "Escuchá lo último que contó" };
+      return null;
+    case "acepto":
+    case "invitado":
+      return { href: `/tablero/${id}/preguntas`, texto: "Mientras esperás, repasá las preguntas y sumá fotos" };
+    default:
+      return null;
+  }
+}
+
+export default async function Inicio() {
   const supabase = await crearClienteSesion();
-
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/entrar");
-  }
+  if (!user) redirect("/entrar");
 
   const admin = crearClienteServidor();
-
-  // Con el pago por adelantado la familia nace en la compra, sin usuario: la
-  // primera vez que entra, esto la vincula por correo (ver lib/familia.ts).
-  const { familia, error: errorFamilia } = await familiaDelUsuario(admin, user);
-
-  if (errorFamilia) {
-    console.error("tablero: fallo la busqueda de familia", errorFamilia);
+  const { panel, error } = await historiasDelUsuario(admin, user);
+  if (error) {
+    console.error("inicio: fallo la carga", error);
     return <EstadoError />;
   }
 
-  if (!familia) {
-    // Entró con un correo que nunca compró nada.
-    redirect("/comprar");
-  }
-
-  const { data: narradores, error: errorNarradores } = await admin
-    .from("narradores")
-    .select("id, nombre, como_le_dicen, estado, dia_actual, alerta_silencio")
-    .eq("familia_id", (familia as { id: string }).id)
-    .order("created_at", { ascending: false })
-    .limit(1);
-
-  if (errorNarradores) {
-    console.error("tablero: fallo la busqueda de narradores", errorNarradores);
-    return <EstadoError />;
-  }
-
-  const narrador = (narradores as Narrador[] | null)?.[0];
-
-  if (!narrador) {
-    redirect("/registro");
-  }
-
-  const [
-    { data: preguntasFijas, error: errorPreguntasFijas },
-    { data: preguntasNarrador, error: errorPreguntasNarrador },
-    { data: respuestas, error: errorRespuestas },
-    { data: pedidos, error: errorPedidos },
-  ] = await Promise.all([
-    admin.from("preguntas").select("narrador_id, orden, texto, capitulo").is("narrador_id", null),
-    admin
-      .from("preguntas")
-      .select("narrador_id, orden, texto, capitulo")
-      .eq("narrador_id", narrador.id),
-    admin
-      .from("respuestas")
-      .select("id, pregunta_orden, audio_path, texto_directo, es_repregunta, recibido_at")
-      .eq("narrador_id", narrador.id)
-      .order("pregunta_orden", { ascending: true }),
-    admin
-      .from("pedidos")
-      .select("id, estado")
-      .eq("narrador_id", narrador.id)
-      .order("created_at", { ascending: false })
-      .limit(1),
-  ]);
-
-  if (errorPreguntasFijas || errorPreguntasNarrador || errorRespuestas || errorPedidos) {
-    console.error("tablero: fallo la carga de preguntas/respuestas/pedidos", {
-      errorPreguntasFijas,
-      errorPreguntasNarrador,
-      errorRespuestas,
-      errorPedidos,
-    });
-    return <EstadoError />;
-  }
-
-  const pedido = ((pedidos as { id: string; estado: string }[] | null) ?? [])[0];
-  const tienePedido = Boolean(pedido);
-  const pedidoEnCamino = Boolean(
-    pedido && ["pagado", "generando", "entregado"].includes(pedido.estado),
-  );
-
-  const preguntasPorOrden = new Map<number, Pregunta>();
-  for (const pregunta of (preguntasFijas as Pregunta[] | null) ?? []) {
-    preguntasPorOrden.set(pregunta.orden, pregunta);
-  }
-  // Las preguntas propias del narrador (adaptativas o reemplazos) pisan a la fija del mismo orden.
-  for (const pregunta of (preguntasNarrador as Pregunta[] | null) ?? []) {
-    preguntasPorOrden.set(pregunta.orden, pregunta);
-  }
-
-  const respuestasPorOrden = new Map<number, Respuesta[]>();
-  for (const respuesta of (respuestas as Respuesta[] | null) ?? []) {
-    const lista = respuestasPorOrden.get(respuesta.pregunta_orden) ?? [];
-    lista.push(respuesta);
-    respuestasPorOrden.set(respuesta.pregunta_orden, lista);
-  }
-
-  const ordenesRespondidos = [...respuestasPorOrden.keys()].sort((a, b) => a - b);
-  const totalRespondidas = ordenesRespondidos.length;
-
-  const puedeSolicitarCierre =
-    ESTADOS_QUE_PERMITEN_CIERRE.includes(narrador.estado) &&
-    totalRespondidas >= MINIMO_RESPUESTAS_CIERRE_ANTICIPADO;
-
-  // El libro solo empieza a armarse cuando el narrador termina — recién ahí
-  // tiene sentido pedirle a la familia que revise los nombres y ver la
-  // previsualización.
-  const libroEnMarcha = ESTADOS_CON_LIBRO_EN_MARCHA.includes(narrador.estado);
-
-  let avisoNombres: "pendiente" | "hecho" | null = null;
-  if (libroEnMarcha) {
-    const { data: archivosPaquete, error: errorPaquete } = await admin.storage
-      .from("audios")
-      .list(`${narrador.id}/paquete`);
-
-    if (errorPaquete) {
-      console.error("tablero: fallo la busqueda del paquete", errorPaquete);
-    } else {
-      const tieneNombres = (archivosPaquete ?? []).some((archivo) => archivo.name === "nombres.json");
-      avisoNombres = tieneNombres ? "hecho" : "pendiente";
-    }
-  }
-
-  return (
-    <div className="flex flex-1 flex-col items-center bg-white px-6 py-16 text-zinc-900">
-      <div className="w-full max-w-lg">
-        {narrador.alerta_silencio ? (
-          <div className="mb-8">
-            <BannerAlertaSilencio narradorId={narrador.id} comoLeDicen={narrador.como_le_dicen} />
-          </div>
-        ) : null}
-
-        {libroEnMarcha ? (
-          <div className="mb-8">
-            <PasosDelLibro
-              actual={
-                (avisoNombres === "pendiente" ? 2 : pedidoEnCamino ? 4 : 3) as PasoActual
-              }
-            />
-          </div>
-        ) : null}
-
-        {avisoNombres ? (
-          <div className="mb-8">
-            <AvisoNombres estado={avisoNombres} />
-          </div>
-        ) : null}
-
-        {/* Un solo próximo paso a la vez. Con el pago por adelantado el
-            pedido existe desde la compra, así que después de los nombres la
-            única puerta es la del libro (en fabricación o listo). */}
-        {pedidoEnCamino ? (
-          <div className="mb-8">
-            <Link
-              href="/tablero/descarga"
-              className="block rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-sm font-medium text-zinc-900 transition-colors hover:bg-zinc-100"
-            >
-              Su libro — verlo o descargarlo →
-            </Link>
-          </div>
-        ) : null}
-
-        <h1 className="text-2xl font-semibold text-zinc-900">{narrador.como_le_dicen}</h1>
-        <p className="mt-2 text-sm leading-relaxed text-zinc-600">
-          {ESTADO_EN_HUMANO[narrador.estado] ?? narrador.estado}
+  if (panel.historias.length === 0) {
+    return (
+      <Contenedor>
+        <Etiqueta>Inicio</Etiqueta>
+        <div className="mt-3">
+          <Titulo>Todavía no hay ninguna historia</Titulo>
+        </div>
+        <p className="mt-4 max-w-lg text-[17px] leading-relaxed text-[var(--texto-suave)] font-light">
+          Cuando compres el libro de alguien de tu familia, su historia aparece acá.
         </p>
-
-        <div className="mt-6">
-          <BarraProgreso diaActual={narrador.dia_actual} respondidas={totalRespondidas} />
+        <div className="mt-8">
+          <ProximoPaso href="/comprar">Empezar una historia</ProximoPaso>
         </div>
+      </Contenedor>
+    );
+  }
 
-        <nav className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm">
-          {tienePedido ? (
-            <Link href="/tablero/descarga" className="font-medium text-zinc-900 underline underline-offset-2">
-              Tu descarga
-            </Link>
-          ) : null}
-        </nav>
+  const resumenes = await Promise.all(panel.historias.map((h) => resumirHistoria(admin, h.narrador.id)));
+  const segundosTotales = resumenes.reduce((acc, r) => acc + r.segundos, 0);
 
-        <div className="mt-10 flex flex-col gap-6">
-          {ordenesRespondidos.length === 0 ? (
-            <p className="text-sm text-zinc-500">
-              Todavía no hay respuestas para escuchar. En cuanto conteste la primera pregunta,
-              aparece acá.
-            </p>
-          ) : (
-            ordenesRespondidos.map((orden) => {
-              const pregunta = preguntasPorOrden.get(orden);
-              const respuestasDelDia = respuestasPorOrden.get(orden) ?? [];
-              const principales = respuestasDelDia.filter((r) => !r.es_repregunta);
-              const repreguntas = respuestasDelDia.filter((r) => r.es_repregunta);
-              const principal = principales[0] ?? respuestasDelDia[0];
-              const fecha = new Date(principal.recibido_at).toLocaleDateString("es", {
-                day: "numeric",
-                month: "long",
-                year: "numeric",
-              });
+  return (
+    <Contenedor>
+      <Etiqueta>Inicio</Etiqueta>
+      <div className="mt-3 flex flex-wrap items-end justify-between gap-4">
+        <Titulo>{panel.historias.length === 1 ? "Tu historia" : "Tus historias"}</Titulo>
+        {segundosTotales > 0 ? (
+          <p className="text-sm text-[var(--texto-menor)] [font-family:var(--fuente-micro)]">
+            <span className="text-[var(--texto)] tabular-nums">{formatearDuracion(segundosTotales)}</span> de su voz
+            guardadas
+          </p>
+        ) : null}
+      </div>
 
-              return (
-                <div key={orden} className="border-b border-zinc-100 pb-6 last:border-none">
-                  <p className="text-xs font-medium tracking-wide text-zinc-400 uppercase">
-                    Día {orden} — {fecha}
-                  </p>
-                  <h3 className="mt-1 text-base font-medium text-zinc-900">
-                    {pregunta?.texto ?? `Pregunta ${orden}`}
-                  </h3>
-                  <div className="mt-3">
-                    <RespuestaAudioOTexto respuesta={principal} />
-                  </div>
-                  {repreguntas.length > 0 ? (
-                    <div className="mt-4 flex flex-col gap-3 border-l-2 border-zinc-100 pl-4">
-                      <p className="text-xs font-medium text-zinc-400">y agregó:</p>
-                      {repreguntas.map((repregunta) => (
-                        <RespuestaAudioOTexto key={repregunta.id} respuesta={repregunta} />
-                      ))}
-                    </div>
-                  ) : null}
+      <div className="mt-8 flex flex-col gap-6">
+        {panel.historias.map((h, i) => {
+          const r = resumenes[i];
+          const paso = proximoPaso(h, r);
+          const n = h.narrador;
+          return (
+            <Tarjeta key={n.id}>
+              {n.alerta_silencio && h.rol === "duena" ? (
+                <div className="mb-5">
+                  <BannerAlertaSilencio narradorId={n.id} comoLeDicen={n.como_le_dicen} />
                 </div>
-              );
-            })
-          )}
-        </div>
+              ) : null}
 
-        {puedeSolicitarCierre ? <CierreAnticipado narradorId={narrador.id} /> : null}
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <Etiqueta>{h.rol === "invitado" ? "Te invitaron a esta historia" : "Historia"}</Etiqueta>
+                  <Link href={`/tablero/${n.id}`} className="mt-1 block">
+                    <Titulo nivel={2}>La historia de {n.nombre}</Titulo>
+                  </Link>
+                  <p className="mt-2 text-[15px] text-[var(--texto-suave)]">
+                    {ESTADO_EN_HUMANO[n.estado] ?? n.estado}
+                  </p>
+                </div>
+                {r.segundos > 0 ? (
+                  <p className="shrink-0 text-right text-sm text-[var(--texto-menor)] [font-family:var(--fuente-micro)] tabular-nums">
+                    {formatearDuracion(r.segundos)}
+                    <br />
+                    <span className="text-[11px] uppercase [letter-spacing:0.2em]">de su voz</span>
+                  </p>
+                ) : null}
+              </div>
+
+              <div className="mt-5">
+                <BarraProgreso respondidas={r.respondidas} total={r.total} />
+              </div>
+
+              {paso ? (
+                <div className="mt-5">
+                  <ProximoPaso href={paso.href}>{paso.texto}</ProximoPaso>
+                </div>
+              ) : null}
+            </Tarjeta>
+          );
+        })}
       </div>
-    </div>
-  );
-}
 
-function AvisoNombres({ estado }: { estado: "pendiente" | "hecho" }) {
-  if (estado === "hecho") {
-    return (
-      <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4">
-        <p className="text-sm text-zinc-600">Nombres revisados ✓</p>
+      <div className="mt-10">
+        <Link
+          href="/comprar"
+          className="text-[15px] text-[var(--acento)] underline decoration-[var(--linea-fuerte)] underline-offset-4 [font-family:var(--fuente-micro)]"
+        >
+          + Empezar otra historia
+        </Link>
       </div>
-    );
-  }
-
-  return (
-    <Link
-      href="/tablero/nombres"
-      className="block rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-sm font-medium text-zinc-900 transition-colors hover:bg-zinc-100"
-    >
-      Revisa los nombres antes de que imprimamos su libro →
-    </Link>
+    </Contenedor>
   );
-}
-
-function EstadoError() {
-  return (
-    <div className="flex flex-1 flex-col items-center justify-center bg-white px-6 py-16 text-center text-zinc-900">
-      <p className="text-sm text-zinc-600">{MENSAJE_ERROR_CARGA}</p>
-    </div>
-  );
-}
-
-function BarraProgreso({
-  diaActual,
-  respondidas,
-}: {
-  diaActual: number;
-  respondidas: number;
-}) {
-  const porcentaje = Math.min(100, Math.round((diaActual / TOTAL_PREGUNTAS) * 100));
-  return (
-    <div className="flex flex-col gap-2">
-      <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-100">
-        <div
-          className="h-full rounded-full bg-zinc-900 transition-all"
-          style={{ width: `${porcentaje}%` }}
-        />
-      </div>
-      <p className="text-sm text-zinc-600">
-        {respondidas} de {TOTAL_PREGUNTAS} respuestas
-      </p>
-    </div>
-  );
-}
-
-function RespuestaAudioOTexto({ respuesta }: { respuesta: Respuesta }) {
-  if (respuesta.audio_path) {
-    return (
-      // eslint-disable-next-line jsx-a11y/media-has-caption
-      <audio controls src={`/api/audio/${respuesta.id}`} className="w-full" />
-    );
-  }
-
-  if (respuesta.texto_directo) {
-    return (
-      <p className="text-sm leading-relaxed text-zinc-700 italic">
-        &ldquo;{respuesta.texto_directo}&rdquo;
-      </p>
-    );
-  }
-
-  return <p className="text-sm text-zinc-400">Sin contenido todavía.</p>;
 }

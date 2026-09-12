@@ -26,12 +26,22 @@ function construirBuilder(resultado: unknown) {
     eq: () => builder,
     order: () => builder,
     limit: () => builder,
+    in: () => builder,
+    is: () => builder,
+    ilike: () => builder,
+    update: () => builder,
     single: () => builder,
     maybeSingle: () => builder,
     then: (resolve: (v: unknown) => unknown, reject?: (e: unknown) => unknown) =>
       Promise.resolve(resultado).then(resolve, reject),
   };
   return builder;
+}
+
+function fakeRequest(): never {
+  // Las rutas leen `?narrador=` de la URL (lib/panel.ts). Sin el parámetro,
+  // toman la primera historia del usuario — el comportamiento de antes.
+  return { nextUrl: new URL("http://localhost/api") } as never;
 }
 
 function crearAdminFake(
@@ -45,7 +55,7 @@ function crearAdminFake(
   const from = vi.fn((tabla: string) => {
     const idx = contadores[tabla] ?? 0;
     contadores[tabla] = idx + 1;
-    const resultado = secuencia[tabla]?.[idx];
+    const resultado = secuencia[tabla]?.[idx] ?? { data: null, error: null };
     return construirBuilder(resultado);
   });
   const list = vi.fn(
@@ -83,7 +93,7 @@ beforeEach(() => {
 describe('GET /api/preview-pdf', () => {
   it('sin sesión responde 401', async () => {
     mockSesion(null);
-    const respuesta = await GET_PREVIEW_PDF();
+    const respuesta = await GET_PREVIEW_PDF(fakeRequest());
     expect(respuesta.status).toBe(401);
   });
 
@@ -98,7 +108,7 @@ describe('GET /api/preview-pdf', () => {
     );
     (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
 
-    const respuesta = await GET_PREVIEW_PDF();
+    const respuesta = await GET_PREVIEW_PDF(fakeRequest());
     expect(respuesta.status).toBe(404);
   });
 
@@ -113,7 +123,7 @@ describe('GET /api/preview-pdf', () => {
     );
     (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
 
-    const respuesta = await GET_PREVIEW_PDF();
+    const respuesta = await GET_PREVIEW_PDF(fakeRequest());
     expect(respuesta.status).toBe(302);
     expect(respuesta.headers.get('location')).toBe('https://signed.example/x');
     expect(admin.createSignedUrl.mock.calls[0][0]).toBe('narrador-1/paquete/preview.pdf');
@@ -134,7 +144,7 @@ describe('GET /api/preview-audio', () => {
     );
     (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
 
-    const respuesta = await GET_PREVIEW_AUDIO();
+    const respuesta = await GET_PREVIEW_AUDIO(fakeRequest());
     expect(respuesta.status).toBe(404);
   });
 
@@ -149,7 +159,7 @@ describe('GET /api/preview-audio', () => {
     );
     (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
 
-    const respuesta = await GET_PREVIEW_AUDIO();
+    const respuesta = await GET_PREVIEW_AUDIO(fakeRequest());
     expect(respuesta.status).toBe(302);
     expect(admin.createSignedUrl.mock.calls[0][0]).toBe('narrador-1/paquete/muestra_audiolibro.mp3');
   });

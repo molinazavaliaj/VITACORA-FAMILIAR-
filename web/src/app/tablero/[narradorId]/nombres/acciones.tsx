@@ -32,7 +32,7 @@ export function construirCorreccionesCambiadas(
     .filter((correccion) => correccion.corregido !== "" && correccion.corregido !== correccion.original);
 }
 
-export function FormularioNombres({ entidades }: { entidades: EntidadPrefill[] }) {
+export function FormularioNombres({ entidades, narradorId }: { entidades: EntidadPrefill[]; narradorId: string }) {
   const router = useRouter();
   // Se indexa por posición, no por `texto`: dos entidades detectadas con el
   // mismo nombre (dos "Juan" distintos — el padre y el vecino) son filas
@@ -53,7 +53,7 @@ export function FormularioNombres({ entidades }: { entidades: EntidadPrefill[] }
     const correcciones = construirCorreccionesCambiadas(entidades, valores);
 
     try {
-      const respuesta = await fetch("/api/nombres", {
+      const respuesta = await fetch(`/api/nombres?narrador=${encodeURIComponent(narradorId)}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ correcciones }),

@@ -1,8 +1,9 @@
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
+import { historiaAccesible, PUEDE } from "@/lib/panel";
 import { FormularioNombres } from "./acciones";
-import { PasosDelLibro, VolverAlTablero } from "../pasos";
+import { PasosDelLibro, VolverAlTablero } from "../../pasos";
 
 const MENSAJE_ERROR_CARGA = "No pudimos cargar los nombres. Actualiza la página en un momento.";
 
@@ -26,7 +27,9 @@ type Nombres = {
   correcciones: { original: string; corregido: string }[];
 };
 
-export default async function TableroNombres() {
+export default async function TableroNombres({ params }: PageProps<"/tablero/[narradorId]/nombres">) {
+  const { narradorId } = await params;
+
   const supabase = await crearClienteSesion();
 
   const {
@@ -39,45 +42,23 @@ export default async function TableroNombres() {
 
   const admin = crearClienteServidor();
 
-  const { data: familia, error: errorFamilia } = await admin
-    .from("familias")
-    .select("id")
-    .eq("auth_user_id", user.id)
-    .maybeSingle();
-
-  if (errorFamilia) {
-    console.error("tablero/nombres: fallo la busqueda de familia", errorFamilia);
+  // Revisar los nombres es parte de la edición final: solo la dueña.
+  const { historia, error: errorHistoria } = await historiaAccesible(admin, user, narradorId);
+  if (errorHistoria) {
+    console.error("tablero/nombres: fallo el acceso", errorHistoria);
     return <EstadoError />;
   }
-
-  if (!familia) {
-    redirect("/registro");
+  if (!historia || !PUEDE.cerrarLibro(historia.rol)) {
+    notFound();
   }
-
-  const { data: narradores, error: errorNarradores } = await admin
-    .from("narradores")
-    .select("id, como_le_dicen")
-    .eq("familia_id", (familia as { id: string }).id)
-    .order("created_at", { ascending: false })
-    .limit(1);
-
-  if (errorNarradores) {
-    console.error("tablero/nombres: fallo la busqueda de narradores", errorNarradores);
-    return <EstadoError />;
-  }
-
-  const narrador = (narradores as Narrador[] | null)?.[0];
-
-  if (!narrador) {
-    redirect("/registro");
-  }
+  const narrador = historia.narrador;
 
   const { data: descargaEstructura, error: errorDescargaEstructura } = await admin.storage
     .from("audios")
     .download(`${narrador.id}/paquete/estructura.json`);
 
   if (errorDescargaEstructura || !descargaEstructura) {
-    return <EstadoSinEstructura comoLeDicen={narrador.como_le_dicen} />;
+    return <EstadoSinEstructura narradorId={narrador.id} comoLeDicen={narrador.como_le_dicen} />;
   }
 
   let estructura: Estructura;
@@ -127,7 +108,7 @@ export default async function TableroNombres() {
     <div className="flex flex-1 flex-col items-center bg-white px-6 py-16 text-zinc-900">
       <div className="w-full max-w-lg">
         <div className="mb-8 flex flex-col gap-4">
-          <VolverAlTablero />
+          <VolverAlTablero narradorId={narrador.id} />
           <PasosDelLibro actual={2} />
         </div>
         <h1 className="text-2xl font-semibold text-zinc-900">
@@ -139,7 +120,7 @@ export default async function TableroNombres() {
         </p>
 
         <div className="mt-8">
-          <FormularioNombres entidades={entidades} />
+          <FormularioNombres narradorId={narrador.id} entidades={entidades} />
         </div>
       </div>
     </div>
@@ -154,7 +135,7 @@ function EstadoError() {
   );
 }
 
-function EstadoSinEstructura({ comoLeDicen }: { comoLeDicen: string }) {
+function EstadoSinEstructura({ comoLeDicen, narradorId }: { comoLeDicen: string; narradorId: string }) {
   return (
     <div className="flex flex-1 flex-col items-center justify-center bg-white px-6 py-16 text-center text-zinc-900">
       <p className="text-sm text-zinc-600">
@@ -162,7 +143,7 @@ function EstadoSinEstructura({ comoLeDicen }: { comoLeDicen: string }) {
         lista pronto.
       </p>
       <div className="mt-6">
-        <VolverAlTablero />
+        <VolverAlTablero narradorId={narradorId} />
       </div>
     </div>
   );

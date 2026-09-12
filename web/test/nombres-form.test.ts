@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { construirCorreccionesCambiadas, type EntidadPrefill } from '../src/app/tablero/nombres/acciones';
+import { construirCorreccionesCambiadas, type EntidadPrefill } from '../src/app/tablero/[narradorId]/nombres/acciones';
 
 describe('construirCorreccionesCambiadas', () => {
   it('no colisiona dos entidades con el mismo texto detectado (dos "Juan" distintos)', () => {

@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
-import { PasosDelLibro, VolverAlTablero } from "../pasos";
+import { historiaAccesible, PUEDE } from "@/lib/panel";
+import { PasosDelLibro, VolverAlTablero } from "../../pasos";
 
 const MENSAJE_ERROR_CARGA = "No pudimos cargar tu descarga. Actualiza la página en un momento.";
 
@@ -11,7 +12,9 @@ type Narrador = { id: string; como_le_dicen: string };
 type AudiolibroPaths = { capitulos: string[]; bonus?: string; completo: string };
 type Pedido = { id: string; estado: string; audiolibro_paths: AudiolibroPaths | null };
 
-export default async function TableroDescarga() {
+export default async function TableroDescarga({ params }: PageProps<"/tablero/[narradorId]/descarga">) {
+  const { narradorId } = await params;
+
   const supabase = await crearClienteSesion();
 
   const {
@@ -24,38 +27,16 @@ export default async function TableroDescarga() {
 
   const admin = crearClienteServidor();
 
-  const { data: familia, error: errorFamilia } = await admin
-    .from("familias")
-    .select("id")
-    .eq("auth_user_id", user.id)
-    .maybeSingle();
-
-  if (errorFamilia) {
-    console.error("tablero/descarga: fallo la busqueda de familia", errorFamilia);
+  // Descargar es de la dueña; el invitado ve el libro pero no lo baja (§2 del spec).
+  const { historia, error: errorHistoria } = await historiaAccesible(admin, user, narradorId);
+  if (errorHistoria) {
+    console.error("tablero/descarga: fallo el acceso", errorHistoria);
     return <EstadoError />;
   }
-
-  if (!familia) {
-    redirect("/registro");
+  if (!historia || !PUEDE.descargar(historia.rol)) {
+    notFound();
   }
-
-  const { data: narradores, error: errorNarradores } = await admin
-    .from("narradores")
-    .select("id, como_le_dicen")
-    .eq("familia_id", (familia as Familia).id)
-    .order("created_at", { ascending: false })
-    .limit(1);
-
-  if (errorNarradores) {
-    console.error("tablero/descarga: fallo la busqueda de narrador", errorNarradores);
-    return <EstadoError />;
-  }
-
-  const narrador = (narradores as Narrador[] | null)?.[0];
-
-  if (!narrador) {
-    redirect("/registro");
-  }
+  const narrador = historia.narrador;
 
   const { data: pedidos, error: errorPedidos } = await admin
     .from("pedidos")
@@ -72,24 +53,24 @@ export default async function TableroDescarga() {
   const pedido = (pedidos as Pedido[] | null)?.[0];
 
   if (!pedido) {
-    return <SinPedido />;
+    return <SinPedido narradorId={narrador.id} />;
   }
 
   if (pedido.estado === "pendiente") {
-    return <PagoIncompleto />;
+    return <PagoIncompleto narradorId={narrador.id} />;
   }
 
   if (pedido.estado === "pagado" || pedido.estado === "generando") {
-    return <EnFabricacion />;
+    return <EnFabricacion narradorId={narrador.id} />;
   }
 
   if (pedido.estado === "fallido") {
-    return <Fallido />;
+    return <Fallido narradorId={narrador.id} />;
   }
 
   if (pedido.estado === "entregado") {
     return (
-      <Entregado comoLeDicen={narrador.como_le_dicen} audiolibroPaths={pedido.audiolibro_paths} />
+      <Entregado narradorId={narrador.id} comoLeDicen={narrador.como_le_dicen} audiolibroPaths={pedido.audiolibro_paths} />
     );
   }
 
@@ -100,15 +81,17 @@ export default async function TableroDescarga() {
 function Contenedor({
   children,
   paso,
+  narradorId,
 }: {
   children: React.ReactNode;
   paso?: 4;
+  narradorId: string;
 }) {
   return (
     <div className="flex flex-1 flex-col items-center bg-white px-6 py-16 text-zinc-900">
       <div className="w-full max-w-lg">
         <div className="mb-8 flex flex-col gap-4">
-          <VolverAlTablero />
+          <VolverAlTablero narradorId={narradorId} />
           {paso ? <PasosDelLibro actual={paso} /> : null}
         </div>
         {children}
@@ -125,9 +108,9 @@ function EstadoError() {
   );
 }
 
-function SinPedido() {
+function SinPedido({ narradorId }: { narradorId: string }) {
   return (
-    <Contenedor>
+    <Contenedor narradorId={narradorId}>
       <h1 className="text-2xl font-semibold text-zinc-900">Todavía no compraste el libro</h1>
       <p className="mt-2 text-sm leading-relaxed text-zinc-600">
         Cuando lo compres, tus descargas van a aparecer aquí.
@@ -142,9 +125,9 @@ function SinPedido() {
   );
 }
 
-function PagoIncompleto() {
+function PagoIncompleto({ narradorId }: { narradorId: string }) {
   return (
-    <Contenedor>
+    <Contenedor narradorId={narradorId}>
       <h1 className="text-2xl font-semibold text-zinc-900">Tu pago no se completó</h1>
       <p className="mt-2 text-sm leading-relaxed text-zinc-600">
         No perdiste nada de lo ya cargado. Escríbenos y te mandamos un enlace para
@@ -162,13 +145,13 @@ function PagoIncompleto() {
   );
 }
 
-function EnFabricacion() {
+function EnFabricacion({ narradorId }: { narradorId: string }) {
   return (
     <>
       {/* Nadie se queda mirando esta pantalla activamente — se refresca sola
           cada 60s hasta que el estado cambie a 'entregado' o 'fallido'. */}
       <meta httpEquiv="refresh" content="60" />
-      <Contenedor paso={4}>
+      <Contenedor paso={4} narradorId={narradorId}>
         <h1 className="text-2xl font-semibold text-zinc-900">Estamos imprimiendo su historia</h1>
         <p className="mt-2 text-sm leading-relaxed text-zinc-600">
           Esto tarda unos minutos. Vuelve a esta página en un rato.
@@ -178,9 +161,9 @@ function EnFabricacion() {
   );
 }
 
-function Fallido() {
+function Fallido({ narradorId }: { narradorId: string }) {
   return (
-    <Contenedor>
+    <Contenedor narradorId={narradorId}>
       <h1 className="text-2xl font-semibold text-zinc-900">Algo salió mal de nuestro lado</h1>
       <p className="mt-2 text-sm leading-relaxed text-zinc-600">Estamos en ello.</p>
     </Contenedor>
@@ -190,7 +173,9 @@ function Fallido() {
 function Entregado({
   comoLeDicen,
   audiolibroPaths,
+  narradorId,
 }: {
+  narradorId: string;
   comoLeDicen: string;
   audiolibroPaths: AudiolibroPaths | null;
 }) {
@@ -198,7 +183,7 @@ function Entregado({
   const tieneCompleto = Boolean(audiolibroPaths?.completo);
 
   return (
-    <Contenedor paso={4}>
+    <Contenedor paso={4} narradorId={narradorId}>
       <h1 className="text-2xl font-semibold text-zinc-900">
         El libro y el audiolibro de {comoLeDicen}
       </h1>
@@ -208,7 +193,7 @@ function Entregado({
 
       <div className="mt-8 flex flex-col gap-3">
         <a
-          href="/api/descarga/libro"
+          href={`/api/descarga/libro?narrador=${narradorId}`}
           className="inline-block rounded-lg bg-zinc-900 px-5 py-2.5 text-center text-sm font-medium text-white transition-colors hover:bg-zinc-800"
         >
           Descargar el libro (PDF)
@@ -219,8 +204,8 @@ function Entregado({
         <div className="mt-10 border-t border-zinc-100 pt-8">
           <p className="mb-2 text-sm font-medium text-zinc-700">Audiolibro completo</p>
           {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
-          <audio controls src="/api/descarga/audio/completo" className="w-full" />
-          <a href="/api/descarga/audio/completo" className="mt-2 inline-block text-xs text-zinc-500 underline">
+          <audio controls src={`/api/descarga/audio/completo?narrador=${narradorId}`} className="w-full" />
+          <a href={`/api/descarga/audio/completo?narrador=${narradorId}`} className="mt-2 inline-block text-xs text-zinc-500 underline">
             Descargar
           </a>
         </div>
@@ -233,9 +218,9 @@ function Entregado({
             <div key={indice}>
               <p className="mb-2 text-sm text-zinc-600">Capítulo {indice + 1}</p>
               {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
-              <audio controls src={`/api/descarga/audio/${indice}`} className="w-full" />
+              <audio controls src={`/api/descarga/audio/${indice}?narrador=${narradorId}`} className="w-full" />
               <a
-                href={`/api/descarga/audio/${indice}`}
+                href={`/api/descarga/audio/${indice}?narrador=${narradorId}`}
                 className="mt-2 inline-block text-xs text-zinc-500 underline"
               >
                 Descargar

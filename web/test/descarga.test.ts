@@ -26,6 +26,11 @@ function construirBuilder(resultado: unknown) {
     eq: () => builder,
     order: () => builder,
     limit: () => builder,
+    in: () => builder,
+    is: () => builder,
+    ilike: () => builder,
+    update: () => builder,
+    single: () => builder,
     maybeSingle: () => builder,
     then: (resolve: (v: unknown) => unknown, reject?: (e: unknown) => unknown) =>
       Promise.resolve(resultado).then(resolve, reject),
@@ -41,7 +46,7 @@ function crearAdminFake(
   const from = vi.fn((tabla: string) => {
     const idx = contadores[tabla] ?? 0;
     contadores[tabla] = idx + 1;
-    const resultado = secuencia[tabla]?.[idx];
+    const resultado = secuencia[tabla]?.[idx] ?? { data: null, error: null };
     return construirBuilder(resultado);
   });
   const createSignedUrl = vi
@@ -64,9 +69,9 @@ function mockSesion(usuario: { id: string; email: string } | null) {
 }
 
 function fakeRequest(): never {
-  // Las rutas no leen nada del request más que los params — no hace falta
-  // un Request real.
-  return undefined as never;
+  // Las rutas leen `?narrador=` de la URL (lib/panel.ts). Sin el parámetro,
+  // toman la primera historia del usuario — el comportamiento de antes.
+  return { nextUrl: new URL("http://localhost/api") } as never;
 }
 
 beforeEach(() => {
@@ -82,7 +87,7 @@ beforeEach(() => {
 describe('GET /api/descarga/libro', () => {
   it('sin sesión responde 401', async () => {
     mockSesion(null);
-    const respuesta = await GET_LIBRO();
+    const respuesta = await GET_LIBRO(fakeRequest());
     expect(respuesta.status).toBe(401);
   });
 
@@ -91,7 +96,7 @@ describe('GET /api/descarga/libro', () => {
     const admin = crearAdminFake({ familias: [{ data: null, error: null }] });
     (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
 
-    const respuesta = await GET_LIBRO();
+    const respuesta = await GET_LIBRO(fakeRequest());
     expect(respuesta.status).toBe(403);
   });
 
@@ -104,7 +109,7 @@ describe('GET /api/descarga/libro', () => {
     });
     (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
 
-    const respuesta = await GET_LIBRO();
+    const respuesta = await GET_LIBRO(fakeRequest());
     expect(respuesta.status).toBe(404);
   });
 
@@ -117,7 +122,7 @@ describe('GET /api/descarga/libro', () => {
     });
     (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
 
-    const respuesta = await GET_LIBRO();
+    const respuesta = await GET_LIBRO(fakeRequest());
     expect(respuesta.status).toBe(404);
   });
 
@@ -135,7 +140,7 @@ describe('GET /api/descarga/libro', () => {
     });
     (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
 
-    const respuesta = await GET_LIBRO();
+    const respuesta = await GET_LIBRO(fakeRequest());
     expect(respuesta.status).toBe(302);
     expect(respuesta.headers.get('location')).toBe('https://signed.example/x');
     expect(admin.createSignedUrl.mock.calls[0][0]).toBe('narrador-1/paquete/libro.pdf');

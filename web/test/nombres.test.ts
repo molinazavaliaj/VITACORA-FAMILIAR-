@@ -38,6 +38,10 @@ function construirBuilder(resultado: unknown, onCall?: (metodo: string, args: un
       onCall?.('limit', args);
       return builder;
     },
+    in: () => builder,
+    is: () => builder,
+    ilike: () => builder,
+    update: () => builder,
     single: () => builder,
     maybeSingle: () => builder,
     then: (resolve: (v: unknown) => unknown, reject?: (e: unknown) => unknown) =>
@@ -48,6 +52,12 @@ function construirBuilder(resultado: unknown, onCall?: (metodo: string, args: un
 
 function blobFake(contenido: string) {
   return { text: async () => contenido };
+}
+
+function fakeRequest(): never {
+  // Las rutas leen `?narrador=` de la URL (lib/panel.ts). Sin el parámetro,
+  // toman la primera historia del usuario — el comportamiento de antes.
+  return { nextUrl: new URL("http://localhost/api") } as never;
 }
 
 function crearAdminFake(
@@ -62,7 +72,7 @@ function crearAdminFake(
   const from = vi.fn((tabla: string) => {
     const idx = contadores[tabla] ?? 0;
     contadores[tabla] = idx + 1;
-    const resultado = secuencia[tabla]?.[idx];
+    const resultado = secuencia[tabla]?.[idx] ?? { data: null, error: null };
     return construirBuilder(resultado, (metodo, args) => {
       llamadas[tabla] = llamadas[tabla] ?? [];
       llamadas[tabla].push([metodo, ...args]);
@@ -101,7 +111,7 @@ beforeEach(() => {
 describe('GET /api/estructura', () => {
   it('sin sesión responde 401', async () => {
     mockSesion(null);
-    const respuesta = await GET_ESTRUCTURA();
+    const respuesta = await GET_ESTRUCTURA(fakeRequest());
     expect(respuesta.status).toBe(401);
   });
 
@@ -110,7 +120,7 @@ describe('GET /api/estructura', () => {
     const admin = crearAdminFake({ familias: [{ data: null, error: null }] });
     (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
 
-    const respuesta = await GET_ESTRUCTURA();
+    const respuesta = await GET_ESTRUCTURA(fakeRequest());
     expect(respuesta.status).toBe(403);
   });
 
@@ -122,7 +132,7 @@ describe('GET /api/estructura', () => {
     });
     (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
 
-    const respuesta = await GET_ESTRUCTURA();
+    const respuesta = await GET_ESTRUCTURA(fakeRequest());
     expect(respuesta.status).toBe(404);
   });
 
@@ -137,7 +147,7 @@ describe('GET /api/estructura', () => {
     );
     (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
 
-    const respuesta = await GET_ESTRUCTURA();
+    const respuesta = await GET_ESTRUCTURA(fakeRequest());
     expect(respuesta.status).toBe(404);
   });
 
@@ -160,7 +170,7 @@ describe('GET /api/estructura', () => {
     );
     (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
 
-    const respuesta = await GET_ESTRUCTURA();
+    const respuesta = await GET_ESTRUCTURA(fakeRequest());
     const cuerpo = await respuesta.json();
 
     expect(respuesta.status).toBe(200);
@@ -173,7 +183,7 @@ describe('GET /api/estructura', () => {
 describe('GET /api/nombres', () => {
   it('sin sesión responde 401', async () => {
     mockSesion(null);
-    const respuesta = await GET_NOMBRES();
+    const respuesta = await GET_NOMBRES(fakeRequest());
     expect(respuesta.status).toBe(401);
   });
 
@@ -188,7 +198,7 @@ describe('GET /api/nombres', () => {
     );
     (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
 
-    const respuesta = await GET_NOMBRES();
+    const respuesta = await GET_NOMBRES(fakeRequest());
     const cuerpo = await respuesta.json();
 
     expect(respuesta.status).toBe(200);
@@ -207,7 +217,7 @@ describe('GET /api/nombres', () => {
     );
     (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
 
-    const respuesta = await GET_NOMBRES();
+    const respuesta = await GET_NOMBRES(fakeRequest());
     const cuerpo = await respuesta.json();
 
     expect(respuesta.status).toBe(200);
@@ -220,7 +230,7 @@ describe('GET /api/nombres', () => {
 describe('POST /api/nombres', () => {
   it('sin sesión responde 401', async () => {
     mockSesion(null);
-    const request = { json: async () => ({ correcciones: [] }) } as never;
+    const request = { json: async () => ({ correcciones: [] }), nextUrl: new URL("http://localhost/api") } as never;
     const respuesta = await POST_NOMBRES(request);
     expect(respuesta.status).toBe(401);
   });
@@ -230,7 +240,7 @@ describe('POST /api/nombres', () => {
     const admin = crearAdminFake({ familias: [{ data: null, error: null }] });
     (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
 
-    const request = { json: async () => ({ correcciones: [] }) } as never;
+    const request = { json: async () => ({ correcciones: [] }), nextUrl: new URL("http://localhost/api") } as never;
     const respuesta = await POST_NOMBRES(request);
     expect(respuesta.status).toBe(403);
   });
@@ -243,7 +253,7 @@ describe('POST /api/nombres', () => {
     });
     (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
 
-    const request = { json: async () => ({ correcciones: 'no es un array' }) } as never;
+    const request = { json: async () => ({ correcciones: 'no es un array' }), nextUrl: new URL("http://localhost/api") } as never;
     const respuesta = await POST_NOMBRES(request);
     expect(respuesta.status).toBe(400);
     expect(admin.upload).not.toHaveBeenCalled();
@@ -259,6 +269,7 @@ describe('POST /api/nombres', () => {
 
     const request = {
       json: async () => ({ correcciones: [{ original: '   ', corregido: 'Rosario' }] }),
+      nextUrl: new URL("http://localhost/api"),
     } as never;
     const respuesta = await POST_NOMBRES(request);
     expect(respuesta.status).toBe(400);
@@ -277,7 +288,7 @@ describe('POST /api/nombres', () => {
       original: `Original${i}`,
       corregido: `Corregido${i}`,
     }));
-    const request = { json: async () => ({ correcciones }) } as never;
+    const request = { json: async () => ({ correcciones }), nextUrl: new URL("http://localhost/api") } as never;
     const respuesta = await POST_NOMBRES(request);
     expect(respuesta.status).toBe(400);
     expect(admin.upload).not.toHaveBeenCalled();
@@ -292,7 +303,7 @@ describe('POST /api/nombres', () => {
     (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
 
     const correcciones = [{ original: 'Rosorio', corregido: 'Rosario' }];
-    const request = { json: async () => ({ correcciones }) } as never;
+    const request = { json: async () => ({ correcciones }), nextUrl: new URL("http://localhost/api") } as never;
     const respuesta = await POST_NOMBRES(request);
     const cuerpo = await respuesta.json();
 
@@ -313,7 +324,7 @@ describe('POST /api/nombres', () => {
     });
     (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
 
-    const request = { json: async () => ({ correcciones: [] }) } as never;
+    const request = { json: async () => ({ correcciones: [] }), nextUrl: new URL("http://localhost/api") } as never;
     const respuesta = await POST_NOMBRES(request);
 
     expect(respuesta.status).toBe(200);
