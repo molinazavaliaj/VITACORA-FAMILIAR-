@@ -4,8 +4,8 @@
 // Usa la misma puerta que el login real: el código se pega en /entrar como
 // siempre. No hay atajos en la app — solo evitamos el correo.
 //
-//   npx tsx scripts/codigo-local.ts                       → set-dorado@vitacorafamiliar.com (Osvaldo, 30 respuestas)
-//   npx tsx scripts/codigo-local.ts otra@persona.com      → cualquier familia que exista en la base
+//   npx tsx scripts/codigo-local.mts                       → set-dorado@vitacorafamiliar.com (Osvaldo, 30 respuestas)
+//   npx tsx scripts/codigo-local.mts otra@persona.com      → cualquier familia que exista en la base
 //
 // Necesita SUPABASE_SERVICE_ROLE_KEY en web/.env.local. Solo para desarrollo.
 
