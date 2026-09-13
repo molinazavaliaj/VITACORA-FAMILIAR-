@@ -102,7 +102,8 @@ function construirDbFake(opciones: {
 
   const download = vi.fn((ruta: string) => {
     const resultado = opciones.descargas?.[ruta];
-    return Promise.resolve(resultado ?? { data: null, error: { message: 'no existe' } });
+    // Lo que devuelve Storage cuando el objeto no está (solo eso vale como "no existe").
+    return Promise.resolve(resultado ?? { data: null, error: { message: 'Object not found', statusCode: '404' } });
   });
   const upload = opciones.upload ?? vi.fn().mockResolvedValue({ data: { path: 'x' }, error: null });
   const storage = { from: vi.fn(() => ({ download, upload })) };

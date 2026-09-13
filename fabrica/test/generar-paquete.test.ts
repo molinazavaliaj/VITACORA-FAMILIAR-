@@ -119,7 +119,8 @@ function construirDbFake(opciones: {
 
   const download = vi.fn((ruta: string) => {
     const resultado = opciones.descargas?.[ruta];
-    return Promise.resolve(resultado ?? { data: null, error: { message: 'no existe' } });
+    // Lo que devuelve Storage cuando el objeto no está (solo eso vale como "no existe").
+    return Promise.resolve(resultado ?? { data: null, error: { message: 'Object not found', statusCode: '404' } });
   });
   const upload = opciones.upload ?? vi.fn().mockResolvedValue({ data: { path: 'x' }, error: null });
   const list = vi.fn(() =>
@@ -410,6 +411,34 @@ describe('generarPaquete', () => {
       { contentType: 'text/markdown', upsert: true }
     );
     expect(db.remove).not.toHaveBeenCalled();
+  });
+
+  it('si Storage falla (no "no existe") al leer el borrador cacheado, el pedido cae a "fallido" sin pagarle al modelo de nuevo', async () => {
+    const db = construirDbFake({
+      narrador: { data: { id: 'narrador-1', nombre: 'Roberto', foto_url: null, contexto: {} }, error: null },
+      preguntasFijas: { data: [{ narrador_id: null, orden: 1, texto: '¿Dónde naciste?', capitulo: 'Infancia' }], error: null },
+      preguntasNarrador: { data: [], error: null },
+      respuestas: {
+        data: [{ pregunta_orden: 1, transcripcion: 'En Rosario.', texto_directo: null, es_repregunta: false, audio_path: null }],
+        error: null,
+      },
+      descargas: {
+        'narrador-1/paquete/estructura.json': {
+          data: blobFake(JSON.stringify({ titulo: 'T', capitulos: [{ nombre: 'Infancia', ordenes: [1] }], entidades: [] })),
+          error: null,
+        },
+        'narrador-1/paquete/nombres.json': { data: blobFake(JSON.stringify(nombres)), error: null },
+        // Un 500 de Storage: no dice nada de si el borrador está o no.
+        'narrador-1/paquete/borrador_cap_01.md': { data: null, error: { message: 'Internal server error', statusCode: '500' } },
+      },
+      archivosNarrador: [],
+    });
+    (obtenerClienteDb as unknown as ReturnType<typeof vi.fn>).mockReturnValue(db);
+
+    await expect(generarPaquete({ id: 'pedido-1', narrador_id: 'narrador-1' })).resolves.toBeUndefined();
+
+    expect(db.pedidosUpdate).toHaveBeenCalledWith({ estado: 'fallido' }, 'pedido-1');
+    expect(escribirCapituloMock).not.toHaveBeenCalled();
   });
 
   // --- La edición, las fotos y libro.html -----------------------------------
