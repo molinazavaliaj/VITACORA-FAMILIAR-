@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { narradorDeLaSesion, PUEDE } from "@/lib/panel";
+import { pedidoAMostrar } from "@/lib/pedido-a-mostrar";
 
 // El lector online: el mismo libro que el PDF, pero en HTML para leerlo en la
 // página de descarga. A diferencia de `descarga/libro`, acá NO va `soloDuena`:
@@ -10,8 +11,6 @@ import { narradorDeLaSesion, PUEDE } from "@/lib/panel";
 
 const MENSAJE_ERROR_GENERICO = "No pudimos abrir el libro. Intenta de nuevo.";
 const DURACION_URL_FIRMADA_SEGUNDOS = 3600;
-
-type Pedido = { id: string; estado: string };
 
 export async function GET(request: NextRequest) {
   const admin = crearClienteServidor();
@@ -24,19 +23,12 @@ export async function GET(request: NextRequest) {
   }
   const narrador = acceso.narrador;
 
-  const { data: pedidos, error: errorPedidos } = await admin
-    .from("pedidos")
-    .select("id, estado")
-    .eq("narrador_id", narrador.id)
-    .order("created_at", { ascending: false })
-    .limit(1);
+  const { pedido, error: errorPedidos } = await pedidoAMostrar(admin, narrador.id);
 
   if (errorPedidos) {
     console.error("descarga/libro-html: fallo la busqueda de pedido", errorPedidos);
     return NextResponse.json({ error: MENSAJE_ERROR_GENERICO }, { status: 500 });
   }
-
-  const pedido = (pedidos as Pedido[] | null)?.[0];
 
   // Solo el estado del pedido decide. La fábrica sube libro.html antes que el
   // PDF, así que el archivo puede existir con el pedido todavía en

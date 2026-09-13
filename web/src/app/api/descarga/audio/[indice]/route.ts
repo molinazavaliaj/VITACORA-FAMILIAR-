@@ -2,14 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { narradorDeLaSesion, PUEDE, type Rol } from "@/lib/panel";
+import { pedidoAMostrar, type AudiolibroPaths } from "@/lib/pedido-a-mostrar";
 
 const MENSAJE_ERROR_GENERICO = "No pudimos generar la descarga. Intenta de nuevo.";
 const DURACION_URL_FIRMADA_SEGUNDOS = 3600;
 
 type Familia = { id: string };
 type Narrador = { id: string };
-type AudiolibroPaths = { capitulos: string[]; bonus?: string; completo: string };
-type Pedido = { id: string; estado: string; audiolibro_paths: AudiolibroPaths | null };
 
 // `indice` es "bonus", "completo", o la posición (0-based) del capítulo
 // dentro de audiolibro_paths.capitulos — así lo arma el tablero al listar
@@ -51,19 +50,12 @@ export async function GET(
   }
   const narrador = acceso.narrador;
 
-  const { data: pedidos, error: errorPedidos } = await admin
-    .from("pedidos")
-    .select("id, estado, audiolibro_paths")
-    .eq("narrador_id", narrador.id)
-    .order("created_at", { ascending: false })
-    .limit(1);
+  const { pedido, error: errorPedidos } = await pedidoAMostrar(admin, narrador.id);
 
   if (errorPedidos) {
     console.error("descarga/audio: fallo la busqueda de pedido", errorPedidos);
     return NextResponse.json({ error: MENSAJE_ERROR_GENERICO }, { status: 500 });
   }
-
-  const pedido = (pedidos as Pedido[] | null)?.[0];
 
   if (!pedido || pedido.estado !== "entregado" || !pedido.audiolibro_paths) {
     return NextResponse.json({ error: "Tu audiolibro todavía no está listo." }, { status: 404 });

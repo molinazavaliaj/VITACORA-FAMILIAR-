@@ -3,14 +3,13 @@ import { notFound, redirect } from "next/navigation";
 import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { historiaAccesible, PUEDE } from "@/lib/panel";
+import { pedidoAMostrar, type AudiolibroPaths } from "@/lib/pedido-a-mostrar";
 import { PasosDelLibro, VolverAlTablero } from "../../pasos";
 
 const MENSAJE_ERROR_CARGA = "No pudimos cargar tu descarga. Actualiza la página en un momento.";
 
 type Familia = { id: string };
 type Narrador = { id: string; como_le_dicen: string };
-type AudiolibroPaths = { capitulos: string[]; bonus?: string; completo: string };
-type Pedido = { id: string; estado: string; audiolibro_paths: AudiolibroPaths | null };
 
 export default async function TableroDescarga({ params }: PageProps<"/tablero/[narradorId]/descarga">) {
   const { narradorId } = await params;
@@ -41,19 +40,13 @@ export default async function TableroDescarga({ params }: PageProps<"/tablero/[n
   const narrador = historia.narrador;
   const puedeDescargar = PUEDE.descargar(historia.rol);
 
-  const { data: pedidos, error: errorPedidos } = await admin
-    .from("pedidos")
-    .select("id, estado, audiolibro_paths")
-    .eq("narrador_id", narrador.id)
-    .order("created_at", { ascending: false })
-    .limit(1);
+  // El entregado manda; sin ninguno, el más nuevo dice en qué estado va.
+  const { pedido, error: errorPedidos } = await pedidoAMostrar(admin, narrador.id);
 
   if (errorPedidos) {
     console.error("tablero/descarga: fallo la busqueda de pedido", errorPedidos);
     return <EstadoError />;
   }
-
-  const pedido = (pedidos as Pedido[] | null)?.[0];
 
   if (!pedido) {
     return <SinPedido narradorId={narrador.id} />;

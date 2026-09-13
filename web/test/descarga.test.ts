@@ -38,12 +38,44 @@ function construirBuilder(resultado: unknown) {
   return builder;
 }
 
+// `pedidos` se consulta como una tabla, no como una secuencia: las rutas la
+// leen dos veces (primero el entregado, después cualquiera) y las mismas
+// filas tienen que responder a los `.eq(...)` que les pasan, como la base.
+// Ordena por created_at descendente y respeta `.limit`.
+function construirBuilderPedidos(resultado: { data: unknown; error: unknown }) {
+  const filtros: [string, unknown][] = [];
+  let tope: number | null = null;
+  const builder: Record<string, unknown> = {
+    select: () => builder,
+    eq: (col: string, valor: unknown) => {
+      filtros.push([col, valor]);
+      return builder;
+    },
+    order: () => builder,
+    limit: (n: number) => {
+      tope = n;
+      return builder;
+    },
+    then: (resolve: (v: unknown) => unknown, reject?: (e: unknown) => unknown) => {
+      if (!Array.isArray(resultado.data)) return Promise.resolve(resultado).then(resolve, reject);
+      const filas = (resultado.data as Record<string, unknown>[])
+        .filter((fila) => filtros.every(([col, valor]) => !(col in fila) || fila[col] === valor))
+        .sort((a, b) => String(b.created_at ?? '').localeCompare(String(a.created_at ?? '')));
+      return Promise.resolve({ ...resultado, data: tope === null ? filas : filas.slice(0, tope) }).then(resolve, reject);
+    },
+  };
+  return builder;
+}
+
 function crearAdminFake(
   secuencia: Record<string, unknown[]>,
   opciones: { signedUrl?: { data: unknown; error: unknown } } = {},
 ) {
   const contadores: Record<string, number> = {};
   const from = vi.fn((tabla: string) => {
+    if (tabla === 'pedidos') {
+      return construirBuilderPedidos((secuencia.pedidos?.[0] as { data: unknown; error: unknown }) ?? { data: [], error: null });
+    }
     const idx = contadores[tabla] ?? 0;
     contadores[tabla] = idx + 1;
     const resultado = secuencia[tabla]?.[idx] ?? { data: null, error: null };
@@ -145,6 +177,28 @@ describe('GET /api/descarga/libro', () => {
     expect(respuesta.headers.get('location')).toBe('https://signed.example/x');
     expect(admin.createSignedUrl.mock.calls[0][0]).toBe('narrador-1/paquete/libro.pdf');
   });
+
+  it('con un pedido "pendiente" más nuevo (el checkout abandonado de un desconocido) igual sirve el entregado', async () => {
+    mockSesion({ id: 'user-1', email: 'martina@test.com' });
+    const admin = crearAdminFake({
+      familias: [{ data: { id: 'familia-1' }, error: null }],
+      narradores: [{ data: [{ id: 'narrador-1' }], error: null }],
+      pedidos: [
+        {
+          data: [
+            { id: 'pedido-2', estado: 'pendiente', libro_pdf_path: null, created_at: '2026-09-13T10:00:00Z' },
+            { id: 'pedido-1', estado: 'entregado', libro_pdf_path: 'narrador-1/paquete/libro.pdf', created_at: '2026-09-01T10:00:00Z' },
+          ],
+          error: null,
+        },
+      ],
+    });
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+
+    const respuesta = await GET_LIBRO(fakeRequest());
+    expect(respuesta.status).toBe(302);
+    expect(admin.createSignedUrl.mock.calls[0][0]).toBe('narrador-1/paquete/libro.pdf');
+  });
 });
 
 // --- GET /api/descarga/audio/[indice] --------------------------------------------------
@@ -240,6 +294,28 @@ describe('GET /api/descarga/audio/[indice]', () => {
 
     const respuesta = await GET_AUDIO(fakeRequest(), { params: Promise.resolve({ indice: '0' }) });
     expect(respuesta.status).toBe(404);
+  });
+
+  it('con un pedido "pendiente" más nuevo sobre el mismo narrador, igual firma el audio del entregado', async () => {
+    mockSesion({ id: 'user-1', email: 'martina@test.com' });
+    const admin = crearAdminFake({
+      familias: [{ data: { id: 'familia-1' }, error: null }],
+      narradores: [{ data: [{ id: 'narrador-1' }], error: null }],
+      pedidos: [
+        {
+          data: [
+            { id: 'pedido-2', estado: 'pendiente', audiolibro_paths: null, created_at: '2026-09-13T10:00:00Z' },
+            { id: 'pedido-1', estado: 'entregado', audiolibro_paths: paths, created_at: '2026-09-01T10:00:00Z' },
+          ],
+          error: null,
+        },
+      ],
+    });
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+
+    const respuesta = await GET_AUDIO(fakeRequest(), { params: Promise.resolve({ indice: '0' }) });
+    expect(respuesta.status).toBe(302);
+    expect(admin.createSignedUrl.mock.calls[0][0]).toBe(paths.capitulos[0]);
   });
 
   // --- quién escucha qué: los capítulos los oye cualquiera que vea la
