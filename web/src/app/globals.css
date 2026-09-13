@@ -34,9 +34,15 @@
   --linea:         var(--niebla);
   --linea-fuerte:  var(--ceniza);
   --acento:        var(--violeta);
+  --sobre-acento:  var(--blanco);   /* el texto encima del botón violeta */
+  --relieve:       var(--papel);    /* superficies apenas levantadas: reproductor, riel */
+  --hueco:         var(--bruma);    /* pistas de barras, hover de filas */
+  --alerta:        #8A2A1E;         /* lo único que no es gris: un aviso que pide llamar */
+  --alerta-fondo:  #FBEFEC;
 }
 
-/* Pieza en negativo: se invierten los roles, no se reescriben los componentes. */
+/* Pieza en negativo: se invierten los roles, no se reescriben los componentes.
+   El panel entero se pone en negativo con esta clase (botón de tema). */
 .oscuro {
   --fondo:        var(--negro);
   --texto:        var(--blanco);
@@ -45,6 +51,12 @@
   --linea:        #2B2B24;
   --linea-fuerte: var(--pizarra);
   --acento:       var(--violeta-claro);
+  --sobre-acento: var(--negro);
+  --relieve:      #1C1C16;
+  --hueco:        #2B2B24;
+  --alerta:       #F2B8AE;
+  --alerta-fondo: #2A1512;
+  color-scheme: dark;
 }
 
 /* El cuerpo del sitio queda como estaba a propósito: las tipografías de marca
@@ -67,4 +79,53 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* ── Landing: entradas y maquetas ─────────────────────────────────────────
+   Todo falla hacia visible: si el navegador no soporta algo, o la persona
+   pidió menos movimiento, se ve el estado final, quieto y completo. */
+
+@supports (animation-timeline: view()) {
+  .aparece {
+    animation: aparecer both;
+    animation-timeline: view();
+    animation-range: entry 5% entry 45%;
+  }
+  @keyframes aparecer {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: none; }
+  }
+}
+
+/* La conversación del hero: cada paso entra después del anterior, una sola
+   vez, y se queda. */
+.maqueta-paso {
+  animation: maqueta-entrar 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+.maqueta-paso-1 { animation-delay: 0.4s; }
+.maqueta-paso-2 { animation-delay: 1.5s; }
+.maqueta-paso-3 { animation-delay: 2.6s; }
+.maqueta-paso-4 { animation-delay: 3.9s; }
+.maqueta-paso-5 { animation-delay: 3.2s; }
+@keyframes maqueta-entrar {
+  from { opacity: 0; transform: translateY(10px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+
+/* La barra de progreso del panel crece al aparecer. */
+.maqueta-barra {
+  transform-origin: left center;
+  animation: maqueta-crecer 1.2s cubic-bezier(0.2, 0.7, 0.2, 1) 0.3s both;
+}
+@keyframes maqueta-crecer {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aparece,
+  .maqueta-paso,
+  .maqueta-barra {
+    animation: none;
+  }
 }
