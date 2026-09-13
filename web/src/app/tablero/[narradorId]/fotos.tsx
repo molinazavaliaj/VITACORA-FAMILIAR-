@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation";
 
 export type FotoVista = {
   id: string;
-  capitulo: string;
+  capitulo: string | null; // null = foto del libro (tapa, contratapa, marco)
   epigrafe: string | null;
   principal: boolean;
   orden: number;

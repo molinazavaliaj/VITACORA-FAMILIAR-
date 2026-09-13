@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import type { Edicion } from "@/lib/edicion";
+import type { Edicion, EdicionCompleta } from "@/lib/edicion";
 
 // La edición final en 4 pasos (docs/panel-usuario.md §7.2). Siempre arranca
 // de la propuesta de la casa; ella cambia lo que quiere. Cada paso guarda con
@@ -11,12 +11,12 @@ import type { Edicion } from "@/lib/edicion";
 // sin vuelta atrás. Es deliberadamente explícito.
 
 export type RespuestaResumen = { id: string; orden: number; capitulo: string; pregunta: string; fragmento: string };
-export type FotoResumen = { id: string; epigrafe: string | null; capitulo: string };
+export type FotoResumen = { id: string; epigrafe: string | null; capitulo: string | null };
 
 type Props = {
   narradorId: string;
   nombre: string;
-  edicion: Required<Omit<Edicion, "portadaFotoId">> & { portadaFotoId: string | null };
+  edicion: EdicionCompleta;
   capitulos: string[];
   respuestas: RespuestaResumen[];
   fotos: FotoResumen[];
@@ -149,7 +149,7 @@ export function Wizard({ narradorId, nombre, edicion: inicial, capitulos, respue
                   </li>
                   {fotos.map((f) => (
                     <li key={f.id}>
-                      <button type="button" onClick={() => setPortadaFotoId(f.id)} className={`block rounded-lg border-2 ${portadaFotoId === f.id ? "border-[var(--texto)]" : "border-transparent"}`} title={f.epigrafe ?? f.capitulo}>
+                      <button type="button" onClick={() => setPortadaFotoId(f.id)} className={`block rounded-lg border-2 ${portadaFotoId === f.id ? "border-[var(--texto)]" : "border-transparent"}`} title={f.epigrafe ?? f.capitulo ?? "Foto del libro"}>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={`/api/fotos/${f.id}`} alt="" className="h-20 w-20 rounded-md object-cover" />
                       </button>

@@ -6,6 +6,8 @@ export type Edicion = {
   titulo?: string;
   subtitulo?: string;
   portadaFotoId?: string | null;
+  contratapaFotoId?: string | null; // 13/09: las tres se eligen en Encargar libro
+  marcoFotoId?: string | null;
   ordenCapitulos?: string[];
   excluidas?: string[]; // respuestas.id
   correcciones?: string;
@@ -16,11 +18,19 @@ export const SUBTITULO_MAXIMO = 80;
 export const CORRECCIONES_MAXIMO = 4000;
 
 /** La propuesta de la casa: lo que se produce si ella no toca nada. */
-export function propuestaPorDefecto(nombre: string, nombreCompleto: string, capitulos: string[]): Required<Omit<Edicion, "portadaFotoId">> & { portadaFotoId: string | null } {
+export type EdicionCompleta = Required<Omit<Edicion, "portadaFotoId" | "contratapaFotoId" | "marcoFotoId">> & {
+  portadaFotoId: string | null;
+  contratapaFotoId: string | null;
+  marcoFotoId: string | null;
+};
+
+export function propuestaPorDefecto(nombre: string, nombreCompleto: string, capitulos: string[]): EdicionCompleta {
   return {
     titulo: `${nombre} — La historia de una vida`,
     subtitulo: nombreCompleto,
     portadaFotoId: null,
+    contratapaFotoId: null,
+    marcoFotoId: null,
     ordenCapitulos: capitulos,
     excluidas: [],
     correcciones: "",
@@ -54,11 +64,17 @@ export function validarEdicion(
     if (s.length > SUBTITULO_MAXIMO) return { ok: false, mensaje: `El subtítulo es muy largo (máximo ${SUBTITULO_MAXIMO} letras).` };
     cambios.subtitulo = s;
   }
-  if ("portadaFotoId" in e) {
-    if (e.portadaFotoId !== null && (typeof e.portadaFotoId !== "string" || !UUID_RE.test(e.portadaFotoId))) {
-      return { ok: false, mensaje: "La foto de portada no es válida." };
-    }
-    cambios.portadaFotoId = e.portadaFotoId as string | null;
+  // Las tres fotos del libro: tapa, contratapa y la del marco. Un uuid o null.
+  const FOTOS = [
+    ["portadaFotoId", "La foto de portada no es válida."],
+    ["contratapaFotoId", "La foto de contratapa no es válida."],
+    ["marcoFotoId", "La foto del marco no es válida."],
+  ] as const;
+  for (const [campo, mensaje] of FOTOS) {
+    if (!(campo in e)) continue;
+    const v = e[campo];
+    if (v !== null && (typeof v !== "string" || !UUID_RE.test(v))) return { ok: false, mensaje };
+    cambios[campo] = v as string | null;
   }
   if ("ordenCapitulos" in e) {
     const lista = e.ordenCapitulos;

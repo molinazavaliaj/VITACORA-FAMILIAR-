@@ -12,7 +12,7 @@ migración en `supabase/migrations/` + actualizar este archivo + avisar al otro 
 | `preguntas` | **web** (copia las fijas al comprar; la familia edita, salta, reordena, agrega) / **entrevistador** (adaptativas y reemplazos) / seed (plantilla global) | ambos | Desde el 12/09 **cada narrador tiene su guion propio**. Las globales (`narrador_id = null`) son solo plantilla. Regla: `orden ≤ dia_actual` está **congelado**, nadie lo toca. |
 | `respuestas` | entrevistador | web | La web NUNCA escribe acá. |
 | `saludos` | ~~web / entrevistador~~ | — | **Fuera de la fase 1 (10/09).** Nadie la escribe ni la lee. Se deja por si la fase 2 la revive. |
-| `fotos` | web (sube y ordena) | fábrica | Nueva 12/09. Por capítulo; `principal` abre, el resto cierra. |
+| `fotos` | web (sube y ordena) | fábrica | Nueva 12/09. Por capítulo; `principal` abre, el resto cierra. **14/09: `capitulo` nullable** — NULL = foto del libro (tapa / contratapa / marco), no va en ningún capítulo. |
 | `invitados` | web | web | Nueva 12/09. `rol` (13/09): `'invitado'` (hasta 3, con el libro abierto, ven todo) o `'visitante'` (abrió el link del libro cerrado y lo guardó: ve la muestra y compra su copia, sin tope). |
 | `pedidos` | web y fábrica | — | El entrevistador no la mira. Un pedido por comprador: los invitados y visitantes que compran su copia tienen su propia `familia` y su propio pedido sobre el mismo `narrador_id`. |
 | `envios` | entrevistador | — | Log de salientes; idempotencia del scheduler. |
@@ -64,6 +64,8 @@ pedido posterior de solo extras no lleva la base, y puede ser de un invitado (su
 
 `narradores.edicion` (jsonb, escribe la web, lee la fábrica):
 `{ordenCapitulos: text[], excluidas: uuid[], titulo, subtitulo, portadaFotoId, correcciones}`.
+
+**14/09 — se suman a `edicion`:** `contratapaFotoId` y `marcoFotoId` (uuid de `fotos` o null), al lado de `portadaFotoId`. La fábrica pone la contratapa en el PDF impreso y usa `marcoFotoId` para producir los marcos. Las tres pueden apuntar a fotos con `capitulo` NULL o con capítulo.
 
 `narradores.libro_aprobado_at`: lo escribe la web cuando la dueña aprieta **Cerrar libro**.
 **Es el punto de aprobación del cliente: la fábrica no produce nada sin esto**, ni el PDF

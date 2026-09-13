@@ -142,6 +142,8 @@ export default async function PaginaLibro({ params }: PageProps<"/tablero/[narra
       titulo: edicionGuardada.titulo ?? propuesta.titulo,
       subtitulo: edicionGuardada.subtitulo ?? propuesta.subtitulo,
       portadaFotoId: edicionGuardada.portadaFotoId ?? null,
+      contratapaFotoId: edicionGuardada.contratapaFotoId ?? null,
+      marcoFotoId: edicionGuardada.marcoFotoId ?? null,
       ordenCapitulos: edicionGuardada.ordenCapitulos?.length ? edicionGuardada.ordenCapitulos : capitulos,
       excluidas: edicionGuardada.excluidas ?? [],
       correcciones: edicionGuardada.correcciones ?? "",

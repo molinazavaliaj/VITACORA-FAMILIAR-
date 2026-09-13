@@ -88,9 +88,12 @@ function Error_({ mensaje }: { mensaje: string | null }) {
   return mensaje ? <p className="text-sm text-[var(--alerta)]">{mensaje}</p> : null;
 }
 
-function SelectorCapitulo({ capitulos, valor, onChange }: { capitulos: string[]; valor: string; onChange: (c: string) => void }) {
+export const SIN_CAPITULO = ""; // la foto es del libro: tapa, contratapa o marco
+
+function SelectorCapitulo({ capitulos, valor, onChange, conGeneral = false }: { capitulos: string[]; valor: string; onChange: (c: string) => void; conGeneral?: boolean }) {
   return (
     <select value={valor} onChange={(e) => onChange(e.target.value)} className={`${campo} [font-family:var(--fuente-micro)] text-[15px]`}>
+      {conGeneral ? <option value={SIN_CAPITULO}>Del libro — para la tapa, la contratapa o el marco</option> : null}
       {capitulos.map((c) => (
         <option key={c} value={c}>{c}</option>
       ))}
@@ -376,7 +379,9 @@ export function AgregarPregunta({
 export function SubirFoto({ narradorId, capitulos, capituloInicial, children, variante = "texto" }: { narradorId: string; capitulos: string[]; capituloInicial?: string; children?: ReactNode; variante?: "texto" | "barra" }) {
   const router = useRouter();
   const [abierto, setAbierto] = useState(false);
-  const [capitulo, setCapitulo] = useState(capituloInicial ?? capitulos[0] ?? "");
+  // Desde la barra (sin capítulo inicial) la foto es del libro por defecto; se puede mandar a un capítulo.
+  const esGeneral = capituloInicial === undefined;
+  const [capitulo, setCapitulo] = useState(capituloInicial ?? (esGeneral ? SIN_CAPITULO : capitulos[0] ?? ""));
   const [epigrafe, setEpigrafe] = useState("");
   const [principal, setPrincipal] = useState(false);
   const [archivo, setArchivo] = useState<File | null>(null);
@@ -428,17 +433,22 @@ export function SubirFoto({ narradorId, capitulos, capituloInicial, children, va
         <CampoFoto onElegir={(a, m) => { setArchivo(a); setMedida(m); }} />
         <VistaPreviaFoto archivo={archivo} calidad={calidad} />
         <label className="flex flex-col gap-2">
-          <span className="text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.2em]">Capítulo</span>
-          <SelectorCapitulo capitulos={capitulos} valor={capitulo} onChange={setCapitulo} />
+          <span className="text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.2em]">Dónde va</span>
+          <SelectorCapitulo capitulos={capitulos} valor={capitulo} onChange={setCapitulo} conGeneral={esGeneral} />
+          {capitulo === SIN_CAPITULO ? (
+            <span className="text-sm text-[var(--texto-menor)]">Las fotos del libro no van en ningún capítulo: en Encargar libro elegís cuál es la tapa, la contratapa y la del marco.</span>
+          ) : null}
         </label>
         <label className="flex flex-col gap-2">
           <span className="text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.2em]">Epígrafe (opcional)</span>
           <input value={epigrafe} onChange={(e) => setEpigrafe(e.target.value)} className={campo} placeholder="Mar del Plata, verano del 68" maxLength={300} />
         </label>
-        <label className="flex items-center gap-3 text-[15px]">
-          <input type="checkbox" checked={principal} onChange={(e) => setPrincipal(e.target.checked)} className="h-4 w-4" />
-          Que abra el capítulo (la foto principal)
-        </label>
+        {capitulo !== SIN_CAPITULO ? (
+          <label className="flex items-center gap-3 text-[15px]">
+            <input type="checkbox" checked={principal} onChange={(e) => setPrincipal(e.target.checked)} className="h-4 w-4" />
+            Que abra el capítulo (la foto principal)
+          </label>
+        ) : null}
         <Error_ mensaje={error} />
         <div className="flex flex-wrap items-center gap-3">
           <button type="button" className={botonPrincipal} disabled={ocupado} onClick={guardar}>{ocupado ? "Subiendo…" : "Guardar la foto"}</button>

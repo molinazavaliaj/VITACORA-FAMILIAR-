@@ -167,7 +167,12 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
   }));
 
   const fotosPorCapitulo = new Map<string, FotoVista[]>();
+  const fotosDelLibro: FotoVista[] = []; // sin capítulo: tapa, contratapa, marco (§15.2)
   for (const f of (fotosData as FotoVista[] | null) ?? []) {
+    if (f.capitulo === null) {
+      fotosDelLibro.push(f);
+      continue;
+    }
     const lista = fotosPorCapitulo.get(f.capitulo) ?? [];
     lista.push(f);
     fotosPorCapitulo.set(f.capitulo, lista);
@@ -421,6 +426,25 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
               </section>
             );
           })}
+
+          {!editando && (fotosDelLibro.length > 0 || puedeAgregar) ? (
+            <section aria-labelledby="fotos-del-libro">
+              <div className="flex items-end justify-between gap-4 border-b border-[var(--linea)] pb-4">
+                <h2 id="fotos-del-libro" className="text-2xl font-medium leading-none [font-family:var(--fuente-titulo)]">Fotos del libro</h2>
+                <span className="shrink-0 text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.18em]">tapa · contratapa · marco</span>
+              </div>
+              <p className="mt-4 text-[15px] leading-relaxed text-[var(--texto-suave)]">
+                Las que no son de una época: las que querés para la tapa, la contratapa o el marco. Cuál va a dónde se elige en{" "}
+                <Link href={`/tablero/${n.id}/libro`} className="underline decoration-[var(--linea-fuerte)] underline-offset-4">Encargar libro</Link>.
+              </p>
+              <GaleriaCapitulo fotos={fotosDelLibro} usuarioId={user.id} esDuena={rol === "duena"} />
+              {puedeAgregar ? (
+                <div className="mt-5">
+                  <SubirFoto narradorId={n.id} capitulos={capitulosConocidos}>+ Agregar una foto del libro</SubirFoto>
+                </div>
+              ) : null}
+            </section>
+          ) : null}
 
           {!cerrado && !guion.some((p) => p.tipo === "adaptativa") ? (
             <p className="flex gap-4 text-[var(--texto-menor)]">

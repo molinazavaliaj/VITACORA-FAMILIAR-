@@ -38,3 +38,19 @@ describe("validarEdicion", () => {
     expect(validarEdicion({ portadaFotoId: "no" }, ctx).ok).toBe(false);
   });
 });
+
+describe("tapa, contratapa y marco (13/09)", () => {
+  const ctx = { capitulosValidos: ["La infancia"], respuestasValidas: new Set<string>() };
+  const id = "0f4a2a2e-6d7a-4a5e-9a9f-0f4a2a2e6d7a";
+
+  it("acepta contratapaFotoId y marcoFotoId con uuid o null", () => {
+    const r = validarEdicion({ contratapaFotoId: id, marcoFotoId: null }, ctx);
+    expect(r.ok).toBe(true);
+    if (r.ok) expect(r.cambios).toEqual({ contratapaFotoId: id, marcoFotoId: null });
+  });
+
+  it("rechaza un id que no es uuid", () => {
+    expect(validarEdicion({ contratapaFotoId: "x" }, ctx).ok).toBe(false);
+    expect(validarEdicion({ marcoFotoId: 3 }, ctx).ok).toBe(false);
+  });
+});

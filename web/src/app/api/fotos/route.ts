@@ -5,10 +5,12 @@ import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { narradorDeLaSesion, PUEDE, type Rol } from "@/lib/panel";
 import { calidadDeFoto, AVISO_CALIDAD, TAMANO_MAXIMO_BYTES, TIPOS_DE_IMAGEN } from "@/lib/guion";
 
-// Subir una foto a un capítulo (docs/panel-usuario.md §6.3). Se guarda EL
-// ORIGINAL, sin recomprimir: la resolución es lo que decide si se puede
-// imprimir. El navegador mide ancho/alto antes de subir y los manda; acá se
-// guardan y se le devuelve a la familia qué alcanza a imprimir con eso.
+// Subir una foto (docs/panel-usuario.md §6.3 y §15.2). Con capítulo va a esa
+// época del libro; sin capítulo es "del libro" — candidata a tapa, contratapa
+// o marco, que se eligen en Encargar libro. Se guarda EL ORIGINAL, sin
+// recomprimir: la resolución es lo que decide si se puede imprimir. El
+// navegador mide ancho/alto antes de subir y los manda; acá se guardan y se
+// le devuelve a la familia qué alcanza a imprimir con eso.
 
 const GENERICO = "No pudimos subir la foto. Intenta de nuevo.";
 const ESTADOS_CERRADOS = ["completado", "cerrado_anticipado"];
@@ -39,14 +41,13 @@ export async function POST(request: NextRequest) {
   }
 
   const archivo = form.get("archivo");
-  const capitulo = String(form.get("capitulo") ?? "").trim();
+  const capitulo = String(form.get("capitulo") ?? "").trim() || null; // null = foto del libro, sin capítulo
   const epigrafe = String(form.get("epigrafe") ?? "").trim().slice(0, 300) || null;
   const ancho = Number(form.get("ancho") ?? 0) || null;
   const alto = Number(form.get("alto") ?? 0) || null;
-  const principal = form.get("principal") === "1";
+  const principal = capitulo !== null && form.get("principal") === "1";
 
   if (!(archivo instanceof File)) return NextResponse.json({ error: "No llegó ninguna foto." }, { status: 400 });
-  if (!capitulo) return NextResponse.json({ error: "Elegí en qué capítulo va la foto." }, { status: 400 });
   if (!TIPOS_DE_IMAGEN.includes(archivo.type)) {
     return NextResponse.json({ error: "Tiene que ser una imagen (JPG, PNG, WebP o HEIC)." }, { status: 400 });
   }
