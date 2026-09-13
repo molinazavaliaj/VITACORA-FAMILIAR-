@@ -59,7 +59,9 @@ export async function crearCheckout(pedido: Pedido, compra: Compra): Promise<{ u
         success: `${urlBase}/comprar/gracias`,
         failure: `${urlBase}/comprar`,
       },
-      auto_return: "approved",
+      // MP rechaza auto_return si la URL de vuelta no es https pública (en
+      // local, con localhost, tira "invalid_auto_return"). En producción va.
+      ...(urlBase?.startsWith("https://") ? { auto_return: "approved" as const } : {}),
     },
   });
 

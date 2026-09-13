@@ -13,6 +13,7 @@ import { POST } from "../src/app/api/compra/route";
 function crearAdmin(secuencia: Record<string, unknown[]>) {
   const contadores: Record<string, number> = {};
   const inserts: Record<string, unknown[]> = {};
+  const updates: Record<string, unknown[]> = {};
   const from = vi.fn((tabla: string) => {
     const idx = contadores[tabla] ?? 0;
     contadores[tabla] = idx + 1;
@@ -23,10 +24,14 @@ function crearAdmin(secuencia: Record<string, unknown[]>) {
       (inserts[tabla] ??= []).push(valores);
       return b;
     };
+    b.update = (valores: unknown) => {
+      (updates[tabla] ??= []).push(valores);
+      return b;
+    };
     b.then = (res: (v: unknown) => unknown, rej?: (e: unknown) => unknown) => Promise.resolve(resultado).then(res, rej);
     return b;
   });
-  return { from, inserts };
+  return { from, inserts, updates };
 }
 
 function peticion(body: unknown) {
@@ -76,7 +81,7 @@ describe("POST /api/compra", () => {
     process.env.PRECIO_MARCO_ARS = "30000";
     const admin = crearAdmin({
       familias: [{ data: null, error: null }, { data: { id: "fam-1" }, error: null }],
-      narradores: [{ data: { id: "nar-1" }, error: null }],
+      narradores: [{ data: null, error: null }, { data: { id: "nar-1" }, error: null }],
       pedidos: [{ data: { id: "ped-1" }, error: null }],
     });
     (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
@@ -104,7 +109,7 @@ describe("POST /api/compra", () => {
   it("si la familia ya existe (mismo correo, compra anterior) la reusa y no crea otra", async () => {
     const admin = crearAdmin({
       familias: [{ data: { id: "fam-vieja" }, error: null }],
-      narradores: [{ data: { id: "nar-2" }, error: null }],
+      narradores: [{ data: null, error: null }, { data: { id: "nar-2" }, error: null }],
       pedidos: [{ data: { id: "ped-2" }, error: null }],
     });
     (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
@@ -119,7 +124,7 @@ describe("POST /api/compra", () => {
   it("un extra elegido sin precio en la región no se cobra ni se anota", async () => {
     const admin = crearAdmin({
       familias: [{ data: { id: "fam-1" }, error: null }],
-      narradores: [{ data: { id: "nar-1" }, error: null }],
+      narradores: [{ data: null, error: null }, { data: { id: "nar-1" }, error: null }],
       pedidos: [{ data: { id: "ped-1" }, error: null }],
     });
     (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
@@ -132,7 +137,7 @@ describe("POST /api/compra", () => {
   it("un WhatsApp que ya tiene libro responde 409 con un mensaje claro", async () => {
     const admin = crearAdmin({
       familias: [{ data: { id: "fam-1" }, error: null }],
-      narradores: [{ data: null, error: { code: "23505", message: "duplicate key" } }],
+      narradores: [{ data: null, error: null }, { data: null, error: { code: "23505", message: "duplicate key" } }],
     });
     (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
 
@@ -147,7 +152,7 @@ describe("POST /api/compra", () => {
     (crearCheckout as unknown as ReturnType<typeof vi.fn>).mockRejectedValue(new Error("stripe caído"));
     const admin = crearAdmin({
       familias: [{ data: { id: "fam-1" }, error: null }],
-      narradores: [{ data: { id: "nar-1" }, error: null }],
+      narradores: [{ data: null, error: null }, { data: { id: "nar-1" }, error: null }],
       pedidos: [{ data: { id: "ped-1" }, error: null }],
     });
     (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
@@ -155,5 +160,22 @@ describe("POST /api/compra", () => {
     const r = await POST(peticion(CUERPO_VALIDO));
 
     expect(r.status).toBe(500);
+  });
+
+  it("si el mismo correo ya dejó ese WhatsApp en pendiente_pago (falló el pago antes), lo retoma en vez de dar 409", async () => {
+    (crearCheckout as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({ urlPago: "https://mp.example/pay" });
+    const admin = crearAdmin({
+      familias: [{ data: { id: "fam-1" }, error: null }],
+      // 1) la búsqueda del pendiente lo encuentra, de la misma familia · 2) el update devuelve el id
+      narradores: [{ data: { id: "nar-viejo", familia_id: "fam-1", estado: "pendiente_pago" }, error: null }, { data: { id: "nar-viejo" }, error: null }],
+      pedidos: [{ data: { id: "ped-2" }, error: null }],
+    });
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+
+    const respuesta = await POST(peticion(CUERPO_VALIDO));
+    expect(respuesta.status).toBe(200);
+    expect(admin.inserts.narradores ?? []).toHaveLength(0);
+    expect(admin.updates.narradores).toHaveLength(1);
+    expect(admin.inserts.pedidos[0]).toMatchObject({ narrador_id: "nar-viejo" });
   });
 });
