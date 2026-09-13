@@ -27,7 +27,7 @@ const PASOS = ["Portada", "Capítulos", "Contenido", "Cerrar libro"] as const;
 
 const boton = "inline-flex h-11 items-center justify-center rounded-full px-6 text-sm font-medium transition-colors [font-family:var(--fuente-micro)] disabled:opacity-50";
 const principal = `${boton} bg-[var(--texto)] text-[var(--fondo)] hover:opacity-90`;
-const secundario = `${boton} border border-[var(--linea-fuerte)] text-[var(--texto)] hover:bg-[var(--bruma)]`;
+const secundario = `${boton} border border-[var(--linea-fuerte)] text-[var(--texto)] hover:bg-[var(--hueco)]`;
 const chico = "text-sm text-[var(--texto-menor)] underline decoration-[var(--linea-fuerte)] underline-offset-4 hover:text-[var(--texto)] [font-family:var(--fuente-micro)] disabled:opacity-50";
 const campo = "w-full rounded-lg border border-[var(--linea-fuerte)] bg-[var(--fondo)] px-4 py-3 text-[16px] leading-relaxed text-[var(--texto)] outline-none focus:border-[var(--texto)]";
 const etiqueta = "text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.2em]";
@@ -117,8 +117,8 @@ export function Wizard({ narradorId, nombre, edicion: inicial, capitulos, respue
           </li>
         ))}
       </ol>
-      <div className="mt-2 h-[3px] w-full bg-[var(--bruma)]">
-        <div className="h-full bg-[var(--texto)] transition-all" style={{ width: `${((paso + 1) / PASOS.length) * 100}%` }} />
+      <div className="mt-2 h-[3px] w-full bg-[var(--hueco)]">
+        <div className="h-full bg-[var(--texto)] transition-[width] duration-300 ease-out" style={{ width: `${((paso + 1) / PASOS.length) * 100}%` }} />
       </div>
 
       {/* ── 1 · Portada ─────────────────────────────────────────────── */}
@@ -301,10 +301,10 @@ export function Wizard({ narradorId, nombre, edicion: inicial, capitulos, respue
             </label>
           </div>
 
-          {error ? <p className="text-sm text-red-700">{error}</p> : null}
+          {error ? <p className="text-sm text-[var(--alerta)]">{error}</p> : null}
 
           <div className="flex flex-wrap items-center gap-4">
-            <button type="button" disabled={ocupado || !confirmo} onClick={cerrar} className={`${boton} bg-[var(--acento)] px-8 text-white hover:opacity-90`}>
+            <button type="button" disabled={ocupado || !confirmo} onClick={cerrar} className={`${boton} bg-[var(--acento)] px-8 text-[var(--sobre-acento)] hover:opacity-90`}>
               {ocupado ? "Cerrando…" : `Cerrar el libro de ${nombre}`}
             </button>
             <button type="button" className={chico} disabled={ocupado} onClick={() => setPaso(2)}>Volver a revisar</button>
@@ -312,7 +312,7 @@ export function Wizard({ narradorId, nombre, edicion: inicial, capitulos, respue
         </section>
       ) : null}
 
-      {error && paso !== 3 ? <p className="mt-4 text-sm text-red-700">{error}</p> : null}
+      {error && paso !== 3 ? <p className="mt-4 text-sm text-[var(--alerta)]">{error}</p> : null}
     </div>
   );
 }

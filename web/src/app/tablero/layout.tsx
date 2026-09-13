@@ -1,14 +1,17 @@
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { Playfair_Display, Archivo, Source_Serif_4 } from "next/font/google";
 import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { historiasDelUsuario } from "@/lib/panel";
 import { Navegacion } from "./nav";
+import { BotonTema, COOKIE_TEMA, type Tema } from "./tema";
 
 // El panel del usuario (docs/panel-usuario.md). Este layout hace tres cosas
 // para todas las pantallas de adentro: exige sesión, carga las historias que
-// ve este usuario (propias e invitadas) y pinta el cascarón — sidebar oscuro
-// en desktop, pestañas abajo en el celular.
+// ve este usuario (propias e invitadas) y pinta el cascarón — sidebar en
+// desktop, pestañas abajo en el celular — con el tema que eligió (cookie:
+// el servidor ya pinta claro u oscuro, sin parpadeo).
 //
 // Las tipografías se cargan acá igual que en la landing (web/src/app/page.tsx):
 // el panel es la segunda pantalla pasada al sistema visual de docs/design.md.
@@ -52,6 +55,8 @@ export default async function LayoutPanel({ children }: LayoutProps<"/tablero">)
   // Sin familia y sin invitaciones: entró con un mail que nunca compró nada.
   if (!panel.familia && panel.historias.length === 0) redirect("/comprar");
 
+  const tema: Tema = (await cookies()).get(COOKIE_TEMA)?.value === "oscuro" ? "oscuro" : "claro";
+
   const historias = panel.historias.map((h) => ({
     id: h.narrador.id,
     nombre: h.narrador.nombre,
@@ -61,10 +66,17 @@ export default async function LayoutPanel({ children }: LayoutProps<"/tablero">)
 
   return (
     <div
-      className={`${playfair.variable} ${archivo.variable} ${sourceSerif.variable} flex min-h-full flex-1 flex-col bg-[var(--fondo)] text-[var(--texto)] [font-family:var(--fuente-cuerpo)] md:flex-row`}
+      id="panel"
+      className={`${playfair.variable} ${archivo.variable} ${sourceSerif.variable} ${tema === "oscuro" ? "oscuro" : ""} flex min-h-full flex-1 flex-col bg-[var(--fondo)] text-[var(--texto)] [font-family:var(--fuente-cuerpo)] md:flex-row`}
     >
-      <Navegacion historias={historias} />
-      <main className="flex-1 pb-24 md:pb-0">{children}</main>
+      <Navegacion historias={historias} tema={<BotonTema inicial={tema} />} />
+      <main className="relative flex-1 pb-24 md:pb-0">
+        {/* El botón del tema, opuesto al logo: arriba a la derecha, siempre. */}
+        <div className="absolute right-4 top-4 z-10 hidden md:block">
+          <BotonTema inicial={tema} />
+        </div>
+        {children}
+      </main>
     </div>
   );
 }

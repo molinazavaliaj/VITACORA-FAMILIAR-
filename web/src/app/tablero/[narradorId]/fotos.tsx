@@ -48,7 +48,7 @@ export function GaleriaCapitulo({ fotos, usuarioId, esDuena }: { fotos: FotoVist
           <img src={`/api/fotos/${principal.id}`} alt={principal.epigrafe ?? ""} className="max-h-96 w-full rounded-lg border border-[var(--linea)] object-cover" />
           {principal.epigrafe ? <figcaption className="mt-2 text-sm italic text-[var(--texto-menor)]">{principal.epigrafe}</figcaption> : null}
           {puedeBorrar(principal) ? (
-            <button type="button" disabled={borrando === principal.id} onClick={() => borrar(principal)} className="absolute top-2 right-2 rounded-full bg-[var(--fondo)]/90 px-3 py-1 text-xs text-[var(--texto-menor)] hover:text-red-700 [font-family:var(--fuente-micro)]">
+            <button type="button" disabled={borrando === principal.id} onClick={() => borrar(principal)} className="absolute top-2 right-2 rounded-full bg-[var(--fondo)]/90 px-3 py-1 text-xs text-[var(--texto-menor)] hover:text-[var(--alerta)] [font-family:var(--fuente-micro)]">
               {borrando === principal.id ? "…" : "Sacar"}
             </button>
           ) : null}
@@ -61,7 +61,7 @@ export function GaleriaCapitulo({ fotos, usuarioId, esDuena }: { fotos: FotoVist
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={`/api/fotos/${f.id}`} alt={f.epigrafe ?? ""} title={f.epigrafe ?? undefined} className="h-24 w-24 rounded-lg border border-[var(--linea)] object-cover" />
               {puedeBorrar(f) ? (
-                <button type="button" disabled={borrando === f.id} onClick={() => borrar(f)} className="absolute top-1 right-1 rounded-full bg-[var(--fondo)]/90 px-2 py-0.5 text-[10px] text-[var(--texto-menor)] hover:text-red-700 [font-family:var(--fuente-micro)]">
+                <button type="button" disabled={borrando === f.id} onClick={() => borrar(f)} className="absolute top-1 right-1 rounded-full bg-[var(--fondo)]/90 px-2 py-0.5 text-[10px] text-[var(--texto-menor)] hover:text-[var(--alerta)] [font-family:var(--fuente-micro)]">
                   {borrando === f.id ? "…" : "✕"}
                 </button>
               ) : null}
@@ -69,7 +69,7 @@ export function GaleriaCapitulo({ fotos, usuarioId, esDuena }: { fotos: FotoVist
           ))}
         </ul>
       ) : null}
-      {error ? <p className="text-sm text-red-700">{error}</p> : null}
+      {error ? <p className="text-sm text-[var(--alerta)]">{error}</p> : null}
     </div>
   );
 }

@@ -105,16 +105,16 @@ export default async function TableroNombres({ params }: PageProps<"/tablero/[na
   });
 
   return (
-    <div className="flex flex-1 flex-col items-center bg-white px-6 py-16 text-zinc-900">
+    <div className="flex flex-1 flex-col items-center bg-[var(--fondo)] px-6 py-16 text-[var(--texto)]">
       <div className="w-full max-w-lg">
         <div className="mb-8 flex flex-col gap-4">
           <VolverAlTablero narradorId={narrador.id} />
           <PasosDelLibro actual={2} />
         </div>
-        <h1 className="text-2xl font-semibold text-zinc-900">
+        <h1 className="text-2xl font-semibold text-[var(--texto)]">
           Nombres de {narrador.como_le_dicen}
         </h1>
-        <p className="mt-2 text-sm leading-relaxed text-zinc-600">
+        <p className="mt-2 text-sm leading-relaxed text-[var(--texto-suave)]">
           Revisa que estén bien escritos antes de que imprimamos el libro — la transcripción
           automática a veces oye mal un nombre o un lugar.
         </p>
@@ -129,16 +129,16 @@ export default async function TableroNombres({ params }: PageProps<"/tablero/[na
 
 function EstadoError() {
   return (
-    <div className="flex flex-1 flex-col items-center justify-center bg-white px-6 py-16 text-center text-zinc-900">
-      <p className="text-sm text-zinc-600">{MENSAJE_ERROR_CARGA}</p>
+    <div className="flex flex-1 flex-col items-center justify-center bg-[var(--fondo)] px-6 py-16 text-center text-[var(--texto)]">
+      <p className="text-sm text-[var(--texto-suave)]">{MENSAJE_ERROR_CARGA}</p>
     </div>
   );
 }
 
 function EstadoSinEstructura({ comoLeDicen, narradorId }: { comoLeDicen: string; narradorId: string }) {
   return (
-    <div className="flex flex-1 flex-col items-center justify-center bg-white px-6 py-16 text-center text-zinc-900">
-      <p className="text-sm text-zinc-600">
+    <div className="flex flex-1 flex-col items-center justify-center bg-[var(--fondo)] px-6 py-16 text-center text-[var(--texto)]">
+      <p className="text-sm text-[var(--texto-suave)]">
         Todavía estamos armando el libro de {comoLeDicen}. La revisión de nombres va a estar
         lista pronto.
       </p>

@@ -60,13 +60,13 @@ async function subirFoto(
 // ── piezas chicas ──────────────────────────────────────────────────────
 
 const boton = "inline-flex h-10 items-center justify-center rounded-full px-5 text-sm font-medium transition-colors [font-family:var(--fuente-micro)] disabled:opacity-50";
-const botonPrincipal = `${boton} bg-[var(--acento)] text-white hover:opacity-90`;
-const botonSecundario = `${boton} border border-[var(--linea-fuerte)] text-[var(--texto)] hover:bg-[var(--bruma)]`;
+const botonPrincipal = `${boton} bg-[var(--acento)] text-[var(--sobre-acento)] hover:opacity-90`;
+const botonSecundario = `${boton} border border-[var(--linea-fuerte)] text-[var(--texto)] hover:bg-[var(--hueco)]`;
 const botonChico = "text-sm text-[var(--texto-menor)] underline decoration-[var(--linea-fuerte)] underline-offset-4 hover:text-[var(--texto)] [font-family:var(--fuente-micro)] disabled:opacity-50";
 const campo = "w-full rounded-lg border border-[var(--linea-fuerte)] bg-[var(--fondo)] px-4 py-3 text-[16px] leading-relaxed text-[var(--texto)] outline-none focus:border-[var(--texto)]";
 
 function Error_({ mensaje }: { mensaje: string | null }) {
-  return mensaje ? <p className="text-sm text-red-700">{mensaje}</p> : null;
+  return mensaje ? <p className="text-sm text-[var(--alerta)]">{mensaje}</p> : null;
 }
 
 function SelectorCapitulo({ capitulos, valor, onChange }: { capitulos: string[]; valor: string; onChange: (c: string) => void }) {
@@ -89,14 +89,14 @@ function VistaPreviaFoto({ archivo, calidad }: { archivo: File | null; calidad: 
   }
   if (!archivo) return null;
   const aviso = calidad === "sin-medir" ? "No pudimos medir esta foto en el navegador; la revisamos nosotros." : calidad ? AVISO_CALIDAD[calidad] : null;
-  const tono = calidad === "baja" ? "text-red-700" : calidad === "marco" ? "text-[var(--texto)]" : "text-[var(--texto-menor)]";
+  const tono = calidad === "baja" ? "text-[var(--alerta)]" : calidad === "marco" ? "text-[var(--texto)]" : "text-[var(--texto-menor)]";
   return (
     <div className="flex items-start gap-4">
       {url ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={url} alt="" className="h-24 w-24 shrink-0 rounded-lg border border-[var(--linea)] object-cover" />
       ) : (
-        <div className="h-24 w-24 shrink-0 rounded-lg bg-[var(--bruma)]" />
+        <div className="h-24 w-24 shrink-0 rounded-lg bg-[var(--hueco)]" />
       )}
       <div className="min-w-0">
         <p className="truncate text-sm text-[var(--texto-suave)]">{archivo.name}</p>
@@ -199,7 +199,7 @@ export function EditorGuion({
                       {confirmando === p.id ? (
                         <span className="flex items-center gap-3 text-sm">
                           <span className="text-[var(--texto-suave)]">¿Sacarla del guion?</span>
-                          <button type="button" className={`${botonChico} text-red-700`} disabled={ocupado} onClick={() => correr({ accion: "saltar", id: p.id })}>Sí, sacarla</button>
+                          <button type="button" className={`${botonChico} text-[var(--alerta)]`} disabled={ocupado} onClick={() => correr({ accion: "saltar", id: p.id })}>Sí, sacarla</button>
                           <button type="button" className={botonChico} disabled={ocupado} onClick={() => setConfirmando(null)}>No</button>
                         </span>
                       ) : (

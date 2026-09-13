@@ -78,7 +78,7 @@ export function FormularioNombres({ entidades, narradorId }: { entidades: Entida
   return (
     <div className="flex flex-col gap-6">
       {sinEntidades ? (
-        <p className="text-sm text-zinc-500">
+        <p className="text-sm text-[var(--texto-menor)]">
           Todavía no detectamos nombres para revisar. Puedes confirmar igual para seguir adelante
           — si más adelante aparece alguno, se puede corregir después.
         </p>
@@ -86,10 +86,10 @@ export function FormularioNombres({ entidades, narradorId }: { entidades: Entida
         <div className="flex flex-col gap-5">
           {entidades.map((entidad, indice) => (
             <div key={indice}>
-              <label className="text-sm font-medium text-zinc-900" htmlFor={`nombre-${indice}`}>
+              <label className="text-sm font-medium text-[var(--texto)]" htmlFor={`nombre-${indice}`}>
                 {entidad.texto}
               </label>
-              <p className="text-xs text-zinc-500">{entidad.contexto}</p>
+              <p className="text-xs text-[var(--texto-menor)]">{entidad.contexto}</p>
               <input
                 id={`nombre-${indice}`}
                 type="text"
@@ -101,7 +101,7 @@ export function FormularioNombres({ entidades, narradorId }: { entidades: Entida
                     return copia;
                   })
                 }
-                className="mt-1 h-10 w-full rounded-md border border-zinc-300 px-3 text-sm text-zinc-900 focus:border-zinc-500 focus:outline-none"
+                className="mt-1 h-10 w-full rounded-md border border-[var(--linea-fuerte)] px-3 text-sm text-[var(--texto)] focus:border-[var(--texto)] focus:outline-none"
               />
             </div>
           ))}
@@ -113,18 +113,18 @@ export function FormularioNombres({ entidades, narradorId }: { entidades: Entida
           type="button"
           onClick={guardar}
           disabled={guardando}
-          className="h-10 rounded-full bg-zinc-900 px-5 text-sm font-medium text-white transition-colors hover:bg-zinc-700 disabled:opacity-60"
+          className="h-10 rounded-full bg-[var(--texto)] px-5 text-sm font-medium text-[var(--fondo)] transition-opacity hover:opacity-85 disabled:opacity-60"
         >
           {guardando ? "Guardando..." : sinEntidades ? "Confirmar sin correcciones" : "Guardar"}
         </button>
-        {guardado ? <span className="text-sm text-zinc-600">Guardado ✓</span> : null}
-        {error ? <span className="text-sm text-red-600">{error}</span> : null}
+        {guardado ? <span className="text-sm text-[var(--texto-suave)]">Guardado ✓</span> : null}
+        {error ? <span className="text-sm text-[var(--alerta)]">{error}</span> : null}
       </div>
 
       {guardado ? (
         <Link
           href="/tablero/descarga"
-          className="text-sm font-medium text-zinc-900 underline underline-offset-2"
+          className="text-sm font-medium text-[var(--texto)] underline underline-offset-2"
         >
           Siguiente paso: su libro →
         </Link>

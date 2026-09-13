@@ -88,7 +88,7 @@ function Contenedor({
   narradorId: string;
 }) {
   return (
-    <div className="flex flex-1 flex-col items-center bg-white px-6 py-16 text-zinc-900">
+    <div className="flex flex-1 flex-col items-center bg-[var(--fondo)] px-6 py-16 text-[var(--texto)]">
       <div className="w-full max-w-lg">
         <div className="mb-8 flex flex-col gap-4">
           <VolverAlTablero narradorId={narradorId} />
@@ -102,8 +102,8 @@ function Contenedor({
 
 function EstadoError() {
   return (
-    <div className="flex flex-1 flex-col items-center justify-center bg-white px-6 py-16 text-center text-zinc-900">
-      <p className="text-sm text-zinc-600">{MENSAJE_ERROR_CARGA}</p>
+    <div className="flex flex-1 flex-col items-center justify-center bg-[var(--fondo)] px-6 py-16 text-center text-[var(--texto)]">
+      <p className="text-sm text-[var(--texto-suave)]">{MENSAJE_ERROR_CARGA}</p>
     </div>
   );
 }
@@ -111,13 +111,13 @@ function EstadoError() {
 function SinPedido({ narradorId }: { narradorId: string }) {
   return (
     <Contenedor narradorId={narradorId}>
-      <h1 className="text-2xl font-semibold text-zinc-900">Todavía no compraste el libro</h1>
-      <p className="mt-2 text-sm leading-relaxed text-zinc-600">
+      <h1 className="text-2xl font-semibold text-[var(--texto)]">Todavía no compraste el libro</h1>
+      <p className="mt-2 text-sm leading-relaxed text-[var(--texto-suave)]">
         Cuando lo compres, tus descargas van a aparecer aquí.
       </p>
       <Link
         href="/comprar"
-        className="mt-6 inline-block rounded-lg bg-zinc-900 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-zinc-800"
+        className="mt-6 inline-block rounded-full bg-[var(--texto)] px-5 py-2.5 text-sm font-medium text-[var(--fondo)] transition-opacity hover:opacity-85 [font-family:var(--fuente-micro)]"
       >
         Ir a comprar
       </Link>
@@ -128,8 +128,8 @@ function SinPedido({ narradorId }: { narradorId: string }) {
 function PagoIncompleto({ narradorId }: { narradorId: string }) {
   return (
     <Contenedor narradorId={narradorId}>
-      <h1 className="text-2xl font-semibold text-zinc-900">Tu pago no se completó</h1>
-      <p className="mt-2 text-sm leading-relaxed text-zinc-600">
+      <h1 className="text-2xl font-semibold text-[var(--texto)]">Tu pago no se completó</h1>
+      <p className="mt-2 text-sm leading-relaxed text-[var(--texto-suave)]">
         No perdiste nada de lo ya cargado. Escríbenos y te mandamos un enlace para
         terminar el pago sin volver a empezar.
       </p>
@@ -137,7 +137,7 @@ function PagoIncompleto({ narradorId }: { narradorId: string }) {
           Hasta tener un "reintentar este pedido", la salida es el correo. */}
       <a
         href="mailto:hola@vitacorafamiliar.com?subject=Terminar%20el%20pago"
-        className="mt-6 inline-block rounded-lg bg-zinc-900 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-zinc-800"
+        className="mt-6 inline-block rounded-full bg-[var(--texto)] px-5 py-2.5 text-sm font-medium text-[var(--fondo)] transition-opacity hover:opacity-85 [font-family:var(--fuente-micro)]"
       >
         Escribirnos
       </a>
@@ -152,8 +152,8 @@ function EnFabricacion({ narradorId }: { narradorId: string }) {
           cada 60s hasta que el estado cambie a 'entregado' o 'fallido'. */}
       <meta httpEquiv="refresh" content="60" />
       <Contenedor paso={4} narradorId={narradorId}>
-        <h1 className="text-2xl font-semibold text-zinc-900">Estamos imprimiendo su historia</h1>
-        <p className="mt-2 text-sm leading-relaxed text-zinc-600">
+        <h1 className="text-2xl font-semibold text-[var(--texto)]">Estamos imprimiendo su historia</h1>
+        <p className="mt-2 text-sm leading-relaxed text-[var(--texto-suave)]">
           Esto tarda unos minutos. Vuelve a esta página en un rato.
         </p>
       </Contenedor>
@@ -164,8 +164,8 @@ function EnFabricacion({ narradorId }: { narradorId: string }) {
 function Fallido({ narradorId }: { narradorId: string }) {
   return (
     <Contenedor narradorId={narradorId}>
-      <h1 className="text-2xl font-semibold text-zinc-900">Algo salió mal de nuestro lado</h1>
-      <p className="mt-2 text-sm leading-relaxed text-zinc-600">Estamos en ello.</p>
+      <h1 className="text-2xl font-semibold text-[var(--texto)]">Algo salió mal de nuestro lado</h1>
+      <p className="mt-2 text-sm leading-relaxed text-[var(--texto-suave)]">Estamos en ello.</p>
     </Contenedor>
   );
 }
@@ -184,28 +184,28 @@ function Entregado({
 
   return (
     <Contenedor paso={4} narradorId={narradorId}>
-      <h1 className="text-2xl font-semibold text-zinc-900">
+      <h1 className="text-2xl font-semibold text-[var(--texto)]">
         El libro y el audiolibro de {comoLeDicen}
       </h1>
-      <p className="mt-2 text-sm leading-relaxed text-zinc-600">
+      <p className="mt-2 text-sm leading-relaxed text-[var(--texto-suave)]">
         Ya está listo. Queda aquí para siempre — vuelve cuando quieras.
       </p>
 
       <div className="mt-8 flex flex-col gap-3">
         <a
           href={`/api/descarga/libro?narrador=${narradorId}`}
-          className="inline-block rounded-lg bg-zinc-900 px-5 py-2.5 text-center text-sm font-medium text-white transition-colors hover:bg-zinc-800"
+          className="inline-block rounded-full bg-[var(--texto)] px-5 py-2.5 text-center text-sm font-medium text-[var(--fondo)] transition-opacity hover:opacity-85 [font-family:var(--fuente-micro)]"
         >
           Descargar el libro (PDF)
         </a>
       </div>
 
       {tieneCompleto ? (
-        <div className="mt-10 border-t border-zinc-100 pt-8">
-          <p className="mb-2 text-sm font-medium text-zinc-700">Audiolibro completo</p>
+        <div className="mt-10 border-t border-[var(--linea)] pt-8">
+          <p className="mb-2 text-sm font-medium text-[var(--texto-suave)]">Audiolibro completo</p>
           {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
           <audio controls src={`/api/descarga/audio/completo?narrador=${narradorId}`} className="w-full" />
-          <a href={`/api/descarga/audio/completo?narrador=${narradorId}`} className="mt-2 inline-block text-xs text-zinc-500 underline">
+          <a href={`/api/descarga/audio/completo?narrador=${narradorId}`} className="mt-2 inline-block text-xs text-[var(--texto-menor)] underline">
             Descargar
           </a>
         </div>
@@ -213,15 +213,15 @@ function Entregado({
 
       {capitulos.length > 0 ? (
         <div className="mt-8 flex flex-col gap-6">
-          <p className="text-sm font-medium text-zinc-700">Por capítulo</p>
+          <p className="text-sm font-medium text-[var(--texto-suave)]">Por capítulo</p>
           {capitulos.map((_ruta, indice) => (
             <div key={indice}>
-              <p className="mb-2 text-sm text-zinc-600">Capítulo {indice + 1}</p>
+              <p className="mb-2 text-sm text-[var(--texto-suave)]">Capítulo {indice + 1}</p>
               {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
               <audio controls src={`/api/descarga/audio/${indice}?narrador=${narradorId}`} className="w-full" />
               <a
                 href={`/api/descarga/audio/${indice}?narrador=${narradorId}`}
-                className="mt-2 inline-block text-xs text-zinc-500 underline"
+                className="mt-2 inline-block text-xs text-[var(--texto-menor)] underline"
               >
                 Descargar
               </a>

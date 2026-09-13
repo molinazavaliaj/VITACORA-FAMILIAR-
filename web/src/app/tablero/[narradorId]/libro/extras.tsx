@@ -27,7 +27,7 @@ function formatear(monto: number, moneda: "EUR" | "ARS", region: "ES" | "AR") {
 }
 
 function Contador({ valor, onChange, min = 0, max = 20, etiquetaMenos, etiquetaMas }: { valor: number; onChange: (v: number) => void; min?: number; max?: number; etiquetaMenos: string; etiquetaMas: string }) {
-  const b = "flex h-9 w-9 items-center justify-center rounded-full border border-[var(--linea-fuerte)] text-lg leading-none hover:bg-[var(--bruma)] disabled:opacity-40";
+  const b = "flex h-9 w-9 items-center justify-center rounded-full border border-[var(--linea-fuerte)] text-lg leading-none hover:bg-[var(--hueco)] disabled:opacity-40";
   return (
     <span className="inline-flex items-center gap-3">
       <button type="button" aria-label={etiquetaMenos} className={b} disabled={valor <= min} onClick={() => onChange(valor - 1)}>−</button>
@@ -122,10 +122,10 @@ export function Extras({ narradorId, moneda, region, extras, yaTieneImpreso, tit
         </div>
       ) : null}
 
-      {error ? <p className="text-sm text-red-700">{error}</p> : null}
+      {error ? <p className="text-sm text-[var(--alerta)]">{error}</p> : null}
 
       <div className="flex flex-wrap items-center gap-4">
-        <button type="button" disabled={ocupado || total <= 0} onClick={pagar} className={`${boton} bg-[var(--acento)] px-8 text-white hover:opacity-90`}>
+        <button type="button" disabled={ocupado || total <= 0} onClick={pagar} className={`${boton} bg-[var(--acento)] px-8 text-[var(--sobre-acento)] hover:opacity-90`}>
           {ocupado ? "Un momento…" : total > 0 ? `Pagar ${formatear(total, moneda, region)}` : "Elegí algo para sumar"}
         </button>
         <span className="text-sm text-[var(--texto-menor)]">Pago único. Se produce y se envía cuando el libro esté cerrado.</span>

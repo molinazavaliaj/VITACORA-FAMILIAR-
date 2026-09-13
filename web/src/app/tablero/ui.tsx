@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { ReproductorRespuesta } from "./reproductor";
 
 // Piezas compartidas del panel. Todas usan los roles de color de globals.css
 // (--texto, --linea, --acento…), nunca colores crudos, así una pieza sirve en
@@ -50,9 +51,10 @@ export function ProximoPaso({ href, children }: { href: string; children: ReactN
   return (
     <Link
       href={href}
-      className="block rounded-xl border border-[var(--acento)] bg-[var(--fondo)] p-5 text-[15px] font-medium text-[var(--texto)] transition-colors hover:bg-[var(--bruma)] [font-family:var(--fuente-micro)]"
+      className="flex items-center justify-between gap-4 rounded-xl border border-[var(--acento)] bg-[var(--fondo)] p-5 text-[15px] font-medium text-[var(--texto)] transition-colors hover:bg-[var(--hueco)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--acento)] [font-family:var(--fuente-micro)] [touch-action:manipulation]"
     >
-      {children} →
+      <span>{children}</span>
+      <span aria-hidden className="shrink-0 text-[var(--acento)]">→</span>
     </Link>
   );
 }
@@ -61,8 +63,8 @@ export function BarraProgreso({ respondidas, total }: { respondidas: number; tot
   const porcentaje = total > 0 ? Math.min(100, Math.round((respondidas / total) * 100)) : 0;
   return (
     <div className="flex flex-col gap-2">
-      <div className="h-1.5 w-full overflow-hidden rounded-full bg-[var(--bruma)]">
-        <div className="h-full rounded-full bg-[var(--texto)] transition-all" style={{ width: `${porcentaje}%` }} />
+      <div className="h-1.5 w-full overflow-hidden rounded-full bg-[var(--hueco)]">
+        <div className="h-full rounded-full bg-[var(--texto)] transition-[width] duration-500 ease-out" style={{ width: `${porcentaje}%` }} />
       </div>
       <p className="text-sm text-[var(--texto-menor)] [font-family:var(--fuente-micro)] tabular-nums">
         {respondidas} de {total} respuestas
@@ -96,8 +98,11 @@ export function Respuesta({ respuesta }: { respuesta: RespuestaVista }) {
   return (
     <div className="flex flex-col gap-3">
       {respuesta.audio_path ? (
-        // eslint-disable-next-line jsx-a11y/media-has-caption
-        <audio controls preload="none" src={`/api/audio/${respuesta.id}`} className="w-full" />
+        <ReproductorRespuesta
+          src={`/api/audio/${respuesta.id}`}
+          duracion={respuesta.duracion_segundos}
+          etiqueta={`respuesta ${respuesta.pregunta_orden}`}
+        />
       ) : null}
       {texto ? (
         <p className="text-[16px] leading-[1.7] text-[var(--texto-suave)] [font-family:var(--fuente-cuerpo)] font-light">

@@ -11,21 +11,21 @@ export type PasoActual = 1 | 2 | 3 | 4;
 
 export function PasosDelLibro({ actual }: { actual: PasoActual }) {
   return (
-    <ol className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+    <ol className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs [font-family:var(--fuente-micro)]">
       {PASOS.map((nombre, indice) => {
         const numero = (indice + 1) as PasoActual;
         const hecho = numero < actual;
         const esActual = numero === actual;
         return (
           <li key={nombre} className="flex items-center gap-x-2">
-            {indice > 0 ? <span className="text-zinc-300">—</span> : null}
+            {indice > 0 ? <span className="text-[var(--linea-fuerte)]">—</span> : null}
             <span
               className={
                 esActual
-                  ? "font-semibold text-zinc-900"
+                  ? "font-medium text-[var(--texto)]"
                   : hecho
-                    ? "text-zinc-500"
-                    : "text-zinc-400"
+                    ? "text-[var(--texto-suave)]"
+                    : "text-[var(--texto-menor)]"
               }
             >
               {hecho ? "✓ " : `${numero}. `}
@@ -42,7 +42,7 @@ export function VolverAlTablero({ narradorId }: { narradorId?: string }) {
   return (
     <Link
       href={narradorId ? `/tablero/${narradorId}/libro` : "/tablero"}
-      className="text-sm font-medium text-zinc-500 transition-colors hover:text-zinc-900"
+      className="text-sm font-medium text-[var(--texto-menor)] transition-colors hover:text-[var(--texto)] [font-family:var(--fuente-micro)]"
     >
       ← Volver
     </Link>

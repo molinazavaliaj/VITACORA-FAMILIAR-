@@ -44,8 +44,8 @@ export function BannerAlertaSilencio({
   }
 
   return (
-    <div className="flex flex-col gap-3 rounded-lg border border-red-200 bg-red-50 p-4 sm:flex-row sm:items-center sm:justify-between">
-      <p className="text-sm leading-relaxed text-red-800">
+    <div className="flex flex-col gap-3 rounded-xl border border-[var(--alerta)] bg-[var(--alerta-fondo)] p-4 sm:flex-row sm:items-center sm:justify-between">
+      <p className="text-sm leading-relaxed text-[var(--alerta)]">
         {comoLeDicen} lleva 3 días sin responder — un llamadito tuyo ayuda más que
         cualquier recordatorio nuestro
       </p>
@@ -54,11 +54,11 @@ export function BannerAlertaSilencio({
           type="button"
           onClick={marcarLlamada}
           disabled={enviando}
-          className="h-10 rounded-full bg-red-700 px-5 text-sm font-medium text-white transition-colors hover:bg-red-800 disabled:opacity-60"
+          className="h-10 rounded-full bg-[var(--texto)] px-5 text-sm font-medium text-[var(--fondo)] transition-opacity hover:opacity-85 disabled:opacity-60 [font-family:var(--fuente-micro)]"
         >
-          {enviando ? "Marcando..." : "Ya hablamos"}
+          {enviando ? "Marcando…" : "Ya hablamos"}
         </button>
-        {error ? <p className="text-xs text-red-700">{error}</p> : null}
+        {error ? <p className="text-xs text-[var(--alerta)]">{error}</p> : null}
       </div>
     </div>
   );
@@ -73,7 +73,7 @@ export function CierreAnticipado({ narradorId }: { narradorId: string }) {
 
   if (hecho) {
     return (
-      <p className="mt-8 text-sm text-zinc-500">
+      <p className="mt-8 text-sm text-[var(--texto-menor)]">
         Cerramos la bitácora. Vamos a armar el libro con los capítulos que ya tiene.
       </p>
     );
@@ -103,7 +103,7 @@ export function CierreAnticipado({ narradorId }: { narradorId: string }) {
       <button
         type="button"
         onClick={() => setAbierto(true)}
-        className="mt-8 text-sm text-zinc-400 underline decoration-zinc-300 underline-offset-2 hover:text-zinc-600"
+        className="mt-8 text-sm text-[var(--texto-menor)] underline decoration-[var(--linea-fuerte)] underline-offset-4 hover:text-[var(--texto)] [font-family:var(--fuente-micro)]"
       >
         ¿Necesitas cerrar la bitácora antes de tiempo?
       </button>
@@ -111,8 +111,8 @@ export function CierreAnticipado({ narradorId }: { narradorId: string }) {
   }
 
   return (
-    <div className="mt-8 flex flex-col gap-4 rounded-lg border border-zinc-200 bg-zinc-50 p-5">
-      <p className="text-sm leading-relaxed text-zinc-700">
+    <div className="mt-8 flex flex-col gap-4 rounded-xl border border-[var(--linea)] bg-[var(--relieve)] p-5">
+      <p className="text-sm leading-relaxed text-[var(--texto-suave)]">
         Si necesitas cerrar la bitácora ahora, vamos a armar el libro con los capítulos que
         ya tiene. Esta acción no se puede deshacer.
       </p>
@@ -121,20 +121,20 @@ export function CierreAnticipado({ narradorId }: { narradorId: string }) {
           type="button"
           onClick={confirmar}
           disabled={enviando}
-          className="h-10 rounded-full bg-zinc-900 px-5 text-sm font-medium text-white transition-colors hover:bg-zinc-700 disabled:opacity-60"
+          className="h-10 rounded-full bg-[var(--texto)] px-5 text-sm font-medium text-[var(--fondo)] transition-opacity hover:opacity-85 disabled:opacity-60 [font-family:var(--fuente-micro)]"
         >
-          {enviando ? "Cerrando..." : "Sí, cerrar la bitácora"}
+          {enviando ? "Cerrando…" : "Sí, cerrar la bitácora"}
         </button>
         <button
           type="button"
           onClick={() => setAbierto(false)}
           disabled={enviando}
-          className="h-10 rounded-full border border-zinc-300 px-5 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-100 disabled:opacity-60"
+          className="h-10 rounded-full border border-[var(--linea-fuerte)] px-5 text-sm font-medium text-[var(--texto)] transition-colors hover:bg-[var(--hueco)] disabled:opacity-60 [font-family:var(--fuente-micro)]"
         >
           Volver
         </button>
       </div>
-      {error ? <p className="text-sm text-red-600">{error}</p> : null}
+      {error ? <p className="text-sm text-[var(--alerta)]">{error}</p> : null}
     </div>
   );
 }

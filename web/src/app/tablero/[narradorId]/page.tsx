@@ -21,6 +21,7 @@ import {
   Titulo,
   TOTAL_PREGUNTAS_BASE,
   fechaCorta,
+  formatearDuracion,
   type RespuestaVista,
 } from "../ui";
 
@@ -123,6 +124,7 @@ export default async function PaginaHistoria({ params }: PageProps<"/tablero/[na
     respuestasPorOrden.set(r.pregunta_orden, lista);
   }
   const respondidas = respuestasPorOrden.size;
+  const segundosDeVoz = ((respuestas as RespuestaVista[] | null) ?? []).reduce((acc, r) => acc + (r.duracion_segundos ?? 0), 0);
 
   // Los capítulos, en el orden en que aparecen en el guion (el del biógrafo).
   const capitulos: { nombre: string; preguntas: Pregunta[] }[] = [];
@@ -165,9 +167,39 @@ export default async function PaginaHistoria({ params }: PageProps<"/tablero/[na
         ) : null}
       </div>
 
-      <div className="mt-6">
-        <BarraProgreso respondidas={respondidas} total={total} />
+      <div className="mt-6 flex flex-wrap items-end justify-between gap-4">
+        <div className="min-w-0 flex-1 basis-64">
+          <BarraProgreso respondidas={respondidas} total={total} />
+        </div>
+        {segundosDeVoz > 0 ? (
+          <p className="text-sm text-[var(--texto-menor)] [font-family:var(--fuente-micro)]">
+            <span className="text-[var(--texto)] tabular-nums">{formatearDuracion(segundosDeVoz)}</span> de su voz
+          </p>
+        ) : null}
       </div>
+
+      {/* El índice: un salto a cada capítulo, como el del libro. */}
+      <nav aria-label="Capítulos" className="mt-8 -mx-6 overflow-x-auto px-6 md:mx-0 md:px-0">
+        <ol className="flex gap-2 pb-1">
+          {capitulos.map((cap, i) => {
+            const contestadas = cap.preguntas.filter((p) => respuestasPorOrden.has(p.orden)).length;
+            const completo = contestadas === cap.preguntas.length;
+            return (
+              <li key={cap.nombre} className="shrink-0">
+                <a
+                  href={`#cap-${i}`}
+                  className={`inline-flex h-9 items-center gap-2 rounded-full border px-3.5 text-[13px] transition-colors hover:border-[var(--texto)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--texto)] [font-family:var(--fuente-micro)] ${
+                    completo ? "border-[var(--texto)] bg-[var(--texto)] text-[var(--fondo)]" : contestadas > 0 ? "border-[var(--texto)]" : "border-[var(--linea)] text-[var(--texto-menor)]"
+                  }`}
+                >
+                  <span className="tabular-nums opacity-70">{i + 1}</span>
+                  {cap.nombre}
+                </a>
+              </li>
+            );
+          })}
+        </ol>
+      </nav>
 
       {cerrado ? (
         <div className="mt-8">
@@ -181,13 +213,15 @@ export default async function PaginaHistoria({ params }: PageProps<"/tablero/[na
         {capitulos.map((cap, i) => {
           const contestadas = cap.preguntas.filter((p) => respuestasPorOrden.has(p.orden)).length;
           return (
-            <section key={cap.nombre} aria-labelledby={`cap-${i}`}>
-              <div className="flex items-baseline justify-between gap-4 border-b border-[var(--texto)] pb-3">
-                <h2 id={`cap-${i}`} className="text-xl font-medium [font-family:var(--fuente-titulo)]">
-                  <span className="mr-3 text-[var(--texto-menor)] tabular-nums">{i + 1}</span>
-                  {cap.nombre}
-                </h2>
-                <span className="text-sm text-[var(--texto-menor)] [font-family:var(--fuente-micro)] tabular-nums">
+            <section key={cap.nombre} aria-labelledby={`cap-${i}`} id={`cap-${i}`} className="scroll-mt-20">
+              <div className="flex items-end justify-between gap-4 border-b border-[var(--texto)] pb-4">
+                <div className="flex items-baseline gap-4">
+                  <span aria-hidden className="text-4xl leading-none text-[var(--linea-fuerte)] [font-family:var(--fuente-titulo)] tabular-nums">
+                    {i + 1}
+                  </span>
+                  <h2 className="text-2xl font-medium leading-none [font-family:var(--fuente-titulo)]">{cap.nombre}</h2>
+                </div>
+                <span className="shrink-0 text-[12px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.18em] tabular-nums">
                   {contestadas} de {cap.preguntas.length}
                 </span>
               </div>
@@ -201,8 +235,11 @@ export default async function PaginaHistoria({ params }: PageProps<"/tablero/[na
                   if (!lista) {
                     return (
                       <div key={p.orden} className="flex gap-4 text-[var(--texto-menor)]">
-                        <span className="w-6 shrink-0 text-right text-sm tabular-nums [font-family:var(--fuente-micro)]">{p.orden}</span>
-                        <p className="text-[15px] leading-relaxed">{p.texto}</p>
+                        <span className="w-6 shrink-0 pt-0.5 text-right text-sm tabular-nums [font-family:var(--fuente-micro)]">{p.orden}</span>
+                        <p className="text-[15px] leading-relaxed [font-family:var(--fuente-cuerpo)] font-light">
+                          {p.texto}
+                          <span className="ml-2 whitespace-nowrap text-[11px] uppercase [font-family:var(--fuente-micro)] [letter-spacing:0.18em]">todavía no</span>
+                        </p>
                       </div>
                     );
                   }
@@ -237,7 +274,7 @@ export default async function PaginaHistoria({ params }: PageProps<"/tablero/[na
                         {!cerrado && PUEDE.agregarPreguntasYFotos(rol) ? (
                           <Link
                             href={`/tablero/${n.id}/preguntas?sobre=${p.orden}`}
-                            className="mt-4 inline-block text-sm text-[var(--acento)] underline decoration-[var(--linea-fuerte)] underline-offset-4 [font-family:var(--fuente-micro)]"
+                            className="mt-4 inline-block text-sm text-[var(--acento)] underline decoration-[var(--linea-fuerte)] underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--acento)] [font-family:var(--fuente-micro)]"
                           >
                             Pedirle que cuente más sobre esto
                           </Link>
