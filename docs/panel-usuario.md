@@ -351,3 +351,102 @@ párrafo · colores de tapa · más de 3 invitados · referidos · regalar una c
 10. Compartir cerrado: link público, guardar, comprar copia
 11. Lector online + descargas
 12. Mails de hitos
+
+---
+
+## 15. Decisiones del 13/09 (tarde) — ⚠️ pendientes de implementar
+
+> Decididas por Joaquín en la sesión de rediseño. Reemplazan lo que diga
+> arriba donde se contradigan. Se implementan cuando se elija la dirección
+> visual (lienzo "Vitácora · Direcciones del panel", `docs/diseno/panel-v2/`).
+
+### 15.1 · Tres productos, al menos uno — "ricitos de oro"
+
+| Producto | Qué es | ARS | EUR | Variable |
+|---|---|---|---|---|
+| **El libro en PDF** | Se **lee en la web**, capítulo por capítulo, con las fotos. **No se descarga.** | 85.750 | 49 | `PRECIO_ARS` / `PRECIO_EUR` (sin cambio de valor: antes incluía el audiolibro) |
+| **El audiolibro** | La historia completa **en primera persona**, con **su voz clonada de sus audios reales** o con **un narrador** — lo elige quien compra. Se **escucha en la web**, no se descarga. | 61.250 | 35 | `PRECIO_AUDIOLIBRO_ARS` / `_EUR` (nuevas) |
+| **El libro impreso** | Tapa dura, B/N o color, QR en la contratapa. Lo único que sale de la nube. | 70.000 / 80.500 | 40 / 46 | sin cambio |
+| Marcos con NFC | Se suman a cualquiera de los tres. | 35.000 c/u | 20 | sin cambio |
+
+- **Al menos uno de los tres es obligatorio** en el checkout. Los marcos solos, no.
+- **Por qué:** mostrar los tres a la vista hace que el impreso —el que queda en la
+  repisa— se lea como la opción buena frente a "lo otro está en la nube". Y quien
+  quiera los tres, puede.
+- **La entrevista es la misma** para los tres. Lo que cambia es la salida.
+- El PDF y el audiolibro **dejan de ser descargables**: `/tablero/[id]/descarga`
+  pasa a ser el **lector online** (3t.8, de Naza) y el reproductor del
+  audiolibro. Las rutas `api/descarga/*` se cierran.
+- ⚠️ **Toca al entrevistador y a la fábrica:** la voz clonada necesita muestras
+  limpias de sus audios (el entrevistador ya las tiene) y un proveedor de
+  clonación (fábrica). El narrador es un TTS de una voz fija. Definir proveedor
+  antes de prometer fechas.
+
+### 15.2 · Fotos: también sin capítulo
+
+Hoy `fotos.capitulo` es obligatorio: toda foto pertenece a un capítulo y el
+wizard elige la tapa entre esas. Falta el **álbum general** — fotos que no son
+de una época sino del libro: tapa, contratapa, la del marco.
+
+- `fotos.capitulo` pasa a **nullable**. Sin capítulo = álbum general.
+- `narradores.edicion` suma `contratapaFotoId` y `marcoFotoId` (ya tiene
+  `portadaFotoId`).
+- **Dónde se suben:** desde el botón **Agregar fotos** arriba a la derecha de la
+  historia (general o a un capítulo, se elige en el mismo diálogo) y desde cada
+  capítulo (ya va a ese capítulo).
+- **Dónde se eligen tapa / contratapa / marco:** en **Encargar libro**, debajo
+  del libro en miniatura. Se puede elegir en cualquier momento; se confirma al
+  cerrar.
+- Calidad: tapa y contratapa piden lo mismo que el libro (≥ 1200×1800); el
+  marco, ≥ 2400×3000 (§6.3). El aviso se muestra al elegir, no solo al subir.
+
+### 15.3 · Las secciones se reordenan: la historia ES el guion
+
+Hoy las preguntas se listan dos veces (Historias por capítulo con respuestas;
+Preguntas con el guion editable). Queda **una**.
+
+- **Inicio** → sigue igual: una tarjeta por historia.
+- **Historias** → la lista de historias (lo que hoy está en Inicio) y, al tocar
+  una, **el panel general de la historia**: todas las preguntas **numeradas por
+  capítulo**, con la respuesta (audio + transcripción) debajo de las contestadas
+  y "todavía no" en las que faltan.
+- Arriba a la derecha, dos botones: **Editar preguntas** y **Agregar fotos**.
+  - *Editar preguntas* pone en modo edición **todas las que vienen** (las
+    enviadas no se tocan, §6.1) —editar, sacar, mover— y suma la **burbuja de
+    agregar una pregunta**, con foto opcional y a qué capítulo. "Listo" vuelve
+    a la vista normal.
+  - *Agregar fotos* abre el diálogo de subida: general o a un capítulo.
+- **Preguntas** deja de ser una sección de navegación. **Ajustes de la
+  entrevista** (ritmo) y **temas que no se preguntan** quedan **al final** de la
+  historia, después del último capítulo.
+- La navegación queda con **tres** entradas: Inicio · Historias · Encargar libro.
+- **Dirección visual elegida (13/09, tarde):** la historia de la dirección B
+  (riel de capítulos a la izquierda, filas compactas con el audio a la derecha)
+  con los capítulos por venir en el formato de A·Edición al tocar *Editar
+  preguntas*; Encargar libro nace en negro (C). **Tema claro/oscuro** con un botón
+  arriba a la derecha, siempre a la vista, opuesto al logo — mismos roles de
+  color invertidos (`.oscuro`), sin reescribir piezas. El riel de Historias
+  muestra primero las historias creadas + el botón violeta *Empezar una
+  historia*, y debajo los capítulos de la abierta. Lienzo: `docs/diseno/panel-v2/`.
+- **Comprar desde la landing:** 4 pasos (Quién cuenta · Su WhatsApp · Tu mail ·
+  Pagar); el último muestra los tres productos + marcos y el total.
+
+### 15.4 · Encargar libro: el libro en miniatura
+
+- Arriba: **Su libro** y el estado (en curso / terminó, faltan retoques / cerrado).
+- Debajo: **el libro en miniatura, hojeable página por página** — la
+  previsualización real de cómo va a quedar: dónde caen las fotos, los
+  capítulos, la tapa elegida. Con lo contado hasta hoy; crece con la entrevista.
+- Debajo: **Tapa · Contratapa · Marco** — elegir la foto de cada una (15.2).
+- Debajo: lo comprado y los tres productos para sumar (15.1) + marcos.
+- ⚠️ La miniatura necesita que la fábrica exponga el HTML paginado del libro
+  (3t.8). Hasta entonces se arma con la misma plantilla que el anticipo.
+
+### 15.5 · Qué toca a quién
+
+| | Dueño |
+|---|---|
+| Checkout con tres productos, `pedidos.extras` → `productos` (pdf / audiolibro{voz} / impreso{acabado} / marcos), precios nuevos, sin descargas, lector + reproductor online, historia unificada, fotos generales, tapa/contratapa/marco, miniatura | Joaquín (`web/`) |
+| Migración `fotos.capitulo` nullable + `CONTRATO.md` | Joaquín escribe, **Naza aplica** |
+| Audiolibro con voz clonada o narrador, HTML paginado para la miniatura, tapa/contratapa/marco en el PDF | Naza (`fabrica/`) |
+| Muestras de voz limpias para clonar | Joaquín (`entrevistador/`) |

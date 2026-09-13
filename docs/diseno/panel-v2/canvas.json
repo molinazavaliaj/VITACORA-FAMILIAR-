@@ -1,0 +1,33 @@
+{
+  "pages": [
+    { "id": "page-1", "name": "La dirección elegida" },
+    { "id": "page-2", "name": "Bocetos (A · B · C)" }
+  ],
+  "artboards": [
+    { "file": "Main.dc.html",               "title": "Historia · vista",            "x": 0,    "y": 0,    "w": 1280, "h": 900,  "page": "page-1" },
+    { "file": "Historia_Editando.dc.html",  "title": "Historia · editando el guion","x": 1380, "y": 0,    "w": 1280, "h": 900,  "page": "page-1" },
+    { "file": "Historia_Oscura.dc.html",    "title": "Historia · tema oscuro",      "x": 2760, "y": 0,    "w": 1280, "h": 900,  "page": "page-1" },
+    { "file": "Historias.dc.html",          "title": "Historias · la lista",        "x": 0,    "y": 1100, "w": 1280, "h": 900,  "page": "page-1" },
+    { "file": "Libro.dc.html",              "title": "Encargar libro · oscuro",     "x": 1380, "y": 1100, "w": 1280, "h": 1000, "page": "page-1" },
+    { "file": "Libro_Claro.dc.html",        "title": "Encargar libro · claro",      "x": 2760, "y": 1100, "w": 1280, "h": 1000, "page": "page-1" },
+    { "file": "Comprar.dc.html",            "title": "Comprar · paso 4, pagar",     "x": 0,    "y": 2300, "w": 1100, "h": 820,  "page": "page-1" },
+
+    { "file": "A_Historia.dc.html", "title": "A · Historia (Editorial)", "x": 0,    "y": 0,    "w": 1280, "h": 900, "page": "page-2" },
+    { "file": "A_Edicion.dc.html",  "title": "A · Editando el guion",    "x": 1380, "y": 0,    "w": 1280, "h": 900, "page": "page-2" },
+    { "file": "A_Libro.dc.html",    "title": "A · Encargar libro",       "x": 2760, "y": 0,    "w": 1280, "h": 900, "page": "page-2" },
+    { "file": "B_Historia.dc.html", "title": "B · Historia (Estudio)",   "x": 0,    "y": 1100, "w": 1280, "h": 900, "page": "page-2" },
+    { "file": "B_Libro.dc.html",    "title": "B · Encargar libro",       "x": 1380, "y": 1100, "w": 1280, "h": 900, "page": "page-2" },
+    { "file": "C_Historia.dc.html", "title": "C · Historia (Álbum)",     "x": 0,    "y": 2200, "w": 1280, "h": 900, "page": "page-2" },
+    { "file": "C_Libro.dc.html",    "title": "C · Encargar libro",       "x": 1380, "y": 2200, "w": 1280, "h": 900, "page": "page-2" },
+    { "file": "Precios.dc.html",    "title": "Comprar · los tres",       "x": 0,    "y": 3300, "w": 1100, "h": 720, "page": "page-2" }
+  ],
+  "annotations": [
+    { "id": "elegida", "page": "page-1", "x": 0, "y": -240, "w": 640, "text": "LA DIRECCIÓN ELEGIDA (13/09): la historia de B con los capítulos por venir en el formato de A·Edición; Encargar libro en negro (de C); tema claro/oscuro con un botón arriba a la derecha, siempre a la vista, opuesto al logo.\n\nNavegación: Inicio · Historias · Encargar libro. 'Preguntas' desaparece: se edita desde la historia.\n\nEl riel de la izquierda: primero las historias creadas + el botón violeta de empezar otra; debajo, los capítulos de la historia abierta, con cuántas ya contestó." },
+    { "id": "nota-editando", "page": "page-1", "x": 1380, "y": -160, "w": 380, "text": "'Editar preguntas' → esta vista. Aparece la burbuja de agregar, los capítulos que ya se mandaron quedan grises y no se tocan, los que vienen se editan, se sacan y se mueven. 'Listo' vuelve a la vista." },
+    { "id": "nota-tema", "page": "page-1", "x": 2760, "y": -160, "w": 380, "text": "El tema no reescribe nada: son los mismos roles de color invertidos (como .oscuro en globals.css). El violeta cambia a su par claro sobre negro." },
+    { "id": "nota-libro", "page": "page-1", "x": 1380, "y": 2240, "w": 380, "text": "Encargar libro nace en oscuro (fue lo que gustó de C); el botón de tema lo pasa a claro igual que al resto. Debajo del libro en miniatura: Tapa · Contratapa · Marco, y los tres productos para sumar." },
+    { "id": "nota-comprar", "page": "page-1", "x": 1200, "y": 2300, "w": 380, "text": "El flujo de compra desde la landing: 4 pasos, y el último (Pagar) muestra los tres productos. Audiolibro: $ 61.250 · 35 €." },
+    { "id": "bocetos", "page": "page-2", "x": 0, "y": -200, "w": 520, "text": "Los tres bocetos del 13/09, tal cual se presentaron. La elección está en la página 'La dirección elegida'." }
+  ],
+  "launch": { "view": "canvas", "page": "page-1" }
+}

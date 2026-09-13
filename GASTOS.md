@@ -75,7 +75,8 @@ independientes. Argentina puede ser más barata para vender más.
 
 | Producto | Argentina | España | Variable en Vercel |
 |---|---|---|---|
-| **Base** — PDF + audiolibro | **ARS 85.750** | **49 €** | `PRECIO_ARS` / `PRECIO_EUR` |
+| **El libro en PDF** (se lee en la web, no se descarga) | **ARS 85.750** | **49 €** | `PRECIO_ARS` / `PRECIO_EUR` |
+| **El audiolibro** (voz clonada o narrador; se escucha en la web) | ARS 61.250 | 35 € | `PRECIO_AUDIOLIBRO_ARS` / `_EUR` — ⚠️ nuevas, 13/09 |
 | **Libro impreso B/N** (tapa dura, QR) | ARS 70.000 | 40 € | `PRECIO_IMPRESO_BN_ARS` / `_EUR` |
 | **Libro impreso a color** | ARS 80.500 | 46 € | `PRECIO_IMPRESO_COLOR_ARS` / `_EUR` |
 | **Marco con NFC** (por unidad) | ARS 35.000 | 20 € | `PRECIO_MARCO_ARS` / `_EUR` |
