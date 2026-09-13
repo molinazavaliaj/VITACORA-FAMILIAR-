@@ -19,6 +19,14 @@ const {
 
 vi.mock('../src/libro/anticipo.js', () => ({ generarAnticipo: generarAnticipoMock }));
 vi.mock('../src/mail/anticipo.js', () => ({ enviarMailAnticipo: enviarMailAnticipoMock }));
+// Los mails de hitos (rama aparte del tick) no se mandan acá: sin esto el
+// narrador de estos tests, que no tiene terminado_enviado.txt, saldría a
+// Resend de verdad. Devuelve false → sin candado, y `subirTextoMock` sigue
+// contando solo el del anticipo.
+vi.mock('../src/mail/hitos.js', async () => {
+  const actual = await vi.importActual<typeof import('../src/mail/hitos.js')>('../src/mail/hitos.js');
+  return { ...actual, enviarMailHito: vi.fn().mockResolvedValue(false) };
+});
 vi.mock('../src/libro/token-anticipo.js', () => ({ firmarTokenAnticipo: firmarTokenMock }));
 vi.mock('../src/config.js', () => ({
   cargarConfig: () => ({ urlBase: 'https://www.vitacorafamiliar.com', resendApiKey: 'x' }),

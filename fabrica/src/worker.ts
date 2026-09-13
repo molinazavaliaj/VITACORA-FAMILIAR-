@@ -1,10 +1,11 @@
 import { fileURLToPath } from 'node:url';
-import { obtenerClienteDb } from './db.js';
+import { obtenerClienteDb, type Narrador } from './db.js';
 import { cargarConfig } from './config.js';
 import { generarAnticipo } from './libro/anticipo.js';
 import { firmarTokenAnticipo } from './libro/token-anticipo.js';
 import { subirTexto } from './libro/comun.js';
 import { enviarMailAnticipo } from './mail/anticipo.js';
+import { enviarMailHito, CANDADO_POR_HITO, type Hito } from './mail/hitos.js';
 import { generarEstructura } from './libro/estructura.js';
 import { generarPrevisualizacion } from './libro/previsualizar.js';
 import { generarPaquete } from './libro/generar-paquete.js';
@@ -17,6 +18,25 @@ const INTERVALO_MS = 60_000;
  * tiene que ser cambiar un valor, no reescribir el producto.
  */
 const RESPUESTAS_PARA_ANTICIPO = Number(process.env.RESPUESTAS_PARA_ANTICIPO ?? 3);
+
+/** Estados del narrador en los que ya no hay más preguntas: el libro se puede cerrar. */
+const ESTADOS_TERMINADO = ['completado', 'cerrado_anticipado'];
+
+/** Días desde la última respuesta a los que se recuerda que falta Cerrar libro. */
+const DIAS_RECORDATORIO = [3, 7, 14] as const;
+
+/** A los 30 días sin cerrar, la fábrica cierra sola con la propuesta (está en los términos). */
+const DIAS_CIERRE_AUTOMATICO = 30;
+
+const MS_POR_DIA = 24 * 60 * 60 * 1000;
+
+type Db = ReturnType<typeof obtenerClienteDb>;
+
+/** Lo que hace falta de un narrador para mandarle un mail de hito a su familia. */
+type NarradorConFamilia = Pick<Narrador, 'id' | 'como_le_dicen' | 'familia_id'>;
+
+/** Lo mismo, más las fechas que deciden recordatorios y cierre automático. */
+type NarradorTerminado = NarradorConFamilia & Pick<Narrador, 'ultima_respuesta_at' | 'libro_aprobado_at'>;
 
 let corriendo = false;
 
@@ -43,10 +63,24 @@ export async function tick(): Promise<void> {
     await generarAnticiposFaltantes();
     await generarEstructurasFaltantes();
     await generarPrevisualizacionesFaltantes();
+    await avisarHitosDeCierre();
     await procesarPedidosPagados();
+    await avisarLibrosListos();
   } finally {
     corriendo = false;
   }
+}
+
+/**
+ * Los nombres de archivo que hay en `{narrador_id}/paquete/` en Storage: ahí
+ * viven los productos (estructura.json, preview.pdf...) y los candados de
+ * los mails. Tira si Storage no responde — quien llama decide si loguea y
+ * sigue con el próximo narrador.
+ */
+async function listarPaquete(db: Db, narradorId: string): Promise<Set<string>> {
+  const { data: archivos, error } = await db.storage.from('audios').list(`${narradorId}/paquete`);
+  if (error) throw new Error(`No se pudo listar el paquete de ${narradorId}: ${error.message}`);
+  return new Set((archivos ?? []).map((archivo) => archivo.name));
 }
 
 /**
@@ -82,15 +116,7 @@ async function generarAnticiposFaltantes(): Promise<void> {
     familia_id: string;
   }[]) {
     try {
-      const { data: archivos, error: errorStorage } = await db.storage
-        .from('audios')
-        .list(`${narrador.id}/paquete`);
-      if (errorStorage) {
-        console.error(`tick: no se pudo listar el paquete de ${narrador.id}:`, errorStorage.message);
-        continue;
-      }
-
-      const nombresArchivos = new Set((archivos ?? []).map((archivo) => archivo.name));
+      const nombresArchivos = await listarPaquete(db, narrador.id);
       if (nombresArchivos.has('anticipo_enviado.txt')) continue;
 
       const { count, error: errorCuenta } = await db
@@ -182,19 +208,10 @@ async function generarEstructurasFaltantes(): Promise<void> {
   }
 
   for (const narrador of (narradores ?? []) as { id: string }[]) {
-    const { data: archivos, error: errorStorage } = await db.storage
-      .from('audios')
-      .list(`${narrador.id}/paquete`);
-
-    if (errorStorage) {
-      console.error(`tick: no se pudo listar el paquete de ${narrador.id}:`, errorStorage.message);
-      continue;
-    }
-
-    const yaTieneEstructura = (archivos ?? []).some((archivo) => archivo.name === 'estructura.json');
-    if (yaTieneEstructura) continue;
-
     try {
+      const archivos = await listarPaquete(db, narrador.id);
+      if (archivos.has('estructura.json')) continue;
+
       await generarEstructura(narrador.id);
     } catch (err) {
       console.error(`tick: falló generarEstructura para ${narrador.id}:`, err);
@@ -222,26 +239,174 @@ async function generarPrevisualizacionesFaltantes(): Promise<void> {
   }
 
   for (const narrador of (narradores ?? []) as { id: string }[]) {
-    const { data: archivos, error: errorStorage } = await db.storage
-      .from('audios')
-      .list(`${narrador.id}/paquete`);
-
-    if (errorStorage) {
-      console.error(`tick: no se pudo listar el paquete de ${narrador.id}:`, errorStorage.message);
-      continue;
-    }
-
-    const nombresArchivos = new Set((archivos ?? []).map((archivo) => archivo.name));
-    const tieneEstructura = nombresArchivos.has('estructura.json');
-    const tieneNombres = nombresArchivos.has('nombres.json');
-    const tienePreview = nombresArchivos.has('preview.pdf');
-
-    if (!tieneEstructura || !tieneNombres || tienePreview) continue;
-
     try {
+      const archivos = await listarPaquete(db, narrador.id);
+      const tieneEstructura = archivos.has('estructura.json');
+      const tieneNombres = archivos.has('nombres.json');
+      const tienePreview = archivos.has('preview.pdf');
+
+      if (!tieneEstructura || !tieneNombres || tienePreview) continue;
+
       await generarPrevisualizacion(narrador.id);
     } catch (err) {
       console.error(`tick: falló generarPrevisualizacion para ${narrador.id}:`, err);
+    }
+  }
+}
+
+/**
+ * Los mails que acompañan el cierre del libro (spec §9 y §6 del diseño):
+ * "terminó" cuando el narrador pasa a completado, recordatorios a los 3, 7 y
+ * 14 días sin Cerrar libro, y a los 30 el cierre automático con la
+ * propuesta (la fábrica pone `libro_aprobado_at` ella misma — es el único
+ * caso en que lo escribe alguien que no es la web, ver CONTRATO.md).
+ * Un candado por mail en Storage; se deja SOLO si Resend confirmó.
+ * Si la fábrica estuvo caída y pasaron varios hitos, se manda una sola vez
+ * el más reciente y se marcan los anteriores.
+ */
+async function avisarHitosDeCierre(): Promise<void> {
+  const db = obtenerClienteDb();
+  const { urlBase } = cargarConfig();
+
+  const { data: narradores, error } = await db
+    .from('narradores')
+    .select('id, como_le_dicen, familia_id, ultima_respuesta_at, libro_aprobado_at')
+    .in('estado', ESTADOS_TERMINADO);
+
+  if (error) {
+    console.error('tick: no se pudieron leer los narradores terminados:', error.message);
+    return;
+  }
+
+  for (const narrador of (narradores ?? []) as NarradorTerminado[]) {
+    try {
+      const archivos = await listarPaquete(db, narrador.id);
+      const enlace = `${urlBase}/tablero/${narrador.id}`;
+      const mandar = (hito: Hito) => mandarHito(db, narrador, hito, enlace, archivos);
+
+      if (!archivos.has(CANDADO_POR_HITO.terminado)) await mandar('terminado');
+
+      // Con el libro cerrado (por la web o por nosotros) no hay nada que
+      // recordar. Sin fecha de última respuesta no hay desde cuándo contar.
+      if (narrador.libro_aprobado_at !== null || !narrador.ultima_respuesta_at) continue;
+      const dias = Math.floor((Date.now() - new Date(narrador.ultima_respuesta_at).getTime()) / MS_POR_DIA);
+
+      if (dias >= DIAS_CIERRE_AUTOMATICO) {
+        if (archivos.has(CANDADO_POR_HITO.cierre_automatico)) continue;
+        // Compare-and-swap: solo cerramos si sigue abierto. Si no vuelve
+        // ninguna fila, la dueña lo cerró desde la web entre el SELECT y
+        // este UPDATE — su cierre vale, y el mail de "lo cerramos por ti"
+        // sería mentira.
+        const { data: cerrado, error: errorCierre } = await db
+          .from('narradores')
+          .update({ libro_aprobado_at: new Date().toISOString() })
+          .eq('id', narrador.id)
+          .is('libro_aprobado_at', null)
+          .select('id');
+        if (errorCierre) throw new Error(`no se pudo cerrar solo: ${errorCierre.message}`);
+        if (!cerrado || (cerrado as unknown[]).length !== 1) continue;
+        await mandar('cierre_automatico');
+        continue;
+      }
+
+      const vencidos = DIAS_RECORDATORIO.filter((d) => dias >= d);
+      if (vencidos.length === 0) continue;
+      const mayor = vencidos[vencidos.length - 1];
+      const hitoMayor = `recordatorio_${mayor}` as Hito;
+      if (archivos.has(CANDADO_POR_HITO[hitoMayor])) continue;
+
+      const enviado = await mandar(hitoMayor);
+      if (enviado) {
+        // Los recordatorios anteriores que quedaron sin mandar se marcan
+        // como hechos: la familia ya recibió el más reciente, no hace falta
+        // que le lleguen tres mails seguidos.
+        for (const d of vencidos.slice(0, -1)) {
+          const candado = CANDADO_POR_HITO[`recordatorio_${d}` as Hito];
+          if (archivos.has(candado)) continue;
+          await subirTexto(db, `${narrador.id}/paquete/${candado}`, new Date().toISOString());
+          archivos.add(candado);
+        }
+      }
+    } catch (err) {
+      console.error(`tick: fallaron los mails de cierre de ${narrador.id}:`, err);
+    }
+  }
+}
+
+/**
+ * Manda el mail de un hito a la familia del narrador y, si Resend confirmó,
+ * deja el candado en Storage (y lo agrega al Set de `archivos`, para que el
+ * mismo tick no lo vuelva a considerar pendiente). Devuelve si salió.
+ * Si falta la clave, `enviarMailHito` devuelve false y no queda candado: el
+ * próximo tick reintenta — igual que el anticipo.
+ */
+async function mandarHito(
+  db: Db,
+  narrador: NarradorConFamilia,
+  hito: Hito,
+  enlace: string,
+  archivos: Set<string>
+): Promise<boolean> {
+  const { data: familia, error: errorFamilia } = await db
+    .from('familias')
+    .select('email')
+    .eq('id', narrador.familia_id)
+    .single();
+  if (errorFamilia || !familia) {
+    throw new Error(`No se pudo leer la familia de ${narrador.id}: ${errorFamilia?.message ?? 'sin datos'}`);
+  }
+
+  const enviado = await enviarMailHito({
+    hito,
+    para: (familia as { email: string }).email,
+    comoLeDicen: narrador.como_le_dicen,
+    enlace,
+  });
+
+  if (enviado) {
+    const candado = CANDADO_POR_HITO[hito];
+    await subirTexto(db, `${narrador.id}/paquete/${candado}`, new Date().toISOString());
+    archivos.add(candado);
+  }
+  return enviado;
+}
+
+/**
+ * Branch (c): pedidos 'entregado' cuyo narrador todavía no tiene
+ * `libro_listo_enviado.txt` → el mail de "el libro está listo". Un mail por
+ * narrador, no por pedido: un extra (otro ejemplar) del mismo narrador
+ * comparte el candado.
+ */
+async function avisarLibrosListos(): Promise<void> {
+  const db = obtenerClienteDb();
+  const { urlBase } = cargarConfig();
+
+  const { data: pedidos, error } = await db.from('pedidos').select('id, narrador_id').eq('estado', 'entregado');
+
+  if (error) {
+    console.error('tick: no se pudieron leer los pedidos entregados:', error.message);
+    return;
+  }
+
+  const narradoresEntregados = new Set(((pedidos ?? []) as { narrador_id: string }[]).map((p) => p.narrador_id));
+
+  for (const narradorId of narradoresEntregados) {
+    try {
+      const archivos = await listarPaquete(db, narradorId);
+      if (archivos.has(CANDADO_POR_HITO.libro_listo)) continue;
+
+      const { data: narrador, error: errorNarrador } = await db
+        .from('narradores')
+        .select('id, como_le_dicen, familia_id')
+        .eq('id', narradorId)
+        .single();
+      if (errorNarrador || !narrador) {
+        throw new Error(`No se pudo leer el narrador: ${errorNarrador?.message ?? 'sin datos'}`);
+      }
+
+      await mandarHito(db, narrador as NarradorConFamilia, 'libro_listo', `${urlBase}/tablero/${narradorId}`, archivos);
+    } catch (err) {
+      console.error(`tick: falló el mail de libro listo de ${narradorId}:`, err);
     }
   }
 }
