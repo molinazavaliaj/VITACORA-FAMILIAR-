@@ -34,7 +34,7 @@ async function medirImagen(archivo: File): Promise<{ ancho: number; alto: number
     URL.revokeObjectURL(url);
     return { ancho: img.naturalWidth, alto: img.naturalHeight };
   } catch {
-    return null; // HEIC en Chrome, por ejemplo: se sube igual, sin medir
+    return null; // si el navegador no la decodifica se sube igual, sin medir (el servidor valida el tipo)
   }
 }
 
@@ -113,7 +113,7 @@ function CampoFoto({ onElegir }: { onElegir: (archivo: File, medida: { ancho: nu
       Elegir una foto
       <input
         type="file"
-        accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
+        accept="image/jpeg,image/png,image/webp"
         className="sr-only"
         onChange={async (e) => {
           const archivo = e.target.files?.[0];

@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   esEditable, validarTexto, lugarLibre, puedeAgregar, puedeSaltar, siguienteOrden,
-  renumerar, reordenar, calidadDeFoto, MAXIMO_FAMILIA, PISO, type PreguntaGuion,
+  renumerar, reordenar, calidadDeFoto, errorDeTipoDeFoto, MENSAJE_HEIC, MAXIMO_FAMILIA, PISO, type PreguntaGuion,
 } from "../src/lib/guion";
 
 const fija = (orden: number, extra: Partial<PreguntaGuion> = {}): PreguntaGuion => ({
@@ -88,5 +88,21 @@ describe("calidadDeFoto", () => {
   });
   it(`la familia puede armar hasta ${MAXIMO_FAMILIA}`, () => {
     expect(MAXIMO_FAMILIA).toBe(36);
+  });
+});
+
+describe("errorDeTipoDeFoto", () => {
+  it("acepta JPG, PNG y WebP", () => {
+    expect(errorDeTipoDeFoto("image/jpeg")).toBeNull();
+    expect(errorDeTipoDeFoto("image/png")).toBeNull();
+    expect(errorDeTipoDeFoto("image/webp")).toBeNull();
+  });
+  it("HEIC/HEIF se rechaza con el aviso de exportar a JPG (el navegador que imprime no lo decodifica)", () => {
+    expect(errorDeTipoDeFoto("image/heic")).toBe(MENSAJE_HEIC);
+    expect(errorDeTipoDeFoto("image/heif")).toBe(MENSAJE_HEIC);
+    expect(MENSAJE_HEIC).toContain("Ajustes → Cámara → Formatos → Más compatible");
+  });
+  it("cualquier otra cosa se rechaza como no-imagen", () => {
+    expect(errorDeTipoDeFoto("application/pdf")).toBe("Tiene que ser una imagen (JPG, PNG o WebP).");
   });
 });

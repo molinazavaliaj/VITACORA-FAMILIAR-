@@ -26,9 +26,19 @@ const MIME_POR_EXTENSION: Record<string, string> = {
   gif: 'image/gif',
 };
 
+/**
+ * Formatos que Chromium (el que imprime el PDF) no decodifica: una foto así
+ * embebida sale como una página en blanco. La web ya no las acepta al subir;
+ * las que entraron antes se saltean acá.
+ */
+const EXTENSIONES_SIN_SOPORTE = new Set(['heic', 'heif']);
+
+function extensionDeRuta(ruta: string): string {
+  return ruta.split('.').pop()?.toLowerCase() ?? '';
+}
+
 export function mimeDeRuta(ruta: string): string {
-  const extension = ruta.split('.').pop()?.toLowerCase() ?? '';
-  return MIME_POR_EXTENSION[extension] ?? 'image/jpeg';
+  return MIME_POR_EXTENSION[extensionDeRuta(ruta)] ?? 'image/jpeg';
 }
 
 async function bajarComoDataUri(db: SupabaseClient, ruta: string): Promise<string | null> {
@@ -61,6 +71,10 @@ export async function cargarFotos(db: SupabaseClient, narradorId: string): Promi
   // ordenada. Entre dos principales del mismo capítulo gana la de menor orden.
   const fotosOrdenadas = [...((data ?? []) as Foto[])].sort((a, b) => a.orden - b.orden);
   for (const foto of fotosOrdenadas) {
+    if (EXTENSIONES_SIN_SOPORTE.has(extensionDeRuta(foto.storage_path))) {
+      console.warn(`cargarFotos: ${foto.storage_path} es HEIC/HEIF y el navegador no lo decodifica; la foto se omite.`);
+      continue;
+    }
     const dataUri = await bajarComoDataUri(db, foto.storage_path);
     if (dataUri === null) continue;
     const fotoLibro: FotoLibro = { dataUri, epigrafe: foto.epigrafe?.trim() || null };

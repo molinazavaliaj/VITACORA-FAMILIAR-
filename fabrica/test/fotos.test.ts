@@ -141,6 +141,32 @@ describe('cargarFotos', () => {
     warn.mockRestore();
   });
 
+  it('una foto .heic/.heif se omite con aviso sin bajarla: Chromium no la decodifica y saldría una página en blanco', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const db = construirDb({
+      fotos: {
+        data: [
+          { id: 'a', narrador_id: 'n1', capitulo: 'X', storage_path: 'n1/fotos/a.heic', epigrafe: null, principal: true, orden: 0 },
+          { id: 'b', narrador_id: 'n1', capitulo: 'X', storage_path: 'n1/fotos/b.HEIF', epigrafe: null, principal: false, orden: 1 },
+          { id: 'c', narrador_id: 'n1', capitulo: 'X', storage_path: 'n1/fotos/c.jpg', epigrafe: 'ok', principal: false, orden: 2 },
+        ],
+        error: null,
+      },
+      archivos: { 'n1/fotos/a.heic': 'AAA', 'n1/fotos/b.HEIF': 'BBB', 'n1/fotos/c.jpg': 'c' },
+    });
+    const fotos = await cargarFotos(db as never, 'n1');
+    const cap = fotos.porCapitulo.get('X')!;
+    expect(cap.apertura).toBeNull();
+    expect(cap.cierre.map((f) => f.epigrafe)).toEqual(['ok']);
+    expect(fotos.porId.has('a')).toBe(false);
+    expect(fotos.porId.has('b')).toBe(false);
+    expect(db.download).not.toHaveBeenCalledWith('n1/fotos/a.heic');
+    expect(db.download).not.toHaveBeenCalledWith('n1/fotos/b.HEIF');
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('n1/fotos/a.heic'));
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('n1/fotos/b.HEIF'));
+    warn.mockRestore();
+  });
+
   it('si la consulta a la tabla falla, tira (eso sí es un error del pedido)', async () => {
     const db = construirDb({ fotos: { data: null, error: { message: 'boom' } }, archivos: {} });
     await expect(cargarFotos(db as never, 'n1')).rejects.toThrow('boom');
