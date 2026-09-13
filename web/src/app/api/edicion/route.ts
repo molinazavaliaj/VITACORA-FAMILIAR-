@@ -14,7 +14,11 @@ const ESTADOS_TERMINADOS = ["completado", "cerrado_anticipado"];
 
 type Fila = { edicion: Edicion | null; libro_aprobado_at: string | null; estado: string };
 
-async function prepararRequest(request: NextRequest) {
+type Preparado =
+  | { error: NextResponse; admin?: undefined; narrador?: undefined; fila?: undefined }
+  | { error?: undefined; admin: ReturnType<typeof crearClienteServidor>; narrador: { id: string; nombre: string }; fila: Fila };
+
+async function prepararRequest(request: NextRequest): Promise<Preparado> {
   const admin = crearClienteServidor();
   const acceso = await narradorDeLaSesion(await crearClienteSesion(), admin, request.nextUrl.searchParams, {
     soloDuena: true,
@@ -35,9 +39,9 @@ async function prepararRequest(request: NextRequest) {
   return { admin, narrador, fila };
 }
 
-export async function PATCH(request: NextRequest) {
+export async function PATCH(request: NextRequest): Promise<NextResponse> {
   const prep = await prepararRequest(request);
-  if ("error" in prep) return prep.error;
+  if (prep.error) return prep.error;
   const { admin, narrador, fila } = prep;
 
   let body: unknown;
@@ -66,9 +70,9 @@ export async function PATCH(request: NextRequest) {
   return NextResponse.json({ ok: true, edicion });
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): Promise<NextResponse> {
   const prep = await prepararRequest(request);
-  if ("error" in prep) return prep.error;
+  if (prep.error) return prep.error;
   const { admin, narrador } = prep;
 
   let body: { accion?: string; confirmo?: boolean };

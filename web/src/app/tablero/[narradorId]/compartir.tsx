@@ -12,13 +12,25 @@ export type InvitadoVista = { id: string; email: string; aceptado_at: string | n
 const MAXIMO = 3;
 const boton = "inline-flex h-10 items-center justify-center rounded-full px-5 text-sm font-medium transition-colors [font-family:var(--fuente-micro)] disabled:opacity-50";
 
-export function Compartir({ narradorId, nombre, cerrado, invitados }: { narradorId: string; nombre: string; cerrado: boolean; invitados: InvitadoVista[] }) {
+export function Compartir({ narradorId, nombre, cerrado, aprobado, linkPublico, invitados }: { narradorId: string; nombre: string; cerrado: boolean; aprobado: boolean; linkPublico: string | null; invitados: InvitadoVista[] }) {
   const router = useRouter();
   const [abierto, setAbierto] = useState(false);
   const [email, setEmail] = useState("");
   const [ocupado, setOcupado] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
+  const [copiado, setCopiado] = useState(false);
+
+  async function copiar() {
+    if (!linkPublico) return;
+    try {
+      await navigator.clipboard.writeText(linkPublico);
+      setCopiado(true);
+      setTimeout(() => setCopiado(false), 2500);
+    } catch {
+      setError("No pudimos copiar. Seleccioná el link y copialo a mano.");
+    }
+  }
 
   async function invitar(e: React.FormEvent) {
     e.preventDefault();
@@ -69,13 +81,25 @@ export function Compartir({ narradorId, nombre, cerrado, invitados }: { narrador
 
       {abierto ? (
         <div className="absolute right-0 z-20 mt-2 w-[min(92vw,26rem)] rounded-xl border border-[var(--linea)] bg-[var(--fondo)] p-5 shadow-lg">
-          {cerrado ? (
+          {aprobado && linkPublico ? (
             <>
               <p className="text-[15px] leading-relaxed text-[var(--texto-suave)]">
-                El libro de {nombre} está cerrado. Pronto vas a tener acá un link para que
-                los primos lo vean y pidan su copia impresa, sin que tengas que hacer nada más.
+                El libro de {nombre} está cerrado. Mandale este link a quien quieras: ve una
+                muestra (la tapa, los capítulos, cómo empieza y un minuto de su voz) y puede
+                pedir su copia impresa o guardarlo en su cuenta. Vos no tenés que hacer nada más.
               </p>
+              <div className="mt-4 flex flex-col gap-2">
+                <input readOnly value={linkPublico} onFocus={(e) => e.currentTarget.select()} className="w-full rounded-lg border border-[var(--linea)] bg-[var(--papel)] px-3 py-2 text-[13px] text-[var(--texto-suave)] [font-family:var(--fuente-micro)]" />
+                <button type="button" onClick={copiar} className={`${boton} bg-[var(--acento)] text-white hover:opacity-90`}>
+                  {copiado ? "Copiado ✓" : "Copiar el link"}
+                </button>
+              </div>
             </>
+          ) : cerrado ? (
+            <p className="text-[15px] leading-relaxed text-[var(--texto-suave)]">
+              {nombre} terminó de contar. Cuando cierres el libro, acá va a aparecer el link
+              para compartirlo con la familia.
+            </p>
           ) : (
             <>
               <p className="text-[15px] leading-relaxed text-[var(--texto-suave)]">

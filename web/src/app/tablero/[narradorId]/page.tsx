@@ -7,6 +7,9 @@ import { BannerAlertaSilencio, CierreAnticipado } from "../acciones";
 import { SubirFoto } from "./preguntas/acciones";
 import { GaleriaCapitulo, type FotoVista } from "./fotos";
 import { Compartir, type InvitadoVista } from "./compartir";
+import { firmarTokenLibro } from "@/lib/token-libro";
+import { armarMuestra } from "@/lib/muestra";
+import { VistaMuestra } from "../../muestra";
 import {
   BarraProgreso,
   Contenedor,
@@ -50,6 +53,31 @@ export default async function PaginaHistoria({ params }: PageProps<"/tablero/[na
 
   const { narrador: n, rol } = historia;
 
+  // El visitante (guardó el link del libro cerrado) ve la muestra, no la historia.
+  if (!PUEDE.verHistoriaCompleta(rol)) {
+    const muestra = await armarMuestra(admin, n.id);
+    return (
+      <Contenedor>
+        <Etiqueta>Lo guardaste · La historia de {n.nombre}</Etiqueta>
+        <div className="mt-1">
+          <Titulo>La historia de {n.nombre}</Titulo>
+        </div>
+        {muestra ? (
+          <>
+            <div className="mt-8">
+              <VistaMuestra muestra={muestra} urlAudio={`/api/preview-audio?narrador=${n.id}`} urlPortada={muestra.portadaFotoId ? `/api/fotos/${muestra.portadaFotoId}` : null} />
+            </div>
+            <div className="mt-10">
+              <ProximoPaso href={`/tablero/${n.id}/libro`}>Pedir mi copia impresa</ProximoPaso>
+            </div>
+          </>
+        ) : (
+          <p className="mt-6 text-[15px] text-[var(--texto-suave)]">Este libro todavía no está cerrado.</p>
+        )}
+      </Contenedor>
+    );
+  }
+
   const [{ data: propias, error: e1 }, { data: globales, error: e2 }, { data: respuestas, error: e3 }, { data: fotosData }, { data: invitadosData }] =
     await Promise.all([
       admin.from("preguntas").select("orden, texto, capitulo, narrador_id, foto_id").eq("narrador_id", n.id),
@@ -63,9 +91,17 @@ export default async function PaginaHistoria({ params }: PageProps<"/tablero/[na
       // Tolerante: la tabla la crea la migración del 12/09; sin ella, no hay fotos.
       admin.from("fotos").select("id, capitulo, epigrafe, principal, orden, subida_por").eq("narrador_id", n.id).order("principal", { ascending: false }).order("orden"),
       rol === "duena"
-        ? admin.from("invitados").select("id, email, aceptado_at").eq("narrador_id", n.id).order("created_at")
+        ? admin.from("invitados").select("id, email, aceptado_at, rol").eq("narrador_id", n.id).order("created_at")
         : Promise.resolve({ data: null }),
     ]);
+  const { data: filaAprobado } = rol === "duena"
+    ? await admin.from("narradores").select("libro_aprobado_at").eq("id", n.id).maybeSingle()
+    : { data: null };
+  const aprobado = Boolean((filaAprobado as { libro_aprobado_at?: string | null } | null)?.libro_aprobado_at);
+  const urlBase = process.env.URL_BASE ?? "https://www.vitacorafamiliar.com";
+  const linkPublico = rol === "duena" && aprobado ? `${urlBase}/libro/${firmarTokenLibro(n.id)}` : null;
+  // Los que guardaron el link no cuentan como invitados en la lista de Compartir.
+  const soloInvitados = ((invitadosData as (InvitadoVista & { rol?: string })[] | null) ?? []).filter((i) => i.rol !== "visitante");
 
   if (e1 || e2 || e3) {
     console.error("historia: fallo la carga", { e1, e2, e3 });
@@ -125,7 +161,7 @@ export default async function PaginaHistoria({ params }: PageProps<"/tablero/[na
           <p className="mt-2 text-[15px] text-[var(--texto-suave)]">{ESTADO_EN_HUMANO[n.estado] ?? n.estado}</p>
         </div>
         {PUEDE.invitar(rol) ? (
-          <Compartir narradorId={n.id} nombre={n.nombre} cerrado={cerrado} invitados={(invitadosData as InvitadoVista[] | null) ?? []} />
+          <Compartir narradorId={n.id} nombre={n.nombre} cerrado={cerrado} aprobado={aprobado} linkPublico={linkPublico} invitados={soloInvitados} />
         ) : null}
       </div>
 

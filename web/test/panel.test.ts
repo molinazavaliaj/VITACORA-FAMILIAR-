@@ -141,3 +141,14 @@ describe("PUEDE", () => {
     expect(PUEDE.descargar("invitado")).toBe(false);
   });
 });
+
+describe("token del libro público", async () => {
+  const { firmarTokenLibro, verificarTokenLibro } = await import("../src/lib/token-libro");
+  it("firma y verifica con el secreto; un token tocado no pasa", () => {
+    process.env.SUPABASE_SERVICE_ROLE_KEY = "secreto-de-prueba";
+    const t = firmarTokenLibro("n-osvaldo");
+    expect(verificarTokenLibro(t)).toEqual({ narradorId: "n-osvaldo" });
+    expect(verificarTokenLibro(t.slice(0, -2) + "xx")).toBeNull();
+    expect(verificarTokenLibro("nada")).toBeNull();
+  });
+});

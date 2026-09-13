@@ -78,7 +78,7 @@ describe("PATCH /api/edicion", () => {
     const updates = armar({ edicion: { titulo: "Viejo" } });
     const r = await PATCH(req({ subtitulo: "Alfredo Pérez", excluidas: ["r2"] }));
     expect(r.status).toBe(200);
-    expect(updates[0].valores).toEqual({ edicion: { titulo: "Viejo", subtitulo: "Alfredo Pérez", excluidas: ["r2"] } });
+    expect(updates[0]!.valores).toEqual({ edicion: { titulo: "Viejo", subtitulo: "Alfredo Pérez", excluidas: ["r2"] } });
   });
   it("mientras la entrevista sigue, no se edita → 400", async () => {
     sesion(martina);
@@ -98,8 +98,8 @@ describe("POST /api/edicion (cerrar)", () => {
     const updates = armar({});
     const r = await POST(req({ accion: "cerrar", confirmo: true }));
     expect(r.status).toBe(200);
-    expect(updates[0].filtros).toMatchObject({ id: "n1", libro_aprobado_at: null });
-    expect(typeof updates[0].valores.libro_aprobado_at).toBe("string");
+    expect(updates[0]!.filtros).toMatchObject({ id: "n1", libro_aprobado_at: null });
+    expect(typeof updates[0]!.valores.libro_aprobado_at).toBe("string");
   });
   it("sin la confirmación explícita no cierra → 400", async () => {
     sesion(martina);

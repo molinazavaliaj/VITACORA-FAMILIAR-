@@ -13,7 +13,7 @@ export type HistoriaNav = {
   id: string;
   nombre: string;
   comoLeDicen: string;
-  rol: "duena" | "invitado";
+  rol: "duena" | "invitado" | "visitante";
 };
 
 const SECCIONES = [
@@ -67,7 +67,7 @@ export function Navegacion({ historias }: { historias: HistoriaNav[] }) {
           >
             <span className="min-w-0">
               <span className="block text-[10px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.24em]">
-                {historia?.rol === "invitado" ? "Te invitaron a" : "Historia"}
+                {historia?.rol === "invitado" ? "Te invitaron a" : historia?.rol === "visitante" ? "Guardaste" : "Historia"}
               </span>
               <span className="block truncate text-[15px] [font-family:var(--fuente-titulo)]">
                 {historia ? `La historia de ${historia.nombre}` : "Sin historias todavía"}
@@ -86,9 +86,9 @@ export function Navegacion({ historias }: { historias: HistoriaNav[] }) {
                     className={`block rounded-md px-3 py-2 text-sm transition-colors hover:bg-[var(--linea)] ${h.id === historia?.id ? "bg-[var(--linea)]" : ""}`}
                   >
                     La historia de {h.nombre}
-                    {h.rol === "invitado" ? (
+                    {h.rol !== "duena" ? (
                       <span className="ml-2 text-[10px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.2em]">
-                        invitado
+                        {h.rol === "invitado" ? "invitado" : "muestra"}
                       </span>
                     ) : null}
                   </Link>
