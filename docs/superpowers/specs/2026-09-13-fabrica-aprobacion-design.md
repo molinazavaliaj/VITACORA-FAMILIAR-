@@ -76,7 +76,10 @@ Se descargan del bucket `audios` (`fotos.storage_path`) y se **embeben como data
 HTML, tal cual se subieron (original, sin recomprimir: la resolución la valida la web al
 subir). Un `storage_path` que no se pueda bajar no frena el libro: se loguea y la foto se
 omite. El `libro.html` resultante puede pesar varios MB; es aceptable para la v1 y el lector
-de Joaquín lo carga completo.
+de Joaquín lo carga completo. Cotas en `fotos.ts`: una foto de más de 8 MB o la que haría
+pasar el total de 60 MB se omite con aviso (Chromium sostiene todo el HTML en memoria para
+imprimir); achicar las fotos al subirlas es el siguiente paso de la web. HEIC/HEIF no entra
+(la web lo rechaza al subir; la fábrica saltea las que ya estaban).
 
 `construirHtmlLibro` (`plantilla-html.ts`) suma `subtitulo` y, por capítulo, `fotoApertura` y
 `fotosCierre` (`{dataUri, epigrafe}`); el paginador embebido ya reparte bloques en lienzos A5 —

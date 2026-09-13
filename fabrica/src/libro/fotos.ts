@@ -41,19 +41,36 @@ export function mimeDeRuta(ruta: string): string {
   return MIME_POR_EXTENSION[extensionDeRuta(ruta)] ?? 'image/jpeg';
 }
 
-async function bajarComoDataUri(db: SupabaseClient, ruta: string): Promise<string | null> {
+/**
+ * Cotas de lo que se embebe en el HTML. Cada foto va entera como data URI
+ * (base64 pesa un tercio más que el original), y Chromium tiene que sostener
+ * todo el documento en memoria para paginar e imprimir: una foto de 40 MB o
+ * un libro con 200 MB de fotos lo tumban. Lo que pasa la cota se omite con
+ * aviso; achicar las fotos al subirlas es el siguiente paso de la web.
+ */
+export const LIMITE_BYTES_FOTO = 8 * 1024 * 1024;
+export const LIMITE_BYTES_TOTAL = 60 * 1024 * 1024;
+
+async function bajarFoto(db: SupabaseClient, ruta: string): Promise<Buffer | null> {
   // Todo lo que puede fallar acá (la descarga en sí, o leer el blob) cae en
   // el mismo catch: una foto rota no frena el libro, solo se avisa y se
   // omite — ver el comentario del módulo.
   try {
     const { data, error } = await db.storage.from('audios').download(ruta);
     if (error || !data) throw new Error(error?.message ?? 'sin datos');
-    const bytes = Buffer.from(await data.arrayBuffer());
-    return `data:${mimeDeRuta(ruta)};base64,${bytes.toString('base64')}`;
+    return Buffer.from(await data.arrayBuffer());
   } catch (err) {
     console.warn(`cargarFotos: no se pudo bajar ${ruta} (${(err as Error).message}); la foto se omite.`);
     return null;
   }
+}
+
+function comoDataUri(ruta: string, bytes: Buffer): string {
+  return `data:${mimeDeRuta(ruta)};base64,${bytes.toString('base64')}`;
+}
+
+function enMb(bytes: number): string {
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 export async function cargarFotos(db: SupabaseClient, narradorId: string): Promise<FotosDelLibro> {
@@ -70,14 +87,27 @@ export async function cargarFotos(db: SupabaseClient, narradorId: string): Promi
   // Se ordena acá por las dudas — no confiar en que la consulta ya vino
   // ordenada. Entre dos principales del mismo capítulo gana la de menor orden.
   const fotosOrdenadas = [...((data ?? []) as Foto[])].sort((a, b) => a.orden - b.orden);
+  let bytesEmbebidos = 0;
   for (const foto of fotosOrdenadas) {
     if (EXTENSIONES_SIN_SOPORTE.has(extensionDeRuta(foto.storage_path))) {
       console.warn(`cargarFotos: ${foto.storage_path} es HEIC/HEIF y el navegador no lo decodifica; la foto se omite.`);
       continue;
     }
-    const dataUri = await bajarComoDataUri(db, foto.storage_path);
-    if (dataUri === null) continue;
-    const fotoLibro: FotoLibro = { dataUri, epigrafe: foto.epigrafe?.trim() || null };
+    const bytes = await bajarFoto(db, foto.storage_path);
+    if (bytes === null) continue;
+    if (bytes.length > LIMITE_BYTES_FOTO) {
+      console.warn(`cargarFotos: ${foto.storage_path} pesa ${enMb(bytes.length)} (tope ${enMb(LIMITE_BYTES_FOTO)}); la foto se omite.`);
+      continue;
+    }
+    if (bytesEmbebidos + bytes.length > LIMITE_BYTES_TOTAL) {
+      console.warn(
+        `cargarFotos: con ${foto.storage_path} las fotos del libro pasarían ${enMb(LIMITE_BYTES_TOTAL)} ` +
+          `(ya van ${enMb(bytesEmbebidos)}); la foto se omite.`
+      );
+      continue;
+    }
+    bytesEmbebidos += bytes.length;
+    const fotoLibro: FotoLibro = { dataUri: comoDataUri(foto.storage_path, bytes), epigrafe: foto.epigrafe?.trim() || null };
     porId.set(foto.id, fotoLibro);
 
     const capitulo = porCapitulo.get(foto.capitulo) ?? { apertura: null, cierre: [] };

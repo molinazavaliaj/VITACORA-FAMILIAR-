@@ -252,11 +252,13 @@ async function generarPdf(
   const browser = await chromium.launch();
   try {
     const page = await browser.newPage();
-    await page.setContent(html);
+    // Con las fotos embebidas el HTML puede pesar decenas de MB (cota en
+    // fotos.ts): cargarlo y paginarlo lleva más que los 30 s por defecto.
+    await page.setContent(html, { timeout: 120_000 });
     // La plantilla pagina el texto con un script embebido (reparte los
     // bloques en lienzos A5 y numera folios); imprimir antes de esa marca
     // sacaría el PDF a medio armar.
-    await page.waitForFunction('window.__libroPaginado === true', { timeout: 60_000 });
+    await page.waitForFunction('window.__libroPaginado === true', { timeout: 120_000 });
     const pdf = await page.pdf({ format: 'A5', printBackground: true });
 
     const { error } = await db.storage.from('audios').upload(RUTA_LIBRO_PDF(narradorId), pdf, {

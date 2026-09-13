@@ -1,17 +1,20 @@
 import { describe, it, expect, vi } from 'vitest';
-import { cargarFotos, mimeDeRuta } from '../src/libro/fotos.js';
+import { cargarFotos, mimeDeRuta, LIMITE_BYTES_FOTO } from '../src/libro/fotos.js';
 
 // Nota: `Buffer.from(bytes).buffer.slice(0)` puede devolver el ArrayBuffer
 // del pool interno de Node (más grande que los bytes reales) para strings
 // cortos, no el recorte exacto. Se arma el Uint8Array primero y se toma SU
 // buffer para garantizar el largo exacto.
-function blobFake(bytes: string) {
-  return { arrayBuffer: async () => new Uint8Array(Buffer.from(bytes)).buffer };
+// Un número en vez de string = archivo de ese tamaño en bytes (para probar las cotas).
+function blobFake(bytes: string | number) {
+  return {
+    arrayBuffer: async () => (typeof bytes === 'number' ? new Uint8Array(bytes).buffer : new Uint8Array(Buffer.from(bytes)).buffer),
+  };
 }
 
 function construirDb(opciones: {
   fotos: { data: unknown; error: unknown };
-  archivos: Record<string, string>; // storage_path → bytes; ausente = error de descarga
+  archivos: Record<string, string | number>; // storage_path → bytes; ausente = error de descarga
 }) {
   const download = vi.fn((ruta: string) => {
     const bytes = opciones.archivos[ruta];
@@ -164,6 +167,46 @@ describe('cargarFotos', () => {
     expect(db.download).not.toHaveBeenCalledWith('n1/fotos/b.HEIF');
     expect(warn).toHaveBeenCalledWith(expect.stringContaining('n1/fotos/a.heic'));
     expect(warn).toHaveBeenCalledWith(expect.stringContaining('n1/fotos/b.HEIF'));
+    warn.mockRestore();
+  });
+
+  it('una foto que pasa LIMITE_BYTES_FOTO se omite con aviso; las demás siguen', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const db = construirDb({
+      fotos: {
+        data: [
+          { id: 'grande', narrador_id: 'n1', capitulo: 'X', storage_path: 'n1/fotos/grande.jpg', epigrafe: null, principal: true, orden: 0 },
+          { id: 'justa', narrador_id: 'n1', capitulo: 'X', storage_path: 'n1/fotos/justa.jpg', epigrafe: 'justa', principal: false, orden: 1 },
+        ],
+        error: null,
+      },
+      archivos: { 'n1/fotos/grande.jpg': LIMITE_BYTES_FOTO + 1, 'n1/fotos/justa.jpg': LIMITE_BYTES_FOTO },
+    });
+    const fotos = await cargarFotos(db as never, 'n1');
+    expect(fotos.porId.has('grande')).toBe(false);
+    expect(fotos.porId.has('justa')).toBe(true);
+    expect(fotos.porCapitulo.get('X')!.apertura).toBeNull();
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('n1/fotos/grande.jpg'));
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('8.0 MB'));
+    warn.mockRestore();
+  });
+
+  it('cuando el total embebido pasaría LIMITE_BYTES_TOTAL, esa foto y las que la superen se omiten con aviso', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    // 7 fotos de 8 MB = 56 MB; la octava (8 MB) pasaría los 60 MB; una novena chica (1 MB) sí entra.
+    const fila = (i: number, bytes: number) => ({
+      id: `f${i}`, narrador_id: 'n1', capitulo: 'X', storage_path: `n1/fotos/f${i}.jpg`, epigrafe: null, principal: false, orden: i,
+    });
+    const tamanos = [...Array.from({ length: 8 }, () => LIMITE_BYTES_FOTO), 1024 * 1024];
+    const db = construirDb({
+      fotos: { data: tamanos.map((_, i) => fila(i, tamanos[i])), error: null },
+      archivos: Object.fromEntries(tamanos.map((bytes, i) => [`n1/fotos/f${i}.jpg`, bytes])),
+    });
+    const fotos = await cargarFotos(db as never, 'n1');
+    expect([...fotos.porId.keys()]).toEqual(['f0', 'f1', 'f2', 'f3', 'f4', 'f5', 'f6', 'f8']);
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('n1/fotos/f7.jpg'));
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('60.0 MB'));
     warn.mockRestore();
   });
 
