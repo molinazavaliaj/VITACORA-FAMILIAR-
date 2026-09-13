@@ -170,7 +170,7 @@ export async function generarPaquete(pedido: { id: string; narrador_id: string }
     if (errorArchivos) throw new Error(`No se pudo listar los audios de ${narradorId}: ${errorArchivos.message}`);
     const nombresArchivos = (archivosNarrador ?? []).map((archivo) => archivo.name);
 
-    const audiolibroPaths = await generarAudiolibro(narradorId, estructura, nombresArchivos, saludos);
+    const audiolibroPaths = await generarAudiolibro(narradorId, estructura, nombresArchivos);
 
     // 3. Entregado.
     const { error: errorUpdate } = await db

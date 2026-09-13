@@ -225,8 +225,7 @@ describe('generarPaquete', () => {
     expect(generarAudiolibroMock).toHaveBeenCalledWith(
       'narrador-1',
       estructura,
-      ['dia_01.ogg', 'dia_02.ogg'],
-      [{ nombre: 'Marta', vinculo: 'hija', audio_path: 'narrador-1/saludos/marta.webm' }]
+      ['dia_01.ogg', 'dia_02.ogg']
     );
 
     // el pedido queda entregado con las rutas del libro y el audiolibro.

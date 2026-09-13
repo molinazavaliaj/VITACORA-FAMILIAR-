@@ -53,7 +53,6 @@ export function armarListaConcat(
 
 const RUTA_CAPITULO = (narradorId: string, numero: number) =>
   `${narradorId}/paquete/audiolibro_cap_${String(numero).padStart(2, '0')}.mp3`;
-const RUTA_BONUS = (narradorId: string) => `${narradorId}/paquete/audiolibro_bonus_saludos.mp3`;
 const RUTA_COMPLETO = (narradorId: string) => `${narradorId}/paquete/audiolibro_completo.mp3`;
 
 function extensionDe(ruta: string): string {
@@ -93,17 +92,15 @@ async function armarSegmento(
 }
 
 /**
- * Arma el audiolibro completo: un mp3 por capítulo (intro + sus audios),
- * un bonus con los saludos de la familia si hay alguno, y la concatenación
- * de todo. Sube cada pieza al bucket `audios` bajo
+ * Arma el audiolibro completo: un mp3 por capítulo (intro + sus audios) y
+ * la concatenación de todos ellos. Sube cada pieza al bucket `audios` bajo
  * `{narradorId}/paquete/` y devuelve las rutas para guardar en el pedido.
  */
 export async function generarAudiolibro(
   narradorId: string,
   estructura: EstructuraCapitulos,
-  archivosDisponibles: string[],
-  saludos: { nombre: string; vinculo: string; audio_path: string }[]
-): Promise<{ capitulos: string[]; bonus?: string; completo: string }> {
+  archivosDisponibles: string[]
+): Promise<{ capitulos: string[]; completo: string }> {
   const db = obtenerClienteDb();
   const lista = armarListaConcat(estructura, archivosDisponibles);
 
@@ -125,21 +122,6 @@ export async function generarAudiolibro(
     buffersFinal.push(buffer);
   }
 
-  let rutaBonus: string | undefined;
-  if (saludos.length > 0) {
-    const bufferBonus = await armarSegmento(
-      db,
-      'Mensajes para usted',
-      saludos.map((s) => s.audio_path)
-    );
-    rutaBonus = RUTA_BONUS(narradorId);
-    const { error } = await db.storage
-      .from('audios')
-      .upload(rutaBonus, bufferBonus, { contentType: 'audio/mpeg', upsert: true });
-    if (error) throw new Error(`No se pudo subir ${rutaBonus}: ${error.message}`);
-    buffersFinal.push(bufferBonus);
-  }
-
   const bufferCompleto = await concatenarMp3s(buffersFinal);
   const rutaCompleto = RUTA_COMPLETO(narradorId);
   const { error: errorCompleto } = await db.storage
@@ -147,13 +129,8 @@ export async function generarAudiolibro(
     .upload(rutaCompleto, bufferCompleto, { contentType: 'audio/mpeg', upsert: true });
   if (errorCompleto) throw new Error(`No se pudo subir ${rutaCompleto}: ${errorCompleto.message}`);
 
-  // La clave `bonus` va del todo ausente cuando no hay saludos — no
-  // `bonus: undefined` — para que el pedido en la base (`audiolibro_paths`
-  // jsonb) no guarde una clave fantasma que después alguien lea como "sí
-  // hay bonus, pero vacío".
   return {
     capitulos: rutasCapitulos,
     completo: rutaCompleto,
-    ...(rutaBonus ? { bonus: rutaBonus } : {}),
   };
 }
