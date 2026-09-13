@@ -529,6 +529,29 @@ export async function procesarPedidosPagados(): Promise<void> {
       .map((n) => n.id)
   );
 
+  // Un narrador con un pedido ya 'entregado' tiene el libro hecho. Los
+  // pedidos posteriores sobre el mismo narrador (extras de la dueña, la
+  // copia de un visitante — CONTRATO.md: un pedido por comprador) llegan
+  // 'pagado' igual que el primero, pero NO hay nada que generar: repagarle
+  // al modelo y pisar libro.html/libro.pdf/audiolibro sería un error. Se
+  // reclaman igual (CAS) y pasan a 'entregado' apuntando a los mismos
+  // archivos. Se traen todos los entregados y se filtra acá: el fake de los
+  // tests distingue las consultas a `pedidos` por estado.
+  const { data: entregados, error: errorEntregados } = await db
+    .from('pedidos')
+    .select('id, narrador_id, libro_pdf_path, audiolibro_paths')
+    .eq('estado', 'entregado');
+
+  if (errorEntregados) {
+    console.error('tick: no se pudieron leer los pedidos entregados:', errorEntregados.message);
+    return;
+  }
+
+  const entregadoPorNarrador = new Map<string, PedidoEntregado>();
+  for (const entregado of (entregados ?? []) as PedidoEntregado[]) {
+    if (!entregadoPorNarrador.has(entregado.narrador_id)) entregadoPorNarrador.set(entregado.narrador_id, entregado);
+  }
+
   for (const pedido of pedidosPagados) {
     if (!narradoresListos.has(pedido.narrador_id)) continue;
     const { data: reclamado, error: errorClaim } = await db
@@ -551,10 +574,50 @@ export async function procesarPedidosPagados(): Promise<void> {
 
     pedidosGenerandoClaimados.add(pedido.id);
     try {
-      await generarPaquete(pedido);
+      const yaEntregado = entregadoPorNarrador.get(pedido.narrador_id);
+      if (yaEntregado) {
+        await entregarConLosMismosArchivos(db, pedido, yaEntregado);
+      } else {
+        await generarPaquete(pedido);
+      }
     } finally {
       pedidosGenerandoClaimados.delete(pedido.id);
     }
+  }
+}
+
+/** Lo que hace falta de un pedido entregado para que otro del mismo narrador apunte a los mismos archivos. */
+type PedidoEntregado = {
+  id: string;
+  narrador_id: string;
+  libro_pdf_path: string | null;
+  audiolibro_paths: unknown;
+};
+
+/**
+ * Deja 'entregado' un pedido recién reclamado copiando las rutas del pedido
+ * ya entregado del mismo narrador. Si el UPDATE falla, se loguea y el
+ * pedido queda en 'generando': el próximo tick lo ve huérfano, lo devuelve
+ * a 'pagado' y vuelve a pasar por acá.
+ */
+async function entregarConLosMismosArchivos(
+  db: Db,
+  pedido: { id: string; narrador_id: string },
+  yaEntregado: PedidoEntregado
+): Promise<void> {
+  console.log(
+    `tick: el pedido ${pedido.id} es de un narrador con libro entregado (pedido ${yaEntregado.id}) — se entrega con los mismos archivos, sin generar.`
+  );
+  const { error } = await db
+    .from('pedidos')
+    .update({
+      estado: 'entregado',
+      libro_pdf_path: yaEntregado.libro_pdf_path,
+      audiolibro_paths: yaEntregado.audiolibro_paths,
+    })
+    .eq('id', pedido.id);
+  if (error) {
+    console.error(`tick: no se pudo entregar el pedido ${pedido.id} con los archivos del ${yaEntregado.id}:`, error.message);
   }
 }
 

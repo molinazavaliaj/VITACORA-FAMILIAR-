@@ -64,7 +64,7 @@ function construirClienteDbMock(opciones: {
   familias?: Record<string, string>;
   pedidosPagados?: { id: string; narrador_id: string }[];
   pedidosGenerando?: { id: string }[];
-  pedidosEntregados?: { id: string; narrador_id: string }[];
+  pedidosEntregados?: { id: string; narrador_id: string; [columna: string]: unknown }[];
   claimarPedido?: (id: string) => { data: unknown; error: unknown };
   resetearPedidoHuerfano?: (id: string) => { data: unknown; error: unknown };
   cerrarSolo?: (id: string) => { data: unknown; error: unknown };
@@ -74,10 +74,14 @@ function construirClienteDbMock(opciones: {
   const cerrarSolo = opciones.cerrarSolo ?? ((id: string) => ({ data: [{ id }], error: null }));
   const cierresAutomaticos: string[] = [];
   const subidos: Record<string, string[]> = {};
+  // Los `update(...).eq('id', x)` sin segundo `.eq` sobre pedidos: la copia
+  // de un pedido ya entregado (mismo narrador) — se anota qué se escribió.
+  const pedidosActualizados: { id: string; valores: Record<string, unknown> }[] = [];
 
   return {
     cierresAutomaticos,
     subidos,
+    pedidosActualizados,
     from: vi.fn((tabla: string) => {
       if (tabla === 'narradores') {
         return {
@@ -137,6 +141,11 @@ function construirClienteDbMock(opciones: {
                 }
                 // el reset de huérfanos no encadena .select()
                 return Promise.resolve(resetearPedidoHuerfano(id));
+              },
+              // sin segundo .eq: se espera directo (la copia a 'entregado')
+              then: (resolve: (v: unknown) => unknown, reject?: (e: unknown) => unknown) => {
+                pedidosActualizados.push({ id, valores });
+                return Promise.resolve({ data: null, error: null }).then(resolve, reject);
               },
             }),
           }),
@@ -381,6 +390,54 @@ describe('tick — branch b (pedidos pagados)', () => {
     expect(claimarPedido).toHaveBeenCalledWith('p2');
     expect(generarPaqueteMock).toHaveBeenCalledTimes(1);
     expect(generarPaqueteMock).toHaveBeenCalledWith({ id: 'p2', narrador_id: 'n2' });
+  });
+
+  // --- Un segundo pedido (extras, copia de un visitante) sobre un narrador
+  // que ya tiene el libro entregado: no se vuelve a generar nada.
+
+  it('un pedido pagado de un narrador que YA tiene un pedido entregado: se reclama y pasa a entregado con los mismos archivos, sin generarPaquete', async () => {
+    const claimarPedido = vi.fn((id: string) => ({ data: [{ id }], error: null }));
+    const paths = { capitulos: ['n1/paquete/audiolibro_cap_01.mp3'], completo: 'n1/paquete/audiolibro_completo.mp3' };
+    const db = construirClienteDbMock({
+      narradores: [{ id: 'n1', estado: 'completado', libro_aprobado_at: '2026-09-13T10:00:00Z' }],
+      archivosPorNarrador: {},
+      pedidosPagados: [{ id: 'p2', narrador_id: 'n1' }],
+      pedidosEntregados: [
+        { id: 'p1', narrador_id: 'n1', libro_pdf_path: 'n1/paquete/libro.pdf', audiolibro_paths: paths },
+      ],
+      claimarPedido,
+    });
+    obtenerClienteDbMock.mockReturnValue(db);
+
+    await procesarPedidosPagados();
+
+    expect(generarPaqueteMock).not.toHaveBeenCalled();
+    // igual se reclama con el CAS: otro proceso no lo tiene que tomar a la vez.
+    expect(claimarPedido).toHaveBeenCalledWith('p2');
+    expect(db.pedidosActualizados).toEqual([
+      {
+        id: 'p2',
+        valores: { estado: 'entregado', libro_pdf_path: 'n1/paquete/libro.pdf', audiolibro_paths: paths },
+      },
+    ]);
+  });
+
+  it('un pedido pagado de un narrador SIN pedido entregado (hay entregados de otros narradores) se genera como siempre', async () => {
+    const db = construirClienteDbMock({
+      narradores: [{ id: 'n1', estado: 'completado', libro_aprobado_at: '2026-09-13T10:00:00Z' }],
+      archivosPorNarrador: {},
+      pedidosPagados: [{ id: 'p1', narrador_id: 'n1' }],
+      pedidosEntregados: [
+        { id: 'p9', narrador_id: 'otro', libro_pdf_path: 'otro/paquete/libro.pdf', audiolibro_paths: null },
+      ],
+    });
+    obtenerClienteDbMock.mockReturnValue(db);
+
+    await procesarPedidosPagados();
+
+    expect(generarPaqueteMock).toHaveBeenCalledTimes(1);
+    expect(generarPaqueteMock).toHaveBeenCalledWith({ id: 'p1', narrador_id: 'n1' });
+    expect(db.pedidosActualizados).toEqual([]);
   });
 
   it('sin pedidos pagados, no llama a generarPaquete', async () => {
