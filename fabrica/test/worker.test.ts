@@ -262,15 +262,18 @@ describe('tick — branch b (pedidos pagados)', () => {
   });
 
   it('un pedido pagado cuyo narrador terminó pero NO cerró el libro (sin libro_aprobado_at) no se reclama ni se genera', async () => {
+    const claimarPedido = vi.fn((id: string) => ({ data: [{ id }], error: null }));
     const db = construirClienteDbMock({
       narradores: [{ id: 'n1', estado: 'completado', libro_aprobado_at: null }],
       archivosPorNarrador: {},
       pedidosPagados: [{ id: 'p1', narrador_id: 'n1' }],
+      claimarPedido,
     });
     obtenerClienteDbMock.mockReturnValue(db);
 
     await procesarPedidosPagados();
 
+    expect(claimarPedido).not.toHaveBeenCalled();
     expect(generarPaqueteMock).not.toHaveBeenCalled();
   });
 
@@ -289,6 +292,7 @@ describe('tick — branch b (pedidos pagados)', () => {
   });
 
   it('con dos pedidos pagados, genera solo el del narrador que cerró el libro', async () => {
+    const claimarPedido = vi.fn((id: string) => ({ data: [{ id }], error: null }));
     const db = construirClienteDbMock({
       narradores: [
         { id: 'n1', estado: 'completado', libro_aprobado_at: null },
@@ -299,11 +303,15 @@ describe('tick — branch b (pedidos pagados)', () => {
         { id: 'p1', narrador_id: 'n1' },
         { id: 'p2', narrador_id: 'n2' },
       ],
+      claimarPedido,
     });
     obtenerClienteDbMock.mockReturnValue(db);
 
     await procesarPedidosPagados();
 
+    // El claim (CAS) se intenta solo para p2 — p1 ni siquiera llega a esa etapa.
+    expect(claimarPedido).toHaveBeenCalledTimes(1);
+    expect(claimarPedido).toHaveBeenCalledWith('p2');
     expect(generarPaqueteMock).toHaveBeenCalledTimes(1);
     expect(generarPaqueteMock).toHaveBeenCalledWith({ id: 'p2', narrador_id: 'n2' });
   });
