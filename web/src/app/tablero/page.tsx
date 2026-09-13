@@ -58,6 +58,7 @@ function proximoPaso(h: Historia, r: Resumen): { href: string; texto: string } |
   switch (h.narrador.estado) {
     case "completado":
     case "cerrado_anticipado":
+      if (h.rol === "visitante") return { href: `/tablero/${id}/libro`, texto: "Pedí tu copia impresa" };
       return esDuena
         ? { href: `/tablero/${id}/libro`, texto: "Ya terminó de contar — dale los últimos retoques y cerrá su libro" }
         : { href: `/tablero/${id}`, texto: "Ya terminó de contar — leé su historia" };
@@ -137,7 +138,7 @@ export default async function Inicio() {
 
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <Etiqueta>{h.rol === "invitado" ? "Te invitaron a esta historia" : "Historia"}</Etiqueta>
+                  <Etiqueta>{h.rol === "invitado" ? "Te invitaron a esta historia" : h.rol === "visitante" ? "Lo guardaste" : "Historia"}</Etiqueta>
                   <Link href={`/tablero/${n.id}`} className="mt-1 block">
                     <Titulo nivel={2}>La historia de {n.nombre}</Titulo>
                   </Link>

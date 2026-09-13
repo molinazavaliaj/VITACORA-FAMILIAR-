@@ -4,6 +4,12 @@ import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { historiaAccesible, PUEDE } from "@/lib/panel";
 import { BannerAlertaSilencio, CierreAnticipado } from "../acciones";
+import { SubirFoto } from "./preguntas/acciones";
+import { GaleriaCapitulo, type FotoVista } from "./fotos";
+import { Compartir, type InvitadoVista } from "./compartir";
+import { firmarTokenLibro } from "@/lib/token-libro";
+import { armarMuestra } from "@/lib/muestra";
+import { VistaMuestra } from "../../muestra";
 import {
   BarraProgreso,
   Contenedor,
@@ -26,7 +32,7 @@ const MINIMO_RESPUESTAS_CIERRE_ANTICIPADO = 10;
 const ESTADOS_QUE_PERMITEN_CIERRE = ["activo", "pausado"];
 const ESTADOS_CERRADOS = ["completado", "cerrado_anticipado"];
 
-type Pregunta = { orden: number; texto: string; capitulo: string; narrador_id: string | null };
+type Pregunta = { orden: number; texto: string; capitulo: string; narrador_id: string | null; foto_id?: string | null };
 
 export default async function PaginaHistoria({ params }: PageProps<"/tablero/[narradorId]">) {
   const { narradorId } = await params;
@@ -47,9 +53,34 @@ export default async function PaginaHistoria({ params }: PageProps<"/tablero/[na
 
   const { narrador: n, rol } = historia;
 
-  const [{ data: propias, error: e1 }, { data: globales, error: e2 }, { data: respuestas, error: e3 }] =
+  // El visitante (guardó el link del libro cerrado) ve la muestra, no la historia.
+  if (!PUEDE.verHistoriaCompleta(rol)) {
+    const muestra = await armarMuestra(admin, n.id);
+    return (
+      <Contenedor>
+        <Etiqueta>Lo guardaste · La historia de {n.nombre}</Etiqueta>
+        <div className="mt-1">
+          <Titulo>La historia de {n.nombre}</Titulo>
+        </div>
+        {muestra ? (
+          <>
+            <div className="mt-8">
+              <VistaMuestra muestra={muestra} urlAudio={`/api/preview-audio?narrador=${n.id}`} urlPortada={muestra.portadaFotoId ? `/api/fotos/${muestra.portadaFotoId}` : null} />
+            </div>
+            <div className="mt-10">
+              <ProximoPaso href={`/tablero/${n.id}/libro`}>Pedir mi copia impresa</ProximoPaso>
+            </div>
+          </>
+        ) : (
+          <p className="mt-6 text-[15px] text-[var(--texto-suave)]">Este libro todavía no está cerrado.</p>
+        )}
+      </Contenedor>
+    );
+  }
+
+  const [{ data: propias, error: e1 }, { data: globales, error: e2 }, { data: respuestas, error: e3 }, { data: fotosData }, { data: invitadosData }] =
     await Promise.all([
-      admin.from("preguntas").select("orden, texto, capitulo, narrador_id").eq("narrador_id", n.id),
+      admin.from("preguntas").select("orden, texto, capitulo, narrador_id, foto_id").eq("narrador_id", n.id),
       admin.from("preguntas").select("orden, texto, capitulo, narrador_id").is("narrador_id", null),
       admin
         .from("respuestas")
@@ -57,7 +88,20 @@ export default async function PaginaHistoria({ params }: PageProps<"/tablero/[na
         .eq("narrador_id", n.id)
         .order("pregunta_orden", { ascending: true })
         .order("recibido_at", { ascending: true }),
+      // Tolerante: la tabla la crea la migración del 12/09; sin ella, no hay fotos.
+      admin.from("fotos").select("id, capitulo, epigrafe, principal, orden, subida_por").eq("narrador_id", n.id).order("principal", { ascending: false }).order("orden"),
+      rol === "duena"
+        ? admin.from("invitados").select("id, email, aceptado_at, rol").eq("narrador_id", n.id).order("created_at")
+        : Promise.resolve({ data: null }),
     ]);
+  const { data: filaAprobado } = rol === "duena"
+    ? await admin.from("narradores").select("libro_aprobado_at").eq("id", n.id).maybeSingle()
+    : { data: null };
+  const aprobado = Boolean((filaAprobado as { libro_aprobado_at?: string | null } | null)?.libro_aprobado_at);
+  const urlBase = process.env.URL_BASE ?? "https://www.vitacorafamiliar.com";
+  const linkPublico = rol === "duena" && aprobado ? `${urlBase}/libro/${firmarTokenLibro(n.id)}` : null;
+  // Los que guardaron el link no cuentan como invitados en la lista de Compartir.
+  const soloInvitados = ((invitadosData as (InvitadoVista & { rol?: string })[] | null) ?? []).filter((i) => i.rol !== "visitante");
 
   if (e1 || e2 || e3) {
     console.error("historia: fallo la carga", { e1, e2, e3 });
@@ -88,6 +132,14 @@ export default async function PaginaHistoria({ params }: PageProps<"/tablero/[na
     else capitulos.push({ nombre: p.capitulo, preguntas: [p] });
   }
 
+  const fotosPorCapitulo = new Map<string, FotoVista[]>();
+  for (const f of (fotosData as FotoVista[] | null) ?? []) {
+    const lista = fotosPorCapitulo.get(f.capitulo) ?? [];
+    lista.push(f);
+    fotosPorCapitulo.set(f.capitulo, lista);
+  }
+  const capitulosConocidos = [...new Set(guion.map((p) => p.capitulo))];
+
   const cerrado = ESTADOS_CERRADOS.includes(n.estado);
   const puedeCerrarAnticipado =
     rol === "duena" && ESTADOS_QUE_PERMITEN_CIERRE.includes(n.estado) && respondidas >= MINIMO_RESPUESTAS_CIERRE_ANTICIPADO;
@@ -109,12 +161,7 @@ export default async function PaginaHistoria({ params }: PageProps<"/tablero/[na
           <p className="mt-2 text-[15px] text-[var(--texto-suave)]">{ESTADO_EN_HUMANO[n.estado] ?? n.estado}</p>
         </div>
         {PUEDE.invitar(rol) ? (
-          <span
-            title="Pronto: invitar a la familia mientras el libro está abierto; compartir el libro cuando esté cerrado"
-            className="inline-flex h-10 cursor-not-allowed items-center rounded-full border border-[var(--linea)] px-5 text-sm text-[var(--texto-menor)] [font-family:var(--fuente-micro)]"
-          >
-            Compartir
-          </span>
+          <Compartir narradorId={n.id} nombre={n.nombre} cerrado={cerrado} aprobado={aprobado} linkPublico={linkPublico} invitados={soloInvitados} />
         ) : null}
       </div>
 
@@ -145,6 +192,9 @@ export default async function PaginaHistoria({ params }: PageProps<"/tablero/[na
                 </span>
               </div>
 
+              {/* Una función no viaja de servidor a cliente: se manda quién es y el cliente decide. */}
+              <GaleriaCapitulo fotos={fotosPorCapitulo.get(cap.nombre) ?? []} usuarioId={user.id} esDuena={rol === "duena"} />
+
               <div className="mt-6 flex flex-col gap-8">
                 {cap.preguntas.map((p) => {
                   const lista = respuestasPorOrden.get(p.orden);
@@ -168,6 +218,10 @@ export default async function PaginaHistoria({ params }: PageProps<"/tablero/[na
                         <p className="text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.2em]">
                           {fechaCorta(principal.recibido_at)}
                         </p>
+                        {p.foto_id ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={`/api/fotos/${p.foto_id}`} alt="" className="mt-2 max-h-72 rounded-lg border border-[var(--linea)] object-contain" />
+                        ) : null}
                         <h3 className="mt-1 text-[17px] font-medium leading-snug [font-family:var(--fuente-titulo)]">{p.texto}</h3>
                         <div className="mt-4">
                           <Respuesta respuesta={principal} />
@@ -193,6 +247,14 @@ export default async function PaginaHistoria({ params }: PageProps<"/tablero/[na
                   );
                 })}
               </div>
+
+              {!cerrado && PUEDE.agregarPreguntasYFotos(rol) ? (
+                <div className="mt-6">
+                  <SubirFoto narradorId={n.id} capitulos={capitulosConocidos} capituloInicial={cap.nombre}>
+                    + Agregar una foto de esta época
+                  </SubirFoto>
+                </div>
+              ) : null}
             </section>
           );
         })}

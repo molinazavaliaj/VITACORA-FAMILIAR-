@@ -9,7 +9,10 @@ import { familiaDelUsuario, type FamiliaResumen } from "./familia";
 // Todo lo que decide permisos en el panel pasa por acá, para que la regla
 // viva en un solo lugar y no repartida por las páginas.
 
-export type Rol = "duena" | "invitado";
+// duena:     compró. Ve y puede todo.
+// invitado:  la dueña lo invitó con el libro abierto. Ve todo, suma preguntas y fotos.
+// visitante: abrió el link del libro cerrado y lo guardó. Ve la muestra, compra su copia.
+export type Rol = "duena" | "invitado" | "visitante";
 
 export type NarradorPanel = {
   id: string;
@@ -39,37 +42,45 @@ type Usuario = { id: string; email?: string | null };
  * Tolerante a que la tabla no exista todavía: la migración 20260912 la crea y
  * la confirma Naza. Mientras tanto, el panel funciona sin invitados.
  */
-async function narradoresInvitados(admin: SupabaseClient, user: Usuario): Promise<string[]> {
+type Invitacion = { narrador_id: string; rol?: string | null };
+
+/** El rol de una fila de invitados; sin la columna (migración 20260913 sin aplicar), invitado. */
+function rolDe(fila: Invitacion): Exclude<Rol, "duena"> {
+  return fila.rol === "visitante" ? "visitante" : "invitado";
+}
+
+async function narradoresInvitados(admin: SupabaseClient, user: Usuario): Promise<Map<string, Exclude<Rol, "duena">>> {
+  const roles = new Map<string, Exclude<Rol, "duena">>();
+
   const { data: propias, error: errorPropias } = await admin
     .from("invitados")
-    .select("narrador_id")
+    .select("narrador_id, rol")
     .eq("auth_user_id", user.id);
 
   if (errorPropias) {
     console.warn("panel: no se pudieron leer los invitados (¿falta la migración?)", errorPropias.message);
-    return [];
+    return roles;
   }
-
-  const ids = new Set(((propias as { narrador_id: string }[] | null) ?? []).map((i) => i.narrador_id));
+  for (const i of (propias as Invitacion[] | null) ?? []) roles.set(i.narrador_id, rolDe(i));
 
   if (user.email) {
     const { data: pendientes } = await admin
       .from("invitados")
-      .select("id, narrador_id")
+      .select("id, narrador_id, rol")
       .ilike("email", user.email)
       .is("auth_user_id", null);
 
-    for (const inv of (pendientes as { id: string; narrador_id: string }[] | null) ?? []) {
+    for (const inv of (pendientes as (Invitacion & { id: string })[] | null) ?? []) {
       await admin
         .from("invitados")
         .update({ auth_user_id: user.id, aceptado_at: new Date().toISOString() })
         .eq("id", inv.id)
         .is("auth_user_id", null);
-      ids.add(inv.narrador_id);
+      roles.set(inv.narrador_id, rolDe(inv));
     }
   }
 
-  return [...ids];
+  return roles;
 }
 
 /** Todas las historias que ve el usuario: primero las suyas, después las compartidas. */
@@ -94,9 +105,8 @@ export async function historiasDelUsuario(
     for (const n of (data as NarradorPanel[] | null) ?? []) historias.push({ narrador: n, rol: "duena" });
   }
 
-  const idsInvitados = (await narradoresInvitados(admin, user)).filter(
-    (id) => !historias.some((h) => h.narrador.id === id),
-  );
+  const roles = await narradoresInvitados(admin, user);
+  const idsInvitados = [...roles.keys()].filter((id) => !historias.some((h) => h.narrador.id === id));
   if (idsInvitados.length > 0) {
     const { data, error } = await admin
       .from("narradores")
@@ -104,7 +114,7 @@ export async function historiasDelUsuario(
       .in("id", idsInvitados)
       .order("created_at", { ascending: false });
     if (error) return { panel: vacio, error: error.message };
-    for (const n of (data as NarradorPanel[] | null) ?? []) historias.push({ narrador: n, rol: "invitado" });
+    for (const n of (data as NarradorPanel[] | null) ?? []) historias.push({ narrador: n, rol: roles.get(n.id) ?? "invitado" });
   }
 
   return { panel: { familia, historias }, error: null };
@@ -133,8 +143,9 @@ export async function historiaAccesible(
   if (errorFamilia) return { historia: null, error: errorFamilia };
   if (familia && n.familia_id === familia.id) return { historia: { narrador: n, rol: "duena" }, error: null };
 
-  const invitados = await narradoresInvitados(admin, user);
-  if (invitados.includes(n.id)) return { historia: { narrador: n, rol: "invitado" }, error: null };
+  const roles = await narradoresInvitados(admin, user);
+  const rol = roles.get(n.id);
+  if (rol) return { historia: { narrador: n, rol }, error: null };
 
   return { historia: null, error: null };
 }
@@ -142,12 +153,14 @@ export async function historiaAccesible(
 /** Lo que cada rol puede hacer. Una sola tabla, la misma que docs/panel-usuario.md §2. */
 export const PUEDE = {
   editarGuion: (rol: Rol) => rol === "duena",
-  agregarPreguntasYFotos: (_rol: Rol) => true,
+  agregarPreguntasYFotos: (rol: Rol) => rol !== "visitante",
+  verHistoriaCompleta: (rol: Rol) => rol !== "visitante", // el visitante ve la muestra
   cambiarRitmo: (rol: Rol) => rol === "duena",
   invitar: (rol: Rol) => rol === "duena",
   cerrarLibro: (rol: Rol) => rol === "duena",
   descargar: (rol: Rol) => rol === "duena",
   verLoQuePago: (rol: Rol) => rol === "duena",
+  comprarCopia: (_rol: Rol) => true,
 } as const;
 
 // ── Para las rutas de API ─────────────────────────────────────────────

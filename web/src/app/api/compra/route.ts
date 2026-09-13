@@ -74,11 +74,30 @@ export async function POST(request: NextRequest) {
     familiaId = (creada as { id: string }).id;
   }
 
-  const { data: narrador, error: errorNarrador } = await admin
+  // Si un intento anterior con este WhatsApp quedó sin pagar (falló MP, cerró
+  // la pestaña), se retoma ese narrador en vez de chocar con el teléfono
+  // repetido. Solo si es la misma familia: un pendiente ajeno sigue dando 409.
+  const { data: pendiente } = await admin
     .from("narradores")
-    .insert({ ...narradorAInsertar, familia_id: familiaId, estado: "pendiente_pago" })
-    .select("id")
-    .single();
+    .select("id, familia_id, estado")
+    .eq("telefono_whatsapp", narradorAInsertar.telefono_whatsapp)
+    .eq("estado", "pendiente_pago")
+    .maybeSingle();
+  const retomable = pendiente as { id: string; familia_id: string } | null;
+
+  const { data: narrador, error: errorNarrador } =
+    retomable && retomable.familia_id === familiaId
+      ? await admin
+          .from("narradores")
+          .update({ ...narradorAInsertar, familia_id: familiaId, estado: "pendiente_pago" })
+          .eq("id", retomable.id)
+          .select("id")
+          .single()
+      : await admin
+          .from("narradores")
+          .insert({ ...narradorAInsertar, familia_id: familiaId, estado: "pendiente_pago" })
+          .select("id")
+          .single();
   if (errorNarrador || !narrador) {
     console.error("compra: fallo crear el narrador", errorNarrador);
     const esTelefonoRepetido = (errorNarrador as { code?: string } | null)?.code === "23505";

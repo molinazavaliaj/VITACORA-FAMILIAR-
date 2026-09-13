@@ -1,0 +1,92 @@
+import { describe, it, expect } from "vitest";
+import {
+  esEditable, validarTexto, lugarLibre, puedeAgregar, puedeSaltar, siguienteOrden,
+  renumerar, reordenar, calidadDeFoto, MAXIMO_FAMILIA, PISO, type PreguntaGuion,
+} from "../src/lib/guion";
+
+const fija = (orden: number, extra: Partial<PreguntaGuion> = {}): PreguntaGuion => ({
+  id: `p${orden}`, orden, texto: `Pregunta ${orden} del guion, bien larga`, capitulo: "La infancia", tipo: "fija", ...extra,
+});
+const guionDe = (n: number) => Array.from({ length: n }, (_, i) => fija(i + 1));
+
+describe("esEditable", () => {
+  it("lo enviado está congelado; lo futuro se puede tocar", () => {
+    expect(esEditable(fija(3), 3)).toBe(false);
+    expect(esEditable(fija(4), 3)).toBe(true);
+  });
+  it("las adaptativas nunca, aunque sean futuras", () => {
+    expect(esEditable(fija(27, { tipo: "adaptativa" }), 26)).toBe(false);
+  });
+});
+
+describe("validarTexto", () => {
+  it("limpia espacios y acepta", () => {
+    const r = validarTexto("  ¿Cómo   era su   barrio?  ");
+    expect(r).toEqual({ ok: true, texto: "¿Cómo era su barrio?" });
+  });
+  it("rechaza lo muy corto y lo muy largo", () => {
+    expect(validarTexto("¿Y?").ok).toBe(false);
+    expect(validarTexto("x".repeat(301)).ok).toBe(false);
+    expect(validarTexto(42).ok).toBe(false);
+  });
+});
+
+describe("tope y piso", () => {
+  it("con las 26 del guion hay lugar para 10 más (36 + 4 adaptativas = 40)", () => {
+    expect(lugarLibre(guionDe(26))).toBe(10);
+    expect(puedeAgregar(guionDe(26)).ok).toBe(true);
+  });
+  it("con 36 de la familia ya no entra otra", () => {
+    expect(lugarLibre(guionDe(36))).toBe(0);
+    expect(puedeAgregar(guionDe(36)).ok).toBe(false);
+  });
+  it("las adaptativas no cuentan como lugar ocupado por la familia", () => {
+    const g = [...guionDe(30), ...[31, 32, 33, 34].map((o) => fija(o, { tipo: "adaptativa" }))];
+    expect(lugarLibre(g)).toBe(6);
+  });
+  it("no se puede bajar de 15", () => {
+    expect(puedeSaltar(guionDe(16)).ok).toBe(true);
+    expect(puedeSaltar(guionDe(PISO)).ok).toBe(false);
+  });
+  it("la que se agrega va al final", () => {
+    expect(siguienteOrden(guionDe(26))).toBe(27);
+    expect(siguienteOrden([])).toBe(1);
+  });
+});
+
+describe("renumerar", () => {
+  it("después de saltar la 5 (con 3 enviadas), la 6 pasa a ser 5 y así", () => {
+    const g = guionDe(8).filter((p) => p.orden !== 5);
+    expect(renumerar(g, 3)).toEqual([
+      { id: "p6", orden: 5 }, { id: "p7", orden: 6 }, { id: "p8", orden: 7 },
+    ]);
+  });
+  it("no toca las enviadas aunque haya huecos antes de dia_actual", () => {
+    const g = guionDe(6).filter((p) => p.orden !== 2);
+    expect(renumerar(g, 3)).toEqual([]); // 4,5,6 ya están contiguas después de 3
+  });
+});
+
+describe("reordenar", () => {
+  it("aplica el orden nuevo a las futuras y deja las adaptativas al final", () => {
+    const g = [...guionDe(6), fija(7, { tipo: "adaptativa" })];
+    const r = reordenar(g, 3, ["p6", "p4", "p5"]);
+    expect(r).toEqual({ ok: true, cambios: [{ id: "p6", orden: 4 }, { id: "p4", orden: 5 }, { id: "p5", orden: 6 }] });
+  });
+  it("rechaza si falta o sobra alguna", () => {
+    expect(reordenar(guionDe(6), 3, ["p4", "p5"]).ok).toBe(false);
+    expect(reordenar(guionDe(6), 3, ["p4", "p5", "p6", "p2"]).ok).toBe(false);
+  });
+});
+
+describe("calidadDeFoto", () => {
+  it("clasifica por el lado largo y el corto, sin importar la orientación", () => {
+    expect(calidadDeFoto(3000, 2400)).toBe("marco");
+    expect(calidadDeFoto(2400, 3000)).toBe("marco");
+    expect(calidadDeFoto(1800, 1200)).toBe("libro");
+    expect(calidadDeFoto(800, 600)).toBe("baja");
+  });
+  it(`la familia puede armar hasta ${MAXIMO_FAMILIA}`, () => {
+    expect(MAXIMO_FAMILIA).toBe(36);
+  });
+});

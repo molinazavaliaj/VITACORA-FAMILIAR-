@@ -397,6 +397,34 @@ del abuelo — y el que lo recibe pide su copia impresa.
 
 ---
 
+## FRENTE 3ter — El panel del usuario *(nuevo, 12/09 · construido 12-13/09)*
+
+Spec: `docs/panel-usuario.md`. Construyó Joaquín en `web/` (Naza sin créditos). Todo en `main`.
+
+| # | Qué | Quién | Estado |
+|---|---|---|---|
+| 3t.1 | Esqueleto: sidebar, 4 secciones, selector de historia, roles dueña/invitado/visitante, fuera el `limit(1)` | **J** | ✅ 12/09 |
+| 3t.2 | Inicio · Historias por capítulo con transcripción y fotos | **J** | ✅ 12/09 |
+| 3t.3 | Preguntas: editar · sacar · reordenar · agregar (texto o **pregunta-foto**) · ritmo · temas a evitar. Piso 15, tope 40 | **J** | ✅ 13/09 |
+| 3t.4 | Fotos por capítulo (original sin recomprimir, aviso de calidad) | **J** | ✅ 13/09 |
+| 3t.5 | Invitados (hasta 3, por mail, entran con el login de siempre) | **J** | ✅ 13/09 |
+| 3t.6 | Encargar libro: edición final en 4 pasos + **Cerrar libro** + extras con descuento por cantidad | **J** | ✅ 13/09 |
+| 3t.7 | Compartir el libro cerrado: link público, muestra, guardar, comprar copia | **J** | ✅ 13/09 |
+| 3t.8 | **Lector online** (el HTML que la fábrica ya genera, paginado, con audio por capítulo) | **N** | ☐ |
+| 3t.9 | **Mails de hitos** (7, ver spec §9) — los de la fábrica/web | **N** | ☐ |
+| 3t.10 | Mails de hitos del entrevistador + guion por narrador + adaptativas al final real + imagen por WhatsApp + oferta de la siguiente + `contexto.evitar` (spec §11) | **J** | ☐ próxima sesión |
+| 3t.11 | Fábrica: leer `narradores.edicion`, ubicar `fotos`, **no producir sin `libro_aprobado_at`**, cierre automático a los 30 días (spec §12) | **N** | ☐ |
+| 3t.12 | Sugeridas por IA a pedido (§6.2, tercer botón) | **J** | ☐ fase siguiente |
+
+**Para que todo lo de arriba ande en producción (Naza):**
+1. `npx supabase db push` — aplica `20260912_panel_usuario.sql` y `20260913_visitantes.sql`. Aditivas. Confirmar `CONTRATO.md`.
+2. Vercel: los 8 precios (`GASTOS.md`) + `MP_ACCESS_TOKEN` + `MP_WEBHOOK_SECRET` de producción (se los pasa Joaquín por privado).
+3. Después del deploy: **un pago real de prueba** entre los dos.
+
+**Arreglos que salieron en el camino (ya en main):** `/registro` (puerta gratis del modelo viejo) cerrada · reintento de compra con el mismo WhatsApp tras un pago fallido · `auto_return` de MP solo con https · el webhook ya no manda "hoy le escribimos" en pedidos de extras · saludos fuera de `web/` y del entrevistador.
+
+---
+
 ## FRENTE 3bis — Fotos por capítulo *(nuevo, 10/09)*
 
 Destraba el libro ilustrado **y** los marcos. Hoy `narradores.foto_url` guarda una
@@ -404,11 +432,11 @@ sola foto.
 
 | # | Tarea | Quién | Estado |
 |---|---|---|---|
-| 3b.1 | Acordar la tabla `fotos` (narrador, capítulo, epígrafe, orden) — **toca `CONTRATO.md`** | **A** | ☐ |
-| 3b.2 | Subida desde el panel, pidiéndolas **en la previsualización** de cada capítulo | **N** | ☐ |
-| 3b.3 | Validar resolución en la subida (marco 20×25 cm pide ~2400×3000 px) y no recomprimir | **N** | ☐ |
+| 3b.1 | Acordar la tabla `fotos` — **toca `CONTRATO.md`** | **A** | ✅ escrita 12/09 · ⚠️ Naza aplica y confirma |
+| 3b.2 | Subida desde el panel, por capítulo y como pregunta-foto | **J** | ✅ 13/09 |
+| 3b.3 | Validar resolución en la subida y no recomprimir | **J** | ✅ 13/09 |
 | 3b.4 | Que la fábrica ubique las fotos en su capítulo | **N** | ☐ |
-| 3b.5 | Selección de la foto del marco (recorte distinto al del libro) | **N** | ☐ |
+| 3b.5 | Selección de la foto del marco (recorte distinto al del libro) | **N** | ☐ con la fábrica |
 
 **Proveedores: ya resueltos** — gráficas, marcos y tags NFC conseguidos por
 Joaquín. Lo que falta es el camino de la foto, no quién la imprime.
@@ -614,7 +642,7 @@ queda para después del lanzamiento.
 - ¿Quién es el narrador argentino del piloto?
 - Sesión de textos y de branding: fecha
 - ~~¿Cuál es el momento de cobro?~~ → **pago directo por adelantado** (11/09)
-- ~~¿Se arregla el `limit(1)` del tablero?~~ → **sí, ahora** (10/09)
-- **¿Cómo llegan las fotos de Martina a cada capítulo, en calidad de impresión?** (Frente 3bis)
-- **¿Quién saca los saludos de `web/`?** — en `entrevistador/` ya salieron
+- ~~¿Se arregla el `limit(1)` del tablero?~~ → **hecho** (12/09)
+- ~~¿Cómo llegan las fotos a cada capítulo?~~ → **hecho en el panel** (13/09); falta que la fábrica las ubique
+- ~~¿Quién saca los saludos de `web/`?~~ → **hecho** (12/09)
 - ¿El merchant of record paga a Argentina? (plan B para España)

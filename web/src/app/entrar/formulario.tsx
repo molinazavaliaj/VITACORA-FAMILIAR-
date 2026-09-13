@@ -2,15 +2,21 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { crearClienteNavegador } from "@/lib/supabase/navegador";
 import { normalizarCodigo, esCodigoCompleto } from "@/lib/codigo-otp";
 
 // Entrada por código de 6 dígitos (OTP), en dos pasos: correo → código.
 // Reemplaza al enlace mágico, que exigía abrirse en el mismo navegador donde
 // se pidió — con el código, la familia lo teclea donde sea y no hay fricción.
+/** A dónde volver después de entrar. Solo rutas propias (empiezan con "/"), nunca otro sitio. */
+function destinoSeguro(volver: string | null): string {
+  return volver && volver.startsWith("/") && !volver.startsWith("//") ? volver : "/tablero";
+}
+
 export default function FormularioEntrar() {
   const router = useRouter();
+  const destino = destinoSeguro(useSearchParams().get("volver"));
   const [email, setEmail] = useState("");
   const [codigo, setCodigo] = useState("");
   const [paso, setPaso] = useState<"correo" | "codigo">("correo");
@@ -54,7 +60,7 @@ export default function FormularioEntrar() {
       return;
     }
 
-    router.push("/tablero");
+    router.push(destino);
     router.refresh();
   }
 

@@ -13,7 +13,7 @@ migración en `supabase/migrations/` + actualizar este archivo + avisar al otro 
 | `respuestas` | entrevistador | web | La web NUNCA escribe acá. |
 | `saludos` | ~~web / entrevistador~~ | — | **Fuera de la fase 1 (10/09).** Nadie la escribe ni la lee. Se deja por si la fase 2 la revive. |
 | `fotos` | web (sube y ordena) | fábrica | Nueva 12/09. Por capítulo; `principal` abre, el resto cierra. |
-| `invitados` | web | web | Nueva 12/09. Hasta 3 por narrador (lo cuida la web). |
+| `invitados` | web | web | Nueva 12/09. `rol` (13/09): `'invitado'` (hasta 3, con el libro abierto, ven todo) o `'visitante'` (abrió el link del libro cerrado y lo guardó: ve la muestra y compra su copia, sin tope). |
 | `pedidos` | web y fábrica | — | El entrevistador no la mira. Un pedido por comprador: los invitados y visitantes que compran su copia tienen su propia `familia` y su propio pedido sobre el mismo `narrador_id`. |
 | `envios` | entrevistador | — | Log de salientes; idempotencia del scheduler. |
 
@@ -36,8 +36,11 @@ narrador queda ahí y la web lo limpia; no es un estado del que el entrevistador
 salir.
 
 `pedidos.extras` (jsonb, misma migración): qué se compró además de la base.
-`{"impreso": "bn" | "color" | null, "marcos": 0..N}`. Lo escribe la web al crear el
-pedido; la fábrica lo lee cuando produce. El entrevistador sigue sin mirar `pedidos`.
+`{"impreso": "bn" | "color" | null, "marcos": 0..N, "copias": 0..N}`. Lo escribe la web
+al crear el pedido; la fábrica lo lee cuando produce. El entrevistador sigue sin mirar
+`pedidos`. `copias` (12/09, aditivo): cuántos libros impresos van en ese pedido — un
+pedido posterior de solo extras no lleva la base, y puede ser de un invitado (su propia
+`familia`, mismo `narrador_id`).
 
 ## El guion por narrador (migración 20260912)
 
