@@ -6,6 +6,7 @@ import { historiaAccesible, PUEDE } from "@/lib/panel";
 import { BannerAlertaSilencio, CierreAnticipado } from "../acciones";
 import { SubirFoto } from "./preguntas/acciones";
 import { GaleriaCapitulo, type FotoVista } from "./fotos";
+import { Compartir, type InvitadoVista } from "./compartir";
 import {
   BarraProgreso,
   Contenedor,
@@ -49,7 +50,7 @@ export default async function PaginaHistoria({ params }: PageProps<"/tablero/[na
 
   const { narrador: n, rol } = historia;
 
-  const [{ data: propias, error: e1 }, { data: globales, error: e2 }, { data: respuestas, error: e3 }, { data: fotosData }] =
+  const [{ data: propias, error: e1 }, { data: globales, error: e2 }, { data: respuestas, error: e3 }, { data: fotosData }, { data: invitadosData }] =
     await Promise.all([
       admin.from("preguntas").select("orden, texto, capitulo, narrador_id, foto_id").eq("narrador_id", n.id),
       admin.from("preguntas").select("orden, texto, capitulo, narrador_id").is("narrador_id", null),
@@ -61,6 +62,9 @@ export default async function PaginaHistoria({ params }: PageProps<"/tablero/[na
         .order("recibido_at", { ascending: true }),
       // Tolerante: la tabla la crea la migración del 12/09; sin ella, no hay fotos.
       admin.from("fotos").select("id, capitulo, epigrafe, principal, orden, subida_por").eq("narrador_id", n.id).order("principal", { ascending: false }).order("orden"),
+      rol === "duena"
+        ? admin.from("invitados").select("id, email, aceptado_at").eq("narrador_id", n.id).order("created_at")
+        : Promise.resolve({ data: null }),
     ]);
 
   if (e1 || e2 || e3) {
@@ -121,12 +125,7 @@ export default async function PaginaHistoria({ params }: PageProps<"/tablero/[na
           <p className="mt-2 text-[15px] text-[var(--texto-suave)]">{ESTADO_EN_HUMANO[n.estado] ?? n.estado}</p>
         </div>
         {PUEDE.invitar(rol) ? (
-          <span
-            title="Pronto: invitar a la familia mientras el libro está abierto; compartir el libro cuando esté cerrado"
-            className="inline-flex h-10 cursor-not-allowed items-center rounded-full border border-[var(--linea)] px-5 text-sm text-[var(--texto-menor)] [font-family:var(--fuente-micro)]"
-          >
-            Compartir
-          </span>
+          <Compartir narradorId={n.id} nombre={n.nombre} cerrado={cerrado} invitados={(invitadosData as InvitadoVista[] | null) ?? []} />
         ) : null}
       </div>
 

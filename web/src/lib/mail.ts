@@ -98,3 +98,44 @@ export async function enviarMailAcceso(opciones: { para: string; comoLeDicen: st
     `),
   });
 }
+
+/**
+ * La invitación a una historia (docs/panel-usuario.md §8). Entra con el mismo
+ * login que la dueña: correo + código. Al entrar por primera vez, lib/panel.ts
+ * vincula la invitación con su usuario.
+ */
+export async function enviarMailInvitacion(opciones: {
+  para: string;
+  nombreNarrador: string;
+  quienInvita: string;
+}): Promise<boolean> {
+  const narrador = escapar(opciones.nombreNarrador);
+  const quien = escapar(opciones.quienInvita);
+  const urlBase = process.env.URL_BASE ?? "https://www.vitacorafamiliar.com";
+
+  return enviar({
+    para: opciones.para,
+    asunto: `${opciones.quienInvita} te invita a la historia de ${opciones.nombreNarrador}`,
+    html: envoltorio(`
+        <tr><td style="padding-bottom:24px;">
+          <strong style="font-size:22px;font-weight:normal;">Un biógrafo está escribiendo el libro de la vida de ${narrador}.</strong>
+        </td></tr>
+        <tr><td style="padding-bottom:24px;">
+          ${quien} te invitó a acompañarlo. Vas a poder escuchar lo que va contando,
+          leer sus páginas a medida que se escriben, sumar preguntas que te gustaría
+          que le hagan, y agregar fotos de cada época.
+        </td></tr>
+        <tr><td style="padding-bottom:12px;">
+          Entrá con este mismo correo:
+        </td></tr>
+        <tr><td style="padding-bottom:32px;">
+          <a href="${escapar(urlBase)}/entrar" style="display:inline-block;background:#5D3FD3;color:#ffffff;text-decoration:none;padding:14px 28px;font-family:Arial,Helvetica,sans-serif;font-size:15px;">
+            Ver la historia de ${narrador}
+          </a>
+          <div style="margin-top:10px;font-size:14px;color:#78716c;">
+            Te pedimos un código de 6 números que llega a este correo. Sin contraseñas.
+          </div>
+        </td></tr>
+    `),
+  });
+}
