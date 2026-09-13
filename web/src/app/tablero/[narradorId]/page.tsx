@@ -4,6 +4,8 @@ import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { historiaAccesible, PUEDE } from "@/lib/panel";
 import { BannerAlertaSilencio, CierreAnticipado } from "../acciones";
+import { SubirFoto } from "./preguntas/acciones";
+import { GaleriaCapitulo, type FotoVista } from "./fotos";
 import {
   BarraProgreso,
   Contenedor,
@@ -26,7 +28,7 @@ const MINIMO_RESPUESTAS_CIERRE_ANTICIPADO = 10;
 const ESTADOS_QUE_PERMITEN_CIERRE = ["activo", "pausado"];
 const ESTADOS_CERRADOS = ["completado", "cerrado_anticipado"];
 
-type Pregunta = { orden: number; texto: string; capitulo: string; narrador_id: string | null };
+type Pregunta = { orden: number; texto: string; capitulo: string; narrador_id: string | null; foto_id?: string | null };
 
 export default async function PaginaHistoria({ params }: PageProps<"/tablero/[narradorId]">) {
   const { narradorId } = await params;
@@ -47,9 +49,9 @@ export default async function PaginaHistoria({ params }: PageProps<"/tablero/[na
 
   const { narrador: n, rol } = historia;
 
-  const [{ data: propias, error: e1 }, { data: globales, error: e2 }, { data: respuestas, error: e3 }] =
+  const [{ data: propias, error: e1 }, { data: globales, error: e2 }, { data: respuestas, error: e3 }, { data: fotosData }] =
     await Promise.all([
-      admin.from("preguntas").select("orden, texto, capitulo, narrador_id").eq("narrador_id", n.id),
+      admin.from("preguntas").select("orden, texto, capitulo, narrador_id, foto_id").eq("narrador_id", n.id),
       admin.from("preguntas").select("orden, texto, capitulo, narrador_id").is("narrador_id", null),
       admin
         .from("respuestas")
@@ -57,6 +59,8 @@ export default async function PaginaHistoria({ params }: PageProps<"/tablero/[na
         .eq("narrador_id", n.id)
         .order("pregunta_orden", { ascending: true })
         .order("recibido_at", { ascending: true }),
+      // Tolerante: la tabla la crea la migración del 12/09; sin ella, no hay fotos.
+      admin.from("fotos").select("id, capitulo, epigrafe, principal, orden, subida_por").eq("narrador_id", n.id).order("principal", { ascending: false }).order("orden"),
     ]);
 
   if (e1 || e2 || e3) {
@@ -87,6 +91,14 @@ export default async function PaginaHistoria({ params }: PageProps<"/tablero/[na
     if (cap) cap.preguntas.push(p);
     else capitulos.push({ nombre: p.capitulo, preguntas: [p] });
   }
+
+  const fotosPorCapitulo = new Map<string, FotoVista[]>();
+  for (const f of (fotosData as FotoVista[] | null) ?? []) {
+    const lista = fotosPorCapitulo.get(f.capitulo) ?? [];
+    lista.push(f);
+    fotosPorCapitulo.set(f.capitulo, lista);
+  }
+  const capitulosConocidos = [...new Set(guion.map((p) => p.capitulo))];
 
   const cerrado = ESTADOS_CERRADOS.includes(n.estado);
   const puedeCerrarAnticipado =
@@ -145,6 +157,9 @@ export default async function PaginaHistoria({ params }: PageProps<"/tablero/[na
                 </span>
               </div>
 
+              {/* Una función no viaja de servidor a cliente: se manda quién es y el cliente decide. */}
+              <GaleriaCapitulo fotos={fotosPorCapitulo.get(cap.nombre) ?? []} usuarioId={user.id} esDuena={rol === "duena"} />
+
               <div className="mt-6 flex flex-col gap-8">
                 {cap.preguntas.map((p) => {
                   const lista = respuestasPorOrden.get(p.orden);
@@ -168,6 +183,10 @@ export default async function PaginaHistoria({ params }: PageProps<"/tablero/[na
                         <p className="text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.2em]">
                           {fechaCorta(principal.recibido_at)}
                         </p>
+                        {p.foto_id ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={`/api/fotos/${p.foto_id}`} alt="" className="mt-2 max-h-72 rounded-lg border border-[var(--linea)] object-contain" />
+                        ) : null}
                         <h3 className="mt-1 text-[17px] font-medium leading-snug [font-family:var(--fuente-titulo)]">{p.texto}</h3>
                         <div className="mt-4">
                           <Respuesta respuesta={principal} />
@@ -193,6 +212,14 @@ export default async function PaginaHistoria({ params }: PageProps<"/tablero/[na
                   );
                 })}
               </div>
+
+              {!cerrado && PUEDE.agregarPreguntasYFotos(rol) ? (
+                <div className="mt-6">
+                  <SubirFoto narradorId={n.id} capitulos={capitulosConocidos} capituloInicial={cap.nombre}>
+                    + Agregar una foto de esta época
+                  </SubirFoto>
+                </div>
+              ) : null}
             </section>
           );
         })}
