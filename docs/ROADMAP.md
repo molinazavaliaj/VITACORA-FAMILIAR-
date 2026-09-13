@@ -411,7 +411,7 @@ Spec: `docs/panel-usuario.md`. Construyó Joaquín en `web/` (Naza sin créditos
 | 3t.6 | Encargar libro: edición final en 4 pasos + **Cerrar libro** + extras con descuento por cantidad | **J** | ✅ 13/09 |
 | 3t.7 | Compartir el libro cerrado: link público, muestra, guardar, comprar copia | **J** | ✅ 13/09 |
 | 3t.8 | **Lector online** (el HTML que la fábrica ya genera, paginado, con audio por capítulo) | **N** | ✅ 13/09 — `api/descarga/libro-html` sirve `libro.html`; solo se ve desde `entregado` (antes no hay libro escrito, ver `docs/panel-usuario.md` §12) |
-| 3t.9 | **Mails de hitos** (7, ver spec §9) — los de la fábrica/web | **N** | ✅ 13/09 — los 5 de la fábrica; los del entrevistador siguen en 3t.10 |
+| 3t.9 | **Mails de hitos** (7, ver spec §9) — los de la fábrica/web | **N** | ✅ 13/09 — los 5 de la fábrica (+ «libro listo», que ya era suyo: 6 candados en total); los del entrevistador siguen en 3t.10 |
 | 3t.10 | Mails de hitos del entrevistador + guion por narrador + adaptativas al final real + imagen por WhatsApp + oferta de la siguiente + `contexto.evitar` (spec §11) | **J** | ☐ próxima sesión |
 | 3t.11 | Fábrica: leer `narradores.edicion`, ubicar `fotos`, **no producir sin `libro_aprobado_at`**, cierre automático a los 30 días (spec §12) | **N** | ✅ 13/09 — `ordenCapitulos`/`titulo`/`subtitulo`/`portadaFotoId` aplicados, `excluidas`/`correcciones` ignorados (decisión 13/09); a los 30 días de `ultima_respuesta_at` la fábrica misma cierra y produce |
 | 3t.12 | Sugeridas por IA a pedido (§6.2, tercer botón) | **J** | ☐ fase siguiente |

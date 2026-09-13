@@ -241,7 +241,7 @@ El panel es opcional; los mails son lo que la mantiene parte de la construcción
 | **Primera respuesta** | Llegó la 1 | entrevistador |
 | **Terminó el capítulo 1 + anticipo** | Respuesta 3 | fábrica (ya existe) |
 | **Mitad del camino** | Respuesta ⌈N/2⌉ | entrevistador |
-| **Terminó — ya está listo para los últimos retoques** | `completado` / `cerrado_anticipado` | entrevistador |
+| **Terminó — ya está listo para los últimos retoques** | `completado` / `cerrado_anticipado` | fábrica (desde el 13/09; ver §12) |
 | **El libro está listo** | La fábrica terminó | fábrica |
 | **Silencio de 3 días** | `alerta_silencio` | entrevistador (ya prende la alerta; falta el mail) |
 
@@ -323,9 +323,10 @@ enviado está congelado, renumerar las futuras no rompe nada.
 ## 12. Lo que cambia en la fábrica (Naza, cuando vuelva)
 
 > Construido el 13/09 según
-> `docs/superpowers/specs/2026-09-13-fabrica-aprobacion-design.md`, que difiere en dos
+> `docs/superpowers/specs/2026-09-13-fabrica-aprobacion-design.md`, que difiere en tres
 > puntos: (1) antes de cerrar no hay libro escrito, el lector muestra la propuesta;
-> (2) `excluidas` y `correcciones` no se aplican.
+> (2) `excluidas` y `correcciones` no se aplican; (3) el mail "terminó" y el cierre
+> automático a los 30 días los manda la fábrica, no el entrevistador ni la web.
 
 - Leer `narradores.edicion`: orden de capítulos, respuestas excluidas, título, subtítulo,
   portada, correcciones libres.
