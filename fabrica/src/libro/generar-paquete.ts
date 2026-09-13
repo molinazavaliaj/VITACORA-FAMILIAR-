@@ -11,7 +11,6 @@ import { cargarFotos } from './fotos.js';
 import {
   armarMaterial,
   borrarArchivos,
-  descargarJson,
   descargarTextoOpcional,
   extraerTexto,
   formatearNombresCorregidos,
@@ -66,13 +65,14 @@ export async function generarPaquete(pedido: { id: string; narrador_id: string }
 
     // La estructura la arma el tick al ver al narrador completado. Si la
     // dueña cerró el libro antes de ese tick (o el tick falló), no es motivo
-    // para dejar el pedido en 'fallido': se arma acá.
-    let estructura: Estructura;
-    try {
-      estructura = await descargarJson<Estructura>(db, RUTA_ESTRUCTURA(narradorId), 'estructura.json');
-    } catch {
-      estructura = await generarEstructura(narradorId);
-    }
+    // para dejar el pedido en 'fallido': FALTA → se arma acá. Pero solo si
+    // falta: si el archivo existe y está roto, el parse tira y el pedido
+    // cae a 'fallido' con el error a la vista — regenerarla sería pagarle
+    // al modelo de nuevo y pisar el archivo sin que nadie se entere.
+    const estructuraTexto = await descargarTextoOpcional(db, RUTA_ESTRUCTURA(narradorId));
+    const estructura: Estructura = estructuraTexto
+      ? (JSON.parse(estructuraTexto) as Estructura)
+      : await generarEstructura(narradorId);
 
     // nombres.json es opcional: la dueña puede no haber revisado nombres
     // (Regla 0 del panel) y a los 30 días el libro se cierra solo. Si el

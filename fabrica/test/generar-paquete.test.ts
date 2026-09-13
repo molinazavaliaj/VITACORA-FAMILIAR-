@@ -506,7 +506,10 @@ describe('generarPaquete', () => {
   it('aplica ordenCapitulos de la edición: escribe, pagina y graba los capítulos en ese orden', async () => {
     // estructura.json con capítulos ['La infancia', 'El amor']; la dueña
     // quiere 'El amor' primero.
-    construirDbN1({ narrador: { data: narradorN1({ edicion: { ordenCapitulos: ['El amor'] } }), error: null } });
+    const db = construirDbN1({ narrador: { data: narradorN1({ edicion: { ordenCapitulos: ['El amor'] } }), error: null } });
+    escribirCapituloMock
+      .mockResolvedValueOnce('Texto de El amor')
+      .mockResolvedValueOnce('Texto de La infancia');
     // El editor devuelve el borrador tal cual le llegó: así el HTML refleja
     // el orden en que se armó el libro y no un texto fijo del test.
     streamMock.mockImplementationOnce((params: { messages: { content: string }[] }) => ({
@@ -520,6 +523,21 @@ describe('generarPaquete', () => {
     expect(estructuraAlAudiolibro.capitulos.map((c: { nombre: string }) => c.nombre)).toEqual(['El amor', 'La infancia']);
     const html = setContentMock.mock.calls[0][0] as string;
     expect(html.indexOf('El amor')).toBeLessThan(html.indexOf('La infancia'));
+
+    // El caché de borradores se numera por el orden FINAL (la edición está
+    // congelada, así que un reintento reusa los mismos archivos), y la
+    // limpieza borra esos mismos dos.
+    expect(db.upload).toHaveBeenCalledWith('n1/paquete/borrador_cap_01.md', 'Texto de El amor', {
+      contentType: 'text/markdown',
+      upsert: true,
+    });
+    expect(db.upload).toHaveBeenCalledWith('n1/paquete/borrador_cap_02.md', 'Texto de La infancia', {
+      contentType: 'text/markdown',
+      upsert: true,
+    });
+    expect(db.remove.mock.calls[0][0]).toEqual(
+      expect.arrayContaining(['n1/paquete/borrador_cap_01.md', 'n1/paquete/borrador_cap_02.md'])
+    );
   });
 
   it('título, subtítulo y foto de tapa de la edición llegan a la plantilla; la foto de tapa sale de la tabla fotos', async () => {
@@ -619,6 +637,21 @@ describe('generarPaquete', () => {
     expect(generarEstructuraMock).toHaveBeenCalledWith('n1');
     expect(escribirCapituloMock.mock.calls.map((c) => c[1])).toEqual(['La infancia']);
     expect(db.pedidosUpdate).toHaveBeenCalledWith(expect.objectContaining({ estado: 'entregado' }), 'p1');
+  });
+
+  it('si estructura.json existe pero está rota, NO la regenera: el pedido cae a "fallido"', async () => {
+    const db = construirDbN1({
+      descargas: { ...descargasN1(), 'n1/paquete/estructura.json': { data: blobFake('{no es json'), error: null } },
+    });
+    generarEstructuraMock.mockResolvedValue(estructuraN1);
+
+    await generarPaquete({ id: 'p1', narrador_id: 'n1' });
+
+    // Regenerar sería pagarle al modelo por algo que ya se pagó y pisar el
+    // archivo — el error tiene que quedar a la vista.
+    expect(generarEstructuraMock).not.toHaveBeenCalled();
+    expect(escribirCapituloMock).not.toHaveBeenCalled();
+    expect(db.pedidosUpdate).toHaveBeenCalledWith({ estado: 'fallido' }, 'p1');
   });
 
   it('ya no lee la tabla saludos', async () => {
