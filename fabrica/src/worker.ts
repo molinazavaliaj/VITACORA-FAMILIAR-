@@ -18,9 +18,6 @@ const INTERVALO_MS = 60_000;
  */
 const RESPUESTAS_PARA_ANTICIPO = Number(process.env.RESPUESTAS_PARA_ANTICIPO ?? 3);
 
-/** El libro se escribe recién cuando el narrador terminó, se haya pagado cuando se haya pagado. */
-const ESTADOS_NARRADOR_LISTO = ['completado', 'cerrado_anticipado'];
-
 let corriendo = false;
 
 /**
@@ -322,10 +319,16 @@ export async function procesarPedidosPagados(): Promise<void> {
   // cero, mucho antes de que haya un libro que escribir. Sin este filtro, el
   // worker reclamaría el pedido, generarPaquete fallaría por falta de
   // estructura.json/nombres.json y el pedido quedaría en 'fallido' para que
-  // alguien lo resetee a mano. Solo se generan los del narrador que terminó.
+  // alguien lo resetee a mano.
+  //
+  // El libro se escribe recién cuando la dueña apretó "Cerrar libro"
+  // (`narradores.libro_aprobado_at`). Es el punto de aprobación del cliente:
+  // antes de eso no se produce nada, ni digital ni impreso — decisión de los
+  // socios del 12/09, y de Naza el 13/09: ella no ve nada escrito antes de
+  // cerrar. Que el narrador esté `completado` ya no alcanza.
   const { data: narradores, error: errorNarradores } = await db
     .from('narradores')
-    .select('id, estado')
+    .select('id, libro_aprobado_at')
     .in('id', pedidosPagados.map((p) => p.narrador_id));
 
   if (errorNarradores) {
@@ -334,8 +337,8 @@ export async function procesarPedidosPagados(): Promise<void> {
   }
 
   const narradoresListos = new Set(
-    ((narradores ?? []) as { id: string; estado: string }[])
-      .filter((n) => ESTADOS_NARRADOR_LISTO.includes(n.estado))
+    ((narradores ?? []) as { id: string; libro_aprobado_at: string | null }[])
+      .filter((n) => n.libro_aprobado_at !== null)
       .map((n) => n.id)
   );
 
