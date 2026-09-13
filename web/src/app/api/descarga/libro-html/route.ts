@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
-import { narradorDeLaSesion } from "@/lib/panel";
+import { narradorDeLaSesion, PUEDE } from "@/lib/panel";
 
 // El lector online: el mismo libro que el PDF, pero en HTML para leerlo en la
 // página de descarga. A diferencia de `descarga/libro`, acá NO va `soloDuena`:
 // los invitados leen el libro, lo que no pueden es bajarlo (spec §2 y §5).
+// El visitante (guardó el link público) ve solo la muestra, no el libro.
 
 const MENSAJE_ERROR_GENERICO = "No pudimos abrir el libro. Intenta de nuevo.";
 const DURACION_URL_FIRMADA_SEGUNDOS = 3600;
@@ -18,6 +19,9 @@ export async function GET(request: NextRequest) {
     mensajeError: MENSAJE_ERROR_GENERICO,
   });
   if (!acceso.ok) return NextResponse.json({ error: acceso.error }, { status: acceso.status });
+  if (!PUEDE.verHistoriaCompleta(acceso.rol)) {
+    return NextResponse.json({ error: "La muestra no incluye el libro completo." }, { status: 403 });
+  }
   const narrador = acceso.narrador;
 
   const { data: pedidos, error: errorPedidos } = await admin

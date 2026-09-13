@@ -27,14 +27,15 @@ export default async function TableroDescarga({ params }: PageProps<"/tablero/[n
 
   const admin = crearClienteServidor();
 
-  // Cualquiera con acceso a la historia entra y lee el libro en el lector
-  // online; bajar el PDF y los audios es solo de la dueña (§2 y §5 del spec).
+  // Quien ve la historia completa (dueña e invitado) entra y lee el libro en el
+  // lector online; el visitante de la muestra no. Bajar el PDF y el audiolibro
+  // completo es solo de la dueña (§2 y §5 del spec).
   const { historia, error: errorHistoria } = await historiaAccesible(admin, user, narradorId);
   if (errorHistoria) {
     console.error("tablero/descarga: fallo el acceso", errorHistoria);
     return <EstadoError />;
   }
-  if (!historia) {
+  if (!historia || !PUEDE.verHistoriaCompleta(historia.rol)) {
     notFound();
   }
   const narrador = historia.narrador;
@@ -224,16 +225,16 @@ function Entregado({
         </div>
       ) : null}
 
-      {tieneCompleto ? (
+      {/* El audiolibro completo es la descarga (la ruta lo da solo a la dueña);
+          el invitado escucha capítulo por capítulo, más abajo. */}
+      {tieneCompleto && puedeDescargar ? (
         <div className="mt-10 border-t border-zinc-100 pt-8">
           <p className="mb-2 text-sm font-medium text-zinc-700">Audiolibro completo</p>
           {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
           <audio controls src={`/api/descarga/audio/completo?narrador=${narradorId}`} className="w-full" />
-          {puedeDescargar ? (
-            <a href={`/api/descarga/audio/completo?narrador=${narradorId}`} className="mt-2 inline-block text-xs text-zinc-500 underline">
-              Descargar
-            </a>
-          ) : null}
+          <a href={`/api/descarga/audio/completo?narrador=${narradorId}`} className="mt-2 inline-block text-xs text-zinc-500 underline">
+            Descargar
+          </a>
         </div>
       ) : null}
 

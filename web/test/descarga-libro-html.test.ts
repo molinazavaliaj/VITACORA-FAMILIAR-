@@ -144,6 +144,22 @@ describe('GET /api/descarga/libro-html', () => {
     expect(admin.createSignedUrl.mock.calls[0][0]).toBe('n1/paquete/libro.html');
   });
 
+  it('un visitante (guardó el link público) recibe 403: la muestra no incluye el libro', async () => {
+    mockSesion({ id: 'user-4', email: 'vecino@test.com' });
+    const admin = crearAdminFake({
+      narradores: [{ data: narradorN1, error: null }],
+      familias: [{ data: null, error: null }, { data: null, error: null }],
+      invitados: [{ data: [{ narrador_id: 'n1', rol: 'visitante' }], error: null }, { data: [], error: null }],
+      pedidos: [{ data: [{ id: 'pedido-1', estado: 'entregado' }], error: null }],
+    });
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+
+    const respuesta = await GET(fakeRequest());
+    expect(respuesta.status).toBe(403);
+    expect(await respuesta.json()).toEqual({ error: 'La muestra no incluye el libro completo.' });
+    expect(admin.createSignedUrl).not.toHaveBeenCalled();
+  });
+
   it('quien no tiene acceso a esa historia recibe 403', async () => {
     mockSesion({ id: 'user-3', email: 'nadie@test.com' });
     const admin = crearAdminFake({

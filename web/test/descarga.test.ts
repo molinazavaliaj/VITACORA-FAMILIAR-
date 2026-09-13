@@ -241,4 +241,52 @@ describe('GET /api/descarga/audio/[indice]', () => {
     const respuesta = await GET_AUDIO(fakeRequest(), { params: Promise.resolve({ indice: '0' }) });
     expect(respuesta.status).toBe(404);
   });
+
+  // --- quién escucha qué: los capítulos los oye cualquiera que vea la
+  // historia completa (dueña e invitado); el completo es la descarga, solo dueña.
+
+  // Con `?narrador=` el rol sale de historiaAccesible: narrador → familia
+  // del usuario (ninguna) → invitaciones.
+  function fakeRequestConNarrador(): never {
+    return { nextUrl: new URL('http://localhost/api?narrador=narrador-1') } as never;
+  }
+
+  function adminComoInvitado(rol: 'invitado' | 'visitante') {
+    return crearAdminFake({
+      narradores: [{ data: { id: 'narrador-1', familia_id: 'familia-1' }, error: null }],
+      familias: [{ data: null, error: null }, { data: null, error: null }],
+      invitados: [{ data: [{ narrador_id: 'narrador-1', rol }], error: null }, { data: [], error: null }],
+      pedidos: [{ data: [{ id: 'pedido-1', estado: 'entregado', audiolibro_paths: paths }], error: null }],
+    });
+  }
+
+  it('un invitado con índice numérico escucha el capítulo (302)', async () => {
+    mockSesion({ id: 'user-2', email: 'tia@test.com' });
+    const admin = adminComoInvitado('invitado');
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+
+    const respuesta = await GET_AUDIO(fakeRequestConNarrador(), { params: Promise.resolve({ indice: '0' }) });
+    expect(respuesta.status).toBe(302);
+    expect(admin.createSignedUrl.mock.calls[0][0]).toBe(paths.capitulos[0]);
+  });
+
+  it('un invitado pidiendo "completo" recibe 403: el completo es de la dueña', async () => {
+    mockSesion({ id: 'user-2', email: 'tia@test.com' });
+    const admin = adminComoInvitado('invitado');
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+
+    const respuesta = await GET_AUDIO(fakeRequestConNarrador(), { params: Promise.resolve({ indice: 'completo' }) });
+    expect(respuesta.status).toBe(403);
+    expect(admin.createSignedUrl).not.toHaveBeenCalled();
+  });
+
+  it('un visitante con índice numérico recibe 403: la muestra no trae el audiolibro', async () => {
+    mockSesion({ id: 'user-4', email: 'vecino@test.com' });
+    const admin = adminComoInvitado('visitante');
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+
+    const respuesta = await GET_AUDIO(fakeRequestConNarrador(), { params: Promise.resolve({ indice: '0' }) });
+    expect(respuesta.status).toBe(403);
+    expect(admin.createSignedUrl).not.toHaveBeenCalled();
+  });
 });

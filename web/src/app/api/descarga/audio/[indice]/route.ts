@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
-import { narradorDeLaSesion } from "@/lib/panel";
+import { narradorDeLaSesion, PUEDE, type Rol } from "@/lib/panel";
 
 const MENSAJE_ERROR_GENERICO = "No pudimos generar la descarga. Intenta de nuevo.";
 const DURACION_URL_FIRMADA_SEGUNDOS = 3600;
@@ -24,6 +24,14 @@ function resolverRuta(indice: string, paths: AudiolibroPaths): string | null {
   return paths.capitulos[posicion];
 }
 
+// Quién escucha qué (spec §2 y §5): los capítulos los oye cualquiera que vea
+// la historia completa — dueña e invitado, no el visitante de la muestra. El
+// audiolibro completo y el bonus son la descarga: solo la dueña.
+function puedeEscuchar(indice: string, rol: Rol): boolean {
+  if (/^\d+$/.test(indice)) return PUEDE.verHistoriaCompleta(rol);
+  return PUEDE.descargar(rol);
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ indice: string }> },
@@ -32,9 +40,15 @@ export async function GET(
 
   const admin = crearClienteServidor();
   const acceso = await narradorDeLaSesion(await crearClienteSesion(), admin, request.nextUrl.searchParams, {
-    mensajeError: MENSAJE_ERROR_GENERICO, soloDuena: true,
+    mensajeError: MENSAJE_ERROR_GENERICO,
   });
   if (!acceso.ok) return NextResponse.json({ error: acceso.error }, { status: acceso.status });
+  if (!puedeEscuchar(indice, acceso.rol)) {
+    return NextResponse.json(
+      { error: PUEDE.verHistoriaCompleta(acceso.rol) ? "Solo quien compró el libro puede bajar el audiolibro." : "La muestra no incluye el audiolibro." },
+      { status: 403 },
+    );
+  }
   const narrador = acceso.narrador;
 
   const { data: pedidos, error: errorPedidos } = await admin
