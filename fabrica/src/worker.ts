@@ -30,6 +30,9 @@ const DIAS_CIERRE_AUTOMATICO = 30;
 
 const MS_POR_DIA = 24 * 60 * 60 * 1000;
 
+/** Marca de que fue la fábrica la que cerró el libro (ver `avisarHitosDeCierre`). No es un candado de mail. */
+const MARCA_CIERRE_AUTOMATICO = 'cierre_automatico.txt';
+
 type Db = ReturnType<typeof obtenerClienteDb>;
 
 /** Lo que hace falta de un narrador para mandarle un mail de hito a su familia. */
@@ -263,6 +266,11 @@ async function generarPrevisualizacionesFaltantes(): Promise<void> {
  * Un candado por mail en Storage; se deja SOLO si Resend confirmó.
  * Si la fábrica estuvo caída y pasaron varios hitos, se manda una sola vez
  * el más reciente y se marcan los anteriores.
+ *
+ * El cierre automático deja además la marca `cierre_automatico.txt` apenas
+ * el CAS confirma que fuimos nosotros los que cerramos: es lo único que
+ * distingue "lo cerramos nosotros y el mail no salió" (hay que reintentar)
+ * de "lo cerró la dueña desde la web" (no hay nada que mandar).
  */
 async function avisarHitosDeCierre(): Promise<void> {
   const db = obtenerClienteDb();
@@ -286,17 +294,27 @@ async function avisarHitosDeCierre(): Promise<void> {
 
       if (!archivos.has(CANDADO_POR_HITO.terminado)) await mandar('terminado');
 
+      // Lo cerramos nosotros en un tick anterior pero el mail no salió
+      // (sin clave, Resend caído): reintentar antes de mirar
+      // `libro_aprobado_at`, que ya está puesto y cortaría acá abajo.
+      if (archivos.has(MARCA_CIERRE_AUTOMATICO) && !archivos.has(CANDADO_POR_HITO.cierre_automatico)) {
+        await mandar('cierre_automatico');
+        continue;
+      }
+
       // Con el libro cerrado (por la web o por nosotros) no hay nada que
       // recordar. Sin fecha de última respuesta no hay desde cuándo contar.
-      if (narrador.libro_aprobado_at !== null || !narrador.ultima_respuesta_at) continue;
+      // `!= null` a propósito: si la columna no vino en el select (o llega
+      // undefined desde un fake), se trata como cerrado y no se recuerda de más.
+      if (narrador.libro_aprobado_at != null || !narrador.ultima_respuesta_at) continue;
       const dias = Math.floor((Date.now() - new Date(narrador.ultima_respuesta_at).getTime()) / MS_POR_DIA);
 
       if (dias >= DIAS_CIERRE_AUTOMATICO) {
-        if (archivos.has(CANDADO_POR_HITO.cierre_automatico)) continue;
         // Compare-and-swap: solo cerramos si sigue abierto. Si no vuelve
         // ninguna fila, la dueña lo cerró desde la web entre el SELECT y
         // este UPDATE — su cierre vale, y el mail de "lo cerramos por ti"
-        // sería mentira.
+        // sería mentira. (Si ya está la marca de cierre automático,
+        // `libro_aprobado_at` está puesto y no se llega acá.)
         const { data: cerrado, error: errorCierre } = await db
           .from('narradores')
           .update({ libro_aprobado_at: new Date().toISOString() })
@@ -305,6 +323,10 @@ async function avisarHitosDeCierre(): Promise<void> {
           .select('id');
         if (errorCierre) throw new Error(`no se pudo cerrar solo: ${errorCierre.message}`);
         if (!cerrado || (cerrado as unknown[]).length !== 1) continue;
+        // La marca va DESPUÉS del CAS y ANTES del mail: recién ahora sabemos
+        // que fuimos nosotros, y si el mail falla el próximo tick lo reintenta.
+        await subirTexto(db, `${narrador.id}/paquete/${MARCA_CIERRE_AUTOMATICO}`, new Date().toISOString());
+        archivos.add(MARCA_CIERRE_AUTOMATICO);
         await mandar('cierre_automatico');
         continue;
       }

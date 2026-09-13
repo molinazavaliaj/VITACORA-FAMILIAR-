@@ -778,6 +778,60 @@ describe('tick — mails de hitos', () => {
     );
     expect(db.subidos['n1']).toContain('cierre_automatico_enviado.txt');
     expect(db.subidos['n1']).not.toContain('recordatorio_cierre_14.txt');
+    // La marca de "fuimos nosotros" queda apenas confirma el CAS, antes del mail.
+    expect(db.subidos['n1']).toContain('cierre_automatico.txt');
+    expect(db.subidos['n1'].indexOf('cierre_automatico.txt')).toBeLessThan(
+      db.subidos['n1'].indexOf('cierre_automatico_enviado.txt')
+    );
+  });
+
+  it('con la marca cierre_automatico.txt pero sin el mail mandado (falló después del CAS), reintenta el mail sin volver a cerrar', async () => {
+    const db = construirClienteDbMock({
+      narradores: [
+        {
+          id: 'n1',
+          estado: 'completado',
+          como_le_dicen: 'papá',
+          familia_id: 'f1',
+          ultima_respuesta_at: '2026-08-20T00:00:00Z',
+          // ya lo cerró la fábrica en un tick anterior
+          libro_aprobado_at: '2026-09-19T12:00:00Z',
+        },
+      ],
+      archivosPorNarrador: { n1: ['terminado_enviado.txt', 'cierre_automatico.txt'] },
+      familias: { f1: 'a@b.c' },
+    });
+    obtenerClienteDbMock.mockReturnValue(db);
+
+    await tick();
+
+    expect(hitosEnviados()).toEqual(['cierre_automatico']);
+    expect(db.cierresAutomaticos).toEqual([]);
+    expect(db.subidos['n1']).toEqual(['cierre_automatico_enviado.txt']);
+  });
+
+  it('con la marca y el candado del cierre automático presentes, no manda nada', async () => {
+    const db = construirClienteDbMock({
+      narradores: [
+        {
+          id: 'n1',
+          estado: 'completado',
+          como_le_dicen: 'papá',
+          familia_id: 'f1',
+          ultima_respuesta_at: '2026-08-20T00:00:00Z',
+          libro_aprobado_at: '2026-09-19T12:00:00Z',
+        },
+      ],
+      archivosPorNarrador: { n1: ['terminado_enviado.txt', 'cierre_automatico.txt', 'cierre_automatico_enviado.txt'] },
+      familias: { f1: 'a@b.c' },
+    });
+    obtenerClienteDbMock.mockReturnValue(db);
+
+    await tick();
+
+    expect(enviarMailHitoMock).not.toHaveBeenCalled();
+    expect(db.cierresAutomaticos).toEqual([]);
+    expect(db.subidos['n1']).toBeUndefined();
   });
 
   it('a los 30 días, si la web lo cerró en el medio (el CAS no devuelve fila), no manda cierre_automatico', async () => {
