@@ -2,7 +2,7 @@
 
 import { useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { AVISO_CALIDAD, RITMOS, calidadDeFoto, type CalidadFoto, type PreguntaGuion, type Ritmo } from "@/lib/guion";
+import { AVISO_CALIDAD, MAXIMO_FAMILIA, RITMOS, calidadDeFoto, type CalidadFoto, type PreguntaGuion, type Ritmo } from "@/lib/guion";
 
 // Las acciones del guion (docs/panel-usuario.md §6). Patrón de la casa: el
 // cliente llama a /api/guion o /api/fotos, y al volver refresca la página
@@ -64,6 +64,25 @@ const botonPrincipal = `${boton} bg-[var(--acento)] text-[var(--sobre-acento)] h
 const botonSecundario = `${boton} border border-[var(--linea-fuerte)] text-[var(--texto)] hover:bg-[var(--hueco)]`;
 const botonChico = "text-sm text-[var(--texto-menor)] underline decoration-[var(--linea-fuerte)] underline-offset-4 hover:text-[var(--texto)] [font-family:var(--fuente-micro)] disabled:opacity-50";
 const campo = "w-full rounded-lg border border-[var(--linea-fuerte)] bg-[var(--fondo)] px-4 py-3 text-[16px] leading-relaxed text-[var(--texto)] outline-none focus:border-[var(--texto)]";
+
+// Íconos de línea para los botones redondos del editor. Un solo grosor.
+function IconoChico({ nombre }: { nombre: "lapiz" | "arriba" | "abajo" | "x" | "mas" | "check" }) {
+  const d = {
+    lapiz: "M4 20h4l10.5-10.5a1.5 1.5 0 0 0 0-2.1l-1.9-1.9a1.5 1.5 0 0 0-2.1 0L4 16zM13 7l4 4",
+    arriba: "M12 19V5M6 11l6-6 6 6",
+    abajo: "M12 5v14M6 13l6 6 6-6",
+    x: "M6 6l12 12M18 6L6 18",
+    mas: "M12 5v14M5 12h14",
+    check: "m5 12.5 4.5 4.5L19 7.5",
+  }[nombre];
+  return (
+    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d={d} />
+    </svg>
+  );
+}
+
+const botonRedondo = "flex h-9 w-9 items-center justify-center rounded-full border border-[var(--linea-fuerte)] text-[var(--texto-suave)] transition-colors hover:bg-[var(--hueco)] hover:text-[var(--texto)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--texto)] disabled:opacity-35 disabled:hover:bg-transparent [touch-action:manipulation]";
 
 function Error_({ mensaje }: { mensaje: string | null }) {
   return mensaje ? <p className="text-sm text-[var(--alerta)]">{mensaje}</p> : null;
@@ -128,8 +147,8 @@ function CampoFoto({ onElegir }: { onElegir: (archivo: File, medida: { ancho: nu
 // ── editar / sacar / reordenar (solo dueña) ────────────────────────────
 
 export function EditorGuion({
-  narradorId, futuras, puedeEditar, puedeSaltar,
-}: { narradorId: string; futuras: PreguntaGuion[]; puedeEditar: boolean; puedeSaltar: boolean }) {
+  narradorId, futuras, puedeEditar, puedeSaltar, capitulo,
+}: { narradorId: string; futuras: PreguntaGuion[]; puedeEditar: boolean; puedeSaltar: boolean; capitulo?: string }) {
   const router = useRouter();
   const [editando, setEditando] = useState<string | null>(null);
   const [texto, setTexto] = useState("");
@@ -137,7 +156,10 @@ export function EditorGuion({
   const [ocupado, setOcupado] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // `futuras` es el guion completo por venir (para reordenar hace falta la
+  // lista entera); `capitulo` filtra lo que se muestra en esta sección.
   const editables = futuras.filter((p) => p.tipo !== "adaptativa");
+  const visibles = capitulo ? futuras.filter((p) => p.capitulo === capitulo) : futuras;
 
   async function correr(cuerpo: Record<string, unknown>) {
     setOcupado(true);
@@ -163,18 +185,31 @@ export function EditorGuion({
     void correr({ accion: "reordenar", ids });
   }
 
+  if (visibles.length === 0) return null;
+
   return (
-    <ol className="mt-4 flex flex-col gap-3">
-      {futuras.map((p, i) => {
+    <ol className="flex flex-col gap-3">
+      {visibles.map((p) => {
         const esAdaptativa = p.tipo === "adaptativa";
         const enEdicion = editando === p.id;
         const pos = editables.findIndex((q) => q.id === p.id);
+        const detalle = [
+          p.tipo === "familia" ? "la sumó la familia" : null,
+          p.tipo === "sugerida" ? "sugerida por el biógrafo" : null,
+          p.foto_id ? "con foto" : null,
+          esAdaptativa ? "la escribe el biógrafo con lo que él haya contado" : null,
+        ].filter(Boolean).join(" · ");
         return (
-          <li key={p.id} className="flex gap-4">
-            <span className="w-6 shrink-0 pt-0.5 text-right text-sm text-[var(--texto-menor)] tabular-nums [font-family:var(--fuente-micro)]">{p.orden}</span>
-            <div className="min-w-0 flex-1">
+          <li
+            key={p.id}
+            className={`grid grid-cols-[32px_minmax(0,1fr)] items-start gap-3 rounded-xl border p-4 sm:grid-cols-[40px_minmax(0,1fr)_auto] sm:gap-4 sm:px-5 ${
+              esAdaptativa ? "border-dashed border-[var(--linea-fuerte)] text-[var(--texto-menor)]" : "border-[var(--linea-fuerte)] bg-[var(--fondo)]"
+            }`}
+          >
+            <span className={`text-[22px] leading-[1.2] tabular-nums [font-family:var(--fuente-titulo)] ${esAdaptativa ? "text-[var(--linea-fuerte)]" : "text-[var(--linea-fuerte)]"}`}>{p.orden}</span>
+            <div className="min-w-0 flex flex-col gap-2">
               {enEdicion ? (
-                <div className="flex flex-col gap-3">
+                <>
                   <textarea value={texto} onChange={(e) => setTexto(e.target.value)} rows={3} className={campo} autoFocus />
                   <div className="flex flex-wrap items-center gap-3">
                     <button type="button" disabled={ocupado} onClick={() => correr({ accion: "editar", id: p.id, texto })} className={botonPrincipal}>
@@ -182,43 +217,33 @@ export function EditorGuion({
                     </button>
                     <button type="button" disabled={ocupado} onClick={() => setEditando(null)} className={botonChico}>Cancelar</button>
                   </div>
-                </div>
+                </>
               ) : (
                 <>
-                  <p className={`text-[16px] leading-relaxed ${esAdaptativa ? "italic text-[var(--texto-menor)]" : ""}`}>{p.texto}</p>
-                  <p className="mt-0.5 text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.2em]">
-                    {p.capitulo}
-                    {p.tipo === "familia" ? " · la sumó la familia" : ""}
-                    {p.tipo === "sugerida" ? " · sugerida por el biógrafo" : ""}
-                    {p.foto_id ? " · con foto" : ""}
-                    {esAdaptativa ? " · la escribe el biógrafo" : ""}
-                  </p>
-                  {puedeEditar && !esAdaptativa ? (
-                    <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
-                      <button type="button" className={botonChico} disabled={ocupado} onClick={() => { setEditando(p.id); setTexto(p.texto); setConfirmando(null); }}>Editar</button>
-                      {confirmando === p.id ? (
-                        <span className="flex items-center gap-3 text-sm">
-                          <span className="text-[var(--texto-suave)]">¿Sacarla del guion?</span>
-                          <button type="button" className={`${botonChico} text-[var(--alerta)]`} disabled={ocupado} onClick={() => correr({ accion: "saltar", id: p.id })}>Sí, sacarla</button>
-                          <button type="button" className={botonChico} disabled={ocupado} onClick={() => setConfirmando(null)}>No</button>
-                        </span>
-                      ) : (
-                        <button type="button" className={botonChico} disabled={ocupado || !puedeSaltar} title={puedeSaltar ? undefined : "Con menos de 15 no alcanza para un libro"} onClick={() => setConfirmando(p.id)}>Sacar</button>
-                      )}
-                      <span className="ml-auto flex gap-1">
-                        <button type="button" aria-label="Subir" className={botonChico} disabled={ocupado || pos <= 0} onClick={() => mover(p.id, -1)}>↑</button>
-                        <button type="button" aria-label="Bajar" className={botonChico} disabled={ocupado || pos >= editables.length - 1} onClick={() => mover(p.id, 1)}>↓</button>
-                      </span>
+                  <p className={`text-[15px] leading-[1.55] ${esAdaptativa ? "italic" : ""}`}>{p.texto}</p>
+                  {detalle ? <p className="text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.18em]">{detalle}</p> : null}
+                  {confirmando === p.id ? (
+                    <div className="flex flex-wrap items-center gap-3 text-sm">
+                      <span className="text-[var(--texto-suave)]">¿Sacarla del guion?</span>
+                      <button type="button" className={`${botonChico} text-[var(--alerta)]`} disabled={ocupado} onClick={() => correr({ accion: "saltar", id: p.id })}>Sí, sacarla</button>
+                      <button type="button" className={botonChico} disabled={ocupado} onClick={() => setConfirmando(null)}>No</button>
                     </div>
                   ) : null}
                 </>
               )}
             </div>
-            {i === futuras.length - 1 && error ? <Error_ mensaje={error} /> : null}
+            {puedeEditar && !esAdaptativa && !enEdicion ? (
+              <div className="col-start-2 flex gap-1 sm:col-start-3">
+                <button type="button" aria-label="Editar" title="Editar" className={botonRedondo} disabled={ocupado} onClick={() => { setEditando(p.id); setTexto(p.texto); setConfirmando(null); }}><IconoChico nombre="lapiz" /></button>
+                <button type="button" aria-label="Subir" title="Subir" className={botonRedondo} disabled={ocupado || pos <= 0} onClick={() => mover(p.id, -1)}><IconoChico nombre="arriba" /></button>
+                <button type="button" aria-label="Bajar" title="Bajar" className={botonRedondo} disabled={ocupado || pos >= editables.length - 1} onClick={() => mover(p.id, 1)}><IconoChico nombre="abajo" /></button>
+                <button type="button" aria-label="Sacar del guion" title={puedeSaltar ? "Sacar" : "Con menos de 15 no alcanza para un libro"} className={botonRedondo} disabled={ocupado || !puedeSaltar} onClick={() => setConfirmando(p.id)}><IconoChico nombre="x" /></button>
+              </div>
+            ) : null}
           </li>
         );
       })}
-      {error ? <li className="pl-10"><Error_ mensaje={error} /></li> : null}
+      {error ? <li><Error_ mensaje={error} /></li> : null}
     </ol>
   );
 }
@@ -275,11 +300,22 @@ export function AgregarPregunta({
   if (!abierto) {
     return (
       <div className="flex flex-col gap-2">
-        <button type="button" className={botonPrincipal} disabled={sinLugar} onClick={() => { setAbierto(true); setListo(null); }}>
-          + Agregar una pregunta
+        <button
+          type="button"
+          disabled={sinLugar}
+          onClick={() => { setAbierto(true); setListo(null); }}
+          className="flex w-full items-center gap-4 rounded-xl border border-[var(--acento)] bg-[var(--fondo)] px-5 py-4 text-left transition-colors hover:bg-[var(--hueco)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--acento)] disabled:opacity-50 [touch-action:manipulation]"
+        >
+          <span className="text-[var(--acento)]"><IconoChico nombre="mas" /></span>
+          <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+            <span className="text-[15px] font-medium [font-family:var(--fuente-micro)]">Agregar una pregunta</span>
+            <span className="text-sm text-[var(--texto-menor)]">
+              {sinLugar ? "El guion está completo. Para sumar una, sacá otra." : `Con o sin foto, al capítulo que elijas. Lugar libre: ${lugarLibre} de ${MAXIMO_FAMILIA}.`}
+            </span>
+          </span>
+          <span aria-hidden className="text-[var(--acento)]">→</span>
         </button>
         {listo ? <p className="text-sm text-[var(--texto-suave)]">{listo}</p> : null}
-        {sinLugar ? <p className="text-sm text-[var(--texto-menor)]">El guion está completo. Para sumar una, sacá otra.</p> : null}
       </div>
     );
   }
@@ -337,7 +373,7 @@ export function AgregarPregunta({
 
 // ── subir una foto suelta a un capítulo ────────────────────────────────
 
-export function SubirFoto({ narradorId, capitulos, capituloInicial, children }: { narradorId: string; capitulos: string[]; capituloInicial?: string; children?: ReactNode }) {
+export function SubirFoto({ narradorId, capitulos, capituloInicial, children, variante = "texto" }: { narradorId: string; capitulos: string[]; capituloInicial?: string; children?: ReactNode; variante?: "texto" | "barra" }) {
   const router = useRouter();
   const [abierto, setAbierto] = useState(false);
   const [capitulo, setCapitulo] = useState(capituloInicial ?? capitulos[0] ?? "");
@@ -371,7 +407,11 @@ export function SubirFoto({ narradorId, capitulos, capituloInicial, children }: 
   if (!abierto) {
     return (
       <div className="flex flex-col gap-2">
-        <button type="button" className={botonSecundario} onClick={() => { setAbierto(true); setAviso(null); }}>
+        <button
+          type="button"
+          className={variante === "barra" ? `${botonSecundario} gap-2 px-4 text-[14px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--texto)]` : botonChico}
+          onClick={() => { setAbierto(true); setAviso(null); }}
+        >
           {children ?? "+ Subir una foto"}
         </button>
         {aviso ? <p className="text-sm text-[var(--texto-suave)]">{aviso}</p> : null}

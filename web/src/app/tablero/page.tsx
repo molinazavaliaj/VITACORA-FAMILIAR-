@@ -70,7 +70,7 @@ function proximoPaso(h: Historia, r: Resumen): { href: string; texto: string } |
       return null;
     case "acepto":
     case "invitado":
-      return { href: `/tablero/${id}/preguntas`, texto: "Mientras esperás, repasá las preguntas y sumá fotos" };
+      return { href: `/tablero/${id}?editar=1`, texto: "Mientras esperás, repasá las preguntas y sumá fotos" };
     default:
       return null;
   }
