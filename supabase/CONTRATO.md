@@ -36,8 +36,11 @@ narrador queda ahí y la web lo limpia; no es un estado del que el entrevistador
 salir.
 
 `pedidos.extras` (jsonb, misma migración): qué se compró además de la base.
-`{"impreso": "bn" | "color" | null, "marcos": 0..N}`. Lo escribe la web al crear el
-pedido; la fábrica lo lee cuando produce. El entrevistador sigue sin mirar `pedidos`.
+`{"impreso": "bn" | "color" | null, "marcos": 0..N, "copias": 0..N}`. Lo escribe la web
+al crear el pedido; la fábrica lo lee cuando produce. El entrevistador sigue sin mirar
+`pedidos`. `copias` (12/09, aditivo): cuántos libros impresos van en ese pedido — un
+pedido posterior de solo extras no lleva la base, y puede ser de un invitado (su propia
+`familia`, mismo `narrador_id`).
 
 ## El guion por narrador (migración 20260912)
 

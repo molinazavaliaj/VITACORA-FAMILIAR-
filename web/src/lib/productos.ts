@@ -122,3 +122,63 @@ export function extrasParaPedido(compra: Compra): { impreso: "bn" | "color" | nu
     marcos,
   };
 }
+
+// ── Extras después de la compra (docs/panel-usuario.md §7.3) ───────────
+//
+// Un pedido sin la base: lo que se suma a un libro que ya existe. Impreso si
+// no lo compró, pasar a color, marcos, y copias impresas con descuento por
+// cantidad. El descuento es por ahorro de producción, así que vale SOLO para
+// las copias pedidas juntas en el mismo pedido: 2 → 10 %, 3 → 15 %, 4 o más
+// → 20 %, sobre las copias. El primo que compra la suya aparte paga lleno.
+
+export type ExtrasPosteriores = {
+  /** Cuántos libros impresos van en este pedido (0 = ninguno). */
+  copias: number;
+  /** Blanco y negro o color, para todas las copias del pedido. */
+  acabado: "bn" | "color";
+  marcos: number;
+};
+
+export function descuentoPorCopias(copias: number): number {
+  if (copias >= 4) return 0.2;
+  if (copias === 3) return 0.15;
+  if (copias === 2) return 0.1;
+  return 0;
+}
+
+export function calcularExtras(region: Region, elegidos: ExtrasPosteriores): Compra {
+  const { moneda } = obtenerPrecio(region);
+  const disponibles = new Map(extrasDisponibles(region).map((e) => [e.id, e]));
+  const lineas: LineaDeCompra[] = [];
+
+  const copias = Math.max(0, Math.floor(elegidos.copias || 0));
+  if (copias > 0) {
+    const id: ExtraId = elegidos.acabado === "color" ? "impreso_color" : "impreso_bn";
+    const extra = disponibles.get(id);
+    if (extra) {
+      const descuento = descuentoPorCopias(copias);
+      const unitario = Math.round(extra.precio * (1 - descuento) * 100) / 100;
+      const nombre = descuento > 0 ? `${extra.nombre} (−${Math.round(descuento * 100)} % por ${copias} copias)` : extra.nombre;
+      lineas.push({ id, nombre, cantidad: copias, precioUnitario: unitario });
+    }
+  }
+
+  const marcos = Math.max(0, Math.floor(elegidos.marcos || 0));
+  if (marcos > 0) {
+    const extra = disponibles.get("marco");
+    if (extra) lineas.push({ id: "marco", nombre: extra.nombre, cantidad: marcos, precioUnitario: extra.precio });
+  }
+
+  const total = Math.round(lineas.reduce((s, l) => s + l.cantidad * l.precioUnitario, 0) * 100) / 100;
+  return { region, moneda, lineas, total };
+}
+
+/** Lo que va a `pedidos.extras` en un pedido posterior. `copias` es nuevo (12/09), aditivo. */
+export function extrasPosterioresParaPedido(compra: Compra): { impreso: "bn" | "color" | null; marcos: number; copias: number } {
+  const impreso = compra.lineas.find((l) => l.id === "impreso_color" || l.id === "impreso_bn");
+  return {
+    impreso: impreso ? (impreso.id === "impreso_color" ? "color" : "bn") : null,
+    copias: impreso?.cantidad ?? 0,
+    marcos: compra.lineas.find((l) => l.id === "marco")?.cantidad ?? 0,
+  };
+}

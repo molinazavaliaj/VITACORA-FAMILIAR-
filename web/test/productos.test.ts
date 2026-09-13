@@ -1,3 +1,4 @@
+import { calcularExtras, descuentoPorCopias, extrasPosterioresParaPedido } from "../src/lib/productos";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import {
   calcularCompra,
@@ -100,5 +101,43 @@ describe("extrasParaPedido", () => {
 
   it("base sola → sin extras", () => {
     expect(extrasParaPedido(calcularCompra("ES", EXTRAS_VACIOS))).toEqual({ impreso: null, marcos: 0 });
+  });
+});
+
+describe("calcularExtras — después de la compra, con descuento por cantidad", () => {
+  beforeEach(() => {
+    process.env.PRECIO_IMPRESO_BN_ARS = "70000";
+    process.env.PRECIO_IMPRESO_COLOR_ARS = "80500";
+    process.env.PRECIO_MARCO_ARS = "35000";
+  });
+
+  it("una copia paga lleno, dos −10 %, tres −15 %, cuatro o más −20 %", () => {
+    expect(descuentoPorCopias(1)).toBe(0);
+    expect(descuentoPorCopias(2)).toBe(0.1);
+    expect(descuentoPorCopias(3)).toBe(0.15);
+    expect(descuentoPorCopias(4)).toBe(0.2);
+    expect(descuentoPorCopias(9)).toBe(0.2);
+  });
+
+  it("tres copias en B/N: 70.000 × 0,85 × 3", () => {
+    const c = calcularExtras("AR", { copias: 3, acabado: "bn", marcos: 0 });
+    expect(c.lineas[0]).toMatchObject({ id: "impreso_bn", cantidad: 3, precioUnitario: 59500 });
+    expect(c.lineas[0].nombre).toContain("−15 %");
+    expect(c.total).toBe(178500);
+  });
+
+  it("los marcos no tienen descuento y no hay línea de base", () => {
+    const c = calcularExtras("AR", { copias: 1, acabado: "color", marcos: 4 });
+    expect(c.lineas.map((l) => l.id)).toEqual(["impreso_color", "marco"]);
+    expect(c.total).toBe(80500 + 4 * 35000);
+  });
+
+  it("sin nada elegido, total cero", () => {
+    expect(calcularExtras("AR", { copias: 0, acabado: "bn", marcos: 0 }).total).toBe(0);
+  });
+
+  it("lo que va al pedido incluye copias", () => {
+    const c = calcularExtras("AR", { copias: 2, acabado: "bn", marcos: 1 });
+    expect(extrasPosterioresParaPedido(c)).toEqual({ impreso: "bn", copias: 2, marcos: 1 });
   });
 });

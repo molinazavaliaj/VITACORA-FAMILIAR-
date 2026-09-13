@@ -9,6 +9,8 @@ function construirAdmin(opciones: {
   pedidoActualizado: { id: string; narrador_id: string; familia_id: string } | null;
   errorPedido?: string;
   errorNarrador?: string;
+  /** false = el narrador NO estaba en pendiente_pago (pedido de extras): el update no toca filas. */
+  narradorArranca?: boolean;
   email?: string | null;
   comoLeDicen?: string;
 }) {
@@ -38,7 +40,9 @@ function construirAdmin(opciones: {
           ? { data: null, error: { message: opciones.errorPedido } }
           : { data: opciones.pedidoActualizado ? [opciones.pedidoActualizado] : [], error: null };
       } else if (tabla === "narradores") {
-        resultado = opciones.errorNarrador ? { data: null, error: { message: opciones.errorNarrador } } : { data: null, error: null };
+        resultado = opciones.errorNarrador
+          ? { data: null, error: { message: opciones.errorNarrador } }
+          : { data: opciones.narradorArranca === false ? [] : [{ id: "n1" }], error: null };
       } else {
         resultado = { data: null, error: null };
       }
@@ -108,6 +112,17 @@ describe("confirmarPago", () => {
     const r = await confirmarPago(admin, { pedidoId: "p1", referenciaExterna: "cs_123", enviarMailAcceso });
 
     expect(r).toEqual({ ok: true, yaEstaba: false, email: null });
+    expect(enviarMailAcceso).not.toHaveBeenCalled();
+  });
+
+  it("un pedido de extras (el narrador ya no está en pendiente_pago) se cobra pero NO manda el mail de 'hoy le escribimos'", async () => {
+    const { admin, updates } = construirAdmin({ pedidoActualizado: PEDIDO, narradorArranca: false });
+    const enviarMailAcceso = vi.fn().mockResolvedValue(true);
+
+    const r = await confirmarPago(admin, { pedidoId: "p1", referenciaExterna: "mp_9", enviarMailAcceso });
+
+    expect(r).toEqual({ ok: true, yaEstaba: false, email: "martina@ejemplo.com" });
+    expect(updates.find((u) => u.tabla === "pedidos")?.valores).toMatchObject({ estado: "pagado" });
     expect(enviarMailAcceso).not.toHaveBeenCalled();
   });
 });

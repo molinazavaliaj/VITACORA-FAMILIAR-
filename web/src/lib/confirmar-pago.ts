@@ -49,11 +49,15 @@ export async function confirmarPago(
 
   // 2. El narrador arranca. Solo desde pendiente_pago: si por alguna razón ya
   //    estaba más adelante, no se lo retrocede.
-  const { error: errorNarrador } = await admin
+  const { data: arrancados, error: errorNarrador } = await admin
     .from("narradores")
     .update({ estado: "invitado" })
     .eq("id", pedido.narrador_id)
-    .eq("estado", "pendiente_pago");
+    .eq("estado", "pendiente_pago")
+    .select("id");
+  // Si no había nada que arrancar, este pedido era de extras (copias, marcos)
+  // sobre un libro que ya existe: se cobró, pero no hay "hoy le escribimos".
+  const arranco = ((arrancados as { id: string }[] | null) ?? []).length > 0;
 
   if (errorNarrador) {
     // El pedido ya quedó pagado; devolver error hace que el proveedor
@@ -70,7 +74,7 @@ export async function confirmarPago(
   ]);
 
   const email = (familia as { email?: string } | null)?.email ?? null;
-  if (email) {
+  if (email && arranco) {
     try {
       await enviarMailAcceso({
         para: email,
