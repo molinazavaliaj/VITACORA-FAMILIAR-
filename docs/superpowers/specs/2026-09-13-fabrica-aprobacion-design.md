@@ -35,7 +35,7 @@ al cerrar, escribe el libro aplicando la edición, arma HTML, PDF y audiolibro, 
 | narrador `completado` / `cerrado_anticipado` | `estructura.json`; `preview.pdf` cuando existe `nombres.json`; **y `generarPaquete` entero** (libro, PDF, audiolibro, `entregado`) | `estructura.json`; `preview.pdf` cuando existe `nombres.json`. **Nada más.** |
 | `narradores.libro_aprobado_at` no nulo | — | `generarPaquete`: libro con la edición aplicada → `libro.html` + `libro.pdf` + audiolibro → pedido `entregado` → mail "tu libro está listo" |
 | 3, 7 y 14 días desde `completado` sin `libro_aprobado_at` | — | mail recordatorio de cierre (uno por hito) |
-| 30 días sin cierre | — | **la web** lo cierra con la propuesta y avisa (`CONTRATO.md`); la fábrica lo ve como un cierre más |
+| 30 días sin cierre | — | la fábrica pone `libro_aprobado_at` ella misma (cierre con la propuesta por defecto), manda el mail de aviso, y el mismo tick lo produce como un cierre más (roadmap 3t.11 lo asigna a la fábrica; `CONTRATO.md` decía "la web" — se corrige ahí) |
 
 El freno está en un solo lugar: `procesarPedidosPagados` (`fabrica/src/worker.ts`) deja de
 filtrar por `narradores.estado ∈ {completado, cerrado_anticipado}` y pasa a filtrar por
@@ -106,20 +106,21 @@ en Storage (`{narrador_id}/paquete/`), como `anticipo_enviado.txt`:
 
 | Mail | Cuándo | Candado |
 |---|---|---|
+| "Terminó — ya está listo para los últimos retoques" | el narrador pasa a `completado`/`cerrado_anticipado` (la fábrica ya lo mira cada minuto para armar la estructura; §9 lo ponía en el entrevistador, pero acá no hace falta que nadie llame a nadie) | `terminado_enviado.txt` |
 | "Tu libro está listo" | pedido pasa a `entregado` | `libro_listo_enviado.txt` |
 | Recordatorio de cierre 1 | 3 días desde que el narrador pasó a `completado`/`cerrado_anticipado`, sin `libro_aprobado_at` | `recordatorio_cierre_3.txt` |
 | Recordatorio de cierre 2 | 7 días | `recordatorio_cierre_7.txt` |
 | Recordatorio de cierre 3 | 14 días | `recordatorio_cierre_14.txt` |
+| "Lo cerramos por vos" (producción automática) | 30 días; la fábrica pone `libro_aprobado_at` y avisa | `cierre_automatico_enviado.txt` |
 
 La fecha base es `narradores.ultima_respuesta_at` (no hay `completado_at`; la última
 respuesta es el momento en que terminó). Si un hito quedó atrás sin candado (la fábrica
 estuvo caída), se manda una sola vez el más reciente y se marcan todos los anteriores.
 
-Los mails de "aceptó", "primera respuesta", "mitad", "terminó — listos los retoques" y
-"silencio" son del entrevistador (§9). El aviso de cierre automático a los 30 días es de la
-web.
+Los mails de "aceptó", "primera respuesta", "mitad" y "silencio" son del entrevistador (§9,
+3t.10 de Joaquín).
 
-**Los textos de los cuatro mails son producto: Naza los aprueba, uno por uno, antes de
+**Los textos de los seis mails son producto: Naza los aprueba, uno por uno, antes de
 commitear.** Van con el destinatario `familias.email`, remitente `hola@vitacorafamiliar.com`,
 y el link al panel (`{urlBase}/tablero/{narrador_id}`, con `urlBase` de `config.ts`).
 
@@ -151,16 +152,30 @@ Casos mínimos:
 - fotos: `storage_path` que no baja → libro sale sin ella.
 - mails: candados; hitos atrasados mandan uno solo; sin `RESEND_API_KEY` no deja candado.
 
-## 9. Fuera de alcance
+## 9. Lector online (web, 3t.8)
 
-Cierre automático a los 30 días (web) · copia de las 26 fijas al comprar (web, paso 6 de
+`web/src/app/tablero/[narradorId]/descarga/page.tsx` ya tiene el acceso y el estado del
+pedido. Cuando el pedido está `entregado`, muestra `libro.html` paginado por capítulo con
+el audio de ese capítulo (`audiolibro_paths.capitulos[i]`) arriba de cada uno; los botones
+"Descargar PDF" y "Descargar audiolibro" siguen como están. Antes de `entregado` la página
+sigue mostrando lo que muestra hoy (decisión 1.1: no hay libro que leer). El HTML se sirve
+desde Storage con URL firmada, en un `iframe` con `sandbox` — es HTML generado por
+nosotros, pero no se inyecta en la página del panel.
+
+## 10. Fuera de alcance
+
+Copia de las 26 fijas al comprar (web, paso 6 de
 Joaquín) · lector online (web) · impresión y marcos (a mano) · `excluidas`/`correcciones`
 (decisión 1.3) · reescritura de capítulos post-aprobación (no hay: se escribe una sola vez).
 
-## 10. Para conversar con Joaquín
+## 11. Para conversar con Joaquín
 
 1. El lector antes de cerrar muestra la propuesta, no el libro escrito (1.1).
 2. El wizard de edición no ofrece excluir respuestas ni correcciones libres (1.3);
    `edicion.excluidas` y `edicion.correcciones` quedan en el contrato sin lector.
 3. `libro.html` es el archivo que lee el lector online.
-4. La copia de las 26 fijas al confirmar la compra todavía no está en `confirmar-pago.ts`.
+4. Los mails "terminó" y "cierre automático a los 30 días" los manda la fábrica (no el
+   entrevistador ni la web): `CONTRATO.md` pasa a decir que `libro_aprobado_at` lo escribe
+   la web **o la fábrica a los 30 días**.
+5. El webhook de MP no lee `MP_WEBHOOK_SECRET` (cargado en Vercel igual).
+6. La copia de las 26 fijas al confirmar la compra todavía no está en `confirmar-pago.ts`.
