@@ -8,11 +8,11 @@ migración en `supabase/migrations/` + actualizar este archivo + avisar al otro 
 | Tabla | Escribe | Lee | Nota |
 |---|---|---|---|
 | `familias` | web | entrevistador | |
-| `narradores` | web (crea, edita datos, `edicion`, `libro_aprobado_at`) / entrevistador (solo `estado`, `dia_actual`, `ultima_respuesta_at`, `alerta_silencio`) | ambos | Única tabla compartida. La web también apaga `alerta_silencio`. La fábrica lee `edicion` y **no produce nada sin `libro_aprobado_at`** (ni digital ni impreso). |
+| `narradores` | web (crea, edita datos, `edicion`, `libro_aprobado_at`) / entrevistador (solo `estado`, `dia_actual`, `ultima_respuesta_at`, `alerta_silencio`) / fábrica (solo `libro_aprobado_at`, a los 30 días sin cierre) | ambos | Única tabla compartida. La web también apaga `alerta_silencio`. La fábrica lee `edicion` y **no produce nada sin `libro_aprobado_at`** (ni digital ni impreso). Desde el 13/09, si pasan 30 días desde `ultima_respuesta_at` sin cierre, la fábrica misma pone `libro_aprobado_at` (único caso en que alguien más que la web escribe esa columna). |
 | `preguntas` | **web** (copia las fijas al comprar; la familia edita, salta, reordena, agrega) / **entrevistador** (adaptativas y reemplazos) / seed (plantilla global) | ambos | Desde el 12/09 **cada narrador tiene su guion propio**. Las globales (`narrador_id = null`) son solo plantilla. Regla: `orden ≤ dia_actual` está **congelado**, nadie lo toca. |
 | `respuestas` | entrevistador | web | La web NUNCA escribe acá. |
-| `saludos` | ~~web / entrevistador~~ | — | **Fuera de la fase 1 (10/09).** Nadie la escribe ni la lee. Se deja por si la fase 2 la revive. |
-| `fotos` | web (sube y ordena) | fábrica | Nueva 12/09. Por capítulo; `principal` abre, el resto cierra. |
+| `saludos` | ~~web / entrevistador~~ | — | **Fuera de la fase 1 (10/09).** Nadie la escribe ni la lee — desde el 13/09 tampoco la fábrica (dejó de leerla en `generarPaquete`/`generarAudiolibro`; el audiolibro ya no tiene bonus de saludos). Se deja por si la fase 2 la revive. |
+| `fotos` | web (sube y ordena) | fábrica | Nueva 12/09. Por capítulo; `principal` abre, el resto cierra. Desde el 13/09 la fábrica las embebe como data URI en `libro.html`. |
 | `invitados` | web | web | Nueva 12/09. `rol` (13/09): `'invitado'` (hasta 3, con el libro abierto, ven todo) o `'visitante'` (abrió el link del libro cerrado y lo guardó: ve la muestra y compra su copia, sin tope). |
 | `pedidos` | web y fábrica | — | El entrevistador no la mira. Un pedido por comprador: los invitados y visitantes que compran su copia tienen su propia `familia` y su propio pedido sobre el mismo `narrador_id`. |
 | `envios` | entrevistador | — | Log de salientes; idempotencia del scheduler. |
@@ -67,17 +67,32 @@ pedido posterior de solo extras no lleva la base, y puede ser de un invitado (su
 
 `narradores.libro_aprobado_at`: lo escribe la web cuando la dueña aprieta **Cerrar libro**.
 **Es el punto de aprobación del cliente: la fábrica no produce nada sin esto**, ni el PDF
-ni el impreso. Si pasan 30 días desde `completado` sin cierre, la web lo cierra con la
-propuesta por defecto y avisa (está en los términos).
+ni el impreso. Si pasan 30 días desde `ultima_respuesta_at` sin cierre, ~~la web lo
+cierra~~ **desde el 13/09 la fábrica** lo cierra (pone `libro_aprobado_at`, manda el
+aviso) y lo produce en el mismo tick, con la propuesta por defecto (está en los
+términos).
+
+La fábrica aplica `ordenCapitulos`, `titulo`, `subtitulo` y `portadaFotoId`; **ignora
+`excluidas` y `correcciones`** (decisión 13/09, ver
+`docs/superpowers/specs/2026-09-13-fabrica-aprobacion-design.md`).
 
 ## Storage — bucket privado `audios`
 
     {narrador_id}/dia_NN.ogg          respuestas (entrevistador sube; NN = pregunta_orden, 2 dígitos; extras: dia_NN_2.ogg)
     {narrador_id}/fotos/{id}.{ext}    fotos por capítulo, ORIGINAL sin recomprimir (web sube)
     {narrador_id}/sistema/…           audios TTS del entrevistador (entrevistador sube)
-    {narrador_id}/paquete/…           estructura, PDF y audiolibro (web/fábrica — socio 2 — sube)
+    {narrador_id}/paquete/…           estructura, PDF, audiolibro, libro.html y candados de mails (web/fábrica — socio 2 — sube)
 
 El navegador jamás recibe paths directos: solo URLs firmadas que genera la web.
+
+Desde el 13/09, `{narrador_id}/paquete/` además de `estructura.json`, `preview.pdf`,
+`libro.pdf` y el audiolibro, tiene `libro.html` (**nuevo**: el HTML que arma el lector
+online del panel, el mismo que se imprime) y, junto a `anticipo_enviado.txt`, los seis
+candados de los mails que manda la fábrica: `terminado_enviado.txt`,
+`recordatorio_cierre_3.txt`, `recordatorio_cierre_7.txt`, `recordatorio_cierre_14.txt`,
+`cierre_automatico_enviado.txt` y `libro_listo_enviado.txt`. `cierre_automatico.txt` es
+aparte: no es candado de mail, es la marca que deja el cierre automático de los 30 días
+para saber que fue la fábrica quien puso `libro_aprobado_at`.
 
 ## Tipos TypeScript
 

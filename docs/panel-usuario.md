@@ -197,7 +197,7 @@ cerrar**. Wizard en 4 pasos, **siempre con nuestra propuesta como punto de parti
 | **1 · Portada** | Foto, título, subtítulo. Preview de tapa y lomo. **Sin colores** (marca B/N) | Foto de perfil del narrador · *"Alfredo — La historia de una vida"* · nombre completo |
 | **2 · Capítulos** | **Reordenar capítulos** (arrastrar). Las respuestas dentro de cada capítulo **no se reordenan**: ese orden lo decidió el biógrafo | El orden del guion |
 | **3 · Contenido** | **Excluir respuestas** (*"esto no quiero que salga"*) · **fotos que falten** · **revisar nombres** (ya existe) · **correcciones libres** (campo de texto que la fábrica aplica) | Todo incluido |
-| **4 · Cerrar libro** | Ve el libro completo (el lector de §5), lee el aviso de que no hay vuelta atrás, y **cierra** | — |
+| **4 · Cerrar libro** | Ve el libro completo (el lector de §5), lee el aviso de que no hay vuelta atrás, y **cierra**. ⚠️ ver nota en §12 | — |
 
 **Cerrar libro → se produce**, digital e impreso. Es **siempre** obligatorio (ver Regla 0).
 Recordatorios a los 3, 7 y 14 días; a los 30 se produce solo con la propuesta.
@@ -321,6 +321,11 @@ enviado está congelado, renumerar las futuras no rompe nada.
    preguntas. Reusa el prompt de adaptativas.
 
 ## 12. Lo que cambia en la fábrica (Naza, cuando vuelva)
+
+> Construido el 13/09 según
+> `docs/superpowers/specs/2026-09-13-fabrica-aprobacion-design.md`, que difiere en dos
+> puntos: (1) antes de cerrar no hay libro escrito, el lector muestra la propuesta;
+> (2) `excluidas` y `correcciones` no se aplican.
 
 - Leer `narradores.edicion`: orden de capítulos, respuestas excluidas, título, subtítulo,
   portada, correcciones libres.
