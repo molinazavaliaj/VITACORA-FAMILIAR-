@@ -1,4 +1,5 @@
 import { escaparHtml } from './comun.js';
+import type { FotosCapitulo, FotoLibro } from './fotos.js';
 
 // ---------------------------------------------------------------------------
 // La identidad visual aprobada (docs/arte-libro/*.dc.html, 9 mockups A5 a
@@ -6,7 +7,7 @@ import { escaparHtml } from './comun.js';
 // resolución, así que casi todo acá se puede pensar en píxeles y mapea 1:1 a
 // milímetros). Este archivo traduce esos mockups a la plantilla real que
 // consume el libro completo (portada, frontispicio, capítulos, sus frases,
-// saludos, colofón, contratapa) para Playwright → PDF A5.
+// colofón, contratapa) para Playwright → PDF A5.
 //
 // La fábrica renderiza UN solo HTML, pero la paginación del texto corrido la
 // hacemos NOSOTROS con un script embebido que corre en el navegador antes de
@@ -362,6 +363,15 @@ function construirEstilos(acento: string): string {
   .frontispicio-pie .nombre { font-family: 'Playfair Display', Georgia, serif; font-style: italic; font-size: 40px; line-height: 1.05; }
   .frontispicio-pie .tag { font-family: Archivo, Arial, sans-serif; font-size: 10px; letter-spacing: 0.3em; color: rgba(250,247,241,0.7); }
 
+  /* Páginas de foto (apertura y cierre de capítulo). Sin filtro de grises:
+     existe la edición a color. El frontispicio conserva su filtro porque es
+     identidad. */
+  .lienzo.foto { background: var(--papel); }
+  .foto-cabecera { position: absolute; top: 40px; left: 44px; right: 44px; display: flex; justify-content: space-between; font-family: Archivo, Arial, sans-serif; font-size: 9px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gris1); }
+  .foto-marco { position: absolute; top: 76px; left: 44px; right: 44px; bottom: 110px; display: flex; align-items: center; justify-content: center; }
+  .foto-img { max-width: 100%; max-height: 100%; object-fit: contain; }
+  .foto-epigrafe { position: absolute; left: 44px; right: 44px; bottom: 56px; font-family: 'Source Serif 4', Georgia, serif; font-style: italic; font-size: 13px; line-height: 1.4; color: var(--gris1); text-align: center; }
+
   /* Apertura de capítulo (calcada de AperturaCapitulo.dc.html, con un
      ajuste pedido por Naza el 2026-09-03: el mockup sangraba el numeral
      fuera de la página y quedaba ilegible — acá entra ENTERO, igual de
@@ -438,12 +448,6 @@ function construirEstilos(acento: string): string {
   .sus-frases-hero-tag { font-family: Archivo, Arial, sans-serif; font-size: 10px; letter-spacing: 0.2em; color: var(--acento); font-weight: 600; text-transform: uppercase; }
   .sus-frases-narrador { position: absolute; left: 44px; bottom: 46px; font-family: Archivo, Arial, sans-serif; font-size: 10px; letter-spacing: 0.26em; color: var(--gris1); text-transform: uppercase; }
 
-  /* Saludos */
-  .saludos-titulo { font-family: 'Playfair Display', Georgia, serif; font-style: italic; font-size: 34px; margin: 0 0 6px; }
-  .saludos-lista { list-style: none; padding: 0; margin: 34px 0 0; display: flex; flex-direction: column; gap: 16px; }
-  .saludos-lista li { font-size: 16px; font-family: 'Source Serif 4', Georgia, serif; }
-  .saludos-lista .vinculo { color: var(--gris1); font-style: italic; font-size: 13px; margin-left: 8px; }
-
   /* Colofón */
   .colofon-centro { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 34px; text-align: center; padding: 0 60px; }
   .colofon-linea1 { font-size: 14.5px; line-height: 1.75; color: var(--gris3); }
@@ -471,10 +475,25 @@ function construirEstilos(acento: string): string {
 
 // --- Bloques de página -------------------------------------------------------
 
-function construirPortada(opts: { titulo: string; nombreNarrador: string; anioNacimiento?: number | null; mono: string; fraseHeroe: string | null }): string {
-  const { nombreNarrador, anioNacimiento, mono, fraseHeroe } = opts;
+function construirPortada(opts: {
+  titulo: string;
+  nombreNarrador: string;
+  tapa: { titulo: string | null; subtitulo: string | null };
+  anioNacimiento?: number | null;
+  mono: string;
+  fraseHeroe: string | null;
+}): string {
+  const { nombreNarrador, tapa, anioNacimiento, mono, fraseHeroe } = opts;
   const anioTexto = anioNacimiento ? String(anioNacimiento) : '';
   const citaHtml = fraseHeroe ? `<div class="cita">«${fraseHeroe}»</div>` : '';
+  // Lo que eligió la dueña manda: el título de tapa reemplaza al nombre del
+  // narrador en el lugar protagonista, y el subtítulo reemplaza la frase fija
+  // "LA HISTORIA DE UNA VIDA · DESDE ...". Sin tapa, el comportamiento de
+  // siempre.
+  const textoGrande = tapa.titulo ?? nombreNarrador;
+  const textoTag = tapa.subtitulo
+    ? escaparHtml(tapa.subtitulo)
+    : `LA HISTORIA DE UNA VIDA${anioTexto ? ` · DESDE ${escaparHtml(anioTexto)}` : ''}`;
   return `<div class="lienzo quiebre">
     ${svgGrano(7)}
     ${svgCirculoCortado({ top: -150, left: -150, size: 340 })}
@@ -482,11 +501,11 @@ function construirPortada(opts: { titulo: string; nombreNarrador: string; anioNa
       <div class="nombre">VITÁCORA FAMILIAR</div>
       <div class="tagline">UNA VIDA · CONTADA CON SU VOZ</div>
     </div>
-    <div class="portada-nombre-narrador">${escaparHtml(nombreNarrador)}</div>
+    <div class="portada-nombre-narrador">${escaparHtml(textoGrande)}</div>
     <div class="portada-pie">
       <div class="regla"></div>
       ${citaHtml}
-      <div class="tag">LA HISTORIA DE UNA VIDA${anioTexto ? ` · DESDE ${escaparHtml(anioTexto)}` : ''}</div>
+      <div class="tag">${textoTag}</div>
     </div>
     <div class="franja">
       <div class="chip">${anioTexto ? escaparHtml(anioTexto) : ''}</div>
@@ -507,6 +526,19 @@ function construirFrontispicio(opts: { fotoUrl: string; nombreNarrador: string; 
       <div class="nombre">${escaparHtml(nombreNarrador)}</div>
       ${anioNacimiento ? `<div class="tag">${escaparHtml(String(anioNacimiento))} —</div>` : ''}
     </div>
+  </div>`;
+}
+
+/** Una página de foto entera (apertura o cierre de capítulo), con cabecera
+ *  de capítulo/narrador y epígrafe opcional. Sin filtro de grises — a
+ *  diferencia del frontispicio (identidad, siempre en blanco y negro), acá
+ *  existe la edición a color. */
+function construirPaginaFoto(opts: { foto: FotoLibro; nombreCapitulo: string; nombreNarrador: string }): string {
+  const { foto, nombreCapitulo, nombreNarrador } = opts;
+  return `<div class="lienzo foto quiebre">
+    <div class="foto-cabecera"><span>${escaparHtml(nombreCapitulo)}</span><span>${escaparHtml(nombreNarrador)}</span></div>
+    <div class="foto-marco"><img class="foto-img" src="${escaparHtml(foto.dataUri)}" alt="" /></div>
+    ${foto.epigrafe ? `<div class="foto-epigrafe">${escaparHtml(foto.epigrafe)}</div>` : ''}
   </div>`;
 }
 
@@ -534,14 +566,28 @@ function construirCapitulo(opts: {
   seccion: SeccionLibro;
   nombreNarrador: string;
   mono: string;
+  fotos: FotosCapitulo | undefined;
 }): string {
-  const { numero, seccion, nombreNarrador, mono } = opts;
+  const { numero, seccion, nombreNarrador, mono, fotos } = opts;
   const nombreCapitulo = seccion.titulo ?? '';
   const rail = `CAP. ${String(numero).padStart(2, '0')} · ${nombreCapitulo}`;
+  // La foto de apertura entra entre la página de apertura del capítulo y el
+  // texto corrido; las de cierre, después. El paginador embebido inserta las
+  // páginas de texto que arma con `insertBefore(lienzo, fuente)` — nunca
+  // toca los `.lienzo` estáticos de alrededor — así que el orden apertura →
+  // foto → texto → fotos de cierre queda tal cual en el PDF.
+  const paginaApertura = fotos?.apertura
+    ? construirPaginaFoto({ foto: fotos.apertura, nombreCapitulo, nombreNarrador })
+    : '';
+  const paginasCierre = (fotos?.cierre ?? [])
+    .map((foto) => construirPaginaFoto({ foto, nombreCapitulo, nombreNarrador }))
+    .join('\n');
   return `${construirAperturaCapitulo({ numero, nombreCapitulo, nombreNarrador, mono })}
+  ${paginaApertura}
   <section class="fuente-texto antes" data-etiqueta="${escaparHtml(nombreCapitulo)}" data-rail="${escaparHtml(rail)}">
     ${seccion.html}
-  </section>`;
+  </section>
+  ${paginasCierre}`;
 }
 
 function construirPaginaSimple(seccion: SeccionLibro): string {
@@ -586,18 +632,6 @@ function construirSusFrases(opts: { seccion: SeccionLibro; nombreNarrador: strin
   </div>
   <section class="fuente-texto antes" data-etiqueta="${escaparHtml(titulo)}" data-rail="${escaparHtml(titulo)}">
     ${resto}
-  </section>`;
-}
-
-function construirSaludos(saludos: { nombre: string; vinculo: string }[]): string {
-  if (saludos.length === 0) return '';
-  const items = saludos
-    .map((s) => `<li>${escaparHtml(s.nombre)} <span class="vinculo">(${escaparHtml(s.vinculo)})</span></li>`)
-    .join('\n');
-  return `<section class="fuente-texto antes saludos" data-etiqueta="Los saludos" data-rail="Los saludos de la familia" data-primera="portadilla">
-    <h1 class="saludos-titulo">Los saludos de la familia</h1>
-    <div class="titulo-simple-regla"></div>
-    <ul class="saludos-lista">${items}</ul>
   </section>`;
 }
 
@@ -878,18 +912,26 @@ function construirScriptPaginador(): string {
 
 export function construirHtmlLibro(datos: {
   titulo: string;
+  /** Manda sobre el que se saca del título — default: `extraerNombreNarrador(titulo)`. */
+  nombreNarrador?: string;
+  /** Lo que eligió la dueña para la tapa. Sin esto, la tapa es la de
+   *  siempre: nombre del narrador + "LA HISTORIA DE UNA VIDA". */
+  tapa?: { titulo: string | null; subtitulo: string | null };
   anioNacimiento?: number | null;
   fotoUrl?: string | null;
   indice: string[];
   libroMarkdown: string;
-  saludos: { nombre: string; vinculo: string }[];
+  /** Fotos por capítulo (Task 3, `fotos.ts`) — clave es el título del
+   *  capítulo tal cual aparece en `indice`. Sin esto, ningún capítulo lleva
+   *  páginas de foto. */
+  fotosPorCapitulo?: Map<string, FotosCapitulo>;
   /** Color de acento de la colección (franja de lomo, cruces, cita, folio).
    *  Opcional — sin él, el vino de la identidad aprobada. */
   acento?: string;
 }): string {
-  const { titulo, anioNacimiento, fotoUrl, indice, libroMarkdown, saludos, acento = '#6e2618' } = datos;
+  const { titulo, tapa = { titulo: null, subtitulo: null }, anioNacimiento, fotoUrl, indice, libroMarkdown, fotosPorCapitulo, acento = '#6e2618' } = datos;
 
-  const nombreNarrador = extraerNombreNarrador(titulo);
+  const nombreNarrador = datos.nombreNarrador ?? extraerNombreNarrador(titulo);
   const mono = iniciales(nombreNarrador);
   const secciones = parsearSeccionesLibro(libroMarkdown);
   const fraseHeroe = extraerFraseHeroe(secciones);
@@ -905,17 +947,17 @@ export function construirHtmlLibro(datos: {
       }
       if (seccion.titulo !== null && indiceSet.has(seccion.titulo)) {
         numeroCapitulo += 1;
-        return construirCapitulo({ numero: numeroCapitulo, seccion, nombreNarrador, mono });
+        const fotos = fotosPorCapitulo?.get(seccion.titulo);
+        return construirCapitulo({ numero: numeroCapitulo, seccion, nombreNarrador, mono, fotos });
       }
       return construirPaginaSimple(seccion);
     })
     .join('\n');
 
-  const portadaHtml = construirPortada({ titulo, nombreNarrador, anioNacimiento, mono, fraseHeroe });
+  const portadaHtml = construirPortada({ titulo, nombreNarrador, tapa, anioNacimiento, mono, fraseHeroe });
   const frontispicioHtml = fotoUrl
     ? construirFrontispicio({ fotoUrl, nombreNarrador, anioNacimiento })
     : '';
-  const saludosHtml = construirSaludos(saludos);
   const colofonHtml = construirColofon({ nombreNarrador, mono });
   const contratapaHtml = construirContratapa({ fraseHeroe, nombreNarrador, anioNacimiento, mono });
 
@@ -931,7 +973,6 @@ export function construirHtmlLibro(datos: {
 ${portadaHtml}
 ${frontispicioHtml}
 ${contenidoHtml}
-${saludosHtml}
 ${colofonHtml}
 ${contratapaHtml}
 ${construirScriptPaginador()}

@@ -30,10 +30,6 @@ function construir(overrides: Partial<Parameters<typeof construirHtmlLibro>[0]> 
     fotoUrl: 'https://x/foto.jpg',
     indice: ['Infancia', 'El amor'],
     libroMarkdown: LIBRO_MARKDOWN,
-    saludos: [
-      { nombre: 'Marta', vinculo: 'hija' },
-      { nombre: 'Tomás', vinculo: 'nieto' },
-    ],
     ...overrides,
   });
 }
@@ -109,26 +105,6 @@ describe('construirHtmlLibro', () => {
     expect(html).toContain('<blockquote>Cortito y verdadero, así viví.</blockquote>');
   });
 
-  it('la página de saludos lista nombre y vínculo de cada saludo', () => {
-    const html = construir();
-    expect(html).toContain('Los saludos de la familia');
-    expect(html).toContain('Marta');
-    expect(html).toContain('hija');
-    expect(html).toContain('Tomás');
-    expect(html).toContain('nieto');
-  });
-
-  it('sin saludos, la página se omite entera', () => {
-    const html = construir({ saludos: [] });
-    expect(html).not.toContain('Los saludos de la familia');
-    expect(html).not.toContain('class="saludos"');
-  });
-
-  it('con al menos un saludo, la página aparece (comportamiento existente)', () => {
-    const html = construir({ saludos: [{ nombre: 'Marta', vinculo: 'hija' }] });
-    expect(html).toContain('Los saludos de la familia');
-  });
-
   it('escapa HTML en el texto del narrador para no romper el documento', () => {
     const html = construir({ libroMarkdown: '# Infancia\n\nEl & la <cosa>.' });
     expect(html).toContain('El &amp; la &lt;cosa&gt;.');
@@ -164,5 +140,82 @@ describe('construirHtmlLibro', () => {
     expect(liCount).toBe(3);
     expect(html).toContain('<strong>Al mal tiempo</strong>');
     expect(html).toContain('— buena cara.');
+  });
+});
+
+const LIBRO = '# A mis lectores\n\nHola.\n\n# La infancia\n\nNací en 1940.\n\n# Sus frases\n\n> Todo pasa.\n';
+
+describe('construirHtmlLibro — tapa de la edición', () => {
+  it('sin tapa: la portada lleva el nombre del narrador y "LA HISTORIA DE UNA VIDA"', () => {
+    const html = construirHtmlLibro({ titulo: 'Rosa Pérez — La historia de una vida', indice: ['La infancia'], libroMarkdown: LIBRO });
+    expect(html).toContain('<div class="portada-nombre-narrador">Rosa Pérez</div>');
+    expect(html).toContain('LA HISTORIA DE UNA VIDA');
+  });
+
+  it('con tapa: el título elegido va grande y el subtítulo reemplaza la frase fija', () => {
+    const html = construirHtmlLibro({
+      titulo: 'Rosa Pérez — La historia de una vida',
+      nombreNarrador: 'Rosa Pérez',
+      tapa: { titulo: 'Mi abuela Rosa', subtitulo: 'Rosa Pérez de Gómez' },
+      indice: ['La infancia'],
+      libroMarkdown: LIBRO,
+    });
+    expect(html).toContain('<div class="portada-nombre-narrador">Mi abuela Rosa</div>');
+    expect(html).toContain('<div class="tag">Rosa Pérez de Gómez</div>');
+    // el nombre del narrador sigue mandando en cabeceras y aperturas
+    expect(html).toContain('<div class="marca-narrador">Rosa Pérez</div>');
+  });
+
+  it('nombreNarrador explícito manda sobre el que se saca del título', () => {
+    const html = construirHtmlLibro({ titulo: 'Mi abuela', nombreNarrador: 'Rosa Pérez', indice: ['La infancia'], libroMarkdown: LIBRO });
+    expect(html).toContain('<div class="marca-narrador">Rosa Pérez</div>');
+  });
+});
+
+describe('construirHtmlLibro — fotos por capítulo', () => {
+  const foto = (tag: string, epigrafe: string | null) => ({ dataUri: `data:image/jpeg;base64,${tag}`, epigrafe });
+
+  it('sin fotos: ninguna página de foto', () => {
+    const html = construirHtmlLibro({ titulo: 'Rosa — x', indice: ['La infancia'], libroMarkdown: LIBRO });
+    expect(html).not.toContain('class="lienzo foto quiebre"');
+  });
+
+  it('la de apertura va entre la apertura del capítulo y el texto; las de cierre después del texto, con epígrafe', () => {
+    const fotosPorCapitulo = new Map([
+      ['La infancia', { apertura: foto('APERTURA', 'En el patio'), cierre: [foto('CIERRE1', null), foto('CIERRE2', 'Con mamá')] }],
+    ]);
+    const html = construirHtmlLibro({ titulo: 'Rosa — x', indice: ['La infancia'], libroMarkdown: LIBRO, fotosPorCapitulo });
+    const iApertura = html.indexOf('class="lienzo apertura quiebre"');
+    const iFotoApertura = html.indexOf('base64,APERTURA');
+    const iTexto = html.indexOf('Nací en 1940');
+    const iCierre1 = html.indexOf('base64,CIERRE1');
+    const iCierre2 = html.indexOf('base64,CIERRE2');
+    expect(iApertura).toBeGreaterThan(-1);
+    expect(iFotoApertura).toBeGreaterThan(iApertura);
+    expect(iTexto).toBeGreaterThan(iFotoApertura);
+    expect(iCierre1).toBeGreaterThan(iTexto);
+    expect(iCierre2).toBeGreaterThan(iCierre1);
+    expect(html).toContain('<div class="foto-epigrafe">En el patio</div>');
+    expect(html).toContain('<div class="foto-epigrafe">Con mamá</div>');
+    expect((html.match(/class="lienzo foto quiebre"/g) ?? []).length).toBe(3);
+  });
+
+  it('el epígrafe se escapa', () => {
+    const fotosPorCapitulo = new Map([['La infancia', { apertura: foto('A', '<b>x</b>'), cierre: [] }]]);
+    const html = construirHtmlLibro({ titulo: 'Rosa — x', indice: ['La infancia'], libroMarkdown: LIBRO, fotosPorCapitulo });
+    expect(html).toContain('&lt;b&gt;x&lt;/b&gt;');
+  });
+
+  it('fotos de un capítulo que no está en el índice se ignoran', () => {
+    const fotosPorCapitulo = new Map([['Otro', { apertura: foto('A', null), cierre: [] }]]);
+    const html = construirHtmlLibro({ titulo: 'Rosa — x', indice: ['La infancia'], libroMarkdown: LIBRO, fotosPorCapitulo });
+    expect(html).not.toContain('base64,A"');
+  });
+});
+
+describe('construirHtmlLibro — sin saludos', () => {
+  it('no acepta ni emite la sección de saludos', () => {
+    const html = construirHtmlLibro({ titulo: 'Rosa — x', indice: ['La infancia'], libroMarkdown: LIBRO });
+    expect(html).not.toContain('saludos');
   });
 });

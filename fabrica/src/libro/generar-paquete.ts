@@ -162,7 +162,6 @@ export async function generarPaquete(pedido: { id: string; narrador_id: string }
       fotoUrl: narrador.foto_url,
       indice: estructura.capitulos.map((c) => c.nombre),
       libroMarkdown,
-      saludos: saludos.map((s) => ({ nombre: s.nombre, vinculo: s.vinculo })),
     });
     await generarPdf(db, narradorId, html);
 
