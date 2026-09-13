@@ -107,6 +107,40 @@ describe('cargarFotos', () => {
     warn.mockRestore();
   });
 
+  it('si leer el blob descargado tira (arrayBuffer rechaza), se omite con aviso; el resto sigue', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const download = vi.fn((ruta: string) => {
+      if (ruta === 'n1/fotos/rota.jpg') {
+        return Promise.resolve({
+          data: { arrayBuffer: async () => Promise.reject(new Error('blob corrupto')) },
+          error: null,
+        });
+      }
+      return Promise.resolve({ data: { arrayBuffer: async () => new Uint8Array(Buffer.from('b')).buffer }, error: null });
+    });
+    const builder = {
+      select: () => builder,
+      eq: () => builder,
+      order: () =>
+        Promise.resolve({
+          data: [
+            { id: 'a', narrador_id: 'n1', capitulo: 'X', storage_path: 'n1/fotos/rota.jpg', epigrafe: null, principal: true, orden: 0 },
+            { id: 'b', narrador_id: 'n1', capitulo: 'X', storage_path: 'n1/fotos/b.jpg', epigrafe: 'ok', principal: false, orden: 1 },
+          ],
+          error: null,
+        }),
+    };
+    const db = { from: vi.fn(() => builder), storage: { from: vi.fn(() => ({ download })) } };
+
+    const fotos = await cargarFotos(db as never, 'n1');
+    const cap = fotos.porCapitulo.get('X')!;
+    expect(cap.apertura).toBeNull();
+    expect(cap.cierre).toHaveLength(1);
+    expect(fotos.porId.has('a')).toBe(false);
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('rota.jpg'));
+    warn.mockRestore();
+  });
+
   it('si la consulta a la tabla falla, tira (eso sí es un error del pedido)', async () => {
     const db = construirDb({ fotos: { data: null, error: { message: 'boom' } }, archivos: {} });
     await expect(cargarFotos(db as never, 'n1')).rejects.toThrow('boom');

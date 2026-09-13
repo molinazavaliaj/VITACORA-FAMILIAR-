@@ -32,13 +32,18 @@ export function mimeDeRuta(ruta: string): string {
 }
 
 async function bajarComoDataUri(db: SupabaseClient, ruta: string): Promise<string | null> {
-  const { data, error } = await db.storage.from('audios').download(ruta);
-  if (error || !data) {
-    console.warn(`cargarFotos: no se pudo bajar ${ruta} (${error?.message ?? 'sin datos'}); la foto se omite.`);
+  // Todo lo que puede fallar acá (la descarga en sí, o leer el blob) cae en
+  // el mismo catch: una foto rota no frena el libro, solo se avisa y se
+  // omite — ver el comentario del módulo.
+  try {
+    const { data, error } = await db.storage.from('audios').download(ruta);
+    if (error || !data) throw new Error(error?.message ?? 'sin datos');
+    const bytes = Buffer.from(await data.arrayBuffer());
+    return `data:${mimeDeRuta(ruta)};base64,${bytes.toString('base64')}`;
+  } catch (err) {
+    console.warn(`cargarFotos: no se pudo bajar ${ruta} (${(err as Error).message}); la foto se omite.`);
     return null;
   }
-  const bytes = Buffer.from(await data.arrayBuffer());
-  return `data:${mimeDeRuta(ruta)};base64,${bytes.toString('base64')}`;
 }
 
 export async function cargarFotos(db: SupabaseClient, narradorId: string): Promise<FotosDelLibro> {
