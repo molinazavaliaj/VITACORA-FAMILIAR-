@@ -27,16 +27,18 @@ export default async function TableroDescarga({ params }: PageProps<"/tablero/[n
 
   const admin = crearClienteServidor();
 
-  // Descargar es de la dueña; el invitado ve el libro pero no lo baja (§2 del spec).
+  // Cualquiera con acceso a la historia entra y lee el libro en el lector
+  // online; bajar el PDF y los audios es solo de la dueña (§2 y §5 del spec).
   const { historia, error: errorHistoria } = await historiaAccesible(admin, user, narradorId);
   if (errorHistoria) {
     console.error("tablero/descarga: fallo el acceso", errorHistoria);
     return <EstadoError />;
   }
-  if (!historia || !PUEDE.descargar(historia.rol)) {
+  if (!historia) {
     notFound();
   }
   const narrador = historia.narrador;
+  const puedeDescargar = PUEDE.descargar(historia.rol);
 
   const { data: pedidos, error: errorPedidos } = await admin
     .from("pedidos")
@@ -70,7 +72,12 @@ export default async function TableroDescarga({ params }: PageProps<"/tablero/[n
 
   if (pedido.estado === "entregado") {
     return (
-      <Entregado narradorId={narrador.id} comoLeDicen={narrador.como_le_dicen} audiolibroPaths={pedido.audiolibro_paths} />
+      <Entregado
+        narradorId={narrador.id}
+        comoLeDicen={narrador.como_le_dicen}
+        audiolibroPaths={pedido.audiolibro_paths}
+        puedeDescargar={puedeDescargar}
+      />
     );
   }
 
@@ -174,10 +181,12 @@ function Entregado({
   comoLeDicen,
   audiolibroPaths,
   narradorId,
+  puedeDescargar,
 }: {
   narradorId: string;
   comoLeDicen: string;
   audiolibroPaths: AudiolibroPaths | null;
+  puedeDescargar: boolean;
 }) {
   const capitulos = audiolibroPaths?.capitulos ?? [];
   const tieneCompleto = Boolean(audiolibroPaths?.completo);
@@ -191,23 +200,40 @@ function Entregado({
         Ya está listo. Queda aquí para siempre — vuelve cuando quieras.
       </p>
 
-      <div className="mt-8 flex flex-col gap-3">
-        <a
-          href={`/api/descarga/libro?narrador=${narradorId}`}
-          className="inline-block rounded-lg bg-zinc-900 px-5 py-2.5 text-center text-sm font-medium text-white transition-colors hover:bg-zinc-800"
-        >
-          Descargar el libro (PDF)
-        </a>
+      {/* El lector online: el libro.html que sube la fábrica, servido por la
+          ruta firmada. `allow-scripts` porque el HTML pagina con su propio
+          script; sin `allow-same-origin` el iframe no toca cookies ni la página. */}
+      <div className="mt-8">
+        <p className="mb-2 text-sm font-medium text-zinc-700">Leer el libro</p>
+        <iframe
+          title={`El libro de ${comoLeDicen}`}
+          src={`/api/descarga/libro-html?narrador=${narradorId}`}
+          sandbox="allow-scripts"
+          className="h-[80vh] w-full rounded-lg border border-zinc-200 bg-white"
+        />
       </div>
+
+      {puedeDescargar ? (
+        <div className="mt-8 flex flex-col gap-3">
+          <a
+            href={`/api/descarga/libro?narrador=${narradorId}`}
+            className="inline-block rounded-lg bg-zinc-900 px-5 py-2.5 text-center text-sm font-medium text-white transition-colors hover:bg-zinc-800"
+          >
+            Descargar el libro (PDF)
+          </a>
+        </div>
+      ) : null}
 
       {tieneCompleto ? (
         <div className="mt-10 border-t border-zinc-100 pt-8">
           <p className="mb-2 text-sm font-medium text-zinc-700">Audiolibro completo</p>
           {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
           <audio controls src={`/api/descarga/audio/completo?narrador=${narradorId}`} className="w-full" />
-          <a href={`/api/descarga/audio/completo?narrador=${narradorId}`} className="mt-2 inline-block text-xs text-zinc-500 underline">
-            Descargar
-          </a>
+          {puedeDescargar ? (
+            <a href={`/api/descarga/audio/completo?narrador=${narradorId}`} className="mt-2 inline-block text-xs text-zinc-500 underline">
+              Descargar
+            </a>
+          ) : null}
         </div>
       ) : null}
 
@@ -219,12 +245,14 @@ function Entregado({
               <p className="mb-2 text-sm text-zinc-600">Capítulo {indice + 1}</p>
               {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
               <audio controls src={`/api/descarga/audio/${indice}?narrador=${narradorId}`} className="w-full" />
-              <a
-                href={`/api/descarga/audio/${indice}?narrador=${narradorId}`}
-                className="mt-2 inline-block text-xs text-zinc-500 underline"
-              >
-                Descargar
-              </a>
+              {puedeDescargar ? (
+                <a
+                  href={`/api/descarga/audio/${indice}?narrador=${narradorId}`}
+                  className="mt-2 inline-block text-xs text-zinc-500 underline"
+                >
+                  Descargar
+                </a>
+              ) : null}
             </div>
           ))}
         </div>
