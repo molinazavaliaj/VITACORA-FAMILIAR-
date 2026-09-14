@@ -12,29 +12,35 @@ const mocks = vi.hoisted(() => ({
   generarPreguntasAdaptativas: vi.fn(),
   cerrarBitacora: vi.fn(),
   enviarPregunta: vi.fn(),
-  estado: { narrador: null as any, enviosRepregunta: [] as any[], capturas: [] as any[], ultimoOrden: 30 },
+  mandarHito: vi.fn(),
+  estado: { narrador: null as any, enviosRepregunta: [] as any[], capturas: [] as any[], ultimoOrden: 30, tieneAdaptativas: true, ofertas: [] as any[], preguntasHoy: [] as any[] },
 }));
 
 // Cliente de base falso: un "constructor de consultas" encadenable que resuelve
 // según la tabla y la operación, y captura los insert/update para revisarlos.
 vi.mock('../src/db/cliente.js', () => {
-  function resolver(tabla: string, op: string) {
+  function resolver(tabla: string, op: string, filtros: Record<string, any> = {}) {
     if (op === 'insert' && tabla === 'respuestas') return { data: { id: 'r-texto' }, error: null };
     if (op === 'insert' || op === 'update') return { data: null, error: null };
     if (tabla === 'narradores') return { data: mocks.estado.narrador };
-    if (tabla === 'envios') return { data: mocks.estado.enviosRepregunta };
+    if (tabla === 'envios') {
+      if (filtros.tipo === 'oferta_siguiente') return { data: mocks.estado.ofertas };
+      if (filtros.tipo === 'pregunta') return { data: mocks.estado.preguntasHoy };
+      return { data: mocks.estado.enviosRepregunta };
+    }
     if (tabla === 'preguntas') return { data: { texto: 'PREGUNTA_MOCK', orden: mocks.estado.ultimoOrden } };
     return { data: null };
   }
   function crearBuilder(tabla: string) {
-    const b: any = { _op: 'select' };
+    const b: any = { _op: 'select', _filtros: {} as Record<string, any> };
     const cadena = () => b;
-    b.select = cadena; b.eq = cadena; b.or = cadena; b.is = cadena; b.order = cadena; b.limit = cadena;
+    b.select = cadena; b.or = cadena; b.is = cadena; b.order = cadena; b.limit = cadena; b.gte = cadena;
+    b.eq = (col: string, val: any) => { b._filtros[col] = val; return b; };
     b.insert = (p: any) => { b._op = 'insert'; mocks.estado.capturas.push({ op: 'insert', tabla, p }); return b; };
     b.update = (p: any) => { b._op = 'update'; mocks.estado.capturas.push({ op: 'update', tabla, p }); return b; };
-    b.single = () => Promise.resolve(resolver(tabla, b._op));
-    b.maybeSingle = () => Promise.resolve(resolver(tabla, b._op));
-    b.then = (res: any, rej: any) => Promise.resolve(resolver(tabla, b._op)).then(res, rej);
+    b.single = () => Promise.resolve(resolver(tabla, b._op, b._filtros));
+    b.maybeSingle = () => Promise.resolve(resolver(tabla, b._op, b._filtros));
+    b.then = (res: any, rej: any) => Promise.resolve(resolver(tabla, b._op, b._filtros)).then(res, rej);
     return b;
   }
   return { db: { from: (t: string) => crearBuilder(t) } };
@@ -53,8 +59,15 @@ vi.mock('../src/ia/adaptativas.js', () => ({ generarPreguntasAdaptativas: mocks.
 vi.mock('../src/flujo/cierre.js', () => ({ cerrarBitacora: mocks.cerrarBitacora }));
 vi.mock('../src/flujo/preguntar.js', () => ({
   enviarPregunta: mocks.enviarPregunta,
-  esModoRapido: (c: any) => c?.modoRapido === true,
+  ritmoDe: (c: any) => (c?.ritmo === 'diario' || c?.ritmo === 'dos_por_dia' || c?.ritmo === 'seguido') ? c.ritmo : (c?.modoRapido === true ? 'seguido' : 'diario'),
 }));
+// El guion propio (14/09): la última pregunta que existe y si ya hay adaptativas.
+vi.mock('../src/db/guion.js', () => ({
+  ultimoOrden: async () => mocks.estado.ultimoOrden,
+  tieneAdaptativas: async () => mocks.estado.tieneAdaptativas,
+  preguntaDeOrden: async () => ({ texto: 'PREGUNTA_MOCK' }),
+}));
+vi.mock('../src/mail/hitos.js', () => ({ mandarHito: mocks.mandarHito }));
 
 import { procesarEntrante } from '../src/flujo/procesar.js';
 
@@ -67,6 +80,10 @@ beforeEach(() => {
   mocks.estado.enviosRepregunta = [];
   mocks.estado.capturas = [];
   mocks.estado.ultimoOrden = 30;
+  mocks.estado.tieneAdaptativas = true;
+  mocks.estado.ofertas = [];
+  mocks.estado.preguntasHoy = [];
+  mocks.mandarHito.mockReset();
   for (const fn of [mocks.enviarTexto, mocks.descargarAudio, mocks.guardarRespuestaAudio, mocks.transcribirYActualizar, mocks.evaluarRespuesta, mocks.detectarIntencion, mocks.generarPreguntasAdaptativas, mocks.cerrarBitacora, mocks.enviarPregunta]) fn.mockReset();
   mocks.enviarTexto.mockResolvedValue('wamid.mock');
   mocks.descargarAudio.mockResolvedValue(Buffer.from('audio-falso'));
@@ -77,7 +94,7 @@ beforeEach(() => {
 });
 
 const narradorEn = (estado: string, dia_actual = 0, contexto: Record<string, any> = {}) => ({
-  id: 'n1', telefono_whatsapp: TEL, como_le_dicen: 'Don Osvaldo', estado, dia_actual, contexto,
+  id: 'n1', familia_id: 'fam-1', telefono_whatsapp: TEL, como_le_dicen: 'Don Osvaldo', estado, dia_actual, contexto, zona_horaria: 'America/Argentina/Buenos_Aires',
 });
 
 describe('procesarEntrante', () => {
@@ -107,18 +124,57 @@ describe('procesarEntrante', () => {
     expect(insert('envios')?.p).toMatchObject({ tipo: 'repregunta', pregunta_orden: 5 });
   });
 
-  it('(e) al responder la pregunta 26 se disparan las 4 adaptativas', async () => {
-    mocks.estado.narrador = narradorEn('activo', 26);
+  it('(e) al responder la ÚLTIMA del guion (sea la 26 o la 23) sin adaptativas, se generan las 4 y NO cierra', async () => {
+    mocks.estado.narrador = narradorEn('activo', 23);
+    mocks.estado.ultimoOrden = 23;
+    mocks.estado.tieneAdaptativas = false;
     const m: MensajeEntrante = { telefono: TEL, tipo: 'audio', mediaId: 'media-1', waMessageId: 'w' };
+    // Cuando se generan, la última pasa a ser la 27.
+    mocks.generarPreguntasAdaptativas.mockImplementation(async () => { mocks.estado.ultimoOrden = 27; mocks.estado.tieneAdaptativas = true; });
     await procesarEntrante(m);
     expect(mocks.generarPreguntasAdaptativas).toHaveBeenCalledWith('n1');
+    expect(mocks.cerrarBitacora).not.toHaveBeenCalled();
   });
 
   it('no dispara las adaptativas en una pregunta cualquiera', async () => {
     mocks.estado.narrador = narradorEn('activo', 12);
+    mocks.estado.tieneAdaptativas = false;
     const m: MensajeEntrante = { telefono: TEL, tipo: 'audio', mediaId: 'media-1', waMessageId: 'w' };
     await procesarEntrante(m);
     expect(mocks.generarPreguntasAdaptativas).not.toHaveBeenCalled();
+  });
+
+  it('los hitos: la primera respuesta y la mitad del guion avisan a la familia por mail', async () => {
+    mocks.estado.narrador = narradorEn('activo', 1);
+    await procesarEntrante({ telefono: TEL, tipo: 'audio', mediaId: 'media-1', waMessageId: 'w' });
+    expect(mocks.mandarHito).toHaveBeenCalledWith(expect.objectContaining({ id: 'n1' }), 'primera');
+    mocks.mandarHito.mockReset();
+    mocks.estado.narrador = narradorEn('activo', 15); // 30 / 2
+    await procesarEntrante({ telefono: TEL, tipo: 'audio', mediaId: 'media-1', waMessageId: 'w' });
+    expect(mocks.mandarHito).toHaveBeenCalledWith(expect.objectContaining({ id: 'n1' }), 'mitad');
+  });
+
+  it('ritmo dos_por_dia: tras una respuesta suficiente se OFRECE otra, y un "sí" la manda', async () => {
+    mocks.estado.narrador = narradorEn('activo', 7, { ritmo: 'dos_por_dia' });
+    await procesarEntrante({ telefono: TEL, tipo: 'audio', mediaId: 'media-1', waMessageId: 'w' });
+    expect(mocks.enviarPregunta).not.toHaveBeenCalled();
+    expect(mocks.enviarTexto).toHaveBeenCalledWith(TEL, expect.stringContaining('otra pregunta ahora'));
+    expect(insert('envios')?.p).toMatchObject({ tipo: 'oferta_siguiente', pregunta_orden: 7 });
+
+    // Llega el "sí": la oferta está pendiente y no salió todavía la 8.
+    mocks.estado.ofertas = [{ id: 'o1' }];
+    mocks.estado.capturas = [];
+    await procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'Sí, dale', waMessageId: 'w2' });
+    expect(mocks.enviarPregunta).toHaveBeenCalledWith(expect.objectContaining({ id: 'n1' }), 8, { plantilla: false });
+    expect(insert('respuestas')).toBeUndefined(); // el "sí" no es una respuesta a la pregunta
+  });
+
+  it('ritmo dos_por_dia: con dos preguntas ya enviadas hoy, no ofrece más', async () => {
+    mocks.estado.narrador = narradorEn('activo', 8, { ritmo: 'dos_por_dia' });
+    const ahora = new Date().toISOString();
+    mocks.estado.preguntasHoy = [{ enviado_at: ahora }, { enviado_at: ahora }];
+    await procesarEntrante({ telefono: TEL, tipo: 'audio', mediaId: 'media-1', waMessageId: 'w' });
+    expect(mocks.enviarTexto).not.toHaveBeenCalled();
   });
 
   it('(f) responder la última pregunta dispara el cierre', async () => {

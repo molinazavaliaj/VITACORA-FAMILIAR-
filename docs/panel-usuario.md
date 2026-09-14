@@ -304,7 +304,7 @@ enviado está congelado, renumerar las futuras no rompe nada.
 
 ---
 
-## 11. Lo que cambia en el entrevistador (Joaquín)
+## 11. Lo que cambia en el entrevistador (Joaquín) — ✅ hecho el 14/09 (ver `ESTADO.md`)
 
 1. **Leer el guion del narrador.** `preguntaDeOrden` ya prefiere las filas propias — con
    todos los narradores copiados, la fija global no se usa más.

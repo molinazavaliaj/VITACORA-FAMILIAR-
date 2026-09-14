@@ -7,10 +7,13 @@ import { guardarRepreguntaEnviada } from '../db/envios.js';
 import { transcribirYActualizar } from '../ia/transcribir.js';
 import { evaluarRespuesta, detectarIntencion } from '../ia/cerebro.js';
 import { generarPreguntasAdaptativas } from '../ia/adaptativas.js';
+import { preguntaDeOrden, tieneAdaptativas, ultimoOrden } from '../db/guion.js';
+import { textoEvitar } from '../ia/evitar.js';
+import { mandarHito } from '../mail/hitos.js';
 import { cerrarBitacora } from './cierre.js';
-import { enviarPregunta, esModoRapido, type Narrador } from './preguntar.js';
+import { enviarPregunta, ritmoDe, type Narrador } from './preguntar.js';
 
-const ULTIMA_FIJA = 26; // después de la 26 ('su vida en 5 minutos') vienen las 4 adaptativas
+const MAXIMO_POR_DIA_DOS = 2; // ritmo 'dos_por_dia': la segunda se ofrece, no se impone
 
 async function buscarNarrador(telefono: string): Promise<Narrador | null> {
   const { data } = await db.from('narradores').select('*').eq('telefono_whatsapp', telefono).maybeSingle();
@@ -25,23 +28,47 @@ async function yaSeRepregunto(narradorId: string, orden: number): Promise<boolea
 }
 
 async function textoDePregunta(narradorId: string, orden: number): Promise<string> {
-  // Preferimos una pregunta propia del narrador (adaptativa/reemplazo) sobre la fija global.
-  const { data } = await db.from('preguntas').select('texto,narrador_id')
-    .or(`narrador_id.eq.${narradorId},narrador_id.is.null`)
-    .eq('orden', orden)
-    .order('narrador_id', { nullsFirst: false })
-    .limit(1).maybeSingle();
-  return (data as { texto?: string } | null)?.texto ?? '';
+  // La pregunta tal como se le mandó (personalizada) si la tenemos; si no, la del guion.
+  const n = await db.from('narradores').select('contexto').eq('id', narradorId).maybeSingle();
+  const enviada = ((n.data as { contexto?: Record<string, any> } | null)?.contexto?.preguntasEnviadas ?? {})[String(orden)];
+  if (typeof enviada === 'string' && enviada.trim()) return enviada;
+  return (await preguntaDeOrden(narradorId, orden))?.texto ?? '';
 }
 
-/** ¿Este orden es la última pregunta que existe para este narrador? */
+/** ¿Este orden es la última pregunta que existe para este narrador (su guion propio)? */
 async function esLaUltimaPregunta(narradorId: string, orden: number): Promise<boolean> {
-  if (orden < ULTIMA_FIJA) return false; // atajo: antes de la 25 nunca es la última
-  const { data } = await db.from('preguntas').select('orden')
-    .or(`narrador_id.eq.${narradorId},narrador_id.is.null`)
-    .order('orden', { ascending: false }).limit(1).maybeSingle();
-  const ultima = (data as { orden?: number } | null)?.orden;
-  return ultima !== undefined && orden >= ultima;
+  const ultima = await ultimoOrden(narradorId);
+  return ultima > 0 && orden >= ultima;
+}
+
+/** ¿Hay una oferta de "otra ahora" sin resolver para la pregunta vigente? */
+async function ofertaPendiente(narradorId: string, orden: number): Promise<boolean> {
+  const { data: oferta } = await db.from('envios').select('id')
+    .eq('narrador_id', narradorId).eq('tipo', 'oferta_siguiente').eq('pregunta_orden', orden).limit(1);
+  if ((oferta?.length ?? 0) === 0) return false;
+  const { data: siguiente } = await db.from('envios').select('id')
+    .eq('narrador_id', narradorId).eq('tipo', 'pregunta').eq('pregunta_orden', orden + 1).limit(1);
+  return (siguiente?.length ?? 0) === 0;
+}
+
+/** Cuántas preguntas salieron hoy (en la zona del narrador). */
+async function preguntasEnviadasHoy(n: Narrador, ahora = new Date()): Promise<number> {
+  const desde = new Date(ahora.getTime() - 24 * 3600_000).toISOString();
+  const { data } = await db.from('envios').select('enviado_at')
+    .eq('narrador_id', n.id).eq('tipo', 'pregunta').gte('enviado_at', desde);
+  const hoy = new Intl.DateTimeFormat('sv-SE', { timeZone: n.zona_horaria }).format(ahora);
+  return ((data as { enviado_at: string }[] | null) ?? [])
+    .filter((e) => new Intl.DateTimeFormat('sv-SE', { timeZone: n.zona_horaria }).format(new Date(e.enviado_at)) === hoy)
+    .length;
+}
+
+/** "sí" / "no" cortos, sin acentos ni signos: para la oferta de otra pregunta. */
+export function leerSiNo(texto: string): 'si' | 'no' | null {
+  const limpio = texto.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z\s]/g, ' ').trim();
+  if (!limpio || limpio.split(/\s+/).length > 6) return null;
+  if (/^(si|dale|bueno|ok|okey|claro|de acuerdo|va|vamos|si dale|si claro|si bueno|si vamos|bueno dale|dale si|si si)\b/.test(limpio)) return 'si';
+  if (/^(no|ahora no|manana|mañana|despues|mas tarde|hoy no|no gracias)\b/.test(limpio)) return 'no';
+  return null;
 }
 
 async function marcarRespondido(narradorId: string): Promise<void> {
@@ -93,6 +120,7 @@ async function manejarConsentimiento(narrador: Narrador, m: MensajeEntrante): Pr
     narrador.telefono_whatsapp,
     `¡Qué alegría, ${narrador.como_le_dicen}! Mañana a la mañana le llega la primera pregunta. No hay apuro ni respuestas incorrectas: esto es una charla entre usted y yo, a su ritmo. 📖`,
   );
+  await mandarHito(narrador, 'acepto');
 }
 
 // Paso 3: pausado → activo con cualquier mensaje.
@@ -118,6 +146,21 @@ async function manejarTexto(narrador: Narrador, m: MensajeEntrante): Promise<voi
   if (narrador.dia_actual < 1 || !m.texto) return; // sin pregunta vigente todavía
 
   const orden = narrador.dia_actual;
+
+  // ¿Le ofrecimos otra pregunta ahora? Un "sí" corto la manda; un "no", la deja para mañana.
+  if (await ofertaPendiente(narrador.id, orden)) {
+    const respuesta = leerSiNo(m.texto);
+    if (respuesta === 'si') {
+      await enviarPregunta(narrador, orden + 1, { plantilla: false });
+      return;
+    }
+    if (respuesta === 'no') {
+      await enviarTexto(narrador.telefono_whatsapp, `Perfecto, ${narrador.como_le_dicen}. Mañana a la mañana le llega la siguiente. Que descanse. 🌙`);
+      return;
+    }
+    // Ni sí ni no: es una respuesta más a la pregunta vigente.
+  }
+
   const esRepregunta = await yaSeRepregunto(narrador.id, orden);
   const { data, error } = await db.from('respuestas')
     .insert({
@@ -150,8 +193,13 @@ async function trasResponder(
   // Paso 6: solo la PRIMERA respuesta a una pregunta se evalúa (las de la repregunta, no).
   let repreguntaEnviada = false;
   if (!esRepregunta) {
+    // Los hitos de la familia (§9): la primera respuesta, y la mitad del guion.
+    if (orden === 1) await mandarHito(narrador, 'primera');
+    const total = await ultimoOrden(narrador.id);
+    if (total > 2 && orden === Math.ceil(total / 2)) await mandarHito(narrador, 'mitad');
+
     const pregunta = await textoDePregunta(narrador.id, orden);
-    const evaluacion = await evaluarRespuesta(pregunta, transcripcion, duracionSegundos);
+    const evaluacion = await evaluarRespuesta(pregunta, transcripcion, duracionSegundos, textoEvitar(narrador.contexto));
     if (!evaluacion.suficiente && evaluacion.repregunta && !(await yaSeRepregunto(narrador.id, orden))) {
       const waId = await enviarTexto(narrador.telefono_whatsapp, evaluacion.repregunta);
       await db.from('envios').insert({
@@ -164,9 +212,13 @@ async function trasResponder(
     }
   }
 
-  // Paso 8: al completar la respuesta 26, el cerebro estudia toda la historia
-  // y genera las 4 preguntas finales a medida (órdenes 27-30).
-  if (orden === ULTIMA_FIJA) await generarPreguntasAdaptativas(narrador.id);
+  // Paso 8 (§11.2): al responder la ÚLTIMA pregunta que existe en su guion —sea
+  // la 26 o la 36, según lo que la familia sacó o sumó— el cerebro estudia toda
+  // la historia y escribe las 4 finales a medida (N+1..N+4). Recién si ya las
+  // tenía y esta era la última, la entrevista termina.
+  if (await esLaUltimaPregunta(narrador.id, orden) && !(await tieneAdaptativas(narrador.id))) {
+    await generarPreguntasAdaptativas(narrador.id);
+  }
 
   // Paso 7: si acaba de responder la última pregunta que existe para él,
   // se despide y queda 'completado'.
@@ -175,11 +227,29 @@ async function trasResponder(
     return;
   }
 
-  // Modo rápido (pilotos): la siguiente pregunta sale YA, sin esperar al día siguiente.
-  // Como el narrador acaba de escribir, la ventana de 24 hs está abierta: va como texto
-  // libre y no depende de que la plantilla esté aprobada.
   // Si salió una repregunta, esperamos su respuesta antes de avanzar.
-  if (!repreguntaEnviada && esModoRapido(narrador.contexto)) {
+  if (repreguntaEnviada) return;
+
+  // El ritmo (§6.4). Como el narrador acaba de escribir, la ventana de 24 hs
+  // está abierta: lo que salga va como texto libre, sin plantilla.
+  //   seguido     → la siguiente sale YA (los pilotos, el "modo rápido").
+  //   dos_por_dia → se le OFRECE otra ahora (como mucho dos por día); un "sí" la manda.
+  //   diario      → nada: mañana, a su hora, el scheduler manda la siguiente.
+  const ritmo = ritmoDe(narrador.contexto);
+  if (ritmo === 'seguido') {
     await enviarPregunta(narrador, orden + 1, { plantilla: false });
+  } else if (ritmo === 'dos_por_dia' && (await preguntasEnviadasHoy(narrador)) < MAXIMO_POR_DIA_DOS) {
+    await ofrecerSiguiente(narrador, orden);
   }
+}
+
+/** La oferta de "otra ahora" (§11.4). Queda en `envios` como 'oferta_siguiente' para leer su respuesta. */
+async function ofrecerSiguiente(narrador: Narrador, orden: number): Promise<void> {
+  const waId = await enviarTexto(
+    narrador.telefono_whatsapp,
+    `Qué lindo lo que contó, ${narrador.como_le_dicen}. ¿Tiene ganas de seguir con otra pregunta ahora? Si me dice que sí, se la mando. Si prefiere, mañana a la mañana le llega la siguiente.`,
+  );
+  await db.from('envios').insert({
+    narrador_id: narrador.id, tipo: 'oferta_siguiente', pregunta_orden: orden, wa_message_id: waId,
+  });
 }

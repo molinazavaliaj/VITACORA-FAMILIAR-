@@ -18,6 +18,7 @@ const mocks = vi.hoisted(() => ({
     familias: { nombre: 'Martina' } as any,
   },
   capturas: [] as any[],
+  ultimoOrden: 26,
 }));
 
 // Base falsa: builder encadenable que recuerda los filtros y resuelve por tabla.
@@ -79,6 +80,17 @@ vi.mock('../src/ia/adaptativas.js', () => ({
   generarPreguntasAdaptativas: mocks.generarPreguntasAdaptativas,
   PRIMERA_ADAPTATIVA: 27, ULTIMA_ADAPTATIVA: 30,
 }));
+// El guion propio (14/09): se lee por estas funciones, no con .or() sobre la tabla.
+vi.mock('../src/db/guion.js', () => ({
+  preguntaDeOrden: async (_id: string, orden: number) => {
+    const fila = mocks.filas.preguntas[0] ?? null;
+    return fila ? { id: 'p', orden, tipo: 'fija', foto_id: null, ...fila } : null;
+  },
+  ultimoOrden: async () => mocks.ultimoOrden,
+  tieneAdaptativas: async () => mocks.filas.preguntas.some((p: any) => p.tipo === 'adaptativa'),
+  capitulosDe: async () => [...new Set(mocks.filas.preguntas.map((p: any) => p.capitulo))],
+}));
+vi.mock('../src/mail/hitos.js', () => ({ mandarHito: vi.fn() }));
 vi.mock('../src/db/historia.js', () => ({
   armarHistoria: mocks.armarHistoria, ultimaTranscripcion: mocks.ultimaTranscripcion, traerRespuestas: vi.fn(),
 }));
@@ -104,6 +116,7 @@ beforeEach(() => {
   mocks.filas.respuestas = [];
   mocks.filas.preguntas = [{ texto: 'PREGUNTA_1', capitulo: 'La infancia', narrador_id: null }];
   mocks.capturas = [];
+  mocks.ultimoOrden = 26;
   for (const fn of Object.values(mocks)) if (typeof fn === 'function' && 'mockReset' in fn) (fn as any).mockReset();
   mocks.enviarPlantilla.mockResolvedValue('wamid.p');
   mocks.enviarAudioPorLink.mockResolvedValue('wamid.a');

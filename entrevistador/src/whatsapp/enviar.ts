@@ -36,3 +36,8 @@ export function enviarPlantilla(telefono: string, nombre: string, variables: str
 export function enviarAudioPorLink(telefono: string, url: string) {
   return postMensaje({ to: telefono, type: 'audio', audio: { link: url } });
 }
+
+/** Una imagen por link firmado (la pregunta-foto). `caption` opcional: el epígrafe. */
+export function enviarImagenPorLink(telefono: string, url: string, caption?: string) {
+  return postMensaje({ to: telefono, type: 'image', image: caption ? { link: url, caption } : { link: url } });
+}

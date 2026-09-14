@@ -302,6 +302,39 @@ memoria), `scripts/manual.ts` → comando nuevo `resumenes <narrador>
 resúmenes del set dorado, mide el costo y compara las preguntas 23/25/26 con
 memoria vs las versiones sin memoria.
 
+### 2026-09-14 — el entrevistador lee el guion de la familia (3t.10, Joaquín)
+
+Lo que el panel edita ahora le llega al narrador. Cambios en `entrevistador/`, todos
+aditivos, 124 tests:
+
+- **El guion propio manda** (`src/db/guion.ts`): si el narrador tiene sus filas en
+  `preguntas`, la plantilla global no cuenta. Antes se mezclaban con un `.or()` y, si
+  la familia sacaba la 26, "la última" seguía siendo la 26 global y nunca terminaba.
+- **Las 4 adaptativas van al final real**: al responder la última que exista (la 23 o
+  la 36, según lo que sacó o sumó la familia) se generan en N+1..N+4. `PRIMERA_ADAPTATIVA`
+  / `ULTIMA_ADAPTATIVA` quedan solo para `scripts/manual.ts` (Naza), que sigue asumiendo
+  26 — ⚠️ cuando quieras, cambiá ahí a `ultimoOrden()` y listo.
+- **Pregunta-foto**: si la pregunta tiene `foto_id`, la imagen sale por WhatsApp (link
+  firmado, con el epígrafe) después del texto. `enviarImagenPorLink` en `enviar.ts`.
+- **Ritmo** (`contexto.ritmo`): `seguido` = la siguiente sale ya (el modo rápido de los
+  pilotos, `modoRapido` sigue valiendo); `dos_por_dia` = tras una respuesta suficiente
+  se le OFRECE otra ("¿tiene ganas de seguir con otra ahora?"), queda en `envios` como
+  `oferta_siguiente`, y un "sí" corto la manda (máximo dos por día); `diario` = nada.
+- **`contexto.evitar`** entra en todos los prompts (evaluar, personalizar, reemplazo,
+  adaptativas, sugeridas): "temas que la familia pidió no tocar".
+- **Mails de hitos** (`src/mail/hitos.ts`, Resend por HTTP como la web): `acepto`,
+  `primera`, `mitad`, `silencio`. Una vez por narrador, anotado en
+  `contexto.mailsEnviados`. Sin `RESEND_API_KEY` avisa y sigue. Los del libro
+  (terminó, recordatorios, listo) siguen siendo de la fábrica.
+- **Sugeridas a pedido**: `POST /sugeridas` `{narradorId}` con header `x-clave` =
+  `SUGERIDAS_CLAVE` → 5 preguntas (no se guardan; la web las ofrece y la familia elige).
+  Sin la variable, la ruta responde 404. La web todavía no lo llama (3t.12).
+
+**Variables nuevas en Railway (entrevistador):** `RESEND_API_KEY` (la misma de Vercel),
+`MAIL_FROM` (opcional, default `Vitácora Familiar <hola@vitacorafamiliar.com>`),
+`URL_BASE` (`https://www.vitacorafamiliar.com`), `SUGERIDAS_CLAVE` (un secreto cualquiera,
+el mismo que después va en Vercel para que la web lo llame).
+
 ## Próximos hitos
 
 1. Deploy del entrevistador + Meta (socio) → probar la entrevista real con Imma.

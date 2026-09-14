@@ -35,6 +35,13 @@ de sus listas, así que un narrador sin pagar no recibe WhatsApp. Si el pago no 
 narrador queda ahí y la web lo limpia; no es un estado del que el entrevistador tenga que
 salir.
 
+`narradores.contexto` — claves que escribe el **entrevistador** (14/09, además de las de
+Naza `preguntasEnviadas` / `repreguntasEnviadas` / `resumenesCapitulos`):
+`mailsEnviados` (lista de hitos ya mandados: `acepto`, `primera`, `mitad`, `silencio`).
+La web escribe `ritmo` y `evitar`; el entrevistador los lee. Cada escritura relee el
+contexto antes de guardar para no pisar al otro. `envios.tipo = 'oferta_siguiente'`
+(migración 12/09) ya se usa: la oferta de "otra pregunta ahora" en ritmo `dos_por_dia`.
+
 `pedidos.extras` (jsonb, misma migración): **qué se compró** (13/09: ya no hay "base";
 los tres productos son independientes y al menos uno va).
 ```

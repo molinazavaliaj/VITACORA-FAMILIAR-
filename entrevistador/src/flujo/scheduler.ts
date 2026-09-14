@@ -2,6 +2,7 @@ import cron from 'node-cron';
 import { db } from '../db/cliente.js';
 import { enviarPlantilla } from '../whatsapp/enviar.js';
 import { enviarPregunta, type Narrador } from './preguntar.js';
+import { mandarHito } from '../mail/hitos.js';
 
 export { capituloNoAplica } from './preguntar.js';
 
@@ -139,6 +140,7 @@ async function prenderAlertasDeSilencio(ahora: Date): Promise<void> {
       const dias = (ahora.getTime() - new Date(n.ultima_respuesta_at).getTime()) / 86_400_000;
       if (dias < DIAS_SILENCIO) return;
       await db.from('narradores').update({ alerta_silencio: true }).eq('id', n.id);
+      await mandarHito(n, 'silencio'); // §9: "un llamado tuyo ayuda"
     });
   }
 }

@@ -2,22 +2,30 @@ import Anthropic from '@anthropic-ai/sdk';
 import { cargarConfig } from '../config.js';
 import { db } from '../db/cliente.js';
 import { armarHistoria } from '../db/historia.js';
+import { capitulosDe, tieneAdaptativas, ultimoOrden } from '../db/guion.js';
+import { textoEvitar } from './evitar.js';
 
 const MODELO = 'claude-opus-5';
+/** Cuántas escribe el biógrafo al final. Se insertan después de la última que exista (§11.2). */
+export const CANTIDAD = 4;
+/**
+ * @deprecated Desde el 14/09 las adaptativas van en N+1..N+4 (N = la última del
+ * guion propio), no fijas en 27-30. Quedan solo para `scripts/manual.ts` (Naza),
+ * que sigue asumiendo el guion de 26. No usar en código nuevo.
+ */
 export const PRIMERA_ADAPTATIVA = 27;
 export const ULTIMA_ADAPTATIVA = 30;
-const CANTIDAD = 4;
 // Con 2000 el modelo se quedaba sin lugar y devolvía un JSON cortado por la mitad:
 // JSON.parse explotaba y el narrador quedaba sin las preguntas 27-30 justo el día 26.
 export const MAX_TOKENS = 4000;
 const INTENTOS = 2;
 
-export const PROMPT_ADAPTATIVAS = (nombre: string, historiaCompleta: string, capitulos: string[]) => `
-Leíste la historia de vida completa que ${nombre} contó en 26 entrevistas
-(las 25 del guion capítulo por capítulo, más su vida entera resumida en cinco minutos):
+export const PROMPT_ADAPTATIVAS = (nombre: string, historiaCompleta: string, capitulos: string[], cuantasContestadas = 26, evitar = '') => `
+Leíste la historia de vida completa que ${nombre} contó en ${cuantasContestadas} entrevistas
+(el guion capítulo por capítulo, y su vida entera resumida en cinco minutos):
 
 ${historiaCompleta}
-
+${evitar}
 Sos su biógrafo y te quedan exactamente 4 preguntas para completar el libro. Buscá:
 - Personas que nombró varias veces pero nunca exploró (un hermano, un amigo, un maestro).
 - Épocas o momentos con huecos evidentes.
@@ -52,23 +60,24 @@ export function parsearCuatro(crudo: string): PreguntaGenerada[] {
 }
 
 /**
- * Genera las 4 preguntas finales personalizadas (órdenes 27-30).
- * Idempotente: si ya existen, no hace nada.
+ * Genera las 4 preguntas finales personalizadas, a continuación de la última
+ * que exista para este narrador (§11.2: la familia puede haber sacado o sumado
+ * preguntas, así que no es "27-30", es "N+1..N+4"). Idempotente: si ya hay
+ * adaptativas, no hace nada.
  */
 export async function generarPreguntasAdaptativas(narradorId: string): Promise<void> {
-  const { data: existentes } = await db.from('preguntas').select('id')
-    .eq('narrador_id', narradorId).gte('orden', PRIMERA_ADAPTATIVA).limit(1);
-  if ((existentes?.length ?? 0) > 0) return;
+  if (await tieneAdaptativas(narradorId)) return;
 
   const { data: narrador } = await db.from('narradores')
-    .select('como_le_dicen').eq('id', narradorId).maybeSingle();
-  const comoLeDicen = (narrador as { como_le_dicen?: string } | null)?.como_le_dicen ?? 'el narrador';
+    .select('como_le_dicen, contexto').eq('id', narradorId).maybeSingle();
+  const n = narrador as { como_le_dicen?: string; contexto?: Record<string, unknown> } | null;
+  const comoLeDicen = n?.como_le_dicen ?? 'el narrador';
 
-  const { data: caps } = await db.from('preguntas').select('capitulo').is('narrador_id', null);
-  const capitulos = [...new Set(((caps as { capitulo: string }[] | null) ?? []).map((c) => c.capitulo))];
+  const capitulos = await capitulosDe(narradorId);
+  const desde = (await ultimoOrden(narradorId)) + 1;
 
   const historia = await armarHistoria(narradorId);
-  const prompt = PROMPT_ADAPTATIVAS(comoLeDicen, historia, capitulos);
+  const prompt = PROMPT_ADAPTATIVAS(comoLeDicen, historia, capitulos, desde - 1, textoEvitar(n?.contexto));
 
   // Estas 4 preguntas son el final del libro: si el modelo devuelve algo raro,
   // reintentamos antes de dejar al narrador sin preguntas después de 26 días.
@@ -92,7 +101,7 @@ export async function generarPreguntasAdaptativas(narradorId: string): Promise<v
 
   const filas = preguntas.map((p, i) => ({
     narrador_id: narradorId,
-    orden: PRIMERA_ADAPTATIVA + i,
+    orden: desde + i,
     texto: p.texto,
     capitulo: p.capitulo,
     tipo: 'adaptativa',

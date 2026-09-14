@@ -89,10 +89,10 @@ export async function generarReconocimiento(
  * tenía ocho años"): eso es insuficiente, pero la repregunta va a AHONDAR en
  * eso, no a repetir una frase armada.
  */
-export const PROMPT_EVALUAR = (pregunta: string, transcripcion: string, duracionSegundos: number) =>
+export const PROMPT_EVALUAR = (pregunta: string, transcripcion: string, duracionSegundos: number, evitar = '') =>
   `Pregunta de hoy: "${pregunta}"
 Respuesta (duró ${duracionSegundos} segundos): "${transcripcion}"
-
+${evitar}
 ¿Con esta respuesta se puede escribir la página del libro de hoy? Juzgá por SUSTANCIA y contá los detalles concretos que hay: nombres, lugares, fechas, oficios, escenas, cosas que alguien dijo. El largo es una pista, no la regla.
 
 ALCANZA si hay con qué escribir: dos o tres detalles concretos, con al menos una escena o un nombre propio. Un relato largo y con hechos alcanza, aunque siempre se pueda profundizar más.
@@ -111,11 +111,11 @@ La repregunta la pensás SIEMPRE vos, para esta respuesta y este narrador: no ex
 Respondé SOLO con JSON: {"suficiente": true} o {"suficiente": false, "repregunta": "..."}`;
 
 export async function evaluarRespuesta(
-  pregunta: string, transcripcion: string, duracionSegundos: number,
+  pregunta: string, transcripcion: string, duracionSegundos: number, evitar = '',
 ): Promise<{ suficiente: boolean; repregunta?: string }> {
   const respuesta = await cliente.messages.create({
     model: MODELO_EVALUACION, max_tokens: 500, system: ESTILO_CEREBRO,
-    messages: [{ role: 'user', content: PROMPT_EVALUAR(pregunta, transcripcion, duracionSegundos) }],
+    messages: [{ role: 'user', content: PROMPT_EVALUAR(pregunta, transcripcion, duracionSegundos, evitar) }],
   });
   // Si el JSON no se puede leer, seguimos: hoy no hay repregunta.
   return extraerJson<{ suficiente: boolean; repregunta?: string }>(textoDe(respuesta), { suficiente: true })!;
@@ -126,13 +126,13 @@ export async function evaluarRespuesta(
  * (ej. "Los hijos" si no tuvo hijos): pregunta por lo más rico que ya contó.
  */
 export async function generarPreguntaReemplazo(
-  comoLeDicen: string, historiaCompleta: string, capitulos: string[], capituloQueNoAplica: string,
+  comoLeDicen: string, historiaCompleta: string, capitulos: string[], capituloQueNoAplica: string, evitar = '',
 ): Promise<{ texto: string; capitulo: string }> {
   const respuesta = await cliente.messages.create({
     model: MODELO, max_tokens: 500, system: ESTILO_CEREBRO,
     messages: [{
       role: 'user',
-      content: `Sos el biógrafo de ${comoLeDicen}. Esto es lo que contó hasta ahora:\n\n${historiaCompleta}\n\nLa pregunta que tocaba hoy era del capítulo «${capituloQueNoAplica}», que NO aplica a su vida. Necesitás reemplazarla por una pregunta que aproveche mejor este día.\n\nBuscá en lo que ya contó: una persona que nombró y no exploró, una época con huecos, algo que claramente disfrutó contar y da para más. La pregunta debe sonar a que LO ESCUCHASTE (referí lo que él contó), tratarlo de usted, y ser una sola pregunta clara. Jamás menciones el tema que no aplica ni que estás reemplazando nada.\n\nCapítulos disponibles del libro: ${capitulos.join(', ')}.\n\nRespondé SOLO con JSON: {"texto": "...", "capitulo": "..."}`,
+      content: `Sos el biógrafo de ${comoLeDicen}. Esto es lo que contó hasta ahora:\n\n${historiaCompleta}\n${evitar}\nLa pregunta que tocaba hoy era del capítulo «${capituloQueNoAplica}», que NO aplica a su vida. Necesitás reemplazarla por una pregunta que aproveche mejor este día.\n\nBuscá en lo que ya contó: una persona que nombró y no exploró, una época con huecos, algo que claramente disfrutó contar y da para más. La pregunta debe sonar a que LO ESCUCHASTE (referí lo que él contó), tratarlo de usted, y ser una sola pregunta clara. Jamás menciones el tema que no aplica ni que estás reemplazando nada.\n\nCapítulos disponibles del libro: ${capitulos.join(', ')}.\n\nRespondé SOLO con JSON: {"texto": "...", "capitulo": "..."}`,
     }],
   });
   const reemplazo = extraerJson<{ texto: string; capitulo: string }>(textoDe(respuesta), null);

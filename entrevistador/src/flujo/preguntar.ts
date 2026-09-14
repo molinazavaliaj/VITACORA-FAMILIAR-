@@ -1,10 +1,12 @@
 import { db } from '../db/cliente.js';
-import { enviarPlantilla, enviarTexto, enviarAudioPorLink } from '../whatsapp/enviar.js';
+import { enviarPlantilla, enviarTexto, enviarAudioPorLink, enviarImagenPorLink } from '../whatsapp/enviar.js';
 import { generarPreguntaReemplazo } from '../ia/cerebro.js';
 import { personalizarPregunta } from '../ia/personalizar.js';
 import { generarAudioVoz } from '../ia/voz.js';
 import { armarHistoria } from '../db/historia.js';
-import { generarPreguntasAdaptativas, PRIMERA_ADAPTATIVA, ULTIMA_ADAPTATIVA } from '../ia/adaptativas.js';
+import { generarPreguntasAdaptativas } from '../ia/adaptativas.js';
+import { capitulosDe, preguntaDeOrden as preguntaDelGuion, tieneAdaptativas, ultimoOrden, type PreguntaDelGuion } from '../db/guion.js';
+import { textoEvitar } from '../ia/evitar.js';
 
 export type Narrador = {
   id: string;
@@ -28,33 +30,51 @@ export function capituloNoAplica(contexto: Record<string, any>, capitulo: string
   return false;
 }
 
-/** ¿Este narrador está en modo rápido (pilotos: la siguiente pregunta sale al instante)? */
-export function esModoRapido(contexto: Record<string, any>): boolean {
-  return contexto?.modoRapido === true;
+export type Ritmo = 'diario' | 'dos_por_dia' | 'seguido';
+
+/**
+ * El ritmo de la entrevista (docs/panel-usuario.md §6.4): lo elige la familia
+ * en el panel. `modoRapido` es el nombre viejo de 'seguido' (los pilotos).
+ */
+export function ritmoDe(contexto: Record<string, any>): Ritmo {
+  const r = contexto?.ritmo;
+  if (r === 'diario' || r === 'dos_por_dia' || r === 'seguido') return r;
+  return contexto?.modoRapido === true ? 'seguido' : 'diario';
 }
 
-/** La pregunta de ese orden: la propia del narrador si existe, si no la fija global. */
-export async function preguntaDeOrden(narradorId: string, orden: number) {
-  const { data } = await db.from('preguntas').select('texto,capitulo,narrador_id,tipo')
-    .or(`narrador_id.eq.${narradorId},narrador_id.is.null`)
-    .eq('orden', orden)
-    .order('narrador_id', { nullsFirst: false })
-    .limit(1).maybeSingle();
-  return data as { texto: string; capitulo: string; narrador_id: string | null; tipo: string } | null;
+/** ¿Este narrador está en modo rápido (la siguiente pregunta sale al instante)? */
+export function esModoRapido(contexto: Record<string, any>): boolean {
+  return ritmoDe(contexto) === 'seguido';
+}
+
+/** La pregunta de ese orden, del guion propio del narrador (o la plantilla si aún no tiene). */
+export async function preguntaDeOrden(narradorId: string, orden: number): Promise<PreguntaDelGuion | null> {
+  return preguntaDelGuion(narradorId, orden);
 }
 
 /** Genera y guarda una pregunta personalizada que reemplaza a la fija que no aplica. */
 async function crearReemplazo(n: Narrador, orden: number, capituloQueNoAplica: string): Promise<string> {
-  const { data: caps } = await db.from('preguntas').select('capitulo').is('narrador_id', null);
-  const capitulos = [...new Set(((caps as { capitulo: string }[] | null) ?? []).map((c) => c.capitulo))]
-    .filter((c) => c !== capituloQueNoAplica);
+  const capitulos = (await capitulosDe(n.id)).filter((c) => c !== capituloQueNoAplica);
   const nueva = await generarPreguntaReemplazo(
-    n.como_le_dicen, await armarHistoria(n.id), capitulos, capituloQueNoAplica,
+    n.como_le_dicen, await armarHistoria(n.id), capitulos, capituloQueNoAplica, textoEvitar(n.contexto),
   );
   await db.from('preguntas').insert({
     narrador_id: n.id, orden, texto: nueva.texto, capitulo: nueva.capitulo, tipo: 'adaptativa',
   });
   return nueva.texto;
+}
+
+/** La foto de la pregunta-foto: el original que subió la familia, por link firmado. Si falla, la pregunta va igual. */
+async function enviarFotoDeLaPregunta(n: Narrador, fotoId: string): Promise<void> {
+  try {
+    const { data: foto } = await db.from('fotos').select('storage_path, epigrafe').eq('id', fotoId).maybeSingle();
+    const f = foto as { storage_path?: string; epigrafe?: string | null } | null;
+    if (!f?.storage_path) return;
+    const { data } = await db.storage.from('audios').createSignedUrl(f.storage_path, 3600);
+    if (data?.signedUrl) await enviarImagenPorLink(n.telefono_whatsapp, data.signedUrl, f.epigrafe ?? undefined);
+  } catch (err) {
+    console.error(`preguntar: no pude mandar la foto ${fotoId} a ${n.id}:`, err);
+  }
 }
 
 /** La versión hablada de la pregunta: se sube a Storage y se manda por link firmado. */
@@ -80,10 +100,11 @@ export async function enviarPregunta(
   n: Narrador, orden: number, { plantilla }: { plantilla: boolean },
 ): Promise<boolean> {
   let pregunta = await preguntaDeOrden(n.id, orden);
-  // Red de seguridad: las 27-30 se generan el día 26. Si esa generación falló
-  // (el modelo devolvió algo raro, se cayó la API), el narrador quedaría clavado
-  // para siempre después de 26 días de entrevistas. Reintentamos acá.
-  if (!pregunta && orden >= PRIMERA_ADAPTATIVA && orden <= ULTIMA_ADAPTATIVA) {
+  // Red de seguridad: las 4 finales se generan al responder la última del guion.
+  // Si esa generación falló (el modelo devolvió algo raro, se cayó la API), el
+  // narrador quedaría clavado para siempre. Si piden la que sigue a la última y
+  // todavía no hay adaptativas, se reintenta acá.
+  if (!pregunta && !(await tieneAdaptativas(n.id)) && orden === (await ultimoOrden(n.id)) + 1) {
     await generarPreguntasAdaptativas(n.id);
     pregunta = await preguntaDeOrden(n.id, orden);
   }
@@ -116,6 +137,11 @@ export async function enviarPregunta(
   const waId = plantilla
     ? await enviarPlantilla(n.telefono_whatsapp, 'pregunta_diaria', [texto])
     : await enviarTexto(n.telefono_whatsapp, mensaje);
+
+  // La pregunta-foto (§6.3): la familia subió una foto y pregunta sobre ella.
+  // Va después del texto (la plantilla abre la conversación; la imagen, dentro
+  // de la ventana, sale como mensaje libre).
+  if (pregunta.foto_id) await enviarFotoDeLaPregunta(n, pregunta.foto_id);
 
   await enviarVozDeLaPregunta(n, orden, texto);
 

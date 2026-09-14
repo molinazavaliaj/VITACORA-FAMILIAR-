@@ -33,6 +33,7 @@
  * aparte (ver `recordarEnviada`).
  */
 import Anthropic from '@anthropic-ai/sdk';
+import { textoEvitar } from './evitar.js';
 import { cargarConfig } from '../config.js';
 import { db } from '../db/cliente.js';
 import { fichaEnTexto } from './ficha.js';
@@ -60,8 +61,8 @@ type RespuestaPrevia = {
   pregunta_orden: number; transcripcion: string | null; texto_directo: string | null; es_repregunta: boolean;
 };
 
-export const PROMPT_PERSONALIZAR = (original: string, ficha: string, previas: string, resumenes = '') => `Sos el biógrafo de esta persona: le escribís todos los días por WhatsApp y querés que sienta que lo venís escuchando.
-
+export const PROMPT_PERSONALIZAR = (original: string, ficha: string, previas: string, resumenes = '', evitar = '') => `Sos el biógrafo de esta persona: le escribís todos los días por WhatsApp y querés que sienta que lo venís escuchando.
+${evitar}
 ESTO ES LO QUE YA CONTÓ (lo único que sabés de él):
 ${resumenes ? `MEMORIA DE LOS CAPÍTULOS QUE YA CERRÓ:\n${resumenes}\n\n` : ''}LO QUE VIENE CONTANDO ESTOS DÍAS:
 ${previas || '(todavía no contó nada)'}
@@ -197,7 +198,7 @@ export async function personalizarPregunta(
     const resumenes = await memoriaDeCapitulos(n, orden);
     const respuesta = await cliente().messages.create({
       model: MODELO, max_tokens: MAX_TOKENS,
-      messages: [{ role: 'user', content: PROMPT_PERSONALIZAR(original, fichaEnTexto(n.contexto, n.como_le_dicen), previas, resumenes) }],
+      messages: [{ role: 'user', content: PROMPT_PERSONALIZAR(original, fichaEnTexto(n.contexto, n.como_le_dicen), previas, resumenes, textoEvitar(n.contexto)) }],
     });
     const bloque = respuesta.content.find((b) => b.type === 'text');
     const cruda = bloque && bloque.type === 'text' ? bloque.text.trim().replace(/^["'«]|["'»]$/g, '') : '';

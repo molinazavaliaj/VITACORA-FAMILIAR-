@@ -13,10 +13,17 @@ const mocks = vi.hoisted(() => ({
   crear: vi.fn(),
   armarHistoria: vi.fn(),
   yaHayAdaptativas: false,
+  ultimoOrden: 26,
   capturas: [] as any[],
 }));
 
 vi.mock('@anthropic-ai/sdk', () => ({ default: class { messages = { create: mocks.crear }; } }));
+// El guion del narrador (14/09): las adaptativas van después de la última que exista.
+vi.mock('../src/db/guion.js', () => ({
+  tieneAdaptativas: async () => mocks.yaHayAdaptativas,
+  ultimoOrden: async () => mocks.ultimoOrden,
+  capitulosDe: async () => ['La infancia', 'El amor'],
+}));
 vi.mock('../src/db/historia.js', () => ({
   armarHistoria: mocks.armarHistoria, ultimaTranscripcion: vi.fn(), traerRespuestas: vi.fn(),
 }));
@@ -56,18 +63,29 @@ const CUATRO = JSON.stringify([
 beforeEach(() => {
   mocks.capturas = [];
   mocks.yaHayAdaptativas = false;
+  mocks.ultimoOrden = 26;
   mocks.crear.mockReset();
   mocks.armarHistoria.mockReset().mockResolvedValue('Toda la historia de Osvaldo...');
 });
 
 describe('generarPreguntasAdaptativas', () => {
-  it('inserta exactamente 4 preguntas con orden 27-30', async () => {
+  it('inserta exactamente 4 preguntas después de la última del guion (26 → 27-30)', async () => {
     mocks.crear.mockResolvedValueOnce({ content: [{ type: 'text', text: CUATRO }] });
     await generarPreguntasAdaptativas('n1');
     const insert = mocks.capturas.find((c) => c.tabla === 'preguntas');
     expect(insert.p).toHaveLength(4);
     expect(insert.p.map((f: any) => f.orden)).toEqual([27, 28, 29, 30]);
     expect(insert.p[0]).toMatchObject({ narrador_id: 'n1', tipo: 'adaptativa', capitulo: 'Las raíces' });
+  });
+
+  it('si la familia sacó preguntas y el guion termina en la 23, van en 24-27 (14/09)', async () => {
+    mocks.ultimoOrden = 23;
+    mocks.crear.mockResolvedValueOnce({ content: [{ type: 'text', text: CUATRO }] });
+    await generarPreguntasAdaptativas('n1');
+    const insert = mocks.capturas.find((c) => c.tabla === 'preguntas');
+    expect(insert.p.map((f: any) => f.orden)).toEqual([24, 25, 26, 27]);
+    // y el prompt dice cuántas contestó de verdad
+    expect(mocks.crear.mock.calls[0][0].messages[0].content).toContain('23 entrevistas');
   });
 
   it('es idempotente: si ya existen, no llama al modelo ni inserta', async () => {
