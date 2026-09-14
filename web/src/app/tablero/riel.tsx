@@ -1,5 +1,7 @@
 import Link from "next/link";
-import type { Rol } from "@/lib/panel";
+import type { ReactNode } from "react";
+import type { SupabaseClient, User } from "@supabase/supabase-js";
+import { esPropia, historiasDelUsuario, type Rol } from "@/lib/panel";
 
 // El riel de la izquierda de una historia (docs/panel-usuario.md §15.3):
 // primero las historias creadas con el botón violeta de empezar otra, y
@@ -32,6 +34,7 @@ const foco = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visib
 export function Riel({
   historias,
   actual,
+  sufijo = "",
   capitulos,
   respondidas,
   total,
@@ -40,6 +43,8 @@ export function Riel({
 }: {
   historias: HistoriaRiel[];
   actual: string;
+  /** A qué pantalla de cada historia lleva el riel: "" (la historia), "/libro", "/leer". */
+  sufijo?: string;
   capitulos?: CapituloRiel[];
   respondidas?: number;
   total?: number;
@@ -56,7 +61,7 @@ export function Riel({
           return (
             <Link
               key={h.id}
-              href={`/tablero/${h.id}`}
+              href={`/tablero/${h.id}${sufijo}`}
               aria-current={activa ? "page" : undefined}
               className={`flex flex-col gap-0.5 rounded-lg px-3 py-2.5 transition-colors hover:bg-[var(--hueco)] ${foco} ${activa ? "bg-[var(--hueco)]" : ""}`}
             >
@@ -118,5 +123,39 @@ export function Riel({
         </>
       ) : null}
     </aside>
+  );
+}
+
+/**
+ * Las pantallas de una historia que no son la historia (Encargar libro, el
+ * lector) también llevan el riel con las historias, para cambiar de una a
+ * otra sin volver a Inicio. Carga las historias y arma las dos columnas.
+ */
+export async function ConRiel({
+  admin,
+  user,
+  actual,
+  sufijo,
+  children,
+}: {
+  admin: SupabaseClient;
+  user: User;
+  actual: string;
+  sufijo: "/libro" | "/leer";
+  children: ReactNode;
+}) {
+  const { panel } = await historiasDelUsuario(admin, user);
+  const historias: HistoriaRiel[] = panel.historias.map((h) => ({
+    id: h.narrador.id,
+    nombre: h.narrador.nombre,
+    rol: h.rol,
+    estado: h.narrador.estado,
+    propia: esPropia(h.narrador),
+  }));
+  return (
+    <div className="mx-auto flex w-full max-w-6xl gap-10 px-6 py-8 md:px-10 md:py-10">
+      <Riel historias={historias} actual={actual} sufijo={sufijo} />
+      <div className="min-w-0 flex-1">{children}</div>
+    </div>
   );
 }

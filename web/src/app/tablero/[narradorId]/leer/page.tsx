@@ -5,7 +5,8 @@ import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { historiaAccesible, PUEDE } from "@/lib/panel";
 import { productosDelPedido, NOMBRE_VOZ } from "@/lib/productos";
 import { ReproductorRespuesta } from "../../reproductor";
-import { Contenedor, EstadoError, Etiqueta, ProximoPaso, Tarjeta, Titulo } from "../../ui";
+import { EstadoError, Etiqueta, ProximoPaso, Tarjeta, Titulo } from "../../ui";
+import { ConRiel } from "../../riel";
 
 // El lector (docs/panel-usuario.md §15.1): el libro terminado se LEE y se
 // ESCUCHA acá. Nada se descarga — es lo que hace que el impreso sea "el que
@@ -66,19 +67,19 @@ export default async function PaginaLeer({ params }: PageProps<"/tablero/[narrad
 
   if (validos.length === 0) {
     return (
-      <Contenedor>
+      <ConRiel admin={admin} user={user} actual={n.id} sufijo="/leer">
         {cabecera}
         <Tarjeta className="mt-6">
           <p className="text-[15px] leading-relaxed text-[var(--texto-suave)]">No encontramos ningún pedido de esta historia.</p>
         </Tarjeta>
         <div className="mt-8"><ProximoPaso href={`/tablero/${n.id}/libro`}>Ir a Encargar libro</ProximoPaso></div>
-      </Contenedor>
+      </ConRiel>
     );
   }
 
   if (!entregado) {
     return (
-      <Contenedor>
+      <ConRiel admin={admin} user={user} actual={n.id} sufijo="/leer">
         {/* Nadie se queda mirando esta pantalla — se refresca sola cada 60 s. */}
         {enFabricacion ? <meta httpEquiv="refresh" content="60" /> : null}
         {cabecera}
@@ -90,7 +91,7 @@ export default async function PaginaLeer({ params }: PageProps<"/tablero/[narrad
           </p>
         </Tarjeta>
         <div className="mt-8"><ProximoPaso href={`/tablero/${n.id}/libro`}>Ver el estado en Encargar libro</ProximoPaso></div>
-      </Contenedor>
+      </ConRiel>
     );
   }
 
@@ -99,7 +100,7 @@ export default async function PaginaLeer({ params }: PageProps<"/tablero/[narrad
   const tienePdf = compro.pdf && Boolean(entregado.libro_pdf_path);
 
   return (
-    <Contenedor ancho="max-w-5xl">
+    <ConRiel admin={admin} user={user} actual={n.id} sufijo="/leer">
       {cabecera}
       <p className="mt-2 text-[15px] text-[var(--texto-suave)]">Queda acá para siempre. Volvé cuando quieras.</p>
 
@@ -161,6 +162,6 @@ export default async function PaginaLeer({ params }: PageProps<"/tablero/[narrad
           </Tarjeta>
         )}
       </section>
-    </Contenedor>
+    </ConRiel>
   );
 }

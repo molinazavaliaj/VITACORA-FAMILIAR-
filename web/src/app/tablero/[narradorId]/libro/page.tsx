@@ -5,7 +5,8 @@ import { esPropia, historiaAccesible, PUEDE } from "@/lib/panel";
 import { extrasDisponibles, productosDelPedido, NOMBRE_VOZ, type ProductosDelPedido } from "@/lib/productos";
 import { obtenerPrecio, obtenerPrecioAudiolibro } from "@/lib/precios";
 import { propuestaPorDefecto, type Edicion } from "@/lib/edicion";
-import { Contenedor, EstadoError, Etiqueta, ProximoPaso, Tarjeta, Titulo, fechaCorta } from "../../ui";
+import { EstadoError, Etiqueta, ProximoPaso, Tarjeta, Titulo, fechaCorta } from "../../ui";
+import { ConRiel } from "../../riel";
 import { Wizard, type RespuestaResumen } from "./wizard";
 import { LibroMiniatura, type LibroDatos } from "./miniatura";
 import { FotosDelLibro, type FotoElegible } from "./fotos-del-libro";
@@ -79,7 +80,7 @@ export default async function PaginaLibro({ params }: PageProps<"/tablero/[narra
   // ── Invitado: solo su copia ─────────────────────────────────────────
   if (!PUEDE.verLoQuePago(rol)) {
     return (
-      <Contenedor>
+      <ConRiel admin={admin} user={user} actual={n.id} sufijo="/libro">
         <Etiqueta>Encargar libro · {propia ? "Tu historia" : `La historia de ${n.nombre}`}</Etiqueta>
         <div className="mt-1">
           <Titulo>Tu copia</Titulo>
@@ -94,7 +95,7 @@ export default async function PaginaLibro({ params }: PageProps<"/tablero/[narra
         <div className="mt-10">
           <Extras narradorId={n.id} moneda={moneda} region={region} extras={extras} yaTieneImpreso={false} titulo="Tu copia y tus marcos" />
         </div>
-      </Contenedor>
+      </ConRiel>
     );
   }
 
@@ -194,7 +195,7 @@ export default async function PaginaLibro({ params }: PageProps<"/tablero/[narra
   }
 
   return (
-    <Contenedor ancho="max-w-5xl">
+    <ConRiel admin={admin} user={user} actual={n.id} sufijo="/libro">
       <Etiqueta>Encargar libro · {propia ? "Tu historia" : `La historia de ${n.nombre}`}</Etiqueta>
       <div className="mt-1">
         <Titulo>Su libro</Titulo>
@@ -273,6 +274,6 @@ export default async function PaginaLibro({ params }: PageProps<"/tablero/[narra
       <section className="mt-14 border-t border-[var(--linea)] pt-10">
         <Extras narradorId={n.id} moneda={moneda} region={region} extras={extras} yaTieneImpreso={yaTieneImpreso} nube={nube} yaTiene={yaTiene} />
       </section>
-    </Contenedor>
+    </ConRiel>
   );
 }
