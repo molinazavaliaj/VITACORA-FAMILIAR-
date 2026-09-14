@@ -4,7 +4,7 @@ import { CampoVF, Toroide } from "./marca";
 import { Aparece } from "./aparece";
 import { ChatWhatsApp, Indice, MailAnticipo, PaginaEscrita, PanelMini, Reproductor, TapaLibro } from "./maquetas";
 import { CtaSticky } from "./cta-sticky";
-import { obtenerPrecio } from "@/lib/precios";
+import { catalogo } from "@/lib/productos";
 
 // Las tres de docs/design.md §4: Playfair grita, Archivo susurra, Source Serif
 // habla. Se cargan acá y no en el layout a propósito — la landing es la única
@@ -53,12 +53,13 @@ const sourceSerif = Source_Serif_4({
 // Copy: las frases de brief-landing.md §5 van tal cual. Los títulos nuevos
 // están marcados "⚠️ a aprobar" para pasar por los dos socios.
 
-// Pilar 4 · El libro es la obra, no el papel. El impreso se comunica como
-// extra — regla dura de identidad-de-marca.md §7.
+// Pilar 4 · El libro es la obra, no el papel. Los tres formatos son tres
+// productos (13/09, "ricitos de oro"): se elige al menos uno al comprar. Los
+// precios vienen del catálogo; un formato sin precio no se muestra.
 const FORMATOS = [
-  { nombre: "El libro en PDF", detalle: "Escrito con sus palabras, listo para leer y para imprimir.", estado: "Incluido" },
-  { nombre: "El audiolibro", detalle: "Su historia contada con su propia voz, la de verdad.", estado: "Incluido" },
-  { nombre: "El libro impreso", detalle: "Tapa dura, con un código en la contratapa que hace sonar su voz.", estado: "Aparte" },
+  { id: "pdf", nombre: "El libro en PDF", detalle: "Escrito con sus palabras. Se lee en la web, capítulo por capítulo, con sus fotos.", nota: "en la nube" },
+  { id: "audiolibro", nombre: "El audiolibro", detalle: "Su historia completa en primera persona: con su voz o con un narrador. Se escucha en la web.", nota: "en la nube" },
+  { id: "impreso", nombre: "El libro impreso", detalle: "Tapa dura, con un código en la contratapa que hace sonar su voz. En tu repisa.", nota: "en casa" },
 ] as const;
 
 const PASOS = [
@@ -112,12 +113,12 @@ const PREGUNTAS = [
   {
     pregunta: "¿Cuánto sale y cuándo se paga?",
     respuesta:
-      "Se paga una sola vez, al comprar, y el precio está a la vista antes de pagar. Incluye el libro en PDF y el audiolibro con su voz. Si él no acepta participar, nos escribes y te devolvemos el dinero completo.",
+      "Se paga una sola vez, al comprar, y los precios están a la vista antes de pagar: elegís el libro en PDF, el audiolibro, el impreso, o los tres. Si él no acepta participar, nos escribes y te devolvemos el dinero completo.",
   },
   {
     pregunta: "¿Se puede tener el libro impreso?",
     respuesta:
-      "Sí, y se pide aparte cuando el libro está terminado. Lo que incluye el precio es el libro en PDF y el audiolibro con su voz.",
+      "Sí: es uno de los tres formatos, y se puede elegir al comprar o sumar después desde tu panel, con el libro ya terminado.",
   },
 ] as const;
 
@@ -147,7 +148,7 @@ function BotonComprar({ enOscuro = false, secundario = false }: { enOscuro?: boo
 function MicrocopyCta({ clara = false }: { clara?: boolean }) {
   return (
     <p className={`text-[13px] [font-family:var(--fuente-micro)] ${clara ? "text-[#AEAEA6]" : "text-[#5F5F55]"}`}>
-      Pago único · el libro en PDF y el audiolibro con su voz.
+      Pago único · el libro en PDF, el audiolibro o el impreso. Elegís al menos uno.
     </p>
   );
 }
@@ -219,8 +220,12 @@ function Icono({ nombre, className = "" }: { nombre: (typeof GARANTIAS)[number][
 /* ───────────────────────── la página ───────────────────────── */
 
 export default function Home() {
-  const { monto } = obtenerPrecio("AR");
-  const precio = new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(monto);
+  const cat = catalogo("AR");
+  const formatear = (n: number) => new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(n);
+  const impreso = cat.extras.find((e) => e.id === "impreso_bn") ?? cat.extras.find((e) => e.id === "impreso_color") ?? null;
+  const preciosPorFormato: Record<(typeof FORMATOS)[number]["id"], number | null> = { pdf: cat.pdf.precio, audiolibro: cat.audiolibro?.precio ?? null, impreso: impreso?.precio ?? null };
+  const masBarato = Math.min(...Object.values(preciosPorFormato).filter((p): p is number => p !== null));
+  const precio = formatear(masBarato);
   const fragmentoAudio = process.env.NEXT_PUBLIC_URL_FRAGMENTO_AUDIO; // el mp3 real, cuando exista
 
   return (
@@ -416,18 +421,19 @@ export default function Home() {
         </div>
         <Aparece>
           <dl className="mt-20 grid gap-px overflow-hidden rounded-2xl border border-[#EBEBE7] bg-[#EBEBE7] sm:grid-cols-3">
-            {FORMATOS.map((f) => (
+            {FORMATOS.filter((f) => preciosPorFormato[f.id] !== null).map((f) => (
               <div key={f.nombre} className="flex flex-col gap-3 bg-white p-6 sm:p-7">
-                <span className={`self-start rounded-full px-2.5 py-1 text-[10px] uppercase [font-family:var(--fuente-micro)] [letter-spacing:0.22em] ${f.estado === "Incluido" ? "bg-[#14140F] text-white" : "border border-[#D4D4CE] text-[#5F5F55]"}`}>
-                  {f.estado}
+                <span className="self-start rounded-full border border-[#D4D4CE] px-2.5 py-1 text-[10px] uppercase text-[#5F5F55] [font-family:var(--fuente-micro)] [letter-spacing:0.22em]">
+                  {f.nota}
                 </span>
                 <dt className="text-xl [font-family:var(--fuente-titulo)] font-medium">{f.nombre}</dt>
                 <dd className="text-[15px] leading-[1.7] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">{f.detalle}</dd>
+                <dd className="mt-auto pt-2 text-[22px] tabular-nums [font-family:var(--fuente-titulo)]">{formatear(preciosPorFormato[f.id] as number)}</dd>
               </div>
             ))}
           </dl>
           <p className="mt-5 text-[14px] leading-[1.7] text-[#5F5F55] [font-family:var(--fuente-cuerpo)] font-light">
-            El libro impreso se pide aparte, cuando el libro ya está terminado.
+            Elegís al menos uno al comprar. Los otros se pueden sumar después, desde tu panel. Los marcos con su voz, también.
           </p>
         </Aparece>
       </section>
@@ -530,10 +536,11 @@ export default function Home() {
             <div>
               <Capitulo numero="08">El precio</Capitulo>
               <Titulo>Un solo pago. Sin sorpresas después.</Titulo>
-              <p className="mt-10 text-6xl [font-family:var(--fuente-titulo)] font-medium tabular-nums sm:text-7xl">{precio}</p>
+              <p className="mt-10 text-[11px] uppercase text-[#5F5F55] [font-family:var(--fuente-micro)] [letter-spacing:0.3em]">Desde</p>
+              <p className="mt-1 text-6xl [font-family:var(--fuente-titulo)] font-medium tabular-nums sm:text-7xl">{precio}</p>
               <Cuerpo className="mt-6 max-w-md">
                 Es lo que sale hoy un libro de preguntas que él tendría que llenar a mano. Aquí lo cuenta hablando,
-                y además le queda su voz grabada.
+                y le queda su voz grabada.
               </Cuerpo>
               <div className="mt-10 flex flex-col items-start gap-3">
                 <BotonComprar />
@@ -541,13 +548,19 @@ export default function Home() {
               </div>
             </div>
             <div className="lg:border-l lg:border-[#D4D4CE] lg:pl-16">
-              <p className="text-[11px] uppercase text-[#5F5F55] [font-family:var(--fuente-micro)] [letter-spacing:0.3em]">Incluye</p>
-              <ul className="mt-5 flex flex-col gap-4 text-[16px] leading-[1.6] text-[#2B2B24] [font-family:var(--fuente-cuerpo)] font-light">
+              <p className="text-[11px] uppercase text-[#5F5F55] [font-family:var(--fuente-micro)] [letter-spacing:0.3em]">Los tres formatos</p>
+              <ul className="mt-5 flex flex-col gap-3 text-[16px] leading-[1.6] text-[#2B2B24] [font-family:var(--fuente-cuerpo)] font-light">
+                {FORMATOS.filter((f) => preciosPorFormato[f.id] !== null).map((f) => (
+                  <li key={f.id} className="flex items-baseline justify-between gap-4 border-b border-[#EBEBE7] pb-3">
+                    <span>{f.nombre}</span>
+                    <span className="shrink-0 tabular-nums [font-family:var(--fuente-micro)] text-[15px]">{formatear(preciosPorFormato[f.id] as number)}</span>
+                  </li>
+                ))}
+              </ul>
+              <ul className="mt-6 flex flex-col gap-3 text-[15px] leading-[1.6] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">
                 {[
-                  "El libro de su vida, escrito, en PDF listo para imprimir",
-                  "El audiolibro completo, capítulo por capítulo, con su voz",
-                  "El anticipo a la tercera respuesta y el panel para verlo crecer",
-                  "Las 30 preguntas del biógrafo, adaptadas a lo que él va contando",
+                  "Con cualquiera: las 30 preguntas del biógrafo, el anticipo a la tercera respuesta y el panel para verlo crecer",
+                  "Se lee y se escucha en la web, cuando quieras, para siempre",
                 ].map((item) => (
                   <li key={item} className="flex gap-3">
                     <span aria-hidden className="mt-[10px] h-1.5 w-1.5 shrink-0 rounded-full bg-[#14140F]" />
@@ -556,8 +569,7 @@ export default function Home() {
                 ))}
               </ul>
               <p className="mt-8 border-t border-[#D4D4CE] pt-6 text-[14px] leading-[1.7] text-[#5F5F55] [font-family:var(--fuente-cuerpo)] font-light">
-                Si él no acepta participar, te devolvemos el dinero completo. El libro impreso y los marcos se piden
-                aparte, cuando el libro está terminado.
+                Si él no acepta participar, te devolvemos el dinero completo. Los marcos con su voz se suman a cualquiera.
               </p>
             </div>
           </div>

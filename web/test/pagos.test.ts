@@ -28,7 +28,8 @@ import { cookies } from 'next/headers';
 import Stripe from 'stripe';
 import { MercadoPagoConfig, Preference, Payment } from 'mercadopago';
 import { crearCheckout } from '@/lib/pagos';
-import { calcularCompra, EXTRAS_VACIOS } from '@/lib/productos';
+import { calcularCompra, NADA_ELEGIDO } from '@/lib/productos';
+const SOLO_PDF = { ...NADA_ELEGIDO, pdf: true };
 import { POST as POST_WEBHOOK_STRIPE } from '../src/app/api/webhooks/stripe/route';
 import { POST as POST_WEBHOOK_MP } from '../src/app/api/webhooks/mercadopago/route';
 
@@ -127,7 +128,7 @@ describe('crearCheckout', () => {
       return { checkout: { sessions: { create: mockCreate } } };
     });
 
-    const resultado = await crearCheckout({ id: 'pedido-1', email: 'martina@test.com' }, calcularCompra('ES', EXTRAS_VACIOS));
+    const resultado = await crearCheckout({ id: 'pedido-1', email: 'martina@test.com' }, calcularCompra('ES', SOLO_PDF));
 
     expect(resultado.urlPago).toBe('https://checkout.stripe.com/xyz');
     expect(mockCreate).toHaveBeenCalledTimes(1);
@@ -154,7 +155,7 @@ describe('crearCheckout', () => {
       return { create: mockPreferenceCreate };
     });
 
-    const resultado = await crearCheckout({ id: 'pedido-2', email: 'juan@test.com' }, calcularCompra('AR', EXTRAS_VACIOS));
+    const resultado = await crearCheckout({ id: 'pedido-2', email: 'juan@test.com' }, calcularCompra('AR', SOLO_PDF));
 
     expect(resultado.urlPago).toBe('https://mp.example/pref');
     expect(mockPreferenceCreate).toHaveBeenCalledTimes(1);
@@ -181,7 +182,7 @@ describe('crearCheckout', () => {
       return { checkout: { sessions: { create: mockCreate } } };
     });
 
-    await crearCheckout({ id: 'pedido-4', email: 'martina@test.com' }, calcularCompra('ES', { impreso: 'bn', marcos: 2 }));
+    await crearCheckout({ id: 'pedido-4', email: 'martina@test.com' }, calcularCompra('ES', { ...SOLO_PDF, impreso: 'bn', marcos: 2 }));
 
     const args = mockCreate.mock.calls[0][0] as {
       line_items: { price_data: { unit_amount: number; product_data: { name: string } }; quantity: number }[];
@@ -202,7 +203,7 @@ describe('crearCheckout', () => {
       return { checkout: { sessions: { create: mockCreate } } };
     });
 
-    await crearCheckout({ id: 'pedido-3', email: 'martina@test.com' }, calcularCompra('ES', EXTRAS_VACIOS));
+    await crearCheckout({ id: 'pedido-3', email: 'martina@test.com' }, calcularCompra('ES', SOLO_PDF));
 
     const args = mockCreate.mock.calls[0][0] as {
       line_items: { price_data: { unit_amount: number } }[];

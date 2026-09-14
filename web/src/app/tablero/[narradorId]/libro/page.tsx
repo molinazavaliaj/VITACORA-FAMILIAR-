@@ -2,8 +2,8 @@ import { notFound, redirect } from "next/navigation";
 import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { historiaAccesible, PUEDE } from "@/lib/panel";
-import { extrasDisponibles } from "@/lib/productos";
-import { obtenerPrecio } from "@/lib/precios";
+import { extrasDisponibles, productosDelPedido, NOMBRE_VOZ, type ProductosDelPedido } from "@/lib/productos";
+import { obtenerPrecio, obtenerPrecioAudiolibro } from "@/lib/precios";
 import { propuestaPorDefecto, type Edicion } from "@/lib/edicion";
 import { Contenedor, EstadoError, Etiqueta, ProximoPaso, Tarjeta, Titulo, fechaCorta } from "../../ui";
 import { Wizard, type FotoResumen, type RespuestaResumen } from "./wizard";
@@ -19,7 +19,7 @@ type Pedido = {
   id: string;
   familia_id: string;
   estado: string;
-  extras: { impreso?: "bn" | "color" | null; marcos?: number; copias?: number } | null;
+  extras: unknown; // lo normaliza productosDelPedido (pedidos viejos y nuevos)
   created_at: string;
 };
 
@@ -61,9 +61,18 @@ export default async function PaginaLibro({ params }: PageProps<"/tablero/[narra
   // Cada uno ve sus pedidos; la dueña ve los suyos (los de los primos son de los primos).
   const misPedidos = todosLosPedidos.filter((p) => rol === "duena" ? p.familia_id === n.familia_id : false);
   const pedidoBase = rol === "duena" ? todosLosPedidos.find((p) => p.familia_id === n.familia_id) ?? null : null;
-  const yaTieneImpreso = misPedidos.some((p) => p.extras?.impreso && p.estado !== "fallido");
+  // Lo que ya tiene, sumando todos sus pedidos que no fallaron (13/09: tres productos).
+  const productosPagados = misPedidos.filter((p) => p.estado !== "fallido").map((p) => productosDelPedido(p.extras));
+  const yaTiene = {
+    pdf: productosPagados.some((p) => p.pdf),
+    audiolibro: productosPagados.some((p) => p.audiolibro !== null),
+    impreso: productosPagados.some((p) => p.impreso !== null),
+  };
+  const yaTieneImpreso = yaTiene.impreso;
 
   const extras: PrecioExtra[] = extrasDisponibles(region).map((e) => ({ id: e.id, nombre: e.nombre, detalle: e.detalle, precio: e.precio }));
+  const precioAudiolibro = obtenerPrecioAudiolibro(region);
+  const nube = { pdf: obtenerPrecio(region).monto, audiolibro: precioAudiolibro };
 
   // ── Invitado: solo su copia ─────────────────────────────────────────
   if (!PUEDE.verLoQuePago(rol)) {
@@ -185,19 +194,20 @@ export default async function PaginaLibro({ params }: PageProps<"/tablero/[narra
         {pedidoBase ? (
           <Tarjeta className="mt-4">
             <ul className="flex flex-col gap-2 text-[15px]">
-              <li className="flex justify-between gap-4">
-                <span>El libro en PDF y el audiolibro con su voz</span>
-                <span className="text-[var(--texto-menor)] [font-family:var(--fuente-micro)]">{NOMBRE_ESTADO_PEDIDO[pedidoBase.estado] ?? pedidoBase.estado}</span>
-              </li>
               {misPedidos.flatMap((p) => {
+                const q: ProductosDelPedido = productosDelPedido(p.extras);
+                const estado = ` · ${NOMBRE_ESTADO_PEDIDO[p.estado] ?? p.estado}`;
                 const filas: React.ReactNode[] = [];
-                if (p.extras?.impreso) {
-                  const copias = p.extras.copias ?? 1;
-                  filas.push(<li key={`${p.id}-i`}>{copias > 1 ? `${copias} copias impresas` : "El libro impreso"}{p.extras.impreso === "color" ? " a color" : " en blanco y negro"}{p.id !== pedidoBase.id ? ` · ${NOMBRE_ESTADO_PEDIDO[p.estado] ?? p.estado}` : ""}</li>);
-                }
-                if (p.extras?.marcos) {
-                  filas.push(<li key={`${p.id}-m`}>{p.extras.marcos} marco{p.extras.marcos > 1 ? "s" : ""} con su voz{p.id !== pedidoBase.id ? ` · ${NOMBRE_ESTADO_PEDIDO[p.estado] ?? p.estado}` : ""}</li>);
-                }
+                const fila = (clave: string, texto: string) => (
+                  <li key={`${p.id}-${clave}`} className="flex justify-between gap-4">
+                    <span>{texto}</span>
+                    <span className="text-[var(--texto-menor)] [font-family:var(--fuente-micro)]">{estado.slice(3)}</span>
+                  </li>
+                );
+                if (q.pdf) filas.push(fila("pdf", "El libro en PDF, para leer acá"));
+                if (q.audiolibro) filas.push(fila("audio", `El audiolibro, ${NOMBRE_VOZ[q.audiolibro]}`));
+                if (q.impreso) filas.push(fila("impreso", `${q.copias > 1 ? `${q.copias} copias impresas` : "El libro impreso"}${q.impreso === "color" ? " a color" : " en blanco y negro"}`));
+                if (q.marcos) filas.push(fila("marcos", `${q.marcos} marco${q.marcos > 1 ? "s" : ""} con su voz`));
                 return filas;
               })}
             </ul>
@@ -208,7 +218,7 @@ export default async function PaginaLibro({ params }: PageProps<"/tablero/[narra
       </section>
 
       <section className="mt-14 border-t border-[var(--linea)] pt-10">
-        <Extras narradorId={n.id} moneda={moneda} region={region} extras={extras} yaTieneImpreso={yaTieneImpreso} />
+        <Extras narradorId={n.id} moneda={moneda} region={region} extras={extras} yaTieneImpreso={yaTieneImpreso} nube={nube} yaTiene={yaTiene} />
       </section>
     </Contenedor>
   );

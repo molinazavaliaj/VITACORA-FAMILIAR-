@@ -60,8 +60,8 @@ export function CtaSticky({ precio }: { precio: string }) {
     >
       <div className="mx-auto flex max-w-md items-center justify-between gap-4">
         <div className="min-w-0">
-          <p className="truncate text-[15px] tabular-nums [font-family:var(--fuente-titulo)]">{precio}</p>
-          <p className="truncate text-[11px] text-[#AEAEA6] [font-family:var(--fuente-micro)]">Pago único · PDF + audiolibro</p>
+          <p className="truncate text-[15px] tabular-nums [font-family:var(--fuente-titulo)]">desde {precio}</p>
+          <p className="truncate text-[11px] text-[#AEAEA6] [font-family:var(--fuente-micro)]">Pago único · PDF, audiolibro o impreso</p>
         </div>
         <Link
           href="/comprar"

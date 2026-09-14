@@ -27,6 +27,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "El pedido llegó mal formado." }, { status: 400 });
   }
   const elegidos: ExtrasPosteriores = {
+    pdf: body.pdf === true,
+    audiolibro: body.audiolibro === "clonada" || body.audiolibro === "narrador" ? body.audiolibro : null,
     copias: typeof body.copias === "number" ? body.copias : 0,
     acabado: body.acabado === "color" ? "color" : "bn",
     marcos: typeof body.marcos === "number" ? body.marcos : 0,

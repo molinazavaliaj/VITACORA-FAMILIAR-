@@ -44,7 +44,7 @@ const CUERPO_VALIDO = {
   region: "AR",
   email: "Martina@Ejemplo.com",
   narrador: { nombre: "Roberto Fernández", comoLeDicen: "Papá", telefonoWhatsapp: "11 5555 1234", horaPreferida: "09:00" },
-  extras: { impreso: "bn", marcos: 2 },
+  productos: { pdf: true, audiolibro: null, impreso: "bn", marcos: 2 },
 };
 
 beforeEach(() => {
@@ -101,7 +101,7 @@ describe("POST /api/compra", () => {
       proveedor: "mercadopago",
       moneda: "ARS",
       monto: 65000 + 120000 + 2 * 30000,
-      extras: { impreso: "bn", marcos: 2 },
+      extras: { pdf: true, audiolibro: null, impreso: "bn", copias: 1, marcos: 2 },
     });
     expect(crearCheckout).toHaveBeenCalledWith({ id: "ped-1", email: "martina@ejemplo.com" }, expect.objectContaining({ region: "AR" }));
   });
@@ -131,7 +131,7 @@ describe("POST /api/compra", () => {
 
     await POST(peticion(CUERPO_VALIDO)); // sin PRECIO_IMPRESO_BN_ARS ni PRECIO_MARCO_ARS
 
-    expect(admin.inserts.pedidos[0]).toMatchObject({ monto: 65000, extras: { impreso: null, marcos: 0 } });
+    expect(admin.inserts.pedidos[0]).toMatchObject({ monto: 65000, extras: { pdf: true, audiolibro: null, impreso: null, copias: 0, marcos: 0 } });
   });
 
   it("un WhatsApp que ya tiene libro responde 409 con un mensaje claro", async () => {

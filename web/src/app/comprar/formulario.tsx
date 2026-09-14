@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { Extra, ExtrasElegidos } from "@/lib/productos";
+import { NADA_ELEGIDO, NOMBRE_VOZ, type Catalogo as CatalogoRegion, type ProductosElegidos, type Voz } from "@/lib/productos";
 
 // El paso a paso de la compra. Estado en el cliente, un solo POST al final.
 // Los precios llegan resueltos del servidor: acá solo se suman para mostrar
@@ -9,10 +9,7 @@ import type { Extra, ExtrasElegidos } from "@/lib/productos";
 //
 // ⚠️ Textos a aprobar por Naza (regla de la casa). Castellano neutro de "tú".
 
-export type Catalogo = Record<
-  "ES" | "AR",
-  { moneda: "EUR" | "ARS"; base: { nombre: string; precio: number }; extras: Extra[] }
->;
+export type Catalogo = Record<"ES" | "AR", CatalogoRegion>;
 
 type Region = "ES" | "AR";
 type ParaQuien = "otro" | "yo";
@@ -21,8 +18,8 @@ type Paso = 1 | 2 | 3 | 4;
 const PASOS: { n: Paso; nombre: string }[] = [
   { n: 1, nombre: "Para quién" },
   { n: 2, nombre: "El narrador" },
-  { n: 3, nombre: "Extras" },
-  { n: 4, nombre: "Pago" },
+  { n: 3, nombre: "Tu correo" },
+  { n: 4, nombre: "Pagar" },
 ];
 
 const HORAS = [
@@ -56,7 +53,8 @@ export function Checkout({ catalogo }: { catalogo: Catalogo }) {
   const [telefono, setTelefono] = useState("");
   const [hora, setHora] = useState("09:00");
 
-  const [extras, setExtras] = useState<ExtrasElegidos>({ impreso: null, marcos: 0 });
+  // Los tres productos: el PDF viene marcado; al menos uno tiene que quedar.
+  const [productos, setProductos] = useState<ProductosElegidos>({ ...NADA_ELEGIDO, pdf: true });
   const [email, setEmail] = useState("");
 
   const [error, setError] = useState<string | null>(null);
@@ -64,25 +62,28 @@ export function Checkout({ catalogo }: { catalogo: Catalogo }) {
 
   const cat = catalogo[region];
 
-  const carrito = useMemo(() => {
-    const lineas: { nombre: string; cantidad: number; importe: number }[] = [
-      { nombre: cat.base.nombre, cantidad: 1, importe: cat.base.precio },
-    ];
-    if (extras.impreso) {
-      const id = extras.impreso === "color" ? "impreso_color" : "impreso_bn";
-      const e = cat.extras.find((x) => x.id === id);
-      if (e) lineas.push({ nombre: e.nombre, cantidad: 1, importe: e.precio });
-    }
-    if (extras.marcos > 0) {
-      const e = cat.extras.find((x) => x.id === "marco");
-      if (e) lineas.push({ nombre: e.nombre, cantidad: extras.marcos, importe: e.precio * extras.marcos });
-    }
-    return { lineas, total: lineas.reduce((s, l) => s + l.importe, 0) };
-  }, [cat, extras]);
-
   const impresoBn = cat.extras.find((e) => e.id === "impreso_bn");
   const impresoColor = cat.extras.find((e) => e.id === "impreso_color");
   const marco = cat.extras.find((e) => e.id === "marco");
+
+  const carrito = useMemo(() => {
+    const lineas: { nombre: string; cantidad: number; importe: number }[] = [];
+    if (productos.pdf) lineas.push({ nombre: cat.pdf.nombre, cantidad: 1, importe: cat.pdf.precio });
+    if (productos.audiolibro && cat.audiolibro) {
+      lineas.push({ nombre: `${cat.audiolibro.nombre}, ${NOMBRE_VOZ[productos.audiolibro]}`, cantidad: 1, importe: cat.audiolibro.precio });
+    }
+    if (productos.impreso) {
+      const e = productos.impreso === "color" ? impresoColor : impresoBn;
+      if (e) lineas.push({ nombre: e.nombre, cantidad: 1, importe: e.precio });
+    }
+    if (productos.marcos > 0 && marco) {
+      lineas.push({ nombre: marco.nombre, cantidad: productos.marcos, importe: marco.precio * productos.marcos });
+    }
+    return { lineas, total: lineas.reduce((s, l) => s + l.importe, 0) };
+  }, [cat, productos, impresoBn, impresoColor, marco]);
+
+  // Ricitos de oro: al menos uno de los tres. Los marcos solos no alcanzan.
+  const hayPrincipal = productos.pdf || (productos.audiolibro !== null && cat.audiolibro !== null) || (productos.impreso !== null && (impresoBn || impresoColor));
 
   function avanzar(siguiente: Paso) {
     setError(null);
@@ -102,8 +103,8 @@ export function Checkout({ catalogo }: { catalogo: Catalogo }) {
   async function pagar(evento: React.FormEvent<HTMLFormElement>) {
     evento.preventDefault();
     setError(null);
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim())) {
-      setError("Necesitamos un correo válido: ahí te avisamos de todo.");
+    if (!hayPrincipal) {
+      setError("Elegí al menos uno: el libro en PDF, el audiolibro o el libro impreso.");
       return;
     }
     setEnviando(true);
@@ -123,7 +124,7 @@ export function Checkout({ catalogo }: { catalogo: Catalogo }) {
             telefonoWhatsapp: telefono.trim(),
             horaPreferida: hora,
           },
-          extras,
+          productos,
         }),
       });
       const datos = (await respuesta.json()) as { urlPago?: string; error?: string };
@@ -277,75 +278,104 @@ export function Checkout({ catalogo }: { catalogo: Catalogo }) {
           </section>
         )}
 
-        {/* ── Paso 3 · Extras ── */}
+        {/* ── Paso 3 · Tu correo ── */}
         {paso === 3 && (
           <section className="mt-12">
             <h1 className="text-3xl leading-tight [font-family:var(--fuente-titulo)] font-medium sm:text-4xl">
-              ¿Quieres algo más que el libro?
+              Tu correo.
             </h1>
             <p className="mt-3 text-[16px] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">
-              El libro en PDF y el audiolibro con su voz ya están incluidos. Esto es aparte, y se puede sumar después también.
-            </p>
-
-            <div className="mt-8 flex flex-col gap-4">
-              {impresoBn && (
-                <Opcion
-                  activa={extras.impreso === "bn"}
-                  onClick={() => setExtras((x) => ({ ...x, impreso: x.impreso === "bn" ? null : "bn" }))}
-                  titulo={impresoBn.nombre}
-                  detalle={impresoBn.detalle}
-                  precio={formatear(impresoBn.precio, cat.moneda, region)}
-                />
-              )}
-              {impresoColor && (
-                <Opcion
-                  activa={extras.impreso === "color"}
-                  onClick={() => setExtras((x) => ({ ...x, impreso: x.impreso === "color" ? null : "color" }))}
-                  titulo={impresoColor.nombre}
-                  detalle={impresoColor.detalle}
-                  precio={formatear(impresoColor.precio, cat.moneda, region)}
-                />
-              )}
-              {marco && (
-                <div className={`rounded-lg border bg-white p-5 ${extras.marcos > 0 ? "border-[#14140F]" : "border-[#D4D4CE]"}`}>
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <p className="text-[17px] [font-family:var(--fuente-titulo)] font-medium">{marco.nombre}</p>
-                      <p className="mt-1 text-[15px] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">{marco.detalle}</p>
-                    </div>
-                    <p className="shrink-0 text-[15px] [font-family:var(--fuente-micro)]">{formatear(marco.precio, cat.moneda, region)} c/u</p>
-                  </div>
-                  <div className="mt-4 flex items-center gap-3">
-                    <button type="button" aria-label="Un marco menos" onClick={() => setExtras((x) => ({ ...x, marcos: Math.max(0, x.marcos - 1) }))} className="h-9 w-9 rounded-full border border-[#D4D4CE] text-lg">−</button>
-                    <span className="w-6 text-center text-[16px] [font-family:var(--fuente-micro)]">{extras.marcos}</span>
-                    <button type="button" aria-label="Un marco más" onClick={() => setExtras((x) => ({ ...x, marcos: Math.min(20, x.marcos + 1) }))} className="h-9 w-9 rounded-full border border-[#D4D4CE] text-lg">+</button>
-                  </div>
-                </div>
-              )}
-              {!impresoBn && !impresoColor && !marco && (
-                <p className="rounded-lg border border-dashed border-[#AEAEA6] bg-white p-5 text-[15px] text-[#5F5F55] [font-family:var(--fuente-cuerpo)] font-light">
-                  Por ahora, el libro y el audiolibro. El libro impreso y los marcos con su voz se van a poder sumar desde tu panel cuando estén listos.
-                </p>
-              )}
-            </div>
-
-            <Botones atras={() => avanzar(2)} siguiente={() => avanzar(4)} etiquetaSiguiente="Ir al pago" error={error} />
-          </section>
-        )}
-
-        {/* ── Paso 4 · Pago ── */}
-        {paso === 4 && (
-          <form onSubmit={pagar} className="mt-12">
-            <h1 className="text-3xl leading-tight [font-family:var(--fuente-titulo)] font-medium sm:text-4xl">
-              Último paso: tu correo.
-            </h1>
-            <p className="mt-3 text-[16px] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">
-              Ahí te avisamos cuando él acepte, cuando haya páginas para leer, y cuando el libro esté listo. Con ese mismo correo entras a tu panel.
+              Ahí te avisamos cuando {paraQuien === "yo" ? "haya páginas para leer" : "él acepte, cuando haya páginas para leer"}, y cuando el libro esté listo. Con ese mismo correo entras a tu panel.
             </p>
             <div className="mt-8">
               <label className={etiqueta} htmlFor="email">Tu correo</label>
-              <input id="email" type="email" className={`${campo} mt-2`} value={email} onChange={(e) => setEmail(e.target.value)} placeholder="martina@ejemplo.com" autoComplete="email" required />
+              <input id="email" type="email" className={`${campo} mt-2`} value={email} onChange={(e) => setEmail(e.target.value)} placeholder="martina@ejemplo.com" autoComplete="email" spellCheck={false} required />
             </div>
+            <Botones
+              atras={() => avanzar(2)}
+              siguiente={() => {
+                if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim())) {
+                  setError("Necesitamos un correo válido: ahí te avisamos de todo.");
+                  return;
+                }
+                avanzar(4);
+              }}
+              etiquetaSiguiente="Elegir el libro"
+              error={error}
+            />
+          </section>
+        )}
+
+        {/* ── Paso 4 · Pagar: los tres productos, al menos uno ── */}
+        {paso === 4 && (
+          <form onSubmit={pagar} className="mt-12">
+            <h1 className="text-3xl leading-tight [font-family:var(--fuente-titulo)] font-medium [text-wrap:balance] sm:text-4xl">
+              ¿Cómo quieres {paraQuien === "yo" ? "tu libro" : `el libro de ${comoLeDicen || nombre || "su vida"}`}?
+            </h1>
+            <p className="mt-3 text-[16px] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">
+              Elige al menos uno. Los tres salen de la misma entrevista: 30 preguntas por WhatsApp, un audio por día.
+            </p>
+
+            <div className="mt-8 grid gap-4 sm:grid-cols-3">
+              <Producto
+                activa={productos.pdf}
+                onClick={() => setProductos((x) => ({ ...x, pdf: !x.pdf }))}
+                nota="en la nube"
+                titulo={cat.pdf.nombre}
+                detalle={cat.pdf.detalle}
+                precio={formatear(cat.pdf.precio, cat.moneda, region)}
+              />
+              {cat.audiolibro && (
+                <Producto
+                  activa={productos.audiolibro !== null}
+                  onClick={() => setProductos((x) => ({ ...x, audiolibro: x.audiolibro ? null : "clonada" }))}
+                  nota="en la nube"
+                  titulo={cat.audiolibro.nombre}
+                  detalle={cat.audiolibro.detalle}
+                  precio={formatear(cat.audiolibro.precio, cat.moneda, region)}
+                >
+                  {productos.audiolibro ? (
+                    <Segmentos
+                      valor={productos.audiolibro}
+                      opciones={[["clonada", "Con su voz"], ["narrador", "Con un narrador"]]}
+                      onChange={(v) => setProductos((x) => ({ ...x, audiolibro: v as Voz }))}
+                    />
+                  ) : null}
+                </Producto>
+              )}
+              {(impresoBn || impresoColor) && (
+                <Producto
+                  activa={productos.impreso !== null}
+                  onClick={() => setProductos((x) => ({ ...x, impreso: x.impreso ? null : impresoBn ? "bn" : "color" }))}
+                  nota="en tu repisa"
+                  titulo="El libro impreso"
+                  detalle="Tapa dura, con un código en la contratapa que hace sonar su voz. Lo único que sale de la nube."
+                  precio={formatear((productos.impreso === "color" ? impresoColor : impresoBn)?.precio ?? impresoBn?.precio ?? impresoColor?.precio ?? 0, cat.moneda, region)}
+                >
+                  {productos.impreso && impresoBn && impresoColor ? (
+                    <Segmentos
+                      valor={productos.impreso}
+                      opciones={[["bn", "Blanco y negro"], ["color", `A color · ${formatear(impresoColor.precio, cat.moneda, region)}`]]}
+                      onChange={(v) => setProductos((x) => ({ ...x, impreso: v as "bn" | "color" }))}
+                    />
+                  ) : null}
+                </Producto>
+              )}
+            </div>
+
+            {marco && (
+              <div className={`mt-4 flex flex-wrap items-center gap-4 rounded-xl border bg-white p-5 ${productos.marcos > 0 ? "border-[#14140F]" : "border-[#D4D4CE]"}`}>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[16px] [font-family:var(--fuente-micro)] font-medium">{marco.nombre}</p>
+                  <p className="mt-1 text-[14px] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">{marco.detalle} {formatear(marco.precio, cat.moneda, region)} cada uno.</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <button type="button" aria-label="Un marco menos" onClick={() => setProductos((x) => ({ ...x, marcos: Math.max(0, x.marcos - 1) }))} className="h-9 w-9 rounded-full border border-[#D4D4CE] text-lg [touch-action:manipulation]">−</button>
+                  <span className="w-6 text-center text-[16px] tabular-nums [font-family:var(--fuente-micro)]">{productos.marcos}</span>
+                  <button type="button" aria-label="Un marco más" onClick={() => setProductos((x) => ({ ...x, marcos: Math.min(20, x.marcos + 1) }))} className="h-9 w-9 rounded-full border border-[#D4D4CE] text-lg [touch-action:manipulation]">+</button>
+                </div>
+              </div>
+            )}
 
             <div className="mt-8 rounded-lg border border-[#EBEBE7] bg-white p-5 text-[15px] leading-[1.7] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">
               <p>
@@ -355,20 +385,20 @@ export function Checkout({ catalogo }: { catalogo: Catalogo }) {
               </p>
             </div>
 
-            {error && <p className="mt-6 text-[15px] text-[#B42318] [font-family:var(--fuente-cuerpo)]">{error}</p>}
+            {error && <p className="mt-6 text-[15px] text-[#B42318] [font-family:var(--fuente-cuerpo)]" role="alert">{error}</p>}
 
             <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
               <button type="button" onClick={() => avanzar(3)} className="text-[15px] text-[#5F5F55] underline underline-offset-4 [font-family:var(--fuente-micro)]">← Atrás</button>
               <button
                 type="submit"
-                disabled={enviando}
-                className="inline-flex h-13 items-center justify-center rounded-full bg-[#5D3FD3] px-8 text-base font-medium text-white transition-colors hover:bg-[#4F35BC] disabled:opacity-60 [font-family:var(--fuente-micro)]"
+                disabled={enviando || !hayPrincipal}
+                className="inline-flex h-13 items-center justify-center rounded-full bg-[#5D3FD3] px-8 text-base font-medium text-white transition-colors hover:bg-[#4F35BC] disabled:opacity-60 [font-family:var(--fuente-micro)] [touch-action:manipulation]"
               >
-                {enviando ? "Un momento…" : `Pagar ${formatear(carrito.total, cat.moneda, region)}`}
+                {enviando ? "Un momento…" : hayPrincipal ? `Pagar ${formatear(carrito.total, cat.moneda, region)}` : "Elige al menos uno"}
               </button>
             </div>
             <p className="mt-4 text-[13px] text-[#83837A] [font-family:var(--fuente-cuerpo)] font-light">
-              Pago seguro con {region === "ES" ? "Stripe" : "Mercado Pago"}. Al pagar aceptas los{" "}
+              Pago único y seguro con {region === "ES" ? "Stripe" : "Mercado Pago"}. Al pagar aceptas los{" "}
               <a href="/legal/terminos" className="underline underline-offset-2" target="_blank" rel="noreferrer">términos</a>.
             </p>
           </form>
@@ -380,6 +410,9 @@ export function Checkout({ catalogo }: { catalogo: Catalogo }) {
         <div className="rounded-lg border border-[#EBEBEE] bg-white p-6">
           <p className="text-[11px] uppercase text-[#5F5F55] [font-family:var(--fuente-micro)] [letter-spacing:0.3em]">Tu compra</p>
           <ul className="mt-5 divide-y divide-[#EBEBE7]">
+            {carrito.lineas.length === 0 ? (
+              <li className="py-3 text-[14px] text-[#83837A] [font-family:var(--fuente-cuerpo)] font-light">Todavía no elegiste nada.</li>
+            ) : null}
             {carrito.lineas.map((l) => (
               <li key={l.nombre} className="flex items-baseline justify-between gap-4 py-3">
                 <span className="text-[15px] [font-family:var(--fuente-cuerpo)] font-light">
@@ -396,7 +429,7 @@ export function Checkout({ catalogo }: { catalogo: Catalogo }) {
           <ul className="mt-6 flex flex-col gap-2 text-[14px] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">
             <li>✓ Pago único, sin suscripción</li>
             <li>✓ 30 preguntas, una por día, por WhatsApp</li>
-            <li>✓ El libro en PDF y el audiolibro con su voz</li>
+            <li>✓ Lo lees y lo escuchas en la web, cuando quieras</li>
             <li>✓ Si él no acepta, te devolvemos el dinero</li>
           </ul>
         </div>
@@ -405,18 +438,43 @@ export function Checkout({ catalogo }: { catalogo: Catalogo }) {
   );
 }
 
-function Opcion({ activa, onClick, titulo, detalle, precio }: { activa: boolean; onClick: () => void; titulo: string; detalle: string; precio: string }) {
+function Producto({ activa, onClick, nota, titulo, detalle, precio, children }: { activa: boolean; onClick: () => void; nota: string; titulo: string; detalle: string; precio: string; children?: React.ReactNode }) {
   return (
-    <button type="button" onClick={onClick} className={`flex items-start justify-between gap-4 rounded-lg border bg-white p-5 text-left transition-colors ${activa ? "border-[#14140F]" : "border-[#D4D4CE] hover:border-[#83837A]"}`}>
-      <span className="flex items-start gap-4">
-        <span className={`mt-1 inline-block h-4 w-4 shrink-0 rounded border ${activa ? "border-[#14140F] bg-[#14140F]" : "border-[#AEAEA6]"}`} />
-        <span>
-          <span className="block text-[17px] [font-family:var(--fuente-titulo)] font-medium">{titulo}</span>
-          <span className="mt-1 block text-[15px] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">{detalle}</span>
+    <div className={`flex flex-col gap-3 rounded-2xl border bg-white p-5 transition-colors ${activa ? "border-2 border-[#14140F]" : "border-[#D4D4CE] hover:border-[#83837A]"}`}>
+      <button type="button" onClick={onClick} aria-pressed={activa} className="flex flex-1 flex-col gap-3 text-left [touch-action:manipulation]">
+        <span className="flex items-center justify-between gap-3">
+          <span className="text-[10px] uppercase text-[#5F5F55] [font-family:var(--fuente-micro)] [letter-spacing:0.24em]">{nota}</span>
+          <span aria-hidden className={`flex h-[22px] w-[22px] items-center justify-center rounded-full border ${activa ? "border-[#14140F] bg-[#14140F] text-white" : "border-[#AEAEA6]"}`}>
+            {activa ? (
+              <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5" /></svg>
+            ) : null}
+          </span>
         </span>
-      </span>
-      <span className="shrink-0 text-[15px] [font-family:var(--fuente-micro)]">{precio}</span>
-    </button>
+        <span className="block text-[21px] leading-tight [font-family:var(--fuente-titulo)] font-medium">{titulo}</span>
+        <span className="block text-[14px] leading-[1.6] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">{detalle}</span>
+        <span className="mt-auto block pt-2 text-[24px] tabular-nums [font-family:var(--fuente-titulo)]">{precio}</span>
+      </button>
+      {children}
+    </div>
+  );
+}
+
+function Segmentos({ valor, opciones, onChange }: { valor: string; opciones: [string, string][]; onChange: (v: string) => void }) {
+  return (
+    <div className="flex flex-col gap-1.5" role="radiogroup">
+      {opciones.map(([v, nombre]) => (
+        <button
+          key={v}
+          type="button"
+          role="radio"
+          aria-checked={valor === v}
+          onClick={() => onChange(v)}
+          className={`rounded-full border px-3 py-2 text-left text-[13px] transition-colors [font-family:var(--fuente-micro)] [touch-action:manipulation] ${valor === v ? "border-[#14140F] bg-[#14140F] text-white" : "border-[#D4D4CE] hover:border-[#83837A]"}`}
+        >
+          {nombre}
+        </button>
+      ))}
+    </div>
   );
 }
 

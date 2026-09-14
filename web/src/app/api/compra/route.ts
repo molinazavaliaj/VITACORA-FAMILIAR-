@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { validarYConstruir, type RegistroBody } from "@/lib/registro";
-import { calcularCompra, extrasParaPedido, EXTRAS_VACIOS, type ExtrasElegidos } from "@/lib/productos";
+import { calcularCompra, productosParaPedido, validarProductos, NADA_ELEGIDO, type ProductosElegidos } from "@/lib/productos";
 import { crearCheckout } from "@/lib/pagos";
 
 // La compra, sin cuenta previa (pago por adelantado, 11/09). Es la única
@@ -18,8 +18,18 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 export type CompraBody = RegistroBody & {
   email?: string;
-  extras?: Partial<ExtrasElegidos>;
+  /** Los tres productos + marcos (13/09). Al menos uno de los tres. */
+  productos?: Partial<ProductosElegidos>;
 };
+
+function leerProductos(crudo: Partial<ProductosElegidos> | undefined): ProductosElegidos {
+  return {
+    pdf: crudo?.pdf === true,
+    audiolibro: crudo?.audiolibro === "clonada" || crudo?.audiolibro === "narrador" ? crudo.audiolibro : null,
+    impreso: crudo?.impreso === "bn" || crudo?.impreso === "color" ? crudo.impreso : null,
+    marcos: typeof crudo?.marcos === "number" ? crudo.marcos : NADA_ELEGIDO.marcos,
+  };
+}
 
 export async function POST(request: NextRequest) {
   let body: CompraBody;
@@ -40,10 +50,9 @@ export async function POST(request: NextRequest) {
   }
   const { familia: familiaAInsertar, narrador: narradorAInsertar } = validacion;
 
-  const elegidos: ExtrasElegidos = {
-    impreso: body.extras?.impreso === "bn" || body.extras?.impreso === "color" ? body.extras.impreso : null,
-    marcos: typeof body.extras?.marcos === "number" ? body.extras.marcos : EXTRAS_VACIOS.marcos,
-  };
+  const elegidos = leerProductos(body.productos);
+  const productosOk = validarProductos(familiaAInsertar.region, elegidos);
+  if (!productosOk.ok) return NextResponse.json({ error: productosOk.mensaje }, { status: 400 });
   const compra = calcularCompra(familiaAInsertar.region, elegidos);
 
   const admin = crearClienteServidor();
@@ -121,7 +130,7 @@ export async function POST(request: NextRequest) {
       estado: "pendiente",
       monto: compra.total,
       moneda: compra.moneda,
-      extras: extrasParaPedido(compra),
+      extras: productosParaPedido(compra),
     })
     .select("id")
     .single();

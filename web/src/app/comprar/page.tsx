@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Playfair_Display, Archivo, Source_Serif_4 } from "next/font/google";
-import { obtenerPrecio } from "@/lib/precios";
-import { extrasDisponibles, NOMBRE_BASE } from "@/lib/productos";
+import { catalogo } from "@/lib/productos";
 import { Toroide } from "../marca";
 import { Checkout, type Catalogo } from "./formulario";
 
-// La compra, pública y sin cuenta (pago por adelantado, 11/09). Paso a paso
-// como la referencia (Remento): para quién → el narrador → extras → correo y
-// pago. Todo lo que antes hacían /registro + /comprar-con-sesión pasa por acá.
+// La compra, pública y sin cuenta (pago por adelantado, 11/09). Paso a paso:
+// para quién → el narrador → tu correo → pagar. El último paso muestra los
+// tres productos —PDF, audiolibro, impreso— y pide al menos uno (13/09,
+// docs/panel-usuario.md §15.1). Todo lo que antes hacían /registro +
+// /comprar-con-sesión pasa por acá.
 //
 // El catálogo se arma en el servidor (los precios viven en variables de
 // entorno) y baja al cliente ya resuelto: el navegador nunca decide un precio.
@@ -22,17 +23,8 @@ export const metadata: Metadata = {
   description: "Un biógrafo entrevista por WhatsApp y escribe el libro de una vida. Pago único.",
 };
 
-function catalogoDe(region: "ES" | "AR") {
-  const { monto, moneda } = obtenerPrecio(region);
-  return {
-    moneda,
-    base: { nombre: NOMBRE_BASE, precio: monto },
-    extras: extrasDisponibles(region),
-  };
-}
-
 export default function PaginaComprar() {
-  const catalogo: Catalogo = { ES: catalogoDe("ES"), AR: catalogoDe("AR") };
+  const catalogos: Catalogo = { ES: catalogo("ES"), AR: catalogo("AR") };
 
   return (
     <div className={`${playfair.variable} ${archivo.variable} ${sourceSerif.variable} flex flex-1 flex-col bg-[#F7F7F5] text-[#14140F]`}>
@@ -48,7 +40,7 @@ export default function PaginaComprar() {
         </div>
       </header>
 
-      <Checkout catalogo={catalogo} />
+      <Checkout catalogo={catalogos} />
     </div>
   );
 }

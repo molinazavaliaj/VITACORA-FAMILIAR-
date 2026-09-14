@@ -35,12 +35,23 @@ de sus listas, así que un narrador sin pagar no recibe WhatsApp. Si el pago no 
 narrador queda ahí y la web lo limpia; no es un estado del que el entrevistador tenga que
 salir.
 
-`pedidos.extras` (jsonb, misma migración): qué se compró además de la base.
-`{"impreso": "bn" | "color" | null, "marcos": 0..N, "copias": 0..N}`. Lo escribe la web
-al crear el pedido; la fábrica lo lee cuando produce. El entrevistador sigue sin mirar
-`pedidos`. `copias` (12/09, aditivo): cuántos libros impresos van en ese pedido — un
-pedido posterior de solo extras no lleva la base, y puede ser de un invitado (su propia
-`familia`, mismo `narrador_id`).
+`pedidos.extras` (jsonb, misma migración): **qué se compró** (13/09: ya no hay "base";
+los tres productos son independientes y al menos uno va).
+```
+{"pdf": true|false, "audiolibro": "clonada" | "narrador" | "real" | null,
+ "impreso": "bn" | "color" | null, "copias": 0..N, "marcos": 0..N}
+```
+Lo escribe la web al crear el pedido; la fábrica lo lee cuando produce. El
+entrevistador sigue sin mirar `pedidos`. `copias`: cuántos libros impresos van en ese
+pedido. Un pedido posterior puede ser de un invitado (su propia `familia`, mismo
+`narrador_id`). **Pedidos anteriores al 13/09** no traen la clave `pdf`: se leen como
+`pdf: true, audiolibro: "real"` (la base vieja: PDF + audiolibro con sus audios) — la
+web usa `productosDelPedido()` para eso; la fábrica debe hacer lo mismo.
+
+**Para la fábrica (13/09):** `audiolibro: "clonada"` = narración en primera persona
+con la voz clonada de sus audios; `"narrador"` = TTS con una voz fija; `"real"` = como
+hasta ahora (sus audios). Nada se descarga: el PDF se lee y el audiolibro se escucha en
+la web. Proveedor de clonación a definir antes de vender el primero.
 
 ## El guion por narrador (migración 20260912)
 

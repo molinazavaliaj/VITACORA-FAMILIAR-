@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { descuentoPorCopias } from "@/lib/productos";
+import { descuentoPorCopias, NOMBRE_VOZ, type Voz } from "@/lib/productos";
 
-// Sumar cosas a un libro que ya existe (docs/panel-usuario.md §7.3). Copias
-// impresas con descuento por cantidad (solo en el mismo pedido), marcos con
-// NFC, y el acabado. El precio se calcula acá para mostrarlo y se recalcula
-// en el servidor para cobrarlo: nunca se confía en el número del navegador.
+// Sumar cosas a un libro que ya existe (docs/panel-usuario.md §7.3 y §15.1):
+// el PDF o el audiolibro si no los compró, copias impresas con descuento por
+// cantidad (solo en el mismo pedido), marcos con NFC, y el acabado. El precio
+// se calcula acá para mostrarlo y se recalcula en el servidor para cobrarlo:
+// nunca se confía en el número del navegador.
 
 export type PrecioExtra = { id: "impreso_bn" | "impreso_color" | "marco"; nombre: string; detalle: string; precio: number };
 
@@ -17,6 +18,10 @@ type Props = {
   extras: PrecioExtra[];
   yaTieneImpreso: boolean;
   titulo?: string;
+  /** Los de la nube: precio del PDF y del audiolibro (null = sin precio, no se ofrece). */
+  nube?: { pdf: number; audiolibro: number | null };
+  /** Qué ya compró la dueña, para no ofrecérselo otra vez. */
+  yaTiene?: { pdf: boolean; audiolibro: boolean; impreso: boolean };
 };
 
 const boton = "inline-flex h-11 items-center justify-center rounded-full px-6 text-sm font-medium transition-colors [font-family:var(--fuente-micro)] disabled:opacity-50";
@@ -37,11 +42,13 @@ function Contador({ valor, onChange, min = 0, max = 20, etiquetaMenos, etiquetaM
   );
 }
 
-export function Extras({ narradorId, moneda, region, extras, yaTieneImpreso, titulo = "Sumar" }: Props) {
+export function Extras({ narradorId, moneda, region, extras, yaTieneImpreso, titulo = "Sumar", nube, yaTiene }: Props) {
   const bn = extras.find((e) => e.id === "impreso_bn");
   const color = extras.find((e) => e.id === "impreso_color");
   const marco = extras.find((e) => e.id === "marco");
 
+  const [pdf, setPdf] = useState(false);
+  const [audiolibro, setAudiolibro] = useState<Voz | null>(null);
   const [copias, setCopias] = useState(0);
   const [acabado, setAcabado] = useState<"bn" | "color">(color && !bn ? "color" : "bn");
   const [marcos, setMarcos] = useState(0);
@@ -52,9 +59,13 @@ export function Extras({ narradorId, moneda, region, extras, yaTieneImpreso, tit
   const descuento = descuentoPorCopias(copias);
   const totalCopias = precioCopia ? Math.round(precioCopia * (1 - descuento) * copias * 100) / 100 : 0;
   const totalMarcos = marco ? marco.precio * marcos : 0;
-  const total = Math.round((totalCopias + totalMarcos) * 100) / 100;
+  const totalNube = (pdf && nube ? nube.pdf : 0) + (audiolibro && nube?.audiolibro ? nube.audiolibro : 0);
+  const total = Math.round((totalNube + totalCopias + totalMarcos) * 100) / 100;
 
-  if (extras.length === 0) {
+  const ofrecerPdf = Boolean(nube && yaTiene && !yaTiene.pdf);
+  const ofrecerAudiolibro = Boolean(nube?.audiolibro && yaTiene && !yaTiene.audiolibro);
+
+  if (extras.length === 0 && !ofrecerPdf && !ofrecerAudiolibro) {
     return <p className="text-sm text-[var(--texto-menor)]">Los extras todavía no tienen precio cargado. Pronto.</p>;
   }
 
@@ -65,7 +76,7 @@ export function Extras({ narradorId, moneda, region, extras, yaTieneImpreso, tit
       const r = await fetch(`/api/extras?narrador=${encodeURIComponent(narradorId)}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ copias, acabado, marcos }),
+        body: JSON.stringify({ pdf, audiolibro, copias, acabado, marcos }),
       });
       const j = (await r.json().catch(() => ({}))) as { error?: string; urlPago?: string };
       if (!r.ok || !j.urlPago) throw new Error(j.error ?? "No pudimos iniciar el pago.");
@@ -79,6 +90,36 @@ export function Extras({ narradorId, moneda, region, extras, yaTieneImpreso, tit
   return (
     <div className="flex flex-col gap-8">
       <p className={etiqueta}>{titulo}</p>
+
+      {ofrecerPdf || ofrecerAudiolibro ? (
+        <div className="grid gap-3 sm:grid-cols-2">
+          {ofrecerPdf && nube ? (
+            <button type="button" aria-pressed={pdf} onClick={() => setPdf((v) => !v)} className={`flex flex-col gap-2 rounded-xl border p-5 text-left transition-colors ${pdf ? "border-[var(--texto)]" : "border-[var(--linea)] hover:border-[var(--linea-fuerte)]"}`}>
+              <span className="text-[17px] [font-family:var(--fuente-titulo)]">El libro en PDF</span>
+              <span className="text-sm text-[var(--texto-suave)]">Para leerlo acá, capítulo por capítulo, con sus fotos.</span>
+              <span className="mt-auto pt-1 text-[15px] tabular-nums">{formatear(nube.pdf, moneda, region)}</span>
+            </button>
+          ) : null}
+          {ofrecerAudiolibro && nube?.audiolibro ? (
+            <div className={`flex flex-col gap-2 rounded-xl border p-5 transition-colors ${audiolibro ? "border-[var(--texto)]" : "border-[var(--linea)]"}`}>
+              <button type="button" aria-pressed={audiolibro !== null} onClick={() => setAudiolibro((v) => (v ? null : "clonada"))} className="flex flex-col gap-2 text-left">
+                <span className="text-[17px] [font-family:var(--fuente-titulo)]">El audiolibro</span>
+                <span className="text-sm text-[var(--texto-suave)]">La historia completa en primera persona. Se escucha acá.</span>
+                <span className="pt-1 text-[15px] tabular-nums">{formatear(nube.audiolibro, moneda, region)}</span>
+              </button>
+              {audiolibro ? (
+                <div className="flex gap-2">
+                  {(["clonada", "narrador"] as const).map((v) => (
+                    <button key={v} type="button" onClick={() => setAudiolibro(v)} className={`${boton} h-9 px-4 ${audiolibro === v ? "bg-[var(--texto)] text-[var(--fondo)]" : "border border-[var(--linea-fuerte)]"}`}>
+                      {NOMBRE_VOZ[v][0].toUpperCase() + NOMBRE_VOZ[v].slice(1)}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
 
       {(bn || color) ? (
         <div className="rounded-xl border border-[var(--linea)] p-5">
