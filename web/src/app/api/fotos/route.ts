@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { narradorDeLaSesion, PUEDE, type Rol } from "@/lib/panel";
-import { calidadDeFoto, AVISO_CALIDAD, TAMANO_MAXIMO_BYTES, TIPOS_DE_IMAGEN } from "@/lib/guion";
+import { calidadDeFoto, AVISO_CALIDAD, TAMANO_MAXIMO_BYTES, errorDeTipoDeFoto } from "@/lib/guion";
 
 // Subir una foto (docs/panel-usuario.md §6.3 y §15.2). Con capítulo va a esa
 // época del libro; sin capítulo es "del libro" — candidata a tapa, contratapa
@@ -15,8 +15,9 @@ import { calidadDeFoto, AVISO_CALIDAD, TAMANO_MAXIMO_BYTES, TIPOS_DE_IMAGEN } fr
 const GENERICO = "No pudimos subir la foto. Intenta de nuevo.";
 const ESTADOS_CERRADOS = ["completado", "cerrado_anticipado"];
 
+// HEIC/HEIF no entran: el navegador que imprime el libro no los decodifica (ver errorDeTipoDeFoto).
 const EXTENSION: Record<string, string> = {
-  "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/heic": "heic", "image/heif": "heif",
+  "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp",
 };
 
 export async function POST(request: NextRequest) {
@@ -48,9 +49,9 @@ export async function POST(request: NextRequest) {
   const principal = capitulo !== null && form.get("principal") === "1";
 
   if (!(archivo instanceof File)) return NextResponse.json({ error: "No llegó ninguna foto." }, { status: 400 });
-  if (!TIPOS_DE_IMAGEN.includes(archivo.type)) {
-    return NextResponse.json({ error: "Tiene que ser una imagen (JPG, PNG, WebP o HEIC)." }, { status: 400 });
-  }
+  // Sin capítulo = al álbum del libro (13/09). HEIC no entra (Naza, 14/09): la fábrica no lo abre.
+  const errorDeTipo = errorDeTipoDeFoto(archivo.type);
+  if (errorDeTipo) return NextResponse.json({ error: errorDeTipo }, { status: 400 });
   if (archivo.size > TAMANO_MAXIMO_BYTES) {
     return NextResponse.json({ error: "La foto pesa más de 25 MB." }, { status: 400 });
   }

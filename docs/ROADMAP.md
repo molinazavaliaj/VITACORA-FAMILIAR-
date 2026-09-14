@@ -411,10 +411,10 @@ Spec: `docs/panel-usuario.md`. Construyó Joaquín en `web/` (Naza sin créditos
 | 3t.5 | Invitados (hasta 3, por mail, entran con el login de siempre) | **J** | ✅ 13/09 |
 | 3t.6 | Encargar libro: edición final en 4 pasos + **Cerrar libro** + extras con descuento por cantidad | **J** | ✅ 13/09 |
 | 3t.7 | Compartir el libro cerrado: link público, muestra, guardar, comprar copia | **J** | ✅ 13/09 |
-| 3t.8 | **Lector online** (el HTML que la fábrica ya genera, paginado, con audio por capítulo) | **N** | ☐ |
-| 3t.9 | **Mails de hitos** (7, ver spec §9) — los de la fábrica/web | **N** | ☐ |
+| 3t.8 | **Lector online** (el HTML que la fábrica ya genera, paginado, con audio por capítulo) | **N** | ✅ 13/09 · integrado el 14/09 en `/tablero/[id]/leer` — `api/libro/html` sirve `libro.html`; solo se ve desde `entregado` (antes no hay libro escrito, ver `docs/panel-usuario.md` §12) |
+| 3t.9 | **Mails de hitos** (7, ver spec §9) — los de la fábrica/web | **N** | ✅ 13/09 — los 5 de la fábrica (+ «libro listo», que ya era suyo: 6 candados en total); los del entrevistador siguen en 3t.10 |
 | 3t.10 | Mails de hitos del entrevistador + guion por narrador + adaptativas al final real + imagen por WhatsApp + oferta de la siguiente + `contexto.evitar` (spec §11) | **J** | ☐ próxima sesión |
-| 3t.11 | Fábrica: leer `narradores.edicion`, ubicar `fotos`, **no producir sin `libro_aprobado_at`**, cierre automático a los 30 días (spec §12) | **N** | ☐ |
+| 3t.11 | Fábrica: leer `narradores.edicion`, ubicar `fotos`, **no producir sin `libro_aprobado_at`**, cierre automático a los 30 días (spec §12) | **N** | ✅ 13/09 — `ordenCapitulos`/`titulo`/`subtitulo`/`portadaFotoId` aplicados, `excluidas`/`correcciones` ignorados (decisión 13/09); a los 30 días de `ultima_respuesta_at` la fábrica misma cierra y produce |
 | 3t.12 | Sugeridas por IA a pedido (§6.2, tercer botón) | **J** | ☐ fase siguiente |
 | **3t.13** | **Rediseño 13/09 (tarde)** — landing con maquetas en código + CTA sticky; tema claro/oscuro; nav de 3; la historia ES el guion (riel, filas, modo edición); fotos sin capítulo; **tres productos, al menos uno** (PDF · audiolibro · impreso); el lector (`/leer`, nada se descarga); libro en miniatura + tapa/contratapa/marco. Spec: `docs/panel-usuario.md` §15. Lienzo: `docs/diseno/panel-v2/`. | **J** | ✅ 13/09 · revisado y pusheado el 14/09 |
 | 3t.14 | Fábrica: leer `pedidos.extras` nuevo (pdf / audiolibro{voz} / impreso / marcos), **audiolibro con voz clonada o narrador** (elegir proveedor), contratapa y marco desde `edicion`, HTML paginado para el lector y la miniatura | **N** | ☐ |
@@ -650,3 +650,8 @@ queda para después del lanzamiento.
 - ~~¿Cómo llegan las fotos a cada capítulo?~~ → **hecho en el panel** (13/09); falta que la fábrica las ubique
 - ~~¿Quién saca los saludos de `web/`?~~ → **hecho** (12/09)
 - ¿El merchant of record paga a Argentina? (plan B para España)
+- **Migrar `preguntasEnviadas` / `repreguntasEnviadas` de `narradores.contexto` a
+  `envios.texto`** — decidido el 14/09: después del primer piloto. Toca entrevistador
+  (J) y fábrica (N).
+- **¿De qué rama despliega Railway la fábrica?** Desde el 14/09 todo está en `main`;
+  Naza confirma en Railway → servicio fábrica → Settings → Source.

@@ -12,6 +12,12 @@ vi.mock('../src/audio/audiolibro.js', () => ({
   generarAudiolibro: generarAudiolibroMock,
 }));
 
+const { generarEstructuraMock } = vi.hoisted(() => ({ generarEstructuraMock: vi.fn() }));
+vi.mock('../src/libro/estructura.js', async () => {
+  const actual = await vi.importActual<typeof import('../src/libro/estructura.js')>('../src/libro/estructura.js');
+  return { ...actual, generarEstructura: generarEstructuraMock };
+});
+
 const { setContentMock, pdfMock, waitForFunctionMock, newPageMock, closeMock, launchMock } = vi.hoisted(() => {
   const setContentMock = vi.fn();
   const pdfMock = vi.fn().mockResolvedValue(Buffer.from('%PDF-fake%'));
@@ -51,10 +57,12 @@ vi.mock('../src/db.js', async () => {
 import { obtenerClienteDb } from '../src/db.js';
 import { generarPaquete } from '../src/libro/generar-paquete.js';
 
+// `arrayBuffer` copia a un Uint8Array nuevo: el `.buffer` de un Buffer chico
+// es el slab compartido de 8 KB, no los bytes exactos (ver fotos.test.ts).
 function blobFake(contenido: string) {
   return {
     text: async () => contenido,
-    arrayBuffer: async () => Buffer.from(contenido).buffer,
+    arrayBuffer: async () => new Uint8Array(Buffer.from(contenido)).buffer,
   };
 }
 
@@ -76,7 +84,7 @@ function construirDbFake(opciones: {
   preguntasFijas?: { data: unknown; error: unknown };
   preguntasNarrador?: { data: unknown; error: unknown };
   respuestas?: { data: unknown; error: unknown };
-  saludos?: { data: unknown; error: unknown };
+  fotos?: { data: unknown; error: unknown };
   descargas?: Record<string, { data: unknown; error: unknown }>;
   archivosNarrador?: string[];
   upload?: ReturnType<typeof vi.fn>;
@@ -98,7 +106,7 @@ function construirDbFake(opciones: {
       );
     }
     if (tabla === 'respuestas') return construirBuilder(opciones.respuestas ?? { data: [], error: null });
-    if (tabla === 'saludos') return construirBuilder(opciones.saludos ?? { data: [], error: null });
+    if (tabla === 'fotos') return construirBuilder(opciones.fotos ?? { data: [], error: null });
     if (tabla === 'pedidos') {
       return {
         update: (valores: Record<string, unknown>) => ({
@@ -111,7 +119,8 @@ function construirDbFake(opciones: {
 
   const download = vi.fn((ruta: string) => {
     const resultado = opciones.descargas?.[ruta];
-    return Promise.resolve(resultado ?? { data: null, error: { message: 'no existe' } });
+    // Lo que devuelve Storage cuando el objeto no está (solo eso vale como "no existe").
+    return Promise.resolve(resultado ?? { data: null, error: { message: 'Object not found', statusCode: '404' } });
   });
   const upload = opciones.upload ?? vi.fn().mockResolvedValue({ data: { path: 'x' }, error: null });
   const list = vi.fn(() =>
@@ -145,7 +154,16 @@ describe('generarPaquete', () => {
   it('escribe cada capítulo, edita el libro entero, sube el PDF, arma el audiolibro y entrega el pedido', async () => {
     const db = construirDbFake({
       narrador: {
-        data: { id: 'narrador-1', nombre: 'Roberto', foto_url: 'https://x/foto.jpg', contexto: { anioNacimiento: 1945 } },
+        data: {
+          id: 'narrador-1',
+          nombre: 'Roberto',
+          foto_url: 'https://x/foto.jpg',
+          contexto: { anioNacimiento: 1945 },
+          edicion: null,
+          familia_id: 'f1',
+          libro_aprobado_at: '2026-09-13T10:00:00Z',
+          ultima_respuesta_at: null,
+        },
         error: null,
       },
       preguntasFijas: {
@@ -161,10 +179,6 @@ describe('generarPaquete', () => {
           { pregunta_orden: 1, transcripcion: 'En Rosario.', texto_directo: null, es_repregunta: false, audio_path: 'narrador-1/dia_01.ogg' },
           { pregunta_orden: 2, transcripcion: 'La conocí bailando.', texto_directo: null, es_repregunta: false, audio_path: 'narrador-1/dia_02.ogg' },
         ],
-        error: null,
-      },
-      saludos: {
-        data: [{ nombre: 'Marta', vinculo: 'hija', audio_path: 'narrador-1/saludos/marta.webm' }],
         error: null,
       },
       descargas: {
@@ -183,7 +197,6 @@ describe('generarPaquete', () => {
     });
     generarAudiolibroMock.mockResolvedValue({
       capitulos: ['narrador-1/paquete/audiolibro_cap_01.mp3', 'narrador-1/paquete/audiolibro_cap_02.mp3'],
-      bonus: 'narrador-1/paquete/audiolibro_bonus_saludos.mp3',
       completo: 'narrador-1/paquete/audiolibro_completo.mp3',
     });
 
@@ -225,8 +238,7 @@ describe('generarPaquete', () => {
     expect(generarAudiolibroMock).toHaveBeenCalledWith(
       'narrador-1',
       estructura,
-      ['dia_01.ogg', 'dia_02.ogg'],
-      [{ nombre: 'Marta', vinculo: 'hija', audio_path: 'narrador-1/saludos/marta.webm' }]
+      ['dia_01.ogg', 'dia_02.ogg']
     );
 
     // el pedido queda entregado con las rutas del libro y el audiolibro.
@@ -236,7 +248,6 @@ describe('generarPaquete', () => {
         libro_pdf_path: 'narrador-1/paquete/libro.pdf',
         audiolibro_paths: {
           capitulos: ['narrador-1/paquete/audiolibro_cap_01.mp3', 'narrador-1/paquete/audiolibro_cap_02.mp3'],
-          bonus: 'narrador-1/paquete/audiolibro_bonus_saludos.mp3',
           completo: 'narrador-1/paquete/audiolibro_completo.mp3',
         },
       },
@@ -301,7 +312,6 @@ describe('generarPaquete', () => {
         ],
         error: null,
       },
-      saludos: { data: [], error: null },
       descargas: {
         'narrador-1/paquete/estructura.json': { data: blobFake(JSON.stringify(estructura)), error: null },
         'narrador-1/paquete/nombres.json': { data: blobFake(JSON.stringify(nombres)), error: null },
@@ -318,7 +328,6 @@ describe('generarPaquete', () => {
 
     generarAudiolibroMock.mockResolvedValue({
       capitulos: ['narrador-1/paquete/audiolibro_cap_01.mp3', 'narrador-1/paquete/audiolibro_cap_02.mp3'],
-      bonus: 'narrador-1/paquete/audiolibro_bonus_saludos.mp3',
       completo: 'narrador-1/paquete/audiolibro_completo.mp3',
     });
 
@@ -342,9 +351,11 @@ describe('generarPaquete', () => {
   });
 
   it('ante cualquier excepción, marca el pedido "fallido" y no tira (el tick sigue)', async () => {
-    // falta estructura.json → descargarJson tira antes de escribir nada.
+    // falta estructura.json y armarla ahí mismo también falla → tira antes
+    // de escribir nada.
     const db = construirDbFake({ descargas: {} });
     (obtenerClienteDb as unknown as ReturnType<typeof vi.fn>).mockReturnValue(db);
+    generarEstructuraMock.mockRejectedValue(new Error('el narrador no tiene respuestas'));
 
     await expect(generarPaquete({ id: 'pedido-1', narrador_id: 'narrador-1' })).resolves.toBeUndefined();
 
@@ -371,7 +382,6 @@ describe('generarPaquete', () => {
         data: [{ pregunta_orden: 1, transcripcion: 'En Rosario.', texto_directo: null, es_repregunta: false, audio_path: 'narrador-1/dia_01.ogg' }],
         error: null,
       },
-      saludos: { data: [], error: null },
       descargas: {
         'narrador-1/paquete/estructura.json': {
           data: blobFake(JSON.stringify({ titulo: 'T', capitulos: [{ nombre: 'Infancia', ordenes: [1] }], entidades: [] })),
@@ -401,5 +411,284 @@ describe('generarPaquete', () => {
       { contentType: 'text/markdown', upsert: true }
     );
     expect(db.remove).not.toHaveBeenCalled();
+  });
+
+  it('si Storage falla (no "no existe") al leer el borrador cacheado, el pedido cae a "fallido" sin pagarle al modelo de nuevo', async () => {
+    const db = construirDbFake({
+      narrador: { data: { id: 'narrador-1', nombre: 'Roberto', foto_url: null, contexto: {} }, error: null },
+      preguntasFijas: { data: [{ narrador_id: null, orden: 1, texto: '¿Dónde naciste?', capitulo: 'Infancia' }], error: null },
+      preguntasNarrador: { data: [], error: null },
+      respuestas: {
+        data: [{ pregunta_orden: 1, transcripcion: 'En Rosario.', texto_directo: null, es_repregunta: false, audio_path: null }],
+        error: null,
+      },
+      descargas: {
+        'narrador-1/paquete/estructura.json': {
+          data: blobFake(JSON.stringify({ titulo: 'T', capitulos: [{ nombre: 'Infancia', ordenes: [1] }], entidades: [] })),
+          error: null,
+        },
+        'narrador-1/paquete/nombres.json': { data: blobFake(JSON.stringify(nombres)), error: null },
+        // Un 500 de Storage: no dice nada de si el borrador está o no.
+        'narrador-1/paquete/borrador_cap_01.md': { data: null, error: { message: 'Internal server error', statusCode: '500' } },
+      },
+      archivosNarrador: [],
+    });
+    (obtenerClienteDb as unknown as ReturnType<typeof vi.fn>).mockReturnValue(db);
+
+    await expect(generarPaquete({ id: 'pedido-1', narrador_id: 'narrador-1' })).resolves.toBeUndefined();
+
+    expect(db.pedidosUpdate).toHaveBeenCalledWith({ estado: 'fallido' }, 'pedido-1');
+    expect(escribirCapituloMock).not.toHaveBeenCalled();
+  });
+
+  // --- La edición, las fotos y libro.html -----------------------------------
+  //
+  // Setup base para lo que sigue, calcado del primer test pero con narrador
+  // 'n1' y capítulos ['La infancia', 'El amor']. Cada test pisa solo lo que
+  // le importa (edición, fotos, descargas).
+
+  const estructuraN1 = {
+    titulo: 'Rosa — La historia de una vida',
+    capitulos: [
+      { nombre: 'La infancia', ordenes: [1] },
+      { nombre: 'El amor', ordenes: [2] },
+    ],
+    entidades: [],
+  };
+
+  function narradorN1(ajustes: Record<string, unknown> = {}) {
+    return {
+      id: 'n1',
+      nombre: 'Rosa',
+      foto_url: 'https://x/foto.jpg',
+      contexto: { anioNacimiento: 1945 },
+      edicion: null,
+      familia_id: 'f1',
+      libro_aprobado_at: '2026-09-13T10:00:00Z',
+      ultima_respuesta_at: null,
+      ...ajustes,
+    };
+  }
+
+  function descargasN1(): Record<string, { data: unknown; error: unknown }> {
+    return {
+      'n1/paquete/estructura.json': { data: blobFake(JSON.stringify(estructuraN1)), error: null },
+      'n1/paquete/nombres.json': { data: blobFake(JSON.stringify(nombres)), error: null },
+    };
+  }
+
+  function construirDbN1(ajustes: Parameters<typeof construirDbFake>[0] = {}) {
+    const db = construirDbFake({
+      narrador: { data: narradorN1(), error: null },
+      preguntasFijas: {
+        data: [
+          { narrador_id: null, orden: 1, texto: '¿Dónde naciste?', capitulo: 'La infancia' },
+          { narrador_id: null, orden: 2, texto: '¿Cómo conociste a tu pareja?', capitulo: 'El amor' },
+        ],
+        error: null,
+      },
+      preguntasNarrador: { data: [], error: null },
+      respuestas: {
+        data: [
+          { pregunta_orden: 1, transcripcion: 'En Rosario.', texto_directo: null, es_repregunta: false, audio_path: 'n1/dia_01.ogg' },
+          { pregunta_orden: 2, transcripcion: 'La conocí bailando.', texto_directo: null, es_repregunta: false, audio_path: 'n1/dia_02.ogg' },
+        ],
+        error: null,
+      },
+      descargas: descargasN1(),
+      archivosNarrador: ['dia_01.ogg', 'dia_02.ogg'],
+      ...ajustes,
+    });
+    (obtenerClienteDb as unknown as ReturnType<typeof vi.fn>).mockReturnValue(db);
+
+    escribirCapituloMock.mockResolvedValue('Un capítulo con su voz.');
+    finalMessageMock.mockResolvedValue({
+      content: [
+        {
+          type: 'text',
+          text: '# A mis lectores\n\nHola.\n\n# La infancia\n\nNací en Rosario.\n\n# El amor\n\nLa conocí bailando.',
+        },
+      ],
+    });
+    generarAudiolibroMock.mockResolvedValue({
+      capitulos: ['n1/paquete/audiolibro_cap_01.mp3', 'n1/paquete/audiolibro_cap_02.mp3'],
+      completo: 'n1/paquete/audiolibro_completo.mp3',
+    });
+    return db;
+  }
+
+  it('sin nombres.json escribe igual (la dueña puede no haber revisado nombres; a los 30 días se cierra solo)', async () => {
+    const descargas = descargasN1();
+    delete descargas['n1/paquete/nombres.json'];
+    const db = construirDbN1({ descargas });
+
+    await generarPaquete({ id: 'p1', narrador_id: 'n1' });
+
+    expect(escribirCapituloMock).toHaveBeenCalled();
+    // el último argumento de escribirCapitulo (nombresCorregidos) va vacío:
+    // el mismo "(sin correcciones)" que produce un nombres.json sin
+    // correcciones — el prompt necesita algo ahí.
+    expect(escribirCapituloMock.mock.calls[0][4]).toBe('(sin correcciones)');
+    expect(db.pedidosUpdate).toHaveBeenCalledWith(expect.objectContaining({ estado: 'entregado' }), 'p1');
+  });
+
+  it('aplica ordenCapitulos de la edición: escribe, pagina y graba los capítulos en ese orden', async () => {
+    // estructura.json con capítulos ['La infancia', 'El amor']; la dueña
+    // quiere 'El amor' primero.
+    const db = construirDbN1({ narrador: { data: narradorN1({ edicion: { ordenCapitulos: ['El amor'] } }), error: null } });
+    escribirCapituloMock
+      .mockResolvedValueOnce('Texto de El amor')
+      .mockResolvedValueOnce('Texto de La infancia');
+    // El editor devuelve el borrador tal cual le llegó: así el HTML refleja
+    // el orden en que se armó el libro y no un texto fijo del test.
+    streamMock.mockImplementationOnce((params: { messages: { content: string }[] }) => ({
+      finalMessage: () => Promise.resolve({ content: [{ type: 'text', text: params.messages[0].content }] }),
+    }));
+
+    await generarPaquete({ id: 'p1', narrador_id: 'n1' });
+
+    expect(escribirCapituloMock.mock.calls.map((c) => c[1])).toEqual(['El amor', 'La infancia']);
+    const estructuraAlAudiolibro = generarAudiolibroMock.mock.calls[0][1];
+    expect(estructuraAlAudiolibro.capitulos.map((c: { nombre: string }) => c.nombre)).toEqual(['El amor', 'La infancia']);
+    const html = setContentMock.mock.calls[0][0] as string;
+    expect(html.indexOf('El amor')).toBeLessThan(html.indexOf('La infancia'));
+
+    // El caché de borradores se numera por el orden FINAL (la edición está
+    // congelada, así que un reintento reusa los mismos archivos), y la
+    // limpieza borra esos mismos dos.
+    expect(db.upload).toHaveBeenCalledWith('n1/paquete/borrador_cap_01.md', 'Texto de El amor', {
+      contentType: 'text/markdown',
+      upsert: true,
+    });
+    expect(db.upload).toHaveBeenCalledWith('n1/paquete/borrador_cap_02.md', 'Texto de La infancia', {
+      contentType: 'text/markdown',
+      upsert: true,
+    });
+    expect(db.remove.mock.calls[0][0]).toEqual(
+      expect.arrayContaining(['n1/paquete/borrador_cap_01.md', 'n1/paquete/borrador_cap_02.md'])
+    );
+  });
+
+  it('título, subtítulo y foto de tapa de la edición llegan a la plantilla; la foto de tapa sale de la tabla fotos', async () => {
+    construirDbN1({
+      narrador: {
+        data: narradorN1({ edicion: { titulo: 'Mi abuela Rosa', subtitulo: 'Rosa Pérez', portadaFotoId: 'f9' } }),
+        error: null,
+      },
+      fotos: {
+        data: [{ id: 'f9', capitulo: 'La infancia', storage_path: 'n1/fotos/f9.jpg', principal: false, orden: 0, epigrafe: null }],
+        error: null,
+      },
+      descargas: { ...descargasN1(), 'n1/fotos/f9.jpg': { data: blobFake('TAPA'), error: null } },
+    });
+
+    await generarPaquete({ id: 'p1', narrador_id: 'n1' });
+
+    const html = setContentMock.mock.calls[0][0] as string;
+    expect(html).toContain('<div class="portada-nombre-narrador">Mi abuela Rosa</div>');
+    expect(html).toContain('<div class="tag">Rosa Pérez</div>');
+    expect(html).toContain(`data:image/jpeg;base64,${Buffer.from('TAPA').toString('base64')}`);
+  });
+
+  it('portadaFotoId que no existe → frontispicio con narrador.foto_url como siempre', async () => {
+    construirDbN1({
+      narrador: {
+        data: narradorN1({ edicion: { portadaFotoId: 'no-existe' }, foto_url: 'https://x/foto.jpg' }),
+        error: null,
+      },
+      fotos: { data: [], error: null },
+    });
+
+    await generarPaquete({ id: 'p1', narrador_id: 'n1' });
+
+    const html = setContentMock.mock.calls[0][0] as string;
+    expect(html).toContain('src="https://x/foto.jpg"');
+  });
+
+  it('las fotos de un capítulo entran al HTML', async () => {
+    construirDbN1({
+      fotos: {
+        data: [{ id: 'f1', capitulo: 'La infancia', storage_path: 'n1/fotos/f1.jpg', principal: true, orden: 0, epigrafe: 'En el patio' }],
+        error: null,
+      },
+      descargas: { ...descargasN1(), 'n1/fotos/f1.jpg': { data: blobFake('PATIO'), error: null } },
+    });
+
+    await generarPaquete({ id: 'p1', narrador_id: 'n1' });
+
+    const html = setContentMock.mock.calls[0][0] as string;
+    expect(html).toContain('<div class="foto-epigrafe">En el patio</div>');
+  });
+
+  it('sube libro.html además de libro.pdf', async () => {
+    const db = construirDbN1();
+
+    await generarPaquete({ id: 'p1', narrador_id: 'n1' });
+
+    const rutas = db.upload.mock.calls.map((c) => c[0] as string);
+    expect(rutas).toContain('n1/paquete/libro.pdf');
+    expect(rutas).toContain('n1/paquete/libro.html');
+    const llamadaHtml = db.upload.mock.calls.find((c) => c[0] === 'n1/paquete/libro.html')!;
+    expect(llamadaHtml[1]).toBe(setContentMock.mock.calls[0][0]);
+    expect(llamadaHtml[2]).toMatchObject({ contentType: 'text/html; charset=utf-8', upsert: true });
+  });
+
+  it('excluidas y correcciones en la edición no cambian nada', async () => {
+    construirDbN1({
+      narrador: {
+        data: narradorN1({ edicion: { excluidas: ['r1', 'r2'], correcciones: 'cambiá todo' } }),
+        error: null,
+      },
+    });
+
+    await generarPaquete({ id: 'p1', narrador_id: 'n1' });
+
+    // se escriben todos los capítulos con todo el material (mismas llamadas
+    // que el primer test).
+    expect(escribirCapituloMock).toHaveBeenCalledTimes(2);
+    const material = escribirCapituloMock.mock.calls[0][2] as string;
+    expect(material).toContain('En Rosario.');
+    expect(material).not.toContain('cambiá todo');
+  });
+
+  it('si falta estructura.json pero el libro está aprobado, la genera ahí mismo en vez de fallar', async () => {
+    const descargas = descargasN1();
+    delete descargas['n1/paquete/estructura.json'];
+    const db = construirDbN1({ descargas });
+    generarEstructuraMock.mockResolvedValue({
+      titulo: 'Rosa — La historia de una vida',
+      capitulos: [{ nombre: 'La infancia', ordenes: [1] }],
+      entidades: [],
+    });
+
+    await generarPaquete({ id: 'p1', narrador_id: 'n1' });
+
+    expect(generarEstructuraMock).toHaveBeenCalledWith('n1');
+    expect(escribirCapituloMock.mock.calls.map((c) => c[1])).toEqual(['La infancia']);
+    expect(db.pedidosUpdate).toHaveBeenCalledWith(expect.objectContaining({ estado: 'entregado' }), 'p1');
+  });
+
+  it('si estructura.json existe pero está rota, NO la regenera: el pedido cae a "fallido"', async () => {
+    const db = construirDbN1({
+      descargas: { ...descargasN1(), 'n1/paquete/estructura.json': { data: blobFake('{no es json'), error: null } },
+    });
+    generarEstructuraMock.mockResolvedValue(estructuraN1);
+
+    await generarPaquete({ id: 'p1', narrador_id: 'n1' });
+
+    // Regenerar sería pagarle al modelo por algo que ya se pagó y pisar el
+    // archivo — el error tiene que quedar a la vista.
+    expect(generarEstructuraMock).not.toHaveBeenCalled();
+    expect(escribirCapituloMock).not.toHaveBeenCalled();
+    expect(db.pedidosUpdate).toHaveBeenCalledWith({ estado: 'fallido' }, 'p1');
+  });
+
+  it('ya no lee la tabla saludos', async () => {
+    const db = construirDbN1();
+
+    await generarPaquete({ id: 'p1', narrador_id: 'n1' });
+
+    expect(db.from).not.toHaveBeenCalledWith('saludos');
+    expect(db.pedidosUpdate).toHaveBeenCalledWith(expect.objectContaining({ estado: 'entregado' }), 'p1');
   });
 });

@@ -22,6 +22,12 @@ export type Narrador = {
   };
   foto_url: string | null;
   estado: string;
+  familia_id: string;
+  /** jsonb que escribe la web con la edición final; lo interpreta `libro/edicion.ts`. */
+  edicion: unknown;
+  /** "Cerrar libro": sin esto no se produce nada. Lo escribe la web, o la fábrica a los 30 días. */
+  libro_aprobado_at: string | null;
+  ultima_respuesta_at: string | null;
 };
 
 export type Pregunta = {
@@ -29,7 +35,7 @@ export type Pregunta = {
   orden: number;
   texto: string;
   capitulo: string;
-  tipo: 'fija' | 'adaptativa';
+  tipo: 'fija' | 'adaptativa' | 'familia' | 'sugerida';
 };
 
 export type Respuesta = {
@@ -40,6 +46,16 @@ export type Respuesta = {
   es_repregunta: boolean;
   audio_path: string | null;
   duracion_segundos: number | null;
+};
+
+export type Foto = {
+  id: string;
+  narrador_id: string;
+  capitulo: string;
+  storage_path: string;
+  epigrafe: string | null;
+  principal: boolean;
+  orden: number;
 };
 
 let cliente: SupabaseClient | undefined;

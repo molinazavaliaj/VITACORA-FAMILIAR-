@@ -112,7 +112,22 @@ export function reordenar(
 export const MINIMO_LIBRO = { ancho: 1200, alto: 1800 };
 export const MINIMO_MARCO = { ancho: 2400, alto: 3000 };
 export const TAMANO_MAXIMO_BYTES = 25 * 1024 * 1024;
-export const TIPOS_DE_IMAGEN = ["image/jpeg", "image/png", "image/webp", "image/heic", "image/heif"];
+export const TIPOS_DE_IMAGEN = ["image/jpeg", "image/png", "image/webp"];
+
+/** El iPhone saca en HEIC por defecto; el navegador que imprime el libro no lo decodifica. */
+const TIPOS_HEIC = ["image/heic", "image/heif"];
+
+export const MENSAJE_HEIC =
+  "Esa foto está en formato HEIC. Exporta la foto como JPG (en el iPhone: Ajustes → Cámara → Formatos → Más compatible) y vuelve a subirla.";
+
+export const MENSAJE_TIPO_INVALIDO = "Tiene que ser una imagen (JPG, PNG o WebP).";
+
+/** Por qué no se acepta este tipo de archivo como foto; null si se acepta. */
+export function errorDeTipoDeFoto(tipo: string): string | null {
+  if (TIPOS_DE_IMAGEN.includes(tipo)) return null;
+  if (TIPOS_HEIC.includes(tipo)) return MENSAJE_HEIC;
+  return MENSAJE_TIPO_INVALIDO;
+}
 
 export type CalidadFoto = "marco" | "libro" | "baja";
 

@@ -1,10 +1,11 @@
 import { fileURLToPath } from 'node:url';
-import { obtenerClienteDb } from './db.js';
+import { obtenerClienteDb, type Narrador } from './db.js';
 import { cargarConfig } from './config.js';
 import { generarAnticipo } from './libro/anticipo.js';
 import { firmarTokenAnticipo } from './libro/token-anticipo.js';
 import { subirTexto } from './libro/comun.js';
 import { enviarMailAnticipo } from './mail/anticipo.js';
+import { enviarMailHito, CANDADO_POR_HITO, type Hito } from './mail/hitos.js';
 import { generarEstructura } from './libro/estructura.js';
 import { generarPrevisualizacion } from './libro/previsualizar.js';
 import { generarPaquete } from './libro/generar-paquete.js';
@@ -18,8 +19,27 @@ const INTERVALO_MS = 60_000;
  */
 const RESPUESTAS_PARA_ANTICIPO = Number(process.env.RESPUESTAS_PARA_ANTICIPO ?? 3);
 
-/** El libro se escribe recién cuando el narrador terminó, se haya pagado cuando se haya pagado. */
-const ESTADOS_NARRADOR_LISTO = ['completado', 'cerrado_anticipado'];
+/** Estados del narrador en los que ya no hay más preguntas: el libro se puede cerrar. */
+const ESTADOS_TERMINADO = ['completado', 'cerrado_anticipado'];
+
+/** Días desde la última respuesta a los que se recuerda que falta Cerrar libro. */
+const DIAS_RECORDATORIO = [3, 7, 14] as const;
+
+/** A los 30 días sin cerrar, la fábrica cierra sola con la propuesta (está en los términos). */
+const DIAS_CIERRE_AUTOMATICO = 30;
+
+const MS_POR_DIA = 24 * 60 * 60 * 1000;
+
+/** Marca de que fue la fábrica la que cerró el libro (ver `avisarHitosDeCierre`). No es un candado de mail. */
+const MARCA_CIERRE_AUTOMATICO = 'cierre_automatico.txt';
+
+type Db = ReturnType<typeof obtenerClienteDb>;
+
+/** Lo que hace falta de un narrador para mandarle un mail de hito a su familia. */
+type NarradorConFamilia = Pick<Narrador, 'id' | 'como_le_dicen' | 'familia_id'>;
+
+/** Lo mismo, más las fechas que deciden recordatorios y cierre automático. */
+type NarradorTerminado = NarradorConFamilia & Pick<Narrador, 'ultima_respuesta_at' | 'libro_aprobado_at'>;
 
 let corriendo = false;
 
@@ -46,10 +66,24 @@ export async function tick(): Promise<void> {
     await generarAnticiposFaltantes();
     await generarEstructurasFaltantes();
     await generarPrevisualizacionesFaltantes();
+    await avisarHitosDeCierre();
     await procesarPedidosPagados();
+    await avisarLibrosListos();
   } finally {
     corriendo = false;
   }
+}
+
+/**
+ * Los nombres de archivo que hay en `{narrador_id}/paquete/` en Storage: ahí
+ * viven los productos (estructura.json, preview.pdf...) y los candados de
+ * los mails. Tira si Storage no responde — quien llama decide si loguea y
+ * sigue con el próximo narrador.
+ */
+async function listarPaquete(db: Db, narradorId: string): Promise<Set<string>> {
+  const { data: archivos, error } = await db.storage.from('audios').list(`${narradorId}/paquete`);
+  if (error) throw new Error(`No se pudo listar el paquete de ${narradorId}: ${error.message}`);
+  return new Set((archivos ?? []).map((archivo) => archivo.name));
 }
 
 /**
@@ -85,15 +119,7 @@ async function generarAnticiposFaltantes(): Promise<void> {
     familia_id: string;
   }[]) {
     try {
-      const { data: archivos, error: errorStorage } = await db.storage
-        .from('audios')
-        .list(`${narrador.id}/paquete`);
-      if (errorStorage) {
-        console.error(`tick: no se pudo listar el paquete de ${narrador.id}:`, errorStorage.message);
-        continue;
-      }
-
-      const nombresArchivos = new Set((archivos ?? []).map((archivo) => archivo.name));
+      const nombresArchivos = await listarPaquete(db, narrador.id);
       if (nombresArchivos.has('anticipo_enviado.txt')) continue;
 
       const { count, error: errorCuenta } = await db
@@ -185,19 +211,10 @@ async function generarEstructurasFaltantes(): Promise<void> {
   }
 
   for (const narrador of (narradores ?? []) as { id: string }[]) {
-    const { data: archivos, error: errorStorage } = await db.storage
-      .from('audios')
-      .list(`${narrador.id}/paquete`);
-
-    if (errorStorage) {
-      console.error(`tick: no se pudo listar el paquete de ${narrador.id}:`, errorStorage.message);
-      continue;
-    }
-
-    const yaTieneEstructura = (archivos ?? []).some((archivo) => archivo.name === 'estructura.json');
-    if (yaTieneEstructura) continue;
-
     try {
+      const archivos = await listarPaquete(db, narrador.id);
+      if (archivos.has('estructura.json')) continue;
+
       await generarEstructura(narrador.id);
     } catch (err) {
       console.error(`tick: falló generarEstructura para ${narrador.id}:`, err);
@@ -225,26 +242,193 @@ async function generarPrevisualizacionesFaltantes(): Promise<void> {
   }
 
   for (const narrador of (narradores ?? []) as { id: string }[]) {
-    const { data: archivos, error: errorStorage } = await db.storage
-      .from('audios')
-      .list(`${narrador.id}/paquete`);
-
-    if (errorStorage) {
-      console.error(`tick: no se pudo listar el paquete de ${narrador.id}:`, errorStorage.message);
-      continue;
-    }
-
-    const nombresArchivos = new Set((archivos ?? []).map((archivo) => archivo.name));
-    const tieneEstructura = nombresArchivos.has('estructura.json');
-    const tieneNombres = nombresArchivos.has('nombres.json');
-    const tienePreview = nombresArchivos.has('preview.pdf');
-
-    if (!tieneEstructura || !tieneNombres || tienePreview) continue;
-
     try {
+      const archivos = await listarPaquete(db, narrador.id);
+      const tieneEstructura = archivos.has('estructura.json');
+      const tieneNombres = archivos.has('nombres.json');
+      const tienePreview = archivos.has('preview.pdf');
+
+      if (!tieneEstructura || !tieneNombres || tienePreview) continue;
+
       await generarPrevisualizacion(narrador.id);
     } catch (err) {
       console.error(`tick: falló generarPrevisualizacion para ${narrador.id}:`, err);
+    }
+  }
+}
+
+/**
+ * Los mails que acompañan el cierre del libro (spec §9 y §6 del diseño):
+ * "terminó" cuando el narrador pasa a completado, recordatorios a los 3, 7 y
+ * 14 días sin Cerrar libro, y a los 30 el cierre automático con la
+ * propuesta (la fábrica pone `libro_aprobado_at` ella misma — es el único
+ * caso en que lo escribe alguien que no es la web, ver CONTRATO.md).
+ * Un candado por mail en Storage; se deja SOLO si Resend confirmó.
+ * Si la fábrica estuvo caída y pasaron varios hitos, se manda una sola vez
+ * el más reciente y se marcan los anteriores.
+ *
+ * El cierre automático deja además la marca `cierre_automatico.txt` apenas
+ * el CAS confirma que fuimos nosotros los que cerramos: es lo único que
+ * distingue "lo cerramos nosotros y el mail no salió" (hay que reintentar)
+ * de "lo cerró la dueña desde la web" (no hay nada que mandar).
+ */
+async function avisarHitosDeCierre(): Promise<void> {
+  const db = obtenerClienteDb();
+  const { urlBase } = cargarConfig();
+
+  const { data: narradores, error } = await db
+    .from('narradores')
+    .select('id, como_le_dicen, familia_id, ultima_respuesta_at, libro_aprobado_at')
+    .in('estado', ESTADOS_TERMINADO);
+
+  if (error) {
+    console.error('tick: no se pudieron leer los narradores terminados:', error.message);
+    return;
+  }
+
+  for (const narrador of (narradores ?? []) as NarradorTerminado[]) {
+    try {
+      const archivos = await listarPaquete(db, narrador.id);
+      const enlace = `${urlBase}/tablero/${narrador.id}`;
+      const mandar = (hito: Hito) => mandarHito(db, narrador, hito, enlace, archivos);
+
+      if (!archivos.has(CANDADO_POR_HITO.terminado)) await mandar('terminado');
+
+      // Lo cerramos nosotros en un tick anterior pero el mail no salió
+      // (sin clave, Resend caído): reintentar antes de mirar
+      // `libro_aprobado_at`, que ya está puesto y cortaría acá abajo.
+      if (archivos.has(MARCA_CIERRE_AUTOMATICO) && !archivos.has(CANDADO_POR_HITO.cierre_automatico)) {
+        await mandar('cierre_automatico');
+        continue;
+      }
+
+      // Con el libro cerrado (por la web o por nosotros) no hay nada que
+      // recordar. Sin fecha de última respuesta no hay desde cuándo contar.
+      // `!= null` a propósito: si la columna no vino en el select (o llega
+      // undefined desde un fake), se trata como cerrado y no se recuerda de más.
+      if (narrador.libro_aprobado_at != null || !narrador.ultima_respuesta_at) continue;
+      const dias = Math.floor((Date.now() - new Date(narrador.ultima_respuesta_at).getTime()) / MS_POR_DIA);
+
+      if (dias >= DIAS_CIERRE_AUTOMATICO) {
+        // Compare-and-swap: solo cerramos si sigue abierto. Si no vuelve
+        // ninguna fila, la dueña lo cerró desde la web entre el SELECT y
+        // este UPDATE — su cierre vale, y el mail de "lo cerramos por ti"
+        // sería mentira. (Si ya está la marca de cierre automático,
+        // `libro_aprobado_at` está puesto y no se llega acá.)
+        const { data: cerrado, error: errorCierre } = await db
+          .from('narradores')
+          .update({ libro_aprobado_at: new Date().toISOString() })
+          .eq('id', narrador.id)
+          .is('libro_aprobado_at', null)
+          .select('id');
+        if (errorCierre) throw new Error(`no se pudo cerrar solo: ${errorCierre.message}`);
+        if (!cerrado || (cerrado as unknown[]).length !== 1) continue;
+        // La marca va DESPUÉS del CAS y ANTES del mail: recién ahora sabemos
+        // que fuimos nosotros, y si el mail falla el próximo tick lo reintenta.
+        await subirTexto(db, `${narrador.id}/paquete/${MARCA_CIERRE_AUTOMATICO}`, new Date().toISOString());
+        archivos.add(MARCA_CIERRE_AUTOMATICO);
+        await mandar('cierre_automatico');
+        continue;
+      }
+
+      const vencidos = DIAS_RECORDATORIO.filter((d) => dias >= d);
+      if (vencidos.length === 0) continue;
+      const mayor = vencidos[vencidos.length - 1];
+      const hitoMayor = `recordatorio_${mayor}` as Hito;
+      if (archivos.has(CANDADO_POR_HITO[hitoMayor])) continue;
+
+      const enviado = await mandar(hitoMayor);
+      if (enviado) {
+        // Los recordatorios anteriores que quedaron sin mandar se marcan
+        // como hechos: la familia ya recibió el más reciente, no hace falta
+        // que le lleguen tres mails seguidos.
+        for (const d of vencidos.slice(0, -1)) {
+          const candado = CANDADO_POR_HITO[`recordatorio_${d}` as Hito];
+          if (archivos.has(candado)) continue;
+          await subirTexto(db, `${narrador.id}/paquete/${candado}`, new Date().toISOString());
+          archivos.add(candado);
+        }
+      }
+    } catch (err) {
+      console.error(`tick: fallaron los mails de cierre de ${narrador.id}:`, err);
+    }
+  }
+}
+
+/**
+ * Manda el mail de un hito a la familia del narrador y, si Resend confirmó,
+ * deja el candado en Storage (y lo agrega al Set de `archivos`, para que el
+ * mismo tick no lo vuelva a considerar pendiente). Devuelve si salió.
+ * Si falta la clave, `enviarMailHito` devuelve false y no queda candado: el
+ * próximo tick reintenta — igual que el anticipo.
+ */
+async function mandarHito(
+  db: Db,
+  narrador: NarradorConFamilia,
+  hito: Hito,
+  enlace: string,
+  archivos: Set<string>
+): Promise<boolean> {
+  const { data: familia, error: errorFamilia } = await db
+    .from('familias')
+    .select('email')
+    .eq('id', narrador.familia_id)
+    .single();
+  if (errorFamilia || !familia) {
+    throw new Error(`No se pudo leer la familia de ${narrador.id}: ${errorFamilia?.message ?? 'sin datos'}`);
+  }
+
+  const enviado = await enviarMailHito({
+    hito,
+    para: (familia as { email: string }).email,
+    comoLeDicen: narrador.como_le_dicen,
+    enlace,
+  });
+
+  if (enviado) {
+    const candado = CANDADO_POR_HITO[hito];
+    await subirTexto(db, `${narrador.id}/paquete/${candado}`, new Date().toISOString());
+    archivos.add(candado);
+  }
+  return enviado;
+}
+
+/**
+ * Branch (c): pedidos 'entregado' cuyo narrador todavía no tiene
+ * `libro_listo_enviado.txt` → el mail de "el libro está listo". Un mail por
+ * narrador, no por pedido: un extra (otro ejemplar) del mismo narrador
+ * comparte el candado.
+ */
+async function avisarLibrosListos(): Promise<void> {
+  const db = obtenerClienteDb();
+  const { urlBase } = cargarConfig();
+
+  const { data: pedidos, error } = await db.from('pedidos').select('id, narrador_id').eq('estado', 'entregado');
+
+  if (error) {
+    console.error('tick: no se pudieron leer los pedidos entregados:', error.message);
+    return;
+  }
+
+  const narradoresEntregados = new Set(((pedidos ?? []) as { narrador_id: string }[]).map((p) => p.narrador_id));
+
+  for (const narradorId of narradoresEntregados) {
+    try {
+      const archivos = await listarPaquete(db, narradorId);
+      if (archivos.has(CANDADO_POR_HITO.libro_listo)) continue;
+
+      const { data: narrador, error: errorNarrador } = await db
+        .from('narradores')
+        .select('id, como_le_dicen, familia_id')
+        .eq('id', narradorId)
+        .single();
+      if (errorNarrador || !narrador) {
+        throw new Error(`No se pudo leer el narrador: ${errorNarrador?.message ?? 'sin datos'}`);
+      }
+
+      await mandarHito(db, narrador as NarradorConFamilia, 'libro_listo', `${urlBase}/tablero/${narradorId}`, archivos);
+    } catch (err) {
+      console.error(`tick: falló el mail de libro listo de ${narradorId}:`, err);
     }
   }
 }
@@ -322,10 +506,16 @@ export async function procesarPedidosPagados(): Promise<void> {
   // cero, mucho antes de que haya un libro que escribir. Sin este filtro, el
   // worker reclamaría el pedido, generarPaquete fallaría por falta de
   // estructura.json/nombres.json y el pedido quedaría en 'fallido' para que
-  // alguien lo resetee a mano. Solo se generan los del narrador que terminó.
+  // alguien lo resetee a mano.
+  //
+  // El libro se escribe recién cuando la dueña apretó "Cerrar libro"
+  // (`narradores.libro_aprobado_at`). Es el punto de aprobación del cliente:
+  // antes de eso no se produce nada, ni digital ni impreso — decisión de los
+  // socios del 12/09, y de Naza el 13/09: ella no ve nada escrito antes de
+  // cerrar. Que el narrador esté `completado` ya no alcanza.
   const { data: narradores, error: errorNarradores } = await db
     .from('narradores')
-    .select('id, estado')
+    .select('id, libro_aprobado_at')
     .in('id', pedidosPagados.map((p) => p.narrador_id));
 
   if (errorNarradores) {
@@ -334,10 +524,33 @@ export async function procesarPedidosPagados(): Promise<void> {
   }
 
   const narradoresListos = new Set(
-    ((narradores ?? []) as { id: string; estado: string }[])
-      .filter((n) => ESTADOS_NARRADOR_LISTO.includes(n.estado))
+    ((narradores ?? []) as { id: string; libro_aprobado_at: string | null }[])
+      .filter((n) => n.libro_aprobado_at !== null)
       .map((n) => n.id)
   );
+
+  // Un narrador con un pedido ya 'entregado' tiene el libro hecho. Los
+  // pedidos posteriores sobre el mismo narrador (extras de la dueña, la
+  // copia de un visitante — CONTRATO.md: un pedido por comprador) llegan
+  // 'pagado' igual que el primero, pero NO hay nada que generar: repagarle
+  // al modelo y pisar libro.html/libro.pdf/audiolibro sería un error. Se
+  // reclaman igual (CAS) y pasan a 'entregado' apuntando a los mismos
+  // archivos. Se traen todos los entregados y se filtra acá: el fake de los
+  // tests distingue las consultas a `pedidos` por estado.
+  const { data: entregados, error: errorEntregados } = await db
+    .from('pedidos')
+    .select('id, narrador_id, libro_pdf_path, audiolibro_paths')
+    .eq('estado', 'entregado');
+
+  if (errorEntregados) {
+    console.error('tick: no se pudieron leer los pedidos entregados:', errorEntregados.message);
+    return;
+  }
+
+  const entregadoPorNarrador = new Map<string, PedidoEntregado>();
+  for (const entregado of (entregados ?? []) as PedidoEntregado[]) {
+    if (!entregadoPorNarrador.has(entregado.narrador_id)) entregadoPorNarrador.set(entregado.narrador_id, entregado);
+  }
 
   for (const pedido of pedidosPagados) {
     if (!narradoresListos.has(pedido.narrador_id)) continue;
@@ -361,10 +574,50 @@ export async function procesarPedidosPagados(): Promise<void> {
 
     pedidosGenerandoClaimados.add(pedido.id);
     try {
-      await generarPaquete(pedido);
+      const yaEntregado = entregadoPorNarrador.get(pedido.narrador_id);
+      if (yaEntregado) {
+        await entregarConLosMismosArchivos(db, pedido, yaEntregado);
+      } else {
+        await generarPaquete(pedido);
+      }
     } finally {
       pedidosGenerandoClaimados.delete(pedido.id);
     }
+  }
+}
+
+/** Lo que hace falta de un pedido entregado para que otro del mismo narrador apunte a los mismos archivos. */
+type PedidoEntregado = {
+  id: string;
+  narrador_id: string;
+  libro_pdf_path: string | null;
+  audiolibro_paths: unknown;
+};
+
+/**
+ * Deja 'entregado' un pedido recién reclamado copiando las rutas del pedido
+ * ya entregado del mismo narrador. Si el UPDATE falla, se loguea y el
+ * pedido queda en 'generando': el próximo tick lo ve huérfano, lo devuelve
+ * a 'pagado' y vuelve a pasar por acá.
+ */
+async function entregarConLosMismosArchivos(
+  db: Db,
+  pedido: { id: string; narrador_id: string },
+  yaEntregado: PedidoEntregado
+): Promise<void> {
+  console.log(
+    `tick: el pedido ${pedido.id} es de un narrador con libro entregado (pedido ${yaEntregado.id}) — se entrega con los mismos archivos, sin generar.`
+  );
+  const { error } = await db
+    .from('pedidos')
+    .update({
+      estado: 'entregado',
+      libro_pdf_path: yaEntregado.libro_pdf_path,
+      audiolibro_paths: yaEntregado.audiolibro_paths,
+    })
+    .eq('id', pedido.id);
+  if (error) {
+    console.error(`tick: no se pudo entregar el pedido ${pedido.id} con los archivos del ${yaEntregado.id}:`, error.message);
   }
 }
 

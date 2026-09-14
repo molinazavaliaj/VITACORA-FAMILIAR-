@@ -99,7 +99,7 @@ describe('generarAudiolibro (orquestación real)', () => {
     });
     (obtenerClienteDb as unknown as ReturnType<typeof vi.fn>).mockReturnValue(db);
 
-    await generarAudiolibro('narrador-1', estructura, archivosDisponibles, []);
+    await generarAudiolibro('narrador-1', estructura, archivosDisponibles);
 
     expect(db.upload).toHaveBeenCalledWith(
       'narrador-1/paquete/audiolibro_cap_01.mp3',
@@ -122,7 +122,7 @@ describe('generarAudiolibro (orquestación real)', () => {
     });
     (obtenerClienteDb as unknown as ReturnType<typeof vi.fn>).mockReturnValue(db);
 
-    await generarAudiolibro('narrador-1', estructura, archivosDisponibles, []);
+    await generarAudiolibro('narrador-1', estructura, archivosDisponibles);
 
     expect(generarAudioTtsMock).toHaveBeenCalledWith('Capítulo 1: Infancia');
     expect(generarAudioTtsMock).toHaveBeenCalledWith('Capítulo 2: El amor');
@@ -137,7 +137,7 @@ describe('generarAudiolibro (orquestación real)', () => {
     (obtenerClienteDb as unknown as ReturnType<typeof vi.fn>).mockReturnValue(db);
 
     const estructuraUnCapitulo = { capitulos: [{ nombre: 'Infancia', ordenes: [1] }] };
-    await generarAudiolibro('narrador-1', estructuraUnCapitulo, ['dia_01.ogg'], []);
+    await generarAudiolibro('narrador-1', estructuraUnCapitulo, ['dia_01.ogg']);
 
     // la intro (TTS, siempre mp3) se normaliza como 'mp3'...
     expect(normalizarAMp3Mock).toHaveBeenCalledWith(
@@ -154,41 +154,7 @@ describe('generarAudiolibro (orquestación real)', () => {
     ]);
   });
 
-  it('con saludos: sube el bonus, lo incluye en el concat final y lo devuelve en el resultado', async () => {
-    const db = construirDbFake({
-      descargas: {
-        'narrador-1/dia_01.ogg': { data: blobFake('audio-1'), error: null },
-        'narrador-1/dia_02.ogg': { data: blobFake('audio-2'), error: null },
-        'narrador-1/saludos/marta.webm': { data: blobFake('saludo-marta'), error: null },
-      },
-    });
-    (obtenerClienteDb as unknown as ReturnType<typeof vi.fn>).mockReturnValue(db);
-
-    const saludos = [{ nombre: 'Marta', vinculo: 'hija', audio_path: 'narrador-1/saludos/marta.webm' }];
-
-    const resultado = await generarAudiolibro('narrador-1', estructura, archivosDisponibles, saludos);
-
-    expect(generarAudioTtsMock).toHaveBeenCalledWith('Mensajes para usted');
-    expect(normalizarAMp3Mock).toHaveBeenCalledWith(Buffer.from('saludo-marta'), 'webm');
-
-    expect(db.upload).toHaveBeenCalledWith(
-      'narrador-1/paquete/audiolibro_bonus_saludos.mp3',
-      expect.any(Buffer),
-      { contentType: 'audio/mpeg', upsert: true }
-    );
-    expect(resultado.bonus).toBe('narrador-1/paquete/audiolibro_bonus_saludos.mp3');
-
-    // el buffer subido como bonus es el mismo que entra en el concat final
-    // (junto con los dos capítulos) — no un cálculo aparte y desconectado.
-    const bufferBonusSubido = db.upload.mock.calls.find(
-      (llamada) => llamada[0] === 'narrador-1/paquete/audiolibro_bonus_saludos.mp3'
-    )?.[1] as Buffer;
-    const argsConcatFinal = concatenarMp3sMock.mock.calls[concatenarMp3sMock.mock.calls.length - 1][0] as Buffer[];
-    expect(argsConcatFinal).toHaveLength(3); // 2 capítulos + bonus
-    expect(argsConcatFinal[2]).toEqual(bufferBonusSubido);
-  });
-
-  it('sin saludos: no sube bonus, no llama a la intro de saludos, y el resultado no trae la clave bonus', async () => {
+  it('no arma ningún bonus: el concat final solo lleva los capítulos', async () => {
     const db = construirDbFake({
       descargas: {
         'narrador-1/dia_01.ogg': { data: blobFake('audio-1'), error: null },
@@ -197,7 +163,7 @@ describe('generarAudiolibro (orquestación real)', () => {
     });
     (obtenerClienteDb as unknown as ReturnType<typeof vi.fn>).mockReturnValue(db);
 
-    const resultado = await generarAudiolibro('narrador-1', estructura, archivosDisponibles, []);
+    await generarAudiolibro('narrador-1', estructura, archivosDisponibles);
 
     expect(generarAudioTtsMock).not.toHaveBeenCalledWith('Mensajes para usted');
     expect(db.upload).not.toHaveBeenCalledWith(
@@ -205,8 +171,6 @@ describe('generarAudiolibro (orquestación real)', () => {
       expect.anything(),
       expect.anything()
     );
-    expect(resultado.bonus).toBeUndefined();
-    expect('bonus' in resultado).toBe(false);
 
     // el concat final solo lleva los dos capítulos.
     const argsConcatFinal = concatenarMp3sMock.mock.calls[concatenarMp3sMock.mock.calls.length - 1][0] as Buffer[];
@@ -222,14 +186,13 @@ describe('generarAudiolibro (orquestación real)', () => {
     });
     (obtenerClienteDb as unknown as ReturnType<typeof vi.fn>).mockReturnValue(db);
 
-    const resultado = await generarAudiolibro('narrador-1', estructura, archivosDisponibles, []);
+    const resultado = await generarAudiolibro('narrador-1', estructura, archivosDisponibles);
 
     expect(resultado).toEqual({
       capitulos: [
         'narrador-1/paquete/audiolibro_cap_01.mp3',
         'narrador-1/paquete/audiolibro_cap_02.mp3',
       ],
-      bonus: undefined,
       completo: 'narrador-1/paquete/audiolibro_completo.mp3',
     });
 
@@ -239,6 +202,22 @@ describe('generarAudiolibro (orquestación real)', () => {
       'narrador-1/paquete/audiolibro_cap_02.mp3',
       'narrador-1/paquete/audiolibro_completo.mp3',
     ]);
+  });
+
+  it('el resultado no tiene clave bonus ni sube audiolibro_bonus_saludos.mp3 (los saludos quedaron fuera de la fase 1)', async () => {
+    const db = construirDbFake({
+      descargas: {
+        'narrador-1/dia_01.ogg': { data: blobFake('audio-1'), error: null },
+        'narrador-1/dia_02.ogg': { data: blobFake('audio-2'), error: null },
+      },
+    });
+    (obtenerClienteDb as unknown as ReturnType<typeof vi.fn>).mockReturnValue(db);
+
+    const resultado = await generarAudiolibro('narrador-1', estructura, archivosDisponibles);
+
+    expect(Object.keys(resultado).sort()).toEqual(['capitulos', 'completo']);
+    const rutasSubidas = db.upload.mock.calls.map((llamada) => llamada[0] as string);
+    expect(rutasSubidas.some((r) => r.includes('bonus'))).toBe(false);
   });
 
   it('si una subida falla, generarAudiolibro rechaza en vez de resolver silenciosamente', async () => {
@@ -257,7 +236,7 @@ describe('generarAudiolibro (orquestación real)', () => {
     (obtenerClienteDb as unknown as ReturnType<typeof vi.fn>).mockReturnValue(db);
 
     await expect(
-      generarAudiolibro('narrador-1', estructura, archivosDisponibles, [])
+      generarAudiolibro('narrador-1', estructura, archivosDisponibles)
     ).rejects.toThrow(/audiolibro_cap_02\.mp3/);
 
     // no debería haber llegado a armar/subir el concat final si un capítulo falló.

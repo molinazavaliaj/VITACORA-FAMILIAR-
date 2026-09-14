@@ -15,11 +15,15 @@ juntos el libro de su vida. Cada mañana le voy a mandar una pregunta, y usted m
 con un audio, como le cuenta las cosas a un amigo. Al final, su historia quedará en un
 libro para su familia, con su propia voz. ¿Empezamos? Responda SÍ y arrancamos mañana.
 
-## pregunta_diaria — variables: {{1}} reconocimiento de ayer, {{2}} pregunta de hoy
+## pregunta_diaria — variables: {{1}} la pregunta de hoy
 
-{{1}}
+> Cambió el 2026-09-14: antes tenía DOS variables ({{1}} el reconocimiento de
+> ayer generado por el modelo, {{2}} la pregunta). El saludo se sacó por decisión
+> de producto: costaba ~USD 3,36 por narrador —el 70% de la entrevista— porque
+> cada día le pegaba TODA la historia al prompt. **Si ya la cargaste en Meta con
+> dos variables, avisá antes de subir este cambio**: hay que re-aprobarla.
 
-La pregunta de hoy: {{2}}
+La pregunta de hoy: {{1}}
 
 Cuando quiera, me responde con un audio. Sin apuro. 🎙️
 
@@ -29,5 +33,6 @@ Cuando quiera, me responde con un audio. Sin apuro. 🎙️
 
 ---
 
-**Nota:** el primer envío de `pregunta_diaria` (día 1, sin respuesta anterior) usa como
-`{{1}}` el texto fijo `Hoy empezamos este viaje.`
+**Nota:** el mensaje de texto libre (dentro de la ventana de 24 hs) dice
+exactamente lo mismo que la plantilla — es el que usa el "modo rápido" de los
+pilotos y la puerta manual.

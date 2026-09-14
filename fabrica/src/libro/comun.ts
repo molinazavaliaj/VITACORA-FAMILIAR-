@@ -136,17 +136,41 @@ export async function descargarJson<T>(
 }
 
 /**
+ * ¿Este error de Supabase Storage dice "el objeto no está"? Storage no lo
+ * distingue con un tipo: según la versión responde 404, o 400 con
+ * `error: 'not_found'`, y un mensaje "Object not found". Cualquier otra cosa
+ * (red caída, 500, permisos) NO es "no está".
+ */
+export function esErrorDeNoEncontrado(error: unknown): boolean {
+  if (!error || typeof error !== 'object') return false;
+  const e = error as { message?: unknown; statusCode?: unknown; status?: unknown; error?: unknown };
+  if (typeof e.message === 'string' && /not found/i.test(e.message)) return true;
+  if (e.statusCode === 404 || e.statusCode === '404' || e.status === 404) return true;
+  if (e.error === 'not_found') return true;
+  return false;
+}
+
+/**
  * Descarga un archivo de texto de Storage si existe; a diferencia de
  * `descargarJson`, acá "no existe" es un resultado válido (null), no un
  * error — lo usan los checkpoints de borrador: si no hay nada cacheado, el
  * llamador genera de cero.
+ *
+ * Solo "no existe" devuelve null. Un fallo transitorio (red, 500) tira: si
+ * se confundiera con "no existe", un borrador cacheado se regeneraría (y se
+ * le pagaría al modelo de nuevo), o un `estructura.json` que sí está se
+ * daría por ausente.
  */
 export async function descargarTextoOpcional(
   db: ReturnType<typeof obtenerClienteDb>,
   ruta: string
 ): Promise<string | null> {
   const { data, error } = await db.storage.from('audios').download(ruta);
-  if (error || !data) return null;
+  if (error) {
+    if (esErrorDeNoEncontrado(error)) return null;
+    throw new Error(`No se pudo descargar ${ruta}: ${error.message}`);
+  }
+  if (!data) return null;
   return typeof data.text === 'function' ? await data.text() : String(data);
 }
 

@@ -4,17 +4,17 @@ import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { historiaAccesible, PUEDE } from "@/lib/panel";
 import { productosDelPedido, NOMBRE_VOZ } from "@/lib/productos";
+import { pedidoAMostrar } from "@/lib/pedido-a-mostrar";
 import { ReproductorRespuesta } from "../../reproductor";
 import { EstadoError, Etiqueta, ProximoPaso, Tarjeta, Titulo } from "../../ui";
 import { ConRiel } from "../../riel";
 
 // El lector (docs/panel-usuario.md §15.1): el libro terminado se LEE y se
 // ESCUCHA acá. Nada se descarga — es lo que hace que el impreso sea "el que
-// queda en la repisa". El PDF se muestra adentro de la página; el audiolibro
-// suena capítulo por capítulo con el reproductor de la casa.
-//
-// ⚠️ Pendiente de Naza (3t.8): reemplazar el visor del PDF por el HTML
-// paginado de la fábrica. Esta pantalla ya está lista para recibirlo.
+// queda en la repisa". El libro es el `libro.html` que publica la fábrica
+// (Naza, 14/09), en un iframe sin permisos; el audiolibro suena capítulo por
+// capítulo con el reproductor de la casa. Leen la dueña y los invitados (spec
+// §2 y §5); el visitante del link público ve solo la muestra.
 
 type AudiolibroPaths = { capitulos: string[]; bonus?: string; completo: string };
 type Pedido = { id: string; estado: string; extras: unknown; audiolibro_paths: AudiolibroPaths | null; libro_pdf_path: string | null };
@@ -34,17 +34,22 @@ export default async function PaginaLeer({ params }: PageProps<"/tablero/[narrad
     console.error("tablero/leer: fallo el acceso", error);
     return <EstadoError />;
   }
-  if (!historia || !PUEDE.descargar(historia.rol)) notFound();
+  if (!historia || !PUEDE.verHistoriaCompleta(historia.rol)) notFound();
   const n = historia.narrador;
 
-  const { data: pedidosData, error: errorPedidos } = await admin
-    .from("pedidos")
-    .select("id, estado, extras, audiolibro_paths, libro_pdf_path")
-    .eq("narrador_id", n.id)
-    .eq("familia_id", n.familia_id)
-    .order("created_at", { ascending: true });
-  if (errorPedidos) {
-    console.error("tablero/leer: fallo la busqueda de pedidos", errorPedidos);
+  // Qué compró la dueña (los pedidos de su familia); qué pedido manda (el
+  // entregado más nuevo, aunque haya uno pendiente de un desconocido después).
+  const [{ data: pedidosData, error: errorPedidos }, { pedido: manda, error: errorManda }] = await Promise.all([
+    admin
+      .from("pedidos")
+      .select("id, estado, extras, audiolibro_paths, libro_pdf_path")
+      .eq("narrador_id", n.id)
+      .eq("familia_id", n.familia_id)
+      .order("created_at", { ascending: true }),
+    pedidoAMostrar(admin, n.id),
+  ]);
+  if (errorPedidos || errorManda) {
+    console.error("tablero/leer: fallo la busqueda de pedidos", errorPedidos ?? errorManda);
     return <EstadoError />;
   }
   const pedidos = (pedidosData as Pedido[] | null) ?? [];
@@ -53,8 +58,8 @@ export default async function PaginaLeer({ params }: PageProps<"/tablero/[narrad
     pdf: validos.some((p) => productosDelPedido(p.extras).pdf),
     audiolibro: validos.map((p) => productosDelPedido(p.extras).audiolibro).find((v) => v !== null) ?? null,
   };
-  const entregado = validos.find((p) => p.estado === "entregado") ?? null;
-  const enFabricacion = !entregado && validos.some((p) => p.estado === "pagado" || p.estado === "generando");
+  const entregado = manda && manda.estado === "entregado" ? manda : null;
+  const enFabricacion = !entregado && Boolean(manda && (manda.estado === "pagado" || manda.estado === "generando"));
 
   const cabecera = (
     <>
@@ -97,7 +102,8 @@ export default async function PaginaLeer({ params }: PageProps<"/tablero/[narrad
 
   const capitulos = entregado.audiolibro_paths?.capitulos ?? [];
   const tieneAudio = compro.audiolibro !== null && Boolean(entregado.audiolibro_paths?.completo || capitulos.length > 0);
-  const tienePdf = compro.pdf && Boolean(entregado.libro_pdf_path);
+  // El libro se lee si se compró el PDF (o el impreso, que también lo incluye en la web).
+  const tienePdf = compro.pdf;
 
   return (
     <ConRiel admin={admin} user={user} actual={n.id} sufijo="/leer">
@@ -112,10 +118,13 @@ export default async function PaginaLeer({ params }: PageProps<"/tablero/[narrad
         </div>
         {tienePdf ? (
           <div className="mt-6 overflow-hidden rounded-xl border border-[var(--linea)] bg-[var(--relieve)]">
+            {/* El libro.html de la fábrica, en un iframe sin permisos: sin script y sin
+                `allow-same-origin`, no toca cookies ni la página (Naza, 14/09). */}
             <iframe
-              src={`/api/libro/pdf?narrador=${n.id}#toolbar=0&navpanes=0&view=FitH`}
+              src={`/api/libro/html?narrador=${n.id}`}
               title={`El libro de ${n.nombre}`}
-              className="h-[75dvh] w-full"
+              sandbox=""
+              className="h-[80dvh] w-full"
             />
           </div>
         ) : (

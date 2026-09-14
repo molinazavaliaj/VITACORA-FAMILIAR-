@@ -72,6 +72,236 @@ Cuando eso esté: en la base ya hay un narrador de prueba en estado `invitado` (
 - La fábrica asume que las **preguntas de reemplazo** (narrador sin hijos/pareja) van con el **mismo `orden`** que la fija que pisan — tal como ya lo hace el tablero.
 - Pendientes priorizados antes del piloto real: `docs/superpowers/plans/2026-09-01-plan-b-pendientes-antes-del-piloto.md`.
 
+### 2026-09-14 — puerta manual para los pilotos (Naza)
+
+Mientras Meta no habilite la API, el entrevistador tiene una **puerta manual**
+(`entrevistador/scripts/manual.ts` + `src/manual/puro.ts`, comando
+`npm run manual -- ...`): hace con un archivo de audio lo mismo que el webhook
+hace con un `mediaId` (Storage → `respuestas` → transcripción → evaluación →
+repregunta → avance de `dia_actual` → adaptativas al 26 → cierre al 30). No
+manda nada por WhatsApp: lo que habría salido se imprime para pegarlo a mano.
+Es una herramienta de piloto, no un segundo camino de producción.
+
+**Toca un archivo de Joaquín, aditivo y sin cambio de comportamiento:**
+`src/ia/transcribir.ts` ahora acepta un `prompt` opcional (si no se pasa, se
+comporta igual que antes) y pasó de `whisper-1` a **`gpt-transcribe`** — 25% más
+barato (USD 0.0045/min vs 0.006), mejor precisión, y **la duración viene en
+`usage.seconds`**, no en `duration` (si algún día se cambia el modelo otra vez,
+es lo primero que hay que revisar; el test de contrato ya está actualizado).
+Cuando quieras el mismo beneficio en la vía automática son 2 líneas en
+`procesar.ts`, pasándole `promptDeTranscripcion(n.contexto, n.como_le_dicen)`.
+
+### 2026-09-14 — la ficha del narrador: la pantalla que falta (Naza)
+
+`docs/ficha-del-narrador.md`. El hallazgo: `registro.ts` **ya valida y guarda**
+`lugarNacimiento`, `anioNacimiento`, `oficio`, `datosExtra` y el árbol familiar,
+los cuatro consumidores del sistema ya los leen… y **el checkout no los pide**.
+Un cliente real compra hoy y arranca con la ficha vacía. Medido: con la ficha
+vacía el modelo oye "mi viejo llegando de **la URA**"; con la ficha, "llegando
+**de laburar**". Propuesta de campos y dónde pedirlos, en el doc.
+
+### 2026-09-14 — se sacó el saludo diario (decisión de producto, Naza)
+
+Los socios decidieron que **el narrador reciba la pregunta sola**, sin el saludo
+generado por el modelo. Motivo de producto: el narrador no necesita que le
+resuman lo que contó; la familia lee las transcripciones en el panel y agrega
+preguntas si quiere. El efecto de costo fue enorme y de yapa: el saludo era **la
+llamada más cara del sistema** (~USD 3,36 por narrador, el 70% del costo de la
+entrevista) porque cada día le pegaba TODA la historia al prompt para decidir si
+agregar una frase opcional.
+
+**⚠️ Antes de cargar las plantillas en Meta:** `pregunta_diaria` pasa de DOS
+variables a UNA (`{{1}}` = la pregunta). `PLANTILLAS.md` ya está actualizado. Si
+ya la cargaste en Meta con dos variables, hay que re-aprobarla — avisá.
+
+**Código:** `preguntar.ts` (manda la pregunta sola y el audio es sólo la pregunta),
+`src/manual/puro.ts` + `scripts/manual.ts` (mismo texto en la puerta manual),
+`PLANTILLAS.md`, y los tests de contrato del scheduler. `generarReconocimiento`
+queda viva en `cerebro.ts` con un aviso: no la usa el flujo, la usa
+`prueba-cerebro.ts` para juzgar la voz del biógrafo.
+
+**Queda pendiente la otra palanca:** la evaluación de cada respuesta
+(~USD 0,20-0,28 por narrador, medido: Opus leyendo pregunta + transcripción, 30
+veces) puede bajar a ~0,03 con Haiku — **pero se midió y no conviene** (abajo).
+
+### 2026-09-14 — la evaluación de cada respuesta: la duración no decide (Naza)
+
+**Lo que cambió** (pedido de Naza): antes el prompt le decía al modelo "si duró
+menos de 40 segundos o es superficial, NO es suficiente" — o sea que la duración
+era el criterio. Ahora el prompt dice explícitamente que **el largo no decide
+nada**: se juzga por sustancia (dos o tres detalles concretos con una escena o un
+nombre alcanzan), y se repregunta sólo en dos casos: cuando hay poco material, o
+cuando contó algo fuerte y lo dejó en una sola frase. **La repregunta la piensa
+siempre el modelo** para ese narrador y esa respuesta: no existe ningún texto
+fijo.
+
+**Medido con el prompt real** (`npm run prueba-evaluacion`, 5 casos del set
+dorado, respuestas reales):
+
+| Caso | Veredicto | Repregunta |
+|---|---|---|
+| Rica y larga (185 s, la real de Osvaldo) | suficiente | — (protege el ritmo de 1 pregunta/día) |
+| Pobre y corta (14 s, sin una escena) | NO suficiente | "¿hubo alguna comida o algún momento del día en esa casa…?" |
+| 9 segundos pero de oro (la muerte del hermano) | NO suficiente | "esa mañana en el taller, a las siete, ¿qué hizo cuando abrió la puerta?" |
+| Larga pero vacía (240 s de relleno) | NO suficiente | "¿cómo se llamaban esos amigos del barrio…?" |
+| Rica pero deja afuera el cierre emocional | suficiente | — (se aceptó: alcanza para escribir el capítulo) |
+
+La fila 3 es la que justifica el cambio: con la regla vieja, una respuesta de 9
+segundos se rechazaba por reloj; ahora se rechaza por sustancia **y la repregunta
+va a lo que él acaba de decir**.
+
+**Por qué NO se cambió el modelo a Haiku** (era la palanca barata, ~17 centavos):
+medido con el mismo prompt, Haiku envolvió el JSON en un bloque de código **5 de
+5 veces** (el parser tiraba y la corrida se caía) y en los dos casos delicados
+preguntó peor — a alguien que acaba de contar que su hermano murió le preguntó
+"¿qué pasó con Rubén?". No vale 17 centavos arriesgar la única pregunta que
+recibe un señor de 80 años. **Decidido: la evaluación se queda en Opus.**
+
+**Dos arreglos que salieron de esa medición** (valen más que el ahorro):
+- `extraerJson()` en `cerebro.ts`: lee el JSON aunque venga dentro de un bloque
+  de código, y si viene cortado **no revienta** — sigue sin repregunta. Antes,
+  un bloque de código tiraba la corrida entera.
+- `max_tokens` de la evaluación 300 → 500: con 300 la repregunta se cortaba a
+  mitad de frase.
+- ⚠️ En `scripts/` las variables de WhatsApp del `.env` están **vacías** (Meta
+  sin habilitar): hay que rellenarlas con `||=`, nunca con `??=`.
+
+### 2026-09-14 — dónde cae una repregunta en el panel (verificado a pedido de Naza)
+
+**Respuesta corta: cae DENTRO de la misma pregunta.** La consulta de respuestas del
+panel trae `es_repregunta`, y la vista separa `principales` de `ampliaciones`
+(`web/src/app/tablero/[narradorId]/page.tsx`, ~línea 209): la ampliación se
+muestra indentada bajo la misma pregunta con la etiqueta **"y agregó"**, con su
+audio y su transcripción. **No se le agrega ninguna pregunta a la sección de la
+familia**: la repregunta no crea filas en `preguntas` (el alta de preguntas
+propias sólo permite órdenes sin responder) ni infla la barra de progreso (que
+cuenta órdenes, no filas). La fábrica también las incluye: `armarMaterial`
+recorre todas las respuestas de cada orden.
+
+**Bug encontrado y arreglado en el camino** (lo escribí hoy): la memoria del
+biógrafo (`personalizar.ts`, `resumenes.ts`) filtraba `es_repregunta = false`, o
+sea que **la memoria ignoraba lo que el narrador contó al ampliar** — justo
+donde suele estar la mejor escena (contesta corto y con la repregunta suelta
+todo). El libro sí las usaba. Ahora van incluidas y agrupadas con su pregunta,
+marcadas: "Pregunta 1 (lo amplió después):" / "(le repregunté y amplió):".
+
+**✅ HECHO el 2026-09-14 (misma noche): el panel ahora muestra las dos preguntas.**
+Naza pidió que las preguntas salgan en el dashboard del cliente, donde están las
+preguntas y las respuestas. Se implementó la **opción 2** (sin migración):
+
+- **Entrevistador**: `src/db/envios.ts` (nuevo) → `guardarRepreguntaEnviada()`
+  guarda el texto de la repregunta en `narradores.contexto.repreguntasEnviadas[orden]`.
+  Enchufado en el camino automático (`procesar.ts`) y en la puerta manual
+  (`manual.ts`). Es provisorio, igual que `contexto.preguntasEnviadas`.
+- **Panel**: `CAMPOS_NARRADOR` ahora trae `contexto`, y la vista de la historia
+  muestra, bajo cada pregunta, **"Se lo preguntamos así: «…»"** (lo que él leyó
+  de verdad, cuando difiere del guion) y, arriba de cada ampliación,
+  **"Le repreguntamos: «…»"**. Si no hay nada guardado, no se muestra nada.
+- Tests: 109 en el entrevistador (3 nuevos para el guardado) + 188 en la web,
+  typecheck de los dos proyectos limpio. El `.cmd`/CLI no cambió.
+
+**Sigue pendiente la opción 1** (la ordenada): agregar `texto` a `envios` y mudar
+ahí los dos textos. Es una migración chica + `supabase/CONTRATO.md`, y cuando se
+haga se copian los datos del jsonb a la columna sin perder nada. El panel no
+cambia ni una línea cuando eso pase (lee de donde se le diga).
+
+### 2026-09-14 — el biógrafo que escucha: preguntas personalizadas (Naza)
+
+**Construido:** las preguntas del guion ya no salen genéricas. Antes de
+mandarlas, el biógrafo las reescribe con lo que el narrador ya contó y con la
+ficha que cargó la familia (`src/ia/personalizar.ts` + `src/ia/ficha.ts`):
+
+- guion: `¿A qué jugaba de chico, y con quién?`
+- biógrafo: `Con el Rubén y la Marta en Villa Domínico, ¿a qué jugaban en ese
+  patio con la bomba y el limonero? ¿Alguna travesura que todavía lo haga reír?`
+
+**Costo medido: USD 0,04 por narrador** (una llamada a `claude-haiku-4-5` por
+día, con la ficha + las 2 últimas respuestas). Es el mismo objetivo que tenía el
+saludo que se sacó arriba, 28 veces más barato — y el narrador lo siente en la
+pregunta, no en el saludo. **Actualizado el 2026-09-14: ahora son 6 respuestas +
+la memoria por capítulo → USD 0,12** (ver la sección de abajo).
+
+**Tres reglas de seguridad, todas nacidas de errores reales del prototipo:**
+
+1. La ficha va con el ROL de cada persona ("Sus padres: Ramón y Haydée. Su
+   esposa / el amor de su vida: Élida"): sin eso el modelo preguntó "¿cómo
+   conoció a Haydée?" como si fuera su mujer. Era su madre.
+2. Si la versión personalizada pierde alguna de las preguntas del original, se
+   manda el ORIGINAL. Medido: el conteo de signos de pregunta detecta esos casos
+   (4 de 26 en el prototipo) y deja pasar los otros 22. El guion firmado gana.
+3. El año de nacimiento es para anclar la época, nunca un lugar (a una narradora
+   le salió "su infancia en 1939" — el año era 1939).
+
+**Sólo se personalizan las preguntas del guion** (`tipo = 'fija'`). Las que
+escribe la familia y las que genera el cerebro (reemplazos, adaptativas) se
+mandan tal cual: ya vienen con contexto.
+
+**⚠️ Guardado provisorio:** la pregunta enviada se guarda en
+`narradores.contexto.preguntasEnviadas[orden]` (jsonb, sin migración). Sirve para
+dos cosas: que el panel pueda mostrar lo que él leyó, y que un reintento del
+scheduler reúse el texto en vez de pagarlo de nuevo. **El lugar definitivo es una
+columna propia en `envios` o `preguntas` → toca `supabase/CONTRATO.md`**, o sea
+decisión de los dos. Ojo: el panel todavía NO muestra esa pregunta (es un cambio
+en la web, ~20 líneas).
+
+**Medición reproducible:** `npm run prueba-personalizar [modelo]` corre las 26
+preguntas del set dorado y muestra original vs personalizada + tokens + costo.
+Archivos nuevos: `src/ia/ficha.ts`, `src/ia/personalizar.ts`,
+`test/personalizar.test.ts` (16 tests). 86 tests en verde.
+
+### 2026-09-14 — la memoria del biógrafo: un resumen por capítulo (Naza)
+
+**El problema que cierra.** Con 2 respuestas el biógrafo se acuerda de lo que el
+narrador contó *ayer* (que es el sentimiento del día a día), pero en la pregunta
+25 ya se olvidó de lo del día 1. Pasarle la historia completa no sirve: medido,
+**se va por las ramas** (con la orden 26 —"cuénteme su vida en cinco minutos"—
+las versiones de 2 y de 6 respuestas pierden el pedido, y la de historia
+completa mete cinco referencias seguidas). Más texto no es más memoria: es más
+de dónde elegir.
+
+**La solución (decisión de los socios):** una capa de **memoria destilada**.
+Cuando el narrador cierra un capítulo, se genera **un resumen de ese capítulo**
+(qué contó, con los nombres propios tal como aparecen y una línea final
+`Pendiente:` con lo que quedó sin contar). A partir de ahí, cada pregunta se
+personaliza con **ficha + resúmenes de los capítulos ya cerrados + las últimas 6
+respuestas** (`src/ia/resumenes.ts`). El historial completo nunca entra al prompt.
+
+- Los resúmenes se generan **una sola vez** y **sólo cuando hacen falta**
+  (perezoso: el primero se crea cuando el narrador pasa al capítulo 2) y quedan
+  guardados en `narradores.contexto.resumenesCapitulos` (jsonb, mismo criterio
+  provisorio que `preguntasEnviadas`).
+- **Costo medido:** 8 capítulos ≈ USD 0,03 + 26 preguntas ≈ USD 0,09 → **USD 0,12
+  por narrador**, y es **plano**: en la pregunta 25 no lee 24 respuestas, lee 7
+  resúmenes. Contra USD 0,30 de la historia completa (que además crece al
+  cuadrado). Para los 4 pilotos: menos de medio dólar.
+- **La prueba de que mejora la experiencia:** con memoria, la orden 25 nombró a
+  los **cuatro nietos por su nombre** (dato que apareció en el capítulo "Los
+  hijos", cinco capítulos antes) y la orden 26 arregló exactamente el caso que se
+  rompía sin memoria.
+- **Tope duro en código:** el modelo no cuenta palabras (le pedís 150 y escribe
+  190) y agrega títulos en negrita que nadie pidió → `limpiarResumen()` saca el
+  formato, corta en el último punto antes de 1.200 letras y **rescata la línea
+  `Pendiente:` antes de recortar**. Verificado contra la base real con Osvaldo:
+  los 8 capítulos quedaron en **8.267 letras ≈ 2.070 tokens** en total — la vida
+  entera de un narrador de 30 respuestas entra en 2.000 tokens.
+
+**⚠️ Los resúmenes son para el ENTREVISTADOR, no para el libro.** El generador
+del libro y la revisión final siguen leyendo **las respuestas completas** con su
+modelo grande: el libro no se escribe con resúmenes (decisión explícita de
+Naza). Nada de `fabrica/` se tocó.
+
+**Ver también la línea `Pendiente:` como insumo del panel:** dice qué falta contar
+de cada capítulo. Con eso Martina puede agregar preguntas propias con criterio
+(candidato a mostrar en el tablero, cambio chico en la web).
+
+**Código:** `src/ia/resumenes.ts` (nuevo), `personalizar.ts` (6 respuestas + la
+memoria), `scripts/manual.ts` → comando nuevo `resumenes <narrador>
+[--regenerar]` para ver y rehacer la memoria. **100 tests en verde.**
+
+**Medición reproducible:** `npx tsx scripts/prueba-resumenes.ts` genera los 8
+resúmenes del set dorado, mide el costo y compara las preguntas 23/25/26 con
+memoria vs las versiones sin memoria.
+
 ## Próximos hitos
 
 1. Deploy del entrevistador + Meta (socio) → probar la entrevista real con Imma.

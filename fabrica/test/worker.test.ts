@@ -1,10 +1,21 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-const { generarEstructuraMock, generarPrevisualizacionMock, generarPaqueteMock, obtenerClienteDbMock } = vi.hoisted(() => ({
-  generarEstructuraMock: vi.fn().mockResolvedValue(undefined),
-  generarPrevisualizacionMock: vi.fn().mockResolvedValue(undefined),
-  generarPaqueteMock: vi.fn().mockResolvedValue(undefined),
-  obtenerClienteDbMock: vi.fn(),
+const { generarEstructuraMock, generarPrevisualizacionMock, generarPaqueteMock, enviarMailHitoMock, obtenerClienteDbMock } =
+  vi.hoisted(() => ({
+    generarEstructuraMock: vi.fn().mockResolvedValue(undefined),
+    generarPrevisualizacionMock: vi.fn().mockResolvedValue(undefined),
+    generarPaqueteMock: vi.fn().mockResolvedValue(undefined),
+    enviarMailHitoMock: vi.fn().mockResolvedValue(true),
+    obtenerClienteDbMock: vi.fn(),
+  }));
+
+vi.mock('../src/mail/hitos.js', async () => {
+  const actual = await vi.importActual<typeof import('../src/mail/hitos.js')>('../src/mail/hitos.js');
+  return { ...actual, enviarMailHito: enviarMailHitoMock };
+});
+
+vi.mock('../src/config.js', () => ({
+  cargarConfig: () => ({ urlBase: 'https://www.vitacorafamiliar.com', resendApiKey: 'x' }),
 }));
 
 vi.mock('../src/libro/estructura.js', () => ({
@@ -28,33 +39,86 @@ vi.mock('../src/db.js', async () => {
 });
 
 import { tick, procesarPedidosPagados } from '../src/worker.js';
+import { CANDADO_POR_HITO } from '../src/mail/hitos.js';
 
 /**
- * Fake de `db.from('pedidos')` que distingue las dos consultas por `estado`
+ * Fake de `db.from('pedidos')` que distingue las consultas por `estado`
  * ('pagado' para el branch normal, 'generando' para el chequeo de
- * huérfanos), y las dos formas de `update`:
+ * huérfanos, 'entregado' para el mail de libro listo), y las dos formas de
+ * `update`:
  *   - el claim CAS: `.update({estado:'generando'}).eq('id',x).eq('estado','pagado').select('id')`
  *   - el reset de huérfanos: `.update({estado:'pagado'}).eq('id',x).eq('estado','generando')` (sin `.select`)
  * `claimarPedido`/`resetearPedidoHuerfano` son fixtures por test — devuelven
  * `{ data, error }` para cada llamada, como el resto de los fakes del repo.
+ *
+ * Para los mails de hitos: `familias` devuelve `{ email }` por id (sin la
+ * opción, cualquier familia tiene un mail; con ella, las que faltan fallan),
+ * el cierre automático `narradores.update({libro_aprobado_at}).eq('id').is(...).select('id')`
+ * se registra en `cierresAutomaticos` y responde con `cerrarSolo`, y
+ * `storage.upload` anota el candado en `subidos` Y en `archivosPorNarrador`
+ * (así un candado subido en un tick aparece en el `list` del siguiente).
  */
 function construirClienteDbMock(opciones: {
-  narradores: { id: string }[];
+  narradores: { id: string; [columna: string]: unknown }[];
   archivosPorNarrador: Record<string, string[]>;
+  familias?: Record<string, string>;
   pedidosPagados?: { id: string; narrador_id: string }[];
   pedidosGenerando?: { id: string }[];
+  pedidosEntregados?: { id: string; narrador_id: string; [columna: string]: unknown }[];
   claimarPedido?: (id: string) => { data: unknown; error: unknown };
   resetearPedidoHuerfano?: (id: string) => { data: unknown; error: unknown };
+  cerrarSolo?: (id: string) => { data: unknown; error: unknown };
 }) {
   const claimarPedido = opciones.claimarPedido ?? ((id: string) => ({ data: [{ id }], error: null }));
   const resetearPedidoHuerfano = opciones.resetearPedidoHuerfano ?? (() => ({ data: null, error: null }));
+  const cerrarSolo = opciones.cerrarSolo ?? ((id: string) => ({ data: [{ id }], error: null }));
+  const cierresAutomaticos: string[] = [];
+  const subidos: Record<string, string[]> = {};
+  // Los `update(...).eq('id', x)` sin segundo `.eq` sobre pedidos: la copia
+  // de un pedido ya entregado (mismo narrador) — se anota qué se escribió.
+  const pedidosActualizados: { id: string; valores: Record<string, unknown> }[] = [];
 
   return {
+    cierresAutomaticos,
+    subidos,
+    pedidosActualizados,
     from: vi.fn((tabla: string) => {
       if (tabla === 'narradores') {
         return {
           select: () => ({
             in: () => Promise.resolve({ data: opciones.narradores, error: null }),
+            eq: (_col: string, id: string) => ({
+              single: () => {
+                const narrador = opciones.narradores.find((n) => n.id === id);
+                return Promise.resolve(
+                  narrador ? { data: narrador, error: null } : { data: null, error: { message: 'no existe' } }
+                );
+              },
+            }),
+          }),
+          update: (_valores: Record<string, unknown>) => ({
+            eq: (_c1: string, id: string) => ({
+              is: (_c2: string, _nulo: null) => ({
+                select: (_cols: string) => {
+                  cierresAutomaticos.push(id);
+                  return Promise.resolve(cerrarSolo(id));
+                },
+              }),
+            }),
+          }),
+        };
+      }
+      if (tabla === 'familias') {
+        return {
+          select: () => ({
+            eq: (_col: string, id: string) => ({
+              single: () => {
+                const email = opciones.familias ? opciones.familias[id] : 'familia@ejemplo.com';
+                return Promise.resolve(
+                  email ? { data: { email }, error: null } : { data: null, error: { message: 'no existe' } }
+                );
+              },
+            }),
           }),
         };
       }
@@ -64,6 +128,7 @@ function construirClienteDbMock(opciones: {
             eq: (_col: string, valor: string) => {
               if (valor === 'pagado') return Promise.resolve({ data: opciones.pedidosPagados ?? [], error: null });
               if (valor === 'generando') return Promise.resolve({ data: opciones.pedidosGenerando ?? [], error: null });
+              if (valor === 'entregado') return Promise.resolve({ data: opciones.pedidosEntregados ?? [], error: null });
               return Promise.resolve({ data: [], error: null });
             },
           }),
@@ -77,6 +142,11 @@ function construirClienteDbMock(opciones: {
                 // el reset de huérfanos no encadena .select()
                 return Promise.resolve(resetearPedidoHuerfano(id));
               },
+              // sin segundo .eq: se espera directo (la copia a 'entregado')
+              then: (resolve: (v: unknown) => unknown, reject?: (e: unknown) => unknown) => {
+                pedidosActualizados.push({ id, valores });
+                return Promise.resolve({ data: null, error: null }).then(resolve, reject);
+              },
             }),
           }),
         };
@@ -89,6 +159,12 @@ function construirClienteDbMock(opciones: {
           const narradorId = path.split('/')[0];
           const nombres = opciones.archivosPorNarrador[narradorId] ?? [];
           return Promise.resolve({ data: nombres.map((name) => ({ name })), error: null });
+        },
+        upload: (ruta: string, _contenido: string, _opts: unknown) => {
+          const [narradorId, , nombre] = ruta.split('/');
+          (opciones.archivosPorNarrador[narradorId] ??= []).push(nombre);
+          (subidos[narradorId] ??= []).push(nombre);
+          return Promise.resolve({ data: null, error: null });
         },
       }),
     },
@@ -243,7 +319,7 @@ describe('tick — branch b (pedidos pagados)', () => {
     obtenerClienteDbMock.mockReturnValue(
       construirClienteDbMock({
         narradores: [
-          { id: 'narrador-1', estado: 'completado' },
+          { id: 'narrador-1', estado: 'completado', libro_aprobado_at: '2026-09-13T10:00:00Z' },
           { id: 'narrador-2', estado: 'completado' },
         ],
         archivosPorNarrador: {},
@@ -261,43 +337,107 @@ describe('tick — branch b (pedidos pagados)', () => {
     expect(llamadasEnOrden).toEqual(['claim:pedido-1', 'generarPaquete:pedido-1']);
   });
 
-
-  it('un pedido pagado cuyo narrador todavia NO termino no se reclama ni se genera (pago por adelantado)', async () => {
+  it('un pedido pagado cuyo narrador terminó pero NO cerró el libro (sin libro_aprobado_at) no se reclama ni se genera', async () => {
     const claimarPedido = vi.fn((id: string) => ({ data: [{ id }], error: null }));
-    obtenerClienteDbMock.mockReturnValue(
-      construirClienteDbMock({
-        narradores: [{ id: 'narrador-1', estado: 'activo' }],
-        archivosPorNarrador: {},
-        pedidosPagados: [{ id: 'pedido-1', narrador_id: 'narrador-1' }],
-        claimarPedido,
-      })
-    );
+    const db = construirClienteDbMock({
+      narradores: [{ id: 'n1', estado: 'completado', libro_aprobado_at: null }],
+      archivosPorNarrador: {},
+      pedidosPagados: [{ id: 'p1', narrador_id: 'n1' }],
+      claimarPedido,
+    });
+    obtenerClienteDbMock.mockReturnValue(db);
 
-    await tick();
+    await procesarPedidosPagados();
 
     expect(claimarPedido).not.toHaveBeenCalled();
     expect(generarPaqueteMock).not.toHaveBeenCalled();
   });
 
-  it('con dos pedidos pagados, genera solo el del narrador que termino', async () => {
-    obtenerClienteDbMock.mockReturnValue(
-      construirClienteDbMock({
-        narradores: [
-          { id: 'narrador-1', estado: 'completado' },
-          { id: 'narrador-2', estado: 'activo' },
-        ],
-        archivosPorNarrador: {},
-        pedidosPagados: [
-          { id: 'pedido-1', narrador_id: 'narrador-1' },
-          { id: 'pedido-2', narrador_id: 'narrador-2' },
-        ],
-      })
-    );
+  it('un pedido pagado cuyo narrador cerró el libro (libro_aprobado_at) se reclama y se genera', async () => {
+    const db = construirClienteDbMock({
+      narradores: [{ id: 'n1', estado: 'completado', libro_aprobado_at: '2026-09-13T10:00:00Z' }],
+      archivosPorNarrador: {},
+      pedidosPagados: [{ id: 'p1', narrador_id: 'n1' }],
+    });
+    obtenerClienteDbMock.mockReturnValue(db);
 
-    await tick();
+    await procesarPedidosPagados();
 
     expect(generarPaqueteMock).toHaveBeenCalledTimes(1);
-    expect(generarPaqueteMock).toHaveBeenCalledWith({ id: 'pedido-1', narrador_id: 'narrador-1' });
+    expect(generarPaqueteMock).toHaveBeenCalledWith({ id: 'p1', narrador_id: 'n1' });
+  });
+
+  it('con dos pedidos pagados, genera solo el del narrador que cerró el libro', async () => {
+    const claimarPedido = vi.fn((id: string) => ({ data: [{ id }], error: null }));
+    const db = construirClienteDbMock({
+      narradores: [
+        { id: 'n1', estado: 'completado', libro_aprobado_at: null },
+        { id: 'n2', estado: 'completado', libro_aprobado_at: '2026-09-13T10:00:00Z' },
+      ],
+      archivosPorNarrador: {},
+      pedidosPagados: [
+        { id: 'p1', narrador_id: 'n1' },
+        { id: 'p2', narrador_id: 'n2' },
+      ],
+      claimarPedido,
+    });
+    obtenerClienteDbMock.mockReturnValue(db);
+
+    await procesarPedidosPagados();
+
+    // El claim (CAS) se intenta solo para p2 — p1 ni siquiera llega a esa etapa.
+    expect(claimarPedido).toHaveBeenCalledTimes(1);
+    expect(claimarPedido).toHaveBeenCalledWith('p2');
+    expect(generarPaqueteMock).toHaveBeenCalledTimes(1);
+    expect(generarPaqueteMock).toHaveBeenCalledWith({ id: 'p2', narrador_id: 'n2' });
+  });
+
+  // --- Un segundo pedido (extras, copia de un visitante) sobre un narrador
+  // que ya tiene el libro entregado: no se vuelve a generar nada.
+
+  it('un pedido pagado de un narrador que YA tiene un pedido entregado: se reclama y pasa a entregado con los mismos archivos, sin generarPaquete', async () => {
+    const claimarPedido = vi.fn((id: string) => ({ data: [{ id }], error: null }));
+    const paths = { capitulos: ['n1/paquete/audiolibro_cap_01.mp3'], completo: 'n1/paquete/audiolibro_completo.mp3' };
+    const db = construirClienteDbMock({
+      narradores: [{ id: 'n1', estado: 'completado', libro_aprobado_at: '2026-09-13T10:00:00Z' }],
+      archivosPorNarrador: {},
+      pedidosPagados: [{ id: 'p2', narrador_id: 'n1' }],
+      pedidosEntregados: [
+        { id: 'p1', narrador_id: 'n1', libro_pdf_path: 'n1/paquete/libro.pdf', audiolibro_paths: paths },
+      ],
+      claimarPedido,
+    });
+    obtenerClienteDbMock.mockReturnValue(db);
+
+    await procesarPedidosPagados();
+
+    expect(generarPaqueteMock).not.toHaveBeenCalled();
+    // igual se reclama con el CAS: otro proceso no lo tiene que tomar a la vez.
+    expect(claimarPedido).toHaveBeenCalledWith('p2');
+    expect(db.pedidosActualizados).toEqual([
+      {
+        id: 'p2',
+        valores: { estado: 'entregado', libro_pdf_path: 'n1/paquete/libro.pdf', audiolibro_paths: paths },
+      },
+    ]);
+  });
+
+  it('un pedido pagado de un narrador SIN pedido entregado (hay entregados de otros narradores) se genera como siempre', async () => {
+    const db = construirClienteDbMock({
+      narradores: [{ id: 'n1', estado: 'completado', libro_aprobado_at: '2026-09-13T10:00:00Z' }],
+      archivosPorNarrador: {},
+      pedidosPagados: [{ id: 'p1', narrador_id: 'n1' }],
+      pedidosEntregados: [
+        { id: 'p9', narrador_id: 'otro', libro_pdf_path: 'otro/paquete/libro.pdf', audiolibro_paths: null },
+      ],
+    });
+    obtenerClienteDbMock.mockReturnValue(db);
+
+    await procesarPedidosPagados();
+
+    expect(generarPaqueteMock).toHaveBeenCalledTimes(1);
+    expect(generarPaqueteMock).toHaveBeenCalledWith({ id: 'p1', narrador_id: 'n1' });
+    expect(db.pedidosActualizados).toEqual([]);
   });
 
   it('sin pedidos pagados, no llama a generarPaquete', async () => {
@@ -321,8 +461,8 @@ describe('tick — branch b (pedidos pagados)', () => {
     obtenerClienteDbMock.mockReturnValue(
       construirClienteDbMock({
         narradores: [
-          { id: 'narrador-1', estado: 'completado' },
-          { id: 'narrador-2', estado: 'completado' },
+          { id: 'narrador-1', estado: 'completado', libro_aprobado_at: '2026-09-13T10:00:00Z' },
+          { id: 'narrador-2', estado: 'completado', libro_aprobado_at: '2026-09-13T10:00:00Z' },
         ],
         archivosPorNarrador: {},
         pedidosPagados: [
@@ -345,7 +485,7 @@ describe('tick — branch b (pedidos pagados)', () => {
     obtenerClienteDbMock.mockReturnValue(
       construirClienteDbMock({
         narradores: [
-          { id: 'narrador-1', estado: 'completado' },
+          { id: 'narrador-1', estado: 'completado', libro_aprobado_at: '2026-09-13T10:00:00Z' },
           { id: 'narrador-2', estado: 'completado' },
         ],
         archivosPorNarrador: {},
@@ -367,7 +507,7 @@ describe('tick — branch b (pedidos pagados)', () => {
     obtenerClienteDbMock.mockReturnValue(
       construirClienteDbMock({
         narradores: [
-          { id: 'narrador-1', estado: 'completado' },
+          { id: 'narrador-1', estado: 'completado', libro_aprobado_at: '2026-09-13T10:00:00Z' },
           { id: 'narrador-2', estado: 'completado' },
         ],
         archivosPorNarrador: {},
@@ -423,7 +563,7 @@ describe('tick — branch b (pedidos pagados)', () => {
     obtenerClienteDbMock.mockReturnValue(
       construirClienteDbMock({
         narradores: [
-          { id: 'narrador-1', estado: 'completado' },
+          { id: 'narrador-1', estado: 'completado', libro_aprobado_at: '2026-09-13T10:00:00Z' },
           { id: 'narrador-2', estado: 'completado' },
         ],
         archivosPorNarrador: {},
@@ -460,5 +600,399 @@ describe('tick — branch b (pedidos pagados)', () => {
 
     resolverGenerarPaquete();
     await primeraLlamada;
+  });
+});
+
+describe('tick — mails de hitos', () => {
+  // "Hoy" fijo para que los días desde `ultima_respuesta_at` sean exactos.
+  const HOY = new Date('2026-09-20T12:00:00Z');
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(HOY);
+    enviarMailHitoMock.mockClear();
+    enviarMailHitoMock.mockResolvedValue(true);
+    generarEstructuraMock.mockClear();
+    generarPrevisualizacionMock.mockClear();
+    generarPaqueteMock.mockClear();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  const hitosEnviados = () => enviarMailHitoMock.mock.calls.map((llamada) => (llamada[0] as { hito: string }).hito);
+
+  it('narrador completado sin terminado_enviado.txt → manda "terminado" y deja el candado', async () => {
+    const db = construirClienteDbMock({
+      narradores: [
+        {
+          id: 'n1',
+          estado: 'completado',
+          como_le_dicen: 'papá',
+          familia_id: 'f1',
+          ultima_respuesta_at: '2026-09-19T00:00:00Z',
+          libro_aprobado_at: null,
+        },
+      ],
+      archivosPorNarrador: {},
+      familias: { f1: 'a@b.c' },
+    });
+    obtenerClienteDbMock.mockReturnValue(db);
+
+    await tick();
+
+    expect(enviarMailHitoMock).toHaveBeenCalledTimes(1);
+    expect(enviarMailHitoMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        hito: 'terminado',
+        para: 'a@b.c',
+        comoLeDicen: 'papá',
+        enlace: expect.stringContaining('/tablero/n1'),
+      })
+    );
+    expect(db.subidos['n1']).toContain('terminado_enviado.txt');
+  });
+
+  it('con terminado_enviado.txt ya presente, no lo manda de nuevo', async () => {
+    const db = construirClienteDbMock({
+      narradores: [
+        {
+          id: 'n1',
+          estado: 'completado',
+          como_le_dicen: 'papá',
+          familia_id: 'f1',
+          ultima_respuesta_at: '2026-09-19T00:00:00Z',
+          libro_aprobado_at: null,
+        },
+      ],
+      archivosPorNarrador: { n1: ['terminado_enviado.txt'] },
+      familias: { f1: 'a@b.c' },
+    });
+    obtenerClienteDbMock.mockReturnValue(db);
+
+    await tick();
+
+    expect(enviarMailHitoMock).not.toHaveBeenCalled();
+    expect(db.subidos['n1'] ?? []).not.toContain('terminado_enviado.txt');
+  });
+
+  it('si enviarMailHito devuelve false (sin clave), no deja candado', async () => {
+    enviarMailHitoMock.mockResolvedValueOnce(false);
+    const db = construirClienteDbMock({
+      narradores: [
+        {
+          id: 'n1',
+          estado: 'completado',
+          como_le_dicen: 'papá',
+          familia_id: 'f1',
+          ultima_respuesta_at: '2026-09-19T00:00:00Z',
+          libro_aprobado_at: null,
+        },
+      ],
+      archivosPorNarrador: {},
+      familias: { f1: 'a@b.c' },
+    });
+    obtenerClienteDbMock.mockReturnValue(db);
+
+    await tick();
+
+    expect(hitosEnviados()).toEqual(['terminado']);
+    expect(db.subidos['n1'] ?? []).not.toContain('terminado_enviado.txt');
+  });
+
+  it('a los 3 días sin libro_aprobado_at manda recordatorio_3; a los 2, nada', async () => {
+    const db = construirClienteDbMock({
+      narradores: [
+        {
+          id: 'n1',
+          estado: 'completado',
+          como_le_dicen: 'papá',
+          familia_id: 'f1',
+          // 3 días exactos antes de HOY → recordatorio_3
+          ultima_respuesta_at: '2026-09-17T12:00:00Z',
+          libro_aprobado_at: null,
+        },
+        {
+          id: 'n2',
+          estado: 'completado',
+          como_le_dicen: 'la abuela',
+          familia_id: 'f2',
+          // menos de 3 días → ningún recordatorio
+          ultima_respuesta_at: '2026-09-18T13:00:00Z',
+          libro_aprobado_at: null,
+        },
+      ],
+      archivosPorNarrador: { n1: ['terminado_enviado.txt'], n2: ['terminado_enviado.txt'] },
+      familias: { f1: 'a@b.c', f2: 'd@e.f' },
+    });
+    obtenerClienteDbMock.mockReturnValue(db);
+
+    await tick();
+
+    expect(hitosEnviados()).toEqual(['recordatorio_3']);
+    expect(enviarMailHitoMock).toHaveBeenCalledWith(
+      expect.objectContaining({ hito: 'recordatorio_3', para: 'a@b.c', enlace: expect.stringContaining('/tablero/n1') })
+    );
+    expect(db.subidos['n1']).toContain('recordatorio_cierre_3.txt');
+    expect(db.subidos['n2']).toBeUndefined();
+  });
+
+  it('a los 9 días con ninguno mandado, manda SOLO recordatorio_7 y marca también el candado del 3', async () => {
+    const db = construirClienteDbMock({
+      narradores: [
+        {
+          id: 'n1',
+          estado: 'completado',
+          como_le_dicen: 'papá',
+          familia_id: 'f1',
+          ultima_respuesta_at: '2026-09-11T00:00:00Z',
+          libro_aprobado_at: null,
+        },
+      ],
+      archivosPorNarrador: { n1: ['terminado_enviado.txt'] },
+      familias: { f1: 'a@b.c' },
+    });
+    obtenerClienteDbMock.mockReturnValue(db);
+
+    await tick();
+
+    expect(hitosEnviados()).toEqual(['recordatorio_7']);
+    expect(db.subidos['n1']).toContain('recordatorio_cierre_3.txt');
+    expect(db.subidos['n1']).toContain('recordatorio_cierre_7.txt');
+    expect(db.subidos['n1']).not.toContain('recordatorio_cierre_14.txt');
+  });
+
+  it('con recordatorio_7 ya mandado, a los 9 días no repite nada', async () => {
+    const db = construirClienteDbMock({
+      narradores: [
+        {
+          id: 'n1',
+          estado: 'completado',
+          como_le_dicen: 'papá',
+          familia_id: 'f1',
+          ultima_respuesta_at: '2026-09-11T00:00:00Z',
+          libro_aprobado_at: null,
+        },
+      ],
+      archivosPorNarrador: { n1: ['terminado_enviado.txt', 'recordatorio_cierre_3.txt', 'recordatorio_cierre_7.txt'] },
+      familias: { f1: 'a@b.c' },
+    });
+    obtenerClienteDbMock.mockReturnValue(db);
+
+    await tick();
+
+    expect(enviarMailHitoMock).not.toHaveBeenCalled();
+  });
+
+  it('con libro_aprobado_at puesto, no manda recordatorios aunque hayan pasado 10 días', async () => {
+    const db = construirClienteDbMock({
+      narradores: [
+        {
+          id: 'n1',
+          estado: 'completado',
+          como_le_dicen: 'papá',
+          familia_id: 'f1',
+          ultima_respuesta_at: '2026-09-10T12:00:00Z',
+          libro_aprobado_at: '2026-09-12T10:00:00Z',
+        },
+      ],
+      archivosPorNarrador: { n1: ['terminado_enviado.txt'] },
+      familias: { f1: 'a@b.c' },
+    });
+    obtenerClienteDbMock.mockReturnValue(db);
+
+    await tick();
+
+    expect(enviarMailHitoMock).not.toHaveBeenCalled();
+    expect(db.cierresAutomaticos).toEqual([]);
+    expect(db.subidos['n1']).toBeUndefined();
+  });
+
+  it('a los 30 días sin cierre: pone libro_aprobado_at, manda cierre_automatico y deja candado', async () => {
+    const db = construirClienteDbMock({
+      narradores: [
+        {
+          id: 'n1',
+          estado: 'completado',
+          como_le_dicen: 'papá',
+          familia_id: 'f1',
+          ultima_respuesta_at: '2026-08-20T00:00:00Z',
+          libro_aprobado_at: null,
+        },
+      ],
+      archivosPorNarrador: { n1: ['terminado_enviado.txt'] },
+      familias: { f1: 'a@b.c' },
+    });
+    obtenerClienteDbMock.mockReturnValue(db);
+
+    await tick();
+
+    expect(db.cierresAutomaticos).toEqual(['n1']);
+    expect(hitosEnviados()).toEqual(['cierre_automatico']);
+    expect(enviarMailHitoMock).toHaveBeenCalledWith(
+      expect.objectContaining({ hito: 'cierre_automatico', para: 'a@b.c', enlace: expect.stringContaining('/tablero/n1') })
+    );
+    expect(db.subidos['n1']).toContain('cierre_automatico_enviado.txt');
+    expect(db.subidos['n1']).not.toContain('recordatorio_cierre_14.txt');
+    // La marca de "fuimos nosotros" queda apenas confirma el CAS, antes del mail.
+    expect(db.subidos['n1']).toContain('cierre_automatico.txt');
+    expect(db.subidos['n1'].indexOf('cierre_automatico.txt')).toBeLessThan(
+      db.subidos['n1'].indexOf('cierre_automatico_enviado.txt')
+    );
+  });
+
+  it('con la marca cierre_automatico.txt pero sin el mail mandado (falló después del CAS), reintenta el mail sin volver a cerrar', async () => {
+    const db = construirClienteDbMock({
+      narradores: [
+        {
+          id: 'n1',
+          estado: 'completado',
+          como_le_dicen: 'papá',
+          familia_id: 'f1',
+          ultima_respuesta_at: '2026-08-20T00:00:00Z',
+          // ya lo cerró la fábrica en un tick anterior
+          libro_aprobado_at: '2026-09-19T12:00:00Z',
+        },
+      ],
+      archivosPorNarrador: { n1: ['terminado_enviado.txt', 'cierre_automatico.txt'] },
+      familias: { f1: 'a@b.c' },
+    });
+    obtenerClienteDbMock.mockReturnValue(db);
+
+    await tick();
+
+    expect(hitosEnviados()).toEqual(['cierre_automatico']);
+    expect(db.cierresAutomaticos).toEqual([]);
+    expect(db.subidos['n1']).toEqual(['cierre_automatico_enviado.txt']);
+  });
+
+  it('con la marca y el candado del cierre automático presentes, no manda nada', async () => {
+    const db = construirClienteDbMock({
+      narradores: [
+        {
+          id: 'n1',
+          estado: 'completado',
+          como_le_dicen: 'papá',
+          familia_id: 'f1',
+          ultima_respuesta_at: '2026-08-20T00:00:00Z',
+          libro_aprobado_at: '2026-09-19T12:00:00Z',
+        },
+      ],
+      archivosPorNarrador: { n1: ['terminado_enviado.txt', 'cierre_automatico.txt', 'cierre_automatico_enviado.txt'] },
+      familias: { f1: 'a@b.c' },
+    });
+    obtenerClienteDbMock.mockReturnValue(db);
+
+    await tick();
+
+    expect(enviarMailHitoMock).not.toHaveBeenCalled();
+    expect(db.cierresAutomaticos).toEqual([]);
+    expect(db.subidos['n1']).toBeUndefined();
+  });
+
+  it('a los 30 días, si la web lo cerró en el medio (el CAS no devuelve fila), no manda cierre_automatico', async () => {
+    const db = construirClienteDbMock({
+      narradores: [
+        {
+          id: 'n1',
+          estado: 'completado',
+          como_le_dicen: 'papá',
+          familia_id: 'f1',
+          ultima_respuesta_at: '2026-08-20T00:00:00Z',
+          libro_aprobado_at: null,
+        },
+      ],
+      archivosPorNarrador: { n1: ['terminado_enviado.txt'] },
+      familias: { f1: 'a@b.c' },
+      cerrarSolo: () => ({ data: [], error: null }),
+    });
+    obtenerClienteDbMock.mockReturnValue(db);
+
+    await tick();
+
+    expect(db.cierresAutomaticos).toEqual(['n1']);
+    expect(enviarMailHitoMock).not.toHaveBeenCalled();
+    expect(db.subidos['n1']).toBeUndefined();
+  });
+
+  it('pedido entregado sin libro_listo_enviado.txt → manda "libro_listo" y deja candado; con candado no repite', async () => {
+    const db = construirClienteDbMock({
+      narradores: [
+        {
+          id: 'n1',
+          estado: 'completado',
+          como_le_dicen: 'papá',
+          familia_id: 'f1',
+          ultima_respuesta_at: '2026-09-01T00:00:00Z',
+          libro_aprobado_at: '2026-09-05T10:00:00Z',
+        },
+      ],
+      archivosPorNarrador: { n1: ['terminado_enviado.txt'] },
+      familias: { f1: 'a@b.c' },
+      // dos pedidos (el libro y un extra) del mismo narrador: un solo mail
+      pedidosEntregados: [
+        { id: 'p1', narrador_id: 'n1' },
+        { id: 'p2', narrador_id: 'n1' },
+      ],
+    });
+    obtenerClienteDbMock.mockReturnValue(db);
+
+    await tick();
+
+    expect(hitosEnviados()).toEqual(['libro_listo']);
+    expect(enviarMailHitoMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        hito: 'libro_listo',
+        para: 'a@b.c',
+        comoLeDicen: 'papá',
+        enlace: expect.stringContaining('/tablero/n1'),
+      })
+    );
+    expect(db.subidos['n1']).toContain(CANDADO_POR_HITO.libro_listo);
+
+    // Segundo tick: el candado subido ya aparece en el list → no repite.
+    enviarMailHitoMock.mockClear();
+    await tick();
+
+    expect(enviarMailHitoMock).not.toHaveBeenCalled();
+  });
+
+  it('un narrador cuya familia no se puede leer no frena a los demás', async () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const db = construirClienteDbMock({
+      narradores: [
+        {
+          id: 'n1',
+          estado: 'completado',
+          como_le_dicen: 'papá',
+          familia_id: 'f-que-no-existe',
+          ultima_respuesta_at: '2026-09-19T00:00:00Z',
+          libro_aprobado_at: null,
+        },
+        {
+          id: 'n2',
+          estado: 'completado',
+          como_le_dicen: 'la abuela',
+          familia_id: 'f2',
+          ultima_respuesta_at: '2026-09-19T00:00:00Z',
+          libro_aprobado_at: null,
+        },
+      ],
+      archivosPorNarrador: {},
+      familias: { f2: 'd@e.f' },
+    });
+    obtenerClienteDbMock.mockReturnValue(db);
+
+    await expect(tick()).resolves.toBeUndefined();
+
+    expect(enviarMailHitoMock).toHaveBeenCalledTimes(1);
+    expect(enviarMailHitoMock).toHaveBeenCalledWith(
+      expect.objectContaining({ hito: 'terminado', para: 'd@e.f', enlace: expect.stringContaining('/tablero/n2') })
+    );
+    expect(db.subidos['n1']).toBeUndefined();
+    expect(db.subidos['n2']).toContain('terminado_enviado.txt');
+    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('n1'), expect.anything());
+    errorSpy.mockRestore();
   });
 });

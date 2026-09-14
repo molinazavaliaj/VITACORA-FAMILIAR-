@@ -23,6 +23,7 @@ export type NarradorPanel = {
   alerta_silencio: boolean;
   familia_id: string;
   created_at: string;
+  /** `vinculoComprador`, y lo que el biógrafo le mandó de verdad (`preguntasEnviadas`, `repreguntasEnviadas`). */
   contexto?: Record<string, unknown> | null;
 };
 

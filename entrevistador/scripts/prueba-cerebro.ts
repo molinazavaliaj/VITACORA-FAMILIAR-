@@ -21,9 +21,11 @@ for (const linea of readFileSync(resolve(AQUI, '..', '.env'), 'utf8').split('\n'
   if (m) process.env[m[1]] ??= m[2].trim().replace(/^["']|["']$/g, '');
 }
 // El cerebro solo necesita la key de Anthropic; el resto lo exige config.ts.
+// OJO: en el .env las variables de WhatsApp están VACÍAS (Meta sin habilitar),
+// así que va `||=` y no `??=`.
 for (const v of ['SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY', 'OPENAI_API_KEY',
                  'WA_TOKEN', 'WA_PHONE_NUMBER_ID', 'WA_VERIFY_TOKEN']) {
-  process.env[v] ??= 'no-usado-en-esta-prueba';
+  process.env[v] ||= 'no-usado-en-esta-prueba';
 }
 
 // Import dinámico: recién ahora, con el entorno ya armado.

@@ -8,11 +8,11 @@ migración en `supabase/migrations/` + actualizar este archivo + avisar al otro 
 | Tabla | Escribe | Lee | Nota |
 |---|---|---|---|
 | `familias` | web | entrevistador | |
-| `narradores` | web (crea, edita datos, `edicion`, `libro_aprobado_at`) / entrevistador (solo `estado`, `dia_actual`, `ultima_respuesta_at`, `alerta_silencio`) | ambos | Única tabla compartida. La web también apaga `alerta_silencio`. La fábrica lee `edicion` y **no produce nada sin `libro_aprobado_at`** (ni digital ni impreso). |
+| `narradores` | web (crea, edita datos, `edicion`, `libro_aprobado_at`) / entrevistador (solo `estado`, `dia_actual`, `ultima_respuesta_at`, `alerta_silencio`) / fábrica (solo `libro_aprobado_at`, a los 30 días sin cierre) | ambos | Única tabla compartida. La web también apaga `alerta_silencio`. La fábrica lee `edicion` y **no produce nada sin `libro_aprobado_at`** (ni digital ni impreso). Desde el 13/09, si pasan 30 días desde `ultima_respuesta_at` sin cierre, la fábrica misma pone `libro_aprobado_at` (único caso en que alguien más que la web escribe esa columna). |
 | `preguntas` | **web** (copia las fijas al comprar; la familia edita, salta, reordena, agrega) / **entrevistador** (adaptativas y reemplazos) / seed (plantilla global) | ambos | Desde el 12/09 **cada narrador tiene su guion propio**. Las globales (`narrador_id = null`) son solo plantilla. Regla: `orden ≤ dia_actual` está **congelado**, nadie lo toca. |
 | `respuestas` | entrevistador | web | La web NUNCA escribe acá. |
-| `saludos` | ~~web / entrevistador~~ | — | **Fuera de la fase 1 (10/09).** Nadie la escribe ni la lee. Se deja por si la fase 2 la revive. |
-| `fotos` | web (sube y ordena) | fábrica | Nueva 12/09. Por capítulo; `principal` abre, el resto cierra. **14/09: `capitulo` nullable** — NULL = foto del libro (tapa / contratapa / marco), no va en ningún capítulo. |
+| `saludos` | ~~web / entrevistador~~ | — | **Fuera de la fase 1 (10/09).** Nadie la escribe ni la lee — desde el 13/09 tampoco la fábrica (dejó de leerla en `generarPaquete`/`generarAudiolibro`; el audiolibro ya no tiene bonus de saludos). Se deja por si la fase 2 la revive. |
+| `fotos` | web (sube y ordena) | fábrica | Nueva 12/09. Por capítulo; `principal` abre, el resto cierra. Desde el 13/09 la fábrica las embebe como data URI en `libro.html`. **14/09: `capitulo` nullable** — NULL = foto del álbum del libro (candidata a tapa / contratapa / marco), no va en ningún capítulo; la fábrica la ignora al armar capítulos. |
 | `invitados` | web | web | Nueva 12/09. `rol` (13/09): `'invitado'` (hasta 3, con el libro abierto, ven todo) o `'visitante'` (abrió el link del libro cerrado y lo guardó: ve la muestra y compra su copia, sin tope). |
 | `pedidos` | web y fábrica | — | El entrevistador no la mira. Un pedido por comprador: los invitados y visitantes que compran su copia tienen su propia `familia` y su propio pedido sobre el mismo `narrador_id`. |
 | `envios` | entrevistador | — | Log de salientes; idempotencia del scheduler. |
@@ -53,6 +53,12 @@ con la voz clonada de sus audios; `"narrador"` = TTS con una voz fija; `"real"` 
 hasta ahora (sus audios). Nada se descarga: el PDF se lee y el audiolibro se escucha en
 la web. Proveedor de clonación a definir antes de vender el primero.
 
+**Lo que la fábrica hace hoy con eso (Naza, 13-14/09):** impreso, marcos y copias se
+cumplen **a mano** por ahora — la fábrica no los lee. Un segundo pedido `pagado` sobre un
+narrador que ya tiene un pedido `entregado` **no vuelve a generar nada**: la fábrica lo pasa
+a `entregado` con los mismos `libro_pdf_path` y `audiolibro_paths`. ⚠️ Pendiente (3t.14):
+leer `pdf` / `audiolibro` para producir solo lo comprado y con la voz elegida.
+
 ## El guion por narrador (migración 20260912)
 
 - Al confirmar la compra, **la web copia las 26 fijas globales** a filas del narrador
@@ -71,6 +77,25 @@ la web. Proveedor de clonación a definir antes de vender el primero.
 `ritmo` (`'diario'` default · `'dos_por_dia'` · `'seguido'`) y `evitar` (texto libre).
 `modoRapido: true` de los pilotos equivale a `ritmo: 'seguido'`.
 
+**Nuevo (14/09) — claves que ESCRIBE el entrevistador y LEE la web** (provisorias,
+sin migración; el lugar definitivo es una columna `texto` en `envios`):
+- `preguntasEnviadas[orden]` — el texto de la pregunta tal como se le mandó al
+  narrador (el guion dice una cosa y el biógrafo, con lo que ya contó, otra).
+- `repreguntasEnviadas[orden]` — el texto de la repregunta del mismo día.
+- `resumenesCapitulos[capítulo]` — la memoria interna del biógrafo. **No la usa la
+  web ni la fábrica**: es para personalizar la pregunta del día.
+
+El panel de la web muestra las dos primeras ("Se lo preguntamos así: …" / "Le
+repreguntamos: …"). Sin ellas la familia veía la respuesta de la repregunta sin la
+pregunta que la originó.
+
+⚠️ **Cuidado con `contexto`: ahora lo escriben los dos servicios.** Cada uno hace
+leer-modificar-escribir sobre el jsonb entero, así que si la web guarda `ritmo` en
+el mismo instante en que el entrevistador guarda `preguntasEnviadas`, uno de los
+dos cambios se pierde. Es la razón para mudar los tres textos a `envios.texto`
+(migración chica): `envios` ya es "todo mensaje saliente" y cada fila es un
+registro propio, sin pisadas.
+
 ## Cerrar el libro (migración 20260912)
 
 `narradores.edicion` (jsonb, escribe la web, lee la fábrica):
@@ -86,17 +111,32 @@ la web. Proveedor de clonación a definir antes de vender el primero.
 
 `narradores.libro_aprobado_at`: lo escribe la web cuando la dueña aprieta **Cerrar libro**.
 **Es el punto de aprobación del cliente: la fábrica no produce nada sin esto**, ni el PDF
-ni el impreso. Si pasan 30 días desde `completado` sin cierre, la web lo cierra con la
-propuesta por defecto y avisa (está en los términos).
+ni el impreso. Si pasan 30 días desde `ultima_respuesta_at` sin cierre, ~~la web lo
+cierra~~ **desde el 13/09 la fábrica** lo cierra (pone `libro_aprobado_at`, manda el
+aviso) y lo produce en el mismo tick, con la propuesta por defecto (está en los
+términos).
+
+La fábrica aplica `ordenCapitulos`, `titulo`, `subtitulo` y `portadaFotoId`; **ignora
+`excluidas` y `correcciones`** (decisión 13/09, ver
+`docs/superpowers/specs/2026-09-13-fabrica-aprobacion-design.md`).
 
 ## Storage — bucket privado `audios`
 
     {narrador_id}/dia_NN.ogg          respuestas (entrevistador sube; NN = pregunta_orden, 2 dígitos; extras: dia_NN_2.ogg)
     {narrador_id}/fotos/{id}.{ext}    fotos por capítulo, ORIGINAL sin recomprimir (web sube)
     {narrador_id}/sistema/…           audios TTS del entrevistador (entrevistador sube)
-    {narrador_id}/paquete/…           estructura, PDF y audiolibro (web/fábrica — socio 2 — sube)
+    {narrador_id}/paquete/…           estructura, PDF, audiolibro, libro.html y candados de mails (web/fábrica — socio 2 — sube)
 
 El navegador jamás recibe paths directos: solo URLs firmadas que genera la web.
+
+Desde el 13/09, `{narrador_id}/paquete/` además de `estructura.json`, `preview.pdf`,
+`libro.pdf` y el audiolibro, tiene `libro.html` (**nuevo**: el HTML que arma el lector
+online del panel, el mismo que se imprime) y, junto a `anticipo_enviado.txt`, los seis
+candados de los mails que manda la fábrica: `terminado_enviado.txt`,
+`recordatorio_cierre_3.txt`, `recordatorio_cierre_7.txt`, `recordatorio_cierre_14.txt`,
+`cierre_automatico_enviado.txt` y `libro_listo_enviado.txt`. `cierre_automatico.txt` es
+aparte: no es candado de mail, es la marca que deja el cierre automático de los 30 días
+para saber que fue la fábrica quien puso `libro_aprobado_at`.
 
 ## Tipos TypeScript
 

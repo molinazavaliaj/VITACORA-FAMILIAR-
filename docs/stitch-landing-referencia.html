@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+
+<html lang="es"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:ital,wght@0,400..700;1,400..700&amp;family=Playfair+Display:ital,wght@0,400..900;1,400..900&amp;family=Source+Serif+4:ital,opsz,wght@0,8..60,200..900;1,8..60,200..900&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{"colors":{"blanco":"#FFFFFF","surface-bright":"#fcf9f0","primary-fixed-dim":"#c9c6be","surface":"#fcf9f0","inverse-primary":"#c9c6be","papel":"#F7F7F5","inverse-on-surface":"#f4f1e8","on-primary":"#ffffff","on-primary-container":"#85847c","secondary-fixed-dim":"#cabeff","error-container":"#ffdad6","surface-variant":"#e5e2da","outline-variant":"#c9c6bd","ceniza":"#AEAEA6","violeta-claro":"#8F7BE0","surface-tint":"#5f5e58","tertiary-container":"#1e1b1e","on-secondary-fixed-variant":"#4723be","tertiary-fixed-dim":"#ccc4c9","on-primary-fixed":"#1c1c17","on-surface":"#1c1c17","on-secondary-container":"#fffbff","bruma":"#EBEBE7","surface-dim":"#dddad1","background":"#fcf9f0","on-tertiary":"#ffffff","error":"#ba1a1a","pizarra":"#45453C","surface-container-lowest":"#ffffff","surface-container-highest":"#e5e2da","tertiary":"#000000","primary-fixed":"#e5e2da","surface-container":"#f1eee5","violeta":"#5D3FD3","outline":"#78776f","acero":"#5F5F55","primary":"#000000","humo":"#83837A","grafito":"#2B2B24","on-tertiary-fixed":"#1e1b1e","secondary":"#5d3fd3","on-secondary":"#ffffff","primary-container":"#1c1c17","secondary-container":"#765bee","on-tertiary-container":"#888286","on-surface-variant":"#484740","surface-container-high":"#ebe8df","secondary-fixed":"#e6deff","on-background":"#1c1c17","inverse-surface":"#31312b","surface-container-low":"#f7f3ea","niebla":"#D4D4CE","on-tertiary-fixed-variant":"#4a4549","on-secondary-fixed":"#1c0062","tertiary-fixed":"#e8e0e5","on-error":"#ffffff","on-primary-fixed-variant":"#484741","negro":"#14140F","on-error-container":"#93000a"},"borderRadius":{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},"spacing":{"space-lg":"1.5rem","space-5xl":"8rem","space-md":"1rem","space-2xs":"0.25rem","space-xl":"2rem","space-3xl":"4.5rem","container-max":"76rem","container-editorial":"64rem","space-xs":"0.5rem","space-4xl":"6rem","gutter-desktop":"2rem","gutter-mobile":"1rem","container-prose":"44rem","space-2xl":"3rem","space-sm":"0.75rem"},"fontFamily":{"body-sm":["\"Source Serif 4\""],"label-button":["Archivo Narrow"],"headline-lg-mobile":["Playfair Display"],"headline-sm":["Playfair Display"],"label-caps-wide":["Archivo Narrow"],"body-lg":["\"Source Serif 4\""],"display-hero":["Playfair Display"],"headline-md":["Playfair Display"],"display-hero-mobile":["Playfair Display"],"headline-lg":["Playfair Display"],"label-meta":["Archivo Narrow"],"body-md":["\"Source Serif 4\""]},"fontSize":{"body-sm":["15px",{"lineHeight":"24px","fontWeight":"400"}],"label-button":["13px",{"lineHeight":"16px","letterSpacing":"0.18em","fontWeight":"600"}],"headline-lg-mobile":["28px",{"lineHeight":"36px","fontWeight":"400"}],"headline-sm":["22px",{"lineHeight":"30px","fontWeight":"500"}],"label-caps-wide":["11px",{"lineHeight":"16px","letterSpacing":"0.25em","fontWeight":"600"}],"body-lg":["20px",{"lineHeight":"34px","fontWeight":"300"}],"display-hero":["56px",{"lineHeight":"64px","letterSpacing":"-0.02em","fontWeight":"400"}],"headline-md":["28px",{"lineHeight":"36px","fontWeight":"500"}],"display-hero-mobile":["36px",{"lineHeight":"44px","letterSpacing":"-0.01em","fontWeight":"400"}],"headline-lg":["40px",{"lineHeight":"48px","letterSpacing":"-0.01em","fontWeight":"400"}],"label-meta":["12px",{"lineHeight":"18px","letterSpacing":"0.15em","fontWeight":"500"}],"body-md":["17px",{"lineHeight":"28px","fontWeight":"400"}]}}}};</script></head><body class="bg-blanco font-body-md text-negro antialiased selection:bg-secondary-fixed selection:text-negro"><header class="fixed top-0 left-0 right-0 w-full z-50 bg-blanco/90 backdrop-blur-md shadow-[0_1px_8px_rgba(0,0,0,0.03)]"><div class="h-20 max-w-container-max mx-auto px-gutter-mobile lg:px-gutter-desktop flex items-center justify-between"><a class="flex items-center gap-3 group" data-path="vitacora-familiar" href="#"><svg class="w-5 h-5 text-negro transition-transform duration-500 group-hover:rotate-180" fill="none" stroke="currentColor" stroke-width="1.5" viewbox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-dasharray="2 2"></circle><circle cx="12" cy="12" r="4" stroke="currentColor"></circle></svg><span class="font-headline-sm text-headline-sm tracking-wide text-negro uppercase">Vitácora Familiar</span></a><nav class="hidden md:flex items-center gap-space-xl" data-active-classes="text-negro border-b border-negro"><a class="font-label-meta text-label-meta uppercase text-acero hover:text-negro transition-colors" data-path="como-funciona" href="#">Cómo funciona</a><a class="font-label-meta text-label-meta uppercase text-acero hover:text-negro transition-colors" data-path="el-libro-y-el-audio" href="#">El libro y el audio</a><a class="font-label-meta text-label-meta uppercase text-acero hover:text-negro transition-colors" data-path="preguntas-frecuentes" href="#">Preguntas frecuentes</a></nav><div class="flex items-center gap-space-md"><a class="hidden sm:inline-flex items-center justify-center px-space-lg py-space-xs rounded-full bg-violeta text-on-secondary font-label-button text-label-button uppercase tracking-widest hover:bg-negro transition-all duration-300" data-path="empezar-gratis" href="#">Empezar gratis</a><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="w-full pt-20 bg-blanco min-h-screen"><div class="flex flex-col w-full selection:bg-secondary-fixed selection:text-negro">
+<!-- ==========================================
+       1. HERO SECTION
+       ========================================== -->
+<section class="w-full bg-blanco py-space-3xl lg:py-space-5xl">
+<div class="max-w-container-max mx-auto px-gutter-mobile lg:px-gutter-desktop">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-xl lg:gap-space-2xl items-center">
+<!-- Main Column: Editorial Heading -->
+<div class="lg:col-span-6 flex flex-col items-start pr-0 lg:pr-space-md">
+<div class="inline-flex items-center gap-2 px-space-sm py-1 bg-papel rounded-none mb-space-lg">
+<span class="w-1.5 h-1.5 rounded-full bg-negro"></span>
+<span class="font-label-caps-wide text-label-caps-wide text-pizarra tracking-[0.25em] uppercase">Edición Familiar</span>
+</div>
+<h1 class="font-display-hero text-display-hero-mobile lg:text-display-hero text-negro mb-space-lg leading-[1.12]">
+            En cada familia hay un libro sin escribir.
+          </h1>
+<p class="font-body-lg text-body-lg text-acero mb-space-xl max-w-container-prose">
+            Un biógrafo entrevista y escribe el libro de una vida. La de tu papá, la de tu abuela, la tuya.
+          </p>
+<div class="flex flex-col sm:flex-row sm:items-center gap-space-md w-full sm:w-auto">
+<a class="inline-flex items-center justify-center px-space-xl py-3.5 rounded-full bg-violeta text-on-secondary font-label-button text-label-button tracking-widest uppercase hover:bg-negro transition-all duration-300 shadow-sm hover:shadow-md" href="#registro-directo">
+              Empezar gratis
+            </a>
+<span class="font-label-meta text-label-meta text-humo tracking-wider flex items-center gap-2">
+<span class="w-1 h-1 rounded-full bg-ceniza"></span>
+              Sin tarjeta de crédito · Empieza con una conversación
+            </span>
+</div>
+<!-- Editorial proof micro-strip -->
+<div class="mt-space-2xl pt-space-lg flex items-center gap-space-xl text-acero">
+<div>
+<p class="font-display-hero text-[24px] leading-tight text-negro">30</p>
+<p class="font-label-meta text-[11px] text-humo uppercase tracking-widest">Días de relato</p>
+</div>
+<div class="h-8 w-px bg-papel"></div>
+<div>
+<p class="font-display-hero text-[24px] leading-tight text-negro">WhatsApp</p>
+<p class="font-label-meta text-[11px] text-humo uppercase tracking-widest">Sin apps nuevas</p>
+</div>
+<div class="h-8 w-px bg-papel"></div>
+<div>
+<p class="font-display-hero text-[24px] leading-tight text-negro">100%</p>
+<p class="font-label-meta text-[11px] text-humo uppercase tracking-widest">Gratis al iniciar</p>
+</div>
+</div>
+</div>
+<!-- Right Column: Minimalist Hardcover Open Book Mockup -->
+<div class="lg:col-span-6 relative mt-space-xl lg:mt-0">
+<div class="relative bg-papel p-space-lg lg:p-space-xl shadow-[0_20px_50px_rgba(20,20,15,0.06)]">
+<!-- Book binding spine effect -->
+<div class="absolute left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-ceniza/40 to-transparent hidden md:block"></div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-lg lg:gap-space-xl bg-blanco p-space-lg lg:p-space-xl">
+<!-- Left Page (Typeset story) -->
+<div class="flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between pb-space-sm mb-space-md">
+<span class="font-label-caps-wide text-[10px] text-ceniza tracking-widest uppercase">Capítulo I · El Origen</span>
+<span class="font-label-meta text-[10px] text-ceniza">14</span>
+</div>
+<p class="font-body-md text-[14px] leading-relaxed text-pizarra text-justify">
+<span class="float-left text-negro font-headline-lg text-[44px] leading-[36px] pr-2 pt-1 font-normal">E</span>l taller lo abrí en el ochenta y uno. Hacía un frío tremendo ese martes, pero cuando levantamos la persiana metálica con tu tío Ernesto supe que ahí se me iba a ir la vida entera. Olor a madera estacionada y café recién hecho.
+                  </p>
+<p class="font-body-sm text-[13px] leading-relaxed text-acero mt-space-sm">
+                    No teníamos un peso en el bolsillo, pero sí unas ganas brutales de construir algo que durara.
+                  </p>
+</div>
+<!-- Subtle Audio Snippet inside page -->
+<div class="mt-space-md pt-space-xs bg-papel p-2.5">
+<div class="flex items-center gap-2">
+<button aria-label="Reproducir nota" class="w-6 h-6 rounded-full bg-negro text-blanco flex items-center justify-center flex-shrink-0" type="button">
+<span class="material-symbols-outlined text-[14px]">play_arrow</span>
+</button>
+<div class="flex-1">
+<div class="flex items-center gap-0.5 h-4">
+<span class="w-0.5 h-2 bg-acero"></span>
+<span class="w-0.5 h-3.5 bg-violeta"></span>
+<span class="w-0.5 h-4 bg-violeta"></span>
+<span class="w-0.5 h-2.5 bg-violeta"></span>
+<span class="w-0.5 h-3 bg-acero"></span>
+<span class="w-0.5 h-1 bg-ceniza"></span>
+<span class="w-0.5 h-4 bg-acero"></span>
+<span class="w-0.5 h-2.5 bg-acero"></span>
+<span class="w-0.5 h-1.5 bg-ceniza"></span>
+<span class="w-0.5 h-3.5 bg-acero"></span>
+</div>
+</div>
+<span class="font-label-meta text-[10px] text-humo">03:42</span>
+</div>
+</div>
+</div>
+<!-- Right Page (Monochrome archival image & footer) -->
+<div class="flex flex-col justify-between pl-0 md:pl-space-xs">
+<div>
+<div class="flex items-center justify-between pb-space-sm mb-space-md">
+<span class="font-label-caps-wide text-[10px] text-ceniza tracking-widest uppercase">Vitácora Familiar</span>
+<span class="font-label-meta text-[10px] text-ceniza">15</span>
+</div>
+<div class="w-full aspect-[4/3] bg-bruma relative overflow-hidden mb-space-sm filter grayscale contrast-125">
+<img class="w-full h-full object-cover" data-alt="Black and white authentic archival vintage photograph of an artisan father working in a woodworking carpentry workshop, warm directional morning window light, high contrast monochrome film grain, timeless dignified heritage atmosphere" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB2JOzp9LEVu7NY9UkMkx4MN2jHa25VlpWbtXrq-VYQahRKOx_Nw0jEZDwH5kRa0NcxwG5D2qR7jZVc9Kgy23Qf2P7tAlLGZCeQSUq5xr4kQYQVAHzfngIuYlTTw5w7_WAq1aUeEj8YbmgS9H5VmVBk39F5xFovY7xmozP5S_dzk96QFDytPZw2cgGvI1c7Cgh9gpf8dpqLow3Fy1FiYh2BqN-1chZP0_ax3ofvROTUozrvII4jqA5ZMw"/>
+<div class="absolute bottom-1 right-2 bg-blanco/80 px-1.5 py-0.5 text-[9px] font-label-meta uppercase tracking-wider text-pizarra">Otoño, 1981</div>
+</div>
+<p class="font-body-sm text-[12px] italic text-acero leading-normal text-center">
+                    “El primer torno lo compramos en cuotas con la garantía de Don Salustiano.”
+                  </p>
+</div>
+<div class="pt-space-md flex items-center justify-center">
+<div class="w-8 h-px bg-ceniza"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- ==========================================
+       2. CÓMO FUNCIONA
+       ========================================== -->
+<section class="w-full bg-papel py-space-3xl lg:py-space-5xl" id="como-funciona">
+<div class="max-w-container-max mx-auto px-gutter-mobile lg:px-gutter-desktop">
+<!-- Section Intro -->
+<div class="max-w-container-prose mb-space-3xl">
+<span class="font-label-caps-wide text-label-caps-wide text-pizarra tracking-[0.25em] uppercase block mb-space-xs">
+          El proceso
+        </span>
+<h2 class="font-headline-lg text-headline-lg-mobile lg:text-headline-lg text-negro mb-space-md">
+          Cómo se escribe el libro de su vida.
+        </h2>
+<p class="font-body-md text-body-md text-acero">
+          Diseñado para que una persona mayor participe con total naturalidad, sin lidiar con tecnología ni recordar contraseñas.
+        </p>
+</div>
+<!-- 3 Airy Columns -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-xl relative">
+<!-- Step 01 -->
+<div class="bg-blanco p-space-xl flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow">
+<div>
+<div class="flex items-baseline justify-between mb-space-lg">
+<span class="font-display-hero text-[36px] text-negro">01</span>
+<span class="font-label-caps-wide text-[10px] text-humo tracking-widest uppercase">Paso inicial</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-negro mb-space-sm">
+              Registro gratis
+            </h3>
+<p class="font-body-sm text-body-sm text-acero">
+              Eliges el horario y anotas a tu ser querido con su número de WhatsApp. No pedimos tarjeta ni hay pagos iniciales.
+            </p>
+</div>
+<div class="mt-space-xl pt-space-md">
+<span class="font-label-meta text-label-meta text-pizarra tracking-wider uppercase">Toma 2 minutos</span>
+</div>
+</div>
+<!-- Step 02 -->
+<div class="bg-blanco p-space-xl flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow">
+<div>
+<div class="flex items-baseline justify-between mb-space-lg">
+<span class="font-display-hero text-[36px] text-violeta">02</span>
+<span class="font-label-caps-wide text-[10px] text-violeta tracking-widest uppercase">Día a día</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-negro mb-space-sm">
+              Una pregunta diaria por WhatsApp
+            </h3>
+<p class="font-body-sm text-body-sm text-acero">
+              Un biógrafo le envía cada mañana un mensaje respetuoso. Solo contesta con un audio de voz, como hace siempre con la familia.
+            </p>
+</div>
+<div class="mt-space-xl pt-space-md">
+<span class="font-label-meta text-label-meta text-pizarra tracking-wider uppercase">Sin aplicaciones extra</span>
+</div>
+</div>
+<!-- Step 03 -->
+<div class="bg-blanco p-space-xl flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow">
+<div>
+<div class="flex items-baseline justify-between mb-space-lg">
+<span class="font-display-hero text-[36px] text-negro">03</span>
+<span class="font-label-caps-wide text-[10px] text-humo tracking-widest uppercase">Resultado</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-negro mb-space-sm">
+              El libro y el audiolibro
+            </h3>
+<p class="font-body-sm text-body-sm text-acero">
+              Entrevistamos durante 30 días, redactamos su historia con cuidado editorial y recopilamos saludos secretos. Solo pagas al final si decides conservarlo.
+            </p>
+</div>
+<div class="mt-space-xl pt-space-md">
+<span class="font-label-meta text-label-meta text-pizarra tracking-wider uppercase">Sin riesgo previo</span>
+</div>
+</div>
+</div>
+<!-- Friction Killer Banner -->
+<div class="mt-space-2xl bg-blanco p-space-lg flex flex-col sm:flex-row items-center justify-between gap-space-md">
+<div class="flex items-center gap-space-md">
+<div class="w-10 h-10 rounded-full bg-papel flex items-center justify-center text-negro flex-shrink-0">
+<span class="material-symbols-outlined text-[20px]">verified_user</span>
+</div>
+<p class="font-body-md text-body-md text-negro">
+<span class="font-medium">Consentimiento primero:</span> Le pedimos permiso antes de empezar. Si él o ella no desea hacerlo, no arranca nada.
+          </p>
+</div>
+<a class="text-nowrap font-label-button text-label-button text-violeta tracking-widest uppercase hover:underline" href="#registro-directo">
+          Anotar ahora →
+        </a>
+</div>
+</div>
+</section>
+<!-- ==========================================
+       3. SOLO TIENE QUE MANDAR UN AUDIO (WhatsApp Mockup)
+       ========================================== -->
+<section class="w-full bg-blanco py-space-3xl lg:py-space-5xl">
+<div class="max-w-container-max mx-auto px-gutter-mobile lg:px-gutter-desktop">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-xl lg:gap-space-2xl items-center">
+<!-- Left Explanatory Column -->
+<div class="lg:col-span-5 flex flex-col">
+<span class="font-label-caps-wide text-label-caps-wide text-pizarra tracking-[0.25em] uppercase mb-space-xs">
+            Cero fricción
+          </span>
+<h2 class="font-headline-lg text-headline-lg-mobile lg:text-headline-lg text-negro mb-space-md">
+            Solo tiene que mandar un audio.
+          </h2>
+<p class="font-body-md text-body-md text-acero mb-space-lg">
+            La mayoría de las personas mayores rechaza cuestionarios largos por escrito o plataformas que exigen claves. Vitácora vive donde ellos ya se sienten cómodos: en el botón verde de notas de voz.
+          </p>
+<div class="space-y-space-md mb-space-xl">
+<div class="flex items-start gap-space-sm">
+<span class="material-symbols-outlined text-negro text-[20px] mt-0.5">check</span>
+<p class="font-body-sm text-body-sm text-pizarra"><strong class="text-negro font-medium">Sin aplicaciones nuevas:</strong> Cero descargas desde App Store o Google Play.</p>
+</div>
+<div class="flex items-start gap-space-sm">
+<span class="material-symbols-outlined text-negro text-[20px] mt-0.5">check</span>
+<p class="font-body-sm text-body-sm text-pizarra"><strong class="text-negro font-medium">A su propio ritmo:</strong> Si un día está ocupado, la pregunta aguarda pacientemente.</p>
+</div>
+<div class="flex items-start gap-space-sm">
+<span class="material-symbols-outlined text-negro text-[20px] mt-0.5">check</span>
+<p class="font-body-sm text-body-sm text-pizarra"><strong class="text-negro font-medium">Edición humana:</strong> Transcribimos las pausas, preservamos su léxico y pulimos el manuscrito.</p>
+</div>
+</div>
+<div class="p-space-md bg-papel">
+<p class="font-body-sm text-[13px] text-acero italic">
+              “La misma aplicación que ya usa todos los días para saludar a los nietos.”
+            </p>
+</div>
+</div>
+<!-- Right Realistic WhatsApp Chat Breakdown -->
+<div class="lg:col-span-7">
+<div class="max-w-md mx-auto bg-papel p-space-xs shadow-[0_15px_40px_rgba(20,20,15,0.05)]">
+<!-- WhatsApp Chat Header -->
+<div class="bg-negro text-blanco p-space-sm flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-full bg-acero flex items-center justify-center text-blanco font-headline-sm text-[15px]">
+                  B
+                </div>
+<div>
+<h4 class="font-headline-sm text-[15px] leading-tight text-blanco">Biógrafo de Vitácora</h4>
+<p class="font-label-meta text-[10px] text-ceniza tracking-wider uppercase">Entrevistador asignado</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-ceniza text-[20px]">more_vert</span>
+</div>
+<!-- Chat Stream Body -->
+<div class="p-space-md space-y-space-md bg-papel">
+<!-- Date pill -->
+<div class="flex justify-center">
+<span class="bg-bruma text-pizarra font-label-meta text-[10px] px-2.5 py-0.5 uppercase tracking-widest">Martes · 9:15 AM</span>
+</div>
+<!-- Incoming Message (Biógrafo) -->
+<div class="flex items-start max-w-[85%]">
+<div class="bg-blanco p-space-sm shadow-sm space-y-1">
+<p class="font-body-sm text-[14px] leading-snug text-negro">
+                    Buen día Alberto. Para hoy: ¿cómo era la casa donde te criaste y qué olor recuerdas de las mañanas?
+                  </p>
+<div class="flex justify-end">
+<span class="font-label-meta text-[9px] text-humo">09:15</span>
+</div>
+</div>
+</div>
+<!-- Outgoing Message (Alberto - Audio Player) -->
+<div class="flex flex-col items-end">
+<div class="bg-negro text-blanco p-space-sm max-w-[90%] shadow-sm">
+<div class="flex items-center gap-3">
+<button aria-label="Reproducir mensaje de voz" class="w-8 h-8 rounded-full bg-violeta text-blanco flex items-center justify-center flex-shrink-0" type="button">
+<span class="material-symbols-outlined text-[18px]">play_arrow</span>
+</button>
+<div class="flex-1 min-w-[170px]">
+<div class="flex items-center gap-0.5 h-6">
+<span class="w-1 h-3 bg-blanco/60"></span>
+<span class="w-1 h-5 bg-blanco"></span>
+<span class="w-1 h-2 bg-blanco/60"></span>
+<span class="w-1 h-6 bg-violeta-claro"></span>
+<span class="w-1 h-4 bg-blanco"></span>
+<span class="w-1 h-5 bg-blanco/80"></span>
+<span class="w-1 h-2 bg-blanco/40"></span>
+<span class="w-1 h-6 bg-blanco"></span>
+<span class="w-1 h-4 bg-blanco"></span>
+<span class="w-1 h-3 bg-blanco/50"></span>
+<span class="w-1 h-5 bg-blanco"></span>
+<span class="w-1 h-2 bg-blanco/40"></span>
+</div>
+<div class="flex justify-between items-center text-[10px] font-label-meta text-ceniza mt-1">
+<span>0:45 / 3:42</span>
+<span class="flex items-center gap-1 text-blanco">Alberto (Papá)</span>
+</div>
+</div>
+</div>
+<div class="flex justify-end mt-1">
+<span class="material-symbols-outlined text-[14px] text-violeta-claro">done_all</span>
+</div>
+</div>
+</div>
+<!-- Editor's Curated Output preview -->
+<div class="bg-blanco p-space-sm shadow-sm">
+<div class="flex items-center justify-between pb-1 mb-1.5">
+<span class="font-label-caps-wide text-[9px] text-violeta tracking-wider uppercase font-semibold">Transformación Editorial Vitácora</span>
+<span class="font-label-meta text-[9px] text-ceniza">Borrador de página</span>
+</div>
+<p class="font-body-sm text-[12px] italic text-pizarra leading-relaxed">
+                  “La casa de la calle Thames tenía patio de baldosas rojas. Mamá encendía la pava a las seis y el olor a café con cascarilla despertaba a los cinco hermanos al unísono...”
+                </p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- ==========================================
+       4. EL OBJETO: UNA VIDA MERECE UN LIBRO
+       ========================================== -->
+<section class="w-full bg-papel py-space-3xl lg:py-space-5xl" id="el-libro-y-el-audio">
+<div class="max-w-container-max mx-auto px-gutter-mobile lg:px-gutter-desktop">
+<div class="max-w-container-prose mx-auto text-center mb-space-3xl">
+<span class="font-label-caps-wide text-label-caps-wide text-pizarra tracking-[0.25em] uppercase block mb-space-xs">
+          El Libro Físico &amp; Digital
+        </span>
+<h2 class="font-headline-lg text-headline-lg-mobile lg:text-headline-lg text-negro mb-space-md">
+          Una vida merece un libro.
+        </h2>
+<p class="font-body-md text-body-md text-acero">
+          No es una transcripción fría generada por algoritmos. Es una pieza editorial maquetada con las normas de las mejores imprentas del mundo.
+        </p>
+</div>
+<!-- Book Interior Presentation -->
+<div class="max-w-container-editorial mx-auto bg-blanco p-space-lg lg:p-space-2xl shadow-[0_25px_60px_rgba(20,20,15,0.06)]">
+<div class="grid grid-cols-1 md:grid-cols-12 gap-space-xl">
+<!-- Left Specs Column -->
+<div class="md:col-span-4 flex flex-col justify-between pr-0 md:pr-space-md">
+<div>
+<span class="font-label-caps-wide text-[10px] text-pizarra tracking-widest uppercase block mb-space-md">
+                Especificaciones de Colección
+              </span>
+<div class="space-y-space-md">
+<div>
+<h4 class="font-headline-sm text-[16px] text-negro mb-0.5">Formato 15 × 23 cm</h4>
+<p class="font-body-sm text-[13px] text-acero leading-relaxed">Proporción áurea clásica de narrativa literaria.</p>
+</div>
+<div>
+<h4 class="font-headline-sm text-[16px] text-negro mb-0.5">Tipografía Source Serif 4</h4>
+<p class="font-body-sm text-[13px] text-acero leading-relaxed">Cálculo minucioso de interlineado y descanso visual.</p>
+</div>
+<div>
+<h4 class="font-headline-sm text-[16px] text-negro mb-0.5">Fotografías Restauradas</h4>
+<p class="font-body-sm text-[13px] text-acero leading-relaxed">Tratamiento monocromático de alta fidelidad documental.</p>
+</div>
+<div>
+<h4 class="font-headline-sm text-[16px] text-negro mb-0.5">PDF Alta Resolución</h4>
+<p class="font-body-sm text-[13px] text-acero leading-relaxed">Con marcas de corte y sangre listo para cualquier imprenta local.</p>
+</div>
+</div>
+</div>
+<div class="pt-space-lg">
+<a class="inline-flex items-center text-negro font-label-button text-label-button tracking-widest uppercase hover:text-violeta transition-colors" href="#registro-directo">
+                Comenzar su historia →
+              </a>
+</div>
+</div>
+<!-- Right: Detailed Page Sample Mockup -->
+<div class="md:col-span-8 bg-surface-bright p-space-lg lg:p-space-xl shadow-inner">
+<div class="max-w-prose mx-auto">
+<!-- Running header -->
+<div class="flex items-center justify-between text-ceniza font-label-caps-wide text-[11px] pb-space-md mb-space-lg">
+<span>VITÁCORA FAMILIAR · MEMORIAS</span>
+<span>CAPÍTULO IV</span>
+</div>
+<!-- Chapter Title -->
+<div class="text-center my-space-xl">
+<span class="font-label-caps-wide text-[11px] text-humo tracking-[0.3em] uppercase block mb-space-xs">Capítulo Cuarto</span>
+<h3 class="font-headline-md text-headline-md text-negro">Los años en el taller</h3>
+<div class="w-10 h-px bg-ceniza mx-auto mt-space-md"></div>
+</div>
+<!-- Archival photograph integration -->
+<div class="my-space-xl bg-blanco p-space-xs shadow-sm">
+<div class="w-full aspect-[16/9] bg-bruma overflow-hidden filter grayscale contrast-110">
+<img class="w-full h-full object-cover" data-alt="Classic vintage black and white documentary photography of hands holding aged hand tools in a quiet carpenter studio, fine wood shavings, moody chiaroscuro lighting, quiet family archive feel" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA8Y0rEaD6DZU1lRKCqweArFVEWi33-eneg0_WMnPh35PJzqMa_azcJD_zubpYxwXIG7rAkbkVGABFJHdzTJu6HTDtIUM-tv8WRMZMxX5vanHREutbTgNruMjCqt-2ubLoBRLe9XF1LujyrfYWbN99bYDwJ2ggMytlFytPBWr25rvdbK59vxrT-FM--LMh1VtePk1cTneRHhHPXkzjUP8ksVDfeaWjYl4LObqQk2HtswJsp3jMmXXgE_Q"/>
+</div>
+<p class="font-body-sm text-[11px] text-acero text-center mt-2 italic">
+                  Fig. 4.2 · Las gubias alemanas heredadas del abuelo Lorenzo.
+                </p>
+</div>
+<!-- Chapter Body -->
+<div class="font-body-md text-[16px] text-pizarra leading-relaxed text-justify space-y-space-md">
+<p>
+<span class="float-left text-negro font-headline-lg text-[48px] leading-[38px] pr-2 pt-1 font-normal">N</span>ingún oficio se aprende de golpe; se va pegando a los dedos con la paciencia de las astillas. Mi padre decía siempre que la madera responde según cómo se le converse con el formón. Si entrás apurado, se raja.
+                </p>
+<p>
+                  Pasé casi doce horas diarias entre virutas y barnices durante el invierno del ochenta y cinco. Recuerdo el vapor blanco saliendo de nuestras bocas en las mañanas de helada y la radio encendida en la repisa alta, bajita, acompañando el silbido del cepillo.
+                </p>
+</div>
+<!-- Page Footer -->
+<div class="text-center pt-space-2xl text-ceniza font-label-meta text-[11px]">
+                — 47 —
+              </div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- ==========================================
+       5. LA VOZ: EL AUDIOLIBRO
+       ========================================== -->
+<section class="w-full bg-blanco py-space-3xl lg:py-space-5xl">
+<div class="max-w-container-max mx-auto px-gutter-mobile lg:px-gutter-desktop">
+<div class="max-w-container-prose mx-auto text-center mb-space-2xl">
+<span class="font-label-caps-wide text-label-caps-wide text-violeta tracking-[0.25em] uppercase block mb-space-xs font-semibold">
+          Audioteca Indeleble
+        </span>
+<h2 class="font-headline-lg text-headline-lg-mobile lg:text-headline-lg text-negro mb-space-md">
+          No solo sus palabras: su propia voz para siempre.
+        </h2>
+<p class="font-body-md text-body-md text-acero">
+          Los libros impresos guardan las historias; el audiolibro preserva la cadencia, el tono, las carcajadas espontáneas y las pausas emocionadas que jamás deberían olvidarse.
+        </p>
+</div>
+<!-- Master Audio Showcase Module -->
+<div class="max-w-container-editorial mx-auto bg-papel p-space-xl lg:p-space-2xl shadow-sm">
+<div class="flex flex-col md:flex-row items-center justify-between gap-space-xl">
+<!-- Audio Identity -->
+<div class="flex items-center gap-space-lg">
+<div class="w-16 h-16 rounded-none bg-negro text-blanco flex items-center justify-center flex-shrink-0 shadow-sm">
+<span class="material-symbols-outlined text-[32px] text-violeta-claro">graphic_eq</span>
+</div>
+<div>
+<span class="font-label-caps-wide text-[10px] text-acero uppercase tracking-widest block">Capítulo II · Pasaje de audio</span>
+<h3 class="font-headline-sm text-[20px] text-negro">Alberto · Recuerdos de la infancia</h3>
+<p class="font-body-sm text-[13px] text-acero">Grabado por WhatsApp el 14 de Octubre · Duración 3:42 min</p>
+</div>
+</div>
+<!-- Playback Controls -->
+<div class="flex items-center gap-space-md">
+<button aria-label="Retroceder 15 segundos" class="p-2 text-pizarra hover:text-negro transition-colors" type="button">
+<span class="material-symbols-outlined text-[24px]">replay_10</span>
+</button>
+<button aria-label="Reproducir o pausar" class="w-12 h-12 rounded-full bg-violeta text-blanco flex items-center justify-center hover:bg-negro transition-all shadow-md" type="button">
+<span class="material-symbols-outlined text-[26px]">play_arrow</span>
+</button>
+<button aria-label="Adelantar 15 segundos" class="p-2 text-pizarra hover:text-negro transition-colors" type="button">
+<span class="material-symbols-outlined text-[24px]">forward_10</span>
+</button>
+</div>
+</div>
+<!-- Dynamic High-Fidelity Waveform Visualizer -->
+<div class="mt-space-xl pt-space-lg">
+<div class="flex items-end justify-between h-16 gap-1 px-space-xs">
+<div class="w-1 h-3 bg-ceniza"></div>
+<div class="w-1 h-6 bg-pizarra"></div>
+<div class="w-1 h-10 bg-violeta"></div>
+<div class="w-1 h-14 bg-violeta"></div>
+<div class="w-1 h-8 bg-violeta"></div>
+<div class="w-1 h-12 bg-negro"></div>
+<div class="w-1 h-16 bg-negro"></div>
+<div class="w-1 h-9 bg-negro"></div>
+<div class="w-1 h-5 bg-pizarra"></div>
+<div class="w-1 h-11 bg-violeta"></div>
+<div class="w-1 h-15 bg-violeta"></div>
+<div class="w-1 h-7 bg-violeta"></div>
+<div class="w-1 h-13 bg-negro"></div>
+<div class="w-1 h-4 bg-ceniza"></div>
+<div class="w-1 h-8 bg-pizarra"></div>
+<div class="w-1 h-14 bg-negro"></div>
+<div class="w-1 h-10 bg-negro"></div>
+<div class="w-1 h-6 bg-pizarra"></div>
+<div class="w-1 h-12 bg-violeta"></div>
+<div class="w-1 h-16 bg-violeta"></div>
+<div class="w-1 h-10 bg-violeta"></div>
+<div class="w-1 h-5 bg-pizarra"></div>
+<div class="w-1 h-8 bg-pizarra"></div>
+<div class="w-1 h-3 bg-ceniza"></div>
+<div class="w-1 h-11 bg-negro"></div>
+<div class="w-1 h-14 bg-negro"></div>
+<div class="w-1 h-7 bg-ceniza"></div>
+<div class="w-1 h-10 bg-pizarra"></div>
+<div class="w-1 h-15 bg-violeta"></div>
+<div class="w-1 h-6 bg-violeta"></div>
+<div class="w-1 h-12 bg-negro"></div>
+<div class="w-1 h-4 bg-ceniza"></div>
+</div>
+<div class="flex justify-between items-center text-ceniza font-label-meta text-[11px] mt-2 px-1">
+<span>01:14</span>
+<span class="text-acero uppercase tracking-wider">“...el olor a tierra mojada cuando llovía en la quinta...”</span>
+<span>03:42</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- ==========================================
+       6. EL CIERRE EMOCIONAL: CONTRASTE OSCURO
+       ========================================== -->
+<section class="w-full bg-negro text-blanco py-space-4xl lg:py-space-5xl relative overflow-hidden">
+<div class="max-w-container-max mx-auto px-gutter-mobile lg:px-gutter-desktop relative z-10">
+<div class="max-w-container-prose mx-auto text-center">
+<span class="font-label-caps-wide text-label-caps-wide text-violeta-claro tracking-[0.3em] uppercase block mb-space-md">
+          Legado &amp; Emoción
+        </span>
+<h2 class="font-display-hero text-display-hero-mobile lg:text-display-hero text-blanco mb-space-lg leading-tight">
+          Hay preguntas que un día ya no se pueden hacer.
+        </h2>
+<div class="w-16 h-px bg-pizarra mx-auto mb-space-xl"></div>
+<p class="font-body-lg text-body-lg text-niebla font-light leading-relaxed mb-space-2xl">
+          Durante los 30 días, la familia graba en secreto mensajes y saludos. El último día, cuando él termina su relato, recibe por sorpresa las voces de sus hijos y nietos agradeciéndole su historia y celebrando su vida.
+        </p>
+<div class="bg-grafito/60 p-space-lg mb-space-2xl max-w-xl mx-auto shadow-inner text-left">
+<div class="flex items-center gap-3 mb-2">
+<span class="material-symbols-outlined text-violeta-claro text-[20px]">mic</span>
+<span class="font-label-caps-wide text-[11px] text-violeta-claro tracking-widest uppercase">Mensaje secreto final #04</span>
+</div>
+<p class="font-body-md text-[15px] italic text-niebla leading-snug">
+            “Hola Pa, soy Lucía. Gracias por contarnos lo de tus primeros años. No teníamos idea del esfuerzo que hiciste... te amamos mucho.”
+          </p>
+</div>
+<div class="flex flex-col items-center gap-space-sm">
+<a class="inline-flex items-center justify-center px-space-2xl py-4 rounded-full bg-violeta-claro text-negro font-label-button text-label-button tracking-widest uppercase hover:bg-blanco transition-all duration-300 shadow-lg" href="#registro-directo">
+            Empezar gratis
+          </a>
+<span class="font-label-meta text-label-meta text-ceniza uppercase tracking-widest mt-2">
+            Sin compromisos · 100% confidencial
+          </span>
+</div>
+</div>
+</div>
+</section>
+<!-- ==========================================
+       7. PRECIO TRANSPARENTE
+       ========================================== -->
+<section class="w-full bg-blanco py-space-3xl lg:py-space-5xl">
+<div class="max-w-container-max mx-auto px-gutter-mobile lg:px-gutter-desktop">
+<div class="max-w-container-prose mx-auto text-center mb-space-3xl">
+<span class="font-label-caps-wide text-label-caps-wide text-pizarra tracking-[0.25em] uppercase block mb-space-xs">
+          Claridad Absoluta
+        </span>
+<h2 class="font-headline-lg text-headline-lg-mobile lg:text-headline-lg text-negro mb-space-md">
+          Grabar es 100% gratis. Solo decides al ver el resultado.
+        </h2>
+<p class="font-body-md text-body-md text-acero">
+          Sin cuotas sorpresa ni suscripciones ocultas. Escuchas el audiolibro terminado y lees las primeras páginas antes de poner un solo centavo.
+        </p>
+</div>
+<!-- Single Clear Pricing Box -->
+<div class="max-w-2xl mx-auto bg-papel p-space-xl lg:p-space-2xl shadow-sm">
+<div class="flex flex-col md:flex-row md:items-end justify-between pb-space-lg gap-space-sm">
+<div>
+<span class="font-label-caps-wide text-label-caps-wide text-violeta uppercase tracking-widest font-semibold block mb-1">
+              Edición Completa Vitácora
+            </span>
+<h3 class="font-headline-md text-[26px] text-negro">Pago único final</h3>
+<p class="font-body-sm text-body-sm text-acero">Al terminar los 30 días de entrevistas</p>
+</div>
+<div class="text-left md:text-right">
+<span class="font-display-hero text-[42px] leading-none text-negro font-normal">ARS 65.000</span>
+<span class="block font-label-meta text-[11px] text-humo uppercase tracking-wider mt-1">Pago único final · Todo incluido</span>
+</div>
+</div>
+<div class="py-space-md">
+<p class="font-body-md text-[15px] text-pizarra leading-relaxed bg-blanco p-space-md">
+<strong>La comparativa honesta:</strong> Cuesta lo mismo que un cuaderno de preguntas importado para llenar a mano, pero con un biógrafo dedicado guiando cada mañana, diseño editorial profesional listo para imprimir y la audioteca completa con su voz real.
+          </p>
+</div>
+<!-- Inclusions Checklist -->
+<div class="py-space-md space-y-space-sm">
+<div class="flex items-start gap-3">
+<span class="material-symbols-outlined text-negro text-[18px] mt-0.5">check_circle</span>
+<span class="font-body-sm text-body-sm text-negro">Libro digital maquetado (formato PDF de alta resolución listo para imprimir en cualquier taller gráfico).</span>
+</div>
+<div class="flex items-start gap-3">
+<span class="material-symbols-outlined text-negro text-[18px] mt-0.5">check_circle</span>
+<span class="font-body-sm text-body-sm text-negro">Audiolibro completo con su voz editada, limpia y organizada cronológicamente.</span>
+</div>
+<div class="flex items-start gap-3">
+<span class="material-symbols-outlined text-negro text-[18px] mt-0.5">check_circle</span>
+<span class="font-body-sm text-body-sm text-negro">Saludos secretos de la familia grabados e integrados en el archivo final.</span>
+</div>
+<div class="flex items-start gap-3">
+<span class="material-symbols-outlined text-negro text-[18px] mt-0.5">check_circle</span>
+<span class="font-body-sm text-body-sm text-negro">Soporte y seguimiento humano diario durante todo el mes.</span>
+</div>
+</div>
+<div class="pt-space-lg text-center">
+<a class="inline-flex w-full items-center justify-center px-space-xl py-3.5 rounded-full bg-violeta text-on-secondary font-label-button text-label-button tracking-widest uppercase hover:bg-negro transition-all duration-300" href="#registro-directo">
+            Empezar gratis
+          </a>
+</div>
+</div>
+</div>
+</section>
+<!-- ==========================================
+       8. PREGUNTAS FRECUENTES (FAQ)
+       ========================================== -->
+<section class="w-full bg-papel py-space-3xl lg:py-space-5xl" id="preguntas-frecuentes">
+<div class="max-w-container-max mx-auto px-gutter-mobile lg:px-gutter-desktop">
+<div class="max-w-container-prose mx-auto text-center mb-space-3xl">
+<span class="font-label-caps-wide text-label-caps-wide text-pizarra tracking-[0.25em] uppercase block mb-space-xs">
+          Dudas Frecuentes
+        </span>
+<h2 class="font-headline-lg text-headline-lg-mobile lg:text-headline-lg text-negro mb-space-md">
+          Respuestas claras para la tranquilidad de la familia.
+        </h2>
+<p class="font-body-md text-body-md text-acero">
+          Entendemos la importancia del cuidado hacia nuestros mayores. Aquí respondemos a las consultas más habituales.
+        </p>
+</div>
+<!-- Accordion items -->
+<div class="max-w-3xl mx-auto space-y-space-md">
+<!-- FAQ 1 -->
+<details class="group bg-blanco p-space-lg shadow-sm [&amp;_summary::-webkit-details-marker]:hidden" open="">
+<summary class="flex items-center justify-between cursor-pointer list-none">
+<h3 class="font-headline-sm text-[18px] text-negro pr-4">
+              ¿Mi papá o abuelo va a saber usarlo?
+            </h3>
+<span class="material-symbols-outlined text-acero transition-transform duration-300 group-open:rotate-180">
+              expand_more
+            </span>
+</summary>
+<div class="mt-space-md pt-space-sm font-body-sm text-body-sm text-acero leading-relaxed">
+            Absolutamente. No hay que descargar nada, no hay contraseñas ni paneles extraños. Solo recibe un mensaje en su WhatsApp diario y pulsa el botón del micrófono para contestar con un audio común, tal como hace con sus amistades o con sus hijos.
+          </div>
+</details>
+<!-- FAQ 2 -->
+<details class="group bg-blanco p-space-lg shadow-sm [&amp;_summary::-webkit-details-marker]:hidden">
+<summary class="flex items-center justify-between cursor-pointer list-none">
+<h3 class="font-headline-sm text-[18px] text-negro pr-4">
+              ¿Y si le da vergüenza o prefiere no hacerlo?
+            </h3>
+<span class="material-symbols-outlined text-acero transition-transform duration-300 group-open:rotate-180">
+              expand_more
+            </span>
+</summary>
+<div class="mt-space-md pt-space-sm font-body-sm text-body-sm text-acero leading-relaxed">
+            Se le pide permiso con enorme calidez antes del primer envío. Le contamos quiénes somos y que se trata de un regalo preparado por su familia. Si por cualquier motivo dice que no o se siente incómodo, el proceso no inicia y no hay ningún cobro ni compromiso.
+          </div>
+</details>
+<!-- FAQ 3 -->
+<details class="group bg-blanco p-space-lg shadow-sm [&amp;_summary::-webkit-details-marker]:hidden">
+<summary class="flex items-center justify-between cursor-pointer list-none">
+<h3 class="font-headline-sm text-[18px] text-negro pr-4">
+              ¿Quién escucha los audios de mi familiar?
+            </h3>
+<span class="material-symbols-outlined text-acero transition-transform duration-300 group-open:rotate-180">
+              expand_more
+            </span>
+</summary>
+<div class="mt-space-md pt-space-sm font-body-sm text-body-sm text-acero leading-relaxed">
+            Solo el biógrafo asignado a su relato. Los audios se guardan en servidores con cifrado bancario y pertenecen exclusivamente a tu familia. Nunca se comparten públicamente, no se entrenan modelos de inteligencia artificial abiertos y puedes solicitar su destrucción total cuando lo desees.
+          </div>
+</details>
+<!-- FAQ 4 -->
+<details class="group bg-blanco p-space-lg shadow-sm [&amp;_summary::-webkit-details-marker]:hidden">
+<summary class="flex items-center justify-between cursor-pointer list-none">
+<h3 class="font-headline-sm text-[18px] text-negro pr-4">
+              ¿Qué pasa si un día no contesta o viaja?
+            </h3>
+<span class="material-symbols-outlined text-acero transition-transform duration-300 group-open:rotate-180">
+              expand_more
+            </span>
+</summary>
+<div class="mt-space-md pt-space-sm font-body-sm text-body-sm text-acero leading-relaxed">
+            Son 30 preguntas, no una carrera contra el reloj. La pregunta espera con calma el tiempo que haga falta. Si está enfermo o de viaje, pausamos la entrega. Además, con solo 10 a 15 respuestas profundas ya es posible armar un libro conmovedor.
+          </div>
+</details>
+<!-- FAQ 5 -->
+<details class="group bg-blanco p-space-lg shadow-sm [&amp;_summary::-webkit-details-marker]:hidden">
+<summary class="flex items-center justify-between cursor-pointer list-none">
+<h3 class="font-headline-sm text-[18px] text-negro pr-4">
+              ¿Cuándo se paga exactamente?
+            </h3>
+<span class="material-symbols-outlined text-acero transition-transform duration-300 group-open:rotate-180">
+              expand_more
+            </span>
+</summary>
+<div class="mt-space-md pt-space-sm font-body-sm text-body-sm text-acero leading-relaxed">
+            Únicamente al finalizar los 30 días de conversación. Te mostramos un adelanto del libro diseñado y un fragmento del audiolibro compilado. Si a ti y a tu familia les conmueve el resultado, abonan el precio final para recibir todos los archivos maestros e instrucciones de imprenta.
+          </div>
+</details>
+</div>
+</div>
+</section>
+<!-- ==========================================
+       9. REGISTRO DIRECTO & CTA FINAL
+       ========================================== -->
+<section class="w-full bg-blanco py-space-3xl lg:py-space-5xl" id="registro-directo">
+<div class="max-w-container-max mx-auto px-gutter-mobile lg:px-gutter-desktop">
+<div class="max-w-xl mx-auto">
+<!-- Header -->
+<div class="text-center mb-space-2xl">
+<span class="font-label-caps-wide text-label-caps-wide text-violeta tracking-[0.25em] uppercase block mb-space-xs font-semibold">
+            Inscripción Inmediata
+          </span>
+<h2 class="font-headline-lg text-headline-lg-mobile lg:text-headline-lg text-negro mb-space-xs">
+            Comienza a escribir su libro hoy.
+          </h2>
+<p class="font-body-md text-body-md text-acero">
+            Completa los datos básicos. En menos de 24 horas nos comunicamos con él o ella con el máximo respeto.
+          </p>
+</div>
+<!-- Registration Card Form -->
+<form class="bg-papel p-space-xl lg:p-space-2xl shadow-sm flex flex-col gap-space-lg" id="registroForm" onsubmit="event.preventDefault(); document.getElementById('confirmationToast').classList.remove('hidden');">
+<!-- Field 1: Protagonist Name -->
+<div class="flex flex-col gap-1.5">
+<label class="font-label-caps-wide text-label-caps-wide text-acero tracking-widest uppercase" for="nombreProtagonista">
+              Nombre de quien contará su historia
+            </label>
+<input class="w-full bg-blanco px-space-md py-3 text-negro font-body-md text-[15px] focus:outline-none focus:bg-blanco rounded-none placeholder:text-ceniza shadow-sm" id="nombreProtagonista" name="nombreProtagonista" placeholder="Ej. Alberto Gómez" required="" type="text"/>
+</div>
+<!-- Field 2: Protagonist WhatsApp -->
+<div class="flex flex-col gap-1.5">
+<div class="flex justify-between items-baseline">
+<label class="font-label-caps-wide text-label-caps-wide text-acero tracking-widest uppercase" for="whatsappProtagonista">
+                Su número de WhatsApp
+              </label>
+<span class="font-label-meta text-[11px] text-humo">Con código de área</span>
+</div>
+<input class="w-full bg-blanco px-space-md py-3 text-negro font-body-md text-[15px] focus:outline-none focus:bg-blanco rounded-none placeholder:text-ceniza shadow-sm" id="whatsappProtagonista" name="whatsappProtagonista" placeholder="+54 9 11 4455-6677" required="" type="tel"/>
+<p class="font-body-sm text-[12px] text-acero mt-0.5">
+              El teléfono de tu padre, madre o abuelo donde recibirá la pregunta diaria.
+            </p>
+</div>
+<!-- Field 3: Time Preference -->
+<div class="flex flex-col gap-1.5">
+<label class="font-label-caps-wide text-label-caps-wide text-acero tracking-widest uppercase">
+              Horario preferido para los mensajes
+            </label>
+<div class="grid grid-cols-2 gap-space-md">
+<label class="flex items-center gap-3 p-3 bg-blanco cursor-pointer shadow-sm">
+<input checked="" class="w-4 h-4 rounded-none accent-negro" name="horario" type="radio" value="manana"/>
+<span class="font-body-sm text-[14px] text-negro">Mañanas (9:00 hs)</span>
+</label>
+<label class="flex items-center gap-3 p-3 bg-blanco cursor-pointer shadow-sm">
+<input class="w-4 h-4 rounded-none accent-negro" name="horario" type="radio" value="tarde"/>
+<span class="font-body-sm text-[14px] text-negro">Tardes (17:00 hs)</span>
+</label>
+</div>
+</div>
+<!-- Field 4: Organizer Email -->
+<div class="flex flex-col gap-1.5">
+<label class="font-label-caps-wide text-label-caps-wide text-acero tracking-widest uppercase" for="emailOrganizador">
+              Tu correo electrónico (para enviarte los avances)
+            </label>
+<input class="w-full bg-blanco px-space-md py-3 text-negro font-body-md text-[15px] focus:outline-none focus:bg-blanco rounded-none placeholder:text-ceniza shadow-sm" id="emailOrganizador" name="emailOrganizador" placeholder="tu.correo@familia.com" required="" type="email"/>
+</div>
+<!-- Reassurance Box -->
+<div class="p-space-md bg-blanco flex items-start gap-3">
+<span class="material-symbols-outlined text-pizarra text-[20px] mt-0.5 flex-shrink-0">shield_with_heart</span>
+<p class="font-body-sm text-[13px] text-acero leading-relaxed">
+              Le enviaremos un primer mensaje presentándonos con cariño y explicándole que preparaste esta sorpresa familiar. <strong>Nada comienza sin su previa aprobación entusiasta.</strong>
+</p>
+</div>
+<!-- CTA Submission Button -->
+<div class="pt-space-xs">
+<button class="w-full py-4 rounded-full bg-violeta text-on-secondary font-label-button text-label-button tracking-widest uppercase hover:bg-negro transition-all duration-300 shadow-md" type="submit">
+              Empezar gratis
+            </button>
+</div>
+<p class="text-center font-label-meta text-[11px] text-ceniza uppercase tracking-wider">
+            Sin tarjeta de crédito · Puedes pausar en cualquier momento
+          </p>
+</form>
+<!-- Feedback Confirmation Banner -->
+<div class="hidden mt-space-lg p-space-lg bg-negro text-blanco text-center shadow-lg" id="confirmationToast">
+<p class="font-headline-sm text-headline-sm mb-1 text-blanco">¡Solicitud recibida!</p>
+<p class="font-body-sm text-niebla">Nos pondremos en contacto con calidez para presentarle el proyecto. Revisa tu casilla de correo para los detalles de bienvenida.</p>
+</div>
+</div>
+</div>
+</section>
+</div></main><footer class="w-full bg-papel"><div class="max-w-container-max mx-auto px-gutter-mobile lg:px-gutter-desktop pt-space-4xl pb-space-2xl"><div class="max-w-container-prose mx-auto text-center mb-space-3xl"><p class="font-headline-md text-headline-md italic text-negro mb-space-xs">“Para las vidas que merecen su propio libro”</p><div class="w-12 h-px bg-ceniza mx-auto mt-space-md"></div></div><div class="grid grid-cols-1 md:grid-cols-12 gap-space-xl pb-space-2xl"><div class="md:col-span-5 flex flex-col justify-between space-y-space-md"><div class="flex items-center gap-2"><svg class="w-4 h-4 text-pizarra" fill="none" stroke="currentColor" stroke-width="1.5" viewbox="0 0 24 24"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-dasharray="2 2"></circle><circle cx="12" cy="12" r="3" stroke="currentColor"></circle></svg><span class="font-label-caps-wide text-label-caps-wide text-pizarra tracking-widest">VITÁCORA FAMILIAR • EDICIONES MEMORIA</span></div><p class="font-body-sm text-body-sm text-acero max-w-sm">Conservando relatos íntimos, historias orales y legados cotidianos con la nobleza del oficio editorial encuadernado en papel y audio indeleble.</p></div><div class="md:col-span-4 flex flex-col space-y-space-xs"><span class="font-label-caps-wide text-label-caps-wide text-acero tracking-widest uppercase mb-space-xs">Exploración</span><a class="font-body-sm text-body-sm text-pizarra hover:text-negro transition-colors" data-path="como-funciona" href="#">Cómo funciona el archivo</a><a class="font-body-sm text-body-sm text-pizarra hover:text-negro transition-colors" data-path="el-libro-y-el-audio" href="#">Encuadernación y audioteca</a><a class="font-body-sm text-body-sm text-pizarra hover:text-negro transition-colors" data-path="preguntas-frecuentes" href="#">Guía y preguntas frecuentes</a></div><div class="md:col-span-3 flex flex-col space-y-space-xs"><span class="font-label-caps-wide text-label-caps-wide text-acero tracking-widest uppercase mb-space-xs">Garantía y Privacidad</span><p class="font-body-sm text-body-sm text-acero leading-relaxed">Grabaciones protegidas por cifrado. Ninguna memoria o transcripción de audio se comparte sin consentimiento explícito.</p><a class="font-label-meta text-label-meta uppercase text-pizarra hover:text-negro transition-colors pt-space-2xs" data-path="politica-de-privacidad" href="#">Términos y privacidad WhatsApp →</a></div></div><div class="pt-space-xl flex flex-col sm:flex-row items-center justify-between gap-space-md"><p class="font-label-meta text-label-meta text-ceniza">© 2025 Vitácora Familiar. Todos los derechos reservados.</p><div class="flex items-center gap-space-lg"><a class="font-label-meta text-label-meta text-acero hover:text-negro transition-colors" data-path="privacidad" href="#">Privacidad</a><a class="font-label-meta text-label-meta text-acero hover:text-negro transition-colors" data-path="terminos" href="#">Términos del servicio</a><a class="font-label-meta text-label-meta text-acero hover:text-negro transition-colors" data-path="contacto" href="#">Contacto editorial</a></div></div></div></footer></body></html>

@@ -5,11 +5,12 @@ import { obtenerClienteDb, type Narrador, type Pregunta, type Respuesta } from '
 import { escribirCapitulo } from './escribir-capitulo.js';
 import { construirHtmlLibro } from './plantilla-html.js';
 import { generarAudiolibro } from '../audio/audiolibro.js';
-import type { Estructura } from './estructura.js';
+import { generarEstructura, type Estructura } from './estructura.js';
+import { leerEdicion, aplicarOrdenCapitulos } from './edicion.js';
+import { cargarFotos } from './fotos.js';
 import {
   armarMaterial,
   borrarArchivos,
-  descargarJson,
   descargarTextoOpcional,
   extraerTexto,
   formatearNombresCorregidos,
@@ -20,6 +21,7 @@ import {
 const RUTA_ESTRUCTURA = (narradorId: string) => `${narradorId}/paquete/estructura.json`;
 const RUTA_NOMBRES = (narradorId: string) => `${narradorId}/paquete/nombres.json`;
 const RUTA_LIBRO_PDF = (narradorId: string) => `${narradorId}/paquete/libro.pdf`;
+const RUTA_LIBRO_HTML = (narradorId: string) => `${narradorId}/paquete/libro.html`;
 const RUTA_BORRADOR_CAP = (narradorId: string, numeroCapitulo: number) =>
   `${narradorId}/paquete/borrador_cap_${String(numeroCapitulo).padStart(2, '0')}.md`;
 const RUTA_BORRADOR_LIBRO = (narradorId: string) => `${narradorId}/paquete/borrador_libro.md`;
@@ -44,15 +46,16 @@ async function editarLibro(cliente: Anthropic, borrador: string): Promise<string
   return extraerTexto(mensajeFinal.content as Array<{ type: string; text?: string }>).trim();
 }
 
-type Saludo = { nombre: string; vinculo: string; audio_path: string };
-
 /**
  * El paquete completo que se entrega tras el pago: el libro (un capítulo por
- * vez con su voz, después una pasada de editor con el libro entero) en PDF,
- * y el audiolibro (intro TTS + sus audios por capítulo, más el bonus de
- * saludos). Ante cualquier excepción, marca el pedido `fallido` y loguea —
- * no reintenta solo; alguien tiene que poner el estado de vuelta en
- * `pagado` para que el próximo tick lo tome de nuevo.
+ * vez con su voz, después una pasada de editor con el libro entero) en PDF
+ * y en HTML, y el audiolibro (intro TTS + sus audios por capítulo). Corre
+ * recién cuando la dueña cerró el libro (`narradores.libro_aprobado_at`,
+ * lo gatea el worker), así que la edición que se aplica acá (orden de
+ * capítulos, título, subtítulo, foto de tapa) ya está congelada. Ante
+ * cualquier excepción, marca el pedido `fallido` y loguea — no reintenta
+ * solo; alguien tiene que poner el estado de vuelta en `pagado` para que el
+ * próximo tick lo tome de nuevo.
  */
 export async function generarPaquete(pedido: { id: string; narrador_id: string }): Promise<void> {
   const db = obtenerClienteDb();
@@ -60,8 +63,23 @@ export async function generarPaquete(pedido: { id: string; narrador_id: string }
   try {
     const narradorId = pedido.narrador_id;
 
-    const estructura = await descargarJson<Estructura>(db, RUTA_ESTRUCTURA(narradorId), 'estructura.json');
-    const nombres = await descargarJson<Nombres>(db, RUTA_NOMBRES(narradorId), 'nombres.json');
+    // La estructura la arma el tick al ver al narrador completado. Si la
+    // dueña cerró el libro antes de ese tick (o el tick falló), no es motivo
+    // para dejar el pedido en 'fallido': FALTA → se arma acá. Pero solo si
+    // falta: si el archivo existe y está roto, el parse tira y el pedido
+    // cae a 'fallido' con el error a la vista — regenerarla sería pagarle
+    // al modelo de nuevo y pisar el archivo sin que nadie se entere.
+    const estructuraTexto = await descargarTextoOpcional(db, RUTA_ESTRUCTURA(narradorId));
+    const estructura: Estructura = estructuraTexto
+      ? (JSON.parse(estructuraTexto) as Estructura)
+      : await generarEstructura(narradorId);
+
+    // nombres.json es opcional: la dueña puede no haber revisado nombres
+    // (Regla 0 del panel) y a los 30 días el libro se cierra solo. Si el
+    // archivo existe pero está roto, el parse tira y el pedido cae a
+    // 'fallido' como cualquier otra excepción — eso no es un caso a tolerar.
+    const nombresTexto = await descargarTextoOpcional(db, RUTA_NOMBRES(narradorId));
+    const nombres: Nombres = nombresTexto ? (JSON.parse(nombresTexto) as Nombres) : { correcciones: [] };
 
     const { data: narradorData, error: errorNarrador } = await db
       .from('narradores')
@@ -107,12 +125,14 @@ export async function generarPaquete(pedido: { id: string; narrador_id: string }
       respuestasPorOrden.set(respuesta.pregunta_orden, lista);
     }
 
-    const { data: saludosData, error: errorSaludos } = await db
-      .from('saludos')
-      .select('*')
-      .eq('narrador_id', narradorId);
-    if (errorSaludos) throw new Error(`No se pudieron leer los saludos: ${errorSaludos.message}`);
-    const saludos = (saludosData ?? []) as Saludo[];
+    // La edición de la dueña: solo el orden de capítulos, el título, el
+    // subtítulo y la foto de tapa (ver edicion.ts — `excluidas` y
+    // `correcciones` se ignoran a propósito). Las fotos se bajan enteras y
+    // van embebidas en el HTML.
+    const edicion = leerEdicion(narrador.edicion);
+    const capitulosOrdenados = aplicarOrdenCapitulos(estructura.capitulos, edicion.ordenCapitulos);
+    const estructuraFinal: Estructura = { ...estructura, capitulos: capitulosOrdenados };
+    const fotos = await cargarFotos(db, narradorId);
 
     const todosLosOrdenes = [...respuestasPorOrden.keys()].sort((a, b) => a - b);
     const historiaCompleta = armarMaterial(todosLosOrdenes, preguntasPorOrden, respuestasPorOrden);
@@ -121,10 +141,13 @@ export async function generarPaquete(pedido: { id: string; narrador_id: string }
     // 1a. Un capítulo por vez, con su voz. Cada uno se cachea en Storage
     // apenas se genera (ANTES de los pasos baratos que pueden fallar más
     // adelante: PDF, audiolibro) — si un reintento cae acá, reusa lo que ya
-    // pagó en vez de volver a pagarle al modelo por lo mismo.
+    // pagó en vez de volver a pagarle al modelo por lo mismo. El número de
+    // borrador (`i + 1`) sigue el orden FINAL, ya con la edición aplicada:
+    // como la edición quedó congelada al cerrar el libro, un reintento ve
+    // el mismo orden y reusa los mismos archivos.
     const capitulosTexto: { nombre: string; texto: string }[] = [];
-    for (let i = 0; i < estructura.capitulos.length; i++) {
-      const capitulo = estructura.capitulos[i];
+    for (let i = 0; i < estructuraFinal.capitulos.length; i++) {
+      const capitulo = estructuraFinal.capitulos[i];
       const rutaBorrador = RUTA_BORRADOR_CAP(narradorId, i + 1);
 
       const cacheado = await descargarTextoOpcional(db, rutaBorrador);
@@ -154,24 +177,31 @@ export async function generarPaquete(pedido: { id: string; narrador_id: string }
       await subirTexto(db, rutaBorradorLibro, libroMarkdown);
     }
 
-    // 1c. HTML → PDF (A5, imprenta) → Storage.
+    // 1c. HTML → Storage (el lector online carga ese mismo archivo) y
+    // HTML → PDF (A5, imprenta) → Storage. La foto de tapa que eligió la
+    // dueña reemplaza al retrato de siempre en el frontispicio; si el id
+    // no está entre las fotos (o no se pudo bajar), queda el retrato.
     const contexto = narrador.contexto as { anioNacimiento?: number } | null | undefined;
+    const fotoTapa = edicion.portadaFotoId ? fotos.porId.get(edicion.portadaFotoId) : undefined;
     const html = construirHtmlLibro({
-      titulo: estructura.titulo,
+      titulo: estructuraFinal.titulo,
+      nombreNarrador: narrador.nombre,
+      tapa: { titulo: edicion.titulo, subtitulo: edicion.subtitulo },
       anioNacimiento: contexto?.anioNacimiento ?? null,
-      fotoUrl: narrador.foto_url,
-      indice: estructura.capitulos.map((c) => c.nombre),
+      fotoUrl: fotoTapa?.dataUri ?? narrador.foto_url,
+      indice: estructuraFinal.capitulos.map((c) => c.nombre),
       libroMarkdown,
-      saludos: saludos.map((s) => ({ nombre: s.nombre, vinculo: s.vinculo })),
+      fotosPorCapitulo: fotos.porCapitulo,
     });
+    await subirHtml(db, narradorId, html);
     await generarPdf(db, narradorId, html);
 
-    // 2. Audiolibro: un mp3 por capítulo + bonus de saludos + completo.
+    // 2. Audiolibro: un mp3 por capítulo (en el orden final) + completo.
     const { data: archivosNarrador, error: errorArchivos } = await db.storage.from('audios').list(narradorId);
     if (errorArchivos) throw new Error(`No se pudo listar los audios de ${narradorId}: ${errorArchivos.message}`);
     const nombresArchivos = (archivosNarrador ?? []).map((archivo) => archivo.name);
 
-    const audiolibroPaths = await generarAudiolibro(narradorId, estructura, nombresArchivos, saludos);
+    const audiolibroPaths = await generarAudiolibro(narradorId, estructuraFinal, nombresArchivos);
 
     // 3. Entregado.
     const { error: errorUpdate } = await db
@@ -190,7 +220,7 @@ export async function generarPaquete(pedido: { id: string; narrador_id: string }
     // se entregó bien), así que se loguea y se sigue.
     try {
       const rutasBorradores = [
-        ...estructura.capitulos.map((_, i) => RUTA_BORRADOR_CAP(narradorId, i + 1)),
+        ...estructuraFinal.capitulos.map((_, i) => RUTA_BORRADOR_CAP(narradorId, i + 1)),
         RUTA_BORRADOR_LIBRO(narradorId),
       ];
       await borrarArchivos(db, rutasBorradores);
@@ -206,6 +236,14 @@ export async function generarPaquete(pedido: { id: string; narrador_id: string }
   }
 }
 
+async function subirHtml(db: ReturnType<typeof obtenerClienteDb>, narradorId: string, html: string): Promise<void> {
+  const { error } = await db.storage.from('audios').upload(RUTA_LIBRO_HTML(narradorId), html, {
+    contentType: 'text/html; charset=utf-8',
+    upsert: true,
+  });
+  if (error) throw new Error(`No se pudo subir libro.html: ${error.message}`);
+}
+
 async function generarPdf(
   db: ReturnType<typeof obtenerClienteDb>,
   narradorId: string,
@@ -214,11 +252,13 @@ async function generarPdf(
   const browser = await chromium.launch();
   try {
     const page = await browser.newPage();
-    await page.setContent(html);
+    // Con las fotos embebidas el HTML puede pesar decenas de MB (cota en
+    // fotos.ts): cargarlo y paginarlo lleva más que los 30 s por defecto.
+    await page.setContent(html, { timeout: 120_000 });
     // La plantilla pagina el texto con un script embebido (reparte los
     // bloques en lienzos A5 y numera folios); imprimir antes de esa marca
     // sacaría el PDF a medio armar.
-    await page.waitForFunction('window.__libroPaginado === true', { timeout: 60_000 });
+    await page.waitForFunction('window.__libroPaginado === true', { timeout: 120_000 });
     const pdf = await page.pdf({ format: 'A5', printBackground: true });
 
     const { error } = await db.storage.from('audios').upload(RUTA_LIBRO_PDF(narradorId), pdf, {

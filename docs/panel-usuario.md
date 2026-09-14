@@ -197,7 +197,7 @@ cerrar**. Wizard en 4 pasos, **siempre con nuestra propuesta como punto de parti
 | **1 · Portada** | Foto, título, subtítulo. Preview de tapa y lomo. **Sin colores** (marca B/N) | Foto de perfil del narrador · *"Alfredo — La historia de una vida"* · nombre completo |
 | **2 · Capítulos** | **Reordenar capítulos** (arrastrar). Las respuestas dentro de cada capítulo **no se reordenan**: ese orden lo decidió el biógrafo | El orden del guion |
 | **3 · Contenido** | **Excluir respuestas** (*"esto no quiero que salga"*) · **fotos que falten** · **revisar nombres** (ya existe) · **correcciones libres** (campo de texto que la fábrica aplica) | Todo incluido |
-| **4 · Cerrar libro** | Ve el libro completo (el lector de §5), lee el aviso de que no hay vuelta atrás, y **cierra** | — |
+| **4 · Cerrar libro** | Ve el libro completo (el lector de §5), lee el aviso de que no hay vuelta atrás, y **cierra**. ⚠️ ver nota en §12 | — |
 
 **Cerrar libro → se produce**, digital e impreso. Es **siempre** obligatorio (ver Regla 0).
 Recordatorios a los 3, 7 y 14 días; a los 30 se produce solo con la propuesta.
@@ -241,7 +241,7 @@ El panel es opcional; los mails son lo que la mantiene parte de la construcción
 | **Primera respuesta** | Llegó la 1 | entrevistador |
 | **Terminó el capítulo 1 + anticipo** | Respuesta 3 | fábrica (ya existe) |
 | **Mitad del camino** | Respuesta ⌈N/2⌉ | entrevistador |
-| **Terminó — ya está listo para los últimos retoques** | `completado` / `cerrado_anticipado` | entrevistador |
+| **Terminó — ya está listo para los últimos retoques** | `completado` / `cerrado_anticipado` | fábrica (desde el 13/09; ver §12) |
 | **El libro está listo** | La fábrica terminó | fábrica |
 | **Silencio de 3 días** | `alerta_silencio` | entrevistador (ya prende la alerta; falta el mail) |
 
@@ -322,6 +322,12 @@ enviado está congelado, renumerar las futuras no rompe nada.
 
 ## 12. Lo que cambia en la fábrica (Naza, cuando vuelva)
 
+> Construido el 13/09 según
+> `docs/superpowers/specs/2026-09-13-fabrica-aprobacion-design.md`, que difiere en tres
+> puntos: (1) antes de cerrar no hay libro escrito, el lector muestra la propuesta;
+> (2) `excluidas` y `correcciones` no se aplican; (3) el mail "terminó" y el cierre
+> automático a los 30 días los manda la fábrica, no el entrevistador ni la web.
+
 - Leer `narradores.edicion`: orden de capítulos, respuestas excluidas, título, subtítulo,
   portada, correcciones libres.
 - Ubicar `fotos` por capítulo: principal abre, adicionales cierran, con epígrafe.
@@ -375,11 +381,13 @@ párrafo · colores de tapa · más de 3 invitados · referidos · regalar una c
   quiera los tres, puede.
 - **La entrevista es la misma** para los tres. Lo que cambia es la salida.
 - El PDF y el audiolibro **dejan de ser descargables**: `/tablero/[id]/leer`
-  (antes `/descarga`) es el **lector**: el PDF se muestra adentro de la página
-  y el audiolibro suena capítulo por capítulo con el reproductor de la casa.
-  Hecho el 13/09 con el PDF embebido; **3t.8 (Naza)** lo reemplaza por el HTML
-  paginado de la fábrica. Las rutas viven en `api/libro/pdf` y
-  `api/libro/audio/[indice]` (solo dueña).
+  (antes `/descarga`) es el **lector**: el `libro.html` que publica la fábrica
+  (Naza, 14/09) en un iframe sin permisos, y el audiolibro capítulo por
+  capítulo con el reproductor de la casa. **Integrado el 14/09**: la pantalla
+  de Joaquín con el contenido de Naza. Rutas: `api/libro/html` y
+  `api/libro/audio/[indice]`. **Leen y escuchan la dueña y los invitados**
+  (§2, §5); el visitante del link público ve solo la muestra. No existe ruta
+  del PDF: nada se descarga.
 - ⚠️ **Toca al entrevistador y a la fábrica:** la voz clonada necesita muestras
   limpias de sus audios (el entrevistador ya las tiene) y un proveedor de
   clonación (fábrica). El narrador es un TTS de una voz fija. Definir proveedor
@@ -466,6 +474,12 @@ Preguntas con el guion editable). Queda **una**.
     el panel le habla de vos ("Tu historia", "terminaste de contar").
   - Sidebar: sin selector de historia (está en el riel); abajo, **Tu cuenta**
     (`/tablero/cuenta`) y **Cerrar sesión** (`/api/auth/salir`).
+- **Integración del 14/09 (entrevistador de Naza):** la historia muestra, bajo
+  cada pregunta del guion, **«Se lo preguntamos así: …»** cuando el biógrafo la
+  reescribió con lo ya contado, y **«Le repreguntamos: …»** arriba de «y agregó».
+  Salen de `narradores.contexto.preguntasEnviadas` / `repreguntasEnviadas`
+  (provisorio: **después del primer piloto se migran a `envios.texto`**, para que
+  web y entrevistador no se pisen el jsonb — decisión del 14/09).
 
 ### 15.5 · Qué toca a quién
 

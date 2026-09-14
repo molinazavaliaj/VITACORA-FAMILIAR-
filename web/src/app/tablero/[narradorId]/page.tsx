@@ -193,6 +193,14 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
   const contexto = fila.contexto ?? {};
   const ritmo: Ritmo = validarRitmo(contexto.ritmo) ? contexto.ritmo : contexto.modoRapido === true ? "seguido" : "diario";
   const evitar = typeof contexto.evitar === "string" ? contexto.evitar : "";
+  // Lo que el biógrafo le mandó de verdad (entrevistador, 14/09): la pregunta
+  // preparada del día (el guion dice "¿Cómo era su casa?" y a él le llegó "¿Cómo
+  // era esa casa de Pelliza?") y la repregunta. Viven en contexto, provisorio
+  // (CONTRATO.md); sin esto la familia veía la respuesta de la repregunta sin
+  // la pregunta que la originó.
+  const preguntasEnviadas = (contexto.preguntasEnviadas ?? {}) as Record<string, string>;
+  const repreguntasEnviadas = (contexto.repreguntasEnviadas ?? {}) as Record<string, string>;
+
   const sobreOrden = typeof sobre === "string" ? Number(sobre) : null;
   const preguntaSobre = sobreOrden ? porOrden.get(sobreOrden) : null;
 
@@ -370,6 +378,11 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
                         <span className="text-[22px] leading-[1.2] text-[var(--linea-fuerte)] [font-family:var(--fuente-titulo)] tabular-nums">{p.orden}</span>
                         <div className="min-w-0 flex flex-col gap-2.5">
                           <h3 className="text-[16.5px] font-medium leading-[1.4] [font-family:var(--fuente-titulo)]">{p.texto}</h3>
+                          {preguntasEnviadas[String(p.orden)] && preguntasEnviadas[String(p.orden)] !== p.texto ? (
+                            <p className="text-[14px] leading-relaxed text-[var(--texto-suave)] [font-family:var(--fuente-titulo)]">
+                              Se lo preguntamos así: «{preguntasEnviadas[String(p.orden)]}»
+                            </p>
+                          ) : null}
                           {p.foto_id ? (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img src={`/api/fotos/${p.foto_id}`} alt="" className="max-h-64 self-start rounded-lg border border-[var(--linea)] object-contain" />
@@ -381,6 +394,11 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
                           ) : null}
                           {ampliaciones.length > 0 ? (
                             <div className="mt-1 flex flex-col gap-4 border-l-2 border-[var(--linea)] pl-4">
+                              {repreguntasEnviadas[String(p.orden)] ? (
+                                <p className="text-[14px] leading-relaxed text-[var(--texto-suave)] [font-family:var(--fuente-titulo)]">
+                                  Le repreguntamos: «{repreguntasEnviadas[String(p.orden)]}»
+                                </p>
+                              ) : null}
                               <Etiqueta>y agregó</Etiqueta>
                               {ampliaciones.map((r) => (
                                 <Respuesta key={r.id} respuesta={r} />

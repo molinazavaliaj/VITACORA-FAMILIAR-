@@ -8,6 +8,11 @@
     "build": "tsc",
     "start": "node dist/servidor.js",
     "test": "vitest run",
+    "manual": "tsx scripts/manual.ts",
+    "prueba-contexto": "tsx scripts/prueba-contexto.ts",
+    "prueba-personalizar": "tsx scripts/prueba-personalizar.ts",
+    "prueba-resumenes": "tsx scripts/prueba-resumenes.ts",
+    "prueba-evaluacion": "tsx scripts/prueba-evaluacion.ts",
     "prueba-cerebro": "tsx scripts/prueba-cerebro.ts"
   },
   "keywords": [],

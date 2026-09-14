@@ -135,7 +135,7 @@ describe('tick', () => {
     mocks.filas.narradores = [narrador({ estado: 'acepto', dia_actual: 0 })];
     await tick(A_LAS_10_05);
     expect(mocks.enviarPlantilla).toHaveBeenCalledWith(
-      '+5491155551234', 'pregunta_diaria', ['Hoy empezamos este viaje.', 'PREGUNTA_1'],
+      '+5491155551234', 'pregunta_diaria', ['PREGUNTA_1'],
     );
     expect(update('narradores')?.p).toMatchObject({ dia_actual: 1, estado: 'activo' });
     expect(inserts('envios')[0].p).toMatchObject({ tipo: 'pregunta', pregunta_orden: 1 });
@@ -196,7 +196,7 @@ describe('tick', () => {
     await tick(A_LAS_10_05);
     expect(mocks.generarPreguntasAdaptativas).toHaveBeenCalledWith('n1');
     expect(mocks.enviarPlantilla).toHaveBeenCalledWith(
-      '+5491155551234', 'pregunta_diaria', [expect.any(String), 'PREGUNTA_27'],
+      '+5491155551234', 'pregunta_diaria', ['PREGUNTA_27'],
     );
   });
 });
