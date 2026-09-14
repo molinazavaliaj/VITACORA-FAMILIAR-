@@ -18,7 +18,16 @@ type Preparado =
   | { error: NextResponse; admin?: undefined; narrador?: undefined; fila?: undefined }
   | { error?: undefined; admin: ReturnType<typeof crearClienteServidor>; narrador: { id: string; nombre: string }; fila: Fila };
 
-async function prepararRequest(request: NextRequest): Promise<Preparado> {
+// Las tres fotos del libro se pueden elegir en cualquier momento (§15.2): un
+// cuerpo que trae SOLO esas claves no espera a que termine de contar.
+const CLAVES_FOTOS = new Set(["portadaFotoId", "contratapaFotoId", "marcoFotoId"]);
+function soloFotos(body: unknown): boolean {
+  if (!body || typeof body !== "object") return false;
+  const claves = Object.keys(body as Record<string, unknown>);
+  return claves.length > 0 && claves.every((k) => CLAVES_FOTOS.has(k));
+}
+
+async function prepararRequest(request: NextRequest, opciones: { permitirAntes?: boolean } = {}): Promise<Preparado> {
   const admin = crearClienteServidor();
   const acceso = await narradorDeLaSesion(await crearClienteSesion(), admin, request.nextUrl.searchParams, {
     soloDuena: true,
@@ -30,7 +39,7 @@ async function prepararRequest(request: NextRequest): Promise<Preparado> {
   const { data } = await admin.from("narradores").select("edicion, libro_aprobado_at, estado").eq("id", narrador.id).maybeSingle();
   const fila = data as Fila | null;
   if (!fila) return { error: NextResponse.json({ error: "No encontramos la historia." }, { status: 404 }) };
-  if (!ESTADOS_TERMINADOS.includes(fila.estado)) {
+  if (!opciones.permitirAntes && !ESTADOS_TERMINADOS.includes(fila.estado)) {
     return { error: NextResponse.json({ error: "El libro se edita cuando termina de contar su historia." }, { status: 400 }) };
   }
   if (fila.libro_aprobado_at) {
@@ -40,16 +49,16 @@ async function prepararRequest(request: NextRequest): Promise<Preparado> {
 }
 
 export async function PATCH(request: NextRequest): Promise<NextResponse> {
-  const prep = await prepararRequest(request);
-  if (prep.error) return prep.error;
-  const { admin, narrador, fila } = prep;
-
   let body: unknown;
   try {
     body = await request.json();
   } catch {
     return NextResponse.json({ error: "No llegó nada para guardar." }, { status: 400 });
   }
+
+  const prep = await prepararRequest(request, { permitirAntes: soloFotos(body) });
+  if (prep.error) return prep.error;
+  const { admin, narrador, fila } = prep;
 
   const [{ data: preguntas }, { data: respuestas }] = await Promise.all([
     admin.from("preguntas").select("capitulo").eq("narrador_id", narrador.id),

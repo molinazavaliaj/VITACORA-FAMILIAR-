@@ -85,6 +85,15 @@ describe("PATCH /api/edicion", () => {
     armar({ estado: "activo" });
     expect((await PATCH(req({ titulo: "x" }))).status).toBe(400);
   });
+  it("las fotos del libro (tapa, contratapa, marco) se eligen en cualquier momento, aunque no haya terminado (§15.2)", async () => {
+    sesion(martina);
+    const updates = armar({ estado: "activo", edicion: {} });
+    const r = await PATCH(req({ marcoFotoId: "0f4a2a2e-6d7a-4a5e-9a9f-0f4a2a2e6d7a" }));
+    expect(r.status).toBe(200);
+    expect(updates[0]!.valores).toEqual({ edicion: { marcoFotoId: "0f4a2a2e-6d7a-4a5e-9a9f-0f4a2a2e6d7a" } });
+    // pero mezclarlas con el título sigue esperando al final
+    expect((await PATCH(req({ marcoFotoId: null, titulo: "x" }))).status).toBe(400);
+  });
   it("con el libro cerrado, no se cambia más → 400", async () => {
     sesion(martina);
     armar({ libro_aprobado_at: "2026-09-13T00:00:00Z" });

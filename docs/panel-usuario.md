@@ -442,8 +442,13 @@ Preguntas con el guion editable). Queda **una**.
   capítulos, la tapa elegida. Con lo contado hasta hoy; crece con la entrevista.
 - Debajo: **Tapa · Contratapa · Marco** — elegir la foto de cada una (15.2).
 - Debajo: lo comprado y los tres productos para sumar (15.1) + marcos.
-- ⚠️ La miniatura necesita que la fábrica exponga el HTML paginado del libro
-  (3t.8). Hasta entonces se arma con la misma plantilla que el anticipo.
+- **Hecho el 13/09** (`libro/miniatura.tsx`): se arma en el navegador con la
+  lógica de la fábrica (foto principal abre el capítulo, las demás lo cierran,
+  texto cortado en oraciones, capítulos a la derecha). ⚠️ 3t.8 (Naza): cuando la
+  fábrica exponga su HTML paginado, la miniatura lo muestra en vez de armarlo.
+- Las tres fotos se eligen con `PATCH /api/edicion` en cualquier momento (solo
+  esas tres claves pasan antes de que termine); título, capítulos y cierre
+  siguen esperando al final.
 
 ### 15.5 · Qué toca a quién
 
