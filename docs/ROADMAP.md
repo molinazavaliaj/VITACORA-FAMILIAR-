@@ -415,10 +415,13 @@ Spec: `docs/panel-usuario.md`. Construyó Joaquín en `web/` (Naza sin créditos
 | 3t.10 | Mails de hitos del entrevistador + guion por narrador + adaptativas al final real + imagen por WhatsApp + oferta de la siguiente + `contexto.evitar` (spec §11) | **J** | ☐ próxima sesión |
 | 3t.11 | Fábrica: leer `narradores.edicion`, ubicar `fotos`, **no producir sin `libro_aprobado_at`**, cierre automático a los 30 días (spec §12) | **N** | ☐ |
 | 3t.12 | Sugeridas por IA a pedido (§6.2, tercer botón) | **J** | ☐ fase siguiente |
+| **3t.13** | **Rediseño 13/09 (tarde)** — landing con maquetas en código + CTA sticky; tema claro/oscuro; nav de 3; la historia ES el guion (riel, filas, modo edición); fotos sin capítulo; **tres productos, al menos uno** (PDF · audiolibro · impreso); el lector (`/leer`, nada se descarga); libro en miniatura + tapa/contratapa/marco. Spec: `docs/panel-usuario.md` §15. Lienzo: `docs/diseno/panel-v2/`. | **J** | ✅ 13/09 · ⚠️ pendiente de revisión de Joaquín antes de pushear |
+| 3t.14 | Fábrica: leer `pedidos.extras` nuevo (pdf / audiolibro{voz} / impreso / marcos), **audiolibro con voz clonada o narrador** (elegir proveedor), contratapa y marco desde `edicion`, HTML paginado para el lector y la miniatura | **N** | ☐ |
+| 3t.15 | Entrevistador: muestras de voz limpias para clonar | **J** | ☐ |
 
 **Para que todo lo de arriba ande en producción (Naza):**
-1. `npx supabase db push` — aplica `20260912_panel_usuario.sql` y `20260913_visitantes.sql`. Aditivas. Confirmar `CONTRATO.md`.
-2. Vercel: los 8 precios (`GASTOS.md`) + `MP_ACCESS_TOKEN` + `MP_WEBHOOK_SECRET` de producción (se los pasa Joaquín por privado).
+1. `npx supabase db push` — aplica `20260912_panel_usuario.sql`, `20260913_visitantes.sql` y `20260914_fotos_generales.sql`. Aditivas. Confirmar `CONTRATO.md`.
+2. Vercel: los precios (`GASTOS.md`, ahora **10**: se suman `PRECIO_AUDIOLIBRO_ARS=61250` y `PRECIO_AUDIOLIBRO_EUR=35`) + `MP_ACCESS_TOKEN` + `MP_WEBHOOK_SECRET` de producción (se los pasa Joaquín por privado). Sin `PRECIO_AUDIOLIBRO_*` el audiolibro no se ofrece.
 3. Después del deploy: **un pago real de prueba** entre los dos.
 
 **Arreglos que salieron en el camino (ya en main):** `/registro` (puerta gratis del modelo viejo) cerrada · reintento de compra con el mismo WhatsApp tras un pago fallido · `auto_return` de MP solo con https · el webhook ya no manda "hoy le escribimos" en pedidos de extras · saludos fuera de `web/` y del entrevistador.
