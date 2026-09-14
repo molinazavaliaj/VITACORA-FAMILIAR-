@@ -104,7 +104,7 @@ export function Compartir({ narradorId, nombre, cerrado, aprobado, linkPublico, 
             <>
               <p className="text-[15px] leading-relaxed text-[var(--texto-suave)]">
                 Invitá hasta {MAXIMO} personas. Van a poder escuchar lo que cuenta, leer sus
-                páginas, sumar preguntas y fotos. No pueden cambiar el guion ni descargar el libro.
+                páginas, sumar preguntas y fotos. No pueden cambiar el guion ni abrir el libro terminado.
               </p>
 
               {invitados.length > 0 ? (

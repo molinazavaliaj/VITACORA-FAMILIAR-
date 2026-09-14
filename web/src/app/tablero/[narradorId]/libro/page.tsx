@@ -12,7 +12,7 @@ import { Extras, type PrecioExtra } from "./extras";
 // Encargar libro (docs/panel-usuario.md §7). Tres momentos:
 //   - la entrevista sigue → qué compró y qué va a pasar
 //   - terminó y no cerró → la edición final en 4 pasos (solo dueña)
-//   - cerrado → se está produciendo / listo, y las descargas
+//   - cerrado → se está produciendo / listo, y el lector
 // Y siempre, abajo, los extras: copias con descuento, marcos, color.
 
 type Pedido = {
@@ -116,7 +116,7 @@ export default async function PaginaLibro({ params }: PageProps<"/tablero/[narra
           El libro de {n.nombre} está en producción. Te avisamos por mail cuando esté listo.
         </p>
         <div className="mt-5">
-          <ProximoPaso href={`/tablero/${n.id}/descarga`}>Ver el libro y las descargas</ProximoPaso>
+          <ProximoPaso href={`/tablero/${n.id}/leer`}>Leer el libro y escuchar el audiolibro</ProximoPaso>
         </div>
       </Tarjeta>
     );

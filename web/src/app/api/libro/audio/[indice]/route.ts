@@ -3,7 +3,7 @@ import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { narradorDeLaSesion } from "@/lib/panel";
 
-const MENSAJE_ERROR_GENERICO = "No pudimos generar la descarga. Intenta de nuevo.";
+const MENSAJE_ERROR_GENERICO = "No pudimos abrir el audiolibro. Intenta de nuevo.";
 const DURACION_URL_FIRMADA_SEGUNDOS = 3600;
 
 type Familia = { id: string };
@@ -13,7 +13,7 @@ type Pedido = { id: string; estado: string; audiolibro_paths: AudiolibroPaths | 
 
 // `indice` es "bonus", "completo", o la posición (0-based) del capítulo
 // dentro de audiolibro_paths.capitulos — así lo arma el tablero al listar
-// los links de descarga.
+// los reproductores del lector.
 function resolverRuta(indice: string, paths: AudiolibroPaths): string | null {
   if (indice === "bonus") return paths.bonus ?? null;
   if (indice === "completo") return paths.completo ?? null;
@@ -45,7 +45,7 @@ export async function GET(
     .limit(1);
 
   if (errorPedidos) {
-    console.error("descarga/audio: fallo la busqueda de pedido", errorPedidos);
+    console.error("libro/audio: fallo la busqueda de pedido", errorPedidos);
     return NextResponse.json({ error: MENSAJE_ERROR_GENERICO }, { status: 500 });
   }
 
@@ -66,7 +66,7 @@ export async function GET(
     .createSignedUrl(ruta, DURACION_URL_FIRMADA_SEGUNDOS);
 
   if (errorFirmado || !firmado?.signedUrl) {
-    console.error("descarga/audio: fallo al firmar la url", errorFirmado);
+    console.error("libro/audio: fallo al firmar la url", errorFirmado);
     return NextResponse.json({ error: MENSAJE_ERROR_GENERICO }, { status: 500 });
   }
 

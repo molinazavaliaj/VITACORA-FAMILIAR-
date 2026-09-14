@@ -38,7 +38,7 @@ export function leerUbicacion(pathname: string, historias: HistoriaNav[]) {
   let seccion: Clave = "inicio";
   if (idEnUrl && historias.some((h) => h.id === idEnUrl)) {
     const tercera = partes[2];
-    // /preguntas, /nombres y /descarga son sub-pantallas de la historia.
+    // /preguntas, /nombres y /leer son sub-pantallas de la historia.
     seccion = tercera === "libro" ? "libro" : "historia";
   }
   return { historia, seccion };

@@ -290,7 +290,7 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
 
         {cerrado ? (
           <div className="mt-8">
-            <ProximoPaso href={PUEDE.cerrarLibro(rol) ? `/tablero/${n.id}/libro` : `/tablero/${n.id}/descarga`}>
+            <ProximoPaso href={PUEDE.cerrarLibro(rol) ? `/tablero/${n.id}/libro` : `/tablero/${n.id}/leer`}>
               {PUEDE.cerrarLibro(rol) ? "Dale los últimos retoques y cerrá su libro" : "Leer su libro"}
             </ProximoPaso>
           </div>

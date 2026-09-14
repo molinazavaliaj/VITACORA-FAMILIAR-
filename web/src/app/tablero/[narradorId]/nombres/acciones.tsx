@@ -123,7 +123,7 @@ export function FormularioNombres({ entidades, narradorId }: { entidades: Entida
 
       {guardado ? (
         <Link
-          href="/tablero/descarga"
+          href="/tablero"
           className="text-sm font-medium text-[var(--texto)] underline underline-offset-2"
         >
           Siguiente paso: su libro →

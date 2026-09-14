@@ -374,9 +374,12 @@ párrafo · colores de tapa · más de 3 invitados · referidos · regalar una c
   repisa— se lea como la opción buena frente a "lo otro está en la nube". Y quien
   quiera los tres, puede.
 - **La entrevista es la misma** para los tres. Lo que cambia es la salida.
-- El PDF y el audiolibro **dejan de ser descargables**: `/tablero/[id]/descarga`
-  pasa a ser el **lector online** (3t.8, de Naza) y el reproductor del
-  audiolibro. Las rutas `api/descarga/*` se cierran.
+- El PDF y el audiolibro **dejan de ser descargables**: `/tablero/[id]/leer`
+  (antes `/descarga`) es el **lector**: el PDF se muestra adentro de la página
+  y el audiolibro suena capítulo por capítulo con el reproductor de la casa.
+  Hecho el 13/09 con el PDF embebido; **3t.8 (Naza)** lo reemplaza por el HTML
+  paginado de la fábrica. Las rutas viven en `api/libro/pdf` y
+  `api/libro/audio/[indice]` (solo dueña).
 - ⚠️ **Toca al entrevistador y a la fábrica:** la voz clonada necesita muestras
   limpias de sus audios (el entrevistador ya las tiene) y un proveedor de
   clonación (fábrica). El narrador es un TTS de una voz fija. Definir proveedor

@@ -15,8 +15,8 @@ vi.mock('next/headers', () => ({
 import { crearClienteServidor } from '@/lib/supabase/servidor';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
-import { GET as GET_LIBRO } from '../src/app/api/descarga/libro/route';
-import { GET as GET_AUDIO } from '../src/app/api/descarga/audio/[indice]/route';
+import { GET as GET_LIBRO } from '../src/app/api/libro/pdf/route';
+import { GET as GET_AUDIO } from '../src/app/api/libro/audio/[indice]/route';
 
 // --- helpers de mock de Supabase --------------------------------------
 
@@ -82,9 +82,9 @@ beforeEach(() => {
   });
 });
 
-// --- GET /api/descarga/libro --------------------------------------------------
+// --- GET /api/libro/pdf --------------------------------------------------
 
-describe('GET /api/descarga/libro', () => {
+describe('GET /api/libro/pdf', () => {
   it('sin sesión responde 401', async () => {
     mockSesion(null);
     const respuesta = await GET_LIBRO(fakeRequest());
@@ -147,9 +147,9 @@ describe('GET /api/descarga/libro', () => {
   });
 });
 
-// --- GET /api/descarga/audio/[indice] --------------------------------------------------
+// --- GET /api/libro/audio/[indice] --------------------------------------------------
 
-describe('GET /api/descarga/audio/[indice]', () => {
+describe('GET /api/libro/audio/[indice]', () => {
   const paths = {
     capitulos: ['narrador-1/paquete/audiolibro_cap_01.mp3', 'narrador-1/paquete/audiolibro_cap_02.mp3'],
     bonus: 'narrador-1/paquete/audiolibro_bonus_saludos.mp3',
