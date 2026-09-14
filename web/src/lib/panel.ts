@@ -23,6 +23,8 @@ export type NarradorPanel = {
   alerta_silencio: boolean;
   familia_id: string;
   created_at: string;
+  /** Los textos que se le mandaron (`preguntasEnviadas`, `repreguntasEnviadas`). */
+  contexto: Record<string, any> | null;
 };
 
 export type Historia = { narrador: NarradorPanel; rol: Rol };
@@ -30,7 +32,7 @@ export type Historia = { narrador: NarradorPanel; rol: Rol };
 export type Panel = { familia: FamiliaResumen | null; historias: Historia[] };
 
 const CAMPOS_NARRADOR =
-  "id, nombre, como_le_dicen, estado, dia_actual, alerta_silencio, familia_id, created_at";
+  "id, nombre, como_le_dicen, estado, dia_actual, alerta_silencio, familia_id, created_at, contexto";
 
 type Usuario = { id: string; email?: string | null };
 

@@ -141,6 +141,12 @@ export default async function PaginaHistoria({ params }: PageProps<"/tablero/[na
   const capitulosConocidos = [...new Set(guion.map((p) => p.capitulo))];
 
   const cerrado = ESTADOS_CERRADOS.includes(n.estado);
+  // Lo que el biógrafo le mandó de verdad: la pregunta preparada del día y las
+  // repreguntas. Se guardan en el `contexto` del narrador (provisorio, ver
+  // entrevistador/src/db/envios.ts) y sin esto el panel mostraba la respuesta
+  // de la repregunta sin la pregunta que la originó.
+  const preguntasEnviadas = (n.contexto?.preguntasEnviadas ?? {}) as Record<string, string>;
+  const repreguntasEnviadas = (n.contexto?.repreguntasEnviadas ?? {}) as Record<string, string>;
   const puedeCerrarAnticipado =
     rol === "duena" && ESTADOS_QUE_PERMITEN_CIERRE.includes(n.estado) && respondidas >= MINIMO_RESPUESTAS_CIERRE_ANTICIPADO;
 
@@ -223,12 +229,24 @@ export default async function PaginaHistoria({ params }: PageProps<"/tablero/[na
                           <img src={`/api/fotos/${p.foto_id}`} alt="" className="mt-2 max-h-72 rounded-lg border border-[var(--linea)] object-contain" />
                         ) : null}
                         <h3 className="mt-1 text-[17px] font-medium leading-snug [font-family:var(--fuente-titulo)]">{p.texto}</h3>
+                        {/* El guion dice una cosa y el biógrafo, con lo que ya contó, otra:
+                            mostramos lo que él LEYÓ de verdad ("¿cómo era esa casa de Pelliza?"). */}
+                        {preguntasEnviadas[String(p.orden)] && preguntasEnviadas[String(p.orden)] !== p.texto ? (
+                          <p className="mt-2 text-[14px] leading-relaxed text-[var(--texto-suave)] [font-family:var(--fuente-titulo)]">
+                            Se lo preguntamos así: «{preguntasEnviadas[String(p.orden)]}»
+                          </p>
+                        ) : null}
                         <div className="mt-4">
                           <Respuesta respuesta={principal} />
                         </div>
                         {ampliaciones.length > 0 ? (
                           <div className="mt-5 flex flex-col gap-4 border-l-2 border-[var(--linea)] pl-4">
                             <Etiqueta>y agregó</Etiqueta>
+                            {repreguntasEnviadas[String(p.orden)] ? (
+                              <p className="text-[14px] leading-relaxed text-[var(--texto-suave)] [font-family:var(--fuente-titulo)]">
+                                Le repreguntamos: «{repreguntasEnviadas[String(p.orden)]}»
+                              </p>
+                            ) : null}
                             {ampliaciones.map((r) => (
                               <Respuesta key={r.id} respuesta={r} />
                             ))}

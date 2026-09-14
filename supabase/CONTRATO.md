@@ -63,6 +63,25 @@ de solo extras no lleva la base, y puede ser de un invitado (su propia `familia`
 `ritmo` (`'diario'` default · `'dos_por_dia'` · `'seguido'`) y `evitar` (texto libre).
 `modoRapido: true` de los pilotos equivale a `ritmo: 'seguido'`.
 
+**Nuevo (14/09) — claves que ESCRIBE el entrevistador y LEE la web** (provisorias,
+sin migración; el lugar definitivo es una columna `texto` en `envios`):
+- `preguntasEnviadas[orden]` — el texto de la pregunta tal como se le mandó al
+  narrador (el guion dice una cosa y el biógrafo, con lo que ya contó, otra).
+- `repreguntasEnviadas[orden]` — el texto de la repregunta del mismo día.
+- `resumenesCapitulos[capítulo]` — la memoria interna del biógrafo. **No la usa la
+  web ni la fábrica**: es para personalizar la pregunta del día.
+
+El panel de la web muestra las dos primeras ("Se lo preguntamos así: …" / "Le
+repreguntamos: …"). Sin ellas la familia veía la respuesta de la repregunta sin la
+pregunta que la originó.
+
+⚠️ **Cuidado con `contexto`: ahora lo escriben los dos servicios.** Cada uno hace
+leer-modificar-escribir sobre el jsonb entero, así que si la web guarda `ritmo` en
+el mismo instante en que el entrevistador guarda `preguntasEnviadas`, uno de los
+dos cambios se pierde. Es la razón para mudar los tres textos a `envios.texto`
+(migración chica): `envios` ya es "todo mensaje saliente" y cada fila es un
+registro propio, sin pisadas.
+
 ## Cerrar el libro (migración 20260912)
 
 `narradores.edicion` (jsonb, escribe la web, lee la fábrica):
