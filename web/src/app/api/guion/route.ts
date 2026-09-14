@@ -140,8 +140,19 @@ export async function PATCH(request: NextRequest) {
     return respuesta(200, { ok: true, pregunta: data });
   }
 
+  // La pantalla puede haber mostrado la plantilla global (narrador sin guion
+  // propio todavía): el id que llega es el global, y recién ahora existe la
+  // copia. Se resuelve por orden a la fila propia.
+  async function buscar(id: string): Promise<PreguntaGuion | null> {
+    const propia = guion!.find((q) => q.id === id);
+    if (propia) return propia;
+    const { data } = await admin.from("preguntas").select("orden").eq("id", id).is("narrador_id", null).maybeSingle();
+    const orden = (data as { orden?: number } | null)?.orden;
+    return typeof orden === "number" ? guion!.find((q) => q.orden === orden) ?? null : null;
+  }
+
   if (body.accion === "editar") {
-    const p = guion.find((q) => q.id === body.id);
+    const p = await buscar(body.id);
     if (!p) return respuesta(404, { error: "No encontramos esa pregunta." });
     if (!esEditable(p, diaActual)) return respuesta(400, { error: "Esa pregunta ya se mandó o la escribe el biógrafo: no se cambia." });
     const texto = validarTexto(body.texto);
@@ -152,7 +163,7 @@ export async function PATCH(request: NextRequest) {
   }
 
   if (body.accion === "saltar") {
-    const p = guion.find((q) => q.id === body.id);
+    const p = await buscar(body.id);
     if (!p) return respuesta(404, { error: "No encontramos esa pregunta." });
     if (!esEditable(p, diaActual)) return respuesta(400, { error: "Esa pregunta ya se mandó o la escribe el biógrafo: no se saca." });
     const piso = puedeSaltar(guion);
@@ -168,7 +179,14 @@ export async function PATCH(request: NextRequest) {
     if (!Array.isArray(body.ids) || !body.ids.every((id) => typeof id === "string")) {
       return respuesta(400, { error: "El orden tiene que ser una lista de preguntas." });
     }
-    const r = reordenar(guion, diaActual, body.ids);
+    // Mismo caso que arriba: ids globales → propios, por orden.
+    const ids: string[] = [];
+    for (const id of body.ids) {
+      const p = await buscar(id);
+      if (!p) return respuesta(404, { error: "No encontramos una de las preguntas." });
+      ids.push(p.id);
+    }
+    const r = reordenar(guion, diaActual, ids);
     if (!r.ok) return respuesta(400, { error: r.mensaje });
     if (!(await aplicarOrdenes(admin, r.cambios))) return respuesta(500, { error: GENERICO });
     return respuesta(200, { ok: true });

@@ -2,12 +2,13 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
-import { historiasDelUsuario, type Historia } from "@/lib/panel";
+import { esPropia, historiasDelUsuario, type Historia } from "@/lib/panel";
 import { BannerAlertaSilencio } from "./acciones";
 import {
   BarraProgreso,
   Contenedor,
-  ESTADO_EN_HUMANO,
+  estadoEnHumano,
+  tituloHistoria,
   EstadoError,
   Etiqueta,
   ProximoPaso,
@@ -55,18 +56,19 @@ async function resumirHistoria(
 function proximoPaso(h: Historia, r: Resumen): { href: string; texto: string } | null {
   const id = h.narrador.id;
   const esDuena = h.rol === "duena";
+  const propia = esPropia(h.narrador);
   switch (h.narrador.estado) {
     case "completado":
     case "cerrado_anticipado":
       if (h.rol === "visitante") return { href: `/tablero/${id}/libro`, texto: "Pedí tu copia impresa" };
       return esDuena
-        ? { href: `/tablero/${id}/libro`, texto: "Ya terminó de contar — dale los últimos retoques y cerrá su libro" }
+        ? { href: `/tablero/${id}/libro`, texto: propia ? "Ya terminaste de contar — dale los últimos retoques y encargá tu libro" : "Ya terminó de contar — dale los últimos retoques y encargá su libro" }
         : { href: `/tablero/${id}`, texto: "Ya terminó de contar — leé su historia" };
     case "pausado":
-      return { href: `/tablero/${id}`, texto: "Pidió una pausa — mirá qué pasó" };
+      return { href: `/tablero/${id}`, texto: propia ? "Pediste una pausa — retomá cuando quieras" : "Pidió una pausa — mirá qué pasó" };
     case "activo":
       if (r.tieneAnticipo && r.respondidas < 6) return { href: `/tablero/${id}`, texto: "Ya podés leer el capítulo 1" };
-      if (r.respondidas > 0) return { href: `/tablero/${id}`, texto: "Escuchá lo último que contó" };
+      if (r.respondidas > 0) return { href: `/tablero/${id}`, texto: propia ? "Escuchá lo último que contaste" : "Escuchá lo último que contó" };
       return null;
     case "acepto":
     case "invitado":
@@ -140,17 +142,17 @@ export default async function Inicio() {
                 <div>
                   <Etiqueta>{h.rol === "invitado" ? "Te invitaron a esta historia" : h.rol === "visitante" ? "Lo guardaste" : "Historia"}</Etiqueta>
                   <Link href={`/tablero/${n.id}`} className="mt-1 block">
-                    <Titulo nivel={2}>La historia de {n.nombre}</Titulo>
+                    <Titulo nivel={2}>{tituloHistoria(n.nombre, esPropia(n))}</Titulo>
                   </Link>
                   <p className="mt-2 text-[15px] text-[var(--texto-suave)]">
-                    {ESTADO_EN_HUMANO[n.estado] ?? n.estado}
+                    {estadoEnHumano(n.estado, esPropia(n))}
                   </p>
                 </div>
                 {r.segundos > 0 ? (
                   <p className="shrink-0 text-right text-sm text-[var(--texto-menor)] [font-family:var(--fuente-micro)] tabular-nums">
                     {formatearDuracion(r.segundos)}
                     <br />
-                    <span className="text-[11px] uppercase [letter-spacing:0.2em]">de su voz</span>
+                    <span className="text-[11px] uppercase [letter-spacing:0.2em]">{esPropia(n) ? "de tu voz" : "de su voz"}</span>
                   </p>
                 ) : null}
               </div>

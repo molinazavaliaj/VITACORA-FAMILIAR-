@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
-import { historiaAccesible, PUEDE } from "@/lib/panel";
+import { esPropia, historiaAccesible, PUEDE } from "@/lib/panel";
 import { extrasDisponibles, productosDelPedido, NOMBRE_VOZ, type ProductosDelPedido } from "@/lib/productos";
 import { obtenerPrecio, obtenerPrecioAudiolibro } from "@/lib/precios";
 import { propuestaPorDefecto, type Edicion } from "@/lib/edicion";
@@ -46,6 +46,7 @@ export default async function PaginaLibro({ params }: PageProps<"/tablero/[narra
   if (error) return <EstadoError />;
   if (!historia) notFound();
   const { narrador: n, rol } = historia;
+  const propia = esPropia(n);
 
   const terminado = ["completado", "cerrado_anticipado"].includes(n.estado);
 
@@ -79,7 +80,7 @@ export default async function PaginaLibro({ params }: PageProps<"/tablero/[narra
   if (!PUEDE.verLoQuePago(rol)) {
     return (
       <Contenedor>
-        <Etiqueta>Encargar libro · La historia de {n.nombre}</Etiqueta>
+        <Etiqueta>Encargar libro · {propia ? "Tu historia" : `La historia de ${n.nombre}`}</Etiqueta>
         <div className="mt-1">
           <Titulo>Tu copia</Titulo>
         </div>
@@ -124,7 +125,9 @@ export default async function PaginaLibro({ params }: PageProps<"/tablero/[narra
     portadaFotoId: edicionGuardada.portadaFotoId ?? null,
     contratapaFotoId: edicionGuardada.contratapaFotoId ?? null,
     marcoFotoId: edicionGuardada.marcoFotoId ?? null,
+    marcosFotoIds: edicionGuardada.marcosFotoIds ?? (edicionGuardada.marcoFotoId ? [edicionGuardada.marcoFotoId] : []),
     ordenCapitulos: edicionGuardada.ordenCapitulos?.length ? edicionGuardada.ordenCapitulos : capitulos,
+    titulosCapitulos: edicionGuardada.titulosCapitulos ?? {},
     excluidas: edicionGuardada.excluidas ?? [],
     correcciones: edicionGuardada.correcciones ?? "",
   };
@@ -144,7 +147,7 @@ export default async function PaginaLibro({ params }: PageProps<"/tablero/[narra
     portadaFotoId: edicion.portadaFotoId,
     contratapaFotoId: edicion.contratapaFotoId,
     capitulos: edicion.ordenCapitulos.map((nombre) => ({
-      nombre,
+      nombre: edicion.titulosCapitulos[nombre]?.trim() || nombre,
       fotos: fotos.filter((f) => f.capitulo === nombre).map((f) => ({ id: f.id, epigrafe: f.epigrafe, principal: f.principal })),
       textos: contestadas
         .filter((r) => porOrden.get(r.pregunta_orden)?.capitulo === nombre)
@@ -158,16 +161,17 @@ export default async function PaginaLibro({ params }: PageProps<"/tablero/[narra
   if (!terminado) {
     estado = (
       <p className="mt-2 max-w-2xl text-[16px] leading-relaxed text-[var(--texto-suave)]">
-        Así va quedando, con lo que contó hasta hoy. Cuando termine, te avisamos por mail para que le des los últimos
-        retoques y lo cierres. Recién ahí se produce.
+        {propia
+          ? "Así va quedando, con lo que contaste hasta hoy. Cuando termines, te avisamos por mail para que le des los últimos retoques y lo encargues. Recién ahí se produce."
+          : "Así va quedando, con lo que contó hasta hoy. Cuando termine, te avisamos por mail para que le des los últimos retoques y lo encargues. Recién ahí se produce."}
       </p>
     );
   } else if (libroAprobadoAt) {
     estado = (
       <Tarjeta className="mt-6 border-[var(--texto)]">
-        <Etiqueta>Cerrado el {fechaCorta(libroAprobadoAt)}</Etiqueta>
+        <Etiqueta>Encargado el {fechaCorta(libroAprobadoAt)}</Etiqueta>
         <p className="mt-3 text-[16px] leading-relaxed text-[var(--texto-suave)]">
-          El libro de {n.nombre} está en producción. Te avisamos por mail cuando esté listo.
+          {propia ? "Tu libro" : `El libro de ${n.nombre}`} está en producción. Te avisamos por mail cuando esté listo.
         </p>
         <div className="mt-5">
           <ProximoPaso href={`/tablero/${n.id}/leer`}>Leer el libro y escuchar el audiolibro</ProximoPaso>
@@ -178,8 +182,8 @@ export default async function PaginaLibro({ params }: PageProps<"/tablero/[narra
     estado = (
       <Tarjeta className="mt-6 border-[var(--acento)]">
         <p className="text-[16px] leading-relaxed text-[var(--texto-suave)]">
-          <strong className="font-medium text-[var(--texto)]">{n.nombre} terminó de contar su historia.</strong> Hojeá cómo
-          quedó, elegí las fotos, dale los últimos retoques — o dejá nuestra propuesta tal cual — y cerrá el libro. Recién
+          <strong className="font-medium text-[var(--texto)]">{propia ? "Terminaste de contar tu historia." : `${n.nombre} terminó de contar su historia.`}</strong> Hojeá cómo
+          quedó, elegí las fotos, dale los últimos retoques — o dejá nuestra propuesta tal cual — y encargá el libro. Recién
           ahí se produce.
         </p>
         <div className="mt-4">
@@ -191,7 +195,7 @@ export default async function PaginaLibro({ params }: PageProps<"/tablero/[narra
 
   return (
     <Contenedor ancho="max-w-5xl">
-      <Etiqueta>Encargar libro · La historia de {n.nombre}</Etiqueta>
+      <Etiqueta>Encargar libro · {propia ? "Tu historia" : `La historia de ${n.nombre}`}</Etiqueta>
       <div className="mt-1">
         <Titulo>Su libro</Titulo>
       </div>
@@ -206,13 +210,16 @@ export default async function PaginaLibro({ params }: PageProps<"/tablero/[narra
       <section className="mt-12">
         <div className="flex items-end justify-between gap-4 border-b border-[var(--linea)] pb-4">
           <h2 className="text-2xl font-medium leading-none [font-family:var(--fuente-titulo)]">Las fotos del libro</h2>
-          <span className="shrink-0 text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.18em]">tapa · contratapa · marco</span>
+          <span className="shrink-0 text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.18em]">álbum · capítulos · tapa · marcos</span>
         </div>
         <div className="mt-6">
           <FotosDelLibro
             narradorId={n.id}
-            fotos={fotos.map(({ id, epigrafe, capitulo, ancho_px, alto_px }) => ({ id, epigrafe, capitulo, ancho_px, alto_px }))}
-            elegidas={{ portadaFotoId: edicion.portadaFotoId, contratapaFotoId: edicion.contratapaFotoId, marcoFotoId: edicion.marcoFotoId }}
+            fotos={fotos.map(({ id, epigrafe, capitulo, principal, ancho_px, alto_px }) => ({ id, epigrafe, capitulo, principal, ancho_px, alto_px }))}
+            capitulos={edicion.ordenCapitulos.map((c) => [c, edicion.titulosCapitulos[c]?.trim() || c] as [string, string])}
+            elegidas={{ portadaFotoId: edicion.portadaFotoId, contratapaFotoId: edicion.contratapaFotoId }}
+            marcosFotoIds={edicion.marcosFotoIds}
+            marcosComprados={productosPagados.reduce((acc, p) => acc + p.marcos, 0)}
             editable={!libroAprobadoAt}
           />
         </div>
@@ -221,8 +228,9 @@ export default async function PaginaLibro({ params }: PageProps<"/tablero/[narra
       {/* ── Los últimos retoques y el cierre (solo al terminar) ──────────── */}
       {terminado && !libroAprobadoAt ? (
         <section id="cerrar" className="mt-14 scroll-mt-20 border-t border-[var(--linea)] pt-10">
-          <Etiqueta>Los últimos retoques</Etiqueta>
+          <Etiqueta>Los últimos retoques y el encargo</Etiqueta>
           <Wizard
+            propia={propia}
             narradorId={n.id}
             nombre={n.nombre}
             edicion={edicion}

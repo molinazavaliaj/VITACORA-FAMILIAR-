@@ -23,6 +23,7 @@ export type NarradorPanel = {
   alerta_silencio: boolean;
   familia_id: string;
   created_at: string;
+  contexto?: Record<string, unknown> | null;
 };
 
 export type Historia = { narrador: NarradorPanel; rol: Rol };
@@ -30,7 +31,12 @@ export type Historia = { narrador: NarradorPanel; rol: Rol };
 export type Panel = { familia: FamiliaResumen | null; historias: Historia[] };
 
 const CAMPOS_NARRADOR =
-  "id, nombre, como_le_dicen, estado, dia_actual, alerta_silencio, familia_id, created_at";
+  "id, nombre, como_le_dicen, estado, dia_actual, alerta_silencio, familia_id, created_at, contexto";
+
+/** El libro es del mismo que compra ("para mí" en el checkout): el panel le habla de vos, no de él. */
+export function esPropia(narrador: { contexto?: Record<string, unknown> | null }): boolean {
+  return (narrador.contexto as { vinculoComprador?: unknown } | null | undefined)?.vinculoComprador === "yo mismo";
+}
 
 type Usuario = { id: string; email?: string | null };
 

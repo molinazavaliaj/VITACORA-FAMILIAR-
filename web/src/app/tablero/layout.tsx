@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { Playfair_Display, Archivo, Source_Serif_4 } from "next/font/google";
 import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
-import { historiasDelUsuario } from "@/lib/panel";
+import { esPropia, historiasDelUsuario } from "@/lib/panel";
 import { Navegacion } from "./nav";
 import { BotonTema, COOKIE_TEMA, type Tema } from "./tema";
 
@@ -62,6 +62,7 @@ export default async function LayoutPanel({ children }: LayoutProps<"/tablero">)
     nombre: h.narrador.nombre,
     comoLeDicen: h.narrador.como_le_dicen,
     rol: h.rol,
+    propia: esPropia(h.narrador),
   }));
 
   return (

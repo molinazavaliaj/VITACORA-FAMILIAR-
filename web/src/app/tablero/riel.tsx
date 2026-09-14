@@ -7,7 +7,7 @@ import type { Rol } from "@/lib/panel";
 // celular no se ve: las historias viven en el selector de la cabecera y los
 // capítulos, en la fila de pastillas.
 
-export type HistoriaRiel = { id: string; nombre: string; rol: Rol; estado: string };
+export type HistoriaRiel = { id: string; nombre: string; rol: Rol; estado: string; propia?: boolean };
 export type CapituloRiel = { nombre: string; contestadas: number; total: number };
 
 const ESTADO_CORTO: Record<string, string> = {
@@ -18,6 +18,13 @@ const ESTADO_CORTO: Record<string, string> = {
   pausado: "en pausa",
   completado: "terminó de contar",
   cerrado_anticipado: "cerrada antes de tiempo",
+};
+const ESTADO_CORTO_PROPIO: Record<string, string> = {
+  ...ESTADO_CORTO,
+  invitado: "falta que aceptes",
+  acepto: "aceptaste, arranca pronto",
+  activo: "estás respondiendo",
+  completado: "terminaste de contar",
 };
 
 const foco = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--texto)]";
@@ -53,10 +60,10 @@ export function Riel({
               aria-current={activa ? "page" : undefined}
               className={`flex flex-col gap-0.5 rounded-lg px-3 py-2.5 transition-colors hover:bg-[var(--hueco)] ${foco} ${activa ? "bg-[var(--hueco)]" : ""}`}
             >
-              <span className="truncate text-[15px] [font-family:var(--fuente-titulo)]">La historia de {h.nombre}</span>
+              <span className="truncate text-[15px] [font-family:var(--fuente-titulo)]">{h.propia ? "Tu historia" : `La historia de ${h.nombre}`}</span>
               <span className="truncate text-[11px] text-[var(--texto-menor)] [font-family:var(--fuente-micro)]">
                 {h.rol === "invitado" ? "te invitaron · " : h.rol === "visitante" ? "la guardaste · " : ""}
-                {ESTADO_CORTO[h.estado] ?? h.estado}
+                {(h.propia ? ESTADO_CORTO_PROPIO : ESTADO_CORTO)[h.estado] ?? h.estado}
               </span>
             </Link>
           );

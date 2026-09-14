@@ -18,11 +18,12 @@ export type HistoriaNav = {
   nombre: string;
   comoLeDicen: string;
   rol: "duena" | "invitado" | "visitante";
+  propia?: boolean;
 };
 
 // Tres secciones (decisión del 13/09): "Preguntas" dejó de ser una sección —
 // el guion se edita desde la historia.
-type Clave = "inicio" | "historia" | "libro";
+type Clave = "inicio" | "historia" | "libro" | "cuenta";
 
 const SECCIONES: ReadonlyArray<{ clave: Clave; nombre: string; corto: string; ruta: (id: string) => string }> = [
   { clave: "inicio", nombre: "Inicio", corto: "Inicio", ruta: () => "/tablero" },
@@ -35,7 +36,7 @@ export function leerUbicacion(pathname: string, historias: HistoriaNav[]) {
   const partes = pathname.split("/").filter(Boolean); // ['tablero', id?, seccion?]
   const idEnUrl = partes[1];
   const historia = historias.find((h) => h.id === idEnUrl) ?? historias[0] ?? null;
-  let seccion: Clave = "inicio";
+  let seccion: Clave = idEnUrl === "cuenta" ? "cuenta" : "inicio";
   if (idEnUrl && historias.some((h) => h.id === idEnUrl)) {
     const tercera = partes[2];
     // /preguntas, /nombres y /leer son sub-pantallas de la historia.
@@ -71,6 +72,23 @@ function Icono({ clave, className = "" }: { clave: Clave; className?: string }) 
   }
 }
 
+function IconoCuenta({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <circle cx="12" cy="12" r="3" />
+      <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z" />
+    </svg>
+  );
+}
+
+function IconoSalir({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M10 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4M15 8l4 4-4 4M19 12H9" />
+    </svg>
+  );
+}
+
 function Chevron({ abierto }: { abierto: boolean }) {
   return (
     <svg viewBox="0 0 24 24" className={`h-4 w-4 shrink-0 transition-transform duration-200 ${abierto ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -79,10 +97,6 @@ function Chevron({ abierto }: { abierto: boolean }) {
   );
 }
 
-function etiquetaDeRol(h: HistoriaNav | null) {
-  if (!h) return "Historia";
-  return h.rol === "invitado" ? "Te invitaron a" : h.rol === "visitante" ? "Guardaste" : "Historia";
-}
 
 const foco = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--texto)]";
 
@@ -121,7 +135,7 @@ export function Navegacion({ historias, tema }: { historias: HistoriaNav[]; tema
               aria-current={actual ? "true" : undefined}
               className={`flex items-center justify-between gap-3 rounded-md px-3 py-2.5 text-[14px] transition-colors hover:bg-[var(--linea)] ${foco} ${actual ? "bg-[var(--linea)]" : ""}`}
             >
-              <span className="truncate [font-family:var(--fuente-titulo)]">La historia de {h.nombre}</span>
+              <span className="truncate [font-family:var(--fuente-titulo)]">{h.propia ? "Tu historia" : `La historia de ${h.nombre}`}</span>
               {h.rol !== "duena" ? (
                 <span className="shrink-0 text-[10px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.2em]">
                   {h.rol === "invitado" ? "invitado" : "muestra"}
@@ -136,6 +150,10 @@ export function Navegacion({ historias, tema }: { historias: HistoriaNav[]; tema
           + Empezar otra historia
         </Link>
       </li>
+      <li className="mt-1 flex border-t border-[var(--linea)] pt-1">
+        <Link href="/tablero/cuenta" className={`flex flex-1 items-center gap-2 rounded-md px-3 py-2.5 text-[13px] text-[var(--texto-suave)] hover:bg-[var(--linea)] ${foco} [font-family:var(--fuente-micro)]`}><IconoCuenta className="h-4 w-4" />Tu cuenta</Link>
+        <a href="/api/auth/salir" className={`flex flex-1 items-center gap-2 rounded-md px-3 py-2.5 text-[13px] text-[var(--texto-suave)] hover:bg-[var(--linea)] ${foco} [font-family:var(--fuente-micro)]`}><IconoSalir className="h-4 w-4" />Salir</a>
+      </li>
     </ul>
   );
 
@@ -148,34 +166,7 @@ export function Navegacion({ historias, tema }: { historias: HistoriaNav[]; tema
           <span className="text-[11px] uppercase [font-family:var(--fuente-micro)] [letter-spacing:0.3em]">Vitácora Familiar</span>
         </Link>
 
-        {/* Selector de historia */}
-        <div className="relative px-4" data-selector>
-          <button
-            type="button"
-            onClick={() => setSelectorAbierto((v) => !v)}
-            aria-expanded={selectorAbierto}
-            aria-haspopup="listbox"
-            className={`flex w-full items-center justify-between gap-2 rounded-lg border border-[var(--linea)] px-4 py-3 text-left transition-colors hover:border-[var(--linea-fuerte)] ${foco}`}
-          >
-            <span className="min-w-0">
-              <span className="block text-[10px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.24em]">
-                {etiquetaDeRol(historia)}
-              </span>
-              <span className="block truncate text-[15px] [font-family:var(--fuente-titulo)]">
-                {historia ? `La historia de ${historia.nombre}` : "Sin historias todavía"}
-              </span>
-            </span>
-            <Chevron abierto={selectorAbierto} />
-          </button>
-
-          {selectorAbierto ? (
-            <div className="absolute inset-x-4 top-full z-20 mt-2 rounded-lg border border-[var(--linea-fuerte)] bg-[var(--fondo)] shadow-[0_20px_40px_-20px_rgba(0,0,0,0.35)]">
-              {listaHistorias}
-            </div>
-          ) : null}
-        </div>
-
-        <nav className="mt-6 flex flex-col gap-0.5 px-4" aria-label="Secciones del panel">
+        <nav className="mt-2 flex flex-col gap-0.5 px-4" aria-label="Secciones del panel">
           {SECCIONES.map((s) => {
             const activa = s.clave === seccion;
             return (
@@ -197,8 +188,24 @@ export function Navegacion({ historias, tema }: { historias: HistoriaNav[]; tema
           })}
         </nav>
 
-        <div className="mt-auto px-6 pb-6">
-          <p className="text-[11px] italic leading-relaxed text-[var(--texto-menor)] [font-family:var(--fuente-cuerpo)]">
+        {/* Abajo: la cuenta y salir */}
+        <div className="mt-auto flex flex-col gap-0.5 px-4 pb-4">
+          <Link
+            href="/tablero/cuenta"
+            aria-current={pathname === "/tablero/cuenta" ? "page" : undefined}
+            className={`flex items-center gap-3 rounded-md px-4 py-2.5 text-[14px] text-[var(--texto-suave)] transition-colors hover:bg-[var(--linea)] hover:text-[var(--texto)] [font-family:var(--fuente-micro)] ${foco} ${pathname === "/tablero/cuenta" ? "bg-[var(--linea)] text-[var(--texto)]" : ""}`}
+          >
+            <IconoCuenta className="h-5 w-5 shrink-0 opacity-70" />
+            Tu cuenta
+          </Link>
+          <a
+            href="/api/auth/salir"
+            className={`flex items-center gap-3 rounded-md px-4 py-2.5 text-[14px] text-[var(--texto-suave)] transition-colors hover:bg-[var(--linea)] hover:text-[var(--texto)] [font-family:var(--fuente-micro)] ${foco}`}
+          >
+            <IconoSalir className="h-5 w-5 shrink-0 opacity-70" />
+            Cerrar sesión
+          </a>
+          <p className="mt-3 px-4 text-[11px] italic leading-relaxed text-[var(--texto-menor)] [font-family:var(--fuente-cuerpo)]">
             Para las vidas que merecen su propio libro
           </p>
         </div>
@@ -210,7 +217,7 @@ export function Navegacion({ historias, tema }: { historias: HistoriaNav[]; tema
           <Link href="/tablero" className={`flex shrink-0 items-center rounded-full p-1 ${foco}`} aria-label="Inicio del panel">
             <Toroide className="h-7 w-7" />
           </Link>
-          {historias.length > 1 ? (
+          {historias.length > 0 ? (
             <button
               type="button"
               onClick={() => setSelectorAbierto((v) => !v)}
@@ -218,18 +225,18 @@ export function Navegacion({ historias, tema }: { historias: HistoriaNav[]; tema
               className={`flex min-h-11 min-w-0 flex-1 items-center justify-center gap-2 rounded-full px-3 ${foco}`}
             >
               <span className="truncate text-[15px] [font-family:var(--fuente-titulo)]">
-                {historia ? `La historia de ${historia.nombre}` : "Vitácora"}
+                {historia ? (historia.propia ? "Tu historia" : `La historia de ${historia.nombre}`) : "Vitácora"}
               </span>
               <Chevron abierto={selectorAbierto} />
             </button>
           ) : (
             <p className="min-w-0 flex-1 truncate text-center text-[15px] [font-family:var(--fuente-titulo)]">
-              {historia ? `La historia de ${historia.nombre}` : "Vitácora"}
+              {historia ? (historia.propia ? "Tu historia" : `La historia de ${historia.nombre}`) : "Vitácora"}
             </p>
           )}
           <span className="shrink-0">{tema}</span>
         </div>
-        {selectorAbierto && historias.length > 1 ? (
+        {selectorAbierto ? (
           <div className="border-t border-[var(--linea)] px-2 pb-2">{listaHistorias}</div>
         ) : null}
       </header>

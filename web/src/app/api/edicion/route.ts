@@ -20,7 +20,7 @@ type Preparado =
 
 // Las tres fotos del libro se pueden elegir en cualquier momento (§15.2): un
 // cuerpo que trae SOLO esas claves no espera a que termine de contar.
-const CLAVES_FOTOS = new Set(["portadaFotoId", "contratapaFotoId", "marcoFotoId"]);
+const CLAVES_FOTOS = new Set(["portadaFotoId", "contratapaFotoId", "marcoFotoId", "marcosFotoIds"]);
 function soloFotos(body: unknown): boolean {
   if (!body || typeof body !== "object") return false;
   const claves = Object.keys(body as Record<string, unknown>);

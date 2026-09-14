@@ -21,9 +21,10 @@ type Props = {
   respuestas: RespuestaResumen[];
   fotos: FotoResumen[];
   nombresRevisados: boolean;
+  propia?: boolean;
 };
 
-const PASOS = ["Portada", "Capítulos", "Contenido", "Cerrar libro"] as const;
+const PASOS = ["Portada", "Capítulos", "Contenido", "Encargar"] as const;
 
 const boton = "inline-flex h-11 items-center justify-center rounded-full px-6 text-sm font-medium transition-colors [font-family:var(--fuente-micro)] disabled:opacity-50";
 const principal = `${boton} bg-[var(--texto)] text-[var(--fondo)] hover:opacity-90`;
@@ -42,13 +43,14 @@ async function guardarEdicion(narradorId: string, cambios: Edicion) {
   if (!r.ok) throw new Error(j.error ?? "No pudimos guardar.");
 }
 
-export function Wizard({ narradorId, nombre, edicion: inicial, capitulos, respuestas, fotos, nombresRevisados }: Props) {
+export function Wizard({ narradorId, nombre, edicion: inicial, capitulos, respuestas, fotos, nombresRevisados, propia = false }: Props) {
   const router = useRouter();
   const [paso, setPaso] = useState(0);
   const [titulo, setTitulo] = useState(inicial.titulo);
   const [subtitulo, setSubtitulo] = useState(inicial.subtitulo);
   const [portadaFotoId, setPortadaFotoId] = useState<string | null>(inicial.portadaFotoId);
   const [orden, setOrden] = useState<string[]>(inicial.ordenCapitulos.length ? inicial.ordenCapitulos : capitulos);
+  const [titulos, setTitulos] = useState<Record<string, string>>(inicial.titulosCapitulos ?? {});
   const [excluidas, setExcluidas] = useState<Set<string>>(new Set(inicial.excluidas));
   const [correcciones, setCorrecciones] = useState(inicial.correcciones);
   const [confirmo, setConfirmo] = useState(false);
@@ -80,10 +82,10 @@ export function Wizard({ narradorId, nombre, edicion: inicial, capitulos, respue
         body: JSON.stringify({ accion: "cerrar", confirmo: true }),
       });
       const j = (await r.json().catch(() => ({}))) as { error?: string };
-      if (!r.ok) throw new Error(j.error ?? "No pudimos cerrar el libro.");
+      if (!r.ok) throw new Error(j.error ?? "No pudimos encargar el libro.");
       router.refresh();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "No pudimos cerrar el libro.");
+      setError(e instanceof Error ? e.message : "No pudimos encargar el libro.");
       setOcupado(false);
     }
   }
@@ -185,13 +187,23 @@ export function Wizard({ narradorId, nombre, edicion: inicial, capitulos, respue
       {paso === 1 ? (
         <section className="mt-10 flex flex-col gap-6">
           <p className="text-[16px] leading-relaxed text-[var(--texto-suave)]">
-            Este es el orden del guion, el que armó el biógrafo. Podés moverlos. Lo que se contó dentro de cada capítulo queda en el orden en que él lo decidió.
+            Este es el orden del guion, el que armó el biógrafo. Podés moverlos y ponerles el título que quieras (dejá el campo vacío para volver al del guion). Lo que se contó dentro de cada capítulo queda en el orden en que él lo decidió.
           </p>
           <ol className="flex flex-col gap-2">
             {orden.map((cap, i) => (
               <li key={cap} className="flex items-center gap-4 rounded-lg border border-[var(--linea)] px-4 py-3">
                 <span className="w-6 text-right text-sm text-[var(--texto-menor)] tabular-nums [font-family:var(--fuente-micro)]">{i + 1}</span>
-                <span className="flex-1 text-[16px] [font-family:var(--fuente-titulo)]">{cap}</span>
+                <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                  <input
+                    value={titulos[cap] ?? ""}
+                    placeholder={cap}
+                    maxLength={60}
+                    aria-label={`Título del capítulo ${i + 1} (${cap})`}
+                    onChange={(e) => setTitulos((t) => ({ ...t, [cap]: e.target.value }))}
+                    className="w-full border-b border-transparent bg-transparent text-[16px] outline-none placeholder:text-[var(--texto)] focus:border-[var(--texto)] [font-family:var(--fuente-titulo)]"
+                  />
+                  {titulos[cap]?.trim() ? <span className="text-[11px] text-[var(--texto-menor)] [font-family:var(--fuente-micro)]">en el guion: {cap}</span> : null}
+                </span>
                 <span className="text-sm text-[var(--texto-menor)] [font-family:var(--fuente-micro)] tabular-nums">{(porCapitulo.get(cap) ?? []).length} resp.</span>
                 <span className="flex gap-2">
                   <button type="button" aria-label="Subir" className={chico} disabled={i === 0} onClick={() => mover(i, -1)}>↑</button>
@@ -201,7 +213,7 @@ export function Wizard({ narradorId, nombre, edicion: inicial, capitulos, respue
             ))}
           </ol>
           <div className="flex items-center gap-4">
-            <button type="button" disabled={ocupado} onClick={() => guardarYSeguir({ ordenCapitulos: orden })} className={principal}>
+            <button type="button" disabled={ocupado} onClick={() => guardarYSeguir({ ordenCapitulos: orden, titulosCapitulos: titulos })} className={principal}>
               {ocupado ? "Guardando…" : "Guardar y seguir"}
             </button>
             <button type="button" className={chico} onClick={() => setOrden(capitulos)}>Volver al orden del biógrafo</button>
@@ -214,7 +226,7 @@ export function Wizard({ narradorId, nombre, edicion: inicial, capitulos, respue
         <section className="mt-10 flex flex-col gap-8">
           <div className="rounded-xl border border-[var(--linea)] p-5">
             <p className="text-[15px] leading-relaxed text-[var(--texto-suave)]">
-              <strong className="font-medium text-[var(--texto)]">Los nombres.</strong> El biógrafo escribe los nombres como los escucha; revisalos antes de cerrar.{" "}
+              <strong className="font-medium text-[var(--texto)]">Los nombres.</strong> El biógrafo escribe los nombres como los escucha; revisalos antes de encargar.{" "}
               {nombresRevisados ? <span className="text-[var(--texto-menor)]">Ya los revisaste ✓</span> : null}
             </p>
             <Link href={`/tablero/${narradorId}/nombres`} className={`${secundario} mt-4`}>
@@ -274,7 +286,7 @@ export function Wizard({ narradorId, nombre, edicion: inicial, capitulos, respue
         </section>
       ) : null}
 
-      {/* ── 4 · Cerrar libro ────────────────────────────────────────── */}
+      {/* ── 4 · Encargar: el punto de aprobación ───────────────────── */}
       {paso === 3 ? (
         <section className="mt-10 flex flex-col gap-8">
           <div className="rounded-xl border border-[var(--linea)] p-6">
@@ -283,7 +295,7 @@ export function Wizard({ narradorId, nombre, edicion: inicial, capitulos, respue
               <dt className="text-[var(--texto-menor)]">Título</dt><dd>{titulo}</dd>
               <dt className="text-[var(--texto-menor)]">Subtítulo</dt><dd>{subtitulo || "—"}</dd>
               <dt className="text-[var(--texto-menor)]">Portada</dt><dd>{fotoPortada ? "Con foto" : "Sin foto"}</dd>
-              <dt className="text-[var(--texto-menor)]">Capítulos</dt><dd>{orden.join(" · ")}</dd>
+              <dt className="text-[var(--texto-menor)]">Capítulos</dt><dd>{orden.map((c) => titulos[c]?.trim() || c).join(" · ")}</dd>
               <dt className="text-[var(--texto-menor)]">Respuestas</dt><dd>{respuestas.length - excluidas.size} de {respuestas.length}{excluidas.size > 0 ? ` (${excluidas.size} afuera)` : ""}</dd>
               <dt className="text-[var(--texto-menor)]">Nombres</dt><dd>{nombresRevisados ? "Revisados" : "Sin revisar"}</dd>
               <dt className="text-[var(--texto-menor)]">Correcciones</dt><dd>{correcciones ? "Sí" : "Ninguna"}</dd>
@@ -292,8 +304,9 @@ export function Wizard({ narradorId, nombre, edicion: inicial, capitulos, respue
 
           <div className="rounded-xl border-2 border-[var(--texto)] p-6">
             <p className="text-[17px] leading-relaxed">
-              <strong className="font-medium">Al cerrar el libro, se produce tal como está.</strong> Después de este paso no se puede
-              volver atrás ni pedir devolución por cómo quedó escrito o armado. Este es el momento de revisar.
+              <strong className="font-medium">Al encargar, el libro se produce tal como está:</strong> se arma el PDF y el audiolibro, se
+              mandan a imprimir las copias y las fotos de los marcos que compraste, y se prepara el envío. Después de este paso no
+              se puede volver atrás ni pedir devolución por cómo quedó escrito o armado. Este es el momento de revisar.
             </p>
             <label className="mt-5 flex items-start gap-3 text-[15px]">
               <input type="checkbox" checked={confirmo} onChange={(e) => setConfirmo(e.target.checked)} className="mt-1 h-4 w-4" />
@@ -304,9 +317,10 @@ export function Wizard({ narradorId, nombre, edicion: inicial, capitulos, respue
           {error ? <p className="text-sm text-[var(--alerta)]">{error}</p> : null}
 
           <div className="flex flex-wrap items-center gap-4">
-            <button type="button" disabled={ocupado || !confirmo} onClick={cerrar} className={`${boton} bg-[var(--acento)] px-8 text-[var(--sobre-acento)] hover:opacity-90`}>
-              {ocupado ? "Cerrando…" : `Cerrar el libro de ${nombre}`}
+            <button type="button" disabled={ocupado || !confirmo} onClick={cerrar} className={`${boton} h-13 bg-[var(--acento)] px-10 text-[16px] text-[var(--sobre-acento)] hover:opacity-90`}>
+              {ocupado ? "Encargando…" : "Encargar"}
             </button>
+            <span className="text-sm text-[var(--texto-menor)]">{propia ? "Tu libro" : `El libro de ${nombre}`}, tal como lo revisaste.</span>
             <button type="button" className={chico} disabled={ocupado} onClick={() => setPaso(2)}>Volver a revisar</button>
           </div>
         </section>

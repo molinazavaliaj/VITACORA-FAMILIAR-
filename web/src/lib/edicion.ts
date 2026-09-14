@@ -7,8 +7,12 @@ export type Edicion = {
   subtitulo?: string;
   portadaFotoId?: string | null;
   contratapaFotoId?: string | null; // 13/09: las tres se eligen en Encargar libro
-  marcoFotoId?: string | null;
+  marcoFotoId?: string | null;      // = marcosFotoIds[0]; se mantiene para la fábrica
+  /** Un marco por primo, cada uno con su foto (13/09). null = todavía sin elegir. */
+  marcosFotoIds?: (string | null)[];
   ordenCapitulos?: string[];
+  /** Capítulo del guion → título en el libro (13/09). Sin entrada = el del guion. */
+  titulosCapitulos?: Record<string, string>;
   excluidas?: string[]; // respuestas.id
   correcciones?: string;
 };
@@ -16,9 +20,14 @@ export type Edicion = {
 export const TITULO_MAXIMO = 80;
 export const SUBTITULO_MAXIMO = 80;
 export const CORRECCIONES_MAXIMO = 4000;
+export const TITULO_CAPITULO_MAXIMO = 60;
 
 /** La propuesta de la casa: lo que se produce si ella no toca nada. */
-export type EdicionCompleta = Required<Omit<Edicion, "portadaFotoId" | "contratapaFotoId" | "marcoFotoId">> & {
+export const MARCOS_MAXIMO = 20;
+
+export type EdicionCompleta = Required<Omit<Edicion, "portadaFotoId" | "contratapaFotoId" | "marcoFotoId" | "titulosCapitulos" | "marcosFotoIds">> & {
+  titulosCapitulos: Record<string, string>;
+  marcosFotoIds: (string | null)[];
   portadaFotoId: string | null;
   contratapaFotoId: string | null;
   marcoFotoId: string | null;
@@ -31,7 +40,9 @@ export function propuestaPorDefecto(nombre: string, nombreCompleto: string, capi
     portadaFotoId: null,
     contratapaFotoId: null,
     marcoFotoId: null,
+    marcosFotoIds: [],
     ordenCapitulos: capitulos,
+    titulosCapitulos: {},
     excluidas: [],
     correcciones: "",
   };
@@ -75,6 +86,28 @@ export function validarEdicion(
     const v = e[campo];
     if (v !== null && (typeof v !== "string" || !UUID_RE.test(v))) return { ok: false, mensaje };
     cambios[campo] = v as string | null;
+  }
+  if ("marcosFotoIds" in e) {
+    const lista = e.marcosFotoIds;
+    if (!Array.isArray(lista) || lista.length > MARCOS_MAXIMO || !lista.every((v) => v === null || (typeof v === "string" && UUID_RE.test(v)))) {
+      return { ok: false, mensaje: "Las fotos de los marcos no son válidas." };
+    }
+    cambios.marcosFotoIds = lista as (string | null)[];
+    cambios.marcoFotoId = (lista[0] as string | null | undefined) ?? null;
+  }
+  if ("titulosCapitulos" in e) {
+    const t = e.titulosCapitulos;
+    if (!t || typeof t !== "object" || Array.isArray(t)) return { ok: false, mensaje: "Los títulos de capítulos no son válidos." };
+    const validos = new Set(contexto.capitulosValidos);
+    const limpio: Record<string, string> = {};
+    for (const [cap, valor] of Object.entries(t as Record<string, unknown>)) {
+      if (!validos.has(cap)) return { ok: false, mensaje: `El capítulo "${cap}" no existe en este libro.` };
+      if (typeof valor !== "string") return { ok: false, mensaje: "El título tiene que ser un texto." };
+      const v = valor.trim().replace(/\s+/g, " ");
+      if (v.length > TITULO_CAPITULO_MAXIMO) return { ok: false, mensaje: `El título de "${cap}" es muy largo (máximo ${TITULO_CAPITULO_MAXIMO} letras).` };
+      if (v) limpio[cap] = v; // vacío = vuelve al del guion
+    }
+    cambios.titulosCapitulos = limpio;
   }
   if ("ordenCapitulos" in e) {
     const lista = e.ordenCapitulos;

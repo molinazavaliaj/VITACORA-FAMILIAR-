@@ -16,6 +16,26 @@ export const ESTADO_EN_HUMANO: Record<string, string> = {
   cerrado_anticipado: "Cerramos la entrevista antes de tiempo",
 };
 
+/** Cuando el libro es del que compra ("para mí"): el panel le habla de vos. */
+export const ESTADO_EN_HUMANO_PROPIO: Record<string, string> = {
+  pendiente_pago: "Estamos confirmando el pago — apenas entre, te escribimos",
+  invitado: "Te mandamos el primer mensaje por WhatsApp, falta que aceptes",
+  acepto: "Aceptaste — pronto te llega la primera pregunta",
+  activo: "Estás respondiendo, día a día",
+  pausado: "Pediste una pausa — retomás cuando quieras",
+  completado: "Terminaste de contar tu historia",
+  cerrado_anticipado: "Cerramos la entrevista antes de tiempo",
+};
+
+export function estadoEnHumano(estado: string, propia: boolean): string {
+  return (propia ? ESTADO_EN_HUMANO_PROPIO : ESTADO_EN_HUMANO)[estado] ?? estado;
+}
+
+/** "La historia de Roberto", o "Tu historia" cuando es propia. */
+export function tituloHistoria(nombre: string, propia: boolean): string {
+  return propia ? "Tu historia" : `La historia de ${nombre}`;
+}
+
 export const TOTAL_PREGUNTAS_BASE = 30;
 
 export function Contenedor({ children, ancho = "max-w-3xl" }: { children: ReactNode; ancho?: string }) {

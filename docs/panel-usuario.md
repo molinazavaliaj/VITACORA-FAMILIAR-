@@ -446,9 +446,26 @@ Preguntas con el guion editable). Queda **una**.
   lógica de la fábrica (foto principal abre el capítulo, las demás lo cierran,
   texto cortado en oraciones, capítulos a la derecha). ⚠️ 3t.8 (Naza): cuando la
   fábrica exponga su HTML paginado, la miniatura lo muestra en vez de armarlo.
-- Las tres fotos se eligen con `PATCH /api/edicion` en cualquier momento (solo
-  esas tres claves pasan antes de que termine); título, capítulos y cierre
+- Las fotos se eligen en cualquier momento (`PATCH /api/edicion` acepta solo
+  las claves de fotos antes de que termine); título, capítulos y el encargo
   siguen esperando al final.
+- **Revisión del 13/09 (noche):**
+  - El botón final del wizard es **"Encargar"**: es la orden de producir (PDF,
+    audiolibro, imprimir copias y fotos de los marcos, preparar el envío). Es
+    el mismo `POST /api/edicion {accion:'cerrar'}` de siempre.
+  - **Títulos de capítulos editables** (`edicion.titulosCapitulos`), en el paso
+    Capítulos del wizard; el libro los usa, el guion no cambia.
+  - **El álbum:** al subir una foto, "Todavía no sé — al álbum del libro". En
+    Encargar libro, el álbum se ve arriba y las fotos se **arrastran** (o se
+    eligen tocando) a la portada de cada capítulo, la tapa, la contratapa o un
+    marco. Mover una foto a un capítulo es `PATCH /api/fotos/[id]`.
+  - **Un marco por primo, con su foto** (`edicion.marcosFotoIds`): tantas
+    ranuras como marcos comprados (mínimo una). El tag NFC apunta al link
+    público del libro.
+  - **Autobiografía** (`contexto.vinculoComprador = "yo mismo"`, `esPropia()`):
+    el panel le habla de vos ("Tu historia", "terminaste de contar").
+  - Sidebar: sin selector de historia (está en el riel); abajo, **Tu cuenta**
+    (`/tablero/cuenta`) y **Cerrar sesión** (`/api/auth/salir`).
 
 ### 15.5 · Qué toca a quién
 

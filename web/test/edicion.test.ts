@@ -54,3 +54,30 @@ describe("tapa, contratapa y marco (13/09)", () => {
     expect(validarEdicion({ marcoFotoId: 3 }, ctx).ok).toBe(false);
   });
 });
+
+describe("títulos de capítulos (13/09)", () => {
+  const ctx = { capitulosValidos: ["La infancia", "El amor"], respuestasValidas: new Set<string>() };
+  it("acepta renombrar capítulos válidos; ignora los vacíos (vuelven al original)", () => {
+    const r = validarEdicion({ titulosCapitulos: { "La infancia": "  Los primeros años ", "El amor": "" } }, ctx);
+    expect(r.ok).toBe(true);
+    if (r.ok) expect(r.cambios).toEqual({ titulosCapitulos: { "La infancia": "Los primeros años" } });
+  });
+  it("rechaza un capítulo que no existe o un título muy largo", () => {
+    expect(validarEdicion({ titulosCapitulos: { Otro: "x" } }, ctx).ok).toBe(false);
+    expect(validarEdicion({ titulosCapitulos: { "El amor": "a".repeat(61) } }, ctx).ok).toBe(false);
+  });
+});
+
+describe("marcos con fotos distintas (13/09)", () => {
+  const ctx = { capitulosValidos: [], respuestasValidas: new Set<string>() };
+  const a = "0f4a2a2e-6d7a-4a5e-9a9f-0f4a2a2e6d7a";
+  it("acepta una lista de uuid o null, y el primero también queda como marcoFotoId", () => {
+    const r = validarEdicion({ marcosFotoIds: [a, null, a] }, ctx);
+    expect(r.ok).toBe(true);
+    if (r.ok) expect(r.cambios).toEqual({ marcosFotoIds: [a, null, a], marcoFotoId: a });
+  });
+  it("rechaza basura y más de 20", () => {
+    expect(validarEdicion({ marcosFotoIds: ["x"] }, ctx).ok).toBe(false);
+    expect(validarEdicion({ marcosFotoIds: Array(21).fill(null) }, ctx).ok).toBe(false);
+  });
+});

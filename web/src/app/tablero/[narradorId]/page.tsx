@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
-import { historiaAccesible, historiasDelUsuario, PUEDE } from "@/lib/panel";
+import { esPropia, historiaAccesible, historiasDelUsuario, PUEDE } from "@/lib/panel";
 import { ADAPTATIVAS, lugarLibre, puedeSaltar, validarRitmo, type PreguntaGuion, type Ritmo } from "@/lib/guion";
 import { BannerAlertaSilencio, CierreAnticipado } from "../acciones";
 import { AgregarPregunta, Ajustes, EditorGuion, SubirFoto } from "./preguntas/acciones";
@@ -15,7 +15,8 @@ import { VistaMuestra } from "../../muestra";
 import { ReproductorRespuesta } from "../reproductor";
 import {
   Contenedor,
-  ESTADO_EN_HUMANO,
+  estadoEnHumano,
+  tituloHistoria,
   EstadoError,
   Etiqueta,
   ProximoPaso,
@@ -72,6 +73,7 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
   if (!historia) notFound();
 
   const { narrador: n, rol } = historia;
+  const propia = esPropia(n); // "para mí": el panel le habla de vos
 
   // El visitante (guardó el link del libro cerrado) ve la muestra, no la historia.
   if (!PUEDE.verHistoriaCompleta(rol)) {
@@ -194,7 +196,7 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
   const sobreOrden = typeof sobre === "string" ? Number(sobre) : null;
   const preguntaSobre = sobreOrden ? porOrden.get(sobreOrden) : null;
 
-  const historiasRiel = panel.historias.map((h) => ({ id: h.narrador.id, nombre: h.narrador.nombre, rol: h.rol, estado: h.narrador.estado }));
+  const historiasRiel = panel.historias.map((h) => ({ id: h.narrador.id, nombre: h.narrador.nombre, rol: h.rol, estado: h.narrador.estado, propia: esPropia(h.narrador) }));
 
   return (
     <div className="mx-auto flex w-full max-w-6xl gap-10 px-6 py-8 md:px-10 md:py-10">
@@ -219,10 +221,10 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
           <div className="min-w-0">
             <Etiqueta>{rol === "invitado" ? "Te invitaron a esta historia" : editando ? "Historia · editando el guion" : "Historia"}</Etiqueta>
             <div className="mt-1">
-              <Titulo>La historia de {n.nombre}</Titulo>
+              <Titulo>{tituloHistoria(n.nombre, propia)}</Titulo>
             </div>
             <p className="mt-2 text-[15px] text-[var(--texto-suave)]">
-              {editando ? "Las que ya se mandaron no se tocan. Las que vienen, sí: editá, sacá, mové." : (ESTADO_EN_HUMANO[n.estado] ?? n.estado)}
+              {editando ? "Las que ya se mandaron no se tocan. Las que vienen, sí: editá, sacá, mové." : estadoEnHumano(n.estado, propia)}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -259,7 +261,7 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
             <p className="text-sm text-[var(--texto-menor)] [font-family:var(--fuente-micro)] tabular-nums">{respondidas} de {total} respuestas</p>
             {segundosDeVoz > 0 ? (
               <p className="text-sm text-[var(--texto-menor)] [font-family:var(--fuente-micro)]">
-                <span className="text-[var(--texto)] tabular-nums">{formatearDuracion(segundosDeVoz)}</span> de su voz
+                <span className="text-[var(--texto)] tabular-nums">{formatearDuracion(segundosDeVoz)}</span> {propia ? "de tu voz" : "de su voz"}
               </p>
             ) : null}
           </div>
@@ -291,7 +293,7 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
         {cerrado ? (
           <div className="mt-8">
             <ProximoPaso href={PUEDE.cerrarLibro(rol) ? `/tablero/${n.id}/libro` : `/tablero/${n.id}/leer`}>
-              {PUEDE.cerrarLibro(rol) ? "Dale los últimos retoques y cerrá su libro" : "Leer su libro"}
+              {PUEDE.cerrarLibro(rol) ? (propia ? "Dale los últimos retoques y encargá tu libro" : "Dale los últimos retoques y encargá su libro") : "Leer su libro"}
             </ProximoPaso>
           </div>
         ) : null}
@@ -302,7 +304,8 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
               narradorId={n.id}
               capitulos={capitulosConocidos}
               lugarLibre={lugar}
-              textoInicial={preguntaSobre ? `Me gustaría que me cuente más sobre esto: "${preguntaSobre.texto}"` : ""}
+              textoInicial={preguntaSobre ? (propia ? `Quiero contar más sobre esto: "${preguntaSobre.texto}"` : `Me gustaría que me cuente más sobre esto: "${preguntaSobre.texto}"`) : ""}
+              propia={propia}
               capituloInicial={preguntaSobre?.capitulo}
             />
           </div>
@@ -349,7 +352,7 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
                           <span className="text-[22px] leading-[1.2] text-[var(--linea)] [font-family:var(--fuente-titulo)] tabular-nums">{p.orden}</span>
                           <p className="text-[14.5px] leading-[1.55] [font-family:var(--fuente-cuerpo)] font-light">{p.texto}</p>
                           <span className="col-start-2 text-[11px] uppercase [font-family:var(--fuente-micro)] [letter-spacing:0.18em] sm:col-start-3">
-                            {porVenirEsta ? "todavía no" : "enviada · esperando su audio"}
+                            {porVenirEsta ? "todavía no" : propia ? "enviada · esperando tu audio" : "enviada · esperando su audio"}
                           </span>
                         </div>
                       );
@@ -391,7 +394,7 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
                                 href={`/tablero/${n.id}?editar=1&sobre=${p.orden}`}
                                 className="text-[13px] text-[var(--acento)] underline decoration-[var(--linea-fuerte)] underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--acento)] [font-family:var(--fuente-micro)]"
                               >
-                                Pedirle que cuente más
+                                {propia ? "Contar más sobre esto" : "Pedirle que cuente más"}
                               </Link>
                             ) : null}
                           </div>
@@ -430,17 +433,18 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
           {!editando && (fotosDelLibro.length > 0 || puedeAgregar) ? (
             <section aria-labelledby="fotos-del-libro">
               <div className="flex items-end justify-between gap-4 border-b border-[var(--linea)] pb-4">
-                <h2 id="fotos-del-libro" className="text-2xl font-medium leading-none [font-family:var(--fuente-titulo)]">Fotos del libro</h2>
-                <span className="shrink-0 text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.18em]">tapa · contratapa · marco</span>
+                <h2 id="fotos-del-libro" className="text-2xl font-medium leading-none [font-family:var(--fuente-titulo)]">El álbum del libro</h2>
+                <span className="shrink-0 text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.18em]">sin lugar todavía</span>
               </div>
               <p className="mt-4 text-[15px] leading-relaxed text-[var(--texto-suave)]">
-                Las que no son de una época: las que querés para la tapa, la contratapa o el marco. Cuál va a dónde se elige en{" "}
-                <Link href={`/tablero/${n.id}/libro`} className="underline decoration-[var(--linea-fuerte)] underline-offset-4">Encargar libro</Link>.
+                Las fotos que todavía no tienen lugar. En{" "}
+                <Link href={`/tablero/${n.id}/libro`} className="underline decoration-[var(--linea-fuerte)] underline-offset-4">Encargar libro</Link>{" "}
+                las arrastrás a la portada de un capítulo, a la tapa, a la contratapa o a un marco, y ves cómo queda en la previsualización.
               </p>
               <GaleriaCapitulo fotos={fotosDelLibro} usuarioId={user.id} esDuena={rol === "duena"} />
               {puedeAgregar ? (
                 <div className="mt-5">
-                  <SubirFoto narradorId={n.id} capitulos={capitulosConocidos}>+ Agregar una foto del libro</SubirFoto>
+                  <SubirFoto narradorId={n.id} capitulos={capitulosConocidos}>+ Agregar una foto al álbum</SubirFoto>
                 </div>
               ) : null}
             </section>
@@ -449,7 +453,7 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
           {!cerrado && !guion.some((p) => p.tipo === "adaptativa") ? (
             <p className="flex gap-4 text-[var(--texto-menor)]">
               <span className="w-8 shrink-0 text-right text-sm tabular-nums [font-family:var(--fuente-micro)]">+{ADAPTATIVAS}</span>
-              <span className="text-[15px] italic">Las cuatro finales las escribe el biógrafo con todo lo que él haya contado.</span>
+              <span className="text-[15px] italic">Las cuatro finales las escribe el biógrafo con todo lo que {propia ? "hayas" : "él haya"} contado.</span>
             </p>
           ) : null}
         </div>

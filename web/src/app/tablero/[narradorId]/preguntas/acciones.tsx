@@ -93,7 +93,7 @@ export const SIN_CAPITULO = ""; // la foto es del libro: tapa, contratapa o marc
 function SelectorCapitulo({ capitulos, valor, onChange, conGeneral = false }: { capitulos: string[]; valor: string; onChange: (c: string) => void; conGeneral?: boolean }) {
   return (
     <select value={valor} onChange={(e) => onChange(e.target.value)} className={`${campo} [font-family:var(--fuente-micro)] text-[15px]`}>
-      {conGeneral ? <option value={SIN_CAPITULO}>Del libro — para la tapa, la contratapa o el marco</option> : null}
+      {conGeneral ? <option value={SIN_CAPITULO}>Todavía no sé — al álbum del libro</option> : null}
       {capitulos.map((c) => (
         <option key={c} value={c}>{c}</option>
       ))}
@@ -254,8 +254,8 @@ export function EditorGuion({
 // ── agregar una pregunta (dueña e invitados) ───────────────────────────
 
 export function AgregarPregunta({
-  narradorId, capitulos, lugarLibre, textoInicial = "", capituloInicial,
-}: { narradorId: string; capitulos: string[]; lugarLibre: number; textoInicial?: string; capituloInicial?: string }) {
+  narradorId, capitulos, lugarLibre, textoInicial = "", capituloInicial, propia = false,
+}: { narradorId: string; capitulos: string[]; lugarLibre: number; textoInicial?: string; capituloInicial?: string; propia?: boolean }) {
   const router = useRouter();
   const [abierto, setAbierto] = useState(Boolean(textoInicial));
   const [modo, setModo] = useState<"escribir" | "foto">("escribir");
@@ -342,7 +342,7 @@ export function AgregarPregunta({
         {modo === "foto" ? (
           <>
             <p className="text-[15px] leading-relaxed text-[var(--texto-suave)]">
-              El biógrafo le manda la foto por WhatsApp con tu pregunta. Lo que cuente entra al libro junto con la foto.
+              {propia ? "El biógrafo te manda la foto por WhatsApp con la pregunta. Lo que cuentes entra al libro junto con la foto." : "El biógrafo le manda la foto por WhatsApp con tu pregunta. Lo que cuente entra al libro junto con la foto."}
             </p>
             <CampoFoto onElegir={(a, m) => { setArchivo(a); setMedida(m); }} />
             <VistaPreviaFoto archivo={archivo} calidad={calidad} />
@@ -436,7 +436,7 @@ export function SubirFoto({ narradorId, capitulos, capituloInicial, children, va
           <span className="text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.2em]">Dónde va</span>
           <SelectorCapitulo capitulos={capitulos} valor={capitulo} onChange={setCapitulo} conGeneral={esGeneral} />
           {capitulo === SIN_CAPITULO ? (
-            <span className="text-sm text-[var(--texto-menor)]">Las fotos del libro no van en ningún capítulo: en Encargar libro elegís cuál es la tapa, la contratapa y la del marco.</span>
+            <span className="text-sm text-[var(--texto-menor)]">Queda en el álbum del libro, sin lugar todavía. Después, en Encargar libro, la arrastrás a donde quieras: la portada de un capítulo, la tapa, la contratapa o un marco.</span>
           ) : null}
         </label>
         <label className="flex flex-col gap-2">

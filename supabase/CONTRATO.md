@@ -76,7 +76,13 @@ la web. Proveedor de clonación a definir antes de vender el primero.
 `narradores.edicion` (jsonb, escribe la web, lee la fábrica):
 `{ordenCapitulos: text[], excluidas: uuid[], titulo, subtitulo, portadaFotoId, correcciones}`.
 
-**14/09 — se suman a `edicion`:** `contratapaFotoId` y `marcoFotoId` (uuid de `fotos` o null), al lado de `portadaFotoId`. La fábrica pone la contratapa en el PDF impreso y usa `marcoFotoId` para producir los marcos. Las tres pueden apuntar a fotos con `capitulo` NULL o con capítulo.
+**14/09 — se suman a `edicion`:**
+- `contratapaFotoId` (uuid de `fotos` o null): la contratapa del impreso.
+- `marcosFotoIds` (lista de uuid o null, uno por marco comprado, en orden): **cada marco lleva su foto** — el abuelo con cada primo, por ejemplo. `marcoFotoId` = el primero, se mantiene por compatibilidad. Un null = todavía no eligió; la fábrica usa la tapa.
+- `titulosCapitulos` (`{ "<capítulo del guion>": "<título en el libro>" }`): la familia puede renombrar capítulos. Sin entrada = el del guion. La fábrica imprime el título del libro; el guion no cambia.
+- Todas pueden apuntar a fotos con `capitulo` NULL (el álbum) o con capítulo.
+
+**El tag NFC de cada marco** apunta al link público del libro (`/libro/<token>`, el mismo de "compartir"): quien lo acerca ve la muestra y, si compra, el lector completo. ⚠️ Idea para la fábrica (13/09): las **muletillas** — frases cortas sacadas de los audios de cada capítulo — como pieza aparte del audiolibro, para que suenen desde el marco.
 
 `narradores.libro_aprobado_at`: lo escribe la web cuando la dueña aprieta **Cerrar libro**.
 **Es el punto de aprobación del cliente: la fábrica no produce nada sin esto**, ni el PDF

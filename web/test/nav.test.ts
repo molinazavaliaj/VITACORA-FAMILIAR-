@@ -25,6 +25,10 @@ describe("leerUbicacion", () => {
     expect(leerUbicacion("/tablero/n1/libro", historias).seccion).toBe("libro");
   });
 
+  it("/tablero/cuenta no marca ninguna sección", () => {
+    expect(leerUbicacion("/tablero/cuenta", historias).seccion).toBe("cuenta");
+  });
+
   it("un id desconocido cae en Inicio con la primera historia", () => {
     expect(leerUbicacion("/tablero/otro/libro", historias)).toEqual({ historia: historias[0], seccion: "inicio" });
   });

@@ -110,6 +110,14 @@ describe("PATCH /api/guion", () => {
     expect(escrituras).toContainEqual(expect.objectContaining({ tabla: "preguntas", op: "update", valores: { texto: "¿Cómo era su barrio de chico?" }, filtros: { id: "p5" } }));
   });
 
+  it("si la pantalla mostraba la plantilla global, el id que llega es el global: se resuelve por orden a la fila propia", async () => {
+    sesion(martina);
+    const escrituras = armar({ preguntas: [...fijas(26), { id: "g5", narrador_id: null, orden: 5, texto: "Pregunta 5 global", capitulo: "La infancia", tipo: "fija", foto_id: null }] });
+    const r = await PATCH(request({ accion: "editar", id: "g5", texto: "¿Cómo era su barrio de chico?" }));
+    expect(r.status).toBe(200);
+    expect(escrituras[0]).toMatchObject({ tabla: "preguntas", op: "update", filtros: { id: "p5" } });
+  });
+
   it("una pregunta ya enviada no se edita → 400", async () => {
     sesion(martina);
     armar(); // dia_actual = 3
