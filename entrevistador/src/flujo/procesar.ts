@@ -3,6 +3,7 @@ import { db } from '../db/cliente.js';
 import { enviarTexto } from '../whatsapp/enviar.js';
 import { descargarAudio } from '../whatsapp/media.js';
 import { guardarRespuestaAudio } from '../db/respuestas.js';
+import { guardarRepreguntaEnviada } from '../db/envios.js';
 import { transcribirYActualizar } from '../ia/transcribir.js';
 import { evaluarRespuesta, detectarIntencion } from '../ia/cerebro.js';
 import { generarPreguntasAdaptativas } from '../ia/adaptativas.js';
@@ -156,6 +157,9 @@ async function trasResponder(
       await db.from('envios').insert({
         narrador_id: narrador.id, tipo: 'repregunta', pregunta_orden: orden, wa_message_id: waId,
       });
+      // El texto queda guardado para que el panel muestre qué se le preguntó
+      // (la familia ve la respuesta que llegó después; sin esto, no la pregunta).
+      await guardarRepreguntaEnviada(narrador, orden, evaluacion.repregunta);
       repreguntaEnviada = true;
     }
   }

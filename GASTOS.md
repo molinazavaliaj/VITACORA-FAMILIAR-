@@ -33,21 +33,38 @@
   Es repetible con `npm run prueba-cerebro` y se puede correr por secciones (A/B/C/D)
   para gastar menos.
 
-## Costo unitario por cliente (dato de negocio — acordado 2026-09-05)
+## Costo unitario por cliente (ACTUALIZADO 2026-09-14 — reemplaza la tabla del 05/09)
 
-| Concepto | Quién lo paga hoy | Costo |
-|---|---|---|
-| Entrevista de 30 días (cerebro + Whisper) | Joaquín (API propia) | ~USD 3-4 |
-| Libro + audiolibro (escritura + edición + PDF) | Naza (API propia) | ~USD 5 |
-| WhatsApp (Meta, por conversación) | — (llega con narradores reales) | ~USD 1-2 |
-| **Total por cliente que completa y compra** | | **~USD 9-11** |
+Lo que se optimizó desde el 05/09: se sacó el saludo diario generado por IA (era
+el 70% del costo de la entrevista) y se personaliza la pregunta con memoria
+destilada por capítulo. La entrevista pasó de ~USD 4,5-5 a ~USD 1,4.
 
-Contra 49€ de precio: **margen bruto ~80%** antes de ads.
+| Concepto | Antes (05/09) | Hoy | Nota |
+|---|---|---|---|
+| Saludo diario (Opus + historia completa) | ~USD 3,36 | **USD 0** | eliminado por decisión de producto |
+| Transcripción de los 30 audios | ~USD 0,30-0,40 | **~USD 0,30-0,45** | gpt-transcribe; medido 191 s por respuesta real |
+| Evaluación de cada respuesta | ~USD 0,50 | **~USD 0,20-0,28** | medido: Opus + los 5 casos del set dorado |
+| Voz de las preguntas (TTS) | ~USD 0,15 | ~USD 0,15 | gpt-4o-mini-tts |
+| Personalización del biógrafo | — | ~USD 0,12 | Haiku + memoria por capítulo |
+| Adaptativas (una vez, al cerrar el 26) | ~USD 0,26 | ~USD 0,26 | Opus |
+| **Subtotal entrevista** | **~USD 4,5-5** | **~USD 1,15** | |
+| Libro + audiolibro (escritura + edición + PDF) | ~USD 5 | **~USD 4,50-5** | medido con Osvaldo; **no se tocó** (lee todo completo) |
+| WhatsApp (Meta, por conversación) | ~USD 1-2 | ~USD 1-2 | llega con los narradores reales |
+| **Total por cliente que completa y compra** | **~USD 9-11** | **~USD 6 (digital) · ~USD 7,5 (con WhatsApp)** | |
 
-Matiz importante del freemium: el costo NO es 9-11 por cada curioso que prueba.
-La entrevista gasta día a día — el que abandona el día 5 costó ~USD 1, no 4. El
-costo completo solo lo paga quien llegó al final… que es justo el que más
-probablemente compra (30 días de vínculo emocional + el libro ya existe).
+Contra 49€ de precio (**≈ USD 53**): **margen bruto ~86-89%** (antes ~80%).
+
+**El dato que importa de acá en adelante:** el libro es ahora **~el 80% del costo**
+(USD 4,75 de USD 6). La entrevista ya es barata — optimizarla más no mueve la
+aguja; el libro sí, y se decidió que lea todo completo con el modelo grande
+porque ahí está la calidad del producto.
+
+Matiz del abandono (sigue valiendo): el costo se gasta día a día. Un narrador que
+abandona el día 5 costó ~USD 0,25, no 1,15.
+
+> La tabla vieja del 05/09 queda arriba de este párrafo reemplazada por esta. Los
+> escenarios con ads de más abajo siguen siendo del modelo freemium: **hay que
+> rehacerlos** con el pago directo del 11/09.
 
 ## 💳 El modelo de cobro — DECIDIDO el 2026-09-11
 

@@ -1,8 +1,9 @@
 import { db } from '../db/cliente.js';
 import { enviarPlantilla, enviarTexto, enviarAudioPorLink } from '../whatsapp/enviar.js';
-import { generarReconocimiento, generarPreguntaReemplazo } from '../ia/cerebro.js';
+import { generarPreguntaReemplazo } from '../ia/cerebro.js';
+import { personalizarPregunta } from '../ia/personalizar.js';
 import { generarAudioVoz } from '../ia/voz.js';
-import { armarHistoria, ultimaTranscripcion } from '../db/historia.js';
+import { armarHistoria } from '../db/historia.js';
 import { generarPreguntasAdaptativas, PRIMERA_ADAPTATIVA, ULTIMA_ADAPTATIVA } from '../ia/adaptativas.js';
 
 export type Narrador = {
@@ -34,12 +35,12 @@ export function esModoRapido(contexto: Record<string, any>): boolean {
 
 /** La pregunta de ese orden: la propia del narrador si existe, si no la fija global. */
 export async function preguntaDeOrden(narradorId: string, orden: number) {
-  const { data } = await db.from('preguntas').select('texto,capitulo,narrador_id')
+  const { data } = await db.from('preguntas').select('texto,capitulo,narrador_id,tipo')
     .or(`narrador_id.eq.${narradorId},narrador_id.is.null`)
     .eq('orden', orden)
     .order('narrador_id', { nullsFirst: false })
     .limit(1).maybeSingle();
-  return data as { texto: string; capitulo: string; narrador_id: string | null } | null;
+  return data as { texto: string; capitulo: string; narrador_id: string | null; tipo: string } | null;
 }
 
 /** Genera y guarda una pregunta personalizada que reemplaza a la fija que no aplica. */
@@ -92,24 +93,31 @@ export async function enviarPregunta(
   // Regla de reemplazo: el capítulo no aplica a esta vida y todavía no hay reemplazo propio.
   if (pregunta.narrador_id === null && capituloNoAplica(n.contexto, pregunta.capitulo)) {
     texto = await crearReemplazo(n, orden, pregunta.capitulo);
+  } else if (pregunta.tipo === 'fija') {
+    // El biógrafo que escucha: las preguntas del guion se reescriben con lo que
+    // el narrador ya contó ("¿a qué jugaba de chico?" → "con el Rubén y la Marta
+    // en Villa Domínico, ¿a qué jugaban en ese patio?"). Las que escribió la
+    // familia y las que generó el modelo ya vienen con contexto: se mandan tal cual.
+    // Si algo falla, `personalizarPregunta` devuelve el original.
+    const personalizada = await personalizarPregunta(n, texto, orden);
+    texto = personalizada.texto;
+    if (!personalizada.personalizada && personalizada.motivo) {
+      console.warn(`preguntar: orden ${orden} de ${n.id} sale sin personalizar (${personalizada.motivo}).`);
+    }
   }
 
-  const reconocimiento = n.dia_actual === 0
-    ? 'Hoy empezamos este viaje.'
-    : await generarReconocimiento(
-        n.como_le_dicen,
-        await ultimaTranscripcion(n.id),
-        texto,
-        await armarHistoria(n.id),
-        n.contexto?.arbol ?? {},
-        n.contexto?.anioNacimiento,
-      );
+  // El saludo personalizado se sacó el 2026-09-14 (decisión de producto de los
+  // socios, no de costo): cada día era una llamada a Opus con TODA la historia
+  // pegada al prompt (~USD 3,36 por narrador, el 70% del costo de la entrevista)
+  // para decidir si agregaba una frase opcional. Ahora la pregunta sale sola.
+  // La plantilla `pregunta_diaria` de Meta pasa a tener UNA variable.
+  const mensaje = `La pregunta de hoy: ${texto}\n\nCuando quiera, me responde con un audio. Sin apuro. 🎙️`;
 
   const waId = plantilla
-    ? await enviarPlantilla(n.telefono_whatsapp, 'pregunta_diaria', [reconocimiento, texto])
-    : await enviarTexto(n.telefono_whatsapp, `${reconocimiento}\n\nLa pregunta de hoy: ${texto}\n\nCuando quiera, me responde con un audio. Sin apuro. 🎙️`);
+    ? await enviarPlantilla(n.telefono_whatsapp, 'pregunta_diaria', [texto])
+    : await enviarTexto(n.telefono_whatsapp, mensaje);
 
-  await enviarVozDeLaPregunta(n, orden, `${reconocimiento} ${texto}`);
+  await enviarVozDeLaPregunta(n, orden, texto);
 
   const avance: Record<string, unknown> = { dia_actual: orden };
   if (n.estado === 'acepto') avance.estado = 'activo';
