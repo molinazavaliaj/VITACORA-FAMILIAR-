@@ -38,13 +38,14 @@ record tipo Paddle/Lemon Squeezy). Decisión del 2026-09-04.
 
 ## 🔴 CAMINO CRÍTICO — lo único que no puede atrasarse
 
-    WhatsApp funcionando ............ 12 de septiembre   ← fecha límite dura
-    Piloto arranca .................. 13-15 de septiembre
+    WhatsApp funcionando ............ ~~12 de septiembre~~ → **no pasó. Nueva fecha: 19 de septiembre**
+    Piloto arranca .................. 20-22 de septiembre
     30 respuestas (modo rápido) ..... 7-10 días
-    Libro generado y revisado ....... 25-28 de septiembre
+    Libro generado y revisado ....... 1-5 de octubre
 
-Si WhatsApp no está vivo el 12, **no hay libro real el 1 de octubre**. Todo lo demás
-tiene margen; esto no.
+Si WhatsApp no está vivo el 19, **no hay libro real para el 15 de octubre**. Todo lo demás
+tiene margen; esto no. (Actualizado el 14/09: la semana 2 se fue en el panel y el modelo
+de tres productos; Meta sigue en cero.)
 
 ### El conflicto a resolver esta semana
 
@@ -415,7 +416,7 @@ Spec: `docs/panel-usuario.md`. Construyó Joaquín en `web/` (Naza sin créditos
 | 3t.10 | Mails de hitos del entrevistador + guion por narrador + adaptativas al final real + imagen por WhatsApp + oferta de la siguiente + `contexto.evitar` (spec §11) | **J** | ☐ próxima sesión |
 | 3t.11 | Fábrica: leer `narradores.edicion`, ubicar `fotos`, **no producir sin `libro_aprobado_at`**, cierre automático a los 30 días (spec §12) | **N** | ☐ |
 | 3t.12 | Sugeridas por IA a pedido (§6.2, tercer botón) | **J** | ☐ fase siguiente |
-| **3t.13** | **Rediseño 13/09 (tarde)** — landing con maquetas en código + CTA sticky; tema claro/oscuro; nav de 3; la historia ES el guion (riel, filas, modo edición); fotos sin capítulo; **tres productos, al menos uno** (PDF · audiolibro · impreso); el lector (`/leer`, nada se descarga); libro en miniatura + tapa/contratapa/marco. Spec: `docs/panel-usuario.md` §15. Lienzo: `docs/diseno/panel-v2/`. | **J** | ✅ 13/09 · ⚠️ pendiente de revisión de Joaquín antes de pushear |
+| **3t.13** | **Rediseño 13/09 (tarde)** — landing con maquetas en código + CTA sticky; tema claro/oscuro; nav de 3; la historia ES el guion (riel, filas, modo edición); fotos sin capítulo; **tres productos, al menos uno** (PDF · audiolibro · impreso); el lector (`/leer`, nada se descarga); libro en miniatura + tapa/contratapa/marco. Spec: `docs/panel-usuario.md` §15. Lienzo: `docs/diseno/panel-v2/`. | **J** | ✅ 13/09 · revisado y pusheado el 14/09 |
 | 3t.14 | Fábrica: leer `pedidos.extras` nuevo (pdf / audiolibro{voz} / impreso / marcos), **audiolibro con voz clonada o narrador** (elegir proveedor), contratapa y marco desde `edicion`, HTML paginado para el lector y la miniatura | **N** | ☐ |
 | 3t.15 | Entrevistador: muestras de voz limpias para clonar | **J** | ☐ |
 
