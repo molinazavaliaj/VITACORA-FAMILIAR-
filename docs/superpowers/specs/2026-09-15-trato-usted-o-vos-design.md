@@ -165,6 +165,16 @@ la frase vieja", que es un test que no puede fallar nunca más.
   original (`personalizar.ts:206`, regla de seguridad n.º 2: el guion firmado
   nunca se pierde). Un narrador de "vos" va a recibir, cada tanto, una pregunta
   en usted. Se prefiere eso a tocar el guion que firmaron los dos socios.
+- **La plantilla de Meta sigue en usted.** El cuerpo de `pregunta_diaria`
+  (`PLANTILLAS.md:26-28`) incluye *"Cuando quiera, me responde con un audio"* y
+  lo aprueba Meta, no nosotros. Cuando el mensaje sale **por plantilla** (fuera
+  de la ventana de 24 h) el narrador lee esa cola en usted aunque su trato sea
+  `vos`. El texto libre —modo rápido, dentro de la ventana, y toda la puerta
+  manual— sí respeta el trato. El gemelo sería una plantilla nueva
+  `pregunta_diaria_vos`, que hay que cargar y hacer aprobar en Meta **antes** de
+  apuntarle desde el código: mandar a una plantilla inexistente deja al narrador
+  sin mensaje. Hoy no hay ninguna plantilla cargada (la cuenta de Joaquín sigue
+  bloqueada), así que no urge — queda anotado en `PLANTILLAS.md`.
 - **Los mails de hitos** (`mail/hitos.ts`) los lee la familia compradora, no el
   narrador: quedan como están.
 - **La ficha vacía del checkout** (§2.1): fuera de alcance, es la pantalla que
