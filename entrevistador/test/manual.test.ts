@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   parsearArgs, slug, ordenDeArchivo, archivoCanonico, proximoOrden,
-  mensajeDePregunta, despedida, planDeCarga, esAudio, promptDeTranscripcion, primeraDiferencia,
+  mensajeDePregunta, despedida, bienvenidaAceptacion, planDeCarga, esAudio, promptDeTranscripcion, primeraDiferencia,
 } from '../src/manual/puro.js';
 
 // La puerta manual resuelve con archivos lo que el webhook resuelve con
@@ -173,5 +173,43 @@ describe('primeraDiferencia', () => {
 
   it('si uno es prefijo del otro, marca el final del corto', () => {
     expect(primeraDiferencia('hola', 'hola mundo')).toBe(4);
+  });
+});
+
+describe('los seis textos fijos, en los dos tratos', () => {
+  it('la cola de la pregunta, en usted', () => {
+    expect(mensajeDePregunta('¿Cómo era su casa?')).toBe(
+      'La pregunta de hoy: ¿Cómo era su casa?\n\nCuando quiera, me responde con un audio. Sin apuro. 🎙️',
+    );
+  });
+
+  it('la cola de la pregunta, en vos', () => {
+    expect(mensajeDePregunta('¿Cómo era tu casa?', 'vos')).toBe(
+      'La pregunta de hoy: ¿Cómo era tu casa?\n\nCuando quieras, me respondés con un audio. Sin apuro. 🎙️',
+    );
+  });
+
+  it('la despedida, en usted', () => {
+    expect(despedida('Don Osvaldo')).toBe(
+      'Don Osvaldo... llegamos al final del viaje. Treinta charlas, una vida entera. Fue un honor enorme escucharlo. Su historia ya está siendo convertida en su libro.',
+    );
+  });
+
+  it('la despedida, en vos', () => {
+    expect(despedida('Ciro', 'vos')).toBe(
+      'Ciro... llegamos al final del viaje. Treinta charlas, una vida entera. Fue un honor enorme escucharte. Tu historia ya está siendo convertida en tu libro.',
+    );
+  });
+
+  it('la bienvenida, en usted', () => {
+    expect(bienvenidaAceptacion('Don Osvaldo')).toBe(
+      '¡Qué alegría, Don Osvaldo! Mañana a la mañana le llega la primera pregunta. No hay apuro ni respuestas incorrectas: esto es una charla entre usted y yo, a su ritmo. 📖',
+    );
+  });
+
+  it('la bienvenida, en vos', () => {
+    expect(bienvenidaAceptacion('Ciro', 'vos')).toBe(
+      '¡Qué alegría, Ciro! Mañana a la mañana te llega la primera pregunta. No hay apuro ni respuestas incorrectas: esto es una charla entre vos y yo, a tu ritmo. 📖',
+    );
   });
 });

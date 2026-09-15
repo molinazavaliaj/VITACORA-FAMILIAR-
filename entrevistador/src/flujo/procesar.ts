@@ -10,6 +10,7 @@ import { generarPreguntasAdaptativas } from '../ia/adaptativas.js';
 import { preguntaDeOrden, tieneAdaptativas, ultimoOrden } from '../db/guion.js';
 import { textoEvitar } from '../ia/evitar.js';
 import { tratoDe } from '../ia/trato.js';
+import { bienvenidaAceptacion } from '../manual/puro.js';
 import { mandarHito } from '../mail/hitos.js';
 import { cerrarBitacora } from './cierre.js';
 import { enviarPregunta, ritmoDe, type Narrador } from './preguntar.js';
@@ -119,7 +120,7 @@ async function manejarConsentimiento(narrador: Narrador, m: MensajeEntrante): Pr
   await db.from('narradores').update({ estado: 'acepto' }).eq('id', narrador.id);
   await enviarTexto(
     narrador.telefono_whatsapp,
-    `¡Qué alegría, ${narrador.como_le_dicen}! Mañana a la mañana le llega la primera pregunta. No hay apuro ni respuestas incorrectas: esto es una charla entre usted y yo, a su ritmo. 📖`,
+    bienvenidaAceptacion(narrador.como_le_dicen, await tratoDe(narrador)),
   );
   await mandarHito(narrador, 'acepto');
 }

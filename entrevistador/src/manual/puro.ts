@@ -10,6 +10,8 @@
  * disco lo mismo que `procesar.ts` hace con un `mediaId` del webhook.
  */
 
+import type { Trato } from '../ia/trato.js';
+
 export type Args = {
   comando: string;
   posicionales: string[];
@@ -103,20 +105,35 @@ export function proximoOrden(diaActual: number, ordenesRespondidas: number[]): n
  * por decisión de producto de los socios: costaba ~USD 3,36 por narrador —el 70%
  * de la entrevista— porque cada día le pegaba TODA la historia al prompt.
  *
- * Es el mismo texto que arma el camino de WhatsApp en `preguntar.ts`: si Meta
- * aprueba la plantilla, lo que salga por acá y lo que salga por la API dicen lo
- * mismo.
+ * Es el mismo texto que arma el camino de WhatsApp en `preguntar.ts` — de hecho
+ * ahora es LITERALMENTE el mismo: hasta el 2026-09-15 vivía escrito dos veces,
+ * acá y allá, y con dos tratos serían cuatro frases sueltas que divergen el día
+ * que se cambie una.
+ *
+ * ⚠️ La plantilla de Meta (`PLANTILLAS.md`) lleva su propia copia en usted, y
+ * esa la aprueba Meta: fuera de la ventana de 24 h el narrador lee la cola en
+ * usted aunque su trato sea vos.
  */
-export function mensajeDePregunta(pregunta: string): string {
-  return `La pregunta de hoy: ${pregunta}\n\nCuando quiera, me responde con un audio. Sin apuro. 🎙️`;
+export function mensajeDePregunta(pregunta: string, trato: Trato = 'usted'): string {
+  const cierre = trato === 'vos'
+    ? 'Cuando quieras, me respondés con un audio. Sin apuro. 🎙️'
+    : 'Cuando quiera, me responde con un audio. Sin apuro. 🎙️';
+  return `La pregunta de hoy: ${pregunta}\n\n${cierre}`;
 }
 
-/** Mismo texto que la despedida de `src/flujo/cierre.ts` (acá se imprime, no se manda). */
-export function despedida(comoLeDicen: string): string {
-  return (
-    `${comoLeDicen}... llegamos al final del viaje. Treinta charlas, una vida entera. ` +
-    `Fue un honor enorme escucharlo. Su historia ya está siendo convertida en su libro.`
-  );
+/** La despedida final. Único hogar del texto: `src/flujo/cierre.ts` la importa de acá. */
+export function despedida(comoLeDicen: string, trato: Trato = 'usted'): string {
+  const final = trato === 'vos'
+    ? 'Fue un honor enorme escucharte. Tu historia ya está siendo convertida en tu libro.'
+    : 'Fue un honor enorme escucharlo. Su historia ya está siendo convertida en su libro.';
+  return `${comoLeDicen}... llegamos al final del viaje. Treinta charlas, una vida entera. ${final}`;
+}
+
+/** Lo que recibe cuando dice que SÍ. Único hogar del texto: `src/flujo/procesar.ts` lo importa de acá. */
+export function bienvenidaAceptacion(comoLeDicen: string, trato: Trato = 'usted'): string {
+  return trato === 'vos'
+    ? `¡Qué alegría, ${comoLeDicen}! Mañana a la mañana te llega la primera pregunta. No hay apuro ni respuestas incorrectas: esto es una charla entre vos y yo, a tu ritmo. 📖`
+    : `¡Qué alegría, ${comoLeDicen}! Mañana a la mañana le llega la primera pregunta. No hay apuro ni respuestas incorrectas: esto es una charla entre usted y yo, a su ritmo. 📖`;
 }
 
 export type PasoDeCarga = { archivo: string; orden: number; sufijo: number };

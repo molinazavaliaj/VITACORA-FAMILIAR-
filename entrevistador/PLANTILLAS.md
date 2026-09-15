@@ -27,6 +27,19 @@ La pregunta de hoy: {{1}}
 
 Cuando quiera, me responde con un audio. Sin apuro. 🎙️
 
+> **El trato (2026-09-15).** Este cuerpo está en USTED y es el que aprueba Meta.
+> Cuando el mensaje sale por plantilla (fuera de la ventana de 24 h), el narrador
+> lee "Cuando quiera, me responde" aunque su trato sea `vos` — el texto libre del
+> modo rápido y de la puerta manual sí respeta el trato. El gemelo sería una
+> plantilla nueva `pregunta_diaria_vos` con el cuerpo:
+>
+> La pregunta de hoy: {{1}}
+>
+> Cuando quieras, me respondés con un audio. Sin apuro. 🎙️
+>
+> **No está cargada en Meta:** mandar a esa plantilla sin haberla aprobado deja
+> al narrador sin mensaje. Primero se carga, después se cambia el código.
+
 ## recordatorio — variables: {{1}} cómo le dicen
 
 {{1}}, cuando tenga un ratito, la pregunta de hoy lo espera. Sin ningún apuro. 🌿

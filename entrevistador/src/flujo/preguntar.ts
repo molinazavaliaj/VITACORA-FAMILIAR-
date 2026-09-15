@@ -8,6 +8,7 @@ import { generarPreguntasAdaptativas } from '../ia/adaptativas.js';
 import { capitulosDe, preguntaDeOrden as preguntaDelGuion, tieneAdaptativas, ultimoOrden, type PreguntaDelGuion } from '../db/guion.js';
 import { textoEvitar } from '../ia/evitar.js';
 import { tratoDe } from '../ia/trato.js';
+import { mensajeDePregunta } from '../manual/puro.js';
 
 export type Narrador = {
   id: string;
@@ -134,7 +135,7 @@ export async function enviarPregunta(
   // pegada al prompt (~USD 3,36 por narrador, el 70% del costo de la entrevista)
   // para decidir si agregaba una frase opcional. Ahora la pregunta sale sola.
   // La plantilla `pregunta_diaria` de Meta pasa a tener UNA variable.
-  const mensaje = `La pregunta de hoy: ${texto}\n\nCuando quiera, me responde con un audio. Sin apuro. 🎙️`;
+  const mensaje = mensajeDePregunta(texto, await tratoDe(n));
 
   const waId = plantilla
     ? await enviarPlantilla(n.telefono_whatsapp, 'pregunta_diaria', [texto])
