@@ -582,7 +582,7 @@ async function crear(flags: Args['flags']): Promise<void> {
   const leDicen = flag('le-dicen') ?? flag('leDicen');
   const telefono = flag('telefono');
   if (!nombre || !leDicen || !telefono) {
-    throw new Error('Faltan datos. Uso: crear --nombre Ciro --le-dicen Ciro --telefono +54911... [--zona America/Argentina/Buenos_Aires] [--familia email] [--nacido 1939] [--contexto \'{"arbol":{...}}\']');
+    throw new Error('Faltan datos. Uso: crear --nombre Ciro --le-dicen Ciro --telefono +54911... [--zona America/Argentina/Buenos_Aires] [--familia email] [--nacido 1939] [--trato usted|vos] [--contexto \'{"arbol":{...}}\']');
   }
 
   const emailFamilia = flag('familia') ?? 'nazamateos@gmail.com';
@@ -600,6 +600,10 @@ async function crear(flags: Args['flags']): Promise<void> {
   if (flag('nacido')) contexto.anioNacimiento = Number(flag('nacido'));
   if (flag('vinculo')) contexto.vinculoComprador = flag('vinculo');
   if (!flags['no-rapido']) contexto.modoRapido = true;
+  // El escape a mano de los pilotos: Naza conoce al narrador mejor que su ficha.
+  const trato = flag('trato');
+  if (trato === 'usted' || trato === 'vos') contexto.trato = trato;
+  else if (trato) throw new Error(`--trato acepta 'usted' o 'vos', no «${trato}».`);
 
   const fila = {
     familia_id: (familia as { id: string }).id,
@@ -672,6 +676,8 @@ Puerta manual de Vitácora Familiar — el entrevistador sin la API de WhatsApp.
       La despedida final + estado 'completado' (ahí lo toma la fábrica).
 
   npm run manual -- crear --nombre X --le-dicen Y --telefono +54... [--zona ...] [--nacido 1939]
+      [--trato usted|vos] fuerza el trato sin preguntarle al modelo. Si no se
+      pasa, lo decide él solo con la ficha la primera vez que le escribimos.
 
 Los audios se guardan como en el audiolibro: dia_07.ogg es la respuesta a la
 orden 7; dia_07_2.ogg es la repregunta de ese mismo día.
