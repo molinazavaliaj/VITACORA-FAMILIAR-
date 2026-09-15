@@ -37,7 +37,7 @@ vi.mock('@anthropic-ai/sdk', () => ({ default: class { messages = { create: vi.f
 
 import { mandarHito, redactarHito } from '../src/mail/hitos.js';
 import { leerSiNo } from '../src/flujo/procesar.js';
-import { parsearSugeridas } from '../src/ia/sugeridas.js';
+import { parsearSugeridas, PROMPT_SUGERIDAS } from '../src/ia/sugeridas.js';
 import { textoEvitar } from '../src/ia/evitar.js';
 
 beforeEach(() => {
@@ -115,5 +115,22 @@ describe('textoEvitar', () => {
     expect(textoEvitar({})).toBe('');
     expect(textoEvitar({ evitar: '  ' })).toBe('');
     expect(textoEvitar({ evitar: 'No preguntar por Rubén.' })).toContain('No preguntar por Rubén.');
+  });
+});
+
+describe('el trato en las sugeridas', () => {
+  it('con vos pide tutearlo', () => {
+    const p = PROMPT_SUGERIDAS('Ciro', 'Contó del taller.', ['¿Cómo era su casa?'], ['La infancia'], '', 'vos');
+    expect(p).toContain('Cada pregunta: tratarlo de vos');
+    expect(p).not.toContain('tratarlo de usted');
+  });
+
+  it('con usted queda como estaba', () => {
+    const p = PROMPT_SUGERIDAS('Don Osvaldo', 'Contó del taller.', ['¿Cómo era su casa?'], ['La infancia'], '', 'usted');
+    expect(p).toContain('Cada pregunta: tratarlo de usted');
+  });
+
+  it('el default sigue siendo usted', () => {
+    expect(PROMPT_SUGERIDAS('Don Osvaldo', '', [], ['La infancia'])).toContain('Cada pregunta: tratarlo de usted');
   });
 });
