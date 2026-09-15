@@ -293,7 +293,7 @@ async function siguiente(ref: string | undefined, flags: Args['flags']): Promise
       : `↑ sale tal cual está en el guion${personalizada.motivo ? ` (${personalizada.motivo})` : ''}`);
   }
 
-  const mensaje = mensajeDePregunta(texto);
+  const mensaje = mensajeDePregunta(texto, await mods.tratoDe(n));
   titulo(`Pregunta ${orden} para ${n.como_le_dicen} — copiá y pegá esto en WhatsApp`);
   linea(mensaje);
   linea();
@@ -409,7 +409,7 @@ async function trasResponderManual(
   const ultima = await ultimaOrdenDelGuion(n.id);
   if (orden >= ultima) {
     titulo(`Última pregunta (orden ${ultima}): ${n.como_le_dicen} terminó`);
-    linea(despedida(n.como_le_dicen));
+    linea(despedida(n.como_le_dicen, await mods.tratoDe(n)));
     linea();
     linea(`Mandale esa despedida y después: npm run manual -- cerrar ${slug(n.como_le_dicen)}`);
     return;
@@ -560,13 +560,14 @@ async function verResumenes(ref: string | undefined, flags: Record<string, strin
 
 async function cerrar(ref: string | undefined): Promise<void> {
   const n = await buscarNarrador(ref);
-  const { db } = await modulos();
+  const mods = await modulos();
+  const { db } = mods;
   const respuestas = await respuestasDe(n.id);
   if (!respuestas.length) throw new Error(`${n.como_le_dicen} no tiene ninguna respuesta: no hay nada que cerrar.`);
   titulo(`Cierre de ${n.como_le_dicen}`);
   linea(`Mandale esto por WhatsApp:`);
   linea();
-  linea(despedida(n.como_le_dicen));
+  linea(despedida(n.como_le_dicen, await mods.tratoDe(n)));
   linea();
   if (n.estado !== 'completado') {
     await db.from('narradores').update({ estado: 'completado' }).eq('id', n.id);
