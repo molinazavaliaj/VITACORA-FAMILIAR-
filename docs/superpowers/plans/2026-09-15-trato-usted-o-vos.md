@@ -13,7 +13,8 @@
 ## Global Constraints
 
 - **Castellano rioplatense:** identificadores y nombres de archivo **sin tildes**; el texto que lee una persona, **con las tildes bien puestas**.
-- **Los textos del §4 del spec son ley:** se escriben verbatim y los tests los asertan verbatim. Nada de `expect(x).not.toContain('frase vieja')` — ese test no puede volver a fallar nunca.
+- **Los textos del §4 del spec son ley:** se escriben verbatim y los tests los asertan verbatim, con `toBe`, no con `toContain` de un pedazo.
+- **Ningún `not.toContain` solo.** Un aserto negativo vale únicamente acompañado de uno positivo verbatim sobre el mismo texto. Ejemplo bueno: el prompt en vos dice `'Tratalo de vos, cálido...'` **y** no dice `'Tratalo de usted'` — las dos ramas existen en el código, así que el negativo puede fallar de verdad si alguien filtra una en la otra. Ejemplo prohibido: asertar que ya no aparece una frase que se borró del código — ese test no puede volver a fallar nunca (pasó dos veces en el Hub).
 - **Cada test nuevo tiene que fallar en rojo contra el código viejo.** Correrlo, ver el rojo, y pegar esa salida en el reporte. No se declara nada verificado sin haber corrido el comando.
 - **Dos valores y nada más:** `'usted'` y `'vos'`. No existe `'tu'`.
 - **Ante la duda, `'usted'`:** toda ruta de error, respuesta rara o dato faltante cae en usted.
