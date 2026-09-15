@@ -33,7 +33,7 @@ import { fileURLToPath } from 'node:url';
 import type { Narrador } from '../src/flujo/preguntar.js';
 import {
   parsearArgs, slug, ordenDeArchivo, archivoCanonico, proximoOrden, primeraDiferencia,
-  mensajeDePregunta, despedida, planDeCarga, esAudio, promptDeTranscripcion, type Args,
+  mensajeDePregunta, despedida, bienvenida, planDeCarga, esAudio, promptDeTranscripcion, type Args,
 } from '../src/manual/puro.js';
 
 const AQUI = dirname(fileURLToPath(import.meta.url));
@@ -71,6 +71,7 @@ type Modulos = {
   tratoDe: (typeof import('../src/ia/trato.js'))['tratoDe'];
   preguntaDeOrden: (typeof import('../src/flujo/preguntar.js'))['preguntaDeOrden'];
   capituloNoAplica: (typeof import('../src/flujo/preguntar.js'))['capituloNoAplica'];
+  esModoRapido: (typeof import('../src/flujo/preguntar.js'))['esModoRapido'];
   armarHistoria: (typeof import('../src/db/historia.js'))['armarHistoria'];
   PRIMERA_ADAPTATIVA: (typeof import('../src/ia/adaptativas.js'))['PRIMERA_ADAPTATIVA'];
   ULTIMA_ADAPTATIVA: (typeof import('../src/ia/adaptativas.js'))['ULTIMA_ADAPTATIVA'];
@@ -89,12 +90,12 @@ function modulos(): Promise<Modulos> {
     const { generarPreguntasAdaptativas, PRIMERA_ADAPTATIVA, ULTIMA_ADAPTATIVA } = await import('../src/ia/adaptativas.js');
     const { generarAudioVoz } = await import('../src/ia/voz.js');
     const { tratoDe } = await import('../src/ia/trato.js');
-    const { preguntaDeOrden, capituloNoAplica } = await import('../src/flujo/preguntar.js');
+    const { preguntaDeOrden, capituloNoAplica, esModoRapido } = await import('../src/flujo/preguntar.js');
     const { armarHistoria } = await import('../src/db/historia.js');
     return {
       db, guardarRespuestaAudio, transcribirYActualizar, evaluarRespuesta, personalizarPregunta,
       memoriaDeCapitulos, generarPreguntaReemplazo, generarPreguntasAdaptativas, generarAudioVoz, preguntaDeOrden,
-      capituloNoAplica, armarHistoria, tratoDe, PRIMERA_ADAPTATIVA, ULTIMA_ADAPTATIVA,
+      capituloNoAplica, esModoRapido, armarHistoria, tratoDe, PRIMERA_ADAPTATIVA, ULTIMA_ADAPTATIVA,
     };
   })();
   return _mods;
@@ -558,6 +559,56 @@ async function verResumenes(ref: string | undefined, flags: Record<string, strin
   linea('Es memoria INTERNA del entrevistador: no va al libro. El libro se escribe leyendo todo.');
 }
 
+/** ¿Ya se le anotó la presentación a este narrador? Devuelve cuándo, o null. */
+async function presentadoEl(narradorId: string): Promise<string | null> {
+  const { db } = await modulos();
+  const { data } = await db.from('envios').select('enviado_at')
+    .eq('narrador_id', narradorId).eq('tipo', 'bienvenida').order('enviado_at').limit(1);
+  return (data as { enviado_at: string }[] | null)?.[0]?.enviado_at ?? null;
+}
+
+/**
+ * La presentación del biógrafo: lo primero que recibe, antes de la pregunta 1.
+ *
+ * Existe porque el primer narrador real (Ciro, 2026-09-15) recibió la pregunta
+ * 1 sin que nadie le dijera quién le escribía. En el camino de WhatsApp la manda
+ * el scheduler como plantilla de Meta; acá se imprime, con el trato del narrador.
+ * Se anota como envío 'bienvenida' para que, cuando Meta vuelva, el scheduler
+ * no se la mande otra vez (mira `ultimoEnvio(n.id, 'bienvenida')`).
+ */
+async function presentar(ref: string | undefined, flags: Args['flags']): Promise<void> {
+  const n = await buscarNarrador(ref);
+  const mods = await modulos();
+  const { db } = mods;
+  const trato = await mods.tratoDe(n);
+
+  // Quién regala: la misma regla que el scheduler, salvo que se pase --de.
+  let quienRegala = typeof flags['de'] === 'string' ? (flags['de'] as string).trim() : '';
+  if (!quienRegala) {
+    const { data: familia } = await db.from('familias').select('nombre').eq('id', n.familia_id).maybeSingle();
+    const vinculo = n.contexto?.vinculoComprador;
+    const nombreFamilia = (familia as { nombre?: string } | null)?.nombre ?? (trato === 'vos' ? 'tu familia' : 'su familia');
+    quienRegala = vinculo ? `${trato === 'vos' ? 'tu' : 'su'} ${vinculo} ${nombreFamilia}` : nombreFamilia;
+  }
+
+  const texto = bienvenida(n.como_le_dicen, quienRegala, trato, { enseguida: mods.esModoRapido(n.contexto) });
+  titulo(`Presentación para ${n.como_le_dicen} (trato: ${trato}) — copiá y pegá esto en WhatsApp`);
+  linea(texto);
+  linea();
+
+  const ya = await presentadoEl(n.id);
+  if (ya) {
+    linea(`(ya estaba anotada el ${fechaCorta(ya)}: te la imprimo por si la querés reenviar, no la anoto de nuevo)`);
+    return;
+  }
+  if (flags['solo-ver']) {
+    linea('(--solo-ver: no anoté nada en la base)');
+    return;
+  }
+  await registrarEnvio(n.id, 'bienvenida');
+  linea(`Anotada. Cuando conteste que SÍ: npm run manual -- siguiente ${slug(n.como_le_dicen)}`);
+}
+
 async function cerrar(ref: string | undefined): Promise<void> {
   const n = await buscarNarrador(ref);
   const mods = await modulos();
@@ -634,6 +685,48 @@ async function crear(flags: Args['flags']): Promise<void> {
   linea(`Primera pregunta: npm run manual -- siguiente ${slug(leDicen)}`);
 }
 
+/**
+ * Corrige la ficha de un narrador que ya existe. Salió el 15/09 con Joaquín (28
+ * años): su ficha estaba vacía, el trato se decidió 'usted' por default y las
+ * preguntas salían forzadas ("sus viejos... cuando usted era chico"). Como el
+ * trato se decide UNA sola vez, hay que poder fijarlo a mano después.
+ * --rehacer borra la personalización guardada de la orden vigente para que
+ * el próximo `siguiente` la genere de nuevo con el trato correcto.
+ */
+async function ficha(ref: string | undefined, flags: Args['flags']): Promise<void> {
+  const { db } = await modulos();
+  const n = await buscarNarrador(ref);
+  const flag = (k: string) => (typeof flags[k] === 'string' ? (flags[k] as string) : undefined);
+  const contexto: Record<string, unknown> = { ...(n.contexto ?? {}) };
+  const cambios: string[] = [];
+
+  const trato = flag('trato');
+  if (trato === 'usted' || trato === 'vos') { contexto.trato = trato; cambios.push(`trato = ${trato}`); }
+  else if (trato) throw new Error(`--trato acepta 'usted' o 'vos', no «${trato}».`);
+  if (flag('nacido')) { contexto.anioNacimiento = Number(flag('nacido')); cambios.push(`anioNacimiento = ${flag('nacido')}`); }
+  if (flag('lugar')) { contexto.lugarNacimiento = flag('lugar'); cambios.push(`lugarNacimiento = ${flag('lugar')}`); }
+  if (flag('oficio')) { contexto.oficio = flag('oficio'); cambios.push(`oficio = ${flag('oficio')}`); }
+  if (flag('vinculo')) { contexto.vinculoComprador = flag('vinculo'); cambios.push(`vinculoComprador = ${flag('vinculo')}`); }
+
+  if (flags.rehacer) {
+    const enviadas = (contexto.preguntasEnviadas ?? {}) as Record<string, string>;
+    const orden = String(n.dia_actual);
+    if (enviadas[orden]) {
+      delete enviadas[orden];
+      contexto.preguntasEnviadas = enviadas;
+      cambios.push(`se olvida la personalización de la orden ${orden} (se rehace con el próximo siguiente)`);
+    }
+  }
+
+  if (!cambios.length) throw new Error('Nada que cambiar. Uso: ficha <narrador> [--trato usted|vos] [--nacido 1998] [--lugar X] [--oficio X] [--vinculo X] [--rehacer]');
+
+  const { error } = await db.from('narradores').update({ contexto }).eq('id', n.id);
+  if (error) throw new Error(`No pude guardar la ficha: ${error.message}`);
+  titulo(`Ficha de ${n.como_le_dicen} actualizada`);
+  for (const c of cambios) linea(`  ${c}`);
+  if (flags.rehacer) linea(`Ahora: npm run manual -- siguiente ${slug(n.como_le_dicen)}`);
+}
+
 function ayuda(): void {
   linea(`
 Puerta manual de Vitácora Familiar — el entrevistador sin la API de WhatsApp.
@@ -652,6 +745,13 @@ Puerta manual de Vitácora Familiar — el entrevistador sin la API de WhatsApp.
       repetir lo que ya contó. Genera los que falten (una llamada a Haiku por
       capítulo) y los guarda; con --regenerar los rehace todos. Es memoria
       interna: el libro se escribe leyendo todo.
+
+  npm run manual -- bienvenida <narrador> [--de "tu amigo Naza"] [--solo-ver]
+      La presentación del biógrafo: el PRIMER mensaje, antes de la pregunta 1
+      (quién le escribe, quién le regala el libro, cómo funciona, y que
+      responda SÍ). Sale con el trato del narrador. --de pisa el "quién regala"
+      que arma solo con la familia. Se anota como envío 'bienvenida' para que
+      el scheduler no la repita cuando Meta vuelva.
 
   npm run manual -- siguiente <narrador> [--solo-ver] [--voz]
       Imprime el mensaje EXACTO para pegarle al narrador (reconocimiento +
@@ -678,6 +778,11 @@ Puerta manual de Vitácora Familiar — el entrevistador sin la API de WhatsApp.
   npm run manual -- cerrar <narrador>
       La despedida final + estado 'completado' (ahí lo toma la fábrica).
 
+  npm run manual -- ficha <narrador> [--trato usted|vos] [--nacido 1998] [--lugar X] [--oficio X] [--vinculo X] [--rehacer]
+      Corrige la ficha de un narrador que ya existe (el trato se decide una sola
+      vez; acá se fija a mano). --rehacer olvida la personalización de la
+      pregunta vigente para que el próximo 'siguiente' la genere de nuevo.
+
   npm run manual -- crear --nombre X --le-dicen Y --telefono +54... [--zona ...] [--nacido 1939]
       [--trato usted|vos] fuerza el trato sin preguntarle al modelo. Si no se
       pasa, lo decide él solo con la ficha la primera vez que le escribimos.
@@ -697,8 +802,10 @@ const COMANDOS: Record<string, (a: Args) => Promise<void>> = {
   retranscribir: (a) => retranscribir(a.posicionales[0], a.flags),
   contexto: (a) => verContexto(a.posicionales[0]),
   resumenes: (a) => verResumenes(a.posicionales[0], a.flags),
+  bienvenida: (a) => presentar(a.posicionales[0], a.flags),
   cerrar: (a) => cerrar(a.posicionales[0]),
   crear: (a) => crear(a.flags),
+  ficha: (a) => ficha(a.posicionales[0], a.flags),
   ayuda: async () => ayuda(),
 };
 
