@@ -53,12 +53,29 @@ export function fichaTieneDatos(contexto: Record<string, any> = {}): boolean {
   );
 }
 
-export const PROMPT_TRATO = (ficha: string) => `Sos el biógrafo que le va a escribir todos los días por WhatsApp a esta persona, durante un mes, para escribir el libro de su vida.
+/**
+ * La edad de hoy, no el año de nacimiento.
+ *
+ * El modelo tiene que poder decidir sin calcular: qué año es hoy es justamente
+ * lo que peor sabe. Devuelve null si el año no es creíble.
+ */
+export function edadHoy(anioNacimiento: unknown, hoy = new Date()): number | null {
+  const anio = Number(anioNacimiento);
+  if (!Number.isInteger(anio)) return null;
+  const edad = hoy.getFullYear() - anio;
+  return edad >= 0 && edad <= 120 ? edad : null;
+}
+
+export const PROMPT_TRATO = (ficha: string, edad: number | null = null) => `Sos el biógrafo que le va a escribir todos los días por WhatsApp a esta persona, durante un mes, para escribir el libro de su vida.
 
 QUIÉN ES:
-${ficha}
+${ficha}${edad === null ? '' : `\nHoy tiene alrededor de ${edad} años.`}
 
-¿Le hablás de usted o de vos? Pensalo como lo pensaría alguien con calle: la edad que tiene, de dónde es, quién lo mandó a entrevistar. Ante la duda, usted: con un desconocido el usted nunca ofende, el vos sí puede.
+¿Le hablás de usted o de vos? Pensalo como lo pensaría alguien con calle: la edad que tiene, de dónde es, quién lo mandó a entrevistar.
+${edad === null ? '' : `
+Si sabés la edad, ese dato MANDA: a una persona mayor se le habla de usted; a un adulto joven, de vos. Tratar de usted a alguien de treinta años no es respeto — lo convierte en un trámite, y lo que queremos es que se suelte a contar.
+`}
+Ante la duda, usted: con un desconocido el usted nunca ofende, el vos sí puede. Pero la duda es no tener el dato, no tenerlo y no animarse.
 
 Respondé SOLO con una palabra: usted o vos.`;
 
@@ -72,7 +89,10 @@ async function decidir(n: NarradorParaTrato): Promise<Trato | null> {
     const respuesta = await cliente().messages.create({
       model: MODELO,
       max_tokens: MAX_TOKENS,
-      messages: [{ role: 'user', content: PROMPT_TRATO(fichaEnTexto(n.contexto, n.como_le_dicen)) }],
+      messages: [{
+        role: 'user',
+        content: PROMPT_TRATO(fichaEnTexto(n.contexto, n.como_le_dicen), edadHoy(n.contexto?.anioNacimiento)),
+      }],
     });
     const bloque = respuesta.content.find((b) => b.type === 'text');
     const palabra = bloque && bloque.type === 'text'

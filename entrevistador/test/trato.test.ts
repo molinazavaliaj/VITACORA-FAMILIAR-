@@ -141,4 +141,35 @@ describe('tratoDe', () => {
     expect(PROMPT_TRATO('El narrador es Ciro.')).toContain('Respondé SOLO con una palabra: usted o vos.');
     expect(PROMPT_TRATO('El narrador es Ciro.')).toContain('Ante la duda, usted');
   });
+
+  // La primera versión del prompt eligió USTED para un narrador de 28 años con
+  // el año de nacimiento escrito en la ficha: pesaba tanto el "ante la duda,
+  // usted" que el dato no hacía contrapeso. Y encima lo obligaba a calcular la
+  // edad, que depende de qué año crea que es hoy.
+  it('cuando se sabe la edad, el prompt la dice y la pone por encima del "ante la duda"', () => {
+    const p = PROMPT_TRATO('El narrador es Ciro.', 28);
+    expect(p).toContain('Hoy tiene alrededor de 28 años.');
+    expect(p).toContain('ese dato MANDA');
+    expect(p).toContain('Ante la duda, usted');
+  });
+
+  it('sin edad no se inventa ninguna', () => {
+    const p = PROMPT_TRATO('El narrador es Ciro.');
+    expect(p).not.toContain('Hoy tiene alrededor de');
+    expect(p).not.toContain('ese dato MANDA');
+    expect(p).toContain('Ante la duda, usted');
+  });
+
+  it('tratoDe le pasa la edad ya calculada, no el año suelto', async () => {
+    mocks.crear.mockResolvedValue(dijo('vos'));
+    await tratoDe(narrador({ anioNacimiento: 1998 }));
+    const prompt = mocks.crear.mock.calls[0][0].messages[0].content;
+    expect(prompt).toContain(`Hoy tiene alrededor de ${new Date().getFullYear() - 1998} años.`);
+  });
+
+  it('un año de nacimiento absurdo no genera una edad absurda', async () => {
+    mocks.crear.mockResolvedValue(dijo('usted'));
+    await tratoDe(narrador({ anioNacimiento: 12, lugarNacimiento: 'Concordia' }));
+    expect(mocks.crear.mock.calls[0][0].messages[0].content).not.toContain('Hoy tiene alrededor de');
+  });
 });
