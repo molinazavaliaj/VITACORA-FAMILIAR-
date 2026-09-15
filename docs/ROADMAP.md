@@ -125,17 +125,25 @@ se decide con eso a la vista.
 | # | Tarea | Quién | Estado |
 |---|---|---|---|
 | 1.1 | Apelar una última vez desde el perfil bloqueado, cerrar sesión, borrar cookies de facebook.com, no volver a tocarlo | **J** | ☐ |
-| 1.2 | Confirmar si existe un portfolio comercial previo (define la vía rápida) | **N** | ☐ |
+| 1.2 | Confirmar si existe un portfolio comercial previo (define la vía rápida) | **J** | ✅ 15/09 — **cambio de plan: Meta lo opera Joaquín con su cuenta personal de años** (la deshabilitada era la nueva). El portfolio "Vitacora Familiar" ya existe (lo creó Business Suite con la página, 08/09), página e Instagram adentro. Plan B: el portfolio "Whānau", con antigüedad. |
 | 1.3 | **VÍA RÁPIDA:** crear app + WABA de prueba, pasarle a Joaquín `WA_TOKEN` y `WA_PHONE_NUMBER_ID` | **N** | ☐ |
 | 1.4 | Cargar en la lista de permitidos (máx. 5): Naza, Joaquín (+541178174942), y los narradores piloto | **N** | ☐ |
 | 1.5 | Crear las 3 plantillas de `entrevistador/PLANTILLAS.md`, categoría Utility | **N** | ☐ |
-| 1.6 | Crear la Página "Vitácora Familiar", completarla al 100%, 5-10 posteos | **N** | ☐ |
+| 1.6 | Crear la Página "Vitácora Familiar", completarla al 100%, 5-10 posteos | **J** | ✅ 08/09 — 22 seguidores al 15/09 |
 | 1.7 | Esperar 7-14 días de historial de la Página | — | ☐ |
 | 1.8 | Portfolio "Vitácora Familiar": reclamar la Página, vincular Instagram, **agregar a Joaquín como admin** | **N** | ☐ |
 | 1.9 | Conseguir línea telefónica dedicada (sin WhatsApp común activo) | **J** | ☐ |
 | 1.10 | Verificación del negocio con documentación de Joaquín | **A** | ☐ post 1-oct |
 | 1.11 | Cuenta publicitaria — ⚠️ moneda **ARS**, no se cambia nunca más | **N** | ☐ post 1-oct |
 | 1.12 | Producción: número propio, display name, token permanente (System User) | **A** | ☐ post 1-oct |
+
+### ✅ Infraestructura unificada (15/09)
+
+Todo en **el Railway de Joaquín**: `entrevistador` (dominio
+`vitacora-familiar-production.up.railway.app`) y `fabrica` (worker, sin dominio; antes
+estaba en el Railway de Naza, que se borra al confirmar). Naza invitado al proyecto. Las
+keys de Anthropic/OpenAI de la fábrica son hoy las de Joaquín — **pendiente: una sola
+organización con los dos como admin** (decisión entre socios). Resend: cuenta de Joaquín.
 
 ### ✅ El entrevistador ya está desplegado (2026-09-07)
 
@@ -179,9 +187,9 @@ Falta solo pegar el `WA_TOKEN` y el `WA_PHONE_NUMBER_ID` nuevos cuando exista la
 | # | Tarea | Quién | Estado |
 |---|---|---|---|
 | 2.1 | Apuntar `vitacorafamiliar.com` a Vercel | **N** | ☐ |
-| 2.2 | Verificar el dominio en Resend → destraba los mails de login para cualquiera | **N** | ☐ |
+| 2.2 | Verificar el dominio en Resend → destraba los mails de login para cualquiera | **N** | ✅ 15/09 — **Resend pasó a la cuenta Pro de Joaquín** (dominio en sa-east-1, Naza invitado); clave nueva en Supabase SMTP, Vercel y los dos servicios de Railway. Login probado. |
 | 2.3 | Completar `/legal/privacidad` + términos — **requisito duro de WhatsApp API** | **N** | ☐ |
-| 2.4 | Crear `hola@vitacorafamiliar.com` (un Gmail no sirve para verificar el negocio) | **J** | ☐ |
+| 2.4 | Crear `hola@vitacorafamiliar.com` (un Gmail no sirve para verificar el negocio) | **J** | ✅ 15/09 — `soporte@vitacorafamiliar.com` (el remitente de mails sigue siendo `hola@`) |
 | 2.5 | Metadatos + Open Graph (que el link se vea bien al compartirlo) | **N** | ☐ |
 | 2.6 | Middleware de supabase-ssr (pendiente #1 del triage) | **N** | ☐ |
 | 2.7 | Pixel de Meta + Conversions API — ver nota abajo | **N** | ☐ |
