@@ -20,6 +20,7 @@
  *
  * Uso:
  *   npm run manual -- estado
+ *   npm run manual -- bienvenida ciro --de "Naza"       (la presentación, antes de la pregunta 1)
  *   npm run manual -- siguiente imma                     (--solo-ver para no anotar; --voz para el mp3)
  *   npm run manual -- archivar imma "C:/Users/Naza/Downloads/PTT-20260914-WA0007.ogg"
  *   npm run manual -- cargar imma audios-crudos/imma/dia_03.ogg

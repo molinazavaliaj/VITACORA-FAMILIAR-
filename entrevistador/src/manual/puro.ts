@@ -129,6 +129,28 @@ export function despedida(comoLeDicen: string, trato: Trato = 'usted'): string {
   return `${comoLeDicen}... llegamos al final del viaje. Treinta charlas, una vida entera. ${final}`;
 }
 
+/**
+ * La presentación del biógrafo: el primer mensaje de todos, antes de que él
+ * diga que sí. En usted es LITERALMENTE el cuerpo de la plantilla `bienvenida`
+ * de `PLANTILLAS.md` (la que aprueba Meta) — hay un test que lee ese archivo y
+ * compara, para que el documento y el código no se separen nunca.
+ *
+ * La puerta manual no la mandaba (2026-09-15, lo notó Naza con el primer
+ * narrador real): `crear` lo ponía en `activo` y `siguiente` imprimía la
+ * pregunta a secas. Nadie se había presentado.
+ *
+ * `enseguida`: en modo rápido la primera pregunta sale apenas dice SÍ, así que
+ * no se le promete "mañana".
+ */
+export function bienvenida(
+  comoLeDicen: string, quienRegala: string, trato: Trato = 'usted', { enseguida = false } = {},
+): string {
+  const cuando = enseguida ? '' : ' mañana';
+  return trato === 'vos'
+    ? `Hola ${comoLeDicen} 👋 Soy tu biógrafo. ${quienRegala} te hizo un regalo muy especial: vamos a escribir juntos el libro de tu vida. Cada mañana te voy a mandar una pregunta, y vos me respondés con un audio, como le contás las cosas a un amigo. Al final, tu historia va a quedar en un libro para tu familia, con tu propia voz. ¿Empezamos? Respondé SÍ y arrancamos${cuando}.`
+    : `Hola ${comoLeDicen} 👋 Soy su biógrafo. ${quienRegala} le hizo un regalo muy especial: vamos a escribir juntos el libro de su vida. Cada mañana le voy a mandar una pregunta, y usted me responde con un audio, como le cuenta las cosas a un amigo. Al final, su historia quedará en un libro para su familia, con su propia voz. ¿Empezamos? Responda SÍ y arrancamos${cuando}.`;
+}
+
 /** Lo que recibe cuando dice que SÍ. Único hogar del texto: `src/flujo/procesar.ts` lo importa de acá. */
 export function bienvenidaAceptacion(comoLeDicen: string, trato: Trato = 'usted'): string {
   return trato === 'vos'

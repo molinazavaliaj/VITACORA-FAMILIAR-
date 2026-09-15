@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
 import {
   parsearArgs, slug, ordenDeArchivo, archivoCanonico, proximoOrden,
-  mensajeDePregunta, despedida, bienvenidaAceptacion, planDeCarga, esAudio, promptDeTranscripcion, primeraDiferencia,
+  mensajeDePregunta, despedida, bienvenidaAceptacion, bienvenida, planDeCarga, esAudio, promptDeTranscripcion, primeraDiferencia,
 } from '../src/manual/puro.js';
 
 // La puerta manual resuelve con archivos lo que el webhook resuelve con
@@ -211,5 +212,34 @@ describe('los seis textos fijos, en los dos tratos', () => {
     expect(bienvenidaAceptacion('Ciro', 'vos')).toBe(
       '¡Qué alegría, Ciro! Mañana a la mañana te llega la primera pregunta. No hay apuro ni respuestas incorrectas: esto es una charla entre vos y yo, a tu ritmo. 📖',
     );
+  });
+});
+
+describe('la presentación del biógrafo (el primer mensaje de todos)', () => {
+  /** El cuerpo de la plantilla `bienvenida` tal como está en PLANTILLAS.md — ese lo aprueba Meta. */
+  function cuerpoDeLaPlantilla(): string {
+    const md = readFileSync(new URL('../PLANTILLAS.md', import.meta.url), 'utf8');
+    const desde = md.indexOf('## bienvenida');
+    const hasta = md.indexOf('\n## ', desde + 1);
+    return md.slice(desde, hasta)
+      .split(/\r?\n/).slice(1)              // sin la línea del título
+      .map((l) => l.trim()).filter(Boolean)
+      .join(' ');
+  }
+
+  it('en usted es LITERALMENTE la plantilla de Meta, con los huecos llenos', () => {
+    const esperado = cuerpoDeLaPlantilla().replace('{{1}}', 'Don Osvaldo').replace('{{2}}', 'su nieto Juan');
+    expect(bienvenida('Don Osvaldo', 'su nieto Juan')).toBe(esperado);
+  });
+
+  it('en vos (texto aprobado por Naza el 2026-09-15)', () => {
+    expect(bienvenida('Ciro', 'Naza', 'vos')).toBe(
+      'Hola Ciro 👋 Soy tu biógrafo. Naza te hizo un regalo muy especial: vamos a escribir juntos el libro de tu vida. Cada mañana te voy a mandar una pregunta, y vos me respondés con un audio, como le contás las cosas a un amigo. Al final, tu historia va a quedar en un libro para tu familia, con tu propia voz. ¿Empezamos? Respondé SÍ y arrancamos mañana.',
+    );
+  });
+
+  it('cuando la primera pregunta sale enseguida (modo rápido), no promete "mañana"', () => {
+    expect(bienvenida('Ciro', 'Naza', 'vos', { enseguida: true })).toMatch(/Respondé SÍ y arrancamos\.$/);
+    expect(bienvenida('Don Osvaldo', 'su nieto Juan', 'usted', { enseguida: true })).toMatch(/Responda SÍ y arrancamos\.$/);
   });
 });
