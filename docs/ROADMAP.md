@@ -572,9 +572,9 @@ al algoritmo a buscar curiosos en vez de compradores.
 
 | # | Tarea | Quién | Estado |
 |---|---|---|---|
-| 8.1 | Cuenta de Mercado Pago + `MP_ACCESS_TOKEN` en Vercel + webhook a `/api/webhooks/mercadopago` — **pago único** (el código ya existe) | **J** | ☐ **camino crítico** |
+| 8.1 | Cuenta de Mercado Pago + `MP_ACCESS_TOKEN` en Vercel + webhook a `/api/webhooks/mercadopago` — **pago único** (el código ya existe) | **J** | ✅ 15/09 — producción activada, token y webhook cargados, el checkout funciona en la web |
 | 8.2 | Cargar en Vercel los 8 precios definidos el 12/09 (tabla en `GASTOS.md`) | **N** | ☐ **Joaquín se los pasa** |
-| 8.3 | Prueba de pago en sandbox de punta a punta | **A** | ☐ |
+| 8.3 | ~~Prueba en sandbox~~ → **un pago real de prueba en producción, y devolverlo** (sandbox abandonado el 13/09) | **A** | ☐ único paso que falta del cobro |
 | 8.4 | **Averiguar si Naza puede darse de alta como autónomo en España y abrir Stripe** — reabre el mercado de 49€ | **N** | ☐ **urgente** |
 | 8.5 | Si 8.4 es no: evaluar merchant of record (Paddle / Lemon Squeezy) y si paga a Argentina | **J** | ☐ post 1-oct |
 
