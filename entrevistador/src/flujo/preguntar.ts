@@ -7,6 +7,7 @@ import { armarHistoria } from '../db/historia.js';
 import { generarPreguntasAdaptativas } from '../ia/adaptativas.js';
 import { capitulosDe, preguntaDeOrden as preguntaDelGuion, tieneAdaptativas, ultimoOrden, type PreguntaDelGuion } from '../db/guion.js';
 import { textoEvitar } from '../ia/evitar.js';
+import { tratoDe } from '../ia/trato.js';
 
 export type Narrador = {
   id: string;
@@ -57,6 +58,7 @@ async function crearReemplazo(n: Narrador, orden: number, capituloQueNoAplica: s
   const capitulos = (await capitulosDe(n.id)).filter((c) => c !== capituloQueNoAplica);
   const nueva = await generarPreguntaReemplazo(
     n.como_le_dicen, await armarHistoria(n.id), capitulos, capituloQueNoAplica, textoEvitar(n.contexto),
+    await tratoDe(n),
   );
   await db.from('preguntas').insert({
     narrador_id: n.id, orden, texto: nueva.texto, capitulo: nueva.capitulo, tipo: 'adaptativa',

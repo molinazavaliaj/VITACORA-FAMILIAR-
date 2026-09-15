@@ -68,6 +68,7 @@ type Modulos = {
   guardarRepreguntaEnviada: (typeof import('../src/db/envios.js'))['guardarRepreguntaEnviada'];
   generarPreguntasAdaptativas: (typeof import('../src/ia/adaptativas.js'))['generarPreguntasAdaptativas'];
   generarAudioVoz: (typeof import('../src/ia/voz.js'))['generarAudioVoz'];
+  tratoDe: (typeof import('../src/ia/trato.js'))['tratoDe'];
   preguntaDeOrden: (typeof import('../src/flujo/preguntar.js'))['preguntaDeOrden'];
   capituloNoAplica: (typeof import('../src/flujo/preguntar.js'))['capituloNoAplica'];
   armarHistoria: (typeof import('../src/db/historia.js'))['armarHistoria'];
@@ -87,12 +88,13 @@ function modulos(): Promise<Modulos> {
     const { guardarRepreguntaEnviada } = await import('../src/db/envios.js');
     const { generarPreguntasAdaptativas, PRIMERA_ADAPTATIVA, ULTIMA_ADAPTATIVA } = await import('../src/ia/adaptativas.js');
     const { generarAudioVoz } = await import('../src/ia/voz.js');
+    const { tratoDe } = await import('../src/ia/trato.js');
     const { preguntaDeOrden, capituloNoAplica } = await import('../src/flujo/preguntar.js');
     const { armarHistoria } = await import('../src/db/historia.js');
     return {
       db, guardarRespuestaAudio, transcribirYActualizar, evaluarRespuesta, personalizarPregunta,
       memoriaDeCapitulos, generarPreguntaReemplazo, generarPreguntasAdaptativas, generarAudioVoz, preguntaDeOrden,
-      capituloNoAplica, armarHistoria, PRIMERA_ADAPTATIVA, ULTIMA_ADAPTATIVA,
+      capituloNoAplica, armarHistoria, tratoDe, PRIMERA_ADAPTATIVA, ULTIMA_ADAPTATIVA,
     };
   })();
   return _mods;
@@ -274,7 +276,7 @@ async function siguiente(ref: string | undefined, flags: Args['flags']): Promise
     const capitulos = [...new Set(((caps as { capitulo: string }[] | null) ?? []).map((c) => c.capitulo))]
       .filter((c) => c !== pregunta!.capitulo);
     const nueva = await mods.generarPreguntaReemplazo(
-      n.como_le_dicen, await mods.armarHistoria(n.id), capitulos, pregunta.capitulo,
+      n.como_le_dicen, await mods.armarHistoria(n.id), capitulos, pregunta.capitulo, '', await mods.tratoDe(n),
     );
     const { error } = await db.from('preguntas').insert({
       narrador_id: n.id, orden, texto: nueva.texto, capitulo: nueva.capitulo, tipo: 'adaptativa',
@@ -380,7 +382,7 @@ async function trasResponderManual(
   const supabase = mods.db;
 
   if (!esRepregunta) {
-    const evaluacion = await mods.evaluarRespuesta(pregunta, transcripcion, duracionSegundos);
+    const evaluacion = await mods.evaluarRespuesta(pregunta, transcripcion, duracionSegundos, '', await mods.tratoDe(n));
     if (!evaluacion.suficiente && evaluacion.repregunta && !(await yaSeRepregunto(n.id, orden))) {
       titulo('El cerebro pide una repregunta — pegala en WhatsApp');
       linea(evaluacion.repregunta);

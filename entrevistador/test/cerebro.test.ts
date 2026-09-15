@@ -14,6 +14,55 @@ vi.mock('@anthropic-ai/sdk', () => ({
   default: class { messages = { create: crearMock }; },
 }));
 
+describe('el estilo del cerebro sigue el trato', () => {
+  it('con vos tutea y no habla de una persona mayor', async () => {
+    const { estiloCerebro } = await import('../src/ia/cerebro.js');
+    const e = estiloCerebro('vos');
+    expect(e).toContain('Le hablás de vos, con respeto y afecto genuino');
+    expect(e).toContain('de la vida de una persona a partir de sus relatos por WhatsApp.');
+    expect(e).not.toContain('de usted');
+    expect(e).not.toContain('señor o señora mayor');
+  });
+
+  it('con usted queda como estaba', async () => {
+    const { estiloCerebro } = await import('../src/ia/cerebro.js');
+    const e = estiloCerebro('usted');
+    expect(e).toContain('Le hablás de usted, con respeto y afecto genuino');
+    expect(e).toContain('de la vida de un señor o señora mayor a partir de sus relatos por WhatsApp.');
+    expect(e).not.toContain('de vos');
+  });
+
+  it('el default es usted', async () => {
+    const { estiloCerebro } = await import('../src/ia/cerebro.js');
+    expect(estiloCerebro()).toContain('Le hablás de usted');
+  });
+});
+
+describe('el trato llega a la llamada', () => {
+  it('evaluarRespuesta manda el estilo en vos', async () => {
+    crearMock.mockResolvedValueOnce({ content: [{ type: 'text', text: '{"suficiente": true}' }] });
+    const { evaluarRespuesta } = await import('../src/ia/cerebro.js');
+    await evaluarRespuesta('¿Cómo era tu casa?', 'Era linda.', 12, '', 'vos');
+    expect(crearMock.mock.calls.at(-1)![0].system).toContain('Le hablás de vos');
+  });
+
+  it('generarPreguntaReemplazo pide tratarlo de vos', async () => {
+    crearMock.mockResolvedValueOnce({ content: [{ type: 'text', text: '{"texto": "¿Y el taller?", "capitulo": "El trabajo"}' }] });
+    const { generarPreguntaReemplazo } = await import('../src/ia/cerebro.js');
+    await generarPreguntaReemplazo('Ciro', 'Contó del taller.', ['La infancia'], 'Los hijos', '', 'vos');
+    const llamada = crearMock.mock.calls.at(-1)![0];
+    expect(llamada.messages[0].content).toContain('tratarlo de vos');
+    expect(llamada.system).toContain('Le hablás de vos');
+  });
+
+  it('sin trato explícito sigue siendo usted', async () => {
+    crearMock.mockResolvedValueOnce({ content: [{ type: 'text', text: '{"suficiente": true}' }] });
+    const { evaluarRespuesta } = await import('../src/ia/cerebro.js');
+    await evaluarRespuesta('¿Cómo era su casa?', 'Era linda.', 12);
+    expect(crearMock.mock.calls.at(-1)![0].system).toContain('Le hablás de usted');
+  });
+});
+
 describe('cerebro', () => {
   it('genera un reconocimiento de una sola frase', async () => {
     crearMock.mockResolvedValueOnce({ content: [{ type: 'text', text: 'Qué historia la del taller de su padre, Don Roberto.' }] });
