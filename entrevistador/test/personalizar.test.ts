@@ -133,7 +133,10 @@ describe('PROMPT_PERSONALIZAR', () => {
 });
 
 describe('personalizarPregunta', () => {
-  const narrador = { id: 'n1', como_le_dicen: 'Don Osvaldo', contexto: { arbol: { conyuge: 'Élida' } } };
+  // El trato va decidido a propósito: así estos tests miden la personalización
+  // y no la llamada con la que `tratoDe` lo elige la primera vez (eso se prueba
+  // aparte, en «el trato manda en el prompt de la pregunta del día»).
+  const narrador = { id: 'n1', como_le_dicen: 'Don Osvaldo', contexto: { arbol: { conyuge: 'Élida' }, trato: 'usted' } };
 
   const respuesta = (texto: string) => ({ content: [{ type: 'text', text: texto }], usage: {} });
 
@@ -218,5 +221,57 @@ describe('personalizarPregunta', () => {
     const enviado = mocks.crear.mock.calls[0][0].messages[0].content as string;
     expect(enviado).toContain('Una casa común.');
     expect(enviado).toContain('(le repregunté y amplió): La bomba del patio la puso mi viejo.');
+  });
+});
+
+describe('el trato manda en el prompt de la pregunta del día', () => {
+  const respuesta = (texto: string) => ({ content: [{ type: 'text', text: texto }], usage: {} });
+
+  beforeEach(() => {
+    mocks.crear.mockReset();
+    mocks.updates = [];
+    mocks.respuestas = [];
+  });
+
+  it('con vos: tutea y cambia el ejemplo del año de nacimiento', () => {
+    const p = PROMPT_PERSONALIZAR('¿Cómo era su casa?', 'El narrador es Ciro.', '', '', '', 'vos');
+    expect(p).toContain('Tratalo de vos, cálido, en castellano rioplatense (Argentina).');
+    expect(p).toContain('"cuando tenías seis años"');
+    expect(p).not.toContain('Tratalo de usted');
+  });
+
+  it('con usted: queda como estaba', () => {
+    const p = PROMPT_PERSONALIZAR('¿Cómo era su casa?', 'El narrador es Don Osvaldo.', '', '', '', 'usted');
+    expect(p).toContain('Tratalo de usted, cálido, en castellano rioplatense (Argentina).');
+    expect(p).toContain('"cuando usted tenía seis años"');
+    expect(p).not.toContain('Tratalo de vos');
+  });
+
+  it('sin decir nada, el default sigue siendo usted', () => {
+    const p = PROMPT_PERSONALIZAR('¿Cómo era su casa?', 'El narrador es Don Osvaldo.', '');
+    expect(p).toContain('Tratalo de usted, cálido, en castellano rioplatense (Argentina).');
+  });
+
+  it('personalizarPregunta le pasa al modelo el trato guardado del narrador', async () => {
+    mocks.crear.mockResolvedValue(respuesta('¿Cómo era tu casa de Concordia?'));
+    const ciro = { id: 'n1', como_le_dicen: 'Ciro', contexto: { anioNacimiento: 1998, trato: 'vos' } };
+    await personalizarPregunta(ciro, '¿Cómo era su casa?', 1, { recordar: false });
+    expect(mocks.crear).toHaveBeenCalledTimes(1); // el trato ya estaba: no se vuelve a decidir
+    expect(mocks.crear.mock.calls[0][0].messages[0].content as string).toContain('Tratalo de vos');
+  });
+
+  // recordarEnviada pisa el contexto entero con la copia que tiene en la mano:
+  // si tratoDe acaba de guardar el trato, tiene que seguir estando en ese update.
+  it('el trato recién decidido sobrevive a que se guarde la pregunta enviada', async () => {
+    mocks.crear
+      .mockResolvedValueOnce(respuesta('vos'))                              // tratoDe
+      .mockResolvedValueOnce(respuesta('¿Cómo era tu casa de Concordia?')); // la pregunta
+    const ciro = { id: 'n1', como_le_dicen: 'Ciro', contexto: { anioNacimiento: 1998 } };
+    await personalizarPregunta(ciro, '¿Cómo era su casa?', 1);
+
+    expect(mocks.crear.mock.calls[1][0].messages[0].content as string).toContain('Tratalo de vos');
+    const guardado = mocks.updates.filter((u) => u.tabla === 'narradores').at(-1);
+    expect(guardado!.p.contexto.trato).toBe('vos');
+    expect(guardado!.p.contexto.preguntasEnviadas['1']).toBe('¿Cómo era tu casa de Concordia?');
   });
 });

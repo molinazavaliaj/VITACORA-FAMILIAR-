@@ -38,6 +38,7 @@ import { cargarConfig } from '../config.js';
 import { db } from '../db/cliente.js';
 import { fichaEnTexto } from './ficha.js';
 import { memoriaDeCapitulos } from './resumenes.js';
+import { tratoDe, type Trato } from './trato.js';
 
 // Un modelo chico alcanza: es reescribir una pregunta con contexto, no escribir
 // el libro. Haiku 4.5 cuesta USD 1/5 por millón (input/output).
@@ -61,7 +62,7 @@ type RespuestaPrevia = {
   pregunta_orden: number; transcripcion: string | null; texto_directo: string | null; es_repregunta: boolean;
 };
 
-export const PROMPT_PERSONALIZAR = (original: string, ficha: string, previas: string, resumenes = '', evitar = '') => `Sos el biógrafo de esta persona: le escribís todos los días por WhatsApp y querés que sienta que lo venís escuchando.
+export const PROMPT_PERSONALIZAR = (original: string, ficha: string, previas: string, resumenes = '', evitar = '', trato: Trato = 'usted') => `Sos el biógrafo de esta persona: le escribís todos los días por WhatsApp y querés que sienta que lo venís escuchando.
 ${evitar}
 ESTO ES LO QUE YA CONTÓ (lo único que sabés de él):
 ${resumenes ? `MEMORIA DE LOS CAPÍTULOS QUE YA CERRÓ:\n${resumenes}\n\n` : ''}LO QUE VIENE CONTANDO ESTOS DÍAS:
@@ -76,8 +77,8 @@ Reescribila para que se note que lo escuchaste. Reglas:
 - RESPETÁ EL PARENTESCO de cada persona: el amor de su vida / su esposa es quien figura ahí como tal, y sus padres son sus padres. Nunca le pongas a alguien un rol que no tiene.
 - Si en la memoria dice que un tema ya quedó cerrado, NO lo vuelvas a preguntar: llevá la pregunta a lo que figura como pendiente o a lo que todavía no tocó.
 - CONSERVÁ TODAS LAS PREGUNTAS del original: si tiene dos o tres, la versión nueva tiene que tener las mismas dos o tres. Podés cambiar el orden, no borrar ninguna.
-- El AÑO DE NACIMIENTO (si figura arriba) es para anclar la época, no es un lugar: se dice "cuando usted tenía seis años" o "allá por 1945", NUNCA "su infancia en 1939".
-- Tratalo de usted, cálido, en castellano rioplatense (Argentina). Máximo ${MAX_PALABRAS} palabras.
+- El AÑO DE NACIMIENTO (si figura arriba) es para anclar la época, no es un lugar: se dice ${trato === 'vos' ? '"cuando tenías seis años"' : '"cuando usted tenía seis años"'} o "allá por 1945", NUNCA "su infancia en 1939".
+- Tratalo de ${trato}, cálido, en castellano rioplatense (Argentina). Máximo ${MAX_PALABRAS} palabras.
 - NUNCA inventes nada que él no haya contado. Si no hay nada concreto para enganchar, devolvé la pregunta original sin cambiarle nada.
 - No saludes, no expliques nada, no agregues comillas.
 
@@ -196,9 +197,10 @@ export async function personalizarPregunta(
   try {
     const previas = await respuestasPrevias(n.id, orden);
     const resumenes = await memoriaDeCapitulos(n, orden);
+    const trato = await tratoDe(n);
     const respuesta = await cliente().messages.create({
       model: MODELO, max_tokens: MAX_TOKENS,
-      messages: [{ role: 'user', content: PROMPT_PERSONALIZAR(original, fichaEnTexto(n.contexto, n.como_le_dicen), previas, resumenes, textoEvitar(n.contexto)) }],
+      messages: [{ role: 'user', content: PROMPT_PERSONALIZAR(original, fichaEnTexto(n.contexto, n.como_le_dicen), previas, resumenes, textoEvitar(n.contexto), trato) }],
     });
     const bloque = respuesta.content.find((b) => b.type === 'text');
     const cruda = bloque && bloque.type === 'text' ? bloque.text.trim().replace(/^["'«]|["'»]$/g, '') : '';
