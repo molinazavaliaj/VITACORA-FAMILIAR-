@@ -29,6 +29,7 @@ const NOMBRE_ESTADO_PEDIDO: Record<string, string> = {
   pendiente: "esperando el pago",
   pagado: "pagado",
   generando: "armando el libro",
+  esperando_voz: "armando el audiolibro con su voz",
   entregado: "entregado",
   fallido: "el pago no se completó",
 };

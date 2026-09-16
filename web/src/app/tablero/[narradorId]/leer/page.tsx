@@ -59,7 +59,7 @@ export default async function PaginaLeer({ params }: PageProps<"/tablero/[narrad
     audiolibro: validos.map((p) => productosDelPedido(p.extras).audiolibro).find((v) => v !== null) ?? null,
   };
   const entregado = manda && manda.estado === "entregado" ? manda : null;
-  const enFabricacion = !entregado && Boolean(manda && (manda.estado === "pagado" || manda.estado === "generando"));
+  const enFabricacion = !entregado && Boolean(manda && (manda.estado === "pagado" || manda.estado === "generando" || manda.estado === "esperando_voz"));
 
   const cabecera = (
     <>
