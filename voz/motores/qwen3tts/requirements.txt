@@ -1,0 +1,7 @@
+# Qwen3-TTS (Apache 2.0). Sin flash-attn (no compila facil en Windows).
+# torch con CUDA en Windows: pip elige la build +cu126 de este índice por sobre la de PyPI (que es CPU).
+--extra-index-url https://download.pytorch.org/whl/cu126
+qwen-tts
+torch
+soundfile
+numpy
