@@ -586,6 +586,7 @@ al algoritmo a buscar curiosos en vez de compradores.
 | 8.1 | Cuenta de Mercado Pago + `MP_ACCESS_TOKEN` en Vercel + webhook a `/api/webhooks/mercadopago` — **pago único** (el código ya existe) | **J** | ✅ 15/09 — producción activada, token y webhook cargados, el checkout funciona en la web |
 | 8.2 | Cargar en Vercel los 8 precios definidos el 12/09 (tabla en `GASTOS.md`) | **N** | ☐ **Joaquín se los pasa** |
 | 8.3 | ~~Prueba en sandbox~~ → **un pago real de prueba en producción, y devolverlo** (sandbox abandonado el 13/09) | **A** | ☐ único paso que falta del cobro |
+| **8.6** | **Pedirle a Naza (16/09):** en Vercel, `MP_WEBHOOK_SECRET` tiene que ser la clave del webhook de **producción** (panel de MP → Webhooks → junto a la URL), no la de prueba del 13/09 — desde `b1fedf2` la web rechaza con 401 las notificaciones mal firmadas. Después, **redeploy** (o conectar Vercel a GitHub, 2.8). Señal de que está mal: el pago real entra y el pedido queda "pendiente". | **J avisa · N carga** | ☐ en la próxima reunión |
 | 8.4 | **Averiguar si Naza puede darse de alta como autónomo en España y abrir Stripe** — reabre el mercado de 49€ | **N** | ☐ **urgente** |
 | 8.5 | Si 8.4 es no: evaluar merchant of record (Paddle / Lemon Squeezy) y si paga a Argentina | **J** | ☐ post 1-oct |
 
