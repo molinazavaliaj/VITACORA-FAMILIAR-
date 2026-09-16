@@ -103,8 +103,8 @@ Primero a mano, para verlo andar:
 ```
 Sondea `narraciones` cada 30 s; cuando toma una, dice a quién narra y por qué
 capítulo va. Todo queda en `logs\worker.log` (rota a 5 MB, guarda 3). Ctrl+C
-lo apaga limpio; una narración a medias vuelve a `pendiente` sola a las 6 h y
-al retomarla se saltean los capítulos que ya estaban subidos.
+lo apaga limpio; una narración a medias vuelve a `pendiente` sola a las 6 h sin
+avance (sin subir ningún capítulo) y al retomarla se saltean los que ya estaban.
 
 Después, la tarea programada (PowerShell como administrador): arranca al
 iniciar sesión, se reinicia sola si se cae y no tiene límite de tiempo.
@@ -123,6 +123,8 @@ arregló la causa:
 ```powershell
 .\.venv\Scripts\python -m voz.reintentar <id de la narración>
 ```
+Solo acepta una `fallida`; la vuelve a `pendiente` y borra el candado del aviso
+para que, si falla otra vez, la fábrica avise de nuevo.
 
 ## Tests (en cualquier máquina con ffmpeg)
 

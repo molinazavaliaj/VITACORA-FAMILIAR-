@@ -90,7 +90,7 @@ def test_sin_pendientes_devuelve_false_y_antes_libera_las_colgadas(tmp_path):
     primera = fake.ejecutadas[0]
     assert primera.tabla == "narraciones" and primera.operacion == "update"
     assert ("eq", "estado", "procesando") in primera.llamadas
-    assert any(ll[0] == "lt" and ll[1] == "tomada_at" for ll in primera.llamadas)
+    assert any(ll[0] == "lt" and ll[1] == "actualizada_at" for ll in primera.llamadas)
     assert next(ll[1] for ll in primera.llamadas if ll[0] == "update")["estado"] == "pendiente"
 
 

@@ -14,7 +14,7 @@ create table if not exists narraciones (
   muestras jsonb,                       -- qué respuestas usó y cuántos segundos limpios juntó
   capitulos_paths jsonb,                -- ["{narrador}/voz/cap_01.mp3", ...] en el orden de narracion.json
   error text,                           -- 'sin_consentimiento_voz' | 'faltan_minutos_de_voz: NNN s' | traceback resumido
-  tomada_at timestamptz,                -- cuándo pasó a procesando (para detectar cuelgues)
+  tomada_at timestamptz,                -- cuándo pasó a procesando (registro; los cuelgues se miden por actualizada_at)
   created_at timestamptz not null default now(),
   actualizada_at timestamptz not null default now()
 );

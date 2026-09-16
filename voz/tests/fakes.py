@@ -7,7 +7,8 @@ Los tests arman que va a "contestar" Supabase y despues revisan que pidio
 el codigo mirando `fake.ejecutadas`.
 
 `.storage.from_(bucket)` devuelve un bucket en memoria (un dict por bucket)
-con `upload`/`download`, que ademas anota cada subida y cada descarga.
+con `upload`/`download`/`remove`, que ademas anota cada subida, descarga y
+borrado.
 """
 
 from dataclasses import dataclass
@@ -74,12 +75,18 @@ class FakeBucket:
         self._storage.descargas.append((self.nombre, path))
         return self.archivos[path]
 
+    def remove(self, paths):
+        """Como el real: borrar lo que no está no es error."""
+        self._storage.borrados.append((self.nombre, list(paths)))
+        return [{"name": p} for p in paths if self.archivos.pop(p, None) is not None]
+
 
 class FakeStorage:
     def __init__(self):
         self.archivos: dict[str, dict[str, bytes]] = {}
         self.subidas: list[tuple] = []
         self.descargas: list[tuple] = []
+        self.borrados: list[tuple] = []
 
     def from_(self, bucket):
         return FakeBucket(self, bucket)

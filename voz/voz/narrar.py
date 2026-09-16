@@ -84,6 +84,9 @@ def narrar_capitulos(
         if not ok:
             raise RuntimeError(f"el motor {motor} falló en el capítulo {cap.numero} a los {segundos:.0f} s:\n{cola}")
         mp3 = a_mp3(wav, base.with_suffix(".mp3"))
+        # El wav pesa decenas de MB por capítulo y ya no sirve: con el mp3
+        # hecho se borra. El mp3 y el txt quedan para mirar si algo sonó mal.
+        wav.unlink()
         sb.storage.from_(BUCKET).upload(ruta, mp3.read_bytes(), {"content-type": "audio/mpeg", "upsert": "true"})
         acumulado.append(ruta)
         marcar(sb, narracion.id, "procesando", capitulos_paths=list(acumulado))

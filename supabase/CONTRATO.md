@@ -125,9 +125,13 @@ acumulada → la narración queda `fallida` con el motivo (`sin_consentimiento_v
 `faltan_minutos_de_voz: NNN s`). **Nunca se clona sin esto.**
 
 **Atascos** (avisan por mail a los socios, no a la familia): narración `pendiente` > 24 h
-(la PC está apagada), `procesando` > 6 h (se colgó), o `fallida` (con el motivo) — un mail
-por narración y motivo. Reintento: `npm run narracion -- reintentar <id>` en la fábrica
-vuelve a poner `pendiente`.
+(la PC está apagada), `procesando` más de 6 h sin avance (`actualizada_at`; cada capítulo
+subido la mueve, así un libro largo no cuenta como colgado — `tomada_at` solo registra
+cuándo se tomó), o `fallida` (con el motivo) — un mail por narración y motivo. El worker
+devuelve a `pendiente` las `procesando` sin avance en 6 h y las retoma salteando los
+capítulos ya subidos. Reintento a mano: `npm run narracion -- reintentar <id>` en la
+fábrica (o `python -m voz.reintentar <id>` en la PC de voz) vuelve a poner `pendiente`
+una `fallida` y borra el candado de su aviso, así un segundo fallo vuelve a avisar.
 
 ## El guion por narrador (migración 20260912)
 

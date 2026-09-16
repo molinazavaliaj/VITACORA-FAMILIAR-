@@ -77,11 +77,15 @@ def tomar_pendiente(sb, ahora: datetime | None = None) -> Narracion | None:
 
 
 def retomar_colgadas(sb, horas: float = 6.0, ahora: datetime | None = None) -> int:
-    """Vuelve a 'pendiente' las que quedaron 'procesando' más de `horas`.
+    """Vuelve a 'pendiente' las 'procesando' sin avance en más de `horas`.
 
     Un worker que se cuelga o se apaga a mitad de una narración la deja en
     'procesando' para siempre; esto las libera para que el mismo bucle las
-    retome. El filtro es del lado del servidor (`.lt`).
+    retome. "Sin avance" se mide por `actualizada_at`, que cada checkpoint
+    de capítulo mueve — no por `tomada_at`: un libro largo con el motor
+    lento lleva más de 6 h narrándose bien, y medir desde la toma lo
+    devolvería a 'pendiente' para que otro lo narre dos veces. El filtro es
+    del lado del servidor (`.lt`).
     """
     momento = ahora if ahora is not None else datetime.now(timezone.utc)
     limite = momento - timedelta(hours=horas)
@@ -89,7 +93,7 @@ def retomar_colgadas(sb, horas: float = 6.0, ahora: datetime | None = None) -> i
         sb.table("narraciones")
         .update({"estado": "pendiente", "actualizada_at": momento.isoformat()})
         .eq("estado", "procesando")
-        .lt("tomada_at", limite.isoformat())
+        .lt("actualizada_at", limite.isoformat())
         .execute()
         .data
     )
@@ -108,6 +112,16 @@ def marcar(sb, id: str, estado: str, ahora: datetime | None = None, **campos) ->
     )
     if not filas:
         raise RuntimeError(f"marcar: no encontré la narración {id!r} para pasarla a estado={estado!r}")
+
+
+def candado_aviso(narrador_id: str, id: str, motivo: str) -> str:
+    """Ruta del candado que la fábrica deja en Storage cuando avisa a los
+    socios de una narración atascada (un archivo por narración y motivo).
+
+    Es el mismo nombre que arma `CANDADO_AVISO` en
+    `fabrica/src/mail/socios.ts`: si cambia uno, cambia el otro.
+    """
+    return f"{narrador_id}/paquete/aviso_narracion_{id}_{motivo}.txt"
 
 
 def consentimiento_de(sb, narrador_id: str) -> str | None:

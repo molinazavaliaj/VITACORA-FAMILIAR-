@@ -74,7 +74,9 @@ def test_tomar_pendiente_si_otro_worker_la_gano_devuelve_none():
     assert tomar_pendiente(fake, ahora=MOMENTO) is None
 
 
-def test_retomar_colgadas_filtra_por_tomada_at_viejo_y_cuenta_las_filas():
+def test_retomar_colgadas_filtra_por_actualizada_at_viejo_y_cuenta_las_filas():
+    """"Colgada" es sin avance en 6 h: se mira `actualizada_at` (cada checkpoint
+    la mueve), no `tomada_at` — un libro largo lleva más de 6 h sin colgarse."""
     fake = FakeSupabase()
     fake.responder("narraciones", "update", [{"id": "a"}, {"id": "b"}])
 
@@ -84,7 +86,8 @@ def test_retomar_colgadas_filtra_por_tomada_at_viejo_y_cuenta_las_filas():
     cadena = fake.ejecutadas[-1]
     assert ("eq", "estado", "procesando") in cadena.llamadas
     limite_esperado = (MOMENTO - timedelta(hours=6.0)).isoformat()
-    assert ("lt", "tomada_at", limite_esperado) in cadena.llamadas
+    assert ("lt", "actualizada_at", limite_esperado) in cadena.llamadas
+    assert not any(llamada[:2] == ("lt", "tomada_at") for llamada in cadena.llamadas)
     assert (
         "update",
         {"estado": "pendiente", "actualizada_at": MOMENTO.isoformat()},
