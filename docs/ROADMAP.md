@@ -124,14 +124,14 @@ se decide con eso a la vista.
 
 | # | Tarea | Quién | Estado |
 |---|---|---|---|
-| 1.1 | Apelar una última vez desde el perfil bloqueado, cerrar sesión, borrar cookies de facebook.com, no volver a tocarlo | **J** | ☐ |
+| 1.1 | ~~Apelar una última vez desde el perfil bloqueado~~ — ya no aplica: Meta se opera con la cuenta personal de Joaquín | **J** | — |
 | 1.2 | Confirmar si existe un portfolio comercial previo (define la vía rápida) | **J** | ✅ 15/09 — **cambio de plan: Meta lo opera Joaquín con su cuenta personal de años** (la deshabilitada era la nueva). El portfolio "Vitacora Familiar" ya existe (lo creó Business Suite con la página, 08/09), página e Instagram adentro. Plan B: el portfolio "Whānau", con antigüedad. |
 | 1.3 | **VÍA RÁPIDA:** crear app + WABA de prueba → `WA_TOKEN` y `WA_PHONE_NUMBER_ID` en Railway | **J** | ☐ 16/09, desde la compu con hotspot |
 | 1.4 | Cargar en la lista de permitidos (máx. 5): Naza, Joaquín (+541178174942), y los narradores piloto | **J** | ☐ |
 | 1.5 | Crear las plantillas de `entrevistador/PLANTILLAS.md`, categoría Utility — **ahora son 4**: `bienvenida`, `pregunta_diaria` (1 variable, en usted), `pregunta_diaria_vos` (gemela en vos, 15/09), `recordatorio` | **J** | ☐ con la app |
 | 1.6 | Crear la Página "Vitácora Familiar", completarla al 100%, 5-10 posteos | **J** | ✅ 08/09 — 22 seguidores al 15/09 |
 | 1.7 | Esperar 7-14 días de historial de la Página | — | ☐ |
-| 1.8 | Portfolio "Vitácora Familiar": reclamar la Página, vincular Instagram, **agregar a Joaquín como admin** | **N** | ☐ |
+| 1.8 | Portfolio "Vitácora Familiar": reclamar la Página, vincular Instagram | **J** | ✅ 15/09 — desde Business Suite en el celu; falta el mail `soporte@` en Información del negocio (desde la compu) |
 | 1.9 | Conseguir línea telefónica dedicada (sin WhatsApp común activo) | **J** | ☐ |
 | 1.10 | Verificación del negocio con documentación de Joaquín | **A** | ☐ post 1-oct |
 | 1.11 | Cuenta publicitaria — ⚠️ moneda **ARS**, no se cambia nunca más | **N** | ☐ post 1-oct |
@@ -186,7 +186,7 @@ Falta solo pegar el `WA_TOKEN` y el `WA_PHONE_NUMBER_ID` nuevos cuando exista la
 
 | # | Tarea | Quién | Estado |
 |---|---|---|---|
-| 2.1 | Apuntar `vitacorafamiliar.com` a Vercel | **N** | ☐ |
+| 2.1 | Apuntar `vitacorafamiliar.com` a Vercel | **N** | ✅ (el checkout y el login andan en el dominio, 15/09) |
 | 2.2 | Verificar el dominio en Resend → destraba los mails de login para cualquiera | **N** | ✅ 15/09 — **Resend pasó a la cuenta Pro de Joaquín** (dominio en sa-east-1, Naza invitado); clave nueva en Supabase SMTP, Vercel y los dos servicios de Railway. Login probado. |
 | 2.3 | Completar `/legal/privacidad` + términos — **requisito duro de WhatsApp API** | **N** | ☐ |
 | 2.4 | Crear `hola@vitacorafamiliar.com` (un Gmail no sirve para verificar el negocio) | **J** | ✅ 15/09 — `soporte@vitacorafamiliar.com` (el remitente de mails sigue siendo `hola@`) |
@@ -548,7 +548,7 @@ punta a punta (falta la cuenta de Meta). Nada de eso lo destraba esta prueba.
 
 | # | Tarea | Quién | Estado |
 |---|---|---|---|
-| 6.1 | Conseguir narrador argentino (abuela o padre de Joaquín) y pedirle permiso | **J** | ☐ |
+| 6.1 | Conseguir narrador argentino (abuela o padre de Joaquín) y pedirle permiso | **J** | ✅ Dora ("Babu") cargada, estado `invitado`; espera la API |
 | 6.2 | Narrador español: Pequeña Imma (ya cargada en la base, estado `invitado`) | **N** | ☐ |
 | 6.3 | Activar `contexto.modoRapido = true` en ambos | **N** (los registra) | ☐ |
 | 6.4 | Acompañar el piloto: llamar si se traba, anotar todo lo que falle | **A** | ☐ |
