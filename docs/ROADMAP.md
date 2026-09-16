@@ -194,7 +194,7 @@ Falta solo pegar el `WA_TOKEN` y el `WA_PHONE_NUMBER_ID` nuevos cuando exista la
 | 2.6 | Middleware de supabase-ssr (pendiente #1 del triage) | **N** | ☐ |
 | 2.7 | Pixel de Meta + Conversions API — ver nota abajo | **N** | ☐ |
 | **2.8** | **Conectar Vercel a GitHub** (`vercel git connect`) — el 15/09 producción corría un build de **8 días** mientras `main` tenía el panel nuevo; hoy cada deploy es manual (`vercel --prod`) | **N** | ☐ **urgente** — bitácora #8 |
-| **2.9** | **El webhook de Mercado Pago no verifica la firma** (`MP_WEBHOOK_SECRET` está en Vercel, el código no lo lee; Stripe sí verifica) | **J** | ☐ bitácora #9 |
+| **2.9** | **El webhook de Mercado Pago no verifica la firma** (`MP_WEBHOOK_SECRET` está en Vercel, el código no lo lee; Stripe sí verifica) | **J** | ✅ 16/09 — `lib/firma-mp.ts`, 401 si la firma no coincide; la consulta directa del pago sigue siendo la verdad |
 
 ### 📊 Nota sobre el pixel — hay que diseñarlo bien o no sirve
 

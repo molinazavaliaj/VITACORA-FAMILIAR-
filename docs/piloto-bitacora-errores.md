@@ -119,4 +119,4 @@
    conectar Vercel a GitHub (`vercel git connect`) para que `main` deploye solo.
 
 9. **15/09 · el webhook de MP no verifica la firma** (`MP_WEBHOOK_SECRET` cargado
-   en Vercel pero el código no lo lee; Stripe sí verifica).
+   en Vercel pero el código no lo lee; Stripe sí verifica). **Arreglado el 16/09** (`web/src/lib/firma-mp.ts`): HMAC del manifiesto `id;request-id;ts`, 401 si no coincide. Requiere que `MP_WEBHOOK_SECRET` en Vercel sea la clave del webhook de **producción** (la que muestra el panel de MP al crear la notificación), no la de prueba.

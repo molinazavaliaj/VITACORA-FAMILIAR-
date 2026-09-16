@@ -3,14 +3,35 @@ import { MercadoPagoConfig, Payment } from "mercadopago";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { confirmarPago } from "@/lib/confirmar-pago";
 import { enviarMailAcceso } from "@/lib/mail";
+import { verificarFirmaMP } from "@/lib/firma-mp";
 
-// Mercado Pago no firma la notificación como Stripe: la "autenticación" acá
-// es que consultamos el pago DIRECTO contra la API de MP con nuestro propio
-// access token, y solo confiamos en lo que esa respuesta dice — nunca en el
-// payload que llega en la notificación (podría venir de cualquiera).
+// Dos candados. (1) La firma: MP manda `x-signature` (HMAC con la clave del
+// webhook, MP_WEBHOOK_SECRET); si no coincide, 401 y no gastamos una llamada
+// (bitácora #9, 16/09). (2) La verdad: consultamos el pago DIRECTO contra la
+// API de MP con nuestro access token y solo confiamos en esa respuesta — nunca
+// en el payload de la notificación.
 export async function POST(request: NextRequest) {
   const url = new URL(request.url);
   let paymentId = url.searchParams.get("data.id") ?? url.searchParams.get("id");
+
+  // La firma se calcula sobre el data.id de la URL, así que se verifica antes
+  // de mirar el cuerpo. Sin secreto configurado se avisa y se sigue (entorno
+  // local); en producción la variable está.
+  const secreto = process.env.MP_WEBHOOK_SECRET;
+  if (secreto && paymentId) {
+    const valida = verificarFirmaMP({
+      xSignature: request.headers.get("x-signature"),
+      xRequestId: request.headers.get("x-request-id"),
+      dataId: paymentId,
+      secreto,
+    });
+    if (!valida) {
+      console.warn("webhook mercadopago: firma inválida, se ignora");
+      return NextResponse.json({ error: "Firma inválida." }, { status: 401 });
+    }
+  } else if (!secreto) {
+    console.warn("webhook mercadopago: MP_WEBHOOK_SECRET no configurado, no se verifica la firma");
+  }
 
   if (!paymentId) {
     try {

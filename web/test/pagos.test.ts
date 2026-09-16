@@ -307,6 +307,56 @@ describe('POST /api/webhooks/stripe', () => {
 // --- POST /api/webhooks/mercadopago ---------------------------------------
 
 describe('POST /api/webhooks/mercadopago', () => {
+  it('con MP_WEBHOOK_SECRET, una notificación sin firma válida se rechaza con 401 y no se consulta el pago', async () => {
+    process.env.MP_WEBHOOK_SECRET = 'secreto-webhook';
+    const mockPaymentGet = vi.fn();
+    (Payment as unknown as ReturnType<typeof vi.fn>).mockImplementation(function () {
+      return { get: mockPaymentGet };
+    });
+    try {
+      const sinFirma = {
+        url: 'https://vitacorafamiliar.com/api/webhooks/mercadopago?data.id=123456&type=payment',
+        headers: new Headers({ 'x-request-id': 'req-1' }),
+        json: async () => ({}),
+      } as never;
+      expect((await POST_WEBHOOK_MP(sinFirma)).status).toBe(401);
+
+      const firmaMala = {
+        url: 'https://vitacorafamiliar.com/api/webhooks/mercadopago?data.id=123456&type=payment',
+        headers: new Headers({ 'x-request-id': 'req-1', 'x-signature': 'ts=1704908010,v1=00ff' }),
+        json: async () => ({}),
+      } as never;
+      expect((await POST_WEBHOOK_MP(firmaMala)).status).toBe(401);
+      expect(mockPaymentGet).not.toHaveBeenCalled();
+    } finally {
+      delete process.env.MP_WEBHOOK_SECRET;
+    }
+  });
+
+  it('con MP_WEBHOOK_SECRET, una firma válida pasa y se confirma el pago', async () => {
+    process.env.MP_WEBHOOK_SECRET = 'secreto-webhook';
+    const { createHmac } = await import('node:crypto');
+    const ts = '1704908010';
+    const v1 = createHmac('sha256', 'secreto-webhook').update(`id:123456;request-id:req-1;ts:${ts};`).digest('hex');
+    const mockPaymentGet = vi.fn().mockResolvedValue({ id: 123456, status: 'approved', external_reference: 'pedido-3' });
+    (Payment as unknown as ReturnType<typeof vi.fn>).mockImplementation(function () {
+      return { get: mockPaymentGet };
+    });
+    const admin = crearAdminFake({ pedidos: [{ data: null, error: null }] });
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+    try {
+      const request = {
+        url: 'https://vitacorafamiliar.com/api/webhooks/mercadopago?data.id=123456&type=payment',
+        headers: new Headers({ 'x-request-id': 'req-1', 'x-signature': `ts=${ts},v1=${v1}` }),
+        json: async () => ({}),
+      } as never;
+      expect((await POST_WEBHOOK_MP(request)).status).toBe(200);
+      expect(mockPaymentGet).toHaveBeenCalledWith({ id: '123456' });
+    } finally {
+      delete process.env.MP_WEBHOOK_SECRET;
+    }
+  });
+
   it('pago aprobado marca el pedido pagado usando external_reference', async () => {
     const mockPaymentGet = vi
       .fn()
