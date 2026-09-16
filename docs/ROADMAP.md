@@ -187,7 +187,7 @@ Falta solo pegar el `WA_TOKEN` y el `WA_PHONE_NUMBER_ID` nuevos cuando exista la
 | # | Tarea | Quién | Estado |
 |---|---|---|---|
 | 2.1 | Apuntar `vitacorafamiliar.com` a Vercel | **N** | ✅ (el checkout y el login andan en el dominio, 15/09) |
-| 2.2 | Verificar el dominio en Resend → destraba los mails de login para cualquiera | **N** | ✅ 15/09 — **Resend pasó a la cuenta Pro de Joaquín** (dominio en sa-east-1, Naza invitado); clave nueva en Supabase SMTP, Vercel y los dos servicios de Railway. Login probado. |
+| 2.2 | Verificar el dominio en Resend → destraba los mails de login para cualquiera | **N** | ✅ 15/09 — **Resend pasó a la cuenta Pro de Joaquín** (dominio en sa-east-1, Naza invitado); clave nueva en Supabase SMTP, Vercel y los dos servicios de Railway. Login probado. ⚠️ **16/09: el DKIM desapareció de Hostinger** (el asistente de correo de Hostinger lo borró al crear `soporte@`) y cayeron login + todos los mails; repuesto a mano y verificado. Regla: después de tocar correo en Hostinger, comprobar `resend._domainkey` por DNS. |
 | 2.3 | Completar `/legal/privacidad` + términos — **requisito duro de WhatsApp API** | **N** | ✅ 16/09 — términos, privacidad y `/legal/arrepentimiento` completos (dos titulares, mínimo legal). **Falta rellenar NIF/CUIT y domicilios en `web/src/app/legal/titulares.ts`** y confirmar la región del proyecto Supabase (la política dice UE). Al elegir proveedor de clonación de voz, nombrarlo en la tabla de privacidad. |
 | 2.4 | Crear `hola@vitacorafamiliar.com` (un Gmail no sirve para verificar el negocio) | **J** | ✅ 15/09 — `soporte@vitacorafamiliar.com` (el remitente de mails sigue siendo `hola@`) |
 | 2.5 | Metadatos + Open Graph (que el link se vea bien al compartirlo) | **N** | ☐ |
