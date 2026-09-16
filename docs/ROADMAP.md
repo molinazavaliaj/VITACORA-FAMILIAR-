@@ -193,7 +193,7 @@ Falta solo pegar el `WA_TOKEN` y el `WA_PHONE_NUMBER_ID` nuevos cuando exista la
 | 2.5 | Metadatos + Open Graph (que el link se vea bien al compartirlo) | **N** | ☐ |
 | 2.6 | Middleware de supabase-ssr (pendiente #1 del triage) | **N** | ☐ |
 | 2.7 | Pixel de Meta + Conversions API — ver nota abajo | **N** | ☐ |
-| **2.8** | **Deploy automático de la web** — el 15/09 producción corría un build de **8 días**; Vercel no puede mirar el repo (es de Joaquín, el team de Vercel es de Naza, Hobby). **Solución sin Pro (16/09):** `.github/workflows/deploy-web.yml` — GitHub corre los tests y le empuja el deploy a Vercel con la CLI en cada push a `main`. Faltan **3 secretos en GitHub** (Joaquín los carga; Naza pasa `VERCEL_TOKEN` por privado y `orgId`/`projectId` de `web/.vercel/project.json`). Mover el proyecto al Vercel de Joaquín + Pro queda para cuando haya ventas. | **J + N** | ☐ Action escrita; faltan los secretos — bitácora #8 |
+| **2.8** | **Deploy automático de la web** — `.github/workflows/deploy-web.yml`: en cada push a `main` que toque `web/`, GitHub corre los tests y empuja a Vercel con la CLI (sin Pro). Secretos `VERCEL_TOKEN` (Full Account) / `VERCEL_ORG_ID` / `VERCEL_PROJECT_ID` en GitHub. | **J + N** | ✅ 16/09 — primer deploy verde 13:06; producción al día |
 | **2.9** | **El webhook de Mercado Pago no verifica la firma** (`MP_WEBHOOK_SECRET` está en Vercel, el código no lo lee; Stripe sí verifica) | **J** | ✅ 16/09 — `lib/firma-mp.ts`, 401 si la firma no coincide; la consulta directa del pago sigue siendo la verdad |
 
 ### 📊 Nota sobre el pixel — hay que diseñarlo bien o no sirve
@@ -431,7 +431,7 @@ Spec: `docs/panel-usuario.md`. Construyó Joaquín en `web/` (Naza sin créditos
 | 3t.15 | Entrevistador: muestras de voz limpias para clonar + **pedir por WhatsApp el consentimiento explícito del narrador para clonar su voz** (la política de privacidad lo promete: es dato biométrico) | **J** | ☐ |
 
 **Para que todo lo de arriba ande en producción (Naza):**
-1. `npx supabase db push` — aplica `20260912_panel_usuario.sql`, `20260913_visitantes.sql` y `20260914_fotos_generales.sql`. Aditivas. Confirmar `CONTRATO.md`.
+1. ~~`npx supabase db push`~~ ✅ 16/09 — las tres migraciones aplicadas.
 2. Vercel: los precios (`GASTOS.md`, ahora **10**: se suman `PRECIO_AUDIOLIBRO_ARS=61250` y `PRECIO_AUDIOLIBRO_EUR=35`) + `MP_ACCESS_TOKEN` + `MP_WEBHOOK_SECRET` de producción (se los pasa Joaquín por privado). Sin `PRECIO_AUDIOLIBRO_*` el audiolibro no se ofrece.
 3. Después del deploy: **un pago real de prueba** entre los dos.
 
@@ -586,7 +586,7 @@ al algoritmo a buscar curiosos en vez de compradores.
 | 8.1 | Cuenta de Mercado Pago + `MP_ACCESS_TOKEN` en Vercel + webhook a `/api/webhooks/mercadopago` — **pago único** (el código ya existe) | **J** | ✅ 15/09 — producción activada, token y webhook cargados, el checkout funciona en la web |
 | 8.2 | Cargar en Vercel los 8 precios definidos el 12/09 (tabla en `GASTOS.md`) | **N** | ☐ **Joaquín se los pasa** |
 | 8.3 | ~~Prueba en sandbox~~ → **un pago real de prueba en producción, y devolverlo** (sandbox abandonado el 13/09) | **A** | ☐ único paso que falta del cobro |
-| **8.6** | **Pedirle a Naza (16/09):** en Vercel, `MP_WEBHOOK_SECRET` tiene que ser la clave del webhook de **producción** (panel de MP → Webhooks → junto a la URL), no la de prueba del 13/09 — desde `b1fedf2` la web rechaza con 401 las notificaciones mal firmadas. Después, **redeploy** (o conectar Vercel a GitHub, 2.8). Señal de que está mal: el pago real entra y el pedido queda "pendiente". | **J avisa · N carga** | ☐ en la próxima reunión |
+| **8.6** | **Confirmar con Naza:** en Vercel, `MP_WEBHOOK_SECRET` tiene que ser la clave del webhook de **producción** (panel de MP → Webhooks → junto a la URL), no la de prueba del 13/09 — desde `b1fedf2` la web rechaza con 401 las notificaciones mal firmadas. Después, **redeploy** (o conectar Vercel a GitHub, 2.8). Señal de que está mal: el pago real entra y el pedido queda "pendiente". | **J avisa · N carga** | ☐ en la próxima reunión |
 | 8.4 | **Averiguar si Naza puede darse de alta como autónomo en España y abrir Stripe** — reabre el mercado de 49€ | **N** | ☐ **urgente** |
 | 8.5 | Si 8.4 es no: evaluar merchant of record (Paddle / Lemon Squeezy) y si paga a Argentina | **J** | ☐ post 1-oct |
 
