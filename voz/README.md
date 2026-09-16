@@ -5,8 +5,9 @@ del narrador. Diseño: `docs/superpowers/specs/2026-09-16-voz-clonada-design.md`
 Plan de esta primera entrega (la prueba de oído):
 `docs/superpowers/plans/2026-09-16-voz-prueba-de-oido.md`.
 
-**Estado (16/09/2026):** existe la prueba de oído. El worker que sondea Supabase
-(`narraciones`) viene después, cuando el motor esté elegido.
+**Estado (16/09/2026):** existe la prueba de oído y existe el worker que sondea
+el buzón `narraciones` (`voz/worker.py`). Falta elegir el motor ganador con
+Joaquín y ponerlo en `MOTOR=` para arrancarlo.
 
 ## Qué hay
 
@@ -17,6 +18,11 @@ Plan de esta primera entrega (la prueba de oído):
 | `voz/audio.py` | ffmpeg: limpiar (mono 24 kHz, sin silencios en los bordes, volumen parejo), recortar en una pausa, pegar con pausas, mp3. |
 | `voz/preparar_muestras.py` | Paso 1: baja los audios de Supabase y deja `referencia.wav`, `referencia.txt`, `texto.txt`, `limpias/`. |
 | `voz/prueba_oido.py` | Paso 2: corre cada motor en su venv y deja `A.mp3 … D.mp3` + `clave.txt`. |
+| `voz/buzon.py` | El buzón `narraciones`: tomar la pendiente más vieja, liberar colgadas, marcar cómo fue. |
+| `voz/libro.py` | Leer `narracion.json` (los capítulos numerados 1..N). Puro. |
+| `voz/narrar.py` | Preparar la voz del narrador y narrar capítulo por capítulo con checkpoint en la fila. |
+| `voz/worker.py` | El bucle: `python -m voz.worker` sondea el buzón y narra de a una. Log en `logs/worker.log`. |
+| `voz/reintentar.py` | `python -m voz.reintentar <id>`: vuelve una narración fallida a pendiente. |
 | `motores/<motor>/generar.py` | Un motor por carpeta, con su propio `requirements.txt` y su propio venv. Todos con el mismo contrato. |
 | `motores/comun.py` | Lo que comparten los motores (argumentos, bucle frase a frase, pegado, wav). |
 
@@ -72,13 +78,59 @@ tarda). Deja en `C:\vitacora-voz\prueba\`: `A.mp3`, `B.mp3`, `C.mp3`, `D.mp3` y
 `clave.txt`. **Escuchen A-D con Joaquín y elijan sin abrir `clave.txt`.** Los
 logs de cada motor quedan en `prueba\crudo\<motor>.log`.
 
+## El worker
+
+Cuando el motor esté elegido:
+
+```powershell
+cd C:\vitacora-voz\repo\voz
+git pull
+
+# 1. Solo el venv del motor ganador (los otros tres se pueden borrar)
+python -m venv motores\<motor>\.venv
+& "motores\<motor>\.venv\Scripts\pip" install -r motores\<motor>\requirements.txt
+
+# 2. En .env: MOTOR=<motor> (chatterbox | qwen3tts | f5tts | omnivoice) e INTERVALO_SEGUNDOS=30
+notepad .env
+```
+`OPENAI_API_KEY` hace falta solo si el narrador no tiene ninguna respuesta
+entera de 12-30 s: ahí se recorta una y se transcribe con Whisper.
+
+Primero a mano, para verlo andar:
+
+```powershell
+.\.venv\Scripts\python -m voz.worker
+```
+Sondea `narraciones` cada 30 s; cuando toma una, dice a quién narra y por qué
+capítulo va. Todo queda en `logs\worker.log` (rota a 5 MB, guarda 3). Ctrl+C
+lo apaga limpio; una narración a medias vuelve a `pendiente` sola a las 6 h y
+al retomarla se saltean los capítulos que ya estaban subidos.
+
+Después, la tarea programada (PowerShell como administrador): arranca al
+iniciar sesión, se reinicia sola si se cae y no tiene límite de tiempo.
+
+```powershell
+Register-ScheduledTask -TaskName 'VitacoraVoz' -Trigger (New-ScheduledTaskTrigger -AtLogOn) `
+  -Action (New-ScheduledTaskAction -Execute 'C:\vitacora-voz\repo\voz\.venv\Scripts\python.exe' -Argument '-m voz.worker' -WorkingDirectory 'C:\vitacora-voz\repo\voz') `
+  -Settings (New-ScheduledTaskSettingsSet -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1) -ExecutionTimeLimit ([TimeSpan]::Zero))
+```
+Para arrancarla ya, sin cerrar sesión: `Start-ScheduledTask -TaskName VitacoraVoz`.
+Para pararla del todo: `Unregister-ScheduledTask -TaskName VitacoraVoz`.
+
+Si una narración quedó `fallida` (en la fila está el motivo: `error`) y ya se
+arregló la causa:
+
+```powershell
+.\.venv\Scripts\python -m voz.reintentar <id de la narración>
+```
+
 ## Tests (en cualquier máquina con ffmpeg)
 
 ```powershell
 .\.venv\Scripts\python -m pytest -q
 ```
-Prueban lo puro (selección, texto, barajado), ffmpeg con audio sintético, y el
-orquestador completo con un motor falso. Los cuatro motores reales solo se
+Prueban lo puro (selección, texto, barajado, el buzón, el libro), ffmpeg con audio
+sintético, y la prueba de oído y el worker completos con un motor falso. Los cuatro motores reales solo se
 prueban en la PC con GPU.
 
 ## Reglas de la casa

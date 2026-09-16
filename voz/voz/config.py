@@ -18,6 +18,8 @@ class Config:
     supabase_key: str
     carpeta_modelos: Path  # pesos de los modelos (en D:\vitacora-modelos)
     carpeta_trabajo: Path  # temporales, muestras, salidas de la prueba
+    motor: str = ""  # el motor elegido en la prueba de oído; solo el worker lo exige
+    intervalo_segundos: int = 30  # cada cuánto sondea el buzón cuando no hay trabajo
 
 
 def cargar_config() -> Config:
@@ -32,4 +34,6 @@ def cargar_config() -> Config:
         supabase_key=os.environ["SUPABASE_SERVICE_ROLE_KEY"].strip(),
         carpeta_modelos=Path(os.environ.get("CARPETA_MODELOS", str(RAIZ / "modelos"))),
         carpeta_trabajo=Path(os.environ.get("CARPETA_TRABAJO", str(RAIZ / "prueba"))),
+        motor=os.environ.get("MOTOR", "").strip(),
+        intervalo_segundos=int(os.environ.get("INTERVALO_SEGUNDOS", "30")),
     )
