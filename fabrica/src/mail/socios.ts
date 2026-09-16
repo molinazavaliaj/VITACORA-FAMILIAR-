@@ -1,6 +1,6 @@
 // Los avisos a los socios (no a la familia) cuando el buzón de voz clonada
 // se atasca: una narración que nadie tomó en 24 h (la PC de voz está
-// apagada), una que lleva 6 h procesando (se colgó), una fallida (el
+// apagada), una que lleva 6 h sin avance (se colgó), una fallida (el
 // worker ya dijo por qué) o una que la fábrica no logra ensamblar (la voz
 // volvió pero ffmpeg/Storage fallan). Van por Resend a MAIL_SOCIOS, igual que los
 // hitos; el worker deja un candado por (narración, motivo) SOLO si Resend
@@ -41,7 +41,7 @@ export function asuntoAviso(motivo: MotivoAviso, comoLeDicen: string): string {
 const TEXTOS: Record<MotivoAviso, (quien: string, aviso: { id: string; error: string }) => string[]> = {
   pendiente_24h: (quien) => [`La narración de ${quien} lleva más de 24 h sin tomarse: ¿está prendida la PC de voz?`],
   procesando_6h: (quien) => [
-    `La narración de ${quien} se colgó (más de 6 h procesando).`,
+    `La narración de ${quien} se colgó (más de 6 h sin avance).`,
     `El worker la retoma solo; si sigue así, mirá logs\\worker.log en la PC de voz.`,
   ],
   fallida: (quien, aviso) => [

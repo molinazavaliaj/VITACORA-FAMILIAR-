@@ -17,6 +17,9 @@ import {
   descargarTextoOpcional,
   extraerTexto,
   formatearNombresCorregidos,
+  rutasDeBorradores,
+  RUTA_BORRADOR_CAP,
+  RUTA_BORRADOR_LIBRO,
   subirTexto,
   type Nombres,
 } from './comun.js';
@@ -25,9 +28,6 @@ const RUTA_ESTRUCTURA = (narradorId: string) => `${narradorId}/paquete/estructur
 const RUTA_NOMBRES = (narradorId: string) => `${narradorId}/paquete/nombres.json`;
 const RUTA_LIBRO_PDF = (narradorId: string) => `${narradorId}/paquete/libro.pdf`;
 const RUTA_LIBRO_HTML = (narradorId: string) => `${narradorId}/paquete/libro.html`;
-const RUTA_BORRADOR_CAP = (narradorId: string, numeroCapitulo: number) =>
-  `${narradorId}/paquete/borrador_cap_${String(numeroCapitulo).padStart(2, '0')}.md`;
-const RUTA_BORRADOR_LIBRO = (narradorId: string) => `${narradorId}/paquete/borrador_libro.md`;
 
 const INSTRUCCION_EDITOR = `Revisá coherencia entre capítulos, agregá referencias cruzadas naturales donde ayuden, y escribí la apertura «A mis lectores» y el cierre, ambos en su voz, a partir de toda la historia. Armá también la página «Sus frases»: sus dichos, refranes y muletillas de siempre, tal cual los dice él — los que respondió cuando se le preguntó y los que se le escaparon a lo largo de todas las entrevistas. Devolvé el libro completo en Markdown.`;
 
@@ -218,7 +218,7 @@ export async function generarPaquete(pedido: { id: string; narrador_id: string; 
         titulo: edicion.titulo ?? estructuraFinal.titulo,
         capitulos: capitulosTexto.map((c) => ({ nombre: c.nombre, markdown: c.texto })),
       });
-      await subirTexto(db, RUTA_NARRACION_JSON(narradorId), JSON.stringify(narracion, null, 2));
+      await subirTexto(db, RUTA_NARRACION_JSON(narradorId), JSON.stringify(narracion, null, 2), 'application/json');
       await crearNarracion(db, { narradorId, pedidoId: pedido.id });
 
       const { error: errorEsperando } = await db
@@ -227,8 +227,12 @@ export async function generarPaquete(pedido: { id: string; narrador_id: string; 
         .eq('id', pedido.id);
       if (errorEsperando) throw new Error(`No se pudo actualizar el pedido ${pedido.id}: ${errorEsperando.message}`);
 
-      // Los borradores se borran igual: narracion.json ya es la fuente del worker.
-      await limpiarBorradores(db, narradorId, estructuraFinal.capitulos.length);
+      // Los borradores NO se borran acá: todavía no se entregó nada. Si la
+      // narración queda `fallida` para siempre (sin consentimiento, pocos
+      // minutos de voz), el arreglo a mano es volver el pedido a `pagado`
+      // con `extras.audiolibro = "real"` — y ese reintento tiene que reusar
+      // los borradores, no pagarle al modelo de nuevo. Los borra
+      // `ensamblarNarracionesListas` (worker.ts) recién al entregar.
       return;
     }
 
@@ -263,9 +267,10 @@ export async function generarPaquete(pedido: { id: string; narrador_id: string; 
 
 /**
  * Los borradores eran solo scaffolding para no repagarle al modelo en un
- * reintento — con el pedido ya entregado (o en el buzón de voz) no hacen
- * falta. Si el borrado falla no es motivo para marcar el pedido 'fallido'
- * (ya se entregó bien), así que se loguea y se sigue.
+ * reintento — con el pedido ya entregado no hacen falta. Si el borrado
+ * falla no es motivo para marcar el pedido 'fallido' (ya se entregó bien),
+ * así que se loguea y se sigue. (El camino de voz clonada hace lo mismo
+ * desde worker.ts, cuando entrega.)
  */
 async function limpiarBorradores(
   db: ReturnType<typeof obtenerClienteDb>,
@@ -273,11 +278,7 @@ async function limpiarBorradores(
   cantidadCapitulos: number
 ): Promise<void> {
   try {
-    const rutasBorradores = [
-      ...Array.from({ length: cantidadCapitulos }, (_, i) => RUTA_BORRADOR_CAP(narradorId, i + 1)),
-      RUTA_BORRADOR_LIBRO(narradorId),
-    ];
-    await borrarArchivos(db, rutasBorradores);
+    await borrarArchivos(db, rutasDeBorradores(narradorId, cantidadCapitulos));
   } catch (errorLimpieza) {
     console.error(`generarPaquete: no se pudieron borrar los borradores de ${narradorId}:`, errorLimpieza);
   }

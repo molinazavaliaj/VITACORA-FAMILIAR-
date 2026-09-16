@@ -3,7 +3,7 @@ import { obtenerClienteDb, type Narrador } from './db.js';
 import { cargarConfig } from './config.js';
 import { generarAnticipo } from './libro/anticipo.js';
 import { firmarTokenAnticipo } from './libro/token-anticipo.js';
-import { descargarJson, subirTexto } from './libro/comun.js';
+import { borrarArchivos, descargarJson, rutasDeBorradores, subirTexto } from './libro/comun.js';
 import { enviarMailAnticipo } from './mail/anticipo.js';
 import { enviarMailHito, CANDADO_POR_HITO, type Hito } from './mail/hitos.js';
 import { avisarSocios, asuntoAviso, cuerpoAviso, CANDADO_AVISO, type MotivoAviso } from './mail/socios.js';
@@ -662,8 +662,12 @@ async function entregarConLosMismosArchivos(
  * tiene que enterarse, porque cada reintento cuesta una intro TTS por
  * capítulo y no hay tope. El UPDATE del pedido exige
  * `estado = 'esperando_voz'`: si alguien lo movió entre el SELECT y acá, no
- * se pisa. El mail `libro_listo` lo manda `avisarLibrosListos`, que corre
- * después en el mismo tick.
+ * se pisa. Recién con el pedido entregado se borran los borradores
+ * (`borrador_cap_NN.md` + `borrador_libro.md`): hasta ese momento son el
+ * caché que evita repagarle al modelo si la narración queda `fallida` y
+ * alguien vuelve el pedido a `pagado` con `audiolibro: "real"` (CONTRATO,
+ * "Narraciones"). El mail `libro_listo` lo manda `avisarLibrosListos`, que
+ * corre después en el mismo tick.
  */
 export async function ensamblarNarracionesListas(): Promise<void> {
   const db = obtenerClienteDb();
@@ -701,6 +705,16 @@ export async function ensamblarNarracionesListas(): Promise<void> {
         console.warn(
           `tick: el audiolibro de la narración ${narracion.id} se armó pero el pedido ${narracion.pedido_id} ya no estaba esperando_voz — no se tocó.`
         );
+        continue;
+      }
+
+      // Entregado: los borradores ya no hacen falta. Si el borrado falla no
+      // es motivo para deshacer nada (el pedido está bien entregado): se
+      // loguea y se sigue, como `limpiarBorradores` en generar-paquete.ts.
+      try {
+        await borrarArchivos(db, rutasDeBorradores(narracion.narrador_id, narracionJson.capitulos.length));
+      } catch (errorLimpieza) {
+        console.error(`tick: no se pudieron borrar los borradores de ${narracion.narrador_id}:`, errorLimpieza);
       }
     } catch (err) {
       console.error(`tick: falló el ensamblado de la narración ${narracion.id} (pedido ${narracion.pedido_id}):`, err);

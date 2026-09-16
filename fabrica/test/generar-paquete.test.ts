@@ -736,6 +736,7 @@ describe('generarPaquete', () => {
     // worker de voz va a narrar.
     const llamadaJson = db.upload.mock.calls.find((c) => c[0] === 'n1/paquete/narracion.json');
     expect(llamadaJson).toBeDefined();
+    expect(llamadaJson![2]).toEqual({ contentType: 'application/json', upsert: true });
     expect(JSON.parse(llamadaJson![1] as string)).toEqual({
       narrador_id: 'n1',
       pedido_id: 'p1',
@@ -764,11 +765,12 @@ describe('generarPaquete', () => {
     expect(generarAudiolibroMock).not.toHaveBeenCalled();
     expect(db.list).not.toHaveBeenCalled();
 
-    // Los borradores se borran igual: narracion.json ya es la fuente del worker.
-    expect(db.remove).toHaveBeenCalledTimes(1);
-    expect(db.remove.mock.calls[0][0]).toEqual(
-      expect.arrayContaining(['n1/paquete/borrador_cap_01.md', 'n1/paquete/borrador_cap_02.md', 'n1/paquete/borrador_libro.md'])
-    );
+    // Los borradores NO se borran acá: todavía no se entregó nada. Si la
+    // narración falla para siempre, el arreglo a mano es volver el pedido a
+    // `pagado` con `audiolibro: "real"` — y ese reintento tiene que reusar
+    // los borradores, no pagarle al modelo de nuevo. Los borra la fábrica
+    // al ensamblar y entregar (worker.ts).
+    expect(db.remove).not.toHaveBeenCalled();
   });
 
   it('audiolibro "clonada" sin título de tapa: narracion.json lleva el título de la estructura', async () => {

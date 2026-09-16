@@ -178,19 +178,32 @@ export async function descargarTextoOpcional(
  * Sube un archivo de texto a Storage (upsert). Se usa para cachear la salida
  * cara del modelo (borrador de capítulo, pasada de editor) ANTES de los
  * pasos baratos que pueden fallar (PDF, audio) — así un reintento no vuelve
- * a pagarle al modelo por algo que ya escribió.
+ * a pagarle al modelo por algo que ya escribió. Por defecto markdown; los
+ * JSON (narracion.json) pasan su `contentType`.
  */
 export async function subirTexto(
   db: ReturnType<typeof obtenerClienteDb>,
   ruta: string,
-  contenido: string
+  contenido: string,
+  contentType = 'text/markdown'
 ): Promise<void> {
   const { error } = await db.storage.from('audios').upload(ruta, contenido, {
-    contentType: 'text/markdown',
+    contentType,
     upsert: true,
   });
   if (error) throw new Error(`No se pudo subir ${ruta}: ${error.message}`);
 }
+
+/** El borrador de un capítulo (numerado por el orden FINAL) y el del libro editado. */
+export const RUTA_BORRADOR_CAP = (narradorId: string, numeroCapitulo: number) =>
+  `${narradorId}/paquete/borrador_cap_${String(numeroCapitulo).padStart(2, '0')}.md`;
+export const RUTA_BORRADOR_LIBRO = (narradorId: string) => `${narradorId}/paquete/borrador_libro.md`;
+
+/** Todos los borradores de un narrador con `cantidadCapitulos` capítulos: lo que se borra al entregar. */
+export const rutasDeBorradores = (narradorId: string, cantidadCapitulos: number): string[] => [
+  ...Array.from({ length: cantidadCapitulos }, (_, i) => RUTA_BORRADOR_CAP(narradorId, i + 1)),
+  RUTA_BORRADOR_LIBRO(narradorId),
+];
 
 /**
  * Borra una lista de archivos de Storage. Se usa para limpiar los borradores

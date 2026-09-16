@@ -133,6 +133,12 @@ capítulos ya subidos. Reintento a mano: `npm run narracion -- reintentar <id>` 
 fábrica (o `python -m voz.reintentar <id>` en la PC de voz) vuelve a poner `pendiente`
 una `fallida` y borra el candado de su aviso, así un segundo fallo vuelve a avisar.
 
+**Si una narración queda `fallida` y no se va a reintentar** (sin consentimiento, pocos
+minutos de voz): cambiar `pedidos.extras.audiolibro` a `"real"` (o `"narrador"` cuando
+exista) y poner el pedido en `pagado`. La fábrica reusa los borradores
+(`borrador_cap_NN.md`, `borrador_libro.md`, que solo se borran al entregar) y no vuelve a
+pagarle al modelo; el libro sale con el audiolibro de sus audios.
+
 ## El guion por narrador (migración 20260912)
 
 - Al confirmar la compra, **la web copia las 26 fijas globales** a filas del narrador

@@ -132,13 +132,13 @@ describe('clasificarAtascadas', () => {
   const ahora = new Date('2026-09-16T12:00:00Z');
   const hace = (horas: number) => new Date(ahora.getTime() - horas * 3_600_000).toISOString();
 
-  it('pendiente de hace 25 h → pendiente_24h; procesando tomada hace 7 h → procesando_6h; fallida → fallida; pendiente de hace 1 h → nada', () => {
+  it('pendiente de hace 25 h → pendiente_24h; procesando sin avance hace 7 h → procesando_6h; fallida → fallida; pendiente de hace 1 h → nada', () => {
     const filas = [
-      { id: 'a', narrador_id: 'n1', estado: 'pendiente', created_at: hace(25), tomada_at: null, error: null },
-      { id: 'b', narrador_id: 'n2', estado: 'procesando', created_at: hace(8), tomada_at: hace(7), error: null },
-      { id: 'c', narrador_id: 'n3', estado: 'fallida', created_at: hace(2), tomada_at: hace(1), error: 'sin_consentimiento_voz' },
-      { id: 'd', narrador_id: 'n4', estado: 'pendiente', created_at: hace(1), tomada_at: null, error: null },
-      { id: 'e', narrador_id: 'n5', estado: 'procesando', created_at: hace(3), tomada_at: hace(2), error: null },
+      { id: 'a', narrador_id: 'n1', estado: 'pendiente', created_at: hace(25), tomada_at: null, actualizada_at: hace(25), error: null },
+      { id: 'b', narrador_id: 'n2', estado: 'procesando', created_at: hace(8), tomada_at: hace(7), actualizada_at: hace(7), error: null },
+      { id: 'c', narrador_id: 'n3', estado: 'fallida', created_at: hace(2), tomada_at: hace(1), actualizada_at: hace(1), error: 'sin_consentimiento_voz' },
+      { id: 'd', narrador_id: 'n4', estado: 'pendiente', created_at: hace(1), tomada_at: null, actualizada_at: hace(1), error: null },
+      { id: 'e', narrador_id: 'n5', estado: 'procesando', created_at: hace(3), tomada_at: hace(2), actualizada_at: hace(2), error: null },
     ];
 
     expect(clasificarAtascadas(filas, ahora)).toEqual([
@@ -146,6 +146,16 @@ describe('clasificarAtascadas', () => {
       { id: 'b', narrador_id: 'n2', motivo: 'procesando_6h', error: null },
       { id: 'c', narrador_id: 'n3', motivo: 'fallida', error: 'sin_consentimiento_voz' },
     ]);
+  });
+
+  it('un libro largo: procesando tomada hace 9 h pero con un capítulo subido hace 1 h NO está colgada', () => {
+    // "Colgada" es sin avance en 6 h: se mide desde `actualizada_at` (cada
+    // checkpoint del worker la mueve), no desde `tomada_at`.
+    const filas = [
+      { id: 'b', narrador_id: 'n2', estado: 'procesando', created_at: hace(10), tomada_at: hace(9), actualizada_at: hace(1), error: null },
+    ];
+
+    expect(clasificarAtascadas(filas, ahora)).toEqual([]);
   });
 });
 
@@ -156,8 +166,8 @@ describe('narracionesAtascadas', () => {
       narraciones: [
         {
           data: [
-            { id: 'a', narrador_id: 'n1', estado: 'pendiente', created_at: '2026-09-15T00:00:00Z', tomada_at: null, error: null },
-            { id: 'd', narrador_id: 'n4', estado: 'pendiente', created_at: '2026-09-16T11:30:00Z', tomada_at: null, error: null },
+            { id: 'a', narrador_id: 'n1', estado: 'pendiente', created_at: '2026-09-15T00:00:00Z', tomada_at: null, actualizada_at: '2026-09-15T00:00:00Z', error: null },
+            { id: 'd', narrador_id: 'n4', estado: 'pendiente', created_at: '2026-09-16T11:30:00Z', tomada_at: null, actualizada_at: '2026-09-16T11:30:00Z', error: null },
           ],
           error: null,
         },
@@ -168,5 +178,6 @@ describe('narracionesAtascadas', () => {
 
     expect(atascadas).toEqual([{ id: 'a', narrador_id: 'n1', motivo: 'pendiente_24h', error: null }]);
     expect(paso(fake.llamadas[0], 'in')).toEqual(['estado', ['pendiente', 'procesando', 'fallida']]);
+    expect(paso(fake.llamadas[0], 'select')).toEqual(['id, narrador_id, estado, created_at, actualizada_at, error']);
   });
 });

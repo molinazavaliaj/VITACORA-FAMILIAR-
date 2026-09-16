@@ -17,7 +17,7 @@ describe('asuntoAviso / cuerpoAviso', () => {
 
   it('procesando_6h dice que se colgó y dónde mirar', () => {
     const cuerpo = cuerpoAviso({ id: 'abc', motivo: 'procesando_6h', error: null }, 'papá');
-    expect(cuerpo).toContain('La narración de papá se colgó (más de 6 h procesando).');
+    expect(cuerpo).toContain('La narración de papá se colgó (más de 6 h sin avance).');
     expect(cuerpo).toContain('logs\\worker.log');
   });
 

@@ -2,8 +2,8 @@
 // fábrica deja acá el pedido de una voz clonada y el worker de la PC de Naza
 // lo toma. Los dos se hablan solo por Supabase — la fábrica escribe la fila
 // (`pendiente`); el worker escribe estado/motor/muestras/capitulos_paths/
-// error/tomada_at. Lo que lee la fábrica después (listas, atascadas) también
-// vive acá.
+// error/tomada_at/actualizada_at. Lo que lee la fábrica después (listas,
+// atascadas) también vive acá.
 
 import type { obtenerClienteDb } from '../db.js';
 
@@ -17,8 +17,13 @@ const ESTADOS_VIVOS = ['pendiente', 'procesando', 'lista'];
 
 /** Una pendiente que nadie tomó en un día: la PC está apagada o el worker no corre. */
 const HORAS_PENDIENTE = 24;
-/** Una procesando desde hace más de esto se colgó a mitad de camino. */
-const HORAS_PROCESANDO = 6;
+/**
+ * Una procesando sin avance desde hace más de esto se colgó a mitad de
+ * camino. "Avance" es `actualizada_at`: el worker la mueve con cada
+ * capítulo que sube (su checkpoint). No se mide desde `tomada_at` porque
+ * un libro largo con el motor lento tarda más de 6 h narrándose bien.
+ */
+const HORAS_SIN_AVANCE = 6;
 
 /**
  * Deja la narración de un pedido en el buzón y devuelve su id. Idempotente:
@@ -92,7 +97,7 @@ type FilaNarracion = {
   narrador_id: string;
   estado: string;
   created_at: string;
-  tomada_at: string | null;
+  actualizada_at: string;
   error: string | null;
 };
 
@@ -100,9 +105,9 @@ const horasDesde = (fecha: string, ahora: Date) => (ahora.getTime() - new Date(f
 
 /**
  * Qué narraciones necesitan a alguien: una `pendiente` que lleva más de 24 h
- * sin que el worker la tome, una `procesando` tomada hace más de 6 h (se
- * colgó), o cualquier `fallida` (el worker ya dijo por qué en `error`).
- * Pura: recibe las filas y la hora, para probarla con fechas.
+ * sin que el worker la tome, una `procesando` sin avance hace más de 6 h (se
+ * colgó; ver HORAS_SIN_AVANCE), o cualquier `fallida` (el worker ya dijo por
+ * qué en `error`). Pura: recibe las filas y la hora, para probarla con fechas.
  */
 export function clasificarAtascadas(filas: FilaNarracion[], ahora: Date): NarracionAtascada[] {
   const atascadas: NarracionAtascada[] = [];
@@ -112,8 +117,7 @@ export function clasificarAtascadas(filas: FilaNarracion[], ahora: Date): Narrac
       motivo = 'fallida';
     } else if (fila.estado === 'pendiente' && horasDesde(fila.created_at, ahora) > HORAS_PENDIENTE) {
       motivo = 'pendiente_24h';
-    } else if (fila.estado === 'procesando' && horasDesde(fila.tomada_at ?? fila.created_at, ahora) > HORAS_PROCESANDO) {
-      // Sin `tomada_at` (el worker no lo anotó) se mide desde la creación.
+    } else if (fila.estado === 'procesando' && horasDesde(fila.actualizada_at, ahora) > HORAS_SIN_AVANCE) {
       motivo = 'procesando_6h';
     }
     if (motivo) atascadas.push({ id: fila.id, narrador_id: fila.narrador_id, motivo, error: fila.error });
@@ -124,7 +128,7 @@ export function clasificarAtascadas(filas: FilaNarracion[], ahora: Date): Narrac
 export async function narracionesAtascadas(db: Db, ahora: Date): Promise<NarracionAtascada[]> {
   const { data, error } = await db
     .from('narraciones')
-    .select('id, narrador_id, estado, created_at, tomada_at, error')
+    .select('id, narrador_id, estado, created_at, actualizada_at, error')
     .in('estado', ['pendiente', 'procesando', 'fallida']);
   if (error) throw new Error(`No se pudieron leer las narraciones: ${error.message}`);
   return clasificarAtascadas((data ?? []) as FilaNarracion[], ahora);
