@@ -633,12 +633,16 @@ export default function Home() {
             <p className="text-[15px] italic text-[#AEAEA6] [font-family:var(--fuente-cuerpo)] font-light">
               Para las vidas que merecen su propio libro
             </p>
-            <nav className="flex items-center gap-6 text-[12px] uppercase text-[#83837A] [font-family:var(--fuente-micro)] [letter-spacing:0.18em]">
+            <nav className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-[12px] uppercase text-[#83837A] [font-family:var(--fuente-micro)] [letter-spacing:0.18em]">
               <Link href="/legal/terminos" className="transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">
                 Términos
               </Link>
               <Link href="/legal/privacidad" className="transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">
                 Privacidad
+              </Link>
+              {/* Leyenda exigida por la Res. 424/2020 (AR): "Botón de arrepentimiento", accesible desde la home. */}
+              <Link href="/legal/arrepentimiento" className="whitespace-nowrap transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">
+                Botón de arrepentimiento
               </Link>
               <Link href="/entrar" className="transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">
                 Entrar

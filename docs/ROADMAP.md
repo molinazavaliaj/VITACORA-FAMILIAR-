@@ -188,12 +188,12 @@ Falta solo pegar el `WA_TOKEN` y el `WA_PHONE_NUMBER_ID` nuevos cuando exista la
 |---|---|---|---|
 | 2.1 | Apuntar `vitacorafamiliar.com` a Vercel | **N** | ✅ (el checkout y el login andan en el dominio, 15/09) |
 | 2.2 | Verificar el dominio en Resend → destraba los mails de login para cualquiera | **N** | ✅ 15/09 — **Resend pasó a la cuenta Pro de Joaquín** (dominio en sa-east-1, Naza invitado); clave nueva en Supabase SMTP, Vercel y los dos servicios de Railway. Login probado. |
-| 2.3 | Completar `/legal/privacidad` + términos — **requisito duro de WhatsApp API** | **N** | ☐ |
+| 2.3 | Completar `/legal/privacidad` + términos — **requisito duro de WhatsApp API** | **N** | ✅ 16/09 — términos, privacidad y `/legal/arrepentimiento` completos (dos titulares, mínimo legal). **Falta rellenar NIF/CUIT y domicilios en `web/src/app/legal/titulares.ts`** y confirmar la región del proyecto Supabase (la política dice UE). Al elegir proveedor de clonación de voz, nombrarlo en la tabla de privacidad. |
 | 2.4 | Crear `hola@vitacorafamiliar.com` (un Gmail no sirve para verificar el negocio) | **J** | ✅ 15/09 — `soporte@vitacorafamiliar.com` (el remitente de mails sigue siendo `hola@`) |
 | 2.5 | Metadatos + Open Graph (que el link se vea bien al compartirlo) | **N** | ☐ |
 | 2.6 | Middleware de supabase-ssr (pendiente #1 del triage) | **N** | ☐ |
 | 2.7 | Pixel de Meta + Conversions API — ver nota abajo | **N** | ☐ |
-| **2.8** | **Conectar Vercel a GitHub** (`vercel git connect`) — el 15/09 producción corría un build de **8 días** mientras `main` tenía el panel nuevo; hoy cada deploy es manual (`vercel --prod`) | **N** | ☐ **urgente** — bitácora #8 |
+| **2.8** | **Conectar Vercel a GitHub** (`vercel git connect`) — el 15/09 producción corría un build de **8 días** mientras `main` tenía el panel nuevo; hoy cada deploy es manual (`vercel --prod`) | **N + J** | ☐ **bloqueado el 16/09**: `vercel git connect` falla porque la GitHub App de Vercel no tiene acceso al repo (es de la cuenta de Joaquín). Hace falta que Joaquín entre al team de Vercel y conecte su GitHub, o mover el repo a una organización. Hasta entonces: `vercel --prod` desde una worktree limpia de `origin/main`. **No cambiar Root Directory a `web` antes de conectar** (rompe el deploy manual). — bitácora #8 |
 | **2.9** | **El webhook de Mercado Pago no verifica la firma** (`MP_WEBHOOK_SECRET` está en Vercel, el código no lo lee; Stripe sí verifica) | **J** | ✅ 16/09 — `lib/firma-mp.ts`, 401 si la firma no coincide; la consulta directa del pago sigue siendo la verdad |
 
 ### 📊 Nota sobre el pixel — hay que diseñarlo bien o no sirve
@@ -428,7 +428,7 @@ Spec: `docs/panel-usuario.md`. Construyó Joaquín en `web/` (Naza sin créditos
 | 3t.12 | Sugeridas por IA a pedido (§6.2, tercer botón) | **J** | ✅ 16/09 — botón "Sugerime preguntas" en el modo edición de la historia; `/api/sugeridas` → entrevistador. ⚠️ Vercel: `ENTREVISTADOR_URL` + `SUGERIDAS_CLAVE` (GASTOS.md) |
 | **3t.13** | **Rediseño 13/09 (tarde)** — landing con maquetas en código + CTA sticky; tema claro/oscuro; nav de 3; la historia ES el guion (riel, filas, modo edición); fotos sin capítulo; **tres productos, al menos uno** (PDF · audiolibro · impreso); el lector (`/leer`, nada se descarga); libro en miniatura + tapa/contratapa/marco. Spec: `docs/panel-usuario.md` §15. Lienzo: `docs/diseno/panel-v2/`. | **J** | ✅ 13/09 · revisado y pusheado el 14/09 |
 | 3t.14 | Fábrica: leer `pedidos.extras` nuevo (pdf / audiolibro{voz} / impreso / marcos), **audiolibro con voz clonada o narrador** (elegir proveedor), contratapa y marco desde `edicion`, HTML paginado para el lector y la miniatura | **N** | ☐ |
-| 3t.15 | Entrevistador: muestras de voz limpias para clonar | **J** | ☐ |
+| 3t.15 | Entrevistador: muestras de voz limpias para clonar + **pedir por WhatsApp el consentimiento explícito del narrador para clonar su voz** (la política de privacidad lo promete: es dato biométrico) | **J** | ☐ |
 
 **Para que todo lo de arriba ande en producción (Naza):**
 1. `npx supabase db push` — aplica `20260912_panel_usuario.sql`, `20260913_visitantes.sql` y `20260914_fotos_generales.sql`. Aditivas. Confirmar `CONTRATO.md`.
