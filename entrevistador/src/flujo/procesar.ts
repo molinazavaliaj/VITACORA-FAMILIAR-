@@ -2,6 +2,7 @@ import type { MensajeEntrante } from '../whatsapp/webhook.js';
 import { db } from '../db/cliente.js';
 import { enviarTexto } from '../whatsapp/enviar.js';
 import { descargarAudio } from '../whatsapp/media.js';
+import { variantesDeTelefono } from '../whatsapp/telefonos.js';
 import { guardarRespuestaAudio } from '../db/respuestas.js';
 import { guardarRepreguntaEnviada } from '../db/envios.js';
 import { transcribirYActualizar } from '../ia/transcribir.js';
@@ -18,7 +19,8 @@ import { enviarPregunta, ritmoDe, type Narrador } from './preguntar.js';
 const MAXIMO_POR_DIA_DOS = 2; // ritmo 'dos_por_dia': la segunda se ofrece, no se impone
 
 async function buscarNarrador(telefono: string): Promise<Narrador | null> {
-  const { data } = await db.from('narradores').select('*').eq('telefono_whatsapp', telefono).maybeSingle();
+  // Con y sin el 9 de celular argentino: Meta y la web no siempre coinciden.
+  const { data } = await db.from('narradores').select('*').in('telefono_whatsapp', variantesDeTelefono(telefono)).limit(1).maybeSingle();
   return (data as Narrador | null) ?? null;
 }
 

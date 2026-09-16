@@ -36,6 +36,7 @@ vi.mock('../src/db/cliente.js', () => {
     const cadena = () => b;
     b.select = cadena; b.or = cadena; b.is = cadena; b.order = cadena; b.limit = cadena; b.gte = cadena;
     b.eq = (col: string, val: any) => { b._filtros[col] = val; return b; };
+    b.in = (col: string, vals: any[]) => { b._filtros[col] = vals[0]; return b; }; // buscarNarrador: la primera variante es el número tal cual
     b.insert = (p: any) => { b._op = 'insert'; mocks.estado.capturas.push({ op: 'insert', tabla, p }); return b; };
     b.update = (p: any) => { b._op = 'update'; mocks.estado.capturas.push({ op: 'update', tabla, p }); return b; };
     b.single = () => Promise.resolve(resolver(tabla, b._op, b._filtros));
