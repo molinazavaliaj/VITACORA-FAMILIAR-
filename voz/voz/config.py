@@ -35,5 +35,5 @@ def cargar_config() -> Config:
         carpeta_modelos=Path(os.environ.get("CARPETA_MODELOS", str(RAIZ / "modelos"))),
         carpeta_trabajo=Path(os.environ.get("CARPETA_TRABAJO", str(RAIZ / "prueba"))),
         motor=os.environ.get("MOTOR", "").strip(),
-        intervalo_segundos=int(os.environ.get("INTERVALO_SEGUNDOS", "30")),
+        intervalo_segundos=int(os.environ.get("INTERVALO_SEGUNDOS") or "30"),
     )

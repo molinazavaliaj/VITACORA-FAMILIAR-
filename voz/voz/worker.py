@@ -49,7 +49,7 @@ def procesar_una(sb, config: Config, log: logging.Logger) -> bool:
     try:
         if consentimiento_de(sb, n.narrador_id) is None:
             log.warning("fallida: sin_consentimiento_voz")
-            marcar(sb, n.id, "fallida", error="sin_consentimiento_voz", motor=config.motor)
+            _marcar_fallida(sb, n.id, "sin_consentimiento_voz", config, log)
             return True
         carpeta = config.carpeta_trabajo / "narraciones" / n.id
         carpeta.mkdir(parents=True, exist_ok=True)
@@ -79,6 +79,16 @@ def _marcar_fallida(sb, id: str, motivo: str, config: Config, log: logging.Logge
         log.exception("no pude marcar fallida la narración %s; sigo", id[:8])
 
 
+def una_vuelta(sb, config: Config, log: logging.Logger) -> bool:
+    """Una vuelta del bucle. Si Supabase o la red fallan al sondear, lo anota
+    y devuelve False: el worker duerme y vuelve a intentar, no se cae."""
+    try:
+        return procesar_una(sb, config, log)
+    except Exception:
+        log.exception("vuelta fallida; sigo en %d s", config.intervalo_segundos)
+        return False
+
+
 def preparar_logs() -> None:
     # La consola de Windows arranca en cp1252 y no sabe imprimir "→" ni "…".
     for flujo in (sys.stdout, sys.stderr):
@@ -101,11 +111,11 @@ def main() -> None:
         raise SystemExit("Falta MOTOR en .env: el ganador de la prueba de oído (chatterbox | qwen3tts | f5tts | omnivoice).")
     sb = cliente(config)
     log.info("worker arriba con el motor %s; sondeo cada %d s", config.motor, config.intervalo_segundos)
-    vueltas = 0
+    vueltas = 0  # seguidas sin trabajo
     try:
         while True:
-            trabajo = procesar_una(sb, config, log)
-            if trabajo:
+            if una_vuelta(sb, config, log):
+                vueltas = 0
                 continue
             vueltas += 1
             if vueltas % 10 == 0:

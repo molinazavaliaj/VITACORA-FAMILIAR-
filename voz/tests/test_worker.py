@@ -17,7 +17,7 @@ import voz.worker as worker
 from voz.config import Config
 from voz.libro import ruta_capitulo
 from voz.narrar import FaltanMinutos
-from voz.worker import RUTA_NARRACION_JSON, procesar_una
+from voz.worker import RUTA_NARRACION_JSON, procesar_una, una_vuelta
 
 from fakes import FakeSupabase
 
@@ -185,3 +185,18 @@ def test_si_marcar_fallida_tambien_falla_el_worker_sigue_vivo(tmp_path, monkeypa
     monkeypatch.setattr(worker, "preparar_voz", explota)
 
     assert procesar_una(fake, config_de(tmp_path), logging.getLogger("test.worker")) is True
+
+
+def test_una_vuelta_no_muere_si_supabase_falla_al_sondear(tmp_path, monkeypatch):
+    def caido(sb, config, log):
+        raise RuntimeError("503 Service Unavailable")
+
+    monkeypatch.setattr(worker, "procesar_una", caido)
+
+    assert una_vuelta(FakeSupabase(), config_de(tmp_path), logging.getLogger("test.worker")) is False
+
+
+def test_una_vuelta_devuelve_lo_que_dice_procesar_una(tmp_path, monkeypatch):
+    monkeypatch.setattr(worker, "procesar_una", lambda sb, config, log: True)
+
+    assert una_vuelta(FakeSupabase(), config_de(tmp_path), logging.getLogger("test.worker")) is True
