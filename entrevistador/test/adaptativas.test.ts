@@ -51,7 +51,7 @@ vi.mock('../src/db/cliente.js', () => {
   return { db: { from: (t: string) => crearBuilder(t) } };
 });
 
-import { generarPreguntasAdaptativas } from '../src/ia/adaptativas.js';
+import { generarPreguntasAdaptativas, PROMPT_ADAPTATIVAS } from '../src/ia/adaptativas.js';
 
 const CUATRO = JSON.stringify([
   { texto: 'Hábleme de su hermano Tito, que nombró varias veces.', capitulo: 'Las raíces' },
@@ -120,5 +120,24 @@ describe('generarPreguntasAdaptativas', () => {
     mocks.crear.mockResolvedValue({ content: [{ type: 'text', text: 'no soy JSON' }] });
     await expect(generarPreguntasAdaptativas('n1')).rejects.toThrow(/No pude generar/);
     expect(mocks.capturas).toHaveLength(0);
+  });
+});
+
+describe('el trato en las 4 preguntas finales', () => {
+  it('con vos: tutea y no dice que la lee una persona mayor', () => {
+    const p = PROMPT_ADAPTATIVAS('Ciro', 'Contó del taller.', ['La infancia'], 26, '', 'vos');
+    expect(p).toContain('tratarlo de vos');
+    expect(p).toContain('MUY IMPORTANTE — las va a leer en el celular:');
+    expect(p).not.toContain('tratarlo de usted');
+  });
+
+  it('con usted: queda como estaba', () => {
+    const p = PROMPT_ADAPTATIVAS('Don Osvaldo', 'Contó del taller.', ['La infancia'], 26, '', 'usted');
+    expect(p).toContain('tratarlo de usted');
+    expect(p).toContain('MUY IMPORTANTE — las va a leer en el celular una persona mayor:');
+  });
+
+  it('el default sigue siendo usted', () => {
+    expect(PROMPT_ADAPTATIVAS('Don Osvaldo', 'Contó del taller.', ['La infancia'])).toContain('tratarlo de usted');
   });
 });

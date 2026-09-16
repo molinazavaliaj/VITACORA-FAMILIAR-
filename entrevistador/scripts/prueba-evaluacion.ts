@@ -37,7 +37,7 @@ for (const m of seed.matchAll(/\(null,\s*(\d+),\s*'((?:[^']|'')*)'/g)) {
   preguntas[Number(m[1])] = m[2].replace(/''/g, "'");
 }
 
-const { PROMPT_EVALUAR, ESTILO_CEREBRO } = await import('../src/ia/cerebro.js');
+const { PROMPT_EVALUAR, estiloCerebro } = await import('../src/ia/cerebro.js');
 const Anthropic = (await import('@anthropic-ai/sdk')).default;
 const cliente = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! });
 
@@ -101,7 +101,7 @@ for (const modelo of MODELOS) {
   for (const c of CASOS) {
     const prompt = PROMPT_EVALUAR(preguntas[c.orden], c.texto, c.seg);
     const r = await cliente.messages.create({
-      model: modelo.id, max_tokens: 500, system: ESTILO_CEREBRO,
+      model: modelo.id, max_tokens: 500, system: estiloCerebro(),
       messages: [{ role: 'user', content: prompt }],
     });
     uso[modelo.id].in += r.usage.input_tokens;

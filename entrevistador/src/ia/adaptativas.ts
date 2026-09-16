@@ -4,6 +4,7 @@ import { db } from '../db/cliente.js';
 import { armarHistoria } from '../db/historia.js';
 import { capitulosDe, tieneAdaptativas, ultimoOrden } from '../db/guion.js';
 import { textoEvitar } from './evitar.js';
+import { tratoDe, type Trato } from './trato.js';
 
 const MODELO = 'claude-opus-5';
 /** Cuántas escribe el biógrafo al final. Se insertan después de la última que exista (§11.2). */
@@ -20,7 +21,7 @@ export const ULTIMA_ADAPTATIVA = 30;
 export const MAX_TOKENS = 4000;
 const INTENTOS = 2;
 
-export const PROMPT_ADAPTATIVAS = (nombre: string, historiaCompleta: string, capitulos: string[], cuantasContestadas = 26, evitar = '') => `
+export const PROMPT_ADAPTATIVAS = (nombre: string, historiaCompleta: string, capitulos: string[], cuantasContestadas = 26, evitar = '', trato: Trato = 'usted') => `
 Leíste la historia de vida completa que ${nombre} contó en ${cuantasContestadas} entrevistas
 (el guion capítulo por capítulo, y su vida entera resumida en cinco minutos):
 
@@ -33,9 +34,9 @@ Sos su biógrafo y te quedan exactamente 4 preguntas para completar el libro. Bu
 - Algo que claramente disfrutó contar y da para más.
 
 Generá las 4 preguntas en el orden en que se las harías. Cada una debe sonar a que LO ESCUCHASTE
-(referí lo que él contó), tratarlo de usted, y ser una sola pregunta clara.
+(referí lo que él contó), tratarlo de ${trato}, y ser una sola pregunta clara.
 
-MUY IMPORTANTE — las va a leer en el celular una persona mayor:
+MUY IMPORTANTE — las va a leer en el celular${trato === 'usted' ? ' una persona mayor' : ''}:
 - Máximo 45 palabras cada pregunta. Las del guion tienen ese largo; respetalo.
 - Un solo detalle concreto para demostrar que lo escuchaste, no una lista de todo lo que contó.
 - Una sola pregunta por cada una, no tres encadenadas.
@@ -77,7 +78,8 @@ export async function generarPreguntasAdaptativas(narradorId: string): Promise<v
   const desde = (await ultimoOrden(narradorId)) + 1;
 
   const historia = await armarHistoria(narradorId);
-  const prompt = PROMPT_ADAPTATIVAS(comoLeDicen, historia, capitulos, desde - 1, textoEvitar(n?.contexto));
+  const trato = await tratoDe({ id: narradorId, como_le_dicen: comoLeDicen, contexto: (n?.contexto ?? {}) as Record<string, any> });
+  const prompt = PROMPT_ADAPTATIVAS(comoLeDicen, historia, capitulos, desde - 1, textoEvitar(n?.contexto), trato);
 
   // Estas 4 preguntas son el final del libro: si el modelo devuelve algo raro,
   // reintentamos antes de dejar al narrador sin preguntas después de 26 días.

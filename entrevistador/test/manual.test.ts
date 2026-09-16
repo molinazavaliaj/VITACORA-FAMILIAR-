@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
 import {
   parsearArgs, slug, ordenDeArchivo, archivoCanonico, proximoOrden,
-  mensajeDePregunta, despedida, planDeCarga, esAudio, promptDeTranscripcion, primeraDiferencia,
+  mensajeDePregunta, despedida, bienvenidaAceptacion, bienvenida, planDeCarga, esAudio, promptDeTranscripcion, primeraDiferencia,
 } from '../src/manual/puro.js';
 
 // La puerta manual resuelve con archivos lo que el webhook resuelve con
@@ -173,5 +174,72 @@ describe('primeraDiferencia', () => {
 
   it('si uno es prefijo del otro, marca el final del corto', () => {
     expect(primeraDiferencia('hola', 'hola mundo')).toBe(4);
+  });
+});
+
+describe('los seis textos fijos, en los dos tratos', () => {
+  it('la cola de la pregunta, en usted', () => {
+    expect(mensajeDePregunta('¿Cómo era su casa?')).toBe(
+      'La pregunta de hoy: ¿Cómo era su casa?\n\nCuando quiera, me responde con un audio. Sin apuro. 🎙️',
+    );
+  });
+
+  it('la cola de la pregunta, en vos', () => {
+    expect(mensajeDePregunta('¿Cómo era tu casa?', 'vos')).toBe(
+      'La pregunta de hoy: ¿Cómo era tu casa?\n\nCuando quieras, me respondés con un audio. Sin apuro. 🎙️',
+    );
+  });
+
+  it('la despedida, en usted', () => {
+    expect(despedida('Don Osvaldo')).toBe(
+      'Don Osvaldo... llegamos al final del viaje. Treinta charlas, una vida entera. Fue un honor enorme escucharlo. Su historia ya está siendo convertida en su libro.',
+    );
+  });
+
+  it('la despedida, en vos', () => {
+    expect(despedida('Ciro', 'vos')).toBe(
+      'Ciro... llegamos al final del viaje. Treinta charlas, una vida entera. Fue un honor enorme escucharte. Tu historia ya está siendo convertida en tu libro.',
+    );
+  });
+
+  it('la bienvenida, en usted', () => {
+    expect(bienvenidaAceptacion('Don Osvaldo')).toBe(
+      '¡Qué alegría, Don Osvaldo! Mañana a la mañana le llega la primera pregunta. No hay apuro ni respuestas incorrectas: esto es una charla entre usted y yo, a su ritmo. 📖',
+    );
+  });
+
+  it('la bienvenida, en vos', () => {
+    expect(bienvenidaAceptacion('Ciro', 'vos')).toBe(
+      '¡Qué alegría, Ciro! Mañana a la mañana te llega la primera pregunta. No hay apuro ni respuestas incorrectas: esto es una charla entre vos y yo, a tu ritmo. 📖',
+    );
+  });
+});
+
+describe('la presentación del biógrafo (el primer mensaje de todos)', () => {
+  /** El cuerpo de la plantilla `bienvenida` tal como está en PLANTILLAS.md — ese lo aprueba Meta. */
+  function cuerpoDeLaPlantilla(): string {
+    const md = readFileSync(new URL('../PLANTILLAS.md', import.meta.url), 'utf8');
+    const desde = md.indexOf('## bienvenida');
+    const hasta = md.indexOf('\n## ', desde + 1);
+    return md.slice(desde, hasta)
+      .split(/\r?\n/).slice(1)              // sin la línea del título
+      .map((l) => l.trim()).filter(Boolean)
+      .join(' ');
+  }
+
+  it('en usted es LITERALMENTE la plantilla de Meta, con los huecos llenos', () => {
+    const esperado = cuerpoDeLaPlantilla().replace('{{1}}', 'Don Osvaldo').replace('{{2}}', 'su nieto Juan');
+    expect(bienvenida('Don Osvaldo', 'su nieto Juan')).toBe(esperado);
+  });
+
+  it('en vos (texto aprobado por Naza el 2026-09-15)', () => {
+    expect(bienvenida('Ciro', 'Naza', 'vos')).toBe(
+      'Hola Ciro 👋 Soy tu biógrafo. Naza te hizo un regalo muy especial: vamos a escribir juntos el libro de tu vida. Cada mañana te voy a mandar una pregunta, y vos me respondés con un audio, como le contás las cosas a un amigo. Al final, tu historia va a quedar en un libro para tu familia, con tu propia voz. ¿Empezamos? Respondé SÍ y arrancamos mañana.',
+    );
+  });
+
+  it('cuando la primera pregunta sale enseguida (modo rápido), no promete "mañana"', () => {
+    expect(bienvenida('Ciro', 'Naza', 'vos', { enseguida: true })).toMatch(/Respondé SÍ y arrancamos\.$/);
+    expect(bienvenida('Don Osvaldo', 'su nieto Juan', 'usted', { enseguida: true })).toMatch(/Responda SÍ y arrancamos\.$/);
   });
 });

@@ -106,6 +106,17 @@ describe('procesarEntrante', () => {
     expect(mocks.enviarTexto).toHaveBeenCalledWith(TEL, expect.stringContaining('Qué alegría'));
   });
 
+  // Que use la función de puro.ts y no una copia propia: si alguien reescribe
+  // el texto acá a mano, este test se cae.
+  it('(a bis) la bienvenida sale con el trato del narrador', async () => {
+    const { bienvenidaAceptacion } = await import('../src/manual/puro.js');
+    mocks.estado.narrador = narradorEn('invitado', 0, { trato: 'vos' });
+    const m: MensajeEntrante = { telefono: TEL, tipo: 'texto', texto: 'SÍ', waMessageId: 'w' };
+    await procesarEntrante(m);
+    expect(mocks.enviarTexto).toHaveBeenCalledWith(TEL, bienvenidaAceptacion('Don Osvaldo', 'vos'));
+    expect(mocks.enviarTexto).toHaveBeenCalledWith(TEL, expect.stringContaining('entre vos y yo, a tu ritmo'));
+  });
+
   it('(b) un audio de un narrador activo se guarda con el orden de dia_actual y se transcribe', async () => {
     mocks.estado.narrador = narradorEn('activo', 3);
     const m: MensajeEntrante = { telefono: TEL, tipo: 'audio', mediaId: 'media-1', waMessageId: 'w' };

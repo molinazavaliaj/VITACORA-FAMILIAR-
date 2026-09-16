@@ -9,6 +9,8 @@ import { evaluarRespuesta, detectarIntencion } from '../ia/cerebro.js';
 import { generarPreguntasAdaptativas } from '../ia/adaptativas.js';
 import { preguntaDeOrden, tieneAdaptativas, ultimoOrden } from '../db/guion.js';
 import { textoEvitar } from '../ia/evitar.js';
+import { tratoDe } from '../ia/trato.js';
+import { bienvenidaAceptacion } from '../manual/puro.js';
 import { mandarHito } from '../mail/hitos.js';
 import { cerrarBitacora } from './cierre.js';
 import { enviarPregunta, ritmoDe, type Narrador } from './preguntar.js';
@@ -118,7 +120,7 @@ async function manejarConsentimiento(narrador: Narrador, m: MensajeEntrante): Pr
   await db.from('narradores').update({ estado: 'acepto' }).eq('id', narrador.id);
   await enviarTexto(
     narrador.telefono_whatsapp,
-    `¡Qué alegría, ${narrador.como_le_dicen}! Mañana a la mañana le llega la primera pregunta. No hay apuro ni respuestas incorrectas: esto es una charla entre usted y yo, a su ritmo. 📖`,
+    bienvenidaAceptacion(narrador.como_le_dicen, await tratoDe(narrador)),
   );
   await mandarHito(narrador, 'acepto');
 }
@@ -199,7 +201,9 @@ async function trasResponder(
     if (total > 2 && orden === Math.ceil(total / 2)) await mandarHito(narrador, 'mitad');
 
     const pregunta = await textoDePregunta(narrador.id, orden);
-    const evaluacion = await evaluarRespuesta(pregunta, transcripcion, duracionSegundos, textoEvitar(narrador.contexto));
+    const evaluacion = await evaluarRespuesta(
+      pregunta, transcripcion, duracionSegundos, textoEvitar(narrador.contexto), await tratoDe(narrador),
+    );
     if (!evaluacion.suficiente && evaluacion.repregunta && !(await yaSeRepregunto(narrador.id, orden))) {
       const waId = await enviarTexto(narrador.telefono_whatsapp, evaluacion.repregunta);
       await db.from('envios').insert({

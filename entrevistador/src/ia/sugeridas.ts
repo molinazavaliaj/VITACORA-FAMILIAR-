@@ -4,6 +4,7 @@ import { db } from '../db/cliente.js';
 import { armarHistoria } from '../db/historia.js';
 import { guionDe } from '../db/guion.js';
 import { textoEvitar } from './evitar.js';
+import { tratoDe, type Trato } from './trato.js';
 
 // Sugeridas a pedido (docs/panel-usuario.md §6.2 y §11.7): la familia toca
 // "Sugerime preguntas" en el panel y el biógrafo, con todo lo que él ya contó
@@ -17,7 +18,7 @@ export const CANTIDAD_SUGERIDAS = 5;
 
 export type Sugerida = { texto: string; capitulo: string };
 
-export const PROMPT_SUGERIDAS = (nombre: string, historia: string, guion: string[], capitulos: string[], evitar = '') => `
+export const PROMPT_SUGERIDAS = (nombre: string, historia: string, guion: string[], capitulos: string[], evitar = '', trato: Trato = 'usted') => `
 Sos el biógrafo de ${nombre}. Esto es lo que contó hasta ahora en la entrevista:
 
 ${historia || '(todavía no contó nada)'}
@@ -29,7 +30,7 @@ Su familia quiere sumar preguntas y te pide ${CANTIDAD_SUGERIDAS} ideas. Buscá 
 - Personas que nombró y no exploró; épocas con huecos; algo que disfrutó contar y da para más.
 - Si todavía no contó nada, proponé preguntas concretas y cálidas sobre la vida cotidiana que el guion no cubre.
 
-Cada pregunta: tratarlo de usted, una sola pregunta clara, máximo 45 palabras, con un solo detalle concreto si lo hay.
+Cada pregunta: tratarlo de ${trato}, una sola pregunta clara, máximo 45 palabras, con un solo detalle concreto si lo hay.
 Capítulos disponibles del libro: ${capitulos.join(', ')}.
 
 Respondé SOLO con JSON: [{"texto": "...", "capitulo": "..."}, ...] (exactamente ${CANTIDAD_SUGERIDAS}).`;
@@ -61,7 +62,8 @@ export async function sugerirPreguntas(narradorId: string): Promise<Sugerida[]> 
   const { preguntas } = await guionDe(narradorId);
   const capitulos = [...new Set(preguntas.map((p) => p.capitulo))];
   const historia = await armarHistoria(narradorId);
-  const prompt = PROMPT_SUGERIDAS(n.como_le_dicen ?? 'el narrador', historia, preguntas.map((p) => p.texto), capitulos, textoEvitar(n.contexto));
+  const trato = await tratoDe({ id: narradorId, como_le_dicen: n.como_le_dicen ?? 'el narrador', contexto: (n.contexto ?? {}) as Record<string, any> });
+  const prompt = PROMPT_SUGERIDAS(n.como_le_dicen ?? 'el narrador', historia, preguntas.map((p) => p.texto), capitulos, textoEvitar(n.contexto), trato);
 
   const respuesta = await cliente().messages.create({ model: MODELO, max_tokens: MAX_TOKENS, messages: [{ role: 'user', content: prompt }] });
   const bloque = respuesta.content.find((b) => b.type === 'text');
