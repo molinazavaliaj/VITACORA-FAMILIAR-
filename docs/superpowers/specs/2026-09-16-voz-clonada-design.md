@@ -21,7 +21,7 @@ aparte — ver "Fuera de alcance".
   el audiolibro puede llevar su voz hecha a partir de sus audios). Se guarda con fecha en
   `narradores.consentimiento_voz_at`. **Sin fecha, no se clona.** Más adelante lo reemplaza un
   link tipo formulario con el texto completo.
-- **El motor se elige con una prueba de oído a ciegas** (A/B/C) con los audios reales de Joaquín
+- **El motor se elige con una prueba de oído a ciegas** (A/B/C/D) con los audios reales de Joaquín
   (narrador del piloto), antes de escribir el worker definitivo.
 - **La intro de cada capítulo** ("Capítulo 3: El amor") sigue con la voz del entrevistador
   (OpenAI TTS, como hoy). El cuerpo del capítulo va con la voz clonada.
@@ -116,17 +116,20 @@ espacio).
 
 `voz/prueba_oido.py`: con el narrador "Joaquin" del piloto, toma las muestras según el paso 3 y
 narra **el mismo párrafo** (unas 6-8 frases de su libro, o de una respuesta transcrita si el
-libro aún no existe) con los tres motores candidatos:
+libro aún no existe) con los cuatro motores candidatos:
 
 | Clave | Motor | Tipo | Licencia |
 |---|---|---|---|
 | A/B/C (barajado) | Chatterbox Multilingual (Resemble) | zero-shot, referencia 15-30 s | MIT |
 | A/B/C | Qwen3-TTS (Alibaba) | zero-shot, referencia corta | Apache 2.0 |
-| A/B/C | F5-TTS con checkpoint en español, **afinado** con los 10-15 min | fine-tune por narrador (~30-60 min en la 4060 Ti) | MIT |
+| A/B/C/D | F5-TTS con checkpoint en español, **afinado** con los 10-15 min | fine-tune por narrador (~30-60 min en la 4060 Ti) | MIT |
+| A/B/C/D | OmniVoice (k2-fsa / Next-gen Kaldi, 31/03/2026) — lo trajo Naza de un reel el 16/09 | zero-shot, referencia 3-10 s, ~40× tiempo real; admite fine-tune (segunda vuelta si gana) | Apache 2.0 |
 
-Salida: `voz/prueba/A.mp3`, `B.mp3`, `C.mp3` + `clave.txt` (que no se abre hasta elegir). Eligen
+Salida: `voz/prueba/A.mp3`, `B.mp3`, `C.mp3`, `D.mp3` + `clave.txt` (que no se abre hasta elegir). Eligen
 Naza y Joaquín escuchando. XTTS-v2 queda fuera por licencia no comercial. El ganador se
-fija en `MOTOR`; los otros dos se mantienen instalables pero no se usan.
+fija en `MOTOR`; los otros se mantienen instalables pero no se usan. Advertencia de OmniVoice
+(según sus autores): entrenado sobre todo en chino e inglés, la clonación entre idiomas puede
+salir con acento — por eso se prueba con oído y no se elige por reel.
 
 ## La fábrica (`fabrica/`, TypeScript)
 
