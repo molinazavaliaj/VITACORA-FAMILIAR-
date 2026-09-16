@@ -92,8 +92,22 @@ export function DatosTitular({ titular }: { titular: Titular }) {
 
 export function Tabla({ columnas, filas }: { columnas: string[]; filas: ReactNode[][] }) {
   return (
-    <div className="-mx-1 overflow-x-auto">
-      <table className="w-full min-w-[28rem] border-collapse text-left text-sm leading-relaxed text-zinc-700">
+    <>
+      {/* En pantallas angostas, cada fila es un bloque: la primera celda como título y el resto etiquetado. */}
+      <div className="flex flex-col gap-4 sm:hidden">
+        {filas.map((fila, i) => (
+          <div key={i} className="border-b border-zinc-100 pb-4 text-sm leading-relaxed text-zinc-700">
+            <p className="font-medium text-zinc-900">{fila[0]}</p>
+            {fila.slice(1).map((celda, j) => (
+              <p key={j} className="mt-1">
+                <span className="text-xs uppercase tracking-wide text-zinc-500">{columnas[j + 1]}: </span>
+                {celda}
+              </p>
+            ))}
+          </div>
+        ))}
+      </div>
+      <table className="hidden w-full border-collapse text-left text-sm leading-relaxed text-zinc-700 sm:table">
         <thead>
           <tr>
             {columnas.map((c) => (
@@ -115,6 +129,6 @@ export function Tabla({ columnas, filas }: { columnas: string[]; filas: ReactNod
           ))}
         </tbody>
       </table>
-    </div>
+    </>
   );
 }
