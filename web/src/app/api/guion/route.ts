@@ -19,7 +19,7 @@ type Accion =
   | { accion: "editar"; id: string; texto: string }
   | { accion: "saltar"; id: string }
   | { accion: "reordenar"; ids: string[] }
-  | { accion: "agregar"; texto: string; capitulo: string; fotoId?: string | null }
+  | { accion: "agregar"; texto: string; capitulo: string; fotoId?: string | null; tipo?: "familia" | "sugerida" }
   | { accion: "ritmo"; ritmo: string }
   | { accion: "evitar"; texto: string };
 
@@ -132,7 +132,8 @@ export async function PATCH(request: NextRequest) {
     if (!capitulo) return respuesta(400, { error: "Elegí en qué capítulo va." });
     const fila: Record<string, unknown> = {
       narrador_id: narrador.id, orden: siguienteOrden(guion), texto: texto.texto, capitulo,
-      tipo: "familia", agregada_por: user.id,
+      // 'sugerida' = la propuso el biógrafo y la familia la eligió (§6.2); si no, la escribió la familia.
+      tipo: body.tipo === "sugerida" ? "sugerida" : "familia", agregada_por: user.id,
     };
     if (body.fotoId) fila.foto_id = body.fotoId;
     const { data, error } = await admin.from("preguntas").insert(fila).select("id, orden").single();

@@ -101,9 +101,22 @@ independientes. Argentina puede ser más barata para vender más.
 Los extras se venden **después** de la base y se producen después de venderse. Un
 extra sin variable cargada **no aparece** en el checkout (regla de `productos.ts`).
 
-**Pendiente: cargarlos en Vercel.** Joaquín no tiene acceso confirmado → se los pasa a
-Naza cuando vuelva. Hasta entonces la landing vende solo la base con los defaults del
-código (ARS 49.999 / 49 €) — **el precio base en producción está desactualizado**.
+**Pendiente: cargarlos en Vercel** (Naza, en curso el 16/09). Hasta entonces la landing
+vende solo el PDF con los defaults del código (ARS 49.999 / 49 €).
+
+**Las otras variables de la web en Vercel** (además de Supabase, Stripe y los precios):
+
+| Variable | Qué es | Estado |
+|---|---|---|
+| `MP_ACCESS_TOKEN` | Access token de **producción** de Mercado Pago | ✅ 15/09 |
+| `MP_WEBHOOK_SECRET` | Clave del webhook de **producción** (panel de MP → Webhooks, al lado de la URL). Desde el 16/09 la web rechaza con 401 las notificaciones mal firmadas: si es la de prueba, los pagos reales quedan "pendientes". | ⚠️ confirmar que sea la de producción |
+| `RESEND_API_KEY` | La de la cuenta de Joaquín (15/09) | ✅ |
+| `URL_BASE` | `https://www.vitacorafamiliar.com` | ✅ |
+| `ENTREVISTADOR_URL` | `https://vitacora-familiar-production.up.railway.app` — para "Sugerime preguntas" | ☐ nueva, 16/09 |
+| `SUGERIDAS_CLAVE` | La misma que en el servicio entrevistador de Railway (la generó Joaquín con `openssl rand -hex 24`) | ☐ nueva, 16/09 |
+
+Sin `ENTREVISTADOR_URL` + `SUGERIDAS_CLAVE` el botón existe pero dice "todavía no está
+disponible"; nada se rompe.
 
 > Nota: el roadmap del 04/09 decía "~ARS 65.000, a la par del competidor de llenar a
 > mano". El precio definido hoy es ARS 85.750. Decisión de los socios del 12/09.

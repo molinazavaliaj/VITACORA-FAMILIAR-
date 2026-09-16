@@ -374,6 +374,107 @@ export function AgregarPregunta({
   );
 }
 
+// ── sugerime preguntas (spec §6.2, tercer botón) ───────────────────────
+
+type Sugerida = { texto: string; capitulo: string };
+
+export function SugerirPreguntas({ narradorId, lugarLibre, propia = false }: { narradorId: string; lugarLibre: number; propia?: boolean }) {
+  const router = useRouter();
+  const [sugeridas, setSugeridas] = useState<Sugerida[] | null>(null);
+  const [pidiendo, setPidiendo] = useState(false);
+  const [agregando, setAgregando] = useState<number | null>(null);
+  const [agregadas, setAgregadas] = useState<Set<number>>(new Set());
+  const [error, setError] = useState<string | null>(null);
+
+  const sinLugar = lugarLibre - agregadas.size <= 0;
+
+  async function pedir() {
+    setPidiendo(true);
+    setError(null);
+    try {
+      const r = await fetch(`/api/sugeridas?narrador=${encodeURIComponent(narradorId)}`, { method: "POST" });
+      const j = (await r.json().catch(() => ({}))) as { sugeridas?: Sugerida[]; error?: string };
+      if (!r.ok || !j.sugeridas) throw new Error(j.error ?? "No pudimos armar las sugerencias.");
+      setSugeridas(j.sugeridas);
+      setAgregadas(new Set());
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "No pudimos armar las sugerencias.");
+    } finally {
+      setPidiendo(false);
+    }
+  }
+
+  async function agregar(i: number, s: Sugerida) {
+    setAgregando(i);
+    setError(null);
+    try {
+      await patchGuion(narradorId, { accion: "agregar", texto: s.texto, capitulo: s.capitulo, tipo: "sugerida" });
+      setAgregadas((prev) => new Set(prev).add(i));
+      router.refresh();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "No pudimos agregarla.");
+    } finally {
+      setAgregando(null);
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      <button
+        type="button"
+        disabled={pidiendo || sinLugar}
+        onClick={pedir}
+        className="flex w-full items-center gap-4 rounded-xl border border-[var(--linea-fuerte)] bg-[var(--fondo)] px-5 py-4 text-left transition-colors hover:bg-[var(--hueco)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--texto)] disabled:opacity-50 [touch-action:manipulation]"
+      >
+        <span className="text-[var(--texto-suave)]">
+          {pidiendo ? (
+            <span aria-hidden className="block h-4 w-4 animate-spin rounded-full border-2 border-[var(--texto)] border-t-transparent" />
+          ) : (
+            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+          )}
+        </span>
+        <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+          <span className="text-[15px] font-medium [font-family:var(--fuente-micro)]">{sugeridas ? "Pedirle otras cinco" : "Sugerime preguntas"}</span>
+          <span className="text-sm text-[var(--texto-menor)]">
+            {sinLugar
+              ? "El guion está completo. Para sumar una, sacá otra."
+              : pidiendo
+                ? `El biógrafo está releyendo todo lo que ${propia ? "contaste" : "contó"}. Tarda medio minuto.`
+                : `El biógrafo propone cinco, con lo que ${propia ? "contaste" : "él contó"} hasta hoy. Vos elegís cuáles entran.`}
+          </span>
+        </span>
+      </button>
+
+      {sugeridas ? (
+        <ol className="flex flex-col gap-2">
+          {sugeridas.map((s, i) => {
+            const puesta = agregadas.has(i);
+            return (
+              <li key={i} className={`grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 rounded-xl border px-5 py-4 ${puesta ? "border-[var(--linea)] text-[var(--texto-menor)]" : "border-dashed border-[var(--linea-fuerte)]"}`}>
+                <div className="min-w-0 flex flex-col gap-1">
+                  <p className="text-[15px] leading-[1.55]">{s.texto}</p>
+                  <p className="text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.18em]">{s.capitulo}</p>
+                </div>
+                {puesta ? (
+                  <span className="text-[13px] text-[var(--texto-menor)] [font-family:var(--fuente-micro)]">Agregada ✓</span>
+                ) : (
+                  <button type="button" className={`${boton} h-9 px-4 border border-[var(--linea-fuerte)] text-[var(--texto)] hover:bg-[var(--hueco)]`} disabled={agregando !== null || sinLugar} onClick={() => agregar(i, s)}>
+                    {agregando === i ? "Agregando…" : "Agregar"}
+                  </button>
+                )}
+              </li>
+            );
+          })}
+        </ol>
+      ) : null}
+      <Error_ mensaje={error} />
+    </div>
+  );
+}
+
 // ── subir una foto suelta a un capítulo ────────────────────────────────
 
 export function SubirFoto({ narradorId, capitulos, capituloInicial, children, variante = "texto" }: { narradorId: string; capitulos: string[]; capituloInicial?: string; children?: ReactNode; variante?: "texto" | "barra" }) {

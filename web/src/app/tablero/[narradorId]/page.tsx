@@ -5,7 +5,7 @@ import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { esPropia, historiaAccesible, historiasDelUsuario, PUEDE } from "@/lib/panel";
 import { ADAPTATIVAS, lugarLibre, puedeSaltar, validarRitmo, type PreguntaGuion, type Ritmo } from "@/lib/guion";
 import { BannerAlertaSilencio, CierreAnticipado } from "../acciones";
-import { AgregarPregunta, Ajustes, EditorGuion, SubirFoto } from "./preguntas/acciones";
+import { AgregarPregunta, Ajustes, EditorGuion, SubirFoto, SugerirPreguntas } from "./preguntas/acciones";
 import { GaleriaCapitulo, type FotoVista } from "./fotos";
 import { Compartir, type InvitadoVista } from "./compartir";
 import { Riel, type CapituloRiel } from "../riel";
@@ -316,6 +316,9 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
               propia={propia}
               capituloInicial={preguntaSobre?.capitulo}
             />
+            <div className="mt-3">
+              <SugerirPreguntas narradorId={n.id} lugarLibre={lugar} propia={propia} />
+            </div>
           </div>
         ) : null}
 
