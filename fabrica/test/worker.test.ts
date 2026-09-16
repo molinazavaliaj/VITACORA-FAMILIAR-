@@ -62,7 +62,7 @@ function construirClienteDbMock(opciones: {
   narradores: { id: string; [columna: string]: unknown }[];
   archivosPorNarrador: Record<string, string[]>;
   familias?: Record<string, string>;
-  pedidosPagados?: { id: string; narrador_id: string }[];
+  pedidosPagados?: { id: string; narrador_id: string; extras?: unknown }[];
   pedidosGenerando?: { id: string }[];
   pedidosEntregados?: { id: string; narrador_id: string; [columna: string]: unknown }[];
   claimarPedido?: (id: string) => { data: unknown; error: unknown };
@@ -323,15 +323,21 @@ describe('tick — branch b (pedidos pagados)', () => {
           { id: 'narrador-2', estado: 'completado' },
         ],
         archivosPorNarrador: {},
-        pedidosPagados: [{ id: 'pedido-1', narrador_id: 'narrador-1' }],
+        pedidosPagados: [{ id: 'pedido-1', narrador_id: 'narrador-1', extras: { pdf: true, audiolibro: 'clonada' } }],
         claimarPedido,
       })
     );
 
     await tick();
 
+    // generarPaquete recibe la fila con `extras`: de ahí lee qué se compró
+    // (voz clonada → buzón `narraciones`).
     expect(generarPaqueteMock).toHaveBeenCalledTimes(1);
-    expect(generarPaqueteMock).toHaveBeenCalledWith({ id: 'pedido-1', narrador_id: 'narrador-1' });
+    expect(generarPaqueteMock).toHaveBeenCalledWith({
+      id: 'pedido-1',
+      narrador_id: 'narrador-1',
+      extras: { pdf: true, audiolibro: 'clonada' },
+    });
     // el claim (CAS a 'generando') pasa ANTES que generarPaquete — así un
     // segundo tick solapado no vuelve a tomar el mismo pedido.
     expect(llamadasEnOrden).toEqual(['claim:pedido-1', 'generarPaquete:pedido-1']);

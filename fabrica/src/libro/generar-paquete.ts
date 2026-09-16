@@ -8,6 +8,9 @@ import { generarAudiolibro } from '../audio/audiolibro.js';
 import { generarEstructura, type Estructura } from './estructura.js';
 import { leerEdicion, aplicarOrdenCapitulos } from './edicion.js';
 import { cargarFotos } from './fotos.js';
+import { productosDelPedido } from './productos.js';
+import { armarNarracionJson } from '../voz/narracion-json.js';
+import { crearNarracion, RUTA_NARRACION_JSON } from '../voz/narraciones.js';
 import {
   armarMaterial,
   borrarArchivos,
@@ -56,8 +59,13 @@ async function editarLibro(cliente: Anthropic, borrador: string): Promise<string
  * cualquier excepción, marca el pedido `fallido` y loguea — no reintenta
  * solo; alguien tiene que poner el estado de vuelta en `pagado` para que el
  * próximo tick lo tome de nuevo.
+ *
+ * Si el pedido compró el audiolibro con voz clonada (`extras.audiolibro`,
+ * ver productos.ts), el audiolibro no se arma acá: el pedido queda en el
+ * buzón `narraciones` con su `narracion.json` y pasa a `esperando_voz`
+ * hasta que el worker de la PC de Naza narre los capítulos.
  */
-export async function generarPaquete(pedido: { id: string; narrador_id: string }): Promise<void> {
+export async function generarPaquete(pedido: { id: string; narrador_id: string; extras: unknown }): Promise<void> {
   const db = obtenerClienteDb();
 
   try {
@@ -196,14 +204,42 @@ export async function generarPaquete(pedido: { id: string; narrador_id: string }
     await subirHtml(db, narradorId, html);
     await generarPdf(db, narradorId, html);
 
-    // 2. Audiolibro: un mp3 por capítulo (en el orden final) + completo.
+    // 2. Voz clonada: el audiolibro lo narra el worker de la PC de Naza, no
+    // esta fábrica. Se le deja narracion.json (los capítulos en el orden
+    // final, en texto plano — lo que se escribió en borrador_cap_NN.md, ya
+    // en memoria) y la fila en el buzón `narraciones`; el pedido queda
+    // `esperando_voz` con el PDF cargado y sin `audiolibro_paths` (eso
+    // llega cuando la fábrica ensambla la voz). El título es el de tapa si
+    // la dueña puso uno; si no, el de la estructura.
+    if (productosDelPedido(pedido.extras).audiolibro === 'clonada') {
+      const narracion = armarNarracionJson({
+        narradorId,
+        pedidoId: pedido.id,
+        titulo: edicion.titulo ?? estructuraFinal.titulo,
+        capitulos: capitulosTexto.map((c) => ({ nombre: c.nombre, markdown: c.texto })),
+      });
+      await subirTexto(db, RUTA_NARRACION_JSON(narradorId), JSON.stringify(narracion, null, 2));
+      await crearNarracion(db, { narradorId, pedidoId: pedido.id });
+
+      const { error: errorEsperando } = await db
+        .from('pedidos')
+        .update({ estado: 'esperando_voz', libro_pdf_path: RUTA_LIBRO_PDF(narradorId) })
+        .eq('id', pedido.id);
+      if (errorEsperando) throw new Error(`No se pudo actualizar el pedido ${pedido.id}: ${errorEsperando.message}`);
+
+      // Los borradores se borran igual: narracion.json ya es la fuente del worker.
+      await limpiarBorradores(db, narradorId, estructuraFinal.capitulos.length);
+      return;
+    }
+
+    // 3. Audiolibro: un mp3 por capítulo (en el orden final) + completo.
     const { data: archivosNarrador, error: errorArchivos } = await db.storage.from('audios').list(narradorId);
     if (errorArchivos) throw new Error(`No se pudo listar los audios de ${narradorId}: ${errorArchivos.message}`);
     const nombresArchivos = (archivosNarrador ?? []).map((archivo) => archivo.name);
 
     const audiolibroPaths = await generarAudiolibro(narradorId, estructuraFinal, nombresArchivos);
 
-    // 3. Entregado.
+    // 4. Entregado.
     const { error: errorUpdate } = await db
       .from('pedidos')
       .update({
@@ -214,25 +250,36 @@ export async function generarPaquete(pedido: { id: string; narrador_id: string }
       .eq('id', pedido.id);
     if (errorUpdate) throw new Error(`No se pudo actualizar el pedido ${pedido.id}: ${errorUpdate.message}`);
 
-    // 4. Limpieza: los borradores eran solo scaffolding para no repagarle al
-    // modelo en un reintento — con el pedido ya entregado no hacen falta.
-    // Si el borrado falla no es motivo para marcar el pedido 'fallido' (ya
-    // se entregó bien), así que se loguea y se sigue.
-    try {
-      const rutasBorradores = [
-        ...estructuraFinal.capitulos.map((_, i) => RUTA_BORRADOR_CAP(narradorId, i + 1)),
-        RUTA_BORRADOR_LIBRO(narradorId),
-      ];
-      await borrarArchivos(db, rutasBorradores);
-    } catch (errorLimpieza) {
-      console.error(`generarPaquete: no se pudieron borrar los borradores de ${narradorId}:`, errorLimpieza);
-    }
+    // 5. Limpieza.
+    await limpiarBorradores(db, narradorId, estructuraFinal.capitulos.length);
   } catch (err) {
     console.error(`generarPaquete: falló para el pedido ${pedido.id}:`, err);
     const { error: errorFallo } = await db.from('pedidos').update({ estado: 'fallido' }).eq('id', pedido.id);
     if (errorFallo) {
       console.error(`generarPaquete: no se pudo marcar 'fallido' el pedido ${pedido.id}:`, errorFallo.message);
     }
+  }
+}
+
+/**
+ * Los borradores eran solo scaffolding para no repagarle al modelo en un
+ * reintento — con el pedido ya entregado (o en el buzón de voz) no hacen
+ * falta. Si el borrado falla no es motivo para marcar el pedido 'fallido'
+ * (ya se entregó bien), así que se loguea y se sigue.
+ */
+async function limpiarBorradores(
+  db: ReturnType<typeof obtenerClienteDb>,
+  narradorId: string,
+  cantidadCapitulos: number
+): Promise<void> {
+  try {
+    const rutasBorradores = [
+      ...Array.from({ length: cantidadCapitulos }, (_, i) => RUTA_BORRADOR_CAP(narradorId, i + 1)),
+      RUTA_BORRADOR_LIBRO(narradorId),
+    ];
+    await borrarArchivos(db, rutasBorradores);
+  } catch (errorLimpieza) {
+    console.error(`generarPaquete: no se pudieron borrar los borradores de ${narradorId}:`, errorLimpieza);
   }
 }
 

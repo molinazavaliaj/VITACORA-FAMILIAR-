@@ -489,9 +489,11 @@ export async function procesarPedidosPagados(): Promise<void> {
 
   await liberarPedidosGenerandoHuerfanos(db);
 
+  // `extras` viaja hasta generarPaquete: de ahí lee qué se compró (voz
+  // clonada → buzón `narraciones` en vez de armar el audiolibro acá).
   const { data: pedidos, error } = await db
     .from('pedidos')
-    .select('id, narrador_id')
+    .select('id, narrador_id, extras')
     .eq('estado', 'pagado');
 
   if (error) {
@@ -499,7 +501,7 @@ export async function procesarPedidosPagados(): Promise<void> {
     return;
   }
 
-  const pedidosPagados = (pedidos ?? []) as { id: string; narrador_id: string }[];
+  const pedidosPagados = (pedidos ?? []) as { id: string; narrador_id: string; extras: unknown }[];
   if (pedidosPagados.length === 0) return;
 
   // Con el pago por adelantado (11/09) un pedido está 'pagado' desde el día

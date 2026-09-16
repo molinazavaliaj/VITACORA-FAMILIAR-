@@ -90,12 +90,26 @@ function construirDbFake(opciones: {
   upload?: ReturnType<typeof vi.fn>;
   pedidosUpdate?: ReturnType<typeof vi.fn>;
   remove?: ReturnType<typeof vi.fn>;
+  /** Cola de resultados para `narraciones`: cada `from('narraciones')` consume uno. */
+  narraciones?: { data: unknown; error: unknown }[];
 }) {
   let fromPreguntasContador = 0;
 
   const pedidosUpdate = opciones.pedidosUpdate ?? vi.fn().mockResolvedValue({ data: null, error: null });
+  const narracionesInsert = vi.fn();
 
   const from = vi.fn((tabla: string) => {
+    if (tabla === 'narraciones') {
+      const resultado = opciones.narraciones?.shift();
+      if (!resultado) throw new Error('sin resultado en cola para narraciones');
+      const builder = construirBuilder(resultado);
+      builder.in = () => builder;
+      builder.insert = (valores: Record<string, unknown>) => {
+        narracionesInsert(valores);
+        return builder;
+      };
+      return builder;
+    }
     if (tabla === 'narradores') return construirBuilder(opciones.narrador ?? { data: null, error: null });
     if (tabla === 'preguntas') {
       const llamada = fromPreguntasContador++;
@@ -129,7 +143,7 @@ function construirDbFake(opciones: {
   const remove = opciones.remove ?? vi.fn().mockResolvedValue({ data: null, error: null });
   const storage = { from: vi.fn(() => ({ download, upload, list, remove })) };
 
-  return { from, storage, download, upload, list, remove, pedidosUpdate };
+  return { from, storage, download, upload, list, remove, pedidosUpdate, narracionesInsert };
 }
 
 beforeEach(() => {
@@ -200,7 +214,9 @@ describe('generarPaquete', () => {
       completo: 'narrador-1/paquete/audiolibro_completo.mp3',
     });
 
-    await generarPaquete({ id: 'pedido-1', narrador_id: 'narrador-1' });
+    // `extras: {}` = pedido anterior al 13/09 (sin la clave `pdf`): PDF +
+    // audiolibro con sus audios, como siempre.
+    await generarPaquete({ id: 'pedido-1', narrador_id: 'narrador-1', extras: {} });
 
     // escribió los DOS capítulos, en el orden de la estructura.
     expect(escribirCapituloMock).toHaveBeenCalledTimes(2);
@@ -689,6 +705,103 @@ describe('generarPaquete', () => {
     await generarPaquete({ id: 'p1', narrador_id: 'n1' });
 
     expect(db.from).not.toHaveBeenCalledWith('saludos');
+    expect(db.pedidosUpdate).toHaveBeenCalledWith(expect.objectContaining({ estado: 'entregado' }), 'p1');
+  });
+
+  // --- Voz clonada: el pedido queda en el buzón `narraciones` ----------------
+
+  const extrasClonada = { pdf: true, audiolibro: 'clonada', impreso: null, copias: 0, marcos: 0 };
+
+  it('audiolibro "clonada": sube narracion.json, crea la narración pendiente, deja el pedido esperando_voz y NO arma el audiolibro', async () => {
+    const db = construirDbN1({
+      narrador: { data: narradorN1({ edicion: { titulo: 'Mi abuela Rosa', ordenCapitulos: ['El amor'] } }), error: null },
+      narraciones: [
+        { data: [], error: null }, // ninguna viva para ese pedido
+        { data: { id: 'narr-1' }, error: null }, // el insert
+      ],
+    });
+    escribirCapituloMock
+      .mockResolvedValueOnce('# El amor\n\nLa conocí **bailando**.\n\n> Fue el día más feliz.')
+      .mockResolvedValueOnce('Nací en Rosario.');
+
+    await generarPaquete({ id: 'p1', narrador_id: 'n1', extras: extrasClonada });
+
+    // El libro se produjo igual (HTML + PDF)...
+    const rutas = db.upload.mock.calls.map((c) => c[0] as string);
+    expect(rutas).toContain('n1/paquete/libro.html');
+    expect(rutas).toContain('n1/paquete/libro.pdf');
+
+    // ...y narracion.json quedó en paquete/ con los capítulos en el orden
+    // FINAL (la edición aplicada), numerados y en texto plano — lo que el
+    // worker de voz va a narrar.
+    const llamadaJson = db.upload.mock.calls.find((c) => c[0] === 'n1/paquete/narracion.json');
+    expect(llamadaJson).toBeDefined();
+    expect(JSON.parse(llamadaJson![1] as string)).toEqual({
+      narrador_id: 'n1',
+      pedido_id: 'p1',
+      titulo: 'Mi abuela Rosa',
+      capitulos: [
+        { numero: 1, nombre: 'El amor', texto: 'La conocí bailando.\n\nFue el día más feliz.' },
+        { numero: 2, nombre: 'La infancia', texto: 'Nací en Rosario.' },
+      ],
+    });
+    // El PDF ya estaba subido cuando se escribió narracion.json.
+    const indicePdf = db.upload.mock.calls.findIndex((c) => c[0] === 'n1/paquete/libro.pdf');
+    const indiceJson = db.upload.mock.calls.findIndex((c) => c[0] === 'n1/paquete/narracion.json');
+    expect(indiceJson).toBeGreaterThan(indicePdf);
+
+    // La fila del buzón: solo lo que escribe la fábrica.
+    expect(db.narracionesInsert).toHaveBeenCalledTimes(1);
+    expect(db.narracionesInsert).toHaveBeenCalledWith({ narrador_id: 'n1', pedido_id: 'p1', estado: 'pendiente' });
+
+    // El pedido espera a la PC: con el PDF cargado y SIN audiolibro_paths
+    // (eso lo pone la fábrica recién cuando ensambla la voz).
+    expect(db.pedidosUpdate).toHaveBeenCalledTimes(1);
+    expect(db.pedidosUpdate).toHaveBeenCalledWith(
+      { estado: 'esperando_voz', libro_pdf_path: 'n1/paquete/libro.pdf' },
+      'p1'
+    );
+    expect(generarAudiolibroMock).not.toHaveBeenCalled();
+    expect(db.list).not.toHaveBeenCalled();
+
+    // Los borradores se borran igual: narracion.json ya es la fuente del worker.
+    expect(db.remove).toHaveBeenCalledTimes(1);
+    expect(db.remove.mock.calls[0][0]).toEqual(
+      expect.arrayContaining(['n1/paquete/borrador_cap_01.md', 'n1/paquete/borrador_cap_02.md', 'n1/paquete/borrador_libro.md'])
+    );
+  });
+
+  it('audiolibro "clonada" sin título de tapa: narracion.json lleva el título de la estructura', async () => {
+    const db = construirDbN1({ narraciones: [{ data: [], error: null }, { data: { id: 'narr-1' }, error: null }] });
+
+    await generarPaquete({ id: 'p1', narrador_id: 'n1', extras: extrasClonada });
+
+    const llamadaJson = db.upload.mock.calls.find((c) => c[0] === 'n1/paquete/narracion.json')!;
+    expect(JSON.parse(llamadaJson[1] as string).titulo).toBe('Rosa — La historia de una vida');
+  });
+
+  it('audiolibro "clonada": si el buzón falla, el pedido cae a "fallido" y no queda esperando_voz', async () => {
+    const db = construirDbN1({ narraciones: [{ data: null, error: { message: 'se cayó' } }] });
+
+    await expect(generarPaquete({ id: 'p1', narrador_id: 'n1', extras: extrasClonada })).resolves.toBeUndefined();
+
+    expect(db.pedidosUpdate).toHaveBeenCalledWith({ estado: 'fallido' }, 'p1');
+    expect(db.pedidosUpdate).not.toHaveBeenCalledWith(expect.objectContaining({ estado: 'esperando_voz' }), expect.anything());
+    expect(generarAudiolibroMock).not.toHaveBeenCalled();
+  });
+
+  it('audiolibro "real" (extras nuevo): exactamente el flujo de siempre, sin tocar el buzón', async () => {
+    const db = construirDbN1();
+
+    await generarPaquete({
+      id: 'p1',
+      narrador_id: 'n1',
+      extras: { pdf: true, audiolibro: 'real', impreso: null, copias: 0, marcos: 0 },
+    });
+
+    expect(generarAudiolibroMock).toHaveBeenCalledTimes(1);
+    expect(db.from).not.toHaveBeenCalledWith('narraciones');
+    expect(db.upload.mock.calls.map((c) => c[0])).not.toContain('n1/paquete/narracion.json');
     expect(db.pedidosUpdate).toHaveBeenCalledWith(expect.objectContaining({ estado: 'entregado' }), 'p1');
   });
 });
