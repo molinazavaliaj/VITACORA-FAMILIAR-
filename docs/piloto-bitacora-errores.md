@@ -111,6 +111,13 @@
     propios detectados (amigos, lugares) de las respuestas previas; el paso de
     "revisar nombres" del panel es la red, pero mejor no ensuciar la fuente.
 
+18. **16/09 · si la personalización falla, la pregunta original sale en "usted"
+    aunque el trato sea "vos".** Orden 12: `personalizar` devolvió algo inválido
+    ("no conservaba las preguntas del original") y `siguiente` mandó el texto fijo
+    del guion — "cuénteme ESA historia... ¿Cuál es la suya?" — seguido del cierre
+    en vos. Las 26 fijas están escritas de usted; el fallback debería pasarlas por
+    el trato (o tener las dos versiones). *Hecho a mano*: la pasé a vos.
+
 ## Producción / infra (no es del entrevistador, pero salió en el camino)
 
 8. **15/09 · producción corría un build de 8 días** mientras `main` tenía todo el
