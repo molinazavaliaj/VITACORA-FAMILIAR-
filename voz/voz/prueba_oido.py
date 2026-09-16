@@ -3,7 +3,8 @@ A, B, C, D para elegir escuchando sin saber cuál es cuál.
 
     python -m voz.prueba_oido [--muestras prueba/muestras] [--salida prueba] [--motores chatterbox,qwen3tts,f5tts,omnivoice]
 
-Cada motor corre en su propio venv (`motores/<motor>/.venv`), por subprocess.
+Cada motor corre en su propio venv (`motores/<motor>/.venv`), por subprocess
+(ver `motor_subprocess.py`, que comparte con el worker).
 Si uno falla, se anota el error y se sigue con los otros: la prueba vale con
 los que salieron. La clave (qué letra es qué motor) queda en `clave.txt`: no se
 abre hasta haber elegido.
@@ -12,15 +13,13 @@ abre hasta haber elegido.
 import argparse
 import datetime as dt
 import logging
-import os
 import random
-import subprocess
 import sys
-import time
 from pathlib import Path
 
 from .audio import a_mp3
-from .config import RAIZ, cargar_config
+from .config import cargar_config
+from .motor_subprocess import correr_motor_subprocess
 
 log = logging.getLogger("voz.prueba")
 
@@ -35,38 +34,17 @@ def barajar(motores: list[str], semilla: str) -> dict[str, str]:
     return {LETRAS[i]: m for i, m in enumerate(orden)}
 
 
-def python_del_motor(motor: str) -> Path:
-    venv = RAIZ / "motores" / motor / ".venv"
-    candidatos = [venv / "Scripts" / "python.exe", venv / "bin" / "python"]
-    for c in candidatos:
-        if c.exists():
-            return c
-    raise FileNotFoundError(
-        f"el motor {motor} no tiene venv: crealo con "
-        f"`python -m venv motores/{motor}/.venv` y `motores\\{motor}\\.venv\\Scripts\\pip install -r motores/{motor}/requirements.txt`"
-    )
-
-
 def generar_con(motor: str, muestras: Path, crudo: Path, modelos: Path) -> tuple[bool, float, str]:
     """Corre `motores/<motor>/generar.py` en su venv. Devuelve (salió bien, segundos, cola del log)."""
-    salida = crudo / f"{motor}.wav"
-    registro = crudo / f"{motor}.log"
-    comando = [
-        str(python_del_motor(motor)),
-        str(RAIZ / "motores" / motor / "generar.py"),
-        "--referencia", str(muestras / "referencia.wav"),
-        "--referencia-texto", str(muestras / "referencia.txt"),
-        "--texto", str(muestras / "texto.txt"),
-        "--salida", str(salida),
-        "--modelos", str(modelos),
-    ]
-    entorno = {**os.environ, "HF_HOME": str(modelos), "HF_HUB_DISABLE_SYMLINKS_WARNING": "1", "PYTHONIOENCODING": "utf-8"}
-    t0 = time.time()
-    with registro.open("w", encoding="utf-8") as f:
-        proceso = subprocess.run(comando, stdout=f, stderr=subprocess.STDOUT, env=entorno, cwd=str(RAIZ))
-    segundos = time.time() - t0
-    cola = registro.read_text(encoding="utf-8", errors="replace")[-1500:]
-    return proceso.returncode == 0 and salida.exists(), segundos, cola
+    return correr_motor_subprocess(
+        motor,
+        referencia=muestras / "referencia.wav",
+        referencia_texto=muestras / "referencia.txt",
+        texto=muestras / "texto.txt",
+        salida=crudo / f"{motor}.wav",
+        modelos=modelos,
+        registro=crudo / f"{motor}.log",
+    )
 
 
 def correr(muestras: Path, salida: Path, motores: list[str], modelos: Path) -> dict[str, str]:

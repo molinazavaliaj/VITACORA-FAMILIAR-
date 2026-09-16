@@ -35,6 +35,21 @@ def narrador_por_nombre(sb: Client, nombre: str) -> dict:
     return filas[0]
 
 
+def narrador_por_id(sb: Client, narrador_id: str) -> dict:
+    """El narrador por su id (lo que trae la narración). Falla si no existe."""
+    filas = (
+        sb.table("narradores")
+        .select("id, nombre, como_le_dicen, estado")
+        .eq("id", narrador_id)
+        .limit(1)
+        .execute()
+        .data
+    )
+    if not filas:
+        raise LookupError(f"no existe el narrador {narrador_id!r}")
+    return filas[0]
+
+
 def respuestas_de(sb: Client, narrador_id: str) -> list[Respuesta]:
     filas = (
         sb.table("respuestas")

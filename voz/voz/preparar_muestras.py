@@ -19,7 +19,7 @@ from pathlib import Path
 
 from .audio import a_wav_limpio, duracion, recortar_en_pausa
 from .config import cargar_config
-from .muestras import PISO_SEGUNDOS, elegir_muestras, elegir_referencia
+from .muestras import PISO_SEGUNDOS, Respuesta, elegir_muestras, elegir_referencia
 from .supabase_cliente import cliente, descargar_audio, narrador_por_nombre, respuestas_de
 from .texto import texto_de_prueba
 
@@ -29,10 +29,19 @@ SEGUNDOS_RECORTE = 25  # si no hay una respuesta entera de 12-30 s, se recorta l
 
 
 def preparar(nombre: str, salida: Path) -> dict:
+    """La versión de línea de comandos: busca al narrador por nombre con su
+    propio cliente y solo avisa si no llega al piso (la prueba de oído sigue
+    igual). El worker usa `narrar.preparar_voz`, que sí se planta."""
     config = cargar_config()
     sb = cliente(config)
     narrador = narrador_por_nombre(sb, nombre)
     respuestas = respuestas_de(sb, narrador["id"])
+    return preparar_de(sb, narrador, respuestas, salida)
+
+
+def preparar_de(sb, narrador: dict, respuestas: list[Respuesta], salida: Path) -> dict:
+    """Baja, limpia y deja en `salida` las muestras, la referencia y el texto
+    de prueba. Devuelve el resumen (lo mismo que queda en `muestras.json`)."""
     log.info("narrador %s (%s): %d respuestas", narrador["nombre"], narrador["id"][:8], len(respuestas))
 
     crudas = salida / "crudas"
