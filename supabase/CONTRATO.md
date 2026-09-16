@@ -77,7 +77,8 @@ Joaquín lea esta sección.** Toca `pedidos_estado_check` (agrega `esperando_voz
 
 Buzón entre la fábrica (Railway) y el worker de voz (Python, en la PC de música de Naza).
 Los dos se hablan solo por Supabase, como el resto del proyecto: nadie llama a nadie. Diseño
-completo en `docs/superpowers/specs/2026-09-16-voz-clonada-design.md`.
+completo en `docs/superpowers/specs/2026-09-16-voz-clonada-design.md`. RLS activa, sin
+políticas: solo la service role (como todas las tablas).
 
 Quién escribe qué:
 

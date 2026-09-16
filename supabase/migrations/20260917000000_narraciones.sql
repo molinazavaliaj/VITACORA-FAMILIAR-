@@ -19,6 +19,8 @@ create table if not exists narraciones (
   actualizada_at timestamptz not null default now()
 );
 create index if not exists narraciones_estado on narraciones (estado, created_at);
+-- RLS: cerrada como el resto, sin políticas. La fábrica y el worker de voz usan service_role.
+alter table narraciones enable row level security;
 
 -- El narrador dijo que sí a que su voz se clone (va en el primer SÍ de la
 -- bienvenida; lo escribe el entrevistador). Sin fecha, el worker no clona.
