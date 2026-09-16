@@ -193,7 +193,7 @@ Falta solo pegar el `WA_TOKEN` y el `WA_PHONE_NUMBER_ID` nuevos cuando exista la
 | 2.5 | Metadatos + Open Graph (que el link se vea bien al compartirlo) | **N** | ☐ |
 | 2.6 | Middleware de supabase-ssr (pendiente #1 del triage) | **N** | ☐ |
 | 2.7 | Pixel de Meta + Conversions API — ver nota abajo | **N** | ☐ |
-| **2.8** | **Deploy automático de la web** — `.github/workflows/deploy-web.yml`: en cada push a `main` que toque `web/`, GitHub corre los tests y empuja a Vercel con la CLI (sin Pro). Secretos `VERCEL_TOKEN` (Full Account) / `VERCEL_ORG_ID` / `VERCEL_PROJECT_ID` en GitHub. | **J + N** | ✅ 16/09 — primer deploy verde 13:06; producción al día |
+| **2.8** | **Deploy automático de la web** — `.github/workflows/deploy-web.yml`: en cada push a `main` que toque `web/`, GitHub corre los tests y empuja a Vercel con la CLI (sin Pro). Secretos `VERCEL_TOKEN` (Full Account) / `VERCEL_ORG_ID` / `VERCEL_PROJECT_ID` en GitHub. | **J + N** | ✅ 16/09 — **resuelto por GitHub Actions** (`.github/workflows/deploy-web.yml`, Joaquín): cada push a `main` que toque `web/` corre los tests y deploya con la CLI (`vercel pull` → `build` → `deploy --prebuilt --prod`). Secrets del repo: `VERCEL_TOKEN` (token `github-actions-web` de Naza), `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`. Primer deploy verde: run 35099776813. `vercel git connect` sigue sin poder usarse (Hobby + repo ajeno) y **Root Directory queda en `.`**. — bitácora #8 |
 | **2.9** | **El webhook de Mercado Pago no verifica la firma** (`MP_WEBHOOK_SECRET` está en Vercel, el código no lo lee; Stripe sí verifica) | **J** | ✅ 16/09 — `lib/firma-mp.ts`, 401 si la firma no coincide; la consulta directa del pago sigue siendo la verdad |
 
 ### 📊 Nota sobre el pixel — hay que diseñarlo bien o no sirve
