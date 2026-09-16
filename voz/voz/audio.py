@@ -4,6 +4,7 @@ Todo por subprocess sobre el ffmpeg del sistema (en la PC está en el PATH).
 Cada función devuelve la ruta de salida para poder encadenarlas.
 """
 
+import re
 import subprocess
 import tempfile
 from pathlib import Path
@@ -11,9 +12,14 @@ from pathlib import Path
 TASA = 24000  # lo que esperan los motores; la salida final también va así
 
 # Silencios de los bordes fuera, volumen parejo (-19 LUFS es voz hablada cómoda).
+#
+# OJO: `stop_periods=1` de silenceremove NO recorta "el final": corta en la
+# PRIMERA pausa que encuentra (una respuesta de 214 s quedó en 0 s). La forma
+# segura de recortar solo los bordes es: recortar el principio, dar vuelta el
+# audio, recortar el principio otra vez, dar vuelta de nuevo.
+_RECORTE_INICIO = "silenceremove=start_periods=1:start_threshold=-45dB:start_silence=0.2"
 _FILTRO_LIMPIEZA = (
-    "silenceremove=start_periods=1:start_threshold=-45dB:start_silence=0.2:"
-    "stop_periods=1:stop_threshold=-45dB:stop_silence=0.2,"
+    f"{_RECORTE_INICIO},areverse,{_RECORTE_INICIO},areverse,"
     "loudnorm=I=-19:TP=-1.5:LRA=11"
 )
 
@@ -66,3 +72,22 @@ def pegar_con_pausas(clips: list[Path], salida: Path, pausa_ms: int = 350) -> Pa
 def a_mp3(entrada: Path, salida: Path) -> Path:
     _ffmpeg("-i", str(entrada), "-ac", "1", "-b:a", "128k", str(salida))
     return salida
+
+
+def pausas_de(ruta: Path, umbral_db: int = -40, minima: float = 0.4) -> list[tuple[float, float]]:
+    """Las pausas (inicio, fin) en segundos, según silencedetect."""
+    salida = subprocess.run(
+        ["ffmpeg", "-i", str(ruta), "-af", f"silencedetect=noise={umbral_db}dB:d={minima}", "-f", "null", "-"],
+        capture_output=True, text=True,
+    ).stderr
+    inicios = [float(m.group(1)) for m in re.finditer(r"silence_start: ([\d.]+)", salida)]
+    fines = [float(m.group(1)) for m in re.finditer(r"silence_end: ([\d.]+)", salida)]
+    return list(zip(inicios, fines))
+
+
+def recortar_en_pausa(entrada: Path, salida: Path, maximo: float, minimo: float = 10.0) -> Path:
+    """Recorta a lo sumo `maximo` segundos, cortando en la última pausa que
+    quede entre `minimo` y `maximo` para no partir una palabra."""
+    candidatas = [ini for ini, _ in pausas_de(entrada) if minimo <= ini <= maximo]
+    corte = candidatas[-1] if candidatas else maximo
+    return recortar(entrada, salida, corte)
