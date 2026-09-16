@@ -14,6 +14,7 @@ Deja en la carpeta de salida:
 import argparse
 import json
 import logging
+import sys
 from pathlib import Path
 
 from .audio import a_wav_limpio, duracion, recortar_en_pausa
@@ -120,6 +121,10 @@ def preparar(nombre: str, salida: Path) -> dict:
 
 
 def main() -> None:
+    # La consola de Windows arranca en cp1252 y no sabe imprimir "→" ni "…".
+    for flujo in (sys.stdout, sys.stderr):
+        if hasattr(flujo, "reconfigure"):
+            flujo.reconfigure(encoding="utf-8", errors="replace")
     logging.basicConfig(level=logging.INFO, format="%(message)s")
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--narrador", required=True, help="nombre del narrador tal como está en la tabla (sin distinguir mayúsculas)")
