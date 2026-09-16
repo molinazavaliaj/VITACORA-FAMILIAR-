@@ -3,12 +3,16 @@ import { obtenerClienteDb, type Narrador } from './db.js';
 import { cargarConfig } from './config.js';
 import { generarAnticipo } from './libro/anticipo.js';
 import { firmarTokenAnticipo } from './libro/token-anticipo.js';
-import { subirTexto } from './libro/comun.js';
+import { descargarJson, subirTexto } from './libro/comun.js';
 import { enviarMailAnticipo } from './mail/anticipo.js';
 import { enviarMailHito, CANDADO_POR_HITO, type Hito } from './mail/hitos.js';
+import { avisarSocios, asuntoAviso, cuerpoAviso, CANDADO_AVISO } from './mail/socios.js';
 import { generarEstructura } from './libro/estructura.js';
 import { generarPrevisualizacion } from './libro/previsualizar.js';
 import { generarPaquete } from './libro/generar-paquete.js';
+import { narracionesListas, narracionesAtascadas, RUTA_NARRACION_JSON } from './voz/narraciones.js';
+import { ensamblarAudiolibroClonado } from './voz/ensamblar.js';
+import type { NarracionJson } from './voz/narracion-json.js';
 
 const INTERVALO_MS = 60_000;
 
@@ -68,6 +72,8 @@ export async function tick(): Promise<void> {
     await generarPrevisualizacionesFaltantes();
     await avisarHitosDeCierre();
     await procesarPedidosPagados();
+    await ensamblarNarracionesListas();
+    await avisarNarracionesAtascadas();
     await avisarLibrosListos();
   } finally {
     corriendo = false;
@@ -554,8 +560,28 @@ export async function procesarPedidosPagados(): Promise<void> {
     if (!entregadoPorNarrador.has(entregado.narrador_id)) entregadoPorNarrador.set(entregado.narrador_id, entregado);
   }
 
+  // Un narrador con un pedido 'esperando_voz' tiene el libro hecho y la voz
+  // en camino (buzón `narraciones`). Un segundo pedido 'pagado' sobre él no
+  // se reclama todavía: generarPaquete volvería a escribir el libro (los
+  // borradores ya se borraron → se le paga al modelo de nuevo) y no hay
+  // pedido entregado del que copiar rutas. Se deja en 'pagado'; cuando el
+  // primero pase a 'entregado', el camino de arriba lo entrega con los
+  // mismos archivos.
+  const { data: esperandoVoz, error: errorEsperando } = await db
+    .from('pedidos')
+    .select('id, narrador_id')
+    .eq('estado', 'esperando_voz');
+
+  if (errorEsperando) {
+    console.error('tick: no se pudieron leer los pedidos esperando voz:', errorEsperando.message);
+    return;
+  }
+
+  const narradoresEsperandoVoz = new Set(((esperandoVoz ?? []) as { narrador_id: string }[]).map((p) => p.narrador_id));
+
   for (const pedido of pedidosPagados) {
     if (!narradoresListos.has(pedido.narrador_id)) continue;
+    if (narradoresEsperandoVoz.has(pedido.narrador_id)) continue;
     const { data: reclamado, error: errorClaim } = await db
       .from('pedidos')
       .update({ estado: 'generando' })
@@ -620,6 +646,109 @@ async function entregarConLosMismosArchivos(
     .eq('id', pedido.id);
   if (error) {
     console.error(`tick: no se pudo entregar el pedido ${pedido.id} con los archivos del ${yaEntregado.id}:`, error.message);
+  }
+}
+
+/**
+ * Branch (d): narraciones que el worker de voz terminó (`lista`) con su
+ * pedido todavía `esperando_voz` → pegar las intros, subir el audiolibro y
+ * entregar el pedido con `audiolibro_paths`. Los nombres de los capítulos
+ * salen de `narracion.json` — es lo que el worker narró, en ese orden — y
+ * no de recomputar la edición. La fila de `narraciones` no se toca (la
+ * escribe el worker): si el ensamblado falla, se loguea y la narración
+ * sigue `lista`, así el próximo tick lo reintenta. El UPDATE del pedido
+ * exige `estado = 'esperando_voz'`: si alguien lo movió entre el SELECT y
+ * acá, no se pisa. El mail `libro_listo` lo manda `avisarLibrosListos`,
+ * que corre después en el mismo tick.
+ */
+export async function ensamblarNarracionesListas(): Promise<void> {
+  const db = obtenerClienteDb();
+
+  let listas;
+  try {
+    listas = await narracionesListas(db);
+  } catch (err) {
+    console.error('tick: no se pudieron leer las narraciones listas:', err);
+    return;
+  }
+
+  for (const narracion of listas) {
+    try {
+      const narracionJson = await descargarJson<NarracionJson>(
+        db,
+        RUTA_NARRACION_JSON(narracion.narrador_id),
+        'narracion.json'
+      );
+      const audiolibroPaths = await ensamblarAudiolibroClonado(db, {
+        narradorId: narracion.narrador_id,
+        pedidoId: narracion.pedido_id,
+        capitulosPaths: narracion.capitulos_paths,
+        estructura: { capitulos: narracionJson.capitulos.map((c) => ({ nombre: c.nombre })) },
+      });
+
+      const { error } = await db
+        .from('pedidos')
+        .update({ estado: 'entregado', audiolibro_paths: audiolibroPaths })
+        .eq('id', narracion.pedido_id)
+        .eq('estado', 'esperando_voz');
+      if (error) throw new Error(`no se pudo entregar el pedido ${narracion.pedido_id}: ${error.message}`);
+    } catch (err) {
+      console.error(`tick: falló el ensamblado de la narración ${narracion.id} (pedido ${narracion.pedido_id}):`, err);
+    }
+  }
+}
+
+/**
+ * Branch (e): el buzón de voz se atascó (CONTRATO.md, "Atascos") → un mail
+ * a los socios por (narración, motivo), con candado
+ * `aviso_narracion_{id}_{motivo}.txt` en el paquete del narrador que se
+ * deja SOLO si Resend confirmó — el mismo par de pasos que los hitos. Una
+ * narración puede avisar dos veces con motivos distintos (pendiente 24 h y
+ * después fallida): son candados distintos a propósito.
+ */
+export async function avisarNarracionesAtascadas(): Promise<void> {
+  const db = obtenerClienteDb();
+
+  let atascadas;
+  try {
+    atascadas = await narracionesAtascadas(db, new Date());
+  } catch (err) {
+    console.error('tick: no se pudieron leer las narraciones atascadas:', err);
+    return;
+  }
+
+  // El listado del paquete se hace una vez por narrador, aunque tenga varias
+  // narraciones atascadas; los candados que se suben se agregan al Set.
+  const archivosPorNarrador = new Map<string, Set<string>>();
+
+  for (const atascada of atascadas) {
+    try {
+      let archivos = archivosPorNarrador.get(atascada.narrador_id);
+      if (!archivos) {
+        archivos = await listarPaquete(db, atascada.narrador_id);
+        archivosPorNarrador.set(atascada.narrador_id, archivos);
+      }
+      const candado = CANDADO_AVISO(atascada.id, atascada.motivo);
+      if (archivos.has(candado)) continue;
+
+      const { data: narrador, error: errorNarrador } = await db
+        .from('narradores')
+        .select('como_le_dicen')
+        .eq('id', atascada.narrador_id)
+        .single();
+      if (errorNarrador || !narrador) {
+        throw new Error(`No se pudo leer el narrador: ${errorNarrador?.message ?? 'sin datos'}`);
+      }
+      const comoLeDicen = (narrador as { como_le_dicen: string }).como_le_dicen;
+
+      const enviado = await avisarSocios(asuntoAviso(atascada.motivo, comoLeDicen), cuerpoAviso(atascada, comoLeDicen));
+      if (enviado) {
+        await subirTexto(db, `${atascada.narrador_id}/paquete/${candado}`, new Date().toISOString());
+        archivos.add(candado);
+      }
+    } catch (err) {
+      console.error(`tick: falló el aviso de la narración atascada ${atascada.id}:`, err);
+    }
   }
 }
 

@@ -51,9 +51,11 @@ export function armarListaConcat(
   }));
 }
 
-const RUTA_CAPITULO = (narradorId: string, numero: number) =>
+// Exportadas: el audiolibro con voz clonada (voz/ensamblar.ts) deja sus
+// piezas en las mismas rutas — para la web es el mismo producto.
+export const RUTA_CAPITULO = (narradorId: string, numero: number) =>
   `${narradorId}/paquete/audiolibro_cap_${String(numero).padStart(2, '0')}.mp3`;
-const RUTA_COMPLETO = (narradorId: string) => `${narradorId}/paquete/audiolibro_completo.mp3`;
+export const RUTA_COMPLETO = (narradorId: string) => `${narradorId}/paquete/audiolibro_completo.mp3`;
 
 function extensionDe(ruta: string): string {
   const punto = ruta.lastIndexOf('.');
@@ -68,13 +70,21 @@ async function descargarAudio(db: ReturnType<typeof obtenerClienteDb>, ruta: str
   return Buffer.from(await data.arrayBuffer());
 }
 
+/** Sube una pieza del audiolibro al bucket `audios` (upsert: un reintento pisa la anterior). */
+export async function subirMp3(db: ReturnType<typeof obtenerClienteDb>, ruta: string, buffer: Buffer): Promise<void> {
+  const { error } = await db.storage.from('audios').upload(ruta, buffer, { contentType: 'audio/mpeg', upsert: true });
+  if (error) throw new Error(`No se pudo subir ${ruta}: ${error.message}`);
+}
+
 /**
  * Arma un tramo del audiolibro: intro hablada por TTS + los audios (rutas
  * completas de Storage) en orden, cada uno normalizado en volumen antes de
  * concatenar — si no, la voz de la intro (TTS, siempre parejo) suena a un
- * volumen distinto del audio grabado en un celular.
+ * volumen distinto del audio grabado en un celular. Lo usa también el
+ * audiolibro con voz clonada (voz/ensamblar.ts): misma intro, y el cuerpo
+ * es el mp3 que narró el worker.
  */
-async function armarSegmento(
+export async function armarSegmento(
   db: ReturnType<typeof obtenerClienteDb>,
   introTexto: string,
   rutasAudio: string[]
@@ -114,20 +124,14 @@ export async function generarAudiolibro(
       entrada.archivos.map((archivo) => `${narradorId}/${archivo}`)
     );
     const ruta = RUTA_CAPITULO(narradorId, entrada.numero);
-    const { error } = await db.storage
-      .from('audios')
-      .upload(ruta, buffer, { contentType: 'audio/mpeg', upsert: true });
-    if (error) throw new Error(`No se pudo subir ${ruta}: ${error.message}`);
+    await subirMp3(db, ruta, buffer);
     rutasCapitulos.push(ruta);
     buffersFinal.push(buffer);
   }
 
   const bufferCompleto = await concatenarMp3s(buffersFinal);
   const rutaCompleto = RUTA_COMPLETO(narradorId);
-  const { error: errorCompleto } = await db.storage
-    .from('audios')
-    .upload(rutaCompleto, bufferCompleto, { contentType: 'audio/mpeg', upsert: true });
-  if (errorCompleto) throw new Error(`No se pudo subir ${rutaCompleto}: ${errorCompleto.message}`);
+  await subirMp3(db, rutaCompleto, bufferCompleto);
 
   return {
     capitulos: rutasCapitulos,

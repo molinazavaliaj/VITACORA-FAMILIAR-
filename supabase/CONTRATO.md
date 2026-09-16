@@ -64,8 +64,10 @@ la web. Proveedor de clonación a definir antes de vender el primero.
 **Lo que la fábrica hace hoy con eso (Naza, 13-14/09):** impreso, marcos y copias se
 cumplen **a mano** por ahora — la fábrica no los lee. Un segundo pedido `pagado` sobre un
 narrador que ya tiene un pedido `entregado` **no vuelve a generar nada**: la fábrica lo pasa
-a `entregado` con los mismos `libro_pdf_path` y `audiolibro_paths`. ⚠️ Pendiente (3t.14):
-leer `pdf` / `audiolibro` para producir solo lo comprado y con la voz elegida.
+a `entregado` con los mismos `libro_pdf_path` y `audiolibro_paths`. Desde el 16/09 la fábrica
+sí lee `audiolibro`: `"clonada"` pasa por el buzón `narraciones` (sección siguiente) y el
+pedido espera en `esperando_voz` hasta que la voz vuelve y la fábrica ensambla. ⚠️ Pendiente
+(3t.14): leer `pdf` y `"narrador"` para producir solo lo comprado.
 
 ## Narraciones (voz clonada) (migración 20260917)
 

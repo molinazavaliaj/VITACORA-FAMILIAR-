@@ -8,6 +8,7 @@
     "test": "vitest run",
     "build": "tsc",
     "set-dorado": "tsx src/cargar-set-dorado.ts",
+    "narracion": "tsx src/reintentar-narracion.ts",
     "start": "node dist/worker.js"
   },
   "dependencies": {
