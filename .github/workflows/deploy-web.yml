@@ -1,0 +1,66 @@
+# Deploy de la web a Vercel en cada push a main (bitácora #8, 16/09).
+#
+# Por qué existe: el proyecto de Vercel es de Naza (plan Hobby) y el repo es de
+# Joaquín; Vercel no puede mirar el repo desde ese team sin pagar Pro. Entonces
+# es al revés: GitHub le empuja el deploy a Vercel con la CLI, igual que
+# `vercel --prod` a mano, pero solo y en cada push.
+#
+# Secretos del repo (Settings → Secrets and variables → Actions):
+#   VERCEL_TOKEN       — vercel.com → Settings → Tokens (lo crea Naza, lo pasa por privado)
+#   VERCEL_ORG_ID      — `web/.vercel/project.json` en la máquina de Naza ("orgId")
+#   VERCEL_PROJECT_ID  — ídem ("projectId")
+#
+# Solo se dispara si cambió algo de web/ (o este archivo). Los tests corren
+# antes: un push que rompe tests no deploya.
+
+name: Deploy web
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "web/**"
+      - ".github/workflows/deploy-web.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-web
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Instalar
+        run: npm ci
+
+      - name: Tests
+        run: npm test
+
+      - name: Vercel CLI
+        run: npm i -g vercel@latest
+
+      # Baja la configuración y las variables de entorno del proyecto de Vercel
+      # (no viven en el repo), compila acá y sube el resultado ya compilado.
+      - name: Configuración de producción
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Build
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Deploy
+        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
