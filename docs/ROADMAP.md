@@ -126,9 +126,9 @@ se decide con eso a la vista.
 |---|---|---|---|
 | 1.1 | Apelar una última vez desde el perfil bloqueado, cerrar sesión, borrar cookies de facebook.com, no volver a tocarlo | **J** | ☐ |
 | 1.2 | Confirmar si existe un portfolio comercial previo (define la vía rápida) | **J** | ✅ 15/09 — **cambio de plan: Meta lo opera Joaquín con su cuenta personal de años** (la deshabilitada era la nueva). El portfolio "Vitacora Familiar" ya existe (lo creó Business Suite con la página, 08/09), página e Instagram adentro. Plan B: el portfolio "Whānau", con antigüedad. |
-| 1.3 | **VÍA RÁPIDA:** crear app + WABA de prueba, pasarle a Joaquín `WA_TOKEN` y `WA_PHONE_NUMBER_ID` | **N** | ☐ |
-| 1.4 | Cargar en la lista de permitidos (máx. 5): Naza, Joaquín (+541178174942), y los narradores piloto | **N** | ☐ |
-| 1.5 | Crear las 3 plantillas de `entrevistador/PLANTILLAS.md`, categoría Utility | **N** | ☐ |
+| 1.3 | **VÍA RÁPIDA:** crear app + WABA de prueba → `WA_TOKEN` y `WA_PHONE_NUMBER_ID` en Railway | **J** | ☐ 16/09, desde la compu con hotspot |
+| 1.4 | Cargar en la lista de permitidos (máx. 5): Naza, Joaquín (+541178174942), y los narradores piloto | **J** | ☐ |
+| 1.5 | Crear las plantillas de `entrevistador/PLANTILLAS.md`, categoría Utility — **ahora son 4**: `bienvenida`, `pregunta_diaria` (1 variable, en usted), `pregunta_diaria_vos` (gemela en vos, 15/09), `recordatorio` | **J** | ☐ con la app |
 | 1.6 | Crear la Página "Vitácora Familiar", completarla al 100%, 5-10 posteos | **J** | ✅ 08/09 — 22 seguidores al 15/09 |
 | 1.7 | Esperar 7-14 días de historial de la Página | — | ☐ |
 | 1.8 | Portfolio "Vitácora Familiar": reclamar la Página, vincular Instagram, **agregar a Joaquín como admin** | **N** | ☐ |
@@ -193,6 +193,8 @@ Falta solo pegar el `WA_TOKEN` y el `WA_PHONE_NUMBER_ID` nuevos cuando exista la
 | 2.5 | Metadatos + Open Graph (que el link se vea bien al compartirlo) | **N** | ☐ |
 | 2.6 | Middleware de supabase-ssr (pendiente #1 del triage) | **N** | ☐ |
 | 2.7 | Pixel de Meta + Conversions API — ver nota abajo | **N** | ☐ |
+| **2.8** | **Conectar Vercel a GitHub** (`vercel git connect`) — el 15/09 producción corría un build de **8 días** mientras `main` tenía el panel nuevo; hoy cada deploy es manual (`vercel --prod`) | **N** | ☐ **urgente** — bitácora #8 |
+| **2.9** | **El webhook de Mercado Pago no verifica la firma** (`MP_WEBHOOK_SECRET` está en Vercel, el código no lo lee; Stripe sí verifica) | **J** | ☐ bitácora #9 |
 
 ### 📊 Nota sobre el pixel — hay que diseñarlo bien o no sirve
 
@@ -421,9 +423,9 @@ Spec: `docs/panel-usuario.md`. Construyó Joaquín en `web/` (Naza sin créditos
 | 3t.7 | Compartir el libro cerrado: link público, muestra, guardar, comprar copia | **J** | ✅ 13/09 |
 | 3t.8 | **Lector online** (el HTML que la fábrica ya genera, paginado, con audio por capítulo) | **N** | ✅ 13/09 · integrado el 14/09 en `/tablero/[id]/leer` — `api/libro/html` sirve `libro.html`; solo se ve desde `entregado` (antes no hay libro escrito, ver `docs/panel-usuario.md` §12) |
 | 3t.9 | **Mails de hitos** (7, ver spec §9) — los de la fábrica/web | **N** | ✅ 13/09 — los 5 de la fábrica (+ «libro listo», que ya era suyo: 6 candados en total); los del entrevistador siguen en 3t.10 |
-| 3t.10 | Mails de hitos del entrevistador + guion por narrador + adaptativas al final real + imagen por WhatsApp + oferta de la siguiente + `contexto.evitar` + endpoint de sugeridas (spec §11) | **J** | ✅ 14/09 — ver `ESTADO.md`; ⚠️ 4 variables nuevas en Railway |
+| 3t.10 | Mails de hitos del entrevistador + guion por narrador + adaptativas al final real + imagen por WhatsApp + oferta de la siguiente + `contexto.evitar` + endpoint de sugeridas (spec §11) | **J** | ✅ 14/09 — ver `ESTADO.md` · + **trato usted/vos** decidido por el modelo (Naza, 15/09) · variables: `RESEND_API_KEY` ✅, falta `SUGERIDAS_CLAVE` |
 | 3t.11 | Fábrica: leer `narradores.edicion`, ubicar `fotos`, **no producir sin `libro_aprobado_at`**, cierre automático a los 30 días (spec §12) | **N** | ✅ 13/09 — `ordenCapitulos`/`titulo`/`subtitulo`/`portadaFotoId` aplicados, `excluidas`/`correcciones` ignorados (decisión 13/09); a los 30 días de `ultima_respuesta_at` la fábrica misma cierra y produce |
-| 3t.12 | Sugeridas por IA a pedido (§6.2, tercer botón) | **J** | ☐ fase siguiente |
+| 3t.12 | Sugeridas por IA a pedido (§6.2, tercer botón) | **J** | 🔄 endpoint hecho en el entrevistador (14/09); falta el botón en la web |
 | **3t.13** | **Rediseño 13/09 (tarde)** — landing con maquetas en código + CTA sticky; tema claro/oscuro; nav de 3; la historia ES el guion (riel, filas, modo edición); fotos sin capítulo; **tres productos, al menos uno** (PDF · audiolibro · impreso); el lector (`/leer`, nada se descarga); libro en miniatura + tapa/contratapa/marco. Spec: `docs/panel-usuario.md` §15. Lienzo: `docs/diseno/panel-v2/`. | **J** | ✅ 13/09 · revisado y pusheado el 14/09 |
 | 3t.14 | Fábrica: leer `pedidos.extras` nuevo (pdf / audiolibro{voz} / impreso / marcos), **audiolibro con voz clonada o narrador** (elegir proveedor), contratapa y marco desde `edicion`, HTML paginado para el lector y la miniatura | **N** | ☐ |
 | 3t.15 | Entrevistador: muestras de voz limpias para clonar | **J** | ☐ |
@@ -534,6 +536,15 @@ punta a punta (falta la cuenta de Meta). Nada de eso lo destraba esta prueba.
 ---
 
 ## FRENTE 6 — Pilotos reales
+
+> **16/09 — el piloto ya arrancó, por la puerta manual.** Sin WhatsApp API todavía,
+> Naza entrevista a **Joaquín como narrador de prueba** (28 años, trato *vos*): 9
+> respuestas cargadas con `npm run manual`. Sirvió para encontrar 17 hallazgos, todos
+> anotados en **`docs/piloto-bitacora-errores.md`** (no se arreglan sobre la marcha; se
+> repasan al terminar). Los más gordos: el trato *usted/vos* (ya resuelto: lo decide el
+> modelo con la ficha), respuestas en varios audios, la repregunta que no respetaba el
+> trato, la personalización que ancla demasiado en lo ya contado, y nombres propios
+> mal transcriptos. **Los narradores reales (la abuela, Imma) siguen esperando la API.**
 
 | # | Tarea | Quién | Estado |
 |---|---|---|---|
