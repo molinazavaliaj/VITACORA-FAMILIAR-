@@ -126,16 +126,16 @@ se decide con eso a la vista.
 |---|---|---|---|
 | 1.1 | ~~Apelar una última vez desde el perfil bloqueado~~ — ya no aplica: Meta se opera con la cuenta personal de Joaquín | **J** | — |
 | 1.2 | Confirmar si existe un portfolio comercial previo (define la vía rápida) | **J** | ✅ 15/09 — **cambio de plan: Meta lo opera Joaquín con su cuenta personal de años** (la deshabilitada era la nueva). El portfolio "Vitacora Familiar" ya existe (lo creó Business Suite con la página, 08/09), página e Instagram adentro. Plan B: el portfolio "Whānau", con antigüedad. |
-| 1.3 | **VÍA RÁPIDA:** crear app + WABA de prueba → `WA_TOKEN` y `WA_PHONE_NUMBER_ID` en Railway | **J** | ☐ 16/09, desde la compu con hotspot |
-| 1.4 | Cargar en la lista de permitidos (máx. 5): Naza, Joaquín (+541178174942), y los narradores piloto | **J** | ☐ |
-| 1.5 | Crear las plantillas de `entrevistador/PLANTILLAS.md`, categoría Utility — **ahora son 4**: `bienvenida`, `pregunta_diaria` (1 variable, en usted), `pregunta_diaria_vos` (gemela en vos, 15/09), `recordatorio` | **J** | ☐ con la app |
+| 1.3 | **VÍA RÁPIDA:** crear app + WABA de prueba → `WA_TOKEN` y `WA_PHONE_NUMBER_ID` en Railway | **J** | ✅ 16/09 — app `Vitacora Familiar` (1061858183385953), WABA `1553096429416760`, número de prueba **+1 (555) 182-9748**, `Phone Number ID 1262240796981875`. **Probado de punta a punta con el WhatsApp real de Joaquín** (SÍ → acepto → respuesta). ⚠️ El token es temporal (24 h): ver 1.12 |
+| 1.4 | Cargar en la lista de permitidos (máx. 5): Naza, Joaquín (+541178174942), y los narradores piloto | **J** | 🔄 Joaquín ✅ (sin el 9, como lo toma Meta). Faltan Naza, **Dora (+54 9 11 3796 4773)** e Imma — a cada uno le llega un código de 6 dígitos por WhatsApp. **Avisarles antes: la bienvenida sale sola** al aprobarse la plantilla. |
+| 1.5 | Crear las plantillas de `entrevistador/PLANTILLAS.md`, categoría Utility — **ahora son 4**: `bienvenida`, `pregunta_diaria` (1 variable, en usted), `pregunta_diaria_vos` (gemela en vos, 15/09), `recordatorio` | **J** | 🔄 16/09 — las 4 enviadas. `recordatorio` en Utilidad; `bienvenida`, `pregunta_diaria` y `pregunta_diaria_vos` quedaron en **Marketing** (el clasificador no aceptó Utilidad ni reescritas; apelación enviada, Meta responde hasta el 16/11). Para el código es transparente. Costo: ~USD 0,06/mensaje; la mayoría de las preguntas salen en modo rápido como texto libre, sin plantilla. |
 | 1.6 | Crear la Página "Vitácora Familiar", completarla al 100%, 5-10 posteos | **J** | ✅ 08/09 — 22 seguidores al 15/09 |
 | 1.7 | Esperar 7-14 días de historial de la Página | — | ☐ |
 | 1.8 | Portfolio "Vitácora Familiar": reclamar la Página, vincular Instagram | **J** | ✅ 15/09 — desde Business Suite en el celu; falta el mail `soporte@` en Información del negocio (desde la compu) |
 | 1.9 | Conseguir línea telefónica dedicada (sin WhatsApp común activo) | **J** | ☐ |
 | 1.10 | Verificación del negocio con documentación de Joaquín | **A** | ☐ post 1-oct |
 | 1.11 | Cuenta publicitaria — ⚠️ moneda **ARS**, no se cambia nunca más | **N** | ☐ post 1-oct |
-| 1.12 | Producción: número propio, display name, token permanente (System User) | **A** | ☐ post 1-oct |
+| 1.12 | Producción: **chip propio ya activado** (no meterlo en ninguna app de WhatsApp), display name, **token permanente (System User)** — el actual vence a las 24 h, hay que renovarlo a mano en Railway hasta hacer esto. Exige cargar medio de pago en Meta, moneda **ARS**. | **J** | ☐ **fin de semana 20-21/09**, con la app ya con historial |
 
 ### ✅ Infraestructura unificada (15/09)
 
@@ -163,6 +163,21 @@ verde apenas se conecte**.
 Falta solo pegar el `WA_TOKEN` y el `WA_PHONE_NUMBER_ID` nuevos cuando exista la cuenta.
 
 ### ⚠️ Trampas ya aprendidas (no volver a pisarlas)
+
+- **(16/09) La cuenta de WhatsApp Business tiene que estar suscrita a la app**, aparte de
+  la URL del webhook y del campo `messages`. Si Meta muestra los eventos en "Revisa los
+  webhooks de prueba" pero Railway no recibe nada, es esto:
+  `curl -X POST https://graph.facebook.com/v21.0/<WABA_ID>/subscribed_apps -H "Authorization: Bearer <token>"`
+  → `{"success":true}`. Nos costó una hora.
+- **(16/09) Meta toma los argentinos SIN el 9** en la lista de prueba y manda el `from`
+  **con** el 9. El entrevistador busca las dos formas desde `5ed5ffe`. El número del
+  narrador en la base conviene guardarlo como lo tiene Meta.
+- **(16/09) "Generar nuevo token" invalida el anterior al instante**: si se regenera, hay
+  que actualizar `WA_TOKEN` en Railway en el acto.
+- **(16/09) El clasificador de plantillas marca casi todo como Marketing** para una cuenta
+  nueva, incluso textos secos. No vale pelearlo más de dos intentos: se acepta Marketing y
+  se apela.
+- **(16/09) Las variables no pueden ir al principio ni al final** del cuerpo de una plantilla.
 
 - **Idioma de las plantillas: "Español" a secas.** NO "Español (Argentina)" ni "(España)".
   El código manda `language: 'es'`; con `es_AR` Meta responde "template not found".
