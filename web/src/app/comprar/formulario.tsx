@@ -399,7 +399,10 @@ export function Checkout({ catalogo }: { catalogo: Catalogo }) {
             </div>
             <p className="mt-4 text-[13px] text-[#83837A] [font-family:var(--fuente-cuerpo)] font-light">
               Pago único y seguro con {region === "ES" ? "Stripe" : "Mercado Pago"}. Al pagar aceptas los{" "}
-              <a href="/legal/terminos" className="underline underline-offset-2" target="_blank" rel="noreferrer">términos</a>.
+              <a href="/legal/terminos" className="underline underline-offset-2" target="_blank" rel="noreferrer">términos</a>
+              {region === "ES"
+                ? " y nos pides que la entrevista empiece en cuanto el narrador acepte, sin esperar los 14 días de desistimiento: si te arrepientes con la entrevista en marcha, se descuenta la parte ya hecha."
+                : "."}
             </p>
           </form>
         )}

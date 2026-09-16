@@ -70,7 +70,7 @@ export function Correo({ cual }: { cual: keyof typeof CONTACTO }) {
 
 /** Un dato que los socios todavía tienen que completar. Se ve, a propósito. */
 export function Pendiente({ etiqueta }: { etiqueta: string }) {
-  return <span className="bg-amber-100 px-1">[{etiqueta}: a completar]</span>;
+  return <span className="bg-amber-100 px-1">[{etiqueta}]</span>;
 }
 
 /** Nombre, documento y domicilio de un titular, con lo que falte en amarillo. */
@@ -80,12 +80,12 @@ export function DatosTitular({ titular }: { titular: Titular }) {
     <>
       <strong className="font-medium">{titular.nombre}</strong>, {titular.documento.etiqueta}{" "}
       {huecos.includes(titular.documento.etiqueta) ? (
-        <Pendiente etiqueta={titular.documento.etiqueta} />
+        <Pendiente etiqueta="a completar" />
       ) : (
         titular.documento.valor
       )}
       , con domicilio en{" "}
-      {huecos.includes("domicilio") ? <Pendiente etiqueta="domicilio" /> : titular.domicilio}
+      {huecos.includes("domicilio") ? <Pendiente etiqueta="a completar" /> : titular.domicilio}
     </>
   );
 }
@@ -111,7 +111,7 @@ export function Tabla({ columnas, filas }: { columnas: string[]; filas: ReactNod
         <thead>
           <tr>
             {columnas.map((c) => (
-              <th key={c} className="border-b border-zinc-200 px-1 pb-2 align-bottom text-xs font-medium uppercase tracking-wide text-zinc-500">
+              <th key={c} scope="col" className="border-b border-zinc-200 px-1 pb-2 align-bottom text-xs font-medium uppercase tracking-wide text-zinc-500">
                 {c}
               </th>
             ))}

@@ -8,7 +8,9 @@
 // el checkout (la misma que decide moneda y pasarela): España → Immaculada,
 // Argentina → Joaquín.
 
-export type Region = "ES" | "AR";
+import type { Region } from "@/lib/precios";
+
+export type { Region };
 
 export type Titular = {
   region: Region;

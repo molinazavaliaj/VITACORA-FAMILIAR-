@@ -60,7 +60,7 @@ export default function Terminos() {
           items={[
             <>
               <strong className="font-medium">El libro en PDF</strong>: se lee en la web, capítulo por capítulo, con las fotos que
-              suba la familia, y se puede descargar.
+              suba la familia. Está siempre disponible en tu cuenta.
             </>,
             <>
               <strong className="font-medium">El audiolibro</strong>: la historia completa narrada, con su propia voz (clonada a
@@ -127,7 +127,7 @@ export default function Terminos() {
         <Parrafo>
           El libro en PDF y el audiolibro quedan disponibles en tu cuenta. El libro impreso y
           los marcos se producen después de que apruebas el libro; antes de mandarlos a
-          producir te confirmamos por correo la dirección de envío y el plazo estimado.
+          producir te escribimos para pedirte la dirección de envío y confirmarte el plazo.
         </Parrafo>
       </Seccion>
 
@@ -144,9 +144,9 @@ export default function Terminos() {
           items={[
             <>
               <strong className="font-medium">España — 14 días naturales</strong> desde la compra
-              (derecho de desistimiento, arts. 102 a 108 del RDL 1/2007). Si nos pediste que la
-              entrevista empezara antes de que pasaran esos 14 días y te arrepientes con la
-              entrevista ya en marcha, te devolvemos el precio menos la parte proporcional a
+              (derecho de desistimiento, arts. 102 a 108 del RDL 1/2007). Al pagar nos pides que la
+              entrevista empiece en cuanto el narrador acepte, sin esperar esos 14 días; si te
+              arrepientes con la entrevista ya en marcha, te devolvemos el precio menos la parte proporcional a
               las preguntas ya hechas (art. 108.3). Una vez que el libro en PDF o el audiolibro
               están a tu disposición en tu cuenta, con tu consentimiento, el desistimiento ya no
               aplica sobre ellos (art. 103 m); tampoco sobre el libro impreso ni los marcos, que
@@ -247,8 +247,8 @@ export default function Terminos() {
             <>
               Si compras desde <strong className="font-medium">España</strong>, el contrato se rige por {es.ley}. Cualquier
               disputa se resuelve en los juzgados de tu domicilio. También puedes acudir a la
-              plataforma europea de resolución de litigios en línea:{" "}
-              <Enlace href="https://ec.europa.eu/consumers/odr">ec.europa.eu/consumers/odr</Enlace>.
+              oficina de consumo de tu comunidad autónoma o a una Junta Arbitral de Consumo;
+              tienes hojas de reclamaciones a tu disposición pidiéndolas por correo.
             </>,
             <>
               Si compras desde <strong className="font-medium">Argentina</strong>, el contrato se rige por {ar.ley}. Puedes
