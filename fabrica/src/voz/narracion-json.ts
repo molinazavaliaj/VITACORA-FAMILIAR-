@@ -14,10 +14,14 @@ export type NarracionJson = {
 };
 
 /**
- * Saca el Markdown mínimo que escribe `escribir-capitulo.ts` (títulos,
- * imágenes, épigrafes en cursiva de línea entera, y énfasis en negrita o
- * cursiva) y deja texto plano: lo que hay que narrar en voz alta, no lo que
- * hay que renderizar. Los párrafos siguen separados por una línea en blanco.
+ * Saca el Markdown que puede traer un capítulo y deja texto plano: lo que
+ * hay que narrar en voz alta, no lo que hay que renderizar. `escribir-
+ * capitulo.ts` solo pide párrafos y `> cita` para las frases textuales más
+ * potentes (ver `capituloMarkdownAHtml`, que le da el mismo trato: la cita
+ * queda como su propio párrafo, sin el `>`); también se sacan títulos,
+ * imágenes, épigrafes en cursiva de línea entera y énfasis en negrita o
+ * cursiva, por si aparecen. Los párrafos siguen separados por una línea en
+ * blanco.
  */
 export function markdownATextoPlano(markdown: string): string {
   const lineas = markdown.split(/\r?\n/).map((lineaCruda) => {
@@ -25,7 +29,8 @@ export function markdownATextoPlano(markdown: string): string {
     if (/^#/.test(linea)) return '';
     if (/^!\[.*\]\(.*\)$/.test(linea)) return '';
     if (/^\*[^*]+\*$/.test(linea) || /^_[^_]+_$/.test(linea)) return '';
-    return lineaCruda
+    const sinCita = lineaCruda.replace(/^\s*>\s?/, '');
+    return sinCita
       .replace(/\*\*(.+?)\*\*/g, '$1')
       .replace(/\*(.+?)\*/g, '$1')
       .replace(/_(.+?)_/g, '$1');

@@ -6,6 +6,11 @@ describe('markdownATextoPlano', () => {
     const md = '# La infancia\n\nNací en **Rosario**, en _1950_.\n\n![foto](x.jpg)\n*La casa del patio.*\n\nMi padre era ferroviario.';
     expect(markdownATextoPlano(md)).toBe('Nací en Rosario, en 1950.\n\nMi padre era ferroviario.');
   });
+
+  it('una cita (> ...) queda como su propio párrafo, sin el >', () => {
+    const md = 'Hola.\n\n> Fue el día más feliz.\n\nChau.';
+    expect(markdownATextoPlano(md)).toBe('Hola.\n\nFue el día más feliz.\n\nChau.');
+  });
 });
 
 describe('armarNarracionJson', () => {
