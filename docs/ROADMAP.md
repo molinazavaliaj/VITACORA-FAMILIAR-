@@ -132,7 +132,7 @@ se decide con eso a la vista.
 | 1.6 | Crear la Página "Vitácora Familiar", completarla al 100%, 5-10 posteos | **J** | ✅ 08/09 — 22 seguidores al 15/09 |
 | 1.7 | Esperar 7-14 días de historial de la Página | — | ☐ |
 | 1.8 | Portfolio "Vitácora Familiar": reclamar la Página, vincular Instagram | **J** | ✅ 15/09 — desde Business Suite en el celu; falta el mail `soporte@` en Información del negocio (desde la compu) |
-| 1.9 | Conseguir línea telefónica dedicada (sin WhatsApp común activo) | **J** | ☐ |
+| 1.9 | Conseguir línea telefónica dedicada (sin WhatsApp común activo) | **J** | ✅ 16/09 — chip activado, **nunca metido en una app de WhatsApp**; entra en 1.12 |
 | 1.10 | Verificación del negocio con documentación de Joaquín | **A** | ☐ post 1-oct |
 | 1.11 | Cuenta publicitaria — ⚠️ moneda **ARS**, no se cambia nunca más | **N** | ☐ post 1-oct |
 | 1.12 | Producción: **chip propio ya activado** (no meterlo en ninguna app de WhatsApp), display name, **token permanente (System User)** — el actual vence a las 24 h, hay que renovarlo a mano en Railway hasta hacer esto. Exige cargar medio de pago en Meta, moneda **ARS**. | **J** | ☐ **fin de semana 20-21/09**, con la app ya con historial |
@@ -202,7 +202,7 @@ Falta solo pegar el `WA_TOKEN` y el `WA_PHONE_NUMBER_ID` nuevos cuando exista la
 | # | Tarea | Quién | Estado |
 |---|---|---|---|
 | 2.1 | Apuntar `vitacorafamiliar.com` a Vercel | **N** | ✅ (el checkout y el login andan en el dominio, 15/09) |
-| 2.2 | Verificar el dominio en Resend → destraba los mails de login para cualquiera | **N** | ✅ 15/09 — **Resend pasó a la cuenta Pro de Joaquín** (dominio en sa-east-1, Naza invitado); clave nueva en Supabase SMTP, Vercel y los dos servicios de Railway. Login probado. ⚠️ **16/09: el DKIM desapareció de Hostinger** (el asistente de correo de Hostinger lo borró al crear `soporte@`) y cayeron login + todos los mails; repuesto a mano y verificado. Regla: después de tocar correo en Hostinger, comprobar `resend._domainkey` por DNS. |
+| 2.2 | Verificar el dominio en Resend → destraba los mails de login para cualquiera | **N** | ✅ 15-16/09 — el DKIM faltaba en Hostinger hasta el 16/09 (login caído medio día); verificado y login probado. **Resend pasó a la cuenta Pro de Joaquín** (dominio en sa-east-1, Naza invitado); clave nueva en Supabase SMTP, Vercel y los dos servicios de Railway. Login probado. ⚠️ **16/09: el DKIM desapareció de Hostinger** (el asistente de correo de Hostinger lo borró al crear `soporte@`) y cayeron login + todos los mails; repuesto a mano y verificado. Regla: después de tocar correo en Hostinger, comprobar `resend._domainkey` por DNS. |
 | 2.3 | Completar `/legal/privacidad` + términos — **requisito duro de WhatsApp API** | **N** | ✅ 16/09 — términos, privacidad y `/legal/arrepentimiento` completos (dos titulares, mínimo legal). **Falta rellenar NIF/CUIT y domicilios en `web/src/app/legal/titulares.ts`** y confirmar la región del proyecto Supabase (la política dice UE). Al elegir proveedor de clonación de voz, nombrarlo en la tabla de privacidad. |
 | 2.4 | Crear `hola@vitacorafamiliar.com` (un Gmail no sirve para verificar el negocio) | **J** | ✅ 15/09 — `soporte@vitacorafamiliar.com` (el remitente de mails sigue siendo `hola@`) |
 | 2.5 | Metadatos + Open Graph (que el link se vea bien al compartirlo) | **N** | ☐ |
@@ -599,9 +599,9 @@ al algoritmo a buscar curiosos en vez de compradores.
 | # | Tarea | Quién | Estado |
 |---|---|---|---|
 | 8.1 | Cuenta de Mercado Pago + `MP_ACCESS_TOKEN` en Vercel + webhook a `/api/webhooks/mercadopago` — **pago único** (el código ya existe) | **J** | ✅ 15/09 — producción activada, token y webhook cargados, el checkout funciona en la web |
-| 8.2 | Cargar en Vercel los 8 precios definidos el 12/09 (tabla en `GASTOS.md`) | **N** | ☐ **Joaquín se los pasa** |
+| 8.2 | Cargar en Vercel los 10 precios (tabla en `GASTOS.md`) | **N** | ✅ 16/09 — el checkout ofrece los tres productos |
 | 8.3 | ~~Prueba en sandbox~~ → **un pago real de prueba en producción, y devolverlo** (sandbox abandonado el 13/09) | **A** | ☐ único paso que falta del cobro |
-| **8.6** | **Confirmar con Naza:** en Vercel, `MP_WEBHOOK_SECRET` tiene que ser la clave del webhook de **producción** (panel de MP → Webhooks → junto a la URL), no la de prueba del 13/09 — desde `b1fedf2` la web rechaza con 401 las notificaciones mal firmadas. Después, **redeploy** (o conectar Vercel a GitHub, 2.8). Señal de que está mal: el pago real entra y el pedido queda "pendiente". | **J avisa · N carga** | ☐ en la próxima reunión |
+| **8.6** | **Confirmar con Naza:** en Vercel, `MP_WEBHOOK_SECRET` tiene que ser la clave del webhook de **producción** (panel de MP → Webhooks → junto a la URL), no la de prueba del 13/09 — desde `b1fedf2` la web rechaza con 401 las notificaciones mal firmadas. Después, **redeploy** (o conectar Vercel a GitHub, 2.8). Señal de que está mal: el pago real entra y el pedido queda "pendiente". | **J avisa · N carga** | ✅ 16/09 (según Joaquín) — **se confirma con el pago real (8.3)**: si el pedido queda "pendiente" con el pago aprobado, es esto |
 | 8.4 | **Averiguar si Naza puede darse de alta como autónomo en España y abrir Stripe** — reabre el mercado de 49€ | **N** | ☐ **urgente** |
 | 8.5 | Si 8.4 es no: evaluar merchant of record (Paddle / Lemon Squeezy) y si paga a Argentina | **J** | ☐ post 1-oct |
 
