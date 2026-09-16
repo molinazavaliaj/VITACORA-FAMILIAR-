@@ -3,7 +3,7 @@ import { asuntoAviso, cuerpoAviso, avisarSocios, CANDADO_AVISO } from '../src/ma
 
 describe('asuntoAviso / cuerpoAviso', () => {
   it('el asunto lleva el prefijo de la casa y el como_le_dicen', () => {
-    for (const motivo of ['pendiente_24h', 'procesando_6h', 'fallida'] as const) {
+    for (const motivo of ['pendiente_24h', 'procesando_6h', 'fallida', 'ensamblado_fallido'] as const) {
       const asunto = asuntoAviso(motivo, 'papá');
       expect(asunto.startsWith('Vitácora — voz clonada:')).toBe(true);
       expect(asunto).toContain('papá');
@@ -33,6 +33,12 @@ describe('asuntoAviso / cuerpoAviso', () => {
     expect(cuerpo).toContain('falló');
   });
 
+  it('ensamblado_fallido dice que la fábrica no pudo armar el audiolibro, el error y que reintenta sola', () => {
+    const cuerpo = cuerpoAviso({ id: 'abc', motivo: 'ensamblado_fallido', error: 'ffmpeg reventó' }, 'papá');
+    expect(cuerpo).toContain('La fábrica no pudo armar el audiolibro clonado de papá: ffmpeg reventó.');
+    expect(cuerpo).toContain('Lo reintenta en cada vuelta; si sigue así, mirá los logs de Railway.');
+  });
+
   it('escapa el como_le_dicen y el error en el cuerpo', () => {
     const cuerpo = cuerpoAviso({ id: 'abc', motivo: 'fallida', error: '<b>' }, '<i>');
     expect(cuerpo).toContain('&lt;i&gt;');
@@ -44,6 +50,7 @@ describe('asuntoAviso / cuerpoAviso', () => {
   it('el candado va por narración y motivo', () => {
     expect(CANDADO_AVISO('abc', 'pendiente_24h')).toBe('aviso_narracion_abc_pendiente_24h.txt');
     expect(CANDADO_AVISO('abc', 'fallida')).not.toBe(CANDADO_AVISO('abc', 'pendiente_24h'));
+    expect(CANDADO_AVISO('abc', 'ensamblado_fallido')).toBe('aviso_narracion_abc_ensamblado_fallido.txt');
   });
 });
 

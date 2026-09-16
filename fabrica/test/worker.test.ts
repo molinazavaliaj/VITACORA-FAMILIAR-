@@ -80,9 +80,9 @@ import { CANDADO_AVISO } from '../src/mail/socios.js';
  * Para la voz clonada: `narraciones` se filtra por estado (`.eq` o `.in`),
  * `pedidos.select().in('id', ids).eq('estado', 'esperando_voz')` devuelve los
  * `pedidosEsperandoVoz` con esos ids, la entrega del ensamblado
- * (`update({estado:'entregado', ...}).eq('id').eq('estado','esperando_voz')`)
- * se anota en `pedidosEntregadosPorVoz`, y `storage.download` sirve el
- * `narracion.json` de `narracionJsonPorNarrador`.
+ * (`update({estado:'entregado', ...}).eq('id').eq('estado','esperando_voz').select('id')`)
+ * se anota en `pedidosEntregadosPorVoz` y responde con `entregarPorVoz`, y
+ * `storage.download` sirve el `narracion.json` de `narracionJsonPorNarrador`.
  */
 function construirClienteDbMock(opciones: {
   narradores: { id: string; [columna: string]: unknown }[];
@@ -95,10 +95,12 @@ function construirClienteDbMock(opciones: {
   narraciones?: { id: string; narrador_id: string; estado: string; [columna: string]: unknown }[];
   narracionJsonPorNarrador?: Record<string, unknown>;
   claimarPedido?: (id: string) => { data: unknown; error: unknown };
+  entregarPorVoz?: (id: string) => { data: unknown; error: unknown };
   resetearPedidoHuerfano?: (id: string) => { data: unknown; error: unknown };
   cerrarSolo?: (id: string) => { data: unknown; error: unknown };
 }) {
   const claimarPedido = opciones.claimarPedido ?? ((id: string) => ({ data: [{ id }], error: null }));
+  const entregarPorVoz = opciones.entregarPorVoz ?? ((id: string) => ({ data: [{ id }], error: null }));
   const resetearPedidoHuerfano = opciones.resetearPedidoHuerfano ?? (() => ({ data: null, error: null }));
   const cerrarSolo = opciones.cerrarSolo ?? ((id: string) => ({ data: [{ id }], error: null }));
   const cierresAutomaticos: string[] = [];
@@ -178,9 +180,9 @@ function construirClienteDbMock(opciones: {
                   return { select: (_cols: string) => Promise.resolve(claimarPedido(id)) };
                 }
                 if (valores.estado === 'entregado') {
-                  // la entrega del audiolibro clonado (desde 'esperando_voz')
+                  // la entrega del audiolibro clonado (desde 'esperando_voz'): CAS con .select('id')
                   pedidosEntregadosPorVoz.push({ id, valores });
-                  return Promise.resolve({ data: null, error: null });
+                  return { select: (_cols: string) => Promise.resolve(entregarPorVoz(id)) };
                 }
                 // el reset de huérfanos no encadena .select()
                 return Promise.resolve(resetearPedidoHuerfano(id));
@@ -1171,6 +1173,87 @@ describe('tick — voz clonada: ensamblar narraciones listas', () => {
     // p1 queda como estaba (esperando_voz; la narración sigue lista y el próximo tick reintenta).
     expect(db.pedidosEntregadosPorVoz.map((p) => p.id)).toEqual(['p2']);
     expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('nar-1'), expect.anything());
+    errorSpy.mockRestore();
+  });
+
+  it('si el CAS de entrega no devuelve fila (el pedido ya no está esperando_voz), avisa por consola', async () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const db = construirClienteDbMock({
+      narradores: [{ id: 'n1' }],
+      archivosPorNarrador: {},
+      pedidosEsperandoVoz: [{ id: 'p1', narrador_id: 'n1' }],
+      narraciones: [{ id: 'nar-1', narrador_id: 'n1', pedido_id: 'p1', estado: 'lista', capitulos_paths: ['n1/voz/cap_01.mp3', 'n1/voz/cap_02.mp3'] }],
+      narracionJsonPorNarrador: { n1: narracionJson },
+      entregarPorVoz: () => ({ data: [], error: null }),
+    });
+    obtenerClienteDbMock.mockReturnValue(db);
+
+    await ensamblarNarracionesListas();
+
+    expect(db.pedidosEntregadosPorVoz.map((p) => p.id)).toEqual(['p1']);
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('p1'));
+    warnSpy.mockRestore();
+  });
+
+  it('la primera vez que el ensamblado falla avisa a los socios (ensamblado_fallido) y deja candado; la segunda vuelta reintenta sin repetir el mail', async () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    avisarSociosMock.mockClear();
+    avisarSociosMock.mockResolvedValue(true);
+    ensamblarAudiolibroClonadoMock.mockRejectedValue(new Error('ffmpeg reventó'));
+    const db = construirClienteDbMock({
+      narradores: [{ id: 'n1', como_le_dicen: 'papá' }],
+      archivosPorNarrador: {},
+      pedidosEsperandoVoz: [{ id: 'p1', narrador_id: 'n1' }],
+      narraciones: [{ id: 'nar-1', narrador_id: 'n1', pedido_id: 'p1', estado: 'lista', capitulos_paths: ['n1/voz/cap_01.mp3', 'n1/voz/cap_02.mp3'] }],
+      narracionJsonPorNarrador: { n1: narracionJson },
+    });
+    obtenerClienteDbMock.mockReturnValue(db);
+
+    await ensamblarNarracionesListas();
+
+    expect(avisarSociosMock).toHaveBeenCalledTimes(1);
+    const [asunto, cuerpo] = avisarSociosMock.mock.calls[0] as [string, string];
+    expect(asunto).toContain('papá');
+    expect(cuerpo).toContain('no pudo armar el audiolibro clonado de papá: ffmpeg reventó');
+    expect(db.subidos['n1']).toEqual([CANDADO_AVISO('nar-1', 'ensamblado_fallido')]);
+    expect(db.pedidosEntregadosPorVoz).toEqual([]);
+
+    avisarSociosMock.mockClear();
+    await ensamblarNarracionesListas();
+
+    // vuelve a intentar el ensamblado (la narración sigue lista)...
+    expect(ensamblarAudiolibroClonadoMock).toHaveBeenCalledTimes(2);
+    // ...pero el aviso ya salió: el candado lo corta.
+    expect(avisarSociosMock).not.toHaveBeenCalled();
+    expect(db.subidos['n1']).toHaveLength(1);
+    errorSpy.mockRestore();
+  });
+
+  it('si el aviso de ensamblado fallido no sale (sin clave), no deja candado y no frena las demás', async () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    avisarSociosMock.mockClear();
+    avisarSociosMock.mockResolvedValueOnce(false);
+    ensamblarAudiolibroClonadoMock.mockRejectedValueOnce(new Error('ffmpeg reventó')).mockResolvedValueOnce(paths);
+    const db = construirClienteDbMock({
+      narradores: [{ id: 'n1', como_le_dicen: 'papá' }, { id: 'n2', como_le_dicen: 'mamá' }],
+      archivosPorNarrador: {},
+      pedidosEsperandoVoz: [
+        { id: 'p1', narrador_id: 'n1' },
+        { id: 'p2', narrador_id: 'n2' },
+      ],
+      narraciones: [
+        { id: 'nar-1', narrador_id: 'n1', pedido_id: 'p1', estado: 'lista', capitulos_paths: ['n1/voz/cap_01.mp3', 'n1/voz/cap_02.mp3'] },
+        { id: 'nar-2', narrador_id: 'n2', pedido_id: 'p2', estado: 'lista', capitulos_paths: ['n2/voz/cap_01.mp3', 'n2/voz/cap_02.mp3'] },
+      ],
+      narracionJsonPorNarrador: { n1: narracionJson, n2: { ...narracionJson, narrador_id: 'n2', pedido_id: 'p2' } },
+    });
+    obtenerClienteDbMock.mockReturnValue(db);
+
+    await ensamblarNarracionesListas();
+
+    expect(avisarSociosMock).toHaveBeenCalledTimes(1);
+    expect(db.subidos['n1']).toBeUndefined();
+    expect(db.pedidosEntregadosPorVoz.map((p) => p.id)).toEqual(['p2']);
     errorSpy.mockRestore();
   });
 

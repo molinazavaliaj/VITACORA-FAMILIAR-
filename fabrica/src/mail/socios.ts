@@ -1,7 +1,8 @@
 // Los avisos a los socios (no a la familia) cuando el buzón de voz clonada
 // se atasca: una narración que nadie tomó en 24 h (la PC de voz está
-// apagada), una que lleva 6 h procesando (se colgó) o una fallida (el
-// worker ya dijo por qué). Van por Resend a MAIL_SOCIOS, igual que los
+// apagada), una que lleva 6 h procesando (se colgó), una fallida (el
+// worker ya dijo por qué) o una que la fábrica no logra ensamblar (la voz
+// volvió pero ffmpeg/Storage fallan). Van por Resend a MAIL_SOCIOS, igual que los
 // hitos; el worker deja un candado por (narración, motivo) SOLO si Resend
 // confirmó — sin clave, el próximo tick reintenta.
 //
@@ -16,24 +17,28 @@ const REMITENTE = 'Vitácora Familiar <hola@vitacorafamiliar.com>';
 
 const PREFIJO_ASUNTO = 'Vitácora — voz clonada:';
 
+/** Por qué se avisa: los atascos del buzón (worker) más el ensamblado que falla de este lado. */
+export type MotivoAviso = MotivoAtascada | 'ensamblado_fallido';
+
 /** Nombre del candado en `{narrador_id}/paquete/` de un aviso ya mandado. */
-export const CANDADO_AVISO = (narracionId: string, motivo: MotivoAtascada) =>
+export const CANDADO_AVISO = (narracionId: string, motivo: MotivoAviso) =>
   `aviso_narracion_${narracionId}_${motivo}.txt`;
 
-export type AvisoNarracion = { id: string; motivo: MotivoAtascada; error: string | null };
+export type AvisoNarracion = { id: string; motivo: MotivoAviso; error: string | null };
 
-const RESUMEN: Record<MotivoAtascada, (quien: string) => string> = {
+const RESUMEN: Record<MotivoAviso, (quien: string) => string> = {
   pendiente_24h: (quien) => `la narración de ${quien} lleva 24 h sin tomarse`,
   procesando_6h: (quien) => `la narración de ${quien} se colgó`,
   fallida: (quien) => `la narración de ${quien} falló`,
+  ensamblado_fallido: (quien) => `no se pudo armar el audiolibro de ${quien}`,
 };
 
-export function asuntoAviso(motivo: MotivoAtascada, comoLeDicen: string): string {
+export function asuntoAviso(motivo: MotivoAviso, comoLeDicen: string): string {
   return `${PREFIJO_ASUNTO} ${RESUMEN[motivo](comoLeDicen)}`;
 }
 
 /** Los textos del cuerpo; `quien`, `error` e `id` llegan ya escapados. */
-const TEXTOS: Record<MotivoAtascada, (quien: string, aviso: { id: string; error: string }) => string[]> = {
+const TEXTOS: Record<MotivoAviso, (quien: string, aviso: { id: string; error: string }) => string[]> = {
   pendiente_24h: (quien) => [`La narración de ${quien} lleva más de 24 h sin tomarse: ¿está prendida la PC de voz?`],
   procesando_6h: (quien) => [
     `La narración de ${quien} se colgó (más de 6 h procesando).`,
@@ -42,6 +47,10 @@ const TEXTOS: Record<MotivoAtascada, (quien: string, aviso: { id: string; error:
   fallida: (quien, aviso) => [
     `La narración de ${quien} falló: ${aviso.error}.`,
     `Para reintentar: <code>npm run narracion -- reintentar ${aviso.id}</code>`,
+  ],
+  ensamblado_fallido: (quien, aviso) => [
+    `La fábrica no pudo armar el audiolibro clonado de ${quien}: ${aviso.error}.`,
+    `Lo reintenta en cada vuelta; si sigue así, mirá los logs de Railway.`,
   ],
 };
 

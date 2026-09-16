@@ -6,7 +6,7 @@ import { firmarTokenAnticipo } from './libro/token-anticipo.js';
 import { descargarJson, subirTexto } from './libro/comun.js';
 import { enviarMailAnticipo } from './mail/anticipo.js';
 import { enviarMailHito, CANDADO_POR_HITO, type Hito } from './mail/hitos.js';
-import { avisarSocios, asuntoAviso, cuerpoAviso, CANDADO_AVISO } from './mail/socios.js';
+import { avisarSocios, asuntoAviso, cuerpoAviso, CANDADO_AVISO, type MotivoAviso } from './mail/socios.js';
 import { generarEstructura } from './libro/estructura.js';
 import { generarPrevisualizacion } from './libro/previsualizar.js';
 import { generarPaquete } from './libro/generar-paquete.js';
@@ -656,10 +656,14 @@ async function entregarConLosMismosArchivos(
  * salen de `narracion.json` — es lo que el worker narró, en ese orden — y
  * no de recomputar la edición. La fila de `narraciones` no se toca (la
  * escribe el worker): si el ensamblado falla, se loguea y la narración
- * sigue `lista`, así el próximo tick lo reintenta. El UPDATE del pedido
- * exige `estado = 'esperando_voz'`: si alguien lo movió entre el SELECT y
- * acá, no se pisa. El mail `libro_listo` lo manda `avisarLibrosListos`,
- * que corre después en el mismo tick.
+ * sigue `lista`, así el próximo tick lo reintenta — un tropiezo pasajero
+ * de Storage o ffmpeg se cura solo. Pero la primera falla avisa a los
+ * socios (`ensamblado_fallido`, con candado): si es permanente, alguien
+ * tiene que enterarse, porque cada reintento cuesta una intro TTS por
+ * capítulo y no hay tope. El UPDATE del pedido exige
+ * `estado = 'esperando_voz'`: si alguien lo movió entre el SELECT y acá, no
+ * se pisa. El mail `libro_listo` lo manda `avisarLibrosListos`, que corre
+ * después en el mismo tick.
  */
 export async function ensamblarNarracionesListas(): Promise<void> {
   const db = obtenerClienteDb();
@@ -686,15 +690,64 @@ export async function ensamblarNarracionesListas(): Promise<void> {
         estructura: { capitulos: narracionJson.capitulos.map((c) => ({ nombre: c.nombre })) },
       });
 
-      const { error } = await db
+      const { data: entregado, error } = await db
         .from('pedidos')
         .update({ estado: 'entregado', audiolibro_paths: audiolibroPaths })
         .eq('id', narracion.pedido_id)
-        .eq('estado', 'esperando_voz');
+        .eq('estado', 'esperando_voz')
+        .select('id');
       if (error) throw new Error(`no se pudo entregar el pedido ${narracion.pedido_id}: ${error.message}`);
+      if (!entregado || (entregado as unknown[]).length !== 1) {
+        console.warn(
+          `tick: el audiolibro de la narración ${narracion.id} se armó pero el pedido ${narracion.pedido_id} ya no estaba esperando_voz — no se tocó.`
+        );
+      }
     } catch (err) {
       console.error(`tick: falló el ensamblado de la narración ${narracion.id} (pedido ${narracion.pedido_id}):`, err);
+      try {
+        const archivos = await listarPaquete(db, narracion.narrador_id);
+        await mandarAvisoConCandado(
+          db,
+          { id: narracion.id, narrador_id: narracion.narrador_id, motivo: 'ensamblado_fallido', error: mensajeDe(err) },
+          archivos
+        );
+      } catch (errorAviso) {
+        console.error(`tick: no se pudo avisar del ensamblado fallido de ${narracion.id}:`, errorAviso);
+      }
     }
+  }
+}
+
+const mensajeDe = (err: unknown) => (err instanceof Error ? err.message : String(err));
+
+/**
+ * Manda a los socios el aviso de una narración (un motivo) y, si Resend
+ * confirmó, deja el candado `aviso_narracion_{id}_{motivo}.txt` en el
+ * paquete del narrador (y lo agrega a `archivos`). Con el candado ya puesto
+ * no manda nada. Mismo par de pasos que `mandarHito`.
+ */
+async function mandarAvisoConCandado(
+  db: Db,
+  aviso: { id: string; narrador_id: string; motivo: MotivoAviso; error: string | null },
+  archivos: Set<string>
+): Promise<void> {
+  const candado = CANDADO_AVISO(aviso.id, aviso.motivo);
+  if (archivos.has(candado)) return;
+
+  const { data: narrador, error: errorNarrador } = await db
+    .from('narradores')
+    .select('como_le_dicen')
+    .eq('id', aviso.narrador_id)
+    .single();
+  if (errorNarrador || !narrador) {
+    throw new Error(`No se pudo leer el narrador: ${errorNarrador?.message ?? 'sin datos'}`);
+  }
+  const comoLeDicen = (narrador as { como_le_dicen: string }).como_le_dicen;
+
+  const enviado = await avisarSocios(asuntoAviso(aviso.motivo, comoLeDicen), cuerpoAviso(aviso, comoLeDicen));
+  if (enviado) {
+    await subirTexto(db, `${aviso.narrador_id}/paquete/${candado}`, new Date().toISOString());
+    archivos.add(candado);
   }
 }
 
@@ -728,24 +781,7 @@ export async function avisarNarracionesAtascadas(): Promise<void> {
         archivos = await listarPaquete(db, atascada.narrador_id);
         archivosPorNarrador.set(atascada.narrador_id, archivos);
       }
-      const candado = CANDADO_AVISO(atascada.id, atascada.motivo);
-      if (archivos.has(candado)) continue;
-
-      const { data: narrador, error: errorNarrador } = await db
-        .from('narradores')
-        .select('como_le_dicen')
-        .eq('id', atascada.narrador_id)
-        .single();
-      if (errorNarrador || !narrador) {
-        throw new Error(`No se pudo leer el narrador: ${errorNarrador?.message ?? 'sin datos'}`);
-      }
-      const comoLeDicen = (narrador as { como_le_dicen: string }).como_le_dicen;
-
-      const enviado = await avisarSocios(asuntoAviso(atascada.motivo, comoLeDicen), cuerpoAviso(atascada, comoLeDicen));
-      if (enviado) {
-        await subirTexto(db, `${atascada.narrador_id}/paquete/${candado}`, new Date().toISOString());
-        archivos.add(candado);
-      }
+      await mandarAvisoConCandado(db, atascada, archivos);
     } catch (err) {
       console.error(`tick: falló el aviso de la narración atascada ${atascada.id}:`, err);
     }

@@ -8,9 +8,10 @@
 // OJO: según CONTRATO.md, `narraciones.estado` lo escribe el worker de voz,
 // no la fábrica. Este comando es la excepción explícita que nombra el diseño
 // ("Reintento: `npm run narracion -- reintentar <id>` en la fábrica pone
-// `pendiente`"): lo dispara una persona a mano, nunca el tick. Si el worker
-// está a mitad de esa misma narración, el CAS de su `tomar` (pendiente →
-// procesando) es el que ordena; acá no se toca nada más que estado y error.
+// `pendiente`"): lo dispara una persona a mano, nunca el tick. Solo se
+// reintenta una `fallida`: una `pendiente` ya está en cola, una
+// `procesando` la tiene el worker (ponerla `pendiente` haría que la tome dos
+// veces) y una `lista` ya está narrada (se volvería a narrar entera).
 import { fileURLToPath } from 'node:url';
 import { obtenerClienteDb } from './db.js';
 
@@ -22,9 +23,12 @@ export async function reintentarNarracion(id: string): Promise<void> {
     .from('narraciones')
     .update({ estado: 'pendiente', error: null, actualizada_at: new Date().toISOString() })
     .eq('id', id)
+    .eq('estado', 'fallida')
     .select('id');
   if (error) throw new Error(`No se pudo reintentar la narración ${id}: ${error.message}`);
-  if (!data || (data as unknown[]).length === 0) throw new Error(`No hay ninguna narración con id ${id}.`);
+  if (!data || (data as unknown[]).length === 0) {
+    throw new Error(`Narración ${id}: solo se reintenta una narración fallida (o el id no existe).`);
+  }
   console.log(`Narración ${id} vuelve a pendiente: el worker de voz la toma en su próxima vuelta.`);
 }
 
