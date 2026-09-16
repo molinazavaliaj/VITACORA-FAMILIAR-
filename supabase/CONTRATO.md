@@ -66,6 +66,64 @@ narrador que ya tiene un pedido `entregado` **no vuelve a generar nada**: la fá
 a `entregado` con los mismos `libro_pdf_path` y `audiolibro_paths`. ⚠️ Pendiente (3t.14):
 leer `pdf` / `audiolibro` para producir solo lo comprado y con la voz elegida.
 
+## Narraciones (voz clonada) (migración 20260917)
+
+⚠️ **La migración `20260917000000_narraciones.sql` NO se aplica en producción hasta que
+Joaquín lea esta sección.** Toca `pedidos_estado_check` (agrega `esperando_voz`) y agrega
+`narradores.consentimiento_voz_at` — impacta al entrevistador y a la fábrica.
+
+Buzón entre la fábrica (Railway) y el worker de voz (Python, en la PC de música de Naza).
+Los dos se hablan solo por Supabase, como el resto del proyecto: nadie llama a nadie. Diseño
+completo en `docs/superpowers/specs/2026-09-16-voz-clonada-design.md`.
+
+Quién escribe qué:
+
+| Columna / tabla | Escribe | Lee |
+|---|---|---|
+| `narraciones` fila nueva (`pendiente`) | fábrica | worker de voz |
+| `narraciones.estado` / `motor` / `muestras` / `capitulos_paths` / `error` / `tomada_at` | worker de voz | fábrica |
+| `narradores.consentimiento_voz_at` | entrevistador (3t.15) — en el piloto, `npm run manual -- ficha <narrador> --voz-si` | worker de voz |
+| `pedidos.estado = 'esperando_voz'` / `'entregado'`, `audiolibro_paths` | fábrica | web |
+| Storage `{narrador}/voz/cap_NN.mp3` (cuerpo narrado, sin intro) | worker de voz | fábrica |
+| Storage `{narrador}/paquete/audiolibro_cap_NN.mp3`, `audiolibro_completo.mp3` | fábrica | web |
+
+**Contrato `narracion.json`** — lo escribe la fábrica en `{narrador}/paquete/narracion.json`
+al crear la narración; lo lee el worker de voz:
+```
+{"narrador_id", "pedido_id", "titulo",
+ "capitulos": [{"numero", "nombre", "texto"}, ...]}
+```
+
+**Salida del worker**: `{narrador}/voz/cap_NN.mp3` por capítulo — cuerpo narrado, **sin
+intro**, mp3 128 kbps mono 24 kHz, en el orden de `capitulos` de `narracion.json`.
+`narraciones.capitulos_paths` anota esa lista a medida que sube cada uno (permite reanudar
+sin repetir capítulos si se corta a mitad).
+
+**Salida de la fábrica**: pega la intro TTS (como hoy, voz del entrevistador) a cada
+`cap_NN.mp3` y produce `{narrador}/paquete/audiolibro_cap_NN.mp3` +
+`audiolibro_completo.mp3` — recién ahí el pedido pasa a `entregado` con `audiolibro_paths`
+y sale el mail `libro_listo`.
+
+**Estado de pedido nuevo: `esperando_voz`.** Un pedido con `extras.audiolibro = "clonada"`
+queda ahí entre que la fábrica arma el paquete (inserta la narración `pendiente`) y el
+worker termina y la fábrica ensambla. La web lo trata como en producción, igual que
+`pagado`; es el único toque a la web.
+
+**`narradores.consentimiento_voz_at`**: lo escribe el entrevistador al pasar el narrador a
+`acepto` (tarea de Joaquín, 3t.15) — en el piloto, a mano con `npm run manual -- ficha
+<narrador> --voz-si`. El texto de bienvenida debe decir que, si la familia lo pide, el
+audiolibro puede llevar la propia voz del narrador hecha a partir de estos audios, y que el
+SÍ con el que acepta participar incluye ese permiso — texto acordado entre los dos socios.
+
+**Regla de permiso**: sin `consentimiento_voz_at` o sin 600 s (10 min) de voz limpia
+acumulada → la narración queda `fallida` con el motivo (`sin_consentimiento_voz` /
+`faltan_minutos_de_voz: NNN s`). **Nunca se clona sin esto.**
+
+**Atascos** (avisan por mail a los socios, no a la familia): narración `pendiente` > 24 h
+(la PC está apagada), `procesando` > 6 h (se colgó), o `fallida` (con el motivo) — un mail
+por narración y motivo. Reintento: `npm run narracion -- reintentar <id>` en la fábrica
+vuelve a poner `pendiente`.
+
 ## El guion por narrador (migración 20260912)
 
 - Al confirmar la compra, **la web copia las 26 fijas globales** a filas del narrador
