@@ -75,7 +75,7 @@ libro sale mal, sale incompleto, o el cliente se pierde antes de llegar?
    trato no llega (o no se respeta) en `evaluarRespuesta` / el prompt de repregunta.
    *Hecho a mano*: se la pasé a vos para que Naza la pegue.
 
-5. **16/09 · `✖ mods.guardarRepreguntaEnviada is not a function`** (8 veces: órdenes 5, 19, 22, 23, 25, 26, 27 y 28) al intentar
+5. **16/09 · `✖ mods.guardarRepreguntaEnviada is not a function`** (8 veces: órdenes 5, 19, 22, 23, 25, 26, 27 y 28; en la 29 ya NO falló — la sesión de hermes debe haber pusheado la función y esta sesión hizo pull) al intentar
    anotar la repregunta en `envios`. `scripts/manual.ts` la llama pero
    `src/db/envios.ts` no la exporta en el checkout de ese momento (la sesión de
    hermes estaba a mitad de un cambio en la rama `trato-usted-o-vos`). Efecto: la
@@ -289,6 +289,20 @@ libro sale mal, sale incompleto, o el cliente se pierde antes de llegar?
     sobre esto?". *Hecho a mano*: repregunta descartada; se le mandó una anclada en
     la abuela que ya nombró. *Para repasar*: pasarle a la evaluación la memoria de
     capítulos (`memoriaDeCapitulos`, barata) para que no repita ni pida lo dado.
+
+32. **17/09 · Ciro · dar por muerta (o viva) a una persona que el narrador no dijo
+    si vive (observación de Naza).** La repregunta de reemplazo para la 5, escrita a
+    mano, decía "a tu abuela la tuviste cerca... ¿cómo se llamaba, cómo era?" — todo en
+    pasado: la daba por muerta. Nadie sabe si vive. Y al revés también duele: hablar
+    en presente de alguien que murió. Ni la ficha ni el prompt tienen ese dato.
+    *Regla para el biógrafo (personalizar, repregunta, adaptativas, reemplazo)*: de
+    una persona que el narrador no dijo si vive, no se asume — se pregunta anclado
+    en la época ("cómo la recordás de esos años", "cómo era en esa casa") o sin verbo
+    copulativo ("su nombre"), nunca "se llamaba" ni "cómo está". *Para repasar*: (a)
+    sumar esa regla a los prompts, con casos de prueba; (b) que la ficha pueda decir
+    quiénes ya no están (la familia lo sabe y es un dato que cambia todas las
+    preguntas sobre esa persona); (c) revisar las 26 fijas con el mismo ojo (ver #27,
+    "si tus nietos escucharan esto", que es la misma clase de suposición).
 
 ## Producción / infra (no es del entrevistador, pero salió en el camino)
 
