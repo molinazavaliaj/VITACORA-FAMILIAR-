@@ -95,7 +95,7 @@ function modulos(): Promise<Modulos> {
     const { armarHistoria } = await import('../src/db/historia.js');
     return {
       db, guardarRespuestaAudio, transcribirYActualizar, evaluarRespuesta, personalizarPregunta,
-      memoriaDeCapitulos, generarPreguntaReemplazo, generarPreguntasAdaptativas, generarAudioVoz, preguntaDeOrden,
+      memoriaDeCapitulos, guardarRepreguntaEnviada, generarPreguntaReemplazo, generarPreguntasAdaptativas, generarAudioVoz, preguntaDeOrden,
       capituloNoAplica, esModoRapido, armarHistoria, tratoDe, PRIMERA_ADAPTATIVA, ULTIMA_ADAPTATIVA,
     };
   })();

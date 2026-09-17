@@ -30,7 +30,7 @@ libro sale mal, sale incompleto, o el cliente se pierde antes de llegar?
 | 4 | Repregunta en "usted" con trato "vos" | Rompe el vínculo justo en el momento más íntimo (la repregunta va a lo emocional) |
 | 18 | Si la personalización falla, la fija sale en "usted" | Mismo efecto: incoherencia de trato a mitad de entrevista |
 | 2 | Pregunta 5 mal redactada ("hablemos de atrás") | Una pregunta rara baja la calidad percibida; el narrador responde peor |
-| 11 | ¿Las repreguntas se van por las ramas? (observación) | A confirmar con datos; si son muchas, la entrevista se alarga y cansa |
+| 11, 30 | ¿Las repreguntas se van por las ramas / insisten en lo que el narrador esquivó? | Cansan y pueden incomodar; en un abuelo, insistir en una herida es contraproducente |
 | 12 | `crear` no copia el guion al narrador | Desde el panel la familia no puede editar preguntas de ese narrador |
 | 20, 22, 23, 24, 27 | Las fijas suponen boda/nietos/hijos/"toda la vida"; el narrador es joven, sin hijos, y la relación terminó — `capituloNoAplica` no se dispara | Preguntas que no aplican incomodan y dan respuestas vacías; el capítulo "El amor" sale flojo |
 
@@ -75,12 +75,18 @@ libro sale mal, sale incompleto, o el cliente se pierde antes de llegar?
    trato no llega (o no se respeta) en `evaluarRespuesta` / el prompt de repregunta.
    *Hecho a mano*: se la pasé a vos para que Naza la pegue.
 
-5. **16/09 · `✖ mods.guardarRepreguntaEnviada is not a function`** (6 veces: órdenes 5, 19, 22, 23, 25 y 26) al intentar
+5. **16/09 · `✖ mods.guardarRepreguntaEnviada is not a function`** (8 veces: órdenes 5, 19, 22, 23, 25, 26, 27 y 28) al intentar
    anotar la repregunta en `envios`. `scripts/manual.ts` la llama pero
    `src/db/envios.ts` no la exporta en el checkout de ese momento (la sesión de
    hermes estaba a mitad de un cambio en la rama `trato-usted-o-vos`). Efecto: la
    repregunta NO quedó registrada en `envios` ni en `contexto`. *Para repasar*: ver
    si el commit final de esa rama la exporta; si no, agregarla.
+   *Causa real y arreglo (17/09)*: la función SÍ está exportada; `scripts/manual.ts` la
+   importa y la declara en `Modulos`, pero el `return` de `modulos()` no la incluía.
+   `tsc` no lo ve porque `tsconfig.json` solo mira `src/`. Se arregló el 16/09 en la
+   rama (ad57d23) y ese commit quedó huérfano al mover la rama; re-aplicado en `main`
+   el 17/09 tras volver a chocar con Ciro (orden 5). *Para repasar*: que `tsc` mire
+   `scripts/` también, así esto no puede volver a pasar en silencio.
 
 6. **16/09 · `siguiente` avanza a la pregunta 6 aunque haya una repregunta
    pendiente.** Después del error anterior corrí `siguiente joaquin` y generó y anotó
@@ -250,6 +256,26 @@ libro sale mal, sale incompleto, o el cliente se pierde antes de llegar?
     independientemente de la repregunta; y que `siguiente` en la orden 27 sin
     adaptativas las genere (el código lo hace, pero solo si `ultimaOrdenDelGuion`
     devuelve ≥ 27 — y devuelve 26 porque mira `preguntas`, circular).
+
+29. **17/09 · la respuesta 27 no contestó la pregunta 27.** La adaptativa 27
+    preguntaba por la separación de los padres a los 17; Joaquín respondió sobre
+    los juegos de la infancia (38 s) — parece haber contestado otra cosa (¿un
+    audio viejo, o respondió la repregunta de la 3 con retraso?). El cerebro lo
+    notó: la repregunta pide "lo otro que me contaste: cuando tus papás se
+    separaron" — y esta vez salió EN VOS (primera repregunta bien tuteada; #4 no
+    es 100% consistente). *Para repasar*: la evaluación debería detectar
+    "respondió otra pregunta" y decirlo, no solo pedir más.
+
+30. **17/09 · el biógrafo insiste con el mismo tema doloroso (observación de
+    Naza).** La adaptativa 27 preguntó por la separación de los padres; ante una
+    respuesta que no la contestó, la repregunta volvió exactamente ahí ("¿te
+    acordás del día en que se fue, qué te dijo?"). Naza la descartó: "ya pregunta
+    mucho de eso". Para un abuelo, insistir dos veces en una herida es
+    contraproducente. Volvió a pasar en la 28: respondió "era muy doloroso... no podía hacer
+    mucho" y la repregunta pide "una vez en particular... qué hiciste". Se saltea
+    (misma regla). *Para repasar*: la repregunta no debería repetir el tema de
+    la pregunta que el narrador acaba de esquivar — si no contestó, quizá no
+    quiere; una sola invitación alcanza.
 
 ## Producción / infra (no es del entrevistador, pero salió en el camino)
 
