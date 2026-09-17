@@ -19,3 +19,15 @@ export function cargarConfig() {
   };
 }
 export type Config = ReturnType<typeof cargarConfig>;
+
+/**
+ * ¿La plantilla `bienvenida` aprobada en Meta ya lleva la frase que pide
+ * permiso para clonar la voz? Mientras sea la vieja (sin la frase), el SÍ del
+ * narrador NO vale como consentimiento y no se anota la fecha: en ese caso el
+ * permiso se carga a mano (`npm run manual -- ficha <narrador> --voz-si`).
+ * Se prende en Railway con WA_BIENVENIDA_PIDE_VOZ=1 cuando Meta apruebe la
+ * plantilla nueva. Se lee en el momento (no al arrancar) para poder probarla.
+ */
+export function bienvenidaPideVoz(): boolean {
+  return process.env.WA_BIENVENIDA_PIDE_VOZ === '1';
+}

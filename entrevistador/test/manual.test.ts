@@ -223,7 +223,7 @@ describe('la presentación del biógrafo (el primer mensaje de todos)', () => {
     const hasta = md.indexOf('\n## ', desde + 1);
     return md.slice(desde, hasta)
       .split(/\r?\n/).slice(1)              // sin la línea del título
-      .map((l) => l.trim()).filter(Boolean)
+      .map((l) => l.trim()).filter((l) => l && !l.startsWith('>')) // las notas (>) no son plantilla
       .join(' ');
   }
 
@@ -234,7 +234,7 @@ describe('la presentación del biógrafo (el primer mensaje de todos)', () => {
 
   it('en vos (texto aprobado por Naza el 2026-09-15)', () => {
     expect(bienvenida('Ciro', 'Naza', 'vos')).toBe(
-      'Hola Ciro 👋 Soy tu biógrafo. Naza te hizo un regalo muy especial: vamos a escribir juntos el libro de tu vida. Cada mañana te voy a mandar una pregunta, y vos me respondés con un audio, como le contás las cosas a un amigo. Al final, tu historia va a quedar en un libro para tu familia, con tu propia voz. ¿Empezamos? Respondé SÍ y arrancamos mañana.',
+      'Hola Ciro 👋 Soy tu biógrafo. Naza te hizo un regalo muy especial: vamos a escribir juntos el libro de tu vida. Cada mañana te voy a mandar una pregunta, y vos me respondés con un audio, como le contás las cosas a un amigo. Al final, tu historia va a quedar en un libro para tu familia. Si tu familia lo pide, el audiolibro puede llevar tu propia voz, recreada a partir de estos audios; al responder SÍ también nos das permiso para eso. ¿Empezamos? Respondé SÍ y arrancamos mañana.',
     );
   });
 

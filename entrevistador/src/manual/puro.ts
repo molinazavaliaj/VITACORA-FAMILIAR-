@@ -141,14 +141,20 @@ export function despedida(comoLeDicen: string, trato: Trato = 'usted'): string {
  *
  * `enseguida`: en modo rápido la primera pregunta sale apenas dice SÍ, así que
  * no se le promete "mañana".
+ *
+ * La frase de la voz (2026-09-17, 3t.15): la voz es dato biométrico y la
+ * política de privacidad promete pedir permiso. El mismo SÍ con el que acepta
+ * participar incluye ese permiso, y `procesar.ts` lo anota en
+ * `consentimiento_voz_at` — solo si la bienvenida que salió por Meta ya tenía
+ * esta frase (ver `WA_BIENVENIDA_PIDE_VOZ` en config.ts).
  */
 export function bienvenida(
   comoLeDicen: string, quienRegala: string, trato: Trato = 'usted', { enseguida = false } = {},
 ): string {
   const cuando = enseguida ? '' : ' mañana';
   return trato === 'vos'
-    ? `Hola ${comoLeDicen} 👋 Soy tu biógrafo. ${quienRegala} te hizo un regalo muy especial: vamos a escribir juntos el libro de tu vida. Cada mañana te voy a mandar una pregunta, y vos me respondés con un audio, como le contás las cosas a un amigo. Al final, tu historia va a quedar en un libro para tu familia, con tu propia voz. ¿Empezamos? Respondé SÍ y arrancamos${cuando}.`
-    : `Hola ${comoLeDicen} 👋 Soy su biógrafo. ${quienRegala} le hizo un regalo muy especial: vamos a escribir juntos el libro de su vida. Cada mañana le voy a mandar una pregunta, y usted me responde con un audio, como le cuenta las cosas a un amigo. Al final, su historia quedará en un libro para su familia, con su propia voz. ¿Empezamos? Responda SÍ y arrancamos${cuando}.`;
+    ? `Hola ${comoLeDicen} 👋 Soy tu biógrafo. ${quienRegala} te hizo un regalo muy especial: vamos a escribir juntos el libro de tu vida. Cada mañana te voy a mandar una pregunta, y vos me respondés con un audio, como le contás las cosas a un amigo. Al final, tu historia va a quedar en un libro para tu familia. Si tu familia lo pide, el audiolibro puede llevar tu propia voz, recreada a partir de estos audios; al responder SÍ también nos das permiso para eso. ¿Empezamos? Respondé SÍ y arrancamos${cuando}.`
+    : `Hola ${comoLeDicen} 👋 Soy su biógrafo. ${quienRegala} le hizo un regalo muy especial: vamos a escribir juntos el libro de su vida. Cada mañana le voy a mandar una pregunta, y usted me responde con un audio, como le cuenta las cosas a un amigo. Al final, su historia quedará en un libro para su familia. Si su familia lo pide, el audiolibro puede llevar su propia voz, recreada a partir de estos audios; al responder SÍ también nos da permiso para eso. ¿Empezamos? Responda SÍ y arrancamos${cuando}.`;
 }
 
 /** Lo que recibe cuando dice que SÍ. Único hogar del texto: `src/flujo/procesar.ts` lo importa de acá. */

@@ -15,6 +15,7 @@ import { bienvenidaAceptacion } from '../manual/puro.js';
 import { mandarHito } from '../mail/hitos.js';
 import { cerrarBitacora } from './cierre.js';
 import { enviarPregunta, ritmoDe, type Narrador } from './preguntar.js';
+import { bienvenidaPideVoz } from '../config.js';
 
 const MAXIMO_POR_DIA_DOS = 2; // ritmo 'dos_por_dia': la segunda se ofrece, no se impone
 
@@ -119,7 +120,12 @@ async function manejarConsentimiento(narrador: Narrador, m: MensajeEntrante): Pr
   const limpio = m.texto.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   const dijoSi = /^si\b/.test(limpio);
   if (!dijoSi) return;
-  await db.from('narradores').update({ estado: 'acepto' }).eq('id', narrador.id);
+  // El mismo SÍ es el permiso para clonar su voz (dato biométrico, 3t.15) —
+  // pero solo si la bienvenida que recibió ya se lo pedía. Sin fecha, la
+  // fábrica no clona nunca (supabase/CONTRATO.md).
+  const cambios: Record<string, unknown> = { estado: 'acepto' };
+  if (bienvenidaPideVoz()) cambios.consentimiento_voz_at = new Date().toISOString();
+  await db.from('narradores').update(cambios).eq('id', narrador.id);
   await enviarTexto(
     narrador.telefono_whatsapp,
     bienvenidaAceptacion(narrador.como_le_dicen, await tratoDe(narrador)),

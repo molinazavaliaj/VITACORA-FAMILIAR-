@@ -107,6 +107,31 @@ describe('procesarEntrante', () => {
     expect(mocks.enviarTexto).toHaveBeenCalledWith(TEL, expect.stringContaining('Qué alegría'));
   });
 
+  // 3t.15: la voz es dato biométrico. El SÍ vale como permiso SOLO si la
+  // bienvenida que salió por Meta ya lo pedía (WA_BIENVENIDA_PIDE_VOZ=1).
+  it('(a ter) con la plantilla nueva, el SÍ anota el consentimiento de voz', async () => {
+    process.env.WA_BIENVENIDA_PIDE_VOZ = '1';
+    try {
+      mocks.estado.narrador = narradorEn('invitado');
+      await procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'sí', waMessageId: 'w' });
+      const p = update('narradores')?.p as Record<string, unknown>;
+      expect(p.estado).toBe('acepto');
+      expect(typeof p.consentimiento_voz_at).toBe('string');
+      expect(Number.isNaN(Date.parse(p.consentimiento_voz_at as string))).toBe(false);
+    } finally {
+      delete process.env.WA_BIENVENIDA_PIDE_VOZ;
+    }
+  });
+
+  it('(a quater) con la plantilla vieja, el SÍ NO anota consentimiento de voz', async () => {
+    delete process.env.WA_BIENVENIDA_PIDE_VOZ;
+    mocks.estado.narrador = narradorEn('invitado');
+    await procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'SÍ', waMessageId: 'w' });
+    const p = update('narradores')?.p as Record<string, unknown>;
+    expect(p.estado).toBe('acepto');
+    expect('consentimiento_voz_at' in p).toBe(false);
+  });
+
   // Que use la función de puro.ts y no una copia propia: si alguien reescribe
   // el texto acá a mano, este test se cae.
   it('(a bis) la bienvenida sale con el trato del narrador', async () => {

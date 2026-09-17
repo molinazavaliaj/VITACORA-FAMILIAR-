@@ -719,9 +719,16 @@ async function ficha(ref: string | undefined, flags: Args['flags']): Promise<voi
     }
   }
 
-  if (!cambios.length) throw new Error('Nada que cambiar. Uso: ficha <narrador> [--trato usted|vos] [--nacido 1998] [--lugar X] [--oficio X] [--vinculo X] [--rehacer]');
+  // El permiso para clonar la voz, a mano (3t.15): en el piloto se lo pedimos
+  // por teléfono, porque la bienvenida que salió por Meta todavía no lo pedía.
+  const fila: Record<string, unknown> = { contexto };
+  if (flags['voz-si'] && flags['voz-no']) throw new Error('--voz-si y --voz-no juntos no tienen sentido.');
+  if (flags['voz-si']) { fila.consentimiento_voz_at = new Date().toISOString(); cambios.push('consentimiento_voz_at = ahora (dio permiso para clonar su voz)'); }
+  if (flags['voz-no']) { fila.consentimiento_voz_at = null; cambios.push('consentimiento_voz_at = vacío (sin permiso: la fábrica no clona)'); }
 
-  const { error } = await db.from('narradores').update({ contexto }).eq('id', n.id);
+  if (!cambios.length) throw new Error('Nada que cambiar. Uso: ficha <narrador> [--trato usted|vos] [--nacido 1998] [--lugar X] [--oficio X] [--vinculo X] [--voz-si|--voz-no] [--rehacer]');
+
+  const { error } = await db.from('narradores').update(fila).eq('id', n.id);
   if (error) throw new Error(`No pude guardar la ficha: ${error.message}`);
   titulo(`Ficha de ${n.como_le_dicen} actualizada`);
   for (const c of cambios) linea(`  ${c}`);
@@ -779,10 +786,12 @@ Puerta manual de Vitácora Familiar — el entrevistador sin la API de WhatsApp.
   npm run manual -- cerrar <narrador>
       La despedida final + estado 'completado' (ahí lo toma la fábrica).
 
-  npm run manual -- ficha <narrador> [--trato usted|vos] [--nacido 1998] [--lugar X] [--oficio X] [--vinculo X] [--rehacer]
+  npm run manual -- ficha <narrador> [--trato usted|vos] [--nacido 1998] [--lugar X] [--oficio X] [--vinculo X] [--voz-si|--voz-no] [--rehacer]
       Corrige la ficha de un narrador que ya existe (el trato se decide una sola
-      vez; acá se fija a mano). --rehacer olvida la personalización de la
-      pregunta vigente para que el próximo 'siguiente' la genere de nuevo.
+      vez; acá se fija a mano). --voz-si anota que dio permiso para clonar su
+      voz (consentimiento_voz_at; sin eso la fábrica no clona), --voz-no lo
+      borra. --rehacer olvida la personalización de la pregunta vigente para
+      que el próximo 'siguiente' la genere de nuevo.
 
   npm run manual -- crear --nombre X --le-dicen Y --telefono +54... [--zona ...] [--nacido 1939]
       [--trato usted|vos] fuerza el trato sin preguntarle al modelo. Si no se
