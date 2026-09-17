@@ -5,6 +5,49 @@
 > Una entrada por hallazgo: fecha · narrador · qué pasó · dónde está · qué se hizo.
 > No se arregla nada acá; se anota. Los arreglos van a la lista de la revisión final.
 
+## Triage: qué rompe o le saca valor al libro (pedido de Naza, 17/09)
+
+Ordenado de más grave a más suave. El criterio es **el producto final**: ¿el
+libro sale mal, sale incompleto, o el cliente se pierde antes de llegar?
+
+### 🔴 Graves — rompen el libro o la venta
+
+| # | Qué | Por qué es grave |
+|---|---|---|
+| 19 | El narrador pide "esto que no vaya al libro" y nada lo registra | Publicar algo que pidió reservar es la peor falla posible: quiebra la confianza y puede herir a la familia |
+| 1 | Trato "usted" por defecto con ficha vacía (y el checkout no pide la ficha) | Un cliente real llega con ficha vacía → preguntas genéricas y trato equivocado desde el día 1; el narrador no siente que lo escuchan |
+| 17 | Nombres propios mal transcriptos (NASA/Naza, Herrera/Herrero) | Van directo al texto del libro; un nombre mal escrito de un hijo o un amigo desvaloriza todo el producto. La revisión de nombres del panel es la única red |
+| 14 | La evaluación vuelve vacía (2 de 13 veces) y corta el proceso | En el flujo automático es un día perdido: sin repregunta y, según cómo falle, sin avance. Frecuencia demasiado alta para ignorar |
+| 28 | Las adaptativas 27-30 no se generan si falla la repregunta de la 26 (y `siguiente` da la entrevista por terminada en 26) | El narrador se queda sin las 4 preguntas hechas a su medida; el libro sale con huecos y nadie se entera |
+| 9 | Webhook de Mercado Pago sin verificar firma | Cualquiera que conozca la URL puede marcar pedidos como pagados (libro gratis) |
+
+### 🟠 Medios — el libro sale, pero peor
+
+| # | Qué | Efecto |
+|---|---|---|
+| 13 | La personalización ancla demasiado en lo ya contado ("la infancia se alarga") | Preguntas repetitivas, el narrador siente que le preguntan lo mismo; menos material nuevo por capítulo |
+| 16 | Una corrección posterior no pisa el resumen viejo | El libro puede afirmar algo que el narrador corrigió después |
+| 4 | Repregunta en "usted" con trato "vos" | Rompe el vínculo justo en el momento más íntimo (la repregunta va a lo emocional) |
+| 18 | Si la personalización falla, la fija sale en "usted" | Mismo efecto: incoherencia de trato a mitad de entrevista |
+| 2 | Pregunta 5 mal redactada ("hablemos de atrás") | Una pregunta rara baja la calidad percibida; el narrador responde peor |
+| 11 | ¿Las repreguntas se van por las ramas? (observación) | A confirmar con datos; si son muchas, la entrevista se alarga y cansa |
+| 12 | `crear` no copia el guion al narrador | Desde el panel la familia no puede editar preguntas de ese narrador |
+| 20, 22, 23, 24, 27 | Las fijas suponen boda/nietos/hijos/"toda la vida"; el narrador es joven, sin hijos, y la relación terminó — `capituloNoAplica` no se dispara | Preguntas que no aplican incomodan y dan respuestas vacías; el capítulo "El amor" sale flojo |
+
+### 🟡 Suaves — operativos, no tocan el libro
+
+| # | Qué |
+|---|---|
+| 3 | Respuestas en varios audios: hay que unirlos a mano |
+| 25 | Una pregunta reemplazada a mano no queda registrada: el panel/libro muestran la que no se mandó |
+| 5 | `guardarRepreguntaEnviada is not a function` (código a medio hacer de la otra sesión) |
+| 6 | `siguiente` avanza aunque haya repregunta pendiente |
+| 10 | Sufijo del respaldo local desfasado (`dia_05_3` vs `dia_05_2`) |
+| 15 | Descarga de WhatsApp de 0 bytes aceptada por `cargar` |
+| 7 | Dos sesiones de Claude en el mismo checkout |
+| 8 | Producción corría un build viejo (Vercel sin git) |
+
+
 ## Joaquín (narrador de prueba, 28 años, trato vos)
 
 1. **15/09 · trato "usted" por defecto con ficha vacía.** Las preguntas 1-5 salieron
@@ -26,13 +69,13 @@
    antes de cargar. *Pendiente*: que `cargar` acepte varios archivos y los una solo
    (o que el webhook real junte notas seguidas del mismo día).
 
-4. **16/09 · la repregunta salió en "usted" aunque el trato es "vos".** Al cargar la
+4. **16/09 · la repregunta salió en "usted" aunque el trato es "vos".** (Las 5 repreguntas del piloto salieron en usted: 5, 19, 22, 23, 25 — la última además con "sus nietos".) Al cargar la
    respuesta 5 el cerebro pidió repregunta (abuelo Roberto) y la escribió de usted:
    "Me quedé pensando en su abuelo... ¿Cómo llegó a usted esa historia...?". El
    trato no llega (o no se respeta) en `evaluarRespuesta` / el prompt de repregunta.
    *Hecho a mano*: se la pasé a vos para que Naza la pegue.
 
-5. **16/09 · `✖ mods.guardarRepreguntaEnviada is not a function`** al intentar
+5. **16/09 · `✖ mods.guardarRepreguntaEnviada is not a function`** (6 veces: órdenes 5, 19, 22, 23, 25 y 26) al intentar
    anotar la repregunta en `envios`. `scripts/manual.ts` la llama pero
    `src/db/envios.ts` no la exporta en el checkout de ese momento (la sesión de
    hermes estaba a mitad de un cambio en la rama `trato-usted-o-vos`). Efecto: la
@@ -81,7 +124,7 @@
     `personalizar.ts` anclando demasiado en lo previo. *Para repasar*: pedirle que
     ancle en UNA cosa, no en tres, y que nombre el tema nuevo primero.
 
-14. **16/09 · `✖ Claude no devolvió texto` al evaluar la respuesta 7.** La respuesta
+14. **16/09 · `✖ Claude no devolvió texto` al evaluar la respuesta 7** (y otra vez el 17/09 en la 13 y en la 20: ya son 3 de 20 — no es un caso raro). La respuesta
     se subió, se insertó y se transcribió bien (34 s, corta); la llamada de
     evaluación (`evaluarRespuesta`, `src/ia/cerebro.ts`) volvió sin texto y
     `cargar` cortó ahí. `estado` la marca como "respuesta corta sin repregunta
@@ -104,7 +147,8 @@
     también las respuestas posteriores del mismo tema, o marcar correcciones.
 
 17. **16/09 · nombres propios inconsistentes en la transcripción.** Respuesta 9:
-    "NASA" por Naza, "Herrera" por Herrero (en la pregunta 9 el biógrafo mismo
+    "NASA" por Naza, "Herrera" por Herrero; respuesta 16: "WADE" por UADE (la
+    pregunta misma decía UADE) (en la pregunta 9 el biógrafo mismo
     había escrito "Herrero"). El prompt de transcripción lleva vocabulario
     rioplatense y la ficha, pero no los nombres que ya aparecieron en respuestas
     anteriores. *Para repasar*: sumar al `promptDeTranscripcion` los nombres
@@ -112,11 +156,100 @@
     "revisar nombres" del panel es la red, pero mejor no ensuciar la fuente.
 
 18. **16/09 · si la personalización falla, la pregunta original sale en "usted"
-    aunque el trato sea "vos".** Orden 12: `personalizar` devolvió algo inválido
+    aunque el trato sea "vos".** (Pasó de nuevo el 17/09 en las órdenes 18, 23 y 26: 4 de 26. La 26 ni siquiera se intentó personalizar: "sale tal cual está en el guion".) Orden 12: `personalizar` devolvió algo inválido
     ("no conservaba las preguntas del original") y `siguiente` mandó el texto fijo
     del guion — "cuénteme ESA historia... ¿Cuál es la suya?" — seguido del cierre
     en vos. Las 26 fijas están escritas de usted; el fallback debería pasarlas por
     el trato (o tener las dos versiones). *Hecho a mano*: la pasé a vos.
+
+19. **17/09 · el narrador dice "esto prefiero que NO vaya al libro" y nada lo
+    registra.** Respuesta 12: "estas historias prefiero que queden en mi mente, no
+    en mi biografía... locuras de las contables pueden ser por amor" y cuenta una.
+    La transcripción entra entera al material del libro; el escritor no tiene señal
+    de qué parte pidió reservar. *Para repasar*: que la evaluación detecte
+    "no lo pongas / que no salga" y marque la respuesta (o el tramo) como
+    `reservada`, y que la fábrica lo respete; hoy solo la dueña podría excluirla
+    desde el panel (y `excluidas` se ignora por decisión del 13/09).
+
+20. **17/09 · la pregunta fija supone un guion de vida que no es el del narrador.**
+    Orden 14 original: "¿cómo fue la propuesta de casamiento y el día de la boda?";
+    orden 15 personalizada: "¿qué le dirías a un nieto sobre cómo se quiere a
+    alguien toda la vida?". Joaquín tiene 28, no está casado y contó una relación
+    que "terminó". Las 26 fijas están pensadas para un abuelo; la personalización
+    suaviza pero arrastra la premisa (nieto, toda la vida). Con un narrador joven o
+    soltero/viudo/separado hay que tener reemplazos por capítulo (`capituloNoAplica`
+    existe pero no se disparó acá). *Para repasar*: criterios de "no aplica" más
+    finos que capítulo entero, usando la ficha (edad, estado civil) y lo contado.
+
+21. **17/09 · la pregunta del capítulo "El trabajo" vuelve al puesto de diarios de
+    la infancia.** Orden 17 (anécdota del trabajo) se personalizó hacia "esos días
+    repartiendo diarios con Iñaki" a los 15, que ya se contó en la 4 y la 11, en vez
+    de la carrera real (7 años en UADE, lo que hace hoy). Mismo mecanismo que la
+    #13: ancla en lo más contado, no en lo más reciente o lo del capítulo. *Para
+    repasar*: en el prompt de personalización, priorizar el resumen del capítulo
+    actual y penalizar temas ya usados en dos preguntas anteriores.
+
+22. **17/09 · "¿ya tenés hijos? Porque si es así..." — la pregunta pregunta si el
+    capítulo aplica en vez de saberlo.** Orden 19 (capítulo "Los hijos") con un
+    narrador de 28 que nunca mencionó hijos: la personalización salió con un
+    condicional torpe. Debería haber disparado `capituloNoAplica` (existe) y mandar
+    la pregunta de reemplazo, o al menos preguntar directo "¿tenés hijos?" como
+    puerta y decidir con la respuesta. Misma raíz que la #20 (fijas de abuelo).
+
+23. **17/09 · "no tengo hijos" dispara una repregunta (en usted) en vez de saltar el
+    capítulo.** Se registró la 19 por texto con el comando nuevo `responder-texto`
+    (+ `--ficha "No tiene hijos"`). El cerebro pidió repregunta ("¿hubo chicos en su
+    vida igual, sobrinos, ahijados...?") — razonable como idea, pero en usted, y
+    otra vez falló `guardarRepreguntaEnviada` (#5). Después la 20 (mismo capítulo)
+    salió "vos me dijiste que no tenés hijos, pero cuéntame de tus hermanos" —
+    mezcla vos/tú ("cuéntame") y redirige a los hermanos, que ya se contaron dos
+    veces (#13/#21). *Para repasar*: cuando la ficha dice "sin hijos", el capítulo
+    "Los hijos" entero debe ir a reemplazos (sobrinos/ahijados o un tema nuevo),
+    no personalizarse pregunta por pregunta.
+
+24. **17/09 · pregunta 21 sin sentido: "¿Cómo fuiste como padre?... ¿qué quisiste
+    darles a Sol e Iñaki?... ¿Qué se siente ser abuelo ahora?"** A un narrador de
+    28, sin hijos (está en la ficha desde la 19), que acaba de decir "cómo es cada
+    uno ya lo hablamos". Trata a sus hermanos como hijos y le pregunta por sus
+    nietos. Es la peor pregunta del piloto: contradice la ficha y lo ya dicho.
+    Confirma #20/#22/#23: el capítulo "Los hijos" (19-21) tiene que saltarse entero
+    cuando la ficha dice sin hijos, no personalizarse. También el modelo volvió a
+    no devolver la evaluación (#14, ya 3 de 20). *Hecho a mano*: NO se manda; se
+    reemplaza por una pregunta escrita a mano (ver abajo) y se anota con
+    `--orden 21` cuando responda.
+
+25. **17/09 · la pregunta que se le mandó no es la que quedó en la base.** La 21 se
+    reemplazó a mano (ver #24) pero en `contexto.preguntasEnviadas[21]` y en
+    `envios` quedó la generada ("¿cómo fuiste como padre?"); la respuesta se cargó
+    contra ese texto y el libro/panel van a mostrar una pregunta que Joaquín nunca
+    recibió. *Para repasar*: `siguiente --texto "..."` (o un `corregir-pregunta`)
+    que anote lo que realmente se mandó; y en general, que el panel muestre la
+    pregunta enviada, no la del guion.
+
+26. **17/09 · "regálenos" en la pregunta 24.** La personalización en vos deja un
+    "regálenos" (ustedes/nosotros formal) en medio de una pregunta tuteada. Mismo
+    tipo de mezcla que "cuéntame" en la 20 (#23): el modelo respeta el vos en los
+    verbos principales pero se le escapan formas de la fija original.
+
+27. **17/09 · "si tus nietos escucharan esto..." (pregunta 25) a un narrador sin
+    hijos.** La fija del capítulo final se personalizó bien en el resto, pero
+    conserva "tus nietos" con la ficha diciendo "no tiene hijos". Se manda igual
+    (el mensaje al futuro tiene sentido) pero corregido a mano: "quienes vengan
+    después de vos".
+
+28. **17/09 · las 4 adaptativas NO se generaron al completar la 26 — el error de
+    `guardarRepreguntaEnviada` (#5) cortó `trasResponderManual` ANTES del bloque
+    `if (orden === ULTIMA_FIJA)`.** `estado` dijo "ya respondió todo, corré cerrar"
+    y `siguiente` dijo "llegó a la orden 26, la última del guion": sin las
+    adaptativas, la puerta manual daba por terminada la entrevista en 26 en vez de
+    30. *Hecho a mano*: llamé a `generarPreguntasAdaptativas` con un script suelto
+    (hubo que cargar el .env y poner `WA_*=manual` como hace manual.ts); después
+    `siguiente` dio la 27. **Grave**: en producción automática el mismo bug haría
+    que un narrador termine con 26 preguntas y sin las 4 que se adaptan a su vida.
+    *Para repasar*: que `generarPreguntasAdaptativas` corra ANTES o
+    independientemente de la repregunta; y que `siguiente` en la orden 27 sin
+    adaptativas las genere (el código lo hace, pero solo si `ultimaOrdenDelGuion`
+    devuelve ≥ 27 — y devuelve 26 porque mira `preguntas`, circular).
 
 ## Producción / infra (no es del entrevistador, pero salió en el camino)
 

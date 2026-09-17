@@ -376,6 +376,50 @@ async function cargar(ref: string | undefined, archivo: string | undefined, flag
   await trasResponderManual(n, orden, esRepregunta, pregunta.texto, texto, duracionSegundos);
 }
 
+/**
+ * Una respuesta escrita, sin audio. Salió el 17/09 con Joaquín: la pregunta 19
+ * ("Los hijos") no aplicaba y contestó "no tengo" por texto. Hace lo mismo que
+ * `cargar` menos Storage y Whisper: inserta en `respuestas` con `texto_directo`
+ * y sigue con evaluación, adaptativas y avance. Se anota en la ficha
+ * (`contexto.datosExtra`) si se pasa --ficha, para que las próximas preguntas
+ * lo sepan.
+ */
+async function responderTexto(ref: string | undefined, texto: string | undefined, flags: Args['flags']): Promise<void> {
+  if (!texto) throw new Error('Falta el texto. Uso: responder-texto <narrador> "lo que dijo" [--orden N] [--repregunta] [--ficha "dato para la ficha"]');
+  const mods = await modulos();
+  const n = await buscarNarrador(ref);
+  const respuestas = await respuestasDe(n.id);
+  const esRepregunta = Boolean(flags['repregunta']);
+  const orden = flags['orden'] !== undefined ? Number(flags['orden']) : proximoOrden(n.dia_actual, ordenesRespondidas(respuestas));
+  const previas = respuestas.filter((r) => r.pregunta_orden === orden);
+  if (previas.length && !esRepregunta) {
+    throw new Error(`La orden ${orden} de ${n.como_le_dicen} ya tiene respuesta (${previas.length}). Si es una repregunta, corré con --repregunta.`);
+  }
+  const pregunta = await mods.preguntaDeOrden(n.id, orden);
+  if (!pregunta) throw new Error(`No existe la pregunta ${orden} para ${n.como_le_dicen}.`);
+
+  titulo(`Respuesta por texto → ${n.como_le_dicen}, orden ${orden}${esRepregunta ? ' (repregunta)' : ''}`);
+  linea(`Pregunta ${orden}: ${pregunta.texto}`);
+  linea(`Texto: ${texto}`);
+
+  const { error } = await mods.db.from('respuestas')
+    .insert({ narrador_id: n.id, pregunta_orden: orden, texto_directo: texto, transcripcion: texto, es_repregunta: esRepregunta });
+  if (error) throw new Error(`No pude insertar la respuesta: ${error.message}`);
+
+  const ficha = typeof flags['ficha'] === 'string' ? (flags['ficha'] as string) : undefined;
+  if (ficha) {
+    const contexto: Record<string, unknown> = { ...(n.contexto ?? {}) };
+    const previo = typeof contexto.datosExtra === 'string' && contexto.datosExtra.trim() ? `${contexto.datosExtra.trim()} ` : '';
+    contexto.datosExtra = `${previo}${ficha}`;
+    const { error: errorFicha } = await mods.db.from('narradores').update({ contexto }).eq('id', n.id);
+    if (errorFicha) throw new Error(`No pude anotar la ficha: ${errorFicha.message}`);
+    n.contexto = contexto as NarradorFila['contexto'];
+    linea(`Ficha: datosExtra += "${ficha}"`);
+  }
+
+  await trasResponderManual(n, orden, esRepregunta, pregunta.texto, texto, 0);
+}
+
 /** Los pasos 6-8 de procesar.ts, pero imprimiendo en vez de mandar por WhatsApp. */
 async function trasResponderManual(
   n: NarradorFila, orden: number, esRepregunta: boolean, pregunta: string, transcripcion: string, duracionSegundos: number,
@@ -775,6 +819,10 @@ Puerta manual de Vitácora Familiar — el entrevistador sin la API de WhatsApp.
       evalúa (y te imprime la repregunta si hace falta), genera las adaptativas
       al orden 26 y avisa del cierre al 30.
 
+  npm run manual -- responder-texto <narrador> "lo que dijo" [--orden N] [--repregunta] [--ficha "dato"]
+      Una respuesta escrita, sin audio (ej. "no tengo hijos"). Igual que cargar
+      pero sin Storage ni Whisper. --ficha lo suma a contexto.datosExtra.
+
   npm run manual -- cargar-carpeta <narrador> <carpeta> [--desde N] [--si] [--repregunta]
       Un lote entero: muestra el plan y, con --si, lo carga en orden de llegada.
 
@@ -808,6 +856,7 @@ const COMANDOS: Record<string, (a: Args) => Promise<void>> = {
   siguiente: (a) => siguiente(a.posicionales[0], a.flags),
   archivar: (a) => archivar(a.posicionales[0], a.posicionales[1], a.flags),
   cargar: (a) => cargar(a.posicionales[0], a.posicionales[1], a.flags),
+  'responder-texto': (a) => responderTexto(a.posicionales[0], a.posicionales[1], a.flags),
   'cargar-carpeta': (a) => cargarCarpeta(a.posicionales[0], a.posicionales[1], a.flags),
   retranscribir: (a) => retranscribir(a.posicionales[0], a.flags),
   contexto: (a) => verContexto(a.posicionales[0]),
