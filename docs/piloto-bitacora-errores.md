@@ -277,6 +277,19 @@ libro sale mal, sale incompleto, o el cliente se pierde antes de llegar?
     la pregunta que el narrador acaba de esquivar — si no contestó, quizá no
     quiere; una sola invitación alcanza.
 
+31. **17/09 · Ciro · la repregunta pide lo que el narrador YA contó.** Respuesta 5
+    ("no sé nada de mis abuelos ni de cómo se llevaban") → repregunta: "¿de tus
+    abuelos te acordás de alguno, aunque sea de verlo en una foto o de escuchar su
+    nombre?". Pero en la respuesta 1 Ciro contó que **su abuela materna cocinaba en
+    la casa todos los días**: se crió con ella. Causa: `evaluarRespuesta()`
+    (`src/ia/cerebro.ts:124`) recibe SOLO la pregunta y la respuesta de hoy — ni la
+    memoria de capítulos ni las respuestas previas, que la personalización sí
+    recibe. Distinto de #30 (insistir en lo que esquivó): acá pide algo que ya dio,
+    y eso le dice al narrador que no lo escuchan. Naza lo notó: "¿ya le preguntó
+    sobre esto?". *Hecho a mano*: repregunta descartada; se le mandó una anclada en
+    la abuela que ya nombró. *Para repasar*: pasarle a la evaluación la memoria de
+    capítulos (`memoriaDeCapitulos`, barata) para que no repita ni pida lo dado.
+
 ## Producción / infra (no es del entrevistador, pero salió en el camino)
 
 8. **15/09 · producción corría un build de 8 días** mientras `main` tenía todo el
