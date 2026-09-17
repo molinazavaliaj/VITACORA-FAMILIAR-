@@ -1,11 +1,19 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { NADA_ELEGIDO, NOMBRE_VOZ, type Catalogo as CatalogoRegion, type ProductosElegidos, type Voz } from "@/lib/productos";
+import { EVITAR_MAXIMO, NOMBRE_RITMO, RITMOS, RITMO_DEFAULT, TAMANO_MAXIMO_BYTES, errorDeTipoDeFoto, type Ritmo } from "@/lib/guion";
+import { medirImagen } from "@/lib/medir-imagen";
 
 // El paso a paso de la compra. Estado en el cliente, un solo POST al final.
 // Los precios llegan resueltos del servidor: acá solo se suman para mostrar
 // el carrito; lo que se cobra lo recalcula /api/compra con los mismos datos.
+//
+// Paso 5 (17/09, decisión de Joaquín): antes de pagar se dejan los ajustes de
+// la entrevista (ritmo, temas a evitar) y las fotos del álbum, para que el
+// libro pueda terminarse sin entrar nunca al panel. Todo opcional. Las fotos
+// se suben DESPUÉS del POST a /api/compra (que crea el narrador) y ANTES de
+// ir al proveedor de pago, con el token de una hora que devuelve ese POST.
 //
 // ⚠️ Textos a aprobar por Naza (regla de la casa). Castellano neutro de "tú".
 
@@ -13,14 +21,19 @@ export type Catalogo = Record<"ES" | "AR", CatalogoRegion>;
 
 type Region = "ES" | "AR";
 type ParaQuien = "otro" | "yo";
-type Paso = 1 | 2 | 3 | 4;
+type Paso = 1 | 2 | 3 | 4 | 5;
 
 const PASOS: { n: Paso; nombre: string }[] = [
   { n: 1, nombre: "Para quién" },
   { n: 2, nombre: "El narrador" },
   { n: 3, nombre: "Tu correo" },
-  { n: 4, nombre: "Pagar" },
+  { n: 4, nombre: "El libro" },
+  { n: 5, nombre: "La entrevista" },
 ];
+
+/** Una foto elegida en el paso 5, con su miniatura y si ya quedó subida (para no duplicarla al reintentar). */
+type FotoElegida = { clave: string; archivo: File; url: string; subida: boolean };
+const FOTOS_MAXIMO = 20;
 
 const HORAS = [
   { valor: "09:00", nombre: "A la mañana (9:00)" },
@@ -59,6 +72,17 @@ export function Checkout({ catalogo }: { catalogo: Catalogo }) {
 
   const [error, setError] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
+  const [progreso, setProgreso] = useState<string | null>(null);
+
+  // Paso 5: la entrevista y el álbum (todo opcional).
+  const [ritmo, setRitmo] = useState<Ritmo>(RITMO_DEFAULT);
+  const [evitar, setEvitar] = useState("");
+  const [fotos, setFotos] = useState<FotoElegida[]>([]);
+  const entradaFotos = useRef<HTMLInputElement>(null);
+  // El resultado del POST a /api/compra, por si una foto falla y se reintenta:
+  // el narrador ya existe, no hace falta crearlo de nuevo. Se olvida al volver atrás.
+  const compraIniciada = useRef<{ urlPago: string; narradorId: string; tokenFotos: string } | null>(null);
+  useEffect(() => () => { for (const f of fotos) URL.revokeObjectURL(f.url); }, [fotos]);
 
   const cat = catalogo[region];
 
@@ -87,6 +111,7 @@ export function Checkout({ catalogo }: { catalogo: Catalogo }) {
 
   function avanzar(siguiente: Paso) {
     setError(null);
+    if (siguiente < 5) compraIniciada.current = null; // si cambia algo, la compra se vuelve a crear
     setPaso(siguiente);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -100,6 +125,33 @@ export function Checkout({ catalogo }: { catalogo: Catalogo }) {
     return null;
   }
 
+  function elegirFotos(lista: FileList | null) {
+    if (!lista) return;
+    setError(null);
+    const nuevas: FotoElegida[] = [];
+    for (const archivo of Array.from(lista)) {
+      const errorDeTipo = errorDeTipoDeFoto(archivo.type);
+      if (errorDeTipo) { setError(errorDeTipo); continue; }
+      if (archivo.size > TAMANO_MAXIMO_BYTES) { setError(`${archivo.name} pesa más de 25 MB.`); continue; }
+      nuevas.push({ clave: `${archivo.name}-${archivo.size}-${archivo.lastModified}`, archivo, url: URL.createObjectURL(archivo), subida: false });
+    }
+    setFotos((x) => {
+      const claves = new Set(x.map((f) => f.clave));
+      return [...x, ...nuevas.filter((f) => !claves.has(f.clave))].slice(0, FOTOS_MAXIMO);
+    });
+    if (entradaFotos.current) entradaFotos.current.value = "";
+  }
+
+  async function subirFotoDelAlbum(narradorId: string, token: string, foto: FotoElegida) {
+    const form = new FormData();
+    form.set("archivo", foto.archivo);
+    const medida = await medirImagen(foto.archivo);
+    if (medida) { form.set("ancho", String(medida.ancho)); form.set("alto", String(medida.alto)); }
+    const r = await fetch(`/api/fotos?narrador=${encodeURIComponent(narradorId)}&token=${encodeURIComponent(token)}`, { method: "POST", body: form });
+    const json = (await r.json().catch(() => ({}))) as { error?: string; id?: string };
+    if (!r.ok || !json.id) throw new Error(json.error ?? `No pudimos subir ${foto.archivo.name}.`);
+  }
+
   async function pagar(evento: React.FormEvent<HTMLFormElement>) {
     evento.preventDefault();
     setError(null);
@@ -109,32 +161,56 @@ export function Checkout({ catalogo }: { catalogo: Catalogo }) {
     }
     setEnviando(true);
     try {
-      const esYo = paraQuien === "yo";
-      const respuesta = await fetch("/api/compra", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          nombreComprador: esYo ? nombre.trim() : nombreComprador.trim(),
-          vinculoComprador: esYo ? "yo mismo" : vinculo.trim(),
-          region,
-          email: email.trim(),
-          narrador: {
-            nombre: nombre.trim(),
-            comoLeDicen: comoLeDicen.trim(),
-            telefonoWhatsapp: telefono.trim(),
-            horaPreferida: hora,
-          },
-          productos,
-        }),
-      });
-      const datos = (await respuesta.json()) as { urlPago?: string; error?: string };
-      if (!respuesta.ok || !datos.urlPago) {
-        setError(datos.error ?? "No pudimos iniciar el pago. Intenta de nuevo.");
-        setEnviando(false);
-        return;
+      if (!compraIniciada.current) {
+        const esYo = paraQuien === "yo";
+        const respuesta = await fetch("/api/compra", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            nombreComprador: esYo ? nombre.trim() : nombreComprador.trim(),
+            vinculoComprador: esYo ? "yo mismo" : vinculo.trim(),
+            region,
+            email: email.trim(),
+            narrador: {
+              nombre: nombre.trim(),
+              comoLeDicen: comoLeDicen.trim(),
+              telefonoWhatsapp: telefono.trim(),
+              horaPreferida: hora,
+              contexto: { ritmo, evitar: evitar.trim() },
+            },
+            productos,
+          }),
+        });
+        const datos = (await respuesta.json()) as { urlPago?: string; narradorId?: string; tokenFotos?: string; error?: string };
+        if (!respuesta.ok || !datos.urlPago || !datos.narradorId || !datos.tokenFotos) {
+          setError(datos.error ?? "No pudimos iniciar el pago. Intenta de nuevo.");
+          setEnviando(false);
+          return;
+        }
+        compraIniciada.current = { urlPago: datos.urlPago, narradorId: datos.narradorId, tokenFotos: datos.tokenFotos };
       }
-      window.location.assign(datos.urlPago);
+      const { urlPago, narradorId, tokenFotos } = compraIniciada.current;
+
+      // Las fotos, una por una. Si una falla, se avisa y NO se va a pagar: la
+      // familia la saca o reintenta (las ya subidas no se repiten).
+      const pendientes = fotos.filter((f) => !f.subida);
+      for (let i = 0; i < pendientes.length; i++) {
+        const foto = pendientes[i];
+        setProgreso(`Subiendo foto ${i + 1} de ${pendientes.length}…`);
+        try {
+          await subirFotoDelAlbum(narradorId, tokenFotos, foto);
+          setFotos((x) => x.map((f) => (f.clave === foto.clave ? { ...f, subida: true } : f)));
+        } catch (e) {
+          setProgreso(null);
+          setError(`${e instanceof Error ? e.message : `No pudimos subir ${foto.archivo.name}.`} Sácala o intenta de nuevo.`);
+          setEnviando(false);
+          return;
+        }
+      }
+      setProgreso(null);
+      window.location.assign(urlPago);
     } catch {
+      setProgreso(null);
       setError("No pudimos iniciar el pago. Revisa tu conexión e intenta de nuevo.");
       setEnviando(false);
     }
@@ -306,9 +382,9 @@ export function Checkout({ catalogo }: { catalogo: Catalogo }) {
           </section>
         )}
 
-        {/* ── Paso 4 · Pagar: los tres productos, al menos uno ── */}
+        {/* ── Paso 4 · El libro: los tres productos, al menos uno ── */}
         {paso === 4 && (
-          <form onSubmit={pagar} className="mt-12">
+          <section className="mt-12">
             <h1 className="text-3xl leading-tight [font-family:var(--fuente-titulo)] font-medium [text-wrap:balance] sm:text-4xl">
               ¿Cómo quieres {paraQuien === "yo" ? "tu libro" : `el libro de ${comoLeDicen || nombre || "su vida"}`}?
             </h1>
@@ -377,7 +453,80 @@ export function Checkout({ catalogo }: { catalogo: Catalogo }) {
               </div>
             )}
 
-            <div className="mt-8 rounded-lg border border-[#EBEBE7] bg-white p-5 text-[15px] leading-[1.7] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">
+            <Botones
+              atras={() => avanzar(3)}
+              siguiente={() => {
+                if (!hayPrincipal) {
+                  setError("Elige al menos uno: el libro en PDF, el audiolibro o el libro impreso.");
+                  return;
+                }
+                avanzar(5);
+              }}
+              etiquetaSiguiente="Continuar"
+              error={error}
+            />
+          </section>
+        )}
+
+        {/* ── Paso 5 · La entrevista: ritmo, temas a evitar y el álbum. Todo opcional; acá se paga. ── */}
+        {paso === 5 && (
+          <form onSubmit={pagar} className="mt-12">
+            <h1 className="text-3xl leading-tight [font-family:var(--fuente-titulo)] font-medium [text-wrap:balance] sm:text-4xl">
+              Cómo va a ser la entrevista.
+            </h1>
+            <p className="mt-3 text-[16px] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">
+              Todo esto es opcional y se puede cambiar después desde tu panel. Si prefieres, baja y paga.
+            </p>
+
+            <fieldset className="mt-10">
+              <legend className={etiqueta}>Ritmo</legend>
+              <div className="mt-3 flex flex-col gap-2">
+                {RITMOS.map((r) => (
+                  <label key={r} className={`flex cursor-pointer items-start gap-3 rounded-lg border bg-white p-4 transition-colors ${ritmo === r ? "border-2 border-[#14140F]" : "border-[#D4D4CE] hover:border-[#83837A]"}`}>
+                    <input type="radio" name="ritmo" value={r} checked={ritmo === r} onChange={() => setRitmo(r)} className="mt-1" />
+                    <span>
+                      <span className="block text-[17px] [font-family:var(--fuente-titulo)]">{NOMBRE_RITMO[r].titulo}</span>
+                      <span className="block text-[14px] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">{NOMBRE_RITMO[r].detalle}</span>
+                    </span>
+                  </label>
+                ))}
+              </div>
+              <p className="mt-2 text-[14px] text-[#83837A] [font-family:var(--fuente-cuerpo)] font-light">Además, al terminar cada respuesta el biógrafo le ofrece seguir con la siguiente. {paraQuien === "yo" ? "Tú también marcas tu ritmo." : "Él también marca su ritmo."}</p>
+            </fieldset>
+
+            <div className="mt-10">
+              <label className={etiqueta} htmlFor="evitar">Temas que no se preguntan</label>
+              <textarea id="evitar" className={`${campo} mt-2`} rows={3} value={evitar} onChange={(e) => setEvitar(e.target.value)} maxLength={EVITAR_MAXIMO} placeholder="Por ejemplo: no preguntar por su hermano Rubén. No hablar del accidente del 92." />
+              <p className="mt-2 text-[14px] text-[#83837A] [font-family:var(--fuente-cuerpo)] font-light">El biógrafo lo tiene presente en todas sus preguntas.</p>
+            </div>
+
+            <div className="mt-10">
+              <p className={etiqueta}>El álbum del libro</p>
+              <p className="mt-2 text-[15px] leading-[1.7] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">
+                Las fotos que quieras que estén en el libro: de la infancia, de la boda, de los hijos. Después, desde tu panel, las pones en su capítulo, en la tapa o en un marco. Cuantos más píxeles, mejor se imprimen.
+              </p>
+              <input ref={entradaFotos} type="file" accept="image/jpeg,image/png,image/webp" multiple hidden onChange={(e) => elegirFotos(e.target.files)} />
+              {fotos.length > 0 && (
+                <ul className="mt-4 grid grid-cols-3 gap-3 sm:grid-cols-5">
+                  {fotos.map((f) => (
+                    <li key={f.clave} className="relative aspect-square overflow-hidden rounded-lg border border-[#D4D4CE] bg-[#EBEBE7]">
+                      {/* eslint-disable-next-line @next/next/no-img-element -- miniatura local, no pasa por next/image */}
+                      <img src={f.url} alt="" className="h-full w-full object-cover" />
+                      {f.subida ? (
+                        <span className="absolute bottom-1 left-1 rounded-full bg-[#14140F] px-2 py-0.5 text-[10px] uppercase text-white [font-family:var(--fuente-micro)] [letter-spacing:0.12em]">Subida</span>
+                      ) : (
+                        <button type="button" aria-label={`Sacar ${f.archivo.name}`} disabled={enviando} onClick={() => setFotos((x) => x.filter((g) => g.clave !== f.clave))} className="absolute right-1 top-1 flex h-7 w-7 items-center justify-center rounded-full bg-white/90 text-[#14140F] shadow [touch-action:manipulation]">×</button>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <button type="button" disabled={enviando || fotos.length >= FOTOS_MAXIMO} onClick={() => entradaFotos.current?.click()} className="mt-4 text-[15px] text-[#14140F] underline underline-offset-4 disabled:opacity-60 [font-family:var(--fuente-micro)]">
+                {fotos.length === 0 ? "+ Agregar fotos" : `+ Agregar más (${fotos.length} de ${FOTOS_MAXIMO})`}
+              </button>
+            </div>
+
+            <div className="mt-10 rounded-lg border border-[#EBEBE7] bg-white p-5 text-[15px] leading-[1.7] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">
               <p>
                 <strong className="font-normal text-[#14140F]">Qué pasa después de pagar:</strong> le escribimos a{" "}
                 {paraQuien === "yo" ? "tu WhatsApp" : `${comoLeDicen || "él"} por WhatsApp`} contándole y pidiéndole permiso. No
@@ -388,13 +537,13 @@ export function Checkout({ catalogo }: { catalogo: Catalogo }) {
             {error && <p className="mt-6 text-[15px] text-[#B42318] [font-family:var(--fuente-cuerpo)]" role="alert">{error}</p>}
 
             <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <button type="button" onClick={() => avanzar(3)} className="text-[15px] text-[#5F5F55] underline underline-offset-4 [font-family:var(--fuente-micro)]">← Atrás</button>
+              <button type="button" disabled={enviando} onClick={() => avanzar(4)} className="text-[15px] text-[#5F5F55] underline underline-offset-4 [font-family:var(--fuente-micro)]">← Atrás</button>
               <button
                 type="submit"
                 disabled={enviando || !hayPrincipal}
                 className="inline-flex h-13 items-center justify-center rounded-full bg-[#5D3FD3] px-8 text-base font-medium text-white transition-colors hover:bg-[#4F35BC] disabled:opacity-60 [font-family:var(--fuente-micro)] [touch-action:manipulation]"
               >
-                {enviando ? "Un momento…" : hayPrincipal ? `Pagar ${formatear(carrito.total, cat.moneda, region)}` : "Elige al menos uno"}
+                {enviando ? (progreso ?? "Un momento…") : `Pagar ${formatear(carrito.total, cat.moneda, region)}`}
               </button>
             </div>
             <p className="mt-4 text-[13px] text-[#83837A] [font-family:var(--fuente-cuerpo)] font-light">

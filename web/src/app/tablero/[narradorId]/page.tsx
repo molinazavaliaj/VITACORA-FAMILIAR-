@@ -451,6 +451,13 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
             );
           })}
 
+          {!cerrado && !guion.some((p) => p.tipo === "adaptativa") ? (
+            <p className="flex gap-4 text-[var(--texto-menor)]">
+              <span className="w-8 shrink-0 text-right text-sm tabular-nums [font-family:var(--fuente-micro)]">+{ADAPTATIVAS}</span>
+              <span className="text-[15px] italic">Las cuatro finales las escribe el biógrafo con todo lo que {propia ? "hayas" : "él haya"} contado.</span>
+            </p>
+          ) : null}
+
           {!editando && (fotosDelLibro.length > 0 || puedeAgregar) ? (
             <section aria-labelledby="fotos-del-libro">
               <div className="flex items-end justify-between gap-4 border-b border-[var(--linea)] pb-4">
@@ -469,13 +476,6 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
                 </div>
               ) : null}
             </section>
-          ) : null}
-
-          {!cerrado && !guion.some((p) => p.tipo === "adaptativa") ? (
-            <p className="flex gap-4 text-[var(--texto-menor)]">
-              <span className="w-8 shrink-0 text-right text-sm tabular-nums [font-family:var(--fuente-micro)]">+{ADAPTATIVAS}</span>
-              <span className="text-[15px] italic">Las cuatro finales las escribe el biógrafo con todo lo que {propia ? "hayas" : "él haya"} contado.</span>
-            </p>
           ) : null}
         </div>
 

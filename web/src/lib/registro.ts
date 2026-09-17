@@ -2,6 +2,8 @@
 // construcción de los payloads a insertar. Sin llamadas a red ni a Supabase,
 // para poder probarla sin mocks pesados.
 
+import { EVITAR_MAXIMO, validarRitmo } from './guion';
+
 export type Region = 'ES' | 'AR';
 
 export interface ArbolInput {
@@ -17,6 +19,9 @@ export interface ContextoInput {
   oficio?: string;
   datosExtra?: string;
   arbol?: ArbolInput;
+  /** Paso 5 de la compra (17/09): los ajustes de la entrevista, los mismos que el panel. */
+  ritmo?: string;
+  evitar?: string;
 }
 
 export interface NarradorInput {
@@ -211,6 +216,15 @@ export function validarYConstruir(body: RegistroBody): ResultadoValidacion {
   }
   if (Object.keys(arbolLimpio).length > 0) {
     contextoFinal.arbol = arbolLimpio;
+  }
+  // Ritmo y temas a evitar: igual que /api/guion (acciones 'ritmo' y 'evitar').
+  // Un ritmo que no existe se ignora (queda el default del entrevistador), no rompe la compra.
+  if (validarRitmo(contexto.ritmo)) {
+    contextoFinal.ritmo = contexto.ritmo;
+    contextoFinal.modoRapido = contexto.ritmo === 'seguido';
+  }
+  if (esNoVacio(contexto.evitar)) {
+    contextoFinal.evitar = contexto.evitar.trim().slice(0, EVITAR_MAXIMO);
   }
 
   return {

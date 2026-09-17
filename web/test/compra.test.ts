@@ -1,4 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { verificarTokenFotos } from "../src/lib/token-fotos";
+
+process.env.SUPABASE_SERVICE_ROLE_KEY ??= "clave-de-prueba"; // firma el token de fotos del paso 5
 
 vi.mock("@/lib/supabase/servidor", () => ({ crearClienteServidor: vi.fn() }));
 vi.mock("@/lib/pagos", () => ({ crearCheckout: vi.fn() }));
@@ -89,7 +92,11 @@ describe("POST /api/compra", () => {
     const r = await POST(peticion(CUERPO_VALIDO));
 
     expect(r.status).toBe(200);
-    expect(await r.json()).toEqual({ urlPago: "https://pago.example/x" });
+    // Paso 5 (17/09): además de la url de pago, el narrador y un token de una hora para subir fotos sin sesión.
+    const json = await r.json();
+    expect(json).toMatchObject({ urlPago: "https://pago.example/x", narradorId: "nar-1" });
+    expect(verificarTokenFotos(json.tokenFotos, "nar-1")).toBe(true);
+    expect(verificarTokenFotos(json.tokenFotos, "otro-narrador")).toBe(false);
 
     // la familia nace con el correo normalizado y sin usuario
     expect(admin.inserts.familias[0]).toMatchObject({ email: "martina@ejemplo.com", region: "AR", nombre: "Martina" });

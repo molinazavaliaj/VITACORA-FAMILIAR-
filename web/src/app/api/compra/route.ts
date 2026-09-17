@@ -3,6 +3,7 @@ import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { validarYConstruir, type RegistroBody } from "@/lib/registro";
 import { calcularCompra, productosParaPedido, validarProductos, NADA_ELEGIDO, type ProductosElegidos } from "@/lib/productos";
 import { crearCheckout } from "@/lib/pagos";
+import { firmarTokenFotos } from "@/lib/token-fotos";
 
 // La compra, sin cuenta previa (pago por adelantado, 11/09). Es la única
 // entrada al producto: aquí nacen la familia, el narrador y el pedido, y de
@@ -141,7 +142,9 @@ export async function POST(request: NextRequest) {
 
   try {
     const { urlPago } = await crearCheckout({ id: (pedido as { id: string }).id, email }, compra);
-    return NextResponse.json({ urlPago }, { status: 200 });
+    // Paso 5 (17/09): las fotos del álbum se suben antes de ir a pagar, sin
+    // sesión, con un token atado a este narrador y de una hora (lib/token-fotos).
+    return NextResponse.json({ urlPago, narradorId, tokenFotos: firmarTokenFotos(narradorId) }, { status: 200 });
   } catch (err) {
     console.error("compra: fallo crear el checkout", err);
     return NextResponse.json({ error: MENSAJE_ERROR_GENERICO }, { status: 500 });

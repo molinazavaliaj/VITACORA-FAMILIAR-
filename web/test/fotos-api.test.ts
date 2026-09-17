@@ -9,6 +9,7 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { POST } from "../src/app/api/fotos/route";
 import { MENSAJE_HEIC } from "../src/lib/guion";
+import { firmarTokenFotos } from "../src/lib/token-fotos";
 
 // Base falsa por tablas (misma idea que guion-api.test.ts), más un Storage que registra subidas.
 type Fila = Record<string, unknown>;
@@ -85,9 +86,61 @@ function requestConFoto(archivo: File, capitulo = "La infancia") {
   return { nextUrl: new URL("http://localhost/api/fotos?narrador=n1"), formData: async () => form } as never;
 }
 
+process.env.SUPABASE_SERVICE_ROLE_KEY ??= "clave-de-prueba"; // firma el token de fotos del paso 5
+
 beforeEach(() => {
   vi.clearAllMocks();
   (cookies as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({ getAll: () => [], set: () => {} });
+});
+
+describe("POST /api/fotos — la puerta del paso 5 (token, sin sesión)", () => {
+  function armarPendiente() {
+    const armado = crearAdmin({
+      familias: [],
+      narradores: [{ id: "n-nuevo", estado: "pendiente_pago", familia_id: "fam-x", contexto: {}, libro_aprobado_at: null }],
+      preguntas: [], invitados: [],
+    });
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(armado.admin);
+    return armado;
+  }
+  function requestConToken(token: string, narrador = "n-nuevo") {
+    const form = new FormData();
+    form.set("archivo", new File([new Uint8Array([1])], "boda.jpg", { type: "image/jpeg" }));
+    return { nextUrl: new URL(`http://localhost/api/fotos?narrador=${narrador}&token=${encodeURIComponent(token)}`), formData: async () => form } as never;
+  }
+
+  it("con el token firmado para ese narrador, la foto entra al álbum sin sesión y sin subida_por", async () => {
+    sesion(null);
+    const { subidas, escrituras } = armarPendiente();
+    const r = await POST(requestConToken(firmarTokenFotos("n-nuevo")));
+    expect(r.status).toBe(200);
+    expect(subidas[0]).toMatch(/^n-nuevo\/fotos\//);
+    const fila = escrituras.find((e) => e.tabla === "fotos" && e.op === "insert")?.valores;
+    expect(fila).toMatchObject({ narrador_id: "n-nuevo", capitulo: null, subida_por: null });
+  });
+
+  it("el token de otro narrador no sirve", async () => {
+    sesion(null);
+    const { subidas } = armarPendiente();
+    const r = await POST(requestConToken(firmarTokenFotos("n-ajeno")));
+    expect(r.status).toBe(403);
+    expect(subidas).toEqual([]);
+  });
+
+  it("un token vencido no sirve", async () => {
+    sesion(null);
+    armarPendiente();
+    const r = await POST(requestConToken(firmarTokenFotos("n-nuevo", Date.now() - 2 * 60 * 60 * 1000)));
+    expect(r.status).toBe(403);
+  });
+
+  it("una vez pagado, el token ya no entra: las fotos van por el panel", async () => {
+    sesion(null);
+    const armado = crearAdmin({ familias: [], narradores: [{ id: "n-nuevo", estado: "invitado", familia_id: "fam-x", contexto: {}, libro_aprobado_at: null }], preguntas: [], invitados: [] });
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(armado.admin);
+    const r = await POST(requestConToken(firmarTokenFotos("n-nuevo")));
+    expect(r.status).toBe(403);
+  });
 });
 
 describe("POST /api/fotos — tipo de archivo", () => {

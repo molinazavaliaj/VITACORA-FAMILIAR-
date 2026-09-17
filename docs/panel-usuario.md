@@ -489,3 +489,19 @@ Preguntas con el guion editable). Queda **una**.
 | Migración `fotos.capitulo` nullable + `CONTRATO.md` | Joaquín escribe, **Naza aplica** |
 | Audiolibro con voz clonada o narrador, HTML paginado para la miniatura, tapa/contratapa/marco en el PDF | Naza (`fabrica/`) |
 | Muestras de voz limpias para clonar | Joaquín (`entrevistador/`) |
+
+### 15.4 · Paso 5 de la compra: la entrevista y el álbum (17/09)
+
+Decisión de Joaquín: **el libro tiene que poder terminarse sin entrar nunca al panel.**
+Por eso `/comprar` tiene un quinto paso, antes de pagar y todo opcional: el ritmo
+(`contexto.ritmo`, mismo texto que Ajustes), los temas a evitar (`contexto.evitar`) y las
+fotos del álbum (sin capítulo: después se arrastran en Encargar libro).
+
+Cómo funciona por detrás: al tocar **Pagar**, `/api/compra` crea familia + narrador
+(`pendiente_pago`) + pedido y devuelve, además de la url de pago, un **token firmado de una
+hora atado a ese narrador** (`lib/token-fotos.ts`). Con ese token el navegador sube las
+fotos a `/api/fotos?narrador=…&token=…` —sin sesión, solo mientras el narrador siga en
+`pendiente_pago`, `subida_por` queda vacío— y recién después redirige al proveedor de pago.
+Si una foto falla, no se va a pagar: se avisa, y al reintentar no se repite ni la compra
+(el narrador ya existe) ni las fotos ya subidas.
+

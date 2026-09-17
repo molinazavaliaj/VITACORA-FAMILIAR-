@@ -125,6 +125,21 @@ describe('normalizarTelefono', () => {
 });
 
 describe('validarYConstruir', () => {
+  it('paso 5 de la compra: ritmo y temas a evitar van al contexto como los deja el panel', () => {
+    const resultado = validarYConstruir(cuerpoValido({ contexto: { ritmo: 'seguido', evitar: '  No preguntar por Rubén.  ' } }) as never);
+    expect(resultado.ok).toBe(true);
+    if (resultado.ok) expect(resultado.narrador.contexto).toMatchObject({ ritmo: 'seguido', modoRapido: true, evitar: 'No preguntar por Rubén.' });
+  });
+
+  it('un ritmo inventado se ignora y un evitar vacío no se guarda (no rompe la compra)', () => {
+    const resultado = validarYConstruir(cuerpoValido({ contexto: { ritmo: 'cada_hora', evitar: '   ' } }) as never);
+    expect(resultado.ok).toBe(true);
+    if (resultado.ok) {
+      expect(resultado.narrador.contexto).not.toHaveProperty('ritmo');
+      expect(resultado.narrador.contexto).not.toHaveProperty('evitar');
+    }
+  });
+
   it('rechaza una zona horaria que no es IANA (rompería el scheduler del entrevistador)', () => {
     const resultado = validarYConstruir(cuerpoValido({ zonaHoraria: 'basura/inexistente' }) as never);
     expect(resultado.ok).toBe(false);

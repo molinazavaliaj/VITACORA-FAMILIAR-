@@ -11,6 +11,15 @@ export const TEXTO_MAXIMO = 300;
 
 export const RITMOS = ["diario", "dos_por_dia", "seguido"] as const;
 export type Ritmo = (typeof RITMOS)[number];
+export const RITMO_DEFAULT: Ritmo = "diario";
+/** Cómo se explica cada ritmo, en el panel (Ajustes) y en el paso 5 de la compra (17/09): un solo texto. */
+export const NOMBRE_RITMO: Record<Ritmo, { titulo: string; detalle: string }> = {
+  diario: { titulo: "Una por día", detalle: "A su hora, todos los días. Es el ritmo que más gente termina." },
+  dos_por_dia: { titulo: "Dos por día", detalle: "Una a la mañana y otra a la tarde. Para quien tiene ganas de contar." },
+  seguido: { titulo: "Apenas responde", detalle: "En cuanto termina una, le llega la siguiente. Puede terminar en pocos días." },
+};
+/** `contexto.evitar`: los temas que el biógrafo no toca. Mismo tope en la compra y en el panel. */
+export const EVITAR_MAXIMO = 1000;
 
 export type PreguntaGuion = {
   id: string;

@@ -2,17 +2,12 @@
 
 import { useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { AVISO_CALIDAD, MAXIMO_FAMILIA, RITMOS, calidadDeFoto, type CalidadFoto, type PreguntaGuion, type Ritmo } from "@/lib/guion";
+import { AVISO_CALIDAD, EVITAR_MAXIMO, MAXIMO_FAMILIA, NOMBRE_RITMO, RITMOS, calidadDeFoto, type CalidadFoto, type PreguntaGuion, type Ritmo } from "@/lib/guion";
+import { medirImagen } from "@/lib/medir-imagen";
 
 // Las acciones del guion (docs/panel-usuario.md §6). Patrón de la casa: el
 // cliente llama a /api/guion o /api/fotos, y al volver refresca la página
 // para que el servidor vuelva a leer la verdad.
-
-const NOMBRE_RITMO: Record<Ritmo, { titulo: string; detalle: string }> = {
-  diario: { titulo: "Una por día", detalle: "A su hora, todos los días. Es el ritmo que más gente termina." },
-  dos_por_dia: { titulo: "Dos por día", detalle: "Una a la mañana y otra a la tarde. Para quien tiene ganas de contar." },
-  seguido: { titulo: "Apenas responde", detalle: "En cuanto termina una, le llega la siguiente. Puede terminar en pocos días." },
-};
 
 async function patchGuion(narradorId: string, cuerpo: Record<string, unknown>) {
   const r = await fetch(`/api/guion?narrador=${encodeURIComponent(narradorId)}`, {
@@ -23,19 +18,6 @@ async function patchGuion(narradorId: string, cuerpo: Record<string, unknown>) {
   const json = (await r.json().catch(() => ({}))) as { error?: string; ok?: boolean; pregunta?: { id: string } };
   if (!r.ok) throw new Error(json.error ?? "No pudimos guardar el cambio. Intenta de nuevo.");
   return json;
-}
-
-async function medirImagen(archivo: File): Promise<{ ancho: number; alto: number } | null> {
-  try {
-    const url = URL.createObjectURL(archivo);
-    const img = new Image();
-    img.src = url;
-    await img.decode();
-    URL.revokeObjectURL(url);
-    return { ancho: img.naturalWidth, alto: img.naturalHeight };
-  } catch {
-    return null; // si el navegador no la decodifica se sube igual, sin medir (el servidor valida el tipo)
-  }
 }
 
 async function subirFoto(
@@ -605,7 +587,7 @@ export function Ajustes({ narradorId, ritmo, evitar }: { narradorId: string; rit
       <div>
         <label className="flex flex-col gap-2">
           <span className="text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.24em]">Temas que no se preguntan</span>
-          <textarea value={textoEvitar} onChange={(e) => setTextoEvitar(e.target.value)} rows={3} className={campo} placeholder="Por ejemplo: no preguntar por su hermano Rubén. No hablar del accidente del 92." maxLength={1000} />
+          <textarea value={textoEvitar} onChange={(e) => setTextoEvitar(e.target.value)} rows={3} className={campo} placeholder="Por ejemplo: no preguntar por su hermano Rubén. No hablar del accidente del 92." maxLength={EVITAR_MAXIMO} />
         </label>
         <p className="mt-2 text-sm text-[var(--texto-menor)]">El biógrafo lo tiene presente en todas sus preguntas.</p>
         <div className="mt-3 flex items-center gap-3">

@@ -4,6 +4,7 @@ import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { narradorDeLaSesion, PUEDE, type Rol } from "@/lib/panel";
 import { calidadDeFoto, AVISO_CALIDAD, TAMANO_MAXIMO_BYTES, errorDeTipoDeFoto } from "@/lib/guion";
+import { verificarTokenFotos } from "@/lib/token-fotos";
 
 // Subir una foto (docs/panel-usuario.md §6.3 y §15.2). Con capítulo va a esa
 // época del libro; sin capítulo es "del libro" — candidata a tapa, contratapa
@@ -22,11 +23,30 @@ const EXTENSION: Record<string, string> = {
 
 export async function POST(request: NextRequest) {
   const admin = crearClienteServidor();
-  const acceso = await narradorDeLaSesion(await crearClienteSesion(), admin, request.nextUrl.searchParams, { mensajeError: GENERICO });
-  if (!acceso.ok) return NextResponse.json({ error: acceso.error }, { status: acceso.status });
-  const { narrador, rol, user } = acceso;
+  const params = request.nextUrl.searchParams;
 
-  if (!PUEDE.agregarPreguntasYFotos(rol as Rol)) return NextResponse.json({ error: "No autorizado." }, { status: 403 });
+  // Dos puertas: la sesión del panel, o el token del paso 5 de la compra
+  // (17/09) — quien compra todavía no tiene cuenta, pero /api/compra ya le
+  // creó el narrador y le firmó un permiso de una hora para ESE narrador.
+  let narrador: { id: string };
+  let subidaPor: string | null;
+  const token = params.get("token");
+  if (token) {
+    const narradorId = params.get("narrador") ?? "";
+    if (!narradorId || !verificarTokenFotos(token, narradorId)) return NextResponse.json({ error: "No autorizado." }, { status: 403 });
+    const { data: fila, error } = await admin.from("narradores").select("id, estado").eq("id", narradorId).maybeSingle();
+    if (error) { console.error("fotos: fallo buscar el narrador del token", error); return NextResponse.json({ error: GENERICO }, { status: 500 }); }
+    // Solo mientras la compra no se pagó: después, las fotos entran por el panel.
+    if (!fila || (fila as { estado: string }).estado !== "pendiente_pago") return NextResponse.json({ error: "No autorizado." }, { status: 403 });
+    narrador = { id: narradorId };
+    subidaPor = null;
+  } else {
+    const acceso = await narradorDeLaSesion(await crearClienteSesion(), admin, params, { mensajeError: GENERICO });
+    if (!acceso.ok) return NextResponse.json({ error: acceso.error }, { status: acceso.status });
+    if (!PUEDE.agregarPreguntasYFotos(acceso.rol as Rol)) return NextResponse.json({ error: "No autorizado." }, { status: 403 });
+    narrador = acceso.narrador;
+    subidaPor = acceso.user.id;
+  }
 
   // Las fotos se pueden seguir subiendo hasta cerrar el libro (aprobación), no solo hasta que termine la entrevista.
   const { data: fila } = await admin.from("narradores").select("libro_aprobado_at").eq("id", narrador.id).maybeSingle();
@@ -75,7 +95,7 @@ export async function POST(request: NextRequest) {
 
   const { error: errorFila } = await admin.from("fotos").insert({
     id, narrador_id: narrador.id, capitulo, storage_path: path, epigrafe, principal,
-    ancho_px: ancho, alto_px: alto, subida_por: user.id,
+    ancho_px: ancho, alto_px: alto, subida_por: subidaPor,
   });
   if (errorFila) {
     console.error("fotos: fallo la fila", errorFila);
