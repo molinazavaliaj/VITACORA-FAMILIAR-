@@ -18,6 +18,7 @@ libro sale mal, sale incompleto, o el cliente se pierde antes de llegar?
 | 1 | Trato "usted" por defecto con ficha vacía (y el checkout no pide la ficha) | Un cliente real llega con ficha vacía → preguntas genéricas y trato equivocado desde el día 1; el narrador no siente que lo escuchan |
 | 17 | Nombres propios mal transcriptos (NASA/Naza, Herrera/Herrero) | Van directo al texto del libro; un nombre mal escrito de un hijo o un amigo desvaloriza todo el producto. La revisión de nombres del panel es la única red |
 | 14 | La evaluación vuelve vacía (2 de 13 veces) y corta el proceso | En el flujo automático es un día perdido: sin repregunta y, según cómo falle, sin avance. Frecuencia demasiado alta para ignorar |
+| 31 | El biógrafo no se despide ni cierra solo al recibir la 30 si la evaluación falla (y en manual nunca sin `cerrar`) | El narrador queda esperando la pregunta 31; la fábrica no arranca; nadie avisa a la familia |
 | 28 | Las adaptativas 27-30 no se generan si falla la repregunta de la 26 (y `siguiente` da la entrevista por terminada en 26) | El narrador se queda sin las 4 preguntas hechas a su medida; el libro sale con huecos y nadie se entera |
 | 9 | Webhook de Mercado Pago sin verificar firma | Cualquiera que conozca la URL puede marcar pedidos como pagados (libro gratis) |
 
@@ -130,7 +131,7 @@ libro sale mal, sale incompleto, o el cliente se pierde antes de llegar?
     `personalizar.ts` anclando demasiado en lo previo. *Para repasar*: pedirle que
     ancle en UNA cosa, no en tres, y que nombre el tema nuevo primero.
 
-14. **16/09 · `✖ Claude no devolvió texto` al evaluar la respuesta 7** (y otra vez el 17/09 en la 13 y en la 20: ya son 3 de 20 — no es un caso raro). La respuesta
+14. **16/09 · `✖ Claude no devolvió texto` al evaluar la respuesta 7** (y otra vez el 17/09 en la 13, la 20 y la 30: 4 de 30 — no es un caso raro). La respuesta
     se subió, se insertó y se transcribió bien (34 s, corta); la llamada de
     evaluación (`evaluarRespuesta`, `src/ia/cerebro.ts`) volvió sin texto y
     `cargar` cortó ahí. `estado` la marca como "respuesta corta sin repregunta
@@ -303,6 +304,18 @@ libro sale mal, sale incompleto, o el cliente se pierde antes de llegar?
     quiénes ya no están (la familia lo sabe y es un dato que cambia todas las
     preguntas sobre esa persona); (c) revisar las 26 fijas con el mismo ojo (ver #27,
     "si tus nietos escucharan esto", que es la misma clase de suposición).
+
+31. **18/09 · EL BIÓGRAFO NO SE DESPIDE SOLO (Naza lo marcó como importante).**
+    Al cargar la última respuesta (30), `cargar` cortó con "Claude no devolvió
+    texto" (#14) y no llegó al bloque de cierre; pero aun sin ese fallo, la
+    puerta manual solo IMPRIME la despedida cuando alguien corre `cerrar`, y
+    `cargar` con la 30 no pone `completado` por sí mismo. Hubo que correr `cerrar
+    joaquin` a mano para tener el texto y el estado. En el flujo automático hay
+    que confirmar que al recibir la respuesta 30 el entrevistador (a) manda la
+    despedida por WhatsApp, (b) pone `completado`, y (c) dispara el mail
+    "terminó" de la fábrica — sin depender de que la evaluación haya salido bien.
+    *Para repasar*: el cierre tiene que ser el primer paso tras guardar la 30,
+    no el último tras la evaluación.
 
 ## Producción / infra (no es del entrevistador, pero salió en el camino)
 
