@@ -30,6 +30,20 @@ export type PreguntaGuion = {
   foto_id?: string | null;
 };
 
+/**
+ * Cuántas preguntas tiene el guion de un narrador: sus filas propias más las
+ * de la plantilla global (`narrador_id` null) que no pisan un orden propio.
+ * Un narrador de la puerta manual puede tener SOLO sus 4 adaptativas como
+ * filas propias y las 26 fijas en la plantilla — contar únicamente las
+ * propias daba "30 de 4" en Inicio (Naza, 17/09). Historias e Inicio usan esto.
+ */
+export function totalDelGuion(propias: { orden: number }[], globales: { orden: number }[], base = 30): number {
+  const ordenes = new Set<number>();
+  for (const p of globales) ordenes.add(p.orden);
+  for (const p of propias) ordenes.add(p.orden);
+  return ordenes.size > 0 ? ordenes.size : base;
+}
+
 /** Enviada = congelada. Las adaptativas tampoco se tocan: las escribe el cerebro. */
 export function esEditable(p: PreguntaGuion, diaActual: number): boolean {
   return p.orden > diaActual && p.tipo !== "adaptativa";

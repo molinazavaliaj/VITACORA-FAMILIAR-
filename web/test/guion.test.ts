@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   esEditable, validarTexto, lugarLibre, puedeAgregar, puedeSaltar, siguienteOrden,
-  renumerar, reordenar, calidadDeFoto, errorDeTipoDeFoto, MENSAJE_HEIC, MAXIMO_FAMILIA, PISO, type PreguntaGuion,
+  renumerar, reordenar, calidadDeFoto, errorDeTipoDeFoto, totalDelGuion, MENSAJE_HEIC, MAXIMO_FAMILIA, PISO, type PreguntaGuion,
 } from "../src/lib/guion";
 
 const fija = (orden: number, extra: Partial<PreguntaGuion> = {}): PreguntaGuion => ({
@@ -106,3 +106,20 @@ describe("errorDeTipoDeFoto", () => {
     expect(errorDeTipoDeFoto("application/pdf")).toBe("Tiene que ser una imagen (JPG, PNG o WebP).");
   });
 });
+
+describe("totalDelGuion — el mismo número en Inicio y en Historias", () => {
+  it("narrador de la puerta manual: 4 adaptativas propias + 26 fijas de la plantilla = 30 (no 4)", () => {
+    const propias = [27, 28, 29, 30].map((orden) => ({ orden }));
+    const globales = Array.from({ length: 26 }, (_, i) => ({ orden: i + 1 }));
+    expect(totalDelGuion(propias, globales)).toBe(30);
+  });
+
+  it("una propia que pisa un orden de la plantilla no cuenta dos veces", () => {
+    expect(totalDelGuion([{ orden: 3 }, { orden: 31 }], [{ orden: 1 }, { orden: 2 }, { orden: 3 }])).toBe(4);
+  });
+
+  it("sin filas de ningún lado, vale la base", () => {
+    expect(totalDelGuion([], [], 30)).toBe(30);
+  });
+});
+

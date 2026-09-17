@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { esPropia, historiaAccesible, historiasDelUsuario, PUEDE } from "@/lib/panel";
-import { ADAPTATIVAS, lugarLibre, puedeSaltar, validarRitmo, type PreguntaGuion, type Ritmo } from "@/lib/guion";
+import { ADAPTATIVAS, lugarLibre, puedeSaltar, totalDelGuion, validarRitmo, type PreguntaGuion, type Ritmo } from "@/lib/guion";
 import { BannerAlertaSilencio, CierreAnticipado } from "../acciones";
 import { AgregarPregunta, Ajustes, EditorGuion, SubirFoto, SugerirPreguntas } from "./preguntas/acciones";
 import { GaleriaCapitulo, type FotoVista } from "./fotos";
@@ -144,7 +144,7 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
   for (const p of (globales as Pregunta[] | null) ?? []) porOrden.set(p.orden, p);
   for (const p of (propias as Pregunta[] | null) ?? []) porOrden.set(p.orden, p);
   const guion = [...porOrden.values()].sort((a, b) => a.orden - b.orden);
-  const total = guion.length > 0 ? guion.length : TOTAL_PREGUNTAS_BASE;
+  const total = totalDelGuion(guion, [], TOTAL_PREGUNTAS_BASE); // el mismo cálculo que Inicio
 
   const respuestasPorOrden = new Map<number, RespuestaVista[]>();
   for (const r of (respuestas as RespuestaVista[] | null) ?? []) {

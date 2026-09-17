@@ -4,6 +4,7 @@ import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { esPropia, historiasDelUsuario, type Historia } from "@/lib/panel";
 import { BannerAlertaSilencio } from "./acciones";
+import { totalDelGuion } from "@/lib/guion";
 import {
   BarraProgreso,
   Contenedor,
@@ -33,20 +34,26 @@ async function resumirHistoria(
   admin: ReturnType<typeof crearClienteServidor>,
   narradorId: string,
 ): Promise<Resumen> {
-  const [{ data: respuestas }, { count: totalPreguntas }, { data: paquete }] = await Promise.all([
+  const [{ data: respuestas }, { data: propias }, { data: globales }, { data: paquete }] = await Promise.all([
     admin
       .from("respuestas")
       .select("pregunta_orden, duracion_segundos, es_repregunta")
       .eq("narrador_id", narradorId),
-    admin.from("preguntas").select("id", { count: "exact", head: true }).eq("narrador_id", narradorId),
+    admin.from("preguntas").select("orden").eq("narrador_id", narradorId),
+    admin.from("preguntas").select("orden").is("narrador_id", null),
     admin.storage.from("audios").list(`${narradorId}/paquete`),
   ]);
 
   const filas = (respuestas as { pregunta_orden: number; duracion_segundos: number | null; es_repregunta: boolean }[] | null) ?? [];
   const ordenes = new Set(filas.filter((r) => !r.es_repregunta).map((r) => r.pregunta_orden));
   const segundos = filas.reduce((acc, r) => acc + (r.duracion_segundos ?? 0), 0);
-  // Si el guion propio todavía no se copió (narrador anterior a la migración), vale el de 30.
-  const total = totalPreguntas && totalPreguntas > 0 ? totalPreguntas : TOTAL_PREGUNTAS_BASE;
+  // El mismo total que Historias: propias + plantilla global (un narrador manual
+  // puede tener solo las 4 adaptativas como propias). Sin nada, vale el de 30.
+  const total = totalDelGuion(
+    (propias as { orden: number }[] | null) ?? [],
+    (globales as { orden: number }[] | null) ?? [],
+    TOTAL_PREGUNTAS_BASE,
+  );
   const tieneAnticipo = (paquete ?? []).some((a) => a.name.startsWith("anticipo"));
 
   return { respondidas: ordenes.size, total, segundos, tieneAnticipo };
