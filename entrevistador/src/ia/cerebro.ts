@@ -173,6 +173,43 @@ export async function detectarQueNoTuvo(
   return textoDe(respuesta).trim() === 'no_tuvo' ? 'no_tuvo' : 'normal';
 }
 
+export type VeredictoCierre =
+  | { tipo: 'nada' }
+  | { tipo: 'conto'; pregunta: string; capitulo: string }
+  | { tipo: 'tema'; tema: string; pregunta: string; capitulo: string };
+
+/**
+ * La respuesta a "¿hay algo que no le pregunté?" (cierre, 18/09). Tres salidas:
+ * contó la historia (queda como respuesta, con un pie de pregunta coherente),
+ * nombró un tema (se le arma UNA pregunta sobre eso), o dijo que no.
+ */
+export async function clasificarCierre(
+  comoLeDicen: string, transcripcion: string, capitulos: string[], historiaCompleta: string, evitar = '', trato: Trato = 'usted',
+): Promise<VeredictoCierre> {
+  const respuesta = await cliente.messages.create({
+    model: MODELO, max_tokens: 400, system: estiloCerebro(trato),
+    messages: [{
+      role: 'user',
+      content: `Sos el biógrafo de ${comoLeDicen}. Al final de la entrevista le preguntaste si había algo que no le preguntaste y que quiera en el libro. Respondió: "${transcripcion}"
+${evitar}
+Decidí UNA de tres:
+- "nada": dijo que no, que está todo, o no aportó nada.
+- "conto": contó directamente la historia o el recuerdo (hay material para el libro). Escribí "pregunta": una pregunta corta, en ${trato}, que suene a que vos se la hiciste y a la que esa respuesta contesta (es el pie que va en el libro); y "capitulo": en cuál va.
+- "tema": nombró un tema, una persona o una época pero NO la contó ("preguntame por…", "me faltó hablar de…"). Escribí "tema" (dos o tres palabras), "pregunta": una sola pregunta cálida, en ${trato}, sobre eso, que muestre que lo escuchaste (podés referir lo que ya contó), y "capitulo".
+
+Capítulos del libro: ${capitulos.join(', ')}.
+Lo que ya contó (para no repetir y para el capítulo): ${historiaCompleta.slice(0, 6000)}
+
+Respondé SOLO con JSON: {"tipo": "nada"} | {"tipo": "conto", "pregunta": "...", "capitulo": "..."} | {"tipo": "tema", "tema": "...", "pregunta": "...", "capitulo": "..."}`,
+    }],
+  });
+  const v = extraerJson<VeredictoCierre>(textoDe(respuesta), { tipo: 'nada' })!;
+  const capituloOk = (c: unknown) => (typeof c === 'string' && capitulos.includes(c) ? c : capitulos[capitulos.length - 1] ?? 'Otros');
+  if (v.tipo === 'conto' && typeof v.pregunta === 'string' && v.pregunta.trim()) return { tipo: 'conto', pregunta: v.pregunta.trim(), capitulo: capituloOk(v.capitulo) };
+  if (v.tipo === 'tema' && typeof v.pregunta === 'string' && v.pregunta.trim()) return { tipo: 'tema', tema: String(v.tema ?? '').trim(), pregunta: v.pregunta.trim(), capitulo: capituloOk(v.capitulo) };
+  return { tipo: 'nada' };
+}
+
 export async function detectarIntencion(texto: string): Promise<'quiere_parar' | 'normal'> {
   const respuesta = await cliente.messages.create({
     model: MODELO, max_tokens: 50,

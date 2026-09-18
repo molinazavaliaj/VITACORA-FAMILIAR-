@@ -14,6 +14,7 @@ import { tratoDe } from '../ia/trato.js';
 import { bienvenidaAceptacion } from '../manual/puro.js';
 import { mandarHito } from '../mail/hitos.js';
 import { cerrarBitacora } from './cierre.js';
+import { esOrdenDeCierre, faseDeCierre } from './cierre-abierto.js';
 import { CLAVE_DEL_ARBOL, capituloNoAplica, enviarPregunta, ritmoDe, type Narrador } from './preguntar.js';
 import { bienvenidaPideVoz } from '../config.js';
 
@@ -212,7 +213,8 @@ async function trasResponder(
     // Bitácora 35: si en «Los hijos» o «El amor» dice que no tuvo, se anota en el
     // árbol (las que siguen del capítulo se reemplazan) y NO se repregunta sobre eso.
     const noTuvo = await anotarSiNoTuvo(narrador, orden, pregunta, transcripcion);
-    const evaluacion = noTuvo
+    // La pregunta de cierre ("¿faltó algo?") no se evalúa ni se repregunta: la lee faseDeCierre.
+    const evaluacion = noTuvo || esOrdenDeCierre(narrador.contexto, orden)
       ? { suficiente: true as const }
       : await evaluarRespuesta(pregunta, transcripcion, duracionSegundos, textoEvitar(narrador.contexto), await tratoDe(narrador));
     if (!evaluacion.suficiente && evaluacion.repregunta && !(await yaSeRepregunto(narrador.id, orden))) {
@@ -235,9 +237,11 @@ async function trasResponder(
     await generarPreguntasAdaptativas(narrador.id);
   }
 
-  // Paso 7: si acaba de responder la última pregunta que existe para él,
-  // se despide y queda 'completado'.
+  // Paso 7: si acaba de responder la última pregunta que existe para él, antes
+  // de despedirse le pregunta si faltó algo (cierre-abierto, hasta dos vueltas).
+  // Si de ahí sale otra pregunta, la entrevista sigue; si no, queda 'completado'.
   if (await esLaUltimaPregunta(narrador.id, orden)) {
+    if (!esRepregunta && (await faseDeCierre(narrador, orden, transcripcion))) return;
     await cerrarBitacora(narrador.id);
     return;
   }

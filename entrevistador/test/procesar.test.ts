@@ -14,6 +14,7 @@ const mocks = vi.hoisted(() => ({
   enviarPregunta: vi.fn(),
   mandarHito: vi.fn(),
   detectarQueNoTuvo: vi.fn(),
+  faseDeCierre: vi.fn(),
   estado: { narrador: null as any, enviosRepregunta: [] as any[], capturas: [] as any[], ultimoOrden: 30, tieneAdaptativas: true, ofertas: [] as any[], preguntasHoy: [] as any[], capituloVigente: 'La infancia' },
 }));
 
@@ -73,6 +74,11 @@ vi.mock('../src/db/guion.js', () => ({
   preguntaDeOrden: async () => ({ texto: 'PREGUNTA_MOCK', capitulo: mocks.estado.capituloVigente }),
 }));
 vi.mock('../src/mail/hitos.js', () => ({ mandarHito: mocks.mandarHito }));
+// La pregunta de cierre (18/09): por defecto no hay más vueltas → se despide.
+vi.mock('../src/flujo/cierre-abierto.js', () => ({
+  faseDeCierre: mocks.faseDeCierre,
+  esOrdenDeCierre: (c: any, orden: number) => Array.isArray(c?.cierre?.ordenes) && c.cierre.ordenes.includes(orden),
+}));
 
 import { procesarEntrante } from '../src/flujo/procesar.js';
 
@@ -92,6 +98,8 @@ beforeEach(() => {
   mocks.mandarHito.mockReset();
   mocks.detectarQueNoTuvo.mockReset();
   mocks.detectarQueNoTuvo.mockResolvedValue('normal');
+  mocks.faseDeCierre.mockReset();
+  mocks.faseDeCierre.mockResolvedValue(false);
   for (const fn of [mocks.enviarTexto, mocks.descargarAudio, mocks.guardarRespuestaAudio, mocks.transcribirYActualizar, mocks.evaluarRespuesta, mocks.detectarIntencion, mocks.generarPreguntasAdaptativas, mocks.cerrarBitacora, mocks.enviarPregunta]) fn.mockReset();
   mocks.enviarTexto.mockResolvedValue('wamid.mock');
   mocks.descargarAudio.mockResolvedValue(Buffer.from('audio-falso'));
@@ -196,6 +204,26 @@ describe('procesarEntrante', () => {
     mocks.estado.capituloVigente = 'Los hijos';
     await procesarEntrante({ telefono: TEL, tipo: 'audio', mediaId: 'media-1', waMessageId: 'w' });
     expect(mocks.detectarQueNoTuvo).not.toHaveBeenCalled();
+  });
+
+  // La pregunta de cierre (18/09): al responder la última, antes de despedirse
+  // se le pregunta si faltó algo. Si de ahí sale otra pregunta, no cierra.
+  it('(f bis) si la fase de cierre manda otra pregunta, no se despide todavía', async () => {
+    mocks.estado.narrador = narradorEn('activo', 30);
+    mocks.faseDeCierre.mockResolvedValue(true);
+    await procesarEntrante({ telefono: TEL, tipo: 'audio', mediaId: 'media-1', waMessageId: 'w' });
+    expect(mocks.faseDeCierre).toHaveBeenCalledWith(expect.objectContaining({ id: 'n1' }), 30, expect.any(String));
+    expect(mocks.cerrarBitacora).not.toHaveBeenCalled();
+  });
+
+  it('(f ter) la respuesta a la pregunta de cierre no se evalúa ni se repregunta', async () => {
+    mocks.estado.narrador = narradorEn('activo', 31, { cierre: { vueltas: 1, ordenes: [31] } });
+    mocks.estado.ultimoOrden = 31;
+    mocks.evaluarRespuesta.mockResolvedValue({ suficiente: false, repregunta: '¿Y qué más?' });
+    await procesarEntrante({ telefono: TEL, tipo: 'audio', mediaId: 'media-1', waMessageId: 'w' });
+    expect(mocks.evaluarRespuesta).not.toHaveBeenCalled();
+    expect(mocks.enviarTexto).not.toHaveBeenCalled();
+    expect(mocks.cerrarBitacora).toHaveBeenCalled(); // faseDeCierre devolvió false: se despide
   });
 
   it('(e) al responder la ÚLTIMA del guion (sea la 26 o la 23) sin adaptativas, se generan las 4 y NO cierra', async () => {
