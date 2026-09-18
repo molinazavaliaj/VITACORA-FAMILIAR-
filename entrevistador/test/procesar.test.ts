@@ -13,7 +13,8 @@ const mocks = vi.hoisted(() => ({
   cerrarBitacora: vi.fn(),
   enviarPregunta: vi.fn(),
   mandarHito: vi.fn(),
-  estado: { narrador: null as any, enviosRepregunta: [] as any[], capturas: [] as any[], ultimoOrden: 30, tieneAdaptativas: true, ofertas: [] as any[], preguntasHoy: [] as any[] },
+  detectarQueNoTuvo: vi.fn(),
+  estado: { narrador: null as any, enviosRepregunta: [] as any[], capturas: [] as any[], ultimoOrden: 30, tieneAdaptativas: true, ofertas: [] as any[], preguntasHoy: [] as any[], capituloVigente: 'La infancia' },
 }));
 
 // Cliente de base falso: un "constructor de consultas" encadenable que resuelve
@@ -55,18 +56,21 @@ vi.mock('../src/db/respuestas.js', () => ({ guardarRespuestaAudio: mocks.guardar
 vi.mock('../src/ia/transcribir.js', () => ({ transcribirYActualizar: mocks.transcribirYActualizar, transcribir: vi.fn() }));
 vi.mock('../src/ia/cerebro.js', () => ({
   evaluarRespuesta: mocks.evaluarRespuesta, detectarIntencion: mocks.detectarIntencion, generarReconocimiento: vi.fn(),
+  detectarQueNoTuvo: mocks.detectarQueNoTuvo,
 }));
 vi.mock('../src/ia/adaptativas.js', () => ({ generarPreguntasAdaptativas: mocks.generarPreguntasAdaptativas }));
 vi.mock('../src/flujo/cierre.js', () => ({ cerrarBitacora: mocks.cerrarBitacora }));
 vi.mock('../src/flujo/preguntar.js', () => ({
   enviarPregunta: mocks.enviarPregunta,
+  CLAVE_DEL_ARBOL: { 'Los hijos': 'hijos', 'El amor': 'conyuge' },
+  capituloNoAplica: (c: any, cap: string) => (cap === 'Los hijos' && c?.arbol?.hijos === 'no tuvo') || (cap === 'El amor' && c?.arbol?.conyuge === 'no tuvo'),
   ritmoDe: (c: any) => (c?.ritmo === 'diario' || c?.ritmo === 'dos_por_dia' || c?.ritmo === 'seguido') ? c.ritmo : (c?.modoRapido === true ? 'seguido' : 'diario'),
 }));
 // El guion propio (14/09): la última pregunta que existe y si ya hay adaptativas.
 vi.mock('../src/db/guion.js', () => ({
   ultimoOrden: async () => mocks.estado.ultimoOrden,
   tieneAdaptativas: async () => mocks.estado.tieneAdaptativas,
-  preguntaDeOrden: async () => ({ texto: 'PREGUNTA_MOCK' }),
+  preguntaDeOrden: async () => ({ texto: 'PREGUNTA_MOCK', capitulo: mocks.estado.capituloVigente }),
 }));
 vi.mock('../src/mail/hitos.js', () => ({ mandarHito: mocks.mandarHito }));
 
@@ -84,7 +88,10 @@ beforeEach(() => {
   mocks.estado.tieneAdaptativas = true;
   mocks.estado.ofertas = [];
   mocks.estado.preguntasHoy = [];
+  mocks.estado.capituloVigente = 'La infancia';
   mocks.mandarHito.mockReset();
+  mocks.detectarQueNoTuvo.mockReset();
+  mocks.detectarQueNoTuvo.mockResolvedValue('normal');
   for (const fn of [mocks.enviarTexto, mocks.descargarAudio, mocks.guardarRespuestaAudio, mocks.transcribirYActualizar, mocks.evaluarRespuesta, mocks.detectarIntencion, mocks.generarPreguntasAdaptativas, mocks.cerrarBitacora, mocks.enviarPregunta]) fn.mockReset();
   mocks.enviarTexto.mockResolvedValue('wamid.mock');
   mocks.descargarAudio.mockResolvedValue(Buffer.from('audio-falso'));
@@ -159,6 +166,36 @@ describe('procesarEntrante', () => {
     expect(mocks.enviarTexto).toHaveBeenCalledTimes(1);
     expect(mocks.enviarTexto).toHaveBeenCalledWith(TEL, expect.stringContaining('sentía'));
     expect(insert('envios')?.p).toMatchObject({ tipo: 'repregunta', pregunta_orden: 5 });
+  });
+
+  // Bitácora 35: "no tengo hijos" en la 19 → no se repregunta sobre eso y queda
+  // anotado en el árbol, así las que siguen del capítulo se reemplazan.
+  it('(c bis) si en «Los hijos» dice que no tuvo, se anota arbol.hijos y no hay repregunta', async () => {
+    mocks.estado.narrador = narradorEn('activo', 19, { arbol: { padres: 'Juan y Rosa' } });
+    mocks.estado.capituloVigente = 'Los hijos';
+    mocks.transcribirYActualizar.mockResolvedValue({ texto: 'No, yo no tengo hijos.', duracionSegundos: 4 });
+    mocks.detectarQueNoTuvo.mockResolvedValue('no_tuvo');
+    mocks.evaluarRespuesta.mockResolvedValue({ suficiente: false, repregunta: '¿Y por qué no tuvo hijos?' });
+    await procesarEntrante({ telefono: TEL, tipo: 'audio', mediaId: 'media-1', waMessageId: 'w' });
+    expect(mocks.detectarQueNoTuvo).toHaveBeenCalledWith('Los hijos', 'PREGUNTA_MOCK', 'No, yo no tengo hijos.');
+    expect(mocks.evaluarRespuesta).not.toHaveBeenCalled();
+    expect(mocks.enviarTexto).not.toHaveBeenCalled();
+    const conArbol = mocks.estado.capturas.find((c) => c.op === 'update' && c.tabla === 'narradores' && c.p.contexto);
+    expect(conArbol?.p).toMatchObject({ contexto: { arbol: { padres: 'Juan y Rosa', hijos: 'no tuvo' } } });
+  });
+
+  it('(c ter) fuera de «Los hijos» y «El amor» no se pregunta al modelo si tuvo o no', async () => {
+    mocks.estado.narrador = narradorEn('activo', 5);
+    await procesarEntrante({ telefono: TEL, tipo: 'audio', mediaId: 'media-1', waMessageId: 'w' });
+    expect(mocks.detectarQueNoTuvo).not.toHaveBeenCalled();
+    expect(mocks.evaluarRespuesta).toHaveBeenCalled();
+  });
+
+  it('(c quater) si el árbol ya dice que no tuvo, no se vuelve a preguntar', async () => {
+    mocks.estado.narrador = narradorEn('activo', 20, { arbol: { hijos: 'no tuvo' } });
+    mocks.estado.capituloVigente = 'Los hijos';
+    await procesarEntrante({ telefono: TEL, tipo: 'audio', mediaId: 'media-1', waMessageId: 'w' });
+    expect(mocks.detectarQueNoTuvo).not.toHaveBeenCalled();
   });
 
   it('(e) al responder la ÚLTIMA del guion (sea la 26 o la 23) sin adaptativas, se generan las 4 y NO cierra', async () => {

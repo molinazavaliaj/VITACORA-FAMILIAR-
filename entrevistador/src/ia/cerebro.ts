@@ -151,6 +151,28 @@ export async function generarPreguntaReemplazo(
   return reemplazo;
 }
 
+/**
+ * Bitácora 35: Joaquín contestó "no tengo hijos" en la 19 y el biógrafo le
+ * preguntó igual "hábleme de cada uno de sus hijos". Cuando la respuesta de una
+ * pregunta de «Los hijos» o «El amor» dice que ese capítulo no existe en su
+ * vida, se anota en el árbol y las que siguen del capítulo se reemplazan (la
+ * misma regla que cuando la familia lo cargó al comprar). Ante la duda, 'normal':
+ * es peor saltear un capítulo que existe que hacer una pregunta de más.
+ */
+export async function detectarQueNoTuvo(
+  capitulo: string, pregunta: string, transcripcion: string,
+): Promise<'no_tuvo' | 'normal'> {
+  const que = capitulo === 'Los hijos' ? 'hijos' : 'pareja (novia, novio, esposa, esposo, matrimonio)';
+  const respuesta = await cliente.messages.create({
+    model: MODELO, max_tokens: 20,
+    messages: [{
+      role: 'user',
+      content: `Un narrador mayor responde por audio a la pregunta "${pregunta}" (capítulo «${capitulo}» de su biografía). Transcripción: "${transcripcion}".\n¿Dice CLARAMENTE que NUNCA tuvo ${que}? Respondé SOLO "no_tuvo" o "normal". Si tuvo y los perdió, si habla de otros, o ante cualquier duda: "normal".`,
+    }],
+  });
+  return textoDe(respuesta).trim() === 'no_tuvo' ? 'no_tuvo' : 'normal';
+}
+
 export async function detectarIntencion(texto: string): Promise<'quiere_parar' | 'normal'> {
   const respuesta = await cliente.messages.create({
     model: MODELO, max_tokens: 50,

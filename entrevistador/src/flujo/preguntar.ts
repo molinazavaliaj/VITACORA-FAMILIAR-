@@ -24,12 +24,17 @@ export type Narrador = {
   alerta_silencio: boolean;
 };
 
-/** Capítulos que no aplican a esta vida, según el árbol que cargó la familia. */
+/** Los dos capítulos que pueden no existir en una vida, y su clave en `contexto.arbol`. */
+export const CLAVE_DEL_ARBOL: Record<string, 'hijos' | 'conyuge'> = { 'Los hijos': 'hijos', 'El amor': 'conyuge' };
+
+/**
+ * Capítulos que no aplican a esta vida, según el árbol: lo carga la familia al
+ * comprar, o lo anota el propio biógrafo cuando el narrador dice que no tuvo
+ * (bitácora 35, `detectarQueNoTuvo`).
+ */
 export function capituloNoAplica(contexto: Record<string, any>, capitulo: string): boolean {
-  const arbol = contexto?.arbol ?? {};
-  if (capitulo === 'Los hijos' && arbol.hijos === 'no tuvo') return true;
-  if (capitulo === 'El amor' && arbol.conyuge === 'no tuvo') return true;
-  return false;
+  const clave = CLAVE_DEL_ARBOL[capitulo];
+  return Boolean(clave) && (contexto?.arbol ?? {})[clave] === 'no tuvo';
 }
 
 export type Ritmo = 'diario' | 'dos_por_dia' | 'seguido';
@@ -54,16 +59,26 @@ export async function preguntaDeOrden(narradorId: string, orden: number): Promis
   return preguntaDelGuion(narradorId, orden);
 }
 
-/** Genera y guarda una pregunta personalizada que reemplaza a la fija que no aplica. */
-async function crearReemplazo(n: Narrador, orden: number, capituloQueNoAplica: string): Promise<string> {
+/**
+ * Genera y guarda una pregunta personalizada que reemplaza a la fija que no aplica.
+ * Si la fija es de la plantilla global, se inserta la propia con el mismo orden
+ * (la propia pisa a la global); si ya es una fila propia del narrador (guion
+ * copiado al editarlo en el panel), se reescribe esa misma fila.
+ */
+async function crearReemplazo(n: Narrador, pregunta: PreguntaDelGuion): Promise<string> {
+  const capituloQueNoAplica = pregunta.capitulo;
   const capitulos = (await capitulosDe(n.id)).filter((c) => c !== capituloQueNoAplica);
   const nueva = await generarPreguntaReemplazo(
     n.como_le_dicen, await armarHistoria(n.id), capitulos, capituloQueNoAplica, textoEvitar(n.contexto),
     await tratoDe(n),
   );
-  await db.from('preguntas').insert({
-    narrador_id: n.id, orden, texto: nueva.texto, capitulo: nueva.capitulo, tipo: 'adaptativa',
-  });
+  if (pregunta.narrador_id === null) {
+    await db.from('preguntas').insert({
+      narrador_id: n.id, orden: pregunta.orden, texto: nueva.texto, capitulo: nueva.capitulo, tipo: 'adaptativa',
+    });
+  } else {
+    await db.from('preguntas').update({ texto: nueva.texto, capitulo: nueva.capitulo, tipo: 'adaptativa' }).eq('id', pregunta.id);
+  }
   return nueva.texto;
 }
 
@@ -114,9 +129,10 @@ export async function enviarPregunta(
   if (!pregunta) return false; // no hay más preguntas: el cierre lo maneja procesar
 
   let texto = pregunta.texto;
-  // Regla de reemplazo: el capítulo no aplica a esta vida y todavía no hay reemplazo propio.
-  if (pregunta.narrador_id === null && capituloNoAplica(n.contexto, pregunta.capitulo)) {
-    texto = await crearReemplazo(n, orden, pregunta.capitulo);
+  // Regla de reemplazo: el capítulo no aplica a esta vida. Vale para la fija de la
+  // plantilla y para la fija propia (guion copiado); una adaptativa ya es reemplazo.
+  if (pregunta.tipo === 'fija' && capituloNoAplica(n.contexto, pregunta.capitulo)) {
+    texto = await crearReemplazo(n, pregunta);
   } else if (pregunta.tipo === 'fija') {
     // El biógrafo que escucha: las preguntas del guion se reescriben con lo que
     // el narrador ya contó ("¿a qué jugaba de chico?" → "con el Rubén y la Marta

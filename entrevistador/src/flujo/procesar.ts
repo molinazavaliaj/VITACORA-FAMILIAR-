@@ -6,7 +6,7 @@ import { variantesDeTelefono } from '../whatsapp/telefonos.js';
 import { guardarRespuestaAudio } from '../db/respuestas.js';
 import { guardarRepreguntaEnviada } from '../db/envios.js';
 import { transcribirYActualizar } from '../ia/transcribir.js';
-import { evaluarRespuesta, detectarIntencion } from '../ia/cerebro.js';
+import { evaluarRespuesta, detectarIntencion, detectarQueNoTuvo } from '../ia/cerebro.js';
 import { generarPreguntasAdaptativas } from '../ia/adaptativas.js';
 import { preguntaDeOrden, tieneAdaptativas, ultimoOrden } from '../db/guion.js';
 import { textoEvitar } from '../ia/evitar.js';
@@ -14,7 +14,7 @@ import { tratoDe } from '../ia/trato.js';
 import { bienvenidaAceptacion } from '../manual/puro.js';
 import { mandarHito } from '../mail/hitos.js';
 import { cerrarBitacora } from './cierre.js';
-import { enviarPregunta, ritmoDe, type Narrador } from './preguntar.js';
+import { CLAVE_DEL_ARBOL, capituloNoAplica, enviarPregunta, ritmoDe, type Narrador } from './preguntar.js';
 import { bienvenidaPideVoz } from '../config.js';
 
 const MAXIMO_POR_DIA_DOS = 2; // ritmo 'dos_por_dia': la segunda se ofrece, no se impone
@@ -209,9 +209,12 @@ async function trasResponder(
     if (total > 2 && orden === Math.ceil(total / 2)) await mandarHito(narrador, 'mitad');
 
     const pregunta = await textoDePregunta(narrador.id, orden);
-    const evaluacion = await evaluarRespuesta(
-      pregunta, transcripcion, duracionSegundos, textoEvitar(narrador.contexto), await tratoDe(narrador),
-    );
+    // Bitácora 35: si en «Los hijos» o «El amor» dice que no tuvo, se anota en el
+    // árbol (las que siguen del capítulo se reemplazan) y NO se repregunta sobre eso.
+    const noTuvo = await anotarSiNoTuvo(narrador, orden, pregunta, transcripcion);
+    const evaluacion = noTuvo
+      ? { suficiente: true as const }
+      : await evaluarRespuesta(pregunta, transcripcion, duracionSegundos, textoEvitar(narrador.contexto), await tratoDe(narrador));
     if (!evaluacion.suficiente && evaluacion.repregunta && !(await yaSeRepregunto(narrador.id, orden))) {
       const waId = await enviarTexto(narrador.telefono_whatsapp, evaluacion.repregunta);
       await db.from('envios').insert({
@@ -252,6 +255,34 @@ async function trasResponder(
     await enviarPregunta(narrador, orden + 1, { plantilla: false });
   } else if (ritmo === 'dos_por_dia' && (await preguntasEnviadasHoy(narrador)) < MAXIMO_POR_DIA_DOS) {
     await ofrecerSiguiente(narrador, orden);
+  }
+}
+
+/**
+ * Bitácora 35. Solo mira las preguntas de «Los hijos» y «El amor» cuyo capítulo
+ * todavía aplica. Si el narrador dice que nunca tuvo, escribe `arbol.hijos` /
+ * `arbol.conyuge = 'no tuvo'` (releyendo el contexto para no pisar a nadie) y lo
+ * refleja en el narrador en memoria, así la siguiente pregunta —que en modo
+ * seguido sale en este mismo turno— ya se reemplaza. Si el modelo falla, sigue
+ * como si nada: es una mejora, no una puerta.
+ */
+async function anotarSiNoTuvo(narrador: Narrador, orden: number, pregunta: string, transcripcion: string): Promise<boolean> {
+  try {
+    const fila = await preguntaDeOrden(narrador.id, orden);
+    const clave = fila ? CLAVE_DEL_ARBOL[fila.capitulo] : undefined;
+    if (!fila || !clave || capituloNoAplica(narrador.contexto, fila.capitulo)) return false;
+    if ((await detectarQueNoTuvo(fila.capitulo, pregunta, transcripcion)) !== 'no_tuvo') return false;
+
+    const { data } = await db.from('narradores').select('contexto').eq('id', narrador.id).maybeSingle();
+    const contexto = { ...(((data as { contexto?: Record<string, any> } | null)?.contexto) ?? {}) };
+    contexto.arbol = { ...(contexto.arbol ?? {}), [clave]: 'no tuvo' };
+    await db.from('narradores').update({ contexto }).eq('id', narrador.id);
+    narrador.contexto = { ...narrador.contexto, arbol: contexto.arbol };
+    console.log(`procesar: ${narrador.id} dijo que no tuvo ${clave} (orden ${orden}); el capítulo «${fila.capitulo}» se reemplaza de acá en más.`);
+    return true;
+  } catch (err) {
+    console.error(`procesar: no pude evaluar si ${narrador.id} dijo que no tuvo:`, err);
+    return false;
   }
 }
 
