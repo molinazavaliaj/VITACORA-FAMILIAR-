@@ -5,9 +5,17 @@ del narrador. Diseño: `docs/superpowers/specs/2026-09-16-voz-clonada-design.md`
 Plan de esta primera entrega (la prueba de oído):
 `docs/superpowers/plans/2026-09-16-voz-prueba-de-oido.md`.
 
-**Estado (16/09/2026):** existe la prueba de oído y existe el worker que sondea
-el buzón `narraciones` (`voz/worker.py`). Falta elegir el motor ganador con
-Joaquín y ponerlo en `MOTOR=` para arrancarlo.
+**Estado (18/09/2026):** motor elegido con Joaquín en la prueba de oído del 16/09:
+**`MOTOR=qwen3tts`** (Qwen3-TTS 1.7B; ~2,4× tiempo real en la 4060 Ti: un audiolibro
+de 90 min ≈ 3,5 h de GPU). La PC ya lo tiene en `.env` y el worker arranca; falta
+aplicar la migración `narraciones` (después del OK de Joaquín) y registrar la tarea
+programada. Notas de la prueba: F5-TTS salió al doble de velocidad porque recorta la
+referencia a 12 s y se queda con la transcripción de 21 s (si se le quiere dar otra
+chance: referencia ≤ 12 s con su transcripción exacta); Qwen3-TTS cambia un poco el
+timbre entre frases porque generamos frase por frase (corte a 220 caracteres en
+`voz/texto.py`) — mejora pendiente: subir el corte a 400-500 y/o normalizar volumen
+antes de pegar. En esa PC, torchcodec necesita las DLL de FFmpeg (build *shared*),
+agregadas al final del PATH de usuario en `C:itacora-vozfmpeg-shared\`.
 
 ## Qué hay
 
