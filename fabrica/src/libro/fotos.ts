@@ -11,8 +11,16 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Foto } from '../db.js';
 
-export type FotoLibro = { dataUri: string; epigrafe: string | null };
-export type FotosCapitulo = { apertura: FotoLibro | null; cierre: FotoLibro[] };
+/** El punto de la foto que tiene que quedar a la vista al recortarla al marco (0..1 por eje). */
+export type Foco = { x: number; y: number };
+export const FOCO_CENTRO: Foco = { x: 0.5, y: 0.5 };
+
+/** Dónde va la principal del capítulo: `arriba` = página propia después de la
+ *  portadilla (como siempre); `abajo` = dentro de la portadilla, debajo del título. */
+export type PosicionApertura = 'arriba' | 'abajo';
+
+export type FotoLibro = { dataUri: string; epigrafe: string | null; foco?: Foco };
+export type FotosCapitulo = { apertura: FotoLibro | null; posicionApertura?: PosicionApertura; cierre: FotoLibro[] };
 export type FotosDelLibro = {
   porCapitulo: Map<string, FotosCapitulo>;
   porId: Map<string, FotoLibro>;
@@ -39,6 +47,24 @@ function extensionDeRuta(ruta: string): string {
 
 export function mimeDeRuta(ruta: string): string {
   return MIME_POR_EXTENSION[extensionDeRuta(ruta)] ?? 'image/jpeg';
+}
+
+/**
+ * `fotos.foco` viene como jsonb que escribe la web; acá se vuelve un par de
+ * números seguros. Cualquier cosa que no sea `{x, y}` numérico → el centro
+ * (lo de siempre); fuera de 0..1 se recorta al borde. Nunca tira: un foco
+ * raro no puede frenar un libro.
+ */
+export function normalizarFoco(crudo: unknown): Foco {
+  if (typeof crudo !== 'object' || crudo === null) return { ...FOCO_CENTRO };
+  const { x, y } = crudo as { x?: unknown; y?: unknown };
+  if (typeof x !== 'number' || typeof y !== 'number' || Number.isNaN(x) || Number.isNaN(y)) return { ...FOCO_CENTRO };
+  const acotar = (v: number) => Math.min(1, Math.max(0, v));
+  return { x: acotar(x), y: acotar(y) };
+}
+
+function normalizarPosicion(cruda: unknown): PosicionApertura {
+  return cruda === 'abajo' ? 'abajo' : 'arriba';
 }
 
 /**
@@ -76,7 +102,7 @@ function enMb(bytes: number): string {
 export async function cargarFotos(db: SupabaseClient, narradorId: string): Promise<FotosDelLibro> {
   const { data, error } = await db
     .from('fotos')
-    .select('id, narrador_id, capitulo, storage_path, epigrafe, principal, orden')
+    .select('id, narrador_id, capitulo, storage_path, epigrafe, principal, orden, posicion, foco')
     .eq('narrador_id', narradorId)
     .order('orden', { ascending: true });
   if (error) throw new Error(`No se pudieron leer las fotos de ${narradorId}: ${error.message}`);
@@ -107,12 +133,18 @@ export async function cargarFotos(db: SupabaseClient, narradorId: string): Promi
       continue;
     }
     bytesEmbebidos += bytes.length;
-    const fotoLibro: FotoLibro = { dataUri: comoDataUri(foto.storage_path, bytes), epigrafe: foto.epigrafe?.trim() || null };
+    const fotoLibro: FotoLibro = {
+      dataUri: comoDataUri(foto.storage_path, bytes),
+      epigrafe: foto.epigrafe?.trim() || null,
+      foco: normalizarFoco(foto.foco),
+    };
     porId.set(foto.id, fotoLibro);
 
     const capitulo = porCapitulo.get(foto.capitulo) ?? { apertura: null, cierre: [] };
     if (foto.principal && capitulo.apertura === null) {
       capitulo.apertura = fotoLibro;
+      // La posición es de la principal; las de cierre la ignoran (CONTRATO).
+      capitulo.posicionApertura = normalizarPosicion(foto.posicion);
     } else {
       capitulo.cierre.push(fotoLibro);
     }

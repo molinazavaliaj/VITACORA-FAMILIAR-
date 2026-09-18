@@ -215,6 +215,7 @@ export async function generarPaquete(pedido: { id: string; narrador_id: string; 
       tapa: { titulo: edicion.titulo, subtitulo: edicion.subtitulo },
       anioNacimiento: contexto?.anioNacimiento ?? null,
       fotoUrl: fotoTapa?.dataUri ?? narrador.foto_url,
+      fotoFoco: fotoTapa?.foco,
       indice: estructuraFinal.capitulos.map((c) => c.nombre),
       libroMarkdown,
       fotosPorCapitulo,

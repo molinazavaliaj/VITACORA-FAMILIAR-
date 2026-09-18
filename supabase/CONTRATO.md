@@ -202,19 +202,24 @@ La fábrica aplica `ordenCapitulos`, `titulo`, `subtitulo` y `portadaFotoId`; **
 
 ## Dónde va y cómo se encuadra la foto del capítulo (migración 20260918 — PROPUESTA de Joaquín, 18/09)
 
-⚠️ **No aplicada.** La escribe la web, la lee la fábrica; Naza la revisa y la aplica cuando
-esté de acuerdo. Sale del piloto: la familia quiere decidir dónde queda la foto del
+✅ **Acordada el 18/09** (Naza la aplica en el SQL Editor). La escribe la web, la lee la fábrica. Sale del piloto: la familia quiere decidir dónde queda la foto del
 capítulo y que no se corte la cara al ajustarla al marco. Recorte libre queda para
 después; esto cubre lo que hace falta con dos campos chicos en `fotos`:
 
 | Columna | Tipo | Escribe | Lee | Qué es |
 |---|---|---|---|---|
-| `fotos.posicion` | text, `'arriba'` (default) o `'abajo'` | web | fábrica | Solo importa en la `principal` del capítulo: `arriba` = antes del título (como hoy); `abajo` = debajo del título, antes del texto. Las que cierran el capítulo no la usan. |
-| `fotos.foco` | jsonb `{"x": 0..1, "y": 0..1}`, default `{"x":0.5,"y":0.5}` | web | fábrica | El punto de la foto que tiene que quedar centrado cuando se recorta al marco (la cara, no el techo). En CSS: `object-fit: cover; object-position: <x*100>% <y*100>%`. Vale para todos los usos (portada de capítulo, tapa, contratapa, marco). |
+| `fotos.posicion` | text, `'arriba'` (default) o `'abajo'` | web | fábrica | Solo importa en la `principal` del capítulo. `arriba` = la foto ocupa **su propia página**, justo después de la portadilla del capítulo (la que tiene el numeral y el título), antes del texto — es lo que la fábrica hacía siempre. `abajo` = la foto va **dentro de la portadilla**, en la franja debajo del título; no hay página de foto aparte. Las que cierran el capítulo no la usan. |
+| `fotos.foco` | jsonb `{"x": 0..1, "y": 0..1}`, default `{"x":0.5,"y":0.5}` | web | fábrica | El punto de la foto que tiene que quedar a la vista cuando se recorta al marco (la cara, no el techo). En CSS: `object-fit: cover; object-position: <x*100>% <y*100>%`. |
 
-La fábrica sigue decidiendo el tamaño del marco; solo respeta el punto y el orden. La
-miniatura web muestra lo mismo con las mismas dos reglas, como **vista estimada** (el
-libro real se pagina después de encargarlo).
+**Qué se recorta y qué no (acordado 18/09, Naza + Joaquín):** la **principal del
+capítulo** se recorta al marco con `foco` (en las dos posiciones); la **tapa** se recorta
+con el `foco` de la foto elegida en el wizard; las **fotos de cierre** van **enteras**,
+sin recorte (son varias y ahí importa ver todo: la grupal, la carta, el documento) — su
+`foco` se guarda pero no se usa. La fábrica sigue decidiendo el tamaño del marco; solo
+respeta el punto y la posición. La miniatura web muestra lo mismo con estas reglas,
+como **vista estimada** (el libro real se pagina después de encargarlo). Un `foco` que
+no sea `{x, y}` numérico se toma como el centro; fuera de 0..1 se recorta al borde
+(`fabrica/src/libro/fotos.ts`, `normalizarFoco`).
 
 ## Storage — bucket privado `audios`
 

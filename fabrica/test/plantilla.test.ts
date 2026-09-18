@@ -211,6 +211,62 @@ describe('construirHtmlLibro — fotos por capítulo', () => {
     const html = construirHtmlLibro({ titulo: 'Rosa — x', indice: ['La infancia'], libroMarkdown: LIBRO, fotosPorCapitulo });
     expect(html).not.toContain('base64,A"');
   });
+
+  it('la de apertura se recorta al marco con su foco; las de cierre van enteras', () => {
+    const apertura = { ...foto('APERTURA', null), foco: { x: 0.3, y: 0.2 } };
+    const cierre = { ...foto('CIERRE', null), foco: { x: 0.9, y: 0.9 } };
+    const fotosPorCapitulo = new Map([['La infancia', { apertura, cierre: [cierre] }]]);
+    const html = construirHtmlLibro({ titulo: 'Rosa — x', indice: ['La infancia'], libroMarkdown: LIBRO, fotosPorCapitulo });
+    expect(html).toContain('<img class="foto-img recorte" src="data:image/jpeg;base64,APERTURA" style="object-position: 30% 20%" alt="" />');
+    expect(html).toContain('<img class="foto-img" src="data:image/jpeg;base64,CIERRE" alt="" />');
+    expect(html).not.toContain('object-position: 90% 90%');
+  });
+
+  it('sin foco la apertura se recorta desde el centro', () => {
+    const fotosPorCapitulo = new Map([['La infancia', { apertura: foto('APERTURA', null), cierre: [] }]]);
+    const html = construirHtmlLibro({ titulo: 'Rosa — x', indice: ['La infancia'], libroMarkdown: LIBRO, fotosPorCapitulo });
+    expect(html).toContain('base64,APERTURA" style="object-position: 50% 50%"');
+  });
+
+  it('posición abajo: la foto va en la portadilla del capítulo, debajo del título, y no hay página de foto aparte', () => {
+    const apertura = { ...foto('APERTURA', 'En el patio'), foco: { x: 0.3, y: 0.2 } };
+    const fotosPorCapitulo = new Map([
+      ['La infancia', { apertura, posicionApertura: 'abajo' as const, cierre: [foto('CIERRE', null)] }],
+    ]);
+    const html = construirHtmlLibro({ titulo: 'Rosa — x', indice: ['La infancia'], libroMarkdown: LIBRO, fotosPorCapitulo });
+    const iApertura = html.indexOf('class="lienzo apertura quiebre"');
+    const iNombre = html.indexOf('<div class="cap-nombre">La infancia</div>');
+    const iFoto = html.indexOf('base64,APERTURA');
+    const iFinApertura = html.indexOf('class="fuente-texto antes"', iNombre);
+    expect(iNombre).toBeGreaterThan(iApertura);
+    expect(iFoto).toBeGreaterThan(iNombre);
+    expect(iFoto).toBeLessThan(iFinApertura);
+    expect(html).toContain('<div class="apertura-foto"><img class="apertura-foto-img" src="data:image/jpeg;base64,APERTURA" style="object-position: 30% 20%" alt="" /></div>');
+    expect(html).toContain('<div class="apertura-foto-epigrafe">En el patio</div>');
+    // Solo la de cierre tiene página propia.
+    expect((html.match(/class="lienzo foto quiebre"/g) ?? []).length).toBe(1);
+  });
+
+  it('posición arriba (o sin posición): la foto tiene página propia después de la portadilla, como siempre', () => {
+    const fotosPorCapitulo = new Map([
+      ['La infancia', { apertura: foto('APERTURA', null), posicionApertura: 'arriba' as const, cierre: [] }],
+    ]);
+    const html = construirHtmlLibro({ titulo: 'Rosa — x', indice: ['La infancia'], libroMarkdown: LIBRO, fotosPorCapitulo });
+    expect(html).not.toContain('class="apertura-foto"');
+    expect((html.match(/class="lienzo foto quiebre"/g) ?? []).length).toBe(1);
+  });
+});
+
+describe('construirHtmlLibro — foco de la tapa', () => {
+  it('con foco, el frontispicio recorta alrededor de ese punto', () => {
+    const html = construir({ fotoFoco: { x: 0.3, y: 0.2 } });
+    expect(html).toContain('<img class="frontispicio-img" src="https://x/foto.jpg" style="object-position: 30% 20%" alt="" />');
+  });
+
+  it('sin foco, desde el centro', () => {
+    const html = construir();
+    expect(html).toContain('<img class="frontispicio-img" src="https://x/foto.jpg" style="object-position: 50% 50%" alt="" />');
+  });
 });
 
 describe('construirHtmlLibro — sin saludos', () => {

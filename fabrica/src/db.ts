@@ -56,6 +56,10 @@ export type Foto = {
   epigrafe: string | null;
   principal: boolean;
   orden: number;
+  /** 'arriba' (default) o 'abajo'; solo importa en la principal (CONTRATO, migración 20260918). */
+  posicion: string | null;
+  /** jsonb `{x, y}` en 0..1: el punto que queda a la vista al recortar. Se normaliza en fotos.ts. */
+  foco: unknown;
 };
 
 let cliente: SupabaseClient | undefined;
