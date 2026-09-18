@@ -443,6 +443,41 @@ Si se quiere ver el libro ANTES de la migración: solo el paso 4 sin el
 `audiolibro` (queda `null`) + el 5. Ojo: entregado así, la fábrica no vuelve a
 escribirlo; el audiolibro clonado saldría después con otro pedido.
 
+33. **18/09 · Ciro · el biógrafo pregunta por la infancia como si hubiera sido un lujo
+    (pedido de Naza: "tiene que de alguna manera saber si la vida de la persona fue
+    dura de infancia").** La pregunta 7 salió: "¿Qué tradiciones había? Las milanesas, la
+    chocolatada... ¿cómo eran los domingos, las fiestas con tu abuela Estela, tu tío, tus
+    primos?". Respuesta: "¿Cómo eran los domingos? Una mierda, amigo. Mi familia era un
+    desastre... Hay algo que vos no estás entendiendo... totalmente desarticulada... El
+    tío estaba re duro y la abuela queriendo rescatarlo... Esto no era una película de
+    Disney." **Las señales ya estaban** en las respuestas 2 y 2-bis: padre ausente con
+    drogas y alcohol, "todos los grandes se llevaban mal", se fue a los 12. El biógrafo
+    las tenía a la vista (entran en las últimas 6 respuestas) y aun así encuadró la
+    pregunta en clave nostálgica. Causas: (a) las 26 fijas están escritas para una
+    infancia feliz ("tradiciones", "fiestas", "travesuras que todavía lo hagan reír"), y
+    la personalización conserva ese encuadre porque su regla es enganchar detalles, no
+    leer el tono; (b) el prompt pide "cálido" y nada le dice que la calidez a veces es
+    no adornar; (c) ningún lugar guarda "cómo fue esta vida" — la memoria de capítulos
+    resume hechos, no el clima. *Para repasar*: que la memoria del biógrafo lleve una
+    línea de **tono** por capítulo ("infancia dura: padre ausente con adicciones, familia
+    desarticulada, tío con drogas") y que personalizar/adaptativas/repregunta la
+    reciban con una regla explícita: si la infancia fue dura, no preguntar por fiestas,
+    tradiciones ni domingos como si hubieran existido — preguntar qué había, quién
+    sostenía, qué se rescataba. Y revisar las 26 fijas con ese ojo.
+
+34. **18/09 · Ciro · la repregunta insiste donde el narrador acaba de decir "vamos por
+    otro lado".** En esa misma respuesta 7 dijo, literal: "mi tío se drogaba, o sea,
+    vamos por otro lado porque, porque por ahí, boludo". La repregunta que generó el
+    cerebro: "Me quedé con una imagen: su abuela Estela tratando de rescatar a su tío
+    en medio de un domingo. ¿Cómo era verla en eso...?" — va derecho al tío y a las
+    drogas, y encima en usted (la puerta manual evaluó contra la pregunta genérica, #18).
+    Es la #30 en su versión más clara: el narrador pidió cambiar de tema con esas
+    palabras y el biógrafo no lo escuchó. *Hecho a mano*: repregunta descartada.
+    *Para repasar*: en la evaluación, si la respuesta contiene un pedido explícito de
+    cambiar de tema ("vamos por otro lado", "no quiero hablar de eso", "dejemos eso"),
+    NO hay repregunta sobre ese tema, y ese tema entra solo a `contexto.evitar` para el
+    resto de la entrevista.
+
 ## Producción / infra (no es del entrevistador, pero salió en el camino)
 
 8. **15/09 · producción corría un build de 8 días** mientras `main` tenía todo el
