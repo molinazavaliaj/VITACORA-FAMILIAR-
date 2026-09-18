@@ -33,7 +33,7 @@ del próximo libro** (Osvaldo/Ciro salen ~USD 6 cada uno).
 |---|---|---|---|
 | 02/09 | Fable 5 | ~USD 15–17 | Osvaldo: primer libro completo + reintentos que re-pagaban capítulos (antes del fix de borradores) |
 | 06–08/09 | Fable / Haiku | centavos | pruebas chicas |
-| **12/09** | **Opus 4.6** | **~USD 22** | **NO es el producto**: nada en el repo usó nunca Opus 4.6. Alguna herramienta (Claude Code / IDE / Workbench) corrió con la key de Naza ese día. *Identificar en la consola: Usage → agrupar por API key.* Casi la mitad del gasto del mes. |
+| **12/09** | **Opus 4.6** | **~USD 22** | **NO es el producto**: nada en el repo usó nunca Opus 4.6. Causa casi segura, encontrada el 18/09: la key vieja estaba como **variable de entorno global de Windows** (`ANTHROPIC_API_KEY`, usuario) en la PC de Naza → cualquier Claude Code/IDE abierto desde terminal cobraba a la API en vez de a la suscripción. **Variable borrada el 18/09**; key vieja a revocar. *Confirmar en la consola: Usage → agrupar por API key.* Casi la mitad del gasto del mes. |
 | 13–17/09 | Haiku 4.5 + Opus 5 | ~USD 2 | entrevista de Joaquín (piloto manual desde la PC de Naza) |
 | 17/09 | Opus 5 + Fable 5 | ~USD 1,2 | cierre de la entrevista + estructura del libro |
 | 18/09 | Fable 5 | 0,61 → ~5,6 | libro de Joaquín (la consola atrasa) |
