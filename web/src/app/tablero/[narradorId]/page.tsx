@@ -319,12 +319,13 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
             ven "Leer su libro" cuando el libro está cerrado. */}
         {cerrado && (historiaCerrada || aprobado || !PUEDE.cerrarLibro(rol)) ? (
           <div className="mt-8 flex flex-col gap-3">
-            <ProximoPaso href={PUEDE.cerrarLibro(rol) ? `/tablero/${n.id}/libro` : `/tablero/${n.id}/leer`}>
-              {PUEDE.cerrarLibro(rol)
-                ? aprobado
-                  ? (propia ? "Tu libro está cerrado — mirá cómo va" : "Su libro está cerrado — mirá cómo va")
-                  : (propia ? "Dale los últimos retoques y encargá tu libro" : "Dale los últimos retoques y encargá su libro")
-                : "Leer su libro"}
+            {/* Libro encargado: dueña e invitados van al lector (que avisa si todavía se está armando). */}
+            <ProximoPaso href={aprobado || !PUEDE.cerrarLibro(rol) ? `/tablero/${n.id}/leer` : `/tablero/${n.id}/libro`}>
+              {aprobado
+                ? (propia ? "Leer tu libro y escuchar el audiolibro" : "Leer su libro y escuchar el audiolibro")
+                : PUEDE.cerrarLibro(rol)
+                  ? (propia ? "Dale los últimos retoques y encargá tu libro" : "Dale los últimos retoques y encargá su libro")
+                  : "Leer su libro"}
             </ProximoPaso>
             {historiaCerrada && !aprobado && PUEDE.cerrarLibro(rol) ? (
               <div className="flex items-center gap-3 text-[13px] text-[var(--texto-menor)]">

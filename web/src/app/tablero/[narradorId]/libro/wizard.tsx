@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import type { Edicion, EdicionCompleta } from "@/lib/edicion";
 
@@ -22,6 +22,8 @@ type Props = {
   fotos: FotoResumen[];
   nombresRevisados: boolean;
   propia?: boolean;
+  /** Lo que se puede sumar (impreso, marcos…): va en el paso Encargar, antes del botón, para verlo justo al cerrar (Joaquín, 18/09). */
+  upsell?: ReactNode;
 };
 
 const PASOS = ["Portada", "Capítulos", "Contenido", "Encargar"] as const;
@@ -43,7 +45,7 @@ async function guardarEdicion(narradorId: string, cambios: Edicion) {
   if (!r.ok) throw new Error(j.error ?? "No pudimos guardar.");
 }
 
-export function Wizard({ narradorId, nombre, edicion: inicial, capitulos, respuestas, fotos, nombresRevisados, propia = false }: Props) {
+export function Wizard({ narradorId, nombre, edicion: inicial, capitulos, respuestas, fotos, nombresRevisados, propia = false, upsell }: Props) {
   const router = useRouter();
   const [paso, setPaso] = useState(0);
   const [titulo, setTitulo] = useState(inicial.titulo);
@@ -57,12 +59,29 @@ export function Wizard({ narradorId, nombre, edicion: inicial, capitulos, respue
   const [ocupado, setOcupado] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Al cambiar de paso, la vista vuelve al principio del wizard: si venías
+  // scrolleado revisando 30 respuestas, el paso nuevo (más corto) quedaba fuera
+  // de la pantalla y no se veía el botón (Joaquín, 18/09).
+  function irAlPaso(p: number) {
+    setPaso(p);
+    requestAnimationFrame(() => document.getElementById("cerrar")?.scrollIntoView({ behavior: "smooth", block: "start" }));
+  }
+
+  // Lo que guarda cada paso. Se usa desde el botón de abajo y desde el de arriba.
+  const cambiosDelPaso: (Edicion | null)[] = [
+    { titulo, subtitulo, portadaFotoId },
+    { ordenCapitulos: orden, titulosCapitulos: titulos },
+    { excluidas: [...excluidas], correcciones },
+    null,
+  ];
+  const puedeSeguir = paso === 0 ? Boolean(titulo.trim()) : paso < 3;
+
   async function guardarYSeguir(cambios: Edicion) {
     setOcupado(true);
     setError(null);
     try {
       await guardarEdicion(narradorId, cambios);
-      setPaso((p) => Math.min(p + 1, PASOS.length - 1));
+      irAlPaso(Math.min(paso + 1, PASOS.length - 1));
       router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : "No pudimos guardar.");
@@ -83,6 +102,9 @@ export function Wizard({ narradorId, nombre, edicion: inicial, capitulos, respue
       });
       const j = (await r.json().catch(() => ({}))) as { error?: string };
       if (!r.ok) throw new Error(j.error ?? "No pudimos encargar el libro.");
+      // La pantalla de "¡Listo!" la arma la página con ?encargado=1, arriba de todo.
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      router.replace(`/tablero/${narradorId}/libro?encargado=1`);
       router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : "No pudimos encargar el libro.");
@@ -111,7 +133,7 @@ export function Wizard({ narradorId, nombre, edicion: inicial, capitulos, respue
             <button
               type="button"
               disabled={ocupado || i > paso}
-              onClick={() => setPaso(i)}
+              onClick={() => irAlPaso(i)}
               className={`${etiqueta} ${i === paso ? "text-[var(--texto)]" : ""} disabled:cursor-default`}
             >
               {i + 1}. {nombrePaso}
@@ -122,6 +144,14 @@ export function Wizard({ narradorId, nombre, edicion: inicial, capitulos, respue
       <div className="mt-2 h-[3px] w-full bg-[var(--hueco)]">
         <div className="h-full bg-[var(--texto)] transition-[width] duration-300 ease-out" style={{ width: `${((paso + 1) / PASOS.length) * 100}%` }} />
       </div>
+      {/* El mismo "Guardar y seguir" arriba: quien ya sabe lo que quiere no baja hasta el final (Joaquín, 18/09). */}
+      {paso < 3 ? (
+        <div className="mt-4 flex justify-end">
+          <button type="button" disabled={ocupado || !puedeSeguir} onClick={() => guardarYSeguir(cambiosDelPaso[paso]!)} className={secundario}>
+            {ocupado ? "Guardando…" : "Guardar y seguir →"}
+          </button>
+        </div>
+      ) : null}
 
       {/* ── 1 · Portada ─────────────────────────────────────────────── */}
       {paso === 0 ? (
@@ -176,7 +206,7 @@ export function Wizard({ narradorId, nombre, edicion: inicial, capitulos, respue
           </div>
 
           <div className="md:col-span-2 flex items-center gap-4">
-            <button type="button" disabled={ocupado || !titulo.trim()} onClick={() => guardarYSeguir({ titulo, subtitulo, portadaFotoId })} className={principal}>
+            <button type="button" disabled={ocupado || !titulo.trim()} onClick={() => guardarYSeguir(cambiosDelPaso[0]!)} className={principal}>
               {ocupado ? "Guardando…" : "Guardar y seguir"}
             </button>
           </div>
@@ -213,7 +243,7 @@ export function Wizard({ narradorId, nombre, edicion: inicial, capitulos, respue
             ))}
           </ol>
           <div className="flex items-center gap-4">
-            <button type="button" disabled={ocupado} onClick={() => guardarYSeguir({ ordenCapitulos: orden, titulosCapitulos: titulos })} className={principal}>
+            <button type="button" disabled={ocupado} onClick={() => guardarYSeguir(cambiosDelPaso[1]!)} className={principal}>
               {ocupado ? "Guardando…" : "Guardar y seguir"}
             </button>
             <button type="button" className={chico} onClick={() => setOrden(capitulos)}>Volver al orden del biógrafo</button>
@@ -279,7 +309,7 @@ export function Wizard({ narradorId, nombre, edicion: inicial, capitulos, respue
           </label>
 
           <div>
-            <button type="button" disabled={ocupado} onClick={() => guardarYSeguir({ excluidas: [...excluidas], correcciones })} className={principal}>
+            <button type="button" disabled={ocupado} onClick={() => guardarYSeguir(cambiosDelPaso[2]!)} className={principal}>
               {ocupado ? "Guardando…" : "Guardar y seguir"}
             </button>
           </div>
@@ -314,6 +344,9 @@ export function Wizard({ narradorId, nombre, edicion: inicial, capitulos, respue
             </label>
           </div>
 
+          {/* Lo que se puede sumar, justo antes de encargar: se ve sin scrollear hasta abajo. */}
+          {upsell ? <div className="rounded-xl border border-[var(--linea)] p-6">{upsell}</div> : null}
+
           {error ? <p className="text-sm text-[var(--alerta)]">{error}</p> : null}
 
           <div className="flex flex-wrap items-center gap-4">
@@ -321,7 +354,7 @@ export function Wizard({ narradorId, nombre, edicion: inicial, capitulos, respue
               {ocupado ? "Encargando…" : "Encargar"}
             </button>
             <span className="text-sm text-[var(--texto-menor)]">{propia ? "Tu libro" : `El libro de ${nombre}`}, tal como lo revisaste.</span>
-            <button type="button" className={chico} disabled={ocupado} onClick={() => setPaso(2)}>Volver a revisar</button>
+            <button type="button" className={chico} disabled={ocupado} onClick={() => irAlPaso(2)}>Volver a revisar</button>
           </div>
         </section>
       ) : null}

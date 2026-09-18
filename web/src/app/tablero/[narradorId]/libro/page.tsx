@@ -35,8 +35,9 @@ const NOMBRE_ESTADO_PEDIDO: Record<string, string> = {
   fallido: "el pago no se completó",
 };
 
-export default async function PaginaLibro({ params }: PageProps<"/tablero/[narradorId]/libro">) {
+export default async function PaginaLibro({ params, searchParams }: PageProps<"/tablero/[narradorId]/libro">) {
   const { narradorId } = await params;
+  const { encargado } = await searchParams; // ?encargado=1: recién apretó Encargar
 
   const supabase = await crearClienteSesion();
   const {
@@ -170,15 +171,24 @@ export default async function PaginaLibro({ params }: PageProps<"/tablero/[narra
       </p>
     );
   } else if (libroAprobadoAt) {
+    const recien = encargado === "1";
     estado = (
-      <Tarjeta className="mt-6 border-[var(--texto)]">
-        <Etiqueta>Encargado el {fechaCorta(libroAprobadoAt)}</Etiqueta>
+      <Tarjeta className={`mt-6 ${recien ? "border-[var(--acento)]" : "border-[var(--texto)]"}`}>
+        <Etiqueta>{recien ? "¡Listo!" : `Encargado el ${fechaCorta(libroAprobadoAt)}`}</Etiqueta>
+        {recien ? (
+          <p className="mt-2 text-2xl font-medium leading-tight [font-family:var(--fuente-titulo)]">
+            {propia ? "Tu libro quedó encargado." : `El libro de ${n.nombre} quedó encargado.`}
+          </p>
+        ) : null}
         <p className="mt-3 text-[16px] leading-relaxed text-[var(--texto-suave)]">
-          {propia ? "Tu libro" : `El libro de ${n.nombre}`} está en producción. Te avisamos por mail cuando esté listo.
+          Ya lo estamos armando: el texto, el audiolibro{yaTieneImpreso ? ", la impresión" : ""}. Tarda un rato; te avisamos por mail cuando esté. Se lee y se escucha acá mismo, en la web.
         </p>
-        <div className="mt-5">
+        <div className="mt-5 flex flex-wrap items-center gap-4">
           <ProximoPaso href={`/tablero/${n.id}/leer`}>Leer el libro y escuchar el audiolibro</ProximoPaso>
         </div>
+        <p className="mt-4 text-[14px] leading-relaxed text-[var(--texto-menor)]">
+          Quienes invitaste a la historia lo leen y lo escuchan desde su panel. Para el resto de la familia, el link para compartir está en la historia (botón <strong className="font-medium text-[var(--texto)]">Compartir</strong>): ven la muestra y pueden encargar su propio libro.
+        </p>
       </Tarjeta>
     );
   } else {
@@ -241,6 +251,7 @@ export default async function PaginaLibro({ params }: PageProps<"/tablero/[narra
             respuestas={resumen}
             fotos={fotos.map(({ id, epigrafe, capitulo }) => ({ id, epigrafe, capitulo }))}
             nombresRevisados={nombresRevisados}
+            upsell={<Extras narradorId={n.id} moneda={moneda} region={region} extras={extras} yaTieneImpreso={yaTieneImpreso} nube={nube} yaTiene={yaTiene} />}
           />
         </section>
       ) : null}
@@ -273,9 +284,12 @@ export default async function PaginaLibro({ params }: PageProps<"/tablero/[narra
         )}
       </section>
 
-      <section className="mt-14 border-t border-[var(--linea)] pt-10">
-        <Extras narradorId={n.id} moneda={moneda} region={region} extras={extras} yaTieneImpreso={yaTieneImpreso} nube={nube} yaTiene={yaTiene} />
-      </section>
+      {/* Sumar algo: mientras se edita va adentro del paso Encargar; el resto del tiempo, acá abajo. */}
+      {!(terminado && !libroAprobadoAt) ? (
+        <section className="mt-14 border-t border-[var(--linea)] pt-10">
+          <Extras narradorId={n.id} moneda={moneda} region={region} extras={extras} yaTieneImpreso={yaTieneImpreso} nube={nube} yaTiene={yaTiene} />
+        </section>
+      ) : null}
     </ConRiel>
   );
 }
