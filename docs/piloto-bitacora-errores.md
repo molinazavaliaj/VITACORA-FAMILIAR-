@@ -478,6 +478,21 @@ escribirlo; el audiolibro clonado saldría después con otro pedido.
     NO hay repregunta sobre ese tema, y ese tema entra solo a `contexto.evitar` para el
     resto de la entrevista.
 
+35. **18/09 · Ciro · la personalización repite lo recién contestado y lleva la pregunta
+    hacia las sustancias.** Respuesta 8: salidas de miércoles a domingo, "mucho vino,
+    mucha pastilla, mucho clonazepam", y que el Pelado Bausa y el Beto "no salíamos los
+    tres juntos, creo que nunca". Pregunta 9 generada: "...cumbia, rock and roll,
+    alcohol. ¿El Pelado Bausa y el Beto estaban en esa onda con vos? ¿Cómo era salir con
+    ellos?" — pregunta lo que acaba de decir que no pasó, y encuadra a los amigos desde
+    el alcohol. El hueco real ("los pibes de Chupín y Chombita", nombrados al pasar) no
+    lo tomó. A diferencia de #31, acá el personalizador SÍ tenía la respuesta 8 a la
+    vista: la regla "CONSERVÁ TODAS LAS PREGUNTAS del original" le pesa más que "no
+    repitas lo contado". *Hecho a mano*: reescrita por Naza/Claude sobre Chupín y
+    Chombita. *Para repasar*: (a) en personalizar, si una sub-pregunta del guion ya quedó
+    contestada en la respuesta anterior, se reemplaza por lo que quedó abierto, no se
+    repite; (b) el biógrafo no lidera con consumo de sustancias aunque el narrador las
+    haya nombrado — si él las trae, se escucha; no se convierten en el gancho.
+
 ## Producción / infra (no es del entrevistador, pero salió en el camino)
 
 8. **15/09 · producción corría un build de 8 días** mientras `main` tenía todo el
