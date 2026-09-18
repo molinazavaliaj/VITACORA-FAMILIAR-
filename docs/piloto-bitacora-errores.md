@@ -384,6 +384,25 @@ libro sale mal, sale incompleto, o el cliente se pierde antes de llegar?
     lista los capítulos por `ordenCapitulos` sin pasar por `titulosCapitulos`; la del
     panel sí los aplica.
 
+37. **18/09 · GRAVE · la fábrica vieja de Railway (#32) no estaba muerta: escribió
+    el libro de Joaquín sin aprobación, con voz real y con la key de Naza.** A las
+    12:14 UTC Joaquín marcó el pedido `pagado` con `audiolibro: "clonada"`. Dos
+    minutos después, la fábrica del proyecto viejo (`trickynoise/vitacora-familiar`,
+    código del 10/09: sin la puerta de `libro_aprobado_at` ni voz clonada) lo tomó y
+    escribió los 8 capítulos (12:16–12:22) **antes de que Naza cerrara el libro
+    (12:27)**, armó los 8 `audiolibro_cap_NN.mp3` con voz real (12:29) y se cayó a
+    las 12:30:43 subiendo `audiolibro_completo.mp3` ("exceeded the maximum allowed
+    size"). La nueva (`dazzling-friendship`) lo había visto "generando por otro
+    proceso" a las 12:16:08, lo devolvió a `pagado`, y después del cierre reusó los
+    borradores, corrió solo el editor (12:34), dejó `narracion.json` y la fila en
+    `narraciones` → `esperando_voz`. Costo: ~USD 4,5–5 en la key de Naza (la vieja
+    tenía la misma `ANTHROPIC_API_KEY` que `fabrica/.env`) + ~USD 1–1,5 en la key
+    de Joaquín (la nueva). **Apagada el 18/09 ~15:15 (hora España) con `railway
+    down` desde la cuenta de Naza**: deploy `4a3c4473` REMOVED; el proyecto y sus
+    variables siguen. *Para repasar*: borrar el proyecto viejo del todo y rotar la
+    key de Anthropic de Naza (estuvo cargada en un servicio que nadie miraba);
+    `ESTADO.md` con la regla "un solo proyecto de Railway".
+
 ## Estado del libro de Joaquín al 18/09 ~04:00 (para retomar sin adivinar)
 
 - Narrador `3691baf4…`: `completado`, 35 respuestas. `estructura.json` con 8

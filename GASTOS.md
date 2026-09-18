@@ -33,6 +33,28 @@
   Es repetible con `npm run prueba-cerebro` y se puede correr por secciones (A/B/C/D)
   para gastar menos.
 
+## Qué costó el libro de Joaquín (piloto, 14–18/09) — dos cuentas
+
+| Paso | Cuándo | Modelo | Cuenta | Estimado |
+|---|---|---|---|---|
+| Entrevista: 35 audios transcriptos, evaluación por respuesta, adaptativas, TTS de las preguntas | 14–17/09 | gpt-transcribe, Opus 5, Haiku 4.5, gpt-4o-mini-tts | Joaquín (entrevistador) | ~USD 1,15 |
+| Anticipo + estructura + previsualización (cap. 1 + muestra) | 15–18/09 | Fable 5 + TTS | Naza (la fábrica vieja seguía viva con su key) | ~USD 1,1 |
+| **8 capítulos** — los escribió la **fábrica vieja** (bitácora #37), sin aprobación | 18/09 12:16–12:22 UTC | Fable 5 | **Naza** | ~USD 4,5 |
+| Pasada de editor + PDF + `narracion.json` — fábrica nueva | 18/09 12:34 UTC | Fable 5 | **Joaquín** (key en `dazzling-friendship`) | ~USD 1–1,5 |
+| Voz clonada (qwen3tts en la PC de música) | pendiente | — | — | USD 0 |
+| **Total** | | | | **~USD 8** (≈ 5,6 Naza · 2,4 Joaquín) |
+
+Base del cálculo: Fable 5 a USD 10/M entrada y USD 50/M salida, sin caché de
+prompt; ~18K tokens de transcripciones que viajan enteros en cada capítulo
+(≈ USD 0,5–0,6 por capítulo). La consola de Anthropic atrasa horas: el 18/09 a
+las 15:00 la de Naza mostraba USD 0,61 del día. **Confirmar con las dos consolas
+a la noche** y corregir acá.
+
+Dos lecciones que ya están en la bitácora: (1) el proyecto viejo de Railway se
+apagó el 18/09 (`railway down`); un servicio olvidado con una key cargada gasta
+solo. (2) La organización única de Anthropic (pendiente de arriba) hubiera
+evitado sumar dos consolas.
+
 ## Costo unitario por cliente (ACTUALIZADO 2026-09-14 — reemplaza la tabla del 05/09)
 
 Lo que se optimizó desde el 05/09: se sacó el saludo diario generado por IA (era
