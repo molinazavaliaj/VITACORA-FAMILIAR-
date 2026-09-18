@@ -10,13 +10,18 @@ import { Toroide } from "../../../marca";
 // capítulo, las demás lo cierran). Pendiente 3t.8 (Naza): cuando la fábrica
 // exponga su HTML paginado, esta pieza lo muestra en vez de armarlo.
 
-export type FotoLibro = { id: string; epigrafe: string | null; principal: boolean };
+import { objectPosition, type Foco, type Posicion } from "@/lib/encuadre";
+
+/** `foco` y `posicion` (3b.6): cómo se recorta y dónde va la principal. Sin ellos: centro y arriba. */
+export type FotoLibro = { id: string; epigrafe: string | null; principal: boolean; foco?: Foco; posicion?: Posicion };
 export type CapituloLibro = { nombre: string; fotos: FotoLibro[]; textos: { pregunta: string; texto: string }[] };
 export type LibroDatos = {
   titulo: string;
   subtitulo: string;
   portadaFotoId: string | null;
   contratapaFotoId: string | null;
+  /** Encuadre de la tapa y la contratapa (las fotos del álbum también tienen foco). */
+  focos?: Record<string, Foco>;
   capitulos: CapituloLibro[];
   /** Solo si compró el impreso en blanco y negro: la miniatura se ve en gris, como se imprime (18/09). El PDF y el lector siempre a color. */
   blancoYNegro?: boolean;
@@ -72,9 +77,9 @@ export function armarPaginas(d: LibroDatos): Pagina[] {
 // Las fotos son a color: el gris solo cuando el impreso comprado es en blanco y negro
 // (se hereda del contenedor con `[&_img]:grayscale`, no por foto). Antes era gris siempre,
 // una decisión estética de la miniatura que confundía: "¿mis fotos quedan en gris?" (Naza, 17/09).
-function Foto({ id, className = "" }: { id: string; className?: string }) {
+function Foto({ id, foco, className = "" }: { id: string; foco?: Foco; className?: string }) {
   // eslint-disable-next-line @next/next/no-img-element
-  return <img src={`/api/fotos/${id}`} alt="" loading="lazy" className={`object-cover ${className}`} />;
+  return <img src={`/api/fotos/${id}`} alt="" loading="lazy" className={`object-cover ${className}`} style={{ objectPosition: objectPosition(foco) }} />;
 }
 
 function PaginaVista({ p, d, numero }: { p: Pagina; d: LibroDatos; numero: number }) {
@@ -84,7 +89,7 @@ function PaginaVista({ p, d, numero }: { p: Pagina; d: LibroDatos; numero: numbe
       return (
         <div className="flex h-full flex-col justify-between bg-[#14140F] p-5 text-white">
           <Toroide className="h-5 w-auto text-[#AEAEA6]" />
-          {d.portadaFotoId ? <Foto id={d.portadaFotoId} className="my-3 aspect-square w-full rounded-sm" /> : <span />}
+          {d.portadaFotoId ? <Foto id={d.portadaFotoId} foco={d.focos?.[d.portadaFotoId]} className="my-3 aspect-square w-full rounded-sm" /> : <span />}
           <div>
             <p className="text-[18px] leading-[1.1] [font-family:var(--fuente-titulo)] [text-wrap:balance]">{d.titulo}</p>
             <p className="mt-2 text-[9px] italic text-[#D4D4CE] [font-family:var(--fuente-cuerpo)]">{d.subtitulo}</p>
@@ -94,7 +99,7 @@ function PaginaVista({ p, d, numero }: { p: Pagina; d: LibroDatos; numero: numbe
     case "contratapa":
       return (
         <div className="flex h-full flex-col justify-between bg-[#14140F] p-5 text-white">
-          {d.contratapaFotoId ? <Foto id={d.contratapaFotoId} className="aspect-[4/5] w-full rounded-sm" /> : <span />}
+          {d.contratapaFotoId ? <Foto id={d.contratapaFotoId} foco={d.focos?.[d.contratapaFotoId]} className="aspect-[4/5] w-full rounded-sm" /> : <span />}
           <div className="flex items-end justify-between gap-3">
             <p className="text-[8px] leading-relaxed text-[#AEAEA6] [font-family:var(--fuente-micro)]">Acercá el teléfono al código y escuchá su voz.</p>
             <span aria-hidden className="h-9 w-9 shrink-0 rounded-sm border border-[#83837A] bg-[repeating-linear-gradient(0deg,#83837A_0_2px,transparent_2px_4px)]" />
@@ -119,11 +124,15 @@ function PaginaVista({ p, d, numero }: { p: Pagina; d: LibroDatos; numero: numbe
     case "capitulo": {
       const cap = d.capitulos[p.indice];
       const principal = cap.fotos.find((f) => f.principal) ?? null;
+      // 3b.6: la principal va arriba del título (default) o debajo, antes del texto. Misma regla que la fábrica.
+      const abajo = principal?.posicion === "abajo";
+      const fotoPrincipal = principal ? <Foto id={principal.id} foco={principal.foco} className={`${abajo ? "mt-3" : "mb-3"} aspect-[4/3] w-full rounded-sm`} /> : null;
       return (
         <div className="flex h-full flex-col p-5">
-          {principal ? <Foto id={principal.id} className="mb-3 aspect-[4/3] w-full rounded-sm" /> : null}
+          {!abajo ? fotoPrincipal : null}
           <p className="text-[8px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.28em]">Capítulo {p.indice + 1}</p>
           <p className="mt-1 text-[20px] leading-tight [font-family:var(--fuente-titulo)]">{cap.nombre}</p>
+          {abajo ? fotoPrincipal : null}
           {principal?.epigrafe ? <p className="mt-2 text-[8px] italic text-[var(--texto-menor)]">{principal.epigrafe}</p> : null}
           {cap.textos.length === 0 ? <p className="mt-4 text-[9px] italic text-[var(--texto-menor)]">Todavía no contó nada de esta época.</p> : null}
           {folio}
@@ -147,7 +156,9 @@ function PaginaVista({ p, d, numero }: { p: Pagina; d: LibroDatos; numero: numbe
           <div className={`grid gap-2 ${p.fotos.length > 1 ? "grid-cols-2" : "grid-cols-1"}`}>
             {p.fotos.map((f) => (
               <figure key={f.id} className="flex flex-col gap-1">
-                <Foto id={f.id} className="aspect-square w-full rounded-sm" />
+                {/* Las que cierran el capítulo van enteras, sin recorte (acuerdo con Naza, 18/09). */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={`/api/fotos/${f.id}`} alt="" loading="lazy" className="aspect-square w-full rounded-sm bg-[var(--hueco)] object-contain" />
                 {f.epigrafe ? <figcaption className="text-[7px] italic text-[var(--texto-menor)]">{f.epigrafe}</figcaption> : null}
               </figure>
             ))}

@@ -527,3 +527,14 @@ Naza). Ahora hay cuatro escalones (`calidadDeFoto`): **marco** ≥ 2400×3000 ·
 ≥ 800×1000 · **baja** (pixelada en cualquier tamaño). Solo *baja* es alerta roja; el resto
 informa. En Encargar libro, una *chica* puesta en portada/tapa avisa que ahí se vería pixelada.
 
+### 15.7 · Encuadrar y ubicar la foto (3b.6, 18/09)
+
+No es un recorte libre. En Encargar libro, cada lugar con foto (portada de capítulo,
+tapa, contratapa, marco) tiene **Encuadrar**: la familia toca el punto de la foto que
+tiene que quedar a la vista (la cara) y ve al lado cómo queda recortada a la proporción
+de ese lugar (capítulo 4:3, tapa 1:1, contratapa y marco 4:5). En la portada del
+capítulo elige además **arriba del título** (default) o **debajo del título, antes del
+texto**. Se guarda en `fotos.foco` (`{x,y}` 0..1) y `fotos.posicion`; la miniatura y la
+fábrica aplican lo mismo (`object-fit: cover; object-position`). Acordado con Naza: la
+principal se recorta con foco, las que cierran el capítulo van enteras, la tapa con foco.
+

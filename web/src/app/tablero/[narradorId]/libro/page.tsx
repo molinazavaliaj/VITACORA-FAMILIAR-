@@ -6,6 +6,7 @@ import { extrasDisponibles, productosDelPedido, NOMBRE_VOZ, type ProductosDelPed
 import { obtenerPrecio, obtenerPrecioAudiolibro } from "@/lib/precios";
 import { propuestaPorDefecto, type Edicion } from "@/lib/edicion";
 import { armarGuion, capitulosDelGuion } from "@/lib/guion";
+import { POSICION_DEFAULT, focoDe, validarPosicion } from "@/lib/encuadre";
 import { EstadoError, Etiqueta, ProximoPaso, Tarjeta, Titulo, fechaCorta } from "../../ui";
 import { ConRiel } from "../../riel";
 import { Wizard, type RespuestaResumen } from "./wizard";
@@ -109,7 +110,8 @@ export default async function PaginaLibro({ params, searchParams }: PageProps<"/
     admin.from("preguntas").select("orden, texto, capitulo").eq("narrador_id", n.id),
     admin.from("preguntas").select("orden, texto, capitulo").is("narrador_id", null),
     admin.from("respuestas").select("id, pregunta_orden, transcripcion, texto_directo, es_repregunta").eq("narrador_id", n.id).order("pregunta_orden"),
-    admin.from("fotos").select("id, epigrafe, capitulo, principal, orden, ancho_px, alto_px").eq("narrador_id", n.id).order("principal", { ascending: false }).order("orden"),
+    // `select("*")`: `posicion` y `foco` (3b.6) existen recién con la migración 20260918; pedirlos por nombre tiraría la página antes.
+    admin.from("fotos").select("*").eq("narrador_id", n.id).order("principal", { ascending: false }).order("orden"),
     admin.storage.from("audios").list(`${n.id}/paquete`),
   ]);
   // El guion entero: las 26 base son globales y las propias (adaptativas, de la
@@ -118,7 +120,10 @@ export default async function PaginaLibro({ params, searchParams }: PageProps<"/
   const guion = armarGuion(globales as PreguntaLibro[] | null, propias as PreguntaLibro[] | null);
   const porOrden = new Map(guion.map((p) => [p.orden, p]));
   const capitulos = capitulosDelGuion(guion);
-  const fotos = (fotosData as (FotoElegible & { principal: boolean })[] | null) ?? [];
+  // Encuadre (3b.6): siempre un foco usable y una posición válida, tenga o no la fila los campos.
+  const fotos = (((fotosData as (FotoElegible & { principal: boolean; foco?: unknown; posicion?: unknown })[] | null) ?? []).map((f) => ({
+    ...f, foco: focoDe(f.foco), posicion: validarPosicion(f.posicion) ? f.posicion : POSICION_DEFAULT,
+  })));
 
   const propuesta = propuestaPorDefecto(n.nombre, n.nombre, capitulos);
   const edicion = {
@@ -150,9 +155,10 @@ export default async function PaginaLibro({ params, searchParams }: PageProps<"/
     contratapaFotoId: edicion.contratapaFotoId,
     // Gris solo si lo único impreso que compró es en blanco y negro (si hay uno a color, se ve a color).
     blancoYNegro: productosPagados.some((p) => p.impreso === "bn") && !productosPagados.some((p) => p.impreso === "color"),
+    focos: Object.fromEntries(fotos.map((f) => [f.id, f.foco])),
     capitulos: edicion.ordenCapitulos.map((nombre) => ({
       nombre: edicion.titulosCapitulos[nombre]?.trim() || nombre,
-      fotos: fotos.filter((f) => f.capitulo === nombre).map((f) => ({ id: f.id, epigrafe: f.epigrafe, principal: f.principal })),
+      fotos: fotos.filter((f) => f.capitulo === nombre).map((f) => ({ id: f.id, epigrafe: f.epigrafe, principal: f.principal, foco: f.foco, posicion: f.posicion })),
       textos: contestadas
         .filter((r) => porOrden.get(r.pregunta_orden)?.capitulo === nombre)
         .map((r) => ({ pregunta: porOrden.get(r.pregunta_orden)?.texto ?? "", texto: (r.transcripcion ?? r.texto_directo ?? "").trim() }))
@@ -228,7 +234,7 @@ export default async function PaginaLibro({ params, searchParams }: PageProps<"/
         <div className="mt-6">
           <FotosDelLibro
             narradorId={n.id}
-            fotos={fotos.map(({ id, epigrafe, capitulo, principal, ancho_px, alto_px }) => ({ id, epigrafe, capitulo, principal, ancho_px, alto_px }))}
+            fotos={fotos.map(({ id, epigrafe, capitulo, principal, ancho_px, alto_px, foco, posicion }) => ({ id, epigrafe, capitulo, principal, ancho_px, alto_px, foco, posicion }))}
             capitulos={edicion.ordenCapitulos.map((c) => [c, edicion.titulosCapitulos[c]?.trim() || c] as [string, string])}
             elegidas={{ portadaFotoId: edicion.portadaFotoId, contratapaFotoId: edicion.contratapaFotoId }}
             marcosFotoIds={edicion.marcosFotoIds}

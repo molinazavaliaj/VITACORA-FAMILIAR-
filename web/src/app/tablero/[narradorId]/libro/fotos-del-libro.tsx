@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import { useRouter } from "next/navigation";
 import { calidadDeFoto, type CalidadFoto } from "@/lib/guion";
 import { SubirFoto } from "../preguntas/acciones";
+import { Encuadrar } from "./encuadrar";
+import { objectPosition, type Foco, type Posicion } from "@/lib/encuadre";
 
 // Las fotos del libro (docs/panel-usuario.md §15.2): arriba el ÁLBUM — las
 // que se subieron sin decidir todavía dónde van — y abajo los lugares donde
@@ -16,7 +18,7 @@ import { SubirFoto } from "../preguntas/acciones";
 // la foto (PATCH /api/fotos/[id]); elegirla para tapa, contratapa o marco
 // cambia narradores.edicion (PATCH /api/edicion).
 
-export type FotoElegible = { id: string; epigrafe: string | null; capitulo: string | null; principal: boolean; ancho_px: number | null; alto_px: number | null };
+export type FotoElegible = { id: string; epigrafe: string | null; capitulo: string | null; principal: boolean; ancho_px: number | null; alto_px: number | null; foco?: Foco; posicion?: Posicion };
 
 type Ranura = "portadaFotoId" | "contratapaFotoId";
 
@@ -35,9 +37,9 @@ function alcanza(f: FotoElegible, exige: CalidadFoto): string | null {
   return AVISO[calidad];
 }
 
-function Miniatura({ f, className = "" }: { f: FotoElegible; className?: string }) {
+function Miniatura({ f, className = "", style }: { f: FotoElegible; className?: string; style?: CSSProperties }) {
   // eslint-disable-next-line @next/next/no-img-element
-  return <img src={`/api/fotos/${f.id}`} alt="" loading="lazy" draggable={false} className={`object-cover ${className}`} />;
+  return <img src={`/api/fotos/${f.id}`} alt="" loading="lazy" draggable={false} className={`object-cover ${className}`} style={{ objectPosition: objectPosition(f.foco), ...style }} />;
 }
 
 export function FotosDelLibro({
@@ -118,37 +120,47 @@ export function FotosDelLibro({
       activo ? "border-[var(--texto)] bg-[var(--hueco)]" : "border-[var(--linea)] hover:border-[var(--linea-fuerte)]"
     }`;
 
+  const exigeDe = (d: Destino): CalidadFoto => (d.tipo === "marco" ? "marco" : "libro");
+  const nombreDe = (d: Destino) =>
+    d.tipo === "capitulo" ? `la portada de “${capitulos.find(([g]) => g === d.capitulo)?.[1] ?? d.capitulo}”` : d.tipo === "ranura" ? (d.ranura === "portadaFotoId" ? "la tapa" : "la contratapa") : `el marco ${d.indice + 1}`;
+
+  /** La proporción con la que se recorta en cada lugar (la misma que usa la miniatura). */
+  const proporcionDe = (d: Destino): string => (d.tipo === "capitulo" ? "4 / 3" : d.tipo === "marco" ? "4 / 5" : d.ranura === "portadaFotoId" ? "1 / 1" : "4 / 5");
+
   function Lugar({ destino, nombre, detalle, foto, exige }: { destino: Destino; nombre: string; detalle?: string; foto: FotoElegible | null; exige: CalidadFoto }) {
     const k = clave(destino);
     const activo = abierto !== null && clave(abierto) === k;
     const aviso = foto ? alcanza(foto, exige) : null;
     return (
-      <button
-        type="button"
-        disabled={!editable}
-        aria-expanded={abierto !== null && clave(abierto) === k}
-        onClick={() => setAbierto(abierto && clave(abierto) === k ? null : destino)}
-        className={`${lugar(activo)} disabled:cursor-default`}
-      >
-        <span className="flex items-center justify-between gap-2">
-          <span className="truncate text-[13px] font-medium [font-family:var(--fuente-micro)]">{nombre}</span>
-          {editable ? <span className="shrink-0 text-[11px] text-[var(--texto-menor)] [font-family:var(--fuente-micro)]">{foto ? "cambiar" : "elegir"}</span> : null}
-        </span>
-        {foto ? (
-          <Miniatura f={foto} className="aspect-[4/3] w-full rounded-md" />
-        ) : (
-          <span className="flex aspect-[4/3] w-full items-center justify-center rounded-md border border-dashed border-[var(--linea-fuerte)] text-[11px] text-[var(--texto-menor)] [font-family:var(--fuente-micro)]">
-            {editable ? "tocá para elegir" : "sin foto"}
+      <div className={lugar(activo)}>
+        <button
+          type="button"
+          disabled={!editable}
+          aria-expanded={abierto !== null && clave(abierto) === k}
+          onClick={() => setAbierto(abierto && clave(abierto) === k ? null : destino)}
+          className="flex flex-col gap-2 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--texto)] disabled:cursor-default"
+        >
+          <span className="flex items-center justify-between gap-2">
+            <span className="truncate text-[13px] font-medium [font-family:var(--fuente-micro)]">{nombre}</span>
+            {editable ? <span className="shrink-0 text-[11px] text-[var(--texto-menor)] [font-family:var(--fuente-micro)]">{foto ? "cambiar" : "elegir"}</span> : null}
           </span>
-        )}
-        {aviso || detalle ? <span className={`text-[11px] leading-snug ${aviso ? "text-[var(--alerta)]" : "text-[var(--texto-menor)]"}`}>{aviso ?? detalle}</span> : null}
-      </button>
+          {foto ? (
+            <Miniatura f={foto} className="w-full rounded-md" style={{ aspectRatio: proporcionDe(destino) }} />
+          ) : (
+            <span className="flex w-full items-center justify-center rounded-md border border-dashed border-[var(--linea-fuerte)] text-[11px] text-[var(--texto-menor)] [font-family:var(--fuente-micro)]" style={{ aspectRatio: proporcionDe(destino) }}>
+              {editable ? "tocá para elegir" : "sin foto"}
+            </span>
+          )}
+          {aviso || detalle ? <span className={`text-[11px] leading-snug ${aviso ? "text-[var(--alerta)]" : "text-[var(--texto-menor)]"}`}>{aviso ?? detalle}</span> : null}
+        </button>
+        {/* 3b.6: el punto que queda centrado (la cara) y, en el capítulo, arriba o debajo del título. */}
+        {foto && editable ? (
+          <Encuadrar foto={foto} proporcion={proporcionDe(destino)} conPosicion={destino.tipo === "capitulo"} nombreLugar={nombreDe(destino)} />
+        ) : null}
+      </div>
     );
   }
 
-  const exigeDe = (d: Destino): CalidadFoto => (d.tipo === "marco" ? "marco" : "libro");
-  const nombreDe = (d: Destino) =>
-    d.tipo === "capitulo" ? `la portada de “${capitulos.find(([g]) => g === d.capitulo)?.[1] ?? d.capitulo}”` : d.tipo === "ranura" ? (d.ranura === "portadaFotoId" ? "la tapa" : "la contratapa") : `el marco ${d.indice + 1}`;
 
   return (
     <div className="flex flex-col gap-8">
