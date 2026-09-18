@@ -3,6 +3,7 @@
 | Fecha | Concepto | Monto | Quién | Tipo |
 |---|---|---|---|---|
 | 2026-09-01 | Railway plan Hobby (infra: fábrica + futuro entrevistador) | USD 5/mes | Naza | Recurrente |
+| (antes del 01/09) | Crédito API Anthropic que Naza ya tenía cargado y que Vitácora se comió (Osvaldo, 02/09) | USD 20 | Naza | Consumible (previo) |
 | 2026-09-01 | Crédito API Anthropic (el escritor de los libros) | USD 10 | Naza | Consumible |
 | 2026-09-01 | Crédito API OpenAI (transcripción + voz del biógrafo) | USD 5 | Naza | Consumible |
 | 2026-09-05 | Dominio vitacorafamiliar (registro año 1) | 15€ | Naza | Recurrente (anual) |
@@ -11,14 +12,24 @@
 | 2026-09-08 | Prueba dirigida del cerebro contra el set dorado (`npm run prueba-cerebro`) | ~USD 1 | Joaquín | Consumible |
 | — | Vercel, Supabase, Resend, GitHub | USD 0 | — | Gratis (planes free) |
 
-**Total puesto hasta hoy: ~USD 20 + 35€ (Naza) + ~USD 10-20 (Joaquín)** + USD 5/mes de Railway.
+**Total puesto hasta hoy (18/09): USD 20 + 35€ (Naza, desde el 01/09) + USD 20 de crédito previo de Naza que el proyecto consumió + ~USD 10-20 (Joaquín)** + USD 5/mes de Railway (⚠️ el plan Hobby de Naza quedó sin proyectos el 18/09: cancelarlo).
 
 > Pendiente acordado: unificar las keys de IA en UNA organización de Anthropic del
 > proyecto (Naza invita a Joaquín como admin) para que el costeo por libro sea real
 > y nadie pague "su mitad del cerebro" por separado. La key de OpenAI (Whisper) de
 > Joaquín queda aparte — es chica, USD 5 rinden meses de transcripción.
 
-## Qué se consumió del crédito de Anthropic (~USD 8.50 de los 10)
+## Qué se consumió del crédito de Anthropic — CORREGIDO 18/09 con la consola
+
+- **02/09: USD 17,42 (Fable 5)** — primer libro completo de Osvaldo en producción + los
+  reintentos que re-pagaban capítulos antes del fix de borradores. El registro de abajo
+  decía ~8,50 estimados: la "matrícula" real fue ~13, no 4.
+- **18/09: ~USD 5,6** — libro de Joaquín (8 capítulos por la fábrica vieja + anticipo/estructura/preview);
+  la consola mostraba 0,61 a las 15:00 porque atrasa horas. Confirmar.
+- Días intermedios: pendiente de leer en la consola (Usage, 1–18 sept por día).
+- Crédito total cargado por Naza: 20 (previo) + 10 + 20€ ≈ USD 52. Saldo: ver Billing.
+
+### (registro viejo, estimado al 05/09 — quedó corto)
 
 - Prueba completa de Osvaldo: estructura + previsualización + libro completo ≈ USD 4.50
 - "Matrícula" de aprendizaje: reintentos que re-pagaban capítulos antes del fix de
