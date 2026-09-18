@@ -22,3 +22,14 @@ export function obtenerPrecioAudiolibro(region: Region): number | null {
   const monto = Number(crudo);
   return Number.isFinite(monto) && monto > 0 ? monto : null;
 }
+
+/**
+ * Vitácora de viaje (18/09): producto aparte, precio propio. Sin precio cargado
+ * no existe para el cliente, como los demás.
+ */
+export function obtenerPrecioViaje(region: Region): number | null {
+  const crudo = process.env[region === "ES" ? "PRECIO_VIAJE_EUR" : "PRECIO_VIAJE_ARS"];
+  if (!crudo) return null;
+  const monto = Number(crudo);
+  return Number.isFinite(monto) && monto > 0 ? monto : null;
+}

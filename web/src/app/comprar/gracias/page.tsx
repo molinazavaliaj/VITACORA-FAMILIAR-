@@ -14,7 +14,11 @@ const sourceSerif = Source_Serif_4({ subsets: ["latin"], weight: ["300", "400"],
 
 export const metadata: Metadata = { title: "Ya está en marcha", robots: { index: false } };
 
-export default function Gracias() {
+export default async function Gracias({ searchParams }: PageProps<"/comprar/gracias">) {
+  const { viaje } = await searchParams;
+  const esViaje = viaje === "1";
+  // El número del biógrafo, para que el viajero le escriba primero mientras no hay plantilla aprobada.
+  const numero = process.env.NEXT_PUBLIC_WA_NUMERO ?? null;
   return (
     <div className={`${playfair.variable} ${archivo.variable} ${sourceSerif.variable} flex flex-1 flex-col items-center justify-center bg-[#14140F] px-6 py-24 text-center text-white`}>
       <div className="w-full max-w-lg">
@@ -23,10 +27,16 @@ export default function Gracias() {
         <h1 className="mt-4 text-3xl leading-tight [font-family:var(--fuente-titulo)] font-medium sm:text-4xl">
           Gracias. Ya está en marcha.
         </h1>
-        <p className="mt-6 text-[17px] leading-[1.75] text-[#D4D4CE] [font-family:var(--fuente-cuerpo)] font-light">
-          En un rato le llega un mensaje nuestro por WhatsApp, contándole que lo
-          anotaste y pidiéndole permiso. No empieza nada hasta que diga que sí.
-        </p>
+        {esViaje ? (
+          <p className="mt-6 text-[17px] leading-[1.75] text-[#D4D4CE] [font-family:var(--fuente-cuerpo)] font-light">
+            Tu biógrafo de viaje se presenta por WhatsApp. {numero ? <>Para arrancar ya, mandale un <strong className="font-normal text-white">hola</strong> a <strong className="font-normal text-white">{numero}</strong>: te contesta y te pide el SÍ.</> : "Cuando te escriba, respondé SÍ y esa noche llega la primera pregunta."}
+          </p>
+        ) : (
+          <p className="mt-6 text-[17px] leading-[1.75] text-[#D4D4CE] [font-family:var(--fuente-cuerpo)] font-light">
+            En un rato le llega un mensaje nuestro por WhatsApp, contándole que lo
+            anotaste y pidiéndole permiso. No empieza nada hasta que diga que sí.
+          </p>
+        )}
         <p className="mt-4 text-[17px] leading-[1.75] text-[#D4D4CE] [font-family:var(--fuente-cuerpo)] font-light">
           Te mandamos un correo con todo esto y con cómo entrar a tu panel para
           seguir el libro día a día. Si no lo ves, mira en promociones o en spam.

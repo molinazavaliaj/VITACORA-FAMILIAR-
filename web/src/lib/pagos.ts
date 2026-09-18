@@ -13,6 +13,10 @@ import type { Compra } from "@/lib/productos";
 type Pedido = { id: string; email: string };
 
 export async function crearCheckout(pedido: Pedido, compra: Compra): Promise<{ urlPago: string }> {
+  // Vitácora de viaje: la pantalla de gracias explica cómo arrancar por WhatsApp, y "atrás" vuelve a su compra.
+  const esViaje = compra.lineas.some((l) => l.id === "viaje");
+  const sufijo = esViaje ? "?viaje=1" : "";
+  const vuelta = esViaje ? "/viaje" : "";
   const urlBase = process.env.URL_BASE;
 
   if (compra.region === "ES") {
@@ -32,8 +36,8 @@ export async function crearCheckout(pedido: Pedido, compra: Compra): Promise<{ u
         quantity: linea.cantidad,
       })),
       metadata: { pedido_id: pedido.id },
-      success_url: `${urlBase}/comprar/gracias`,
-      cancel_url: `${urlBase}/comprar`,
+      success_url: `${urlBase}/comprar/gracias${sufijo}`,
+      cancel_url: `${urlBase}/comprar${vuelta}`,
     });
 
     if (!session.url) {
@@ -56,8 +60,8 @@ export async function crearCheckout(pedido: Pedido, compra: Compra): Promise<{ u
       })),
       external_reference: pedido.id,
       back_urls: {
-        success: `${urlBase}/comprar/gracias`,
-        failure: `${urlBase}/comprar`,
+        success: `${urlBase}/comprar/gracias${sufijo}`,
+        failure: `${urlBase}/comprar${vuelta}`,
       },
       // MP rechaza auto_return si la URL de vuelta no es https pública (en
       // local, con localhost, tira "invalid_auto_return"). En producción va.

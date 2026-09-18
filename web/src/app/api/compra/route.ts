@@ -29,6 +29,7 @@ function leerProductos(crudo: Partial<ProductosElegidos> | undefined): Productos
     audiolibro: crudo?.audiolibro === "clonada" || crudo?.audiolibro === "narrador" ? crudo.audiolibro : null,
     impreso: crudo?.impreso === "bn" || crudo?.impreso === "color" ? crudo.impreso : null,
     marcos: typeof crudo?.marcos === "number" ? crudo.marcos : NADA_ELEGIDO.marcos,
+    viaje: crudo?.viaje === true,
   };
 }
 

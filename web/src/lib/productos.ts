@@ -8,12 +8,12 @@
 // decidido ni proveedor detrás ("nunca prometer lo que no hay", brief §7).
 // Prender uno es cargar su variable de entorno en Vercel — nada más.
 
-import { obtenerPrecio, obtenerPrecioAudiolibro, type Region } from "./precios";
+import { obtenerPrecio, obtenerPrecioAudiolibro, obtenerPrecioViaje, type Region } from "./precios";
 
 export type Moneda = "EUR" | "ARS";
 
 export type ExtraId = "impreso_bn" | "impreso_color" | "marco";
-export type ProductoId = "pdf" | "audiolibro" | ExtraId;
+export type ProductoId = "pdf" | "audiolibro" | "viaje" | ExtraId;
 
 /** Con qué voz se narra el audiolibro. "real" = pedidos anteriores al 13/09 (sus audios, tal cual). */
 export type Voz = "clonada" | "narrador" | "real";
@@ -33,9 +33,13 @@ export type ProductosElegidos = {
   audiolibro: Voz | null;
   impreso: "bn" | "color" | null;
   marcos: number;
+  /** Vitácora de viaje (18/09): producto aparte. Incluye el libro para leer en la web. */
+  viaje?: boolean;
 };
 
 export const NADA_ELEGIDO: ProductosElegidos = { pdf: false, audiolibro: null, impreso: null, marcos: 0 };
+export const NOMBRE_VIAJE = "Vitácora de viaje";
+export const DETALLE_VIAJE = "Tu biógrafo te escribe cada noche del viaje, guarda tus fotos y, al volver, tu viaje es un libro.";
 
 export const NOMBRE_PDF = "El libro en PDF";
 export const NOMBRE_AUDIOLIBRO = "El audiolibro";
@@ -126,6 +130,7 @@ export function catalogo(region: Region): Catalogo {
 export function validarProductos(region: Region, elegidos: ProductosElegidos): { ok: true } | { ok: false; mensaje: string } {
   const compra = calcularCompra(region, elegidos);
   const principal = compra.lineas.some((l) => l.id !== "marco");
+  if (elegidos.viaje && !compra.lineas.some((l) => l.id === "viaje")) return { ok: false, mensaje: "La Vitácora de viaje todavía no está disponible en tu región." };
   return principal ? { ok: true } : { ok: false, mensaje: "Elegí al menos uno: el libro en PDF, el audiolibro o el libro impreso." };
 }
 
@@ -140,6 +145,11 @@ export function calcularCompra(region: Region, elegidos: ProductosElegidos): Com
   const lineas: LineaDeCompra[] = [];
 
   if (elegidos.pdf) lineas.push({ id: "pdf", nombre: NOMBRE_PDF, cantidad: 1, precioUnitario: monto });
+
+  if (elegidos.viaje) {
+    const precio = obtenerPrecioViaje(region);
+    if (precio !== null) lineas.push({ id: "viaje", nombre: NOMBRE_VIAJE, cantidad: 1, precioUnitario: precio });
+  }
 
   if (elegidos.audiolibro) {
     const precio = obtenerPrecioAudiolibro(region);
@@ -171,17 +181,22 @@ export type ProductosDelPedido = {
   impreso: "bn" | "color" | null;
   copias: number;
   marcos: number;
+  /** 'viaje' = Vitácora de viaje (CONTRATO, 18/09): la fábrica arma el libro de viaje. Sin clave = biografía. */
+  tipo?: "viaje";
 };
 
 export function productosParaPedido(compra: Compra): ProductosDelPedido {
   const ids = new Set(compra.lineas.map((l) => l.id));
   const impreso = ids.has("impreso_color") ? "color" : ids.has("impreso_bn") ? "bn" : null;
+  const viaje = ids.has("viaje");
   return {
-    pdf: ids.has("pdf"),
+    // La Vitácora de viaje incluye el libro para leer en la web: pdf true, y tipo 'viaje'.
+    pdf: ids.has("pdf") || viaje,
     audiolibro: compra.lineas.find((l) => l.id === "audiolibro")?.voz ?? null,
     impreso,
     copias: impreso ? 1 : 0,
     marcos: compra.lineas.find((l) => l.id === "marco")?.cantidad ?? 0,
+    ...(viaje ? { tipo: "viaje" as const } : {}),
   };
 }
 
@@ -197,7 +212,7 @@ export function productosDelPedido(extras: unknown): ProductosDelPedido {
   const copias = typeof e.copias === "number" ? Math.max(0, Math.floor(e.copias)) : impreso ? 1 : 0;
   if (!("pdf" in e)) return { pdf: true, audiolibro: "real", impreso, copias, marcos };
   const voz = e.audiolibro === "clonada" || e.audiolibro === "narrador" || e.audiolibro === "real" ? e.audiolibro : null;
-  return { pdf: e.pdf === true, audiolibro: voz, impreso, copias, marcos };
+  return { pdf: e.pdf === true, audiolibro: voz, impreso, copias, marcos, ...(e.tipo === "viaje" ? { tipo: "viaje" as const } : {}) };
 }
 
 // ── Extras después de la compra (docs/panel-usuario.md §7.3) ───────────
@@ -232,6 +247,7 @@ export function calcularExtras(region: Region, elegidos: ExtrasPosteriores): Com
   const lineas: LineaDeCompra[] = [];
 
   if (elegidos.pdf) lineas.push({ id: "pdf", nombre: NOMBRE_PDF, cantidad: 1, precioUnitario: monto });
+
   if (elegidos.audiolibro) {
     const precio = obtenerPrecioAudiolibro(region);
     if (precio !== null) lineas.push({ id: "audiolibro", nombre: `${NOMBRE_AUDIOLIBRO}, ${NOMBRE_VOZ[elegidos.audiolibro]}`, cantidad: 1, precioUnitario: precio, voz: elegidos.audiolibro });

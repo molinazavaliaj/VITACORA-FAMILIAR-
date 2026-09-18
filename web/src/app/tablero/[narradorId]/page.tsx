@@ -9,6 +9,8 @@ import { AgregarPregunta, Ajustes, EditorGuion, SubirFoto, SugerirPreguntas } fr
 import { GaleriaCapitulo, type FotoVista } from "./fotos";
 import { Compartir, type InvitadoVista } from "./compartir";
 import { CerrarEdicion, ReabrirEdicion } from "./cerrar-edicion";
+import { EtapasDelViaje } from "./etapas";
+import type { Viaje } from "@/lib/viaje";
 import { Riel, type CapituloRiel } from "../riel";
 import { firmarTokenLibro } from "@/lib/token-libro";
 import { armarMuestra } from "@/lib/muestra";
@@ -514,6 +516,16 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
             </section>
           ) : null}
         </div>
+
+        {/* ── Vitácora de viaje: las etapas, vivas (solo el viajero, mientras dura el viaje) ── */}
+        {!cerrado && contexto.modo === "viaje" && contexto.viaje && PUEDE.cambiarRitmo(rol) ? (
+          <section className="mt-16 border-t border-[var(--linea)] pt-10">
+            <Etiqueta>Las etapas del viaje</Etiqueta>
+            <div className="mt-6">
+              <EtapasDelViaje narradorId={n.id} viaje={contexto.viaje as Viaje} />
+            </div>
+          </section>
+        ) : null}
 
         {/* ── Al final de todo: ajustes de la entrevista (solo dueña) ───── */}
         {!cerrado && PUEDE.cambiarRitmo(rol) ? (

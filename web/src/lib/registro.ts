@@ -3,6 +3,7 @@
 // para poder probarla sin mocks pesados.
 
 import { EVITAR_MAXIMO, validarRitmo } from './guion';
+import { validarViaje } from './viaje';
 
 export type Region = 'ES' | 'AR';
 
@@ -22,6 +23,8 @@ export interface ContextoInput {
   /** Paso 5 de la compra (17/09): los ajustes de la entrevista, los mismos que el panel. */
   ritmo?: string;
   evitar?: string;
+  /** Vitácora de viaje (18/09): salida, vuelta, etapas, compañía, propósito, ángulos. */
+  viaje?: unknown;
 }
 
 export interface NarradorInput {
@@ -225,6 +228,14 @@ export function validarYConstruir(body: RegistroBody): ResultadoValidacion {
   }
   if (esNoVacio(contexto.evitar)) {
     contextoFinal.evitar = contexto.evitar.trim().slice(0, EVITAR_MAXIMO);
+  }
+  // Vitácora de viaje: modo viaje, trato de vos, y el itinerario validado.
+  if (contexto.viaje !== undefined) {
+    const v = validarViaje(contexto.viaje);
+    if (!v.ok) return { ok: false, status: 400, mensaje: v.mensaje };
+    contextoFinal.modo = 'viaje';
+    contextoFinal.trato = 'vos';
+    contextoFinal.viaje = v.viaje;
   }
 
   return {

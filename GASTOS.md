@@ -158,6 +158,8 @@ vende solo el PDF con los defaults del código (ARS 49.999 / 49 €).
 | `RESEND_API_KEY` | La de la cuenta de Joaquín (15/09) | ✅ |
 | `URL_BASE` | `https://www.vitacorafamiliar.com` | ✅ |
 | `ENTREVISTADOR_URL` | `https://vitacora-familiar-production.up.railway.app` — para "Sugerime preguntas" | ☐ nueva, 16/09 |
+| `PRECIO_VIAJE_ARS` / `PRECIO_VIAJE_EUR` | Vitácora de viaje (18/09). Sin precio no se vende. | ☐ nueva, 18/09 |
+| `NEXT_PUBLIC_WA_NUMERO` | El número del biógrafo, para que el viajero escriba "hola" primero (gracias del viaje). Ej. `+1 (555) 182-9748` | ☐ nueva, 18/09 |
 | `SUGERIDAS_CLAVE` | La misma que en el servicio entrevistador de Railway (la generó Joaquín con `openssl rand -hex 24`) | ☐ nueva, 16/09 |
 
 Sin `ENTREVISTADOR_URL` + `SUGERIDAS_CLAVE` el botón existe pero dice "todavía no está

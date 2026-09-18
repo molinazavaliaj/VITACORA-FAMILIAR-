@@ -56,6 +56,17 @@ pedido. Un pedido posterior puede ser de un invitado (su propia `familia`, mismo
 `pdf: true, audiolibro: "real"` (la base vieja: PDF + audiolibro con sus audios) — la
 web usa `productosDelPedido()` para eso; la fábrica debe hacer lo mismo.
 
+**Vitácora de viaje (18/09, Joaquín — `docs/vitacora-de-viaje.md`):** un producto aparte.
+`pedidos.extras` lleva `tipo: "viaje"` (además de `pdf: true`); sin la clave es biografía.
+El narrador tiene `contexto.modo = "viaje"`, `contexto.trato = "vos"` y `contexto.viaje`
+(`salida`, `vuelta`, `etapas: [{nombre, desde?, hasta?}]`, `compania`, `proposito`,
+`angulos`). Su guion nace al SÍ: una pregunta por día, `capitulo` = la etapa del día
+(o "Por definir"); las fotos entran por WhatsApp a `fotos` con `capitulo` = la etapa y
+`subida_por` null. Para la fábrica, hoy, capítulo = etapa sale solo con el libro común;
+el layout de viaje (mapa, números, una foto por día) queda para cuando termine el
+primer viaje. El entrevistador escribe `contexto.viaje.etapas` **no**: lo edita la web
+(`/api/viaje`) y reasigna `preguntas.capitulo` de las órdenes por venir.
+
 **Para la fábrica (13/09):** `audiolibro: "clonada"` = narración en primera persona
 con la voz clonada de sus audios; `"narrador"` = TTS con una voz fija; `"real"` = como
 hasta ahora (sus audios). Nada se descarga: el PDF se lee y el audiolibro se escucha en
