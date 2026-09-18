@@ -18,7 +18,9 @@ libro sale mal, sale incompleto, o el cliente se pierde antes de llegar?
 | 1 | Trato "usted" por defecto con ficha vacía (y el checkout no pide la ficha) | Un cliente real llega con ficha vacía → preguntas genéricas y trato equivocado desde el día 1; el narrador no siente que lo escuchan |
 | 17 | Nombres propios mal transcriptos (NASA/Naza, Herrera/Herrero) | Van directo al texto del libro; un nombre mal escrito de un hijo o un amigo desvaloriza todo el producto. La revisión de nombres del panel es la única red |
 | 14 | La evaluación vuelve vacía (2 de 13 veces) y corta el proceso | En el flujo automático es un día perdido: sin repregunta y, según cómo falle, sin avance. Frecuencia demasiado alta para ignorar |
-| 34 | Cerrar libro y la muestra arman los capítulos solo con las 4 adaptativas del narrador, no con el guion entero (8) | El libro de Joaquín arrancaba por "Las pruebas" y tenía 4 capítulos; quedó guardado así en `edicion.ordenCapitulos`. **Arreglado el 18/09** (helper `armarGuion`); falta limpiar el dato a mano |
+| 34 | Cerrar libro y la muestra arman los capítulos solo con las 4 adaptativas del narrador, no con el guion entero (8) | El libro de Joaquín arrancaba por "Las pruebas" y tenía 4 capítulos; quedó guardado así en `edicion.ordenCapitulos`. **Arreglado el 18/09** (helper `armarGuion`) y el dato de Joaquín limpiado a mano esa noche |
+| 35 | El entrevistador hace las tres preguntas de "Los hijos" (19-21) aunque el narrador dijo que no tiene hijos | Joaquín contestó "no tengo hijos" en la 19 y le preguntaron igual "hábleme de cada uno de sus hijos" y "¿cómo fue usted como padre?"; él lo salvó hablando de los hermanos y de cómo lo crió el padre. En un cliente real es dolor gratuito (y peor si no tuvo hijos por una pérdida). **Del entrevistador (Joaquín)** |
+| 36 | La fábrica ignora `edicion.titulosCapitulos`: el título que la dueña le pone a un capítulo en el wizard no llega al libro | Joaquín puede renombrar "Los hijos" en el panel y la muestra lo refleja, pero el PDF/HTML, el índice y la intro del audiolibro ("Capítulo 6: Los hijos") salen con el nombre del guion. **De la fábrica**, sin arreglar |
 | 32 | La fábrica cambió de proyecto Railway sin dejarlo escrito; el viejo sigue vivo-muerto y engaña | Media hora de diagnóstico falso; sin healthcheck, una caída real tampoco se vería |
 | 31 | El biógrafo no se despide ni cierra solo al recibir la 30 si la evaluación falla (y en manual nunca sin `cerrar`) | El narrador queda esperando la pregunta 31; la fábrica no arranca; nadie avisa a la familia |
 | 28 | Las adaptativas 27-30 no se generan si falla la repregunta de la 26 (y `siguiente` da la entrevista por terminada en 26) | El narrador se queda sin las 4 preguntas hechas a su medida; el libro sale con huecos y nadie se entera |
@@ -352,6 +354,27 @@ libro sale mal, sale incompleto, o el cliente se pierde antes de llegar?
     el panel; el wizard y la muestra piden las dos consultas y las unen.
     *Datos*: limpiar `edicion.ordenCapitulos` de Joaquín a mano (o dejarlo en
     null para que vuelva a proponerse con los 8 capítulos).
+
+35. **18/09 · Joaquín · el entrevistador hace las tres preguntas de "Los hijos"
+    aunque el narrador ya dijo que no tiene.** En la 19 ("el día que nació su
+    primer hijo") Joaquín contestó "No, no tengo hijos" y el biógrafo siguió con
+    la 20 ("hábleme de cada uno de sus hijos") y la 21 ("¿cómo fue usted como
+    padre?") tal cual. Él las salvó: en la 20 habló de sus hermanos (Sol, Iñaki),
+    en la 21 de cómo lo crió el padre y qué repetiría. *Para repasar* (Joaquín,
+    3t.15): si en la 19 dice que no tiene hijos, saltear la 20 y reformular la 21
+    ("¿qué le gustaría darle a un hijo si lo tuviera?" / los hermanos / los
+    sobrinos), y que el capítulo se llame de otra manera en `estructura.json`.
+    *Mientras tanto*: la dueña renombra el capítulo en el wizard (ver 36).
+
+36. **18/09 · la fábrica no aplica `edicion.titulosCapitulos`.** El wizard de cerrar
+    libro tiene un paso para renombrar cada capítulo ("en el guion: Los hijos") y
+    lo guarda en `narradores.edicion.titulosCapitulos` (13/09), pero
+    `fabrica/src/libro/edicion.ts` aplica SOLO orden, título, subtítulo y tapa:
+    el nombre nuevo se ve en la muestra y no llega al libro. *Para repasar*
+    (fábrica): leer `titulosCapitulos` en `leerEdicion`, aplicarlo al armar
+    `estructuraFinal` en `generar-paquete.ts` (título del capítulo en el HTML/PDF
+    y el índice), a la intro TTS "Capítulo N: …" del audiolibro (real y clonado,
+    `ensamblar.ts`) y a `narracion.json` para el worker de voz. Con test.
 
 ## Producción / infra (no es del entrevistador, pero salió en el camino)
 
