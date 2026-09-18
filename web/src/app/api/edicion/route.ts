@@ -3,6 +3,7 @@ import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { narradorDeLaSesion } from "@/lib/panel";
 import { validarEdicion, type Edicion } from "@/lib/edicion";
+import { armarGuion, capitulosDelGuion } from "@/lib/guion";
 
 // La edición final y el cierre del libro (docs/panel-usuario.md §7.2 y Regla 0).
 //   PATCH → guarda lo que decidió (título, portada, orden, excluidas, correcciones)
@@ -60,11 +61,15 @@ export async function PATCH(request: NextRequest): Promise<NextResponse> {
   if (prep.error) return prep.error;
   const { admin, narrador, fila } = prep;
 
-  const [{ data: preguntas }, { data: respuestas }] = await Promise.all([
-    admin.from("preguntas").select("capitulo").eq("narrador_id", narrador.id),
+  // Los capítulos válidos salen del guion entero: las base son globales
+  // (narrador_id null) y el narrador solo tiene las suyas (bitácora 34).
+  const [{ data: propias }, { data: globales }, { data: respuestas }] = await Promise.all([
+    admin.from("preguntas").select("orden, capitulo").eq("narrador_id", narrador.id),
+    admin.from("preguntas").select("orden, capitulo").is("narrador_id", null),
     admin.from("respuestas").select("id").eq("narrador_id", narrador.id),
   ]);
-  const capitulosValidos = [...new Set(((preguntas as { capitulo: string }[] | null) ?? []).map((p) => p.capitulo))];
+  type PreguntaCapitulo = { orden: number; capitulo: string };
+  const capitulosValidos = capitulosDelGuion(armarGuion(globales as PreguntaCapitulo[] | null, propias as PreguntaCapitulo[] | null));
   const respuestasValidas = new Set(((respuestas as { id: string }[] | null) ?? []).map((r) => r.id));
 
   const v = validarEdicion(body, { capitulosValidos, respuestasValidas });

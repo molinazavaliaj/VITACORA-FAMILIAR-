@@ -59,7 +59,8 @@ function armar(narrador: Fila) {
   const { admin, updates } = crearAdmin({
     familias: [{ id: "fam-martina", region: "AR", auth_user_id: "u-martina" }],
     narradores: [{ id: "n1", nombre: "Alfredo", como_le_dicen: "Abuelo", alerta_silencio: false, familia_id: "fam-martina", created_at: "x", dia_actual: 30, edicion: {}, libro_aprobado_at: null, estado: "completado", ...narrador }],
-    preguntas: [{ narrador_id: "n1", capitulo: "La infancia" }, { narrador_id: "n1", capitulo: "El amor" }],
+    // Como en producción: las base son globales (narrador_id null) y el narrador solo tiene las adaptativas.
+    preguntas: [{ narrador_id: null, orden: 19, capitulo: "Los hijos" }, { narrador_id: "n1", orden: 27, capitulo: "La infancia" }, { narrador_id: "n1", orden: 28, capitulo: "El amor" }],
     respuestas: [{ narrador_id: "n1", id: "r1" }, { narrador_id: "n1", id: "r2" }],
     invitados: [],
   });
@@ -80,6 +81,14 @@ describe("PATCH /api/edicion", () => {
     expect(r.status).toBe(200);
     expect(updates[0]!.valores).toEqual({ edicion: { titulo: "Viejo", subtitulo: "Alfredo Pérez", excluidas: ["r2"] } });
   });
+  it("un capítulo del guion base (global) se puede renombrar y ordenar, no solo los de las adaptativas", async () => {
+    sesion(martina);
+    const updates = armar({});
+    const r = await PATCH(req({ titulosCapitulos: { "Los hijos": "Los hermanos" }, ordenCapitulos: ["Los hijos", "La infancia", "El amor"] }));
+    expect(r.status).toBe(200);
+    expect(updates[0]!.valores).toEqual({ edicion: { titulosCapitulos: { "Los hijos": "Los hermanos" }, ordenCapitulos: ["Los hijos", "La infancia", "El amor"] } });
+  });
+
   it("mientras la entrevista sigue, no se edita → 400", async () => {
     sesion(martina);
     armar({ estado: "activo" });
