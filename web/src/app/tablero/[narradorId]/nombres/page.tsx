@@ -3,6 +3,7 @@ import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { historiaAccesible, PUEDE } from "@/lib/panel";
 import { FormularioNombres } from "./acciones";
+import { citasDeNombre, type RespuestaConTexto } from "@/lib/citas";
 import { PasosDelLibro, VolverAlTablero } from "../../pasos";
 
 const MENSAJE_ERROR_CARGA = "No pudimos cargar los nombres. Actualiza la página en un momento.";
@@ -94,12 +95,22 @@ export default async function TableroNombres({ params }: PageProps<"/tablero/[na
     corregidosPorOriginal.set(correccion.original, cola);
   }
 
+  // La frase textual donde lo dijo (17/09): el "contexto" de la fábrica es una
+  // paráfrasis del modelo y no alcanza para acordarse qué se dijo. Se busca el
+  // nombre en las respuestas; si no aparece literal, queda la paráfrasis.
+  const { data: respuestasData } = await admin
+    .from("respuestas")
+    .select("pregunta_orden, transcripcion, texto_directo")
+    .eq("narrador_id", narrador.id);
+  const respuestas = (respuestasData as RespuestaConTexto[] | null) ?? [];
+
   const entidades = (estructura.entidades ?? []).map((entidad) => {
     const cola = corregidosPorOriginal.get(entidad.texto);
     const valorInicial = cola && cola.length > 0 ? cola.shift()! : entidad.texto;
     return {
       texto: entidad.texto,
       contexto: entidad.contexto,
+      citas: citasDeNombre(entidad.texto, respuestas),
       valorInicial,
     };
   });

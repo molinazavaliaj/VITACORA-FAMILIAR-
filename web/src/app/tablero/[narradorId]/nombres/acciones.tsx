@@ -3,10 +3,13 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { resaltar } from "@/lib/citas";
 
 export type EntidadPrefill = {
   texto: string;
   contexto: string;
+  /** Las oraciones donde lo dijo, con el número de pregunta (lib/citas). Vacío = solo la paráfrasis. */
+  citas?: { orden: number; frase: string }[];
   valorInicial: string;
 };
 
@@ -89,7 +92,27 @@ export function FormularioNombres({ entidades, narradorId }: { entidades: Entida
               <label className="text-sm font-medium text-[var(--texto)]" htmlFor={`nombre-${indice}`}>
                 {entidad.texto}
               </label>
-              <p className="text-xs text-[var(--texto-menor)]">{entidad.contexto}</p>
+              {(entidad.citas ?? []).length > 0 ? (
+                <ul className="mt-1 flex flex-col gap-1.5">
+                  {(entidad.citas ?? []).map((cita, j) => {
+                    const partes = resaltar(cita.frase, entidad.texto);
+                    return (
+                      <li key={j} className="flex gap-2 text-[13px] leading-snug text-[var(--texto-suave)]">
+                        <span className="shrink-0 text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.12em] tabular-nums">P{cita.orden}</span>
+                        <span className="italic">
+                          {partes ? (
+                            <>“{partes[0]}<mark className="rounded-sm bg-[var(--hueco)] px-0.5 not-italic font-medium text-[var(--texto)]">{partes[1]}</mark>{partes[2]}”</>
+                          ) : (
+                            <>“{cita.frase}”</>
+                          )}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              ) : (
+                <p className="text-xs text-[var(--texto-menor)]">{entidad.contexto}</p>
+              )}
               <input
                 id={`nombre-${indice}`}
                 type="text"
