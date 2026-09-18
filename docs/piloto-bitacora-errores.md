@@ -384,6 +384,46 @@ libro sale mal, sale incompleto, o el cliente se pierde antes de llegar?
     lista los capítulos por `ordenCapitulos` sin pasar por `titulosCapitulos`; la del
     panel sí los aplica.
 
+## Estado del libro de Joaquín al 18/09 ~04:00 (para retomar sin adivinar)
+
+- Narrador `3691baf4…`: `completado`, 35 respuestas. `estructura.json` con 8
+  capítulos (17/09 23:07), `preview.pdf` y `muestra_audiolibro.mp3` (18/09 01:05).
+- Edición guardada (18/09 ~03:45): los 8 capítulos en el orden del guion y
+  `titulosCapitulos = {"Los hijos": "La familia"}` (no tiene hijos; el capítulo
+  lleva a sus hermanos y cómo lo crió el padre — ver 35). El dato malo de 34 ya
+  se limpió a mano.
+- **Libro NO cerrado** (`libro_aprobado_at` null): falta la confirmación final
+  del wizard.
+- **Un pedido `pendiente`** (`3284c93c-14dc-40ac-bd58-5b66f7422fc2`, 18/09 03:38):
+  `{pdf: true, impreso: "bn", copias: 1, marcos: 1, audiolibro: null}`. Sin pago.
+- La fábrica no escribe nada hasta que el pedido esté `pagado` Y el libro cerrado.
+  No se gastó modelo todavía.
+
+Para hacer la prueba punta a punta CON la voz clonada, en este orden:
+
+1. Joaquín lee la sección "Narraciones (voz clonada)" de `supabase/CONTRATO.md`
+   y da el OK (Naza ya lo dio).
+2. Aplicar `supabase/migrations/20260917000000_narraciones.sql` en el SQL editor
+   de Supabase (entera; es idempotente). Con eso la fábrica deja de loguear
+   `PGRST205` en cada tick.
+3. Permiso de voz de Joaquín (a mano, hasta que el entrevistador lo escriba):
+   `update narradores set consentimiento_voz_at = now() where id = '3691baf4-ee78-4c6b-9238-4cbed1872be7';`
+4. El pedido, a mano (es lo que haría Mercado Pago):
+   `update pedidos set extras = extras || '{"audiolibro": "clonada"}', estado = 'pagado' where id = '3284c93c-14dc-40ac-bd58-5b66f7422fc2';`
+5. Joaquín cierra el libro en el panel (confirmación final del wizard).
+6. La fábrica (Railway, `fearless-kindness`, servicio `dazzling-friendship`, debe
+   estar en `fe2cd46` o posterior) escribe el libro en el próximo tick: PDF/HTML,
+   `narracion.json`, fila en `narraciones`, pedido → `esperando_voz`.
+7. En la PC de música: registrar la tarea `VitacoraVoz` (README de `voz/`, "El
+   worker") o correr `python -m voz.worker` a mano y mirar `logs\worker.log`.
+   ~3,5 h de GPU por 90 min de audio.
+8. La fábrica ensambla, pedido → `entregado`, mail de libro listo; el panel
+   reproduce. Pegar acá el log del worker y el `audiolibro_paths`.
+
+Si se quiere ver el libro ANTES de la migración: solo el paso 4 sin el
+`audiolibro` (queda `null`) + el 5. Ojo: entregado así, la fábrica no vuelve a
+escribirlo; el audiolibro clonado saldría después con otro pedido.
+
 ## Producción / infra (no es del entrevistador, pero salió en el camino)
 
 8. **15/09 · producción corría un build de 8 días** mientras `main` tenía todo el
