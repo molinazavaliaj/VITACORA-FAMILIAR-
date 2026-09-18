@@ -86,6 +86,12 @@ describe("calidadDeFoto", () => {
     expect(calidadDeFoto(1800, 1200)).toBe("libro");
     expect(calidadDeFoto(800, 600)).toBe("baja");
   });
+  it("una tapa de disco de 1500×1500 o una foto de 1920×1080 no son 'pixeladas': alcanzan a tamaño chico (Naza, 17/09)", () => {
+    expect(calidadDeFoto(1500, 1500)).toBe("chica");
+    expect(calidadDeFoto(1920, 1080)).toBe("chica");
+    expect(calidadDeFoto(1080, 1080)).toBe("chica");
+    expect(calidadDeFoto(640, 480)).toBe("baja");
+  });
   it(`la familia puede armar hasta ${MAXIMO_FAMILIA}`, () => {
     expect(MAXIMO_FAMILIA).toBe(36);
   });

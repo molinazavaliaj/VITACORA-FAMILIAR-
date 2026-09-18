@@ -15,6 +15,13 @@ export type Edicion = {
   titulosCapitulos?: Record<string, string>;
   excluidas?: string[]; // respuestas.id
   correcciones?: string;
+  /**
+   * "Cerrar edición del libro" en la historia (Joaquín, 17/09): cuando terminó
+   * de contar y la familia ya no quiere sumar fotos ni compartir desde ahí,
+   * cierra la historia y pasa a los últimos retoques en Encargar libro. Es
+   * reversible (no toca la fábrica: eso es `libro_aprobado_at`). null = abierta.
+   */
+  historiaCerradaEl?: string | null;
 };
 
 export const TITULO_MAXIMO = 80;
@@ -25,7 +32,8 @@ export const TITULO_CAPITULO_MAXIMO = 60;
 /** La propuesta de la casa: lo que se produce si ella no toca nada. */
 export const MARCOS_MAXIMO = 20;
 
-export type EdicionCompleta = Required<Omit<Edicion, "portadaFotoId" | "contratapaFotoId" | "marcoFotoId" | "titulosCapitulos" | "marcosFotoIds">> & {
+export type EdicionCompleta = Required<Omit<Edicion, "portadaFotoId" | "contratapaFotoId" | "marcoFotoId" | "titulosCapitulos" | "marcosFotoIds" | "historiaCerradaEl">> & {
+  historiaCerradaEl?: string | null;
   titulosCapitulos: Record<string, string>;
   marcosFotoIds: (string | null)[];
   portadaFotoId: string | null;
@@ -108,6 +116,11 @@ export function validarEdicion(
       if (v) limpio[cap] = v; // vacío = vuelve al del guion
     }
     cambios.titulosCapitulos = limpio;
+  }
+  if ("historiaCerradaEl" in e) {
+    const v = e.historiaCerradaEl;
+    if (v !== null && (typeof v !== "string" || Number.isNaN(Date.parse(v)))) return { ok: false, mensaje: "La fecha de cierre no es válida." };
+    cambios.historiaCerradaEl = v as string | null;
   }
   if ("ordenCapitulos" in e) {
     const lista = e.ordenCapitulos;

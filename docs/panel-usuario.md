@@ -421,8 +421,8 @@ Preguntas con el guion editable). Queda **una**.
   una, **el panel general de la historia**: todas las preguntas **numeradas por
   capítulo**, con la respuesta (audio + transcripción) debajo de las contestadas
   y "todavía no" en las que faltan.
-- Arriba a la derecha, dos botones: **Editar preguntas** y **Agregar fotos**.
-  - *Editar preguntas* pone en modo edición **todas las que vienen** (las
+- Arriba a la derecha, dos botones: **Agregar/Editar preguntas** y **Agregar fotos**.
+  - *Agregar/Editar preguntas* pone en modo edición **todas las que vienen** (las
     enviadas no se tocan, §6.1) —editar, sacar, mover— y suma la **burbuja de
     agregar una pregunta**, con foto opcional y a qué capítulo. "Listo" vuelve
     a la vista normal.
@@ -504,4 +504,26 @@ fotos a `/api/fotos?narrador=…&token=…` —sin sesión, solo mientras el nar
 `pendiente_pago`, `subida_por` queda vacío— y recién después redirige al proveedor de pago.
 Si una foto falla, no se va a pagar: se avisa, y al reintentar no se repite ni la compra
 (el narrador ya existe) ni las fotos ya subidas.
+
+### 15.5 · Cuando terminó de contar (17/09, pedido de Joaquín)
+
+- **El guion se cierra solo** al terminar (el biógrafo ya se despidió): el botón
+  *Agregar/Editar preguntas* queda en gris, con el porqué al pasar el mouse. No desaparece.
+- **Las fotos siguen abiertas** — desde la historia y también desde *Encargar libro*
+  (botón "+ Agregar fotos" en el álbum), que es donde se ve cómo queda el libro.
+- Aparece **Cerrar edición del libro** (solo la dueña). Al tocarlo la barra queda en gris
+  y recién ahí aparece el paso siguiente: "Dale los últimos retoques y encargá su libro".
+  Se guarda en `edicion.historiaCerradaEl`; es reversible ("Reabrir la edición") y **no
+  toca la fábrica** — lo definitivo sigue siendo *Cerrar libro* en Encargar libro
+  (`libro_aprobado_at`).
+- En modo edición, el botón **Listo** va abajo, después de "Sugerime preguntas".
+
+### 15.6 · Calidad de las fotos, recalibrada (17/09)
+
+Antes todo lo que no llegaba a página entera (1200×1800) salía en rojo como "pixelada":
+una tapa de disco de 1500×1500 o una foto de 1920×1080 asustaban sin motivo (lo vio
+Naza). Ahora hay cuatro escalones (`calidadDeFoto`): **marco** ≥ 2400×3000 · **libro**
+(página entera, tapa, portada de capítulo) ≥ 1200×1800 · **chica** (entre el texto)
+≥ 800×1000 · **baja** (pixelada en cualquier tamaño). Solo *baja* es alerta roja; el resto
+informa. En Encargar libro, una *chica* puesta en portada/tapa avisa que ahí se vería pixelada.
 

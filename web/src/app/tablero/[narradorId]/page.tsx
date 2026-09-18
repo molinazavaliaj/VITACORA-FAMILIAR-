@@ -8,6 +8,7 @@ import { BannerAlertaSilencio, CierreAnticipado } from "../acciones";
 import { AgregarPregunta, Ajustes, EditorGuion, SubirFoto, SugerirPreguntas } from "./preguntas/acciones";
 import { GaleriaCapitulo, type FotoVista } from "./fotos";
 import { Compartir, type InvitadoVista } from "./compartir";
+import { CerrarEdicion, ReabrirEdicion } from "./cerrar-edicion";
 import { Riel, type CapituloRiel } from "../riel";
 import { firmarTokenLibro } from "@/lib/token-libro";
 import { armarMuestra } from "@/lib/muestra";
@@ -122,7 +123,7 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
     rol === "duena"
       ? admin.from("invitados").select("id, email, aceptado_at, rol").eq("narrador_id", n.id).order("created_at")
       : Promise.resolve({ data: null }),
-    admin.from("narradores").select("contexto, libro_aprobado_at").eq("id", n.id).maybeSingle(),
+    admin.from("narradores").select("contexto, libro_aprobado_at, edicion").eq("id", n.id).maybeSingle(),
     historiasDelUsuario(admin, user),
   ]);
 
@@ -131,8 +132,11 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
     return <EstadoError />;
   }
 
-  const fila = (filaNarrador as { contexto?: Record<string, unknown>; libro_aprobado_at?: string | null } | null) ?? {};
+  const fila = (filaNarrador as { contexto?: Record<string, unknown>; libro_aprobado_at?: string | null; edicion?: { historiaCerradaEl?: string | null } | null } | null) ?? {};
   const aprobado = Boolean(fila.libro_aprobado_at);
+  // "Cerrar edición del libro" (17/09): la historia terminó y la familia dio por
+  // cerrada esta etapa. Reversible; lo definitivo sigue siendo `libro_aprobado_at`.
+  const historiaCerrada = Boolean(fila.edicion?.historiaCerradaEl);
   const urlBase = process.env.URL_BASE ?? "https://www.vitacorafamiliar.com";
   const linkPublico = rol === "duena" && aprobado ? `${urlBase}/libro/${firmarTokenLibro(n.id)}` : null;
   // Los que guardaron el link no cuentan como invitados en la lista de Compartir.
@@ -185,8 +189,12 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
   const puedeCerrarAnticipado =
     rol === "duena" && ESTADOS_QUE_PERMITEN_CIERRE.includes(n.estado) && respondidas >= MINIMO_RESPUESTAS_CIERRE_ANTICIPADO;
 
-  // El modo edición: las que vienen se editan, sacan, mueven y suman.
+  // El modo edición: las que vienen se editan, sacan, mueven y suman. El guion
+  // se cierra solo al terminar de contar (el biógrafo ya se despidió).
   const puedeAgregar = !cerrado && PUEDE.agregarPreguntasYFotos(rol);
+  // Las fotos siguen entrando después de terminar — hasta cerrar la edición
+  // acá o el libro en Encargar libro (Joaquín, 17/09: es donde se ve cómo queda).
+  const puedeAgregarFotos = !aprobado && !historiaCerrada && PUEDE.agregarPreguntasYFotos(rol);
   const editando = puedeAgregar && editar === "1";
   const futuras = guion.filter((p) => p.orden > n.dia_actual);
   const lugar = lugarLibre(guion);
@@ -235,32 +243,42 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
               {editando ? "Las que ya se mandaron no se tocan. Las que vienen, sí: editá, sacá, mové." : estadoEnHumano(n.estado, propia)}
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            {editando ? (
-              <Link href={`/tablero/${n.id}`} className={botonBarraPri}>
-                <IconoBarra nombre="check" />
-                Listo
-              </Link>
-            ) : (
-              <>
-                {puedeAgregar ? (
-                  <Link href={`/tablero/${n.id}?editar=1`} className={botonBarraSec}>
-                    <IconoBarra nombre="lapiz" />
-                    {PUEDE.editarGuion(rol) ? "Editar preguntas" : "Sumar preguntas"}
-                  </Link>
-                ) : null}
-                {puedeAgregar ? (
-                  <SubirFoto narradorId={n.id} capitulos={capitulosConocidos} variante="barra">
-                    <IconoBarra nombre="foto" />
-                    Agregar fotos
-                  </SubirFoto>
-                ) : null}
-                {PUEDE.invitar(rol) ? (
+          {/* Editando: el "Listo" va abajo, después de Sugerime preguntas (Joaquín, 17/09). */}
+          {!editando ? (
+            <div className={`flex flex-wrap items-center gap-2 ${historiaCerrada && !aprobado ? "opacity-50" : ""}`}>
+              {puedeAgregar ? (
+                <Link href={`/tablero/${n.id}?editar=1`} className={botonBarraSec}>
+                  <IconoBarra nombre="lapiz" />
+                  {PUEDE.editarGuion(rol) ? "Agregar/Editar preguntas" : "Sumar preguntas"}
+                </Link>
+              ) : cerrado && !aprobado && PUEDE.agregarPreguntasYFotos(rol) ? (
+                // Terminó de contar: el guion queda cerrado. El botón se queda, en gris, para que se entienda por qué.
+                <span aria-disabled className={`${botonBarraSec} cursor-not-allowed opacity-50`} title="El guion se cerró al terminar de contar: no se agregan más preguntas.">
+                  <IconoBarra nombre="lapiz" />
+                  {PUEDE.editarGuion(rol) ? "Agregar/Editar preguntas" : "Sumar preguntas"}
+                </span>
+              ) : null}
+              {puedeAgregarFotos ? (
+                <SubirFoto narradorId={n.id} capitulos={capitulosConocidos} variante="barra">
+                  <IconoBarra nombre="foto" />
+                  Agregar fotos
+                </SubirFoto>
+              ) : historiaCerrada && !aprobado && PUEDE.agregarPreguntasYFotos(rol) ? (
+                <span aria-disabled className={`${botonBarraSec} cursor-not-allowed`} title="La edición está cerrada. Las fotos siguen en Encargar libro.">
+                  <IconoBarra nombre="foto" />
+                  Agregar fotos
+                </span>
+              ) : null}
+              {PUEDE.invitar(rol) ? (
+                <span className={historiaCerrada && !aprobado ? "pointer-events-none" : ""} aria-disabled={historiaCerrada && !aprobado ? true : undefined}>
                   <Compartir narradorId={n.id} nombre={n.nombre} cerrado={cerrado} aprobado={aprobado} linkPublico={linkPublico} invitados={soloInvitados} />
-                ) : null}
-              </>
-            )}
-          </div>
+                </span>
+              ) : null}
+              {cerrado && !aprobado && !historiaCerrada && PUEDE.cerrarLibro(rol) ? (
+                <CerrarEdicion narradorId={n.id} propia={propia} />
+              ) : null}
+            </div>
+          ) : null}
         </header>
 
         {/* ── En el celular: progreso + índice en pastillas ──────────────── */}
@@ -298,11 +316,24 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
           </nav>
         </div>
 
-        {cerrado ? (
-          <div className="mt-8">
+        {/* Terminó de contar: mientras la edición está abierta, la barra manda (fotos,
+            compartir, cerrar). Al cerrarla aparece el paso siguiente. Los invitados
+            ven "Leer su libro" cuando el libro está cerrado. */}
+        {cerrado && (historiaCerrada || aprobado || !PUEDE.cerrarLibro(rol)) ? (
+          <div className="mt-8 flex flex-col gap-3">
             <ProximoPaso href={PUEDE.cerrarLibro(rol) ? `/tablero/${n.id}/libro` : `/tablero/${n.id}/leer`}>
-              {PUEDE.cerrarLibro(rol) ? (propia ? "Dale los últimos retoques y encargá tu libro" : "Dale los últimos retoques y encargá su libro") : "Leer su libro"}
+              {PUEDE.cerrarLibro(rol)
+                ? aprobado
+                  ? (propia ? "Tu libro está cerrado — mirá cómo va" : "Su libro está cerrado — mirá cómo va")
+                  : (propia ? "Dale los últimos retoques y encargá tu libro" : "Dale los últimos retoques y encargá su libro")
+                : "Leer su libro"}
             </ProximoPaso>
+            {historiaCerrada && !aprobado && PUEDE.cerrarLibro(rol) ? (
+              <div className="flex items-center gap-3 text-[13px] text-[var(--texto-menor)]">
+                <span>Edición cerrada. Las fotos se siguen sumando en Encargar libro.</span>
+                <ReabrirEdicion narradorId={n.id} />
+              </div>
+            ) : null}
           </div>
         ) : null}
 
@@ -318,6 +349,12 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
             />
             <div className="mt-3">
               <SugerirPreguntas narradorId={n.id} lugarLibre={lugar} propia={propia} />
+            </div>
+            <div className="mt-5 flex justify-end">
+              <Link href={`/tablero/${n.id}`} className={botonBarraPri}>
+                <IconoBarra nombre="check" />
+                Listo
+              </Link>
             </div>
           </div>
         ) : null}

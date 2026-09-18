@@ -3,6 +3,7 @@
 import { useState, type DragEvent } from "react";
 import { useRouter } from "next/navigation";
 import { calidadDeFoto, type CalidadFoto } from "@/lib/guion";
+import { SubirFoto } from "../preguntas/acciones";
 
 // Las fotos del libro (docs/panel-usuario.md §15.2): arriba el ÁLBUM — las
 // que se subieron sin decidir todavía dónde van — y abajo los lugares donde
@@ -22,6 +23,7 @@ type Ranura = "portadaFotoId" | "contratapaFotoId";
 const AVISO: Record<CalidadFoto, string | null> = {
   marco: null,
   libro: "alcanza para el libro; en un marco se vería pixelada",
+  chica: "alcanza a tamaño chico; acá, a página entera, se vería pixelada",
   baja: "es chica: impresa se va a ver pixelada",
 };
 
@@ -183,8 +185,16 @@ export function FotosDelLibro({
             ))}
           </div>
         ) : (
-          <p className="mt-4 text-[13px] text-[var(--texto-menor)]">No hay fotos sin lugar. Se suben desde la historia, con “Agregar fotos”.</p>
+          <p className="mt-4 text-[13px] text-[var(--texto-menor)]">No hay fotos sin lugar todavía.</p>
         )}
+        {/* Se suben también desde acá (Joaquín, 17/09): es donde se ve cómo queda el libro. */}
+        {editable ? (
+          <div className="mt-4">
+            <SubirFoto narradorId={narradorId} capitulos={capitulos.map(([guion]) => guion)} variante="barra">
+              + Agregar fotos
+            </SubirFoto>
+          </div>
+        ) : null}
       </div>
 
       {/* ── Las portadas de los capítulos ───────────────────────────── */}

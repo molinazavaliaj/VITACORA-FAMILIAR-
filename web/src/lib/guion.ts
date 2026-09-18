@@ -132,8 +132,15 @@ export function reordenar(
 // ── Fotos ──────────────────────────────────────────────────────────────
 
 /** Mínimos de resolución para imprimir bien (docs/panel-usuario.md §6.3). */
-export const MINIMO_LIBRO = { ancho: 1200, alto: 1800 };
+export const MINIMO_LIBRO = { ancho: 1200, alto: 1800 }; // página entera, tapa, portada de capítulo
 export const MINIMO_MARCO = { ancho: 2400, alto: 3000 };
+/**
+ * A tamaño chico dentro de una página (una foto entre el texto, ~9×12 cm a
+ * 250 dpi) alcanza con mucho menos. Antes todo lo que no llegaba a página
+ * entera salía en rojo como "pixelada" — una tapa de disco de 1500×1500 o
+ * una foto de 1920×1080 daban miedo sin motivo (Naza, 17/09).
+ */
+export const MINIMO_CHICA = { ancho: 800, alto: 1000 };
 export const TAMANO_MAXIMO_BYTES = 25 * 1024 * 1024;
 export const TIPOS_DE_IMAGEN = ["image/jpeg", "image/png", "image/webp"];
 
@@ -152,7 +159,8 @@ export function errorDeTipoDeFoto(tipo: string): string | null {
   return MENSAJE_TIPO_INVALIDO;
 }
 
-export type CalidadFoto = "marco" | "libro" | "baja";
+/** marco ⊃ libro (página entera) ⊃ chica (dentro de una página) ⊃ baja (pixelada en cualquier tamaño). */
+export type CalidadFoto = "marco" | "libro" | "chica" | "baja";
 
 /** Qué alcanza a imprimir con esta resolución. Se mide el lado largo contra el corto. */
 export function calidadDeFoto(ancho: number, alto: number): CalidadFoto {
@@ -160,11 +168,14 @@ export function calidadDeFoto(ancho: number, alto: number): CalidadFoto {
   const corto = Math.min(ancho, alto);
   if (largo >= MINIMO_MARCO.alto && corto >= MINIMO_MARCO.ancho) return "marco";
   if (largo >= MINIMO_LIBRO.alto && corto >= MINIMO_LIBRO.ancho) return "libro";
+  if (largo >= MINIMO_CHICA.alto && corto >= MINIMO_CHICA.ancho) return "chica";
   return "baja";
 }
 
+/** Solo `baja` es una alerta; el resto informa. */
 export const AVISO_CALIDAD: Record<CalidadFoto, string> = {
   marco: "Sirve para el libro y para un marco.",
-  libro: "Sirve para el libro. Para un marco de 20×25 haría falta más resolución.",
+  libro: "Sirve para el libro, incluso a página entera o en la tapa. Para un marco de 20×25 haría falta más resolución.",
+  chica: "Sirve para el libro a tamaño chico, entre el texto. A página entera, en la tapa o en un marco se vería pixelada.",
   baja: "Se va a ver pixelada impresa. Si es una foto de papel, sacale otra foto apoyada en una mesa, con luz de día, sin flash.",
 };
