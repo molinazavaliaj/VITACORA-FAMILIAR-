@@ -14,3 +14,6 @@ audios-crudos/*
 .superpowers/
 docs/arte-libro/libro-vitacora-identidad.html
 fabrica/muestra-identidad.*
+
+# Config local del Claude desktop (puertos de preview)
+.claude/
