@@ -376,11 +376,15 @@ function construirEstilos(acento: string): string {
      cierre siguen enteras: son varias y ahí importa ver todo. */
   .foto-img.recorte { width: 100%; height: 100%; max-width: none; max-height: none; object-fit: cover; }
   /* Principal con posicion = 'abajo': va en la portadilla del capítulo, en la
-     franja libre debajo del nombre (el numeral termina ~270px, el cuerpo
-     ~460px; el pie está a 44px del borde). Recortada igual que arriba. */
-  .apertura .apertura-foto { position: absolute; top: 484px; left: 44px; right: 44px; bottom: 96px; overflow: hidden; }
+     franja libre debajo del nombre (el numeral termina ~270px; el cuerpo
+     ~450px con título de una línea, ~485px con tres; el pie está a 44px del
+     borde). Recortada igual que arriba. */
+  .apertura .apertura-foto-bloque { position: absolute; top: 500px; left: 44px; right: 44px; bottom: 68px; display: flex; flex-direction: column; gap: 10px; }
+  .apertura .apertura-foto { flex: 1 1 auto; min-height: 0; overflow: hidden; }
   .apertura .apertura-foto-img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .apertura .apertura-foto-epigrafe { position: absolute; left: 44px; right: 44px; bottom: 70px; font-family: 'Source Serif 4', Georgia, serif; font-style: italic; font-size: 12px; line-height: 1.4; color: var(--gris1); text-align: center; }
+  /* El epígrafe va debajo de la foto dentro del mismo bloque: si ocupa dos o
+     tres líneas, la foto se achica; nunca se pisan. */
+  .apertura .apertura-foto-epigrafe { flex: none; font-family: 'Source Serif 4', Georgia, serif; font-style: italic; font-size: 12px; line-height: 1.4; color: var(--gris1); text-align: center; }
   .foto-epigrafe { position: absolute; left: 44px; right: 44px; bottom: 56px; font-family: 'Source Serif 4', Georgia, serif; font-style: italic; font-size: 13px; line-height: 1.4; color: var(--gris1); text-align: center; }
 
   /* Apertura de capítulo (calcada de AperturaCapitulo.dc.html, con un
@@ -568,8 +572,9 @@ function construirAperturaCapitulo(opts: { numero: number; nombreCapitulo: strin
   // posicion = 'abajo': la principal entra en esta misma página, debajo del
   // nombre del capítulo, recortada con su foco (CONTRATO, migración 20260918).
   const fotoHtml = fotoAbajo
-    ? `<div class="apertura-foto"><img class="apertura-foto-img" src="${escaparHtml(fotoAbajo.dataUri)}" style="${estiloFoco(fotoAbajo.foco)}" alt="" /></div>
-    ${fotoAbajo.epigrafe ? `<div class="apertura-foto-epigrafe">${escaparHtml(fotoAbajo.epigrafe)}</div>` : ''}`
+    ? `<div class="apertura-foto-bloque"><div class="apertura-foto"><img class="apertura-foto-img" src="${escaparHtml(fotoAbajo.dataUri)}" style="${estiloFoco(fotoAbajo.foco)}" alt="" /></div>${
+        fotoAbajo.epigrafe ? `<div class="apertura-foto-epigrafe">${escaparHtml(fotoAbajo.epigrafe)}</div>` : ''
+      }</div>`
     : '';
   return `<div class="lienzo apertura quiebre">
     ${svgCruz(46, 32)}
