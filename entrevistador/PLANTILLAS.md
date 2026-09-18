@@ -73,3 +73,17 @@ respuesta. Cuando tenga un ratito, me la manda por audio. Sin apuro.
 **Nota:** el mensaje de texto libre (dentro de la ventana de 24 hs) dice
 exactamente lo mismo que la plantilla — es el que usa el "modo rápido" de los
 pilotos y la puerta manual.
+
+## bienvenida_viaje — variables: {{1}} cómo le dicen (Vitácora de viaje, 18/09)
+
+Hola {{1}} 👋 Soy tu biógrafo de viaje. Cada noche te voy a mandar una pregunta sobre el
+día, y vos me respondés con un audio, como le contás a un amigo. Mandame también la foto
+del día cuando te la pida, o cuando quieras. Al final, tu viaje queda en un libro. Si lo
+pedís, el audiolibro puede llevar tu propia voz, recreada a partir de estos audios; al
+responder SÍ también nos das permiso para eso. ¿Arrancamos? Respondé SÍ y empezamos esta noche.
+
+> Categoría: Marketing (como `bienvenida`). Cuando esté aprobada: `WA_PLANTILLA_BIENVENIDA_VIAJE=1`
+> en Railway y el scheduler la manda solo. **Mientras tanto** el viajero escribe primero
+> "hola" al número y el bot le contesta esta misma bienvenida como texto libre. El código
+> en `src/manual/puro.ts` (`bienvenidaViaje`) es este cuerpo con "esta noche" / "ya" según el ritmo.
+

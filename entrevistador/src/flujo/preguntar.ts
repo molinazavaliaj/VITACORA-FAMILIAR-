@@ -151,10 +151,12 @@ export async function enviarPregunta(
   // pegada al prompt (~USD 3,36 por narrador, el 70% del costo de la entrevista)
   // para decidir si agregaba una frase opcional. Ahora la pregunta sale sola.
   // La plantilla `pregunta_diaria` de Meta pasa a tener UNA variable.
-  const mensaje = mensajeDePregunta(texto, await tratoDe(n));
+  const trato = await tratoDe(n);
+  const mensaje = mensajeDePregunta(texto, trato);
 
+  // La gemela en vos (`pregunta_diaria_vos`, aprobada el 16/09) para quien se trata de vos.
   const waId = plantilla
-    ? await enviarPlantilla(n.telefono_whatsapp, 'pregunta_diaria', [texto])
+    ? await enviarPlantilla(n.telefono_whatsapp, trato === 'vos' ? 'pregunta_diaria_vos' : 'pregunta_diaria', [texto])
     : await enviarTexto(n.telefono_whatsapp, mensaje);
 
   // La pregunta-foto (§6.3): la familia subió una foto y pregunta sobre ella.

@@ -3,9 +3,10 @@ import { cargarConfig } from '../config.js';
 
 export type MensajeEntrante = {
   telefono: string;
-  tipo: 'audio' | 'texto';
-  texto?: string;
+  tipo: 'audio' | 'texto' | 'imagen';
+  texto?: string;     // el texto, o el epígrafe de la imagen
   mediaId?: string;
+  mimeType?: string;  // imagen: image/jpeg, image/png, image/webp
   waMessageId: string;
 };
 
@@ -15,7 +16,9 @@ export function parsearEntrante(body: any): MensajeEntrante | null {
   const base = { telefono: `+${mensaje.from}`, waMessageId: mensaje.id };
   if (mensaje.type === 'audio') return { ...base, tipo: 'audio', mediaId: mensaje.audio.id };
   if (mensaje.type === 'text') return { ...base, tipo: 'texto', texto: mensaje.text.body };
-  return null; // imágenes, stickers, reacciones: se ignoran en v1
+  // Vitácora de viaje (18/09): las fotos del día llegan por acá, con su epígrafe.
+  if (mensaje.type === 'image') return { ...base, tipo: 'imagen', mediaId: mensaje.image.id, mimeType: mensaje.image.mime_type, texto: mensaje.image.caption };
+  return null; // stickers, reacciones, documentos: se ignoran
 }
 
 export function registrarWebhook(app: FastifyInstance, procesar: (m: MensajeEntrante) => Promise<void>) {

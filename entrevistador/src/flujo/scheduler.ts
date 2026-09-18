@@ -3,6 +3,7 @@ import { db } from '../db/cliente.js';
 import { enviarPlantilla } from '../whatsapp/enviar.js';
 import { enviarPregunta, type Narrador } from './preguntar.js';
 import { mandarHito } from '../mail/hitos.js';
+import { esViaje } from './viaje.js';
 
 export { capituloNoAplica } from './preguntar.js';
 
@@ -82,6 +83,15 @@ async function enviarBienvenidas(): Promise<void> {
   for (const n of await narradoresEn(['invitado'])) {
     await aislado(n.id, async () => {
       if (await ultimoEnvio(n.id, 'bienvenida')) return;
+      // Vitácora de viaje: su plantilla es `bienvenida_viaje` (una variable). Hasta que Meta
+      // la apruebe (WA_PLANTILLA_BIENVENIDA_VIAJE=1), el viajero escribe primero y procesar
+      // le contesta la bienvenida como texto libre.
+      if (esViaje(n.contexto)) {
+        if (process.env.WA_PLANTILLA_BIENVENIDA_VIAJE !== '1') return;
+        const waId = await enviarPlantilla(n.telefono_whatsapp, 'bienvenida_viaje', [n.como_le_dicen]);
+        await registrarEnvio(n.id, 'bienvenida', waId);
+        return;
+      }
       const { data: familia } = await db.from('familias').select('nombre').eq('id', n.familia_id).maybeSingle();
       const vinculo = n.contexto?.vinculoComprador;
       const nombreFamilia = (familia as { nombre?: string } | null)?.nombre ?? 'su familia';

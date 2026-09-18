@@ -15,6 +15,9 @@ import { bienvenidaAceptacion } from '../manual/puro.js';
 import { mandarHito } from '../mail/hitos.js';
 import { cerrarBitacora } from './cierre.js';
 import { esOrdenDeCierre, faseDeCierre } from './cierre-abierto.js';
+import { esViaje } from './viaje.js';
+import { confirmarFoto, crearGuionDelViaje, guardarFotoEntrante } from './viaje-db.js';
+import { bienvenidaViaje } from '../manual/puro.js';
 import { CLAVE_DEL_ARBOL, capituloNoAplica, enviarPregunta, ritmoDe, type Narrador } from './preguntar.js';
 import { bienvenidaPideVoz } from '../config.js';
 
@@ -24,6 +27,11 @@ async function buscarNarrador(telefono: string): Promise<Narrador | null> {
   // Con y sin el 9 de celular argentino: Meta y la web no siempre coinciden.
   const { data } = await db.from('narradores').select('*').in('telefono_whatsapp', variantesDeTelefono(telefono)).limit(1).maybeSingle();
   return (data as Narrador | null) ?? null;
+}
+
+async function ultimaBienvenida(narradorId: string): Promise<boolean> {
+  const { data } = await db.from('envios').select('id').eq('narrador_id', narradorId).eq('tipo', 'bienvenida').limit(1);
+  return (data?.length ?? 0) > 0;
 }
 
 // ¿Ya se le mandó una repregunta a este narrador para esta pregunta?
@@ -96,6 +104,14 @@ export async function procesarEntrante(m: MensajeEntrante): Promise<void> {
     return;
   }
 
+  // Vitácora de viaje: una foto por WhatsApp va al álbum del día, en cualquier estado activo.
+  if (m.tipo === 'imagen' && m.mediaId) {
+    if (!esViaje(narrador.contexto) || !['activo', 'acepto', 'pausado'].includes(narrador.estado)) return;
+    const capitulo = await guardarFotoEntrante(narrador, m.mediaId, m.mimeType, m.texto);
+    await confirmarFoto(narrador, capitulo);
+    return;
+  }
+
   switch (narrador.estado) {
     case 'invitado':
       await manejarConsentimiento(narrador, m);
@@ -120,7 +136,17 @@ async function manejarConsentimiento(narrador: Narrador, m: MensajeEntrante): Pr
   // Sin acentos y en minúscula: "SÍ", "Sí!", "si dale" valen todos.
   const limpio = m.texto.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   const dijoSi = /^si\b/.test(limpio);
-  if (!dijoSi) return;
+  if (!dijoSi) {
+    // Vitácora de viaje: mientras no haya plantilla aprobada, el viajero escribe
+    // primero ("hola") y la bienvenida sale como texto libre, dentro de la ventana.
+    if (esViaje(narrador.contexto) && !(await ultimaBienvenida(narrador.id))) {
+      const waId = await enviarTexto(narrador.telefono_whatsapp, bienvenidaViaje(narrador.como_le_dicen, { enseguida: ritmoDe(narrador.contexto) === 'seguido' }));
+      await db.from('envios').insert({ narrador_id: narrador.id, tipo: 'bienvenida', pregunta_orden: null, wa_message_id: waId });
+    }
+    return;
+  }
+  // Vitácora de viaje: el guion nace acá, una pregunta por día.
+  if (esViaje(narrador.contexto)) await crearGuionDelViaje(narrador);
   // El mismo SÍ es el permiso para clonar su voz (dato biométrico, 3t.15) —
   // pero solo si la bienvenida que recibió ya se lo pedía. Sin fecha, la
   // fábrica no clona nunca (supabase/CONTRATO.md).
@@ -129,7 +155,7 @@ async function manejarConsentimiento(narrador: Narrador, m: MensajeEntrante): Pr
   await db.from('narradores').update(cambios).eq('id', narrador.id);
   await enviarTexto(
     narrador.telefono_whatsapp,
-    bienvenidaAceptacion(narrador.como_le_dicen, await tratoDe(narrador)),
+    bienvenidaAceptacion(narrador.como_le_dicen, await tratoDe(narrador), { viaje: esViaje(narrador.contexto) }),
   );
   await mandarHito(narrador, 'acepto');
 }
@@ -233,7 +259,7 @@ async function trasResponder(
   // la 26 o la 36, según lo que la familia sacó o sumó— el cerebro estudia toda
   // la historia y escribe las 4 finales a medida (N+1..N+4). Recién si ya las
   // tenía y esta era la última, la entrevista termina.
-  if (await esLaUltimaPregunta(narrador.id, orden) && !(await tieneAdaptativas(narrador.id))) {
+  if (!esViaje(narrador.contexto) && (await esLaUltimaPregunta(narrador.id, orden)) && !(await tieneAdaptativas(narrador.id))) {
     await generarPreguntasAdaptativas(narrador.id);
   }
 

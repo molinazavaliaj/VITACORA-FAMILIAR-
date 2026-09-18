@@ -39,6 +39,7 @@ import { db } from '../db/cliente.js';
 import { fichaEnTexto } from './ficha.js';
 import { memoriaDeCapitulos } from './resumenes.js';
 import { tratoDe, type Trato } from './trato.js';
+import { ANGULOS, anguloDelDia, esViaje, etapaDeFecha, fechaDelDia, viajeDe, SIN_ETAPA } from '../flujo/viaje.js';
 
 // Un modelo chico alcanza: es reescribir una pregunta con contexto, no escribir
 // el libro. Haiku 4.5 cuesta USD 1/5 por millón (input/output).
@@ -173,6 +174,57 @@ async function recordarEnviada(n: NarradorParaPersonalizar, orden: number, texto
   if (error) console.error(`personalizar: no pude recordar la pregunta ${orden} de ${n.id}:`, error.message);
 }
 
+/** Vitácora de viaje: la pregunta de la noche, escrita en el momento con el itinerario, el ángulo del día y lo de ayer. */
+export const PROMPT_VIAJE = (dia: number, etapa: string, angulo: string, itinerario: string, previas: string, evitar = '', esUltimo = false) => `Sos el biógrafo de viaje de esta persona: le escribís cada noche por WhatsApp, en vos, cálido y corto, y querés que sienta que lo venís siguiendo.
+${evitar}
+EL VIAJE: ${itinerario}
+HOY ES EL DÍA ${dia}${etapa === SIN_ETAPA ? '' : `, en ${etapa}`}.
+
+LO QUE CONTÓ ESTOS DÍAS:
+${previas || '(todavía no contó nada: es la primera noche)'}
+
+EL ÁNGULO DE HOY: ${angulo}.
+
+Escribí LA pregunta de esta noche. Reglas:
+1. Una sola pregunta clara sobre el ángulo de hoy, en vos. Máximo tres oraciones.
+2. Si hay algo de ayer que quedó abierto (alguien que iba a ver, un plan), podés mencionarlo en una frase, sin obligación.
+3. Terminá pidiéndole la foto de hoy que más le guste y que cuente qué estaba pasando cuando la sacó${esUltimo ? ' — y como es la última noche, que sea la foto que resume el viaje' : ''}.
+4. Nada de "¿cómo te fue hoy?" a secas. Nada de listas. Sin comillas, sin saludo, sin firma.
+
+Respondé SOLO con el texto de la pregunta.`;
+
+function itinerarioEnTexto(contexto: Record<string, any>): string {
+  const v = viajeDe(contexto);
+  const etapas = v.etapas.map((e) => `${e.nombre}${e.desde ? ` (${e.desde}${e.hasta ? ` a ${e.hasta}` : ' en adelante'})` : ''}`).join(' · ');
+  const quien = v.compania ? { solo: 'viaja solo', pareja: 'viaja en pareja', amigos: 'viaja con amigos', familia: 'viaja en familia' }[v.compania] : '';
+  return `del ${v.salida} al ${v.vuelta}${etapas ? `: ${etapas}` : ''}${quien ? `. ${quien[0].toUpperCase()}${quien.slice(1)}` : ''}.`;
+}
+
+async function personalizarViaje(n: NarradorParaPersonalizar, original: string, orden: number, recordar: boolean): Promise<Resultado> {
+  try {
+    const v = viajeDe(n.contexto);
+    const etapa = etapaDeFecha(v, fechaDelDia(v, orden));
+    const angulo = ANGULOS[anguloDelDia(v, orden)] ?? ANGULOS.mejor;
+    const esUltimo = fechaDelDia(v, orden) === v.vuelta;
+    const previas = await respuestasPrevias(n.id, orden);
+    const respuesta = await cliente().messages.create({
+      model: MODELO, max_tokens: MAX_TOKENS,
+      messages: [{ role: 'user', content: PROMPT_VIAJE(orden, etapa, angulo, itinerarioEnTexto(n.contexto), previas, textoEvitar(n.contexto), esUltimo) }],
+    });
+    const bloque = respuesta.content.find((b) => b.type === 'text');
+    const cruda = bloque && bloque.type === 'text' ? bloque.text.trim().replace(/^["'«]|["'»]$/g, '') : '';
+    if (cruda.length < 20 || cruda.length > 600) {
+      console.warn(`personalizar(viaje): la noche ${orden} de ${n.id} volvió rara — se manda el texto base.`);
+      return { texto: original, personalizada: false, motivo: 'la versión del modelo no servía' };
+    }
+    if (recordar) await recordarEnviada(n, orden, cruda);
+    return { texto: cruda, personalizada: true };
+  } catch (err) {
+    console.error(`personalizar(viaje): falló la noche ${orden} de ${n.id}:`, err);
+    return { texto: original, personalizada: false, motivo: 'falló el modelo' };
+  }
+}
+
 export type Resultado = { texto: string; personalizada: boolean; motivo?: string };
 
 let _cliente: Anthropic | null = null;
@@ -193,6 +245,8 @@ export async function personalizarPregunta(
   if (typeof yaEnviada === 'string' && yaEnviada.trim()) {
     return { texto: yaEnviada, personalizada: yaEnviada !== original, motivo: 'ya estaba guardada de un envío anterior' };
   }
+  // Vitácora de viaje: la pregunta de la noche se escribe entera en el momento.
+  if (esViaje(n.contexto)) return personalizarViaje(n, original, orden, recordar);
 
   try {
     const previas = await respuestasPrevias(n.id, orden);

@@ -15,6 +15,9 @@ const mocks = vi.hoisted(() => ({
   mandarHito: vi.fn(),
   detectarQueNoTuvo: vi.fn(),
   faseDeCierre: vi.fn(),
+  crearGuionDelViaje: vi.fn(),
+  guardarFotoEntrante: vi.fn(),
+  confirmarFoto: vi.fn(),
   estado: { narrador: null as any, enviosRepregunta: [] as any[], capturas: [] as any[], ultimoOrden: 30, tieneAdaptativas: true, ofertas: [] as any[], preguntasHoy: [] as any[], capituloVigente: 'La infancia' },
 }));
 
@@ -74,6 +77,10 @@ vi.mock('../src/db/guion.js', () => ({
   preguntaDeOrden: async () => ({ texto: 'PREGUNTA_MOCK', capitulo: mocks.estado.capituloVigente }),
 }));
 vi.mock('../src/mail/hitos.js', () => ({ mandarHito: mocks.mandarHito }));
+// Vitácora de viaje (18/09): lo que toca la base se simula.
+vi.mock('../src/flujo/viaje-db.js', () => ({
+  crearGuionDelViaje: mocks.crearGuionDelViaje, guardarFotoEntrante: mocks.guardarFotoEntrante, confirmarFoto: mocks.confirmarFoto,
+}));
 // La pregunta de cierre (18/09): por defecto no hay más vueltas → se despide.
 vi.mock('../src/flujo/cierre-abierto.js', () => ({
   faseDeCierre: mocks.faseDeCierre,
@@ -100,6 +107,8 @@ beforeEach(() => {
   mocks.detectarQueNoTuvo.mockResolvedValue('normal');
   mocks.faseDeCierre.mockReset();
   mocks.faseDeCierre.mockResolvedValue(false);
+  for (const fn of [mocks.crearGuionDelViaje, mocks.guardarFotoEntrante, mocks.confirmarFoto]) fn.mockReset();
+  mocks.guardarFotoEntrante.mockResolvedValue('Lisboa');
   for (const fn of [mocks.enviarTexto, mocks.descargarAudio, mocks.guardarRespuestaAudio, mocks.transcribirYActualizar, mocks.evaluarRespuesta, mocks.detectarIntencion, mocks.generarPreguntasAdaptativas, mocks.cerrarBitacora, mocks.enviarPregunta]) fn.mockReset();
   mocks.enviarTexto.mockResolvedValue('wamid.mock');
   mocks.descargarAudio.mockResolvedValue(Buffer.from('audio-falso'));
@@ -224,6 +233,39 @@ describe('procesarEntrante', () => {
     expect(mocks.evaluarRespuesta).not.toHaveBeenCalled();
     expect(mocks.enviarTexto).not.toHaveBeenCalled();
     expect(mocks.cerrarBitacora).toHaveBeenCalled(); // faseDeCierre devolvió false: se despide
+  });
+
+  // ── Vitácora de viaje ──
+  const VIAJE = { modo: 'viaje', trato: 'vos', viaje: { salida: '2026-09-20', vuelta: '2026-09-29', etapas: [{ nombre: 'Lisboa' }] } };
+
+  it('(v1) un viajero invitado que escribe "hola" recibe la bienvenida de viaje como texto libre, una sola vez', async () => {
+    mocks.estado.narrador = narradorEn('invitado', 0, VIAJE);
+    await procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'hola!', waMessageId: 'w' });
+    expect(mocks.enviarTexto).toHaveBeenCalledWith(TEL, expect.stringContaining('biógrafo de viaje'));
+    expect(insert('envios')?.p).toMatchObject({ tipo: 'bienvenida' });
+    expect(update('narradores')).toBeUndefined(); // sigue invitado
+  });
+
+  it('(v2) el SÍ de un viajero crea el guion del viaje y contesta en vos', async () => {
+    mocks.estado.narrador = narradorEn('invitado', 0, VIAJE);
+    await procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'Sí', waMessageId: 'w' });
+    expect(mocks.crearGuionDelViaje).toHaveBeenCalledWith(expect.objectContaining({ id: 'n1' }));
+    expect(update('narradores')?.p).toMatchObject({ estado: 'acepto' });
+    expect(mocks.enviarTexto).toHaveBeenCalledWith(TEL, expect.stringContaining('Buen viaje'));
+  });
+
+  it('(v3) una foto por WhatsApp de un viajero activo se guarda en el álbum del día y se confirma', async () => {
+    mocks.estado.narrador = narradorEn('activo', 3, VIAJE);
+    await procesarEntrante({ telefono: TEL, tipo: 'imagen', mediaId: 'img-1', mimeType: 'image/jpeg', texto: 'El tranvía 28', waMessageId: 'w' });
+    expect(mocks.guardarFotoEntrante).toHaveBeenCalledWith(expect.objectContaining({ id: 'n1' }), 'img-1', 'image/jpeg', 'El tranvía 28');
+    expect(mocks.confirmarFoto).toHaveBeenCalledWith(expect.anything(), 'Lisboa');
+    expect(mocks.guardarRespuestaAudio).not.toHaveBeenCalled();
+  });
+
+  it('(v4) una foto de un narrador de biografía (no viaje) se ignora', async () => {
+    mocks.estado.narrador = narradorEn('activo', 3);
+    await procesarEntrante({ telefono: TEL, tipo: 'imagen', mediaId: 'img-1', waMessageId: 'w' });
+    expect(mocks.guardarFotoEntrante).not.toHaveBeenCalled();
   });
 
   it('(e) al responder la ÚLTIMA del guion (sea la 26 o la 23) sin adaptativas, se generan las 4 y NO cierra', async () => {

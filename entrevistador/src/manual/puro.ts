@@ -157,8 +157,19 @@ export function bienvenida(
     : `Hola ${comoLeDicen} 👋 Soy su biógrafo. ${quienRegala} le hizo un regalo muy especial: vamos a escribir juntos el libro de su vida. Cada mañana le voy a mandar una pregunta, y usted me responde con un audio, como le cuenta las cosas a un amigo. Al final, su historia quedará en un libro para su familia. Si su familia lo pide, el audiolibro puede llevar su propia voz, recreada a partir de estos audios; al responder SÍ también nos da permiso para eso. ¿Empezamos? Responda SÍ y arrancamos${cuando}.`;
 }
 
+/**
+ * Vitácora de viaje: la presentación, en vos. Es el cuerpo de la plantilla
+ * `bienvenida_viaje` (PLANTILLAS.md); hasta que Meta la apruebe, sale como texto
+ * libre cuando el viajero escribe primero. Incluye el permiso de voz, como la otra.
+ */
+export function bienvenidaViaje(comoLeDicen: string, { enseguida = false } = {}): string {
+  const cuando = enseguida ? 'ya' : 'esta noche';
+  return `Hola ${comoLeDicen} 👋 Soy tu biógrafo de viaje. Cada noche te voy a mandar una pregunta sobre el día, y vos me respondés con un audio, como le contás a un amigo. Mandame también la foto del día cuando te la pida, o cuando quieras. Al final, tu viaje queda en un libro. Si lo pedís, el audiolibro puede llevar tu propia voz, recreada a partir de estos audios; al responder SÍ también nos das permiso para eso. ¿Arrancamos? Respondé SÍ y empezamos ${cuando}.`;
+}
+
 /** Lo que recibe cuando dice que SÍ. Único hogar del texto: `src/flujo/procesar.ts` lo importa de acá. */
-export function bienvenidaAceptacion(comoLeDicen: string, trato: Trato = 'usted'): string {
+export function bienvenidaAceptacion(comoLeDicen: string, trato: Trato = 'usted', { viaje = false } = {}): string {
+  if (viaje) return `¡Buen viaje, ${comoLeDicen}! Esta noche te llega la primera pregunta. Sin apuro y sin respuestas incorrectas: esto es tu bitácora, a tu ritmo. 🧭`;
   return trato === 'vos'
     ? `¡Qué alegría, ${comoLeDicen}! Mañana a la mañana te llega la primera pregunta. No hay apuro ni respuestas incorrectas: esto es una charla entre vos y yo, a tu ritmo. 📖`
     : `¡Qué alegría, ${comoLeDicen}! Mañana a la mañana le llega la primera pregunta. No hay apuro ni respuestas incorrectas: esto es una charla entre usted y yo, a su ritmo. 📖`;
