@@ -15,7 +15,7 @@ chance: referencia ≤ 12 s con su transcripción exacta); Qwen3-TTS cambia un p
 timbre entre frases porque generamos frase por frase (corte a 220 caracteres en
 `voz/texto.py`) — mejora pendiente: subir el corte a 400-500 y/o normalizar volumen
 antes de pegar. En esa PC, torchcodec necesita las DLL de FFmpeg (build *shared*),
-agregadas al final del PATH de usuario en `C:itacora-vozfmpeg-shared\`.
+agregadas al final del PATH de usuario en `C:\vitacora-voz\ffmpeg-shared\`.
 
 ## Qué hay
 
