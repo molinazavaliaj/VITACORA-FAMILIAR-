@@ -147,6 +147,8 @@ export default async function PaginaLibro({ params }: PageProps<"/tablero/[narra
     subtitulo: edicion.subtitulo,
     portadaFotoId: edicion.portadaFotoId,
     contratapaFotoId: edicion.contratapaFotoId,
+    // Gris solo si lo único impreso que compró es en blanco y negro (si hay uno a color, se ve a color).
+    blancoYNegro: productosPagados.some((p) => p.impreso === "bn") && !productosPagados.some((p) => p.impreso === "color"),
     capitulos: edicion.ordenCapitulos.map((nombre) => ({
       nombre: edicion.titulosCapitulos[nombre]?.trim() || nombre,
       fotos: fotos.filter((f) => f.capitulo === nombre).map((f) => ({ id: f.id, epigrafe: f.epigrafe, principal: f.principal })),

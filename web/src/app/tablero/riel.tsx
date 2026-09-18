@@ -52,8 +52,12 @@ export function Riel({
   capituloActivo?: number;
 }) {
   const minutos = Math.floor((segundosDeVoz ?? 0) / 60);
+  // Pegado arriba y con scroll PROPIO (Joaquín, 18/09): con varias historias y ocho
+  // capítulos el riel es más alto que la pantalla, y antes su parte de abajo solo
+  // aparecía al llegar al final de todas las preguntas. Ahora la rueda sobre el riel
+  // mueve el riel; sobre las preguntas, las preguntas.
   return (
-    <aside className="hidden w-60 shrink-0 flex-col gap-4 self-start lg:sticky lg:top-10 lg:flex" aria-label="Historias y capítulos">
+    <aside className="hidden w-60 shrink-0 flex-col gap-4 self-start lg:sticky lg:top-10 lg:flex lg:max-h-[calc(100dvh-2.5rem)] lg:overflow-y-auto lg:overscroll-contain lg:pr-2 [scrollbar-width:thin]" aria-label="Historias y capítulos">
       <p className="text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.24em]">Historias</p>
       <nav className="flex flex-col gap-0.5" aria-label="Tus historias">
         {historias.map((h) => {

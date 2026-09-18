@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type DragEvent } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { calidadDeFoto, type CalidadFoto } from "@/lib/guion";
 import { SubirFoto } from "../preguntas/acciones";
@@ -35,11 +35,9 @@ function alcanza(f: FotoElegible, exige: CalidadFoto): string | null {
   return AVISO[calidad];
 }
 
-const TIPO_ARRASTRE = "text/x-vitacora-foto";
-
 function Miniatura({ f, className = "" }: { f: FotoElegible; className?: string }) {
   // eslint-disable-next-line @next/next/no-img-element
-  return <img src={`/api/fotos/${f.id}`} alt="" loading="lazy" draggable={false} className={`object-cover grayscale ${className}`} />;
+  return <img src={`/api/fotos/${f.id}`} alt="" loading="lazy" draggable={false} className={`object-cover ${className}`} />;
 }
 
 export function FotosDelLibro({
@@ -63,9 +61,15 @@ export function FotosDelLibro({
   const router = useRouter();
   type Destino = { tipo: "capitulo"; capitulo: string } | { tipo: "ranura"; ranura: Ranura } | { tipo: "marco"; indice: number };
   const [abierto, setAbierto] = useState<Destino | null>(null);
-  const [sobre, setSobre] = useState<string | null>(null);
   const [ocupado, setOcupado] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!abierto) return;
+    const alTecla = (e: KeyboardEvent) => { if (e.key === "Escape") setAbierto(null); };
+    window.addEventListener("keydown", alTecla);
+    return () => window.removeEventListener("keydown", alTecla);
+  }, [abierto]);
 
   const porId = new Map(fotos.map((f) => [f.id, f]));
   const album = fotos.filter((f) => f.capitulo === null);
@@ -104,20 +108,10 @@ export function FotosDelLibro({
     return llamar(`/api/fotos/${fotoId}`, { capitulo: null });
   }
 
-  // ── arrastrar y soltar ──
+  // Sin arrastrar y soltar (Joaquín, 18/09): era lento y poco fluido. Cada lugar
+  // se toca y abre el selector con todas las fotos, igual para capítulos, tapa,
+  // contratapa y marcos.
   const clave = (d: Destino) => (d.tipo === "capitulo" ? `cap:${d.capitulo}` : d.tipo === "ranura" ? d.ranura : `marco:${d.indice}`);
-  function alArrastrar(e: DragEvent, fotoId: string) {
-    e.dataTransfer.setData(TIPO_ARRASTRE, fotoId);
-    e.dataTransfer.effectAllowed = "move";
-  }
-  function propsDeDestino(d: Destino) {
-    if (!editable) return {};
-    return {
-      onDragOver: (e: DragEvent) => { if (e.dataTransfer.types.includes(TIPO_ARRASTRE)) { e.preventDefault(); setSobre(clave(d)); } },
-      onDragLeave: () => setSobre(null),
-      onDrop: (e: DragEvent) => { e.preventDefault(); setSobre(null); const id = e.dataTransfer.getData(TIPO_ARRASTRE); if (id) void poner(d, id); },
-    };
-  }
 
   const lugar = (activo: boolean) =>
     `flex flex-col gap-2 rounded-xl border p-3 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--texto)] ${
@@ -126,7 +120,7 @@ export function FotosDelLibro({
 
   function Lugar({ destino, nombre, detalle, foto, exige }: { destino: Destino; nombre: string; detalle?: string; foto: FotoElegible | null; exige: CalidadFoto }) {
     const k = clave(destino);
-    const activo = sobre === k || (abierto !== null && clave(abierto) === k);
+    const activo = abierto !== null && clave(abierto) === k;
     const aviso = foto ? alcanza(foto, exige) : null;
     return (
       <button
@@ -134,10 +128,7 @@ export function FotosDelLibro({
         disabled={!editable}
         aria-expanded={abierto !== null && clave(abierto) === k}
         onClick={() => setAbierto(abierto && clave(abierto) === k ? null : destino)}
-        draggable={editable && Boolean(foto)}
-        onDragStart={foto ? (e) => alArrastrar(e, foto.id) : undefined}
         className={`${lugar(activo)} disabled:cursor-default`}
-        {...propsDeDestino(destino)}
       >
         <span className="flex items-center justify-between gap-2">
           <span className="truncate text-[13px] font-medium [font-family:var(--fuente-micro)]">{nombre}</span>
@@ -147,7 +138,7 @@ export function FotosDelLibro({
           <Miniatura f={foto} className="aspect-[4/3] w-full rounded-md" />
         ) : (
           <span className="flex aspect-[4/3] w-full items-center justify-center rounded-md border border-dashed border-[var(--linea-fuerte)] text-[11px] text-[var(--texto-menor)] [font-family:var(--fuente-micro)]">
-            {editable ? "soltá una foto acá" : "sin foto"}
+            {editable ? "tocá para elegir" : "sin foto"}
           </span>
         )}
         {aviso || detalle ? <span className={`text-[11px] leading-snug ${aviso ? "text-[var(--alerta)]" : "text-[var(--texto-menor)]"}`}>{aviso ?? detalle}</span> : null}
@@ -168,17 +159,15 @@ export function FotosDelLibro({
           <p className="text-[12px] text-[var(--texto-menor)] [font-family:var(--fuente-micro)]">{album.length} {album.length === 1 ? "foto" : "fotos"}</p>
         </div>
         <p className="mt-2 text-[14px] leading-relaxed text-[var(--texto-suave)]">
-          Las que subiste sin decidir dónde van. {editable ? "Arrastralas a la portada de un capítulo, a la tapa, a la contratapa o a un marco — o tocá el lugar y elegila de la lista." : "Se decidió al encargar el libro."}
+          Las que subiste sin decidir dónde van. {editable ? "Tocá un lugar de abajo — la portada de un capítulo, la tapa, la contratapa o un marco — y elegila de la lista." : "Se decidió al encargar el libro."}
         </p>
         {album.length > 0 ? (
           <div className="mt-4 flex gap-2 overflow-x-auto pb-2">
             {album.map((f) => (
               <div
                 key={f.id}
-                draggable={editable}
-                onDragStart={(e) => alArrastrar(e, f.id)}
                 title={f.epigrafe ?? "Foto del libro"}
-                className={`relative h-20 w-20 shrink-0 overflow-hidden rounded-md border border-[var(--linea)] ${editable ? "cursor-grab active:cursor-grabbing" : ""}`}
+                className="relative h-20 w-20 shrink-0 overflow-hidden rounded-md border border-[var(--linea)]"
               >
                 <Miniatura f={f} className="h-full w-full" />
               </div>
@@ -227,9 +216,10 @@ export function FotosDelLibro({
         </div>
       </div>
 
-      {/* ── El selector, al tocar un lugar ──────────────────────────── */}
+      {/* ── El selector, al tocar un lugar: una ventana encima de todo ── */}
       {abierto ? (
-        <div className="rounded-xl border border-[var(--texto)] p-4">
+        <div className="fixed inset-0 z-40 flex items-end justify-center bg-[rgba(20,20,15,0.55)] p-0 sm:items-center sm:p-6" onClick={() => setAbierto(null)} role="presentation">
+        <div role="dialog" aria-modal aria-label={`Elegí la foto para ${nombreDe(abierto)}`} onClick={(e) => e.stopPropagation()} className="max-h-[90dvh] w-full max-w-2xl overflow-y-auto rounded-t-2xl border border-[var(--texto)] bg-[var(--fondo)] p-5 text-[var(--texto)] shadow-2xl sm:rounded-2xl">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.2em]">Elegí la foto para {nombreDe(abierto)}</p>
             <div className="flex gap-4">
@@ -240,9 +230,9 @@ export function FotosDelLibro({
             </div>
           </div>
           {fotos.length === 0 ? (
-            <p className="mt-4 text-[14px] text-[var(--texto-suave)]">Todavía no hay fotos. Subilas desde la historia, con “Agregar fotos”.</p>
+            <p className="mt-4 text-[14px] text-[var(--texto-suave)]">Todavía no hay fotos. Subilas con “+ Agregar fotos”, acá o desde la historia.</p>
           ) : (
-            <div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-6">
+            <div className="mt-4 grid grid-cols-3 gap-3 sm:grid-cols-4">
               {[...album, ...fotos.filter((f) => f.capitulo !== null)].map((f) => {
                 const aviso = alcanza(f, exigeDe(abierto));
                 return (
@@ -272,6 +262,7 @@ export function FotosDelLibro({
               ) : null;
             })()
           ) : null}
+        </div>
         </div>
       ) : null}
 

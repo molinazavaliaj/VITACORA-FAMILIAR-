@@ -18,6 +18,8 @@ export type LibroDatos = {
   portadaFotoId: string | null;
   contratapaFotoId: string | null;
   capitulos: CapituloLibro[];
+  /** Solo si compró el impreso en blanco y negro: la miniatura se ve en gris, como se imprime (18/09). El PDF y el lector siempre a color. */
+  blancoYNegro?: boolean;
 };
 
 const CARACTERES_POR_PAGINA = 720;
@@ -67,9 +69,12 @@ export function armarPaginas(d: LibroDatos): Pagina[] {
   return paginas;
 }
 
+// Las fotos son a color: el gris solo cuando el impreso comprado es en blanco y negro
+// (se hereda del contenedor con `[&_img]:grayscale`, no por foto). Antes era gris siempre,
+// una decisión estética de la miniatura que confundía: "¿mis fotos quedan en gris?" (Naza, 17/09).
 function Foto({ id, className = "" }: { id: string; className?: string }) {
   // eslint-disable-next-line @next/next/no-img-element
-  return <img src={`/api/fotos/${id}`} alt="" loading="lazy" className={`object-cover grayscale ${className}`} />;
+  return <img src={`/api/fotos/${id}`} alt="" loading="lazy" className={`object-cover ${className}`} />;
 }
 
 function PaginaVista({ p, d, numero }: { p: Pagina; d: LibroDatos; numero: number }) {
@@ -189,7 +194,7 @@ export function LibroMiniatura({ datos }: { datos: LibroDatos }) {
         <button type="button" className={flecha} aria-label="Página anterior" disabled={pliego <= 0} onClick={() => setPliego((p) => Math.max(0, p - 2))}>
           <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="m15 6-6 6 6 6" /></svg>
         </button>
-        <div className="flex max-w-full drop-shadow-[0_24px_40px_rgba(20,20,15,0.25)]" style={{ width: "min(100%, 520px)" }}>
+        <div className={`flex max-w-full drop-shadow-[0_24px_40px_rgba(20,20,15,0.25)] ${datos.blancoYNegro ? "[&_img]:grayscale" : ""}`} style={{ width: "min(100%, 520px)" }}>
           <div className="aspect-[2/3] w-1/2 overflow-hidden rounded-l-[3px] border border-r-0 border-[var(--linea)] bg-[var(--fondo)] shadow-[inset_-12px_0_20px_-16px_rgba(20,20,15,0.3)]">
             {izq ? <PaginaVista p={izq} d={datos} numero={pliego - 1} /> : null}
           </div>
@@ -205,6 +210,11 @@ export function LibroMiniatura({ datos }: { datos: LibroDatos }) {
         <span>{pliego === 0 ? "la tapa" : pliego >= ultimo ? "la contratapa" : `páginas ${pliego - 1}–${pliego} de ${paginas.length - 4}`}</span>
         {capituloActual ? <><span aria-hidden>·</span><span>{capituloActual}</span></> : null}
       </figcaption>
+      <p className="max-w-md text-center text-[12px] leading-relaxed text-[var(--texto-menor)]">
+        {datos.blancoYNegro
+          ? "Las fotos se ven en gris porque el libro impreso que elegiste es en blanco y negro. En el PDF y en el lector van a color."
+          : "Vista estimada: el libro real lo escribe el biógrafo después de encargarlo, y la paginación puede cambiar."}
+      </p>
     </figure>
   );
 }

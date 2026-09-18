@@ -110,19 +110,20 @@ function VistaPreviaFoto({ archivo, calidad }: { archivo: File | null; calidad: 
   );
 }
 
-/** Un campo de foto que mide la imagen apenas se elige. */
-function CampoFoto({ onElegir }: { onElegir: (archivo: File, medida: { ancho: number; alto: number } | null) => void }) {
+/** Un campo de foto que mide la imagen apenas se elige. Con `multiple`, avisa por cada una. */
+function CampoFoto({ onElegir, multiple = false, etiqueta }: { onElegir: (archivo: File, medida: { ancho: number; alto: number } | null) => void; multiple?: boolean; etiqueta?: string }) {
   return (
     <label className={`${botonSecundario} cursor-pointer`}>
-      Elegir una foto
+      {etiqueta ?? (multiple ? "Elegir fotos" : "Elegir una foto")}
       <input
         type="file"
         accept="image/jpeg,image/png,image/webp"
+        multiple={multiple}
         className="sr-only"
         onChange={async (e) => {
-          const archivo = e.target.files?.[0];
-          if (!archivo) return;
-          onElegir(archivo, await medirImagen(archivo));
+          const archivos = Array.from(e.target.files ?? []);
+          e.target.value = ""; // para poder volver a elegir la misma
+          for (const archivo of multiple ? archivos : archivos.slice(0, 1)) onElegir(archivo, await medirImagen(archivo));
         }}
       />
     </label>
@@ -459,6 +460,9 @@ export function SugerirPreguntas({ narradorId, lugarLibre, propia = false }: { n
 
 // ── subir una foto suelta a un capítulo ────────────────────────────────
 
+type FotoElegida = { clave: string; archivo: File; medida: { ancho: number; alto: number } | null };
+const FOTOS_POR_VEZ = 20;
+
 export function SubirFoto({ narradorId, capitulos, capituloInicial, children, variante = "texto" }: { narradorId: string; capitulos: string[]; capituloInicial?: string; children?: ReactNode; variante?: "texto" | "barra" }) {
   const router = useRouter();
   const [abierto, setAbierto] = useState(false);
@@ -467,29 +471,47 @@ export function SubirFoto({ narradorId, capitulos, capituloInicial, children, va
   const [capitulo, setCapitulo] = useState(capituloInicial ?? (esGeneral ? SIN_CAPITULO : capitulos[0] ?? ""));
   const [epigrafe, setEpigrafe] = useState("");
   const [principal, setPrincipal] = useState(false);
-  const [archivo, setArchivo] = useState<File | null>(null);
-  const [medida, setMedida] = useState<{ ancho: number; alto: number } | null>(null);
-  const [ocupado, setOcupado] = useState(false);
+  // Varias de una (Joaquín, 18/09): todas van al mismo destino. El epígrafe y
+  // "que abra el capítulo" son de UNA foto: solo se ofrecen cuando hay una sola.
+  const [elegidas, setElegidas] = useState<FotoElegida[]>([]);
+  const [ocupado, setOcupado] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
+  const unaSola = elegidas.length === 1;
 
-  const calidad: CalidadFoto | null | "sin-medir" = archivo ? (medida ? calidadDeFoto(medida.ancho, medida.alto) : "sin-medir") : null;
+  function agregar(archivo: File, medida: { ancho: number; alto: number } | null) {
+    const clave = `${archivo.name}-${archivo.size}-${archivo.lastModified}`;
+    setElegidas((x) => (x.some((f) => f.clave === clave) || x.length >= FOTOS_POR_VEZ ? x : [...x, { clave, archivo, medida }]));
+  }
 
   async function guardar() {
-    if (!archivo) { setError("Elegí una foto."); return; }
-    setOcupado(true);
+    if (elegidas.length === 0) { setError("Elegí al menos una foto."); return; }
     setError(null);
-    try {
-      const r = await subirFoto(narradorId, { archivo, capitulo, epigrafe, principal, medida });
-      setAviso(r.aviso ? `Foto guardada. ${r.aviso}` : "Foto guardada.");
-      setArchivo(null); setMedida(null); setEpigrafe(""); setPrincipal(false);
-      setAbierto(false);
-      router.refresh();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "No pudimos subir la foto.");
-    } finally {
-      setOcupado(false);
+    const pendientes = [...elegidas];
+    let subidas = 0;
+    let ultimoAviso: string | null = null;
+    for (const foto of pendientes) {
+      setOcupado(pendientes.length > 1 ? `Subiendo ${subidas + 1} de ${pendientes.length}…` : "Subiendo…");
+      try {
+        const r = await subirFoto(narradorId, {
+          archivo: foto.archivo, capitulo, medida: foto.medida,
+          epigrafe: unaSola ? epigrafe : undefined, principal: unaSola ? principal : false,
+        });
+        subidas++;
+        ultimoAviso = r.aviso;
+        setElegidas((x) => x.filter((f) => f.clave !== foto.clave)); // las que ya entraron no se repiten si falla otra
+      } catch (e) {
+        setOcupado(null);
+        setError(`${e instanceof Error ? e.message : "No pudimos subir la foto."} (${foto.archivo.name}). Las ${subidas} anteriores ya quedaron.`);
+        router.refresh();
+        return;
+      }
     }
+    setOcupado(null);
+    setAviso(subidas === 1 ? (ultimoAviso ? `Foto guardada. ${ultimoAviso}` : "Foto guardada.") : `${subidas} fotos guardadas.`);
+    setEpigrafe(""); setPrincipal(false);
+    setAbierto(false);
+    router.refresh();
   }
 
   if (!abierto) {
@@ -500,7 +522,7 @@ export function SubirFoto({ narradorId, capitulos, capituloInicial, children, va
           className={variante === "barra" ? `${botonSecundario} gap-2 px-4 text-[14px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--texto)]` : botonChico}
           onClick={() => { setAbierto(true); setAviso(null); }}
         >
-          {children ?? "+ Subir una foto"}
+          {children ?? "+ Subir fotos"}
         </button>
         {aviso ? <p className="text-sm text-[var(--texto-suave)]">{aviso}</p> : null}
       </div>
@@ -511,22 +533,37 @@ export function SubirFoto({ narradorId, capitulos, capituloInicial, children, va
     <div className="rounded-xl border border-[var(--texto)] p-6">
       <div className="flex flex-col gap-4">
         <p className="text-[15px] leading-relaxed text-[var(--texto-suave)]">
-          Si es una foto de papel: apoyala en una mesa, con luz de día, sin flash y sin sombra encima. Se guarda tal cual la subís.
+          Si es una foto de papel: apoyala en una mesa, con luz de día, sin flash y sin sombra encima. Se guarda tal cual la subís. Podés elegir varias de una.
         </p>
-        <CampoFoto onElegir={(a, m) => { setArchivo(a); setMedida(m); }} />
-        <VistaPreviaFoto archivo={archivo} calidad={calidad} />
+        <CampoFoto multiple onElegir={agregar} etiqueta={elegidas.length > 0 ? "Agregar más" : undefined} />
+        {elegidas.length > 0 ? (
+          <ul className="flex flex-col gap-3">
+            {elegidas.map((f) => (
+              <li key={f.clave} className="flex items-start gap-3">
+                <div className="min-w-0 flex-1">
+                  <VistaPreviaFoto archivo={f.archivo} calidad={f.medida ? calidadDeFoto(f.medida.ancho, f.medida.alto) : "sin-medir"} />
+                </div>
+                <button type="button" aria-label={`Sacar ${f.archivo.name}`} disabled={ocupado !== null} onClick={() => setElegidas((x) => x.filter((g) => g.clave !== f.clave))} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[var(--linea-fuerte)] text-[var(--texto-menor)] hover:text-[var(--texto)] disabled:opacity-50">×</button>
+              </li>
+            ))}
+          </ul>
+        ) : null}
         <label className="flex flex-col gap-2">
-          <span className="text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.2em]">Dónde va</span>
+          <span className="text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.2em]">Dónde {elegidas.length > 1 ? "van" : "va"}</span>
           <SelectorCapitulo capitulos={capitulos} valor={capitulo} onChange={setCapitulo} conGeneral={esGeneral} />
           {capitulo === SIN_CAPITULO ? (
-            <span className="text-sm text-[var(--texto-menor)]">Queda en el álbum del libro, sin lugar todavía. Después, en Encargar libro, la arrastrás a donde quieras: la portada de un capítulo, la tapa, la contratapa o un marco.</span>
+            <span className="text-sm text-[var(--texto-menor)]">{elegidas.length > 1 ? "Quedan" : "Queda"} en el álbum del libro, sin lugar todavía. Después, en Encargar libro, {elegidas.length > 1 ? "las ponés" : "la ponés"} donde quieras: la portada de un capítulo, la tapa, la contratapa o un marco.</span>
           ) : null}
         </label>
-        <label className="flex flex-col gap-2">
-          <span className="text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.2em]">Epígrafe (opcional)</span>
-          <input value={epigrafe} onChange={(e) => setEpigrafe(e.target.value)} className={campo} placeholder="Mar del Plata, verano del 68" maxLength={300} />
-        </label>
-        {capitulo !== SIN_CAPITULO ? (
+        {unaSola ? (
+          <label className="flex flex-col gap-2">
+            <span className="text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.2em]">Epígrafe (opcional)</span>
+            <input value={epigrafe} onChange={(e) => setEpigrafe(e.target.value)} className={campo} placeholder="Mar del Plata, verano del 68" maxLength={300} />
+          </label>
+        ) : elegidas.length > 1 ? (
+          <p className="text-sm text-[var(--texto-menor)]">El epígrafe de cada una se pone después, desde la galería.</p>
+        ) : null}
+        {unaSola && capitulo !== SIN_CAPITULO ? (
           <label className="flex items-center gap-3 text-[15px]">
             <input type="checkbox" checked={principal} onChange={(e) => setPrincipal(e.target.checked)} className="h-4 w-4" />
             Que abra el capítulo (la foto principal)
@@ -534,8 +571,10 @@ export function SubirFoto({ narradorId, capitulos, capituloInicial, children, va
         ) : null}
         <Error_ mensaje={error} />
         <div className="flex flex-wrap items-center gap-3">
-          <button type="button" className={botonPrincipal} disabled={ocupado} onClick={guardar}>{ocupado ? "Subiendo…" : "Guardar la foto"}</button>
-          <button type="button" className={botonChico} disabled={ocupado} onClick={() => { setAbierto(false); setError(null); }}>Cancelar</button>
+          <button type="button" className={botonPrincipal} disabled={ocupado !== null} onClick={guardar}>
+            {ocupado ?? (elegidas.length > 1 ? `Guardar las ${elegidas.length} fotos` : "Guardar la foto")}
+          </button>
+          <button type="button" className={botonChico} disabled={ocupado !== null} onClick={() => { setAbierto(false); setError(null); setElegidas([]); }}>Cancelar</button>
         </div>
       </div>
     </div>

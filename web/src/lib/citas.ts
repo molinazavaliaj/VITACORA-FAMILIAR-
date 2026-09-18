@@ -57,3 +57,58 @@ export function resaltar(frase: string, nombre: string): [string, string, string
   if (!m) return null;
   return [frase.slice(0, m.index), frase.slice(m.index, m.index + n.length), frase.slice(m.index + n.length)];
 }
+
+// ── Nombres que suenan igual (18/09) ──────────────────────────────────
+// La transcripción escribe el mismo nombre de dos formas ("Naza" / "NASA",
+// "Pelliza" / "Peliza") y la fábrica los lista como dos personas. Acá se
+// detectan los que suenan igual en castellano rioplatense para SUGERIR que
+// son la misma; la familia decide, nunca se unifica solo.
+
+/** Forma "sonora": sin acentos, minúsculas, s=z=c(e,i), b=v, ll=y, h muda, letras dobles simplificadas. */
+export function sonido(nombre: string): string {
+  let t = nombre.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
+  t = t.replace(/h/g, "");
+  t = t.replace(/c(?=[ei])/g, "s").replace(/z/g, "s").replace(/qu/g, "k").replace(/c/g, "k");
+  t = t.replace(/v/g, "b").replace(/ll/g, "y").replace(/ge(?=[ei])|j/g, "j").replace(/(.)\1+/g, "$1");
+  return t;
+}
+
+/** Levenshtein acotado: cuántas letras hay que cambiar para pasar de una a otra. */
+function distancia(a: string, b: string): number {
+  const fila = Array.from({ length: b.length + 1 }, (_, j) => j);
+  for (let i = 1; i <= a.length; i++) {
+    let prev = fila[0];
+    fila[0] = i;
+    for (let j = 1; j <= b.length; j++) {
+      const tmp = fila[j];
+      fila[j] = Math.min(fila[j] + 1, fila[j - 1] + 1, prev + (a[i - 1] === b[j - 1] ? 0 : 1));
+      prev = tmp;
+    }
+  }
+  return fila[b.length];
+}
+
+/** ¿Suenan igual (o casi: una letra de diferencia en nombres de 4+ letras)? */
+export function suenanIgual(a: string, b: string): boolean {
+  const sa = sonido(a);
+  const sb = sonido(b);
+  const escritosIgual = a.trim().toLowerCase() === b.trim().toLowerCase();
+  if (escritosIgual || !sa || !sb) return false; // dos "Juan" son dos filas, no un parecido
+  if (sa === sb) return true;
+  return Math.min(sa.length, sb.length) >= 4 && distancia(sa, sb) <= 1;
+}
+
+/**
+ * Para cada nombre, los otros de la lista que suenan igual. Se mira solo hacia
+ * atrás (índices menores), así la sugerencia aparece en el segundo y no en los
+ * dos: "NASA — ¿es la misma persona que Naza?".
+ */
+export function parecidosAnteriores(nombres: string[]): Map<number, number[]> {
+  const resultado = new Map<number, number[]>();
+  nombres.forEach((n, i) => {
+    const previos: number[] = [];
+    for (let j = 0; j < i; j++) if (suenanIgual(n, nombres[j])) previos.push(j);
+    if (previos.length) resultado.set(i, previos);
+  });
+  return resultado;
+}

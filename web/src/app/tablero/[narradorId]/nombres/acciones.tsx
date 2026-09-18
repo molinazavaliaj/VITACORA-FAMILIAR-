@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { resaltar } from "@/lib/citas";
+import { parecidosAnteriores, resaltar } from "@/lib/citas";
 
 export type EntidadPrefill = {
   texto: string;
@@ -45,6 +45,10 @@ export function FormularioNombres({ entidades, narradorId }: { entidades: Entida
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [guardado, setGuardado] = useState(false);
+  // "NASA — ¿es la misma persona que Naza?" (18/09): se sugiere, la familia decide.
+  // `descartados` recuerda los "No, es otra" para no volver a preguntar.
+  const parecidos = parecidosAnteriores(entidades.map((e) => e.texto));
+  const [descartados, setDescartados] = useState<Set<number>>(new Set());
 
   const sinEntidades = entidades.length === 0;
 
@@ -110,9 +114,26 @@ export function FormularioNombres({ entidades, narradorId }: { entidades: Entida
                     );
                   })}
                 </ul>
-              ) : (
-                <p className="text-xs text-[var(--texto-menor)]">{entidad.contexto}</p>
-              )}
+              ) : null}
+              {/* La pista del modelo ("posible transcripción errónea de…") va siempre, debajo de las frases. */}
+              {entidad.contexto ? <p className="mt-1 text-xs text-[var(--texto-menor)]">{entidad.contexto}</p> : null}
+              {parecidos.has(indice) && !descartados.has(indice) ? (
+                (() => {
+                  const otro = parecidos.get(indice)![0];
+                  const nombreOtro = (valores[otro] ?? entidades[otro].texto).trim() || entidades[otro].texto;
+                  return (
+                    <div className="mt-2 flex flex-wrap items-center gap-2 rounded-md border border-[var(--linea-fuerte)] bg-[var(--hueco)] px-3 py-2 text-[13px]">
+                      <span>Suena igual que <strong className="font-medium">{nombreOtro}</strong>. ¿Es la misma persona?</span>
+                      <button type="button" className="rounded-full bg-[var(--texto)] px-3 py-1 text-[12px] text-[var(--fondo)] [font-family:var(--fuente-micro)]" onClick={() => setValores((actual) => { const copia = [...actual]; copia[indice] = nombreOtro; return copia; })}>
+                        Sí, es {nombreOtro}
+                      </button>
+                      <button type="button" className="rounded-full border border-[var(--linea-fuerte)] px-3 py-1 text-[12px] [font-family:var(--fuente-micro)]" onClick={() => setDescartados((d) => new Set(d).add(indice))}>
+                        No, es otra
+                      </button>
+                    </div>
+                  );
+                })()
+              ) : null}
               <input
                 id={`nombre-${indice}`}
                 type="text"

@@ -167,7 +167,7 @@ export function Wizard({ narradorId, nombre, edicion: inicial, capitulos, respue
             <p className="text-[9px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.3em]">Vitácora Familiar</p>
             {fotoPortada ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={`/api/fotos/${fotoPortada.id}`} alt="" className="my-4 aspect-square w-full rounded-sm object-cover grayscale" />
+              <img src={`/api/fotos/${fotoPortada.id}`} alt="" className="my-4 aspect-square w-full rounded-sm object-cover" />
             ) : null}
             <div>
               <p className="text-lg leading-snug [font-family:var(--fuente-titulo)] [text-wrap:balance]">{titulo || "Sin título"}</p>
