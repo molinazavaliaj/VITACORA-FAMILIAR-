@@ -6,7 +6,7 @@ import { escribirCapitulo } from './escribir-capitulo.js';
 import { construirHtmlLibro } from './plantilla-html.js';
 import { generarAudiolibro } from '../audio/audiolibro.js';
 import { generarEstructura, type Estructura } from './estructura.js';
-import { leerEdicion, aplicarOrdenCapitulos } from './edicion.js';
+import { leerEdicion, aplicarOrdenCapitulos, aplicarTitulosCapitulos } from './edicion.js';
 import { cargarFotos } from './fotos.js';
 import { productosDelPedido } from './productos.js';
 import { armarNarracionJson } from '../voz/narracion-json.js';
@@ -54,8 +54,9 @@ async function editarLibro(cliente: Anthropic, borrador: string): Promise<string
  * vez con su voz, después una pasada de editor con el libro entero) en PDF
  * y en HTML, y el audiolibro (intro TTS + sus audios por capítulo). Corre
  * recién cuando la dueña cerró el libro (`narradores.libro_aprobado_at`,
- * lo gatea el worker), así que la edición que se aplica acá (orden de
- * capítulos, título, subtítulo, foto de tapa) ya está congelada. Ante
+ * lo gatea el worker), así que la edición que se aplica acá (orden y
+ * títulos de capítulos, título, subtítulo, foto de tapa) ya está
+ * congelada. Ante
  * cualquier excepción, marca el pedido `fallido` y loguea — no reintenta
  * solo; alguien tiene que poner el estado de vuelta en `pagado` para que el
  * próximo tick lo tome de nuevo.
@@ -133,14 +134,31 @@ export async function generarPaquete(pedido: { id: string; narrador_id: string; 
       respuestasPorOrden.set(respuesta.pregunta_orden, lista);
     }
 
-    // La edición de la dueña: solo el orden de capítulos, el título, el
-    // subtítulo y la foto de tapa (ver edicion.ts — `excluidas` y
-    // `correcciones` se ignoran a propósito). Las fotos se bajan enteras y
-    // van embebidas en el HTML.
+    // La edición de la dueña: solo el orden de capítulos, el título de cada
+    // capítulo, el título, el subtítulo y la foto de tapa (ver edicion.ts —
+    // `excluidas` y `correcciones` se ignoran a propósito). Las fotos se
+    // bajan enteras y van embebidas en el HTML.
+    //
+    // De acá en adelante `capitulo.nombre` es el título que va al libro (el
+    // elegido, o el del guion si no lo renombró): lo ve el escritor, la
+    // plantilla, la intro TTS y narracion.json. El nombre del guion queda en
+    // `nombreGuion` solo para las fotos, que se cargan con esa clave.
     const edicion = leerEdicion(narrador.edicion);
-    const capitulosOrdenados = aplicarOrdenCapitulos(estructura.capitulos, edicion.ordenCapitulos);
+    const capitulosOrdenados = aplicarTitulosCapitulos(
+      aplicarOrdenCapitulos(estructura.capitulos, edicion.ordenCapitulos),
+      edicion.titulosCapitulos
+    );
     const estructuraFinal: Estructura = { ...estructura, capitulos: capitulosOrdenados };
     const fotos = await cargarFotos(db, narradorId);
+    // La plantilla busca las fotos por el título que encabeza cada capítulo
+    // en el markdown (`# Los hermanos`), así que se re-clavan del nombre del
+    // guion al título final. Un capítulo sin renombrar queda igual.
+    const fotosPorCapitulo = new Map(
+      capitulosOrdenados.flatMap((c) => {
+        const delCapitulo = fotos.porCapitulo.get(c.nombreGuion);
+        return delCapitulo ? [[c.nombre, delCapitulo] as const] : [];
+      })
+    );
 
     const todosLosOrdenes = [...respuestasPorOrden.keys()].sort((a, b) => a - b);
     const historiaCompleta = armarMaterial(todosLosOrdenes, preguntasPorOrden, respuestasPorOrden);
@@ -199,7 +217,7 @@ export async function generarPaquete(pedido: { id: string; narrador_id: string; 
       fotoUrl: fotoTapa?.dataUri ?? narrador.foto_url,
       indice: estructuraFinal.capitulos.map((c) => c.nombre),
       libroMarkdown,
-      fotosPorCapitulo: fotos.porCapitulo,
+      fotosPorCapitulo,
     });
     await subirHtml(db, narradorId, html);
     await generarPdf(db, narradorId, html);

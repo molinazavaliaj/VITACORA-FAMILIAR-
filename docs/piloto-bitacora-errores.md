@@ -20,7 +20,7 @@ libro sale mal, sale incompleto, o el cliente se pierde antes de llegar?
 | 14 | La evaluación vuelve vacía (2 de 13 veces) y corta el proceso | En el flujo automático es un día perdido: sin repregunta y, según cómo falle, sin avance. Frecuencia demasiado alta para ignorar |
 | 34 | Cerrar libro y la muestra arman los capítulos solo con las 4 adaptativas del narrador, no con el guion entero (8) | El libro de Joaquín arrancaba por "Las pruebas" y tenía 4 capítulos; quedó guardado así en `edicion.ordenCapitulos`. **Arreglado el 18/09** (helper `armarGuion`) y el dato de Joaquín limpiado a mano esa noche |
 | 35 | El entrevistador hace las tres preguntas de "Los hijos" (19-21) aunque el narrador dijo que no tiene hijos | Joaquín contestó "no tengo hijos" en la 19 y le preguntaron igual "hábleme de cada uno de sus hijos" y "¿cómo fue usted como padre?"; él lo salvó hablando de los hermanos y de cómo lo crió el padre. En un cliente real es dolor gratuito (y peor si no tuvo hijos por una pérdida). **Del entrevistador (Joaquín)** |
-| 36 | La fábrica ignora `edicion.titulosCapitulos`: el título que la dueña le pone a un capítulo en el wizard no llega al libro | Joaquín puede renombrar "Los hijos" en el panel y la muestra lo refleja, pero el PDF/HTML, el índice y la intro del audiolibro ("Capítulo 6: Los hijos") salen con el nombre del guion. **De la fábrica**, sin arreglar |
+| 36 | La fábrica ignora `edicion.titulosCapitulos`: el título que la dueña le pone a un capítulo en el wizard no llega al libro | Joaquín puede renombrar "Los hijos" en el panel y la muestra lo refleja, pero el PDF/HTML, el índice y la intro del audiolibro ("Capítulo 6: Los hijos") salen con el nombre del guion. **Arreglado el 18/09** (`aplicarTitulosCapitulos` en `fabrica/src/libro/edicion.ts`, aplicado en `generar-paquete.ts`) |
 | 32 | La fábrica cambió de proyecto Railway sin dejarlo escrito; el viejo sigue vivo-muerto y engaña | Media hora de diagnóstico falso; sin healthcheck, una caída real tampoco se vería |
 | 31 | El biógrafo no se despide ni cierra solo al recibir la 30 si la evaluación falla (y en manual nunca sin `cerrar`) | El narrador queda esperando la pregunta 31; la fábrica no arranca; nadie avisa a la familia |
 | 28 | Las adaptativas 27-30 no se generan si falla la repregunta de la 26 (y `siguiente` da la entrevista por terminada en 26) | El narrador se queda sin las 4 preguntas hechas a su medida; el libro sale con huecos y nadie se entera |
@@ -375,6 +375,14 @@ libro sale mal, sale incompleto, o el cliente se pierde antes de llegar?
     `estructuraFinal` en `generar-paquete.ts` (título del capítulo en el HTML/PDF
     y el índice), a la intro TTS "Capítulo N: …" del audiolibro (real y clonado,
     `ensamblar.ts`) y a `narracion.json` para el worker de voz. Con test.
+    **Arreglado el 18/09** (`aplicarTitulosCapitulos` en `fabrica/src/libro/edicion.ts`,
+    aplicado en `generar-paquete.ts` justo después del orden): desde ahí
+    `capitulo.nombre` es el título elegido para el escritor, la plantilla, la intro
+    TTS (real por `estructuraFinal`, clonada por `narracion.json`) y el nombre del
+    guion queda en `nombreGuion` para re-clavar las fotos, que se cargan por
+    capítulo del guion. Pendiente menor: la muestra pública (`web/src/lib/muestra.ts`)
+    lista los capítulos por `ordenCapitulos` sin pasar por `titulosCapitulos`; la del
+    panel sí los aplica.
 
 ## Producción / infra (no es del entrevistador, pero salió en el camino)
 

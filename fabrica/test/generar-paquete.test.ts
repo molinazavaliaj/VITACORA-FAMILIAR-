@@ -250,10 +250,14 @@ describe('generarPaquete', () => {
       { contentType: 'application/pdf', upsert: true }
     );
 
-    // el audiolibro se armó con la estructura y los archivos disponibles del narrador.
+    // el audiolibro se armó con la estructura (cada capítulo lleva además
+    // `nombreGuion`, la clave de las fotos) y los archivos disponibles del narrador.
     expect(generarAudiolibroMock).toHaveBeenCalledWith(
       'narrador-1',
-      estructura,
+      {
+        ...estructura,
+        capitulos: estructura.capitulos.map((c) => ({ ...c, nombreGuion: c.nombre })),
+      },
       ['dia_01.ogg', 'dia_02.ogg']
     );
 
@@ -634,6 +638,79 @@ describe('generarPaquete', () => {
 
     const html = setContentMock.mock.calls[0][0] as string;
     expect(html).toContain('<div class="foto-epigrafe">En el patio</div>');
+  });
+
+  // Hallazgo 36 de la bitácora: el wizard deja `titulosCapitulos` (nombre
+  // del guion → título elegido) y la fábrica lo ignoraba. Caso real:
+  // Joaquín no tiene hijos, en "Los hijos" habló de sus hermanos.
+  const estructuraHijos = {
+    titulo: 'Rosa — La historia de una vida',
+    capitulos: [
+      { nombre: 'La infancia', ordenes: [1] },
+      { nombre: 'Los hijos', ordenes: [2] },
+    ],
+    entidades: [],
+  };
+  const descargasHijos = () => ({
+    ...descargasN1(),
+    'n1/paquete/estructura.json': { data: blobFake(JSON.stringify(estructuraHijos)), error: null },
+  });
+
+  it('aplica titulosCapitulos de la edición: escribe, pagina y narra el capítulo con el título elegido, y las fotos (por nombre del guion) lo siguen', async () => {
+    construirDbN1({
+      narrador: { data: narradorN1({ edicion: { titulosCapitulos: { 'Los hijos': 'Los hermanos' } } }), error: null },
+      fotos: {
+        data: [{ id: 'f1', capitulo: 'Los hijos', storage_path: 'n1/fotos/f1.jpg', principal: true, orden: 0, epigrafe: 'Con Sol e Iñaki' }],
+        error: null,
+      },
+      descargas: { ...descargasHijos(), 'n1/fotos/f1.jpg': { data: blobFake('HERMANOS'), error: null } },
+    });
+    // El editor devuelve el borrador tal cual: el HTML refleja los títulos
+    // con los que se armó el libro.
+    streamMock.mockImplementationOnce((params: { messages: { content: string }[] }) => ({
+      finalMessage: () => Promise.resolve({ content: [{ type: 'text', text: params.messages[0].content }] }),
+    }));
+
+    await generarPaquete({ id: 'p1', narrador_id: 'n1' });
+
+    // El escritor encuadra la prosa desde el nombre del capítulo: tiene que
+    // ver el elegido, no el del guion.
+    expect(escribirCapituloMock.mock.calls.map((c) => c[1])).toEqual(['La infancia', 'Los hermanos']);
+
+    // HTML/PDF: el capítulo 2 se llama "Los hermanos"; "Los hijos" no
+    // aparece en ningún lado.
+    const html = setContentMock.mock.calls[0][0] as string;
+    expect(html).toContain('CAP. 02 · Los hermanos');
+    expect(html).toContain('data-etiqueta="Los hermanos"');
+    expect(html).not.toContain('Los hijos');
+    // La foto estaba cargada bajo el nombre del guion y aun así entra en el
+    // capítulo renombrado.
+    expect(html).toContain('<div class="foto-epigrafe">Con Sol e Iñaki</div>');
+    expect(html).toContain(`data:image/jpeg;base64,${Buffer.from('HERMANOS').toString('base64')}`);
+
+    // El audiolibro (voz real) recibe la estructura con el título elegido:
+    // su intro dice "Capítulo 2: Los hermanos".
+    const estructuraAlAudiolibro = generarAudiolibroMock.mock.calls[0][1];
+    expect(estructuraAlAudiolibro.capitulos.map((c: { nombre: string }) => c.nombre)).toEqual(['La infancia', 'Los hermanos']);
+  });
+
+  it('audiolibro "clonada": narracion.json lleva el título de capítulo elegido en la edición', async () => {
+    const db = construirDbN1({
+      narrador: { data: narradorN1({ edicion: { titulosCapitulos: { 'Los hijos': 'Los hermanos' } } }), error: null },
+      descargas: descargasHijos(),
+      narraciones: [
+        { data: [], error: null },
+        { data: { id: 'narr-1' }, error: null },
+      ],
+    });
+
+    await generarPaquete({ id: 'p1', narrador_id: 'n1', extras: { pdf: true, audiolibro: 'clonada', impreso: null, copias: 0, marcos: 0 } });
+
+    const llamadaJson = db.upload.mock.calls.find((c) => c[0] === 'n1/paquete/narracion.json')!;
+    expect(JSON.parse(llamadaJson[1] as string).capitulos.map((c: { nombre: string }) => c.nombre)).toEqual([
+      'La infancia',
+      'Los hermanos',
+    ]);
   });
 
   it('sube libro.html además de libro.pdf', async () => {
