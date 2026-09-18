@@ -19,15 +19,23 @@
 > y nadie pague "su mitad del cerebro" por separado. La key de OpenAI (Whisper) de
 > Joaquín queda aparte — es chica, USD 5 rinden meses de transcripción.
 
-## Qué se consumió del crédito de Anthropic — CORREGIDO 18/09 con la consola
+## Qué se consumió del crédito de Anthropic de Naza — LEÍDO DE LA CONSOLA el 18/09 15:30
 
-- **02/09: USD 17,42 (Fable 5)** — primer libro completo de Osvaldo en producción + los
-  reintentos que re-pagaban capítulos antes del fix de borradores. El registro de abajo
-  decía ~8,50 estimados: la "matrícula" real fue ~13, no 4.
-- **18/09: ~USD 5,6** — libro de Joaquín (8 capítulos por la fábrica vieja + anticipo/estructura/preview);
-  la consola mostraba 0,61 a las 15:00 porque atrasa horas. Confirmar.
-- Días intermedios: pendiente de leer en la consola (Usage, 1–18 sept por día).
-- Crédito total cargado por Naza: 20 (previo) + 10 + 20€ ≈ USD 52. Saldo: ver Billing.
+**Gasto del mes (1–18 sept): USD 46,07. Saldo: USD 12,18.** Falta que impacte el libro de
+Joaquín de hoy (~USD 5): el mes cierra en ~USD 51 y el saldo en ~USD 7. **Recargar antes
+del próximo libro** (Osvaldo/Ciro salen ~USD 6 cada uno).
+
+| Día | Modelo | Monto | Qué fue |
+|---|---|---|---|
+| 02/09 | Fable 5 | ~USD 15–17 | Osvaldo: primer libro completo + reintentos que re-pagaban capítulos (antes del fix de borradores) |
+| 06–08/09 | Fable / Haiku | centavos | pruebas chicas |
+| **12/09** | **Opus 4.6** | **~USD 22** | **NO es el producto**: nada en el repo usó nunca Opus 4.6. Alguna herramienta (Claude Code / IDE / Workbench) corrió con la key de Naza ese día. *Identificar en la consola: Usage → agrupar por API key.* Casi la mitad del gasto del mes. |
+| 13–17/09 | Haiku 4.5 + Opus 5 | ~USD 2 | entrevista de Joaquín (piloto manual desde la PC de Naza) |
+| 17/09 | Opus 5 + Fable 5 | ~USD 1,2 | cierre de la entrevista + estructura del libro |
+| 18/09 | Fable 5 | 0,61 → ~5,6 | libro de Joaquín (la consola atrasa) |
+
+Lección: **una key por uso** (fábrica, entrevistador, Claude Code de cada uno), así el
+gráfico por key dice quién gastó qué sin adivinar.
 
 ### (registro viejo, estimado al 05/09 — quedó corto)
 
