@@ -8,11 +8,15 @@
 | 2026-09-01 | Crédito API OpenAI (transcripción + voz del biógrafo) | USD 5 | Naza | Consumible |
 | 2026-09-05 | Dominio vitacorafamiliar (registro año 1) | 15€ | Naza | Recurrente (anual) |
 | 2026-09-05 | Recarga crédito API Anthropic (pre-pilotos) | 20€ | Naza | Consumible |
+| ~2026-09-16 | Mail de empresa en Hostinger (`soporte@vitacorafamiliar.com`, el que usa Resend/login) | 12€ | Naza | Recurrente (confirmar si anual o mensual) |
 | ~2026-09-03 | Créditos API Anthropic + OpenAI del entrevistador (montos a confirmar por Joaquín) | ~USD 10-20 | Joaquín | Consumible |
 | 2026-09-08 | Prueba dirigida del cerebro contra el set dorado (`npm run prueba-cerebro`) | ~USD 1 | Joaquín | Consumible |
 | — | Vercel, Supabase, Resend, GitHub | USD 0 | — | Gratis (planes free) |
 
-**Total puesto hasta hoy (18/09): USD 20 + 35€ (Naza, desde el 01/09) + USD 20 de crédito previo de Naza que el proyecto consumió + ~USD 10-20 (Joaquín)** + USD 5/mes de Railway (⚠️ el plan Hobby de Naza quedó sin proyectos el 18/09: cancelarlo).
+**Total puesto por Naza hasta el 18/09: USD 40 + 47€ ≈ USD 91** (USD 20 de crédito
+Anthropic previo + USD 10 Anthropic + 20€ Anthropic + USD 5 OpenAI + USD 5 Railway +
+15€ dominio + 12€ mail de empresa). Joaquín aparte: ~USD 10-20 de sus keys + Resend Pro.
+⚠️ El plan Hobby de Railway de Naza quedó sin proyectos el 18/09: cancelarlo antes del 1/10.
 
 > Pendiente acordado: unificar las keys de IA en UNA organización de Anthropic del
 > proyecto (Naza invita a Joaquín como admin) para que el costeo por libro sea real
