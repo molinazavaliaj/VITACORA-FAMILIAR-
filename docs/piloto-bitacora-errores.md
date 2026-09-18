@@ -18,6 +18,7 @@ libro sale mal, sale incompleto, o el cliente se pierde antes de llegar?
 | 1 | Trato "usted" por defecto con ficha vacía (y el checkout no pide la ficha) | Un cliente real llega con ficha vacía → preguntas genéricas y trato equivocado desde el día 1; el narrador no siente que lo escuchan |
 | 17 | Nombres propios mal transcriptos (NASA/Naza, Herrera/Herrero) | Van directo al texto del libro; un nombre mal escrito de un hijo o un amigo desvaloriza todo el producto. La revisión de nombres del panel es la única red |
 | 14 | La evaluación vuelve vacía (2 de 13 veces) y corta el proceso | En el flujo automático es un día perdido: sin repregunta y, según cómo falle, sin avance. Frecuencia demasiado alta para ignorar |
+| 34 | Cerrar libro y la muestra arman los capítulos solo con las 4 adaptativas del narrador, no con el guion entero (8) | El libro de Joaquín arrancaba por "Las pruebas" y tenía 4 capítulos; quedó guardado así en `edicion.ordenCapitulos`. **Arreglado el 18/09** (helper `armarGuion`); falta limpiar el dato a mano |
 | 32 | La fábrica cambió de proyecto Railway sin dejarlo escrito; el viejo sigue vivo-muerto y engaña | Media hora de diagnóstico falso; sin healthcheck, una caída real tampoco se vería |
 | 31 | El biógrafo no se despide ni cierra solo al recibir la 30 si la evaluación falla (y en manual nunca sin `cerrar`) | El narrador queda esperando la pregunta 31; la fábrica no arranca; nadie avisa a la familia |
 | 28 | Las adaptativas 27-30 no se generan si falla la repregunta de la 26 (y `siguiente` da la entrevista por terminada en 26) | El narrador se queda sin las 4 preguntas hechas a su medida; el libro sale con huecos y nadie se entera |
@@ -337,6 +338,20 @@ libro sale mal, sale incompleto, o el cliente se pierde antes de llegar?
     mirar el candado (`worker.ts` ~318-337); `mandarHito` tampoco lo chequea.
     *Hecho a mano*: `libro_aprobado_at` en Osvaldo por SQL. *Para repasar*:
     `mandarHito` debe saltear si el candado ya está.
+
+34. **18/09 · el wizard de cerrar libro y la muestra arman los capítulos solo
+    con las preguntas adaptativas del narrador (4) en vez del guion entero (8).**
+    A Joaquín le quedó `edicion.ordenCapitulos` = [Las pruebas, La infancia, El
+    amor, El oficio] → "Las pruebas" como capítulo 1 y un libro de 4 capítulos.
+    Causa: `libro/page.tsx` y `muestra.ts` leían `preguntas` solo con
+    `narrador_id = n.id` y caían a la plantilla global solo si venía vacío; pero
+    las 26 base son globales (`narrador_id` null) y un narrador de la puerta
+    manual tiene como propias únicamente las 4 adaptativas (orden 27-30). El
+    panel ya unía las dos (base + propias pisan por orden). *Hecho*: helper
+    `armarGuion` + `capitulosDelGuion` en `web/src/lib/guion.ts`, compartido con
+    el panel; el wizard y la muestra piden las dos consultas y las unen.
+    *Datos*: limpiar `edicion.ordenCapitulos` de Joaquín a mano (o dejarlo en
+    null para que vuelva a proponerse con los 8 capítulos).
 
 ## Producción / infra (no es del entrevistador, pero salió en el camino)
 

@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Edicion } from "./edicion";
 import { propuestaPorDefecto } from "./edicion";
+import { armarGuion, capitulosDelGuion } from "./guion";
 
 // La muestra de un libro cerrado (docs/panel-usuario.md §8): lo que ve quien
 // abre el link público o lo guardó como visitante. Portada, nombres de los
@@ -28,8 +29,9 @@ export async function armarMuestra(admin: SupabaseClient, narradorId: string): P
   // Solo un libro CERRADO tiene muestra pública.
   if (!narrador || !narrador.libro_aprobado_at) return null;
 
-  const [{ data: propias }, { data: primera }, { data: paquete }] = await Promise.all([
+  const [{ data: propias }, { data: globales }, { data: primera }, { data: paquete }] = await Promise.all([
     admin.from("preguntas").select("orden, capitulo").eq("narrador_id", narrador.id).order("orden"),
+    admin.from("preguntas").select("orden, capitulo").is("narrador_id", null).order("orden"),
     admin
       .from("respuestas")
       .select("transcripcion, texto_directo")
@@ -40,12 +42,11 @@ export async function armarMuestra(admin: SupabaseClient, narradorId: string): P
     admin.storage.from("audios").list(`${narrador.id}/paquete`),
   ]);
 
-  let guion = (propias as { orden: number; capitulo: string }[] | null) ?? [];
-  if (guion.length === 0) {
-    const { data: globales } = await admin.from("preguntas").select("orden, capitulo").is("narrador_id", null).order("orden");
-    guion = (globales as typeof guion | null) ?? [];
-  }
-  const capitulosGuion = [...new Set(guion.map((p) => p.capitulo))];
+  // El guion entero (base global + propias), como en el panel; solo las propias
+  // son las 4 adaptativas y daban una muestra de 4 capítulos (18/09).
+  type PreguntaMuestra = { orden: number; capitulo: string };
+  const guion = armarGuion(globales as PreguntaMuestra[] | null, propias as PreguntaMuestra[] | null);
+  const capitulosGuion = capitulosDelGuion(guion);
   const edicion = narrador.edicion ?? {};
   const propuesta = propuestaPorDefecto(narrador.nombre, narrador.nombre, capitulosGuion);
 

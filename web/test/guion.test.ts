@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   esEditable, validarTexto, lugarLibre, puedeAgregar, puedeSaltar, siguienteOrden,
-  renumerar, reordenar, calidadDeFoto, errorDeTipoDeFoto, totalDelGuion, MENSAJE_HEIC, MAXIMO_FAMILIA, PISO, type PreguntaGuion,
+  renumerar, reordenar, calidadDeFoto, errorDeTipoDeFoto, totalDelGuion, armarGuion, capitulosDelGuion, MENSAJE_HEIC, MAXIMO_FAMILIA, PISO, type PreguntaGuion,
 } from "../src/lib/guion";
 
 const fija = (orden: number, extra: Partial<PreguntaGuion> = {}): PreguntaGuion => ({
@@ -129,3 +129,34 @@ describe("totalDelGuion — el mismo número en Inicio y en Historias", () => {
   });
 });
 
+describe("armarGuion + capitulosDelGuion — cerrar libro y muestra arman los capítulos con el guion entero", () => {
+  const globales = [
+    { orden: 1, capitulo: "A" },
+    { orden: 2, capitulo: "A" },
+    { orden: 3, capitulo: "B" },
+  ];
+  const propias = [
+    { orden: 27, capitulo: "B" },
+    { orden: 28, capitulo: "A" },
+  ];
+
+  it("une base + propias, ordenado por orden (Joaquín: 4 adaptativas propias no son el guion)", () => {
+    const guion = armarGuion(globales, propias);
+    expect(guion.map((p) => p.orden)).toEqual([1, 2, 3, 27, 28]);
+  });
+
+  it("los capítulos salen únicos y en el orden del guion, no en el de las adaptativas", () => {
+    expect(capitulosDelGuion(armarGuion(globales, propias))).toEqual(["A", "B"]);
+    expect(capitulosDelGuion(propias)).toEqual(["B", "A"]); // lo que veía Joaquín
+  });
+
+  it("una propia pisa a la global del mismo orden", () => {
+    const guion = armarGuion(globales, [{ orden: 2, capitulo: "Z" }]);
+    expect(guion).toEqual([{ orden: 1, capitulo: "A" }, { orden: 2, capitulo: "Z" }, { orden: 3, capitulo: "B" }]);
+  });
+
+  it("acepta null de Supabase en cualquiera de los dos lados", () => {
+    expect(armarGuion(null, propias)).toEqual(propias);
+    expect(armarGuion(globales, null)).toEqual(globales);
+  });
+});

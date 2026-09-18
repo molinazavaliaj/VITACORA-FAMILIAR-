@@ -5,6 +5,7 @@ import { esPropia, historiaAccesible, PUEDE } from "@/lib/panel";
 import { extrasDisponibles, productosDelPedido, NOMBRE_VOZ, type ProductosDelPedido } from "@/lib/productos";
 import { obtenerPrecio, obtenerPrecioAudiolibro } from "@/lib/precios";
 import { propuestaPorDefecto, type Edicion } from "@/lib/edicion";
+import { armarGuion, capitulosDelGuion } from "@/lib/guion";
 import { EstadoError, Etiqueta, ProximoPaso, Tarjeta, Titulo, fechaCorta } from "../../ui";
 import { ConRiel } from "../../riel";
 import { Wizard, type RespuestaResumen } from "./wizard";
@@ -103,21 +104,19 @@ export default async function PaginaLibro({ params }: PageProps<"/tablero/[narra
   // ── Dueña ───────────────────────────────────────────────────────────
   // Todo lo que hace falta para el libro en miniatura, las tres fotos y el
   // wizard: el guion, lo contado, las fotos, la edición guardada.
-  const [{ data: preguntas }, { data: respuestas }, { data: fotosData }, { data: paquete }] = await Promise.all([
+  const [{ data: propias }, { data: globales }, { data: respuestas }, { data: fotosData }, { data: paquete }] = await Promise.all([
     admin.from("preguntas").select("orden, texto, capitulo").eq("narrador_id", n.id),
+    admin.from("preguntas").select("orden, texto, capitulo").is("narrador_id", null),
     admin.from("respuestas").select("id, pregunta_orden, transcripcion, texto_directo, es_repregunta").eq("narrador_id", n.id).order("pregunta_orden"),
     admin.from("fotos").select("id, epigrafe, capitulo, principal, orden, ancho_px, alto_px").eq("narrador_id", n.id).order("principal", { ascending: false }).order("orden"),
     admin.storage.from("audios").list(`${n.id}/paquete`),
   ]);
-  // Sin guion propio (anterior a la migración), se usa la plantilla global.
-  let guion = (preguntas as { orden: number; texto: string; capitulo: string }[] | null) ?? [];
-  if (guion.length === 0) {
-    const { data: globales } = await admin.from("preguntas").select("orden, texto, capitulo").is("narrador_id", null);
-    guion = (globales as typeof guion | null) ?? [];
-  }
-  guion.sort((a, b) => a.orden - b.orden);
+  // El guion entero: las 26 base son globales y las propias (adaptativas, de la
+  // familia) las completan o pisan. Leer solo las propias daba 4 capítulos (18/09).
+  type PreguntaLibro = { orden: number; texto: string; capitulo: string };
+  const guion = armarGuion(globales as PreguntaLibro[] | null, propias as PreguntaLibro[] | null);
   const porOrden = new Map(guion.map((p) => [p.orden, p]));
-  const capitulos = [...new Set(guion.map((p) => p.capitulo))];
+  const capitulos = capitulosDelGuion(guion);
   const fotos = (fotosData as (FotoElegible & { principal: boolean })[] | null) ?? [];
 
   const propuesta = propuestaPorDefecto(n.nombre, n.nombre, capitulos);

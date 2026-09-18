@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { esPropia, historiaAccesible, historiasDelUsuario, PUEDE } from "@/lib/panel";
-import { ADAPTATIVAS, lugarLibre, puedeSaltar, totalDelGuion, validarRitmo, type PreguntaGuion, type Ritmo } from "@/lib/guion";
+import { ADAPTATIVAS, armarGuion, lugarLibre, puedeSaltar, totalDelGuion, validarRitmo, type PreguntaGuion, type Ritmo } from "@/lib/guion";
 import { BannerAlertaSilencio, CierreAnticipado } from "../acciones";
 import { AgregarPregunta, Ajustes, EditorGuion, SubirFoto, SugerirPreguntas } from "./preguntas/acciones";
 import { GaleriaCapitulo, type FotoVista } from "./fotos";
@@ -144,10 +144,8 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
 
   // El guion del narrador: sus filas propias; si todavía no tiene (anterior a la
   // migración), la plantilla global. Las propias siempre pisan a la global del mismo orden.
-  const porOrden = new Map<number, Pregunta>();
-  for (const p of (globales as Pregunta[] | null) ?? []) porOrden.set(p.orden, p);
-  for (const p of (propias as Pregunta[] | null) ?? []) porOrden.set(p.orden, p);
-  const guion = [...porOrden.values()].sort((a, b) => a.orden - b.orden);
+  const guion = armarGuion(globales as Pregunta[] | null, propias as Pregunta[] | null);
+  const porOrden = new Map(guion.map((p) => [p.orden, p]));
   const total = totalDelGuion(guion, [], TOTAL_PREGUNTAS_BASE); // el mismo cálculo que Inicio
 
   const respuestasPorOrden = new Map<number, RespuestaVista[]>();

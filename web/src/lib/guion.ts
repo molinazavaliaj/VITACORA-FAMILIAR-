@@ -44,6 +44,26 @@ export function totalDelGuion(propias: { orden: number }[], globales: { orden: n
   return ordenes.size > 0 ? ordenes.size : base;
 }
 
+/**
+ * El guion entero de un narrador: la plantilla global (`narrador_id` null) más
+ * sus filas propias, que pisan a la global del mismo orden. Ordenado por orden.
+ * Es la misma unión que cuenta `totalDelGuion`. Un narrador de la puerta manual
+ * tiene como propias SOLO las 4 adaptativas (orden 27-30); leer únicamente esas
+ * daba un libro de 4 capítulos que empezaba por "Las pruebas" (Joaquín, 18/09).
+ * Lo usan el panel, el wizard de cerrar libro y la muestra pública.
+ */
+export function armarGuion<T extends { orden: number }>(globales: T[] | null | undefined, propias: T[] | null | undefined): T[] {
+  const porOrden = new Map<number, T>();
+  for (const p of globales ?? []) porOrden.set(p.orden, p);
+  for (const p of propias ?? []) porOrden.set(p.orden, p);
+  return [...porOrden.values()].sort((a, b) => a.orden - b.orden);
+}
+
+/** Los capítulos, únicos y en el orden en que aparecen en el guion (el del biógrafo). */
+export function capitulosDelGuion(guion: { capitulo: string }[]): string[] {
+  return [...new Set(guion.map((p) => p.capitulo))];
+}
+
 /** Enviada = congelada. Las adaptativas tampoco se tocan: las escribe el cerebro. */
 export function esEditable(p: PreguntaGuion, diaActual: number): boolean {
   return p.orden > diaActual && p.tipo !== "adaptativa";
