@@ -200,6 +200,22 @@ La fábrica aplica `ordenCapitulos`, `titulo`, `subtitulo` y `portadaFotoId`; **
 `excluidas` y `correcciones`** (decisión 13/09, ver
 `docs/superpowers/specs/2026-09-13-fabrica-aprobacion-design.md`).
 
+## Dónde va y cómo se encuadra la foto del capítulo (migración 20260918 — PROPUESTA de Joaquín, 18/09)
+
+⚠️ **No aplicada.** La escribe la web, la lee la fábrica; Naza la revisa y la aplica cuando
+esté de acuerdo. Sale del piloto: la familia quiere decidir dónde queda la foto del
+capítulo y que no se corte la cara al ajustarla al marco. Recorte libre queda para
+después; esto cubre lo que hace falta con dos campos chicos en `fotos`:
+
+| Columna | Tipo | Escribe | Lee | Qué es |
+|---|---|---|---|---|
+| `fotos.posicion` | text, `'arriba'` (default) o `'abajo'` | web | fábrica | Solo importa en la `principal` del capítulo: `arriba` = antes del título (como hoy); `abajo` = debajo del título, antes del texto. Las que cierran el capítulo no la usan. |
+| `fotos.foco` | jsonb `{"x": 0..1, "y": 0..1}`, default `{"x":0.5,"y":0.5}` | web | fábrica | El punto de la foto que tiene que quedar centrado cuando se recorta al marco (la cara, no el techo). En CSS: `object-fit: cover; object-position: <x*100>% <y*100>%`. Vale para todos los usos (portada de capítulo, tapa, contratapa, marco). |
+
+La fábrica sigue decidiendo el tamaño del marco; solo respeta el punto y el orden. La
+miniatura web muestra lo mismo con las mismas dos reglas, como **vista estimada** (el
+libro real se pagina después de encargarlo).
+
 ## Storage — bucket privado `audios`
 
     {narrador_id}/dia_NN.ogg          respuestas (entrevistador sube; NN = pregunta_orden, 2 dígitos; extras: dia_NN_2.ogg)

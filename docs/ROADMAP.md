@@ -467,6 +467,7 @@ sola foto.
 | 3b.3 | Validar resolución en la subida y no recomprimir | **J** | ✅ 13/09 |
 | 3b.4 | Que la fábrica ubique las fotos en su capítulo | **N** | ☐ |
 | 3b.5 | Selección de la foto del marco (recorte distinto al del libro) | **N** | ☐ con la fábrica |
+| 3b.6 | **Dónde va y cómo se encuadra la foto del capítulo** (arriba/abajo del título + punto de foco): migración `20260918_fotos_posicion_foco` + CONTRATO propuestos por J el 18/09; UI en Encargar libro (J) cuando N la apruebe y aplique; la fábrica respeta `posicion` y `foco` (N). Recorte libre y "moverla de página", parqueados hasta ver un libro real. | **A** | ☐ propuesta escrita, falta el OK de N |
 
 **Proveedores: ya resueltos** — gráficas, marcos y tags NFC conseguidos por
 Joaquín. Lo que falta es el camino de la foto, no quién la imprime.
