@@ -65,6 +65,18 @@ def test_fundir_bordes_arranca_y_termina_en_cero():
     assert f[-int(SR * FADE_OUT_MS / 1000) - 1] == 1.0  # justo antes del fade sigue entero
 
 
+def test_una_frase_sin_voz_no_se_amplifica_a_volumen_de_voz():
+    # Revisión 19/09: si el motor deja una frase en (casi) silencio (una frase
+    # de solo puntuación, respiración), recortar_cola no encontraba voz,
+    # devolvía el clip entero y emparejar_volumen lo subía a -20 dB RMS: un
+    # soplido audible entre dos frases normales. Sin voz, la frase queda vacía.
+    rng = np.random.default_rng(0)
+    ruido = (0.003 * rng.standard_normal(24000)).astype(np.float32)  # ~-50 dB
+    assert len(recortar_cola(ruido, 24000)) == 0
+    assert len(limpiar_frase(ruido, 24000)) == 0
+    assert len(limpiar_frase(np.zeros(24000, dtype=np.float32), 24000)) == 0
+
+
 def test_emparejar_volumen_deja_todas_las_frases_al_mismo_rms():
     fuerte, floja = _voz(1.0, 0.5), _voz(1.0, 0.05)
     a, b = emparejar_volumen(fuerte), emparejar_volumen(floja)

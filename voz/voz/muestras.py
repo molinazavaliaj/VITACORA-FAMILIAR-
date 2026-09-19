@@ -35,7 +35,7 @@ _VOSEO = (
     "mirá|fijate|dale|che|viste|acordate|contame|imaginate|entendés|entendes"
 )
 _RASGOS = [
-    ("sh", re.compile(r"ll|(?<![a-záéíóúü])y(?=[aeiouáéíóú])", re.IGNORECASE), 3.0),  # calle, yo, playa; no la "y" sola
+    ("sh", re.compile(r"ll|y(?=[aeiouáéíóú])", re.IGNORECASE), 3.0),  # calle, yo, playa, mayo; la "y" sola no (va seguida de espacio)
     ("voseo", re.compile(rf"\b(?:{_VOSEO})\b", re.IGNORECASE), 2.0),  # lista cerrada: "-ás" suelto daba "papás", "después"
     ("ñ", re.compile(r"ñ", re.IGNORECASE), 1.0),
     ("rr", re.compile(r"rr", re.IGNORECASE), 1.0),

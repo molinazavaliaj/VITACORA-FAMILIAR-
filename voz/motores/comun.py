@@ -87,7 +87,9 @@ def recortar_cola(clip: np.ndarray, tasa: int = TASA_SALIDA) -> np.ndarray:
     umbral = max(UMBRAL_VOZ_DB, float(envolvente.max()) - 30)
     con_voz = np.where(envolvente > umbral)[0]
     if len(con_voz) == 0:
-        return clip
+        # Ninguna ventana con voz (frase de solo puntuación, respiración):
+        # vacía, así emparejar_volumen no la sube a volumen de voz.
+        return clip[:0]
     colchon = int(tasa * COLCHON_MS / 1000)
     ini = max(0, con_voz[0] * v - colchon)
     fin = min(len(clip), (con_voz[-1] + 1) * v + colchon)
