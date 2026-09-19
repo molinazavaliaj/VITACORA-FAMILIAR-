@@ -33,6 +33,10 @@ import numpy as np
 import soundfile as sf
 
 from .pausas import pausas_ms
+from .restaurar import restaurar
+from .ritmo import aplicar_plan, plan_de_ritmo
+from .ritmo import resumen as resumen_ritmo
+from .transcribir import palabras_con_tiempos
 
 TASA = 24000
 
@@ -56,6 +60,8 @@ FADE_MS = 40
 # audio.py): se recorta el principio, se da vuelta, se recorta y se vuelve a dar vuelta.
 _RECORTE = "silenceremove=start_periods=1:start_threshold=-45dB:start_silence=0.25"
 FILTRO_LIMPIEZA = f"highpass=f=80,afftdn=nr=10:nf=-28:tn=1,{_RECORTE},areverse,{_RECORTE},areverse"
+# Una pieza real ya restaurada con modelo (directiva 02) no necesita afftdn: solo el pasa-altos y las puntas.
+FILTRO_LIMPIEZA_RESTAURADA = f"highpass=f=80,{_RECORTE},areverse,{_RECORTE},areverse"
 
 
 @dataclass(frozen=True)
@@ -166,9 +172,34 @@ def _num(x) -> float | None:
 # ----------------------------------------------------- limpiar / igualar ---
 
 
-def limpiar_pieza(entrada: Path, salida: Path) -> Path:
-    _ffmpeg("-i", str(entrada), "-af", FILTRO_LIMPIEZA, "-ac", "1", "-ar", str(TASA), "-c:a", "pcm_f32le", str(salida))
+def limpiar_pieza(entrada: Path, salida: Path, filtro: str = FILTRO_LIMPIEZA) -> Path:
+    _ffmpeg("-i", str(entrada), "-af", filtro, "-ac", "1", "-ar", str(TASA), "-c:a", "pcm_f32le", str(salida))
     return salida
+
+
+def preparar_real(pieza: "Pieza", tmp: Path, i: int, restaurador, transcriptor, log) -> tuple[Path, dict]:
+    """Directiva 02, antes de todo lo demás y solo para piezas reales:
+    (A) restaurar con modelo, (B) ritmo con marcas por palabra (arranque que
+    responde a la pregunta, silencios internos largos). Devuelve el wav listo
+    para la cadena de siempre y lo medido."""
+    crudo = tmp / f"{i:02d}_crudo.wav"
+    _ffmpeg("-i", str(pieza.ruta), "-ac", "1", str(crudo))  # a la tasa original (48 kHz en WhatsApp)
+    restaurado = tmp / f"{i:02d}_restaurado.wav"
+    medidas = {"restauracion": restaurador(crudo, restaurado, log=log)}
+    audio, tasa = sf.read(str(restaurado), dtype="float32")
+    audio = audio[:, 0] if audio.ndim == 2 else audio
+    # Whisper acepta hasta 25 MB: se le manda una copia 16 bit a 24 kHz (la línea de tiempo es la misma).
+    para_whisper = tmp / f"{i:02d}_para_whisper.wav"
+    _ffmpeg("-i", str(restaurado), "-ac", "1", "-ar", str(TASA), "-c:a", "pcm_s16le", str(para_whisper))
+    marcas = transcriptor(para_whisper)
+    plan = plan_de_ritmo(marcas["texto"], marcas["palabras"])
+    con_ritmo = aplicar_plan(audio, tasa, plan)
+    medidas["ritmo"] = resumen_ritmo(plan, len(audio) / tasa, len(con_ritmo) / tasa)
+    log(f"  ritmo {pieza.nombre}: arranque -{plan.corte_arranque_s:.2f} s «{plan.arranque}», "
+        f"{len(plan.silencios)} silencios acortados (-{medidas['ritmo']['silencio_sacado_s']} s)")
+    listo = tmp / f"{i:02d}_listo.wav"
+    sf.write(str(listo), con_ritmo, tasa, subtype="FLOAT")
+    return listo, medidas
 
 
 def perfil_espectral(audio: np.ndarray) -> np.ndarray:
@@ -304,32 +335,49 @@ def masterizar_capitulo(
     objetivo: np.ndarray | None = None,
     pausas: dict[str, int] | None = None,
     log=None,
+    restaurador=restaurar,
+    transcriptor=palabras_con_tiempos,
 ) -> dict:
     """Limpia, iguala, pega y normaliza; deja `salida` (wav 24 kHz mono) y
-    devuelve la entrada de este capítulo para master.json."""
+    devuelve la entrada de este capítulo para master.json. Las piezas reales
+    pasan antes por restaurar + ritmo (directiva 02); `restaurador` y
+    `transcriptor` se inyectan para los tests (el modelo pide GPU, Whisper red)."""
     if not piezas:
         raise ValueError("un capítulo necesita al menos una pieza")
     pausas = pausas or pausas_ms()
     log = log or (lambda *a, **k: None)
     with tempfile.TemporaryDirectory() as tmp:
         tmp = Path(tmp)
+        # 1. Las reales primero: restaurar y ritmo. Lo que sale de acá define el
+        #    sonido objetivo y sigue por la cadena de siempre.
+        fuentes: list[Path] = []
+        extras: list[dict] = []
+        for i, pieza in enumerate(piezas):
+            if pieza.tipo == "real":
+                listo, medidas = preparar_real(pieza, tmp, i, restaurador, transcriptor, log)
+                fuentes.append(listo)
+                extras.append(medidas)
+            else:
+                fuentes.append(pieza.ruta)
+                extras.append({})
         if objetivo is None:
-            # El sonido objetivo es la voz REAL del narrador: si el capítulo trae
-            # piezas reales, el promedio de esas; si es todo clonado, el de todas
-            # (el worker pasa el de las muestras limpias). Nunca el promedio con
-            # los conectores: los sintéticos tienen mucho más grave que una nota
-            # de WhatsApp y arrastrarían a la voz real hacia ellos.
-            reales = [p.ruta for p in piezas if p.tipo == "real"]
-            objetivo = objetivo_de(reales or [p.ruta for p in piezas])
+            # El sonido objetivo es la voz REAL del narrador (ya restaurada): si el
+            # capítulo trae piezas reales, el promedio de esas; si es todo clonado,
+            # el de todas (el worker pasa el de las muestras limpias). Nunca el
+            # promedio con los conectores: los sintéticos tienen mucho más grave
+            # que una nota de WhatsApp y arrastrarían a la voz real hacia ellos.
+            reales = [f for f, p in zip(fuentes, piezas) if p.tipo == "real"]
+            objetivo = objetivo_de(reales or fuentes)
         entradas: list[dict] = []
         limpias: list[np.ndarray] = []
-        for i, pieza in enumerate(piezas):
+        for i, (pieza, fuente, extra) in enumerate(zip(piezas, fuentes, extras)):
             antes = medir(leer(pieza.ruta))
-            limpia = limpiar_pieza(pieza.ruta, tmp / f"{i:02d}_limpia.wav")
+            filtro = FILTRO_LIMPIEZA_RESTAURADA if pieza.tipo == "real" else FILTRO_LIMPIEZA
+            limpia = limpiar_pieza(fuente, tmp / f"{i:02d}_limpia.wav", filtro)
             igualada = tmp / f"{i:02d}_igualada.wav"
             eq = igualar_espectro(limpia, igualada, objetivo)
             limpias.append(nivelar(leer(igualada)))
-            entradas.append({"nombre": pieza.nombre, "tipo": pieza.tipo, "antes": asdict(antes), "eq_db": eq})
+            entradas.append({"nombre": pieza.nombre, "tipo": pieza.tipo, "antes": asdict(antes), "eq_db": eq, **extra})
             log(f"  masterizar: {pieza.nombre} ({pieza.tipo}) {antes.duracion_s:.1f} s, EQ {eq}")
         pegado, posiciones = pegar_piezas(limpias, pausas["historia"])
         escribir(tmp / "pegado.wav", pegado, subtipo="FLOAT")

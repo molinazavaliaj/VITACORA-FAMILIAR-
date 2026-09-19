@@ -31,6 +31,19 @@ def _escribir(ruta: Path, audio: np.ndarray) -> Path:
     return ruta
 
 
+def _restaurador_falso(entrada, salida, log=None, nivel=None):
+    """Como el de verdad: deja un wav a 44,1 kHz (acá, el mismo audio remuestreado) y mide."""
+    import subprocess
+
+    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(entrada), "-ac", "1", "-ar", "44100", "-c:a", "pcm_f32le", str(salida)], check=True)
+    return {"nivel": 0.85, "antes": {"ruido_dbfs": -50.0}, "despues": {"ruido_dbfs": -80.0}}
+
+
+def _transcriptor_sin_cortes(ruta):
+    """Whisper de mentira que no encuentra nada que cortar."""
+    return {"texto": "Mi abuela vive en Córdoba.", "palabras": [{"palabra": "Mi", "inicio": 0.1, "fin": 0.3}, {"palabra": "abuela", "inicio": 0.4, "fin": 0.9}]}
+
+
 def test_medir_devuelve_nivel_pico_y_ruido_razonables():
     med = medir(_voz(2.0, 0.2))
     assert med.duracion_s == 2.0
@@ -67,7 +80,10 @@ def test_masterizar_capitulo_deja_menos_19_lufs_pausas_pedidas_y_master_json(tmp
     piezas = [Pieza(fuerte, "dia_01", "real"), Pieza(floja, "c1", "conector"), Pieza(fuerte, "dia_02", "real")]
     salida = tmp_path / "cap_01.wav"
 
-    entrada = masterizar_capitulo(1, piezas, salida, pausas={"historia": 1200}, log=print)
+    entrada = masterizar_capitulo(
+        1, piezas, salida, pausas={"historia": 1200}, log=print,
+        restaurador=_restaurador_falso, transcriptor=_transcriptor_sin_cortes,
+    )
 
     assert salida.exists()
     assert entrada["capitulo"] == 1 and entrada["salida"] == "cap_01.wav"
@@ -117,3 +133,51 @@ def test_avisos_cuando_algo_queda_fuera_de_rango():
 def test_un_capitulo_sin_piezas_es_error():
     with pytest.raises(ValueError):
         masterizar_capitulo(1, [], Path("x.wav"))
+
+
+# --- directiva 02: las piezas reales pasan por restaurar + ritmo antes de todo ---
+
+
+def _transcriptor_falso(ruta):
+    """Whisper de mentira: 'Bueno,' en el primer medio segundo y una pausa larga en el medio."""
+    return {
+        "texto": "Bueno, esto es una historia. Con una pausa larga en el medio.",
+        "palabras": [
+            {"palabra": "Bueno", "inicio": 0.05, "fin": 0.5},
+            {"palabra": "esto", "inicio": 0.6, "fin": 0.8},
+            {"palabra": "historia", "inicio": 0.9, "fin": 2.0},
+            {"palabra": "Con", "inicio": 4.5, "fin": 4.7},  # 2,5 s de silencio antes → se acorta a 0,7
+            {"palabra": "medio", "inicio": 4.8, "fin": 5.9},
+        ],
+    }
+
+
+@con_ffmpeg
+def test_las_piezas_reales_se_restauran_y_se_les_arregla_el_ritmo(tmp_path):
+    real = _escribir(tmp_path / "dia_01.wav", _voz(6.0, 0.3))
+    conector = _escribir(tmp_path / "c1.wav", _voz(2.0, 0.2, f=200))
+    llamadas = []
+
+    def restaurador(entrada, salida, log=None):
+        llamadas.append(("restaurar", entrada.name))
+        return _restaurador_falso(entrada, salida)
+
+    def transcriptor(ruta):
+        llamadas.append(("whisper", ruta.name))
+        return _transcriptor_falso(ruta)
+
+    entrada = masterizar_capitulo(
+        3, [Pieza(real, "dia_01", "real"), Pieza(conector, "c1", "conector")], tmp_path / "cap_03.wav",
+        pausas={"historia": 1200}, restaurador=restaurador, transcriptor=transcriptor,
+    )
+
+    # solo la real pasó por el modelo y por Whisper; el conector no
+    assert llamadas == [("restaurar", "00_crudo.wav"), ("whisper", "00_para_whisper.wav")]
+    p_real, p_con = entrada["piezas"]
+    assert p_real["restauracion"]["despues"]["ruido_dbfs"] == -80.0
+    assert p_real["ritmo"]["arranque"] == "Bueno" and p_real["ritmo"]["arranque_cortado_s"] == 0.5
+    assert p_real["ritmo"]["silencios_acortados"] == 1 and abs(p_real["ritmo"]["silencio_sacado_s"] - 1.8) < 0.01
+    assert "restauracion" not in p_con and "ritmo" not in p_con
+    # la real quedó más corta: 6 s − 0,5 de arranque − 1,8 de silencio (± lo que recorta silenceremove)
+    assert abs(p_real["despues"]["duracion_s"] - 3.7) < 0.6
+    assert abs(entrada["loudnorm"]["despues"]["lufs"] - m.OBJETIVO_LUFS) <= m.TOLERANCIA_LUFS

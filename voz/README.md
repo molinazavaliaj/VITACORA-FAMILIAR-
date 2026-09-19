@@ -36,7 +36,10 @@ antes variaba hasta 5 dB entre frases). Pendiente de escuchar: subir el corte de
 | `voz/muestras.py` | Elegir qué respuestas del narrador se usan (las más largas, hasta 15 min; piso 10 min) y cuál es la referencia (una entera de 12-30 s, o el arranque de 25 s de la respuesta fonéticamente más rica). Puro. |
 | `voz/texto.py` | Partir el texto en tramos de ≤ 220 caracteres sin romper palabras, cada uno con el signo que lo cerró (`Tramo.cierre`). Puro. |
 | `voz/pausas.py` | `PAUSAS_MS`, las pausas por signo en un solo lugar (Naza las pisa desde `.env`), y el separador `* * *` entre historias. Puro. |
-| `voz/masterizar.py` | El último paso antes de subir cada `cap_NN.mp3`: limpieza por pieza, EQ al sonido real del narrador, pegado con pausas, loudnorm −19 LUFS en dos pasadas, `master.json` con medidas y avisos. También CLI. |
+| `voz/masterizar.py` | El último paso antes de subir cada `cap_NN.mp3`: las piezas reales pasan por restaurar + ritmo; después limpieza por pieza, EQ al sonido real del narrador, pegado con pausas, loudnorm −19 LUFS en dos pasadas, `master.json` con medidas y avisos. También CLI. |
+| `voz/restaurar.py` | Directiva 02 A: cada original de WhatsApp pasa por resemble-enhance (denoise + enhance a 44,1 kHz) en su venv (`herramientas/restaurar/`). `RESTAURACION_NIVEL` 0..1 en `.env`. Mide ruido en pausas, SNR y ancho de banda antes/después. |
+| `voz/ritmo.py` | Directiva 02 B: con marcas por palabra de Whisper corta el arranque que responde a la pregunta (`ARRANQUES_A_CORTAR`, < 2,5 s) y lleva los silencios internos de > 1,5 s a 0,7 s. Nunca corta voz. Puro. |
+| `voz/transcribir.py` | Whisper de OpenAI: transcribir un clip, y `palabras_con_tiempos` para el ritmo. |
 | `voz/audio.py` | ffmpeg: limpiar (mono 24 kHz, sin silencios en los bordes, volumen parejo), recortar en una pausa, pegar con pausas, mp3. |
 | `voz/preparar_muestras.py` | Paso 1: baja los audios de Supabase y deja `referencia.wav`, `referencia.txt`, `texto.txt`, `limpias/`. |
 | `voz/prueba_oido.py` | Paso 2: corre cada motor en su venv y deja `A.mp3 … D.mp3` + `clave.txt`. |
@@ -70,6 +73,23 @@ esas pausas se igualan a 250 ms exactos; en modo **coma** todas las comas pausan
 (75 tramos) pero aparecen 18 tramos de una o dos palabras ("No,", "Es,",
 "bueno,"), que es donde un motor zero-shot más inventa, y la voz dura 12 % más.
 Quedó **oración**; el otro modo sigue disponible por si Naza lo prefiere al oído.
+
+**Restaurar y ritmo, primero** (directiva 02, 19/09): las notas de WhatsApp son
+Opus a ~16 kbps (nada por encima de ~8-9 kHz, mic de celular, ambiente) y
+`highpass + afftdn` no alcanzaba: "suena a WhatsApp". Cada pieza **real** pasa,
+antes de todo lo demás, por (A) `voz/restaurar.py` — resemble-enhance en su
+propio venv `herramientas/restaurar/.venv` (instalación: torch cu126, después
+`resemble-enhance --no-deps` y sus dependencias de inferencia; deepspeed no
+compila en Windows y solo sirve para entrenar, hay un stub; `numpy<2`) —
+graduado con `RESTAURACION_NIVEL` (0..1 en `.env`, default 0,7: al 100 % Naza
+oyó la voz "temblar"; nfe 64 y tau 0,3 en el corredor por lo mismo); y (B)
+`voz/ritmo.py` con marcas por palabra de Whisper: corta el arranque que
+responde a la pregunta ("Sí, exacto,", "No,", "Bueno,") hasta la primera coma o
+punto si dura < 2,5 s desde la primera palabra (`ARRANQUES_A_CORTAR`, editable),
+y lleva los silencios internos de más de 1,5 s a 0,7 s, con fades; nunca corta
+voz. Medido en el cap 2 de Joaquín: ruido en pausas −41…−57 → −51…−66 dBFS,
+ancho de banda 8,4-9,5 → 10,7-12,1 kHz, 41 s menos de capítulo por arranques y
+silencios. Los conectores se igualan a los originales ya restaurados.
 
 **Masterizar** (`voz/masterizar.py`) corre en el worker sobre cada capítulo antes
 del mp3, igual para clonado, real e híbrido: cada pieza se limpia (pasa-altos
