@@ -160,3 +160,16 @@ prueban en la PC con GPU.
 - Nada de música se toca. El worker vive en `C:\vitacora-voz\` y `D:\vitacora-modelos\`.
 - Sin puertos ni túneles: la PC siempre va a buscar a Supabase, nunca recibe.
 - Sin 10 minutos limpios de voz no se clona; sin `consentimiento_voz_at` no se clona (eso lo aplica el worker, no la prueba).
+
+## Buzón entre la central y esta PC (19/09)
+
+No se copian mensajes a mano. En el bucket privado `audios`:
+
+- `central/<fecha>-<nn>-<tema>.md` — directivas de la central para esta PC. Al
+  leer una, subir `central/<mismo-nombre>.leido.txt` (vacío) como acuse.
+- `pruebas/<fecha>/…` — lo que esta PC entrega: parches (`git format-patch`),
+  muestras mp3, `notas.txt` con lo medido.
+
+Naza le dice al Claude de esta PC "leé el buzón" y eso alcanza. Tope 50 MB por
+archivo.
+
