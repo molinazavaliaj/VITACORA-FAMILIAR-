@@ -1,5 +1,6 @@
 import { escaparHtml } from './comun.js';
-import type { FotosCapitulo, FotoLibro } from './fotos.js';
+import type { FotosCapitulo, FotoLibro, Foco } from './fotos.js';
+import { FOCO_CENTRO } from './fotos.js';
 
 // ---------------------------------------------------------------------------
 // La identidad visual aprobada (docs/arte-libro/*.dc.html, 9 mockups A5 a
@@ -370,6 +371,20 @@ function construirEstilos(acento: string): string {
   .foto-cabecera { position: absolute; top: 40px; left: 44px; right: 44px; display: flex; justify-content: space-between; font-family: Archivo, Arial, sans-serif; font-size: 9px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gris1); }
   .foto-marco { position: absolute; top: 76px; left: 44px; right: 44px; bottom: 110px; display: flex; align-items: center; justify-content: center; }
   .foto-img { max-width: 100%; max-height: 100%; object-fit: contain; }
+  /* La principal del capítulo se recorta al marco entero; object-position
+     (inline, desde fotos.foco) decide qué punto queda a la vista. Las de
+     cierre siguen enteras: son varias y ahí importa ver todo. */
+  .foto-img.recorte { width: 100%; height: 100%; max-width: none; max-height: none; object-fit: cover; }
+  /* Principal con posicion = 'abajo': va en la portadilla del capítulo, en la
+     franja libre debajo del nombre (el numeral termina ~270px; el cuerpo
+     ~450px con título de una línea, ~485px con tres; el pie está a 44px del
+     borde). Recortada igual que arriba. */
+  .apertura .apertura-foto-bloque { position: absolute; top: 500px; left: 44px; right: 44px; bottom: 68px; display: flex; flex-direction: column; gap: 10px; }
+  .apertura .apertura-foto { flex: 1 1 auto; min-height: 0; overflow: hidden; }
+  .apertura .apertura-foto-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  /* El epígrafe va debajo de la foto dentro del mismo bloque: si ocupa dos o
+     tres líneas, la foto se achica; nunca se pisan. */
+  .apertura .apertura-foto-epigrafe { flex: none; font-family: 'Source Serif 4', Georgia, serif; font-style: italic; font-size: 12px; line-height: 1.4; color: var(--gris1); text-align: center; }
   .foto-epigrafe { position: absolute; left: 44px; right: 44px; bottom: 56px; font-family: 'Source Serif 4', Georgia, serif; font-style: italic; font-size: 13px; line-height: 1.4; color: var(--gris1); text-align: center; }
 
   /* Apertura de capítulo (calcada de AperturaCapitulo.dc.html, con un
@@ -515,10 +530,16 @@ function construirPortada(opts: {
   </div>`;
 }
 
-function construirFrontispicio(opts: { fotoUrl: string; nombreNarrador: string; anioNacimiento?: number | null }): string {
-  const { fotoUrl, nombreNarrador, anioNacimiento } = opts;
+/** `object-position` para `object-fit: cover`: el punto (0..1) que queda a la vista. */
+function estiloFoco(foco: Foco | undefined): string {
+  const f = foco ?? FOCO_CENTRO;
+  return `object-position: ${Math.round(f.x * 100)}% ${Math.round(f.y * 100)}%`;
+}
+
+function construirFrontispicio(opts: { fotoUrl: string; fotoFoco?: Foco; nombreNarrador: string; anioNacimiento?: number | null }): string {
+  const { fotoUrl, fotoFoco, nombreNarrador, anioNacimiento } = opts;
   return `<div class="lienzo oscuro quiebre">
-    <img class="frontispicio-img" src="${escaparHtml(fotoUrl)}" alt="" />
+    <img class="frontispicio-img" src="${escaparHtml(fotoUrl)}" style="${estiloFoco(fotoFoco)}" alt="" />
     <div class="frontispicio-velo"></div>
     <div class="frontispicio-eyebrow">RETRATO DEL NARRADOR</div>
     <div class="frontispicio-pie">
@@ -533,18 +554,28 @@ function construirFrontispicio(opts: { fotoUrl: string; nombreNarrador: string; 
  *  de capítulo/narrador y epígrafe opcional. Sin filtro de grises — a
  *  diferencia del frontispicio (identidad, siempre en blanco y negro), acá
  *  existe la edición a color. */
-function construirPaginaFoto(opts: { foto: FotoLibro; nombreCapitulo: string; nombreNarrador: string }): string {
-  const { foto, nombreCapitulo, nombreNarrador } = opts;
+function construirPaginaFoto(opts: { foto: FotoLibro; nombreCapitulo: string; nombreNarrador: string; recortar?: boolean }): string {
+  const { foto, nombreCapitulo, nombreNarrador, recortar = false } = opts;
+  const img = recortar
+    ? `<img class="foto-img recorte" src="${escaparHtml(foto.dataUri)}" style="${estiloFoco(foto.foco)}" alt="" />`
+    : `<img class="foto-img" src="${escaparHtml(foto.dataUri)}" alt="" />`;
   return `<div class="lienzo foto quiebre">
     <div class="foto-cabecera"><span>${escaparHtml(nombreCapitulo)}</span><span>${escaparHtml(nombreNarrador)}</span></div>
-    <div class="foto-marco"><img class="foto-img" src="${escaparHtml(foto.dataUri)}" alt="" /></div>
+    <div class="foto-marco">${img}</div>
     ${foto.epigrafe ? `<div class="foto-epigrafe">${escaparHtml(foto.epigrafe)}</div>` : ''}
   </div>`;
 }
 
-function construirAperturaCapitulo(opts: { numero: number; nombreCapitulo: string; nombreNarrador: string; mono: string }): string {
-  const { numero, nombreCapitulo, nombreNarrador, mono } = opts;
+function construirAperturaCapitulo(opts: { numero: number; nombreCapitulo: string; nombreNarrador: string; mono: string; fotoAbajo?: FotoLibro }): string {
+  const { numero, nombreCapitulo, nombreNarrador, mono, fotoAbajo } = opts;
   const numeroTexto = String(numero).padStart(2, '0');
+  // posicion = 'abajo': la principal entra en esta misma página, debajo del
+  // nombre del capítulo, recortada con su foco (CONTRATO, migración 20260918).
+  const fotoHtml = fotoAbajo
+    ? `<div class="apertura-foto-bloque"><div class="apertura-foto"><img class="apertura-foto-img" src="${escaparHtml(fotoAbajo.dataUri)}" style="${estiloFoco(fotoAbajo.foco)}" alt="" /></div>${
+        fotoAbajo.epigrafe ? `<div class="apertura-foto-epigrafe">${escaparHtml(fotoAbajo.epigrafe)}</div>` : ''
+      }</div>`
+    : '';
   return `<div class="lienzo apertura quiebre">
     ${svgCruz(46, 32)}
     ${svgCruz(46, undefined, 32)}
@@ -557,6 +588,7 @@ function construirAperturaCapitulo(opts: { numero: number; nombreCapitulo: strin
       <div class="regla-acento"></div>
       <div class="medallion-wrap">${svgMedallion({ size: 40, texto: mono, colorAro: '#1c1917', colorTexto: '#1c1917' })}</div>
     </div>
+    ${fotoHtml}
     <div class="pie-pagina"><span></span><span class="folio"></span></div>
   </div>`;
 }
@@ -572,17 +604,21 @@ function construirCapitulo(opts: {
   const nombreCapitulo = seccion.titulo ?? '';
   const rail = `CAP. ${String(numero).padStart(2, '0')} · ${nombreCapitulo}`;
   // La foto de apertura entra entre la página de apertura del capítulo y el
-  // texto corrido; las de cierre, después. El paginador embebido inserta las
-  // páginas de texto que arma con `insertBefore(lienzo, fuente)` — nunca
-  // toca los `.lienzo` estáticos de alrededor — así que el orden apertura →
-  // foto → texto → fotos de cierre queda tal cual en el PDF.
-  const paginaApertura = fotos?.apertura
-    ? construirPaginaFoto({ foto: fotos.apertura, nombreCapitulo, nombreNarrador })
+  // texto corrido (posicion 'arriba', la de siempre) o dentro de la propia
+  // página de apertura, debajo del título ('abajo'); las de cierre, después
+  // del texto. El paginador embebido inserta las páginas de texto que arma
+  // con `insertBefore(lienzo, fuente)` — nunca toca los `.lienzo` estáticos
+  // de alrededor — así que el orden apertura → foto → texto → fotos de
+  // cierre queda tal cual en el PDF.
+  const abajo = fotos?.posicionApertura === 'abajo';
+  const fotoAbajo = abajo ? (fotos?.apertura ?? undefined) : undefined;
+  const paginaApertura = fotos?.apertura && !abajo
+    ? construirPaginaFoto({ foto: fotos.apertura, nombreCapitulo, nombreNarrador, recortar: true })
     : '';
   const paginasCierre = (fotos?.cierre ?? [])
     .map((foto) => construirPaginaFoto({ foto, nombreCapitulo, nombreNarrador }))
     .join('\n');
-  return `${construirAperturaCapitulo({ numero, nombreCapitulo, nombreNarrador, mono })}
+  return `${construirAperturaCapitulo({ numero, nombreCapitulo, nombreNarrador, mono, fotoAbajo })}
   ${paginaApertura}
   <section class="fuente-texto antes" data-etiqueta="${escaparHtml(nombreCapitulo)}" data-rail="${escaparHtml(rail)}">
     ${seccion.html}
@@ -919,6 +955,8 @@ export function construirHtmlLibro(datos: {
   tapa?: { titulo: string | null; subtitulo: string | null };
   anioNacimiento?: number | null;
   fotoUrl?: string | null;
+  /** Foco de la foto de tapa (fotos.foco de la elegida en el wizard). Sin él, el centro. */
+  fotoFoco?: Foco;
   indice: string[];
   libroMarkdown: string;
   /** Fotos por capítulo (Task 3, `fotos.ts`) — clave es el título del
@@ -929,7 +967,7 @@ export function construirHtmlLibro(datos: {
    *  Opcional — sin él, el vino de la identidad aprobada. */
   acento?: string;
 }): string {
-  const { titulo, tapa = { titulo: null, subtitulo: null }, anioNacimiento, fotoUrl, indice, libroMarkdown, fotosPorCapitulo, acento = '#6e2618' } = datos;
+  const { titulo, tapa = { titulo: null, subtitulo: null }, anioNacimiento, fotoUrl, fotoFoco, indice, libroMarkdown, fotosPorCapitulo, acento = '#6e2618' } = datos;
 
   const nombreNarrador = datos.nombreNarrador ?? extraerNombreNarrador(titulo);
   const mono = iniciales(nombreNarrador);
@@ -956,7 +994,7 @@ export function construirHtmlLibro(datos: {
 
   const portadaHtml = construirPortada({ titulo, nombreNarrador, tapa, anioNacimiento, mono, fraseHeroe });
   const frontispicioHtml = fotoUrl
-    ? construirFrontispicio({ fotoUrl, nombreNarrador, anioNacimiento })
+    ? construirFrontispicio({ fotoUrl, fotoFoco, nombreNarrador, anioNacimiento })
     : '';
   const colofonHtml = construirColofon({ nombreNarrador, mono });
   const contratapaHtml = construirContratapa({ fraseHeroe, nombreNarrador, anioNacimiento, mono });

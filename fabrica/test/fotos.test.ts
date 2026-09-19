@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { cargarFotos, mimeDeRuta, LIMITE_BYTES_FOTO } from '../src/libro/fotos.js';
+import { cargarFotos, mimeDeRuta, normalizarFoco, LIMITE_BYTES_FOTO } from '../src/libro/fotos.js';
 
 // Nota: `Buffer.from(bytes).buffer.slice(0)` puede devolver el ArrayBuffer
 // del pool interno de Node (más grande que los bytes reales) para strings
@@ -44,7 +44,61 @@ describe('mimeDeRuta', () => {
   });
 });
 
+describe('normalizarFoco', () => {
+  it('un foco válido se respeta', () => {
+    expect(normalizarFoco({ x: 0.3, y: 0.2 })).toEqual({ x: 0.3, y: 0.2 });
+    expect(normalizarFoco({ x: 0, y: 1 })).toEqual({ x: 0, y: 1 });
+  });
+
+  it('sin foco, con basura o con un eje que no es número → el centro', () => {
+    expect(normalizarFoco(null)).toEqual({ x: 0.5, y: 0.5 });
+    expect(normalizarFoco(undefined)).toEqual({ x: 0.5, y: 0.5 });
+    expect(normalizarFoco('0.3,0.2')).toEqual({ x: 0.5, y: 0.5 });
+    expect(normalizarFoco({ x: 'a', y: 0.2 })).toEqual({ x: 0.5, y: 0.5 });
+    expect(normalizarFoco({ x: NaN, y: 0.2 })).toEqual({ x: 0.5, y: 0.5 });
+  });
+
+  it('fuera de 0..1 se recorta al borde', () => {
+    expect(normalizarFoco({ x: 1.7, y: -0.2 })).toEqual({ x: 1, y: 0 });
+  });
+});
+
 describe('cargarFotos', () => {
+  it('lee posicion y foco: la apertura lleva su foco y el capítulo su posición', async () => {
+    const db = construirDb({
+      fotos: {
+        data: [
+          { id: 'f1', narrador_id: 'n1', capitulo: 'X', storage_path: 'n1/fotos/f1.jpg', epigrafe: null, principal: true, orden: 0, posicion: 'abajo', foco: { x: 0.3, y: 0.2 } },
+          { id: 'f2', narrador_id: 'n1', capitulo: 'X', storage_path: 'n1/fotos/f2.jpg', epigrafe: null, principal: false, orden: 1, posicion: 'arriba', foco: { x: 0.9, y: 0.9 } },
+        ],
+        error: null,
+      },
+      archivos: { 'n1/fotos/f1.jpg': 'a', 'n1/fotos/f2.jpg': 'b' },
+    });
+    const fotos = await cargarFotos(db as never, 'n1');
+    const cap = fotos.porCapitulo.get('X')!;
+    expect(cap.apertura?.foco).toEqual({ x: 0.3, y: 0.2 });
+    expect(cap.posicionApertura).toBe('abajo');
+    expect(cap.cierre[0].foco).toEqual({ x: 0.9, y: 0.9 });
+    expect(fotos.porId.get('f1')?.foco).toEqual({ x: 0.3, y: 0.2 });
+  });
+
+  it('sin posicion ni foco (filas viejas) → arriba y centro; una posición desconocida → arriba', async () => {
+    const db = construirDb({
+      fotos: {
+        data: [
+          { id: 'f1', narrador_id: 'n1', capitulo: 'X', storage_path: 'n1/fotos/f1.jpg', epigrafe: null, principal: true, orden: 0, posicion: 'costado', foco: null },
+        ],
+        error: null,
+      },
+      archivos: { 'n1/fotos/f1.jpg': 'a' },
+    });
+    const fotos = await cargarFotos(db as never, 'n1');
+    const cap = fotos.porCapitulo.get('X')!;
+    expect(cap.apertura?.foco).toEqual({ x: 0.5, y: 0.5 });
+    expect(cap.posicionApertura).toBe('arriba');
+  });
+
   it('sin fotos → mapas vacíos', async () => {
     const db = construirDb({ fotos: { data: [], error: null }, archivos: {} });
     const fotos = await cargarFotos(db as never, 'n1');
@@ -66,7 +120,7 @@ describe('cargarFotos', () => {
     });
     const fotos = await cargarFotos(db as never, 'n1');
     const cap = fotos.porCapitulo.get('La infancia')!;
-    expect(cap.apertura).toEqual({ dataUri: `data:image/jpeg;base64,${Buffer.from('AAA').toString('base64')}`, epigrafe: null });
+    expect(cap.apertura).toEqual({ dataUri: `data:image/jpeg;base64,${Buffer.from('AAA').toString('base64')}`, epigrafe: null, foco: { x: 0.5, y: 0.5 } });
     expect(cap.cierre.map((f) => f.epigrafe)).toEqual(['Con mamá', 'En el patio']);
     expect(cap.cierre[1].dataUri.startsWith('data:image/png;base64,')).toBe(true);
     expect(fotos.porId.get('f3')?.epigrafe).toBe('Con mamá');
