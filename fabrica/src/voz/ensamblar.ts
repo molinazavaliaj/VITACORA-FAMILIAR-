@@ -8,7 +8,8 @@
 
 import type { obtenerClienteDb } from '../db.js';
 import { concatenarMp3s } from '../audio/ffmpeg.js';
-import { armarSegmento, subirMp3, RUTA_CAPITULO, RUTA_COMPLETO } from '../audio/audiolibro.js';
+import { armarSegmento, subirMp3, subirCompletoSiEntra, RUTA_CAPITULO, RUTA_COMPLETO } from '../audio/audiolibro.js';
+import type { AudiolibroPaths } from '../audio/audiolibro.js';
 
 type Db = ReturnType<typeof obtenerClienteDb>;
 
@@ -26,7 +27,7 @@ export type EstructuraCapitulos = { capitulos: { nombre: string }[] };
 export async function ensamblarAudiolibroClonado(
   db: Db,
   args: { narradorId: string; pedidoId: string; capitulosPaths: string[]; estructura: EstructuraCapitulos }
-): Promise<{ capitulos: string[]; completo: string }> {
+): Promise<AudiolibroPaths> {
   const { narradorId, pedidoId, capitulosPaths, estructura } = args;
   if (capitulosPaths.length !== estructura.capitulos.length) {
     throw new Error(
@@ -46,8 +47,7 @@ export async function ensamblarAudiolibroClonado(
     buffersFinal.push(buffer);
   }
 
-  const rutaCompleto = RUTA_COMPLETO(narradorId);
-  await subirMp3(db, rutaCompleto, await concatenarMp3s(buffersFinal));
+  const rutaCompleto = await subirCompletoSiEntra(db, RUTA_COMPLETO(narradorId), await concatenarMp3s(buffersFinal));
 
-  return { capitulos: rutasCapitulos, completo: rutaCompleto };
+  return rutaCompleto ? { capitulos: rutasCapitulos, completo: rutaCompleto } : { capitulos: rutasCapitulos };
 }

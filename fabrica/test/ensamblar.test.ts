@@ -20,6 +20,7 @@ vi.mock('../src/audio/ffmpeg.js', () => ({
 }));
 
 import { ensamblarAudiolibroClonado } from '../src/voz/ensamblar.js';
+import { LIMITE_BYTES_ARCHIVO_STORAGE } from '../src/audio/audiolibro.js';
 
 // --- helpers ---------------------------------------------------------------
 
@@ -123,6 +124,40 @@ describe('ensamblarAudiolibroClonado', () => {
     ).rejects.toThrow(/p1/);
 
     expect(fake.upload).not.toHaveBeenCalled();
+  });
+
+  it('si el completo pasa el tope por archivo de Storage, no se sube y se entrega solo por capítulos (con aviso)', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    // El concat "pesa" más que el tope: el completo no entra, los capítulos sí.
+    concatenarMp3sMock.mockImplementation(async (buffers: Buffer[]) =>
+      buffers.length === 1 ? Buffer.from(`CONCAT[${buffers.map(etiquetaDe).join('|')}]`) : Buffer.alloc(LIMITE_BYTES_ARCHIVO_STORAGE + 1)
+    );
+    const fake = construirDbFake({ descargas });
+
+    const resultado = await ensamblarAudiolibroClonado(db(fake), args);
+
+    expect(resultado).toEqual({ capitulos: ['n1/paquete/audiolibro_cap_01.mp3', 'n1/paquete/audiolibro_cap_02.mp3'] });
+    expect(fake.upload).toHaveBeenCalledTimes(2);
+    expect(fake.upload).not.toHaveBeenCalledWith('n1/paquete/audiolibro_completo.mp3', expect.anything(), expect.anything());
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('audiolibro_completo.mp3'));
+    warn.mockRestore();
+  });
+
+  it('si Storage rechaza el completo por tamaño, se entrega igual por capítulos', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const fake = construirDbFake({
+      descargas,
+      uploadImpl: async (ruta) =>
+        ruta === 'n1/paquete/audiolibro_completo.mp3'
+          ? { data: null, error: { message: 'The object exceeded the maximum allowed size' } }
+          : { data: { path: ruta }, error: null },
+    });
+
+    const resultado = await ensamblarAudiolibroClonado(db(fake), args);
+
+    expect(resultado).toEqual({ capitulos: ['n1/paquete/audiolibro_cap_01.mp3', 'n1/paquete/audiolibro_cap_02.mp3'] });
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('exceeded'));
+    warn.mockRestore();
   });
 
   it('si una subida falla, rechaza y no llega al completo', async () => {
