@@ -64,3 +64,31 @@ def test_lista_vacia_de_capitulos_no_es_error():
 def test_ruta_capitulo_usa_narrador_y_numero_con_dos_digitos():
     assert ruta_capitulo("n1", 1) == "n1/voz/cap_01.mp3"
     assert ruta_capitulo("n1", 12) == "n1/voz/cap_12.mp3"
+
+
+# --- el anuncio del capítulo con la voz clonada (CONTRATO, central 19/09) ---
+
+from voz.libro import anuncio_de, numero_en_palabras, texto_a_narrar  # noqa: E402
+from voz.texto import partir_en_frases  # noqa: E402
+
+
+def test_numero_en_palabras_cubre_los_capitulos_posibles():
+    assert [numero_en_palabras(n) for n in (1, 2, 8, 10, 16, 21, 30, 31, 45, 99)] == [
+        "uno", "dos", "ocho", "diez", "dieciséis", "veintiuno", "treinta", "treinta y uno", "cuarenta y cinco", "noventa y nueve",
+    ]
+    assert numero_en_palabras(100) == "100"  # fuera de rango: tal cual, no explota
+
+
+def test_anuncio_es_numero_en_palabras_punto_nombre_punto():
+    assert anuncio_de(Capitulo(2, "Las raíces", "x")) == "Capítulo dos. Las raíces."
+    assert anuncio_de(Capitulo(1, " La infancia ", "x")) == "Capítulo uno. La infancia."
+    assert anuncio_de(Capitulo(3, "¿Y después?", "x")) == "Capítulo tres. ¿Y después?"  # no duplica el signo
+
+
+def test_texto_a_narrar_pone_el_anuncio_como_parrafo_aparte_y_el_partidor_lo_deja_solo():
+    cap = Capitulo(2, "Las raíces", "Bueno, si hablo de mis raíces tengo que arrancar por mis abuelos.\n\nMi abuela Babu.")
+    t = texto_a_narrar(cap)
+    assert t.startswith("Capítulo dos. Las raíces.\n\nBueno, si hablo")
+    assert t.endswith("Mi abuela Babu.\n")
+    # el motor lo lee como frases propias, con la pausa del pegado entre medio y antes del texto
+    assert partir_en_frases(t)[:3] == ["Capítulo dos.", "Las raíces.", "Bueno, si hablo de mis raíces tengo que arrancar por mis abuelos."]
