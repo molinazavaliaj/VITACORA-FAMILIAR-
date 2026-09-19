@@ -19,7 +19,16 @@ from pathlib import Path
 
 from .audio import a_wav_limpio, duracion, recortar_en_pausa
 from .config import cargar_config
-from .muestras import PISO_SEGUNDOS, Respuesta, elegir_muestras, elegir_referencia
+from .muestras import (
+    PISO_SEGUNDOS,
+    Respuesta,
+    elegir_muestras,
+    elegir_para_recortar,
+    elegir_referencia,
+    ranking_referencia,
+    riqueza_arranque,
+    riqueza_fonetica,
+)
 from .supabase_cliente import cliente, descargar_audio, narrador_por_nombre, respuestas_de
 from .texto import texto_de_prueba
 
@@ -80,28 +89,33 @@ def preparar_de(sb, narrador: dict, respuestas: list[Respuesta], salida: Path) -
 
     ref = elegir_referencia(respuestas)
     if ref is not None:
+        criterio = "entera"
         cruda = descargar_audio(sb, ref.audio_path, crudas / Path(ref.audio_path).name)
         a_wav_limpio(cruda, salida / "referencia.wav")
         referencia_texto = (ref.transcripcion or "").strip()
         log.info(
-            "referencia: día %02d entera (%.0f s), con su transcripción",
+            "referencia: día %02d entera (%.0f s, riqueza fonética %.1f), con su transcripción",
             ref.pregunta_orden,
             ref.duracion_segundos or 0,
+            riqueza_fonetica(ref.transcripcion),
         )
     else:
         from .transcribir import transcribir_clip
 
-        mas_larga = seleccion.respuestas[0]
-        cruda = descargar_audio(sb, mas_larga.audio_path, crudas / Path(mas_larga.audio_path).name)
+        criterio = "recorte"
+        elegida = elegir_para_recortar(respuestas, SEGUNDOS_RECORTE) or seleccion.respuestas[0]
+        cruda = descargar_audio(sb, elegida.audio_path, crudas / Path(elegida.audio_path).name)
         limpia_tmp = a_wav_limpio(cruda, salida / "referencia_larga.wav")
         recortar_en_pausa(limpia_tmp, salida / "referencia.wav", maximo=SEGUNDOS_RECORTE, minimo=12)
         log.info(
-            "no hay respuesta entera de 12-30 s: recorto %d s del día %02d y la transcribo con Whisper (API de OpenAI)",
+            "no hay respuesta entera de 12-30 s: recorto %d s del día %02d (el arranque fonéticamente más rico, %.1f) "
+            "y la transcribo con Whisper (API de OpenAI)",
             SEGUNDOS_RECORTE,
-            mas_larga.pregunta_orden,
+            elegida.pregunta_orden,
+            riqueza_arranque(elegida.transcripcion),
         )
         referencia_texto = transcribir_clip(salida / "referencia.wav")
-        ref = mas_larga
+        ref = elegida
     (salida / "referencia.txt").write_text(referencia_texto, encoding="utf-8")
 
     texto = texto_de_prueba([r.transcripcion or "" for r in respuestas], excluir=ref.transcripcion)
@@ -116,7 +130,14 @@ def preparar_de(sb, narrador: dict, respuestas: list[Respuesta], salida: Path) -
             "respuesta_id": ref.id,
             "pregunta_orden": ref.pregunta_orden,
             "segundos": round(duracion(salida / "referencia.wav"), 1),
+            "criterio": criterio,  # "entera" (respuesta de 12-30 s) o "recorte" (primeros 25 s de una respuesta)
+            "riqueza_fonetica": (
+                riqueza_fonetica(ref.transcripcion) if criterio == "entera" else riqueza_arranque(ref.transcripcion)
+            ),  # con lo que se eligió
+            "riqueza_fonetica_del_clip": riqueza_fonetica(referencia_texto),  # de lo que efectivamente dice el clip
         },
+        # Las candidatas ordenadas por riqueza: para ver por qué ganó la que ganó.
+        "ranking_referencia": ranking_referencia(respuestas, por_arranque=(criterio == "recorte"))[:10],
     }
     (salida / "muestras.json").write_text(json.dumps(resumen, ensure_ascii=False, indent=2), encoding="utf-8")
     log.info(

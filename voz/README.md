@@ -11,17 +11,29 @@ de 90 min ≈ 3,5 h de GPU). La PC ya lo tiene en `.env` y el worker arranca; fa
 aplicar la migración `narraciones` (después del OK de Joaquín) y registrar la tarea
 programada. Notas de la prueba: F5-TTS salió al doble de velocidad porque recorta la
 referencia a 12 s y se queda con la transcripción de 21 s (si se le quiere dar otra
-chance: referencia ≤ 12 s con su transcripción exacta); Qwen3-TTS cambia un poco el
-timbre entre frases porque generamos frase por frase (corte a 220 caracteres en
-`voz/texto.py`) — mejora pendiente: subir el corte a 400-500 y/o normalizar volumen
-antes de pegar. En esa PC, torchcodec necesita las DLL de FFmpeg (build *shared*),
-agregadas al final del PATH de usuario en `C:\vitacora-voz\ffmpeg-shared\`.
+chance: referencia ≤ 12 s con su transcripción exacta). En esa PC, torchcodec
+necesita las DLL de FFmpeg (build *shared*), agregadas al final del PATH de usuario
+en `C:\vitacora-voz\ffmpeg-shared\`.
+
+**Después del primer libro (19/09/2026):** dos cosas que se escucharon y se corrigieron.
+(1) La referencia manda más que el motor: con la del día 23 (la respuesta más larga)
+el libro sonó peor que con la del día 02; ahora `muestras.py` elige la referencia por
+**riqueza fonética del arranque** ("ll/y" = el "sh" rioplatense, voseo, ñ, rr,
+preguntas; puntos por cada 100 caracteres de los primeros ~300, que es lo que entra
+en el clip de 25 s) entre todas las respuestas con audio de ≥ 30 s, y `muestras.json`
+registra `criterio`, `riqueza_fonetica` y el `ranking_referencia` para ver por qué
+ganó la que ganó. (2) Los "ruidos raros" al terminar cada frase: los motores siguen
+emitiendo hasta el último instante y el pegado cortaba eso en seco contra silencio
+digital; ahora `motores/comun.py` limpia cada frase antes de pegar (recorta la cola
+por envolvente, fade in 12 ms / out 60 ms, y empareja el volumen a −20 dB RMS —
+antes variaba hasta 5 dB entre frases). Pendiente de escuchar: subir el corte de
+220 caracteres en `voz/texto.py` a 400-500 (menos uniones, menos artefactos).
 
 ## Qué hay
 
 | Archivo | Para qué |
 |---|---|
-| `voz/muestras.py` | Elegir qué respuestas del narrador se usan (las más largas, hasta 15 min; piso 10 min) y cuál es la referencia (una entera de 12-30 s). Puro. |
+| `voz/muestras.py` | Elegir qué respuestas del narrador se usan (las más largas, hasta 15 min; piso 10 min) y cuál es la referencia (una entera de 12-30 s, o el arranque de 25 s de la respuesta fonéticamente más rica). Puro. |
 | `voz/texto.py` | Partir el texto en frases de ≤ 220 caracteres sin romper palabras. Puro. |
 | `voz/audio.py` | ffmpeg: limpiar (mono 24 kHz, sin silencios en los bordes, volumen parejo), recortar en una pausa, pegar con pausas, mp3. |
 | `voz/preparar_muestras.py` | Paso 1: baja los audios de Supabase y deja `referencia.wav`, `referencia.txt`, `texto.txt`, `limpias/`. |
