@@ -8,6 +8,8 @@ numerados 1..N sin huecos, en el orden en que vienen en el JSON.
 import json
 from dataclasses import dataclass
 
+from .pausas import SEPARADOR_HISTORIA
+
 
 @dataclass(frozen=True)
 class Capitulo:
@@ -78,5 +80,6 @@ def anuncio_de(capitulo: Capitulo) -> str:
 
 
 def texto_a_narrar(capitulo: Capitulo) -> str:
-    """El anuncio, un párrafo aparte, y después el texto del capítulo."""
-    return f"{anuncio_de(capitulo)}\n\n{capitulo.texto.strip()}\n"
+    """El anuncio, el separador de historia (la pausa larga de voz/pausas.py) y
+    después el texto del capítulo."""
+    return f"{anuncio_de(capitulo)}\n\n{SEPARADOR_HISTORIA}\n\n{capitulo.texto.strip()}\n"

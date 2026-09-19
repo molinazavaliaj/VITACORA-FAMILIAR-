@@ -2,6 +2,7 @@
 un Storage en memoria y deja un checkpoint por capítulo; si se cae y vuelve,
 saltea los que ya estaban."""
 
+import json
 import logging
 import shutil
 
@@ -78,8 +79,12 @@ def test_narra_tres_capitulos_sube_tres_mp3_y_deja_checkpoint_por_capitulo(tmp_p
     esperadas = [ruta_capitulo("n1", n) for n in (1, 2, 3)]
     assert rutas == esperadas
     assert len(lanzamientos) == 3
-    assert [s[1] for s in fake.storage.subidas] == esperadas
-    for bucket, ruta, opciones in fake.storage.subidas:
+    # Cada capítulo sube su mp3 masterizado y, detrás, el master.json del libro al día.
+    mp3s = [s for s in fake.storage.subidas if s[1].endswith(".mp3")]
+    masters = [s for s in fake.storage.subidas if s[1].endswith("master.json")]
+    assert [s[1] for s in mp3s] == esperadas
+    assert [s[1] for s in masters] == ["n1/voz/master.json"] * 3
+    for bucket, ruta, opciones in mp3s:
         assert bucket == "audios"
         assert opciones == {"content-type": "audio/mpeg", "upsert": "true"}
         assert len(fake.storage.archivos["audios"][ruta]) > 1000
@@ -87,8 +92,18 @@ def test_narra_tres_capitulos_sube_tres_mp3_y_deja_checkpoint_por_capitulo(tmp_p
     for c in fake.ejecutadas:
         assert valores_del_update(c)["estado"] == "procesando"
         assert ("eq", "id", "nar1") in c.llamadas
-    # El txt que lee el motor lleva el anuncio adelante, con la voz clonada (CONTRATO).
-    assert (carpeta / "cap_02.txt").read_text(encoding="utf-8") == "Capítulo dos. El trabajo.\n\n" + CAPITULOS[1].texto + "\n"
+    # El txt que lee el motor lleva el anuncio adelante, con la voz clonada
+    # (CONTRATO), y el separador de historia después (pausa larga).
+    assert (carpeta / "cap_02.txt").read_text(encoding="utf-8") == "Capítulo dos. El trabajo.\n\n* * *\n\n" + CAPITULOS[1].texto + "\n"
+    # master.json: un capítulo por entrada, con medidas antes/después y el loudnorm del capítulo.
+    master = json.loads((carpeta / "master.json").read_text(encoding="utf-8"))
+    assert [c["capitulo"] for c in master["capitulos"]] == [1, 2, 3]
+    assert master["libro"] == {"narracion": "nar1", "narrador": "n1", "motor": motor_falso}
+    for c in master["capitulos"]:
+        assert c["loudnorm"]["despues"]["lufs"] is not None
+        pieza = c["piezas"][0]
+        assert pieza["tipo"] == "clonado" and pieza["nombre"] == f"cap_{c['capitulo']:02d}"
+        assert set(pieza["antes"]) == set(pieza["despues"]) == {"duracion_s", "rms_db", "pico_db", "ruido_db"}
     # El wav intermedio (decenas de MB por capítulo) se borra apenas sale el
     # mp3; el mp3 y el txt quedan para mirar si algo sonó mal.
     assert sorted(p.name for p in carpeta.glob("cap_*.wav")) == []
@@ -108,7 +123,7 @@ def test_reanuda_saltando_los_capitulos_ya_subidos(tmp_path, monkeypatch, motor_
 
     assert rutas == [ruta_capitulo("n1", n) for n in (1, 2, 3)]
     assert len(lanzamientos) == 1
-    assert [s[1] for s in fake.storage.subidas] == [ruta_capitulo("n1", 3)]
+    assert [s[1] for s in fake.storage.subidas if s[1].endswith(".mp3")] == [ruta_capitulo("n1", 3)]
     assert checkpoints(fake) == [rutas]
 
 

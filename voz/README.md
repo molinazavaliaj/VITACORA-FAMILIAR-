@@ -34,7 +34,9 @@ antes variaba hasta 5 dB entre frases). Pendiente de escuchar: subir el corte de
 | Archivo | Para qué |
 |---|---|
 | `voz/muestras.py` | Elegir qué respuestas del narrador se usan (las más largas, hasta 15 min; piso 10 min) y cuál es la referencia (una entera de 12-30 s, o el arranque de 25 s de la respuesta fonéticamente más rica). Puro. |
-| `voz/texto.py` | Partir el texto en frases de ≤ 220 caracteres sin romper palabras. Puro. |
+| `voz/texto.py` | Partir el texto en tramos de ≤ 220 caracteres sin romper palabras, cada uno con el signo que lo cerró (`Tramo.cierre`). Puro. |
+| `voz/pausas.py` | `PAUSAS_MS`, las pausas por signo en un solo lugar (Naza las pisa desde `.env`), y el separador `* * *` entre historias. Puro. |
+| `voz/masterizar.py` | El último paso antes de subir cada `cap_NN.mp3`: limpieza por pieza, EQ al sonido real del narrador, pegado con pausas, loudnorm −19 LUFS en dos pasadas, `master.json` con medidas y avisos. También CLI. |
 | `voz/audio.py` | ffmpeg: limpiar (mono 24 kHz, sin silencios en los bordes, volumen parejo), recortar en una pausa, pegar con pausas, mp3. |
 | `voz/preparar_muestras.py` | Paso 1: baja los audios de Supabase y deja `referencia.wav`, `referencia.txt`, `texto.txt`, `limpias/`. |
 | `voz/prueba_oido.py` | Paso 2: corre cada motor en su venv y deja `A.mp3 … D.mp3` + `clave.txt`. |
@@ -44,7 +46,47 @@ antes variaba hasta 5 dB entre frases). Pendiente de escuchar: subir el corte de
 | `voz/worker.py` | El bucle: `python -m voz.worker` sondea el buzón y narra de a una. Log en `logs/worker.log`. |
 | `voz/reintentar.py` | `python -m voz.reintentar <id>`: vuelve una narración fallida a pendiente. |
 | `motores/<motor>/generar.py` | Un motor por carpeta, con su propio `requirements.txt` y su propio venv. Todos con el mismo contrato. |
-| `motores/comun.py` | Lo que comparten los motores (argumentos, bucle frase a frase, pegado, wav). |
+| `motores/comun.py` | Lo que comparten los motores (argumentos, bucle tramo a tramo, limpieza por frase, pegado con la pausa de cada signo, wav). |
+
+## Pausas y masterizado (central 19/09, directiva 01)
+
+**El motor no decide las pausas.** `texto.partir_en_tramos` corta por puntuación
+y se acuerda de qué signo cerró cada tramo; `comun.pegar_tramos` pone el silencio
+de ese signo, siempre el mismo. Los valores viven en `voz/pausas.py` y Naza los
+pisa desde `.env` sin tocar código:
+
+| signo | pausa | `.env` |
+|---|---|---|
+| `,` `;` `:` | 250 ms | `PAUSAS_MS=coma=250,…` |
+| `.` `?` `!` | 500 ms | `punto=500` |
+| `…` | 700 ms | `suspensivos=700` |
+| fin de párrafo | 1 s | `parrafo=1000` |
+| `* * *` (entre historias, tras el anuncio del capítulo) | 1,2 s | `historia=1200` |
+
+Dos modos de corte, `TRAMOS=oracion` (default) o `TRAMOS=coma`. Se probaron los
+dos sobre el capítulo 6 de Joaquín (19/09): en modo **oración** el motor recibe
+la oración entera (35 tramos), pausa en las comas que le parecen (19 de 40) y
+esas pausas se igualan a 250 ms exactos; en modo **coma** todas las comas pausan
+(75 tramos) pero aparecen 18 tramos de una o dos palabras ("No,", "Es,",
+"bueno,"), que es donde un motor zero-shot más inventa, y la voz dura 12 % más.
+Quedó **oración**; el otro modo sigue disponible por si Naza lo prefiere al oído.
+
+**Masterizar** (`voz/masterizar.py`) corre en el worker sobre cada capítulo antes
+del mp3, igual para clonado, real e híbrido: cada pieza se limpia (pasa-altos
+80 Hz, afftdn suave, silencios de las puntas), se iguala por bandas de octava al
+sonido **real** del narrador (las muestras limpias; en un híbrido, las piezas
+reales — nunca el promedio con los conectores, que arrastraría la voz real hacia
+lo sintético), se nivela, se pega con la pausa `historia`, se limita a −3,5 dB y
+se normaliza con `loudnorm` en dos pasadas a −19 LUFS / TP −1,5 / LRA 7 (queda en
+modo lineal: solo ganancia, sin compresión). `master.json` va al lado de los mp3
+(`{narrador}/voz/master.json`) con nivel, pico y ruido de cada pieza antes y
+después, el loudnorm del capítulo y avisos si algo queda fuera de rango. La
+fábrica ya no normaliza: solo pega.
+
+```powershell
+.\.venv\Scripts\python -m voz.masterizar --capitulo 2 --salida cap_02.wav --master master.json `
+  --piezas c0.wav:conector dia_05.ogg:real c1.wav:conector … [--objetivo muestras\limpias\*.wav]
+```
 
 Motores: `chatterbox` (Chatterbox Multilingual, MIT) · `qwen3tts` (Qwen3-TTS 1.7B,
 Apache 2.0) · `f5tts` (F5-TTS con checkpoint en español, MIT) · `omnivoice`

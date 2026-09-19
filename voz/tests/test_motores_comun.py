@@ -1,6 +1,17 @@
 import numpy as np
+import pytest
 
-from motores.comun import a_mono_float, pegar_frases, remuestrear
+from motores.comun import (
+    a_mono_float,
+    igualar_pausas_internas,
+    narrar_tramos,
+    pausas_internas,
+    pegar_frases,
+    pegar_tramos,
+    remuestrear,
+)
+from voz.pausas import PAUSAS_MS_DEFAULT
+from voz.texto import Tramo
 
 
 def test_pegar_frases_mete_la_pausa_entre_medio():
@@ -103,3 +114,62 @@ def test_limpiar_frase_es_idempotente_en_lo_que_importa():
     clip = limpiar_frase(_voz(1.0), SR)
     otra = limpiar_frase(clip, SR)
     assert abs(len(clip) - len(otra)) <= SR * 0.1
+
+
+# --- pausas por puntuacion (central 19/09, punto 6) ---
+
+
+def test_pegar_tramos_pone_la_pausa_del_signo_que_cerro_cada_tramo():
+    clip = _voz(0.5)
+    pegado = pegar_tramos([clip, clip, clip, clip], ["coma", "punto", "historia", "punto"], PAUSAS_MS_DEFAULT, SR)
+    esperado = 4 * len(clip) + int(SR * (0.250 + 0.500 + 1.200))  # el ultimo cierre no suma
+    assert len(pegado) == esperado
+    # un cierre desconocido cae en "ninguno"
+    pegado = pegar_tramos([clip, clip], ["raro", "punto"], PAUSAS_MS_DEFAULT, SR)
+    assert len(pegado) == 2 * len(clip) + int(SR * 0.350)
+
+
+def test_pegar_tramos_exige_un_cierre_por_clip():
+    with pytest.raises(ValueError):
+        pegar_tramos([_voz(0.2)], [], PAUSAS_MS_DEFAULT, SR)
+
+
+def _oracion_con_pausa(pausa_s: float) -> np.ndarray:
+    """Voz, un silencio que dejo el motor (una coma), voz."""
+    return np.concatenate([_voz(0.6), np.zeros(int(SR * pausa_s), dtype=np.float32), _voz(0.6)])
+
+
+def test_pausas_internas_encuentra_lo_que_dejo_el_motor_y_no_los_bordes():
+    encontradas = pausas_internas(_oracion_con_pausa(0.4), SR)
+    assert len(encontradas) == 1
+    ini, fin = encontradas[0]
+    assert abs((fin - ini) / SR - 0.4) < 0.05
+    assert pausas_internas(_voz(1.0), SR) == []  # sin pausas
+    assert pausas_internas(_oracion_con_pausa(0.05), SR) == []  # muy corta: no cuenta
+
+
+def test_igualar_pausas_internas_deja_cada_pausa_exactamente_en_el_objetivo():
+    for pausa_del_motor in (0.12, 0.4, 0.9):
+        igualado = igualar_pausas_internas(_oracion_con_pausa(pausa_del_motor), 250, SR)
+        # dos trozos de voz de 0,6 s + la pausa de 250 ms, sin importar cuanto pauso el motor
+        assert abs(len(igualado) / SR - (1.2 + 0.25)) < 0.06, pausa_del_motor
+        assert len(pausas_internas(igualado, SR)) == 1
+    assert len(igualar_pausas_internas(_voz(1.0), 250, SR)) == len(_voz(1.0))  # sin pausas: igual
+
+
+def test_narrar_tramos_modo_oracion_iguala_comas_y_modo_coma_no_toca_adentro():
+    tramos = [Tramo("Hola, que tal.", "punto"), Tramo("Chau.", "punto")]
+
+    def motor(frase):
+        return (_oracion_con_pausa(0.9) if "," in frase else _voz(0.5)), SR
+
+    def callado(*a, **k):
+        pass
+
+    por_oracion = narrar_tramos(tramos, motor, PAUSAS_MS_DEFAULT, "oracion", log=callado)
+    por_coma = narrar_tramos(tramos, motor, PAUSAS_MS_DEFAULT, "coma", log=callado)
+    # en modo oracion la pausa de 0,9 s que hizo el motor bajo a 0,25: el total es mas corto
+    assert len(por_coma) - len(por_oracion) > int(SR * 0.5)
+    # la pausa entre los dos tramos es la de "punto" (500 ms), no la de siempre (350)
+    esperado = len(_oracion_con_pausa(0.9)) + int(SR * 0.5) + len(_voz(0.5))
+    assert abs(len(por_coma) - esperado) < SR * 0.25

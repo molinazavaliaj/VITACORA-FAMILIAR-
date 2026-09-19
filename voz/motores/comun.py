@@ -17,7 +17,8 @@ RAIZ = Path(__file__).resolve().parent.parent  # la carpeta voz/ del repo
 if str(RAIZ) not in sys.path:
     sys.path.insert(0, str(RAIZ))
 
-from voz.texto import partir_en_frases  # noqa: E402
+from voz.pausas import modo_tramos, pausas_ms  # noqa: E402
+from voz.texto import Tramo, partir_en_frases, partir_en_tramos  # noqa: E402
 
 TASA_SALIDA = 24000
 PAUSA_FRASE_MS = 350
@@ -136,6 +137,80 @@ def pegar_frases(clips: list[np.ndarray], tasa: int = TASA_SALIDA, pausa_ms: int
     return np.concatenate(partes)
 
 
+# --- pausas por puntuación (central 19/09, punto 6) ---
+# El motor no decide las pausas: cada tramo viene con el signo que lo cerró y
+# acá se pone el silencio que le toca, siempre el mismo (voz/pausas.py).
+PAUSA_INTERNA_MIN_MS = 120  # una pausa que hizo el motor dentro de un tramo, para igualarla
+
+
+def pegar_tramos(clips: list[np.ndarray], cierres: list[str], pausas: dict[str, int], tasa: int = TASA_SALIDA) -> np.ndarray:
+    """Concatena; después del clip i va el silencio de `pausas[cierres[i]]`.
+    El cierre del último tramo no importa (no sigue nada). Un clip vacío
+    (frase sin voz) no aporta audio pero sí su pausa."""
+    if not clips:
+        raise ValueError("no hay frases generadas")
+    if len(cierres) != len(clips):
+        raise ValueError("cada clip necesita su cierre")
+    partes: list[np.ndarray] = []
+    for i, (clip, cierre) in enumerate(zip(clips, cierres)):
+        partes.append(clip)
+        if i < len(clips) - 1:
+            ms = pausas.get(cierre, pausas.get("ninguno", PAUSA_FRASE_MS))
+            partes.append(np.zeros(int(tasa * ms / 1000), dtype=np.float32))
+    return np.concatenate(partes)
+
+
+def pausas_internas(clip: np.ndarray, tasa: int = TASA_SALIDA, minimo_ms: int = PAUSA_INTERNA_MIN_MS) -> list[tuple[int, int]]:
+    """(inicio, fin) en muestras de cada silencio de al menos `minimo_ms` que el
+    motor dejó dentro del clip (sin contar los bordes)."""
+    v = int(tasa * _VENTANA_MS / 1000)
+    n = len(clip) // v
+    if n < 3:
+        return []
+    envolvente = _db(np.sqrt(np.mean(clip[: n * v].reshape(n, v) ** 2, axis=1)))
+    umbral = max(UMBRAL_VOZ_DB, float(envolvente.max()) - 30)
+    callado = envolvente <= umbral
+    minimo = max(1, int(round(minimo_ms / _VENTANA_MS)))
+    pausas: list[tuple[int, int]] = []
+    i = 0
+    while i < n:
+        if callado[i]:
+            j = i
+            while j < n and callado[j]:
+                j += 1
+            if j - i >= minimo and i > 0 and j < n:  # solo las internas
+                pausas.append((i * v, j * v))
+            i = j
+        else:
+            i += 1
+    return pausas
+
+
+def igualar_pausas_internas(clip: np.ndarray, objetivo_ms: int, tasa: int = TASA_SALIDA) -> np.ndarray:
+    """Modo (a): el tramo es una oración entera y las comas las pausó el motor a
+    su gusto. Cada pausa interna se lleva exactamente a `objetivo_ms` (se
+    acorta o se estira con silencio), con un fundido corto a cada lado."""
+    pausas = pausas_internas(clip, tasa)
+    if not pausas:
+        return clip
+    objetivo = int(tasa * objetivo_ms / 1000)
+    borde = min(int(tasa * 0.010), objetivo // 4)
+    partes: list[np.ndarray] = []
+    cursor = 0
+    for ini, fin in pausas:
+        voz = clip[cursor:ini].copy()
+        if borde and len(voz) > borde:
+            voz[-borde:] *= np.linspace(1.0, 0.0, borde, dtype=np.float32)
+        partes.append(voz)
+        partes.append(np.zeros(objetivo, dtype=np.float32))
+        cursor = fin
+    resto = clip[cursor:].copy()
+    if borde and len(resto) > borde:
+        resto[:borde] *= np.linspace(0.0, 1.0, borde, dtype=np.float32)
+    partes.append(resto)
+    return np.concatenate(partes)
+
+
 def escribir_wav(ruta: Path, audio: np.ndarray, tasa: int = TASA_SALIDA) -> Path:
     ruta.parent.mkdir(parents=True, exist_ok=True)
     pico = float(np.max(np.abs(audio))) if len(audio) else 0.0
@@ -167,9 +242,26 @@ def narrar_frase_a_frase(frases: list[str], generar_una, log=print) -> np.ndarra
     return pegar_frases(clips)
 
 
+def narrar_tramos(tramos: list[Tramo], generar_una, pausas: dict[str, int], modo: str, log=print) -> np.ndarray:
+    """Como `narrar_frase_a_frase`, pero la pausa después de cada tramo la pone
+    su cierre, y en modo "oracion" las pausas que el motor dejó dentro del
+    tramo (las comas) se igualan a `pausas["coma"]`."""
+    clips = []
+    for i, tramo in enumerate(tramos, 1):
+        log(f"  tramo {i}/{len(tramos)} [{tramo.cierre}]: {tramo.texto[:60]}{'…' if len(tramo.texto) > 60 else ''}", flush=True)
+        audio, tasa = generar_una(tramo.texto)
+        clip = limpiar_frase(remuestrear(a_mono_float(audio), int(tasa)))
+        if modo == "oracion":
+            clip = igualar_pausas_internas(clip, pausas["coma"])
+        clips.append(clip)
+    return pegar_tramos(clips, [t.cierre for t in tramos], pausas)
+
+
 def correr_motor(nombre: str, descripcion: str, cargar, log=print) -> None:
     """El `main` de cada motor: args → cargar(args) devuelve `generar_una` →
-    narrar → escribir. `cargar` recibe los args ya parseados (con HF_HOME puesto)."""
+    narrar → escribir. `cargar` recibe los args ya parseados (con HF_HOME puesto).
+    Las pausas y el modo de corte salen de voz/pausas.py (y de .env si Naza los
+    pisó); el worker los pasa por el entorno del subproceso."""
     import time
 
     args = leer_args(descripcion)
@@ -177,8 +269,10 @@ def correr_motor(nombre: str, descripcion: str, cargar, log=print) -> None:
     t0 = time.time()
     generar_una = cargar(args)
     log(f"{nombre}: modelo listo en {time.time() - t0:.0f} s", flush=True)
-    frases = frases_del_texto(args.texto)
+    pausas, modo = pausas_ms(), modo_tramos()
+    tramos = partir_en_tramos(args.texto.read_text(encoding="utf-8"), modo=modo)
+    log(f"{nombre}: {len(tramos)} tramos (modo {modo}; pausas " + ", ".join(f"{k}={v}" for k, v in pausas.items()) + ")", flush=True)
     t0 = time.time()
-    audio = narrar_frase_a_frase(frases, generar_una, log=log)
+    audio = narrar_tramos(tramos, generar_una, pausas, modo, log=log)
     escribir_wav(args.salida, audio)
-    log(f"{nombre}: {len(frases)} frases, {len(audio) / TASA_SALIDA:.1f} s de audio en {time.time() - t0:.0f} s → {args.salida}", flush=True)
+    log(f"{nombre}: {len(tramos)} tramos, {len(audio) / TASA_SALIDA:.1f} s de audio en {time.time() - t0:.0f} s → {args.salida}", flush=True)

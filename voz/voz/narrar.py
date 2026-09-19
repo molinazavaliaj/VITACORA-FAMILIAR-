@@ -13,6 +13,7 @@ from pathlib import Path
 from .audio import a_mp3
 from .buzon import Narracion, marcar
 from .libro import Capitulo, ruta_capitulo, texto_a_narrar
+from .masterizar import Pieza, agregar_a_master, masterizar_capitulo, objetivo_de
 from .motor_subprocess import correr_motor_subprocess
 from .muestras import PISO_SEGUNDOS, elegir_muestras
 from .preparar_muestras import preparar_de
@@ -66,6 +67,13 @@ def narrar_capitulos(
     """
     acumulado: list[str] = []
     total = len(capitulos)
+    # El sonido objetivo del master es la voz real del narrador: las muestras
+    # limpias que dejó preparar_voz. Si no están (tests), cada capítulo se
+    # iguala a sí mismo.
+    limpias = sorted((carpeta / "limpias").glob("*.wav")) if (carpeta / "limpias").is_dir() else []
+    objetivo = objetivo_de(limpias) if limpias else None
+    master_json = carpeta / "master.json"
+    ruta_master = f"{narracion.narrador_id}/voz/master.json"
     for cap in capitulos:
         ruta = ruta_capitulo(narracion.narrador_id, cap.numero)
         if ruta in ya_subidos:
@@ -85,11 +93,20 @@ def narrar_capitulos(
         )
         if not ok:
             raise RuntimeError(f"el motor {motor} falló en el capítulo {cap.numero} a los {segundos:.0f} s:\n{cola}")
-        mp3 = a_mp3(wav, base.with_suffix(".mp3"))
-        # El wav pesa decenas de MB por capítulo y ya no sirve: con el mp3
-        # hecho se borra. El mp3 y el txt quedan para mirar si algo sonó mal.
+        # Masterizar (central 19/09): limpieza, igualación al sonido del narrador,
+        # loudnorm a −19 LUFS. El capítulo clonado es una sola pieza: el motor ya
+        # puso las pausas por puntuación adentro.
+        master_wav = base.with_suffix(".master.wav")
+        medido = masterizar_capitulo(cap.numero, [Pieza(wav, f"cap_{cap.numero:02d}", "clonado")], master_wav, objetivo, log=log.info)
+        agregar_a_master(master_json, medido, libro={"narracion": narracion.id, "narrador": narracion.narrador_id, "motor": motor})
+        mp3 = a_mp3(master_wav, base.with_suffix(".mp3"))
+        # Los wav pesan decenas de MB por capítulo y ya no sirven: con el mp3
+        # hecho se borran. El mp3 y el txt quedan para mirar si algo sonó mal.
         wav.unlink()
+        master_wav.unlink()
         sb.storage.from_(BUCKET).upload(ruta, mp3.read_bytes(), {"content-type": "audio/mpeg", "upsert": "true"})
+        # master.json va al lado de los mp3, actualizado capítulo a capítulo.
+        sb.storage.from_(BUCKET).upload(ruta_master, master_json.read_bytes(), {"content-type": "application/json", "upsert": "true"})
         acumulado.append(ruta)
         marcar(sb, narracion.id, "procesando", capitulos_paths=list(acumulado))
         log.info("capítulo %d listo en %.0f s → %s", cap.numero, segundos, ruta)
