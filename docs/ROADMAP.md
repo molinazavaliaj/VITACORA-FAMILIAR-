@@ -135,7 +135,7 @@ se decide con eso a la vista.
 | 1.9 | Conseguir línea telefónica dedicada (sin WhatsApp común activo) | **J** | ✅ 16/09 — chip activado, **nunca metido en una app de WhatsApp**; entra en 1.12 |
 | 1.10 | Verificación del negocio con documentación de Joaquín | **A** | ☐ post 1-oct |
 | 1.11 | Cuenta publicitaria — ⚠️ moneda **ARS**, no se cambia nunca más | **N** | ☐ post 1-oct |
-| 1.12 | Producción: **chip propio ya activado** (no meterlo en ninguna app de WhatsApp), display name, **token permanente (System User)** — el actual vence a las 24 h, hay que renovarlo a mano en Railway hasta hacer esto. Exige cargar medio de pago en Meta, moneda **ARS**. | **J** | ☐ **fin de semana 20-21/09**, con la app ya con historial |
+| 1.12 | Producción: **chip propio ya activado** (no meterlo en ninguna app de WhatsApp), display name, **token permanente (System User)** — el actual vence a las 24 h, hay que renovarlo a mano en Railway hasta hacer esto. Exige cargar medio de pago en Meta, moneda **ARS**. | **J** | 🔄 **chip activado el 19/09**. Sábado 20/09 a la mañana: agregar el número a la WABA (SMS al chip), display name "Vitácora", System User + token permanente (por canal privado) → `WA_TOKEN` y `WA_PHONE_NUMBER_ID` en Railway. Se migran los pilotos al número nuevo. **Urgente por el viajero (semanas de viaje ≠ token de 24 h).** |
 
 ### ✅ Infraestructura unificada (15/09)
 
@@ -446,7 +446,7 @@ Spec: `docs/panel-usuario.md`. Construyó Joaquín en `web/` (Naza sin créditos
 | 3t.15 | Entrevistador: muestras de voz limpias para clonar + **pedir por WhatsApp el consentimiento explícito del narrador para clonar su voz** (la política de privacidad lo promete: es dato biométrico) | **J** | 🔄 17/09 — **código hecho**: la bienvenida (usted y vos) pide el permiso en la misma frase del SÍ; `procesar.ts` anota `consentimiento_voz_at` al pasar a `acepto` **solo si `WA_BIENVENIDA_PIDE_VOZ=1`** (la plantilla en Meta todavía es la vieja, sin la frase); `npm run manual -- ficha <narrador> --voz-si` lo carga a mano para los pilotos. **Falta:** editar `bienvenida` en Meta con el cuerpo nuevo cuando aprueben la actual (vuelve a revisión) → prender la variable en Railway. Las muestras de voz limpias las hace el paquete `voz/` de Naza (`preparar_muestras`). |
 | 3t.16 | **Paso 5 de la compra: la entrevista y el álbum** (ritmo, temas a evitar, fotos) antes de pagar, para terminar el libro sin entrar al panel — spec §15.4 | **J** | ✅ 17/09 — fotos sin sesión con token firmado de 1 h (`lib/token-fotos.ts`), probado de punta a punta hasta Mercado Pago. **Textos del paso a aprobar por Naza.** |
 | 3t.17 | **La pregunta de cierre** del entrevistador: después de las 4 finales, "¿hay algo que no le pregunté y que quiera en el libro?" — si cuenta, entra al libro; si nombra un tema, se le arma una pregunta; si dice que no, se despide. Máximo dos vueltas. Textos aprobados por J el 18/09 (`entrevistador/src/flujo/cierre-abierto.ts`). | **J** | ✅ 18/09 — Dora y Naza lo tienen al final de su entrevista. Naza revisa la letra. |
-| 3t.18 | **Vitácora de viaje** — producto aparte (`docs/vitacora-de-viaje.md`): compra en `/comprar/viaje` (vos · el viaje · pagar), etapas vivas desde el panel, el bot pregunta cada noche con el itinerario y lo de ayer, fotos por WhatsApp, pregunta de cierre al volver. Precios `PRECIO_VIAJE_ARS/EUR` en Vercel; `NEXT_PUBLIC_WA_NUMERO` para la pantalla de gracias; plantilla `bienvenida_viaje` en Meta (hasta entonces el viajero escribe "hola" primero). | **J** | ✅ 18/09 código; ☐ precios en Vercel, plantilla en Meta, el viajero en la lista de prueba. Fábrica: layout de viaje al terminar el primero (N). |
+| 3t.18 | **Vitácora de viaje** — producto aparte (`docs/vitacora-de-viaje.md`): compra en `/comprar/viaje` (vos · el viaje · pagar), etapas vivas desde el panel, el bot pregunta cada noche con el itinerario y lo de ayer, fotos por WhatsApp, pregunta de cierre al volver. Precios `PRECIO_VIAJE_ARS/EUR` en Vercel; `NEXT_PUBLIC_WA_NUMERO` para la pantalla de gracias; plantilla `bienvenida_viaje` en Meta (hasta entonces el viajero escribe "hola" primero). | **J** | ✅ 18-19/09 código + home con selector y sección de viaje + landing `/viaje`. ☐ **Naza:** `PRECIO_VIAJE_ARS=78750`, `PRECIO_VIAJE_EUR=45`, `NEXT_PUBLIC_WA_NUMERO` en Vercel. ☐ **J:** plantilla `bienvenida_viaje` en Meta; el viajero compra y paga (20-21/09). Fábrica: layout de viaje al terminar el primero (N). |
 
 **Para que todo lo de arriba ande en producción (Naza):**
 1. ~~`npx supabase db push`~~ ✅ 16/09 — las tres migraciones aplicadas.
@@ -486,7 +486,7 @@ Basado en el relevamiento del 2026-09-04 (documento en Drive).
 |---|---|---|---|
 | 4.1 | Contratar Agente de la Propiedad Industrial matriculado | **J** | ☐ |
 | 4.2 | Presentar **VITÁCORA FAMILIAR** como marca **mixta** (con logo), clases **41 + 9** | **J** | ☐ |
-| 4.3 | ~~`.com` · `.es` · `.com.ar`~~ **ya comprados por Naza (05/09)**. Falta: `bitacorafamiliar.com` y `.com.ar` (con B, defensivos, redirigen a la V) | **J** | ☐ |
+| 4.3 | ~~`.com` · `.es` · `.com.ar`~~ **ya comprados por Naza (05/09)**. Falta: `bitacorafamiliar.com` y `.com.ar` (con B, defensivos, redirigen a la V) | **J** | ☐ · **19/09: `vita-cora.com` está libre, es el dominio paraguas; comprar cuando se pueda, no es prioridad.** |
 | 4.4 | Reservar handles defensivos (Facebook, TikTok, YouTube, y los de B) | **J** | ☐ |
 
 **No intentar registrar "Vitácora" sola:** choca fonéticamente con "BITÁCORA" (clase 41,
@@ -655,6 +655,18 @@ queda para después del lanzamiento.
 | **No poder cobrarle a España** | Argentina primero · merchant of record a evaluar después |
 
 ---
+
+## 📌 Decisiones de marca (2026-09-19, los dos socios)
+
+- **Vitácora** (una palabra, con tilde) es la marca paraguas. Dos productos: **Vitácora Familiar**
+  (el libro de una vida, lo que ya vende la home) y **Vitácora de viaje** (`docs/vitacora-de-viaje.md`).
+- La home sigue siendo Familiar; header con el selector *Familiar · De viaje* y una sección grande
+  de viaje que lleva a `/viaje` (landing mínima). La home paraguas de verdad va con la identidad (3.9).
+- Dominio: todo sigue en `vitacorafamiliar.com`. `vita-cora.com` está libre; se compra y se redirige
+  cuando se pueda (4.3). No es prioridad.
+- Mails y plantillas de Meta siguen diciendo "Vitácora Familiar"; el bot y los mails del viajero,
+  "Vitácora de viaje". Display name del número propio: **"Vitácora"**.
+- Precios de viaje: **45 €** / **$78.750**. El primer viajero paga de verdad (8.3 queda hecho).
 
 ## 📌 Decisiones tomadas (2026-09-04)
 

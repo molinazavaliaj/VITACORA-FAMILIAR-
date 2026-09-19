@@ -2,9 +2,11 @@ import Link from "next/link";
 import { Playfair_Display, Archivo, Source_Serif_4 } from "next/font/google";
 import { CampoVF, Toroide } from "./marca";
 import { Aparece } from "./aparece";
+import { SelectorProducto } from "./selector-producto";
 import { ChatWhatsApp, Indice, MailAnticipo, PaginaEscrita, PanelMini, Reproductor, TapaLibro } from "./maquetas";
 import { CtaSticky } from "./cta-sticky";
 import { catalogo } from "@/lib/productos";
+import { obtenerPrecioViaje } from "@/lib/precios";
 
 // Las tres de docs/design.md §4: Playfair grita, Archivo susurra, Source Serif
 // habla. Se cargan acá y no en el layout a propósito — la landing es la única
@@ -227,17 +229,20 @@ export default function Home() {
   const masBarato = Math.min(...Object.values(preciosPorFormato).filter((p): p is number => p !== null));
   const precio = formatear(masBarato);
   const fragmentoAudio = process.env.NEXT_PUBLIC_URL_FRAGMENTO_AUDIO; // el mp3 real, cuando exista
+  const precioViaje = obtenerPrecioViaje("AR"); // Vitácora de viaje: sin precio cargado, la sección va sin número
 
   return (
     <div className={`${playfair.variable} ${archivo.variable} ${sourceSerif.variable} flex flex-1 flex-col bg-white text-[#14140F]`}>
       {/* ═══ 1 · HERO — apertura en negro ═══════════════════════════════════ */}
       <div className="bg-[#14140F] text-white">
         <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 pt-7">
-          <Link href="/" className="flex items-center gap-3 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white" aria-label="Vitácora Familiar, inicio">
+          {/* La marca paraguas (19/09): Vitácora, con dos productos. La home sigue siendo Familiar. */}
+          <Link href="/" className="flex items-center gap-3 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white" aria-label="Vitácora, inicio">
             <Toroide className="h-7 w-auto" />
-            <span className="text-[11px] uppercase [font-family:var(--fuente-micro)] [letter-spacing:0.3em]">Vitácora Familiar</span>
+            <span className="text-[11px] uppercase [font-family:var(--fuente-micro)] [letter-spacing:0.3em]">Vitácora</span>
           </Link>
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4 sm:gap-6">
+            <SelectorProducto actual="familiar" />
             <Link
               href="/entrar"
               className="text-sm text-[#D4D4CE] underline decoration-[#5F5F55] underline-offset-4 transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white [font-family:var(--fuente-micro)]"
@@ -394,6 +399,46 @@ export default function Home() {
               <strong className="font-normal text-[#14140F]">Y desde tu panel lo ves crecer día a día</strong>, mucho
               antes de que esté terminado. No hay que esperar un mes a ciegas.
             </Cuerpo>
+          </Aparece>
+        </div>
+      </section>
+
+      {/* ═══ VITÁCORA DE VIAJE — el segundo producto (19/09): grande, para que quien
+          entró por Familiar lo reconozca de una. Lleva a su landing, /viaje. ═══ */}
+      <section id="viaje" className="bg-[#14140F] py-24 text-white lg:py-32">
+        <div className="mx-auto grid w-full max-w-6xl items-center gap-14 px-6 lg:grid-cols-[1.1fr_1fr] lg:gap-20">
+          <Aparece>
+            <Capitulo numero="✈" clara>Vitácora de viaje</Capitulo>
+            <Titulo clara grande>También hay un libro en cada viaje.</Titulo>
+            <Cuerpo clara className="mt-6 max-w-xl">
+              El mismo biógrafo, pero de viaje contigo: cada noche te pregunta por el día, guarda la foto que le mandas con
+              su historia, y al volver, tu viaje es un libro. Cada ciudad, un capítulo.
+            </Cuerpo>
+            <div className="mt-9 flex flex-wrap items-center gap-5">
+              <Link
+                href="/viaje"
+                className="inline-flex h-13 items-center justify-center rounded-full bg-[#8F7BE0] px-8 text-base font-medium text-[#14140F] transition-colors hover:bg-[#A296E6] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white [font-family:var(--fuente-micro)]"
+              >
+                Conocer la Vitácora de viaje
+              </Link>
+              {precioViaje !== null ? (
+                <span className="text-[14px] text-[#AEAEA6] [font-family:var(--fuente-micro)]">Desde {formatear(precioViaje)} · el viaje entero</span>
+              ) : null}
+            </div>
+          </Aparece>
+          <Aparece>
+            <ul className="grid gap-px overflow-hidden rounded-2xl border border-[#45453C] bg-[#45453C]">
+              {[
+                ["Cada noche, una pregunta", "Por WhatsApp, cuando el día terminó. Le respondes con un audio, como a un amigo."],
+                ["Tus fotos, con su historia", "Le mandas la foto del día y le cuentas qué pasaba. Queda guardada en su etapa."],
+                ["Cada etapa, un capítulo", "Lisboa, Oporto, el camino: el libro se ordena por donde estuviste, no por fechas."],
+              ].map(([t, d]) => (
+                <li key={t} className="flex flex-col gap-2 bg-[#14140F] p-6">
+                  <p className="text-[19px] [font-family:var(--fuente-titulo)] font-medium">{t}</p>
+                  <p className="text-[15px] leading-[1.7] text-[#D4D4CE] [font-family:var(--fuente-cuerpo)] font-light">{d}</p>
+                </li>
+              ))}
+            </ul>
           </Aparece>
         </div>
       </section>

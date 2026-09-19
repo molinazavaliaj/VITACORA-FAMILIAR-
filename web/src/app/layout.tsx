@@ -10,15 +10,16 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://www.vitacorafamiliar.com"),
   title: {
     default: "Vitácora Familiar — En cada familia hay un libro sin escribir",
-    template: "%s · Vitácora Familiar",
+    // La marca paraguas (19/09): Vitácora, con dos productos. La home sigue siendo Familiar.
+    template: "%s · Vitácora",
   },
   description:
-    "Un biógrafo entrevista por WhatsApp y escribe el libro de una vida, con el audiolibro en su propia voz. La de tu papá, la de tu abuela, la tuya.",
+    "Vitácora: un biógrafo por WhatsApp. Vitácora Familiar escribe el libro de una vida, con el audiolibro en su propia voz; Vitácora de viaje, el libro de tu viaje, noche a noche.",
   openGraph: {
     title: "En cada familia hay un libro sin escribir",
     description:
       "Un biógrafo entrevista por WhatsApp y escribe el libro de una vida. La de tu papá, la de tu abuela, la tuya.",
-    siteName: "Vitácora Familiar",
+    siteName: "Vitácora",
     locale: "es_ES",
     type: "website",
   },

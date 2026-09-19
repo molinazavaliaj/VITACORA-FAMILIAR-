@@ -24,7 +24,7 @@ export default function PaginaComprarViaje() {
     <div className={`${playfair.variable} ${archivo.variable} ${sourceSerif.variable} flex flex-1 flex-col bg-[#F7F7F5] text-[#14140F]`}>
       <header className="border-b border-[#EBEBE7] bg-white">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-5">
-          <Link href="/" className="flex items-center gap-3">
+          <Link href="/viaje" className="flex items-center gap-3">
             <Toroide className="h-6 w-auto" />
             <span className="text-[11px] uppercase [font-family:var(--fuente-micro)] [letter-spacing:0.3em]">Vitácora de viaje</span>
           </Link>
