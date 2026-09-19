@@ -77,6 +77,46 @@ export async function subirMp3(db: ReturnType<typeof obtenerClienteDb>, ruta: st
 }
 
 /**
+ * Tope por archivo de Storage en el plan gratis de Supabase (50 MB). Un
+ * audiolibro entero a 128 kbps pasa ese tope a partir de ~50 minutos: el de
+ * Joaquín (69 min, 66 MB) tumbó el ensamblado dos veces el 18/09. Los
+ * capítulos entran siempre (el más largo anda por 15 MB).
+ */
+export const LIMITE_BYTES_ARCHIVO_STORAGE = 50 * 1024 * 1024;
+
+/**
+ * El mp3 completo es un extra (el panel reproduce por capítulos, y muestra
+ * "el audiolibro completo" solo si existe). Si no entra en Storage, se avisa
+ * y se entrega sin él: nunca frena una entrega cuya parte cara — la voz —
+ * ya está hecha. Devuelve la ruta si quedó subido, `null` si no.
+ */
+export async function subirCompletoSiEntra(
+  db: ReturnType<typeof obtenerClienteDb>,
+  ruta: string,
+  buffer: Buffer
+): Promise<string | null> {
+  const enMb = (bytes: number) => `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  if (buffer.length > LIMITE_BYTES_ARCHIVO_STORAGE) {
+    console.warn(
+      `${ruta}: el audiolibro completo pesa ${enMb(buffer.length)} y el tope por archivo es ${enMb(LIMITE_BYTES_ARCHIVO_STORAGE)}; se entrega solo por capítulos.`
+    );
+    return null;
+  }
+  const { error } = await db.storage.from('audios').upload(ruta, buffer, { contentType: 'audio/mpeg', upsert: true });
+  if (error) {
+    if (/exceeded the maximum allowed size/i.test(error.message)) {
+      console.warn(`${ruta}: Storage rechazó el completo (${error.message}); se entrega solo por capítulos.`);
+      return null;
+    }
+    throw new Error(`No se pudo subir ${ruta}: ${error.message}`);
+  }
+  return ruta;
+}
+
+/** Lo que va a `pedidos.audiolibro_paths`. `completo` falta cuando no entró en Storage. */
+export type AudiolibroPaths = { capitulos: string[]; completo?: string };
+
+/**
  * Arma un tramo del audiolibro: intro hablada por TTS + los audios (rutas
  * completas de Storage) en orden, cada uno normalizado en volumen antes de
  * concatenar — si no, la voz de la intro (TTS, siempre parejo) suena a un
@@ -110,7 +150,7 @@ export async function generarAudiolibro(
   narradorId: string,
   estructura: EstructuraCapitulos,
   archivosDisponibles: string[]
-): Promise<{ capitulos: string[]; completo: string }> {
+): Promise<AudiolibroPaths> {
   const db = obtenerClienteDb();
   const lista = armarListaConcat(estructura, archivosDisponibles);
 
@@ -130,11 +170,7 @@ export async function generarAudiolibro(
   }
 
   const bufferCompleto = await concatenarMp3s(buffersFinal);
-  const rutaCompleto = RUTA_COMPLETO(narradorId);
-  await subirMp3(db, rutaCompleto, bufferCompleto);
+  const rutaCompleto = await subirCompletoSiEntra(db, RUTA_COMPLETO(narradorId), bufferCompleto);
 
-  return {
-    capitulos: rutasCapitulos,
-    completo: rutaCompleto,
-  };
+  return rutaCompleto ? { capitulos: rutasCapitulos, completo: rutaCompleto } : { capitulos: rutasCapitulos };
 }
