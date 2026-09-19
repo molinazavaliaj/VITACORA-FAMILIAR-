@@ -94,26 +94,25 @@ describe('ensamblarAudiolibroClonado', () => {
     });
   });
 
-  it('cada capítulo lleva la intro TTS "Capítulo N: nombre" y después el cuerpo narrado (mp3) normalizado', async () => {
+  it('cada capítulo es el mp3 del worker normalizado, sin ninguna intro TTS: en el clonado no suena otra voz', async () => {
     const fake = construirDbFake({ descargas });
 
     await ensamblarAudiolibroClonado(db(fake), args);
 
-    expect(generarAudioTtsMock.mock.calls.map((c) => c[0])).toEqual(['Capítulo 1: Infancia', 'Capítulo 2: El amor']);
+    // Regla de producto (Naza, 19/09): en el audiolibro con voz clonada no
+    // puede sonar una voz genérica. El anuncio del capítulo lo dice el
+    // worker con la voz del narrador (narracion.json trae el nombre).
+    expect(generarAudioTtsMock).not.toHaveBeenCalled();
     expect(fake.download.mock.calls.map((c) => c[0])).toEqual(['n1/voz/cap_01.mp3', 'n1/voz/cap_02.mp3']);
     // el cuerpo que subió el worker es mp3: se normaliza como tal.
     expect(normalizarAMp3Mock).toHaveBeenCalledWith(Buffer.from('voz-1'), 'mp3');
-    // intro primero, cuerpo después.
-    expect(concatenarMp3sMock).toHaveBeenCalledWith([
-      Buffer.from('N(mp3:TTS(Capítulo 1: Infancia))'),
-      Buffer.from('N(mp3:voz-1)'),
-    ]);
-    // el completo concatena los dos capítulos ya armados.
-    const ultimoConcat = concatenarMp3sMock.mock.calls[concatenarMp3sMock.mock.calls.length - 1][0] as Buffer[];
-    expect(ultimoConcat.map(etiquetaDe)).toEqual([
-      'CONCAT[N(mp3:TTS(Capítulo 1: Infancia))|N(mp3:voz-1)]',
-      'CONCAT[N(mp3:TTS(Capítulo 2: El amor))|N(mp3:voz-2)]',
-    ]);
+    expect(normalizarAMp3Mock).toHaveBeenCalledWith(Buffer.from('voz-2'), 'mp3');
+    // lo que se sube por capítulo es exactamente el normalizado.
+    expect(fake.upload.mock.calls[0][1]).toEqual(Buffer.from('N(mp3:voz-1)'));
+    expect(fake.upload.mock.calls[1][1]).toEqual(Buffer.from('N(mp3:voz-2)'));
+    // el completo concatena los dos capítulos, y es el único concat.
+    expect(concatenarMp3sMock).toHaveBeenCalledTimes(1);
+    expect((concatenarMp3sMock.mock.calls[0][0] as Buffer[]).map(etiquetaDe)).toEqual(['N(mp3:voz-1)', 'N(mp3:voz-2)']);
   });
 
   it('si el worker dejó menos capítulos que la estructura, tira sin subir nada', async () => {
@@ -129,9 +128,7 @@ describe('ensamblarAudiolibroClonado', () => {
   it('si el completo pasa el tope por archivo de Storage, no se sube y se entrega solo por capítulos (con aviso)', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     // El concat "pesa" más que el tope: el completo no entra, los capítulos sí.
-    concatenarMp3sMock.mockImplementation(async (buffers: Buffer[]) =>
-      buffers.length === 1 ? Buffer.from(`CONCAT[${buffers.map(etiquetaDe).join('|')}]`) : Buffer.alloc(LIMITE_BYTES_ARCHIVO_STORAGE + 1)
-    );
+    concatenarMp3sMock.mockImplementation(async () => Buffer.alloc(LIMITE_BYTES_ARCHIVO_STORAGE + 1));
     const fake = construirDbFake({ descargas });
 
     const resultado = await ensamblarAudiolibroClonado(db(fake), args);

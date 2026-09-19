@@ -232,6 +232,16 @@ como **vista estimada** (el libro real se pagina después de encargarlo). Un `fo
 no sea `{x, y}` numérico se toma como el centro; fuera de 0..1 se recorta al borde
 (`fabrica/src/libro/fotos.ts`, `normalizarFoco`).
 
+## Audiolibro con voz clonada — regla de voz única (Naza, 19/09)
+
+En el audiolibro con voz clonada **no suena ninguna voz que no sea la del narrador**:
+ni intro TTS genérica ni conectores con otra voz. La fábrica no antepone nada al mp3
+del worker (solo normaliza volumen); el anuncio del capítulo ("Capítulo uno. La
+infancia.") lo narra el worker con la voz clonada, a partir de `nombre` en
+`narracion.json`. La intro TTS de OpenAI queda solo para el audiolibro con audios
+reales (`extras.audiolibro = "real"` / pedidos viejos), donde alguien tiene que
+anunciar el capítulo.
+
 ## Storage — bucket privado `audios`
 
     {narrador_id}/dia_NN.ogg          respuestas (entrevistador sube; NN = pregunta_orden, 2 dígitos; extras: dia_NN_2.ogg)

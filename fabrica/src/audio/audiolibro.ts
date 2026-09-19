@@ -62,7 +62,7 @@ function extensionDe(ruta: string): string {
   return punto === -1 ? 'ogg' : ruta.slice(punto + 1);
 }
 
-async function descargarAudio(db: ReturnType<typeof obtenerClienteDb>, ruta: string): Promise<Buffer> {
+export async function descargarAudio(db: ReturnType<typeof obtenerClienteDb>, ruta: string): Promise<Buffer> {
   const { data, error } = await db.storage.from('audios').download(ruta);
   if (error || !data) {
     throw new Error(`No se pudo descargar el audio (${ruta}): ${error?.message ?? 'sin datos'}`);
