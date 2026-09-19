@@ -87,7 +87,8 @@ def test_narra_tres_capitulos_sube_tres_mp3_y_deja_checkpoint_por_capitulo(tmp_p
     for c in fake.ejecutadas:
         assert valores_del_update(c)["estado"] == "procesando"
         assert ("eq", "id", "nar1") in c.llamadas
-    assert (carpeta / "cap_02.txt").read_text(encoding="utf-8") == CAPITULOS[1].texto
+    # El txt que lee el motor lleva el anuncio adelante, con la voz clonada (CONTRATO).
+    assert (carpeta / "cap_02.txt").read_text(encoding="utf-8") == "Capítulo dos. El trabajo.\n\n" + CAPITULOS[1].texto + "\n"
     # El wav intermedio (decenas de MB por capítulo) se borra apenas sale el
     # mp3; el mp3 y el txt quedan para mirar si algo sonó mal.
     assert sorted(p.name for p in carpeta.glob("cap_*.wav")) == []

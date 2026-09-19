@@ -12,7 +12,7 @@ from pathlib import Path
 
 from .audio import a_mp3
 from .buzon import Narracion, marcar
-from .libro import Capitulo, ruta_capitulo
+from .libro import Capitulo, ruta_capitulo, texto_a_narrar
 from .motor_subprocess import correr_motor_subprocess
 from .muestras import PISO_SEGUNDOS, elegir_muestras
 from .preparar_muestras import preparar_de
@@ -77,7 +77,9 @@ def narrar_capitulos(
         base = carpeta / f"cap_{cap.numero:02d}"
         texto = base.with_suffix(".txt")
         wav = base.with_suffix(".wav")
-        texto.write_text(cap.texto, encoding="utf-8")
+        # Con el anuncio adelante ("Capítulo dos. Las raíces."): en el audiolibro
+        # clonado no suena ninguna voz que no sea la del narrador (CONTRATO).
+        texto.write_text(texto_a_narrar(cap), encoding="utf-8")
         ok, segundos, cola = correr_motor_subprocess(
             motor, referencia, referencia_texto, texto, wav, modelos, base.with_suffix(".log")
         )
