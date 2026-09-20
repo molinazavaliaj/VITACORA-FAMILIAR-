@@ -27,6 +27,11 @@ un código al lado) y se reenvía por WhatsApp.
 - **El base es descargable** y aparece **cuando el libro está cerrado** (`libro_aprobado_at`).
 - **La familia puede cambiar las frases** desde el panel: escucharlas, quitar, reemplazar por
   otra candidata, reordenar. Si nadie toca nada, va lo que eligió el modelo.
+- **Cuándo se cierra la selección: cuando aprietan "imprimir"** (decidido el 20/09). La base se
+  entrega al cerrar el libro con la selección del biógrafo y el panel queda abierto para
+  cambiarla todo lo que quieran. El QR impreso es la selección que esté puesta en ese momento.
+  **A los 15 días sin ninguna confirmación se manda un mail de recordatorio**; si aun así nadie
+  responde, la selección del biógrafo queda como definitiva (y el panel lo dice).
 - **Automatizado de punta a punta:** el **mismo modelo que escribe el libro** propone las
   candidatas y, en una **segunda pasada con contexto fresco**, elige las finales. No hay
   curaduría manual frase por frase.
@@ -43,7 +48,7 @@ un código al lado) y se reenvía por WhatsApp.
 - Se **imprime**: la frase, su capítulo y el código.
 - Se **escucha**: la frase; y debajo, **"escuchar la historia completa (2:14)"** = la respuesta
   original entera, restaurada. Sale gratis: ese audio ya existe en Storage.
-- **3 por capítulo** (24 en un libro de 8), editable en el panel: propuesta, ver decisión abierta 1.
+- **3 por capítulo** (24 en un libro de 8), editable en el panel — decidido el 20/09.
 - Las **5 candidatas por capítulo se cortan todas**, no solo las 3 elegidas: así el panel cambia
   una frase al instante, sin esperar a la PC.
 - Máximo una frase por tema: dos veces el mismo tema no entra.
@@ -136,8 +141,9 @@ Los textos de los prompts al modelo los aprueba Naza antes de mergear (regla de 
 - Página nueva `web/src/app/tablero/[narradorId]/frases`, hermana de "nombres" (esa ya hace
   que la familia revise y corrija lo que propuso el sistema): se escucha, se cambia, se guarda.
 - Aparece junto con la descarga: libro cerrado.
-- **Portón de impresión:** lo que se imprime es lo confirmado. Sin confirmación en N días, se
-  imprime lo del modelo (N lo define Naza; propuesto: 7).
+- **Portón de impresión:** la selección se cierra cuando aprietan **"imprimir"**, no antes; el
+  archivo digital ya lo tienen con lo que eligió el biógrafo. Recordatorio por mail a los 15 días
+  sin confirmación; sin respuesta, se imprime la selección del biógrafo.
 
 ## La página pública (el QR y el NFC)
 
@@ -187,8 +193,10 @@ restaurados, sin ritmo), con candado y reintento. Directiva aparte.
 
 ## Decisiones abiertas
 
-1. Cuántas frases por capítulo (propuesto: 3).
-2. Cuántos días se espera la confirmación de la familia antes de imprimir (propuesto: 7).
+1. ~~Cuántas frases por capítulo~~ — **3** (decidido el 20/09).
+2. ~~Cuántos días se espera la confirmación~~ — **no es un plazo: se cierra al apretar
+   "imprimir"**, con recordatorio por mail a los 15 días y la selección del biógrafo como
+   definitiva si nadie responde (decidido el 20/09).
 3. El marco NFC: ¿arranca en las frases o en la historia completa? (propuesto: las frases, con
-   el botón de historia completa).
+   el botón de historia completa) — sin respuesta todavía.
 4. El texto de los prompts de las dos pasadas (lo aprueba Naza).
