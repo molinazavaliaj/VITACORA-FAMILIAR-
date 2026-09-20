@@ -29,7 +29,12 @@ export function historiasDelCapitulo(
   >
 ): HistoriaNarracion[] {
   const historias: HistoriaNarracion[] = [];
+  // Un orden repetido en `ordenes` no repite el audio (en el texto solo se
+  // repetiría material; en el audiolibro sonaría dos veces).
+  const vistos = new Set<number>();
   for (const orden of ordenes) {
+    if (vistos.has(orden)) continue;
+    vistos.add(orden);
     const pregunta = preguntasPorOrden.get(orden);
     const conAudio = (respuestasPorOrden.get(orden) ?? []).filter((r) => Boolean(r.audio_path));
     const ordenadas = [...conAudio].sort((a, b) => {
@@ -136,6 +141,9 @@ function validarConectores(valor: unknown, cantidadPuentes: number): string | nu
   if (c.entre.length !== cantidadPuentes) {
     return `«entre» trae ${c.entre.length} puentes y tienen que ser exactamente ${cantidadPuentes}`;
   }
+  // Un puente vacío deja al worker sin nada que narrar entre dos historias
+  // (entrada y salida sí pueden ir vacías, según el contrato).
+  if ((c.entre as string[]).some((e) => e.trim() === '')) return 'ningún puente de «entre» puede estar vacío';
   return null;
 }
 

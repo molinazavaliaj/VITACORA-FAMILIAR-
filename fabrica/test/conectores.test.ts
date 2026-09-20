@@ -35,6 +35,12 @@ function respuesta(
 }
 
 describe('historiasDelCapitulo', () => {
+  it('un orden repetido en el capítulo no duplica la historia (el audio sonaría dos veces)', () => {
+    const r = { id: 'r1', narrador_id: 'n', pregunta_orden: 1, texto_directo: null, transcripcion: 'Hola', es_repregunta: false, audio_path: 'n/dia_01.ogg', duracion_segundos: 10, recibido_at: '2026-09-01T00:00:00Z' };
+    const historias = historiasDelCapitulo([1, 1], new Map(), new Map([[1, [r]]]));
+    expect(historias.map((h) => h.respuesta_id)).toEqual(['r1']);
+  });
+
   it('sigue el orden de `ordenes` del capítulo, no el numérico, y arma cada historia con la pregunta y el texto', () => {
     const respuestasPorOrden = new Map([
       [1, [respuesta({ id: 'r1', pregunta_orden: 1, audio_path: 'n/dia_01.ogg', transcripcion: 'En Rosario.' })]],
@@ -201,7 +207,19 @@ describe('escribirConectores', () => {
     expect(conectores.entre).toEqual(['uno', 'dos']);
     expect(streamMock).toHaveBeenCalledTimes(2);
     const promptReintento = (streamMock.mock.calls[1][0] as { messages: { content: string }[] }).messages[0].content;
-    expect(promptReintento).toMatch(/entre.*2/);
+    expect(promptReintento).toContain('Tu respuesta anterior no sirvió');
+    expect(promptReintento).toContain('trae 1 puentes');
+  });
+
+  it('un puente vacío no sirve: se pide de nuevo (el worker no tendría qué narrar)', async () => {
+    finalMessageMock
+      .mockResolvedValueOnce(respuestaDelModelo('{"entrada": "Hola.", "entre": ["uno", "   "], "salida": "Chau."}'))
+      .mockResolvedValueOnce(respuestaDelModelo('{"entrada": "Hola.", "entre": ["uno", "dos"], "salida": "Chau."}'));
+
+    const conectores = await escribirConectores(clienteFake, argsBase);
+
+    expect(conectores.entre).toEqual(['uno', 'dos']);
+    expect(streamMock).toHaveBeenCalledTimes(2);
   });
 
   it('si falla dos veces, tira un error claro y no sigue insistiendo', async () => {
