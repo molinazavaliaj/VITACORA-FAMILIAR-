@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import {
   parsearArgs, slug, ordenDeArchivo, archivoCanonico, proximoOrden,
   mensajeDePregunta, despedida, bienvenidaAceptacion, bienvenida, planDeCarga, esAudio, promptDeTranscripcion, primeraDiferencia,
+  motivoParaRechazarAudio, listaParaConcatenar, valorDelArbol, queHacerAlFinal,
 } from '../src/manual/puro.js';
 
 // La puerta manual resuelve con archivos lo que el webhook resuelve con
@@ -241,5 +242,49 @@ describe('la presentación del biógrafo (el primer mensaje de todos)', () => {
   it('cuando la primera pregunta sale enseguida (modo rápido), no promete "mañana"', () => {
     expect(bienvenida('Ciro', 'Naza', 'vos', { enseguida: true })).toMatch(/Respondé SÍ y arrancamos\.$/);
     expect(bienvenida('Don Osvaldo', 'su nieto Juan', 'usted', { enseguida: true })).toMatch(/Responda SÍ y arrancamos\.$/);
+  });
+});
+
+// Bitácora 15: el audio de 0 bytes que WhatsApp no terminó de bajar.
+describe('motivoParaRechazarAudio', () => {
+  it('rechaza el vacío y lo diminuto, con el motivo para Naza', () => {
+    expect(motivoParaRechazarAudio(0, 'JOAQUIN RESPUESTA 7.ogg')).toMatch(/0 bytes/);
+    expect(motivoParaRechazarAudio(500, 'x.ogg')).toMatch(/500 bytes/);
+  });
+  it('deja pasar una nota de voz de verdad', () => {
+    expect(motivoParaRechazarAudio(48_000, 'dia_07.ogg')).toBeNull();
+  });
+});
+
+// Bitácora 3: varias notas de voz para una misma respuesta.
+describe('listaParaConcatenar', () => {
+  it('una línea por archivo, en orden, con el formato del demuxer concat', () => {
+    expect(listaParaConcatenar(['/a/uno.ogg', '/a/dos.ogg'])).toBe("file '/a/uno.ogg'\nfile '/a/dos.ogg'\n");
+  });
+  it('escapa la comilla simple y normaliza las barras de Windows', () => {
+    expect(listaParaConcatenar(["C:\\Users\\Naza\\it's.ogg"])).toBe("file 'C:/Users/Naza/it'\\''s.ogg'\n");
+  });
+});
+
+describe('valorDelArbol', () => {
+  it('"no" y sus variantes son lo mismo que carga la familia: no tuvo', () => {
+    for (const v of ['no', 'No', 'ninguno', 'no tuvo', 'no tiene', ' no tengo ']) expect(valorDelArbol(v)).toBe('no tuvo');
+  });
+  it('cualquier otra cosa son nombres, tal cual', () => {
+    expect(valorDelArbol(' Ana y Pedro ')).toBe('Ana y Pedro');
+  });
+});
+
+// Bitácora 31: cargar la última respuesta tiene que cerrar solo.
+describe('queHacerAlFinal', () => {
+  it('antes de la última, sigue', () => {
+    expect(queHacerAlFinal(false, false)).toBe('seguir');
+    expect(queHacerAlFinal(false, true)).toBe('seguir');
+  });
+  it('en la última sin repregunta, cierra ya', () => {
+    expect(queHacerAlFinal(true, false)).toBe('cerrar');
+  });
+  it('en la última con una repregunta recién impresa, espera esa respuesta', () => {
+    expect(queHacerAlFinal(true, true)).toBe('esperar_repregunta');
   });
 });

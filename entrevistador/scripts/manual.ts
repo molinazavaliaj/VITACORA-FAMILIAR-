@@ -11,7 +11,8 @@
  *
  *   archivo .ogg → Storage (`{id}/dia_NN.ogg`) → fila en `respuestas` →
  *   Whisper → evaluación (¿hace falta repregunta?) → avance de `dia_actual` →
- *   adaptativas al orden 26 → cierre al 30.
+ *   adaptativas al responder la última del guion → cierre al responder la última
+ *   que existe (despedida impresa + 'completado', sin correr `cerrar`).
  *
  * NO manda nada por WhatsApp (no hay API): todo lo que habría salido por
  * WhatsApp se IMPRIME para copiar y pegar. Los `envios` se registran igual,
@@ -23,18 +24,21 @@
  *   npm run manual -- bienvenida ciro --de "Naza"       (la presentación, antes de la pregunta 1)
  *   npm run manual -- siguiente imma                     (--solo-ver para no anotar; --voz para el mp3)
  *   npm run manual -- archivar imma "C:/Users/Naza/Downloads/PTT-20260914-WA0007.ogg"
- *   npm run manual -- cargar imma audios-crudos/imma/dia_03.ogg
+ *   npm run manual -- cargar imma audios-crudos/imma/dia_03.ogg   (varios archivos = una respuesta, se pegan con ffmpeg)
+ *   npm run manual -- evaluar imma --orden 7                       (reintenta solo la evaluación)
  *   npm run manual -- cargar-carpeta imma audios-crudos/imma [--si]
  *   npm run manual -- cerrar imma
  *   npm run manual -- crear --nombre Ciro --le-dicen Ciro --telefono +54... --zona America/Argentina/Buenos_Aires
  */
 import { readFileSync, existsSync, statSync, mkdirSync, copyFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import { resolve, dirname, basename, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { Narrador } from '../src/flujo/preguntar.js';
 import {
   parsearArgs, slug, ordenDeArchivo, archivoCanonico, proximoOrden, primeraDiferencia,
   mensajeDePregunta, despedida, bienvenida, planDeCarga, esAudio, promptDeTranscripcion, type Args,
+  motivoParaRechazarAudio, listaParaConcatenar, valorDelArbol, queHacerAlFinal,
 } from '../src/manual/puro.js';
 
 const AQUI = dirname(fileURLToPath(import.meta.url));
@@ -61,8 +65,12 @@ for (const v of ['WA_TOKEN', 'WA_PHONE_NUMBER_ID', 'WA_VERIFY_TOKEN']) {
 type Modulos = {
   db: (typeof import('../src/db/cliente.js'))['db'];
   guardarRespuestaAudio: (typeof import('../src/db/respuestas.js'))['guardarRespuestaAudio'];
+  guardarReserva: (typeof import('../src/db/respuestas.js'))['guardarReserva'];
   transcribirYActualizar: (typeof import('../src/ia/transcribir.js'))['transcribirYActualizar'];
   evaluarRespuesta: (typeof import('../src/ia/cerebro.js'))['evaluarRespuesta'];
+  reservaDe: (typeof import('../src/ia/cerebro.js'))['reservaDe'];
+  sumarTemaEvitado: (typeof import('../src/ia/evitar.js'))['sumarTemaEvitado'];
+  textoEvitar: (typeof import('../src/ia/evitar.js'))['textoEvitar'];
   generarPreguntaReemplazo: (typeof import('../src/ia/cerebro.js'))['generarPreguntaReemplazo'];
   personalizarPregunta: (typeof import('../src/ia/personalizar.js'))['personalizarPregunta'];
   memoriaDeCapitulos: (typeof import('../src/ia/resumenes.js'))['memoriaDeCapitulos'];
@@ -74,29 +82,32 @@ type Modulos = {
   capituloNoAplica: (typeof import('../src/flujo/preguntar.js'))['capituloNoAplica'];
   esModoRapido: (typeof import('../src/flujo/preguntar.js'))['esModoRapido'];
   armarHistoria: (typeof import('../src/db/historia.js'))['armarHistoria'];
-  PRIMERA_ADAPTATIVA: (typeof import('../src/ia/adaptativas.js'))['PRIMERA_ADAPTATIVA'];
-  ULTIMA_ADAPTATIVA: (typeof import('../src/ia/adaptativas.js'))['ULTIMA_ADAPTATIVA'];
+  ultimoOrden: (typeof import('../src/db/guion.js'))['ultimoOrden'];
+  tieneAdaptativas: (typeof import('../src/db/guion.js'))['tieneAdaptativas'];
+  capitulosDe: (typeof import('../src/db/guion.js'))['capitulosDe'];
 };
 
 let _mods: Promise<Modulos> | null = null;
 function modulos(): Promise<Modulos> {
   _mods ??= (async () => {
     const { db } = await import('../src/db/cliente.js');
-    const { guardarRespuestaAudio } = await import('../src/db/respuestas.js');
+    const { guardarRespuestaAudio, guardarReserva } = await import('../src/db/respuestas.js');
     const { transcribirYActualizar } = await import('../src/ia/transcribir.js');
-    const { evaluarRespuesta, generarPreguntaReemplazo } = await import('../src/ia/cerebro.js');
+    const { evaluarRespuesta, generarPreguntaReemplazo, reservaDe } = await import('../src/ia/cerebro.js');
+    const { sumarTemaEvitado, textoEvitar } = await import('../src/ia/evitar.js');
     const { personalizarPregunta } = await import('../src/ia/personalizar.js');
     const { memoriaDeCapitulos } = await import('../src/ia/resumenes.js');
     const { guardarRepreguntaEnviada } = await import('../src/db/envios.js');
-    const { generarPreguntasAdaptativas, PRIMERA_ADAPTATIVA, ULTIMA_ADAPTATIVA } = await import('../src/ia/adaptativas.js');
+    const { generarPreguntasAdaptativas } = await import('../src/ia/adaptativas.js');
     const { generarAudioVoz } = await import('../src/ia/voz.js');
     const { tratoDe } = await import('../src/ia/trato.js');
     const { preguntaDeOrden, capituloNoAplica, esModoRapido } = await import('../src/flujo/preguntar.js');
     const { armarHistoria } = await import('../src/db/historia.js');
+    const { ultimoOrden, tieneAdaptativas, capitulosDe } = await import('../src/db/guion.js');
     return {
-      db, guardarRespuestaAudio, transcribirYActualizar, evaluarRespuesta, personalizarPregunta,
-      memoriaDeCapitulos, guardarRepreguntaEnviada, generarPreguntaReemplazo, generarPreguntasAdaptativas, generarAudioVoz, preguntaDeOrden,
-      capituloNoAplica, esModoRapido, armarHistoria, tratoDe, PRIMERA_ADAPTATIVA, ULTIMA_ADAPTATIVA,
+      db, guardarRespuestaAudio, guardarReserva, transcribirYActualizar, evaluarRespuesta, reservaDe, sumarTemaEvitado, textoEvitar,
+      personalizarPregunta, memoriaDeCapitulos, guardarRepreguntaEnviada, generarPreguntaReemplazo, generarPreguntasAdaptativas,
+      generarAudioVoz, preguntaDeOrden, capituloNoAplica, esModoRapido, armarHistoria, tratoDe, ultimoOrden, tieneAdaptativas, capitulosDe,
     };
   })();
   return _mods;
@@ -115,8 +126,6 @@ type RespuestaFila = {
   duracion_segundos: number | null;
   recibido_at: string;
 };
-
-const ULTIMA_FIJA = 26; // al completar la 26 se generan las 4 adaptativas (27-30)
 
 async function narradores(): Promise<NarradorFila[]> {
   const { db } = await modulos();
@@ -146,13 +155,54 @@ async function respuestasDe(narradorId: string): Promise<RespuestaFila[]> {
   return (data as RespuestaFila[] | null) ?? [];
 }
 
-/** La última orden del guion de este narrador (fija o adaptativa ya generada). */
+/**
+ * La última orden del guion de este narrador: la misma regla que el camino de
+ * WhatsApp (`src/db/guion.ts`). Hasta el 20/09 miraba `preguntas` con un `.or()`
+ * que mezclaba la plantilla con lo propio (bitácora 28: si la familia sacaba
+ * una fija, "la última" seguía siendo la de la plantilla).
+ */
 async function ultimaOrdenDelGuion(narradorId: string): Promise<number> {
+  const { ultimoOrden } = await modulos();
+  return ultimoOrden(narradorId);
+}
+
+/**
+ * Bitácora 28: las 4 adaptativas van después de la última que exista (la 26 o
+ * la que sea). Si todavía no están y ya se respondió esa última, se generan acá
+ * —tanto al cargar la respuesta como al pedir `siguiente`, así un fallo del
+ * modelo en el primer intento no deja la entrevista terminada en 26. La función
+ * es idempotente y no lanza. Devuelve la nueva última orden.
+ */
+async function asegurarAdaptativas(n: NarradorFila, ultimaRespondida: number): Promise<number> {
+  const mods = await modulos();
+  const ultima = await ultimaOrdenDelGuion(n.id);
+  if (ultima === 0 || ultimaRespondida < ultima || (await mods.tieneAdaptativas(n.id))) return ultima;
+  linea(`Orden ${ultima} respondida (la última del guion) → generando las 4 preguntas a medida (una llamada, ~USD 0.5)...`);
+  await mods.generarPreguntasAdaptativas(n.id);
+  const nueva = await ultimaOrdenDelGuion(n.id);
+  linea(nueva > ultima
+    ? `Listas: órdenes ${ultima + 1}-${nueva}. Las ves con "npm run manual -- siguiente".`
+    : '⚠ El modelo no devolvió las 4: la entrevista sigue; volvé a correr "siguiente" y se reintentan.');
+  return nueva;
+}
+
+/**
+ * Guarda en `contexto.preguntasEnviadas[orden]` el texto que de verdad recibió el
+ * narrador (bitácora 25): el panel y el libro muestran eso, y `cargar` evalúa
+ * contra eso. Es el mismo lugar donde lo deja `personalizarPregunta`.
+ */
+async function recordarPreguntaEnviada(n: NarradorFila, orden: number, texto: string): Promise<void> {
   const { db } = await modulos();
-  const { data } = await db.from('preguntas').select('orden')
-    .or(`narrador_id.eq.${narradorId},narrador_id.is.null`)
-    .order('orden', { ascending: false }).limit(1).maybeSingle();
-  return (data as { orden?: number } | null)?.orden ?? 0;
+  const contexto = { ...(n.contexto ?? {}), preguntasEnviadas: { ...(n.contexto?.preguntasEnviadas ?? {}), [orden]: texto } };
+  const { error } = await db.from('narradores').update({ contexto }).eq('id', n.id);
+  if (error) throw new Error(`No pude anotar la pregunta enviada: ${error.message}`);
+  n.contexto = contexto;
+}
+
+/** La pregunta tal como se le mandó (personalizada o corregida a mano) si la tenemos; si no, la del guion. */
+function textoDePreguntaEnviada(n: NarradorFila, orden: number, delGuion: string): string {
+  const enviada = (n.contexto?.preguntasEnviadas ?? {})[String(orden)];
+  return typeof enviada === 'string' && enviada.trim() ? enviada : delGuion;
 }
 
 /** ¿Ya se le anotó una repregunta a este narrador para esta pregunta? */
@@ -253,7 +303,8 @@ async function siguiente(ref: string | undefined, flags: Args['flags']): Promise
   const mods = await modulos();
   const respuestas = await respuestasDe(n.id);
   const orden = proximoOrden(n.dia_actual, ordenesRespondidas(respuestas));
-  const ultima = await ultimaOrdenDelGuion(n.id);
+  // Bitácora 28: si ya respondió la última y faltan las adaptativas, se generan acá.
+  const ultima = await asegurarAdaptativas(n, orden - 1);
 
   if (orden > ultima) {
     linea(`Ya está todo: ${n.como_le_dicen} llegó a la orden ${ultima} (la última del guion).`);
@@ -261,28 +312,29 @@ async function siguiente(ref: string | undefined, flags: Args['flags']): Promise
     return;
   }
 
-  let pregunta = await mods.preguntaDeOrden(n.id, orden);
-  if (!pregunta && orden >= mods.PRIMERA_ADAPTATIVA && orden <= mods.ULTIMA_ADAPTATIVA) {
-    linea(`No hay preguntas 27-30 todavía: llamando al modelo (una llamada, ~USD 0.5)...`);
-    await mods.generarPreguntasAdaptativas(n.id);
-    pregunta = await mods.preguntaDeOrden(n.id, orden);
-  }
+  const pregunta = await mods.preguntaDeOrden(n.id, orden);
   if (!pregunta) throw new Error(`No hay pregunta para la orden ${orden} de ${n.como_le_dicen}.`);
 
   let texto = pregunta.texto;
-  // Misma regla que preguntar.ts: si el capítulo no aplica a esta vida, se reemplaza.
-  if (pregunta.narrador_id === null && mods.capituloNoAplica(n.contexto, pregunta.capitulo)) {
+  const aMano = typeof flags['texto'] === 'string' ? (flags['texto'] as string).trim() : '';
+  if (aMano) {
+    // Bitácora 25: Naza reemplazó la 21 a mano y en la base quedó la generada.
+    // Con --texto se manda ESTE texto y queda anotado como el que recibió.
+    texto = aMano;
+    linea('↑ texto a mano (--texto): sale así y queda anotado como la pregunta enviada');
+  } else if (pregunta.tipo === 'fija' && mods.capituloNoAplica(n.contexto, pregunta.capitulo)) {
+    // Misma regla que preguntar.ts: si el capítulo no aplica a esta vida, se
+    // reemplaza. Vale para la fija de la plantilla (se inserta la propia con el
+    // mismo orden) y para la fija propia del guion copiado (se reescribe esa fila).
     linea(`La orden ${orden} es de «${pregunta.capitulo}» y en esta vida no aplica: generando la pregunta de reemplazo...`);
     const { db } = mods;
-    const { data: caps } = await db.from('preguntas').select('capitulo').is('narrador_id', null);
-    const capitulos = [...new Set(((caps as { capitulo: string }[] | null) ?? []).map((c) => c.capitulo))]
-      .filter((c) => c !== pregunta!.capitulo);
+    const capitulos = (await mods.capitulosDe(n.id)).filter((c) => c !== pregunta.capitulo);
     const nueva = await mods.generarPreguntaReemplazo(
-      n.como_le_dicen, await mods.armarHistoria(n.id), capitulos, pregunta.capitulo, '', await mods.tratoDe(n),
+      n.como_le_dicen, await mods.armarHistoria(n.id), capitulos, pregunta.capitulo, mods.textoEvitar(n.contexto), await mods.tratoDe(n),
     );
-    const { error } = await db.from('preguntas').insert({
-      narrador_id: n.id, orden, texto: nueva.texto, capitulo: nueva.capitulo, tipo: 'adaptativa',
-    });
+    const { error } = pregunta.narrador_id === null
+      ? await db.from('preguntas').insert({ narrador_id: n.id, orden, texto: nueva.texto, capitulo: nueva.capitulo, tipo: 'adaptativa' })
+      : await db.from('preguntas').update({ texto: nueva.texto, capitulo: nueva.capitulo, tipo: 'adaptativa' }).eq('id', pregunta.id);
     if (error) throw new Error(`No pude guardar la pregunta de reemplazo: ${error.message}`);
     texto = nueva.texto;
   } else if (pregunta.tipo === 'fija') {
@@ -313,11 +365,31 @@ async function siguiente(ref: string | undefined, flags: Args['flags']): Promise
     return;
   }
   const { db } = mods;
+  if (aMano) await recordarPreguntaEnviada(n, orden, aMano);
   const avance: Record<string, unknown> = { dia_actual: orden };
   if (n.estado === 'invitado' || n.estado === 'acepto') avance.estado = 'activo';
   await db.from('narradores').update(avance).eq('id', n.id);
   await registrarEnvio(n.id, 'pregunta', orden);
   linea(`Anotado: orden ${orden} enviada a mano (dia_actual = ${orden}). Cuando llegue el audio: npm run manual -- cargar ${slug(n.como_le_dicen)} <archivo>`);
+}
+
+/**
+ * Bitácora 25: la pregunta que se le mandó no es la que quedó en la base (la 21
+ * se reemplazó a mano después de `siguiente`). Corrige `preguntasEnviadas[orden]`
+ * para que el panel, el libro y la evaluación usen lo que él leyó de verdad.
+ */
+async function corregirPregunta(ref: string | undefined, flags: Args['flags']): Promise<void> {
+  const n = await buscarNarrador(ref);
+  const texto = typeof flags['texto'] === 'string' ? (flags['texto'] as string).trim() : '';
+  const orden = flags['orden'] !== undefined ? Number(flags['orden']) : n.dia_actual;
+  if (!texto || !Number.isInteger(orden) || orden < 1) {
+    throw new Error('Uso: corregir-pregunta <narrador> --texto "lo que de verdad le mandaste" [--orden N] (sin --orden, la vigente)');
+  }
+  const antes = (n.contexto?.preguntasEnviadas ?? {})[String(orden)];
+  await recordarPreguntaEnviada(n, orden, texto);
+  titulo(`Pregunta ${orden} de ${n.como_le_dicen} corregida`);
+  if (typeof antes === 'string') linea(`antes: ${antes}`);
+  linea(`ahora: ${texto}`);
 }
 
 /** Copia el audio a la carpeta de crudos con el nombre canónico (respaldo + convención). */
@@ -329,11 +401,38 @@ function archivarLocal(n: NarradorFila, ruta: string, orden: number, sufijo: num
   return destino;
 }
 
-async function cargar(ref: string | undefined, archivo: string | undefined, flags: Args['flags']): Promise<void> {
-  if (!archivo) throw new Error('Falta el archivo del audio. Uso: cargar <narrador> <archivo.ogg> [--orden N] [--repregunta]');
+/**
+ * Bitácora 3: una respuesta que llegó en varias notas de voz. Se pegan con
+ * ffmpeg (el mismo que usa la fábrica; Naza ya lo tiene) en un solo .ogg en la
+ * carpeta de crudos, y de ahí en más es un archivo como cualquier otro.
+ * Re-encodea a opus: pegar .ogg con `-c copy` deja saltos en el audio.
+ */
+function unirAudios(n: NarradorFila, rutas: string[]): string {
+  const carpeta = join(CRUDOS, slug(n.como_le_dicen), 'partes');
+  mkdirSync(carpeta, { recursive: true });
+  const lista = join(carpeta, `union-${Date.now()}.txt`);
+  const salida = lista.replace(/\.txt$/, '.ogg');
+  writeFileSync(lista, listaParaConcatenar(rutas));
+  try {
+    execFileSync('ffmpeg', ['-y', '-loglevel', 'error', '-f', 'concat', '-safe', '0', '-i', lista, '-c:a', 'libopus', '-b:a', '32k', salida], { stdio: 'inherit' });
+  } catch (err) {
+    throw new Error(`No pude unir los ${rutas.length} audios con ffmpeg (¿está instalado y en el PATH?): ${err instanceof Error ? err.message : String(err)}`);
+  }
+  linea(`Unidos ${rutas.length} audios → ${salida}`);
+  return salida;
+}
+
+async function cargar(ref: string | undefined, archivos: string[], flags: Args['flags']): Promise<void> {
+  if (!archivos.length) throw new Error('Falta el archivo del audio. Uso: cargar <narrador> <archivo.ogg> [<otro.ogg> ...] [--orden N] [--repregunta]');
   const n = await buscarNarrador(ref);
   const mods = await modulos();
-  const ruta = resolverRuta(archivo);
+  const rutas = archivos.map(resolverRuta);
+  for (const r of rutas) {
+    // Bitácora 15: WhatsApp deja el archivo en 0 bytes si se guarda antes de tiempo.
+    const motivo = motivoParaRechazarAudio(statSync(r).size, basename(r));
+    if (motivo) throw new Error(motivo);
+  }
+  const ruta = rutas.length === 1 ? rutas[0] : unirAudios(n, rutas);
   const respuestas = await respuestasDe(n.id);
 
   const delNombre = ordenDeArchivo(basename(ruta));
@@ -353,9 +452,11 @@ async function cargar(ref: string | undefined, archivo: string | undefined, flag
 
   const pregunta = await mods.preguntaDeOrden(n.id, orden);
   if (!pregunta) throw new Error(`No existe la pregunta ${orden} para ${n.como_le_dicen}.`);
+  // Bitácora 18/25: se evalúa contra lo que él leyó (personalizada o corregida), no contra el guion.
+  const textoPregunta = textoDePreguntaEnviada(n, orden, pregunta.texto);
 
   titulo(`Cargando ${basename(ruta)} → ${n.como_le_dicen}, orden ${orden}${esRepregunta ? ' (repregunta)' : ''}`);
-  linea(`Pregunta ${orden}: ${pregunta.texto}`);
+  linea(`Pregunta ${orden}: ${textoPregunta}`);
 
   const audio = readFileSync(ruta);
   linea(`Audio: ${mb(audio.length)}`);
@@ -373,7 +474,7 @@ async function cargar(ref: string | undefined, archivo: string | undefined, flag
   const { texto, duracionSegundos } = await mods.transcribirYActualizar(id, audio, contexto);
   linea(`Transcripción (${duracionSegundos}s): ${texto.slice(0, 240)}${texto.length > 240 ? '…' : ''}`);
 
-  await trasResponderManual(n, orden, esRepregunta, pregunta.texto, texto, duracionSegundos);
+  await trasResponderManual(n, orden, esRepregunta, textoPregunta, texto, duracionSegundos, id);
 }
 
 /**
@@ -402,9 +503,11 @@ async function responderTexto(ref: string | undefined, texto: string | undefined
   linea(`Pregunta ${orden}: ${pregunta.texto}`);
   linea(`Texto: ${texto}`);
 
-  const { error } = await mods.db.from('respuestas')
-    .insert({ narrador_id: n.id, pregunta_orden: orden, texto_directo: texto, transcripcion: texto, es_repregunta: esRepregunta });
+  const { data: insertada, error } = await mods.db.from('respuestas')
+    .insert({ narrador_id: n.id, pregunta_orden: orden, texto_directo: texto, transcripcion: texto, es_repregunta: esRepregunta })
+    .select('id').single();
   if (error) throw new Error(`No pude insertar la respuesta: ${error.message}`);
+  const respuestaId = (insertada as { id: string }).id;
 
   const ficha = typeof flags['ficha'] === 'string' ? (flags['ficha'] as string) : undefined;
   if (ficha) {
@@ -417,51 +520,123 @@ async function responderTexto(ref: string | undefined, texto: string | undefined
     linea(`Ficha: datosExtra += "${ficha}"`);
   }
 
-  await trasResponderManual(n, orden, esRepregunta, pregunta.texto, texto, 0);
+  await trasResponderManual(n, orden, esRepregunta, textoDePreguntaEnviada(n, orden, pregunta.texto), texto, 0, respuestaId);
+}
+
+/**
+ * El paso 6 de procesar.ts: evaluar la respuesta principal e imprimir la
+ * repregunta si hace falta. Además guarda lo que la evaluación detectó: la
+ * reserva ("esto que no vaya al libro", bitácora 19) en la fila de la
+ * respuesta, y el tema que pidió dejar ("vamos por otro lado", bitácora 34) en
+ * `contexto.evitar`. Devuelve true si imprimió una repregunta nueva.
+ * Lo usan `cargar`, `responder-texto` y `evaluar` (el reintento, bitácora 14-b).
+ */
+async function evaluarYAnotar(
+  n: NarradorFila, orden: number, pregunta: string, transcripcion: string, duracionSegundos: number, respuestaId: string | null,
+  { anotar = true } = {},
+): Promise<boolean> {
+  const mods = await modulos();
+  const evaluacion = await mods.evaluarRespuesta(pregunta, transcripcion, duracionSegundos, mods.textoEvitar(n.contexto), await mods.tratoDe(n));
+
+  const reserva = mods.reservaDe(evaluacion, transcripcion);
+  if (reserva.reservada) {
+    linea(`🔒 Pidió reservar ${reserva.tramo ? `una parte: «${reserva.tramo}»` : 'la respuesta entera'}: no va al libro.`);
+    if (anotar && respuestaId) await mods.guardarReserva(respuestaId, reserva);
+  }
+  if (typeof evaluacion.dejarTema === 'string' && evaluacion.dejarTema.trim()) {
+    const contexto = mods.sumarTemaEvitado(n.contexto, evaluacion.dejarTema);
+    linea(`🚫 Pidió dejar un tema: «${evaluacion.dejarTema.trim()}»${contexto ? ' → queda en contexto.evitar para el resto de la entrevista.' : ' (ya estaba anotado).'}`);
+    if (anotar && contexto) {
+      const { error } = await mods.db.from('narradores').update({ contexto }).eq('id', n.id);
+      if (error) linea(`  ⚠ no pude anotarlo: ${error.message}`);
+      else n.contexto = contexto;
+    }
+  }
+
+  if (!evaluacion.suficiente && evaluacion.repregunta && !(await yaSeRepregunto(n.id, orden))) {
+    titulo('El cerebro pide una repregunta — pegala en WhatsApp');
+    linea(evaluacion.repregunta);
+    if (!anotar) { linea('(--solo-ver: no anoté nada)'); return true; }
+    await registrarEnvio(n.id, 'repregunta', orden);
+    // El texto va al contexto del narrador: es lo que después muestra el panel
+    // ("le repreguntamos: …") arriba de la respuesta que llegue.
+    await mods.guardarRepreguntaEnviada(n, orden, evaluacion.repregunta);
+    linea(`(anotada. Cuando llegue ese audio: npm run manual -- cargar ${slug(n.como_le_dicen)} <archivo> --repregunta --orden ${orden})`);
+    return true;
+  }
+  linea(evaluacion.suficiente ? 'Respuesta suficiente: sin repregunta.' : 'Ya había una repregunta anotada para esta orden: no se repite.');
+  return false;
+}
+
+/**
+ * Bitácora 14-b: reintentar SOLO la evaluación de una respuesta ya cargada
+ * (cuando el modelo falló y `estado` la marca "sin repregunta anotada"), sin
+ * volver a subir ni transcribir nada.
+ */
+async function evaluar(ref: string | undefined, flags: Args['flags']): Promise<void> {
+  const n = await buscarNarrador(ref);
+  const mods = await modulos();
+  const respuestas = await respuestasDe(n.id);
+  const orden = flags['orden'] !== undefined ? Number(flags['orden']) : n.dia_actual;
+  const principal = respuestas.find((r) => r.pregunta_orden === orden && !r.es_repregunta);
+  if (!principal) throw new Error(`La orden ${orden} de ${n.como_le_dicen} no tiene respuesta principal cargada. Uso: evaluar <narrador> [--orden N] [--solo-ver]`);
+  const transcripcion = principal.transcripcion ?? principal.texto_directo ?? '';
+  if (!transcripcion.trim()) throw new Error(`La respuesta ${orden} no tiene transcripción: corré retranscribir ${slug(n.como_le_dicen)} --orden ${orden} --si`);
+  const pregunta = await mods.preguntaDeOrden(n.id, orden);
+  const textoPregunta = textoDePreguntaEnviada(n, orden, pregunta?.texto ?? '');
+
+  titulo(`Evaluar de nuevo la respuesta ${orden} de ${n.como_le_dicen}`);
+  linea(`Pregunta: ${textoPregunta}`);
+  linea(`Respuesta (${principal.duracion_segundos ?? 0}s): ${transcripcion.slice(0, 240)}${transcripcion.length > 240 ? '…' : ''}`);
+  const salioRepregunta = await evaluarYAnotar(n, orden, textoPregunta, transcripcion, principal.duracion_segundos ?? 0, principal.id, { anotar: !flags['solo-ver'] });
+  if (!salioRepregunta) linea('Ahora: npm run manual -- siguiente ' + slug(n.como_le_dicen));
+}
+
+/** Bitácora 31: la despedida impresa + 'completado', el mismo cierre que `cerrar`. */
+async function cerrarManual(n: NarradorFila): Promise<void> {
+  const mods = await modulos();
+  titulo(`Última pregunta: ${n.como_le_dicen} terminó — mandale esto por WhatsApp`);
+  linea(despedida(n.como_le_dicen, await mods.tratoDe(n)));
+  linea();
+  if (n.estado === 'completado') { linea('Ya estaba en completado.'); return; }
+  await mods.db.from('narradores').update({ estado: 'completado' }).eq('id', n.id);
+  await registrarEnvio(n.id, 'despedida');
+  n.estado = 'completado';
+  linea(`Base: estado → 'completado' (ya lo puede tomar la fábrica).`);
 }
 
 /** Los pasos 6-8 de procesar.ts, pero imprimiendo en vez de mandar por WhatsApp. */
 async function trasResponderManual(
   n: NarradorFila, orden: number, esRepregunta: boolean, pregunta: string, transcripcion: string, duracionSegundos: number,
+  respuestaId: string | null = null,
 ): Promise<void> {
   const mods = await modulos();
   const supabase = mods.db;
 
-  if (!esRepregunta) {
-    const evaluacion = await mods.evaluarRespuesta(pregunta, transcripcion, duracionSegundos, '', await mods.tratoDe(n));
-    if (!evaluacion.suficiente && evaluacion.repregunta && !(await yaSeRepregunto(n.id, orden))) {
-      titulo('El cerebro pide una repregunta — pegala en WhatsApp');
-      linea(evaluacion.repregunta);
-      await registrarEnvio(n.id, 'repregunta', orden);
-      // El texto va al contexto del narrador: es lo que después muestra el panel
-      // ("le repreguntamos: …") arriba de la respuesta que llegue.
-      await mods.guardarRepreguntaEnviada(n, orden, evaluacion.repregunta);
-      linea(`(anotada. Cuando llegue ese audio: npm run manual -- cargar ${slug(n.como_le_dicen)} <archivo> --repregunta --orden ${orden})`);
-    } else {
-      linea('Respuesta suficiente: sin repregunta.');
-    }
-  }
+  // Solo la PRIMERA respuesta a una pregunta se evalúa (las de la repregunta, no).
+  const repreguntaRecienImpresa = esRepregunta
+    ? false
+    : await evaluarYAnotar(n, orden, pregunta, transcripcion, duracionSegundos, respuestaId);
 
-  if (orden === ULTIMA_FIJA) {
-    linea('Orden 26 completada → generando las 4 preguntas adaptativas 27-30 (una llamada, ~USD 0.5)...');
-    await mods.generarPreguntasAdaptativas(n.id);
-    linea('Listas: las ves con "npm run manual -- siguiente".');
-  }
+  // Bitácora 28: al responder la última del guion se generan las 4 a medida;
+  // desde el 20/09 la función no lanza, así que el cierre de abajo sale igual.
+  const ultima = await asegurarAdaptativas(n, orden);
 
   await supabase.from('narradores')
     .update({ ultima_respuesta_at: new Date().toISOString(), alerta_silencio: false })
     .eq('id', n.id);
 
-  const ultima = await ultimaOrdenDelGuion(n.id);
-  if (orden >= ultima) {
-    titulo(`Última pregunta (orden ${ultima}): ${n.como_le_dicen} terminó`);
-    linea(despedida(n.como_le_dicen, await mods.tratoDe(n)));
-    linea();
-    linea(`Mandale esa despedida y después: npm run manual -- cerrar ${slug(n.como_le_dicen)}`);
-    return;
+  // Bitácora 31: la última respuesta cierra sola (despedida + 'completado').
+  switch (queHacerAlFinal(orden >= ultima, repreguntaRecienImpresa)) {
+    case 'cerrar':
+      await cerrarManual(n);
+      return;
+    case 'esperar_repregunta':
+      linea(`Es la última pregunta (orden ${ultima}): cuando cargues la respuesta a la repregunta (--repregunta), se cierra solo.`);
+      return;
+    default:
+      linea('Ahora: npm run manual -- siguiente ' + slug(n.como_le_dicen));
   }
-
-  linea('Ahora: npm run manual -- siguiente ' + slug(n.como_le_dicen));
 }
 
 async function cargarCarpeta(ref: string | undefined, carpeta: string | undefined, flags: Args['flags']): Promise<void> {
@@ -502,7 +677,7 @@ async function cargarCarpeta(ref: string | undefined, carpeta: string | undefine
     return;
   }
   for (const p of plan) {
-    await cargar(n.como_le_dicen, p.archivo, { orden: String(p.orden), repregunta: p.sufijo > 1 });
+    await cargar(n.como_le_dicen, [p.archivo], { orden: String(p.orden), repregunta: p.sufijo > 1 });
   }
 }
 
@@ -721,13 +896,48 @@ async function crear(flags: Args['flags']): Promise<void> {
   if (error) throw new Error(`No pude crear al narrador: ${error.message}`);
   const creado = data as { id: string; como_le_dicen: string; estado: string };
 
+  // Bitácora 12: el checkout copia las fijas al narrador (guion propio, CONTRATO
+  // 12/09); `crear` no lo hacía y desde el panel no se podían editar sus preguntas.
+  const copiadas = await copiarGuion(creado.id);
+
   titulo(`Narrador creado: ${creado.como_le_dicen}`);
   linea(`  id: ${creado.id}`);
   linea(`  familia: ${(familia as { email: string }).email}`);
   linea(`  estado: ${creado.estado}   ·   modoRapido: ${contexto.modoRapido ? 'sí' : 'no'}   ·   zona: ${fila.zona_horaria}`);
-  linea(`  (No hace falta copiarle el guion: las 26 fijas globales se usan solas como plantilla.)`);
+  linea(`  guion propio: ${copiadas} preguntas copiadas de la plantilla (la familia ya puede editarlas en el panel).`);
   linea();
   linea(`Primera pregunta: npm run manual -- siguiente ${slug(leDicen)}`);
+}
+
+/**
+ * Copia la plantilla global (las fijas) como guion propio del narrador, igual
+ * que hace la web al comprar (`web/src/app/api/guion/route.ts`): mismo orden,
+ * mismo texto, mismo capítulo, `tipo = 'fija'`. No pisa lo que ya tenga.
+ * Devuelve cuántas copió. También sirve para un narrador viejo: `guion <narrador>`.
+ */
+async function copiarGuion(narradorId: string): Promise<number> {
+  const { db } = await modulos();
+  const { data: propias } = await db.from('preguntas').select('orden,tipo').eq('narrador_id', narradorId);
+  const lista = (propias as { orden: number; tipo: string }[] | null) ?? [];
+  if (lista.some((p) => p.tipo === 'fija')) return 0; // ya tiene guion propio
+  const { data: globales, error } = await db.from('preguntas').select('orden,texto,capitulo').is('narrador_id', null);
+  if (error) throw new Error(`No pude leer la plantilla: ${error.message}`);
+  const ocupados = new Set(lista.map((p) => p.orden));
+  const filas = ((globales as { orden: number; texto: string; capitulo: string }[] | null) ?? [])
+    .filter((g) => !ocupados.has(g.orden))
+    .map((g) => ({ narrador_id: narradorId, orden: g.orden, texto: g.texto, capitulo: g.capitulo, tipo: 'fija' }));
+  if (!filas.length) return 0;
+  const { error: errorCopia } = await db.from('preguntas').insert(filas);
+  if (errorCopia) throw new Error(`No pude copiar el guion: ${errorCopia.message}`);
+  return filas.length;
+}
+
+async function guion(ref: string | undefined): Promise<void> {
+  const n = await buscarNarrador(ref);
+  const copiadas = await copiarGuion(n.id);
+  linea(copiadas
+    ? `Guion propio de ${n.como_le_dicen}: ${copiadas} preguntas copiadas de la plantilla.`
+    : `${n.como_le_dicen} ya tenía guion propio: no copié nada.`);
 }
 
 /**
@@ -752,6 +962,13 @@ async function ficha(ref: string | undefined, flags: Args['flags']): Promise<voi
   if (flag('lugar')) { contexto.lugarNacimiento = flag('lugar'); cambios.push(`lugarNacimiento = ${flag('lugar')}`); }
   if (flag('oficio')) { contexto.oficio = flag('oficio'); cambios.push(`oficio = ${flag('oficio')}`); }
   if (flag('vinculo')) { contexto.vinculoComprador = flag('vinculo'); cambios.push(`vinculoComprador = ${flag('vinculo')}`); }
+  // Bitácora 20-27: el árbol decide si «Los hijos» y «El amor» aplican. "no" = 'no tuvo'.
+  const arbol: Record<string, string> = { ...((contexto.arbol as Record<string, string> | undefined) ?? {}) };
+  if (flag('hijos')) { arbol.hijos = valorDelArbol(flag('hijos')!); cambios.push(`arbol.hijos = ${arbol.hijos}`); }
+  if (flag('pareja')) { arbol.conyuge = valorDelArbol(flag('pareja')!); cambios.push(`arbol.conyuge = ${arbol.conyuge}`); }
+  if (flag('padres')) { arbol.padres = flag('padres')!.trim(); cambios.push(`arbol.padres = ${arbol.padres}`); }
+  if (flag('hermanos')) { arbol.hermanos = flag('hermanos')!.trim(); cambios.push(`arbol.hermanos = ${arbol.hermanos}`); }
+  if (Object.keys(arbol).length) contexto.arbol = arbol;
 
   if (flags.rehacer) {
     const enviadas = (contexto.preguntasEnviadas ?? {}) as Record<string, string>;
@@ -770,7 +987,7 @@ async function ficha(ref: string | undefined, flags: Args['flags']): Promise<voi
   if (flags['voz-si']) { fila.consentimiento_voz_at = new Date().toISOString(); cambios.push('consentimiento_voz_at = ahora (dio permiso para clonar su voz)'); }
   if (flags['voz-no']) { fila.consentimiento_voz_at = null; cambios.push('consentimiento_voz_at = vacío (sin permiso: la fábrica no clona)'); }
 
-  if (!cambios.length) throw new Error('Nada que cambiar. Uso: ficha <narrador> [--trato usted|vos] [--nacido 1998] [--lugar X] [--oficio X] [--vinculo X] [--voz-si|--voz-no] [--rehacer]');
+  if (!cambios.length) throw new Error('Nada que cambiar. Uso: ficha <narrador> [--trato usted|vos] [--nacido 1998] [--lugar X] [--oficio X] [--vinculo X] [--hijos no|"Ana y Juan"] [--pareja no|"Élida"] [--padres X] [--hermanos X] [--voz-si|--voz-no] [--rehacer]');
 
   const { error } = await db.from('narradores').update(fila).eq('id', n.id);
   if (error) throw new Error(`No pude guardar la ficha: ${error.message}`);
@@ -805,19 +1022,33 @@ Puerta manual de Vitácora Familiar — el entrevistador sin la API de WhatsApp.
       que arma solo con la familia. Se anota como envío 'bienvenida' para que
       el scheduler no la repita cuando Meta vuelva.
 
-  npm run manual -- siguiente <narrador> [--solo-ver] [--voz]
-      Imprime el mensaje EXACTO para pegarle al narrador (reconocimiento +
-      pregunta del día, con reemplazo si el capítulo no aplica) y lo anota en
-      'envios' + avanza dia_actual. --solo-ver no toca la base; --voz te deja
-      el mp3 de la pregunta para adjuntarlo a mano.
+  npm run manual -- siguiente <narrador> [--solo-ver] [--voz] [--texto "..."]
+      Imprime el mensaje EXACTO para pegarle al narrador (pregunta del día,
+      personalizada, con reemplazo si el capítulo no aplica) y lo anota en
+      'envios' + avanza dia_actual. Si ya respondió la última del guion y
+      faltan las 4 a medida, las genera. --solo-ver no toca la base; --voz te
+      deja el mp3 de la pregunta; --texto manda ESE texto (lo que vos decidiste
+      mandarle) y lo anota como la pregunta enviada.
+
+  npm run manual -- corregir-pregunta <narrador> --texto "..." [--orden N]
+      Anota lo que de verdad le mandaste (si lo cambiaste a mano después de
+      'siguiente'): el panel, el libro y la evaluación usan eso.
 
   npm run manual -- archivar <narrador> <archivo.ogg> [--orden N]
       Copia el audio crudo a audios-crudos/<narrador>/dia_NN.ogg. No toca la base.
 
-  npm run manual -- cargar <narrador> <archivo> [--orden N] [--repregunta]
+  npm run manual -- cargar <narrador> <archivo> [<otro> ...] [--orden N] [--repregunta]
       El corazón: sube a Storage, inserta la respuesta, transcribe con Whisper,
-      evalúa (y te imprime la repregunta si hace falta), genera las adaptativas
-      al orden 26 y avisa del cierre al 30.
+      evalúa (y te imprime la repregunta si hace falta; anota si pidió reservar
+      algo o dejar un tema), genera las 4 a medida al responder la última del
+      guion, y al responder la última que existe imprime la despedida y deja
+      'completado' (no hace falta correr 'cerrar'). Varios archivos = una sola
+      respuesta que llegó en varias notas de voz: se pegan con ffmpeg. Un audio
+      de 0 bytes se rechaza.
+
+  npm run manual -- evaluar <narrador> [--orden N] [--solo-ver]
+      Reintenta SOLO la evaluación de una respuesta ya cargada (cuando el modelo
+      falló y 'estado' la marca sin repregunta), sin subir ni transcribir de nuevo.
 
   npm run manual -- responder-texto <narrador> "lo que dijo" [--orden N] [--repregunta] [--ficha "dato"]
       Una respuesta escrita, sin audio (ej. "no tengo hijos"). Igual que cargar
@@ -834,9 +1065,12 @@ Puerta manual de Vitácora Familiar — el entrevistador sin la API de WhatsApp.
   npm run manual -- cerrar <narrador>
       La despedida final + estado 'completado' (ahí lo toma la fábrica).
 
-  npm run manual -- ficha <narrador> [--trato usted|vos] [--nacido 1998] [--lugar X] [--oficio X] [--vinculo X] [--voz-si|--voz-no] [--rehacer]
+  npm run manual -- ficha <narrador> [--trato usted|vos] [--nacido 1998] [--lugar X] [--oficio X] [--vinculo X]
+                                     [--hijos no|"Ana y Juan"] [--pareja no|"Élida"] [--padres X] [--hermanos X] [--voz-si|--voz-no] [--rehacer]
       Corrige la ficha de un narrador que ya existe (el trato se decide una sola
-      vez; acá se fija a mano). --voz-si anota que dio permiso para clonar su
+      vez; acá se fija a mano). --hijos no / --pareja no anotan 'no tuvo' en el
+      árbol: «Los hijos» / «El amor» se reemplazan sin preguntar (lo mismo que
+      carga la familia al comprar). --voz-si anota que dio permiso para clonar su
       voz (consentimiento_voz_at; sin eso la fábrica no clona), --voz-no lo
       borra. --rehacer olvida la personalización de la pregunta vigente para
       que el próximo 'siguiente' la genere de nuevo.
@@ -844,6 +1078,11 @@ Puerta manual de Vitácora Familiar — el entrevistador sin la API de WhatsApp.
   npm run manual -- crear --nombre X --le-dicen Y --telefono +54... [--zona ...] [--nacido 1939]
       [--trato usted|vos] fuerza el trato sin preguntarle al modelo. Si no se
       pasa, lo decide él solo con la ficha la primera vez que le escribimos.
+      Le copia las fijas como guion propio (como la compra), así la familia
+      puede editarlas en el panel.
+
+  npm run manual -- guion <narrador>
+      Copia las fijas a un narrador viejo que no tenga guion propio.
 
 Los audios se guardan como en el audiolibro: dia_07.ogg es la respuesta a la
 orden 7; dia_07_2.ogg es la repregunta de ese mismo día.
@@ -855,7 +1094,10 @@ const COMANDOS: Record<string, (a: Args) => Promise<void>> = {
   estado: () => estado(),
   siguiente: (a) => siguiente(a.posicionales[0], a.flags),
   archivar: (a) => archivar(a.posicionales[0], a.posicionales[1], a.flags),
-  cargar: (a) => cargar(a.posicionales[0], a.posicionales[1], a.flags),
+  cargar: (a) => cargar(a.posicionales[0], a.posicionales.slice(1), a.flags),
+  evaluar: (a) => evaluar(a.posicionales[0], a.flags),
+  'corregir-pregunta': (a) => corregirPregunta(a.posicionales[0], a.flags),
+  guion: (a) => guion(a.posicionales[0]),
   'responder-texto': (a) => responderTexto(a.posicionales[0], a.posicionales[1], a.flags),
   'cargar-carpeta': (a) => cargarCarpeta(a.posicionales[0], a.posicionales[1], a.flags),
   retranscribir: (a) => retranscribir(a.posicionales[0], a.flags),

@@ -14,16 +14,16 @@ libro sale mal, sale incompleto, o el cliente se pierde antes de llegar?
 
 | # | Qué | Por qué es grave |
 |---|---|---|
-| 19 | El narrador pide "esto que no vaya al libro" y nada lo registra | Publicar algo que pidió reservar es la peor falla posible: quiebra la confianza y puede herir a la familia. **Arreglado el 20/09** (`82c77e6`): la evaluación lo detecta, la fábrica lo respeta; falta aplicar la migración (propuesta en `CONTRATO.md`) y el `UPDATE` en el flujo → **para Joaquín** |
+| 19 | El narrador pide "esto que no vaya al libro" y nada lo registra | Publicar algo que pidió reservar es la peor falla posible: quiebra la confianza y puede herir a la familia. **Arreglado el 20/09** (`82c77e6`): la evaluación lo detecta, la fábrica lo respeta; **Arreglado el 20/09 (J)** (`f2686b2`, `8e7bbfe`): el flujo guarda `reservada`/`reservado_tramo` en la fila (`guardarReserva`, no tumba el día si la migración no está). Falta **aplicar la migración** (Joaquín da el OK, Naza la corre) |
 | 1 | Trato "usted" por defecto con ficha vacía (y el checkout no pide la ficha) | Un cliente real llega con ficha vacía → preguntas genéricas y trato equivocado desde el día 1; el narrador no siente que lo escuchan |
 | 17 | Nombres propios mal transcriptos (NASA/Naza, Herrera/Herrero) | Van directo al texto del libro; un nombre mal escrito de un hijo o un amigo desvaloriza todo el producto. La revisión de nombres del panel es la única red |
-| 14 | La evaluación vuelve vacía (2 de 13 veces) y corta el proceso | En el flujo automático es un día perdido: sin repregunta y, según cómo falle, sin avance. Frecuencia demasiado alta para ignorar. **Arreglado el 20/09** (`f76da1f`) |
+| 14 | La evaluación vuelve vacía (2 de 13 veces) y corta el proceso | En el flujo automático es un día perdido: sin repregunta y, según cómo falle, sin avance. Frecuencia demasiado alta para ignorar. **Arreglado el 20/09** (`f76da1f`); el reintento a mano `evaluar <narrador> --orden N` **(J, `06a7de2`)** |
 | 34 | Cerrar libro y la muestra arman los capítulos solo con las 4 adaptativas del narrador, no con el guion entero (8) | El libro de Joaquín arrancaba por "Las pruebas" y tenía 4 capítulos; quedó guardado así en `edicion.ordenCapitulos`. **Arreglado el 18/09** (helper `armarGuion`) y el dato de Joaquín limpiado a mano esa noche |
 | 35 | El entrevistador hace las tres preguntas de "Los hijos" (19-21) aunque el narrador dijo que no tiene hijos | Joaquín contestó "no tengo hijos" en la 19 y le preguntaron igual "hábleme de cada uno de sus hijos" y "¿cómo fue usted como padre?"; él lo salvó hablando de los hermanos y de cómo lo crió el padre. En un cliente real es dolor gratuito (y peor si no tuvo hijos por una pérdida). **Arreglado el 18/09 (Joaquín)**: al responder una pregunta de «Los hijos» o «El amor», `detectarQueNoTuvo` mira si dijo que nunca tuvo; si sí, no se repregunta sobre eso, se anota `arbol.hijos`/`arbol.conyuge = 'no tuvo'` y las que siguen del capítulo se reemplazan por la regla que ya existía para el árbol cargado al comprar (ahora también para filas propias del guion). Ante la duda, no toca nada. |
 | 36 | La fábrica ignora `edicion.titulosCapitulos`: el título que la dueña le pone a un capítulo en el wizard no llega al libro | Joaquín puede renombrar "Los hijos" en el panel y la muestra lo refleja, pero el PDF/HTML, el índice y la intro del audiolibro ("Capítulo 6: Los hijos") salen con el nombre del guion. **Arreglado el 18/09** (`aplicarTitulosCapitulos` en `fabrica/src/libro/edicion.ts`, aplicado en `generar-paquete.ts`) |
 | 32 | La fábrica cambió de proyecto Railway sin dejarlo escrito; el viejo sigue vivo-muerto y engaña | Media hora de diagnóstico falso; sin healthcheck, una caída real tampoco se vería |
-| 31 | El biógrafo no se despide ni cierra solo al recibir la 30 si la evaluación falla (y en manual nunca sin `cerrar`) | El narrador queda esperando la pregunta 31; la fábrica no arranca; nadie avisa a la familia. **Arreglado el 20/09** (`f76da1f`) el disparador: la evaluación ya no corta antes del cierre. El lado de la puerta manual (que `cargar` con la 30 ponga `completado` y muestre la despedida sin correr `cerrar`) queda **para Joaquín** |
-| 28 | Las adaptativas 27-30 no se generan si falla la repregunta de la 26 (y `siguiente` da la entrevista por terminada en 26) | El narrador se queda sin las 4 preguntas hechas a su medida; el libro sale con huecos y nadie se entera. **Arreglado el 20/09** (`f76da1f`): generar las adaptativas ya no puede cortar el flujo, y `preguntar.ts` las reintenta cuando piden la orden siguiente |
+| 31 | El biógrafo no se despide ni cierra solo al recibir la 30 si la evaluación falla (y en manual nunca sin `cerrar`) | El narrador queda esperando la pregunta 31; la fábrica no arranca; nadie avisa a la familia. **Arreglado el 20/09** (`f76da1f`) el disparador: la evaluación ya no corta antes del cierre. La puerta manual **(J, `06a7de2`)**: `cargar`/`responder-texto` con la última imprimen la despedida y dejan `completado` sin correr `cerrar` |
+| 28 | Las adaptativas 27-30 no se generan si falla la repregunta de la 26 (y `siguiente` da la entrevista por terminada en 26) | El narrador se queda sin las 4 preguntas hechas a su medida; el libro sale con huecos y nadie se entera. **Arreglado el 20/09** (`f76da1f`): generar las adaptativas ya no puede cortar el flujo, y `preguntar.ts` las reintenta cuando piden la orden siguiente. La puerta manual **(J, `06a7de2`)**: `ultimaOrdenDelGuion` usa el guion propio y `siguiente`/`cargar` generan las 4 al responder la última que exista |
 | 9 | Webhook de Mercado Pago sin verificar firma | Cualquiera que conozca la URL puede marcar pedidos como pagados (libro gratis) |
 
 ### 🟠 Medios — el libro sale, pero peor
@@ -34,22 +34,22 @@ libro sale mal, sale incompleto, o el cliente se pierde antes de llegar?
 | 16 | Una corrección posterior no pisa el resumen viejo | El libro puede afirmar algo que el narrador corrigió después |
 | 16 | Una corrección posterior no pisa el resumen viejo | El libro puede afirmar algo que el narrador corrigió después. **Arreglado el 20/09** (`a251bd2`): la memoria guarda hasta qué orden entró cada resumen y lo rehace si contó más |
 | 4 | Repregunta en "usted" con trato "vos" | Rompe el vínculo justo en el momento más íntimo (la repregunta va a lo emocional). **Arreglado el 20/09** (`ed513d8`) |
-| 18 | Si la personalización falla, la fija sale en "usted" | Mismo efecto: incoherencia de trato a mitad de entrevista. **Arreglado el 20/09** (`ed513d8`): segundo intento más corto antes de rendirse |
+| 18 | Si la personalización falla, la fija sale en "usted" | Mismo efecto: incoherencia de trato a mitad de entrevista. **Arreglado el 20/09** (`ed513d8`): segundo intento más corto antes de rendirse. La orden 26 ("ni se intentó") **(J, `b3f0a31`)**: si el modelo devuelve el original textual (en usted) a un narrador de vos, también va al segundo intento |
 | 2 | Pregunta 5 mal redactada ("hablemos de atrás") | Una pregunta rara baja la calidad percibida; el narrador responde peor |
 | 11, 30 | ¿Las repreguntas se van por las ramas / insisten en lo que el narrador esquivó? | Cansan y pueden incomodar; en un abuelo, insistir en una herida es contraproducente. **Arreglado el 20/09** (`d230473`) en el prompt: si pidió dejar el tema, no hay repregunta y la respuesta alcanza |
-| 12 | `crear` no copia el guion al narrador | Desde el panel la familia no puede editar preguntas de ese narrador |
-| 20, 22, 23, 24, 27 | Las fijas suponen boda/nietos/hijos/"toda la vida"; el narrador es joven, sin hijos, y la relación terminó — `capituloNoAplica` no se dispara | Preguntas que no aplican incomodan y dan respuestas vacías; el capítulo "El amor" sale flojo. **Arreglado el 20/09** (`d230473`) en los prompts de personalizar y adaptativas (no suponer boda, hijos ni nietos; no preguntar lo negado). El `capituloNoAplica` por edad/estado civil sigue **para Joaquín** |
+| 12 | `crear` no copia el guion al narrador | Desde el panel la familia no puede editar preguntas de ese narrador. **Arreglado el 20/09 (J)** (`06a7de2`): `crear` copia las fijas como la compra; `guion <narrador>` para los viejos |
+| 20, 22, 23, 24, 27 | Las fijas suponen boda/nietos/hijos/"toda la vida"; el narrador es joven, sin hijos, y la relación terminó — `capituloNoAplica` no se dispara | Preguntas que no aplican incomodan y dan respuestas vacías; el capítulo "El amor" sale flojo. **Arreglado el 20/09** (`d230473`) en los prompts de personalizar y adaptativas (no suponer boda, hijos ni nietos; no preguntar lo negado). `capituloNoAplica` con la ficha **(J, `c2623fd`)**: menor de 25 sin hijos cargados → «Los hijos» no aplica; menor de 18 sin pareja → «El amor» tampoco; y `ficha --hijos no / --pareja no` para decirlo a mano (`06a7de2`). Estado civil: la ficha no tiene el campo (ver `docs/ficha-del-narrador.md`) |
 
 ### 🟡 Suaves — operativos, no tocan el libro
 
 | # | Qué |
 |---|---|
-| 3 | Respuestas en varios audios: hay que unirlos a mano |
-| 25 | Una pregunta reemplazada a mano no queda registrada: el panel/libro muestran la que no se mandó |
+| 3 | Respuestas en varios audios: hay que unirlos a mano. **Arreglado el 20/09 (J)** (`06a7de2`): `cargar <narrador> a.ogg b.ogg` los pega con ffmpeg |
+| 25 | Una pregunta reemplazada a mano no queda registrada: el panel/libro muestran la que no se mandó. **Arreglado el 20/09 (J)** (`06a7de2`): `siguiente --texto "..."` y `corregir-pregunta`; `cargar` evalúa contra lo enviado |
 | 5 | `guardarRepreguntaEnviada is not a function` (código a medio hacer de la otra sesión) |
 | 6 | `siguiente` avanza aunque haya repregunta pendiente |
 | 10 | Sufijo del respaldo local desfasado (`dia_05_3` vs `dia_05_2`) |
-| 15 | Descarga de WhatsApp de 0 bytes aceptada por `cargar` |
+| 15 | Descarga de WhatsApp de 0 bytes aceptada por `cargar`. **Arreglado el 20/09 (J)** (`06a7de2`): se rechaza con el motivo (también < 1 KB) |
 | 7 | Dos sesiones de Claude en el mismo checkout |
 | 8 | Producción corría un build viejo (Vercel sin git) |
 
@@ -74,6 +74,10 @@ libro sale mal, sale incompleto, o el cliente se pierde antes de llegar?
    notas de voz; `cargar` acepta un solo archivo. *Hecho a mano*: `ffmpeg concat`
    antes de cargar. *Pendiente*: que `cargar` acepte varios archivos y los una solo
    (o que el webhook real junte notas seguidas del mismo día).
+   **Arreglado el 20/09 (J)** (`06a7de2`): `cargar <narrador> uno.ogg dos.ogg` los
+   pega con ffmpeg (demuxer concat, re-encodea a opus para que no queden saltos) en
+   `audios-crudos/<narrador>/partes/` y sigue como con un solo archivo. Queda el
+   lado del webhook (juntar notas seguidas del mismo día) para cuando Meta esté.
 
 4. **16/09 · la repregunta salió en "usted" aunque el trato es "vos".** (Las 5 repreguntas del piloto salieron en usted: 5, 19, 22, 23, 25 — la última además con "sus nietos".) Al cargar la
    respuesta 5 el cerebro pidió repregunta (abuelo Roberto) y la escribió de usted:
@@ -138,6 +142,11 @@ libro sale mal, sale incompleto, o el cliente se pierde antes de llegar?
     puerta manual, pero desde el panel no podría editar/sacar preguntas (no hay
     filas suyas) y el backfill de la migración 20260912 no lo alcanzó (fue creado
     después). *Para repasar*: que `crear` copie las fijas igual que la compra.
+    **Arreglado el 20/09 (J)** (`06a7de2`): `crear` copia la plantilla como guion
+    propio (misma regla que `web/src/app/api/guion/route.ts`), y `guion <narrador>`
+    lo hace para uno viejo. De yapa: el reemplazo de capítulo en `siguiente` solo
+    funcionaba con la fila global; ahora también reescribe la fila propia (como
+    `preguntar.ts`).
 
 13. **16/09 · sensación de que "la infancia se alarga".** Las preguntas 5-7 son del
     capítulo "Las raíces" (abuelos, hermanos, tradiciones), pero la personalización
@@ -159,6 +168,9 @@ libro sale mal, sale incompleto, o el cliente se pierde antes de llegar?
     código dice que ante duda es "suficiente", pero eso aplica al JSON ilegible, no
     a la respuesta vacía; (b) un comando `evaluar <narrador> --orden N` para
     reintentar solo la evaluación.
+    **(b) hecho el 20/09 (J)** (`06a7de2`): `evaluar <narrador> [--orden N] [--solo-ver]`
+    reevalúa la respuesta principal ya cargada (sin subir ni transcribir) y anota lo
+    mismo que `cargar`: repregunta, reserva y tema evitado.
     **Arreglado el 20/09** (`f76da1f`): `evaluarRespuesta` reintenta UNA vez con
     ~2 s de pausa y, si vuelve a fallar, devuelve `{ suficiente: true }` con un
     `console.warn`. Nunca lanza: ni con la respuesta vacía ni con un error de la
@@ -168,6 +180,9 @@ libro sale mal, sale incompleto, o el cliente se pierde antes de llegar?
 15. **16/09 · descarga de WhatsApp de 0 bytes.** `JOAQUIN RESPUESTA 7.ogg` bajó
     vacío la primera vez (Naza lo guardó antes de que WhatsApp terminara). `cargar`
     debería rechazar archivos de 0 bytes con un mensaje claro en vez de subirlos.
+    **Arreglado el 20/09 (J)** (`06a7de2`): `motivoParaRechazarAudio` en
+    `src/manual/puro.ts` — 0 bytes o menos de 1 KB se rechazan antes de tocar
+    Storage, con el motivo.
 
 16. **16/09 · la personalización depende 100% de lo dicho; una corrección posterior
     no pisa lo anterior.** Pregunta de Naza: "si hubiese dicho que a los 12 se mudó,
@@ -209,6 +224,12 @@ libro sale mal, sale incompleto, o el cliente se pierde antes de llegar?
    `test/personalizar.test.ts`. Queda pendiente el caso de la orden 26 ("ni
    siquiera se intentó personalizar"): eso vive en `preguntar.ts`/`manual.ts` →
    **para Joaquín**.
+   **Orden 26 arreglada el 20/09 (J)** (`b3f0a31`): no era que no se intentaba —
+   el prompt dice "si no hay nada concreto para enganchar, devolvé el original", y
+   para la 26 ("cuénteme su vida en cinco minutos") el modelo devolvió el original
+   textual… escrito de usted. `personalizarPregunta` ahora trata ese caso, con un
+   narrador de vos, igual que un fallo: va al prompt corto, que la pasa a vos. Con
+   usted el original textual sigue siendo válido (no paga un segundo intento).
 
 19. **17/09 · el narrador dice "esto prefiero que NO vaya al libro" y nada lo
     registra.** Respuesta 12: "estas historias prefiero que queden en mi mente, no
@@ -241,6 +262,13 @@ libro sale mal, sale incompleto, o el cliente se pierde antes de llegar?
       base y la fábrica no tiene qué respetar. Tests del entrevistador en
       `test/cerebro.test.ts` y de la fábrica en `test/comun.test.ts` y
       `test/conectores.test.ts`.
+    - **Hecho el 20/09 (J)** (`f2686b2`, `8e7bbfe`): `guardarReserva` en
+      `src/db/respuestas.ts`, llamado desde `procesar.ts` (audio y texto) y desde la
+      puerta manual (`cargar`, `responder-texto`, `evaluar`). Si la migración no
+      está aplicada, PostgREST contesta "column does not exist": se avisa por
+      consola y el día sigue (la reserva se anota a mano). **Joaquín da el OK a la
+      migración `20260920000100_respuestas_reservadas.sql`** — nada del código la
+      necesita para funcionar, así que se puede aplicar cuando Naza quiera.
 
 20. **17/09 · la pregunta fija supone un guion de vida que no es el del narrador.**
     Orden 14 original: "¿cómo fue la propuesta de casamiento y el día de la boda?";
@@ -257,6 +285,15 @@ libro sale mal, sale incompleto, o el cliente se pierde antes de llegar?
     ("¿qué se siente ser abuelo ahora?" a un narrador de 28) en
     `test/personalizar.test.ts` y `test/adaptativas.test.ts`. El criterio fino de
     "no aplica" por edad/estado civil sigue en `preguntar.ts` → **para Joaquín**.
+    **Criterio estructural el 20/09 (J)** (`c2623fd`, `06a7de2`): `capituloNoAplica`
+    mira la ficha además del árbol — con `anioNacimiento`, menor de 25 sin hijos
+    cargados → «Los hijos» se reemplaza sin preguntar; menor de 18 sin pareja →
+    «El amor» también. Los umbrales son bajos a propósito ("ante la duda, no toca
+    nada": a los 28 se puede tener hijos y ficha vacía); para un piloto como Joaquín
+    la forma explícita es `ficha joaquin --hijos no --pareja no`, que anota `'no
+    tuvo'` igual que la compra. **Estado civil**: la ficha no tiene el campo (ni el
+    checkout lo pide) — si lo queremos como criterio, es un campo nuevo en
+    `docs/ficha-del-narrador.md` y en el registro de la web, decisión de los dos.
 
 21. **17/09 · la pregunta del capítulo "El trabajo" vuelve al puesto de diarios de
     la infancia.** Orden 17 (anécdota del trabajo) se personalizó hacia "esos días
@@ -310,6 +347,12 @@ libro sale mal, sale incompleto, o el cliente se pierde antes de llegar?
     recibió. *Para repasar*: `siguiente --texto "..."` (o un `corregir-pregunta`)
     que anote lo que realmente se mandó; y en general, que el panel muestre la
     pregunta enviada, no la del guion.
+    **Arreglado el 20/09 (J)** (`06a7de2`): `siguiente <narrador> --texto "..."`
+    manda ese texto y lo anota en `contexto.preguntasEnviadas[orden]`;
+    `corregir-pregunta <narrador> --texto "..." [--orden N]` lo corrige después.
+    `cargar`, `responder-texto` y `evaluar` evalúan contra la pregunta enviada, no
+    contra el guion (era también parte del #18 en la puerta manual). El panel ya
+    mostraba la enviada desde el 14/09.
 
 26. **17/09 · "regálenos" en la pregunta 24.** La personalización en vos deja un
     "regálenos" (ustedes/nosotros formal) en medio de una pregunta tuteada. Mismo
@@ -343,6 +386,12 @@ libro sale mal, sale incompleto, o el cliente se pierde antes de llegar?
     la entrevista sigue y el cierre sale igual. `preguntar.ts` (Joaquín) ya las
     reintenta sola cuando le piden la orden siguiente. Queda el lado de
     `siguiente`/`ultimaOrdenDelGuion` en `scripts/manual.ts` → **para Joaquín**.
+    **Puerta manual arreglada el 20/09 (J)** (`06a7de2`): `ultimaOrdenDelGuion` usa
+    `ultimoOrden()` de `src/db/guion.ts` (el guion propio, sin el `.or()` que
+    mezclaba la plantilla), y `asegurarAdaptativas` genera las 4 al responder la
+    última que exista — desde `cargar` y desde `siguiente`, así un fallo del modelo
+    en el primer intento no deja la entrevista terminada en 26. Se fueron
+    `ULTIMA_FIJA` y `PRIMERA/ULTIMA_ADAPTATIVA` del script.
 
 29. **17/09 · la respuesta 27 no contestó la pregunta 27.** La adaptativa 27
     preguntaba por la separación de los padres a los 17; Joaquín respondió sobre
@@ -412,6 +461,11 @@ libro sale mal, sale incompleto, o el cliente se pierde antes de llegar?
     manda el mail "terminó". Queda **para Joaquín** el lado de la puerta manual
     (`scripts/manual.ts`): que `cargar` con la respuesta 30 no dependa de que
     alguien corra `cerrar` para dejar el estado y la despedida.
+    **Puerta manual arreglada el 20/09 (J)** (`06a7de2`): al cargar la respuesta a la
+    última pregunta que exista (`cargar` o `responder-texto`), imprime la despedida,
+    pone `completado` y registra el envío `despedida` — lo mismo que `cerrar`, que
+    sigue existiendo por si hace falta a mano. Si de esa última salió una
+    repregunta, avisa y cierra al cargar la respuesta con `--repregunta`.
 
 32. **18/09 · falsa alarma con matices: la fábrica se MUDÓ de proyecto Railway
     (`vitacora-familiar`, cuenta de Naza → `fearless-kindness`, cuenta de Joaquín,
@@ -592,6 +646,13 @@ escribirlo; el audiolibro clonado saldría después con otro pedido.
     —ni para retomarlo "de otra manera"—, con test en `test/cerebro.test.ts`. El
     otro lado del hallazgo (que ese tema entre solo a `contexto.evitar` para el
     resto de la entrevista) vive en el flujo (`procesar.ts`) → **para Joaquín**.
+    **El otro lado, el 20/09 (J)** (`8e7bbfe`): la evaluación devuelve además
+    `dejarTema` (el tema, en pocas palabras: "su tío y las drogas"), solo con pedido
+    explícito ("esquivar no es pedir"). `procesar.ts` lo suma a `contexto.evitar`
+    como una línea más —"su tío y las drogas (lo pidió él en la entrevista)"—
+    releyendo el contexto de la base para no pisar lo que la familia escribió en el
+    panel, y respetando el tope de 1000 letras del panel. En modo seguido la
+    siguiente pregunta ya sale sin ese tema. La puerta manual hace lo mismo.
 
 35. **18/09 · Ciro · la personalización repite lo recién contestado y lleva la pregunta
     hacia las sustancias.** Respuesta 8: salidas de miércoles a domingo, "mucho vino,
