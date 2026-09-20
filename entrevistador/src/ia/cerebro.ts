@@ -226,6 +226,77 @@ export async function evaluarRespuesta(
   }
 }
 
+/** Lo que hay que anotar de una respuesta que NO se evalúa (ampliación, cierre). */
+export type ReservaYDejarTema = {
+  reserva: { reservada: boolean; tramo: string | null };
+  dejarTema: string | null;
+};
+
+/**
+ * La reserva y el tema a dejar, para las respuestas que NO pasan por la
+ * evaluación: la ampliación de una repregunta y la pregunta de cierre.
+ *
+ * Existe porque ahí no interesa si la respuesta alcanza ni se repregunta (el
+ * flujo se saltea la evaluación a propósito), pero un "esto no lo pongas" o un
+ * "vamos por otro lado" dicho en la ampliación o en el "¿faltó algo?" vale
+ * exactamente lo mismo que en la respuesta del día: si no se detecta, se
+ * publica igual. Es la falla más grave del producto.
+ *
+ * Es una llamada corta y aparte (no reusa `evaluarRespuesta`) para que nadie
+ * pueda quedarse con una repregunta de más en el cierre: devuelve solo estas dos
+ * cosas. Cuesta una llamada más por ampliación (~USD 0,01) y no se le niega a
+ * nada que evite publicar lo que el narrador pidió guardar.
+ *
+ * Nunca lanza: si el modelo falla dos veces, devuelve "sin reserva".
+ */
+export async function detectarReservaYDejarTema(
+  transcripcion: string, trato: Trato = 'usted', opciones: OpcionesDeReintento = {},
+): Promise<ReservaYDejarTema> {
+  const vacio: ReservaYDejarTema = { reserva: { reservada: false, tramo: null }, dejarTema: null };
+  const pausaMs = opciones.pausaMs ?? PAUSA_REINTENTO_MS;
+
+  const pedirleAlModelo = async (): Promise<ReservaYDejarTema> => {
+    const respuesta = await cliente.messages.create({
+      model: MODELO_EVALUACION, max_tokens: 300, system: estiloCerebro(trato),
+      messages: [{ role: 'user', content: PROMPT_MARCAS(transcripcion) }],
+    });
+    // Si el JSON no se puede leer, se sigue sin marcas: no hay qué anotar.
+    const leido = extraerJson<Evaluacion & { dejarTema?: string }>(textoDe(respuesta), { suficiente: true })!;
+    const dejarTema = typeof leido.dejarTema === 'string' && leido.dejarTema.trim() ? leido.dejarTema.trim() : null;
+    return { reserva: reservaDe(leido, transcripcion), dejarTema };
+  };
+
+  try {
+    return await pedirleAlModelo();
+  } catch (err) {
+    console.warn(`marcas: el modelo no devolvió nada (se reintenta en ${pausaMs} ms):`, err);
+  }
+
+  await esperar(pausaMs);
+  try {
+    return await pedirleAlModelo();
+  } catch (err) {
+    console.warn('marcas: el modelo volvió a fallar; la respuesta queda sin reserva ni tema anotado:', err);
+    return vacio;
+  }
+}
+
+/**
+ * El prompt de `detectarReservaYDejarTema`: solo las dos marcas, sin juzgar la
+ * respuesta. Exportado para poder mirarlo y medirlo como los otros.
+ */
+export const PROMPT_MARCAS = (transcripcion: string) =>
+  `Esto es lo que acaba de contar una persona en la entrevista de su biografía:
+"${transcripcion}"
+
+Fijate SOLO dos cosas, en lo que dijo:
+1. ¿Pidió que algo NO vaya al libro? ("esto prefiero que no vaya al libro", "no lo pongas", "que mi familia no lo sepa"). Si sí, poné "reservado": true; si el pedido es por una parte nada más, copiá ese tramo TEXTUAL en "reservadoTramo" (una frase o dos, tal como las dijo).
+2. ¿Pidió dejar un tema? ("vamos por otro lado", "prefiero no hablar de eso", "dejemos eso"). Si sí, poné "dejarTema" con el tema en pocas palabras y en tercera persona ("su tío y las drogas", "la muerte de su hermano").
+
+Si no pidió nada de eso, devolvé {}. Ante la duda de si pidió reservar, marcá "reservado": true. No opines sobre nada más y no agregues texto fuera del JSON.
+
+Respondé SOLO con JSON: {} o {"reservado": true, "reservadoTramo": "..."} o {"dejarTema": "..."} (pueden ir juntas).`;
+
 /**
  * Reemplaza una pregunta fija cuyo capítulo no aplica a esta vida
  * (ej. "Los hijos" si no tuvo hijos): pregunta por lo más rico que ya contó.

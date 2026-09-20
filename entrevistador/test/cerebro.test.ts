@@ -293,6 +293,80 @@ describe('reservaDe: qué se guarda como reservado', () => {
   });
 });
 
+describe('detectarReservaYDejarTema: las marcas de las respuestas que no se evalúan', () => {
+  beforeEach(() => crearMock.mockReset());
+
+  const AMPLIACION =
+    'Y ahora que me acuerdo: mi tío se drogaba, o sea, vamos por otro lado, porque por ahí, boludo.';
+
+  it('el prompt pide SOLO las dos marcas, con los ejemplos reales', async () => {
+    const { PROMPT_MARCAS } = await import('../src/ia/cerebro.js');
+    const p = PROMPT_MARCAS(AMPLIACION);
+    expect(p).toContain('Fijate SOLO dos cosas');
+    expect(p).toContain('"esto prefiero que no vaya al libro"');
+    expect(p).toContain('"vamos por otro lado"');
+    expect(p).toContain('devolvé {}');
+    // No pide juzgar la respuesta: no hay suficiencia ni repregunta acá.
+    expect(p).not.toContain('suficiente');
+    expect(p).not.toContain('repregunta');
+  });
+
+  it('una ampliación que pide reservar una parte queda marcada con ese tramo', async () => {
+    crearMock.mockResolvedValueOnce({
+      content: [{ type: 'text', text: '{"reservado": true, "reservadoTramo": "locuras de las contables pueden ser por amor"}' }],
+    });
+    const { detectarReservaYDejarTema } = await import('../src/ia/cerebro.js');
+    const r = await detectarReservaYDejarTema('Y después: locuras de las contables pueden ser por amor, nada más.');
+    expect(r.reserva).toEqual({ reservada: true, tramo: 'locuras de las contables pueden ser por amor' });
+    expect(r.dejarTema).toBeNull();
+  });
+
+  it('una ampliación que pide dejar el tema lo devuelve, y no reserva nada', async () => {
+    crearMock.mockResolvedValueOnce({
+      content: [{ type: 'text', text: `{"dejarTema": "su tío y las drogas"}` }],
+    });
+    const { detectarReservaYDejarTema } = await import('../src/ia/cerebro.js');
+    const r = await detectarReservaYDejarTema(AMPLIACION);
+    expect(r.dejarTema).toBe('su tío y las drogas');
+    expect(r.reserva).toEqual({ reservada: false, tramo: null });
+  });
+
+  it('sin pedido explícito, no hay nada que anotar', async () => {
+    crearMock.mockResolvedValueOnce({ content: [{ type: 'text', text: '{}' }] });
+    const { detectarReservaYDejarTema } = await import('../src/ia/cerebro.js');
+    const r = await detectarReservaYDejarTema('Contó los domingos en la casa de la abuela.');
+    expect(r).toEqual({ reserva: { reservada: false, tramo: null }, dejarTema: null });
+  });
+
+  it('un tramo que no está textual reserva la respuesta entera (mismo criterio que la evaluación)', async () => {
+    crearMock.mockResolvedValueOnce({
+      content: [{ type: 'text', text: '{"reservado": true, "reservadoTramo": "las locuras de las contables"}' }],
+    });
+    const { detectarReservaYDejarTema } = await import('../src/ia/cerebro.js');
+    const r = await detectarReservaYDejarTema('Hacíamos locuras por amor, nada más.');
+    expect(r.reserva).toEqual({ reservada: true, tramo: null });
+  });
+
+  it('si el modelo falla, no rompe: reintenta y devuelve sin marcas', async () => {
+    crearMock
+      .mockRejectedValueOnce(new Error('529 overloaded'))
+      .mockRejectedValueOnce(new Error('529 overloaded'));
+    const { detectarReservaYDejarTema } = await import('../src/ia/cerebro.js');
+    const r = await detectarReservaYDejarTema(AMPLIACION, 'vos', { pausaMs: 0 });
+    expect(crearMock).toHaveBeenCalledTimes(2);
+    expect(r).toEqual({ reserva: { reservada: false, tramo: null }, dejarTema: null });
+  });
+
+  it('si el reintento sale bien, se anota igual', async () => {
+    crearMock
+      .mockResolvedValueOnce({ content: [] })
+      .mockResolvedValueOnce({ content: [{ type: 'text', text: '{"reservado": true}' }] });
+    const { detectarReservaYDejarTema } = await import('../src/ia/cerebro.js');
+    const r = await detectarReservaYDejarTema('Estas historias prefiero que queden en mi mente.', 'vos', { pausaMs: 0 });
+    expect(r.reserva).toEqual({ reservada: true, tramo: null });
+  });
+});
+
 describe('extraerJson', () => {
   it('saca el JSON limpio de un texto con explicaciones alrededor', async () => {
     const { extraerJson } = await import('../src/ia/cerebro.js');

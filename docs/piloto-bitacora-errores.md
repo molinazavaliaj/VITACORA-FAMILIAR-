@@ -14,7 +14,7 @@ libro sale mal, sale incompleto, o el cliente se pierde antes de llegar?
 
 | # | Qué | Por qué es grave |
 |---|---|---|
-| 19 | El narrador pide "esto que no vaya al libro" y nada lo registra | Publicar algo que pidió reservar es la peor falla posible: quiebra la confianza y puede herir a la familia. **Arreglado el 20/09** (`82c77e6`): la evaluación lo detecta, la fábrica lo respeta; **Arreglado el 20/09 (J)** (`f2686b2`, `8e7bbfe`): el flujo guarda `reservada`/`reservado_tramo` en la fila (`guardarReserva`, no tumba el día si la migración no está). Falta **aplicar la migración** (Joaquín da el OK, Naza la corre) |
+| 19 | El narrador pide "esto que no vaya al libro" y nada lo registra | Publicar algo que pidió reservar es la peor falla posible: quiebra la confianza y puede herir a la familia. **Arreglado el 20/09** (`82c77e6`): la evaluación lo detecta, la fábrica lo respeta; **Arreglado el 20/09 (J)** (`f2686b2`, `8e7bbfe`): el flujo guarda `reservada`/`reservado_tramo` en la fila (`guardarReserva`, no tumba el día si la migración no está). Falta **aplicar la migración** (los dos dieron el OK, la corre Naza). La detección cubre la respuesta principal del día: las **ampliaciones** y la **pregunta de cierre** siguen sin detectarse (la evaluación se saltea las dos) — `detectarReservaYDejarTema` ya está listo en `src/ia/cerebro.ts` (20/09, `5bbfcb9`) para que el flujo la llame en esos dos caminos |
 | 1 | Trato "usted" por defecto con ficha vacía (y el checkout no pide la ficha) | Un cliente real llega con ficha vacía → preguntas genéricas y trato equivocado desde el día 1; el narrador no siente que lo escuchan |
 | 17 | Nombres propios mal transcriptos (NASA/Naza, Herrera/Herrero) | Van directo al texto del libro; un nombre mal escrito de un hijo o un amigo desvaloriza todo el producto. La revisión de nombres del panel es la única red |
 | 14 | La evaluación vuelve vacía (2 de 13 veces) y corta el proceso | En el flujo automático es un día perdido: sin repregunta y, según cómo falle, sin avance. Frecuencia demasiado alta para ignorar. **Arreglado el 20/09** (`f76da1f`); el reintento a mano `evaluar <narrador> --orden N` **(J, `06a7de2`)** |
@@ -273,7 +273,19 @@ libro sale mal, sale incompleto, o el cliente se pierde antes de llegar?
       evaluación con `{suficiente:true}` sin llamar al modelo) — el narrador que dice
       "esto no lo pongas" en la ampliación o en el "¿faltó algo?" quedaría publicado.
       Y el `UPDATE` tiene que entrar JUNTO con la migración aplicada: sin la columna,
-      PostgREST contesta 42703 y `trasResponder` no tiene try/catch propio. Tests del entrevistador en
+      PostgREST contesta 42703 y `trasResponder` no tiene try/catch propio.
+    - **Lo que quedó afuera de la detección** (revisión del 20/09, verificado en el código):
+      `procesar.ts:232` saltea toda la evaluación cuando la respuesta es la ampliación de una
+      repregunta, y `procesar.ts:243-245` corta con `{suficiente:true}` cuando el orden es la
+      pregunta de cierre — en los dos casos el modelo nunca ve la transcripción, así que un
+      "esto no lo pongas" o un "vamos por otro lado" ahí no se anotan y eso se publica. La
+      puerta manual tiene el mismo hueco (`scripts/manual.ts`, `trasResponderManual`: si
+      `esRepregunta`, no llama a `evaluarYAnotar`). **Listo para que Joaquín lo enchufe**:
+      `detectarReservaYDejarTema(transcripcion, trato)` (`entrevistador/src/ia/cerebro.ts`,
+      `5bbfcb9`) hace UNA llamada corta que devuelve solo `reserva` y `dejarTema`, sin juzgar
+      la respuesta — así no se puede colar una repregunta de más en el cierre —, nunca lanza
+      (reintenta una vez y devuelve "sin marcas") y cuesta ~USD 0,01 por ampliación. Los dos
+      caminos son el mismo `await` + `guardarReserva` que ya está hecho para la principal. Tests del entrevistador en
       `test/cerebro.test.ts` y de la fábrica en `test/comun.test.ts` y
       `test/conectores.test.ts`.
     - **Hecho el 20/09 (J)** (`f2686b2`, `8e7bbfe`): `guardarReserva` en
@@ -658,8 +670,11 @@ escribirlo; el audiolibro clonado saldría después con otro pedido.
     **Arreglado el 20/09** (`d230473`): la evaluación da la respuesta por SUFICIENTE
     cuando hay un pedido explícito de dejar el tema y no repregunta sobre eso
     —ni para retomarlo "de otra manera"—, con test en `test/cerebro.test.ts`. El
-    otro lado del hallazgo (que ese tema entre solo a `contexto.evitar` para el
-    resto de la entrevista) vive en el flujo (`procesar.ts`) → **para Joaquín**.
+    otro lado del hallazgo ya está (Joaquín, `8e7bbfe`/`06a7de2`): la evaluación devuelve
+    `dejarTema` y el flujo lo suma a `contexto.evitar` con la marca "(lo pidió él en la
+    entrevista)", releyendo el contexto para no pisar el panel. **Con el mismo hueco que el
+    19**: solo mira la respuesta de la principal — si en la AMPLIACIÓN (o en el cierre) pide
+    dejar un tema, no se anota. Lo cubre el mismo `detectarReservaYDejarTema` (`5bbfcb9`).
     **El otro lado, el 20/09 (J)** (`8e7bbfe`): la evaluación devuelve además
     `dejarTema` (el tema, en pocas palabras: "su tío y las drogas"), solo con pedido
     explícito ("esquivar no es pedir"). `procesar.ts` lo suma a `contexto.evitar`
@@ -775,3 +790,23 @@ reales, no estilo. Lo que encontró y qué pasó con cada cosa:
   (ej. `mandarHito` lee el contexto, hace el POST a Resend y recién ahí escribe
   `mailsEnviados`). Es la razón que ya está escrita en `CONTRATO.md` para mudar esos textos a
   columnas propias. No se toca acá.
+
+## Integración con el trabajo de Joaquín (20/09, tarde)
+
+Sus 7 puntos llegaron en `ef0ff92` (sobre mi `dc55dbd`): 257 tests en el entrevistador y 336 en
+la fábrica, `tsc` limpio en los dos, verificado acá corriendo las suites. Revisé sus cambios
+en los tres archivos míos y están bien:
+
+- `cerebro.ts`: `dejarTema` se sumó a la regla de "si pide cambiar de tema" (no la contradice:
+  la respuesta sigue valiendo como suficiente y no hay repregunta) y a `Evaluacion`. La reserva
+  y el trato quedaron intactos.
+- `evitar.ts`: `sumarTemaEvitado` es puro, descarta temas largos (>120) y respeta los 1000 del
+  panel (`EVITAR_MAXIMO` en `web/src/lib/guion.ts`), y no duplica lo que ya estaba.
+- `personalizar.ts`: el "devolvió el original textual" se trata como fallo SOLO con trato de
+  vos, dentro de `personalizarPregunta` y mandando al prompt corto (que él ya existía); dejó
+  `esPersonalizacionValida` como estaba, así que el guardrail del guion firmado sigue con piso.
+
+Lo único que quedó abierto es el hueco de arriba (ampliaciones y cierre): anotado en 19 y 34,
+con el helper listo para enchufar. Y falta que Naza aplique la migración
+`20260920000100_respuestas_reservadas.sql` — es el último paso para que el 19 funcione punta a
+punta.
