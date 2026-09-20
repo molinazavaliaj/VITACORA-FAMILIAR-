@@ -32,8 +32,8 @@ libro sale mal, sale incompleto, o el cliente se pierde antes de llegar?
 |---|---|---|
 | 13 | La personalización ancla demasiado en lo ya contado ("la infancia se alarga") | Preguntas repetitivas, el narrador siente que le preguntan lo mismo; menos material nuevo por capítulo |
 | 16 | Una corrección posterior no pisa el resumen viejo | El libro puede afirmar algo que el narrador corrigió después |
-| 4 | Repregunta en "usted" con trato "vos" | Rompe el vínculo justo en el momento más íntimo (la repregunta va a lo emocional) |
-| 18 | Si la personalización falla, la fija sale en "usted" | Mismo efecto: incoherencia de trato a mitad de entrevista |
+| 4 | Repregunta en "usted" con trato "vos" | Rompe el vínculo justo en el momento más íntimo (la repregunta va a lo emocional). **Arreglado el 20/09** (`ed513d8`) |
+| 18 | Si la personalización falla, la fija sale en "usted" | Mismo efecto: incoherencia de trato a mitad de entrevista. **Arreglado el 20/09** (`ed513d8`): segundo intento más corto antes de rendirse |
 | 2 | Pregunta 5 mal redactada ("hablemos de atrás") | Una pregunta rara baja la calidad percibida; el narrador responde peor |
 | 11, 30 | ¿Las repreguntas se van por las ramas / insisten en lo que el narrador esquivó? | Cansan y pueden incomodar; en un abuelo, insistir en una herida es contraproducente |
 | 12 | `crear` no copia el guion al narrador | Desde el panel la familia no puede editar preguntas de ese narrador |
@@ -79,6 +79,11 @@ libro sale mal, sale incompleto, o el cliente se pierde antes de llegar?
    "Me quedé pensando en su abuelo... ¿Cómo llegó a usted esa historia...?". El
    trato no llega (o no se respeta) en `evaluarRespuesta` / el prompt de repregunta.
    *Hecho a mano*: se la pasé a vos para que Naza la pegue.
+   **Arreglado el 20/09** (`ed513d8`): `PROMPT_EVALUAR` ahora recibe el trato y lo
+   exige en la repregunta misma —"LA REPREGUNTA VA EN {trato}, SIN EXCEPCIÓN, con
+   sus conjugaciones"— con los ejemplos en tuteo y la prohibición de "cuénteme",
+   "usted", "su", "sus" cuando el narrador es de vos. Test en
+   `test/cerebro.test.ts` («el trato de la repregunta que escribe la evaluación»).
 
 5. **16/09 · `✖ mods.guardarRepreguntaEnviada is not a function`** (8 veces: órdenes 5, 19, 22, 23, 25, 26, 27 y 28; en la 29 ya NO falló — la sesión de hermes debe haber pusheado la función y esta sesión hizo pull) al intentar
    anotar la repregunta en `envios`. `scripts/manual.ts` la llama pero
@@ -177,6 +182,14 @@ libro sale mal, sale incompleto, o el cliente se pierde antes de llegar?
     del guion — "cuénteme ESA historia... ¿Cuál es la suya?" — seguido del cierre
     en vos. Las 26 fijas están escritas de usted; el fallback debería pasarlas por
     el trato (o tener las dos versiones). *Hecho a mano*: la pasé a vos.
+   **Arreglado el 20/09** (`ed513d8`): cuando la personalización no devuelve algo
+   válido y el narrador es de vos, antes de mandar el original (que está escrito
+   de usted) se hace un SEGUNDO intento con un prompt más corto
+   (`PROMPT_PERSONALIZAR_BREVE`): mismas preguntas, todo en vos, máximo 40
+   palabras. Si tampoco sale, manda el original y lo dice el motivo. Test en
+   `test/personalizar.test.ts`. Queda pendiente el caso de la orden 26 ("ni
+   siquiera se intentó personalizar"): eso vive en `preguntar.ts`/`manual.ts` →
+   **para Joaquín**.
 
 19. **17/09 · el narrador dice "esto prefiero que NO vaya al libro" y nada lo
     registra.** Respuesta 12: "estas historias prefiero que queden en mi mente, no
