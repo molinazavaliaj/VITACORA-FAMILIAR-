@@ -6,7 +6,7 @@ import { variantesDeTelefono } from '../whatsapp/telefonos.js';
 import { guardarRespuestaAudio, guardarReserva } from '../db/respuestas.js';
 import { guardarRepreguntaEnviada } from '../db/envios.js';
 import { transcribirYActualizar } from '../ia/transcribir.js';
-import { evaluarRespuesta, detectarIntencion, detectarQueNoTuvo, reservaDe } from '../ia/cerebro.js';
+import { evaluarRespuesta, detectarIntencion, detectarQueNoTuvo, detectarReservaYDejarTema, reservaDe, type ReservaYDejarTema } from '../ia/cerebro.js';
 import { generarPreguntasAdaptativas } from '../ia/adaptativas.js';
 import { preguntaDeOrden, tieneAdaptativas, ultimoOrden } from '../db/guion.js';
 import { textoEvitar, sumarTemaEvitado } from '../ia/evitar.js';
@@ -229,6 +229,14 @@ async function trasResponder(
 ): Promise<void> {
   // Paso 6: solo la PRIMERA respuesta a una pregunta se evalúa (las de la repregunta, no).
   let repreguntaEnviada = false;
+  const trato = await tratoDe(narrador);
+  // Lo que se anota de CUALQUIER respuesta, se evalúe o no: la reserva ("esto
+  // que no vaya al libro", bitácora 19) y el tema que pidió dejar ("vamos por
+  // otro lado", bitácora 34). Cuando hay evaluación, salen de ella; cuando no
+  // (ampliación de una repregunta, "no tuvo", pregunta de cierre), se detectan
+  // con la llamada corta que no juzga ni repregunta — un "no lo pongas" dicho
+  // en la ampliación vale exactamente lo mismo que en la respuesta del día.
+  let marcas: ReservaYDejarTema;
   if (!esRepregunta) {
     // Los hitos de la familia (§9): la primera respuesta, y la mitad del guion.
     if (orden === 1) await mandarHito(narrador, 'primera');
@@ -240,15 +248,13 @@ async function trasResponder(
     // árbol (las que siguen del capítulo se reemplazan) y NO se repregunta sobre eso.
     const noTuvo = await anotarSiNoTuvo(narrador, orden, pregunta, transcripcion);
     // La pregunta de cierre ("¿faltó algo?") no se evalúa ni se repregunta: la lee faseDeCierre.
-    const evaluacion = noTuvo || esOrdenDeCierre(narrador.contexto, orden)
-      ? { suficiente: true as const }
-      : await evaluarRespuesta(pregunta, transcripcion, duracionSegundos, textoEvitar(narrador.contexto), await tratoDe(narrador));
-    // Bitácora 19: "esto que no vaya al libro" queda en la fila de la respuesta
-    // (la fábrica lee de ahí). Bitácora 34: "vamos por otro lado" queda en
-    // `contexto.evitar` para el resto de la entrevista. Ninguna de las dos
-    // puede frenar el día: si fallan, avisan y se sigue.
-    await guardarReserva(respuestaId, reservaDe(evaluacion, transcripcion));
-    await anotarTemaEvitado(narrador, evaluacion.dejarTema);
+    const seEvalua = !noTuvo && !esOrdenDeCierre(narrador.contexto, orden);
+    const evaluacion = seEvalua
+      ? await evaluarRespuesta(pregunta, transcripcion, duracionSegundos, textoEvitar(narrador.contexto), trato)
+      : { suficiente: true as const };
+    marcas = seEvalua
+      ? { reserva: reservaDe(evaluacion, transcripcion), dejarTema: evaluacion.dejarTema ?? null }
+      : await detectarReservaYDejarTema(transcripcion, trato);
     if (!evaluacion.suficiente && evaluacion.repregunta && !(await yaSeRepregunto(narrador.id, orden))) {
       const waId = await enviarTexto(narrador.telefono_whatsapp, evaluacion.repregunta);
       await db.from('envios').insert({
@@ -259,7 +265,12 @@ async function trasResponder(
       await guardarRepreguntaEnviada(narrador, orden, evaluacion.repregunta);
       repreguntaEnviada = true;
     }
+  } else {
+    marcas = await detectarReservaYDejarTema(transcripcion, trato);
   }
+  // Ninguna de las dos puede frenar el día: si fallan, avisan y se sigue.
+  await guardarReserva(respuestaId, marcas.reserva);
+  await anotarTemaEvitado(narrador, marcas.dejarTema);
 
   // Paso 8 (§11.2): al responder la ÚLTIMA pregunta que existe en su guion —sea
   // la 26 o la 36, según lo que la familia sacó o sumó— el cerebro estudia toda
