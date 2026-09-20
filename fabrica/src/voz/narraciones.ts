@@ -63,7 +63,24 @@ export async function crearNarracion(db: Db, args: { narradorId: string; pedidoI
 
 /** Una narración en curso: la tiene el worker o está en cola. No se reemplaza —
  *  reemplazarla la narraría dos veces. */
-const ESTADOS_EN_CURSO = ['pendiente', 'procesando'];
+export const ESTADOS_EN_CURSO = ['pendiente', 'procesando'];
+
+export type NarracionDelPedido = { id: string; estado: string };
+
+/** Las narraciones (id, estado) de un pedido, para decidir si se puede reemplazar. */
+export async function narracionesDelPedido(db: Db, pedidoId: string): Promise<NarracionDelPedido[]> {
+  const { data, error } = await db.from('narraciones').select('id, estado').eq('pedido_id', pedidoId);
+  if (error) throw new Error(`No se pudieron leer las narraciones del pedido ${pedidoId}: ${error.message}`);
+  return (data ?? []) as NarracionDelPedido[];
+}
+
+/** El mensaje de "ya hay una narración en curso", o null si se puede seguir. */
+export function motivoEnCurso(pedidoId: string, narraciones: NarracionDelPedido[]): string | null {
+  const enCurso = narraciones.filter((f) => ESTADOS_EN_CURSO.includes(f.estado));
+  if (enCurso.length === 0) return null;
+  const detalle = enCurso.map((f) => `${f.id} '${f.estado}'`).join(', ');
+  return `El pedido ${pedidoId} ya tiene una narración en curso (${detalle}): no se reemplaza nada (se narraría dos veces).`;
+}
 /** Lo que sí se reemplaza: una voz ya narrada (el pedido se entregó con ella) o
  *  una que falló (y si se está pidiendo de nuevo, no se va a reintentar). */
 const ESTADOS_REEMPLAZABLES = ['lista', 'fallida'];
@@ -91,7 +108,7 @@ export function puedeReemplazarNarracion(pedido: { estado: string }): boolean {
  *
  * No reemplaza nada con una narración en curso: eso se narraría dos veces.
  */
-export async function reemplazarNarracion(db: Db, pedidoId: string): Promise<string> {
+export async function reemplazarNarracion(db: Db, pedidoId: string, opciones?: { narraciones?: NarracionDelPedido[] }): Promise<string> {
   const { data: pedidoData, error: errorPedido } = await db
     .from('pedidos')
     .select('id, narrador_id, estado')
@@ -107,30 +124,34 @@ export async function reemplazarNarracion(db: Db, pedidoId: string): Promise<str
     );
   }
 
-  const { data: filas, error: errorFilas } = await db.from('narraciones').select('id, estado').eq('pedido_id', pedidoId);
-  if (errorFilas) throw new Error(`No se pudieron leer las narraciones del pedido ${pedidoId}: ${errorFilas.message}`);
-  const narraciones = (filas ?? []) as { id: string; estado: string }[];
+  // Quien ya las leyó (el script, antes de pagar conectores) las pasa; si no,
+  // se leen acá.
+  const narraciones = opciones?.narraciones ?? (await narracionesDelPedido(db, pedidoId));
 
-  const enCurso = narraciones.filter((f) => ESTADOS_EN_CURSO.includes(f.estado));
-  if (enCurso.length > 0) {
-    const detalle = enCurso.map((f) => `${f.id} '${f.estado}'`).join(', ');
-    throw new Error(
-      `El pedido ${pedidoId} ya tiene una narración en curso (${detalle}): no se reemplaza nada (se narraría dos veces).`
-    );
-  }
+  const motivo = motivoEnCurso(pedidoId, narraciones);
+  if (motivo) throw new Error(motivo);
 
   // El id nuevo antes del update: la vieja tiene que poder decir por cuál se
   // reemplazó.
   const narracionNueva = randomUUID();
   const viejas = narraciones.filter((f) => ESTADOS_REEMPLAZABLES.includes(f.estado)).map((f) => f.id);
   if (viejas.length > 0) {
-    const { error: errorUpdate } = await db
+    // Compare-and-swap sobre el estado: si entre el select y acá alguien la
+    // reintentó y el worker la tomó, no se pisa una `procesando`.
+    const { data: marcadas, error: errorUpdate } = await db
       .from('narraciones')
       .update({ estado: 'reemplazada', error: `reemplazada por ${narracionNueva}`, actualizada_at: new Date().toISOString() })
       .eq('pedido_id', pedidoId)
-      .in('id', viejas);
+      .in('id', viejas)
+      .in('estado', ESTADOS_REEMPLAZABLES)
+      .select('id');
     if (errorUpdate) {
       throw new Error(`No se pudieron marcar reemplazadas las narraciones del pedido ${pedidoId}: ${errorUpdate.message}`);
+    }
+    if ((marcadas ?? []).length !== viejas.length) {
+      throw new Error(
+        `Una narración del pedido ${pedidoId} cambió de estado mientras se reemplazaba (${(marcadas ?? []).length} de ${viejas.length} marcadas): no se crea la nueva, revisá el buzón.`
+      );
     }
   }
 

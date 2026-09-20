@@ -74,8 +74,9 @@ function construirDbFake(opciones: {
 
   const from = vi.fn((tabla: string) => {
     if (tabla === 'narraciones') {
-      const resultado = opciones.narraciones?.shift();
-      if (!resultado) throw new Error('sin resultado en cola para narraciones');
+      // Sin cola: el pedido no tiene narraciones (el script las lee siempre
+      // primero, antes de pagar conectores). Con cola, cada llamada consume una.
+      const resultado = opciones.narraciones?.shift() ?? { data: [], error: null };
       const builder = construirBuilder(resultado);
       builder.in = () => builder;
       builder.insert = (valores: Record<string, unknown>) => {
@@ -505,13 +506,10 @@ describe('scripts/narracion-v2 — correrNarracionV2', () => {
       /ya tiene una narración en curso \(narr-curso 'procesando'\)/
     );
 
-    // El v2 y los conectores ya pagados (cacheados) quedaron en Storage, pero el
-    // pedido no se movió: la narración en curso sigue siendo la buena.
-    expect(db.upload.mock.calls.map((c) => c[0])).toEqual([
-      'j1/paquete/conectores_cap_01.json',
-      'j1/paquete/conectores_cap_02.json',
-      'j1/paquete/narracion.json',
-    ]);
+    // Se corta ANTES de pagar conectores y de pisar nada (revisión 21/09):
+    // ni Storage ni el modelo ni el pedido se tocan.
+    expect(db.upload).not.toHaveBeenCalled();
+    expect(escribirConectoresMock).not.toHaveBeenCalled();
     expect(db.narracionesUpdate).not.toHaveBeenCalled();
     expect(db.narracionesInsert).not.toHaveBeenCalled();
     expect(db.pedidosUpdate).not.toHaveBeenCalled();

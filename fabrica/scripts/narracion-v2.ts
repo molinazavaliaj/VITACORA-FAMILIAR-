@@ -59,7 +59,8 @@ import { descargarTextoOpcional, RUTA_CONECTORES_CAP, subirTexto } from '../src/
 import type { Estructura } from '../src/libro/estructura.js';
 import { armarNarracionJson, type ConectoresNarracion, type NarracionJson } from '../src/voz/narracion-json.js';
 import { escribirConectores, historiasDelCapitulo } from '../src/voz/conectores.js';
-import { puedeReemplazarNarracion, reemplazarNarracion, RUTA_NARRACION_JSON } from '../src/voz/narraciones.js';
+import { motivoEnCurso, narracionesDelPedido, puedeReemplazarNarracion, reemplazarNarracion, RUTA_NARRACION_JSON } from '../src/voz/narraciones.js';
+import type { NarracionDelPedido } from '../src/voz/narraciones.js';
 
 type Db = ReturnType<typeof obtenerClienteDb>;
 
@@ -120,6 +121,10 @@ export type NarracionV2Armada = {
   narracion: NarracionJson;
   capitulos: ResumenCapitulo[];
   conectoresDelModelo: number;
+  /** El narracion.json que había (v1 o v2 anterior), tal cual: se guarda como narracion_v1.json antes de pisarlo. */
+  v1Texto: string | null;
+  /** Las narraciones del pedido ya leídas (para no volver a consultar al reemplazar). */
+  narracionesDelBuzon: NarracionDelPedido[];
 };
 
 export type ResultadoCorrida = NarracionV2Armada & {
@@ -200,6 +205,12 @@ export async function armarNarracionV2(
       `El pedido ${args.pedidoId} está '${pedido.estado}': una narración se reemplaza solo con el pedido entregado o esperando_voz (en el resto de los estados, la narración que hay es la que corresponde).`
     );
   }
+
+  // Y antes de pagar conectores: si ya hay una narración en curso, reemplazar
+  // va a fallar igual (narraciones.ts) — mejor cortar acá, sin gastar ni pisar nada.
+  const narracionesDelBuzon = await narracionesDelPedido(db, args.pedidoId);
+  const motivo = motivoEnCurso(args.pedidoId, narracionesDelBuzon);
+  if (motivo) throw new Error(motivo);
 
   const { data: narradorData, error: errorNarrador } = await db.from('narradores').select('*').eq('id', args.narradorId).single();
   if (errorNarrador || !narradorData) {
@@ -332,7 +343,7 @@ export async function armarNarracionV2(
     capitulos,
   });
 
-  return { narracion, capitulos: resumen, conectoresDelModelo };
+  return { narracion, capitulos: resumen, conectoresDelModelo, v1Texto, narracionesDelBuzon };
 }
 
 function imprimirResumen(armado: NarracionV2Armada, cierre: string): void {
@@ -375,13 +386,18 @@ export async function correrNarracionV2(
     return { ...armado, rutaSalida: ruta, narracionId: null };
   }
 
+  // El v1 es lo único que quedó del texto del libro (los borradores se borran
+  // al entregar): copia antes de pisarlo, por si el upsert sale mal.
+  if (armado.v1Texto !== null) {
+    await subirTexto(db, RUTA_NARRACION_JSON(args.narradorId).replace(/narracion\.json$/, 'narracion_v1.json'), armado.v1Texto, 'application/json');
+  }
   await subirTexto(db, RUTA_NARRACION_JSON(args.narradorId), JSON.stringify(armado.narracion, null, 2), 'application/json');
 
   // La narración vieja del pedido (la `lista` de la entrega anterior) queda
   // `reemplazada` y la nueva entra en cola — en ese orden. El pedido se toca
   // después: con una `lista` vieja y el pedido en `esperando_voz`, la fábrica
   // ensamblaría esa voz como si fuera la nueva.
-  const narracionId = await reemplazarNarracion(db, args.pedidoId);
+  const narracionId = await reemplazarNarracion(db, args.pedidoId, { narraciones: armado.narracionesDelBuzon });
 
   const { error: errorUpdate } = await db.from('pedidos').update({ estado: 'esperando_voz' }).eq('id', args.pedidoId);
   if (errorUpdate) throw new Error(`No se pudo poner el pedido ${args.pedidoId} en esperando_voz: ${errorUpdate.message}`);
