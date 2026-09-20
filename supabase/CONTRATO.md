@@ -16,7 +16,7 @@ migración en `supabase/migrations/` + actualizar este archivo + avisar al otro 
 | `invitados` | web | web | Nueva 12/09. `rol` (13/09): `'invitado'` (hasta 3, con el libro abierto, ven todo) o `'visitante'` (abrió el link del libro cerrado y lo guardó: ve la muestra y compra su copia, sin tope). |
 | `pedidos` | web y fábrica | — | El entrevistador no la mira. Un pedido por comprador: los invitados y visitantes que compran su copia tienen su propia `familia` y su propio pedido sobre el mismo `narrador_id`. |
 | `envios` | entrevistador | — | Log de salientes; idempotencia del scheduler. |
-| `narraciones` | fábrica (crea la fila) / worker de voz (`estado`, `motor`, `muestras`, `capitulos_paths`, `error`, `tomada_at`) | fábrica | Nueva 16/09. Buzón con el worker de voz (PC de Naza); ver "Narraciones (voz clonada)". |
+| `narraciones` | fábrica (crea la fila; y `estado = 'reemplazada'` cuando pide la voz de nuevo — migración 20260920) / worker de voz (`estado`, `motor`, `muestras`, `capitulos_paths`, `error`, `tomada_at`) | fábrica | Nueva 16/09. Buzón con el worker de voz (PC de Naza); ver "Narraciones (voz clonada)". |
 
 ## Transiciones de estado de `narradores.estado`
 
@@ -80,7 +80,7 @@ sí lee `audiolibro`: `"clonada"` pasa por el buzón `narraciones` (sección sig
 pedido espera en `esperando_voz` hasta que la voz vuelve y la fábrica ensambla. ⚠️ Pendiente
 (3t.14): leer `pdf` y `"narrador"` para producir solo lo comprado.
 
-## Narraciones (voz clonada) (migración 20260917)
+## Narraciones (voz clonada) (migraciones 20260917 y 20260920)
 
 ⚠️ **La migración `20260917000000_narraciones.sql` NO se aplica en producción hasta que
 Joaquín lea esta sección.** Toca `pedidos_estado_check` (agrega `esperando_voz`) y agrega
@@ -97,6 +97,7 @@ Quién escribe qué:
 |---|---|---|
 | `narraciones` fila nueva (`pendiente`) | fábrica | worker de voz |
 | `narraciones.estado` / `motor` / `muestras` / `capitulos_paths` / `error` / `tomada_at` | worker de voz | fábrica |
+| `narraciones.estado = 'reemplazada'` (+ `error = 'reemplazada por <id nueva>'`) | **fábrica** (`reemplazarNarracion`, migración 20260920) | — (no se narra ni se ensambla) |
 | `narradores.consentimiento_voz_at` | entrevistador (3t.15) — en el piloto, `npm run manual -- ficha <narrador> --voz-si` | worker de voz |
 | `pedidos.estado = 'esperando_voz'` / `'entregado'`, `audiolibro_paths` | fábrica | web |
 | Storage `{narrador}/voz/cap_NN.mp3` (cuerpo narrado, sin intro) | worker de voz | fábrica |
@@ -149,6 +150,20 @@ minutos de voz): cambiar `pedidos.extras.audiolibro` a `"real"` (o `"narrador"` 
 exista) y poner el pedido en `pagado`. La fábrica reusa los borradores
 (`borrador_cap_NN.md`, `borrador_libro.md`, que solo se borran al entregar) y no vuelve a
 pagarle al modelo; el libro sale con el audiolibro de sus audios.
+
+**Reemplazar una narración ya entregada (migración `20260920`, la aplica Naza en el SQL
+Editor de Supabase)**: cuando se pide la voz **de nuevo** para un pedido ya producido —el
+audiolibro clonado que se rehace híbrido, `fabrica/scripts/narracion-v2.ts`— la fábrica marca
+**`reemplazada`** la narración `lista` (o `fallida`) de ese pedido, con
+`error = 'reemplazada por <id nueva>'`, y crea la nueva `pendiente`, en ese orden
+(`reemplazarNarracion`, `fabrica/src/voz/narraciones.ts`). Es la única excepción a "`estado` lo
+escribe el worker". Solo con el pedido `entregado` o `esperando_voz`; con una narración en
+curso (`pendiente` / `procesando`) no reemplaza nada — se narraría dos veces. **La fábrica y
+el worker ignoran `reemplazada`**: no se narra, no se ensambla (`narracionesListas` solo mira
+`lista`) y no se reclama como atascada (`narracionesAtascadas` solo mira
+`pendiente`/`procesando`/`fallida`). El orden importa: marcar la vieja **antes** de que el
+pedido vuelva a `esperando_voz` es lo que evita que la fábrica ensamble esa voz vieja como si
+fuera la nueva.
 
 ## El guion por narrador (migración 20260912)
 

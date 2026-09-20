@@ -5,6 +5,8 @@ import {
   crearNarracion,
   narracionesAtascadas,
   narracionesListas,
+  puedeReemplazarNarracion,
+  reemplazarNarracion,
 } from '../src/voz/narraciones.js';
 
 // --- fake de admin ----------------------------------------------------------
@@ -179,5 +181,157 @@ describe('narracionesAtascadas', () => {
     expect(atascadas).toEqual([{ id: 'a', narrador_id: 'n1', motivo: 'pendiente_24h', error: null }]);
     expect(paso(fake.llamadas[0], 'in')).toEqual(['estado', ['pendiente', 'procesando', 'fallida']]);
     expect(paso(fake.llamadas[0], 'select')).toEqual(['id, narrador_id, estado, created_at, actualizada_at, error']);
+  });
+});
+
+// --- Reemplazo de una narración (una que ya se entregó) ----------------------
+
+describe('puedeReemplazarNarracion', () => {
+  it('solo con el pedido entregado o esperando_voz: en el resto de los estados la narración que hay es la que corresponde', () => {
+    expect(puedeReemplazarNarracion({ estado: 'entregado' })).toBe(true);
+    expect(puedeReemplazarNarracion({ estado: 'esperando_voz' })).toBe(true);
+    expect(puedeReemplazarNarracion({ estado: 'pagado' })).toBe(false);
+    expect(puedeReemplazarNarracion({ estado: 'generando' })).toBe(false);
+    expect(puedeReemplazarNarracion({ estado: 'pendiente' })).toBe(false);
+    expect(puedeReemplazarNarracion({ estado: 'fallido' })).toBe(false);
+  });
+});
+
+describe('reemplazarNarracion', () => {
+  const pedidoEntregado = { data: { id: 'p1', narrador_id: 'n1', estado: 'entregado' }, error: null };
+
+  it('marca reemplazada la lista del pedido entregado (con el id nuevo anotado en error) y crea la pendiente, en ese orden', async () => {
+    const fake = construirDbFake({
+      pedidos: [pedidoEntregado],
+      narraciones: [
+        { data: [{ id: 'narr-vieja', estado: 'lista' }], error: null }, // las filas del pedido
+        { data: [{ id: 'narr-vieja' }], error: null }, // el update a reemplazada
+        { data: null, error: null }, // el insert de la nueva
+      ],
+    });
+
+    const id = await reemplazarNarracion(db(fake), 'p1');
+
+    expect(id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
+    expect(fake.llamadas.map((l) => l.tabla)).toEqual(['pedidos', 'narraciones', 'narraciones', 'narraciones']);
+    // el pedido se lee por id (estado y narrador) y las filas por pedido.
+    expect(paso(fake.llamadas[0], 'eq')).toEqual(['id', 'p1']);
+    expect(paso(fake.llamadas[1], 'eq')).toEqual(['pedido_id', 'p1']);
+    // la vieja queda reemplazada, y con de dónde salió el reemplazo.
+    const update = paso(fake.llamadas[2], 'update')![0] as Record<string, unknown>;
+    expect(update.estado).toBe('reemplazada');
+    expect(update.error).toBe(`reemplazada por ${id}`);
+    expect(paso(fake.llamadas[2], 'eq')).toEqual(['pedido_id', 'p1']);
+    expect(paso(fake.llamadas[2], 'in')).toEqual(['id', ['narr-vieja']]);
+    // y la nueva va pendiente, con el id que quedó anotado arriba.
+    expect(paso(fake.llamadas[3], 'insert')).toEqual([
+      { id, narrador_id: 'n1', pedido_id: 'p1', estado: 'pendiente' },
+    ]);
+  });
+
+  it('una fallida también se reemplaza (si se pide la voz de nuevo, la vieja ya no sirve)', async () => {
+    const fake = construirDbFake({
+      pedidos: [{ data: { id: 'p1', narrador_id: 'n1', estado: 'esperando_voz' }, error: null }],
+      narraciones: [
+        { data: [{ id: 'narr-fallada', estado: 'fallida' }], error: null },
+        { data: [{ id: 'narr-fallada' }], error: null },
+        { data: null, error: null },
+      ],
+    });
+
+    const id = await reemplazarNarracion(db(fake), 'p1');
+
+    expect(paso(fake.llamadas[2], 'in')).toEqual(['id', ['narr-fallada']]);
+    expect(paso(fake.llamadas[3], 'insert')![0]).toMatchObject({ id, estado: 'pendiente' });
+  });
+
+  it('sin ninguna lista ni fallida solo crea la pendiente (no hay nada que marcar)', async () => {
+    const fake = construirDbFake({
+      pedidos: [pedidoEntregado],
+      narraciones: [
+        { data: [], error: null },
+        { data: null, error: null },
+      ],
+    });
+
+    const id = await reemplazarNarracion(db(fake), 'p1');
+
+    expect(fake.llamadas.map((l) => l.tabla)).toEqual(['pedidos', 'narraciones', 'narraciones']);
+    expect(paso(fake.llamadas[2], 'insert')![0]).toMatchObject({ id, narrador_id: 'n1', pedido_id: 'p1' });
+  });
+
+  it('con una narración en curso (pendiente o procesando) no reemplaza nada: se narraría dos veces', async () => {
+    const fake = construirDbFake({
+      pedidos: [{ data: { id: 'p1', narrador_id: 'n1', estado: 'esperando_voz' }, error: null }],
+      narraciones: [{ data: [{ id: 'narr-curso', estado: 'procesando' }], error: null }],
+    });
+
+    await expect(reemplazarNarracion(db(fake), 'p1')).rejects.toThrow(
+      /ya tiene una narración en curso \(narr-curso 'procesando'\)/
+    );
+
+    expect(fake.llamadas.map((l) => l.tabla)).toEqual(['pedidos', 'narraciones']);
+  });
+
+  it('si el pedido no está entregado ni esperando_voz, no toca nada', async () => {
+    const fake = construirDbFake({
+      pedidos: [{ data: { id: 'p1', narrador_id: 'n1', estado: 'pagado' }, error: null }],
+    });
+
+    await expect(reemplazarNarracion(db(fake), 'p1')).rejects.toThrow(/El pedido p1 está 'pagado'/);
+
+    expect(fake.llamadas.map((l) => l.tabla)).toEqual(['pedidos']);
+  });
+
+  it('si el pedido no existe (o la base falla al leerlo), tira con el mensaje', async () => {
+    const fake = construirDbFake({ pedidos: [{ data: null, error: { message: 'sin filas' } }] });
+
+    await expect(reemplazarNarracion(db(fake), 'p1')).rejects.toThrow(/No se pudo leer el pedido p1: sin filas/);
+  });
+
+  it('si el update falla, tira y no inserta la nueva', async () => {
+    const fake = construirDbFake({
+      pedidos: [pedidoEntregado],
+      narraciones: [
+        { data: [{ id: 'narr-vieja', estado: 'lista' }], error: null },
+        { data: null, error: { message: 'se cayó' } },
+      ],
+    });
+
+    await expect(reemplazarNarracion(db(fake), 'p1')).rejects.toThrow(/No se pudieron marcar reemplazadas/);
+    expect(fake.llamadas).toHaveLength(3);
+  });
+
+  it('si el insert falla, tira (la vieja ya quedó reemplazada: nadie la va a ensamblar)', async () => {
+    const fake = construirDbFake({
+      pedidos: [pedidoEntregado],
+      narraciones: [
+        { data: [{ id: 'narr-vieja', estado: 'lista' }], error: null },
+        { data: [{ id: 'narr-vieja' }], error: null },
+        { data: null, error: { message: 'se cayó' } },
+      ],
+    });
+
+    await expect(reemplazarNarracion(db(fake), 'p1')).rejects.toThrow(/No se pudo crear la narración nueva/);
+  });
+});
+
+describe('reemplazada no se narra ni se ensambla ni se reclama', () => {
+  it('narracionesListas solo pide las lista: una reemplazada no vuelve a ensamblarse', async () => {
+    const fake = construirDbFake({ narraciones: [{ data: [], error: null }] });
+
+    await narracionesListas(db(fake));
+
+    expect(paso(fake.llamadas[0], 'eq')).toEqual(['estado', 'lista']);
+  });
+
+  it('una reemplazada no es una atascada (ni siquiera si es vieja o no se tomó nunca)', () => {
+    const ahora = new Date('2026-09-16T12:00:00Z');
+    const hace = (horas: number) => new Date(ahora.getTime() - horas * 3_600_000).toISOString();
+    const filas = [
+      { id: 'r', narrador_id: 'n1', estado: 'reemplazada', created_at: hace(30), tomada_at: null, actualizada_at: hace(30), error: 'reemplazada por x' },
+    ];
+
+    expect(clasificarAtascadas(filas, ahora)).toEqual([]);
   });
 });

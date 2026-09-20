@@ -4,7 +4,14 @@
 // (`pendiente`); el worker escribe estado/motor/muestras/capitulos_paths/
 // error/tomada_at/actualizada_at. Lo que lee la fábrica después (listas,
 // atascadas) también vive acá.
+//
+// Única excepción a "el estado lo escribe el worker": `reemplazarNarracion`
+// marca `reemplazada` la narración de un pedido ya entregado cuando se pide la
+// voz de nuevo (el `narracion.json` v2 de un libro ya producido —
+// `scripts/narracion-v2.ts`). Una `reemplazada` no se narra, no se ensambla ni
+// se reclama: el pedido tiene que volver a `esperando_voz` con la fila nueva.
 
+import { randomUUID } from 'node:crypto';
 import type { obtenerClienteDb } from '../db.js';
 
 type Db = ReturnType<typeof obtenerClienteDb>;
@@ -52,6 +59,88 @@ export async function crearNarracion(db: Db, args: { narradorId: string; pedidoI
     throw new Error(`No se pudo crear la narración del pedido ${args.pedidoId}: ${errorInsert?.message ?? 'sin datos'}`);
   }
   return (creada as { id: string }).id;
+}
+
+/** Una narración en curso: la tiene el worker o está en cola. No se reemplaza —
+ *  reemplazarla la narraría dos veces. */
+const ESTADOS_EN_CURSO = ['pendiente', 'procesando'];
+/** Lo que sí se reemplaza: una voz ya narrada (el pedido se entregó con ella) o
+ *  una que falló (y si se está pidiendo de nuevo, no se va a reintentar). */
+const ESTADOS_REEMPLAZABLES = ['lista', 'fallida'];
+
+/**
+ * ¿Se puede volver a pedir la voz de este pedido? Solo con el pedido
+ * `entregado` (ya se produjo: el caso del audiolibro clonado que se rehace
+ * híbrido) o `esperando_voz` (se está produciendo). En el resto de los estados
+ * no hay una narración vieja que reemplazar: lo que corresponde es la que hay.
+ */
+export function puedeReemplazarNarracion(pedido: { estado: string }): boolean {
+  return pedido.estado === 'entregado' || pedido.estado === 'esperando_voz';
+}
+
+/**
+ * Pide la voz de nuevo para un pedido que YA se produjo: marca `reemplazada` la
+ * narración vieja (`lista` o `fallida`, con `error = 'reemplazada por <id
+ * nueva>'`) y crea la nueva `pendiente` para el worker, en ese orden. Devuelve
+ * el id de la nueva.
+ *
+ * El orden importa: primero se saca de circulación la vieja (si no, con el
+ * pedido de vuelta en `esperando_voz` la fábrica ensamblaría ESA voz como si
+ * fuera la nueva — `narracionesListas`) y después se encola la nueva. El id se
+ * genera acá para poder dejarlo anotado en la vieja antes de insertarla.
+ *
+ * No reemplaza nada con una narración en curso: eso se narraría dos veces.
+ */
+export async function reemplazarNarracion(db: Db, pedidoId: string): Promise<string> {
+  const { data: pedidoData, error: errorPedido } = await db
+    .from('pedidos')
+    .select('id, narrador_id, estado')
+    .eq('id', pedidoId)
+    .single();
+  if (errorPedido || !pedidoData) {
+    throw new Error(`No se pudo leer el pedido ${pedidoId}: ${errorPedido?.message ?? 'sin datos'}`);
+  }
+  const pedido = pedidoData as { id: string; narrador_id: string; estado: string };
+  if (!puedeReemplazarNarracion(pedido)) {
+    throw new Error(
+      `El pedido ${pedidoId} está '${pedido.estado}': una narración se reemplaza solo con el pedido entregado o esperando_voz (en el resto de los estados, la narración que hay es la que corresponde).`
+    );
+  }
+
+  const { data: filas, error: errorFilas } = await db.from('narraciones').select('id, estado').eq('pedido_id', pedidoId);
+  if (errorFilas) throw new Error(`No se pudieron leer las narraciones del pedido ${pedidoId}: ${errorFilas.message}`);
+  const narraciones = (filas ?? []) as { id: string; estado: string }[];
+
+  const enCurso = narraciones.filter((f) => ESTADOS_EN_CURSO.includes(f.estado));
+  if (enCurso.length > 0) {
+    const detalle = enCurso.map((f) => `${f.id} '${f.estado}'`).join(', ');
+    throw new Error(
+      `El pedido ${pedidoId} ya tiene una narración en curso (${detalle}): no se reemplaza nada (se narraría dos veces).`
+    );
+  }
+
+  // El id nuevo antes del update: la vieja tiene que poder decir por cuál se
+  // reemplazó.
+  const narracionNueva = randomUUID();
+  const viejas = narraciones.filter((f) => ESTADOS_REEMPLAZABLES.includes(f.estado)).map((f) => f.id);
+  if (viejas.length > 0) {
+    const { error: errorUpdate } = await db
+      .from('narraciones')
+      .update({ estado: 'reemplazada', error: `reemplazada por ${narracionNueva}`, actualizada_at: new Date().toISOString() })
+      .eq('pedido_id', pedidoId)
+      .in('id', viejas);
+    if (errorUpdate) {
+      throw new Error(`No se pudieron marcar reemplazadas las narraciones del pedido ${pedidoId}: ${errorUpdate.message}`);
+    }
+  }
+
+  const { error: errorInsert } = await db
+    .from('narraciones')
+    .insert({ id: narracionNueva, narrador_id: pedido.narrador_id, pedido_id: pedidoId, estado: 'pendiente' });
+  if (errorInsert) {
+    throw new Error(`No se pudo crear la narración nueva del pedido ${pedidoId}: ${errorInsert.message}`);
+  }
+  return narracionNueva;
 }
 
 export type NarracionLista = { id: string; narrador_id: string; pedido_id: string; capitulos_paths: string[] };
