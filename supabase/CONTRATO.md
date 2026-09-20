@@ -190,6 +190,11 @@ sin migración; el lugar definitivo es una columna `texto` en `envios`):
 - `repreguntasEnviadas[orden]` — el texto de la repregunta del mismo día.
 - `resumenesCapitulos[capítulo]` — la memoria interna del biógrafo. **No la usa la
   web ni la fábrica**: es para personalizar la pregunta del día.
+- `resumenesHasta[capítulo]` (20/09) — hasta qué `orden` entró en el resumen de ese
+  capítulo. Es lo que hace que "lo último manda" (hallazgo 16): si el narrador contó
+  algo más de un capítulo ya resumido, la memoria rehace ese resumen con todo el
+  material, así una corrección posterior pisa el dato viejo. Un resumen guardado sin
+  `resumenesHasta` (los de antes del cambio) se rehace una vez y queda al día.
 
 El panel de la web muestra las dos primeras ("Se lo preguntamos así: …" / "Le
 repreguntamos: …"). Sin ellas la familia veía la respuesta de la repregunta sin la

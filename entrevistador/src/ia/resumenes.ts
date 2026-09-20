@@ -22,7 +22,11 @@
  *
  * Se generan PEREZOSOS: cuando la personalización de una pregunta necesita
  * memoria, se resume lo que haga falta y queda guardado. Un capítulo se resume
- * una sola vez en toda la entrevista (8 en total).
+ * una sola vez… salvo que el narrador cuente ALGO MÁS de ese capítulo después
+ * (una corrección, una ampliación, una adaptativa que cayó ahí): ahí se rehace,
+ * porque el resumen viejo puede estar afirmando algo que él ya corrigió. Para eso
+ * se guarda `contexto.resumenesHasta[capítulo]`, el `orden` hasta el que entró
+ * cada resumen (hallazgo 16, "lo último manda").
  */
 import Anthropic from '@anthropic-ai/sdk';
 import { cargarConfig } from '../config.js';
@@ -79,9 +83,13 @@ export const PROMPT_RESUMEN = (comoLeDicen: string, capitulo: string, material: 
 
 ${material}
 
-Escribí el resumen de este capítulo para que su biógrafo lo recuerde mientras sigue entrevistándolo. Le tiene que servir para dos cosas: no volver a preguntar lo que ya contó, y saber qué quedó pendiente.
+Escribí el resumen de este capítulo para que su biógrafo lo recuerde mientras sigue entrevistándolo. Le tiene que servir para tres cosas: no volver a preguntar lo que ya contó, saber qué quedó pendiente, y saber con qué tono hablar de esta parte de su vida.
 
 Guardá los hechos importantes, los nombres propios TAL COMO APARECEN, las fechas, los lugares y las frases textuales que valen la pena recuperar. Terminá con una línea que empiece con "Pendiente:" con lo que quedó sin contar de este capítulo.
+
+LO ÚLTIMO MANDA: el material viene en orden cronológico (por número de pregunta, y dentro de cada una, primero la respuesta y después lo que amplió). Si algo de más adelante corrige o contradice algo de más atrás, quedate con lo ÚLTIMO y descartá el dato viejo: "no, a los 12 ya estábamos en otro lado" pisa lo que había dicho antes. Nunca dejes los dos datos como si los dos fueran ciertos, ni aclares que hubo una corrección: el resumen dice lo que vale hoy.
+
+Decí también CÓMO fue este capítulo, en una sola frase al final del cuerpo (antes de "Pendiente:"), empezando con "Tono:". Por ejemplo "Tono: infancia dura, padre ausente con adicciones, familia desarticulada" o "Tono: recuerdos cálidos, la casa siempre llena de gente". Es lo que le permite al biógrafo no volver a preguntar por las fiestas de una familia que se desarmó.
 
 Son para uso interno del entrevistador: no van al libro.
 - Máximo ${MAX_PALABRAS_RESUMEN} palabras (unas 900 letras). Si te pasás, estás contando cosas que no hacen falta.
@@ -112,8 +120,15 @@ async function capitulosConRespuestas(narradorId: string, orden: number): Promis
   return [...new Set(porOrden.values())];
 }
 
-/** El material de un capítulo: las respuestas textuales de sus preguntas. */
-async function materialDeCapitulo(narradorId: string, capitulo: string, orden: number): Promise<string> {
+/**
+ * El material de un capítulo (las respuestas textuales de sus preguntas) y hasta
+ * qué `orden` llegó, en una sola pasada: `ultimoOrden` es lo que permite saber si
+ * un resumen guardado quedó viejo porque el narrador contó más de ese capítulo
+ * después.
+ */
+async function materialDeCapitulo(
+  narradorId: string, capitulo: string, orden: number,
+): Promise<{ material: string; ultimoOrden: number }> {
   const { data: preguntas } = await db.from('preguntas')
     .select('orden,capitulo,narrador_id')
     .or(`narrador_id.eq.${narradorId},narrador_id.is.null`)
@@ -126,14 +141,15 @@ async function materialDeCapitulo(narradorId: string, capitulo: string, orden: n
     if (!porOrden.has(p.orden) || p.narrador_id === narradorId) porOrden.set(p.orden, p);
   }
   const ordenes = [...porOrden.keys()].sort((a, b) => a - b);
-  if (!ordenes.length) return '';
+  if (!ordenes.length) return { material: '', ultimoOrden: 0 };
 
   const { data: respuestas } = await db.from('respuestas')
     .select('pregunta_orden,transcripcion,texto_directo,es_repregunta')
     .eq('narrador_id', narradorId)
     .in('pregunta_orden', ordenes);
 
-  return ((respuestas as RespuestaFila[] | null) ?? [])
+  const filas = (respuestas as RespuestaFila[] | null) ?? [];
+  const material = filas
     .sort((a, b) => a.pregunta_orden - b.pregunta_orden || Number(a.es_repregunta) - Number(b.es_repregunta))
     .map((r) => {
       const texto = (r.transcripcion ?? r.texto_directo ?? '').trim();
@@ -146,6 +162,12 @@ async function materialDeCapitulo(narradorId: string, capitulo: string, orden: n
     })
     .filter(Boolean)
     .join('\n\n');
+
+  const conTexto = filas
+    .filter((r) => (r.transcripcion ?? r.texto_directo ?? '').trim() !== '')
+    .map((r) => r.pregunta_orden);
+
+  return { material, ultimoOrden: conTexto.length ? Math.max(...conTexto) : 0 };
 }
 
 let _cliente: Anthropic | null = null;
@@ -161,7 +183,17 @@ const cliente = () => (_cliente ??= new Anthropic({ apiKey: cargarConfig().anthr
 export async function memoriaDeCapitulos(
   n: NarradorConMemoria, orden: number, opciones: { regenerar?: boolean } = {},
 ): Promise<string> {
-  const guardados: Record<string, string> = opciones.regenerar ? {} : { ...(n.contexto?.resumenesCapitulos ?? {}) };
+  const regenerar = opciones.regenerar ?? false;
+  const guardados: Record<string, string> = regenerar ? {} : { ...(n.contexto?.resumenesCapitulos ?? {}) };
+  /**
+   * Hasta qué `orden` entró en el resumen de cada capítulo. Es lo que hace que
+   * "lo último manda" (bitácora 16): si el narrador contó algo más de un capítulo
+   * ya resumido —una corrección, una ampliación, una pregunta adaptativa que cayó
+   * ahí—, el resumen viejo puede estar afirmando algo que él ya corrigió, así que
+   * se rehace con todo el material. Los resúmenes que existen y no tienen su
+   * `hasta` (los de antes de este cambio) se rehacen UNA vez y quedan al día.
+   */
+  const hasta: Record<string, number> = regenerar ? {} : { ...(n.contexto?.resumenesHasta ?? {}) };
   const nuevos: Record<string, string> = {};
 
   try {
@@ -169,9 +201,12 @@ export async function memoriaDeCapitulos(
     const capitulos = (await capitulosConRespuestas(n.id, orden)).filter((c) => c !== capituloActual);
 
     for (const capitulo of capitulos) {
-      if (guardados[capitulo]) continue;
-      const material = await materialDeCapitulo(n.id, capitulo, orden);
+      const { material, ultimoOrden } = await materialDeCapitulo(n.id, capitulo, orden);
       if (!material) continue;
+
+      const yaResumido = guardados[capitulo];
+      const alDia = Boolean(yaResumido) && typeof hasta[capitulo] === 'number' && hasta[capitulo] >= ultimoOrden;
+      if (alDia) continue;
 
       const respuesta = await cliente().messages.create({
         model: MODELO, max_tokens: MAX_TOKENS,
@@ -179,16 +214,20 @@ export async function memoriaDeCapitulos(
       });
       const bloque = respuesta.content.find((b) => b.type === 'text');
       const texto = bloque && bloque.type === 'text' ? limpiarResumen(bloque.text) : '';
+      // Si el modelo falla, queda el resumen viejo (y no se marca `hasta`: se
+      // reintenta la próxima vez). La memoria es una mejora, no una puerta.
       if (!texto) continue;
 
       guardados[capitulo] = texto;
       nuevos[capitulo] = texto;
+      hasta[capitulo] = ultimoOrden;
+      if (yaResumido) console.log(`resumenes: rehice el resumen de «${capitulo}» de ${n.id}: contó más después (hasta ${ultimoOrden}).`);
     }
 
     if (Object.keys(nuevos).length) {
       // Se guardan juntos y en el propio objeto: así el que escriba después
       // (la pregunta enviada) no los pisa.
-      n.contexto = { ...n.contexto, resumenesCapitulos: guardados };
+      n.contexto = { ...n.contexto, resumenesCapitulos: guardados, resumenesHasta: hasta };
       const { error } = await db.from('narradores').update({ contexto: n.contexto }).eq('id', n.id);
       if (error) console.error(`resumenes: no pude guardar los resúmenes de ${n.id}:`, error.message);
     }

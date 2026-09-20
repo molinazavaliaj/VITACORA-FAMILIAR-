@@ -72,8 +72,20 @@ export async function descargarAudio(db: ReturnType<typeof obtenerClienteDb>, ru
 
 /** Sube una pieza del audiolibro al bucket `audios` (upsert: un reintento pisa la anterior). */
 export async function subirMp3(db: ReturnType<typeof obtenerClienteDb>, ruta: string, buffer: Buffer): Promise<void> {
+  if (!entraEnStorage(buffer.length)) {
+    throw new Error(
+      `No entra en Storage: ${ruta} pesa ${enMb(buffer.length)} y el tope por archivo es ${enMb(LIMITE_BYTES_ARCHIVO_STORAGE)}.`
+    );
+  }
   const { error } = await db.storage.from('audios').upload(ruta, buffer, { contentType: 'audio/mpeg', upsert: true });
-  if (error) throw new Error(`No se pudo subir ${ruta}: ${error.message}`);
+  if (error) {
+    if (esErrorDeTamano(error.message)) {
+      throw new Error(
+        `No entra en Storage: ${ruta} pesa ${enMb(buffer.length)} y el tope por archivo es ${enMb(LIMITE_BYTES_ARCHIVO_STORAGE)} (${error.message}).`
+      );
+    }
+    throw new Error(`No se pudo subir ${ruta}: ${error.message}`);
+  }
 }
 
 /**
@@ -83,6 +95,19 @@ export async function subirMp3(db: ReturnType<typeof obtenerClienteDb>, ruta: st
  * capítulos entran siempre (el más largo anda por 15 MB).
  */
 export const LIMITE_BYTES_ARCHIVO_STORAGE = 50 * 1024 * 1024;
+
+/** Para los mensajes: "66.3 MB" se lee mejor que 69511577. */
+export const enMb = (bytes: number) => `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+
+/** ¿Entra en Storage? Un solo lugar para el tope: lo miran todas las subidas. */
+export function entraEnStorage(bytes: number): boolean {
+  return bytes <= LIMITE_BYTES_ARCHIVO_STORAGE;
+}
+
+/** ¿Es el error de Storage que dice que el archivo no entra? */
+export function esErrorDeTamano(mensaje: string): boolean {
+  return /exceeded the maximum allowed size|payload too large/i.test(mensaje);
+}
 
 /**
  * El mp3 completo es un extra (el panel reproduce por capítulos, y muestra
@@ -95,8 +120,7 @@ export async function subirCompletoSiEntra(
   ruta: string,
   buffer: Buffer
 ): Promise<string | null> {
-  const enMb = (bytes: number) => `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  if (buffer.length > LIMITE_BYTES_ARCHIVO_STORAGE) {
+  if (!entraEnStorage(buffer.length)) {
     console.warn(
       `${ruta}: el audiolibro completo pesa ${enMb(buffer.length)} y el tope por archivo es ${enMb(LIMITE_BYTES_ARCHIVO_STORAGE)}; se entrega solo por capítulos.`
     );
@@ -104,7 +128,7 @@ export async function subirCompletoSiEntra(
   }
   const { error } = await db.storage.from('audios').upload(ruta, buffer, { contentType: 'audio/mpeg', upsert: true });
   if (error) {
-    if (/exceeded the maximum allowed size/i.test(error.message)) {
+    if (esErrorDeTamano(error.message)) {
       console.warn(`${ruta}: Storage rechazó el completo (${error.message}); se entrega solo por capítulos.`);
       return null;
     }
