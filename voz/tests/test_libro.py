@@ -102,3 +102,71 @@ def test_texto_a_narrar_pone_el_anuncio_como_parrafo_aparte_y_el_partidor_lo_dej
         ("Las raíces.", "historia"),
         ("Bueno, si hablo de mis raíces tengo que arrancar por mis abuelos.", "parrafo"),
     ]
+
+
+# --- narracion.json v2: el híbrido (directiva 04) ---
+
+import json  # noqa: E402
+
+import pytest  # noqa: E402
+
+from voz.libro import Conectores, Historia, textos_de_conectores  # noqa: E402
+
+
+def _v2(**cambios):
+    cap = {
+        "numero": 1, "nombre": "Las raíces", "texto": "texto escrito", "modo": "hibrido",
+        "historias": [
+            {"respuesta_id": "a", "pregunta_orden": 5, "es_repregunta": False, "audio_path": "n/dia_05.ogg", "segundos": 266, "pregunta": "¿Abuelos?", "texto": "t1"},
+            {"respuesta_id": "b", "pregunta_orden": 5, "es_repregunta": True, "audio_path": "n/dia_05_2.ogg", "segundos": 78, "pregunta": "¿Y?", "texto": "t2"},
+            {"respuesta_id": "c", "pregunta_orden": 6, "es_repregunta": False, "audio_path": "n/dia_06.ogg", "segundos": 116, "pregunta": "¿Hermanos?", "texto": "t3"},
+        ],
+        "conectores": {"entrada": "Cuando me preguntaron por mis abuelos…", "entre": ["Eso me lo contó mi tía.", "Después vienen mis hermanos."], "salida": "Esa es mi herencia."},
+    }
+    cap.update(cambios)
+    return json.dumps({"version": 2, "narrador_id": "n", "capitulos": [cap, {"numero": 2, "nombre": "La familia", "texto": "plano", "modo": "clonado"}]})
+
+
+def test_v2_hibrido_se_lee_con_historias_y_conectores():
+    caps = capitulos_de_narracion(_v2())
+    assert [c.modo for c in caps] == ["hibrido", "clonado"]
+    h = caps[0]
+    assert [x.audio_path for x in h.historias] == ["n/dia_05.ogg", "n/dia_05_2.ogg", "n/dia_06.ogg"]
+    assert h.historias[1] == Historia("b", 5, True, "n/dia_05_2.ogg", 78, "¿Y?", "t2")
+    assert h.conectores == Conectores("Cuando me preguntaron por mis abuelos…", ("Eso me lo contó mi tía.", "Después vienen mis hermanos."), "Esa es mi herencia.")
+    assert caps[1].historias == () and caps[1].conectores == Conectores()
+
+
+def test_v1_o_sin_version_es_todo_clonado_y_exige_texto():
+    caps = capitulos_de_narracion(json.dumps({"capitulos": [{"numero": 1, "nombre": "A", "texto": "hola", "modo": "hibrido"}]}))
+    assert caps[0].modo == "clonado"  # sin version: el "modo" se ignora
+    with pytest.raises(ValueError, match="sin texto"):
+        capitulos_de_narracion(json.dumps({"capitulos": [{"numero": 1, "nombre": "A", "texto": ""}]}))
+
+
+def test_v2_valida_el_contrato_del_hibrido():
+    with pytest.raises(ValueError, match="al menos una"):
+        capitulos_de_narracion(_v2(historias=[]))
+    with pytest.raises(ValueError, match="audio_path"):
+        capitulos_de_narracion(_v2(historias=[{"respuesta_id": "a", "pregunta_orden": 1, "audio_path": ""}]))
+    with pytest.raises(ValueError, match="puentes"):
+        capitulos_de_narracion(_v2(conectores={"entrada": "", "entre": ["uno"], "salida": ""}))
+    with pytest.raises(ValueError, match="vacío"):
+        capitulos_de_narracion(_v2(conectores={"entrada": "", "entre": ["uno", ""], "salida": ""}))
+    with pytest.raises(ValueError, match="modo desconocido"):
+        capitulos_de_narracion(_v2(modo="raro"))
+    # un híbrido puede venir sin texto escrito: no se narra
+    assert capitulos_de_narracion(_v2(texto=""))[0].modo == "hibrido"
+
+
+def test_textos_de_conectores_en_orden_con_anuncio_y_sin_los_vacios():
+    cap = capitulos_de_narracion(_v2())[0]
+    textos = textos_de_conectores(cap)
+    assert [n for n, _ in textos] == ["c0_anuncio_entrada", "c1_entre", "c2_entre", "c3_salida"]
+    assert textos[0][1] == "Capítulo uno. Las raíces.\n\n* * *\n\nCuando me preguntaron por mis abuelos…\n"
+    assert textos[1][1] == "Eso me lo contó mi tía.\n"
+    # sin entrada ni salida: solo el anuncio y los puentes
+    cap = capitulos_de_narracion(_v2(conectores={"entrada": "", "entre": ["uno", "dos"], "salida": ""}))[0]
+    textos = textos_de_conectores(cap)
+    assert [n for n, _ in textos] == ["c0_anuncio_entrada", "c1_entre", "c2_entre"]
+    assert textos[0][1] == "Capítulo uno. Las raíces.\n"

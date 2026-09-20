@@ -44,8 +44,8 @@ antes variaba hasta 5 dB entre frases). Pendiente de escuchar: subir el corte de
 | `voz/preparar_muestras.py` | Paso 1: baja los audios de Supabase y deja `referencia.wav`, `referencia.txt`, `texto.txt`, `limpias/`. |
 | `voz/prueba_oido.py` | Paso 2: corre cada motor en su venv y deja `A.mp3 … D.mp3` + `clave.txt`. |
 | `voz/buzon.py` | El buzón `narraciones`: tomar la pendiente más vieja, liberar colgadas, marcar cómo fue. |
-| `voz/libro.py` | Leer `narracion.json` (los capítulos numerados 1..N). Puro. |
-| `voz/narrar.py` | Preparar la voz del narrador y narrar capítulo por capítulo con checkpoint en la fila. |
+| `voz/libro.py` | Leer `narracion.json` v1 y v2 (capítulos 1..N; en híbrido `historias` + `conectores`, validados), el anuncio del capítulo y los textos de los conectores. Puro. |
+| `voz/narrar.py` | Preparar la voz del narrador y narrar capítulo por capítulo (clonado o híbrido) con checkpoint en la fila y master.json al lado. |
 | `voz/worker.py` | El bucle: `python -m voz.worker` sondea el buzón y narra de a una. Log en `logs/worker.log`. |
 | `voz/reintentar.py` | `python -m voz.reintentar <id>`: vuelve una narración fallida a pendiente. |
 | `motores/<motor>/generar.py` | Un motor por carpeta, con su propio `requirements.txt` y su propio venv. Todos con el mismo contrato. |
@@ -92,11 +92,12 @@ ancho de banda 8,4-9,5 → 10,7-12,1 kHz, 41 s menos de capítulo por arranques 
 silencios. Los conectores se igualan a los originales ya restaurados.
 
 **Masterizar** (`voz/masterizar.py`) corre en el worker sobre cada capítulo antes
-del mp3, igual para clonado, real e híbrido: cada pieza se limpia (pasa-altos
-80 Hz, afftdn suave, silencios de las puntas), se iguala por bandas de octava al
-sonido **real** del narrador (las muestras limpias; en un híbrido, las piezas
-reales — nunca el promedio con los conectores, que arrastraría la voz real hacia
-lo sintético), se nivela, se pega con la pausa `historia`, se limita a −3,5 dB y
+del mp3, para los dos modos que el worker narra — clonado e híbrido: cada pieza
+se limpia (pasa-altos 80 Hz, afftdn suave si no viene restaurada, silencios de
+las puntas), se iguala por bandas de octava al sonido **real** del narrador (las
+muestras limpias YA restauradas en el clonado; en un híbrido, las historias
+restauradas — nunca el promedio con los conectores, que arrastraría la voz real
+hacia lo sintético), se nivela, se pega con la pausa `historia`, se limita a −3,5 dB y
 se normaliza con `loudnorm` en dos pasadas a −19 LUFS / TP −1,5 / LRA 7 (queda en
 modo lineal: solo ganancia, sin compresión). `master.json` va al lado de los mp3
 (`{narrador}/voz/master.json`) con nivel, pico y ruido de cada pieza antes y
@@ -159,6 +160,46 @@ La primera vez baja los pesos de cada modelo a `D:\vitacora-modelos` (varios GB,
 tarda). Deja en `C:\vitacora-voz\prueba\`: `A.mp3`, `B.mp3`, `C.mp3`, `D.mp3` y
 `clave.txt`. **Escuchen A-D con Joaquín y elijan sin abrir `clave.txt`.** Los
 logs de cada motor quedan en `prueba\crudo\<motor>.log`.
+
+## El híbrido en el worker (directiva 04, 20/09)
+
+**El audiolibro con voz clonada es híbrido**: las historias con la voz real del
+narrador (restaurada, con el ritmo arreglado) y la voz clonada solo en el
+anuncio del capítulo y los conectores que escribe la fábrica. El todo-clonado
+queda por capítulo, cuando no hay audio.
+
+La fábrica deja `narracion.json` **v2** en `{narrador}/paquete/`: cada capítulo
+trae `modo` (`hibrido` | `clonado`), y en híbrido `historias` (las respuestas con
+`audio_path`, en el orden del libro) y `conectores` (`entrada`, `entre[]` — uno
+por cada par de historias, nunca vacío — y `salida`; `entrada`/`salida` pueden
+faltar). Sin `version` o v1: todo clonado. `voz/libro.py` lo valida.
+
+Por capítulo híbrido el worker (`voz/narrar.py`):
+
+1. Narra con la voz clonada, referencia de siempre: el anuncio con la entrada
+   (separados por `* * *`), cada `entre[k]`, la salida. Piezas `conector`. Si
+   un conector falla, la narración queda `fallida` (quedaría un hueco).
+2. Baja cada `audio_path` del bucket. Piezas `real`: `masterizar` las
+   restaura (`RESTAURACION_NIVEL`) y les arregla el ritmo (Whisper, con caché
+   por hash del audio en `whisper/`). Si restaurar falla, la historia sigue sin
+   restaurar; si Whisper falla, sin ritmo; las dos cosas quedan anotadas en
+   `master.json` y como aviso. El capítulo no muere por eso.
+3. Secuencia: anuncio(+entrada) → historia 1 → entre[0] → historia 2 → … →
+   historia N → salida, con `PAUSAS_MS["historia"]` (1,2 s) entre piezas y las
+   pausas de puntuación dentro de los conectores.
+4. Masteriza el capítulo entero y sube `cap_NN.mp3`; el checkpoint
+   (`capitulos_paths`) va primero y `master.json` (con `modo` y, por historia,
+   restauración y ritmo) después, con reintentos: si ese upload falla se pierde
+   una medición, no un capítulo.
+
+El sonido objetivo del master, en los dos modos, son las muestras limpias del
+narrador **ya restauradas** (los primeros 60 s de cada una, en `objetivo/`).
+`RESTAURACION_NIVEL=0` apaga la restauración sin venv ni torch; `RITMO=0` apaga
+los cortes de ritmo.
+
+Medido en el cap 2 de Joaquín (20/09, motor y modelos reales): 5 conectores
+(139 s de motor) + 4 historias restauradas (≈ 4 min) + master = 517 s para
+471 s de capítulo; −18,9 LUFS / TP −3,3 / LRA 4,9, lineal.
 
 ## El worker
 

@@ -83,3 +83,36 @@ def test_restaurar_explota_claro_si_el_corredor_falla(tmp_path, monkeypatch):
     (tmp_path / "herramientas" / "restaurar" / "restaurar.py").write_text("raise SystemExit('sin GPU')\n", encoding="utf-8")
     with pytest.raises(RuntimeError, match="restaurar falló"):
         restaurar(entrada, tmp_path / "out.wav", nivel=0.5)
+
+
+def test_nivel_cero_no_toca_nada_y_no_necesita_el_venv(tmp_path, monkeypatch):
+    # Revisión 03a: RESTAURACION_NIVEL=0 tiene que apagar la restauración sin venv ni torch.
+    entrada = tmp_path / "in.wav"
+    sf.write(str(entrada), _voz(2.0, ruido=0.01, brillo=0.0), SR)
+    monkeypatch.setattr(r, "python_de_restaurar", lambda: (_ for _ in ()).throw(FileNotFoundError("no hay venv")))
+    resultado = restaurar(entrada, tmp_path / "out.wav", nivel=0.0)
+    assert (tmp_path / "out.wav").exists()
+    assert resultado["nivel"] == 0.0 and resultado["antes"] == resultado["despues"]
+    a, sr = sf.read(str(tmp_path / "out.wav"))
+    assert sr == 44100
+
+
+def test_modelos_va_como_hf_home_al_corredor(tmp_path, monkeypatch):
+    # Revisión 03f: HF_HOME sale de CARPETA_MODELOS, no de una ruta fija.
+    entrada = tmp_path / "in.wav"
+    sf.write(str(entrada), _voz(2.0, ruido=0.01, brillo=0.0), SR)
+    visto = {}
+    corredor = tmp_path / "herramientas" / "restaurar" / "restaurar.py"
+    corredor.parent.mkdir(parents=True)
+    corredor.write_text(
+        "import os, sys, soundfile as sf\n"
+        "args = dict(zip(sys.argv[1::2], sys.argv[2::2]))\n"
+        "a, sr = sf.read(args['--entrada'], dtype='float32'); sf.write(args['--salida'], a, 44100, subtype='FLOAT')\n"
+        "print('HF_HOME=' + os.environ.get('HF_HOME', ''))\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(r, "python_de_restaurar", lambda: sys.executable)
+    monkeypatch.setattr(r, "RAIZ", tmp_path)
+    registro = tmp_path / "log.txt"
+    restaurar(entrada, tmp_path / "out.wav", nivel=0.5, registro=registro, modelos=tmp_path / "modelos")
+    assert f"HF_HOME={tmp_path / 'modelos'}" in registro.read_text(encoding="utf-8")

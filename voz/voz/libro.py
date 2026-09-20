@@ -12,14 +12,44 @@ from .pausas import SEPARADOR_HISTORIA
 
 
 @dataclass(frozen=True)
+class Historia:
+    """Una respuesta con audio real, tal como la lista la fábrica (v2)."""
+
+    respuesta_id: str
+    pregunta_orden: int
+    es_repregunta: bool
+    audio_path: str
+    segundos: int
+    pregunta: str
+    texto: str
+
+
+@dataclass(frozen=True)
+class Conectores:
+    """Lo que la voz clonada dice entre historias (v2). Texto plano, primera persona."""
+
+    entrada: str = ""
+    entre: tuple[str, ...] = ()
+    salida: str = ""
+
+
+@dataclass(frozen=True)
 class Capitulo:
     numero: int
     nombre: str
     texto: str
+    modo: str = "clonado"  # "clonado" | "hibrido"
+    historias: tuple[Historia, ...] = ()
+    conectores: Conectores = Conectores()
 
 
 def capitulos_de_narracion(texto_json: str) -> list[Capitulo]:
+    """Los capítulos de `narracion.json`, v1 (solo `texto`, todo clonado) o v2
+    (directiva 04: `modo`, `historias`, `conectores`). Valida el contrato:
+    numerados 1..N, nombre, y en híbrido ≥ 1 historia con audio y un puente
+    `entre` por cada par de historias."""
     datos = json.loads(texto_json)
+    version = int(datos.get("version") or 1)
     crudos = datos.get("capitulos", [])
     capitulos = []
     for posicion, crudo in enumerate(crudos, start=1):
@@ -32,9 +62,46 @@ def capitulos_de_narracion(texto_json: str) -> list[Capitulo]:
         if not nombre.strip():
             raise ValueError(f"capítulo {numero} sin nombre")
         texto = crudo.get("texto") or ""
-        if not texto.strip():
-            raise ValueError(f"capítulo {numero} sin texto")
-        capitulos.append(Capitulo(numero=numero, nombre=nombre, texto=texto))
+        modo = (crudo.get("modo") or "clonado") if version >= 2 else "clonado"
+        if modo not in ("clonado", "hibrido"):
+            raise ValueError(f"capítulo {numero}: modo desconocido {modo!r}")
+        if modo == "clonado":
+            if not texto.strip():
+                raise ValueError(f"capítulo {numero} sin texto")
+            capitulos.append(Capitulo(numero=numero, nombre=nombre, texto=texto))
+            continue
+        historias = tuple(
+            Historia(
+                respuesta_id=str(h.get("respuesta_id") or ""),
+                pregunta_orden=int(h.get("pregunta_orden") or 0),
+                es_repregunta=bool(h.get("es_repregunta", False)),
+                audio_path=str(h.get("audio_path") or ""),
+                segundos=int(h.get("segundos") or 0),
+                pregunta=str(h.get("pregunta") or ""),
+                texto=str(h.get("texto") or ""),
+            )
+            for h in crudo.get("historias") or []
+        )
+        if not historias or any(not h.audio_path for h in historias):
+            raise ValueError(f"capítulo {numero} híbrido: toda historia necesita audio_path y tiene que haber al menos una")
+        c = crudo.get("conectores") or {}
+        entre = tuple(str(x or "") for x in (c.get("entre") or []))
+        if len(entre) != len(historias) - 1:
+            raise ValueError(
+                f"capítulo {numero} híbrido: {len(historias)} historias piden {len(historias) - 1} puentes, vienen {len(entre)}"
+            )
+        if any(not x.strip() for x in entre):
+            raise ValueError(f"capítulo {numero} híbrido: ningún puente `entre` puede venir vacío")
+        capitulos.append(
+            Capitulo(
+                numero=numero,
+                nombre=nombre,
+                texto=texto,
+                modo="hibrido",
+                historias=historias,
+                conectores=Conectores(entrada=str(c.get("entrada") or ""), entre=entre, salida=str(c.get("salida") or "")),
+            )
+        )
     return capitulos
 
 
@@ -83,3 +150,20 @@ def texto_a_narrar(capitulo: Capitulo) -> str:
     """El anuncio, el separador de historia (la pausa larga de voz/pausas.py) y
     después el texto del capítulo."""
     return f"{anuncio_de(capitulo)}\n\n{SEPARADOR_HISTORIA}\n\n{capitulo.texto.strip()}\n"
+
+
+def textos_de_conectores(capitulo: Capitulo) -> list[tuple[str, str]]:
+    """Lo que la voz clonada narra en un capítulo híbrido, en orden, como
+    (nombre, texto): el anuncio con la entrada (si hay), cada puente, la salida
+    (si hay). El anuncio y la entrada van juntos, separados por `* * *` (la
+    pausa larga). Los que vienen vacíos no se narran."""
+    c = capitulo.conectores
+    entrada = anuncio_de(capitulo)
+    if c.entrada.strip():
+        entrada += f"\n\n{SEPARADOR_HISTORIA}\n\n{c.entrada.strip()}"
+    piezas = [("c0_anuncio_entrada", entrada + "\n")]
+    for k, puente in enumerate(c.entre, start=1):
+        piezas.append((f"c{k}_entre", puente.strip() + "\n"))
+    if c.salida.strip():
+        piezas.append((f"c{len(c.entre) + 1}_salida", c.salida.strip() + "\n"))
+    return piezas
