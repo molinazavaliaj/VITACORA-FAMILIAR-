@@ -5,3 +5,4 @@ prueba/
 modelos/
 logs/
 motores/*/.venv/
+herramientas/*/.venv/

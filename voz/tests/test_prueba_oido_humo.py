@@ -25,4 +25,4 @@ def test_camino_completo_con_motor_falso(tmp_path, motor_falso):
     assert (tmp_path / "salida" / "A.mp3").stat().st_size > 1000
     assert (tmp_path / "salida" / "clave.txt").read_text(encoding="utf-8") == "A = falso\n"
     log = (tmp_path / "salida" / "crudo" / "falso.log").read_text(encoding="utf-8")
-    assert "3 frases" in log
+    assert "3 tramos" in log  # antes decia "3 frases"; desde las pausas por puntuacion son tramos

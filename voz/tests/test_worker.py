@@ -129,7 +129,7 @@ def test_camino_feliz_deja_lista_con_tres_capitulos_y_tres_mp3(tmp_path, monkeyp
     assert ultimo["capitulos_paths"] == esperadas
     assert ultimo["muestras"] == RESUMEN
     assert ultimo["motor"] == "falso"
-    assert [s[1] for s in fake.storage.subidas] == esperadas
+    assert [s[1] for s in fake.storage.subidas if s[1].endswith(".mp3")] == esperadas  # y master.json al lado
     for ruta in esperadas:
         assert len(fake.storage.archivos["audios"][ruta]) > 1000
     assert ("audios", RUTA_NARRACION_JSON("n1")) in fake.storage.descargas

@@ -88,7 +88,17 @@ def test_anuncio_es_numero_en_palabras_punto_nombre_punto():
 def test_texto_a_narrar_pone_el_anuncio_como_parrafo_aparte_y_el_partidor_lo_deja_solo():
     cap = Capitulo(2, "Las raíces", "Bueno, si hablo de mis raíces tengo que arrancar por mis abuelos.\n\nMi abuela Babu.")
     t = texto_a_narrar(cap)
-    assert t.startswith("Capítulo dos. Las raíces.\n\nBueno, si hablo")
+    # después del anuncio va el separador de historia: la pausa larga de voz/pausas.py
+    assert t.startswith("Capítulo dos. Las raíces.\n\n* * *\n\nBueno, si hablo")
     assert t.endswith("Mi abuela Babu.\n")
     # el motor lo lee como frases propias, con la pausa del pegado entre medio y antes del texto
-    assert partir_en_frases(t)[:3] == ["Capítulo dos.", "Las raíces.", "Bueno, si hablo de mis raíces tengo que arrancar por mis abuelos."]
+    assert partir_en_frases(t)[:2] == ["Capítulo dos.", "Las raíces."]
+    # y con los cierres: el anuncio cierra en "historia" (1,2 s), el separador no es un tramo
+    from voz.texto import partir_en_tramos
+
+    tramos = partir_en_tramos(t)
+    assert [(x.texto, x.cierre) for x in tramos[:3]] == [
+        ("Capítulo dos.", "punto"),
+        ("Las raíces.", "historia"),
+        ("Bueno, si hablo de mis raíces tengo que arrancar por mis abuelos.", "parrafo"),
+    ]

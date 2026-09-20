@@ -1,0 +1,6 @@
+# Restauración de voz (directiva 02): resemble-enhance (denoise + enhance a 44,1 kHz, GPU).
+# Venv propio como los motores: trae su torch y no convive con nadie.
+--extra-index-url https://download.pytorch.org/whl/cu126
+resemble-enhance
+soundfile
+numpy<2  # resemble-enhance hace float() sobre arrays de 1 elemento; numpy 2 lo prohibe
