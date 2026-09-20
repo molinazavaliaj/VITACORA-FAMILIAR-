@@ -49,6 +49,27 @@ export type NarradorConMemoria = {
   contexto: Record<string, any>;
 };
 
+/**
+ * La marca de un resumen: con qué material se escribió, para saber si quedó viejo.
+ *
+ * Los dos números importan (hallazgo 16). El orden no alcanza: una corrección o
+ * una ampliación que llega como repregunta conserva el `pregunta_orden`, así que
+ * el máximo no cambia aunque haya material nuevo. Un resumen guardado con la
+ * marca vieja (cuando esto era un número suelto) no es válido y se rehace una vez.
+ */
+export type MarcaDeResumen = { orden: number; respuestas: number };
+
+function esMarca(valor: unknown): valor is MarcaDeResumen {
+  const m = valor as MarcaDeResumen | null;
+  return typeof m === 'object' && m !== null && Number.isFinite(m.orden) && Number.isFinite(m.respuestas);
+}
+
+/** ¿El resumen sigue siendo de todo el material que hay hoy? */
+function estaAlDia(marca: unknown, actual: MarcaDeResumen): boolean {
+  if (!esMarca(marca)) return false;
+  return marca.orden >= actual.orden && marca.respuestas >= actual.respuestas;
+}
+
 type RespuestaFila = {
   pregunta_orden: number; transcripcion: string | null; texto_directo: string | null; es_repregunta: boolean;
 };
@@ -121,14 +142,18 @@ async function capitulosConRespuestas(narradorId: string, orden: number): Promis
 }
 
 /**
- * El material de un capítulo (las respuestas textuales de sus preguntas) y hasta
- * qué `orden` llegó, en una sola pasada: `ultimoOrden` es lo que permite saber si
- * un resumen guardado quedó viejo porque el narrador contó más de ese capítulo
- * después.
+ * El material de un capítulo (las respuestas textuales de sus preguntas) y con qué
+ * se mide si el resumen quedó viejo, en una sola pasada.
+ *
+ * `ultimoOrden` es el orden más alto con texto del capítulo y `respuestas` cuántas
+ * respuestas con texto tiene. Hacen falta los dos: una corrección o una ampliación
+ * que llega como REPREGUNTA conserva el mismo `pregunta_orden`, así que el número
+ * del orden no cambia aunque el material sí — con el orden solo, el resumen viejo
+ * seguiría afirmando un dato que el narrador ya corrigió (hallazgo 16).
  */
 async function materialDeCapitulo(
   narradorId: string, capitulo: string, orden: number,
-): Promise<{ material: string; ultimoOrden: number }> {
+): Promise<{ material: string; ultimoOrden: number; respuestas: number }> {
   const { data: preguntas } = await db.from('preguntas')
     .select('orden,capitulo,narrador_id')
     .or(`narrador_id.eq.${narradorId},narrador_id.is.null`)
@@ -141,7 +166,7 @@ async function materialDeCapitulo(
     if (!porOrden.has(p.orden) || p.narrador_id === narradorId) porOrden.set(p.orden, p);
   }
   const ordenes = [...porOrden.keys()].sort((a, b) => a - b);
-  if (!ordenes.length) return { material: '', ultimoOrden: 0 };
+  if (!ordenes.length) return { material: '', ultimoOrden: 0, respuestas: 0 };
 
   const { data: respuestas } = await db.from('respuestas')
     .select('pregunta_orden,transcripcion,texto_directo,es_repregunta')
@@ -163,11 +188,13 @@ async function materialDeCapitulo(
     .filter(Boolean)
     .join('\n\n');
 
-  const conTexto = filas
-    .filter((r) => (r.transcripcion ?? r.texto_directo ?? '').trim() !== '')
-    .map((r) => r.pregunta_orden);
+  const conTexto = filas.filter((r) => (r.transcripcion ?? r.texto_directo ?? '').trim() !== '');
 
-  return { material, ultimoOrden: conTexto.length ? Math.max(...conTexto) : 0 };
+  return {
+    material,
+    ultimoOrden: conTexto.length ? Math.max(...conTexto.map((r) => r.pregunta_orden)) : 0,
+    respuestas: conTexto.length,
+  };
 }
 
 let _cliente: Anthropic | null = null;
@@ -184,16 +211,11 @@ export async function memoriaDeCapitulos(
   n: NarradorConMemoria, orden: number, opciones: { regenerar?: boolean } = {},
 ): Promise<string> {
   const regenerar = opciones.regenerar ?? false;
-  const guardados: Record<string, string> = regenerar ? {} : { ...(n.contexto?.resumenesCapitulos ?? {}) };
-  /**
-   * Hasta qué `orden` entró en el resumen de cada capítulo. Es lo que hace que
-   * "lo último manda" (bitácora 16): si el narrador contó algo más de un capítulo
-   * ya resumido —una corrección, una ampliación, una pregunta adaptativa que cayó
-   * ahí—, el resumen viejo puede estar afirmando algo que él ya corrigió, así que
-   * se rehace con todo el material. Los resúmenes que existen y no tienen su
-   * `hasta` (los de antes de este cambio) se rehacen UNA vez y quedan al día.
-   */
-  const hasta: Record<string, number> = regenerar ? {} : { ...(n.contexto?.resumenesHasta ?? {}) };
+  // Los resúmenes que ya están se conservan SIEMPRE: en modo `regenerar` se
+  // rehacen, pero si el modelo falla en uno, el viejo (ya pagado) queda en su
+  // lugar en vez de borrarse de la base.
+  const guardados: Record<string, string> = { ...(n.contexto?.resumenesCapitulos ?? {}) };
+  const hasta: Record<string, MarcaDeResumen> = { ...(n.contexto?.resumenesHasta ?? {}) };
   const nuevos: Record<string, string> = {};
 
   try {
@@ -201,27 +223,37 @@ export async function memoriaDeCapitulos(
     const capitulos = (await capitulosConRespuestas(n.id, orden)).filter((c) => c !== capituloActual);
 
     for (const capitulo of capitulos) {
-      const { material, ultimoOrden } = await materialDeCapitulo(n.id, capitulo, orden);
+      const { material, ultimoOrden, respuestas } = await materialDeCapitulo(n.id, capitulo, orden);
       if (!material) continue;
 
       const yaResumido = guardados[capitulo];
-      const alDia = Boolean(yaResumido) && typeof hasta[capitulo] === 'number' && hasta[capitulo] >= ultimoOrden;
+      const marca = hasta[capitulo];
+      const alDia = Boolean(yaResumido) &&
+        estaAlDia(marca, { orden: ultimoOrden, respuestas }) &&
+        !regenerar;
       if (alDia) continue;
 
-      const respuesta = await cliente().messages.create({
-        model: MODELO, max_tokens: MAX_TOKENS,
-        messages: [{ role: 'user', content: PROMPT_RESUMEN(n.como_le_dicen, capitulo, material) }],
-      });
-      const bloque = respuesta.content.find((b) => b.type === 'text');
-      const texto = bloque && bloque.type === 'text' ? limpiarResumen(bloque.text) : '';
-      // Si el modelo falla, queda el resumen viejo (y no se marca `hasta`: se
-      // reintenta la próxima vez). La memoria es una mejora, no una puerta.
+      // Un capítulo que falla no se lleva puestos a los demás: el modelo se cae
+      // una vez y el resto de la memoria igual se arma (es una mejora, no una puerta).
+      let texto = '';
+      try {
+        const respuesta = await cliente().messages.create({
+          model: MODELO, max_tokens: MAX_TOKENS,
+          messages: [{ role: 'user', content: PROMPT_RESUMEN(n.como_le_dicen, capitulo, material) }],
+        });
+        const bloque = respuesta.content.find((b) => b.type === 'text');
+        texto = bloque && bloque.type === 'text' ? limpiarResumen(bloque.text) : '';
+      } catch (err) {
+        console.warn(`resumenes: el modelo falló con «${capitulo}» de ${n.id} (sigo con los otros capítulos):`, err);
+      }
+      // Si no hay texto, queda el resumen viejo (y no se marca la marca: se
+      // reintenta la próxima vez).
       if (!texto) continue;
 
       guardados[capitulo] = texto;
       nuevos[capitulo] = texto;
-      hasta[capitulo] = ultimoOrden;
-      if (yaResumido) console.log(`resumenes: rehice el resumen de «${capitulo}» de ${n.id}: contó más después (hasta ${ultimoOrden}).`);
+      hasta[capitulo] = { orden: ultimoOrden, respuestas };
+      if (yaResumido) console.log(`resumenes: rehice el resumen de «${capitulo}» de ${n.id}: contó más después (orden ${ultimoOrden}, ${respuestas} respuestas).`);
     }
 
     if (Object.keys(nuevos).length) {

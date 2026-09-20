@@ -154,7 +154,7 @@ describe('memoriaDeCapitulos', () => {
     const memoria = await memoriaDeCapitulos(
       narrador({
         resumenesCapitulos: { 'La infancia': 'ya resumido', 'Las raíces': 'también' },
-        resumenesHasta: { 'La infancia': 1, 'Las raíces': 5 },
+        resumenesHasta: { 'La infancia': { orden: 1, respuestas: 1 }, 'Las raíces': { orden: 5, respuestas: 1 } },
       }), 8,
     );
     expect(memoria).toContain('ya resumido');
@@ -163,10 +163,10 @@ describe('memoriaDeCapitulos', () => {
     expect(mocks.updates).toHaveLength(0);
   });
 
-  it('sólo resume lo que falta y guarda el resultado (con hasta dónde llegó)', async () => {
+  it('sólo resume lo que falta y guarda el resultado (con la marca del material)', async () => {
     mocks.crear.mockResolvedValue(texto('RESUMEN NUEVO'));
     const memoria = await memoriaDeCapitulos(
-      narrador({ resumenesCapitulos: { 'La infancia': 'viejo' }, resumenesHasta: { 'La infancia': 1 } }), 8,
+      narrador({ resumenesCapitulos: { 'La infancia': 'viejo' }, resumenesHasta: { 'La infancia': { orden: 1, respuestas: 1 } } }), 8,
     );
     expect(memoria).toContain('viejo');
     expect(memoria).toContain('RESUMEN NUEVO');
@@ -174,8 +174,8 @@ describe('memoriaDeCapitulos', () => {
     const guardado = mocks.updates[0];
     expect(guardado.p.contexto.resumenesCapitulos['La infancia']).toBe('viejo');
     expect(guardado.p.contexto.resumenesCapitulos['Las raíces']).toBe('RESUMEN NUEVO');
-    // El "hasta" es lo que después permite saber si el resumen quedó viejo.
-    expect(guardado.p.contexto.resumenesHasta['Las raíces']).toBe(5);
+    // La marca es lo que después permite saber si el resumen quedó viejo.
+    expect(guardado.p.contexto.resumenesHasta['Las raíces']).toEqual({ orden: 5, respuestas: 1 });
   });
 
   // Bitácora 16 ("lo último manda"): si el narrador corrigió algo de un capítulo
@@ -189,7 +189,7 @@ describe('memoriaDeCapitulos', () => {
     mocks.crear.mockResolvedValue(texto('RESUMEN AL DÍA'));
 
     const memoria = await memoriaDeCapitulos(
-      narrador({ resumenesCapitulos: { 'La infancia': 'viejo' }, resumenesHasta: { 'La infancia': 1 } }), 8,
+      narrador({ resumenesCapitulos: { 'La infancia': 'viejo' }, resumenesHasta: { 'La infancia': { orden: 1, respuestas: 1 } } }), 8,
     );
 
     expect(memoria).toContain('RESUMEN AL DÍA');
@@ -198,20 +198,38 @@ describe('memoriaDeCapitulos', () => {
     // Se rehace con TODO el material del capítulo (lo viejo y la corrección nueva).
     expect(enviado).toContain('La casa de Villa Domínico.');
     expect(enviado).toContain('No, a los 12 ya estábamos en otro lado.');
-    // Y queda anotado hasta dónde llegó.
-    const guardado = mocks.updates[0];
-    expect(guardado.p.contexto.resumenesHasta['La infancia']).toBe(3);
+    // Y queda anotado con qué material se escribió.
+    expect(mocks.updates[0].p.contexto.resumenesHasta['La infancia']).toEqual({ orden: 3, respuestas: 2 });
   });
 
-  it('un resumen guardado sin "hasta" (de antes de este cambio) se rehace una vez y queda al día', async () => {
+  // La corrección puede llegar como AMPLIACIÓN (repregunta) el mismo día: ahí el
+  // `pregunta_orden` no cambia, así que la marca tiene que mirar también cuántas
+  // respuestas hay. Con el orden solo, el resumen viejo quedaba para siempre.
+  it('rehace el resumen cuando lo que llegó fue una ampliación de la misma orden', async () => {
+    mocks.respuestas.push({
+      pregunta_orden: 1, narrador_id: 'n1', es_repregunta: true,
+      transcripcion: 'Y ahora que me acuerdo: no, a los 12 ya estábamos en otro lado.', texto_directo: null,
+    });
+    mocks.crear.mockResolvedValue(texto('RESUMEN AL DÍA'));
+
+    const memoria = await memoriaDeCapitulos(
+      narrador({ resumenesCapitulos: { 'La infancia': 'viejo' }, resumenesHasta: { 'La infancia': { orden: 1, respuestas: 1 } } }), 8,
+    );
+
+    expect(memoria).toContain('RESUMEN AL DÍA');
+    expect(memoria).not.toContain('viejo');
+    expect(mocks.updates[0].p.contexto.resumenesHasta['La infancia']).toEqual({ orden: 1, respuestas: 2 });
+  });
+
+  it('un resumen guardado sin marca (de antes de este cambio) se rehace una vez y queda al día', async () => {
     mocks.crear.mockResolvedValue(texto('RESUMEN AL DÍA'));
     const n = narrador({ resumenesCapitulos: { 'La infancia': 'viejo' } });
 
     await memoriaDeCapitulos(n, 8);
     expect(mocks.crear).toHaveBeenCalledTimes(2); // "La infancia" (una vez) y "Las raíces"
-    expect(mocks.updates[0].p.contexto.resumenesHasta['La infancia']).toBe(1);
+    expect(mocks.updates[0].p.contexto.resumenesHasta['La infancia']).toEqual({ orden: 1, respuestas: 1 });
 
-    // La segunda pasada ya no lo vuelve a tocar: el `hasta` quedó guardado en el
+    // La segunda pasada ya no lo vuelve a tocar: la marca quedó guardada en el
     // contexto del narrador (se muta el mismo objeto que usan los que escriben después).
     mocks.crear.mockClear();
     mocks.updates = [];
@@ -225,11 +243,30 @@ describe('memoriaDeCapitulos', () => {
     mocks.crear.mockRejectedValue(new Error('529 overloaded'));
 
     const memoria = await memoriaDeCapitulos(
-      narrador({ resumenesCapitulos: { 'La infancia': 'viejo' }, resumenesHasta: { 'La infancia': 1 } }), 8,
+      narrador({ resumenesCapitulos: { 'La infancia': 'viejo' }, resumenesHasta: { 'La infancia': { orden: 1, respuestas: 1 } } }), 8,
     );
 
     expect(memoria).toContain('viejo');
     expect(mocks.updates).toHaveLength(0);
+  });
+
+  // `regenerar: true` (la puerta manual) rehace todo, pero un capítulo que falla
+  // no puede llevarse puesto el resumen viejo ya pagado.
+  it('con regenerar:true, lo que falla conserva el resumen anterior', async () => {
+    mocks.crear
+      .mockRejectedValueOnce(new Error('529 overloaded'))
+      .mockResolvedValue(texto('RAICES NUEVO'));
+
+    await memoriaDeCapitulos(
+      narrador({
+        resumenesCapitulos: { 'La infancia': 'viejo' },
+        resumenesHasta: { 'La infancia': { orden: 1, respuestas: 1 } },
+      }), 8, { regenerar: true },
+    );
+
+    const guardado = mocks.updates[0];
+    expect(guardado.p.contexto.resumenesCapitulos['La infancia']).toBe('viejo');
+    expect(guardado.p.contexto.resumenesCapitulos['Las raíces']).toBe('RAICES NUEVO');
   });
 
   it('el prompt pide lo último y el tono del capítulo (bitácora 16 y 33)', () => {

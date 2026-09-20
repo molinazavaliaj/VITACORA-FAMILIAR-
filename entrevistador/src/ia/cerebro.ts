@@ -149,8 +149,12 @@ export type OpcionesDeReintento = { pausaMs?: number };
 export type Evaluacion = {
   suficiente: boolean;
   repregunta?: string;
-  /** El narrador pidió que esto no vaya al libro (hallazgo 19). */
-  reservado?: boolean;
+  /**
+   * El narrador pidió que esto no vaya al libro (hallazgo 19).
+   * `string` no es un capricho: el JSON del modelo no está tipado y contesta
+   * `"reservado": "true"` o `"sí"` de vez en cuando.
+   */
+  reservado?: boolean | string;
   /** Cuando el pedido es por una parte: el tramo textual que no se publica. */
   reservadoTramo?: string;
 };
@@ -158,17 +162,26 @@ export type Evaluacion = {
 /**
  * La reserva tal como se va a guardar, a partir de lo que devolvió el modelo.
  *
- * `reservadoTramo` solo vale si el tramo está TEXTUALMENTE en la transcripción:
+ * Cualquiera de las dos marcas alcanza para reservar: un `reservadoTramo` sin el
+ * booleano es un pedido igual (y una versión anterior de esta función lo perdía —
+ * justo el caso en que el modelo contesta a medias). También vale un `reservado`
+ * que vino como texto (`"true"`, `"sí"`), que es la clase de cosa que el modelo
+ * hace: acá se reserva de más, nunca de menos.
+ *
+ * `reservadoTramo` solo se usa si el tramo está TEXTUALMENTE en la transcripción:
  * si el modelo lo parafraseó o lo inventó, sacar ese texto no sacaría nada y lo
  * reservado terminaría publicado igual — el peor error posible. En ese caso se
- * reserva la respuesta entera. Ante la duda siempre se reserva de más: agregar
- * algo después es fácil, desdecir algo que la familia ya leyó, no.
+ * reserva la respuesta entera.
  */
 export function reservaDe(
   evaluacion: Pick<Evaluacion, 'reservado' | 'reservadoTramo'>, transcripcion: string,
 ): { reservada: boolean; tramo: string | null } {
-  if (evaluacion.reservado !== true) return { reservada: false, tramo: null };
+  const marcado = evaluacion.reservado;
+  const dijoQueSi =
+    marcado === true || (typeof marcado === 'string' && /^(true|si|sí|yes)$/i.test(marcado.trim()));
+
   const tramo = typeof evaluacion.reservadoTramo === 'string' ? evaluacion.reservadoTramo.trim() : '';
+  if (!dijoQueSi && !tramo) return { reservada: false, tramo: null };
   if (!tramo) return { reservada: true, tramo: null };
   if (!transcripcion.includes(tramo)) {
     console.warn('evaluar: el modelo marcó un tramo reservado que no está textual en la transcripción; se reserva la respuesta entera.');

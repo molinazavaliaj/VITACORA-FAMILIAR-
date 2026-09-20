@@ -58,6 +58,14 @@ describe('lo que el narrador pidió reservar', () => {
     expect(esPublicable({ reservada: true })).toBe(false);
   });
 
+  // El audio no se puede recortar: una reserva parcial también deja el audio afuera,
+  // y alcanza con el tramo solo (la columna se puede escribir a mano).
+  it('un tramo reservado, solo, también deja el audio afuera', () => {
+    expect(esPublicable({ reservado_tramo: 'locuras de las contables pueden ser por amor' })).toBe(false);
+    expect(esPublicable({ reservado_tramo: '   ' })).toBe(true);
+    expect(esPublicable({})).toBe(true);
+  });
+
   it('un tramo reservado se quita del texto y el resto se publica', () => {
     const texto = 'Trabajaba con las contables: locuras de las contables pueden ser por amor, y después volvía.';
     expect(textoRespuesta({
