@@ -121,7 +121,7 @@ Devolvé SOLO un JSON, sin comentarios ni texto alrededor, exactamente con esta 
  * (```json ... ```) y se queda con lo que hay entre el primer `{` y el
  * último `}`. Tira si no hay nada parseable.
  */
-function parsearJsonTolerante(texto: string): unknown {
+export function parsearJsonTolerante(texto: string): unknown {
   const sinFences = texto.replace(/```[a-zA-Z]*\s*/g, '').replace(/```/g, '');
   const inicio = sinFences.indexOf('{');
   const fin = sinFences.lastIndexOf('}');
