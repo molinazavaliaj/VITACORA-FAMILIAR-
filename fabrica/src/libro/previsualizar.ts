@@ -155,7 +155,8 @@ export async function generarPrevisualizacion(narradorId: string): Promise<void>
         primerCapitulo.nombre,
         armarMaterial(primerCapitulo.ordenes, preguntasPorOrden, respuestasPorOrden),
         historiaCompleta,
-        nombresCorregidos
+        nombresCorregidos,
+        'preview' // en costos.json se separa de los capítulos del libro pagado
       );
       await subirTexto(db, rutaBorrador, primerCapituloTexto);
     }

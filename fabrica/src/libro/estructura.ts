@@ -1,6 +1,9 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { cargarConfig } from '../config.js';
+import { registrarUso } from '../costos.js';
 import { obtenerClienteDb, type Narrador, type Pregunta, type Respuesta } from '../db.js';
+
+const MODELO = 'claude-fable-5';
 
 export type Estructura = {
   titulo: string; // "Roberto — La historia de una vida"
@@ -113,6 +116,7 @@ export function parsearJsonEntidades(texto: string): Estructura['entidades'] | n
 
 async function detectarEntidades(
   cliente: Anthropic,
+  db: ReturnType<typeof obtenerClienteDb>,
   narrador: Narrador,
   transcripciones: string[]
 ): Promise<Estructura['entidades'] | null> {
@@ -140,12 +144,13 @@ Entrevistas:
 ${transcripciones.join('\n\n---\n\n')}`;
 
   const stream = cliente.messages.stream({
-    model: 'claude-fable-5',
+    model: MODELO,
     max_tokens: 20000,
     messages: [{ role: 'user', content: prompt }],
   });
 
   const mensajeFinal = await stream.finalMessage();
+  await registrarUso(db, narrador.id, { modelo: MODELO, paso: 'estructura', usage: mensajeFinal.usage });
   const texto = extraerTexto(mensajeFinal.content as Array<{ type: string; text?: string }>);
   return parsearJsonEntidades(texto);
 }
@@ -204,7 +209,7 @@ export async function generarEstructura(narradorId: string): Promise<Estructura>
     .map((r) => r.transcripcion?.trim() || r.texto_directo)
     .filter((texto): texto is string => Boolean(texto));
 
-  const entidades = await detectarEntidades(cliente, narrador as Narrador, transcripciones);
+  const entidades = await detectarEntidades(cliente, db, narrador as Narrador, transcripciones);
 
   if (entidades === null) {
     // El modelo respondió algo que no pudimos interpretar como la lista de

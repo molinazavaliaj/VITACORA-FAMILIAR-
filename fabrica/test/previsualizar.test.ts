@@ -243,10 +243,12 @@ describe('generarPrevisualizacion', () => {
     await generarPrevisualizacion('narrador-1');
 
     // escribió SOLO el capítulo 1, con narrador + material del capítulo +
-    // historia completa (todos los órdenes) + nombres corregidos.
+    // historia completa (todos los órdenes) + nombres corregidos, y lo
+    // anota como paso "preview" (gasto de antes de la compra).
     expect(escribirCapituloMock).toHaveBeenCalledTimes(1);
-    const [narradorArg, capituloArg, materialesArg, historiaArg, nombresArg] = escribirCapituloMock.mock.calls[0];
-    expect(narradorArg).toMatchObject({ nombre: 'Roberto' });
+    const [narradorArg, capituloArg, materialesArg, historiaArg, nombresArg, pasoArg] = escribirCapituloMock.mock.calls[0];
+    expect(narradorArg).toMatchObject({ id: 'narrador-1', nombre: 'Roberto' });
+    expect(pasoArg).toBe('preview');
     expect(capituloArg).toBe('Infancia');
     expect(materialesArg).toContain('En Rosorio.');
     expect(materialesArg).not.toContain('La conocí bailando.');

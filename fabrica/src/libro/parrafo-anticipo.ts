@@ -1,6 +1,10 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { cargarConfig } from '../config.js';
+import { registrarUso } from '../costos.js';
+import { obtenerClienteDb } from '../db.js';
 import { extraerTexto } from './comun.js';
+
+const MODELO = 'claude-fable-5';
 
 // El párrafo del anticipo. No es un capítulo: son tres respuestas sueltas y
 // la familia todavía no corrigió los nombres, así que se pide poco y seguro.
@@ -29,19 +33,21 @@ Devolvé SOLO el párrafo, sin título y sin comillas.`;
  * Escribe el párrafo del anticipo que ve la familia antes de decidir la
  * compra. Una sola llamada, corta y barata: con tres respuestas el material
  * es chico y lo caro (el libro entero) recién se paga después del pago.
+ * Si `narrador` trae `id`, el costo se anota en su costos.json (paso `anticipo`).
  */
 export async function escribirParrafoAnticipo(
-  narrador: { nombre: string },
+  narrador: { nombre: string; id?: string },
   material: string
 ): Promise<string> {
   const config = cargarConfig();
   const cliente = new Anthropic({ apiKey: config.anthropicApiKey });
 
   const mensaje = await cliente.messages.create({
-    model: 'claude-fable-5',
+    model: MODELO,
     max_tokens: 1000,
     messages: [{ role: 'user', content: PROMPT_ANTICIPO(narrador.nombre, material) }],
   });
 
+  if (narrador.id) await registrarUso(obtenerClienteDb, narrador.id, { modelo: MODELO, paso: 'anticipo', usage: mensaje.usage });
   return extraerTexto(mensaje.content as Array<{ type: string; text?: string }>).trim();
 }
