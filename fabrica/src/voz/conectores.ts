@@ -1,6 +1,6 @@
 import type Anthropic from '@anthropic-ai/sdk';
 import type { Pregunta, Respuesta } from '../db.js';
-import { extraerTexto, textoRespuesta } from '../libro/comun.js';
+import { esPublicable, extraerTexto, textoRespuesta } from '../libro/comun.js';
 import type { ConectoresNarracion, HistoriaNarracion } from './narracion-json.js';
 
 // Los conectores del audiolibro híbrido: lo único que narra la voz clonada
@@ -40,7 +40,7 @@ export function historiasDelCapitulo(
     vistos.add(orden);
     const pregunta = preguntasPorOrden.get(orden);
     const conAudio = (respuestasPorOrden.get(orden) ?? [])
-      .filter((r) => Boolean(r.audio_path) && r.reservada !== true);
+      .filter((r) => Boolean(r.audio_path) && esPublicable(r));
     const ordenadas = [...conAudio].sort((a, b) => {
       if (a.es_repregunta !== b.es_repregunta) return a.es_repregunta ? 1 : -1;
       return (a.recibido_at ?? '').localeCompare(b.recibido_at ?? '');

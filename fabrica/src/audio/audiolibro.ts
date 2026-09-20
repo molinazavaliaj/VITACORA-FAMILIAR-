@@ -93,8 +93,15 @@ export async function subirMp3(db: ReturnType<typeof obtenerClienteDb>, ruta: st
  * audiolibro entero a 128 kbps pasa ese tope a partir de ~50 minutos: el de
  * Joaquín (69 min, 66 MB) tumbó el ensamblado dos veces el 18/09. Los
  * capítulos entran siempre (el más largo anda por 15 MB).
+ *
+ * El tope vive acá y lo mira TODO lo que sube (`subirMp3` y
+ * `subirCompletoSiEntra`): el chequeo suelto solo en el completo fue el que dejó
+ * la lección — el próximo archivo grande lo descubría igual de tarde. Se puede
+ * ajustar sin tocar código con `LIMITE_MB_ARCHIVO_STORAGE` (por si algún día el
+ * plan de Supabase cambia).
  */
-export const LIMITE_BYTES_ARCHIVO_STORAGE = 50 * 1024 * 1024;
+export const LIMITE_BYTES_ARCHIVO_STORAGE =
+  Math.max(1, Number(process.env.LIMITE_MB_ARCHIVO_STORAGE ?? 50) || 50) * 1024 * 1024;
 
 /** Para los mensajes: "66.3 MB" se lee mejor que 69511577. */
 export const enMb = (bytes: number) => `${(bytes / (1024 * 1024)).toFixed(1)} MB`;

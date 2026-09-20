@@ -117,6 +117,20 @@ describe('historiasDelCapitulo', () => {
     expect(historias.map((h) => h.respuesta_id)).toEqual(['publicable']);
   });
 
+  // Una reserva parcial no se puede recortar de una grabación: también queda afuera.
+  it('excluye también las que tienen un tramo reservado (el audio no se recorta)', () => {
+    const respuestasPorOrden = new Map([
+      [1, [
+        respuesta({ id: 'tramo', reservado_tramo: 'locuras de las contables pueden ser por amor' }),
+        respuesta({ id: 'publicable', audio_path: 'n/dia_01b.ogg' }),
+      ]],
+    ]);
+
+    const historias = historiasDelCapitulo([1], preguntasPorOrden, respuestasPorOrden);
+
+    expect(historias.map((h) => h.respuesta_id)).toEqual(['publicable']);
+  });
+
   it('segundos es duracion_segundos redondeado (0 si null) y la pregunta cae a "Pregunta N" si no está', () => {
     const respuestasPorOrden = new Map([
       [7, [respuesta({ id: 'r7', pregunta_orden: 7, duracion_segundos: 265.6 })]],
