@@ -125,7 +125,9 @@ LA REPREGUNTA VA EN ${trato}, SIN EXCEPCIÓN, con sus conjugaciones: ${trato ===
     ? 'tuteando de punta a punta ("¿cómo era tu casa?", "¿te acordás?", "¿qué sentiste?"), nunca "cuénteme", "usted", "su" ni "sus", aunque la pregunta del día haya venido escrita de usted.'
     : 'de usted de punta a punta ("¿cómo era su casa?", "¿se acuerda?", "¿qué sintió?"), nunca "contame", "vos", "tu" ni "tus".'} Si el narrador viene hablando de vos y la repregunta sale de usted, se rompe el vínculo justo en el momento más íntimo.
 
-Respondé SOLO con JSON: {"suficiente": true} o {"suficiente": false, "repregunta": "..."}`;
+SI PIDE QUE ALGO NO VAYA AL LIBRO, SE ANOTA ACÁ. Si dice que algo quede afuera —"esto prefiero que no vaya al libro", "estas historias prefiero que queden en mi mente", "no lo pongas", "que mi familia no lo sepa"— agregá "reservado": true. Si el pedido es sólo por una parte, agregá también "reservadoTramo" con ese tramo de su respuesta COPIADO TEXTUAL (una frase o dos, tal como las dijo, sin corregirle nada). Reservar es sagrado: si dudás de si está pidiendo que algo no se publique, marcá "reservado": true — publicar lo que pidió guardar es la peor falla posible, y volver a agregar algo después es fácil.
+
+Respondé SOLO con JSON: {"suficiente": true} o {"suficiente": false, "repregunta": "..."}, y sumá "reservado": true (y "reservadoTramo": "..." si es sólo una parte) cuando corresponda.`;
 
 /**
  * Cuánto se espera antes del único reintento de una llamada al modelo que
@@ -143,10 +145,42 @@ const esperar = (ms: number) => (ms > 0 ? new Promise<void>((r) => setTimeout(r,
 
 export type OpcionesDeReintento = { pausaMs?: number };
 
+/** Lo que la evaluación puede decir: si alcanza, si hay repregunta, y si algo se reserva. */
+export type Evaluacion = {
+  suficiente: boolean;
+  repregunta?: string;
+  /** El narrador pidió que esto no vaya al libro (hallazgo 19). */
+  reservado?: boolean;
+  /** Cuando el pedido es por una parte: el tramo textual que no se publica. */
+  reservadoTramo?: string;
+};
+
+/**
+ * La reserva tal como se va a guardar, a partir de lo que devolvió el modelo.
+ *
+ * `reservadoTramo` solo vale si el tramo está TEXTUALMENTE en la transcripción:
+ * si el modelo lo parafraseó o lo inventó, sacar ese texto no sacaría nada y lo
+ * reservado terminaría publicado igual — el peor error posible. En ese caso se
+ * reserva la respuesta entera. Ante la duda siempre se reserva de más: agregar
+ * algo después es fácil, desdecir algo que la familia ya leyó, no.
+ */
+export function reservaDe(
+  evaluacion: Pick<Evaluacion, 'reservado' | 'reservadoTramo'>, transcripcion: string,
+): { reservada: boolean; tramo: string | null } {
+  if (evaluacion.reservado !== true) return { reservada: false, tramo: null };
+  const tramo = typeof evaluacion.reservadoTramo === 'string' ? evaluacion.reservadoTramo.trim() : '';
+  if (!tramo) return { reservada: true, tramo: null };
+  if (!transcripcion.includes(tramo)) {
+    console.warn('evaluar: el modelo marcó un tramo reservado que no está textual en la transcripción; se reserva la respuesta entera.');
+    return { reservada: true, tramo: null };
+  }
+  return { reservada: true, tramo };
+}
+
 export async function evaluarRespuesta(
   pregunta: string, transcripcion: string, duracionSegundos: number, evitar = '', trato: Trato = 'usted',
   opciones: OpcionesDeReintento = {},
-): Promise<{ suficiente: boolean; repregunta?: string }> {
+): Promise<Evaluacion> {
   const pausaMs = opciones.pausaMs ?? PAUSA_REINTENTO_MS;
 
   const pedirleAlModelo = async () => {
@@ -155,7 +189,7 @@ export async function evaluarRespuesta(
       messages: [{ role: 'user', content: PROMPT_EVALUAR(pregunta, transcripcion, duracionSegundos, evitar, trato) }],
     });
     // Si el JSON no se puede leer, seguimos: hoy no hay repregunta.
-    return extraerJson<{ suficiente: boolean; repregunta?: string }>(textoDe(respuesta), { suficiente: true })!;
+    return extraerJson<Evaluacion>(textoDe(respuesta), { suficiente: true })!;
   };
 
   try {

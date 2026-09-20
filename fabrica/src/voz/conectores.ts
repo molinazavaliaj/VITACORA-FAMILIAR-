@@ -13,8 +13,10 @@ import type { ConectoresNarracion, HistoriaNarracion } from './narracion-json.js
  * Las historias de un capítulo para narracion.json: SOLO las respuestas con
  * audio, en el orden del libro — el de `ordenes` del capítulo (no el
  * numérico), y dentro de una misma pregunta primero la respuesta y después
- * la(s) repregunta(s), por `recibido_at` si hay que desempatar. Las
- * respuestas escritas (sin audio) no son historias: no hay voz que pegar.
+ * la(s) repregunta(s), por `recibido_at` si hay que desempatar.
+ * Las respuestas escritas (sin audio) no son historias: no hay voz que pegar.
+ * Y las que el narrador pidió reservar tampoco entran: el audiolibro es
+ * publicación como el libro (hallazgo 19).
  * Pura, sin I/O — la misma que arma `armarMaterial`, pero para el oído.
  */
 export function historiasDelCapitulo(
@@ -24,7 +26,8 @@ export function historiasDelCapitulo(
     number,
     Pick<
       Respuesta,
-      'id' | 'pregunta_orden' | 'es_repregunta' | 'audio_path' | 'duracion_segundos' | 'transcripcion' | 'texto_directo' | 'recibido_at'
+      | 'id' | 'pregunta_orden' | 'es_repregunta' | 'audio_path' | 'duracion_segundos'
+      | 'transcripcion' | 'texto_directo' | 'recibido_at' | 'reservada' | 'reservado_tramo'
     >[]
   >
 ): HistoriaNarracion[] {
@@ -36,7 +39,8 @@ export function historiasDelCapitulo(
     if (vistos.has(orden)) continue;
     vistos.add(orden);
     const pregunta = preguntasPorOrden.get(orden);
-    const conAudio = (respuestasPorOrden.get(orden) ?? []).filter((r) => Boolean(r.audio_path));
+    const conAudio = (respuestasPorOrden.get(orden) ?? [])
+      .filter((r) => Boolean(r.audio_path) && r.reservada !== true);
     const ordenadas = [...conAudio].sort((a, b) => {
       if (a.es_repregunta !== b.es_repregunta) return a.es_repregunta ? 1 : -1;
       return (a.recibido_at ?? '').localeCompare(b.recibido_at ?? '');

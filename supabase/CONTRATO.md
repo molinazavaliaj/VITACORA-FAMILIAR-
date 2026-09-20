@@ -10,7 +10,7 @@ migración en `supabase/migrations/` + actualizar este archivo + avisar al otro 
 | `familias` | web | entrevistador | |
 | `narradores` | web (crea, edita datos, `edicion`, `libro_aprobado_at`) / entrevistador (solo `estado`, `dia_actual`, `ultima_respuesta_at`, `alerta_silencio`, `consentimiento_voz_at`) / fábrica (solo `libro_aprobado_at`, a los 30 días sin cierre) | ambos | Única tabla compartida. La web también apaga `alerta_silencio`. La fábrica lee `edicion` y **no produce nada sin `libro_aprobado_at`** (ni digital ni impreso). Desde el 13/09, si pasan 30 días desde `ultima_respuesta_at` sin cierre, la fábrica misma pone `libro_aprobado_at` (único caso en que alguien más que la web escribe esa columna). |
 | `preguntas` | **web** (copia las fijas al comprar; la familia edita, salta, reordena, agrega) / **entrevistador** (adaptativas y reemplazos) / seed (plantilla global) | ambos | Desde el 12/09 **cada narrador tiene su guion propio**. Las globales (`narrador_id = null`) son solo plantilla. Regla: `orden ≤ dia_actual` está **congelado**, nadie lo toca. |
-| `respuestas` | entrevistador | web | La web NUNCA escribe acá. |
+| `respuestas` | entrevistador | web | La web NUNCA escribe acá. **20/09 (propuesta, sin aplicar):** `reservada` / `reservado_tramo` — "esto que no vaya al libro", ver la sección propia. |
 | `saludos` | ~~web / entrevistador~~ | — | **Fuera de la fase 1 (10/09).** Nadie la escribe ni la lee — desde el 13/09 tampoco la fábrica (dejó de leerla en `generarPaquete`/`generarAudiolibro`; el audiolibro ya no tiene bonus de saludos). Se deja por si la fase 2 la revive. |
 | `fotos` | web (sube y ordena) | fábrica | Nueva 12/09. Por capítulo; `principal` abre, el resto cierra. Desde el 13/09 la fábrica las embebe como data URI en `libro.html`. **14/09: `capitulo` nullable** — NULL = foto del álbum del libro (candidata a tapa / contratapa / marco), no va en ningún capítulo; la fábrica la ignora al armar capítulos. |
 | `invitados` | web | web | Nueva 12/09. `rol` (13/09): `'invitado'` (hasta 3, con el libro abierto, ven todo) o `'visitante'` (abrió el link del libro cerrado y lo guardó: ve la muestra y compra su copia, sin tope). |
@@ -301,6 +301,45 @@ Reglas:
 - Caché: la fábrica guarda los conectores en `{narrador}/paquete/conectores_cap_NN.json`
   (mismo NN que `borrador_cap_NN.md`) para que un reintento no vuelva a pagarle al modelo;
   se borran junto con los borradores al entregar.
+
+## Respuestas reservadas — "esto que no vaya al libro" (PROPUESTA del 20/09, pendiente del OK de Joaquín)
+
+⚠️ **No está aplicada todavía.** La migración es `20260920000100_respuestas_reservadas.sql` y
+la aplica Naza en el SQL Editor de Supabase **cuando Joaquín dé el OK** (toca una tabla del
+entrevistador). Mientras tanto el código ya funciona sin las columnas: `select *` no las trae
+y se leen como ausentes = nada reservado, así que aplicarla no puede romper nada. Es
+idempotente y no toca datos.
+
+Sale del piloto (hallazgo 19): en la respuesta 12 el narrador dijo "estas historias prefiero
+que queden en mi mente, no en mi biografía" y la transcripción entró entera al material del
+libro. Publicar lo que pidió reservar es la peor falla posible del producto.
+
+| Columna | Tipo | Escribe | Lee | Qué es |
+|---|---|---|---|---|
+| `respuestas.reservada` | boolean, `not null default false` | entrevistador (la evaluación de la respuesta) | fábrica y web | El narrador pidió reservar algo de esta respuesta. **Sin `reservado_tramo`, no se publica nada de ella.** |
+| `respuestas.reservado_tramo` | text, null | entrevistador | fábrica | Si el pedido es por una PARTE: el tramo textual que no se publica, tal como lo dijo. Con tramo, se publica **todo menos eso** (la reserva parcial es el caso `reservada = true` + `reservado_tramo = '…'`). |
+
+Reglas:
+
+- **La escribe el entrevistador** al evaluar cada respuesta: `evaluarRespuesta` devuelve
+  `reservado` / `reservadoTramo` y `reservaDe()` (`entrevistador/src/ia/cerebro.ts`) los
+  normaliza. Si el tramo que marcó el modelo no está **textual** en la transcripción, se
+  reserva la respuesta entera: sacar un texto que no está no sacaría nada y lo reservado se
+  publicaría igual.
+- **La fábrica solo lee**, y respeta las dos en el mismo lugar donde arma el material del
+  libro (`fabrica/src/libro/comun.ts`, `textoRespuesta`): el escritor nunca ve una respuesta
+  `reservada` (ni en el capítulo ni en "la historia completa"), y el tramo se quita del
+  texto. Tampoco entran al audiolibro híbrido (`historiasDelCapitulo` en
+  `fabrica/src/voz/conectores.ts`) ni a la muestra de audio del anticipo (esa muestra se
+  publica en la landing), porque **un tramo no se puede recortar de una grabación**: una
+  reserva parcial también deja el audio afuera (`esPublicable`).
+- **La web solo lee**: muestra la respuesta marcada como reservada ("no va al libro", a
+  pedido del narrador). Si algún día la familia quiere re-publicarla, sería escritura de la
+  web — a decidir entre los dos.
+- Corregir a mano (`update respuestas set reservada = true where …`) vale como cualquier
+  dato: la familia puede pedirlo por teléfono y es lo más rápido que tenemos hoy.
+- Ante la duda **siempre se reserva de más**: volver a agregar algo es fácil, desdecir algo
+  que la familia ya leyó impreso, no.
 
 ## Storage — bucket privado `audios`
 

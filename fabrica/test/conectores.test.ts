@@ -19,6 +19,8 @@ function respuesta(
     transcripcion: string | null;
     texto_directo: string | null;
     recibido_at: string | null;
+    reservada?: boolean | null;
+    reservado_tramo?: string | null;
   }>
 ) {
   return {
@@ -98,6 +100,21 @@ describe('historiasDelCapitulo', () => {
     const historias = historiasDelCapitulo([1, 2, 3], preguntasPorOrden, respuestasPorOrden);
 
     expect(historias.map((h) => h.respuesta_id)).toEqual(['r2']);
+  });
+
+  // Hallazgo 19: el audiolibro publica igual que el libro. Lo que el narrador
+  // pidió guardar no se narra, ni siquiera con su propia voz.
+  it('excluye las respuestas que el narrador pidió reservar', () => {
+    const respuestasPorOrden = new Map([
+      [1, [
+        respuesta({ id: 'reservada-entera', reservada: true }),
+        respuesta({ id: 'publicable', audio_path: 'n/dia_01b.ogg' }),
+      ]],
+    ]);
+
+    const historias = historiasDelCapitulo([1], preguntasPorOrden, respuestasPorOrden);
+
+    expect(historias.map((h) => h.respuesta_id)).toEqual(['publicable']);
   });
 
   it('segundos es duracion_segundos redondeado (0 si null) y la pregunta cae a "Pregunta N" si no está', () => {
