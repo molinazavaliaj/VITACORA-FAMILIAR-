@@ -190,11 +190,13 @@ sin migración; el lugar definitivo es una columna `texto` en `envios`):
 - `repreguntasEnviadas[orden]` — el texto de la repregunta del mismo día.
 - `resumenesCapitulos[capítulo]` — la memoria interna del biógrafo. **No la usa la
   web ni la fábrica**: es para personalizar la pregunta del día.
-- `resumenesHasta[capítulo]` (20/09) — hasta qué `orden` entró en el resumen de ese
-  capítulo. Es lo que hace que "lo último manda" (hallazgo 16): si el narrador contó
-  algo más de un capítulo ya resumido, la memoria rehace ese resumen con todo el
-  material, así una corrección posterior pisa el dato viejo. Un resumen guardado sin
-  `resumenesHasta` (los de antes del cambio) se rehace una vez y queda al día.
+- `resumenesHasta[capítulo]` (20/09) — con qué material se escribió el resumen de ese
+  capítulo: `{orden: N, respuestas: M}` (el orden más alto con texto y cuántas respuestas
+  con texto había). Es lo que hace que "lo último manda" (hallazgo 16): si el narrador
+  contó algo más de un capítulo ya resumido —una orden nueva, o una **ampliación de la
+  misma orden**, que es lo que el orden solo no detecta— la memoria rehace ese resumen con
+  todo el material, así una corrección posterior pisa el dato viejo. Un resumen guardado sin
+  marca (los de antes del cambio) se rehace una vez y queda al día.
 
 El panel de la web muestra las dos primeras ("Se lo preguntamos así: …" / "Le
 repreguntamos: …"). Sin ellas la familia veía la respuesta de la repregunta sin la
@@ -331,6 +333,13 @@ Reglas:
   normaliza. Si el tramo que marcó el modelo no está **textual** en la transcripción, se
   reserva la respuesta entera: sacar un texto que no está no sacaría nada y lo reservado se
   publicaría igual.
+- ⚠️ **Pendiente en el flujo (hallazgo 19)**: `procesar.ts` todavía NO guarda el resultado —
+  `reservaDe()` no tiene llamadores de producción, así que hoy nada llega a la base y todo el
+  respeto de abajo es código que espera a que el `UPDATE` exista. Son dos cosas de Joaquín:
+  (a) el `UPDATE` después de evaluar, y (b) que la detección corra también en las respuestas
+  de **repregunta** (hoy la evaluación se saltea si `esRepregunta`) y en el **cierre** (el
+  `esOrdenDeCierre` cortocircuita la evaluación). El `UPDATE` tiene que entrar junto con la
+  migración: sin la columna, PostgREST contesta 42703.
 - **La fábrica solo lee**, y respeta las dos en el mismo lugar donde arma el material del
   libro (`fabrica/src/libro/comun.ts`, `textoRespuesta`): el escritor nunca ve una respuesta
   `reservada` (ni en el capítulo ni en "la historia completa"), y el tramo se quita del
