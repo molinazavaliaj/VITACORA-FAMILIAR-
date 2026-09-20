@@ -1,4 +1,4 @@
-# Estado del proyecto — actualizado 2026-09-01 (medianoche)
+# Estado del proyecto — actualizado 2026-09-20
 
 ## 🎉 ÚLTIMA HORA: el primer libro completo ya existe
 
@@ -335,8 +335,108 @@ aditivos, 124 tests:
 `URL_BASE` (`https://www.vitacorafamiliar.com`), `SUGERIDAS_CLAVE` (un secreto cualquiera,
 el mismo que después va en Vercel para que la web lo llame).
 
+### 2026-09-18 — un solo proyecto de Railway: `fearless-kindness` (cuenta de Joaquín)
+
+**Regla: hay UN proyecto de Railway y es `fearless-kindness`**, en la cuenta de
+Joaquín, con deploy automático desde GitHub. Dos servicios: `dazzling-friendship`
+= fábrica, `VITACORA-FAMILIAR-` = entrevistador. El proyecto viejo
+(`vitacora-familiar`, cuenta de Naza) siguió vivo sin que nadie lo dejara escrito
+y **el 18/09 escribió el libro de Joaquín sin aprobación, con voz real y con la
+key de Naza** (código del 10/09, sin la puerta de `libro_aprobado_at` ni voz
+clonada; ~USD 4,5 en la key de Naza — bitácora #32 y #37, `GASTOS.md`). Se apagó
+ese día con `railway down` y el plan Hobby de Naza quedó sin proyectos:
+**cancelarlo antes del 1/10**. Queda por rotar la key de Anthropic de Naza que
+estuvo cargada ahí.
+
+**Logs sin el CLI:** Windows bloquea el CLI de Railway en la PC de Naza desde el
+18/09. `fabrica/scripts/railway-logs.py` lee deploys y logs por la API con el
+token de PROYECTO (`RAILWAY_API_TOKEN` en `fabrica/.env`; solo ve ese proyecto):
+`python scripts/railway-logs.py [--lineas 200] [--servicio VITACORA-FAMILIAR-]
+[--buscar texto]`.
+
+**Gasto (leído de la consola el 18/09, `GASTOS.md`):** 1–18/09 USD 46,07 en la
+key de Naza; casi la mitad (USD 21,89 del 12/09) fue un Claude Code cobrando a la
+API porque `ANTHROPIC_API_KEY` estaba como variable global de Windows (borrada el
+18/09; la key `tricky-noise-api-key` se revoca). Lección: **una key por uso**.
+El libro de Joaquín costó ~USD 8 entre las dos cuentas.
+
+### 2026-09-18 — bitácora del piloto, hallazgos 32–37 (`docs/piloto-bitacora-errores.md`)
+
+- **#34 arreglado**: cerrar libro y la muestra armaban los capítulos solo con las
+  4 adaptativas del narrador (libro de 4 capítulos) → helper `armarGuion` en
+  `web/src/lib/guion.ts`, compartido con el panel.
+- **#35 arreglado (Joaquín)**: "Los hijos" se preguntaba igual a quien dijo que no
+  tiene → `detectarQueNoTuvo`; el capítulo se reemplaza como con el árbol cargado
+  al comprar.
+- **#36 arreglado**: la fábrica ignoraba `edicion.titulosCapitulos` →
+  `aplicarTitulosCapitulos` en `fabrica/src/libro/edicion.ts`, aplicado en
+  `generar-paquete.ts` (título en PDF/HTML, índice, intro y `narracion.json`).
+  Pendiente menor: la muestra pública (`web/src/lib/muestra.ts`) no lo aplica.
+- **#31 pendiente**: al recibir la 30 el entrevistador tiene que despedirse, poner
+  `completado` y disparar "terminó" sin depender de que la evaluación salga bien.
+- **#33 pendiente**: el cierre automático a los 30 días manda el mail aunque exista
+  `cierre_automatico_enviado.txt` (`mandarHito` no mira el candado).
+- **#32**: falta un healthcheck de la fábrica.
+
+**Foto del capítulo (acordado 18/09, `supabase/CONTRATO.md`):** `fotos.posicion`
+(`arriba` = página propia tras la portadilla, `abajo` = dentro de la portadilla) y
+`fotos.foco` (`{x, y}` en 0..1 → `object-position`). La principal y la tapa se
+recortan con `foco`; las de cierre van enteras. La web escribe, la fábrica lee.
+
+### 2026-09-19 — el primer audiolibro con voz clonada (Joaquín)
+
+**Salió el 19/09 del worker de la PC de música** (`MOTOR=qwen3tts`, elegido con
+Joaquín en la prueba de oído del 16/09; ~2,4× tiempo real en la 4060 Ti). Dos
+cosas que se escucharon y se corrigieron (`voz/README.md`): la **referencia manda
+más que el motor** — con la del día 23 sonó peor que con la del **día 02**; ahora
+`muestras.py` elige la referencia por riqueza fonética del arranque — y los ruidos
+al final de cada frase (ahora `motores/comun.py` limpia cada frase antes de pegar).
+
+**Regla de voz única (Naza, 19/09, `supabase/CONTRATO.md`):** en el audiolibro
+clonado **no suena ninguna voz que no sea la del narrador**: ni intro TTS ni
+conectores con otra voz. El anuncio del capítulo ("Capítulo uno. La infancia.")
+lo narra el worker con la voz clonada a partir de `nombre` en `narracion.json`.
+La intro TTS de OpenAI queda solo para el audiolibro con audios reales.
+
+**El mp3 completo es opcional (tope 50 MB por archivo de Storage):** desde el
+19/09, si `audiolibro_completo.mp3` pasa el tope, la fábrica entrega por
+capítulos con aviso y `pedidos.audiolibro_paths` viene sin `completo`. El panel
+reproduce por capítulos y muestra "el audiolibro completo" solo si existe (el tipo
+`AudiolibroPaths.completo` es opcional en la web desde el 20/09).
+
+**Buzón con la PC de música (`voz/README.md`):** no se copian mensajes a mano. En
+el bucket `audios`: `central/<fecha>-<nn>-<tema>.md` son las directivas de la
+central (la PC sube `<mismo-nombre>.leido.txt` como acuse) y `pruebas/<fecha>/…`
+es lo que la PC entrega (parches `git format-patch`, mp3, `notas.txt`). Naza le
+dice al Claude de esa PC "leé el buzón" y alcanza. Tope 50 MB por archivo.
+
+**Masterizado, restauración y ritmo en el worker (directivas 01 y 02, 19/09):**
+- **Pausas por puntuación** (`voz/pausas.py`, se pisan desde `.env`): coma 250 ms,
+  punto 500, suspensivos 700, párrafo 1 s, `* * *` entre historias 1,2 s. Modo
+  `TRAMOS=oracion` (default; `coma` sigue disponible).
+- **Restaurar** (`voz/restaurar.py`): cada original de WhatsApp pasa por
+  resemble-enhance en su venv, graduado con `RESTAURACION_NIVEL` (default 0,7).
+- **Ritmo** (`voz/ritmo.py`): con marcas por palabra de Whisper corta el arranque
+  que responde a la pregunta (< 2,5 s) y lleva los silencios internos de > 1,5 s
+  a 0,7 s. Nunca corta voz.
+- **Masterizar** (`voz/masterizar.py`): igual para clonado, real e híbrido — EQ al
+  sonido real del narrador, loudnorm en dos pasadas a −19 LUFS, `master.json` al
+  lado de los mp3. **La fábrica ya no normaliza: sube el capítulo tal cual.**
+
+### 2026-09-20 — decisión: el audiolibro clonado pasa a ser híbrido
+
+**Voz real restaurada + conectores clonados:** las respuestas originales del
+narrador (restauradas y con el ritmo arreglado) con conectores narrados por la
+voz clonada entre ellas. El worker ya está preparado: `masterizar.py` recibe
+piezas `real` y `conector`, iguala los conectores a los originales restaurados y
+toma como objetivo las piezas reales, nunca el promedio con lo sintético. **En implementación** en la
+rama `fabrica-narracion-v2` (`fabrica/src/libro/generar-paquete.ts`,
+`fabrica/src/voz/narracion-json.ts`, `fabrica/src/voz/conectores.ts`) — no tocar
+esos archivos desde otra rama. El mapa historia → respuesta original del libro de
+Joaquín, para probarlo, está en `docs/mapa-historias-joaquin.md`.
+
 ## Próximos hitos
 
-1. Deploy del entrevistador + Meta (socio) → probar la entrevista real con Imma.
-2. Sesión de Osvaldo (`fabrica`: `npm run set-dorado`) → el primer libro completo, la prueba de calidad.
-3. Stripe + Mercado Pago + dominio propio (verificarlo en Resend).
+1. Audiolibro híbrido (voz real restaurada + conectores clonados) en `fabrica-narracion-v2`, y probarlo con el libro de Joaquín.
+2. Bitácora: #31 (cierre solo al recibir la 30), #33 (candado del cierre automático), #32 (healthcheck de la fábrica); la muestra pública con `titulosCapitulos`.
+3. Plata: rotar la key de Anthropic de Naza (#37), cancelar el plan Hobby de Railway de Naza antes del 1/10, recargar crédito Anthropic antes del próximo libro y unificar las keys en una organización del proyecto (`GASTOS.md`).
