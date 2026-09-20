@@ -13,7 +13,9 @@
 // pedirle conectores al modelo); si no, usa las variables del entorno.
 //
 // Qué hace, en orden:
-//   1. Lee el pedido (tiene que ser de ese narrador) y el narrador con su
+//   1. Lee el pedido (tiene que ser de ese narrador y estar `entregado` o
+//      `esperando_voz`: en cualquier otro estado, la narración que hay es la que
+//      corresponde) y el narrador con su
 //      `edicion` (orden y títulos de capítulos, congelados al cerrar el libro).
 //   2. Baja `{narrador}/paquete/estructura.json` y el `narracion.json` que ya
 //      está (v1: tiene el TEXTO de cada capítulo, que es lo único que quedó del
@@ -24,8 +26,9 @@
 //      reusando `conectores_cap_NN.json` si ya está cacheado. Los conectores
 //      nuevos se cachean ANTES de escribir el v2 (mismo checkpoint que
 //      `generar-paquete.ts`): un reintento no le vuelve a pagar al modelo.
-//   4. Sube `narracion.json` v2 (upsert), crea la fila del buzón `narraciones`
-//      (`crearNarracion`) y deja el pedido en `esperando_voz`.
+//   4. Sube `narracion.json` v2 (upsert), reemplaza la narración vieja del pedido
+//      (`reemplazarNarracion`: la marca `reemplazada` y encola la nueva
+//      `pendiente`) y recién ahí deja el pedido en `esperando_voz`.
 //
 // `--solo-json` NO escribe nada en Supabase (ni Storage ni tablas): deja el v2
 // en un archivo local (por defecto `narracion-v2-<narradorId>.json` en el
@@ -34,11 +37,13 @@
 // `--cachear-conectores` se guardan en Storage (solo eso) para que la corrida
 // en serio no le vuelva a pagar al modelo.
 //
-// OJO (para el caso de un pedido ya entregado): `crearNarracion` es idempotente
-// y el worker de voz solo toma narraciones `pendiente`. Si el pedido ya tiene
-// una narración viva (la `lista` de la entrega anterior), el script lo dice y no
-// toca el pedido: dejar el pedido en `esperando_voz` con una `lista` vieja haría
-// que la fábrica ensamble ESA voz como si fuera la nueva.
+// OJO (para el caso de un pedido ya entregado): el worker de voz solo toma
+// narraciones `pendiente`, así que la narración de la entrega anterior (la
+// `lista`) la saca de circulación `reemplazarNarracion` ANTES de encolar la
+// nueva: dejar el pedido en `esperando_voz` con una `lista` vieja haría que la
+// fábrica ensamble ESA voz como si fuera la nueva. Solo se reemplaza con el
+// pedido `entregado` o `esperando_voz`, y nunca con una narración en curso
+// (`pendiente`/`procesando`): eso se narraría dos veces.
 //
 // Ver `supabase/CONTRATO.md` (sección "narracion.json v2 — audiolibro híbrido").
 
@@ -54,7 +59,7 @@ import { descargarTextoOpcional, RUTA_CONECTORES_CAP, subirTexto } from '../src/
 import type { Estructura } from '../src/libro/estructura.js';
 import { armarNarracionJson, type ConectoresNarracion, type NarracionJson } from '../src/voz/narracion-json.js';
 import { escribirConectores, historiasDelCapitulo } from '../src/voz/conectores.js';
-import { crearNarracion, RUTA_NARRACION_JSON } from '../src/voz/narraciones.js';
+import { puedeReemplazarNarracion, reemplazarNarracion, RUTA_NARRACION_JSON } from '../src/voz/narraciones.js';
 
 type Db = ReturnType<typeof obtenerClienteDb>;
 
@@ -181,10 +186,18 @@ export async function armarNarracionV2(
   if (errorPedido || !pedidoData) {
     throw new Error(`No se pudo leer el pedido ${args.pedidoId}: ${errorPedido?.message ?? 'sin datos'}`);
   }
-  const pedido = pedidoData as { id: string; narrador_id: string };
+  const pedido = pedidoData as { id: string; narrador_id: string; estado: string };
   if (pedido.narrador_id !== args.narradorId) {
     throw new Error(
       `El pedido ${args.pedidoId} es del narrador ${pedido.narrador_id}, no de ${args.narradorId}: no se tocó nada.`
+    );
+  }
+  // Se chequea acá (y no solo adentro de `reemplazarNarracion`) porque este es el
+  // momento barato: si el pedido no es de los que se pueden reemplazar, no tiene
+  // sentido pedirle conectores al modelo — eso se paga.
+  if (!puedeReemplazarNarracion(pedido)) {
+    throw new Error(
+      `El pedido ${args.pedidoId} está '${pedido.estado}': una narración se reemplaza solo con el pedido entregado o esperando_voz (en el resto de los estados, la narración que hay es la que corresponde).`
     );
   }
 
@@ -364,18 +377,11 @@ export async function correrNarracionV2(
 
   await subirTexto(db, RUTA_NARRACION_JSON(args.narradorId), JSON.stringify(armado.narracion, null, 2), 'application/json');
 
-  const narracionId = await crearNarracion(db, { narradorId: args.narradorId, pedidoId: args.pedidoId });
-  const { data: fila, error: errorFila } = await db.from('narraciones').select('id, estado').eq('id', narracionId).single();
-  if (errorFila || !fila) throw new Error(`No se pudo leer la narración ${narracionId}: ${errorFila?.message ?? 'sin datos'}`);
-  const estado = (fila as { estado: string }).estado;
-  if (estado !== 'pendiente') {
-    // Nada de dejar el pedido en 'esperando_voz' con una narración que el worker
-    // no va a tomar: la fábrica ensamblaría ESA voz vieja como si fuera la nueva.
-    throw new Error(
-      `La narración del pedido ${args.pedidoId} ya existía y está '${estado}' (${narracionId}); el worker solo toma 'pendiente', así que el pedido quedó como estaba, sin pasar a esperando_voz.\n` +
-        `Pasa cuando el pedido ya se narró (la fila vieja sigue 'lista'). Para narrarlo de nuevo hace falta una fila nueva: lo decide la central — en CONTRATO.md, 'narraciones.estado' lo escribe el worker, y la fábrica solo lo reabre con 'npm run narracion -- reintentar <id>' (y solo sobre una 'fallida').`
-    );
-  }
+  // La narración vieja del pedido (la `lista` de la entrega anterior) queda
+  // `reemplazada` y la nueva entra en cola — en ese orden. El pedido se toca
+  // después: con una `lista` vieja y el pedido en `esperando_voz`, la fábrica
+  // ensamblaría esa voz como si fuera la nueva.
+  const narracionId = await reemplazarNarracion(db, args.pedidoId);
 
   const { error: errorUpdate } = await db.from('pedidos').update({ estado: 'esperando_voz' }).eq('id', args.pedidoId);
   if (errorUpdate) throw new Error(`No se pudo poner el pedido ${args.pedidoId} en esperando_voz: ${errorUpdate.message}`);

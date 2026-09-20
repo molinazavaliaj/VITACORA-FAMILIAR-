@@ -70,6 +70,7 @@ function construirDbFake(opciones: {
 
   const pedidosUpdate = opciones.pedidosUpdate ?? vi.fn().mockResolvedValue({ data: null, error: null });
   const narracionesInsert = vi.fn();
+  const narracionesUpdate = vi.fn();
 
   const from = vi.fn((tabla: string) => {
     if (tabla === 'narraciones') {
@@ -79,6 +80,10 @@ function construirDbFake(opciones: {
       builder.in = () => builder;
       builder.insert = (valores: Record<string, unknown>) => {
         narracionesInsert(valores);
+        return builder;
+      };
+      builder.update = (valores: Record<string, unknown>) => {
+        narracionesUpdate(valores);
         return builder;
       };
       return builder;
@@ -112,7 +117,7 @@ function construirDbFake(opciones: {
   const remove = vi.fn().mockResolvedValue({ data: null, error: null });
   const storage = { from: vi.fn(() => ({ download, upload, list: vi.fn(), remove })) };
 
-  return { from, storage, download, upload, remove, pedidosUpdate, narracionesInsert };
+  return { from, storage, download, upload, remove, pedidosUpdate, narracionesInsert, narracionesUpdate };
 }
 
 beforeEach(() => {
@@ -231,9 +236,10 @@ describe('scripts/narracion-v2 — correrNarracionV2', () => {
   it('convierte el narracion.json v1 en v2: historias con audio, conectores cacheados, capítulo sin audio clonado, narración pendiente y el pedido esperando_voz', async () => {
     const db = construirDb({
       narraciones: [
-        { data: [], error: null }, // no hay narración viva para el pedido
-        { data: { id: 'narr-1' }, error: null }, // el insert
-        { data: { id: 'narr-1', estado: 'pendiente' }, error: null }, // el control de estado
+        // La narración de la entrega anterior (el audiolibro todo-clonado del 19/09).
+        { data: [{ id: 'narr-vieja', estado: 'lista' }], error: null },
+        { data: [{ id: 'narr-vieja' }], error: null }, // el update a reemplazada
+        { data: null, error: null }, // el insert de la nueva pendiente
       ],
     });
     conectoresDelModelo();
@@ -313,13 +319,28 @@ describe('scripts/narracion-v2 — correrNarracionV2', () => {
     expect(rutas).not.toContain('j1/paquete/conectores_cap_03.json');
     expect(rutas.indexOf('j1/paquete/conectores_cap_02.json')).toBeLessThan(rutas.indexOf('j1/paquete/narracion.json'));
 
-    // El buzón: la fila que escribe la fábrica y el pedido esperando a la PC.
+    // El buzón: la vieja queda reemplazada (diciendo por cuál), la nueva va
+    // pendiente, y el pedido vuelve a esperando_voz recién al final.
+    expect(db.narracionesUpdate).toHaveBeenCalledTimes(1);
+    const update = db.narracionesUpdate.mock.calls[0][0] as Record<string, unknown>;
     expect(db.narracionesInsert).toHaveBeenCalledTimes(1);
-    expect(db.narracionesInsert).toHaveBeenCalledWith({ narrador_id: 'j1', pedido_id: 'p1', estado: 'pendiente' });
+    const insertada = db.narracionesInsert.mock.calls[0][0] as { id: string };
+    expect(insertada).toMatchObject({ narrador_id: 'j1', pedido_id: 'p1', estado: 'pendiente' });
+    expect(update.estado).toBe('reemplazada');
+    expect(update.error).toBe(`reemplazada por ${insertada.id}`);
     expect(db.pedidosUpdate).toHaveBeenCalledTimes(1);
     expect(db.pedidosUpdate).toHaveBeenCalledWith({ estado: 'esperando_voz' }, 'p1');
-    expect(resultado.narracionId).toBe('narr-1');
+    expect(resultado.narracionId).toBe(insertada.id);
     expect(resultado.rutaSalida).toBeNull();
+
+    // Orden: primero se saca de circulación la vieja, después se encola la nueva
+    // y el pedido se toca último — con una lista vieja y el pedido en
+    // esperando_voz, la fábrica ensamblaría esa voz como si fuera la nueva.
+    const [ordenUpdate] = db.narracionesUpdate.mock.invocationCallOrder;
+    const [ordenInsert] = db.narracionesInsert.mock.invocationCallOrder;
+    const [ordenPedido] = db.pedidosUpdate.mock.invocationCallOrder;
+    expect(ordenUpdate).toBeLessThan(ordenInsert);
+    expect(ordenInsert).toBeLessThan(ordenPedido);
   });
 
   it('reusa el caché de conectores si está y no le vuelve a pagar al modelo', async () => {
@@ -474,28 +495,37 @@ describe('scripts/narracion-v2 — correrNarracionV2', () => {
     expect(db.upload).not.toHaveBeenCalled();
   });
 
-  it('si el pedido ya tenía una narración viva (la lista de la entrega anterior) no lo deja esperando_voz y dice qué hacer', async () => {
+  it('con una narración en curso (pendiente o procesando) no toca el pedido: se narraría dos veces', async () => {
     const db = construirDb({
-      narraciones: [
-        { data: [{ id: 'narr-vieja' }], error: null }, // la viva: crearNarracion la devuelve, no inserta
-        { data: { id: 'narr-vieja', estado: 'lista' }, error: null }, // el control de estado
-      ],
+      narraciones: [{ data: [{ id: 'narr-curso', estado: 'procesando' }], error: null }],
     });
     conectoresDelModelo();
 
     await expect(correrNarracionV2(db, { narradorId: 'j1', pedidoId: 'p1', soloJson: false })).rejects.toThrow(
-      /ya existía y está 'lista'.*reintentar/s
+      /ya tiene una narración en curso \(narr-curso 'procesando'\)/
     );
 
-    // Lo único que quedó escrito es lo inofensivo: los conectores ya pagados
-    // (caché) y el v2 en Storage. Sin el pedido en esperando_voz nadie ensambla
-    // nada, así que la fila del buzón y el pedido quedan intactos.
+    // El v2 y los conectores ya pagados (cacheados) quedaron en Storage, pero el
+    // pedido no se movió: la narración en curso sigue siendo la buena.
     expect(db.upload.mock.calls.map((c) => c[0])).toEqual([
       'j1/paquete/conectores_cap_01.json',
       'j1/paquete/conectores_cap_02.json',
       'j1/paquete/narracion.json',
     ]);
+    expect(db.narracionesUpdate).not.toHaveBeenCalled();
     expect(db.narracionesInsert).not.toHaveBeenCalled();
+    expect(db.pedidosUpdate).not.toHaveBeenCalled();
+  });
+
+  it('si el pedido todavía no se entregó (no hay voz que reemplazar) se planta antes de pedirle conectores al modelo', async () => {
+    const db = construirDb({ pedido: pedidoP1({ estado: 'pagado' }) });
+
+    await expect(correrNarracionV2(db, { narradorId: 'j1', pedidoId: 'p1', soloJson: false })).rejects.toThrow(
+      /El pedido p1 está 'pagado'/
+    );
+
+    expect(escribirConectoresMock).not.toHaveBeenCalled();
+    expect(db.upload).not.toHaveBeenCalled();
     expect(db.pedidosUpdate).not.toHaveBeenCalled();
   });
 
@@ -513,9 +543,9 @@ describe('scripts/narracion-v2 — correrNarracionV2', () => {
       const db = construirDb({
         descargas: descargasBase({ 'j1/paquete/narracion.json': { data: blobFake(JSON.stringify(v1SinNombres)), error: null } }),
         narraciones: [
-          { data: [], error: null },
-          { data: { id: 'narr-1' }, error: null },
-          { data: { id: 'narr-1', estado: 'pendiente' }, error: null },
+          { data: [{ id: 'narr-vieja', estado: 'lista' }], error: null },
+          { data: [{ id: 'narr-vieja' }], error: null },
+          { data: null, error: null },
         ],
       });
       conectoresDelModelo();
@@ -542,9 +572,9 @@ describe('scripts/narracion-v2 — correrNarracionV2', () => {
           'j1/paquete/narracion.json': { data: blobFake(JSON.stringify({ version: 2, ...NARRACION_V1 })), error: null },
         }),
         narraciones: [
-          { data: [], error: null },
-          { data: { id: 'narr-1' }, error: null },
-          { data: { id: 'narr-1', estado: 'pendiente' }, error: null },
+          { data: [{ id: 'narr-vieja', estado: 'lista' }], error: null },
+          { data: [{ id: 'narr-vieja' }], error: null },
+          { data: null, error: null },
         ],
       });
       conectoresDelModelo();
