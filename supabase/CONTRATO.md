@@ -333,13 +333,19 @@ Reglas:
   normaliza. Si el tramo que marcó el modelo no está **textual** en la transcripción, se
   reserva la respuesta entera: sacar un texto que no está no sacaría nada y lo reservado se
   publicaría igual.
-- ⚠️ **Pendiente en el flujo (hallazgo 19)**: `procesar.ts` todavía NO guarda el resultado —
-  `reservaDe()` no tiene llamadores de producción, así que hoy nada llega a la base y todo el
-  respeto de abajo es código que espera a que el `UPDATE` exista. Son dos cosas de Joaquín:
-  (a) el `UPDATE` después de evaluar, y (b) que la detección corra también en las respuestas
-  de **repregunta** (hoy la evaluación se saltea si `esRepregunta`) y en el **cierre** (el
-  `esOrdenDeCierre` cortocircuita la evaluación). El `UPDATE` tiene que entrar junto con la
-  migración: sin la columna, PostgREST contesta 42703.
+- ⚠️ **Estado (20/09)**: el flujo YA la guarda — `procesar.ts` llama a `guardarReserva(respuestaId,
+  reservaDe(evaluacion, transcripcion))` después de evaluar, y la puerta manual hace lo mismo en
+  `evaluarYAnotar` (`scripts/manual.ts`). `guardarReserva` avisa por consola y no frena el día si
+  la columna todavía no existe (`respuestas.ts`, Joaquín, `f2686b2`).
+- **Falta aplicar la migración** `20260920000100_respuestas_reservadas.sql` (Naza, SQL Editor):
+  los dos socios ya dieron el OK. Hasta que se aplique, la detección funciona pero el `UPDATE`
+  avisa por consola y no queda nada anotado.
+- **Cubre la respuesta principal del día.** Quedan afuera las **ampliaciones** (la respuesta a
+  una repregunta: `procesar.ts` no la evalúa a propósito) y la **pregunta de cierre** (el
+  `esOrdenDeCierre` corta la evaluación). Para esas dos está `detectarReservaYDejarTema`
+  (`entrevistador/src/ia/cerebro.ts`, 20/09): una llamada corta que devuelve solo `reserva` y
+  `dejarTema`, sin juzgar la respuesta — o sea, sin riesgo de repreguntar en el cierre. Falta
+  que el flujo y la puerta manual la llamen en esos dos caminos (Joaquín).
 - **La fábrica solo lee**, y respeta las dos en el mismo lugar donde arma el material del
   libro (`fabrica/src/libro/comun.ts`, `textoRespuesta`): el escritor nunca ve una respuesta
   `reservada` (ni en el capítulo ni en "la historia completa"), y el tramo se quita del
