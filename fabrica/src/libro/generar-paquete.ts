@@ -1,3 +1,4 @@
+import { registrarUso } from '../costos.js';
 import Anthropic from '@anthropic-ai/sdk';
 import { chromium } from 'playwright';
 import { cargarConfig } from '../config.js';
@@ -38,7 +39,7 @@ const INSTRUCCION_EDITOR = `Revisá coherencia entre capítulos, agregá referen
  * capítulos ya escritos, concatenados) para que quede coherente entre sí,
  * gane la apertura y el cierre en su voz, y sume la página "Sus frases".
  */
-async function editarLibro(cliente: Anthropic, borrador: string): Promise<string> {
+async function editarLibro(cliente: Anthropic, borrador: string, narradorId?: string): Promise<string> {
   const prompt = `${borrador}\n\n---\n\n${INSTRUCCION_EDITOR}`;
 
   const stream = cliente.messages.stream({
@@ -48,6 +49,9 @@ async function editarLibro(cliente: Anthropic, borrador: string): Promise<string
   });
 
   const mensajeFinal = await stream.finalMessage();
+  // El costo real del libro se mide llamada por llamada (costos.ts); la
+  // pasada de editor es la más cara después de los capítulos.
+  if (narradorId) await registrarUso(obtenerClienteDb, narradorId, { modelo: 'claude-fable-5', paso: 'editor', usage: mensajeFinal.usage });
   return extraerTexto(mensajeFinal.content as Array<{ type: string; text?: string }>).trim();
 }
 
@@ -201,7 +205,7 @@ export async function generarPaquete(pedido: { id: string; narrador_id: string; 
     } else {
       const config = cargarConfig();
       const cliente = new Anthropic({ apiKey: config.anthropicApiKey });
-      libroMarkdown = await editarLibro(cliente, borrador);
+      libroMarkdown = await editarLibro(cliente, borrador, narradorId);
       await subirTexto(db, rutaBorradorLibro, libroMarkdown);
     }
 
