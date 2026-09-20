@@ -198,11 +198,21 @@ export async function subirTexto(
 export const RUTA_BORRADOR_CAP = (narradorId: string, numeroCapitulo: number) =>
   `${narradorId}/paquete/borrador_cap_${String(numeroCapitulo).padStart(2, '0')}.md`;
 export const RUTA_BORRADOR_LIBRO = (narradorId: string) => `${narradorId}/paquete/borrador_libro.md`;
+/** Los conectores de un capítulo del audiolibro híbrido (mismo número que el borrador): también son caché del modelo. */
+export const RUTA_CONECTORES_CAP = (narradorId: string, numeroCapitulo: number) =>
+  `${narradorId}/paquete/conectores_cap_${String(numeroCapitulo).padStart(2, '0')}.json`;
 
-/** Todos los borradores de un narrador con `cantidadCapitulos` capítulos: lo que se borra al entregar. */
+/**
+ * Todos los borradores de un narrador con `cantidadCapitulos` capítulos: lo
+ * que se borra al entregar. Incluye los conectores de cada capítulo aunque
+ * el pedido no haya sido de voz clonada (o el capítulo no fuera híbrido):
+ * Storage no se queja de borrar lo que no está, y así no hay que recordar
+ * qué se cacheó.
+ */
 export const rutasDeBorradores = (narradorId: string, cantidadCapitulos: number): string[] => [
   ...Array.from({ length: cantidadCapitulos }, (_, i) => RUTA_BORRADOR_CAP(narradorId, i + 1)),
   RUTA_BORRADOR_LIBRO(narradorId),
+  ...Array.from({ length: cantidadCapitulos }, (_, i) => RUTA_CONECTORES_CAP(narradorId, i + 1)),
 ];
 
 /**

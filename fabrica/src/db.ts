@@ -39,6 +39,7 @@ export type Pregunta = {
 };
 
 export type Respuesta = {
+  id: string;
   narrador_id: string;
   pregunta_orden: number;
   texto_directo: string | null;
@@ -46,6 +47,8 @@ export type Respuesta = {
   es_repregunta: boolean;
   audio_path: string | null;
   duracion_segundos: number | null;
+  /** Cuándo llegó el audio: desempata las repreguntas de un mismo día en narracion.json. */
+  recibido_at: string | null;
 };
 
 export type Foto = {

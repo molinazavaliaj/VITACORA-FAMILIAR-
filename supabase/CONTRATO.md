@@ -242,6 +242,51 @@ infancia.") lo narra el worker con la voz clonada, a partir de `nombre` en
 reales (`extras.audiolibro = "real"` / pedidos viejos), donde alguien tiene que
 anunciar el capítulo.
 
+## narracion.json v2 — audiolibro híbrido (decisión de los socios, 20/09)
+
+**El híbrido es el audiolibro clonado por defecto**: las historias se escuchan con el audio
+REAL del narrador (restaurado por el worker) y la voz clonada narra solo el anuncio del
+capítulo y los "conectores" entre historias; **el todo-clonado queda por capítulo, solo
+cuando ese capítulo no tiene ningún audio** (respondió escribiendo). Reemplaza al contrato
+`narracion.json` de la sección "Narraciones"; lo escribe la fábrica
+(`fabrica/src/voz/narracion-json.ts`, conectores en `fabrica/src/voz/conectores.ts`) y lo
+lee el worker de voz. **El formato es fijo — el worker ya está codeado contra esto.**
+
+```json
+{
+  "version": 2, "narrador_id": "…", "pedido_id": "…", "titulo": "…",
+  "capitulos": [
+    { "numero": 2, "nombre": "Las raíces", "texto": "…texto plano del capítulo (como hoy)…",
+      "modo": "hibrido",
+      "historias": [
+        { "respuesta_id": "uuid", "pregunta_orden": 5, "es_repregunta": false, "audio_path": "3691…/dia_05.ogg", "segundos": 266, "pregunta": "¿Quiénes fueron sus abuelos…?", "texto": "…transcripción…" }
+      ],
+      "conectores": { "entrada": "…", "entre": ["…"], "salida": "…" } },
+    { "numero": 6, "nombre": "La familia", "texto": "…", "modo": "clonado" }
+  ]
+}
+```
+
+Reglas:
+
+- `numero` es 1..N contiguo en el orden FINAL del libro (la edición de la dueña aplicada);
+  `texto` es el capítulo en texto plano, párrafos separados por línea en blanco, como en v1.
+- `modo = "hibrido"` si y solo si el capítulo tiene al menos una respuesta con `audio_path`
+  no nulo; si no, `"clonado"`.
+- `historias`: SOLO las respuestas con audio, en el orden del libro — el de `ordenes` del
+  capítulo en `estructura.json`, y dentro de una misma pregunta primero la respuesta y
+  después la(s) repregunta(s) (`es_repregunta`), por `recibido_at` si hay que desempatar.
+  `segundos` = `duracion_segundos` redondeado (0 si null); `pregunta` = texto de la
+  pregunta; `texto` = la transcripción (o el texto directo).
+- `conectores`: los escribe el modelo en la voz del narrador (1–2 oraciones cada uno, nada
+  inventado). `entrada` abre el capítulo, `entre[k]` va entre la historia k y la k+1
+  (`entre.length === historias.length - 1`; con una sola historia, `[]`), `salida` lo
+  cierra. `entrada` y `salida` pueden ser `""`.
+- Un capítulo `clonado` NO lleva `historias` ni `conectores`: el worker narra `texto` entero.
+- Caché: la fábrica guarda los conectores en `{narrador}/paquete/conectores_cap_NN.json`
+  (mismo NN que `borrador_cap_NN.md`) para que un reintento no vuelva a pagarle al modelo;
+  se borran junto con los borradores al entregar.
+
 ## Storage — bucket privado `audios`
 
     {narrador_id}/dia_NN.ogg          respuestas (entrevistador sube; NN = pregunta_orden, 2 dígitos; extras: dia_NN_2.ogg)
