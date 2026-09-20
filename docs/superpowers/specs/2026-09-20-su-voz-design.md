@@ -147,11 +147,20 @@ Los textos de los prompts al modelo los aprueba Naza antes de mergear (regla de 
 
 ## La página pública (el QR y el NFC)
 
-- `/voz/[token]`: **sin login**, pensada para el celular, la tipografía grande. La frase, el
-  play, "escuchar la historia completa", y debajo las otras frases (por capítulo).
-- Cada frase con su ancla (`/voz/[token]#f3`) para mandar **una sola** por WhatsApp.
+- **Destino único: la página del cliente**, sin login, donde vive lo que se escanea — el libro
+  online (el PDF/lector) **y** "Sus frases" para escuchar. No hay una página aparte de "Su voz"
+  ni una "historia completa" como destino: lo que se escanea es esa página.
+- El **marco NFC arranca en las frases** (decidido el 20/09): se acerca el teléfono y suena su
+  voz; desde ahí se llega al libro.
+- **El código del impreso lleva su propio token** (`tipo: 'voz'`, mismo esquema HS256 que
+  `web/src/lib/token-libro.ts`), hermano del token de la muestra (`tipo: 'libro'`). Así el link
+  que el comprador reenvía para vender copias impresas sigue mostrando **solo la muestra**,
+  mientras el código impreso abre el libro entero y las frases para quien tiene el libro en la
+  mano. Cada frase con su ancla (`#f3`) para mandar **una sola** por WhatsApp.
 - Respeta `reservada`. Nombre del narrador solo como lo muestra el libro.
-- Reusa el patrón que ya existe para la muestra (`/libro/[token]` + `/api/libro-muestra/[token]/audio`).
+- Reusa el patrón que ya existe (`/libro/[token]` + `/api/libro-muestra/[token]/audio`).
+- **Copy a corregir** (hoy dice audiolibro): la página de muestra
+  (`web/src/app/libro/[token]/page.tsx:48`) dice *"con el audiolibro en su propia voz"*.
 
 ## Qué se descarta / qué queda sin uso
 
@@ -178,8 +187,10 @@ en el libro y el PDF, el encolado del corte, la entrega cuando las frases están
 fallback: si el worker no contesta, el libro se entrega igual y las frases llegan después, con
 el panel diciendo "Su voz se está preparando").
 
-**web (Joaquín)** — quitar la línea del audiolibro del checkout y su copy; la página
-`/tablero/[narradorId]/frases`; `/voz/[token]` y su API de audio; la descarga del base.
+**web (Joaquín)** — quitar la línea del audiolibro del checkout y su copy (incluida la del
+link público, que hoy dice "con el audiolibro en su propia voz"); la página
+`/tablero/[narradorId]/frases`; la página del cliente con el token nuevo (`tipo: 'voz'`, sin
+login: libro online + frases) y su API de audio; la descarga del base.
 
 **voz (PC de música)** — tarea nueva del buzón: "cortar frases" (`frases.json` → mp3
 restaurados, sin ritmo), con candado y reintento. Directiva aparte.
@@ -197,6 +208,8 @@ restaurados, sin ritmo), con candado y reintento. Directiva aparte.
 2. ~~Cuántos días se espera la confirmación~~ — **no es un plazo: se cierra al apretar
    "imprimir"**, con recordatorio por mail a los 15 días y la selección del biógrafo como
    definitiva si nadie responde (decidido el 20/09).
-3. El marco NFC: ¿arranca en las frases o en la historia completa? (propuesto: las frases, con
-   el botón de historia completa) — sin respuesta todavía.
+3. ~~El marco NFC: ¿arranca en las frases o en la historia completa?~~ — **en las frases**
+   (decidido el 20/09).
 4. El texto de los prompts de las dos pasadas (lo aprueba Naza).
+5. **¿El código impreso abre el libro entero o solo la muestra + las frases?** Propuesto: el
+   libro entero (el que tiene el libro en la mano ya lo pagó), con token propio.
