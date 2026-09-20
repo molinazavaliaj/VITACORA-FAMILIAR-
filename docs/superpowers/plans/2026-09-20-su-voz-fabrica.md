@@ -744,6 +744,33 @@ La familia decide que se imprime; el aviso no puede repetirse ni frenar nada,
 asi que va con candado como el cierre automatico."
 ```
 
+### Task 7: el paso de deduplicación entre capítulos (lo que evita el tema repetido)
+
+**Por qué existe:** la Task 1 compara materiales *dentro* de un capítulo. Dos capítulos pueden
+elegir la misma anécdota (el campo, el hermano, la fábrica) y la familia la escucha dos veces —
+el Review Focus 1 del plan. Mandar el libro entero como contexto en cada capítulo lo evitaría,
+pero cuesta ~USD 1,5 por libro (medido: el material de Joaquín son 17,9 k tokens y el escritor
+manda el libro completo en cada capítulo): **cinco veces más** que lo que sale todo lo demás.
+
+**Files:**
+- Modify: `fabrica/src/libro/frases.ts` (una función más) y su test
+- Modify: `fabrica/src/libro/generar-paquete.ts` (llamarla después de `armarFrasesJson`)
+
+**Interfaces:**
+- Consumes: `FrasesJson` (Task 1), el mismo cliente del modelo.
+- Produces: `deduplicarEntreCapitulos(cliente, frases): Promise<FrasesJson>` — una sola llamada
+  con las 24 elegidas (texto corto, ~1 k tokens de entrada) que devuelve qué reemplazar por la
+  siguiente candidata del mismo capítulo.
+
+- [ ] **Step 1: escribir el test que falla** (dos capítulos con la misma frase → el segundo cambia
+  por su siguiente candidata; si no hay candidata libre, se saca y el capítulo queda con menos)
+- [ ] **Step 2: correr y ver que falla** — `cd fabrica && npx vitest run test/frases.test.ts -t dedup`
+- [ ] **Step 3: implementar** (una llamada, `max_tokens: 1000`, con el JSON de textos e índices)
+- [ ] **Step 4: correr la suite y el typecheck** — `npx vitest run && npx tsc --noEmit -p .`
+- [ ] **Step 5: commit** — `fabrica: las frases no se repiten entre capitulos (una llamada barata)`
+
+**Costo:** ~USD 0,05 por libro (1 k de entrada, 200 de salida). Total del archivo: **~USD 0,40**.
+
 ---
 
 ## Entregables que salen de este plan (no son código)
