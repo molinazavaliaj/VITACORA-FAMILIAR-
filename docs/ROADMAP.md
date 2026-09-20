@@ -135,7 +135,7 @@ se decide con eso a la vista.
 | 1.9 | Conseguir línea telefónica dedicada (sin WhatsApp común activo) | **J** | ✅ 16/09 — chip activado, **nunca metido en una app de WhatsApp**; entra en 1.12 |
 | 1.10 | Verificación del negocio con documentación de Joaquín | **A** | ☐ post 1-oct |
 | 1.11 | Cuenta publicitaria — ⚠️ moneda **ARS**, no se cambia nunca más | **N** | ☐ post 1-oct |
-| 1.12 | Producción: **chip propio ya activado** (no meterlo en ninguna app de WhatsApp), display name, **token permanente (System User)** — el actual vence a las 24 h, hay que renovarlo a mano en Railway hasta hacer esto. Exige cargar medio de pago en Meta, moneda **ARS**. | **J** | 🔄 **chip activado el 19/09**. Sábado 20/09 a la mañana: agregar el número a la WABA (SMS al chip), display name "Vitácora", System User + token permanente (por canal privado) → `WA_TOKEN` y `WA_PHONE_NUMBER_ID` en Railway. Se migran los pilotos al número nuevo. **Urgente por el viajero (semanas de viaje ≠ token de 24 h).** |
+| 1.12 | Producción: **chip propio ya activado** (no meterlo en ninguna app de WhatsApp), display name, **token permanente (System User)** — el actual vence a las 24 h, hay que renovarlo a mano en Railway hasta hacer esto. Exige cargar medio de pago en Meta, moneda **ARS**. | **J** | 🔄 **20/09**: número agregado y registrado (`Phone Number ID 1242792948928690`), System User `vitacora-railway` + token permanente, `WA_TOKEN` y `WA_PHONE_NUMBER_ID` cargados en Railway. **Hallazgo:** el número quedó en una WABA nueva ("Vitácora"), distinta de la de prueba (`1553096429416760`) → (a) suscribir la app a la WABA nueva (`POST /{waba}/subscribed_apps`) para que lleguen los mensajes al webhook; (b) **recrear las 5 plantillas** en la WABA nueva (`bienvenida`, `pregunta_diaria`, `pregunta_diaria_vos`, `recordatorio`, `bienvenida_viaje`) — hasta entonces cada envío de plantilla falla con `#132001`. Después: `NEXT_PUBLIC_WA_NUMERO` en Vercel (N). |
 
 ### ✅ Infraestructura unificada (15/09)
 
@@ -209,6 +209,9 @@ Falta solo pegar el `WA_TOKEN` y el `WA_PHONE_NUMBER_ID` nuevos cuando exista la
 | 2.6 | Middleware de supabase-ssr (pendiente #1 del triage) | **N** | ☐ |
 | 2.7 | Pixel de Meta + Conversions API — ver nota abajo | **N** | ☐ |
 | **2.8** | **Deploy automático de la web** — `.github/workflows/deploy-web.yml`: en cada push a `main` que toque `web/`, GitHub corre los tests y empuja a Vercel con la CLI (sin Pro). Secretos `VERCEL_TOKEN` (Full Account) / `VERCEL_ORG_ID` / `VERCEL_PROJECT_ID` en GitHub. | **J + N** | ✅ 16/09 — primer deploy verde: run 35099776813 (token `github-actions-web`). `vercel git connect` sigue sin poder usarse (Hobby + repo ajeno); **Root Directory queda en `.`**. — bitácora #8 |
+| 2.10 | **Oferta de productos en el flujo del usuario:** hoy en el checkout solo se puede elegir el libro PDF; tienen que estar todos los productos (impreso, audiolibro, marco/QR…) sumables al carrito | **J** | ☐ (20/09) |
+| 2.11 | Mejorar el selector **Familiar · De viaje** del header (hoy dos pastillas mínimas) | **J** | ☐ (20/09) |
+| 2.12 | **Región por IP:** al entrar, detectar el país y llevar directo a la landing/precios de Argentina o de Europa (sin el selector manual AR/ES) | **J** | ☐ (20/09) — Vercel expone `x-vercel-ip-country` en el request; con eso alcanza |
 | **2.9** | **El webhook de Mercado Pago no verifica la firma** (`MP_WEBHOOK_SECRET` está en Vercel, el código no lo lee; Stripe sí verifica) | **J** | ✅ 16/09 — `lib/firma-mp.ts`, 401 si la firma no coincide; la consulta directa del pago sigue siendo la verdad |
 
 ### 📊 Nota sobre el pixel — hay que diseñarlo bien o no sirve
@@ -571,6 +574,7 @@ punta a punta (falta la cuenta de Meta). Nada de eso lo destraba esta prueba.
 | 6.2 | Narrador español: Pequeña Imma (ya cargada en la base, estado `invitado`) | **N** | ☐ |
 | 6.3 | Activar `contexto.modoRapido = true` en ambos | **N** (los registra) | ☐ |
 | 6.4 | Acompañar el piloto: llamar si se traba, anotar todo lo que falle | **A** | ☐ |
+| 6.5 | **Mejorar el biógrafo con los dos libros ya hechos** (el de Joaquín y el de Ángel): leer los textos finales, anotar dónde el entrevistador repregunta mal, ancla en lo ya contado o pierde nombres, y ajustar los prompts de `entrevistador/src/ia/*` | **J** | ☐ (20/09) — se cruza con `docs/piloto-bitacora-errores.md` |
 
 **Dos pilotos, no uno:** si alguno abandona, no nos quedamos sin la pieza de venta.
 Con modo rápido, las 30 preguntas entran en 7-10 días en vez de un mes.
@@ -587,6 +591,7 @@ Con modo rápido, las 30 preguntas entran en 7-10 días en vez de un mes.
 | 7.4 | Detectar el ángulo ganador por rendimiento orgánico | **J** | ☐ |
 | 7.5 | Promocionar el ganador desde el perfil con pauta para empezar a atraer ventas | **J** | ☐ |
 | 7.6 | 5-10 posteos reales para la Página de Facebook | **N** | ☐ |
+| 7.7 | **Campaña de comunicación para la colab con Nako** (el viajero de Vitácora de viaje): qué comparte durante el viaje, con qué cadencia, y la pieza final con el libro | **J** | ☐ (20/09) — se diseña con el material real de las primeras noches |
 
 **La estrategia:** la sección de prueba es el laboratorio (TikTok reparte alcance orgánico
 a cuentas nuevas; Instagram casi no). El perfil principal es la vidriera: ahí van los
