@@ -69,14 +69,33 @@ Devolvé SOLO un JSON: {"indices":[3,0,5],"por_que":["...","...","..."]} — los
 
 /** Una llamada al modelo, con el mismo parseo tolerante que usan los conectores. */
 async function llamar(cliente: Anthropic, prompt: string, material: string): Promise<unknown> {
-  const respuesta = await cliente.messages.create({
-    model: 'claude-fable-5',
-    // 300 tokens corta la lista a la mitad (medido en el entrevistador: un tope corto pierde
-    // la última respuesta); 2000 alcanza para 5 frases con su porqué.
-    max_tokens: 2000,
-    messages: [{ role: 'user', content: `${prompt}\n\n--- MATERIAL ---\n${material}` }],
-  });
-  return parsearJsonTolerante(extraerTexto(respuesta.content as Array<{ type: string; text?: string }>));
+  const contenido = `${prompt}\n\n--- MATERIAL ---\n${material}`;
+
+  const pedir = async (extra: string): Promise<string> => {
+    const respuesta = await cliente.messages.create({
+      model: 'claude-fable-5',
+      // 300 tokens corta la lista a la mitad (medido en el entrevistador: un tope corto pierde
+      // la última respuesta); 2000 alcanza para 5 frases con su porqué.
+      max_tokens: 2000,
+      messages: [{ role: 'user', content: `${contenido}${extra}` }],
+    });
+    return extraerTexto(respuesta.content as Array<{ type: string; text?: string }>);
+  };
+
+  try {
+    return parsearJsonTolerante(await pedir(''));
+  } catch {
+    // Un modelo que contesta en prosa no puede tumbar la entrega (misma regla que en el
+    // entrevistador, bitácora 14): se le pide una vez más, con la orden pelada, y si vuelve a
+    // fallar el capítulo queda sin frases en vez de romper el paquete.
+    try {
+      return parsearJsonTolerante(await pedir('\n\nSOLO el JSON, sin explicar nada: empezá con { y terminá con }.'));
+    } catch (err) {
+      const texto = await pedir('').catch(() => '(la segunda llamada tampoco volvió)');
+      console.warn(`Frases: el modelo no devolvió JSON (${(err as Error).message}). Dijo: «${texto.slice(0, 200)}». El capítulo queda sin frases.`);
+      return {};
+    }
+  }
 }
 
 export async function proponerCandidatas(
