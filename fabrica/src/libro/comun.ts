@@ -29,9 +29,59 @@ export function extraerTexto(bloques: Array<{ type: string; text?: string }>): s
     .join('\n');
 }
 
-export function textoRespuesta(r: Pick<Respuesta, 'transcripcion' | 'texto_directo'>): string | null {
+/**
+ * El pedido del narrador sobre una respuesta puntual: "esto que no vaya al libro"
+ * (hallazgo 19). `reservada` = no se publica nada de esa respuesta;
+ * `reservado_tramo` = se publica todo menos ese tramo textual.
+ */
+export type ReservaDeRespuesta = Pick<Respuesta, 'reservada' | 'reservado_tramo'>;
+/** Una respuesta con lo mínimo para saber qué se puede publicar de ella. */
+export type RespuestaPublicable = Pick<Respuesta, 'transcripcion' | 'texto_directo'> & Partial<ReservaDeRespuesta>;
+
+/**
+ * El texto publicable de una respuesta, ya sin lo que el narrador pidió reservar.
+ *
+ * Existe por el hallazgo 19: en el piloto el narrador dijo "estas historias
+ * prefiero que queden en mi mente, no en mi biografía" y la transcripción entró
+ * entera al material del libro. Publicar lo que pidió guardar es la peor falla
+ * posible del producto, así que esta decisión vive en UN solo lugar y la usan
+ * todos los que publican: el capítulo, "la historia completa" (`armarMaterial`),
+ * el audiolibro híbrido y la muestra de audio del anticipo.
+ *
+ * - `reservado_tramo` con texto → se publica todo MENOS ese tramo (el caso
+ *   "reservada = true + reservado_tramo = …" es reserva PARCIAL, no total: el
+ *   tramo es la información más fina que tenemos). Si el tramo NO aparece
+ *   textual en la transcripción, se reserva la respuesta entera: sacar un texto
+ *   que no está no sacaría nada y lo reservado se publicaría igual.
+ * - `reservada` sin tramo → null (no hay nada publicable de esta respuesta).
+ */
+export function textoRespuesta(r: RespuestaPublicable): string | null {
   const texto = r.transcripcion?.trim() || r.texto_directo;
-  return texto && texto.trim() !== '' ? texto : null;
+  if (!texto || texto.trim() === '') return null;
+
+  const tramo = typeof r.reservado_tramo === 'string' ? r.reservado_tramo.trim() : '';
+  if (tramo) {
+    if (!texto.includes(tramo)) {
+      console.warn('textoRespuesta: el tramo reservado no está en la transcripción; se reserva la respuesta entera.');
+      return null;
+    }
+    const limpio = texto.split(tramo).join(' ').replace(/\s+/g, ' ').trim();
+    return limpio === '' ? null : limpio;
+  }
+
+  return r.reservada === true ? null : texto;
+}
+
+/**
+ * ¿De esta respuesta se puede publicar el AUDIO? (la muestra del anticipo, el
+ * audiolibro híbrido).
+ *
+ * Un tramo reservado no se puede recortar de una grabación —no se puede sacar
+ * una frase de en medio de su voz—, así que una reserva parcial también deja el
+ * audio afuera. Ante la duda, de menos.
+ */
+export function esPublicable(r: Partial<ReservaDeRespuesta>): boolean {
+  return r.reservada !== true;
 }
 
 export function escaparHtml(texto: string): string {
@@ -60,7 +110,7 @@ export function formatearNombresCorregidos(correcciones: Nombres['correcciones']
 export function armarMaterial(
   ordenes: number[],
   preguntasPorOrden: Map<number, Pick<Pregunta, 'texto'>>,
-  respuestasPorOrden: Map<number, Pick<Respuesta, 'transcripcion' | 'texto_directo'>[]>
+  respuestasPorOrden: Map<number, RespuestaPublicable[]>
 ): string {
   const bloques: string[] = [];
   for (const orden of ordenes) {
@@ -235,7 +285,8 @@ export async function borrarArchivos(
  * cortando un archivo que él ya mandó.
  *
  * Si no hay ninguna respuesta con audio (narrador que responde escribiendo),
- * no es un error: se avisa y se sigue sin muestra.
+ * no es un error: se avisa y se sigue sin muestra. Las que el narrador pidió
+ * reservar no se usan: la muestra se publica en la landing (hallazgo 19).
  */
 export async function recortarMuestraDeAudio(
   db: ReturnType<typeof obtenerClienteDb>,
@@ -243,7 +294,7 @@ export async function recortarMuestraDeAudio(
   rutaDestino: string
 ): Promise<void> {
   const primeraConAudio = respuestas
-    .filter((r): r is Respuesta & { audio_path: string } => Boolean(r.audio_path))
+    .filter((r): r is Respuesta & { audio_path: string } => Boolean(r.audio_path) && esPublicable(r))
     .sort((a, b) => a.pregunta_orden - b.pregunta_orden)[0];
 
   if (!primeraConAudio) {

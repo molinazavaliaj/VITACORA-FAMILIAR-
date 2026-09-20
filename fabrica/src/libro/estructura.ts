@@ -2,6 +2,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { cargarConfig } from '../config.js';
 import { registrarUso } from '../costos.js';
 import { obtenerClienteDb, type Narrador, type Pregunta, type Respuesta } from '../db.js';
+import { esPublicable } from './comun.js';
 
 const MODELO = 'claude-fable-5';
 
@@ -205,7 +206,10 @@ export async function generarEstructura(narradorId: string): Promise<Estructura>
 
   const capitulos = agruparCapitulos(preguntas, ordenesRespondidos);
 
+  // Las respuestas que el narrador pidió reservar no entran ni acá: esta lista
+  // de nombres se le muestra a la familia (hallazgo 19).
   const transcripciones = respuestasList
+    .filter(esPublicable)
     .map((r) => r.transcripcion?.trim() || r.texto_directo)
     .filter((texto): texto is string => Boolean(texto));
 

@@ -194,6 +194,69 @@ describe('el trato de la repregunta que escribe la evaluación', () => {
   });
 });
 
+describe('la reserva: "esto que no vaya al libro" (hallazgo 19)', () => {
+  beforeEach(() => crearMock.mockReset());
+
+  it('el prompt pide marcar lo reservado, con los ejemplos reales', async () => {
+    const { PROMPT_EVALUAR } = await import('../src/ia/cerebro.js');
+    const p = PROMPT_EVALUAR('¿Y aquella historia?', 'Estas historias prefiero que queden en mi mente, no en mi biografía.', 25, '', 'vos');
+    expect(p).toContain('SI PIDE QUE ALGO NO VAYA AL LIBRO, SE ANOTA ACÁ');
+    expect(p).toContain('"esto prefiero que no vaya al libro"');
+    expect(p).toContain('"estas historias prefiero que queden en mi mente"');
+    expect(p).toContain('"reservado": true');
+    expect(p).toContain('"reservadoTramo"');
+    // Ante la duda, reservar: publicar lo que pidió guardar es la peor falla.
+    expect(p).toContain('marcá "reservado": true');
+  });
+
+  it('devuelve reservado cuando el modelo lo marca', async () => {
+    crearMock.mockResolvedValueOnce({
+      content: [{ type: 'text', text: '{"suficiente": true, "reservado": true}' }],
+    });
+    const { evaluarRespuesta } = await import('../src/ia/cerebro.js');
+    const r = await evaluarRespuesta('¿Y aquella historia?', 'Estas historias prefiero que queden en mi mente.', 25);
+    expect(r.reservado).toBe(true);
+  });
+
+  it('devuelve el tramo cuando reserva solo una parte', async () => {
+    crearMock.mockResolvedValueOnce({
+      content: [{ type: 'text', text: '{"suficiente": true, "reservado": true, "reservadoTramo": "locuras de las contables pueden ser por amor"}' }],
+    });
+    const { evaluarRespuesta } = await import('../src/ia/cerebro.js');
+    const r = await evaluarRespuesta('¿Y aquella historia?', 'Trabajaba con las contables: locuras de las contables pueden ser por amor, y después volvía.', 25);
+    expect(r.reservadoTramo).toBe('locuras de las contables pueden ser por amor');
+  });
+});
+
+describe('reservaDe: qué se guarda como reservado', () => {
+  it('sin pedido del narrador, no reserva nada', async () => {
+    const { reservaDe } = await import('../src/ia/cerebro.js');
+    expect(reservaDe({}, 'Cualquier cosa.')).toEqual({ reservada: false, tramo: null });
+    expect(reservaDe({ reservado: false }, 'Cualquier cosa.')).toEqual({ reservada: false, tramo: null });
+  });
+
+  it('con reservado y sin tramo, reserva la respuesta entera', async () => {
+    const { reservaDe } = await import('../src/ia/cerebro.js');
+    expect(reservaDe({ reservado: true }, 'Estas historias que queden en mi mente.')).toEqual({ reservada: true, tramo: null });
+  });
+
+  it('con un tramo que está textual, lo guarda tal cual', async () => {
+    const { reservaDe } = await import('../src/ia/cerebro.js');
+    const texto = 'Trabajaba con las contables: locuras de las contables pueden ser por amor.';
+    expect(reservaDe({ reservado: true, reservadoTramo: 'locuras de las contables pueden ser por amor' }, texto))
+      .toEqual({ reservada: true, tramo: 'locuras de las contables pueden ser por amor' });
+  });
+
+  // Si el modelo parafrasea el tramo, sacarlo del texto no sacaría nada y lo
+  // reservado se publicaría igual: se reserva la respuesta entera.
+  it('con un tramo que NO está en la transcripción, reserva la respuesta entera', async () => {
+    const { reservaDe } = await import('../src/ia/cerebro.js');
+    const texto = 'Trabajaba con las contables y hacíamos locuras por amor.';
+    expect(reservaDe({ reservado: true, reservadoTramo: 'las locuras de las contables' }, texto))
+      .toEqual({ reservada: true, tramo: null });
+  });
+});
+
 describe('extraerJson', () => {
   it('saca el JSON limpio de un texto con explicaciones alrededor', async () => {
     const { extraerJson } = await import('../src/ia/cerebro.js');

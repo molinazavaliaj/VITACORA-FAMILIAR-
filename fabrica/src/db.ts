@@ -49,6 +49,15 @@ export type Respuesta = {
   duracion_segundos: number | null;
   /** Cuándo llegó el audio: desempata las repreguntas de un mismo día en narracion.json. */
   recibido_at: string | null;
+  /**
+   * El narrador pidió que esta respuesta no vaya al libro (hallazgo 19; migración
+   * `20260920000100`, la aplica Naza cuando Joaquín dé el OK). Opcionales a
+   * propósito: con `select *` no vienen hasta que la migración esté aplicada, y
+   * ausente = nada reservado, así la fábrica funciona igual antes y después.
+   */
+  reservada?: boolean | null;
+  /** Si el pedido es por una parte: el tramo textual que no se publica. */
+  reservado_tramo?: string | null;
 };
 
 export type Foto = {
