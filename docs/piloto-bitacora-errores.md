@@ -14,7 +14,7 @@ libro sale mal, sale incompleto, o el cliente se pierde antes de llegar?
 
 | # | Qué | Por qué es grave |
 |---|---|---|
-| 19 | El narrador pide "esto que no vaya al libro" y nada lo registra | Publicar algo que pidió reservar es la peor falla posible: quiebra la confianza y puede herir a la familia |
+| 19 | El narrador pide "esto que no vaya al libro" y nada lo registra | Publicar algo que pidió reservar es la peor falla posible: quiebra la confianza y puede herir a la familia. **Arreglado el 20/09** (`82c77e6`): la evaluación lo detecta, la fábrica lo respeta; falta aplicar la migración (propuesta en `CONTRATO.md`) y el `UPDATE` en el flujo → **para Joaquín** |
 | 1 | Trato "usted" por defecto con ficha vacía (y el checkout no pide la ficha) | Un cliente real llega con ficha vacía → preguntas genéricas y trato equivocado desde el día 1; el narrador no siente que lo escuchan |
 | 17 | Nombres propios mal transcriptos (NASA/Naza, Herrera/Herrero) | Van directo al texto del libro; un nombre mal escrito de un hijo o un amigo desvaloriza todo el producto. La revisión de nombres del panel es la única red |
 | 14 | La evaluación vuelve vacía (2 de 13 veces) y corta el proceso | En el flujo automático es un día perdido: sin repregunta y, según cómo falle, sin avance. Frecuencia demasiado alta para ignorar. **Arreglado el 20/09** (`f76da1f`) |
@@ -208,6 +208,29 @@ libro sale mal, sale incompleto, o el cliente se pierde antes de llegar?
     "no lo pongas / que no salga" y marque la respuesta (o el tramo) como
     `reservada`, y que la fábrica lo respete; hoy solo la dueña podría excluirla
     desde el panel (y `excluidas` se ignora por decisión del 13/09).
+    **Arreglado el 20/09** (`82c77e6`):
+    - La evaluación puede devolver `reservado: true` y `reservadoTramo: "…"` (regla
+      nueva en `PROMPT_EVALUAR`, con las frases textuales de esta respuesta:
+      "esto prefiero que no vaya al libro", "estas historias prefiero que queden en
+      mi mente"...), y `reservaDe()` lo normaliza: si el tramo que marcó el modelo
+      no está TEXTUAL en la transcripción, se reserva la respuesta entera.
+    - La fábrica lo respeta en un solo lugar, `textoRespuesta` (`fabrica/src/libro/comun.ts`):
+      el escritor no ve las respuestas reservadas (ni en el capítulo ni en "la
+      historia completa") y el tramo se quita del texto. También quedan afuera del
+      audiolibro híbrido (`historiasDelCapitulo`), de la muestra de audio del
+      anticipo y de la lista de nombres para revisar (`estructura.ts`): un tramo no
+      se puede recortar de una grabación.
+    - Base: **propuesta** en `supabase/CONTRATO.md` + migración
+      `20260920000100_respuestas_reservadas.sql` (`respuestas.reservada`,
+      `respuestas.reservado_tramo`), **sin aplicar**: la aplica Naza cuando Joaquín
+      dé el OK. El código funciona igual sin las columnas (ausente = nada
+      reservado), así que aplicarla no puede romper nada.
+    - **Falta para Joaquín**: el `UPDATE` en el flujo — después de evaluar, guardar
+      `{ reservada, reservado_tramo }` de `reservaDe(evaluacion, transcripcion)` en
+      la fila de `respuestas` (`procesar.ts`). Sin eso la detección no llega a la
+      base y la fábrica no tiene qué respetar. Tests del entrevistador en
+      `test/cerebro.test.ts` y de la fábrica en `test/comun.test.ts` y
+      `test/conectores.test.ts`.
 
 20. **17/09 · la pregunta fija supone un guion de vida que no es el del narrador.**
     Orden 14 original: "¿cómo fue la propuesta de casamiento y el día de la boda?";
