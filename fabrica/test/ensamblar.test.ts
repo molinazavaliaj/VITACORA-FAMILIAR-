@@ -94,7 +94,7 @@ describe('ensamblarAudiolibroClonado', () => {
     });
   });
 
-  it('cada capítulo es el mp3 del worker normalizado, sin ninguna intro TTS: en el clonado no suena otra voz', async () => {
+  it('cada capítulo es el mp3 del worker tal cual, sin intro TTS ni normalización: el worker ya lo masterizó', async () => {
     const fake = construirDbFake({ descargas });
 
     await ensamblarAudiolibroClonado(db(fake), args);
@@ -104,15 +104,15 @@ describe('ensamblarAudiolibroClonado', () => {
     // worker con la voz del narrador (narracion.json trae el nombre).
     expect(generarAudioTtsMock).not.toHaveBeenCalled();
     expect(fake.download.mock.calls.map((c) => c[0])).toEqual(['n1/voz/cap_01.mp3', 'n1/voz/cap_02.mp3']);
-    // el cuerpo que subió el worker es mp3: se normaliza como tal.
-    expect(normalizarAMp3Mock).toHaveBeenCalledWith(Buffer.from('voz-1'), 'mp3');
-    expect(normalizarAMp3Mock).toHaveBeenCalledWith(Buffer.from('voz-2'), 'mp3');
-    // lo que se sube por capítulo es exactamente el normalizado.
-    expect(fake.upload.mock.calls[0][1]).toEqual(Buffer.from('N(mp3:voz-1)'));
-    expect(fake.upload.mock.calls[1][1]).toEqual(Buffer.from('N(mp3:voz-2)'));
+    // El worker entrega el capítulo masterizado (−19 LUFS, TP ≤ −1,5; voz/
+    // masterizar, 19/09). Volver a pasarlo por loudnorm acá lo bajaba a los
+    // −24 LUFS por defecto de ffmpeg: se sube byte a byte.
+    expect(normalizarAMp3Mock).not.toHaveBeenCalled();
+    expect(fake.upload.mock.calls[0][1]).toEqual(Buffer.from('voz-1'));
+    expect(fake.upload.mock.calls[1][1]).toEqual(Buffer.from('voz-2'));
     // el completo concatena los dos capítulos, y es el único concat.
     expect(concatenarMp3sMock).toHaveBeenCalledTimes(1);
-    expect((concatenarMp3sMock.mock.calls[0][0] as Buffer[]).map(etiquetaDe)).toEqual(['N(mp3:voz-1)', 'N(mp3:voz-2)']);
+    expect((concatenarMp3sMock.mock.calls[0][0] as Buffer[]).map(etiquetaDe)).toEqual(['voz-1', 'voz-2']);
   });
 
   it('si el worker dejó menos capítulos que la estructura, tira sin subir nada', async () => {

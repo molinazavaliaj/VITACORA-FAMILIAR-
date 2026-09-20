@@ -9,7 +9,6 @@
 import type { obtenerClienteDb } from '../db.js';
 import { concatenarMp3s } from '../audio/ffmpeg.js';
 import { descargarAudio, subirMp3, subirCompletoSiEntra, RUTA_CAPITULO, RUTA_COMPLETO } from '../audio/audiolibro.js';
-import { normalizarAMp3 } from '../audio/ffmpeg.js';
 import type { AudiolibroPaths } from '../audio/audiolibro.js';
 
 type Db = ReturnType<typeof obtenerClienteDb>;
@@ -43,9 +42,13 @@ export async function ensamblarAudiolibroClonado(
     const numero = i + 1;
     // Sin intro TTS: en el audiolibro clonado no puede sonar otra voz que
     // la del narrador (regla de Naza, 19/09). El anuncio "Capítulo N. Nombre"
-    // lo narra el worker con la voz clonada; acá solo se normaliza el
-    // volumen del mp3 que subió, para que los capítulos suenen parejos.
-    const buffer = await normalizarAMp3(await descargarAudio(db, capitulosPaths[i]), 'mp3');
+    // lo narra el worker con la voz clonada. Y sin normalizar: el worker ya
+    // masteriza cada capítulo (−19 LUFS, TP ≤ −1,5, `voz/masterizar`);
+    // pasarlo otra vez por loudnorm lo bajaba a los −24 LUFS por defecto de
+    // ffmpeg. El mp3 se sube tal cual. (Todos los capítulos salen del mismo
+    // worker con los mismos parámetros, así que el concat del completo sigue
+    // siendo válido.)
+    const buffer = await descargarAudio(db, capitulosPaths[i]);
     const ruta = RUTA_CAPITULO(narradorId, numero);
     await subirMp3(db, ruta, buffer);
     rutasCapitulos.push(ruta);
