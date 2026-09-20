@@ -435,8 +435,31 @@ rama `fabrica-narracion-v2` (`fabrica/src/libro/generar-paquete.ts`,
 esos archivos desde otra rama. El mapa historia → respuesta original del libro de
 Joaquín, para probarlo, está en `docs/mapa-historias-joaquin.md`.
 
+### 2026-09-20 — el híbrido de Joaquín se encola y no se entrena ningún modelo
+
+**Encolado (23:18):** el libro de Joaquín se vuelve a narrar híbrido. `narracion.json` v2 en
+Storage (8 capítulos, todos híbridos: 5, 4, 5, 5, 4, 2, 6 y 3 historias con audio real), el v1
+copiado a `narracion_v1.json`, la narración todo-clonada del 18/09 marcada `reemplazada` y la
+nueva `pendiente`, el pedido en `esperando_voz`. Los conectores son **los revisados por Naza**:
+se congelaron en `paquete/conectores_cap_NN.json` antes de correr, así que la corrida hizo
+**0 llamadas al modelo** (el caché no existía: sin ese paso se re-pagaban 8 llamadas, ~USD 0,5-1).
+
+**Decisión — no se entrena ningún modelo (Naza, 20/09):** el LoRA de Qwen3-TTS queda **sin
+mergear**. El A/B del capítulo 6 (mismo texto y post-proceso) midió WER 2,2 % → 1,0 % sobre 402
+palabras; en el híbrido el clonado cubre ~20 s por capítulo, o sea **~0,2 s de diferencia por
+capítulo**: no se escucha. Costaba 38 MB y ~8 min de GPU por narrador, 7,69 de 8,19 GB de VRAM
+(no entra junto al worker) y un parche comunitario no oficial; la pérdida bajó poco (13,07 →
+12,22). La apuesta es la **limpieza y el masterizado de los audios reales** — inferencia con
+modelos preentrenados, nunca entrenar con la voz del cliente —, que es donde está el 95 % del
+audiolibro. El parche queda guardado en el buzón por si el clonado alguna vez tiene que narrar
+minutos por capítulo.
+
+**Próxima palanca, sin entrenar:** la **referencia** del clonado (hoy `dia_02` fijo): elegir los
+15-30 s más limpios y expresivos del narrador y generar los conectores en pocos tramos largos.
+Prueba A/B propuesta a la PC de música (directiva 07).
+
 ## Próximos hitos
 
-1. Audiolibro híbrido (voz real restaurada + conectores clonados) en `fabrica-narracion-v2`, y probarlo con el libro de Joaquín.
+1. Audiolibro híbrido: **encolado el 20/09** para el libro de Joaquín; queda escuchar el resultado y decidir si el híbrido pasa a ser el default.
 2. Bitácora: #31 (cierre solo al recibir la 30), #33 (candado del cierre automático), #32 (healthcheck de la fábrica); la muestra pública con `titulosCapitulos`.
 3. Plata: rotar la key de Anthropic de Naza (#37), cancelar el plan Hobby de Railway de Naza antes del 1/10, recargar crédito Anthropic antes del próximo libro y unificar las keys en una organización del proyecto (`GASTOS.md`).
