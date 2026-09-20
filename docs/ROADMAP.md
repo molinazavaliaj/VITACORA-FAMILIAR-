@@ -606,7 +606,7 @@ al algoritmo a buscar curiosos en vez de compradores.
 | 8.2 | Cargar en Vercel los 10 precios (tabla en `GASTOS.md`) | **N** | ✅ 16/09 — el checkout ofrece los tres productos |
 | 8.3 | ~~Prueba en sandbox~~ → **un pago real de prueba en producción, y devolverlo** (sandbox abandonado el 13/09) | **A** | ☐ único paso que falta del cobro |
 | **8.6** | **Confirmar con Naza:** en Vercel, `MP_WEBHOOK_SECRET` tiene que ser la clave del webhook de **producción** (panel de MP → Webhooks → junto a la URL), no la de prueba del 13/09 — desde `b1fedf2` la web rechaza con 401 las notificaciones mal firmadas. Después, **redeploy** (o conectar Vercel a GitHub, 2.8). Señal de que está mal: el pago real entra y el pedido queda "pendiente". | **J avisa · N carga** | ✅ 16/09 (según Joaquín) — **se confirma con el pago real (8.3)**: si el pedido queda "pendiente" con el pago aprobado, es esto |
-| 8.4 | **Averiguar si Naza puede darse de alta como autónomo en España y abrir Stripe** — reabre el mercado de 49€ | **N** | ☐ **urgente** |
+| 8.4 | **Naza se da de alta como autónoma en España y abre Stripe** — reabre el mercado de 49€ | **N** | 🔄 **decidido el 20/09**: va por Stripe directo (el código ya existe; falta la cuenta). Shopify descartado (Shopify Payments pide la misma entidad y suma 30 €/mes + tienda paralela). Si el alta se demorara, plan B: merchant of record (Lemon Squeezy / Paddle). |
 | 8.5 | Si 8.4 es no: evaluar merchant of record (Paddle / Lemon Squeezy) y si paga a Argentina | **J** | ☐ post 1-oct |
 
 **Precio base: ARS 85.750 / 49 €** (definido el 12/09; antes se hablaba de ~65.000, a la par del
