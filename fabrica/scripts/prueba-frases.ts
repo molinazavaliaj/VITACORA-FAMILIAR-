@@ -27,7 +27,7 @@ const RUTA_ESTRUCTURA = (narradorId: string) => `${narradorId}/paquete/estructur
 
 type Estructura = { titulo?: string; capitulos: { nombre: string; ordenes: number[] }[] };
 
-type Uso = { llamadas: number; entrada: number; salida: number };
+type Uso = { llamadas: number; entrada: number; salida: number; pensamiento: number };
 
 /** Un cliente que va contando lo que gasta: es la mitad del punto de este script. */
 function clienteQueCuenta(real: Anthropic, uso: Uso): Anthropic {
@@ -41,6 +41,8 @@ function clienteQueCuenta(real: Anthropic, uso: Uso): Anthropic {
         uso.llamadas++;
         uso.entrada += respuesta.usage.input_tokens;
         uso.salida += respuesta.usage.output_tokens;
+        uso.pensamiento +=
+          (respuesta.usage as { output_tokens_details?: { thinking_tokens?: number } }).output_tokens_details?.thinking_tokens ?? 0;
         return respuesta as never;
       },
     },
@@ -91,7 +93,7 @@ export async function medirFrases(narradorId: string): Promise<{ frases: FrasesJ
     return { nombre: capitulo.nombre, numero: i + 1, material };
   });
 
-  const uso: Uso = { llamadas: 0, entrada: 0, salida: 0 };
+  const uso: Uso = { llamadas: 0, entrada: 0, salida: 0, pensamiento: 0 };
   const real = new Anthropic({ apiKey: cargarConfig().anthropicApiKey });
   const cliente = clienteQueCuenta(real, uso);
 
@@ -117,8 +119,8 @@ function imprimir(frases: FrasesJson, uso: Uso, segundos: number): void {
       `${frases.capitulos.reduce((t, c) => t + c.candidatas.length, 0)} cortadas por el worker`
   );
   console.log(
-    `Modelo: ${uso.llamadas} llamada(s) · ${uso.entrada} tokens de entrada · ${uso.salida} de salida · ` +
-      `USD ${costo(uso).toFixed(3)} · ${segundos.toFixed(0)} s`
+    `Modelo: ${uso.llamadas} llamada(s) · ${uso.entrada} tokens de entrada · ${uso.salida} de salida ` +
+      `(${uso.pensamiento} pensando) · USD ${costo(uso).toFixed(3)} · ${segundos.toFixed(0)} s`
   );
 }
 

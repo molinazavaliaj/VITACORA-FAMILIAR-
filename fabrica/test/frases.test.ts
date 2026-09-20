@@ -159,4 +159,48 @@ describe('armarFrasesJson', () => {
     expect(frases.capitulos[0].candidatas.filter((c) => c.elegida)).toHaveLength(2);
     expect(elegirLlamado).toBe(1); // la función se llama, pero no gasta modelo (corta antes)
   });
+
+  it('reintenta cuando el modelo contesta sin JSON (texto vacío por max_tokens)', async () => {
+    let llamadas = 0;
+    const clienteFalso = {
+      messages: {
+        create: async () => {
+          llamadas++;
+          return {
+            content: [
+              {
+                type: 'text',
+                text: llamadas === 1 ? '' : JSON.stringify({ candidatas: [{ texto: 'el campo', por_que: 'suya' }] }),
+              },
+            ],
+            stop_reason: llamadas === 1 ? 'max_tokens' : 'end_turn',
+          };
+        },
+      },
+    } as unknown as Parameters<typeof proponerCandidatas>[0];
+
+    const candidatas = await proponerCandidatas(clienteFalso, {
+      nombre: 'Joaquín',
+      capitulo: 'La infancia',
+      material: [material(1, 'y ahí estaba el campo, con los caballos')],
+    });
+
+    expect(candidatas).toEqual([{ texto: 'el campo', por_que: 'suya' }]);
+    expect(llamadas).toBe(2);
+  });
+
+  it('si el modelo nunca devuelve JSON, el capítulo queda sin frases y avisa (no explota)', async () => {
+    const clienteFalso = {
+      messages: {
+        create: async () => ({ content: [{ type: 'text', text: 'no puedo ayudarte con eso' }], stop_reason: 'end_turn' }),
+      },
+    } as unknown as Parameters<typeof proponerCandidatas>[0];
+    const aviso = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    await expect(
+      proponerCandidatas(clienteFalso, { nombre: 'Joaquín', capitulo: 'La infancia', material: [material(1, 'algo dijo')] })
+    ).resolves.toEqual([]);
+    expect(aviso).toHaveBeenCalled();
+    aviso.mockRestore();
+  });
 });

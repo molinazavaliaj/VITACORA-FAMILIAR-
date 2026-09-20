@@ -71,28 +71,37 @@ Devolvé SOLO un JSON: {"indices":[3,0,5],"por_que":["...","...","..."]} — los
 async function llamar(cliente: Anthropic, prompt: string, material: string): Promise<unknown> {
   const contenido = `${prompt}\n\n--- MATERIAL ---\n${material}`;
 
-  const pedir = async (extra: string): Promise<string> => {
+  const pedir = async (extra: string): Promise<{ texto: string; stop: string | null }> => {
     const respuesta = await cliente.messages.create({
       model: 'claude-fable-5',
-      // 300 tokens corta la lista a la mitad (medido en el entrevistador: un tope corto pierde
-      // la última respuesta); 2000 alcanza para 5 frases con su porqué.
-      max_tokens: 2000,
+      // OJO: acá el pensamiento del modelo cuenta DENTRO de max_tokens. Con 2000 y un capítulo
+      // largo se come el presupuesto pensando y devuelve texto vacío (medido el 20/09: con
+      // material chico contestaba bien y con el capítulo entero no) — por eso 8000.
+      max_tokens: 8000,
       messages: [{ role: 'user', content: `${contenido}${extra}` }],
     });
-    return extraerTexto(respuesta.content as Array<{ type: string; text?: string }>);
+    return {
+      texto: extraerTexto(respuesta.content as Array<{ type: string; text?: string }>),
+      stop: respuesta.stop_reason ?? null,
+    };
   };
 
   try {
-    return parsearJsonTolerante(await pedir(''));
-  } catch {
-    // Un modelo que contesta en prosa no puede tumbar la entrega (misma regla que en el
-    // entrevistador, bitácora 14): se le pide una vez más, con la orden pelada, y si vuelve a
-    // fallar el capítulo queda sin frases en vez de romper el paquete.
+    const primera = await pedir('');
+    return parsearJsonTolerante(primera.texto);
+  } catch (errPrimera) {
+    // Un modelo que contesta en prosa (o que se quedó sin presupuesto) no puede tumbar la
+    // entrega (misma regla que en el entrevistador, bitácora 14): una vez más, con la orden
+    // pelada, y si vuelve a fallar el capítulo queda sin frases en vez de romper el paquete.
+    const segunda = await pedir('\n\nSOLO el JSON, sin explicar nada: empezá con { y terminá con }.');
     try {
-      return parsearJsonTolerante(await pedir('\n\nSOLO el JSON, sin explicar nada: empezá con { y terminá con }.'));
-    } catch (err) {
-      const texto = await pedir('').catch(() => '(la segunda llamada tampoco volvió)');
-      console.warn(`Frases: el modelo no devolvió JSON (${(err as Error).message}). Dijo: «${texto.slice(0, 200)}». El capítulo queda sin frases.`);
+      return parsearJsonTolerante(segunda.texto);
+    } catch (errSegunda) {
+      console.warn(
+        `Frases: el modelo no devolvió JSON (${(errSegunda as Error).message}; la primera vez: ` +
+          `${(errPrimera as Error).message}; stop_reason: ${segunda.stop}). Dijo: «${segunda.texto.slice(0, 200)}». ` +
+          'El capítulo queda sin frases.'
+      );
       return {};
     }
   }
