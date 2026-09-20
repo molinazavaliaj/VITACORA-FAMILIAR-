@@ -82,15 +82,17 @@ export type OpcionesAdaptativas = { pausaMs?: number };
 export async function generarPreguntasAdaptativas(
   narradorId: string, opciones: OpcionesAdaptativas = {},
 ): Promise<void> {
-  if (await tieneAdaptativas(narradorId)) return;
   const pausaMs = opciones.pausaMs ?? PAUSA_REINTENTO_MS;
 
-  // Todo el cuerpo va adentro de un try: esta función se llama desde el medio
-  // del flujo (al responder la última pregunta) y no puede tumbar la
-  // entrevista. Si el modelo no devuelve las 4, el narrador sigue con su
-  // guion y el cierre sale igual — la puerta manual (`siguiente`) las puede
-  // generar después, porque la función es idempotente (bitácora 28).
+  // Todo el cuerpo va adentro de un try —el chequeo de idempotencia incluido—:
+  // esta función se llama desde el medio del flujo (al responder la última
+  // pregunta) y no puede tumbar la entrevista, ni por el modelo ni por la base.
+  // Si el modelo no devuelve las 4, el narrador sigue con su guion y el cierre
+  // sale igual — la puerta manual (`siguiente`) las puede generar después,
+  // porque la función es idempotente (bitácora 28).
   try {
+    if (await tieneAdaptativas(narradorId)) return;
+
     const { data: narrador } = await db.from('narradores')
       .select('como_le_dicen, contexto').eq('id', narradorId).maybeSingle();
     const n = narrador as { como_le_dicen?: string; contexto?: Record<string, unknown> } | null;

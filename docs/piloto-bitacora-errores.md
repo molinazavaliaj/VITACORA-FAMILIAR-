@@ -198,8 +198,11 @@ libro sale mal, sale incompleto, o el cliente se pierde antes de llegar?
     suma la regla explícita: *"LO ÚLTIMO MANDA: si algo de más adelante corrige o
     contradice algo de más atrás, quedate con lo ÚLTIMO y descartá el dato viejo"*, y
     el material se pasa en orden cronológico justamente para que se vea. Los resúmenes
-    que ya existían sin `hasta` se rehacen una vez (costo: ~USD 0,01 por capítulo) y
-    quedan al día. Tests en `test/resumenes.test.ts`.
+    que ya existían sin marca se rehacen una vez (costo: ~USD 0,01 por capítulo) y
+    quedan al día. La marca es `{orden, respuestas}` y no solo el orden: una corrección
+    puede llegar como AMPLIACIÓN (repregunta) de la misma orden, y ahí el número no
+    cambia aunque el material sí (lo cazó la revisión del 20/09; con el orden solo, ese
+    caso quedaba viejo para siempre). Tests en `test/resumenes.test.ts`.
 
 17. **16/09 · nombres propios inconsistentes en la transcripción.** Respuesta 9:
     "NASA" por Naza, "Herrera" por Herrero; respuesta 16: "WADE" por UADE (la
@@ -245,6 +248,10 @@ libro sale mal, sale incompleto, o el cliente se pierde antes de llegar?
       "esto prefiero que no vaya al libro", "estas historias prefiero que queden en
       mi mente"...), y `reservaDe()` lo normaliza: si el tramo que marcó el modelo
       no está TEXTUAL en la transcripción, se reserva la respuesta entera.
+    - Si el tramo marcado no aparece textual en la transcripción, la fábrica reserva la
+      respuesta ENTERA (dirección prudente: se pierde material, no se publica lo reservado)
+      y el aviso por consola ahora nombra el id de la respuesta, para poder encontrarla y
+      volver a publicarla a mano.
     - La fábrica lo respeta en un solo lugar, `textoRespuesta` (`fabrica/src/libro/comun.ts`):
       el escritor no ve las respuestas reservadas (ni en el capítulo ni en "la
       historia completa") y el tramo se quita del texto. También quedan afuera del
@@ -256,10 +263,17 @@ libro sale mal, sale incompleto, o el cliente se pierde antes de llegar?
       `respuestas.reservado_tramo`), **sin aplicar**: la aplica Naza cuando Joaquín
       dé el OK. El código funciona igual sin las columnas (ausente = nada
       reservado), así que aplicarla no puede romper nada.
-    - **Falta para Joaquín**: el `UPDATE` en el flujo — después de evaluar, guardar
-      `{ reservada, reservado_tramo }` de `reservaDe(evaluacion, transcripcion)` en
-      la fila de `respuestas` (`procesar.ts`). Sin eso la detección no llega a la
-      base y la fábrica no tiene qué respetar. Tests del entrevistador en
+    - **Falta para Joaquín** (y es lo que hace que todo esto sirva): el `UPDATE` en el
+      flujo — después de evaluar, guardar `{ reservada: true, reservado_tramo: tramo }`
+      de `reservaDe(evaluacion, transcripcion)` en la fila de `respuestas`
+      (`procesar.ts`). Sin eso la detección no llega a la base y el filtro de la
+      fábrica es código muerto. Dos cosas más, de la revisión del 20/09: que la
+      detección corra **también en las respuestas de repregunta** (hoy el bloque se
+      saltea si `esRepregunta`) y **en el cierre** (el `esOrdenDeCierre` corta la
+      evaluación con `{suficiente:true}` sin llamar al modelo) — el narrador que dice
+      "esto no lo pongas" en la ampliación o en el "¿faltó algo?" quedaría publicado.
+      Y el `UPDATE` tiene que entrar JUNTO con la migración aplicada: sin la columna,
+      PostgREST contesta 42703 y `trasResponder` no tiene try/catch propio. Tests del entrevistador en
       `test/cerebro.test.ts` y de la fábrica en `test/comun.test.ts` y
       `test/conectores.test.ts`.
     - **Hecho el 20/09 (J)** (`f2686b2`, `8e7bbfe`): `guardarReserva` en
@@ -723,3 +737,41 @@ escribirlo; el audiolibro clonado saldría después con otro pedido.
 
 9. **15/09 · el webhook de MP no verifica la firma** (`MP_WEBHOOK_SECRET` cargado
    en Vercel pero el código no lo lee; Stripe sí verifica). **Arreglado el 16/09** (`web/src/lib/firma-mp.ts`): HMAC del manifiesto `id;request-id;ts`, 401 si no coincide. Requiere que `MP_WEBHOOK_SECRET` en Vercel sea la clave del webhook de **producción** (la que muestra el panel de MP al crear la notificación), no la de prueba.
+
+## Revisión independiente del 20/09 (después de los arreglos)
+
+Un segundo agente revisó el diff completo (los 5 commits, `41ca3e8..main`) buscando bugs
+reales, no estilo. Lo que encontró y qué pasó con cada cosa:
+
+- **ALTA — la reserva no se persiste** (hallazgo 19): `reservaDe()` no tenía llamadores de
+  producción, así que todo el filtrado de la fábrica era código muerto. **Ya estaba anotado
+  como pendiente de Joaquín**; la revisión lo confirmó y agregó el detalle de que también
+  faltan las repreguntas y el cierre (ver la entrada 19), más la advertencia de aplicar la
+  migración antes del `UPDATE`. `CONTRATO.md` se corrigió: antes decía que el flujo ya lo
+  guardaba.
+- **MEDIA — `reservaDe` perdía el pedido si el modelo devolvía el tramo sin el booleano**:
+  arreglado el 20/09 (`a440cb3`). Ahora cualquiera de las dos marcas alcanza, y un
+  `"reservado": "true"` (texto, que el modelo hace) también reserva.
+- **MEDIA — `esPublicable` miraba solo `reservada`**: una reserva parcial cargada a mano (la
+  columna se puede escribir desde la base) dejaba pasar el AUDIO completo al audiolibro y a
+  la muestra. Arreglado el 20/09 (`a440cb3`): alcanza con el tramo para dejar el audio afuera.
+- **MEDIA — la corrección que llega como ampliación no rehacía el resumen**: la marca miraba
+  el `pregunta_orden` máximo, y una repregunta conserva el mismo orden. Arreglado el
+  20/09 (`a440cb3`): la marca es `{orden, respuestas}`.
+- **BAJA — `--regenerar` podía borrar un resumen ya pagado** si el modelo fallaba con otro
+  capítulo: arreglado el 20/09 (`a440cb3`) — los resúmenes existentes se conservan siempre, y
+  un capítulo que falla ya no se lleva puestos a los demás.
+- **BAJA — `tieneAdaptativas` quedaba fuera del try** en `generarPreguntasAdaptativas`: una
+  caída de la base ahí esquivaba el guard y tumbaba el cierre. Arreglado el 20/09 (`a440cb3`).
+- **BAJA/duda — el tope de 50 MB estaba clavado en el código**: si el plan de Supabase cambia,
+  una subida que antes entraba pasaría a fallar. Ahora se puede ajustar con
+  `LIMITE_MB_ARCHIVO_STORAGE` (default 50).
+- **Sin hallazgos**: el guard del candado en `mandarHito` (no bloquea ningún mail que debía
+  salir: los seis candados son distintos y `terminado`/`libro_listo`/los recordatorios ya se
+  chequeaban antes) y la compatibilidad hacia atrás sin la migración aplicada (nadie nombra
+  las columnas nuevas en el `select *` de la fábrica, y son opcionales en `tipos`).
+- **Duda que queda anotada (pre-existente, no de este diff)**: `contexto` lo escriben varios
+  módulos con leer-modificar-escribir y hay ventanas en las que un cambio puede pisar a otro
+  (ej. `mandarHito` lee el contexto, hace el POST a Resend y recién ahí escribe
+  `mailsEnviados`). Es la razón que ya está escrita en `CONTRATO.md` para mudar esos textos a
+  columnas propias. No se toca acá.

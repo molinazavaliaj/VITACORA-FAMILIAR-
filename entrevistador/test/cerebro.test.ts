@@ -264,6 +264,25 @@ describe('reservaDe: qué se guarda como reservado', () => {
       .toEqual({ reservada: true, tramo: 'locuras de las contables pueden ser por amor' });
   });
 
+  // Un tramo sin el booleano es un pedido igual: el modelo contesta a medias y no
+  // se puede perder la reserva por eso (es la peor falla del producto).
+  it('un tramo solo, sin "reservado", también reserva', async () => {
+    const { reservaDe } = await import('../src/ia/cerebro.js');
+    const texto = 'Trabajaba con las contables: locuras de las contables pueden ser por amor.';
+    expect(reservaDe({ reservadoTramo: 'locuras de las contables pueden ser por amor' }, texto))
+      .toEqual({ reservada: true, tramo: 'locuras de las contables pueden ser por amor' });
+  });
+
+  it('un "reservado" que vino como texto ("true", "sí") reserva la respuesta entera', async () => {
+    const { reservaDe } = await import('../src/ia/cerebro.js');
+    for (const marcado of ['true', 'sí', 'SI', 'yes', true]) {
+      expect(reservaDe({ reservado: marcado }, 'Estas historias que queden en mi mente.'))
+        .toEqual({ reservada: true, tramo: null });
+    }
+    // Pero un "no" explícito, sin tramo, no reserva nada.
+    expect(reservaDe({ reservado: 'no' }, 'Contó la historia.')).toEqual({ reservada: false, tramo: null });
+  });
+
   // Si el modelo parafrasea el tramo, sacarlo del texto no sacaría nada y lo
   // reservado se publicaría igual: se reserva la respuesta entera.
   it('con un tramo que NO está en la transcripción, reserva la respuesta entera', async () => {

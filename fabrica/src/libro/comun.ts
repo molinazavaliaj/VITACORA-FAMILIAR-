@@ -36,7 +36,9 @@ export function extraerTexto(bloques: Array<{ type: string; text?: string }>): s
  */
 export type ReservaDeRespuesta = Pick<Respuesta, 'reservada' | 'reservado_tramo'>;
 /** Una respuesta con lo mínimo para saber qué se puede publicar de ella. */
-export type RespuestaPublicable = Pick<Respuesta, 'transcripcion' | 'texto_directo'> & Partial<ReservaDeRespuesta>;
+export type RespuestaPublicable = Pick<Respuesta, 'transcripcion' | 'texto_directo'>
+  & Partial<ReservaDeRespuesta>
+  & Partial<Pick<Respuesta, 'id'>>;
 
 /**
  * El texto publicable de una respuesta, ya sin lo que el narrador pidió reservar.
@@ -62,7 +64,8 @@ export function textoRespuesta(r: RespuestaPublicable): string | null {
   const tramo = typeof r.reservado_tramo === 'string' ? r.reservado_tramo.trim() : '';
   if (tramo) {
     if (!texto.includes(tramo)) {
-      console.warn('textoRespuesta: el tramo reservado no está en la transcripción; se reserva la respuesta entera.');
+      // Con el id, alguien puede encontrar la respuesta y volver a publicarla a mano.
+      console.warn(`textoRespuesta: el tramo reservado de la respuesta ${r.id ?? '(sin id)'} no está en la transcripción; se reserva la respuesta entera.`);
       return null;
     }
     const limpio = texto.split(tramo).join(' ').replace(/\s+/g, ' ').trim();
@@ -77,11 +80,14 @@ export function textoRespuesta(r: RespuestaPublicable): string | null {
  * audiolibro híbrido).
  *
  * Un tramo reservado no se puede recortar de una grabación —no se puede sacar
- * una frase de en medio de su voz—, así que una reserva parcial también deja el
- * audio afuera. Ante la duda, de menos.
+ * una frase de en medio de su voz—, así que alcanza con CUALQUIERA de las dos
+ * marcas para dejar el audio afuera. Mirar solo `reservada` dejaba pasar el audio
+ * completo de una reserva parcial cargada a mano (CONTRATO invita a escribir esa
+ * columna a mano). Ante la duda, de menos.
  */
 export function esPublicable(r: Partial<ReservaDeRespuesta>): boolean {
-  return r.reservada !== true;
+  const tramo = typeof r.reservado_tramo === 'string' ? r.reservado_tramo.trim() : '';
+  return r.reservada !== true && tramo === '';
 }
 
 export function escaparHtml(texto: string): string {
