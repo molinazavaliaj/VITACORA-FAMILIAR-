@@ -375,6 +375,15 @@ async function mandarHito(
   enlace: string,
   archivos: Set<string>
 ): Promise<boolean> {
+  // El candado manda: si ya está, ese mail ya salió (o alguien lo sembró a
+  // mano para que no salga, como los 7 de Osvaldo al preparar el redeploy).
+  // Sin este chequeo, el cierre automático de los 30 días volvía a mandarlo: la
+  // rama del CAS llamaba a `mandar('cierre_automatico')` sin mirar el candado y
+  // `mandarHito` tampoco lo miraba — a Osvaldo le llegó el mail que se había
+  // sembrado el candado para evitar (bitácora 33). El cierre del libro en sí no
+  // se frena acá: eso lo decide `libro_aprobado_at`, no el mail.
+  if (archivos.has(CANDADO_POR_HITO[hito])) return false;
+
   const { data: familia, error: errorFamilia } = await db
     .from('familias')
     .select('email')

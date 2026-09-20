@@ -122,7 +122,7 @@ describe('memoriaDeCapitulos', () => {
   it('resume los capítulos ya contados y los devuelve como memoria', async () => {
     mocks.crear.mockImplementation(async (args: any) => {
       const contenido = args.messages[0].content as string;
-      return texto(contenido.includes('infancia') ? 'RESUMEN INFANCIA' : 'RESUMEN RAICES');
+      return texto(contenido.includes('«La infancia»') ? 'RESUMEN INFANCIA' : 'RESUMEN RAICES');
     });
     const memoria = await memoriaDeCapitulos(narrador(), 8);
     expect(memoria).toContain('CAPÍTULO «La infancia» (ya contado):\nRESUMEN INFANCIA');
@@ -152,7 +152,10 @@ describe('memoriaDeCapitulos', () => {
 
   it('usa el resumen guardado y NO vuelve a llamar al modelo', async () => {
     const memoria = await memoriaDeCapitulos(
-      narrador({ resumenesCapitulos: { 'La infancia': 'ya resumido', 'Las raíces': 'también' } }), 8,
+      narrador({
+        resumenesCapitulos: { 'La infancia': 'ya resumido', 'Las raíces': 'también' },
+        resumenesHasta: { 'La infancia': 1, 'Las raíces': 5 },
+      }), 8,
     );
     expect(memoria).toContain('ya resumido');
     expect(memoria).toContain('también');
@@ -160,15 +163,81 @@ describe('memoriaDeCapitulos', () => {
     expect(mocks.updates).toHaveLength(0);
   });
 
-  it('sólo resume lo que falta y guarda el resultado', async () => {
+  it('sólo resume lo que falta y guarda el resultado (con hasta dónde llegó)', async () => {
     mocks.crear.mockResolvedValue(texto('RESUMEN NUEVO'));
-    const memoria = await memoriaDeCapitulos(narrador({ resumenesCapitulos: { 'La infancia': 'viejo' } }), 8);
+    const memoria = await memoriaDeCapitulos(
+      narrador({ resumenesCapitulos: { 'La infancia': 'viejo' }, resumenesHasta: { 'La infancia': 1 } }), 8,
+    );
     expect(memoria).toContain('viejo');
     expect(memoria).toContain('RESUMEN NUEVO');
     expect(mocks.crear).toHaveBeenCalledTimes(1); // sólo "Las raíces"
     const guardado = mocks.updates[0];
     expect(guardado.p.contexto.resumenesCapitulos['La infancia']).toBe('viejo');
     expect(guardado.p.contexto.resumenesCapitulos['Las raíces']).toBe('RESUMEN NUEVO');
+    // El "hasta" es lo que después permite saber si el resumen quedó viejo.
+    expect(guardado.p.contexto.resumenesHasta['Las raíces']).toBe(5);
+  });
+
+  // Bitácora 16 ("lo último manda"): si el narrador corrigió algo de un capítulo
+  // ya resumido, el resumen viejo puede estar afirmando un dato que él ya cambió.
+  it('rehace el resumen de un capítulo ya resumido si contó más de ese capítulo después', async () => {
+    mocks.preguntas.push({ orden: 3, capitulo: 'La infancia', narrador_id: null });
+    mocks.respuestas.push({
+      pregunta_orden: 3, narrador_id: 'n1', es_repregunta: false,
+      transcripcion: 'No, a los 12 ya estábamos en otro lado.', texto_directo: null,
+    });
+    mocks.crear.mockResolvedValue(texto('RESUMEN AL DÍA'));
+
+    const memoria = await memoriaDeCapitulos(
+      narrador({ resumenesCapitulos: { 'La infancia': 'viejo' }, resumenesHasta: { 'La infancia': 1 } }), 8,
+    );
+
+    expect(memoria).toContain('RESUMEN AL DÍA');
+    expect(memoria).not.toContain('viejo');
+    const enviado = mocks.crear.mock.calls[0][0].messages[0].content as string;
+    // Se rehace con TODO el material del capítulo (lo viejo y la corrección nueva).
+    expect(enviado).toContain('La casa de Villa Domínico.');
+    expect(enviado).toContain('No, a los 12 ya estábamos en otro lado.');
+    // Y queda anotado hasta dónde llegó.
+    const guardado = mocks.updates[0];
+    expect(guardado.p.contexto.resumenesHasta['La infancia']).toBe(3);
+  });
+
+  it('un resumen guardado sin "hasta" (de antes de este cambio) se rehace una vez y queda al día', async () => {
+    mocks.crear.mockResolvedValue(texto('RESUMEN AL DÍA'));
+    const n = narrador({ resumenesCapitulos: { 'La infancia': 'viejo' } });
+
+    await memoriaDeCapitulos(n, 8);
+    expect(mocks.crear).toHaveBeenCalledTimes(2); // "La infancia" (una vez) y "Las raíces"
+    expect(mocks.updates[0].p.contexto.resumenesHasta['La infancia']).toBe(1);
+
+    // La segunda pasada ya no lo vuelve a tocar: el `hasta` quedó guardado en el
+    // contexto del narrador (se muta el mismo objeto que usan los que escriben después).
+    mocks.crear.mockClear();
+    mocks.updates = [];
+    await memoriaDeCapitulos(n, 8);
+    expect(mocks.crear).not.toHaveBeenCalled();
+  });
+
+  it('si el modelo falla al rehacer, queda el resumen viejo y no se marca como al día', async () => {
+    mocks.preguntas.push({ orden: 3, capitulo: 'La infancia', narrador_id: null });
+    mocks.respuestas.push({ pregunta_orden: 3, narrador_id: 'n1', es_repregunta: false, transcripcion: 'Otra cosa más.', texto_directo: null });
+    mocks.crear.mockRejectedValue(new Error('529 overloaded'));
+
+    const memoria = await memoriaDeCapitulos(
+      narrador({ resumenesCapitulos: { 'La infancia': 'viejo' }, resumenesHasta: { 'La infancia': 1 } }), 8,
+    );
+
+    expect(memoria).toContain('viejo');
+    expect(mocks.updates).toHaveLength(0);
+  });
+
+  it('el prompt pide lo último y el tono del capítulo (bitácora 16 y 33)', () => {
+    const p = PROMPT_RESUMEN('Ciro', 'La infancia', 'Pregunta 2:\nMi vieja se fue.');
+    expect(p).toContain('LO ÚLTIMO MANDA');
+    expect(p).toContain('descartá el dato viejo');
+    expect(p).toContain('"Tono:"');
+    expect(p).toContain('no volver a preguntar por las fiestas de una familia que se desarmó');
   });
 
   it('si el modelo falla devuelve lo que ya tenía y no rompe nada', async () => {

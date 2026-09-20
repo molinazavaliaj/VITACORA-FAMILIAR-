@@ -982,6 +982,35 @@ describe('tick — mails de hitos', () => {
     expect(db.subidos['n1']).toBeUndefined();
   });
 
+  // Bitácora 33: al preparar el redeploy se sembraron los 7 candados de Osvaldo
+  // para que no recibiera mails, pero la rama de los 30 días hacía el CAS y
+  // llamaba a `mandar('cierre_automatico')` sin mirar el candado (y `mandarHito`
+  // tampoco): el mail salía igual. El libro se sigue cerrando; el mail, no.
+  it('con el candado sembrado y el libro abierto, cierra a los 30 días pero NO manda el mail', async () => {
+    const db = construirClienteDbMock({
+      narradores: [
+        {
+          id: 'n1',
+          estado: 'completado',
+          como_le_dicen: 'papá',
+          familia_id: 'f1',
+          ultima_respuesta_at: '2026-08-20T00:00:00Z',
+          libro_aprobado_at: null,
+        },
+      ],
+      archivosPorNarrador: { n1: ['terminado_enviado.txt', 'cierre_automatico_enviado.txt'] },
+      familias: { f1: 'a@b.c' },
+    });
+    obtenerClienteDbMock.mockReturnValue(db);
+
+    await tick();
+
+    expect(db.cierresAutomaticos).toEqual(['n1']); // el libro se cierra igual
+    expect(enviarMailHitoMock).not.toHaveBeenCalled();
+    expect(db.subidos['n1']).toContain('cierre_automatico.txt');
+    expect(db.subidos['n1']).not.toContain('cierre_automatico_enviado.txt');
+  });
+
   it('a los 30 días, si la web lo cerró en el medio (el CAS no devuelve fila), no manda cierre_automatico', async () => {
     const db = construirClienteDbMock({
       narradores: [
