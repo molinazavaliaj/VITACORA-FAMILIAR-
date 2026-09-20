@@ -433,7 +433,11 @@ def masterizar_capitulo(
         limpias: list[np.ndarray] = []
         for i, (pieza, fuente, extra) in enumerate(zip(piezas, fuentes, extras)):
             antes = medir(leer(pieza.ruta))
-            filtro = FILTRO_LIMPIEZA_RESTAURADA if pieza.tipo == "real" else FILTRO_LIMPIEZA
+            # Una real que NO pudo restaurarse (el modelo falló y siguió cruda)
+            # necesita el afftdn de siempre: si no, el ruido de WhatsApp entra
+            # tal cual (revisión 21/09).
+            restaurada = pieza.tipo == "real" and "error" not in (extra.get("restauracion") or {})
+            filtro = FILTRO_LIMPIEZA_RESTAURADA if restaurada else FILTRO_LIMPIEZA
             limpia = limpiar_pieza(fuente, tmp / f"{i:02d}_limpia.wav", filtro)
             igualada = tmp / f"{i:02d}_igualada.wav"
             eq = igualar_espectro(limpia, igualada, objetivo)

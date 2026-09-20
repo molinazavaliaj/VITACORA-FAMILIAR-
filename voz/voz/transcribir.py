@@ -55,7 +55,10 @@ def palabras_con_tiempos(ruta: Path) -> dict:
             timeout=300,
         )
     if respuesta.status_code != 200:
-        raise SystemExit(f"Whisper falló ({respuesta.status_code}): {respuesta.text[:300]}")
+        # RuntimeError, no SystemExit (revisión 21/09): un 429/413/5xx de Whisper
+        # tiene que caer en el `except Exception` de preparar_real ("sigo sin
+        # ritmo"), no tumbar el worker entero.
+        raise RuntimeError(f"Whisper falló ({respuesta.status_code}): {respuesta.text[:300]}")
     datos = respuesta.json()
     palabras = [{"palabra": w["word"].strip(), "inicio": float(w["start"]), "fin": float(w["end"])} for w in datos.get("words", [])]
     return {"texto": (datos.get("text") or "").strip(), "palabras": palabras}
