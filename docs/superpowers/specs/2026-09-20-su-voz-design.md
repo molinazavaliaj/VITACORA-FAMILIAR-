@@ -147,16 +147,18 @@ Los textos de los prompts al modelo los aprueba Naza antes de mergear (regla de 
 
 ## La página pública (el QR y el NFC)
 
-- **Destino único: la página del cliente**, sin login, donde vive lo que se escanea — el libro
-  online (el PDF/lector) **y** "Sus frases" para escuchar. No hay una página aparte de "Su voz"
-  ni una "historia completa" como destino: lo que se escanea es esa página.
-- El **marco NFC arranca en las frases** (decidido el 20/09): se acerca el teléfono y suena su
-  voz; desde ahí se llega al libro.
-- **El código del impreso lleva su propio token** (`tipo: 'voz'`, mismo esquema HS256 que
-  `web/src/lib/token-libro.ts`), hermano del token de la muestra (`tipo: 'libro'`). Así el link
-  que el comprador reenvía para vender copias impresas sigue mostrando **solo la muestra**,
-  mientras el código impreso abre el libro entero y las frases para quien tiene el libro en la
-  mano. Cada frase con su ancla (`#f3`) para mandar **una sola** por WhatsApp.
+- **Una sola página final, la del cliente**, sin login, con todo adentro: el libro online (el
+  lector / el PDF) y **las mejores frases** para escuchar. Ahí vive lo que se escanea.
+- **Dos entradas a la misma página** (decidido el 20/09):
+  - el **código de la contratapa** del libro impreso abre la página entera, desde el principio;
+  - el **QR de la sección de frases** abre esa misma página **en la pestaña de las mejores
+    frases**; el **marco NFC** hace lo mismo que el QR: cae directo en las frases, que es para
+    lo que se acerca el teléfono.
+- **El código impreso abre el libro entero** (el que tiene el libro en la mano ya lo pagó) y por
+  eso lleva **su propio token** (`tipo: 'voz'`, mismo esquema HS256 que
+  `web/src/lib/token-libro.ts`), hermano del token de la muestra (`tipo: 'libro'`): el link que
+  el comprador reenvía para vender copias impresas sigue mostrando **solo la muestra**.
+- Cada frase con su ancla (`#f3`) para mandar **una sola** por WhatsApp.
 - Respeta `reservada`. Nombre del narrador solo como lo muestra el libro.
 - Reusa el patrón que ya existe (`/libro/[token]` + `/api/libro-muestra/[token]/audio`).
 - **Copy a corregir** (hoy dice audiolibro): la página de muestra
@@ -211,5 +213,6 @@ restaurados, sin ritmo), con candado y reintento. Directiva aparte.
 3. ~~El marco NFC: ¿arranca en las frases o en la historia completa?~~ — **en las frases**
    (decidido el 20/09).
 4. El texto de los prompts de las dos pasadas (lo aprueba Naza).
-5. **¿El código impreso abre el libro entero o solo la muestra + las frases?** Propuesto: el
-   libro entero (el que tiene el libro en la mano ya lo pagó), con token propio.
+5. ~~¿El código impreso abre el libro entero o solo la muestra + las frases?~~ — **el libro
+   entero**, en la misma página, con token propio; el QR y el chip caen en la pestaña de las
+   frases (decidido el 20/09).
