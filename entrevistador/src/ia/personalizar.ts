@@ -311,32 +311,41 @@ export async function personalizarPregunta(
     trato = await tratoDe(n);
 
     const primero = await intento(PROMPT_PERSONALIZAR(original, fichaEnTexto(n.contexto, n.como_le_dicen), previas, resumenes, textoEvitar(n.contexto), trato));
-    if (primero.ok) {
+    // El prompt le permite devolver el original "si no hay nada concreto para
+    // enganchar". Con usted, eso es un resultado válido. Con vos, es el mismo
+    // problema del fallo: el original está escrito de usted (bitácora 18, la
+    // orden 26 del 17/09 salió "tal cual está en el guion" y en usted).
+    const volvioElOriginalEnUsted = primero.ok && primero.texto.trim() === original.trim() && trato === 'vos';
+    if (primero.ok && !volvioElOriginalEnUsted) {
       // `recordar: false` es para mirar sin comprometer: la puerta manual lo usa
       // con --solo-ver, así una pregunta que todavía no se mandó no queda congelada
       // con la personalización de hoy.
       if (recordar) await recordarEnviada(n, orden, primero.texto);
       return { texto: primero.texto, personalizada: primero.texto !== original };
     }
-    console.warn(`personalizar: la orden ${orden} de ${n.id} no sirvió (${primero.motivo}) — se manda el original.`);
+    const motivoPrimero = primero.ok ? 'devolvió el original, que está en usted' : primero.motivo;
+    console.warn(`personalizar: la orden ${orden} de ${n.id} no sirvió (${motivoPrimero}) — se manda el original.`);
 
     // Bitácora 18: con un narrador de vos, el original (escrito de usted) rompe
     // el trato a mitad de la entrevista. Antes de rendirse, un segundo intento
-    // más corto — el prompt largo es el que suele enredarse.
+    // más corto — el prompt largo es el que suele enredarse — que además pasa
+    // la pregunta a vos aunque no haya nada que personalizar.
     if (trato === 'vos') {
       const segundo = await intento(PROMPT_PERSONALIZAR_BREVE(original, previas));
-      if (segundo.ok) {
+      if (segundo.ok && segundo.texto.trim() !== original.trim()) {
         if (recordar) await recordarEnviada(n, orden, segundo.texto);
-        return { texto: segundo.texto, personalizada: segundo.texto !== original };
+        return { texto: segundo.texto, personalizada: true };
       }
-      console.warn(`personalizar: la orden ${orden} de ${n.id} tampoco salió en el segundo intento (${segundo.motivo}).`);
+      console.warn(`personalizar: la orden ${orden} de ${n.id} tampoco salió en el segundo intento (${segundo.ok ? 'volvió el original otra vez' : segundo.motivo}).`);
     }
 
     return {
       texto: original, personalizada: false,
-      motivo: primero.motivo === 'invalida'
-        ? 'la versión del modelo no conservaba las preguntas del original'
-        : 'el modelo falló',
+      motivo: primero.ok
+        ? 'el modelo devolvió el original, que está en usted'
+        : primero.motivo === 'invalida'
+          ? 'la versión del modelo no conservaba las preguntas del original'
+          : 'el modelo falló',
     };
   } catch (err) {
     console.error(`personalizar: falló la orden ${orden} de ${n.id} — se manda el original:`, err);

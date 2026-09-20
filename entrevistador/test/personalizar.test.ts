@@ -265,6 +265,40 @@ describe('el segundo intento cuando el fallback rompería el trato (bitácora 18
     expect(mocks.updates.find((u) => u.tabla === 'narradores')).toBeUndefined();
   });
 
+  // La orden 26 ("cuénteme su vida en cinco minutos") no tiene nada concreto
+  // para enganchar, así que el modelo devolvió el original tal cual... escrito
+  // de usted, a un narrador de vos. "Ni se intentó personalizar" (17/09).
+  it('con vos: si el modelo devuelve el original textual (en usted), va al prompt corto', async () => {
+    const ORIGINAL_26 = 'Ya me contó su vida entera, capítulo por capítulo. Cuénteme su vida en cinco minutos. Lo que no puede faltar.';
+    const EN_VOS_26 = 'Ya me contaste tu vida entera, capítulo por capítulo. Contame tu vida en cinco minutos. Lo que no puede faltar.';
+    mocks.crear
+      .mockResolvedValueOnce(respuesta(ORIGINAL_26))
+      .mockResolvedValueOnce(respuesta(EN_VOS_26));
+    const r = await personalizarPregunta(ciro, ORIGINAL_26, 26);
+    expect(mocks.crear).toHaveBeenCalledTimes(2);
+    expect(r.texto).toBe(EN_VOS_26);
+    expect(r.personalizada).toBe(true);
+  });
+
+  it('con vos: si el original textual vuelve dos veces, se manda igual y se dice por qué', async () => {
+    const ORIGINAL_26 = 'Cuénteme su vida en cinco minutos. Lo que no puede faltar.';
+    mocks.crear.mockResolvedValue(respuesta(ORIGINAL_26));
+    const r = await personalizarPregunta(ciro, ORIGINAL_26, 26);
+    expect(mocks.crear).toHaveBeenCalledTimes(2);
+    expect(r.texto).toBe(ORIGINAL_26);
+    expect(r.personalizada).toBe(false);
+    expect(r.motivo).toMatch(/en usted/);
+  });
+
+  it('con usted, el original textual es un resultado válido (no paga un segundo intento)', async () => {
+    const osvaldo = { id: 'n1', como_le_dicen: 'Don Osvaldo', contexto: { trato: 'usted' as const } };
+    mocks.crear.mockResolvedValue(respuesta(ORIGINAL_NOVIAZGO));
+    const r = await personalizarPregunta(osvaldo, ORIGINAL_NOVIAZGO, 14);
+    expect(mocks.crear).toHaveBeenCalledTimes(1);
+    expect(r.texto).toBe(ORIGINAL_NOVIAZGO);
+    expect(r.personalizada).toBe(false);
+  });
+
   it('con usted no paga un segundo intento: manda el original de una', async () => {
     mocks.crear.mockResolvedValue(respuesta(PERSONALIZADA_INCOMPLETA));
     const osvaldo = { id: 'n1', como_le_dicen: 'Don Osvaldo', contexto: { trato: 'usted' as const } };
