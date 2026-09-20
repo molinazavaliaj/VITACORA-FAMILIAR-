@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // El cerebro crea el cliente Anthropic al importarse (usa cargarConfig).
 vi.stubEnv('SUPABASE_URL', 'https://x.supabase.co');
@@ -64,6 +64,10 @@ describe('el trato llega a la llamada', () => {
 });
 
 describe('cerebro', () => {
+  // Acá sí importa cuántas veces se llamó al modelo (reintentos): cada test
+  // arranca con el contador en cero.
+  beforeEach(() => crearMock.mockReset());
+
   it('genera un reconocimiento de una sola frase', async () => {
     crearMock.mockResolvedValueOnce({ content: [{ type: 'text', text: 'Qué historia la del taller de su padre, Don Roberto.' }] });
     const { generarReconocimiento } = await import('../src/ia/cerebro.js');
@@ -107,6 +111,37 @@ describe('cerebro', () => {
     const r = await evaluarRespuesta('¿Cómo era su casa?', 'Linda.', 8);
     expect(r.suficiente).toBe(true);
     expect(r.repregunta).toBeUndefined();
+  });
+
+  // Bitácora 14 y 31: 4 de 30 evaluaciones del piloto volvieron SIN TEXTO y la
+  // excepción cortaba el día entero (sin repregunta y, si era la última, sin
+  // despedida). Un hipo del modelo no puede tumbar la entrevista.
+  it('si el modelo vuelve vacío, reintenta una vez y sigue sin repregunta', async () => {
+    crearMock.mockResolvedValue({ content: [] }); // sin bloque de texto
+    const { evaluarRespuesta } = await import('../src/ia/cerebro.js');
+    const r = await evaluarRespuesta('¿Cómo era su casa?', 'Linda.', 8, '', 'usted', { pausaMs: 0 });
+    expect(crearMock).toHaveBeenCalledTimes(2); // el reintento
+    expect(r).toEqual({ suficiente: true });
+    crearMock.mockReset();
+  });
+
+  it('si el modelo tira un error de la API, tampoco rompe', async () => {
+    crearMock.mockRejectedValue(new Error('529 overloaded'));
+    const { evaluarRespuesta } = await import('../src/ia/cerebro.js');
+    const r = await evaluarRespuesta('¿Cómo era su casa?', 'Linda.', 8, '', 'usted', { pausaMs: 0 });
+    expect(crearMock).toHaveBeenCalledTimes(2);
+    expect(r).toEqual({ suficiente: true });
+    crearMock.mockReset();
+  });
+
+  it('si el reintento sale bien, se usa ESA evaluación (no se pierde la repregunta)', async () => {
+    crearMock
+      .mockResolvedValueOnce({ content: [] })
+      .mockResolvedValueOnce({ content: [{ type: 'text', text: '{"suficiente": false, "repregunta": "¿Y qué sentía usted en ese taller?"}' }] });
+    const { evaluarRespuesta } = await import('../src/ia/cerebro.js');
+    const r = await evaluarRespuesta('¿Cómo era su casa?', 'Linda.', 8, '', 'usted', { pausaMs: 0 });
+    expect(r.suficiente).toBe(false);
+    expect(r.repregunta).toContain('taller');
   });
 });
 

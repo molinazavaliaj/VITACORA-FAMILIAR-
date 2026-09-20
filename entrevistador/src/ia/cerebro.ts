@@ -121,15 +121,54 @@ La repregunta la pensás SIEMPRE vos, para esta respuesta y este narrador: no ex
 
 Respondé SOLO con JSON: {"suficiente": true} o {"suficiente": false, "repregunta": "..."}`;
 
+/**
+ * Cuánto se espera antes del único reintento de una llamada al modelo que
+ * volvió vacía.
+ *
+ * 4 de 30 evaluaciones volvieron sin texto en el piloto (bitácora 14) y eso
+ * cortaba el día entero: sin repregunta y, si era la última, sin despedida
+ * (bitácora 31). Casi siempre es un hipo de la API y con dos segundos alcanza.
+ * No se reintenta más de una vez: el narrador está esperando del otro lado.
+ */
+export const PAUSA_REINTENTO_MS = 2000;
+
+/** Los tests la apagan con `pausaMs: 0`; en producción son 2 s de verdad. */
+const esperar = (ms: number) => (ms > 0 ? new Promise<void>((r) => setTimeout(r, ms)) : Promise.resolve());
+
+export type OpcionesDeReintento = { pausaMs?: number };
+
 export async function evaluarRespuesta(
   pregunta: string, transcripcion: string, duracionSegundos: number, evitar = '', trato: Trato = 'usted',
+  opciones: OpcionesDeReintento = {},
 ): Promise<{ suficiente: boolean; repregunta?: string }> {
-  const respuesta = await cliente.messages.create({
-    model: MODELO_EVALUACION, max_tokens: 500, system: estiloCerebro(trato),
-    messages: [{ role: 'user', content: PROMPT_EVALUAR(pregunta, transcripcion, duracionSegundos, evitar) }],
-  });
-  // Si el JSON no se puede leer, seguimos: hoy no hay repregunta.
-  return extraerJson<{ suficiente: boolean; repregunta?: string }>(textoDe(respuesta), { suficiente: true })!;
+  const pausaMs = opciones.pausaMs ?? PAUSA_REINTENTO_MS;
+
+  const pedirleAlModelo = async () => {
+    const respuesta = await cliente.messages.create({
+      model: MODELO_EVALUACION, max_tokens: 500, system: estiloCerebro(trato),
+      messages: [{ role: 'user', content: PROMPT_EVALUAR(pregunta, transcripcion, duracionSegundos, evitar) }],
+    });
+    // Si el JSON no se puede leer, seguimos: hoy no hay repregunta.
+    return extraerJson<{ suficiente: boolean; repregunta?: string }>(textoDe(respuesta), { suficiente: true })!;
+  };
+
+  try {
+    return await pedirleAlModelo();
+  } catch (err) {
+    console.warn(`evaluar: el modelo no devolvió la evaluación (se reintenta en ${pausaMs} ms):`, err);
+  }
+
+  await esperar(pausaMs);
+  try {
+    return await pedirleAlModelo();
+  } catch (err) {
+    // El modelo no puede tumbar la entrevista: se sigue como si la respuesta
+    // alcanzara. Es exactamente lo que el código ya hacía cuando el JSON
+    // venía ilegible, y es la regla de oro: una repregunta perdida es mucho
+    // menos grave que un narrador que se queda sin su día (o sin despedida).
+    console.warn('evaluar: el modelo volvió a fallar; se sigue sin repregunta (la respuesta vale como suficiente):', err);
+    return { suficiente: true };
+  }
 }
 
 /**

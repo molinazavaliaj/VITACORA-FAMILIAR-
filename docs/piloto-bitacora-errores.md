@@ -17,13 +17,13 @@ libro sale mal, sale incompleto, o el cliente se pierde antes de llegar?
 | 19 | El narrador pide "esto que no vaya al libro" y nada lo registra | Publicar algo que pidió reservar es la peor falla posible: quiebra la confianza y puede herir a la familia |
 | 1 | Trato "usted" por defecto con ficha vacía (y el checkout no pide la ficha) | Un cliente real llega con ficha vacía → preguntas genéricas y trato equivocado desde el día 1; el narrador no siente que lo escuchan |
 | 17 | Nombres propios mal transcriptos (NASA/Naza, Herrera/Herrero) | Van directo al texto del libro; un nombre mal escrito de un hijo o un amigo desvaloriza todo el producto. La revisión de nombres del panel es la única red |
-| 14 | La evaluación vuelve vacía (2 de 13 veces) y corta el proceso | En el flujo automático es un día perdido: sin repregunta y, según cómo falle, sin avance. Frecuencia demasiado alta para ignorar |
+| 14 | La evaluación vuelve vacía (2 de 13 veces) y corta el proceso | En el flujo automático es un día perdido: sin repregunta y, según cómo falle, sin avance. Frecuencia demasiado alta para ignorar. **Arreglado el 20/09** (`f76da1f`) |
 | 34 | Cerrar libro y la muestra arman los capítulos solo con las 4 adaptativas del narrador, no con el guion entero (8) | El libro de Joaquín arrancaba por "Las pruebas" y tenía 4 capítulos; quedó guardado así en `edicion.ordenCapitulos`. **Arreglado el 18/09** (helper `armarGuion`) y el dato de Joaquín limpiado a mano esa noche |
 | 35 | El entrevistador hace las tres preguntas de "Los hijos" (19-21) aunque el narrador dijo que no tiene hijos | Joaquín contestó "no tengo hijos" en la 19 y le preguntaron igual "hábleme de cada uno de sus hijos" y "¿cómo fue usted como padre?"; él lo salvó hablando de los hermanos y de cómo lo crió el padre. En un cliente real es dolor gratuito (y peor si no tuvo hijos por una pérdida). **Arreglado el 18/09 (Joaquín)**: al responder una pregunta de «Los hijos» o «El amor», `detectarQueNoTuvo` mira si dijo que nunca tuvo; si sí, no se repregunta sobre eso, se anota `arbol.hijos`/`arbol.conyuge = 'no tuvo'` y las que siguen del capítulo se reemplazan por la regla que ya existía para el árbol cargado al comprar (ahora también para filas propias del guion). Ante la duda, no toca nada. |
 | 36 | La fábrica ignora `edicion.titulosCapitulos`: el título que la dueña le pone a un capítulo en el wizard no llega al libro | Joaquín puede renombrar "Los hijos" en el panel y la muestra lo refleja, pero el PDF/HTML, el índice y la intro del audiolibro ("Capítulo 6: Los hijos") salen con el nombre del guion. **Arreglado el 18/09** (`aplicarTitulosCapitulos` en `fabrica/src/libro/edicion.ts`, aplicado en `generar-paquete.ts`) |
 | 32 | La fábrica cambió de proyecto Railway sin dejarlo escrito; el viejo sigue vivo-muerto y engaña | Media hora de diagnóstico falso; sin healthcheck, una caída real tampoco se vería |
-| 31 | El biógrafo no se despide ni cierra solo al recibir la 30 si la evaluación falla (y en manual nunca sin `cerrar`) | El narrador queda esperando la pregunta 31; la fábrica no arranca; nadie avisa a la familia |
-| 28 | Las adaptativas 27-30 no se generan si falla la repregunta de la 26 (y `siguiente` da la entrevista por terminada en 26) | El narrador se queda sin las 4 preguntas hechas a su medida; el libro sale con huecos y nadie se entera |
+| 31 | El biógrafo no se despide ni cierra solo al recibir la 30 si la evaluación falla (y en manual nunca sin `cerrar`) | El narrador queda esperando la pregunta 31; la fábrica no arranca; nadie avisa a la familia. **Arreglado el 20/09** (`f76da1f`) el disparador: la evaluación ya no corta antes del cierre. El lado de la puerta manual (que `cargar` con la 30 ponga `completado` y muestre la despedida sin correr `cerrar`) queda **para Joaquín** |
+| 28 | Las adaptativas 27-30 no se generan si falla la repregunta de la 26 (y `siguiente` da la entrevista por terminada en 26) | El narrador se queda sin las 4 preguntas hechas a su medida; el libro sale con huecos y nadie se entera. **Arreglado el 20/09** (`f76da1f`): generar las adaptativas ya no puede cortar el flujo, y `preguntar.ts` las reintenta cuando piden la orden siguiente |
 | 9 | Webhook de Mercado Pago sin verificar firma | Cualquiera que conozca la URL puede marcar pedidos como pagados (libro gratis) |
 
 ### 🟠 Medios — el libro sale, pero peor
@@ -144,6 +144,11 @@ libro sale mal, sale incompleto, o el cliente se pierde antes de llegar?
     código dice que ante duda es "suficiente", pero eso aplica al JSON ilegible, no
     a la respuesta vacía; (b) un comando `evaluar <narrador> --orden N` para
     reintentar solo la evaluación.
+    **Arreglado el 20/09** (`f76da1f`): `evaluarRespuesta` reintenta UNA vez con
+    ~2 s de pausa y, si vuelve a fallar, devuelve `{ suficiente: true }` con un
+    `console.warn`. Nunca lanza: ni con la respuesta vacía ni con un error de la
+    API. Queda el punto (b): el comando `evaluar --orden N` vive en
+    `scripts/manual.ts` → **para Joaquín**.
 
 15. **16/09 · descarga de WhatsApp de 0 bytes.** `JOAQUIN RESPUESTA 7.ogg` bajó
     vacío la primera vez (Naza lo guardó antes de que WhatsApp terminara). `cargar`
@@ -261,6 +266,11 @@ libro sale mal, sale incompleto, o el cliente se pierde antes de llegar?
     independientemente de la repregunta; y que `siguiente` en la orden 27 sin
     adaptativas las genere (el código lo hace, pero solo si `ultimaOrdenDelGuion`
     devuelve ≥ 27 — y devuelve 26 porque mira `preguntas`, circular).
+    **Arreglado el 20/09** (`f76da1f`): `generarPreguntasAdaptativas` reintenta con
+    pausa (2 s), avisa por consola y ya NO lanza: si el modelo no devuelve las 4,
+    la entrevista sigue y el cierre sale igual. `preguntar.ts` (Joaquín) ya las
+    reintenta sola cuando le piden la orden siguiente. Queda el lado de
+    `siguiente`/`ultimaOrdenDelGuion` en `scripts/manual.ts` → **para Joaquín**.
 
 29. **17/09 · la respuesta 27 no contestó la pregunta 27.** La adaptativa 27
     preguntaba por la separación de los padres a los 17; Joaquín respondió sobre
@@ -320,6 +330,12 @@ libro sale mal, sale incompleto, o el cliente se pierde antes de llegar?
     "terminó" de la fábrica — sin depender de que la evaluación haya salido bien.
     *Para repasar*: el cierre tiene que ser el primer paso tras guardar la 30,
     no el último tras la evaluación.
+    **Arreglado el 20/09** (`f76da1f`) el DISPARADOR: como `evaluarRespuesta` ya no
+    puede lanzar, el flujo llega al bloque de cierre aunque el modelo falle — en
+    automático `cerrarBitacora` manda la despedida, pone `completado` y la fábrica
+    manda el mail "terminó". Queda **para Joaquín** el lado de la puerta manual
+    (`scripts/manual.ts`): que `cargar` con la respuesta 30 no dependa de que
+    alguien corra `cerrar` para dejar el estado y la despedida.
 
 32. **18/09 · falsa alarma con matices: la fábrica se MUDÓ de proyecto Railway
     (`vitacora-familiar`, cuenta de Naza → `fearless-kindness`, cuenta de Joaquín,
