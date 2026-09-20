@@ -142,6 +142,23 @@ describe('generarPreguntasAdaptativas', () => {
   });
 });
 
+describe('las reglas nuevas de las 4 finales (bitácora 20, 22, 24, 27, 33)', () => {
+  const p = PROMPT_ADAPTATIVAS('Joaquín', 'Contó que no tiene hijos y que la infancia fue dura.', ['La familia'], 26, '', 'vos');
+
+  it('no pregunta lo que ya contestó ni lo que el narrador negó', () => {
+    expect(p).toContain('DOS COSAS QUE NO SE HACEN');
+    expect(p).toContain('No preguntes lo que ya contestó');
+    expect(p).toContain('"no tengo hijos"');
+    expect(p).toContain('"vamos por otro lado"');
+  });
+
+  it('no da por sentado la boda, los hijos ni los nietos', () => {
+    expect(p).toContain('No supongas la vida del guion');
+    expect(p).toContain('nada de "tus nietos", "el día de la boda", "los domingos en familia"');
+    expect(p).toContain('esto no era una película de Disney');
+  });
+});
+
 describe('el trato en las 4 preguntas finales', () => {
   it('con vos: tutea y no dice que la lee una persona mayor', () => {
     const p = PROMPT_ADAPTATIVAS('Ciro', 'Contó del taller.', ['La infancia'], 26, '', 'vos');
