@@ -250,3 +250,47 @@ export function promptDeTranscripcion(contexto: Record<string, any> = {}, comoLe
   }
   return partes.join(' ');
 }
+
+/**
+ * Bitácora 15: una nota de voz bajada de WhatsApp antes de que termine de
+ * descargarse pesa 0 bytes, y `cargar` la subía y la mandaba a transcribir.
+ * Devuelve el motivo para rechazarla, o null si el archivo sirve. El piso de
+ * 1 KB es holgado: una nota de voz de un segundo ya pesa más que eso.
+ */
+export const AUDIO_MINIMO_BYTES = 1024;
+export function motivoParaRechazarAudio(bytes: number, nombre: string): string | null {
+  if (bytes === 0) return `${nombre} está vacío (0 bytes): WhatsApp no terminó de bajarlo. Volvé a guardarlo y cargalo de nuevo.`;
+  if (bytes < AUDIO_MINIMO_BYTES) return `${nombre} pesa ${bytes} bytes: no es una nota de voz entera. Volvé a bajarlo.`;
+  return null;
+}
+
+/**
+ * Bitácora 3: una respuesta que llegó en varias notas de voz. La lista que lee
+ * el demuxer `concat` de ffmpeg (una línea `file '...'` por audio, en el orden
+ * en que se van a pegar; la comilla simple se escapa como manda ffmpeg).
+ */
+export function listaParaConcatenar(rutas: string[]): string {
+  return rutas.map((r) => `file '${r.replace(/\\/g, '/').replace(/'/g, "'\\''")}'`).join('\n') + '\n';
+}
+
+/**
+ * `ficha --hijos no` / `--pareja "Élida"`: lo que va al árbol. "no", "ninguno",
+ * "no tuvo" y "no tiene" significan lo mismo que carga la familia al comprar
+ * (`'no tuvo'`, que es lo que mira `capituloNoAplica`); cualquier otra cosa son
+ * nombres y se guardan tal cual.
+ */
+export function valorDelArbol(valor: string): string {
+  const limpio = valor.trim();
+  return /^(no|ninguno|ninguna|no tuvo|no tiene|no tengo)$/i.test(limpio) ? 'no tuvo' : limpio;
+}
+
+/**
+ * Bitácora 31: qué hace la puerta manual después de cargar una respuesta a la
+ * última pregunta del guion. Si acaba de salir una repregunta, se espera esa
+ * respuesta (se cierra al cargarla con --repregunta); si no, se cierra ya:
+ * despedida impresa + estado 'completado', sin depender de correr `cerrar`.
+ */
+export function queHacerAlFinal(esUltima: boolean, repreguntaRecienImpresa: boolean): 'seguir' | 'esperar_repregunta' | 'cerrar' {
+  if (!esUltima) return 'seguir';
+  return repreguntaRecienImpresa ? 'esperar_repregunta' : 'cerrar';
+}
