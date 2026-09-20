@@ -15,6 +15,12 @@ import type { Foto } from '../db.js';
 export type Foco = { x: number; y: number };
 export const FOCO_CENTRO: Foco = { x: 0.5, y: 0.5 };
 
+/** `object-position` para `object-fit: cover`: el punto (0..1) que queda a la vista. Sin foco, el centro. */
+export function estiloFoco(foco: Foco | undefined): string {
+  const f = foco ?? FOCO_CENTRO;
+  return `object-position: ${Math.round(f.x * 100)}% ${Math.round(f.y * 100)}%`;
+}
+
 /** Dónde va la principal del capítulo: `arriba` = página propia después de la
  *  portadilla (como siempre); `abajo` = dentro de la portadilla, debajo del título. */
 export type PosicionApertura = 'arriba' | 'abajo';

@@ -1,7 +1,9 @@
 import { chromium } from 'playwright';
 import { obtenerClienteDb, type Narrador, type Pregunta, type Respuesta } from '../db.js';
+import { leerEdicion } from './edicion.js';
 import { escribirCapitulo } from './escribir-capitulo.js';
 import type { Estructura } from './estructura.js';
+import { cargarFotos, estiloFoco, type Foco, type FotoLibro } from './fotos.js';
 import {
   armarMaterial,
   capituloMarkdownAHtml,
@@ -26,15 +28,17 @@ const RUTA_BORRADOR_PREVIEW_CAP1 = (narradorId: string) => `${narradorId}/paquet
 function construirHtmlPreview(opciones: {
   titulo: string;
   fotoUrl: string | null;
+  /** Foco de la foto de tapa elegida (fotos.foco); el retrato no lo tiene y se recorta al centro. */
+  fotoFoco?: Foco;
   nombresCapitulos: string[];
   primerCapituloNombre: string;
   primerCapituloHtml: string;
 }): string {
-  const { titulo, fotoUrl, nombresCapitulos, primerCapituloNombre, primerCapituloHtml } = opciones;
+  const { titulo, fotoUrl, fotoFoco, nombresCapitulos, primerCapituloNombre, primerCapituloHtml } = opciones;
 
   const indiceHtml = nombresCapitulos.map((nombre) => `<li>${escaparHtml(nombre)}</li>`).join('\n');
   const portadaImg = fotoUrl
-    ? `<img src="${escaparHtml(fotoUrl)}" alt="" class="foto-portada" />`
+    ? `<img src="${escaparHtml(fotoUrl)}" alt="" class="foto-portada" style="${estiloFoco(fotoFoco)}" />`
     : '';
 
   return `<!DOCTYPE html>
@@ -162,9 +166,22 @@ export async function generarPrevisualizacion(narradorId: string): Promise<void>
     }
   }
 
+  // La foto de tapa que eligió la dueña reemplaza al retrato, igual que en
+  // el libro final (generar-paquete.ts): embebida como data URI y recortada
+  // con su foco. Las fotos se bajan solo si hay una elegida — antes de la
+  // compra no hay motivo para traerlas todas. Si el id no está entre las
+  // fotos (o no se pudo bajar), queda el retrato.
+  const edicion = leerEdicion(narrador.edicion);
+  let fotoTapa: FotoLibro | undefined;
+  if (edicion.portadaFotoId) {
+    const fotos = await cargarFotos(db, narradorId);
+    fotoTapa = fotos.porId.get(edicion.portadaFotoId);
+  }
+
   const html = construirHtmlPreview({
     titulo: estructura.titulo,
-    fotoUrl: narrador.foto_url,
+    fotoUrl: fotoTapa?.dataUri ?? narrador.foto_url,
+    fotoFoco: fotoTapa?.foco,
     nombresCapitulos: estructura.capitulos.map((c) => c.nombre),
     primerCapituloNombre: primerCapitulo?.nombre ?? estructura.titulo,
     primerCapituloHtml: primerCapituloTexto
