@@ -100,7 +100,7 @@ export async function generarReconocimiento(
  * tenía ocho años"): eso es insuficiente, pero la repregunta va a AHONDAR en
  * eso, no a repetir una frase armada.
  */
-export const PROMPT_EVALUAR = (pregunta: string, transcripcion: string, duracionSegundos: number, evitar = '') =>
+export const PROMPT_EVALUAR = (pregunta: string, transcripcion: string, duracionSegundos: number, evitar = '', trato: Trato = 'usted') =>
   `Pregunta de hoy: "${pregunta}"
 Respuesta (duró ${duracionSegundos} segundos): "${transcripcion}"
 ${evitar}
@@ -118,6 +118,10 @@ El largo no decide nada: hay respuestas de diez segundos que valen un capítulo 
 Si alcanza, respondé {"suficiente": true} y nada más: no pidas más detalles por costumbre. La repregunta es para cuando falta material o cuando dejó algo importante a medio decir, no para alargar una buena respuesta.
 
 La repregunta la pensás SIEMPRE vos, para esta respuesta y este narrador: no existe un texto fijo. Una sola pregunta, cálida, con curiosidad genuina, que invite a profundizar en lo que ya dijo (o en la parte valiosa que quedó afuera). Nunca un tema nuevo, nunca decir que es una repregunta, nunca pedirle que resuma lo que ya contó.
+
+LA REPREGUNTA VA EN ${trato}, SIN EXCEPCIÓN, con sus conjugaciones: ${trato === 'vos'
+    ? 'tuteando de punta a punta ("¿cómo era tu casa?", "¿te acordás?", "¿qué sentiste?"), nunca "cuénteme", "usted", "su" ni "sus", aunque la pregunta del día haya venido escrita de usted.'
+    : 'de usted de punta a punta ("¿cómo era su casa?", "¿se acuerda?", "¿qué sintió?"), nunca "contame", "vos", "tu" ni "tus".'} Si el narrador viene hablando de vos y la repregunta sale de usted, se rompe el vínculo justo en el momento más íntimo.
 
 Respondé SOLO con JSON: {"suficiente": true} o {"suficiente": false, "repregunta": "..."}`;
 
@@ -146,7 +150,7 @@ export async function evaluarRespuesta(
   const pedirleAlModelo = async () => {
     const respuesta = await cliente.messages.create({
       model: MODELO_EVALUACION, max_tokens: 500, system: estiloCerebro(trato),
-      messages: [{ role: 'user', content: PROMPT_EVALUAR(pregunta, transcripcion, duracionSegundos, evitar) }],
+      messages: [{ role: 'user', content: PROMPT_EVALUAR(pregunta, transcripcion, duracionSegundos, evitar, trato) }],
     });
     // Si el JSON no se puede leer, seguimos: hoy no hay repregunta.
     return extraerJson<{ suficiente: boolean; repregunta?: string }>(textoDe(respuesta), { suficiente: true })!;

@@ -145,6 +145,39 @@ describe('cerebro', () => {
   });
 });
 
+describe('el trato de la repregunta que escribe la evaluación', () => {
+  beforeEach(() => crearMock.mockReset());
+
+  // Bitácora 4: las 5 repreguntas del piloto salieron en usted con un narrador
+  // de vos. El estilo del sistema pide el trato, pero el prompt tiene que
+  // exigirlo en la repregunta misma, que es donde se juega el vínculo.
+  it('con vos el prompt exige tuteo en la repregunta, con sus conjugaciones', async () => {
+    const { PROMPT_EVALUAR } = await import('../src/ia/cerebro.js');
+    const p = PROMPT_EVALUAR('¿Cómo era su casa?', 'Linda.', 8, '', 'vos');
+    expect(p).toContain('LA REPREGUNTA VA EN vos, SIN EXCEPCIÓN, con sus conjugaciones');
+    expect(p).toContain('"¿cómo era tu casa?"');
+    expect(p).toContain('"¿te acordás?"');
+    expect(p).toContain('nunca "cuénteme"');
+    expect(p).not.toContain('de usted de punta a punta');
+  });
+
+  it('con usted exige usted (y el default sigue siendo usted)', async () => {
+    const { PROMPT_EVALUAR } = await import('../src/ia/cerebro.js');
+    for (const p of [PROMPT_EVALUAR('¿Cómo era su casa?', 'Linda.', 8, '', 'usted'), PROMPT_EVALUAR('¿Cómo era su casa?', 'Linda.', 8)]) {
+      expect(p).toContain('LA REPREGUNTA VA EN usted, SIN EXCEPCIÓN, con sus conjugaciones');
+      expect(p).toContain('nunca "contame"');
+      expect(p).not.toContain('de vos de punta a punta');
+    }
+  });
+
+  it('evaluarRespuesta le pasa el trato al prompt de verdad', async () => {
+    crearMock.mockResolvedValueOnce({ content: [{ type: 'text', text: '{"suficiente": true}' }] });
+    const { evaluarRespuesta } = await import('../src/ia/cerebro.js');
+    await evaluarRespuesta('¿Cómo era tu casa?', 'Era linda.', 12, '', 'vos');
+    expect(crearMock.mock.calls.at(-1)![0].messages[0].content).toContain('LA REPREGUNTA VA EN vos');
+  });
+});
+
 describe('extraerJson', () => {
   it('saca el JSON limpio de un texto con explicaciones alrededor', async () => {
     const { extraerJson } = await import('../src/ia/cerebro.js');

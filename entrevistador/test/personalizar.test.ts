@@ -224,6 +224,56 @@ describe('personalizarPregunta', () => {
   });
 });
 
+describe('el segundo intento cuando el fallback rompería el trato (bitácora 18)', () => {
+  const respuesta = (texto: string) => ({ content: [{ type: 'text', text: texto }], usage: {} });
+  const ciro = { id: 'n1', como_le_dicen: 'Ciro', contexto: { anioNacimiento: 1998, trato: 'vos' as const } };
+  const PERSONALIZADA_EN_VOS =
+    '¿Y cómo fue llevarla a la casa de Ramón y Haydée? ¿Qué dijeron cuando la conocieron? ¿Y cómo fue la propuesta, el casamiento y el día de la boda?';
+
+  beforeEach(() => {
+    mocks.crear.mockReset();
+    mocks.updates = [];
+    mocks.respuestas = [{ pregunta_orden: 13, transcripcion: 'La conocí en un baile...', texto_directo: null }];
+  });
+
+  // El fallback son las 26 fijas, escritas de usted: con un narrador de vos
+  // eso rompe el trato a mitad de la entrevista (pasó 4 de 26 en el piloto).
+  it('con vos: si el primero se comió una parte, prueba el prompt corto y usa ese', async () => {
+    mocks.crear
+      .mockResolvedValueOnce(respuesta(PERSONALIZADA_INCOMPLETA))
+      .mockResolvedValueOnce(respuesta(PERSONALIZADA_EN_VOS));
+    const r = await personalizarPregunta(ciro, ORIGINAL_NOVIAZGO, 14);
+    expect(mocks.crear).toHaveBeenCalledTimes(2);
+    expect(r.personalizada).toBe(true);
+    expect(r.texto).toBe(PERSONALIZADA_EN_VOS);
+    // El segundo prompt exige el trato y conserva todas las preguntas.
+    const segundo = mocks.crear.mock.calls[1][0].messages[0].content as string;
+    expect(segundo).toContain('a alguien a quien tratás de VOS');
+    expect(segundo).toContain('MISMAS preguntas');
+    expect(segundo).toContain(ORIGINAL_NOVIAZGO);
+    // Y lo que se manda queda guardado para el panel.
+    expect(mocks.updates.find((u) => u.tabla === 'narradores')?.p.contexto.preguntasEnviadas['14']).toBe(PERSONALIZADA_EN_VOS);
+  });
+
+  it('con vos: si los dos fallan, manda el original y no guarda nada', async () => {
+    mocks.crear.mockResolvedValue(respuesta(PERSONALIZADA_INCOMPLETA));
+    const r = await personalizarPregunta(ciro, ORIGINAL_NOVIAZGO, 14);
+    expect(mocks.crear).toHaveBeenCalledTimes(2);
+    expect(r.texto).toBe(ORIGINAL_NOVIAZGO);
+    expect(r.personalizada).toBe(false);
+    expect(r.motivo).toMatch(/no conservaba/);
+    expect(mocks.updates.find((u) => u.tabla === 'narradores')).toBeUndefined();
+  });
+
+  it('con usted no paga un segundo intento: manda el original de una', async () => {
+    mocks.crear.mockResolvedValue(respuesta(PERSONALIZADA_INCOMPLETA));
+    const osvaldo = { id: 'n1', como_le_dicen: 'Don Osvaldo', contexto: { trato: 'usted' as const } };
+    const r = await personalizarPregunta(osvaldo, ORIGINAL_NOVIAZGO, 14);
+    expect(mocks.crear).toHaveBeenCalledTimes(1);
+    expect(r.texto).toBe(ORIGINAL_NOVIAZGO);
+  });
+});
+
 describe('el trato manda en el prompt de la pregunta del día', () => {
   const respuesta = (texto: string) => ({ content: [{ type: 'text', text: texto }], usage: {} });
 

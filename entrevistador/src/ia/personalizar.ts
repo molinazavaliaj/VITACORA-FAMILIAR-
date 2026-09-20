@@ -85,6 +85,36 @@ Reescribila para que se note que lo escuchaste. Reglas:
 
 Respondé SOLO con la pregunta.`;
 
+/**
+ * El segundo intento cuando el primero falló y el fallback rompería el trato
+ * (bitácora 18).
+ *
+ * Las 26 fijas están escritas de usted: si la personalización falla, `siguiente`
+ * manda el texto fijo y un narrador de vos recibe una pregunta de usted en el
+ * medio de la entrevista (pasó 4 de 26 veces, y la orden 12 terminó con el
+ * "cuénteme ESA historia" del guion seguido del cierre en vos). Antes de
+ * rendirse se le pide lo mismo con el prompt más corto, que es el que el modelo
+ * chico no suele errar: mismas preguntas, todo en vos, lo más breve posible.
+ */
+export const PROMPT_PERSONALIZAR_BREVE = (original: string, previas: string) =>
+`Reescribí esta pregunta para mandársela por WhatsApp a alguien a quien tratás de VOS.
+
+LA PREGUNTA DEL GUION (está escrita de usted, es genérica):
+"${original}"
+
+LO ÚLTIMO QUE CONTÓ:
+${previas || '(todavía no contó nada)'}
+
+Reglas, solo estas:
+- MISMAS preguntas, ni una menos: si el original tiene dos o tres, la tuya tiene las mismas dos o tres.
+- Todo en VOS, tuteando de punta a punta ("¿cómo era tu casa?", "¿te acordás?"). Nada de "cuénteme", "usted", "su", "sus".
+- Lo más corto posible: máximo 40 palabras en total.
+- Si un detalle concreto de lo que contó entra en la pregunta, nombralo. No inventes nada.
+
+No saludes, no expliques nada, no agregues comillas.
+
+Respondé SOLO con la pregunta.`;
+
 /** Cuenta los signos de pregunta: es lo que delata que se perdió una parte. */
 export function contarPreguntas(texto: string): number {
   return (texto.match(/\?/g) ?? []).length;
@@ -248,27 +278,64 @@ export async function personalizarPregunta(
   // Vitácora de viaje: la pregunta de la noche se escribe entera en el momento.
   if (esViaje(n.contexto)) return personalizarViaje(n, original, orden, recordar);
 
+  // El trato se resuelve adentro del try y se recuerda afuera: cuando todo falla
+  // hay que saber si el original (escrito de usted) rompe el trato de este
+  // narrador, y ahí es donde entra el segundo intento (bitácora 18).
+  let trato: Trato = 'usted';
+
+  /**
+   * Un intento de personalización. Distingue "el modelo devolvió algo inválido"
+   * (se puede reintentar con el prompt corto) de "el modelo falló" (la API, la
+   * red: el motivo se reporta distinto y no se confunde con lo otro).
+   */
+  const intento = async (prompt: string): Promise<{ ok: true; texto: string } | { ok: false; motivo: 'invalida' | 'fallo' }> => {
+    try {
+      const respuesta = await cliente().messages.create({
+        model: MODELO, max_tokens: MAX_TOKENS,
+        messages: [{ role: 'user', content: prompt }],
+      });
+      const bloque = respuesta.content.find((b) => b.type === 'text');
+      const cruda = bloque && bloque.type === 'text' ? bloque.text.trim().replace(/^["'«]|["'»]$/g, '') : '';
+      return esPersonalizacionValida(original, cruda) ? { ok: true, texto: cruda } : { ok: false, motivo: 'invalida' };
+    } catch (err) {
+      console.error(`personalizar: el modelo falló en un intento de la orden ${orden} de ${n.id}:`, err);
+      return { ok: false, motivo: 'fallo' };
+    }
+  };
+
   try {
     const previas = await respuestasPrevias(n.id, orden);
     const resumenes = await memoriaDeCapitulos(n, orden);
-    const trato = await tratoDe(n);
-    const respuesta = await cliente().messages.create({
-      model: MODELO, max_tokens: MAX_TOKENS,
-      messages: [{ role: 'user', content: PROMPT_PERSONALIZAR(original, fichaEnTexto(n.contexto, n.como_le_dicen), previas, resumenes, textoEvitar(n.contexto), trato) }],
-    });
-    const bloque = respuesta.content.find((b) => b.type === 'text');
-    const cruda = bloque && bloque.type === 'text' ? bloque.text.trim().replace(/^["'«]|["'»]$/g, '') : '';
+    trato = await tratoDe(n);
 
-    if (!esPersonalizacionValida(original, cruda)) {
-      console.warn(`personalizar: la orden ${orden} de ${n.id} volvió inválida — se manda el original.`);
-      return { texto: original, personalizada: false, motivo: 'la versión del modelo no conservaba las preguntas del original' };
+    const primero = await intento(PROMPT_PERSONALIZAR(original, fichaEnTexto(n.contexto, n.como_le_dicen), previas, resumenes, textoEvitar(n.contexto), trato));
+    if (primero.ok) {
+      // `recordar: false` es para mirar sin comprometer: la puerta manual lo usa
+      // con --solo-ver, así una pregunta que todavía no se mandó no queda congelada
+      // con la personalización de hoy.
+      if (recordar) await recordarEnviada(n, orden, primero.texto);
+      return { texto: primero.texto, personalizada: primero.texto !== original };
+    }
+    console.warn(`personalizar: la orden ${orden} de ${n.id} no sirvió (${primero.motivo}) — se manda el original.`);
+
+    // Bitácora 18: con un narrador de vos, el original (escrito de usted) rompe
+    // el trato a mitad de la entrevista. Antes de rendirse, un segundo intento
+    // más corto — el prompt largo es el que suele enredarse.
+    if (trato === 'vos') {
+      const segundo = await intento(PROMPT_PERSONALIZAR_BREVE(original, previas));
+      if (segundo.ok) {
+        if (recordar) await recordarEnviada(n, orden, segundo.texto);
+        return { texto: segundo.texto, personalizada: segundo.texto !== original };
+      }
+      console.warn(`personalizar: la orden ${orden} de ${n.id} tampoco salió en el segundo intento (${segundo.motivo}).`);
     }
 
-    // `recordar: false` es para mirar sin comprometer: la puerta manual lo usa
-    // con --solo-ver, así una pregunta que todavía no se mandó no queda congelada
-    // con la personalización de hoy.
-    if (recordar) await recordarEnviada(n, orden, cruda);
-    return { texto: cruda, personalizada: cruda !== original };
+    return {
+      texto: original, personalizada: false,
+      motivo: primero.motivo === 'invalida'
+        ? 'la versión del modelo no conservaba las preguntas del original'
+        : 'el modelo falló',
+    };
   } catch (err) {
     console.error(`personalizar: falló la orden ${orden} de ${n.id} — se manda el original:`, err);
     return { texto: original, personalizada: false, motivo: 'el modelo falló' };
