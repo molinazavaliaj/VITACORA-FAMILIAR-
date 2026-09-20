@@ -12,6 +12,12 @@ vi.mock('../src/audio/audiolibro.js', () => ({
   generarAudiolibro: generarAudiolibroMock,
 }));
 
+const { escribirConectoresMock } = vi.hoisted(() => ({ escribirConectoresMock: vi.fn() }));
+vi.mock('../src/voz/conectores.js', async () => {
+  const actual = await vi.importActual<typeof import('../src/voz/conectores.js')>('../src/voz/conectores.js');
+  return { ...actual, escribirConectores: escribirConectoresMock };
+});
+
 const { generarEstructuraMock } = vi.hoisted(() => ({ generarEstructuraMock: vi.fn() }));
 vi.mock('../src/libro/estructura.js', async () => {
   const actual = await vi.importActual<typeof import('../src/libro/estructura.js')>('../src/libro/estructura.js');
@@ -307,6 +313,8 @@ describe('generarPaquete', () => {
         'narrador-1/paquete/borrador_cap_01.md',
         'narrador-1/paquete/borrador_cap_02.md',
         'narrador-1/paquete/borrador_libro.md',
+        'narrador-1/paquete/conectores_cap_01.json',
+        'narrador-1/paquete/conectores_cap_02.json',
       ])
     );
   });
@@ -510,8 +518,8 @@ describe('generarPaquete', () => {
       preguntasNarrador: { data: [], error: null },
       respuestas: {
         data: [
-          { pregunta_orden: 1, transcripcion: 'En Rosario.', texto_directo: null, es_repregunta: false, audio_path: 'n1/dia_01.ogg' },
-          { pregunta_orden: 2, transcripcion: 'La conocí bailando.', texto_directo: null, es_repregunta: false, audio_path: 'n1/dia_02.ogg' },
+          { id: 'r1', pregunta_orden: 1, transcripcion: 'En Rosario.', texto_directo: null, es_repregunta: false, audio_path: 'n1/dia_01.ogg', duracion_segundos: 120, recibido_at: '2026-09-01T10:00:00Z' },
+          { id: 'r2', pregunta_orden: 2, transcripcion: 'La conocí bailando.', texto_directo: null, es_repregunta: false, audio_path: 'n1/dia_02.ogg', duracion_segundos: 95.4, recibido_at: '2026-09-02T10:00:00Z' },
         ],
         error: null,
       },
@@ -522,6 +530,8 @@ describe('generarPaquete', () => {
     (obtenerClienteDb as unknown as ReturnType<typeof vi.fn>).mockReturnValue(db);
 
     escribirCapituloMock.mockResolvedValue('Un capítulo con su voz.');
+    // Conectores de un capítulo con una sola historia (los de N1): sin puentes.
+    escribirConectoresMock.mockResolvedValue({ entrada: 'Empiezo por acá.', entre: [], salida: 'Eso fue.' });
     finalMessageMock.mockResolvedValue({
       content: [
         {
@@ -808,21 +818,54 @@ describe('generarPaquete', () => {
     expect(rutas).toContain('n1/paquete/libro.html');
     expect(rutas).toContain('n1/paquete/libro.pdf');
 
-    // ...y narracion.json quedó en paquete/ con los capítulos en el orden
-    // FINAL (la edición aplicada), numerados y en texto plano — lo que el
-    // worker de voz va a narrar.
+    // ...y narracion.json (v2) quedó en paquete/ con los capítulos en el
+    // orden FINAL (la edición aplicada), numerados y en texto plano. Las dos
+    // respuestas tienen audio, así que los dos capítulos son híbridos: la
+    // historia con su audio real y los conectores que narra la voz clonada.
     const llamadaJson = db.upload.mock.calls.find((c) => c[0] === 'n1/paquete/narracion.json');
     expect(llamadaJson).toBeDefined();
     expect(llamadaJson![2]).toEqual({ contentType: 'application/json', upsert: true });
+    const conectores = { entrada: 'Empiezo por acá.', entre: [], salida: 'Eso fue.' };
     expect(JSON.parse(llamadaJson![1] as string)).toEqual({
+      version: 2,
       narrador_id: 'n1',
       pedido_id: 'p1',
       titulo: 'Mi abuela Rosa',
       capitulos: [
-        { numero: 1, nombre: 'El amor', texto: 'La conocí bailando.\n\nFue el día más feliz.' },
-        { numero: 2, nombre: 'La infancia', texto: 'Nací en Rosario.' },
+        {
+          numero: 1,
+          nombre: 'El amor',
+          texto: 'La conocí bailando.\n\nFue el día más feliz.',
+          modo: 'hibrido',
+          historias: [
+            { respuesta_id: 'r2', pregunta_orden: 2, es_repregunta: false, audio_path: 'n1/dia_02.ogg', segundos: 95, pregunta: '¿Cómo conociste a tu pareja?', texto: 'La conocí bailando.' },
+          ],
+          conectores,
+        },
+        {
+          numero: 2,
+          nombre: 'La infancia',
+          texto: 'Nací en Rosario.',
+          modo: 'hibrido',
+          historias: [
+            { respuesta_id: 'r1', pregunta_orden: 1, es_repregunta: false, audio_path: 'n1/dia_01.ogg', segundos: 120, pregunta: '¿Dónde naciste?', texto: 'En Rosario.' },
+          ],
+          conectores,
+        },
       ],
     });
+    // Los conectores se cachean por capítulo (numerados en el orden FINAL),
+    // como los borradores: un reintento no le vuelve a pagar al modelo.
+    expect(db.upload).toHaveBeenCalledWith(
+      'n1/paquete/conectores_cap_01.json',
+      JSON.stringify(conectores, null, 2),
+      { contentType: 'application/json', upsert: true }
+    );
+    expect(db.upload).toHaveBeenCalledWith(
+      'n1/paquete/conectores_cap_02.json',
+      JSON.stringify(conectores, null, 2),
+      { contentType: 'application/json', upsert: true }
+    );
     // El PDF ya estaba subido cuando se escribió narracion.json.
     const indicePdf = db.upload.mock.calls.findIndex((c) => c[0] === 'n1/paquete/libro.pdf');
     const indiceJson = db.upload.mock.calls.findIndex((c) => c[0] === 'n1/paquete/narracion.json');
@@ -848,6 +891,89 @@ describe('generarPaquete', () => {
     // los borradores, no pagarle al modelo de nuevo. Los borra la fábrica
     // al ensamblar y entregar (worker.ts).
     expect(db.remove).not.toHaveBeenCalled();
+  });
+
+  it('audiolibro "clonada" híbrido: el capítulo con audio lleva sus historias (respuesta antes que repregunta) y los conectores del modelo; el capítulo sin audio sale clonado', async () => {
+    const db = construirDbN1({
+      respuestas: {
+        data: [
+          // La infancia: respuesta + repregunta, las dos con audio (la repregunta viene antes en la lista, pero va después).
+          { id: 'r1b', pregunta_orden: 1, transcripcion: 'Y mi vieja cosía para afuera.', texto_directo: null, es_repregunta: true, audio_path: 'n1/dia_01_2.ogg', duracion_segundos: 40, recibido_at: '2026-09-01T11:00:00Z' },
+          { id: 'r1', pregunta_orden: 1, transcripcion: 'En Rosario.', texto_directo: null, es_repregunta: false, audio_path: 'n1/dia_01.ogg', duracion_segundos: 120, recibido_at: '2026-09-01T10:00:00Z' },
+          // El amor: respondió escribiendo, sin audio → no hay historia que pegar.
+          { id: 'r2', pregunta_orden: 2, transcripcion: null, texto_directo: 'La conocí bailando.', es_repregunta: false, audio_path: null, duracion_segundos: null, recibido_at: '2026-09-02T10:00:00Z' },
+        ],
+        error: null,
+      },
+      narraciones: [{ data: [], error: null }, { data: { id: 'narr-1' }, error: null }],
+    });
+    escribirCapituloMock.mockResolvedValueOnce('Nací en Rosario.').mockResolvedValueOnce('La conocí bailando.');
+    const conectores = { entrada: 'Arranco por el principio.', entre: ['Y en esa casa estaba mi vieja.'], salida: 'Eso fue Rosario.' };
+    escribirConectoresMock.mockResolvedValue(conectores);
+
+    await generarPaquete({ id: 'p1', narrador_id: 'n1', extras: extrasClonada });
+
+    // Una sola llamada al modelo: solo el capítulo con historias lleva conectores.
+    expect(escribirConectoresMock).toHaveBeenCalledTimes(1);
+    const [, argsConectores] = escribirConectoresMock.mock.calls[0];
+    expect(argsConectores).toEqual({
+      nombre: 'Rosa',
+      capitulo: 'La infancia',
+      textoCapitulo: 'Nací en Rosario.',
+      historias: [
+        { pregunta: '¿Dónde naciste?', texto: 'En Rosario.' },
+        { pregunta: '¿Dónde naciste?', texto: 'Y mi vieja cosía para afuera.' },
+      ],
+    });
+
+    const llamadaJson = db.upload.mock.calls.find((c) => c[0] === 'n1/paquete/narracion.json')!;
+    const narracion = JSON.parse(llamadaJson[1] as string);
+    expect(narracion.version).toBe(2);
+    expect(narracion.capitulos).toEqual([
+      {
+        numero: 1,
+        nombre: 'La infancia',
+        texto: 'Nací en Rosario.',
+        modo: 'hibrido',
+        historias: [
+          { respuesta_id: 'r1', pregunta_orden: 1, es_repregunta: false, audio_path: 'n1/dia_01.ogg', segundos: 120, pregunta: '¿Dónde naciste?', texto: 'En Rosario.' },
+          { respuesta_id: 'r1b', pregunta_orden: 1, es_repregunta: true, audio_path: 'n1/dia_01_2.ogg', segundos: 40, pregunta: '¿Dónde naciste?', texto: 'Y mi vieja cosía para afuera.' },
+        ],
+        conectores,
+      },
+      { numero: 2, nombre: 'El amor', texto: 'La conocí bailando.', modo: 'clonado' },
+    ]);
+
+    // Se cachearon solo los conectores del capítulo híbrido...
+    const rutas = db.upload.mock.calls.map((c) => c[0] as string);
+    expect(rutas).toContain('n1/paquete/conectores_cap_01.json');
+    expect(rutas).not.toContain('n1/paquete/conectores_cap_02.json');
+    // ...y ANTES de narracion.json (checkpoint: si algo falla después, ya están pagos).
+    expect(rutas.indexOf('n1/paquete/conectores_cap_01.json')).toBeLessThan(rutas.indexOf('n1/paquete/narracion.json'));
+  });
+
+  it('audiolibro "clonada": un reintento con conectores_cap_NN.json cacheados no le vuelve a pagar al modelo', async () => {
+    const cacheados = {
+      1: { entrada: 'Cacheado uno.', entre: [], salida: 'Fin uno.' },
+      2: { entrada: 'Cacheado dos.', entre: [], salida: 'Fin dos.' },
+    };
+    const db = construirDbN1({
+      descargas: {
+        ...descargasN1(),
+        'n1/paquete/conectores_cap_01.json': { data: blobFake(JSON.stringify(cacheados[1])), error: null },
+        'n1/paquete/conectores_cap_02.json': { data: blobFake(JSON.stringify(cacheados[2])), error: null },
+      },
+      narraciones: [{ data: [], error: null }, { data: { id: 'narr-1' }, error: null }],
+    });
+
+    await generarPaquete({ id: 'p1', narrador_id: 'n1', extras: extrasClonada });
+
+    expect(escribirConectoresMock).not.toHaveBeenCalled();
+    const llamadaJson = db.upload.mock.calls.find((c) => c[0] === 'n1/paquete/narracion.json')!;
+    const narracion = JSON.parse(llamadaJson[1] as string);
+    expect(narracion.capitulos.map((c: { conectores: unknown }) => c.conectores)).toEqual([cacheados[1], cacheados[2]]);
+    expect(db.upload.mock.calls.map((c) => c[0])).not.toContain('n1/paquete/conectores_cap_01.json');
+    expect(db.pedidosUpdate).toHaveBeenCalledWith({ estado: 'esperando_voz', libro_pdf_path: 'n1/paquete/libro.pdf' }, 'p1');
   });
 
   it('audiolibro "clonada" sin título de tapa: narracion.json lleva el título de la estructura', async () => {

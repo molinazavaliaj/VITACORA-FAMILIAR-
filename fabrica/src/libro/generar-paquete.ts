@@ -9,7 +9,8 @@ import { generarEstructura, type Estructura } from './estructura.js';
 import { leerEdicion, aplicarOrdenCapitulos, aplicarTitulosCapitulos } from './edicion.js';
 import { cargarFotos } from './fotos.js';
 import { productosDelPedido } from './productos.js';
-import { armarNarracionJson } from '../voz/narracion-json.js';
+import { armarNarracionJson, type ConectoresNarracion } from '../voz/narracion-json.js';
+import { escribirConectores, historiasDelCapitulo } from '../voz/conectores.js';
 import { crearNarracion, RUTA_NARRACION_JSON } from '../voz/narraciones.js';
 import {
   armarMaterial,
@@ -20,6 +21,7 @@ import {
   rutasDeBorradores,
   RUTA_BORRADOR_CAP,
   RUTA_BORRADOR_LIBRO,
+  RUTA_CONECTORES_CAP,
   subirTexto,
   type Nombres,
 } from './comun.js';
@@ -224,18 +226,26 @@ export async function generarPaquete(pedido: { id: string; narrador_id: string; 
     await generarPdf(db, narradorId, html);
 
     // 2. Voz clonada: el audiolibro lo narra el worker de la PC de Naza, no
-    // esta fábrica. Se le deja narracion.json (los capítulos en el orden
-    // final, en texto plano — lo que se escribió en borrador_cap_NN.md, ya
-    // en memoria) y la fila en el buzón `narraciones`; el pedido queda
-    // `esperando_voz` con el PDF cargado y sin `audiolibro_paths` (eso
-    // llega cuando la fábrica ensambla la voz). El título es el de tapa si
-    // la dueña puso uno; si no, el de la estructura.
+    // esta fábrica. Se le deja narracion.json (v2, híbrido: por capítulo,
+    // las historias con audio real en el orden del libro y los conectores
+    // que narra la voz clonada; el texto plano de borrador_cap_NN.md queda
+    // para el capítulo sin audio, que se narra entero) y la fila en el
+    // buzón `narraciones`; el pedido queda `esperando_voz` con el PDF
+    // cargado y sin `audiolibro_paths` (eso llega cuando la fábrica
+    // ensambla la voz). El título es el de tapa si la dueña puso uno; si
+    // no, el de la estructura.
     if (productosDelPedido(pedido.extras).audiolibro === 'clonada') {
+      const capitulosNarracion = await armarCapitulosParaNarrar(db, narrador, narradorId, {
+        capitulos: estructuraFinal.capitulos,
+        capitulosTexto,
+        preguntasPorOrden,
+        respuestasPorOrden,
+      });
       const narracion = armarNarracionJson({
         narradorId,
         pedidoId: pedido.id,
         titulo: edicion.titulo ?? estructuraFinal.titulo,
-        capitulos: capitulosTexto.map((c) => ({ nombre: c.nombre, markdown: c.texto })),
+        capitulos: capitulosNarracion,
       });
       await subirTexto(db, RUTA_NARRACION_JSON(narradorId), JSON.stringify(narracion, null, 2), 'application/json');
       await crearNarracion(db, { narradorId, pedidoId: pedido.id });
@@ -282,6 +292,59 @@ export async function generarPaquete(pedido: { id: string; narrador_id: string; 
       console.error(`generarPaquete: no se pudo marcar 'fallido' el pedido ${pedido.id}:`, errorFallo.message);
     }
   }
+}
+
+/**
+ * Los capítulos como los quiere narracion.json v2: para cada uno (mismo
+ * índice en `capitulos` y en `capitulosTexto`, los dos en el orden FINAL),
+ * las historias con audio y —si hay alguna— los conectores escritos en su
+ * voz. Los conectores se cachean en Storage igual que los borradores
+ * (`conectores_cap_NN.json`, numerado por el orden final): un reintento los
+ * reusa sin llamar al modelo, y se borran con los borradores al entregar.
+ * Un capítulo sin audio no lleva conectores: se narra entero, clonado.
+ */
+async function armarCapitulosParaNarrar(
+  db: ReturnType<typeof obtenerClienteDb>,
+  narrador: Narrador,
+  narradorId: string,
+  args: {
+    capitulos: Estructura['capitulos'];
+    capitulosTexto: { nombre: string; texto: string }[];
+    preguntasPorOrden: Map<number, Pregunta>;
+    respuestasPorOrden: Map<number, Respuesta[]>;
+  }
+): Promise<Parameters<typeof armarNarracionJson>[0]['capitulos']> {
+  let cliente: Anthropic | undefined;
+  const resultado: Parameters<typeof armarNarracionJson>[0]['capitulos'] = [];
+
+  for (let i = 0; i < args.capitulos.length; i++) {
+    const capitulo = args.capitulos[i];
+    const { nombre, texto } = args.capitulosTexto[i];
+    const historias = historiasDelCapitulo(capitulo.ordenes, args.preguntasPorOrden, args.respuestasPorOrden);
+    if (historias.length === 0) {
+      resultado.push({ nombre, markdown: texto });
+      continue;
+    }
+
+    const rutaConectores = RUTA_CONECTORES_CAP(narradorId, i + 1);
+    const cacheado = await descargarTextoOpcional(db, rutaConectores);
+    let conectores: ConectoresNarracion;
+    if (cacheado !== null) {
+      conectores = JSON.parse(cacheado) as ConectoresNarracion;
+    } else {
+      cliente ??= new Anthropic({ apiKey: cargarConfig().anthropicApiKey });
+      conectores = await escribirConectores(cliente, {
+        nombre: narrador.nombre,
+        capitulo: nombre,
+        textoCapitulo: texto,
+        historias: historias.map((h) => ({ pregunta: h.pregunta, texto: h.texto })),
+      });
+      await subirTexto(db, rutaConectores, JSON.stringify(conectores, null, 2), 'application/json');
+    }
+    resultado.push({ nombre, markdown: texto, historias, conectores });
+  }
+
+  return resultado;
 }
 
 /**

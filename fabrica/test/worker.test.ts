@@ -1134,7 +1134,13 @@ describe('tick — voz clonada: ensamblar narraciones listas', () => {
     // capítulo de narracion.json más el del libro): hasta acá eran el caché
     // que evita repagarle al modelo si hay que rehacer el pedido a mano.
     expect(db.borrados).toEqual([
-      ['n1/paquete/borrador_cap_01.md', 'n1/paquete/borrador_cap_02.md', 'n1/paquete/borrador_libro.md'],
+      [
+        'n1/paquete/borrador_cap_01.md',
+        'n1/paquete/borrador_cap_02.md',
+        'n1/paquete/borrador_libro.md',
+        'n1/paquete/conectores_cap_01.json',
+        'n1/paquete/conectores_cap_02.json',
+      ],
     ]);
   });
 
@@ -1258,7 +1264,15 @@ describe('tick — voz clonada: ensamblar narraciones listas', () => {
     // p1 queda como estaba (esperando_voz; la narración sigue lista y el próximo tick reintenta).
     expect(db.pedidosEntregadosPorVoz.map((p) => p.id)).toEqual(['p2']);
     // Solo se borran los borradores del que se entregó.
-    expect(db.borrados).toEqual([['n2/paquete/borrador_cap_01.md', 'n2/paquete/borrador_cap_02.md', 'n2/paquete/borrador_libro.md']]);
+    expect(db.borrados).toEqual([
+      [
+        'n2/paquete/borrador_cap_01.md',
+        'n2/paquete/borrador_cap_02.md',
+        'n2/paquete/borrador_libro.md',
+        'n2/paquete/conectores_cap_01.json',
+        'n2/paquete/conectores_cap_02.json',
+      ],
+    ]);
     expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('nar-1'), expect.anything());
     errorSpy.mockRestore();
   });
