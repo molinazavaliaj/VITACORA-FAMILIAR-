@@ -69,6 +69,7 @@ type Modulos = {
   transcribirYActualizar: (typeof import('../src/ia/transcribir.js'))['transcribirYActualizar'];
   evaluarRespuesta: (typeof import('../src/ia/cerebro.js'))['evaluarRespuesta'];
   reservaDe: (typeof import('../src/ia/cerebro.js'))['reservaDe'];
+  detectarReservaYDejarTema: (typeof import('../src/ia/cerebro.js'))['detectarReservaYDejarTema'];
   sumarTemaEvitado: (typeof import('../src/ia/evitar.js'))['sumarTemaEvitado'];
   textoEvitar: (typeof import('../src/ia/evitar.js'))['textoEvitar'];
   generarPreguntaReemplazo: (typeof import('../src/ia/cerebro.js'))['generarPreguntaReemplazo'];
@@ -93,7 +94,7 @@ function modulos(): Promise<Modulos> {
     const { db } = await import('../src/db/cliente.js');
     const { guardarRespuestaAudio, guardarReserva } = await import('../src/db/respuestas.js');
     const { transcribirYActualizar } = await import('../src/ia/transcribir.js');
-    const { evaluarRespuesta, generarPreguntaReemplazo, reservaDe } = await import('../src/ia/cerebro.js');
+    const { evaluarRespuesta, generarPreguntaReemplazo, reservaDe, detectarReservaYDejarTema } = await import('../src/ia/cerebro.js');
     const { sumarTemaEvitado, textoEvitar } = await import('../src/ia/evitar.js');
     const { personalizarPregunta } = await import('../src/ia/personalizar.js');
     const { memoriaDeCapitulos } = await import('../src/ia/resumenes.js');
@@ -105,7 +106,7 @@ function modulos(): Promise<Modulos> {
     const { armarHistoria } = await import('../src/db/historia.js');
     const { ultimoOrden, tieneAdaptativas, capitulosDe } = await import('../src/db/guion.js');
     return {
-      db, guardarRespuestaAudio, guardarReserva, transcribirYActualizar, evaluarRespuesta, reservaDe, sumarTemaEvitado, textoEvitar,
+      db, guardarRespuestaAudio, guardarReserva, transcribirYActualizar, evaluarRespuesta, reservaDe, detectarReservaYDejarTema, sumarTemaEvitado, textoEvitar,
       personalizarPregunta, memoriaDeCapitulos, guardarRepreguntaEnviada, generarPreguntaReemplazo, generarPreguntasAdaptativas,
       generarAudioVoz, preguntaDeOrden, capituloNoAplica, esModoRapido, armarHistoria, tratoDe, ultimoOrden, tieneAdaptativas, capitulosDe,
     };
@@ -537,21 +538,7 @@ async function evaluarYAnotar(
 ): Promise<boolean> {
   const mods = await modulos();
   const evaluacion = await mods.evaluarRespuesta(pregunta, transcripcion, duracionSegundos, mods.textoEvitar(n.contexto), await mods.tratoDe(n));
-
-  const reserva = mods.reservaDe(evaluacion, transcripcion);
-  if (reserva.reservada) {
-    linea(`🔒 Pidió reservar ${reserva.tramo ? `una parte: «${reserva.tramo}»` : 'la respuesta entera'}: no va al libro.`);
-    if (anotar && respuestaId) await mods.guardarReserva(respuestaId, reserva);
-  }
-  if (typeof evaluacion.dejarTema === 'string' && evaluacion.dejarTema.trim()) {
-    const contexto = mods.sumarTemaEvitado(n.contexto, evaluacion.dejarTema);
-    linea(`🚫 Pidió dejar un tema: «${evaluacion.dejarTema.trim()}»${contexto ? ' → queda en contexto.evitar para el resto de la entrevista.' : ' (ya estaba anotado).'}`);
-    if (anotar && contexto) {
-      const { error } = await mods.db.from('narradores').update({ contexto }).eq('id', n.id);
-      if (error) linea(`  ⚠ no pude anotarlo: ${error.message}`);
-      else n.contexto = contexto;
-    }
-  }
+  await anotarMarcas(n, respuestaId, { reserva: mods.reservaDe(evaluacion, transcripcion), dejarTema: evaluacion.dejarTema ?? null }, anotar);
 
   if (!evaluacion.suficiente && evaluacion.repregunta && !(await yaSeRepregunto(n.id, orden))) {
     titulo('El cerebro pide una repregunta — pegala en WhatsApp');
@@ -566,6 +553,31 @@ async function evaluarYAnotar(
   }
   linea(evaluacion.suficiente ? 'Respuesta suficiente: sin repregunta.' : 'Ya había una repregunta anotada para esta orden: no se repite.');
   return false;
+}
+
+/**
+ * Anota la reserva (bitácora 19) en la fila y el tema a dejar (bitácora 34) en
+ * `contexto.evitar`, e imprime lo que encontró. Lo que se anota de cualquier
+ * respuesta, venga de la evaluación o de la llamada corta de marcas.
+ */
+async function anotarMarcas(
+  n: NarradorFila, respuestaId: string | null,
+  { reserva, dejarTema }: { reserva: { reservada: boolean; tramo: string | null }; dejarTema: string | null }, anotar: boolean,
+): Promise<void> {
+  const mods = await modulos();
+  if (reserva.reservada) {
+    linea(`🔒 Pidió reservar ${reserva.tramo ? `una parte: «${reserva.tramo}»` : 'la respuesta entera'}: no va al libro.`);
+    if (anotar && respuestaId) await mods.guardarReserva(respuestaId, reserva);
+  }
+  if (dejarTema && dejarTema.trim()) {
+    const contexto = mods.sumarTemaEvitado(n.contexto, dejarTema);
+    linea(`🚫 Pidió dejar un tema: «${dejarTema.trim()}»${contexto ? ' → queda en contexto.evitar para el resto de la entrevista.' : ' (ya estaba anotado).'}`);
+    if (anotar && contexto) {
+      const { error } = await mods.db.from('narradores').update({ contexto }).eq('id', n.id);
+      if (error) linea(`  ⚠ no pude anotarlo: ${error.message}`);
+      else n.contexto = contexto;
+    }
+  }
 }
 
 /**
@@ -614,9 +626,14 @@ async function trasResponderManual(
   const supabase = mods.db;
 
   // Solo la PRIMERA respuesta a una pregunta se evalúa (las de la repregunta, no).
-  const repreguntaRecienImpresa = esRepregunta
-    ? false
-    : await evaluarYAnotar(n, orden, pregunta, transcripcion, duracionSegundos, respuestaId);
+  // Pero un "esto no lo pongas" o un "vamos por otro lado" dicho en la
+  // ampliación vale igual: ahí se detectan con la llamada corta, sin repreguntar.
+  let repreguntaRecienImpresa = false;
+  if (esRepregunta) {
+    await anotarMarcas(n, respuestaId, await mods.detectarReservaYDejarTema(transcripcion, await mods.tratoDe(n)), true);
+  } else {
+    repreguntaRecienImpresa = await evaluarYAnotar(n, orden, pregunta, transcripcion, duracionSegundos, respuestaId);
+  }
 
   // Bitácora 28: al responder la última del guion se generan las 4 a medida;
   // desde el 20/09 la función no lanza, así que el cierre de abajo sale igual.

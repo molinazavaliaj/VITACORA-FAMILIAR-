@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => ({
   guardarReserva: vi.fn(),
   transcribirYActualizar: vi.fn(),
   evaluarRespuesta: vi.fn(),
+  detectarReservaYDejarTema: vi.fn(),
   detectarIntencion: vi.fn(),
   generarPreguntasAdaptativas: vi.fn(),
   cerrarBitacora: vi.fn(),
@@ -61,7 +62,7 @@ vi.mock('../src/db/respuestas.js', () => ({ guardarRespuestaAudio: mocks.guardar
 vi.mock('../src/ia/transcribir.js', () => ({ transcribirYActualizar: mocks.transcribirYActualizar, transcribir: vi.fn() }));
 vi.mock('../src/ia/cerebro.js', () => ({
   evaluarRespuesta: mocks.evaluarRespuesta, detectarIntencion: mocks.detectarIntencion, generarReconocimiento: vi.fn(),
-  detectarQueNoTuvo: mocks.detectarQueNoTuvo,
+  detectarQueNoTuvo: mocks.detectarQueNoTuvo, detectarReservaYDejarTema: mocks.detectarReservaYDejarTema,
   // La misma regla que la real (bitácora 19): un tramo que no está textual reserva todo.
   reservaDe: (e: any, t: string) => e.reservado !== true
     ? { reservada: false, tramo: null }
@@ -116,6 +117,8 @@ beforeEach(() => {
   mocks.guardarFotoEntrante.mockResolvedValue('Lisboa');
   for (const fn of [mocks.enviarTexto, mocks.descargarAudio, mocks.guardarRespuestaAudio, mocks.guardarReserva, mocks.transcribirYActualizar, mocks.evaluarRespuesta, mocks.detectarIntencion, mocks.generarPreguntasAdaptativas, mocks.cerrarBitacora, mocks.enviarPregunta]) fn.mockReset();
   mocks.guardarReserva.mockResolvedValue(true);
+  mocks.detectarReservaYDejarTema.mockReset();
+  mocks.detectarReservaYDejarTema.mockResolvedValue({ reserva: { reservada: false, tramo: null }, dejarTema: null });
   mocks.enviarTexto.mockResolvedValue('wamid.mock');
   mocks.descargarAudio.mockResolvedValue(Buffer.from('audio-falso'));
   mocks.guardarRespuestaAudio.mockResolvedValue({ id: 'r-audio', audioPath: 'p' });
@@ -241,6 +244,40 @@ describe('procesarEntrante', () => {
     mocks.evaluarRespuesta.mockResolvedValue({ suficiente: true });
     await procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'Una casa de adobe con patio.', waMessageId: 'w' });
     expect(mocks.guardarReserva).toHaveBeenCalledWith('r-texto', { reservada: false, tramo: null });
+  });
+
+  // El hueco que marcó Naza (20/09): la ampliación de una repregunta y la
+  // respuesta al "¿faltó algo?" no se evalúan, pero un "no lo pongas" dicho ahí
+  // vale igual. Las marcas se detectan con la llamada corta, sin repreguntar.
+  it('(c5 bis) en la ampliación de una repregunta no se evalúa, pero sí se detectan reserva y tema', async () => {
+    mocks.estado.narrador = narradorEn('activo', 12, { trato: 'vos' });
+    mocks.estado.enviosRepregunta = [{ id: 'e1' }]; // ya hubo repregunta: este audio es la ampliación
+    mocks.transcribirYActualizar.mockResolvedValue({ texto: 'Y bueno, eso no lo pongas en el libro.', duracionSegundos: 20 });
+    mocks.detectarReservaYDejarTema.mockResolvedValue({ reserva: { reservada: true, tramo: null }, dejarTema: 'su tío' });
+    await procesarEntrante({ telefono: TEL, tipo: 'audio', mediaId: 'media-1', waMessageId: 'w' });
+    expect(mocks.evaluarRespuesta).not.toHaveBeenCalled();
+    expect(mocks.detectarReservaYDejarTema).toHaveBeenCalledWith('Y bueno, eso no lo pongas en el libro.', 'vos');
+    expect(mocks.guardarReserva).toHaveBeenCalledWith('r-audio', { reservada: true, tramo: null });
+    expect(mocks.estado.narrador.contexto.evitar).toContain('su tío');
+    expect(mocks.enviarTexto).not.toHaveBeenCalled(); // ninguna repregunta de más
+  });
+
+  it('(c5 ter) en la respuesta a la pregunta de cierre, lo mismo', async () => {
+    mocks.estado.narrador = narradorEn('activo', 31, { cierre: { ordenes: [31] } });
+    mocks.estado.ultimoOrden = 31;
+    mocks.transcribirYActualizar.mockResolvedValue({ texto: 'Sí, faltó algo, pero que no vaya al libro.', duracionSegundos: 20 });
+    mocks.detectarReservaYDejarTema.mockResolvedValue({ reserva: { reservada: true, tramo: null }, dejarTema: null });
+    await procesarEntrante({ telefono: TEL, tipo: 'audio', mediaId: 'media-1', waMessageId: 'w' });
+    expect(mocks.evaluarRespuesta).not.toHaveBeenCalled();
+    expect(mocks.detectarReservaYDejarTema).toHaveBeenCalled();
+    expect(mocks.guardarReserva).toHaveBeenCalledWith('r-audio', { reservada: true, tramo: null });
+  });
+
+  it('(c5 quater) en una respuesta normal NO se paga la llamada corta: las marcas vienen de la evaluación', async () => {
+    mocks.estado.narrador = narradorEn('activo', 5);
+    await procesarEntrante({ telefono: TEL, tipo: 'audio', mediaId: 'media-1', waMessageId: 'w' });
+    expect(mocks.evaluarRespuesta).toHaveBeenCalled();
+    expect(mocks.detectarReservaYDejarTema).not.toHaveBeenCalled();
   });
 
   // Bitácora 34: "vamos por otro lado" → el tema entra a contexto.evitar para el
