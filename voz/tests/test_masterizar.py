@@ -172,7 +172,7 @@ def test_las_piezas_reales_se_restauran_y_se_les_arregla_el_ritmo(tmp_path):
     )
 
     # solo la real pasó por el modelo y por Whisper; el conector no
-    assert llamadas == [("restaurar", "00_crudo.wav"), ("whisper", "00_para_whisper.wav")]
+    assert llamadas == [("restaurar", "00_crudo.wav"), ("whisper", "00_para_whisper.mp3")]  # a Whisper va mp3 64k (03b)
     p_real, p_con = entrada["piezas"]
     assert p_real["restauracion"]["despues"]["ruido_dbfs"] == -80.0
     assert p_real["ritmo"]["arranque"] == "Bueno" and p_real["ritmo"]["arranque_cortado_s"] == 0.5
@@ -181,3 +181,41 @@ def test_las_piezas_reales_se_restauran_y_se_les_arregla_el_ritmo(tmp_path):
     # la real quedó más corta: 6 s − 0,5 de arranque − 1,8 de silencio (± lo que recorta silenceremove)
     assert abs(p_real["despues"]["duracion_s"] - 3.7) < 0.6
     assert abs(entrada["loudnorm"]["despues"]["lufs"] - m.OBJETIVO_LUFS) <= m.TOLERANCIA_LUFS
+
+
+# --- revisión 03: caché de Whisper, master.json atómico y a medias ---
+
+
+def test_marcas_de_whisper_se_cachean_por_hash_del_audio(tmp_path):
+    from voz.masterizar import marcas_con_cache
+
+    fuente = _escribir(tmp_path / "restaurado.wav", _voz(2.0))
+    llamadas = []
+
+    def transcriptor(ruta):
+        llamadas.append(ruta.suffix)
+        return {"texto": "hola.", "palabras": []}
+
+    cache = tmp_path / "whisper"
+    a = marcas_con_cache(transcriptor, fuente, tmp_path / "w.mp3", cache, "clave1")
+    b = marcas_con_cache(transcriptor, fuente, tmp_path / "w2.mp3", cache, "clave1")  # misma clave: no paga
+    c = marcas_con_cache(transcriptor, fuente, tmp_path / "w3.mp3", cache, "clave2")
+    assert a == b == c
+    assert llamadas == [".mp3", ".mp3"]  # dos claves distintas, dos llamadas; y a Whisper va mp3
+    assert (cache / "clave1.json").exists() and (cache / "clave2.json").exists()
+    # sin caché, llama siempre
+    marcas_con_cache(transcriptor, fuente, tmp_path / "w4.mp3", None, "clave1")
+    assert len(llamadas) == 3
+
+
+def test_master_json_a_medias_no_explota_y_se_escribe_atomico(tmp_path):
+    from voz.masterizar import leer_master
+
+    master = tmp_path / "master.json"
+    master.write_text('{"libro": {"x": 1}, "capitulos": [', encoding="utf-8")  # quedó a medias
+    assert leer_master(master) is None
+    entrada = {"capitulo": 1, "salida": "cap_01.wav", "loudnorm": {"despues": {"lufs": -19.0, "tp_dbtp": -2.0, "lra": 5.0}, "modo": "linear"}, "piezas": [], "avisos": []}
+    datos = agregar_a_master(master, entrada, libro={"narracion": "n"})
+    assert datos["libro"] == {"narracion": "n"} and [c["capitulo"] for c in datos["capitulos"]] == [1]
+    assert not master.with_suffix(".json.tmp").exists()  # el tmp se renombró
+    assert json.loads(master.read_text(encoding="utf-8")) == datos

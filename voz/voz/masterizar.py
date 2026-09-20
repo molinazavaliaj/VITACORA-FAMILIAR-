@@ -21,7 +21,9 @@ Solo ffmpeg (subprocess), numpy y soundfile.
 """
 
 import argparse
+import hashlib
 import json
+import os
 import re
 import subprocess
 import sys
@@ -37,7 +39,7 @@ from dotenv import load_dotenv
 from .config import RAIZ
 from .pausas import pausas_ms
 from .restaurar import restaurar
-from .ritmo import aplicar_plan, plan_de_ritmo
+from .ritmo import Plan, aplicar_plan, plan_de_ritmo
 from .ritmo import resumen as resumen_ritmo
 from .transcribir import palabras_con_tiempos
 
@@ -87,7 +89,7 @@ class Medida:
 
 def _ffmpeg(*args: str) -> str:
     """Corre ffmpeg y devuelve stderr (ahí imprime loudnorm su JSON)."""
-    proceso = subprocess.run(["ffmpeg", "-y", "-nostdin", "-hide_banner", *args], capture_output=True, text=True)
+    proceso = subprocess.run(["ffmpeg", "-y", "-nostdin", "-hide_banner", *args], capture_output=True, text=True, encoding="utf-8", errors="replace")
     if proceso.returncode != 0:
         raise RuntimeError(f"ffmpeg falló: {' '.join(args)}\n{proceso.stderr[-1500:]}")
     return proceso.stderr
@@ -180,26 +182,76 @@ def limpiar_pieza(entrada: Path, salida: Path, filtro: str = FILTRO_LIMPIEZA) ->
     return salida
 
 
-def preparar_real(pieza: "Pieza", tmp: Path, i: int, restaurador, transcriptor, log) -> tuple[Path, dict]:
+def ritmo_activo(entorno: dict | None = None) -> bool:
+    """RITMO=0 en .env apaga los cortes de ritmo (arranques y silencios)."""
+    entorno = os.environ if entorno is None else entorno
+    return (entorno.get("RITMO") or "1").strip().lower() not in ("0", "no", "off", "false")
+
+
+def _hash_de(ruta: Path, extra: str = "") -> str:
+    h = hashlib.sha1()
+    with Path(ruta).open("rb") as f:
+        for bloque in iter(lambda: f.read(1 << 20), b""):
+            h.update(bloque)
+    h.update(extra.encode("utf-8"))
+    return h.hexdigest()[:20]
+
+
+def marcas_con_cache(transcriptor, restaurado: Path, para_whisper: Path, cache: Path | None, clave: str) -> dict:
+    """Las marcas por palabra de Whisper, cacheadas por hash del audio de
+    entrada: un reintento de la narración no paga dos veces (03b)."""
+    if cache is not None:
+        cache.mkdir(parents=True, exist_ok=True)
+        archivo = cache / f"{clave}.json"
+        if archivo.exists():
+            try:
+                return json.loads(archivo.read_text(encoding="utf-8"))
+            except (OSError, ValueError):
+                pass
+    # Whisper acepta hasta 25 MB: un wav 16 bit a 24 kHz tope a ~9 min por pieza
+    # (una respuesta larga daba 413); en mp3 64 kbps entran ~50 min.
+    _ffmpeg("-i", str(restaurado), "-ac", "1", "-ar", str(TASA), "-c:a", "libmp3lame", "-b:a", "64k", str(para_whisper))
+    marcas = transcriptor(para_whisper)
+    if cache is not None:
+        (cache / f"{clave}.json").write_text(json.dumps(marcas, ensure_ascii=False), encoding="utf-8")
+    return marcas
+
+
+def preparar_real(pieza: "Pieza", tmp: Path, i: int, restaurador, transcriptor, log, cache: Path | None = None) -> tuple[Path, dict]:
     """Directiva 02, antes de todo lo demás y solo para piezas reales:
     (A) restaurar con modelo, (B) ritmo con marcas por palabra (arranque que
     responde a la pregunta, silencios internos largos). Devuelve el wav listo
-    para la cadena de siempre y lo medido."""
+    para la cadena de siempre y lo medido.
+
+    Si restaurar falla, la pieza sigue SIN restaurar; si Whisper falla, sigue
+    sin ritmo. Las dos cosas quedan anotadas en master.json (`error`) y como
+    aviso, pero el capítulo no muere (directiva 04, punto 5)."""
     crudo = tmp / f"{i:02d}_crudo.wav"
     _ffmpeg("-i", str(pieza.ruta), "-ac", "1", str(crudo))  # a la tasa original (48 kHz en WhatsApp)
+    clave = _hash_de(crudo)
     restaurado = tmp / f"{i:02d}_restaurado.wav"
-    medidas = {"restauracion": restaurador(crudo, restaurado, log=log)}
+    medidas: dict = {}
+    try:
+        medidas["restauracion"] = restaurador(crudo, restaurado, log=log)
+    except Exception as e:  # el modelo, el venv, la GPU: sigue sin restaurar
+        medidas["restauracion"] = {"error": f"{type(e).__name__}: {str(e)[:300]}"}
+        log(f"  restaurar {pieza.nombre} FALLÓ, sigo sin restaurar: {type(e).__name__}: {str(e)[:120]}")
+        _ffmpeg("-i", str(crudo), "-ac", "1", "-ar", "44100", "-c:a", "pcm_f32le", str(restaurado))
     audio, tasa = sf.read(str(restaurado), dtype="float32")
     audio = audio[:, 0] if audio.ndim == 2 else audio
-    # Whisper acepta hasta 25 MB: se le manda una copia 16 bit a 24 kHz (la línea de tiempo es la misma).
-    para_whisper = tmp / f"{i:02d}_para_whisper.wav"
-    _ffmpeg("-i", str(restaurado), "-ac", "1", "-ar", str(TASA), "-c:a", "pcm_s16le", str(para_whisper))
-    marcas = transcriptor(para_whisper)
-    plan = plan_de_ritmo(marcas["texto"], marcas["palabras"])
+    plan = Plan()
+    if ritmo_activo():
+        try:
+            marcas = marcas_con_cache(transcriptor, restaurado, tmp / f"{i:02d}_para_whisper.mp3", cache, clave)
+            plan = plan_de_ritmo(marcas["texto"], marcas["palabras"])
+        except Exception as e:  # Whisper caído, sin clave, sin red: sigue sin ritmo
+            medidas["ritmo"] = {"error": f"{type(e).__name__}: {str(e)[:300]}"}
+            log(f"  ritmo {pieza.nombre} FALLÓ, sigo sin cortar: {type(e).__name__}: {str(e)[:120]}")
     con_ritmo = aplicar_plan(audio, tasa, plan)
-    medidas["ritmo"] = resumen_ritmo(plan, len(audio) / tasa, len(con_ritmo) / tasa)
-    log(f"  ritmo {pieza.nombre}: arranque -{plan.corte_arranque_s:.2f} s «{plan.arranque}», "
-        f"{len(plan.silencios)} silencios acortados (-{medidas['ritmo']['silencio_sacado_s']} s)")
+    medidas.setdefault("ritmo", {}).update(resumen_ritmo(plan, len(audio) / tasa, len(con_ritmo) / tasa))
+    if "error" not in medidas["ritmo"]:
+        log(f"  ritmo {pieza.nombre}: arranque -{plan.corte_arranque_s:.2f} s «{plan.arranque}», "
+            f"{len(plan.silencios)} silencios acortados (-{medidas['ritmo']['silencio_sacado_s']} s)")
     listo = tmp / f"{i:02d}_listo.wav"
     sf.write(str(listo), con_ritmo, tasa, subtype="FLOAT")
     return listo, medidas
@@ -287,7 +339,7 @@ def limitar_picos(entrada: Path, salida: Path) -> Path:
     """Limitador suave sobre los picos aislados (golpes de "p", clicks) que
     impedirían a loudnorm subir a −19 LUFS sin pasar el techo. Con esto la
     segunda pasada queda en modo lineal (solo ganancia) casi siempre."""
-    _ffmpeg("-i", str(entrada), "-af", f"alimiter=limit={10 ** (LIMITE_PICO_DB / 20):.4f}:attack=5:release=50:level=false",
+    _ffmpeg("-i", str(entrada), "-af", f"alimiter=limit={10 ** (LIMITE_PICO_DB / 20):.4f}:attack=5:release=50:level=false:latency=true",
             "-ac", "1", "-ar", str(TASA), "-c:a", "pcm_f32le", str(salida))
     return salida
 
@@ -324,6 +376,10 @@ def avisos_de(capitulo: dict) -> list[str]:
     if capitulo["loudnorm"]["modo"] == "dynamic":
         avisos.append("loudnorm trabajó en modo dinámico (no llegó a −19 con solo ganancia: pico o LRA de entrada): escuchar si respira raro")
     for p in capitulo["piezas"]:
+        if "error" in p.get("restauracion", {}):
+            avisos.append(f"{p['nombre']}: sin restaurar ({p['restauracion']['error'][:80]})")
+        if "error" in p.get("ritmo", {}):
+            avisos.append(f"{p['nombre']}: sin ritmo ({p['ritmo']['error'][:80]})")
         if p["despues"]["ruido_db"] > RUIDO_MAXIMO_DB:
             avisos.append(f"{p['nombre']}: piso de ruido {p['despues']['ruido_db']} dB (máximo {RUIDO_MAXIMO_DB})")
         if p["despues"]["duracion_s"] < PIEZA_MINIMA_S:
@@ -340,6 +396,8 @@ def masterizar_capitulo(
     log=None,
     restaurador=restaurar,
     transcriptor=palabras_con_tiempos,
+    cache: Path | None = None,
+    modo: str = "clonado",
 ) -> dict:
     """Limpia, iguala, pega y normaliza; deja `salida` (wav 24 kHz mono) y
     devuelve la entrada de este capítulo para master.json. Las piezas reales
@@ -357,7 +415,7 @@ def masterizar_capitulo(
         extras: list[dict] = []
         for i, pieza in enumerate(piezas):
             if pieza.tipo == "real":
-                listo, medidas = preparar_real(pieza, tmp, i, restaurador, transcriptor, log)
+                listo, medidas = preparar_real(pieza, tmp, i, restaurador, transcriptor, log, cache)
                 fuentes.append(listo)
                 extras.append(medidas)
             else:
@@ -391,6 +449,7 @@ def masterizar_capitulo(
             entrada["despues"] = asdict(medir(final[ini:fin]))
     capitulo = {
         "capitulo": numero,
+        "modo": modo,
         "salida": salida.name,
         "duracion_s": round(len(final) / TASA, 2),
         "pausa_entre_piezas_ms": pausas["historia"],
@@ -404,13 +463,28 @@ def masterizar_capitulo(
     return capitulo
 
 
+def leer_master(ruta: Path) -> dict | None:
+    """El master.json si está y se puede leer; si quedó a medias, None (se
+    arranca de nuevo en vez de explotar en cada reintento)."""
+    try:
+        return json.loads(Path(ruta).read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+
+
 def agregar_a_master(ruta: Path, capitulo: dict, libro: dict | None = None) -> dict:
-    """Un master.json por libro: se va completando capítulo a capítulo."""
-    datos = json.loads(ruta.read_text(encoding="utf-8")) if ruta.exists() else {"libro": libro or {}, "objetivos": {"lufs": OBJETIVO_LUFS, "tp_dbtp": OBJETIVO_TP, "lra": OBJETIVO_LRA}, "capitulos": []}
+    """Un master.json por libro: se va completando capítulo a capítulo.
+    Escritura atómica (tmp + rename): nunca queda un JSON a medias."""
+    ruta = Path(ruta)
+    datos = leer_master(ruta) or {"libro": libro or {}, "objetivos": {"lufs": OBJETIVO_LUFS, "tp_dbtp": OBJETIVO_TP, "lra": OBJETIVO_LRA}, "capitulos": []}
+    if libro and not datos.get("libro"):
+        datos["libro"] = libro
     datos["capitulos"] = [c for c in datos["capitulos"] if c["capitulo"] != capitulo["capitulo"]] + [capitulo]
     datos["capitulos"].sort(key=lambda c: c["capitulo"])
     datos["avisos"] = [f"cap {c['capitulo']}: {a}" for c in datos["capitulos"] for a in c["avisos"]]
-    ruta.write_text(json.dumps(datos, ensure_ascii=False, indent=2), encoding="utf-8")
+    tmp = ruta.with_suffix(ruta.suffix + ".tmp")
+    tmp.write_text(json.dumps(datos, ensure_ascii=False, indent=2), encoding="utf-8")
+    os.replace(tmp, ruta)
     return datos
 
 
