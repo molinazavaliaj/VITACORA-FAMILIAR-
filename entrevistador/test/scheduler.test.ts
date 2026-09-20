@@ -96,7 +96,7 @@ vi.mock('../src/db/historia.js', () => ({
 }));
 
 import { tick, esHoraDeEnviar, fechaLocal } from '../src/flujo/scheduler.js';
-import { capituloNoAplica } from '../src/flujo/preguntar.js';
+import { capituloNoAplica, edadDe } from '../src/flujo/preguntar.js';
 
 const ZONA = 'America/Argentina/Buenos_Aires';
 // 2026-09-01 13:05 UTC = 10:05 en Buenos Aires (dentro de la ventana de las 10:00).
@@ -140,6 +140,36 @@ describe('helpers de tiempo', () => {
     expect(capituloNoAplica({ arbol: { hijos: 'no tuvo' } }, 'Los hijos')).toBe(true);
     expect(capituloNoAplica({ arbol: { conyuge: 'no tuvo' } }, 'El amor')).toBe(true);
     expect(capituloNoAplica({ arbol: { hijos: 'Ana, Pedro' } }, 'Los hijos')).toBe(false);
+  });
+
+  // Bitácora 20-27: las fijas suponen boda, hijos y nietos. Con la ficha
+  // (año de nacimiento) se puede saber ANTES de preguntar que no aplica.
+  describe('capituloNoAplica con la ficha (edad)', () => {
+    const HOY = new Date('2026-09-20T12:00:00Z');
+    it('la edad sale del año de nacimiento; sin año, no se sabe', () => {
+      expect(edadDe({ anioNacimiento: 1998 }, HOY)).toBe(28);
+      expect(edadDe({ anioNacimiento: '1939' }, HOY)).toBe(87);
+      expect(edadDe({}, HOY)).toBeNull();
+      expect(edadDe({ anioNacimiento: 1800 }, HOY)).toBeNull(); // un dato roto no decide nada
+    });
+    it('menor de 25 sin hijos en el árbol: «Los hijos» no aplica', () => {
+      expect(capituloNoAplica({ anioNacimiento: 2004 }, 'Los hijos', HOY)).toBe(true);
+      expect(capituloNoAplica({ anioNacimiento: 2004, arbol: { padres: 'Juan y Rosa' } }, 'Los hijos', HOY)).toBe(true);
+    });
+    it('pero si la familia cargó hijos, la edad no manda', () => {
+      expect(capituloNoAplica({ anioNacimiento: 2004, arbol: { hijos: 'Mateo' } }, 'Los hijos', HOY)).toBe(false);
+    });
+    it('a los 28 sin hijos cargados no se decide por la edad: ante la duda, no toca nada', () => {
+      expect(capituloNoAplica({ anioNacimiento: 1998 }, 'Los hijos', HOY)).toBe(false);
+    });
+    it('menor de 18: tampoco «El amor», salvo que la familia haya cargado pareja', () => {
+      expect(capituloNoAplica({ anioNacimiento: 2010 }, 'El amor', HOY)).toBe(true);
+      expect(capituloNoAplica({ anioNacimiento: 2010, arbol: { conyuge: 'Sofi' } }, 'El amor', HOY)).toBe(false);
+      expect(capituloNoAplica({ anioNacimiento: 1998 }, 'El amor', HOY)).toBe(false);
+    });
+    it('los demás capítulos nunca se descartan', () => {
+      expect(capituloNoAplica({ anioNacimiento: 2010 }, 'La infancia', HOY)).toBe(false);
+    });
   });
 });
 

@@ -28,13 +28,42 @@ export type Narrador = {
 export const CLAVE_DEL_ARBOL: Record<string, 'hijos' | 'conyuge'> = { 'Los hijos': 'hijos', 'El amor': 'conyuge' };
 
 /**
- * Capítulos que no aplican a esta vida, según el árbol: lo carga la familia al
- * comprar, o lo anota el propio biógrafo cuando el narrador dice que no tuvo
- * (bitácora 35, `detectarQueNoTuvo`).
+ * Debajo de esta edad, sin hijos cargados en el árbol, «Los hijos» se reemplaza
+ * sin preguntar. Es deliberadamente bajo: a los 28 (Joaquín) se puede tener
+ * hijos y una ficha vacía, y "ante la duda, no toca nada" — para ese caso la
+ * familia carga `hijos = no tuvo` (o `ficha --hijos no` en la puerta manual),
+ * y el propio narrador lo dispara al contestar (bitácora 35).
  */
-export function capituloNoAplica(contexto: Record<string, any>, capitulo: string): boolean {
+export const EDAD_SIN_HIJOS = 25;
+/** Debajo de esta edad, sin pareja cargada, «El amor» tampoco. */
+export const EDAD_SIN_PAREJA = 18;
+
+/** La edad hoy a partir del año de nacimiento de la ficha; null si no está o no es un año. */
+export function edadDe(contexto: Record<string, any> | null | undefined, hoy = new Date()): number | null {
+  const anio = Number(contexto?.anioNacimiento);
+  if (!Number.isInteger(anio)) return null;
+  const edad = hoy.getFullYear() - anio;
+  return edad >= 0 && edad <= 120 ? edad : null;
+}
+
+/**
+ * Capítulos que no aplican a esta vida:
+ * - según el árbol (`'no tuvo'`): lo carga la familia al comprar, o lo anota el
+ *   propio biógrafo cuando el narrador dice que no tuvo (bitácora 35);
+ * - según la ficha (bitácora 20-27): las 26 fijas están pensadas para un abuelo
+ *   (boda, hijos, nietos). Con el año de nacimiento se sabe antes de preguntar
+ *   que a un narrador muy joven ese capítulo no le aplica — salvo que la
+ *   familia haya cargado hijos o pareja, que siempre manda.
+ */
+export function capituloNoAplica(contexto: Record<string, any>, capitulo: string, hoy = new Date()): boolean {
   const clave = CLAVE_DEL_ARBOL[capitulo];
-  return Boolean(clave) && (contexto?.arbol ?? {})[clave] === 'no tuvo';
+  if (!clave) return false;
+  const cargado = (contexto?.arbol ?? {})[clave];
+  if (cargado === 'no tuvo') return true;
+  if (typeof cargado === 'string' && cargado.trim()) return false; // hay nombres: aplica
+  const edad = edadDe(contexto, hoy);
+  if (edad === null) return false;
+  return clave === 'hijos' ? edad < EDAD_SIN_HIJOS : edad < EDAD_SIN_PAREJA;
 }
 
 export type Ritmo = 'diario' | 'dos_por_dia' | 'seguido';
