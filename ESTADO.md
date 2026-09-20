@@ -458,8 +458,36 @@ minutos por capítulo.
 15-30 s más limpios y expresivos del narrador y generar los conectores en pocos tramos largos.
 Prueba A/B propuesta a la PC de música (directiva 07).
 
+### 2026-09-20 (madrugada) — el audiolibro se descarta; el producto pasa a "Sus mejores frases"
+
+**Decisión de Naza, con el diagnóstico compartido con Joaquín:** "El audiolibro" **deja de ser
+una línea del producto**. No es el fuerte — la voz clonada compite contra la voz real que la
+familia ya escuchó en el anticipo, 70 minutos son un compromiso y un TTS lo hace cualquiera —
+y lo que hace es decepcionar. Lo reemplaza un archivo sonoro con **las mejores frases y
+anécdotas del narrador, en su voz real**.
+
+**La forma (decidida):** la sección se imprime en el libro (la frase escrita + un QR) y se
+escucha desde el celular **sin login**; es para la familia, es un objeto que queda — regalo,
+historia de la casa — y se reenvía por WhatsApp. Se escucha la frase sola y, debajo, la
+historia completa de donde salió. En el PDF digital, lo mismo con link clickeable.
+
+**Automatizado de punta a punta:** el **mismo modelo que escribe el libro** propone las frases
+y las aprueba en una segunda pasada. No hay curaduría manual frase por frase. **Nada se envía
+hasta que el libro esté terminado**: el panel muestra lo que va apareciendo (el anticipo sigue
+como está).
+
+**Se apoya en lo que ya existe:** las `> cita` que el escritor ya marca en cada capítulo, la
+página "Sus frases" de la pasada de editor, el corte por marcas de palabra de Whisper y el
+masterizado del worker, y las páginas públicas por token que ya sirven audio
+(`/libro/[token]`, `/api/libro-muestra/[token]/audio`).
+
+**Qué queda pendiente:** el diseño completo (spec), qué pasa con la línea "El audiolibro" en el
+checkout de `web/` (decisión de los dos, Joaquín lo implementa), y el aviso a la PC de música:
+la narración de capítulos deja de usarse; **restauración, pausas y masterizado siguen siendo
+necesarios** (ahora son el corazón del archivo).
+
 ## Próximos hitos
 
-1. Audiolibro híbrido: **encolado el 20/09** para el libro de Joaquín; queda escuchar el resultado y decidir si el híbrido pasa a ser el default.
+1. ~~Audiolibro híbrido~~ — **descartado el 20/09** (ver arriba): la corrida que quedó encolada sirve solo para el veredicto de oído. Lo que viene: el spec de "Sus mejores frases" y el checkout sin la línea del audiolibro.
 2. Bitácora: #31 (cierre solo al recibir la 30), #33 (candado del cierre automático), #32 (healthcheck de la fábrica); la muestra pública con `titulosCapitulos`.
 3. Plata: rotar la key de Anthropic de Naza (#37), cancelar el plan Hobby de Railway de Naza antes del 1/10, recargar crédito Anthropic antes del próximo libro y unificar las keys en una organización del proyecto (`GASTOS.md`).
