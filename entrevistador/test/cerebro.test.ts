@@ -192,6 +192,23 @@ describe('el trato de la repregunta que escribe la evaluación', () => {
     // Y no se insiste en lo que esquivó (bitácora 30): una sola invitación alcanza.
     expect(p).toContain('Tampoco se insiste en lo que esquivó');
   });
+
+  // Bitácora 34, el otro lado: el tema pedido tiene que quedar anotado para el
+  // resto de la entrevista, así que el modelo lo nombra en `dejarTema`.
+  it('cuando pide cambiar de tema, el modelo nombra el tema (dejarTema) para anotarlo', async () => {
+    const { PROMPT_EVALUAR } = await import('../src/ia/cerebro.js');
+    const p = PROMPT_EVALUAR('¿Cómo eran los domingos?', 'Mi tío se drogaba, o sea, vamos por otro lado.', 30, '', 'vos');
+    expect(p).toContain('agregá "dejarTema"');
+    expect(p).toContain('Solo con pedido explícito: esquivar no es pedir');
+    expect(p).toMatch(/Respondé SOLO con JSON.*"dejarTema"/);
+  });
+
+  it('evaluarRespuesta devuelve dejarTema tal como vino', async () => {
+    crearMock.mockResolvedValue({ content: [{ type: 'text', text: '{"suficiente": true, "dejarTema": "su tío y las drogas"}' }] });
+    const { evaluarRespuesta } = await import('../src/ia/cerebro.js');
+    const r = await evaluarRespuesta('¿Cómo eran los domingos?', 'Mi tío se drogaba, vamos por otro lado.', 30, '', 'vos', { pausaMs: 0 });
+    expect(r).toEqual({ suficiente: true, dejarTema: 'su tío y las drogas' });
+  });
 });
 
 describe('la reserva: "esto que no vaya al libro" (hallazgo 19)', () => {

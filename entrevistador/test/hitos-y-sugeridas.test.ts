@@ -38,7 +38,7 @@ vi.mock('@anthropic-ai/sdk', () => ({ default: class { messages = { create: vi.f
 import { mandarHito, redactarHito } from '../src/mail/hitos.js';
 import { leerSiNo } from '../src/flujo/procesar.js';
 import { parsearSugeridas, PROMPT_SUGERIDAS } from '../src/ia/sugeridas.js';
-import { textoEvitar } from '../src/ia/evitar.js';
+import { textoEvitar, sumarTemaEvitado } from '../src/ia/evitar.js';
 
 beforeEach(() => {
   estado.contexto = {};
@@ -115,6 +115,30 @@ describe('textoEvitar', () => {
     expect(textoEvitar({})).toBe('');
     expect(textoEvitar({ evitar: '  ' })).toBe('');
     expect(textoEvitar({ evitar: 'No preguntar por Rubén.' })).toContain('No preguntar por Rubén.');
+  });
+});
+
+// Bitácora 34: "vamos por otro lado" → el tema entra a `evitar`, debajo de lo
+// que escribió la familia, marcado para que se sepa de dónde salió.
+describe('sumarTemaEvitado', () => {
+  it('suma el tema debajo de lo que ya había, con la marca', () => {
+    const c = sumarTemaEvitado({ evitar: 'No preguntar por Rubén.', trato: 'vos' }, 'su tío y las drogas.');
+    expect(c).toEqual({ trato: 'vos', evitar: 'No preguntar por Rubén.\nsu tío y las drogas (lo pidió él en la entrevista)' });
+    // Y el prompt lo lleva junto con lo de la familia.
+    expect(textoEvitar(c)).toContain('su tío y las drogas');
+  });
+
+  it('con evitar vacío arranca la lista', () => {
+    expect(sumarTemaEvitado({}, 'la muerte de su hermano')?.evitar).toBe('la muerte de su hermano (lo pidió él en la entrevista)');
+    expect(sumarTemaEvitado(null, 'la muerte de su hermano')?.evitar).toBe('la muerte de su hermano (lo pidió él en la entrevista)');
+  });
+
+  it('no anota nada si viene vacío, si es un párrafo, si ya estaba o si no entra en el panel', () => {
+    expect(sumarTemaEvitado({}, '')).toBeNull();
+    expect(sumarTemaEvitado({}, undefined)).toBeNull();
+    expect(sumarTemaEvitado({}, 'x'.repeat(121))).toBeNull();
+    expect(sumarTemaEvitado({ evitar: 'Su tío y las drogas (lo pidió él en la entrevista)' }, 'su tío y las drogas')).toBeNull();
+    expect(sumarTemaEvitado({ evitar: 'a'.repeat(980) }, 'su tío y las drogas')).toBeNull();
   });
 });
 

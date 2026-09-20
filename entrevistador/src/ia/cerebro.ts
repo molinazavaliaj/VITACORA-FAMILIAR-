@@ -119,7 +119,7 @@ Si alcanza, respondé {"suficiente": true} y nada más: no pidas más detalles p
 
 La repregunta la pensás SIEMPRE vos, para esta respuesta y este narrador: no existe un texto fijo. Una sola pregunta, cálida, con curiosidad genuina, que invite a profundizar en lo que ya dijo (o en la parte valiosa que quedó afuera). Nunca un tema nuevo, nunca decir que es una repregunta, nunca pedirle que resuma lo que ya contó.
 
-SI PIDE CAMBIAR DE TEMA, SE LO ESCUCHA (vale más que cualquier material). Si en la respuesta hay un pedido explícito de dejar ese tema —"vamos por otro lado", "prefiero no hablar de eso", "dejemos eso", "eso no lo pongas"— la respuesta se da por SUFICIENTE ({"suficiente": true}) y NO hay repregunta sobre ese tema: ni para insistir, ni para retomarlo "de otra manera", ni una sola vez más. Tampoco se insiste en lo que esquivó: si en vez de contestar contó otra cosa, no vuelvas con la pregunta que no contestó — una sola invitación alcanza, y ya se hizo. El silencio también es una respuesta.
+SI PIDE CAMBIAR DE TEMA, SE LO ESCUCHA (vale más que cualquier material). Si en la respuesta hay un pedido explícito de dejar ese tema —"vamos por otro lado", "prefiero no hablar de eso", "dejemos eso", "eso no lo pongas"— la respuesta se da por SUFICIENTE ({"suficiente": true}) y NO hay repregunta sobre ese tema: ni para insistir, ni para retomarlo "de otra manera", ni una sola vez más. Tampoco se insiste en lo que esquivó: si en vez de contestar contó otra cosa, no vuelvas con la pregunta que no contestó — una sola invitación alcanza, y ya se hizo. El silencio también es una respuesta. Cuando hubo ese pedido explícito, agregá "dejarTema" con EL TEMA que pidió dejar, en pocas palabras y en tercera persona ("su tío y las drogas", "la muerte de su hermano"): queda anotado y el biógrafo no vuelve ahí en el resto de la entrevista. Solo con pedido explícito: esquivar no es pedir.
 
 LA REPREGUNTA VA EN ${trato}, SIN EXCEPCIÓN, con sus conjugaciones: ${trato === 'vos'
     ? 'tuteando de punta a punta ("¿cómo era tu casa?", "¿te acordás?", "¿qué sentiste?"), nunca "cuénteme", "usted", "su" ni "sus", aunque la pregunta del día haya venido escrita de usted.'
@@ -127,7 +127,7 @@ LA REPREGUNTA VA EN ${trato}, SIN EXCEPCIÓN, con sus conjugaciones: ${trato ===
 
 SI PIDE QUE ALGO NO VAYA AL LIBRO, SE ANOTA ACÁ. Si dice que algo quede afuera —"esto prefiero que no vaya al libro", "estas historias prefiero que queden en mi mente", "no lo pongas", "que mi familia no lo sepa"— agregá "reservado": true. Si el pedido es sólo por una parte, agregá también "reservadoTramo" con ese tramo de su respuesta COPIADO TEXTUAL (una frase o dos, tal como las dijo, sin corregirle nada). Reservar es sagrado: si dudás de si está pidiendo que algo no se publique, marcá "reservado": true — publicar lo que pidió guardar es la peor falla posible, y volver a agregar algo después es fácil.
 
-Respondé SOLO con JSON: {"suficiente": true} o {"suficiente": false, "repregunta": "..."}, y sumá "reservado": true (y "reservadoTramo": "..." si es sólo una parte) cuando corresponda.`;
+Respondé SOLO con JSON: {"suficiente": true} o {"suficiente": false, "repregunta": "..."}, y sumá "reservado": true (y "reservadoTramo": "..." si es sólo una parte) y "dejarTema": "..." cuando corresponda.`;
 
 /**
  * Cuánto se espera antes del único reintento de una llamada al modelo que
@@ -153,6 +153,8 @@ export type Evaluacion = {
   reservado?: boolean;
   /** Cuando el pedido es por una parte: el tramo textual que no se publica. */
   reservadoTramo?: string;
+  /** El narrador pidió dejar un tema ("vamos por otro lado"): cuál (bitácora 34). */
+  dejarTema?: string;
 };
 
 /**

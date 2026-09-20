@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
   enviarTexto: vi.fn(),
   descargarAudio: vi.fn(),
   guardarRespuestaAudio: vi.fn(),
+  guardarReserva: vi.fn(),
   transcribirYActualizar: vi.fn(),
   evaluarRespuesta: vi.fn(),
   detectarIntencion: vi.fn(),
@@ -56,11 +57,15 @@ vi.mock('../src/whatsapp/enviar.js', () => ({
   enviarTexto: mocks.enviarTexto, enviarPlantilla: vi.fn(), enviarAudioPorLink: vi.fn(),
 }));
 vi.mock('../src/whatsapp/media.js', () => ({ descargarAudio: mocks.descargarAudio, pathDeAudio: vi.fn() }));
-vi.mock('../src/db/respuestas.js', () => ({ guardarRespuestaAudio: mocks.guardarRespuestaAudio }));
+vi.mock('../src/db/respuestas.js', () => ({ guardarRespuestaAudio: mocks.guardarRespuestaAudio, guardarReserva: mocks.guardarReserva }));
 vi.mock('../src/ia/transcribir.js', () => ({ transcribirYActualizar: mocks.transcribirYActualizar, transcribir: vi.fn() }));
 vi.mock('../src/ia/cerebro.js', () => ({
   evaluarRespuesta: mocks.evaluarRespuesta, detectarIntencion: mocks.detectarIntencion, generarReconocimiento: vi.fn(),
   detectarQueNoTuvo: mocks.detectarQueNoTuvo,
+  // La misma regla que la real (bitácora 19): un tramo que no está textual reserva todo.
+  reservaDe: (e: any, t: string) => e.reservado !== true
+    ? { reservada: false, tramo: null }
+    : { reservada: true, tramo: typeof e.reservadoTramo === 'string' && e.reservadoTramo && t.includes(e.reservadoTramo) ? e.reservadoTramo : null },
 }));
 vi.mock('../src/ia/adaptativas.js', () => ({ generarPreguntasAdaptativas: mocks.generarPreguntasAdaptativas }));
 vi.mock('../src/flujo/cierre.js', () => ({ cerrarBitacora: mocks.cerrarBitacora }));
@@ -109,7 +114,8 @@ beforeEach(() => {
   mocks.faseDeCierre.mockResolvedValue(false);
   for (const fn of [mocks.crearGuionDelViaje, mocks.guardarFotoEntrante, mocks.confirmarFoto]) fn.mockReset();
   mocks.guardarFotoEntrante.mockResolvedValue('Lisboa');
-  for (const fn of [mocks.enviarTexto, mocks.descargarAudio, mocks.guardarRespuestaAudio, mocks.transcribirYActualizar, mocks.evaluarRespuesta, mocks.detectarIntencion, mocks.generarPreguntasAdaptativas, mocks.cerrarBitacora, mocks.enviarPregunta]) fn.mockReset();
+  for (const fn of [mocks.enviarTexto, mocks.descargarAudio, mocks.guardarRespuestaAudio, mocks.guardarReserva, mocks.transcribirYActualizar, mocks.evaluarRespuesta, mocks.detectarIntencion, mocks.generarPreguntasAdaptativas, mocks.cerrarBitacora, mocks.enviarPregunta]) fn.mockReset();
+  mocks.guardarReserva.mockResolvedValue(true);
   mocks.enviarTexto.mockResolvedValue('wamid.mock');
   mocks.descargarAudio.mockResolvedValue(Buffer.from('audio-falso'));
   mocks.guardarRespuestaAudio.mockResolvedValue({ id: 'r-audio', audioPath: 'p' });
@@ -213,6 +219,48 @@ describe('procesarEntrante', () => {
     mocks.estado.capituloVigente = 'Los hijos';
     await procesarEntrante({ telefono: TEL, tipo: 'audio', mediaId: 'media-1', waMessageId: 'w' });
     expect(mocks.detectarQueNoTuvo).not.toHaveBeenCalled();
+  });
+
+  // Bitácora 19: "esto prefiero que no vaya al libro" → queda en la fila de la
+  // respuesta, que es lo que la fábrica lee. El tramo va tal como lo dijo.
+  it('(c5) si pide reservar algo, se marca la respuesta (con el tramo textual)', async () => {
+    mocks.estado.narrador = narradorEn('activo', 12);
+    mocks.transcribirYActualizar.mockResolvedValue({ texto: 'Y bueno, locuras de las contables pueden ser por amor. Estas historias prefiero que queden en mi mente.', duracionSegundos: 60 });
+    mocks.evaluarRespuesta.mockResolvedValue({ suficiente: true, reservado: true, reservadoTramo: 'locuras de las contables pueden ser por amor' });
+    await procesarEntrante({ telefono: TEL, tipo: 'audio', mediaId: 'media-1', waMessageId: 'w' });
+    expect(mocks.guardarReserva).toHaveBeenCalledWith('r-audio', { reservada: true, tramo: 'locuras de las contables pueden ser por amor' });
+  });
+
+  it('(c6) una respuesta por texto también puede reservarse, y sin pedido no se marca nada', async () => {
+    mocks.estado.narrador = narradorEn('activo', 12);
+    mocks.evaluarRespuesta.mockResolvedValue({ suficiente: true, reservado: true });
+    await procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'Eso no lo pongas en el libro.', waMessageId: 'w' });
+    expect(mocks.guardarReserva).toHaveBeenCalledWith('r-texto', { reservada: true, tramo: null });
+
+    mocks.guardarReserva.mockClear();
+    mocks.evaluarRespuesta.mockResolvedValue({ suficiente: true });
+    await procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'Una casa de adobe con patio.', waMessageId: 'w' });
+    expect(mocks.guardarReserva).toHaveBeenCalledWith('r-texto', { reservada: false, tramo: null });
+  });
+
+  // Bitácora 34: "vamos por otro lado" → el tema entra a contexto.evitar para el
+  // resto de la entrevista, y el narrador en memoria ya lo lleva (modo seguido
+  // manda la siguiente en este mismo turno).
+  it('(c7) si pide dejar un tema, se suma a contexto.evitar y no hay repregunta', async () => {
+    mocks.estado.narrador = narradorEn('activo', 7, { evitar: 'No preguntar por su hermano Rubén.' });
+    mocks.transcribirYActualizar.mockResolvedValue({ texto: 'Mi tío se drogaba, o sea, vamos por otro lado.', duracionSegundos: 30 });
+    mocks.evaluarRespuesta.mockResolvedValue({ suficiente: true, dejarTema: 'su tío y las drogas' });
+    await procesarEntrante({ telefono: TEL, tipo: 'audio', mediaId: 'media-1', waMessageId: 'w' });
+    expect(mocks.enviarTexto).not.toHaveBeenCalled();
+    const conEvitar = mocks.estado.capturas.find((c) => c.op === 'update' && c.tabla === 'narradores' && c.p.contexto?.evitar);
+    expect(conEvitar?.p.contexto.evitar).toBe('No preguntar por su hermano Rubén.\nsu tío y las drogas (lo pidió él en la entrevista)');
+    expect(mocks.estado.narrador.contexto.evitar).toContain('su tío y las drogas');
+  });
+
+  it('(c8) sin pedido de dejar un tema, contexto.evitar no se toca', async () => {
+    mocks.estado.narrador = narradorEn('activo', 7, { evitar: 'Nada de Rubén.' });
+    await procesarEntrante({ telefono: TEL, tipo: 'audio', mediaId: 'media-1', waMessageId: 'w' });
+    expect(mocks.estado.capturas.find((c) => c.op === 'update' && c.tabla === 'narradores' && c.p.contexto)).toBeUndefined();
   });
 
   // La pregunta de cierre (18/09): al responder la última, antes de despedirse

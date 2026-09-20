@@ -3,13 +3,13 @@ import { db } from '../db/cliente.js';
 import { enviarTexto } from '../whatsapp/enviar.js';
 import { descargarAudio } from '../whatsapp/media.js';
 import { variantesDeTelefono } from '../whatsapp/telefonos.js';
-import { guardarRespuestaAudio } from '../db/respuestas.js';
+import { guardarRespuestaAudio, guardarReserva } from '../db/respuestas.js';
 import { guardarRepreguntaEnviada } from '../db/envios.js';
 import { transcribirYActualizar } from '../ia/transcribir.js';
-import { evaluarRespuesta, detectarIntencion, detectarQueNoTuvo } from '../ia/cerebro.js';
+import { evaluarRespuesta, detectarIntencion, detectarQueNoTuvo, reservaDe } from '../ia/cerebro.js';
 import { generarPreguntasAdaptativas } from '../ia/adaptativas.js';
 import { preguntaDeOrden, tieneAdaptativas, ultimoOrden } from '../db/guion.js';
-import { textoEvitar } from '../ia/evitar.js';
+import { textoEvitar, sumarTemaEvitado } from '../ia/evitar.js';
 import { tratoDe } from '../ia/trato.js';
 import { bienvenidaAceptacion } from '../manual/puro.js';
 import { mandarHito } from '../mail/hitos.js';
@@ -225,7 +225,7 @@ async function manejarRespuestaAudio(narrador: Narrador, m: MensajeEntrante): Pr
 // Pasos 6-8: evaluación + repregunta, y disparadores de fase adaptativa / cierre.
 async function trasResponder(
   narrador: Narrador, orden: number, esRepregunta: boolean,
-  transcripcion: string, duracionSegundos: number, _respuestaId: string,
+  transcripcion: string, duracionSegundos: number, respuestaId: string,
 ): Promise<void> {
   // Paso 6: solo la PRIMERA respuesta a una pregunta se evalúa (las de la repregunta, no).
   let repreguntaEnviada = false;
@@ -243,6 +243,12 @@ async function trasResponder(
     const evaluacion = noTuvo || esOrdenDeCierre(narrador.contexto, orden)
       ? { suficiente: true as const }
       : await evaluarRespuesta(pregunta, transcripcion, duracionSegundos, textoEvitar(narrador.contexto), await tratoDe(narrador));
+    // Bitácora 19: "esto que no vaya al libro" queda en la fila de la respuesta
+    // (la fábrica lee de ahí). Bitácora 34: "vamos por otro lado" queda en
+    // `contexto.evitar` para el resto de la entrevista. Ninguna de las dos
+    // puede frenar el día: si fallan, avisan y se sigue.
+    await guardarReserva(respuestaId, reservaDe(evaluacion, transcripcion));
+    await anotarTemaEvitado(narrador, evaluacion.dejarTema);
     if (!evaluacion.suficiente && evaluacion.repregunta && !(await yaSeRepregunto(narrador.id, orden))) {
       const waId = await enviarTexto(narrador.telefono_whatsapp, evaluacion.repregunta);
       await db.from('envios').insert({
@@ -313,6 +319,29 @@ async function anotarSiNoTuvo(narrador: Narrador, orden: number, pregunta: strin
   } catch (err) {
     console.error(`procesar: no pude evaluar si ${narrador.id} dijo que no tuvo:`, err);
     return false;
+  }
+}
+
+/**
+ * Bitácora 34. El narrador pidió dejar un tema y la evaluación lo nombró: se
+ * suma a `contexto.evitar` releyendo el contexto de la base (para no pisar lo
+ * que la familia escribió en el panel mientras tanto) y se refleja en el
+ * narrador en memoria, así la siguiente pregunta —que en modo seguido sale en
+ * este mismo turno— ya lo respeta. Si falla, sigue: es una mejora, no una puerta.
+ */
+async function anotarTemaEvitado(narrador: Narrador, tema: unknown): Promise<void> {
+  if (typeof tema !== 'string' || !tema.trim()) return;
+  try {
+    const { data } = await db.from('narradores').select('contexto').eq('id', narrador.id).maybeSingle();
+    const enBase = ((data as { contexto?: Record<string, any> } | null)?.contexto) ?? narrador.contexto ?? {};
+    const contexto = sumarTemaEvitado(enBase, tema);
+    if (!contexto) return;
+    const { error } = await db.from('narradores').update({ contexto }).eq('id', narrador.id);
+    if (error) throw new Error(error.message);
+    narrador.contexto = { ...narrador.contexto, evitar: contexto.evitar };
+    console.log(`procesar: ${narrador.id} pidió dejar un tema («${tema.trim()}»); queda en contexto.evitar.`);
+  } catch (err) {
+    console.error(`procesar: no pude anotar el tema que ${narrador.id} pidió dejar:`, err);
   }
 }
 
