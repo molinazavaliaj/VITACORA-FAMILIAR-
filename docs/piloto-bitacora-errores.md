@@ -30,14 +30,14 @@ libro sale mal, sale incompleto, o el cliente se pierde antes de llegar?
 
 | # | Qué | Efecto |
 |---|---|---|
-| 13 | La personalización ancla demasiado en lo ya contado ("la infancia se alarga") | Preguntas repetitivas, el narrador siente que le preguntan lo mismo; menos material nuevo por capítulo |
+| 13 | La personalización ancla demasiado en lo ya contado ("la infancia se alarga") | Preguntas repetitivas, el narrador siente que le preguntan lo mismo; menos material nuevo por capítulo. **Arreglado el 20/09** (`d230473`) |
 | 16 | Una corrección posterior no pisa el resumen viejo | El libro puede afirmar algo que el narrador corrigió después |
 | 4 | Repregunta en "usted" con trato "vos" | Rompe el vínculo justo en el momento más íntimo (la repregunta va a lo emocional). **Arreglado el 20/09** (`ed513d8`) |
 | 18 | Si la personalización falla, la fija sale en "usted" | Mismo efecto: incoherencia de trato a mitad de entrevista. **Arreglado el 20/09** (`ed513d8`): segundo intento más corto antes de rendirse |
 | 2 | Pregunta 5 mal redactada ("hablemos de atrás") | Una pregunta rara baja la calidad percibida; el narrador responde peor |
-| 11, 30 | ¿Las repreguntas se van por las ramas / insisten en lo que el narrador esquivó? | Cansan y pueden incomodar; en un abuelo, insistir en una herida es contraproducente |
+| 11, 30 | ¿Las repreguntas se van por las ramas / insisten en lo que el narrador esquivó? | Cansan y pueden incomodar; en un abuelo, insistir en una herida es contraproducente. **Arreglado el 20/09** (`d230473`) en el prompt: si pidió dejar el tema, no hay repregunta y la respuesta alcanza |
 | 12 | `crear` no copia el guion al narrador | Desde el panel la familia no puede editar preguntas de ese narrador |
-| 20, 22, 23, 24, 27 | Las fijas suponen boda/nietos/hijos/"toda la vida"; el narrador es joven, sin hijos, y la relación terminó — `capituloNoAplica` no se dispara | Preguntas que no aplican incomodan y dan respuestas vacías; el capítulo "El amor" sale flojo |
+| 20, 22, 23, 24, 27 | Las fijas suponen boda/nietos/hijos/"toda la vida"; el narrador es joven, sin hijos, y la relación terminó — `capituloNoAplica` no se dispara | Preguntas que no aplican incomodan y dan respuestas vacías; el capítulo "El amor" sale flojo. **Arreglado el 20/09** (`d230473`) en los prompts de personalizar y adaptativas (no suponer boda, hijos ni nietos; no preguntar lo negado). El `capituloNoAplica` por edad/estado civil sigue **para Joaquín** |
 
 ### 🟡 Suaves — operativos, no tocan el libro
 
@@ -125,6 +125,11 @@ libro sale mal, sale incompleto, o el cliente se pierde antes de llegar?
     abrir temas nuevos. *Para repasar con datos*: contar cuántas repreguntas pidió
     por narrador y en qué capítulos; si son muchas, restringir a "contó algo
     fuerte en una frase" o a ciertos capítulos.
+**Arreglado el 20/09** (`d230473`): `PROMPT_EVALUAR` ahora prohíbe insistir en
+    lo que el narrador esquivó ("una sola invitación alcanza, y ya se hizo") y la
+    personalización no repite lo recién contestado. Test en `test/cerebro.test.ts`.
+    El conteo con datos (cuántas repreguntas por narrador y en qué capítulos)
+    queda para mirarlo con el próximo piloto.
 
 12. **16/09 · Joaquín no tiene guion propio en `preguntas`.** Lo creó `manual crear`,
     que no copia las 26 fijas ("se usan solas como plantilla"), a diferencia del
@@ -139,6 +144,10 @@ libro sale mal, sale incompleto, o el cliente se pierde antes de llegar?
     milanesas, el ring con el hermano). No es un error del guion; es el prompt de
     `personalizar.ts` anclando demasiado en lo previo. *Para repasar*: pedirle que
     ancle en UNA cosa, no en tres, y que nombre el tema nuevo primero.
+**Arreglado el 20/09** (`d230473`): el prompt de personalización prohíbe preguntar
+    lo que acaba de contestar y manda reemplazar esa parte por lo que quedó
+    abierto, con el ejemplo real de Ciro ("no salíamos los tres juntos, creo que
+    nunca"). Test con el caso literal en `test/personalizar.test.ts`.
 
 14. **16/09 · `✖ Claude no devolvió texto` al evaluar la respuesta 7** (y otra vez el 17/09 en la 13, la 20 y la 30: 4 de 30 — no es un caso raro). La respuesta
     se subió, se insertó y se transcribió bien (34 s, corta); la llamada de
@@ -209,6 +218,12 @@ libro sale mal, sale incompleto, o el cliente se pierde antes de llegar?
     soltero/viudo/separado hay que tener reemplazos por capítulo (`capituloNoAplica`
     existe pero no se disparó acá). *Para repasar*: criterios de "no aplica" más
     finos que capítulo entero, usando la ficha (edad, estado civil) y lo contado.
+**Arreglado el 20/09** (`d230473`): en lo que se le pide al modelo, ya no se da por
+    sentado boda, hijos ni nietos, y no se pregunta por lo que el narrador negó,
+    ni como condicional ("¿y si hubieras tenido...?"). Tests con los casos reales
+    ("¿qué se siente ser abuelo ahora?" a un narrador de 28) en
+    `test/personalizar.test.ts` y `test/adaptativas.test.ts`. El criterio fino de
+    "no aplica" por edad/estado civil sigue en `preguntar.ts` → **para Joaquín**.
 
 21. **17/09 · la pregunta del capítulo "El trabajo" vuelve al puesto de diarios de
     la infancia.** Orden 17 (anécdota del trabajo) se personalizó hacia "esos días
@@ -224,6 +239,10 @@ libro sale mal, sale incompleto, o el cliente se pierde antes de llegar?
     condicional torpe. Debería haber disparado `capituloNoAplica` (existe) y mandar
     la pregunta de reemplazo, o al menos preguntar directo "¿tenés hijos?" como
     puerta y decidir con la respuesta. Misma raíz que la #20 (fijas de abuelo).
+**Arreglado el 20/09** (`d230473`): la regla prohíbe la pregunta-condicional sobre
+    algo que no se sabe o que el narrador negó. Que `capituloNoAplica` se dispare
+    con la ficha (y no pregunta por pregunta) sigue en `preguntar.ts` →
+    **para Joaquín**.
 
 23. **17/09 · "no tengo hijos" dispara una repregunta (en usted) en vez de saltar el
     capítulo.** Se registró la 19 por texto con el comando nuevo `responder-texto`
@@ -246,6 +265,10 @@ libro sale mal, sale incompleto, o el cliente se pierde antes de llegar?
     no devolver la evaluación (#14, ya 3 de 20). *Hecho a mano*: NO se manda; se
     reemplaza por una pregunta escrita a mano (ver abajo) y se anota con
     `--orden 21` cuando responda.
+**Arreglado el 20/09** (`d230473`): las reglas nuevas prohíben dar por hecho
+    hijos/nietos y repetir lo ya contestado ("cómo es cada uno ya lo hablamos"),
+    en la personalización y en las 4 finales. Tests en `test/personalizar.test.ts`
+    y `test/adaptativas.test.ts`.
 
 25. **17/09 · la pregunta que se le mandó no es la que quedó en la base.** La 21 se
     reemplazó a mano (ver #24) pero en `contexto.preguntasEnviadas[21]` y en
@@ -265,6 +288,9 @@ libro sale mal, sale incompleto, o el cliente se pierde antes de llegar?
     conserva "tus nietos" con la ficha diciendo "no tiene hijos". Se manda igual
     (el mensaje al futuro tiene sentido) pero corregido a mano: "quienes vengan
     después de vos".
+**Arreglado el 20/09** (`d230473`): la regla de no suponer la vida del guion
+    incluye los nietos ("nada de \"tus nietos\", \"el día de la boda\", \"los domingos en
+    familia\"") en la personalización y en las 4 finales, con test.
 
 28. **17/09 · las 4 adaptativas NO se generaron al completar la 26 — el error de
     `guardarRepreguntaEnviada` (#5) cortó `trasResponderManual` ANTES del bloque
@@ -304,6 +330,10 @@ libro sale mal, sale incompleto, o el cliente se pierde antes de llegar?
     (misma regla). *Para repasar*: la repregunta no debería repetir el tema de
     la pregunta que el narrador acaba de esquivar — si no contestó, quizá no
     quiere; una sola invitación alcanza.
+**Arreglado el 20/09** (`d230473`): `PROMPT_EVALUAR` dice ahora que un pedido de
+    dejar el tema vuelve la respuesta suficiente y que no hay repregunta sobre
+    eso —ni para retomarlo "de otra manera"—, y que si esquivó la pregunta no se
+    insiste en lo que esquivó. Test en `test/cerebro.test.ts`.
 
 31. **17/09 · Ciro · la repregunta pide lo que el narrador YA contó.** Respuesta 5
     ("no sé nada de mis abuelos ni de cómo se llevaban") → repregunta: "¿de tus
@@ -493,6 +523,14 @@ escribirlo; el audiolibro clonado saldría después con otro pedido.
     reciban con una regla explícita: si la infancia fue dura, no preguntar por fiestas,
     tradiciones ni domingos como si hubieran existido — preguntar qué había, quién
     sostenía, qué se rescataba. Y revisar las 26 fijas con ese ojo.
+**Arreglado el 20/09** (`d230473`): el lado del PROMPT ya está — la personalización y
+    las 4 finales reciben la regla de tono (no dar por sentado que la infancia fue
+    linda: "fiestas", "tradiciones", "los domingos", "las travesuras que todavía
+    lo hagan reír"; y si el material muestra una infancia dura, preguntar por lo
+    que había, quién sostenía, qué se rescataba), con el "esto no era una película
+    de Disney" de Ciro como ejemplo textual y test en las dos suites. Quedan (a)
+    la línea de TONO por capítulo en la memoria del biógrafo (`resumenes.ts`, se
+    hace junto con el hallazgo 16) y (c) la revisión de las 26 fijas con ese ojo.
 
 34. **18/09 · Ciro · la repregunta insiste donde el narrador acaba de decir "vamos por
     otro lado".** En esa misma respuesta 7 dijo, literal: "mi tío se drogaba, o sea,
@@ -506,6 +544,11 @@ escribirlo; el audiolibro clonado saldría después con otro pedido.
     cambiar de tema ("vamos por otro lado", "no quiero hablar de eso", "dejemos eso"),
     NO hay repregunta sobre ese tema, y ese tema entra solo a `contexto.evitar` para el
     resto de la entrevista.
+**Arreglado el 20/09** (`d230473`): la evaluación da la respuesta por SUFICIENTE
+    cuando hay un pedido explícito de dejar el tema y no repregunta sobre eso
+    —ni para retomarlo "de otra manera"—, con test en `test/cerebro.test.ts`. El
+    otro lado del hallazgo (que ese tema entre solo a `contexto.evitar` para el
+    resto de la entrevista) vive en el flujo (`procesar.ts`) → **para Joaquín**.
 
 35. **18/09 · Ciro · la personalización repite lo recién contestado y lleva la pregunta
     hacia las sustancias.** Respuesta 8: salidas de miércoles a domingo, "mucho vino,
@@ -521,6 +564,11 @@ escribirlo; el audiolibro clonado saldría después con otro pedido.
     contestada en la respuesta anterior, se reemplaza por lo que quedó abierto, no se
     repite; (b) el biógrafo no lidera con consumo de sustancias aunque el narrador las
     haya nombrado — si él las trae, se escucha; no se convierten en el gancho.
+**Arreglado el 20/09** (`d230473`): la personalización no repite lo que acaba de
+    contestar (el "no salíamos los tres juntos, creo que nunca" es el ejemplo
+    textual del prompt) y no lidera con lo que él nombró de paso: el alcohol y
+    las pastillas se escuchan, pero no son el gancho de la pregunta. Test en
+    `test/personalizar.test.ts`.
 
 38. **18/09 · MEDIO · el ensamblado del audiolibro clonado de Joaquín se cayó DOS VECES, por
     dos motivos distintos — y ninguno era la voz, que ya estaba narrada.** (a) El mp3 completo
