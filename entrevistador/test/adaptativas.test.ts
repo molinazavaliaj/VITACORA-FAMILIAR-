@@ -99,7 +99,7 @@ describe('generarPreguntasAdaptativas', () => {
     mocks.crear
       .mockResolvedValueOnce({ content: [{ type: 'text', text: CUATRO.slice(0, 180) }] }) // cortado
       .mockResolvedValueOnce({ content: [{ type: 'text', text: CUATRO }] });
-    await generarPreguntasAdaptativas('n1');
+    await generarPreguntasAdaptativas('n1', { pausaMs: 0 });
     expect(mocks.crear).toHaveBeenCalledTimes(2);
     expect(mocks.capturas.find((c) => c.tabla === 'preguntas').p).toHaveLength(4);
   });
@@ -116,9 +116,28 @@ describe('generarPreguntasAdaptativas', () => {
     expect(mocks.capturas.find((c) => c.tabla === 'preguntas').p).toHaveLength(4);
   });
 
-  it('si los dos intentos fallan, avisa con un error claro (no guarda nada a medias)', async () => {
+  // Bitácora 28: esta función se llama desde el medio del flujo (al responder
+  // la última pregunta del guion). Antes, si el modelo no devolvía las 4,
+  // tiraba y el narrador terminaba la entrevista sin ellas —o se quedaba sin
+  // cierre—. Ahora avisa y deja seguir: es idempotente, se pueden generar
+  // después.
+  it('si los dos intentos fallan, avisa y NO rompe (la entrevista sigue)', async () => {
     mocks.crear.mockResolvedValue({ content: [{ type: 'text', text: 'no soy JSON' }] });
-    await expect(generarPreguntasAdaptativas('n1')).rejects.toThrow(/No pude generar/);
+    await expect(generarPreguntasAdaptativas('n1', { pausaMs: 0 })).resolves.toBeUndefined();
+    expect(mocks.crear).toHaveBeenCalledTimes(2); // insistió una vez más
+    expect(mocks.capturas).toHaveLength(0); // no guarda nada a medias
+  });
+
+  it('si el modelo vuelve vacío (sin texto), tampoco rompe', async () => {
+    mocks.crear.mockResolvedValue({ content: [] });
+    await expect(generarPreguntasAdaptativas('n1', { pausaMs: 0 })).resolves.toBeUndefined();
+    expect(mocks.capturas).toHaveLength(0);
+  });
+
+  it('un error de la API en la lectura previa tampoco rompe', async () => {
+    mocks.armarHistoria.mockRejectedValue(new Error('503 Service Unavailable'));
+    mocks.crear.mockResolvedValue({ content: [{ type: 'text', text: CUATRO }] });
+    await expect(generarPreguntasAdaptativas('n1', { pausaMs: 0 })).resolves.toBeUndefined();
     expect(mocks.capturas).toHaveLength(0);
   });
 });

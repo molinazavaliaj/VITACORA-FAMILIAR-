@@ -20,6 +20,13 @@ export const ULTIMA_ADAPTATIVA = 30;
 // JSON.parse explotaba y el narrador quedaba sin las preguntas 27-30 justo el día 26.
 export const MAX_TOKENS = 4000;
 const INTENTOS = 2;
+/**
+ * La pausa antes del reintento (bitácora 14 y 28): casi siempre el fallo es un
+ * hipo de la API y con dos segundos alcanza. Los tests la apagan con
+ * `pausaMs: 0`.
+ */
+export const PAUSA_REINTENTO_MS = 2000;
+const esperar = (ms: number) => (ms > 0 ? new Promise<void>((r) => setTimeout(r, ms)) : Promise.resolve());
 
 export const PROMPT_ADAPTATIVAS = (nombre: string, historiaCompleta: string, capitulos: string[], cuantasContestadas = 26, evitar = '', trato: Trato = 'usted') => `
 Leíste la historia de vida completa que ${nombre} contó en ${cuantasContestadas} entrevistas
@@ -66,50 +73,72 @@ export function parsearCuatro(crudo: string): PreguntaGenerada[] {
  * preguntas, así que no es "27-30", es "N+1..N+4"). Idempotente: si ya hay
  * adaptativas, no hace nada.
  */
-export async function generarPreguntasAdaptativas(narradorId: string): Promise<void> {
+export type OpcionesAdaptativas = { pausaMs?: number };
+
+export async function generarPreguntasAdaptativas(
+  narradorId: string, opciones: OpcionesAdaptativas = {},
+): Promise<void> {
   if (await tieneAdaptativas(narradorId)) return;
+  const pausaMs = opciones.pausaMs ?? PAUSA_REINTENTO_MS;
 
-  const { data: narrador } = await db.from('narradores')
-    .select('como_le_dicen, contexto').eq('id', narradorId).maybeSingle();
-  const n = narrador as { como_le_dicen?: string; contexto?: Record<string, unknown> } | null;
-  const comoLeDicen = n?.como_le_dicen ?? 'el narrador';
+  // Todo el cuerpo va adentro de un try: esta función se llama desde el medio
+  // del flujo (al responder la última pregunta) y no puede tumbar la
+  // entrevista. Si el modelo no devuelve las 4, el narrador sigue con su
+  // guion y el cierre sale igual — la puerta manual (`siguiente`) las puede
+  // generar después, porque la función es idempotente (bitácora 28).
+  try {
+    const { data: narrador } = await db.from('narradores')
+      .select('como_le_dicen, contexto').eq('id', narradorId).maybeSingle();
+    const n = narrador as { como_le_dicen?: string; contexto?: Record<string, unknown> } | null;
+    const comoLeDicen = n?.como_le_dicen ?? 'el narrador';
 
-  const capitulos = await capitulosDe(narradorId);
-  const desde = (await ultimoOrden(narradorId)) + 1;
+    const capitulos = await capitulosDe(narradorId);
+    const desde = (await ultimoOrden(narradorId)) + 1;
 
-  const historia = await armarHistoria(narradorId);
-  const trato = await tratoDe({ id: narradorId, como_le_dicen: comoLeDicen, contexto: (n?.contexto ?? {}) as Record<string, any> });
-  const prompt = PROMPT_ADAPTATIVAS(comoLeDicen, historia, capitulos, desde - 1, textoEvitar(n?.contexto), trato);
+    const historia = await armarHistoria(narradorId);
+    const trato = await tratoDe({ id: narradorId, como_le_dicen: comoLeDicen, contexto: (n?.contexto ?? {}) as Record<string, any> });
+    const prompt = PROMPT_ADAPTATIVAS(comoLeDicen, historia, capitulos, desde - 1, textoEvitar(n?.contexto), trato);
 
-  // Estas 4 preguntas son el final del libro: si el modelo devuelve algo raro,
-  // reintentamos antes de dejar al narrador sin preguntas después de 26 días.
-  let preguntas: PreguntaGenerada[] | null = null;
-  let ultimoError: unknown = null;
-  for (let intento = 1; intento <= INTENTOS && !preguntas; intento++) {
-    try {
-      const respuesta = await cliente().messages.create({
-        model: MODELO, max_tokens: MAX_TOKENS,
-        messages: [{ role: 'user', content: prompt }],
-      });
-      const bloque = respuesta.content.find((b) => b.type === 'text');
-      if (!bloque || bloque.type !== 'text') throw new Error('Claude no devolvió texto');
-      preguntas = parsearCuatro(bloque.text.trim());
-    } catch (err) {
-      ultimoError = err;
-      console.error(`Adaptativas del narrador ${narradorId}: falló el intento ${intento}/${INTENTOS}:`, err);
+    // Estas 4 preguntas son el final del libro: si el modelo devuelve algo raro,
+    // reintentamos (con una pausa) antes de dejar al narrador sin preguntas
+    // después de 26 días.
+    let preguntas: PreguntaGenerada[] | null = null;
+    let ultimoError: unknown = null;
+    for (let intento = 1; intento <= INTENTOS && !preguntas; intento++) {
+      try {
+        const respuesta = await cliente().messages.create({
+          model: MODELO, max_tokens: MAX_TOKENS,
+          messages: [{ role: 'user', content: prompt }],
+        });
+        const bloque = respuesta.content.find((b) => b.type === 'text');
+        if (!bloque || bloque.type !== 'text') throw new Error('Claude no devolvió texto');
+        preguntas = parsearCuatro(bloque.text.trim());
+      } catch (err) {
+        ultimoError = err;
+        console.error(`Adaptativas del narrador ${narradorId}: falló el intento ${intento}/${INTENTOS}:`, err);
+        if (intento < INTENTOS) await esperar(pausaMs);
+      }
     }
-  }
-  if (!preguntas) throw new Error(`No pude generar las preguntas adaptativas: ${ultimoError}`);
+    if (!preguntas) {
+      console.warn(
+        `Adaptativas del narrador ${narradorId}: el modelo no devolvió las 4 preguntas (${ultimoError}); ` +
+        'la entrevista sigue y se pueden generar después (la función es idempotente).',
+      );
+      return;
+    }
 
-  const filas = preguntas.map((p, i) => ({
-    narrador_id: narradorId,
-    orden: desde + i,
-    texto: p.texto,
-    capitulo: p.capitulo,
-    tipo: 'adaptativa',
-  }));
-  const { error } = await db.from('preguntas').insert(filas);
-  if (error) throw new Error(`No pude guardar las preguntas adaptativas: ${error.message}`);
+    const filas = preguntas.map((p, i) => ({
+      narrador_id: narradorId,
+      orden: desde + i,
+      texto: p.texto,
+      capitulo: p.capitulo,
+      tipo: 'adaptativa',
+    }));
+    const { error } = await db.from('preguntas').insert(filas);
+    if (error) throw new Error(`No pude guardar las preguntas adaptativas: ${error.message}`);
+  } catch (err) {
+    console.warn(`Adaptativas del narrador ${narradorId}: quedaron sin generar (la entrevista sigue):`, err);
+  }
 }
 
 let _cliente: Anthropic | null = null;
