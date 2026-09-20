@@ -18,9 +18,11 @@ import numpy as np
 
 # Palabras con las que una respuesta arranca contestándole al entrevistador.
 # Se compara la primera palabra, en minúsculas y sin puntuación.
+# Revisión 20/09: fuera "y", "o", "a", "si", "tal" — "Y mi papá…", "Si mal no
+# recuerdo…", "Tal vez…" son la historia, no una respuesta al entrevistador.
 ARRANQUES_A_CORTAR = (
-    "sí", "si", "no", "bueno", "claro", "exacto", "dale", "eh", "este", "mirá", "mira",
-    "bien", "ok", "okay", "obvio", "tal", "y", "o", "a",
+    "sí", "no", "bueno", "claro", "exacto", "dale", "eh", "este", "mirá", "mira",
+    "bien", "ok", "okay", "obvio",
 )
 CORTE_ARRANQUE_MAX_S = 2.5  # más largo que esto ya es contenido, no un "sí, claro"
 SILENCIO_MAX_S = 1.5  # una pausa interna más larga que esto se acorta…

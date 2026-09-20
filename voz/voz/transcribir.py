@@ -27,7 +27,9 @@ def transcribir_clip(ruta: Path) -> str:
             timeout=120,
         )
     if respuesta.status_code != 200:
-        raise SystemExit(f"Whisper falló ({respuesta.status_code}): {respuesta.text[:300]}")
+        # RuntimeError, no SystemExit: si algún día corre dentro del worker, el
+        # `except Exception` del bucle lo marca `fallida` en vez de matar el proceso.
+        raise RuntimeError(f"Whisper falló ({respuesta.status_code}): {respuesta.text[:300]}")
     return respuesta.text.strip()
 
 
@@ -38,7 +40,7 @@ def palabras_con_tiempos(ruta: Path) -> dict:
     "palabras": [{"palabra", "inicio", "fin"}, …]}."""
     clave = os.environ.get("OPENAI_API_KEY", "").strip()
     if not clave:
-        raise SystemExit("Hace falta OPENAI_API_KEY en voz/.env para las marcas de tiempo por palabra.")
+        raise RuntimeError("Hace falta OPENAI_API_KEY en voz/.env para las marcas de tiempo por palabra.")
     with ruta.open("rb") as f:
         respuesta = httpx.post(
             "https://api.openai.com/v1/audio/transcriptions",

@@ -32,6 +32,9 @@ from pathlib import Path
 import numpy as np
 import soundfile as sf
 
+from dotenv import load_dotenv
+
+from .config import RAIZ
 from .pausas import pausas_ms
 from .restaurar import restaurar
 from .ritmo import aplicar_plan, plan_de_ritmo
@@ -418,6 +421,9 @@ def main() -> None:
     for flujo in (sys.stdout, sys.stderr):
         if hasattr(flujo, "reconfigure"):
             flujo.reconfigure(encoding="utf-8", errors="replace")
+    # Sin esto RESTAURACION_NIVEL, PAUSAS_MS y OPENAI_API_KEY de voz/.env se
+    # ignoraban (revisión 20/09). Solo el .env: esta herramienta no usa Supabase.
+    load_dotenv(RAIZ / ".env")
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--capitulo", type=int, required=True)
     p.add_argument("--salida", type=Path, required=True, help="wav del capítulo masterizado")

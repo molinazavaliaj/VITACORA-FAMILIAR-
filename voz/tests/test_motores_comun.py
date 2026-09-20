@@ -157,6 +157,22 @@ def test_igualar_pausas_internas_deja_cada_pausa_exactamente_en_el_objetivo():
     assert len(igualar_pausas_internas(_voz(1.0), 250, SR)) == len(_voz(1.0))  # sin pausas: igual
 
 
+def test_una_silaba_floja_no_es_pausa_y_una_pausa_real_no_se_vuelve_ceros():
+    # Revisión 20/09: una "s" final o una sílaba átona (−34 dB relativos a la
+    # voz) NO es una pausa del motor. Y una pausa real se recorta o se estira
+    # conservando el aire que dejó el motor, no se reemplaza por ceros digitales.
+    floja = np.concatenate([_voz(0.6), _voz(0.2, amplitud=0.3 * 10 ** (-34 / 20)), _voz(0.6)])
+    assert pausas_internas(floja, SR) == []
+    assert len(igualar_pausas_internas(floja, 250, SR)) == len(floja)
+    # pausa real: aire del motor a −70 dB, 0,9 s → 250 ms, y sigue siendo aire, no cero
+    aire = (0.3 * 10 ** (-70 / 20) * np.random.default_rng(1).standard_normal(int(SR * 0.9))).astype(np.float32)
+    con_aire = np.concatenate([_voz(0.6), aire, _voz(0.6)])
+    igualado = igualar_pausas_internas(con_aire, 250, SR)
+    assert abs(len(igualado) / SR - (1.2 + 0.25)) < 0.06
+    medio = igualado[int(SR * 0.6) + int(SR * 0.05) : int(SR * 0.6) + int(SR * 0.20)]
+    assert float(np.max(np.abs(medio))) > 0.0
+
+
 def test_narrar_tramos_modo_oracion_iguala_comas_y_modo_coma_no_toca_adentro():
     tramos = [Tramo("Hola, que tal.", "punto"), Tramo("Chau.", "punto")]
 

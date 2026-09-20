@@ -35,6 +35,19 @@ def test_arranque_encadenado_sigue_mientras_sean_muletillas_y_quepa():
     assert corte == 4.90 and que == "Sí exacto"
 
 
+def test_y_si_tal_a_o_no_son_arranques_que_se_cortan():
+    # Revisión 20/09: "Y mi papá…", "Si mal no recuerdo…", "Tal vez…", "A mí…"
+    # son la historia, no una respuesta al entrevistador.
+    for texto, palabras in [
+        ("Y mi papá, que era carpintero.", marcas(("Y", 0.0, 0.1), ("mi", 0.1, 0.3), ("papá", 0.3, 0.7), ("que", 0.9, 1.0))),
+        ("Si mal no recuerdo, fue en el 52.", marcas(("Si", 0.0, 0.2), ("mal", 0.2, 0.4), ("no", 0.4, 0.5), ("recuerdo", 0.5, 1.0), ("fue", 1.2, 1.4))),
+        ("Tal vez, era 1985.", marcas(("Tal", 0.0, 0.2), ("vez", 0.2, 0.5), ("era", 0.7, 0.9))),
+        ("A mí, la guerra me agarró de chico.", marcas(("A", 0.0, 0.1), ("mí", 0.1, 0.3), ("la", 0.5, 0.6))),
+    ]:
+        corte, que = corte_de_arranque(texto, palabras)
+        assert corte == 0.0 and que == "", texto
+
+
 def test_el_limite_se_mide_desde_la_primera_palabra_no_desde_el_cero():
     # 3,8 s de silencio antes de "Sí": no cuentan para el límite de 2,5 s
     palabras = marcas(("Sí", 3.78, 4.34), ("claramente", 4.5, 5.0))

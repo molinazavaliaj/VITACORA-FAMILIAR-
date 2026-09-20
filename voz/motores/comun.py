@@ -141,6 +141,10 @@ def pegar_frases(clips: list[np.ndarray], tasa: int = TASA_SALIDA, pausa_ms: int
 # El motor no decide las pausas: cada tramo viene con el signo que lo cerró y
 # acá se pone el silencio que le toca, siempre el mismo (voz/pausas.py).
 PAUSA_INTERNA_MIN_MS = 120  # una pausa que hizo el motor dentro de un tramo, para igualarla
+# Pausa = aire del motor, no voz floja: umbral absoluto (revisión 20/09). Con la
+# frase ya a −20 dB RMS, una "s" final o una sílaba átona anda por −30…−40 dBFS;
+# lo que el motor deja entre comas, por debajo de −55.
+UMBRAL_PAUSA_DB = -50.0
 
 
 def pegar_tramos(clips: list[np.ndarray], cierres: list[str], pausas: dict[str, int], tasa: int = TASA_SALIDA) -> np.ndarray:
@@ -168,8 +172,7 @@ def pausas_internas(clip: np.ndarray, tasa: int = TASA_SALIDA, minimo_ms: int = 
     if n < 3:
         return []
     envolvente = _db(np.sqrt(np.mean(clip[: n * v].reshape(n, v) ** 2, axis=1)))
-    umbral = max(UMBRAL_VOZ_DB, float(envolvente.max()) - 30)
-    callado = envolvente <= umbral
+    callado = envolvente <= UMBRAL_PAUSA_DB
     minimo = max(1, int(round(minimo_ms / _VENTANA_MS)))
     pausas: list[tuple[int, int]] = []
     i = 0
@@ -188,8 +191,10 @@ def pausas_internas(clip: np.ndarray, tasa: int = TASA_SALIDA, minimo_ms: int = 
 
 def igualar_pausas_internas(clip: np.ndarray, objetivo_ms: int, tasa: int = TASA_SALIDA) -> np.ndarray:
     """Modo (a): el tramo es una oración entera y las comas las pausó el motor a
-    su gusto. Cada pausa interna se lleva exactamente a `objetivo_ms` (se
-    acorta o se estira con silencio), con un fundido corto a cada lado."""
+    su gusto. Cada pausa interna se lleva exactamente a `objetivo_ms`: si era
+    más larga se le saca el medio, si era más corta se le mete silencio en el
+    medio. Se conserva el aire del motor a los dos lados (no ceros digitales:
+    revisión 20/09), con un fundido corto a cada lado."""
     pausas = pausas_internas(clip, tasa)
     if not pausas:
         return clip
@@ -202,7 +207,14 @@ def igualar_pausas_internas(clip: np.ndarray, objetivo_ms: int, tasa: int = TASA
         if borde and len(voz) > borde:
             voz[-borde:] *= np.linspace(1.0, 0.0, borde, dtype=np.float32)
         partes.append(voz)
-        partes.append(np.zeros(objetivo, dtype=np.float32))
+        aire = clip[ini:fin]
+        mitad = objetivo // 2
+        if len(aire) >= objetivo:
+            pausa = np.concatenate([aire[:mitad], aire[len(aire) - (objetivo - mitad) :]])
+        else:
+            corte = len(aire) // 2
+            pausa = np.concatenate([aire[:corte], np.zeros(objetivo - len(aire), dtype=np.float32), aire[corte:]])
+        partes.append(pausa.astype(np.float32))
         cursor = fin
     resto = clip[cursor:].copy()
     if borde and len(resto) > borde:
