@@ -101,3 +101,31 @@ no lo escribas.
   `docs/piloto-bitacora-errores.md` (+33 líneas, nada más). No hay tests para docs: el control
   fue que cada fecha, número y commit salga de `GASTOS.md`, `ESTADO.md` y los commits
   (`ee3d255`/`dc7fe8d`, `854cb93`, `c80e5ce`, `3d29d66`), sin inventar nada.
+
+### 20/09 (tarde) — punto 2b y la corrida contra Joaquín
+
+- **Punto 2b · reemplazar la narración vieja (lo que faltaba para disparar la prueba).** Misma
+  rama `fabrica-script-narracion-v2` (subida, sin mergear): `6ddd406` (migración +
+  `reemplazarNarracion` + CONTRATO + tests) y `f6a7006` (el script la usa en vez de
+  `crearNarracion`). Tests: `cd fabrica && npx vitest run` → **319 pasan** (12 nuevos y `tsc`
+  limpio). Migración `supabase/migrations/20260920000000_narraciones_reemplazada.sql`,
+  idempotente, **la aplica Naza en el SQL Editor**: agrega el estado `reemplazada` al check de
+  `narraciones.estado`. Documentado en `supabase/CONTRATO.md` (sección de narraciones + tabla de
+  quién escribe qué: es la única excepción a "el estado lo escribe el worker"). Una `reemplazada`
+  no se narra, no se ensambla y no se reclama como atascada (con tests).
+- **Corrida de solo lectura contra Joaquín.** `npx tsx scripts/narracion-v2.ts 3691baf4-…
+  3284c93c-… --solo-json --salida <local>`: **8 capítulos, los 8 híbridos** (34 historias con
+  audio real; 8 llamadas al modelo para los conectores), sin escribir nada en la base. El JSON
+  quedó en el buzón: **`pruebas/2026-09-20/narracion-v2-joaquin.json`** (149.077 bytes,
+  verificado bajándolo de vuelta: sha256 igual). Revisión propia de los conectores: en su voz,
+  sin ningún puente vacío ni de más de 35 palabras, sin mencionar pregunta/entrevista/capítulo/
+  audio. No se cachearon (no se usó `--cachear-conectores`, como se pidió): la corrida en serio
+  **vuelve a pagar esas 8 llamadas** — se puede evitar escribiendo el caché desde ese mismo JSON
+  sin llamar al modelo.
+- **Buzón 20/09: llegó el disparador.** `pruebas/2026-09-20/hibrido-listo.txt`: el worker
+  VitacoraVoz corre `cb48c56` (rama `voz-hibrido-worker`) y **toma narracion.json v2**; parche
+  `0001-voz-el-híbrido-en-el-worker-*.patch` (119 tests), `notas.txt` (directivas 03/04/05) y
+  `hibrido-cap2-worker.mp3` (capítulo 2 híbrido real: 471 s de audio). Estimado de ellos: ~1 h de
+  GPU para un libro híbrido de 70 min, contra 2 h 49 todo-clonado. Queda: revisar y aplicar el
+  parche con `git am` + `cd voz && python -m pytest -q`, mergear esta rama y disparar la corrida
+  en serio (pone el pedido en `esperando_voz` con la fila nueva y la vieja `reemplazada`).
