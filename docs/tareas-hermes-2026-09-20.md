@@ -80,3 +80,24 @@ no lo escribas.
 - T2:
 - T3:
 - T4:
+
+### Pase de manos 20/09 (`docs/handoff-2026-09-20.md`) — puntos 2 y 3
+
+- **Punto 2 · script de la prueba híbrida.** Rama `fabrica-script-narracion-v2` (subida, sin
+  mergear): `827054c`. Archivos: `fabrica/scripts/narracion-v2.ts` y
+  `fabrica/test/narracion-v2.test.ts` (los dos nuevos; mocks como `generar-paquete.test.ts`).
+  Tests: `cd fabrica && npx vitest run` → **307 pasan** (18 nuevos) y `npx tsc --noEmit -p
+  tsconfig.json` limpio (el script, que el tsconfig no incluye, también typechea solo con las
+  mismas opciones). Uso: `npx tsx scripts/narracion-v2.ts <narradorId> <pedidoId> [--solo-json
+  [--salida <ruta>]] [--cachear-conectores]`. No se tocó `voz/` ni los archivos de
+  `fabrica-narracion-v2`, y no se corrió contra ninguna base.
+  Ojo, bloqueo real para la prueba de Joaquín: su pedido (`3284c93c-…`) ya tiene la narración
+  de la entrega del 19/09 en estado `lista`, y el worker solo toma `pendiente` (además
+  `crearNarracion` es idempotente). El script se planta y **no** deja el pedido en
+  `esperando_voz` — si lo dejara, la fábrica ensamblaría esa voz vieja como si fuera la nueva.
+  Antes de correrlo en serio hay que decidir desde la central cómo se pide la fila nueva.
+- **Punto 3 · bitácora del piloto, hallazgos 38 y 39.** Rama
+  `docs-bitacora-hallazgos-38-39` (subida, sin mergear): `51e70cc`,
+  `docs/piloto-bitacora-errores.md` (+33 líneas, nada más). No hay tests para docs: el control
+  fue que cada fecha, número y commit salga de `GASTOS.md`, `ESTADO.md` y los commits
+  (`ee3d255`/`dc7fe8d`, `854cb93`, `c80e5ce`, `3d29d66`), sin inventar nada.
