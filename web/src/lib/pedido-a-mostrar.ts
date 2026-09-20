@@ -11,7 +11,9 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 // de cualquier estado — eso es para las pantallas de estado (pagado,
 // generando, fallido, pendiente), no para servir archivos.
 
-export type AudiolibroPaths = { capitulos: string[]; bonus?: string; completo: string };
+// `completo` es opcional: desde el 19/09 la fábrica no sube
+// `audiolibro_completo.mp3` cuando pasa los 50 MB; quedan los capítulos.
+export type AudiolibroPaths = { capitulos: string[]; bonus?: string; completo?: string };
 
 export type PedidoDescarga = {
   id: string;

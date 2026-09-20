@@ -16,7 +16,7 @@ import { ConRiel } from "../../riel";
 // capítulo con el reproductor de la casa. Leen la dueña y los invitados (spec
 // §2 y §5); el visitante del link público ve solo la muestra.
 
-type AudiolibroPaths = { capitulos: string[]; bonus?: string; completo: string };
+type AudiolibroPaths = { capitulos: string[]; bonus?: string; completo?: string };
 type Pedido = { id: string; estado: string; extras: unknown; audiolibro_paths: AudiolibroPaths | null; libro_pdf_path: string | null };
 
 export default async function PaginaLeer({ params }: PageProps<"/tablero/[narradorId]/leer">) {
