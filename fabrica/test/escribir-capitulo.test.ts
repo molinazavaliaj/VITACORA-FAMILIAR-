@@ -13,12 +13,21 @@ vi.mock('@anthropic-ai/sdk', () => {
   };
 });
 
+// El costo de cada llamada se anota aparte (src/costos.ts); acá solo importa
+// que se lo llame con lo que devolvió el modelo. Este módulo no recibe `db`,
+// así que le pasa `obtenerClienteDb` para que lo resuelva adentro.
+const { registrarUsoMock } = vi.hoisted(() => ({ registrarUsoMock: vi.fn() }));
+vi.mock('../src/costos.js', () => ({ registrarUso: registrarUsoMock }));
+vi.mock('../src/db.js', () => ({ obtenerClienteDb: vi.fn() }));
+
+import { obtenerClienteDb } from '../src/db.js';
 import { escribirCapitulo } from '../src/libro/escribir-capitulo.js';
 
 describe('escribirCapitulo', () => {
   beforeEach(() => {
     streamMock.mockClear();
     finalMessageMock.mockReset();
+    registrarUsoMock.mockReset();
     process.env.SUPABASE_URL = 'https://x.supabase.co';
     process.env.SUPABASE_SERVICE_ROLE_KEY = 'clave-service-role';
     process.env.ANTHROPIC_API_KEY = 'clave-anthropic';
@@ -99,5 +108,39 @@ describe('escribirCapitulo', () => {
     const resultado = await escribirCapitulo({ nombre: 'Ana' }, 'El amor', 'material', 'historia', '(sin correcciones)');
 
     expect(resultado).toBe('Primera parte.\nSegunda parte.');
+  });
+
+  // --- costo por llamada ----------------------------------------------------
+
+  it('anota el usage que devolvió el modelo como paso "capitulo" del narrador', async () => {
+    const usage = { input_tokens: 1200, output_tokens: 800, cache_creation_input_tokens: 0, cache_read_input_tokens: 0 };
+    finalMessageMock.mockResolvedValue({ content: [{ type: 'text', text: 'Capítulo.' }], usage });
+
+    await escribirCapitulo({ id: 'narrador-1', nombre: 'Ana' }, 'El amor', 'material', 'historia', '(sin correcciones)');
+
+    expect(registrarUsoMock).toHaveBeenCalledTimes(1);
+    expect(registrarUsoMock).toHaveBeenCalledWith(obtenerClienteDb, 'narrador-1', {
+      modelo: 'claude-fable-5',
+      paso: 'capitulo',
+      usage,
+    });
+  });
+
+  it('la previsualización anota el mismo capítulo como paso "preview"', async () => {
+    const usage = { input_tokens: 10, output_tokens: 5 };
+    finalMessageMock.mockResolvedValue({ content: [{ type: 'text', text: 'Capítulo.' }], usage });
+
+    await escribirCapitulo({ id: 'narrador-1', nombre: 'Ana' }, 'Infancia', 'material', 'historia', '(sin correcciones)', 'preview');
+
+    expect(registrarUsoMock).toHaveBeenCalledWith(obtenerClienteDb, 'narrador-1', { modelo: 'claude-fable-5', paso: 'preview', usage });
+  });
+
+  it('sin id de narrador no hay dónde anotar: no registra, y el capítulo sale igual', async () => {
+    finalMessageMock.mockResolvedValue({ content: [{ type: 'text', text: 'Capítulo.' }], usage: { input_tokens: 10 } });
+
+    const resultado = await escribirCapitulo({ nombre: 'Ana' }, 'Infancia', 'material', 'historia', '(sin correcciones)');
+
+    expect(resultado).toBe('Capítulo.');
+    expect(registrarUsoMock).not.toHaveBeenCalled();
   });
 });

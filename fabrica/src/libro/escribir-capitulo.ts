@@ -1,6 +1,10 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { cargarConfig } from '../config.js';
+import { registrarUso, type PasoModelo } from '../costos.js';
+import { obtenerClienteDb } from '../db.js';
 import { extraerTexto } from './comun.js';
+
+const MODELO = 'claude-fable-5';
 
 // El prompt del capítulo — el corazón del producto. Se usa textual, no se
 // resume ni se reordena: cada palabra acá decide si el libro suena a él o
@@ -46,13 +50,18 @@ Devolvé SOLO el texto del capítulo en Markdown (sin el título del capítulo).
  * es todo lo dicho en las entrevistas, por si algo que pertenece a este
  * capítulo se contó otro día; `nombresCorregidos` son las correcciones de
  * ortografía que la familia hizo sobre lo que la transcripción oyó mal.
+ *
+ * Si `narrador` trae `id`, el costo de la llamada se anota en su
+ * costos.json bajo `paso` (`capitulo` para el libro; la previsualización
+ * pasa `preview` para poder separar lo que se gasta antes de la compra).
  */
 export async function escribirCapitulo(
-  narrador: { nombre: string },
+  narrador: { nombre: string; id?: string },
   capitulo: string,
   materiales: string,
   historiaCompleta: string,
-  nombresCorregidos: string
+  nombresCorregidos: string,
+  paso: Extract<PasoModelo, 'capitulo' | 'preview'> = 'capitulo'
 ): Promise<string> {
   const config = cargarConfig();
   const cliente = new Anthropic({ apiKey: config.anthropicApiKey });
@@ -60,12 +69,13 @@ export async function escribirCapitulo(
   const prompt = PROMPT_CAPITULO(narrador.nombre, capitulo, materiales, historiaCompleta, nombresCorregidos);
 
   const stream = cliente.messages.stream({
-    model: 'claude-fable-5',
+    model: MODELO,
     max_tokens: 20000,
     messages: [{ role: 'user', content: prompt }],
   });
 
   const mensajeFinal = await stream.finalMessage();
+  if (narrador.id) await registrarUso(obtenerClienteDb, narrador.id, { modelo: MODELO, paso, usage: mensajeFinal.usage });
   const texto = extraerTexto(mensajeFinal.content as Array<{ type: string; text?: string }>);
   return texto.trim();
 }

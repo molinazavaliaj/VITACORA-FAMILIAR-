@@ -188,9 +188,11 @@ function construirDbFake(opciones: {
   });
 
   const upload = vi.fn().mockResolvedValue({ data: { path: 'x' }, error: null });
-  const storage = { from: vi.fn(() => ({ upload })) };
+  // Solo lo lee registrarUso (costos.json): "no existe todavía".
+  const download = vi.fn().mockResolvedValue({ data: null, error: { message: 'Object not found', statusCode: '404' } });
+  const storage = { from: vi.fn(() => ({ upload, download })) };
 
-  return { from, storage, upload };
+  return { from, storage, upload, download };
 }
 
 describe('generarEstructura', () => {
@@ -281,6 +283,38 @@ describe('generarEstructura', () => {
       JSON.stringify(estructura),
       { contentType: 'application/json', upsert: true }
     );
+  });
+
+  it('anota el usage de la detección de entidades en costos.json como paso "estructura"', async () => {
+    const db = construirDbFake({
+      narrador: {
+        data: { id: 'narrador-1', nombre: 'Ana', como_le_dicen: 'Ana', contexto: {}, foto_url: null, estado: 'armando_paquete' },
+        error: null,
+      },
+      preguntasFijas: {
+        data: [{ narrador_id: null, orden: 1, texto: '¿Dónde naciste?', capitulo: 'Infancia', tipo: 'fija' }],
+        error: null,
+      },
+      respuestas: {
+        data: [{ narrador_id: 'narrador-1', pregunta_orden: 1, transcripcion: 'Nací en Rosario.', texto_directo: null, es_repregunta: false, audio_path: null, duracion_segundos: 30 }],
+        error: null,
+      },
+    });
+    (obtenerClienteDb as unknown as ReturnType<typeof vi.fn>).mockReturnValue(db);
+    finalMessageMock.mockResolvedValue({
+      content: [{ type: 'text', text: '[]' }],
+      usage: { input_tokens: 100_000, output_tokens: 1000, cache_creation_input_tokens: 0, cache_read_input_tokens: 0 },
+    });
+
+    await generarEstructura('narrador-1');
+
+    expect(db.download).toHaveBeenCalledWith('narrador-1/paquete/costos.json');
+    const subidaCostos = db.upload.mock.calls.find((llamada) => llamada[0] === 'narrador-1/paquete/costos.json');
+    expect(subidaCostos).toBeDefined();
+    const filas = JSON.parse(subidaCostos![1] as string) as { modelo: string; paso: string; input: number; output: number; usd: number }[];
+    expect(filas).toHaveLength(1);
+    // fable-5: 100k in = 1 USD, 1k out = 0,05 USD.
+    expect(filas[0]).toMatchObject({ modelo: 'claude-fable-5', paso: 'estructura', input: 100_000, output: 1000, usd: 1.05 });
   });
 
   it('sin transcripciones no llama al modelo y las entidades quedan vacías', async () => {

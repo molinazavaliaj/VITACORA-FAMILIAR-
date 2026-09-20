@@ -1,6 +1,6 @@
 import { escaparHtml } from './comun.js';
 import type { FotosCapitulo, FotoLibro, Foco } from './fotos.js';
-import { FOCO_CENTRO } from './fotos.js';
+import { estiloFoco } from './fotos.js';
 
 // ---------------------------------------------------------------------------
 // La identidad visual aprobada (docs/arte-libro/*.dc.html, 9 mockups A5 a
@@ -528,12 +528,6 @@ function construirPortada(opts: {
       ${svgMedallion({ size: 34, texto: mono, colorAro: '#faf7f1', colorTexto: '#faf7f1' })}
     </div>
   </div>`;
-}
-
-/** `object-position` para `object-fit: cover`: el punto (0..1) que queda a la vista. */
-function estiloFoco(foco: Foco | undefined): string {
-  const f = foco ?? FOCO_CENTRO;
-  return `object-position: ${Math.round(f.x * 100)}% ${Math.round(f.y * 100)}%`;
 }
 
 function construirFrontispicio(opts: { fotoUrl: string; fotoFoco?: Foco; nombreNarrador: string; anioNacimiento?: number | null }): string {

@@ -63,6 +63,14 @@ function blobFake(contenido: string): { text: () => Promise<string>; arrayBuffer
   };
 }
 
+// Para las fotos: un ArrayBuffer propio, del tamaño exacto del contenido
+// (`Buffer.from(str).buffer` puede ser el pool compartido de Node, más
+// grande que el contenido), así el data URI que arma cargarFotos es
+// predecible.
+function blobBinario(contenido: string): { arrayBuffer: () => Promise<ArrayBuffer> } {
+  return { arrayBuffer: async () => Uint8Array.from(Buffer.from(contenido)).buffer as ArrayBuffer };
+}
+
 function construirBuilder(resultado: unknown) {
   const builder: Record<string, unknown> = {
     select: () => builder,
@@ -81,11 +89,13 @@ function construirDbFake(opciones: {
   preguntasFijas?: { data: unknown; error: unknown };
   preguntasNarrador?: { data: unknown; error: unknown };
   respuestas?: { data: unknown; error: unknown };
+  fotos?: { data: unknown; error: unknown };
   descargas?: Record<string, { data: unknown; error: unknown }>;
   upload?: ReturnType<typeof vi.fn>;
 }) {
   const from = vi.fn((tabla: string) => {
     if (tabla === 'narradores') return construirBuilder(opciones.narrador ?? { data: null, error: null });
+    if (tabla === 'fotos') return construirBuilder(opciones.fotos ?? { data: [], error: null });
     if (tabla === 'preguntas') {
       // primera llamada: fijas (is narrador_id null); segunda: del narrador (eq)
       const llamada = fromPreguntasContador++;
@@ -243,10 +253,12 @@ describe('generarPrevisualizacion', () => {
     await generarPrevisualizacion('narrador-1');
 
     // escribió SOLO el capítulo 1, con narrador + material del capítulo +
-    // historia completa (todos los órdenes) + nombres corregidos.
+    // historia completa (todos los órdenes) + nombres corregidos, y lo
+    // anota como paso "preview" (gasto de antes de la compra).
     expect(escribirCapituloMock).toHaveBeenCalledTimes(1);
-    const [narradorArg, capituloArg, materialesArg, historiaArg, nombresArg] = escribirCapituloMock.mock.calls[0];
-    expect(narradorArg).toMatchObject({ nombre: 'Roberto' });
+    const [narradorArg, capituloArg, materialesArg, historiaArg, nombresArg, pasoArg] = escribirCapituloMock.mock.calls[0];
+    expect(narradorArg).toMatchObject({ id: 'narrador-1', nombre: 'Roberto' });
+    expect(pasoArg).toBe('preview');
     expect(capituloArg).toBe('Infancia');
     expect(materialesArg).toContain('En Rosorio.');
     expect(materialesArg).not.toContain('La conocí bailando.');
@@ -263,6 +275,8 @@ describe('generarPrevisualizacion', () => {
     expect(htmlGenerado).toContain('Infancia');
     expect(htmlGenerado).toContain('El amor');
     expect(htmlGenerado).toContain('https://x/foto.jpg');
+    // Sin foto de tapa elegida no hay motivo para bajar las fotos.
+    expect(db.from).not.toHaveBeenCalledWith('fotos');
     expect(closeMock).toHaveBeenCalledTimes(1);
 
     expect(db.upload).toHaveBeenCalledWith(
@@ -397,6 +411,99 @@ describe('generarPrevisualizacion', () => {
       'Capítulo corto.',
       { contentType: 'text/markdown', upsert: true }
     );
+  });
+
+  // --- foto de tapa ----------------------------------------------------------
+  // Mismo criterio que el libro final (generar-paquete.ts): si la dueña eligió
+  // foto de tapa en la edición, va esa, embebida y recortada con su foco; si
+  // no (o no se pudo bajar), el retrato de siempre.
+
+  function opcionesConFotoDeTapa(extra: { edicion?: unknown; fotos?: { data: unknown; error: unknown }; descargas?: Record<string, { data: unknown; error: unknown }> }) {
+    const estructura = { titulo: 'T', capitulos: [{ nombre: 'Infancia', ordenes: [1] }], entidades: [] };
+    return {
+      narrador: {
+        data: { id: 'narrador-1', nombre: 'Roberto', foto_url: 'https://x/retrato.jpg', edicion: extra.edicion ?? null },
+        error: null,
+      },
+      preguntasFijas: {
+        data: [{ narrador_id: null, orden: 1, texto: '¿Dónde naciste?', capitulo: 'Infancia' }],
+        error: null,
+      },
+      preguntasNarrador: { data: [], error: null },
+      respuestas: {
+        data: [{ pregunta_orden: 1, transcripcion: 'En Rosario.', texto_directo: null, es_repregunta: false, audio_path: null }],
+        error: null,
+      },
+      fotos: extra.fotos,
+      descargas: {
+        'narrador-1/paquete/estructura.json': { data: blobFake(JSON.stringify(estructura)), error: null },
+        'narrador-1/paquete/nombres.json': { data: blobFake(JSON.stringify({ correcciones: [] })), error: null },
+        'narrador-1/paquete/borrador_preview_cap1.md': { data: blobFake('Capítulo cacheado.'), error: null },
+        ...(extra.descargas ?? {}),
+      },
+    };
+  }
+
+  it('si la dueña eligió foto de tapa, la portada la usa embebida y recortada con su foco, en vez del retrato', async () => {
+    const db = construirDbFake(
+      opcionesConFotoDeTapa({
+        edicion: { portadaFotoId: 'f2' },
+        fotos: {
+          data: [
+            { id: 'f1', narrador_id: 'narrador-1', capitulo: 'Infancia', storage_path: 'narrador-1/fotos/f1.jpg', epigrafe: null, principal: true, orden: 0, posicion: null, foco: null },
+            { id: 'f2', narrador_id: 'narrador-1', capitulo: 'Infancia', storage_path: 'narrador-1/fotos/f2.png', epigrafe: null, principal: false, orden: 1, posicion: null, foco: { x: 0.2, y: 0.8 } },
+          ],
+          error: null,
+        },
+        descargas: {
+          'narrador-1/fotos/f1.jpg': { data: blobBinario('foto-uno'), error: null },
+          'narrador-1/fotos/f2.png': { data: blobBinario('foto-dos'), error: null },
+        },
+      })
+    );
+    (obtenerClienteDb as unknown as ReturnType<typeof vi.fn>).mockReturnValue(db);
+
+    await generarPrevisualizacion('narrador-1');
+
+    const htmlGenerado = setContentMock.mock.calls[0][0] as string;
+    const dataUriEsperado = `data:image/png;base64,${Buffer.from('foto-dos').toString('base64')}`;
+    expect(htmlGenerado).toContain(`<img src="${dataUriEsperado}"`);
+    expect(htmlGenerado).toContain('object-position: 20% 80%');
+    expect(htmlGenerado).not.toContain('https://x/retrato.jpg');
+    expect(htmlGenerado).not.toContain(Buffer.from('foto-uno').toString('base64'));
+  });
+
+  it('si la foto de tapa elegida no se pudo bajar, queda el retrato como siempre', async () => {
+    const db = construirDbFake(
+      opcionesConFotoDeTapa({
+        edicion: { portadaFotoId: 'f1' },
+        fotos: {
+          data: [{ id: 'f1', narrador_id: 'narrador-1', capitulo: 'Infancia', storage_path: 'narrador-1/fotos/rota.jpg', epigrafe: null, principal: true, orden: 0, posicion: null, foco: null }],
+          error: null,
+        },
+        // sin descarga para rota.jpg: cargarFotos avisa y la omite
+      })
+    );
+    (obtenerClienteDb as unknown as ReturnType<typeof vi.fn>).mockReturnValue(db);
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    await generarPrevisualizacion('narrador-1');
+
+    const htmlGenerado = setContentMock.mock.calls[0][0] as string;
+    expect(htmlGenerado).toContain('<img src="https://x/retrato.jpg"');
+    expect(htmlGenerado).not.toContain('data:image');
+    warnSpy.mockRestore();
+  });
+
+  it('con edición pero sin foto de tapa elegida, no baja las fotos y usa el retrato', async () => {
+    const db = construirDbFake(opcionesConFotoDeTapa({ edicion: { titulo: 'Mi vida', portadaFotoId: null } }));
+    (obtenerClienteDb as unknown as ReturnType<typeof vi.fn>).mockReturnValue(db);
+
+    await generarPrevisualizacion('narrador-1');
+
+    expect(db.from).not.toHaveBeenCalledWith('fotos');
+    const htmlGenerado = setContentMock.mock.calls[0][0] as string;
+    expect(htmlGenerado).toContain('<img src="https://x/retrato.jpg"');
   });
 
   it('si ninguna respuesta tiene audio, omite la muestra sin tirar', async () => {
