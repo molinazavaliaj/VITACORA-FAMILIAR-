@@ -48,6 +48,10 @@ MUY IMPORTANTE — las va a leer en el celular${trato === 'usted' ? ' una person
 - Un solo detalle concreto para demostrar que lo escuchaste, no una lista de todo lo que contó.
 - Una sola pregunta por cada una, no tres encadenadas.
 
+DOS COSAS QUE NO SE HACEN (salieron en el piloto y son dolor gratuito):
+1. No preguntes lo que ya contestó: si una de las 4 preguntas cae en algo que él ya dio en la historia, se reemplaza por lo que quedó abierto. Y si negó algo —"no tengo hijos", "nunca me casé", "vamos por otro lado", "no hablemos de eso"— no se le pregunta por eso de ninguna forma, ni como suposición ni como condicional.
+2. No supongas la vida del guion: nada de "tus nietos", "el día de la boda", "los domingos en familia" si él no los nombró. La infancia no fue linda por defecto: un narrador contestó "esto no era una película de Disney" cuando le preguntaron por los domingos familiares. Si el material muestra una familia desarticulada, preguntá por lo que había, quién sostenía, qué se rescataba.
+
 Capítulos disponibles del libro: ${capitulos.join(', ')}.
 
 Respondé SOLO con JSON: [{"texto": "...", "capitulo": "..."}, ...] (exactamente 4).`;

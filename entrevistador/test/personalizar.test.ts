@@ -274,6 +274,41 @@ describe('el segundo intento cuando el fallback rompería el trato (bitácora 18
   });
 });
 
+describe('las reglas nuevas contra el dolor gratuito (bitácora 13, 20, 22, 24, 27, 33, 35)', () => {
+  // Los ejemplos son los literales de la bitácora, no inventados.
+  const prompt = PROMPT_PERSONALIZAR(
+    '¿A qué jugaba de chico?',
+    '',
+    'Lo que contó el día 8: salidas de miércoles a domingo, mucho vino, mucha pastilla, mucho clonazepam.',
+    '',
+    '',
+    'vos',
+  );
+
+  it('(b) no repite lo que acaba de contestar ni vuelve sobre lo que negó', () => {
+    expect(prompt).toContain('NO PREGUNTES LO QUE ACABA DE CONTESTAR');
+    // Ciro contó que con el Pelado Bausa y el Beto "no salíamos los tres juntos,
+    // creo que nunca" y la pregunta 9 fue "¿cómo era salir con ellos?"
+    expect(prompt).toContain('"no salíamos los tres juntos, creo que nunca"');
+    expect(prompt).toContain('"¿cómo era salir con ellos?"');
+    // Y lo negado no se pregunta ni como suposición ni como condicional.
+    expect(prompt).toContain('"no tengo hijos"');
+    expect(prompt).toContain('"nunca me casé"');
+    expect(prompt).toContain('ni como suposición ni como condicional');
+    // Y no se lidera con lo que él nombró de paso (el alcohol de Ciro).
+    expect(prompt).toContain('vos no liderás la pregunta con eso');
+  });
+
+  it('(c) no da por sentado que la infancia fue linda ni que hubo boda, hijos o nietos', () => {
+    expect(prompt).toContain('NO SUPONGAS LA VIDA DEL GUION');
+    expect(prompt).toContain('ni que hubo boda, hijos o nietos');
+    expect(prompt).toContain('"las travesuras que todavía lo hagan reír"');
+    // El "esto no era una película de Disney" de Ciro, textual.
+    expect(prompt).toContain('esto no era una película de Disney');
+    expect(prompt).toContain('preguntá por lo que había, quién sostenía, qué se rescataba');
+  });
+});
+
 describe('el trato manda en el prompt de la pregunta del día', () => {
   const respuesta = (texto: string) => ({ content: [{ type: 'text', text: texto }], usage: {} });
 

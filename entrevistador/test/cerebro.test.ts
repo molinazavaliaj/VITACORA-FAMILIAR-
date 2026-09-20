@@ -176,6 +176,22 @@ describe('el trato de la repregunta que escribe la evaluación', () => {
     await evaluarRespuesta('¿Cómo era tu casa?', 'Era linda.', 12, '', 'vos');
     expect(crearMock.mock.calls.at(-1)![0].messages[0].content).toContain('LA REPREGUNTA VA EN vos');
   });
+
+  // Bitácora 30 y 34 (Ciro): le preguntaron por los domingos familiares,
+  // contestó que la familia era un desastre y pidió "vamos por otro lado" — y la
+  // repregunta volvió derecho al tío y a las drogas. Para un abuelo, insistir en
+  // una herida es contraproducente: si pidió cambiar de tema, no hay repregunta.
+  it('si el narrador pide cambiar de tema, la respuesta alcanza y no se insiste', async () => {
+    const { PROMPT_EVALUAR } = await import('../src/ia/cerebro.js');
+    const p = PROMPT_EVALUAR('¿Qué tradiciones había en su casa?', 'Una mierda, amigo. Mi familia era un desastre. Esto no era una película de Disney.', 40, '', 'vos');
+    expect(p).toContain('SI PIDE CAMBIAR DE TEMA, SE LO ESCUCHA');
+    expect(p).toContain('"vamos por otro lado"');
+    expect(p).toContain('"prefiero no hablar de eso"');
+    expect(p).toContain('"eso no lo pongas"');
+    expect(p).toContain('la respuesta se da por SUFICIENTE');
+    // Y no se insiste en lo que esquivó (bitácora 30): una sola invitación alcanza.
+    expect(p).toContain('Tampoco se insiste en lo que esquivó');
+  });
 });
 
 describe('extraerJson', () => {
