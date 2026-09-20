@@ -32,6 +32,7 @@ libro sale mal, sale incompleto, o el cliente se pierde antes de llegar?
 |---|---|---|
 | 13 | La personalización ancla demasiado en lo ya contado ("la infancia se alarga") | Preguntas repetitivas, el narrador siente que le preguntan lo mismo; menos material nuevo por capítulo. **Arreglado el 20/09** (`d230473`) |
 | 16 | Una corrección posterior no pisa el resumen viejo | El libro puede afirmar algo que el narrador corrigió después |
+| 16 | Una corrección posterior no pisa el resumen viejo | El libro puede afirmar algo que el narrador corrigió después. **Arreglado el 20/09** (`a251bd2`): la memoria guarda hasta qué orden entró cada resumen y lo rehace si contó más |
 | 4 | Repregunta en "usted" con trato "vos" | Rompe el vínculo justo en el momento más íntimo (la repregunta va a lo emocional). **Arreglado el 20/09** (`ed513d8`) |
 | 18 | Si la personalización falla, la fija sale en "usted" | Mismo efecto: incoherencia de trato a mitad de entrevista. **Arreglado el 20/09** (`ed513d8`): segundo intento más corto antes de rendirse |
 | 2 | Pregunta 5 mal redactada ("hablemos de atrás") | Una pregunta rara baja la calidad percibida; el narrador responde peor |
@@ -125,7 +126,7 @@ libro sale mal, sale incompleto, o el cliente se pierde antes de llegar?
     abrir temas nuevos. *Para repasar con datos*: contar cuántas repreguntas pidió
     por narrador y en qué capítulos; si son muchas, restringir a "contó algo
     fuerte en una frase" o a ciertos capítulos.
-**Arreglado el 20/09** (`d230473`): `PROMPT_EVALUAR` ahora prohíbe insistir en
+    **Arreglado el 20/09** (`d230473`): `PROMPT_EVALUAR` ahora prohíbe insistir en
     lo que el narrador esquivó ("una sola invitación alcanza, y ya se hizo") y la
     personalización no repite lo recién contestado. Test en `test/cerebro.test.ts`.
     El conteo con datos (cuántas repreguntas por narrador y en qué capítulos)
@@ -144,7 +145,7 @@ libro sale mal, sale incompleto, o el cliente se pierde antes de llegar?
     milanesas, el ring con el hermano). No es un error del guion; es el prompt de
     `personalizar.ts` anclando demasiado en lo previo. *Para repasar*: pedirle que
     ancle en UNA cosa, no en tres, y que nombre el tema nuevo primero.
-**Arreglado el 20/09** (`d230473`): el prompt de personalización prohíbe preguntar
+    **Arreglado el 20/09** (`d230473`): el prompt de personalización prohíbe preguntar
     lo que acaba de contestar y manda reemplazar esa parte por lo que quedó
     abierto, con el ejemplo real de Ciro ("no salíamos los tres juntos, creo que
     nunca"). Test con el caso literal en `test/personalizar.test.ts`.
@@ -175,6 +176,15 @@ libro sale mal, sale incompleto, o el cliente se pierde antes de llegar?
     en otro lado"), el resumen del capítulo anterior sigue diciendo lo viejo y no
     hay regla de "lo último manda". *Para repasar*: al regenerar resúmenes, pasar
     también las respuestas posteriores del mismo tema, o marcar correcciones.
+    **Arreglado el 20/09** (`a251bd2`): la memoria de capítulos ahora guarda, por capítulo, hasta
+    qué `orden` entró en el resumen (`contexto.resumenesHasta`) y lo rehace cuando el
+    narrador contó ALGO MÁS de ese capítulo —lo miran `materialDeCapitulo` y
+    `memoriaDeCapitulos` en `entrevistador/src/ia/resumenes.ts`—. El prompt del resumen
+    suma la regla explícita: *"LO ÚLTIMO MANDA: si algo de más adelante corrige o
+    contradice algo de más atrás, quedate con lo ÚLTIMO y descartá el dato viejo"*, y
+    el material se pasa en orden cronológico justamente para que se vea. Los resúmenes
+    que ya existían sin `hasta` se rehacen una vez (costo: ~USD 0,01 por capítulo) y
+    quedan al día. Tests en `test/resumenes.test.ts`.
 
 17. **16/09 · nombres propios inconsistentes en la transcripción.** Respuesta 9:
     "NASA" por Naza, "Herrera" por Herrero; respuesta 16: "WADE" por UADE (la
@@ -241,7 +251,7 @@ libro sale mal, sale incompleto, o el cliente se pierde antes de llegar?
     soltero/viudo/separado hay que tener reemplazos por capítulo (`capituloNoAplica`
     existe pero no se disparó acá). *Para repasar*: criterios de "no aplica" más
     finos que capítulo entero, usando la ficha (edad, estado civil) y lo contado.
-**Arreglado el 20/09** (`d230473`): en lo que se le pide al modelo, ya no se da por
+    **Arreglado el 20/09** (`d230473`): en lo que se le pide al modelo, ya no se da por
     sentado boda, hijos ni nietos, y no se pregunta por lo que el narrador negó,
     ni como condicional ("¿y si hubieras tenido...?"). Tests con los casos reales
     ("¿qué se siente ser abuelo ahora?" a un narrador de 28) en
@@ -262,7 +272,7 @@ libro sale mal, sale incompleto, o el cliente se pierde antes de llegar?
     condicional torpe. Debería haber disparado `capituloNoAplica` (existe) y mandar
     la pregunta de reemplazo, o al menos preguntar directo "¿tenés hijos?" como
     puerta y decidir con la respuesta. Misma raíz que la #20 (fijas de abuelo).
-**Arreglado el 20/09** (`d230473`): la regla prohíbe la pregunta-condicional sobre
+    **Arreglado el 20/09** (`d230473`): la regla prohíbe la pregunta-condicional sobre
     algo que no se sabe o que el narrador negó. Que `capituloNoAplica` se dispare
     con la ficha (y no pregunta por pregunta) sigue en `preguntar.ts` →
     **para Joaquín**.
@@ -288,7 +298,7 @@ libro sale mal, sale incompleto, o el cliente se pierde antes de llegar?
     no devolver la evaluación (#14, ya 3 de 20). *Hecho a mano*: NO se manda; se
     reemplaza por una pregunta escrita a mano (ver abajo) y se anota con
     `--orden 21` cuando responda.
-**Arreglado el 20/09** (`d230473`): las reglas nuevas prohíben dar por hecho
+    **Arreglado el 20/09** (`d230473`): las reglas nuevas prohíben dar por hecho
     hijos/nietos y repetir lo ya contestado ("cómo es cada uno ya lo hablamos"),
     en la personalización y en las 4 finales. Tests en `test/personalizar.test.ts`
     y `test/adaptativas.test.ts`.
@@ -311,7 +321,7 @@ libro sale mal, sale incompleto, o el cliente se pierde antes de llegar?
     conserva "tus nietos" con la ficha diciendo "no tiene hijos". Se manda igual
     (el mensaje al futuro tiene sentido) pero corregido a mano: "quienes vengan
     después de vos".
-**Arreglado el 20/09** (`d230473`): la regla de no suponer la vida del guion
+    **Arreglado el 20/09** (`d230473`): la regla de no suponer la vida del guion
     incluye los nietos ("nada de \"tus nietos\", \"el día de la boda\", \"los domingos en
     familia\"") en la personalización y en las 4 finales, con test.
 
@@ -353,7 +363,7 @@ libro sale mal, sale incompleto, o el cliente se pierde antes de llegar?
     (misma regla). *Para repasar*: la repregunta no debería repetir el tema de
     la pregunta que el narrador acaba de esquivar — si no contestó, quizá no
     quiere; una sola invitación alcanza.
-**Arreglado el 20/09** (`d230473`): `PROMPT_EVALUAR` dice ahora que un pedido de
+    **Arreglado el 20/09** (`d230473`): `PROMPT_EVALUAR` dice ahora que un pedido de
     dejar el tema vuelve la respuesta suficiente y que no hay repregunta sobre
     eso —ni para retomarlo "de otra manera"—, y que si esquivó la pregunta no se
     insiste en lo que esquivó. Test en `test/cerebro.test.ts`.
@@ -422,6 +432,11 @@ libro sale mal, sale incompleto, o el cliente se pierde antes de llegar?
     mirar el candado (`worker.ts` ~318-337); `mandarHito` tampoco lo chequea.
     *Hecho a mano*: `libro_aprobado_at` en Osvaldo por SQL. *Para repasar*:
     `mandarHito` debe saltear si el candado ya está.
+    **Arreglado el 20/09** (`a251bd2`): `mandarHito` devuelve `false` sin mandar nada
+    si el candado del hito ya está en Storage. La rama de los 30 días sigue haciendo
+    el CAS y cerrando el libro (eso lo decide `libro_aprobado_at`, no el mail), pero
+    el mail no vuelve a salir. Test en `fabrica/test/worker.test.ts` («con el candado
+    sembrado y el libro abierto, cierra a los 30 días pero NO manda el mail»).
 
 34. **18/09 · el wizard de cerrar libro y la muestra arman los capítulos solo
     con las preguntas adaptativas del narrador (4) en vez del guion entero (8).**
@@ -546,7 +561,7 @@ escribirlo; el audiolibro clonado saldría después con otro pedido.
     reciban con una regla explícita: si la infancia fue dura, no preguntar por fiestas,
     tradiciones ni domingos como si hubieran existido — preguntar qué había, quién
     sostenía, qué se rescataba. Y revisar las 26 fijas con ese ojo.
-**Arreglado el 20/09** (`d230473`): el lado del PROMPT ya está — la personalización y
+    **Arreglado el 20/09** (`d230473`): el lado del PROMPT ya está — la personalización y
     las 4 finales reciben la regla de tono (no dar por sentado que la infancia fue
     linda: "fiestas", "tradiciones", "los domingos", "las travesuras que todavía
     lo hagan reír"; y si el material muestra una infancia dura, preguntar por lo
@@ -554,6 +569,11 @@ escribirlo; el audiolibro clonado saldría después con otro pedido.
     de Disney" de Ciro como ejemplo textual y test en las dos suites. Quedan (a)
     la línea de TONO por capítulo en la memoria del biógrafo (`resumenes.ts`, se
     hace junto con el hallazgo 16) y (c) la revisión de las 26 fijas con ese ojo.
+    de Disney" de Ciro como ejemplo textual y test en las dos suites. Y desde el
+    20/09 (`a251bd2`) la memoria también lleva el TONO: cada resumen de capítulo
+    termina con una línea "Tono: …" ("Tono: infancia dura, padre ausente con
+    adicciones, familia desarticulada"), así el biógrafo que lee la memoria ve el
+    clima y no solo los hechos. Queda (c) la revisión de las 26 fijas con ese ojo.
 
 34. **18/09 · Ciro · la repregunta insiste donde el narrador acaba de decir "vamos por
     otro lado".** En esa misma respuesta 7 dijo, literal: "mi tío se drogaba, o sea,
@@ -567,7 +587,7 @@ escribirlo; el audiolibro clonado saldría después con otro pedido.
     cambiar de tema ("vamos por otro lado", "no quiero hablar de eso", "dejemos eso"),
     NO hay repregunta sobre ese tema, y ese tema entra solo a `contexto.evitar` para el
     resto de la entrevista.
-**Arreglado el 20/09** (`d230473`): la evaluación da la respuesta por SUFICIENTE
+    **Arreglado el 20/09** (`d230473`): la evaluación da la respuesta por SUFICIENTE
     cuando hay un pedido explícito de dejar el tema y no repregunta sobre eso
     —ni para retomarlo "de otra manera"—, con test en `test/cerebro.test.ts`. El
     otro lado del hallazgo (que ese tema entre solo a `contexto.evitar` para el
@@ -587,7 +607,7 @@ escribirlo; el audiolibro clonado saldría después con otro pedido.
     contestada en la respuesta anterior, se reemplaza por lo que quedó abierto, no se
     repite; (b) el biógrafo no lidera con consumo de sustancias aunque el narrador las
     haya nombrado — si él las trae, se escucha; no se convierten en el gancho.
-**Arreglado el 20/09** (`d230473`): la personalización no repite lo que acaba de
+    **Arreglado el 20/09** (`d230473`): la personalización no repite lo que acaba de
     contestar (el "no salíamos los tres juntos, creo que nunca" es el ejemplo
     textual del prompt) y no lidera con lo que él nombró de paso: el alcohol y
     las pastillas se escuchan, pero no son el gancho de la pregunta. Test en
@@ -611,6 +631,13 @@ escribirlo; el audiolibro clonado saldría después con otro pedido.
     *Para repasar*: el chequeo de tamaño vive solo en `subirCompletoSiEntra` — el próximo archivo
     grande que se suba a Storage (un capítulo largo, algo nuevo del paquete) va a descubrir el
     tope igual de tarde; conviene que el tope esté en un solo lugar y lo mire cualquier subida.
+    **Arreglado el 20/09** (`a251bd2`): el tope de 50 MB por archivo deja de vivir solo en el
+    completo. `fabrica/src/audio/audiolibro.ts` tiene `entraEnStorage`/`enMb`/
+    `esErrorDeTamano` y **las dos subidas lo miran**: un capítulo que no entra tira con
+    el tamaño y el tope en el mensaje ("No entra en Storage: … pesa 50.0 MB y el tope
+    por archivo es 50.0 MB") en vez del texto crudo de Storage, y el completo sigue
+    siendo opcional (se entrega por capítulos con aviso). El ensamblado ya no se puede
+    caer por tamaño sin decir por qué. Tests en `fabrica/test/audiolibro.test.ts`.
     Y que la key de OpenAI de la fábrica siga siendo la del entrevistador por referencia: una
     recarga alcanza para los dos servicios.
 
