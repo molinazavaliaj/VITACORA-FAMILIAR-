@@ -493,6 +493,39 @@ escribirlo; el audiolibro clonado saldría después con otro pedido.
     repite; (b) el biógrafo no lidera con consumo de sustancias aunque el narrador las
     haya nombrado — si él las trae, se escucha; no se convierten en el gancho.
 
+38. **18/09 · MEDIO · el ensamblado del audiolibro clonado de Joaquín se cayó DOS VECES, por
+    dos motivos distintos — y ninguno era la voz, que ya estaba narrada.** (a) El mp3 completo
+    no entra en Storage: el tope es 50 MB por archivo y `audiolibro_completo.mp3` lo pasaba (el
+    mismo tope que a las 12:30:43 tumbó a la fábrica vieja subiendo el audiolibro real, 37:
+    "exceeded the maximum allowed size"). (b) La key de OpenAI de la fábrica nueva no tenía
+    crédito, y de ahí salían las intros TTS de cada capítulo (`fabrica/src/audio/tts.ts`): quedó
+    resolviéndose por referencia a la key del entrevistador en Railway (pase de manos del 20/09,
+    sección "Keys"; esa key se rota el 19/09 porque salió impresa en un chat).
+    **Arreglado el 19/09** (`ee3d255`, con `dc7fe8d` adentro): `subirCompletoSiEntra`
+    (`fabrica/src/audio/audiolibro.ts`, tope `LIMITE_BYTES_ARCHIVO_STORAGE` = 50 MB) — si el
+    completo no entra, avisa por consola y se entrega por capítulos, con
+    `pedidos.audiolibro_paths` sin `completo`; nunca frena una entrega cuya parte cara ya está
+    hecha. La web da `completo` por opcional desde el 20/09 (`854cb93`). El lado (b) quedó sin
+    efecto en el clonado: desde el 19/09 ese audiolibro no lleva intro TTS (`c80e5ce`, regla de
+    voz única) y el anuncio del capítulo lo narra el worker con la voz del narrador.
+    *Para repasar*: el chequeo de tamaño vive solo en `subirCompletoSiEntra` — el próximo archivo
+    grande que se suba a Storage (un capítulo largo, algo nuevo del paquete) va a descubrir el
+    tope igual de tarde; conviene que el tope esté en un solo lugar y lo mire cualquier subida.
+    Y que la key de OpenAI de la fábrica siga siendo la del entrevistador por referencia: una
+    recarga alcanza para los dos servicios.
+
+39. **18/09 · suave, pero dejó la fábrica sin diagnóstico · en la PC de Naza el CLI de Railway
+    no arranca: Control de aplicaciones de Windows lo bloquea.** Justo cuando el proyecto se
+    mudaba a `fearless-kindness` (cuenta de Joaquín) y la fábrica vieja seguía viva y engañando
+    (32, 37), desde esa máquina no había forma de leer deploys ni logs.
+    **Resuelto el 19/09** (`3d29d66`): `fabrica/scripts/railway-logs.py` lee deploys y logs por
+    la API con el token de PROYECTO (`RAILWAY_API_TOKEN` en `fabrica/.env`):
+    `python scripts/railway-logs.py [--lineas 200] [--servicio VITACORA-FAMILIAR-] [--buscar texto]`
+    (`ESTADO.md`, 18/09).
+    *Para repasar*: el token es de proyecto y solo ve ESE proyecto — para mirar el viejo (o
+    cualquier otro) hace falta otro token; y el bloqueo de Windows no tiene vuelta, así que todo
+    diagnóstico de Railway desde la PC de Naza pasa por este script.
+
 ## Producción / infra (no es del entrevistador, pero salió en el camino)
 
 8. **15/09 · producción corría un build de 8 días** mientras `main` tenía todo el
