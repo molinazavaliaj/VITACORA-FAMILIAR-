@@ -1,3 +1,10 @@
+> **Estado al 21/09 (madrugada): las tres puntas "para Joaquín" de acá abajo ya están cerradas en `main`** y
+> el piloto queda cerrado del lado del entrevistador (267 tests): el `UPDATE` de la reserva en el flujo
+> (`8e7bbfe`, más la ampliación, el "no tuvo" y el cierre en `dee531d`), el criterio de "no aplica" por edad
+> (`c2623fd`) y el cierre manual (`06a7de2`). Lo único que faltaba —aplicar la migración de las reservadas—
+> **se aplicó y está verificada**. Las notas de más abajo que dicen "para Joaquín" son el estado del día en
+> que se escribieron: léanlas con esta línea arriba.
+
 # Bitácora del piloto manual — errores y cosas raras para repasar
 
 > Naza pidió (16/09) anotar TODO lo que salga mal o raro mientras se entrevista a

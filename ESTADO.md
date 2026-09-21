@@ -527,6 +527,100 @@ Queda pendiente: el audiolibro «real» (`generarAudiolibro`) todavía se arma p
 cuando el producto salga del checkout (`web/`); la sección impresa con QR (Task 4) y el recordatorio a los
 15 días (Task 6).
 
+## Panel de la empresa — la instrumentación, parte A (branch `panel-de-la-empresa`, 21/09) (Naza)
+
+El panel interno de la empresa (`/admin`; spec en
+`docs/superpowers/specs/2026-09-21-panel-de-la-empresa-design.md` y mockup en `docs/panel-interno.html`)
+necesita de dónde leer, y esta parte es eso: **tres tablas nuevas y el código que las llena**. Nada de esto
+se ve todavía; el panel es la parte B.
+
+**Las tres tablas** (`supabase/migrations/20260921000100_panel_empresa.sql`, la aplica Naza en el SQL
+Editor): `consumo_ia` (una fila por llamada al modelo), `latidos` (si cada worker está vivo) y
+`gastos_manuales` (lo que no pasa por una API). Las tres con RLS prendido y **sin políticas**: sólo la
+service role las toca, el navegador nunca. Contrato actualizado en `supabase/CONTRATO.md`.
+
+**Lo que ahora se anota:** las **catorce** llamadas al modelo del entrevistador dejan su fila con su paso
+(`transcribir`, `evaluar`, `reserva`, `reemplazo`, `no_tuvo`, `cierre`, `intencion`, `adaptativas`,
+`personalizar`, `personalizar_viaje`, `resumenes`, `voz_pregunta`, `sugeridas`, `trato`) **y la fábrica
+también**: sus cinco pasos (`estructura`, `anticipo`, `preview`, `capitulo`, `editor`) van a `consumo_ia`
+además del JSON por narrador. Ese JSON sigue ahí para recalcular un libro puntual, pero **el panel no lo
+lee** (recorrer Storage no escala y no deja preguntar «cuándo se usó este modelo por última vez»). Sin la
+fábrica, la pantalla de Gastos mostraría un quinto del gasto real: el libro es el 80% del costo. Lo único
+que queda afuera es `generarReconocimiento`: **no tiene llamadores** desde que se sacó el saludo diario el
+14/09.
+
+Los tres workers laten (`anotarLatido` en el entrevistador y en la fábrica, `latir()` en la PC de música,
+que además ya recibió la directiva `central/2026-09-21-07-panel-latido-voz.md`): es lo que va a permitir
+distinguir «no hay trabajo» de «se cayó el worker».
+
+**Precios:** los mismos de la fábrica para los modelos de Anthropic; la transcripción a USD 0,0045 por
+minuto (**medido**, `GASTOS.md`); el TTS a USD 0,000025 por carácter (**estimado** desde los ~USD 0,15 por
+narrador de `GASTOS.md` — se corrige cuando haya una factura de OpenAI que lo confirme).
+
+**Cómo se verificó:** typecheck y suites en verde en los tres paquetes de esta parte (entrevistador 279,
+fábrica 359, voz 151; cada uno con sus tests nuevos, vistos fallar primero). La migración, **leída de
+vuelta** por PostgREST: antes de aplicarla `404 · PGRST205` en las tres tablas y `200` en `narradores`
+como control de que la consulta era válida. **Punta a punta hecha** (21/09, con la migración ya aplicada por
+Naza): una llamada real por tokens y otra por unidades dejaron su fila, leídas de vuelta de la base —
+`intencion` · Opus 5 · 137 in / 45 out · USD 0,00181 y `voz_pregunta` · 23 caracteres · USD 0,000575.
+La migración se aplicó y se verificó con `200` en las tres tablas (antes `404 · PGRST205`), y el insert de
+prueba en `gastos_manuales` entró (`201`) y se borró (`204`).
+
+**Hallazgo del cierre:** los scripts `prueba-*.ts` **no alimentan el panel**. Se arman su propio cliente de
+Anthropic para comparar modelos (`scripts/prueba-evaluacion.ts:42`), así que no pasan por las funciones de
+producción y su gasto no se anota: correr `prueba-evaluacion` gasta USD 0,065 y no deja una sola fila. Para
+verificar de verdad hace falta un vehículo que llame a las funciones reales:
+`npm run prueba-consumo` (nuevo, centavos, se lee a sí mismo). Si algún día se quiere que el panel cuente
+también las mediciones, hay que pasarlas por las funciones de producción o anotarlas a mano.
+
+**Segunda pasada — la revisión independiente (21/09).** Un revisor con contexto fresco leyó el diff
+completo y encontró cuatro cosas que ya están arregladas, cada una con su test (y cada test **se vio
+fallar** al sacar el arreglo, que es la única prueba de que prueba algo):
+
+1. **`consumo_ia` no recibía a la fábrica** (`grep` daba cero): el 80% del costo por cliente habría sido
+   invisible en el panel, justo lo que el panel tiene que mostrar. Ahora la fábrica anota sus cinco pasos.
+2. **Faltaban dos de los trece enganches anunciados** (`sugeridas` y `trato`): el endpoint de sugeridas es
+   pago y el trato gasta una llamada por narrador. Ahora son catorce y la cuenta cierra.
+3. **El latido de los workers iba sólo al final del tick**: la fábrica escribe un libro entero adentro de
+   un tick de 60 s y el entrevistador recorre narradores con HTTP real, así que el panel los habría
+   mostrado en rojo **mientras trabajan**. Ahora late al principio y al final (la voz ya lo hacía bien).
+4. **La anotación del gasto se esperaba sin límite** en el camino del narrador: ahora hay un tope de
+   1,5 s (`TIMEOUT_ANOTACION_MS`) y si tarda más se sigue y se avisa. La anotación nunca puede demorar la
+   pregunta del día.
+
+**Dos cosas para saber de acá en adelante:**
+
+1. El latido de la voz va **una vez por vuelta del bucle**, así que **mientras narra un capítulo no late**
+   (14-33 min medidos por capítulo). El nodo «voz» del panel no puede usar sólo el latido: tiene que mirar
+   también `narraciones.actualizada_at`.
+2. Los tres tests de `procesar.test.ts` que afirmaban los argumentos exactos de `transcribirYActualizar`,
+   `detectarQueNoTuvo` y `detectarReservaYDejarTema` se actualizaron para incluir el `narradorId` nuevo:
+   es la firma la que cambió (parámetro opcional al final), no la conducta que esos tests cuidan.
+
+## Su voz — estado al 21/09 (madrugada)
+
+**La fábrica y el cortador están terminados y en la rama `su-voz-fabrica`** (pusheada): la selección lee
+el libro (1 llamada, USD 0,38-0,53 por libro), el paquete entrega el libro con `frases.json` y el pedido de
+corte **sin esperar a la voz**, la marca `tema_de_orden` manda el recuerdo tardío al capítulo que le toca, y
+el worker de la PC de audio corta, restaura y sube los mp3.
+
+**Corrió de verdad**: 36 frases del libro de Joaquín, **35 cortadas** y el pedido se borró solo; la única
+que falló (`cita-13`) ya tiene causa y arreglo (Whisper se comió un «en» y el emparejamiento viejo se
+desincronizaba) con su fixture real, y de paso mejoró 3 tramos que estaban incompletos (`cita-6`,
+`cita-16`, `cita-17`: se comían el arranque de la cita — quedó el pedido para rehacerlos).
+
+**Base**: las dos migraciones aplicadas y verificadas (`respuestas.reservada`/`reservado_tramo` y
+`respuestas.tema_de_orden`/`tema_motivo`). Con eso, el 19 y el recuerdo tardío quedan cerrados de punta a
+punta.
+
+**De Joaquín, listo y esperando el merge**: `su-voz-web-checkout` → `su-voz-web-panel` → `alta-contexto-minimo`
+(el audiolibro fuera del catálogo y del copy, el panel `/frases`, la página pública `/voz/<token>`, el
+contexto mínimo en el alta). **Bloqueante: la aprobación de los textos** (la revisión está hecha, con los
+cambios propuestos ya pasados a Joaquín).
+
+**Falta mío**: la sección impresa con el QR (Task 4), el mail de los 15 días (Task 6), la descarga del PDF
+del anticipo si se quiere, y el pase de los textos aprobados al diff de la web.
+
 ## Próximos hitos
 
 1. ~~Audiolibro híbrido~~ — **descartado el 20/09** (ver arriba): la corrida que quedó encolada sirve solo para el veredicto de oído. Lo que viene: el spec de "Sus mejores frases" y el checkout sin la línea del audiolibro.
