@@ -63,6 +63,12 @@ export function Checkout({ catalogo }: { catalogo: Catalogo }) {
   const [vinculo, setVinculo] = useState("");
   const [nombre, setNombre] = useState("");
   const [comoLeDicen, setComoLeDicen] = useState("");
+  // El contexto mínimo del alta (21/09, Naza): el biógrafo arranca sabiendo la
+  // edad, si está casado o viudo y si tiene hijos — así no pregunta por una boda
+  // que no hubo. Todo opcional; lo que no se dice, no se manda.
+  const [anioNacimiento, setAnioNacimiento] = useState("");
+  const [estadoCivil, setEstadoCivil] = useState("");
+  const [hijos, setHijos] = useState<"" | "si" | "no">("");
   const [telefono, setTelefono] = useState("");
   const [hora, setHora] = useState("09:00");
 
@@ -118,6 +124,7 @@ export function Checkout({ catalogo }: { catalogo: Catalogo }) {
     if (paraQuien === "otro" && !vinculo.trim()) return "Cuéntanos qué eres de él o de ella (hija, nieto...).";
     if (!nombre.trim()) return paraQuien === "yo" ? "Dinos tu nombre." : "Falta el nombre del narrador.";
     if (!comoLeDicen.trim()) return "¿Cómo le dicen en casa? Es como lo vamos a saludar.";
+    if (anioNacimiento.trim() && (Number(anioNacimiento) < 1900 || Number(anioNacimiento) > 2015)) return "El año de nacimiento no parece bien (entre 1900 y 2015).";
     if (!telefono.trim()) return "Falta el WhatsApp.";
     return null;
   }
@@ -173,7 +180,14 @@ export function Checkout({ catalogo }: { catalogo: Catalogo }) {
               comoLeDicen: comoLeDicen.trim(),
               telefonoWhatsapp: telefono.trim(),
               horaPreferida: hora,
-              contexto: { ritmo, evitar: evitar.trim() },
+              contexto: {
+                ritmo,
+                evitar: evitar.trim(),
+                ...(anioNacimiento.trim() ? { anioNacimiento: Number(anioNacimiento) } : {}),
+                ...(estadoCivil ? { estadoCivil } : {}),
+                // "no tiene hijos" = arbol.hijos 'no tuvo': el capítulo «Los hijos» se reemplaza sin preguntar.
+                ...(hijos === "no" ? { arbol: { hijos: "no tuvo" } } : {}),
+              },
             },
             productos,
           }),
@@ -337,6 +351,36 @@ export function Checkout({ catalogo }: { catalogo: Catalogo }) {
                   <p className="mt-2 text-[13px] text-[#83837A] [font-family:var(--fuente-cuerpo)] font-light">Una pregunta por día, siempre a esa hora.</p>
                 </div>
               </div>
+
+              {/* El contexto mínimo (21/09): opcional, pero cambia las preguntas desde el día 1. */}
+              <div className="grid gap-6 sm:grid-cols-3">
+                <div>
+                  <label className={etiqueta} htmlFor="anioNacimiento">Año de nacimiento</label>
+                  <input id="anioNacimiento" className={`${campo} mt-2`} value={anioNacimiento} onChange={(e) => setAnioNacimiento(e.target.value.replace(/\D/g, "").slice(0, 4))} placeholder="1943" inputMode="numeric" />
+                </div>
+                <div>
+                  <label className={etiqueta} htmlFor="estadoCivil">Estado civil</label>
+                  <select id="estadoCivil" className={`${campo} mt-2`} value={estadoCivil} onChange={(e) => setEstadoCivil(e.target.value)}>
+                    <option value="">Prefiero no decir</option>
+                    <option value="casado">Casado/a</option>
+                    <option value="en_pareja">En pareja</option>
+                    <option value="viudo">Viudo/a</option>
+                    <option value="separado">Separado/a o divorciado/a</option>
+                    <option value="soltero">Soltero/a</option>
+                  </select>
+                </div>
+                <div>
+                  <label className={etiqueta} htmlFor="hijos">{paraQuien === "yo" ? "¿Tienes hijos?" : "¿Tiene hijos?"}</label>
+                  <select id="hijos" className={`${campo} mt-2`} value={hijos} onChange={(e) => setHijos(e.target.value as "" | "si" | "no")}>
+                    <option value="">Prefiero no decir</option>
+                    <option value="si">Sí</option>
+                    <option value="no">No</option>
+                  </select>
+                </div>
+              </div>
+              <p className="-mt-3 text-[13px] text-[#83837A] [font-family:var(--fuente-cuerpo)] font-light">
+                Opcional. Con esto el biógrafo no pregunta por una boda que no hubo ni por hijos que no tiene, y sabe de qué época hablan.
+              </p>
             </div>
 
             <Botones

@@ -14,9 +14,19 @@ export interface ArbolInput {
   hijos?: string;
 }
 
+/**
+ * El estado civil del narrador (21/09, decisión de Naza): el que compra lo
+ * carga en el alta, junto con el número, y el biógrafo arranca sabiéndolo — así
+ * no pregunta por una boda que no hubo ni por "su esposa" a alguien viudo.
+ * Va en `contexto` (jsonb), sin migración. Vacío = no se dijo.
+ */
+export const ESTADOS_CIVILES = ['soltero', 'en_pareja', 'casado', 'separado', 'viudo'] as const;
+export type EstadoCivil = (typeof ESTADOS_CIVILES)[number];
+
 export interface ContextoInput {
   lugarNacimiento?: string;
   anioNacimiento?: number;
+  estadoCivil?: string;
   oficio?: string;
   datosExtra?: string;
   arbol?: ArbolInput;
@@ -164,6 +174,11 @@ export function validarYConstruir(body: RegistroBody): ResultadoValidacion {
     }
   }
 
+  // Un estado civil que no existe se rechaza: es una lista cerrada, no texto libre.
+  if (esNoVacio(contexto.estadoCivil) && !(ESTADOS_CIVILES as readonly string[]).includes(contexto.estadoCivil.trim())) {
+    return { ok: false, status: 400, mensaje: 'El estado civil no es válido.' };
+  }
+
   const telefono = normalizarTelefono(narrador.telefonoWhatsapp, region);
   if (!TELEFONO_E164.test(telefono)) {
     return {
@@ -210,6 +225,9 @@ export function validarYConstruir(body: RegistroBody): ResultadoValidacion {
   }
   if (contexto.anioNacimiento !== undefined) {
     contextoFinal.anioNacimiento = contexto.anioNacimiento;
+  }
+  if (esNoVacio(contexto.estadoCivil)) {
+    contextoFinal.estadoCivil = contexto.estadoCivil.trim();
   }
   if (esNoVacio(contexto.oficio)) {
     contextoFinal.oficio = contexto.oficio.trim();
