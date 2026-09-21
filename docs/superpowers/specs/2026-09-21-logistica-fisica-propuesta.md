@@ -163,9 +163,16 @@ dirección de envío solo para entregar lo físico; se borra al año de entregad
 5. ✅ Marcos sin impreso: mismo circuito.
 6. ✅ "Ya me llegó" → gracias + Trustpilot.
 7. ✅ Nombre `entregas`.
-8. ☐ **La etiqueta:** ¿camino B (agregador por país) o probar Mercado Envíos primero (spike)?
-   Y cuál agregador por país (cotizar: Sendcloud/Packlink en ES; Enviopack/Zippin/Shipnow en AR).
-9. ☐ **Quién paga el envío:** incluido en el precio del impreso/marco, o cotizado y sumado al
-   encargar. (Con B se puede cotizar en vivo; con A lo cobra MP.)
+8. ✅ **Camino B**: agregador de correos por API, uno por país. Falta elegir cuál (cotizar:
+   Sendcloud/Packlink en ES; Enviopack/Zippin/Shipnow en AR) — con Naza.
+9. ✅ **Envío incluido en el precio** del impreso y del marco. No se cotiza ni se suma nada al
+   encargar; el costo real de la etiqueta va a Gastos (panel de la empresa).
 10. ☐ ¿La imprenta de cada país acepta que el envío lo retire el correo del agregador, o hace
-    drop-off? Define el flujo físico.
+    drop-off? Define el flujo físico. (Lo averigua quien trate con cada imprenta.)
+
+## Próximo paso
+
+Joaquín escribe la **migración `entregas` + la sección del CONTRATO**; Naza los aprueba y aplica.
+Después, **fase 1 (web)**: fila al confirmar el pago, dirección obligatoria para encargar, estados
+a la vista, "ya me llegó" → Trustpilot. **Fase 2 (fábrica, N)**: `en_produccion` = portón de
+Su voz + etiqueta por el agregador + mails de hito. **Fase 3 (admin, N)**: pantalla Envíos.
