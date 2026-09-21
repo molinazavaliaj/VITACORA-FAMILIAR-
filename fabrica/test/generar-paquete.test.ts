@@ -317,17 +317,17 @@ describe('generarPaquete', () => {
     expect(db.upload).toHaveBeenCalledWith(
       'narrador-1/paquete/borrador_cap_01.md',
       'Nací en Rosario.',
-      { contentType: 'text/markdown', upsert: true }
+      { contentType: 'text/markdown', cacheControl: '0', upsert: true }
     );
     expect(db.upload).toHaveBeenCalledWith(
       'narrador-1/paquete/borrador_cap_02.md',
       'La conocí bailando.',
-      { contentType: 'text/markdown', upsert: true }
+      { contentType: 'text/markdown', cacheControl: '0', upsert: true }
     );
     expect(db.upload).toHaveBeenCalledWith(
       'narrador-1/paquete/borrador_libro.md',
       expect.stringContaining('A mis lectores'),
-      { contentType: 'text/markdown', upsert: true }
+      { contentType: 'text/markdown', cacheControl: '0', upsert: true }
     );
     const indiceBorradorCap01 = db.upload.mock.calls.findIndex(
       (llamada) => llamada[0] === 'narrador-1/paquete/borrador_cap_01.md'
@@ -467,7 +467,7 @@ describe('generarPaquete', () => {
     expect(db.upload).toHaveBeenCalledWith(
       'narrador-1/paquete/borrador_cap_01.md',
       'Capítulo corto.',
-      { contentType: 'text/markdown', upsert: true }
+      { contentType: 'text/markdown', cacheControl: '0', upsert: true }
     );
     expect(db.remove).not.toHaveBeenCalled();
   });
@@ -619,10 +619,12 @@ describe('generarPaquete', () => {
     // limpieza borra esos mismos dos.
     expect(db.upload).toHaveBeenCalledWith('n1/paquete/borrador_cap_01.md', 'Texto de El amor', {
       contentType: 'text/markdown',
+      cacheControl: '0',
       upsert: true,
     });
     expect(db.upload).toHaveBeenCalledWith('n1/paquete/borrador_cap_02.md', 'Texto de La infancia', {
       contentType: 'text/markdown',
+      cacheControl: '0',
       upsert: true,
     });
     expect(db.remove.mock.calls[0][0]).toEqual(

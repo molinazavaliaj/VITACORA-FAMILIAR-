@@ -8,14 +8,23 @@ import {
 } from '../src/libro/publicar-frases.js';
 import type { FrasesJson } from '../src/libro/frases.js';
 
-type Subida = { ruta: string; contenido: string; contentType?: string };
+type Subida = { ruta: string; contenido: string; contentType?: string; cacheControl?: string };
 
 function dbFalso(subidas: Subida[], archivos: Record<string, string> = {}) {
   return {
     storage: {
       from: () => ({
-        upload: async (ruta: string, contenido: unknown, opciones?: { contentType?: string }) => {
-          subidas.push({ ruta, contenido: String(contenido), contentType: opciones?.contentType });
+        upload: async (
+          ruta: string,
+          contenido: unknown,
+          opciones?: { contentType?: string; cacheControl?: string }
+        ) => {
+          subidas.push({
+            ruta,
+            contenido: String(contenido),
+            contentType: opciones?.contentType,
+            cacheControl: opciones?.cacheControl,
+          });
           return { error: null };
         },
         download: async (ruta: string) =>
@@ -63,6 +72,9 @@ describe('publicarFrases', () => {
     expect(subidas[0].contentType).toBe('application/json');
     expect(JSON.parse(subidas[0].contenido)).toMatchObject({ narrador_id: 'n1', confirmado_at: null });
     expect(FRASES_CON_AUDIO(conFrases)).toBe(1);
+    // Y sin caché: el bucket sirve copias cacheadas y este archivo lo leen también la web y
+    // el worker de la PC de audio (una lectura vieja puede hacer que uno pise al otro).
+    expect(subidas.map((s) => s.cacheControl)).toEqual(['0', '0']);
   });
 
   it('sin candidatas sube el JSON pero no deja pedido (no se le pide a la PC un trabajo vacío)', async () => {
@@ -70,6 +82,7 @@ describe('publicarFrases', () => {
     await publicarFrases(dbFalso(subidas), sinFrases);
 
     expect(subidas.map((s) => s.ruta)).toEqual([RUTA_FRASES_JSON('n1')]);
+    expect(subidas[0].cacheControl).toBe('0');
     expect(FRASES_CON_AUDIO(sinFrases)).toBe(0);
   });
 });

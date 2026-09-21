@@ -386,3 +386,111 @@ def test_un_narrador_que_falla_no_se_lleva_al_otro(tmp_path, monkeypatch):
     # El que se cayó conserva su frase pendiente y su pedido: se reintenta en la próxima.
     assert candidatas_publicadas(fake, NARRADOR)["sf-1"]["estado"] == "pendiente"
     assert pedido_esta(fake, NARRADOR)
+
+
+# --- el cacheo de Storage ---------------------------------------------------
+# El bucket sirve copias cacheadas de los objetos, y `frases.json` lo escriben y lo leen
+# tres actores (la fábrica, este worker y la web): se vio en serio que dos lecturas seguidas
+# del mismo archivo recién subido dieron resultados distintos. Una lectura vieja acá es peor
+# que en cualquier otro lado, porque este worker REESCRIBE el archivo con lo que leyó.
+
+
+class LogDeMentira:
+    """Un logger que se acuerda de los avisos (la suite no tiene handlers)."""
+
+    def __init__(self):
+        self.avisos: list[str] = []
+
+    def warning(self, mensaje, *args):
+        self.avisos.append(mensaje % args if args else mensaje)
+
+    def info(self, mensaje, *args):
+        pass
+
+
+def opciones_de_subida(fake, ruta: str) -> list[dict]:
+    """Las opciones con las que se subió `ruta` (el mismo archivo se sube varias veces)."""
+    return [opciones for _, path, opciones in fake.storage.subidas if path == ruta]
+
+
+def test_el_frases_json_y_el_mp3_de_la_frase_se_suben_sin_cache(tmp_path, monkeypatch):
+    """Lo que se sube no se puede servir cacheado: lo leen la web y la fábrica."""
+    registro: dict = {}
+    cadena_sin_ffmpeg(monkeypatch, registro)
+    fake = escenario([candidata("sf-1", FRASE)])
+
+    pf.procesar_pedido(fake, config_de(tmp_path), LOG, transcriptor=marcas_ok, restaurador=restaurador_falso())
+
+    # `frases.json` se resube después de cada frase (el panel ve el progreso) y es el
+    # contrato con la fábrica y la web: todas las subidas van sin caché.
+    subidas_json = opciones_de_subida(fake, RUTA_FRASES_JSON(NARRADOR))
+    assert subidas_json, "el frases.json tendría que haberse subido"
+    assert [o["cache-control"] for o in subidas_json] == ["0"] * len(subidas_json)
+    assert all(o["content-type"] == "application/json" for o in subidas_json)
+    # El mp3 de la frase: si se vuelve a cortar, cambia de contenido en la misma ruta.
+    subidas_mp3 = opciones_de_subida(fake, RUTA_AUDIO_DE_FRASE(NARRADOR, "sf-1"))
+    assert len(subidas_mp3) == 1
+    assert subidas_mp3[0]["cache-control"] == "0"
+    assert subidas_mp3[0]["content-type"] == "audio/mpeg"
+
+
+def test_el_frases_json_se_lee_siempre_fresco(tmp_path, monkeypatch):
+    """Cada lectura de `frases.json` pide una URL distinta: la copia cacheada no se usa."""
+    fake = escenario([candidata("sf-1", FRASE)])
+
+    pf.leer_frases(fake, NARRADOR, LOG)
+    pf.leer_frases(fake, NARRADOR, LOG)
+
+    pedidas = [p for _, ruta, p in fake.storage.parametros_descarga if ruta == RUTA_FRASES_JSON(NARRADOR)]
+    assert len(pedidas) == 2
+    assert all(set(p) == {"cb"} for p in pedidas)
+    # Distinto en cada llamada: con el mismo valor, Storage devolvería la copia cacheada.
+    assert pedidas[0]["cb"] != pedidas[1]["cb"]
+
+
+class _BucketViejo:
+    """Un bucket como el de un cliente de Storage viejo: `download` no acepta nada más."""
+
+    def __init__(self, archivos: dict):
+        self.archivos = archivos
+        self.pedidas: list[str] = []
+
+    def download(self, ruta):
+        self.pedidas.append(ruta)
+        return self.archivos[ruta]
+
+
+class _StorageViejo:
+    def __init__(self, bucket):
+        self._bucket = bucket
+
+    def from_(self, bucket):
+        return self._bucket
+
+
+class SupabaseViejo:
+    """Un cliente al que no se le puede pedir la lectura fresca (sin `query_params`)."""
+
+    def __init__(self, archivos: dict):
+        self.bucket = _BucketViejo(archivos)
+        self.storage = _StorageViejo(self.bucket)
+
+
+def test_con_un_cliente_viejo_igual_lee_y_avisa_una_sola_vez(monkeypatch):
+    """Sin cache-buster se baja igual, pero se avisa (una vez) que puede venir cacheado.
+
+    Quedarse sin leer `frases.json` sería peor que leerlo viejo —el pedido no se podría
+    atender nunca—, así que el que lee el log tiene que enterarse de que la lectura puede
+    ser de antes.
+    """
+    monkeypatch.setattr(pf, "_AVISADO_SIN_CACHE_BUSTER", False)
+    archivos = {RUTA_FRASES_JSON(NARRADOR): json.dumps(frases_json([candidata("sf-1", FRASE)])).encode("utf-8")}
+    viejo = SupabaseViejo(archivos)
+    log = LogDeMentira()
+
+    assert pf.leer_frases(viejo, NARRADOR, log)["narrador_id"] == NARRADOR
+    assert pf.leer_frases(viejo, NARRADOR, log)["version"] == 1
+
+    assert viejo.bucket.pedidas == [RUTA_FRASES_JSON(NARRADOR)] * 2
+    assert len(log.avisos) == 1  # una sola vez por corrida: no llena el log en cada narrador
+    assert "cacheado" in log.avisos[0]

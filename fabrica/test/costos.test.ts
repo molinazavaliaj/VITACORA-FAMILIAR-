@@ -34,7 +34,14 @@ function construirDbFake(opciones: {
       );
     });
   const upload = opciones.upload ?? vi.fn().mockResolvedValue({ data: { path: 'x' }, error: null });
-  return { storage: { from: vi.fn(() => ({ download, upload })) }, download, upload };
+  return {
+    storage: { from: vi.fn(() => ({ download, upload })) },
+    // La tabla del panel: `registrarUso` anota además en consumo_ia, así que el
+    // fake tiene que espejar al cliente o "todo bien" deja de significar cero avisos.
+    from: vi.fn(() => ({ insert: async () => ({ error: null }) })),
+    download,
+    upload,
+  };
 }
 
 const USO_FABLE = { input_tokens: 1_000_000, output_tokens: 100_000, cache_creation_input_tokens: 200_000, cache_read_input_tokens: 500_000 };
@@ -131,7 +138,7 @@ describe('registrarUso', () => {
     expect(db.upload).toHaveBeenCalledTimes(1);
     const [ruta, contenido, opciones] = db.upload.mock.calls[0];
     expect(ruta).toBe('narrador-1/paquete/costos.json');
-    expect(opciones).toEqual({ contentType: 'application/json', upsert: true });
+    expect(opciones).toEqual({ contentType: 'application/json', cacheControl: '0', upsert: true });
     const filas = JSON.parse(contenido as string) as FilaCosto[];
     expect(filas).toHaveLength(1);
     expect(filas[0]).toMatchObject({ modelo: 'claude-fable-5', paso: 'capitulo', input: 1_000_000, usd: 18 });

@@ -389,6 +389,13 @@ export async function descargarTextoOpcional(
  * pasos baratos que pueden fallar (PDF, audio) — así un reintento no vuelve
  * a pagarle al modelo por algo que ya escribió. Por defecto markdown; los
  * JSON (narracion.json) pasan su `contentType`.
+ *
+ * Siempre con `cacheControl: '0'`: el bucket sirve copias cacheadas, y este
+ * archivo lo escriben y lo leen tres actores (la fábrica, el worker de la PC
+ * de audio y la web). Se vio en serio: dos lecturas seguidas del mismo
+ * `frases.json` recién subido devolvieron resultados distintos —sin
+ * cache-buster, la versión vieja—, así que una lectura cacheada puede hacer
+ * que uno pise el trabajo del otro. Sin caché, lo que se lee es lo que hay.
  */
 export async function subirTexto(
   db: ReturnType<typeof obtenerClienteDb>,
@@ -398,6 +405,7 @@ export async function subirTexto(
 ): Promise<void> {
   const { error } = await db.storage.from('audios').upload(ruta, contenido, {
     contentType,
+    cacheControl: '0',
     upsert: true,
   });
   if (error) throw new Error(`No se pudo subir ${ruta}: ${error.message}`);

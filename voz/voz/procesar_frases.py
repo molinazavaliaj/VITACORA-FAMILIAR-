@@ -32,7 +32,9 @@ suena rara.
 
 import json
 import logging
+import time
 from dataclasses import asdict
+from itertools import count
 from pathlib import Path
 
 from .audio import a_mp3
@@ -101,26 +103,96 @@ def hay_frases_json(sb, narrador_id: str) -> bool:
     return any(nombre_de(archivo) == "frases.json" for archivo in archivos or [])
 
 
-def leer_frases(sb, narrador_id: str) -> dict:
-    """`frases.json` ya parseado.
+# Todo lo que sube este módulo va sin caché (`cache-control: 0` → `max-age=0`).
+# Por qué: el bucket sirve copias cacheadas y estos objetos los escriben y los
+# leen tres actores (la fábrica, este worker y la web). Acá se pisa el MISMO
+# objeto varias veces por vuelta (`frases.json` se resube después de cada
+# frase), así que un actor que lea una copia cacheada ve el estado de hace dos
+# frases y puede pisar el trabajo del otro. El mp3 va igual: se rehace si la
+# frase se vuelve a cortar.
+SIN_CACHE = {"cache-control": "0"}
+
+# El aviso de que no se pudo forzar la lectura fresca se da una sola vez por
+# corrida: si no, con un cliente viejo se llenaría el log en cada narrador.
+_AVISADO_SIN_CACHE_BUSTER = False
+
+# El contador de marcas: `time.time_ns()` solo no alcanza porque el reloj de
+# Windows puede dar el mismo valor en dos llamadas seguidas, y dos lecturas
+# con la misma URL volverían a caer en la copia cacheada.
+_MARCAS = count(1)
+
+
+def _marca_fresca() -> str:
+    """Una marca distinta en cada llamada, para que la URL no coincida con nada cacheado."""
+    return f"{time.time_ns()}-{next(_MARCAS)}"
+
+
+def _avisar_sin_cache_buster(log: logging.Logger | None) -> None:
+    """Anota UNA vez que las lecturas de Storage pueden venir cacheadas.
+
+    Pasa con un cliente de Supabase viejo, que no acepta el cache-buster en
+    `download()`. Se sigue trabajando igual (quedarse sin bajar el archivo sería
+    peor), pero el que lee el log tiene que saber que lo que se leyó puede ser
+    de antes.
+    """
+    global _AVISADO_SIN_CACHE_BUSTER
+    if _AVISADO_SIN_CACHE_BUSTER:
+        return
+    _AVISADO_SIN_CACHE_BUSTER = True
+    if log:
+        log.warning(
+            "el cliente de Supabase instalado no acepta query_params en download(): "
+            "frases.json puede leerse cacheado (actualizar `supabase` para leer siempre fresco)"
+        )
+
+
+def descargar_fresco(sb, ruta: str, log: logging.Logger | None = None) -> bytes:
+    """Baja un archivo de Storage saltándose la copia cacheada del bucket.
+
+    Por qué existe: el bucket `audios` sirve copias cacheadas. Se vio en serio
+    con `frases.json`: dos lecturas seguidas del mismo archivo recién subido
+    devolvieron resultados distintos (sin cache-buster, la versión vieja).
+    Acá es más grave que en cualquier otro lado porque este worker REESCRIBE el
+    archivo con lo que leyó: leer una versión vieja y resubirla pisa el trabajo
+    de la fábrica o el del propio worker.
+
+    El cache-buster es un parámetro de consulta distinto en cada llamada: la URL
+    no coincide con nada cacheado y Storage va al original. El cliente de Python
+    (`storage3`) lo acepta como `query_params`; con uno viejo que no lo acepte
+    se baja igual, avisando (ver `_avisar_sin_cache_buster`).
+    """
+    bucket = sb.storage.from_(BUCKET)
+    try:
+        return bucket.download(ruta, query_params={"cb": _marca_fresca()})
+    except TypeError:
+        _avisar_sin_cache_buster(log)
+        return bucket.download(ruta)
+
+
+def leer_frases(sb, narrador_id: str, log: logging.Logger | None = None) -> dict:
+    """`frases.json` ya parseado, siempre leído fresco (ver `descargar_fresco`).
 
     Si el archivo no se puede bajar o no se entiende, tira: el pedido queda (la
     fábrica lo vuelve a publicar) y no se anota nada sobre un archivo que no se
     entiende. El que llama a `procesar_narrador` se encarga de que eso no tumbe
     al resto de los narradores ni al worker.
     """
-    return json.loads(sb.storage.from_(BUCKET).download(RUTA_FRASES_JSON(narrador_id)).decode("utf-8"))
+    return json.loads(descargar_fresco(sb, RUTA_FRASES_JSON(narrador_id), log).decode("utf-8"))
 
 
 def subir_frases(sb, narrador_id: str, frases: dict, log: logging.Logger) -> None:
     """Sube `frases.json` con lo que se fue anotando (es lo que mira el panel).
+
+    Sin caché (ver `SIN_CACHE`): este archivo lo lee también el worker de la PC
+    de audio en la vuelta siguiente, y una copia vieja es el estado de hace dos
+    frases.
 
     Si no sube, tira a propósito: sin el archivo actualizado nadie ve el
     progreso y el pedido no se puede borrar (se perdería el trabajo), así que
     el que llama corta la vuelta y lo reintenta en la próxima.
     """
     datos = json.dumps(frases, ensure_ascii=False, indent=2).encode("utf-8")
-    if not subir_con_reintentos(sb, RUTA_FRASES_JSON(narrador_id), datos, {"content-type": "application/json", "upsert": "true"}, log):
+    if not subir_con_reintentos(sb, RUTA_FRASES_JSON(narrador_id), datos, {**SIN_CACHE, "content-type": "application/json", "upsert": "true"}, log):
         raise RuntimeError(f"no pude subir {RUTA_FRASES_JSON(narrador_id)}")
 
 
@@ -209,7 +281,9 @@ def cortar_una(
     mp3 = carpeta / f"{frase.id}.mp3"
     emparejado = emparejar_frase(tramo, mp3, restaurador=restaurador, modelos=config.carpeta_modelos, log=log)
     ruta = RUTA_AUDIO_DE_FRASE(narrador_id, frase.id)
-    if not subir_con_reintentos(sb, ruta, mp3.read_bytes(), {"content-type": "audio/mpeg", "upsert": "true"}, log):
+    # Sin caché (ver `SIN_CACHE`): si la frase se vuelve a cortar, el mp3 cambia
+    # de contenido en la misma ruta y una copia cacheada sonaría como la vieja.
+    if not subir_con_reintentos(sb, ruta, mp3.read_bytes(), {**SIN_CACHE, "content-type": "audio/mpeg", "upsert": "true"}, log):
         raise RuntimeError(f"no pude subir {ruta}")
     log.info(
         "frase %s (%s): de %.2f a %.2f del audio de la respuesta %s, %.1f s, %s LUFS → %s",
@@ -238,7 +312,7 @@ def procesar_narrador(
         log.warning("el pedido de %s no tiene frases.json en el paquete; lo borro", narrador_id[:8])
         borrar_pedido(sb, narrador_id, log)
         return 0
-    frases = leer_frases(sb, narrador_id)
+    frases = leer_frases(sb, narrador_id, log)
     faltan = pendientes(frases)
     if not faltan:
         log.info("frases de %s: no queda nada pendiente, borro el pedido", narrador_id[:8])

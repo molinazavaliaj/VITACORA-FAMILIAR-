@@ -303,7 +303,7 @@ describe('generarPrevisualizacion', () => {
     expect(db.upload).toHaveBeenCalledWith(
       'narrador-1/paquete/borrador_preview_cap1.md',
       'Nací en Rosario, en la casa de mi abuela.',
-      { contentType: 'text/markdown', upsert: true }
+      { contentType: 'text/markdown', cacheControl: '0', upsert: true }
     );
 
     // Orden: el borrador se cachea apenas se genera (antes que nada más), y
@@ -468,7 +468,7 @@ describe('generarPrevisualizacion', () => {
     expect(db.upload).toHaveBeenCalledWith(
       'narrador-1/paquete/borrador_preview_cap1.md',
       'Capítulo corto.',
-      { contentType: 'text/markdown', upsert: true }
+      { contentType: 'text/markdown', cacheControl: '0', upsert: true }
     );
   });
 

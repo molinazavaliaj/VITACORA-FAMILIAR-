@@ -5,6 +5,7 @@ import {
   descargarTextoOpcional,
   esErrorDeNoEncontrado,
   esPublicable,
+  subirTexto,
   textoRespuesta,
   type RespuestaPublicable,
 } from '../src/libro/comun.js';
@@ -12,6 +13,11 @@ import {
 function dbConDescarga(resultado: { data: unknown; error: unknown }) {
   const download = vi.fn(() => Promise.resolve(resultado));
   return { db: { storage: { from: () => ({ download }) } } as never, download };
+}
+
+function dbConSubida(resultado: { data: unknown; error: unknown } = { data: { path: 'x' }, error: null }) {
+  const upload = vi.fn(() => Promise.resolve(resultado));
+  return { db: { storage: { from: () => ({ upload }) } } as never, upload };
 }
 
 describe('esErrorDeNoEncontrado', () => {
@@ -49,8 +55,45 @@ describe('descargarTextoOpcional', () => {
   });
 });
 
-// Hallazgo 19: en el piloto el narrador dijo "estas historias prefiero que queden
-// en mi mente, no en mi biografía" y la transcripción entró entera al libro.
+// El bucket `audios` sirve copias cacheadas de los objetos, y lo que sube esta función lo leen
+// tres actores (la fábrica, el worker de la PC de audio y la web): se vio en serio que dos
+// lecturas seguidas del mismo `frases.json` recién subido devolvieron resultados distintos.
+// Por eso TODO lo que sube `subirTexto` va con el cache-control más bajo que acepta el SDK.
+describe('subirTexto', () => {
+  it('sube sin caché, con el contentType que le pasen (el caso frases.json)', async () => {
+    const { db, upload } = dbConSubida();
+
+    await subirTexto(db, 'n1/paquete/frases.json', '{"version":1}', 'application/json');
+
+    expect(upload).toHaveBeenCalledWith('n1/paquete/frases.json', '{"version":1}', {
+      contentType: 'application/json',
+      cacheControl: '0',
+      upsert: true,
+    });
+  });
+
+  it('sin contentType sube markdown, también sin caché (borradores de capítulo y de libro)', async () => {
+    const { db, upload } = dbConSubida();
+
+    await subirTexto(db, 'n1/paquete/borrador_cap_01.md', 'Nací en Rosario.');
+
+    expect(upload).toHaveBeenCalledWith('n1/paquete/borrador_cap_01.md', 'Nací en Rosario.', {
+      contentType: 'text/markdown',
+      cacheControl: '0',
+      upsert: true,
+    });
+  });
+
+  it('un error de Storage tira con la ruta (un borrador que no sube no puede pasar por cacheado)', async () => {
+    const { db } = dbConSubida({ data: null, error: { message: 'fetch failed' } });
+
+    await expect(subirTexto(db, 'n1/paquete/borrador_libro.md', 'texto'))
+      .rejects.toThrow('No se pudo subir n1/paquete/borrador_libro.md: fetch failed');
+  });
+});
+
+// Hallazgo 19: en el piloto el narrador dijo "estas historias prefiero que queden en
+// mi mente, no en mi biografía" y la transcripción entró entera al libro.
 describe('lo que el narrador pidió reservar', () => {
   it('sin reserva, el texto sale como siempre (transcripción primero)', () => {
     expect(textoRespuesta({ transcripcion: '  Contó la historia.  ', texto_directo: 'otra cosa' }))
