@@ -1,6 +1,11 @@
 # Logística de lo físico (3t.26) — propuesta para decidir entre los dos (21/09, Joaquín)
 
-**Estado: propuesta.** Nada construido. Se decide entre Joaquín y Naza; después va a plan.
+**Estado: decidido en lo básico (Joaquín, 21/09 noche) — falta la etiqueta.** Nada construido.
+Decisiones tomadas: **(1)** tabla `entregas` · **(2) la dirección es obligatoria para encargar** ·
+**(3)** Naza mueve los estados desde `/admin` (pantalla Envíos) · **(4)** el portón de impresión de
+Su voz = paso a `en_produccion` · **(5)** marcos sin impreso, mismo circuito · **(6)** el comprador
+marca "ya me llegó" y se lo lleva a dejar la reseña en **Trustpilot** · **(7)** se llama `entregas`.
+Queda abierto **cómo se genera la etiqueta de envío** (sección nueva, abajo).
 
 ## El problema
 
@@ -80,6 +85,55 @@ fábrica lo mueve (libro cerrado + dirección lista), congela la selección de f
 de imprenta con la sección QR. La familia no aprieta "imprimir": encarga, pone la dirección, y
 ya. El recordatorio de los 15 días (Task 6) sigue igual.
 
+## La etiqueta: del sistema al centro de distribución de cada país
+
+**Lo que pidió Joaquín (21/09):** que el sistema genere la etiqueta de envío para que el centro de
+distribución de cada país (la imprenta) empaque el libro y lo despache listo, sin cargar nada a
+mano. Pensó en **Mercado Envíos**.
+
+**Lo verificado** (docs públicas de Mercado Libre/Mercado Pago, 21/09):
+- Mercado Envíos 2 es logística de **Mercado Libre**; la etiqueta se imprime con
+  `GET https://api.mercadolibre.com/shipment_labels?shipment_ids=…&response_type=pdf` con el token
+  de la cuenta vendedora (misma cuenta que Mercado Pago, pero hay que crear una app en
+  developers.mercadolibre y autorizarla por OAuth). Países: AR, BR, MX, CL, CO, UY, PE, EC — **no España**.
+- En Checkout Pro la preferencia acepta `shipments: { mode: "me2", dimensions, … }`: el comprador
+  **elige y paga el envío al pagar** y el envío nace atado a esa orden. **Choca con la decisión (2)**:
+  nosotros pedimos la dirección al encargar, semanas después del pago.
+- **No confirmado** (403 en las docs): si MP sigue habilitando `me2` para tiendas propias fuera del
+  marketplace. Se sabe con una preferencia real de prueba.
+
+**Dos caminos:**
+
+| | A · Mercado Envíos en el checkout | B · Agregador de correos por API (recomendado) |
+|---|---|---|
+| Cuándo se pide la dirección | al **pagar** (MP la pide) | al **encargar** (decisión 2) |
+| Quién paga el envío | el comprador, en el checkout de MP | va incluido en el precio (o se cotiza y se suma al encargar) |
+| España | no existe | sí (Sendcloud / Packlink PRO: Correos, SEUR, GLS) |
+| Argentina | Correo Argentino / Andreani vía ML | Enviopack / Zippin / Shipnow (Andreani, OCA, Correo) |
+| Etiqueta | PDF desde ML, por orden | PDF desde el agregador, cuando pasa a `en_produccion` |
+| Integración | app ML + OAuth + cambiar la preferencia + merchant_order | una API key por país, un `POST` por entrega |
+| Riesgo | que MP ya no lo ofrezca a tiendas propias; España afuera | costo por etiqueta del agregador |
+
+**Recomendación: B.** Un agregador por país con API (ES: **Sendcloud**; AR: **Enviopack** o
+**Zippin** — elegir por precio y por si tienen retiro en la imprenta), y un solo flujo: al pasar a
+`en_produccion`, el sistema crea el envío en el agregador con la dirección de `entregas` y el
+origen del país (la imprenta), guarda `etiqueta_url` + `seguimiento`, y la imprenta imprime la
+etiqueta junto con el libro. Si Mercado Envíos importa por costo en AR, se prueba como **spike**
+(una preferencia con `me2`) sin comprometer el diseño: el agregador puede ser el respaldo.
+
+**Lo que suma a `entregas`:** `origen` (AR|ES: el centro que despacha), `peso_g`, `dimensiones`
+(por producto: libro, marco, caja), `etiqueta_proveedor` (sendcloud|enviopack|me2|manual),
+`etiqueta_url`, `envio_externo_id`. **Datos del formulario de dirección** (los mismos que exige
+cualquier agregador): nombre y apellido, teléfono, email, calle y número, piso/depto, ciudad,
+provincia/comunidad, código postal, país. Se validan al encargar (obligatorios menos piso/depto).
+
+**Datos fijos por país (config, no base):** dirección de origen de cada centro, peso y medidas
+de libro/marco/caja, API key del agregador.
+
+**"Ya me llegó" → reseña:** al marcar `entregado` desde el panel, mensaje de gracias y botón a
+la página de Vitácora en Trustpilot (`TRUSTPILOT_URL` en Vercel). Solo la dueña o el comprador
+de ese pedido.
+
 ## Mails de hito
 
 Dos nuevos en `fabrica/src/mail/hitos.ts`: **enviado** (con seguimiento) y **entregado**. Textos:
@@ -99,13 +153,19 @@ dirección de envío solo para entregar lo físico; se borra al año de entregad
    mails de hito enviado/entregado.
 3. **Admin (N):** pantalla Envíos con los estados y el seguimiento.
 
-## Decisiones para tomar ahora
+## Decisiones tomadas (21/09) y lo que falta
 
-1. ¿Tabla `entregas` (A) o jsonb en `pedidos` (B)?
-2. ¿La dirección es **obligatoria para encargar** o se encarga y se completa después (con
-   recordatorio)? Propuesta: después, con recordatorio; la fábrica no imprime sin ella.
-3. ¿Los estados los mueve Naza desde `/admin` (b) o por comando (a)?
-4. ¿El portón de impresión de Su voz = paso a `en_produccion`? (cierra lo abierto del spec)
-5. Marcos sin libro impreso (solo PDF + marcos): mismo envío, misma tabla. ¿OK?
-6. ¿"Ya me llegó" lo puede marcar el comprador desde el panel?
-7. Nombres: `entregas` (para no chocar con `envios`, que son los mensajes de WhatsApp). ¿OK?
+1. ✅ Tabla `entregas`.
+2. ✅ **Dirección obligatoria para encargar** (el botón Encargar no se habilita sin ella si hay
+   algo físico).
+3. ✅ Naza mueve estados desde `/admin` (pantalla Envíos).
+4. ✅ Portón de impresión de Su voz = paso a `en_produccion`.
+5. ✅ Marcos sin impreso: mismo circuito.
+6. ✅ "Ya me llegó" → gracias + Trustpilot.
+7. ✅ Nombre `entregas`.
+8. ☐ **La etiqueta:** ¿camino B (agregador por país) o probar Mercado Envíos primero (spike)?
+   Y cuál agregador por país (cotizar: Sendcloud/Packlink en ES; Enviopack/Zippin/Shipnow en AR).
+9. ☐ **Quién paga el envío:** incluido en el precio del impreso/marco, o cotizado y sumado al
+   encargar. (Con B se puede cotizar en vivo; con A lo cobra MP.)
+10. ☐ ¿La imprenta de cada país acepta que el envío lo retire el correo del agregador, o hace
+    drop-off? Define el flujo físico.
