@@ -137,10 +137,10 @@ export default async function PaginaLeer({ params }: PageProps<"/tablero/[narrad
         )}
       </section>
 
-      {/* ── El audiolibro ────────────────────────────────────────────── */}
+      {/* ── Su voz (21/09) / el audiolibro de los pedidos anteriores ──── */}
       <section className="mt-14" aria-labelledby="leer-audio">
         <div className="flex items-end justify-between gap-4 border-b border-[var(--texto)] pb-4">
-          <h2 id="leer-audio" className="text-2xl font-medium leading-none [font-family:var(--fuente-titulo)]">El audiolibro</h2>
+          <h2 id="leer-audio" className="text-2xl font-medium leading-none [font-family:var(--fuente-titulo)]">{compro.audiolibro ? "El audiolibro" : "Su voz"}</h2>
           {tieneAudio && compro.audiolibro ? (
             <span className="text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.18em]">{NOMBRE_VOZ[compro.audiolibro]}</span>
           ) : null}
@@ -167,8 +167,9 @@ export default async function PaginaLeer({ params }: PageProps<"/tablero/[narrad
             <p className="text-[15px] leading-relaxed text-[var(--texto-suave)]">
               {compro.audiolibro
                 ? "El audiolibro todavía no está listo."
-                : "Sus mejores frases, en su voz, se están preparando: van a aparecer acá cuando estén listas."}
+                : "Sus mejores frases, en su voz real, elegidas por el biógrafo leyendo el libro. Se escuchan, se cambian y se mandan por WhatsApp desde su página."}
             </p>
+            {!compro.audiolibro ? <div className="mt-4"><ProximoPaso href={`/tablero/${n.id}/frases`}>Escuchar y elegir sus frases</ProximoPaso></div> : null}
           </Tarjeta>
         )}
       </section>

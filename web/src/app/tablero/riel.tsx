@@ -145,7 +145,7 @@ export async function ConRiel({
   admin: SupabaseClient;
   user: User;
   actual: string;
-  sufijo: "/libro" | "/leer";
+  sufijo: "/libro" | "/leer" | "/frases";
   children: ReactNode;
 }) {
   const { panel } = await historiasDelUsuario(admin, user);
