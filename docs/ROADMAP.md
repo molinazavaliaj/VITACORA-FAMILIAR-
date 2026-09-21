@@ -478,7 +478,7 @@ sola foto.
 | 3b.3 | Validar resolución en la subida y no recomprimir | **J** | ✅ 13/09 |
 | 3b.4 | Que la fábrica ubique las fotos en su capítulo | **N** | ☐ |
 | 3b.5 | Selección de la foto del marco (recorte distinto al del libro) | **N** | ☐ con la fábrica |
-| 3b.6 | **Dónde va y cómo se encuadra la foto del capítulo** (arriba/abajo del título + punto de foco): migración `20260918_fotos_posicion_foco` + CONTRATO (J, 18/09; **OK de N el 18/09**, ella la aplica). **UI hecha (J, 18/09)**: en Encargar libro cada lugar con foto tiene "Encuadrar (y ubicar)": tocás la cara, ves el recorte, elegís arriba/abajo; la miniatura lo refleja. Falta: N aplica la migración y la fábrica respeta `posicion` y `foco` (principal recortada con foco, las de cierre enteras, tapa con foco). Recorte libre y "moverla de página", parqueados. | **A** | 🔄 |
+| 3b.6 | **Dónde va y cómo se encuadra la foto del capítulo** (arriba/abajo del título + punto de foco): migración `20260918_fotos_posicion_foco` + CONTRATO (J, 18/09; **OK de N el 18/09**, ella la aplica). **UI hecha (J, 18/09)**: en Encargar libro cada lugar con foto tiene "Encuadrar (y ubicar)": tocás la cara, ves el recorte, elegís arriba/abajo; la miniatura lo refleja. ✅ **21/09**: migración aplicada (N) y la fábrica respeta `posicion` y `foco` (`04ed212`, que además arregla un bug de producción: la consulta con columnas explícitas fallaba sin la migración y el pedido quedaba fallido). Recorte libre y "moverla de página", parqueados. Queda una divergencia CONTRATO ↔ código sobre un `foco` inválido (ver Decisiones 20-21/09). | **A** | ✅ 21/09 |
 
 **Proveedores: ya resueltos** — gráficas, marcos y tags NFC conseguidos por
 Joaquín. Lo que falta es el camino de la foto, no quién la imprime.
@@ -689,13 +689,18 @@ Diario técnico en `ESTADO.md` (entradas del 20 y 21/09).
 - **Alta con contexto mínimo** (21/09): la compra pide año de nacimiento, estado civil e hijos
   (opcionales) y el biógrafo arranca con eso. **"Esto es de otra parte"** (21/09): la evaluación
   marca a qué pregunta anterior pertenece un recuerdo tardío sin reencuadrar al narrador; la
-  fábrica lo lleva al capítulo que le toca (migración propuesta, sin aplicar).
+  fábrica lo lleva al capítulo que le toca (**migración aplicada el 21/09**, N).
 - **Estado del código (21/09 00:31):** fábrica y worker en `main` (`su-voz-fabrica`, Tasks 1-3).
   La web va en una cadena de ramas **sin mergear**: `su-voz-web-checkout` (sale el audiolibro del
   checkout) → `su-voz-web-panel` (`/tablero/[id]/frases`, `/voz/[token]` público, APIs) →
   `alta-contexto-minimo` → **`su-voz-textos` (`2195df2`)**: 278 tests, tsc y build limpios.
-  **Se mergea cuando Naza dé el OK a los textos** (regla de la casa). Pendientes de Naza en la
-  fábrica: sección impresa con QR (Task 4) y recordatorio a los 15 días (Task 6).
+  **Se mergea cuando Naza dé el OK a los textos** (regla de la casa). **21/09 (tarde):** todo
+  mergeado en `main`. Fábrica: **Task 6 hecha** (`1366c6e`: un mail por narrador, con candado, 15 días
+  desde el `created_at` de `frases.json`; falta el OK al texto) y **Task 4 hecha** (`2254fc4`: cada
+  frase con su QR, código de contratapa, token `voz` firmado). ⚠️ La sección impresa **no se engancha
+  al entregar el libro** (ahí ninguna frase tiene audio todavía): va en el **portón de impresión**
+  (`frases: await leerFrases(...)` + `urlCliente`) — ese enganche falta. Divergencia a decidir:
+  CONTRATO (foco inválido "se toma como el centro") vs código (lo ignora).
 
 ## 🗓 Semana clave — 21 al 27/09
 
@@ -704,7 +709,7 @@ Objetivo: **el viajero (Nako) en marcha, los pilotos respondiendo, «Su voz» en
 | Día | Joaquín | Naza |
 |---|---|---|
 | **Lun 21** | Pago real de prueba en `/comprar/viaje` (8.3, quedó en la pantalla de MP) → si el pedido no pasa a `pagado`, es 8.6 · Nako compra y escribe "hola" · Vigilar aprobación de las 5 plantillas (cuando `bienvenida` esté: `WA_BIENVENIDA_PIDE_VOZ=1`; cuando `bienvenida_viaje`: `WA_PLANTILLA_BIENVENIDA_VIAJE=1`) · `rm ~/.wa_token` | OK a los textos de `su-voz-textos` → merge · `MP_WEBHOOK_SECRET` de producción confirmado · Task 4 (QR impreso) |
-| **Mar 22** | ~~3t.19 panel de viaje~~ ✅ hecho el 21 · mirar el panel con las primeras noches reales de Nako | Task 6 (mail de los 15 días) · migración "de otra parte" · 3b.6 en la fábrica |
+| **Mar 22** | ~~3t.19 panel de viaje~~ ✅ hecho el 21 · mirar el panel con las primeras noches reales de Nako | ~~Task 6~~ ✅ · ~~migración "de otra parte"~~ ✅ · ~~3b.6 en la fábrica~~ ✅ (todo el 21) · **enganchar la sección QR en el portón de impresión** · los 2 suites de test de la fábrica que no cargan (`worker.test.ts`, `anticipo-worker.test.ts`: `db` undefined en `recordarFrasesPendientes`) |
 | **Mié 23** | ~~2.10~~ ✅ hecho el 21 · pasar los cambios de texto de Naza (panel de viaje + carrito de viaje) | Revisión de textos del panel de viaje (`viaje.tsx`, `angulos.tsx`) |
 | **Jue 24** | 3t.20 después de pagar → adentro del panel · 3t.22 ficha (edad, nacionalidad, tú/vos) | 8.4 alta autónoma / Stripe |
 | **Vie 25** | 8.7 promos (tachado + %) · 2.12 región por IP | Layout del libro de viaje con las primeras noches reales de Nako |
