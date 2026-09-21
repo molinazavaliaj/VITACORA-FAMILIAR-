@@ -184,8 +184,14 @@ export async function enviarPregunta(
   const mensaje = mensajeDePregunta(texto, trato);
 
   // La gemela en vos (`pregunta_diaria_vos`, aprobada el 16/09) para quien se trata de vos.
+  // Si Meta rechaza la plantilla (en revisión en la cuenta nueva, 21/09), se
+  // reintenta como texto: dentro de la ventana de 24 hs desde el último mensaje
+  // del narrador, Meta lo acepta; fuera de ella falla igual que antes.
   const waId = plantilla
-    ? await enviarPlantilla(n.telefono_whatsapp, trato === 'vos' ? 'pregunta_diaria_vos' : 'pregunta_diaria', [texto])
+    ? await enviarPlantilla(n.telefono_whatsapp, trato === 'vos' ? 'pregunta_diaria_vos' : 'pregunta_diaria', [texto]).catch(async (err) => {
+        console.warn(`pregunta ${orden} de ${n.id}: la plantilla falló, se intenta como texto:`, err instanceof Error ? err.message : err);
+        return enviarTexto(n.telefono_whatsapp, mensaje);
+      })
     : await enviarTexto(n.telefono_whatsapp, mensaje);
 
   // La pregunta-foto (§6.3): la familia subió una foto y pregunta sobre ella.
