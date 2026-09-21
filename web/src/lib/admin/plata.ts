@@ -66,6 +66,24 @@ export function aEuros(
   return null;
 }
 
+/**
+ * El tipo de cambio del día, de las variables de Vercel (`CAMBIO_EUR_ARS`, `CAMBIO_USD_EUR`,
+ * `CAMBIO_FECHA`). Se carga a mano, una vez por semana (spec §3.10, decisión 4).
+ * Si no están cargadas queda en cero y el panel lo dice en vez de convertir con un número
+ * que se inventaría: con cero, `aEuros` devuelve `null` y la cuenta avisa.
+ */
+export function cambioDeEntorno(env: Record<string, string | undefined>): Cambio {
+  const numero = (v: string | undefined) => {
+    const n = Number((v ?? "").replace(",", "."));
+    return Number.isFinite(n) && n > 0 ? n : 0;
+  };
+  return {
+    eurArs: numero(env.CAMBIO_EUR_ARS),
+    usdEur: numero(env.CAMBIO_USD_EUR),
+    fecha: env.CAMBIO_FECHA ?? "",
+  };
+}
+
 const enRango = (iso: string | null, desde: Date, hasta: Date): boolean => {
   if (!iso) return false;
   const t = Date.parse(iso);
