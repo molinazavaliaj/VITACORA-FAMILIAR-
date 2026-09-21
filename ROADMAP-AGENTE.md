@@ -27,7 +27,7 @@ arbol. Cuando resuelvas una, cambia `[!]` por `[ ]` y el piloto la toma.
 | T3.4 | ficha del narrador | decision de los dos socios |
 | T4.1 | variables en Vercel | ✅ HECHO por el agente por CLI el 21/09: las 12 PRECIO_* quedaron en Production con los valores de los docs y como Config. Falta el redeploy sin cache (el panel y el carrito quedan con el HTML viejo si no). |
 | T3.6 | carrito con `$NaN` | codigo: lo puede cerrar el piloto |
-| T3.9 | precios horneados en el build | codigo: lo puede cerrar el piloto |
+| T3.9 | precios horneados en el build | CERRADA por el 2.12 (render por request) |
 | T3.10 | middleware.ts deprecado (Next 16) | codigo: lo puede cerrar el piloto |
 | T3.11 | Redirect URLs de Supabase | decision tuya en Supabase |
 | T3.7 | /admin vuelve al carrito | codigo: lo puede cerrar el piloto |
@@ -180,13 +180,12 @@ Lo que SI puede correr el piloto hoy: **T1.3, T3.1, T3.3, T3.5** (y T1.4 apenas 
   - cerrada: 2026-09-21T18:18:40+02:00
   - commit: b12b3f5
 
-- [ ] **T3.9** — web: los precios tienen que leerse al momento del pedido, no quedar horneados en el build
+- [x] **T3.9** — web: los precios tienen que leerse al momento del pedido, no quedar horneados en el build
   - deps: —
   - tamaño: S
-  - hecho-cuando: `cd web && npx vitest run` y el catalogo de /comprar se arma en cada request (no prerenderizado)
-  - nota: hallazgo del 2026-09-21 probando produccion. El carrito servia `"precio":"$NaN"` y lo siguio sirviendo DESPUES de cargar bien las variables en Vercel y redeployar. Verificado con `vercel env pull`: `PRECIO_EUR="49"` esta en Production, es de tipo Config (o sea legible en build), y el build corrio igual. Conclusion: el catalogo se arma en BUILD (comprar/page.tsx no usa ninguna API dinamica, asi que Next prerenderiza la pagina) y el HTML generado queda cacheado y se recicla en el proximo deploy. Consecuencia de producto: la promesa escrita en web/src/lib/productos.ts ("Prender uno es cargar su variable de entorno en Vercel - nada mas") hoy es FALSA: cargas un precio y no se ve hasta que se invalide la cache. Arreglo: leer el catalogo en cada request (`export const dynamic = "force-dynamic"` en comprar/page.tsx, o `unstable_noStore()`/`revalidate = 0`) y probarlo con un test que arme el catalogo dos veces con valores distintos. Va junto con T3.6: uno evita el NaN, este evita que el precio quede congelado.
-  - evidencia: —
-
+  - espera: —
+  - hecho-cuando: criterio en texto: la home y los dos checkouts se arman en cada request, asi que un precio no puede quedar congelado de un build anterior
+  - nota: **CERRADA y la cerro el 2.12 de Joaquin, no el piloto.** Desde el 2.12 la home y los dos checkouts se renderizan por request (leen x-vercel-ip-country para la region, web/src/lib/region.ts), asi que el catalogo ya no se hornea en el build. Medido en produccion el 21/09 a las 00:50: `/`, `/comprar` y `/comprar/viaje` devuelven los tres `Cache-Control: private, no-cache, no-store, max-age=0, must-revalidate` y `X-Vercel-Cache: MISS` — o sea dinamicas, armadas en cada request. Esto es lo que hace que el bug del `$NaN` de hoy no pueda volver por la via del HTML prerenderizado. Lo que NO cambia: cargar un precio en Vercel sigue pidiendo un deploy, porque Vercel lee las variables al construir; pero es un re-run del workflow (o un push), sin `--force`. Cero deploy pediria precios en la base: es un cambio de arquitectura, no una tarea pendiente.
 - [ ] **T3.10** — web: migrar `src/middleware.ts` a `proxy.ts` (deprecado en Next 16.3.4)
   - deps: —
   - tamaño: S
@@ -226,8 +225,8 @@ Lo que SI puede correr el piloto hoy: **T1.3, T3.1, T3.3, T3.5** (y T1.4 apenas 
   - hecho-cuando: `cd fabrica && npm test` desde la raiz del repo: exit 0, con un test que cubra el caso 'plantilla rechazada o PENDING' y verifique que la pregunta sale como texto libre en vez de no salir
   - nota: lo pidio Joaquin (21/09): las plantillas siguen todas en PENDING, asi que hoy la pregunta de la noche no se manda. Ventana: se puede mandar como texto si el narrador escribio en las ultimas 24 h. OJO: es una decision de producto tomada por Joaquin, no una interpretacion del agente; si hay dudas de si el texto libre afecta la calidad del numero de WhatsApp, preguntar antes de implementar.
 
-  - evidencia: HECHA por Joaquin (reportada el 2026-09-21). **Ojo: cerrada con su palabra, NO verificada en el codigo** — un grep rapido por fabrica/ y web/ no encontro el fallback, que probablemente viva en el worker del bot. Si alguien quiere el hueso: buscar donde se manda la pregunta de la noche y comprobar que hay una rama para plantilla rechazada. El bot ya manda la pregunta como texto cuando Meta rechaza la plantilla. Contexto: las 5 plantillas siguen en PENDING.
   - cerrada: 2026-09-21 (la hizo Joaquin, no el piloto)
+  - evidencia: HECHA por Joaquin. **VERIFICADA en el codigo**: entrevistador/src/flujo/preguntar.ts ~201, `enviarPlantilla(...).catch(err => { console.warn("la plantilla fallo, se intenta como texto"); return enviarTexto(...) })`, desplegado en Railway. El log de las 22:00 UTC lo confirma en produccion: la pregunta 1 de 370b1cd0 fallo como plantilla y salio como texto; a las 22:30 le llego a Nako. Ojo con la causa del fallo de esa noche: lo que se cayo despues no fue la plantilla sino el paso del AUDIO (OpenAI sin credito), que tumbaba el envio — ya protegido en 600fae6, con el credito cargado. Contexto: las 5 plantillas siguen en PENDING.
 - [!] **T3.15** — decidir qué hacer con la firma de las notificaciones IPN de MercadoPago
   - deps: —
   - tamaño: S
@@ -246,12 +245,22 @@ Lo que SI puede correr el piloto hoy: **T1.3, T3.1, T3.3, T3.5** (y T1.4 apenas 
   - evidencia: HECHA (cerrada y verificada el 2026-09-21, rama `web-precios-invalidos-2` **desde `web-webhook-mp-log`**, commit `dcea589`, sin push). Verificado por un humano: `npx vitest run test/precios.test.ts test/productos.test.ts` -> 121 tests OK; `npx tsc --noEmit` -> exit 0; y la suite completa del web -> **502 tests OK** (eran 411: +91). Cubre: el PDF en las dos regiones (un valor invalido cae al precio de la casa y avisa por consola), el viaje y los tres extras (sin precio valido no se ofrecen), el total del carrito nunca NaN, y un test que fija el default de AR en 85750 **leido del documento, no del codigo**. Tambien actualizo GASTOS.md, que decia que el default del codigo era 49999 (quedo falso con el cambio) y ahora deja escrita ahi la trampa del separador de miles. La rama `web-carrito-precio-invalido` (T3.6) queda SUPERADA: no hace falta mergearla.
   - cerrada: 2026-09-21 (verificada a mano)
 
-- [!] **T3.17** — decidir y documentar COMO se deploya VITACORA (¿git automatico o CLI a mano?)
+- [x] **T3.17** — decidir y documentar COMO se deploya VITACORA (¿git automatico o CLI a mano?)
   - deps: —
   - tamaño: S
-  - espera: decision humana (Naza o Joaquin). No hay que escribir codigo: hay que confirmar una creencia y dejarla escrita, porque de eso depende si un push llega solo a produccion.
-  - hecho-cuando: criterio en texto: esta escrito en el README (o donde el equipo lo lea) si produccion se actualiza sola al pushear a main o si alguien corre `vercel --prod`, y cual es el comando correcto cuando el cambio toca variables de entorno o paginas prerenderizadas
-  - nota: **creencia contra evidencia, medido el 21/09 a las 00:30.** Joaquin reporto "el deploy automatico a Vercel ya corrio, produccion es main, no hace falta deployar ramas a mano". Lo verifique y **no pude confirmarlo**: el deployment que esta sirviendo produccion no tiene NINGUNA metadata de git (el campo `meta` de `vercel inspect --json` viene vacio: sin commit ni branch) y en la lista de deployments hay **8 Production y 0 Preview** — un proyecto conectado a git genera un Preview por cada push a una rama, y no hay ni uno. Todo apunta a deployments por CLI (`vercel --prod`), que es lo que se veia tambien a la manana. Lo que SI verifique: produccion tiene el codigo de hoy (el GET del webhook ahora da 200, antes 405) y los precios correctos. O sea: el resultado esta bien, el modelo mental no. Y el modelo mental importa por dos razones: (1) si alguien pushea a main esperando que se despliegue solo, no se despliega; (2) un `vercel --prod` normal **reusa la cache de build**, y como la pagina de compra esta prerenderizada, un cambio de precio o de variable puede no verse hasta forzar el build con `vercel --prod --force` — que es exactamente lo que costo varias horas hoy.
+  - espera: —
+  - hecho-cuando: criterio en texto cumplido: la regla esta escrita en web/README.md (seccion "Deploy") y verificada contra el repo
+  - nota: **CERRADA: la respuesta es que SI es automatico, pero por GitHub Actions, no por la integracion de Vercel.** `.github/workflows/deploy-web.yml` (16/09): cada push a main que toque web/ corre los tests y despues `vercel pull + vercel build --prod + vercel deploy --prebuilt --prod` con un token. VERIFICADO: el archivo existe y su propio comentario lo dice ("es al reves: GitHub le empuja el deploy a Vercel con la CLI, igual que `vercel --prod` a mano, pero solo y en cada push"), y `gh run list --workflow deploy-web.yml` muestra la corrida de las 22:17 UTC con el titulo del merge que trajo este trabajo, verde, 1m21s (y el resto del dia, todas verdes).
+  - evidencia: —
+  - **LECCION IMPORTANTE (esto es lo que mas vale de T3.17):** un deployment SIN metadata de git y sin previews **no prueba** que el deploy haya sido a mano. Yo lo medi (meta vacio, 8 Production y 0 Preview) e inferi "lo corrio alguien con `vercel --prod`": la observacion era correcta y la conclusion falsa. La causa real es que el runner de Actions sube el build con la CLI, y entonces Vercel no le adjunta commit ni rama. Antes de concluir "esto es manual" por falta de metadata, hay que mirar si hay un workflow que deploya: el rastro esta en .github/workflows/, no en el deployment.
+  - nota 2 (la parte que SI queda): la trampa de la cache de build es real pero **solo para deploys a mano desde una maquina**, no para el workflow (que construye en un runner limpio). La regla que quedo escrita: variable nueva en Vercel -> re-run del workflow (o push); a mano -> `--force`.
+
+- [!] **3t.26** — logistica de lo fisico: direccion y seguimiento del impreso y los marcos (numero del EQUIPO, no del piloto)
+  - deps: —
+  - tamaño: M
+  - espera: **el modelo de datos y el CONTRATO**. Lo define el equipo con la fabrica. El piloto no puede empezar sin eso: no es que falte codigo, es que falta acordar que estados existen y quien los marca.
+  - hecho-cuando: criterio en texto: existe el contrato de estados (quien marca cada uno: la fabrica) y el modelo de datos de envio; recien despues el piloto puede escribir contra eso
+  - nota: la abre Joaquin el 21/09: **Encargar libro y /api/extras cobraban en la region de la familia dueña** — un primo que abria el link desde Argentina pagaba su copia en euros. Ya arreglado por el (usa el pais de quien compra, la misma linea que el 2.12). Lo que queda es lo fisico: el impreso y los marcos viajan, necesitan direccion y seguimiento, y los estados los marca la fabrica.
   - evidencia: —
 ## Fase 4 — Paneles y viaje (trabajo listo esperando variables)
 
