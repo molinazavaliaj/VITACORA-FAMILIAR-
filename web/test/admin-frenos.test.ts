@@ -62,6 +62,23 @@ describe("los frenos", () => {
     expect(f.some((freno) => freno.detalle.includes("pago"))).toBe(false);
   });
 
+  it("un pedido de piloto marcado a mano NO grita aunque esté viejo", () => {
+    // Los pilotos se corren a mano: no hay cobro que confirmar, así que no es un freno.
+    const f = frenosDe(datos({
+      pedidos: [{ id: "p9", estado: "pendiente", created_at: hace(200), narrador_id: "n1", monto: 49, moneda: "EUR", extras: { piloto: true } }] as never,
+    }), AHORA);
+    expect(f).toEqual([]);
+  });
+
+  it("un pedido sin la marca de piloto, con la misma antigüedad, SÍ es un freno", () => {
+    // La otra cara: sin esto, la regla de arriba podría estar apagando todo.
+    const f = frenosDe(datos({
+      pedidos: [{ id: "p9", estado: "pendiente", created_at: hace(200), narrador_id: "n1", monto: 49, moneda: "EUR", extras: {} }] as never,
+    }), AHORA);
+    expect(f).toHaveLength(1);
+    expect(f[0].que).toBe("pago");
+  });
+
   it("sin base, sin frenos: la pantalla muestra el vacío, no un error", () => {
     expect(frenosDe(datos({}), AHORA)).toEqual([]);
     expect(contarPorGravedad([])).toEqual({ rojo: 0, ambar: 0, verde: 0 });
