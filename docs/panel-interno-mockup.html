@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Panel de la empresa · mockup</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=Archivo:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,300;8..60,400&family=JetBrains+Mono:wght@400;500&display=swap');
+:root{
+  --negro:#14140F;--blanco:#fff;--grafito:#2B2B24;--pizarra:#45453C;--acero:#5F5F55;--humo:#83837A;
+  --ceniza:#AEAEA6;--niebla:#D4D4CE;--bruma:#EBEBE7;--papel:#F7F7F5;--violeta:#5D3FD3;--violeta-claro:#8F7BE0;
+  --fondo:var(--blanco);--texto:var(--negro);--texto-suave:var(--pizarra);--texto-menor:var(--acero);
+  --linea:var(--niebla);--linea-fuerte:var(--ceniza);--acento:var(--violeta);--relieve:var(--papel);--hueco:var(--bruma);
+  --ok:#2F6B4F;--alerta:#8A2A1E;--alerta-fondo:#FBEFEC;--espera:#8A6A1E;--espera-fondo:#FBF5E6;
+  --f-titulo:'Playfair Display',Georgia,serif;--f-micro:'Archivo',Helvetica,sans-serif;--f-cuerpo:'Source Serif 4',Georgia,serif;--f-num:'JetBrains Mono',monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--papel);color:var(--texto);font-family:var(--f-cuerpo);width:1140px}
+.wrap{padding:26px 34px 70px}
+.et{font-family:var(--f-micro);font-size:9.5px;letter-spacing:.3em;text-transform:uppercase;color:var(--texto-menor)}
+h1{font-family:var(--f-titulo);font-weight:400;font-size:31px;margin:8px 0 2px}
+h3{font-family:var(--f-titulo);font-weight:400;font-size:21px;margin:0 0 2px}
+p{font-size:14px;line-height:1.6;color:var(--texto-suave);max-width:770px;margin:10px 0}
+.barra{background:var(--negro);color:#fff;padding:15px 34px;display:flex;align-items:center;gap:20px}
+.barra .lg{font-family:var(--f-titulo);font-size:17px;line-height:1}
+.barra .lg span{font-family:var(--f-micro);font-size:8.5px;letter-spacing:.3em;color:var(--ceniza);display:block;margin-top:4px}
+.tabs{margin-left:auto;display:flex;gap:4px;font-family:var(--f-micro);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase}
+.tabs b{background:#27271F;color:#fff;padding:8px 13px;border-radius:999px;font-weight:600}
+.tabs i{padding:8px 13px;color:var(--ceniza);font-style:normal}
+.pant{margin-top:34px}
+.pant>header{border-bottom:1px solid var(--linea-fuerte);padding-bottom:9px;margin-bottom:20px;display:flex;align-items:baseline;gap:12px}
+.pant>header .n{font-family:var(--f-micro);font-size:10px;letter-spacing:.28em;color:var(--acento);font-weight:600}
+.pant>header h3{font-size:22px}
+.pant>header em{margin-left:auto;font-family:var(--f-micro);font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--texto-menor);font-style:normal}
+.card{background:var(--fondo);border:1px solid var(--linea);padding:18px 20px}
+.grid{display:grid;gap:14px}
+.g4{grid-template-columns:repeat(4,1fr)}
+.g3{grid-template-columns:repeat(3,1fr)}
+.g21{grid-template-columns:1.35fr 1fr}
+.big{font-family:var(--f-num);font-size:27px;line-height:1;margin:8px 0 3px}
+.big small{font-size:12px;color:var(--texto-menor);font-family:var(--f-micro)}
+table{border-collapse:collapse;width:100%;background:var(--fondo);font-size:13.5px}
+th{font-family:var(--f-micro);font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--texto-menor);
+   text-align:left;padding:9px 12px;border-bottom:1px solid var(--linea-fuerte);font-weight:600;white-space:nowrap}
+td{padding:10px 12px;border-bottom:1px solid var(--linea);vertical-align:top}
+tr:last-child td{border-bottom:0}
+.num{font-family:var(--f-num);font-size:12.5px;white-space:nowrap}
+.pill{display:inline-block;font-family:var(--f-micro);font-size:9px;letter-spacing:.16em;text-transform:uppercase;
+  padding:4px 8px;border-radius:999px;border:1px solid var(--linea-fuerte);color:var(--texto-menor);white-space:nowrap}
+.pill.ok{color:var(--ok);border-color:#BFD8C9;background:#F1F7F3}
+.pill.freno{color:var(--alerta);border-color:#E4C0B8;background:var(--alerta-fondo)}
+.pill.espera{color:var(--espera);border-color:#E8D9AE;background:var(--espera-fondo)}
+.pill.vio{color:var(--acento);border-color:#CFC4F2;background:#F4F1FE}
+.freno-row{display:flex;gap:14px;align-items:flex-start;padding:13px 0;border-bottom:1px solid var(--linea)}
+.freno-row:last-child{border-bottom:0}
+.dot{width:9px;height:9px;border-radius:50%;flex:none;margin-top:6px}
+.dot.r{background:#B23A28}.dot.a{background:#C79A2E}.dot.v{background:#3E7B5B}
+.freno-row .t{flex:1}
+.freno-row .t b{font-weight:600;font-size:14.5px}
+.freno-row .t div{font-size:13px;color:var(--texto-suave);margin-top:3px;line-height:1.55}
+.freno-row .w{font-family:var(--f-num);font-size:12px;color:var(--texto-menor);white-space:nowrap;padding-top:3px}
+.barra-dia{display:flex;align-items:flex-end;gap:9px;height:128px;padding-top:10px}
+.barra-dia .b{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%}
+.barra-dia .b i{width:100%;background:var(--violeta);display:block;border-radius:2px 2px 0 0}
+.barra-dia .b i.p{background:var(--ceniza)}
+.barra-dia .b u{font-family:var(--f-num);font-size:10.5px;color:var(--texto-menor);text-decoration:none;margin-top:5px}
+.barra-dia .b s{font-family:var(--f-micro);font-size:9px;letter-spacing:.1em;color:var(--texto-menor);text-decoration:none;text-transform:uppercase}
+.leyenda{display:flex;gap:18px;font-family:var(--f-micro);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--texto-menor);margin-top:12px}
+.leyenda span{display:flex;align-items:center;gap:6px}
+.leyenda i{width:10px;height:10px;display:block;border-radius:2px}
+.riel{display:flex;margin-top:6px}
+.riel .p{flex:1;border-top:2px solid var(--linea-fuerte);padding:12px 12px 0 0;position:relative}
+.riel .p:before{content:'';position:absolute;top:-7px;left:0;width:11px;height:11px;border-radius:50%;background:var(--ceniza)}
+.riel .p.hecho:before{background:var(--violeta)}
+.riel .p.hoy:before{background:var(--negro);box-shadow:0 0 0 4px #E4E0F8}
+.riel .p b{font-family:var(--f-micro);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;display:block}
+.riel .p s{font-size:12.5px;color:var(--texto-menor);text-decoration:none;display:block;margin-top:3px;line-height:1.45}
+.mk{border:1px dashed var(--linea-fuerte);padding:14px 16px;color:var(--texto-menor);font-size:12.5px;background:#FCFCFB;line-height:1.6}
+.mk b{color:var(--texto)}
+.nota{font-size:12.5px;color:var(--texto-menor);line-height:1.6}
+.foot{margin-top:40px;border-top:1px solid var(--linea-fuerte);padding-top:14px}
+.oscuro{background:var(--negro);color:#fff}
+</style>
+</head>
+<body>
+<div class="barra">
+  <div class="lg">VITÁCORA FAMILIAR<span>panel de la empresa</span></div>
+  <div class="tabs"><b>Hoy</b><i>Historias</i><i>Costos</i><i>Ventas</i><i>Cerebros</i></div>
+</div>
+<div class="wrap">
+  <div class="et">Mockup · no vinculante</div>
+  <h1>Panel de la empresa</h1>
+  <p>Cuatro pantallas para mirar y una para entender la máquina. Todo es <b>solo mirar</b>: no hay un botón que escriba
+  en la base. Los números de este archivo son de mentira, pero respetan las órdenes de magnitud reales
+  (<span class="num">USD 6</span> de IA por libro digital, silencio a los 3 días, voz trabada a las 6 h).</p>
+
+  <!-- ── 01 HOY ─────────────────────────────────────────────── -->
+  <section class="pant">
+    <header><span class="n">01</span><h3>Hoy</h3><em>¿se frenó algo?</em></header>
+    <div class="grid g4">
+      <div class="card"><div class="et">Entrevistas vivas</div><div class="big">3<small> / 4 narradores</small></div><span class="pill espera">1 sin responder hace 4 días</span></div>
+      <div class="card"><div class="et">Libros en la fábrica</div><div class="big">2<small> en cola</small></div><span class="pill freno">1 sin arrancar hace 3 días</span></div>
+      <div class="card"><div class="et">Su voz · PC de música</div><div class="big">22<small> min por capítulo</small></div><span class="pill freno">trabada hace 9 h</span></div>
+      <div class="card"><div class="et">Cobros</div><div class="big">3<small> del mes</small></div><span class="pill freno">1 pago sin confirmar 26 h</span></div>
+    </div>
+    <h3 style="margin:26px 0 2px">Lo que está frenado, en orden de gravedad</h3>
+    <div class="card" style="padding:6px 20px">
+      <div class="freno-row"><i class="dot r"></i><div class="t"><b>«Ciro» — la voz no avanza desde el capítulo 3</b>
+        <div>La narración está en <span class="num">procesando</span> y el último mp3 se subió hace 9 h. El criterio del repo dice colgada a las 6 h.</div></div>
+        <span class="w">9 h</span></div>
+      <div class="freno-row"><i class="dot r"></i><div class="t"><b>Familia Álvarez — el pago quedó en <span class="num">pendiente_pago</span></b>
+        <div>El narrador no recibe la pregunta 1 hasta que el cobro se confirme. Entraron 26 h y nunca se le escribió.</div></div>
+        <span class="w">26 h</span></div>
+      <div class="freno-row"><i class="dot a"></i><div class="t"><b>Don Osvaldo lleva 4 días sin responder</b>
+        <div>Día 17 de 30. La alerta de silencio se prendió sola. Es el caso para llamar a la familia: a los 80 años una semana en blanco es donde se pierde el libro.</div></div>
+        <span class="w">4 días</span></div>
+      <div class="freno-row"><i class="dot a"></i><div class="t"><b>Pedido de la familia Sosa pagado hace 3 días y la fábrica no lo tomó</b>
+        <div>El pedido figura <span class="num">pagado</span> y no hay libro ni borrador. El worker sondea cada 30 s: si no lo tomó, o está caído o el pedido quedó mal armado.</div></div>
+        <span class="w">3 días</span></div>
+      <div class="freno-row"><i class="dot v"></i><div class="t"><b>Rosa — todo al día</b>
+        <div>Respondió hace 6 h, la pregunta de mañana ya está personalizada y la voz salió sin reintentos.</div></div>
+        <span class="w">6 h</span></div>
+    </div>
+    <div class="mk"><b>Los umbrales son tuyos:</b> propongo silencio del narrador a los 3 días (ya existe), libro pagado sin
+    arrancar a las 24 h, voz sin avance a las 6 h (ya existe) y pago sin confirmar a las 12 h. En el spec quedan escritos
+    uno por uno para que los corras o los cambies.</div>
+
+    <div class="oscuro" style="margin-top:16px;padding:18px 20px;display:flex;gap:18px;align-items:center">
+      <span class="et" style="color:var(--ceniza)">el mismo tablero en tema oscuro</span>
+      <span class="pill freno" style="background:#2A1512;border-color:#5A2A22;color:#F2B8AE">voz trabada · 9 h</span>
+      <span class="pill espera" style="background:#2A2413;border-color:#5A4C22;color:#E8D9AE">silencio · 4 días</span>
+      <span class="pill ok" style="background:#12321F;border-color:#1F4A31;color:#8FD3AE">al día · 6 h</span>
+      <span class="nota" style="margin-left:auto;color:var(--ceniza)">el botón claro/oscuro del tablero ya existe: el panel lo hereda</span>
+    </div>
+  </section>
+
+  <!-- ── 02 HISTORIAS ───────────────────────────────────────── -->
+  <section class="pant">
+    <header><span class="n">02</span><h3>Historias</h3><em>la relación con el biógrafo</em></header>
+    <table>
+      <thead><tr><th>Narrador</th><th>Familia · país</th><th>Estado</th><th>Día</th><th>Última respuesta</th><th>Próxima pregunta</th><th>Libro</th><th></th></tr></thead>
+      <tbody>
+        <tr><td><b>Osvaldo Bermúdez</b><div class="nota">le dicen «Don Osvaldo»</div></td><td>Bermúdez · <span class="num">ES</span></td>
+            <td><span class="pill vio">activo</span></td><td class="num">17/30</td><td class="num">hace 4 días</td>
+            <td>«El taller del 81»<div class="nota">personalizada: nombra el taller que contó</div></td><td class="nota">—</td>
+            <td><span class="pill espera">silencio</span></td></tr>
+        <tr><td><b>Rosa Méndez</b></td><td>Méndez · <span class="num">ES</span></td>
+            <td><span class="pill vio">activo</span></td><td class="num">12/30</td><td class="num">hace 6 h</td>
+            <td>«La cocina de los domingos»</td><td class="nota">—</td><td><span class="pill ok">al día</span></td></tr>
+        <tr><td><b>Ciro Álvarez</b></td><td>Álvarez · <span class="num">AR</span></td>
+            <td><span class="pill">completado</span></td><td class="num">30/30</td><td class="num">hace 9 días</td><td class="nota">cerró y se despidió</td>
+            <td><span class="pill freno">voz trabada</span></td><td><span class="pill freno">9 h</span></td></tr>
+        <tr><td><b>Joaquín Ferrer</b></td><td>Ferrer · <span class="num">ES</span></td>
+            <td><span class="pill">cerrado anticipado</span></td><td class="num">14/30</td><td class="num">hace 21 días</td><td class="nota">la familia pidió cierre</td>
+            <td><span class="pill ok">entregado</span></td><td><span class="pill ok">ok</span></td></tr>
+        <tr><td><b>Elena Sosa</b></td><td>Sosa · <span class="num">AR</span></td>
+            <td><span class="pill espera">invitado</span></td><td class="num">0/30</td><td class="nota">esperando el SÍ</td><td class="nota">la pregunta 1 sale al SÍ</td>
+            <td><span class="pill freno">sin arrancar</span></td><td><span class="pill freno">3 días</span></td></tr>
+      </tbody>
+    </table>
+
+    <div class="grid g21" style="margin-top:16px">
+      <div class="card">
+        <div class="et">Historia de Osvaldo · el riel de la relación</div>
+        <div class="riel">
+          <div class="p hecho"><b>compró</b><s>hace 19 días</s></div>
+          <div class="p hecho"><b>contestó SÍ</b><s>hace 18 días</s></div>
+          <div class="p hecho"><b>día 1 a 16</b><s>16 respuestas · 41 min de audio</s></div>
+          <div class="p hoy"><b>día 17</b><s>le escribimos y no contestó</s></div>
+          <div class="p"><b>día 30</b><s>—</s></div>
+          <div class="p"><b>libro</b><s>—</s></div>
+        </div>
+        <p class="nota" style="max-width:none;margin-top:16px">Adentro de cada historia: lo que el biógrafo preguntó de
+        verdad (no el guion), la repregunta que le hizo, qué contestó y los audios a un clic. Es el mismo material que ya
+        ve el cliente, más la trastienda: para colgarse al teléfono sabiendo por dónde va.</p>
+      </div>
+      <div class="card">
+        <div class="et">A quién habría que llamar esta semana</div>
+        <div class="freno-row"><i class="dot a"></i><div class="t"><b>Familia Bermúdez</b><div>El narrador se calló en el día 17.</div></div><span class="w">ES</span></div>
+        <div class="freno-row"><i class="dot r"></i><div class="t"><b>Familia Álvarez</b><div>Pago sin confirmar: no llegó a empezar.</div></div><span class="w">AR</span></div>
+        <div class="freno-row"><i class="dot v"></i><div class="t"><b>Familia Ferrer</b><div>Entregado y sin noticias: candidata al marco con NFC y a la segunda familia del clan.</div></div><span class="w">ES</span></div>
+        <p class="nota" style="max-width:none">Sin botones: la lista es para llamar por teléfono, que es donde
+        realmente se destraba.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 03 COSTOS ──────────────────────────────────────────── -->
+  <section class="pant">
+    <header><span class="n">03</span><h3>Costos</h3><em>la estructura de cada cliente</em></header>
+    <div class="grid g21">
+      <div class="card">
+        <div class="et">Gasto de IA por día · últimos 7 días</div>
+        <div class="barra-dia">
+          <div class="b"><i class="p" style="height:5px"></i><u>0,42</u><s>15/09</s></div>
+          <div class="b"><i class="p" style="height:14px"></i><u>1,10</u><s>16/09</s></div>
+          <div class="b"><i class="p" style="height:4px"></i><u>0,35</u><s>17/09</s></div>
+          <div class="b"><i style="height:86px"></i><u>6,80</u><s>18/09</s></div>
+          <div class="b"><i class="p" style="height:3px"></i><u>0,20</u><s>19/09</s></div>
+          <div class="b"><i style="height:18px"></i><u>1,45</u><s>20/09</s></div>
+          <div class="b"><i style="height:26px"></i><u>2,04</u><s>21/09</s></div>
+        </div>
+        <div class="leyenda">
+          <span><i style="background:var(--violeta)"></i>días con libro (fábrica)</span>
+          <span><i style="background:var(--ceniza)"></i>entrevista y pruebas</span>
+        </div>
+        <p class="nota" style="max-width:none">El 18/09 es el libro de Joaquín: el día que se escribe un libro se come la
+        semana. Ese pico, visto a tiempo, es la diferencia entre «el mes salió caro» y «sabemos por qué».</p>
+      </div>
+      <div class="card">
+        <div class="et">Hoy · 21/09</div>
+        <div class="big">USD 2,04</div>
+        <div class="nota">412 k tokens · 2 entrevistas activas, 1 libro en cola</div>
+        <table style="margin-top:12px">
+          <thead><tr><th>Servicio</th><th>Modelo</th><th>Tokens</th><th>USD</th></tr></thead>
+          <tbody>
+            <tr><td>Entrevistador · evaluar</td><td class="num">opus-5</td><td class="num">96 k</td><td class="num">0,74</td></tr>
+            <tr><td>Entrevistador · transcribir</td><td class="num">gpt-transcribe</td><td class="num">—</td><td class="num">0,41</td></tr>
+            <tr><td>Entrevistador · personalizar</td><td class="num">haiku-4-5</td><td class="num">184 k</td><td class="num">0,22</td></tr>
+            <tr><td>Entrevistador · voz pregunta</td><td class="num">gpt-4o-mini-tts</td><td class="num">—</td><td class="num">0,16</td></tr>
+            <tr><td>Fábrica · anticipo</td><td class="num">fable-5</td><td class="num">132 k</td><td class="num">0,51</td></tr>
+            <tr><td>Su voz · cortar y restaurar</td><td class="num">local (GPU)</td><td class="num">—</td><td class="num">0,00</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="grid g3" style="margin-top:14px">
+      <div class="card"><div class="et">Costo de IA por libro digital</div><div class="big">USD 5,80<small> a 6,10</small></div>
+        <div class="nota">Contra 49 € de precio: margen 88 %. Sale de las llamadas reales, no de una tabla estimada.</div></div>
+      <div class="card"><div class="et">Suscripciones del producto</div><div class="big">USD 5<small> + 27 €/año</small></div>
+        <div class="nota">Railway USD 5/mes · dominio 15 €/año · mail de empresa 12 €/año · Vercel y Supabase en plan free.</div></div>
+      <div class="card"><div class="et">Cargas a mano</div><div class="big">USD 0<small> este mes</small></div>
+        <div class="nota">Lo que no pasa por una llamada —una recarga de crédito, un gasto raro— lo cargás con fecha, concepto y monto.</div></div>
+    </div>
+    <div class="mk"><b>Lo que falta construir para que esto sea verdad:</b> hoy la fábrica anota lo suyo por narrador en
+    Storage y el entrevistador no anota nada (transcripción, evaluación, adaptativas, personalizar, TTS). Esta pantalla es
+    la razón por la que hay que instrumentarlo.</div>
+  </section>
+
+  <!-- ── 04 VENTAS ──────────────────────────────────────────── -->
+  <section class="pant">
+    <header><span class="n">04</span><h3>Ventas</h3><em>lo que entró y lo que dejó</em></header>
+    <div class="grid g4" style="margin-bottom:14px">
+      <div class="card"><div class="et">Ventas del mes</div><div class="big">3</div><div class="nota">2 en España · 1 en Argentina</div></div>
+      <div class="card"><div class="et">Facturado</div><div class="big">89 €<small> + ARS 171.500</small></div><div class="nota">sin contar los extras sin precio cargado</div></div>
+      <div class="card"><div class="et">IA de esos libros</div><div class="big">USD 11,90</div><div class="nota">lo que costó escribir lo que se vendió</div></div>
+      <div class="card"><div class="et">Margen</div><div class="big">87 %</div><div class="nota">promedio; el impreso sube el ticket y el margen</div></div>
+    </div>
+    <table>
+      <thead><tr><th>Fecha</th><th>Cliente</th><th>País</th><th>Qué compró</th><th>Monto</th><th>IA del libro</th><th>Margen</th><th>Estado</th></tr></thead>
+      <tbody>
+        <tr><td class="num">18/09</td><td>Familia Ferrer</td><td class="num">ES</td><td>PDF + impreso B/N</td><td class="num">89 €</td><td class="num">USD 6,10</td><td class="num">84 %</td><td><span class="pill ok">entregado</span></td></tr>
+        <tr><td class="num">19/09</td><td>Familia Álvarez</td><td class="num">AR</td><td>PDF</td><td class="num">ARS 85.750</td><td class="num">USD 5,80</td><td class="num">88 %</td><td><span class="pill espera">voz en curso</span></td></tr>
+        <tr><td class="num">21/09</td><td>Familia Sosa</td><td class="num">AR</td><td>PDF</td><td class="num">ARS 85.750</td><td class="nota">— todavía no se escribió</td><td class="nota">—</td><td><span class="pill freno">sin arrancar</span></td></tr>
+      </tbody>
+    </table>
+    <div class="mk"><b>Lo que ya está en la base y alcanza:</b> fecha, monto, moneda, país de la familia, qué se compró
+    (<span class="num">extras</span>) y el estado. El costo de IA del libro sale de la instrumentación del punto 03.
+    <b>Lo que no existe:</b> a qué cuenta entró la plata — hoy se deduce de la pasarela (Stripe / Mercado Pago); si algún
+    día cobran con dos cuentas distintas, se agrega una etiqueta por venta.</div>
+  </section>
+
+  <!-- ── 05 CEREBROS ────────────────────────────────────────── -->
+  <section class="pant">
+    <header><span class="n">05</span><h3>Cerebros</h3><em>qué cerebro trabaja, qué hace y dónde se frenó</em></header>
+    <div class="grid g21">
+      <div class="card" style="padding:12px 14px">
+        <svg viewBox="0 0 700 340" width="100%" style="display:block">
+          <text x="16" y="17" font-family="Archivo,sans-serif" font-size="7.6" letter-spacing="2.4" fill="#83837A">ENTREVISTA · WHATSAPP</text>
+          <rect x="16" y="26" width="120" height="58" rx="4" fill="#FFFFFF" stroke="#3E7B5B" stroke-width="1.6"/>
+          <circle cx="27" cy="39" r="4" fill="#3E7B5B"/>
+          <text x="37" y="43" font-family="Archivo,sans-serif" font-size="8.4" font-weight="600" fill="#14140F">Mensaje del narrador</text>
+          <text x="27" y="59" font-family="JetBrains Mono,monospace" font-size="8" fill="#5F5F55">sin modelo</text>
+          <text x="27" y="73" font-family="Source Serif 4,serif" font-size="8.6" fill="#83837A">hace 6 h</text>
+          <line x1="137" y1="55" x2="146" y2="55" stroke="#D4D4CE" stroke-width="1"/>
+          <path d="M151 55 l-5 -3 v6 z" fill="#AEAEA6"/>
+          <rect x="151" y="26" width="120" height="58" rx="4" fill="#FFFFFF" stroke="#C79A2E" stroke-width="1"/>
+          <circle cx="162" cy="39" r="4" fill="#C79A2E"/>
+          <text x="172" y="43" font-family="Archivo,sans-serif" font-size="8.4" font-weight="600" fill="#14140F">Transcribir</text>
+          <text x="162" y="59" font-family="JetBrains Mono,monospace" font-size="8" fill="#5F5F55">gpt-transcribe</text>
+          <text x="162" y="73" font-family="Source Serif 4,serif" font-size="8.6" fill="#83837A">sin audio hace 20 h</text>
+          <line x1="272" y1="55" x2="281" y2="55" stroke="#D4D4CE" stroke-width="1"/>
+          <path d="M286 55 l-5 -3 v6 z" fill="#AEAEA6"/>
+          <rect x="286" y="26" width="120" height="58" rx="4" fill="#FFFFFF" stroke="#3E7B5B" stroke-width="1.6"/>
+          <circle cx="297" cy="39" r="4" fill="#3E7B5B"/>
+          <text x="307" y="43" font-family="Archivo,sans-serif" font-size="8.4" font-weight="600" fill="#14140F">Evaluar respuesta</text>
+          <text x="297" y="59" font-family="JetBrains Mono,monospace" font-size="8" fill="#5F5F55">opus-5</text>
+          <text x="297" y="73" font-family="Source Serif 4,serif" font-size="8.6" fill="#83837A">hace 6 h</text>
+          <line x1="407" y1="55" x2="416" y2="55" stroke="#D4D4CE" stroke-width="1"/>
+          <path d="M421 55 l-5 -3 v6 z" fill="#AEAEA6"/>
+          <rect x="421" y="26" width="120" height="58" rx="4" fill="#FFFFFF" stroke="#3E7B5B" stroke-width="1.6"/>
+          <circle cx="432" cy="39" r="4" fill="#3E7B5B"/>
+          <text x="442" y="43" font-family="Archivo,sans-serif" font-size="8.4" font-weight="600" fill="#14140F">Personalizar pregunta</text>
+          <text x="432" y="59" font-family="JetBrains Mono,monospace" font-size="8" fill="#5F5F55">haiku-4-5</text>
+          <text x="432" y="73" font-family="Source Serif 4,serif" font-size="8.6" fill="#83837A">hace 6 min</text>
+          <line x1="542" y1="55" x2="551" y2="55" stroke="#D4D4CE" stroke-width="1"/>
+          <path d="M556 55 l-5 -3 v6 z" fill="#AEAEA6"/>
+          <rect x="556" y="26" width="120" height="58" rx="4" fill="#FFFFFF" stroke="#3E7B5B" stroke-width="1.6"/>
+          <circle cx="567" cy="39" r="4" fill="#3E7B5B"/>
+          <text x="577" y="43" font-family="Archivo,sans-serif" font-size="8.4" font-weight="600" fill="#14140F">Voz de la pregunta</text>
+          <text x="567" y="59" font-family="JetBrains Mono,monospace" font-size="8" fill="#5F5F55">gpt-4o-mini-tts</text>
+          <text x="567" y="73" font-family="Source Serif 4,serif" font-size="8.6" fill="#83837A">hace 6 h</text>
+
+          <text x="16" y="133" font-family="Archivo,sans-serif" font-size="7.6" letter-spacing="2.4" fill="#83837A">LIBRO · LA FÁBRICA</text>
+          <rect x="16" y="142" width="120" height="58" rx="4" fill="#FFFFFF" stroke="#3E7B5B" stroke-width="1.6"/>
+          <circle cx="27" cy="155" r="4" fill="#3E7B5B"/>
+          <text x="37" y="159" font-family="Archivo,sans-serif" font-size="8.4" font-weight="600" fill="#14140F">Estructura</text>
+          <text x="27" y="175" font-family="JetBrains Mono,monospace" font-size="8" fill="#5F5F55">fable-5</text>
+          <text x="27" y="189" font-family="Source Serif 4,serif" font-size="8.6" fill="#83837A">hace 19 días</text>
+          <line x1="137" y1="171" x2="146" y2="171" stroke="#D4D4CE" stroke-width="1"/>
+          <path d="M151 171 l-5 -3 v6 z" fill="#AEAEA6"/>
+          <rect x="151" y="142" width="120" height="58" rx="4" fill="#FFFFFF" stroke="#3E7B5B" stroke-width="1.6"/>
+          <circle cx="162" cy="155" r="4" fill="#3E7B5B"/>
+          <text x="172" y="159" font-family="Archivo,sans-serif" font-size="8.4" font-weight="600" fill="#14140F">Anticipo</text>
+          <text x="162" y="175" font-family="JetBrains Mono,monospace" font-size="8" fill="#5F5F55">fable-5</text>
+          <text x="162" y="189" font-family="Source Serif 4,serif" font-size="8.6" fill="#83837A">hace 2 min</text>
+          <line x1="272" y1="171" x2="281" y2="171" stroke="#D4D4CE" stroke-width="1"/>
+          <path d="M286 171 l-5 -3 v6 z" fill="#AEAEA6"/>
+          <rect x="286" y="142" width="120" height="58" rx="4" fill="#FFFFFF" stroke="#B23A28" stroke-width="1.6"/>
+          <circle cx="297" cy="155" r="4" fill="#B23A28"/>
+          <text x="307" y="159" font-family="Archivo,sans-serif" font-size="8.4" font-weight="600" fill="#14140F">Capítulos</text>
+          <text x="297" y="175" font-family="JetBrains Mono,monospace" font-size="8" fill="#5F5F55">fable-5</text>
+          <text x="297" y="189" font-family="Source Serif 4,serif" font-size="8.6" fill="#83837A">familia Sosa esperando</text>
+          <line x1="407" y1="171" x2="416" y2="171" stroke="#D4D4CE" stroke-width="1"/>
+          <path d="M421 171 l-5 -3 v6 z" fill="#AEAEA6"/>
+          <rect x="421" y="142" width="120" height="58" rx="4" fill="#FFFFFF" stroke="#D4D4CE" stroke-width="1" stroke-dasharray="3 3"/>
+          <circle cx="432" cy="155" r="4" fill="#AEAEA6"/>
+          <text x="442" y="159" font-family="Archivo,sans-serif" font-size="8.4" font-weight="600" fill="#14140F">Editor final</text>
+          <text x="432" y="175" font-family="JetBrains Mono,monospace" font-size="8" fill="#5F5F55">fable-5</text>
+          <text x="432" y="189" font-family="Source Serif 4,serif" font-size="8.6" fill="#83837A">sin uso</text>
+          <line x1="542" y1="171" x2="551" y2="171" stroke="#D4D4CE" stroke-width="1"/>
+          <path d="M556 171 l-5 -3 v6 z" fill="#AEAEA6"/>
+          <rect x="556" y="142" width="120" height="58" rx="4" fill="#FFFFFF" stroke="#D4D4CE" stroke-width="1" stroke-dasharray="3 3"/>
+          <circle cx="567" cy="155" r="4" fill="#AEAEA6"/>
+          <text x="577" y="159" font-family="Archivo,sans-serif" font-size="8.4" font-weight="600" fill="#14140F">PDF + paquete</text>
+          <text x="567" y="175" font-family="JetBrains Mono,monospace" font-size="8" fill="#5F5F55">sin modelo</text>
+          <text x="567" y="189" font-family="Source Serif 4,serif" font-size="8.6" fill="#83837A">sin uso</text>
+
+          <text x="16" y="249" font-family="Archivo,sans-serif" font-size="7.6" letter-spacing="2.4" fill="#83837A">SU VOZ · PC DE MÚSICA</text>
+          <rect x="16" y="258" width="120" height="58" rx="4" fill="#FFFFFF" stroke="#3E7B5B" stroke-width="1.6"/>
+          <circle cx="27" cy="271" r="4" fill="#3E7B5B"/>
+          <text x="37" y="275" font-family="Archivo,sans-serif" font-size="8.4" font-weight="600" fill="#14140F">Qué frases faltan</text>
+          <text x="27" y="291" font-family="JetBrains Mono,monospace" font-size="8" fill="#5F5F55">sin modelo</text>
+          <text x="27" y="305" font-family="Source Serif 4,serif" font-size="8.6" fill="#83837A">hace 9 h</text>
+          <line x1="137" y1="287" x2="146" y2="287" stroke="#D4D4CE" stroke-width="1"/>
+          <path d="M151 287 l-5 -3 v6 z" fill="#AEAEA6"/>
+          <rect x="151" y="258" width="120" height="58" rx="4" fill="#FFFFFF" stroke="#3E7B5B" stroke-width="1.6"/>
+          <circle cx="162" cy="271" r="4" fill="#3E7B5B"/>
+          <text x="172" y="275" font-family="Archivo,sans-serif" font-size="8.4" font-weight="600" fill="#14140F">Ubicar en el audio</text>
+          <text x="162" y="291" font-family="JetBrains Mono,monospace" font-size="8" fill="#5F5F55">whisper local</text>
+          <text x="162" y="305" font-family="Source Serif 4,serif" font-size="8.6" fill="#83837A">hace 9 h</text>
+          <line x1="272" y1="287" x2="281" y2="287" stroke="#D4D4CE" stroke-width="1"/>
+          <path d="M286 287 l-5 -3 v6 z" fill="#AEAEA6"/>
+          <rect x="286" y="258" width="120" height="58" rx="4" fill="#FFFFFF" stroke="#B23A28" stroke-width="1.6"/>
+          <circle cx="297" cy="271" r="4" fill="#B23A28"/>
+          <text x="307" y="275" font-family="Archivo,sans-serif" font-size="8.4" font-weight="600" fill="#14140F">Restaurar + emparejar</text>
+          <text x="297" y="291" font-family="JetBrains Mono,monospace" font-size="8" fill="#5F5F55">GPU local</text>
+          <text x="297" y="305" font-family="Source Serif 4,serif" font-size="8.6" fill="#83837A">trabada · 9 h</text>
+          <line x1="407" y1="287" x2="416" y2="287" stroke="#D4D4CE" stroke-width="1"/>
+          <path d="M421 287 l-5 -3 v6 z" fill="#AEAEA6"/>
+          <rect x="421" y="258" width="120" height="58" rx="4" fill="#FFFFFF" stroke="#D4D4CE" stroke-width="1" stroke-dasharray="3 3"/>
+          <circle cx="432" cy="271" r="4" fill="#AEAEA6"/>
+          <text x="442" y="275" font-family="Archivo,sans-serif" font-size="8.4" font-weight="600" fill="#14140F">QR en el libro</text>
+          <text x="432" y="291" font-family="JetBrains Mono,monospace" font-size="8" fill="#5F5F55">sin modelo</text>
+          <text x="432" y="305" font-family="Source Serif 4,serif" font-size="8.6" fill="#83837A">sin uso</text>
+        </svg>
+        <div class="leyenda" style="flex-wrap:wrap">
+          <span><i style="background:#3E7B5B;border-radius:50%"></i>hizo algo dentro del umbral</span>
+          <span><i style="background:#C79A2E;border-radius:50%"></i>quieto, y es normal</span>
+          <span><i style="background:#B23A28;border-radius:50%"></i>se pasó del umbral: freno</span>
+          <span><i style="background:#AEAEA6;border-radius:50%"></i>sin uso todavía</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="et">Ahora mismo</div>
+        <div class="freno-row"><i class="dot v"></i><div class="t"><b>haiku-4-5 · personalizar</b><div>Escribió la pregunta de Rosa</div></div><span class="w">6 min</span></div>
+        <div class="freno-row"><i class="dot v"></i><div class="t"><b>fable-5 · anticipo</b><div>El anticipo de la familia Sosa</div></div><span class="w">2 min</span></div>
+        <div class="freno-row"><i class="dot a"></i><div class="t"><b>gpt-transcribe</b><div>Sin audio nuevo desde ayer</div></div><span class="w">20 h</span></div>
+        <div class="freno-row"><i class="dot r"></i><div class="t"><b>worker de Su voz</b><div>Sin avance desde el capítulo 3 de Ciro</div></div><span class="w">9 h</span></div>
+        <div class="freno-row"><i class="dot r"></i><div class="t"><b>worker de la fábrica</b><div>Último pedido tomado hace 3 días y sin latido</div></div><span class="w">3 días</span></div>
+        <p class="nota" style="max-width:none">Cada nodo se pinta con esto: <b>verde</b> si hizo algo dentro del umbral,
+        <b>ámbar</b> si está quieto pero es normal, <b>rojo</b> si se pasó del umbral. La cadena muestra dónde se cortó: si
+        el pago no se confirma, el nodo de la pregunta 1 nunca se enciende.</p>
+      </div>
+    </div>
+    <div class="mk"><b>Lo que este mapa necesita para estar vivo:</b> los timestamps que ya existen
+    (<span class="num">respuestas.recibido_at</span>, <span class="num">envios.enviado_at</span>,
+    <span class="num">narraciones.actualizada_at</span>, <span class="num">pedidos.estado</span>, el último costo anotado) y
+    un <b>latido</b> de los tres workers —fábrica y entrevistador en Railway, voz en tu PC—, porque sin latido no se
+    distingue «no hay trabajo» de «se cayó el worker».</div>
+  </section>
+
+  <div class="foot">
+    <div class="et">Qué mirar de acá</div>
+    <p class="nota">¿Te sirve «Hoy» como puerta de entrada, con los frenos ordenados por gravedad? ¿Las Historias te
+    alcanzan así o querés más (los audios, la ficha, el árbol familiar)? ¿En Costos querés ver el gasto por cliente o te
+    alcanza el total del día y el costo por libro? ¿El mapa de Cerebros se entiende sin explicación?</p>
+  </div>
+</div>
+</body>
+</html>

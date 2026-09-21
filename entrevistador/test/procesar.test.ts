@@ -191,7 +191,7 @@ describe('procesarEntrante', () => {
     const m: MensajeEntrante = { telefono: TEL, tipo: 'audio', mediaId: 'media-1', waMessageId: 'w' };
     await procesarEntrante(m);
     expect(mocks.guardarRespuestaAudio).toHaveBeenCalledWith('n1', 3, expect.any(Buffer), false);
-    expect(mocks.transcribirYActualizar).toHaveBeenCalledWith('r-audio', expect.any(Buffer));
+    expect(mocks.transcribirYActualizar).toHaveBeenCalledWith('r-audio', expect.any(Buffer), undefined, 'n1');
   });
 
   it('(c) una respuesta insuficiente dispara exactamente una repregunta', async () => {
@@ -213,7 +213,7 @@ describe('procesarEntrante', () => {
     mocks.detectarQueNoTuvo.mockResolvedValue('no_tuvo');
     mocks.evaluarRespuesta.mockResolvedValue({ suficiente: false, repregunta: '¿Y por qué no tuvo hijos?' });
     await procesarEntrante({ telefono: TEL, tipo: 'audio', mediaId: 'media-1', waMessageId: 'w' });
-    expect(mocks.detectarQueNoTuvo).toHaveBeenCalledWith('Los hijos', 'PREGUNTA_MOCK', 'No, yo no tengo hijos.');
+    expect(mocks.detectarQueNoTuvo).toHaveBeenCalledWith('Los hijos', 'PREGUNTA_MOCK', 'No, yo no tengo hijos.', 'n1');
     expect(mocks.evaluarRespuesta).not.toHaveBeenCalled();
     expect(mocks.enviarTexto).not.toHaveBeenCalled();
     const conArbol = mocks.estado.capturas.find((c) => c.op === 'update' && c.tabla === 'narradores' && c.p.contexto);
@@ -266,7 +266,7 @@ describe('procesarEntrante', () => {
     mocks.detectarReservaYDejarTema.mockResolvedValue({ reserva: { reservada: true, tramo: null }, dejarTema: 'su tío' });
     await procesarEntrante({ telefono: TEL, tipo: 'audio', mediaId: 'media-1', waMessageId: 'w' });
     expect(mocks.evaluarRespuesta).not.toHaveBeenCalled();
-    expect(mocks.detectarReservaYDejarTema).toHaveBeenCalledWith('Y bueno, eso no lo pongas en el libro.', 'vos');
+    expect(mocks.detectarReservaYDejarTema).toHaveBeenCalledWith('Y bueno, eso no lo pongas en el libro.', 'vos', { narradorId: 'n1' });
     expect(mocks.guardarReserva).toHaveBeenCalledWith('r-audio', { reservada: true, tramo: null });
     expect(mocks.estado.narrador.contexto.evitar).toContain('su tío');
     expect(mocks.enviarTexto).not.toHaveBeenCalled(); // ninguna repregunta de más

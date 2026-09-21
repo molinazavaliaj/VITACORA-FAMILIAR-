@@ -138,17 +138,64 @@ export async function registrarUso(
   narradorId: string,
   uso: { modelo: string; paso: PasoModelo; usage: Uso | null | undefined }
 ): Promise<void> {
-  if (!uso.usage) return;
+  const usage = uso.usage;
+  if (!usage) return;
   try {
     const cliente = typeof db === 'function' ? db() : db;
     const ruta = RUTA_COSTOS(narradorId);
     const costos = parsearCostos(await descargarTextoOpcional(cliente, ruta));
-    costos.push(armarFila(uso.modelo, uso.paso, uso.usage));
+    costos.push(armarFila(uso.modelo, uso.paso, usage));
     await subirTexto(cliente, ruta, JSON.stringify(costos, null, 2), 'application/json');
+    // Además del JSON por narrador (que sirve para recalcular un libro puntual),
+    // la llamada queda en `consumo_ia`: es la ÚNICA tabla que lee el panel de la
+    // empresa, y el libro es el 80% del costo por cliente. Sin esto, la pantalla
+    // de Gastos mostraría un quinto del gasto real.
+    await anotarEnConsumoIa(cliente, narradorId, { modelo: uso.modelo, paso: uso.paso, usage });
   } catch (err) {
     console.warn(
       `registrarUso: no se pudo anotar el costo del paso ${uso.paso} (${uso.modelo}) de ${narradorId}: ${(err as Error).message}`
     );
+  }
+}
+
+/** Quién paga la key de este servicio. Se cambia por variable, no por código. */
+function cuentaDeEsteServicio(): string | null {
+  return process.env.CUENTA_IA?.trim() || null;
+}
+
+/** El proveedor sale del nombre del modelo (la fábrica hoy sólo usa los de Anthropic). */
+function proveedorDe(modelo: string): 'anthropic' | 'openai' | 'local' {
+  if (modelo.startsWith('claude')) return 'anthropic';
+  if (modelo.startsWith('gpt') || modelo.startsWith('whisper')) return 'openai';
+  return 'local';
+}
+
+/**
+ * La fila que lee el panel (`consumo_ia`), con su propio try: si la tabla no existe
+ * o la base no responde, el costo igual queda en el JSON de Storage y el libro sigue
+ * su camino — la regla de oro del módulo: la contabilidad no puede frenar el libro.
+ */
+async function anotarEnConsumoIa(cliente: Db, narradorId: string, uso: { modelo: string; paso: PasoModelo; usage: Uso }): Promise<void> {
+  try {
+    const fila = armarFila(uso.modelo, uso.paso, uso.usage);
+    const { error } = await cliente.from('consumo_ia').insert({
+      servicio: 'fabrica',
+      paso: fila.paso,
+      modelo: fila.modelo,
+      proveedor: proveedorDe(fila.modelo),
+      cuenta: cuentaDeEsteServicio(),
+      narrador_id: narradorId,
+      input_tokens: fila.input,
+      output_tokens: fila.output,
+      cache_write: fila.cache_write,
+      cache_read: fila.cache_read,
+      cantidad: null,
+      unidad: null,
+      usd: fila.usd,
+    });
+    if (error) console.warn(`costos: no se pudo anotar en consumo_ia el paso ${fila.paso}: ${error.message}`);
+  } catch (err) {
+    console.warn(`costos: no se pudo anotar en consumo_ia el paso ${uso.paso}: ${(err as Error).message}`);
   }
 }
 
