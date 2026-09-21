@@ -72,7 +72,7 @@ const CRITERIOS = `Los criterios, en orden:
 4. No hiere a alguien que está vivo (nombres, peleas, plata).
 5. Una por tema: dos veces lo mismo no entra.`;
 
-const TITULOS_IGNORADOS = ['a mis lectores', 'el cierre', 'sus frases', 'indice', 'índice'];
+const TITULOS_IGNORADOS = ['a mis lectores', 'el cierre', 'sus frases', 'indice', 'índice', 'colofon', 'colofón', 'contratapa'];
 
 /** Un título de capítulo, en minúsculas y sin adornos, para comparar. */
 function tituloLimpio(linea: string): string {
@@ -97,9 +97,28 @@ export function seccionesDelLibro(libroMarkdown: string): SeccionesDelLibro {
     if (esTitulo) {
       const titulo = tituloLimpio(linea);
       const clave = titulo.toLowerCase();
-      enSusFrases = clave === 'sus frases';
+      // Los subtítulos de la propia página («Las suyas», «Las que heredó», «Las muletillas de
+      // siempre») NO son capítulos ni apagan la página: son los grupos de las frases.
+      const subgrupo = /^las suyas/.test(clave)
+        ? 'suyas'
+        : /^las que hered/.test(clave)
+          ? 'heredadas'
+          : /^las muletillas/.test(clave)
+            ? 'muletillas'
+            : null;
+      if (clave === 'sus frases') {
+        enSusFrases = true;
+        grupo = null;
+        capituloActual = null;
+        continue;
+      }
+      if (enSusFrases && subgrupo) {
+        grupo = subgrupo;
+        continue;
+      }
+      enSusFrases = false;
       grupo = null;
-      if (enSusFrases || TITULOS_IGNORADOS.includes(clave)) {
+      if (TITULOS_IGNORADOS.includes(clave)) {
         capituloActual = null;
       } else {
         capituloActual = { nombre: titulo, citas: [] };
@@ -109,11 +128,6 @@ export function seccionesDelLibro(libroMarkdown: string): SeccionesDelLibro {
     }
 
     if (enSusFrases) {
-      // Los subgrupos de la página («Las suyas», «Las que heredó», «Las muletillas de siempre»).
-      const sub = linea.replace(/[*_]/g, '').trim().toLowerCase();
-      if (/^las suyas/.test(sub)) grupo = 'suyas';
-      else if (/^las que hered/.test(sub)) grupo = 'heredadas';
-      else if (/^las muletillas/.test(sub)) grupo = 'muletillas';
       for (const frase of linea.matchAll(/«([^»]{3,300})»/g)) {
         const texto = frase[1].trim();
         if (grupo === 'suyas') susFrases.suyas.push(texto);
@@ -224,6 +238,11 @@ export async function elegirFrases(
   }
 ): Promise<FrasesJson> {
   const secciones = seccionesDelLibro(args.libroMarkdown);
+  // El parser devuelve todo lo que parezca una sección, incluidos el título del libro, el
+  // subtítulo y la contratapa: solo nos quedan los capítulos que la estructura conoce.
+  const capítulosDelLibro = secciones.capitulos.filter((c) =>
+    args.capitulos.some((capitulo) => normalizar(capitulo.nombre) === normalizar(c.nombre))
+  );
   const transcripciones = args.capitulos.flatMap((c) =>
     c.material.filter((m) => esPublicable(m.reserva ?? {})).map((m) => m.texto)
   );
@@ -242,8 +261,8 @@ export async function elegirFrases(
   for (const texto of [...secciones.susFrases.suyas, ...secciones.susFrases.heredadas]) {
     agregar(texto, 'sus-frases', secciones.susFrases.suyas.includes(texto) ? 'suyas' : 'heredadas', 0);
   }
-  for (const capitulo of secciones.capitulos) {
-    const numero = args.capitulos.find((c) => c.nombre === capitulo.nombre)?.numero ?? 0;
+  for (const capitulo of capítulosDelLibro) {
+    const numero = args.capitulos.find((c) => normalizar(c.nombre) === normalizar(capitulo.nombre))?.numero ?? 0;
     for (const texto of capitulo.citas) agregar(texto, 'cita', null, numero);
   }
 

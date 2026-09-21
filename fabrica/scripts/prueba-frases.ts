@@ -43,10 +43,14 @@ function clienteQueCuenta(real: Anthropic, uso: Uso): Anthropic {
 
 const costo = (uso: Uso) => (uso.entrada / 1_000_000) * PRECIO_ENTRADA + (uso.salida / 1_000_000) * PRECIO_SALIDA;
 
-/** Convierte el libro html en algo parecido a su markdown: nos alcanza para citas y «Sus frases». */
-function htmlAMarkdown(html: string): string {
+/** Convierte el libro html en algo parecido a su markdown: nos alcanza para citas y «Sus frases».
+ *  OJO: en el HTML los títulos de capítulo y el de la página «Sus frases» son `<div class="...">`,
+ *  no headings — si el template cambia esos nombres de clase, esto se queda sin capítulos. */
+export function htmlAMarkdown(html: string): string {
   const cuerpo = html.split('</style>').pop() ?? html;
   return cuerpo
+    .replace(/<div[^>]*class="[^"]*cap-nombre[^"]*"[^>]*>([\s\S]*?)<\/div>/g, (_m, t: string) => `\n# ${limpiar(t)}\n`)
+    .replace(/<div[^>]*class="[^"]*sus-frases-titulo[^"]*"[^>]*>([\s\S]*?)<\/div>/g, () => '\n# Sus frases\n')
     .replace(/<blockquote[^>]*>([\s\S]*?)<\/blockquote>/g, (_m, t: string) => `\n> ${limpiar(t)}\n`)
     .replace(/<h([1-3])[^>]*>([\s\S]*?)<\/h\1>/g, (_m, nivel: string, t: string) => `\n${'#'.repeat(Number(nivel))} ${limpiar(t)}\n`)
     .replace(/<\/(p|div|li)>/g, '\n')

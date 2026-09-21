@@ -11,6 +11,10 @@ const LIBRO = `# A mis lectores
 
 Gracias por leer.
 
+# Volver a arrancar
+
+### La historia de Joaquín, contada por él mismo
+
 # La infancia
 
 Mi infancia fue en la casa de Pelliza.
@@ -25,20 +29,20 @@ Empecé a trabajar de chico.
 
 > plata y miedo nunca tuve
 
-# Sus frases
+## Sus frases
 
 *Los dichos, refranes y muletillas de Joaquín, tal cual los dice él.*
 
-**Las suyas**
+### Las suyas
 
 «Soy cada día un poco menos ignorante.»
 «Una frase que inventó el modelo y él nunca dijo.»
 
-**Las que heredó**
+### Las que heredó
 
 «Salí a buscar lo tuyo.» — su papá, siempre.
 
-**Las muletillas de siempre**
+### Las muletillas de siempre
 
 «Viste.»
 «Al fin y al cabo.»
@@ -60,17 +64,24 @@ const CAPITULOS = [
 describe('seccionesDelLibro', () => {
   it('saca los capítulos con sus citas y la página «Sus frases», sin contar los títulos de servicio', () => {
     const secciones = seccionesDelLibro(LIBRO);
-    expect(secciones.capitulos.map((c) => c.nombre)).toEqual(['La infancia', 'El oficio']);
-    expect(secciones.capitulos[0].citas).toEqual(['el mejor ring que tuve en mi vida fue esa casa']);
-    expect(secciones.capitulos[1].citas).toEqual(['plata y miedo nunca tuve']);
+    // El título del libro y el subtítulo también parecen secciones: el filtro por capítulos
+    // conocidos se hace en `elegirFrases` (abajo).
+    expect(secciones.capitulos.map((c) => c.nombre)).toEqual([
+      'Volver a arrancar',
+      'La historia de Joaquín, contada por él mismo',
+      'La infancia',
+      'El oficio',
+    ]);
+    expect(secciones.capitulos[2].citas).toEqual(['el mejor ring que tuve en mi vida fue esa casa']);
+    expect(secciones.capitulos[3].citas).toEqual(['plata y miedo nunca tuve']);
+    // Los subtítulos de la página NO son capítulos (era el bug: apagaban la página entera).
+    expect(secciones.capitulos.map((c) => c.nombre)).not.toContain('Las suyas');
     expect(secciones.susFrases.suyas).toEqual([
       'Soy cada día un poco menos ignorante.',
       'Una frase que inventó el modelo y él nunca dijo.',
     ]);
     expect(secciones.susFrases.heredadas).toEqual(['Salí a buscar lo tuyo.']);
     expect(secciones.muletillas).toEqual(['Viste.', 'Al fin y al cabo.']);
-    // «A mis lectores», «Sus frases» y «El cierre» no son capítulos del libro.
-    expect(secciones.capitulos).toHaveLength(2);
   });
 });
 
@@ -119,6 +130,8 @@ describe('elegirFrases', () => {
 
     const infancia = frases.capitulos.find((c) => c.numero === 1);
     expect(infancia?.capitulo).toBe('La infancia');
+    // Solo los capítulos que la estructura conoce: ni «Volver a arrancar» ni el subtítulo.
+    expect(frases.capitulos.map((c) => c.numero)).toEqual([1, 2]);
     expect(infancia?.candidatas[0]).toMatchObject({
       texto: 'el mejor ring que tuve en mi vida fue esa casa',
       origen: 'cita',
