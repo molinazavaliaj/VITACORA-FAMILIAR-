@@ -69,6 +69,7 @@ export function HistoriaViaje({
   invitados,
   ritmo,
   evitar,
+  horario,
 }: {
   n: NarradorViaje;
   rol: Rol;
@@ -86,6 +87,7 @@ export function HistoriaViaje({
   invitados: InvitadoVista[];
   ritmo: Ritmo;
   evitar: string;
+  horario?: { hora: string; zona: string };
 }) {
   const duena = rol === "duena";
   const cerrado = ESTADOS_CERRADOS.includes(n.estado);
@@ -333,7 +335,7 @@ export function HistoriaViaje({
           <section className="mt-16 border-t border-[var(--linea)] pt-10">
             <Etiqueta>Ajustes</Etiqueta>
             <div className="mt-6">
-              <Ajustes narradorId={n.id} ritmo={ritmo} evitar={evitar} sinRitmo />
+              <Ajustes narradorId={n.id} ritmo={ritmo} evitar={evitar} sinRitmo horario={horario} propia={duena} />
             </div>
           </section>
         ) : null}

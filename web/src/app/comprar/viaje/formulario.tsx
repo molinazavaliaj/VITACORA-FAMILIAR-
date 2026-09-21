@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { ANGULOS, COMPANIAS, NOMBRE_ANGULO, NOMBRE_COMPANIA, NOMBRE_PROPOSITO, PROPOSITOS, ETAPAS_MAXIMO, type Etapa, type Viaje } from "@/lib/viaje";
 import { NADA_ELEGIDO, NOMBRE_VIAJE, DETALLE_VIAJE, type Extra, type ProductosElegidos } from "@/lib/productos";
 import { ContadorMarcos, TarjetaImpreso, formatearPrecio as formatear } from "../productos-ui";
+import { HORAS_VIAJE as HORAS, ZONAS } from "@/lib/horario";
 
 // La compra de la Vitácora de viaje, en tres pasos. Las etapas pueden ir sin
 // fechas: el viajero no siempre las tiene (después se completan desde el
@@ -25,26 +26,6 @@ const PASOS: { n: Paso; nombre: string }[] = [
   { n: 3, nombre: "Pagar" },
 ];
 
-const HORAS = [
-  { valor: "20:30", nombre: "Después de cenar (20:30)" },
-  { valor: "21:30", nombre: "A la noche (21:30)" },
-  { valor: "22:30", nombre: "Tarde en la noche (22:30)" },
-  { valor: "08:30", nombre: "A la mañana siguiente (8:30)" },
-];
-
-const ZONAS = [
-  ["Europe/Madrid", "España, Francia, Italia, Alemania (Europa central)"],
-  ["Europe/Lisbon", "Portugal, Reino Unido, Irlanda"],
-  ["America/Argentina/Buenos_Aires", "Argentina, Uruguay, Brasil (este)"],
-  ["America/Santiago", "Chile"],
-  ["America/Lima", "Perú, Colombia, Ecuador"],
-  ["America/Mexico_City", "México"],
-  ["America/New_York", "Estados Unidos (este)"],
-  ["America/Los_Angeles", "Estados Unidos (oeste)"],
-  ["Asia/Bangkok", "Tailandia, Vietnam"],
-  ["Asia/Tokyo", "Japón"],
-  ["Australia/Sydney", "Australia (este)"],
-] as const;
 
 const campo = "w-full rounded-md border border-[#D4D4CE] bg-white px-4 py-3 text-[16px] text-[#14140F] outline-none transition-colors placeholder:text-[#AEAEA6] focus:border-[#14140F] [font-family:var(--fuente-cuerpo)]";
 const etiqueta = "block text-[11px] uppercase text-[#5F5F55] [font-family:var(--fuente-micro)] [letter-spacing:0.24em]";

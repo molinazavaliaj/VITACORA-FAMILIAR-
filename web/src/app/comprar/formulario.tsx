@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { NADA_ELEGIDO, type Catalogo as CatalogoRegion, type ProductosElegidos } from "@/lib/productos";
 import { ContadorMarcos, Producto, TarjetaImpreso, formatearPrecio as formatear } from "./productos-ui";
+import { HORAS_FAMILIAR as HORAS } from "@/lib/horario";
 import { EVITAR_MAXIMO, NOMBRE_RITMO, RITMOS, RITMO_DEFAULT, TAMANO_MAXIMO_BYTES, errorDeTipoDeFoto, type Ritmo } from "@/lib/guion";
 import { medirImagen } from "@/lib/medir-imagen";
 
@@ -36,12 +37,6 @@ const PASOS: { n: Paso; nombre: string }[] = [
 type FotoElegida = { clave: string; archivo: File; url: string; subida: boolean };
 const FOTOS_MAXIMO = 20;
 
-const HORAS = [
-  { valor: "09:00", nombre: "A la mañana (9:00)" },
-  { valor: "11:00", nombre: "Media mañana (11:00)" },
-  { valor: "16:00", nombre: "A la tarde (16:00)" },
-  { valor: "19:00", nombre: "Al final del día (19:00)" },
-];
 
 
 const campo =

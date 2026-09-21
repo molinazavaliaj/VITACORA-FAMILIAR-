@@ -27,6 +27,7 @@ function render(extra: Partial<Parameters<typeof HistoriaViaje>[0]> = {}) {
       repreguntasEnviadas: {},
       usuarioId: "u1", historiasRiel: [{ id: "n1", nombre: "Nako", rol: "duena", estado: "activo" }],
       aprobado: false, historiaCerrada: false, linkPublico: null, invitados: [], ritmo: "diario", evitar: "",
+      horario: { hora: "21:30", zona: "Europe/Lisbon" },
       ...extra,
     }),
   );
@@ -67,6 +68,10 @@ describe("El panel de viaje (3t.19)", () => {
     expect(html).toContain('aria-pressed="true"');
     expect(html).toContain("Sobre qué te preguntamos");
     expect(html).toContain("Las etapas del viaje");
+    // 3t.23: la hora a la vista, en segunda persona, sin el ritmo.
+    expect(html).toContain("A qué hora te llega la pregunta");
+    expect(html).toContain("hora de Portugal, Reino Unido, Irlanda");
+    expect(html).not.toContain("Dos por día");
   });
   it("sin 'Por definir' cuando todo tiene etapa; un invitado no ve los ajustes", () => {
     const html = render({ viaje: { ...viaje, etapas: [{ nombre: "Lisboa", desde: "2026-09-20" }] }, fotos: [], rol: "invitado" });

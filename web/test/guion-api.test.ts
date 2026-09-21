@@ -169,6 +169,23 @@ describe("PATCH /api/guion", () => {
     expect(escrituras).toContainEqual(expect.objectContaining({ tabla: "narradores", op: "update", valores: { contexto: { ritmo: "seguido", modoRapido: true } } }));
   });
 
+  // 3t.23 (21/09): la hora y la zona de la pregunta se cambian desde Ajustes.
+  it("horario: guarda hora_preferida y zona_horaria en el narrador (rige desde el próximo envío)", async () => {
+    sesion(martina);
+    const escrituras = armar();
+    const r = await PATCH(request({ accion: "horario", hora: "19:00", zona: "Europe/Madrid" }));
+    expect(r.status).toBe(200);
+    expect(escrituras).toContainEqual(expect.objectContaining({ tabla: "narradores", op: "update", valores: { hora_preferida: "19:00", zona_horaria: "Europe/Madrid" } }));
+  });
+
+  it("horario: una hora o una zona inventadas → 400 y no escribe", async () => {
+    sesion(martina);
+    const escrituras = armar();
+    expect((await PATCH(request({ accion: "horario", hora: "25:00", zona: "Europe/Madrid" }))).status).toBe(400);
+    expect((await PATCH(request({ accion: "horario", hora: "10:00", zona: "Marte/Olympus" }))).status).toBe(400);
+    expect(escrituras.filter((e) => e.tabla === "narradores" && e.op === "update")).toEqual([]);
+  });
+
   it("con la entrevista terminada, nada se cambia → 400", async () => {
     sesion(martina);
     armar({ narrador: narrador({ estado: "completado", dia_actual: 30 }) });
