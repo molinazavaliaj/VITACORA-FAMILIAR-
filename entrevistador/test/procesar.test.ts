@@ -7,6 +7,7 @@ const mocks = vi.hoisted(() => ({
   descargarAudio: vi.fn(),
   guardarRespuestaAudio: vi.fn(),
   guardarReserva: vi.fn(),
+  guardarTemaDeOtraParte: vi.fn(),
   transcribirYActualizar: vi.fn(),
   evaluarRespuesta: vi.fn(),
   detectarReservaYDejarTema: vi.fn(),
@@ -58,11 +59,16 @@ vi.mock('../src/whatsapp/enviar.js', () => ({
   enviarTexto: mocks.enviarTexto, enviarPlantilla: vi.fn(), enviarAudioPorLink: vi.fn(),
 }));
 vi.mock('../src/whatsapp/media.js', () => ({ descargarAudio: mocks.descargarAudio, pathDeAudio: vi.fn() }));
-vi.mock('../src/db/respuestas.js', () => ({ guardarRespuestaAudio: mocks.guardarRespuestaAudio, guardarReserva: mocks.guardarReserva }));
+vi.mock('../src/db/respuestas.js', () => ({ guardarRespuestaAudio: mocks.guardarRespuestaAudio, guardarReserva: mocks.guardarReserva, guardarTemaDeOtraParte: mocks.guardarTemaDeOtraParte }));
 vi.mock('../src/ia/transcribir.js', () => ({ transcribirYActualizar: mocks.transcribirYActualizar, transcribir: vi.fn() }));
 vi.mock('../src/ia/cerebro.js', () => ({
   evaluarRespuesta: mocks.evaluarRespuesta, detectarIntencion: mocks.detectarIntencion, generarReconocimiento: vi.fn(),
   detectarQueNoTuvo: mocks.detectarQueNoTuvo, detectarReservaYDejarTema: mocks.detectarReservaYDejarTema,
+  // La misma regla que la real (21/09): solo una orden de la lista, anterior a la de hoy.
+  temaDe: (e: any, hechas: { orden: number }[], actual: number) =>
+    Number.isInteger(e.temaDeOrden) && e.temaDeOrden < actual && hechas.some((p) => p.orden === e.temaDeOrden)
+      ? { temaDeOrden: e.temaDeOrden, temaMotivo: e.temaMotivo ?? null }
+      : null,
   // La misma regla que la real (bitácora 19): un tramo que no está textual reserva todo.
   reservaDe: (e: any, t: string) => e.reservado !== true
     ? { reservada: false, tramo: null }
@@ -81,6 +87,8 @@ vi.mock('../src/db/guion.js', () => ({
   ultimoOrden: async () => mocks.estado.ultimoOrden,
   tieneAdaptativas: async () => mocks.estado.tieneAdaptativas,
   preguntaDeOrden: async () => ({ texto: 'PREGUNTA_MOCK', capitulo: mocks.estado.capituloVigente }),
+  preguntasHechasAntes: async (_id: string, orden: number) =>
+    [1, 2, 3, 4, 5, 6, 7, 8].filter((o) => o < orden).map((o) => ({ orden: o, capitulo: o <= 4 ? 'La infancia' : 'El trabajo', texto: `pregunta ${o}` })),
 }));
 vi.mock('../src/mail/hitos.js', () => ({ mandarHito: mocks.mandarHito }));
 // Vitácora de viaje (18/09): lo que toca la base se simula.
@@ -117,6 +125,8 @@ beforeEach(() => {
   mocks.guardarFotoEntrante.mockResolvedValue('Lisboa');
   for (const fn of [mocks.enviarTexto, mocks.descargarAudio, mocks.guardarRespuestaAudio, mocks.guardarReserva, mocks.transcribirYActualizar, mocks.evaluarRespuesta, mocks.detectarIntencion, mocks.generarPreguntasAdaptativas, mocks.cerrarBitacora, mocks.enviarPregunta]) fn.mockReset();
   mocks.guardarReserva.mockResolvedValue(true);
+  mocks.guardarTemaDeOtraParte.mockReset();
+  mocks.guardarTemaDeOtraParte.mockResolvedValue(true);
   mocks.detectarReservaYDejarTema.mockReset();
   mocks.detectarReservaYDejarTema.mockResolvedValue({ reserva: { reservada: false, tramo: null }, dejarTema: null });
   mocks.enviarTexto.mockResolvedValue('wamid.mock');
@@ -278,6 +288,32 @@ describe('procesarEntrante', () => {
     await procesarEntrante({ telefono: TEL, tipo: 'audio', mediaId: 'media-1', waMessageId: 'w' });
     expect(mocks.evaluarRespuesta).toHaveBeenCalled();
     expect(mocks.detectarReservaYDejarTema).not.toHaveBeenCalled();
+  });
+
+  // "Esto es de otra parte" (21/09): contesta la 9 y se acuerda de algo de la 2.
+  // Es una marca en la fila, y el bot NO reencuadra: no manda ningún texto.
+  it('(t1) una respuesta que recuerda un tema anterior se marca con la orden, y el bot no le dice nada', async () => {
+    mocks.estado.narrador = narradorEn('activo', 9);
+    mocks.transcribirYActualizar.mockResolvedValue({ texto: 'Mi primer trabajo fue en el taller... y me acuerdo de chico, en el patio, con el Rubén.', duracionSegundos: 90 });
+    mocks.evaluarRespuesta.mockResolvedValue({ suficiente: true, temaDeOrden: 2, temaMotivo: 'los juegos del patio con el Rubén son la pregunta 2' });
+    await procesarEntrante({ telefono: TEL, tipo: 'audio', mediaId: 'media-1', waMessageId: 'w' });
+    // La evaluación recibió la lista de las preguntas ya hechas, con la orden de hoy.
+    const opciones = mocks.evaluarRespuesta.mock.calls[0][5];
+    expect(opciones.ordenActual).toBe(9);
+    expect(opciones.preguntasHechas.map((p: any) => p.orden)).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
+    expect(mocks.guardarTemaDeOtraParte).toHaveBeenCalledWith('r-audio', { temaDeOrden: 2, temaMotivo: 'los juegos del patio con el Rubén son la pregunta 2' });
+    expect(mocks.enviarTexto).not.toHaveBeenCalled();
+  });
+
+  it('(t2) si el modelo duda (null) o inventa una orden, no se guarda nada', async () => {
+    mocks.estado.narrador = narradorEn('activo', 9);
+    mocks.evaluarRespuesta.mockResolvedValue({ suficiente: true, temaDeOrden: null, temaMotivo: null });
+    await procesarEntrante({ telefono: TEL, tipo: 'audio', mediaId: 'media-1', waMessageId: 'w' });
+    expect(mocks.guardarTemaDeOtraParte).toHaveBeenCalledWith('r-audio', null);
+    mocks.guardarTemaDeOtraParte.mockClear();
+    mocks.evaluarRespuesta.mockResolvedValue({ suficiente: true, temaDeOrden: 27, temaMotivo: 'inventada' });
+    await procesarEntrante({ telefono: TEL, tipo: 'audio', mediaId: 'media-1', waMessageId: 'w' });
+    expect(mocks.guardarTemaDeOtraParte).toHaveBeenCalledWith('r-audio', null);
   });
 
   // Bitácora 34: "vamos por otro lado" → el tema entra a contexto.evitar para el

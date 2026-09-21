@@ -10,7 +10,7 @@ migración en `supabase/migrations/` + actualizar este archivo + avisar al otro 
 | `familias` | web | entrevistador | |
 | `narradores` | web (crea, edita datos, `edicion`, `libro_aprobado_at`) / entrevistador (solo `estado`, `dia_actual`, `ultima_respuesta_at`, `alerta_silencio`, `consentimiento_voz_at`) / fábrica (solo `libro_aprobado_at`, a los 30 días sin cierre) | ambos | Única tabla compartida. La web también apaga `alerta_silencio`. La fábrica lee `edicion` y **no produce nada sin `libro_aprobado_at`** (ni digital ni impreso). Desde el 13/09, si pasan 30 días desde `ultima_respuesta_at` sin cierre, la fábrica misma pone `libro_aprobado_at` (único caso en que alguien más que la web escribe esa columna). |
 | `preguntas` | **web** (copia las fijas al comprar; la familia edita, salta, reordena, agrega) / **entrevistador** (adaptativas y reemplazos) / seed (plantilla global) | ambos | Desde el 12/09 **cada narrador tiene su guion propio**. Las globales (`narrador_id = null`) son solo plantilla. Regla: `orden ≤ dia_actual` está **congelado**, nadie lo toca. |
-| `respuestas` | entrevistador | web | La web NUNCA escribe acá. **20/09 (propuesta, sin aplicar):** `reservada` / `reservado_tramo` — "esto que no vaya al libro", ver la sección propia. |
+| `respuestas` | entrevistador | web, fábrica | La web NUNCA escribe acá. **20/09 (propuesta, sin aplicar):** `reservada` / `reservado_tramo` — "esto que no vaya al libro", ver la sección propia. **21/09 (propuesta, sin aplicar):** `tema_de_orden` / `tema_motivo` — "esto es de otra parte", ver la sección propia. |
 | `saludos` | ~~web / entrevistador~~ | — | **Fuera de la fase 1 (10/09).** Nadie la escribe ni la lee — desde el 13/09 tampoco la fábrica (dejó de leerla en `generarPaquete`/`generarAudiolibro`; el audiolibro ya no tiene bonus de saludos). Se deja por si la fase 2 la revive. |
 | `fotos` | web (sube y ordena) | fábrica | Nueva 12/09. Por capítulo; `principal` abre, el resto cierra. Desde el 13/09 la fábrica las embebe como data URI en `libro.html`. **14/09: `capitulo` nullable** — NULL = foto del álbum del libro (candidata a tapa / contratapa / marco), no va en ningún capítulo; la fábrica la ignora al armar capítulos. |
 | `invitados` | web | web | Nueva 12/09. `rol` (13/09): `'invitado'` (hasta 3, con el libro abierto, ven todo) o `'visitante'` (abrió el link del libro cerrado y lo guardó: ve la muestra y compra su copia, sin tope). |
@@ -360,6 +360,43 @@ Reglas:
   dato: la familia puede pedirlo por teléfono y es lo más rápido que tenemos hoy.
 - Ante la duda **siempre se reserva de más**: volver a agregar algo es fácil, desdecir algo
   que la familia ya leyó impreso, no.
+
+## Respuestas de otra parte — "esto es de otra parte" (PROPUESTA del 21/09, acordada entre los dos, pendiente de aplicar)
+
+⚠️ **No está aplicada todavía.** La migración es `20260921000000_tema_de_otra_parte.sql` y la
+aplica Naza en el SQL Editor de Supabase. Mientras tanto el código funciona sin las columnas:
+`guardarTemaDeOtraParte` avisa por consola y no anota, y la fábrica las lee como ausentes = sin
+marca. Es idempotente y no toca datos.
+
+El problema (decisión de Naza y Joaquín, 21/09): el narrador responde la pregunta 9 y ahí
+recuerda algo que pertenece a la historia de la pregunta 2. Hoy esa respuesta queda atada a su
+pregunta, y en el libro la historia aparece en el capítulo equivocado: no se pierde, queda mal
+ubicada. **Es una MARCA, no una bifurcación de la conversación**: el bot nunca reencuadra en el
+momento (no le pide que vuelva al tema, no le aclara que habló de otra cosa); si lo interrumpen
+para encarrilarlo, se calla.
+
+| Columna | Tipo | Escribe | Lee | Qué es |
+|---|---|---|---|---|
+| `respuestas.tema_de_orden` | integer, null | entrevistador (la evaluación de la respuesta principal) | fábrica (y la web, para mostrarlo) | La `orden` de la pregunta cuyo tema trata de verdad esta respuesta. Null = contestó la suya (o el modelo dudó). |
+| `respuestas.tema_motivo` | text, null | entrevistador | fábrica, web | Una línea de por qué. |
+
+Reglas:
+
+- **La escribe el entrevistador** al evaluar la respuesta principal (`evaluarRespuesta` devuelve
+  `temaDeOrden` / `temaMotivo`; `temaDe()` en `entrevistador/src/ia/cerebro.ts` lo normaliza).
+  Para que el modelo pueda acertar, el prompt lleva la lista de las preguntas ya hechas (orden ·
+  capítulo · texto, la personalizada si la hubo). Es **conservador a propósito**: solo se guarda
+  un entero que esté en esa lista y sea anterior a la pregunta de hoy; ante la duda, null. Una
+  marca de más ensucia el libro; una de menos lo deja como está hoy.
+- **Solo la respuesta principal** se marca. Las ampliaciones de una repregunta y la pregunta de
+  cierre no: si el narrador vuelve a un tema a propósito, eso ya tiene su mecanismo (la
+  ampliación) y no se reemplaza con esta marca.
+- **La fábrica solo lee** (Naza, en curso): al armar el material de cada capítulo suma esa
+  respuesta al capítulo del tema que marca, y en el capítulo donde la contó la deja anotada como
+  "recuerdo de otro tema: ya va en el capítulo N" para que el escritor no la repita. **No se
+  mueve nada de lugar: se copia.**
+- Corregir a mano (`update respuestas set tema_de_orden = 2 where …`, o `= null`) vale como
+  cualquier dato.
 
 ## Storage — bucket privado `audios`
 

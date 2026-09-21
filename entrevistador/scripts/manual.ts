@@ -66,9 +66,11 @@ type Modulos = {
   db: (typeof import('../src/db/cliente.js'))['db'];
   guardarRespuestaAudio: (typeof import('../src/db/respuestas.js'))['guardarRespuestaAudio'];
   guardarReserva: (typeof import('../src/db/respuestas.js'))['guardarReserva'];
+  guardarTemaDeOtraParte: (typeof import('../src/db/respuestas.js'))['guardarTemaDeOtraParte'];
   transcribirYActualizar: (typeof import('../src/ia/transcribir.js'))['transcribirYActualizar'];
   evaluarRespuesta: (typeof import('../src/ia/cerebro.js'))['evaluarRespuesta'];
   reservaDe: (typeof import('../src/ia/cerebro.js'))['reservaDe'];
+  temaDe: (typeof import('../src/ia/cerebro.js'))['temaDe'];
   detectarReservaYDejarTema: (typeof import('../src/ia/cerebro.js'))['detectarReservaYDejarTema'];
   sumarTemaEvitado: (typeof import('../src/ia/evitar.js'))['sumarTemaEvitado'];
   textoEvitar: (typeof import('../src/ia/evitar.js'))['textoEvitar'];
@@ -86,15 +88,16 @@ type Modulos = {
   ultimoOrden: (typeof import('../src/db/guion.js'))['ultimoOrden'];
   tieneAdaptativas: (typeof import('../src/db/guion.js'))['tieneAdaptativas'];
   capitulosDe: (typeof import('../src/db/guion.js'))['capitulosDe'];
+  preguntasHechasAntes: (typeof import('../src/db/guion.js'))['preguntasHechasAntes'];
 };
 
 let _mods: Promise<Modulos> | null = null;
 function modulos(): Promise<Modulos> {
   _mods ??= (async () => {
     const { db } = await import('../src/db/cliente.js');
-    const { guardarRespuestaAudio, guardarReserva } = await import('../src/db/respuestas.js');
+    const { guardarRespuestaAudio, guardarReserva, guardarTemaDeOtraParte } = await import('../src/db/respuestas.js');
     const { transcribirYActualizar } = await import('../src/ia/transcribir.js');
-    const { evaluarRespuesta, generarPreguntaReemplazo, reservaDe, detectarReservaYDejarTema } = await import('../src/ia/cerebro.js');
+    const { evaluarRespuesta, generarPreguntaReemplazo, reservaDe, temaDe, detectarReservaYDejarTema } = await import('../src/ia/cerebro.js');
     const { sumarTemaEvitado, textoEvitar } = await import('../src/ia/evitar.js');
     const { personalizarPregunta } = await import('../src/ia/personalizar.js');
     const { memoriaDeCapitulos } = await import('../src/ia/resumenes.js');
@@ -104,11 +107,11 @@ function modulos(): Promise<Modulos> {
     const { tratoDe } = await import('../src/ia/trato.js');
     const { preguntaDeOrden, capituloNoAplica, esModoRapido } = await import('../src/flujo/preguntar.js');
     const { armarHistoria } = await import('../src/db/historia.js');
-    const { ultimoOrden, tieneAdaptativas, capitulosDe } = await import('../src/db/guion.js');
+    const { ultimoOrden, tieneAdaptativas, capitulosDe, preguntasHechasAntes } = await import('../src/db/guion.js');
     return {
-      db, guardarRespuestaAudio, guardarReserva, transcribirYActualizar, evaluarRespuesta, reservaDe, detectarReservaYDejarTema, sumarTemaEvitado, textoEvitar,
+      db, guardarRespuestaAudio, guardarReserva, guardarTemaDeOtraParte, transcribirYActualizar, evaluarRespuesta, reservaDe, temaDe, detectarReservaYDejarTema, sumarTemaEvitado, textoEvitar,
       personalizarPregunta, memoriaDeCapitulos, guardarRepreguntaEnviada, generarPreguntaReemplazo, generarPreguntasAdaptativas,
-      generarAudioVoz, preguntaDeOrden, capituloNoAplica, esModoRapido, armarHistoria, tratoDe, ultimoOrden, tieneAdaptativas, capitulosDe,
+      generarAudioVoz, preguntaDeOrden, capituloNoAplica, esModoRapido, armarHistoria, tratoDe, ultimoOrden, tieneAdaptativas, capitulosDe, preguntasHechasAntes,
     };
   })();
   return _mods;
@@ -537,8 +540,15 @@ async function evaluarYAnotar(
   { anotar = true } = {},
 ): Promise<boolean> {
   const mods = await modulos();
-  const evaluacion = await mods.evaluarRespuesta(pregunta, transcripcion, duracionSegundos, mods.textoEvitar(n.contexto), await mods.tratoDe(n));
+  // "Esto es de otra parte" (21/09): la evaluación ve las preguntas ya hechas.
+  const preguntasHechas = await mods.preguntasHechasAntes(n.id, orden, n.contexto);
+  const evaluacion = await mods.evaluarRespuesta(pregunta, transcripcion, duracionSegundos, mods.textoEvitar(n.contexto), await mods.tratoDe(n), { preguntasHechas, ordenActual: orden });
   await anotarMarcas(n, respuestaId, { reserva: mods.reservaDe(evaluacion, transcripcion), dejarTema: evaluacion.dejarTema ?? null }, anotar);
+  const tema = mods.temaDe(evaluacion, preguntasHechas, orden);
+  if (tema) {
+    linea(`📌 Es un recuerdo de otra parte: pertenece a la pregunta ${tema.temaDeOrden}${tema.temaMotivo ? ` (${tema.temaMotivo})` : ''}. El libro lo ubica en ese capítulo.`);
+    if (anotar && respuestaId) await mods.guardarTemaDeOtraParte(respuestaId, tema);
+  }
 
   if (!evaluacion.suficiente && evaluacion.repregunta && !(await yaSeRepregunto(n.id, orden))) {
     titulo('El cerebro pide una repregunta — pegala en WhatsApp');

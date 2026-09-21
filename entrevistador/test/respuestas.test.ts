@@ -51,3 +51,30 @@ describe('guardarReserva', () => {
     expect(warn).toHaveBeenCalledWith(expect.stringContaining('20260920000100_respuestas_reservadas.sql'));
   });
 });
+
+// "Esto es de otra parte" (21/09): la marca de que una respuesta pertenece a
+// una pregunta anterior, en su fila, para que la fábrica la ubique.
+describe('guardarTemaDeOtraParte', () => {
+  beforeEach(() => { mocks.updates = []; mocks.error = null; vi.restoreAllMocks(); });
+
+  it('sin marca no toca la base', async () => {
+    const { guardarTemaDeOtraParte } = await import('../src/db/respuestas.js');
+    expect(await guardarTemaDeOtraParte('r1', null)).toBe(false);
+    expect(mocks.updates).toEqual([]);
+  });
+
+  it('con marca guarda la orden y el motivo en las dos columnas', async () => {
+    const { guardarTemaDeOtraParte } = await import('../src/db/respuestas.js');
+    expect(await guardarTemaDeOtraParte('r1', { temaDeOrden: 2, temaMotivo: 'cuenta los juegos del patio' })).toBe(true);
+    expect(mocks.updates).toEqual([{ p: { tema_de_orden: 2, tema_motivo: 'cuenta los juegos del patio' }, id: 'r1' }]);
+  });
+
+  // (d) La migración la aplica Naza: si el flujo corre antes, no explota y avisa.
+  it('si la columna todavía no existe, avisa y no rompe', async () => {
+    const { guardarTemaDeOtraParte } = await import('../src/db/respuestas.js');
+    mocks.error = { message: 'column "tema_de_orden" of relation "respuestas" does not exist' };
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    expect(await guardarTemaDeOtraParte('r1', { temaDeOrden: 2, temaMotivo: null })).toBe(false);
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('20260921000000_tema_de_otra_parte.sql'));
+  });
+});

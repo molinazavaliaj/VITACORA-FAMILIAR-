@@ -100,10 +100,26 @@ export async function generarReconocimiento(
  * tenía ocho años"): eso es insuficiente, pero la repregunta va a AHONDAR en
  * eso, no a repetir una frase armada.
  */
-export const PROMPT_EVALUAR = (pregunta: string, transcripcion: string, duracionSegundos: number, evitar = '', trato: Trato = 'usted') =>
+/** Una pregunta que el narrador ya respondió: para saber a qué tema pertenece un recuerdo que aparece tarde. */
+export type PreguntaHecha = { orden: number; capitulo: string; texto: string };
+
+/** La lista que ve el modelo para ubicar un recuerdo (solo las anteriores a la de hoy). */
+export function listaDePreguntasHechas(preguntasHechas: PreguntaHecha[], ordenActual: number): string {
+  const previas = preguntasHechas.filter((p) => p.orden < ordenActual).sort((a, b) => a.orden - b.orden);
+  if (!previas.length) return '';
+  return `
+LAS PREGUNTAS QUE YA RESPONDIÓ ANTES (orden · capítulo · pregunta):
+${previas.map((p) => `${p.orden} · ${p.capitulo} · ${p.texto.replace(/\s+/g, ' ').trim()}`).join('\n')}
+`;
+}
+
+export const PROMPT_EVALUAR = (
+  pregunta: string, transcripcion: string, duracionSegundos: number, evitar = '', trato: Trato = 'usted',
+  preguntasHechas: PreguntaHecha[] = [], ordenActual = 0,
+) =>
   `Pregunta de hoy: "${pregunta}"
 Respuesta (duró ${duracionSegundos} segundos): "${transcripcion}"
-${evitar}
+${evitar}${listaDePreguntasHechas(preguntasHechas, ordenActual)}
 ¿Con esta respuesta se puede escribir la página del libro de hoy? Juzgá por SUSTANCIA y contá los detalles concretos que hay: nombres, lugares, fechas, oficios, escenas, cosas que alguien dijo. El largo es una pista, no la regla.
 
 ALCANZA si hay con qué escribir: dos o tres detalles concretos, con al menos una escena o un nombre propio. Un relato largo y con hechos alcanza, aunque siempre se pueda profundizar más.
@@ -125,9 +141,12 @@ LA REPREGUNTA VA EN ${trato}, SIN EXCEPCIÓN, con sus conjugaciones: ${trato ===
     ? 'tuteando de punta a punta ("¿cómo era tu casa?", "¿te acordás?", "¿qué sentiste?"), nunca "cuénteme", "usted", "su" ni "sus", aunque la pregunta del día haya venido escrita de usted.'
     : 'de usted de punta a punta ("¿cómo era su casa?", "¿se acuerda?", "¿qué sintió?"), nunca "contame", "vos", "tu" ni "tus".'} Si el narrador viene hablando de vos y la repregunta sale de usted, se rompe el vínculo justo en el momento más íntimo.
 
+SI SE FUE A OTRO TEMA, NO SE LO REENCUADRA. Un narrador contesta sobre su primer trabajo y se va a contar la infancia: eso pasa, y está bien. La repregunta —si hace falta— NUNCA menciona el cambio de tema, NUNCA le pide que vuelva a la pregunta de hoy, NUNCA le aclara que habló de otra cosa ni "ordena" la charla. Si lo interrumpen para encarrilarlo, se calla: es la peor falla del producto. Lo que contó vale igual para juzgar si alcanza, y el libro lo ubica después en su capítulo.
+${preguntasHechas.some((p) => p.orden < ordenActual) ? `Para eso, y SOLO si estás seguro, marcá a qué pregunta anterior pertenece de verdad lo que contó: "temaDeOrden" con el número de orden de esa pregunta (uno de la lista de arriba, nunca otro) y "temaMotivo" con una línea de por qué. Si contestó la pregunta de hoy, aunque haya tocado otros temas de paso, o si dudás, los dos van en null: una marca de más ensucia el libro, una de menos lo deja como está.` : ''}
+
 SI PIDE QUE ALGO NO VAYA AL LIBRO, SE ANOTA ACÁ. Si dice que algo quede afuera —"esto prefiero que no vaya al libro", "estas historias prefiero que queden en mi mente", "no lo pongas", "que mi familia no lo sepa"— agregá "reservado": true. Si el pedido es sólo por una parte, agregá también "reservadoTramo" con ese tramo de su respuesta COPIADO TEXTUAL (una frase o dos, tal como las dijo, sin corregirle nada). Reservar es sagrado: si dudás de si está pidiendo que algo no se publique, marcá "reservado": true — publicar lo que pidió guardar es la peor falla posible, y volver a agregar algo después es fácil.
 
-Respondé SOLO con JSON: {"suficiente": true} o {"suficiente": false, "repregunta": "..."}, y sumá "reservado": true (y "reservadoTramo": "..." si es sólo una parte) y "dejarTema": "..." cuando corresponda.`;
+Respondé SOLO con JSON: {"suficiente": true} o {"suficiente": false, "repregunta": "..."}, y sumá "reservado": true (y "reservadoTramo": "..." si es sólo una parte), "dejarTema": "..." y "temaDeOrden": N con "temaMotivo": "..." cuando corresponda.`;
 
 /**
  * Cuánto se espera antes del único reintento de una llamada al modelo que
@@ -144,6 +163,8 @@ export const PAUSA_REINTENTO_MS = 2000;
 const esperar = (ms: number) => (ms > 0 ? new Promise<void>((r) => setTimeout(r, ms)) : Promise.resolve());
 
 export type OpcionesDeReintento = { pausaMs?: number };
+/** Lo que la evaluación necesita además de la respuesta: las preguntas ya hechas, para ubicar un recuerdo tardío. */
+export type OpcionesDeEvaluacion = OpcionesDeReintento & { preguntasHechas?: PreguntaHecha[]; ordenActual?: number };
 
 /** Lo que la evaluación puede decir: si alcanza, si hay repregunta, y si algo se reserva. */
 export type Evaluacion = {
@@ -159,7 +180,33 @@ export type Evaluacion = {
   reservadoTramo?: string;
   /** El narrador pidió dejar un tema ("vamos por otro lado"): cuál (bitácora 34). */
   dejarTema?: string;
+  /** Lo que contó pertenece a una pregunta ANTERIOR: cuál (su orden), y por qué. Null = contestó la de hoy o el modelo duda. */
+  temaDeOrden?: number | null;
+  temaMotivo?: string | null;
 };
+
+/** La marca de "esto es de otra parte", tal como se guarda en la fila (`respuestas.tema_de_orden`, `tema_motivo`). */
+export type TemaDeOtraParte = { temaDeOrden: number; temaMotivo: string | null };
+
+/**
+ * Normaliza la marca que devolvió el modelo. Es deliberadamente estricta: solo
+ * vale un entero que esté en la lista de preguntas ya hechas y sea anterior a
+ * la de hoy. Cualquier otra cosa (un número inventado, la misma orden, un
+ * texto, null) es "no hay marca": una marca de más manda una historia al
+ * capítulo equivocado, que es exactamente lo que esto viene a arreglar.
+ */
+export function temaDe(
+  evaluacion: Pick<Evaluacion, 'temaDeOrden' | 'temaMotivo'>, preguntasHechas: PreguntaHecha[], ordenActual: number,
+): TemaDeOtraParte | null {
+  const orden = typeof evaluacion.temaDeOrden === 'string' ? Number(evaluacion.temaDeOrden) : evaluacion.temaDeOrden;
+  if (typeof orden !== 'number' || !Number.isInteger(orden) || orden >= ordenActual) return null;
+  if (!preguntasHechas.some((p) => p.orden === orden)) {
+    console.warn(`evaluar: el modelo marcó temaDeOrden=${orden}, que no está entre las preguntas hechas; se ignora.`);
+    return null;
+  }
+  const motivo = typeof evaluacion.temaMotivo === 'string' && evaluacion.temaMotivo.trim() ? evaluacion.temaMotivo.trim().slice(0, 300) : null;
+  return { temaDeOrden: orden, temaMotivo: motivo };
+}
 
 /**
  * La reserva tal como se va a guardar, a partir de lo que devolvió el modelo.
@@ -194,14 +241,16 @@ export function reservaDe(
 
 export async function evaluarRespuesta(
   pregunta: string, transcripcion: string, duracionSegundos: number, evitar = '', trato: Trato = 'usted',
-  opciones: OpcionesDeReintento = {},
+  opciones: OpcionesDeEvaluacion = {},
 ): Promise<Evaluacion> {
   const pausaMs = opciones.pausaMs ?? PAUSA_REINTENTO_MS;
+  const preguntasHechas = opciones.preguntasHechas ?? [];
+  const ordenActual = opciones.ordenActual ?? 0;
 
   const pedirleAlModelo = async () => {
     const respuesta = await cliente.messages.create({
       model: MODELO_EVALUACION, max_tokens: 500, system: estiloCerebro(trato),
-      messages: [{ role: 'user', content: PROMPT_EVALUAR(pregunta, transcripcion, duracionSegundos, evitar, trato) }],
+      messages: [{ role: 'user', content: PROMPT_EVALUAR(pregunta, transcripcion, duracionSegundos, evitar, trato, preguntasHechas, ordenActual) }],
     });
     // Si el JSON no se puede leer, seguimos: hoy no hay repregunta.
     return extraerJson<Evaluacion>(textoDe(respuesta), { suficiente: true })!;
