@@ -9,8 +9,17 @@ import { verificarFirmaMP } from "@/lib/firma-mp";
 // webhook, MP_WEBHOOK_SECRET); si no coincide, 401 y no gastamos una llamada
 // (bitácora #9, 16/09). (2) La verdad: consultamos el pago DIRECTO contra la
 // API de MP con nuestro access token y solo confiamos en esa respuesta — nunca
-// en el payload de la notificación.
-export async function POST(request: NextRequest) {
+// en el payload de la notificación. La firma se calcula sobre el id de la
+// notificación, venga como venga.
+//
+// MP llama a este webhook de dos maneras: el Webhooks nuevo manda POST con
+// `?data.id=`, y el IPN viejo manda sus parámetros en la query primero. Los dos
+// entran por acá a propósito — un solo lugar donde se verifica la firma y se
+// consulta el pago — porque el método que no está exportado NO llega a
+// ejecutarse: Next contesta 405 sin correr una sola línea (incidente del 21/09,
+// pedido 4333e8fd: dos GET a las 19:37 se comieron el 405 y el pago quedó
+// aprobado en MP con el pedido en `pendiente`).
+async function procesarNotificacion(request: NextRequest) {
   const url = new URL(request.url);
   let paymentId = url.searchParams.get("data.id") ?? url.searchParams.get("id");
 
@@ -80,3 +89,8 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({ received: true }, { status: 200 });
 }
+
+// Los dos métodos, el mismo handler por nombre y no por copia: así el camino
+// no se puede separar sin que se note (y sin que un test lo agarre).
+export const POST = procesarNotificacion;
+export const GET = procesarNotificacion;
