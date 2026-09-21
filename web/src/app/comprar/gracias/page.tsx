@@ -3,10 +3,12 @@ import Link from "next/link";
 import { Playfair_Display, Archivo, Source_Serif_4 } from "next/font/google";
 import { CampoVF } from "../../marca";
 
-// Adonde vuelve Stripe/Mercado Pago después de cobrar. La compradora todavía
-// no tiene sesión: acá no se muestra nada de la base, solo qué va a pasar y
-// cómo entrar. El mail de acceso lo manda el webhook, que puede llegar unos
-// segundos después que esta pantalla — por eso no se promete "ya te llegó".
+// La pantalla de respaldo después de pagar. Desde el 21/09 (3t.20) el
+// proveedor vuelve a /api/pago/vuelta, que confirma el pago y abre la sesión
+// directo en el panel; acá se cae solo si eso no pudo (pago todavía
+// pendiente, sesión que no abrió). No hay sesión: no se muestra nada de la
+// base, solo qué va a pasar y cómo entrar. El mail de acceso puede llegar
+// unos segundos después — por eso no se promete "ya te llegó".
 
 const playfair = Playfair_Display({ subsets: ["latin"], weight: ["500"], variable: "--fuente-titulo", display: "swap" });
 const archivo = Archivo({ subsets: ["latin"], weight: ["400", "500"], variable: "--fuente-micro", display: "swap" });
@@ -48,7 +50,7 @@ export default async function Gracias({ searchParams }: PageProps<"/comprar/grac
           Entrar a mi panel
         </Link>
         <p className="mt-3 text-[13px] text-[#AEAEA6] [font-family:var(--fuente-micro)]">
-          Con tu correo y un código de 6 números. Sin contraseñas.
+          Con tu correo y un código de 6 números. Sin contraseñas.{/* ⚠️ Naza: texto de respaldo cuando la vuelta no pudo abrir la sesión. */}
         </p>
       </div>
     </div>

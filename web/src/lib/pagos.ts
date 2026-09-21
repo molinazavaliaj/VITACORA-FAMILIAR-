@@ -1,5 +1,6 @@
 import Stripe from "stripe";
 import { MercadoPagoConfig, Preference } from "mercadopago";
+import { firmarToken } from "./token-firmado";
 import type { Compra } from "@/lib/productos";
 
 // Crea el link de pago (Stripe para ES, Mercado Pago para AR) a partir de una
@@ -15,9 +16,12 @@ type Pedido = { id: string; email: string };
 export async function crearCheckout(pedido: Pedido, compra: Compra): Promise<{ urlPago: string }> {
   // Vitácora de viaje: la pantalla de gracias explica cómo arrancar por WhatsApp, y "atrás" vuelve a su compra.
   const esViaje = compra.lineas.some((l) => l.id === "viaje");
-  const sufijo = esViaje ? "?viaje=1" : "";
   const vuelta = esViaje ? "/viaje" : "";
   const urlBase = process.env.URL_BASE;
+  // 3t.20: al cobrar, el proveedor vuelve a NUESTRA ruta con un token firmado
+  // atado al pedido (1 hora): ahí se verifica el pago con el proveedor, se
+  // confirma el pedido aunque el webhook falle, y se abre la sesión.
+  const urlVuelta = `${urlBase}/api/pago/vuelta?pedido=${encodeURIComponent(pedido.id)}&t=${firmarToken("vuelta", pedido.id)}${esViaje ? "&viaje=1" : ""}`;
 
   if (compra.region === "ES") {
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
@@ -36,7 +40,7 @@ export async function crearCheckout(pedido: Pedido, compra: Compra): Promise<{ u
         quantity: linea.cantidad,
       })),
       metadata: { pedido_id: pedido.id },
-      success_url: `${urlBase}/comprar/gracias${sufijo}`,
+      success_url: `${urlVuelta}&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${urlBase}/comprar${vuelta}`,
     });
 
@@ -63,7 +67,7 @@ export async function crearCheckout(pedido: Pedido, compra: Compra): Promise<{ u
       // nombre del vendedor en el mail de MP sale de la cuenta, no de acá.
       statement_descriptor: "VITACORA",
       back_urls: {
-        success: `${urlBase}/comprar/gracias${sufijo}`,
+        success: urlVuelta,
         failure: `${urlBase}/comprar${vuelta}`,
       },
       // MP rechaza auto_return si la URL de vuelta no es https pública (en
