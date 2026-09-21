@@ -34,6 +34,10 @@ export type SeccionesDelLibro = {
   muletillas: string[];
 };
 
+/** Los tres estados de una frase en el archivo. El único que los mueve es el
+ *  worker de la PC de audio (el CONTRATO dice quién escribe qué). */
+export type EstadoFrase = 'pendiente' | 'cortada' | 'fallida';
+
 export type FraseCandidata = {
   id: string;
   texto: string;
@@ -45,13 +49,17 @@ export type FraseCandidata = {
   pregunta_orden: number;
   por_que: string;
   elegida: boolean;
-  elegida_por: 'modelo';
-  /** `pendiente` hasta que el worker la corta y escribe `cortada`. */
-  estado: 'pendiente';
-  audio_path: null;
-  segundos: null;
-  inicio: null;
-  fin: null;
+  elegida_por: 'modelo' | 'familia';
+  /** `pendiente` hasta que el worker la corta y escribe `cortada` (o `fallida` si
+   *  el corte no salió). El tipo es el del CONTRATO, no el de lo que escribe la
+   *  fábrica: el archivo lo terminan de llenar el worker y la web, y la sección
+   *  impresa lo lee después — con el tipo viejo (solo `pendiente` y `null`) la
+   *  fábrica no podía ni preguntar si una frase suena. */
+  estado: EstadoFrase;
+  audio_path: string | null;
+  segundos: number | null;
+  inicio: number | null;
+  fin: number | null;
 };
 
 export type CapituloConFrases = { numero: number; capitulo: string; candidatas: FraseCandidata[] };
