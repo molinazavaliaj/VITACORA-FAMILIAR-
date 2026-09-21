@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { Playfair_Display, Archivo, Source_Serif_4 } from "next/font/google";
 import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { mailsDeAdmin, esAdmin, sinPermiso } from "@/lib/admin/acceso";
+import { NavegacionAdmin } from "./nav";
 import { BotonTema, COOKIE_TEMA, type Tema } from "@/app/tablero/tema";
 
 // El panel de la empresa (docs/superpowers/specs/2026-09-21-panel-de-la-empresa-design.md).
@@ -69,6 +70,7 @@ export default async function LayoutAdmin({ children }: LayoutProps<"/admin">) {
           <BotonTema inicial={tema} />
         </p>
       </header>
+      <NavegacionAdmin />
       <main className="flex-1 px-5 py-6">{children}</main>
     </div>
   );
