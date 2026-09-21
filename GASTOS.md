@@ -158,7 +158,12 @@ Los extras se venden **después** de la base y se producen después de venderse.
 extra sin variable cargada **no aparece** en el checkout (regla de `productos.ts`).
 
 **Pendiente: cargarlos en Vercel** (Naza, en curso el 16/09). Hasta entonces la landing
-vende solo el PDF con los defaults del código (ARS 49.999 / 49 €).
+vende solo el PDF con los defaults del código, que son el precio de la casa (ARS 85.750 /
+49 €) desde el 21/09: el default de AR decía 49.999 —58 % del precio— y una `PRECIO_ARS`
+rota habría vendido barato en silencio. Un precio mal cargado ahora no rompe la tienda ni
+miente: vale el precio de la casa y deja un aviso en los logs (`web/src/lib/precios.ts`).
+Los valores se cargan **sin separadores de miles**: `85.750` se escribe `85750`, porque
+`Number('85.750')` da 85,75 y ninguna validación puede cazar eso.
 
 **Las otras variables de la web en Vercel** (además de Supabase, Stripe y los precios):
 
