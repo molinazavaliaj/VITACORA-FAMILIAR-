@@ -501,6 +501,32 @@ producto de 49-99€, **USD 1,85 por libro no justifica perder profesionalidad**
 pensamiento completo. (Ojo: `thinking.type.disabled` no existe en este modelo y el pensamiento
 cuenta dentro de `max_tokens` — con 2000 la corrida moría con texto vacío.)
 
+## «Su voz» — la fábrica lista (branch `su-voz-fabrica`, 21/09)
+
+Las tareas 1, 2 y 3 del plan `docs/superpowers/plans/2026-09-20-su-voz-fabrica.md` están hechas y
+pusheadas (`58c02c8`, `a9059c7`, `bf184e6`, `c84f83e`): la fábrica elige las frases leyendo el libro que
+acaba de escribir (la página «Sus frases» + las citas de cada capítulo, solo las textuales), deja
+`frases.json` y el pedido de corte en el paquete, y **el pedido ya no espera la voz**: se entrega el libro
+y el worker de la PC corta los audios reales cuando puede. Se fue la rama clonada (`narracion.json` v2,
+buzón `narraciones`, `esperando_voz`) con sus 4 tests.
+
+Medido sobre el libro de Joaquín (8 capítulos): **1 llamada, USD 0,38-0,53, 85-126 s**, 24 elegidas de 36
+candidatas (12 de «Sus frases» + 12 citas). Sigue con el **pensamiento completo** — la decisión de no
+abaratar el juicio se mantiene: el costo baja porque la entrada es chica (2.482 tokens: las frases
+candidatas, no el libro), no porque se le recorte el pensamiento.
+
+Tres bugs que aparecieron en la ejecución, los tres con test:
+- los subtítulos de la página «Sus frases» (`### Las suyas`) apagaban el modo página: se perdía la sección
+  entera y la primera corrida salió con **0 candidatas** (era de producción, no del script de medición);
+- el vínculo frase→audio se resolvía con comparación exacta y solo en el capítulo asignado: las frases de
+  la página quedaban sin `respuesta_id` y el worker no habría sabido qué cortar;
+- el reintento del modelo no tenía segunda red: un segundo fallo se llevaba puesto el libro entero (la
+  regla de oro del producto).
+
+Queda pendiente: el audiolibro «real» (`generarAudiolibro`) todavía se arma para cualquier pedido — sale
+cuando el producto salga del checkout (`web/`); la sección impresa con QR (Task 4) y el recordatorio a los
+15 días (Task 6).
+
 ## Próximos hitos
 
 1. ~~Audiolibro híbrido~~ — **descartado el 20/09** (ver arriba): la corrida que quedó encolada sirve solo para el veredicto de oído. Lo que viene: el spec de "Sus mejores frases" y el checkout sin la línea del audiolibro.

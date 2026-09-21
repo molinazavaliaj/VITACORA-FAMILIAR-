@@ -354,11 +354,14 @@ export async function elegirFrases(
   }
 
   // Las demás candidatas textuales del capítulo quedan como alternativas para el panel familiar.
+  // Una candidata vive en UN solo lugar del archivo: si el modelo se la llevó a otro capítulo, no
+  // puede volver a aparecer en el de origen (se imprimiría dos veces y el id —que es el nombre del
+  // audio— se repetiría). Lo cazó la corrida real del 21/09 sobre el libro de Joaquín.
+  const yaUsadas = new Set([...porCapitulo.values()].flat().map((e) => normalizar(e.texto)));
   const capitulos: CapituloConFrases[] = args.capitulos.map((capitulo) => {
     const elegidas = porCapitulo.get(capitulo.numero) ?? [];
-    const usadas = new Set(elegidas.map((e) => normalizar(e.texto)));
     const alternativas = candidatas
-      .filter((c) => normalizar(c.texto) !== '' && !usadas.has(normalizar(c.texto)))
+      .filter((c) => normalizar(c.texto) !== '' && !yaUsadas.has(normalizar(c.texto)))
       .filter((c) => c.numeroCapitulo === capitulo.numero)
       .slice(0, FRASES_POR_CAPITULO * 2)
       .map((c) => {

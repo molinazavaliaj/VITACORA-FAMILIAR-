@@ -60,6 +60,9 @@ Cada una tiene su test en la tarea que le da el código (se indica en cada `Revi
 
 ### Task 1: `frases.ts` — la selección lee el libro y arma `frases.json`
 
+> ✅ **Hecho** — `58c02c8` (la selección) + `a9059c7` (la frase encuentra su audio aunque viva en otro
+> capítulo) + `c84f83e` (una frase, un capítulo).
+
 > ⚠️ **Revisada el 20/09 (a pedido de Naza):** la fuente dejó de ser el material crudo por capítulo
 > y pasó a ser **el libro que la fábrica ya escribió** (sus citas `> cita` y la página "Sus frases"),
 > en **una sola llamada**. Mandan las interfaces y los pasos de la sección «Cambio del 20/09» al
@@ -295,6 +298,9 @@ corte no alinea y lo impreso no coincide con el audio."
 
 ### Task 2: `frases.json` en el paquete y el pedido de corte para el worker
 
+> ✅ **Hecho** — `bf184e6`. El pedido es un archivo que el worker sondea (nada de puertos); sin
+> candidatas no se deja pedido, así no se le encarga a la PC un trabajo vacío.
+
 **Files:**
 - Create: `fabrica/src/libro/publicar-frases.ts`
 - Modify: `fabrica/src/voz/narracion-json.ts` (nada) — **no**; el pedido de corte va en el módulo nuevo
@@ -414,6 +420,18 @@ procesos, como el resto del repo."
 ---
 
 ### Task 3: el enganche en `generar-paquete.ts` — sale el audiolibro, entra Su voz
+
+> ✅ **Hecho** — `c84f83e`. El pedido ya no espera la voz: se entrega el libro con `frases.json` y el
+> pedido de corte, y el worker completa los audios cuando puede. Se fueron la rama clonada
+> (`narracion.json` v2, buzón `narraciones`, `esperando_voz`) y sus 4 tests; `armarCapitulosParaNarrar`
+> queda exportada por si hay que rehacer una narración ya encolada, con nota de cuándo se va.
+> **Dos bugs que aparecieron y quedaron con test:** (a) el reintento del modelo no tenía segunda red —
+> un segundo fallo se llevaba puesto el libro entero (la regla de oro del producto); (b) una frase de
+> «Sus frases» se ofrecía en TODOS los capítulos: se imprimía dos veces y su id se repetía — ahora va
+> al capítulo de la respuesta que la originó.
+> **Queda para el cambio de checkout (`web/`):** el audiolibro «real» (`generarAudiolibro`, un mp3 por
+> capítulo) todavía se arma para cualquier pedido; cuando el producto salga del checkout se lo saca
+> también de acá.
 
 **Files:**
 - Modify: `fabrica/src/libro/generar-paquete.ts:232-262` (la rama `audiolibro === 'clonada'`)
@@ -609,6 +627,11 @@ El QR se dibuja en la fabrica, sin navegador: el PDF se arma en Railway."
 ---
 
 ### Task 5: medir con el libro de Joaquín (tokens, costo y calidad) antes de dar por buena la selección
+
+> ✅ **Medido** (20/09, con la fuente nueva) — **1 llamada, USD 0,48, 117 s**, 24 elegidas de 72
+> candidatas (12 de «Sus frases» + 12 citas), 42 candidatas textuales de 57. La entrada es chica
+> (2.482 tokens: solo las frases candidatas, no el libro) y el gasto es el pensamiento (7.603 de los
+> 9.153 de salida). Para escucharlas: `Desktop\su-voz-frases-Joaquin\frases-del-libro.html`.
 
 **Files:**
 - Create: `fabrica/scripts/prueba-frases.ts`

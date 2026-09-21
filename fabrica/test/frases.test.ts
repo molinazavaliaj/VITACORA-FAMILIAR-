@@ -220,6 +220,42 @@ describe('elegirFrases', () => {
     expect(conLaFrase.map((c) => c.numero)).toEqual([2]);
   });
 
+  it('si el modelo mueve una cita a otro capítulo, no vuelve como alternativa en el suyo', async () => {
+    const libro = `# La infancia
+
+> En Rosario.
+
+# El amor
+
+> La conocí bailando.
+`;
+    const capitulos = [
+      { numero: 1, nombre: 'La infancia', material: [material(1, 'En Rosario.')] },
+      { numero: 2, nombre: 'El amor', material: [material(2, 'La conocí bailando.')] },
+    ];
+    const clienteFalso = {
+      messages: {
+        create: async () => ({
+          content: [{ type: 'text', text: JSON.stringify({ elegidas: [{ id: 'cita-1', capitulo: 2, por_que: 'va mejor acá' }] }) }],
+          stop_reason: 'end_turn',
+        }),
+      },
+    } as unknown as Parameters<typeof elegirFrases>[0];
+
+    const frases = await elegirFrases(clienteFalso, {
+      narradorId: 'n1',
+      pedidoId: 'p1',
+      nombre: 'Joaquín',
+      libroMarkdown: libro,
+      capitulos,
+    });
+
+    const donde = frases.capitulos.flatMap((c) => c.candidatas.filter((f) => f.texto === 'En Rosario.').map(() => c.numero));
+    expect(donde).toEqual([2]);
+    const ids = frases.capitulos.flatMap((c) => c.candidatas.map((f) => f.id));
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
   it('no deja más de tres elegidas por capítulo aunque el modelo se entusiasme', async () => {
     const muchos = new Array(6).fill(0).map((_, i) => `[cita-${i + 1}] «y ahí estaba el mejor ring que tuve en mi vida fue esa casa»`);
     const clienteFalso = {
