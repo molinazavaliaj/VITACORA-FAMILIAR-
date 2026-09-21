@@ -19,9 +19,60 @@ import { verificarFirmaMP } from "@/lib/firma-mp";
 // ejecutarse: Next contesta 405 sin correr una sola línea (incidente del 21/09,
 // pedido 4333e8fd: dos GET a las 19:37 se comieron el 405 y el pago quedó
 // aprobado en MP con el pedido en `pendiente`).
+//
+// T3.13 — el rastro: CADA salida de este handler escribe una línea, con el
+// motivo. El mismo incidente tardó en detectarse porque las dos salidas más
+// probables eran MUDAS: una notificación sin id de pago contesta 200
+// `{received:true}` y MP se da por notificado (no reintenta), y un pago que
+// llega pero no está aprobado (o no trae `external_reference`) contesta 200 sin
+// escribir nada. Sin estas líneas, la próxima vez que un pago no confirme hay
+// que ir a la base y deducir a mano por qué.
+//
+// La línea es una sola, greppable, con el motivo adelante y los campos atrás:
+//
+//     webhook mercadopago: <motivo> | metodo=… id=… origen=… firma=… pago=…
+//
+// `origen` dice de dónde salió el id (query o cuerpo), que es lo que distingue
+// al Webhooks nuevo del IPN viejo; `pago` es lo que contestó MP.
+type Firma = "valida" | "invalida" | "no-evaluada";
+
+type Rastro = {
+  metodo: string;
+  id: string | null;
+  origen: "query" | "cuerpo" | null;
+  firma: Firma;
+  pago: string;
+};
+
+function registrarSalida(
+  rastro: Rastro,
+  motivo: string,
+  opciones: { confirmado?: boolean; error?: unknown } = {},
+) {
+  const linea =
+    `webhook mercadopago: ${motivo}` +
+    ` | metodo=${rastro.metodo} id=${rastro.id ?? "ninguno"} origen=${rastro.origen ?? "ninguno"}` +
+    ` firma=${rastro.firma} pago=${rastro.pago}`;
+  // El error va como segundo argumento para que Vercel muestre también su stack.
+  if (opciones.error !== undefined) console.error(linea, opciones.error);
+  else if (opciones.confirmado) console.log(linea);
+  else console.warn(linea);
+}
+
 async function procesarNotificacion(request: NextRequest) {
   const url = new URL(request.url);
   let paymentId = url.searchParams.get("data.id") ?? url.searchParams.get("id");
+
+  // El rastro se arma una vez y se completa camino a la salida; cada return lo
+  // escribe. Si una salida nueva no llama a registrarSalida, el test que cuenta
+  // las líneas se cae.
+  const rastro: Rastro = {
+    metodo: request.method ?? "desconocido",
+    id: paymentId,
+    origen: paymentId ? "query" : null,
+    firma: "no-evaluada",
+    pago: "no-consultado",
+  };
 
   // La firma se calcula sobre el data.id de la URL, así que se verifica antes
   // de mirar el cuerpo. Sin secreto configurado se avisa y se sigue (entorno
@@ -34,8 +85,9 @@ async function procesarNotificacion(request: NextRequest) {
       dataId: paymentId,
       secreto,
     });
+    rastro.firma = valida ? "valida" : "invalida";
     if (!valida) {
-      console.warn("webhook mercadopago: firma inválida, se ignora");
+      registrarSalida(rastro, "firma inválida, se ignora");
       return NextResponse.json({ error: "Firma inválida." }, { status: 401 });
     }
   } else if (!secreto) {
@@ -46,12 +98,19 @@ async function procesarNotificacion(request: NextRequest) {
     try {
       const body = (await request.json()) as { data?: { id?: string | number } };
       paymentId = body?.data?.id != null ? String(body.data.id) : null;
+      if (paymentId) {
+        rastro.id = paymentId;
+        rastro.origen = "cuerpo";
+      }
     } catch {
       // Sin cuerpo JSON válido: seguimos sin id.
     }
   }
 
   if (!paymentId) {
+    // El agujero más peligroso del incidente: este 200 sin línea hacía que MP se
+    // diera por notificado (y no reintentara) sin dejar rastro de nada.
+    registrarSalida(rastro, "no trae id de pago, no hay nada que confirmar");
     return NextResponse.json({ received: true }, { status: 200 });
   }
 
@@ -64,9 +123,12 @@ async function procesarNotificacion(request: NextRequest) {
     // es NUESTRO, no un juicio sobre la notificación. Devolver 500 para que
     // MP reintente; un 200 acá lo daría por "notificación irrelevante" y el
     // pedido se quedaría cobrado pero marcado "pendiente" para siempre.
-    console.error("webhook mercadopago: fallo consultar el pago", err);
+    rastro.pago = "error";
+    registrarSalida(rastro, "no se pudo consultar el pago a Mercado Pago", { error: err });
     return NextResponse.json({ error: "No se pudo consultar el pago." }, { status: 500 });
   }
+
+  rastro.pago = payment.status ?? "sin-status";
 
   // A partir de acá, la consulta a MP respondió: si no está aprobado o no
   // trae referencia, es una notificación irrelevante de verdad (pago
@@ -82,11 +144,22 @@ async function procesarNotificacion(request: NextRequest) {
       enviarMailAcceso,
     });
     if (!resultado.ok) {
-      console.error("webhook mercadopago: fallo confirmar el pago", resultado.error);
+      registrarSalida(rastro, "no se pudo actualizar el pedido", { error: resultado.error });
       return NextResponse.json({ error: "No se pudo actualizar el pedido." }, { status: 500 });
     }
+    // También el caso feliz deja su línea: un 200 sin confirmación y un 200 con
+    // confirmación se veían igual en los logs, y no son lo mismo.
+    registrarSalida(rastro, `pedido confirmado (${payment.external_reference})`, { confirmado: true });
+    return NextResponse.json({ received: true }, { status: 200 });
   }
 
+  // Las dos notificaciones que NO confirman nada, cada una con su motivo (antes
+  // salían por el mismo return mudo del final).
+  if (payment.status !== "approved") {
+    registrarSalida(rastro, "el pago no está aprobado");
+  } else {
+    registrarSalida(rastro, "el pago está aprobado pero no trae external_reference");
+  }
   return NextResponse.json({ received: true }, { status: 200 });
 }
 

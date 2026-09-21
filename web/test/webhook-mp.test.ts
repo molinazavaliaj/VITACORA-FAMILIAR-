@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createHmac } from 'node:crypto';
 
 // El webhook de Mercado Pago, mirado por el MÉTODO con el que entra.
@@ -30,12 +30,14 @@ import { GET, POST } from '../src/app/api/webhooks/mercadopago/route';
 
 const URL_MP = 'https://vitacorafamiliar.com/api/webhooks/mercadopago';
 
-// Mínimo para que el handler pueda leer `url.searchParams` y los headers. Un
-// GET real no trae cuerpo, así que `json()` tira: el handler tiene que
-// aguantarlo sin cortar (el catch que ya existía).
-function peticion(url: string, opciones: { headers?: HeadersInit; cuerpo?: unknown } = {}) {
+// Mínimo para que el handler pueda leer `url.searchParams`, los headers y el
+// método (que va en la línea de log). Un GET real no trae cuerpo, así que
+// `json()` tira: el handler tiene que aguantarlo sin cortar (el catch que ya
+// existía).
+function peticion(url: string, opciones: { headers?: HeadersInit; cuerpo?: unknown; metodo?: string } = {}) {
   return {
     url,
+    method: opciones.metodo,
     headers: new Headers(opciones.headers),
     json: async () => {
       if (opciones.cuerpo === undefined) throw new SyntaxError('Unexpected end of JSON input');
@@ -167,5 +169,204 @@ describe('el webhook de MP acepta GET y POST por el mismo camino', () => {
     const respuesta = await GET(peticion(`${URL_MP}?topic=payment&id=111`));
 
     expect(respuesta.status).toBe(500);
+  });
+});
+
+// T3.13: el webhook tiene que LOGUEAR todos los caminos de salida.
+//
+// El incidente del 21/09 tardó en detectarse porque las dos salidas más
+// probables eran MUDAS: (1) una notificación sin id de pago contesta 200
+// `{received:true}` y MP se da por notificado (no reintenta) sin que quede una
+// sola línea; (2) un pago que llega pero no está aprobado (o no trae
+// external_reference) contesta 200 y tampoco escribe nada. Sin estas líneas, la
+// próxima vez que un pago no confirme hay que ir a la base y deducir a mano.
+//
+// La forma de la línea es una sola, greppable, con el motivo adelante y los
+// campos atrás: `webhook mercadopago: <motivo> | metodo=… id=… origen=… firma=…
+// pago=…`.
+describe('cada salida del webhook deja su línea de log con el motivo', () => {
+  let porLog: string[] = [];
+  let porWarn: string[] = [];
+  let porError: string[] = [];
+
+  beforeEach(() => {
+    porLog = [];
+    porWarn = [];
+    porError = [];
+    vi.spyOn(console, 'log').mockImplementation((...args: unknown[]) => {
+      porLog.push(args.map(String).join(' '));
+    });
+    vi.spyOn(console, 'warn').mockImplementation((...args: unknown[]) => {
+      porWarn.push(args.map(String).join(' '));
+    });
+    vi.spyOn(console, 'error').mockImplementation((...args: unknown[]) => {
+      porError.push(args.map(String).join(' '));
+    });
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  // Las líneas de salida del webhook (y no los avisos sueltos, como el de
+  // MP_WEBHOOK_SECRET sin configurar, que no es una salida).
+  function salidas(lineas: string[]) {
+    return lineas
+      .filter((l) => l.startsWith('webhook mercadopago:') && l.includes(' | metodo='))
+      .map((l) => {
+        const [motivo, campos] = l.replace('webhook mercadopago: ', '').split(' | ');
+        const valores = Object.fromEntries(
+          campos
+            .split(' ')
+            .filter(Boolean)
+            .map((par) => [par.slice(0, par.indexOf('=')), par.slice(par.indexOf('=') + 1)]),
+        );
+        return { motivo, ...valores } as Record<string, string>;
+      });
+  }
+
+  function pagoCon(estado: string, id: number | string = 1, referencia?: string) {
+    const get = vi
+      .fn()
+      .mockResolvedValue({ id, status: estado, ...(referencia ? { external_reference: referencia } : {}) });
+    (Payment as unknown as ReturnType<typeof vi.fn>).mockImplementation(function () {
+      return { get };
+    });
+    return get;
+  }
+
+  it('una notificación sin id de pago: 200 y la línea que dice por qué no se confirmó', async () => {
+    // Era el agujero más peligroso: MP recibe un 200, se da por notificado y no
+    // reintenta, así que el pedido se queda cobrado y pendiente, en silencio.
+    const get = pagoCon('approved');
+
+    const respuesta = await POST(peticion(URL_MP, { metodo: 'POST', cuerpo: { action: 'payment.created' } }));
+
+    expect(respuesta.status).toBe(200);
+    expect(await respuesta.json()).toEqual({ received: true });
+    expect(get).not.toHaveBeenCalled();
+
+    const lineas = salidas(porWarn);
+    expect(lineas).toHaveLength(1);
+    expect(lineas[0].motivo).toContain('no trae id de pago');
+    expect(lineas[0]).toMatchObject({
+      metodo: 'POST',
+      id: 'ninguno',
+      origen: 'ninguno',
+      firma: 'no-evaluada',
+      pago: 'no-consultado',
+    });
+  });
+
+  it('un pago que no está aprobado: 200 y la línea con el status que trajo MP', async () => {
+    const get = pagoCon('rejected', 55, 'pedido-7');
+
+    const respuesta = await GET(peticion(`${URL_MP}?data.id=55&type=payment`, { metodo: 'GET' }));
+
+    expect(respuesta.status).toBe(200);
+    expect(confirmarPago).not.toHaveBeenCalled();
+    expect(get).toHaveBeenCalledWith({ id: '55' });
+
+    const lineas = salidas(porWarn);
+    expect(lineas).toHaveLength(1);
+    expect(lineas[0].motivo).toContain('no está aprobado');
+    expect(lineas[0]).toMatchObject({ metodo: 'GET', id: '55', origen: 'query', firma: 'no-evaluada', pago: 'rejected' });
+  });
+
+  it('un pago aprobado pero sin external_reference: 200 y la línea que lo dice', async () => {
+    // Con `approved` y sin referencia no hay a qué pedido confirmarle nada: es
+    // la otra mitad muda del incidente.
+    pagoCon('approved', 66);
+
+    const respuesta = await GET(peticion(`${URL_MP}?data.id=66&type=payment`, { metodo: 'GET' }));
+
+    expect(respuesta.status).toBe(200);
+    expect(confirmarPago).not.toHaveBeenCalled();
+
+    const lineas = salidas(porWarn);
+    expect(lineas).toHaveLength(1);
+    expect(lineas[0].motivo).toContain('external_reference');
+    expect(lineas[0]).toMatchObject({ metodo: 'GET', id: '66', pago: 'approved' });
+  });
+
+  it('una firma inválida: 401 y la línea dice que la firma no validó', async () => {
+    process.env.MP_WEBHOOK_SECRET = 'secreto-webhook';
+    const get = pagoCon('approved', 123456, 'pedido-3');
+
+    const respuesta = await POST(peticion(`${URL_MP}?data.id=123456&type=payment`, { metodo: 'POST' }));
+
+    expect(respuesta.status).toBe(401);
+    expect(get).not.toHaveBeenCalled();
+
+    const lineas = salidas(porWarn);
+    expect(lineas).toHaveLength(1);
+    expect(lineas[0].motivo).toBe('firma inválida, se ignora');
+    expect(lineas[0]).toMatchObject({
+      metodo: 'POST',
+      id: '123456',
+      origen: 'query',
+      firma: 'invalida',
+      pago: 'no-consultado',
+    });
+  });
+
+  it('si la consulta a MP falla: 500 y la línea del error (no un error pelado)', async () => {
+    const get = vi.fn().mockRejectedValue(new Error('fetch failed'));
+    (Payment as unknown as ReturnType<typeof vi.fn>).mockImplementation(function () {
+      return { get };
+    });
+
+    const respuesta = await GET(peticion(`${URL_MP}?topic=payment&id=111`, { metodo: 'GET' }));
+
+    expect(respuesta.status).toBe(500);
+    expect(salidas(porWarn)).toHaveLength(0);
+
+    const lineas = salidas(porError);
+    expect(lineas).toHaveLength(1);
+    expect(lineas[0].motivo).toContain('no se pudo consultar el pago');
+    expect(lineas[0]).toMatchObject({ metodo: 'GET', id: '111', origen: 'query', pago: 'error' });
+  });
+
+  it('si confirmar el pago falla: 500 y la línea con el motivo, no muda', async () => {
+    (confirmarPago as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: false,
+      error: 'la base no respondió',
+    });
+    pagoCon('approved', 999, 'pedido-9');
+
+    const respuesta = await GET(peticion(`${URL_MP}?topic=payment&id=999`, { metodo: 'GET' }));
+
+    expect(respuesta.status).toBe(500);
+    const lineas = salidas(porError);
+    expect(lineas).toHaveLength(1);
+    expect(lineas[0].motivo).toContain('no se pudo actualizar el pedido');
+    expect(lineas[0]).toMatchObject({ metodo: 'GET', id: '999', origen: 'query', pago: 'approved' });
+  });
+
+  it('un pago confirmado: 200 y la línea del caso feliz (por log, no por warn)', async () => {
+    pagoCon('approved', 123456, 'pedido-3');
+
+    const respuesta = await POST(peticion(`${URL_MP}?data.id=123456&type=payment`, { metodo: 'POST' }));
+
+    expect(respuesta.status).toBe(200);
+    expect(confirmarPago).toHaveBeenCalledTimes(1);
+    expect(salidas(porWarn)).toHaveLength(0);
+
+    const lineas = salidas(porLog);
+    expect(lineas).toHaveLength(1);
+    expect(lineas[0].motivo).toContain('pedido confirmado');
+    expect(lineas[0].motivo).toContain('pedido-3');
+    expect(lineas[0]).toMatchObject({ metodo: 'POST', id: '123456', origen: 'query', pago: 'approved' });
+  });
+
+  it('el id que llega en el cuerpo JSON queda declarado como origen=cuerpo', async () => {
+    pagoCon('approved', 777, 'pedido-9');
+
+    const respuesta = await POST(peticion(URL_MP, { metodo: 'POST', cuerpo: { data: { id: 777 } } }));
+
+    expect(respuesta.status).toBe(200);
+    const lineas = salidas(porLog);
+    expect(lineas).toHaveLength(1);
+    expect(lineas[0]).toMatchObject({ metodo: 'POST', id: '777', origen: 'cuerpo', pago: 'approved' });
   });
 });
