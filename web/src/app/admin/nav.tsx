@@ -42,6 +42,18 @@ export function NavegacionAdmin() {
           </Link>
         );
       })}
+      {/* La salida, al final y separada de las cinco pantallas: sin esto el panel
+          queda pegajoso (hallazgo de Naza, 2026-09-21: con la sesión abierta no
+          había forma de desloguearse desde acá; el único Salir del sitio estaba
+          en /tablero). Es un `<a>` a un Route Handler GET, igual que en el panel
+          del cliente, y no un `<Link>`: así la navegación de Next no lo
+          prefetchea ni lo trata como una pantalla más. */}
+      <a
+        href="/api/auth/salir"
+        className="ml-auto rounded px-3 py-1 text-sm text-[var(--texto-suave)] hover:bg-[var(--hueco)]"
+      >
+        Salir
+      </a>
     </nav>
   );
 }
