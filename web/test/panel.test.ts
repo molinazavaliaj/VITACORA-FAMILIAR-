@@ -143,12 +143,21 @@ describe("PUEDE", () => {
 });
 
 describe("token del libro público", async () => {
-  const { firmarTokenLibro, verificarTokenLibro } = await import("../src/lib/token-libro");
+  const { firmarTokenLibro, verificarTokenLibro, firmarTokenVoz, verificarTokenVoz } = await import("../src/lib/token-libro");
   it("firma y verifica con el secreto; un token tocado no pasa", () => {
     process.env.SUPABASE_SERVICE_ROLE_KEY = "secreto-de-prueba";
     const t = firmarTokenLibro("n-osvaldo");
     expect(verificarTokenLibro(t)).toEqual({ narradorId: "n-osvaldo" });
     expect(verificarTokenLibro(t.slice(0, -2) + "xx")).toBeNull();
     expect(verificarTokenLibro("nada")).toBeNull();
+  });
+  // El código impreso abre el libro entero (spec "Su voz"): es OTRO tipo, así el
+  // link que el comprador reenvía para vender copias no abre más que la muestra.
+  it("el token 'voz' no abre la muestra ni al revés", () => {
+    process.env.SUPABASE_SERVICE_ROLE_KEY = "secreto-de-prueba";
+    const voz = firmarTokenVoz("n-osvaldo");
+    expect(verificarTokenVoz(voz)).toEqual({ narradorId: "n-osvaldo" });
+    expect(verificarTokenLibro(voz)).toBeNull();
+    expect(verificarTokenVoz(firmarTokenLibro("n-osvaldo"))).toBeNull();
   });
 });
