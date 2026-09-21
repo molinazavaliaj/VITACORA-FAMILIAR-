@@ -1,6 +1,6 @@
 import { escaparHtml } from './comun.js';
 import type { FotosCapitulo, FotoLibro, Foco } from './fotos.js';
-import { estiloFoco } from './fotos.js';
+import { atributoFoco } from './fotos.js';
 import { FRASES_POR_CAPITULO, type FraseCandidata, type FrasesJson } from './frases.js';
 import { qrDataUri } from './qr.js';
 import { urlFraseDeVoz } from './token-voz.js';
@@ -376,7 +376,10 @@ function construirEstilos(acento: string): string {
   .foto-img { max-width: 100%; max-height: 100%; object-fit: contain; }
   /* La principal del capítulo se recorta al marco entero; object-position
      (inline, desde fotos.foco) decide qué punto queda a la vista. Las de
-     cierre siguen enteras: son varias y ahí importa ver todo. */
+     cierre siguen enteras: son varias y ahí importa ver todo. La clase se
+     escribe solo cuando la foto trae un foco usable (ver "atributoFoco" en
+     fotos.ts): sin dato —migración 20260918 sin aplicar, fila vieja— la foto
+     va entera, con el marcado de siempre. */
   .foto-img.recorte { width: 100%; height: 100%; max-width: none; max-height: none; object-fit: cover; }
   /* Principal con posicion = 'abajo': va en la portadilla del capítulo, en la
      franja libre debajo del nombre (el numeral termina ~270px; el cuerpo
@@ -567,7 +570,7 @@ function construirPortada(opts: {
 function construirFrontispicio(opts: { fotoUrl: string; fotoFoco?: Foco; nombreNarrador: string; anioNacimiento?: number | null }): string {
   const { fotoUrl, fotoFoco, nombreNarrador, anioNacimiento } = opts;
   return `<div class="lienzo oscuro quiebre">
-    <img class="frontispicio-img" src="${escaparHtml(fotoUrl)}" style="${estiloFoco(fotoFoco)}" alt="" />
+    <img class="frontispicio-img" src="${escaparHtml(fotoUrl)}"${atributoFoco(fotoFoco)} alt="" />
     <div class="frontispicio-velo"></div>
     <div class="frontispicio-eyebrow">RETRATO DEL NARRADOR</div>
     <div class="frontispicio-pie">
@@ -581,11 +584,17 @@ function construirFrontispicio(opts: { fotoUrl: string; fotoFoco?: Foco; nombreN
 /** Una página de foto entera (apertura o cierre de capítulo), con cabecera
  *  de capítulo/narrador y epígrafe opcional. Sin filtro de grises — a
  *  diferencia del frontispicio (identidad, siempre en blanco y negro), acá
- *  existe la edición a color. */
+ *  existe la edición a color.
+ *
+ *  `recortar` es "esta es la principal: se recorta al marco" (las de cierre van
+ *  enteras). El recorte además necesita el foco: sin foco usable —fila vieja o
+ *  migración 20260918 sin aplicar— la foto va entera, con el marcado de siempre,
+ *  porque `atributoFoco` devuelve '' y no hay punto alrededor del cual recortar. */
 function construirPaginaFoto(opts: { foto: FotoLibro; nombreCapitulo: string; nombreNarrador: string; recortar?: boolean }): string {
   const { foto, nombreCapitulo, nombreNarrador, recortar = false } = opts;
-  const img = recortar
-    ? `<img class="foto-img recorte" src="${escaparHtml(foto.dataUri)}" style="${estiloFoco(foto.foco)}" alt="" />`
+  const atributo = atributoFoco(foto.foco);
+  const img = recortar && atributo
+    ? `<img class="foto-img recorte" src="${escaparHtml(foto.dataUri)}"${atributo} alt="" />`
     : `<img class="foto-img" src="${escaparHtml(foto.dataUri)}" alt="" />`;
   return `<div class="lienzo foto quiebre">
     <div class="foto-cabecera"><span>${escaparHtml(nombreCapitulo)}</span><span>${escaparHtml(nombreNarrador)}</span></div>
@@ -600,10 +609,14 @@ function construirAperturaCapitulo(opts: { numero: number; nombreCapitulo: strin
   // posicion = 'abajo': la principal entra en esta misma página, debajo del
   // nombre del capítulo, recortada con su foco (CONTRATO, migración 20260918).
   const fotoHtml = fotoAbajo
-    ? `<div class="apertura-foto-bloque"><div class="apertura-foto"><img class="apertura-foto-img" src="${escaparHtml(fotoAbajo.dataUri)}" style="${estiloFoco(fotoAbajo.foco)}" alt="" /></div>${
+    ? `\n    <div class="apertura-foto-bloque"><div class="apertura-foto"><img class="apertura-foto-img" src="${escaparHtml(fotoAbajo.dataUri)}"${atributoFoco(fotoAbajo.foco)} alt="" /></div>${
         fotoAbajo.epigrafe ? `<div class="apertura-foto-epigrafe">${escaparHtml(fotoAbajo.epigrafe)}</div>` : ''
       }</div>`
     : '';
+  // El bloque de la foto se cuelga con su propio salto de línea adentro de la
+  // interpolación: sin `posicion` no hay bloque y la portadilla tiene que salir
+  // carácter por carácter igual que antes de la migración 20260918 (una línea
+  // en blanco de más no rompe nada, pero deja de ser "el mismo HTML").
   return `<div class="lienzo apertura quiebre">
     ${svgCruz(46, 32)}
     ${svgCruz(46, undefined, 32)}
@@ -615,8 +628,7 @@ function construirAperturaCapitulo(opts: { numero: number; nombreCapitulo: strin
       <div class="cap-nombre">${escaparHtml(nombreCapitulo)}</div>
       <div class="regla-acento"></div>
       <div class="medallion-wrap">${svgMedallion({ size: 40, texto: mono, colorAro: '#1c1917', colorTexto: '#1c1917' })}</div>
-    </div>
-    ${fotoHtml}
+    </div>${fotoHtml}
     <div class="pie-pagina"><span></span><span class="folio"></span></div>
   </div>`;
 }

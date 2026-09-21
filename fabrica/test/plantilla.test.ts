@@ -223,9 +223,38 @@ describe('construirHtmlLibro — fotos por capítulo', () => {
   });
 
   it('sin foco la apertura se recorta desde el centro', async () => {
-    const fotosPorCapitulo = new Map([['La infancia', { apertura: foto('APERTURA', null), cierre: [] }]]);
+    const fotosPorCapitulo = new Map([
+      ['La infancia', { apertura: { ...foto('APERTURA', null), foco: { x: 0.5, y: 0.5 } }, cierre: [] }],
+    ]);
     const html = await construirHtmlLibro({ titulo: 'Rosa — x', indice: ['La infancia'], libroMarkdown: LIBRO, fotosPorCapitulo });
-    expect(html).toContain('base64,APERTURA" style="object-position: 50% 50%"');
+    expect(html).toContain('<img class="foto-img recorte" src="data:image/jpeg;base64,APERTURA" style="object-position: 50% 50%" alt="" />');
+  });
+
+  it('sin foco ni posición —fila vieja o migración 20260918 sin aplicar— la foto sale igual que hoy: entera y sin object-position', async () => {
+    const fotosPorCapitulo = new Map([
+      ['La infancia', { apertura: foto('APERTURA', 'En el patio'), cierre: [foto('CIERRE', null)] }],
+    ]);
+    const html = await construirHtmlLibro({ titulo: 'Rosa — x', indice: ['La infancia'], libroMarkdown: LIBRO, fotosPorCapitulo });
+    // El marcado de las fotos es EXACTAMENTE el de antes de la migración.
+    expect(html).toContain('<div class="foto-marco"><img class="foto-img" src="data:image/jpeg;base64,APERTURA" alt="" /></div>');
+    expect(html).toContain('<div class="foto-marco"><img class="foto-img" src="data:image/jpeg;base64,CIERRE" alt="" /></div>');
+    // Ni atributo de foco ni la clase que recorta (la clase, en la CSS, es
+    // inerte mientras no esté escrita en una foto).
+    expect(html).not.toContain('object-position:');
+    expect(html).not.toContain('class="foto-img recorte"');
+    expect(html).not.toContain('class="apertura-foto');
+    expect(html).toContain('<div class="foto-epigrafe">En el patio</div>');
+  });
+
+  it('un foco que no se entiende se ignora sin romper: texto vacío, número, un eje que no es número, null', async () => {
+    for (const basura of ['', 3, '30% 20%', { x: '0.3', y: '0.2' }, { x: 0.3 }, null]) {
+      const fotosPorCapitulo = new Map([
+        ['La infancia', { apertura: { ...foto('APERTURA', null), foco: basura as never }, cierre: [] }],
+      ]);
+      const html = await construirHtmlLibro({ titulo: 'Rosa — x', indice: ['La infancia'], libroMarkdown: LIBRO, fotosPorCapitulo });
+      expect(html).toContain('<div class="foto-marco"><img class="foto-img" src="data:image/jpeg;base64,APERTURA" alt="" /></div>');
+      expect(html).not.toContain('object-position:');
+    }
   });
 
   it('posición abajo: la foto va en la portadilla del capítulo, debajo del título, y no hay página de foto aparte', async () => {
@@ -263,9 +292,10 @@ describe('construirHtmlLibro — foco de la tapa', () => {
     expect(html).toContain('<img class="frontispicio-img" src="https://x/foto.jpg" style="object-position: 30% 20%" alt="" />');
   });
 
-  it('sin foco, desde el centro', async () => {
+  it('sin foco, la tapa sale igual que hoy: sin object-position', async () => {
     const html = await construir();
-    expect(html).toContain('<img class="frontispicio-img" src="https://x/foto.jpg" style="object-position: 50% 50%" alt="" />');
+    expect(html).toContain('<img class="frontispicio-img" src="https://x/foto.jpg" alt="" />');
+    expect(html).not.toContain('object-position:');
   });
 });
 

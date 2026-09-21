@@ -3,7 +3,7 @@ import { obtenerClienteDb, type Narrador, type Pregunta, type Respuesta } from '
 import { leerEdicion } from './edicion.js';
 import { escribirCapitulo } from './escribir-capitulo.js';
 import type { Estructura } from './estructura.js';
-import { cargarFotos, estiloFoco, type Foco, type FotoLibro } from './fotos.js';
+import { cargarFotos, atributoFoco, type Foco, type FotoLibro } from './fotos.js';
 import {
   armarContextoDeTemas,
   armarMaterial,
@@ -29,7 +29,9 @@ const RUTA_BORRADOR_PREVIEW_CAP1 = (narradorId: string) => `${narradorId}/paquet
 function construirHtmlPreview(opciones: {
   titulo: string;
   fotoUrl: string | null;
-  /** Foco de la foto de tapa elegida (fotos.foco); el retrato no lo tiene y se recorta al centro. */
+  /** Foco de la foto de tapa elegida (fotos.foco). El retrato (`foto_url`) no
+   *  lo tiene: sin foco no se escribe `object-position` y la CSS lo centra, igual
+   *  que en el libro. */
   fotoFoco?: Foco;
   nombresCapitulos: string[];
   primerCapituloNombre: string;
@@ -39,7 +41,7 @@ function construirHtmlPreview(opciones: {
 
   const indiceHtml = nombresCapitulos.map((nombre) => `<li>${escaparHtml(nombre)}</li>`).join('\n');
   const portadaImg = fotoUrl
-    ? `<img src="${escaparHtml(fotoUrl)}" alt="" class="foto-portada" style="${estiloFoco(fotoFoco)}" />`
+    ? `<img src="${escaparHtml(fotoUrl)}" alt="" class="foto-portada"${atributoFoco(fotoFoco)} />`
     : '';
 
   return `<!DOCTYPE html>
