@@ -17,6 +17,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { cargarConfig } from '../config.js';
 import { db } from '../db/cliente.js';
 import { fichaEnTexto } from './ficha.js';
+import { registrarUso, cuentaDeEsteServicio } from '../costos.js';
 
 export type Trato = 'usted' | 'vos';
 
@@ -93,6 +94,10 @@ async function decidir(n: NarradorParaTrato): Promise<Trato | null> {
         role: 'user',
         content: PROMPT_TRATO(fichaEnTexto(n.contexto, n.como_le_dicen), edadHoy(n.contexto?.anioNacimiento)),
       }],
+    });
+    await registrarUso(db, {
+      servicio: 'entrevistador', paso: 'trato', modelo: MODELO, proveedor: 'anthropic',
+      cuenta: cuentaDeEsteServicio(), narradorId: n.id, uso: respuesta.usage,
     });
     const bloque = respuesta.content.find((b) => b.type === 'text');
     const palabra = bloque && bloque.type === 'text'

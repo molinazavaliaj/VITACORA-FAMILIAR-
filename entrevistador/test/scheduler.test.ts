@@ -29,6 +29,7 @@ vi.mock('../src/db/cliente.js', () => {
     b.select = () => b; b.or = () => b; b.is = () => b; b.order = () => b; b.limit = () => b; b.in = eq;
     b.eq = eq;
     b.insert = (p: any) => { b._op = 'insert'; mocks.capturas.push({ op: 'insert', tabla, p }); return b; };
+    b.upsert = (p: any) => { b._op = 'upsert'; mocks.capturas.push({ op: 'upsert', tabla, p }); return b; };
     b.update = (p: any) => { b._op = 'update'; mocks.capturas.push({ op: 'update', tabla, p }); return b; };
     const resolver = () => {
       if (b._op !== 'select') return { data: null, error: null };
@@ -241,5 +242,16 @@ describe('tick', () => {
     expect(mocks.enviarPlantilla).toHaveBeenCalledWith(
       '+5491155551234', 'pregunta_diaria', ['PREGUNTA_27'],
     );
+  });
+});
+
+describe('el latido del tick', () => {
+  it('se anota ANTES de las fases: el servicio no puede verse caído mientras trabaja', async () => {
+    mocks.filas.narradores = [narrador({ estado: 'activo', dia_actual: 5 })];
+
+    await tick(A_LAS_10_05);
+
+    expect(mocks.capturas[0]).toMatchObject({ op: 'upsert', tabla: 'latidos' });
+    expect(mocks.capturas[0].p).toMatchObject({ servicio: 'entrevistador' });
   });
 });

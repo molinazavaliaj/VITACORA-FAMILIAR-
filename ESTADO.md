@@ -621,36 +621,74 @@ cambios propuestos ya pasados a Joaquín).
 **Falta mío**: la sección impresa con el QR (Task 4), el mail de los 15 días (Task 6), la descarga del PDF
 del anticipo si se quiere, y el pase de los textos aprobados al diff de la web.
 
-## El panel de viaje (3t.19, Joaquín, 21/09)
-
-**Qué pasaba.** El viajero veía el guion del Familiar (8 capítulos, 30 preguntas). La causa no era de
-diseño: `armarGuion` rellena con la plantilla global (`narrador_id` null) todo orden que el narrador no
-tenga propio. Un viaje de 8 días tiene propias 1..8; las 9..30 salían del Familiar. Antes del SÍ, las 30.
-
-**Qué hay ahora.** En `contexto.modo = 'viaje'`, `/tablero/[id]` renderiza `viaje.tsx` (la plantilla
-global no entra): las etapas como capítulos con ciudad + fechas (se calculan desde `contexto.viaje` con
-`capitulosDelViaje`, así se ve bien aunque el bot no haya creado el guion todavía), el álbum de cada etapa
-(las fotos que entran por WhatsApp caen ahí por `fotos.capitulo`; las de "Por definir" el bot las guarda
-como `null` y van a esa sección) y **subir fotos a la etapa**, las noches contadas con la fecha, «Te
-preguntamos: …» (lo que el bot mandó de verdad, `preguntasEnviadas`) y el audio, y un contador de noches
-por venir en vez de la lista de preguntas. **Sobre qué te preguntamos**: los mismos chips del checkout
-→ `PATCH /api/viaje { angulos }` → `contexto.viaje.angulos`. El bot ya lee eso al armar cada noche
-(`anguloDelDia`), así que **no toca `entrevistador/`** y rige desde la noche siguiente. Inicio cuenta
-noches, no 30. En viaje no hay "Agregar/Editar preguntas" ni "Contar más": el orden es el día.
-Ajustes sin ritmo (una por noche). Verificado en el celular a 375px con el narrador de prueba de Joaquín.
-
-**Para Naza.** Textos nuevos en `web/src/app/tablero/[narradorId]/viaje.tsx`, `angulos.tsx` y la tarjeta
-de Inicio, marcados con ⚠️ — revisión el miércoles. Nada en `fabrica/`, `voz/` ni `entrevistador/`. Sin
-migración. 292 tests, tsc limpio.
-
-## El carrito de viaje (2.10, Joaquín, 21/09)
-
-`/comprar/viaje` vendía solo el viaje. Ahora el paso Pagar suma **el libro impreso** (B/N o color) y **los
-marcos**, con las mismas tarjetas del checkout Familiar (movidas a `web/src/app/comprar/productos-ui.tsx`,
-el Familiar las importa de ahí sin cambios visibles). El pedido sale como siempre por `calcularCompra`:
-`extras = { pdf: true, tipo: 'viaje', impreso, copias, marcos }` — **sin cambio de CONTRATO**, la fábrica ya
-lo lee así. Encargar libro ya funcionaba para un viaje (el pedido de viaje se lee como `pdf: true`).
+## El panel de viaje (3t.19, Joaquín, 21/09)
+
+**Qué pasaba.** El viajero veía el guion del Familiar (8 capítulos, 30 preguntas). La causa no era de
+diseño: `armarGuion` rellena con la plantilla global (`narrador_id` null) todo orden que el narrador no
+tenga propio. Un viaje de 8 días tiene propias 1..8; las 9..30 salían del Familiar. Antes del SÍ, las 30.
+
+**Qué hay ahora.** En `contexto.modo = 'viaje'`, `/tablero/[id]` renderiza `viaje.tsx` (la plantilla
+global no entra): las etapas como capítulos con ciudad + fechas (se calculan desde `contexto.viaje` con
+`capitulosDelViaje`, así se ve bien aunque el bot no haya creado el guion todavía), el álbum de cada etapa
+(las fotos que entran por WhatsApp caen ahí por `fotos.capitulo`; las de "Por definir" el bot las guarda
+como `null` y van a esa sección) y **subir fotos a la etapa**, las noches contadas con la fecha, «Te
+preguntamos: …» (lo que el bot mandó de verdad, `preguntasEnviadas`) y el audio, y un contador de noches
+por venir en vez de la lista de preguntas. **Sobre qué te preguntamos**: los mismos chips del checkout
+→ `PATCH /api/viaje { angulos }` → `contexto.viaje.angulos`. El bot ya lee eso al armar cada noche
+(`anguloDelDia`), así que **no toca `entrevistador/`** y rige desde la noche siguiente. Inicio cuenta
+noches, no 30. En viaje no hay "Agregar/Editar preguntas" ni "Contar más": el orden es el día.
+Ajustes sin ritmo (una por noche). Verificado en el celular a 375px con el narrador de prueba de Joaquín.
+
+**Para Naza.** Textos nuevos en `web/src/app/tablero/[narradorId]/viaje.tsx`, `angulos.tsx` y la tarjeta
+de Inicio, marcados con ⚠️ — revisión el miércoles. Nada en `fabrica/`, `voz/` ni `entrevistador/`. Sin
+migración. 292 tests, tsc limpio.
+
+## El carrito de viaje (2.10, Joaquín, 21/09)
+
+`/comprar/viaje` vendía solo el viaje. Ahora el paso Pagar suma **el libro impreso** (B/N o color) y **los
+marcos**, con las mismas tarjetas del checkout Familiar (movidas a `web/src/app/comprar/productos-ui.tsx`,
+el Familiar las importa de ahí sin cambios visibles). El pedido sale como siempre por `calcularCompra`:
+`extras = { pdf: true, tipo: 'viaje', impreso, copias, marcos }` — **sin cambio de CONTRATO**, la fábrica ya
+lo lee así. Encargar libro ya funcionaba para un viaje (el pedido de viaje se lee como `pdf: true`).
 Textos nuevos marcados ⚠️ para Naza. 293 tests, tsc limpio.
+
+## Panel de la empresa — las cinco pantallas, parte B (branch `panel-de-la-empresa`, 21/09) (Naza)
+
+**Qué es**: el panel interno de la empresa, en `/admin` dentro de la web. No es el de las familias
+(`/tablero`): es la trastienda. Cinco pantallas —Estado, Familias, Plata, Gastos y Cerebros— con la
+estética de la marca y sin una palabra que no se entienda.
+
+**Qué contesta cada una**: Estado, qué se frenó y qué hay que hacer hoy (con los cuatro tiempos que
+marcan la raya). Familias, la relación con el biógrafo historia por historia, y adentro la charla real:
+lo que el biógrafo preguntó de verdad —reescrito con lo que el narrador ya contó— y lo que contestó.
+Plata, la cuenta escrita como una cuenta: entró − se gastó = ganancia limpia, con las comisiones y el
+tipo de cambio a la vista. Gastos, día por día y paso por paso, lo que se cobra solo y lo que se carga a
+mano. Cerebros, los 14 robots en tres carriles, con el que se pasó de tiempo en rojo: ahí se ve dónde se
+cortó la cadena.
+
+**Acceso**: sólo los mails de `ADMIN_EMAILS` (chequeado en el servidor, nunca en el navegador) y **sin un
+solo link a `/admin`** en el sitio. Sin la variable cargada no entra nadie: falla cerrado, no abierto.
+
+**Sólo lectura**: la única escritura de todo el panel es cargar un gasto a mano (Railway, el dominio, la
+imprenta). No hay ningún botón que pause, reintente ni apruebe nada.
+
+**Lo que se puede romper sin que se vea** (cada uno con su test, y cada test visto fallar al sacar el
+arreglo): la cuenta **no convierte** si falta el tipo de cambio —dice que no puede, no inventa un número—;
+el cobro viejo de un libro ya entregado **no se cuenta dos veces**; la computadora que narra **no se
+declara caída** mientras narra un capítulo (ni si está apagada y no hay nada que narrar); y una tabla
+vacía muestra el **estado vacío**, nunca un error ni un `NaN`.
+
+**Verificado**: los tests de la web en verde (incluye renderizar las cinco pantallas de verdad, con datos
+y sin ningún dato) + typecheck + `npm run build` con las cinco rutas compiladas. Y la corrida **contra la
+base real**: las diez consultas del panel leen sin un solo aviso, con los datos de hoy —11 narradores, 6
+familias, 11 pedidos, 13 respuestas, 10 fotos—. De esa corrida salió el primer hallazgo de verdad: **hay 8
+pagos pendientes de hasta 7 días, en pesos**, y el panel los marca en rojo (Naza mira si son reales o de
+pruebas viejas).
+
+**Lo que falta de su lado**: cargar en Vercel `ADMIN_EMAILS` (los dos mails), `CAMBIO_EUR_ARS`,
+`CAMBIO_USD_EUR` y `CAMBIO_FECHA` (el tipo de cambio se actualiza a mano, una vez por semana). Sin las
+variables del cambio, Plata y Gastos **muestran los números sin convertir y lo dicen**. El paso a paso
+está en `docs/handoff-panel-empresa.md`.
 
 ## Próximos hitos
 

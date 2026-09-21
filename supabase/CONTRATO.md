@@ -455,3 +455,14 @@ para saber que fue la fábrica quien puso `libro_aprobado_at`.
 Cada servicio genera sus tipos con:
 `npx supabase gen types typescript --linked > src/db/tipos.ts`
 Regenerar después de cada migración.
+
+## Panel de la empresa (21/09) — tres tablas nuevas, todas de sólo agregar
+
+| Tabla | Escribe | Lee | Nota |
+|---|---|---|---|
+| `consumo_ia` | entrevistador (14 pasos) y fábrica (5 pasos) — insert | `/admin` | Una fila por llamada al modelo. **El worker de voz no escribe acá**: su trabajo es GPU propia (USD 0) y sólo deja su latido. Nadie hace update ni delete. |
+| `latidos` | los tres workers (upsert por `servicio`) | `/admin` | Si un servicio deja de latir, `/admin` lo muestra en rojo. |
+| `gastos_manuales` | `/admin` (es la ÚNICA escritura del panel) | `/admin` | Lo que no pasa por una API: suscripciones, recargas, imprenta. |
+
+Las tres tienen RLS prendido y **sin políticas**: sólo la service role las toca (el navegador nunca). Si la
+migración no está aplicada, el producto sigue andando: los servicios avisan por consola y no anotan nada.

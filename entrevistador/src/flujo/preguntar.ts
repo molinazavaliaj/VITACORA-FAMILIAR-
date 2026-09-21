@@ -99,7 +99,7 @@ async function crearReemplazo(n: Narrador, pregunta: PreguntaDelGuion): Promise<
   const capitulos = (await capitulosDe(n.id)).filter((c) => c !== capituloQueNoAplica);
   const nueva = await generarPreguntaReemplazo(
     n.como_le_dicen, await armarHistoria(n.id), capitulos, capituloQueNoAplica, textoEvitar(n.contexto),
-    await tratoDe(n),
+    await tratoDe(n), n.id,
   );
   if (pregunta.narrador_id === null) {
     await db.from('preguntas').insert({
@@ -126,7 +126,7 @@ async function enviarFotoDeLaPregunta(n: Narrador, fotoId: string): Promise<void
 
 /** La versión hablada de la pregunta: se sube a Storage y se manda por link firmado. */
 async function enviarVozDeLaPregunta(n: Narrador, orden: number, contenido: string): Promise<void> {
-  const audio = await generarAudioVoz(contenido);
+  const audio = await generarAudioVoz(contenido, n.id);
   const path = `${n.id}/sistema/pregunta_${String(orden).padStart(2, '0')}.mp3`;
   await db.storage.from('audios').upload(path, audio, { contentType: 'audio/mpeg', upsert: true });
   const { data } = await db.storage.from('audios').createSignedUrl(path, 3600);

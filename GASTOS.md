@@ -99,10 +99,21 @@ destilada por capítulo. La entrevista pasó de ~USD 4,5-5 a ~USD 1,4.
 
 Contra 49€ de precio (**≈ USD 53**): **margen bruto ~86-89%** (antes ~80%).
 
+**Limpio, con la comisión de la pasarela** (21/09 — calculado, todavía no medido en una venta real):
+Stripe se queda ~3 % y Mercado Pago ~4 %. Sobre 49 € son 1,47 € y 1,96 €, así que el margen **neto**
+queda en **85,7 %** con Stripe y **84,7 %** con Mercado Pago, contra 88,7 % bruto. Esa comisión no estaba
+contada en ninguna parte: entra por primera vez en el panel de la empresa (`/admin`), donde se carga como
+porcentaje por pasarela.
+
 **El dato que importa de acá en adelante:** el libro es ahora **~el 80% del costo**
 (USD 4,75 de USD 6). La entrevista ya es barata — optimizarla más no mueve la
 aguja; el libro sí, y se decidió que lea todo completo con el modelo grande
 porque ahí está la calidad del producto.
+
+> **TTS (21/09):** el precio que usa el panel de la empresa es **estimado**: USD 0,000025 por carácter
+> (≈ 0,15 USD por las 30 preguntas de un narrador, de ~200 caracteres cada una). Se corrige cuando haya
+> una factura de OpenAI que lo confirme. La transcripción, en cambio, va con el precio **medido**
+> (USD 0,0045 por minuto).
 
 Matiz del abandono (sigue valiendo): el costo se gasta día a día. Un narrador que
 abandona el día 5 costó ~USD 0,25, no 1,15.
@@ -228,3 +239,20 @@ El diferencial se mantiene en todos los escalones: nadie da la voz real en caste
 - Meta/WhatsApp: por conversación (~USD 1-2 por narrador por los 30 días).
 - Cuando haya ventas reales: Vercel Pro (USD 20/mes, lo piden sus términos comerciales)
   y Supabase Pro (USD 25/mes cuando el storage supere 1 GB ≈ 15 narradores).
+
+## El panel de la empresa — lo que hay que cargar (21/09)
+
+El panel interno (`/admin`) usa tres variables más en Vercel, además de las que ya estaban:
+
+| Variable | Para qué | Ejemplo |
+|---|---|---|
+| `ADMIN_EMAILS` | quién entra al panel (los dos mails, separados por coma) | `nazamateos@gmail.com,joaquin@...` |
+| `CAMBIO_EUR_ARS` | cuántos pesos vale 1 € (se actualiza a mano) | `1250` |
+| `CAMBIO_USD_EUR` | cuántos dólares vale 1 € | `1.08` |
+| `CAMBIO_FECHA` | de cuándo es ese cambio (se muestra en pantalla) | `2026-09-21` |
+
+**Sin `ADMIN_EMAILS` no entra nadie** (falla cerrado). Sin las del cambio, la cuenta del mes y la pantalla
+de Gastos muestran los números crudos sin convertir y avisan que falta el cambio: **no inventan**.
+
+**Comisiones confirmadas** (quedaron escritas en el código, `web/src/lib/admin/plata.ts`): Stripe 3 %,
+Mercado Pago 4 %. Están en un solo lugar, por pasarela: si cambian, se cambian ahí.

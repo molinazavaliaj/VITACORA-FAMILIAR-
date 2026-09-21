@@ -1,4 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
+import { registrarUso, cuentaDeEsteServicio } from '../costos.js';
 import { cargarConfig } from '../config.js';
 import { db } from '../db/cliente.js';
 import { armarHistoria } from '../db/historia.js';
@@ -115,6 +116,10 @@ export async function generarPreguntasAdaptativas(
         const respuesta = await cliente().messages.create({
           model: MODELO, max_tokens: MAX_TOKENS,
           messages: [{ role: 'user', content: prompt }],
+        });
+        await registrarUso(db, {
+          servicio: 'entrevistador', paso: 'adaptativas', modelo: MODELO, proveedor: 'anthropic',
+          cuenta: cuentaDeEsteServicio(), narradorId: narradorId, uso: respuesta.usage,
         });
         const bloque = respuesta.content.find((b) => b.type === 'text');
         if (!bloque || bloque.type !== 'text') throw new Error('Claude no devolvió texto');

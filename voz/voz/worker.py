@@ -15,7 +15,7 @@ import time
 import traceback
 from logging.handlers import RotatingFileHandler
 
-from .buzon import consentimiento_de, marcar, retomar_colgadas, tomar_pendiente
+from .buzon import consentimiento_de, latir, marcar, retomar_colgadas, tomar_pendiente
 from .config import RAIZ, Config, cargar_config
 from .libro import capitulos_de_narracion
 from .narrar import FaltanMinutos, narrar_capitulos, preparar_voz
@@ -141,6 +141,11 @@ def main() -> None:
     vueltas = 0  # seguidas sin trabajo
     try:
         while True:
+            # Late en cada vuelta, antes de buscar trabajo. Ojo: mientras narra
+            # un capítulo (14-33 min medidos) no hay latido, así que el panel no
+            # puede usar SOLO esto para la voz: que la narración avanza lo dice
+            # `narraciones.actualizada_at`.
+            latir(sb, {"motor": config.motor, "vueltas": vueltas})
             if una_vuelta(sb, config, log):
                 vueltas = 0
                 continue

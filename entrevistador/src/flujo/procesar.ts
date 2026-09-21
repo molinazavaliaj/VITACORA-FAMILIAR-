@@ -171,7 +171,7 @@ async function reactivar(narrador: Narrador): Promise<void> {
 
 // Paso 4: texto de un narrador activo.
 async function manejarTexto(narrador: Narrador, m: MensajeEntrante): Promise<void> {
-  const intencion = await detectarIntencion(m.texto ?? '');
+  const intencion = await detectarIntencion(m.texto ?? '', narrador.id);
   if (intencion === 'quiere_parar') {
     await db.from('narradores').update({ estado: 'pausado', alerta_silencio: true }).eq('id', narrador.id);
     await enviarTexto(
@@ -217,7 +217,7 @@ async function manejarRespuestaAudio(narrador: Narrador, m: MensajeEntrante): Pr
   const esRepregunta = await yaSeRepregunto(narrador.id, orden);
   const audio = await descargarAudio(m.mediaId);
   const { id } = await guardarRespuestaAudio(narrador.id, orden, audio, esRepregunta);
-  const { texto, duracionSegundos } = await transcribirYActualizar(id, audio);
+  const { texto, duracionSegundos } = await transcribirYActualizar(id, audio, undefined, narrador.id);
   await marcarRespondido(narrador.id);
   await trasResponder(narrador, orden, esRepregunta, texto, duracionSegundos, id);
 }
@@ -254,12 +254,12 @@ async function trasResponder(
     // marca en la fila para la fábrica; el bot no reencuadra nada en vivo.
     const preguntasHechas = seEvalua ? await preguntasHechasAntes(narrador.id, orden, narrador.contexto) : [];
     const evaluacion = seEvalua
-      ? await evaluarRespuesta(pregunta, transcripcion, duracionSegundos, textoEvitar(narrador.contexto), trato, { preguntasHechas, ordenActual: orden })
+      ? await evaluarRespuesta(pregunta, transcripcion, duracionSegundos, textoEvitar(narrador.contexto), trato, { narradorId: narrador.id, preguntasHechas, ordenActual: orden })
       : { suficiente: true as const };
     if (seEvalua) await guardarTemaDeOtraParte(respuestaId, temaDe(evaluacion, preguntasHechas, orden));
     marcas = seEvalua
       ? { reserva: reservaDe(evaluacion, transcripcion), dejarTema: evaluacion.dejarTema ?? null }
-      : await detectarReservaYDejarTema(transcripcion, trato);
+      : await detectarReservaYDejarTema(transcripcion, trato, { narradorId: narrador.id });
     if (!evaluacion.suficiente && evaluacion.repregunta && !(await yaSeRepregunto(narrador.id, orden))) {
       const waId = await enviarTexto(narrador.telefono_whatsapp, evaluacion.repregunta);
       await db.from('envios').insert({
@@ -271,7 +271,7 @@ async function trasResponder(
       repreguntaEnviada = true;
     }
   } else {
-    marcas = await detectarReservaYDejarTema(transcripcion, trato);
+    marcas = await detectarReservaYDejarTema(transcripcion, trato, { narradorId: narrador.id });
   }
   // Ninguna de las dos puede frenar el día: si fallan, avisan y se sigue.
   await guardarReserva(respuestaId, marcas.reserva);
@@ -323,7 +323,7 @@ async function anotarSiNoTuvo(narrador: Narrador, orden: number, pregunta: strin
     const fila = await preguntaDeOrden(narrador.id, orden);
     const clave = fila ? CLAVE_DEL_ARBOL[fila.capitulo] : undefined;
     if (!fila || !clave || capituloNoAplica(narrador.contexto, fila.capitulo)) return false;
-    if ((await detectarQueNoTuvo(fila.capitulo, pregunta, transcripcion)) !== 'no_tuvo') return false;
+    if ((await detectarQueNoTuvo(fila.capitulo, pregunta, transcripcion, narrador.id)) !== 'no_tuvo') return false;
 
     const { data } = await db.from('narradores').select('contexto').eq('id', narrador.id).maybeSingle();
     const contexto = { ...(((data as { contexto?: Record<string, any> } | null)?.contexto) ?? {}) };

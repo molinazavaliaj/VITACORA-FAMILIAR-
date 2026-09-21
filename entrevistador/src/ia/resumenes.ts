@@ -29,6 +29,7 @@
  * cada resumen (hallazgo 16, "lo último manda").
  */
 import Anthropic from '@anthropic-ai/sdk';
+import { registrarUso, cuentaDeEsteServicio } from '../costos.js';
 import { cargarConfig } from '../config.js';
 import { db } from '../db/cliente.js';
 
@@ -241,6 +242,10 @@ export async function memoriaDeCapitulos(
           model: MODELO, max_tokens: MAX_TOKENS,
           messages: [{ role: 'user', content: PROMPT_RESUMEN(n.como_le_dicen, capitulo, material) }],
         });
+      await registrarUso(db, {
+        servicio: 'entrevistador', paso: 'resumenes', modelo: MODELO, proveedor: 'anthropic',
+        cuenta: cuentaDeEsteServicio(), narradorId: n.id, uso: respuesta.usage,
+      });
         const bloque = respuesta.content.find((b) => b.type === 'text');
         texto = bloque && bloque.type === 'text' ? limpiarResumen(bloque.text) : '';
       } catch (err) {
