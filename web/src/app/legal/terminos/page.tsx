@@ -60,11 +60,9 @@ export default function Terminos() {
           items={[
             <>
               <strong className="font-medium">El libro en PDF</strong>: se lee en la web, capítulo por capítulo, con las fotos que
-              suba la familia. Está siempre disponible en tu cuenta.
-            </>,
-            <>
-              <strong className="font-medium">El audiolibro</strong>: la historia completa narrada, con su propia voz (clonada a
-              partir de sus audios, con su permiso) o con un narrador. Se escucha en la web.
+              suba la familia. Incluye <strong className="font-medium">«Su voz»</strong>: sus mejores frases, recortadas de sus
+              audios originales tal como las dijo, para escuchar en la web y con un código impreso. Está siempre disponible
+              en tu cuenta.
             </>,
             <>
               <strong className="font-medium">El libro impreso</strong>, en blanco y negro o a color: tapa dura, con un código en
@@ -125,7 +123,7 @@ export default function Terminos() {
           contratapa, dejar fuera alguna respuesta y pedir correcciones de lo que no suene a él.
         </Parrafo>
         <Parrafo>
-          El libro en PDF y el audiolibro quedan disponibles en tu cuenta. El libro impreso y
+          El libro en PDF y sus frases en su voz quedan disponibles en tu cuenta. El libro impreso y
           los marcos se producen después de que apruebas el libro; antes de mandarlos a
           producir te escribimos para pedirte la dirección de envío y confirmarte el plazo.
         </Parrafo>
@@ -147,7 +145,7 @@ export default function Terminos() {
               (derecho de desistimiento, arts. 102 a 108 del RDL 1/2007). Al pagar nos pides que la
               entrevista empiece en cuanto el narrador acepte, sin esperar esos 14 días; si te
               arrepientes con la entrevista ya en marcha, te devolvemos el precio menos la parte proporcional a
-              las preguntas ya hechas (art. 108.3). Una vez que el libro en PDF o el audiolibro
+              las preguntas ya hechas (art. 108.3). Una vez que el libro en PDF y sus frases en su voz
               están a tu disposición en tu cuenta, con tu consentimiento, el desistimiento ya no
               aplica sobre ellos (art. 103 m); tampoco sobre el libro impreso ni los marcos, que
               se hacen a medida (art. 103 c). Si algo llega dañado o con un defecto, lo reponemos.
@@ -186,8 +184,8 @@ export default function Terminos() {
           nuestro trabajo, te lo pediríamos por escrito y podrías decir que no.
         </Parrafo>
         <Parrafo>
-          Si compras el audiolibro con su voz, la voz clonada se usa solo para narrar su
-          libro. No se usa para ningún otro fin y se borra cuando el narrador o tú lo pidan.
+          Sus frases en su voz son recortes de sus propios audios, sin ninguna voz sintética.
+          No se usan para ningún otro fin y se borran cuando el narrador o tú lo pidan.
         </Parrafo>
       </Seccion>
 

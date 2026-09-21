@@ -112,7 +112,7 @@ export function CheckoutViaje({ precios }: { precios: PreciosViaje }) {
               viaje: { salida, vuelta, etapas: etapas.filter((e) => e.nombre.trim()), compania, proposito, angulos },
             },
           },
-          productos: { pdf: false, audiolibro: null, impreso: null, marcos: 0, viaje: true },
+          productos: { pdf: false, impreso: null, marcos: 0, viaje: true },
         }),
       });
       const datos = (await respuesta.json()) as { urlPago?: string; error?: string };

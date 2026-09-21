@@ -324,7 +324,7 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
             {/* Libro encargado: dueña e invitados van al lector (que avisa si todavía se está armando). */}
             <ProximoPaso href={aprobado || !PUEDE.cerrarLibro(rol) ? `/tablero/${n.id}/leer` : `/tablero/${n.id}/libro`}>
               {aprobado
-                ? (propia ? "Leer tu libro y escuchar el audiolibro" : "Leer su libro y escuchar el audiolibro")
+                ? (propia ? "Leer tu libro y escuchar tu voz" : "Leer su libro y escuchar su voz")
                 : PUEDE.cerrarLibro(rol)
                   ? (propia ? "Dale los últimos retoques y encargá tu libro" : "Dale los últimos retoques y encargá su libro")
                   : "Leer su libro"}

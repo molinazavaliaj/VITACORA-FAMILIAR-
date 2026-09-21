@@ -3,7 +3,7 @@ import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { esPropia, historiaAccesible, PUEDE } from "@/lib/panel";
 import { extrasDisponibles, productosDelPedido, NOMBRE_VOZ, type ProductosDelPedido } from "@/lib/productos";
-import { obtenerPrecio, obtenerPrecioAudiolibro } from "@/lib/precios";
+import { obtenerPrecio } from "@/lib/precios";
 import { propuestaPorDefecto, type Edicion } from "@/lib/edicion";
 import { armarGuion, capitulosDelGuion } from "@/lib/guion";
 import { POSICION_DEFAULT, focoDe, validarPosicion } from "@/lib/encuadre";
@@ -31,7 +31,7 @@ const NOMBRE_ESTADO_PEDIDO: Record<string, string> = {
   pendiente: "esperando el pago",
   pagado: "pagado",
   generando: "armando el libro",
-  esperando_voz: "armando el audiolibro con su voz",
+  esperando_voz: "preparando su voz",
   entregado: "entregado",
   fallido: "el pago no se completó",
 };
@@ -68,18 +68,16 @@ export default async function PaginaLibro({ params, searchParams }: PageProps<"/
   // Cada uno ve sus pedidos; la dueña ve los suyos (los de los primos son de los primos).
   const misPedidos = todosLosPedidos.filter((p) => rol === "duena" ? p.familia_id === n.familia_id : false);
   const pedidoBase = rol === "duena" ? todosLosPedidos.find((p) => p.familia_id === n.familia_id) ?? null : null;
-  // Lo que ya tiene, sumando todos sus pedidos que no fallaron (13/09: tres productos).
+  // Lo que ya tiene, sumando todos sus pedidos que no fallaron (13/09; el audiolibro salió el 21/09).
   const productosPagados = misPedidos.filter((p) => p.estado !== "fallido").map((p) => productosDelPedido(p.extras));
   const yaTiene = {
     pdf: productosPagados.some((p) => p.pdf),
-    audiolibro: productosPagados.some((p) => p.audiolibro !== null),
     impreso: productosPagados.some((p) => p.impreso !== null),
   };
   const yaTieneImpreso = yaTiene.impreso;
 
   const extras: PrecioExtra[] = extrasDisponibles(region).map((e) => ({ id: e.id, nombre: e.nombre, detalle: e.detalle, precio: e.precio }));
-  const precioAudiolibro = obtenerPrecioAudiolibro(region);
-  const nube = { pdf: obtenerPrecio(region).monto, audiolibro: precioAudiolibro };
+  const nube = { pdf: obtenerPrecio(region).monto };
 
   // ── Invitado: solo su copia ─────────────────────────────────────────
   if (!PUEDE.verLoQuePago(rol)) {
@@ -187,10 +185,10 @@ export default async function PaginaLibro({ params, searchParams }: PageProps<"/
           </p>
         ) : null}
         <p className="mt-3 text-[16px] leading-relaxed text-[var(--texto-suave)]">
-          Ya lo estamos armando: el texto, el audiolibro{yaTieneImpreso ? ", la impresión" : ""}. Tarda un rato; te avisamos por mail cuando esté. Se lee y se escucha acá mismo, en la web.
+          Ya lo estamos armando: el texto, sus mejores frases en su voz{yaTieneImpreso ? ", la impresión" : ""}. Tarda un rato; te avisamos por mail cuando esté. Se lee y se escucha acá mismo, en la web.
         </p>
         <div className="mt-5 flex flex-wrap items-center gap-4">
-          <ProximoPaso href={`/tablero/${n.id}/leer`}>Leer el libro y escuchar el audiolibro</ProximoPaso>
+          <ProximoPaso href={`/tablero/${n.id}/leer`}>Leer el libro y escuchar su voz</ProximoPaso>
         </div>
         <p className="mt-4 text-[14px] leading-relaxed text-[var(--texto-menor)]">
           Quienes invitaste a la historia lo leen y lo escuchan desde su panel. Para el resto de la familia, el link para compartir está en la historia (botón <strong className="font-medium text-[var(--texto)]">Compartir</strong>): ven la muestra y pueden encargar su propio libro.

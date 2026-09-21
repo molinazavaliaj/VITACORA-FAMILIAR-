@@ -334,7 +334,7 @@ export function Wizard({ narradorId, nombre, edicion: inicial, capitulos, respue
 
           <div className="rounded-xl border-2 border-[var(--texto)] p-6">
             <p className="text-[17px] leading-relaxed">
-              <strong className="font-medium">Al encargar, el libro se produce tal como está:</strong> se arma el PDF y el audiolibro, se
+              <strong className="font-medium">Al encargar, el libro se produce tal como está:</strong> se arma el PDF con sus mejores frases en su voz, se
               mandan a imprimir las copias y las fotos de los marcos que compraste, y se prepara el envío. Después de este paso no
               se puede volver atrás ni pedir devolución por cómo quedó escrito o armado. Este es el momento de revisar.
             </p>

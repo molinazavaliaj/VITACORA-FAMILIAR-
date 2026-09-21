@@ -7,7 +7,7 @@ import { Checkout, type Catalogo } from "./formulario";
 
 // La compra, pública y sin cuenta (pago por adelantado, 11/09). Paso a paso:
 // para quién → el narrador → tu correo → pagar. El último paso muestra los
-// tres productos —PDF, audiolibro, impreso— y pide al menos uno (13/09,
+// dos productos —PDF, impreso— y pide al menos uno (13/09; el audiolibro salió el 21/09,
 // docs/panel-usuario.md §15.1). Todo lo que antes hacían /registro +
 // /comprar-con-sesión pasa por acá.
 //
