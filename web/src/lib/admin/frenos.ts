@@ -58,7 +58,22 @@ export type FilaPedido = {
   narrador_id: string | null;
   monto: number | null;
   moneda: string | null;
+  /** Los pilotos llevan `extras.piloto = true` (ver `esPiloto`). */
+  extras?: Record<string, unknown> | null;
 };
+
+/**
+ * Un pedido de piloto: se armó a mano (la puerta manual del entrevistador), no pasa por una
+ * pasarela, así que **no se puede esperar una confirmación de cobro** y el panel no puede
+ * gritar por eso. Se marca en el pedido (`extras.piloto = true`) en vez de deducirlo del
+ * contexto del narrador: el checkout normal también escribe `ritmo` y `modoRapido`, y los
+ * pilotos quedan en `pendiente_pago` igual que una compra sin confirmar, así que cualquier
+ * deducción terminaría silenciando pagos reales sin cobrar (medido el 21/09 sobre los 9
+ * pendientes reales). Marcarlo es explícito, reversible y no inventa nada.
+ */
+export function esPiloto(p: FilaPedido): boolean {
+  return p.extras?.piloto === true;
+}
 
 export type FilaNarracion = {
   id: string;
@@ -131,6 +146,7 @@ function frenoDeSilencio(n: FilaNarrador, ahora: Date): Freno | null {
 
 function frenoDePago(p: FilaPedido, datos: DatosDelPanel, ahora: Date): Freno | null {
   if (p.estado !== "pendiente") return null;
+  if (esPiloto(p)) return null; // un piloto no tiene cobro que confirmar
   const horas = horasEntre(p.created_at, ahora);
   if (horas === null || horas <= UMBRALES.pagoSinConfirmarHoras) return null;
   // El cobro viejo de un libro ya entregado no se cuenta dos veces (spec, Review Focus 3).
