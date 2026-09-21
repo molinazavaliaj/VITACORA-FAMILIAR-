@@ -708,7 +708,7 @@ Objetivo: **el viajero (Nako) en marcha, los pilotos respondiendo, «Su voz» en
 
 | Día | Joaquín | Naza |
 |---|---|---|
-| **Lun 21** | Pago real de prueba en `/comprar/viaje` (8.3, quedó en la pantalla de MP) → si el pedido no pasa a `pagado`, es 8.6 · Nako compra y escribe "hola" · Vigilar aprobación de las 5 plantillas (cuando `bienvenida` esté: `WA_BIENVENIDA_PIDE_VOZ=1`; cuando `bienvenida_viaje`: `WA_PLANTILLA_BIENVENIDA_VIAJE=1`) · `rm ~/.wa_token` | OK a los textos de `su-voz-textos` → merge · `MP_WEBHOOK_SECRET` de producción confirmado · Task 4 (QR impreso) |
+| **Lun 21** | **En orden (pedido de Naza, 21/09):** ① Pago real en `/comprar/viaje` (8.3) → si el pedido pasa a `pagado`, el webhook está bien; si queda `pendiente` con el pago aprobado, es 8.6 · ② **Saldo de Anthropic + unificar las keys en una organización** (sin saldo la fábrica no escribe el libro de Ñaco; con las keys unificadas sirve la columna `cuenta` del panel) · ③ **Cancelar el Hobby de Railway antes del 1/10** (aclarar de qué cuenta: ESTADO dice "de Naza") · Nako compra y escribe "hola" · Vigilar las 5 plantillas (al 21 a las 13 UTC: todas PENDING en la WABA nueva; cuando `bienvenida` esté: `WA_BIENVENIDA_PIDE_VOZ=1`; cuando `bienvenida_viaje`: `WA_PLANTILLA_BIENVENIDA_VIAJE=1`) · `rm ~/.wa_token` (es el permanente; se usa para consultar plantillas). ✅ 21/09: pedidos de prueba en `fallido` y `extras.piloto=true` en el piloto (convención nueva, CONTRATO). | OK a los textos de `su-voz-textos` → merge · `MP_WEBHOOK_SECRET` de producción confirmado · Task 4 (QR impreso) |
 | **Mar 22** | ~~3t.19 panel de viaje~~ ✅ hecho el 21 · mirar el panel con las primeras noches reales de Nako | ~~Task 6~~ ✅ · ~~migración "de otra parte"~~ ✅ · ~~3b.6 en la fábrica~~ ✅ (todo el 21) · **enganchar la sección QR en el portón de impresión** · los 2 suites de test de la fábrica que no cargan (`worker.test.ts`, `anticipo-worker.test.ts`: `db` undefined en `recordarFrasesPendientes`) |
 | **Mié 23** | ~~2.10~~ ✅ hecho el 21 · pasar los cambios de texto de Naza (panel de viaje + carrito de viaje) | Revisión de textos del panel de viaje (`viaje.tsx`, `angulos.tsx`) |
 | **Jue 24** | 3t.20 después de pagar → adentro del panel · 3t.22 ficha (edad, nacionalidad, tú/vos) | 8.4 alta autónoma / Stripe |
@@ -716,7 +716,10 @@ Objetivo: **el viajero (Nako) en marcha, los pilotos respondiendo, «Su voz» en
 | **Fin de semana** | 6.5 biógrafo con NotebookLM (los dos libros + bitácora) · #17 nombres en la transcripción | — |
 
 **Regla de la semana:** nada que toque textos sale sin el OK de Naza; nada que toque la base sin
-migración acordada. Dora y las plantillas se resuelven solas cuando Meta apruebe: **no se toca**.
+migración acordada. **Convención (21/09):** un piloto armado a mano lleva `pedidos.extras.piloto = true`
+(si no, el panel de la empresa alerta por un cobro que nunca va a llegar). **El "portón de impresión"**
+(el botón *imprimir* que cierra la selección de Su voz y engancha la sección con QR) **no existe
+todavía**: es web (J) + fábrica (N), se define entre los dos cuando entre el primer impreso pagado. Dora y las plantillas se resuelven solas cuando Meta apruebe: **no se toca**.
 
 ## 📌 Decisiones de marca (2026-09-19, los dos socios)
 
