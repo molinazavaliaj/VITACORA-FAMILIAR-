@@ -114,7 +114,8 @@ el SQL Editor** y se verifica leyendo de vuelta. Se agrega su sección a `supaba
 | `cuenta` | text | quién paga la key: `naza` · `joaquin` · `local` (decisión abierta 7) |
 | `narrador_id` | uuid null | null = no es de un narrador (una medición, una prueba) |
 | `input_tokens` `output_tokens` `cache_write` `cache_read` | int | desglosados para poder recalcular si cambian los precios |
-| `segundos` | numeric null | para lo que se cobra por tiempo (transcripción, TTS) |
+| `cantidad` | numeric null | lo que se cobra por unidad: los segundos de audio o los caracteres del texto |
+| `unidad` | text null | `segundos` (transcripción) · `caracteres` (TTS) |
 | `usd` | numeric(12,6) | lo que costó, con la tabla de precios de `fabrica/src/costos.ts` |
 
 ### `latidos` — si el worker está vivo
