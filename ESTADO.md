@@ -486,6 +486,21 @@ checkout de `web/` (decisión de los dos, Joaquín lo implementa), y el aviso a 
 la narración de capítulos deja de usarse; **restauración, pausas y masterizado siguen siendo
 necesarios** (ahora son el corazón del archivo).
 
+### 2026-09-20 (madrugada) — "Su voz": costo real medido y la decisión de no abaratar el juicio
+
+**Medido con el libro de Joaquín** (`fabrica/scripts/prueba-frases.ts`, corrida real del 20/09): 8
+capítulos, 16 llamadas, **USD 1,85 por libro** (33.453 tokens de entrada y 30.200 de salida, de los
+cuales 25.076 son **pensamiento** del modelo). Mi estimación previa (USD 0,35) estaba 5x abajo
+porque asumí ~150 tokens de salida por llamada y este modelo piensa ~1.570.
+
+**Decisión de Naza: no se abarata el juicio.** El A/B del capítulo 1 mostró que
+`thinking: adaptive` + `output_config: {effort: 'low'}` baja el costo a USD 0,07 por llamada (~0,62
+por libro, 3x menos) pero **el modelo "prolija" la cita** (mayúscula y punto que la transcripción
+no tiene), lo que rompe el filtro de cita textual y mete mano en la selección. Contra un precio de
+producto de 49-99€, **USD 1,85 por libro no justifica perder profesionalidad**: se deja el
+pensamiento completo. (Ojo: `thinking.type.disabled` no existe en este modelo y el pensamiento
+cuenta dentro de `max_tokens` — con 2000 la corrida moría con texto vacío.)
+
 ## Próximos hitos
 
 1. ~~Audiolibro híbrido~~ — **descartado el 20/09** (ver arriba): la corrida que quedó encolada sirve solo para el veredicto de oído. Lo que viene: el spec de "Sus mejores frases" y el checkout sin la línea del audiolibro.

@@ -639,6 +639,13 @@ costo por libro impresos en pantalla.
 
 - [ ] **Step 3: leer las frases con Naza y ajustar los criterios**
 
+**Ya corrido el 20/09 contra el libro de Joaquín (medición real):** 8 capítulos, 16 llamadas
+(sin reintentos), 407 s, **USD 1,85** (33.453 tokens de entrada, 30.200 de salida de los cuales
+25.076 son pensamiento). Salieron **39 candidatas y 24 elegidas** (3 por capítulo). Naza pidió
+**no abaratar** con `effort` bajo (ver `ESTADO.md`, 20/09): el ahorro (~USD 1,20 por libro) no
+compensa que el modelo "prolije" las citas. La evidencia quedó en
+`Desktop/su-voz-frases-Joaquin/` (JSON, listado y una página para escucharlas con el audio real).
+
 Las 24 frases y el `por_que` de cada una se le muestran a Naza (regla de la casa: los textos que
 ve una persona los aprueba ella). Si hay temas repetidos entre capítulos o alguna frase que
 lastima, se ajusta el prompt y se vuelve a medir.
