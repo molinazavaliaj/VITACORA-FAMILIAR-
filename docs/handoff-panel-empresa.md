@@ -83,8 +83,10 @@ subirla.
 **Qué es.** Las cinco pantallas de `/admin` (Estado, Familias, Plata, Gastos, Cerebros), hechas.
 No hay un link a `/admin` en ningún lado del sitio: se entra escribiendo la dirección.
 
-**Para que funcione en producción hacen falta cuatro variables nuevas en Vercel** (todas de tiempo de
-ejecución, ninguna secreta):
+**Las cuatro variables ya están cargadas en Vercel (Production), el 21/09** — y como Vercel lee las
+variables de entorno al construir, se hizo un redeploy para que entren. Si alguna hay que cambiarla (el tipo
+de cambio, por ejemplo), se reemplaza en el panel de Vercel y **se vuelve a desplegar**: si no, el cambio no
+se ve. Las cuatro son (ninguna es un secreto: son datos de operación):
 
 - `ADMIN_EMAILS` — los dos mails separados por coma (Naza y Joaquín). **Sin esto no entra nadie.**
 - `CAMBIO_EUR_ARS` — cuántos pesos vale 1 euro (ej. `1250`).
