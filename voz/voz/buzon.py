@@ -12,6 +12,9 @@ módulo; en producción se deja en None y se usa la hora real.
 
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
+import logging
+
+log = logging.getLogger("voz.buzon")
 
 
 @dataclass(frozen=True)
@@ -112,6 +115,22 @@ def marcar(sb, id: str, estado: str, ahora: datetime | None = None, **campos) ->
     )
     if not filas:
         raise RuntimeError(f"marcar: no encontré la narración {id!r} para pasarla a estado={estado!r}")
+
+
+def latir(sb, detalle: dict | None = None) -> None:
+    """Avisa que el worker está vivo.
+
+    Es lo que le permite al panel distinguir «no hay trabajo» de «la PC se
+    cayó»: se pisa siempre la misma fila (interesa la última vez, no el
+    historial). Si no se puede latir —sin red, la tabla sin crear— se avisa y
+    se sigue: el latido no puede tumbar una narración.
+    """
+    try:
+        sb.table("latidos").upsert(
+            {"servicio": "voz", "ultimo_ping": ahora().isoformat(), "detalle": detalle}
+        ).execute()
+    except Exception as err:  # cualquier fallo se avisa; ninguno frena
+        log.warning("no pude latir: %s", err)
 
 
 def candado_aviso(narrador_id: str, id: str, motivo: str) -> str:

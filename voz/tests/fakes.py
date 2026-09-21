@@ -36,6 +36,12 @@ class FakeBuilder:
         self.llamadas.append(("update", valores))
         return self
 
+    def upsert(self, valores):
+        """El `upsert` que usa el latido (pisa la fila del servicio)."""
+        self.operacion = "upsert"
+        self.llamadas.append(("upsert", valores))
+        return self
+
     def eq(self, campo, valor):
         self.llamadas.append(("eq", campo, valor))
         return self
