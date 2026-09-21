@@ -68,7 +68,7 @@ export type FilaNarracion = {
   actualizada_at: string | null;
 };
 
-export type FilaLatido = { servicio: string; hora: string };
+export type FilaLatido = { servicio: string; ultimo_ping: string };  // la columna real de `latidos`
 
 export type DatosDelPanel = {
   narradores: FilaNarrador[];
@@ -193,7 +193,7 @@ function frenosDeLatido(datos: DatosDelPanel, ahora: Date): Freno[] {
     if (propios.length === 0) continue;
 
     const ultimo = propios
-      .map((l) => Date.parse(l.hora))
+      .map((l) => Date.parse(l.ultimo_ping))
       .filter((t) => !Number.isNaN(t))
       .sort((a, b) => b - a)[0];
     if (ultimo === undefined) continue;

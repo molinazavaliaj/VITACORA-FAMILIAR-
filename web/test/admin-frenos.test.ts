@@ -80,7 +80,7 @@ describe("los frenos", () => {
     // Review Focus 4: mientras narra un capítulo la PC de música no late (14-33 min
     // medidos). Sin esta excepción el panel mostraría "se cayó" con la máquina trabajando.
     const f = frenosDe(datos({
-      latidos: [{ servicio: "voz", hora: hace(0.6) }],                 // 36 min sin latir
+      latidos: [{ servicio: "voz", ultimo_ping: hace(0.6) }],                 // 36 min sin latir
       narraciones: [{
         id: "x1", narrador_id: "n1", estado: "procesando",
         actualizada_at: hace(0.2), created_at: hace(1),                  // avanzó hace 12 min
@@ -90,7 +90,7 @@ describe("los frenos", () => {
   });
 
   it("la fábrica que no late hace 4 minutos sí está roja (su vuelta es de un minuto)", () => {
-    const f = frenosDe(datos({ latidos: [{ servicio: "fabrica", hora: hace(4 / 60) }] }), AHORA);
+    const f = frenosDe(datos({ latidos: [{ servicio: "fabrica", ultimo_ping: hace(4 / 60) }] }), AHORA);
     expect(f).toHaveLength(1);
     expect(f[0]).toMatchObject({ gravedad: "rojo" });
     expect(f[0].detalle).toContain("latido");

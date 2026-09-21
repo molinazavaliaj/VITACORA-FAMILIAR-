@@ -1,52 +1,6 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect } from "vitest";
+import { crearAdmin } from "./dobles";
 import { historiasDelUsuario, historiaAccesible, PUEDE } from "../src/lib/panel";
-
-// Base falsa mínima: cada tabla devuelve filas según los filtros que recibió.
-// Suficiente para probar la regla de acceso sin red.
-
-type Fila = Record<string, unknown>;
-
-function crearAdmin(tablas: Record<string, Fila[]>, opciones: { sinInvitados?: boolean } = {}) {
-  const updates: { tabla: string; valores: Fila; filtros: Fila }[] = [];
-
-  function builder(tabla: string) {
-    const filtros: Fila = {};
-    let op: "select" | "update" = "select";
-    let valores: Fila = {};
-    const b: Record<string, unknown> = {};
-    const encadenar = () => b;
-    b.select = encadenar;
-    b.order = encadenar;
-    b.eq = (col: string, val: unknown) => { filtros[col] = val; return b; };
-    b.is = (col: string, val: unknown) => { filtros[col] = val; return b; };
-    b.ilike = (col: string, val: unknown) => { filtros[`${col}~`] = String(val).toLowerCase(); return b; };
-    b.in = (col: string, vals: unknown[]) => { filtros[`${col}∈`] = vals; return b; };
-    b.update = (v: Fila) => { op = "update"; valores = v; return b; };
-    const resolver = () => {
-      if (tabla === "invitados" && opciones.sinInvitados) {
-        return { data: null, error: { message: 'relation "invitados" does not exist' } };
-      }
-      if (op === "update") {
-        updates.push({ tabla, valores, filtros });
-        return { data: null, error: null };
-      }
-      const filas = (tablas[tabla] ?? []).filter((f) =>
-        Object.entries(filtros).every(([k, v]) => {
-          if (k.endsWith("~")) return String(f[k.slice(0, -1)]).toLowerCase() === v;
-          if (k.endsWith("∈")) return (v as unknown[]).includes(f[k.slice(0, -1)]);
-          return f[k] === v;
-        }),
-      );
-      return { data: filas, error: null };
-    };
-    b.maybeSingle = () => Promise.resolve({ ...resolver(), data: resolver().data?.[0] ?? null });
-    b.then = (res: (v: unknown) => unknown, rej?: (e: unknown) => unknown) =>
-      Promise.resolve(resolver()).then(res, rej);
-    return b;
-  }
-
-  return { admin: { from: vi.fn(builder) } as never, updates };
-}
 
 const alfredo = { id: "n-alfredo", nombre: "Alfredo", como_le_dicen: "Abuelo", estado: "activo", dia_actual: 4, alerta_silencio: false, familia_id: "fam-martina", created_at: "2026-09-10" };
 const dora = { id: "n-dora", nombre: "Dora", como_le_dicen: "Abuela", estado: "invitado", dia_actual: 0, alerta_silencio: false, familia_id: "fam-martina", created_at: "2026-09-12" };
@@ -63,9 +17,11 @@ describe("historiasDelUsuario", () => {
     });
     const { panel, error } = await historiasDelUsuario(admin, martina);
     expect(error).toBeNull();
+    // El fixture va a propósito al revés (Alfredo es del 10/09 y Dora del 12/09):
+    // así esta expectativa prueba de verdad que el orden es el más nuevo primero.
     expect(panel.historias.map((h) => [h.narrador.nombre, h.rol])).toEqual([
-      ["Alfredo", "duena"],
       ["Dora", "duena"],
+      ["Alfredo", "duena"],
     ]);
   });
 
