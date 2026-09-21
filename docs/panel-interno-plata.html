@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Plata · lo que entró, lo que se gastó y lo que queda</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500&family=Archivo:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,300;8..60,400&family=JetBrains+Mono:wght@400;500&display=swap');
+:root{
+  --negro:#14140F;--blanco:#fff;--grafito:#2B2B24;--pizarra:#45453C;--acero:#5F5F55;--humo:#83837A;
+  --ceniza:#AEAEA6;--niebla:#D4D4CE;--bruma:#EBEBE7;--papel:#F7F7F5;--violeta:#5D3FD3;
+  --texto:var(--negro);--texto-suave:var(--pizarra);--texto-menor:var(--acero);
+  --linea:var(--niebla);--linea-fuerte:var(--ceniza);
+  --rojo:#8A2A1E;--rojo-punto:#B23A28;--rojo-fondo:#FBEFEC;--rojo-borde:#E4C0B8;
+  --ambar:#8A6A1E;--ambar-punto:#C79A2E;--ambar-fondo:#FBF4E4;--ambar-borde:#E8D9AE;
+  --verde:#2F6B4F;--verde-punto:#3E7B5B;--verde-fondo:#EEF6F1;--verde-borde:#BFD8C9;
+  --f-titulo:'Playfair Display',Georgia,serif;--f-micro:'Archivo',Helvetica,sans-serif;
+  --f-cuerpo:'Source Serif 4',Georgia,serif;--f-num:'JetBrains Mono',monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--papel);color:var(--texto);font-family:var(--f-cuerpo);width:1180px}
+p{margin:0}
+.barra{background:var(--negro);color:#fff;padding:16px 46px;display:flex;align-items:center;gap:20px}
+.barra .lg{font-family:var(--f-titulo);font-size:18px;line-height:1}
+.barra .lg span{font-family:var(--f-micro);font-size:9px;letter-spacing:.3em;color:var(--ceniza);display:block;margin-top:5px}
+.barra .tabs{margin-left:auto;display:flex;gap:4px;font-family:var(--f-micro);font-size:11px;letter-spacing:.12em;text-transform:uppercase}
+.barra .tabs b{background:#2E2E25;color:#fff;padding:8px 14px;border-radius:999px;font-weight:600}
+.barra .tabs i{padding:8px 14px;color:var(--ceniza);font-style:normal}
+.panel{padding:30px 46px 60px}
+.titulo{display:flex;align-items:baseline;gap:14px;border-bottom:1px solid var(--linea-fuerte);padding-bottom:12px}
+.titulo h1{font-family:var(--f-titulo);font-weight:400;font-size:27px;margin:0}
+.titulo em{margin-left:auto;font-style:normal;font-family:var(--f-micro);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--texto-menor)}
+.et{font-family:var(--f-micro);font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--texto-menor)}
+/* la cuenta, escrita como una cuenta */
+.cuenta{background:var(--blanco);border:1px solid var(--linea);margin-top:22px;padding:30px 34px;display:grid;
+  grid-template-columns:1fr 34px 1fr 34px 1fr;gap:14px;align-items:start}
+.term .cifra{font-family:var(--f-titulo);font-size:34px;line-height:1.1;margin:9px 0 8px}
+.term .cifra s{text-decoration:none;font-family:var(--f-cuerpo);font-size:16px;color:var(--texto-menor)}
+.term ul{margin:10px 0 0;padding:0;list-style:none}
+.term li{font-size:15.5px;color:var(--texto-suave);padding:5px 0;border-top:1px solid var(--linea);display:flex;gap:10px}
+.term li span{margin-left:auto;font-family:var(--f-num);font-size:14px;color:var(--texto-menor);white-space:nowrap}
+.term.resta li,.term.resultado li{border-top:1px solid var(--linea)}
+.signo{font-family:var(--f-titulo);font-size:30px;color:var(--texto-menor);text-align:center;padding-top:26px}
+.resultado .cifra{color:var(--verde)}
+.termino{color:var(--rojo)}
+.nota{font-size:14.5px;color:var(--texto-menor);margin-top:12px}
+/* el detalle */
+.bloque{background:var(--blanco);border:1px solid var(--linea);margin-top:26px}
+.bloque>.enc{padding:16px 24px;border-bottom:1px solid var(--linea-fuerte);display:flex;align-items:baseline;gap:14px}
+.bloque>.enc s{text-decoration:none;margin-left:auto;font-size:15px;color:var(--texto-menor)}
+.venta{display:grid;grid-template-columns:1fr 110px 130px 150px 150px;gap:16px;align-items:center;padding:15px 24px;border-bottom:1px solid var(--linea)}
+.venta:last-child{border-bottom:0}
+.venta .c{font-family:var(--f-titulo);font-size:19px}
+.venta .c s{text-decoration:none;display:block;font-family:var(--f-cuerpo);font-size:14.5px;color:var(--texto-menor);margin-top:2px}
+.venta .n{font-family:var(--f-num);font-size:14px;text-align:right}
+.venta .r{font-family:var(--f-titulo);font-size:20px;text-align:right}
+.venta.cabeza{padding:10px 24px;background:var(--papel);border-bottom:1px solid var(--linea-fuerte)}
+.venta.cabeza span{font-family:var(--f-micro);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--texto-menor);text-align:right}
+.venta.cabeza span:first-child{text-align:left}
+.venta.total{background:var(--papel);border-top:1px solid var(--linea-fuerte)}
+.venta.total .c{font-family:var(--f-micro);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--texto-menor);align-self:center}
+.aviso{display:flex;gap:16px;align-items:flex-start;background:var(--blanco);border:1px solid var(--linea);padding:20px 24px;margin-top:26px}
+.aviso .punto{width:11px;height:11px;border-radius:50%;background:var(--ambar-punto);flex:none;margin-top:7px}
+.aviso .tx b{font-family:var(--f-titulo);font-size:20px;font-weight:500;display:block}
+.aviso .tx p{font-size:15.5px;color:var(--texto-suave);margin-top:4px;max-width:800px}
+.pie{margin-top:34px;border-top:1px solid var(--linea-fuerte);padding-top:16px;display:flex;gap:30px}
+.pie .et{letter-spacing:.2em}
+.pie p{font-size:14.5px;color:var(--texto-menor);margin-top:6px;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="barra">
+  <div class="lg">VITÁCORA FAMILIAR<span>panel de la empresa</span></div>
+  <div class="tabs"><i>Estado</i><i>Familias</i><b>Plata</b><i>Máquina</i></div>
+</div>
+
+<div class="panel">
+  <div class="titulo"><h1>Plata</h1><em>septiembre, del 1 al 21</em></div>
+
+  <!-- la cuenta, escrita como una cuenta -->
+  <div class="cuenta">
+    <div class="term">
+      <div class="et">Entró</div>
+      <div class="cifra">158 €</div>
+      <ul>
+        <li>Familia Ferrer <span>89 €</span></li>
+        <li>Familia Álvarez <span>69 €</span></li>
+        <li>Sin cobrar todavía <span>69 €</span></li>
+      </ul>
+    </div>
+    <div class="signo">−</div>
+    <div class="term resta">
+      <div class="et">Se gastó</div>
+      <div class="cifra termino">44 €</div>
+      <ul>
+        <li>Inteligencia artificial de los libros <span>32 €</span></li>
+        <li>Comisiones de cobro <span>5 €</span></li>
+        <li>Railway, dominio y mails <span>7 €</span></li>
+      </ul>
+    </div>
+    <div class="signo">=</div>
+    <div class="term resultado">
+      <div class="et">Ganancia limpia</div>
+      <div class="cifra">114 €</div>
+      <ul>
+        <li>De cada 100 € que entran, quedan <span>72 €</span></li>
+        <li>Si se descuentan los libros vendidos que faltan escribir <span>103 €</span></li>
+      </ul>
+    </div>
+  </div>
+  <p class="nota">Las tres cifras están en euros. Lo cobrado en Argentina (ARS) y lo gastado en dólares
+  (Anthropic, OpenAI, Railway) se convirtió con el cambio del día: 1 € = 1.250 ARS y 1 € = 1,08 USD.
+  El tipo de cambio queda siempre a la vista porque, si se mueve, estas cuentas se mueven con él.</p>
+
+  <!-- una venta por vez -->
+  <div class="bloque">
+    <div class="enc"><div class="et">Venta por venta</div><s>qué pagó cada familia y qué costó su libro — no se suma aparte: la cuenta de arriba ya la incluye</s></div>
+    <div class="venta cabeza"><span>Familia</span><span>País</span><span>Pagó</span><span>La IA de su libro</span><span>Quedó</span></div>
+    <div class="venta">
+      <div class="c">Familia Ferrer<s>PDF + impreso B/N · 18/09</s></div>
+      <div class="n">España</div><div class="n">89 €</div><div class="n">− 6 €</div><div class="r">83 €</div>
+    </div>
+    <div class="venta">
+      <div class="c">Familia Álvarez<s>PDF · 19/09</s></div>
+      <div class="n">Argentina</div><div class="n">69 €</div><div class="n">− 5 €</div><div class="r">64 €</div>
+    </div>
+    <div class="venta">
+      <div class="c">Familia Sosa<s>PDF · 21/09 · el cobro no se confirmó</s></div>
+      <div class="n">Argentina</div><div class="n">69 €</div><div class="n">— sin escribir</div><div class="r" style="color:var(--texto-menor)">por cobrar</div>
+    </div>
+    <div class="venta total">
+      <div class="c">Lo que dejaron las dos cobradas</div>
+      <div class="n">—</div><div class="n">158 €</div><div class="n">− 11 €</div><div class="r">147 €</div>
+    </div>
+  </div>
+
+  <!-- lo comprometido -->
+  <div class="aviso">
+    <i class="punto"></i>
+    <div class="tx">
+      <b>11 € de la ganancia ya están comprometidos.</b>
+      <p>Los libros de Ciro y de Elena se vendieron, pero todavía no se escribieron: cuando se escriban van a costar
+      unos 11 € de inteligencia artificial. Por eso la ganancia limpia de verdad, la que no se va a tocar, es de 103 €
+      y no de 114 €. El panel la muestra de las dos maneras para que no te sorprenda.</p>
+    </div>
+  </div>
+
+  <!-- mes por mes -->
+  <div class="bloque">
+    <div class="enc"><div class="et">Mes por mes</div><s>se llena solo a partir del mes que viene</s></div>
+    <div class="venta cabeza"><span>Mes</span><span>Ventas</span><span>Entró</span><span>Se gastó</span><span>Ganancia limpia</span></div>
+    <div class="venta">
+      <div class="c">Septiembre<s>todavía en curso: faltan 9 días</s></div>
+      <div class="n">3</div><div class="n">158 €</div><div class="n">− 44 €</div><div class="r">114 €</div>
+    </div>
+  </div>
+
+  <div class="pie">
+    <div>
+      <div class="et">De dónde sale cada número</div>
+      <p><b>Entró:</b> de los cobros confirmados (Stripe y Mercado Pago). <b>Se gastó:</b> de cada llamada a la
+      inteligencia artificial, anotada sola, más las suscripciones y lo que cargues a mano. <b>Comisiones:</b> lo que
+      se queda la pasarela, cargado como porcentaje por pasarela. <b>Ganancia limpia:</b> la resta, siempre.
+      Este panel no reemplaza la contabilidad del contador: es para saber, hoy, si el mes cierra bien.</p>
+    </div>
+  </div>
+</div>
+</body>
+</html>
