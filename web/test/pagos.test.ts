@@ -28,6 +28,7 @@ import { cookies } from 'next/headers';
 import Stripe from 'stripe';
 import { MercadoPagoConfig, Preference, Payment } from 'mercadopago';
 import { crearCheckout } from '@/lib/pagos';
+import { verificarToken } from '@/lib/token-firmado';
 import { calcularCompra, NADA_ELEGIDO } from '@/lib/productos';
 const SOLO_PDF = { ...NADA_ELEGIDO, pdf: true };
 import { POST as POST_WEBHOOK_STRIPE } from '../src/app/api/webhooks/stripe/route';
@@ -114,6 +115,7 @@ beforeEach(() => {
   process.env.STRIPE_SECRET_KEY = 'sk_test_x';
   process.env.STRIPE_WEBHOOK_SECRET = 'whsec_x';
   process.env.MP_ACCESS_TOKEN = 'TEST-token';
+  process.env.SUPABASE_SERVICE_ROLE_KEY ??= 'clave-de-prueba'; // firma el token de la vuelta (3t.20)
   process.env.PRECIO_EUR = '49';
   process.env.PRECIO_ARS = '49999';
   process.env.URL_BASE = 'https://vitacorafamiliar.com';
@@ -145,7 +147,12 @@ describe('crearCheckout', () => {
     expect(args.line_items[0].price_data.unit_amount).toBe(4900);
     expect(args.line_items[0].price_data.currency).toBe('eur');
     expect(args.metadata.pedido_id).toBe('pedido-1');
-    expect(args.success_url).toBe('https://vitacorafamiliar.com/comprar/gracias');
+    // 3t.20: la vuelta pasa por nuestra ruta, con un token firmado atado al pedido.
+    const success = new URL(args.success_url);
+    expect(success.pathname).toBe('/api/pago/vuelta');
+    expect(success.searchParams.get('pedido')).toBe('pedido-1');
+    expect(verificarToken('vuelta', success.searchParams.get('t'), 'pedido-1')).toBe(true);
+    expect(args.success_url).toContain('session_id={CHECKOUT_SESSION_ID}');
     expect(args.cancel_url).toBe('https://vitacorafamiliar.com/comprar');
   });
 
@@ -169,7 +176,10 @@ describe('crearCheckout', () => {
     expect(args.body.items[0].unit_price).toBe(49999);
     expect(args.body.items[0].currency_id).toBe('ARS');
     expect(args.body.external_reference).toBe('pedido-2');
-    expect(args.body.back_urls.success).toBe('https://vitacorafamiliar.com/comprar/gracias');
+    const success = new URL(args.body.back_urls.success);
+    expect(success.pathname).toBe('/api/pago/vuelta');
+    expect(success.searchParams.get('pedido')).toBe('pedido-2');
+    expect(verificarToken('vuelta', success.searchParams.get('t'), 'pedido-2')).toBe(true);
     expect(args.body.back_urls.failure).toBe('https://vitacorafamiliar.com/comprar');
     expect(MercadoPagoConfig).toHaveBeenCalledWith({ accessToken: 'TEST-token' });
   });
