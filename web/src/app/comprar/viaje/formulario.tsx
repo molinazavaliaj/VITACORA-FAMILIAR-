@@ -3,7 +3,8 @@
 import { useMemo, useState } from "react";
 import { ANGULOS, COMPANIAS, NOMBRE_ANGULO, NOMBRE_COMPANIA, NOMBRE_PROPOSITO, PROPOSITOS, ETAPAS_MAXIMO, type Etapa, type Viaje } from "@/lib/viaje";
 import { NADA_ELEGIDO, NOMBRE_VIAJE, DETALLE_VIAJE, type Extra, type ProductosElegidos } from "@/lib/productos";
-import { ContadorMarcos, TarjetaImpreso, formatearPrecio as formatear } from "../productos-ui";
+import { ContadorMarcos, TarjetaImpreso, formatearPrecio as formatear, listaDe } from "../productos-ui";
+import { Tachado } from "../tachado";
 import { HORAS_VIAJE as HORAS, ZONAS } from "@/lib/horario";
 
 // La compra de la Vitácora de viaje, en tres pasos. Las etapas pueden ir sin
@@ -31,7 +32,7 @@ const campo = "w-full rounded-md border border-[#D4D4CE] bg-white px-4 py-3 text
 const etiqueta = "block text-[11px] uppercase text-[#5F5F55] [font-family:var(--fuente-micro)] [letter-spacing:0.24em]";
 const chip = (activo: boolean) => `rounded-full border px-4 py-2 text-[14px] transition-colors [font-family:var(--fuente-micro)] [touch-action:manipulation] ${activo ? "border-[#14140F] bg-[#14140F] text-white" : "border-[#D4D4CE] bg-white hover:border-[#83837A]"}`;
 
-export function CheckoutViaje({ precios, extras, regionInicial = "AR" }: { precios: PreciosViaje; extras: ExtrasViaje; regionInicial?: Region }) {
+export function CheckoutViaje({ precios, extras, regionInicial = "AR", promo = null }: { precios: PreciosViaje; extras: ExtrasViaje; regionInicial?: Region; promo?: number | null }) {
   const [paso, setPaso] = useState<Paso>(1);
   const [region] = useState<Region>(regionInicial); // 2.12: por el país del visitante (IP); sin selector
   const [nombre, setNombre] = useState("");
@@ -285,7 +286,10 @@ export function CheckoutViaje({ precios, extras, regionInicial = "AR" }: { preci
               <p className="text-[10px] uppercase text-[#5F5F55] [font-family:var(--fuente-micro)] [letter-spacing:0.24em]">en la nube · {dias ?? "—"} noches</p>
               <p className="mt-2 text-[24px] leading-tight [font-family:var(--fuente-titulo)] font-medium">{NOMBRE_VIAJE}</p>
               <p className="mt-2 text-[15px] leading-[1.7] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">{DETALLE_VIAJE} Se lee y se escucha en la web, cuando quieras.</p>
-              <p className="mt-4 text-[28px] tabular-nums [font-family:var(--fuente-titulo)]">{precio !== null ? formatear(precio, moneda, region) : "Próximamente en tu región"}</p>
+              <p className="mt-4 text-[28px] tabular-nums [font-family:var(--fuente-titulo)]">
+                {precio !== null && promo ? <Tachado lista={listaDe(precio, moneda, region, promo).texto} porcentaje={promo} className="mr-2" /> : null}
+                {precio !== null ? formatear(precio, moneda, region) : "Próximamente en tu región"}
+              </p>
             </div>
 
             {/* 2.10: lo que se suma. ⚠️ Textos a revisar por Naza. */}
@@ -301,6 +305,7 @@ export function CheckoutViaje({ precios, extras, regionInicial = "AR" }: { preci
                     moneda={moneda}
                     region={region}
                     detalle="Tu viaje en tapa dura, con un código en la contratapa que hace sonar tu voz. Lo único que sale de la nube."
+                    promo={promo}
                   />
                 </div>
                 <ContadorMarcos productos={productos} setProductos={setProductos} marco={marco} moneda={moneda} region={region} detalle="Un marco con tu foto del viaje y un chip: se acerca el teléfono y suena tu voz. Para regalar a quien te esperó." />

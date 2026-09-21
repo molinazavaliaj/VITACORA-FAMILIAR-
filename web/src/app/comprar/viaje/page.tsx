@@ -4,6 +4,7 @@ import { Playfair_Display, Archivo, Source_Serif_4 } from "next/font/google";
 import { obtenerPrecioViaje } from "@/lib/precios";
 import { extrasDisponibles } from "@/lib/productos";
 import { regionDelRequest } from "@/lib/region";
+import { promoPorcentaje } from "@/lib/promo";
 import { headers } from "next/headers";
 import { Toroide } from "../../marca";
 import { CheckoutViaje, type ExtrasViaje, type PreciosViaje } from "./formulario";
@@ -38,7 +39,7 @@ export default async function PaginaComprarViaje() {
           </Link>
         </div>
       </header>
-      <CheckoutViaje precios={precios} extras={extras} regionInicial={regionDelRequest(await headers())} />
+      <CheckoutViaje precios={precios} extras={extras} regionInicial={regionDelRequest(await headers())} promo={promoPorcentaje()} />
     </div>
   );
 }
