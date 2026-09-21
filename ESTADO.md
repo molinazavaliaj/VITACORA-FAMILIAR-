@@ -527,6 +527,49 @@ Queda pendiente: el audiolibro «real» (`generarAudiolibro`) todavía se arma p
 cuando el producto salga del checkout (`web/`); la sección impresa con QR (Task 4) y el recordatorio a los
 15 días (Task 6).
 
+## Panel de la empresa — la instrumentación, parte A (branch `panel-de-la-empresa`, 21/09) (Naza)
+
+El panel interno de la empresa (`/admin`; spec en
+`docs/superpowers/specs/2026-09-21-panel-de-la-empresa-design.md` y mockup en `docs/panel-interno.html`)
+necesita de dónde leer, y esta parte es eso: **tres tablas nuevas y el código que las llena**. Nada de esto
+se ve todavía; el panel es la parte B.
+
+**Las tres tablas** (`supabase/migrations/20260921000100_panel_empresa.sql`, la aplica Naza en el SQL
+Editor): `consumo_ia` (una fila por llamada al modelo), `latidos` (si cada worker está vivo) y
+`gastos_manuales` (lo que no pasa por una API). Las tres con RLS prendido y **sin políticas**: sólo la
+service role las toca, el navegador nunca. Contrato actualizado en `supabase/CONTRATO.md`.
+
+**Lo que ahora se anota:** trece llamadas al modelo del entrevistador dejan su fila con su paso
+(`transcribir`, `evaluar`, `reserva`, `reemplazo`, `no_tuvo`, `cierre`, `intencion`, `adaptativas`,
+`personalizar`, `personalizar_viaje`, `resumenes`, `voz_pregunta`, `sugeridas`/`trato`). Antes anotaba
+sólo la fábrica, y lo hacía en un JSON por narrador en Storage: eso sigue ahí para recalcular un libro,
+pero **el panel no lo lee** (recorrer Storage no escala y no deja preguntar «cuándo se usó este modelo por
+última vez»). Lo único que queda afuera es `generarReconocimiento`: **no tiene llamadores** desde que se
+sacó el saludo diario el 14/09.
+
+Los tres workers laten (`anotarLatido` en el entrevistador y en la fábrica, `latir()` en la PC de música,
+que además ya recibió la directiva `central/2026-09-21-07-panel-latido-voz.md`): es lo que va a permitir
+distinguir «no hay trabajo» de «se cayó el worker».
+
+**Precios:** los mismos de la fábrica para los modelos de Anthropic; la transcripción a USD 0,0045 por
+minuto (**medido**, `GASTOS.md`); el TTS a USD 0,000025 por carácter (**estimado** desde los ~USD 0,15 por
+narrador de `GASTOS.md` — se corrige cuando haya una factura de OpenAI que lo confirme).
+
+**Cómo se verificó:** typecheck y suites en verde en los tres paquetes de esta parte (entrevistador 279,
+fábrica 359, voz 151; cada uno con sus tests nuevos, vistos fallar primero). La migración, **leída de
+vuelta** por PostgREST: antes de aplicarla `404 · PGRST205` en las tres tablas y `200` en `narradores`
+como control de que la consulta era válida. La prueba de punta a punta —una llamada real que deja su fila—
+queda **pendiente de que la migración esté aplicada**.
+
+**Dos cosas para saber de acá en adelante:**
+
+1. El latido de la voz va **una vez por vuelta del bucle**, así que **mientras narra un capítulo no late**
+   (14-33 min medidos por capítulo). El nodo «voz» del panel no puede usar sólo el latido: tiene que mirar
+   también `narraciones.actualizada_at`.
+2. Los tres tests de `procesar.test.ts` que afirmaban los argumentos exactos de `transcribirYActualizar`,
+   `detectarQueNoTuvo` y `detectarReservaYDejarTema` se actualizaron para incluir el `narradorId` nuevo:
+   es la firma la que cambió (parámetro opcional al final), no la conducta que esos tests cuidan.
+
 ## Próximos hitos
 
 1. ~~Audiolibro híbrido~~ — **descartado el 20/09** (ver arriba): la corrida que quedó encolada sirve solo para el veredicto de oído. Lo que viene: el spec de "Sus mejores frases" y el checkout sin la línea del audiolibro.
