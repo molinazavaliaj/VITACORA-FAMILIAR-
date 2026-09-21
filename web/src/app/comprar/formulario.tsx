@@ -430,7 +430,7 @@ export function Checkout({ catalogo }: { catalogo: Catalogo }) {
               ¿Cómo quieres {paraQuien === "yo" ? "tu libro" : `el libro de ${comoLeDicen || nombre || "su vida"}`}?
             </h1>
             <p className="mt-3 text-[16px] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">
-              Elige al menos uno. Los tres salen de la misma entrevista: 30 preguntas por WhatsApp, un audio por día.
+              Elige al menos uno. Los dos salen de la misma entrevista: 30 preguntas por WhatsApp, un audio por día.
             </p>
 
             <div className="mt-8 grid gap-4 sm:grid-cols-3">

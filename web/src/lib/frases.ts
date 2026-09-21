@@ -45,9 +45,19 @@ export type FrasesJson = {
 
 export const RUTA_FRASES_JSON = (narradorId: string) => `${narradorId}/paquete/frases.json`;
 
-/** Lee el archivo del paquete. Un archivo ausente o roto devuelve null: la página lo dice, no se cae. */
+/**
+ * Lee el archivo del paquete, SIEMPRE fresco. Storage sirve copias cacheadas
+ * (Naza lo midió el 21/09: dos lecturas seguidas del mismo archivo recién subido
+ * dieron versiones distintas), y este archivo lo escriben tres — la fábrica, el
+ * worker de la PC de audio y la web —: una lectura vieja antes de escribir haría
+ * pisar los cortes del worker creyendo que siguen pendientes. Por eso cada
+ * lectura pide una URL distinta (`cacheNonce`) y le dice al fetch que no guarde.
+ * Un archivo ausente o roto devuelve null: la página lo dice, no se cae.
+ */
 export async function leerFrases(admin: SupabaseClient, narradorId: string): Promise<FrasesJson | null> {
-  const { data } = await admin.storage.from("audios").download(RUTA_FRASES_JSON(narradorId));
+  const { data } = await admin.storage
+    .from("audios")
+    .download(RUTA_FRASES_JSON(narradorId), { cacheNonce: `${Date.now()}-${Math.random().toString(36).slice(2)}` }, { cache: "no-store" });
   if (!data) return null;
   try {
     const frases = JSON.parse(await data.text()) as FrasesJson;
@@ -58,11 +68,15 @@ export async function leerFrases(admin: SupabaseClient, narradorId: string): Pro
   }
 }
 
-/** Escribe el archivo entero (la web solo toca sus campos, pero el archivo se sube completo). */
+/**
+ * Escribe el archivo entero (la web solo toca sus campos, pero el archivo se
+ * sube completo). Con `cacheControl: '0'`, como la fábrica y el worker: lo que
+ * se sube no puede servirse cacheado a los otros dos.
+ */
 export async function guardarFrases(admin: SupabaseClient, frases: FrasesJson): Promise<{ error: string | null }> {
   const { error } = await admin.storage
     .from("audios")
-    .upload(RUTA_FRASES_JSON(frases.narrador_id), JSON.stringify(frases, null, 2), { contentType: "application/json", upsert: true });
+    .upload(RUTA_FRASES_JSON(frases.narrador_id), JSON.stringify(frases, null, 2), { contentType: "application/json", upsert: true, cacheControl: "0" });
   return { error: error?.message ?? null };
 }
 

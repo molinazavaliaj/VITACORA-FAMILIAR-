@@ -3,13 +3,13 @@ import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { narradorDeLaSesion, PUEDE } from "@/lib/panel";
 import { pedidoAMostrar } from "@/lib/pedido-a-mostrar";
+import { responderLibroOnline } from "@/lib/libro-online";
 
 // El lector (spec §15.1): el mismo libro que el PDF, en HTML, para leerlo en
 // /tablero/[id]/leer. Nada se descarga. Los invitados leen igual que la dueña
 // (spec §2 y §5); el visitante (guardó el link público) ve solo la muestra.
 
 const MENSAJE_ERROR_GENERICO = "No pudimos abrir el libro. Intenta de nuevo.";
-const DURACION_URL_FIRMADA_SEGUNDOS = 3600;
 
 export async function GET(request: NextRequest) {
   const admin = crearClienteServidor();
@@ -37,15 +37,12 @@ export async function GET(request: NextRequest) {
   }
 
   // El path es fijo (no depende de una columna del pedido): la fábrica siempre
-  // lo deja en `{narrador_id}/paquete/libro.html`.
-  const { data: firmado, error: errorFirmado } = await admin.storage
-    .from("audios")
-    .createSignedUrl(`${narrador.id}/paquete/libro.html`, DURACION_URL_FIRMADA_SEGUNDOS);
-
-  if (errorFirmado || !firmado?.signedUrl) {
-    console.error("libro/html: fallo al firmar la url", errorFirmado);
+  // lo deja en `{narrador_id}/paquete/libro.html`. Se sirve desde acá, no por
+  // redirección a la URL firmada: Supabase la entregaría como text/plain (21/09).
+  const respuesta = await responderLibroOnline(admin, narrador.id);
+  if (!respuesta) {
+    console.error("libro/html: no se pudo bajar libro.html de", narrador.id);
     return NextResponse.json({ error: MENSAJE_ERROR_GENERICO }, { status: 500 });
   }
-
-  return NextResponse.redirect(firmado.signedUrl, 302);
+  return respuesta;
 }

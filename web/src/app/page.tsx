@@ -120,7 +120,7 @@ const PREGUNTAS = [
   {
     pregunta: "¿Se puede tener el libro impreso?",
     respuesta:
-      "Sí: es uno de los tres formatos, y se puede elegir al comprar o sumar después desde tu panel, con el libro ya terminado.",
+      "Sí: es uno de los dos formatos, y se puede elegir al comprar o sumar después desde tu panel, con el libro ya terminado.",
   },
 ] as const;
 

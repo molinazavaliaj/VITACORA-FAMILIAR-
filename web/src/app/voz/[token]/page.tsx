@@ -4,9 +4,10 @@ import { Playfair_Display, Archivo, Source_Serif_4 } from "next/font/google";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { verificarTokenVoz } from "@/lib/token-libro";
 import { frasesPublicables, leerFrases } from "@/lib/frases";
-import { pedidoAMostrar } from "@/lib/pedido-a-mostrar";
+import { hayLibroOnline } from "@/lib/libro-online";
 import { Toroide } from "../../marca";
 import { ReproductorRespuesta } from "../../tablero/reproductor";
+import { CompartirFrase } from "./compartir";
 
 // La página del cliente (spec 2026-09-20-su-voz-design, "La página pública"):
 // una sola, sin login, con todo adentro — el libro online y sus mejores frases
@@ -26,17 +27,16 @@ export default async function PaginaVoz({ params }: PageProps<"/voz/[token]">) {
   if (!datos) notFound();
 
   const admin = crearClienteServidor();
-  const [{ data: narrador }, frases, { pedido }] = await Promise.all([
+  const [{ data: narrador }, frases, libroListo] = await Promise.all([
     admin.from("narradores").select("nombre, como_le_dicen, libro_aprobado_at").eq("id", datos.narradorId).maybeSingle(),
     leerFrases(admin, datos.narradorId),
-    pedidoAMostrar(admin, datos.narradorId),
+    hayLibroOnline(admin, datos.narradorId),
   ]);
   const n = narrador as { nombre: string; como_le_dicen: string; libro_aprobado_at: string | null } | null;
   if (!n?.libro_aprobado_at) notFound();
 
   const publicables = frases ? frasesPublicables(frases) : [];
   const total = publicables.reduce((s, p) => s + p.frases.length, 0);
-  const libroListo = pedido?.estado === "entregado";
   const tab = "inline-flex h-11 items-center justify-center rounded-full px-6 text-[15px] font-medium transition-colors [font-family:var(--fuente-micro)]";
 
   return (
@@ -81,9 +81,7 @@ export default async function PaginaVoz({ params }: PageProps<"/voz/[token]">) {
                     <div className="mt-3">
                       <ReproductorRespuesta src={`/api/voz/${token}/audio/${f.id}`} duracion={f.segundos} etiqueta={`la frase «${f.texto.slice(0, 40)}»`} />
                     </div>
-                    <a href={`#f-${f.id}`} className="mt-2 inline-block text-[12px] text-[var(--texto-menor)] underline decoration-[var(--linea-fuerte)] underline-offset-4 [font-family:var(--fuente-micro)]">
-                      Link a esta frase
-                    </a>
+                    <CompartirFrase texto={f.texto} nombre={n.como_le_dicen} ancla={`f-${f.id}`} />
                   </li>
                 ))}
               </ul>

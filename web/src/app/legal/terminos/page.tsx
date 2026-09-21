@@ -75,13 +75,19 @@ export default function Terminos() {
           ]}
         />
         <Parrafo>
-          Hace falta comprar al menos uno de los tres primeros; los marcos se suman a
+          Hace falta comprar al menos uno de los dos primeros; los marcos se suman a
           cualquiera. Solo se ofrece lo que tiene precio publicado en tu región.
         </Parrafo>
         <Parrafo>
           Desde tu cuenta puedes invitar a familiares para que lean el libro y suban fotos, y
           compartir una muestra pública (portada, títulos de los capítulos, el primer párrafo y
           un minuto de audio). La muestra solo existe si tú compartes el enlace.
+        </Parrafo>
+        <Parrafo>
+          El libro impreso lleva dos códigos: uno al lado de cada frase de «Su voz», que la hace
+          sonar, y otro en la contratapa, que abre en el teléfono el libro entero —el texto y
+          todas sus frases— sin necesidad de cuenta ni contraseña. Quien tenga el libro en la
+          mano puede abrirlos y reenviar ese enlace: cuéntaselo a quien se lo regales.
         </Parrafo>
       </Seccion>
 
@@ -178,7 +184,7 @@ export default function Terminos() {
         <Parrafo>
           Lo que cuenta tu narrador es suyo y de tu familia. No nos quedamos con ningún derecho
           sobre su historia, sus audios, sus fotos ni su voz: nos das únicamente el permiso
-          necesario para transcribir, escribir, maquetar, narrar e imprimir tu libro. Nunca
+          necesario para transcribir, escribir, maquetar, recortar sus frases e imprimir tu libro. Nunca
           publicamos su historia, nunca la usamos como ejemplo y nunca se la mostramos a nadie
           fuera de tu familia. Si algún día quisiéramos mostrar una página como muestra de
           nuestro trabajo, te lo pediríamos por escrito y podrías decir que no.

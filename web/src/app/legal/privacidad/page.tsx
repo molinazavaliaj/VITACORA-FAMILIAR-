@@ -106,17 +106,14 @@ export default function Privacidad() {
         <Lista
           items={[
             <>
-              <F>Para hacer tu libro</F>: entrevistar, transcribir, escribir, narrar, maquetar,
-              imprimir y mostrarte el resultado. Es el contrato que aceptaste al comprar.
+              <F>Para hacer tu libro</F>: entrevistar, transcribir, escribir, maquetar, recortar
+              sus frases de sus audios, imprimir y mostrarte el resultado. Es el contrato que
+              aceptaste al comprar.
             </>,
             <>
               <F>Para hablar con el narrador por WhatsApp</F>, hacerle las preguntas y guardar
               sus respuestas: con su consentimiento, que le pedimos antes de la primera pregunta
               y que puede retirar cuando quiera.
-            </>,
-            <>
-              <F>Para crear su voz sintética</F> (hoy no lo hacemos): solo con su consentimiento
-              explícito y para ese fin.
             </>,
             <>
               <F>Para avisarte</F> por correo cómo va (cuando acepta, cuando responde la primera,
@@ -180,8 +177,10 @@ export default function Privacidad() {
               tu cuenta. Están ahí para que la familia vuelva a ellos cuando quiera.
             </>,
             <>
-              <F>Los audios originales (y una voz sintética, si existiera)</F>: además, se borran en cuanto tú o
-              el narrador lo pidan, aunque el libro siga en tu cuenta.
+              <F>Los audios originales</F>: además, se borran en cuanto tú o el narrador lo
+              pidan, aunque el libro siga en tu cuenta. Sus frases en su voz son recortes de
+              esos mismos audios: si pedís borrar los originales, también se borran los recortes,
+              y los códigos del libro impreso dejan de sonar.
             </>,
             <>
               <F>Tu cuenta</F>: hasta que pidas cerrarla. Si la cierras, borramos todo lo de
@@ -203,8 +202,11 @@ export default function Privacidad() {
           Con nadie, salvo los proveedores de la sección 5 y la familia que tú elijas: los
           invitados ven el libro y las fotos, y quien abra un enlace de muestra que tú
           compartiste ve la portada, los títulos de los capítulos, el primer párrafo y un
-          minuto de audio. Nunca vendemos datos, nunca los usamos para publicidad y nunca los
-          entregamos a terceros salvo obligación legal.
+          minuto de audio. El libro impreso lleva además un código en la contratapa (y uno al
+          lado de cada frase de «Su voz») que abre en el teléfono el libro entero y sus frases,
+          sin cuenta: quien tenga el libro en la mano puede abrirlo y reenviar ese enlace, igual
+          que podría prestar el libro. Nunca vendemos datos, nunca los usamos para publicidad y
+          nunca los entregamos a terceros salvo obligación legal.
         </Parrafo>
       </Seccion>
 
@@ -214,7 +216,8 @@ export default function Privacidad() {
           sus datos, <F>corregirlos</F>, <F>borrarlos</F>, <F>llevárselos</F> en un formato
           usable (el libro en PDF, sus frases y los audios originales), <F>oponerse</F> a
           un uso o pedir que lo <F>limitemos</F>, y <F>retirar un consentimiento</F> (por
-          ejemplo, el de la voz sintética) sin que eso afecte lo hecho hasta entonces.
+          ejemplo, el del narrador para seguir la entrevista) sin que eso afecte lo hecho hasta
+          entonces.
         </Parrafo>
         <Parrafo>
           Cómo: un correo a <Correo cual="hola" /> desde la dirección de tu cuenta (o, si eres
@@ -238,7 +241,8 @@ export default function Privacidad() {
         <Parrafo>
           Los audios, las fotos y los libros están en un almacén privado: no tienen enlaces
           públicos, y cada archivo se entrega solo a quien tiene derecho a verlo, con un enlace
-          que caduca. A tu cuenta se entra con un código de un solo uso que te mandamos por
+          que caduca (el código del libro impreso es un enlace firmado por nosotros: abre ese
+          libro y nada más). A tu cuenta se entra con un código de un solo uso que te mandamos por
           correo; no hay contraseñas que se puedan filtrar. Las conexiones van cifradas. El
           acceso de los socios a los datos está limitado a lo necesario para producir tu libro
           y resolver problemas.

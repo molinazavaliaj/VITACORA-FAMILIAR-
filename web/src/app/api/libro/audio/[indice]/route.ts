@@ -4,7 +4,7 @@ import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { narradorDeLaSesion, PUEDE, type Rol } from "@/lib/panel";
 import { pedidoAMostrar, type AudiolibroPaths } from "@/lib/pedido-a-mostrar";
 
-const MENSAJE_ERROR_GENERICO = "No pudimos abrir el audiolibro. Intenta de nuevo.";
+const MENSAJE_ERROR_GENERICO = "No pudimos abrir el audio. Intenta de nuevo.";
 const DURACION_URL_FIRMADA_SEGUNDOS = 3600;
 
 type Familia = { id: string };
@@ -43,7 +43,7 @@ export async function GET(
   if (!acceso.ok) return NextResponse.json({ error: acceso.error }, { status: acceso.status });
   if (!puedeEscuchar(indice, acceso.rol)) {
     return NextResponse.json(
-      { error: "La muestra no incluye el audiolibro." },
+      { error: "La muestra no incluye los audios del libro." },
       { status: 403 },
     );
   }
@@ -57,7 +57,7 @@ export async function GET(
   }
 
   if (!pedido || pedido.estado !== "entregado" || !pedido.audiolibro_paths) {
-    return NextResponse.json({ error: "Tu audiolibro todavía no está listo." }, { status: 404 });
+    return NextResponse.json({ error: "Ese audio todavía no está listo." }, { status: 404 });
   }
 
   const ruta = resolverRuta(indice, pedido.audiolibro_paths);

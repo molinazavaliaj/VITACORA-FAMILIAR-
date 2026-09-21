@@ -77,9 +77,12 @@ function crearAdminFake(secuencia: Record<string, unknown[]>) {
     const resultado = secuencia[tabla]?.[idx] ?? { data: null, error: null };
     return construirBuilder(resultado);
   });
+  // Desde el 21/09 el libro no se redirige a la url firmada (Supabase lo
+  // entregaría como text/plain): la ruta baja libro.html y lo sirve como HTML.
   const createSignedUrl = vi.fn().mockResolvedValue({ data: { signedUrl: 'https://signed.example/libro' }, error: null });
-  const storage = { from: vi.fn(() => ({ createSignedUrl })) };
-  return { from, storage, createSignedUrl };
+  const download = vi.fn().mockResolvedValue({ data: { text: async () => '<!DOCTYPE html><html><body>El libro</body></html>' }, error: null });
+  const storage = { from: vi.fn(() => ({ createSignedUrl, download })) };
+  return { from, storage, createSignedUrl, download };
 }
 
 function mockSesion(usuario: { id: string; email: string } | null) {
@@ -128,16 +131,18 @@ describe('GET /api/libro/html', () => {
     expect(respuesta.status).toBe(401);
   });
 
-  it('pedido entregado → 302 a la url firmada de libro.html', async () => {
+  it('pedido entregado → sirve libro.html como HTML de verdad (no una redirección a Storage)', async () => {
     mockSesion({ id: 'user-1', email: 'martina@test.com' });
     const admin = adminComoDuena([{ id: 'pedido-1', estado: 'entregado' }]);
     (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
 
     const respuesta = await GET(fakeRequest());
-    expect(respuesta.status).toBe(302);
-    expect(respuesta.headers.get('location')).toBe('https://signed.example/libro');
+    expect(respuesta.status).toBe(200);
+    expect(respuesta.headers.get('content-type')).toBe('text/html; charset=utf-8');
+    expect(await respuesta.text()).toContain('El libro');
     expect(admin.storage.from).toHaveBeenCalledWith('audios');
-    expect(admin.createSignedUrl.mock.calls[0][0]).toBe('n1/paquete/libro.html');
+    expect(admin.download.mock.calls[0][0]).toBe('n1/paquete/libro.html');
+    expect(admin.createSignedUrl).not.toHaveBeenCalled();
   });
 
   it('pedido no entregado → 404, aunque la fábrica ya haya subido el html', async () => {
@@ -148,7 +153,7 @@ describe('GET /api/libro/html', () => {
     const respuesta = await GET(fakeRequest());
     expect(respuesta.status).toBe(404);
     expect(await respuesta.json()).toEqual({ error: 'El libro todavía no está listo.' });
-    expect(admin.createSignedUrl).not.toHaveBeenCalled();
+    expect(admin.download).not.toHaveBeenCalled();
   });
 
   it('con un pedido "pendiente" más nuevo (el checkout abandonado de un desconocido) igual sirve el libro entregado', async () => {
@@ -160,8 +165,8 @@ describe('GET /api/libro/html', () => {
     (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
 
     const respuesta = await GET(fakeRequest());
-    expect(respuesta.status).toBe(302);
-    expect(admin.createSignedUrl.mock.calls[0][0]).toBe('n1/paquete/libro.html');
+    expect(respuesta.status).toBe(200);
+    expect(admin.download.mock.calls[0][0]).toBe('n1/paquete/libro.html');
   });
 
   it('sin ningún pedido → 404', async () => {
@@ -173,7 +178,7 @@ describe('GET /api/libro/html', () => {
     expect(respuesta.status).toBe(404);
   });
 
-  it('un invitado (no dueña) también recibe el 302 — lee, no baja', async () => {
+  it('un invitado (no dueña) también recibe el libro — lee, no baja', async () => {
     mockSesion({ id: 'user-2', email: 'tia@test.com' });
     // Sin familia propia: la historia le llega por la tabla invitados.
     const admin = crearAdminFake({
@@ -185,8 +190,8 @@ describe('GET /api/libro/html', () => {
     (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
 
     const respuesta = await GET(fakeRequest());
-    expect(respuesta.status).toBe(302);
-    expect(admin.createSignedUrl.mock.calls[0][0]).toBe('n1/paquete/libro.html');
+    expect(respuesta.status).toBe(200);
+    expect(admin.download.mock.calls[0][0]).toBe('n1/paquete/libro.html');
   });
 
   it('un visitante (guardó el link público) recibe 403: la muestra no incluye el libro', async () => {
@@ -202,7 +207,7 @@ describe('GET /api/libro/html', () => {
     const respuesta = await GET(fakeRequest());
     expect(respuesta.status).toBe(403);
     expect(await respuesta.json()).toEqual({ error: 'La muestra no incluye el libro completo.' });
-    expect(admin.createSignedUrl).not.toHaveBeenCalled();
+    expect(admin.download).not.toHaveBeenCalled();
   });
 
   it('quien no tiene acceso a esa historia recibe 403', async () => {
@@ -216,6 +221,6 @@ describe('GET /api/libro/html', () => {
 
     const respuesta = await GET(fakeRequest());
     expect(respuesta.status).toBe(403);
-    expect(admin.createSignedUrl).not.toHaveBeenCalled();
+    expect(admin.download).not.toHaveBeenCalled();
   });
 });
