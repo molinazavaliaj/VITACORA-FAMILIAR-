@@ -14,6 +14,7 @@ import { escribirConectores, historiasDelCapitulo } from '../voz/conectores.js';
 import { elegirFrases } from './frases.js';
 import { publicarFrases } from './publicar-frases.js';
 import {
+  armarContextoDeTemas,
   armarMaterial,
   borrarArchivos,
   descargarTextoOpcional,
@@ -171,6 +172,15 @@ export async function generarPaquete(pedido: { id: string; narrador_id: string; 
     const historiaCompleta = armarMaterial(todosLosOrdenes, preguntasPorOrden, respuestasPorOrden);
     const nombresCorregidos = formatearNombresCorregidos(nombres.correcciones);
 
+    // La marca `tema_de_orden` (la escribe el entrevistador cuando el narrador
+    // contesta una pregunta y cuenta una historia de otro tema): el recuerdo se
+    // SUMA al capítulo de su tema, y en el capítulo donde lo contó queda la
+    // aclaración de a dónde va. Los números salen de `estructuraFinal` —el orden
+    // FINAL, el que ve el escritor y el que sale impreso—, no de
+    // `estructura.json`. Si las columnas todavía no existen (migración sin
+    // aplicar) no hay marcas y todo sale exactamente como antes.
+    const temasDelLibro = armarContextoDeTemas(estructuraFinal.capitulos, respuestasPorOrden);
+
     // 1a. Un capítulo por vez, con su voz. Cada uno se cachea en Storage
     // apenas se genera (ANTES de los pasos baratos que pueden fallar más
     // adelante: PDF, audiolibro) — si un reintento cae acá, reusa lo que ya
@@ -188,7 +198,7 @@ export async function generarPaquete(pedido: { id: string; narrador_id: string; 
       if (cacheado !== null) {
         texto = cacheado;
       } else {
-        const material = armarMaterial(capitulo.ordenes, preguntasPorOrden, respuestasPorOrden);
+        const material = armarMaterial(capitulo.ordenes, preguntasPorOrden, respuestasPorOrden, temasDelLibro);
         texto = await escribirCapitulo(narrador, capitulo.nombre, material, historiaCompleta, nombresCorregidos);
         await subirTexto(db, rutaBorrador, texto);
       }

@@ -891,4 +891,85 @@ describe('generarPaquete', () => {
     expect(db.upload.mock.calls.map((c) => c[0])).not.toContain('n1/paquete/narracion.json');
     expect(db.pedidosUpdate).toHaveBeenCalledWith(expect.objectContaining({ estado: 'entregado' }), 'p1');
   });
+
+  // --- La marca `tema_de_orden` (columnas nuevas, migración sin aplicar) -----
+
+  it('sin la marca, el material de cada capítulo es el de siempre (byte por byte)', async () => {
+    // Las respuestas del arnés no traen `tema_de_orden` ni `tema_motivo`: es el
+    // caso de la migración sin aplicar.
+    construirDbN1();
+
+    await generarPaquete({ id: 'p1', narrador_id: 'n1' });
+
+    expect(escribirCapituloMock.mock.calls[0][2]).toBe('P: ¿Dónde naciste?\nR: En Rosario.');
+    expect(escribirCapituloMock.mock.calls[1][2]).toBe('P: ¿Cómo conociste a tu pareja?\nR: La conocí bailando.');
+  });
+
+  it('la marca tema_de_orden suma el recuerdo al capítulo de su tema y aclara el número del capítulo FINAL', async () => {
+    const historiaDeLa2 = 'La conocí en un baile del club, en el 62.';
+    const estructuraTemas = {
+      titulo: 'Rosa — La historia de una vida',
+      capitulos: [
+        { nombre: 'La infancia', ordenes: [1] },
+        { nombre: 'El amor', ordenes: [2] },
+        { nombre: 'Los nietos', ordenes: [9] },
+      ],
+      entidades: [],
+    };
+    const db = construirDbN1({
+      // La dueña puso 'Los nietos' primero: en el libro, el capítulo del tema (la
+      // orden 2) pasa a ser el 3. El número crudo de estructura.json sería 2 —
+      // el que NO tiene que aparecer en la aclaración.
+      narrador: { data: narradorN1({ edicion: { ordenCapitulos: ['Los nietos'] } }), error: null },
+      preguntasFijas: {
+        data: [
+          { narrador_id: null, orden: 1, texto: '¿Dónde naciste?', capitulo: 'La infancia' },
+          { narrador_id: null, orden: 2, texto: '¿Cómo conociste a tu pareja?', capitulo: 'El amor' },
+          { narrador_id: null, orden: 9, texto: '¿Qué le dirías a tus nietos?', capitulo: 'Los nietos' },
+        ],
+        error: null,
+      },
+      respuestas: {
+        data: [
+          { id: 'r1', pregunta_orden: 1, transcripcion: 'En Rosario.', texto_directo: null, es_repregunta: false, audio_path: null, duracion_segundos: 120, recibido_at: '2026-09-01T10:00:00Z' },
+          { id: 'r9', pregunta_orden: 9, transcripcion: historiaDeLa2, texto_directo: null, es_repregunta: false, audio_path: null, duracion_segundos: 95, recibido_at: '2026-09-02T10:00:00Z', tema_de_orden: 2, tema_motivo: 'la historia es de cómo conoció a Marta' },
+        ],
+        error: null,
+      },
+      descargas: {
+        ...descargasN1(),
+        'n1/paquete/estructura.json': { data: blobFake(JSON.stringify(estructuraTemas)), error: null },
+      },
+      archivosNarrador: [],
+    });
+
+    await generarPaquete({ id: 'p1', narrador_id: 'n1' });
+
+    // El libro quedó: 1) Los nietos  2) La infancia  3) El amor.
+    expect(escribirCapituloMock.mock.calls.map((c) => c[1])).toEqual(['Los nietos', 'La infancia', 'El amor']);
+    const materialDeLosNietos = escribirCapituloMock.mock.calls[0][2] as string;
+    const materialDeLaInfancia = escribirCapituloMock.mock.calls[1][2] as string;
+    const materialDelAmor = escribirCapituloMock.mock.calls[2][2] as string;
+
+    // Donde la contó: la historia sigue ahí, con la aclaración del capítulo FINAL.
+    expect(materialDeLosNietos).toContain(historiaDeLa2);
+    expect(materialDeLosNietos).toContain('(recuerdo de otro tema: ya va en el capítulo 3)');
+    expect(materialDeLosNietos).not.toContain('capítulo 2');
+
+    // Y sumada al capítulo de su tema, con la pregunta de ESE tema.
+    expect(materialDelAmor).toContain(
+      `P: ¿Cómo conociste a tu pareja? (lo contó respondiendo otra pregunta)\nR: ${historiaDeLa2}`
+    );
+
+    // El capítulo del medio no la ve.
+    expect(materialDeLaInfancia).not.toContain(historiaDeLa2);
+
+    // La historia completa (el material de coherencia) no cambia: la respuesta
+    // sigue en su propia pregunta, sin aclaraciones de ningún tipo.
+    const historiaCompleta = escribirCapituloMock.mock.calls[0][3] as string;
+    expect(historiaCompleta).toContain(historiaDeLa2);
+    expect(historiaCompleta).not.toContain('recuerdo de otro tema');
+
+    expect(db.pedidosUpdate).toHaveBeenCalledWith(expect.objectContaining({ estado: 'entregado' }), 'p1');
+  });
 });
