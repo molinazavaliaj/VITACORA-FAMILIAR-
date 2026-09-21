@@ -254,7 +254,13 @@ export async function elegirFrases(
   const agregar = (texto: string, origen: Candidata['origen'], grupo: Candidata['grupo'], numeroCapitulo: number) => {
     if (!esTextual(texto, transcripciones)) return;
     if (candidatas.some((c) => normalizar(c.texto) === normalizar(texto))) return;
-    candidatas.push({ id: `${origen === 'sus-frases' ? 'sf' : 'cita'}-${candidatas.length + 1}`, texto, origen, grupo, numeroCapitulo });
+    candidatas.push({
+      id: `${origen === 'sus-frases' ? 'sf' : 'cita'}-${candidatas.filter((c) => c.origen === origen).length + 1}`,
+      texto,
+      origen,
+      grupo,
+      numeroCapitulo,
+    });
   };
 
   // La página «Sus frases» no dice en qué capítulo vive cada frase: eso lo decide el modelo.
@@ -279,6 +285,19 @@ export async function elegirFrases(
     elegidas?: { id?: unknown; capitulo?: unknown; por_que?: unknown }[];
   };
 
+  // De qué respuesta y de qué audio sale cada frase: se busca con la comparación normalizada (la
+  // cita puede venir con otra puntuación) y en TODOS los capítulos, porque las frases de la página
+  // «Sus frases» se dijeron en cualquier momento de la entrevista.
+  const buscarOrigen = (texto: string) => {
+    const limpio = normalizar(texto);
+    for (const capitulo of args.capitulos) {
+      for (const m of capitulo.material) {
+        if (normalizar(m.texto).includes(limpio)) return m;
+      }
+    }
+    return null;
+  };
+
   // El capítulo de cada candidata: el que dijo el modelo si es válido, si no el de origen.
   const porCapitulo = new Map<number, FraseCandidata[]>();
   for (const elegida of crudo.elegidas ?? []) {
@@ -290,7 +309,7 @@ export async function elegirFrases(
     if (!numero) continue;
     const yaTiene = porCapitulo.get(numero) ?? [];
     if (yaTiene.length >= FRASES_POR_CAPITULO) continue;
-    const origen = args.capitulos.find((c) => c.numero === numero)?.material.find((m) => m.texto.includes(candidata.texto));
+    const origen = buscarOrigen(candidata.texto);
     yaTiene.push({
       id: `${candidata.id}`,
       texto: candidata.texto,
@@ -319,7 +338,7 @@ export async function elegirFrases(
       .filter((c) => c.numeroCapitulo === capitulo.numero || c.origen === 'sus-frases')
       .slice(0, FRASES_POR_CAPITULO * 2)
       .map((c) => {
-        const origen = capitulo.material.find((m) => m.texto.includes(c.texto));
+        const origen = buscarOrigen(c.texto);
         return {
           id: c.id,
           texto: c.texto,

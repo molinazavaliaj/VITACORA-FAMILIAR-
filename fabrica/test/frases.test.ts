@@ -144,6 +144,45 @@ describe('elegirFrases', () => {
     expect(frases.confirmado_at).toBeNull();
   });
 
+  it('encuentra de qué respuesta sale una frase de «Sus frases» aunque viva en otro capítulo', async () => {
+    const libro = `# La infancia
+
+> una cita del capítulo
+
+# Sus frases
+
+### Las suyas
+
+«Salí a buscar lo tuyo.»
+`;
+    const capitulos = [
+      { numero: 1, nombre: 'La infancia', material: [material(1, 'acá esa frase no está')] },
+      { numero: 2, nombre: 'El oficio', material: [material(2, 'y mi viejo me decía: salí a buscar lo tuyo, siempre')] },
+    ];
+    const clienteFalso = {
+      messages: {
+        create: async () => ({
+          content: [{ type: 'text', text: JSON.stringify({ elegidas: [{ id: 'sf-1', capitulo: 1, por_que: 'x' }] }) }],
+          stop_reason: 'end_turn',
+        }),
+      },
+    } as unknown as Parameters<typeof elegirFrases>[0];
+
+    const frases = await elegirFrases(clienteFalso, {
+      narradorId: 'n1',
+      pedidoId: 'p1',
+      nombre: 'Joaquín',
+      libroMarkdown: libro,
+      capitulos,
+    });
+
+    const elegida = frases.capitulos.find((c) => c.numero === 1)?.candidatas.find((c) => c.elegida);
+    expect(elegida?.texto).toBe('Salí a buscar lo tuyo.');
+    // El audio sale de la respuesta del capítulo 2: sin esto el worker no sabría qué cortar.
+    expect(elegida?.respuesta_id).toBe('r2');
+    expect(elegida?.pregunta_orden).toBe(2);
+  });
+
   it('no deja más de tres elegidas por capítulo aunque el modelo se entusiasme', async () => {
     const muchos = new Array(6).fill(0).map((_, i) => `[cita-${i + 1}] «y ahí estaba el mejor ring que tuve en mi vida fue esa casa»`);
     const clienteFalso = {
