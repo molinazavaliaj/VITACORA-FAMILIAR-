@@ -44,6 +44,8 @@ export type PedidoPanel = {
   extras: Record<string, unknown> | null;
   created_at: string;
   proveedor: string | null;
+  /** Con path quiere decir que el PDF del libro ya se armó (la tabla no guarda CUÁNDO). */
+  libro_pdf_path: string | null;
 };
 
 export type RespuestaPanel = {
@@ -146,7 +148,7 @@ export async function datosDelPanel(admin: SupabaseClient, ahora: Date): Promise
       leerLista<PedidoPanel>("los pedidos", () =>
         admin
           .from("pedidos")
-          .select("id, narrador_id, familia_id, estado, monto, moneda, extras, created_at, proveedor")
+          .select("id, narrador_id, familia_id, estado, monto, moneda, extras, created_at, proveedor, libro_pdf_path")
           .order("created_at", { ascending: false }),
       ),
       enCurso.length === 0

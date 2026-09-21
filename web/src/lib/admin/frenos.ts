@@ -177,6 +177,11 @@ function frenoDeVoz(x: FilaNarracion, datos: DatosDelPanel, ahora: Date): Freno 
   };
 }
 
+/** ¿Hay algún libro esperando a que la PC de música lo narre? */
+function hayVozPendiente(datos: DatosDelPanel): boolean {
+  return datos.narraciones.some((x) => x.estado === "procesando" || x.estado === "pendiente");
+}
+
 /** ¿La voz está narrando ahora? Mientras narra un capítulo no late (14-33 min medidos). */
 function vozTrabajando(datos: DatosDelPanel, ahora: Date): boolean {
   return datos.narraciones.some((x) => {
@@ -203,7 +208,10 @@ function frenosDeLatido(datos: DatosDelPanel, ahora: Date): Freno[] {
     const horas = (ahora.getTime() - ultimo) / 3600_000;
     const toleranciaHoras = (vueltaMs * UMBRALES.latidoSinLatearVeces) / 3600_000;
     if (horas <= toleranciaHoras) continue;
-    if (servicio === "voz" && vozTrabajando(datos, ahora)) continue;
+    // La voz es la máquina de una persona, no un servicio: si está narrando (y por eso no
+    // late) o si no hay ningún libro esperándola, no latear no es una falla. Cuando hay
+    // trabajo en la cola y no da señales, sí: ahí se cayó con algo entre manos.
+    if (servicio === "voz" && (vozTrabajando(datos, ahora) || !hayVozPendiente(datos))) continue;
 
     frenos.push({
       que: "latido",

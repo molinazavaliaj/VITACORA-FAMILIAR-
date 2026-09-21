@@ -89,6 +89,19 @@ describe("los frenos", () => {
     expect(f).toEqual([]);
   });
 
+  it("la PC de música apagada y sin nada que narrar no es un freno", () => {
+    const f = frenosDe(datos({ latidos: [{ servicio: "voz", ultimo_ping: hace(30) }], narraciones: [] }), AHORA);
+    expect(f).toEqual([]);
+  });
+
+  it("la PC de música que no late con una narración esperando SÍ es un freno", () => {
+    const f = frenosDe(datos({
+      latidos: [{ servicio: "voz", ultimo_ping: hace(30) }],
+      narraciones: [{ id: "x1", narrador_id: "n1", estado: "procesando", actualizada_at: hace(20), created_at: hace(40) }],
+    }), AHORA);
+    expect(f.some((x) => x.que === "latido")).toBe(true);
+  });
+
   it("la fábrica que no late hace 4 minutos sí está roja (su vuelta es de un minuto)", () => {
     const f = frenosDe(datos({ latidos: [{ servicio: "fabrica", ultimo_ping: hace(4 / 60) }] }), AHORA);
     expect(f).toHaveLength(1);

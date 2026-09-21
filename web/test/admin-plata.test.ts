@@ -12,7 +12,8 @@ const HASTA = new Date("2026-09-21T23:59:59Z");
 
 const pedido = (p: Partial<PedidoPanel> = {}): PedidoPanel => ({
   id: "p1", narrador_id: "n1", familia_id: "f1", estado: "entregado", monto: 49,
-  moneda: "EUR", extras: {}, created_at: "2026-09-10T00:00:00Z", proveedor: "stripe", ...p,
+  moneda: "EUR", extras: {}, created_at: "2026-09-10T00:00:00Z", proveedor: "stripe",
+  libro_pdf_path: null, ...p,
 });
 const narrador = (n: Partial<NarradorPanel> = {}): NarradorPanel => ({
   id: "n1", nombre: "Rosa", como_le_dicen: null, estado: "activo", dia_actual: 10,
