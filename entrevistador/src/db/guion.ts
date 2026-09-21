@@ -61,3 +61,23 @@ export async function capitulosDe(narradorId: string): Promise<string[]> {
   const { preguntas } = await guionDe(narradorId);
   return [...new Set(preguntas.map((p) => p.capitulo))];
 }
+
+/**
+ * Las preguntas que el narrador YA respondió antes de `ordenActual`, con el
+ * texto que de verdad recibió (`contexto.preguntasEnviadas`, la personalizada)
+ * o, si no está, el del guion. Es la lista que ve la evaluación para ubicar un
+ * recuerdo que aparece tarde ("esto es de otra parte", 21/09): orden, capítulo
+ * y pregunta. Sin esa lista el modelo no puede acertar una orden real.
+ */
+export async function preguntasHechasAntes(
+  narradorId: string, ordenActual: number, contexto: Record<string, any> | null | undefined,
+): Promise<{ orden: number; capitulo: string; texto: string }[]> {
+  const { preguntas } = await guionDe(narradorId);
+  const enviadas = (contexto?.preguntasEnviadas ?? {}) as Record<string, unknown>;
+  return preguntas
+    .filter((p) => p.orden < ordenActual)
+    .map((p) => {
+      const enviada = enviadas[String(p.orden)];
+      return { orden: p.orden, capitulo: p.capitulo, texto: typeof enviada === 'string' && enviada.trim() ? enviada : p.texto };
+    });
+}

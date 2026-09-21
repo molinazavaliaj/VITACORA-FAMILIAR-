@@ -47,3 +47,35 @@ export async function guardarReserva(
   }
   return true;
 }
+
+/**
+ * "Esto es de otra parte" (decisión de Naza, 21/09): el narrador contestó la 9
+ * y ahí se acordó de algo de la 2. La evaluación lo marca (`temaDeOrden`,
+ * `temaMotivo`, normalizados por `temaDe()` en `cerebro.ts`) y acá queda en
+ * la fila: `respuestas.tema_de_orden` y `tema_motivo`. La fábrica lo lee al
+ * armar el material de cada capítulo: copia la respuesta al capítulo del tema
+ * y la deja anotada en el capítulo donde la contó para que el escritor no la
+ * repita. No se mueve nada de lugar.
+ *
+ * Mismo patrón que `guardarReserva`: nunca lanza. Las columnas llegan con la
+ * migración `20260921000000_tema_de_otra_parte.sql` (la acuerdan los dos y la
+ * aplica Naza); si el flujo corre antes, PostgREST contesta "column does not
+ * exist" y eso no puede tumbar el día — se avisa por consola y no se anota.
+ * Sin marca no toca la base.
+ */
+export async function guardarTemaDeOtraParte(
+  respuestaId: string, tema: { temaDeOrden: number; temaMotivo: string | null } | null,
+): Promise<boolean> {
+  if (!tema) return false;
+  const { error } = await db.from('respuestas')
+    .update({ tema_de_orden: tema.temaDeOrden, tema_motivo: tema.temaMotivo })
+    .eq('id', respuestaId);
+  if (error) {
+    console.warn(
+      `respuestas: no pude anotar que la respuesta ${respuestaId} es de la pregunta ${tema.temaDeOrden} (${error.message}). ` +
+      '¿Está aplicada la migración 20260921000000_tema_de_otra_parte.sql? Anotalo a mano.',
+    );
+    return false;
+  }
+  return true;
+}

@@ -379,3 +379,59 @@ describe('extraerJson', () => {
     expect(extraerJson<{ a: number }>('', null)).toBeNull();
   });
 });
+
+// El recuerdo que aparece tarde (decisión de Naza, 21/09): el narrador contesta
+// la 9 y ahí se acuerda de algo de la 2. Es una MARCA para que la fábrica lo
+// ubique en su capítulo — no una bifurcación de la charla.
+describe('un recuerdo de otra parte: la marca, sin reencuadrar', () => {
+  const HECHAS = [
+    { orden: 1, capitulo: 'La infancia', texto: '¿Dónde nació y cómo era esa casa?' },
+    { orden: 2, capitulo: 'La infancia', texto: '¿A qué jugaba de chico, y con quién?' },
+    { orden: 8, capitulo: 'El trabajo', texto: '¿Cómo fue su primer trabajo?' },
+  ];
+  beforeEach(() => crearMock.mockReset());
+
+  // Regla dura primero: el bot nunca reencuadra en el momento.
+  it('(a) el prompt prohíbe mencionar el cambio de tema o pedir que vuelva, y pide la marca solo si está seguro', async () => {
+    const { PROMPT_EVALUAR } = await import('../src/ia/cerebro.js');
+    const p = PROMPT_EVALUAR('¿Cómo fue su primer trabajo?', 'Mi primer trabajo... y me acuerdo de chico, en el patio de Villa Domínico, con el Rubén...', 90, '', 'usted', HECHAS, 9);
+    expect(p).toContain('SI SE FUE A OTRO TEMA, NO SE LO REENCUADRA');
+    expect(p).toContain('NUNCA menciona el cambio de tema, NUNCA le pide que vuelva a la pregunta de hoy');
+    expect(p).toContain('"temaDeOrden"');
+    expect(p).toContain('Si contestó la pregunta de hoy, aunque haya tocado otros temas de paso, o si dudás, los dos van en null');
+    // La lista que ve, con orden y capítulo, solo las anteriores a la de hoy.
+    expect(p).toContain('2 · La infancia · ¿A qué jugaba de chico, y con quién?');
+    expect(p).toContain('8 · El trabajo');
+  });
+
+  it('(a bis) sin preguntas anteriores no se le pide la marca (no hay a dónde mandar el recuerdo)', async () => {
+    const { PROMPT_EVALUAR } = await import('../src/ia/cerebro.js');
+    const p = PROMPT_EVALUAR('¿Dónde nació?', 'En Pelliza.', 30, '', 'usted', [], 1);
+    expect(p).toContain('NO SE LO REENCUADRA'); // la regla dura va siempre
+    expect(p).not.toContain('LAS PREGUNTAS QUE YA RESPONDIÓ');
+    expect(p).not.toContain('marcá a qué pregunta anterior');
+  });
+
+  // Y la respuesta del bot: una evaluación con marca no trae ningún texto que
+  // reencuadre — vuelve suficiente, sin repregunta, y la marca aparte.
+  it('(b) una respuesta que recuerda un tema anterior vuelve con la marca y sin repregunta que lo interrumpa', async () => {
+    crearMock.mockResolvedValue({ content: [{ type: 'text', text: '{"suficiente": true, "temaDeOrden": 2, "temaMotivo": "cuenta los juegos en el patio con el Rubén, que es la pregunta 2"}' }] });
+    const { evaluarRespuesta, temaDe } = await import('../src/ia/cerebro.js');
+    const e = await evaluarRespuesta('¿Cómo fue su primer trabajo?', 'Y me acuerdo de chico...', 90, '', 'usted', { pausaMs: 0, preguntasHechas: HECHAS, ordenActual: 9 });
+    expect(e.repregunta).toBeUndefined();
+    expect(temaDe(e, HECHAS, 9)).toEqual({ temaDeOrden: 2, temaMotivo: 'cuenta los juegos en el patio con el Rubén, que es la pregunta 2' });
+    // El prompt de verdad llevó la lista.
+    expect(crearMock.mock.calls[0][0].messages[0].content).toContain('LAS PREGUNTAS QUE YA RESPONDIÓ ANTES');
+  });
+
+  it('(c) si el modelo duda (null) no hay marca; y una orden que no está en la lista, o la de hoy, tampoco', async () => {
+    const { temaDe } = await import('../src/ia/cerebro.js');
+    expect(temaDe({ temaDeOrden: null, temaMotivo: null }, HECHAS, 9)).toBeNull();
+    expect(temaDe({}, HECHAS, 9)).toBeNull();
+    expect(temaDe({ temaDeOrden: 5, temaMotivo: 'inventada' }, HECHAS, 9)).toBeNull(); // no está en la lista
+    expect(temaDe({ temaDeOrden: 9, temaMotivo: 'la de hoy' }, HECHAS, 9)).toBeNull(); // la misma pregunta
+    expect(temaDe({ temaDeOrden: 8.5 as number }, HECHAS, 9)).toBeNull();
+    // Un "2" como texto se acepta (el JSON del modelo no está tipado); el motivo vacío queda null.
+    expect(temaDe({ temaDeOrden: '2' as unknown as number, temaMotivo: '  ' }, HECHAS, 9)).toEqual({ temaDeOrden: 2, temaMotivo: null });
+  });
+});

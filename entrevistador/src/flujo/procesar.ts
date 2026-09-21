@@ -3,12 +3,12 @@ import { db } from '../db/cliente.js';
 import { enviarTexto } from '../whatsapp/enviar.js';
 import { descargarAudio } from '../whatsapp/media.js';
 import { variantesDeTelefono } from '../whatsapp/telefonos.js';
-import { guardarRespuestaAudio, guardarReserva } from '../db/respuestas.js';
+import { guardarRespuestaAudio, guardarReserva, guardarTemaDeOtraParte } from '../db/respuestas.js';
 import { guardarRepreguntaEnviada } from '../db/envios.js';
 import { transcribirYActualizar } from '../ia/transcribir.js';
-import { evaluarRespuesta, detectarIntencion, detectarQueNoTuvo, detectarReservaYDejarTema, reservaDe, type ReservaYDejarTema } from '../ia/cerebro.js';
+import { evaluarRespuesta, detectarIntencion, detectarQueNoTuvo, detectarReservaYDejarTema, reservaDe, temaDe, type ReservaYDejarTema } from '../ia/cerebro.js';
 import { generarPreguntasAdaptativas } from '../ia/adaptativas.js';
-import { preguntaDeOrden, tieneAdaptativas, ultimoOrden } from '../db/guion.js';
+import { preguntaDeOrden, preguntasHechasAntes, tieneAdaptativas, ultimoOrden } from '../db/guion.js';
 import { textoEvitar, sumarTemaEvitado } from '../ia/evitar.js';
 import { tratoDe } from '../ia/trato.js';
 import { bienvenidaAceptacion } from '../manual/puro.js';
@@ -249,9 +249,14 @@ async function trasResponder(
     const noTuvo = await anotarSiNoTuvo(narrador, orden, pregunta, transcripcion);
     // La pregunta de cierre ("¿faltó algo?") no se evalúa ni se repregunta: la lee faseDeCierre.
     const seEvalua = !noTuvo && !esOrdenDeCierre(narrador.contexto, orden);
+    // "Esto es de otra parte" (21/09): la evaluación ve las preguntas ya hechas
+    // para poder decir a cuál pertenece un recuerdo que aparece tarde. Es una
+    // marca en la fila para la fábrica; el bot no reencuadra nada en vivo.
+    const preguntasHechas = seEvalua ? await preguntasHechasAntes(narrador.id, orden, narrador.contexto) : [];
     const evaluacion = seEvalua
-      ? await evaluarRespuesta(pregunta, transcripcion, duracionSegundos, textoEvitar(narrador.contexto), trato)
+      ? await evaluarRespuesta(pregunta, transcripcion, duracionSegundos, textoEvitar(narrador.contexto), trato, { preguntasHechas, ordenActual: orden })
       : { suficiente: true as const };
+    if (seEvalua) await guardarTemaDeOtraParte(respuestaId, temaDe(evaluacion, preguntasHechas, orden));
     marcas = seEvalua
       ? { reserva: reservaDe(evaluacion, transcripcion), dejarTema: evaluacion.dejarTema ?? null }
       : await detectarReservaYDejarTema(transcripcion, trato);
