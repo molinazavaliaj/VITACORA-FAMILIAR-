@@ -49,18 +49,19 @@ un código al lado) y se reenvía por WhatsApp.
 - Se **escucha**: la frase; y debajo, **"escuchar la historia completa (2:14)"** = la respuesta
   original entera, restaurada. Sale gratis: ese audio ya existe en Storage.
 - **3 por capítulo** (24 en un libro de 8), editable en el panel — decidido el 20/09.
-- Las **5 candidatas por capítulo se cortan todas**, no solo las 3 elegidas: así el panel cambia
-  una frase al instante, sin esperar a la PC.
+- Las **citas textuales de cada capítulo se cortan todas** (las 3 elegidas y las alternativas):
+  así el panel cambia una frase al instante, sin esperar a la PC.
 - Máximo una frase por tema: dos veces el mismo tema no entra.
 
 ## Arquitectura
 
 ```
 fábrica (Railway)
-  1. propone: el modelo que escribió el libro marca candidatas por capítulo (5 por capítulo)
-  2. aprueba: segunda pasada, contexto fresco, elige 3 y explica por qué (queda en el panel)
-  3. escribe {narrador}/paquete/frases.json y lo deja en el paquete
-  4. arma la sección impresa (frase + código) y el PDF
+  1. lee el libro que ya escribió: las citas `> cita` de cada capítulo y la página "Sus frases"
+  2. una sola llamada al modelo con el libro entero: elige 3 por capítulo —solo entre las citas
+     textuales, verificadas contra la transcripción— y explica por qué cada una
+  3. escribe {narrador}/paquete/frases.json y deja el pedido de corte en el paquete
+  4. arma la sección impresa (esa misma lista: frase + código) y el PDF
   5. arma el paquete final y entrega; el panel y la página pública leen el paquete
 
 worker de voz (PC de música, GPU)
@@ -118,21 +119,45 @@ el **worker** completa `audio_path`, `segundos`, `inicio`, `fin` y `estado: "cor
 único que mide el audio); la **web** marca `elegida`/`elegida_por` y `confirmado_at` cuando la
 familia guarda. Un escritor por campo, como todo el repo.
 
-## Cómo se eligen (los prompts y las dos pasadas)
+## De dónde salen (decidido el 20/09, a pedido de Naza)
 
-Criterios, en orden (los usan las dos pasadas):
+**La fuente es el libro mismo**, no el material crudo de la entrevista:
+
+- las **citas que el escritor ya marcó** como `> cita` en cada capítulo (medido en el libro de
+  Joaquín: 38 citas en el cuerpo y **27 de ellas textuales** en la transcripción, o sea cortables
+  del audio);
+- la página **"Sus frases"** que la pasada de editor ya escribe (sus dichos, refranes y muletillas,
+  con la atribución al capítulo: en el libro de Joaquín, «Dejar el apellido en un lugar más alto»
+  — *de El Legado, vía su viejo*).
+
+**Una sola llamada que lee el libro entero** elige las 3 de cada capítulo. Por qué es mejor que
+elegir capítulo por capítulo: (a) cuesta ~USD 0,30 en vez de 1,85, (b) al ver todo el libro **no
+repite temas entre capítulos** sin una pasada extra, (c) se apoya en lo que el escritor ya
+consideró potente en vez de pedirle al modelo que busque de cero.
+
+**Regla dura: solo entran las citas textuales.** Si el modelo "prolijó" una cita (le cambió una
+palabra, la unió con otra, la atribuyó), esa frase **no se puede cortar** y no entra: se verifica
+contra la transcripción sin distinguir mayúsculas ni puntuación. Si a un capítulo no le alcanzan
+las citas textuales, se completa con el material de ese capítulo, con el mismo filtro.
+
+**Las muletillas van impresas y sin audio** («Viste.», «Pumba.»: medio segundo no es una cápsula
+para escuchar, pero impresas son oro).
+
+Criterios para elegir, en orden:
 
 1. La que se repetiría en una mesa, años después.
 2. Escrita **en su voz** (no información: "nació en 1943" no es una frase).
 3. Que **se entienda sola**, sin el resto de la historia.
 4. Que no hiera a alguien que está vivo (nombres, peleas, plata).
-5. Una por tema: no repetir.
-6. Nunca una respuesta con `reservada` (hallazgo 19).
+5. Una por tema.
+6. **Nunca una respuesta con `reservada`** (hallazgo 19).
 
-La primera pasada devuelve 5 candidatas por capítulo con el **tramo textual** de cada una
-(para poder alinearla con el audio). La segunda elige 3 y escribe `por_que` en una línea — ese
-texto es el que la familia ve en el panel al lado de cada frase, y es lo que hace confiable
-una selección automática.
+Cada elegida lleva su `por_que` en una línea: es lo que la familia ve en el panel al lado de cada
+frase, y es lo que hace confiable una selección automática.
+
+**Lo impreso y lo que se escucha son la misma lista** (decisión del 20/09): la página "Sus frases"
+del libro pasa a ser esta selección, con las muletillas en su lugar. Antes este spec tenía dos
+listas distintas — la del libro y la del audio—, que era un error.
 
 Los textos de los prompts al modelo los aprueba Naza antes de mergear (regla de la casa).
 
@@ -177,7 +202,7 @@ Los textos de los prompts al modelo los aprueba Naza antes de mergear (regla de 
 | | Audiolibro (lo que se descarta) | Su voz |
 |---|---|---|
 | GPU por cliente | ~1 h (70 min de audio) | segundos de cómputo (~13 min de audio a restaurar: 40 candidatas × 20 s) |
-| Modelo | conectores por capítulo | 2 pasadas por capítulo (~16 llamadas cortas) |
+| Modelo | conectores por capítulo | **1 llamada con el libro entero (~USD 0,30 por libro)** |
 | Dependencia | la PC para todo el libro | la PC unos minutos (corte + restauración) |
 
 Se mide el costo real de las dos pasadas con el set dorado antes de mergear (método de la casa).

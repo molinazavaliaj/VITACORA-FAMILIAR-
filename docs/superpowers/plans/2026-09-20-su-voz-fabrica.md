@@ -58,7 +58,12 @@ Cada una tiene su test en la tarea que le da el código (se indica en cada `Revi
 
 ---
 
-### Task 1: `frases.ts` — las dos pasadas y el armado de `frases.json`
+### Task 1: `frases.ts` — la selección lee el libro y arma `frases.json`
+
+> ⚠️ **Revisada el 20/09 (a pedido de Naza):** la fuente dejó de ser el material crudo por capítulo
+> y pasó a ser **el libro que la fábrica ya escribió** (sus citas `> cita` y la página "Sus frases"),
+> en **una sola llamada**. Mandan las interfaces y los pasos de la sección «Cambio del 20/09» al
+> final de este plan; lo de abajo queda como registro de la primera versión.
 
 **Files:**
 - Create: `fabrica/src/libro/frases.ts`
@@ -751,13 +756,18 @@ La familia decide que se imprime; el aviso no puede repetirse ni frenar nada,
 asi que va con candado como el cierre automatico."
 ```
 
-### Task 7: el paso de deduplicación entre capítulos (lo que evita el tema repetido)
+### Task 7: ~~el paso de deduplicación entre capítulos~~ — **ya no hace falta**
 
-**Por qué existe:** la Task 1 compara materiales *dentro* de un capítulo. Dos capítulos pueden
-elegir la misma anécdota (el campo, el hermano, la fábrica) y la familia la escucha dos veces —
-el Review Focus 1 del plan. Mandar el libro entero como contexto en cada capítulo lo evitaría,
-pero cuesta ~USD 1,5 por libro (medido: el material de Joaquín son 17,9 k tokens y el escritor
-manda el libro completo en cada capítulo): **cinco veces más** que lo que sale todo lo demás.
+Con el cambio del 20/09 (una sola llamada que lee el libro entero) el modelo **ve todo el libro de
+una**: el tema repetido entre capítulos se evita en la misma selección, sin llamada extra. Esta
+tarea queda tachada; si alguna vez se vuelve a elegir por capítulo, revive tal cual está escrita
+abajo (le costaba ~USD 0,05).
+
+> **Por qué existía:** la Task 1 comparaba materiales *dentro* de un capítulo. Dos capítulos podían
+> elegir la misma anécdota (el campo, el hermano, la fábrica) y la familia la escuchaba dos veces —
+> el Review Focus 1 del plan. Mandar el libro entero como contexto en cada capítulo lo evitaba, pero
+> costaba ~USD 1,5 por libro (medido: el material de Joaquín son 17,9 k tokens): cinco veces más que
+> todo lo demás. La alternativa era una sola llamada con las 24 elegidas (~USD 0,05).
 
 **Files:**
 - Modify: `fabrica/src/libro/frases.ts` (una función más) y su test
@@ -777,6 +787,62 @@ manda el libro completo en cada capítulo): **cinco veces más** que lo que sale
 - [ ] **Step 5: commit** — `fabrica: las frases no se repiten entre capitulos (una llamada barata)`
 
 **Costo:** ~USD 0,05 por libro (1 k de entrada, 200 de salida). Total del archivo: **~USD 0,40**.
+
+## Cambio del 20/09 (manda sobre la Task 1 y borra la Task 7)
+
+**Decisión (Naza, 20/09):** las frases se eligen **del libro que la fábrica ya escribió**, no del
+material crudo de la entrevista. Fundamento medido en el libro de Joaquín: 38 citas `> cita` en el
+cuerpo, **27 textuales** en la transcripción (cortables del audio); y la página "Sus frases" que el
+editor ya escribe, con su atribución. Una sola llamada que lee el libro entero cuesta ~USD 0,30 (vs
+USD 1,85 midiendo el diseño viejo con 16 llamadas), evita el tema repetido sin pasada extra y
+aprovecha lo que el escritor ya consideró potente. Y **lo impreso es lo que se escucha**: la página
+"Sus frases" del libro pasa a ser esta lista.
+
+**Interfaces nuevas de `fabrica/src/libro/frases.ts`** (reemplazan a `proponerCandidatas` y
+`elegirFinales`; `armarFrasesJson` y los tipos `FraseCandidata`/`CapituloConFrases`/`FrasesJson` se
+mantienen como están):
+
+```ts
+/** Los `> cita` del libro, con el capítulo al que pertenecen. Puro. */
+export function citasDelLibro(libroMarkdown: string): { capitulo: string; texto: string }[];
+
+/** Para comparar contra la transcripción: minúsculas, sin puntuación ni espacios de más. */
+export function normalizar(texto: string): string;
+
+/** Una cita entra solo si está TAL CUAL en alguna transcripción (aunque cambien mayúsculas o
+ *  puntuación). Si el modelo la pulió, no hay audio que cortar. */
+export function esTextual(cita: string, transcripciones: string[]): boolean;
+
+/** La selección: una sola llamada con el libro entero. Elige 3 por capítulo entre las candidatas
+ *  textuales + el material del capítulo para completar, y devuelve el FrasesJson. */
+export async function elegirFrases(
+  cliente: Anthropic,
+  args: {
+    libroMarkdown: string;
+    capitulos: { numero: number; nombre: string; material: MaterialDeFrase[] }[];
+  }
+): Promise<FrasesJson>;
+```
+
+**Steps (test primero, como todo el plan):**
+
+- [ ] **Step 1:** test de las tres funciones puras: `citasDelLibro` saca las citas de cada capítulo
+  (con un markdown de dos capítulos y una cita en cada uno), `normalizar` borra mayúsculas y
+  puntuación, y `esTextual` **acepta** "El mejor ring que tuve en mi vida fue esa casa." contra una
+  transcripción en minúscula y **rechaza** una cita inventada.
+- [ ] **Step 2:** `cd fabrica && npx vitest run test/frases.test.ts` → FAIL (no existen).
+- [ ] **Step 3:** implementar las tres puras.
+- [ ] **Step 4:** test de `elegirFrases` con cliente falso: el prompt incluye las citas del libro y
+  la respuesta elige 3 por capítulo; una cita no textual del modelo se descarta.
+- [ ] **Step 5:** implementar la llamada única (`max_tokens: 8000`, `parsearJsonTolerante`, reintento
+  con la orden pelada y respaldo vacío — como ya está en `frases.ts`).
+- [ ] **Step 6:** `npx vitest run && npx tsc --noEmit -p .` → verde y limpio.
+- [ ] **Step 7:** commit: `fabrica: las frases se eligen del libro, no del material crudo`.
+- [ ] **Step 8:** correr `scripts/prueba-frases.ts` contra el libro de Joaquín y comparar las 24
+  nuevas con las del 20/09 (las que Naza ya leyó) antes de dar la selección por buena.
+
+**Lo que ya está hecho y se reusa:** `parsearJsonTolerante` exportada, el reintento con respaldo, la
+medición del pensamiento (decisión: **no** abaratar con `effort` bajo) y el script de medición.
 
 ---
 
