@@ -558,8 +558,18 @@ narrador de `GASTOS.md` — se corrige cuando haya una factura de OpenAI que lo 
 **Cómo se verificó:** typecheck y suites en verde en los tres paquetes de esta parte (entrevistador 279,
 fábrica 359, voz 151; cada uno con sus tests nuevos, vistos fallar primero). La migración, **leída de
 vuelta** por PostgREST: antes de aplicarla `404 · PGRST205` en las tres tablas y `200` en `narradores`
-como control de que la consulta era válida. La prueba de punta a punta —una llamada real que deja su fila—
-queda **pendiente de que la migración esté aplicada**.
+como control de que la consulta era válida. **Punta a punta hecha** (21/09, con la migración ya aplicada por
+Naza): una llamada real por tokens y otra por unidades dejaron su fila, leídas de vuelta de la base —
+`intencion` · Opus 5 · 137 in / 45 out · USD 0,00181 y `voz_pregunta` · 23 caracteres · USD 0,000575.
+La migración se aplicó y se verificó con `200` en las tres tablas (antes `404 · PGRST205`), y el insert de
+prueba en `gastos_manuales` entró (`201`) y se borró (`204`).
+
+**Hallazgo del cierre:** los scripts `prueba-*.ts` **no alimentan el panel**. Se arman su propio cliente de
+Anthropic para comparar modelos (`scripts/prueba-evaluacion.ts:42`), así que no pasan por las funciones de
+producción y su gasto no se anota: correr `prueba-evaluacion` gasta USD 0,065 y no deja una sola fila. Para
+verificar de verdad hace falta un vehículo que llame a las funciones reales:
+`npm run prueba-consumo` (nuevo, centavos, se lee a sí mismo). Si algún día se quiere que el panel cuente
+también las mediciones, hay que pasarlas por las funciones de producción o anotarlas a mano.
 
 **Dos cosas para saber de acá en adelante:**
 
