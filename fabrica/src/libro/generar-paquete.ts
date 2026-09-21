@@ -9,10 +9,10 @@ import { generarAudiolibro } from '../audio/audiolibro.js';
 import { generarEstructura, type Estructura } from './estructura.js';
 import { leerEdicion, aplicarOrdenCapitulos, aplicarTitulosCapitulos } from './edicion.js';
 import { cargarFotos } from './fotos.js';
-import { productosDelPedido } from './productos.js';
 import { armarNarracionJson, type ConectoresNarracion } from '../voz/narracion-json.js';
 import { escribirConectores, historiasDelCapitulo } from '../voz/conectores.js';
-import { crearNarracion, RUTA_NARRACION_JSON } from '../voz/narraciones.js';
+import { elegirFrases } from './frases.js';
+import { publicarFrases } from './publicar-frases.js';
 import {
   armarMaterial,
   borrarArchivos,
@@ -24,6 +24,7 @@ import {
   RUTA_BORRADOR_LIBRO,
   RUTA_CONECTORES_CAP,
   subirTexto,
+  textoRespuesta,
   type Nombres,
 } from './comun.js';
 
@@ -58,7 +59,8 @@ async function editarLibro(cliente: Anthropic, borrador: string, narradorId?: st
 /**
  * El paquete completo que se entrega tras el pago: el libro (un capítulo por
  * vez con su voz, después una pasada de editor con el libro entero) en PDF
- * y en HTML, y el audiolibro (intro TTS + sus audios por capítulo). Corre
+ * y en HTML, y «Su voz»: las mejores frases del narrador en su voz real, con
+ * su audio para escuchar por QR (spec 2026-09-20). Corre
  * recién cuando la dueña cerró el libro (`narradores.libro_aprobado_at`,
  * lo gatea el worker), así que la edición que se aplica acá (orden y
  * títulos de capítulos, título, subtítulo, foto de tapa) ya está
@@ -67,10 +69,9 @@ async function editarLibro(cliente: Anthropic, borrador: string, narradorId?: st
  * solo; alguien tiene que poner el estado de vuelta en `pagado` para que el
  * próximo tick lo tome de nuevo.
  *
- * Si el pedido compró el audiolibro con voz clonada (`extras.audiolibro`,
- * ver productos.ts), el audiolibro no se arma acá: el pedido queda en el
- * buzón `narraciones` con su `narracion.json` y pasa a `esperando_voz`
- * hasta que el worker de la PC de Naza narre los capítulos.
+ * «Su voz» no espera a nadie: la fábrica deja `frases.json` y el pedido de corte, y el libro se
+ * entrega igual. El worker de la PC de música corta los audios reales (no narra nada) y completa el
+ * mismo archivo; mientras falte alguno, el panel dice que se está preparando.
  */
 export async function generarPaquete(pedido: { id: string; narrador_id: string; extras: unknown }): Promise<void> {
   const db = obtenerClienteDb();
@@ -229,45 +230,33 @@ export async function generarPaquete(pedido: { id: string; narrador_id: string; 
     await subirHtml(db, narradorId, html);
     await generarPdf(db, narradorId, html);
 
-    // 2. Voz clonada: el audiolibro lo narra el worker de la PC de Naza, no
-    // esta fábrica. Se le deja narracion.json (v2, híbrido: por capítulo,
-    // las historias con audio real en el orden del libro y los conectores
-    // que narra la voz clonada; el texto plano de borrador_cap_NN.md queda
-    // para el capítulo sin audio, que se narra entero) y la fila en el
-    // buzón `narraciones`; el pedido queda `esperando_voz` con el PDF
-    // cargado y sin `audiolibro_paths` (eso llega cuando la fábrica
-    // ensambla la voz). El título es el de tapa si la dueña puso uno; si
-    // no, el de la estructura.
-    if (productosDelPedido(pedido.extras).audiolibro === 'clonada') {
-      const capitulosNarracion = await armarCapitulosParaNarrar(db, narrador, narradorId, {
-        capitulos: estructuraFinal.capitulos,
-        capitulosTexto,
-        preguntasPorOrden,
-        respuestasPorOrden,
-      });
-      const narracion = armarNarracionJson({
-        narradorId,
-        pedidoId: pedido.id,
-        titulo: edicion.titulo ?? estructuraFinal.titulo,
-        capitulos: capitulosNarracion,
-      });
-      await subirTexto(db, RUTA_NARRACION_JSON(narradorId), JSON.stringify(narracion, null, 2), 'application/json');
-      await crearNarracion(db, { narradorId, pedidoId: pedido.id });
-
-      const { error: errorEsperando } = await db
-        .from('pedidos')
-        .update({ estado: 'esperando_voz', libro_pdf_path: RUTA_LIBRO_PDF(narradorId) })
-        .eq('id', pedido.id);
-      if (errorEsperando) throw new Error(`No se pudo actualizar el pedido ${pedido.id}: ${errorEsperando.message}`);
-
-      // Los borradores NO se borran acá: todavía no se entregó nada. Si la
-      // narración queda `fallida` para siempre (sin consentimiento, pocos
-      // minutos de voz), el arreglo a mano es volver el pedido a `pagado`
-      // con `extras.audiolibro = "real"` — y ese reintento tiene que reusar
-      // los borradores, no pagarle al modelo de nuevo. Los borra
-      // `ensamblarNarracionesListas` (worker.ts) recién al entregar.
-      return;
-    }
+    // 2. Su voz: las mejores frases del narrador, en su voz real (spec 2026-09-20). La fábrica las
+    // elige leyendo el libro que acaba de escribir —la página «Sus frases» y las citas de cada
+    // capítulo, solo las que él dijo tal cual— y deja `frases.json` + el pedido de corte en el
+    // paquete. El audio lo corta el worker de la PC de música sobre los audios reales, sin narrar
+    // nada. El libro NO espera: sigue de largo y se entrega en el paso 4, con o sin las frases
+    // cortadas (si el modelo se cae quedan las alternativas y el pedido igual: nadie se queda sin
+    // libro, y el panel dice "Su voz se está preparando" hasta que estén todos los audios).
+    const frases = await elegirFrases(new Anthropic({ apiKey: cargarConfig().anthropicApiKey }), {
+      narradorId,
+      pedidoId: pedido.id,
+      nombre: narrador.nombre,
+      libroMarkdown,
+      capitulos: estructuraFinal.capitulos.map((capitulo, i) => ({
+        nombre: capitulo.nombre,
+        numero: i + 1,
+        material: capitulo.ordenes.flatMap((orden) =>
+          (respuestasPorOrden.get(orden) ?? []).map((r) => ({
+            orden,
+            respuestaId: r.id,
+            audioPath: r.audio_path,
+            texto: textoRespuesta(r) ?? '',
+            reserva: { reservada: r.reservada, reservado_tramo: r.reservado_tramo },
+          }))
+        ),
+      })),
+    });
+    await publicarFrases(db, frases);
 
     // 3. Audiolibro: un mp3 por capítulo (en el orden final) + completo.
     const { data: archivosNarrador, error: errorArchivos } = await db.storage.from('audios').list(narradorId);
@@ -306,8 +295,12 @@ export async function generarPaquete(pedido: { id: string; narrador_id: string; 
  * (`conectores_cap_NN.json`, numerado por el orden final): un reintento los
  * reusa sin llamar al modelo, y se borran con los borradores al entregar.
  * Un capítulo sin audio no lleva conectores: se narra entero, clonado.
+ *
+ * Queda sin uso desde el pivote a «Su voz» (spec 2026-09-20): no se borra porque hay narraciones
+ * encoladas y el worker todavía lee narracion.json; si en unas semanas no lo usa nadie, se va junto
+ * con `voz/narraciones.ts`.
  */
-async function armarCapitulosParaNarrar(
+export async function armarCapitulosParaNarrar(
   db: ReturnType<typeof obtenerClienteDb>,
   narrador: Narrador,
   narradorId: string,

@@ -208,7 +208,20 @@ async function llamar(cliente: Anthropic, contenido: string): Promise<unknown> {
     // Un modelo que contesta en prosa (o que se quedó sin presupuesto) no puede tumbar la entrega
     // (misma regla que en el entrevistador, bitácora 14): una vez más con la orden pelada, y si
     // vuelve a fallar el libro sale sin frases en vez de romperse.
-    const segunda = await pedir('\n\nSOLO el JSON, sin explicar nada: empezá con { y terminá con }.');
+    //
+    // El reintento lleva su PROPIA red: si el modelo no contesta (red, 500, límite) tampoco puede
+    // subir y romper la entrega. Sin esto, un segundo fallo se llevaba puesto el libro entero — lo
+    // cazó el test «si el modelo se cae, el libro se entrega igual».
+    let segunda: { texto: string; stop: string | null };
+    try {
+      segunda = await pedir('\n\nSOLO el JSON, sin explicar nada: empezá con { y terminá con }.');
+    } catch (errRed) {
+      console.warn(
+        `Frases: el modelo no contestó (${(errPrimera as Error).message} / ${(errRed as Error).message}). ` +
+          'El libro sale sin frases.'
+      );
+      return {};
+    }
     try {
       return parsearJsonTolerante(segunda.texto);
     } catch (errSegunda) {
@@ -298,6 +311,17 @@ export async function elegirFrases(
     return null;
   };
 
+  // Las frases de la página no dicen en qué capítulo viven: se lo damos por la respuesta de la que
+  // salieron, así cada una se imprime en un solo capítulo (y no queda repetida en las alternativas
+  // de todos) y su id alcanza para nombrar el audio.
+  const numeroDeOrden = new Map<number, number>();
+  for (const capitulo of args.capitulos) for (const m of capitulo.material) numeroDeOrden.set(m.orden, capitulo.numero);
+  for (const candidata of candidatas) {
+    if (candidata.numeroCapitulo !== 0) continue;
+    const orden = buscarOrigen(candidata.texto)?.orden;
+    candidata.numeroCapitulo = (orden !== undefined ? numeroDeOrden.get(orden) : undefined) ?? 0;
+  }
+
   // El capítulo de cada candidata: el que dijo el modelo si es válido, si no el de origen.
   const porCapitulo = new Map<number, FraseCandidata[]>();
   for (const elegida of crudo.elegidas ?? []) {
@@ -335,7 +359,7 @@ export async function elegirFrases(
     const usadas = new Set(elegidas.map((e) => normalizar(e.texto)));
     const alternativas = candidatas
       .filter((c) => normalizar(c.texto) !== '' && !usadas.has(normalizar(c.texto)))
-      .filter((c) => c.numeroCapitulo === capitulo.numero || c.origen === 'sus-frases')
+      .filter((c) => c.numeroCapitulo === capitulo.numero)
       .slice(0, FRASES_POR_CAPITULO * 2)
       .map((c) => {
         const origen = buscarOrigen(c.texto);

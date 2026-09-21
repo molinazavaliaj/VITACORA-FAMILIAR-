@@ -183,6 +183,43 @@ describe('elegirFrases', () => {
     expect(elegida?.pregunta_orden).toBe(2);
   });
 
+  it('una frase de la página no se repite en dos capítulos: se le asigna el de su respuesta', async () => {
+    const libro = `# La infancia
+
+> En Rosario.
+
+# El amor
+
+> La conocí bailando.
+
+# Sus frases
+
+### Las suyas
+
+«La conocí bailando.»
+`;
+    const capitulos = [
+      { numero: 1, nombre: 'La infancia', material: [material(1, 'En Rosario.')] },
+      { numero: 2, nombre: 'El amor', material: [material(2, 'La conocí bailando.')] },
+    ];
+    const clienteFalso = {
+      messages: {
+        create: async () => ({ content: [{ type: 'text', text: '{"elegidas":[]}' }], stop_reason: 'end_turn' }),
+      },
+    } as unknown as Parameters<typeof elegirFrases>[0];
+
+    const frases = await elegirFrases(clienteFalso, {
+      narradorId: 'n1',
+      pedidoId: 'p1',
+      nombre: 'Joaquín',
+      libroMarkdown: libro,
+      capitulos,
+    });
+
+    const conLaFrase = frases.capitulos.filter((c) => c.candidatas.some((f) => f.texto === 'La conocí bailando.'));
+    expect(conLaFrase.map((c) => c.numero)).toEqual([2]);
+  });
+
   it('no deja más de tres elegidas por capítulo aunque el modelo se entusiasme', async () => {
     const muchos = new Array(6).fill(0).map((_, i) => `[cita-${i + 1}] «y ahí estaba el mejor ring que tuve en mi vida fue esa casa»`);
     const clienteFalso = {

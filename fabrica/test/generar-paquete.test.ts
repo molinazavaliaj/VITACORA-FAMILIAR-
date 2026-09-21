@@ -39,15 +39,18 @@ vi.mock('playwright', () => ({
   chromium: { launch: launchMock },
 }));
 
-const { finalMessageMock, streamMock } = vi.hoisted(() => {
+const { finalMessageMock, streamMock, createMock } = vi.hoisted(() => {
   const finalMessageMock = vi.fn();
   const streamMock = vi.fn(() => ({ finalMessage: finalMessageMock }));
-  return { finalMessageMock, streamMock };
+  // «Su voz» le pide al modelo por `messages.create` (no por stream). Por defecto no elige ninguna
+  // frase: los tests que no hablan de frases no dependen de una respuesta del modelo.
+  const createMock = vi.fn().mockResolvedValue({ content: [{ type: 'text', text: '{"elegidas":[]}' }], stop_reason: 'end_turn' });
+  return { finalMessageMock, streamMock, createMock };
 });
 vi.mock('@anthropic-ai/sdk', () => {
   return {
     default: vi.fn().mockImplementation(function () {
-      return { messages: { stream: streamMock } };
+      return { messages: { stream: streamMock, create: createMock } };
     }),
   };
 });
@@ -71,6 +74,34 @@ function blobFake(contenido: string) {
     arrayBuffer: async () => new Uint8Array(Buffer.from(contenido)).buffer,
   };
 }
+
+// El libro ya editado, con la página «Sus frases» y una cita textual en cada capítulo: es lo que la
+// selección de «Su voz» lee (las citas son las transcripciones r1 y r2 del arnés).
+const libroConFrases = () => ({
+  data: blobFake(
+    [
+      '# La infancia',
+      '',
+      'Nací en Rosario.',
+      '',
+      '> En Rosario.',
+      '',
+      '# Los hijos',
+      '',
+      'Esa noche la conocí.',
+      '',
+      '> La conocí bailando.',
+      '',
+      '# Sus frases',
+      '',
+      '### Las suyas',
+      '',
+      '«La conocí bailando.»',
+      '',
+    ].join('\n')
+  ),
+  error: null,
+});
 
 function construirBuilder(resultado: unknown) {
   const builder: Record<string, unknown> = {
@@ -704,23 +735,20 @@ describe('generarPaquete', () => {
     expect(estructuraAlAudiolibro.capitulos.map((c: { nombre: string }) => c.nombre)).toEqual(['La infancia', 'Los hermanos']);
   });
 
-  it('audiolibro "clonada": narracion.json lleva el título de capítulo elegido en la edición', async () => {
+  it('«Su voz»: el pedido se entrega con sus frases y ya no pasa por el buzón de narraciones', async () => {
     const db = construirDbN1({
-      narrador: { data: narradorN1({ edicion: { titulosCapitulos: { 'Los hijos': 'Los hermanos' } } }), error: null },
-      descargas: descargasHijos(),
-      narraciones: [
-        { data: [], error: null },
-        { data: { id: 'narr-1' }, error: null },
-      ],
+      descargas: { ...descargasN1(), 'n1/paquete/borrador_libro.md': libroConFrases() },
     });
 
-    await generarPaquete({ id: 'p1', narrador_id: 'n1', extras: { pdf: true, audiolibro: 'clonada', impreso: null, copias: 0, marcos: 0 } });
+    await generarPaquete({ id: 'p1', narrador_id: 'n1', extras: extrasClonada });
 
-    const llamadaJson = db.upload.mock.calls.find((c) => c[0] === 'n1/paquete/narracion.json')!;
-    expect(JSON.parse(llamadaJson[1] as string).capitulos.map((c: { nombre: string }) => c.nombre)).toEqual([
-      'La infancia',
-      'Los hermanos',
-    ]);
+    const rutas = db.upload.mock.calls.map((c) => c[0] as string);
+    expect(rutas).toContain('n1/paquete/frases.json');
+    expect(rutas).toContain('n1/paquete/frases_pedido.txt');
+    expect(rutas).not.toContain('n1/paquete/narracion.json');
+    expect(db.from).not.toHaveBeenCalledWith('narraciones');
+    expect(db.pedidosUpdate).toHaveBeenCalledWith(expect.objectContaining({ estado: 'entregado' }), 'p1');
+    expect(db.pedidosUpdate).not.toHaveBeenCalledWith(expect.objectContaining({ estado: 'esperando_voz' }), expect.anything());
   });
 
   it('sube libro.html además de libro.pdf', async () => {
@@ -799,200 +827,54 @@ describe('generarPaquete', () => {
 
   const extrasClonada = { pdf: true, audiolibro: 'clonada', impreso: null, copias: 0, marcos: 0 };
 
-  it('audiolibro "clonada": sube narracion.json, crea la narración pendiente, deja el pedido esperando_voz y NO arma el audiolibro', async () => {
-    const db = construirDbN1({
-      narrador: { data: narradorN1({ edicion: { titulo: 'Mi abuela Rosa', ordenCapitulos: ['El amor'] } }), error: null },
-      narraciones: [
-        { data: [], error: null }, // ninguna viva para ese pedido
-        { data: { id: 'narr-1' }, error: null }, // el insert
-      ],
-    });
-    escribirCapituloMock
-      .mockResolvedValueOnce('# El amor\n\nLa conocí **bailando**.\n\n> Fue el día más feliz.')
-      .mockResolvedValueOnce('Nací en Rosario.');
+  it('«Su voz»: sin frases aprovechables deja el archivo, y no le pide nada a la PC ni al modelo', async () => {
+    const db = construirDbN1();
 
-    await generarPaquete({ id: 'p1', narrador_id: 'n1', extras: extrasClonada });
+    await generarPaquete({ id: 'p1', narrador_id: 'n1' });
 
-    // El libro se produjo igual (HTML + PDF)...
     const rutas = db.upload.mock.calls.map((c) => c[0] as string);
-    expect(rutas).toContain('n1/paquete/libro.html');
+    expect(rutas).toContain('n1/paquete/frases.json');
+    expect(rutas).not.toContain('n1/paquete/frases_pedido.txt');
+    expect(createMock).not.toHaveBeenCalled();
+    expect(db.pedidosUpdate).toHaveBeenCalledWith(expect.objectContaining({ estado: 'entregado' }), 'p1');
+  });
+
+  it('«Su voz»: lo que elige el modelo llega al archivo con su por qué y su respuesta de origen', async () => {
+    createMock.mockResolvedValueOnce({
+      content: [{ type: 'text', text: JSON.stringify({ elegidas: [{ id: 'cita-1', capitulo: 1, por_que: 'su casa' }] }) }],
+      stop_reason: 'end_turn',
+    });
+    const db = construirDbN1({
+      descargas: { ...descargasN1(), 'n1/paquete/borrador_libro.md': libroConFrases() },
+    });
+
+    await generarPaquete({ id: 'p1', narrador_id: 'n1' });
+
+    const json = JSON.parse(db.upload.mock.calls.find((c) => c[0] === 'n1/paquete/frases.json')![1] as string);
+    const candidatas = json.capitulos.flatMap((c: { candidatas: Record<string, unknown>[] }) => c.candidatas);
+    const elegida = candidatas.find((f: { elegida: boolean }) => f.elegida)!;
+    expect(elegida.texto).toBe('En Rosario.');
+    expect(elegida.por_que).toBe('su casa');
+    expect(elegida.respuesta_id).toBe('r1');
+    expect(elegida.elegida_por).toBe('modelo');
+    // Y la otra queda como alternativa para que la familia pueda cambiarla.
+    expect(candidatas.filter((f: { elegida: boolean }) => !f.elegida).length).toBeGreaterThan(0);
+  });
+
+  it('«Su voz»: si el modelo se cae, el libro se entrega igual con las frases pendientes', async () => {
+    createMock.mockRejectedValueOnce(new Error('se cayó')).mockRejectedValueOnce(new Error('se cayó de nuevo'));
+    const db = construirDbN1({
+      descargas: { ...descargasN1(), 'n1/paquete/borrador_libro.md': libroConFrases() },
+    });
+
+    await expect(generarPaquete({ id: 'p1', narrador_id: 'n1' })).resolves.toBeUndefined();
+
+    const rutas = db.upload.mock.calls.map((c) => c[0] as string);
     expect(rutas).toContain('n1/paquete/libro.pdf');
-
-    // ...y narracion.json (v2) quedó en paquete/ con los capítulos en el
-    // orden FINAL (la edición aplicada), numerados y en texto plano. Las dos
-    // respuestas tienen audio, así que los dos capítulos son híbridos: la
-    // historia con su audio real y los conectores que narra la voz clonada.
-    const llamadaJson = db.upload.mock.calls.find((c) => c[0] === 'n1/paquete/narracion.json');
-    expect(llamadaJson).toBeDefined();
-    expect(llamadaJson![2]).toEqual({ contentType: 'application/json', upsert: true });
-    const conectores = { entrada: 'Empiezo por acá.', entre: [], salida: 'Eso fue.' };
-    expect(JSON.parse(llamadaJson![1] as string)).toEqual({
-      version: 2,
-      narrador_id: 'n1',
-      pedido_id: 'p1',
-      titulo: 'Mi abuela Rosa',
-      capitulos: [
-        {
-          numero: 1,
-          nombre: 'El amor',
-          texto: 'La conocí bailando.\n\nFue el día más feliz.',
-          modo: 'hibrido',
-          historias: [
-            { respuesta_id: 'r2', pregunta_orden: 2, es_repregunta: false, audio_path: 'n1/dia_02.ogg', segundos: 95, pregunta: '¿Cómo conociste a tu pareja?', texto: 'La conocí bailando.' },
-          ],
-          conectores,
-        },
-        {
-          numero: 2,
-          nombre: 'La infancia',
-          texto: 'Nací en Rosario.',
-          modo: 'hibrido',
-          historias: [
-            { respuesta_id: 'r1', pregunta_orden: 1, es_repregunta: false, audio_path: 'n1/dia_01.ogg', segundos: 120, pregunta: '¿Dónde naciste?', texto: 'En Rosario.' },
-          ],
-          conectores,
-        },
-      ],
-    });
-    // Los conectores se cachean por capítulo (numerados en el orden FINAL),
-    // como los borradores: un reintento no le vuelve a pagar al modelo.
-    expect(db.upload).toHaveBeenCalledWith(
-      'n1/paquete/conectores_cap_01.json',
-      JSON.stringify(conectores, null, 2),
-      { contentType: 'application/json', upsert: true }
-    );
-    expect(db.upload).toHaveBeenCalledWith(
-      'n1/paquete/conectores_cap_02.json',
-      JSON.stringify(conectores, null, 2),
-      { contentType: 'application/json', upsert: true }
-    );
-    // El PDF ya estaba subido cuando se escribió narracion.json.
-    const indicePdf = db.upload.mock.calls.findIndex((c) => c[0] === 'n1/paquete/libro.pdf');
-    const indiceJson = db.upload.mock.calls.findIndex((c) => c[0] === 'n1/paquete/narracion.json');
-    expect(indiceJson).toBeGreaterThan(indicePdf);
-
-    // La fila del buzón: solo lo que escribe la fábrica.
-    expect(db.narracionesInsert).toHaveBeenCalledTimes(1);
-    expect(db.narracionesInsert).toHaveBeenCalledWith({ narrador_id: 'n1', pedido_id: 'p1', estado: 'pendiente' });
-
-    // El pedido espera a la PC: con el PDF cargado y SIN audiolibro_paths
-    // (eso lo pone la fábrica recién cuando ensambla la voz).
-    expect(db.pedidosUpdate).toHaveBeenCalledTimes(1);
-    expect(db.pedidosUpdate).toHaveBeenCalledWith(
-      { estado: 'esperando_voz', libro_pdf_path: 'n1/paquete/libro.pdf' },
-      'p1'
-    );
-    expect(generarAudiolibroMock).not.toHaveBeenCalled();
-    expect(db.list).not.toHaveBeenCalled();
-
-    // Los borradores NO se borran acá: todavía no se entregó nada. Si la
-    // narración falla para siempre, el arreglo a mano es volver el pedido a
-    // `pagado` con `audiolibro: "real"` — y ese reintento tiene que reusar
-    // los borradores, no pagarle al modelo de nuevo. Los borra la fábrica
-    // al ensamblar y entregar (worker.ts).
-    expect(db.remove).not.toHaveBeenCalled();
-  });
-
-  it('audiolibro "clonada" híbrido: el capítulo con audio lleva sus historias (respuesta antes que repregunta) y los conectores del modelo; el capítulo sin audio sale clonado', async () => {
-    const db = construirDbN1({
-      respuestas: {
-        data: [
-          // La infancia: respuesta + repregunta, las dos con audio (la repregunta viene antes en la lista, pero va después).
-          { id: 'r1b', pregunta_orden: 1, transcripcion: 'Y mi vieja cosía para afuera.', texto_directo: null, es_repregunta: true, audio_path: 'n1/dia_01_2.ogg', duracion_segundos: 40, recibido_at: '2026-09-01T11:00:00Z' },
-          { id: 'r1', pregunta_orden: 1, transcripcion: 'En Rosario.', texto_directo: null, es_repregunta: false, audio_path: 'n1/dia_01.ogg', duracion_segundos: 120, recibido_at: '2026-09-01T10:00:00Z' },
-          // El amor: respondió escribiendo, sin audio → no hay historia que pegar.
-          { id: 'r2', pregunta_orden: 2, transcripcion: null, texto_directo: 'La conocí bailando.', es_repregunta: false, audio_path: null, duracion_segundos: null, recibido_at: '2026-09-02T10:00:00Z' },
-        ],
-        error: null,
-      },
-      narraciones: [{ data: [], error: null }, { data: { id: 'narr-1' }, error: null }],
-    });
-    escribirCapituloMock.mockResolvedValueOnce('Nací en Rosario.').mockResolvedValueOnce('La conocí bailando.');
-    const conectores = { entrada: 'Arranco por el principio.', entre: ['Y en esa casa estaba mi vieja.'], salida: 'Eso fue Rosario.' };
-    escribirConectoresMock.mockResolvedValue(conectores);
-
-    await generarPaquete({ id: 'p1', narrador_id: 'n1', extras: extrasClonada });
-
-    // Una sola llamada al modelo: solo el capítulo con historias lleva conectores.
-    expect(escribirConectoresMock).toHaveBeenCalledTimes(1);
-    const [, argsConectores] = escribirConectoresMock.mock.calls[0];
-    expect(argsConectores).toEqual({
-      nombre: 'Rosa',
-      capitulo: 'La infancia',
-      textoCapitulo: 'Nací en Rosario.',
-      historias: [
-        { pregunta: '¿Dónde naciste?', texto: 'En Rosario.' },
-        { pregunta: '¿Dónde naciste?', texto: 'Y mi vieja cosía para afuera.' },
-      ],
-    });
-
-    const llamadaJson = db.upload.mock.calls.find((c) => c[0] === 'n1/paquete/narracion.json')!;
-    const narracion = JSON.parse(llamadaJson[1] as string);
-    expect(narracion.version).toBe(2);
-    expect(narracion.capitulos).toEqual([
-      {
-        numero: 1,
-        nombre: 'La infancia',
-        texto: 'Nací en Rosario.',
-        modo: 'hibrido',
-        historias: [
-          { respuesta_id: 'r1', pregunta_orden: 1, es_repregunta: false, audio_path: 'n1/dia_01.ogg', segundos: 120, pregunta: '¿Dónde naciste?', texto: 'En Rosario.' },
-          { respuesta_id: 'r1b', pregunta_orden: 1, es_repregunta: true, audio_path: 'n1/dia_01_2.ogg', segundos: 40, pregunta: '¿Dónde naciste?', texto: 'Y mi vieja cosía para afuera.' },
-        ],
-        conectores,
-      },
-      { numero: 2, nombre: 'El amor', texto: 'La conocí bailando.', modo: 'clonado' },
-    ]);
-
-    // Se cachearon solo los conectores del capítulo híbrido...
-    const rutas = db.upload.mock.calls.map((c) => c[0] as string);
-    expect(rutas).toContain('n1/paquete/conectores_cap_01.json');
-    expect(rutas).not.toContain('n1/paquete/conectores_cap_02.json');
-    // ...y ANTES de narracion.json (checkpoint: si algo falla después, ya están pagos).
-    expect(rutas.indexOf('n1/paquete/conectores_cap_01.json')).toBeLessThan(rutas.indexOf('n1/paquete/narracion.json'));
-  });
-
-  it('audiolibro "clonada": un reintento con conectores_cap_NN.json cacheados no le vuelve a pagar al modelo', async () => {
-    const cacheados = {
-      1: { entrada: 'Cacheado uno.', entre: [], salida: 'Fin uno.' },
-      2: { entrada: 'Cacheado dos.', entre: [], salida: 'Fin dos.' },
-    };
-    const db = construirDbN1({
-      descargas: {
-        ...descargasN1(),
-        'n1/paquete/conectores_cap_01.json': { data: blobFake(JSON.stringify(cacheados[1])), error: null },
-        'n1/paquete/conectores_cap_02.json': { data: blobFake(JSON.stringify(cacheados[2])), error: null },
-      },
-      narraciones: [{ data: [], error: null }, { data: { id: 'narr-1' }, error: null }],
-    });
-
-    await generarPaquete({ id: 'p1', narrador_id: 'n1', extras: extrasClonada });
-
-    expect(escribirConectoresMock).not.toHaveBeenCalled();
-    const llamadaJson = db.upload.mock.calls.find((c) => c[0] === 'n1/paquete/narracion.json')!;
-    const narracion = JSON.parse(llamadaJson[1] as string);
-    expect(narracion.capitulos.map((c: { conectores: unknown }) => c.conectores)).toEqual([cacheados[1], cacheados[2]]);
-    expect(db.upload.mock.calls.map((c) => c[0])).not.toContain('n1/paquete/conectores_cap_01.json');
-    expect(db.pedidosUpdate).toHaveBeenCalledWith({ estado: 'esperando_voz', libro_pdf_path: 'n1/paquete/libro.pdf' }, 'p1');
-  });
-
-  it('audiolibro "clonada" sin título de tapa: narracion.json lleva el título de la estructura', async () => {
-    const db = construirDbN1({ narraciones: [{ data: [], error: null }, { data: { id: 'narr-1' }, error: null }] });
-
-    await generarPaquete({ id: 'p1', narrador_id: 'n1', extras: extrasClonada });
-
-    const llamadaJson = db.upload.mock.calls.find((c) => c[0] === 'n1/paquete/narracion.json')!;
-    expect(JSON.parse(llamadaJson[1] as string).titulo).toBe('Rosa — La historia de una vida');
-  });
-
-  it('audiolibro "clonada": si el buzón falla, el pedido cae a "fallido" y no queda esperando_voz', async () => {
-    const db = construirDbN1({ narraciones: [{ data: null, error: { message: 'se cayó' } }] });
-
-    await expect(generarPaquete({ id: 'p1', narrador_id: 'n1', extras: extrasClonada })).resolves.toBeUndefined();
-
-    expect(db.pedidosUpdate).toHaveBeenCalledWith({ estado: 'fallido' }, 'p1');
-    expect(db.pedidosUpdate).not.toHaveBeenCalledWith(expect.objectContaining({ estado: 'esperando_voz' }), expect.anything());
-    expect(generarAudiolibroMock).not.toHaveBeenCalled();
+    expect(rutas).toContain('n1/paquete/frases.json');
+    expect(rutas).toContain('n1/paquete/frases_pedido.txt');
+    expect(db.pedidosUpdate).toHaveBeenCalledWith(expect.objectContaining({ estado: 'entregado' }), 'p1');
+    expect(db.pedidosUpdate).not.toHaveBeenCalledWith({ estado: 'fallido' }, 'p1');
   });
 
   it('audiolibro "real" (extras nuevo): exactamente el flujo de siempre, sin tocar el buzón', async () => {
