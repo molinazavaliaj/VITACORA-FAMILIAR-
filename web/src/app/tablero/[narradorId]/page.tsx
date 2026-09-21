@@ -125,7 +125,7 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
     rol === "duena"
       ? admin.from("invitados").select("id, email, aceptado_at, rol").eq("narrador_id", n.id).order("created_at")
       : Promise.resolve({ data: null }),
-    admin.from("narradores").select("contexto, libro_aprobado_at, edicion, zona_horaria").eq("id", n.id).maybeSingle(),
+    admin.from("narradores").select("contexto, libro_aprobado_at, edicion, zona_horaria, hora_preferida").eq("id", n.id).maybeSingle(),
     historiasDelUsuario(admin, user),
   ]);
 
@@ -134,7 +134,9 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
     return <EstadoError />;
   }
 
-  const fila = (filaNarrador as { contexto?: Record<string, unknown>; libro_aprobado_at?: string | null; edicion?: { historiaCerradaEl?: string | null } | null; zona_horaria?: string | null } | null) ?? {};
+  const fila = (filaNarrador as { contexto?: Record<string, unknown>; libro_aprobado_at?: string | null; edicion?: { historiaCerradaEl?: string | null } | null; zona_horaria?: string | null; hora_preferida?: string | null } | null) ?? {};
+  // La hora de la pregunta (3t.23): la base guarda "HH:MM:SS"; el panel muestra "HH:MM".
+  const horario = fila.hora_preferida && fila.zona_horaria ? { hora: fila.hora_preferida.slice(0, 5), zona: fila.zona_horaria } : undefined;
   const aprobado = Boolean(fila.libro_aprobado_at);
   // "Cerrar edición del libro" (17/09): la historia terminó y la familia dio por
   // cerrada esta etapa. Reversible; lo definitivo sigue siendo `libro_aprobado_at`.
@@ -178,6 +180,7 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
         invitados={soloInvitados}
         ritmo={ritmo}
         evitar={evitar}
+        horario={horario}
       />
     );
   }
@@ -547,7 +550,7 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
           <section className="mt-16 border-t border-[var(--linea)] pt-10">
             <Etiqueta>Ajustes de la entrevista</Etiqueta>
             <div className="mt-6">
-              <Ajustes narradorId={n.id} ritmo={ritmo} evitar={evitar} />
+              <Ajustes narradorId={n.id} ritmo={ritmo} evitar={evitar} horario={horario} propia={propia} />
             </div>
           </section>
         ) : null}

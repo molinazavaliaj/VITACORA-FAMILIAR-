@@ -3,6 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { narradorDeLaSesion, PUEDE, type Rol } from "@/lib/panel";
+import { validarHorario } from "@/lib/horario";
 import {
   esEditable, puedeAgregar, puedeSaltar, renumerar, reordenar, siguienteOrden,
   validarRitmo, validarTexto, type PreguntaGuion,
@@ -21,9 +22,10 @@ type Accion =
   | { accion: "reordenar"; ids: string[] }
   | { accion: "agregar"; texto: string; capitulo: string; fotoId?: string | null; tipo?: "familia" | "sugerida" }
   | { accion: "ritmo"; ritmo: string }
-  | { accion: "evitar"; texto: string };
+  | { accion: "evitar"; texto: string }
+  | { accion: "horario"; hora: string; zona: string };
 
-const SOLO_DUENA: Accion["accion"][] = ["editar", "saltar", "reordenar", "ritmo", "evitar"];
+const SOLO_DUENA: Accion["accion"][] = ["editar", "saltar", "reordenar", "ritmo", "evitar", "horario"];
 
 function respuesta(status: number, cuerpo: Record<string, unknown>) {
   return NextResponse.json(cuerpo, { status });
@@ -98,6 +100,16 @@ export async function PATCH(request: NextRequest) {
   }
   if (ESTADOS_CERRADOS.includes(narrador.estado)) {
     return respuesta(400, { error: "La entrevista ya terminó: el guion no se cambia más." });
+  }
+
+  // La hora y la zona de la pregunta (3t.23): columnas del narrador; el
+  // scheduler las lee en cada corrida, así que rige desde el próximo envío.
+  if (body.accion === "horario") {
+    const h = validarHorario(body);
+    if (!h.ok) return respuesta(400, { error: h.mensaje });
+    const { error } = await admin.from("narradores").update({ hora_preferida: h.hora, zona_horaria: h.zona }).eq("id", narrador.id);
+    if (error) { console.error("guion: fallo horario", error); return respuesta(500, { error: GENERICO }); }
+    return respuesta(200, { ok: true });
   }
 
   // Ritmo y evitar viven en contexto, no en preguntas.

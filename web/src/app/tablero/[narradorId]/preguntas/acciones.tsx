@@ -4,6 +4,7 @@ import { useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { AVISO_CALIDAD, EVITAR_MAXIMO, MAXIMO_FAMILIA, NOMBRE_RITMO, RITMOS, calidadDeFoto, type CalidadFoto, type PreguntaGuion, type Ritmo } from "@/lib/guion";
 import { medirImagen } from "@/lib/medir-imagen";
+import { HORAS_FAMILIAR, HORAS_VIAJE, ZONAS, nombreDeZona, type Hora } from "@/lib/horario";
 
 // Las acciones del guion (docs/panel-usuario.md §6). Patrón de la casa: el
 // cliente llama a /api/guion o /api/fotos, y al volver refresca la página
@@ -584,20 +585,38 @@ export function SubirFoto({ narradorId, capitulos, capituloInicial, children, va
 // ── ritmo y temas a evitar (solo dueña) ────────────────────────────────
 
 // `sinRitmo`: en viaje (3t.19) el bot escribe una vez por noche, no hay ritmo que elegir.
-export function Ajustes({ narradorId, ritmo, evitar, sinRitmo = false }: { narradorId: string; ritmo: Ritmo; evitar: string; sinRitmo?: boolean }) {
+// `horario` (3t.23): a qué hora y en qué zona le llega la pregunta; se ve y se
+// cambia acá. Rige desde el próximo envío (el scheduler lo lee en cada corrida).
+export function Ajustes({ narradorId, ritmo, evitar, sinRitmo = false, horario, propia = false }: {
+  narradorId: string;
+  ritmo: Ritmo;
+  evitar: string;
+  sinRitmo?: boolean;
+  horario?: { hora: string; zona: string };
+  /** "te llega" en vez de "le llega": autobiografía o viaje. */
+  propia?: boolean;
+}) {
   const router = useRouter();
   const [textoEvitar, setTextoEvitar] = useState(evitar);
+  const [hora, setHora] = useState(horario?.hora ?? "");
+  const [zona, setZona] = useState(horario?.zona ?? "");
+  // La lista base según el producto; si la hora guardada no está en la lista
+  // (un piloto a mano, o la compra vieja), se agrega para que se vea tal cual.
+  const horasBase: Hora[] = sinRitmo ? HORAS_VIAJE : HORAS_FAMILIAR;
+  const horas: Hora[] = horario && !horasBase.some((h) => h.valor === horario.hora) ? [{ valor: horario.hora, nombre: `${horario.hora} (la actual)` }, ...horasBase] : horasBase;
+  const zonas: [string, string][] = horario && !ZONAS.some(([z]) => z === horario.zona) ? [[horario.zona, horario.zona], ...ZONAS] : ZONAS;
+  const horarioCambio = Boolean(horario) && (hora !== horario!.hora || zona !== horario!.zona);
   const [ocupado, setOcupado] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [guardado, setGuardado] = useState(false);
+  const [guardado, setGuardado] = useState<string | null>(null); // qué bloque se guardó recién
 
   async function correr(clave: string, cuerpo: Record<string, unknown>) {
     setOcupado(clave);
     setError(null);
-    setGuardado(false);
+    setGuardado(null);
     try {
       await patchGuion(narradorId, cuerpo);
-      setGuardado(true);
+      setGuardado(clave);
       router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : "No pudimos guardar.");
@@ -626,6 +645,35 @@ export function Ajustes({ narradorId, ritmo, evitar, sinRitmo = false }: { narra
       </fieldset>
       )}
 
+      {horario ? (
+        <fieldset>
+          <legend className="text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.24em]">{propia ? "A qué hora te llega la pregunta" : "A qué hora le llega la pregunta"}</legend>
+          <p className="mt-2 text-[15px] leading-relaxed text-[var(--texto-suave)]">
+            Hoy: <strong className="font-medium text-[var(--texto)]">{horario.hora}</strong>, hora de {nombreDeZona(horario.zona)}. {propia ? "Si querés que te llegue antes o después" : "Si conviene que le llegue antes o después"}, cambiala acá: vale desde la próxima.
+          </p>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <label className="flex flex-col gap-1">
+              <span className="text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.18em]">Hora</span>
+              <select value={hora} onChange={(e) => setHora(e.target.value)} disabled={ocupado !== null} className={campo}>
+                {horas.map((h) => <option key={h.valor} value={h.valor}>{h.nombre}</option>)}
+              </select>
+            </label>
+            <label className="flex flex-col gap-1">
+              <span className="text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.18em]">Hora de dónde</span>
+              <select value={zona} onChange={(e) => setZona(e.target.value)} disabled={ocupado !== null} className={campo}>
+                {zonas.map(([z, n]) => <option key={z} value={z}>{n}</option>)}
+              </select>
+            </label>
+          </div>
+          <div className="mt-3 flex items-center gap-3">
+            <button type="button" className={botonSecundario} disabled={ocupado !== null || !horarioCambio} onClick={() => correr("horario", { accion: "horario", hora, zona })}>
+              {ocupado === "horario" ? "Guardando…" : "Guardar la hora"}
+            </button>
+            {guardado === "horario" && !horarioCambio ? <span className="text-sm text-[var(--texto-menor)]">Guardado</span> : null}
+          </div>
+        </fieldset>
+      ) : null}
+
       <div>
         <label className="flex flex-col gap-2">
           <span className="text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.24em]">Temas que no se preguntan</span>
@@ -636,7 +684,7 @@ export function Ajustes({ narradorId, ritmo, evitar, sinRitmo = false }: { narra
           <button type="button" className={botonSecundario} disabled={ocupado !== null || textoEvitar === evitar} onClick={() => correr("evitar", { accion: "evitar", texto: textoEvitar })}>
             {ocupado === "evitar" ? "Guardando…" : "Guardar"}
           </button>
-          {guardado ? <span className="text-sm text-[var(--texto-menor)]">Guardado</span> : null}
+          {guardado === "evitar" ? <span className="text-sm text-[var(--texto-menor)]">Guardado</span> : null}
         </div>
       </div>
       <Error_ mensaje={error} />
