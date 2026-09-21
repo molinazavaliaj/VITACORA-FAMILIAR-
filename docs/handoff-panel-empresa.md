@@ -101,3 +101,26 @@ escribe en la base es cargar un gasto a mano (Railway, el dominio, la imprenta).
 **Cómo se comprueba que está bien:** entrando con el mail de la lista deberían verse las cinco pantallas
 con los datos reales. Si un mail que no está en la lista entra, tiene que ver una pantalla que dice que
 no (y nunca el panel).
+
+### El mensaje para pegarle a Joaquín
+
+> Joaquín, ya está el panel de la empresa, en la parte B de la rama `panel-de-la-empresa`. Son cinco
+> pantallas: **Estado** (qué se frenó y qué hay que hacer hoy), **Familias** (cómo va cada historia, con lo
+> que el biógrafo le preguntó y lo que contestó), **Plata** (entró − se gastó = ganancia limpia, con las
+> comisiones y el cambio a la vista), **Gastos** (día por día y paso por paso) y **Cerebros** (los 14
+> robots en tres carriles, con el que se pasó de tiempo en rojo: ahí se ve dónde se cortó la cadena).
+>
+> Para que ande hay que cargar **cuatro variables** en Vercel, ninguna secreta: `ADMIN_EMAILS` (los dos
+> mails separados por coma — sin esto no entra nadie), `CAMBIO_EUR_ARS` (cuántos pesos vale 1 euro),
+> `CAMBIO_USD_EUR` (cuántos dólares vale 1 euro) y `CAMBIO_FECHA`. El cambio se actualiza a mano, una vez
+> por semana: queda a la vista en la pantalla y si no está cargado el panel avisa en vez de convertir con
+> un número inventado.
+>
+> El panel es **de sólo mirar**: lo único que escribe es cargar un gasto a mano (Railway, el dominio, la
+> imprenta). No manda mails ni avisos, y no hay ningún link a `/admin` en el sitio: se entra escribiendo
+> la dirección.
+>
+> Verificado: los **333** tests de la web en verde (incluye renderizar las cinco pantallas de verdad, con
+> datos y sin datos), typecheck limpio y `npm run build` con las cinco rutas compiladas. Además lo corrí
+> contra la base real: las diez consultas leen sin un error y ya apareció lo primero que hay que mirar
+> —**hay 8 pagos pendientes de hasta 7 días, en pesos**—.
