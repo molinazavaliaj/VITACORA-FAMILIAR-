@@ -2,16 +2,20 @@
 
 import { useMemo, useState } from "react";
 import { ANGULOS, COMPANIAS, NOMBRE_ANGULO, NOMBRE_COMPANIA, NOMBRE_PROPOSITO, PROPOSITOS, ETAPAS_MAXIMO, type Etapa, type Viaje } from "@/lib/viaje";
-import { NOMBRE_VIAJE, DETALLE_VIAJE } from "@/lib/productos";
+import { NADA_ELEGIDO, NOMBRE_VIAJE, DETALLE_VIAJE, type Extra, type ProductosElegidos } from "@/lib/productos";
+import { ContadorMarcos, TarjetaImpreso, formatearPrecio as formatear } from "../productos-ui";
 
 // La compra de la Vitácora de viaje, en tres pasos. Las etapas pueden ir sin
 // fechas: el viajero no siempre las tiene (después se completan desde el
 // panel y se abren ciudades nuevas). Un solo POST a /api/compra al pagar,
-// con `productos.viaje` y `narrador.contexto.viaje`.
+// con `productos.viaje` y `narrador.contexto.viaje`. Desde el 21/09 (2.10) el
+// impreso y los marcos se suman en el paso de pagar, con las mismas piezas del
+// checkout Familiar; el total lo recalcula el servidor.
 //
 // ⚠️ Textos a aprobar por Naza (regla de la casa). En vos: el viajero se compra a sí mismo.
 
 export type PreciosViaje = Record<"ES" | "AR", number | null>;
+export type ExtrasViaje = Record<"ES" | "AR", Extra[]>;
 type Region = "ES" | "AR";
 type Paso = 1 | 2 | 3;
 
@@ -42,15 +46,11 @@ const ZONAS = [
   ["Australia/Sydney", "Australia (este)"],
 ] as const;
 
-function formatear(monto: number, moneda: "EUR" | "ARS", region: Region) {
-  return new Intl.NumberFormat(region === "ES" ? "es-ES" : "es-AR", { style: "currency", currency: moneda, maximumFractionDigits: 0 }).format(monto);
-}
-
 const campo = "w-full rounded-md border border-[#D4D4CE] bg-white px-4 py-3 text-[16px] text-[#14140F] outline-none transition-colors placeholder:text-[#AEAEA6] focus:border-[#14140F] [font-family:var(--fuente-cuerpo)]";
 const etiqueta = "block text-[11px] uppercase text-[#5F5F55] [font-family:var(--fuente-micro)] [letter-spacing:0.24em]";
 const chip = (activo: boolean) => `rounded-full border px-4 py-2 text-[14px] transition-colors [font-family:var(--fuente-micro)] [touch-action:manipulation] ${activo ? "border-[#14140F] bg-[#14140F] text-white" : "border-[#D4D4CE] bg-white hover:border-[#83837A]"}`;
 
-export function CheckoutViaje({ precios }: { precios: PreciosViaje }) {
+export function CheckoutViaje({ precios, extras }: { precios: PreciosViaje; extras: ExtrasViaje }) {
   const [paso, setPaso] = useState<Paso>(1);
   const [region, setRegion] = useState<Region>("AR");
   const [nombre, setNombre] = useState("");
@@ -68,9 +68,24 @@ export function CheckoutViaje({ precios }: { precios: PreciosViaje }) {
   const [evitar, setEvitar] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
+  // El viaje siempre va; el impreso y los marcos se suman.
+  const [productos, setProductos] = useState<ProductosElegidos>({ ...NADA_ELEGIDO, viaje: true });
 
   const precio = precios[region];
   const moneda = region === "ES" ? "EUR" : "ARS";
+  const impresoBn = extras[region].find((e) => e.id === "impreso_bn");
+  const impresoColor = extras[region].find((e) => e.id === "impreso_color");
+  const marco = extras[region].find((e) => e.id === "marco");
+  // Las líneas del resumen y el total, para mostrar: el servidor lo recalcula al cobrar.
+  const lineas = useMemo(() => {
+    const l: { nombre: string; importe: number }[] = [];
+    if (precio !== null) l.push({ nombre: NOMBRE_VIAJE, importe: precio });
+    const impreso = productos.impreso === "color" ? impresoColor : productos.impreso === "bn" ? impresoBn : undefined;
+    if (impreso) l.push({ nombre: impreso.nombre, importe: impreso.precio });
+    if (productos.marcos > 0 && marco) l.push({ nombre: `${marco.nombre} × ${productos.marcos}`, importe: marco.precio * productos.marcos });
+    return l;
+  }, [precio, productos, impresoBn, impresoColor, marco]);
+  const total = lineas.reduce((s, l) => s + l.importe, 0);
   const dias = useMemo(() => {
     const a = Date.parse(`${salida}T00:00:00Z`), b = Date.parse(`${vuelta}T00:00:00Z`);
     return Number.isFinite(a) && Number.isFinite(b) && b >= a ? Math.round((b - a) / 86_400_000) + 1 : null;
@@ -112,7 +127,7 @@ export function CheckoutViaje({ precios }: { precios: PreciosViaje }) {
               viaje: { salida, vuelta, etapas: etapas.filter((e) => e.nombre.trim()), compania, proposito, angulos },
             },
           },
-          productos: { pdf: false, impreso: null, marcos: 0, viaje: true },
+          productos: { ...productos, pdf: false, viaje: true },
         }),
       });
       const datos = (await respuesta.json()) as { urlPago?: string; error?: string };
@@ -293,6 +308,25 @@ export function CheckoutViaje({ precios }: { precios: PreciosViaje }) {
               <p className="mt-2 text-[15px] leading-[1.7] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">{DETALLE_VIAJE} Se lee y se escucha en la web, cuando quieras.</p>
               <p className="mt-4 text-[28px] tabular-nums [font-family:var(--fuente-titulo)]">{precio !== null ? formatear(precio, moneda, region) : "Próximamente en tu región"}</p>
             </div>
+
+            {/* 2.10: lo que se suma. ⚠️ Textos a revisar por Naza. */}
+            {impresoBn || impresoColor || marco ? (
+              <div className="mt-8">
+                <p className={etiqueta}>Si querés, sumale</p>
+                <div className="mt-3 grid gap-4 sm:grid-cols-2">
+                  <TarjetaImpreso
+                    productos={productos}
+                    setProductos={setProductos}
+                    impresoBn={impresoBn}
+                    impresoColor={impresoColor}
+                    moneda={moneda}
+                    region={region}
+                    detalle="Tu viaje en tapa dura, con un código en la contratapa que hace sonar tu voz. Lo único que sale de la nube."
+                  />
+                </div>
+                <ContadorMarcos productos={productos} setProductos={setProductos} marco={marco} moneda={moneda} region={region} detalle="Un marco con tu foto del viaje y un chip: se acerca el teléfono y suena tu voz. Para regalar a quien te esperó." />
+              </div>
+            ) : null}
             <div className="mt-6 rounded-lg border border-[#EBEBE7] bg-white p-5 text-[15px] leading-[1.7] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">
               <p><strong className="font-normal text-[#14140F]">Qué pasa después de pagar:</strong> te llega un correo para entrar a tu panel, y el biógrafo te escribe por WhatsApp para presentarse. Respondés SÍ y arranca la primera noche. Si algo no te cierra antes de salir, nos escribís y te devolvemos el dinero.</p>
             </div>
@@ -300,7 +334,7 @@ export function CheckoutViaje({ precios }: { precios: PreciosViaje }) {
             <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
               <button type="button" onClick={() => avanzar(2)} className="text-[15px] text-[#5F5F55] underline underline-offset-4 [font-family:var(--fuente-micro)]">← Atrás</button>
               <button type="submit" disabled={enviando || precio === null} className="inline-flex h-13 items-center justify-center rounded-full bg-[#5D3FD3] px-8 text-base font-medium text-white transition-colors hover:bg-[#4F35BC] disabled:opacity-60 [font-family:var(--fuente-micro)] [touch-action:manipulation]">
-                {enviando ? "Un momento…" : precio !== null ? `Pagar ${formatear(precio, moneda, region)}` : "No disponible"}
+                {enviando ? "Un momento…" : precio !== null ? `Pagar ${formatear(total, moneda, region)}` : "No disponible"}
               </button>
             </div>
             <p className="mt-4 text-[13px] text-[#83837A] [font-family:var(--fuente-cuerpo)] font-light">
@@ -314,9 +348,25 @@ export function CheckoutViaje({ precios }: { precios: PreciosViaje }) {
       <aside className="lg:sticky lg:top-8 lg:self-start">
         <div className="rounded-lg border border-[#EBEBEE] bg-white p-6">
           <p className="text-[11px] uppercase text-[#5F5F55] [font-family:var(--fuente-micro)] [letter-spacing:0.3em]">Tu compra</p>
-          <div className="mt-5 flex items-baseline justify-between gap-4 border-b border-[#EBEBE7] pb-3">
-            <span className="text-[15px] [font-family:var(--fuente-cuerpo)] font-light">{NOMBRE_VIAJE}{dias ? ` · ${dias} noches` : ""}</span>
-            <span className="shrink-0 text-[15px] [font-family:var(--fuente-micro)]">{precio !== null ? formatear(precio, moneda, region) : "—"}</span>
+          <div className="mt-5 flex flex-col gap-2 border-b border-[#EBEBE7] pb-3">
+            {lineas.length === 0 ? (
+              <div className="flex items-baseline justify-between gap-4">
+                <span className="text-[15px] [font-family:var(--fuente-cuerpo)] font-light">{NOMBRE_VIAJE}</span>
+                <span className="shrink-0 text-[15px] [font-family:var(--fuente-micro)]">—</span>
+              </div>
+            ) : null}
+            {lineas.map((l, i) => (
+              <div key={l.nombre} className="flex items-baseline justify-between gap-4">
+                <span className="text-[15px] [font-family:var(--fuente-cuerpo)] font-light">{l.nombre}{i === 0 && dias ? ` · ${dias} noches` : ""}</span>
+                <span className="shrink-0 text-[15px] [font-family:var(--fuente-micro)]">{formatear(l.importe, moneda, region)}</span>
+              </div>
+            ))}
+            {lineas.length > 1 ? (
+              <div className="mt-1 flex items-baseline justify-between gap-4 border-t border-[#EBEBE7] pt-2">
+                <span className="text-[15px] [font-family:var(--fuente-micro)] font-medium">Total</span>
+                <span className="shrink-0 text-[15px] [font-family:var(--fuente-micro)] font-medium">{formatear(total, moneda, region)}</span>
+              </div>
+            ) : null}
           </div>
           <ul className="mt-6 flex flex-col gap-2 text-[14px] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">
             <li>✓ Una pregunta cada noche, por WhatsApp</li>

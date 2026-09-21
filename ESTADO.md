@@ -643,6 +643,15 @@ Ajustes sin ritmo (una por noche). Verificado en el celular a 375px con el narra
 de Inicio, marcados con ⚠️ — revisión el miércoles. Nada en `fabrica/`, `voz/` ni `entrevistador/`. Sin
 migración. 292 tests, tsc limpio.
 
+## El carrito de viaje (2.10, Joaquín, 21/09)
+
+`/comprar/viaje` vendía solo el viaje. Ahora el paso Pagar suma **el libro impreso** (B/N o color) y **los
+marcos**, con las mismas tarjetas del checkout Familiar (movidas a `web/src/app/comprar/productos-ui.tsx`,
+el Familiar las importa de ahí sin cambios visibles). El pedido sale como siempre por `calcularCompra`:
+`extras = { pdf: true, tipo: 'viaje', impreso, copias, marcos }` — **sin cambio de CONTRATO**, la fábrica ya
+lo lee así. Encargar libro ya funcionaba para un viaje (el pedido de viaje se lee como `pdf: true`).
+Textos nuevos marcados ⚠️ para Naza. 293 tests, tsc limpio.
+
 ## Próximos hitos
 
 1. ~~Audiolibro híbrido~~ — **descartado el 20/09** (ver arriba): la corrida que quedó encolada sirve solo para el veredicto de oído. Lo que viene: el spec de "Sus mejores frases" y el checkout sin la línea del audiolibro.
