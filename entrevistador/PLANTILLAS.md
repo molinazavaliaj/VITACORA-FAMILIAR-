@@ -7,7 +7,14 @@ necesitan plantilla.
 
 La aprobación tarda de horas a días: **cargarlas cuanto antes**.
 
-> **Estado en Meta (16-17/09, cuenta de Joaquín, app 1061858183385953).** Las 4 están
+> **20/09 — cuenta nueva.** El número propio (+54 9 11 2866-8813, `Phone Number ID 1242792948928690`)
+> vive en la WABA **"Vitácora" (`1997432587590526`)**, distinta de la de prueba (`1553096429416760`).
+> Las plantillas son por WABA: las 5 (`bienvenida` ya con la frase del permiso de voz,
+> `pregunta_diaria`, `pregunta_diaria_vos`, `recordatorio`, `bienvenida_viaje`) se clonaron por API
+> a la cuenta nueva y están en revisión. Hasta que las aprueben, todo envío por plantilla desde el
+> número nuevo falla con `#132001`. Cuando `bienvenida` esté aprobada: `WA_BIENVENIDA_PIDE_VOZ=1`.
+>
+> **Estado en Meta (16-17/09, cuenta de prueba, app 1061858183385953).** Las 4 están
 > enviadas. Categorías que quedaron: `recordatorio` **Utilidad**; `bienvenida`,
 > `pregunta_diaria` y `pregunta_diaria_vos` **Marketing** (el clasificador no aceptó
 > Utilidad ni con dos reescrituras; apelación enviada). Para el código la categoría es
