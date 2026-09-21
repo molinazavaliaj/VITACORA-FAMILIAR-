@@ -160,6 +160,13 @@ vende solo el PDF con los defaults del código (ARS 49.999 / 49 €).
 | `ENTREVISTADOR_URL` | `https://vitacora-familiar-production.up.railway.app` — para "Sugerime preguntas" | ☐ nueva, 16/09 |
 | `PRECIO_VIAJE_ARS` / `PRECIO_VIAJE_EUR` | Vitácora de viaje (18/09). Sin precio no se vende. | ☐ nueva, 18/09 |
 | `NEXT_PUBLIC_WA_NUMERO` | El número del biógrafo, para que el viajero escriba "hola" primero (gracias del viaje). Ej. `+1 (555) 182-9748` | ☐ nueva, 18/09 |
+
+> ⚠️ **Sensitive en Vercel (20/09).** La web se construye en GitHub (`vercel pull` + `vercel build`), y las
+> variables marcadas **Sensitive** no se pueden bajar: llegan vacías al build. Todo lo que la web lee al
+> construirse —los `PRECIO_*` y cualquier `NEXT_PUBLIC_*`— tiene que crearse **sin** el toggle Sensitive
+> (no se puede cambiar después: borrar y crear de nuevo). Las claves que solo se usan en tiempo de
+> ejecución (Mercado Pago, Stripe, Supabase, Resend) pueden ser sensitive. Síntoma: `/viaje` dice
+> "Próximamente" y `precios: {ES: null, AR: null}` aunque las variables estén cargadas.
 | `SUGERIDAS_CLAVE` | La misma que en el servicio entrevistador de Railway (la generó Joaquín con `openssl rand -hex 24`) | ☐ nueva, 16/09 |
 
 Sin `ENTREVISTADOR_URL` + `SUGERIDAS_CLAVE` el botón existe pero dice "todavía no está
