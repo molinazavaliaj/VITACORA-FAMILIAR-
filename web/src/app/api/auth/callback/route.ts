@@ -2,10 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { familiaDelUsuario } from "@/lib/familia";
+import { destinoSeguro } from "@/lib/destino";
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
+  const volver = searchParams.get("volver");
 
   try {
     if (code) {
@@ -23,8 +25,10 @@ export async function GET(request: NextRequest) {
           console.error("callback auth: fallo la consulta de familias", errorFamilia);
         }
 
-        // Sin familia: nunca compró. Con el pago por adelantado, la puerta es /comprar.
-        const destino = familia ? "/tablero" : "/comprar";
+        // Con `volver`, el que ya entró vuelve a donde iba —el panel de la empresa,
+        // por ejemplo— aunque nunca haya comprado: el carrito no es su destino.
+        // Sin `volver` manda lo de siempre: sin familia nunca compró → /comprar.
+        const destino = destinoSeguro(volver, familia ? "/tablero" : "/comprar");
         return NextResponse.redirect(`${origin}${destino}`);
       }
 
