@@ -4,6 +4,7 @@ import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { narradorDeLaSesion, PUEDE, type Rol } from "@/lib/panel";
 import { validarHorario } from "@/lib/horario";
+import { TRATOS } from "@/lib/registro";
 import {
   esEditable, puedeAgregar, puedeSaltar, renumerar, reordenar, siguienteOrden,
   validarRitmo, validarTexto, type PreguntaGuion,
@@ -23,9 +24,10 @@ type Accion =
   | { accion: "agregar"; texto: string; capitulo: string; fotoId?: string | null; tipo?: "familia" | "sugerida" }
   | { accion: "ritmo"; ritmo: string }
   | { accion: "evitar"; texto: string }
-  | { accion: "horario"; hora: string; zona: string };
+  | { accion: "horario"; hora: string; zona: string }
+  | { accion: "trato"; trato: string };
 
-const SOLO_DUENA: Accion["accion"][] = ["editar", "saltar", "reordenar", "ritmo", "evitar", "horario"];
+const SOLO_DUENA: Accion["accion"][] = ["editar", "saltar", "reordenar", "ritmo", "evitar", "horario", "trato"];
 
 function respuesta(status: number, cuerpo: Record<string, unknown>) {
   return NextResponse.json(cuerpo, { status });
@@ -109,6 +111,20 @@ export async function PATCH(request: NextRequest) {
     if (!h.ok) return respuesta(400, { error: h.mensaje });
     const { error } = await admin.from("narradores").update({ hora_preferida: h.hora, zona_horaria: h.zona }).eq("id", narrador.id);
     if (error) { console.error("guion: fallo horario", error); return respuesta(500, { error: GENERICO }); }
+    return respuesta(200, { ok: true });
+  }
+
+  // El trato (3t.22): usted o vos, fijado por la familia. Solo hasta la primera
+  // pregunta: el bot lo decide una vez y no lo vuelve a pensar (trato.ts);
+  // cambiarlo a mitad de la entrevista rompe el vínculo.
+  if (body.accion === "trato") {
+    if (!(TRATOS as readonly string[]).includes(body.trato)) return respuesta(400, { error: "El trato no es válido: usted o vos." });
+    if (narrador.dia_actual > 0 || !["invitado", "acepto"].includes(narrador.estado)) return respuesta(400, { error: "El trato se fija con la primera pregunta: ya no se cambia." });
+    const { data: fila } = await admin.from("narradores").select("contexto").eq("id", narrador.id).maybeSingle();
+    const contexto = ((fila as { contexto?: Record<string, unknown> } | null)?.contexto) ?? {};
+    contexto.trato = body.trato;
+    const { error } = await admin.from("narradores").update({ contexto }).eq("id", narrador.id);
+    if (error) { console.error("guion: fallo trato", error); return respuesta(500, { error: GENERICO }); }
     return respuesta(200, { ok: true });
   }
 

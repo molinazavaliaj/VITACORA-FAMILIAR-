@@ -122,6 +122,12 @@ describe('la ficha que se le pasa al modelo', () => {
     expect(fichaEnTexto({ estadoCivil: 'soltero', anioNacimiento: 1998 }, 'Joaquín')).toContain('Es soltero: nunca se casó.');
     expect(fichaEnTexto({ estadoCivil: 'complicado' }, 'Joaquín')).toBe('El narrador es Joaquín.');
   });
+
+  // 3t.22 (21/09): la compra pregunta dónde vive; entra a la ficha como el lugar de nacimiento.
+  it('dónde vive entra a la ficha', () => {
+    expect(fichaEnTexto({ dondeVive: 'Rosario, Argentina' }, 'Joaquín')).toBe('El narrador es Joaquín. Vive en Rosario, Argentina.');
+    expect(fichaEnTexto({ dondeVive: '   ' }, 'Joaquín')).toBe('El narrador es Joaquín.');
+  });
 });
 
 describe('PROMPT_PERSONALIZAR', () => {

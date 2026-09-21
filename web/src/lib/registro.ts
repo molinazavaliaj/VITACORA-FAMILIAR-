@@ -21,10 +21,16 @@ export interface ArbolInput {
  * Va en `contexto` (jsonb), sin migración. Vacío = no se dijo.
  */
 export const ESTADOS_CIVILES = ['soltero', 'en_pareja', 'casado', 'separado', 'viudo'] as const;
+/** Los dos tratos que el entrevistador sabe hablar (entrevistador/src/ia/trato.ts). No hay "tú". */
+export const TRATOS = ['usted', 'vos'] as const;
+export const DONDE_VIVE_MAXIMO = 120;
 export type EstadoCivil = (typeof ESTADOS_CIVILES)[number];
 
 export interface ContextoInput {
   lugarNacimiento?: string;
+  /** 3t.22 (21/09): dónde vive hoy (texto libre corto) y el trato que eligió el comprador. */
+  dondeVive?: string;
+  trato?: string;
   anioNacimiento?: number;
   estadoCivil?: string;
   oficio?: string;
@@ -178,6 +184,9 @@ export function validarYConstruir(body: RegistroBody): ResultadoValidacion {
   if (esNoVacio(contexto.estadoCivil) && !(ESTADOS_CIVILES as readonly string[]).includes(contexto.estadoCivil.trim())) {
     return { ok: false, status: 400, mensaje: 'El estado civil no es válido.' };
   }
+  if (esNoVacio(contexto.trato) && !(TRATOS as readonly string[]).includes(contexto.trato.trim())) {
+    return { ok: false, status: 400, mensaje: 'El trato no es válido: usted o vos.' };
+  }
 
   const telefono = normalizarTelefono(narrador.telefonoWhatsapp, region);
   if (!TELEFONO_E164.test(telefono)) {
@@ -222,6 +231,12 @@ export function validarYConstruir(body: RegistroBody): ResultadoValidacion {
   };
   if (esNoVacio(contexto.lugarNacimiento)) {
     contextoFinal.lugarNacimiento = contexto.lugarNacimiento.trim();
+  }
+  if (esNoVacio(contexto.dondeVive)) {
+    contextoFinal.dondeVive = contexto.dondeVive.trim().slice(0, DONDE_VIVE_MAXIMO);
+  }
+  if (esNoVacio(contexto.trato)) {
+    contextoFinal.trato = contexto.trato.trim();
   }
   if (contexto.anioNacimiento !== undefined) {
     contextoFinal.anioNacimiento = contexto.anioNacimiento;

@@ -186,6 +186,25 @@ describe("PATCH /api/guion", () => {
     expect(escrituras.filter((e) => e.tabla === "narradores" && e.op === "update")).toEqual([]);
   });
 
+  // 3t.22 (21/09): el trato se fija desde el panel solo hasta la primera pregunta.
+  it("trato: antes de la primera pregunta se guarda en contexto.trato", async () => {
+    sesion(martina);
+    const escrituras = armar({ narrador: narrador({ estado: "acepto", dia_actual: 0 }) });
+    const r = await PATCH(request({ accion: "trato", trato: "vos" }));
+    expect(r.status).toBe(200);
+    expect(escrituras).toContainEqual(expect.objectContaining({ tabla: "narradores", op: "update", valores: { contexto: expect.objectContaining({ trato: "vos" }) } }));
+  });
+
+  it("trato: con la primera pregunta ya mandada, o un trato inventado → 400 y no escribe", async () => {
+    sesion(martina);
+    const e1 = armar({ narrador: narrador({ estado: "activo", dia_actual: 1 }) });
+    expect((await PATCH(request({ accion: "trato", trato: "vos" }))).status).toBe(400);
+    expect(e1.filter((e) => e.tabla === "narradores" && e.op === "update")).toEqual([]);
+    const e2 = armar({ narrador: narrador({ estado: "acepto", dia_actual: 0 }) });
+    expect((await PATCH(request({ accion: "trato", trato: "tu" }))).status).toBe(400);
+    expect(e2.filter((e) => e.tabla === "narradores" && e.op === "update")).toEqual([]);
+  });
+
   it("con la entrevista terminada, nada se cambia → 400", async () => {
     sesion(martina);
     armar({ narrador: narrador({ estado: "completado", dia_actual: 30 }) });

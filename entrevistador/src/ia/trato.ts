@@ -50,7 +50,7 @@ export function fichaTieneDatos(contexto: Record<string, any> = {}): boolean {
     typeof arbol === 'object' && arbol !== null &&
     Object.values(arbol).some((v) => typeof v === 'string' && v.trim() !== '');
   return Boolean(
-    c.anioNacimiento || c.lugarNacimiento || c.oficio || c.datosExtra || c.vinculoComprador || hayArbol,
+    c.anioNacimiento || c.lugarNacimiento || c.dondeVive || c.oficio || c.datosExtra || c.vinculoComprador || hayArbol,
   );
 }
 

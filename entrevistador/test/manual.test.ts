@@ -124,6 +124,11 @@ describe('los textos que lee el narrador', () => {
 // de laburar a las 8 de la noche" se transcribía como "llegando de la URA".
 // El contexto que arma esta función es lo que lo corrige.
 describe('promptDeTranscripcion', () => {
+  it('dónde vive (3t.22) entra al prompt junto al lugar de nacimiento', () => {
+    const prompt = promptDeTranscripcion({ dondeVive: 'Rosario, Argentina' }, 'Joaquín');
+    expect(prompt).toContain('Vive en: Rosario, Argentina.');
+  });
+
   it('con un narrador sin datos, igual sopla el vocabulario rioplatense', () => {
     const prompt = promptDeTranscripcion({}, 'Joaquín');
     expect(prompt).toContain('laburar');
