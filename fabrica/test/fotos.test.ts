@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { cargarFotos, mimeDeRuta, normalizarFoco, LIMITE_BYTES_FOTO } from '../src/libro/fotos.js';
+import { cargarFotos, mimeDeRuta, normalizarFoco, atributoFoco, LIMITE_BYTES_FOTO } from '../src/libro/fotos.js';
 
 // Nota: `Buffer.from(bytes).buffer.slice(0)` puede devolver el ArrayBuffer
 // del pool interno de Node (más grande que los bytes reales) para strings
@@ -50,16 +50,34 @@ describe('normalizarFoco', () => {
     expect(normalizarFoco({ x: 0, y: 1 })).toEqual({ x: 0, y: 1 });
   });
 
-  it('sin foco, con basura o con un eje que no es número → el centro', () => {
-    expect(normalizarFoco(null)).toEqual({ x: 0.5, y: 0.5 });
-    expect(normalizarFoco(undefined)).toEqual({ x: 0.5, y: 0.5 });
-    expect(normalizarFoco('0.3,0.2')).toEqual({ x: 0.5, y: 0.5 });
-    expect(normalizarFoco({ x: 'a', y: 0.2 })).toEqual({ x: 0.5, y: 0.5 });
-    expect(normalizarFoco({ x: NaN, y: 0.2 })).toEqual({ x: 0.5, y: 0.5 });
+  it('sin la columna (migración sin aplicar) o con null → undefined: no hay foco, la foto va entera', () => {
+    // `undefined` es exactamente lo que llega con `select *` cuando la
+    // migración 20260918 todavía no está aplicada.
+    expect(normalizarFoco(undefined)).toBeUndefined();
+    expect(normalizarFoco(null)).toBeUndefined();
+  });
+
+  it('un valor que no se entiende se ignora (no cae al centro): texto vacío, número, un eje que no es número, NaN, sin un eje', () => {
+    for (const basura of ['', '0.3,0.2', 3, {}, [], { x: 'a', y: 0.2 }, { x: NaN, y: 0.2 }, { x: Infinity, y: 0.5 }, { x: 0.3 }]) {
+      expect(normalizarFoco(basura)).toBeUndefined();
+    }
   });
 
   it('fuera de 0..1 se recorta al borde', () => {
     expect(normalizarFoco({ x: 1.7, y: -0.2 })).toEqual({ x: 1, y: 0 });
+  });
+});
+
+describe('atributoFoco', () => {
+  it('con foco escribe el atributo con el punto en porcentaje', () => {
+    expect(atributoFoco({ x: 0.3, y: 0.2 })).toBe(' style="object-position: 30% 20%"');
+    expect(atributoFoco({ x: 0, y: 1 })).toBe(' style="object-position: 0% 100%"');
+  });
+
+  it('sin foco (o con basura) no escribe NADA: el HTML de la foto sale igual que antes de la migración', () => {
+    for (const sinFoco of [undefined, null, '', 3, { x: 'a', y: 0.2 }]) {
+      expect(atributoFoco(sinFoco)).toBe('');
+    }
   });
 });
 
@@ -83,19 +101,59 @@ describe('cargarFotos', () => {
     expect(fotos.porId.get('f1')?.foco).toEqual({ x: 0.3, y: 0.2 });
   });
 
-  it('sin posicion ni foco (filas viejas) → arriba y centro; una posición desconocida → arriba', async () => {
+  it('una fila sin las columnas nuevas (migración sin aplicar) → sin foco y arriba; una posición desconocida → arriba', async () => {
     const db = construirDb({
       fotos: {
         data: [
-          { id: 'f1', narrador_id: 'n1', capitulo: 'X', storage_path: 'n1/fotos/f1.jpg', epigrafe: null, principal: true, orden: 0, posicion: 'costado', foco: null },
+          // Sin `posicion` ni `foco`: es como llega la fila con `select *`
+          // mientras la migración 20260918 no esté aplicada.
+          { id: 'f0', narrador_id: 'n1', capitulo: 'X', storage_path: 'n1/fotos/f0.jpg', epigrafe: null, principal: true, orden: 0 },
+          { id: 'f1', narrador_id: 'n1', capitulo: 'Y', storage_path: 'n1/fotos/f1.jpg', epigrafe: null, principal: true, orden: 0, posicion: 'costado', foco: null },
         ],
         error: null,
       },
-      archivos: { 'n1/fotos/f1.jpg': 'a' },
+      archivos: { 'n1/fotos/f0.jpg': 'a', 'n1/fotos/f1.jpg': 'a' },
     });
     const fotos = await cargarFotos(db as never, 'n1');
+    const sinColumnas = fotos.porCapitulo.get('X')!;
+    expect(sinColumnas.apertura?.foco).toBeUndefined();
+    expect(sinColumnas.posicionApertura).toBe('arriba');
+    const cap = fotos.porCapitulo.get('Y')!;
+    expect(cap.apertura?.foco).toBeUndefined();
+    expect(cap.posicionApertura).toBe('arriba');
+  });
+
+  it('sin la migración aplicada la consulta no nombra posicion ni foco (PostgREST rechazaría el pedido entero) y el libro sale como siempre', async () => {
+    // El fake imita a PostgREST: una consulta que nombre una columna que la
+    // tabla todavía no tiene se rechaza ENTERA. Si `cargarFotos` pidiera
+    // `posicion` y `foco` por nombre, esto tiraría y el pedido caería a
+    // `fallido`: no habría libro.
+    let ultimoSelect = '';
+    const builder = {
+      select: (columnas: string) => {
+        ultimoSelect = columnas;
+        return builder;
+      },
+      eq: () => builder,
+      order: () =>
+        Promise.resolve(
+          /posicion|foco/.test(ultimoSelect)
+            ? { data: null, error: { message: 'column fotos.posicion does not exist' } }
+            : {
+                data: [
+                  { id: 'f1', narrador_id: 'n1', capitulo: 'X', storage_path: 'n1/fotos/f1.jpg', epigrafe: null, principal: true, orden: 0 },
+                ],
+                error: null,
+              }
+        ),
+    };
+    const download = vi.fn(() => Promise.resolve({ data: blobFake('a'), error: null }));
+    const db = { from: vi.fn(() => builder), storage: { from: vi.fn(() => ({ download })) } };
+
+    const fotos = await cargarFotos(db as never, 'n1');
     const cap = fotos.porCapitulo.get('X')!;
-    expect(cap.apertura?.foco).toEqual({ x: 0.5, y: 0.5 });
+    expect(cap.apertura?.dataUri).toBe(`data:image/jpeg;base64,${Buffer.from('a').toString('base64')}`);
+    expect(cap.apertura?.foco).toBeUndefined();
     expect(cap.posicionApertura).toBe('arriba');
   });
 
@@ -120,7 +178,7 @@ describe('cargarFotos', () => {
     });
     const fotos = await cargarFotos(db as never, 'n1');
     const cap = fotos.porCapitulo.get('La infancia')!;
-    expect(cap.apertura).toEqual({ dataUri: `data:image/jpeg;base64,${Buffer.from('AAA').toString('base64')}`, epigrafe: null, foco: { x: 0.5, y: 0.5 } });
+    expect(cap.apertura).toEqual({ dataUri: `data:image/jpeg;base64,${Buffer.from('AAA').toString('base64')}`, epigrafe: null, foco: undefined });
     expect(cap.cierre.map((f) => f.epigrafe)).toEqual(['Con mamá', 'En el patio']);
     expect(cap.cierre[1].dataUri.startsWith('data:image/png;base64,')).toBe(true);
     expect(fotos.porId.get('f3')?.epigrafe).toBe('Con mamá');

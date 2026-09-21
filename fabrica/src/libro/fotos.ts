@@ -7,18 +7,34 @@
 // Original sin recomprimir (la resolución la valida la web al subir): el
 // impreso necesita los píxeles. Una foto que no baja no frena el libro — se
 // avisa y se omite.
+//
+// La principal de cada capítulo puede ir arriba (su propia página, después de
+// la portadilla, como siempre) o abajo (dentro de la portadilla, debajo del
+// título), y se recorta al marco con el `foco` que eligió la familia; las de
+// cierre van enteras. Eso vive en `fotos.posicion` / `fotos.foco` (migración
+// 20260918): sin esos datos —migración sin aplicar, fila vieja o un valor que
+// no se entiende— no hay recorte ni cambio de lugar y el libro sale como antes
+// (ver `normalizarFoco`).
 
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Foto } from '../db.js';
 
 /** El punto de la foto que tiene que quedar a la vista al recortarla al marco (0..1 por eje). */
 export type Foco = { x: number; y: number };
-export const FOCO_CENTRO: Foco = { x: 0.5, y: 0.5 };
 
-/** `object-position` para `object-fit: cover`: el punto (0..1) que queda a la vista. Sin foco, el centro. */
-export function estiloFoco(foco: Foco | undefined): string {
-  const f = foco ?? FOCO_CENTRO;
-  return `object-position: ${Math.round(f.x * 100)}% ${Math.round(f.y * 100)}%`;
+/**
+ * El atributo `style` con el punto de foco para `object-fit: cover`, o '' si no
+ * hay foco usable. Devuelve el atributo ENTERO (y no el valor pelado) para que
+ * el caso "sin foco" no escriba ni `style=""` ni un `object-position: 50% 50%`
+ * inventado: sin dato, el marcado de la foto tiene que salir igual que antes de
+ * la migración 20260918, cuando este atributo no existía. Revalida el crudo en
+ * vez de confiar en el tipo: un dato raro que se cuele no puede terminar en un
+ * `object-position: NaN%` dentro del libro.
+ */
+export function atributoFoco(crudo: unknown): string {
+  const foco = normalizarFoco(crudo);
+  if (!foco) return '';
+  return ` style="object-position: ${Math.round(foco.x * 100)}% ${Math.round(foco.y * 100)}%"`;
 }
 
 /** Dónde va la principal del capítulo: `arriba` = página propia después de la
@@ -57,18 +73,26 @@ export function mimeDeRuta(ruta: string): string {
 
 /**
  * `fotos.foco` viene como jsonb que escribe la web; acá se vuelve un par de
- * números seguros. Cualquier cosa que no sea `{x, y}` numérico → el centro
- * (lo de siempre); fuera de 0..1 se recorta al borde. Nunca tira: un foco
- * raro no puede frenar un libro.
+ * números seguros, o `undefined` si no hay dato usable. `undefined` quiere decir
+ * "como siempre": la foto va entera, sin recorte. Sin la migración 20260918
+ * aplicada la columna no existe y la fila llega sin `foco`, y el libro tiene que
+ * salir igual que antes de esa migración — no recortado desde el centro. Por el
+ * mismo motivo un valor que no se entiende (texto vacío, un número suelto,
+ * `null`, un eje que no es número, `NaN`) se IGNORA en vez de caer al centro: no
+ * se inventa un foco que la familia no eligió. Fuera de 0..1 se recorta al borde
+ * (CONTRATO). Nunca tira: un foco raro no puede frenar un libro.
  */
-export function normalizarFoco(crudo: unknown): Foco {
-  if (typeof crudo !== 'object' || crudo === null) return { ...FOCO_CENTRO };
+export function normalizarFoco(crudo: unknown): Foco | undefined {
+  if (typeof crudo !== 'object' || crudo === null) return undefined;
   const { x, y } = crudo as { x?: unknown; y?: unknown };
-  if (typeof x !== 'number' || typeof y !== 'number' || Number.isNaN(x) || Number.isNaN(y)) return { ...FOCO_CENTRO };
+  if (typeof x !== 'number' || typeof y !== 'number' || !Number.isFinite(x) || !Number.isFinite(y)) return undefined;
   const acotar = (v: number) => Math.min(1, Math.max(0, v));
   return { x: acotar(x), y: acotar(y) };
 }
 
+/** `posicion`: solo `'abajo'` cambia algo. Cualquier otra cosa —sin la columna,
+ *  `null`, un valor que no existe en el check de la migración— es `'arriba'`, que
+ *  es lo que la fábrica hacía siempre. */
 function normalizarPosicion(cruda: unknown): PosicionApertura {
   return cruda === 'abajo' ? 'abajo' : 'arriba';
 }
@@ -106,9 +130,15 @@ function enMb(bytes: number): string {
 }
 
 export async function cargarFotos(db: SupabaseClient, narradorId: string): Promise<FotosDelLibro> {
+  // `select('*')` y no la lista explícita de columnas: nombrar `posicion` y
+  // `foco` haría que PostgREST rechace la consulta ENTERA mientras la migración
+  // 20260918 no esté aplicada ("column fotos.posicion does not exist"), y sin
+  // fotos no hay libro: el pedido caería a `fallido`. Con `*` la fila viene sin
+  // esas columnas y el libro sale como siempre — el mismo criterio que la marca
+  // `tema_de_orden` (ver comun.ts).
   const { data, error } = await db
     .from('fotos')
-    .select('id, narrador_id, capitulo, storage_path, epigrafe, principal, orden, posicion, foco')
+    .select('*')
     .eq('narrador_id', narradorId)
     .order('orden', { ascending: true });
   if (error) throw new Error(`No se pudieron leer las fotos de ${narradorId}: ${error.message}`);

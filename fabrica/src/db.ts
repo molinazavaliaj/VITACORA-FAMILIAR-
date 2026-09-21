@@ -82,10 +82,15 @@ export type Foto = {
   epigrafe: string | null;
   principal: boolean;
   orden: number;
-  /** 'arriba' (default) o 'abajo'; solo importa en la principal (CONTRATO, migración 20260918). */
-  posicion: string | null;
+  /**
+   * 'arriba' (default) o 'abajo'; solo importa en la principal (CONTRATO,
+   * migración 20260918). Opcionales a propósito, igual que `reservada` en
+   * Respuesta: con `select *` no vienen hasta que la migración esté aplicada, y
+   * ausente = 'arriba' y sin recorte, así el libro sale igual antes y después.
+   */
+  posicion?: string | null;
   /** jsonb `{x, y}` en 0..1: el punto que queda a la vista al recortar. Se normaliza en fotos.ts. */
-  foco: unknown;
+  foco?: unknown;
 };
 
 let cliente: SupabaseClient | undefined;

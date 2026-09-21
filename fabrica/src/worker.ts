@@ -6,10 +6,17 @@ import { firmarTokenAnticipo } from './libro/token-anticipo.js';
 import { borrarArchivos, descargarJson, rutasDeBorradores, subirTexto } from './libro/comun.js';
 import { enviarMailAnticipo } from './mail/anticipo.js';
 import { enviarMailHito, CANDADO_POR_HITO, type Hito } from './mail/hitos.js';
+import {
+  CANDADO_RECORDATORIO_FRASES,
+  DIAS_RECORDATORIO_FRASES,
+  enviarMailRecordatorioFrases,
+  RUTA_RECORDATORIO_FRASES,
+} from './mail/frases.js';
 import { avisarSocios, asuntoAviso, cuerpoAviso, CANDADO_AVISO, type MotivoAviso } from './mail/socios.js';
 import { generarEstructura } from './libro/estructura.js';
 import { generarPrevisualizacion } from './libro/previsualizar.js';
 import { generarPaquete } from './libro/generar-paquete.js';
+import { leerFrases } from './libro/publicar-frases.js';
 import { narracionesListas, narracionesAtascadas, RUTA_NARRACION_JSON } from './voz/narraciones.js';
 import { ensamblarAudiolibroClonado } from './voz/ensamblar.js';
 import type { NarracionJson } from './voz/narracion-json.js';
@@ -79,6 +86,7 @@ export async function tick(): Promise<void> {
     corriendo = false;
   }
 }
+    await recordarFrasesPendientes();
 
 /**
  * Los nombres de archivo que hay en `{narrador_id}/paquete/` en Storage: ahí
@@ -87,9 +95,31 @@ export async function tick(): Promise<void> {
  * sigue con el próximo narrador.
  */
 async function listarPaquete(db: Db, narradorId: string): Promise<Set<string>> {
+  return (await listarPaqueteDeStorage(db, narradorId)).archivos;
+}
+
+/**
+ * Lo mismo, más la fecha de creación de cada archivo. Existe aparte porque el
+ * recordatorio de frases necesita CUÁNDO se entregó el libro, y sin migración no
+ * hay `pedidos.entregado_at`: `frases.json` se escribe en el mismo tick que la
+ * entrega (paso 2 de `generarPaquete`, segundos antes del update a 'entregado'),
+ * así que su `created_at` es la fecha de entrega más fiel que hay en el paquete.
+ * Las dos cosas van juntas para no listar el paquete dos veces por narrador.
+ */
+async function listarPaqueteDeStorage(
+  db: Db,
+  narradorId: string
+): Promise<{ archivos: Set<string>; creados: Map<string, string> }> {
   const { data: archivos, error } = await db.storage.from('audios').list(`${narradorId}/paquete`);
   if (error) throw new Error(`No se pudo listar el paquete de ${narradorId}: ${error.message}`);
-  return new Set((archivos ?? []).map((archivo) => archivo.name));
+  const lista = archivos ?? [];
+  const creados = new Map<string, string>();
+  for (const archivo of lista) {
+    // Storage puede no devolver la fecha (objeto raro, API vieja). El que la
+    // necesita decide qué hacer sin ella; acá no se inventa una.
+    if (archivo.created_at) creados.set(archivo.name, archivo.created_at);
+  }
+  return { archivos: new Set(lista.map((archivo) => archivo.name)), creados };
 }
 
 /**
@@ -446,6 +476,105 @@ async function avisarLibrosListos(): Promise<void> {
       console.error(`tick: falló el mail de libro listo de ${narradorId}:`, err);
     }
   }
+}
+
+/**
+ * Branch (f): pedidos 'entregado' cuya familia todavía no confirmó las frases de
+ * «Su voz» y ya pasaron los `DIAS_RECORDATORIO_FRASES` → UN recordatorio por mail
+ * (spec 2026-09-20: la selección se cierra al apretar "imprimir", y si nadie
+ * responde queda la del biógrafo).
+ *
+ * Un mail por NARRADOR, no por pedido: el candado vive en el paquete del libro y
+ * una copia extra del mismo libro (invitado, visitante) no es otro libro ni otra
+ * selección de frases. El candado se chequea ANTES de todo lo demás, así que la
+ * promesa de "una sola vez" la sostiene el archivo, no el paso del tiempo.
+ *
+ * La fecha de entrega sale del `created_at` de `frases.json` en Storage (no hay
+ * `pedidos.entregado_at` y no se migra: ver `listarPaqueteDeStorage`). Si el
+ * archivo no está, o Storage no dice cuándo se creó, no se manda: el recordatorio
+ * puede llegar tarde, nunca antes de tiempo.
+ *
+ * Devuelve cuántos mails salieron. El mail que falla NO se marca: el próximo tick
+ * lo reintenta (sin candado no hay "ya está" falso), y la falla se atrapa por
+ * narrador — una familia sin dirección de mail no puede frenar a las demás ni
+ * tumbar el tick.
+ */
+export async function recordarFrasesPendientes(ahora: Date = new Date()): Promise<number> {
+  const db = obtenerClienteDb();
+  const { urlBase } = cargarConfig();
+
+  const { data: pedidos, error } = await db.from('pedidos').select('id, narrador_id').eq('estado', 'entregado');
+
+  if (error) {
+    console.error('tick: no se pudieron leer los pedidos entregados para el recordatorio de frases:', error.message);
+    return 0;
+  }
+
+  const narradoresEntregados = new Set(((pedidos ?? []) as { narrador_id: string }[]).map((p) => p.narrador_id));
+
+  let enviados = 0;
+  for (const narradorId of narradoresEntregados) {
+    try {
+      const { archivos, creados } = await listarPaqueteDeStorage(db, narradorId);
+
+      // El candado manda: ya salió (o alguien lo sembró a mano para que no salga).
+      if (archivos.has(CANDADO_RECORDATORIO_FRASES)) continue;
+
+      // Sin `frases.json` no hay nada que confirmar: libro entregado antes de Su
+      // voz, o un libro sin audios (la selección con cero capítulos no existe).
+      const creado = creados.get('frases.json');
+      if (!creado) continue;
+
+      const dias = Math.floor((ahora.getTime() - new Date(creado).getTime()) / MS_POR_DIA);
+      if (!Number.isFinite(dias)) {
+        console.warn(`tick: la fecha de frases.json de ${narradorId} no se entiende ("${creado}") — no se recuerda nada.`);
+        continue;
+      }
+      if (dias < DIAS_RECORDATORIO_FRASES) continue;
+
+      const frases = await leerFrases(db, narradorId);
+      // Confirmó (`confirmado_at`) → no hay nada que recordarle. Sin capítulos
+      // con frases, el mail prometería algo que no existe.
+      if (!frases || frases.confirmado_at != null || (frases.capitulos ?? []).length === 0) continue;
+
+      const { data: narrador, error: errorNarrador } = await db
+        .from('narradores')
+        .select('id, como_le_dicen, familia_id')
+        .eq('id', narradorId)
+        .single();
+      if (errorNarrador || !narrador) {
+        throw new Error(`No se pudo leer el narrador: ${errorNarrador?.message ?? 'sin datos'}`);
+      }
+      const quien = narrador as NarradorConFamilia;
+
+      const { data: familia, error: errorFamilia } = await db
+        .from('familias')
+        .select('email')
+        .eq('id', quien.familia_id)
+        .single();
+      if (errorFamilia || !familia) {
+        throw new Error(`No se pudo leer la familia de ${narradorId}: ${errorFamilia?.message ?? 'sin datos'}`);
+      }
+
+      const enviado = await enviarMailRecordatorioFrases({
+        para: (familia as { email: string }).email,
+        comoLeDicen: quien.como_le_dicen,
+        // Al panel del libro, que es el que existe hoy: la pestaña de frases
+        // (`/tablero/{id}/frases`, spec §Arquitectura) la hace la web y se entra
+        // desde ahí. Es una línea, el día que la web la publique.
+        enlace: `${urlBase}/tablero/${narradorId}`,
+      });
+
+      if (enviado) {
+        await subirTexto(db, RUTA_RECORDATORIO_FRASES(narradorId), ahora.toISOString());
+        enviados++;
+      }
+    } catch (err) {
+      console.error(`tick: falló el recordatorio de frases de ${narradorId}:`, err);
+    }
+  }
+
+  return enviados;
 }
 
 /**

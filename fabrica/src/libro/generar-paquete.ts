@@ -226,7 +226,7 @@ export async function generarPaquete(pedido: { id: string; narrador_id: string; 
     // no está entre las fotos (o no se pudo bajar), queda el retrato.
     const contexto = narrador.contexto as { anioNacimiento?: number } | null | undefined;
     const fotoTapa = edicion.portadaFotoId ? fotos.porId.get(edicion.portadaFotoId) : undefined;
-    const html = construirHtmlLibro({
+    const html = await construirHtmlLibro({
       titulo: estructuraFinal.titulo,
       nombreNarrador: narrador.nombre,
       tapa: { titulo: edicion.titulo, subtitulo: edicion.subtitulo },

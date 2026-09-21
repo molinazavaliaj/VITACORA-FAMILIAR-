@@ -1,6 +1,9 @@
 import { escaparHtml } from './comun.js';
 import type { FotosCapitulo, FotoLibro, Foco } from './fotos.js';
-import { estiloFoco } from './fotos.js';
+import { atributoFoco } from './fotos.js';
+import { FRASES_POR_CAPITULO, type FraseCandidata, type FrasesJson } from './frases.js';
+import { qrDataUri } from './qr.js';
+import { urlFraseDeVoz } from './token-voz.js';
 
 // ---------------------------------------------------------------------------
 // La identidad visual aprobada (docs/arte-libro/*.dc.html, 9 mockups A5 a
@@ -373,7 +376,10 @@ function construirEstilos(acento: string): string {
   .foto-img { max-width: 100%; max-height: 100%; object-fit: contain; }
   /* La principal del capítulo se recorta al marco entero; object-position
      (inline, desde fotos.foco) decide qué punto queda a la vista. Las de
-     cierre siguen enteras: son varias y ahí importa ver todo. */
+     cierre siguen enteras: son varias y ahí importa ver todo. La clase se
+     escribe solo cuando la foto trae un foco usable (ver "atributoFoco" en
+     fotos.ts): sin dato —migración 20260918 sin aplicar, fila vieja— la foto
+     va entera, con el marcado de siempre. */
   .foto-img.recorte { width: 100%; height: 100%; max-width: none; max-height: none; object-fit: cover; }
   /* Principal con posicion = 'abajo': va en la portadilla del capítulo, en la
      franja libre debajo del nombre (el numeral termina ~270px; el cuerpo
@@ -463,6 +469,37 @@ function construirEstilos(acento: string): string {
   .sus-frases-hero-tag { font-family: Archivo, Arial, sans-serif; font-size: 10px; letter-spacing: 0.2em; color: var(--acento); font-weight: 600; text-transform: uppercase; }
   .sus-frases-narrador { position: absolute; left: 44px; bottom: 46px; font-family: Archivo, Arial, sans-serif; font-size: 10px; letter-spacing: 0.26em; color: var(--gris1); text-transform: uppercase; }
 
+  /* Su voz: la sección impresa de las frases elegidas, con el QR de cada una
+     (spec 2026-09-20). Mismos tokens que el resto de la identidad: la frase en
+     Playfair itálica —como la cita de la contratapa—, los rótulos en Archivo
+     versalita y el vino del acento. El QR es una imagen: se genera en la fábrica
+     y viaja adentro del HTML. Va como bloque de la columna de texto (lo pagina
+     el paginador embebido, con el cromo del libro); los rótulos que chocan con
+     las reglas de h2/h3 llevan el prefijo .columna-texto/.fuente-texto, que les
+     gana: sin eso, el título saldría del tamaño de un subtítulo. */
+  .columna-texto .su-voz-titulo, .fuente-texto .su-voz-titulo {
+    /* Mismos valores que .titulo-simple (la página simple del libro), que acá
+       necesita el prefijo para ganarle a la regla de h2 de la columna. */
+    font-family: 'Playfair Display', Georgia, serif; font-style: italic; font-weight: 400;
+    font-size: 30px; line-height: 1.1; letter-spacing: normal; text-transform: none; margin: 0 0 10px;
+  }
+  .columna-texto .su-voz-bajada, .fuente-texto .su-voz-bajada { font-size: 13px; line-height: 1.6; color: var(--gris3); margin: 0 0 26px; }
+  .columna-texto .su-voz-capitulo, .fuente-texto .su-voz-capitulo { margin: 26px 0 12px; }
+  .su-voz-frase { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin: 0 0 18px; page-break-inside: avoid; }
+  .su-voz-frase-texto { flex: 1 1 auto; font-family: 'Playfair Display', Georgia, serif; font-style: italic; font-size: 18px; line-height: 1.35; color: var(--tinta); }
+  .su-voz-qr { flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .su-voz-qr-img { width: 96px; height: 96px; display: block; }
+  .su-voz-qr-rotulo { font-family: Archivo, Arial, sans-serif; font-size: 8px; font-weight: 600; letter-spacing: 0.22em; color: var(--acento); text-transform: uppercase; }
+  /* El código de la contratapa: el que abre la página entera. Va más grande que
+     los de las frases (es el que se escanea desde el libro cerrado) y con el link
+     escrito al lado, para quien lo lea sin el teléfono a mano. */
+  .su-voz-contratapa { display: flex; align-items: center; gap: 20px; margin-top: 30px; padding-top: 24px; border-top: 1px solid var(--linea); page-break-inside: avoid; }
+  .su-voz-contratapa-qr-img { width: 132px; height: 132px; display: block; }
+  .su-voz-contratapa-texto { flex: 1 1 auto; }
+  .su-voz-contratapa-titulo { font-family: 'Playfair Display', Georgia, serif; font-style: italic; font-size: 22px; line-height: 1.2; margin: 0 0 8px; }
+  .columna-texto .su-voz-contratapa-bajada, .fuente-texto .su-voz-contratapa-bajada { font-size: 12.5px; line-height: 1.6; color: var(--gris3); margin: 0 0 10px; }
+  .su-voz-contratapa-url { font-family: Archivo, Arial, sans-serif; font-size: 8px; letter-spacing: 0.04em; color: var(--gris1); word-break: break-all; }
+
   /* Colofón */
   .colofon-centro { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 34px; text-align: center; padding: 0 60px; }
   .colofon-linea1 { font-size: 14.5px; line-height: 1.75; color: var(--gris3); }
@@ -533,7 +570,7 @@ function construirPortada(opts: {
 function construirFrontispicio(opts: { fotoUrl: string; fotoFoco?: Foco; nombreNarrador: string; anioNacimiento?: number | null }): string {
   const { fotoUrl, fotoFoco, nombreNarrador, anioNacimiento } = opts;
   return `<div class="lienzo oscuro quiebre">
-    <img class="frontispicio-img" src="${escaparHtml(fotoUrl)}" style="${estiloFoco(fotoFoco)}" alt="" />
+    <img class="frontispicio-img" src="${escaparHtml(fotoUrl)}"${atributoFoco(fotoFoco)} alt="" />
     <div class="frontispicio-velo"></div>
     <div class="frontispicio-eyebrow">RETRATO DEL NARRADOR</div>
     <div class="frontispicio-pie">
@@ -547,11 +584,17 @@ function construirFrontispicio(opts: { fotoUrl: string; fotoFoco?: Foco; nombreN
 /** Una página de foto entera (apertura o cierre de capítulo), con cabecera
  *  de capítulo/narrador y epígrafe opcional. Sin filtro de grises — a
  *  diferencia del frontispicio (identidad, siempre en blanco y negro), acá
- *  existe la edición a color. */
+ *  existe la edición a color.
+ *
+ *  `recortar` es "esta es la principal: se recorta al marco" (las de cierre van
+ *  enteras). El recorte además necesita el foco: sin foco usable —fila vieja o
+ *  migración 20260918 sin aplicar— la foto va entera, con el marcado de siempre,
+ *  porque `atributoFoco` devuelve '' y no hay punto alrededor del cual recortar. */
 function construirPaginaFoto(opts: { foto: FotoLibro; nombreCapitulo: string; nombreNarrador: string; recortar?: boolean }): string {
   const { foto, nombreCapitulo, nombreNarrador, recortar = false } = opts;
-  const img = recortar
-    ? `<img class="foto-img recorte" src="${escaparHtml(foto.dataUri)}" style="${estiloFoco(foto.foco)}" alt="" />`
+  const atributo = atributoFoco(foto.foco);
+  const img = recortar && atributo
+    ? `<img class="foto-img recorte" src="${escaparHtml(foto.dataUri)}"${atributo} alt="" />`
     : `<img class="foto-img" src="${escaparHtml(foto.dataUri)}" alt="" />`;
   return `<div class="lienzo foto quiebre">
     <div class="foto-cabecera"><span>${escaparHtml(nombreCapitulo)}</span><span>${escaparHtml(nombreNarrador)}</span></div>
@@ -566,10 +609,14 @@ function construirAperturaCapitulo(opts: { numero: number; nombreCapitulo: strin
   // posicion = 'abajo': la principal entra en esta misma página, debajo del
   // nombre del capítulo, recortada con su foco (CONTRATO, migración 20260918).
   const fotoHtml = fotoAbajo
-    ? `<div class="apertura-foto-bloque"><div class="apertura-foto"><img class="apertura-foto-img" src="${escaparHtml(fotoAbajo.dataUri)}" style="${estiloFoco(fotoAbajo.foco)}" alt="" /></div>${
+    ? `\n    <div class="apertura-foto-bloque"><div class="apertura-foto"><img class="apertura-foto-img" src="${escaparHtml(fotoAbajo.dataUri)}"${atributoFoco(fotoAbajo.foco)} alt="" /></div>${
         fotoAbajo.epigrafe ? `<div class="apertura-foto-epigrafe">${escaparHtml(fotoAbajo.epigrafe)}</div>` : ''
       }</div>`
     : '';
+  // El bloque de la foto se cuelga con su propio salto de línea adentro de la
+  // interpolación: sin `posicion` no hay bloque y la portadilla tiene que salir
+  // carácter por carácter igual que antes de la migración 20260918 (una línea
+  // en blanco de más no rompe nada, pero deja de ser "el mismo HTML").
   return `<div class="lienzo apertura quiebre">
     ${svgCruz(46, 32)}
     ${svgCruz(46, undefined, 32)}
@@ -581,8 +628,7 @@ function construirAperturaCapitulo(opts: { numero: number; nombreCapitulo: strin
       <div class="cap-nombre">${escaparHtml(nombreCapitulo)}</div>
       <div class="regla-acento"></div>
       <div class="medallion-wrap">${svgMedallion({ size: 40, texto: mono, colorAro: '#1c1917', colorTexto: '#1c1917' })}</div>
-    </div>
-    ${fotoHtml}
+    </div>${fotoHtml}
     <div class="pie-pagina"><span></span><span class="folio"></span></div>
   </div>`;
 }
@@ -663,6 +709,96 @@ function construirSusFrases(opts: { seccion: SeccionLibro; nombreNarrador: strin
   <section class="fuente-texto antes" data-etiqueta="${escaparHtml(titulo)}" data-rail="${escaparHtml(titulo)}">
     ${resto}
   </section>`;
+}
+
+// --- «Su voz»: la sección impresa (frase + QR) -------------------------------
+
+/**
+ * Una frase se puede escuchar cuando el worker de la PC de audio ya la cortó y
+ * dejó su mp3. Es el mismo criterio que usa la web (`tieneAudio` de
+ * `web/src/lib/frases.ts`): si acá dijera otra cosa, el libro mostraría un código
+ * para una frase que la página no sabe reproducir, o escondería una que sí suena.
+ */
+function tieneAudio(frase: FraseCandidata): boolean {
+  return frase.estado === 'cortada' && typeof frase.audio_path === 'string' && frase.audio_path.length > 0;
+}
+
+/** El QR como `<img>` inline: es un PNG chico en data URI, así que el HTML del
+ *  libro se basta solo (nada de carpetas de archivos ni de red: el PDF se arma en
+ *  Railway, sin navegador a mano). El `alt` lo lee quien no puede ver el código. */
+function imagenQr(dataUri: string, clase: string, lado: number, alt: string): string {
+  return `<img class="${clase}" src="${dataUri}" width="${lado}" height="${lado}" alt="${escaparHtml(alt)}" />`;
+}
+
+/**
+ * La sección impresa de «Su voz» (Task 4 del plan 2026-09-20-su-voz-fabrica): las
+ * frases elegidas de cada capítulo con un QR al lado, y al final el código que
+ * abre la página entera. Existe por una razón sola: que la familia pueda volver a
+ * escucharlo tal como lo dijo, con el libro en la mano y sin pedirle nada a nadie.
+ *
+ * Va como una `<section class="fuente-texto">` y no como un lienzo fijo: la
+ * paginación la hace el paginador embebido, que reparte los bloques en páginas A5
+ * con el cromo del libro (cabecera corrida, riel, folio) y manda entera a la
+ * página siguiente la frase que no entra. Un lienzo de 210mm con veinticuatro
+ * frases adentro recortaría en silencio lo que no entra — que es, justamente, el
+ * bug que el paginador vino a arreglar en la página «Sus frases».
+ *
+ * Tres reglas del diseño, y ninguna se negocia:
+ *  1. una frase sin audio (o con el corte fallido) se imprime igual, pero SIN QR:
+ *     nunca un código que no suena;
+ *  2. hasta `FRASES_POR_CAPITULO` por capítulo — es un tope, no un mínimo — en el
+ *     orden del archivo, que es el orden en que se imprimen;
+ *  3. sin ninguna frase que suene no hay nada para escanear: no se imprime ni la
+ *     sección ni el código de la contratapa. Un libro sin frases sale igual.
+ *
+ * El link de cada QR lo arma quien conoce al narrador y el secreto
+ * (`urlVozDeNarrador` de `token-voz.ts`): acá adentro no se firma nada.
+ */
+export async function seccionFrasesHtml(args: { frases: FrasesJson; urlCliente: string }): Promise<string> {
+  const capitulos = args.frases.capitulos
+    .map((capitulo) => ({
+      capitulo,
+      frases: capitulo.candidatas.filter((frase) => frase.elegida).slice(0, FRASES_POR_CAPITULO),
+    }))
+    .filter((x) => x.frases.length > 0);
+  if (!capitulos.some((x) => x.frases.some(tieneAudio))) return '';
+
+  const bloques: string[] = [
+    '<h2 class="su-voz-titulo">Su voz</h2>',
+    // La misma regla de acento de la página simple: el rótulo del paginador lo
+    // reconoce como encabezado y lo baja de página junto con el título.
+    '<div class="titulo-simple-regla"></div>',
+    '<div class="su-voz-bajada">Acá están sus frases, tal como las dijo. Apuntá el teléfono al código de una y la escuchás.</div>',
+  ];
+
+  for (const { capitulo, frases } of capitulos) {
+    const numero = String(capitulo.numero).padStart(2, '0');
+    bloques.push(`<h3 class="su-voz-capitulo">Cap. ${numero} · ${escaparHtml(capitulo.capitulo)}</h3>`);
+    for (const frase of frases) {
+      // El QR va al lado de la frase, y solo si la frase suena.
+      const qr = tieneAudio(frase)
+        ? `<div class="su-voz-qr">${imagenQr(await qrDataUri(urlFraseDeVoz(args.urlCliente, frase.id)), 'su-voz-qr-img', 96, 'Código para escuchar esta frase')}<div class="su-voz-qr-rotulo">Escuchala</div></div>`
+        : '';
+      bloques.push(`<div class="su-voz-frase"><div class="su-voz-frase-texto">«${escaparHtml(frase.texto)}»</div>${qr}</div>`);
+    }
+  }
+
+  // El código de la contratapa: abre la página ENTERA, desde el principio — el que
+  // tiene el libro en la mano ya lo pagó. Es más grande que los de las frases (se
+  // escanea desde el libro cerrado) y lleva el link escrito al lado, para quien lo
+  // mire sin el teléfono a mano.
+  bloques.push(`<div class="su-voz-contratapa">
+    <div>${imagenQr(await qrDataUri(args.urlCliente), 'su-voz-contratapa-qr-img', 132, 'Código para abrir el libro y sus frases')}</div>
+    <div class="su-voz-contratapa-texto">
+      <div class="su-voz-contratapa-titulo">El libro entero, en su voz</div>
+      <div class="su-voz-contratapa-bajada">Este código abre la página: el libro online y todas sus frases, para escuchar y compartir.</div>
+      <div class="su-voz-contratapa-url">${escaparHtml(args.urlCliente)}</div>
+    </div>
+  </div>`);
+
+  return `<section class="fuente-texto antes" data-etiqueta="Su voz" data-rail="Su voz">
+  ${bloques.join('\n  ')}
+</section>`;
 }
 
 function construirColofon(opts: { nombreNarrador: string; mono: string }): string {
@@ -940,7 +1076,7 @@ function construirScriptPaginador(): string {
 
 // --- Ensamblado final ---------------------------------------------------------
 
-export function construirHtmlLibro(datos: {
+export async function construirHtmlLibro(datos: {
   titulo: string;
   /** Manda sobre el que se saca del título — default: `extraerNombreNarrador(titulo)`. */
   nombreNarrador?: string;
@@ -960,7 +1096,15 @@ export function construirHtmlLibro(datos: {
   /** Color de acento de la colección (franja de lomo, cruces, cita, folio).
    *  Opcional — sin él, el vino de la identidad aprobada. */
   acento?: string;
-}): string {
+  /** «Su voz» impresa (Task 4): las frases elegidas de cada capítulo con su QR.
+   *  Sin esto —o sin ninguna frase con audio, o sin `urlCliente`— el libro sale
+   *  sin la sección: nunca una página vacía ni un código que no lleva a nada. */
+  frases?: FrasesJson;
+  /** El link público de su voz (`{urlBase}/voz/{token}`, `urlVozDeNarrador` de
+   *  `token-voz.ts`): el destino del QR de cada frase y del código de la
+   *  contratapa. Lo arma quien conoce al narrador, porque acá no se firma nada. */
+  urlCliente?: string;
+}): Promise<string> {
   const { titulo, tapa = { titulo: null, subtitulo: null }, anioNacimiento, fotoUrl, fotoFoco, indice, libroMarkdown, fotosPorCapitulo, acento = '#6e2618' } = datos;
 
   const nombreNarrador = datos.nombreNarrador ?? extraerNombreNarrador(titulo);
@@ -990,6 +1134,13 @@ export function construirHtmlLibro(datos: {
   const frontispicioHtml = fotoUrl
     ? construirFrontispicio({ fotoUrl, fotoFoco, nombreNarrador, anioNacimiento })
     : '';
+  // «Su voz» va después de todo el cuerpo y antes de las páginas de cierre
+  // (colofón y contratapa), como pidió el plan: es una sección del libro, no una
+  // página suelta pegada al final.
+  const seccionVozHtml =
+    datos.frases && datos.urlCliente
+      ? await seccionFrasesHtml({ frases: datos.frases, urlCliente: datos.urlCliente })
+      : '';
   const colofonHtml = construirColofon({ nombreNarrador, mono });
   const contratapaHtml = construirContratapa({ fraseHeroe, nombreNarrador, anioNacimiento, mono });
 
@@ -1005,6 +1156,7 @@ export function construirHtmlLibro(datos: {
 ${portadaHtml}
 ${frontispicioHtml}
 ${contenidoHtml}
+${seccionVozHtml}
 ${colofonHtml}
 ${contratapaHtml}
 ${construirScriptPaginador()}

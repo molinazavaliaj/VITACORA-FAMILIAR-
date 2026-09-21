@@ -447,6 +447,7 @@ online del panel, el mismo que se imprime) y, junto a `anticipo_enviado.txt`, lo
 candados de los mails que manda la fábrica: `terminado_enviado.txt`,
 `recordatorio_cierre_3.txt`, `recordatorio_cierre_7.txt`, `recordatorio_cierre_14.txt`,
 `cierre_automatico_enviado.txt` y `libro_listo_enviado.txt`. `cierre_automatico.txt` es
+{narrador_id}/paquete/recordatorio_frases_enviado.txt   candado del recordatorio de «Su voz» a los 15 días (lo escribe la fábrica)
 aparte: no es candado de mail, es la marca que deja el cierre automático de los 30 días
 para saber que fue la fábrica quien puso `libro_aprobado_at`.
 
