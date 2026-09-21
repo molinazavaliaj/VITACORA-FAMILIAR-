@@ -127,7 +127,7 @@ se decide con eso a la vista.
 | 1.1 | ~~Apelar una última vez desde el perfil bloqueado~~ — ya no aplica: Meta se opera con la cuenta personal de Joaquín | **J** | — |
 | 1.2 | Confirmar si existe un portfolio comercial previo (define la vía rápida) | **J** | ✅ 15/09 — **cambio de plan: Meta lo opera Joaquín con su cuenta personal de años** (la deshabilitada era la nueva). El portfolio "Vitacora Familiar" ya existe (lo creó Business Suite con la página, 08/09), página e Instagram adentro. Plan B: el portfolio "Whānau", con antigüedad. |
 | 1.3 | **VÍA RÁPIDA:** crear app + WABA de prueba → `WA_TOKEN` y `WA_PHONE_NUMBER_ID` en Railway | **J** | ✅ 16/09 — app `Vitacora Familiar` (1061858183385953), WABA `1553096429416760`, número de prueba **+1 (555) 182-9748**, `Phone Number ID 1262240796981875`. **Probado de punta a punta con el WhatsApp real de Joaquín** (SÍ → acepto → respuesta). ⚠️ El token es temporal (24 h): ver 1.12 |
-| 1.4 | Cargar en la lista de permitidos (máx. 5): Naza, Joaquín (+541178174942), y los narradores piloto | **J** | 🔄 17/09 — Joaquín ✅, Naza ✅, **Dora ✅** (número corregido en la base a +541166226636; en Meta van sin el 9, el `from` llega con el 9 y `variantesDeTelefono` lo resuelve). Falta **Imma (N)**. **La bienvenida sale sola** al aprobarse la plantilla — avisarles antes. |
+| 1.4 | ~~Cargar en la lista de permitidos (máx. 5)~~ — **ya no aplica** desde el número propio (1.12, 20/09): cualquier número puede escribir | **J** | ✅ cerrado 20/09. Histórico: 🔄 17/09 — Joaquín ✅, Naza ✅, **Dora ✅** (número corregido en la base a +541166226636; en Meta van sin el 9, el `from` llega con el 9 y `variantesDeTelefono` lo resuelve). Falta **Imma (N)**. **La bienvenida sale sola** al aprobarse la plantilla — avisarles antes. |
 | 1.5 | Crear las plantillas de `entrevistador/PLANTILLAS.md`, categoría Utility — **ahora son 4**: `bienvenida`, `pregunta_diaria` (1 variable, en usted), `pregunta_diaria_vos` (gemela en vos, 15/09), `recordatorio` | **J** | 🔄 16/09 — las 4 enviadas. `recordatorio` en Utilidad; `bienvenida`, `pregunta_diaria` y `pregunta_diaria_vos` quedaron en **Marketing** (el clasificador no aceptó Utilidad ni reescritas; apelación enviada, Meta responde hasta el 16/11). Para el código es transparente. Costo: ~USD 0,06/mensaje; la mayoría de las preguntas salen en modo rápido como texto libre, sin plantilla. |
 | 1.6 | Crear la Página "Vitácora Familiar", completarla al 100%, 5-10 posteos | **J** | ✅ 08/09 — 22 seguidores al 15/09 |
 | 1.7 | Esperar 7-14 días de historial de la Página | — | ☐ |
@@ -135,7 +135,7 @@ se decide con eso a la vista.
 | 1.9 | Conseguir línea telefónica dedicada (sin WhatsApp común activo) | **J** | ✅ 16/09 — chip activado, **nunca metido en una app de WhatsApp**; entra en 1.12 |
 | 1.10 | Verificación del negocio con documentación de Joaquín | **A** | ☐ post 1-oct |
 | 1.11 | Cuenta publicitaria — ⚠️ moneda **ARS**, no se cambia nunca más | **N** | ☐ post 1-oct |
-| 1.12 | Producción: **chip propio ya activado** (no meterlo en ninguna app de WhatsApp), display name, **token permanente (System User)** — el actual vence a las 24 h, hay que renovarlo a mano en Railway hasta hacer esto. Exige cargar medio de pago en Meta, moneda **ARS**. | **J** | 🔄 **20/09**: número agregado y registrado (`Phone Number ID 1242792948928690`), System User `vitacora-railway` + token permanente, `WA_TOKEN` y `WA_PHONE_NUMBER_ID` cargados en Railway. **Hallazgo:** el número quedó en una WABA nueva ("Vitácora"), distinta de la de prueba (`1553096429416760`) → (a) app suscripta a la WABA nueva ✅ 20/09; (b) las 5 plantillas clonadas por API a la WABA nueva (`bienvenida` con permiso de voz, `pregunta_diaria`, `pregunta_diaria_vos`, `recordatorio`, `bienvenida_viaje`) — **en revisión**; hasta que las aprueben cada envío de plantilla falla con `#132001`. Token viejo revocado (apareció en capturas), nuevo en Railway. Número: **+54 9 11 2866-8813**. Después: `NEXT_PUBLIC_WA_NUMERO` en Vercel (N). |
+| 1.12 | Producción: **chip propio ya activado** (no meterlo en ninguna app de WhatsApp), display name, **token permanente (System User)** — el actual vence a las 24 h, hay que renovarlo a mano en Railway hasta hacer esto. Exige cargar medio de pago en Meta, moneda **ARS**. | **J** | ✅ **20/09 (noche)**: circuito completo probado con el número propio (Naza escribió SÍ desde su celular y recibió la aceptación). Detalle: número agregado y registrado (`Phone Number ID 1242792948928690`), System User `vitacora-railway` + token permanente, `WA_TOKEN` y `WA_PHONE_NUMBER_ID` cargados en Railway. **Hallazgo:** el número quedó en una WABA nueva ("Vitácora"), distinta de la de prueba (`1553096429416760`) → (a) app suscripta a la WABA nueva ✅ 20/09; (b) las 5 plantillas clonadas por API a la WABA nueva (`bienvenida` con permiso de voz, `pregunta_diaria`, `pregunta_diaria_vos`, `recordatorio`, `bienvenida_viaje`) — **en revisión**; hasta que las aprueben cada envío de plantilla falla con `#132001`. Token viejo revocado (apareció en capturas), nuevo en Railway. Número: **+54 9 11 2866-8813**. Después: `NEXT_PUBLIC_WA_NUMERO` en Vercel (N). |
 
 ### ✅ Infraestructura unificada (15/09)
 
@@ -209,7 +209,7 @@ Falta solo pegar el `WA_TOKEN` y el `WA_PHONE_NUMBER_ID` nuevos cuando exista la
 | 2.6 | Middleware de supabase-ssr (pendiente #1 del triage) | **N** | ☐ |
 | 2.7 | Pixel de Meta + Conversions API — ver nota abajo | **N** | ☐ |
 | **2.8** | **Deploy automático de la web** — `.github/workflows/deploy-web.yml`: en cada push a `main` que toque `web/`, GitHub corre los tests y empuja a Vercel con la CLI (sin Pro). Secretos `VERCEL_TOKEN` (Full Account) / `VERCEL_ORG_ID` / `VERCEL_PROJECT_ID` en GitHub. | **J + N** | ✅ 16/09 — primer deploy verde: run 35099776813 (token `github-actions-web`). `vercel git connect` sigue sin poder usarse (Hobby + repo ajeno); **Root Directory queda en `.`**. — bitácora #8 |
-| 2.10 | **Oferta de productos en el flujo del usuario:** hoy en el checkout solo se puede elegir el libro PDF; tienen que estar todos los productos (impreso, audiolibro, marco/QR…) sumables al carrito | **J** | ☐ (20/09) |
+| 2.10 | **Oferta de productos en el flujo del usuario:** hoy en el checkout solo se puede elegir el libro PDF; tienen que estar todos los productos (impreso, marco NFC… el audiolibro ya no existe: es «Su voz», incluida en el PDF) sumables al carrito | **J** | ☐ (20/09) |
 | 2.11 | Mejorar el selector **Familiar · De viaje** del header (hoy dos pastillas mínimas) | **J** | ☐ (20/09) |
 | 2.12 | **Región por IP:** al entrar, detectar el país y llevar directo a la landing/precios de Argentina o de Europa (sin el selector manual AR/ES) | **J** | ☐ (20/09) — Vercel expone `x-vercel-ip-country` en el request; con eso alcanza |
 | 2.13 | **Conversión de la landing:** reseñas con estrellas (Trustpilot o propias), urgencia (promo/unidades que se terminan). ⚠️ Regla: **solo con material real** — testimonios de Ángel, Joaquín y los pilotos, y plazos verdaderos (p. ej. fecha límite para el impreso antes de Navidad). Reseñas inventadas o contadores falsos rompen la marca y son ilegales en la UE. | **J + N** | ☐ (20/09) — después de 2.10 y 8.7 |
@@ -446,7 +446,7 @@ Spec: `docs/panel-usuario.md`. Construyó Joaquín en `web/` (Naza sin créditos
 | 3t.11 | Fábrica: leer `narradores.edicion`, ubicar `fotos`, **no producir sin `libro_aprobado_at`**, cierre automático a los 30 días (spec §12) | **N** | ✅ 13/09 — `ordenCapitulos`/`titulo`/`subtitulo`/`portadaFotoId` aplicados, `excluidas`/`correcciones` ignorados (decisión 13/09); a los 30 días de `ultima_respuesta_at` la fábrica misma cierra y produce |
 | 3t.12 | Sugeridas por IA a pedido (§6.2, tercer botón) | **J** | ✅ 16/09 — botón "Sugerime preguntas" en el modo edición de la historia; `/api/sugeridas` → entrevistador. ⚠️ Vercel: `ENTREVISTADOR_URL` + `SUGERIDAS_CLAVE` (GASTOS.md) |
 | **3t.13** | **Rediseño 13/09 (tarde)** — landing con maquetas en código + CTA sticky; tema claro/oscuro; nav de 3; la historia ES el guion (riel, filas, modo edición); fotos sin capítulo; **tres productos, al menos uno** (PDF · audiolibro · impreso); el lector (`/leer`, nada se descarga); libro en miniatura + tapa/contratapa/marco. Spec: `docs/panel-usuario.md` §15. Lienzo: `docs/diseno/panel-v2/`. | **J** | ✅ 13/09 · revisado y pusheado el 14/09 |
-| 3t.14 | Fábrica: leer `pedidos.extras` nuevo (pdf / audiolibro{voz} / impreso / marcos), **audiolibro con voz clonada o narrador** (elegir proveedor), contratapa y marco desde `edicion`, HTML paginado para el lector y la miniatura | **N** | ☐ **Voz clonada diseñada el 16/09** → `docs/superpowers/specs/2026-09-16-voz-clonada-design.md`: motor abierto en la PC de música de Naza (RTX 4060 Ti), buzón `narraciones` en Supabase, piso de 10 min de voz, permiso del narrador en la bienvenida (`consentimiento_voz_at`, con Joaquín en 3t.15), prueba de oído A/B/C con los audios de Joaquín. PC de música lista (16/09: Python 3.11, ffmpeg, torch cu126, RTX 4060 Ti probada). **Plan 1 hecho**: paquete `voz/` con la prueba de oído (`docs/superpowers/plans/2026-09-16-voz-prueba-de-oido.md`, README en `voz/`); **corrida el 16/09 con Joaquín → ganó Qwen3-TTS (`MOTOR=qwen3tts`, ya en la PC; 18/09)**. **Plan 2 hecho en código (16/09, noche)**: `docs/superpowers/plans/2026-09-16-voz-plan-2-buzon-worker-fabrica.md` — migración `narraciones` + CONTRATO, fábrica (narracion.json, esperando_voz, ensamblado, avisos a los socios, `npm run narracion -- reintentar`), worker `python -m voz.worker` con reanudación (probado con motor falso), web muestra esperando_voz. **Falta**: que Joaquín lea la sección "Narraciones" del CONTRATO y se aplique la migración; deploy; registrar la tarea programada `VitacoraVoz` en la PC (README `voz/`); consentimiento en el entrevistador (3t.15); punta a punta con Joaquín. El resto de la fila (solo lo comprado, narrador TTS, contratapa/marco/HTML) queda para specs aparte. |
+| 3t.14 | ⚠️ **20/09: el audiolibro se descartó → «Su voz»** (ver Decisiones 20-21/09). La mitad "voz clonada" de esta fila queda sin uso activo. Original: Fábrica: leer `pedidos.extras` nuevo (pdf / audiolibro{voz} / impreso / marcos), **audiolibro con voz clonada o narrador** (elegir proveedor), contratapa y marco desde `edicion`, HTML paginado para el lector y la miniatura | **N** | ☐ **Voz clonada diseñada el 16/09** → `docs/superpowers/specs/2026-09-16-voz-clonada-design.md`: motor abierto en la PC de música de Naza (RTX 4060 Ti), buzón `narraciones` en Supabase, piso de 10 min de voz, permiso del narrador en la bienvenida (`consentimiento_voz_at`, con Joaquín en 3t.15), prueba de oído A/B/C con los audios de Joaquín. PC de música lista (16/09: Python 3.11, ffmpeg, torch cu126, RTX 4060 Ti probada). **Plan 1 hecho**: paquete `voz/` con la prueba de oído (`docs/superpowers/plans/2026-09-16-voz-prueba-de-oido.md`, README en `voz/`); **corrida el 16/09 con Joaquín → ganó Qwen3-TTS (`MOTOR=qwen3tts`, ya en la PC; 18/09)**. **Plan 2 hecho en código (16/09, noche)**: `docs/superpowers/plans/2026-09-16-voz-plan-2-buzon-worker-fabrica.md` — migración `narraciones` + CONTRATO, fábrica (narracion.json, esperando_voz, ensamblado, avisos a los socios, `npm run narracion -- reintentar`), worker `python -m voz.worker` con reanudación (probado con motor falso), web muestra esperando_voz. **Falta**: que Joaquín lea la sección "Narraciones" del CONTRATO y se aplique la migración; deploy; registrar la tarea programada `VitacoraVoz` en la PC (README `voz/`); consentimiento en el entrevistador (3t.15); punta a punta con Joaquín. El resto de la fila (solo lo comprado, narrador TTS, contratapa/marco/HTML) queda para specs aparte. |
 | 3t.15 | Entrevistador: muestras de voz limpias para clonar + **pedir por WhatsApp el consentimiento explícito del narrador para clonar su voz** (la política de privacidad lo promete: es dato biométrico) | **J** | 🔄 17/09 — **código hecho**: la bienvenida (usted y vos) pide el permiso en la misma frase del SÍ; `procesar.ts` anota `consentimiento_voz_at` al pasar a `acepto` **solo si `WA_BIENVENIDA_PIDE_VOZ=1`** (la plantilla en Meta todavía es la vieja, sin la frase); `npm run manual -- ficha <narrador> --voz-si` lo carga a mano para los pilotos. **Falta:** editar `bienvenida` en Meta con el cuerpo nuevo cuando aprueben la actual (vuelve a revisión) → prender la variable en Railway. Las muestras de voz limpias las hace el paquete `voz/` de Naza (`preparar_muestras`). |
 | 3t.16 | **Paso 5 de la compra: la entrevista y el álbum** (ritmo, temas a evitar, fotos) antes de pagar, para terminar el libro sin entrar al panel — spec §15.4 | **J** | ✅ 17/09 — fotos sin sesión con token firmado de 1 h (`lib/token-fotos.ts`), probado de punta a punta hasta Mercado Pago. **Textos del paso a aprobar por Naza.** |
 | 3t.17 | **La pregunta de cierre** del entrevistador: después de las 4 finales, "¿hay algo que no le pregunté y que quiera en el libro?" — si cuenta, entra al libro; si nombra un tema, se le arma una pregunta; si dice que no, se despide. Máximo dos vueltas. Textos aprobados por J el 18/09 (`entrevistador/src/flujo/cierre-abierto.ts`). | **J** | ✅ 18/09 — Dora y Naza lo tienen al final de su entrevista. Naza revisa la letra. |
@@ -454,7 +454,7 @@ Spec: `docs/panel-usuario.md`. Construyó Joaquín en `web/` (Naza sin créditos
 | 3t.19 | **Panel de viaje ≠ panel familiar** (visto el 20/09 en la compra real): hoy el viajero ve el guion de 8 capítulos y 30 preguntas del Familiar. Debe ver **sus etapas como capítulos** (ciudad + fechas), el álbum por etapa, editar **sobre qué le preguntamos** (los ángulos que eligió al comprar) y la evolución del libro. Sin lista de pregunta por día: en viaje es siempre la misma con un par de variantes para que suene a biógrafo y no a robot. | **J** | ☐ (20/09) |
 | 3t.20 | **Después de pagar → adentro del panel.** Hoy MP devuelve a la pantalla de gracias y el comprador entra con el código por mail. Meta: al volver del pago, sesión ya iniciada y el panel abierto en el libro recién pedido (o, como mínimo, elegir cómo entrar ahí mismo). Sin contraseñas: sigue el código por mail. | **J** | ☐ (20/09) — depende de que el webhook de MP haya confirmado (ver 8.6) |
 | 3t.22 | **Ficha del narrador en la compra:** edad y nacionalidad, y un botón **tú / vos** (hoy el trato lo decide el modelo con la ficha; el comprador debería poder fijarlo). Alimenta el prompt del entrevistador y la transcripción de nombres. | **J** | ☐ (20/09) |
-| 3t.21 | **Página final del libro** (después de Encargar): las **cápsulas de voz** que se escuchan al escanear el QR — elegir/editar qué audios van — y debajo el libro. La organizadora lo descarga; invitados y visitantes solo ven una vista previa y lo comparten. | **J** | ☐ (20/09) |
+| 3t.21 | **Página final del libro** (después de Encargar): las **cápsulas de voz** que se escuchan al escanear el QR — elegir/editar qué audios van — y debajo el libro. La organizadora lo descarga; invitados y visitantes solo ven una vista previa y lo comparten. | **J** | 🔄 **ya casi existe como «Su voz»** (rama `su-voz-web-panel`: `/tablero/[id]/frases` para elegir/escuchar y `/voz/[token]` público con compartir por WhatsApp). Falta al mergear: la descarga del PDF solo para la organizadora y la vista previa para el resto. |
 
 **Para que todo lo de arriba ande en producción (Naza):**
 1. ~~`npx supabase db push`~~ ✅ 16/09 — las tres migraciones aplicadas.
@@ -575,7 +575,7 @@ punta a punta (falta la cuenta de Meta). Nada de eso lo destraba esta prueba.
 
 | # | Tarea | Quién | Estado |
 |---|---|---|---|
-| 6.1 | Conseguir narrador argentino (abuela o padre de Joaquín) y pedirle permiso | **J** | ✅ Dora ("Babu") cargada, estado `invitado`; espera la API |
+| 6.1 | Conseguir narrador argentino (abuela o padre de Joaquín) y pedirle permiso | **J** | ✅ Dora ("Babu", `816dc1d1`) en `invitado` con el número correcto. **20/09: no hay que hacer nada más** — el scheduler le manda la bienvenida solo (cada 15 min lo intenta) en cuanto Meta apruebe la plantilla `bienvenida` en la cuenta nueva; ella responde SÍ y arranca. Avisarle por teléfono antes. ⚠️ Hay una segunda "DORA" (`8e81e576`, `pendiente_pago`, número inventado) de una prueba de compra del 19/09: borrarla. |
 | 6.2 | Narrador español: Pequeña Imma (ya cargada en la base, estado `invitado`) | **N** | ☐ |
 | 6.3 | Activar `contexto.modoRapido = true` en ambos | **N** (los registra) | ☐ |
 | 6.4 | Acompañar el piloto: llamar si se traba, anotar todo lo que falle | **A** | ☐ |
@@ -614,7 +614,7 @@ al algoritmo a buscar curiosos en vez de compradores.
 |---|---|---|---|
 | 8.1 | Cuenta de Mercado Pago + `MP_ACCESS_TOKEN` en Vercel + webhook a `/api/webhooks/mercadopago` — **pago único** (el código ya existe) | **J** | ✅ 15/09 — producción activada, token y webhook cargados, el checkout funciona en la web |
 | 8.2 | Cargar en Vercel los 10 precios (tabla en `GASTOS.md`) | **N** | ✅ 16/09 — el checkout ofrece los tres productos |
-| 8.3 | ~~Prueba en sandbox~~ → **un pago real de prueba en producción, y devolverlo** (sandbox abandonado el 13/09) | **A** | ☐ único paso que falta del cobro |
+| 8.3 | ~~Prueba en sandbox~~ → **un pago real de prueba en producción, y devolverlo** (sandbox abandonado el 13/09) | **A** | 🔄 20/09: Joaquín recorrió `/comprar/viaje` hasta la pantalla de Mercado Pago **sin pagar** (narrador `e9ef083f` en `pendiente_pago`, pedido `dffeccca` en `pendiente`). **Lunes 21: pagar de verdad** — es la única forma de saber si el webhook (8.6) confirma antes de que compre Nako. |
 | **8.6** | **Confirmar con Naza:** en Vercel, `MP_WEBHOOK_SECRET` tiene que ser la clave del webhook de **producción** (panel de MP → Webhooks → junto a la URL), no la de prueba del 13/09 — desde `b1fedf2` la web rechaza con 401 las notificaciones mal firmadas. Después, **redeploy** (o conectar Vercel a GitHub, 2.8). Señal de que está mal: el pago real entra y el pedido queda "pendiente". | **J avisa · N carga** | ✅ 16/09 (según Joaquín) — **se confirma con el pago real (8.3)**: si el pedido queda "pendiente" con el pago aprobado, es esto |
 | 8.4 | **Naza se da de alta como autónoma en España y abre Stripe** — reabre el mercado de 49€ | **N** | 🔄 **decidido el 20/09**: va por Stripe directo (el código ya existe; falta la cuenta). Shopify descartado (Shopify Payments pide la misma entidad y suma 30 €/mes + tienda paralela). Si el alta se demorara, plan B: merchant of record (Lemon Squeezy / Paddle). |
 | 8.7 | **Promociones:** precio de lista tachado + "% de descuento" + precio final, en landing, checkout y mails. Primera promo: final **49 € / $79.750** (definir el precio de lista desde el que se descuenta). Implementación: `PRECIO_*_LISTA` en Vercel o una `PROMO_PORCENTAJE`; el cobro real siempre con el precio final. | **J** | ☐ (20/09) |
@@ -650,7 +650,7 @@ queda para después del lanzamiento.
 |---|---|---|
 | **1** · 5-11 sep | Cimientos | ✅ prueba del cerebro (08/09) · ✅ **pilares, personas y modelo de cobro cerrados (10/09)** |
 | **2** · 12-18 sep | Destrabar | **WhatsApp vivo (12)** · pilotos arrancan · logo listo · INPI presentado |
-| **3** · 19-25 sep | Ejecutar | Pilotos respondiendo · marca aplicada a web y libro · contenido publicándose |
+| **3** · 19-25 sep | Ejecutar | ✅ número propio (20) · ✅ Vitácora de viaje vendible (20) · «Su voz» diseñada y construida (20-21) · **Nako en viaje (21)** · pilotos respondiendo · ver «Semana clave» |
 | **4** · 26 sep-1 oct | Cerrar | **Libro real terminado** · checkout con prueba andando |
 | **5** · 1-15 oct | Lanzar | **15 oct: sale la comunicación de Navidad** · landing y panel nuevos vivos |
 
@@ -666,6 +666,51 @@ queda para después del lanzamiento.
 | **No poder cobrarle a España** | Argentina primero · merchant of record a evaluar después |
 
 ---
+
+## 📌 Decisiones 20-21/09 — «Su voz» reemplaza al audiolibro
+
+Spec: `docs/superpowers/specs/2026-09-20-su-voz-design.md` (Naza, aprobada parte por parte el 20/09).
+Diario técnico en `ESTADO.md` (entradas del 20 y 21/09).
+
+- **El audiolibro se descarta** (voz clonada, híbrido y narrador). Razón: compite contra la voz
+  real que la familia ya escuchó en el anticipo, 70 min son un compromiso, y un TTS lo hace
+  cualquiera. La PC de música y Qwen3-TTS quedan para cortar/restaurar audio real, no para clonar.
+- **«Su voz»**: las mejores frases del narrador **en su voz real** (10-25 s, 3 por capítulo, 24 en un
+  libro de 8), elegidas por el mismo modelo que escribe el libro en una segunda pasada. Se escuchan
+  en el panel, se imprimen con un código, se reenvían por WhatsApp. *"De él vas a tener fotos. Con
+  esto, lo que decía."*
+- **Tres escalones:** base = PDF + Su voz (incluida, no es línea aparte) · + impreso tapa dura ·
+  + marco NFC con su foto. La base se descarga al cerrar el libro.
+- **La familia edita las frases** desde el panel; la selección se cierra al apretar "imprimir";
+  a los 15 días sin confirmar, mail de recordatorio y queda la del biógrafo.
+- **Costo medido:** USD 1,85 por libro con pensamiento completo; **no se abarata el juicio** (el
+  modo barato "prolija" las citas y rompe el filtro de cita textual).
+- **Alta con contexto mínimo** (21/09): la compra pide año de nacimiento, estado civil e hijos
+  (opcionales) y el biógrafo arranca con eso. **"Esto es de otra parte"** (21/09): la evaluación
+  marca a qué pregunta anterior pertenece un recuerdo tardío sin reencuadrar al narrador; la
+  fábrica lo lleva al capítulo que le toca (migración propuesta, sin aplicar).
+- **Estado del código (21/09 00:31):** fábrica y worker en `main` (`su-voz-fabrica`, Tasks 1-3).
+  La web va en una cadena de ramas **sin mergear**: `su-voz-web-checkout` (sale el audiolibro del
+  checkout) → `su-voz-web-panel` (`/tablero/[id]/frases`, `/voz/[token]` público, APIs) →
+  `alta-contexto-minimo` → **`su-voz-textos` (`2195df2`)**: 278 tests, tsc y build limpios.
+  **Se mergea cuando Naza dé el OK a los textos** (regla de la casa). Pendientes de Naza en la
+  fábrica: sección impresa con QR (Task 4) y recordatorio a los 15 días (Task 6).
+
+## 🗓 Semana clave — 21 al 27/09
+
+Objetivo: **el viajero (Nako) en marcha, los pilotos respondiendo, «Su voz» en producción.**
+
+| Día | Joaquín | Naza |
+|---|---|---|
+| **Lun 21** | Pago real de prueba en `/comprar/viaje` (8.3, quedó en la pantalla de MP) → si el pedido no pasa a `pagado`, es 8.6 · Nako compra y escribe "hola" · Vigilar aprobación de las 5 plantillas (cuando `bienvenida` esté: `WA_BIENVENIDA_PIDE_VOZ=1`; cuando `bienvenida_viaje`: `WA_PLANTILLA_BIENVENIDA_VIAJE=1`) · `rm ~/.wa_token` | OK a los textos de `su-voz-textos` → merge · `MP_WEBHOOK_SECRET` de producción confirmado · Task 4 (QR impreso) |
+| **Mar 22** | 3t.19 panel de viaje (etapas como capítulos, álbum por etapa, ángulos editables) — Nako ya está viajando, lo ve él | Task 6 (mail de los 15 días) · migración "de otra parte" · 3b.6 en la fábrica |
+| **Mié 23** | 3t.19 (sigue) · 2.10 todos los productos en el carrito | Revisión de textos del panel de viaje |
+| **Jue 24** | 3t.20 después de pagar → adentro del panel · 3t.22 ficha (edad, nacionalidad, tú/vos) | 8.4 alta autónoma / Stripe |
+| **Vie 25** | 8.7 promos (tachado + %) · 2.12 región por IP | Layout del libro de viaje con las primeras noches reales de Nako |
+| **Fin de semana** | 6.5 biógrafo con NotebookLM (los dos libros + bitácora) · #17 nombres en la transcripción | — |
+
+**Regla de la semana:** nada que toque textos sale sin el OK de Naza; nada que toque la base sin
+migración acordada. Dora y las plantillas se resuelven solas cuando Meta apruebe: **no se toca**.
 
 ## 📌 Decisiones de marca (2026-09-19, los dos socios)
 
