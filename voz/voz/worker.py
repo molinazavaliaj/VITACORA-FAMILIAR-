@@ -1,10 +1,12 @@
-"""El worker: sondea el buzón `narraciones` y narra de a una.
+"""El worker: sondea el buzón `narraciones` y los pedidos de frases de «Su voz».
 
 Corre en la PC de música como tarea programada (ver README, "El worker").
-Cada vuelta libera las narraciones colgadas, toma la pendiente más vieja y
-la lleva a `lista` o a `fallida`; si no hay nada, duerme
-`INTERVALO_SEGUNDOS`. Una narración que falla nunca tira abajo el bucle: se
-anota el error en la fila (y en `logs/worker.log`) y se sigue con la próxima.
+Cada vuelta atiende los pedidos de corte de frases que haya en el paquete de
+cada narrador (no usan el motor ni la tabla `narraciones`: son audios reales) y
+después libera las narraciones colgadas, toma la pendiente más vieja y la lleva
+a `lista` o a `fallida`; si no hay nada, duerme `INTERVALO_SEGUNDOS`. Ni una
+narración ni una frase que fallan tiran abajo el bucle: se anota el error (y en
+`logs/worker.log`) y se sigue con lo próximo.
 """
 
 import logging
@@ -17,6 +19,7 @@ from .buzon import consentimiento_de, marcar, retomar_colgadas, tomar_pendiente
 from .config import RAIZ, Config, cargar_config
 from .libro import capitulos_de_narracion
 from .narrar import FaltanMinutos, narrar_capitulos, preparar_voz
+from .procesar_frases import procesar_pedido
 from .supabase_cliente import BUCKET, cliente
 
 log = logging.getLogger("voz.worker")
@@ -79,14 +82,38 @@ def _marcar_fallida(sb, id: str, motivo: str, config: Config, log: logging.Logge
         log.exception("no pude marcar fallida la narración %s; sigo", id[:8])
 
 
-def una_vuelta(sb, config: Config, log: logging.Logger) -> bool:
-    """Una vuelta del bucle. Si Supabase o la red fallan al sondear, lo anota
-    y devuelve False: el worker duerme y vuelve a intentar, no se cae."""
+def procesar_pedidos(sb, config: Config, log: logging.Logger) -> int:
+    """Los pedidos de corte de «Su voz» de una vuelta: cuántas frases cortó.
+
+    Es el gancho al bucle, con el mismo cuidado de siempre: si Storage no
+    contesta, el JSON está roto o cualquier cosa del audio se cae, se anota y
+    se devuelve 0 — el worker nunca se muere por una frase. El pedido queda en
+    su lugar, así que la vuelta siguiente lo vuelve a intentar.
+    """
     try:
-        return procesar_una(sb, config, log)
+        cortadas = procesar_pedido(sb, config, log)
+    except Exception:  # noqa: BLE001 — el worker no se muere por un pedido
+        log.exception("los pedidos de frases fallaron; sigo con las narraciones")
+        return 0
+    if cortadas:
+        log.info("corté %d frases de «Su voz»", cortadas)
+    return cortadas
+
+
+def una_vuelta(sb, config: Config, log: logging.Logger) -> bool:
+    """Una vuelta del bucle: primero los pedidos de frases, después una narración.
+
+    Devuelve True si hubo trabajo (de cualquiera de las dos cosas): así el bucle
+    no duerme cuando quedó algo hecho. Cada mitad va en su propio `try`: si
+    Supabase o la red fallan, se anota y se sigue (el worker duerme y vuelve a
+    intentar, no se cae).
+    """
+    hubo_frases = procesar_pedidos(sb, config, log) > 0
+    try:
+        return procesar_una(sb, config, log) or hubo_frases
     except Exception:
-        log.exception("vuelta fallida; sigo en %d s", config.intervalo_segundos)
-        return False
+        log.exception("la narración de esta vuelta falló; sigo con la próxima")
+        return hubo_frases
 
 
 def preparar_logs() -> None:

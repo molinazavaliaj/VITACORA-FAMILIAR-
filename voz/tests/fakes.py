@@ -75,6 +75,23 @@ class FakeBucket:
         self._storage.descargas.append((self.nombre, path))
         return self.archivos[path]
 
+    def list(self, ruta=""):
+        """Los nombres que hay en `ruta` (o las carpetas de la raíz si no se pasa).
+
+        Solo lo que usa el pedido de frases (`narradores_con_pedido`): mira la
+        raíz del bucket y la carpeta `paquete` de cada narrador. El cliente real
+        devuelve objetos con `.name`.
+        """
+        prefijo = f"{ruta}/" if ruta else ""
+        nombres = []
+        for path in self.archivos:
+            if not path.startswith(prefijo):
+                continue
+            nombre = path[len(prefijo):].split("/")[0]
+            if nombre and nombre not in nombres:
+                nombres.append(nombre)
+        return [{"name": n} for n in nombres]
+
     def remove(self, paths):
         """Como el real: borrar lo que no está no es error."""
         self._storage.borrados.append((self.nombre, list(paths)))

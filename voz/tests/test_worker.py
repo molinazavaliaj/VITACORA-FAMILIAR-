@@ -15,6 +15,7 @@ import pytest
 import voz.narrar as narrar
 import voz.worker as worker
 from voz.config import Config
+from voz.cortar_frases import RUTA_FRASES_PEDIDO
 from voz.libro import ruta_capitulo
 from voz.narrar import FaltanMinutos
 from voz.worker import RUTA_NARRACION_JSON, procesar_una, una_vuelta
@@ -200,3 +201,44 @@ def test_una_vuelta_devuelve_lo_que_dice_procesar_una(tmp_path, monkeypatch):
     monkeypatch.setattr(worker, "procesar_una", lambda sb, config, log: True)
 
     assert una_vuelta(FakeSupabase(), config_de(tmp_path), logging.getLogger("test.worker")) is True
+
+
+# --- el gancho de las frases de «Su voz» (mismo bucle, otro trabajo) ---
+
+
+def test_una_vuelta_atiende_los_pedidos_de_frases_ademas_de_las_narraciones(tmp_path, monkeypatch):
+    """Cortar frases es trabajo: si el worker cortó dos, la vuelta no duerme."""
+    monkeypatch.setattr(worker, "procesar_pedido", lambda sb, config, log: 2)
+    monkeypatch.setattr(worker, "procesar_una", lambda sb, config, log: False)
+
+    assert una_vuelta(FakeSupabase(), config_de(tmp_path), logging.getLogger("test.worker")) is True
+
+
+def test_procesar_pedidos_devuelve_cuantas_frases_corto(tmp_path, monkeypatch):
+    monkeypatch.setattr(worker, "procesar_pedido", lambda sb, config, log: 3)
+
+    assert worker.procesar_pedidos(FakeSupabase(), config_de(tmp_path), logging.getLogger("test.worker")) == 3
+
+
+def test_si_los_pedidos_de_frases_explotan_el_worker_sigue_vivo(tmp_path, monkeypatch):
+    def explota(sb, config, log):
+        raise RuntimeError("503 Service Unavailable")
+
+    monkeypatch.setattr(worker, "procesar_pedido", explota)
+    monkeypatch.setattr(worker, "procesar_una", lambda sb, config, log: False)
+
+    assert worker.procesar_pedidos(FakeSupabase(), config_de(tmp_path), logging.getLogger("test.worker")) == 0
+    assert una_vuelta(FakeSupabase(), config_de(tmp_path), logging.getLogger("test.worker")) is False
+
+
+def test_una_vuelta_atiende_un_pedido_de_frases_de_verdad(tmp_path, monkeypatch):
+    """El gancho completo contra Storage: un pedido sin `frases.json` no se puede
+    atender nunca, así que la vuelta lo limpia (y no se muere haciéndolo)."""
+    fake = FakeSupabase()
+    archivos = fake.storage.archivos.setdefault("audios", {})
+    archivos[RUTA_FRASES_PEDIDO("n1")] = b"2026-09-21T00:00:00Z"
+    monkeypatch.setattr(worker, "procesar_una", lambda sb, config, log: False)
+
+    assert una_vuelta(fake, config_de(tmp_path), logging.getLogger("test.worker")) is False
+    assert RUTA_FRASES_PEDIDO("n1") not in archivos
+    assert fake.storage.borrados == [("audios", [RUTA_FRASES_PEDIDO("n1")])]
