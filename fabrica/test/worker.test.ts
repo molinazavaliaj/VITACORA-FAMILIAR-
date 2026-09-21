@@ -5,6 +5,7 @@ const {
   generarPrevisualizacionMock,
   generarPaqueteMock,
   enviarMailHitoMock,
+  enviarMailRecordatorioFrasesMock,
   ensamblarAudiolibroClonadoMock,
   avisarSociosMock,
   obtenerClienteDbMock,
@@ -13,6 +14,7 @@ const {
   generarPrevisualizacionMock: vi.fn().mockResolvedValue(undefined),
   generarPaqueteMock: vi.fn().mockResolvedValue(undefined),
   enviarMailHitoMock: vi.fn().mockResolvedValue(true),
+  enviarMailRecordatorioFrasesMock: vi.fn().mockResolvedValue(true),
   ensamblarAudiolibroClonadoMock: vi.fn(),
   avisarSociosMock: vi.fn().mockResolvedValue(true),
   obtenerClienteDbMock: vi.fn(),
@@ -21,6 +23,11 @@ const {
 vi.mock('../src/mail/hitos.js', async () => {
   const actual = await vi.importActual<typeof import('../src/mail/hitos.js')>('../src/mail/hitos.js');
   return { ...actual, enviarMailHito: enviarMailHitoMock };
+});
+
+vi.mock('../src/mail/frases.js', async () => {
+  const actual = await vi.importActual<typeof import('../src/mail/frases.js')>('../src/mail/frases.js');
+  return { ...actual, enviarMailRecordatorioFrases: enviarMailRecordatorioFrasesMock };
 });
 
 vi.mock('../src/mail/socios.js', async () => {
@@ -56,9 +63,10 @@ vi.mock('../src/db.js', async () => {
   };
 });
 
-import { tick, procesarPedidosPagados, ensamblarNarracionesListas, avisarNarracionesAtascadas } from '../src/worker.js';
+import { tick, procesarPedidosPagados, ensamblarNarracionesListas, avisarNarracionesAtascadas, recordarFrasesPendientes } from '../src/worker.js';
 import { CANDADO_POR_HITO } from '../src/mail/hitos.js';
 import { CANDADO_AVISO } from '../src/mail/socios.js';
+import { CANDADO_RECORDATORIO_FRASES } from '../src/mail/frases.js';
 
 /**
  * Fake de `db.from('pedidos')` que distingue las consultas por `estado`
@@ -83,6 +91,12 @@ import { CANDADO_AVISO } from '../src/mail/socios.js';
  * (`update({estado:'entregado', ...}).eq('id').eq('estado','esperando_voz').select('id')`)
  * se anota en `pedidosEntregadosPorVoz` y responde con `entregarPorVoz`, y
  * `storage.download` sirve el `narracion.json` de `narracionJsonPorNarrador`.
+ *
+ * Para el recordatorio de frases: `storage.download` sirve también el
+ * `frases.json` de `frasesPorNarrador` (y "no existe" si no está en el mapa) y
+ * `storage.list` devuelve el `created_at` de `creadosPorNarrador` — es la fecha
+ * de entrega, porque no hay `pedidos.entregado_at`. Un candado subido queda en
+ * `archivosPorNarrador`, así que la segunda corrida lo ve (el candado manda).
  */
 function construirClienteDbMock(opciones: {
   narradores: { id: string; [columna: string]: unknown }[];
@@ -94,6 +108,15 @@ function construirClienteDbMock(opciones: {
   pedidosEsperandoVoz?: { id: string; narrador_id: string }[];
   narraciones?: { id: string; narrador_id: string; estado: string; [columna: string]: unknown }[];
   narracionJsonPorNarrador?: Record<string, unknown>;
+  /**
+   * `created_at` de cada archivo del paquete (nombre → fecha ISO). Es la única
+   * fecha de entrega que hay: no existe `pedidos.entregado_at` y no se migra,
+   * así que el recordatorio de frases cuenta los 15 días desde el `created_at`
+   * de `frases.json`, que se escribe en el mismo tick que la entrega.
+   */
+  creadosPorNarrador?: Record<string, Record<string, string | null>>;
+  /** El `frases.json` de cada narrador, tal cual lo sirve Storage (o nada: no existe). */
+  frasesPorNarrador?: Record<string, unknown>;
   claimarPedido?: (id: string) => { data: unknown; error: unknown };
   entregarPorVoz?: (id: string) => { data: unknown; error: unknown };
   resetearPedidoHuerfano?: (id: string) => { data: unknown; error: unknown };
@@ -231,10 +254,19 @@ function construirClienteDbMock(opciones: {
         list: (path: string) => {
           const narradorId = path.split('/')[0];
           const nombres = opciones.archivosPorNarrador[narradorId] ?? [];
-          return Promise.resolve({ data: nombres.map((name) => ({ name })), error: null });
+          const creados = opciones.creadosPorNarrador?.[narradorId] ?? {};
+          return Promise.resolve({
+            data: nombres.map((name) => ({ name, created_at: creados[name] ?? null })),
+            error: null,
+          });
         },
         download: (ruta: string) => {
           const narradorId = ruta.split('/')[0];
+          if (ruta.endsWith('/paquete/frases.json')) {
+            const frases = opciones.frasesPorNarrador?.[narradorId];
+            if (!frases) return Promise.resolve({ data: null, error: { message: 'Object not found' } });
+            return Promise.resolve({ data: { text: async () => JSON.stringify(frases) }, error: null });
+          }
           const narracion = opciones.narracionJsonPorNarrador?.[narradorId];
           if (!narracion || !ruta.endsWith('/paquete/narracion.json')) {
             return Promise.resolve({ data: null, error: { message: 'Object not found' } });
@@ -1558,3 +1590,237 @@ describe('tick — branch b: un narrador esperando la voz no se vuelve a generar
     expect(db.pedidosActualizados).toEqual([]);
   });
 });
+
+describe('tick — recordatorio de frases de «Su voz» (a los 15 días, una sola vez)', () => {
+  // "Hoy" fijo para que los días desde la entrega sean exactos.
+  const HOY = new Date('2026-09-20T12:00:00Z');
+  const haceDias = (dias: number) => new Date(HOY.getTime() - dias * 24 * 60 * 60 * 1000).toISOString();
+
+  /** Un frases.json sin confirmar, con un capítulo y una candidata elegida. */
+  const frasesSinConfirmar = (narradorId: string) => ({
+    version: 1,
+    narrador_id: narradorId,
+    pedido_id: `p-${narradorId}`,
+    confirmado_at: null,
+    capitulos: [
+      {
+        numero: 1,
+        capitulo: 'La infancia',
+        candidatas: [{ id: 'c01-01', texto: 'Yo nunca quise ser como mi viejo.', elegida: true }],
+      },
+    ],
+  });
+
+  beforeEach(() => {
+    enviarMailRecordatorioFrasesMock.mockClear();
+    enviarMailRecordatorioFrasesMock.mockResolvedValue(true);
+  });
+
+  it('entregado hace 15 días y sin confirmar → manda el mail a la familia y deja el candado', async () => {
+    const db = construirClienteDbMock({
+      narradores: [{ id: 'n1', como_le_dicen: 'papá', familia_id: 'f1' }],
+      archivosPorNarrador: { n1: ['libro.pdf', 'frases.json'] },
+      creadosPorNarrador: { n1: { 'frases.json': haceDias(15) } },
+      frasesPorNarrador: { n1: frasesSinConfirmar('n1') },
+      pedidosEntregados: [{ id: 'p1', narrador_id: 'n1' }],
+      familias: { f1: 'a@b.c' },
+    });
+    obtenerClienteDbMock.mockReturnValue(db);
+
+    expect(await recordarFrasesPendientes(HOY)).toBe(1);
+
+    expect(enviarMailRecordatorioFrasesMock).toHaveBeenCalledTimes(1);
+    expect(enviarMailRecordatorioFrasesMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        para: 'a@b.c',
+        comoLeDicen: 'papá',
+        enlace: expect.stringContaining('/tablero/n1'),
+      })
+    );
+    expect(db.subidos['n1']).toContain(CANDADO_RECORDATORIO_FRASES);
+  });
+
+  it('a los 14 días no manda; a los 15 sí (el día exacto ya cuenta)', async () => {
+    const db = construirClienteDbMock({
+      narradores: [
+        { id: 'n1', como_le_dicen: 'papá', familia_id: 'f1' },
+        { id: 'n2', como_le_dicen: 'la abuela', familia_id: 'f2' },
+      ],
+      archivosPorNarrador: { n1: ['frases.json'], n2: ['frases.json'] },
+      creadosPorNarrador: { n1: { 'frases.json': haceDias(14) }, n2: { 'frases.json': haceDias(15) } },
+      frasesPorNarrador: { n1: frasesSinConfirmar('n1'), n2: frasesSinConfirmar('n2') },
+      pedidosEntregados: [
+        { id: 'p1', narrador_id: 'n1' },
+        { id: 'p2', narrador_id: 'n2' },
+      ],
+      familias: { f1: 'a@b.c', f2: 'd@e.f' },
+    });
+    obtenerClienteDbMock.mockReturnValue(db);
+
+    expect(await recordarFrasesPendientes(HOY)).toBe(1);
+
+    expect(enviarMailRecordatorioFrasesMock).toHaveBeenCalledTimes(1);
+    expect(enviarMailRecordatorioFrasesMock).toHaveBeenCalledWith(expect.objectContaining({ para: 'd@e.f' }));
+    expect(db.subidos['n1']).toBeUndefined();
+    expect(db.subidos['n2']).toContain(CANDADO_RECORDATORIO_FRASES);
+  });
+
+  it('si la familia ya confirmó la selección (confirmado_at), no la molestamos', async () => {
+    const db = construirClienteDbMock({
+      narradores: [{ id: 'n1', como_le_dicen: 'papá', familia_id: 'f1' }],
+      archivosPorNarrador: { n1: ['frases.json'] },
+      creadosPorNarrador: { n1: { 'frases.json': haceDias(20) } },
+      frasesPorNarrador: { n1: { ...frasesSinConfirmar('n1'), confirmado_at: '2026-09-18T10:00:00Z' } },
+      pedidosEntregados: [{ id: 'p1', narrador_id: 'n1' }],
+      familias: { f1: 'a@b.c' },
+    });
+    obtenerClienteDbMock.mockReturnValue(db);
+
+    expect(await recordarFrasesPendientes(HOY)).toBe(0);
+
+    expect(enviarMailRecordatorioFrasesMock).not.toHaveBeenCalled();
+    expect(db.subidos['n1']).toBeUndefined();
+  });
+
+  it('sin pedido entregado (pagado o en generando) no hay recordatorio', async () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const db = construirClienteDbMock({
+      narradores: [{ id: 'n1', como_le_dicen: 'papá', familia_id: 'f1' }],
+      archivosPorNarrador: { n1: ['frases.json'] },
+      creadosPorNarrador: { n1: { 'frases.json': haceDias(40) } },
+      frasesPorNarrador: { n1: frasesSinConfirmar('n1') },
+      pedidosPagados: [{ id: 'p1', narrador_id: 'n1' }],
+      familias: { f1: 'a@b.c' },
+    });
+    obtenerClienteDbMock.mockReturnValue(db);
+
+    expect(await recordarFrasesPendientes(HOY)).toBe(0);
+
+    expect(enviarMailRecordatorioFrasesMock).not.toHaveBeenCalled();
+    expect(errorSpy).not.toHaveBeenCalled();
+    errorSpy.mockRestore();
+  });
+
+  it('entregado pero sin frases.json (libro de antes de Su voz) → no manda', async () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const db = construirClienteDbMock({
+      narradores: [{ id: 'n1', como_le_dicen: 'papá', familia_id: 'f1' }],
+      archivosPorNarrador: { n1: ['libro.pdf'] },
+      pedidosEntregados: [{ id: 'p1', narrador_id: 'n1' }],
+      familias: { f1: 'a@b.c' },
+    });
+    obtenerClienteDbMock.mockReturnValue(db);
+
+    expect(await recordarFrasesPendientes(HOY)).toBe(0);
+
+    expect(enviarMailRecordatorioFrasesMock).not.toHaveBeenCalled();
+    // Se saltea por el filtro, no porque algo se haya roto en el camino.
+    expect(errorSpy).not.toHaveBeenCalled();
+    errorSpy.mockRestore();
+  });
+
+  it('con frases.json sin ningún capítulo (libro sin audios) no manda: no hay nada que elegir', async () => {
+    const db = construirClienteDbMock({
+      narradores: [{ id: 'n1', como_le_dicen: 'papá', familia_id: 'f1' }],
+      archivosPorNarrador: { n1: ['frases.json'] },
+      creadosPorNarrador: { n1: { 'frases.json': haceDias(30) } },
+      frasesPorNarrador: { n1: { ...frasesSinConfirmar('n1'), capitulos: [] } },
+      pedidosEntregados: [{ id: 'p1', narrador_id: 'n1' }],
+      familias: { f1: 'a@b.c' },
+    });
+    obtenerClienteDbMock.mockReturnValue(db);
+
+    expect(await recordarFrasesPendientes(HOY)).toBe(0);
+
+    expect(enviarMailRecordatorioFrasesMock).not.toHaveBeenCalled();
+  });
+
+  it('corriéndolo dos veces seguidas manda UN solo mail: el candado del paquete manda', async () => {
+    const db = construirClienteDbMock({
+      narradores: [{ id: 'n1', como_le_dicen: 'papá', familia_id: 'f1' }],
+      archivosPorNarrador: { n1: ['frases.json'] },
+      creadosPorNarrador: { n1: { 'frases.json': haceDias(16) } },
+      frasesPorNarrador: { n1: frasesSinConfirmar('n1') },
+      pedidosEntregados: [{ id: 'p1', narrador_id: 'n1' }],
+      familias: { f1: 'a@b.c' },
+    });
+    obtenerClienteDbMock.mockReturnValue(db);
+
+    expect(await recordarFrasesPendientes(HOY)).toBe(1);
+    expect(await recordarFrasesPendientes(HOY)).toBe(0);
+
+    expect(enviarMailRecordatorioFrasesMock).toHaveBeenCalledTimes(1);
+    expect(db.subidos['n1']).toEqual([CANDADO_RECORDATORIO_FRASES]);
+  });
+
+  it('con el candado sembrado a mano (para que no salga), no manda nada', async () => {
+    const db = construirClienteDbMock({
+      narradores: [{ id: 'n1', como_le_dicen: 'papá', familia_id: 'f1' }],
+      archivosPorNarrador: { n1: ['frases.json', CANDADO_RECORDATORIO_FRASES] },
+      creadosPorNarrador: { n1: { 'frases.json': haceDias(60) } },
+      frasesPorNarrador: { n1: frasesSinConfirmar('n1') },
+      pedidosEntregados: [{ id: 'p1', narrador_id: 'n1' }],
+      familias: { f1: 'a@b.c' },
+    });
+    obtenerClienteDbMock.mockReturnValue(db);
+
+    expect(await recordarFrasesPendientes(HOY)).toBe(0);
+
+    expect(enviarMailRecordatorioFrasesMock).not.toHaveBeenCalled();
+  });
+
+  it('si el mail falla, no deja candado (se reintenta) y no frena a la familia siguiente', async () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    enviarMailRecordatorioFrasesMock.mockRejectedValueOnce(new Error('Resend caído'));
+    const db = construirClienteDbMock({
+      narradores: [
+        { id: 'n1', como_le_dicen: 'papá', familia_id: 'f1' },
+        { id: 'n2', como_le_dicen: 'la abuela', familia_id: 'f2' },
+      ],
+      archivosPorNarrador: { n1: ['frases.json'], n2: ['frases.json'] },
+      creadosPorNarrador: { n1: { 'frases.json': haceDias(16) }, n2: { 'frases.json': haceDias(16) } },
+      frasesPorNarrador: { n1: frasesSinConfirmar('n1'), n2: frasesSinConfirmar('n2') },
+      pedidosEntregados: [
+        { id: 'p1', narrador_id: 'n1' },
+        { id: 'p2', narrador_id: 'n2' },
+      ],
+      familias: { f1: 'a@b.c', f2: 'd@e.f' },
+    });
+    obtenerClienteDbMock.mockReturnValue(db);
+
+    await expect(recordarFrasesPendientes(HOY)).resolves.toBe(1);
+
+    expect(enviarMailRecordatorioFrasesMock).toHaveBeenCalledTimes(2);
+    // n1: sin candado, así el próximo tick lo reintenta; n2: entregado.
+    expect(db.subidos['n1']).toBeUndefined();
+    expect(db.subidos['n2']).toEqual([CANDADO_RECORDATORIO_FRASES]);
+    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('n1'), expect.anything());
+    errorSpy.mockRestore();
+  });
+
+  it('una falla del mail no tumba el tick: el bucle sigue vivo', async () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    enviarMailRecordatorioFrasesMock.mockRejectedValueOnce(new Error('Resend caído'));
+    const db = construirClienteDbMock({
+      narradores: [{ id: 'n1', como_le_dicen: 'papá', familia_id: 'f1' }],
+      archivosPorNarrador: { n1: ['frases.json'] },
+      creadosPorNarrador: { n1: { 'frases.json': haceDias(20) } },
+      frasesPorNarrador: { n1: frasesSinConfirmar('n1') },
+      pedidosEntregados: [{ id: 'p1', narrador_id: 'n1' }],
+      familias: { f1: 'a@b.c' },
+    });
+    obtenerClienteDbMock.mockReturnValue(db);
+
+    await expect(tick()).resolves.toBeUndefined();
+
+    // El latido del final corrió igual: el tick llegó hasta el último paso.
+    expect(anotarLatidoCorrio(db)).toBe(true);
+    errorSpy.mockRestore();
+  });
+});
+
+/** El tick anota el latido al empezar y al TERMINAR: si la última tabla que tocó fue `latidos`, llegó hasta el final. */
+function anotarLatidoCorrio(db: { from: (tabla: string) => unknown }): boolean {
+  const llamadas = (db.from as unknown as { mock: { calls: unknown[][] } }).mock.calls;
+  return llamadas.length > 0 && llamadas[llamadas.length - 1][0] === 'latidos';
+}
