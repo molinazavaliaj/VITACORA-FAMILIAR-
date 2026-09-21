@@ -226,7 +226,7 @@ Lo que SI puede correr el piloto hoy: **T1.3, T3.1, T3.3, T3.5** (y T1.4 apenas 
   - hecho-cuando: `cd fabrica && npm test` desde la raiz del repo: exit 0, con un test que cubra el caso 'plantilla rechazada o PENDING' y verifique que la pregunta sale como texto libre en vez de no salir
   - nota: lo pidio Joaquin (21/09): las plantillas siguen todas en PENDING, asi que hoy la pregunta de la noche no se manda. Ventana: se puede mandar como texto si el narrador escribio en las ultimas 24 h. OJO: es una decision de producto tomada por Joaquin, no una interpretacion del agente; si hay dudas de si el texto libre afecta la calidad del numero de WhatsApp, preguntar antes de implementar.
 
-  - evidencia: HECHA (implementada por Joaquin, reportada el 2026-09-21 y verificada por un humano en el codigo del bot). El bot ya manda la pregunta como texto cuando Meta rechaza la plantilla. Contexto: las 5 plantillas siguen en PENDING.
+  - evidencia: HECHA por Joaquin (reportada el 2026-09-21). **Ojo: cerrada con su palabra, NO verificada en el codigo** — un grep rapido por fabrica/ y web/ no encontro el fallback, que probablemente viva en el worker del bot. Si alguien quiere el hueso: buscar donde se manda la pregunta de la noche y comprobar que hay una rama para plantilla rechazada. El bot ya manda la pregunta como texto cuando Meta rechaza la plantilla. Contexto: las 5 plantillas siguen en PENDING.
   - cerrada: 2026-09-21 (la hizo Joaquin, no el piloto)
 - [!] **T3.15** — decidir qué hacer con la firma de las notificaciones IPN de MercadoPago
   - deps: —
