@@ -124,13 +124,22 @@ async function enviarFotoDeLaPregunta(n: Narrador, fotoId: string): Promise<void
   }
 }
 
-/** La versión hablada de la pregunta: se sube a Storage y se manda por link firmado. */
+/**
+ * La versión hablada de la pregunta: se sube a Storage y se manda por link firmado.
+ * Es un extra sobre el texto, que ya salió: si falla (21/09: OpenAI sin crédito),
+ * se avisa y se sigue — si no, el envío no se registra, el narrador no avanza y su
+ * respuesta se ignora.
+ */
 async function enviarVozDeLaPregunta(n: Narrador, orden: number, contenido: string): Promise<void> {
-  const audio = await generarAudioVoz(contenido, n.id);
-  const path = `${n.id}/sistema/pregunta_${String(orden).padStart(2, '0')}.mp3`;
-  await db.storage.from('audios').upload(path, audio, { contentType: 'audio/mpeg', upsert: true });
-  const { data } = await db.storage.from('audios').createSignedUrl(path, 3600);
-  if (data?.signedUrl) await enviarAudioPorLink(n.telefono_whatsapp, data.signedUrl);
+  try {
+    const audio = await generarAudioVoz(contenido, n.id);
+    const path = `${n.id}/sistema/pregunta_${String(orden).padStart(2, '0')}.mp3`;
+    await db.storage.from('audios').upload(path, audio, { contentType: 'audio/mpeg', upsert: true });
+    const { data } = await db.storage.from('audios').createSignedUrl(path, 3600);
+    if (data?.signedUrl) await enviarAudioPorLink(n.telefono_whatsapp, data.signedUrl);
+  } catch (err) {
+    console.error(`pregunta ${orden} de ${n.id}: el texto salió pero el audio no:`, err instanceof Error ? err.message : err);
+  }
 }
 
 /**

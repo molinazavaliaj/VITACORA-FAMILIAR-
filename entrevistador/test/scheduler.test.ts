@@ -202,6 +202,19 @@ describe('tick', () => {
     expect(inserts('envios')[0].p).toMatchObject({ tipo: 'pregunta', pregunta_orden: 1 });
   });
 
+  // 21/09: OpenAI sin crédito tumbó el envío DESPUÉS de que el texto ya había
+  // salido: la pregunta quedó sin registrar, el narrador en acepto, y su
+  // respuesta se hubiera ignorado. El audio de la pregunta es un extra.
+  it('(a4) si el audio de la pregunta falla, el envío igual queda registrado y el narrador avanza', async () => {
+    mocks.filas.narradores = [narrador({ estado: 'acepto', dia_actual: 0 })];
+    mocks.generarAudioVoz.mockRejectedValue(new Error('TTS falló: 429 no credits'));
+    await tick(A_LAS_10_05);
+    expect(mocks.enviarPlantilla).toHaveBeenCalledTimes(1);
+    expect(mocks.enviarAudioPorLink).not.toHaveBeenCalled();
+    expect(update('narradores')?.p).toMatchObject({ dia_actual: 1, estado: 'activo' });
+    expect(inserts('envios')[0].p).toMatchObject({ tipo: 'pregunta', pregunta_orden: 1 });
+  });
+
   it('(a3) si la plantilla falla y el texto también (ventana cerrada), no se registra nada', async () => {
     mocks.filas.narradores = [narrador({ estado: 'acepto', dia_actual: 0 })];
     mocks.enviarPlantilla.mockRejectedValue(new Error('WhatsApp rechazó el envío: template'));
