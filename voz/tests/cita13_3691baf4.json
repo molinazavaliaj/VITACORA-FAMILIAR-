@@ -1,0 +1,2739 @@
+{
+ "caso": "cita-13 del narrador 3691baf4: quedó 'fallida' con motivo «no se encontró» aunque la frase está verbatim en la transcripción guardada",
+ "narrador_id": "3691baf4-ee78-4c6b-9238-4cbed1872be7",
+ "respuesta_id": "5dcd663a-e662-49d8-b399-40c87c6be04d",
+ "pregunta_orden": 14,
+ "capitulo": "El amor",
+ "audio_path": "3691baf4-ee78-4c6b-9238-4cbed1872be7/dia_14.ogg",
+ "duracion_segundos": 226,
+ "como": "palabras_con_tiempos() sobre el audio real de la respuesta, el 21/09 (whisper-1, verbose_json, timestamp_granularities=[word])",
+ "frase": "Todo mi amor, todo mi sueldo siempre era para gastarlo en ella y en lo que me hacía feliz, que era sacarle una sonrisa.",
+ "esperado": {
+  "inicio": 177.42,
+  "fin": 186.3,
+  "palabras": 23
+ },
+ "texto_oido": "Ese día, no, era una odisea, era un mundo de hadas, literalmente era un mundo de hadas. Ella era una princesa, es una princesa, abogada, inteligente, pero me corría. Se egresó en cuatro años de abogacía y yo la acompañé en todo ese proceso desde su primer año. Ella estaba terminando el primer año cuando la conocí y estuve al lado de ella en toda la carrera. Muy pasionales los dos, muy cariñosos. En mi casa la recibieron siempre muy bien, ella era celíaca, es celíaca, perdón, entonces era muy particular todo, comer, la comida, le cocinábamos particular para ella. Por eso yo también iba mucho a su casa, me quedaba allá porque era muy especial con la comida, había que cuidarse. Y nada, a mi viejo la amaban, la amaban porque era una mujer hecha de leche, una princesa. Se vestía espectacular, una dama. Cuando la llevé, ella recontente, era muy exótica, ella tenía una dentadura muy particular. Y nada, como terminó todo no la volví a ver, la verdad que en el noviazgo ella tuvo problemas familiares, yo estuve ahí siempre al pie del cañón, banqué todos los trapos, me comporté de diez. Y bueno, la verdad al final no sabíamos lo que sentíamos, sentíamos que no podíamos crecer más, no podíamos aportarle más al otro, lo que ya habíamos crecido juntos ya tenía un tope y no nos podíamos seguir potenciando. La verdad sentíamos eso, después nos costó separarnos dos meses, estuvimos ahí yendo y viniendo, pero nos terminamos separando y bueno, yo después estuve tres años sin estar con nadie, yo estaba completamente tratando de buscar una persona que sea igual o mejor que ella y no la encontré nunca. La verdad fue el amor de mi vida y por ahora, y lo sigue siendo por ahora, esperemos que aparezca otro, pero la recuerdo con mucho cariño, mucho amor, una persona única, un humor también muy particular, muy divertida. Y nada, yo trabajé todo el tiempo, yo trabajo de muy chico, entonces en un momento no tenía nada de tiempo, yo trabajaba de lunes a lunes, de luna a viernes con el sello discográfico y los lunes, jueves, sábado y domingo trabajaba de instructor de vela, como te conté antes, yo estudiaba en el centro, ella vivía en Tigre, nos podíamos ver poco, pero yo dormía en su casa, iba a las 10 de la noche, todos los cumpleaños trataba de darle unos zapatos, unos aritos, todos los regalos, todo mi amor, todo mi sueldo siempre era para gastarlo en ella y lo que me hacía feliz que era sacarle una sonrisa. Y nada, terminó muy bien, muy bien, nos amamos, sé que ella está para mí, cuando falleció mi abuela hace dos años me mandó un mensaje, porque mi abuela la quería mucho a ella, fue una relación muy particular que me marcó para toda mi vida, porque fue como tener un 10 de 10 al principio y después igualar eso va a ser muy difícil, pero nada, yo con cero rencores, me alegro que ella tenga ahora una pareja, tenga novio, que la veo muy bien y espero que le pase todo bien, porque bueno, también pasó por una historia familiar dura, entonces no es fácil para nadie.",
+ "palabras": [
+  {
+   "palabra": "Ese",
+   "inicio": 4.21999979019165,
+   "fin": 4.860000133514404
+  },
+  {
+   "palabra": "día",
+   "inicio": 4.860000133514404,
+   "fin": 5.21999979019165
+  },
+  {
+   "palabra": "no",
+   "inicio": 5.579999923706055,
+   "fin": 5.760000228881836
+  },
+  {
+   "palabra": "era",
+   "inicio": 5.980000019073486,
+   "fin": 6.039999961853027
+  },
+  {
+   "palabra": "una",
+   "inicio": 6.039999961853027,
+   "fin": 6.440000057220459
+  },
+  {
+   "palabra": "odisea",
+   "inicio": 6.440000057220459,
+   "fin": 6.599999904632568
+  },
+  {
+   "palabra": "era",
+   "inicio": 6.739999771118164,
+   "fin": 6.760000228881836
+  },
+  {
+   "palabra": "un",
+   "inicio": 6.760000228881836,
+   "fin": 7.760000228881836
+  },
+  {
+   "palabra": "mundo",
+   "inicio": 7.760000228881836,
+   "fin": 7.900000095367432
+  },
+  {
+   "palabra": "de",
+   "inicio": 7.900000095367432,
+   "fin": 8.5
+  },
+  {
+   "palabra": "hadas",
+   "inicio": 8.5,
+   "fin": 8.579999923706055
+  },
+  {
+   "palabra": "literalmente",
+   "inicio": 8.979999542236328,
+   "fin": 9.399999618530273
+  },
+  {
+   "palabra": "era",
+   "inicio": 9.399999618530273,
+   "fin": 9.640000343322754
+  },
+  {
+   "palabra": "un",
+   "inicio": 9.640000343322754,
+   "fin": 9.760000228881836
+  },
+  {
+   "palabra": "mundo",
+   "inicio": 9.760000228881836,
+   "fin": 9.760000228881836
+  },
+  {
+   "palabra": "de",
+   "inicio": 9.760000228881836,
+   "fin": 10.100000381469727
+  },
+  {
+   "palabra": "hadas",
+   "inicio": 10.100000381469727,
+   "fin": 10.100000381469727
+  },
+  {
+   "palabra": "Ella",
+   "inicio": 10.539999961853027,
+   "fin": 10.5600004196167
+  },
+  {
+   "palabra": "era",
+   "inicio": 10.5600004196167,
+   "fin": 10.699999809265137
+  },
+  {
+   "palabra": "una",
+   "inicio": 10.699999809265137,
+   "fin": 11.0600004196167
+  },
+  {
+   "palabra": "princesa",
+   "inicio": 11.0600004196167,
+   "fin": 11.680000305175781
+  },
+  {
+   "palabra": "es",
+   "inicio": 11.720000267028809,
+   "fin": 11.9399995803833
+  },
+  {
+   "palabra": "una",
+   "inicio": 11.9399995803833,
+   "fin": 12.279999732971191
+  },
+  {
+   "palabra": "princesa",
+   "inicio": 12.279999732971191,
+   "fin": 13.4399995803833
+  },
+  {
+   "palabra": "abogada",
+   "inicio": 13.680000305175781,
+   "fin": 14.0
+  },
+  {
+   "palabra": "inteligente",
+   "inicio": 14.760000228881836,
+   "fin": 15.239999771118164
+  },
+  {
+   "palabra": "pero",
+   "inicio": 15.9399995803833,
+   "fin": 16.079999923706055
+  },
+  {
+   "palabra": "me",
+   "inicio": 16.079999923706055,
+   "fin": 16.399999618530273
+  },
+  {
+   "palabra": "corría",
+   "inicio": 16.399999618530273,
+   "fin": 16.860000610351562
+  },
+  {
+   "palabra": "Se",
+   "inicio": 18.639999389648438,
+   "fin": 18.65999984741211
+  },
+  {
+   "palabra": "egresó",
+   "inicio": 18.65999984741211,
+   "fin": 18.81999969482422
+  },
+  {
+   "palabra": "en",
+   "inicio": 18.81999969482422,
+   "fin": 19.0
+  },
+  {
+   "palabra": "cuatro",
+   "inicio": 19.0,
+   "fin": 19.239999771118164
+  },
+  {
+   "palabra": "años",
+   "inicio": 19.239999771118164,
+   "fin": 19.399999618530273
+  },
+  {
+   "palabra": "de",
+   "inicio": 19.399999618530273,
+   "fin": 19.6200008392334
+  },
+  {
+   "palabra": "abogacía",
+   "inicio": 19.6200008392334,
+   "fin": 20.100000381469727
+  },
+  {
+   "palabra": "y",
+   "inicio": 20.100000381469727,
+   "fin": 21.540000915527344
+  },
+  {
+   "palabra": "yo",
+   "inicio": 21.540000915527344,
+   "fin": 22.020000457763672
+  },
+  {
+   "palabra": "la",
+   "inicio": 22.020000457763672,
+   "fin": 22.200000762939453
+  },
+  {
+   "palabra": "acompañé",
+   "inicio": 22.200000762939453,
+   "fin": 22.520000457763672
+  },
+  {
+   "palabra": "en",
+   "inicio": 22.520000457763672,
+   "fin": 22.739999771118164
+  },
+  {
+   "palabra": "todo",
+   "inicio": 22.739999771118164,
+   "fin": 22.760000228881836
+  },
+  {
+   "palabra": "ese",
+   "inicio": 22.760000228881836,
+   "fin": 22.979999542236328
+  },
+  {
+   "palabra": "proceso",
+   "inicio": 22.979999542236328,
+   "fin": 23.399999618530273
+  },
+  {
+   "palabra": "desde",
+   "inicio": 23.399999618530273,
+   "fin": 23.719999313354492
+  },
+  {
+   "palabra": "su",
+   "inicio": 23.719999313354492,
+   "fin": 24.0
+  },
+  {
+   "palabra": "primer",
+   "inicio": 24.0,
+   "fin": 24.299999237060547
+  },
+  {
+   "palabra": "año",
+   "inicio": 24.299999237060547,
+   "fin": 24.639999389648438
+  },
+  {
+   "palabra": "Ella",
+   "inicio": 24.639999389648438,
+   "fin": 25.559999465942383
+  },
+  {
+   "palabra": "estaba",
+   "inicio": 25.559999465942383,
+   "fin": 25.799999237060547
+  },
+  {
+   "palabra": "terminando",
+   "inicio": 25.799999237060547,
+   "fin": 26.219999313354492
+  },
+  {
+   "palabra": "el",
+   "inicio": 26.219999313354492,
+   "fin": 26.440000534057617
+  },
+  {
+   "palabra": "primer",
+   "inicio": 26.440000534057617,
+   "fin": 26.6200008392334
+  },
+  {
+   "palabra": "año",
+   "inicio": 26.6200008392334,
+   "fin": 26.780000686645508
+  },
+  {
+   "palabra": "cuando",
+   "inicio": 26.780000686645508,
+   "fin": 26.959999084472656
+  },
+  {
+   "palabra": "la",
+   "inicio": 26.959999084472656,
+   "fin": 27.219999313354492
+  },
+  {
+   "palabra": "conocí",
+   "inicio": 27.219999313354492,
+   "fin": 27.68000030517578
+  },
+  {
+   "palabra": "y",
+   "inicio": 27.68000030517578,
+   "fin": 29.31999969482422
+  },
+  {
+   "palabra": "estuve",
+   "inicio": 29.31999969482422,
+   "fin": 29.3799991607666
+  },
+  {
+   "palabra": "al",
+   "inicio": 29.3799991607666,
+   "fin": 29.84000015258789
+  },
+  {
+   "palabra": "lado",
+   "inicio": 29.84000015258789,
+   "fin": 29.84000015258789
+  },
+  {
+   "palabra": "de",
+   "inicio": 29.84000015258789,
+   "fin": 30.15999984741211
+  },
+  {
+   "palabra": "ella",
+   "inicio": 30.15999984741211,
+   "fin": 30.15999984741211
+  },
+  {
+   "palabra": "en",
+   "inicio": 30.15999984741211,
+   "fin": 30.399999618530273
+  },
+  {
+   "palabra": "toda",
+   "inicio": 30.399999618530273,
+   "fin": 30.5
+  },
+  {
+   "palabra": "la",
+   "inicio": 30.5,
+   "fin": 30.84000015258789
+  },
+  {
+   "palabra": "carrera",
+   "inicio": 30.84000015258789,
+   "fin": 31.15999984741211
+  },
+  {
+   "palabra": "Muy",
+   "inicio": 32.29999923706055,
+   "fin": 33.02000045776367
+  },
+  {
+   "palabra": "pasionales",
+   "inicio": 33.02000045776367,
+   "fin": 33.65999984741211
+  },
+  {
+   "palabra": "los",
+   "inicio": 33.65999984741211,
+   "fin": 33.79999923706055
+  },
+  {
+   "palabra": "dos",
+   "inicio": 33.79999923706055,
+   "fin": 34.0
+  },
+  {
+   "palabra": "muy",
+   "inicio": 34.15999984741211,
+   "fin": 34.34000015258789
+  },
+  {
+   "palabra": "cariñosos",
+   "inicio": 34.34000015258789,
+   "fin": 35.619998931884766
+  },
+  {
+   "palabra": "En",
+   "inicio": 36.7400016784668,
+   "fin": 36.81999969482422
+  },
+  {
+   "palabra": "mi",
+   "inicio": 36.81999969482422,
+   "fin": 37.2599983215332
+  },
+  {
+   "palabra": "casa",
+   "inicio": 37.2599983215332,
+   "fin": 37.2599983215332
+  },
+  {
+   "palabra": "la",
+   "inicio": 37.2599983215332,
+   "fin": 37.79999923706055
+  },
+  {
+   "palabra": "recibieron",
+   "inicio": 37.79999923706055,
+   "fin": 38.18000030517578
+  },
+  {
+   "palabra": "siempre",
+   "inicio": 38.18000030517578,
+   "fin": 38.5
+  },
+  {
+   "palabra": "muy",
+   "inicio": 38.5,
+   "fin": 38.880001068115234
+  },
+  {
+   "palabra": "bien",
+   "inicio": 38.880001068115234,
+   "fin": 38.939998626708984
+  },
+  {
+   "palabra": "ella",
+   "inicio": 39.040000915527344,
+   "fin": 39.119998931884766
+  },
+  {
+   "palabra": "era",
+   "inicio": 39.119998931884766,
+   "fin": 39.29999923706055
+  },
+  {
+   "palabra": "celíaca",
+   "inicio": 39.29999923706055,
+   "fin": 39.779998779296875
+  },
+  {
+   "palabra": "es",
+   "inicio": 40.13999938964844,
+   "fin": 41.08000183105469
+  },
+  {
+   "palabra": "celíaca",
+   "inicio": 41.08000183105469,
+   "fin": 41.47999954223633
+  },
+  {
+   "palabra": "perdón",
+   "inicio": 41.97999954223633,
+   "fin": 41.97999954223633
+  },
+  {
+   "palabra": "entonces",
+   "inicio": 42.540000915527344,
+   "fin": 42.939998626708984
+  },
+  {
+   "palabra": "era",
+   "inicio": 42.939998626708984,
+   "fin": 43.5
+  },
+  {
+   "palabra": "muy",
+   "inicio": 43.5,
+   "fin": 43.7599983215332
+  },
+  {
+   "palabra": "particular",
+   "inicio": 43.7599983215332,
+   "fin": 44.2400016784668
+  },
+  {
+   "palabra": "todo",
+   "inicio": 44.2400016784668,
+   "fin": 44.68000030517578
+  },
+  {
+   "palabra": "comer",
+   "inicio": 45.040000915527344,
+   "fin": 45.31999969482422
+  },
+  {
+   "palabra": "la",
+   "inicio": 45.560001373291016,
+   "fin": 46.13999938964844
+  },
+  {
+   "palabra": "comida",
+   "inicio": 46.13999938964844,
+   "fin": 46.13999938964844
+  },
+  {
+   "palabra": "le",
+   "inicio": 46.70000076293945,
+   "fin": 47.279998779296875
+  },
+  {
+   "palabra": "cocinábamos",
+   "inicio": 47.279998779296875,
+   "fin": 47.58000183105469
+  },
+  {
+   "palabra": "particular",
+   "inicio": 47.58000183105469,
+   "fin": 48.119998931884766
+  },
+  {
+   "palabra": "para",
+   "inicio": 48.119998931884766,
+   "fin": 48.41999816894531
+  },
+  {
+   "palabra": "ella",
+   "inicio": 48.41999816894531,
+   "fin": 48.7400016784668
+  },
+  {
+   "palabra": "Por",
+   "inicio": 48.7400016784668,
+   "fin": 49.599998474121094
+  },
+  {
+   "palabra": "eso",
+   "inicio": 49.599998474121094,
+   "fin": 49.65999984741211
+  },
+  {
+   "palabra": "yo",
+   "inicio": 49.65999984741211,
+   "fin": 49.86000061035156
+  },
+  {
+   "palabra": "también",
+   "inicio": 49.86000061035156,
+   "fin": 50.08000183105469
+  },
+  {
+   "palabra": "iba",
+   "inicio": 50.08000183105469,
+   "fin": 50.2400016784668
+  },
+  {
+   "palabra": "mucho",
+   "inicio": 50.2400016784668,
+   "fin": 50.439998626708984
+  },
+  {
+   "palabra": "a",
+   "inicio": 50.439998626708984,
+   "fin": 50.58000183105469
+  },
+  {
+   "palabra": "su",
+   "inicio": 50.58000183105469,
+   "fin": 50.720001220703125
+  },
+  {
+   "palabra": "casa",
+   "inicio": 50.720001220703125,
+   "fin": 50.86000061035156
+  },
+  {
+   "palabra": "me",
+   "inicio": 51.0,
+   "fin": 51.099998474121094
+  },
+  {
+   "palabra": "quedaba",
+   "inicio": 51.099998474121094,
+   "fin": 51.31999969482422
+  },
+  {
+   "palabra": "allá",
+   "inicio": 51.31999969482422,
+   "fin": 51.63999938964844
+  },
+  {
+   "palabra": "porque",
+   "inicio": 51.63999938964844,
+   "fin": 52.560001373291016
+  },
+  {
+   "palabra": "era",
+   "inicio": 52.560001373291016,
+   "fin": 55.20000076293945
+  },
+  {
+   "palabra": "muy",
+   "inicio": 55.20000076293945,
+   "fin": 55.560001373291016
+  },
+  {
+   "palabra": "especial",
+   "inicio": 55.560001373291016,
+   "fin": 55.84000015258789
+  },
+  {
+   "palabra": "con",
+   "inicio": 55.84000015258789,
+   "fin": 55.97999954223633
+  },
+  {
+   "palabra": "la",
+   "inicio": 55.97999954223633,
+   "fin": 56.380001068115234
+  },
+  {
+   "palabra": "comida",
+   "inicio": 56.380001068115234,
+   "fin": 56.380001068115234
+  },
+  {
+   "palabra": "había",
+   "inicio": 56.560001373291016,
+   "fin": 56.7599983215332
+  },
+  {
+   "palabra": "que",
+   "inicio": 56.7599983215332,
+   "fin": 56.939998626708984
+  },
+  {
+   "palabra": "cuidarse",
+   "inicio": 56.939998626708984,
+   "fin": 57.5
+  },
+  {
+   "palabra": "Y",
+   "inicio": 58.47999954223633,
+   "fin": 58.720001220703125
+  },
+  {
+   "palabra": "nada",
+   "inicio": 58.720001220703125,
+   "fin": 59.18000030517578
+  },
+  {
+   "palabra": "a",
+   "inicio": 59.18000030517578,
+   "fin": 59.29999923706055
+  },
+  {
+   "palabra": "mi",
+   "inicio": 59.29999923706055,
+   "fin": 59.29999923706055
+  },
+  {
+   "palabra": "viejo",
+   "inicio": 59.29999923706055,
+   "fin": 59.560001373291016
+  },
+  {
+   "palabra": "la",
+   "inicio": 59.560001373291016,
+   "fin": 59.779998779296875
+  },
+  {
+   "palabra": "amaban",
+   "inicio": 59.779998779296875,
+   "fin": 60.02000045776367
+  },
+  {
+   "palabra": "la",
+   "inicio": 60.119998931884766,
+   "fin": 60.68000030517578
+  },
+  {
+   "palabra": "amaban",
+   "inicio": 60.68000030517578,
+   "fin": 60.68000030517578
+  },
+  {
+   "palabra": "porque",
+   "inicio": 60.68000030517578,
+   "fin": 60.68000030517578
+  },
+  {
+   "palabra": "era",
+   "inicio": 60.68000030517578,
+   "fin": 60.81999969482422
+  },
+  {
+   "palabra": "una",
+   "inicio": 60.81999969482422,
+   "fin": 61.02000045776367
+  },
+  {
+   "palabra": "mujer",
+   "inicio": 61.02000045776367,
+   "fin": 61.20000076293945
+  },
+  {
+   "palabra": "hecha",
+   "inicio": 61.20000076293945,
+   "fin": 61.459999084472656
+  },
+  {
+   "palabra": "de",
+   "inicio": 61.459999084472656,
+   "fin": 61.560001373291016
+  },
+  {
+   "palabra": "leche",
+   "inicio": 61.560001373291016,
+   "fin": 61.68000030517578
+  },
+  {
+   "palabra": "una",
+   "inicio": 61.79999923706055,
+   "fin": 62.0
+  },
+  {
+   "palabra": "princesa",
+   "inicio": 62.0,
+   "fin": 63.099998474121094
+  },
+  {
+   "palabra": "Se",
+   "inicio": 64.41999816894531,
+   "fin": 64.41999816894531
+  },
+  {
+   "palabra": "vestía",
+   "inicio": 64.41999816894531,
+   "fin": 64.76000213623047
+  },
+  {
+   "palabra": "espectacular",
+   "inicio": 64.76000213623047,
+   "fin": 65.5999984741211
+  },
+  {
+   "palabra": "una",
+   "inicio": 65.91999816894531,
+   "fin": 67.13999938964844
+  },
+  {
+   "palabra": "dama",
+   "inicio": 67.13999938964844,
+   "fin": 67.44000244140625
+  },
+  {
+   "palabra": "Cuando",
+   "inicio": 69.12000274658203,
+   "fin": 69.55999755859375
+  },
+  {
+   "palabra": "la",
+   "inicio": 69.55999755859375,
+   "fin": 69.76000213623047
+  },
+  {
+   "palabra": "llevé",
+   "inicio": 69.76000213623047,
+   "fin": 70.0999984741211
+  },
+  {
+   "palabra": "ella",
+   "inicio": 70.26000213623047,
+   "fin": 70.37999725341797
+  },
+  {
+   "palabra": "recontente",
+   "inicio": 70.37999725341797,
+   "fin": 70.9000015258789
+  },
+  {
+   "palabra": "era",
+   "inicio": 71.0199966430664,
+   "fin": 71.05999755859375
+  },
+  {
+   "palabra": "muy",
+   "inicio": 71.05999755859375,
+   "fin": 71.27999877929688
+  },
+  {
+   "palabra": "exótica",
+   "inicio": 71.27999877929688,
+   "fin": 71.5999984741211
+  },
+  {
+   "palabra": "ella",
+   "inicio": 71.73999786376953,
+   "fin": 71.9000015258789
+  },
+  {
+   "palabra": "tenía",
+   "inicio": 71.9000015258789,
+   "fin": 72.08000183105469
+  },
+  {
+   "palabra": "una",
+   "inicio": 72.08000183105469,
+   "fin": 73.16000366210938
+  },
+  {
+   "palabra": "dentadura",
+   "inicio": 73.16000366210938,
+   "fin": 73.4800033569336
+  },
+  {
+   "palabra": "muy",
+   "inicio": 73.4800033569336,
+   "fin": 73.73999786376953
+  },
+  {
+   "palabra": "particular",
+   "inicio": 73.73999786376953,
+   "fin": 74.33999633789062
+  },
+  {
+   "palabra": "Y",
+   "inicio": 74.87999725341797,
+   "fin": 75.4000015258789
+  },
+  {
+   "palabra": "nada",
+   "inicio": 75.4000015258789,
+   "fin": 75.87999725341797
+  },
+  {
+   "palabra": "como",
+   "inicio": 75.9000015258789,
+   "fin": 76.13999938964844
+  },
+  {
+   "palabra": "terminó",
+   "inicio": 76.13999938964844,
+   "fin": 76.5
+  },
+  {
+   "palabra": "todo",
+   "inicio": 76.5,
+   "fin": 76.66000366210938
+  },
+  {
+   "palabra": "no",
+   "inicio": 76.66000366210938,
+   "fin": 76.95999908447266
+  },
+  {
+   "palabra": "la",
+   "inicio": 76.95999908447266,
+   "fin": 77.18000030517578
+  },
+  {
+   "palabra": "volví",
+   "inicio": 77.18000030517578,
+   "fin": 77.36000061035156
+  },
+  {
+   "palabra": "a",
+   "inicio": 77.36000061035156,
+   "fin": 77.69999694824219
+  },
+  {
+   "palabra": "ver",
+   "inicio": 77.69999694824219,
+   "fin": 77.69999694824219
+  },
+  {
+   "palabra": "la",
+   "inicio": 77.81999969482422,
+   "fin": 78.08000183105469
+  },
+  {
+   "palabra": "verdad",
+   "inicio": 78.08000183105469,
+   "fin": 78.08000183105469
+  },
+  {
+   "palabra": "que",
+   "inicio": 78.08000183105469,
+   "fin": 78.37999725341797
+  },
+  {
+   "palabra": "en",
+   "inicio": 78.37999725341797,
+   "fin": 79.22000122070312
+  },
+  {
+   "palabra": "el",
+   "inicio": 79.22000122070312,
+   "fin": 79.4000015258789
+  },
+  {
+   "palabra": "noviazgo",
+   "inicio": 79.4000015258789,
+   "fin": 80.05999755859375
+  },
+  {
+   "palabra": "ella",
+   "inicio": 80.05999755859375,
+   "fin": 81.05999755859375
+  },
+  {
+   "palabra": "tuvo",
+   "inicio": 81.05999755859375,
+   "fin": 81.22000122070312
+  },
+  {
+   "palabra": "problemas",
+   "inicio": 81.22000122070312,
+   "fin": 81.5999984741211
+  },
+  {
+   "palabra": "familiares",
+   "inicio": 81.5999984741211,
+   "fin": 82.22000122070312
+  },
+  {
+   "palabra": "yo",
+   "inicio": 82.30000305175781,
+   "fin": 82.63999938964844
+  },
+  {
+   "palabra": "estuve",
+   "inicio": 82.63999938964844,
+   "fin": 82.63999938964844
+  },
+  {
+   "palabra": "ahí",
+   "inicio": 82.63999938964844,
+   "fin": 82.9000015258789
+  },
+  {
+   "palabra": "siempre",
+   "inicio": 82.9000015258789,
+   "fin": 83.30000305175781
+  },
+  {
+   "palabra": "al",
+   "inicio": 83.30000305175781,
+   "fin": 83.55999755859375
+  },
+  {
+   "palabra": "pie",
+   "inicio": 83.55999755859375,
+   "fin": 83.62000274658203
+  },
+  {
+   "palabra": "del",
+   "inicio": 83.62000274658203,
+   "fin": 84.26000213623047
+  },
+  {
+   "palabra": "cañón",
+   "inicio": 84.26000213623047,
+   "fin": 84.26000213623047
+  },
+  {
+   "palabra": "banqué",
+   "inicio": 84.86000061035156,
+   "fin": 84.9800033569336
+  },
+  {
+   "palabra": "todos",
+   "inicio": 84.9800033569336,
+   "fin": 85.22000122070312
+  },
+  {
+   "palabra": "los",
+   "inicio": 85.22000122070312,
+   "fin": 85.45999908447266
+  },
+  {
+   "palabra": "trapos",
+   "inicio": 85.45999908447266,
+   "fin": 85.77999877929688
+  },
+  {
+   "palabra": "me",
+   "inicio": 86.27999877929688,
+   "fin": 86.41999816894531
+  },
+  {
+   "palabra": "comporté",
+   "inicio": 86.41999816894531,
+   "fin": 86.83999633789062
+  },
+  {
+   "palabra": "de",
+   "inicio": 86.83999633789062,
+   "fin": 87.05999755859375
+  },
+  {
+   "palabra": "diez",
+   "inicio": 87.05999755859375,
+   "fin": 87.36000061035156
+  },
+  {
+   "palabra": "Y",
+   "inicio": 88.0999984741211,
+   "fin": 88.16000366210938
+  },
+  {
+   "palabra": "bueno",
+   "inicio": 88.16000366210938,
+   "fin": 88.45999908447266
+  },
+  {
+   "palabra": "la",
+   "inicio": 88.63999938964844,
+   "fin": 89.0
+  },
+  {
+   "palabra": "verdad",
+   "inicio": 89.0,
+   "fin": 89.0
+  },
+  {
+   "palabra": "al",
+   "inicio": 89.0,
+   "fin": 89.45999908447266
+  },
+  {
+   "palabra": "final",
+   "inicio": 89.45999908447266,
+   "fin": 89.45999908447266
+  },
+  {
+   "palabra": "no",
+   "inicio": 89.45999908447266,
+   "fin": 91.19999694824219
+  },
+  {
+   "palabra": "sabíamos",
+   "inicio": 91.19999694824219,
+   "fin": 91.55999755859375
+  },
+  {
+   "palabra": "lo",
+   "inicio": 91.55999755859375,
+   "fin": 91.73999786376953
+  },
+  {
+   "palabra": "que",
+   "inicio": 91.73999786376953,
+   "fin": 91.9800033569336
+  },
+  {
+   "palabra": "sentíamos",
+   "inicio": 91.9800033569336,
+   "fin": 92.22000122070312
+  },
+  {
+   "palabra": "sentíamos",
+   "inicio": 92.5999984741211,
+   "fin": 92.5999984741211
+  },
+  {
+   "palabra": "que",
+   "inicio": 92.5999984741211,
+   "fin": 92.77999877929688
+  },
+  {
+   "palabra": "no",
+   "inicio": 92.77999877929688,
+   "fin": 92.9000015258789
+  },
+  {
+   "palabra": "podíamos",
+   "inicio": 92.9000015258789,
+   "fin": 93.18000030517578
+  },
+  {
+   "palabra": "crecer",
+   "inicio": 93.18000030517578,
+   "fin": 93.58000183105469
+  },
+  {
+   "palabra": "más",
+   "inicio": 93.58000183105469,
+   "fin": 93.94000244140625
+  },
+  {
+   "palabra": "no",
+   "inicio": 94.41999816894531,
+   "fin": 94.5
+  },
+  {
+   "palabra": "podíamos",
+   "inicio": 94.5,
+   "fin": 94.76000213623047
+  },
+  {
+   "palabra": "aportarle",
+   "inicio": 94.76000213623047,
+   "fin": 95.36000061035156
+  },
+  {
+   "palabra": "más",
+   "inicio": 95.36000061035156,
+   "fin": 95.55999755859375
+  },
+  {
+   "palabra": "al",
+   "inicio": 95.55999755859375,
+   "fin": 95.77999877929688
+  },
+  {
+   "palabra": "otro",
+   "inicio": 95.77999877929688,
+   "fin": 95.9000015258789
+  },
+  {
+   "palabra": "lo",
+   "inicio": 95.9800033569336,
+   "fin": 96.18000030517578
+  },
+  {
+   "palabra": "que",
+   "inicio": 96.18000030517578,
+   "fin": 96.19999694824219
+  },
+  {
+   "palabra": "ya",
+   "inicio": 96.19999694824219,
+   "fin": 96.41999816894531
+  },
+  {
+   "palabra": "habíamos",
+   "inicio": 96.41999816894531,
+   "fin": 96.62000274658203
+  },
+  {
+   "palabra": "crecido",
+   "inicio": 96.62000274658203,
+   "fin": 97.0199966430664
+  },
+  {
+   "palabra": "juntos",
+   "inicio": 97.0199966430664,
+   "fin": 97.41999816894531
+  },
+  {
+   "palabra": "ya",
+   "inicio": 97.41999816894531,
+   "fin": 97.73999786376953
+  },
+  {
+   "palabra": "tenía",
+   "inicio": 97.73999786376953,
+   "fin": 98.0
+  },
+  {
+   "palabra": "un",
+   "inicio": 98.0,
+   "fin": 98.91999816894531
+  },
+  {
+   "palabra": "tope",
+   "inicio": 98.91999816894531,
+   "fin": 98.9800033569336
+  },
+  {
+   "palabra": "y",
+   "inicio": 98.9800033569336,
+   "fin": 99.0999984741211
+  },
+  {
+   "palabra": "no",
+   "inicio": 99.0999984741211,
+   "fin": 99.18000030517578
+  },
+  {
+   "palabra": "nos",
+   "inicio": 99.18000030517578,
+   "fin": 99.94000244140625
+  },
+  {
+   "palabra": "podíamos",
+   "inicio": 99.94000244140625,
+   "fin": 99.94000244140625
+  },
+  {
+   "palabra": "seguir",
+   "inicio": 99.94000244140625,
+   "fin": 100.63999938964844
+  },
+  {
+   "palabra": "potenciando",
+   "inicio": 100.63999938964844,
+   "fin": 101.33999633789062
+  },
+  {
+   "palabra": "La",
+   "inicio": 101.33999633789062,
+   "fin": 102.04000091552734
+  },
+  {
+   "palabra": "verdad",
+   "inicio": 102.04000091552734,
+   "fin": 102.23999786376953
+  },
+  {
+   "palabra": "sentíamos",
+   "inicio": 102.23999786376953,
+   "fin": 102.66000366210938
+  },
+  {
+   "palabra": "eso",
+   "inicio": 102.66000366210938,
+   "fin": 102.95999908447266
+  },
+  {
+   "palabra": "después",
+   "inicio": 103.0999984741211,
+   "fin": 103.23999786376953
+  },
+  {
+   "palabra": "nos",
+   "inicio": 103.23999786376953,
+   "fin": 103.4000015258789
+  },
+  {
+   "palabra": "costó",
+   "inicio": 103.4000015258789,
+   "fin": 103.55999755859375
+  },
+  {
+   "palabra": "separarnos",
+   "inicio": 103.55999755859375,
+   "fin": 104.12000274658203
+  },
+  {
+   "palabra": "dos",
+   "inicio": 104.12000274658203,
+   "fin": 104.4000015258789
+  },
+  {
+   "palabra": "meses",
+   "inicio": 104.4000015258789,
+   "fin": 104.63999938964844
+  },
+  {
+   "palabra": "estuvimos",
+   "inicio": 104.81999969482422,
+   "fin": 105.05999755859375
+  },
+  {
+   "palabra": "ahí",
+   "inicio": 105.05999755859375,
+   "fin": 105.33999633789062
+  },
+  {
+   "palabra": "yendo",
+   "inicio": 105.33999633789062,
+   "fin": 105.5199966430664
+  },
+  {
+   "palabra": "y",
+   "inicio": 105.5199966430664,
+   "fin": 106.72000122070312
+  },
+  {
+   "palabra": "viniendo",
+   "inicio": 106.72000122070312,
+   "fin": 106.86000061035156
+  },
+  {
+   "palabra": "pero",
+   "inicio": 106.91999816894531,
+   "fin": 107.13999938964844
+  },
+  {
+   "palabra": "nos",
+   "inicio": 107.13999938964844,
+   "fin": 107.44000244140625
+  },
+  {
+   "palabra": "terminamos",
+   "inicio": 107.44000244140625,
+   "fin": 107.76000213623047
+  },
+  {
+   "palabra": "separando",
+   "inicio": 107.76000213623047,
+   "fin": 108.23999786376953
+  },
+  {
+   "palabra": "y",
+   "inicio": 108.23999786376953,
+   "fin": 108.37999725341797
+  },
+  {
+   "palabra": "bueno",
+   "inicio": 108.37999725341797,
+   "fin": 108.5999984741211
+  },
+  {
+   "palabra": "yo",
+   "inicio": 108.69999694824219,
+   "fin": 108.81999969482422
+  },
+  {
+   "palabra": "después",
+   "inicio": 108.81999969482422,
+   "fin": 109.19999694824219
+  },
+  {
+   "palabra": "estuve",
+   "inicio": 109.19999694824219,
+   "fin": 110.66000366210938
+  },
+  {
+   "palabra": "tres",
+   "inicio": 110.66000366210938,
+   "fin": 111.08000183105469
+  },
+  {
+   "palabra": "años",
+   "inicio": 111.08000183105469,
+   "fin": 111.18000030517578
+  },
+  {
+   "palabra": "sin",
+   "inicio": 111.18000030517578,
+   "fin": 111.44000244140625
+  },
+  {
+   "palabra": "estar",
+   "inicio": 111.44000244140625,
+   "fin": 111.63999938964844
+  },
+  {
+   "palabra": "con",
+   "inicio": 111.63999938964844,
+   "fin": 111.86000061035156
+  },
+  {
+   "palabra": "nadie",
+   "inicio": 111.86000061035156,
+   "fin": 112.22000122070312
+  },
+  {
+   "palabra": "yo",
+   "inicio": 112.87999725341797,
+   "fin": 113.04000091552734
+  },
+  {
+   "palabra": "estaba",
+   "inicio": 113.04000091552734,
+   "fin": 113.4000015258789
+  },
+  {
+   "palabra": "completamente",
+   "inicio": 113.4000015258789,
+   "fin": 115.0199966430664
+  },
+  {
+   "palabra": "tratando",
+   "inicio": 115.0199966430664,
+   "fin": 116.30000305175781
+  },
+  {
+   "palabra": "de",
+   "inicio": 116.30000305175781,
+   "fin": 116.62000274658203
+  },
+  {
+   "palabra": "buscar",
+   "inicio": 116.62000274658203,
+   "fin": 116.62000274658203
+  },
+  {
+   "palabra": "una",
+   "inicio": 116.62000274658203,
+   "fin": 116.80000305175781
+  },
+  {
+   "palabra": "persona",
+   "inicio": 116.80000305175781,
+   "fin": 117.08000183105469
+  },
+  {
+   "palabra": "que",
+   "inicio": 117.08000183105469,
+   "fin": 117.9000015258789
+  },
+  {
+   "palabra": "sea",
+   "inicio": 117.9000015258789,
+   "fin": 118.12000274658203
+  },
+  {
+   "palabra": "igual",
+   "inicio": 118.12000274658203,
+   "fin": 118.5
+  },
+  {
+   "palabra": "o",
+   "inicio": 118.5,
+   "fin": 118.91999816894531
+  },
+  {
+   "palabra": "mejor",
+   "inicio": 118.91999816894531,
+   "fin": 118.91999816894531
+  },
+  {
+   "palabra": "que",
+   "inicio": 118.91999816894531,
+   "fin": 119.19999694824219
+  },
+  {
+   "palabra": "ella",
+   "inicio": 119.19999694824219,
+   "fin": 119.31999969482422
+  },
+  {
+   "palabra": "y",
+   "inicio": 119.31999969482422,
+   "fin": 119.41999816894531
+  },
+  {
+   "palabra": "no",
+   "inicio": 119.41999816894531,
+   "fin": 119.5199966430664
+  },
+  {
+   "palabra": "la",
+   "inicio": 119.5199966430664,
+   "fin": 119.9800033569336
+  },
+  {
+   "palabra": "encontré",
+   "inicio": 119.9800033569336,
+   "fin": 119.9800033569336
+  },
+  {
+   "palabra": "nunca",
+   "inicio": 119.9800033569336,
+   "fin": 120.54000091552734
+  },
+  {
+   "palabra": "La",
+   "inicio": 122.72000122070312,
+   "fin": 123.37999725341797
+  },
+  {
+   "palabra": "verdad",
+   "inicio": 123.37999725341797,
+   "fin": 123.63999938964844
+  },
+  {
+   "palabra": "fue",
+   "inicio": 123.63999938964844,
+   "fin": 124.12000274658203
+  },
+  {
+   "palabra": "el",
+   "inicio": 124.12000274658203,
+   "fin": 125.44000244140625
+  },
+  {
+   "palabra": "amor",
+   "inicio": 125.44000244140625,
+   "fin": 125.5999984741211
+  },
+  {
+   "palabra": "de",
+   "inicio": 125.5999984741211,
+   "fin": 125.81999969482422
+  },
+  {
+   "palabra": "mi",
+   "inicio": 125.81999969482422,
+   "fin": 126.12000274658203
+  },
+  {
+   "palabra": "vida",
+   "inicio": 126.12000274658203,
+   "fin": 126.12000274658203
+  },
+  {
+   "palabra": "y",
+   "inicio": 126.12000274658203,
+   "fin": 127.23999786376953
+  },
+  {
+   "palabra": "por",
+   "inicio": 127.23999786376953,
+   "fin": 127.4800033569336
+  },
+  {
+   "palabra": "ahora",
+   "inicio": 127.4800033569336,
+   "fin": 127.69999694824219
+  },
+  {
+   "palabra": "y",
+   "inicio": 128.0,
+   "fin": 128.52000427246094
+  },
+  {
+   "palabra": "lo",
+   "inicio": 128.52000427246094,
+   "fin": 128.97999572753906
+  },
+  {
+   "palabra": "sigue",
+   "inicio": 128.97999572753906,
+   "fin": 129.16000366210938
+  },
+  {
+   "palabra": "siendo",
+   "inicio": 129.16000366210938,
+   "fin": 129.39999389648438
+  },
+  {
+   "palabra": "por",
+   "inicio": 129.39999389648438,
+   "fin": 129.72000122070312
+  },
+  {
+   "palabra": "ahora",
+   "inicio": 129.72000122070312,
+   "fin": 129.8000030517578
+  },
+  {
+   "palabra": "esperemos",
+   "inicio": 130.13999938964844,
+   "fin": 130.13999938964844
+  },
+  {
+   "palabra": "que",
+   "inicio": 130.13999938964844,
+   "fin": 130.66000366210938
+  },
+  {
+   "palabra": "aparezca",
+   "inicio": 130.66000366210938,
+   "fin": 131.10000610351562
+  },
+  {
+   "palabra": "otro",
+   "inicio": 131.10000610351562,
+   "fin": 131.6199951171875
+  },
+  {
+   "palabra": "pero",
+   "inicio": 132.16000366210938,
+   "fin": 132.24000549316406
+  },
+  {
+   "palabra": "la",
+   "inicio": 132.24000549316406,
+   "fin": 132.74000549316406
+  },
+  {
+   "palabra": "recuerdo",
+   "inicio": 132.74000549316406,
+   "fin": 132.74000549316406
+  },
+  {
+   "palabra": "con",
+   "inicio": 132.74000549316406,
+   "fin": 133.0399932861328
+  },
+  {
+   "palabra": "mucho",
+   "inicio": 133.0399932861328,
+   "fin": 133.25999450683594
+  },
+  {
+   "palabra": "cariño",
+   "inicio": 133.25999450683594,
+   "fin": 133.82000732421875
+  },
+  {
+   "palabra": "mucho",
+   "inicio": 134.6199951171875,
+   "fin": 134.74000549316406
+  },
+  {
+   "palabra": "amor",
+   "inicio": 134.74000549316406,
+   "fin": 134.89999389648438
+  },
+  {
+   "palabra": "una",
+   "inicio": 135.05999755859375,
+   "fin": 135.16000366210938
+  },
+  {
+   "palabra": "persona",
+   "inicio": 135.16000366210938,
+   "fin": 135.47999572753906
+  },
+  {
+   "palabra": "única",
+   "inicio": 135.47999572753906,
+   "fin": 135.86000061035156
+  },
+  {
+   "palabra": "un",
+   "inicio": 136.4600067138672,
+   "fin": 136.8000030517578
+  },
+  {
+   "palabra": "humor",
+   "inicio": 136.8000030517578,
+   "fin": 137.05999755859375
+  },
+  {
+   "palabra": "también",
+   "inicio": 137.05999755859375,
+   "fin": 138.3000030517578
+  },
+  {
+   "palabra": "muy",
+   "inicio": 138.3000030517578,
+   "fin": 138.72000122070312
+  },
+  {
+   "palabra": "particular",
+   "inicio": 138.72000122070312,
+   "fin": 139.25999450683594
+  },
+  {
+   "palabra": "muy",
+   "inicio": 139.8800048828125,
+   "fin": 140.22000122070312
+  },
+  {
+   "palabra": "divertida",
+   "inicio": 140.22000122070312,
+   "fin": 140.5500030517578
+  },
+  {
+   "palabra": "Y",
+   "inicio": 141.77999877929688,
+   "fin": 142.36000061035156
+  },
+  {
+   "palabra": "nada",
+   "inicio": 142.36000061035156,
+   "fin": 142.60000610351562
+  },
+  {
+   "palabra": "yo",
+   "inicio": 142.60000610351562,
+   "fin": 142.86000061035156
+  },
+  {
+   "palabra": "trabajé",
+   "inicio": 142.86000061035156,
+   "fin": 143.1999969482422
+  },
+  {
+   "palabra": "todo",
+   "inicio": 143.1999969482422,
+   "fin": 143.52000427246094
+  },
+  {
+   "palabra": "el",
+   "inicio": 143.52000427246094,
+   "fin": 143.94000244140625
+  },
+  {
+   "palabra": "tiempo",
+   "inicio": 143.94000244140625,
+   "fin": 143.94000244140625
+  },
+  {
+   "palabra": "yo",
+   "inicio": 144.05999755859375,
+   "fin": 144.5
+  },
+  {
+   "palabra": "trabajo",
+   "inicio": 144.5,
+   "fin": 144.5
+  },
+  {
+   "palabra": "de",
+   "inicio": 144.5,
+   "fin": 144.66000366210938
+  },
+  {
+   "palabra": "muy",
+   "inicio": 144.66000366210938,
+   "fin": 144.83999633789062
+  },
+  {
+   "palabra": "chico",
+   "inicio": 144.83999633789062,
+   "fin": 145.05999755859375
+  },
+  {
+   "palabra": "entonces",
+   "inicio": 145.17999267578125,
+   "fin": 145.67999267578125
+  },
+  {
+   "palabra": "en",
+   "inicio": 145.67999267578125,
+   "fin": 146.39999389648438
+  },
+  {
+   "palabra": "un",
+   "inicio": 146.39999389648438,
+   "fin": 146.8000030517578
+  },
+  {
+   "palabra": "momento",
+   "inicio": 146.8000030517578,
+   "fin": 146.8000030517578
+  },
+  {
+   "palabra": "no",
+   "inicio": 146.8000030517578,
+   "fin": 147.0399932861328
+  },
+  {
+   "palabra": "tenía",
+   "inicio": 147.0399932861328,
+   "fin": 147.25999450683594
+  },
+  {
+   "palabra": "nada",
+   "inicio": 147.25999450683594,
+   "fin": 147.4600067138672
+  },
+  {
+   "palabra": "de",
+   "inicio": 147.4600067138672,
+   "fin": 147.8800048828125
+  },
+  {
+   "palabra": "tiempo",
+   "inicio": 147.8800048828125,
+   "fin": 147.8800048828125
+  },
+  {
+   "palabra": "yo",
+   "inicio": 147.8800048828125,
+   "fin": 148.1999969482422
+  },
+  {
+   "palabra": "trabajaba",
+   "inicio": 148.1999969482422,
+   "fin": 148.74000549316406
+  },
+  {
+   "palabra": "de",
+   "inicio": 148.74000549316406,
+   "fin": 149.10000610351562
+  },
+  {
+   "palabra": "lunes",
+   "inicio": 149.10000610351562,
+   "fin": 149.10000610351562
+  },
+  {
+   "palabra": "a",
+   "inicio": 149.10000610351562,
+   "fin": 149.6199951171875
+  },
+  {
+   "palabra": "lunes",
+   "inicio": 149.6199951171875,
+   "fin": 149.6199951171875
+  },
+  {
+   "palabra": "de",
+   "inicio": 150.25999450683594,
+   "fin": 150.44000244140625
+  },
+  {
+   "palabra": "luna",
+   "inicio": 150.44000244140625,
+   "fin": 150.44000244140625
+  },
+  {
+   "palabra": "a",
+   "inicio": 150.44000244140625,
+   "fin": 150.67999267578125
+  },
+  {
+   "palabra": "viernes",
+   "inicio": 150.67999267578125,
+   "fin": 150.67999267578125
+  },
+  {
+   "palabra": "con",
+   "inicio": 150.67999267578125,
+   "fin": 150.8800048828125
+  },
+  {
+   "palabra": "el",
+   "inicio": 150.8800048828125,
+   "fin": 151.13999938964844
+  },
+  {
+   "palabra": "sello",
+   "inicio": 151.13999938964844,
+   "fin": 151.13999938964844
+  },
+  {
+   "palabra": "discográfico",
+   "inicio": 151.13999938964844,
+   "fin": 152.22000122070312
+  },
+  {
+   "palabra": "y",
+   "inicio": 152.22000122070312,
+   "fin": 153.82000732421875
+  },
+  {
+   "palabra": "los",
+   "inicio": 153.82000732421875,
+   "fin": 154.0800018310547
+  },
+  {
+   "palabra": "lunes",
+   "inicio": 154.0800018310547,
+   "fin": 154.22000122070312
+  },
+  {
+   "palabra": "jueves",
+   "inicio": 154.52000427246094,
+   "fin": 154.52000427246094
+  },
+  {
+   "palabra": "sábado",
+   "inicio": 154.9199981689453,
+   "fin": 154.94000244140625
+  },
+  {
+   "palabra": "y",
+   "inicio": 154.94000244140625,
+   "fin": 155.39999389648438
+  },
+  {
+   "palabra": "domingo",
+   "inicio": 155.39999389648438,
+   "fin": 155.39999389648438
+  },
+  {
+   "palabra": "trabajaba",
+   "inicio": 155.39999389648438,
+   "fin": 155.9600067138672
+  },
+  {
+   "palabra": "de",
+   "inicio": 155.9600067138672,
+   "fin": 156.52000427246094
+  },
+  {
+   "palabra": "instructor",
+   "inicio": 156.52000427246094,
+   "fin": 156.52000427246094
+  },
+  {
+   "palabra": "de",
+   "inicio": 156.52000427246094,
+   "fin": 156.86000061035156
+  },
+  {
+   "palabra": "vela",
+   "inicio": 156.86000061035156,
+   "fin": 156.9600067138672
+  },
+  {
+   "palabra": "como",
+   "inicio": 157.02000427246094,
+   "fin": 157.1199951171875
+  },
+  {
+   "palabra": "te",
+   "inicio": 157.1199951171875,
+   "fin": 157.5
+  },
+  {
+   "palabra": "conté",
+   "inicio": 157.5,
+   "fin": 157.5800018310547
+  },
+  {
+   "palabra": "antes",
+   "inicio": 157.5800018310547,
+   "fin": 158.0
+  },
+  {
+   "palabra": "yo",
+   "inicio": 160.24000549316406,
+   "fin": 160.5399932861328
+  },
+  {
+   "palabra": "estudiaba",
+   "inicio": 160.5399932861328,
+   "fin": 160.8000030517578
+  },
+  {
+   "palabra": "en",
+   "inicio": 160.8000030517578,
+   "fin": 160.89999389648438
+  },
+  {
+   "palabra": "el",
+   "inicio": 160.89999389648438,
+   "fin": 161.10000610351562
+  },
+  {
+   "palabra": "centro",
+   "inicio": 161.10000610351562,
+   "fin": 161.33999633789062
+  },
+  {
+   "palabra": "ella",
+   "inicio": 161.55999755859375,
+   "fin": 161.66000366210938
+  },
+  {
+   "palabra": "vivía",
+   "inicio": 161.66000366210938,
+   "fin": 161.9199981689453
+  },
+  {
+   "palabra": "en",
+   "inicio": 161.9199981689453,
+   "fin": 162.13999938964844
+  },
+  {
+   "palabra": "Tigre",
+   "inicio": 162.13999938964844,
+   "fin": 162.55999755859375
+  },
+  {
+   "palabra": "nos",
+   "inicio": 163.36000061035156,
+   "fin": 163.9199981689453
+  },
+  {
+   "palabra": "podíamos",
+   "inicio": 163.9199981689453,
+   "fin": 164.17999267578125
+  },
+  {
+   "palabra": "ver",
+   "inicio": 164.17999267578125,
+   "fin": 164.52000427246094
+  },
+  {
+   "palabra": "poco",
+   "inicio": 164.52000427246094,
+   "fin": 165.05999755859375
+  },
+  {
+   "palabra": "pero",
+   "inicio": 165.33999633789062,
+   "fin": 165.5800018310547
+  },
+  {
+   "palabra": "yo",
+   "inicio": 165.5800018310547,
+   "fin": 166.4600067138672
+  },
+  {
+   "palabra": "dormía",
+   "inicio": 166.4600067138672,
+   "fin": 166.66000366210938
+  },
+  {
+   "palabra": "en",
+   "inicio": 166.66000366210938,
+   "fin": 166.8000030517578
+  },
+  {
+   "palabra": "su",
+   "inicio": 166.8000030517578,
+   "fin": 167.02000427246094
+  },
+  {
+   "palabra": "casa",
+   "inicio": 167.02000427246094,
+   "fin": 167.1999969482422
+  },
+  {
+   "palabra": "iba",
+   "inicio": 167.63999938964844,
+   "fin": 167.63999938964844
+  },
+  {
+   "palabra": "a",
+   "inicio": 167.63999938964844,
+   "fin": 167.82000732421875
+  },
+  {
+   "palabra": "las",
+   "inicio": 167.82000732421875,
+   "fin": 167.94000244140625
+  },
+  {
+   "palabra": "10",
+   "inicio": 167.94000244140625,
+   "fin": 168.0399932861328
+  },
+  {
+   "palabra": "de",
+   "inicio": 168.0399932861328,
+   "fin": 168.17999267578125
+  },
+  {
+   "palabra": "la",
+   "inicio": 168.17999267578125,
+   "fin": 168.44000244140625
+  },
+  {
+   "palabra": "noche",
+   "inicio": 168.44000244140625,
+   "fin": 168.5399932861328
+  },
+  {
+   "palabra": "todos",
+   "inicio": 169.5800018310547,
+   "fin": 169.83999633789062
+  },
+  {
+   "palabra": "los",
+   "inicio": 169.83999633789062,
+   "fin": 170.94000244140625
+  },
+  {
+   "palabra": "cumpleaños",
+   "inicio": 170.94000244140625,
+   "fin": 171.55999755859375
+  },
+  {
+   "palabra": "trataba",
+   "inicio": 171.55999755859375,
+   "fin": 172.0399932861328
+  },
+  {
+   "palabra": "de",
+   "inicio": 172.0399932861328,
+   "fin": 172.67999267578125
+  },
+  {
+   "palabra": "darle",
+   "inicio": 172.67999267578125,
+   "fin": 172.67999267578125
+  },
+  {
+   "palabra": "unos",
+   "inicio": 172.67999267578125,
+   "fin": 173.47999572753906
+  },
+  {
+   "palabra": "zapatos",
+   "inicio": 173.47999572753906,
+   "fin": 173.9600067138672
+  },
+  {
+   "palabra": "unos",
+   "inicio": 173.9600067138672,
+   "fin": 174.27999877929688
+  },
+  {
+   "palabra": "aritos",
+   "inicio": 174.27999877929688,
+   "fin": 175.0
+  },
+  {
+   "palabra": "todos",
+   "inicio": 175.66000366210938,
+   "fin": 176.6199951171875
+  },
+  {
+   "palabra": "los",
+   "inicio": 176.6199951171875,
+   "fin": 176.82000732421875
+  },
+  {
+   "palabra": "regalos",
+   "inicio": 176.82000732421875,
+   "fin": 177.10000610351562
+  },
+  {
+   "palabra": "todo",
+   "inicio": 177.4199981689453,
+   "fin": 177.4199981689453
+  },
+  {
+   "palabra": "mi",
+   "inicio": 177.4199981689453,
+   "fin": 177.6199951171875
+  },
+  {
+   "palabra": "amor",
+   "inicio": 177.6199951171875,
+   "fin": 177.9199981689453
+  },
+  {
+   "palabra": "todo",
+   "inicio": 179.05999755859375,
+   "fin": 179.1199951171875
+  },
+  {
+   "palabra": "mi",
+   "inicio": 179.1199951171875,
+   "fin": 179.55999755859375
+  },
+  {
+   "palabra": "sueldo",
+   "inicio": 179.55999755859375,
+   "fin": 179.75999450683594
+  },
+  {
+   "palabra": "siempre",
+   "inicio": 179.75999450683594,
+   "fin": 180.60000610351562
+  },
+  {
+   "palabra": "era",
+   "inicio": 180.60000610351562,
+   "fin": 181.0399932861328
+  },
+  {
+   "palabra": "para",
+   "inicio": 181.0399932861328,
+   "fin": 181.83999633789062
+  },
+  {
+   "palabra": "gastarlo",
+   "inicio": 181.83999633789062,
+   "fin": 182.3000030517578
+  },
+  {
+   "palabra": "en",
+   "inicio": 182.3000030517578,
+   "fin": 182.75999450683594
+  },
+  {
+   "palabra": "ella",
+   "inicio": 182.75999450683594,
+   "fin": 182.75999450683594
+  },
+  {
+   "palabra": "y",
+   "inicio": 182.75999450683594,
+   "fin": 182.9600067138672
+  },
+  {
+   "palabra": "lo",
+   "inicio": 182.9600067138672,
+   "fin": 184.25999450683594
+  },
+  {
+   "palabra": "que",
+   "inicio": 184.25999450683594,
+   "fin": 184.36000061035156
+  },
+  {
+   "palabra": "me",
+   "inicio": 184.36000061035156,
+   "fin": 184.6999969482422
+  },
+  {
+   "palabra": "hacía",
+   "inicio": 184.6999969482422,
+   "fin": 184.6999969482422
+  },
+  {
+   "palabra": "feliz",
+   "inicio": 184.6999969482422,
+   "fin": 185.0399932861328
+  },
+  {
+   "palabra": "que",
+   "inicio": 185.0399932861328,
+   "fin": 185.1999969482422
+  },
+  {
+   "palabra": "era",
+   "inicio": 185.1999969482422,
+   "fin": 185.36000061035156
+  },
+  {
+   "palabra": "sacarle",
+   "inicio": 185.36000061035156,
+   "fin": 185.60000610351562
+  },
+  {
+   "palabra": "una",
+   "inicio": 185.60000610351562,
+   "fin": 185.86000061035156
+  },
+  {
+   "palabra": "sonrisa",
+   "inicio": 185.86000061035156,
+   "fin": 186.3000030517578
+  },
+  {
+   "palabra": "Y",
+   "inicio": 187.1999969482422,
+   "fin": 187.25999450683594
+  },
+  {
+   "palabra": "nada",
+   "inicio": 187.25999450683594,
+   "fin": 187.6199951171875
+  },
+  {
+   "palabra": "terminó",
+   "inicio": 187.6199951171875,
+   "fin": 187.86000061035156
+  },
+  {
+   "palabra": "muy",
+   "inicio": 187.86000061035156,
+   "fin": 188.16000366210938
+  },
+  {
+   "palabra": "bien",
+   "inicio": 188.16000366210938,
+   "fin": 188.39999389648438
+  },
+  {
+   "palabra": "muy",
+   "inicio": 188.5800018310547,
+   "fin": 188.82000732421875
+  },
+  {
+   "palabra": "bien",
+   "inicio": 188.82000732421875,
+   "fin": 189.02000427246094
+  },
+  {
+   "palabra": "nos",
+   "inicio": 189.17999267578125,
+   "fin": 189.33999633789062
+  },
+  {
+   "palabra": "amamos",
+   "inicio": 189.33999633789062,
+   "fin": 189.8800048828125
+  },
+  {
+   "palabra": "sé",
+   "inicio": 190.3800048828125,
+   "fin": 190.4199981689453
+  },
+  {
+   "palabra": "que",
+   "inicio": 190.4199981689453,
+   "fin": 190.52000427246094
+  },
+  {
+   "palabra": "ella",
+   "inicio": 190.52000427246094,
+   "fin": 190.63999938964844
+  },
+  {
+   "palabra": "está",
+   "inicio": 190.63999938964844,
+   "fin": 190.82000732421875
+  },
+  {
+   "palabra": "para",
+   "inicio": 190.82000732421875,
+   "fin": 191.05999755859375
+  },
+  {
+   "palabra": "mí",
+   "inicio": 191.05999755859375,
+   "fin": 191.25999450683594
+  },
+  {
+   "palabra": "cuando",
+   "inicio": 191.44000244140625,
+   "fin": 191.55999755859375
+  },
+  {
+   "palabra": "falleció",
+   "inicio": 191.55999755859375,
+   "fin": 191.94000244140625
+  },
+  {
+   "palabra": "mi",
+   "inicio": 191.94000244140625,
+   "fin": 192.33999633789062
+  },
+  {
+   "palabra": "abuela",
+   "inicio": 192.33999633789062,
+   "fin": 192.33999633789062
+  },
+  {
+   "palabra": "hace",
+   "inicio": 192.33999633789062,
+   "fin": 192.5399932861328
+  },
+  {
+   "palabra": "dos",
+   "inicio": 192.5399932861328,
+   "fin": 192.8000030517578
+  },
+  {
+   "palabra": "años",
+   "inicio": 192.8000030517578,
+   "fin": 192.86000061035156
+  },
+  {
+   "palabra": "me",
+   "inicio": 192.86000061035156,
+   "fin": 193.16000366210938
+  },
+  {
+   "palabra": "mandó",
+   "inicio": 193.16000366210938,
+   "fin": 193.1999969482422
+  },
+  {
+   "palabra": "un",
+   "inicio": 193.1999969482422,
+   "fin": 193.83999633789062
+  },
+  {
+   "palabra": "mensaje",
+   "inicio": 193.83999633789062,
+   "fin": 193.83999633789062
+  },
+  {
+   "palabra": "porque",
+   "inicio": 194.5800018310547,
+   "fin": 195.0
+  },
+  {
+   "palabra": "mi",
+   "inicio": 195.0,
+   "fin": 195.3800048828125
+  },
+  {
+   "palabra": "abuela",
+   "inicio": 195.3800048828125,
+   "fin": 195.3800048828125
+  },
+  {
+   "palabra": "la",
+   "inicio": 195.3800048828125,
+   "fin": 195.82000732421875
+  },
+  {
+   "palabra": "quería",
+   "inicio": 195.82000732421875,
+   "fin": 195.82000732421875
+  },
+  {
+   "palabra": "mucho",
+   "inicio": 195.82000732421875,
+   "fin": 196.1199951171875
+  },
+  {
+   "palabra": "a",
+   "inicio": 196.1199951171875,
+   "fin": 196.8800048828125
+  },
+  {
+   "palabra": "ella",
+   "inicio": 196.8800048828125,
+   "fin": 197.1199951171875
+  },
+  {
+   "palabra": "fue",
+   "inicio": 198.6199951171875,
+   "fin": 199.13999938964844
+  },
+  {
+   "palabra": "una",
+   "inicio": 199.13999938964844,
+   "fin": 199.1999969482422
+  },
+  {
+   "palabra": "relación",
+   "inicio": 199.1999969482422,
+   "fin": 199.60000610351562
+  },
+  {
+   "palabra": "muy",
+   "inicio": 199.60000610351562,
+   "fin": 200.05999755859375
+  },
+  {
+   "palabra": "particular",
+   "inicio": 200.05999755859375,
+   "fin": 200.32000732421875
+  },
+  {
+   "palabra": "que",
+   "inicio": 200.32000732421875,
+   "fin": 200.47999572753906
+  },
+  {
+   "palabra": "me",
+   "inicio": 200.47999572753906,
+   "fin": 200.86000061035156
+  },
+  {
+   "palabra": "marcó",
+   "inicio": 200.86000061035156,
+   "fin": 200.94000244140625
+  },
+  {
+   "palabra": "para",
+   "inicio": 200.94000244140625,
+   "fin": 201.16000366210938
+  },
+  {
+   "palabra": "toda",
+   "inicio": 201.16000366210938,
+   "fin": 201.3000030517578
+  },
+  {
+   "palabra": "mi",
+   "inicio": 201.3000030517578,
+   "fin": 201.66000366210938
+  },
+  {
+   "palabra": "vida",
+   "inicio": 201.66000366210938,
+   "fin": 201.66000366210938
+  },
+  {
+   "palabra": "porque",
+   "inicio": 201.9199981689453,
+   "fin": 202.75999450683594
+  },
+  {
+   "palabra": "fue",
+   "inicio": 202.75999450683594,
+   "fin": 203.02000427246094
+  },
+  {
+   "palabra": "como",
+   "inicio": 203.02000427246094,
+   "fin": 203.24000549316406
+  },
+  {
+   "palabra": "tener",
+   "inicio": 203.24000549316406,
+   "fin": 203.52000427246094
+  },
+  {
+   "palabra": "un",
+   "inicio": 203.52000427246094,
+   "fin": 204.0
+  },
+  {
+   "palabra": "10",
+   "inicio": 204.0,
+   "fin": 204.05999755859375
+  },
+  {
+   "palabra": "de",
+   "inicio": 204.05999755859375,
+   "fin": 204.1999969482422
+  },
+  {
+   "palabra": "10",
+   "inicio": 204.1999969482422,
+   "fin": 204.39999389648438
+  },
+  {
+   "palabra": "al",
+   "inicio": 204.39999389648438,
+   "fin": 204.63999938964844
+  },
+  {
+   "palabra": "principio",
+   "inicio": 204.63999938964844,
+   "fin": 205.02000427246094
+  },
+  {
+   "palabra": "y",
+   "inicio": 205.02000427246094,
+   "fin": 205.24000549316406
+  },
+  {
+   "palabra": "después",
+   "inicio": 205.24000549316406,
+   "fin": 205.5
+  },
+  {
+   "palabra": "igualar",
+   "inicio": 205.5,
+   "fin": 205.9600067138672
+  },
+  {
+   "palabra": "eso",
+   "inicio": 205.9600067138672,
+   "fin": 206.22000122070312
+  },
+  {
+   "palabra": "va",
+   "inicio": 206.22000122070312,
+   "fin": 207.24000549316406
+  },
+  {
+   "palabra": "a",
+   "inicio": 207.24000549316406,
+   "fin": 207.3800048828125
+  },
+  {
+   "palabra": "ser",
+   "inicio": 207.3800048828125,
+   "fin": 207.3800048828125
+  },
+  {
+   "palabra": "muy",
+   "inicio": 207.3800048828125,
+   "fin": 207.67999267578125
+  },
+  {
+   "palabra": "difícil",
+   "inicio": 207.67999267578125,
+   "fin": 208.0
+  },
+  {
+   "palabra": "pero",
+   "inicio": 208.72000122070312,
+   "fin": 208.8000030517578
+  },
+  {
+   "palabra": "nada",
+   "inicio": 208.8000030517578,
+   "fin": 209.22000122070312
+  },
+  {
+   "palabra": "yo",
+   "inicio": 209.24000549316406,
+   "fin": 209.39999389648438
+  },
+  {
+   "palabra": "con",
+   "inicio": 209.39999389648438,
+   "fin": 209.72000122070312
+  },
+  {
+   "palabra": "cero",
+   "inicio": 209.72000122070312,
+   "fin": 209.9199981689453
+  },
+  {
+   "palabra": "rencores",
+   "inicio": 209.9199981689453,
+   "fin": 210.55999755859375
+  },
+  {
+   "palabra": "me",
+   "inicio": 211.1199951171875,
+   "fin": 211.60000610351562
+  },
+  {
+   "palabra": "alegro",
+   "inicio": 211.60000610351562,
+   "fin": 211.74000549316406
+  },
+  {
+   "palabra": "que",
+   "inicio": 211.74000549316406,
+   "fin": 211.8800048828125
+  },
+  {
+   "palabra": "ella",
+   "inicio": 211.8800048828125,
+   "fin": 212.0800018310547
+  },
+  {
+   "palabra": "tenga",
+   "inicio": 212.0800018310547,
+   "fin": 212.32000732421875
+  },
+  {
+   "palabra": "ahora",
+   "inicio": 212.32000732421875,
+   "fin": 212.52000427246094
+  },
+  {
+   "palabra": "una",
+   "inicio": 212.52000427246094,
+   "fin": 212.82000732421875
+  },
+  {
+   "palabra": "pareja",
+   "inicio": 212.82000732421875,
+   "fin": 213.05999755859375
+  },
+  {
+   "palabra": "tenga",
+   "inicio": 213.33999633789062,
+   "fin": 213.44000244140625
+  },
+  {
+   "palabra": "novio",
+   "inicio": 213.44000244140625,
+   "fin": 213.8000030517578
+  },
+  {
+   "palabra": "que",
+   "inicio": 215.94000244140625,
+   "fin": 216.05999755859375
+  },
+  {
+   "palabra": "la",
+   "inicio": 216.05999755859375,
+   "fin": 216.25999450683594
+  },
+  {
+   "palabra": "veo",
+   "inicio": 216.25999450683594,
+   "fin": 216.33999633789062
+  },
+  {
+   "palabra": "muy",
+   "inicio": 216.33999633789062,
+   "fin": 216.67999267578125
+  },
+  {
+   "palabra": "bien",
+   "inicio": 216.67999267578125,
+   "fin": 216.89999389648438
+  },
+  {
+   "palabra": "y",
+   "inicio": 216.89999389648438,
+   "fin": 217.5
+  },
+  {
+   "palabra": "espero",
+   "inicio": 217.5,
+   "fin": 217.5
+  },
+  {
+   "palabra": "que",
+   "inicio": 217.5,
+   "fin": 217.86000061035156
+  },
+  {
+   "palabra": "le",
+   "inicio": 217.86000061035156,
+   "fin": 218.8800048828125
+  },
+  {
+   "palabra": "pase",
+   "inicio": 218.8800048828125,
+   "fin": 218.94000244140625
+  },
+  {
+   "palabra": "todo",
+   "inicio": 218.94000244140625,
+   "fin": 219.22000122070312
+  },
+  {
+   "palabra": "bien",
+   "inicio": 219.22000122070312,
+   "fin": 219.4600067138672
+  },
+  {
+   "palabra": "porque",
+   "inicio": 219.5800018310547,
+   "fin": 219.72000122070312
+  },
+  {
+   "palabra": "bueno",
+   "inicio": 219.72000122070312,
+   "fin": 219.9600067138672
+  },
+  {
+   "palabra": "también",
+   "inicio": 220.24000549316406,
+   "fin": 220.6199951171875
+  },
+  {
+   "palabra": "pasó",
+   "inicio": 220.6199951171875,
+   "fin": 220.86000061035156
+  },
+  {
+   "palabra": "por",
+   "inicio": 220.86000061035156,
+   "fin": 221.13999938964844
+  },
+  {
+   "palabra": "una",
+   "inicio": 221.13999938964844,
+   "fin": 221.5399932861328
+  },
+  {
+   "palabra": "historia",
+   "inicio": 221.5399932861328,
+   "fin": 221.5399932861328
+  },
+  {
+   "palabra": "familiar",
+   "inicio": 221.5399932861328,
+   "fin": 222.0
+  },
+  {
+   "palabra": "dura",
+   "inicio": 222.0,
+   "fin": 222.22000122070312
+  },
+  {
+   "palabra": "entonces",
+   "inicio": 222.6199951171875,
+   "fin": 223.13999938964844
+  },
+  {
+   "palabra": "no",
+   "inicio": 223.13999938964844,
+   "fin": 223.66000366210938
+  },
+  {
+   "palabra": "es",
+   "inicio": 223.66000366210938,
+   "fin": 224.0
+  },
+  {
+   "palabra": "fácil",
+   "inicio": 224.0,
+   "fin": 224.0
+  },
+  {
+   "palabra": "para",
+   "inicio": 224.0,
+   "fin": 224.25999450683594
+  },
+  {
+   "palabra": "nadie",
+   "inicio": 224.25999450683594,
+   "fin": 224.5
+  }
+ ]
+}
