@@ -47,7 +47,7 @@ const chip = (activo: boolean) => `rounded-full border px-4 py-2 text-[14px] tra
 export function Checkout({ catalogo, regionInicial = "AR" }: { catalogo: Catalogo; regionInicial?: Region }) {
   const [paso, setPaso] = useState<Paso>(1);
   const [paraQuien, setParaQuien] = useState<ParaQuien | null>(null);
-  const [region, setRegion] = useState<Region>(regionInicial); // 2.12: por el país del visitante
+  const [region] = useState<Region>(regionInicial); // 2.12: por el país del visitante (IP); sin selector
 
   const [nombreComprador, setNombreComprador] = useState("");
   const [vinculo, setVinculo] = useState("");
@@ -286,24 +286,11 @@ export function Checkout({ catalogo, regionInicial = "AR" }: { catalogo: Catalog
             </p>
 
             <div className="mt-8 flex flex-col gap-6">
-              <div>
-                <label className={etiqueta}>País</label>
-                <div className="mt-2 flex gap-3">
-                  {(["AR", "ES"] as Region[]).map((r) => (
-                    <button
-                      key={r}
-                      type="button"
-                      onClick={() => setRegion(r)}
-                      className={`rounded-full border px-5 py-2 text-[15px] [font-family:var(--fuente-micro)] ${region === r ? "border-[#14140F] bg-[#14140F] text-white" : "border-[#D4D4CE] bg-white text-[#45453C]"}`}
-                    >
-                      {r === "AR" ? "Argentina" : "España"}
-                    </button>
-                  ))}
-                </div>
-                <p className="mt-2 text-[13px] text-[#83837A] [font-family:var(--fuente-cuerpo)] font-light">
-                  Define la moneda y la hora de las preguntas.
-                </p>
-              </div>
+              {/* 2.12 (21/09): la región la decide el país de quien compra (por IP); el selector se sacó.
+                  Se muestra cuál es, chiquito, por si alguien mira desde otro país. */}
+              <p className="text-[13px] text-[#83837A] [font-family:var(--fuente-cuerpo)] font-light">
+                Precios en {region === "ES" ? "euros" : "pesos argentinos"}.
+              </p>
 
               {paraQuien === "otro" && (
                 <div className="grid gap-6 sm:grid-cols-2">

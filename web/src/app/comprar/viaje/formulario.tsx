@@ -33,7 +33,7 @@ const chip = (activo: boolean) => `rounded-full border px-4 py-2 text-[14px] tra
 
 export function CheckoutViaje({ precios, extras, regionInicial = "AR" }: { precios: PreciosViaje; extras: ExtrasViaje; regionInicial?: Region }) {
   const [paso, setPaso] = useState<Paso>(1);
-  const [region, setRegion] = useState<Region>(regionInicial); // 2.12: por el país del visitante
+  const [region] = useState<Region>(regionInicial); // 2.12: por el país del visitante (IP); sin selector
   const [nombre, setNombre] = useState("");
   const [comoLeDicen, setComoLeDicen] = useState("");
   const [telefono, setTelefono] = useState("");
@@ -143,11 +143,9 @@ export function CheckoutViaje({ precios, extras, regionInicial = "AR" }: { preci
             <p className="mt-3 text-[16px] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">
               Cada noche te escribe por WhatsApp, vos le contás el día con un audio y le mandás la foto. Al volver, tu viaje es un libro.
             </p>
-            <div className="mt-8 flex gap-2">
-              {(["AR", "ES"] as Region[]).map((r) => (
-                <button key={r} type="button" onClick={() => setRegion(r)} className={chip(region === r)}>{r === "AR" ? "Argentina" : "España"}</button>
-              ))}
-            </div>
+            <p className="mt-8 text-[13px] text-[#83837A] [font-family:var(--fuente-cuerpo)] font-light">
+              Precios en {region === "ES" ? "euros" : "pesos argentinos"}.{/* 2.12: la región la decide el país de quien compra (por IP) */}
+            </p>
             <div className="mt-8 grid gap-6 sm:grid-cols-2">
               <div>
                 <label className={etiqueta} htmlFor="nombre">Tu nombre</label>

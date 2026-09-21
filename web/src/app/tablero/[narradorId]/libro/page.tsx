@@ -1,4 +1,6 @@
 import { notFound, redirect } from "next/navigation";
+import { headers } from "next/headers";
+import { regionDelRequest } from "@/lib/region";
 import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { esPropia, historiaAccesible, PUEDE } from "@/lib/panel";
@@ -55,14 +57,14 @@ export default async function PaginaLibro({ params, searchParams }: PageProps<"/
 
   const terminado = ["completado", "cerrado_anticipado"].includes(n.estado);
 
-  const [{ data: filaN }, { data: familiaDuena }, { data: pedidos }] = await Promise.all([
+  const [{ data: filaN }, { data: pedidos }] = await Promise.all([
     admin.from("narradores").select("edicion, libro_aprobado_at").eq("id", n.id).maybeSingle(),
-    admin.from("familias").select("region").eq("id", n.familia_id).maybeSingle(),
     admin.from("pedidos").select("id, familia_id, estado, extras, created_at").eq("narrador_id", n.id).order("created_at", { ascending: true }),
   ]);
   const edicionGuardada = ((filaN as { edicion?: Edicion | null } | null)?.edicion) ?? {};
   const libroAprobadoAt = (filaN as { libro_aprobado_at?: string | null } | null)?.libro_aprobado_at ?? null;
-  const region = ((familiaDuena as { region?: "ES" | "AR" } | null)?.region) ?? "AR";
+  // La moneda es la de quien mira (2.12): el primo en Argentina ve pesos aunque el libro se haya comprado en España.
+  const region = regionDelRequest(await headers());
   const { moneda } = obtenerPrecio(region);
   const todosLosPedidos = (pedidos as Pedido[] | null) ?? [];
   // Cada uno ve sus pedidos; la dueña ve los suyos (los de los primos son de los primos).
