@@ -145,6 +145,18 @@ describe("productosParaPedido", () => {
   it("PDF solo → nada más", () => {
     expect(productosParaPedido(calcularCompra("ES", SOLO_PDF))).toEqual({ pdf: true, audiolibro: null, impreso: null, copias: 0, marcos: 0 });
   });
+
+  // 2.10 (21/09): la Vitácora de viaje se compra con el impreso y los marcos, mismo carrito.
+  it("viaje + impreso a color + marcos: una línea por cada uno, y el pedido lleva tipo 'viaje'", () => {
+    process.env.PRECIO_VIAJE_EUR = "45";
+    process.env.PRECIO_IMPRESO_COLOR_EUR = "46";
+    process.env.PRECIO_MARCO_EUR = "20";
+    const compra = calcularCompra("ES", { ...NADA_ELEGIDO, viaje: true, impreso: "color", marcos: 2 });
+    expect(compra.lineas.map((l) => [l.id, l.cantidad])).toEqual([["viaje", 1], ["impreso_color", 1], ["marco", 2]]);
+    expect(compra.total).toBe(45 + 46 + 40);
+    expect(validarProductos("ES", { ...NADA_ELEGIDO, viaje: true, impreso: "color", marcos: 2 })).toEqual({ ok: true });
+    expect(productosParaPedido(compra)).toEqual({ pdf: true, audiolibro: null, impreso: "color", copias: 1, marcos: 2, tipo: "viaje" });
+  });
 });
 
 describe("productosDelPedido — lee pedidos viejos y nuevos", () => {
