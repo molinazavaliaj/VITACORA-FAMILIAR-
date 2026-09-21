@@ -989,6 +989,12 @@ async function ficha(ref: string | undefined, flags: Args['flags']): Promise<voi
   if (flag('lugar')) { contexto.lugarNacimiento = flag('lugar'); cambios.push(`lugarNacimiento = ${flag('lugar')}`); }
   if (flag('oficio')) { contexto.oficio = flag('oficio'); cambios.push(`oficio = ${flag('oficio')}`); }
   if (flag('vinculo')) { contexto.vinculoComprador = flag('vinculo'); cambios.push(`vinculoComprador = ${flag('vinculo')}`); }
+  // El estado civil del alta (21/09): la misma lista cerrada que la web.
+  const estadoCivil = flag('estado-civil');
+  if (estadoCivil) {
+    if (!['soltero', 'en_pareja', 'casado', 'separado', 'viudo'].includes(estadoCivil)) throw new Error(`--estado-civil acepta soltero | en_pareja | casado | separado | viudo, no «${estadoCivil}».`);
+    contexto.estadoCivil = estadoCivil; cambios.push(`estadoCivil = ${estadoCivil}`);
+  }
   // Bitácora 20-27: el árbol decide si «Los hijos» y «El amor» aplican. "no" = 'no tuvo'.
   const arbol: Record<string, string> = { ...((contexto.arbol as Record<string, string> | undefined) ?? {}) };
   if (flag('hijos')) { arbol.hijos = valorDelArbol(flag('hijos')!); cambios.push(`arbol.hijos = ${arbol.hijos}`); }
@@ -1014,7 +1020,7 @@ async function ficha(ref: string | undefined, flags: Args['flags']): Promise<voi
   if (flags['voz-si']) { fila.consentimiento_voz_at = new Date().toISOString(); cambios.push('consentimiento_voz_at = ahora (dio permiso para clonar su voz)'); }
   if (flags['voz-no']) { fila.consentimiento_voz_at = null; cambios.push('consentimiento_voz_at = vacío (sin permiso: la fábrica no clona)'); }
 
-  if (!cambios.length) throw new Error('Nada que cambiar. Uso: ficha <narrador> [--trato usted|vos] [--nacido 1998] [--lugar X] [--oficio X] [--vinculo X] [--hijos no|"Ana y Juan"] [--pareja no|"Élida"] [--padres X] [--hermanos X] [--voz-si|--voz-no] [--rehacer]');
+  if (!cambios.length) throw new Error('Nada que cambiar. Uso: ficha <narrador> [--trato usted|vos] [--nacido 1998] [--lugar X] [--oficio X] [--vinculo X] [--estado-civil soltero|en_pareja|casado|separado|viudo] [--hijos no|"Ana y Juan"] [--pareja no|"Élida"] [--padres X] [--hermanos X] [--voz-si|--voz-no] [--rehacer]');
 
   const { error } = await db.from('narradores').update(fila).eq('id', n.id);
   if (error) throw new Error(`No pude guardar la ficha: ${error.message}`);
@@ -1093,6 +1099,7 @@ Puerta manual de Vitácora Familiar — el entrevistador sin la API de WhatsApp.
       La despedida final + estado 'completado' (ahí lo toma la fábrica).
 
   npm run manual -- ficha <narrador> [--trato usted|vos] [--nacido 1998] [--lugar X] [--oficio X] [--vinculo X]
+                                     [--estado-civil soltero|en_pareja|casado|separado|viudo]
                                      [--hijos no|"Ana y Juan"] [--pareja no|"Élida"] [--padres X] [--hermanos X] [--voz-si|--voz-no] [--rehacer]
       Corrige la ficha de un narrador que ya existe (el trato se decide una sola
       vez; acá se fija a mano). --hijos no / --pareja no anotan 'no tuvo' en el

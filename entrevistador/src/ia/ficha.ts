@@ -33,6 +33,24 @@ export function arbolEtiquetado(contexto: Record<string, any> = {}): string {
 }
 
 /**
+ * El estado civil, en las palabras del biógrafo. Lo carga la familia en el
+ * alta (21/09, `contexto.estadoCivil`, lista cerrada de la web) o Naza con
+ * `ficha --estado-civil`. Sin eso el modelo supone la boda del guion.
+ */
+const ESTADO_CIVIL: Record<string, string> = {
+  soltero: 'Es soltero: nunca se casó.',
+  en_pareja: 'Está en pareja (sin casarse).',
+  casado: 'Está casado.',
+  separado: 'Está separado o divorciado.',
+  viudo: 'Es viudo: su pareja ya no vive.',
+};
+
+export function estadoCivilEnTexto(contexto: Record<string, any> = {}): string {
+  const valor = typeof contexto?.estadoCivil === 'string' ? contexto.estadoCivil.trim() : '';
+  return ESTADO_CIVIL[valor] ?? '';
+}
+
+/**
  * La ficha completa: quién es, quiénes son los suyos, dónde nació, qué hacía.
  * Es lo que la familia cargó al comprar (o lo que se completa a mano en los
  * pilotos) — nada que inventar acá.
@@ -42,6 +60,7 @@ export function fichaEnTexto(contexto: Record<string, any> = {}, comoLeDicen = '
   return [
     comoLeDicen ? `El narrador es ${comoLeDicen}.` : '',
     arbol ? `${arbol}.` : '',
+    estadoCivilEnTexto(contexto),
     contexto?.lugarNacimiento ? `Nació en ${contexto.lugarNacimiento}.` : '',
     contexto?.oficio ? `Su oficio: ${contexto.oficio}.` : '',
     contexto?.anioNacimiento ? `Año de nacimiento: ${contexto.anioNacimiento}.` : '',

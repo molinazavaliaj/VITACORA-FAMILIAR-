@@ -114,6 +114,14 @@ describe('la ficha que se le pasa al modelo', () => {
   it('sin datos no inventa nada', () => {
     expect(fichaEnTexto({}, 'Joaquín')).toBe('El narrador es Joaquín.');
   });
+
+  // El estado civil del alta (21/09): así el biógrafo no pregunta por una boda
+  // que no hubo, ni por "su esposa" a alguien viudo.
+  it('el estado civil del alta entra a la ficha, en palabras; uno desconocido no', () => {
+    expect(fichaEnTexto({ estadoCivil: 'viudo' }, 'Don Osvaldo')).toBe('El narrador es Don Osvaldo. Es viudo: su pareja ya no vive.');
+    expect(fichaEnTexto({ estadoCivil: 'soltero', anioNacimiento: 1998 }, 'Joaquín')).toContain('Es soltero: nunca se casó.');
+    expect(fichaEnTexto({ estadoCivil: 'complicado' }, 'Joaquín')).toBe('El narrador es Joaquín.');
+  });
 });
 
 describe('PROMPT_PERSONALIZAR', () => {
