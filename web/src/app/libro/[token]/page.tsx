@@ -45,7 +45,7 @@ export default async function PaginaLibroPublico({ params }: PageProps<"/libro/[
           La historia de {muestra.nombre}
         </h1>
         <p className="mt-3 max-w-prose text-[17px] leading-relaxed text-[var(--texto-suave)] font-light">
-          Un biógrafo lo entrevistó durante un mes por WhatsApp y escribió el libro de su vida, con el audiolibro en su propia voz. Esta es una muestra.
+          Un biógrafo lo entrevistó durante un mes por WhatsApp y escribió el libro de su vida, con sus mejores frases en su propia voz. Esta es una muestra.
         </p>
 
         <div className="mt-12">

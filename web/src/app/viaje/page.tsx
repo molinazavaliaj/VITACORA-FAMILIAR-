@@ -115,7 +115,7 @@ export default function PaginaViaje() {
           <Aparece>
             <h2 className="text-3xl leading-[1.15] [font-family:var(--fuente-titulo)] font-medium [text-wrap:balance] sm:text-4xl">Un precio por viaje, no por noche.</h2>
             <p className="mt-5 text-[17px] leading-[1.7] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">
-              Lo pagás una vez, antes de salir. Incluye todas las noches del viaje, tus fotos, el libro para leer y escuchar en la web, y el link para compartirlo. El impreso y el audiolibro con tu voz se suman después, si querés.
+              Lo pagás una vez, antes de salir. Incluye todas las noches del viaje, tus fotos, el libro para leer y escuchar en la web, y el link para compartirlo. El impreso se suma después, si querés.
             </p>
           </Aparece>
           <Aparece>

@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import {
   calcularCompra,
   calcularExtras,
+  catalogo,
   descuentoPorCopias,
   extrasDisponibles,
   extrasPosterioresParaPedido,
@@ -21,8 +22,6 @@ beforeEach(() => {
   delete process.env.PRECIO_IMPRESO_COLOR_EUR;
   delete process.env.PRECIO_MARCO_EUR;
   delete process.env.PRECIO_IMPRESO_BN_ARS;
-  delete process.env.PRECIO_AUDIOLIBRO_EUR;
-  delete process.env.PRECIO_AUDIOLIBRO_ARS;
   process.env.PRECIO_EUR = "49";
   process.env.PRECIO_ARS = "65000";
 });
@@ -69,25 +68,23 @@ describe("calcularCompra", () => {
     });
   });
 
-  it("el audiolibro es una línea aparte, con la voz elegida en el nombre", () => {
+  // El audiolibro salió del catálogo el 21/09 («Su voz» va incluida en el PDF):
+  // aunque un cliente viejo mande la clave, no existe ninguna línea que cobrar.
+  it("el audiolibro ya no existe: una clave 'audiolibro' en lo elegido no genera ninguna línea", () => {
     process.env.PRECIO_AUDIOLIBRO_EUR = "35";
-    const compra = calcularCompra("ES", { ...NADA_ELEGIDO, audiolibro: "narrador" });
-    expect(compra.lineas).toEqual([{ id: "audiolibro", nombre: expect.stringContaining("narrador"), cantidad: 1, precioUnitario: 35, voz: "narrador" }]);
-    expect(compra.total).toBe(35);
-  });
-
-  it("un audiolibro elegido sin precio cargado no entra: no se cobra lo que no tiene precio", () => {
-    const compra = calcularCompra("ES", { ...SOLO_PDF, audiolibro: "clonada" });
+    const compra = calcularCompra("ES", { ...SOLO_PDF, audiolibro: "clonada" } as never);
     expect(compra.lineas.map((l) => l.id)).toEqual(["pdf"]);
+    expect(compra.total).toBe(49);
+    expect(catalogo("ES")).not.toHaveProperty("audiolibro");
+    delete process.env.PRECIO_AUDIOLIBRO_EUR;
   });
 
-  it("los tres juntos, más marcos", () => {
-    process.env.PRECIO_AUDIOLIBRO_EUR = "35";
+  it("los dos juntos, más marcos", () => {
     process.env.PRECIO_IMPRESO_COLOR_EUR = "46";
     process.env.PRECIO_MARCO_EUR = "20";
-    const compra = calcularCompra("ES", { pdf: true, audiolibro: "clonada", impreso: "color", marcos: 2 });
-    expect(compra.lineas.map((l) => l.id)).toEqual(["pdf", "audiolibro", "impreso_color", "marco"]);
-    expect(compra.total).toBe(49 + 35 + 46 + 40);
+    const compra = calcularCompra("ES", { pdf: true, impreso: "color", marcos: 2 });
+    expect(compra.lineas.map((l) => l.id)).toEqual(["pdf", "impreso_color", "marco"]);
+    expect(compra.total).toBe(49 + 46 + 40);
   });
 
   it("suma el impreso y los marcos con sus cantidades", () => {
@@ -127,20 +124,21 @@ describe("validarProductos — ricitos de oro: al menos uno de los tres", () => 
     expect(validarProductos("ES", { ...NADA_ELEGIDO, marcos: 2 }).ok).toBe(false);
     expect(validarProductos("ES", NADA_ELEGIDO).ok).toBe(false);
   });
-  it("con PDF, audiolibro o impreso (con precio) alcanza", () => {
+  it("con PDF o impreso (con precio) alcanza", () => {
     process.env.PRECIO_IMPRESO_BN_EUR = "40";
     expect(validarProductos("ES", SOLO_PDF).ok).toBe(true);
     expect(validarProductos("ES", { ...NADA_ELEGIDO, impreso: "bn" }).ok).toBe(true);
   });
   it("un producto elegido que no tiene precio no cuenta", () => {
-    expect(validarProductos("ES", { ...NADA_ELEGIDO, audiolibro: "clonada" }).ok).toBe(false);
+    expect(validarProductos("ES", { ...NADA_ELEGIDO, impreso: "bn" }).ok).toBe(false);
+    expect(validarProductos("ES", NADA_ELEGIDO)).toEqual({ ok: false, mensaje: "Elegí al menos uno: el libro en PDF o el libro impreso." });
   });
 });
 
 describe("productosParaPedido", () => {
   it("refleja SOLO lo que entró en la compra, no lo que se pidió", () => {
     process.env.PRECIO_IMPRESO_BN_EUR = "99";
-    const elegidos = { ...SOLO_PDF, audiolibro: "clonada" as const, impreso: "bn" as const, marcos: 4 }; // audiolibro y marcos sin precio
+    const elegidos = { ...SOLO_PDF, impreso: "bn" as const, marcos: 4 }; // marcos sin precio
     expect(productosParaPedido(calcularCompra("ES", elegidos))).toEqual({ pdf: true, audiolibro: null, impreso: "bn", copias: 1, marcos: 0 });
   });
 
@@ -155,7 +153,12 @@ describe("productosDelPedido — lee pedidos viejos y nuevos", () => {
     expect(productosDelPedido(null)).toEqual({ pdf: true, audiolibro: "real", impreso: null, copias: 0, marcos: 0 });
   });
   it("un pedido nuevo se lee tal cual", () => {
-    expect(productosDelPedido({ pdf: false, audiolibro: "narrador", impreso: null, copias: 0, marcos: 3 })).toEqual({ pdf: false, audiolibro: "narrador", impreso: null, copias: 0, marcos: 3 });
+    expect(productosDelPedido({ pdf: false, audiolibro: null, impreso: null, copias: 0, marcos: 3 })).toEqual({ pdf: false, audiolibro: null, impreso: null, copias: 0, marcos: 3 });
+  });
+  // Entre el 13/09 y el 21/09 el audiolibro se vendió aparte: esos pedidos se
+  // siguen leyendo con su voz (el panel muestra qué compraron y la fábrica lo lee).
+  it("un pedido del 13-21/09 con audiolibro conserva la voz que compró", () => {
+    expect(productosDelPedido({ pdf: true, audiolibro: "clonada", impreso: null, copias: 0, marcos: 0 })).toMatchObject({ pdf: true, audiolibro: "clonada" });
   });
 });
 
@@ -191,13 +194,14 @@ describe("calcularExtras — después de la compra, con descuento por cantidad",
     expect(calcularExtras("AR", { copias: 0, acabado: "bn", marcos: 0 }).total).toBe(0);
   });
 
-  it("después se pueden sumar el PDF y el audiolibro, a precio lleno", () => {
+  it("después se puede sumar el PDF, a precio lleno (el audiolibro ya no)", () => {
     process.env.PRECIO_ARS = "85750";
     process.env.PRECIO_AUDIOLIBRO_ARS = "61250";
-    const c = calcularExtras("AR", { pdf: true, audiolibro: "clonada", copias: 0, acabado: "bn", marcos: 0 });
-    expect(c.lineas.map((l) => l.id)).toEqual(["pdf", "audiolibro"]);
-    expect(c.total).toBe(85750 + 61250);
-    expect(extrasPosterioresParaPedido(c)).toMatchObject({ pdf: true, audiolibro: "clonada" });
+    const c = calcularExtras("AR", { pdf: true, audiolibro: "clonada", copias: 0, acabado: "bn", marcos: 0 } as never);
+    expect(c.lineas.map((l) => l.id)).toEqual(["pdf"]);
+    expect(c.total).toBe(85750);
+    expect(extrasPosterioresParaPedido(c)).toMatchObject({ pdf: true, audiolibro: null });
+    delete process.env.PRECIO_AUDIOLIBRO_ARS;
   });
 
   it("lo que va al pedido incluye copias", () => {

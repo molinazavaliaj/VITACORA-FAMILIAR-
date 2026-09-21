@@ -165,9 +165,10 @@ export default async function PaginaLeer({ params }: PageProps<"/tablero/[narrad
         ) : (
           <Tarjeta className="mt-6">
             <p className="text-[15px] leading-relaxed text-[var(--texto-suave)]">
-              {compro.audiolibro ? "El audiolibro todavía no está listo." : "No compraste el audiolibro. Se puede sumar desde Encargar libro: con su voz o con un narrador."}
+              {compro.audiolibro
+                ? "El audiolibro todavía no está listo."
+                : "Sus mejores frases, en su voz, se están preparando: van a aparecer acá cuando estén listas."}
             </p>
-            {!compro.audiolibro ? <div className="mt-4"><Link href={`/tablero/${n.id}/libro`} className="text-sm text-[var(--acento)] underline decoration-[var(--linea-fuerte)] underline-offset-4 [font-family:var(--fuente-micro)]">Sumar el audiolibro</Link></div> : null}
           </Tarjeta>
         )}
       </section>

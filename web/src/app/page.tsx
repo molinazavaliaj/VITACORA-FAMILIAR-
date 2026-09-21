@@ -55,12 +55,12 @@ const sourceSerif = Source_Serif_4({
 // Copy: las frases de brief-landing.md §5 van tal cual. Los títulos nuevos
 // están marcados "⚠️ a aprobar" para pasar por los dos socios.
 
-// Pilar 4 · El libro es la obra, no el papel. Los tres formatos son tres
-// productos (13/09, "ricitos de oro"): se elige al menos uno al comprar. Los
-// precios vienen del catálogo; un formato sin precio no se muestra.
+// Pilar 4 · El libro es la obra, no el papel. Los dos formatos son dos
+// productos (13/09, "ricitos de oro"; el audiolibro salió el 21/09 y «Su voz»
+// va incluida): se elige al menos uno al comprar. Los precios vienen del
+// catálogo; un formato sin precio no se muestra. ⚠️ copy a aprobar (21/09).
 const FORMATOS = [
-  { id: "pdf", nombre: "El libro en PDF", detalle: "Escrito con sus palabras. Se lee en la web, capítulo por capítulo, con sus fotos.", nota: "en la nube" },
-  { id: "audiolibro", nombre: "El audiolibro", detalle: "Su historia completa en primera persona: con su voz o con un narrador. Se escucha en la web.", nota: "en la nube" },
+  { id: "pdf", nombre: "El libro en PDF", detalle: "Escrito con sus palabras. Se lee en la web, capítulo por capítulo, con sus fotos. Con sus mejores frases, en su voz real.", nota: "en la nube" },
   { id: "impreso", nombre: "El libro impreso", detalle: "Tapa dura, con un código en la contratapa que hace sonar su voz. En tu repisa.", nota: "en casa" },
 ] as const;
 
@@ -87,7 +87,7 @@ const PASOS = [
 const GARANTIAS = [
   { icono: "whatsapp", texto: "Él solo habla por WhatsApp. Nadie escribe nada." },
   { icono: "sin-app", texto: "Sin app ni nada que instalar." },
-  { icono: "voz", texto: "Su voz real, en cada capítulo del audiolibro." },
+  { icono: "voz", texto: "Sus mejores frases, en su voz real. Se escuchan con un código." },
   { icono: "ojo", texto: "Lo lees crecer mientras él responde." },
 ] as const;
 
@@ -115,7 +115,7 @@ const PREGUNTAS = [
   {
     pregunta: "¿Cuánto sale y cuándo se paga?",
     respuesta:
-      "Se paga una sola vez, al comprar, y los precios están a la vista antes de pagar: elegís el libro en PDF, el audiolibro, el impreso, o los tres. Si él no acepta participar, nos escribes y te devolvemos el dinero completo.",
+      "Se paga una sola vez, al comprar, y los precios están a la vista antes de pagar: elegís el libro en PDF, el impreso, o los dos. Si él no acepta participar, nos escribes y te devolvemos el dinero completo.",
   },
   {
     pregunta: "¿Se puede tener el libro impreso?",
@@ -150,7 +150,7 @@ function BotonComprar({ enOscuro = false, secundario = false }: { enOscuro?: boo
 function MicrocopyCta({ clara = false }: { clara?: boolean }) {
   return (
     <p className={`text-[13px] [font-family:var(--fuente-micro)] ${clara ? "text-[#AEAEA6]" : "text-[#5F5F55]"}`}>
-      Pago único · el libro en PDF, el audiolibro o el impreso. Elegís al menos uno.
+      Pago único · el libro en PDF o el impreso. Elegís al menos uno.
     </p>
   );
 }
@@ -225,7 +225,7 @@ export default function Home() {
   const cat = catalogo("AR");
   const formatear = (n: number) => new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(n);
   const impreso = cat.extras.find((e) => e.id === "impreso_bn") ?? cat.extras.find((e) => e.id === "impreso_color") ?? null;
-  const preciosPorFormato: Record<(typeof FORMATOS)[number]["id"], number | null> = { pdf: cat.pdf.precio, audiolibro: cat.audiolibro?.precio ?? null, impreso: impreso?.precio ?? null };
+  const preciosPorFormato: Record<(typeof FORMATOS)[number]["id"], number | null> = { pdf: cat.pdf.precio, impreso: impreso?.precio ?? null };
   const masBarato = Math.min(...Object.values(preciosPorFormato).filter((p): p is number => p !== null));
   const precio = formatear(masBarato);
   const fragmentoAudio = process.env.NEXT_PUBLIC_URL_FRAGMENTO_AUDIO; // el mp3 real, cuando exista
@@ -483,15 +483,16 @@ export default function Home() {
         </Aparece>
       </section>
 
-      {/* ═══ 6 · LA VOZ — el diferencial que nadie tiene en castellano ══════ */}
+      {/* ═══ 6 · LA VOZ — el diferencial que nadie tiene en castellano (21/09: «Su voz», sus frases; ⚠️ copy a aprobar) ══════ */}
       <section className="bg-[#F7F7F5] py-24 lg:py-32">
         <div className="mx-auto grid w-full max-w-6xl items-center gap-14 px-6 lg:grid-cols-2 lg:gap-20">
           <Aparece>
-            <Capitulo numero="05">El audiolibro</Capitulo>
-            <Titulo>No solo lo que contó. Cómo lo contaba.</Titulo>
+            <Capitulo numero="05">Su voz</Capitulo>
+            <Titulo>De él vas a tener fotos. Con esto, lo que decía.</Titulo>
             <Cuerpo className="mt-5 max-w-lg">
-              El libro viene con el audiolibro en su voz real: sus silencios, su manera de arrancar las frases, la
-              risa cuando se acuerda de algo. Y el libro impreso lleva un código en la contratapa que lo hace sonar.
+              El libro viene con sus mejores frases en su voz real: sus dichos, su manera de arrancar las frases, la
+              risa cuando se acuerda de algo. Se escuchan en la web, se reenvían por WhatsApp, y el libro impreso lleva
+              un código al lado de cada una que la hace sonar.
             </Cuerpo>
             <Cuerpo className="mt-4 max-w-lg">En castellano no existe nada parecido.</Cuerpo>
           </Aparece>

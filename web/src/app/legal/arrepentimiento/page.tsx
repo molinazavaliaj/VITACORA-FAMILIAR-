@@ -64,7 +64,7 @@ export default function Arrepentimiento() {
               <strong className="font-medium">Argentina</strong>: 10 días corridos desde la compra, sin costo (art. 34 de la ley 24.240).
             </>,
             <>
-              <strong className="font-medium">España</strong>: 14 días naturales desde la compra. Si la entrevista ya empezó a tu pedido, se descuenta la parte ya hecha; el PDF y el audiolibro ya entregados y los productos a medida (impreso, marcos) no se pueden devolver.
+              <strong className="font-medium">España</strong>: 14 días naturales desde la compra. Si la entrevista ya empezó a tu pedido, se descuenta la parte ya hecha; el PDF (con sus frases en su voz) ya entregado y los productos a medida (impreso, marcos) no se pueden devolver.
             </>,
             <>
               <strong className="font-medium">Sin plazo</strong>: si el narrador no acepta participar o responde menos de diez preguntas, te devolvemos todo, siempre.

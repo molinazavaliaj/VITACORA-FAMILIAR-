@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     template: "%s · Vitácora",
   },
   description:
-    "Vitácora: un biógrafo por WhatsApp. Vitácora Familiar escribe el libro de una vida, con el audiolibro en su propia voz; Vitácora de viaje, el libro de tu viaje, noche a noche.",
+    "Vitácora: un biógrafo por WhatsApp. Vitácora Familiar escribe el libro de una vida, con sus mejores frases en su propia voz; Vitácora de viaje, el libro de tu viaje, noche a noche.",
   openGraph: {
     title: "En cada familia hay un libro sin escribir",
     description:

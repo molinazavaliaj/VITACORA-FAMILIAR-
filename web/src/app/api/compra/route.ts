@@ -19,14 +19,13 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 export type CompraBody = RegistroBody & {
   email?: string;
-  /** Los tres productos + marcos (13/09). Al menos uno de los tres. */
+  /** Los productos + marcos (13/09). Al menos uno de los principales. Una clave 'audiolibro' vieja se ignora (21/09). */
   productos?: Partial<ProductosElegidos>;
 };
 
 function leerProductos(crudo: Partial<ProductosElegidos> | undefined): ProductosElegidos {
   return {
     pdf: crudo?.pdf === true,
-    audiolibro: crudo?.audiolibro === "clonada" || crudo?.audiolibro === "narrador" ? crudo.audiolibro : null,
     impreso: crudo?.impreso === "bn" || crudo?.impreso === "color" ? crudo.impreso : null,
     marcos: typeof crudo?.marcos === "number" ? crudo.marcos : NADA_ELEGIDO.marcos,
     viaje: crudo?.viaje === true,

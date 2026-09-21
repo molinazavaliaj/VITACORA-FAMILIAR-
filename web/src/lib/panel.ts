@@ -165,7 +165,7 @@ export const PUEDE = {
   cambiarRitmo: (rol: Rol) => rol === "duena",
   invitar: (rol: Rol) => rol === "duena",
   cerrarLibro: (rol: Rol) => rol === "duena",
-  /** Leer el libro terminado y escuchar el audiolibro (antes: descargar). */
+  /** Leer el libro terminado y escuchar su voz (antes: descargar). */
   descargar: (rol: Rol) => rol === "duena",
   verLoQuePago: (rol: Rol) => rol === "duena",
   comprarCopia: (_rol: Rol) => true,

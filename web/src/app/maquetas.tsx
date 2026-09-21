@@ -227,7 +227,7 @@ export function Indice({ className = "" }: { className?: string }) {
   );
 }
 
-/* ───────────────────────── El audiolibro ───────────────────────── */
+/* ───────────────────────── Su voz (el reproductor) ───────────────────────── */
 
 /**
  * El reproductor. Con `src` es un reproductor de verdad; sin `src` es la
@@ -275,7 +275,7 @@ export function Reproductor({
       <p className="mt-6 text-[13px] italic leading-relaxed text-[#AEAEA6] [font-family:var(--fuente-cuerpo)] font-light">
         «…y ahí la vi, en la puerta del club, y me dije: con esa me caso. Tardé dos años en animarme a hablarle.»
       </p>
-      <figcaption className="sr-only">El audiolibro, capítulo {numero}: {capitulo}, con su voz.</figcaption>
+      <figcaption className="sr-only">Su voz, capítulo {numero}: {capitulo}.</figcaption>
     </figure>
   );
 }

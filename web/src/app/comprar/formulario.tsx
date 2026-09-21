@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { NADA_ELEGIDO, NOMBRE_VOZ, type Catalogo as CatalogoRegion, type ProductosElegidos, type Voz } from "@/lib/productos";
+import { NADA_ELEGIDO, type Catalogo as CatalogoRegion, type ProductosElegidos } from "@/lib/productos";
 import { EVITAR_MAXIMO, NOMBRE_RITMO, RITMOS, RITMO_DEFAULT, TAMANO_MAXIMO_BYTES, errorDeTipoDeFoto, type Ritmo } from "@/lib/guion";
 import { medirImagen } from "@/lib/medir-imagen";
 
@@ -93,9 +93,6 @@ export function Checkout({ catalogo }: { catalogo: Catalogo }) {
   const carrito = useMemo(() => {
     const lineas: { nombre: string; cantidad: number; importe: number }[] = [];
     if (productos.pdf) lineas.push({ nombre: cat.pdf.nombre, cantidad: 1, importe: cat.pdf.precio });
-    if (productos.audiolibro && cat.audiolibro) {
-      lineas.push({ nombre: `${cat.audiolibro.nombre}, ${NOMBRE_VOZ[productos.audiolibro]}`, cantidad: 1, importe: cat.audiolibro.precio });
-    }
     if (productos.impreso) {
       const e = productos.impreso === "color" ? impresoColor : impresoBn;
       if (e) lineas.push({ nombre: e.nombre, cantidad: 1, importe: e.precio });
@@ -106,8 +103,8 @@ export function Checkout({ catalogo }: { catalogo: Catalogo }) {
     return { lineas, total: lineas.reduce((s, l) => s + l.importe, 0) };
   }, [cat, productos, impresoBn, impresoColor, marco]);
 
-  // Ricitos de oro: al menos uno de los tres. Los marcos solos no alcanzan.
-  const hayPrincipal = productos.pdf || (productos.audiolibro !== null && cat.audiolibro !== null) || (productos.impreso !== null && (impresoBn || impresoColor));
+  // Ricitos de oro: al menos uno de los dos. Los marcos solos no alcanzan.
+  const hayPrincipal = productos.pdf || (productos.impreso !== null && (impresoBn || impresoColor));
 
   function avanzar(siguiente: Paso) {
     setError(null);
@@ -156,7 +153,7 @@ export function Checkout({ catalogo }: { catalogo: Catalogo }) {
     evento.preventDefault();
     setError(null);
     if (!hayPrincipal) {
-      setError("Elegí al menos uno: el libro en PDF, el audiolibro o el libro impreso.");
+      setError("Elegí al menos uno: el libro en PDF o el libro impreso.");
       return;
     }
     setEnviando(true);
@@ -401,24 +398,6 @@ export function Checkout({ catalogo }: { catalogo: Catalogo }) {
                 detalle={cat.pdf.detalle}
                 precio={formatear(cat.pdf.precio, cat.moneda, region)}
               />
-              {cat.audiolibro && (
-                <Producto
-                  activa={productos.audiolibro !== null}
-                  onClick={() => setProductos((x) => ({ ...x, audiolibro: x.audiolibro ? null : "clonada" }))}
-                  nota="en la nube"
-                  titulo={cat.audiolibro.nombre}
-                  detalle={cat.audiolibro.detalle}
-                  precio={formatear(cat.audiolibro.precio, cat.moneda, region)}
-                >
-                  {productos.audiolibro ? (
-                    <Segmentos
-                      valor={productos.audiolibro}
-                      opciones={[["clonada", "Con su voz"], ["narrador", "Con un narrador"]]}
-                      onChange={(v) => setProductos((x) => ({ ...x, audiolibro: v as Voz }))}
-                    />
-                  ) : null}
-                </Producto>
-              )}
               {(impresoBn || impresoColor) && (
                 <Producto
                   activa={productos.impreso !== null}
@@ -457,7 +436,7 @@ export function Checkout({ catalogo }: { catalogo: Catalogo }) {
               atras={() => avanzar(3)}
               siguiente={() => {
                 if (!hayPrincipal) {
-                  setError("Elige al menos uno: el libro en PDF, el audiolibro o el libro impreso.");
+                  setError("Elige al menos uno: el libro en PDF o el libro impreso.");
                   return;
                 }
                 avanzar(5);

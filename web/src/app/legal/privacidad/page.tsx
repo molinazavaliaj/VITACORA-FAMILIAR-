@@ -9,9 +9,10 @@ import { Correo, DatosTitular, Enlace, Lista, Pagina, Parrafo, Seccion, Tabla } 
 // supabase/migrations, los proveedores de web/, entrevistador/ y fabrica/.
 // Si se suma un proveedor o un dato nuevo, esta página cambia en el mismo PR.
 //
-// Dos responsables, uno por mercado (ver ../titulares.ts). La voz del narrador
-// clonada para el audiolibro es un dato biométrico: solo con su consentimiento
-// explícito, y se nombra como tal.
+// Dos responsables, uno por mercado (ver ../titulares.ts). Desde el 21/09 no se
+// clona la voz del narrador (el audiolibro salió del catálogo): «Su voz» son
+// recortes de sus audios originales. El consentimiento explícito de voz sigue
+// pidiéndose por WhatsApp por si vuelve un producto con voz sintética.
 //
 // Región de Railway: hoy corre en Estados Unidos (región por defecto). Si se
 // mueve a Europa, corregir la tabla de la sección 5.
@@ -85,10 +86,11 @@ export default function Privacidad() {
           <F>textos</F> del libro y las <F>fotos</F> que sube la familia.
         </Parrafo>
         <Parrafo>
-          <F>Su voz</F>: si compras el audiolibro con su voz, usamos sus audios para crear una
-          voz sintética que narre su libro. Esa voz es un <F>dato biométrico</F>: solo la
-          creamos con el consentimiento explícito del narrador, pedido por WhatsApp para ese fin
-          concreto, y la usamos únicamente para narrar su libro.
+          <F>Su voz</F>: sus mejores frases se recortan de sus propios audios, tal como las dijo,
+          para escucharlas en la web y con el código impreso en el libro. No creamos ninguna voz
+          sintética. Si algún día ofreciéramos un producto con su voz clonada —un{" "}
+          <F>dato biométrico</F>—, solo lo haríamos con el consentimiento explícito del narrador,
+          pedido por WhatsApp para ese fin concreto.
         </Parrafo>
         <Parrafo>
           <F>De los invitados</F>: su correo (para invitarlos), su nombre si entran, y las fotos
@@ -113,8 +115,8 @@ export default function Privacidad() {
               y que puede retirar cuando quiera.
             </>,
             <>
-              <F>Para crear su voz sintética</F>: solo con su consentimiento explícito y para ese
-              fin.
+              <F>Para crear su voz sintética</F> (hoy no lo hacemos): solo con su consentimiento
+              explícito y para ese fin.
             </>,
             <>
               <F>Para avisarte</F> por correo cómo va (cuando acepta, cuando responde la primera,
@@ -146,13 +148,12 @@ export default function Privacidad() {
         <Tabla
           columnas={["Quién", "Para qué", "Dónde"]}
           filas={[
-            ["Supabase", "La base de datos y el almacén de audios, fotos, libros y audiolibros. También el acceso a tu cuenta.", "Unión Europea"],
+            ["Supabase", "La base de datos y el almacén de audios, fotos, libros y sus frases en su voz. También el acceso a tu cuenta.", "Unión Europea"],
             ["Vercel", "Aloja la web que estás leyendo y tu panel.", "Estados Unidos (red global)"],
-            ["Railway", "Corre el entrevistador (el que manda y recibe los WhatsApp) y la fábrica que produce el libro y el audiolibro.", "Estados Unidos"],
+            ["Railway", "Corre el entrevistador (el que manda y recibe los WhatsApp) y la fábrica que produce el libro y elige sus frases.", "Estados Unidos"],
             ["Meta (WhatsApp Business)", "Lleva y trae los mensajes y audios entre el narrador y nosotros. Meta ve los mensajes como los vería en cualquier chat de WhatsApp Business.", "Según las reglas de Meta"],
-            ["OpenAI", "Transcribe los audios a texto, y pone la voz del narrador sintético cuando eliges esa opción. Por API: no usa lo que le mandamos para entrenar sus modelos.", "Estados Unidos"],
+            ["OpenAI", "Transcribe los audios a texto. Por API: no usa lo que le mandamos para entrenar sus modelos.", "Estados Unidos"],
             ["Anthropic", "Redacta los capítulos a partir de las transcripciones, con las palabras del narrador. Por API: no usa lo que le mandamos para entrenar sus modelos.", "Estados Unidos"],
-            ["Proveedor de clonación de voz", "Solo si compras el audiolibro con su voz: crea la voz sintética a partir de sus audios. Cuando lo elijamos, lo nombramos aquí antes de usarlo.", "A confirmar"],
             ["Stripe / Mercado Pago", "Cobran. Son los únicos que ven tu tarjeta.", "Stripe: UE y EE. UU. · Mercado Pago: Argentina"],
             ["Resend", "Manda los correos: el código para entrar, los avisos, el anticipo.", "Brasil (región de América del Sur)"],
             ["Imprenta y mensajería", "Solo si compras el libro impreso o los marcos: reciben el archivo, tu nombre y la dirección de envío.", "En tu país; te decimos cuál antes de mandar a producir"],
@@ -175,11 +176,11 @@ export default function Privacidad() {
         <Lista
           items={[
             <>
-              <F>El libro, el audiolibro, las fotos y los audios</F>: mientras el libro esté en
+              <F>El libro, sus frases en su voz, las fotos y los audios</F>: mientras el libro esté en
               tu cuenta. Están ahí para que la familia vuelva a ellos cuando quiera.
             </>,
             <>
-              <F>Los audios originales y la voz sintética</F>: además, se borran en cuanto tú o
+              <F>Los audios originales (y una voz sintética, si existiera)</F>: además, se borran en cuanto tú o
               el narrador lo pidan, aunque el libro siga en tu cuenta.
             </>,
             <>
@@ -211,7 +212,7 @@ export default function Privacidad() {
         <Parrafo>
           Tú, el narrador y cada invitado pueden pedir en cualquier momento: <F>acceder</F> a
           sus datos, <F>corregirlos</F>, <F>borrarlos</F>, <F>llevárselos</F> en un formato
-          usable (el libro en PDF, el audiolibro y los audios originales), <F>oponerse</F> a
+          usable (el libro en PDF, sus frases y los audios originales), <F>oponerse</F> a
           un uso o pedir que lo <F>limitemos</F>, y <F>retirar un consentimiento</F> (por
           ejemplo, el de la voz sintética) sin que eso afecte lo hecho hasta entonces.
         </Parrafo>
@@ -257,8 +258,8 @@ export default function Privacidad() {
       <Seccion id="ia" titulo="13. Inteligencia artificial">
         <Parrafo>
           Usamos modelos de inteligencia artificial para tres cosas: transcribir los audios,
-          redactar los capítulos con las palabras del narrador, y —si lo eliges— narrar el
-          audiolibro. Los modelos son de OpenAI y Anthropic, contratados por API, y ninguno usa
+          redactar los capítulos con las palabras del narrador, y elegir, entre lo que dijo, las
+          frases que van en «Su voz». Los modelos son de OpenAI y Anthropic, contratados por API, y ninguno usa
           lo que les mandamos para entrenar. Nosotros tampoco entrenamos nada con tu familia.
           Las decisiones que importan las toma una persona: tú apruebas el libro antes de que
           se cierre, y no hay ninguna decisión automatizada que te afecte legalmente.
