@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Playfair_Display, Archivo, Source_Serif_4 } from "next/font/google";
 import { catalogo } from "@/lib/productos";
 import { regionDelRequest } from "@/lib/region";
+import { promoPorcentaje } from "@/lib/promo";
 import { headers } from "next/headers";
 import { Toroide } from "../marca";
 import { Checkout, type Catalogo } from "./formulario";
@@ -42,7 +43,7 @@ export default async function PaginaComprar() {
         </div>
       </header>
 
-      <Checkout catalogo={catalogos} regionInicial={regionDelRequest(await headers())} />
+      <Checkout catalogo={catalogos} regionInicial={regionDelRequest(await headers())} promo={promoPorcentaje()} />
     </div>
   );
 }

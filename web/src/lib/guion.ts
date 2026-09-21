@@ -199,3 +199,18 @@ export const AVISO_CALIDAD: Record<CalidadFoto, string> = {
   chica: "Sirve para el libro a tamaño chico, entre el texto. A página entera, en la tapa o en un marco se vería pixelada.",
   baja: "Se va a ver pixelada impresa. Si es una foto de papel, sacale otra foto apoyada en una mesa, con luz de día, sin flash.",
 };
+
+/**
+ * Reordenar arrastrando (3t.24): el orden nuevo de ids cuando `movido` se suelta
+ * sobre `destino`. Hacia abajo queda después del destino; hacia arriba, antes.
+ * Es lo mismo que la acción `reordenar` recibe; las flechas siguen existiendo.
+ */
+export function idsTrasArrastrar(ids: string[], movido: string, destino: string): string[] {
+  const i = ids.indexOf(movido);
+  const j = ids.indexOf(destino);
+  if (i < 0 || j < 0 || i === j) return ids;
+  const sin = ids.filter((id) => id !== movido);
+  const k = sin.indexOf(destino);
+  sin.splice(i < j ? k + 1 : k, 0, movido);
+  return sin;
+}

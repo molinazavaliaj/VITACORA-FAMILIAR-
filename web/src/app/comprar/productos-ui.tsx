@@ -3,6 +3,8 @@
 import type { ReactNode } from "react";
 import type { Extra, Moneda, ProductosElegidos } from "@/lib/productos";
 import type { Region } from "@/lib/precios";
+import { precioDeLista } from "@/lib/promo";
+import { Tachado } from "./tachado";
 
 // Las piezas del carrito, compartidas por los dos checkouts (2.10, 21/09): la
 // tarjeta de un producto, el selector B/N · color y el contador de marcos.
@@ -12,7 +14,12 @@ export function formatearPrecio(monto: number, moneda: Moneda, region: Region) {
   return new Intl.NumberFormat(region === "ES" ? "es-ES" : "es-AR", { style: "currency", currency: moneda, maximumFractionDigits: 0 }).format(monto);
 }
 
-export function Producto({ activa, onClick, nota, titulo, detalle, precio, children }: { activa: boolean; onClick: () => void; nota: string; titulo: string; detalle: string; precio: string; children?: ReactNode }) {
+/** El precio de lista de la promo, ya formateado, para `Producto`/`Tachado`. */
+export function listaDe(precio: number, moneda: Moneda, region: Region, porcentaje: number): { texto: string; porcentaje: number } {
+  return { texto: formatearPrecio(precioDeLista(precio, moneda, porcentaje), moneda, region), porcentaje };
+}
+
+export function Producto({ activa, onClick, nota, titulo, detalle, precio, lista, children }: { activa: boolean; onClick: () => void; nota: string; titulo: string; detalle: string; precio: string; lista?: { texto: string; porcentaje: number } | null; children?: ReactNode }) {
   return (
     <div className={`flex flex-col gap-3 rounded-2xl border bg-white p-5 transition-colors ${activa ? "border-2 border-[#14140F]" : "border-[#D4D4CE] hover:border-[#83837A]"}`}>
       <button type="button" onClick={onClick} aria-pressed={activa} className="flex flex-1 flex-col gap-3 text-left [touch-action:manipulation]">
@@ -26,7 +33,10 @@ export function Producto({ activa, onClick, nota, titulo, detalle, precio, child
         </span>
         <span className="block text-[21px] leading-tight [font-family:var(--fuente-titulo)] font-medium">{titulo}</span>
         <span className="block text-[14px] leading-[1.6] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">{detalle}</span>
-        <span className="mt-auto block pt-2 text-[24px] tabular-nums [font-family:var(--fuente-titulo)]">{precio}</span>
+        <span className="mt-auto block pt-2 text-[24px] tabular-nums [font-family:var(--fuente-titulo)]">
+          {lista ? <Tachado lista={lista.texto} porcentaje={lista.porcentaje} className="mr-2" /> : null}
+          {precio}
+        </span>
       </button>
       {children}
     </div>
@@ -53,7 +63,7 @@ export function Segmentos({ valor, opciones, onChange }: { valor: string; opcion
 }
 
 /** El libro impreso: la tarjeta con B/N · color adentro. Solo si hay precio cargado en la región. */
-export function TarjetaImpreso({ productos, setProductos, impresoBn, impresoColor, moneda, region, detalle }: {
+export function TarjetaImpreso({ productos, setProductos, impresoBn, impresoColor, moneda, region, detalle, promo = null }: {
   productos: ProductosElegidos;
   setProductos: (f: (x: ProductosElegidos) => ProductosElegidos) => void;
   impresoBn?: Extra;
@@ -61,8 +71,11 @@ export function TarjetaImpreso({ productos, setProductos, impresoBn, impresoColo
   moneda: Moneda;
   region: Region;
   detalle: string;
+  /** 8.7: el porcentaje de la promo, o null. */
+  promo?: number | null;
 }) {
   if (!impresoBn && !impresoColor) return null;
+  const precioImpreso = (productos.impreso === "color" ? impresoColor : impresoBn)?.precio ?? impresoBn?.precio ?? impresoColor?.precio ?? 0;
   return (
     <Producto
       activa={productos.impreso !== null}
@@ -70,7 +83,8 @@ export function TarjetaImpreso({ productos, setProductos, impresoBn, impresoColo
       nota="en tu repisa"
       titulo="El libro impreso"
       detalle={detalle}
-      precio={formatearPrecio((productos.impreso === "color" ? impresoColor : impresoBn)?.precio ?? impresoBn?.precio ?? impresoColor?.precio ?? 0, moneda, region)}
+      precio={formatearPrecio(precioImpreso, moneda, region)}
+      lista={promo ? listaDe(precioImpreso, moneda, region, promo) : null}
     >
       {productos.impreso && impresoBn && impresoColor ? (
         <Segmentos

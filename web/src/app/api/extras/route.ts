@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { regionDelRequest } from "@/lib/region";
 import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { narradorDeLaSesion } from "@/lib/panel";
@@ -33,9 +34,10 @@ export async function POST(request: NextRequest) {
     marcos: typeof body.marcos === "number" ? body.marcos : 0,
   };
 
-  // La región es la de la historia (el libro se produce y se envía ahí).
-  const { data: familiaDuena } = await admin.from("familias").select("region").eq("id", narrador.familia_id).maybeSingle();
-  const region = ((familiaDuena as { region?: "ES" | "AR" } | null)?.region) ?? "AR";
+  // La región es la de QUIEN COMPRA (2.12, 21/09): el primo que abre el link
+  // desde Argentina paga en pesos por Mercado Pago aunque el libro se haya
+  // comprado en España. Sale del país del request, como en los checkouts.
+  const region = regionDelRequest(request.headers);
 
   const compra = calcularExtras(region, elegidos);
   if (compra.lineas.length === 0 || compra.total <= 0) {

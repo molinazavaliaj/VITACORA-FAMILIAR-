@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { NADA_ELEGIDO, type Catalogo as CatalogoRegion, type ProductosElegidos } from "@/lib/productos";
-import { ContadorMarcos, Producto, TarjetaImpreso, formatearPrecio as formatear } from "./productos-ui";
+import { ContadorMarcos, Producto, TarjetaImpreso, formatearPrecio as formatear, listaDe } from "./productos-ui";
 import { HORAS_FAMILIAR as HORAS } from "@/lib/horario";
 import { EVITAR_MAXIMO, NOMBRE_RITMO, RITMOS, RITMO_DEFAULT, TAMANO_MAXIMO_BYTES, errorDeTipoDeFoto, type Ritmo } from "@/lib/guion";
 import { medirImagen } from "@/lib/medir-imagen";
@@ -44,10 +44,10 @@ const campo =
 const etiqueta = "block text-[11px] uppercase text-[#5F5F55] [font-family:var(--fuente-micro)] [letter-spacing:0.24em]";
 const chip = (activo: boolean) => `rounded-full border px-4 py-2 text-[14px] transition-colors [font-family:var(--fuente-micro)] [touch-action:manipulation] ${activo ? "border-[#14140F] bg-[#14140F] text-white" : "border-[#D4D4CE] bg-white hover:border-[#83837A]"}`;
 
-export function Checkout({ catalogo, regionInicial = "AR" }: { catalogo: Catalogo; regionInicial?: Region }) {
+export function Checkout({ catalogo, regionInicial = "AR", promo = null }: { catalogo: Catalogo; regionInicial?: Region; promo?: number | null }) {
   const [paso, setPaso] = useState<Paso>(1);
   const [paraQuien, setParaQuien] = useState<ParaQuien | null>(null);
-  const [region, setRegion] = useState<Region>(regionInicial); // 2.12: por el país del visitante
+  const [region] = useState<Region>(regionInicial); // 2.12: por el país del visitante (IP); sin selector
 
   const [nombreComprador, setNombreComprador] = useState("");
   const [vinculo, setVinculo] = useState("");
@@ -286,24 +286,11 @@ export function Checkout({ catalogo, regionInicial = "AR" }: { catalogo: Catalog
             </p>
 
             <div className="mt-8 flex flex-col gap-6">
-              <div>
-                <label className={etiqueta}>País</label>
-                <div className="mt-2 flex gap-3">
-                  {(["AR", "ES"] as Region[]).map((r) => (
-                    <button
-                      key={r}
-                      type="button"
-                      onClick={() => setRegion(r)}
-                      className={`rounded-full border px-5 py-2 text-[15px] [font-family:var(--fuente-micro)] ${region === r ? "border-[#14140F] bg-[#14140F] text-white" : "border-[#D4D4CE] bg-white text-[#45453C]"}`}
-                    >
-                      {r === "AR" ? "Argentina" : "España"}
-                    </button>
-                  ))}
-                </div>
-                <p className="mt-2 text-[13px] text-[#83837A] [font-family:var(--fuente-cuerpo)] font-light">
-                  Define la moneda y la hora de las preguntas.
-                </p>
-              </div>
+              {/* 2.12 (21/09): la región la decide el país de quien compra (por IP); el selector se sacó.
+                  Se muestra cuál es, chiquito, por si alguien mira desde otro país. */}
+              <p className="text-[13px] text-[#83837A] [font-family:var(--fuente-cuerpo)] font-light">
+                Precios en {region === "ES" ? "euros" : "pesos argentinos"}.
+              </p>
 
               {paraQuien === "otro" && (
                 <div className="grid gap-6 sm:grid-cols-2">
@@ -454,6 +441,7 @@ export function Checkout({ catalogo, regionInicial = "AR" }: { catalogo: Catalog
                 titulo={cat.pdf.nombre}
                 detalle={cat.pdf.detalle}
                 precio={formatear(cat.pdf.precio, cat.moneda, region)}
+                lista={promo ? listaDe(cat.pdf.precio, cat.moneda, region, promo) : null}
               />
               <TarjetaImpreso
                 productos={productos}
@@ -463,6 +451,7 @@ export function Checkout({ catalogo, regionInicial = "AR" }: { catalogo: Catalog
                 moneda={cat.moneda}
                 region={region}
                 detalle="Tapa dura, con un código en la contratapa que hace sonar su voz. Lo único que sale de la nube."
+                promo={promo}
               />
             </div>
 
