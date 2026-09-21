@@ -626,3 +626,23 @@ del anticipo si se quiere, y el pase de los textos aprobados al diff de la web.
 1. ~~Audiolibro híbrido~~ — **descartado el 20/09** (ver arriba): la corrida que quedó encolada sirve solo para el veredicto de oído. Lo que viene: el spec de "Sus mejores frases" y el checkout sin la línea del audiolibro.
 2. Bitácora: #31 (cierre solo al recibir la 30), #33 (candado del cierre automático), #32 (healthcheck de la fábrica); la muestra pública con `titulosCapitulos`.
 3. Plata: rotar la key de Anthropic de Naza (#37), cancelar el plan Hobby de Railway de Naza antes del 1/10, recargar crédito Anthropic antes del próximo libro y unificar las keys en una organización del proyecto (`GASTOS.md`).
+
+## Textos del checkout y las legales: aprobados (Naza, 21/09)
+
+Naza aprobó los textos del bloque 3 de Joaquín (`su-voz-textos`, `427e9e1`) después de revisarlos
+contra el diff, uno por uno: los tres "tres" → "dos", el anticipo sin la descarga que no existía, los
+15 días fuera del panel de frases, las legales describiendo las dos entradas del código impreso
+(sin cuenta, reenviable "igual que prestar el libro"), "narrar" y la voz sintética retirados de las
+finalidades, el ejemplo de consentimiento retirable cambiado, y —el que más importa— el §7 de
+privacidad: **"Sus frases en su voz son recortes de esos mismos audios: si pedís borrar los
+originales, también se borran los recortes, y los códigos del libro impreso dejan de sonar."**
+
+Verificado por el asistente en la rama: los textos están como se acordaron, `frases.json` se sube y
+se lee sin caché (`cacheControl: 0` + `cacheNonce` + `no-store`) y los dos iframes del libro van con
+`sandbox=""`. **Con esto queda libre el merge** en el orden acordado
+(`su-voz-fabrica` → `su-voz-web-checkout` → `su-voz-web-panel` → `alta-contexto-minimo` →
+`su-voz-textos`) y el pedido `3284c93c` de Joaquín pasa a `pagado` para la prueba de punta a punta.
+
+Cuando exista el mail de los 15 días (Task 6) vuelve al panel de frases el texto que se sacó, con la
+verdad del mecanismo. Y el "32 de 36" del panel queda aceptado hasta que la PC rehaga los 3 tramos
+(`cita-6`, `cita-16`, `cita-17`): es `git pull` + arrancar el worker en la PC de audio.
