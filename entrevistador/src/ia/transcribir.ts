@@ -1,5 +1,6 @@
 import { cargarConfig } from '../config.js';
 import { db } from '../db/cliente.js';
+import { registrarUso, cuentaDeEsteServicio } from '../costos.js';
 
 /**
  * Transcribe el audio del narrador.
@@ -25,7 +26,7 @@ import { db } from '../db/cliente.js';
  * `promptDeTranscripcion` recorta).
  */
 export async function transcribir(
-  audio: Buffer, prompt?: string,
+  audio: Buffer, prompt?: string, narradorId?: string,
 ): Promise<{ texto: string; duracionSegundos: number }> {
   const config = cargarConfig();
   const form = new FormData();
@@ -49,11 +50,16 @@ export async function transcribir(
   if (duracion === undefined) {
     throw new Error(`La transcripción no devolvió duración (claves: ${Object.keys(json).join(', ')})`);
   }
+  await registrarUso(db, {
+    servicio: 'entrevistador', paso: 'transcribir', modelo: 'gpt-transcribe', proveedor: 'openai',
+    cuenta: cuentaDeEsteServicio(), narradorId: narradorId ?? null,
+    cantidad: duracion, unidad: 'segundos',
+  });
   return { texto: json.text, duracionSegundos: Math.round(duracion) };
 }
 
-export async function transcribirYActualizar(respuestaId: string, audio: Buffer, prompt?: string) {
-  const resultado = await transcribir(audio, prompt);
+export async function transcribirYActualizar(respuestaId: string, audio: Buffer, prompt?: string, narradorId?: string) {
+  const resultado = await transcribir(audio, prompt, narradorId);
   const { error } = await db.from('respuestas')
     .update({ transcripcion: resultado.texto, duracion_segundos: resultado.duracionSegundos })
     .eq('id', respuestaId);

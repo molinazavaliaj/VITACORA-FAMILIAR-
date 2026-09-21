@@ -33,6 +33,7 @@
  * aparte (ver `recordarEnviada`).
  */
 import Anthropic from '@anthropic-ai/sdk';
+import { registrarUso, cuentaDeEsteServicio } from '../costos.js';
 import { textoEvitar } from './evitar.js';
 import { cargarConfig } from '../config.js';
 import { db } from '../db/cliente.js';
@@ -243,6 +244,10 @@ async function personalizarViaje(n: NarradorParaPersonalizar, original: string, 
       model: MODELO, max_tokens: MAX_TOKENS,
       messages: [{ role: 'user', content: PROMPT_VIAJE(orden, etapa, angulo, itinerarioEnTexto(n.contexto), previas, textoEvitar(n.contexto), esUltimo) }],
     });
+    await registrarUso(db, {
+      servicio: 'entrevistador', paso: 'personalizar_viaje', modelo: MODELO, proveedor: 'anthropic',
+      cuenta: cuentaDeEsteServicio(), narradorId: n.id, uso: respuesta.usage,
+    });
     const bloque = respuesta.content.find((b) => b.type === 'text');
     const cruda = bloque && bloque.type === 'text' ? bloque.text.trim().replace(/^["'«]|["'»]$/g, '') : '';
     if (cruda.length < 20 || cruda.length > 600) {
@@ -296,6 +301,10 @@ export async function personalizarPregunta(
         model: MODELO, max_tokens: MAX_TOKENS,
         messages: [{ role: 'user', content: prompt }],
       });
+    await registrarUso(db, {
+      servicio: 'entrevistador', paso: 'personalizar', modelo: MODELO, proveedor: 'anthropic',
+      cuenta: cuentaDeEsteServicio(), narradorId: n.id, uso: respuesta.usage,
+    });
       const bloque = respuesta.content.find((b) => b.type === 'text');
       const cruda = bloque && bloque.type === 'text' ? bloque.text.trim().replace(/^["'«]|["'»]$/g, '') : '';
       return esPersonalizacionValida(original, cruda) ? { ok: true, texto: cruda } : { ok: false, motivo: 'invalida' };

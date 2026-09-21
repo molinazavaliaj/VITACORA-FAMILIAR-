@@ -82,7 +82,7 @@ export async function faseDeCierre(n: Narrador, orden: number, transcripcion: st
   if (cierre.ordenes.includes(orden)) {
     const pregunta = await preguntaDeOrden(n.id, orden);
     const capitulos = await capitulosDe(n.id);
-    const veredicto = await clasificarCierre(n.como_le_dicen, transcripcion, capitulos, await armarHistoria(n.id), textoEvitar(n.contexto), await tratoDe(n));
+    const veredicto = await clasificarCierre(n.como_le_dicen, transcripcion, capitulos, await armarHistoria(n.id), textoEvitar(n.contexto), await tratoDe(n), n.id);
 
     if (veredicto.tipo === 'nada') {
       // "No, está todo": ni la pregunta ni el "no" van al libro.

@@ -1,5 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { cargarConfig } from '../config.js';
+import { db } from '../db/cliente.js';
+import { registrarUso, cuentaDeEsteServicio } from '../costos.js';
 import type { Trato } from './trato.js';
 
 const MODELO = 'claude-opus-5';
@@ -143,7 +145,7 @@ export const PAUSA_REINTENTO_MS = 2000;
 /** Los tests la apagan con `pausaMs: 0`; en producción son 2 s de verdad. */
 const esperar = (ms: number) => (ms > 0 ? new Promise<void>((r) => setTimeout(r, ms)) : Promise.resolve());
 
-export type OpcionesDeReintento = { pausaMs?: number };
+export type OpcionesDeReintento = { pausaMs?: number; narradorId?: string };
 
 /** Lo que la evaluación puede decir: si alcanza, si hay repregunta, y si algo se reserva. */
 export type Evaluacion = {
@@ -203,6 +205,10 @@ export async function evaluarRespuesta(
       model: MODELO_EVALUACION, max_tokens: 500, system: estiloCerebro(trato),
       messages: [{ role: 'user', content: PROMPT_EVALUAR(pregunta, transcripcion, duracionSegundos, evitar, trato) }],
     });
+    await registrarUso(db, {
+      servicio: 'entrevistador', paso: 'evaluar', modelo: MODELO_EVALUACION, proveedor: 'anthropic',
+      cuenta: cuentaDeEsteServicio(), narradorId: opciones.narradorId ?? null, uso: respuesta.usage,
+    });
     // Si el JSON no se puede leer, seguimos: hoy no hay repregunta.
     return extraerJson<Evaluacion>(textoDe(respuesta), { suficiente: true })!;
   };
@@ -260,6 +266,10 @@ export async function detectarReservaYDejarTema(
       model: MODELO_EVALUACION, max_tokens: 300, system: estiloCerebro(trato),
       messages: [{ role: 'user', content: PROMPT_MARCAS(transcripcion) }],
     });
+    await registrarUso(db, {
+      servicio: 'entrevistador', paso: 'reserva', modelo: MODELO_EVALUACION, proveedor: 'anthropic',
+      cuenta: cuentaDeEsteServicio(), narradorId: opciones.narradorId ?? null, uso: respuesta.usage,
+    });
     // Si el JSON no se puede leer, se sigue sin marcas: no hay qué anotar.
     const leido = extraerJson<Evaluacion & { dejarTema?: string }>(textoDe(respuesta), { suficiente: true })!;
     const dejarTema = typeof leido.dejarTema === 'string' && leido.dejarTema.trim() ? leido.dejarTema.trim() : null;
@@ -303,6 +313,7 @@ Respondé SOLO con JSON: {} o {"reservado": true, "reservadoTramo": "..."} o {"d
  */
 export async function generarPreguntaReemplazo(
   comoLeDicen: string, historiaCompleta: string, capitulos: string[], capituloQueNoAplica: string, evitar = '', trato: Trato = 'usted',
+  narradorId?: string,
 ): Promise<{ texto: string; capitulo: string }> {
   const respuesta = await cliente.messages.create({
     model: MODELO, max_tokens: 500, system: estiloCerebro(trato),
@@ -311,6 +322,10 @@ export async function generarPreguntaReemplazo(
       content: `Sos el biógrafo de ${comoLeDicen}. Esto es lo que contó hasta ahora:\n\n${historiaCompleta}\n${evitar}\nLa pregunta que tocaba hoy era del capítulo «${capituloQueNoAplica}», que NO aplica a su vida. Necesitás reemplazarla por una pregunta que aproveche mejor este día.\n\nBuscá en lo que ya contó: una persona que nombró y no exploró, una época con huecos, algo que claramente disfrutó contar y da para más. La pregunta debe sonar a que LO ESCUCHASTE (referí lo que él contó), tratarlo de ${trato}, y ser una sola pregunta clara. Jamás menciones el tema que no aplica ni que estás reemplazando nada.\n\nCapítulos disponibles del libro: ${capitulos.join(', ')}.\n\nRespondé SOLO con JSON: {"texto": "...", "capitulo": "..."}`,
     }],
   });
+    await registrarUso(db, {
+      servicio: 'entrevistador', paso: 'reemplazo', modelo: MODELO, proveedor: 'anthropic',
+      cuenta: cuentaDeEsteServicio(), narradorId: narradorId ?? null, uso: respuesta.usage,
+    });
   const reemplazo = extraerJson<{ texto: string; capitulo: string }>(textoDe(respuesta), null);
   if (!reemplazo) throw new Error('Claude no devolvió el reemplazo en JSON');
   return reemplazo;
@@ -325,7 +340,7 @@ export async function generarPreguntaReemplazo(
  * es peor saltear un capítulo que existe que hacer una pregunta de más.
  */
 export async function detectarQueNoTuvo(
-  capitulo: string, pregunta: string, transcripcion: string,
+  capitulo: string, pregunta: string, transcripcion: string, narradorId?: string,
 ): Promise<'no_tuvo' | 'normal'> {
   const que = capitulo === 'Los hijos' ? 'hijos' : 'pareja (novia, novio, esposa, esposo, matrimonio)';
   const respuesta = await cliente.messages.create({
@@ -335,6 +350,10 @@ export async function detectarQueNoTuvo(
       content: `Un narrador mayor responde por audio a la pregunta "${pregunta}" (capítulo «${capitulo}» de su biografía). Transcripción: "${transcripcion}".\n¿Dice CLARAMENTE que NUNCA tuvo ${que}? Respondé SOLO "no_tuvo" o "normal". Si tuvo y los perdió, si habla de otros, o ante cualquier duda: "normal".`,
     }],
   });
+    await registrarUso(db, {
+      servicio: 'entrevistador', paso: 'no_tuvo', modelo: MODELO, proveedor: 'anthropic',
+      cuenta: cuentaDeEsteServicio(), narradorId: narradorId ?? null, uso: respuesta.usage,
+    });
   return textoDe(respuesta).trim() === 'no_tuvo' ? 'no_tuvo' : 'normal';
 }
 
@@ -350,6 +369,7 @@ export type VeredictoCierre =
  */
 export async function clasificarCierre(
   comoLeDicen: string, transcripcion: string, capitulos: string[], historiaCompleta: string, evitar = '', trato: Trato = 'usted',
+  narradorId?: string,
 ): Promise<VeredictoCierre> {
   const respuesta = await cliente.messages.create({
     model: MODELO, max_tokens: 400, system: estiloCerebro(trato),
@@ -368,6 +388,10 @@ Lo que ya contó (para no repetir y para el capítulo): ${historiaCompleta.slice
 Respondé SOLO con JSON: {"tipo": "nada"} | {"tipo": "conto", "pregunta": "...", "capitulo": "..."} | {"tipo": "tema", "tema": "...", "pregunta": "...", "capitulo": "..."}`,
     }],
   });
+    await registrarUso(db, {
+      servicio: 'entrevistador', paso: 'cierre', modelo: MODELO, proveedor: 'anthropic',
+      cuenta: cuentaDeEsteServicio(), narradorId: narradorId ?? null, uso: respuesta.usage,
+    });
   const v = extraerJson<VeredictoCierre>(textoDe(respuesta), { tipo: 'nada' })!;
   const capituloOk = (c: unknown) => (typeof c === 'string' && capitulos.includes(c) ? c : capitulos[capitulos.length - 1] ?? 'Otros');
   if (v.tipo === 'conto' && typeof v.pregunta === 'string' && v.pregunta.trim()) return { tipo: 'conto', pregunta: v.pregunta.trim(), capitulo: capituloOk(v.capitulo) };
@@ -375,7 +399,7 @@ Respondé SOLO con JSON: {"tipo": "nada"} | {"tipo": "conto", "pregunta": "...",
   return { tipo: 'nada' };
 }
 
-export async function detectarIntencion(texto: string): Promise<'quiere_parar' | 'normal'> {
+export async function detectarIntencion(texto: string, narradorId?: string): Promise<'quiere_parar' | 'normal'> {
   const respuesta = await cliente.messages.create({
     model: MODELO, max_tokens: 50,
     messages: [{
@@ -383,6 +407,10 @@ export async function detectarIntencion(texto: string): Promise<'quiere_parar' |
       content: `Un señor mayor que participa de entrevistas diarias por WhatsApp escribió: "${texto}".\n¿Está pidiendo PARAR o dejar las entrevistas (cansancio, molestia, "no quiero más", "basta")? Respondé SOLO "quiere_parar" o "normal". Ante la duda: "normal".`,
     }],
   });
+    await registrarUso(db, {
+      servicio: 'entrevistador', paso: 'intencion', modelo: MODELO, proveedor: 'anthropic',
+      cuenta: cuentaDeEsteServicio(), narradorId: narradorId ?? null, uso: respuesta.usage,
+    });
   const veredicto = textoDe(respuesta);
   return veredicto === 'quiere_parar' ? 'quiere_parar' : 'normal';
 }
