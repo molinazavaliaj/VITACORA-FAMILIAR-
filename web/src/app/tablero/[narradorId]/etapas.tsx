@@ -9,6 +9,8 @@ import { ETAPAS_MAXIMO, type Etapa, type Viaje } from "@/lib/viaje";
 // Al guardar, las noches que todavía no llegaron se reasignan al capítulo que
 // les toca. Solo la dueña (el viajero), mientras el viaje no terminó.
 
+const fechaLarga = (ymd: string) => new Date(`${ymd}T00:00:00Z`).toLocaleDateString("es", { day: "numeric", month: "long", timeZone: "UTC" });
+const micro = "text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.18em]";
 const campo = "w-full rounded-md border border-[var(--linea-fuerte)] bg-[var(--fondo)] px-3 py-2 text-[15px] text-[var(--texto)] outline-none focus:border-[var(--texto)]";
 const boton = "inline-flex h-10 items-center justify-center rounded-full px-5 text-sm font-medium transition-colors [font-family:var(--fuente-micro)] disabled:opacity-50";
 
@@ -49,14 +51,20 @@ export function EtapasDelViaje({ narradorId, viaje }: { narradorId: string; viaj
   return (
     <div className="flex flex-col gap-4">
       <p className="text-[15px] leading-relaxed text-[var(--texto-suave)]">
-        Del {viaje.salida} al {viaje.vuelta}. Cada etapa es un capítulo. Si aparece una ciudad nueva, agregala; si ya sabés las fechas, ponelas. Las noches que todavía no llegaron se acomodan solas.
+        Del {fechaLarga(viaje.salida)} al {fechaLarga(viaje.vuelta)}. Cada etapa es un capítulo. Si aparece una ciudad nueva, agregala; si ya sabés las fechas, ponelas. Las noches que todavía no llegaron se acomodan solas.
       </p>
       <ul className="flex flex-col gap-2">
         {etapas.map((e, i) => (
-          <li key={i} className="grid gap-2 rounded-lg border border-[var(--linea)] p-3 sm:grid-cols-[1fr_140px_140px_auto] sm:items-center">
+          <li key={i} className="grid gap-2 rounded-lg border border-[var(--linea)] p-3 sm:grid-cols-[1fr_150px_150px_auto] sm:items-end">
             <input aria-label={`Etapa ${i + 1}`} className={campo} value={e.nombre} onChange={(ev) => editar(i, { nombre: ev.target.value })} placeholder="Ciudad o tramo" disabled={ocupado} />
-            <input aria-label="Desde" type="date" className={campo} value={e.desde ?? ""} min={viaje.salida} max={viaje.vuelta} onChange={(ev) => editar(i, { desde: ev.target.value || undefined })} disabled={ocupado} />
-            <input aria-label="Hasta" type="date" className={campo} value={e.hasta ?? ""} min={e.desde ?? viaje.salida} max={viaje.vuelta} onChange={(ev) => editar(i, { hasta: ev.target.value || undefined })} disabled={ocupado} />
+            <label className="flex flex-col gap-1">
+              <span className={micro}>Desde</span>
+              <input type="date" className={campo} value={e.desde ?? ""} min={viaje.salida} max={viaje.vuelta} onChange={(ev) => editar(i, { desde: ev.target.value || undefined })} disabled={ocupado} />
+            </label>
+            <label className="flex flex-col gap-1">
+              <span className={micro}>Hasta</span>
+              <input type="date" className={campo} value={e.hasta ?? ""} min={e.desde ?? viaje.salida} max={viaje.vuelta} onChange={(ev) => editar(i, { hasta: ev.target.value || undefined })} disabled={ocupado} />
+            </label>
             <button type="button" aria-label="Sacar etapa" disabled={ocupado} onClick={() => setEtapas((x) => x.filter((_, j) => j !== i))} className="h-9 w-9 rounded-full border border-[var(--linea-fuerte)] text-[var(--texto-menor)] hover:text-[var(--texto)]">×</button>
           </li>
         ))}

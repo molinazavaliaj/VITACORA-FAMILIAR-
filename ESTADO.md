@@ -621,6 +621,28 @@ cambios propuestos ya pasados a Joaquín).
 **Falta mío**: la sección impresa con el QR (Task 4), el mail de los 15 días (Task 6), la descarga del PDF
 del anticipo si se quiere, y el pase de los textos aprobados al diff de la web.
 
+## El panel de viaje (3t.19, Joaquín, 21/09)
+
+**Qué pasaba.** El viajero veía el guion del Familiar (8 capítulos, 30 preguntas). La causa no era de
+diseño: `armarGuion` rellena con la plantilla global (`narrador_id` null) todo orden que el narrador no
+tenga propio. Un viaje de 8 días tiene propias 1..8; las 9..30 salían del Familiar. Antes del SÍ, las 30.
+
+**Qué hay ahora.** En `contexto.modo = 'viaje'`, `/tablero/[id]` renderiza `viaje.tsx` (la plantilla
+global no entra): las etapas como capítulos con ciudad + fechas (se calculan desde `contexto.viaje` con
+`capitulosDelViaje`, así se ve bien aunque el bot no haya creado el guion todavía), el álbum de cada etapa
+(las fotos que entran por WhatsApp caen ahí por `fotos.capitulo`; las de "Por definir" el bot las guarda
+como `null` y van a esa sección) y **subir fotos a la etapa**, las noches contadas con la fecha, «Te
+preguntamos: …» (lo que el bot mandó de verdad, `preguntasEnviadas`) y el audio, y un contador de noches
+por venir en vez de la lista de preguntas. **Sobre qué te preguntamos**: los mismos chips del checkout
+→ `PATCH /api/viaje { angulos }` → `contexto.viaje.angulos`. El bot ya lee eso al armar cada noche
+(`anguloDelDia`), así que **no toca `entrevistador/`** y rige desde la noche siguiente. Inicio cuenta
+noches, no 30. En viaje no hay "Agregar/Editar preguntas" ni "Contar más": el orden es el día.
+Ajustes sin ritmo (una por noche). Verificado en el celular a 375px con el narrador de prueba de Joaquín.
+
+**Para Naza.** Textos nuevos en `web/src/app/tablero/[narradorId]/viaje.tsx`, `angulos.tsx` y la tarjeta
+de Inicio, marcados con ⚠️ — revisión el miércoles. Nada en `fabrica/`, `voz/` ni `entrevistador/`. Sin
+migración. 292 tests, tsc limpio.
+
 ## Próximos hitos
 
 1. ~~Audiolibro híbrido~~ — **descartado el 20/09** (ver arriba): la corrida que quedó encolada sirve solo para el veredicto de oído. Lo que viene: el spec de "Sus mejores frases" y el checkout sin la línea del audiolibro.
