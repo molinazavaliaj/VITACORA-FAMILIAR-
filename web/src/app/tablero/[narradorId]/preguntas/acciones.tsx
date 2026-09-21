@@ -583,7 +583,8 @@ export function SubirFoto({ narradorId, capitulos, capituloInicial, children, va
 
 // ── ritmo y temas a evitar (solo dueña) ────────────────────────────────
 
-export function Ajustes({ narradorId, ritmo, evitar }: { narradorId: string; ritmo: Ritmo; evitar: string }) {
+// `sinRitmo`: en viaje (3t.19) el bot escribe una vez por noche, no hay ritmo que elegir.
+export function Ajustes({ narradorId, ritmo, evitar, sinRitmo = false }: { narradorId: string; ritmo: Ritmo; evitar: string; sinRitmo?: boolean }) {
   const router = useRouter();
   const [textoEvitar, setTextoEvitar] = useState(evitar);
   const [ocupado, setOcupado] = useState<string | null>(null);
@@ -607,6 +608,7 @@ export function Ajustes({ narradorId, ritmo, evitar }: { narradorId: string; rit
 
   return (
     <div className="flex flex-col gap-8">
+      {sinRitmo ? null : (
       <fieldset>
         <legend className="text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.24em]">Ritmo</legend>
         <div className="mt-3 flex flex-col gap-2">
@@ -622,6 +624,7 @@ export function Ajustes({ narradorId, ritmo, evitar }: { narradorId: string; rit
         </div>
         <p className="mt-2 text-sm text-[var(--texto-menor)]">Además, al terminar cada respuesta el biógrafo le ofrece seguir con la siguiente. Él también marca su ritmo.</p>
       </fieldset>
+      )}
 
       <div>
         <label className="flex flex-col gap-2">

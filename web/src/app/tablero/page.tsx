@@ -5,6 +5,7 @@ import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { esPropia, historiasDelUsuario, type Historia } from "@/lib/panel";
 import { BannerAlertaSilencio } from "./acciones";
 import { totalDelGuion } from "@/lib/guion";
+import { diasDelViaje, type Viaje } from "@/lib/viaje";
 import {
   BarraProgreso,
   Contenedor,
@@ -30,10 +31,17 @@ type Resumen = {
   tieneAnticipo: boolean;
 };
 
+function viajeDe(h: Historia): Viaje | null {
+  const c = h.narrador.contexto as { modo?: unknown; viaje?: Viaje } | null | undefined;
+  return c?.modo === "viaje" && c.viaje?.salida && c.viaje?.vuelta ? c.viaje : null;
+}
+
 async function resumirHistoria(
   admin: ReturnType<typeof crearClienteServidor>,
-  narradorId: string,
+  h: Historia,
 ): Promise<Resumen> {
+  const narradorId = h.narrador.id;
+  const viaje = viajeDe(h);
   const [{ data: respuestas }, { data: propias }, { data: globales }, { data: paquete }] = await Promise.all([
     admin
       .from("respuestas")
@@ -49,11 +57,14 @@ async function resumirHistoria(
   const segundos = filas.reduce((acc, r) => acc + (r.duracion_segundos ?? 0), 0);
   // El mismo total que Historias: propias + plantilla global (un narrador manual
   // puede tener solo las 4 adaptativas como propias). Sin nada, vale el de 30.
-  const total = totalDelGuion(
-    (propias as { orden: number }[] | null) ?? [],
-    (globales as { orden: number }[] | null) ?? [],
-    TOTAL_PREGUNTAS_BASE,
-  );
+  // En viaje (3t.19) el total son las noches: la plantilla global no cuenta.
+  const total = viaje
+    ? diasDelViaje(viaje)
+    : totalDelGuion(
+        (propias as { orden: number }[] | null) ?? [],
+        (globales as { orden: number }[] | null) ?? [],
+        TOTAL_PREGUNTAS_BASE,
+      );
   const tieneAnticipo = (paquete ?? []).some((a) => a.name.startsWith("anticipo"));
 
   return { respondidas: ordenes.size, total, segundos, tieneAnticipo };
@@ -79,6 +90,7 @@ function proximoPaso(h: Historia, r: Resumen): { href: string; texto: string } |
       return null;
     case "acepto":
     case "invitado":
+      if (viajeDe(h)) return { href: `/tablero/${id}`, texto: "Mientras esperás, revisá las etapas y sobre qué te preguntamos" };
       return { href: `/tablero/${id}?editar=1`, texto: "Mientras esperás, repasá las preguntas y sumá fotos" };
     default:
       return null;
@@ -116,7 +128,7 @@ export default async function Inicio() {
     );
   }
 
-  const resumenes = await Promise.all(panel.historias.map((h) => resumirHistoria(admin, h.narrador.id)));
+  const resumenes = await Promise.all(panel.historias.map((h) => resumirHistoria(admin, h)));
   const segundosTotales = resumenes.reduce((acc, r) => acc + r.segundos, 0);
 
   return (
@@ -147,9 +159,9 @@ export default async function Inicio() {
 
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <Etiqueta>{h.rol === "invitado" ? "Te invitaron a esta historia" : h.rol === "visitante" ? "Lo guardaste" : "Historia"}</Etiqueta>
+                  <Etiqueta>{h.rol === "invitado" ? (viajeDe(h) ? "Te invitaron a este viaje" : "Te invitaron a esta historia") : h.rol === "visitante" ? "Lo guardaste" : viajeDe(h) ? "Vitácora de viaje" : "Historia"}</Etiqueta>
                   <Link href={`/tablero/${n.id}`} className="mt-1 block">
-                    <Titulo nivel={2}>{tituloHistoria(n.nombre, esPropia(n))}</Titulo>
+                    <Titulo nivel={2}>{viajeDe(h) ? (h.rol === "duena" ? "Tu viaje" : `El viaje de ${n.nombre}`) : tituloHistoria(n.nombre, esPropia(n))}</Titulo>
                   </Link>
                   <p className="mt-2 text-[15px] text-[var(--texto-suave)]">
                     {estadoEnHumano(n.estado, esPropia(n))}

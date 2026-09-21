@@ -77,8 +77,9 @@ export function validarViaje(entrada: unknown): { ok: true; viaje: Viaje } | { o
     viaje.proposito = e.proposito as Viaje["proposito"];
   }
   if (e.angulos !== undefined) {
-    if (!Array.isArray(e.angulos) || !e.angulos.every((a) => (ANGULOS as readonly unknown[]).includes(a))) return { ok: false, mensaje: "Los temas elegidos no son válidos." };
-    viaje.angulos = [...new Set(e.angulos as string[])];
+    const a = validarAngulos(e.angulos);
+    if (!a.ok) return a;
+    viaje.angulos = a.angulos;
   }
   return { ok: true, viaje };
 }
@@ -112,4 +113,45 @@ export function validarEtapas(entrada: unknown, viaje: Pick<Viaje, "salida" | "v
     etapas.push(etapa);
   }
   return { ok: true, etapas };
+}
+
+// ── El panel de viaje (3t.19) ────────────────────────────────────────────────
+
+export type CapituloDelViaje = Etapa & { dias: number[] };
+
+/**
+ * Las etapas como capítulos, en el orden en que las declaró el viajero, cada una
+ * con las noches (día 1..N) que le tocan por fecha. Si alguna noche no cae en
+ * ninguna etapa, va a "Por definir", al final. Se calcula desde `contexto.viaje`,
+ * así el panel se ve bien aunque el bot todavía no haya creado el guion.
+ */
+export function capitulosDelViaje(viaje: Viaje): CapituloDelViaje[] {
+  const capitulos: CapituloDelViaje[] = viaje.etapas.map((e) => ({ ...e, dias: [] }));
+  const sinEtapa: number[] = [];
+  for (let dia = 1; dia <= diasDelViaje(viaje); dia++) {
+    const nombre = etapaDeFecha(viaje, fechaDelDia(viaje, dia));
+    const cap = capitulos.find((c) => c.nombre === nombre);
+    if (cap) cap.dias.push(dia);
+    else sinEtapa.push(dia);
+  }
+  if (sinEtapa.length > 0) capitulos.push({ nombre: SIN_ETAPA, dias: sinEtapa });
+  return capitulos;
+}
+
+/** Qué día del viaje es hoy en su zona horaria (1..N); fuera del viaje, null. Espejo del bot. */
+export function diaDeHoy(viaje: Pick<Viaje, "salida" | "vuelta">, ahora: Date, zonaHoraria: string): number | null {
+  let hoy: string;
+  try {
+    hoy = new Intl.DateTimeFormat("en-CA", { timeZone: zonaHoraria, year: "numeric", month: "2-digit", day: "2-digit" }).format(ahora);
+  } catch {
+    hoy = ahora.toISOString().slice(0, 10); // zona inválida: UTC antes que romper el panel
+  }
+  const dia = Math.round((Date.parse(`${hoy}T00:00:00Z`) - Date.parse(`${viaje.salida}T00:00:00Z`)) / 86_400_000) + 1;
+  return dia >= 1 && dia <= diasDelViaje(viaje) ? dia : null;
+}
+
+/** Valida los ángulos elegidos desde el panel: solo los conocidos, sin repetir. */
+export function validarAngulos(entrada: unknown): { ok: true; angulos: string[] } | { ok: false; mensaje: string } {
+  if (!Array.isArray(entrada) || !entrada.every((a) => (ANGULOS as readonly unknown[]).includes(a))) return { ok: false, mensaje: "Los temas elegidos no son válidos." };
+  return { ok: true, angulos: [...new Set(entrada as string[])] };
 }

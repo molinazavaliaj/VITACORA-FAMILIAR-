@@ -25,3 +25,29 @@ describe("Vitácora de viaje — validación", () => {
     expect(etapaDeFecha({ ...base, etapas: [{ nombre: "Lisboa", desde: "2026-09-20", hasta: "2026-09-21" }] }, "2026-09-25")).toBe(SIN_ETAPA);
   });
 });
+
+// ── El panel de viaje (3t.19): las etapas como capítulos y el día de hoy ──
+import { capitulosDelViaje, diaDeHoy } from "../src/lib/viaje";
+
+describe("Vitácora de viaje — el panel", () => {
+  const v = { ...base, etapas: [{ nombre: "Lisboa", desde: "2026-09-20", hasta: "2026-09-23" }, { nombre: "Galicia" }, { nombre: "Oporto", desde: "2026-09-24", hasta: "2026-09-27" }] };
+
+  it("capitulosDelViaje: cada etapa con sus noches, en el orden declarado, y 'Por definir' al final con las que sobran", () => {
+    expect(capitulosDelViaje(v)).toEqual([
+      { nombre: "Lisboa", desde: "2026-09-20", hasta: "2026-09-23", dias: [1, 2, 3, 4] },
+      { nombre: "Galicia", dias: [] },
+      { nombre: "Oporto", desde: "2026-09-24", hasta: "2026-09-27", dias: [5, 6, 7, 8] },
+      { nombre: SIN_ETAPA, dias: [9, 10] },
+    ]);
+  });
+  it("capitulosDelViaje: sin 'Por definir' cuando todas las noches tienen etapa; una sola etapa sin fechas se lleva todo", () => {
+    expect(capitulosDelViaje({ ...base, etapas: [{ nombre: "Lisboa", desde: "2026-09-20" }] })).toEqual([{ nombre: "Lisboa", desde: "2026-09-20", dias: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] }]);
+    expect(capitulosDelViaje({ ...base, etapas: [{ nombre: "Ruta 40" }] })).toEqual([{ nombre: "Ruta 40", dias: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] }]);
+  });
+  it("diaDeHoy: el día del viaje en su zona horaria; fuera del viaje, null", () => {
+    expect(diaDeHoy(v, new Date("2026-09-22T02:00:00Z"), "America/Argentina/Buenos_Aires")).toBe(2); // todavía es 21 en Buenos Aires
+    expect(diaDeHoy(v, new Date("2026-09-22T02:00:00Z"), "Europe/Lisbon")).toBe(3);
+    expect(diaDeHoy(v, new Date("2026-10-05T12:00:00Z"), "Europe/Lisbon")).toBeNull();
+    expect(diaDeHoy(v, new Date("2026-09-10T12:00:00Z"), "Europe/Lisbon")).toBeNull();
+  });
+});

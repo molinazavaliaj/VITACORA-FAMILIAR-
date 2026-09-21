@@ -9,7 +9,7 @@ import { AgregarPregunta, Ajustes, EditorGuion, SubirFoto, SugerirPreguntas } fr
 import { GaleriaCapitulo, type FotoVista } from "./fotos";
 import { Compartir, type InvitadoVista } from "./compartir";
 import { CerrarEdicion, ReabrirEdicion } from "./cerrar-edicion";
-import { EtapasDelViaje } from "./etapas";
+import { HistoriaViaje } from "./viaje";
 import type { Viaje } from "@/lib/viaje";
 import { Riel, type CapituloRiel } from "../riel";
 import { firmarTokenLibro } from "@/lib/token-libro";
@@ -125,7 +125,7 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
     rol === "duena"
       ? admin.from("invitados").select("id, email, aceptado_at, rol").eq("narrador_id", n.id).order("created_at")
       : Promise.resolve({ data: null }),
-    admin.from("narradores").select("contexto, libro_aprobado_at, edicion").eq("id", n.id).maybeSingle(),
+    admin.from("narradores").select("contexto, libro_aprobado_at, edicion, zona_horaria").eq("id", n.id).maybeSingle(),
     historiasDelUsuario(admin, user),
   ]);
 
@@ -134,7 +134,7 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
     return <EstadoError />;
   }
 
-  const fila = (filaNarrador as { contexto?: Record<string, unknown>; libro_aprobado_at?: string | null; edicion?: { historiaCerradaEl?: string | null } | null } | null) ?? {};
+  const fila = (filaNarrador as { contexto?: Record<string, unknown>; libro_aprobado_at?: string | null; edicion?: { historiaCerradaEl?: string | null } | null; zona_horaria?: string | null } | null) ?? {};
   const aprobado = Boolean(fila.libro_aprobado_at);
   // "Cerrar edición del libro" (17/09): la historia terminó y la familia dio por
   // cerrada esta etapa. Reversible; lo definitivo sigue siendo `libro_aprobado_at`.
@@ -143,6 +143,44 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
   const linkPublico = rol === "duena" && aprobado ? `${urlBase}/libro/${firmarTokenLibro(n.id)}` : null;
   // Los que guardaron el link no cuentan como invitados en la lista de Compartir.
   const soloInvitados = ((invitadosData as (InvitadoVista & { rol?: string })[] | null) ?? []).filter((i) => i.rol !== "visitante");
+
+  const contexto = fila.contexto ?? {};
+  const ritmo: Ritmo = validarRitmo(contexto.ritmo) ? contexto.ritmo : contexto.modoRapido === true ? "seguido" : "diario";
+  const evitar = typeof contexto.evitar === "string" ? contexto.evitar : "";
+  // Lo que el biógrafo le mandó de verdad (entrevistador, 14/09): la pregunta
+  // preparada del día (el guion dice "¿Cómo era su casa?" y a él le llegó "¿Cómo
+  // era esa casa de Pelliza?") y la repregunta. Viven en contexto, provisorio
+  // (CONTRATO.md); sin esto la familia veía la respuesta de la repregunta sin
+  // la pregunta que la originó.
+  const preguntasEnviadas = (contexto.preguntasEnviadas ?? {}) as Record<string, string>;
+  const repreguntasEnviadas = (contexto.repreguntasEnviadas ?? {}) as Record<string, string>;
+  const historiasRiel = panel.historias.map((h) => ({ id: h.narrador.id, nombre: h.narrador.nombre, rol: h.rol, estado: h.narrador.estado, propia: esPropia(h.narrador) }));
+
+  // Vitácora de viaje (3t.19): otra pantalla. Los capítulos son las etapas y no
+  // hay guion que mostrar ni editar: la plantilla global del Familiar (30
+  // preguntas) no se mezcla acá — era lo que veía el viajero antes.
+  if (contexto.modo === "viaje" && contexto.viaje) {
+    return (
+      <HistoriaViaje
+        n={n}
+        rol={rol}
+        viaje={contexto.viaje as Viaje}
+        zonaHoraria={fila.zona_horaria ?? "UTC"}
+        respuestas={(respuestas as RespuestaVista[] | null) ?? []}
+        fotos={(fotosData as FotoVista[] | null) ?? []}
+        preguntasEnviadas={preguntasEnviadas}
+        repreguntasEnviadas={repreguntasEnviadas}
+        usuarioId={user.id}
+        historiasRiel={historiasRiel}
+        aprobado={aprobado}
+        historiaCerrada={historiaCerrada}
+        linkPublico={linkPublico}
+        invitados={soloInvitados}
+        ritmo={ritmo}
+        evitar={evitar}
+      />
+    );
+  }
 
   // El guion del narrador: sus filas propias; si todavía no tiene (anterior a la
   // migración), la plantilla global. Las propias siempre pisan a la global del mismo orden.
@@ -198,21 +236,8 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
   const editando = puedeAgregar && editar === "1";
   const futuras = guion.filter((p) => p.orden > n.dia_actual);
   const lugar = lugarLibre(guion);
-  const contexto = fila.contexto ?? {};
-  const ritmo: Ritmo = validarRitmo(contexto.ritmo) ? contexto.ritmo : contexto.modoRapido === true ? "seguido" : "diario";
-  const evitar = typeof contexto.evitar === "string" ? contexto.evitar : "";
-  // Lo que el biógrafo le mandó de verdad (entrevistador, 14/09): la pregunta
-  // preparada del día (el guion dice "¿Cómo era su casa?" y a él le llegó "¿Cómo
-  // era esa casa de Pelliza?") y la repregunta. Viven en contexto, provisorio
-  // (CONTRATO.md); sin esto la familia veía la respuesta de la repregunta sin
-  // la pregunta que la originó.
-  const preguntasEnviadas = (contexto.preguntasEnviadas ?? {}) as Record<string, string>;
-  const repreguntasEnviadas = (contexto.repreguntasEnviadas ?? {}) as Record<string, string>;
-
   const sobreOrden = typeof sobre === "string" ? Number(sobre) : null;
   const preguntaSobre = sobreOrden ? porOrden.get(sobreOrden) : null;
-
-  const historiasRiel = panel.historias.map((h) => ({ id: h.narrador.id, nombre: h.narrador.nombre, rol: h.rol, estado: h.narrador.estado, propia: esPropia(h.narrador) }));
 
   return (
     <div className="mx-auto flex w-full max-w-6xl gap-10 px-6 py-8 md:px-10 md:py-10">
@@ -516,16 +541,6 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
             </section>
           ) : null}
         </div>
-
-        {/* ── Vitácora de viaje: las etapas, vivas (solo el viajero, mientras dura el viaje) ── */}
-        {!cerrado && contexto.modo === "viaje" && contexto.viaje && PUEDE.cambiarRitmo(rol) ? (
-          <section className="mt-16 border-t border-[var(--linea)] pt-10">
-            <Etiqueta>Las etapas del viaje</Etiqueta>
-            <div className="mt-6">
-              <EtapasDelViaje narradorId={n.id} viaje={contexto.viaje as Viaje} />
-            </div>
-          </section>
-        ) : null}
 
         {/* ── Al final de todo: ajustes de la entrevista (solo dueña) ───── */}
         {!cerrado && PUEDE.cambiarRitmo(rol) ? (
