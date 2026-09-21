@@ -23,6 +23,9 @@
 - Los tokens de color son los de la marca (`var(--texto)`, `var(--linea-fuerte)`, `var(--acento)`…), **nunca colores crudos**: el panel tiene que pasar de claro a oscuro con la clase `.oscuro` como el tablero.
 - **Next 16 tiene cambios que rompen**: antes de escribir una página, leer la guía correspondiente en `web/node_modules/next/dist/docs/` (lo pide `web/AGENTS.md`).
 - Antes de dar una tarea por hecha: `cd web && npm test` en verde y `npx tsc --noEmit -p tsconfig.json` limpio.
+- **Una ruta nueva necesita `npx next typegen` antes del typecheck**: `LayoutProps<'/admin'>` no existe hasta que
+  Next genera los tipos de ruta (`next dev`, `next build` o `next typegen` lo hacen). Sin eso, tsc falla con
+  `Type '"/admin"' does not satisfy the constraint 'LayoutRoutes'` aunque el código esté bien.
 - Los tests de la web **no tocan la base**: el doble del cliente de Supabase aplica los filtros (`eq`/`lt`/`in`/`order`/`limit`) como PostgREST, y se mockea en el borde, nunca una función interna del módulo bajo prueba.
 - La lógica que decide (frenos, plata, mapa) va en funciones puras que reciben filas y devuelven datos; las páginas no calculan nada.
 
