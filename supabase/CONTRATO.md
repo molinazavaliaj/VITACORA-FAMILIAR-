@@ -60,6 +60,15 @@ web usa `productosDelPedido()` para eso; la fábrica debe hacer lo mismo.
 `pedidos.extras` lleva `tipo: "viaje"` (además de `pdf: true`); sin la clave es biografía.
 El narrador tiene `contexto.modo = "viaje"`, `contexto.trato = "vos"` y `contexto.viaje`
 (`salida`, `vuelta`, `etapas: [{nombre, desde?, hasta?}]`, `compania`, `proposito`,
+**Pilotos (21/09, Naza — `web/src/lib/admin/frenos.ts`):** un pedido de piloto lleva
+`pedidos.extras.piloto = true`. Los pilotos se corren a mano (la puerta manual del
+entrevistador), no pasan por una pasarela, así que su pedido queda en `pendiente` para
+siempre: **el panel de la empresa no alerta por ellos** (`esPiloto`), porque no hay cobro
+que confirmar. La marca **no** cambia la plata: un piloto marcado sigue contando en "sin
+cobrar todavía". Se marca a mano al armar el piloto; **no se deduce** del contexto del
+narrador, porque el checkout normal también escribe `ritmo`/`modoRapido` y una deducción
+silenciaría compras reales sin cobrar (medido sobre los 9 pendientes del 21/09).
+
 `angulos`). Su guion nace al SÍ: una pregunta por día, `capitulo` = la etapa del día
 (o "Por definir"); las fotos entran por WhatsApp a `fotos` con `capitulo` = la etapa y
 `subida_por` null. Para la fábrica, hoy, capítulo = etapa sale solo con el libro común;
