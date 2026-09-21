@@ -2,6 +2,7 @@ import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { datosDelPanel } from "@/lib/admin/datos";
 import { aEuros, cambioDeEntorno } from "@/lib/admin/plata";
 import { euros, fechaCorta, Nota, SinDatos, Tarjeta, Titulo } from "../ui";
+import { FormularioGasto } from "./formulario";
 
 // 04 · Gastos — «qué se gastó, día por día y paso por paso».
 // Dos cosas distintas en la misma pantalla: lo que se cobra solo (cada llamada al modelo,
@@ -146,6 +147,7 @@ export default async function PantallaGastos() {
       <h2 className="mt-8 text-xs uppercase tracking-wide text-[var(--texto-menor)] [font-family:var(--fuente-micro)]">
         Cargado a mano
       </h2>
+      <FormularioGasto />
       {datos.gastos.length === 0 ? (
         <div className="mt-3">
           <SinDatos que="Todavía no hay ningún gasto fijo cargado este mes (Railway, el dominio, los mails)." />
