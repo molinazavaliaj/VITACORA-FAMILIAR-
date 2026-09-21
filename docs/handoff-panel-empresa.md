@@ -75,3 +75,29 @@ La **parte B**: el panel `/admin` en la web, con las cinco pantallas del mockup
 (`docs/panel-interno.html`) y el spec en `docs/superpowers/specs/2026-09-21-panel-de-la-empresa-design.md`.
 Cuando esté, se te pasa igual que esto: la rama y lo que tengas que adaptar, que en principio es sólo
 subirla.
+
+---
+
+## La parte B: el panel de la empresa en la web (21/09)
+
+**Qué es.** Las cinco pantallas de `/admin` (Estado, Familias, Plata, Gastos, Cerebros), hechas.
+No hay un link a `/admin` en ningún lado del sitio: se entra escribiendo la dirección.
+
+**Para que funcione en producción hacen falta cuatro variables nuevas en Vercel** (todas de tiempo de
+ejecución, ninguna secreta):
+
+- `ADMIN_EMAILS` — los dos mails separados por coma (Naza y Joaquín). **Sin esto no entra nadie.**
+- `CAMBIO_EUR_ARS` — cuántos pesos vale 1 euro (ej. `1250`).
+- `CAMBIO_USD_EUR` — cuántos dólares vale 1 euro (ej. `1.08`).
+- `CAMBIO_FECHA` — de cuándo es ese cambio (ej. `2026-09-21`).
+
+El tipo de cambio se actualiza a mano (una vez por semana alcanza) y **queda a la vista en la pantalla de
+Plata**: si se mueve, las cuentas se mueven con él. Si no está cargado, el panel muestra los números sin
+convertir y lo avisa, en vez de convertir con un número inventado.
+
+**Lo que NO hace, a propósito:** no manda mails ni avisos, no pausa ni reintenta nada, y la única cosa que
+escribe en la base es cargar un gasto a mano (Railway, el dominio, la imprenta).
+
+**Cómo se comprueba que está bien:** entrando con el mail de la lista deberían verse las cinco pantallas
+con los datos reales. Si un mail que no está en la lista entra, tiene que ver una pantalla que dice que
+no (y nunca el panel).

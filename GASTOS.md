@@ -239,3 +239,20 @@ El diferencial se mantiene en todos los escalones: nadie da la voz real en caste
 - Meta/WhatsApp: por conversación (~USD 1-2 por narrador por los 30 días).
 - Cuando haya ventas reales: Vercel Pro (USD 20/mes, lo piden sus términos comerciales)
   y Supabase Pro (USD 25/mes cuando el storage supere 1 GB ≈ 15 narradores).
+
+## El panel de la empresa — lo que hay que cargar (21/09)
+
+El panel interno (`/admin`) usa tres variables más en Vercel, además de las que ya estaban:
+
+| Variable | Para qué | Ejemplo |
+|---|---|---|
+| `ADMIN_EMAILS` | quién entra al panel (los dos mails, separados por coma) | `nazamateos@gmail.com,joaquin@...` |
+| `CAMBIO_EUR_ARS` | cuántos pesos vale 1 € (se actualiza a mano) | `1250` |
+| `CAMBIO_USD_EUR` | cuántos dólares vale 1 € | `1.08` |
+| `CAMBIO_FECHA` | de cuándo es ese cambio (se muestra en pantalla) | `2026-09-21` |
+
+**Sin `ADMIN_EMAILS` no entra nadie** (falla cerrado). Sin las del cambio, la cuenta del mes y la pantalla
+de Gastos muestran los números crudos sin convertir y avisan que falta el cambio: **no inventan**.
+
+**Comisiones confirmadas** (quedaron escritas en el código, `web/src/lib/admin/plata.ts`): Stripe 3 %,
+Mercado Pago 4 %. Están en un solo lugar, por pasarela: si cambian, se cambian ahí.

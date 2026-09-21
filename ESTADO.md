@@ -597,6 +597,68 @@ fallar** al sacar el arreglo, que es la única prueba de que prueba algo):
    `detectarQueNoTuvo` y `detectarReservaYDejarTema` se actualizaron para incluir el `narradorId` nuevo:
    es la firma la que cambió (parámetro opcional al final), no la conducta que esos tests cuidan.
 
+## Su voz — estado al 21/09 (madrugada)
+
+**La fábrica y el cortador están terminados y en la rama `su-voz-fabrica`** (pusheada): la selección lee
+el libro (1 llamada, USD 0,38-0,53 por libro), el paquete entrega el libro con `frases.json` y el pedido de
+corte **sin esperar a la voz**, la marca `tema_de_orden` manda el recuerdo tardío al capítulo que le toca, y
+el worker de la PC de audio corta, restaura y sube los mp3.
+
+**Corrió de verdad**: 36 frases del libro de Joaquín, **35 cortadas** y el pedido se borró solo; la única
+que falló (`cita-13`) ya tiene causa y arreglo (Whisper se comió un «en» y el emparejamiento viejo se
+desincronizaba) con su fixture real, y de paso mejoró 3 tramos que estaban incompletos (`cita-6`,
+`cita-16`, `cita-17`: se comían el arranque de la cita — quedó el pedido para rehacerlos).
+
+**Base**: las dos migraciones aplicadas y verificadas (`respuestas.reservada`/`reservado_tramo` y
+`respuestas.tema_de_orden`/`tema_motivo`). Con eso, el 19 y el recuerdo tardío quedan cerrados de punta a
+punta.
+
+**De Joaquín, listo y esperando el merge**: `su-voz-web-checkout` → `su-voz-web-panel` → `alta-contexto-minimo`
+(el audiolibro fuera del catálogo y del copy, el panel `/frases`, la página pública `/voz/<token>`, el
+contexto mínimo en el alta). **Bloqueante: la aprobación de los textos** (la revisión está hecha, con los
+cambios propuestos ya pasados a Joaquín).
+
+**Falta mío**: la sección impresa con el QR (Task 4), el mail de los 15 días (Task 6), la descarga del PDF
+del anticipo si se quiere, y el pase de los textos aprobados al diff de la web.
+
+## Panel de la empresa — las cinco pantallas, parte B (branch `panel-de-la-empresa`, 21/09) (Naza)
+
+**Qué es**: el panel interno de la empresa, en `/admin` dentro de la web. No es el de las familias
+(`/tablero`): es la trastienda. Cinco pantallas —Estado, Familias, Plata, Gastos y Cerebros— con la
+estética de la marca y sin una palabra que no se entienda.
+
+**Qué contesta cada una**: Estado, qué se frenó y qué hay que hacer hoy (con los cuatro tiempos que
+marcan la raya). Familias, la relación con el biógrafo historia por historia, y adentro la charla real:
+lo que el biógrafo preguntó de verdad —reescrito con lo que el narrador ya contó— y lo que contestó.
+Plata, la cuenta escrita como una cuenta: entró − se gastó = ganancia limpia, con las comisiones y el
+tipo de cambio a la vista. Gastos, día por día y paso por paso, lo que se cobra solo y lo que se carga a
+mano. Cerebros, los 14 robots en tres carriles, con el que se pasó de tiempo en rojo: ahí se ve dónde se
+cortó la cadena.
+
+**Acceso**: sólo los mails de `ADMIN_EMAILS` (chequeado en el servidor, nunca en el navegador) y **sin un
+solo link a `/admin`** en el sitio. Sin la variable cargada no entra nadie: falla cerrado, no abierto.
+
+**Sólo lectura**: la única escritura de todo el panel es cargar un gasto a mano (Railway, el dominio, la
+imprenta). No hay ningún botón que pause, reintente ni apruebe nada.
+
+**Lo que se puede romper sin que se vea** (cada uno con su test, y cada test visto fallar al sacar el
+arreglo): la cuenta **no convierte** si falta el tipo de cambio —dice que no puede, no inventa un número—;
+el cobro viejo de un libro ya entregado **no se cuenta dos veces**; la computadora que narra **no se
+declara caída** mientras narra un capítulo (ni si está apagada y no hay nada que narrar); y una tabla
+vacía muestra el **estado vacío**, nunca un error ni un `NaN`.
+
+**Verificado**: los tests de la web en verde (incluye renderizar las cinco pantallas de verdad, con datos
+y sin ningún dato) + typecheck + `npm run build` con las cinco rutas compiladas. Y la corrida **contra la
+base real**: las diez consultas del panel leen sin un solo aviso, con los datos de hoy —11 narradores, 6
+familias, 11 pedidos, 13 respuestas, 10 fotos—. De esa corrida salió el primer hallazgo de verdad: **hay 8
+pagos pendientes de hasta 7 días, en pesos**, y el panel los marca en rojo (Naza mira si son reales o de
+pruebas viejas).
+
+**Lo que falta de su lado**: cargar en Vercel `ADMIN_EMAILS` (los dos mails), `CAMBIO_EUR_ARS`,
+`CAMBIO_USD_EUR` y `CAMBIO_FECHA` (el tipo de cambio se actualiza a mano, una vez por semana). Sin las
+variables del cambio, Plata y Gastos **muestran los números sin convertir y lo dicen**. El paso a paso
+está en `docs/handoff-panel-empresa.md`.
+
 ## Próximos hitos
 
 1. ~~Audiolibro híbrido~~ — **descartado el 20/09** (ver arriba): la corrida que quedó encolada sirve solo para el veredicto de oído. Lo que viene: el spec de "Sus mejores frases" y el checkout sin la línea del audiolibro.

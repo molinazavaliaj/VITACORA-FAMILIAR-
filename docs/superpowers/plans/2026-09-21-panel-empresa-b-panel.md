@@ -634,6 +634,21 @@ git commit -m "panel de la empresa: cargar un gasto a mano (la unica escritura)"
 
 ---
 
+## Lo que cambió al ejecutarlo (21/09)
+
+- **El tipo de cambio se carga por variable** (`CAMBIO_EUR_ARS`, `CAMBIO_USD_EUR`, `CAMBIO_FECHA`), no como
+  fila de `gastos_manuales`: así el panel queda de sólo lectura salvo el alta de un gasto, que es lo que
+  promete el spec §2. Era la decisión abierta 4 y queda cerrada así.
+- **«Mes por mes» no se hizo**: las consultas traen 31 días a propósito (B3), así que no hay historia para
+  un gráfico de meses. En su lugar, la pantalla de Gastos muestra **día por día** el gasto de IA del mes,
+  que es lo que esos mismos datos permiten. Si algún día se quiere ver el año, hay que ampliar la ventana
+  de la consulta (una línea, pero cambia la decisión de B3).
+- **Los tests de las pantallas son de render**: además de los formateadores, las cinco pantallas se
+  renderizan de verdad con datos y sin datos (`web/test/admin-pantallas.test.tsx`), que es donde se caza
+  un `NaN` o una tabla de guiones.
+- **Se agregó `web/test/admin-e2e-real.test.ts`** (se prende con `E2E_REAL=1`): corre las diez consultas
+  contra la base real y falla si alguna columna está mal escrita. Encontró los 8 pagos pendientes viejos.
+
 ## Autorevisión del plan (hecha al escribirlo)
 
 - **Cobertura del spec:** las cinco pantallas (§7) están, cada una con su tarea y su sección del mockup; el
