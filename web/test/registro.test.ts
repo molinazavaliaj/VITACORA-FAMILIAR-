@@ -187,6 +187,30 @@ describe('validarYConstruir', () => {
     if (!malo.ok) expect(malo.status).toBe(400);
   });
 
+  // 3t.22 (21/09): dónde vive y el trato, desde la compra.
+  it('guarda dónde vive (recortado) y el trato usted/vos; un trato inventado se rechaza', () => {
+    const ok = validarYConstruir(cuerpoValido({ contexto: { dondeVive: '  Rosario, Argentina  ', trato: 'vos' } }) as never);
+    expect(ok.ok).toBe(true);
+    if (ok.ok) {
+      expect(ok.narrador.contexto.dondeVive).toBe('Rosario, Argentina');
+      expect(ok.narrador.contexto.trato).toBe('vos');
+    }
+    const largo = validarYConstruir(cuerpoValido({ contexto: { dondeVive: 'x'.repeat(300) } }) as never);
+    expect(largo.ok).toBe(true);
+    if (largo.ok) expect((largo.narrador.contexto.dondeVive as string).length).toBe(120);
+    const sinTrato = validarYConstruir(cuerpoValido({ contexto: { dondeVive: 'Madrid' } }) as never);
+    if (sinTrato.ok) expect(sinTrato.narrador.contexto).not.toHaveProperty('trato');
+    const malo = validarYConstruir(cuerpoValido({ contexto: { trato: 'tu' } }) as never);
+    expect(malo.ok).toBe(false);
+    if (!malo.ok) expect(malo.status).toBe(400);
+  });
+
+  it('en viaje el trato es siempre vos, aunque manden usted', () => {
+    const r = validarYConstruir(cuerpoValido({ contexto: { trato: 'usted', viaje: { salida: '2026-10-01', vuelta: '2026-10-05', etapas: [{ nombre: 'Lisboa' }] } } }) as never);
+    expect(r.ok).toBe(true);
+    if (r.ok) expect(r.narrador.contexto.trato).toBe('vos');
+  });
+
   it('"no tuvo hijos" se guarda como arbol.hijos = "no tuvo"', () => {
     const resultado = validarYConstruir(
       cuerpoValido({ contexto: { arbol: { hijos: 'no tuvo' } } }) as never,

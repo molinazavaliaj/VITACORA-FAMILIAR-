@@ -1,6 +1,9 @@
 # La ficha del narrador — qué datos pedimos y para qué sirve cada uno
 
 > **Estado: propuesta de Naza (2026-09-14).** Nada de esto está construido.
+> **21/09:** el checkout ya pide año de nacimiento, estado civil, hijos (contexto mínimo),
+> **dónde vive** (`contexto.dondeVive`) y el **trato usted/vos** (`contexto.trato`, editable en
+> el panel hasta la primera pregunta). Lugar de nacimiento, oficio y el árbol siguen sin pantalla.
 > Manda sobre: el paso 2 del checkout (`web/src/app/comprar/formulario.tsx`).
 >
 > **El hallazgo que la motivó:** el pipeline entero ya sabe usar la ficha del

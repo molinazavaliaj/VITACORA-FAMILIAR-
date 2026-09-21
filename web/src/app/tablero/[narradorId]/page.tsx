@@ -156,6 +156,11 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
   // la pregunta que la originó.
   const preguntasEnviadas = (contexto.preguntasEnviadas ?? {}) as Record<string, string>;
   const repreguntasEnviadas = (contexto.repreguntasEnviadas ?? {}) as Record<string, string>;
+  // El trato (3t.22): se ve siempre; se cambia solo hasta la primera pregunta.
+  const trato = {
+    valor: (contexto.trato === "usted" || contexto.trato === "vos" ? contexto.trato : null) as "usted" | "vos" | null,
+    editable: n.dia_actual === 0 && ["invitado", "acepto"].includes(n.estado),
+  };
   const historiasRiel = panel.historias.map((h) => ({ id: h.narrador.id, nombre: h.narrador.nombre, rol: h.rol, estado: h.narrador.estado, propia: esPropia(h.narrador) }));
 
   // Vitácora de viaje (3t.19): otra pantalla. Los capítulos son las etapas y no
@@ -550,7 +555,7 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
           <section className="mt-16 border-t border-[var(--linea)] pt-10">
             <Etiqueta>Ajustes de la entrevista</Etiqueta>
             <div className="mt-6">
-              <Ajustes narradorId={n.id} ritmo={ritmo} evitar={evitar} horario={horario} propia={propia} />
+              <Ajustes narradorId={n.id} ritmo={ritmo} evitar={evitar} horario={horario} propia={propia} trato={trato} />
             </div>
           </section>
         ) : null}

@@ -62,6 +62,8 @@ export function fichaEnTexto(contexto: Record<string, any> = {}, comoLeDicen = '
     arbol ? `${arbol}.` : '',
     estadoCivilEnTexto(contexto),
     contexto?.lugarNacimiento ? `Nació en ${contexto.lugarNacimiento}.` : '',
+    // Dónde vive hoy (la compra lo pregunta desde el 21/09, 3t.22): época y forma de hablar.
+    typeof contexto?.dondeVive === 'string' && contexto.dondeVive.trim() ? `Vive en ${contexto.dondeVive.trim()}.` : '',
     contexto?.oficio ? `Su oficio: ${contexto.oficio}.` : '',
     contexto?.anioNacimiento ? `Año de nacimiento: ${contexto.anioNacimiento}.` : '',
   ].filter(Boolean).join(' ');

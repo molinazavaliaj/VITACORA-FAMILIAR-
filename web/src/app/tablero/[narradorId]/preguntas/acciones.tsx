@@ -587,7 +587,9 @@ export function SubirFoto({ narradorId, capitulos, capituloInicial, children, va
 // `sinRitmo`: en viaje (3t.19) el bot escribe una vez por noche, no hay ritmo que elegir.
 // `horario` (3t.23): a qué hora y en qué zona le llega la pregunta; se ve y se
 // cambia acá. Rige desde el próximo envío (el scheduler lo lee en cada corrida).
-export function Ajustes({ narradorId, ritmo, evitar, sinRitmo = false, horario, propia = false }: {
+// `trato` (3t.22): usted o vos. Editable solo hasta la primera pregunta; después
+// se muestra en gris con el porqué. Sin valor: lo decide el biógrafo con la ficha.
+export function Ajustes({ narradorId, ritmo, evitar, sinRitmo = false, horario, propia = false, trato }: {
   narradorId: string;
   ritmo: Ritmo;
   evitar: string;
@@ -595,9 +597,11 @@ export function Ajustes({ narradorId, ritmo, evitar, sinRitmo = false, horario, 
   horario?: { hora: string; zona: string };
   /** "te llega" en vez de "le llega": autobiografía o viaje. */
   propia?: boolean;
+  trato?: { valor: "usted" | "vos" | null; editable: boolean };
 }) {
   const router = useRouter();
   const [textoEvitar, setTextoEvitar] = useState(evitar);
+  const [tratoElegido, setTratoElegido] = useState<"usted" | "vos" | null>(trato?.valor ?? null);
   const [hora, setHora] = useState(horario?.hora ?? "");
   const [zona, setZona] = useState(horario?.zona ?? "");
   // La lista base según el producto; si la hora guardada no está en la lista
@@ -644,6 +648,27 @@ export function Ajustes({ narradorId, ritmo, evitar, sinRitmo = false, horario, 
         <p className="mt-2 text-sm text-[var(--texto-menor)]">Además, al terminar cada respuesta el biógrafo le ofrece seguir con la siguiente. Él también marca su ritmo.</p>
       </fieldset>
       )}
+
+      {trato ? (
+        <fieldset disabled={!trato.editable || ocupado !== null} className={trato.editable ? "" : "opacity-60"}>
+          <legend className="text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.24em]">{propia ? "Cómo te habla el biógrafo" : "Cómo le habla el biógrafo"}</legend>
+          <p className="mt-2 text-[15px] leading-relaxed text-[var(--texto-suave)]">
+            {trato.valor ? <>Hoy: <strong className="font-medium text-[var(--texto)]">de {trato.valor}</strong>.</> : "Hoy: lo decide el biógrafo con la ficha (la edad manda)."}{" "}
+            {trato.editable ? "Se puede cambiar hasta la primera pregunta." : "Se fijó con la primera pregunta: ya no se cambia, para que suene siempre igual."}
+          </p>
+          <div className="mt-3 flex flex-wrap items-center gap-2" role="group" aria-label="Trato">
+            {(["usted", "vos"] as const).map((t) => (
+              <button key={t} type="button" aria-pressed={tratoElegido === t} onClick={() => setTratoElegido(t)} className={`rounded-full border px-4 py-2 text-[14px] transition-colors [font-family:var(--fuente-micro)] [touch-action:manipulation] disabled:cursor-not-allowed ${tratoElegido === t ? "border-[var(--texto)] bg-[var(--texto)] text-[var(--fondo)]" : "border-[var(--linea-fuerte)] text-[var(--texto)] hover:border-[var(--texto)]"}`}>
+                De {t}
+              </button>
+            ))}
+            <button type="button" className={`${botonSecundario} ml-2`} disabled={!tratoElegido || tratoElegido === trato.valor} onClick={() => tratoElegido && correr("trato", { accion: "trato", trato: tratoElegido })}>
+              {ocupado === "trato" ? "Guardando…" : "Guardar el trato"}
+            </button>
+            {guardado === "trato" && tratoElegido === trato.valor ? <span className="text-sm text-[var(--texto-menor)]">Guardado</span> : null}
+          </div>
+        </fieldset>
+      ) : null}
 
       {horario ? (
         <fieldset>

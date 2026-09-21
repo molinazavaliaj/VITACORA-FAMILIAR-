@@ -42,6 +42,7 @@ const FOTOS_MAXIMO = 20;
 const campo =
   "w-full rounded-md border border-[#D4D4CE] bg-white px-4 py-3 text-[16px] text-[#14140F] outline-none transition-colors placeholder:text-[#AEAEA6] focus:border-[#14140F] [font-family:var(--fuente-cuerpo)]";
 const etiqueta = "block text-[11px] uppercase text-[#5F5F55] [font-family:var(--fuente-micro)] [letter-spacing:0.24em]";
+const chip = (activo: boolean) => `rounded-full border px-4 py-2 text-[14px] transition-colors [font-family:var(--fuente-micro)] [touch-action:manipulation] ${activo ? "border-[#14140F] bg-[#14140F] text-white" : "border-[#D4D4CE] bg-white hover:border-[#83837A]"}`;
 
 export function Checkout({ catalogo }: { catalogo: Catalogo }) {
   const [paso, setPaso] = useState<Paso>(1);
@@ -58,6 +59,10 @@ export function Checkout({ catalogo }: { catalogo: Catalogo }) {
   const [anioNacimiento, setAnioNacimiento] = useState("");
   const [estadoCivil, setEstadoCivil] = useState("");
   const [hijos, setHijos] = useState<"" | "si" | "no">("");
+  // 3t.22 (21/09): dónde vive (vocabulario y época para el biógrafo) y el trato
+  // que eligió la familia. Sin elegir, lo decide el biógrafo con la ficha.
+  const [dondeVive, setDondeVive] = useState("");
+  const [trato, setTrato] = useState<"" | "usted" | "vos">("");
   const [telefono, setTelefono] = useState("");
   const [hora, setHora] = useState("09:00");
 
@@ -176,6 +181,8 @@ export function Checkout({ catalogo }: { catalogo: Catalogo }) {
                 ...(estadoCivil ? { estadoCivil } : {}),
                 // "no tiene hijos" = arbol.hijos 'no tuvo': el capítulo «Los hijos» se reemplaza sin preguntar.
                 ...(hijos === "no" ? { arbol: { hijos: "no tuvo" } } : {}),
+                ...(dondeVive.trim() ? { dondeVive: dondeVive.trim() } : {}),
+                ...(trato ? { trato } : {}),
               },
             },
             productos,
@@ -370,6 +377,23 @@ export function Checkout({ catalogo }: { catalogo: Catalogo }) {
               <p className="-mt-3 text-[13px] text-[#83837A] [font-family:var(--fuente-cuerpo)] font-light">
                 Opcional. Con esto el biógrafo no pregunta por una boda que no hubo ni por hijos que no tiene, y sabe de qué época hablan.
               </p>
+
+              {/* 3t.22: dónde vive y el trato. ⚠️ Textos a revisar por Naza. */}
+              <div className="grid gap-6 sm:grid-cols-2">
+                <div>
+                  <label className={etiqueta} htmlFor="dondeVive">{paraQuien === "yo" ? "¿Dónde vivís?" : "¿Dónde vive?"}</label>
+                  <input id="dondeVive" className={`${campo} mt-2`} value={dondeVive} onChange={(e) => setDondeVive(e.target.value.slice(0, 120))} placeholder="Rosario, Argentina" autoComplete="off" />
+                  <p className="mt-2 text-[13px] text-[#83837A] [font-family:var(--fuente-cuerpo)] font-light">Ciudad y país. Ayuda a entender su forma de hablar.</p>
+                </div>
+                <div>
+                  <p className={etiqueta}>{paraQuien === "yo" ? "¿Cómo te hablamos?" : "¿Cómo le hablamos?"}</p>
+                  <div className="mt-2 flex flex-wrap gap-2" role="group" aria-label="Trato">
+                    <button type="button" aria-pressed={trato === "usted"} onClick={() => setTrato((t) => (t === "usted" ? "" : "usted"))} className={chip(trato === "usted")}>De usted</button>
+                    <button type="button" aria-pressed={trato === "vos"} onClick={() => setTrato((t) => (t === "vos" ? "" : "vos"))} className={chip(trato === "vos")}>De vos</button>
+                  </div>
+                  <p className="mt-2 text-[13px] text-[#83837A] [font-family:var(--fuente-cuerpo)] font-light">{trato ? "Así le va a escribir el biógrafo desde el primer mensaje." : "Si no elegís, lo decide el biógrafo según la edad."}</p>
+                </div>
+              </div>
             </div>
 
             <Botones

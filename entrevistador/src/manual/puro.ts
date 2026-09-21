@@ -242,6 +242,7 @@ export function promptDeTranscripcion(contexto: Record<string, any> = {}, comoLe
     .filter((v) => v !== '' && !NO_ES_NOMBRE.test(v));
   if (personas.length) partes.push(`Personas de su vida: ${personas.join('; ')}.`);
   if (contexto?.lugarNacimiento) partes.push(`Lugar: ${contexto.lugarNacimiento}.`);
+  if (typeof contexto?.dondeVive === 'string' && contexto.dondeVive.trim()) partes.push(`Vive en: ${contexto.dondeVive.trim()}.`);
   if (contexto?.oficio) partes.push(`Oficio: ${contexto.oficio}.`);
   // `datosExtra` es texto libre que carga la familia y puede ser larguísimo:
   // se recorta porque el prompt se corta a ~224 tokens.

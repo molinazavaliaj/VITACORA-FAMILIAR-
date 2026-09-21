@@ -44,6 +44,9 @@ beforeEach(() => {
 });
 
 describe('fichaTieneDatos', () => {
+  it('con solo "dónde vive" (3t.22) ya hay con qué decidir', () => {
+    expect(fichaTieneDatos({ dondeVive: 'Rosario' })).toBe(true);
+  });
   it('una ficha vacía no tiene con qué decidir', () => {
     expect(fichaTieneDatos({})).toBe(false);
     expect(fichaTieneDatos({ arbol: {} })).toBe(false);
