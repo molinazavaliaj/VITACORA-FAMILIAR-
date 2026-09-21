@@ -174,6 +174,19 @@ describe('validarYConstruir', () => {
     if (!resultado.ok) expect(resultado.status).toBe(400);
   });
 
+  // El estado civil del alta (21/09): lista cerrada, va al contexto tal cual.
+  it('guarda el estado civil del alta, y rechaza uno que no existe', () => {
+    const ok = validarYConstruir(cuerpoValido({ contexto: { estadoCivil: 'viudo' } }) as never);
+    expect(ok.ok).toBe(true);
+    if (ok.ok) expect(ok.narrador.contexto.estadoCivil).toBe('viudo');
+    const vacio = validarYConstruir(cuerpoValido({ contexto: { estadoCivil: '' } }) as never);
+    expect(vacio.ok).toBe(true);
+    if (vacio.ok) expect(vacio.narrador.contexto).not.toHaveProperty('estadoCivil');
+    const malo = validarYConstruir(cuerpoValido({ contexto: { estadoCivil: 'complicado' } }) as never);
+    expect(malo.ok).toBe(false);
+    if (!malo.ok) expect(malo.status).toBe(400);
+  });
+
   it('"no tuvo hijos" se guarda como arbol.hijos = "no tuvo"', () => {
     const resultado = validarYConstruir(
       cuerpoValido({ contexto: { arbol: { hijos: 'no tuvo' } } }) as never,
