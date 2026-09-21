@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 const mocks = vi.hoisted(() => ({
   generarPreguntasAdaptativas: vi.fn(),
   enviarPlantilla: vi.fn(),
+  enviarTexto: vi.fn(),
   enviarAudioPorLink: vi.fn(),
   generarReconocimiento: vi.fn(),
   generarPreguntaReemplazo: vi.fn(),
@@ -69,7 +70,7 @@ vi.mock('../src/db/cliente.js', () => {
 });
 
 vi.mock('../src/whatsapp/enviar.js', () => ({
-  enviarPlantilla: mocks.enviarPlantilla, enviarAudioPorLink: mocks.enviarAudioPorLink, enviarTexto: vi.fn(),
+  enviarPlantilla: mocks.enviarPlantilla, enviarAudioPorLink: mocks.enviarAudioPorLink, enviarTexto: mocks.enviarTexto,
 }));
 vi.mock('../src/ia/cerebro.js', () => ({
   generarReconocimiento: mocks.generarReconocimiento,
@@ -120,6 +121,7 @@ beforeEach(() => {
   mocks.ultimoOrden = 26;
   for (const fn of Object.values(mocks)) if (typeof fn === 'function' && 'mockReset' in fn) (fn as any).mockReset();
   mocks.enviarPlantilla.mockResolvedValue('wamid.p');
+  mocks.enviarTexto.mockReset().mockResolvedValue('wamid.t');
   mocks.enviarAudioPorLink.mockResolvedValue('wamid.a');
   mocks.generarReconocimiento.mockResolvedValue('Qué historia la del taller.');
   mocks.generarAudioVoz.mockResolvedValue(Buffer.from('mp3'));
@@ -184,6 +186,29 @@ describe('tick', () => {
     expect(update('narradores')?.p).toMatchObject({ dia_actual: 1, estado: 'activo' });
     expect(inserts('envios')[0].p).toMatchObject({ tipo: 'pregunta', pregunta_orden: 1 });
     expect(mocks.enviarAudioPorLink).toHaveBeenCalledWith('+5491155551234', 'https://firmada/audio.mp3');
+  });
+
+  // 21/09: las plantillas de la cuenta nueva están en revisión. Si Meta rechaza la
+  // plantilla, la pregunta se reintenta como texto: si el narrador escribió en las
+  // últimas 24 hs (Nako escribe "hola" y SÍ la misma noche), Meta lo acepta.
+  it('(a2) si la plantilla falla, la pregunta sale como texto y el envío queda registrado', async () => {
+    mocks.filas.narradores = [narrador({ estado: 'acepto', dia_actual: 0 })];
+    mocks.enviarPlantilla.mockRejectedValue(new Error('WhatsApp rechazó el envío: Template name does not exist'));
+    await tick(A_LAS_10_05);
+    expect(mocks.enviarTexto).toHaveBeenCalledTimes(1);
+    expect(mocks.enviarTexto.mock.calls[0][0]).toBe('+5491155551234');
+    expect(mocks.enviarTexto.mock.calls[0][1]).toContain('PREGUNTA_1');
+    expect(update('narradores')?.p).toMatchObject({ dia_actual: 1, estado: 'activo' });
+    expect(inserts('envios')[0].p).toMatchObject({ tipo: 'pregunta', pregunta_orden: 1 });
+  });
+
+  it('(a3) si la plantilla falla y el texto también (ventana cerrada), no se registra nada', async () => {
+    mocks.filas.narradores = [narrador({ estado: 'acepto', dia_actual: 0 })];
+    mocks.enviarPlantilla.mockRejectedValue(new Error('WhatsApp rechazó el envío: template'));
+    mocks.enviarTexto.mockRejectedValue(new Error('WhatsApp rechazó el envío: Re-engagement message'));
+    await tick(A_LAS_10_05);
+    expect(inserts('envios')).toEqual([]);
+    expect(update('narradores')).toBeUndefined();
   });
 
   it('(b) si ya se envió esa pregunta hoy, no se reenvía (idempotencia del cron)', async () => {

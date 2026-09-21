@@ -59,6 +59,9 @@ export async function crearCheckout(pedido: Pedido, compra: Compra): Promise<{ u
         currency_id: "ARS",
       })),
       external_reference: pedido.id,
+      // Lo que se lee en el resumen de la tarjeta (máx. 22 caracteres). El
+      // nombre del vendedor en el mail de MP sale de la cuenta, no de acá.
+      statement_descriptor: "VITACORA",
       back_urls: {
         success: `${urlBase}/comprar/gracias${sufijo}`,
         failure: `${urlBase}/comprar${vuelta}`,
