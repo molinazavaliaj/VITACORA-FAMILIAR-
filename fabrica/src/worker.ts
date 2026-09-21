@@ -13,6 +13,7 @@ import { generarPaquete } from './libro/generar-paquete.js';
 import { narracionesListas, narracionesAtascadas, RUTA_NARRACION_JSON } from './voz/narraciones.js';
 import { ensamblarAudiolibroClonado } from './voz/ensamblar.js';
 import type { NarracionJson } from './voz/narracion-json.js';
+import { anotarLatido } from './latido.js';
 
 const INTERVALO_MS = 60_000;
 
@@ -75,6 +76,9 @@ export async function tick(): Promise<void> {
     await ensamblarNarracionesListas();
     await avisarNarracionesAtascadas();
     await avisarLibrosListos();
+    // El latido, último y con su try adentro: si no puede anotar que la
+    // fábrica está viva, el tick no se cae por eso.
+    await anotarLatido('fabrica');
   } finally {
     corriendo = false;
   }

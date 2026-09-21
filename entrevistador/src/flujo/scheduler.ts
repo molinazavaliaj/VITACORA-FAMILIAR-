@@ -1,3 +1,4 @@
+import { anotarLatido } from '../latido.js';
 import cron from 'node-cron';
 import { db } from '../db/cliente.js';
 import { enviarPlantilla } from '../whatsapp/enviar.js';
@@ -171,6 +172,10 @@ export async function tick(ahora: Date = new Date()): Promise<void> {
       console.error(`Falló la fase '${nombre}' del tick:`, err);
     }
   }
+
+  // El latido, último y con su try adentro: si no se puede anotar que
+  // estamos vivos, el tick no se cae por eso.
+  await anotarLatido('entrevistador', { hora: ahora.toISOString() });
 }
 
 let corriendo = false;
