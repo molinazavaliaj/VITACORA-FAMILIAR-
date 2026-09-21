@@ -50,7 +50,7 @@ export function asuntoRecordatorioFrases(comoLeDicen: string): string {
  * hace nada, que es la promesa del spec: se imprime lo que eligió el biógrafo.
  */
 const PARRAFOS = (quien: string): string[] => [
-  `El libro de tu ${quien} ya está terminado, y las frases de «Su voz» ya se pueden escuchar.`,
+  `El libro de tu ${quien} ya está terminado, y las mejores historias con su voz ya se pueden escuchar.`,
   `Las eligió el biógrafo entre las cosas que dijo ${quien}. Si querés sacar alguna, poner otra en su lugar o cambiar el orden, podés hacerlo desde tu panel.`,
   `No hay ninguna obligación de hacerlo: si no tocás nada, cuando se imprima va la lista que eligió el biógrafo, tal como está.`,
 ];
