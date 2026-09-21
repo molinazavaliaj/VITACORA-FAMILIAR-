@@ -211,7 +211,7 @@ export function SelectorDeFrases({
             <p className="text-[13px] text-[var(--texto-menor)] [font-family:var(--fuente-micro)]">
               {confirmadoAt
                 ? `Confirmada el ${new Date(confirmadoAt).toLocaleDateString("es-AR")}. Podés seguir cambiando hasta que se imprima.`
-                : "Si no confirmás, a los 15 días va lo que eligió el biógrafo."}
+                : "Si no confirmás, se imprime la que eligió el biógrafo."}
             </p>
           </div>
           {error ? <p className="mt-3 text-sm text-red-700">{error}</p> : null}

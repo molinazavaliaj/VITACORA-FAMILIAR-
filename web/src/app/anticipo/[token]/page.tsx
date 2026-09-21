@@ -219,8 +219,8 @@ export default async function PaginaAnticipo({
         </h2>
         <p className="mx-auto mt-6 max-w-lg text-[17px] leading-[1.75] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">
           Desde tu panel vas a ver el libro crecer capítulo a capítulo. Cuando
-          esté terminado, te avisamos por correo y lo descargas de ahí: el
-          libro en PDF y sus mejores frases, en su voz.
+          esté terminado, te avisamos por correo y lo leés y lo escuchás desde
+          tu panel: el libro en PDF y sus mejores frases, en su voz.
         </p>
         <div className="mt-10 flex flex-col items-center gap-3">
           <Link
