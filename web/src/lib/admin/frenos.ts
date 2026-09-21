@@ -96,8 +96,10 @@ function enHoras(horas: number): string {
   return horas >= 48 ? `${Math.floor(horas / 24)} días` : `${Math.round(horas)} h`;
 }
 
-/** El libro ya está listo: sus pedidos viejos son ruido del cobro, no un freno. */
-function libroListo(narradores: FilaNarrador[], pedidos: FilaPedido[], narradorId: string | null): boolean {
+/** El libro ya está listo: sus pedidos viejos son ruido del cobro, no un freno.
+ *  Lo usan los frenos (un pago viejo que no hay que cobrar) y la cuenta (no contarlo
+ *  como ingreso ni como "por cobrar"): una sola regla, un solo lugar. */
+export function libroListo(narradores: FilaNarrador[], pedidos: FilaPedido[], narradorId: string | null): boolean {
   if (!narradorId) return false;
   const n = narradores.find((x) => x.id === narradorId);
   if (n && (n.libro_aprobado_at || n.estado === "completado" || n.estado === "cerrado_anticipado")) return true;
