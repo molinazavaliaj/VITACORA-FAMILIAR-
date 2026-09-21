@@ -2,7 +2,7 @@
 
 import { useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { AVISO_CALIDAD, EVITAR_MAXIMO, MAXIMO_FAMILIA, NOMBRE_RITMO, RITMOS, calidadDeFoto, type CalidadFoto, type PreguntaGuion, type Ritmo } from "@/lib/guion";
+import { AVISO_CALIDAD, EVITAR_MAXIMO, MAXIMO_FAMILIA, NOMBRE_RITMO, RITMOS, calidadDeFoto, idsTrasArrastrar, type CalidadFoto, type PreguntaGuion, type Ritmo } from "@/lib/guion";
 import { medirImagen } from "@/lib/medir-imagen";
 import { HORAS_FAMILIAR, HORAS_VIAJE, ZONAS, nombreDeZona, type Hora } from "@/lib/horario";
 
@@ -49,9 +49,10 @@ const botonChico = "text-sm text-[var(--texto-menor)] underline decoration-[var(
 const campo = "w-full rounded-lg border border-[var(--linea-fuerte)] bg-[var(--fondo)] px-4 py-3 text-[16px] leading-relaxed text-[var(--texto)] outline-none focus:border-[var(--texto)]";
 
 // Íconos de línea para los botones redondos del editor. Un solo grosor.
-function IconoChico({ nombre }: { nombre: "lapiz" | "arriba" | "abajo" | "x" | "mas" | "check" }) {
+function IconoChico({ nombre }: { nombre: "lapiz" | "arriba" | "abajo" | "x" | "mas" | "check" | "asa" }) {
   const d = {
     lapiz: "M4 20h4l10.5-10.5a1.5 1.5 0 0 0 0-2.1l-1.9-1.9a1.5 1.5 0 0 0-2.1 0L4 16zM13 7l4 4",
+    asa: "M5 8h14M5 12h14M5 16h14",
     arriba: "M12 19V5M6 11l6-6 6 6",
     abajo: "M12 5v14M6 13l6 6 6-6",
     x: "M6 6l12 12M18 6L6 18",
@@ -172,10 +173,45 @@ export function EditorGuion({
     void correr({ accion: "reordenar", ids });
   }
 
+  // Arrastrar y soltar (3t.24): con Pointer Events sirve para mouse y dedo, sin
+  // librería. Se agarra del asa; la fila bajo el puntero se marca; al soltar
+  // se manda la misma acción `reordenar`. Las flechas quedan como respaldo
+  // (accesibilidad, y quien no quiera arrastrar).
+  const [arrastrando, setArrastrando] = useState<string | null>(null);
+  const [destino, setDestino] = useState<string | null>(null);
+  const listaRef = useRef<HTMLOListElement>(null);
+
+  function filaBajo(x: number, y: number): string | null {
+    const el = document.elementFromPoint(x, y)?.closest<HTMLElement>("[data-pregunta]");
+    return el && listaRef.current?.contains(el) ? el.dataset.pregunta ?? null : null;
+  }
+  function empezarArrastre(e: React.PointerEvent<HTMLButtonElement>, id: string) {
+    if (ocupado) return;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    setArrastrando(id);
+    setDestino(null);
+  }
+  function seguirArrastre(e: React.PointerEvent<HTMLButtonElement>) {
+    if (!arrastrando) return;
+    e.preventDefault();
+    const sobre = filaBajo(e.clientX, e.clientY);
+    setDestino(sobre && sobre !== arrastrando ? sobre : null);
+  }
+  function soltar(e: React.PointerEvent<HTMLButtonElement>) {
+    if (!arrastrando) return;
+    const sobre = filaBajo(e.clientX, e.clientY);
+    const movido = arrastrando;
+    setArrastrando(null);
+    setDestino(null);
+    if (!sobre || sobre === movido) return;
+    const ids = idsTrasArrastrar(editables.map((p) => p.id), movido, sobre);
+    void correr({ accion: "reordenar", ids });
+  }
+
   if (visibles.length === 0) return null;
 
   return (
-    <ol className="flex flex-col gap-3">
+    <ol ref={listaRef} className="flex flex-col gap-3">
       {visibles.map((p) => {
         const esAdaptativa = p.tipo === "adaptativa";
         const enEdicion = editando === p.id;
@@ -189,9 +225,10 @@ export function EditorGuion({
         return (
           <li
             key={p.id}
-            className={`grid grid-cols-[32px_minmax(0,1fr)] items-start gap-3 rounded-xl border p-4 sm:grid-cols-[40px_minmax(0,1fr)_auto] sm:gap-4 sm:px-5 ${
+            data-pregunta={esAdaptativa ? undefined : p.id}
+            className={`grid grid-cols-[32px_minmax(0,1fr)] items-start gap-3 rounded-xl border p-4 transition-colors sm:grid-cols-[40px_minmax(0,1fr)_auto] sm:gap-4 sm:px-5 ${
               esAdaptativa ? "border-dashed border-[var(--linea-fuerte)] text-[var(--texto-menor)]" : "border-[var(--linea-fuerte)] bg-[var(--fondo)]"
-            }`}
+            } ${arrastrando === p.id ? "opacity-50" : ""} ${destino === p.id ? "border-[var(--acento)] bg-[var(--hueco)]" : ""}`}
           >
             <span className={`text-[22px] leading-[1.2] tabular-nums [font-family:var(--fuente-titulo)] ${esAdaptativa ? "text-[var(--linea-fuerte)]" : "text-[var(--linea-fuerte)]"}`}>{p.orden}</span>
             <div className="min-w-0 flex flex-col gap-2">
@@ -221,6 +258,19 @@ export function EditorGuion({
             </div>
             {puedeEditar && !esAdaptativa && !enEdicion ? (
               <div className="col-start-2 flex gap-1 sm:col-start-3">
+                <button
+                  type="button"
+                  aria-label="Arrastrar para mover"
+                  title="Arrastrá para mover"
+                  className={`${botonRedondo} cursor-grab [touch-action:none] active:cursor-grabbing`}
+                  disabled={ocupado || editables.length < 2}
+                  onPointerDown={(e) => empezarArrastre(e, p.id)}
+                  onPointerMove={seguirArrastre}
+                  onPointerUp={soltar}
+                  onPointerCancel={() => { setArrastrando(null); setDestino(null); }}
+                >
+                  <IconoChico nombre="asa" />
+                </button>
                 <button type="button" aria-label="Editar" title="Editar" className={botonRedondo} disabled={ocupado} onClick={() => { setEditando(p.id); setTexto(p.texto); setConfirmando(null); }}><IconoChico nombre="lapiz" /></button>
                 <button type="button" aria-label="Subir" title="Subir" className={botonRedondo} disabled={ocupado || pos <= 0} onClick={() => mover(p.id, -1)}><IconoChico nombre="arriba" /></button>
                 <button type="button" aria-label="Bajar" title="Bajar" className={botonRedondo} disabled={ocupado || pos >= editables.length - 1} onClick={() => mover(p.id, 1)}><IconoChico nombre="abajo" /></button>

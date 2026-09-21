@@ -160,3 +160,24 @@ describe("armarGuion + capitulosDelGuion — cerrar libro y muestra arman los ca
     expect(armarGuion(globales, null)).toEqual(globales);
   });
 });
+
+// 3t.24 (21/09): reordenar arrastrando. Lo puro: dado el orden actual de ids,
+// el que se arrastra y sobre cuál se suelta, el orden nuevo.
+import { idsTrasArrastrar } from "../src/lib/guion";
+
+describe("idsTrasArrastrar", () => {
+  const ids = ["a", "b", "c", "d", "e"];
+  it("hacia abajo: el arrastrado queda DESPUÉS del destino", () => {
+    expect(idsTrasArrastrar(ids, "a", "c")).toEqual(["b", "c", "a", "d", "e"]);
+    expect(idsTrasArrastrar(ids, "a", "e")).toEqual(["b", "c", "d", "e", "a"]);
+  });
+  it("hacia arriba: el arrastrado queda ANTES del destino", () => {
+    expect(idsTrasArrastrar(ids, "d", "b")).toEqual(["a", "d", "b", "c", "e"]);
+    expect(idsTrasArrastrar(ids, "e", "a")).toEqual(["e", "a", "b", "c", "d"]);
+  });
+  it("sobre sí mismo o con ids desconocidos no cambia nada", () => {
+    expect(idsTrasArrastrar(ids, "c", "c")).toEqual(ids);
+    expect(idsTrasArrastrar(ids, "zz", "c")).toEqual(ids);
+    expect(idsTrasArrastrar(ids, "c", "zz")).toEqual(ids);
+  });
+});
