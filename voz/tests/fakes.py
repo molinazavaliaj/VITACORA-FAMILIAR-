@@ -36,6 +36,12 @@ class FakeBuilder:
         self.llamadas.append(("update", valores))
         return self
 
+    def upsert(self, valores):
+        """El `upsert` que usa el latido (pisa la fila del servicio)."""
+        self.operacion = "upsert"
+        self.llamadas.append(("upsert", valores))
+        return self
+
     def eq(self, campo, valor):
         self.llamadas.append(("eq", campo, valor))
         return self
@@ -71,9 +77,28 @@ class FakeBucket:
         self._storage.subidas.append((self.nombre, path, file_options))
         return {"path": path}
 
-    def download(self, path):
+    def download(self, path, query_params=None):
         self._storage.descargas.append((self.nombre, path))
+        if query_params:
+            self._storage.parametros_descarga.append((self.nombre, path, dict(query_params)))
         return self.archivos[path]
+
+    def list(self, ruta=""):
+        """Los nombres que hay en `ruta` (o las carpetas de la raíz si no se pasa).
+
+        Solo lo que usa el pedido de frases (`narradores_con_pedido`): mira la
+        raíz del bucket y la carpeta `paquete` de cada narrador. El cliente real
+        devuelve objetos con `.name`.
+        """
+        prefijo = f"{ruta}/" if ruta else ""
+        nombres = []
+        for path in self.archivos:
+            if not path.startswith(prefijo):
+                continue
+            nombre = path[len(prefijo):].split("/")[0]
+            if nombre and nombre not in nombres:
+                nombres.append(nombre)
+        return [{"name": n} for n in nombres]
 
     def remove(self, paths):
         """Como el real: borrar lo que no está no es error."""
@@ -86,6 +111,9 @@ class FakeStorage:
         self.archivos: dict[str, dict[str, bytes]] = {}
         self.subidas: list[tuple] = []
         self.descargas: list[tuple] = []
+        # Las descargas que pidieron algo mas que la ruta (el cache-buster de
+        # `descargar_fresco`): (bucket, ruta, parametros de consulta).
+        self.parametros_descarga: list[tuple] = []
         self.borrados: list[tuple] = []
 
     def from_(self, bucket):

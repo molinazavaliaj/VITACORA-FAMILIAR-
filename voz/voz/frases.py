@@ -10,8 +10,10 @@ Dos cuidados que vienen de cómo se arma el libro:
 
 - La transcripción que se guarda en la base la escribió el entrevistador; acá se
   vuelve a escuchar el audio, así que las palabras no coinciden letra por letra
-  ("pa'" por "para", números escritos distinto, puntuación de más). Por eso se
-  compara por palabra normalizada, en orden y con tolerancia.
+  ("pa'" por "para", números escritos distinto, puntuación de más). A veces
+  escribe distinto y a veces se come una palabra entera que el narrador dijo;
+  las dos cosas están contempladas (ver `_mejor_alineacion`). Por eso se compara
+  por palabra normalizada, en orden y con tolerancia.
 - Si la frase no aparece, se devuelve None. **Nunca se adivina**: un recorte que
   dice otra cosa es peor que una frase sin audio (esa se imprime igual, sin QR, y
   el panel la muestra como pendiente).
@@ -46,6 +48,74 @@ def palabras_de(texto: str) -> list[str]:
     return [p for p in (normalizar_palabra(trozo) for trozo in texto.split()) if p]
 
 
+def _mejor(a: tuple, b: tuple) -> tuple:
+    """La mejor de dos alineaciones: más aciertos y, a igualdad, la más ajustada."""
+    return a if _clave(a) >= _clave(b) else b
+
+
+def _clave(alineacion: tuple[int, int, int]) -> tuple[int, int, int]:
+    """Con qué se comparan dos alineaciones: aciertos, ajuste y dónde arranca.
+
+    El ajuste es cuántos lugares oídos ocupa (de la primera palabra encontrada a
+    la última) y el arranque temprano desempata siempre para el mismo lado.
+    """
+    aciertos, primera, ultima = alineacion
+    return (aciertos, -(ultima - primera), -primera)
+
+
+def _mejor_alineacion(
+    buscadas: list[str],
+    oidas: list[str],
+    hueco_maximo: int,
+) -> tuple[int, int, int]:
+    """Dónde encaja mejor la frase en lo oído: (aciertos, primera, última).
+
+    Recorre las palabras de la frase con el cursor de lo oído como estado y, por
+    cada una, contempla los tres finales posibles:
+
+    - **está** dentro de los próximos `hueco_maximo` lugares (una muletilla en el
+      medio): el cursor salta detrás de ella;
+    - el ASR **escribió otra cosa** en su lugar: el cursor avanza uno;
+    - el ASR **se la comió** —el narrador la dijo y no quedó en ningún lado—: el
+      cursor no se mueve.
+
+    El tercero es el que faltaba. Tanteando en línea, «se la comió» gasta un lugar
+    de lo oído igual que «escribió otra cosa», así que la alineación se corre un
+    lugar y ya no vuelve: la frase aparece por partes y ninguna corrida llega al
+    `minimo`. Es lo que pasó con la cita-13 del narrador 3691baf4: Whisper se
+    comió el «en» de «…en ella **y en** lo que me hacía feliz…», el tanteo en
+    línea se corrió y quedó en 14/24 aciertos (0,58 < 0,6) → `None` → frase
+    fallida con la frase entera y verbatim en la transcripción. Con los dos casos
+    como opciones, la alineación espera a la palabra que sigue en vez de gastar el
+    lugar y encuentra las 23 de 24.
+
+    Se guarda, por estado (palabra de la frase × cursor), la mejor alineación que
+    llega ahí. Alcanza con eso: lo que venga después depende solo de dónde quedó
+    el cursor, así que una alineación peor en el mismo estado no puede ganar más
+    adelante por más que empiece distinto.
+    """
+    vacia = (0, -1, -1)  # (aciertos, índice oído de la primera, de la última)
+    estados = [[vacia] * (len(oidas) + 1) for _ in range(len(buscadas) + 1)]
+    for i, buscada in enumerate(buscadas):
+        actuales, siguientes = estados[i], estados[i + 1]
+        for cursor in range(len(oidas) + 1):
+            actual = actuales[cursor]
+            if cursor < len(oidas):
+                # Escribió otra cosa: el lugar queda gastado.
+                siguientes[cursor + 1] = _mejor(siguientes[cursor + 1], actual)
+            # Se la comió: no hay lugar que gastar, se espera a la que sigue.
+            siguientes[cursor] = _mejor(siguientes[cursor], actual)
+            for k in range(cursor, min(cursor + hueco_maximo + 1, len(oidas))):
+                if oidas[k] == buscada:
+                    aciertos, primera, _ = actual
+                    encontrada = (aciertos + 1, primera if primera >= 0 else k, k)
+                    siguientes[k + 1] = _mejor(siguientes[k + 1], encontrada)
+    mejor = vacia
+    for cursor in range(len(oidas) + 1):
+        mejor = _mejor(mejor, estados[len(buscadas)][cursor])
+    return mejor
+
+
 def ubicar_frase(
     texto: str,
     palabras: list[dict],
@@ -56,47 +126,21 @@ def ubicar_frase(
     """Dónde está la frase en el audio, en segundos; None si no se la encuentra.
 
     `palabras` es lo que devuelve `transcribir.palabras_con_tiempos`:
-    `[{"palabra", "inicio", "fin"}, …]`. La búsqueda recorre la frase palabra por
-    palabra y avanza sobre lo oído: se banca que falte alguna (el ASR escribe
-    distinto) y que haya hasta `hueco_maximo` palabras de más en el medio (una
-    muletilla). Se queda con el mejor intento —más aciertos y, a igualdad, el
-    recorte más corto— y solo lo devuelve si acierta al menos `minimo`.
+    `[{"palabra", "inicio", "fin"}, …]`. Se alinea la frase sobre lo oído palabra
+    por palabra: se banca que alguna no esté (el ASR escribe distinto o se come
+    una) y que haya hasta `hueco_maximo` palabras de más en el medio (una
+    muletilla). Se queda con la alineación de más aciertos y, a igualdad, la más
+    ajustada, y solo la devuelve si acierta al menos `minimo` de las palabras de
+    la frase.
     """
     buscadas = palabras_de(texto)
     if not buscadas or not palabras:
         return None
     oidas = [normalizar_palabra(str(p.get("palabra", ""))) for p in palabras]
 
-    mejor: tuple[float, float, int, int] | None = None  # (aciertos, -duración, inicio, fin)
-    for arranque in range(len(oidas)):
-        posicion = arranque
-        aciertos = 0
-        primera: int | None = None
-        ultima: int | None = None
-        for buscada in buscadas:
-            hallada = None
-            for k in range(posicion, min(posicion + hueco_maximo + 1, len(oidas))):
-                if oidas[k] == buscada:
-                    hallada = k
-                    break
-            if hallada is None:
-                posicion += 1  # no está esa palabra: se sigue desde la próxima oída
-                continue
-            aciertos += 1
-            if primera is None:
-                primera = hallada
-            ultima = hallada
-            posicion = hallada + 1
-        if primera is None or ultima is None:
-            continue
-        duracion = float(palabras[ultima]["fin"]) - float(palabras[primera]["inicio"])
-        candidato = (aciertos / len(buscadas), -duracion, primera, ultima)
-        if mejor is None or candidato[:2] > mejor[:2]:
-            mejor = candidato
-
-    if mejor is None or mejor[0] < minimo:
+    aciertos, primera, ultima = _mejor_alineacion(buscadas, oidas, hueco_maximo)
+    if primera < 0 or aciertos / len(buscadas) < minimo:
         return None
-    _, _, primera, ultima = mejor
     return (float(palabras[primera]["inicio"]), float(palabras[ultima]["fin"]))
 
 

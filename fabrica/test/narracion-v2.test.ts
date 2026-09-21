@@ -289,6 +289,7 @@ describe('scripts/narracion-v2 — correrNarracionV2', () => {
     });
     expect(db.upload).toHaveBeenCalledWith('j1/paquete/narracion.json', expect.any(String), {
       contentType: 'application/json',
+      cacheControl: '0',
       upsert: true,
     });
 

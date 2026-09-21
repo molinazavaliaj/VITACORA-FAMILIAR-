@@ -398,6 +398,40 @@ Reglas:
 - Corregir a mano (`update respuestas set tema_de_orden = 2 where …`, o `= null`) vale como
   cualquier dato.
 
+## El paquete `frases.json` — «Su voz» (decisión de los socios, 20/09)
+
+`frases.json` **no es una tabla**: vive en Storage, en el paquete del narrador
+(`{narrador_id}/paquete/frases.json`), al lado de `estructura.json` y `narracion.json`. Lo crea la
+fábrica; el worker de la PC de audio y la web solo lo completan. Arriba lleva `version`,
+`narrador_id`, `pedido_id` y `confirmado_at`; abajo, `capitulos[].candidatas[]`. El pedido de corte
+(`{narrador_id}/paquete/frases_pedido.txt`) es el aviso de que hay algo para cortar: lo escribe la
+fábrica y lo borra el worker recién cuando no queda ninguna frase pendiente.
+
+**Quién escribe qué** (mismo criterio que las tablas: un escritor por campo):
+
+- **La fábrica** (`fabrica/src/libro/frases.ts` + `publicar-frases.ts`) crea el archivo y escribe
+  `id`, `texto`, `origen` (`cita` | `sus-frases`), `grupo`, `respuesta_id`, `pregunta_orden`,
+  `por_que`, `elegida`, `elegida_por` (`modelo`), `estado` (`pendiente`) y, la primera vez,
+  `audio_path`, `segundos`, `inicio` y `fin` en null. Es la única que elige frases nuevas.
+- **El worker de la PC de audio** (`voz/voz/procesar_frases.py`) corta y completa: `audio_path`,
+  `segundos`, `inicio`, `fin` y `estado` (`cortada` | `fallida`, con `error` cuando falla). Nunca
+  toca `texto`, `elegida` ni `confirmado_at`.
+- **La web** (`web/src/lib/frases.ts` y `POST /api/frases`, solo la dueña) escribe la selección de la
+  familia: `elegida`, `elegida_por` (`familia`) y `confirmado_at` al darla por buena. Nunca toca
+  `audio_path`, `segundos`, `inicio`, `fin` ni `estado`.
+
+**Reglas que no se rompen:**
+
+- Una candidata vive en **un solo capítulo** y su `id` es único: es el nombre del audio
+  (`{narrador_id}/voz/frases/{id}.mp3`). Dos frases no pueden compartir id, y una frase que no sea
+  textual (verificada contra la transcripción) no entra: no habría audio que cortar.
+- Se cuentan **hasta 3 elegidas por capítulo**; el resto queda como alternativas para el panel.
+- La web **relee el archivo justo antes de escribir** y sube el entero, así lo que el worker cortó
+  mientras la familia miraba no se pisa. Queda una carrera teórica si el worker escribe en el mismo
+  segundo; si molesta, se separa en `seleccion.json` y la fábrica mezcla al imprimir.
+- La fábrica **no espera** a que haya audios: el libro se entrega igual y las frases se completan
+  cuando la PC corta. Si nadie confirma la selección, a los 15 días va la del biógrafo.
+
 ## Storage — bucket privado `audios`
 
     {narrador_id}/dia_NN.ogg          respuestas (entrevistador sube; NN = pregunta_orden, 2 dígitos; extras: dia_NN_2.ogg)

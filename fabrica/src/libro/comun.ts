@@ -35,10 +35,15 @@ export function extraerTexto(bloques: Array<{ type: string; text?: string }>): s
  * `reservado_tramo` = se publica todo menos ese tramo textual.
  */
 export type ReservaDeRespuesta = Pick<Respuesta, 'reservada' | 'reservado_tramo'>;
-/** Una respuesta con lo mínimo para saber qué se puede publicar de ella. */
+/**
+ * Una respuesta con lo mínimo para saber qué se puede publicar de ella y a qué
+ * tema pertenece. `tema_de_orden` / `tema_motivo` son la marca del tema real
+ * (ver `armarContextoDeTemas`): quedan parciales para que esto siga tipando con
+ * la migración sin aplicar.
+ */
 export type RespuestaPublicable = Pick<Respuesta, 'transcripcion' | 'texto_directo'>
   & Partial<ReservaDeRespuesta>
-  & Partial<Pick<Respuesta, 'id'>>;
+  & Partial<Pick<Respuesta, 'id' | 'tema_de_orden' | 'tema_motivo'>>;
 
 /**
  * El texto publicable de una respuesta, ya sin lo que el narrador pidió reservar.
@@ -109,25 +114,173 @@ export function formatearNombresCorregidos(correcciones: Nombres['correcciones']
 }
 
 /**
+ * La marca `tema_de_orden` (columna nueva de `respuestas`, la escribe el
+ * entrevistador; la migración todavía puede no estar aplicada).
+ *
+ * Una marca cuenta solo si es un entero: la columna puede llegar ausente
+ * (`undefined` = migración sin aplicar), nula (sin marca) o con cualquier cosa
+ * que alguien haya tipeado a mano. Una marca que no se entiende se ignora en
+ * SILENCIO y con un aviso, nunca tira: un libro ya pagado no puede caerse por
+ * una marca rara en una respuesta.
+ */
+function temaMarcado(r: RespuestaPublicable): number | null {
+  const tema = r.tema_de_orden;
+  if (tema === undefined || tema === null) return null;
+  if (typeof tema !== 'number' || !Number.isInteger(tema)) {
+    console.warn(
+      `temaMarcado: la respuesta ${r.id ?? '(sin id)'} trae tema_de_orden ${JSON.stringify(tema)}, que no es una orden de pregunta; se ignora la marca.`
+    );
+    return null;
+  }
+  return tema;
+}
+
+/** Un recuerdo: una respuesta que pertenece a un tema, aunque el narrador la haya contado contestando otra pregunta. */
+export type RecuerdoDeTema = {
+  /** La orden de la pregunta que el narrador estaba contestando cuando la contó. */
+  ordenPropia: number;
+  respuesta: RespuestaPublicable;
+};
+
+/**
+ * Lo que `armarMaterial` necesita saber para respetar la marca `tema_de_orden`:
+ *
+ * - `recuerdosPorTema`: qué respuestas pertenecen de verdad a cada orden.
+ * - `numeroDeCapituloPorOrden`: en qué capítulo del libro vive cada orden. Son
+ *   los números del orden FINAL (con la edición de la dueña ya aplicada) y no
+ *   los de `estructura.json`: la aclaración que lee el escritor tiene que decir
+ *   el capítulo que va a ver impreso, y la dueña puede reordenar el libro.
+ */
+export type ContextoDeTemas = {
+  recuerdosPorTema: Map<number, RecuerdoDeTema[]>;
+  numeroDeCapituloPorOrden: Map<number, number>;
+};
+
+/**
+ * Arma el contexto de la marca `tema_de_orden` para un libro cuyos capítulos ya
+ * están en el orden FINAL. Se arma una sola vez por libro y se le pasa a
+ * `armarMaterial` capítulo por capítulo: así todos los capítulos ven el mismo
+ * número final, y ninguna respuesta se cuenta dos veces.
+ *
+ * `respuestasPorOrden` viene con las respuestas ya agrupadas por la orden que el
+ * narrador contestó (el `pregunta_orden` de siempre), así que cada recuerdo sabe
+ * de dónde salió: con eso `armarMaterial` evita repetir, en el capítulo donde la
+ * respuesta está por derecho propio, la historia que ya está ahí.
+ */
+export function armarContextoDeTemas(
+  capitulos: { ordenes: number[] }[],
+  respuestasPorOrden: Map<number, RespuestaPublicable[]>
+): ContextoDeTemas {
+  const numeroDeCapituloPorOrden = new Map<number, number>();
+  capitulos.forEach((capitulo, i) => {
+    for (const orden of capitulo.ordenes) {
+      // El primer capítulo gana si una orden apareciera en dos: `agruparCapitulos`
+      // dedupea por orden (una orden vive en un solo capítulo), así que esto solo
+      // evita inventar un número si algún día eso cambia.
+      if (!numeroDeCapituloPorOrden.has(orden)) numeroDeCapituloPorOrden.set(orden, i + 1);
+    }
+  });
+
+  const recuerdosPorTema = new Map<number, RecuerdoDeTema[]>();
+  for (const [ordenPropia, respuestas] of respuestasPorOrden) {
+    for (const respuesta of respuestas) {
+      const tema = temaMarcado(respuesta);
+      if (tema === null) continue;
+      const lista = recuerdosPorTema.get(tema) ?? [];
+      lista.push({ ordenPropia, respuesta });
+      recuerdosPorTema.set(tema, lista);
+    }
+  }
+
+  return { recuerdosPorTema, numeroDeCapituloPorOrden };
+}
+
+/**
+ * La aclaración que se agrega al material del capítulo donde el narrador CONTÓ
+ * la historia, cuando esa historia pertenece a otro capítulo:
+ * "(recuerdo de otro tema: ya va en el capítulo N)".
+ *
+ * Existe por la marca `tema_de_orden`: la historia se SUMA al capítulo de su
+ * tema (el narrador la contó una sola vez y el libro la lleva una sola vez),
+ * pero NO se saca del capítulo donde la contó — sacarla sería reescribir lo que
+ * él dijo que estaba contando ahí. El aviso le dice al escritor que esa clase
+ * ya está dada en otro lado, para que la cuente una sola vez.
+ *
+ * Devuelve '' (nada que aclarar) en todos los casos en que hoy no pasaría nada:
+ * sin contexto de temas (el camino de `historiaCompleta`, que ya tiene todo),
+ * sin marca, con una marca que no se entiende, o cuando el tema es de este mismo
+ * capítulo — ahí la historia ya está donde va y no hay nada que avisar.
+ */
+function aclaracionDeRecuerdo(
+  respuesta: RespuestaPublicable,
+  ordenesPropias: Set<number>,
+  contexto: ContextoDeTemas | undefined
+): string {
+  if (!contexto) return '';
+  const tema = temaMarcado(respuesta);
+  if (tema === null) return '';
+  if (ordenesPropias.has(tema)) return '';
+
+  const numero = contexto.numeroDeCapituloPorOrden.get(tema);
+  if (numero === undefined) {
+    // La marca apunta a una orden que no está en ningún capítulo del libro (una
+    // pregunta que no existe, o que quedó sin respuesta): no hay a dónde mandar
+    // la historia. Como hoy: la respuesta se queda donde la contó, sin aviso.
+    console.warn(
+      `aclaracionDeRecuerdo: la respuesta ${respuesta.id ?? '(sin id)'} dice tratar el tema de la orden ${tema}, que no está en ningún capítulo del libro; se ignora la marca.`
+    );
+    return '';
+  }
+  return `\n(recuerdo de otro tema: ya va en el capítulo ${numero})`;
+}
+
+/**
  * Arma el bloque "P: ... / R: ..." para un conjunto de órdenes de pregunta,
  * en el orden dado. Se usa tanto para el material de un capítulo (subset de
  * órdenes) como para "la historia completa" (todos los órdenes).
+ *
+ * Con `temas` (ver `armarContextoDeTemas`) el material de un capítulo SUMA las
+ * respuestas marcadas con `tema_de_orden` hacia una de sus órdenes: el narrador
+ * que, contestando la 9, recuerda algo que pertenece a la historia de la 2, hace
+ * que ese recuerdo entre al capítulo de la 2 además de quedarse en el de la 9 con
+ * la aclaración de a dónde va. "La historia completa" no lleva `temas` a
+ * propósito: ya tiene todas las respuestas, en su propia pregunta, y ahí una
+ * aclaración no tendría a quién avisarle nada.
  */
 export function armarMaterial(
   ordenes: number[],
   preguntasPorOrden: Map<number, Pick<Pregunta, 'texto'>>,
-  respuestasPorOrden: Map<number, RespuestaPublicable[]>
+  respuestasPorOrden: Map<number, RespuestaPublicable[]>,
+  temas?: ContextoDeTemas
 ): string {
   const bloques: string[] = [];
+  const ordenesPropias = new Set(ordenes);
+
   for (const orden of ordenes) {
     const pregunta = preguntasPorOrden.get(orden);
-    const respuestas = respuestasPorOrden.get(orden) ?? [];
-    for (const respuesta of respuestas) {
+    for (const respuesta of respuestasPorOrden.get(orden) ?? []) {
       const texto = textoRespuesta(respuesta);
       if (!texto) continue;
-      bloques.push(`P: ${pregunta?.texto ?? `Pregunta ${orden}`}\nR: ${texto}`);
+      bloques.push(
+        `P: ${pregunta?.texto ?? `Pregunta ${orden}`}\nR: ${texto}${aclaracionDeRecuerdo(respuesta, ordenesPropias, temas)}`
+      );
+    }
+
+    // Los recuerdos que apuntan a esta orden: van con la pregunta de ESTE tema
+    // (es la que da el encuadre del capítulo), avisando que no salieron de esa
+    // pregunta para que el escritor no la tome por una respuesta al pie de la
+    // letra. Una respuesta que ya está en este capítulo por su propia orden no
+    // se repite: cada historia se cuenta una sola vez.
+    for (const recuerdo of temas?.recuerdosPorTema.get(orden) ?? []) {
+      if (ordenesPropias.has(recuerdo.ordenPropia)) continue;
+      const texto = textoRespuesta(recuerdo.respuesta);
+      if (!texto) continue;
+      bloques.push(
+        `P: ${pregunta?.texto ?? `Pregunta ${orden}`} (lo contó respondiendo otra pregunta)\nR: ${texto}`
+      );
     }
   }
+
   return bloques.join('\n\n');
 }
 
@@ -236,6 +389,13 @@ export async function descargarTextoOpcional(
  * pasos baratos que pueden fallar (PDF, audio) — así un reintento no vuelve
  * a pagarle al modelo por algo que ya escribió. Por defecto markdown; los
  * JSON (narracion.json) pasan su `contentType`.
+ *
+ * Siempre con `cacheControl: '0'`: el bucket sirve copias cacheadas, y este
+ * archivo lo escriben y lo leen tres actores (la fábrica, el worker de la PC
+ * de audio y la web). Se vio en serio: dos lecturas seguidas del mismo
+ * `frases.json` recién subido devolvieron resultados distintos —sin
+ * cache-buster, la versión vieja—, así que una lectura cacheada puede hacer
+ * que uno pise el trabajo del otro. Sin caché, lo que se lee es lo que hay.
  */
 export async function subirTexto(
   db: ReturnType<typeof obtenerClienteDb>,
@@ -245,6 +405,7 @@ export async function subirTexto(
 ): Promise<void> {
   const { error } = await db.storage.from('audios').upload(ruta, contenido, {
     contentType,
+    cacheControl: '0',
     upsert: true,
   });
   if (error) throw new Error(`No se pudo subir ${ruta}: ${error.message}`);
