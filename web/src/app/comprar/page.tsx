@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Playfair_Display, Archivo, Source_Serif_4 } from "next/font/google";
 import { catalogo } from "@/lib/productos";
+import { regionDelRequest } from "@/lib/region";
+import { headers } from "next/headers";
 import { Toroide } from "../marca";
 import { Checkout, type Catalogo } from "./formulario";
 
@@ -23,7 +25,7 @@ export const metadata: Metadata = {
   description: "Un biógrafo entrevista por WhatsApp y escribe el libro de una vida. Pago único.",
 };
 
-export default function PaginaComprar() {
+export default async function PaginaComprar() {
   const catalogos: Catalogo = { ES: catalogo("ES"), AR: catalogo("AR") };
 
   return (
@@ -40,7 +42,7 @@ export default function PaginaComprar() {
         </div>
       </header>
 
-      <Checkout catalogo={catalogos} />
+      <Checkout catalogo={catalogos} regionInicial={regionDelRequest(await headers())} />
     </div>
   );
 }

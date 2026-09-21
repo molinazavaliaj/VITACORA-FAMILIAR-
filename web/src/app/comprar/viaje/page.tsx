@@ -3,6 +3,8 @@ import Link from "next/link";
 import { Playfair_Display, Archivo, Source_Serif_4 } from "next/font/google";
 import { obtenerPrecioViaje } from "@/lib/precios";
 import { extrasDisponibles } from "@/lib/productos";
+import { regionDelRequest } from "@/lib/region";
+import { headers } from "next/headers";
 import { Toroide } from "../../marca";
 import { CheckoutViaje, type ExtrasViaje, type PreciosViaje } from "./formulario";
 
@@ -19,7 +21,7 @@ export const metadata: Metadata = {
   description: "Tu biógrafo te escribe cada noche del viaje, guarda tus fotos y, al volver, tu viaje es un libro.",
 };
 
-export default function PaginaComprarViaje() {
+export default async function PaginaComprarViaje() {
   const precios: PreciosViaje = { ES: obtenerPrecioViaje("ES"), AR: obtenerPrecioViaje("AR") };
   // 2.10: el impreso y los marcos también se compran acá, con los precios del Familiar.
   const extras: ExtrasViaje = { ES: extrasDisponibles("ES"), AR: extrasDisponibles("AR") };
@@ -36,7 +38,7 @@ export default function PaginaComprarViaje() {
           </Link>
         </div>
       </header>
-      <CheckoutViaje precios={precios} extras={extras} />
+      <CheckoutViaje precios={precios} extras={extras} regionInicial={regionDelRequest(await headers())} />
     </div>
   );
 }
