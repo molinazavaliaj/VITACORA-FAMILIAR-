@@ -7,6 +7,8 @@ import { ChatWhatsApp, Indice, MailAnticipo, PaginaEscrita, PanelMini, Reproduct
 import { CtaSticky } from "./cta-sticky";
 import { catalogo } from "@/lib/productos";
 import { obtenerPrecioViaje } from "@/lib/precios";
+import { regionDelRequest } from "@/lib/region";
+import { headers } from "next/headers";
 
 // Las tres de docs/design.md §4: Playfair grita, Archivo susurra, Source Serif
 // habla. Se cargan acá y no en el layout a propósito — la landing es la única
@@ -221,15 +223,17 @@ function Icono({ nombre, className = "" }: { nombre: (typeof GARANTIAS)[number][
 
 /* ───────────────────────── la página ───────────────────────── */
 
-export default function Home() {
-  const cat = catalogo("AR");
-  const formatear = (n: number) => new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(n);
+export default async function Home() {
+  // 2.12: los precios en la moneda del país del visitante (Europa → EUR; el resto → ARS).
+  const region = regionDelRequest(await headers());
+  const cat = catalogo(region);
+  const formatear = (n: number) => new Intl.NumberFormat(region === "ES" ? "es-ES" : "es-AR", { style: "currency", currency: cat.moneda, maximumFractionDigits: 0 }).format(n);
   const impreso = cat.extras.find((e) => e.id === "impreso_bn") ?? cat.extras.find((e) => e.id === "impreso_color") ?? null;
   const preciosPorFormato: Record<(typeof FORMATOS)[number]["id"], number | null> = { pdf: cat.pdf.precio, impreso: impreso?.precio ?? null };
   const masBarato = Math.min(...Object.values(preciosPorFormato).filter((p): p is number => p !== null));
   const precio = formatear(masBarato);
   const fragmentoAudio = process.env.NEXT_PUBLIC_URL_FRAGMENTO_AUDIO; // el mp3 real, cuando exista
-  const precioViaje = obtenerPrecioViaje("AR"); // Vitácora de viaje: sin precio cargado, la sección va sin número
+  const precioViaje = obtenerPrecioViaje(region); // Vitácora de viaje: sin precio cargado, la sección va sin número
 
   return (
     <div className={`${playfair.variable} ${archivo.variable} ${sourceSerif.variable} flex flex-1 flex-col bg-white text-[#14140F]`}>

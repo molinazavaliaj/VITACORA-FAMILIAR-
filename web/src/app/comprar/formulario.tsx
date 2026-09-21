@@ -44,10 +44,10 @@ const campo =
 const etiqueta = "block text-[11px] uppercase text-[#5F5F55] [font-family:var(--fuente-micro)] [letter-spacing:0.24em]";
 const chip = (activo: boolean) => `rounded-full border px-4 py-2 text-[14px] transition-colors [font-family:var(--fuente-micro)] [touch-action:manipulation] ${activo ? "border-[#14140F] bg-[#14140F] text-white" : "border-[#D4D4CE] bg-white hover:border-[#83837A]"}`;
 
-export function Checkout({ catalogo }: { catalogo: Catalogo }) {
+export function Checkout({ catalogo, regionInicial = "AR" }: { catalogo: Catalogo; regionInicial?: Region }) {
   const [paso, setPaso] = useState<Paso>(1);
   const [paraQuien, setParaQuien] = useState<ParaQuien | null>(null);
-  const [region, setRegion] = useState<Region>("AR");
+  const [region, setRegion] = useState<Region>(regionInicial); // 2.12: por el país del visitante
 
   const [nombreComprador, setNombreComprador] = useState("");
   const [vinculo, setVinculo] = useState("");
