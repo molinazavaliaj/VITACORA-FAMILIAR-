@@ -389,7 +389,7 @@ Regenerar después de cada migración.
 
 | Tabla | Escribe | Lee | Nota |
 |---|---|---|---|
-| `consumo_ia` | entrevistador, fábrica, worker de voz (insert) | `/admin` | Una fila por llamada al modelo. Nadie hace update ni delete. |
+| `consumo_ia` | entrevistador (14 pasos) y fábrica (5 pasos) — insert | `/admin` | Una fila por llamada al modelo. **El worker de voz no escribe acá**: su trabajo es GPU propia (USD 0) y sólo deja su latido. Nadie hace update ni delete. |
 | `latidos` | los tres workers (upsert por `servicio`) | `/admin` | Si un servicio deja de latir, `/admin` lo muestra en rojo. |
 | `gastos_manuales` | `/admin` (es la ÚNICA escritura del panel) | `/admin` | Lo que no pasa por una API: suscripciones, recargas, imprenta. |
 

@@ -34,7 +34,14 @@ function construirDbFake(opciones: {
       );
     });
   const upload = opciones.upload ?? vi.fn().mockResolvedValue({ data: { path: 'x' }, error: null });
-  return { storage: { from: vi.fn(() => ({ download, upload })) }, download, upload };
+  return {
+    storage: { from: vi.fn(() => ({ download, upload })) },
+    // La tabla del panel: `registrarUso` anota además en consumo_ia, así que el
+    // fake tiene que espejar al cliente o "todo bien" deja de significar cero avisos.
+    from: vi.fn(() => ({ insert: async () => ({ error: null }) })),
+    download,
+    upload,
+  };
 }
 
 const USO_FABLE = { input_tokens: 1_000_000, output_tokens: 100_000, cache_creation_input_tokens: 200_000, cache_read_input_tokens: 500_000 };

@@ -27,7 +27,7 @@ merge los decide Naza). Son tres tablas nuevas y el código que las llena. El pa
 
 ## Lo único que te toca a vos (una variable)
 
-En el servicio **entrevistador de Railway**, sumá:
+En el servicio **entrevistador de Railway** y también en **la fábrica**, sumá:
 
 ```
 CUENTA_IA=joaquin
@@ -51,7 +51,7 @@ respuesta). `200` = aplicada. Lo mismo para `latidos` y `gastos_manuales`.
 
 ## Números de esta corrida (los míos, no los repitas de memoria)
 
-- `entrevistador/`: `npx vitest run` → **279/279** y `npx tsc --noEmit -p tsconfig.json` limpio.
+- `entrevistador/`: `npx vitest run` → 283/283 y `npx tsc --noEmit -p tsconfig.json` limpio.
 - `fabrica/`: `npx vitest run` → **359/359** y typecheck limpio.
 - `voz/`: `./.venv/Scripts/python -m pytest -q` → **151/151** (tarda ~55 s: levanta modelos de audio).
 - Los tests nuevos se vieron **fallar primero** (rojo → verde); el detalle está en

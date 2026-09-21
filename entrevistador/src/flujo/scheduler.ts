@@ -159,6 +159,11 @@ async function prenderAlertasDeSilencio(ahora: Date): Promise<void> {
 // ── El tick y el cron ──────────────────────────────────────────────────
 
 export async function tick(ahora: Date = new Date()): Promise<void> {
+  // El latido va PRIMERO: un tick recorre todos los narradores con HTTP real y
+  // puede tardar minutos, y con el umbral de 3 × el intervalo el panel mostraría
+  // el servicio caído justo mientras trabaja. También queda al final (abajo).
+  await anotarLatido('entrevistador', { hora: ahora.toISOString() });
+
   // Cada fase por separado: si una falla (la base no responde), las otras corren igual.
   for (const [nombre, fase] of [
     ['bienvenidas', () => enviarBienvenidas()],

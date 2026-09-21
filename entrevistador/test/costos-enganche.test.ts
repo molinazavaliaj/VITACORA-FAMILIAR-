@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { registrarUso } from '../src/costos.js';
 
 // Estos módulos llaman a cargarConfig() al importarse, así que el entorno se
 // arma ANTES y los módulos se importan adentro de cada test (mismo patrón que
@@ -22,8 +23,21 @@ vi.mock('../src/db/cliente.js', () => ({
         return { error: null };
       },
       update: () => ({ eq: async () => ({ error: null }) }),
+      select: () => ({
+        eq: () => ({
+          maybeSingle: async () => ({ data: { nombre: 'Osvaldo', contexto: {} }, error: null }),
+        }),
+      }),
     }),
   },
+}));
+
+// `sugerirPreguntas` arma el prompt con el guion y la historia: se mockean sus datos.
+vi.mock('../src/db/guion.js', () => ({
+  guionDe: async () => ({ preguntas: [{ texto: 'P1', capitulo: 'La infancia' }], propio: true }),
+}));
+vi.mock('../src/db/historia.js', () => ({
+  armarHistoria: async () => 'historia de prueba',
 }));
 
 const crearMock = vi.fn();
@@ -72,5 +86,49 @@ describe('el enganche del costo', () => {
       servicio: 'entrevistador', paso: 'transcribir', modelo: 'gpt-transcribe',
       proveedor: 'openai', narrador_id: 'n-2', cantidad: 191, unidad: 'segundos',
     });
+  });
+
+  it('tratoDe deja su fila (una llamada por narrador que antes era invisible)', async () => {
+    insertadas.length = 0;
+    const { tratoDe } = await import('../src/ia/trato.js');
+
+    await tratoDe({ id: 'n-9', como_le_dicen: 'Don Osvaldo', contexto: { anioNacimiento: 1945 } });
+
+    expect(insertadas).toHaveLength(1);
+    expect(insertadas[0]).toMatchObject({ paso: 'trato', narrador_id: 'n-9', input_tokens: 2000 });
+  });
+
+  it('sugerirPreguntas deja su fila (es un endpoint pago detrás de una clave)', async () => {
+    insertadas.length = 0;
+    crearMock.mockResolvedValueOnce({
+      content: [{
+        type: 'text',
+        text: JSON.stringify(Array.from({ length: 5 }, (_, i) => ({ texto: `Sugerida ${i + 1}`, capitulo: 'La infancia' }))),
+      }],
+      usage: { input_tokens: 1500, output_tokens: 220, cache_creation_input_tokens: 0, cache_read_input_tokens: 0 },
+    });
+    const { sugerirPreguntas } = await import('../src/ia/sugeridas.js');
+
+    const sugeridas = await sugerirPreguntas('n-7');
+
+    expect(sugeridas).toHaveLength(5);
+    expect(insertadas).toHaveLength(1);
+    expect(insertadas[0]).toMatchObject({ paso: 'sugeridas', narrador_id: 'n-7', input_tokens: 1500 });
+  });
+
+  it('si la anotación no vuelve, el narrador NO espera: se sigue y se avisa', async () => {
+    const aviso = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const dbColgado = { from: () => ({ insert: () => new Promise(() => {}) }) } as unknown as SupabaseClient;
+
+    const arranque = Date.now();
+    await registrarUso(
+      dbColgado,
+      { servicio: 'entrevistador', paso: 'evaluar', modelo: 'claude-opus-5', proveedor: 'anthropic', uso: { input_tokens: 10 } },
+      { timeoutMs: 20 }
+    );
+
+    expect(Date.now() - arranque).toBeLessThan(1000);
+    expect(aviso).toHaveBeenCalled();
+    aviso.mockRestore();
   });
 });

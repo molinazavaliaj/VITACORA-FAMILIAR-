@@ -98,15 +98,24 @@ export function calcularUsdPorUnidad(modelo: string, cantidad: number): number {
  * anotar (los mocks de los tests no traen `usage`). Cualquier fallo —la tabla sin
  * crear, Supabase caído, la red— se avisa y no frena a quien llama.
  */
-export async function registrarUso(db: SupabaseClient, fila: FilaConsumo): Promise<void> {
+/** Si la anotación tarda más que esto, se sigue sin esperarla: el narrador primero. */
+export const TIMEOUT_ANOTACION_MS = 1500;
+
+export async function registrarUso(
+  db: SupabaseClient,
+  fila: FilaConsumo,
+  opciones: { timeoutMs?: number } = {}
+): Promise<void> {
   const conTokens = tokens(fila.uso?.input_tokens) + tokens(fila.uso?.output_tokens) > 0;
   const porUnidad = typeof fila.cantidad === 'number' && Number.isFinite(fila.cantidad) && fila.cantidad > 0;
   if (!conTokens && !porUnidad) return;
 
   const usd = porUnidad ? calcularUsdPorUnidad(fila.modelo, fila.cantidad!) : calcularUsd(fila.modelo, fila.uso ?? {});
 
+  const ms = opciones.timeoutMs ?? TIMEOUT_ANOTACION_MS;
+
   try {
-    const { error } = await db.from('consumo_ia').insert({
+    const insert = Promise.resolve(db.from('consumo_ia').insert({
       servicio: fila.servicio,
       paso: fila.paso,
       modelo: fila.modelo,
@@ -120,9 +129,19 @@ export async function registrarUso(db: SupabaseClient, fila: FilaConsumo): Promi
       cantidad: porUnidad ? fila.cantidad : null,
       unidad: porUnidad ? (fila.unidad ?? null) : null,
       usd,
-    });
-    if (error) {
-      console.warn(`costos: no se pudo anotar el paso ${fila.paso} (${fila.modelo}): ${error.message}`);
+    }) as unknown as PromiseLike<{ error: { message: string } | null }>);
+
+    // Si el insert pierde la carrera, su rechazo tardío no puede tumbar el proceso.
+    insert.then(undefined, () => {});
+
+    const resultado = await Promise.race([
+      insert,
+      new Promise<{ error: { message: string } | null }>((listo) =>
+        setTimeout(() => listo({ error: { message: `tardó más de ${ms} ms` } }), ms)
+      ),
+    ]);
+    if (resultado.error) {
+      console.warn(`costos: no se anotó el paso ${fila.paso} (${fila.modelo}): ${resultado.error.message}`);
     }
   } catch (err) {
     console.warn(`costos: no se pudo anotar el paso ${fila.paso} (${fila.modelo}): ${(err as Error).message}`);

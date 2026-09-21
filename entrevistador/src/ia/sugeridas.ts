@@ -5,6 +5,7 @@ import { armarHistoria } from '../db/historia.js';
 import { guionDe } from '../db/guion.js';
 import { textoEvitar } from './evitar.js';
 import { tratoDe, type Trato } from './trato.js';
+import { registrarUso, cuentaDeEsteServicio } from '../costos.js';
 
 // Sugeridas a pedido (docs/panel-usuario.md §6.2 y §11.7): la familia toca
 // "Sugerime preguntas" en el panel y el biógrafo, con todo lo que él ya contó
@@ -66,6 +67,10 @@ export async function sugerirPreguntas(narradorId: string): Promise<Sugerida[]> 
   const prompt = PROMPT_SUGERIDAS(n.como_le_dicen ?? 'el narrador', historia, preguntas.map((p) => p.texto), capitulos, textoEvitar(n.contexto), trato);
 
   const respuesta = await cliente().messages.create({ model: MODELO, max_tokens: MAX_TOKENS, messages: [{ role: 'user', content: prompt }] });
+  await registrarUso(db, {
+    servicio: 'entrevistador', paso: 'sugeridas', modelo: MODELO, proveedor: 'anthropic',
+    cuenta: cuentaDeEsteServicio(), narradorId, uso: respuesta.usage,
+  });
   const bloque = respuesta.content.find((b) => b.type === 'text');
   if (!bloque || bloque.type !== 'text') throw new Error('Claude no devolvió texto');
   return parsearSugeridas(bloque.text.trim(), capitulos);

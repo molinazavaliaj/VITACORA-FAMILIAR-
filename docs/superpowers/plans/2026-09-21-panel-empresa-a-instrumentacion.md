@@ -834,8 +834,13 @@ Corré un paso de verdad, barato, y leé la base. El más barato de todos es una
 directo es el script de medición que ya existe:
 
 ```bash
-cd entrevistador && npm run prueba-evaluacion -- claude-opus-5   # 5 casos del set dorado, centavos
+cd entrevistador && npm run prueba-consumo   # dos llamadas reales, centavos
 ```
+
+**Ojo (medido el 21/09): `prueba-evaluacion` NO sirve para esto.** Los scripts `prueba-*.ts` se arman su
+propio cliente de Anthropic (`scripts/prueba-evaluacion.ts:42`), así que no pasan por las funciones de
+producción y no anotan nada: esa corrida gastó USD 0,065 y dejó **cero** filas. `prueba-consumo` llama a
+`detectarIntencion` y a `generarAudioVoz` —las de producción— y lee la tabla de vuelta.
 
 Después, leé la tabla por PostgREST (receta del Paso 2 de la Tarea 1):
 

@@ -76,7 +76,7 @@ describe('registrarUso', () => {
   it('si la tabla no existe (migración sin aplicar) avisa y NO tira', async () => {
     const aviso = vi.spyOn(console, 'warn').mockImplementation(() => {});
     await expect(
-      registrarUso(dbQueCaptura([], 'relation "consumo_ia" does not exist'), {
+      registrarUso(dbQueCaptura([], 'Could not find the table public.consumo_ia in the schema cache'), {
         servicio: 'fabrica', paso: 'capitulo', modelo: 'claude-fable-5', proveedor: 'anthropic',
         uso: { input_tokens: 10 },
       })

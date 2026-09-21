@@ -68,6 +68,9 @@ export async function tick(): Promise<void> {
   if (corriendo) return;
   corriendo = true;
   try {
+    // Primero el latido: adentro de este tick se escribe un libro entero (minutos)
+    // y la fábrica no puede verse caída justo mientras trabaja. Se repite al final.
+    await anotarLatido('fabrica');
     await generarAnticiposFaltantes();
     await generarEstructurasFaltantes();
     await generarPrevisualizacionesFaltantes();

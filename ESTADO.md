@@ -539,13 +539,15 @@ Editor): `consumo_ia` (una fila por llamada al modelo), `latidos` (si cada worke
 `gastos_manuales` (lo que no pasa por una API). Las tres con RLS prendido y **sin políticas**: sólo la
 service role las toca, el navegador nunca. Contrato actualizado en `supabase/CONTRATO.md`.
 
-**Lo que ahora se anota:** trece llamadas al modelo del entrevistador dejan su fila con su paso
+**Lo que ahora se anota:** las **catorce** llamadas al modelo del entrevistador dejan su fila con su paso
 (`transcribir`, `evaluar`, `reserva`, `reemplazo`, `no_tuvo`, `cierre`, `intencion`, `adaptativas`,
-`personalizar`, `personalizar_viaje`, `resumenes`, `voz_pregunta`, `sugeridas`/`trato`). Antes anotaba
-sólo la fábrica, y lo hacía en un JSON por narrador en Storage: eso sigue ahí para recalcular un libro,
-pero **el panel no lo lee** (recorrer Storage no escala y no deja preguntar «cuándo se usó este modelo por
-última vez»). Lo único que queda afuera es `generarReconocimiento`: **no tiene llamadores** desde que se
-sacó el saludo diario el 14/09.
+`personalizar`, `personalizar_viaje`, `resumenes`, `voz_pregunta`, `sugeridas`, `trato`) **y la fábrica
+también**: sus cinco pasos (`estructura`, `anticipo`, `preview`, `capitulo`, `editor`) van a `consumo_ia`
+además del JSON por narrador. Ese JSON sigue ahí para recalcular un libro puntual, pero **el panel no lo
+lee** (recorrer Storage no escala y no deja preguntar «cuándo se usó este modelo por última vez»). Sin la
+fábrica, la pantalla de Gastos mostraría un quinto del gasto real: el libro es el 80% del costo. Lo único
+que queda afuera es `generarReconocimiento`: **no tiene llamadores** desde que se sacó el saludo diario el
+14/09.
 
 Los tres workers laten (`anotarLatido` en el entrevistador y en la fábrica, `latir()` en la PC de música,
 que además ya recibió la directiva `central/2026-09-21-07-panel-latido-voz.md`): es lo que va a permitir
@@ -570,6 +572,21 @@ producción y su gasto no se anota: correr `prueba-evaluacion` gasta USD 0,065 y
 verificar de verdad hace falta un vehículo que llame a las funciones reales:
 `npm run prueba-consumo` (nuevo, centavos, se lee a sí mismo). Si algún día se quiere que el panel cuente
 también las mediciones, hay que pasarlas por las funciones de producción o anotarlas a mano.
+
+**Segunda pasada — la revisión independiente (21/09).** Un revisor con contexto fresco leyó el diff
+completo y encontró cuatro cosas que ya están arregladas, cada una con su test (y cada test **se vio
+fallar** al sacar el arreglo, que es la única prueba de que prueba algo):
+
+1. **`consumo_ia` no recibía a la fábrica** (`grep` daba cero): el 80% del costo por cliente habría sido
+   invisible en el panel, justo lo que el panel tiene que mostrar. Ahora la fábrica anota sus cinco pasos.
+2. **Faltaban dos de los trece enganches anunciados** (`sugeridas` y `trato`): el endpoint de sugeridas es
+   pago y el trato gasta una llamada por narrador. Ahora son catorce y la cuenta cierra.
+3. **El latido de los workers iba sólo al final del tick**: la fábrica escribe un libro entero adentro de
+   un tick de 60 s y el entrevistador recorre narradores con HTTP real, así que el panel los habría
+   mostrado en rojo **mientras trabajan**. Ahora late al principio y al final (la voz ya lo hacía bien).
+4. **La anotación del gasto se esperaba sin límite** en el camino del narrador: ahora hay un tope de
+   1,5 s (`TIMEOUT_ANOTACION_MS`) y si tarda más se sigue y se avisa. La anotación nunca puede demorar la
+   pregunta del día.
 
 **Dos cosas para saber de acá en adelante:**
 

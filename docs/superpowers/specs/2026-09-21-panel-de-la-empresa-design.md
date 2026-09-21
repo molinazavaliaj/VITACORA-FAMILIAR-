@@ -92,7 +92,7 @@ WhatsApp → transcribir           pedido pagado → estructura     pedido de co
 
 | Tabla | Escribe | Lee |
 |---|---|---|
-| `consumo_ia` (nueva) | entrevistador, fábrica, worker de voz | `/admin` |
+| `consumo_ia` (nueva) | entrevistador (14 pasos) y fábrica (5 pasos) | `/admin` |
 | `latidos` (nueva) | los tres workers | `/admin` |
 | `gastos_manuales` (nueva) | `/admin` (única escritura del panel) | `/admin` |
 
@@ -108,7 +108,7 @@ el SQL Editor** y se verifica leyendo de vuelta. Se agrega su sección a `supaba
 | `id` | uuid pk | |
 | `fecha` | timestamptz | la hora de la llamada |
 | `servicio` | text | `entrevistador` · `fabrica` · `voz` |
-| `paso` | text | `transcribir`, `evaluar`, `adaptativas`, `personalizar`, `resumenes`, `voz_pregunta`, `estructura`, `anticipo`, `capitulo`, `editor` |
+| `paso` | text | entrevistador: `transcribir`, `evaluar`, `reserva`, `reemplazo`, `no_tuvo`, `cierre`, `intencion`, `adaptativas`, `personalizar`, `personalizar_viaje`, `resumenes`, `voz_pregunta`, `sugeridas`, `trato` · fábrica: `estructura`, `anticipo`, `preview`, `capitulo`, `editor` |
 | `modelo` | text | `claude-opus-5`, `claude-haiku-4-5`, `claude-fable-5`, `gpt-transcribe`, `gpt-4o-mini-tts`, `local` |
 | `proveedor` | text | `anthropic` · `openai` · `local` |
 | `cuenta` | text | quién paga la key: `naza` · `joaquin` · `local` (decisión abierta 7) |
