@@ -8,6 +8,8 @@ import { CtaSticky } from "./cta-sticky";
 import { catalogo } from "@/lib/productos";
 import { obtenerPrecioViaje } from "@/lib/precios";
 import { regionDelRequest } from "@/lib/region";
+import { precioDeLista, promoPorcentaje } from "@/lib/promo";
+import { Tachado } from "./comprar/tachado";
 import { headers } from "next/headers";
 
 // Las tres de docs/design.md §4: Playfair grita, Archivo susurra, Source Serif
@@ -232,6 +234,9 @@ export default async function Home() {
   const preciosPorFormato: Record<(typeof FORMATOS)[number]["id"], number | null> = { pdf: cat.pdf.precio, impreso: impreso?.precio ?? null };
   const masBarato = Math.min(...Object.values(preciosPorFormato).filter((p): p is number => p !== null));
   const precio = formatear(masBarato);
+  // 8.7: la promo, si está prendida (PROMO_PORCENTAJE): lista tachada + "-N %" junto al precio.
+  const promo = promoPorcentaje();
+  const lista = promo ? formatear(precioDeLista(masBarato, cat.moneda, promo)) : null;
   const fragmentoAudio = process.env.NEXT_PUBLIC_URL_FRAGMENTO_AUDIO; // el mp3 real, cuando exista
   const precioViaje = obtenerPrecioViaje(region); // Vitácora de viaje: sin precio cargado, la sección va sin número
 
@@ -587,7 +592,10 @@ export default async function Home() {
               <Capitulo numero="08">El precio</Capitulo>
               <Titulo>Un solo pago. Sin sorpresas después.</Titulo>
               <p className="mt-10 text-[11px] uppercase text-[#5F5F55] [font-family:var(--fuente-micro)] [letter-spacing:0.3em]">Desde</p>
-              <p className="mt-1 text-6xl [font-family:var(--fuente-titulo)] font-medium tabular-nums sm:text-7xl">{precio}</p>
+              <p className="mt-1 text-6xl [font-family:var(--fuente-titulo)] font-medium tabular-nums sm:text-7xl">
+                {lista && promo ? <Tachado lista={lista} porcentaje={promo} className="mr-3" /> : null}
+                {precio}
+              </p>
               <Cuerpo className="mt-6 max-w-md">
                 Es lo que sale hoy un libro de preguntas que él tendría que llenar a mano. Aquí lo cuenta hablando,
                 y le queda su voz grabada.
