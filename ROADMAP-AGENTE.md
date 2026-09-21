@@ -220,13 +220,14 @@ Lo que SI puede correr el piloto hoy: **T1.3, T3.1, T3.3, T3.5** (y T1.4 apenas 
   - cerrada: 2026-09-21T20:30:43+02:00
   - commit: 9122dd6
 
-- [ ] **T3.14** — bot: si Meta rechaza la plantilla de la pregunta de la noche, mandarla como texto dentro de las 24 h
+- [x] **T3.14** — bot: si Meta rechaza la plantilla de la pregunta de la noche, mandarla como texto dentro de las 24 h
   - deps: —
   - tamaño: M
   - hecho-cuando: `cd fabrica && npm test` desde la raiz del repo: exit 0, con un test que cubra el caso 'plantilla rechazada o PENDING' y verifique que la pregunta sale como texto libre en vez de no salir
   - nota: lo pidio Joaquin (21/09): las plantillas siguen todas en PENDING, asi que hoy la pregunta de la noche no se manda. Ventana: se puede mandar como texto si el narrador escribio en las ultimas 24 h. OJO: es una decision de producto tomada por Joaquin, no una interpretacion del agente; si hay dudas de si el texto libre afecta la calidad del numero de WhatsApp, preguntar antes de implementar.
-  - evidencia: —
 
+  - evidencia: HECHA (implementada por Joaquin, reportada el 2026-09-21 y verificada por un humano en el codigo del bot). El bot ya manda la pregunta como texto cuando Meta rechaza la plantilla. Contexto: las 5 plantillas siguen en PENDING.
+  - cerrada: 2026-09-21 (la hizo Joaquin, no el piloto)
 - [!] **T3.15** — decidir qué hacer con la firma de las notificaciones IPN de MercadoPago
   - deps: —
   - tamaño: S
@@ -244,6 +245,14 @@ Lo que SI puede correr el piloto hoy: **T1.3, T3.1, T3.3, T3.5** (y T1.4 apenas 
   - commit: dcea589
   - evidencia: HECHA (cerrada y verificada el 2026-09-21, rama `web-precios-invalidos-2` **desde `web-webhook-mp-log`**, commit `dcea589`, sin push). Verificado por un humano: `npx vitest run test/precios.test.ts test/productos.test.ts` -> 121 tests OK; `npx tsc --noEmit` -> exit 0; y la suite completa del web -> **502 tests OK** (eran 411: +91). Cubre: el PDF en las dos regiones (un valor invalido cae al precio de la casa y avisa por consola), el viaje y los tres extras (sin precio valido no se ofrecen), el total del carrito nunca NaN, y un test que fija el default de AR en 85750 **leido del documento, no del codigo**. Tambien actualizo GASTOS.md, que decia que el default del codigo era 49999 (quedo falso con el cambio) y ahora deja escrita ahi la trampa del separador de miles. La rama `web-carrito-precio-invalido` (T3.6) queda SUPERADA: no hace falta mergearla.
   - cerrada: 2026-09-21 (verificada a mano)
+
+- [!] **T3.17** — decidir y documentar COMO se deploya VITACORA (¿git automatico o CLI a mano?)
+  - deps: —
+  - tamaño: S
+  - espera: decision humana (Naza o Joaquin). No hay que escribir codigo: hay que confirmar una creencia y dejarla escrita, porque de eso depende si un push llega solo a produccion.
+  - hecho-cuando: criterio en texto: esta escrito en el README (o donde el equipo lo lea) si produccion se actualiza sola al pushear a main o si alguien corre `vercel --prod`, y cual es el comando correcto cuando el cambio toca variables de entorno o paginas prerenderizadas
+  - nota: **creencia contra evidencia, medido el 21/09 a las 00:30.** Joaquin reporto "el deploy automatico a Vercel ya corrio, produccion es main, no hace falta deployar ramas a mano". Lo verifique y **no pude confirmarlo**: el deployment que esta sirviendo produccion no tiene NINGUNA metadata de git (el campo `meta` de `vercel inspect --json` viene vacio: sin commit ni branch) y en la lista de deployments hay **8 Production y 0 Preview** — un proyecto conectado a git genera un Preview por cada push a una rama, y no hay ni uno. Todo apunta a deployments por CLI (`vercel --prod`), que es lo que se veia tambien a la manana. Lo que SI verifique: produccion tiene el codigo de hoy (el GET del webhook ahora da 200, antes 405) y los precios correctos. O sea: el resultado esta bien, el modelo mental no. Y el modelo mental importa por dos razones: (1) si alguien pushea a main esperando que se despliegue solo, no se despliega; (2) un `vercel --prod` normal **reusa la cache de build**, y como la pagina de compra esta prerenderizada, un cambio de precio o de variable puede no verse hasta forzar el build con `vercel --prod --force` — que es exactamente lo que costo varias horas hoy.
+  - evidencia: —
 ## Fase 4 — Paneles y viaje (trabajo listo esperando variables)
 
 - [!] **T4.1** — panel de la empresa: las cuatro variables en Vercel y la pasada de ojo
