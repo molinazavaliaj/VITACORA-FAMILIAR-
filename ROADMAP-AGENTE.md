@@ -255,6 +255,20 @@ Lo que SI puede correr el piloto hoy: **T1.3, T3.1, T3.3, T3.5** (y T1.4 apenas 
   - **LECCION IMPORTANTE (esto es lo que mas vale de T3.17):** un deployment SIN metadata de git y sin previews **no prueba** que el deploy haya sido a mano. Yo lo medi (meta vacio, 8 Production y 0 Preview) e inferi "lo corrio alguien con `vercel --prod`": la observacion era correcta y la conclusion falsa. La causa real es que el runner de Actions sube el build con la CLI, y entonces Vercel no le adjunta commit ni rama. Antes de concluir "esto es manual" por falta de metadata, hay que mirar si hay un workflow que deploya: el rastro esta en .github/workflows/, no en el deployment.
   - nota 2 (la parte que SI queda): la trampa de la cache de build es real pero **solo para deploys a mano desde una maquina**, no para el workflow (que construye en un runner limpio). La regla que quedo escrita: variable nueva en Vercel -> re-run del workflow (o push); a mano -> `--force`.
 
+- [ ] **T3.18** — web: el libro impreso trae el PDF incluido (hoy PDF + impreso se cobran por separado)
+  - deps: —
+  - tamaño: M
+  - hecho-cuando: `cd web && npx vitest run && npx tsc --noEmit`
+  - evidencia: —
+  - nota: decision de Naza (21/09 noche). Precios nuevos: **el impreso 98 EUR / ARS 171.500, con el PDF incluido, el color o B/N al mismo precio y el envio incluido**; el PDF suelto sigue 49 EUR / ARS 85.750. En pesos va la razon que ya tiene toda la lista de la casa: 1750 ARS por EUR (no inventar otro tipo de cambio). Hoy `calcularCompra` y `validarProductos` (`web/src/lib/productos.ts`) suman lineas sueltas y piden "al menos uno de los dos", asi que quien tildea PDF + impreso paga 147 EUR: el impreso tiene que traer el digital. El precio se carga por variable (`PRECIO_IMPRESO_BN_EUR=98`, `PRECIO_IMPRESO_BN_ARS=171500`, las de color con el mismo valor) **pero NO cargues ninguna variable de Vercel**: las carga Naza despues del codigo, porque cargarlas antes deja la tienda cobrando los 147 EUR. El default de la casa del impreso va en `web/src/lib/precios.ts` (hoy los extras no tienen default: sin variable no existen). Test primero: elegir el impreso no puede sumar la linea del PDF, y el carrito con PDF + color tiene que dar el precio del impreso, nunca la suma.
+
+- [ ] **T3.19** — web: la copia extra tiene que tener su propio precio (hoy cobra el del impreso)
+  - deps: T3.18
+  - tamaño: S
+  - hecho-cuando: `cd web && npx vitest run && npx tsc --noEmit`
+  - evidencia: —
+  - nota: la copia extra (el primo que pide su copia, sin entrevista nueva: ya paga la IA una sola vez) vale **40 EUR / ARS 70.000**. Hoy `web/src/app/tablero/[narradorId]/libro/extras.tsx:57` cobra `precioCopia = acabado === "color" ? color.precio : bn.precio`, o sea el precio del impreso: con el impreso en 98 cada copia adicional saldria 98 EUR. Va con precio propio por variable nueva (`PRECIO_COPIA_EXTRA_EUR` / `_ARS`) leida con `precioValido`, y **si la variable no esta cargada no puede dar 0 ni romper la pantalla**: cae al precio del impreso como respaldo documentado y avisa por consola (regla de la casa, `web/src/lib/precios.ts`). Los descuentos por cantidad que ya existen (`descuentoPorCopias`: -10 % por 2, -15 % por 3, -20 % por 4+) se dejan como estan. NO inventes dos cosas que siguen sin decidir entre los dos socios: (a) si el descuento maximo se corta en -10 % (sobre 40 EUR el -20 % deja 6 EUR netos por copia) y (b) cuanto paga quien compro solo el PDF y despues pide el impreso desde el panel (hoy pagaria 98 y pagaria dos veces el digital). Dejar el comportamiento actual y anotar las dos en `nota`.
+
 - [!] **3t.26** — logistica de lo fisico: direccion y seguimiento del impreso y los marcos (numero del EQUIPO, no del piloto)
   - deps: —
   - tamaño: M
