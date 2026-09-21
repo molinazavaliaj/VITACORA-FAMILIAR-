@@ -685,10 +685,28 @@ familias, 11 pedidos, 13 respuestas, 10 fotos—. De esa corrida salió el prime
 pagos pendientes de hasta 7 días, en pesos**, y el panel los marca en rojo (Naza mira si son reales o de
 pruebas viejas).
 
-**Lo que falta de su lado**: cargar en Vercel `ADMIN_EMAILS` (los dos mails), `CAMBIO_EUR_ARS`,
-`CAMBIO_USD_EUR` y `CAMBIO_FECHA` (el tipo de cambio se actualiza a mano, una vez por semana). Sin las
-variables del cambio, Plata y Gastos **muestran los números sin convertir y lo dicen**. El paso a paso
-está en `docs/handoff-panel-empresa.md`.
+**Mergeada y en producción (21/09, tarde).** Joaquín dio el OK y la rama entró a `main` con un merge que
+tuvo **tres conflictos**, los tres porque los dos lados habían agregado cosas distintas en el mismo lugar:
+`cerebro.ts` (los dos campos del tipo de opciones), `procesar.ts` (una línea: la llamada a `evaluarRespuesta`
+con las dos opciones) y `ESTADO.md` (las dos secciones). Se resolvieron quedándose con las dos versiones y **se
+verificó sobre el resultado del merge**, no antes: entrevistador 293 + typecheck, fábrica 366 + typecheck, web
+366 (y 367 con el e2e real), voz 162. Su "0 conflictos" no era cierto —lo medí con un worktree descartable antes
+de tocar nada—, y el audiolibro **no** volvió al catálogo porque esta rama nunca tocó `productos.ts`.
+
+**En Vercel (hecho el 21/09)**: las cuatro variables están cargadas en Production (`ADMIN_EMAILS` con los dos
+mails, `CAMBIO_EUR_ARS=1250`, `CAMBIO_USD_EUR=1.08`, `CAMBIO_FECHA=2026-09-21`). Como Vercel lee las variables
+de entorno al construir, hizo falta un **redeploy** para que entren. Verificado: el sitio responde 200 y `/admin`
+redirige a `/entrar` (antes del merge esa dirección era un 404, así que eso prueba que el panel llegó a
+producción y que la puerta está del lado del servidor).
+
+**Los pilotos y los pendientes (21/09, tarde).** Los 9 pedidos en `pendiente` eran todos pruebas —**no hay
+usuarios reales todavía**—, así que se limpiaron: **6 a `fallido`** (los dos de prueba-mp, los dos de Naza, los
+dos de orellano.rodrigo del 14/09) y **2 con la marca de piloto** (Dora y el narrador del 17, que se corren a
+mano). No se borró nada. Con eso el panel pasó de **8 rojos a 1**: queda el viaje de Joaquín de anoche, que paga
+hoy. El de voz no late porque la PC está apagada (el panel dice "no se puede saber": no la declara caída, que es
+lo correcto). Un detalle a mirar: **un séptimo pedido** (`3284c93c`, 109 € del 18/09) figura `fallido` y no lo
+marqué yo — mi corrida anterior lo contaba como cobrado (entró = 49 + 109); si fue un UPDATE a mano, todo bien.
+`docs/handoff-panel-empresa.md``.
 
 ## Próximos hitos
 
