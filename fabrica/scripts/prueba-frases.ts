@@ -1,32 +1,26 @@
 // Por qué existe: la selección automática de las frases se aprueba con datos, no con opinión.
-// Este script corre el prompt REAL contra el libro de un narrador ya terminado, imprime tokens y
-// costo, y deja las frases elegidas con su "por qué" para que Naza las lea (Task 5 del plan
-// `docs/superpowers/plans/2026-09-20-su-voz-fabrica.md`). No escribe NADA en Supabase: ni base
-// ni Storage. Es el hermano de `prueba-*.ts` del entrevistador: medir antes de decidir.
+// Este script corre el prompt REAL contra un libro ya terminado (sus citas y su página «Sus
+// frases»), imprime tokens y costo, y deja las elegidas con su "por qué" para que Naza las lea
+// (Task 5 del plan `docs/superpowers/plans/2026-09-20-su-voz-fabrica.md`). No escribe NADA en
+// Supabase: ni base ni Storage.
 //
 //   npx tsx scripts/prueba-frases.ts <narradorId> [--salida <ruta>]
+//
+// El libro lo busca como markdown (`borrador_libro.md`); si ya no está (se borra al entregar),
+// lo reconstruye desde el `libro.html` del paquete, que alcanza para las citas y «Sus frases».
 import { writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import Anthropic from '@anthropic-ai/sdk';
 import { cargarConfig } from '../src/config.js';
 import { obtenerClienteDb, type Respuesta } from '../src/db.js';
 import { descargarTextoOpcional } from '../src/libro/comun.js';
-import {
-  armarFrasesJson,
-  elegirFinales,
-  proponerCandidatas,
-  FRASES_POR_CAPITULO,
-  type FrasesJson,
-  type MaterialDeFrase,
-} from '../src/libro/frases.js';
+import { elegirFrases, FRASES_POR_CAPITULO, type FrasesJson, type MaterialDeFrase } from '../src/libro/frases.js';
 
 /** Fable 5, `GASTOS.md:70` (USD por millón de tokens). */
 const PRECIO_ENTRADA = 10;
 const PRECIO_SALIDA = 50;
-const RUTA_ESTRUCTURA = (narradorId: string) => `${narradorId}/paquete/estructura.json`;
 
 type Estructura = { titulo?: string; capitulos: { nombre: string; ordenes: number[] }[] };
-
 type Uso = { llamadas: number; entrada: number; salida: number; pensamiento: number };
 
 /** Un cliente que va contando lo que gasta: es la mitad del punto de este script. */
@@ -34,51 +28,75 @@ function clienteQueCuenta(real: Anthropic, uso: Uso): Anthropic {
   return {
     messages: {
       create: async (params: Parameters<Anthropic['messages']['create']>[0]) => {
-        // El SDK tipa el retorno como Message o Stream: acá siempre es mensaje (no streameamos).
         const respuesta = (await real.messages.create(params)) as unknown as {
-          usage: { input_tokens: number; output_tokens: number };
+          usage: { input_tokens: number; output_tokens: number; output_tokens_details?: { thinking_tokens?: number } };
         };
         uso.llamadas++;
         uso.entrada += respuesta.usage.input_tokens;
         uso.salida += respuesta.usage.output_tokens;
-        uso.pensamiento +=
-          (respuesta.usage as { output_tokens_details?: { thinking_tokens?: number } }).output_tokens_details?.thinking_tokens ?? 0;
+        uso.pensamiento += respuesta.usage.output_tokens_details?.thinking_tokens ?? 0;
         return respuesta as never;
       },
     },
   } as unknown as Anthropic;
 }
 
-function costo(uso: Uso): number {
-  return (uso.entrada / 1_000_000) * PRECIO_ENTRADA + (uso.salida / 1_000_000) * PRECIO_SALIDA;
+const costo = (uso: Uso) => (uso.entrada / 1_000_000) * PRECIO_ENTRADA + (uso.salida / 1_000_000) * PRECIO_SALIDA;
+
+/** Convierte el libro html en algo parecido a su markdown: nos alcanza para citas y «Sus frases». */
+function htmlAMarkdown(html: string): string {
+  const cuerpo = html.split('</style>').pop() ?? html;
+  return cuerpo
+    .replace(/<blockquote[^>]*>([\s\S]*?)<\/blockquote>/g, (_m, t: string) => `\n> ${limpiar(t)}\n`)
+    .replace(/<h([1-3])[^>]*>([\s\S]*?)<\/h\1>/g, (_m, nivel: string, t: string) => `\n${'#'.repeat(Number(nivel))} ${limpiar(t)}\n`)
+    .replace(/<\/(p|div|li)>/g, '\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/\n{3,}/g, '\n\n');
 }
 
-export async function medirFrases(narradorId: string): Promise<{ frases: FrasesJson; uso: Uso; segundos: number }> {
-  const db = obtenerClienteDb();
+function limpiar(fragmento: string): string {
+  return fragmento
+    .replace(/<[^>]+>/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
 
-  const { data: narrador, error: errorNarrador } = await db
-    .from('narradores')
-    .select('id, nombre')
-    .eq('id', narradorId)
-    .single();
+export async function medirFrases(narradorId: string): Promise<{ frases: FrasesJson; uso: Uso; segundos: number; fuente: string }> {
+  const db = obtenerClienteDb();
+  const { data: narrador, error: errorNarrador } = await db.from('narradores').select('id, nombre').eq('id', narradorId).single();
   if (errorNarrador || !narrador) throw new Error(`No encontré el narrador ${narradorId}: ${errorNarrador?.message ?? 'sin datos'}`);
 
-  const estructuraTexto = await descargarTextoOpcional(db, RUTA_ESTRUCTURA(narradorId));
+  const estructuraTexto = await descargarTextoOpcional(db, `${narradorId}/paquete/estructura.json`);
   if (estructuraTexto === null) throw new Error(`No hay estructura.json para ${narradorId}: sin capítulos no hay frases.`);
   const estructura = JSON.parse(estructuraTexto) as Estructura;
+
+  // El libro: markdown si todavía está, si no reconstruido del html del paquete.
+  let libroMarkdown = await descargarTextoOpcional(db, `${narradorId}/paquete/borrador_libro.md`);
+  let fuente = 'borrador_libro.md';
+  if (libroMarkdown === null) {
+    const html = await descargarTextoOpcional(db, `${narradorId}/paquete/libro.html`);
+    if (html === null) throw new Error(`No hay libro (ni borrador_libro.md ni libro.html) para ${narradorId}.`);
+    libroMarkdown = htmlAMarkdown(html);
+    fuente = 'libro.html (reconstruido)';
+  }
 
   const { data: respuestas, error: errorRespuestas } = await db.from('respuestas').select('*').eq('narrador_id', narradorId);
   if (errorRespuestas) throw new Error(`No se pudieron leer las respuestas: ${errorRespuestas.message}`);
   const porOrden = new Map<number, Respuesta[]>();
-  for (const respuesta of (respuestas ?? []) as Respuesta[]) {
-    porOrden.set(respuesta.pregunta_orden, [...(porOrden.get(respuesta.pregunta_orden) ?? []), respuesta]);
+  for (const r of (respuestas ?? []) as Respuesta[]) {
+    porOrden.set(r.pregunta_orden, [...(porOrden.get(r.pregunta_orden) ?? []), r]);
   }
 
   const capitulos = estructura.capitulos.map((capitulo, i) => {
     const material: MaterialDeFrase[] = [];
     for (const orden of capitulo.ordenes) {
       for (const r of porOrden.get(orden) ?? []) {
-        // Sin audio no hay frase que escuchar (y el texto vacío no le sirve al modelo).
         const texto = (r.transcripcion || r.texto_directo || '').trim();
         if (!r.audio_path || texto === '') continue;
         material.push({
@@ -94,33 +112,29 @@ export async function medirFrases(narradorId: string): Promise<{ frases: FrasesJ
   });
 
   const uso: Uso = { llamadas: 0, entrada: 0, salida: 0, pensamiento: 0 };
-  const real = new Anthropic({ apiKey: cargarConfig().anthropicApiKey });
-  const cliente = clienteQueCuenta(real, uso);
+  const cliente = clienteQueCuenta(new Anthropic({ apiKey: cargarConfig().anthropicApiKey }), uso);
 
   const arranque = Date.now();
-  const frases = await armarFrasesJson(
-    { narradorId, pedidoId: '-prueba-', nombre: narrador.nombre, capitulos },
-    { cliente, proponer: proponerCandidatas, elegir: elegirFinales }
-  );
-  return { frases, uso, segundos: (Date.now() - arranque) / 1000 };
+  const frases = await elegirFrases(cliente, { narradorId, pedidoId: '-prueba-', nombre: narrador.nombre, libroMarkdown, capitulos });
+  return { frases, uso, segundos: (Date.now() - arranque) / 1000, fuente };
 }
 
-function imprimir(frases: FrasesJson, uso: Uso, segundos: number): void {
+function imprimir(frases: FrasesJson, uso: Uso, segundos: number, fuente: string): void {
   for (const capitulo of frases.capitulos) {
     console.log(`\n${String(capitulo.numero).padStart(2)}. ${capitulo.capitulo}`);
     for (const candidata of capitulo.candidatas) {
-      console.log(`   ${candidata.elegida ? '★' : ' '} «${candidata.texto}»`);
+      const etiqueta = candidata.origen === 'sus-frases' ? ` (${candidata.grupo})` : '';
+      console.log(`   ${candidata.elegida ? '★' : ' '} «${candidata.texto}»${etiqueta}`);
       if (candidata.elegida) console.log(`      por qué: ${candidata.por_que}`);
     }
   }
-  const elegidas = frases.capitulos.reduce((total, c) => total + c.candidatas.filter((x) => x.elegida).length, 0);
+  const elegidas = frases.capitulos.reduce((t, c) => t + c.candidatas.filter((x) => x.elegida).length, 0);
+  const total = frases.capitulos.reduce((t, c) => t + c.candidatas.length, 0);
+  console.log(`\n${frases.capitulos.length} capítulo(s) · ${elegidas} elegida(s) (${FRASES_POR_CAPITULO} por capítulo) · ${total} a cortar`);
+  console.log(`Libro: ${fuente}`);
   console.log(
-    `\n${frases.capitulos.length} capítulo(s) · ${elegidas} elegida(s) (${FRASES_POR_CAPITULO} por capítulo) · ` +
-      `${frases.capitulos.reduce((t, c) => t + c.candidatas.length, 0)} cortadas por el worker`
-  );
-  console.log(
-    `Modelo: ${uso.llamadas} llamada(s) · ${uso.entrada} tokens de entrada · ${uso.salida} de salida ` +
-      `(${uso.pensamiento} pensando) · USD ${costo(uso).toFixed(3)} · ${segundos.toFixed(0)} s`
+    `Modelo: ${uso.llamadas} llamada(s) · ${uso.entrada} in · ${uso.salida} out (${uso.pensamiento} pensando) · ` +
+      `USD ${costo(uso).toFixed(3)} · ${segundos.toFixed(0)} s`
   );
 }
 
@@ -133,13 +147,12 @@ async function main(): Promise<void> {
   const iSalida = process.argv.indexOf('--salida');
   const ruta = iSalida >= 0 ? process.argv[iSalida + 1] : path.join(process.cwd(), `prueba-frases-${narradorId}.json`);
 
-  const { frases, uso, segundos } = await medirFrases(narradorId);
+  const { frases, uso, segundos, fuente } = await medirFrases(narradorId);
   await writeFile(ruta, JSON.stringify(frases, null, 2), 'utf8');
-  imprimir(frases, uso, segundos);
+  imprimir(frases, uso, segundos, fuente);
   console.log(`\nEl JSON quedó en ${ruta} (no se tocó ni la base ni Storage).`);
 }
 
-// Solo corre si es el programa principal (los tests pueden importar `medirFrases` sin gastar).
 if (process.argv[1] && process.argv[1].includes('prueba-frases')) {
   main().catch((err) => {
     console.error(err instanceof Error ? err.message : err);

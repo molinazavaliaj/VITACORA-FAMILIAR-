@@ -1,21 +1,21 @@
 // Por qué existe: el producto dejó de ser un audiolibro y pasó a ser las mejores frases del
-// narrador en su voz (spec 2026-09-20-su-voz-design.md). Este módulo las elige con el mismo
-// modelo que escribe el libro —dos pasadas, una para proponer y otra para decidir— y arma el
-// `frases.json` que el worker corta y que la web muestra. No toca la base: vive en el paquete
-// del narrador.
+// narrador en su voz (spec 2026-09-20-su-voz-design.md). Este módulo las elige **leyendo el libro
+// que la fábrica ya escribió** —la sección «Sus frases» (sus dichos y los que heredó) y las citas
+// que el escritor marcó con `>` en cada capítulo— y arma el `frases.json` que el worker corta y
+// que la web muestra. No toca la base: vive en el paquete del narrador.
 //
-// Lo que NO hace: no corta audio (eso es del worker, sobre los audios reales), no narra nada y
-// no decide qué se publica (para eso está `esPublicable`, que mira la reserva del hallazgo 19).
+// Dos reglas que no se negocian:
+//  1. **Solo entran citas textuales**: si el modelo pulió una frase, no hay audio que cortar.
+//  2. **Las muletillas no se eligen**: «Viste.», «Pumba.» van impresas, no son cápsulas.
+//
+// Lo que NO hace: no corta audio (eso es del worker, sobre los audios reales) y no narra nada.
 import type Anthropic from '@anthropic-ai/sdk';
 import { extraerTexto, esPublicable, type ReservaDeRespuesta } from './comun.js';
 import { parsearJsonTolerante } from '../voz/conectores.js';
 
 /** Cuántas frases se imprimen por capítulo (decisión de Naza, 20/09). */
 export const FRASES_POR_CAPITULO = 3;
-/** Cuántas candidatas le pedimos al modelo por capítulo: el triple, para que elegir sea elegir. */
-export const CANDIDATAS_POR_CAPITULO = 5;
 
-/** Una respuesta con audio, lista para que el modelo le saque una frase. */
 export type MaterialDeFrase = {
   orden: number;
   respuestaId: string | null;
@@ -25,9 +25,22 @@ export type MaterialDeFrase = {
   reserva?: Partial<ReservaDeRespuesta>;
 };
 
+export type CapituloDelLibro = { nombre: string; citas: string[] };
+
+export type SeccionesDelLibro = {
+  capitulos: CapituloDelLibro[];
+  /** La página «Sus frases»: lo que él dice siempre y lo que le dejaron los suyos. */
+  susFrases: { suyas: string[]; heredadas: string[] };
+  muletillas: string[];
+};
+
 export type FraseCandidata = {
   id: string;
   texto: string;
+  /** De dónde salió: la página «Sus frases» o una cita de un capítulo. */
+  origen: 'sus-frases' | 'cita';
+  /** `suyas` | `heredadas` cuando sale de la página. */
+  grupo: 'suyas' | 'heredadas' | null;
   respuesta_id: string | null;
   pregunta_orden: number;
   por_que: string;
@@ -59,25 +72,113 @@ const CRITERIOS = `Los criterios, en orden:
 4. No hiere a alguien que está vivo (nombres, peleas, plata).
 5. Una por tema: dos veces lo mismo no entra.`;
 
-export const PROMPT_CANDIDATAS = (nombre: string, capitulo: string) => `Sos el biógrafo de ${nombre}. De las historias de «${capitulo}» que te paso, elegí hasta ${CANDIDATAS_POR_CAPITULO} FRASES para que su familia las escuche en su voz, para siempre.
+const TITULOS_IGNORADOS = ['a mis lectores', 'el cierre', 'sus frases', 'indice', 'índice'];
+
+/** Un título de capítulo, en minúsculas y sin adornos, para comparar. */
+function tituloLimpio(linea: string): string {
+  return linea.replace(/^#+\s*/, '').replace(/\*/g, '').trim();
+}
+
+/**
+ * Parte el libro en capítulos con sus citas y saca la página «Sus frases». Puro a propósito:
+ * es la parte que más se rompe cuando cambia el markdown del libro, así que se testea sola.
+ */
+export function seccionesDelLibro(libroMarkdown: string): SeccionesDelLibro {
+  const capitulos: CapituloDelLibro[] = [];
+  const susFrases: SeccionesDelLibro['susFrases'] = { suyas: [], heredadas: [] };
+  const muletillas: string[] = [];
+
+  let capituloActual: CapituloDelLibro | null = null;
+  let enSusFrases = false;
+  let grupo: 'suyas' | 'heredadas' | 'muletillas' | null = null;
+
+  for (const linea of libroMarkdown.split(/\r?\n/)) {
+    const esTitulo = /^#{1,3}\s+\S/.test(linea);
+    if (esTitulo) {
+      const titulo = tituloLimpio(linea);
+      const clave = titulo.toLowerCase();
+      enSusFrases = clave === 'sus frases';
+      grupo = null;
+      if (enSusFrases || TITULOS_IGNORADOS.includes(clave)) {
+        capituloActual = null;
+      } else {
+        capituloActual = { nombre: titulo, citas: [] };
+        capitulos.push(capituloActual);
+      }
+      continue;
+    }
+
+    if (enSusFrases) {
+      // Los subgrupos de la página («Las suyas», «Las que heredó», «Las muletillas de siempre»).
+      const sub = linea.replace(/[*_]/g, '').trim().toLowerCase();
+      if (/^las suyas/.test(sub)) grupo = 'suyas';
+      else if (/^las que hered/.test(sub)) grupo = 'heredadas';
+      else if (/^las muletillas/.test(sub)) grupo = 'muletillas';
+      for (const frase of linea.matchAll(/«([^»]{3,300})»/g)) {
+        const texto = frase[1].trim();
+        if (grupo === 'suyas') susFrases.suyas.push(texto);
+        else if (grupo === 'heredadas') susFrases.heredadas.push(texto);
+        else if (grupo === 'muletillas') muletillas.push(texto);
+      }
+      continue;
+    }
+
+    const cita = linea.match(/^\s*>\s*(.+)$/);
+    if (cita && capituloActual) {
+      const texto = cita[1].replace(/^["«]|["»]$/g, '').trim();
+      if (texto.length > 0) capituloActual.citas.push(texto);
+    }
+  }
+
+  return { capitulos, susFrases, muletillas };
+}
+
+/** Para comparar contra la transcripción: minúsculas, sin acentos, sin puntuación. */
+export function normalizar(texto: string): string {
+  return texto
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9ñ ]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/**
+ * Una cita entra solo si está TAL CUAL en alguna transcripción (aunque cambien mayúsculas o
+ * puntuación): el audio solo se puede cortar si él dijo exactamente eso.
+ */
+export function esTextual(cita: string, transcripciones: string[]): boolean {
+  const limpia = normalizar(cita);
+  if (limpia.length < 4) return false;
+  return transcripciones.some((t) => normalizar(t).includes(limpia));
+}
+
+export const PROMPT_ELEGIR = (nombre: string, candidatas: string, capitulos: string) => `Sos el editor del libro de ${nombre}. Te paso las frases candidatas para que su familia las escuche en su voz, para siempre: primero las de la sección «Sus frases» del libro (las suyas y las que heredó) y después las citas de cada capítulo.
+Elegí ${FRASES_POR_CAPITULO} por capítulo, ${FRASES_POR_CAPITULO * capitulos.split('\n').length} en total.
 ${CRITERIOS}
-Devolvé SOLO un JSON: {"candidatas":[{"texto":"...","por_que":"una línea"}]}. El texto va EXACTAMENTE como él lo dijo: no lo retoques, no lo completes, no lo unas con otra frase. Si la cita no está tal cual en la transcripción, no la propongas.`;
+Reglas que no se rompen:
+- TODAS las candidatas ya están verificadas como textuales (él las dijo así): podés elegirlas sin miedo.
+- Las de «Sus frases» tienen prioridad: son las que dice de siempre o las que le dejaron los suyos.
+- Cada elegida va al capítulo donde vive (las heredadas, al capítulo donde las cuenta).
+- Las muletillas NO se eligen: van impresas, no son cápsulas para escuchar.
+- No repitas tema entre capítulos.
+Devolvé SOLO un JSON: {"elegidas":[{"id":"...","capitulo":1,"por_que":"una línea"}]} — el \`id\` que te paso entre corchetes y el número del capítulo.
 
-export const PROMPT_ELEGIR = (nombre: string, capitulo: string) => `Sos el editor del libro de ${nombre}. Te paso las candidatas de «${capitulo}». Elegí las ${FRASES_POR_CAPITULO} que de verdad quedarían en la familia y explicá en una línea por qué cada una.
-${CRITERIOS}
-Devolvé SOLO un JSON: {"indices":[3,0,5],"por_que":["...","...","..."]} — los índices de las elegidas (0 = la primera candidata), en el orden en que las pondrías en el libro.`;
+CANDIDATAS:
+${candidatas}
 
-/** Una llamada al modelo, con el mismo parseo tolerante que usan los conectores. */
-async function llamar(cliente: Anthropic, prompt: string, material: string): Promise<unknown> {
-  const contenido = `${prompt}\n\n--- MATERIAL ---\n${material}`;
+CAPÍTULOS (número: nombre):
+${capitulos}`;
 
+/** Una llamada al modelo, con el parseo tolerante y el respaldo que ya probamos en producción. */
+async function llamar(cliente: Anthropic, contenido: string): Promise<unknown> {
   const pedir = async (extra: string): Promise<{ texto: string; stop: string | null }> => {
     const respuesta = await cliente.messages.create({
       model: 'claude-fable-5',
-      // OJO: acá el pensamiento del modelo cuenta DENTRO de max_tokens. Con 2000 y un capítulo
-      // largo se come el presupuesto pensando y devuelve texto vacío (medido el 20/09: con
-      // material chico contestaba bien y con el capítulo entero no) — por eso 8000.
-      max_tokens: 8000,
+      // OJO: acá el pensamiento del modelo cuenta DENTRO de max_tokens. Con 2000 y el libro entero
+      // se come el presupuesto pensando y devuelve texto vacío (medido el 20/09) — por eso 16000.
+      max_tokens: 16000,
       messages: [{ role: 'user', content: `${contenido}${extra}` }],
     });
     return {
@@ -90,9 +191,9 @@ async function llamar(cliente: Anthropic, prompt: string, material: string): Pro
     const primera = await pedir('');
     return parsearJsonTolerante(primera.texto);
   } catch (errPrimera) {
-    // Un modelo que contesta en prosa (o que se quedó sin presupuesto) no puede tumbar la
-    // entrega (misma regla que en el entrevistador, bitácora 14): una vez más, con la orden
-    // pelada, y si vuelve a fallar el capítulo queda sin frases en vez de romper el paquete.
+    // Un modelo que contesta en prosa (o que se quedó sin presupuesto) no puede tumbar la entrega
+    // (misma regla que en el entrevistador, bitácora 14): una vez más con la orden pelada, y si
+    // vuelve a fallar el libro sale sin frases en vez de romperse.
     const segunda = await pedir('\n\nSOLO el JSON, sin explicar nada: empezá con { y terminá con }.');
     try {
       return parsearJsonTolerante(segunda.texto);
@@ -100,92 +201,115 @@ async function llamar(cliente: Anthropic, prompt: string, material: string): Pro
       console.warn(
         `Frases: el modelo no devolvió JSON (${(errSegunda as Error).message}; la primera vez: ` +
           `${(errPrimera as Error).message}; stop_reason: ${segunda.stop}). Dijo: «${segunda.texto.slice(0, 200)}». ` +
-          'El capítulo queda sin frases.'
+          'El libro sale sin frases.'
       );
       return {};
     }
   }
 }
 
-export async function proponerCandidatas(
-  cliente: Anthropic,
-  args: { nombre: string; capitulo: string; material: MaterialDeFrase[] }
-): Promise<{ texto: string; por_que: string }[]> {
-  const crudo = (await llamar(
-    cliente,
-    PROMPT_CANDIDATAS(args.nombre, args.capitulo),
-    args.material.map((m) => `[${m.orden}] ${m.texto}`).join('\n\n')
-  )) as { candidatas?: { texto?: unknown; por_que?: unknown }[] };
-
-  const dichos = args.material.map((m) => m.texto);
-  return (crudo.candidatas ?? [])
-    .filter((c): c is { texto: string; por_que?: unknown } => typeof c.texto === 'string' && c.texto.trim() !== '')
-    .map((c) => ({ texto: c.texto.trim(), por_que: typeof c.por_que === 'string' ? c.por_que.trim() : '' }))
-    // La cita tiene que estar TAL CUAL en la transcripción: si el modelo la retocó, el corte no
-    // alinea contra el audio y lo impreso no coincide con lo que se escucha.
-    .filter((c) => dichos.some((d) => d.includes(c.texto)))
-    .slice(0, CANDIDATAS_POR_CAPITULO);
-}
-
-export async function elegirFinales(
-  cliente: Anthropic,
-  args: { nombre: string; capitulo: string; candidatas: { texto: string; por_que: string }[] }
-): Promise<{ indices: number[]; porQue: string[] }> {
-  if (args.candidatas.length <= FRASES_POR_CAPITULO) {
-    // Menos candidatas que lugares: no se le paga al modelo por ordenar dos cosas.
-    return { indices: args.candidatas.map((_, i) => i), porQue: args.candidatas.map((c) => c.por_que) };
-  }
-  const crudo = (await llamar(
-    cliente,
-    PROMPT_ELEGIR(args.nombre, args.capitulo),
-    args.candidatas.map((c, i) => `[${i}] ${c.texto}`).join('\n')
-  )) as { indices?: unknown; por_que?: unknown };
-
-  const indices = (Array.isArray(crudo.indices) ? crudo.indices : []).filter(
-    (i): i is number => typeof i === 'number' && i >= 0 && i < args.candidatas.length
-  );
-  const porQue = Array.isArray(crudo.por_que) ? crudo.por_que.filter((p): p is string => typeof p === 'string') : [];
-  return { indices: indices.slice(0, FRASES_POR_CAPITULO), porQue };
-}
-
 /**
- * Las dos pasadas, capítulo por capítulo, y el JSON del paquete. Un capítulo sin audios
- * utilizables (o con todas sus respuestas reservadas) no aparece: no es un error, es que no hay
- * nada que su familia pueda escuchar.
+ * La selección completa: arma las candidatas textuales del libro (página «Sus frases» + citas por
+ * capítulo), le pide al modelo las de cada capítulo y devuelve el `frases.json`. Las que el modelo
+ * elija se cruzan con el material del capítulo para saber de qué respuesta y de qué audio salen.
  */
-export async function armarFrasesJson(
+export async function elegirFrases(
+  cliente: Anthropic,
   args: {
     narradorId: string;
     pedidoId: string;
     nombre: string;
-    capitulos: { nombre: string; numero: number; material: MaterialDeFrase[] }[];
-  },
-  deps: { cliente: Anthropic; proponer: typeof proponerCandidatas; elegir: typeof elegirFinales }
+    libroMarkdown: string;
+    capitulos: { numero: number; nombre: string; material: MaterialDeFrase[] }[];
+  }
 ): Promise<FrasesJson> {
-  const capitulos: CapituloConFrases[] = [];
+  const secciones = seccionesDelLibro(args.libroMarkdown);
+  const transcripciones = args.capitulos.flatMap((c) =>
+    c.material.filter((m) => esPublicable(m.reserva ?? {})).map((m) => m.texto)
+  );
 
-  for (const capitulo of args.capitulos) {
-    const material = capitulo.material.filter((m) => esPublicable(m.reserva ?? {}) && m.texto.trim() !== '');
-    if (material.length === 0) continue;
+  // Candidatas: la página primero (con su grupo), las citas de cada capítulo después. Solo las
+  // textuales: una frase que el modelo pulió no tiene audio que cortar.
+  type Candidata = { id: string; texto: string; origen: 'sus-frases' | 'cita'; grupo: 'suyas' | 'heredadas' | null; numeroCapitulo: number };
+  const candidatas: Candidata[] = [];
+  const agregar = (texto: string, origen: Candidata['origen'], grupo: Candidata['grupo'], numeroCapitulo: number) => {
+    if (!esTextual(texto, transcripciones)) return;
+    if (candidatas.some((c) => normalizar(c.texto) === normalizar(texto))) return;
+    candidatas.push({ id: `${origen === 'sus-frases' ? 'sf' : 'cita'}-${candidatas.length + 1}`, texto, origen, grupo, numeroCapitulo });
+  };
 
-    const candidatas = await deps.proponer(deps.cliente, { nombre: args.nombre, capitulo: capitulo.nombre, material });
-    if (candidatas.length === 0) continue;
+  // La página «Sus frases» no dice en qué capítulo vive cada frase: eso lo decide el modelo.
+  for (const texto of [...secciones.susFrases.suyas, ...secciones.susFrases.heredadas]) {
+    agregar(texto, 'sus-frases', secciones.susFrases.suyas.includes(texto) ? 'suyas' : 'heredadas', 0);
+  }
+  for (const capitulo of secciones.capitulos) {
+    const numero = args.capitulos.find((c) => c.nombre === capitulo.nombre)?.numero ?? 0;
+    for (const texto of capitulo.citas) agregar(texto, 'cita', null, numero);
+  }
 
-    const { indices, porQue } = await deps.elegir(deps.cliente, { nombre: args.nombre, capitulo: capitulo.nombre, candidatas });
-    const elegidas = new Set(indices);
+  if (candidatas.length === 0) {
+    return { version: 1, narrador_id: args.narradorId, pedido_id: args.pedidoId, confirmado_at: null, capitulos: [] };
+  }
 
-    capitulos.push({
-      numero: capitulo.numero,
-      capitulo: capitulo.nombre,
-      candidatas: candidatas.map((c, i) => {
-        const origen = material.find((m) => m.texto.includes(c.texto));
+  const listadoCandidatas = candidatas
+    .map((c) => `[${c.id}] (${c.origen}${c.grupo ? `/${c.grupo}` : ''}) «${c.texto}»`)
+    .join('\n');
+  const listadoCapitulos = args.capitulos.map((c) => `${c.numero}: ${c.nombre}`).join('\n');
+
+  const crudo = (await llamar(cliente, PROMPT_ELEGIR(args.nombre, listadoCandidatas, listadoCapitulos))) as {
+    elegidas?: { id?: unknown; capitulo?: unknown; por_que?: unknown }[];
+  };
+
+  // El capítulo de cada candidata: el que dijo el modelo si es válido, si no el de origen.
+  const porCapitulo = new Map<number, FraseCandidata[]>();
+  for (const elegida of crudo.elegidas ?? []) {
+    const candidata = candidatas.find((c) => c.id === elegida.id);
+    if (!candidata) continue;
+    const numero = typeof elegida.capitulo === 'number' && args.capitulos.some((c) => c.numero === elegida.capitulo)
+      ? elegida.capitulo
+      : candidata.numeroCapitulo || args.capitulos[0]?.numero;
+    if (!numero) continue;
+    const yaTiene = porCapitulo.get(numero) ?? [];
+    if (yaTiene.length >= FRASES_POR_CAPITULO) continue;
+    const origen = args.capitulos.find((c) => c.numero === numero)?.material.find((m) => m.texto.includes(candidata.texto));
+    yaTiene.push({
+      id: `${candidata.id}`,
+      texto: candidata.texto,
+      origen: candidata.origen,
+      grupo: candidata.grupo,
+      respuesta_id: origen?.respuestaId ?? null,
+      pregunta_orden: origen?.orden ?? 0,
+      por_que: typeof elegida.por_que === 'string' ? elegida.por_que.trim() : '',
+      elegida: true,
+      elegida_por: 'modelo',
+      estado: 'pendiente',
+      audio_path: null,
+      segundos: null,
+      inicio: null,
+      fin: null,
+    });
+    porCapitulo.set(numero, yaTiene);
+  }
+
+  // Las demás candidatas textuales del capítulo quedan como alternativas para el panel familiar.
+  const capitulos: CapituloConFrases[] = args.capitulos.map((capitulo) => {
+    const elegidas = porCapitulo.get(capitulo.numero) ?? [];
+    const usadas = new Set(elegidas.map((e) => normalizar(e.texto)));
+    const alternativas = candidatas
+      .filter((c) => normalizar(c.texto) !== '' && !usadas.has(normalizar(c.texto)))
+      .filter((c) => c.numeroCapitulo === capitulo.numero || c.origen === 'sus-frases')
+      .slice(0, FRASES_POR_CAPITULO * 2)
+      .map((c) => {
+        const origen = capitulo.material.find((m) => m.texto.includes(c.texto));
         return {
-          id: `c${String(capitulo.numero).padStart(2, '0')}-${String(i + 1).padStart(2, '0')}`,
+          id: c.id,
           texto: c.texto,
+          origen: c.origen,
+          grupo: c.grupo,
           respuesta_id: origen?.respuestaId ?? null,
           pregunta_orden: origen?.orden ?? 0,
-          por_que: porQue[indices.indexOf(i)] ?? c.por_que,
-          elegida: elegidas.has(i),
+          por_que: '',
+          elegida: false,
           elegida_por: 'modelo' as const,
           estado: 'pendiente' as const,
           audio_path: null,
@@ -193,9 +317,9 @@ export async function armarFrasesJson(
           inicio: null,
           fin: null,
         };
-      }),
-    });
-  }
+      });
+    return { numero: capitulo.numero, capitulo: capitulo.nombre, candidatas: [...elegidas, ...alternativas] };
+  });
 
   return { version: 1, narrador_id: args.narradorId, pedido_id: args.pedidoId, confirmado_at: null, capitulos };
 }
