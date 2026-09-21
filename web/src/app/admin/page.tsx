@@ -1,7 +1,7 @@
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { datosDelPanel } from "@/lib/admin/datos";
 import { contarPorGravedad, frenosDe, horasEntre, UMBRALES, type Freno } from "@/lib/admin/frenos";
-import { Chip, Grupo, Item, Nota, SinDatos, Titulo, cuando, horasEnPalabras } from "./ui";
+import { Chip, Grupo, Item, SinDatos, Titulo, cuando, horasEnPalabras } from "./ui";
 
 // 01 · Estado — «qué se frenó y qué hay que hacer hoy». Es la pantalla de entrada: lo que
 // no se puede dejar pasar, y abajo lo que va solo (para no mirar todo con la misma alarma).
@@ -101,25 +101,6 @@ export default async function PantallaEstado() {
           <Chip color="verde">verde</Chip> trabajó dentro del tiempo esperado
         </span>
       </div>
-
-      <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {[
-          { dias: `${UMBRALES.silencioDias} días`, que: "el narrador no contesta: se prende la alerta y hay que llamar" },
-          { horas: `${UMBRALES.libroSinArrancarHoras} hs`, que: "un pedido pagado y la fábrica no lo tomó" },
-          { horas: `${UMBRALES.vozSinAvanceHoras} hs`, que: "una voz sin avanzar capítulo a capítulo" },
-          { horas: `${UMBRALES.pagoSinConfirmarHoras} hs`, que: "un pago sin confirmar y la entrevista sin arrancar" },
-        ].map((u) => (
-          <div key={u.que} className="rounded border border-[var(--linea)] px-4 py-3">
-            <b className="block text-lg [font-family:var(--fuente-titulo)]">{u.dias ?? u.horas}</b>
-            <span className="text-xs text-[var(--texto-menor)]">{u.que}</span>
-          </div>
-        ))}
-      </div>
-
-      <Nota>
-        Estos cuatro tiempos son los que usa el panel para poner una caja en rojo: los tres primeros son los
-        que ya usaba el sistema y el del pago es nuevo. Si algo se pasa de ahí, aparece arriba.
-      </Nota>
     </div>
   );
 }
