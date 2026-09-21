@@ -5,14 +5,14 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { crearClienteNavegador } from "@/lib/supabase/navegador";
 import { normalizarCodigo, esCodigoCompleto } from "@/lib/codigo-otp";
+import { destinoSeguro } from "@/lib/destino";
 
 // Entrada por código de 6 dígitos (OTP), en dos pasos: correo → código.
 // Reemplaza al enlace mágico, que exigía abrirse en el mismo navegador donde
 // se pidió — con el código, la familia lo teclea donde sea y no hay fricción.
-/** A dónde volver después de entrar. Solo rutas propias (empiezan con "/"), nunca otro sitio. */
-function destinoSeguro(volver: string | null): string {
-  return volver && volver.startsWith("/") && !volver.startsWith("//") ? volver : "/tablero";
-}
+// La vuelta (`?volver=`) la decide `destinoSeguro` (lib/destino): el mismo
+// criterio que usa el proxy para mandar acá, y lo que hace que entrar a /admin
+// devuelva al panel en vez de dejarte en el carrito (T3.7).
 
 export default function FormularioEntrar() {
   const router = useRouter();

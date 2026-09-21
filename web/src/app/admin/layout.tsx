@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { Playfair_Display, Archivo, Source_Serif_4 } from "next/font/google";
 import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { mailsDeAdmin, esAdmin, sinPermiso } from "@/lib/admin/acceso";
+import { rutaDeEntrada } from "@/lib/destino";
 import { NavegacionAdmin } from "./nav";
 import { BotonTema, COOKIE_TEMA, type Tema } from "@/app/tablero/tema";
 
@@ -41,7 +42,10 @@ export default async function LayoutAdmin({ children }: LayoutProps<"/admin">) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect("/entrar");
+  // Sin sesión se entra por /entrar y se vuelve acá: el panel de la empresa es
+  // adonde iba (el proxy ya lo manda con la vuelta puesta; esto es el respaldo
+  // por si el render llega sin proxy delante).
+  if (!user) redirect(rutaDeEntrada("/admin"));
 
   const permitidos = mailsDeAdmin(process.env.ADMIN_EMAILS);
   if (!esAdmin(user.email, permitidos)) {

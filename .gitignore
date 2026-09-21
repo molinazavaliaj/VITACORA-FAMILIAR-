@@ -17,3 +17,8 @@ fabrica/muestra-identidad.*
 
 # Config local del Claude desktop (puertos de preview)
 .claude/
+
+# ruido del piloto: no es entregable
+.autopilot/
+.agents/
+skills-lock.json

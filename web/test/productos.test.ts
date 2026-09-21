@@ -22,6 +22,8 @@ beforeEach(() => {
   delete process.env.PRECIO_IMPRESO_COLOR_EUR;
   delete process.env.PRECIO_MARCO_EUR;
   delete process.env.PRECIO_IMPRESO_BN_ARS;
+  delete process.env.PRECIO_IMPRESO_COLOR_ARS;
+  delete process.env.PRECIO_MARCO_ARS;
   process.env.PRECIO_EUR = "49";
   process.env.PRECIO_ARS = "65000";
 });
@@ -47,6 +49,26 @@ describe("extrasDisponibles", () => {
     process.env.PRECIO_IMPRESO_COLOR_EUR = "-5";
     process.env.PRECIO_MARCO_EUR = "gratis";
     expect(extrasDisponibles("ES")).toEqual([]);
+  });
+
+  // Mismos valores que en precios.test.ts: lo que deja un precio mal pegado en
+  // Vercel (comillas, separador de miles con coma, coma decimal, símbolo,
+  // texto suelto, cero, negativo, infinito). Ninguno habilita un extra: sin
+  // precio leído el extra no existe para el cliente, en NINGUNA región.
+  const BASURA = ['"49"', '85,750', '49,00', '49 €', 'gratis', '0', '-5', 'Infinity'];
+
+  it.each(BASURA)("con %s en los tres extras de ES no se ofrece ninguno", (crudo) => {
+    process.env.PRECIO_IMPRESO_BN_EUR = crudo;
+    process.env.PRECIO_IMPRESO_COLOR_EUR = crudo;
+    process.env.PRECIO_MARCO_EUR = crudo;
+    expect(extrasDisponibles("ES")).toEqual([]);
+  });
+
+  it.each(BASURA)("con %s en los tres extras de AR no se ofrece ninguno", (crudo) => {
+    process.env.PRECIO_IMPRESO_BN_ARS = crudo;
+    process.env.PRECIO_IMPRESO_COLOR_ARS = crudo;
+    process.env.PRECIO_MARCO_ARS = crudo;
+    expect(extrasDisponibles("AR")).toEqual([]);
   });
 
   it("los marcos son múltiples; el impreso no", () => {

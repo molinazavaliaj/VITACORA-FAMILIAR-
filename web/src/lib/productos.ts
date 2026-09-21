@@ -14,7 +14,7 @@
 // decidido ni proveedor detrás ("nunca prometer lo que no hay", brief §7).
 // Prender uno es cargar su variable de entorno en Vercel — nada más.
 
-import { obtenerPrecio, obtenerPrecioViaje, type Region } from "./precios";
+import { obtenerPrecio, obtenerPrecioViaje, precioValido, type Region } from "./precios";
 
 export type Moneda = "EUR" | "ARS";
 
@@ -81,10 +81,7 @@ const NOMBRES: Record<ExtraId, { nombre: string; detalle: string; multiple: bool
 
 function precioDeEntorno(id: ExtraId, region: Region): number | null {
   const clave = `PRECIO_${id.toUpperCase()}_${region === "ES" ? "EUR" : "ARS"}`;
-  const crudo = process.env[clave];
-  if (!crudo) return null;
-  const monto = Number(crudo);
-  return Number.isFinite(monto) && monto > 0 ? monto : null;
+  return precioValido(process.env[clave]);
 }
 
 /** Los extras disponibles para una región: solo los que tienen precio cargado. */
