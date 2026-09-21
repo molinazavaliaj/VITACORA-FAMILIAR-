@@ -319,6 +319,65 @@ describe('generarPrevisualizacion', () => {
     ]);
   });
 
+  // La marca `tema_de_orden` vale también para la preview: si el narrador contó,
+  // contestando otra pregunta, algo que es de la historia del capítulo 1, ese
+  // recuerdo entra al capítulo 1 que se le muestra a la familia antes de comprar.
+  it('el capítulo 1 de la preview SUMA el recuerdo que le manda la marca tema_de_orden', async () => {
+    const estructura = {
+      titulo: 'Roberto — La historia de una vida',
+      capitulos: [
+        { nombre: 'Infancia', ordenes: [1] },
+        { nombre: 'El amor', ordenes: [2] },
+      ],
+      entidades: [],
+    };
+    const nombres = { correcciones: [] };
+    const historiaDelCap1 = 'Nací en la casa de mi abuela, en Rosario.';
+
+    const db = construirDbFake({
+      narrador: { data: { id: 'narrador-1', nombre: 'Roberto', foto_url: null }, error: null },
+      preguntasFijas: {
+        data: [
+          { narrador_id: null, orden: 1, texto: '¿Dónde naciste?', capitulo: 'Infancia' },
+          { narrador_id: null, orden: 2, texto: '¿Cómo conociste a tu pareja?', capitulo: 'El amor' },
+        ],
+        error: null,
+      },
+      preguntasNarrador: { data: [], error: null },
+      respuestas: {
+        data: [
+          { pregunta_orden: 1, transcripcion: 'En Rosario.', texto_directo: null, es_repregunta: false, audio_path: null },
+          {
+            pregunta_orden: 2,
+            transcripcion: historiaDelCap1,
+            texto_directo: null,
+            es_repregunta: false,
+            audio_path: null,
+            tema_de_orden: 1,
+            tema_motivo: 'en realidad cuenta dónde nació',
+          },
+        ],
+        error: null,
+      },
+      descargas: {
+        'narrador-1/paquete/estructura.json': { data: blobFake(JSON.stringify(estructura)), error: null },
+        'narrador-1/paquete/nombres.json': { data: blobFake(JSON.stringify(nombres)), error: null },
+      },
+    });
+    (obtenerClienteDb as unknown as ReturnType<typeof vi.fn>).mockReturnValue(db);
+    escribirCapituloMock.mockResolvedValue('Nací en Rosario.');
+
+    await generarPrevisualizacion('narrador-1');
+
+    const materiales = escribirCapituloMock.mock.calls[0][2] as string;
+    // El recuerdo del capítulo 2 entra al capítulo 1, que es su tema ...
+    expect(materiales).toContain(
+      `P: ¿Dónde naciste? (lo contó respondiendo otra pregunta)\nR: ${historiaDelCap1}`
+    );
+    // ... sin sacar nada de lo que ya había.
+    expect(materiales).toContain('P: ¿Dónde naciste?\nR: En Rosario.');
+  });
+
   it('si ya existe un borrador cacheado del capítulo 1, lo reusa y no vuelve a pagarle al modelo', async () => {
     const estructura = {
       titulo: 'Roberto — La historia de una vida',

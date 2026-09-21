@@ -5,6 +5,7 @@ import { escribirCapitulo } from './escribir-capitulo.js';
 import type { Estructura } from './estructura.js';
 import { cargarFotos, estiloFoco, type Foco, type FotoLibro } from './fotos.js';
 import {
+  armarContextoDeTemas,
   armarMaterial,
   capituloMarkdownAHtml,
   descargarJson,
@@ -142,6 +143,11 @@ export async function generarPrevisualizacion(narradorId: string): Promise<void>
   const historiaCompleta = armarMaterial(todosLosOrdenes, preguntasPorOrden, respuestasPorOrden);
   const nombresCorregidos = formatearNombresCorregidos(nombres.correcciones);
 
+  // La preview muestra el capítulo 1 de la estructura (todavía sin la edición de
+  // la dueña), así que el contexto de la marca `tema_de_orden` se numera con
+  // `estructura.capitulos`: los mismos números que la preview va a mostrar.
+  const temasDeLaPreview = armarContextoDeTemas(estructura.capitulos, respuestasPorOrden);
+
   const primerCapitulo = estructura.capitulos[0];
   let primerCapituloTexto = '';
   if (primerCapitulo) {
@@ -157,7 +163,7 @@ export async function generarPrevisualizacion(narradorId: string): Promise<void>
       primerCapituloTexto = await escribirCapitulo(
         narrador,
         primerCapitulo.nombre,
-        armarMaterial(primerCapitulo.ordenes, preguntasPorOrden, respuestasPorOrden),
+        armarMaterial(primerCapitulo.ordenes, preguntasPorOrden, respuestasPorOrden, temasDeLaPreview),
         historiaCompleta,
         nombresCorregidos,
         'preview' // en costos.json se separa de los capítulos del libro pagado

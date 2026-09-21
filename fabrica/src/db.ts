@@ -58,6 +58,20 @@ export type Respuesta = {
   reservada?: boolean | null;
   /** Si el pedido es por una parte: el tramo textual que no se publica. */
   reservado_tramo?: string | null;
+  /**
+   * La marca del tema REAL: la `orden` de la pregunta cuyo tema trata de verdad
+   * esta respuesta. La escribe el entrevistador (lo hace Joaquín) cuando el
+   * narrador contesta una pregunta y adentro cuenta una historia que pertenece a
+   * otro tema — el caso del piloto: contesta la 9 y la historia es de la 2.
+   * Migración pendiente (la aplica Naza cuando los dos socios acuerden).
+   *
+   * Opcionales a propósito, igual que `reservada`: con `select *` no vienen
+   * hasta que la migración esté aplicada, y ausente = sin marca, así la fábrica
+   * da exactamente el mismo libro antes y después de aplicarla.
+   */
+  tema_de_orden?: number | null;
+  /** Una línea de por qué el modelo dice que el tema es otro. La fábrica no la publica: es para que la familia entienda la marca. */
+  tema_motivo?: string | null;
 };
 
 export type Foto = {
