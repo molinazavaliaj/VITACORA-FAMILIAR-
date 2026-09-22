@@ -46,15 +46,18 @@ async function guionPropio(admin: SupabaseClient, narradorId: string): Promise<P
 
   // Narrador anterior a la migración del 12/09 (o creado sin copia): se le copia el guion ahora.
   const { data: globales, error: errorGlobales } = await admin
-    .from("preguntas").select("orden, texto, capitulo").is("narrador_id", null);
+    .from("preguntas").select("orden, texto, capitulo, tipo").is("narrador_id", null);
   if (errorGlobales) {
     console.error("guion: fallo la lectura de la plantilla", errorGlobales);
     return null;
   }
   const ocupados = new Set(propias.map((p) => p.orden));
-  const filas = ((globales as { orden: number; texto: string; capitulo: string }[] | null) ?? [])
+  // El tipo se respeta: las de objeto (3t.30, banda 101-108) se copian como
+  // `objeto` y no como `fija`. Si se copiaran como fijas entrarían en la cuenta
+  // de días y el narrador tendría ocho preguntas de más en el recorrido.
+  const filas = ((globales as { orden: number; texto: string; capitulo: string; tipo: string }[] | null) ?? [])
     .filter((g) => !ocupados.has(g.orden))
-    .map((g) => ({ narrador_id: narradorId, orden: g.orden, texto: g.texto, capitulo: g.capitulo, tipo: "fija" }));
+    .map((g) => ({ narrador_id: narradorId, orden: g.orden, texto: g.texto, capitulo: g.capitulo, tipo: g.tipo === "objeto" ? "objeto" : "fija" }));
   if (filas.length > 0) {
     const { error: errorCopia } = await admin.from("preguntas").insert(filas);
     if (errorCopia) {

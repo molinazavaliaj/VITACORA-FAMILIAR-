@@ -26,7 +26,7 @@ export type PreguntaGuion = {
   orden: number;
   texto: string;
   capitulo: string;
-  tipo: "fija" | "adaptativa" | "familia" | "sugerida";
+  tipo: "fija" | "adaptativa" | "familia" | "sugerida" | "objeto";
   foto_id?: string | null;
 };
 
