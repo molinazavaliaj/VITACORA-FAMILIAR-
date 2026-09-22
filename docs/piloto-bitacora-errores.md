@@ -757,85 +757,17 @@ escribirlo; el audiolibro clonado saldría después con otro pedido.
     cualquier otro) hace falta otro token; y el bloqueo de Windows no tiene vuelta, así que todo
     diagnóstico de Railway desde la PC de Naza pasa por este script.
 
-## Ciro / Angel Fernandez (segundo narrador de prueba, 28 años, trato vos)
+## Ciro / Angel Fernandez (segundo narrador de prueba)
 
-> Estas entradas se escribieron en las ramas `manual-sin-voz` y `primer-capitulo`
-> mientras main avanzaba por otro lado; se traen acá el 22/09 con numeración nueva
-> para no chocar con las de Joaquín. Si aparecen duplicadas al mergear esas ramas,
-> la buena es esta.
+Sus hallazgos viven en **`docs/piloto-errores-ciro.md`** (entradas C1-C10), archivo
+aparte por pedido de Naza (22/09): esta bitácora ya existía en tres versiones
+distintas entre ramas, con los mismos números usados para cosas diferentes. Con
+numeración propia no puede chocar al mergear.
 
-40. **16/09 · la repregunta pide lo que el narrador YA contó.** Respuesta 5 ("no sé nada
-    de mis abuelos") → repregunta: "¿de tus abuelos te acordás de alguno, aunque sea de
-    verlo en una foto?". Pero en la respuesta 1 contó que **su abuela cocinaba en la casa
-    todos los días**: se crió con ella. Causa: `evaluarRespuesta()` recibe SOLO la
-    pregunta y la respuesta de hoy — ni la memoria de capítulos ni las respuestas
-    previas, que la personalización sí recibe. *Para repasar*: pasarle la memoria de
-    capítulos a la evaluación.
-
-41. **17/09 · dar por muerta (o viva) a una persona que el narrador no dijo si vive.** Una
-    repregunta escrita a mano decía "a tu abuela la tuviste cerca... ¿cómo se llamaba?" —
-    en pasado. Ciro contestó, literal: **"está viva todavía, no me la mates, hijo de
-    puta"**. Al revés duele igual: hablar en presente de alguien que murió. *Regla*: de
-    quien no se sabe, no se asume — se pregunta anclado en la época ("cómo la recordás de
-    esos años") o sin verbo ("su nombre"). *Para repasar*: (a) esa regla en los prompts;
-    (b) que la ficha pueda decir quiénes ya no están; (c) revisar las 26 fijas con ese ojo
-    ("si tus nietos escucharan esto" es la misma clase de suposición).
-
-42. **18/09 · el biógrafo pregunta por la infancia como si hubiera sido un lujo (pedido de
-    Naza: "tiene que de alguna manera saber si la vida de la persona fue dura").** La
-    pregunta 7 salió "¿qué tradiciones había? ...¿cómo eran los domingos, las fiestas con
-    tu abuela, tu tío, tus primos?". Respuesta: **"¿Cómo eran los domingos? Una mierda,
-    amigo. Mi familia era un desastre... Hay algo que vos no estás entendiendo... El tío
-    estaba re duro y la abuela queriendo rescatarlo... Esto no era una película de
-    Disney."** Las señales ya estaban (padre ausente con drogas y alcohol, "todos los
-    grandes se llevaban mal"). Causas: las 26 fijas están escritas para una infancia
-    feliz; la personalización conserva ese encuadre porque su regla es enganchar
-    detalles, no leer el tono; y nada guarda "cómo fue esta vida". *Para repasar*: una
-    línea de **tono** por capítulo en la memoria del biógrafo, y la regla explícita: si la
-    infancia fue dura, no preguntar por fiestas ni tradiciones como si hubieran existido
-    — preguntar qué había, quién sostenía, qué se rescataba.
-
-43. **18/09 · la repregunta insiste donde el narrador dijo "vamos por otro lado".** En esa
-    misma respuesta 7 dijo literal: "mi tío se drogaba, o sea, vamos por otro lado". La
-    repregunta fue derecho al tío. *Hecho*: descartada, y el tema entró a
-    `contexto.evitar`. *Para repasar*: si la respuesta trae un pedido explícito de cambiar
-    de tema, no hay repregunta sobre eso y el tema entra solo a `evitar`.
-
-44. **18/09 · la personalización repite lo recién contestado y lidera con las sustancias.**
-    Respuesta 8: salidas de miércoles a domingo, "mucho vino, mucha pastilla", y que con
-    el Pelado Bausa y el Beto "nunca salimos los tres juntos". Pregunta 9 generada: "...
-    cumbia, rock and roll, alcohol. ¿El Pelado Bausa y el Beto estaban en esa onda con
-    vos?" — pregunta lo que acaba de decir que no pasó, y encuadra a los amigos desde el
-    alcohol. *Para repasar*: (a) si una sub-pregunta del guion ya quedó contestada, se
-    reemplaza por lo que quedó abierto; (b) el biógrafo no lidera con consumo aunque el
-    narrador lo haya nombrado.
-
-45. **21-22/09 · pone los recuerdos en la ciudad equivocada — 3 de 3, REPRODUCIDO EN MAIN
-    HOY.** Preguntas 11 y 12: "Vos **en Concordia** salías toda la semana", "esos sábados
-    a la noche **en Concordia**". Las salidas fueron en **Buenos Aires**: la pregunta 8
-    preguntaba literalmente por "un sábado a la noche en Buenos Aires" y él se fue de
-    Concordia a los 12. Se regeneró la 12 el 22/09 con main al día (3t.29 incluido) y
-    **volvió a decir Concordia**: no lo arregla lo de hoy. Es un **error de hecho**, de los
-    que terminan impresos. La 12 además mezcló el trato ("¿de la que **se salvó**
-    raspando?" dentro de "vos que..."), como "regálenos" y "cuéntame" con Joaquín.
-    *Hecho a mano*: las tres corregidas antes de mandarlas. *Para repasar*: una **línea de
-    tiempo con lugares** en la ficha/memoria ("Concordia hasta los 12, Buenos Aires desde
-    los 12") — sirve igual para la fábrica, que escribe el libro con el mismo material.
-
-46. **21/09 · dos sesiones sobre el mismo narrador se pisan.** Al retomar, la pregunta 11
-    ya estaba generada y anotada por otra sesión, con la repregunta de la 10 sin
-    responder — y el audio que llegó contestaba **la repregunta**. Cargarlo por orden
-    habría archivado la respuesta sobre Núñez y el colegio como "mi primer laburo".
-    *Hecho*: se transcribió el audio aparte, sin tocar la base, para ver a qué respondía.
-    *Para repasar*: que `estado` avise "hay una repregunta de la orden N sin responder".
-
-47. **22/09 · la puerta manual quedó ROTA por un módulo borrado.** `3t.28` borró
-    `src/ia/voz.ts` pero dejó el import y el flag `--voz` en `scripts/manual.ts`:
-    **cualquier** comando moría con "Cannot find module voz.js". Se descubrió al cargar la
-    respuesta 11 de Ciro. Tercera vez que muerde lo mismo: `tsconfig.json` tiene
-    `include: ["src"]`, así que `tsc` **nunca** mira `scripts/`. *Hecho*: sacado el camino
-    de voz. *Para repasar, en serio*: sumar `scripts` al include — son tres bugs de la
-    misma causa.
+Lo más grave de ahí, por si se lee solo esto: **C6** el biógrafo pone los recuerdos en
+la ciudad equivocada (3 de 3, reproducido contra `main` al día el 22/09), **C8** la
+puerta manual quedó rota entera porque `tsc` no mira `scripts/` (tercer bug de esa
+misma causa) y **C3** pregunta por una infancia dura como si hubiera sido un lujo.
 
 ## Producción / infra (no es del entrevistador, pero salió en el camino)
 
