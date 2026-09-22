@@ -51,7 +51,7 @@ const MAX_TOKENS = 400;
 const ULTIMAS_RESPUESTAS = 6;
 /** Cada respuesta se recorta: una de 3 minutos tiene ~1.700 caracteres y no hace falta entera. */
 const RECORTE_RESPUESTA = 900;
-/** Más largo que esto no lo lee cómodo una persona mayor en el celular. */
+/** Más largo que esto no se lee cómodo en el celular. */
 export const MAX_PALABRAS = 60;
 
 export type NarradorParaPersonalizar = {

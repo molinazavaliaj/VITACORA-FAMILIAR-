@@ -1,8 +1,7 @@
 import { db } from '../db/cliente.js';
-import { enviarPlantilla, enviarTexto, enviarAudioPorLink, enviarImagenPorLink } from '../whatsapp/enviar.js';
+import { enviarPlantilla, enviarTexto, enviarImagenPorLink } from '../whatsapp/enviar.js';
 import { generarPreguntaReemplazo } from '../ia/cerebro.js';
 import { personalizarPregunta } from '../ia/personalizar.js';
-import { generarAudioVoz } from '../ia/voz.js';
 import { armarHistoria } from '../db/historia.js';
 import { generarPreguntasAdaptativas } from '../ia/adaptativas.js';
 import { capitulosDe, preguntaDeOrden as preguntaDelGuion, tieneAdaptativas, ultimoOrden, type PreguntaDelGuion } from '../db/guion.js';
@@ -124,27 +123,18 @@ async function enviarFotoDeLaPregunta(n: Narrador, fotoId: string): Promise<void
   }
 }
 
-/**
- * La versión hablada de la pregunta: se sube a Storage y se manda por link firmado.
- * Es un extra sobre el texto, que ya salió: si falla (21/09: OpenAI sin crédito),
- * se avisa y se sigue — si no, el envío no se registra, el narrador no avanza y su
- * respuesta se ignora.
+/*
+ * El audio de la pregunta se SACÓ el 22/09 (decisión de Joaquín). Venía de
+ * arrastre del primer scheduler (`9a2da76`, 1/09): nunca se decidió como
+ * producto, duplicaba cada pregunta con un TTS que sonaba a robot, costaba
+ * plata por pregunta y por narrador, y el 21/09 rompió la primera noche de
+ * Nako (el TTS sin crédito tumbaba el envío entero). Las preguntas van en
+ * texto. Si alguna vez se quiere, vuelve como opción del panel, no de fábrica.
  */
-async function enviarVozDeLaPregunta(n: Narrador, orden: number, contenido: string): Promise<void> {
-  try {
-    const audio = await generarAudioVoz(contenido, n.id);
-    const path = `${n.id}/sistema/pregunta_${String(orden).padStart(2, '0')}.mp3`;
-    await db.storage.from('audios').upload(path, audio, { contentType: 'audio/mpeg', upsert: true });
-    const { data } = await db.storage.from('audios').createSignedUrl(path, 3600);
-    if (data?.signedUrl) await enviarAudioPorLink(n.telefono_whatsapp, data.signedUrl);
-  } catch (err) {
-    console.error(`pregunta ${orden} de ${n.id}: el texto salió pero el audio no:`, err instanceof Error ? err.message : err);
-  }
-}
 
 /**
- * Manda la pregunta `orden` al narrador: reconocimiento + texto + audio,
- * avanza `dia_actual` y registra el envío.
+ * Manda la pregunta `orden` al narrador: reconocimiento + texto (y la foto de
+ * la pregunta, si la hay), avanza `dia_actual` y registra el envío.
  *
  * `plantilla: true`  → plantilla aprobada (inicia conversación, fuera de la ventana de 24 hs).
  * `plantilla: false` → texto libre (modo rápido: el narrador acaba de responder,
@@ -207,8 +197,6 @@ export async function enviarPregunta(
   // Va después del texto (la plantilla abre la conversación; la imagen, dentro
   // de la ventana, sale como mensaje libre).
   if (pregunta.foto_id) await enviarFotoDeLaPregunta(n, pregunta.foto_id);
-
-  await enviarVozDeLaPregunta(n, orden, texto);
 
   const avance: Record<string, unknown> = { dia_actual: orden };
   if (n.estado === 'acepto') avance.estado = 'activo';
