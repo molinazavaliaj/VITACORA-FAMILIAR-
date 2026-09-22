@@ -1,7 +1,6 @@
-import { randomUUID } from 'node:crypto';
 import { db } from '../db/cliente.js';
-import { descargarAudio } from '../whatsapp/media.js';
 import { enviarTexto } from '../whatsapp/enviar.js';
+import { guardarFoto } from './fotos.js';
 import { guionDelViaje, diaDeHoy, etapaDeFecha, fechaDelDia, viajeDe, SIN_ETAPA } from './viaje.js';
 import type { Narrador } from './preguntar.js';
 
@@ -25,20 +24,7 @@ export async function guardarFotoEntrante(n: Narrador, mediaId: string, mimeType
   const viaje = viajeDe(n.contexto);
   const dia = diaDeHoy(viaje, new Date(), n.zona_horaria) ?? Math.max(1, n.dia_actual);
   const capitulo = etapaDeFecha(viaje, fechaDelDia(viaje, dia));
-  const bytes = await descargarAudio(mediaId); // baja cualquier media de Meta, no solo audio
-  const ext = mimeType === 'image/png' ? 'png' : mimeType === 'image/webp' ? 'webp' : 'jpg';
-  const id = randomUUID();
-  const path = `${n.id}/fotos/${id}.${ext}`;
-  const { error: errorSubida } = await db.storage.from('audios').upload(path, bytes, { contentType: mimeType ?? 'image/jpeg', upsert: false });
-  if (errorSubida) throw new Error(`No pude subir la foto de ${n.id}: ${errorSubida.message}`);
-  const { error } = await db.from('fotos').insert({
-    id, narrador_id: n.id, capitulo: capitulo === SIN_ETAPA ? null : capitulo, storage_path: path,
-    epigrafe: caption?.trim().slice(0, 300) || null, principal: false, subida_por: null,
-  });
-  if (error) {
-    await db.storage.from('audios').remove([path]);
-    throw new Error(`No pude anotar la foto de ${n.id}: ${error.message}`);
-  }
+  await guardarFoto(n, mediaId, mimeType, caption, capitulo === SIN_ETAPA ? null : capitulo);
   return capitulo;
 }
 

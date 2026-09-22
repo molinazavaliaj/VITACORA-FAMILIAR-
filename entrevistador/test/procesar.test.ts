@@ -21,6 +21,7 @@ const mocks = vi.hoisted(() => ({
   crearGuionDelViaje: vi.fn(),
   guardarFotoEntrante: vi.fn(),
   confirmarFoto: vi.fn(),
+  recibirFotoFamiliar: vi.fn(),
   estado: { narrador: null as any, enviosRepregunta: [] as any[], capturas: [] as any[], ultimoOrden: 30, tieneAdaptativas: true, ofertas: [] as any[], preguntasHoy: [] as any[], capituloVigente: 'La infancia' },
 }));
 
@@ -95,6 +96,7 @@ vi.mock('../src/mail/hitos.js', () => ({ mandarHito: mocks.mandarHito }));
 vi.mock('../src/flujo/viaje-db.js', () => ({
   crearGuionDelViaje: mocks.crearGuionDelViaje, guardarFotoEntrante: mocks.guardarFotoEntrante, confirmarFoto: mocks.confirmarFoto,
 }));
+vi.mock('../src/flujo/fotos.js', () => ({ recibirFotoFamiliar: mocks.recibirFotoFamiliar }));
 // La pregunta de cierre (18/09): por defecto no hay más vueltas → se despide.
 vi.mock('../src/flujo/cierre-abierto.js', () => ({
   faseDeCierre: mocks.faseDeCierre,
@@ -121,7 +123,7 @@ beforeEach(() => {
   mocks.detectarQueNoTuvo.mockResolvedValue('normal');
   mocks.faseDeCierre.mockReset();
   mocks.faseDeCierre.mockResolvedValue(false);
-  for (const fn of [mocks.crearGuionDelViaje, mocks.guardarFotoEntrante, mocks.confirmarFoto]) fn.mockReset();
+  for (const fn of [mocks.crearGuionDelViaje, mocks.guardarFotoEntrante, mocks.confirmarFoto, mocks.recibirFotoFamiliar]) fn.mockReset();
   mocks.guardarFotoEntrante.mockResolvedValue('Lisboa');
   for (const fn of [mocks.enviarTexto, mocks.descargarAudio, mocks.guardarRespuestaAudio, mocks.guardarReserva, mocks.transcribirYActualizar, mocks.evaluarRespuesta, mocks.detectarIntencion, mocks.generarPreguntasAdaptativas, mocks.cerrarBitacora, mocks.enviarPregunta]) fn.mockReset();
   mocks.guardarReserva.mockResolvedValue(true);
@@ -399,10 +401,21 @@ describe('procesarEntrante', () => {
     expect(mocks.guardarRespuestaAudio).not.toHaveBeenCalled();
   });
 
-  it('(v4) una foto de un narrador de biografía (no viaje) se ignora', async () => {
+  // Hasta el 22/09 este test afirmaba que la foto se IGNORABA. Era el bug
+  // escrito como si fuera la regla: una señora mandaba la foto de su casamiento
+  // y el bot se hacía el distraído. Ahora se guarda en los dos productos.
+  it('(v4) una foto de un narrador del Familiar se guarda en su capítulo, no se tira', async () => {
     mocks.estado.narrador = narradorEn('activo', 3);
+    await procesarEntrante({ telefono: TEL, tipo: 'imagen', mediaId: 'img-1', mimeType: 'image/jpeg', texto: 'Mi casamiento', waMessageId: 'w' });
+    expect(mocks.recibirFotoFamiliar).toHaveBeenCalledWith(expect.objectContaining({ id: 'n1' }), 'img-1', 'image/jpeg', 'Mi casamiento');
+    expect(mocks.guardarFotoEntrante).not.toHaveBeenCalled(); // esa es la del viaje
+    expect(mocks.guardarRespuestaAudio).not.toHaveBeenCalled();
+  });
+
+  it('(v5) una foto de un narrador que todavía no aceptó (invitado) no se guarda', async () => {
+    mocks.estado.narrador = narradorEn('invitado', 0);
     await procesarEntrante({ telefono: TEL, tipo: 'imagen', mediaId: 'img-1', waMessageId: 'w' });
-    expect(mocks.guardarFotoEntrante).not.toHaveBeenCalled();
+    expect(mocks.recibirFotoFamiliar).not.toHaveBeenCalled();
   });
 
   it('(e) al responder la ÚLTIMA del guion (sea la 26 o la 23) sin adaptativas, se generan las 4 y NO cierra', async () => {

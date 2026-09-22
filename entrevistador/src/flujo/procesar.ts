@@ -18,6 +18,7 @@ import { cerrarBitacora } from './cierre.js';
 import { esOrdenDeCierre, faseDeCierre } from './cierre-abierto.js';
 import { esViaje } from './viaje.js';
 import { confirmarFoto, crearGuionDelViaje, guardarFotoEntrante } from './viaje-db.js';
+import { recibirFotoFamiliar } from './fotos.js';
 import { bienvenidaViaje } from '../manual/puro.js';
 import { CLAVE_DEL_ARBOL, capituloNoAplica, enviarPregunta, ritmoDe, type Narrador } from './preguntar.js';
 import { bienvenidaPideVoz } from '../config.js';
@@ -105,11 +106,17 @@ export async function procesarEntrante(m: MensajeEntrante): Promise<void> {
     return;
   }
 
-  // Vitácora de viaje: una foto por WhatsApp va al álbum del día, en cualquier estado activo.
+  // Una foto por WhatsApp se guarda SIEMPRE, en los dos productos (22/09).
+  // En viaje va al álbum del día (la etapa vigente); en el Familiar, al capítulo
+  // de la pregunta que está contestando. Antes de hoy la del Familiar se perdía.
   if (m.tipo === 'imagen' && m.mediaId) {
-    if (!esViaje(narrador.contexto) || !['activo', 'acepto', 'pausado'].includes(narrador.estado)) return;
-    const capitulo = await guardarFotoEntrante(narrador, m.mediaId, m.mimeType, m.texto);
-    await confirmarFoto(narrador, capitulo);
+    if (!['activo', 'acepto', 'pausado'].includes(narrador.estado)) return;
+    if (esViaje(narrador.contexto)) {
+      const capitulo = await guardarFotoEntrante(narrador, m.mediaId, m.mimeType, m.texto);
+      await confirmarFoto(narrador, capitulo);
+    } else {
+      await recibirFotoFamiliar(narrador, m.mediaId, m.mimeType, m.texto);
+    }
     return;
   }
 
