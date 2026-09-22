@@ -9,10 +9,17 @@ La aprobación tarda de horas a días: **cargarlas cuanto antes**.
 
 > **20/09 — cuenta nueva.** El número propio (+54 9 11 2866-8813, `Phone Number ID 1242792948928690`)
 > vive en la WABA **"Vitácora" (`1997432587590526`)**, distinta de la de prueba (`1553096429416760`).
-> Las plantillas son por WABA: las 5 (`bienvenida` ya con la frase del permiso de voz,
-> `pregunta_diaria`, `pregunta_diaria_vos`, `recordatorio`, `bienvenida_viaje`) se clonaron por API
-> a la cuenta nueva y están en revisión. Hasta que las aprueben, todo envío por plantilla desde el
-> número nuevo falla con `#132001`. Cuando `bienvenida` esté aprobada: `WA_BIENVENIDA_PIDE_VOZ=1`.
+> **22/09: las 5 están APROBADAS** en la WABA nueva y el bot manda solo (las bienvenidas salieron
+> el 21 a las 22:15 UTC; la primera pregunta a Naza el 22 a las 07:00). Cuando se carguen
+> `WA_BIENVENIDA_PIDE_VOZ=1` y `WA_PLANTILLA_BIENVENIDA_VIAJE=1` en Railway, el scheduler manda
+> también las bienvenidas sin que nadie escriba primero.
+>
+> ⚠️ **3t.25 (22/09): los cuerpos de `bienvenida` y `bienvenida_viaje` de abajo son NUEVOS** (sin el
+> audiolibro con voz recreada, que se descartó el 20/09; con «Su voz» explicada de verdad). Están en
+> el código y **pendientes de aprobación de Naza**; cuando él los apruebe se editan en WhatsApp
+> Manager. Editar una aprobada la re-aprueba sola salvo que falle la revisión (docs de Meta: hasta
+> 10 ediciones en 30 días, 1 cada 24 h) — y si fallara, esa plantilla queda `REJECTED` y no se puede
+> mandar hasta arreglarla. Por eso conviene editar **una por vez** y mirar el estado.
 >
 > **Estado en Meta (16-17/09, cuenta de prueba, app 1061858183385953).** Las 4 están
 > enviadas. Categorías que quedaron: `recordatorio` **Utilidad**; `bienvenida`,
@@ -28,10 +35,10 @@ La aprobación tarda de horas a días: **cargarlas cuanto antes**.
 
 Hola {{1}} 👋 Soy su biógrafo. {{2}} le hizo un regalo muy especial: vamos a escribir
 juntos el libro de su vida. Cada mañana le voy a mandar una pregunta, y usted me responde
-con un audio, como le cuenta las cosas a un amigo. Al final, su historia quedará en un
-libro para su familia. Si su familia lo pide, el audiolibro puede llevar su propia voz,
-recreada a partir de estos audios; al responder SÍ también nos da permiso para eso.
-¿Empezamos? Responda SÍ y arrancamos mañana.
+con un audio, como le cuenta las cosas a un amigo. Al final, su historia queda en un
+libro para su familia, y sus mejores frases quedan en su propia voz: recortes de estos
+mismos audios, para escucharlas cuando quieran. Al responder SÍ nos da permiso para
+guardar sus audios y usarlos así. ¿Empezamos? Responda SÍ y arrancamos mañana.
 
 > **Cambió el 2026-09-17 (3t.15, permiso de voz).** La frase "Si su familia lo pide…"
 > es nueva: la voz es dato biométrico y la política de privacidad promete pedir
@@ -85,9 +92,10 @@ pilotos y la puerta manual.
 
 Hola {{1}} 👋 Soy tu biógrafo de viaje. Cada noche te voy a mandar una pregunta sobre el
 día, y vos me respondés con un audio, como le contás a un amigo. Mandame también la foto
-del día cuando te la pida, o cuando quieras. Al final, tu viaje queda en un libro. Si lo
-pedís, el audiolibro puede llevar tu propia voz, recreada a partir de estos audios; al
-responder SÍ también nos das permiso para eso. ¿Arrancamos? Respondé SÍ y empezamos esta noche.
+del día cuando te la pida, o cuando quieras. Al final, tu viaje queda en un libro, y tus
+mejores frases quedan en tu propia voz: recortes de estos mismos audios, para escucharlas
+cuando quieras. Al responder SÍ nos das permiso para guardar tus audios y usarlos así.
+¿Arrancamos? Respondé SÍ y empezamos esta noche.
 
 > Categoría: Marketing (como `bienvenida`). Cuando esté aprobada: `WA_PLANTILLA_BIENVENIDA_VIAJE=1`
 > en Railway y el scheduler la manda solo. **Mientras tanto** el viajero escribe primero
