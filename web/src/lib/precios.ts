@@ -68,3 +68,13 @@ export function obtenerPrecio(region: Region): { monto: number; moneda: "EUR" | 
 export function obtenerPrecioViaje(region: Region): number | null {
   return precioValido(process.env[region === "ES" ? "PRECIO_VIAJE_EUR" : "PRECIO_VIAJE_ARS"]);
 }
+
+/**
+ * Vitácora Kids — «Mi Primer Capítulo» (22/09, `docs/kids/mi-primer-capitulo-design.md`):
+ * línea aparte, precio propio. Misma regla de las hermanas: sin precio válido el producto
+ * no existe para el cliente, y la landing muestra «Próximamente» en vez de un CTA a la nada.
+ * No cargar estas variables hasta que exista /comprar/kids.
+ */
+export function obtenerPrecioKids(region: Region): number | null {
+  return precioValido(process.env[region === "ES" ? "PRECIO_KIDS_EUR" : "PRECIO_KIDS_ARS"]);
+}

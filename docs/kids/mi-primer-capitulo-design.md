@@ -240,3 +240,16 @@ El nombre dice, solo, que va a haber un segundo. Un chico que termina su libro a
 hace el siguiente a los 13 es el cliente que más veces compra en toda la empresa. No se
 diseña ahora, pero **la tapa y el diseño del libro tienen que bancar una colección** — si
 la tapa dice "Capítulo Uno: 11 años", el segundo no obliga a rehacer nada.
+
+## Estado al 22/09 (tarde)
+
+- **Landing publicada en `/kids`** (`web/src/app/kids/page.tsx`), con la estructura y la
+  paleta de `/viaje`. Le habla al **padre**, no al chico. Tercera pastilla «Kids» en
+  `SelectorProducto`, visible desde las tres páginas.
+- **Todavía NO se vende.** `/comprar/kids` no existe y `PRECIO_KIDS_*` no está cargado, así
+  que el precio muestra «Próximamente» y el CTA es lista de espera por mail a `hola@`. Al
+  cargar el precio la página pasa sola a vender: **no cargarlo hasta que exista el checkout.**
+- La lista de espera además sirve de validación: mide cuántos padres lo piden sin que haya
+  nada construido.
+- Verificado: `npm run build` verde con `/kids` estática, 516 tests verdes, sin desborde
+  horizontal en 375 px.
