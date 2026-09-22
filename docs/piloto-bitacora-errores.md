@@ -757,6 +757,39 @@ escribirlo; el audiolibro clonado saldría después con otro pedido.
     cualquier otro) hace falta otro token; y el bloqueo de Windows no tiene vuelta, así que todo
     diagnóstico de Railway desde la PC de Naza pasa por este script.
 
+40. **22/09 · la puerta manual quedó ROTA por un módulo borrado.** `3t.28` ("las
+    preguntas van en texto, no en audio") borró `src/ia/voz.ts` pero dejó el import y el
+    flag `--voz` en `scripts/manual.ts`: **cualquier** comando de la puerta manual moría
+    con "Cannot find module voz.js". Se descubrió al cargar la respuesta 11 de Ciro.
+    Tercera vez que muerde lo mismo: `tsconfig.json` tiene `include: ["src"]`, así que
+    `tsc` **nunca** mira `scripts/` (ver #5, y el `--voz` que ya se había roto antes).
+    *Hecho*: sacado el camino de voz (commit 9087a02). *Para repasar, en serio*: sumar
+    `scripts` al include de tsconfig — son tres bugs de la misma causa.
+
+41. **21-22/09 · Ciro · el biógrafo pone los recuerdos en la ciudad equivocada (2 de 2).**
+    Pregunta 11: "Vos **en Concordia** salías toda la semana". Pregunta 12: "esos sábados
+    a la noche **en Concordia**". Las salidas fueron en **Buenos Aires** — la pregunta 8
+    preguntaba literalmente por "un sábado a la noche en Buenos Aires" y él se fue de
+    Concordia a los 12. Dos de dos: el personalizador tiene las dos ciudades en la
+    historia y Concordia le queda como "el lugar" del narrador. Es un **error de hecho**,
+    de los que terminan impresos. La 12 además mezcló el trato ("¿de la que **se salvó**
+    raspando?" dentro de "vos que..."), como "regálenos" y "cuéntame" con Joaquín.
+    *Hecho a mano*: las dos corregidas en `contexto.preguntasEnviadas` antes de mandarlas.
+    *Para repasar*: que la ficha/memoria lleve una **línea de tiempo con lugares**
+    ("Concordia hasta los 12, Buenos Aires desde los 12") — sirve igual para la fábrica,
+    que escribe el libro con el mismo material.
+
+42. **21/09 · Ciro · dos sesiones sobre el mismo narrador se pisan.** Al retomar, la
+    pregunta 11 ya estaba generada y anotada (`dia_actual` = 11) por otra sesión, con la
+    repregunta de la 10 sin responder — y el audio que llegó contestaba **la repregunta**,
+    no la 11. Cargarlo por orden habría archivado la respuesta sobre Núñez y el colegio
+    como "mi primer laburo". *Hecho*: se transcribió el audio aparte, sin tocar la base,
+    para ver a qué respondía, y recién ahí se cargó con `--repregunta --orden 10`.
+    *Para repasar*: (a) que `estado` avise "hay una repregunta de la orden N sin
+    responder" (es la #6, abierta); (b) **esta bitácora se está editando desde dos ramas**
+    — `main` tiene entradas 31, 32, 35, 36 y 37 (Ciro) que acá no están, y los números
+    35-39 de esta rama son hallazgos distintos: al mergear hay que renumerar a mano.
+
 ## Producción / infra (no es del entrevistador, pero salió en el camino)
 
 8. **15/09 · producción corría un build de 8 días** mientras `main` tenía todo el
