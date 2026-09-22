@@ -24,9 +24,9 @@ const render = (trato: "tu" | "vos") =>
 describe("la voz del carrito", () => {
   it('en "tú" (checkout del Familiar) no aparece ninguna forma rioplatense', () => {
     const html = render("tu");
-    expect(html).toContain("Suma el libro impreso");
-    expect(html).toContain("Suma marcos con su voz");
-    expect(html).toContain("suma el libro impreso para agregar marcos");
+    expect(html).toContain("Añade el libro impreso");
+    expect(html).toContain("Añade marcos con su voz");
+    expect(html).toContain("añade el libro impreso para agregar marcos");
     expect(html).not.toMatch(/Sumá|tenés|querés|Elegí|Podés/);
   });
 

@@ -23,7 +23,8 @@ export type Trato = "tu" | "vos";
 
 /** Las palabras que cambian entre "tú" y "vos". */
 const VOZ: Record<Trato, { suma: string; tenes: string; marcosGris: string }> = {
-  tu: { suma: "Suma", tenes: "Ya tienes", marcosGris: "Los marcos viajan con el libro: suma el libro impreso para agregar marcos." },
+  // "Añade" y no "Suma": en España suena natural (lo pidió Naza, 22/09).
+  tu: { suma: "Añade", tenes: "Ya tienes", marcosGris: "Los marcos viajan con el libro: añade el libro impreso para agregar marcos." },
   vos: { suma: "Sumá", tenes: "Ya tenés", marcosGris: "Los marcos viajan con el libro: sumá el libro impreso para agregar marcos." },
 };
 
