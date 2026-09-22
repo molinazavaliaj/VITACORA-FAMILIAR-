@@ -191,7 +191,23 @@ describe('procesarEntrante', () => {
     const m: MensajeEntrante = { telefono: TEL, tipo: 'audio', mediaId: 'media-1', waMessageId: 'w' };
     await procesarEntrante(m);
     expect(mocks.guardarRespuestaAudio).toHaveBeenCalledWith('n1', 3, expect.any(Buffer), false);
-    expect(mocks.transcribirYActualizar).toHaveBeenCalledWith('r-audio', expect.any(Buffer), undefined, 'n1');
+    // T3.5 (22/09): la transcripción automática va CON la ficha, como la puerta
+    // manual. Sin el prompt, los nombres propios salen mal en el libro (#17).
+    expect(mocks.transcribirYActualizar).toHaveBeenCalledWith('r-audio', expect.any(Buffer), expect.stringContaining('Don Osvaldo'), 'n1');
+  });
+
+  it('(b2) el prompt de la transcripción lleva los datos de la ficha (nombres, lugar, oficio)', async () => {
+    mocks.estado.narrador = narradorEn('activo', 3, {
+      arbol: { padres: 'Ramón y Haydée', conyuge: 'Élida' },
+      lugarNacimiento: 'Avellaneda',
+      dondeVive: 'Rosario',
+      oficio: 'mecánico',
+    });
+    await procesarEntrante({ telefono: TEL, tipo: 'audio', mediaId: 'media-1', waMessageId: 'w' } as MensajeEntrante);
+    const prompt = mocks.transcribirYActualizar.mock.calls[0][2] as string;
+    for (const dato of ['Don Osvaldo', 'Haydée', 'Élida', 'Avellaneda', 'Rosario', 'mecánico']) {
+      expect(prompt).toContain(dato);
+    }
   });
 
   it('(c) una respuesta insuficiente dispara exactamente una repregunta', async () => {

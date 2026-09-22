@@ -6,6 +6,7 @@ import { variantesDeTelefono } from '../whatsapp/telefonos.js';
 import { guardarRespuestaAudio, guardarReserva, guardarTemaDeOtraParte } from '../db/respuestas.js';
 import { guardarRepreguntaEnviada } from '../db/envios.js';
 import { transcribirYActualizar } from '../ia/transcribir.js';
+import { promptDeTranscripcion } from '../manual/puro.js';
 import { evaluarRespuesta, detectarIntencion, detectarQueNoTuvo, detectarReservaYDejarTema, reservaDe, temaDe, type ReservaYDejarTema } from '../ia/cerebro.js';
 import { generarPreguntasAdaptativas } from '../ia/adaptativas.js';
 import { preguntaDeOrden, preguntasHechasAntes, tieneAdaptativas, ultimoOrden } from '../db/guion.js';
@@ -217,7 +218,12 @@ async function manejarRespuestaAudio(narrador: Narrador, m: MensajeEntrante): Pr
   const esRepregunta = await yaSeRepregunto(narrador.id, orden);
   const audio = await descargarAudio(m.mediaId);
   const { id } = await guardarRespuestaAudio(narrador.id, orden, audio, esRepregunta);
-  const { texto, duracionSegundos } = await transcribirYActualizar(id, audio, undefined, narrador.id);
+  // T3.5 (22/09): con la ficha del narrador, como la puerta manual. Sin este
+  // prompt el modelo adivina los nombres propios y salen mal en el libro
+  // (#17; medido el 14/09: "de la URA" contra "de laburar").
+  const { texto, duracionSegundos } = await transcribirYActualizar(
+    id, audio, promptDeTranscripcion(narrador.contexto ?? {}, narrador.como_le_dicen), narrador.id,
+  );
   await marcarRespondido(narrador.id);
   await trasResponder(narrador, orden, esRepregunta, texto, duracionSegundos, id);
 }
