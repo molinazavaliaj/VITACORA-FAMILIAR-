@@ -173,9 +173,9 @@ export function validarCarrito(region: Region, carrito: Carrito): { ok: true } |
   if (impresos > 0 && !cat.impreso) return { ok: false, mensaje: "El libro impreso todavía no está disponible en tu región." };
   const copiasNuevas = impresosPrevios === 0 ? impresos - 1 : impresos;
   if (copiasNuevas > 0 && cat.impreso?.precioCopia === null) return { ok: false, mensaje: "Las copias extra todavía no están disponibles en tu región." };
-  if (marcos > 0 && impresos + impresosPrevios === 0) return { ok: false, mensaje: "Los marcos viajan con el libro impreso: sumá el libro impreso para agregar marcos." };
+  if (marcos > 0 && impresos + impresosPrevios === 0) return { ok: false, mensaje: "Los marcos viajan con el libro impreso: hay que agregar el libro impreso para sumar marcos." };
   if (marcos > 0 && !cat.marco) return { ok: false, mensaje: "Los marcos todavía no están disponibles en tu región." };
-  if (carrito.base === null && calcularCompra(region, carrito).lineas.length === 0) return { ok: false, mensaje: "Elegí al menos una cosa." };
+  if (carrito.base === null && calcularCompra(region, carrito).lineas.length === 0) return { ok: false, mensaje: "Falta elegir al menos una cosa." };
   return { ok: true };
 }
 

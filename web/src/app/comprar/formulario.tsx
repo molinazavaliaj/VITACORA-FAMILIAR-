@@ -409,7 +409,7 @@ export function Checkout({ catalogo, regionInicial = "AR", promo = null }: { cat
               {paraQuien === "yo" ? "Tu libro, y lo que quieras sumarle." : `El libro de ${comoLeDicen || nombre || "su vida"}, y lo que quieras sumarle.`}
             </h1>
             <p className="mt-3 text-[16px] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">
-              El libro en PDF con «Su voz» va siempre: es donde ocurre la magia. El impreso y los marcos se suman si querés.
+              El libro en PDF con «Su voz» va siempre: es donde ocurre la magia. El impreso y los marcos se suman si quieres.
             </p>
 
             <div className="mt-8">
@@ -424,7 +424,7 @@ export function Checkout({ catalogo, regionInicial = "AR", promo = null }: { cat
             </div>
 
             <div className="mt-4">
-              <Upsells cat={cat} region={region} carrito={carritoElegido} setCarrito={setCarrito} propia={paraQuien === "yo"} />
+              <Upsells cat={cat} region={region} carrito={carritoElegido} setCarrito={setCarrito} propia={paraQuien === "yo"} trato="tu" />
             </div>
 
             <Botones atras={() => avanzar(3)} siguiente={() => avanzar(5)} etiquetaSiguiente="Continuar" error={error} />

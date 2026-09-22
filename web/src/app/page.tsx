@@ -157,7 +157,7 @@ function BotonComprar({ enOscuro = false, secundario = false }: { enOscuro?: boo
 function MicrocopyCta({ clara = false }: { clara?: boolean }) {
   return (
     <p className={`text-[13px] [font-family:var(--fuente-micro)] ${clara ? "text-[#AEAEA6]" : "text-[#5F5F55]"}`}>
-      Pago único · el libro en PDF o el impreso. Elegís al menos uno.
+      Pago único · el libro en PDF con «Su voz». El impreso y los marcos se suman.
     </p>
   );
 }

@@ -12,7 +12,20 @@ import { Tachado } from "./tachado";
 // impresos y el contador de marcos. El precio de cada línea lo calcula la
 // misma función que cobra el servidor (`armarCompra`); acá solo se muestra.
 //
+// `trato` (22/09, lo vio Naza): el checkout del Familiar habla en **castellano
+// neutro de "tú"** y el de viaje y el panel, en **vos**. Como las piezas son
+// las mismas, la voz viaja como dato. Los mensajes de error salen del servidor
+// (`validarCarrito`) y por eso están escritos impersonales.
+//
 // ⚠️ Textos a revisar por Naza (21/09).
+
+export type Trato = "tu" | "vos";
+
+/** Las palabras que cambian entre "tú" y "vos". */
+const VOZ: Record<Trato, { suma: string; tenes: string; marcosGris: string }> = {
+  tu: { suma: "Suma", tenes: "Ya tienes", marcosGris: "Los marcos viajan con el libro: suma el libro impreso para agregar marcos." },
+  vos: { suma: "Sumá", tenes: "Ya tenés", marcosGris: "Los marcos viajan con el libro: sumá el libro impreso para agregar marcos." },
+};
 
 export function formatearPrecio(monto: number, moneda: Moneda, region: Region) {
   return new Intl.NumberFormat(region === "ES" ? "es-ES" : "es-AR", { style: "currency", currency: moneda, maximumFractionDigits: 0 }).format(monto);
@@ -82,26 +95,29 @@ export function Contador({ titulo, detalle, regla, valor, onChange, max = 20, de
  * comprador ya tiene (panel post-venta); en el checkout, 0. Los marcos se
  * habilitan solo con impreso (viajan juntos).
  */
-export function Upsells({ cat, region, carrito, setCarrito, propia = false }: {
+export function Upsells({ cat, region, carrito, setCarrito, propia = false, trato = "vos" }: {
   cat: Catalogo;
   region: Region;
   carrito: Carrito;
   setCarrito: (f: (c: Carrito) => Carrito) => void;
   /** "tu voz" en vez de "su voz": autobiografía o viaje. */
   propia?: boolean;
+  /** "tú" en el checkout del Familiar; "vos" en el de viaje y en el panel. */
+  trato?: Trato;
 }) {
+  const voz = VOZ[trato];
   const f = (n: number) => formatearPrecio(n, cat.moneda, region);
   const impresosPrevios = carrito.impresosPrevios ?? 0;
   const marcosPrevios = carrito.marcosPrevios ?? 0;
   const hayImpreso = impresosPrevios + carrito.impresos > 0;
   const reglaImpreso = cat.impreso
     ? impresosPrevios > 0
-      ? cat.impreso.precioCopia !== null ? `Cada copia extra +${f(cat.impreso.precioCopia)}.` : "Ya tenés el libro impreso."
+      ? cat.impreso.precioCopia !== null ? `Cada copia extra +${f(cat.impreso.precioCopia)}.` : `${voz.tenes} el libro impreso.`
       : cat.impreso.precioCopia !== null ? `El primero +${f(cat.impreso.precio)}; cada copia extra +${f(cat.impreso.precioCopia)}.` : `+${f(cat.impreso.precio)}.`
     : "";
   const reglaMarco = cat.marco
     ? marcosPrevios > 0
-      ? cat.marco.precioAdicional !== null ? `Cada marco +${f(cat.marco.precioAdicional)}.` : "Ya tenés tu marco."
+      ? cat.marco.precioAdicional !== null ? `Cada marco +${f(cat.marco.precioAdicional)}.` : `${voz.tenes} tu marco.`
       : cat.marco.precioAdicional !== null ? `El primero +${f(cat.marco.precio)}; los siguientes +${f(cat.marco.precioAdicional)}.` : `+${f(cat.marco.precio)}.`
     : "";
   const maxImpresos = cat.impreso?.precioCopia === null ? (impresosPrevios > 0 ? 0 : 1) : 20;
@@ -110,7 +126,7 @@ export function Upsells({ cat, region, carrito, setCarrito, propia = false }: {
     <div className="flex flex-col gap-4">
       {cat.impreso ? (
         <Contador
-          titulo={impresosPrevios > 0 ? "Otra copia impresa" : "Sumá el libro impreso"}
+          titulo={impresosPrevios > 0 ? "Otra copia impresa" : `${voz.suma} el libro impreso`}
           detalle={propia ? DETALLE_IMPRESO.replace("su voz", "tu voz") : DETALLE_IMPRESO}
           regla={reglaImpreso}
           valor={carrito.impresos}
@@ -120,13 +136,13 @@ export function Upsells({ cat, region, carrito, setCarrito, propia = false }: {
       ) : null}
       {cat.marco ? (
         <Contador
-          titulo={marcosPrevios > 0 ? "Otro marco" : "Sumá marcos con su voz"}
+          titulo={marcosPrevios > 0 ? "Otro marco" : `${voz.suma} marcos con su voz`}
           detalle={propia ? DETALLE_MARCO.replace("su foto", "tu foto").replace("su voz", "tu voz") : DETALLE_MARCO}
           regla={reglaMarco}
           valor={carrito.marcos}
           max={maxMarcos}
           deshabilitado={!hayImpreso}
-          motivo="Los marcos viajan con el libro: sumá el libro impreso para agregar marcos."
+          motivo={voz.marcosGris}
           onChange={(n) => setCarrito((c) => ({ ...c, marcos: n }))}
         />
       ) : null}
