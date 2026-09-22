@@ -123,6 +123,20 @@ describe('la ficha que se le pasa al modelo', () => {
     expect(fichaEnTexto({ estadoCivil: 'complicado' }, 'Joaquín')).toBe('El narrador es Joaquín.');
   });
 
+  // 22/09: los temas que eligió quien compró, y lo que no puede faltar. No
+  // cambian qué preguntas existen: le dicen al biógrafo hacia dónde llevarlas.
+  it('los temas elegidos y lo imprescindible entran a la ficha, en palabras', () => {
+    const f = fichaEnTexto({ temas: ['oficio', 'origen'], imprescindible: 'la casa de Pelliza' }, 'Don Osvaldo');
+    expect(f).toContain('Le interesa hablar de');
+    expect(f).toContain('su trabajo y lo que construyó');
+    expect(f).toContain('de dónde vino su familia');
+    expect(f).toContain('No puede faltar: la casa de Pelliza.');
+  });
+  it('un tema desconocido se ignora y una lista vacía no ensucia la ficha', () => {
+    expect(fichaEnTexto({ temas: ['futbol'] }, 'Joaquín')).toBe('El narrador es Joaquín.');
+    expect(fichaEnTexto({ temas: [], imprescindible: '   ' }, 'Joaquín')).toBe('El narrador es Joaquín.');
+  });
+
   // 3t.22 (21/09): la compra pregunta dónde vive; entra a la ficha como el lugar de nacimiento.
   it('dónde vive entra a la ficha', () => {
     expect(fichaEnTexto({ dondeVive: 'Rosario, Argentina' }, 'Joaquín')).toBe('El narrador es Joaquín. Vive en Rosario, Argentina.');

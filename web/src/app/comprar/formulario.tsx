@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { CARRITO_VACIO, armarCompra, type Catalogo as CatalogoRegion, type Carrito } from "@/lib/productos";
 import { BaseFija, Ticket, Upsells, formatearPrecio as formatear, listaDe } from "./productos-ui";
 import { HORAS_FAMILIAR as HORAS } from "@/lib/horario";
+import { IMPRESCINDIBLE_MAXIMO, NOMBRE_TEMA, TEMAS, type Tema } from "@/lib/temas";
 import { EVITAR_MAXIMO, NOMBRE_RITMO, RITMOS, RITMO_DEFAULT, TAMANO_MAXIMO_BYTES, errorDeTipoDeFoto, type Ritmo } from "@/lib/guion";
 import { medirImagen } from "@/lib/medir-imagen";
 
@@ -77,6 +78,9 @@ export function Checkout({ catalogo, regionInicial = "AR", promo = null }: { cat
   // Paso 5: la entrevista y el álbum (todo opcional).
   const [ritmo, setRitmo] = useState<Ritmo>(RITMO_DEFAULT);
   const [evitar, setEvitar] = useState("");
+  // 22/09: hacia dónde inclinar las preguntas, y lo que no puede faltar.
+  const [temas, setTemas] = useState<Tema[]>([]);
+  const [imprescindible, setImprescindible] = useState("");
   const [fotos, setFotos] = useState<FotoElegida[]>([]);
   const entradaFotos = useRef<HTMLInputElement>(null);
   // El resultado del POST a /api/compra, por si una foto falla y se reintenta:
@@ -156,6 +160,8 @@ export function Checkout({ catalogo, regionInicial = "AR", promo = null }: { cat
               contexto: {
                 ritmo,
                 evitar: evitar.trim(),
+                ...(temas.length > 0 ? { temas } : {}),
+                ...(imprescindible.trim() ? { imprescindible: imprescindible.trim() } : {}),
                 ...(anioNacimiento.trim() ? { anioNacimiento: Number(anioNacimiento) } : {}),
                 ...(estadoCivil ? { estadoCivil } : {}),
                 // "no tiene hijos" = arbol.hijos 'no tuvo': el capítulo «Los hijos» se reemplaza sin preguntar.
@@ -461,6 +467,24 @@ export function Checkout({ catalogo, regionInicial = "AR", promo = null }: { cat
               <label className={etiqueta} htmlFor="evitar">Temas que no se preguntan</label>
               <textarea id="evitar" className={`${campo} mt-2`} rows={3} value={evitar} onChange={(e) => setEvitar(e.target.value)} maxLength={EVITAR_MAXIMO} placeholder="Por ejemplo: no preguntar por su hermano Rubén. No hablar del accidente del 92." />
               <p className="mt-2 text-[14px] text-[#83837A] [font-family:var(--fuente-cuerpo)] font-light">El biógrafo lo tiene presente en todas sus preguntas.</p>
+            </div>
+
+            {/* 22/09: hacia dónde inclina el biógrafo cada pregunta. ⚠️ Textos a revisar por Naza. */}
+            <div className="mt-10">
+              <p className={etiqueta}>¿De qué quieres que le preguntemos más?</p>
+              <p className="mt-2 text-[15px] leading-[1.7] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">
+                Elige los que quieras. Las 30 preguntas son las mismas para todos; esto le dice al biógrafo hacia dónde llevarlas cuando le escribe.
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2" role="group" aria-label="Temas">
+                {TEMAS.map((t) => (
+                  <button key={t} type="button" aria-pressed={temas.includes(t)} onClick={() => setTemas((x) => (x.includes(t) ? x.filter((y) => y !== t) : [...x, t]))} className={chip(temas.includes(t))}>
+                    {NOMBRE_TEMA[t]}
+                  </button>
+                ))}
+              </div>
+              <label className={`${etiqueta} mt-6 block`} htmlFor="imprescindible">Algo que no puede faltar</label>
+              <input id="imprescindible" className={`${campo} mt-2`} value={imprescindible} onChange={(e) => setImprescindible(e.target.value.slice(0, IMPRESCINDIBLE_MAXIMO))} placeholder="La casa de Pelliza. El taller con su padre." autoComplete="off" />
+              <p className="mt-2 text-[13px] text-[#83837A] [font-family:var(--fuente-cuerpo)] font-light">Una línea. El biógrafo se va a ocupar de que salga en alguna pregunta.</p>
             </div>
 
             <div className="mt-10">

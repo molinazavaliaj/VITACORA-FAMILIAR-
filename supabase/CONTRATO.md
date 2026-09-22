@@ -79,6 +79,23 @@ el layout de viaje (mapa, números, una foto por día) queda para cuando termine
 primer viaje. El entrevistador escribe `contexto.viaje.etapas` **no**: lo edita la web
 (`/api/viaje`) y reasigna `preguntas.capitulo` de las órdenes por venir.
 
+### `contexto.temas` y `contexto.imprescindible` — hacia dónde llevar las preguntas (22/09)
+
+Mismo mecanismo que los `angulos` de la Vitácora de viaje, pero para el Familiar. **La web los
+escribe** en la compra (paso 5, `registro.ts`); **el entrevistador los lee** en `ia/ficha.ts` y
+entran al prompt de cada pregunta, de las repreguntas y de las adaptativas. **La fábrica no los
+mira.** Sin migración: son claves del jsonb `narradores.contexto`.
+
+- `temas`: lista de `familia | oficio | origen | fe | viajes | musica | dificiles | amor`, sin
+  repetidos y en el orden que los eligió quien compró. Vacío o ausente = el guion sale como hoy.
+  Los nombres en palabras viven **dos veces** (`web/src/lib/temas.ts` y `entrevistador/src/ia/ficha.ts`):
+  si cambia uno, cambia el otro. Un tema que el entrevistador no conoce se ignora en silencio.
+- `imprescindible`: una línea de texto libre (máximo 200 caracteres) con lo que la familia pide que
+  no falte ("la casa de Pelliza"). Entra a la ficha como `No puede faltar: …`.
+
+**No cambian QUÉ preguntas existen** — eso son las plantillas de guion (`preguntas.plantilla`, que
+todavía no existe): cambian cómo el biógrafo escribe cada una.
+
 **Para la fábrica (13/09):** `audiolibro: "clonada"` = narración en primera persona
 con la voz clonada de sus audios; `"narrador"` = TTS con una voz fija; `"real"` = como
 hasta ahora (sus audios). Nada se descarga: el PDF se lee y el audiolibro se escucha en
