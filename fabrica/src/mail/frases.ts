@@ -13,11 +13,11 @@
 // (`RUTA_RECORDATORIO_FRASES`) lo deja el worker SOLO si Resend confirmó el
 // envío: sin candado, el próximo tick reintenta.
 //
-// ⚠️ TEXTO PENDIENTE DE APROBACIÓN DE NAZA. Regla de la casa: los textos que ve
-// una persona los aprueba ella antes de mergear. Este mail le habla a la familia
-// en rioplatense ("querés", "podés", "tocás"), como el texto del plan; los otros
-// mails de la casa están en castellano neutro de "tú". Si Naza prefiere unificar
-// la voz, se cambia acá y en ningún otro lado.
+// ✅ TEXTO APROBADO POR NAZA (2026-09-21), en castellano neutro de "tú": este mail
+// es comunicación de la empresa, así que va con el tono formal de los otros mails
+// de la casa (anticipo, hitos), no con el rioplatense del texto del plan. El
+// contenido también es de ella: el primer párrafo dice "las mejores historias con
+// su voz", no "las frases de «Su voz»".
 
 import { cargarConfig } from '../config.js';
 import { escaparHtml } from '../libro/comun.js';
@@ -36,7 +36,7 @@ export const RUTA_RECORDATORIO_FRASES = (narradorId: string) =>
   `${narradorId}/paquete/${CANDADO_RECORDATORIO_FRASES}`;
 
 export function asuntoRecordatorioFrases(comoLeDicen: string): string {
-  return `Las frases de tu ${comoLeDicen}: ¿querés elegir vos las que se imprimen?`;
+  return `Las frases de tu ${comoLeDicen}: ¿quieres elegir tú las que se imprimen?`;
 }
 
 /**
@@ -50,9 +50,9 @@ export function asuntoRecordatorioFrases(comoLeDicen: string): string {
  * hace nada, que es la promesa del spec: se imprime lo que eligió el biógrafo.
  */
 const PARRAFOS = (quien: string): string[] => [
-  `El libro de tu ${quien} ya está terminado, y las frases de «Su voz» ya se pueden escuchar.`,
-  `Las eligió el biógrafo entre las cosas que dijo ${quien}. Si querés sacar alguna, poner otra en su lugar o cambiar el orden, podés hacerlo desde tu panel.`,
-  `No hay ninguna obligación de hacerlo: si no tocás nada, cuando se imprima va la lista que eligió el biógrafo, tal como está.`,
+  `El libro de tu ${quien} ya está terminado, y las mejores historias con su voz ya se pueden escuchar.`,
+  `Las eligió el biógrafo entre las cosas que dijo ${quien}. Si quieres sacar alguna, poner otra en su lugar o cambiar el orden, puedes hacerlo desde tu panel.`,
+  `No hay ninguna obligación de hacerlo: si no tocas nada, cuando se imprima va la lista que eligió el biógrafo, tal como está.`,
 ];
 
 export function cuerpoRecordatorioFrases(opciones: { comoLeDicen: string; enlace: string }): string {
