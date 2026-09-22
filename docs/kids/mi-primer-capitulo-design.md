@@ -1,4 +1,9 @@
-# El Primer Capítulo de mi vida — spec (22/09/2026, Naza)
+# Mi Primer Capítulo — spec (22/09/2026, Naza)
+
+**Línea: Vitácora Kids.** Producto aparte de la Vitácora Familiar. Vive en su propia rama
+(`vitacora-kids`), su propia carpeta (`docs/kids/`), su propio modo (`kids`) y su propia
+ruta (`/kids/mi-primer-capitulo`). No comparte nombres, rutas ni guion con la Vitácora del
+abuelo: comparte la máquina de abajo y nada más.
 
 **Qué es.** La hermana de la Vitácora que le vende al mismo cliente. Un chico de 11 recibe
 durante tres semanas **20 preguntas grandes** por WhatsApp — una por día, se contestan con
@@ -171,23 +176,23 @@ producto no la necesita para ser el mejor regalo de la casa.
 
 ## La compra y el precio
 
-`/comprar/primer-capitulo`. Mismos pasos que hoy, más el campo de canal.
+`/kids/mi-primer-capitulo`. Mismos pasos que hoy, más el campo de canal.
 
 **Precio: el mismo de la casa — 49 € / ARS 85.750.** No se baja por ser más corto: lo que
 se paga no es la cantidad de preguntas, y un precio menor le dice al comprador que vale
-menos que la del abuelo. Va por variable propia (`PRECIO_PRIMERCAP_EUR` /
-`PRECIO_PRIMERCAP_ARS`), con la regla de las hermanas: sin precio configurado, el producto
+menos que la del abuelo. Va por variable propia (`PRECIO_KIDS_EUR` /
+`PRECIO_KIDS_ARS`), con la regla de las hermanas: sin precio configurado, el producto
 no existe para el cliente (`web/src/lib/precios.ts:69`). El impreso arriba, según el
 catálogo de 3t.27 (`specs/2026-09-22-catalogo-base-y-upsells-design.md`).
 
 ## Qué hay que construir
 
-1. `contexto.modo = 'primer_capitulo'` en el entrevistador, copiando la forma de
+1. `contexto.modo = 'kids'` en el entrevistador, copiando la forma de
    `entrevistador/src/flujo/viaje.ts:31`, con las tres reglas de tono.
 2. El guion del modo: las **20 grandes** (`tipo 'fija'`) y las **15 "mostrame"**, que
    necesitan un tipo propio — se mandan al recibir la respuesta de la grande, no a horario,
    y en el libro van al álbum, no a un capítulo.
-3. El campo `canal` en el wizard de compra + `PRECIO_PRIMERCAP_EUR` / `_ARS`.
+3. El campo `canal` en el wizard de compra + `PRECIO_KIDS_EUR` / `_ARS`.
 4. En la fábrica: el sobre cerrado (PDF aparte + páginas al final del impreso) y la sección
    **"Mis cosas a los 11"** (galería con epígrafe).
 5. Plantilla de bienvenida nueva en Meta (cuerpo en `entrevistador/PLANTILLAS.md`).
