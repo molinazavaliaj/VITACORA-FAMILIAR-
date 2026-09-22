@@ -528,3 +528,39 @@ se corrige.
 
 **La dirección es un dato personal nuevo**: una línea en `/legal/privacidad` §7 (se guarda solo
 para entregar lo físico; se borra al año de `entregado`). Texto: Naza.
+
+## «Sus objetos preciados» — el pedido de una foto concreta (PROPUESTA del 22/09, la aplica Naza)
+
+⚠️ **No está aplicada todavía.** La migración es `20260923000000_preguntas_de_objeto.sql` y la aplica
+Naza en el SQL Editor. Mientras tanto el código funciona sin la columna: `fotos.pregunta_orden` se lee
+como ausente = la foto no contesta a ningún pedido, que es exactamente lo que pasa hoy. Es idempotente
+y no toca datos.
+
+De dónde sale (Joaquín, 22/09): el guion lleva la entrevista para el lado de la biografía y está bien,
+pero todo lo que la persona tiene en la casa —el primer reloj, la camisa que no tira, el amuleto, la
+mascota, el mueble que no tiraría— no entra por ningún lado. Antes de cerrar cada capítulo el biógrafo
+pide **un** objeto: la foto y de dónde salió. Ocho en todo el libro, uno por capítulo.
+
+| Columna | Tipo | Escribe | Lee | Qué es |
+|---|---|---|---|---|
+| `preguntas.tipo` | suma el valor `'objeto'` al check | web (panel) y entrevistador | entrevistador, web | Un tipo más de pregunta, con su fila en el guion: se ve en el panel, se edita, se arrastra y se borra como cualquier otra. |
+| `fotos.pregunta_orden` | integer, null | entrevistador | fábrica, web | La pregunta de objeto que esta foto contesta (`preguntas.orden` del guion propio). Null = llegó suelta o la subió la familia desde el panel. |
+
+Reglas:
+
+- **La pregunta de objeto sale el mismo día que la última de su capítulo**, como segundo mensaje, dentro
+  de la ventana de 24 hs desde que el narrador respondió. **No consume un día** y no necesita plantilla
+  nueva de Meta. Si el capítulo no aplica a esa vida (no tuvo hijos, no tuvo pareja), desaparece con él:
+  es la misma regla de `capituloNoAplica` que ya existe.
+- **Se pide una vez y no se insiste nunca.** Si no llega la foto, muere ahí y no se vuelve a mencionar.
+  Si contesta por texto en vez de mandar la foto ("no la tengo, pero me acuerdo…"), eso vale igual y
+  entra al libro como historia.
+- **La foto que llega se ata al último pedido abierto** (mandado hace menos de 48 hs y sin foto todavía)
+  y hereda su capítulo. Si no hay pedido abierto, va al capítulo de la pregunta vigente. WhatsApp no
+  dice a qué mensaje responde una imagen: no se adivina con visión artificial, y si se equivoca lo
+  corrige la familia desde el panel.
+- **En el libro cierra su capítulo**, entera y sin recortar, como las fotos de cierre del 18/09.
+  **La fábrica no cambia**: `pregunta_orden` le sirve para poner el pie de foto si algún día se quiere,
+  pero hoy puede ignorarla sin perder nada.
+- **`contexto.sinFotos`** (boolean, lo escribe la web desde el panel): si está en true, las preguntas de
+  objeto se saltean. Es para el narrador que no puede sacar ni mandar fotos.
