@@ -60,7 +60,10 @@ export async function armarMuestra(admin: SupabaseClient, narradorId: string): P
     titulo: edicion.titulo ?? propuesta.titulo,
     subtitulo: edicion.subtitulo ?? propuesta.subtitulo,
     portadaFotoId: edicion.portadaFotoId ?? null,
-    capitulos: edicion.ordenCapitulos?.length ? edicion.ordenCapitulos : capitulosGuion,
+    // T3.1 (bitácora #36): con los títulos que puso la dueña en Encargar libro,
+    // como el panel y el libro impreso. Sin título, el nombre del guion.
+    capitulos: (edicion.ordenCapitulos?.length ? edicion.ordenCapitulos : capitulosGuion)
+      .map((c) => edicion.titulosCapitulos?.[c]?.trim() || c),
     primerParrafo,
     tieneAudio: (paquete ?? []).some((a) => a.name === "muestra_audiolibro.mp3"),
   };

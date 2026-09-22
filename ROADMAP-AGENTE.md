@@ -114,11 +114,11 @@ Lo que SI puede correr el piloto hoy: **T1.3, T3.1, T3.3, T3.5** (y T1.4 apenas 
   - evidencia: —
 ## Fase 3 — Lo que frena el lanzamiento del 15 de octubre
 
-- [ ] **T3.1** — web: la muestra pública aplica `edicion.titulosCapitulos`
+- [x] **T3.1** — web: la muestra pública aplica `edicion.titulosCapitulos`
   - deps: —
   - tamaño: S
   - hecho-cuando: `cd web && npx vitest run`
-  - evidencia: —
+  - evidencia: **22/09 (J)**: `muestra.ts` mapea los capítulos por `titulosCapitulos` (con `ordenCapitulos` si está), un título en blanco no pisa el del guion. `test/muestra.test.ts` nuevo (4 casos). 529 tests verdes.
   - nota: bitácora #36, el pendiente que quedó abierto: `web/src/lib/muestra.ts` lista los capítulos por `ordenCapitulos` y el panel sí aplica los títulos. La dueña renombra "Los hijos" y el link público dice otra cosa. Lo consume `web/src/app/libro/[token]/page.tsx`.
 
 - [x] **T3.2** — fábrica: healthcheck de verdad (bitácora #32)
