@@ -29,6 +29,7 @@ pregunta 12 de 26.
 |---|---|---|
 | C6 | El biógrafo pone los recuerdos **en la ciudad equivocada** (3 de 3) | Es un error de hecho, no de tono: las salidas de la adolescencia fueron en Buenos Aires y las preguntó "en Concordia". La fábrica escribe el libro con el mismo material, así que el error viaja al texto impreso. **Reproducido el 22/09 contra `main` al día (3t.29 incluido): no lo arregla nada de lo de hoy.** |
 | C8 | La puerta manual quedó **rota entera** por un módulo borrado | `3t.28` borró `src/ia/voz.ts` y dejó el import en `scripts/manual.ts`: cualquier comando moría. Tercera vez que muerde la misma causa — `tsconfig.json` tiene `include: ["src"]`, así que `tsc` **nunca** mira `scripts/`. Arreglado el 22/09; la causa raíz sigue abierta. |
+| C11 | La personalización **devuelve la pregunta entera en usted** a un narrador de vos | No es un verbo suelto como en C6: la 13 arranca "Mirá, vos dijiste…" y sigue "¿cómo **conoció** al amor de su vida? **Lléveme** a ese día… qué **pensó** cuando **la** vio". Si se manda así, el narrador siente que le escribe otra persona. Cuarta aparición de la mezcla, la peor. |
 | C3 | Pregunta por la infancia **como si hubiera sido un lujo** | Pedido explícito de Naza. A un narrador con infancia dura, preguntarle por "las fiestas y las tradiciones" le dice que no lo escucharon — y encima desperdicia la pregunta del día. |
 
 ### 🟠 Medios — le sacan valor a la entrevista
@@ -39,6 +40,7 @@ pregunta 12 de 26.
 | C1 | La repregunta **pide lo que ya contó** | La evaluación no ve la historia: solo la pregunta y la respuesta de hoy. |
 | C4 | La repregunta **insiste donde pidió cambiar de tema** | Dijo literal "vamos por otro lado" y el biógrafo fue derecho ahí. |
 | C5 | La personalización **repite lo recién contestado** y lidera con las sustancias | Pregunta lo que el narrador acaba de decir que no pasó; y convierte el consumo en el gancho de la pregunta. |
+| C12 | Da por hecho que **hubo** un amor y que **es mujer** | La 13 pregunta "qué pensó cuando **la** vio" a un narrador de 28 sin estado civil ni pareja en la ficha. Mismo fallo que las tres preguntas de "Los hijos" a quien no tiene. |
 | C7 | **Dos sesiones sobre el mismo narrador se pisan** | Casi archiva una respuesta en el capítulo equivocado. |
 
 ### 🟡 Suaves
@@ -215,3 +217,42 @@ dejando el trabajo a medias.
 **Hecho:** copiada la key buena. **Regla:** al rotar una clave hay que pegarla en los
 **dos** `.env`. **Para repasar:** que la puerta manual avise claro "la key de X no
 sirve" en vez de escupir el 401 crudo a mitad de camino.
+
+### C11 · La personalización devuelve la pregunta entera en usted
+**22/09.** La pregunta 13, para un narrador con `contexto.trato = 'vos'`, salió:
+
+> "**Mirá, vos dijiste** que en Buenos Aires los primeros meses fueron complicados con
+> tu viejo. En algún momento de esos años en la capital, ¿cómo **conoció** al amor de su
+> vida? **Lléveme** a ese día: dónde fue, qué **pensó** cuando la vio, quién dio el primer
+> paso."
+
+La primera oración en vos y **todo el resto en usted**, calcado de la fija del guion
+(«¿Cómo conoció al amor de su vida? Lléveme a ese día…»). Las tres veces anteriores
+—"regálenos", "cuéntame" (Joaquín) y "se salvó" (C6)— eran una palabra suelta; acá el
+modelo copió la fija entera y solo tradujo el enganche que él mismo agregó.
+
+**La hipótesis que esto sugiere:** cuanto más "pegada" al original queda la
+personalización, más se arrastra el trato del original — y la regla «CONSERVÁ TODAS LAS
+PREGUNTAS del original» empuja justo hacia ahí. Es la misma raíz que C5.
+
+**Hecho a mano:** reescrita en vos antes de mandarla. **Para repasar:** además de la
+línea «Tratalo de X», que el prompt muestre el trato **en las reglas de estilo** y que
+`esPersonalizacionValida` pueda rechazar una versión que trae formas de usted cuando el
+trato es vos (y al revés) — hoy solo cuenta signos de pregunta y palabras.
+
+### C12 · Da por hecho que hubo un amor, y que es mujer
+**22/09.** La misma pregunta 13 dice *"qué pensó cuando **la** vio"* a un narrador de 28
+años cuyo `contexto` **no tiene** `estadoCivil` ni `arbol.conyuge`. La fija del guion ya
+viene así («¿Cómo conoció al amor de su vida?… qué pensó cuando la vio»), pensada para
+un abuelo casado, y la personalización la conserva.
+
+Es la misma familia que las tres preguntas de «Los hijos» a quien dijo que no tiene, y
+que C2 (dar por muerta a la abuela): **el guion asume una vida y la pregunta no deja
+lugar a otra**. Con un cliente real que enviudó joven, que no tuvo pareja, o cuya pareja
+es un hombre, la pregunta duele o directamente no se puede contestar.
+
+**Hecho a mano:** reescrita sin suponer. **Para repasar:** (a) el checkout ya pide
+estado civil (21/09) pero Ciro se dio de alta antes — para los de antes, `manual ficha`;
+(b) las fijas de «El amor» deberían estar escritas sin género y sin dar por hecho que
+hubo pareja, como se hizo con «Los hijos»; (c) si la ficha no dice nada, la pregunta
+tiene que preguntar **si** hubo, no **cómo fue**.
