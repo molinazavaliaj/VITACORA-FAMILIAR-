@@ -275,7 +275,8 @@ Lo que SI puede correr el piloto hoy: **T1.3, T3.1, T3.3, T3.5** (y T1.4 apenas 
   - cerrada: 2026-09-22T02:13:27+02:00
   - commit: 0185463
 
-- [!] **T3.20** — web: el precio del impreso no puede quedar por debajo del PDF suelto, y el panel no puede mostrar un total distinto del que cobra
+- [x] **T3.20** — web: el precio del impreso no puede quedar por debajo del PDF suelto, y el panel no puede mostrar un total distinto del que cobra
+  - **CERRADA el 22/09 por `catalogo-base` (dc0fe8a), no por el piloto.** Revisado contra la rama: (1) el subprecio silencioso no puede pasar porque el impreso dejó de ser un precio suelto que compite con el PDF — ahora es un adicional sobre la base obligatoria; (2) el test flojo (`extras-copias.test.ts:74`) desaparece con las ramas del agente, que se descartan; (3) los dos redondeos mueren: `armarCompra` es la ÚNICA cuenta y redondea una sola vez al final, y la usan tanto la pantalla del panel (`extras.tsx:30`) como el cobro (`api/extras/route.ts:60` vía `calcularCompra`). Verificado además: 504 tests verdes + `tsc` limpio en la rama, merge en seco sobre `main` sin conflictos con T3.1, `validarCarrito` no pierde ninguna línea en silencio, y `extras.copias` = total de impresos, igual que el CONTRATO (`productos.ts:25` de la fábrica lo lee así).
   - deps: T3.18
   - tamaño: S
   - hecho-cuando: `cd web && npx vitest run && npx tsc --noEmit`
