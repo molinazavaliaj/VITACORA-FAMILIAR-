@@ -55,6 +55,30 @@ export function estadoCivilEnTexto(contexto: Record<string, any> = {}): string {
  * Es lo que la familia cargó al comprar (o lo que se completa a mano en los
  * pilotos) — nada que inventar acá.
  */
+/**
+ * Los temas que eligió quien compró (22/09), en las mismas palabras que vio en
+ * la pantalla. Espejo de `web/src/lib/temas.ts`: si cambia allá, cambia acá.
+ */
+const NOMBRE_TEMA: Record<string, string> = {
+  familia: 'su familia',
+  oficio: 'su trabajo y lo que construyó',
+  origen: 'de dónde vino su familia',
+  fe: 'su fe y sus creencias',
+  viajes: 'los viajes y los lugares',
+  musica: 'la música y las fiestas',
+  dificiles: 'los años difíciles',
+  amor: 'el amor y la pareja',
+};
+
+function temasEnTexto(contexto: Record<string, any> = {}): string {
+  const elegidos = Array.isArray(contexto?.temas)
+    ? (contexto.temas as unknown[]).filter((t): t is string => typeof t === 'string' && t in NOMBRE_TEMA).map((t) => NOMBRE_TEMA[t])
+    : [];
+  if (elegidos.length === 0) return '';
+  const lista = elegidos.length === 1 ? elegidos[0] : `${elegidos.slice(0, -1).join(', ')} y ${elegidos[elegidos.length - 1]}`;
+  return `Le interesa hablar de ${lista}.`;
+}
+
 export function fichaEnTexto(contexto: Record<string, any> = {}, comoLeDicen = ''): string {
   const arbol = arbolEtiquetado(contexto);
   return [
@@ -66,5 +90,8 @@ export function fichaEnTexto(contexto: Record<string, any> = {}, comoLeDicen = '
     typeof contexto?.dondeVive === 'string' && contexto.dondeVive.trim() ? `Vive en ${contexto.dondeVive.trim()}.` : '',
     contexto?.oficio ? `Su oficio: ${contexto.oficio}.` : '',
     contexto?.anioNacimiento ? `Año de nacimiento: ${contexto.anioNacimiento}.` : '',
+    // 22/09: hacia dónde llevar las preguntas, y lo que la familia pidió que no falte.
+    temasEnTexto(contexto),
+    typeof contexto?.imprescindible === 'string' && contexto.imprescindible.trim() ? `No puede faltar: ${contexto.imprescindible.trim()}.` : '',
   ].filter(Boolean).join(' ');
 }

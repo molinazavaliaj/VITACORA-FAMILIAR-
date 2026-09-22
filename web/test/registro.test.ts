@@ -205,6 +205,24 @@ describe('validarYConstruir', () => {
     if (!malo.ok) expect(malo.status).toBe(400);
   });
 
+  // 22/09: "de qué querés que le preguntemos más" + lo que no puede faltar.
+  it('guarda los temas elegidos y lo imprescindible; un tema inventado se rechaza', () => {
+    const ok = validarYConstruir(cuerpoValido({ contexto: { temas: ['oficio', 'familia', 'oficio'], imprescindible: '  la casa de Pelliza  ' } }) as never);
+    expect(ok.ok).toBe(true);
+    if (ok.ok) {
+      expect(ok.narrador.contexto.temas).toEqual(['oficio', 'familia']);
+      expect(ok.narrador.contexto.imprescindible).toBe('la casa de Pelliza');
+    }
+    const vacio = validarYConstruir(cuerpoValido({ contexto: { temas: [], imprescindible: '' } }) as never);
+    if (vacio.ok) {
+      expect(vacio.narrador.contexto).not.toHaveProperty('temas');
+      expect(vacio.narrador.contexto).not.toHaveProperty('imprescindible');
+    }
+    const malo = validarYConstruir(cuerpoValido({ contexto: { temas: ['futbol'] } }) as never);
+    expect(malo.ok).toBe(false);
+    if (!malo.ok) expect(malo.status).toBe(400);
+  });
+
   it('en viaje el trato es siempre vos, aunque manden usted', () => {
     const r = validarYConstruir(cuerpoValido({ contexto: { trato: 'usted', viaje: { salida: '2026-10-01', vuelta: '2026-10-05', etapas: [{ nombre: 'Lisboa' }] } } }) as never);
     expect(r.ok).toBe(true);

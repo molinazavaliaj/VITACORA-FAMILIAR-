@@ -4,6 +4,7 @@
 
 import { EVITAR_MAXIMO, validarRitmo } from './guion';
 import { validarViaje } from './viaje';
+import { validarImprescindible, validarTemas } from './temas';
 
 export type Region = 'ES' | 'AR';
 
@@ -31,6 +32,9 @@ export interface ContextoInput {
   /** 3t.22 (21/09): dónde vive hoy (texto libre corto) y el trato que eligió el comprador. */
   dondeVive?: string;
   trato?: string;
+  /** 22/09: de qué querés que le preguntemos más, y lo que no puede faltar. */
+  temas?: unknown;
+  imprescindible?: unknown;
   anioNacimiento?: number;
   estadoCivil?: string;
   oficio?: string;
@@ -187,6 +191,10 @@ export function validarYConstruir(body: RegistroBody): ResultadoValidacion {
   if (esNoVacio(contexto.trato) && !(TRATOS as readonly string[]).includes(contexto.trato.trim())) {
     return { ok: false, status: 400, mensaje: 'El trato no es válido: usted o vos.' };
   }
+  const temasOk = validarTemas(contexto.temas);
+  if (!temasOk.ok) return { ok: false, status: 400, mensaje: temasOk.mensaje };
+  const imprescindibleOk = validarImprescindible(contexto.imprescindible);
+  if (!imprescindibleOk.ok) return { ok: false, status: 400, mensaje: imprescindibleOk.mensaje };
 
   const telefono = normalizarTelefono(narrador.telefonoWhatsapp, region);
   if (!TELEFONO_E164.test(telefono)) {
@@ -238,6 +246,8 @@ export function validarYConstruir(body: RegistroBody): ResultadoValidacion {
   if (esNoVacio(contexto.trato)) {
     contextoFinal.trato = contexto.trato.trim();
   }
+  if (temasOk.temas.length > 0) contextoFinal.temas = temasOk.temas;
+  if (imprescindibleOk.texto) contextoFinal.imprescindible = imprescindibleOk.texto;
   if (contexto.anioNacimiento !== undefined) {
     contextoFinal.anioNacimiento = contexto.anioNacimiento;
   }
