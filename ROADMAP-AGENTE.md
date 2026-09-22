@@ -32,6 +32,8 @@ arbol. Cuando resuelvas una, cambia `[!]` por `[ ]` y el piloto la toma.
 | T3.11 | Redirect URLs de Supabase | decision tuya en Supabase |
 | T3.7 | /admin vuelve al carrito | codigo: lo puede cerrar el piloto |
 | T3.8 | sin boton Salir en el panel | codigo: lo puede cerrar el piloto |
+| T3.18 / T3.19 / T3.20 | el carrito del impreso | **frenadas el 22/09**: el 3t.27 de Joaquín (base + upsells, rama `catalogo-base`) reemplaza ese modelo; las ramas del piloto no se mergean sin decisión de Naza |
+| T2.4 | worker.ts roto | ✅ arreglado el 22/09 en la rama `fabrica-tick-recordatorio-frases` (4d7dbfb: 412 tests / 33 archivos verdes); falta mergear + push |
 | T5.1 - T5.4 | los pilotos con personas reales | vos y Joaquin |
 | T6.1 - T6.3 | Stripe, autónoma, rotar keys | vos |
 
@@ -273,10 +275,11 @@ Lo que SI puede correr el piloto hoy: **T1.3, T3.1, T3.3, T3.5** (y T1.4 apenas 
   - cerrada: 2026-09-22T02:13:27+02:00
   - commit: 0185463
 
-- [ ] **T3.20** — web: el precio del impreso no puede quedar por debajo del PDF suelto, y el panel no puede mostrar un total distinto del que cobra
+- [!] **T3.20** — web: el precio del impreso no puede quedar por debajo del PDF suelto, y el panel no puede mostrar un total distinto del que cobra
   - deps: T3.18
   - tamaño: S
   - hecho-cuando: `cd web && npx vitest run && npx tsc --noEmit`
+  - espera: **decisión de Naza (22/09): el 3t.27 de Joaquín (`docs/superpowers/specs/2026-09-22-catalogo-base-y-upsells-design.md`, rama `catalogo-base`) reemplaza el modelo de T3.18/T3.19** (base obligatoria + impreso como upsell, muere `calcularExtras`). No construir nada más sobre `web-impreso-incluye-pdf` ni `web-copia-extra-precio`; si Naza confirma, estas dos ramas se descartan y T3.20 se reescribe contra `catalogo-base` (el guard del subprecio y el redondeo único siguen valiendo ahí).
   - evidencia: —
   - nota: hallazgos de la revision independiente del diff de T3.18/T3.19 (22/09, subagente de solo lectura). Tres cosas de la misma familia —**el codigo no hace cumplir la regla, la sostiene el documento**—: (1) `obtenerPrecioImpreso` (`web/src/lib/precios.ts:93-100`) deja que la variable de entorno le gane al precio de la casa **sin aviso**, asi que un `PRECIO_IMPRESO_BN_EUR=20` vende el impreso (con el PDF incluido) por menos que el PDF suelto y nadie se entera; el test que dice cuidarlo (`web/test/precios.test.ts:303`) compara constantes y nunca carga una variable, asi que pasa igual. Guard real: si el precio del impreso queda por debajo del PDF de la region, avisar por consola y valer el precio de la casa — el subprecio silencioso es peor que el error visible (misma regla que el default de AR de 49.999). (2) `web/test/extras-copias.test.ts:74` usa `not.toContain('171.500')` con un fixture de 98, asi que no morderia ni con el componente roto: reemplazarlo por algo que distinga (el `toContain('70.000')` de la linea 73 si lo hace). (3) El panel muestra y cobra las copias con dos redondeos distintos (`extras.tsx:73` redondea despues de multiplicar, `productos.ts:274-275` redondea el unitario antes): con un precio con decimales cargado a mano la pantalla puede decir "Pagar 89,00" y cobrar 89,01. Con los precios decididos (enteros) no se dispara, asi que no es urgente: un solo redondeo y un test que compare lo mostrado con lo cobrado.
 
