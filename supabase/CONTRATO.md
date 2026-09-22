@@ -476,3 +476,35 @@ Regenerar después de cada migración.
 
 Las tres tienen RLS prendido y **sin políticas**: sólo la service role las toca (el navegador nunca). Si la
 migración no está aplicada, el producto sigue andando: los servicios avisan por consola y no anotan nada.
+
+## Entregas — logística de lo físico (PROPUESTA del 21/09, Joaquín; pendiente del OK y la aplicación de Naza)
+
+Diseño: `docs/superpowers/specs/2026-09-21-logistica-fisica-propuesta.md`. Migración:
+`20260922000000_entregas.sql`. Una fila por pedido que lleva **libro impreso y/o marcos**
+(`pedidos.extras.impreso` o `marcos > 0`); un pedido de solo PDF no tiene fila. **Qué va
+adentro no se duplica**: se lee de `pedidos.extras` (copias, acabado, marcos).
+
+| Columna | Escribe | Lee | Nota |
+|---|---|---|---|
+| fila nueva (`estado = 'sin_direccion'`, `pedido_id`, `narrador_id`, `familia_id`, `origen`) | **web**, al confirmar el pago (webhook o `/api/pago/vuelta`) | fábrica, `/admin` | `origen` = la región del comprador (`AR`/`ES`): el centro que despacha. |
+| `destinatario_*`, `direccion`, `nota`, `direccion_at` → `estado = 'lista'` | **web** (`PATCH /api/entrega`, solo el comprador de ese pedido) | fábrica, `/admin` | **Obligatoria para encargar**: sin `lista`, el botón Encargar no se habilita si hay algo físico. Editable hasta `en_produccion`; después la web no la toca. |
+| `estado = 'en_produccion'`, `produccion_at` | **fábrica** | web, `/admin` | **Es el portón de impresión de «Su voz»**: congela la selección de frases y arma el PDF de imprenta con la sección QR. Si la entrega no está `lista`, la fábrica **no produce lo físico** y avisa a los socios. |
+| `etiqueta_proveedor`, `etiqueta_url`, `envio_externo_id`, `transportista`, `seguimiento`, `seguimiento_url`, `peso_g`, `dimensiones` | **fábrica** (al pasar a `en_produccion`, crea el envío en el agregador del país) | `/admin`, la imprenta (imprime `etiqueta_url`) | Agregador por país (ES: Sendcloud/Packlink; AR: Enviopack/Zippin/Shipnow — a elegir). El envío va **incluido en el precio**: nada se cotiza al comprador. |
+| `estado = 'impreso'`, `impreso_at` | **fábrica / Naza** (`/admin` → Envíos) | web | |
+| `estado = 'enviado'`, `enviado_at` | **fábrica / Naza** | web | Dispara el **mail de hito "enviado"** (con seguimiento). |
+| `estado = 'entregado'`, `entregado_at` | **fábrica / Naza**, o **web** (botón "ya me llegó" del comprador) | `/admin` | Dispara el mail de hito "entregado"; en la web, gracias + link a Trustpilot. |
+| `estado = 'con_problema'`, `problema` | **fábrica / Naza** | web | Aviso a los socios y mail al comprador. |
+
+`direccion` es `{ linea1, linea2?, ciudad, provincia?, cp, pais }` (texto libre por país; lo valida la
+web al guardar). `updated_at` lo mantiene un trigger. RLS prendido y **sin políticas**: sólo la
+service role (web y fábrica del lado del servidor, `/admin`); el navegador nunca. Si la migración
+no está aplicada, la web no muestra la sección Envío y el resto del producto sigue igual.
+
+**Estados válidos y quién puede pasar de uno a otro:** `sin_direccion → lista` (web) · `lista →
+en_produccion` (fábrica) · `en_produccion → impreso → enviado → entregado` (fábrica/Naza; `entregado`
+también la web) · cualquiera `→ con_problema` (fábrica/Naza) y de `con_problema` vuelve al estado
+anterior a mano desde `/admin`. `lista → sin_direccion` no existe: una dirección cargada no se borra,
+se corrige.
+
+**La dirección es un dato personal nuevo**: una línea en `/legal/privacidad` §7 (se guarda solo
+para entregar lo físico; se borra al año de `entregado`). Texto: Naza.
