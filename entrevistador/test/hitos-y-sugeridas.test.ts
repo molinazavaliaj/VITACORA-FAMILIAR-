@@ -31,7 +31,6 @@ vi.mock('../src/db/cliente.js', () => {
 vi.mock('../src/whatsapp/enviar.js', () => ({ enviarTexto: vi.fn(), enviarPlantilla: vi.fn(), enviarAudioPorLink: vi.fn(), enviarImagenPorLink: vi.fn() }));
 vi.mock('../src/ia/cerebro.js', () => ({ evaluarRespuesta: vi.fn(), detectarIntencion: vi.fn(), generarPreguntaReemplazo: vi.fn() }));
 vi.mock('../src/ia/personalizar.js', () => ({ personalizarPregunta: vi.fn() }));
-vi.mock('../src/ia/voz.js', () => ({ generarAudioVoz: vi.fn() }));
 vi.mock('../src/ia/transcribir.js', () => ({ transcribirYActualizar: vi.fn() }));
 vi.mock('@anthropic-ai/sdk', () => ({ default: class { messages = { create: vi.fn() }; } }));
 
