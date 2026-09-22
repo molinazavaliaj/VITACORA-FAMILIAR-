@@ -273,6 +273,20 @@ Lo que SI puede correr el piloto hoy: **T1.3, T3.1, T3.3, T3.5** (y T1.4 apenas 
   - cerrada: 2026-09-22T02:13:27+02:00
   - commit: 0185463
 
+- [ ] **T3.20** — web: el precio del impreso no puede quedar por debajo del PDF suelto, y el panel no puede mostrar un total distinto del que cobra
+  - deps: T3.18
+  - tamaño: S
+  - hecho-cuando: `cd web && npx vitest run && npx tsc --noEmit`
+  - evidencia: —
+  - nota: hallazgos de la revision independiente del diff de T3.18/T3.19 (22/09, subagente de solo lectura). Tres cosas de la misma familia —**el codigo no hace cumplir la regla, la sostiene el documento**—: (1) `obtenerPrecioImpreso` (`web/src/lib/precios.ts:93-100`) deja que la variable de entorno le gane al precio de la casa **sin aviso**, asi que un `PRECIO_IMPRESO_BN_EUR=20` vende el impreso (con el PDF incluido) por menos que el PDF suelto y nadie se entera; el test que dice cuidarlo (`web/test/precios.test.ts:303`) compara constantes y nunca carga una variable, asi que pasa igual. Guard real: si el precio del impreso queda por debajo del PDF de la region, avisar por consola y valer el precio de la casa — el subprecio silencioso es peor que el error visible (misma regla que el default de AR de 49.999). (2) `web/test/extras-copias.test.ts:74` usa `not.toContain('171.500')` con un fixture de 98, asi que no morderia ni con el componente roto: reemplazarlo por algo que distinga (el `toContain('70.000')` de la linea 73 si lo hace). (3) El panel muestra y cobra las copias con dos redondeos distintos (`extras.tsx:73` redondea despues de multiplicar, `productos.ts:274-275` redondea el unitario antes): con un precio con decimales cargado a mano la pantalla puede decir "Pagar 89,00" y cobrar 89,01. Con los precios decididos (enteros) no se dispara, asi que no es urgente: un solo redondeo y un test que compare lo mostrado con lo cobrado.
+
+- [!] **T3.21** — la landing dice que PDF e impreso se eligen por separado (y no dice que el impreso trae el digital)
+  - deps: —
+  - tamaño: S
+  - espera: Naza aprueba el texto. Es copy, no codigo.
+  - hecho-cuando: criterio en texto: la landing y la FAQ dicen que el libro impreso **viene con el libro en PDF**, y no invitan a "sumar los otros despues" como si fueran productos independientes.
+  - nota: hallazgo de la revision del 22/09 (`web/src/app/page.tsx:122`, `:157` y `:489`): la FAQ dice "elegis el libro en PDF, el impreso, o los dos", el microcopy del CTA dice "Pago unico · el libro en PDF o el impreso. Elegis al menos uno" y el pie de la tabla de precios dice "los otros se pueden sumar despues, desde tu panel". Con el impreso a 98 que ya trae el digital, ese texto hace leer 49 + 98 = 147 (el precio que la decision del 21/09 prohibe) y promete un camino que ya no existe. Las dos tarjetas de precio tampoco aclaran que el impreso incluye el PDF.
+
 - [!] **3t.26** — logistica de lo fisico: direccion y seguimiento del impreso y los marcos (numero del EQUIPO, no del piloto)
   - deps: —
   - tamaño: M
