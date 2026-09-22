@@ -22,7 +22,7 @@
  * Uso:
  *   npm run manual -- estado
  *   npm run manual -- bienvenida ciro --de "Naza"       (la presentación, antes de la pregunta 1)
- *   npm run manual -- siguiente imma                     (--solo-ver para no anotar; --voz para el mp3)
+ *   npm run manual -- siguiente imma                     (--solo-ver para no anotar)
  *   npm run manual -- archivar imma "C:/Users/Naza/Downloads/PTT-20260914-WA0007.ogg"
  *   npm run manual -- cargar imma audios-crudos/imma/dia_03.ogg   (varios archivos = una respuesta, se pegan con ffmpeg)
  *   npm run manual -- evaluar imma --orden 7                       (reintenta solo la evaluación)
@@ -79,7 +79,6 @@ type Modulos = {
   memoriaDeCapitulos: (typeof import('../src/ia/resumenes.js'))['memoriaDeCapitulos'];
   guardarRepreguntaEnviada: (typeof import('../src/db/envios.js'))['guardarRepreguntaEnviada'];
   generarPreguntasAdaptativas: (typeof import('../src/ia/adaptativas.js'))['generarPreguntasAdaptativas'];
-  generarAudioVoz: (typeof import('../src/ia/voz.js'))['generarAudioVoz'];
   tratoDe: (typeof import('../src/ia/trato.js'))['tratoDe'];
   preguntaDeOrden: (typeof import('../src/flujo/preguntar.js'))['preguntaDeOrden'];
   capituloNoAplica: (typeof import('../src/flujo/preguntar.js'))['capituloNoAplica'];
@@ -103,7 +102,6 @@ function modulos(): Promise<Modulos> {
     const { memoriaDeCapitulos } = await import('../src/ia/resumenes.js');
     const { guardarRepreguntaEnviada } = await import('../src/db/envios.js');
     const { generarPreguntasAdaptativas } = await import('../src/ia/adaptativas.js');
-    const { generarAudioVoz } = await import('../src/ia/voz.js');
     const { tratoDe } = await import('../src/ia/trato.js');
     const { preguntaDeOrden, capituloNoAplica, esModoRapido } = await import('../src/flujo/preguntar.js');
     const { armarHistoria } = await import('../src/db/historia.js');
@@ -111,7 +109,7 @@ function modulos(): Promise<Modulos> {
     return {
       db, guardarRespuestaAudio, guardarReserva, guardarTemaDeOtraParte, transcribirYActualizar, evaluarRespuesta, reservaDe, temaDe, detectarReservaYDejarTema, sumarTemaEvitado, textoEvitar,
       personalizarPregunta, memoriaDeCapitulos, guardarRepreguntaEnviada, generarPreguntaReemplazo, generarPreguntasAdaptativas,
-      generarAudioVoz, preguntaDeOrden, capituloNoAplica, esModoRapido, armarHistoria, tratoDe, ultimoOrden, tieneAdaptativas, capitulosDe, preguntasHechasAntes,
+      preguntaDeOrden, capituloNoAplica, esModoRapido, armarHistoria, tratoDe, ultimoOrden, tieneAdaptativas, capitulosDe, preguntasHechasAntes,
     };
   })();
   return _mods;
@@ -356,13 +354,9 @@ async function siguiente(ref: string | undefined, flags: Args['flags']): Promise
   linea(mensaje);
   linea();
 
-  if (flags['voz']) {
-    const carpeta = join(CRUDOS, slug(n.como_le_dicen), 'sistema');
-    mkdirSync(carpeta, { recursive: true });
-    const destino = join(carpeta, `pregunta_${String(orden).padStart(2, '0')}.mp3`);
-    writeFileSync(destino, await mods.generarAudioVoz(texto));
-    linea(`Audio de la pregunta (para adjuntar a mano): ${destino}`);
-  }
+  // El --voz se fue con 3t.28 (22/09): las preguntas van en texto, no en audio.
+  // `src/ia/voz.ts` se borró en ese commit y la puerta manual quedó rota hasta el
+  // 22/09 — tsc no lo vio porque tsconfig solo mira src/ (bitácora #5).
 
   if (flags['solo-ver']) {
     linea('(--solo-ver: no anoté nada en la base)');
@@ -1055,12 +1049,12 @@ Puerta manual de Vitácora Familiar — el entrevistador sin la API de WhatsApp.
       que arma solo con la familia. Se anota como envío 'bienvenida' para que
       el scheduler no la repita cuando Meta vuelva.
 
-  npm run manual -- siguiente <narrador> [--solo-ver] [--voz] [--texto "..."]
+  npm run manual -- siguiente <narrador> [--solo-ver] [--texto "..."]
       Imprime el mensaje EXACTO para pegarle al narrador (pregunta del día,
       personalizada, con reemplazo si el capítulo no aplica) y lo anota en
       'envios' + avanza dia_actual. Si ya respondió la última del guion y
-      faltan las 4 a medida, las genera. --solo-ver no toca la base; --voz te
-      deja el mp3 de la pregunta; --texto manda ESE texto (lo que vos decidiste
+      faltan las 4 a medida, las genera. --solo-ver no toca la base;
+      --texto manda ESE texto (lo que vos decidiste
       mandarle) y lo anota como la pregunta enviada.
 
   npm run manual -- corregir-pregunta <narrador> --texto "..." [--orden N]
