@@ -43,8 +43,11 @@ La web escribe `ritmo` y `evitar`; el entrevistador los lee. Cada escritura rele
 contexto antes de guardar para no pisar al otro. `envios.tipo = 'oferta_siguiente'`
 (migración 12/09) ya se usa: la oferta de "otra pregunta ahora" en ritmo `dos_por_dia`.
 
-`pedidos.extras` (jsonb, misma migración): **qué se compró** (13/09: ya no hay "base";
-los tres productos son independientes y al menos uno va).
+`pedidos.extras` (jsonb, misma migración): **qué se compró**. **Desde el 21/09 (catálogo base +
+upsells, `docs/superpowers/specs/2026-09-22-catalogo-base-y-upsells-design.md`)**: la base (PDF +
+Su voz) va siempre en el checkout → `pdf: true`; el impreso es siempre a color (`"bn"` solo en pedidos
+viejos); `copias` = cuántos impresos van en ESE pedido (el primero y las copias extra); los marcos solo
+existen con impreso. Un pedido posterior desde el panel (más copias, marcos) lleva `pdf: false`.
 ```
 {"pdf": true|false, "audiolibro": "clonada" | "narrador" | "real" | null,
  "impreso": "bn" | "color" | null, "copias": 0..N, "marcos": 0..N}

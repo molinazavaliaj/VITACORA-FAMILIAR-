@@ -47,14 +47,15 @@ const CUERPO_VALIDO = {
   region: "AR",
   email: "Martina@Ejemplo.com",
   narrador: { nombre: "Roberto Fernández", comoLeDicen: "Papá", telefonoWhatsapp: "11 5555 1234", horaPreferida: "09:00" },
-  productos: { pdf: true, audiolibro: null, impreso: "bn", marcos: 2 },
+  productos: { impresos: 1, marcos: 2 }, // catálogo base + upsells (21/09): la base va siempre
 };
 
 beforeEach(() => {
   vi.clearAllMocks();
   process.env.PRECIO_ARS = "65000";
-  delete process.env.PRECIO_IMPRESO_BN_ARS;
-  delete process.env.PRECIO_MARCO_ARS;
+  process.env.PRECIO_IMPRESO_ARS = "120000";
+  process.env.PRECIO_MARCO_ARS = "30000";
+  process.env.PRECIO_MARCO_ADICIONAL_ARS = "20000";
   (crearCheckout as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({ urlPago: "https://pago.example/x" });
 });
 
@@ -80,8 +81,6 @@ describe("POST /api/compra", () => {
   });
 
   it("camino feliz: familia nueva, narrador en pendiente_pago, pedido pendiente con extras, y la url de pago", async () => {
-    process.env.PRECIO_IMPRESO_BN_ARS = "120000";
-    process.env.PRECIO_MARCO_ARS = "30000";
     const admin = crearAdmin({
       familias: [{ data: null, error: null }, { data: { id: "fam-1" }, error: null }],
       narradores: [{ data: null, error: null }, { data: { id: "nar-1" }, error: null }],
@@ -107,8 +106,8 @@ describe("POST /api/compra", () => {
       estado: "pendiente",
       proveedor: "mercadopago",
       moneda: "ARS",
-      monto: 65000 + 120000 + 2 * 30000,
-      extras: { pdf: true, audiolibro: null, impreso: "bn", copias: 1, marcos: 2 },
+      monto: 65000 + 120000 + 30000 + 20000,
+      extras: { pdf: true, audiolibro: null, impreso: "color", copias: 1, marcos: 2 },
     });
     expect(crearCheckout).toHaveBeenCalledWith({ id: "ped-1", email: "martina@ejemplo.com" }, expect.objectContaining({ region: "AR" }));
   });
@@ -128,7 +127,8 @@ describe("POST /api/compra", () => {
     expect(admin.inserts.narradores[0]).toMatchObject({ familia_id: "fam-vieja" });
   });
 
-  it("un extra elegido sin precio en la región no se cobra ni se anota", async () => {
+  it("un impreso pedido en una región sin precio se rechaza con 400 (no se cobra menos en silencio)", async () => {
+    delete process.env.PRECIO_IMPRESO_ARS;
     const admin = crearAdmin({
       familias: [{ data: { id: "fam-1" }, error: null }],
       narradores: [{ data: null, error: null }, { data: { id: "nar-1" }, error: null }],
@@ -136,8 +136,20 @@ describe("POST /api/compra", () => {
     });
     (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
 
-    await POST(peticion(CUERPO_VALIDO)); // sin PRECIO_IMPRESO_BN_ARS ni PRECIO_MARCO_ARS
+    const r = await POST(peticion(CUERPO_VALIDO)); // sin PRECIO_IMPRESO_ARS
+    expect(r.status).toBe(400);
+    expect(admin.inserts.pedidos ?? []).toEqual([]);
+  });
 
+  it("la base sola: el pedido lleva pdf true y nada más", async () => {
+    const admin = crearAdmin({
+      familias: [{ data: { id: "fam-1" }, error: null }],
+      narradores: [{ data: null, error: null }, { data: { id: "nar-1" }, error: null }],
+      pedidos: [{ data: { id: "ped-1" }, error: null }],
+    });
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+
+    await POST(peticion({ ...CUERPO_VALIDO, productos: {} }));
     expect(admin.inserts.pedidos[0]).toMatchObject({ monto: 65000, extras: { pdf: true, audiolibro: null, impreso: null, copias: 0, marcos: 0 } });
   });
 

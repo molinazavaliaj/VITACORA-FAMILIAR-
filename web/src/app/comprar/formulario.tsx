@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { NADA_ELEGIDO, type Catalogo as CatalogoRegion, type ProductosElegidos } from "@/lib/productos";
-import { ContadorMarcos, Producto, TarjetaImpreso, formatearPrecio as formatear, listaDe } from "./productos-ui";
+import { CARRITO_VACIO, armarCompra, type Catalogo as CatalogoRegion, type Carrito } from "@/lib/productos";
+import { BaseFija, Ticket, Upsells, formatearPrecio as formatear, listaDe } from "./productos-ui";
 import { HORAS_FAMILIAR as HORAS } from "@/lib/horario";
 import { EVITAR_MAXIMO, NOMBRE_RITMO, RITMOS, RITMO_DEFAULT, TAMANO_MAXIMO_BYTES, errorDeTipoDeFoto, type Ritmo } from "@/lib/guion";
 import { medirImagen } from "@/lib/medir-imagen";
@@ -66,8 +66,8 @@ export function Checkout({ catalogo, regionInicial = "AR", promo = null }: { cat
   const [telefono, setTelefono] = useState("");
   const [hora, setHora] = useState("09:00");
 
-  // Los tres productos: el PDF viene marcado; al menos uno tiene que quedar.
-  const [productos, setProductos] = useState<ProductosElegidos>({ ...NADA_ELEGIDO, pdf: true });
+  // El carrito (21/09): la base va siempre; se suman impresos y marcos.
+  const [carritoElegido, setCarrito] = useState<Carrito>(CARRITO_VACIO);
   const [email, setEmail] = useState("");
 
   const [error, setError] = useState<string | null>(null);
@@ -86,25 +86,8 @@ export function Checkout({ catalogo, regionInicial = "AR", promo = null }: { cat
 
   const cat = catalogo[region];
 
-  const impresoBn = cat.extras.find((e) => e.id === "impreso_bn");
-  const impresoColor = cat.extras.find((e) => e.id === "impreso_color");
-  const marco = cat.extras.find((e) => e.id === "marco");
-
-  const carrito = useMemo(() => {
-    const lineas: { nombre: string; cantidad: number; importe: number }[] = [];
-    if (productos.pdf) lineas.push({ nombre: cat.pdf.nombre, cantidad: 1, importe: cat.pdf.precio });
-    if (productos.impreso) {
-      const e = productos.impreso === "color" ? impresoColor : impresoBn;
-      if (e) lineas.push({ nombre: e.nombre, cantidad: 1, importe: e.precio });
-    }
-    if (productos.marcos > 0 && marco) {
-      lineas.push({ nombre: marco.nombre, cantidad: productos.marcos, importe: marco.precio * productos.marcos });
-    }
-    return { lineas, total: lineas.reduce((s, l) => s + l.importe, 0) };
-  }, [cat, productos, impresoBn, impresoColor, marco]);
-
-  // Ricitos de oro: al menos uno de los dos. Los marcos solos no alcanzan.
-  const hayPrincipal = productos.pdf || (productos.impreso !== null && (impresoBn || impresoColor));
+  // El ticket en vivo, con la misma función que cobra el servidor.
+  const carrito = useMemo(() => armarCompra(cat, region, carritoElegido), [cat, region, carritoElegido]);
 
   function avanzar(siguiente: Paso) {
     setError(null);
@@ -153,10 +136,6 @@ export function Checkout({ catalogo, regionInicial = "AR", promo = null }: { cat
   async function pagar(evento: React.FormEvent<HTMLFormElement>) {
     evento.preventDefault();
     setError(null);
-    if (!hayPrincipal) {
-      setError("Elegí al menos uno: el libro en PDF o el libro impreso.");
-      return;
-    }
     setEnviando(true);
     try {
       if (!compraIniciada.current) {
@@ -185,7 +164,7 @@ export function Checkout({ catalogo, regionInicial = "AR", promo = null }: { cat
                 ...(trato ? { trato } : {}),
               },
             },
-            productos,
+            productos: { impresos: carritoElegido.impresos, marcos: carritoElegido.marcos },
           }),
         });
         const datos = (await respuesta.json()) as { urlPago?: string; narradorId?: string; tokenFotos?: string; error?: string };
@@ -423,52 +402,32 @@ export function Checkout({ catalogo, regionInicial = "AR", promo = null }: { cat
           </section>
         )}
 
-        {/* ── Paso 4 · El libro: los tres productos, al menos uno ── */}
+        {/* ── Paso 4 · El libro: la base incluida, y lo que se suma (21/09) ── */}
         {paso === 4 && (
           <section className="mt-12">
             <h1 className="text-3xl leading-tight [font-family:var(--fuente-titulo)] font-medium [text-wrap:balance] sm:text-4xl">
-              ¿Cómo quieres {paraQuien === "yo" ? "tu libro" : `el libro de ${comoLeDicen || nombre || "su vida"}`}?
+              {paraQuien === "yo" ? "Tu libro, y lo que quieras sumarle." : `El libro de ${comoLeDicen || nombre || "su vida"}, y lo que quieras sumarle.`}
             </h1>
             <p className="mt-3 text-[16px] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">
-              Elige al menos uno. Los dos salen de la misma entrevista: 30 preguntas por WhatsApp, un audio por día.
+              El libro en PDF con «Su voz» va siempre: es donde ocurre la magia. El impreso y los marcos se suman si quieres.
             </p>
 
-            <div className="mt-8 grid gap-4 sm:grid-cols-3">
-              <Producto
-                activa={productos.pdf}
-                onClick={() => setProductos((x) => ({ ...x, pdf: !x.pdf }))}
+            <div className="mt-8">
+              <BaseFija
                 nota="en la nube"
-                titulo={cat.pdf.nombre}
-                detalle={cat.pdf.detalle}
-                precio={formatear(cat.pdf.precio, cat.moneda, region)}
-                lista={promo ? listaDe(cat.pdf.precio, cat.moneda, region, promo) : null}
-              />
-              <TarjetaImpreso
-                productos={productos}
-                setProductos={setProductos}
-                impresoBn={impresoBn}
-                impresoColor={impresoColor}
-                moneda={cat.moneda}
-                region={region}
-                detalle="Tapa dura, con un código en la contratapa que hace sonar su voz. Lo único que sale de la nube."
-                promo={promo}
+                titulo={cat.base.nombre}
+                detalle={cat.base.detalle}
+                precio={formatear(cat.base.precio, cat.moneda, region)}
+                lista={promo ? listaDe(cat.base.precio, cat.moneda, region, promo) : null}
+                incluye={["30 preguntas por WhatsApp, un audio por día", "El libro para leer en la web, con sus fotos", "«Su voz»: sus mejores frases, en su voz real"]}
               />
             </div>
 
-            <ContadorMarcos productos={productos} setProductos={setProductos} marco={marco} moneda={cat.moneda} region={region} />
+            <div className="mt-4">
+              <Upsells cat={cat} region={region} carrito={carritoElegido} setCarrito={setCarrito} propia={paraQuien === "yo"} trato="tu" />
+            </div>
 
-            <Botones
-              atras={() => avanzar(3)}
-              siguiente={() => {
-                if (!hayPrincipal) {
-                  setError("Elige al menos uno: el libro en PDF o el libro impreso.");
-                  return;
-                }
-                avanzar(5);
-              }}
-              etiquetaSiguiente="Continuar"
-              error={error}
-            />
+            <Botones atras={() => avanzar(3)} siguiente={() => avanzar(5)} etiquetaSiguiente="Continuar" error={error} />
           </section>
         )}
 
@@ -544,7 +503,7 @@ export function Checkout({ catalogo, regionInicial = "AR", promo = null }: { cat
               <button type="button" disabled={enviando} onClick={() => avanzar(4)} className="text-[15px] text-[#5F5F55] underline underline-offset-4 [font-family:var(--fuente-micro)]">← Atrás</button>
               <button
                 type="submit"
-                disabled={enviando || !hayPrincipal}
+                disabled={enviando}
                 className="inline-flex h-13 items-center justify-center rounded-full bg-[#5D3FD3] px-8 text-base font-medium text-white transition-colors hover:bg-[#4F35BC] disabled:opacity-60 [font-family:var(--fuente-micro)] [touch-action:manipulation]"
               >
                 {enviando ? (progreso ?? "Un momento…") : `Pagar ${formatear(carrito.total, cat.moneda, region)}`}
@@ -564,24 +523,7 @@ export function Checkout({ catalogo, regionInicial = "AR", promo = null }: { cat
       {/* ── El carrito ── */}
       <aside className="lg:sticky lg:top-8 lg:self-start">
         <div className="rounded-lg border border-[#EBEBEE] bg-white p-6">
-          <p className="text-[11px] uppercase text-[#5F5F55] [font-family:var(--fuente-micro)] [letter-spacing:0.3em]">Tu compra</p>
-          <ul className="mt-5 divide-y divide-[#EBEBE7]">
-            {carrito.lineas.length === 0 ? (
-              <li className="py-3 text-[14px] text-[#83837A] [font-family:var(--fuente-cuerpo)] font-light">Todavía no elegiste nada.</li>
-            ) : null}
-            {carrito.lineas.map((l) => (
-              <li key={l.nombre} className="flex items-baseline justify-between gap-4 py-3">
-                <span className="text-[15px] [font-family:var(--fuente-cuerpo)] font-light">
-                  {l.nombre}{l.cantidad > 1 ? ` × ${l.cantidad}` : ""}
-                </span>
-                <span className="shrink-0 text-[15px] [font-family:var(--fuente-micro)]">{formatear(l.importe, cat.moneda, region)}</span>
-              </li>
-            ))}
-          </ul>
-          <div className="mt-3 flex items-baseline justify-between border-t border-[#14140F] pt-4">
-            <span className="text-[15px] [font-family:var(--fuente-micro)]">Total</span>
-            <span className="text-2xl [font-family:var(--fuente-titulo)] font-medium">{formatear(carrito.total, cat.moneda, region)}</span>
-          </div>
+          <Ticket compra={carrito} region={region} />
           <ul className="mt-6 flex flex-col gap-2 text-[14px] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">
             <li>✓ Pago único, sin suscripción</li>
             <li>✓ 30 preguntas, una por día, por WhatsApp</li>

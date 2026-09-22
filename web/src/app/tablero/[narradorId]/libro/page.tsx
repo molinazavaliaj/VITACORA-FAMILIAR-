@@ -4,8 +4,7 @@ import { regionDelRequest } from "@/lib/region";
 import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { esPropia, historiaAccesible, PUEDE } from "@/lib/panel";
-import { extrasDisponibles, productosDelPedido, NOMBRE_VOZ, type ProductosDelPedido } from "@/lib/productos";
-import { obtenerPrecio } from "@/lib/precios";
+import { catalogo, productosDelPedido, NOMBRE_VOZ, type ProductosDelPedido } from "@/lib/productos";
 import { propuestaPorDefecto, type Edicion } from "@/lib/edicion";
 import { armarGuion, capitulosDelGuion } from "@/lib/guion";
 import { POSICION_DEFAULT, focoDe, validarPosicion } from "@/lib/encuadre";
@@ -14,7 +13,7 @@ import { ConRiel } from "../../riel";
 import { Wizard, type RespuestaResumen } from "./wizard";
 import { LibroMiniatura, type LibroDatos } from "./miniatura";
 import { FotosDelLibro, type FotoElegible } from "./fotos-del-libro";
-import { Extras, type PrecioExtra } from "./extras";
+import { Extras } from "./extras";
 
 // Encargar libro (docs/panel-usuario.md §7 y §15.4): arriba "Su libro" y el
 // estado; el libro en miniatura para hojear cómo va quedando; Tapa ·
@@ -65,7 +64,6 @@ export default async function PaginaLibro({ params, searchParams }: PageProps<"/
   const libroAprobadoAt = (filaN as { libro_aprobado_at?: string | null } | null)?.libro_aprobado_at ?? null;
   // La moneda es la de quien mira (2.12): el primo en Argentina ve pesos aunque el libro se haya comprado en España.
   const region = regionDelRequest(await headers());
-  const { moneda } = obtenerPrecio(region);
   const todosLosPedidos = (pedidos as Pedido[] | null) ?? [];
   // Cada uno ve sus pedidos; la dueña ve los suyos (los de los primos son de los primos).
   const misPedidos = todosLosPedidos.filter((p) => rol === "duena" ? p.familia_id === n.familia_id : false);
@@ -77,9 +75,12 @@ export default async function PaginaLibro({ params, searchParams }: PageProps<"/
     impreso: productosPagados.some((p) => p.impreso !== null),
   };
   const yaTieneImpreso = yaTiene.impreso;
-
-  const extras: PrecioExtra[] = extrasDisponibles(region).map((e) => ({ id: e.id, nombre: e.nombre, detalle: e.detalle, precio: e.precio }));
-  const nube = { pdf: obtenerPrecio(region).monto };
+  // Lo que este comprador ya tiene: decide si paga el primer impreso o copias, el primer marco o adicionales.
+  const previos = {
+    impresos: productosPagados.reduce((s, p) => s + p.copias, 0),
+    marcos: productosPagados.reduce((s, p) => s + p.marcos, 0),
+  };
+  const cat = catalogo(region);
 
   // ── Invitado: solo su copia ─────────────────────────────────────────
   if (!PUEDE.verLoQuePago(rol)) {
@@ -97,7 +98,7 @@ export default async function PaginaLibro({ params, searchParams }: PageProps<"/
           </p>
         </Tarjeta>
         <div className="mt-10">
-          <Extras narradorId={n.id} moneda={moneda} region={region} extras={extras} yaTieneImpreso={false} titulo="Tu copia y tus marcos" />
+          <Extras narradorId={n.id} region={region} catalogo={cat} previos={{ impresos: 0, marcos: 0 }} titulo="Tu copia y tus marcos" />
         </div>
       </ConRiel>
     );
@@ -257,7 +258,7 @@ export default async function PaginaLibro({ params, searchParams }: PageProps<"/
             respuestas={resumen}
             fotos={fotos.map(({ id, epigrafe, capitulo }) => ({ id, epigrafe, capitulo }))}
             nombresRevisados={nombresRevisados}
-            upsell={<Extras narradorId={n.id} moneda={moneda} region={region} extras={extras} yaTieneImpreso={yaTieneImpreso} nube={nube} yaTiene={yaTiene} />}
+            upsell={<Extras narradorId={n.id} region={region} catalogo={cat} previos={previos} propia={propia} />}
           />
         </section>
       ) : null}
@@ -293,7 +294,7 @@ export default async function PaginaLibro({ params, searchParams }: PageProps<"/
       {/* Sumar algo: mientras se edita va adentro del paso Encargar; el resto del tiempo, acá abajo. */}
       {!(terminado && !libroAprobadoAt) ? (
         <section className="mt-14 border-t border-[var(--linea)] pt-10">
-          <Extras narradorId={n.id} moneda={moneda} region={region} extras={extras} yaTieneImpreso={yaTieneImpreso} nube={nube} yaTiene={yaTiene} />
+          <Extras narradorId={n.id} region={region} catalogo={cat} previos={previos} propia={propia} />
         </section>
       ) : null}
     </ConRiel>

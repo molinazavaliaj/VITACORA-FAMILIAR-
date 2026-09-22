@@ -2,8 +2,8 @@
 
 import { useMemo, useState } from "react";
 import { ANGULOS, COMPANIAS, NOMBRE_ANGULO, NOMBRE_COMPANIA, NOMBRE_PROPOSITO, PROPOSITOS, ETAPAS_MAXIMO, type Etapa, type Viaje } from "@/lib/viaje";
-import { NADA_ELEGIDO, NOMBRE_VIAJE, DETALLE_VIAJE, type Extra, type ProductosElegidos } from "@/lib/productos";
-import { ContadorMarcos, TarjetaImpreso, formatearPrecio as formatear, listaDe } from "../productos-ui";
+import { NOMBRE_VIAJE, DETALLE_VIAJE, armarCompra, type Catalogo, type Carrito } from "@/lib/productos";
+import { Ticket, Upsells, formatearPrecio as formatear, listaDe } from "../productos-ui";
 import { Tachado } from "../tachado";
 import { HORAS_VIAJE as HORAS, ZONAS } from "@/lib/horario";
 
@@ -16,8 +16,8 @@ import { HORAS_VIAJE as HORAS, ZONAS } from "@/lib/horario";
 //
 // ⚠️ Textos a aprobar por Naza (regla de la casa). En vos: el viajero se compra a sí mismo.
 
-export type PreciosViaje = Record<"ES" | "AR", number | null>;
-export type ExtrasViaje = Record<"ES" | "AR", Extra[]>;
+/** El catálogo de cada región, resuelto en el servidor (la base del viaje es `viaje`). */
+export type CatalogoViaje = Record<"ES" | "AR", Catalogo>;
 type Region = "ES" | "AR";
 type Paso = 1 | 2 | 3;
 
@@ -32,7 +32,7 @@ const campo = "w-full rounded-md border border-[#D4D4CE] bg-white px-4 py-3 text
 const etiqueta = "block text-[11px] uppercase text-[#5F5F55] [font-family:var(--fuente-micro)] [letter-spacing:0.24em]";
 const chip = (activo: boolean) => `rounded-full border px-4 py-2 text-[14px] transition-colors [font-family:var(--fuente-micro)] [touch-action:manipulation] ${activo ? "border-[#14140F] bg-[#14140F] text-white" : "border-[#D4D4CE] bg-white hover:border-[#83837A]"}`;
 
-export function CheckoutViaje({ precios, extras, regionInicial = "AR", promo = null }: { precios: PreciosViaje; extras: ExtrasViaje; regionInicial?: Region; promo?: number | null }) {
+export function CheckoutViaje({ catalogo, regionInicial = "AR", promo = null }: { catalogo: CatalogoViaje; regionInicial?: Region; promo?: number | null }) {
   const [paso, setPaso] = useState<Paso>(1);
   const [region] = useState<Region>(regionInicial); // 2.12: por el país del visitante (IP); sin selector
   const [nombre, setNombre] = useState("");
@@ -51,23 +51,14 @@ export function CheckoutViaje({ precios, extras, regionInicial = "AR", promo = n
   const [error, setError] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
   // El viaje siempre va; el impreso y los marcos se suman.
-  const [productos, setProductos] = useState<ProductosElegidos>({ ...NADA_ELEGIDO, viaje: true });
-
-  const precio = precios[region];
-  const moneda = region === "ES" ? "EUR" : "ARS";
-  const impresoBn = extras[region].find((e) => e.id === "impreso_bn");
-  const impresoColor = extras[region].find((e) => e.id === "impreso_color");
-  const marco = extras[region].find((e) => e.id === "marco");
-  // Las líneas del resumen y el total, para mostrar: el servidor lo recalcula al cobrar.
-  const lineas = useMemo(() => {
-    const l: { nombre: string; importe: number }[] = [];
-    if (precio !== null) l.push({ nombre: NOMBRE_VIAJE, importe: precio });
-    const impreso = productos.impreso === "color" ? impresoColor : productos.impreso === "bn" ? impresoBn : undefined;
-    if (impreso) l.push({ nombre: impreso.nombre, importe: impreso.precio });
-    if (productos.marcos > 0 && marco) l.push({ nombre: `${marco.nombre} × ${productos.marcos}`, importe: marco.precio * productos.marcos });
-    return l;
-  }, [precio, productos, impresoBn, impresoColor, marco]);
-  const total = lineas.reduce((s, l) => s + l.importe, 0);
+  // El carrito (21/09): la base es el viaje, siempre; se suman impresos y marcos.
+  const [carritoElegido, setCarrito] = useState<Carrito>({ base: "viaje", impresos: 0, marcos: 0 });
+  const cat = catalogo[region];
+  const precio = cat.viaje;
+  const moneda = cat.moneda;
+  // El ticket en vivo, con la misma función que cobra el servidor.
+  const carrito = useMemo(() => armarCompra(cat, region, carritoElegido), [cat, region, carritoElegido]);
+  const total = carrito.total;
   const dias = useMemo(() => {
     const a = Date.parse(`${salida}T00:00:00Z`), b = Date.parse(`${vuelta}T00:00:00Z`);
     return Number.isFinite(a) && Number.isFinite(b) && b >= a ? Math.round((b - a) / 86_400_000) + 1 : null;
@@ -109,7 +100,7 @@ export function CheckoutViaje({ precios, extras, regionInicial = "AR", promo = n
               viaje: { salida, vuelta, etapas: etapas.filter((e) => e.nombre.trim()), compania, proposito, angulos },
             },
           },
-          productos: { ...productos, pdf: false, viaje: true },
+          productos: { viaje: true, impresos: carritoElegido.impresos, marcos: carritoElegido.marcos },
         }),
       });
       const datos = (await respuesta.json()) as { urlPago?: string; error?: string };
@@ -292,25 +283,16 @@ export function CheckoutViaje({ precios, extras, regionInicial = "AR", promo = n
               </p>
             </div>
 
-            {/* 2.10: lo que se suma. ⚠️ Textos a revisar por Naza. */}
-            {impresoBn || impresoColor || marco ? (
+            {/* Lo que se suma (catálogo base + upsells, 21/09). ⚠️ Textos a revisar por Naza. */}
+            {cat.impreso || cat.marco ? (
               <div className="mt-8">
                 <p className={etiqueta}>Si querés, sumale</p>
-                <div className="mt-3 grid gap-4 sm:grid-cols-2">
-                  <TarjetaImpreso
-                    productos={productos}
-                    setProductos={setProductos}
-                    impresoBn={impresoBn}
-                    impresoColor={impresoColor}
-                    moneda={moneda}
-                    region={region}
-                    detalle="Tu viaje en tapa dura, con un código en la contratapa que hace sonar tu voz. Lo único que sale de la nube."
-                    promo={promo}
-                  />
+                <div className="mt-3">
+                  <Upsells cat={cat} region={region} carrito={carritoElegido} setCarrito={setCarrito} propia />
                 </div>
-                <ContadorMarcos productos={productos} setProductos={setProductos} marco={marco} moneda={moneda} region={region} detalle="Un marco con tu foto del viaje y un chip: se acerca el teléfono y suena tu voz. Para regalar a quien te esperó." />
               </div>
             ) : null}
+
             <div className="mt-6 rounded-lg border border-[#EBEBE7] bg-white p-5 text-[15px] leading-[1.7] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">
               <p><strong className="font-normal text-[#14140F]">Qué pasa después de pagar:</strong> te llega un correo para entrar a tu panel, y el biógrafo te escribe por WhatsApp para presentarse. Respondés SÍ y arranca la primera noche. Si algo no te cierra antes de salir, nos escribís y te devolvemos el dinero.</p>
             </div>
@@ -331,27 +313,7 @@ export function CheckoutViaje({ precios, extras, regionInicial = "AR", promo = n
 
       <aside className="lg:sticky lg:top-8 lg:self-start">
         <div className="rounded-lg border border-[#EBEBEE] bg-white p-6">
-          <p className="text-[11px] uppercase text-[#5F5F55] [font-family:var(--fuente-micro)] [letter-spacing:0.3em]">Tu compra</p>
-          <div className="mt-5 flex flex-col gap-2 border-b border-[#EBEBE7] pb-3">
-            {lineas.length === 0 ? (
-              <div className="flex items-baseline justify-between gap-4">
-                <span className="text-[15px] [font-family:var(--fuente-cuerpo)] font-light">{NOMBRE_VIAJE}</span>
-                <span className="shrink-0 text-[15px] [font-family:var(--fuente-micro)]">—</span>
-              </div>
-            ) : null}
-            {lineas.map((l, i) => (
-              <div key={l.nombre} className="flex items-baseline justify-between gap-4">
-                <span className="text-[15px] [font-family:var(--fuente-cuerpo)] font-light">{l.nombre}{i === 0 && dias ? ` · ${dias} noches` : ""}</span>
-                <span className="shrink-0 text-[15px] [font-family:var(--fuente-micro)]">{formatear(l.importe, moneda, region)}</span>
-              </div>
-            ))}
-            {lineas.length > 1 ? (
-              <div className="mt-1 flex items-baseline justify-between gap-4 border-t border-[#EBEBE7] pt-2">
-                <span className="text-[15px] [font-family:var(--fuente-micro)] font-medium">Total</span>
-                <span className="shrink-0 text-[15px] [font-family:var(--fuente-micro)] font-medium">{formatear(total, moneda, region)}</span>
-              </div>
-            ) : null}
-          </div>
+          <Ticket compra={carrito} region={region} nota={dias ? `${dias} noches` : undefined} />
           <ul className="mt-6 flex flex-col gap-2 text-[14px] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">
             <li>✓ Una pregunta cada noche, por WhatsApp</li>
             <li>✓ Tus fotos, con su historia, guardadas por día</li>
