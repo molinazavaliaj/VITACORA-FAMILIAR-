@@ -453,7 +453,9 @@ export async function detectarIntencion(texto: string, narradorId?: string): Pro
     model: MODELO, max_tokens: 50,
     messages: [{
       role: 'user',
-      content: `Un señor mayor que participa de entrevistas diarias por WhatsApp escribió: "${texto}".\n¿Está pidiendo PARAR o dejar las entrevistas (cansancio, molestia, "no quiero más", "basta")? Respondé SOLO "quiere_parar" o "normal". Ante la duda: "normal".`,
+      // Sin "un señor mayor" (22/09): el narrador puede ser una mujer (Dora, Immaculada)
+      // y puede tener 30 años. Quién es no cambia si está pidiendo parar.
+      content: `Una persona que participa de entrevistas diarias por WhatsApp escribió: "${texto}".\n¿Está pidiendo PARAR o dejar las entrevistas (cansancio, molestia, "no quiero más", "basta")? Respondé SOLO "quiere_parar" o "normal". Ante la duda: "normal".`,
     }],
   });
     await registrarUso(db, {

@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import {
   parsearArgs, slug, ordenDeArchivo, archivoCanonico, proximoOrden,
-  mensajeDePregunta, despedida, bienvenidaAceptacion, bienvenida, planDeCarga, esAudio, promptDeTranscripcion, primeraDiferencia,
+  mensajeDePregunta, despedida, bienvenidaAceptacion, bienvenida, bienvenidaViaje, planDeCarga, esAudio, promptDeTranscripcion, primeraDiferencia,
   motivoParaRechazarAudio, listaParaConcatenar, valorDelArbol, queHacerAlFinal,
 } from '../src/manual/puro.js';
 
@@ -238,10 +238,22 @@ describe('la presentación del biógrafo (el primer mensaje de todos)', () => {
     expect(bienvenida('Don Osvaldo', 'su nieto Juan')).toBe(esperado);
   });
 
-  it('en vos (texto aprobado por Naza el 2026-09-15)', () => {
+  it('en vos (3t.25, 22/09: sin el audiolibro, con «Su voz» de verdad)', () => {
     expect(bienvenida('Ciro', 'Naza', 'vos')).toBe(
-      'Hola Ciro 👋 Soy tu biógrafo. Naza te hizo un regalo muy especial: vamos a escribir juntos el libro de tu vida. Cada mañana te voy a mandar una pregunta, y vos me respondés con un audio, como le contás las cosas a un amigo. Al final, tu historia va a quedar en un libro para tu familia. Si tu familia lo pide, el audiolibro puede llevar tu propia voz, recreada a partir de estos audios; al responder SÍ también nos das permiso para eso. ¿Empezamos? Respondé SÍ y arrancamos mañana.',
+      'Hola Ciro 👋 Soy tu biógrafo. Naza te hizo un regalo muy especial: vamos a escribir juntos el libro de tu vida. Cada mañana te voy a mandar una pregunta, y vos me respondés con un audio, como le contás las cosas a un amigo. Al final, tu historia queda en un libro para tu familia, y tus mejores frases quedan en tu propia voz: recortes de estos mismos audios, para escucharlas cuando quieran. Al responder SÍ nos das permiso para guardar tus audios y usarlos así. ¿Empezamos? Respondé SÍ y arrancamos mañana.',
     );
+  });
+
+  // 3t.25: el audiolibro se descartó el 20/09 y nunca hubo voz recreada. Ninguna
+  // bienvenida puede prometerlo — pero el permiso de voz (3t.15) se mantiene.
+  it('ninguna bienvenida habla del audiolibro ni de voz recreada, y todas piden el permiso', () => {
+    const textos = [bienvenida('Don Osvaldo', 'su nieto Juan'), bienvenida('Ciro', 'Naza', 'vos'), bienvenidaViaje('Ñako')];
+    for (const t of textos) {
+      expect(t).not.toMatch(/audiolibro|recreada|clonada|sintética/i);
+      expect(t).toMatch(/permiso/);
+      expect(t).toMatch(/propia voz/);
+      expect(t.length).toBeLessThanOrEqual(1024); // tope del cuerpo de una plantilla de Meta
+    }
   });
 
   it('cuando la primera pregunta sale enseguida (modo rápido), no promete "mañana"', () => {

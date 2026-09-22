@@ -7,7 +7,6 @@ const mocks = vi.hoisted(() => ({
   enviarAudioPorLink: vi.fn(),
   generarReconocimiento: vi.fn(),
   generarPreguntaReemplazo: vi.fn(),
-  generarAudioVoz: vi.fn(),
   armarHistoria: vi.fn(),
   ultimaTranscripcion: vi.fn(),
   // Filas que devuelve la base falsa, configurables por test.
@@ -77,7 +76,6 @@ vi.mock('../src/ia/cerebro.js', () => ({
   generarPreguntaReemplazo: mocks.generarPreguntaReemplazo,
   evaluarRespuesta: vi.fn(), detectarIntencion: vi.fn(),
 }));
-vi.mock('../src/ia/voz.js', () => ({ generarAudioVoz: mocks.generarAudioVoz, VOZ: 'nova' }));
 vi.mock('../src/ia/adaptativas.js', () => ({
   generarPreguntasAdaptativas: mocks.generarPreguntasAdaptativas,
   PRIMERA_ADAPTATIVA: 27, ULTIMA_ADAPTATIVA: 30,
@@ -124,7 +122,6 @@ beforeEach(() => {
   mocks.enviarTexto.mockReset().mockResolvedValue('wamid.t');
   mocks.enviarAudioPorLink.mockResolvedValue('wamid.a');
   mocks.generarReconocimiento.mockResolvedValue('Qué historia la del taller.');
-  mocks.generarAudioVoz.mockResolvedValue(Buffer.from('mp3'));
   mocks.armarHistoria.mockResolvedValue('');
   mocks.ultimaTranscripcion.mockResolvedValue('');
 });
@@ -185,7 +182,16 @@ describe('tick', () => {
     );
     expect(update('narradores')?.p).toMatchObject({ dia_actual: 1, estado: 'activo' });
     expect(inserts('envios')[0].p).toMatchObject({ tipo: 'pregunta', pregunta_orden: 1 });
-    expect(mocks.enviarAudioPorLink).toHaveBeenCalledWith('+5491155551234', 'https://firmada/audio.mp3');
+  });
+
+  // 22/09 (decisión de Joaquín): la pregunta del día va SOLO en texto. El audio
+  // venía de arrastre del primer scheduler (1/09) y nunca se decidió: duplicaba
+  // el mensaje, costaba TTS por pregunta y rompió la primera noche de Nako.
+  it('(a0) la pregunta del día va solo en texto: no se manda ningún audio', async () => {
+    mocks.filas.narradores = [narrador({ estado: 'acepto', dia_actual: 0 })];
+    await tick(A_LAS_10_05);
+    expect(mocks.enviarPlantilla).toHaveBeenCalledTimes(1);
+    expect(mocks.enviarAudioPorLink).not.toHaveBeenCalled();
   });
 
   // 21/09: las plantillas de la cuenta nueva están en revisión. Si Meta rechaza la
@@ -198,19 +204,6 @@ describe('tick', () => {
     expect(mocks.enviarTexto).toHaveBeenCalledTimes(1);
     expect(mocks.enviarTexto.mock.calls[0][0]).toBe('+5491155551234');
     expect(mocks.enviarTexto.mock.calls[0][1]).toContain('PREGUNTA_1');
-    expect(update('narradores')?.p).toMatchObject({ dia_actual: 1, estado: 'activo' });
-    expect(inserts('envios')[0].p).toMatchObject({ tipo: 'pregunta', pregunta_orden: 1 });
-  });
-
-  // 21/09: OpenAI sin crédito tumbó el envío DESPUÉS de que el texto ya había
-  // salido: la pregunta quedó sin registrar, el narrador en acepto, y su
-  // respuesta se hubiera ignorado. El audio de la pregunta es un extra.
-  it('(a4) si el audio de la pregunta falla, el envío igual queda registrado y el narrador avanza', async () => {
-    mocks.filas.narradores = [narrador({ estado: 'acepto', dia_actual: 0 })];
-    mocks.generarAudioVoz.mockRejectedValue(new Error('TTS falló: 429 no credits'));
-    await tick(A_LAS_10_05);
-    expect(mocks.enviarPlantilla).toHaveBeenCalledTimes(1);
-    expect(mocks.enviarAudioPorLink).not.toHaveBeenCalled();
     expect(update('narradores')?.p).toMatchObject({ dia_actual: 1, estado: 'activo' });
     expect(inserts('envios')[0].p).toMatchObject({ tipo: 'pregunta', pregunta_orden: 1 });
   });
