@@ -782,6 +782,29 @@ servidor) → `/tablero/<narrador>`. Si algo falla, gracias como siempre. Sin mi
 nuevas (usa `MP_ACCESS_TOKEN` / `STRIPE_SECRET_KEY` que ya están). 389 tests. **Pendiente: verlo con el
 próximo pago real.**
 
+## 22/09 (mañana) — las 5 plantillas aprobadas y el bot escribiendo solo
+
+**Meta aprobó las cinco** en la WABA nueva "Vitácora" (`bienvenida`, `bienvenida_viaje`,
+`pregunta_diaria`, `pregunta_diaria_vos`, `recordatorio`). Con eso el circuito arrancó solo:
+
+| Narrador | Estado | Qué salió |
+|---|---|---|
+| **Iñaki (Ñako)** — viaje, 58 noches | `activo`, día 1 | pregunta 1 el 21 a las 22:30 UTC (texto, antes de la aprobación) + recordatorio hoy 04:45. Sin responder todavía. |
+| **Naza** — Familiar | `activo`, día 1 | pregunta 1 hoy 07:00 UTC (09:00 Madrid), ya por plantilla. |
+| **Mariano** (autobiografía), **Dora**, **Immaculada** | `invitado` | bienvenida el 21 a las 22:15 UTC, apenas Meta aprobó. Esperan el SÍ. |
+| **Ángel** — piloto, día 10 | `activo` | sin envíos desde el 19 (las plantillas fallaban); hoy 13:00 UTC le toca de nuevo. |
+
+El audio de la pregunta se generó para los dos (`sistema/pregunta_01.mp3`): **OpenAI tiene saldo
+en Railway**. Ojo: la key de `entrevistador/.env` (local) da 401 — quedó vieja.
+
+**Hecho hoy:** T3.5 — la transcripción automática ya va con la ficha del narrador
+(`promptDeTranscripcion` en `procesar.ts`, como la puerta manual): sin eso el modelo adivinaba los
+nombres propios y salían mal en el libro (#17). 300 tests del entrevistador.
+
+**Para mirar (Naza):** `consumo_ia` está **vacía** aunque el bot trabajó (pregunta personalizada,
+TTS, evaluación) y los latidos sí llegan (entrevistador 11:15, fábrica 11:20). O el anotador no
+está desplegado, o no engancha.
+
 ## Próximos hitos
 
 1. ~~Audiolibro híbrido~~ — **descartado el 20/09** (ver arriba): la corrida que quedó encolada sirve solo para el veredicto de oído. Lo que viene: el spec de "Sus mejores frases" y el checkout sin la línea del audiolibro.
