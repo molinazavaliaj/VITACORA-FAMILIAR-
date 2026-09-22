@@ -19,6 +19,7 @@ import { esOrdenDeCierre, faseDeCierre } from './cierre-abierto.js';
 import { esViaje } from './viaje.js';
 import { confirmarFoto, crearGuionDelViaje, guardarFotoEntrante } from './viaje-db.js';
 import { recibirFotoFamiliar } from './fotos.js';
+import { pedidoAbierto, pedirObjeto } from './objetos.js';
 import { bienvenidaViaje } from '../manual/puro.js';
 import { CLAVE_DEL_ARBOL, capituloNoAplica, enviarPregunta, ritmoDe, type Narrador } from './preguntar.js';
 import { bienvenidaPideVoz } from '../config.js';
@@ -41,6 +42,18 @@ async function yaSeRepregunto(narradorId: string, orden: number): Promise<boolea
   const { data } = await db.from('envios').select('id')
     .eq('narrador_id', narradorId).eq('tipo', 'repregunta').eq('pregunta_orden', orden).limit(1);
   return (data?.length ?? 0) > 0;
+}
+
+/**
+ * ¿Lo que acaba de llegar amplía el día en vez de estrenarlo?
+ *
+ * Pasa en dos casos: le repreguntamos, o le pedimos un objeto (3t.30) y esto
+ * es la historia de ese objeto. En los dos, la respuesta del día ya se evaluó:
+ * volver a evaluarla repreguntaría sobre algo que ya contó.
+ */
+async function esAmpliacionDelDia(narradorId: string, orden: number): Promise<boolean> {
+  if (await yaSeRepregunto(narradorId, orden)) return true;
+  return (await pedidoAbierto(narradorId)) !== null;
 }
 
 async function textoDePregunta(narradorId: string, orden: number): Promise<string> {
@@ -206,7 +219,7 @@ async function manejarTexto(narrador: Narrador, m: MensajeEntrante): Promise<voi
     // Ni sí ni no: es una respuesta más a la pregunta vigente.
   }
 
-  const esRepregunta = await yaSeRepregunto(narrador.id, orden);
+  const esRepregunta = await esAmpliacionDelDia(narrador.id, orden);
   const { data, error } = await db.from('respuestas')
     .insert({
       narrador_id: narrador.id, pregunta_orden: orden,
@@ -222,7 +235,7 @@ async function manejarTexto(narrador: Narrador, m: MensajeEntrante): Promise<voi
 async function manejarRespuestaAudio(narrador: Narrador, m: MensajeEntrante): Promise<void> {
   if (narrador.dia_actual < 1 || !m.mediaId) return; // sin pregunta vigente todavía
   const orden = narrador.dia_actual;
-  const esRepregunta = await yaSeRepregunto(narrador.id, orden);
+  const esRepregunta = await esAmpliacionDelDia(narrador.id, orden);
   const audio = await descargarAudio(m.mediaId);
   const { id } = await guardarRespuestaAudio(narrador.id, orden, audio, esRepregunta);
   // T3.5 (22/09): con la ficha del narrador, como la puerta manual. Sin este
@@ -309,6 +322,13 @@ async function trasResponder(
 
   // Si salió una repregunta, esperamos su respuesta antes de avanzar.
   if (repreguntaEnviada) return;
+
+  // «Sus objetos preciados» (3t.30): si con esta pregunta se cerró un capítulo,
+  // el pedido del objeto sale ahora, como segundo mensaje del día. Va acá —
+  // después del cierre y de las adaptativas— para no pisar el final de la
+  // entrevista, y devolver true corta el avance del ritmo: el pedido ES el
+  // segundo mensaje, no queremos mandar además la pregunta siguiente.
+  if (!esRepregunta && (await pedirObjeto(narrador, orden))) return;
 
   // El ritmo (§6.4). Como el narrador acaba de escribir, la ventana de 24 hs
   // está abierta: lo que salga va como texto libre, sin plantilla.

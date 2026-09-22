@@ -4,6 +4,8 @@ import { descargarAudio } from '../whatsapp/media.js';
 import { enviarTexto } from '../whatsapp/enviar.js';
 import { preguntaDeOrden } from '../db/guion.js';
 import { tratoDe, type Trato } from '../ia/trato.js';
+import { pedidoAbierto } from './objetos.js';
+import { textoObjetoRecibido } from '../manual/puro.js';
 import type { Narrador } from './preguntar.js';
 
 /*
@@ -37,7 +39,8 @@ export function epigrafeDe(caption: string | undefined): string | null {
  * en la tabla no la ve nadie y ocupa lugar para siempre.
  */
 export async function guardarFoto(
-  n: Narrador, mediaId: string, mimeType: string | undefined, caption: string | undefined, capitulo: string | null,
+  n: Narrador, mediaId: string, mimeType: string | undefined, caption: string | undefined,
+  capitulo: string | null, preguntaOrden: number | null = null,
 ): Promise<void> {
   const bytes = await descargarAudio(mediaId); // baja cualquier media de Meta, no solo audio
   const id = randomUUID();
@@ -46,7 +49,7 @@ export async function guardarFoto(
     .upload(path, bytes, { contentType: mimeType ?? 'image/jpeg', upsert: false });
   if (errorSubida) throw new Error(`No pude subir la foto de ${n.id}: ${errorSubida.message}`);
   const { error } = await db.from('fotos').insert({
-    id, narrador_id: n.id, capitulo, storage_path: path,
+    id, narrador_id: n.id, capitulo, storage_path: path, pregunta_orden: preguntaOrden,
     epigrafe: epigrafeDe(caption), principal: false, subida_por: null,
   });
   if (error) {
@@ -72,10 +75,27 @@ export function textoFotoGuardada(trato: Trato): string {
     : '📷 Guardada. Si quiere, cuénteme qué pasaba ahí.';
 }
 
-/** Una foto de un narrador del Familiar: se guarda en su capítulo y se acusa recibo. */
+/**
+ * Una foto de un narrador del Familiar.
+ *
+ * Si hay un pedido de objeto abierto, la foto es de ese objeto: se le ata y
+ * hereda su capítulo. WhatsApp no dice a qué mensaje responde una imagen, así
+ * que manda el último pedido y nada más; si se equivoca, lo corrige la familia
+ * desde el panel. Sin pedido abierto, la foto va al capítulo que está
+ * contestando, como cualquier otra.
+ */
 export async function recibirFotoFamiliar(
   n: Narrador, mediaId: string, mimeType: string | undefined, caption: string | undefined,
 ): Promise<void> {
-  await guardarFoto(n, mediaId, mimeType, caption, await capituloVigente(n));
-  await enviarTexto(n.telefono_whatsapp, textoFotoGuardada(await tratoDe(n)));
+  const pedido = await pedidoAbierto(n.id);
+  const capitulo = pedido === null
+    ? await capituloVigente(n)
+    : (await preguntaDeOrden(n.id, pedido))?.capitulo ?? await capituloVigente(n);
+
+  await guardarFoto(n, mediaId, mimeType, caption, capitulo, pedido);
+
+  const trato = await tratoDe(n);
+  await enviarTexto(n.telefono_whatsapp, pedido === null
+    ? textoFotoGuardada(trato)
+    : textoObjetoRecibido(trato, epigrafeDe(caption) !== null));
 }

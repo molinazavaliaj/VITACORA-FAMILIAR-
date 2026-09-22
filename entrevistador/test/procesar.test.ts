@@ -22,6 +22,8 @@ const mocks = vi.hoisted(() => ({
   guardarFotoEntrante: vi.fn(),
   confirmarFoto: vi.fn(),
   recibirFotoFamiliar: vi.fn(),
+  pedirObjeto: vi.fn(),
+  pedidoAbierto: vi.fn(),
   estado: { narrador: null as any, enviosRepregunta: [] as any[], capturas: [] as any[], ultimoOrden: 30, tieneAdaptativas: true, ofertas: [] as any[], preguntasHoy: [] as any[], capituloVigente: 'La infancia' },
 }));
 
@@ -97,6 +99,7 @@ vi.mock('../src/flujo/viaje-db.js', () => ({
   crearGuionDelViaje: mocks.crearGuionDelViaje, guardarFotoEntrante: mocks.guardarFotoEntrante, confirmarFoto: mocks.confirmarFoto,
 }));
 vi.mock('../src/flujo/fotos.js', () => ({ recibirFotoFamiliar: mocks.recibirFotoFamiliar }));
+vi.mock('../src/flujo/objetos.js', () => ({ pedirObjeto: mocks.pedirObjeto, pedidoAbierto: mocks.pedidoAbierto }));
 // La pregunta de cierre (18/09): por defecto no hay más vueltas → se despide.
 vi.mock('../src/flujo/cierre-abierto.js', () => ({
   faseDeCierre: mocks.faseDeCierre,
@@ -124,6 +127,10 @@ beforeEach(() => {
   mocks.faseDeCierre.mockReset();
   mocks.faseDeCierre.mockResolvedValue(false);
   for (const fn of [mocks.crearGuionDelViaje, mocks.guardarFotoEntrante, mocks.confirmarFoto, mocks.recibirFotoFamiliar]) fn.mockReset();
+  mocks.pedirObjeto.mockReset();
+  mocks.pedirObjeto.mockResolvedValue(false);   // por defecto, la pregunta no cierra capítulo
+  mocks.pedidoAbierto.mockReset();
+  mocks.pedidoAbierto.mockResolvedValue(null);  // por defecto, no hay pedido esperando
   mocks.guardarFotoEntrante.mockResolvedValue('Lisboa');
   for (const fn of [mocks.enviarTexto, mocks.descargarAudio, mocks.guardarRespuestaAudio, mocks.guardarReserva, mocks.transcribirYActualizar, mocks.evaluarRespuesta, mocks.detectarIntencion, mocks.generarPreguntasAdaptativas, mocks.cerrarBitacora, mocks.enviarPregunta]) fn.mockReset();
   mocks.guardarReserva.mockResolvedValue(true);
@@ -525,5 +532,40 @@ describe('procesarEntrante', () => {
     await procesarEntrante(m);
     expect(update('narradores')?.p).toMatchObject({ estado: 'pausado', alerta_silencio: true });
     expect(mocks.enviarTexto).toHaveBeenCalledWith(TEL, expect.stringContaining('pausa'));
+  });
+});
+
+// ── «Sus objetos preciados» (3t.30) ──
+describe('el pedido de objeto al cerrar un capítulo', () => {
+  it('se le ofrece al terminar el capítulo, y ese pedido reemplaza el avance del ritmo', async () => {
+    mocks.estado.narrador = narradorEn('activo', 4, { ritmo: 'seguido' });
+    mocks.pedirObjeto.mockResolvedValue(true);
+    await procesarEntrante({ telefono: TEL, tipo: 'audio', mediaId: 'm', waMessageId: 'w' });
+    expect(mocks.pedirObjeto).toHaveBeenCalledWith(expect.objectContaining({ id: 'n1' }), 4);
+    // el modo rápido NO manda además la pregunta siguiente: el pedido es el segundo mensaje
+    expect(mocks.enviarPregunta).not.toHaveBeenCalled();
+  });
+
+  it('si la pregunta no cierra capítulo, el día sigue como siempre', async () => {
+    mocks.estado.narrador = narradorEn('activo', 4, { ritmo: 'seguido' });
+    mocks.pedirObjeto.mockResolvedValue(false);
+    await procesarEntrante({ telefono: TEL, tipo: 'audio', mediaId: 'm', waMessageId: 'w' });
+    expect(mocks.enviarPregunta).toHaveBeenCalledWith(expect.anything(), 5, { plantilla: false });
+  });
+
+  it('la historia del objeto NO se vuelve a evaluar: es una ampliación del día, no una respuesta nueva', async () => {
+    mocks.estado.narrador = narradorEn('activo', 4);
+    mocks.pedidoAbierto.mockResolvedValue(101); // hay un pedido esperando
+    await procesarEntrante({ telefono: TEL, tipo: 'audio', mediaId: 'm', waMessageId: 'w' });
+    expect(mocks.evaluarRespuesta).not.toHaveBeenCalled();
+    // pero lo que pidió reservar en esa ampliación vale igual
+    expect(mocks.detectarReservaYDejarTema).toHaveBeenCalled();
+  });
+
+  it('sobre una ampliación no se vuelve a pedir el objeto', async () => {
+    mocks.estado.narrador = narradorEn('activo', 4);
+    mocks.pedidoAbierto.mockResolvedValue(101);
+    await procesarEntrante({ telefono: TEL, tipo: 'audio', mediaId: 'm', waMessageId: 'w' });
+    expect(mocks.pedirObjeto).not.toHaveBeenCalled();
   });
 });

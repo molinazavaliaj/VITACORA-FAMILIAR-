@@ -300,3 +300,38 @@ export function queHacerAlFinal(esUltima: boolean, repreguntaRecienImpresa: bool
   if (!esUltima) return 'seguir';
   return repreguntaRecienImpresa ? 'esperar_repregunta' : 'cerrar';
 }
+
+/**
+ * El pedido de un objeto preciado, al cerrar un capítulo (3t.30).
+ *
+ * Sale como segundo mensaje del mismo día, apenas el narrador contesta la
+ * última pregunta del capítulo: la ventana de 24 hs está abierta, así que va
+ * como texto libre y no necesita plantilla de Meta.
+ *
+ * El reconocimiento de que el capítulo se cerró no es adorno: sin él, recibir
+ * dos preguntas seguidas confunde, sobre todo a un narrador de 85 años.
+ *
+ * Y la salida por texto ("si no la tiene a mano, cuéntemelo") es la parte más
+ * importante del mensaje: quien no sabe mandar una foto tiene que poder
+ * contestar igual, sin sentir que falló en algo.
+ */
+export function mensajeDeObjeto(capitulo: string, pedido: string, trato: Trato = 'usted'): string {
+  const cierre = trato === 'vos'
+    ? 'Si no lo tenés a mano, contámelo y listo. 📷'
+    : 'Si no lo tiene a mano, cuéntemelo y listo. 📷';
+  return `Con esto cerramos «${capitulo}». Antes de seguir, una curiosidad.\n\n${pedido}\n\n${cierre}`;
+}
+
+/**
+ * El acuse de la foto que contesta un pedido de objeto.
+ *
+ * Si ya vino con la historia (el epígrafe abajo de la foto), no se vuelve a
+ * preguntar: el pedido ya decía "y cuénteme de dónde salió", y repetirlo sería
+ * no haber escuchado. Si la foto llegó sola, ahí sí, corto.
+ */
+export function textoObjetoRecibido(trato: Trato, conHistoria: boolean): string {
+  if (!conHistoria) return '📷 Qué bueno. ¿Y de dónde salió?';
+  return trato === 'vos'
+    ? '📷 Qué bueno. Queda guardada en tu libro.'
+    : '📷 Qué bueno. Queda guardada en su libro.';
+}
