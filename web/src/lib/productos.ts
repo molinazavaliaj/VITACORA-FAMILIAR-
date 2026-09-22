@@ -1,58 +1,50 @@
-// El catálogo (docs/panel-usuario.md §15.1, "ricitos de oro"): dos productos
-// a la vista —el libro en PDF (con «Su voz» incluida) y el libro impreso— y AL
-// MENOS UNO es obligatorio. Los marcos se suman a cualquiera. Lógica pura, sin
-// red, para probarla sin mocks.
+// El catálogo: base + upsells (spec docs/superpowers/specs/2026-09-22-catalogo-base-y-upsells-design.md,
+// decidido el 21/09). El producto es UNO —el libro en PDF con «Su voz»— y
+// siempre está en el carrito. Lo demás se suma: el libro impreso (el primero
+// paga el adicional; cada copia más, un precio fijo) y los marcos NFC (solo si
+// hay impreso, porque viajan juntos; el primero paga la caja, los siguientes
+// menos). Envío incluido en todo lo físico. Sin descuentos por cantidad.
 //
-// El audiolibro salió del catálogo el 21/09 (spec
-// docs/superpowers/specs/2026-09-20-su-voz-design.md): la fábrica ya no lo
-// produce. Lo reemplaza «Su voz» —sus mejores frases, en su voz real, con un
-// código para escucharlas—, que va INCLUIDA en el libro, no como línea aparte.
+// Una sola función de precios, `calcularCompra`, sirve para el checkout (con
+// base) y para el panel post-venta (sin base: ya la tiene; lo que ya compró
+// antes cuenta como "previo" para saber si paga el primero o los siguientes).
+//
+// El audiolibro salió del catálogo el 21/09 («Su voz» va incluida en el PDF).
 // Los pedidos anteriores que lo compraron se siguen leyendo (`productosDelPedido`).
 //
-// REGLA: un producto sin precio configurado NO EXISTE para el cliente. No se
-// muestra ni se puede comprar. Así nunca vendemos algo que no tiene precio
-// decidido ni proveedor detrás ("nunca prometer lo que no hay", brief §7).
-// Prender uno es cargar su variable de entorno en Vercel — nada más.
+// REGLA: una línea sin precio configurado NO EXISTE para el cliente: no se
+// muestra ni se cobra. Prender una es cargar su variable en Vercel y re-correr
+// el deploy (web/README.md). Lógica pura, sin red, para probarla sin mocks.
 
 import { obtenerPrecio, obtenerPrecioViaje, precioValido, type Region } from "./precios";
 
 export type Moneda = "EUR" | "ARS";
 
-export type ExtraId = "impreso_bn" | "impreso_color" | "marco";
-export type ProductoId = "pdf" | "viaje" | ExtraId;
+/** Las líneas que pueden aparecer en un ticket. */
+export type LineaId = "pdf" | "viaje" | "impreso" | "copia" | "marco" | "marco_adicional";
 
 /**
  * Con qué voz se narraba el audiolibro, en los pedidos que lo compraron antes
  * del 21/09 ("real" = anteriores al 13/09, sus audios tal cual). Ya no se
- * vende; el tipo queda para leer y mostrar esos pedidos (CONTRATO.md,
- * `pedidos.extras.audiolibro`).
+ * vende; el tipo queda para leer y mostrar esos pedidos (CONTRATO.md).
  */
 export type Voz = "clonada" | "narrador" | "real";
 
-export type Extra = {
-  id: ExtraId;
-  nombre: string;
-  detalle: string;
-  precio: number;
-  /** Los marcos se compran de a varios (uno por primo); el impreso, uno. */
-  multiple: boolean;
-};
-
-/** Lo que el cliente elige en el último paso del checkout. */
-export type ProductosElegidos = {
-  pdf: boolean;
-  impreso: "bn" | "color" | null;
-  marcos: number;
-  /** Vitácora de viaje (18/09): producto aparte. Incluye el libro para leer en la web. */
-  viaje?: boolean;
-};
-
-export const NADA_ELEGIDO: ProductosElegidos = { pdf: false, impreso: null, marcos: 0 };
 export const NOMBRE_VIAJE = "Vitácora de viaje";
 export const DETALLE_VIAJE = "Tu biógrafo te escribe cada noche del viaje, guarda tus fotos y, al volver, tu viaje es un libro.";
 
-export const NOMBRE_PDF = "El libro en PDF";
+export const NOMBRE_PDF = "El libro en PDF + Su voz";
 export const DETALLE_PDF = "Se lee en la web, capítulo por capítulo, con sus fotos. Incluye «Su voz»: sus mejores frases, en su voz real, para escuchar. Siempre disponible.";
+
+/** ⚠️ Textos a revisar por Naza (21/09). */
+export const NOMBRES: Record<Exclude<LineaId, "pdf" | "viaje">, string> = {
+  impreso: "El libro impreso",
+  copia: "Copia extra del libro impreso",
+  marco: "Marco con su voz",
+  marco_adicional: "Marco adicional",
+};
+export const DETALLE_IMPRESO = "Tapa dura, a color, con un código en la contratapa que hace sonar su voz. Envío incluido.";
+export const DETALLE_MARCO = "Un marco con su foto y un chip: se acerca el teléfono y suena su voz. Viaja con el libro.";
 
 /** Cómo se nombra la voz de un audiolibro ya comprado (solo pedidos anteriores al 21/09). */
 export const NOMBRE_VOZ: Record<Voz, string> = {
@@ -61,43 +53,55 @@ export const NOMBRE_VOZ: Record<Voz, string> = {
   real: "con sus audios",
 };
 
-const NOMBRES: Record<ExtraId, { nombre: string; detalle: string; multiple: boolean }> = {
-  impreso_bn: {
-    nombre: "El libro impreso",
-    detalle: "Tapa dura, interior en blanco y negro, con un código en la contratapa que hace sonar su voz.",
-    multiple: false,
-  },
-  impreso_color: {
-    nombre: "El libro impreso a color",
-    detalle: "Tapa dura, con las fotos de la familia a color.",
-    multiple: false,
-  },
-  marco: {
-    nombre: "Marco con su voz",
-    detalle: "Un marco con su foto y un chip: se acerca el teléfono y suena su voz. Uno por cada primo, cada tío.",
-    multiple: true,
-  },
+// ── Precios de las líneas (variables en Vercel) ───────────────────────────
+
+function precioDeEntorno(clave: string, region: Region): number | null {
+  return precioValido(process.env[`${clave}_${region === "ES" ? "EUR" : "ARS"}`]);
+}
+
+export type Catalogo = {
+  moneda: Moneda;
+  base: { nombre: string; detalle: string; precio: number };
+  viaje: number | null;
+  /** El primer impreso (adicional sobre la base) y cada copia más; null = no se vende en la región. */
+  impreso: { precio: number; precioCopia: number | null } | null;
+  /** El primer marco y cada marco más; null = no se vende. */
+  marco: { precio: number; precioAdicional: number | null } | null;
 };
 
-function precioDeEntorno(id: ExtraId, region: Region): number | null {
-  const clave = `PRECIO_${id.toUpperCase()}_${region === "ES" ? "EUR" : "ARS"}`;
-  return precioValido(process.env[clave]);
+/** Todo lo que se puede comprar en una región, con precio. Baja al cliente ya resuelto. */
+export function catalogo(region: Region): Catalogo {
+  const { monto, moneda } = obtenerPrecio(region);
+  const impreso = precioDeEntorno("PRECIO_IMPRESO", region);
+  const marco = precioDeEntorno("PRECIO_MARCO", region);
+  return {
+    moneda,
+    base: { nombre: NOMBRE_PDF, detalle: DETALLE_PDF, precio: monto },
+    viaje: obtenerPrecioViaje(region),
+    impreso: impreso === null ? null : { precio: impreso, precioCopia: precioDeEntorno("PRECIO_COPIA", region) },
+    marco: marco === null ? null : { precio: marco, precioAdicional: precioDeEntorno("PRECIO_MARCO_ADICIONAL", region) },
+  };
 }
 
-/** Los extras disponibles para una región: solo los que tienen precio cargado. */
-export function extrasDisponibles(region: Region): Extra[] {
-  const ids: ExtraId[] = ["impreso_bn", "impreso_color", "marco"];
-  const lista: Extra[] = [];
-  for (const id of ids) {
-    const precio = precioDeEntorno(id, region);
-    if (precio === null) continue;
-    lista.push({ id, ...NOMBRES[id], precio });
-  }
-  return lista;
-}
+// ── El carrito y el ticket ────────────────────────────────────────────────
+
+/**
+ * Lo que se está por comprar. `base` es "pdf" (Familiar), "viaje", o null en el
+ * panel post-venta (la base ya la tiene). `impresosPrevios` / `marcosPrevios`:
+ * lo que ya compró antes, para saber si paga el primero o los siguientes.
+ */
+export type Carrito = {
+  base: "pdf" | "viaje" | null;
+  impresos: number;
+  marcos: number;
+  impresosPrevios?: number;
+  marcosPrevios?: number;
+};
+
+export const CARRITO_VACIO: Carrito = { base: "pdf", impresos: 0, marcos: 0 };
 
 export type LineaDeCompra = {
-  id: ProductoId;
+  id: LineaId;
   nombre: string;
   cantidad: number;
   precioUnitario: number;
@@ -110,70 +114,78 @@ export type Compra = {
   total: number;
 };
 
-export type Catalogo = {
-  moneda: Moneda;
-  pdf: { nombre: string; detalle: string; precio: number };
-  extras: Extra[];
-};
-
-/** Todo lo que se puede comprar en una región, con precio. Baja al cliente ya resuelto. */
-export function catalogo(region: Region): Catalogo {
-  const { monto, moneda } = obtenerPrecio(region);
-  return {
-    moneda,
-    pdf: { nombre: NOMBRE_PDF, detalle: DETALLE_PDF, precio: monto },
-    extras: extrasDisponibles(region),
-  };
-}
-
-/** Ricitos de oro: al menos uno de los dos. Los marcos solos no alcanzan. */
-export function validarProductos(region: Region, elegidos: ProductosElegidos): { ok: true } | { ok: false; mensaje: string } {
-  const compra = calcularCompra(region, elegidos);
-  const principal = compra.lineas.some((l) => l.id !== "marco");
-  if (elegidos.viaje && !compra.lineas.some((l) => l.id === "viaje")) return { ok: false, mensaje: "La Vitácora de viaje todavía no está disponible en tu región." };
-  return principal ? { ok: true } : { ok: false, mensaje: "Elegí al menos uno: el libro en PDF o el libro impreso." };
-}
+const entero = (n: number | undefined) => Math.max(0, Math.floor(n || 0));
 
 /**
- * Arma la compra a partir de lo elegido. Ignora en silencio un producto
- * elegido que no esté disponible en esa región: no puede cobrarse algo sin
- * precio.
+ * Arma el ticket. Ignora en silencio lo que no tiene precio en la región
+ * (nunca se cobra algo sin precio) y los marcos sin impreso; `validarCarrito`
+ * es quien le avisa al cliente.
  */
-export function calcularCompra(region: Region, elegidos: ProductosElegidos): Compra {
-  const { monto, moneda } = obtenerPrecio(region);
-  const disponibles = new Map(extrasDisponibles(region).map((e) => [e.id, e]));
+export function calcularCompra(region: Region, carrito: Carrito): Compra {
+  return armarCompra(catalogo(region), region, carrito);
+}
+
+/** La misma cuenta, con un catálogo ya resuelto: el navegador la usa para el ticket en vivo. */
+export function armarCompra(cat: Catalogo, region: Region, carrito: Carrito): Compra {
   const lineas: LineaDeCompra[] = [];
 
-  if (elegidos.pdf) lineas.push({ id: "pdf", nombre: NOMBRE_PDF, cantidad: 1, precioUnitario: monto });
+  if (carrito.base === "pdf") lineas.push({ id: "pdf", nombre: NOMBRE_PDF, cantidad: 1, precioUnitario: cat.base.precio });
+  if (carrito.base === "viaje" && cat.viaje !== null) lineas.push({ id: "viaje", nombre: NOMBRE_VIAJE, cantidad: 1, precioUnitario: cat.viaje });
 
-  if (elegidos.viaje) {
-    const precio = obtenerPrecioViaje(region);
-    if (precio !== null) lineas.push({ id: "viaje", nombre: NOMBRE_VIAJE, cantidad: 1, precioUnitario: precio });
+  const impresosPrevios = entero(carrito.impresosPrevios);
+  let impresos = entero(carrito.impresos);
+  if (impresos > 0 && cat.impreso) {
+    if (impresosPrevios === 0) {
+      lineas.push({ id: "impreso", nombre: NOMBRES.impreso, cantidad: 1, precioUnitario: cat.impreso.precio });
+      impresos -= 1;
+    }
+    if (impresos > 0 && cat.impreso.precioCopia !== null) {
+      lineas.push({ id: "copia", nombre: NOMBRES.copia, cantidad: impresos, precioUnitario: cat.impreso.precioCopia });
+    }
   }
 
-  if (elegidos.impreso) {
-    const id: ExtraId = elegidos.impreso === "color" ? "impreso_color" : "impreso_bn";
-    const extra = disponibles.get(id);
-    if (extra) lineas.push({ id, nombre: extra.nombre, cantidad: 1, precioUnitario: extra.precio });
-  }
-
-  const marcos = Math.max(0, Math.floor(elegidos.marcos || 0));
-  if (marcos > 0) {
-    const extra = disponibles.get("marco");
-    if (extra) lineas.push({ id: "marco", nombre: extra.nombre, cantidad: marcos, precioUnitario: extra.precio });
+  // Los marcos viajan con el libro: solo si hay un impreso (de antes o de ahora).
+  const hayImpreso = impresosPrevios > 0 || lineas.some((l) => l.id === "impreso" || l.id === "copia");
+  const marcosPrevios = entero(carrito.marcosPrevios);
+  let marcos = entero(carrito.marcos);
+  if (marcos > 0 && hayImpreso && cat.marco) {
+    if (marcosPrevios === 0) {
+      lineas.push({ id: "marco", nombre: NOMBRES.marco, cantidad: 1, precioUnitario: cat.marco.precio });
+      marcos -= 1;
+    }
+    if (marcos > 0 && cat.marco.precioAdicional !== null) {
+      lineas.push({ id: "marco_adicional", nombre: NOMBRES.marco_adicional, cantidad: marcos, precioUnitario: cat.marco.precioAdicional });
+    }
   }
 
   // Redondeo a centavos: precios con decimales dan flotantes sucios.
   const total = Math.round(lineas.reduce((s, l) => s + l.cantidad * l.precioUnitario, 0) * 100) / 100;
-
-  return { region, moneda, lineas, total };
+  return { region, moneda: cat.moneda, lineas, total };
 }
 
-/** Lo que va a `pedidos.extras` (CONTRATO.md). Solo lo que efectivamente entró en la compra. */
+/** Lo que el cliente pidió tiene que poder cobrarse tal cual; si no, se le dice por qué. */
+export function validarCarrito(region: Region, carrito: Carrito): { ok: true } | { ok: false; mensaje: string } {
+  const cat = catalogo(region);
+  const impresos = entero(carrito.impresos);
+  const marcos = entero(carrito.marcos);
+  const impresosPrevios = entero(carrito.impresosPrevios);
+  if (carrito.base === "viaje" && cat.viaje === null) return { ok: false, mensaje: "La Vitácora de viaje todavía no está disponible en tu región." };
+  if (impresos > 0 && !cat.impreso) return { ok: false, mensaje: "El libro impreso todavía no está disponible en tu región." };
+  const copiasNuevas = impresosPrevios === 0 ? impresos - 1 : impresos;
+  if (copiasNuevas > 0 && cat.impreso?.precioCopia === null) return { ok: false, mensaje: "Las copias extra todavía no están disponibles en tu región." };
+  if (marcos > 0 && impresos + impresosPrevios === 0) return { ok: false, mensaje: "Los marcos viajan con el libro impreso: sumá el libro impreso para agregar marcos." };
+  if (marcos > 0 && !cat.marco) return { ok: false, mensaje: "Los marcos todavía no están disponibles en tu región." };
+  if (carrito.base === null && calcularCompra(region, carrito).lineas.length === 0) return { ok: false, mensaje: "Elegí al menos una cosa." };
+  return { ok: true };
+}
+
+// ── Lo que va a `pedidos.extras` (CONTRATO.md) ────────────────────────────
+
 export type ProductosDelPedido = {
   pdf: boolean;
   /** Siempre null desde el 21/09 (no se vende). Se conserva porque es CONTRATO con la fábrica y los pedidos viejos lo traen. */
   audiolibro: Voz | null;
+  /** "color" desde el 21/09 (siempre a color); "bn" solo en pedidos viejos. */
   impreso: "bn" | "color" | null;
   copias: number;
   marcos: number;
@@ -181,17 +193,17 @@ export type ProductosDelPedido = {
   tipo?: "viaje";
 };
 
+/** Solo lo que efectivamente entró en la compra. `pdf` = trae la base (PDF o viaje). */
 export function productosParaPedido(compra: Compra): ProductosDelPedido {
-  const ids = new Set(compra.lineas.map((l) => l.id));
-  const impreso = ids.has("impreso_color") ? "color" : ids.has("impreso_bn") ? "bn" : null;
-  const viaje = ids.has("viaje");
+  const cantidad = (id: LineaId) => compra.lineas.filter((l) => l.id === id).reduce((s, l) => s + l.cantidad, 0);
+  const copias = cantidad("impreso") + cantidad("copia");
+  const viaje = cantidad("viaje") > 0;
   return {
-    // La Vitácora de viaje incluye el libro para leer en la web: pdf true, y tipo 'viaje'.
-    pdf: ids.has("pdf") || viaje,
+    pdf: cantidad("pdf") > 0 || viaje,
     audiolibro: null,
-    impreso,
-    copias: impreso ? 1 : 0,
-    marcos: compra.lineas.find((l) => l.id === "marco")?.cantidad ?? 0,
+    impreso: copias > 0 ? "color" : null,
+    copias,
+    marcos: cantidad("marco") + cantidad("marco_adicional"),
     ...(viaje ? { tipo: "viaje" as const } : {}),
   };
 }
@@ -210,71 +222,4 @@ export function productosDelPedido(extras: unknown): ProductosDelPedido {
   if (!("pdf" in e)) return { pdf: true, audiolibro: "real", impreso, copias, marcos };
   const voz = e.audiolibro === "clonada" || e.audiolibro === "narrador" || e.audiolibro === "real" ? e.audiolibro : null;
   return { pdf: e.pdf === true, audiolibro: voz, impreso, copias, marcos, ...(e.tipo === "viaje" ? { tipo: "viaje" as const } : {}) };
-}
-
-// ── Extras después de la compra (docs/panel-usuario.md §7.3) ───────────
-//
-// Un pedido sin la base: lo que se suma a un libro que ya existe. Impreso si
-// no lo compró, pasar a color, marcos, y copias impresas con descuento por
-// cantidad. El descuento es por ahorro de producción, así que vale SOLO para
-// las copias pedidas juntas en el mismo pedido: 2 → 10 %, 3 → 15 %, 4 o más
-// → 20 %, sobre las copias. El primo que compra la suya aparte paga lleno.
-
-export type ExtrasPosteriores = {
-  /** El PDF, si no lo compró al principio (13/09). A precio lleno. */
-  pdf?: boolean;
-  /** Cuántos libros impresos van en este pedido (0 = ninguno). */
-  copias: number;
-  /** Blanco y negro o color, para todas las copias del pedido. */
-  acabado: "bn" | "color";
-  marcos: number;
-};
-
-export function descuentoPorCopias(copias: number): number {
-  if (copias >= 4) return 0.2;
-  if (copias === 3) return 0.15;
-  if (copias === 2) return 0.1;
-  return 0;
-}
-
-export function calcularExtras(region: Region, elegidos: ExtrasPosteriores): Compra {
-  const { monto, moneda } = obtenerPrecio(region);
-  const disponibles = new Map(extrasDisponibles(region).map((e) => [e.id, e]));
-  const lineas: LineaDeCompra[] = [];
-
-  if (elegidos.pdf) lineas.push({ id: "pdf", nombre: NOMBRE_PDF, cantidad: 1, precioUnitario: monto });
-
-  const copias = Math.max(0, Math.floor(elegidos.copias || 0));
-  if (copias > 0) {
-    const id: ExtraId = elegidos.acabado === "color" ? "impreso_color" : "impreso_bn";
-    const extra = disponibles.get(id);
-    if (extra) {
-      const descuento = descuentoPorCopias(copias);
-      const unitario = Math.round(extra.precio * (1 - descuento) * 100) / 100;
-      const nombre = descuento > 0 ? `${extra.nombre} (−${Math.round(descuento * 100)} % por ${copias} copias)` : extra.nombre;
-      lineas.push({ id, nombre, cantidad: copias, precioUnitario: unitario });
-    }
-  }
-
-  const marcos = Math.max(0, Math.floor(elegidos.marcos || 0));
-  if (marcos > 0) {
-    const extra = disponibles.get("marco");
-    if (extra) lineas.push({ id: "marco", nombre: extra.nombre, cantidad: marcos, precioUnitario: extra.precio });
-  }
-
-  const total = Math.round(lineas.reduce((s, l) => s + l.cantidad * l.precioUnitario, 0) * 100) / 100;
-  return { region, moneda, lineas, total };
-}
-
-/** Lo que va a `pedidos.extras` en un pedido posterior. */
-export function extrasPosterioresParaPedido(compra: Compra): ProductosDelPedido {
-  const impreso = compra.lineas.find((l) => l.id === "impreso_color" || l.id === "impreso_bn");
-  const ids = new Set(compra.lineas.map((l) => l.id));
-  return {
-    pdf: ids.has("pdf"),
-    audiolibro: null,
-    impreso: impreso ? (impreso.id === "impreso_color" ? "color" : "bn") : null,
-    copias: impreso?.cantidad ?? 0,
-    marcos: compra.lineas.find((l) => l.id === "marco")?.cantidad ?? 0,
-  };
 }

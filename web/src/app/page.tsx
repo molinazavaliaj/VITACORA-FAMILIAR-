@@ -63,9 +63,12 @@ const sourceSerif = Source_Serif_4({
 // productos (13/09, "ricitos de oro"; el audiolibro salió el 21/09 y «Su voz»
 // va incluida): se elige al menos uno al comprar. Los precios vienen del
 // catálogo; un formato sin precio no se muestra. ⚠️ copy a aprobar (21/09).
+// Catálogo base + upsells (21/09): la base va siempre; el impreso y los marcos
+// se suman. `precio` es lo que se muestra: la base con su precio, los demás con "+". ⚠️ Textos → Naza.
 const FORMATOS = [
-  { id: "pdf", nombre: "El libro en PDF", detalle: "Escrito con sus palabras. Se lee en la web, capítulo por capítulo, con sus fotos. Con sus mejores frases, en su voz real.", nota: "en la nube" },
-  { id: "impreso", nombre: "El libro impreso", detalle: "Tapa dura, con un código en la contratapa que hace sonar su voz. En tu repisa.", nota: "en casa" },
+  { id: "pdf", nombre: "El libro en PDF + Su voz", detalle: "Escrito con sus palabras. Se lee en la web, capítulo por capítulo, con sus fotos. Con sus mejores frases, en su voz real. Es la base: va siempre.", nota: "en la nube" },
+  { id: "impreso", nombre: "El libro impreso", detalle: "Tapa dura, a color, con un código en la contratapa que hace sonar su voz. Envío incluido. Se suma a la base.", nota: "en casa" },
+  { id: "marco", nombre: "Marcos con su voz", detalle: "Un marco con su foto y un chip: se acerca el teléfono y suena su voz. Viajan con el libro impreso.", nota: "en la repisa" },
 ] as const;
 
 const PASOS = [
@@ -230,13 +233,17 @@ export default async function Home() {
   const region = regionDelRequest(await headers());
   const cat = catalogo(region);
   const formatear = (n: number) => new Intl.NumberFormat(region === "ES" ? "es-ES" : "es-AR", { style: "currency", currency: cat.moneda, maximumFractionDigits: 0 }).format(n);
-  const impreso = cat.extras.find((e) => e.id === "impreso_bn") ?? cat.extras.find((e) => e.id === "impreso_color") ?? null;
-  const preciosPorFormato: Record<(typeof FORMATOS)[number]["id"], number | null> = { pdf: cat.pdf.precio, impreso: impreso?.precio ?? null };
-  const masBarato = Math.min(...Object.values(preciosPorFormato).filter((p): p is number => p !== null));
-  const precio = formatear(masBarato);
-  // 8.7: la promo, si está prendida (PROMO_PORCENTAJE): lista tachada + "-N %" junto al precio.
+  // Lo que se muestra por formato: la base con su precio; el impreso y los marcos como "+ tanto".
+  const preciosPorFormato: Record<(typeof FORMATOS)[number]["id"], string | null> = {
+    pdf: formatear(cat.base.precio),
+    impreso: cat.impreso ? `+ ${formatear(cat.impreso.precio)}` : null,
+    marco: cat.marco ? `+ ${formatear(cat.marco.precio)}` : null,
+  };
+  // "Desde": la base, que es lo mínimo que se compra.
+  const precio = formatear(cat.base.precio);
+  // 8.7: la promo, si está prendida (PROMO_PORCENTAJE): lista tachada + "-N %" junto al precio. Solo sobre la base.
   const promo = promoPorcentaje();
-  const lista = promo ? formatear(precioDeLista(masBarato, cat.moneda, promo)) : null;
+  const lista = promo ? formatear(precioDeLista(cat.base.precio, cat.moneda, promo)) : null;
   const fragmentoAudio = process.env.NEXT_PUBLIC_URL_FRAGMENTO_AUDIO; // el mp3 real, cuando exista
   const precioViaje = obtenerPrecioViaje(region); // Vitácora de viaje: sin precio cargado, la sección va sin número
 
@@ -482,12 +489,12 @@ export default async function Home() {
                 </span>
                 <dt className="text-xl [font-family:var(--fuente-titulo)] font-medium">{f.nombre}</dt>
                 <dd className="text-[15px] leading-[1.7] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">{f.detalle}</dd>
-                <dd className="mt-auto pt-2 text-[22px] tabular-nums [font-family:var(--fuente-titulo)]">{formatear(preciosPorFormato[f.id] as number)}</dd>
+                <dd className="mt-auto pt-2 text-[22px] tabular-nums [font-family:var(--fuente-titulo)]">{preciosPorFormato[f.id]}</dd>
               </div>
             ))}
           </dl>
           <p className="mt-5 text-[14px] leading-[1.7] text-[#5F5F55] [font-family:var(--fuente-cuerpo)] font-light">
-            Elegís al menos uno al comprar. Los otros se pueden sumar después, desde tu panel. Los marcos con su voz, también.
+            El libro en PDF con «Su voz» va siempre. El impreso y los marcos se suman al comprar, o después, desde tu panel.
           </p>
         </Aparece>
       </section>
@@ -606,18 +613,18 @@ export default async function Home() {
               </div>
             </div>
             <div className="lg:border-l lg:border-[#D4D4CE] lg:pl-16">
-              <p className="text-[11px] uppercase text-[#5F5F55] [font-family:var(--fuente-micro)] [letter-spacing:0.3em]">Los tres formatos</p>
+              <p className="text-[11px] uppercase text-[#5F5F55] [font-family:var(--fuente-micro)] [letter-spacing:0.3em]">La base y lo que se suma</p>
               <ul className="mt-5 flex flex-col gap-3 text-[16px] leading-[1.6] text-[#2B2B24] [font-family:var(--fuente-cuerpo)] font-light">
                 {FORMATOS.filter((f) => preciosPorFormato[f.id] !== null).map((f) => (
                   <li key={f.id} className="flex items-baseline justify-between gap-4 border-b border-[#EBEBE7] pb-3">
                     <span>{f.nombre}</span>
-                    <span className="shrink-0 tabular-nums [font-family:var(--fuente-micro)] text-[15px]">{formatear(preciosPorFormato[f.id] as number)}</span>
+                    <span className="shrink-0 tabular-nums [font-family:var(--fuente-micro)] text-[15px]">{preciosPorFormato[f.id]}</span>
                   </li>
                 ))}
               </ul>
               <ul className="mt-6 flex flex-col gap-3 text-[15px] leading-[1.6] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">
                 {[
-                  "Con cualquiera: las 30 preguntas del biógrafo, el anticipo a la tercera respuesta y el panel para verlo crecer",
+                  "Siempre: las 30 preguntas del biógrafo, el anticipo a la tercera respuesta y el panel para verlo crecer",
                   "Se lee y se escucha en la web, cuando quieras, para siempre",
                 ].map((item) => (
                   <li key={item} className="flex gap-3">

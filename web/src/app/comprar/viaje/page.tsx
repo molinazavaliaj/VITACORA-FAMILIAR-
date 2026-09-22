@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Playfair_Display, Archivo, Source_Serif_4 } from "next/font/google";
-import { obtenerPrecioViaje } from "@/lib/precios";
-import { extrasDisponibles } from "@/lib/productos";
+import { catalogo } from "@/lib/productos";
 import { regionDelRequest } from "@/lib/region";
 import { promoPorcentaje } from "@/lib/promo";
 import { headers } from "next/headers";
 import { Toroide } from "../../marca";
-import { CheckoutViaje, type ExtrasViaje, type PreciosViaje } from "./formulario";
+import { CheckoutViaje, type CatalogoViaje } from "./formulario";
 
 // La Vitácora de viaje (docs/vitacora-de-viaje.md, 18/09): producto aparte, con
 // su compra propia en tres pasos — vos · el viaje · pagar. El resto (pago,
@@ -23,9 +22,8 @@ export const metadata: Metadata = {
 };
 
 export default async function PaginaComprarViaje() {
-  const precios: PreciosViaje = { ES: obtenerPrecioViaje("ES"), AR: obtenerPrecioViaje("AR") };
-  // 2.10: el impreso y los marcos también se compran acá, con los precios del Familiar.
-  const extras: ExtrasViaje = { ES: extrasDisponibles("ES"), AR: extrasDisponibles("AR") };
+  // El catálogo por región: la base del viaje y los mismos upsells del Familiar (21/09).
+  const catalogos: CatalogoViaje = { ES: catalogo("ES"), AR: catalogo("AR") };
   return (
     <div className={`${playfair.variable} ${archivo.variable} ${sourceSerif.variable} flex flex-1 flex-col bg-[#F7F7F5] text-[#14140F]`}>
       <header className="border-b border-[#EBEBE7] bg-white">
@@ -39,7 +37,7 @@ export default async function PaginaComprarViaje() {
           </Link>
         </div>
       </header>
-      <CheckoutViaje precios={precios} extras={extras} regionInicial={regionDelRequest(await headers())} promo={promoPorcentaje()} />
+      <CheckoutViaje catalogo={catalogos} regionInicial={regionDelRequest(await headers())} promo={promoPorcentaje()} />
     </div>
   );
 }

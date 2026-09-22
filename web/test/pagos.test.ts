@@ -29,8 +29,8 @@ import Stripe from 'stripe';
 import { MercadoPagoConfig, Preference, Payment } from 'mercadopago';
 import { crearCheckout } from '@/lib/pagos';
 import { verificarToken } from '@/lib/token-firmado';
-import { calcularCompra, NADA_ELEGIDO } from '@/lib/productos';
-const SOLO_PDF = { ...NADA_ELEGIDO, pdf: true };
+import { calcularCompra, CARRITO_VACIO } from '@/lib/productos';
+const SOLO_PDF = CARRITO_VACIO;
 import { POST as POST_WEBHOOK_STRIPE } from '../src/app/api/webhooks/stripe/route';
 import { POST as POST_WEBHOOK_MP } from '../src/app/api/webhooks/mercadopago/route';
 
@@ -185,14 +185,15 @@ describe('crearCheckout', () => {
   });
 
   it('los extras elegidos viajan a Stripe como líneas propias, con su cantidad', async () => {
-    process.env.PRECIO_IMPRESO_BN_EUR = '99';
+    process.env.PRECIO_IMPRESO_EUR = '99';
     process.env.PRECIO_MARCO_EUR = '29';
+    process.env.PRECIO_MARCO_ADICIONAL_EUR = '15';
     const mockCreate = vi.fn().mockResolvedValue({ url: 'https://checkout.stripe.com/xyz' });
     (Stripe as unknown as ReturnType<typeof vi.fn>).mockImplementation(function () {
       return { checkout: { sessions: { create: mockCreate } } };
     });
 
-    await crearCheckout({ id: 'pedido-4', email: 'martina@test.com' }, calcularCompra('ES', { ...SOLO_PDF, impreso: 'bn', marcos: 2 }));
+    await crearCheckout({ id: 'pedido-4', email: 'martina@test.com' }, calcularCompra('ES', { ...SOLO_PDF, impresos: 1, marcos: 2 }));
 
     const args = mockCreate.mock.calls[0][0] as {
       line_items: { price_data: { unit_amount: number; product_data: { name: string } }; quantity: number }[];
@@ -200,10 +201,12 @@ describe('crearCheckout', () => {
     expect(args.line_items.map((l) => [l.price_data.unit_amount, l.quantity])).toEqual([
       [4900, 1],
       [9900, 1],
-      [2900, 2],
+      [2900, 1],
+      [1500, 1],
     ]);
-    delete process.env.PRECIO_IMPRESO_BN_EUR;
+    delete process.env.PRECIO_IMPRESO_EUR;
     delete process.env.PRECIO_MARCO_EUR;
+    delete process.env.PRECIO_MARCO_ADICIONAL_EUR;
   });
 
   it('redondea los centavos de un precio con decimales (evita el error de coma flotante de *100)', async () => {

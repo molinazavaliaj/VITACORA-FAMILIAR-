@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { validarYConstruir, type RegistroBody } from "@/lib/registro";
-import { calcularCompra, productosParaPedido, validarProductos, NADA_ELEGIDO, type ProductosElegidos } from "@/lib/productos";
+import { calcularCompra, productosParaPedido, validarCarrito, type Carrito } from "@/lib/productos";
 import { crearCheckout } from "@/lib/pagos";
 import { firmarTokenFotos } from "@/lib/token-fotos";
 
@@ -19,16 +19,15 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 export type CompraBody = RegistroBody & {
   email?: string;
-  /** Los productos + marcos (13/09). Al menos uno de los principales. Una clave 'audiolibro' vieja se ignora (21/09). */
-  productos?: Partial<ProductosElegidos>;
+  /** El carrito (21/09, catálogo base + upsells): la base va siempre; se suman impresos y marcos. */
+  productos?: { viaje?: boolean; impresos?: number; marcos?: number };
 };
 
-function leerProductos(crudo: Partial<ProductosElegidos> | undefined): ProductosElegidos {
+function leerCarrito(crudo: CompraBody["productos"]): Carrito {
   return {
-    pdf: crudo?.pdf === true,
-    impreso: crudo?.impreso === "bn" || crudo?.impreso === "color" ? crudo.impreso : null,
-    marcos: typeof crudo?.marcos === "number" ? crudo.marcos : NADA_ELEGIDO.marcos,
-    viaje: crudo?.viaje === true,
+    base: crudo?.viaje === true ? "viaje" : "pdf",
+    impresos: typeof crudo?.impresos === "number" ? crudo.impresos : 0,
+    marcos: typeof crudo?.marcos === "number" ? crudo.marcos : 0,
   };
 }
 
@@ -51,10 +50,10 @@ export async function POST(request: NextRequest) {
   }
   const { familia: familiaAInsertar, narrador: narradorAInsertar } = validacion;
 
-  const elegidos = leerProductos(body.productos);
-  const productosOk = validarProductos(familiaAInsertar.region, elegidos);
-  if (!productosOk.ok) return NextResponse.json({ error: productosOk.mensaje }, { status: 400 });
-  const compra = calcularCompra(familiaAInsertar.region, elegidos);
+  const carrito = leerCarrito(body.productos);
+  const carritoOk = validarCarrito(familiaAInsertar.region, carrito);
+  if (!carritoOk.ok) return NextResponse.json({ error: carritoOk.mensaje }, { status: 400 });
+  const compra = calcularCompra(familiaAInsertar.region, carrito);
 
   const admin = crearClienteServidor();
 

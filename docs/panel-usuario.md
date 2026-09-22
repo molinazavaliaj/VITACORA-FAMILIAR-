@@ -368,6 +368,9 @@ párrafo · colores de tapa · más de 3 invitados · referidos · regalar una c
 
 ### 15.1 · Tres productos, al menos uno — "ricitos de oro"
 
+> **Superado el 21/09** por el catálogo base + upsells (`docs/superpowers/specs/2026-09-22-catalogo-base-y-upsells-design.md`):
+> la base (PDF + Su voz) va siempre; el impreso y los marcos se suman. Lo de abajo queda como historia.
+
 | Producto | Qué es | ARS | EUR | Variable |
 |---|---|---|---|---|
 | **El libro en PDF** | Se **lee en la web**, capítulo por capítulo, con las fotos. **No se descarga.** | 85.750 | 49 | `PRECIO_ARS` / `PRECIO_EUR` (sin cambio de valor: antes incluía el audiolibro) |

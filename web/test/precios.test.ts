@@ -9,7 +9,7 @@
 // regiones) un valor inválido no puede llegar al cliente como precio.
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { obtenerPrecio, obtenerPrecioViaje } from '@/lib/precios';
-import { calcularCompra, catalogo, extrasDisponibles } from '@/lib/productos';
+import { calcularCompra, catalogo, CARRITO_VACIO } from '@/lib/productos';
 
 const ENV_ORIGINAL = { ...process.env };
 
@@ -26,18 +26,20 @@ const PRECIO_CASA = { ES: 49, AR: 85750 } as const;
  */
 const BASURA = ['"49"', '85,750', '49,00', '49 €', 'gratis', '0', '-5', 'Infinity'];
 
-/** Las diez variables de precio que lee el código (las PRECIO_AUDIOLIBRO_* ya no se usan). */
+/** Las doce variables de precio que lee el código (catálogo base + upsells, 21/09; las de BN/COLOR y AUDIOLIBRO ya no se usan). */
 const CLAVES = [
   'PRECIO_EUR',
   'PRECIO_ARS',
   'PRECIO_VIAJE_EUR',
   'PRECIO_VIAJE_ARS',
-  'PRECIO_IMPRESO_BN_EUR',
-  'PRECIO_IMPRESO_BN_ARS',
-  'PRECIO_IMPRESO_COLOR_EUR',
-  'PRECIO_IMPRESO_COLOR_ARS',
+  'PRECIO_IMPRESO_EUR',
+  'PRECIO_IMPRESO_ARS',
+  'PRECIO_COPIA_EUR',
+  'PRECIO_COPIA_ARS',
   'PRECIO_MARCO_EUR',
   'PRECIO_MARCO_ARS',
+  'PRECIO_MARCO_ADICIONAL_EUR',
+  'PRECIO_MARCO_ADICIONAL_ARS',
 ];
 
 beforeEach(() => {
@@ -114,19 +116,20 @@ describe('un precio del PDF mal cargado no rompe la tienda ($NaN)', () => {
     process.env.PRECIO_ARS = crudo;
     const es = catalogo('ES');
     const ar = catalogo('AR');
-    expect(es.pdf.precio).toBe(PRECIO_CASA.ES);
-    expect(ar.pdf.precio).toBe(PRECIO_CASA.AR);
+    expect(es.base.precio).toBe(PRECIO_CASA.ES);
+    expect(ar.base.precio).toBe(PRECIO_CASA.AR);
     // Lo que ve el cliente: ni "$NaN" ni "$Infinity" en el payload de /comprar.
-    expect(JSON.stringify({ es, ar })).not.toMatch(/NaN|null|Infinity/);
+    expect(JSON.stringify({ es: es.base, ar: ar.base })).not.toMatch(/NaN|null|Infinity/);
   });
 
   it.each(BASURA)('con %s el total del carrito nunca es NaN', (crudo) => {
     process.env.PRECIO_EUR = crudo;
-    process.env.PRECIO_IMPRESO_COLOR_EUR = '46';
+    process.env.PRECIO_IMPRESO_EUR = '46';
     process.env.PRECIO_MARCO_EUR = '20';
-    const compra = calcularCompra('ES', { pdf: true, impreso: 'color', marcos: 2 });
+    process.env.PRECIO_MARCO_ADICIONAL_EUR = '15';
+    const compra = calcularCompra('ES', { ...CARRITO_VACIO, impresos: 1, marcos: 2 });
     expect(Number.isFinite(compra.total)).toBe(true);
-    expect(compra.total).toBe(PRECIO_CASA.ES + 46 + 2 * 20);
+    expect(compra.total).toBe(PRECIO_CASA.ES + 46 + 20 + 15);
   });
 
   it('un precio válido se sigue leyendo tal cual (no se tapa un precio bien puesto)', () => {
@@ -170,9 +173,9 @@ describe('la Vitácora de viaje: sin precio válido no existe para el cliente', 
 
   it.each(BASURA)('con %s el viaje no entra en ninguna línea ni ensucia el total', (crudo) => {
     process.env.PRECIO_VIAJE_ARS = crudo;
-    const compra = calcularCompra('AR', { pdf: true, impreso: null, marcos: 0, viaje: true });
-    expect(compra.lineas.map((l) => l.id)).toEqual(['pdf']);
-    expect(compra.total).toBe(PRECIO_CASA.AR);
+    const compra = calcularCompra('AR', { ...CARRITO_VACIO, base: 'viaje' });
+    expect(compra.lineas.map((l) => l.id)).toEqual([]);
+    expect(compra.total).toBe(0);
   });
 
   it('un precio de viaje válido se sigue leyendo', () => {
@@ -196,38 +199,37 @@ describe('la Vitácora de viaje: sin precio válido no existe para el cliente', 
 describe('el catálogo separa el PDF (siempre con precio) de los extras (solo con precio válido)', () => {
   it.each(BASURA)('con %s en los tres extras, el PDF se sigue vendiendo y los extras no aparecen', (crudo) => {
     process.env.PRECIO_ARS = crudo;
-    process.env.PRECIO_IMPRESO_BN_ARS = crudo;
-    process.env.PRECIO_IMPRESO_COLOR_ARS = crudo;
+    process.env.PRECIO_IMPRESO_ARS = crudo;
     process.env.PRECIO_MARCO_ARS = crudo;
     const cat = catalogo('AR');
-    expect(cat.pdf.precio).toBe(PRECIO_CASA.AR);
-    expect(cat.extras).toEqual([]);
-    expect(calcularCompra('AR', { pdf: true, impreso: 'color', marcos: 3 }).total).toBe(PRECIO_CASA.AR);
+    expect(cat.base.precio).toBe(PRECIO_CASA.AR);
+    expect(cat.impreso).toBeNull();
+    expect(cat.marco).toBeNull();
+    expect(calcularCompra('AR', { ...CARRITO_VACIO, impresos: 1, marcos: 3 }).total).toBe(PRECIO_CASA.AR);
   });
 
-  it('con precios válidos en las diez variables cada uno llega a su producto (control)', () => {
+  it('con precios válidos en las doce variables cada uno llega a su producto (control)', () => {
     process.env.PRECIO_EUR = '49';
     process.env.PRECIO_ARS = '85750';
     process.env.PRECIO_VIAJE_EUR = '45';
     process.env.PRECIO_VIAJE_ARS = '78750';
-    process.env.PRECIO_IMPRESO_BN_EUR = '89';
-    process.env.PRECIO_IMPRESO_BN_ARS = '70000';
-    process.env.PRECIO_IMPRESO_COLOR_EUR = '99';
-    process.env.PRECIO_IMPRESO_COLOR_ARS = '80500';
+    process.env.PRECIO_IMPRESO_EUR = '49';
+    process.env.PRECIO_IMPRESO_ARS = '85750';
+    process.env.PRECIO_COPIA_EUR = '40';
+    process.env.PRECIO_COPIA_ARS = '70000';
     process.env.PRECIO_MARCO_EUR = '20';
     process.env.PRECIO_MARCO_ARS = '35000';
+    process.env.PRECIO_MARCO_ADICIONAL_EUR = '15';
+    process.env.PRECIO_MARCO_ADICIONAL_ARS = '26250';
 
     expect(obtenerPrecio('ES').monto).toBe(49);
     expect(obtenerPrecio('AR').monto).toBe(85750);
     expect(obtenerPrecioViaje('ES')).toBe(45);
     expect(obtenerPrecioViaje('AR')).toBe(78750);
-    for (const region of ['ES', 'AR'] as const) {
-      expect(extrasDisponibles(region).map((e) => [e.id, e.precio])).toEqual(
-        region === 'ES'
-          ? [['impreso_bn', 89], ['impreso_color', 99], ['marco', 20]]
-          : [['impreso_bn', 70000], ['impreso_color', 80500], ['marco', 35000]],
-      );
-    }
+    expect(catalogo('ES').impreso).toEqual({ precio: 49, precioCopia: 40 });
+    expect(catalogo('ES').marco).toEqual({ precio: 20, precioAdicional: 15 });
+    expect(catalogo('AR').impreso).toEqual({ precio: 85750, precioCopia: 70000 });
+    expect(catalogo('AR').marco).toEqual({ precio: 35000, precioAdicional: 26250 });
   });
 });
 
