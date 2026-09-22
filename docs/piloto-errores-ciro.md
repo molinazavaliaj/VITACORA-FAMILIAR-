@@ -30,6 +30,7 @@ pregunta 12 de 26.
 | C6 | El biógrafo pone los recuerdos **en la ciudad equivocada** (3 de 3) | Es un error de hecho, no de tono: las salidas de la adolescencia fueron en Buenos Aires y las preguntó "en Concordia". La fábrica escribe el libro con el mismo material, así que el error viaja al texto impreso. **Reproducido el 22/09 contra `main` al día (3t.29 incluido): no lo arregla nada de lo de hoy.** |
 | C8 | La puerta manual quedó **rota entera** por un módulo borrado | `3t.28` borró `src/ia/voz.ts` y dejó el import en `scripts/manual.ts`: cualquier comando moría. Tercera vez que muerde la misma causa — `tsconfig.json` tiene `include: ["src"]`, así que `tsc` **nunca** mira `scripts/`. Arreglado el 22/09; la causa raíz sigue abierta. |
 | C11 | La personalización **devuelve la pregunta entera en usted** a un narrador de vos | No es un verbo suelto como en C6: la 13 arranca "Mirá, vos dijiste…" y sigue "¿cómo **conoció** al amor de su vida? **Lléveme** a ese día… qué **pensó** cuando **la** vio". Si se manda así, el narrador siente que le escribe otra persona. Cuarta aparición de la mezcla, la peor. |
+| C13 | «El amor» es en realidad **«el matrimonio»**: las tres fijas dan por hecho novia, suegros, boda y nietos — y sin pareja el capítulo se **borra entero** | Decisión de Naza (22/09): *"no tiene pareja pero esta pregunta sí va, porque si se ha enamorado no tiene nada que ver"*. Haberse enamorado no depende de estar en pareja. Hoy `arbol.conyuge = 'no tuvo'` hace que las 3 preguntas se reemplacen por otro tema: se pierde uno de los capítulos más fuertes de cualquier vida. |
 | C3 | Pregunta por la infancia **como si hubiera sido un lujo** | Pedido explícito de Naza. A un narrador con infancia dura, preguntarle por "las fiestas y las tradiciones" le dice que no lo escucharon — y encima desperdicia la pregunta del día. |
 
 ### 🟠 Medios — le sacan valor a la entrevista
@@ -256,3 +257,50 @@ estado civil (21/09) pero Ciro se dio de alta antes — para los de antes, `manu
 (b) las fijas de «El amor» deberían estar escritas sin género y sin dar por hecho que
 hubo pareja, como se hizo con «Los hijos»; (c) si la ficha no dice nada, la pregunta
 tiene que preguntar **si** hubo, no **cómo fue**.
+
+### C13 · «El amor» está escrito como «el matrimonio», y sin pareja se borra entero
+**22/09. Decisión de Naza**, al ver la pregunta 13 para Ciro (28 años, sin pareja):
+
+> *"No tiene pareja, pero esta pregunta sí va, porque si se ha enamorado no tiene nada
+> que ver."*
+
+Son dos cosas, y las dos están en el código.
+
+**1. Las tres fijas del capítulo dan por hecho una vida entera.** Textuales:
+
+- 13 — «¿Cómo conoció al amor de su vida? Lléveme a ese día: dónde fue, qué pensó cuando
+  **la** vio, quién dio el primer paso.»
+- 14 — «¿Cómo era el noviazgo…? Cuénteme el día que **la presentó en su casa** — ¿qué
+  dijeron sus padres, cómo lo recibieron **sus suegros**? ¿Y cómo fue **la propuesta de
+  casamiento y el día de la boda**?»
+- 15 — «**Un amor de tantos años** no es todo color de rosa. ¿Qué tormentas pasaron
+  juntos…? ¿Qué le diría a **un nieto** que le pregunta cómo se hace para querer a
+  alguien toda la vida?»
+
+Dan por hecho: que fue mujer, que hubo noviazgo, suegros, propuesta, boda, décadas
+juntos y nietos. Para el abuelo casado del diseño original funcionan; para cualquier
+otra vida —alguien que se enamoró y no se casó, que enviudó joven, que se separó, que
+nunca tuvo pareja, o cuya pareja es un hombre— no hay por dónde entrarles.
+
+**2. Y si la familia dice que no hubo pareja, el capítulo desaparece.**
+`capituloNoAplica()` (`entrevistador/src/flujo/preguntar.ts:57`) devuelve `true` cuando
+`arbol.conyuge === 'no tuvo'` (o bajo `EDAD_SIN_PAREJA = 18`), y entonces
+`crearReemplazo` cambia las tres preguntas por **otro tema**. O sea: marcar "no tiene
+pareja" no reescribe el capítulo — lo **borra**. Se pierden tres de las 26 preguntas y
+uno de los capítulos que más le importa a una familia.
+
+**Consecuencia práctica, hoy:** a Ciro **no** se le carga `arbol.conyuge = 'no tuvo'`
+aunque no tenga pareja, justamente para que el capítulo no se borre. Queda vacío a
+propósito. (Si alguien lo "prolija" cargándolo, le apaga el capítulo sin querer.)
+
+**Para repasar — es una decisión de producto, no un bug suelto:**
+
+1. Reescribir las tres fijas de «El amor» **sin género y sin dar por hecho nada**:
+   preguntar *si* se enamoró antes que *cómo fue la boda*. Lo mismo que ya se hizo con
+   «Los hijos» cuando el narrador dice que no tiene.
+2. `arbol.conyuge = 'no tuvo'` debería significar **"no hubo matrimonio/pareja estable"**
+   → reformular las preguntas hacia el enamoramiento, los amores que no fueron. No
+   saltear el capítulo. El salto queda para cuando el propio narrador diga que no quiere
+   hablar de eso.
+3. Revisar si «Los hijos» tiene el mismo problema al revés: alguien sin hijos puede
+   tener sobrinos, ahijados, pibes que crió.
