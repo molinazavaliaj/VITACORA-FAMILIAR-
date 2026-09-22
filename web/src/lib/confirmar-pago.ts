@@ -14,6 +14,8 @@
 // nunca entra.
 
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { necesitaEntrega } from "./entregas";
+import { productosDelPedido } from "./productos";
 
 export type ResultadoConfirmacion =
   | { ok: true; yaEstaba: boolean; email: string | null }
@@ -67,7 +69,31 @@ export async function confirmarPago(
     console.error(`confirmarPago: el pedido ${pedidoId} quedó pagado pero el narrador ${pedido.narrador_id} no pasó a invitado:`, errorNarrador.message);
   }
 
-  // 3. El mail de acceso.
+  // 3. La entrega de lo físico (3t.26): si el pedido lleva impreso o marcos,
+  //    nace su fila en `sin_direccion` y la familia carga la dirección desde
+  //    Encargar libro. Si algo falla acá NO se toca el resultado del pago: el
+  //    cobro está hecho y una entrega se puede crear después a mano.
+  try {
+    const [{ data: filaPedido }, { data: filaFamilia }] = await Promise.all([
+      admin.from("pedidos").select("extras").eq("id", pedidoId).maybeSingle(),
+      admin.from("familias").select("region").eq("id", pedido.familia_id).maybeSingle(),
+    ]);
+    const productos = productosDelPedido((filaPedido as { extras?: unknown } | null)?.extras);
+    if (necesitaEntrega(productos)) {
+      const { error } = await admin.from("entregas").insert({
+        pedido_id: pedido.id,
+        narrador_id: pedido.narrador_id,
+        familia_id: pedido.familia_id,
+        estado: "sin_direccion",
+        origen: (filaFamilia as { region?: "ES" | "AR" } | null)?.region ?? "AR",
+      });
+      if (error) throw new Error(error.message);
+    }
+  } catch (err) {
+    console.error(`confirmarPago: el pedido ${pedidoId} quedó pagado pero no pude crear su entrega:`, err);
+  }
+
+  // 4. El mail de acceso.
   const [{ data: familia }, { data: narrador }] = await Promise.all([
     admin.from("familias").select("email").eq("id", pedido.familia_id).maybeSingle(),
     admin.from("narradores").select("como_le_dicen").eq("id", pedido.narrador_id).maybeSingle(),

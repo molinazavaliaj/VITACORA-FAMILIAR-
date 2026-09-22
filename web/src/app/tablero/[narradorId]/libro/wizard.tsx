@@ -24,6 +24,10 @@ type Props = {
   propia?: boolean;
   /** Lo que se puede sumar (impreso, marcos…): va en el paso Encargar, antes del botón, para verlo justo al cerrar (Joaquín, 18/09). */
   upsell?: ReactNode;
+  /** La sección Envío (3t.26): solo si el pedido lleva algo físico. */
+  envio?: ReactNode;
+  /** Con algo físico sin dirección cargada, no se puede encargar (decisión de Joaquín, 21/09). */
+  faltaDireccion?: boolean;
 };
 
 const PASOS = ["Portada", "Capítulos", "Contenido", "Encargar"] as const;
@@ -45,7 +49,7 @@ async function guardarEdicion(narradorId: string, cambios: Edicion) {
   if (!r.ok) throw new Error(j.error ?? "No pudimos guardar.");
 }
 
-export function Wizard({ narradorId, nombre, edicion: inicial, capitulos, respuestas, fotos, nombresRevisados, propia = false, upsell }: Props) {
+export function Wizard({ narradorId, nombre, edicion: inicial, capitulos, respuestas, fotos, nombresRevisados, propia = false, upsell, envio, faltaDireccion = false }: Props) {
   const router = useRouter();
   const [paso, setPaso] = useState(0);
   const [titulo, setTitulo] = useState(inicial.titulo);
@@ -344,16 +348,21 @@ export function Wizard({ narradorId, nombre, edicion: inicial, capitulos, respue
             </label>
           </div>
 
+          {/* Adónde va lo físico (3t.26): antes del botón, porque sin dirección no se encarga. */}
+          {envio ? <div className="rounded-xl border border-[var(--linea)] p-6">{envio}</div> : null}
+
           {/* Lo que se puede sumar, justo antes de encargar: se ve sin scrollear hasta abajo. */}
           {upsell ? <div className="rounded-xl border border-[var(--linea)] p-6">{upsell}</div> : null}
 
           {error ? <p className="text-sm text-[var(--alerta)]">{error}</p> : null}
 
           <div className="flex flex-wrap items-center gap-4">
-            <button type="button" disabled={ocupado || !confirmo} onClick={cerrar} className={`${boton} h-13 bg-[var(--acento)] px-10 text-[16px] text-[var(--sobre-acento)] hover:opacity-90`}>
+            <button type="button" disabled={ocupado || !confirmo || faltaDireccion} onClick={cerrar} className={`${boton} h-13 bg-[var(--acento)] px-10 text-[16px] text-[var(--sobre-acento)] hover:opacity-90`}>
               {ocupado ? "Encargando…" : "Encargar"}
             </button>
-            <span className="text-sm text-[var(--texto-menor)]">{propia ? "Tu libro" : `El libro de ${nombre}`}, tal como lo revisaste.</span>
+            <span className="text-sm text-[var(--texto-menor)]">
+              {faltaDireccion ? "Falta la dirección de envío, acá arriba: el libro impreso tiene que llegar a algún lado." : `${propia ? "Tu libro" : `El libro de ${nombre}`}, tal como lo revisaste.`}
+            </span>
             <button type="button" className={chico} disabled={ocupado} onClick={() => irAlPaso(2)}>Volver a revisar</button>
           </div>
         </section>

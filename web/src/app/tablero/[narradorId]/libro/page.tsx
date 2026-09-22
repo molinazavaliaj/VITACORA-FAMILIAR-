@@ -14,6 +14,8 @@ import { Wizard, type RespuestaResumen } from "./wizard";
 import { LibroMiniatura, type LibroDatos } from "./miniatura";
 import { FotosDelLibro, type FotoElegible } from "./fotos-del-libro";
 import { Extras } from "./extras";
+import { Envio, type EntregaVista } from "./envio";
+import { necesitaEntrega } from "@/lib/entregas";
 
 // Encargar libro (docs/panel-usuario.md §7 y §15.4): arriba "Su libro" y el
 // estado; el libro en miniatura para hojear cómo va quedando; Tapa ·
@@ -81,6 +83,37 @@ export default async function PaginaLibro({ params, searchParams }: PageProps<"/
     marcos: productosPagados.reduce((s, p) => s + p.marcos, 0),
   };
   const cat = catalogo(region);
+
+  // 3t.26: la entrega de ESTE comprador para este libro (si compró algo físico).
+  // La fila nace al confirmar el pago; acá se carga la dirección.
+  const pedidoFisico = misPedidos.find((p) => p.estado !== "fallido" && necesitaEntrega(productosDelPedido(p.extras)));
+  const { data: filaEntrega } = pedidoFisico
+    ? await admin.from("entregas").select("id, estado, destinatario_nombre, destinatario_telefono, direccion, nota, transportista, seguimiento, seguimiento_url, problema").eq("pedido_id", pedidoFisico.id).maybeSingle()
+    : { data: null };
+  const e = filaEntrega as Record<string, unknown> | null;
+  const entrega: EntregaVista | null = e
+    ? {
+        id: e.id as string,
+        estado: e.estado as EntregaVista["estado"],
+        destinatarioNombre: (e.destinatario_nombre as string) ?? null,
+        destinatarioTelefono: (e.destinatario_telefono as string) ?? null,
+        direccion: (e.direccion as EntregaVista["direccion"]) ?? null,
+        nota: (e.nota as string) ?? null,
+        transportista: (e.transportista as string) ?? null,
+        seguimiento: (e.seguimiento as string) ?? null,
+        seguimientoUrl: (e.seguimiento_url as string) ?? null,
+        problema: (e.problema as string) ?? null,
+      }
+    : null;
+  const queViaja = pedidoFisico
+    ? (() => {
+        const q = productosDelPedido(pedidoFisico.extras);
+        const partes = [q.copias > 0 ? (q.copias === 1 ? "El libro impreso" : `Los ${q.copias} libros impresos`) : null, q.marcos > 0 ? (q.marcos === 1 ? "el marco" : `los ${q.marcos} marcos`) : null].filter(Boolean);
+        return partes.join(" y ").replace(/^el /, "El ");
+      })()
+    : "";
+  // La dirección es obligatoria para encargar (Joaquín, 21/09).
+  const faltaDireccion = Boolean(entrega && entrega.estado === "sin_direccion");
 
   // ── Invitado: solo su copia ─────────────────────────────────────────
   if (!PUEDE.verLoQuePago(rol)) {
@@ -259,6 +292,8 @@ export default async function PaginaLibro({ params, searchParams }: PageProps<"/
             fotos={fotos.map(({ id, epigrafe, capitulo }) => ({ id, epigrafe, capitulo }))}
             nombresRevisados={nombresRevisados}
             upsell={<Extras narradorId={n.id} region={region} catalogo={cat} previos={previos} propia={propia} />}
+            envio={entrega ? <Envio narradorId={n.id} entrega={entrega} queViaja={queViaja} /> : undefined}
+            faltaDireccion={faltaDireccion}
           />
         </section>
       ) : null}
