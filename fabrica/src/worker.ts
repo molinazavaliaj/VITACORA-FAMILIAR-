@@ -86,6 +86,7 @@ export async function tick(): Promise<void> {
     await ensamblarNarracionesListas();
     await avisarNarracionesAtascadas();
     await avisarLibrosListos();
+    await recordarFrasesPendientes();
     // El latido, último y con su try adentro: si no puede anotar que la
     // fábrica está viva, el tick no se cae por eso.
     await anotarLatido('fabrica');
@@ -93,7 +94,6 @@ export async function tick(): Promise<void> {
     corriendo = false;
   }
 }
-    await recordarFrasesPendientes();
 
 /**
  * Los nombres de archivo que hay en `{narrador_id}/paquete/` en Storage: ahí
