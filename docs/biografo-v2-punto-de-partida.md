@@ -239,3 +239,11 @@ cobertura, trato) son las que dicen si la versión reescrita es mejor que la de 
 - **Género**: el biógrafo pregunta siempre sabiendo con quién habla; nunca trata de hombre a
   una mujer. Si todavía no lo sabe, escribe de forma que sirva para los dos.
 - **Siguiente**: los prompts de la fábrica (los que escriben el libro).
+- **La compra pregunta si la persona es mujer u hombre**, con el contexto básico (web, Joaquín).
+  El libro igual lo deduce de cómo se nombra, pero con Osvaldo no alcanzó: la compra es la
+  fuente segura.
+- **El encargo del libro, corregido por Naza**: sin la regla "nada de otra persona" (que el
+  material sea suyo se garantiza antes de escribir — el candado y la auditoría — y en el prompt
+  podía hacer tirar una etapa de su vida que no se parece al resto); la voz en el castellano de
+  cada uno (argentino, de España, el que sea); "suena a folleto" es para lo que agrega el
+  escritor — si lo dijo la persona, es suyo y va.
