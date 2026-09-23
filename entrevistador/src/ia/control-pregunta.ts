@@ -17,6 +17,17 @@ export type Marca = { control: string; motivo: string; intentos: number };
 export const INTENTOS = 3;
 
 const sinAcentos = (t: string) => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+const escaparRegex = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/**
+ * ¿`textoNormal` nombra `nombreNormal` como palabra (o frase) entera, no como parte de otra?
+ * ("Salta" no tiene que cazar "saltabas", ni "Roma" a "romántico", ni "Pilar" a "pilares" —
+ * fix ronda 1: antes se usaba `.includes()`, que los confundía a los cuatro).
+ */
+function nombraLugar(textoNormal: string, nombreNormal: string): boolean {
+  return new RegExp(`(^|[^a-z0-9])${escaparRegex(nombreNormal)}([^a-z0-9]|$)`).test(textoNormal);
+}
+
 /**
  * "Buenos Aires (Núñez)" → [{normal:"buenos aires", original:"Buenos Aires"}, {normal:"nunez",
  * original:"Núñez"}]: la ciudad y lo que va entre paréntesis. `normal` es para comparar (sin
@@ -29,17 +40,19 @@ function nombresDeLugar(lugar: string): { normal: string; original: string }[] {
 /**
  * ¿La pregunta nombra una ciudad que no es la de esta persona en esos años? (C6). Si no se puede
  * saber el rango de años del objetivo, o el perfil no tiene etapas con lugar, no controla: mejor
- * dejar pasar que rechazar con datos que no hay.
+ * dejar pasar que rechazar con datos que no hay. El objeto (la foto de esa época) también pasa
+ * por este control — diseño §2.7, "el objeto también pasa por los controles": si pide una foto
+ * de Concordia para el tramo en que ya vivía en Buenos Aires, es el mismo error que en una
+ * pregunta.
  */
 export function controlarLugar(texto: string, perfil: Perfil, objetivo: Objetivo): { ok: true } | Rechazo {
   if (objetivo.tipo === 'nucleo' && !objetivo.tramo) return { ok: true };
-  if (objetivo.tipo === 'objeto') return { ok: true };
   const edad = edadDe(perfil, new Date().getFullYear()) ?? 100;
   const etapas = perfil.etapas.map((e) => ({ rango: rangoDeEtapa(e.edades, edad), nombres: nombresDeLugar(e.lugar) })).filter((e) => e.rango && e.nombres.length);
   if (!etapas.length) return { ok: true };
   const [desde, hasta] = objetivo.tipo === 'variable' ? [objetivo.desde, objetivo.hasta] : (RANGO_TRAMO[objetivo.tramo!] ?? [0, 200]);
   const limpio = sinAcentos(texto);
-  const nombrados = etapas.flatMap((e) => e.nombres.filter((n) => limpio.includes(n.normal)));
+  const nombrados = etapas.flatMap((e) => e.nombres.filter((n) => nombraLugar(limpio, n.normal)));
   if (!nombrados.length) return { ok: true };
   const deLaEpoca = etapas.filter((e) => e.rango![0] <= hasta && e.rango![1] >= desde).flatMap((e) => e.nombres);
   const ajenos = nombrados.filter((n) => !deLaEpoca.some((d) => d.normal === n.normal));
@@ -48,25 +61,53 @@ export function controlarLugar(texto: string, perfil: Perfil, objetivo: Objetivo
   return { ok: false, control: 'lugar', motivo: `entre los ${desde} y los ${hasta} años vivía en ${listar(deLaEpoca).replace(/, /g, ' / ')}, no en ${listar(ajenos)}` };
 }
 
-/** Palabras que dan por hecho una vida, y qué vínculo tiene que estar en el perfil para que valgan. */
-const SUPUESTOS: { re: RegExp; vinculos: RegExp; nombre: string }[] = [
-  { re: /\b(tus|sus) hij[oa]s?\b|\bhij[oa]s? de chic[oa]s?\b/, vinculos: /hij/, nombre: 'hijos' },
-  { re: /\bniet[oa]s?\b/, vinculos: /niet/, nombre: 'nietos' },
-  { re: /\b(tu|su) (esposa|esposo|marido|mujer|señora|pareja|novia|novio)\b/, vinculos: /espos|marido|mujer|pareja|novi|conyuge|cónyuge/, nombre: 'pareja' },
-  { re: /\b(la boda|el casamiento|te casaste|se cas[oó])\b/, vinculos: /espos|marido|mujer|conyuge|cónyuge/, nombre: 'boda' },
+/**
+ * Palabras que dan por hecho una vida, y qué vínculo tiene que estar en el perfil para que
+ * valgan. Todos los patrones están escritos SIN acentos: se comparan contra el texto ya pasado
+ * por `sinAcentos` ("señora" nunca iba a matchear ahí — fix ronda 1).
+ *
+ * `exime`: la forma de preguntar SI hubo, pero pegada a ESE sustantivo ("tuviste hijos", "hubo
+ * pareja", "te enamoraste"). Antes había un único escape global (`alguna vez`, `tuviste`...) que
+ * desactivaba TODOS los supuestos en toda la frase: "¿Alguna vez tus hijos te preguntaron por tu
+ * padre?" pasaba con la ficha vacía porque "alguna vez" aparecía en algún lado del texto, no
+ * importa dónde. Ahora el escape tiene que estar pegado al mismo sustantivo que dispara el
+ * supuesto (fix ronda 1).
+ */
+const SUPUESTOS: { re: RegExp; exime?: RegExp; vinculos: RegExp; nombre: string }[] = [
+  {
+    re: /\b(tus|sus) (hij[oa]s?|chic[oa]s?)\b|\bhij[oa]s? de chic[oa]s?\b/,
+    exime: /\b(tuvi?ste|tuvo|hub[oi]) (hij[oa]s?|chic[oa]s?)\b/,
+    vinculos: /hij/,
+    nombre: 'hijos',
+  },
+  {
+    re: /\bniet[oa]s?\b/,
+    exime: /\b(tuvi?ste|tuvo|hub[oi]) niet[oa]s?\b/,
+    vinculos: /niet/,
+    nombre: 'nietos',
+  },
+  {
+    re: /\b(tu|su) (esposa|esposo|marido|mujer|senora|pareja|novia|novio)\b/,
+    exime: /\b(tuvi?ste|tuvo|hub[oi]) (pareja|novi[oa]|esposa|esposo|marido|mujer)\b|\bte enamoraste\b|\bse enamoro\b/,
+    vinculos: /espos|marido|mujer|pareja|novi|conyuge/,
+    nombre: 'pareja',
+  },
+  {
+    re: /\b(la|tu|su) boda\b|\b(el|tu|su) casamiento\b|\bte casaste\b|\bse caso\b|\bcasarte\b|\bcasarse\b/,
+    vinculos: /espos|marido|mujer|conyuge/,
+    nombre: 'boda',
+  },
 ];
-/** Preguntar SI hubo no es suponer. */
-const PREGUNTA_SI_HUBO = /\b(tuviste|tuvo|hubo|te enamoraste|se enamoró|alguna vez)\b/;
 
 /** ¿La pregunta da por hecho hijos, nietos, pareja o boda que el perfil no respalda? (C12/C13/35). */
 export function controlarSupuestos(texto: string, perfil: Perfil): { ok: true } | Rechazo {
   const limpio = sinAcentos(texto);
-  if (PREGUNTA_SI_HUBO.test(limpio)) return { ok: true };
   const vinculos = perfil.personas.map((p) => sinAcentos(p.vinculo)).join(' ');
   for (const s of SUPUESTOS) {
-    if (s.re.test(limpio) && !s.vinculos.test(vinculos)) {
-      return { ok: false, control: 'supuestos', motivo: `supone ${s.nombre} y la ficha no dice que los tenga: preguntá si hubo, o no lo nombres` };
-    }
+    if (!s.re.test(limpio)) continue;
+    if (s.exime?.test(limpio)) continue;
+    if (s.vinculos.test(vinculos)) continue;
+    return { ok: false, control: 'supuestos', motivo: `supone ${s.nombre} y la ficha no dice que los tenga: preguntá si hubo, o no lo nombres` };
   }
   return { ok: true };
 }

@@ -1,7 +1,7 @@
 import type Anthropic from '@anthropic-ai/sdk';
 import type { Perfil } from './perfil.js';
 import type { Tramo, Variable } from './plan-preguntas.js';
-import { encargoDelBiografo, perfilEnTexto, controlarTexto } from './encargo-entrevista.js';
+import { encargoDelBiografo, perfilEnTexto } from './encargo-entrevista.js';
 import { controlarPregunta as controlarSalida, INTENTOS, type Marca } from './control-pregunta.js';
 
 export { perfilEnTexto };
@@ -123,13 +123,6 @@ export function armarPromptPregunta(
 }
 
 /**
- * Lo que se revisa antes de mandar la REPREGUNTA (repregunta.ts u otros llamadores que ya venían
- * usando esto): el control de forma solo, tal como estaba. La pregunta del día usa el control
- * completo de `control-pregunta.ts` (forma + lugar + supuestos), más abajo en `escribirPregunta`.
- */
-export const controlarPregunta = controlarTexto;
-
-/**
  * Escribe la pregunta. Hasta `INTENTOS` veces: si el control la rechaza, se lo pide de nuevo
  * diciendo por qué (a partir del 2.º intento). Si el último también falla, se manda esa versión
  * igual —mejor una pregunta imperfecta que ninguna— pero con `ok: false` y una `marca` para que
@@ -157,5 +150,7 @@ export async function escribirPregunta(
     if (control.ok) return { texto, ok: true, usos };
     ultimo = control;
   }
-  return { texto, ok: false, marca: { ...ultimo!, intentos: INTENTOS }, usos };
+  // Campo por campo: `ultimo` es un Rechazo y trae "ok: false" de arrastre, que no pertenece a
+  // la Marca (fix ronda 1).
+  return { texto, ok: false, marca: { control: ultimo!.control, motivo: ultimo!.motivo, intentos: INTENTOS }, usos };
 }

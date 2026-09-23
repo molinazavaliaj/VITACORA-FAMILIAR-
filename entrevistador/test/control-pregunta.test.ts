@@ -33,6 +33,31 @@ describe('controlarLugar', () => {
     expect(controlarLugar('¿Y en Concordia?', perfilVacio(), variable(13, 22)).ok).toBe(true);
     expect(controlarLugar('¿Y en Concordia?', ciro(), { tipo: 'nucleo', id: 'amor', tramo: null, bloque: 'adulto joven', tema: '' } as never).ok).toBe(true);
   });
+
+  it('la ciudad matchea por palabra entera, no como parte de otra (fix ronda 1)', () => {
+    const salta = perfilVacio();
+    salta.persona.edad = { valor: '20', fuente: 'dicho' };
+    salta.etapas = [{ edades: '0 a 12', lugar: 'Salta', conQuien: '', queHacia: '', fuente: 'dicho' }];
+    expect(controlarLugar('¿Qué hacías cuando saltabas a la soga?', salta, variable(0, 12)).ok).toBe(true);
+
+    const roma = perfilVacio();
+    roma.persona.edad = { valor: '20', fuente: 'dicho' };
+    roma.etapas = [{ edades: '0 a 12', lugar: 'Roma', conQuien: '', queHacia: '', fuente: 'dicho' }];
+    expect(controlarLugar('¿Tuviste algún amor romántico de chico?', roma, variable(0, 12)).ok).toBe(true);
+
+    const pilar = perfilVacio();
+    pilar.persona.edad = { valor: '20', fuente: 'dicho' };
+    pilar.etapas = [{ edades: '0 a 12', lugar: 'Pilar', conQuien: '', queHacia: '', fuente: 'dicho' }];
+    expect(controlarLugar('¿Recordás los pilares de tu casa?', pilar, variable(0, 12)).ok).toBe(true);
+  });
+
+  it('el objeto (la foto de esa época) también pasa por el control de lugar (diseño §2.7)', () => {
+    const objeto: Objetivo = { tipo: 'objeto', id: 'objeto-juventud', tramo: 'juventud' };
+    const r = controlarLugar('Pedile una foto de esa época en Concordia.', ciro(), objeto);
+    expect(r.ok).toBe(false);
+    if (!r.ok) { expect(r.control).toBe('lugar'); expect(r.motivo).toMatch(/Buenos Aires/); }
+    expect(controlarLugar('Pedile una foto de esa época en Buenos Aires.', ciro(), objeto).ok).toBe(true);
+  });
 });
 
 describe('controlarSupuestos', () => {
@@ -50,6 +75,16 @@ describe('controlarSupuestos', () => {
     expect(controlarSupuestos('¿Cómo eran tus hijos de chicos?', p).ok).toBe(true);
     expect(controlarSupuestos('¿Tuviste hijos?', perfilVacio()).ok).toBe(true);
     expect(controlarSupuestos('¿Te enamoraste alguna vez?', perfilVacio()).ok).toBe(true);
+  });
+
+  it('el escape de "SI hubo" es local al sustantivo, no global a toda la frase (fix ronda 1)', () => {
+    const r = controlarSupuestos('¿Alguna vez tus hijos te preguntaron por tu padre?', perfilVacio());
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.control).toBe('supuestos');
+  });
+
+  it('los patrones están sin acentos: "señora" y "enamoró" también se cazan (fix ronda 1)', () => {
+    expect(controlarSupuestos('¿Cómo conociste a tu señora?', perfilVacio()).ok).toBe(false);
   });
 });
 

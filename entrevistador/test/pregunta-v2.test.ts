@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
-import { NUCLEO, armarPromptPregunta, controlarPregunta, escribirPregunta, objetivoEnTexto, type Objetivo } from '../src/ia/pregunta-v2.js';
+import { NUCLEO, armarPromptPregunta, escribirPregunta, objetivoEnTexto, type Objetivo } from '../src/ia/pregunta-v2.js';
+import { controlarTexto } from '../src/ia/encargo-entrevista.js';
 import { perfilVacio, type Perfil } from '../src/ia/perfil.js';
 
 // La pregunta del día, v2 (biógrafo v2, 23/09). Cambia el ENCARGO —de "decorá esta pregunta
@@ -96,22 +97,22 @@ describe('armarPromptPregunta', () => {
   });
 });
 
-describe('controlarPregunta', () => {
+describe('controlarTexto (la forma: trato, largo, que pregunte algo)', () => {
   it('rechaza el trato mezclado (C11)', () => {
-    expect(controlarPregunta('Mirá, vos dijiste que... ¿cómo conoció al amor de su vida? Lléveme a ese día.', 'vos').ok).toBe(false);
+    expect(controlarTexto('Mirá, vos dijiste que... ¿cómo conoció al amor de su vida? Lléveme a ese día.', 'vos').ok).toBe(false);
   });
 
   it('rechaza sin pregunta, o demasiado larga para leer en el celular', () => {
-    expect(controlarPregunta('Contame de tu casa.', 'vos').ok).toBe(false);
-    expect(controlarPregunta(`${'palabra '.repeat(60)}?`, 'vos').ok).toBe(false);
+    expect(controlarTexto('Contame de tu casa.', 'vos').ok).toBe(false);
+    expect(controlarTexto(`${'palabra '.repeat(60)}?`, 'vos').ok).toBe(false);
   });
 
   it('acepta una buena', () => {
-    expect(controlarPregunta('Contame de la casa de Pelliza: si cerrás los ojos y entrás, ¿qué ves?', 'vos')).toEqual({ ok: true });
+    expect(controlarTexto('Contame de la casa de Pelliza: si cerrás los ojos y entrás, ¿qué ves?', 'vos')).toEqual({ ok: true });
   });
 
   it('sin trato conocido, solo controla la forma', () => {
-    expect(controlarPregunta('¿Cómo era la casa donde pasó su infancia?', null).ok).toBe(true);
+    expect(controlarTexto('¿Cómo era la casa donde pasó su infancia?', null).ok).toBe(true);
   });
 });
 
