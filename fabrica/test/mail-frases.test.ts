@@ -18,13 +18,21 @@ describe('asuntoRecordatorioFrases / cuerpoRecordatorioFrases', () => {
     expect(cuerpo()).toContain('En cada familia hay un libro sin escribir.');
   });
 
-  it('respeta la promesa del spec: si nadie responde, se imprime lo que eligió el biógrafo', () => {
+  // Estos dos tests fijaban la promesa vieja —"si nadie responde, se imprime lo que
+  // eligió el biógrafo"— que el portón de impresión (3t.26 fase 2, 23/09) dio vuelta:
+  // ahora el libro impreso sale SOLO cuando la familia confirma. El texto pasó a ser
+  // dos, según lo que compró, y viven en `recordatorio-frases-impreso.test.ts`.
+  it('sigue siendo UN mail, a los 15 días', () => {
     expect(DIAS_RECORDATORIO_FRASES).toBe(15);
-    expect(cuerpo()).toContain('cuando se imprima va la lista que eligió el biógrafo');
   });
 
-  it('no le echa la culpa a la familia: dice que no hay ninguna obligación', () => {
-    expect(cuerpo()).toContain('No hay ninguna obligación');
+  it('ya no promete que se imprime sin confirmar: con el portón, eso es falso', () => {
+    expect(cuerpo()).not.toContain('cuando se imprima va la lista que eligió el biógrafo');
+  });
+
+  it('no le echa la culpa a la familia ni la apura sin motivo', () => {
+    // Sin impreso encargado no hay nada que se cierre, así que el mail lo dice.
+    expect(cuerpo()).toContain('No hay apuro');
     expect(cuerpo()).not.toMatch(/tenés que|deberías|pendiente|todavía no/i);
   });
 
