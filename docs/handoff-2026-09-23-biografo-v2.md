@@ -1,3 +1,5 @@
+> **Sigue en** `docs/handoff-2026-09-24-biografo-que-piensa.md` — el cierre de las 14 tareas del plan.
+
 # Pase de manos — biógrafo v2 (23/09/2026, noche)
 
 > Sesión larga con Naza (y Joaquín en llamada). Se reconstruyó el biógrafo por partes, **todo en

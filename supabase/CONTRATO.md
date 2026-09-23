@@ -15,7 +15,7 @@ migración en `supabase/migrations/` + actualizar este archivo + avisar al otro 
 | `saludos` | ~~web / entrevistador~~ | — | **Fuera de la fase 1 (10/09).** Nadie la escribe ni la lee — desde el 13/09 tampoco la fábrica (dejó de leerla en `generarPaquete`/`generarAudiolibro`; el audiolibro ya no tiene bonus de saludos). Se deja por si la fase 2 la revive. |
 | `fotos` | web (sube y ordena) | fábrica | Nueva 12/09. Por capítulo; `principal` abre, el resto cierra. Desde el 13/09 la fábrica las embebe como data URI en `libro.html`. **14/09: `capitulo` nullable** — NULL = foto del álbum del libro (candidata a tapa / contratapa / marco), no va en ningún capítulo; la fábrica la ignora al armar capítulos. |
 | `invitados` | web | web | Nueva 12/09. `rol` (13/09): `'invitado'` (hasta 3, con el libro abierto, ven todo) o `'visitante'` (abrió el link del libro cerrado y lo guardó: ve la muestra y compra su copia, sin tope). |
-| `pedidos` | web y fábrica | — | El entrevistador no la mira. Un pedido por comprador: los invitados y visitantes que compran su copia tienen su propia `familia` y su propio pedido sobre el mismo `narrador_id`. |
+| `pedidos` | web y fábrica | — | El entrevistador no la mira. Un pedido por comprador: los invitados y visitantes que compran su copia tienen su propia `familia` y su propio pedido sobre el mismo `narrador_id`. **24/09, pendiente de aplicar (Tarea 14):** el estado `revision` — lo pone la fábrica (`dejarEnRevision`, ver "La revisión") y lo saca la web desde el panel de la empresa, o la fábrica a mano (`update pedidos set estado = ... where id = ...`) hasta que el panel exista. |
 | `envios` | entrevistador | — | Log de salientes; idempotencia del scheduler. |
 | `narraciones` | fábrica (crea la fila; y `estado = 'reemplazada'` cuando pide la voz de nuevo — migración 20260920) / worker de voz (`estado`, `motor`, `muestras`, `capitulos_paths`, `error`, `tomada_at`) | fábrica | Nueva 16/09. Buzón con el worker de voz (PC de Naza); ver "Narraciones (voz clonada)". |
 
@@ -510,6 +510,7 @@ candados de los mails que manda la fábrica: `terminado_enviado.txt`,
 `recordatorio_cierre_3.txt`, `recordatorio_cierre_7.txt`, `recordatorio_cierre_14.txt`,
 `cierre_automatico_enviado.txt` y `libro_listo_enviado.txt`. `cierre_automatico.txt` es
 {narrador_id}/paquete/recordatorio_frases_enviado.txt   candado del recordatorio de «Su voz» a los 15 días (lo escribe la fábrica)
+{narrador_id}/paquete/revision.json                     el informe de "La revisión" (24/09, pendiente de aplicar; lo escribe la fábrica)
 aparte: no es candado de mail, es la marca que deja el cierre automático de los 30 días
 para saber que fue la fábrica quien puso `libro_aprobado_at`.
 
@@ -626,3 +627,63 @@ Reglas:
   sigue. Un mensaje que no salió de `envios` (la confirmación de una foto) simplemente no se anota.
 - Cómo se lee: `fallido` = el número o la cuenta tienen un problema · `entregado` sin `leido` = le
   llegó y no lo abrió · `leido` sin respuesta = el problema es lo que dice el mensaje.
+
+## La revisión — `pedidos.estado = 'revision'` (diseño 23/09 §3.3, decisión de Naza; PENDIENTE de aplicar)
+
+⚠️ **No está aplicada todavía.** La migración es `20260924000000_pedidos_revision.sql` (Tarea 14
+del plan del biógrafo que piensa) y la aplica Naza en el SQL Editor, **cuando lo acuerde con
+Joaquín** (toca `pedidos_estado_check`, que también lee la fábrica en `esperando_voz` y
+`entregado`). Es idempotente y no toca datos. Hasta que se aplique, `dejarEnRevision` (abajo) falla
+con la constraint vieja: la fábrica no puede dejar un pedido en `revision`.
+
+Con avisos del lector final o de los controles de contenido, el libro **espera** a que un socio lo
+mire antes de imprimirse o entregarse: un invento impreso no tiene arreglo. **La familia no ve nada
+de esto.**
+
+| Qué | Escribe | Lee | Nota |
+|---|---|---|---|
+| `pedidos.estado = 'revision'` | **fábrica** (`dejarEnRevision`, `fabrica/src/libro/revision.ts`) | web, fábrica | Lo pone cuando `hayQueRevisar()` da true: el lector final avisó algo, un control se disparó, o el lector directamente no pudo leer. |
+| `{narrador}/paquete/revision.json` | fábrica (mismo momento) | fábrica, y a mano (Naza/Joaquín) mientras no haya panel | El informe completo: forma `InformeRevision` — `{narrador, lector: AvisoLector[], control: string[], lectorFallo: boolean, fecha}` (`revision.ts`). |
+| Mail a `MAIL_SOCIOS` | fábrica (`mailDeRevision`, mismo momento) | Naza y Joaquín | El detalle para decidir sin ir a mirar la base: qué vio el lector, qué controles saltaron. Nunca le llega a la familia. |
+| Sacar el pedido de `revision` | **la web** desde el panel de la empresa (cuando exista), o **la fábrica a mano** (`update pedidos set estado = '…' where id = '…'`) mientras tanto | — | Corregir a mano el capítulo señalado, o decidir entregar igual. |
+
+## El biógrafo v2 en `narradores.contexto.v2` (diseño 23/09; Tareas 1-13 del plan; PENDIENTE de conectar)
+
+Todo el estado del biógrafo que piensa vive bajo **una clave, `contexto.v2`**, adentro del mismo
+jsonb `narradores.contexto` que ya usa v1 (`preguntasEnviadas`, `repreguntasEnviadas`, `evitar`,
+`ritmo`…): no es una columna ni una tabla nueva, así que **no hace falta migración** para esto.
+`entrevistador/src/manual/estado-v2.ts` define la forma (`EstadoV2`) y las funciones puras que la
+leen y la escriben.
+
+**Quién escribe:** hasta que el v2 se conecte al flujo real (WhatsApp), **solo la puerta manual v2**
+(`entrevistador/scripts/manual-v2.ts`, Tarea 8) escribe `contexto.v2` — a mano, comando por comando,
+mientras Naza corre su piloto. El flujo v1 nunca toca `contexto.v2` (lee y escribe las claves de
+siempre, arriba de la misma raíz) y la puerta manual v1 tampoco. **Quién lee:** hoy, la fábrica —
+`fabrica/scripts/prueba-reparto.ts` y `fabrica/scripts/contexto-v2.ts` (Tarea 12) leen `contexto.v2`
+para armar las épocas y la línea de tiempo del libro de un narrador v2. Más adelante, el panel de la
+empresa va a leer `marcas` para mostrar los controles que saltaron.
+
+**⚠️ Por qué el narrador v2 nace en `estado: 'pausado'` y no en `'activo'`:** el scheduler de
+producción (el que dispara la fábrica) solo toma narradores en `acepto` o `activo` — es el único
+estado que ignora. Si un narrador de prueba v2 quedara `activo`, el scheduler lo tomaría con
+cualquier snapshot viejo de `contexto` (la fábrica no sabe de `v2`) y podría pisarlo o producir un
+libro a medio entrevistar. `'pausado'` es el único estado del que el scheduler de producción **nunca**
+saca nada: por eso la puerta manual v2 crea ahí al narrador de piloto, a propósito (ver el script y
+la nota de cierre de la Tarea 8). El panel de la empresa, mientras tanto, va a **mostrar a ese
+narrador como "pausado"** — es un efecto secundario esperado del mismo truco, no un bug.
+
+Las claves de `EstadoV2` (todas puras, `entrevistador/src/manual/estado-v2.ts` + los tipos que
+importa):
+
+| Clave | Tipo | Qué es |
+|---|---|---|
+| `perfil` | `Perfil` (`entrevistador/src/ia/perfil.ts`) | La ficha del biógrafo: quién es la persona (edad, género, cómo habla, cómo le dicen, dónde vive), su línea de tiempo (`etapas`), las personas de su vida, `bisagras`, `tono`, `noSabemos`, `cubiertos`, `puertaAbierta`, `hoyFueFuerte`. Cada dato dice su `fuente` (`dicho` / `ficha` / `deducido`). La escribe el entrevistador (hoy, la puerta manual) después de cada respuesta; **la lee la fábrica** para armar las etapas del libro (`fabrica/scripts/contexto-v2.ts`). |
+| `secuencia` | `Secuencia` (`entrevistador/src/ia/secuencia.ts`) | La columna vertebral de la entrevista: `pendientes` (objetivos que faltan), `hechas` (`{id, orden, tramo, objetivo}`, una por pregunta ya mandada), `cubiertos` (ids de temas que se dieron por contados sin preguntarse), `objetos` (`{orden, tramo, final?}`, las hasta 8 fotos de "sus objetos preciados" con `final` marcando la del cierre), `ultimoTramo`. La fábrica cruza `hechas` contra `RANGO_TRAMO` (`entrevistador/src/ia/plan-preguntas.ts`) para saber la época de cada respuesta (`epocaV2`/`epocaDeTramo`, `contexto-v2.ts`). |
+| `marcas` | `Record<string, Marca>` (`Marca = {control, motivo, intentos}`, `entrevistador/src/ia/control-pregunta.ts`) | Por `orden` (o `orden-repregunta`): qué control se disparó tres veces seguidas y no se pudo evitar (trato, largo, pregunta, lugar, supuestos), con el motivo y los intentos. **La va a mostrar el panel** cuando exista; hoy no la lee nadie más. |
+| `preguntasEnviadas`, `repreguntasEnviadas` | `Record<string, string>` | Como en v1, pero adentro de `v2`: el texto que de verdad se le mandó, por `orden` (string) — `0` es la presentación, `101+` son los objetos. Necesario porque el v2 no repite la pregunta del guion tal cual: el biógrafo la personaliza. |
+| `sinRepreguntarHasta`, `cansancioDesdeOrden` | `string?` (fecha YYYY-MM-DD), `number?` | El cansancio (§2.8): mientras la fecha no pasó, no se repregunta; `cansancioDesdeOrden` marca desde dónde cuentan las repreguntas sin contestar. |
+| `bisagrasPlanificadas` | `number` | Cuántas bisagras tenía el perfil la última vez que se replanificó (`-1` = nunca): dispara un replanning cuando el perfil suma bisagras nuevas. |
+| `retomar` | `number?` | "Hoy no" (§2.8): la orden que se vuelve a mandar tal cual mañana; mientras esté, la secuencia no avanza. |
+| `gastoUsd` | `number` | USD acumulados de esta entrevista (modelo + transcripción), calculado con `calcularUsd`/`calcularUsdPorUnidad` (`entrevistador/src/costos.ts`). |
+| `pausa` | `{motivo: 'quiereParar', fecha}?` | "No quiero seguir" (§2.8): vive acá y no en `narradores.estado` porque ese campo está fijo en `'pausado'` (ver arriba). Frena `siguiente`; se saca con `--reanudar`. |
+| `procesadas`, `bloqueadas` | `string[]` (ids de `respuestas`) | `procesadas`: las que ya pasaron por perfil + evaluación (una fila fuera de esta lista es una carga cortada a medias). `bloqueadas`: las que frenó el candado de audio cruzado (hallazgo 43) — no entran a los prompts ni cuentan como contestadas hasta que se descarten o se recarguen con `--es-suyo`. |
