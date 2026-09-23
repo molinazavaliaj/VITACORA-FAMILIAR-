@@ -766,6 +766,11 @@ misma causa) y **C3** pregunta por una infancia dura como si hubiera sido un luj
     comparaciones): ningún otro cruce, en ninguna dirección, y ningún duplicado dentro del
     mismo narrador. La otra coincidencia de duración (Ciro 4 / Joaquín 28, 49 s) es
     casualidad: los textos son distintos.
+    *También está en el AUDIOLIBRO* (23/09, **confirmado escuchándolo, Naza**): la voz de Ciro
+    suena en `audiolibro_cap_07.mp3` («Las pruebas»). El audiolibro elige los audios por nombre
+    (`dia_27*.ogg` en la carpeta del narrador, `fabrica/src/audio/audiolibro.ts`), no por la
+    tabla — así que el texto de Ciro quedó en «La infancia» y su voz en «Las pruebas». Por eso
+    descartar (`respuestas_descartadas`, 23/09) también MUEVE el audio a `descartadas/`.
     *No se corrige el libro de Joaquín*: es el socio probando (decisión de Naza, 23/09).
     *Hecho*: candado en la puerta manual (`src/db/duplicados.ts`): al cargar, compara la
     transcripción con las de los OTROS narradores y avisa con todas las letras si el audio ya

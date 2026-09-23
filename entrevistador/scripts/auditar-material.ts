@@ -16,6 +16,7 @@ import { resolve, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createClient } from '@supabase/supabase-js';
 import { auditarMaterial, type Aviso, type FilaMaterial } from '../src/db/auditar-material.js';
+import { slug } from '../src/manual/puro.js';
 
 const AQUI = dirname(fileURLToPath(import.meta.url));
 for (const linea of readFileSync(resolve(AQUI, '..', '.env'), 'utf8').split('\n')) {
@@ -83,6 +84,7 @@ for (const n of auditar) {
   for (const a of avisos) {
     console.log(`\n ${ICONO[a.nivel]} orden ${a.orden} · ${a.tipo}\n   ${a.detalle}`);
     for (const audio of a.audios) console.log(`     ▸ ${audio}`);
+    if (a.nivel !== 'info') for (const id of a.respuestas) console.log(`     respuesta ${id}  (npm run manual -- descartar ${slug(nombres[n.id])} ${id} --motivo "...")`);
     if (a.nivel !== 'info') a.audios.forEach((p) => aEscuchar.add(p));
   }
 }

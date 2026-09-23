@@ -37,6 +37,7 @@ describe('auditarMaterial', () => {
     expect(graves[0].tipo).toBe('cruce');
     expect(graves[0].orden).toBe(27);
     expect(graves[0].audios).toEqual(['joaquin/dia_27.ogg', 'ciro/dia_03.ogg']);
+    expect(graves[0].respuestas).toEqual([filas[1].id]);
     expect(graves[0].detalle).toContain('Ciro');
   });
 

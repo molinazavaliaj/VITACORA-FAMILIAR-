@@ -33,6 +33,8 @@ export type Aviso = {
   orden: number;
   /** Los audios a escuchar: primero el de este narrador. */
   audios: string[];
+  /** Los ids de las respuestas de ESTE narrador involucradas: los que se pasan a `manual descartar`. */
+  respuestas: string[];
   detalle: string;
 };
 
@@ -70,6 +72,7 @@ export function auditarMaterial(
         tipo: 'cruce',
         orden: f.pregunta_orden,
         audios: audios(f, otra),
+        respuestas: [f.id],
         detalle: `La misma respuesta está cargada en ${nombre(otra.narrador_id)}, orden ${otra.pregunta_orden}.`,
       });
     }
@@ -84,6 +87,7 @@ export function auditarMaterial(
           tipo: 'repetida',
           orden: b.pregunta_orden,
           audios: audios(b, a),
+          respuestas: [b.id, a.id],
           detalle: `Es la misma respuesta que la de la orden ${a.pregunta_orden}: el mismo audio cargado dos veces.`,
         });
       }
@@ -102,6 +106,7 @@ export function auditarMaterial(
         tipo: 'intercalada',
         orden: f.pregunta_orden,
         audios: audios(f),
+        respuestas: [f.id],
         detalle: `Cargada ${hora(f.recibido_at)}, a minutos de una de ${nombre(cerca.narrador_id)} ` +
           `(orden ${cerca.pregunta_orden}, ${hora(cerca.recibido_at)}). Confirmar que la voz es de este narrador.`,
       });
@@ -118,6 +123,7 @@ export function auditarMaterial(
       tipo: 'varias-en-orden',
       orden,
       audios: audios(...enOrden),
+      respuestas: enOrden.map((f) => f.id),
       detalle: `${filas.length} respuestas en la misma pregunta (${enOrden.map((f) => (f.es_repregunta ? 'repregunta' : 'respuesta')).join(' + ')}). ` +
         'Todas entran al libro: si una no va, hoy no hay forma de marcarla.',
     });
@@ -132,6 +138,7 @@ export function auditarMaterial(
       tipo: 'sin-audio',
       orden: sinAudio[0],
       audios: [],
+      respuestas: mias.filter((f) => !f.audio_path).map((f) => f.id),
       detalle: `${sinAudio.length === 1 ? 'Cargada' : `${sinAudio.length} cargadas`} como texto ` +
         `(orden ${sinAudio.join(', ')}): no hay audio contra el cual verificar${sinAudio.length === 1 ? 'la' : 'las'}.`,
     });

@@ -11,6 +11,7 @@ migración en `supabase/migrations/` + actualizar este archivo + avisar al otro 
 | `narradores` | web (crea, edita datos, `edicion`, `libro_aprobado_at`) / entrevistador (solo `estado`, `dia_actual`, `ultima_respuesta_at`, `alerta_silencio`, `consentimiento_voz_at`) / fábrica (solo `libro_aprobado_at`, a los 30 días sin cierre) | ambos | Única tabla compartida. La web también apaga `alerta_silencio`. La fábrica lee `edicion` y **no produce nada sin `libro_aprobado_at`** (ni digital ni impreso). Desde el 13/09, si pasan 30 días desde `ultima_respuesta_at` sin cierre, la fábrica misma pone `libro_aprobado_at` (único caso en que alguien más que la web escribe esa columna). |
 | `preguntas` | **web** (copia las fijas al comprar; la familia edita, salta, reordena, agrega) / **entrevistador** (adaptativas y reemplazos) / seed (plantilla global) | ambos | Desde el 12/09 **cada narrador tiene su guion propio**. Las globales (`narrador_id = null`) son solo plantilla. Regla: `orden ≤ dia_actual` está **congelado**, nadie lo toca. |
 | `respuestas` | entrevistador | web, fábrica | La web NUNCA escribe acá. **20/09 (propuesta, sin aplicar):** `reservada` / `reservado_tramo` — "esto que no vaya al libro", ver la sección propia. **21/09 (propuesta, sin aplicar):** `tema_de_orden` / `tema_motivo` — "esto es de otra parte", ver la sección propia. |
+| `respuestas_descartadas` | entrevistador (solo la puerta manual, vía las funciones `descartar_respuesta` / `restaurar_respuesta`) | nadie la usa para el libro | **23/09 (acordada Naza + Joaquín, pendiente de aplicar).** Respuestas que entraron por error. Lo que está acá NO existe para el libro ni el audiolibro. Ver la sección propia. |
 | `saludos` | ~~web / entrevistador~~ | — | **Fuera de la fase 1 (10/09).** Nadie la escribe ni la lee — desde el 13/09 tampoco la fábrica (dejó de leerla en `generarPaquete`/`generarAudiolibro`; el audiolibro ya no tiene bonus de saludos). Se deja por si la fase 2 la revive. |
 | `fotos` | web (sube y ordena) | fábrica | Nueva 12/09. Por capítulo; `principal` abre, el resto cierra. Desde el 13/09 la fábrica las embebe como data URI en `libro.html`. **14/09: `capitulo` nullable** — NULL = foto del álbum del libro (candidata a tapa / contratapa / marco), no va en ningún capítulo; la fábrica la ignora al armar capítulos. |
 | `invitados` | web | web | Nueva 12/09. `rol` (13/09): `'invitado'` (hasta 3, con el libro abierto, ven todo) o `'visitante'` (abrió el link del libro cerrado y lo guardó: ve la muestra y compra su copia, sin tope). |
@@ -460,6 +461,38 @@ fábrica y lo borra el worker recién cuando no queda ninguna frase pendiente.
   segundo; si molesta, se separa en `seleccion.json` y la fábrica mezcla al imprimir.
 - La fábrica **no espera** a que haya audios: el libro se entrega igual y las frases se completan
   cuando la PC corta. Si nadie confirma la selección, a los 15 días va la del biógrafo.
+
+## Respuestas descartadas — "esto entró por error" (acordada el 23/09 entre los dos, pendiente de aplicar)
+
+**Por qué (hallazgo 43):** el 17/09 un audio de Ciro se cargó en la orden 27 de Joaquín. Quien
+cargaba se dio cuenta y cargó el correcto, pero la puerta manual no tenía cómo reemplazar: el malo
+quedó en `respuestas` con la misma forma que un par respuesta + repregunta, la fábrica usó los dos
+y la historia de Ciro terminó en el libro de Joaquín (y su voz, en el capítulo 7 del audiolibro).
+
+**Qué es descartar:** MOVER una respuesta —por id, nunca "todas las de una orden"— de
+`respuestas` a `respuestas_descartadas`, con el motivo. Una tabla aparte y no una columna porque
+hay 25 lectores de `respuestas` en las tres piezas: con una columna, el que se olvide de filtrar
+vuelve a meter el audio ajeno. **Ningún lector cambia.**
+
+| Columna | Tipo | Qué es |
+|---|---|---|
+| `id` | uuid, pk | el mismo que tenía en `respuestas` |
+| `narrador_id`, `pregunta_orden` | | para listar y verificar dueño |
+| `audio_path` | text, null | dónde quedó el audio: `{narrador}/descartadas/dia_NN.ogg` |
+| `fila` | jsonb | la fila entera tal cual estaba, para restaurarla |
+| `motivo` | text, no vacío | por qué ("audio de Ciro", "reemplazada al cargar …") |
+| `descartada_at` | timestamptz | |
+
+- **El audio se mueve, no se borra**, a la subcarpeta `descartadas/` del narrador. Hace falta
+  porque el audiolibro elige los archivos por NOMBRE (`dia_NN*.ogg` en la carpeta del narrador),
+  no por la tabla. `list(narradorId)` no entra a subcarpetas, así que lo descartado queda afuera.
+- El movimiento de la fila lo hacen dos funciones (`descartar_respuesta`, `restaurar_respuesta`)
+  en un solo paso; **solo las puede llamar el servidor** (execute revocado a anon/authenticated).
+  RLS activo sin políticas: la web no la lee.
+- Quién la escribe: la puerta manual (`manual descartar`, `manual restaurar`, `manual cargar
+  --reemplazar`). La fábrica y la web no la tocan.
+- Migración: `20260923000300_respuestas_descartadas.sql`, idempotente, no toca datos. Sin
+  aplicarla, `descartar` falla con un error claro y no mueve nada (el audio vuelve a su lugar).
 
 ## Storage — bucket privado `audios`
 

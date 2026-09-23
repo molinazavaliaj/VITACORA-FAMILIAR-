@@ -30,7 +30,7 @@
  *   npm run manual -- cerrar imma
  *   npm run manual -- crear --nombre Ciro --le-dicen Ciro --telefono +54... --zona America/Argentina/Buenos_Aires
  */
-import { readFileSync, existsSync, statSync, mkdirSync, copyFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { readFileSync, existsSync, statSync, mkdirSync, copyFileSync, readdirSync, writeFileSync, renameSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { resolve, dirname, basename, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -40,6 +40,7 @@ import {
   mensajeDePregunta, despedida, bienvenida, planDeCarga, esAudio, promptDeTranscripcion, type Args,
   motivoParaRechazarAudio, listaParaConcatenar, valorDelArbol, queHacerAlFinal,
 } from '../src/manual/puro.js';
+import { baseDeSupabase, descartarRespuesta, restaurarRespuesta, elegirParaReemplazar } from '../src/db/descartar.js';
 
 const AQUI = dirname(fileURLToPath(import.meta.url));
 const REPO = resolve(AQUI, '..', '..');
@@ -400,6 +401,72 @@ function archivarLocal(n: NarradorFila, ruta: string, orden: number, sufijo: num
 }
 
 /**
+ * La copia en audios-crudos/ acompaña a la de Storage cuando se descarta o se restaura
+ * una respuesta (hallazgo 43): si se quedara en su lugar, el próximo audio de esa orden
+ * la pisaría. Nunca pisa: si ya hay un archivo con ese nombre en el destino, avisa y no mueve.
+ */
+function moverCopiaLocal(n: NarradorFila, audioPath: string | null, hacia: 'a-descartadas' | 'de-vuelta'): void {
+  if (!audioPath) return;
+  const carpeta = join(CRUDOS, slug(n.como_le_dicen));
+  const nombre = basename(audioPath);
+  const [desde, hasta] = hacia === 'a-descartadas'
+    ? [join(carpeta, nombre), join(carpeta, 'descartadas', nombre)]
+    : [join(carpeta, 'descartadas', nombre), join(carpeta, nombre)];
+  if (!existsSync(desde)) return;
+  if (existsSync(hasta)) { linea(`⚠ No moví el respaldo local: ya existe ${hasta}.`); return; }
+  mkdirSync(dirname(hasta), { recursive: true });
+  renameSync(desde, hasta);
+  linea(`Respaldo local movido a ${hasta}`);
+}
+
+/**
+ * Hallazgo 43: sacar del libro UNA respuesta que entró por error (audio de otro
+ * narrador, cargado dos veces, pregunta equivocada). Por id, nunca por orden; sin --si
+ * solo muestra qué movería. No borra: fila a `respuestas_descartadas`, audio a
+ * `descartadas/`. Se deshace con `restaurar`.
+ */
+async function descartar(ref: string | undefined, id: string | undefined, flags: Args['flags']): Promise<void> {
+  const uso = 'Uso: descartar <narrador> <id de la respuesta> --motivo "por qué" [--si]';
+  if (!id) throw new Error(`Falta el id. ${uso}  (los ids salen en 'npm run auditar-material -- <narrador>' y en el aviso del candado)`);
+  const n = await buscarNarrador(ref);
+  const mods = await modulos();
+  const fila = (await respuestasDe(n.id)).find((r) => r.id === id);
+  if (!fila) throw new Error(`La respuesta ${id} no es de ${n.como_le_dicen} (o ya está descartada). No toqué nada.`);
+  const motivo = typeof flags['motivo'] === 'string' ? flags['motivo'] : '';
+  if (!motivo.trim()) throw new Error(`Falta --motivo. ${uso}`);
+
+  const texto = fila.transcripcion ?? fila.texto_directo ?? '';
+  titulo(`${flags['si'] ? 'Descartando' : 'Descartaría'} UNA respuesta de ${n.como_le_dicen}`);
+  linea(`orden ${fila.pregunta_orden}${fila.es_repregunta ? ' (repregunta)' : ''} · ${fila.audio_path ?? '(texto, sin audio)'} · cargada ${fila.recibido_at.slice(0, 16).replace('T', ' ')}`);
+  linea(`«${texto.slice(0, 200)}${texto.length > 200 ? '…' : ''}»`);
+  linea(`motivo: ${motivo}`);
+  if (!flags['si']) {
+    linea('');
+    linea('No toqué nada. Si es esta, repetí el comando con --si.');
+    return;
+  }
+
+  const movida = await descartarRespuesta(baseDeSupabase(mods.db as never), id, motivo);
+  moverCopiaLocal(n, fila.audio_path, 'a-descartadas');
+  linea(`Hecho: fuera del libro y del audiolibro. Audio guardado en audios/${movida.audio_path ?? '(era texto)'}.`);
+  linea(`Para deshacerlo: npm run manual -- restaurar ${slug(n.como_le_dicen)} ${id}`);
+  linea(`La memoria del biógrafo puede tener ese contenido resumido: npm run manual -- resumenes ${slug(n.como_le_dicen)} --regenerar`);
+}
+
+async function restaurar(ref: string | undefined, id: string | undefined): Promise<void> {
+  if (!id) throw new Error('Uso: restaurar <narrador> <id de la respuesta descartada>');
+  const n = await buscarNarrador(ref);
+  const mods = await modulos();
+  const base = baseDeSupabase(mods.db as never);
+  const descartada = await base.leerDescartada(id);
+  if (!descartada || descartada.narrador_id !== n.id) throw new Error(`No hay una respuesta descartada ${id} de ${n.como_le_dicen}. No toqué nada.`);
+  const vuelta = await restaurarRespuesta(base, id);
+  moverCopiaLocal(n, vuelta.audio_path, 'de-vuelta');
+  titulo(`Restaurada la respuesta ${id} de ${n.como_le_dicen} (orden ${vuelta.pregunta_orden})`);
+  linea(`Audio de vuelta en audios/${vuelta.audio_path ?? '(era texto)'}. Vuelve a entrar al libro.`);
+}
+
+/**
  * Bitácora 3: una respuesta que llegó en varias notas de voz. Se pegan con
  * ffmpeg (el mismo que usa la fábrica; Naza ya lo tiene) en un solo .ogg en la
  * carpeta de crudos, y de ahí en más es un archivo como cualquier otro.
@@ -436,12 +503,19 @@ async function cargar(ref: string | undefined, archivos: string[], flags: Args['
   const delNombre = ordenDeArchivo(basename(ruta));
   const orden = flags['orden'] !== undefined ? Number(flags['orden']) : delNombre?.orden ?? proximoOrden(n.dia_actual, ordenesRespondidas(respuestas));
   const esRepregunta = Boolean(flags['repregunta']) || (delNombre ? delNombre.sufijo > 1 : false);
+  // Hallazgo 43: el 17/09 el audio correcto de la orden 27 se tuvo que cargar como
+  // repregunta porque no había cómo reemplazar el equivocado, y los dos entraron al libro.
+  const reemplazar = Boolean(flags['reemplazar']);
+  if (reemplazar && esRepregunta) throw new Error('--reemplazar y --repregunta no van juntos: se reemplaza la respuesta principal.');
 
   const previas = respuestas.filter((r) => r.pregunta_orden === orden);
-  if (previas.length && !esRepregunta) {
+  // Solo si hay exactamente UNA; si hay más, no adivina (pedido de Naza: que no saque audios de más).
+  const aReemplazar = reemplazar ? elegirParaReemplazar(previas.map((p) => ({ ...p, narrador_id: n.id })), orden) : null;
+  if (previas.length && !esRepregunta && !reemplazar) {
     throw new Error(
       `La orden ${orden} de ${n.como_le_dicen} ya tiene respuesta (${previas.length}). ` +
-      `Si este audio es una repregunta, corré con --repregunta.`,
+      `Si este audio es una repregunta, corré con --repregunta. Si el que está cargado es un error ` +
+      `(otro audio, otra persona), corré con --reemplazar.`,
     );
   }
   if (!previas.length && esRepregunta) {
@@ -450,6 +524,16 @@ async function cargar(ref: string | undefined, archivos: string[], flags: Args['
 
   const pregunta = await mods.preguntaDeOrden(n.id, orden);
   if (!pregunta) throw new Error(`No existe la pregunta ${orden} para ${n.como_le_dicen}.`);
+
+  if (aReemplazar) {
+    const motivo = typeof flags['motivo'] === 'string' ? flags['motivo'] : `reemplazada al cargar ${basename(ruta)}`;
+    const movida = await descartarRespuesta(baseDeSupabase(mods.db as never), aReemplazar.id, motivo);
+    titulo(`Reemplazo: la respuesta anterior de la orden ${orden} quedó descartada`);
+    linea(`id ${aReemplazar.id} · audio ahora en audios/${movida.audio_path ?? '(era texto)'} · motivo: ${motivo}`);
+    linea(`Si fue un error: npm run manual -- restaurar ${slug(n.como_le_dicen)} ${aReemplazar.id}`);
+    // La copia local también: si no, el audio nuevo la pisa y se pierde el equivocado.
+    moverCopiaLocal(n, aReemplazar.audio_path, 'a-descartadas');
+  }
   // Bitácora 18/25: se evalúa contra lo que él leyó (personalizada o corregida), no contra el guion.
   const textoPregunta = textoDePreguntaEnviada(n, orden, pregunta.texto);
 
@@ -475,8 +559,9 @@ async function cargar(ref: string | undefined, archivos: string[], flags: Args['
   // ¿Este audio ya está cargado en OTRO narrador? (bitácora #43): el 17/09, con los
   // dos pilotos abiertos a la vez, un audio de Ciro entró en Joaquín y su material
   // terminó en el libro. Se avisa fuerte y se dice qué hacer; no se borra nada solo,
-  // porque la respuesta ya está guardada y el que carga sabe cuál es cuál.
-  await avisarSiEsDeOtro(n, orden, texto);
+  // porque la respuesta ya está guardada y el que carga sabe cuál es cuál. Pero FRENA:
+  // evaluar el audio de otra persona y avanzar la entrevista con eso es seguir el error.
+  if (!flags['es-suyo'] && await avisarSiEsDeOtro(n, orden, texto, id)) return;
 
   await trasResponderManual(n, orden, esRepregunta, textoPregunta, texto, duracionSegundos, id);
 }
@@ -1070,14 +1155,26 @@ Puerta manual de Vitácora Familiar — el entrevistador sin la API de WhatsApp.
   npm run manual -- archivar <narrador> <archivo.ogg> [--orden N]
       Copia el audio crudo a audios-crudos/<narrador>/dia_NN.ogg. No toca la base.
 
-  npm run manual -- cargar <narrador> <archivo> [<otro> ...] [--orden N] [--repregunta]
+  npm run manual -- cargar <narrador> <archivo> [<otro> ...] [--orden N] [--repregunta] [--reemplazar] [--es-suyo]
       El corazón: sube a Storage, inserta la respuesta, transcribe con Whisper,
       evalúa (y te imprime la repregunta si hace falta; anota si pidió reservar
       algo o dejar un tema), genera las 4 a medida al responder la última del
       guion, y al responder la última que existe imprime la despedida y deja
       'completado' (no hace falta correr 'cerrar'). Varios archivos = una sola
       respuesta que llegó en varias notas de voz: se pegan con ffmpeg. Un audio
-      de 0 bytes se rechaza.
+      de 0 bytes se rechaza. --reemplazar: la respuesta que ya está en esa orden
+      entró por error y este audio va en su lugar (solo si hay UNA; la vieja queda
+      descartada, no borrada). Si el audio ya está cargado en OTRO narrador, frena
+      antes de evaluar y dice cómo seguir; --es-suyo saltea ese candado.
+
+  npm run manual -- descartar <narrador> <id> --motivo "por qué" [--si]
+      Saca del libro y del audiolibro UNA respuesta que entró por error (audio de
+      otro narrador, cargado dos veces). Sin --si solo muestra cuál. No borra: la
+      fila va a respuestas_descartadas y el audio a <narrador>/descartadas/.
+      Los ids salen en 'npm run auditar-material -- <narrador>'.
+
+  npm run manual -- restaurar <narrador> <id>
+      Deshace un descartar: la respuesta y su audio vuelven a su lugar.
 
   npm run manual -- evaluar <narrador> [--orden N] [--solo-ver]
       Reintenta SOLO la evaluación de una respuesta ya cargada (cuando el modelo
@@ -1141,6 +1238,8 @@ const COMANDOS: Record<string, (a: Args) => Promise<void>> = {
   cerrar: (a) => cerrar(a.posicionales[0]),
   crear: (a) => crear(a.flags),
   ficha: (a) => ficha(a.posicionales[0], a.flags),
+  descartar: (a) => descartar(a.posicionales[0], a.posicionales[1], a.flags),
+  restaurar: (a) => restaurar(a.posicionales[0], a.posicionales[1]),
   ayuda: async () => ayuda(),
 };
 
@@ -1173,9 +1272,10 @@ export { estado, siguiente, cargar, cargarCarpeta, archivar, cerrar, crear };
  * dos veces da textos casi iguales, y eso alcanza para cazarlo.
  *
  * No borra ni corrige solo: avisa con todas las letras y dice cómo deshacerlo. El que
- * carga tiene los dos audios a la vista y sabe cuál va dónde; el script no.
+ * carga tiene los dos audios a la vista y sabe cuál va dónde; el script no. Devuelve
+ * true si encontró un cruce, y `cargar` frena ahí: no evalúa ni avanza la entrevista.
  */
-async function avisarSiEsDeOtro(n: NarradorFila, orden: number, texto: string): Promise<void> {
+async function avisarSiEsDeOtro(n: NarradorFila, orden: number, texto: string, respuestaId: string): Promise<boolean> {
   try {
     const mods = await modulos();
     const { buscarCruce } = await import('../src/db/duplicados.js');
@@ -1184,7 +1284,7 @@ async function avisarSiEsDeOtro(n: NarradorFila, orden: number, texto: string): 
       .select('narrador_id, pregunta_orden, transcripcion')
       .neq('narrador_id', n.id);
     const cruce = buscarCruce(texto, (data ?? []) as never);
-    if (!cruce) return;
+    if (!cruce) return false;
 
     const { data: dueño } = await mods.db
       .from('narradores')
@@ -1196,13 +1296,18 @@ async function avisarSiEsDeOtro(n: NarradorFila, orden: number, texto: string): 
     titulo('⚠  ESTE AUDIO YA ESTÁ CARGADO EN OTRO NARRADOR');
     linea(`Lo mismo figura en ${quien}, orden ${cruce.pregunta_orden}.`);
     linea('');
-    linea(`Si te equivocaste de archivo, la respuesta que acabás de cargar en ${n.como_le_dicen}`);
-    linea('NO es suya y va a terminar en su libro. Hay que borrar esa fila de `respuestas`');
-    linea(`(narrador ${n.id}, orden ${orden}) y volver a cargar el audio que sí es suyo.`);
+    linea(`Frené acá: no evalué la respuesta ${orden} ni avancé la entrevista.`);
     linea('');
-    linea('Si de verdad los dos contaron lo mismo (pasa poco), seguí de largo.');
+    linea(`Si te equivocaste de archivo, no es de ${n.como_le_dicen} y terminaría en su libro. Sacala con:`);
+    linea(`   npm run manual -- descartar ${slug(n.como_le_dicen)} ${respuestaId} --motivo "audio de ${quien}" --si`);
+    linea('y cargá el audio que sí es suyo.');
+    linea('');
+    linea('Si de verdad es suyo (dos personas contando lo mismo casi palabra por palabra: rarísimo),');
+    linea('descartala igual y volvé a cargar el mismo archivo con --es-suyo: así sigue el flujo completo.');
+    return true;
   } catch (err) {
     // El candado no puede frenar una carga buena: si falla, se avisa y se sigue.
     console.warn('No se pudo comprobar si el audio ya estaba cargado en otro narrador:', err);
+    return false;
   }
 }
