@@ -205,6 +205,53 @@ describe("PATCH /api/guion", () => {
     expect(e2.filter((e) => e.tabla === "narradores" && e.op === "update")).toEqual([]);
   });
 
+  // 3t.30 (22/09): «Sus objetos preciados». La familia puede apagar los pedidos
+  // de foto — es para el narrador que no puede sacarlas ni mandarlas.
+  it("fotos: apagarlo escribe sinFotos en el contexto", async () => {
+    sesion(martina);
+    const escrituras = armar();
+    const r = await PATCH(request({ accion: "fotos", pedirFotos: false }));
+    expect(r.status).toBe(200);
+    expect(escrituras).toContainEqual(expect.objectContaining({ tabla: "narradores", op: "update", valores: { contexto: { sinFotos: true } } }));
+  });
+
+  it("fotos: volver a prenderlo lo deja en false, no borra la clave (así se ve que fue una decisión)", async () => {
+    sesion(martina);
+    const escrituras = armar();
+    const r = await PATCH(request({ accion: "fotos", pedirFotos: true }));
+    expect(r.status).toBe(200);
+    expect(escrituras).toContainEqual(expect.objectContaining({ tabla: "narradores", op: "update", valores: { contexto: { sinFotos: false } } }));
+  });
+
+  // La trampa de la banda alta: los pedidos de objeto tienen orden 101-108 y NO
+  // son parte del recorrido. Si se colaran en el razonamiento del guion, sacar
+  // una pregunta los arrastraría a la secuencia de días y agregar una nueva
+  // empezaría a numerar desde 109.
+  const conObjetos = [
+    ...fijas(26),
+    { id: "o101", narrador_id: "n1", orden: 101, texto: "Mándeme una foto de algo de su infancia", capitulo: "La infancia", tipo: "objeto", foto_id: null },
+    { id: "o108", narrador_id: "n1", orden: 108, texto: "Mándeme una foto de algo que quede", capitulo: "La sabiduría", tipo: "objeto", foto_id: null },
+  ];
+
+  it("sacar una pregunta NO arrastra los pedidos de objeto a la secuencia de días", async () => {
+    sesion(martina);
+    const escrituras = armar({ preguntas: conObjetos, narrador: narrador({ dia_actual: 3 }) });
+    const r = await PATCH(request({ accion: "saltar", id: "p10" }));
+    expect(r.status).toBe(200);
+    const renumerados = escrituras.filter((e) => e.tabla === "preguntas" && e.op === "update").map((e) => e.filtros.id);
+    expect(renumerados).not.toContain("o101");
+    expect(renumerados).not.toContain("o108");
+  });
+
+  it("la pregunta que agrega la familia sigue al guion, no a la banda 101", async () => {
+    sesion(martina);
+    const escrituras = armar({ preguntas: conObjetos });
+    const r = await PATCH(request({ accion: "agregar", texto: "¿Qué música escuchaba en el taller?", capitulo: "El oficio" }));
+    expect(r.status).toBe(200);
+    const alta = escrituras.find((e) => e.tabla === "preguntas" && e.op === "insert");
+    expect((alta?.valores as { orden?: number })?.orden).toBe(27);
+  });
+
   it("con la entrevista terminada, nada se cambia → 400", async () => {
     sesion(martina);
     armar({ narrador: narrador({ estado: "completado", dia_actual: 30 }) });

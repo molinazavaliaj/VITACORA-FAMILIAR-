@@ -43,10 +43,41 @@ export async function preguntaDeOrden(narradorId: string, orden: number): Promis
   return preguntas.find((p) => p.orden === orden) ?? null;
 }
 
-/** El orden más alto que existe para este narrador (0 si no hay ninguna). */
-export async function ultimoOrden(narradorId: string): Promise<number> {
+/**
+ * La secuencia de días: el guion sin las preguntas de objeto (3t.30).
+ *
+ * Las de objeto viven en la banda 101-108, fuera de la cuenta de días: no
+ * avanzan `dia_actual` y no son "la última pregunta" de nadie. Todo lo que
+ * razona sobre el recorrido —cuándo generar las adaptativas, cuándo cerrar—
+ * mira esta lista y no la otra.
+ */
+export async function guionDeDias(narradorId: string): Promise<PreguntaDelGuion[]> {
   const { preguntas } = await guionDe(narradorId);
-  return preguntas.length ? preguntas[preguntas.length - 1].orden : 0;
+  return preguntas.filter((p) => p.tipo !== 'objeto');
+}
+
+/** El orden más alto de la secuencia de días (0 si no hay ninguna). */
+export async function ultimoOrden(narradorId: string): Promise<number> {
+  const dias = await guionDeDias(narradorId);
+  return dias.length ? dias[dias.length - 1].orden : 0;
+}
+
+/**
+ * ¿Con esta pregunta se termina su capítulo? (La siguiente del recorrido es de
+ * otro capítulo, o no hay siguiente.) Es el momento de pedir el objeto.
+ */
+export async function esUltimaDelCapitulo(narradorId: string, orden: number): Promise<boolean> {
+  const dias = await guionDeDias(narradorId);
+  const i = dias.findIndex((p) => p.orden === orden);
+  if (i === -1) return false;
+  const siguiente = dias[i + 1];
+  return siguiente === undefined || siguiente.capitulo !== dias[i].capitulo;
+}
+
+/** El pedido de objeto de ese capítulo, si el narrador lo tiene y no lo sacó del panel. */
+export async function objetoDelCapitulo(narradorId: string, capitulo: string): Promise<PreguntaDelGuion | null> {
+  const { preguntas } = await guionDe(narradorId);
+  return preguntas.find((p) => p.tipo === 'objeto' && p.capitulo === capitulo) ?? null;
 }
 
 /** ¿Ya se generaron las adaptativas (las 4 finales del biógrafo)? */
@@ -58,8 +89,7 @@ export async function tieneAdaptativas(narradorId: string): Promise<boolean> {
 
 /** Los capítulos del libro, en el orden del guion. */
 export async function capitulosDe(narradorId: string): Promise<string[]> {
-  const { preguntas } = await guionDe(narradorId);
-  return [...new Set(preguntas.map((p) => p.capitulo))];
+  return [...new Set((await guionDeDias(narradorId)).map((p) => p.capitulo))];
 }
 
 /**
