@@ -7,14 +7,15 @@
     "dev": "tsx watch src/servidor.ts",
     "build": "tsc",
     "start": "node dist/servidor.js",
-    "test": "vitest run",
+    "test": "npm run tipos && vitest run",
     "manual": "tsx scripts/manual.ts",
     "prueba-contexto": "tsx scripts/prueba-contexto.ts",
     "prueba-personalizar": "tsx scripts/prueba-personalizar.ts",
     "prueba-resumenes": "tsx scripts/prueba-resumenes.ts",
     "prueba-evaluacion": "tsx scripts/prueba-evaluacion.ts",
     "prueba-cerebro": "tsx scripts/prueba-cerebro.ts",
-    "prueba-consumo": "tsx scripts/prueba-consumo.ts"
+    "prueba-consumo": "tsx scripts/prueba-consumo.ts",
+    "tipos": "tsc --noEmit -p tsconfig.check.json"
   },
   "keywords": [],
   "author": "",
