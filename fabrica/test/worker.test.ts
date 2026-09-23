@@ -9,6 +9,8 @@ const {
   ensamblarAudiolibroClonadoMock,
   avisarSociosMock,
   obtenerClienteDbMock,
+  mandarEntregasAImprentaMock,
+  avisarHitosDeEntregaMock,
 } = vi.hoisted(() => ({
   generarEstructuraMock: vi.fn().mockResolvedValue(undefined),
   generarPrevisualizacionMock: vi.fn().mockResolvedValue(undefined),
@@ -18,6 +20,8 @@ const {
   ensamblarAudiolibroClonadoMock: vi.fn(),
   avisarSociosMock: vi.fn().mockResolvedValue(true),
   obtenerClienteDbMock: vi.fn(),
+  mandarEntregasAImprentaMock: vi.fn().mockResolvedValue(undefined),
+  avisarHitosDeEntregaMock: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock('../src/mail/hitos.js', async () => {
@@ -37,6 +41,11 @@ vi.mock('../src/mail/socios.js', async () => {
 
 vi.mock('../src/voz/ensamblar.js', () => ({
   ensamblarAudiolibroClonado: ensamblarAudiolibroClonadoMock,
+}));
+
+vi.mock('../src/entregas.js', () => ({
+  mandarEntregasAImprenta: mandarEntregasAImprentaMock,
+  avisarHitosDeEntrega: avisarHitosDeEntregaMock,
 }));
 
 vi.mock('../src/config.js', () => ({
@@ -292,6 +301,21 @@ describe('tick', () => {
   beforeEach(() => {
     generarEstructuraMock.mockClear();
     generarPrevisualizacionMock.mockClear();
+    mandarEntregasAImprentaMock.mockClear();
+  });
+
+  // Este test cuida el ENGANCHE, no la lógica: el 22/09 `recordarFrasesPendientes`
+  // quedó escrita fuera del tick —la función existía, nadie la llamaba— y el mail de
+  // los 15 días salió una sola vez al arrancar el proceso. Todo estaba en verde.
+  it('abre el portón de impresión en cada tick (si no se llama, el impreso no sale nunca)', async () => {
+    obtenerClienteDbMock.mockReturnValue(
+      construirClienteDbMock({ narradores: [], archivosPorNarrador: {} })
+    );
+
+    await tick();
+
+    expect(mandarEntregasAImprentaMock).toHaveBeenCalledTimes(1);
+    expect(avisarHitosDeEntregaMock).toHaveBeenCalledTimes(1);
   });
 
   it('genera la estructura para un narrador completado sin estructura.json en Storage', async () => {

@@ -18,6 +18,10 @@ const REMITENTE = 'Vitácora Familiar <hola@vitacorafamiliar.com>';
 export type Hito =
   | 'terminado'
   | 'libro_listo'
+  // Lo físico que viaja (3t.26 fase 2; textos aprobados por Naza el 23/09).
+  | 'falta_direccion'
+  | 'enviado'
+  | 'entregado'
   | 'recordatorio_3'
   | 'recordatorio_7'
   | 'recordatorio_14'
@@ -31,6 +35,12 @@ export const CANDADO_POR_HITO: Record<Hito, string> = {
   recordatorio_7: 'recordatorio_cierre_7.txt',
   recordatorio_14: 'recordatorio_cierre_14.txt',
   cierre_automatico: 'cierre_automatico_enviado.txt',
+  // Los de la entrega llevan además el id de la entrega en la ruta (`entregas.ts`):
+  // una familia puede tener dos pedidos con impreso —el suyo y el de un primo— y
+  // cada uno viaja por su cuenta.
+  falta_direccion: 'entrega_falta_direccion.txt',
+  enviado: 'entrega_enviado.txt',
+  entregado: 'entrega_entregado.txt',
 };
 
 /**
@@ -81,12 +91,42 @@ const TEXTOS: Record<Hito, { asunto: (quien: string) => string; parrafos: (quien
     boton: 'Ver el libro',
   },
   libro_listo: {
+    // 23/09: decía "y el audiolibro con su voz". El audiolibro se descartó el
+    // 20/09 y lo que existe es «Su voz»: recortes de sus audios reales.
     asunto: (quien) => `El libro de tu ${quien} está listo`,
     parrafos: (quien) => [
-      `Ya está. El libro de tu ${quien}, escrito con sus palabras, y el audiolibro con su voz.`,
+      `Ya está. El libro de tu ${quien}, escrito con sus palabras, y sus mejores frases con su voz real, para escuchar cuando quieras.`,
       'Queda ahí para siempre. Entra cuando quieras a leerlo, escucharlo o descargarlo.',
     ],
     boton: 'Leer el libro',
+  },
+  falta_direccion: {
+    asunto: (quien) => `¿A dónde mandamos el libro de tu ${quien}?`,
+    parrafos: (quien) => [
+      `El libro de tu ${quien} está listo para imprimirse, pero todavía no sabemos a dónde mandarlo.`,
+      'Son dos minutos: entra y déjanos la dirección de quien lo recibe. Hasta que no esté, no podemos empezar a imprimir.',
+    ],
+    boton: 'Poner la dirección',
+  },
+  enviado: {
+    asunto: (quien) => `El libro de tu ${quien} va en camino`,
+    parrafos: (quien) => [
+      `Salió de la imprenta. El libro de tu ${quien} está viajando a la dirección que nos diste.`,
+      // El segundo párrafo depende del seguimiento: lo arma `cuerpoHito`.
+      '',
+    ],
+    boton: 'Ver cómo va',
+  },
+  entregado: {
+    asunto: (quien) => `El libro de tu ${quien} ya está en casa`,
+    parrafos: (quien) => [
+      `Llegó. El libro de tu ${quien} está donde tiene que estar: en manos de tu familia.`,
+      // Sin género a propósito: el narrador puede ser abuelo o abuela, y dar por
+      // hecho cuál es el fallo C12 de la bitácora de Ciro.
+      'Acerca el teléfono a los códigos del libro y vas a escuchar su voz contándolo.',
+      'Si te emocionó, cuéntalo. A otra familia le puede pasar lo mismo.',
+    ],
+    boton: 'Contar cómo fue',
   },
 };
 
@@ -99,13 +139,29 @@ export function asuntoHito(hito: Hito, comoLeDicen: string): string {
  * son textos distintos y cada uno se aprueba solo), un párrafo por fila, el
  * botón con el enlace al tablero y el pie de la casa.
  */
-export function cuerpoHito(hito: Hito, opciones: { comoLeDicen: string; enlace: string }): string {
+export function cuerpoHito(
+  hito: Hito,
+  opciones: { comoLeDicen: string; enlace: string; seguimiento?: string | null }
+): string {
   const quien = escaparHtml(opciones.comoLeDicen);
   const url = escaparHtml(opciones.enlace);
   const texto = TEXTOS[hito];
 
+  // El número de seguimiento llega tarde —lo da el correo, no nosotros— y puede no
+  // llegar nunca. Con él, el mail dice cómo seguir el paquete; sin él, la noticia
+  // sigue siendo que salió, y no se promete un número que no existe.
+  const seguimiento = opciones.seguimiento?.trim();
+  const conSeguimiento = (parrafo: string, indice: number): string =>
+    hito === 'enviado' && indice === 1
+      ? seguimiento
+        ? `Te dejamos el número para seguirlo: <strong>${escaparHtml(seguimiento)}</strong>. Suele tardar unos días.`
+        : ''
+      : parrafo;
+
   const parrafos = texto
     .parrafos(quien)
+    .map(conSeguimiento)
+    .filter((parrafo) => parrafo.trim() !== '')
     .map(
       (parrafo) => `        <tr><td style="padding-bottom:24px;">
           ${parrafo}
@@ -151,6 +207,8 @@ export async function enviarMailHito(opciones: {
   para: string;
   comoLeDicen: string;
   enlace: string;
+  /** Solo el de "va en camino": el número del correo, cuando ya existe. */
+  seguimiento?: string | null;
 }): Promise<boolean> {
   const { resendApiKey } = cargarConfig();
   if (!resendApiKey) {
@@ -168,7 +226,11 @@ export async function enviarMailHito(opciones: {
       from: REMITENTE,
       to: [opciones.para],
       subject: asuntoHito(opciones.hito, opciones.comoLeDicen),
-      html: cuerpoHito(opciones.hito, { comoLeDicen: opciones.comoLeDicen, enlace: opciones.enlace }),
+      html: cuerpoHito(opciones.hito, {
+        comoLeDicen: opciones.comoLeDicen,
+        enlace: opciones.enlace,
+        seguimiento: opciones.seguimiento,
+      }),
     }),
   });
 

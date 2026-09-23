@@ -1,7 +1,18 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { asuntoHito, cuerpoHito, enviarMailHito, CANDADO_POR_HITO, type Hito } from '../src/mail/hitos.js';
 
-const HITOS: Hito[] = ['terminado', 'libro_listo', 'recordatorio_3', 'recordatorio_7', 'recordatorio_14', 'cierre_automatico'];
+// Los seis del cierre del libro, más los tres de lo físico que viaja (3t.26 fase 2).
+const HITOS: Hito[] = [
+  'terminado',
+  'libro_listo',
+  'recordatorio_3',
+  'recordatorio_7',
+  'recordatorio_14',
+  'cierre_automatico',
+  'falta_direccion',
+  'enviado',
+  'entregado',
+];
 
 describe('asuntoHito / cuerpoHito', () => {
   it('cada hito tiene asunto con el como_le_dicen y cuerpo con el enlace', () => {

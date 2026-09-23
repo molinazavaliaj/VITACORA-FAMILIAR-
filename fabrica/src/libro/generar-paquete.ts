@@ -1,10 +1,10 @@
 import { registrarUso } from '../costos.js';
 import Anthropic from '@anthropic-ai/sdk';
-import { chromium } from 'playwright';
 import { cargarConfig } from '../config.js';
 import { obtenerClienteDb, type Narrador, type Pregunta, type Respuesta } from '../db.js';
 import { escribirCapitulo } from './escribir-capitulo.js';
 import { construirHtmlLibro } from './plantilla-html.js';
+import { htmlAPdf } from './pdf.js';
 import { generarAudiolibro } from '../audio/audiolibro.js';
 import { generarEstructura, type Estructura } from './estructura.js';
 import { leerEdicion, aplicarOrdenCapitulos, aplicarTitulosCapitulos } from './edicion.js';
@@ -386,24 +386,12 @@ async function generarPdf(
   narradorId: string,
   html: string
 ): Promise<void> {
-  const browser = await chromium.launch();
-  try {
-    const page = await browser.newPage();
-    // Con las fotos embebidas el HTML puede pesar decenas de MB (cota en
-    // fotos.ts): cargarlo y paginarlo lleva más que los 30 s por defecto.
-    await page.setContent(html, { timeout: 120_000 });
-    // La plantilla pagina el texto con un script embebido (reparte los
-    // bloques en lienzos A5 y numera folios); imprimir antes de esa marca
-    // sacaría el PDF a medio armar.
-    await page.waitForFunction('window.__libroPaginado === true', { timeout: 120_000 });
-    const pdf = await page.pdf({ format: 'A5', printBackground: true });
-
-    const { error } = await db.storage.from('audios').upload(RUTA_LIBRO_PDF(narradorId), pdf, {
-      contentType: 'application/pdf',
-      upsert: true,
-    });
-    if (error) throw new Error(`No se pudo subir libro.pdf: ${error.message}`);
-  } finally {
-    await browser.close();
-  }
+  // El HTML → PDF vive en `pdf.ts`: lo comparten este camino y el del libro de
+  // imprenta (`imprenta.ts`), que es el mismo libro con la sección «Su voz».
+  const pdf = await htmlAPdf(html);
+  const { error } = await db.storage.from('audios').upload(RUTA_LIBRO_PDF(narradorId), pdf, {
+    contentType: 'application/pdf',
+    upsert: true,
+  });
+  if (error) throw new Error(`No se pudo subir libro.pdf: ${error.message}`);
 }
