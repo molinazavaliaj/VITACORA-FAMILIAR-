@@ -55,7 +55,7 @@ describe('armarPromptPregunta', () => {
   });
 
   it('si no se sabe cómo habla, lo dice en vez de elegir por él', () => {
-    expect(armarPromptPregunta(perfilDe({}), nucleo(0), [], [])).toContain('no sabés cómo habla');
+    expect(armarPromptPregunta(perfilDe({}), nucleo(0), [], [])).toContain('no sabés cómo prefiere que le hablen');
     expect(armarPromptPregunta(perfilDe({ comoHabla: { valor: 'vos', fuente: 'deducido' } }), nucleo(0), [], [])).toContain('Hablale de vos');
   });
 });
