@@ -6,7 +6,7 @@ ruta (`/kids/mi-primer-capitulo`). No comparte nombres, rutas ni guion con la Vi
 abuelo: comparte la máquina de abajo y nada más.
 
 **Qué es.** La hermana de la Vitácora que le vende al mismo cliente. Un chico de 11 recibe
-durante tres semanas **20 preguntas grandes** por WhatsApp — una por día, se contestan con
+durante tres semanas **23 preguntas grandes** por WhatsApp — una por día, se contestan con
 un audio — y, pegada a cada una, una **"mostrame"**: una foto de algo suyo con una línea
 de explicación. Al final hay un libro con sus palabras, sus fotos y sus audios reales.
 
@@ -41,46 +41,68 @@ Y el hallazgo: **las que no aplican no mueren, se dan vuelta.** "¿Cómo fue ust
 padre?" en un chico de 11 es *"¿cómo vas a ser vos cuando seas padre?"* — y esa, leída a
 los 40 con un hijo al lado, es la página más fuerte del libro.
 
-## Las 20 grandes
+## Las 23 grandes
 
-Cinco capítulos de cuatro. Una por día: unos 20 días. La foto entra natural en las
-primeras diez y se vuelve forzada de la 13 en adelante — pedirle una foto del día más
-difícil es horrible. Queda mejor así: **el libro empieza mirando cosas y termina
-pensando**, que es exactamente cómo se abre un chico de 11 en tres semanas.
+Cinco capítulos. Una por día: unos 23 días, poco más de tres semanas.
 
-| # | Sale de | Texto (aprobado por Naza, 22/09) |
-|---|---|---|
-| **DE CHIQUITO** |||
-| 1 | nueva | Arrancamos por lo más viejo que tengas guardado. ¿Cuál es el primer recuerdo de tu vida? Puede ser cortito, o medio borroso. Contámelo como te venga. |
-| 2 | 3 | ¿A qué jugabas cuando eras más chiquito, y con quién? Contame una travesura de esas que ahora te dan risa. Si todavía tenés algo de esa época, sacale una foto. |
-| 3 | 1 | Mandame una foto del lugar de tu casa donde más estás. Tu pieza, el sillón, el patio, donde sea. Y contame qué hay ahí que sea tuyo. |
-| 4 | 7 | ¿Qué se cocina en tu casa que te vuelve loco? Sacale una foto la próxima vez. Y contame cómo son los domingos ahí — o la Navidad, si esa es la buena. |
-| **MI GENTE** |||
-| 5 | 2 | Hoy la más importante. Contame cómo son tu mamá y tu papá. Cada uno por separado: cómo es, qué hace, qué le gusta, qué te hace reír de él. Tomate todo el tiempo en esta. |
-| 6 | 6 | ¿Tenés hermanos? Contame cómo es cada uno y con quién te llevás mejor. Si sos hijo único, contame cómo es eso. |
-| 7 | 5 | Contame de tus abuelos. ¿Cómo son, qué hacen con vos? ¿Y qué historias te cuentan de cuando **ellos** eran chicos? |
-| 8 | 9 | Tus amigos. ¿Quién es tu mejor amigo, cómo se conocieron, qué hacen juntos? Si tenés una foto de la banda, mandala. |
-| **MI MUNDO AHORA** |||
-| 9 | 4 | ¿Cómo es tu escuela? Contame de algún maestro o algún compañero que no te vas a olvidar nunca — para bien o para mal. |
-| 10 | 8 | ¿Qué música escuchás? ¿Qué mirás? Mandame una captura de lo último que estuviste viendo. Y contame cómo es un sábado tuyo, de principio a fin. |
-| 11 | 16 | ¿Qué es lo que mejor te sale? Eso que hacés y decís "en esto soy bueno". Contame la última vez que te salió perfecto. |
-| 12 | 11 | Hablemos de plata. ¿Te dan? ¿Ganaste alguna vez por algo que hiciste? ¿Y en qué se te va? |
-| **LO QUE ME PASÓ** |||
-| 13 | 12 | Ahora quiero **esa** historia. La que contás siempre, la que ya todos escucharon y igual se ríen. Todos tenemos una. ¿Cuál es la tuya? |
-| 14 | 15 | ¿Alguna vez te peleaste en serio con un amigo? Contame qué pasó y cómo se arreglaron. O si no se arreglaron. |
-| 15 | 22 | Hoy una seria. A todos nos toca algún día feo. ¿Cuál fue el tuyo? Contá lo que quieras contar, y lo que no quieras no lo cuentes. |
-| 16 | 23 | Cuando algo te sale mal o estás triste, ¿a quién buscás? ¿Y qué te dice esa persona que te hace bien? |
-| **PARA CUANDO SEAS GRANDE** — *sobre cerrado* |||
-| 17 | 13 | Che, ¿ya te pasó de que te guste alguien? No hace falta que digas quién — contame cómo es que te das cuenta. |
-| 18 | 19+20+21 | Imaginate que tenés un hijo. ¿Qué vas a hacer igual que tus viejos, y qué vas a hacer distinto? |
-| 19 | 25 | Esta es para vos, dentro de 30 años. Vas a tener 40 y esto lo vas a leer. ¿Qué le querés decir a ese tipo? Tomate todo el tiempo del mundo. |
-| 20 | 26+24 | La última. Imaginate que alguien no te conoce nada y tenés dos minutos para que sepa quién sos. Contame. |
+**La regla que manda acá: una sola cosa por mensaje.** El primer borrador (22/09) la rompía
+en seis de las veinte preguntas — amontonaba dos y hasta tres pedidos en el mismo mensaje.
+Naza lo cazó en la de los padres: *"mamá y papá son importantes, no puede pedirlo todo en la
+misma pregunta"*. Con un adulto eso se perdona; un chico de 11 contesta la primera y se
+olvida del resto. Al separarlas quedaron 23 (23/09).
 
-**Por qué la 17 está redactada así.** El padre ve todo en el panel (ver *El canal*), y un
+**Y un error que no se ve leyendo: el bot se repetía.** Las "mostrame" se escribieron
+después de las grandes y sin cruzarlas contra ellas. El día de la comida preguntaba por la
+comida favorita **y su cortita también**; el día de "¿qué mirás?" la cortita preguntaba por
+la peli, y al día siguiente por el youtuber. Se arregló **cortándole la mitad a la grande**,
+no agregando nada: la cortita ya cubría eso, y de paso la grande quedó en una sola pregunta.
+
+La foto entra natural en la primera mitad y se vuelve forzada en la segunda — pedirle una
+foto del día más difícil es horrible. Por eso **las cortitas terminan en el día 15**: el
+álbum se arma en la primera mitad y la segunda es toda conversación. El libro empieza
+mirando cosas y termina pensando, que es como se abre un chico de 11 en tres semanas.
+
+| Día | Sale de | Texto (aprobado por Naza) | Cortita |
+|---|---|---|---|
+| **DE CHIQUITO** ||||
+| 1 | nueva | Arrancamos por lo más viejo que tengas guardado. ¿Cuál es el primer recuerdo de tu vida? Puede ser cortito, o medio borroso. Contámelo como te venga. | M1 |
+| 2 | 3 | Contame a qué jugabas cuando eras más chiquito, y con quién. | M3 |
+| 3 | 3 | Ahora contame una travesura. De esas que hiciste y que todavía te dan risa. | M14 |
+| 4 | 1 | Mandame una foto del lugar de tu casa donde más estás. Tu pieza, el sillón, el patio, donde sea. Y contame qué hay ahí que sea tuyo. | M15 |
+| 5 | 7 | ¿Cómo son los domingos en tu casa? Y si la buena es la Navidad, contame esa. | M5 |
+| **MI GENTE** ||||
+| 6 | 2 | Hoy una importante: contame cómo es tu mamá. Cómo es, qué hace, qué le gusta, qué te hace reír de ella. Tomate todo el tiempo en esta. | M4 |
+| 7 | 2 | Ahora tu papá. Cómo es, qué hace, qué le gusta, qué te hace reír de él. Igual que ayer: tomate todo el tiempo. | M10 |
+| 8 | 6 | ¿Tenés hermanos? Contame cómo es cada uno y con quién te llevás mejor. Si sos hijo único, contame cómo es eso. | M13 |
+| 9 | 5 | Contame de tus abuelos. ¿Cómo son, qué hacen con vos? | M2 |
+| 10 | 5 | ¿Y qué te cuentan ellos de cuando **eran chicos**? Alguna historia de tus abuelos que te haya quedado. | M11 |
+| 11 | 9 | Tus amigos. ¿Quién es tu mejor amigo, cómo se conocieron, qué hacen juntos? | M12 |
+| **MI MUNDO AHORA** ||||
+| 12 | 4 | Contame de un maestro o un compañero que no te vas a olvidar nunca. Para bien o para mal. | M9 |
+| 13 | 8 | Contame cómo es un sábado tuyo, de principio a fin. Desde que te levantás. | M6 |
+| 14 | 16 | ¿Qué es lo que mejor te sale? Eso que hacés y decís "en esto soy bueno". Contame la última vez que te salió perfecto. | M7 |
+| 15 | 11 | Hablemos de plata. ¿Te dan? ¿Ganaste alguna vez por algo que hiciste? ¿Y en qué se te va? | M8 |
+| **LO QUE ME PASÓ** — *desde acá, sin cortitas* ||||
+| 16 | 12 | Ahora quiero **esa** historia. La que contás siempre, la que ya todos escucharon y igual se ríen. Todos tenemos una. ¿Cuál es la tuya? | — |
+| 17 | 15 | ¿Alguna vez te peleaste en serio con un amigo? Contame qué pasó y cómo se arreglaron. O si no se arreglaron. | — |
+| 18 | 22 | Hoy una seria. A todos nos toca algún día feo. ¿Cuál fue el tuyo? Contá lo que quieras contar, y lo que no quieras no lo cuentes. | — |
+| 19 | 23 | Cuando algo te sale mal o estás triste, ¿a quién buscás? ¿Y qué te dice esa persona que te hace bien? | — |
+| **PARA CUANDO SEAS GRANDE** — *sobre cerrado* ||||
+| 20 | 13 | Che, ¿ya te pasó de que te guste alguien? No hace falta que digas quién — contame cómo es que te das cuenta. | — |
+| 21 | 19+20+21 | Imaginate que tenés un hijo. ¿Qué vas a hacer igual que tus viejos, y qué vas a hacer distinto? | — |
+| 22 | 25 | Esta es para vos, dentro de 30 años. Vas a tener 40 y esto lo vas a leer. ¿Qué le querés decir a ese tipo? Tomate todo el tiempo del mundo. | — |
+| 23 | 26+24 | La última. Imaginate que alguien no te conoce nada y tenés dos minutos para que sepa quién sos. Contame. | — |
+
+**Por qué el día 20 está redactado así.** El padre ve todo en el panel (ver *El canal*), y un
 chico de 11 que sabe que su mamá lee no contesta "¿te gusta alguien?". No se le pide una
 confesión: se le pide **cómo se da cuenta**. Contesta igual y no lo expone.
 
-**La 15 necesita `contexto.evitar`,** que ya existe. Un chico de 11 puede tener una
+**Por qué mamá y papá van en días separados (23/09).** Es la pregunta más valiosa del libro
+para el que paga. Juntas, el chico describe a uno y despacha al otro en una línea. Separadas,
+el día 7 además se apoya en el 6 ("igual que ayer"), que es como funciona el reconocimiento
+del día anterior en la Vitácora del abuelo.
+
+**El día 18 necesita `contexto.evitar`,** que ya existe. Un chico de 11 puede tener una
 separación, una mudanza, un abuelo que se murió o un problema en la escuela. Es la pregunta
 que más valor tiene y la que más fácil te explota: el padre carga en la compra qué no se
 toca, igual que se hizo con Ciro el 18/09.
@@ -95,8 +117,12 @@ estas se contestan en treinta segundos con una foto y una línea. En el mismo sa
 
 **Cómo llegan (decidido 22/09):** pegada a la grande del día, **como premio**. El chico
 contesta la grande y el bot le manda enseguida la cortita — *"buenísimo. Ahora una fácil:
-mostrame tu juguete favorito"*. Premia haber contestado, no alarga el calendario y mantiene
-los 20 días. Los 5 días sin cortita son los del final, que son los serios.
+mostrame tu juguete favorito"*. Premia haber contestado y no alarga el calendario.
+
+**Van en los días 1 al 15, emparejadas con la grande que les rima** (columna *Cortita* en la
+tabla de arriba): la mascota cae el día que habla de su mamá, el juguete más nuevo el día de
+los abuelos ("¿quién te lo dio?"), la camiseta del cuadro el día que cuenta lo que le
+contaban ellos. Del 16 en adelante no hay ninguna: ahí las preguntas se ponen serias.
 
 | # | Texto |
 |---|---|
@@ -119,9 +145,13 @@ los 20 días. Los 5 días sin cortita son los del final, que son los serios.
 *Suplentes, por si se cambia alguna:* tu lugar favorito fuera de casa · el mejor regalo que
 te hicieron en la vida.
 
-**Cabe en el sistema, pero justo.** El tope son 40 preguntas contando las 4 adaptativas
-(`web/src/lib/guion.ts:6`): 20 + 15 + 4 = **39**. Para sumar más "mostrame" hay que mover el
-tope o sacar las adaptativas en este modo.
+**Las cuentas, y una decisión que salió de ahí (23/09).** El tope son 40 preguntas contando
+las 4 adaptativas (`web/src/lib/guion.ts:6`). Con 23 grandes serían 23 + 15 + 4 = **42**, y
+no entra. **Este modo va sin adaptativas**: 23 + 15 = **38**, cómodo. Las adaptativas son las
+4 que el cerebro inventa al final para tapar los huecos de la historia; con un adulto valen
+oro, con un chico de 11 el hueco lo tapan mejor las cortitas. Si el piloto muestra que se
+extrañan, la otra salida es mover el tope — es una constante nuestra, no un límite de
+WhatsApp, pero hay que revisar qué más la usa antes de tocarla.
 
 ## El canal — una sola decisión del padre
 
@@ -143,7 +173,7 @@ romper y la advertencia solo sembraría una duda que no existía.
 
 ## El libro y la parte cerrada
 
-El libro se entrega **ahora**, para la familia, con los cuatro primeros capítulos. La
+El libro se entrega **ahora**, para la familia, con los cuatro primeros capítulos (días 1 a 19). La
 cápsula del tiempo es el quinto, **"Para cuando seas grande"**: las cuatro últimas
 preguntas, que el chico le contesta a su yo de 40 y que no van en el cuerpo del libro.
 
@@ -189,7 +219,7 @@ catálogo de 3t.27 (`specs/2026-09-22-catalogo-base-y-upsells-design.md`).
 
 1. `contexto.modo = 'kids'` en el entrevistador, copiando la forma de
    `entrevistador/src/flujo/viaje.ts:31`, con las tres reglas de tono.
-2. El guion del modo: las **20 grandes** (`tipo 'fija'`) y las **15 "mostrame"**, que
+2. El guion del modo: las **23 grandes** (`tipo 'fija'`) y las **15 "mostrame"**, que
    necesitan un tipo propio — se mandan al recibir la respuesta de la grande, no a horario,
    y en el libro van al álbum, no a un capítulo.
 3. El campo `canal` en el wizard de compra + `PRECIO_KIDS_EUR` / `_ARS`.
@@ -212,7 +242,7 @@ catálogo de 3t.27 (`specs/2026-09-22-catalogo-base-y-upsells-design.md`).
 1. **La prueba de cinco minutos.** Mandarle a tres padres que no conozcan a Naza la frase
    *"¿te acordás qué querías ser a los 11?"*. Si tres de tres se quedan pensando, hay
    producto.
-2. **Piloto manual**, igual que Ciro y Joaquín: Naza le manda las 20 grandes y las 15
+2. **Piloto manual**, igual que Ciro y Joaquín: Naza le manda las 23 grandes y las 15
    "mostrame" a mano por WhatsApp al hijo de su novia, y anota todo en
    `docs/piloto-bitacora-errores.md`. En una semana contesta las tres cosas que ningún
    diseño puede contestar: **cuánto escribe de verdad un nene de 11**, **si las fotos
@@ -228,7 +258,7 @@ Sin esas dos, no se construye el modo.
 - **Que conteste corto y el libro salga flaco.** Es el riesgo real; el piloto lo mide antes
   de que cueste plata. Las "mostrame" son la red: aunque las grandes salgan flacas, el álbum
   sostiene el libro solo.
-- **Que la novedad se le pase a los 6 días.** Por eso 20 grandes y no 30, y por eso la
+- **Que la novedad se le pase a los 6 días.** Por eso 23 y no 30, y por eso la
   cortita como premio.
 - **WhatsApp.** Si el canal es el teléfono del chico, formalmente el titular debería tener
   13+. Lo cubre que el padre elija y autorice, pero la landing no debe empujar el teléfono
