@@ -173,8 +173,19 @@ export function bienvenidaViaje(comoLeDicen: string, { enseguida = false } = {})
 }
 
 /** Lo que recibe cuando dice que SÍ. Único hogar del texto: `src/flujo/procesar.ts` lo importa de acá. */
-export function bienvenidaAceptacion(comoLeDicen: string, trato: Trato = 'usted', { viaje = false } = {}): string {
+export function bienvenidaAceptacion(
+  comoLeDicen: string, trato: Trato = 'usted', { viaje = false, enseguida = false } = {},
+): string {
   if (viaje) return `¡Buen viaje, ${comoLeDicen}! Esta noche te llega la primera pregunta. Sin apuro y sin respuestas incorrectas: esto es tu bitácora, a tu ritmo. 🧭`;
+  // Ritmo «apenas responde» (23/09): la primera pregunta sale con el SÍ, no al
+  // día siguiente. El texto tiene que decir lo que va a pasar de verdad — si
+  // promete "mañana" y la pregunta entra en el mismo minuto, el bot queda como
+  // si no supiera lo que hace.
+  if (enseguida) {
+    return trato === 'vos'
+      ? `¡Qué alegría, ${comoLeDicen}! Te mando la primera pregunta ahora mismo. No hay apuro ni respuestas incorrectas: esto es una charla entre vos y yo, a tu ritmo. 📖`
+      : `¡Qué alegría, ${comoLeDicen}! Le mando la primera pregunta ahora mismo. No hay apuro ni respuestas incorrectas: esto es una charla entre usted y yo, a su ritmo. 📖`;
+  }
   return trato === 'vos'
     ? `¡Qué alegría, ${comoLeDicen}! Mañana a la mañana te llega la primera pregunta. No hay apuro ni respuestas incorrectas: esto es una charla entre vos y yo, a tu ritmo. 📖`
     : `¡Qué alegría, ${comoLeDicen}! Mañana a la mañana le llega la primera pregunta. No hay apuro ni respuestas incorrectas: esto es una charla entre usted y yo, a su ritmo. 📖`;

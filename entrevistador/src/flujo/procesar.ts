@@ -174,11 +174,20 @@ async function manejarConsentimiento(narrador: Narrador, m: MensajeEntrante): Pr
   const cambios: Record<string, unknown> = { estado: 'acepto' };
   if (bienvenidaPideVoz()) cambios.consentimiento_voz_at = new Date().toISOString();
   await db.from('narradores').update(cambios).eq('id', narrador.id);
+  const enseguida = !esViaje(narrador.contexto) && ritmoDe(narrador.contexto) === 'seguido';
   await enviarTexto(
     narrador.telefono_whatsapp,
-    bienvenidaAceptacion(narrador.como_le_dicen, await tratoDe(narrador), { viaje: esViaje(narrador.contexto) }),
+    bienvenidaAceptacion(narrador.como_le_dicen, await tratoDe(narrador), { viaje: esViaje(narrador.contexto), enseguida }),
   );
   await mandarHito(narrador, 'acepto');
+  // Ritmo «apenas responde» (pedido de Joaquín, 23/09): la primera pregunta sale
+  // con el SÍ. Antes esperaba al scheduler, o sea hasta 24 horas — y en una
+  // prueba eso es un día perdido. Acaba de escribir, así que la ventana de 24 hs
+  // está abierta y va como texto libre, sin depender de ninguna plantilla.
+  if (enseguida) {
+    await enviarPregunta({ ...narrador, estado: 'acepto' }, 1, { plantilla: false })
+      .catch((err) => { console.error(`consentimiento: no pude mandar la 1 enseguida a ${narrador.id}:`, err); return false; });
+  }
 }
 
 // Paso 3: pausado → activo con cualquier mensaje.

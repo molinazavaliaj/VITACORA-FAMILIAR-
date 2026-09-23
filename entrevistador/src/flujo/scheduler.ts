@@ -79,26 +79,85 @@ async function aislado(narradorId: string, trabajo: () => Promise<void>): Promis
   }
 }
 
+/**
+ * ¿Ya salió su bienvenida DE VERDAD?
+ *
+ * Mira que haya id de Meta: una fila sin id es un intento fallido, anotado
+ * para que se vea, y no tiene que impedir que se reintente (23/09).
+ */
+async function bienvenidaYaSalio(narradorId: string): Promise<boolean> {
+  const { data } = await db.from('envios').select('id')
+    .eq('narrador_id', narradorId).eq('tipo', 'bienvenida').not('wa_message_id', 'is', null).limit(1);
+  return (data?.length ?? 0) > 0;
+}
+
+/**
+ * Deja constancia EN LA BASE de que la bienvenida no salió, y por qué.
+ *
+ * El 21/09 tres bienvenidas no llegaron y estuvimos dos días sin poder decir
+ * por qué: `enviarBienvenidas` era el único envío del sistema sin red — si la
+ * plantilla fallaba, el error moría en la consola de Railway y desde afuera
+ * parecía que el bot no había hecho nada. Una sola fila por narrador, que se
+ * va actualizando: no impide el reintento y no ensucia la tabla cada 15 min.
+ */
+async function anotarBienvenidaFallida(narradorId: string, err: unknown): Promise<void> {
+  const detalle = (err instanceof Error ? err.message : String(err)).slice(0, 500);
+  console.error(`bienvenida: NO SALIÓ la de ${narradorId}: ${detalle}`);
+  try {
+    const { data } = await db.from('envios').select('id')
+      .eq('narrador_id', narradorId).eq('tipo', 'bienvenida').is('wa_message_id', null).limit(1);
+    const fila = (data as { id: string }[] | null)?.[0];
+    const valores = { entrega: 'fallido', entrega_at: new Date().toISOString(), error_detalle: detalle };
+    const { error } = fila
+      ? await db.from('envios').update(valores).eq('id', fila.id)
+      : await db.from('envios').insert({ narrador_id: narradorId, tipo: 'bienvenida', wa_message_id: null, ...valores });
+    if (!error) return;
+    console.warn(`bienvenida: no pude anotar el fallo de ${narradorId} en envios (¿falta la migración?):`, error.message);
+    // Salida de emergencia (23/09): mientras las columnas de `envios` no estén
+    // aplicadas, el motivo se guarda en el contexto del narrador. Es el único
+    // lugar que ya existe y que podemos leer sin entrar a los logs de Railway.
+    // Se saca cuando la migración esté puesta.
+    await guardarFalloEnContexto(narradorId, detalle);
+  } catch (e) {
+    console.warn(`bienvenida: tampoco pude anotar el fallo de ${narradorId}:`, e);
+  }
+}
+
+async function guardarFalloEnContexto(narradorId: string, detalle: string): Promise<void> {
+  const { data } = await db.from('narradores').select('contexto').eq('id', narradorId).maybeSingle();
+  const contexto = ((data as { contexto?: Record<string, unknown> } | null)?.contexto) ?? {};
+  contexto.falloBienvenida = { cuando: new Date().toISOString(), detalle };
+  await db.from('narradores').update({ contexto }).eq('id', narradorId);
+}
+
 /** 1. Bienvenida: a los invitados que todavía no la recibieron. */
 async function enviarBienvenidas(): Promise<void> {
   for (const n of await narradoresEn(['invitado'])) {
     await aislado(n.id, async () => {
-      if (await ultimoEnvio(n.id, 'bienvenida')) return;
+      if (await bienvenidaYaSalio(n.id)) return;
       // Vitácora de viaje: su plantilla es `bienvenida_viaje` (una variable). Hasta que Meta
       // la apruebe (WA_PLANTILLA_BIENVENIDA_VIAJE=1), el viajero escribe primero y procesar
       // le contesta la bienvenida como texto libre.
       if (esViaje(n.contexto)) {
         if (process.env.WA_PLANTILLA_BIENVENIDA_VIAJE !== '1') return;
-        const waId = await enviarPlantilla(n.telefono_whatsapp, 'bienvenida_viaje', [n.como_le_dicen]);
-        await registrarEnvio(n.id, 'bienvenida', waId);
+        try {
+          const waId = await enviarPlantilla(n.telefono_whatsapp, 'bienvenida_viaje', [n.como_le_dicen]);
+          await registrarEnvio(n.id, 'bienvenida', waId);
+        } catch (err) {
+          await anotarBienvenidaFallida(n.id, err);
+        }
         return;
       }
       const { data: familia } = await db.from('familias').select('nombre').eq('id', n.familia_id).maybeSingle();
       const vinculo = n.contexto?.vinculoComprador;
       const nombreFamilia = (familia as { nombre?: string } | null)?.nombre ?? 'su familia';
       const quienRegala = vinculo ? `su ${vinculo} ${nombreFamilia}` : nombreFamilia;
-      const waId = await enviarPlantilla(n.telefono_whatsapp, 'bienvenida', [n.como_le_dicen, quienRegala]);
-      await registrarEnvio(n.id, 'bienvenida', waId);
+      try {
+        const waId = await enviarPlantilla(n.telefono_whatsapp, 'bienvenida', [n.como_le_dicen, quienRegala]);
+        await registrarEnvio(n.id, 'bienvenida', waId);
+      } catch (err) {
+        await anotarBienvenidaFallida(n.id, err);
+      }
     });
   }
 }
