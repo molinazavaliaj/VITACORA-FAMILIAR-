@@ -7,6 +7,9 @@ import { obtenerClienteDb } from './db.js';
 import { armarLibroDeImprenta } from './libro/imprenta.js';
 import { cargarConfig } from './config.js';
 import { enviarMailHito, type Hito } from './mail/hitos.js';
+import { productosDelPedido } from './libro/productos.js';
+import { calcularBulto } from './envio/bulto.js';
+import { proveedorDe } from './envio/proveedor.js';
 
 type Db = ReturnType<typeof obtenerClienteDb>;
 
@@ -47,7 +50,7 @@ export async function mandarEntregasAImprenta(db: Db): Promise<void> {
   // corre al final de un tick que ya escribió libros: no puede tumbarlo.
   let data: unknown;
   try {
-    const respuesta = await db.from('entregas').select('id, narrador_id, estado').eq('estado', 'lista');
+    const respuesta = await db.from('entregas').select('id, narrador_id, pedido_id, estado, origen, destinatario_nombre, destinatario_telefono, destinatario_email, direccion').eq('estado', 'lista');
     if (respuesta.error) {
       console.warn(`imprenta: no se pudieron leer las entregas listas: ${respuesta.error.message}`);
       return;
@@ -64,9 +67,14 @@ export async function mandarEntregasAImprenta(db: Db): Promise<void> {
       // Todavía sin confirmar: la entrega espera, y el próximo tick vuelve a mirar.
       if (!armado) continue;
 
+      // La etiqueta se pide en el mismo momento, para que la imprenta imprima el
+      // libro y la etiqueta en una sola pasada (spec 21/09). Si algo de esto falla,
+      // el libro igual sale: el envío se resuelve a mano, un libro sin imprimir no.
+      const envio = await datosDeEnvio(db, entrega);
+
       const { error: errorUpdate } = await db
         .from('entregas')
-        .update({ estado: 'en_produccion', produccion_at: new Date().toISOString() })
+        .update({ estado: 'en_produccion', produccion_at: new Date().toISOString(), ...envio })
         .eq('id', entrega.id);
       if (errorUpdate) throw new Error(errorUpdate.message);
 
@@ -180,3 +188,79 @@ async function existeCandado(db: Db, narradorId: string, ruta: string): Promise<
   const nombre = ruta.split('/').pop();
   return (data ?? []).some((archivo: { name: string }) => archivo.name === nombre);
 }
+
+/**
+ * El peso, las medidas y la etiqueta de una entrega que sale a producción.
+ *
+ * Devuelve las columnas a escribir junto al cambio de estado, o `{}` si no se
+ * pudo averiguar: **la etiqueta nunca frena el libro**. Un paquete sin etiqueta se
+ * despacha a mano en cinco minutos; un libro que no se imprimió porque el correo
+ * tenía la API caída es una familia esperando.
+ */
+async function datosDeEnvio(db: Db, entrega: EntregaParaImprimir): Promise<Record<string, unknown>> {
+  try {
+    if (!entrega.pedido_id) return {};
+
+    const { data: pedido } = await db
+      .from('pedidos')
+      .select('extras')
+      .eq('id', entrega.pedido_id)
+      .maybeSingle();
+    const productos = productosDelPedido((pedido as { extras?: unknown } | null)?.extras);
+
+    const bulto = calcularBulto(productos);
+    if (!bulto) return {};
+    if (bulto.estimado) {
+      console.warn(
+        `envio: la entrega ${entrega.id} se despacha con el peso ESTIMADO de la casa (${bulto.pesoG} g). ` +
+          'Confirmar con la imprenta: el envío va incluido en el precio.'
+      );
+    }
+
+    // El origen es el centro que despacha. Sin él, España por defecto no sirve:
+    // se deja el bulto y la etiqueta se decide a mano.
+    const origen = entrega.origen === 'AR' || entrega.origen === 'ES' ? entrega.origen : null;
+    if (!origen) {
+      console.warn(`envio: la entrega ${entrega.id} no dice desde qué país sale; se despacha a mano.`);
+      return { peso_g: bulto.pesoG, dimensiones: bulto.dimensiones, etiqueta_proveedor: 'manual' };
+    }
+
+    const proveedor = proveedorDe(origen);
+    const etiqueta = await proveedor.emitir({
+      origen,
+      destinatario: {
+        nombre: entrega.destinatario_nombre ?? null,
+        telefono: entrega.destinatario_telefono ?? null,
+        email: entrega.destinatario_email ?? null,
+      },
+      direccion: (entrega.direccion as Record<string, unknown> | null) ?? null,
+      bulto,
+      referencia: `Vitácora ${entrega.id.slice(0, 8)}`,
+    });
+
+    return {
+      peso_g: bulto.pesoG,
+      dimensiones: bulto.dimensiones,
+      etiqueta_proveedor: etiqueta.proveedor,
+      etiqueta_url: etiqueta.etiquetaUrl,
+      envio_externo_id: etiqueta.envioExternoId,
+      transportista: etiqueta.transportista,
+      seguimiento: etiqueta.seguimiento,
+      seguimiento_url: etiqueta.seguimientoUrl,
+    };
+  } catch (err) {
+    console.error(`envio: no se pudo preparar el envío de ${entrega.id} (el libro sale igual):`, err);
+    return {};
+  }
+}
+
+type EntregaParaImprimir = {
+  id: string;
+  narrador_id: string;
+  pedido_id?: string | null;
+  origen?: string | null;
+  destinatario_nombre?: string | null;
+  destinatario_telefono?: string | null;
+  destinatario_email?: string | null;
+  direccion?: unknown;
+};
