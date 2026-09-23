@@ -346,3 +346,26 @@ export function textoObjetoRecibido(trato: Trato, conHistoria: boolean): string 
     ? '📷 Qué bueno. Queda guardada en tu libro.'
     : '📷 Qué bueno. Queda guardada en su libro.';
 }
+
+/**
+ * Cuando el invitado escribe algo que no entendimos (23/09).
+ *
+ * Antes el bot se quedaba mudo: la persona leía la bienvenida, contestaba
+ * "dale" o "listo", y del otro lado no pasaba nada. Nadie insiste con algo que
+ * no le contesta, así que ese silencio costaba el narrador entero.
+ *
+ * Se manda UNA sola vez. Insistirle a quien no quiere participar sería peor
+ * que no haber preguntado.
+ */
+export function noEntendi(trato: Trato = 'usted'): string {
+  return trato === 'vos'
+    ? 'Perdón, no te entendí 🙈 Para arrancar necesito que me escribas SÍ. ¿Vamos?'
+    : 'Perdón, no le entendí 🙈 Para arrancar necesito que me escriba SÍ. ¿Vamos?';
+}
+
+/** Dijo que no, o que ahora no. Se le deja la puerta abierta y no se insiste. */
+export function noQuiereTodavia(comoLeDicen: string, trato: Trato = 'usted'): string {
+  return trato === 'vos'
+    ? `Sin problema, ${comoLeDicen}. Cuando tengas ganas me escribís SÍ y arrancamos. Acá voy a estar.`
+    : `Sin problema, ${comoLeDicen}. Cuando tenga ganas me escribe SÍ y arrancamos. Acá voy a estar.`;
+}

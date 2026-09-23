@@ -569,3 +569,41 @@ describe('el pedido de objeto al cerrar un capítulo', () => {
     expect(mocks.pedirObjeto).not.toHaveBeenCalled();
   });
 });
+
+// ── El SÍ que no entendíamos (23/09) ───────────────────────────────────────
+// Naza y Mariano leyeron la bienvenida —Meta confirmó "leído"— y siguieron en
+// `invitado`. El detector del consentimiento era `/^si\b/`, más pobre que el
+// `leerSiNo` que ya vivía en este mismo archivo: "Sii", "Dale", "Ok", "Claro" y
+// "Vamos" no entraban. Y el bot se quedaba MUDO, así que la persona contestaba,
+// no pasaba nada, y no volvía a intentar.
+describe('el SÍ de la bienvenida', () => {
+  const invitado = () => narradorEn('invitado', 0, { trato: 'vos' });
+
+  for (const texto of ['SÍ', 'Sii', 'Siiii', 'Dale', 'Ok', 'Listo', 'Claro', 'Vamos', 'De una', 'Vale']) {
+    it(`«${texto}» arranca la entrevista`, async () => {
+      mocks.estado.narrador = invitado();
+      await procesarEntrante({ telefono: TEL, tipo: 'texto', texto, waMessageId: 'w' });
+      expect(update('narradores')?.p).toMatchObject({ estado: 'acepto' });
+    });
+  }
+
+  it('lo que no entendemos se contesta, no se ignora — y una sola vez', async () => {
+    mocks.estado.narrador = invitado();
+    await procesarEntrante({ telefono: TEL, tipo: 'texto', texto: '¿esto qué es?', waMessageId: 'w' });
+    expect(mocks.enviarTexto).toHaveBeenCalledWith(TEL, expect.stringContaining('SÍ'));
+    expect(update('narradores')?.p).toMatchObject({ contexto: expect.objectContaining({ sePidioDeNuevo: true }) });
+
+    // La segunda vez ya no se insiste.
+    mocks.enviarTexto.mockClear();
+    mocks.estado.narrador = narradorEn('invitado', 0, { trato: 'vos', sePidioDeNuevo: true });
+    await procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'no entiendo nada', waMessageId: 'w' });
+    expect(mocks.enviarTexto).not.toHaveBeenCalled();
+  });
+
+  it('a quien dice que no se le deja la puerta abierta, no se lo empuja', async () => {
+    mocks.estado.narrador = invitado();
+    await procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'ahora no', waMessageId: 'w' });
+    expect(mocks.enviarTexto).toHaveBeenCalledWith(TEL, expect.stringContaining('Cuando tengas ganas'));
+    expect(update('narradores')?.p).not.toMatchObject({ estado: 'acepto' });
+  });
+});
