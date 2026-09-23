@@ -223,3 +223,19 @@ aprender qué falla y medirlo**. Al terminar, los prompts del biógrafo —entre
 fábrica— **se reescriben desde cero, de una sola vez y en conjunto**, con lo aprendido como
 encargo y no como lista de reglas agregadas. Las pruebas automáticas (material, repetición,
 cobertura, trato) son las que dicen si la versión reescrita es mejor que la de hoy.
+
+---
+
+## Decisiones de Naza (23/09, noche)
+
+- **Fidelidad** (pregunta 1): *"que no invente historias de la vida del usuario y que de verdad
+  sean sus historias, pero redactadas por un escritor de la putísima madre: que hable con sus
+  palabras como si fuese él, pero con mejor redacción — nadie redacta bien hablando por audio"*.
+  O sea: los HECHOS son sagrados (nada inventado, nada ajeno, nada fundido); la PROSA no es
+  transcripción — es su voz (sus palabras, sus giros) escrita por alguien que escribe muy bien.
+  Reemplaza la regla vieja "ordenar y pulir apenas, no redactar bonito".
+- **La edad se pregunta en el primer mensaje**, corto: cuántos años tiene hoy, y después la
+  pregunta de la infancia. Sin edad no se puede repartir el guion por etapas.
+- **Género**: el biógrafo pregunta siempre sabiendo con quién habla; nunca trata de hombre a
+  una mujer. Si todavía no lo sabe, escribe de forma que sirva para los dos.
+- **Siguiente**: los prompts de la fábrica (los que escriben el libro).
