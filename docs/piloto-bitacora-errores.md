@@ -760,6 +760,14 @@ misma causa) y **C3** pregunta por una infancia dura como si hubiera sido un luj
     > **Causa**: cada capítulo se escribe SOLO, con la historia completa y la orden de traer lo
     > que le pertenezca; nadie sabe qué ya contó el otro. Es de arquitectura, no de la regla 2.
     > La medición se convierte en prueba permanente en la rama del biógrafo v2.
+    > **Probado el 23/09 (rama `biografo-v2-material`, `fabrica/scripts/prueba-reparto.ts`)**:
+    > repartir el material antes de escribir —cada oración en UN capítulo, el modelo solo muda
+    > lo que pertenece claramente a otro— y escribir cada capítulo sin la historia completa.
+    > Libro de Joaquín, sin el audio de Ciro: **17,3 % → 1,1 % copiado** entre capítulos; las
+    > oraciones sin respaldo en el audio bajaron de 18 a 7. Costó USD 2,14 (reparto 0,48 + 8
+    > capítulos); por libro sale más barato que hoy porque cada capítulo deja de leer la
+    > historia entera. El reparto mudó un solo tramo: el material ya estaba bien ubicado, las
+    > copias venían de la historia completa. Falta: que Naza y Joaquín lo LEAN.
 
 42. **23/09 · el guion no cubre la vida adulta.** Reparto real de las 26 fijas: La juventud
     5, La infancia 4, Las raíces / El amor / El oficio / Los hijos / La sabiduría 3 cada
