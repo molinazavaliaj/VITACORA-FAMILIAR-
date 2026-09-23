@@ -255,3 +255,17 @@ cobertura, trato) son las que dicen si la versión reescrita es mejor que la de 
   familia renombra y ordena esos capítulos en el panel; con etapas, los capítulos existen recién
   al final. Hay que decidir cómo sube fotos la familia antes (¿por etapa de la vida, por época?)
   y cuándo ve y renombra los capítulos.
+
+### Al conectar el v2 al flujo real (decidido antes de la prueba, 23/09)
+
+- **Las 4 preguntas finales a medida (adaptativas) se van**: su trabajo —cubrir huecos— lo hacen
+  las 11 variables repartidas por etapas, que llegan a tiempo y no al final.
+- **El paso que decidía vos o usted una vez, con Haiku y la ficha casi siempre vacía (`trato.ts`),
+  se va**: lo decide la persona en el primer mensaje, y queda en su ficha.
+- **La memoria por capítulos (resúmenes de Haiku) la reemplaza la ficha de la persona** (el
+  perfil): hacen lo mismo, y la ficha además sabe edad, género, lugares por época y qué no se sabe.
+- **La evaluación de producción (`evaluarRespuesta`, 19 parches) la reemplaza la v2**
+  (`evaluar-v2.ts`), con el encargo compartido. `temaDeOrden` deja de marcarse: lo resuelve la
+  fábrica al repartir en etapas.
+- **La transcripción** ya sale según el castellano de cada narrador y sin el texto libre de la
+  familia (esto sí cambia producción cuando se mergee).
