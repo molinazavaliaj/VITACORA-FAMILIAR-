@@ -31,6 +31,20 @@ const PESO_BISAGRA = 5;
 export type Variable = { tramo: Tramo; desde: number; hasta: number; anclas: string[] };
 export type Plan = { ok: true; variables: Variable[] } | { ok: false; falta: 'edad' };
 
+/** Piso de variables: aunque la vida sea corta, algo propio siempre se pregunta. */
+export const PISO_VARIABLES = 8;
+/** Techo de variables: aunque la vida sea larga y con muchas bisagras, no se dispara. */
+export const TECHO_VARIABLES = 19;
+/** 21 fijas + 19 variables. La entrevista SIEMPRE termina (decisión de Naza, 23/09). */
+export const TOPE_PREGUNTAS = 40;
+/** Cada cuántos años de vida una pregunta variable. */
+const ANIOS_POR_VARIABLE = 6;
+
+/** Una variable cada 6 años vividos, más una por cada bisagra; nunca menos de 8 ni más de 19. */
+export function cuantasVariables(edad: number, bisagras: number): number {
+  return Math.min(TECHO_VARIABLES, Math.max(PISO_VARIABLES, Math.floor(edad / ANIOS_POR_VARIABLE) + bisagras));
+}
+
 /** La edad del perfil: la dicha, el medio de un rango, o la que sale del año de nacimiento. */
 export function edadDe(perfil: Perfil, anioActual: number): number | null {
   const numeros = (texto: string) => (texto.match(/\d+/g) ?? []).map(Number);
@@ -72,11 +86,12 @@ function edadDeBisagra(bisagra: string): number | null {
 export function planificar(
   perfil: Perfil,
   nucleo: readonly { tramo: Tramo | null }[],
-  cuantas: number,
+  cuantas?: number,
   anioActual = new Date().getFullYear(),
 ): Plan {
   const edad = edadDe(perfil, anioActual);
   if (edad === null) return { ok: false, falta: 'edad' };
+  const n = cuantas ?? cuantasVariables(edad, perfil.bisagras.length);
 
   const vividos = TRAMOS
     .filter((t) => t.desde <= edad)
@@ -100,19 +115,45 @@ export function planificar(
   }
 
   // Cuántas le tocarían a cada tramo por su peso, menos las que el núcleo ya le da.
-  const total = cuantas + nucleo.filter((q) => q.tramo && tramos.some((t) => t.tramo === q.tramo)).length;
+  const total = n + nucleo.filter((q) => q.tramo && tramos.some((t) => t.tramo === q.tramo)).length;
   const pesoTotal = tramos.reduce((s, t) => s + t.peso, 0);
   const falta = tramos.map((t) => Math.max(0, (total * t.peso) / pesoTotal - nucleo.filter((q) => q.tramo === t.tramo).length));
   const base = falta.some((f) => f > 0) ? falta : tramos.map((t) => t.peso);
   const suma = base.reduce((s, x) => s + x, 0);
 
   // Mayor resto: los enteros primero, y lo que sobra a los que quedaron más cerca del siguiente.
-  const ideal = base.map((x) => (cuantas * x) / suma);
+  const ideal = base.map((x) => (n * x) / suma);
   const asignadas = ideal.map(Math.floor);
   const restos = ideal.map((x, i) => ({ i, resto: x - asignadas[i] })).sort((a, b) => b.resto - a.resto);
-  for (let k = 0; asignadas.reduce((s, x) => s + x, 0) < cuantas; k++) asignadas[restos[k % restos.length].i]++;
+  for (let k = 0; asignadas.reduce((s, x) => s + x, 0) < n; k++) asignadas[restos[k % restos.length].i]++;
 
   const variables = tramos.flatMap((t, i) =>
     Array.from({ length: asignadas[i] }, () => ({ tramo: t.tramo, desde: t.desde, hasta: t.hasta, anclas: t.anclas })));
   return { ok: true, variables };
+}
+
+/**
+ * Recalcula el plan cuando el perfil cambió (bisagras nuevas, edad corregida). Las variables ya
+ * asignadas se conservan (las hechas no se pueden deshacer, y las pendientes no se le sacan); si la
+ * vida pide más, se agregan al final, hasta el techo.
+ */
+export function replanificar(
+  perfil: Perfil,
+  nucleo: readonly { tramo: Tramo | null }[],
+  yaAsignadas: Variable[],
+  hechas: number,
+  anioActual = new Date().getFullYear(),
+): Plan {
+  const nuevo = planificar(perfil, nucleo, undefined, anioActual);
+  if (!nuevo.ok) return { ok: true, variables: yaAsignadas };
+  if (nuevo.variables.length <= yaAsignadas.length) return { ok: true, variables: yaAsignadas };
+  const faltan = Math.min(TECHO_VARIABLES, nuevo.variables.length) - yaAsignadas.length;
+  // Las nuevas van a los tramos donde el plan nuevo tiene más que el viejo.
+  const cuenta = (vs: Variable[], t: Tramo) => vs.filter((v) => v.tramo === t).length;
+  const extra: Variable[] = [];
+  for (const v of nuevo.variables) {
+    if (extra.length >= faltan) break;
+    if (cuenta(yaAsignadas, v.tramo) + cuenta(extra, v.tramo) < cuenta(nuevo.variables, v.tramo)) extra.push(v);
+  }
+  return { ok: true, variables: [...yaAsignadas, ...extra] };
 }

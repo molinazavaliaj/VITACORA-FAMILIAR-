@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { edadDe, rangoDeEtapa, planificar } from '../src/ia/plan-preguntas.js';
+import { edadDe, rangoDeEtapa, planificar, cuantasVariables, replanificar, TOPE_PREGUNTAS, TECHO_VARIABLES } from '../src/ia/plan-preguntas.js';
 import { perfilVacio, type Perfil } from '../src/ia/perfil.js';
 
 // El reparto de preguntas por etapas (biógrafo v2, problema 3, 23/09). Hoy las 26 fijas le dan
@@ -94,5 +94,40 @@ describe('planificar', () => {
       if (!r.ok) throw new Error('debería planificar');
       expect(r.variables).toHaveLength(n);
     }
+  });
+});
+
+describe('cuantasVariables (la cantidad sale de la vida, no de un número fijo)', () => {
+  it('una cada 6 años más una por bisagra, entre 8 y 19', () => {
+    expect(cuantasVariables(27, 0)).toBe(8);   // 4 → piso
+    expect(cuantasVariables(76, 0)).toBe(12);
+    expect(cuantasVariables(76, 3)).toBe(15);
+    expect(cuantasVariables(90, 10)).toBe(19); // techo
+  });
+  it('con 21 fijas nunca pasa el tope de 40', () => {
+    expect(21 + cuantasVariables(120, 40)).toBeLessThanOrEqual(TOPE_PREGUNTAS);
+  });
+});
+
+describe('planificar sin cuantas', () => {
+  it('usa cuantasVariables con la edad y las bisagras del perfil', () => {
+    const r = planificar(perfilDe('76', [], ['A los 60 murió Rubén', 'A los 30 se mudó a Lanús']), NUCLEO as never);
+    if (!r.ok) throw new Error('debería planificar');
+    expect(r.variables).toHaveLength(14);
+  });
+});
+
+describe('replanificar (aparecen bisagras nuevas a mitad de camino)', () => {
+  it('suma variables si la vida las pide, y nunca baja de lo ya asignado ni pasa el techo', () => {
+    const inicial = planificar(perfilDe('76'), NUCLEO as never);
+    if (!inicial.ok) throw new Error('x');
+    const conBisagras = replanificar(perfilDe('76', [], ['A los 60 murió Rubén']), NUCLEO as never, inicial.variables, 5);
+    if (!conBisagras.ok) throw new Error('x');
+    expect(conBisagras.variables.length).toBe(inicial.variables.length + 1);
+    // Las 5 ya hechas (las primeras) se conservan tal cual.
+    expect(conBisagras.variables.slice(0, 5)).toEqual(inicial.variables.slice(0, 5));
+    const muchas = replanificar(perfilDe('90', [], Array.from({ length: 30 }, (_, i) => `A los ${i + 1} algo`)), NUCLEO as never, inicial.variables, 5);
+    if (!muchas.ok) throw new Error('x');
+    expect(muchas.variables.length).toBeLessThanOrEqual(TECHO_VARIABLES);
   });
 });
