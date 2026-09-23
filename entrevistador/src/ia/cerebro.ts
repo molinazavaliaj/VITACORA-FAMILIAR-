@@ -128,6 +128,8 @@ LO QUE YA CONTÓ OTROS DÍAS (lo que sabés de esta persona):
 ${loQueYaConto.trim()}
 
 LA REPREGUNTA NUNCA PIDE LO QUE YA CONTÓ. Antes de escribirla, fijate arriba: si lo que le ibas a pedir ya lo dijo otro día (una persona, un lugar, cómo se llamaba, dónde vivía), no se lo pidas. Preguntá por lo que quedó abierto; y si no queda nada abierto, la respuesta alcanza.
+
+Y la repregunta le habla a ESTA persona: si arriba dice si es mujer u hombre, respetalo en cada palabra; si no se sabe, escribila de manera que sirva para los dos. Tampoco supongas nada que ahí figure como "no se sabe".
 `;
 }
 

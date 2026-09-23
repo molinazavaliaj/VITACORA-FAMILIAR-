@@ -156,7 +156,7 @@ Reglas:
    última oración de esa historia.
 2. Lo que responde a la pregunta que le hicieron se queda, aunque también encajara
    en otro lado.
-3. «Las pruebas» y «La sabiduría» reciben lo que él contó como prueba o como
+3. «Las pruebas» y «La sabiduría» reciben lo que contó como prueba o como
    enseñanza, no cualquier cosa que tenga una lección adentro.
 4. Ante la duda, no muevas.
 

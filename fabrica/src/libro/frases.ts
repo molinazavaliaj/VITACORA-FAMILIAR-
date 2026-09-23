@@ -185,7 +185,7 @@ export const PROMPT_ELEGIR = (nombre: string, candidatas: string, capitulos: str
 Elegí ${FRASES_POR_CAPITULO} por capítulo, ${FRASES_POR_CAPITULO * capitulos.split('\n').length} en total.
 ${CRITERIOS}
 Reglas que no se rompen:
-- TODAS las candidatas ya están verificadas como textuales (él las dijo así): podés elegirlas sin miedo.
+- TODAS las candidatas ya están verificadas como textuales (las dijo así): podés elegirlas sin miedo.
 - Las de «Sus frases» tienen prioridad: son las que dice de siempre o las que le dejaron los suyos.
 - Cada elegida va al capítulo donde vive (las heredadas, al capítulo donde las cuenta).
 - Las muletillas NO se eligen: van impresas, no son cápsulas para escuchar.
