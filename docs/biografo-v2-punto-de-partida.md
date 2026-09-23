@@ -22,37 +22,39 @@ entrevista— pero ordena la prioridad: **el libro salió bien con esos errores 
 
 ## Los tres, con su causa
 
-### 1. "Un párrafo se lo inventó" — y era falso
+### 1. "Un párrafo se lo inventó" — y tenía razón: no era suyo
 
-El párrafo señalado (los muñecos, el balcón, el perrito) resultó ser **casi literal** de
-su respuesta 27 — el audio `dia_27.ogg`, 38 segundos. Verificado palabra por palabra contra
-las 35 transcripciones. El libro incluso **le sacó una repetición** que el audio tenía
-("hacíamos mucho ruido y a la siesta no nos dejaban dormir" aparece dos veces en el audio y
-una sola en el libro).
+**Lo encontró Naza yendo al audio.** El párrafo señalado (los muñecos, el balcón, el
+perrito) **no lo dijo Joaquín: la voz es de Ciro**.
 
-Y lo ubicó en **«La infancia»**, el capítulo correcto — aunque esa respuesta está archivada
-bajo la orden 27, que es del capítulo «Las pruebas». O sea: la regla que le dice al escritor
-*"buscá en la historia completa cualquier cosa que pertenezca a este capítulo"* **funcionó**,
-y rescató un recuerdo que estaba guardado en el lugar equivocado.
+Verificado en la base: `Ciro/dia_03.ogg` (38 s, su orden 3, cargado el 17/09 a las
+**17:06**) y `Joaquin/dia_27.ogg` (38 s, orden 27, cargado a las **17:08**) tienen la
+transcripción idéntica palabra por palabra. Ese día se cargaban los dos pilotos en
+paralelo por la puerta manual. A las 17:16 se cargó en esa misma orden el audio correcto
+—el padre que se fue a Chile—: **quien cargaba se dio cuenta, pero el malo quedó en la
+base** y su material entró al libro, capítulo «La infancia».
 
-**Queda una diferencia sin cerrar, y la cierra Joaquín en dos minutos.** El texto que él leyó
-dice *"jugábamos con unos muñecos, unas figuras de plástico, **ahí en el balcón**"* (fusiona
-dos escenas que contó por separado). El libro guardado **hoy** dice otra cosa: *"De más chicos
-jugábamos con unos muñecos, unas figuras de plástico. (…) Jugábamos ahí en el balcón"* — sin
-la fusión. **No son el mismo texto.** El libro se entregó el 19/09 y se reescribió el 21/09
-11:12: lo más probable es que él esté leyendo el PDF que descargó antes. **Que vuelva a
-bajarlo y mire ese párrafo**: si ya está separado, el problema no existe más.
+- **Alcance medido**: uno solo en 83 respuestas (3.403 comparaciones, cero cruces más).
+- **Hecho**: candado en la puerta manual (`src/db/duplicados.ts`), validado contra las 83
+  respuestas reales con cero falsos positivos.
+- **El libro de Joaquín no se corrige**: es el socio probando (Naza, 23/09).
 
-- **Lo que no es de código**: el narrador **no reconoció sus propias palabras**. Contestó 35
-  veces a lo largo de días. Que sienta que le inventaron cosas es un problema de confianza
-  que ningún prompt arregla — pero cambia cómo se entrega el libro.
-- **Lección de método**: si creíamos el reporte y "arreglábamos" el editor, rompíamos algo
-  que funciona bien. Un hallazgo sobre el libro **se verifica contra las transcripciones
-  antes de tocar nada**.
-- **Lo que sí apareció de paso**: bajo la orden 27 hay **dos respuestas** de dos audios
-  distintos (`dia_27.ogg`, los muñecos; `dia_27_2.ogg`, el padre que se fue a Chile). La que
-  contesta la pregunta 27 es la segunda; la primera quedó archivada donde no va. Es el mismo
-  problema que el **C7** de Ciro.
+**Y esto es lo que tiene que cambiar el orden de la reconstrucción.** El modelo hizo bien
+su trabajo: escribió fielmente el material que le dimos. El material estaba mal. **El mejor
+prompt del mundo, con el audio de otra persona, escribe el libro de otra persona.** Antes
+de rediseñar el cerebro hay que poder afirmar que lo que le damos de comer es correcto — y
+hoy no teníamos forma de saberlo.
+
+**Las dos lecciones de método, que valen más que el arreglo:**
+
+1. **Este error no lo detecta nadie.** Ni el modelo, ni la familia (no estuvo en la
+   entrevista), ni ninguna revisión de código. Solo el narrador, leyendo el libro
+   terminado, cuando ya está impreso.
+2. **Cuando alguien que estuvo ahí dice "esto no lo dije yo", se va AL AUDIO, no a la
+   transcripción.** Acá se verificó contra la base —que estaba mal— y se le contestó al
+   narrador que se equivocaba. Verificar contra la base solo prueba que el libro es fiel a
+   lo que la base dice; si el dato entró mal, la verificación **confirma la mentira con más
+   autoridad**.
 
 ### 2. El libro repite
 
@@ -146,6 +148,11 @@ paralelo no los cambia.
 
 ## Las preguntas que hay que decidir, y las decide el equipo
 
+0. **¿Cómo sabemos que el material es el correcto?** Es previa a todas las demás y hasta hoy
+   nadie la había hecho. Un audio mal cargado convierte al mejor prompt en un generador de
+   libros ajenos, y el único que lo puede detectar es el narrador con el libro impreso en la
+   mano. El candado de la puerta manual tapa el caso conocido; la pregunta de fondo sigue
+   abierta: **¿qué otras formas hay de que entre material que no es de esta persona?**
 1. **¿Qué es fidelidad?** Hoy le pedimos al escritor las palabras del narrador, y el
    resultado repite como repite el habla. ¿Fidelidad es copiar lo que dijo, o contar lo que
    quiso decir con sus palabras? No es lo mismo, y todo el estilo del libro depende de eso.
