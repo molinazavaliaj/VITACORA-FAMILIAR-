@@ -700,6 +700,32 @@ la ciudad equivocada (3 de 3, reproducido contra `main` al día el 22/09), **C8*
 puerta manual quedó rota entera porque `tsc` no mira `scripts/` (tercer bug de esa
 misma causa) y **C3** pregunta por una infancia dura como si hubiera sido un lujo.
 
+43. **17/09 · GRAVÍSIMO · un audio de Ciro se cargó en Joaquín, y su historia entró al
+    libro de otro.** Lo encontró **Naza yendo al audio**: el párrafo que Joaquín marcó como
+    inventado (los muñecos, el balcón, el perrito) **no es de él — la voz es de Ciro**.
+    *Verificado en la base*: `Ciro/dia_03.ogg` (38 s, orden 3, cargado 17:06) y
+    `Joaquin/dia_27.ogg` (38 s, orden 27, cargado **17:08**) tienen la transcripción idéntica
+    palabra por palabra. Ese día se cargaban los dos pilotos en paralelo. A las 17:16 se
+    cargó en la orden 27 de Joaquín el audio correcto (el padre que se fue a Chile), marcado
+    como repregunta: quien cargaba se dio cuenta, **pero el malo quedó en la base** y su
+    material entró al libro, capítulo «La infancia».
+    *Alcance medido*: **uno solo en 83 respuestas**. Se compararon todas contra todas (3.403
+    comparaciones): ningún otro cruce, en ninguna dirección, y ningún duplicado dentro del
+    mismo narrador. La otra coincidencia de duración (Ciro 4 / Joaquín 28, 49 s) es
+    casualidad: los textos son distintos.
+    *No se corrige el libro de Joaquín*: es el socio probando (decisión de Naza, 23/09).
+    *Hecho*: candado en la puerta manual (`src/db/duplicados.ts`): al cargar, compara la
+    transcripción con las de los OTROS narradores y avisa con todas las letras si el audio ya
+    está cargado en otro. Validado contra las 83 respuestas reales: encuentra el cruce
+    conocido y **cero falsos positivos**. No borra ni corrige solo — el que carga tiene los
+    dos audios a la vista y el script no.
+    *Lo que más vale de acá*: **este error no lo detecta nadie**. Ni el modelo, que hizo bien
+    su trabajo con el material que le dimos; ni la familia, que no estuvo en la entrevista.
+    Solo el narrador, leyendo el libro terminado, cuando ya está impreso. Y cuando lo dijo,
+    nosotros verificamos contra la base —que estaba mal— y **le dijimos que se equivocaba**.
+    La lección: cuando un narrador dice "esto no lo dije yo", **se va al audio**, no a la
+    transcripción.
+
 ## Producción / infra (no es del entrevistador, pero salió en el camino)
 
 8. **15/09 · producción corría un build de 8 días** mientras `main` tenía todo el
