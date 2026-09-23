@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   esEditable, validarTexto, lugarLibre, puedeAgregar, puedeSaltar, siguienteOrden,
   renumerar, reordenar, calidadDeFoto, errorDeTipoDeFoto, totalDelGuion, armarGuion, capitulosDelGuion, MENSAJE_HEIC, MAXIMO_FAMILIA, PISO, type PreguntaGuion,
+  objetosDelGuion, esPreguntaDeObjeto,
 } from "../src/lib/guion";
 
 const fija = (orden: number, extra: Partial<PreguntaGuion> = {}): PreguntaGuion => ({
@@ -179,5 +180,43 @@ describe("idsTrasArrastrar", () => {
     expect(idsTrasArrastrar(ids, "c", "c")).toEqual(ids);
     expect(idsTrasArrastrar(ids, "zz", "c")).toEqual(ids);
     expect(idsTrasArrastrar(ids, "c", "zz")).toEqual(ids);
+  });
+});
+
+// ── «Sus objetos preciados» (3t.30) ──
+// Viven en la banda 101-108 y NO son preguntas del recorrido: si se colaran,
+// el panel diría "38 preguntas" y el libro las contaría como capítulos.
+const objeto = (orden: number, capitulo: string): PreguntaGuion =>
+  ({ id: `o${orden}`, orden, texto: `Mándeme una foto de algo de ${capitulo}`, capitulo, tipo: "objeto" });
+
+describe("los pedidos de objeto salen aparte del guion", () => {
+  const globales = [...guionDe(4), objeto(101, "La infancia"), objeto(102, "Las raíces")];
+
+  it("armarGuion devuelve solo el recorrido", () => {
+    expect(armarGuion(globales, []).map((p) => p.orden)).toEqual([1, 2, 3, 4]);
+  });
+
+  it("objetosDelGuion devuelve solo los pedidos", () => {
+    expect(objetosDelGuion(globales, []).map((p) => p.orden)).toEqual([101, 102]);
+  });
+
+  it("no cuentan como preguntas: el total sigue siendo el del recorrido", () => {
+    expect(totalDelGuion([], globales)).toBe(4);
+    expect(totalDelGuion(globales, [])).toBe(4);
+  });
+
+  it("no inventan capítulos ni cambian el orden de los que hay", () => {
+    expect(capitulosDelGuion(armarGuion(globales, []))).toEqual(["La infancia"]);
+  });
+
+  it("lo propio pisa a la plantilla también entre los pedidos (la familia editó el texto)", () => {
+    const mio = { ...objeto(101, "La infancia"), texto: "Mostrame tu primer reloj, por favor" };
+    expect(objetosDelGuion(globales, [mio])[0].texto).toBe("Mostrame tu primer reloj, por favor");
+  });
+
+  it("se reconocen por el orden, sin mirar el tipo", () => {
+    expect(esPreguntaDeObjeto({ orden: 101 })).toBe(true);
+    expect(esPreguntaDeObjeto({ orden: 100 })).toBe(false);
+    expect(esPreguntaDeObjeto({ orden: 30 })).toBe(false);
   });
 });

@@ -543,7 +543,7 @@ pide **un** objeto: la foto y de dónde salió. Ocho en todo el libro, uno por c
 
 | Columna | Tipo | Escribe | Lee | Qué es |
 |---|---|---|---|---|
-| `preguntas.tipo` | suma el valor `'objeto'` al check | web (panel) y entrevistador | entrevistador, web | Un tipo más de pregunta, con su fila en el guion: se ve en el panel, se edita, se arrastra y se borra como cualquier otra. |
+| `preguntas.tipo` | suma el valor `'objeto'` al check | web (panel) y entrevistador | entrevistador, web | Un tipo más de pregunta, con su fila propia. **Orden 101-108, fuera de la secuencia de días**: no cuenta en el total del guion, no se arrastra con las otras y no entra en la renumeración al sacar una pregunta. Hoy el panel las **muestra** (Ajustes → Fotos de sus cosas) y se apagan todas juntas con `contexto.sinFotos`; editarlas o sacarlas de a una queda para más adelante. |
 | `fotos.pregunta_orden` | integer, null | entrevistador | fábrica, web | La pregunta de objeto que esta foto contesta (`preguntas.orden` del guion propio). Null = llegó suelta o la subió la familia desde el panel. |
 
 Reglas:

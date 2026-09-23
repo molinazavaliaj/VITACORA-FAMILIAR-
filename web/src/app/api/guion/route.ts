@@ -7,8 +7,7 @@ import { validarHorario } from "@/lib/horario";
 import { TRATOS } from "@/lib/registro";
 import {
   esEditable, puedeAgregar, puedeSaltar, renumerar, reordenar, siguienteOrden,
-  validarRitmo, validarTexto, type PreguntaGuion,
-} from "@/lib/guion";
+  validarRitmo, validarTexto, type PreguntaGuion, esPreguntaDeObjeto } from "@/lib/guion";
 
 // El guion de una historia (docs/panel-usuario.md §6). Una sola ruta, varias
 // acciones, todas sobre el narrador que dice `?narrador=`. Las reglas viven en
@@ -25,9 +24,10 @@ type Accion =
   | { accion: "ritmo"; ritmo: string }
   | { accion: "evitar"; texto: string }
   | { accion: "horario"; hora: string; zona: string }
-  | { accion: "trato"; trato: string };
+  | { accion: "trato"; trato: string }
+  | { accion: "fotos"; pedirFotos: boolean };
 
-const SOLO_DUENA: Accion["accion"][] = ["editar", "saltar", "reordenar", "ritmo", "evitar", "horario", "trato"];
+const SOLO_DUENA: Accion["accion"][] = ["editar", "saltar", "reordenar", "ritmo", "evitar", "horario", "trato", "fotos"];
 
 function respuesta(status: number, cuerpo: Record<string, unknown>) {
   return NextResponse.json(cuerpo, { status });
@@ -132,6 +132,21 @@ export async function PATCH(request: NextRequest) {
   }
 
   // Ritmo y evitar viven en contexto, no en preguntas.
+  // «Sus objetos preciados» (3t.30): la familia puede apagar los pedidos de foto.
+  // Es para el narrador que no puede sacarlas ni mandarlas — a los 85 pedirle una
+  // foto y que no sepa cómo se siente como un examen, no como una charla.
+  if (body.accion === "fotos") {
+    const { data: fila } = await admin.from("narradores").select("contexto").eq("id", narrador.id).maybeSingle();
+    const contexto = ((fila as { contexto?: Record<string, unknown> } | null)?.contexto) ?? {};
+    contexto.sinFotos = body.pedirFotos === false;
+    const { error } = await admin.from("narradores").update({ contexto }).eq("id", narrador.id);
+    if (error) {
+      console.error("guion: fallo al guardar sinFotos", error);
+      return respuesta(500, { error: "No pudimos guardar." });
+    }
+    return respuesta(200, { ok: true });
+  }
+
   if (body.accion === "ritmo" || body.accion === "evitar") {
     const { data: fila } = await admin.from("narradores").select("contexto").eq("id", narrador.id).maybeSingle();
     const contexto = ((fila as { contexto?: Record<string, unknown> } | null)?.contexto) ?? {};
@@ -149,8 +164,13 @@ export async function PATCH(request: NextRequest) {
     return respuesta(200, { ok: true });
   }
 
-  const guion = await guionPropio(admin, narrador.id);
-  if (!guion) return respuesta(500, { error: GENERICO });
+  const todas = await guionPropio(admin, narrador.id);
+  if (!todas) return respuesta(500, { error: GENERICO });
+  // Los pedidos de objeto (3t.30, banda 101-108) quedan FUERA de todo lo que
+  // razona sobre el recorrido. Si entraran: `siguienteOrden` daría 109 para la
+  // próxima pregunta de la familia, y sacar una pregunta los arrastraría a la
+  // secuencia de días —el pedido de «La sabiduría» pasaría a ser la pregunta 27—.
+  const guion = todas.filter((p) => !esPreguntaDeObjeto(p));
   const diaActual = narrador.dia_actual;
 
   if (body.accion === "agregar") {

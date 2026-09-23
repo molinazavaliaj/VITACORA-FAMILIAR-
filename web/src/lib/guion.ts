@@ -6,6 +6,22 @@ export const TOPE = 40;       // contando las 4 adaptativas
 export const ADAPTATIVAS = 4; // siempre existen, las escribe el cerebro al final
 export const MAXIMO_FAMILIA = TOPE - ADAPTATIVAS; // 36: lo más que puede armar la familia
 
+/**
+ * «Sus objetos preciados» (3t.30): los pedidos de objeto viven en la banda
+ * 101-108, ARRIBA de este número y fuera de la secuencia de días. No cuentan
+ * como preguntas del guion, no se arrastran con las otras y no aparecen en el
+ * libro como capítulos aparte: su foto cierra el capítulo al que pertenecen.
+ *
+ * Se reconocen por el orden y no por el tipo a propósito: `totalDelGuion`
+ * recibe filas que solo traen `orden`, y así no hace falta cambiar su firma.
+ */
+export const ORDEN_OBJETOS = 100;
+
+/** ¿Esta fila es un pedido de objeto y no una pregunta del recorrido? */
+export function esPreguntaDeObjeto(p: { orden: number }): boolean {
+  return p.orden > ORDEN_OBJETOS;
+}
+
 export const TEXTO_MINIMO = 10;
 export const TEXTO_MAXIMO = 300;
 
@@ -39,8 +55,8 @@ export type PreguntaGuion = {
  */
 export function totalDelGuion(propias: { orden: number }[], globales: { orden: number }[], base = 30): number {
   const ordenes = new Set<number>();
-  for (const p of globales) ordenes.add(p.orden);
-  for (const p of propias) ordenes.add(p.orden);
+  for (const p of globales) if (!esPreguntaDeObjeto(p)) ordenes.add(p.orden);
+  for (const p of propias) if (!esPreguntaDeObjeto(p)) ordenes.add(p.orden);
   return ordenes.size > 0 ? ordenes.size : base;
 }
 
@@ -53,6 +69,18 @@ export function totalDelGuion(propias: { orden: number }[], globales: { orden: n
  * Lo usan el panel, el wizard de cerrar libro y la muestra pública.
  */
 export function armarGuion<T extends { orden: number }>(globales: T[] | null | undefined, propias: T[] | null | undefined): T[] {
+  return unirPorOrden(globales, propias).filter((p) => !esPreguntaDeObjeto(p));
+}
+
+/**
+ * Los pedidos de objeto, en el mismo armado. Van aparte del guion: el panel los
+ * muestra en su propia sección, no numerados entre las preguntas del día.
+ */
+export function objetosDelGuion<T extends { orden: number }>(globales: T[] | null | undefined, propias: T[] | null | undefined): T[] {
+  return unirPorOrden(globales, propias).filter(esPreguntaDeObjeto);
+}
+
+function unirPorOrden<T extends { orden: number }>(globales: T[] | null | undefined, propias: T[] | null | undefined): T[] {
   const porOrden = new Map<number, T>();
   for (const p of globales ?? []) porOrden.set(p.orden, p);
   for (const p of propias ?? []) porOrden.set(p.orden, p);
