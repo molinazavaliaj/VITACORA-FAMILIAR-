@@ -72,6 +72,13 @@ prompts se reescriben desde cero, no parches (esta sesión ya hizo buena parte d
 > (6 commits, `2ddca99`…`05c5899`), el costo medido de la prueba única (USD 8-10) y las decisiones
 > que quedan para Naza. Leerla antes de correr la prueba.
 
+> **Después de la revisión (23/09, más tarde): diseño y plan aprobados por Naza.** El biógrafo que
+> piensa: `docs/superpowers/specs/2026-09-23-biografo-que-piensa-design.md` (qué) y
+> `docs/superpowers/plans/2026-09-23-biografo-que-piensa.md` (cómo, 14 tareas con tests). **La prueba
+> ya no es la de abajo: es Naza de narrador por una puerta manual v2** (tarea 8 del plan), más el
+> libro de Joaquín por etapas. Se ejecuta en un chat nuevo con `superpowers:subagent-driven-development`.
+> Naza es hombre y tiene 27 (HERMES.md dice "socia": está mal).
+
 ## Pendiente
 
 1. **Naza aprueba 3 textos de objetos** (101 infancia, 106 "los chicos de su vida", 107 "le hizo
