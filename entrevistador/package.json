@@ -9,6 +9,7 @@
     "start": "node dist/servidor.js",
     "test": "npm run tipos && vitest run",
     "manual": "tsx scripts/manual.ts",
+    "manual-v2": "tsx scripts/manual-v2.ts",
     "prueba-contexto": "tsx scripts/prueba-contexto.ts",
     "prueba-personalizar": "tsx scripts/prueba-personalizar.ts",
     "prueba-resumenes": "tsx scripts/prueba-resumenes.ts",
