@@ -809,7 +809,7 @@ está desplegado, o no engancha.
 
 1. ~~Audiolibro híbrido~~ — **descartado el 20/09** (ver arriba): la corrida que quedó encolada sirve solo para el veredicto de oído. Lo que viene: el spec de "Sus mejores frases" y el checkout sin la línea del audiolibro.
 2. Bitácora: #31 (cierre solo al recibir la 30), #33 (candado del cierre automático), #32 (healthcheck de la fábrica); la muestra pública con `titulosCapitulos`.
-3. Plata: rotar la key de Anthropic de Naza (#37), cancelar el plan Hobby de Railway de Naza antes del 1/10, recargar crédito Anthropic antes del próximo libro y unificar las keys en una organización del proyecto (`GASTOS.md`).
+3. Plata: rotar la key de Anthropic de Naza (#37), ~~cancelar el plan Hobby de Railway de Naza antes del 1/10~~ (23/09: su workspace figura SIN PLAN, no hay nada que cancelar; el Hobby que se ve es el de Joaquín y paga producción), recargar crédito Anthropic antes del próximo libro y unificar las keys en una organización del proyecto (`GASTOS.md`).
 
 ## Textos del checkout y las legales: aprobados (Naza, 21/09)
 

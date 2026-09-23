@@ -472,6 +472,12 @@ async function cargar(ref: string | undefined, archivos: string[], flags: Args['
   const { texto, duracionSegundos } = await mods.transcribirYActualizar(id, audio, contexto);
   linea(`Transcripción (${duracionSegundos}s): ${texto.slice(0, 240)}${texto.length > 240 ? '…' : ''}`);
 
+  // ¿Este audio ya está cargado en OTRO narrador? (bitácora #43): el 17/09, con los
+  // dos pilotos abiertos a la vez, un audio de Ciro entró en Joaquín y su material
+  // terminó en el libro. Se avisa fuerte y se dice qué hacer; no se borra nada solo,
+  // porque la respuesta ya está guardada y el que carga sabe cuál es cuál.
+  await avisarSiEsDeOtro(n, orden, texto);
+
   await trasResponderManual(n, orden, esRepregunta, textoPregunta, texto, duracionSegundos, id);
 }
 
@@ -1160,3 +1166,43 @@ if (ES_ENTRADA) {
 }
 
 export { estado, siguiente, cargar, cargarCarpeta, archivar, cerrar, crear };
+
+/**
+ * El candado contra el audio cruzado (bitácora #43). Compara la transcripción recién
+ * hecha con las que ya están cargadas en OTROS narradores: el mismo audio transcripto
+ * dos veces da textos casi iguales, y eso alcanza para cazarlo.
+ *
+ * No borra ni corrige solo: avisa con todas las letras y dice cómo deshacerlo. El que
+ * carga tiene los dos audios a la vista y sabe cuál va dónde; el script no.
+ */
+async function avisarSiEsDeOtro(n: NarradorFila, orden: number, texto: string): Promise<void> {
+  try {
+    const mods = await modulos();
+    const { buscarCruce } = await import('../src/db/duplicados.js');
+    const { data } = await mods.db
+      .from('respuestas')
+      .select('narrador_id, pregunta_orden, transcripcion')
+      .neq('narrador_id', n.id);
+    const cruce = buscarCruce(texto, (data ?? []) as never);
+    if (!cruce) return;
+
+    const { data: dueño } = await mods.db
+      .from('narradores')
+      .select('como_le_dicen')
+      .eq('id', cruce.narrador_id)
+      .maybeSingle();
+    const quien = (dueño as { como_le_dicen?: string } | null)?.como_le_dicen ?? cruce.narrador_id.slice(0, 8);
+
+    titulo('⚠  ESTE AUDIO YA ESTÁ CARGADO EN OTRO NARRADOR');
+    linea(`Lo mismo figura en ${quien}, orden ${cruce.pregunta_orden}.`);
+    linea('');
+    linea(`Si te equivocaste de archivo, la respuesta que acabás de cargar en ${n.como_le_dicen}`);
+    linea('NO es suya y va a terminar en su libro. Hay que borrar esa fila de `respuestas`');
+    linea(`(narrador ${n.id}, orden ${orden}) y volver a cargar el audio que sí es suyo.`);
+    linea('');
+    linea('Si de verdad los dos contaron lo mismo (pasa poco), seguí de largo.');
+  } catch (err) {
+    // El candado no puede frenar una carga buena: si falla, se avisa y se sigue.
+    console.warn('No se pudo comprobar si el audio ya estaba cargado en otro narrador:', err);
+  }
+}

@@ -16,12 +16,40 @@
 **Total puesto por Naza hasta el 18/09: USD 40 + 47€ ≈ USD 91** (USD 20 de crédito
 Anthropic previo + USD 10 Anthropic + 20€ Anthropic + USD 5 OpenAI + USD 5 Railway +
 15€ dominio + 12€ mail de empresa). Joaquín aparte: ~USD 10-20 de sus keys + Resend Pro.
-⚠️ El plan Hobby de Railway de Naza quedó sin proyectos el 18/09: cancelarlo antes del 1/10.
+✅ **CERRADO el 23/09 — y estaba mal anotado.** Naza entró a Railway y su workspace
+(`trickynoise`) figura **SIN PLAN**: no le están cobrando nada, así que no hay nada que
+cancelar. El plan **Hobby** que aparece es el del workspace de **Joaquín**
+(`molinazavalia`), y ése **NO se toca**: es el que paga `fearless-kindness`, donde corren
+la fábrica y el entrevistador. Cancelarlo tiraría producción abajo.
+⚠️ **Ojo con la línea del 01/09** ("Railway plan Hobby, USD 5/mes, Naza, recurrente"): hay
+que confirmar hasta cuándo se cobró de verdad, porque hoy esa cuenta no tiene plan.
 
 > Pendiente acordado: unificar las keys de IA en UNA organización de Anthropic del
 > proyecto (Naza invita a Joaquín como admin) para que el costeo por libro sea real
 > y nadie pague "su mitad del cerebro" por separado. La key de OpenAI (Whisper) de
 > Joaquín queda aparte — es chica, USD 5 rinden meses de transcripción.
+
+## Las keys de Anthropic — limpieza del 23/09
+
+Naza revocó las tres que estaban activas y **sin uso**: `VITACORA` (`Pi_…`, del 2/09),
+`tricky-noise-api-key` (`Zfy…`, del 15/08) y `claude api scrapper` (`o8S…`, del 9/08).
+Entre ellas estaba la que había quedado cargada en el **Railway viejo** y escribió el libro
+de Joaquín sin aprobación el 18/09 (bitácora #37): como ninguna tenía consumo, se revocaron
+las tres en vez de averiguar cuál era. **Pendiente #37 cerrado.**
+
+**Queda una sola activa: `fabrica-local`** (`9JB…`, creada el 18/09, 8,63 US$ de consumo).
+La usan la fábrica y el entrevistador desde la PC de Naza — está en los dos `.env`.
+Verificado después de la limpieza con una llamada mínima a la API: **HTTP 200, sigue viva**.
+
+⚠️ **Caduca el 18 de octubre.** Antes de esa fecha hay que reemplazarla, y conviene hacerlo
+con **una key por uso** (`fabrica`, `entrevistador`, `claude-code-naza`): es la lección del
+gasto del 12/09, cuando USD 21,89 aparecieron bajo una key compartida y hubo que deducir de
+dónde venían. Con una key por servicio el gráfico de la consola lo dice solo.
+
+Las que figuran atenuadas en la consola ya estaban revocadas, incluida la `VXf…` que se
+comió los 22,25 US$ del 12/09. Y la variable global de Windows `ANTHROPIC_API_KEY` —la que
+hacía que Claude Code cobrara a la API en vez de a la suscripción— **ya no existe**
+(verificado en el entorno el 23/09).
 
 ## Qué se consumió del crédito de Anthropic de Naza — LEÍDO DE LA CONSOLA el 18/09 15:30
 

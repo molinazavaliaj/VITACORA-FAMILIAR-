@@ -700,6 +700,80 @@ la ciudad equivocada (3 de 3, reproducido contra `main` al día el 22/09), **C8*
 puerta manual quedó rota entera porque `tsc` no mira `scripts/` (tercer bug de esa
 misma causa) y **C3** pregunta por una infancia dura como si hubiera sido un lujo.
 
+## El libro terminado, leído por su narrador (23/09) — los tres del producto
+
+> Joaquín leyó su propio libro y dijo tres cosas. **Es el primer feedback del producto
+> terminado por quien lo protagoniza**, y vale más que cualquier revisión nuestra. Lo
+> bueno primero: *"está bien contado, tiene estructura"*, el libro le gustó.
+
+40. **23/09 · GRAVE que resultó FALSO · "hay un párrafo que se lo inventó".** El párrafo
+    señalado: *"Me acuerdo también que jugábamos mucho con unos muñecos, unas figuras de
+    plástico, ahí en el balcón. A la siesta hacíamos mucho ruido y no dejábamos dormir a
+    nadie, por eso nos retaban siempre. Nos gustaba tirar cosas por el balcón. Y jugábamos
+    con un perrito que teníamos."* **Verificado contra las 35 transcripciones: NO es
+    inventado, es casi literal de su respuesta 27**, donde dijo exactamente eso — y el
+    libro encima le sacó una repetición que el audio tenía. Lo único que el modelo agregó
+    es una **fusión**: él contó los muñecos por un lado y el balcón por otro, y el libro
+    los unió en *"con unos muñecos… ahí en el balcón"*. Un detalle que nunca afirmó.
+    *Lo que hay que arreglar*: no es la regla "no inventes NADA" (existe y se respetó),
+    es una nueva — **no juntar en una sola escena dos cosas que contó por separado**.
+    *Lo que no es de código*: el narrador **no reconoció sus propias palabras**. Contestó
+    35 veces en días; no se acuerda de cada frase. Que sienta que le inventaron cosas es
+    un problema de confianza que ningún prompt arregla, y hay que tenerlo en cuenta al
+    entregar el libro.
+    *Lección de método*: si creíamos el reporte y "arreglábamos" el editor, rompíamos algo
+    que funciona. **Un hallazgo sobre el libro se verifica contra las transcripciones antes
+    de tocar nada.**
+    *Sin cerrar*: el texto que él leyó y el que está guardado hoy **no son iguales** — el
+    guardado NO tiene la fusión. El libro se entregó el 19/09 y se reescribió el 21/09 11:12,
+    así que probablemente esté leyendo el PDF viejo. Que lo baje de nuevo y mire ese párrafo.
+    *De paso*: bajo la orden 27 hay DOS respuestas de audios distintos (`dia_27.ogg` los
+    muñecos, `dia_27_2.ogg` el padre en Chile). La que contesta la 27 es la segunda; la
+    primera quedó archivada donde no va — mismo problema que el C7 de Ciro. El libro igual la
+    puso en «La infancia», que es donde va: el rescate por historia completa funcionó.
+
+41. **23/09 · el libro repite: dos oraciones dicen lo mismo, con las mismas frases.** Si en
+    el audio lo dice dos veces, el libro lo pone dos veces. *Causa estructural*: el escritor
+    (`fabrica/src/libro/escribir-capitulo.ts`) recibe el material DOS veces —el material
+    principal del capítulo Y la historia completa, con la instrucción de traer de ahí lo que
+    pertenezca al capítulo— y **ninguna regla dice qué hacer cuando algo viene repetido**. La
+    regla 2 lo empuja a conservar: *"tu trabajo es ordenar y pulir apenas, no redactar
+    bonito"*. En un audio de gente mayor repetir es lo normal: se repite para enfatizar o al
+    retomar el hilo. Le pedimos fidelidad y nadie le dijo que fidelidad no es transcripción.
+
+42. **23/09 · el guion no cubre la vida adulta.** Reparto real de las 26 fijas: La juventud
+    5, La infancia 4, Las raíces / El amor / El oficio / Los hijos / La sabiduría 3 cada
+    uno, Las pruebas 2. **Infancia y juventud se llevan 9 de 26.** Todo lo que pasa entre
+    los 30 y los 60 —trabajo, hijos creciendo, mudanzas, pérdidas— entra en "El oficio" y
+    "Los hijos": seis preguntas. Lo dijo Joaquín, que tiene 28 y no lo sufrió: *"a una
+    persona de 60 siente que le falta preguntarle por sus 30/40… ahonda mucho en temas en
+    vez de ocuparse de más etapas de la vida"*. El target del Familiar es 60+.
+43. **17/09 · GRAVÍSIMO · un audio de Ciro se cargó en Joaquín, y su historia entró al
+    libro de otro.** Lo encontró **Naza yendo al audio**: el párrafo que Joaquín marcó como
+    inventado (los muñecos, el balcón, el perrito) **no es de él — la voz es de Ciro**.
+    *Verificado en la base*: `Ciro/dia_03.ogg` (38 s, orden 3, cargado 17:06) y
+    `Joaquin/dia_27.ogg` (38 s, orden 27, cargado **17:08**) tienen la transcripción idéntica
+    palabra por palabra. Ese día se cargaban los dos pilotos en paralelo. A las 17:16 se
+    cargó en la orden 27 de Joaquín el audio correcto (el padre que se fue a Chile), marcado
+    como repregunta: quien cargaba se dio cuenta, **pero el malo quedó en la base** y su
+    material entró al libro, capítulo «La infancia».
+    *Alcance medido*: **uno solo en 83 respuestas**. Se compararon todas contra todas (3.403
+    comparaciones): ningún otro cruce, en ninguna dirección, y ningún duplicado dentro del
+    mismo narrador. La otra coincidencia de duración (Ciro 4 / Joaquín 28, 49 s) es
+    casualidad: los textos son distintos.
+    *No se corrige el libro de Joaquín*: es el socio probando (decisión de Naza, 23/09).
+    *Hecho*: candado en la puerta manual (`src/db/duplicados.ts`): al cargar, compara la
+    transcripción con las de los OTROS narradores y avisa con todas las letras si el audio ya
+    está cargado en otro. Validado contra las 83 respuestas reales: encuentra el cruce
+    conocido y **cero falsos positivos**. No borra ni corrige solo — el que carga tiene los
+    dos audios a la vista y el script no.
+    *Lo que más vale de acá*: **este error no lo detecta nadie**. Ni el modelo, que hizo bien
+    su trabajo con el material que le dimos; ni la familia, que no estuvo en la entrevista.
+    Solo el narrador, leyendo el libro terminado, cuando ya está impreso. Y cuando lo dijo,
+    nosotros verificamos contra la base —que estaba mal— y **le dijimos que se equivocaba**.
+    La lección: cuando un narrador dice "esto no lo dije yo", **se va al audio**, no a la
+    transcripción.
+
 ## Producción / infra (no es del entrevistador, pero salió en el camino)
 
 8. **15/09 · producción corría un build de 8 días** mientras `main` tenía todo el
