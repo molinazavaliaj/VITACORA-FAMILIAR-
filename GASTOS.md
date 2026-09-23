@@ -16,7 +16,13 @@
 **Total puesto por Naza hasta el 18/09: USD 40 + 47€ ≈ USD 91** (USD 20 de crédito
 Anthropic previo + USD 10 Anthropic + 20€ Anthropic + USD 5 OpenAI + USD 5 Railway +
 15€ dominio + 12€ mail de empresa). Joaquín aparte: ~USD 10-20 de sus keys + Resend Pro.
-⚠️ El plan Hobby de Railway de Naza quedó sin proyectos el 18/09: cancelarlo antes del 1/10.
+✅ **CERRADO el 23/09 — y estaba mal anotado.** Naza entró a Railway y su workspace
+(`trickynoise`) figura **SIN PLAN**: no le están cobrando nada, así que no hay nada que
+cancelar. El plan **Hobby** que aparece es el del workspace de **Joaquín**
+(`molinazavalia`), y ése **NO se toca**: es el que paga `fearless-kindness`, donde corren
+la fábrica y el entrevistador. Cancelarlo tiraría producción abajo.
+⚠️ **Ojo con la línea del 01/09** ("Railway plan Hobby, USD 5/mes, Naza, recurrente"): hay
+que confirmar hasta cuándo se cobró de verdad, porque hoy esa cuenta no tiene plan.
 
 > Pendiente acordado: unificar las keys de IA en UNA organización de Anthropic del
 > proyecto (Naza invita a Joaquín como admin) para que el costeo por libro sea real
