@@ -12,6 +12,28 @@
 > Una entrada por hallazgo: fecha · narrador · qué pasó · dónde está · qué se hizo.
 > No se arregla nada acá; se anota. Los arreglos van a la lista de la revisión final.
 
+## Dónde se anota cada hallazgo, y cómo se numera (regla del 23/09)
+
+Dos archivos, dos numeraciones que no pueden chocar:
+
+| Archivo | Qué lleva | Numeración |
+|---|---|---|
+| **este** (`piloto-bitacora-errores.md`) | el piloto de **Joaquín**, la fábrica, la web y la infra | `1`, `2`, `3`… |
+| `piloto-errores-ciro.md` | el piloto de **Ciro** | `C1`, `C2`, `C3`… |
+
+**Un narrador nuevo abre su propio archivo** con su propia letra (`piloto-errores-<nombre>.md`,
+entradas `D1`, `D2`…). No se agregan hallazgos de un narrador nuevo acá.
+
+**Por qué:** el 22/09 esta bitácora vivía en tres ramas a la vez y los números `31` a `35` se
+habían usado dos veces cada uno — el mismo hallazgo de Ciro era `#36` en una rama, `#41` en otra
+y `C6` en su archivo. Cuando alguien decía "arreglé el 36", nadie podía saber cuál. El 23/09 se
+consolidó: las cinco entradas de Ciro que estaban acá se movieron a `C1`–`C5` y dejaron un
+puntero en su lugar.
+
+**Al anotar desde una rama:** el número se toma del **último de `main`**, no del de tu rama, y si
+la rama tarda en mergearse se vuelve a mirar antes del merge. Un número repetido no rompe nada al
+mergear —git junta los dos textos sin quejarse—, y por eso hay que cuidarlo a mano.
+
 ## Triage: qué rompe o le saca valor al libro (pedido de Naza, 17/09)
 
 Ordenado de más grave a más suave. El criterio es **el producto final**: ¿el
@@ -456,32 +478,13 @@ libro sale mal, sale incompleto, o el cliente se pierde antes de llegar?
     eso —ni para retomarlo "de otra manera"—, y que si esquivó la pregunta no se
     insiste en lo que esquivó. Test en `test/cerebro.test.ts`.
 
-31. **17/09 · Ciro · la repregunta pide lo que el narrador YA contó.** Respuesta 5
-    ("no sé nada de mis abuelos ni de cómo se llevaban") → repregunta: "¿de tus
-    abuelos te acordás de alguno, aunque sea de verlo en una foto o de escuchar su
-    nombre?". Pero en la respuesta 1 Ciro contó que **su abuela materna cocinaba en
-    la casa todos los días**: se crió con ella. Causa: `evaluarRespuesta()`
-    (`src/ia/cerebro.ts:124`) recibe SOLO la pregunta y la respuesta de hoy — ni la
-    memoria de capítulos ni las respuestas previas, que la personalización sí
-    recibe. Distinto de #30 (insistir en lo que esquivó): acá pide algo que ya dio,
-    y eso le dice al narrador que no lo escuchan. Naza lo notó: "¿ya le preguntó
-    sobre esto?". *Hecho a mano*: repregunta descartada; se le mandó una anclada en
-    la abuela que ya nombró. *Para repasar*: pasarle a la evaluación la memoria de
-    capítulos (`memoriaDeCapitulos`, barata) para que no repita ni pida lo dado.
+- **(Ciro, la repregunta pide lo que el narrador YA contó)** → vive en `docs/piloto-errores-ciro.md`, entrada **C1**,
+  con la versión al día. Estaba acá como «31», número que en esta bitácora ya usa otro
+  hallazgo: se movió el 23/09 para que «31» signifique una sola cosa.
 
-32. **17/09 · Ciro · dar por muerta (o viva) a una persona que el narrador no dijo
-    si vive (observación de Naza).** La repregunta de reemplazo para la 5, escrita a
-    mano, decía "a tu abuela la tuviste cerca... ¿cómo se llamaba, cómo era?" — todo en
-    pasado: la daba por muerta. Nadie sabe si vive. Y al revés también duele: hablar
-    en presente de alguien que murió. Ni la ficha ni el prompt tienen ese dato.
-    *Regla para el biógrafo (personalizar, repregunta, adaptativas, reemplazo)*: de
-    una persona que el narrador no dijo si vive, no se asume — se pregunta anclado
-    en la época ("cómo la recordás de esos años", "cómo era en esa casa") o sin verbo
-    copulativo ("su nombre"), nunca "se llamaba" ni "cómo está". *Para repasar*: (a)
-    sumar esa regla a los prompts, con casos de prueba; (b) que la ficha pueda decir
-    quiénes ya no están (la familia lo sabe y es un dato que cambia todas las
-    preguntas sobre esa persona); (c) revisar las 26 fijas con el mismo ojo (ver #27,
-    "si tus nietos escucharan esto", que es la misma clase de suposición).
+- **(Ciro, dar por muerta (o viva) a alguien que no dijo si vive)** → vive en `docs/piloto-errores-ciro.md`, entrada **C2**,
+  con la versión al día. Estaba acá como «32», número que en esta bitácora ya usa otro
+  hallazgo: se movió el 23/09 para que «32» signifique una sola cosa.
 
 31. **18/09 · EL BIÓGRAFO NO SE DESPIDE SOLO (Naza lo marcó como importante).**
     Al cargar la última respuesta (30), `cargar` cortó con "Claude no devolvió
@@ -633,89 +636,17 @@ Si se quiere ver el libro ANTES de la migración: solo el paso 4 sin el
 `audiolibro` (queda `null`) + el 5. Ojo: entregado así, la fábrica no vuelve a
 escribirlo; el audiolibro clonado saldría después con otro pedido.
 
-33. **18/09 · Ciro · el biógrafo pregunta por la infancia como si hubiera sido un lujo
-    (pedido de Naza: "tiene que de alguna manera saber si la vida de la persona fue
-    dura de infancia").** La pregunta 7 salió: "¿Qué tradiciones había? Las milanesas, la
-    chocolatada... ¿cómo eran los domingos, las fiestas con tu abuela Estela, tu tío, tus
-    primos?". Respuesta: "¿Cómo eran los domingos? Una mierda, amigo. Mi familia era un
-    desastre... Hay algo que vos no estás entendiendo... totalmente desarticulada... El
-    tío estaba re duro y la abuela queriendo rescatarlo... Esto no era una película de
-    Disney." **Las señales ya estaban** en las respuestas 2 y 2-bis: padre ausente con
-    drogas y alcohol, "todos los grandes se llevaban mal", se fue a los 12. El biógrafo
-    las tenía a la vista (entran en las últimas 6 respuestas) y aun así encuadró la
-    pregunta en clave nostálgica. Causas: (a) las 26 fijas están escritas para una
-    infancia feliz ("tradiciones", "fiestas", "travesuras que todavía lo hagan reír"), y
-    la personalización conserva ese encuadre porque su regla es enganchar detalles, no
-    leer el tono; (b) el prompt pide "cálido" y nada le dice que la calidez a veces es
-    no adornar; (c) ningún lugar guarda "cómo fue esta vida" — la memoria de capítulos
-    resume hechos, no el clima. *Para repasar*: que la memoria del biógrafo lleve una
-    línea de **tono** por capítulo ("infancia dura: padre ausente con adicciones, familia
-    desarticulada, tío con drogas") y que personalizar/adaptativas/repregunta la
-    reciban con una regla explícita: si la infancia fue dura, no preguntar por fiestas,
-    tradiciones ni domingos como si hubieran existido — preguntar qué había, quién
-    sostenía, qué se rescataba. Y revisar las 26 fijas con ese ojo.
-    **Arreglado el 20/09** (`d230473`): el lado del PROMPT ya está — la personalización y
-    las 4 finales reciben la regla de tono (no dar por sentado que la infancia fue
-    linda: "fiestas", "tradiciones", "los domingos", "las travesuras que todavía
-    lo hagan reír"; y si el material muestra una infancia dura, preguntar por lo
-    que había, quién sostenía, qué se rescataba), con el "esto no era una película
-    de Disney" de Ciro como ejemplo textual y test en las dos suites. Quedan (a)
-    la línea de TONO por capítulo en la memoria del biógrafo (`resumenes.ts`, se
-    hace junto con el hallazgo 16) y (c) la revisión de las 26 fijas con ese ojo.
-    de Disney" de Ciro como ejemplo textual y test en las dos suites. Y desde el
-    20/09 (`a251bd2`) la memoria también lleva el TONO: cada resumen de capítulo
-    termina con una línea "Tono: …" ("Tono: infancia dura, padre ausente con
-    adicciones, familia desarticulada"), así el biógrafo que lee la memoria ve el
-    clima y no solo los hechos. Queda (c) la revisión de las 26 fijas con ese ojo.
+- **(Ciro, pregunta por la infancia como si hubiera sido un lujo)** → vive en `docs/piloto-errores-ciro.md`, entrada **C3**,
+  con la versión al día. Estaba acá como «33», número que en esta bitácora ya usa otro
+  hallazgo: se movió el 23/09 para que «33» signifique una sola cosa.
 
-34. **18/09 · Ciro · la repregunta insiste donde el narrador acaba de decir "vamos por
-    otro lado".** En esa misma respuesta 7 dijo, literal: "mi tío se drogaba, o sea,
-    vamos por otro lado porque, porque por ahí, boludo". La repregunta que generó el
-    cerebro: "Me quedé con una imagen: su abuela Estela tratando de rescatar a su tío
-    en medio de un domingo. ¿Cómo era verla en eso...?" — va derecho al tío y a las
-    drogas, y encima en usted (la puerta manual evaluó contra la pregunta genérica, #18).
-    Es la #30 en su versión más clara: el narrador pidió cambiar de tema con esas
-    palabras y el biógrafo no lo escuchó. *Hecho a mano*: repregunta descartada.
-    *Para repasar*: en la evaluación, si la respuesta contiene un pedido explícito de
-    cambiar de tema ("vamos por otro lado", "no quiero hablar de eso", "dejemos eso"),
-    NO hay repregunta sobre ese tema, y ese tema entra solo a `contexto.evitar` para el
-    resto de la entrevista.
-    **Arreglado el 20/09** (`d230473`): la evaluación da la respuesta por SUFICIENTE
-    cuando hay un pedido explícito de dejar el tema y no repregunta sobre eso
-    —ni para retomarlo "de otra manera"—, con test en `test/cerebro.test.ts`. El
-    otro lado del hallazgo ya está (Joaquín, `8e7bbfe`/`06a7de2`): la evaluación devuelve
-    `dejarTema` y el flujo lo suma a `contexto.evitar` con la marca "(lo pidió él en la
-    entrevista)", releyendo el contexto para no pisar el panel. **Con el mismo hueco que el
-    19**: solo mira la respuesta de la principal — si en la AMPLIACIÓN (o en el cierre) pide
-    dejar un tema, no se anota. Lo cubre el mismo `detectarReservaYDejarTema` (`5bbfcb9`).
-    **Cerrado el 20/09 (J, `a95209d`)**: enchufado en los tres caminos, ver #19.
-    **El otro lado, el 20/09 (J)** (`8e7bbfe`): la evaluación devuelve además
-    `dejarTema` (el tema, en pocas palabras: "su tío y las drogas"), solo con pedido
-    explícito ("esquivar no es pedir"). `procesar.ts` lo suma a `contexto.evitar`
-    como una línea más —"su tío y las drogas (lo pidió él en la entrevista)"—
-    releyendo el contexto de la base para no pisar lo que la familia escribió en el
-    panel, y respetando el tope de 1000 letras del panel. En modo seguido la
-    siguiente pregunta ya sale sin ese tema. La puerta manual hace lo mismo.
+- **(Ciro, la repregunta insiste donde pidió cambiar de tema)** → vive en `docs/piloto-errores-ciro.md`, entrada **C4**,
+  con la versión al día. Estaba acá como «34», número que en esta bitácora ya usa otro
+  hallazgo: se movió el 23/09 para que «34» signifique una sola cosa.
 
-35. **18/09 · Ciro · la personalización repite lo recién contestado y lleva la pregunta
-    hacia las sustancias.** Respuesta 8: salidas de miércoles a domingo, "mucho vino,
-    mucha pastilla, mucho clonazepam", y que el Pelado Bausa y el Beto "no salíamos los
-    tres juntos, creo que nunca". Pregunta 9 generada: "...cumbia, rock and roll,
-    alcohol. ¿El Pelado Bausa y el Beto estaban en esa onda con vos? ¿Cómo era salir con
-    ellos?" — pregunta lo que acaba de decir que no pasó, y encuadra a los amigos desde
-    el alcohol. El hueco real ("los pibes de Chupín y Chombita", nombrados al pasar) no
-    lo tomó. A diferencia de #31, acá el personalizador SÍ tenía la respuesta 8 a la
-    vista: la regla "CONSERVÁ TODAS LAS PREGUNTAS del original" le pesa más que "no
-    repitas lo contado". *Hecho a mano*: reescrita por Naza/Claude sobre Chupín y
-    Chombita. *Para repasar*: (a) en personalizar, si una sub-pregunta del guion ya quedó
-    contestada en la respuesta anterior, se reemplaza por lo que quedó abierto, no se
-    repite; (b) el biógrafo no lidera con consumo de sustancias aunque el narrador las
-    haya nombrado — si él las trae, se escucha; no se convierten en el gancho.
-    **Arreglado el 20/09** (`d230473`): la personalización no repite lo que acaba de
-    contestar (el "no salíamos los tres juntos, creo que nunca" es el ejemplo
-    textual del prompt) y no lidera con lo que él nombró de paso: el alcohol y
-    las pastillas se escuchan, pero no son el gancho de la pregunta. Test en
-    `test/personalizar.test.ts`.
+- **(Ciro, la personalización repite lo recién contestado)** → vive en `docs/piloto-errores-ciro.md`, entrada **C5**,
+  con la versión al día. Estaba acá como «35», número que en esta bitácora ya usa otro
+  hallazgo: se movió el 23/09 para que «35» signifique una sola cosa.
 
 38. **18/09 · MEDIO · el ensamblado del audiolibro clonado de Joaquín se cayó DOS VECES, por
     dos motivos distintos — y ninguno era la voz, que ya estaba narrada.** (a) El mp3 completo
@@ -759,7 +690,7 @@ escribirlo; el audiolibro clonado saldría después con otro pedido.
 
 ## Ciro / Angel Fernandez (segundo narrador de prueba)
 
-Sus hallazgos viven en **`docs/piloto-errores-ciro.md`** (entradas C1-C10), archivo
+Sus hallazgos viven en **`docs/piloto-errores-ciro.md`** (entradas C1-C13), archivo
 aparte por pedido de Naza (22/09): esta bitácora ya existía en tres versiones
 distintas entre ramas, con los mismos números usados para cosas diferentes. Con
 numeración propia no puede chocar al mergear.
