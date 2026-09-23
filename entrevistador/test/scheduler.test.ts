@@ -26,7 +26,11 @@ vi.mock('../src/db/cliente.js', () => {
   function crearBuilder(tabla: string) {
     const b: any = { _op: 'select', _filtros: {} as Record<string, any> };
     const eq = (col: string, val: any) => { b._filtros[col] = val; return b; };
-    b.select = () => b; b.or = () => b; b.is = () => b; b.order = () => b; b.limit = () => b; b.in = eq;
+    b.select = () => b; b.or = () => b; b.order = () => b; b.limit = () => b; b.in = eq;
+    // `.is('wa_message_id', null)` y `.not('wa_message_id','is',null)`: la bienvenida
+    // distingue un envío de verdad (con id de Meta) de un intento fallido anotado.
+    b.is = (col: string, val: any) => { if (col === 'wa_message_id') b._filtros._conId = val === null ? false : undefined; return b; };
+    b.not = (col: string, _op: string, val: any) => { if (col === 'wa_message_id' && val === null) b._filtros._conId = true; return b; };
     b.eq = eq;
     b.insert = (p: any) => { b._op = 'insert'; mocks.capturas.push({ op: 'insert', tabla, p }); return b; };
     b.upsert = (p: any) => { b._op = 'upsert'; mocks.capturas.push({ op: 'upsert', tabla, p }); return b; };
@@ -45,7 +49,8 @@ vi.mock('../src/db/cliente.js', () => {
       if (tabla === 'envios') {
         return { data: mocks.filas.envios.filter((e) =>
           e.tipo === b._filtros.tipo &&
-          (b._filtros.pregunta_orden === undefined || e.pregunta_orden === b._filtros.pregunta_orden)) };
+          (b._filtros.pregunta_orden === undefined || e.pregunta_orden === b._filtros.pregunta_orden) &&
+          (b._filtros._conId === undefined || Boolean(e.wa_message_id) === b._filtros._conId)) };
       }
       if (tabla === 'respuestas') {
         return { data: mocks.filas.respuestas.filter((r) => r.pregunta_orden === b._filtros.pregunta_orden) };
@@ -284,5 +289,50 @@ describe('el latido del tick', () => {
 
     expect(mocks.capturas[0]).toMatchObject({ op: 'upsert', tabla: 'latidos' });
     expect(mocks.capturas[0].p).toMatchObject({ servicio: 'entrevistador' });
+  });
+});
+
+// ── La bienvenida ──────────────────────────────────────────────────────────
+// El primer mensaje de todos, y hasta el 23/09 el único envío del sistema SIN
+// red: si la plantilla fallaba, el error moría en la consola de Railway y desde
+// afuera parecía que el bot no había hecho nada. Tres personas se quedaron dos
+// días sin bienvenida y no podíamos decir por qué. Tampoco tenía un solo test.
+describe('la bienvenida', () => {
+  const invitado = {
+    id: 'n-nuevo', familia_id: 'fam-1', como_le_dicen: 'papá', telefono_whatsapp: '+5491100000000',
+    contexto: {}, estado: 'invitado', dia_actual: 0, hora_preferida: '09:00', zona_horaria: 'America/Argentina/Buenos_Aires',
+    ultima_respuesta_at: null, alerta_silencio: false,
+  };
+
+  it('sale una sola vez, y queda anotada con el id de Meta', async () => {
+    mocks.filas.narradores = [invitado];
+    mocks.filas.envios = [];
+    await tick(new Date('2026-09-23T12:00:00Z'));
+    expect(mocks.enviarPlantilla).toHaveBeenCalledWith('+5491100000000', 'bienvenida', ['papá', expect.any(String)]);
+    expect(mocks.capturas).toContainEqual(expect.objectContaining({ op: 'insert', tabla: 'envios', p: expect.objectContaining({ tipo: 'bienvenida', wa_message_id: 'wamid.p' }) }));
+  });
+
+  it('si ya salió de verdad, no se repite', async () => {
+    mocks.filas.narradores = [invitado];
+    mocks.filas.envios = [{ tipo: 'bienvenida', wa_message_id: 'wamid.viejo' }];
+    await tick(new Date('2026-09-23T12:00:00Z'));
+    expect(mocks.enviarPlantilla).not.toHaveBeenCalled();
+  });
+
+  it('si la plantilla falla, se anota el fallo CON el motivo en vez de morir en la consola', async () => {
+    mocks.filas.narradores = [invitado];
+    mocks.filas.envios = [];
+    mocks.enviarPlantilla.mockRejectedValue(new Error('(#132001) Template name does not exist'));
+    await tick(new Date('2026-09-23T12:00:00Z'));
+    const anotado = mocks.capturas.find((c: any) => c.tabla === 'envios' && c.p?.tipo === 'bienvenida');
+    expect(anotado?.p).toMatchObject({ entrega: 'fallido', wa_message_id: null });
+    expect(anotado?.p.error_detalle).toContain('Template name does not exist');
+  });
+
+  it('un intento fallido NO bloquea el reintento del próximo tick', async () => {
+    mocks.filas.narradores = [invitado];
+    mocks.filas.envios = [{ tipo: 'bienvenida', wa_message_id: null, entrega: 'fallido' }];
+    await tick(new Date('2026-09-23T12:00:00Z'));
+    expect(mocks.enviarPlantilla).toHaveBeenCalled();
   });
 });
