@@ -12,7 +12,7 @@ import { resolve, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import Anthropic from '@anthropic-ai/sdk';
 import { createClient } from '@supabase/supabase-js';
-import { actualizarPerfil, perfilVacio, type Perfil } from '../src/ia/perfil.js';
+import { actualizarPerfil, perfilVacio, perfilDesdeFicha, type Perfil } from '../src/ia/perfil.js';
 
 const AQUI = dirname(fileURLToPath(import.meta.url));
 for (const linea of readFileSync(resolve(AQUI, '..', '.env'), 'utf8').split('\n')) {
@@ -49,18 +49,17 @@ const preguntaDe = (r: { pregunta_orden: number; es_repregunta: boolean }) =>
   (r.es_repregunta ? contexto.repreguntasEnviadas?.[r.pregunta_orden] : contexto.preguntasEnviadas?.[r.pregunta_orden])
   ?? guion.get(r.pregunta_orden) ?? `Pregunta ${r.pregunta_orden}`;
 
-const ficha = conFicha
-  ? JSON.stringify({ anioNacimiento: contexto.anioNacimiento, trato: contexto.trato, arbol: contexto.arbol, datosExtra: contexto.datosExtra, vinculoComprador: contexto.vinculoComprador })
-  : null;
-
 mkdirSync(salida, { recursive: true });
-let perfil: Perfil = perfilVacio();
+// El perfil nace de la ficha (biógrafo v2, 23/09) solo con --con-ficha; sin el flag arranca
+// vacío, para probar el caso real de "la familia no cargó nada".
+let perfil: Perfil = conFicha ? perfilDesdeFicha(contexto) : perfilVacio();
 let gasto = 0;
 const aprendio: string[] = [];
 const lista = (respuestas ?? []).filter((r) => !excluidas.has(r.id) && (r.transcripcion || r.texto_directo));
 for (const [i, r] of lista.entries()) {
   const antes = JSON.stringify(perfil.persona);
-  const { ok, perfil: nuevo, usage } = await actualizarPerfil(cliente, perfil, ficha, preguntaDe(r), (r.transcripcion || r.texto_directo)!);
+  // Los temas pendientes del reparto por tramos no viven en este script de prueba: pasa [].
+  const { ok, perfil: nuevo, usage } = await actualizarPerfil(cliente, perfil, preguntaDe(r), (r.transcripcion || r.texto_directo)!, []);
   gasto += USD(usage);
   perfil = nuevo;
   const paso = String(i + 1).padStart(2, '0');

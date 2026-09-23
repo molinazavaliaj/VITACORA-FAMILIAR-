@@ -106,7 +106,8 @@ for (const quien of NARRADORES) {
   } else {
     for (const [i, par] of pares.entries()) {
       perfilAntes.push(perfil);
-      const r = await actualizarPerfil(cliente, perfil, null, par.pregunta, par.respuesta);
+      // Los pendientes del reparto por tramos no viven en esta prueba: pasa [].
+      const r = await actualizarPerfil(cliente, perfil, par.pregunta, par.respuesta, []);
       perfil = r.perfil;
       gasto += USD(r.usage);
       console.log(`${n.como_le_dicen}: perfil ${i + 1}/${pares.length}${r.ok ? '' : ' ⚠ salida ilegible'} · USD ${gasto.toFixed(2)}`);
