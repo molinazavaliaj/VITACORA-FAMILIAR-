@@ -31,3 +31,12 @@ comment on column fotos.pregunta_orden is
   'Null = la foto llegó suelta o la subió la familia desde el panel.';
 
 create index if not exists fotos_narrador_pregunta_idx on fotos (narrador_id, pregunta_orden);
+
+-- 3. El envío del pedido. `envios.tipo` tiene un check cerrado y 'objeto' no
+--    estaba: sin esto el pedido SE MANDA pero no se puede anotar, y entonces
+--    la foto que vuelve no encuentra a qué pedido atarse. La regla de "se pide
+--    una sola vez" también depende de esta fila.
+alter table envios drop constraint if exists envios_tipo_check;
+alter table envios add constraint envios_tipo_check
+  check (tipo in ('bienvenida','pregunta','repregunta','recordatorio','alerta_pausa',
+                  'despedida','saludo_final','oferta_siguiente','objeto'));
