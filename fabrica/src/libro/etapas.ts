@@ -81,9 +81,11 @@ export function parsearEtapas(salida: string): { ok: true; etapas: Etapa[] } | {
 }
 
 /**
- * La época de una respuesta: el tramo de edad de la pregunta que la originó (lo guarda el
- * entrevistador, `tramoDeEpoca` en `entrevistador/src/preguntas/epocas.ts`), o `reflexion` para
- * la pregunta final. Sin época (null, null): la ubica el modelo en `repartirEnEtapas`.
+ * La época de una respuesta: el tramo de edad de la pregunta que la originó, o `reflexion` para
+ * la pregunta final. En v1 lo guarda el guion (`capitulo`, ver `epocaDelGuion` en
+ * `fabrica/scripts/contexto-v2.ts`); en v2 sale de `RANGO_TRAMO` (`entrevistador/src/ia/plan-preguntas.ts`)
+ * cruzado contra `secuencia.hechas` (`epocaDeTramo`/`epocaV2`, mismo archivo). Sin época
+ * (null, null): la ubica el modelo en `repartirEnEtapas`.
  */
 export type EpocaDeRespuesta = { orden: number; desde: number | null; hasta: number | null; reflexion?: boolean };
 
