@@ -29,6 +29,28 @@ que confirmar hasta cuándo se cobró de verdad, porque hoy esa cuenta no tiene 
 > y nadie pague "su mitad del cerebro" por separado. La key de OpenAI (Whisper) de
 > Joaquín queda aparte — es chica, USD 5 rinden meses de transcripción.
 
+## Las keys de Anthropic — limpieza del 23/09
+
+Naza revocó las tres que estaban activas y **sin uso**: `VITACORA` (`Pi_…`, del 2/09),
+`tricky-noise-api-key` (`Zfy…`, del 15/08) y `claude api scrapper` (`o8S…`, del 9/08).
+Entre ellas estaba la que había quedado cargada en el **Railway viejo** y escribió el libro
+de Joaquín sin aprobación el 18/09 (bitácora #37): como ninguna tenía consumo, se revocaron
+las tres en vez de averiguar cuál era. **Pendiente #37 cerrado.**
+
+**Queda una sola activa: `fabrica-local`** (`9JB…`, creada el 18/09, 8,63 US$ de consumo).
+La usan la fábrica y el entrevistador desde la PC de Naza — está en los dos `.env`.
+Verificado después de la limpieza con una llamada mínima a la API: **HTTP 200, sigue viva**.
+
+⚠️ **Caduca el 18 de octubre.** Antes de esa fecha hay que reemplazarla, y conviene hacerlo
+con **una key por uso** (`fabrica`, `entrevistador`, `claude-code-naza`): es la lección del
+gasto del 12/09, cuando USD 21,89 aparecieron bajo una key compartida y hubo que deducir de
+dónde venían. Con una key por servicio el gráfico de la consola lo dice solo.
+
+Las que figuran atenuadas en la consola ya estaban revocadas, incluida la `VXf…` que se
+comió los 22,25 US$ del 12/09. Y la variable global de Windows `ANTHROPIC_API_KEY` —la que
+hacía que Claude Code cobrara a la API en vez de a la suscripción— **ya no existe**
+(verificado en el entorno el 23/09).
+
 ## Qué se consumió del crédito de Anthropic de Naza — LEÍDO DE LA CONSOLA el 18/09 15:30
 
 **Gasto del mes (1–18 sept): USD 46,07. Saldo: USD 12,18.** Falta que impacte el libro de
