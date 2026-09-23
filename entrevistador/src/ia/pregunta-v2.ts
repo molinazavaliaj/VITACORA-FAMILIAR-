@@ -25,7 +25,7 @@ const MAX_PALABRAS = 50;
  * puede caer en cualquiera); `bloque` es dónde va en la secuencia.
  */
 export const NUCLEO = [
-  { id: 'casa-infancia', tramo: 'infancia', bloque: 'inicio', tema: 'La casa donde pasó su infancia, como una escena: si cierra los ojos y entra por la puerta, qué ve, qué huele, quién está. Es el primer mensaje: tiene que dar ganas de contestar.' },
+  { id: 'casa-infancia', tramo: 'infancia', bloque: 'inicio', tema: 'Es el PRIMER mensaje y tiene que dar ganas de contestar. Primero, corto: cuántos años tiene hoy, y si prefiere que le hablen de vos o de usted (que decida la persona). Después, la casa donde pasó su infancia como una escena: si cierra los ojos y entra por la puerta, qué ve, qué huele, quién está.' },
   { id: 'mapa-casas', tramo: null, bloque: 'inicio', tema: 'El mapa de su vida por las casas: después de aquella casa, para dónde fue la vida. Las casas en que vivió, una tras otra: en qué ciudad, con quién, más o menos hasta qué edad. Que se sienta como un recorrido, no como un formulario.' },
   { id: 'mapa-capitulos', tramo: null, bloque: 'inicio', tema: 'Si su vida fuera un libro, cuáles serían sus capítulos: los grandes pedazos, y qué hizo que uno terminara y empezara otro.' },
   { id: 'padres', tramo: 'infancia', bloque: 'infancia', tema: 'Cómo eran su mamá y su papá (o quienes le criaron), cómo recuerda a cada uno.' },
