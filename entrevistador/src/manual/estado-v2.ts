@@ -35,6 +35,16 @@ export type EstadoV2 = {
   retomar?: number;
   /** USD acumulados de esta entrevista (modelo + transcripción). */
   gastoUsd: number;
+  /**
+   * "No quiero seguir" (§2.8): la pausa vive ACÁ y no en `narradores.estado`, porque el narrador v2
+   * está siempre en 'pausado' (el único estado que el scheduler de producción no toca; ver el
+   * script). `siguiente` frena mientras esté; `--reanudar` la saca.
+   */
+  pausa?: { motivo: 'quiereParar'; fecha: string };
+  /** Las respuestas (id) que ya pasaron por perfil + evaluación: una fila fuera de esta lista es una carga cortada. */
+  procesadas: string[];
+  /** Las respuestas (id) que frenó el candado de audio cruzado: no entran a los prompts ni cuentan como contestadas. */
+  bloqueadas: string[];
 };
 
 /** El estado del día 0: el perfil con lo que haya en la ficha y la secuencia sin variables (sin edad no hay plan). */
@@ -47,6 +57,8 @@ export function estadoNuevo(contexto: Record<string, any>, zonaHoraria: string):
     repreguntasEnviadas: {},
     bisagrasPlanificadas: -1,
     gastoUsd: 0,
+    procesadas: [],
+    bloqueadas: [],
   };
 }
 
@@ -108,44 +120,77 @@ export function pendientesParaPerfil(s: Secuencia): TemaPendiente[] {
 
 /**
  * A qué pregunta va la respuesta que se carga: la última enviada, u otra ya enviada con `--orden`
- * (la respuesta a la presentación puede llegar después de que salió la casa, §2.2). Con
- * `--repregunta`, la repregunta de esa orden tiene que existir.
+ * (la respuesta a la presentación puede llegar después de que salió la casa, §2.2), o un objeto
+ * (órdenes 101+: lo que contó de la cosa que mostró). Con `--repregunta`, la repregunta de esa
+ * orden tiene que existir (los objetos no tienen).
  */
 export function preguntaParaCargar(
   estado: EstadoV2, orden: number | undefined, esRepregunta: boolean,
-): { orden: number; objetivo: Objetivo; texto: string } | { error: string } {
+): { orden: number; objetivo: Objetivo; texto: string; esObjeto: boolean } | { error: string } {
   const hechas = estado.secuencia.hechas;
   if (!hechas.length) return { error: 'Todavía no se le mandó nada: corré "empezar" primero.' };
+  const objeto = orden === undefined ? undefined : estado.secuencia.objetos.find((o) => o.orden === orden);
+  if (objeto) {
+    if (esRepregunta) return { error: `La orden ${orden} es un objeto: no tiene repregunta.` };
+    const texto = estado.preguntasEnviadas[String(objeto.orden)];
+    if (!texto) return { error: `No encuentro el texto enviado del objeto ${objeto.orden}.` };
+    const id = `objeto-${objeto.tramo}${objeto.final ? '-final' : ''}`;
+    return { orden: objeto.orden, objetivo: { tipo: 'objeto', id, tramo: objeto.tramo }, texto, esObjeto: true };
+  }
   const hecha = orden === undefined ? hechas.at(-1)! : hechas.find((h) => h.orden === orden);
-  if (!hecha) return { error: `La orden ${orden} no se le mandó. Las enviadas: ${hechas.map((h) => h.orden).join(', ')}.` };
+  if (!hecha) {
+    const objetos = estado.secuencia.objetos.map((o) => o.orden);
+    return { error: `La orden ${orden} no se le mandó. Las enviadas: ${[...hechas.map((h) => h.orden), ...objetos].join(', ')}.` };
+  }
   const texto = (esRepregunta ? estado.repreguntasEnviadas : estado.preguntasEnviadas)[String(hecha.orden)];
   if (!texto) {
     return { error: esRepregunta ? `La orden ${hecha.orden} no tiene repregunta enviada.` : `No encuentro el texto enviado de la orden ${hecha.orden}.` };
   }
-  return { orden: hecha.orden, objetivo: hecha.objetivo, texto };
+  return { orden: hecha.orden, objetivo: hecha.objetivo, texto, esObjeto: false };
 }
 
+export type FilaParaSiguiente = { id: string; pregunta_orden: number; es_repregunta: boolean };
+
+export type QueHaceSiguiente =
+  | { tipo: 'seguir' }
+  | { tipo: 'bloqueada'; filas: FilaParaSiguiente[] }
+  | { tipo: 'sin-procesar'; filas: FilaParaSiguiente[] }
+  | { tipo: 'retomar'; orden: number; texto: string }
+  | { tipo: 'falta-respuesta'; orden: number };
+
 /**
- * Qué hace `siguiente`: con "hoy no" pendiente, repite la misma pregunta; si la última no tiene
- * respuesta, frena (salvo `--saltar`: así no se pierde una respuesta sin cargar). La presentación
- * no espera: la casa sale a los pocos minutos aunque no haya contestado (§2.2).
+ * Qué hace `siguiente`, en este orden:
+ * 1. Una respuesta que frenó el candado de audio cruzado y sigue en la base: frena SIEMPRE (ni
+ *    `--saltar`): es de otra persona hasta que se descarte o se recargue con `--es-suyo`.
+ * 2. Una respuesta que quedó a medio procesar (se cortó el modelo después de guardarla): frena,
+ *    salvo `--saltar`, para que no se pierda lo que aprendería el perfil.
+ * 3. Con "hoy no" pendiente, repite la misma pregunta (`--saltar` no lo saltea).
+ * 4. Si la última no tiene respuesta procesada, frena (salvo `--saltar`). La presentación no
+ *    espera: la casa sale a los pocos minutos aunque no haya contestado (§2.2).
  */
-export function queHaceSiguiente(
-  estado: EstadoV2, ordenesRespondidas: number[], saltar: boolean,
-): { tipo: 'seguir' } | { tipo: 'retomar'; orden: number; texto: string } | { tipo: 'falta-respuesta'; orden: number } {
+export function queHaceSiguiente(estado: EstadoV2, filas: FilaParaSiguiente[], saltar: boolean): QueHaceSiguiente {
+  const bloqueadas = filas.filter((f) => estado.bloqueadas.includes(f.id));
+  if (bloqueadas.length) return { tipo: 'bloqueada', filas: bloqueadas };
+  const sinProcesar = filas.filter((f) => !estado.procesadas.includes(f.id));
+  if (sinProcesar.length && !saltar) return { tipo: 'sin-procesar', filas: sinProcesar };
   if (estado.retomar !== undefined) {
     return { tipo: 'retomar', orden: estado.retomar, texto: estado.preguntasEnviadas[String(estado.retomar)] ?? '' };
   }
   const ultima = estado.secuencia.hechas.at(-1);
-  if (!ultima || ultima.orden === 0 || saltar || ordenesRespondidas.includes(ultima.orden)) return { tipo: 'seguir' };
+  const contestada = (o: number) => filas.some((f) => f.pregunta_orden === o && !f.es_repregunta && estado.procesadas.includes(f.id));
+  if (!ultima || ultima.orden === 0 || saltar || contestada(ultima.orden)) return { tipo: 'seguir' };
   return { tipo: 'falta-respuesta', orden: ultima.orden };
 }
 
-type FilaRespuesta = { pregunta_orden: number; es_repregunta: boolean; transcripcion: string | null; texto_directo: string | null };
+type FilaRespuesta = { id?: string; pregunta_orden: number; es_repregunta: boolean; transcripcion: string | null; texto_directo: string | null };
 
-/** Las últimas respuestas, cada una con la pregunta que la originó (sin la pregunta, el modelo no sabe de qué hablaba: C6). */
+/**
+ * Las últimas respuestas, cada una con la pregunta que la originó (sin la pregunta, el modelo no
+ * sabe de qué hablaba: C6). Las que frenó el candado de audio cruzado no entran: son de otra persona.
+ */
 export function conversacionDe(estado: EstadoV2, filas: FilaRespuesta[], max = 6): { pregunta: string; respuesta: string }[] {
   return filas
+    .filter((f) => !(f.id && estado.bloqueadas.includes(f.id)))
     .map((f) => ({
       pregunta: (f.es_repregunta ? estado.repreguntasEnviadas : estado.preguntasEnviadas)[String(f.pregunta_orden)] ?? '',
       respuesta: (f.transcripcion ?? f.texto_directo ?? '').trim(),
@@ -205,11 +250,12 @@ export type Decision =
  */
 export function decidirTrasEvaluar(
   ev: EvaluacionV2,
+  // `esRepregunta` vale también para la respuesta a un objeto: solo cuentan la reserva y el "no quiero seguir".
   c: { esRepregunta: boolean; yaHayRepregunta: boolean; hoy: string; orden: number; cansancio: boolean; sinRepreguntarHasta?: string },
 ): Decision {
   if (ev.quiereParar) return { accion: 'parar' };
   // La pregunta del día ya está contestada: un "hoy no" en la repregunta no la vuelve a abrir.
-  if (c.esRepregunta) return { accion: 'nada', motivo: 'es la respuesta a la repregunta: no se repregunta de nuevo' };
+  if (c.esRepregunta) return { accion: 'nada', motivo: 'es la respuesta a una repregunta o a un objeto: no se repregunta' };
   if (ev.hoyNo) return { accion: 'hoyNo' };
   if (ev.suficiente || !ev.repregunta) return { accion: 'nada', motivo: 'la respuesta alcanza' };
   if (c.yaHayRepregunta) return { accion: 'nada', motivo: 'ya hubo una repregunta en esta orden' };
@@ -291,9 +337,9 @@ export function mailQuiereParar(d: {
       'Lo que respondió:',
       `  «${respuesta}»`,
       '',
-      'Qué hicimos: le mandamos un cierre con cariño, sin ninguna pregunta, y la entrevista quedó en pausa',
-      `(estado «pausado»). No sale ninguna pregunta más hasta que alguien la retome a mano. Lo que contó`,
-      `hasta acá (${d.respuestas} respuestas) queda guardado.`,
+      'Qué hicimos: le mandamos un cierre con cariño, sin ninguna pregunta, y la entrevista quedó en pausa.',
+      'No sale ninguna pregunta más hasta que alguien la retome a mano. Lo que contó hasta acá',
+      `(${d.respuestas} respuestas) queda guardado.`,
       '',
       'Qué falta: hablarlo con la familia. El biógrafo no decide solo. Si después de hablarlo quiere',
       'seguir, se retoma desde donde quedó' + (d.comandoReanudar ? `:\n  ${d.comandoReanudar}` : '.'),

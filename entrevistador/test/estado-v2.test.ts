@@ -5,7 +5,7 @@ import {
   repreguntasParaCansancio, decidirTrasEvaluar, sumarGasto, tratoParaTextos, mensajeHoyNo,
   cierreQuiereParar, mailQuiereParar, despedidaV2, type EstadoV2,
 } from '../src/manual/estado-v2.js';
-import { proxima, avanzar } from '../src/ia/secuencia.js';
+import { proxima, avanzar, registrarObjeto } from '../src/ia/secuencia.js';
 import { planificar, TECHO_VARIABLES } from '../src/ia/plan-preguntas.js';
 import { NUCLEO } from '../src/ia/pregunta-v2.js';
 import { perfilVacio } from '../src/ia/perfil.js';
@@ -119,14 +119,42 @@ describe('qué pregunta está abierta', () => {
     e = { ...e, repreguntasEnviadas: { '1': '¿y el patio?' } };
     expect(preguntaParaCargar(e, undefined, true)).toMatchObject({ orden: 1, texto: '¿y el patio?' });
   });
+  it('cargar acepta la respuesta a un objeto (orden 101+), sin repregunta', () => {
+    let e = empezado();
+    e = { ...e, secuencia: registrarObjeto(e.secuencia, 'infancia', 101), preguntasEnviadas: { ...e.preguntasEnviadas, '101': '¿Tenés algo de esa época?' } };
+    expect(preguntaParaCargar(e, 101, false)).toMatchObject({ orden: 101, esObjeto: true, texto: '¿Tenés algo de esa época?', objetivo: { tipo: 'objeto', tramo: 'infancia' } });
+    expect(preguntaParaCargar(e, 101, true)).toHaveProperty('error');
+    expect(preguntaParaCargar(e, undefined, false)).toMatchObject({ orden: 0, esObjeto: false });
+  });
+  const fila = (id: string, pregunta_orden: number, es_repregunta = false) => ({ id, pregunta_orden, es_repregunta });
   it('siguiente: la presentación no espera respuesta; las demás sí (salvo --saltar); "hoy no" repite la misma', () => {
     let e = empezado();
     expect(queHaceSiguiente(e, [], false)).toEqual({ tipo: 'seguir' });
     e = { ...e, secuencia: avanzar(e.secuencia, proxima(e.secuencia)!, 1), preguntasEnviadas: { ...e.preguntasEnviadas, '1': '¿la casa?' } };
     expect(queHaceSiguiente(e, [], false)).toEqual({ tipo: 'falta-respuesta', orden: 1 });
     expect(queHaceSiguiente(e, [], true)).toEqual({ tipo: 'seguir' });
-    expect(queHaceSiguiente(e, [1], false)).toEqual({ tipo: 'seguir' });
-    expect(queHaceSiguiente({ ...e, retomar: 1 }, [1], false)).toEqual({ tipo: 'retomar', orden: 1, texto: '¿la casa?' });
+    const hecha = { ...e, procesadas: ['r1'] };
+    expect(queHaceSiguiente(hecha, [fila('r1', 1)], false)).toEqual({ tipo: 'seguir' });
+    expect(queHaceSiguiente({ ...hecha, retomar: 1 }, [fila('r1', 1)], false)).toEqual({ tipo: 'retomar', orden: 1, texto: '¿la casa?' });
+    // --saltar no saltea un "hoy no".
+    expect(queHaceSiguiente({ ...hecha, retomar: 1 }, [fila('r1', 1)], true)).toMatchObject({ tipo: 'retomar' });
+  });
+  it('siguiente frena con una respuesta que no terminó de procesarse (salvo --saltar), aunque sea de otra orden', () => {
+    let e = empezado();
+    e = { ...e, secuencia: avanzar(e.secuencia, proxima(e.secuencia)!, 1), preguntasEnviadas: { ...e.preguntasEnviadas, '1': '¿la casa?' } };
+    const filas = [fila('r0', 0), fila('r1', 1)];
+    expect(queHaceSiguiente({ ...e, procesadas: ['r0'] }, filas, false)).toEqual({ tipo: 'sin-procesar', filas: [fila('r1', 1)] });
+    expect(queHaceSiguiente({ ...e, procesadas: ['r1'] }, filas, false)).toEqual({ tipo: 'sin-procesar', filas: [fila('r0', 0)] });
+    expect(queHaceSiguiente({ ...e, procesadas: ['r0'] }, filas, true)).toEqual({ tipo: 'seguir' });
+  });
+  it('siguiente frena SIEMPRE con una respuesta que frenó el candado de audio cruzado; no cuenta como contestada', () => {
+    let e = empezado();
+    e = { ...e, secuencia: avanzar(e.secuencia, proxima(e.secuencia)!, 1), preguntasEnviadas: { ...e.preguntasEnviadas, '1': '¿la casa?' } };
+    const conCruce = { ...e, bloqueadas: ['ajena'] };
+    expect(queHaceSiguiente(conCruce, [fila('ajena', 1)], false)).toEqual({ tipo: 'bloqueada', filas: [fila('ajena', 1)] });
+    expect(queHaceSiguiente(conCruce, [fila('ajena', 1)], true)).toMatchObject({ tipo: 'bloqueada' });
+    // Descartada (ya no está en la base): vuelve a esperar la respuesta de verdad.
+    expect(queHaceSiguiente(conCruce, [], false)).toEqual({ tipo: 'falta-respuesta', orden: 1 });
   });
 });
 
@@ -145,6 +173,14 @@ describe('lo que viaja a los prompts', () => {
       { pregunta: 'R1', respuesta: 'el patio' },
     ]);
     expect(conversacionDe(e, filas, 2)).toHaveLength(2);
+  });
+  it('la conversación no lleva lo que frenó el candado de audio cruzado', () => {
+    const e = { ...estadoNuevo({}, BA), preguntasEnviadas: { '1': 'P1' }, bloqueadas: ['ajena'] };
+    const filas = [
+      { id: 'ajena', pregunta_orden: 1, es_repregunta: false, transcripcion: 'lo de otra persona', texto_directo: null },
+      { id: 'buena', pregunta_orden: 1, es_repregunta: false, transcripcion: 'lo suyo', texto_directo: null },
+    ];
+    expect(conversacionDe(e, filas)).toEqual([{ pregunta: 'P1', respuesta: 'lo suyo' }]);
   });
   it('ya hechas: todas las enviadas menos la presentación, con las repreguntas', () => {
     const e = { ...estadoNuevo({}, BA), preguntasEnviadas: { '0': 'hola', '1': 'P1', '101': 'O1' }, repreguntasEnviadas: { '1': 'R1' } };
@@ -243,6 +279,6 @@ describe('los textos fijos para la persona', () => {
     expect(m.asunto).toContain('Naza');
     expect(m.cuerpo).toContain('¿Y tu viejo?');
     expect(m.cuerpo).toContain('no quiero seguir');
-    expect(m.cuerpo).toContain('pausado');
+    expect(m.cuerpo).toContain('en pausa');
   });
 });
