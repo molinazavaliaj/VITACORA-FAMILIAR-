@@ -36,7 +36,7 @@ La aprobación tarda de horas a días: **cargarlas cuanto antes**.
 Hola {{1}} 👋 Soy su biógrafo. {{2}} le hizo un regalo muy especial: vamos a escribir
 juntos el libro de su vida. Cada mañana le voy a mandar una pregunta, y usted me responde
 con un audio, como le cuenta las cosas a un amigo. Al final, su historia queda en un
-libro para su familia, y sus mejores frases quedan en su propia voz: recortes de estos
+libro para su familia, y sus mejores frases quedan tal cual las contó: recortes de estos
 mismos audios, para escucharlas cuando quieran. Al responder SÍ nos da permiso para
 guardar sus audios y usarlos así. ¿Empezamos? Responda SÍ y arrancamos mañana.
 
@@ -93,7 +93,7 @@ pilotos y la puerta manual.
 Hola {{1}} 👋 Soy tu biógrafo de viaje. Cada noche te voy a mandar una pregunta sobre el
 día, y vos me respondés con un audio, como le contás a un amigo. Mandame también la foto
 del día cuando te la pida, o cuando quieras. Al final, tu viaje queda en un libro, y tus
-mejores frases quedan en tu propia voz: recortes de estos mismos audios, para escucharlas
+mejores frases quedan tal cual las contaste: recortes de estos mismos audios, para escucharlas
 cuando quieras. Al responder SÍ nos das permiso para guardar tus audios y usarlos así.
 ¿Arrancamos? Respondé SÍ y empezamos esta noche.
 

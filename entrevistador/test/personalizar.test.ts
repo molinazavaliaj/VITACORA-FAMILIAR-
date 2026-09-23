@@ -47,7 +47,7 @@ vi.mock('../src/db/cliente.js', () => {
   return { db: { from: (tabla: string) => cadena(tabla) } };
 });
 
-const { esPersonalizacionValida, contarPreguntas, contarPalabras, personalizarPregunta, PROMPT_PERSONALIZAR } =
+const { esPersonalizacionValida, contarPreguntas, contarPalabras, personalizarPregunta, PROMPT_PERSONALIZAR, rompeElTrato, marcasDelTratoAjeno } =
   await import('../src/ia/personalizar.js');
 const { arbolEtiquetado, fichaEnTexto } = await import('../src/ia/ficha.js');
 
@@ -420,5 +420,43 @@ describe('el trato manda en el prompt de la pregunta del día', () => {
     const guardado = mocks.updates.filter((u) => u.tabla === 'narradores').at(-1);
     expect(guardado!.p.contexto.trato).toBe('vos');
     expect(guardado!.p.contexto.preguntasEnviadas['1']).toBe('¿Cómo era tu casa de Concordia?');
+  });
+});
+
+// ── C11: el trato mezclado (bitácora de Ciro, 23/09) ───────────────────────
+// El modelo escribe el enganche en vos —"Mirá, vos dijiste…"— y después copia
+// la cola del guion tal cual, que está en usted: "¿cómo conoció al amor de su
+// vida? Lléveme a ese día…". Media pregunta le habla de una manera y media de
+// otra. Medido sobre el material real de Ciro: 3 de 6 antes, 0 de 6 después.
+describe('rompeElTrato', () => {
+  it('caza la cola del guion copiada en usted a un narrador de vos', () => {
+    const real = 'Mirá, vos dijiste que en Buenos Aires los primeros meses fueron complicados. ¿Cómo conoció al amor de su vida? Lléveme a ese día.';
+    expect(rompeElTrato(real, 'vos')).toBe(true);
+    expect(marcasDelTratoAjeno(real, 'vos')).toContain('lleveme');
+  });
+
+  it('también sin acentos: el modelo escribe "Lleveme" tan seguido como "Lléveme"', () => {
+    expect(rompeElTrato('Mirá, contame. Lleveme a ese día.', 'vos')).toBe(true);
+  });
+
+  it('una pregunta entera en vos pasa limpia', () => {
+    expect(rompeElTrato('Mirá, vos que me contaste de la plaza, ¿cómo conociste al amor de tu vida? Llevame a ese día.', 'vos')).toBe(false);
+  });
+
+  it('el guion original, en usted, es CORRECTO para un narrador de usted', () => {
+    const delGuion = '¿Cómo conoció al amor de su vida? Lléveme a ese día: dónde fue, qué pensó cuando la vio.';
+    expect(rompeElTrato(delGuion, 'usted')).toBe(false);
+    expect(rompeElTrato(delGuion, 'vos')).toBe(true);
+  });
+
+  it('el vos metido en una pregunta de usted también rompe', () => {
+    expect(rompeElTrato('Cuénteme de su casa. Y contame qué olía.', 'usted')).toBe(true);
+    expect(marcasDelTratoAjeno('Mirá, ¿tenés algo de esa época?', 'usted').length).toBeGreaterThan(0);
+  });
+
+  it('el tú está mal en los dos tratos, y se distingue del vos por el acento', () => {
+    expect(rompeElTrato('Llévame a ese día.', 'vos')).toBe(true);   // tú
+    expect(rompeElTrato('Llevame a ese día.', 'vos')).toBe(false);  // vos
+    expect(rompeElTrato('Cuéntame de tu casa.', 'usted')).toBe(true);
   });
 });

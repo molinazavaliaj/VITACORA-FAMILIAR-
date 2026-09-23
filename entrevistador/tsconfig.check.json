@@ -1,0 +1,21 @@
+{
+  // El tsconfig de arriba es el de COMPILAR: mira solo `src`, porque es lo que
+  // se copia a `dist` para producción. El efecto secundario es que `tsc` nunca
+  // miró `scripts/` ni `test/`, y ahí se esconden los errores que nadie ve
+  // hasta que alguien corre el comando a mano.
+  //
+  // Pasó tres veces con la puerta manual (bitácora C8, 23/09): la última fue
+  // `3t.28`, que borró `src/ia/voz.ts` y dejó el import colgado en
+  // `scripts/manual.ts`. Cualquier comando de la puerta manual moría, con todo
+  // en verde y `tsc` limpio — y la puerta manual es con lo que entrevistamos a
+  // Imma y a Ciro, y el plan B cuando Meta rebota una plantilla.
+  //
+  // Este tsconfig no compila nada: solo mira. Lo corre `npm test`, para que no
+  // dependa de que alguien se acuerde.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "rootDir": "."
+  },
+  "include": ["src", "scripts", "test"]
+}

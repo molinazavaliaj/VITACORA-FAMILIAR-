@@ -158,8 +158,8 @@ export function bienvenida(
 ): string {
   const cuando = enseguida ? '' : ' mañana';
   return trato === 'vos'
-    ? `Hola ${comoLeDicen} 👋 Soy tu biógrafo. ${quienRegala} te hizo un regalo muy especial: vamos a escribir juntos el libro de tu vida. Cada mañana te voy a mandar una pregunta, y vos me respondés con un audio, como le contás las cosas a un amigo. Al final, tu historia queda en un libro para tu familia, y tus mejores frases quedan en tu propia voz: recortes de estos mismos audios, para escucharlas cuando quieran. Al responder SÍ nos das permiso para guardar tus audios y usarlos así. ¿Empezamos? Respondé SÍ y arrancamos${cuando}.`
-    : `Hola ${comoLeDicen} 👋 Soy su biógrafo. ${quienRegala} le hizo un regalo muy especial: vamos a escribir juntos el libro de su vida. Cada mañana le voy a mandar una pregunta, y usted me responde con un audio, como le cuenta las cosas a un amigo. Al final, su historia queda en un libro para su familia, y sus mejores frases quedan en su propia voz: recortes de estos mismos audios, para escucharlas cuando quieran. Al responder SÍ nos da permiso para guardar sus audios y usarlos así. ¿Empezamos? Responda SÍ y arrancamos${cuando}.`;
+    ? `Hola ${comoLeDicen} 👋 Soy tu biógrafo. ${quienRegala} te hizo un regalo muy especial: vamos a escribir juntos el libro de tu vida. Cada mañana te voy a mandar una pregunta, y vos me respondés con un audio, como le contás las cosas a un amigo. Al final, tu historia queda en un libro para tu familia, y tus mejores frases quedan tal cual las contaste: recortes de estos mismos audios, para escucharlas cuando quieran. Al responder SÍ nos das permiso para guardar tus audios y usarlos así. ¿Empezamos? Respondé SÍ y arrancamos${cuando}.`
+    : `Hola ${comoLeDicen} 👋 Soy su biógrafo. ${quienRegala} le hizo un regalo muy especial: vamos a escribir juntos el libro de su vida. Cada mañana le voy a mandar una pregunta, y usted me responde con un audio, como le cuenta las cosas a un amigo. Al final, su historia queda en un libro para su familia, y sus mejores frases quedan tal cual las contó: recortes de estos mismos audios, para escucharlas cuando quieran. Al responder SÍ nos da permiso para guardar sus audios y usarlos así. ¿Empezamos? Responda SÍ y arrancamos${cuando}.`;
 }
 
 /**
@@ -169,7 +169,7 @@ export function bienvenida(
  */
 export function bienvenidaViaje(comoLeDicen: string, { enseguida = false } = {}): string {
   const cuando = enseguida ? 'ya' : 'esta noche';
-  return `Hola ${comoLeDicen} 👋 Soy tu biógrafo de viaje. Cada noche te voy a mandar una pregunta sobre el día, y vos me respondés con un audio, como le contás a un amigo. Mandame también la foto del día cuando te la pida, o cuando quieras. Al final, tu viaje queda en un libro, y tus mejores frases quedan en tu propia voz: recortes de estos mismos audios, para escucharlas cuando quieras. Al responder SÍ nos das permiso para guardar tus audios y usarlos así. ¿Arrancamos? Respondé SÍ y empezamos ${cuando}.`;
+  return `Hola ${comoLeDicen} 👋 Soy tu biógrafo de viaje. Cada noche te voy a mandar una pregunta sobre el día, y vos me respondés con un audio, como le contás a un amigo. Mandame también la foto del día cuando te la pida, o cuando quieras. Al final, tu viaje queda en un libro, y tus mejores frases quedan tal cual las contaste: recortes de estos mismos audios, para escucharlas cuando quieras. Al responder SÍ nos das permiso para guardar tus audios y usarlos así. ¿Arrancamos? Respondé SÍ y empezamos ${cuando}.`;
 }
 
 /** Lo que recibe cuando dice que SÍ. Único hogar del texto: `src/flujo/procesar.ts` lo importa de acá. */
@@ -345,4 +345,27 @@ export function textoObjetoRecibido(trato: Trato, conHistoria: boolean): string 
   return trato === 'vos'
     ? '📷 Qué bueno. Queda guardada en tu libro.'
     : '📷 Qué bueno. Queda guardada en su libro.';
+}
+
+/**
+ * Cuando el invitado escribe algo que no entendimos (23/09).
+ *
+ * Antes el bot se quedaba mudo: la persona leía la bienvenida, contestaba
+ * "dale" o "listo", y del otro lado no pasaba nada. Nadie insiste con algo que
+ * no le contesta, así que ese silencio costaba el narrador entero.
+ *
+ * Se manda UNA sola vez. Insistirle a quien no quiere participar sería peor
+ * que no haber preguntado.
+ */
+export function noEntendi(trato: Trato = 'usted'): string {
+  return trato === 'vos'
+    ? 'Perdón, no te entendí 🙈 Para arrancar necesito que me escribas SÍ. ¿Vamos?'
+    : 'Perdón, no le entendí 🙈 Para arrancar necesito que me escriba SÍ. ¿Vamos?';
+}
+
+/** Dijo que no, o que ahora no. Se le deja la puerta abierta y no se insiste. */
+export function noQuiereTodavia(comoLeDicen: string, trato: Trato = 'usted'): string {
+  return trato === 'vos'
+    ? `Sin problema, ${comoLeDicen}. Cuando tengas ganas me escribís SÍ y arrancamos. Acá voy a estar.`
+    : `Sin problema, ${comoLeDicen}. Cuando tenga ganas me escribe SÍ y arrancamos. Acá voy a estar.`;
 }
