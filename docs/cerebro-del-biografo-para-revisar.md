@@ -72,11 +72,24 @@ Las 14 reglas ("no supongas boda, hijos ni nietos", "no des por sentado que la i
 linda", "respetá el parentesco"…) se fueron agregando **una por cada error encontrado**. Son 14
 parches peleando contra la instrucción principal, que sigue diciendo *"agregá detalles"*.
 
-**El caso que lo muestra mejor** es C6 (la ciudad equivocada). Ahí el biógrafo **tenía todo el
-material** —sabía que Ciro se fue a Buenos Aires a los 12— y aun así preguntó por las salidas
-"en Concordia", 3 de 3 veces. No falló por falta de contexto: le pedimos que sea concreto y
-nombre lugares, y **nadie le dijo que un recuerdo puede pasar en otro lugar que el habitual de
-esa persona**. Pedimos concreción y dio concreción equivocada.
+**C6 (la ciudad equivocada) NO es un ejemplo del encargo: es de entrada.** *(Corregido el 23/09
+con el dato de Joaquín — la versión anterior decía que el biógrafo "tenía todo el material".)*
+No lo tenía. La ciudad equivocada ya estaba escrita como un hecho en el resumen del capítulo, y
+ese resumen se escribía leyendo las respuestas **sin las preguntas**: media conversación. Buenos
+Aires solo existía en nuestra pregunta 8, que nunca le mandábamos. El modelo no eligió mal entre
+dos ciudades: solo tenía una.
+
+Lo midió Joaquín, y es el mejor dato que tenemos sobre los parches:
+
+| | Ataban el recuerdo a la ciudad equivocada |
+|---|---|
+| Antes | 2 de 3 |
+| Con una regla nueva ("los lugares tienen época", con ejemplo) | 4 de 6 — **cero mejora** |
+| Mandándole la pregunta junto a la respuesta | **0 de 6** |
+
+La regla 15 no hizo nada; arreglar la entrada lo resolvió. Joaquín la sacó en vez de dejarla
+"por las dudas": un prompt con reglas que no se ganan el lugar se diluye. (Arreglado en `main`,
+`3402c7f`.)
 
 **Dato que sorprende:** el biógrafo reescribe el **100 %** de las preguntas (14 de 14 con Ciro,
 21 de 21 con Joaquín). No es que se saltee el paso. Es que el paso está mal definido.
@@ -103,15 +116,14 @@ Es el prompt más parcheado de todos: **19 commits**.
 Lee la historia completa y escribe las últimas 4 a medida. Es el único paso que recibe todo y
 que puede preguntar de verdad lo que falta.
 
-### 5. Las ocho preguntas de objeto (sin modelo — salen literales)
+### 5. Las ocho preguntas de objeto (pasan por el modelo, con red)
 
-Las de «Sus objetos preciados» llevan `tipo = 'objeto'`, y el código solo reescribe las de tipo
-`fija`. **Salen tal como están escritas en la migración, sin pasar por ningún modelo.** Por eso
-la de «El amor» ("esos primeros años juntos") importaba: le iba a llegar así a alguien que quizá
-nunca tuvo pareja.
-
-**La pregunta para la reunión:** ¿queremos que haya preguntas que no pasan por el biógrafo?
-Si sí, cada una tiene que estar escrita para servirle a cualquiera, que es justo lo difícil.
+*(Corregido el 23/09 por Joaquín: la versión anterior decía que salían literales.)* No van por
+`enviarPregunta` —donde está el filtro `tipo === 'fija'`— sino por `pedirObjeto`, que llama a
+`personalizarPregunta` con una red: si el texto que vuelve se olvidó de pedir la foto, va el
+original. **La pregunta de fondo sigue para ese caso de respaldo:** el original tiene que
+servirle a cualquiera. Hoy no: la 106 da por hecho que tiene hijos, y las ocho (como las 26) están
+en masculino — a Dora y a Immaculada les llegarían "cuando era chico".
 
 ---
 
@@ -130,6 +142,20 @@ En la fábrica, y tocan el producto final tanto como los de arriba:
 
 ---
 
+## Tres ejes, no uno (propuesta de Joaquín, 23/09)
+
+El documento discutía el **encargo**. Pero los errores graves de esta semana no se arreglaron
+tocando el encargo:
+
+| Eje | Qué es | Casos |
+|---|---|---|
+| **Encargo** | qué le pedimos | decorar la pregunta en vez de juzgarla |
+| **Entrada** | qué le damos | C6 (el resumen sin las preguntas), el libro que repite (cada capítulo con la historia entera: 17,3 % → 1,1 % repartiendo el material, sin tocar una regla), el perfil del narrador (edad, cómo habla, dónde vivía) |
+| **Control** | qué revisamos de lo que devuelve | C11 (el prompt decía "tratalo de vos" y el modelo obedecía la mitad de las veces: faltaba alguien que mirara la salida, no una instrucción). Hoy el único control sobre la pregunta del día es contar signos de pregunta. |
+
+Joaquín: *"antes de reescribir el encargo yo arreglaría las entradas, porque es más barato y ya
+demostró dar más. Los dos arreglos de hoy costaron cero dólares por libro."*
+
 ## Las tres preguntas con las que empezaría la reunión
 
 1. **¿Cuál es el trabajo del biógrafo?** Hoy: *"agregá detalles a esta pregunta"*. ¿Debería ser
@@ -141,6 +167,16 @@ En la fábrica, y tocan el producto final tanto como los de arriba:
    termina impreso. Tratar de usted a alguien de 28 rompe el vínculo. Preguntar por las fiestas
    a quien tuvo una infancia dura hace daño. No todos pesan igual, y hoy los 14 renglones del
    prompt pesan lo mismo.
+
+4. **Los seis prompts de la fábrica escriben el libro** (agregada por Joaquín). Nosotros
+   discutimos cómo preguntamos; ellos deciden cómo queda escrita la vida de una persona. Si la
+   reunión es de los tres, esa mitad tiene que estar en la mesa.
+
+Sus respuestas a las tres: el encargo, de acuerdo, pero primero entradas; el dinero, 68 centavos
+no le hace ruido pero hoy no hay evidencia de que el modelo sea el problema — medir con
+`prueba-cerebro` antes de decidir; lo grave es lo que termina impreso o rompe el vínculo (la
+ciudad equivocada viaja al papel, el trato mezclado hace sentir que le escribe otro, preguntar
+por fiestas a quien tuvo una infancia dura lastima); lo demás es tono.
 
 ## Cómo se mide si mejoró
 
