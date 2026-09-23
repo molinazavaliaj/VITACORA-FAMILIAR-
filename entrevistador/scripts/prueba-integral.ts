@@ -13,11 +13,17 @@
  *
  * El libro (reparto del material) ya se probó y midió aparte: fabrica/scripts/prueba-reparto.ts.
  *
- * Uso:  npx tsx scripts/prueba-integral.ts [--solo ciro] [--salida <carpeta>]
- * Costo estimado (Opus): ~USD 0,025 por respuesta para el perfil (devuelve solo lo que cambió)
- * + ~USD 0,03 por pregunta.
+ * Uso:  npx tsx scripts/prueba-integral.ts [--solo ciro] [--salida <carpeta>] [--reusar-perfil]
+ * Costo (Opus 5; medido en consumo_ia el 23/09: una evaluación sale USD 0,027 con ~3.700 tokens de
+ * entrada y ~325 de salida, pensamiento incluido): ~USD 0,03 por respuesta para el perfil y ~0,03
+ * por pregunta → ~USD 4 para los tres narradores.
+ *
+ * Si se corta a mitad de camino (la API, el crédito), lo ya hecho no se pierde: el perfil de cada
+ * narrador queda en <carpeta>/<quien>-perfiles.json apenas termina el paso 1, y con --reusar-perfil
+ * la próxima corrida lo lee de ahí y no lo vuelve a pagar. Un narrador que falla no frena a los
+ * otros: se anota en el resumen y el script termina con código 1.
  */
-import { readFileSync, mkdirSync, writeFileSync } from 'node:fs';
+import { readFileSync, mkdirSync, writeFileSync, existsSync } from 'node:fs';
 import { resolve, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import Anthropic from '@anthropic-ai/sdk';
@@ -45,7 +51,10 @@ const salida = resolve(valor('--salida') ?? 'prueba-integral');
 // El audio de Ciro que quedó en la orden 27 de Joaquín (bitácora 43): no es de él.
 const EXCLUIDAS = new Set(['b3bd57db-a5f9-47e2-b638-8615bcb23566']);
 const NARRADORES = (valor('--solo') ? [valor('--solo')!] : ['ciro', 'joaquin', 'don osvaldo']);
-const NUCLEO_A_PROBAR = ['juegos', 'amor', 'un-dia-de-hoy', 'mensaje'];
+const reusarPerfil = args.includes('--reusar-perfil');
+// El primer mensaje ('casa-infancia') se escribe con la ficha VACÍA y sin conversación: es el caso
+// real (la edad y el vos/usted todavía no se saben), y es el mensaje que decide si contesta.
+const NUCLEO_A_PROBAR = ['casa-infancia', 'juegos', 'amor', 'un-dia-de-hoy', 'mensaje'];
 
 /** Palabras que suponen una vida: si aparecen en la pregunta y el perfil no las respalda, se marcan. */
 const SUPUESTOS: [RegExp, RegExp][] = [
@@ -58,14 +67,17 @@ const SUPUESTOS: [RegExp, RegExp][] = [
 mkdirSync(salida, { recursive: true });
 const { data: narradores } = await db.from('narradores').select('id, como_le_dicen, contexto');
 let gasto = 0;
+let fallo = false;
 const resumen: string[] = ['# Prueba integral del biógrafo v2', ''];
 
 for (const quien of NARRADORES) {
   const n = (narradores ?? []).find((x) => (x.como_le_dicen ?? '').toLowerCase() === quien);
   if (!n) { resumen.push(`- ⚠ no encontré a ${quien}`); continue; }
   const contexto = (n.contexto ?? {}) as Record<string, any>;
-  const { data: preguntas } = await db.from('preguntas').select('orden, texto').or(`narrador_id.eq.${n.id},narrador_id.is.null`);
-  const guion = new Map((preguntas ?? []).map((p) => [p.orden, p.texto as string]));
+  const { data: preguntas } = await db.from('preguntas').select('narrador_id, orden, texto').or(`narrador_id.eq.${n.id},narrador_id.is.null`);
+  // Las propias del narrador pisan a las de la plantilla (mismo orden): primero las globales.
+  const guion = new Map([...(preguntas ?? [])].sort((a, b) => Number(Boolean(a.narrador_id)) - Number(Boolean(b.narrador_id))).map((p) => [p.orden, p.texto as string]));
+  const evitar: string[] = typeof contexto.evitar === 'string' && contexto.evitar.trim() ? [contexto.evitar.trim()] : [];
   const { data: respuestas } = await db.from('respuestas')
     .select('id, pregunta_orden, transcripcion, texto_directo, es_repregunta, recibido_at')
     .eq('narrador_id', n.id).order('recibido_at');
@@ -77,19 +89,33 @@ for (const quien of NARRADORES) {
       respuesta: (r.transcripcion || r.texto_directo) as string,
     }));
 
-  // 1. El perfil, sin ficha.
+  const archivo = quien.replace(/\s+/g, '-');
+  const rutaPerfiles = join(salida, `${archivo}-perfiles.json`);
   let perfil: Perfil = perfilVacio();
   const perfilAntes: Perfil[] = [];
-  for (const [i, par] of pares.entries()) {
-    perfilAntes.push(perfil);
-    const r = await actualizarPerfil(cliente, perfil, null, par.pregunta, par.respuesta);
-    perfil = r.perfil;
-    gasto += USD(r.usage);
-    console.log(`${n.como_le_dicen}: perfil ${i + 1}/${pares.length}${r.ok ? '' : ' ⚠ salida ilegible'} · USD ${gasto.toFixed(2)}`);
+  const escritas: { objetivo: string; texto: string; ok: boolean; marcas: string[] }[] = [];
+  const casos: string[] = [];
+  let plan: ReturnType<typeof planificar> = { ok: false, falta: 'edad' };
+  try {
+  // 1. El perfil, sin ficha (o el de la corrida anterior, con --reusar-perfil).
+  const guardados = reusarPerfil && existsSync(rutaPerfiles) ? JSON.parse(readFileSync(rutaPerfiles, 'utf8')) as { antes: Perfil[]; final: Perfil } : null;
+  if (guardados && guardados.antes.length === pares.length) {
+    perfilAntes.push(...guardados.antes);
+    perfil = guardados.final;
+    console.log(`${n.como_le_dicen}: perfil reusado de ${rutaPerfiles}`);
+  } else {
+    for (const [i, par] of pares.entries()) {
+      perfilAntes.push(perfil);
+      const r = await actualizarPerfil(cliente, perfil, null, par.pregunta, par.respuesta);
+      perfil = r.perfil;
+      gasto += USD(r.usage);
+      console.log(`${n.como_le_dicen}: perfil ${i + 1}/${pares.length}${r.ok ? '' : ' ⚠ salida ilegible'} · USD ${gasto.toFixed(2)}`);
+    }
+    writeFileSync(rutaPerfiles, JSON.stringify({ antes: perfilAntes, final: perfil }, null, 1));
   }
 
   // 2. El reparto de variables.
-  const plan = planificar(perfil, NUCLEO, 11);
+  plan = planificar(perfil, NUCLEO, 11);
 
   // 3. Las preguntas v2.
   const objetivos: Objetivo[] = [
@@ -98,15 +124,17 @@ for (const quien of NARRADORES) {
   ];
   const conversacion = pares.slice(-6);
   const yaHechas: string[] = pares.map((p) => p.pregunta);
-  const escritas: { objetivo: string; texto: string; ok: boolean; marcas: string[] }[] = [];
   for (const o of objetivos) {
-    const r = await escribirPregunta(cliente, perfil, o, conversacion, yaHechas);
+    const esPrimerMensaje = o.tipo === 'nucleo' && o.id === 'casa-infancia';
+    const r = esPrimerMensaje
+      ? await escribirPregunta(cliente, perfilVacio(), o, [], [], [])
+      : await escribirPregunta(cliente, perfil, o, conversacion, yaHechas, evitar);
     for (const u of r.usos) gasto += USD(u);
     const perfilTexto = JSON.stringify(perfil);
     const marcas = SUPUESTOS.filter(([enPregunta, enPerfil]) => enPregunta.test(r.texto) && !enPerfil.test(perfilTexto)).map(([re]) => `supone: ${re.source}`);
     if (!r.ok) marcas.push(`control: ${r.motivo}`);
-    escritas.push({ objetivo: o.tipo === 'nucleo' ? o.id : `${o.tramo} (${o.desde}-${o.hasta})`, texto: r.texto, ok: r.ok, marcas });
-    yaHechas.push(r.texto);
+    escritas.push({ objetivo: o.tipo === 'nucleo' ? `${o.id}${esPrimerMensaje ? ' (ficha vacía, primer mensaje)' : ''}` : `${o.tramo} (${o.desde}-${o.hasta})`, texto: r.texto, ok: r.ok, marcas });
+    if (!esPrimerMensaje) yaHechas.push(r.texto);
     console.log(`${n.como_le_dicen}: pregunta ${escritas.length}/${objetivos.length} · USD ${gasto.toFixed(2)}`);
   }
 
@@ -119,7 +147,6 @@ for (const quien of NARRADORES) {
     { id: 'C1', titulo: '¿repregunta lo que ya contó?', es: (r: string) => r.startsWith('Sinceramente, en esta pregunta no te puedo ayudar') },
     { id: 'C4', titulo: '¿insiste donde pidió cambiar de tema?', es: (r: string) => /vamos por otro lado/i.test(r) },
   ];
-  const casos: string[] = [];
   for (const caso of CASOS) {
     const i = pares.findIndex((p) => caso.es(p.respuesta));
     if (i < 0) continue;
@@ -130,6 +157,7 @@ for (const quien of NARRADORES) {
     });
     gasto += USD(hoy.usage);
     const bloqueHoy = hoy.content.find((b) => b.type === 'text');
+    // Sin `evitar`: el caso mide si la v2 lo detecta sola, como el día que pasó.
     const v2 = await evaluarV2(cliente, perfilAntes[i], pares[i].pregunta, pares[i].respuesta, 40, pares.slice(Math.max(0, i - 6), i), []);
     for (const u of v2.usos) gasto += USD(u);
     casos.push(
@@ -140,8 +168,15 @@ for (const quien of NARRADORES) {
     );
   }
 
+  } catch (err) {
+    const motivo = err instanceof Error ? err.message : String(err);
+    console.error(`${n.como_le_dicen}: ⚠ se cortó: ${motivo}`);
+    resumen.push(`- ⚠ **${n.como_le_dicen}** se cortó (${motivo.slice(0, 120)}): quedó lo hecho hasta ahí; con --reusar-perfil no se paga de nuevo el perfil.`);
+    fallo = true;
+  }
+
   const informe = [
-    `# ${n.como_le_dicen} — ${pares.length} respuestas, sin ficha`, '',
+    `# ${n.como_le_dicen} — ${pares.length} respuestas, sin ficha${evitar.length ? ` · temas que pidió dejar: ${evitar.join('; ')}` : ''}`, '',
     ...casos,
     '## Quién es, según el biógrafo', '', perfilEnTexto(perfil), '',
     '## Reparto de variables', '',
@@ -149,8 +184,8 @@ for (const quien of NARRADORES) {
     '## Las preguntas que le haría', '',
     ...escritas.map((e) => `**${e.objetivo}**${e.marcas.length ? ` ⚠ ${e.marcas.join(' · ')}` : ''}\n> ${e.texto}\n`),
   ].join('\n');
-  writeFileSync(join(salida, `${quien.replace(/\s+/g, '-')}.md`), informe);
-  writeFileSync(join(salida, `${quien.replace(/\s+/g, '-')}-perfil.json`), JSON.stringify(perfil, null, 2));
+  writeFileSync(join(salida, `${archivo}.md`), informe);
+  writeFileSync(join(salida, `${archivo}-perfil.json`), JSON.stringify(perfil, null, 2));
   const marcadas = escritas.filter((e) => e.marcas.length).length;
   resumen.push(`- **${n.como_le_dicen}**: ${pares.length} respuestas · ${escritas.length} preguntas · ${marcadas} con marca · ${plan.ok ? 'planificó' : `no planificó (${plan.falta})`}`);
 }
@@ -158,3 +193,4 @@ for (const quien of NARRADORES) {
 resumen.push('', `**Gasto:** USD ${gasto.toFixed(2)}`);
 writeFileSync(join(salida, 'resumen.md'), resumen.join('\n'));
 console.log(`\n${resumen.join('\n')}\n\nTodo en ${salida}`);
+process.exit(fallo ? 1 : 0);
