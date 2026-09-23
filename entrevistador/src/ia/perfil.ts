@@ -167,6 +167,9 @@ Anotá en tu ficha lo que aprendiste hoy. Reglas:
 7. "tono": cómo fue esta vida hasta donde sabés, en una o dos líneas, sin adornar. Si hubo
    una infancia dura, decilo; si no sabés, dejalo vacío.
 8. Lo que ya sabías queda: solo se corrige si hoy lo corrigió la persona.
+9. Las bisagras (lo que partió su vida en un antes y un después) empiezan con la edad que
+   tenía, aunque sea aproximada: "A los 12 se fue a vivir con el padre a Buenos Aires". Si no
+   hay forma de saber la edad, sin número.
 
 Devolvé SOLO LO QUE CAMBIÓ, en JSON, usando solo las claves que hagan falta:
 {"persona":{"edad":D,"genero":D,"comoHabla":D,"anioNacimiento":D,"dondeViveHoy":D},
@@ -174,7 +177,7 @@ Devolvé SOLO LO QUE CAMBIÓ, en JSON, usando solo las claves que hagan falta:
  "corregirEtapas":[{"i":0,"lugar":"..."}],
  "agregarPersonas":[{"nombre":"","vinculo":"","vive":"si|no|no se sabe","fuente":"","nota":""}],
  "corregirPersonas":[{"i":0,"vive":"si","nota":"..."}],
- "agregarBisagras":[""],"tono":"(solo si cambió)",
+ "agregarBisagras":["A los 12 se fue a vivir con el padre a Buenos Aires"],"tono":"(solo si cambió)",
  "resueltos":["(el texto de noSabemos que hoy se resolvió, tal cual)"],"agregarNoSabemos":[""]}
 donde D es {"valor":"","fuente":"dicho|ficha|deducido","por":""}. Si hoy no aprendiste nada
 nuevo, devolvé {}.`;

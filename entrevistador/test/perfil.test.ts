@@ -102,4 +102,10 @@ describe('armarPromptPerfil', () => {
     expect(prompt).toContain('Una mierda, amigo.');
     expect(prompt).toContain('SOLO LO QUE CAMBIÓ');
   });
+
+  it('pide las bisagras con la edad adelante ("A los N…"): es lo único que el reparto de preguntas sabe ubicar en un tramo', () => {
+    const prompt = armarPromptPerfil(base(), null, '¿?', '…');
+    expect(prompt).toMatch(/bisagras[\s\S]*empiezan con la edad/);
+    expect(prompt).toContain('"agregarBisagras":["A los 12');
+  });
 });
