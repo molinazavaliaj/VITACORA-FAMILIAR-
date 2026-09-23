@@ -39,6 +39,12 @@ describe("la pantalla de «Su voz», con el portón de imprenta", () => {
     expect(html).not.toContain("El libro impreso sale recién");
   });
 
+  // "producción" es palabra nuestra, no de una familia (lo pidió Naza, 23/09).
+  it("los textos hablan de imprimir, no de «producción»", () => {
+    expect(render()).not.toContain("producción");
+    expect(render({ confirmadoAt: "2026-09-20T10:00:00Z" })).not.toContain("producción");
+  });
+
   it("el cartel de aviso no aparece solo: se abre con el botón", () => {
     expect(render()).not.toContain("Esto va a la imprenta");
     expect(render()).toContain("Dar por buena la selección");

@@ -98,7 +98,7 @@ export function SelectorDeFrases({
         setError(datos.error ?? "No pudimos guardar. Intenta de nuevo.");
         return;
       }
-      setAviso(confirmar ? "Confirmada. El libro entra en producción con esta selección." : "Guardado. Podés seguir cambiando cuando quieras.");
+      setAviso(confirmar ? "Confirmada. El libro se manda a imprimir con esta selección." : "Guardado. Podés seguir cambiando cuando quieras.");
       router.refresh();
     } catch {
       setError("No pudimos guardar. Intenta de nuevo.");
@@ -244,7 +244,7 @@ export function SelectorDeFrases({
           >
             <h2 id="titulo-imprenta" className="text-[20px] leading-tight [font-family:var(--fuente-titulo)]">Esto va a la imprenta</h2>
             <p className="mt-3 text-[15px] leading-relaxed text-[var(--texto-suave)]">
-              Al confirmar, el libro entra en producción tal como está ahora. Dale una última mirada a
+              Al confirmar, el libro se manda a imprimir tal como está ahora. Dale una última mirada a
               <strong className="font-medium text-[var(--texto)]"> los nombres</strong>,
               <strong className="font-medium text-[var(--texto)]"> el orden de los capítulos</strong> y
               <strong className="font-medium text-[var(--texto)]"> estas frases</strong>: se imprime en papel y de ahí no tiene vuelta.
