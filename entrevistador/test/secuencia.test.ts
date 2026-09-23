@@ -66,6 +66,23 @@ describe('aplicarPerfil', () => {
     expect(ids(s)).not.toContain('amigos');
     expect(s.cubiertos).toEqual(['amigos']);
     expect(s.pendientes.filter((o) => o.tipo === 'variable')).toHaveLength(vars.length + 1);
+    // "amigos" no tiene tramo propio (diseño §2.3): sin ese dato en el perfil, el default es
+    // adulto joven, así que la variable que la reemplaza cae ahí.
+    const nueva = s.pendientes.find((o) => o.id === 'var-adulto joven-2');
+    expect(nueva).toMatchObject({ tramo: 'adulto joven', desde: 23, hasta: 35 });
+  });
+
+  it('el techo de variables se respeta: un plan con 15 variables y 5 temas cubiertos termina con hasta 19', () => {
+    const muchasVars: Variable[] = (['infancia', 'juventud', 'adulto joven', 'adultez media', 'segunda mitad'] as const)
+      .flatMap((tramo) => [1, 2, 3].map(() => ({ tramo, desde: 0, hasta: 99, anclas: [] })));
+    expect(muchasVars).toHaveLength(15);
+    let s = armarSecuencia(muchasVars);
+    const p = perfilVacio();
+    p.cubiertos = ['padres', 'con-quien-crecio', 'juegos', 'a-los-quince', 'primer-trabajo'];
+    s = aplicarPerfil(s, p);
+    const totalVariables = s.pendientes.filter((o) => o.tipo === 'variable').length;
+    expect(totalVariables).toBeLessThanOrEqual(19);
+    expect(totalVariables).toBe(19); // 15 + 4 de los 5 cubiertos: el quinto ya no entra bajo el techo.
   });
 
   it('nunca se cae una hecha, ni los cuatro primeros, ni la reflexión', () => {
@@ -96,9 +113,29 @@ describe('objetos', () => {
     for (let i = 0; i < MAX_OBJETOS; i++) s = registrarObjeto(s, 'infancia', 101 + i);
     expect(tocaObjeto(s, proxima(s)!, false)).toBeNull();
   });
-  it('al terminar, si quedan objetos, toca uno final', () => {
+
+  it('una puerta abierta a mitad de un tramo no dispara el objeto antes de tiempo (revisión ronda 1)', () => {
+    let s = armarSecuencia(vars);
+    for (let i = 0; i < 4; i++) s = avanzar(s, proxima(s)!, i);        // inicio hecho
+    // La puerta manda a "amor" (adulto joven) en plena infancia: todavía quedan padres,
+    // con-quien-crecio, juegos y var-infancia-1 pendientes, la infancia no se cerró.
+    const p = perfilVacio(); p.puertaAbierta = 'amor';
+    s = aplicarPerfil(s, p);
+    expect(proxima(s)?.id).toBe('amor');
+    s = avanzar(s, proxima(s)!, 10);
+    expect(tocaObjeto(s, proxima(s)!, false)).toBeNull();               // ni el de adulto joven (sigue abierto)
+    expect(proxima(s)?.id).toBe('padres');                              // vuelve a la infancia
+    s = avanzar(s, proxima(s)!, 11);
+    expect(tocaObjeto(s, proxima(s)!, false)).toBeNull();                // tampoco al volver: la infancia sigue sin cerrarse
+  });
+
+  it('al terminar, si el último tramo con objeto pendiente ya lo usó, igual toca uno final', () => {
     let s = armarSecuencia([]);
     while (proxima(s)) s = avanzar(s, proxima(s)!, 1);
-    expect(tocaObjeto(s, null as never, false)).toBe('hoy');
+    expect(tocaObjeto(s, null, false)).toBe('hoy');
+    s = registrarObjeto(s, 'hoy', 101);                 // el objeto normal de "hoy"
+    expect(tocaObjeto(s, null, false)).toBe('hoy');      // el final es otra cosa: no se lo come
+    s = registrarObjeto(s, 'hoy', 102, true);           // se registra como el final
+    expect(tocaObjeto(s, null, false)).toBeNull();        // y no vuelve a tocar
   });
 });
