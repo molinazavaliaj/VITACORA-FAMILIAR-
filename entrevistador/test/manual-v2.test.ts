@@ -345,10 +345,14 @@ describe('manual-v2 de punta a punta (base y modelo falsos)', () => {
     expect(v2().sinRepreguntarHasta).toBeTruthy();
   });
 
-  it('hasta el final: los objetos como segundo mensaje, el objeto final y la despedida; queda completado', async () => {
+  it('hasta el final: los objetos como segundo mensaje, el objeto final y la despedida; queda terminada en contexto.v2 y NO completado en la base', async () => {
     let ultimo = { texto: '', fallo: false };
-    for (let i = 0; i < 60 && naza().estado !== 'completado'; i++) ultimo = await correr('siguiente', 'pruebav2', '--saltar');
-    expect(naza().estado).toBe('completado');
+    for (let i = 0; i < 60 && !v2().terminada; i++) ultimo = await correr('siguiente', 'pruebav2', '--saltar');
+    expect(v2().terminada).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    // 'completado' haría que la fábrica de producción armara la estructura v1 y mandara el mail "terminó".
+    expect(naza().estado).toBe('pausado');
+    const otraVez = await correr('siguiente', 'pruebav2');
+    expect(otraVez.texto).toMatch(/ya terminó/);
     expect(ultimo.texto).toMatch(/Objeto final/);
     expect(ultimo.texto.trim().endsWith('Una vida entera, charla por charla. Fue un honor enorme escuchar tu historia, y ya la estamos convirtiendo en tu libro.')).toBe(true);
     const objetos = v2().secuencia.objetos;

@@ -76,13 +76,12 @@ npx tsx scripts/prueba-integral.ts
 
 ## Qué aprueba Naza antes de correr nada
 
-`docs/biografo-v2-textos-para-aprobar.md` — se genera con un script de una vez (no se commitea)
-que junta: los 22 temas de `NUCLEO`, el encargo (`encargoDelBiografo`, con un perfil vacío y uno
-con vos/mujer), el prompt de la pregunta y el de la evaluación, el prompt del perfil, el del
-lector, y el mail de revisión. Ese archivo todavía no existe en este commit — lo genera el
-controlador del plan al cerrarlo (paso 2 de la verificación final), junto con los textos que ya
-quedaron pegados en los reportes de las tareas 3, 5, 7 y 8 (la despedida v2, "hoy no puedo", "no
-quiero seguir", el mail a los socios cuando pide parar).
+`docs/biografo-v2-textos-para-aprobar.md` — **ya existe** (lo generó la revisión del 24/09 desde el
+código): los 22 temas de `NUCLEO`, el encargo de la entrevista (ficha vacía y una mujer de 76 con
+vos), los prompts de la pregunta, la evaluación y la ficha, los textos fijos (hoy no, no quiero
+seguir, la despedida, el mail cuando pide parar), y del lado del libro el encargo, el capítulo, las
+etapas, el reparto, las páginas, el anticipo, el lector y el mail de revisión. Se aprueba ANTES del
+piloto: lo que cambie se cambia en el código con su test.
 
 ## Costo
 
@@ -128,6 +127,37 @@ la memoria del proyecto).
   plantilla (falla por el teléfono falso, pero antes gasta ~USD 0,03 y puede pisar `contexto.v2`
   si coincide con un `cargar`/`siguiente` en el mismo instante). Mejor evitar la ventana, o correr
   el piloto con el scheduler apagado.
+
+## Revisión de la rama (segunda pasada, 24/09)
+
+Hecha en otro chat, con ojos de revisor, sobre los 20 commits (`4a1f422..05129f7`). Tests al
+revisar: entrevistador 550 → **552** (39 archivos), fábrica **537** (49), tipos limpios en las dos
+piezas y en los scripts. Tres arreglos, con test:
+
+| Qué | Dónde | Por qué importaba |
+|---|---|---|
+| Terminar ya no pone `completado` en la base: queda `pausado` y `contexto.v2.terminada` | `manual-v2.ts`, `estado-v2.ts` | `fabrica/src/worker.ts:37` arma la estructura v1 (llamada paga con el guion viejo) y manda el mail "terminó" a la familia apenas ve un `completado` |
+| La conversación que ve el modelo va por `recibido_at`, no por número de pregunta | `estado-v2.ts` (`conversacionDe`) | los objetos van en 101+: ordenados por número, después de tres objetos "lo último que hablaron" eran siempre las fotos y nunca la pregunta de ayer |
+| Una etapa a medio llenar de la ficha (el oficio) no ensucia el prompt | `encargo-entrevista.ts` (`etapaEnTexto`) | el prompt decía "- : ; con no se sabe; costurera" |
+
+Y `docs/biografo-v2-textos-para-aprobar.md` ya existe (14 secciones: temas, encargos, los seis
+prompts, los textos fijos, los dos mails), generado desde el código.
+
+**Lo que queda anotado, sin tocar (decide Naza):**
+- **El anticipo de producción se va a disparar** para el narrador v2 a la tercera respuesta
+  (`worker.ts:159` mira `activo` y `pausado`): una llamada paga (~USD 0,2) y un mail a
+  nazamateos@gmail.com con el anticipo v1. Inofensivo; para evitarlo hay que tocar el worker de
+  producción, que está fuera de este plan.
+- **El control "la ciudad no está en ninguna etapa"** (§2.7) quedó afuera: sin lista de ciudades no
+  se detecta. Hoy se controla solo la ciudad equivocada entre las que el perfil conoce.
+- **`tramoDe` da `adulto joven` por defecto** a los temas que cruzan la vida (amor, oficio, amigos…):
+  para el reparto de objetos y el `ultimoTramo`. Un amor a los 50 cuenta como "adulto joven" hasta
+  que el perfil lo ubique (tarea futura). La fábrica ya no usa ese default (`epocaV2` mira el tramo
+  que declara el tema).
+- Menores del ledger del plan (`.superpowers/sdd/…/progress.md`): la clasificación del rechazo por
+  el texto del motivo es frágil; el lector recibe el libro entero más todas las transcripciones en
+  un solo prompt (en libros largos puede pasarse); `edadV2` y `RANGO_TRAMO` están copiados del
+  entrevistador a la fábrica (mantener a mano).
 
 ## Qué NO hacer
 

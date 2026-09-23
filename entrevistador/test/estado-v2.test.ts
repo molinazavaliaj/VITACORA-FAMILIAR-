@@ -174,6 +174,15 @@ describe('lo que viaja a los prompts', () => {
     ]);
     expect(conversacionDe(e, filas, 2)).toHaveLength(2);
   });
+  it('la conversación va por cuándo llegó cada respuesta: un objeto (101+) contestado antes de ayer no tapa la pregunta de ayer', () => {
+    const e = { ...estadoNuevo({}, BA), preguntasEnviadas: { '5': 'P5', '6': 'P6', '101': 'Objeto' } };
+    const filas = [
+      { pregunta_orden: 5, es_repregunta: false, transcripcion: 'cinco', texto_directo: null, recibido_at: '2026-09-20T10:00:00Z' },
+      { pregunta_orden: 101, es_repregunta: false, transcripcion: 'la pelota', texto_directo: null, recibido_at: '2026-09-21T10:00:00Z' },
+      { pregunta_orden: 6, es_repregunta: false, transcripcion: 'seis', texto_directo: null, recibido_at: '2026-09-22T10:00:00Z' },
+    ];
+    expect(conversacionDe(e, filas, 2).map((c) => c.pregunta)).toEqual(['Objeto', 'P6']);
+  });
   it('la conversación no lleva lo que frenó el candado de audio cruzado', () => {
     const e = { ...estadoNuevo({}, BA), preguntasEnviadas: { '1': 'P1' }, bloqueadas: ['ajena'] };
     const filas = [

@@ -45,6 +45,13 @@ export type EstadoV2 = {
   procesadas: string[];
   /** Las respuestas (id) que frenó el candado de audio cruzado: no entran a los prompts ni cuentan como contestadas. */
   bloqueadas: string[];
+  /**
+   * Cuándo terminó la entrevista (YYYY-MM-DD). Vive ACÁ y no en `narradores.estado = 'completado'`:
+   * la fábrica de producción arma la estructura v1 (una llamada paga con el guion viejo) y manda el
+   * mail "terminó" a la familia apenas ve un narrador 'completado'. El narrador v2 se queda en
+   * 'pausado' de punta a punta; su libro lo arma `fabrica/scripts/prueba-reparto.ts` a mano.
+   */
+  terminada?: string;
 };
 
 /** El estado del día 0: el perfil con lo que haya en la ficha y la secuencia sin variables (sin edad no hay plan). */
@@ -182,14 +189,20 @@ export function queHaceSiguiente(estado: EstadoV2, filas: FilaParaSiguiente[], s
   return { tipo: 'falta-respuesta', orden: ultima.orden };
 }
 
-type FilaRespuesta = { id?: string; pregunta_orden: number; es_repregunta: boolean; transcripcion: string | null; texto_directo: string | null };
+type FilaRespuesta = { id?: string; pregunta_orden: number; es_repregunta: boolean; transcripcion: string | null; texto_directo: string | null; recibido_at?: string };
 
 /**
  * Las últimas respuestas, cada una con la pregunta que la originó (sin la pregunta, el modelo no
  * sabe de qué hablaba: C6). Las que frenó el candado de audio cruzado no entran: son de otra persona.
+ * "Últimas" es por cuándo llegaron (`recibido_at`), no por número de pregunta: los objetos van en
+ * 101+ y, ordenados por número, después de tres objetos "lo último que hablaron" eran siempre las
+ * fotos y nunca la pregunta de ayer.
  */
 export function conversacionDe(estado: EstadoV2, filas: FilaRespuesta[], max = 6): { pregunta: string; respuesta: string }[] {
-  return filas
+  const porLlegada = filas.every((f) => f.recibido_at)
+    ? [...filas].sort((a, b) => String(a.recibido_at).localeCompare(String(b.recibido_at)))
+    : filas;
+  return porLlegada
     .filter((f) => !(f.id && estado.bloqueadas.includes(f.id)))
     .map((f) => ({
       pregunta: (f.es_repregunta ? estado.repreguntasEnviadas : estado.preguntasEnviadas)[String(f.pregunta_orden)] ?? '',

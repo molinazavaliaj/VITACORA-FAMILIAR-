@@ -44,6 +44,16 @@ describe('encargoDelBiografo', () => {
     expect(encargoDelBiografo(perfilDe(), ['su tío y las drogas'])).toContain('su tío y las drogas');
   });
 
+  it('una etapa a medio llenar (el oficio de la ficha) se dice con lo que hay, sin basura', () => {
+    const p = perfilDe();
+    p.etapas = [{ edades: '', lugar: '', conQuien: '', queHacia: 'costurera', fuente: 'ficha' }, { edades: '0 a 12', lugar: 'Tucumán', conQuien: 'los abuelos', queHacia: '', fuente: 'dicho' }];
+    const t = encargoDelBiografo(p);
+    expect(t).toContain('- edad sin saber: costurera');
+    expect(t).toContain('- 0 a 12: Tucumán; con los abuelos');
+    expect(t).not.toMatch(/- : /);
+    expect(t).not.toMatch(/con no se sabe/);
+  });
+
   it('si solo se sabe el año de nacimiento, lo dice como año y no como edad', () => {
     expect(encargoDelBiografo(perfilDe({ anioNacimiento: { valor: '1950', fuente: 'ficha' } }))).toContain('Año de nacimiento: 1950');
     expect(encargoDelBiografo(perfilDe({ edad: { valor: '76', fuente: 'dicho' } }))).toContain('Edad: 76');

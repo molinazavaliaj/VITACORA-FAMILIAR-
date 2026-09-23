@@ -11,7 +11,8 @@
  * producción no toca (`src/flujo/scheduler.ts` recorre invitado/acepto/activo). Con 'activo', a su
  * hora el tick le mandaba la pregunta v1 —una llamada al modelo por día— y escribía `contexto` con
  * la copia que leyó al empezar, pisando `contexto.v2` si justo corría un comando de acá. La pausa
- * de "no quiero seguir" va en `contexto.v2.pausa`; al terminar queda 'completado'.
+ * de "no quiero seguir" va en `contexto.v2.pausa`; al terminar, `contexto.v2.terminada` (NO
+ * 'completado': con eso la fábrica de producción arma la estructura v1 y manda el mail "terminó").
  *
  * Uso (desde entrevistador/):
  *   npm run manual-v2 -- empezar naza [--nombre "Naza"] [--zona America/Argentina/Buenos_Aires] [--familia email]
@@ -595,7 +596,7 @@ async function siguiente(ref: string | undefined, flags: Args['flags']): Promise
   let estado = leido;
   const s = slug(n.como_le_dicen);
 
-  if (n.estado === 'completado') { linea(`${n.como_le_dicen} ya terminó la entrevista. Mirá: npm run manual-v2 -- estado ${s}`); return; }
+  if (estado.terminada) { linea(`${n.como_le_dicen} ya terminó la entrevista (${estado.terminada}). Mirá: npm run manual-v2 -- estado ${s}`); return; }
   if (estado.pausa) {
     if (!flags['reanudar']) {
       throw new Error(`${n.como_le_dicen} pidió no seguir (${estado.pausa.fecha}) y la entrevista está en pausa. Si lo hablaron y quiere seguir: npm run manual-v2 -- siguiente ${s} --reanudar`);
@@ -659,10 +660,12 @@ async function siguiente(ref: string | undefined, flags: Args['flags']): Promise
     const tramo = tocaObjeto(estado.secuencia, null, sinFotos);
     if (tramo) mensajes.push({ titulo: 'Objeto final', texto: await pedirObjeto(tramo, true, yaHechas) });
     mensajes.push({ titulo: 'Despedida', texto: despedidaV2(nombre, estado.perfil) });
-    estado = sumarGasto(estado, usos);
-    await guardar(n, estado, { estado: 'completado' });
+    estado = { ...sumarGasto(estado, usos), terminada: hoyEn(n.zona_horaria) };
+    // Sigue 'pausado' en la base a propósito: 'completado' dispararía la fábrica de producción.
+    await guardar(n, estado, { estado: 'pausado' });
     await anotarUsos('v2-objeto', n.id, usos);
-    titulo(`${n.como_le_dicen} terminó: ${estado.secuencia.hechas.length - 1} preguntas (estado → completado)`);
+    titulo(`${n.como_le_dicen} terminó: ${estado.secuencia.hechas.length - 1} preguntas (queda 'pausado' en la base; terminada en contexto.v2)`);
+    linea(`El libro: cd ../fabrica && npx tsx --env-file=.env scripts/prueba-reparto.ts ${n.id} --salida prueba-libro-${s}`);
     linea(`Gasto de la entrevista: USD ${estado.gastoUsd.toFixed(3)}`);
     imprimirParaPegar(mensajes);
     return;
@@ -704,6 +707,7 @@ async function verEstado(ref: string | undefined): Promise<void> {
   const sec = estado.secuencia;
   titulo(`${n.como_le_dicen} (${n.nombre}) — estado en la base: ${n.estado} · orden vigente: ${n.dia_actual}`);
   if (estado.pausa) linea(`⏸ EN PAUSA: pidió no seguir el ${estado.pausa.fecha} (siguiente --reanudar para retomar).`);
+  if (estado.terminada) linea(`✔ TERMINADA el ${estado.terminada} (la base la deja en 'pausado' a propósito).`);
   linea(`Castellano: ${estado.perfil.castellano} · le dicen: ${estado.perfil.persona.comoLeDicen?.valor ?? 'no se sabe'} · gasto: USD ${estado.gastoUsd.toFixed(3)}`);
   titulo('Perfil');
   linea(perfilEnTexto(estado.perfil));

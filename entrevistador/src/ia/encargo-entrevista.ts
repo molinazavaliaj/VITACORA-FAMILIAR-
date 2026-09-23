@@ -11,6 +11,16 @@ function dato(d: { valor: string; fuente: string } | null, nombre: string): stri
   return d ? `${nombre}: ${d.valor} (${d.fuente === 'dicho' ? 'lo dijo' : d.fuente === 'ficha' ? 'lo cargó la familia' : 'deducido'})` : `${nombre}: no se sabe`;
 }
 
+/**
+ * Una etapa en una línea. La ficha de la compra puede dejar etapas a medio llenar (el oficio sin
+ * edad ni lugar): se dice lo que hay, sin "- : ; con no se sabe" en el prompt.
+ */
+function etapaEnTexto(e: Perfil['etapas'][number]): string {
+  const cuando = [e.edades, e.anios ? `(${e.anios})` : ''].filter(Boolean).join(' ') || 'edad sin saber';
+  const que = [e.lugar, e.conQuien ? `con ${e.conQuien}` : '', e.queHacia].filter(Boolean).join('; ');
+  return `- ${cuando}: ${que || 'sin datos'}`;
+}
+
 /** La ficha en castellano, para los prompts: lo que no se sabe dice "no se sabe". */
 export function perfilEnTexto(p: Perfil): string {
   const lineas = [
@@ -20,7 +30,7 @@ export function perfilEnTexto(p: Perfil): string {
     dato(p.persona.dondeViveHoy, 'Dónde vive hoy'),
     '',
     'Su vida, por etapas:',
-    ...(p.etapas.length ? p.etapas.map((e) => `- ${e.edades}${e.anios ? ` (${e.anios})` : ''}: ${e.lugar}; con ${e.conQuien || 'no se sabe'}; ${e.queHacia || 'no se sabe qué hacía'}`) : ['- todavía no se sabe']),
+    ...(p.etapas.length ? p.etapas.map(etapaEnTexto) : ['- todavía no se sabe']),
     '',
     'Personas:',
     ...(p.personas.length ? p.personas.map((x) => `- ${x.nombre ?? '(sin nombre)'}, ${x.vinculo} — ${x.vive === 'si' ? 'vive' : x.vive === 'no' ? 'murió' : 'no se sabe si vive'}${x.nota ? ` (${x.nota})` : ''}`) : ['- todavía ninguna']),
