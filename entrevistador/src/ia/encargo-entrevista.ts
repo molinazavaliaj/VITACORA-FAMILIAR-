@@ -47,7 +47,13 @@ function comoHablarle(p: Perfil): string {
   const genero = g.includes('mujer') ? 'Es una mujer: todo en femenino cuando hable de ella ("¿cómo te sentiste?" sí, "¿estabas asustado?" no).'
     : g.includes('hombre') ? 'Es un hombre: todo en masculino cuando hable de él.'
       : 'No sabés si es mujer u hombre: escribí de manera que sirva para los dos.';
-  return `${trato}\n${genero}`;
+  const castellano = p.castellano === 'españa' ? 'castellano de España' : p.castellano === 'latinoamerica' ? 'castellano de Latinoamérica' : 'castellano rioplatense';
+  const suCastellano = `Es su ${castellano}: escribile así, con sus palabras, no con las tuyas.`;
+  const comoLeDicen = p.persona.comoLeDicen ? `\nLe dicen ${p.persona.comoLeDicen.valor}: usalo.` : '';
+  const fuerte = p.hoyFueFuerte
+    ? '\nHoy contó algo que le costó. Mañana, antes de preguntar, reconocelo en una frase (no lo repitas, no lo analices), y no le tires encima otro tema pesado.'
+    : '';
+  return `${trato}\n${genero}\n${suCastellano}${comoLeDicen}${fuerte}`;
 }
 
 /**
@@ -66,27 +72,34 @@ ${comoHablarle(p)}
 
 LO QUE SE RESPETA SIEMPRE
 1. No supongas nada que tu ficha no diga: ni pareja, ni hijos, ni nietos, ni que alguien vive o
-   murió, ni que la infancia fue linda. Si hace falta saberlo, se pregunta, con cuidado.
-2. Nunca le pidas lo que ya contó. Buscá lo que quedó abierto.
+   murió, ni que la infancia fue linda, ni que salía, ni que viajó. Si hace falta saberlo, se
+   pregunta, con cuidado.
+2. Nunca le pidas lo que ya contó. Si algo que contó sirve de puente, usalo en una frase; la
+   pregunta va a lo que todavía no contó.
 3. Si pidió dejar un tema, no se vuelve ahí nunca más, de ninguna forma.${evitar.length ? `\n   Temas que pidió dejar: ${evitar.join('; ')}.` : ''}
 4. Si pidió que algo no vaya al libro, se respeta: eso no se toca.
-5. Si una época fue dura, no la adornes: preguntá por lo que había, quién estaba, qué le dio
-   sostén.
-6. No abras con algo que nombró de pasada y duele o avergüenza (el alcohol, una pelea): si lo
-   trae, se escucha; no lo convertís vos en el tema.
+5. Si una época fue dura, no la adornes: preguntá por lo que había, quién estaba, qué le dio sostén.
+6. No abras con algo que nombró de pasada y duele o avergüenza (el alcohol, una pelea, una
+   enfermedad): si lo trae, se escucha; no lo convertís vos en el tema.
 7. Pedí una escena, no un resumen: un día, un lugar, una persona concreta. Y en el lugar y la
-   época en que pasó: si en esos años vivía en otra ciudad, es esa ciudad.
+   época en que pasó: la ciudad que tu ficha tiene para esos años, no otra.
 8. Una pregunta clara (dos como mucho, si van juntas), de hasta 45 palabras: la lee en el
-   celular.`;
+   celular. La presentación es la excepción: hasta 90.`;
 }
 
-const MAX_PALABRAS = 50;
+export const MAX_PALABRAS = 50;
+export const MAX_PALABRAS_PRESENTACION = 90;
 
-/** Lo que se revisa de todo lo que se le manda, antes de mandarlo. */
-export function controlarTexto(texto: string, trato: TratoControlable | null): { ok: true } | { ok: false; motivo: string } {
+/** Lo que se revisa de todo lo que se le manda, antes de mandarlo. La presentación (`opciones.presentacion`) admite más palabras y no exige signo de pregunta: es la bienvenida, no la pregunta del día. */
+export function controlarTexto(
+  texto: string,
+  trato: TratoControlable | null,
+  opciones: { presentacion?: boolean } = {},
+): { ok: true } | { ok: false; motivo: string } {
   const t = texto.trim();
-  if (contarPreguntas(t) === 0) return { ok: false, motivo: 'no tiene ninguna pregunta' };
-  if (contarPalabras(t) > MAX_PALABRAS) return { ok: false, motivo: `tiene ${contarPalabras(t)} palabras (máximo ${MAX_PALABRAS})` };
+  const tope = opciones.presentacion ? MAX_PALABRAS_PRESENTACION : MAX_PALABRAS;
+  if (!opciones.presentacion && contarPreguntas(t) === 0) return { ok: false, motivo: 'no tiene ninguna pregunta' };
+  if (contarPalabras(t) > tope) return { ok: false, motivo: `tiene ${contarPalabras(t)} palabras (máximo ${tope})` };
   if (trato) {
     const ajenas = marcasDelTratoAjeno(t, trato);
     if (ajenas.length) return { ok: false, motivo: `le habla de otra manera que ${trato}: ${ajenas.join(', ')}` };

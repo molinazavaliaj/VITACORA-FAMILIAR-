@@ -36,6 +36,38 @@ describe('encargoDelBiografo', () => {
     expect(encargoDelBiografo(perfilDe({ anioNacimiento: { valor: '1950', fuente: 'ficha' } }))).toContain('Año de nacimiento: 1950');
     expect(encargoDelBiografo(perfilDe({ edad: { valor: '76', fuente: 'dicho' } }))).toContain('Edad: 76');
   });
+
+  it('dice su castellano y ofrece el trato que corresponde', () => {
+    const esp = encargoDelBiografo(perfilDe({}, { castellano: 'españa' }));
+    expect(esp).toMatch(/castellano de España/);
+    expect(esp).not.toMatch(/rioplatense/);
+    expect(encargoDelBiografo(perfilDe({}))).toMatch(/rioplatense/);
+  });
+
+  it('si hoy fue fuerte, pide reconocerlo antes de preguntar y no tirarle otro tema pesado', () => {
+    const t = encargoDelBiografo(perfilDe({}, { hoyFueFuerte: true }));
+    expect(t).toMatch(/reconoc[eé]/i);
+    expect(t).toMatch(/otro tema pesado/i);
+    expect(encargoDelBiografo(perfilDe({}))).not.toMatch(/otro tema pesado/i);
+  });
+
+  it('el puente reemplaza al "enganchá": la pregunta va a lo que todavía no contó', () => {
+    const t = encargoDelBiografo(perfilDe({}));
+    expect(t).not.toMatch(/enganch/i);
+    expect(t).toMatch(/sirve de puente/i);
+    expect(t).toMatch(/lo que todavía no contó/i);
+  });
+
+  it('usa cómo le dicen si se sabe', () => {
+    expect(encargoDelBiografo(perfilDe({ comoLeDicen: { valor: 'Tito', fuente: 'dicho' } }))).toContain('Tito');
+  });
+
+  it('la presentación admite 90 palabras y no exige signo de pregunta', () => {
+    const larga = `${'palabra '.repeat(80)}.`;
+    expect(controlarTexto(larga, 'vos').ok).toBe(false);
+    expect(controlarTexto(larga, 'vos', { presentacion: true })).toEqual({ ok: true });
+    expect(controlarTexto(`${'palabra '.repeat(95)}.`, 'vos', { presentacion: true }).ok).toBe(false);
+  });
 });
 
 describe('el control con un narrador de tú (España)', () => {

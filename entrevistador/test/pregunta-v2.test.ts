@@ -89,6 +89,11 @@ describe('armarPromptPregunta', () => {
     expect(armarPromptPregunta(perfilDe({}), nucleo(0), [], [])).toContain('no sabés cómo prefiere que le hablen');
     expect(armarPromptPregunta(perfilDe({ comoHabla: { valor: 'vos', fuente: 'deducido' } }), nucleo(0), [], [])).toContain('Hablale de vos');
   });
+
+  it('no dice "enganchá": el puente lo pone el encargo', () => {
+    const p = armarPromptPregunta(perfilDe({}), nucleo(5), conversacion, []);
+    expect(p).not.toMatch(/enganch/i);
+  });
 });
 
 describe('controlarPregunta', () => {

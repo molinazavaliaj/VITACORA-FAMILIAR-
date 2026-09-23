@@ -101,7 +101,8 @@ LO QUE TE TOCA PREGUNTAR HOY:
 ${objetivo}
 
 Tu trabajo hoy es decidir cómo preguntarle esto a ESTA persona, con lo que ya sabés: el guion
-te da el tema, no el texto. Enganchá con algo que contó, con sus palabras.
+te da el tema, no el texto. Si algo que contó sirve de puente, usalo; la pregunta va a lo que
+todavía no contó.
 
 Respondé SOLO con la pregunta, sin comillas ni saludo.`;
 
