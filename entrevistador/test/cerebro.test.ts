@@ -203,6 +203,33 @@ describe('el trato de la repregunta que escribe la evaluación', () => {
     expect(p).toMatch(/Respondé SOLO con JSON.*"dejarTema"/);
   });
 
+  // C1 (Ciro, 16/09) y pedido de Naza (23/09): "no puede repreguntar cosas dichas jamás". Contestó
+  // "no sé nada de mis abuelos" y la repregunta le pidió "¿de tus abuelos te acordás de alguno?",
+  // cuando el primer día había contado que su abuela le cocinaba todos los días. La evaluación no
+  // veía lo que había contado antes: es un problema de ENTRADA, no de una regla más.
+  it('con lo que ya contó, la evaluación lo ve y tiene prohibido pedirlo de nuevo', async () => {
+    const { PROMPT_EVALUAR } = await import('../src/ia/cerebro.js');
+    const p = PROMPT_EVALUAR('¿Cómo se llevaban sus abuelos?', 'No sé nada de mis abuelos.', 20, '', 'vos', [], 0,
+      'Personas:\n- (sin nombre), abuela materna — vive. Le cocinaba todos los días.');
+    expect(p).toContain('LO QUE YA CONTÓ OTROS DÍAS');
+    expect(p).toContain('abuela materna');
+    expect(p).toContain('LA REPREGUNTA NUNCA PIDE LO QUE YA CONTÓ');
+  });
+
+  it('sin lo que ya contó, el prompt es el mismo de siempre (producción no cambia)', async () => {
+    const { PROMPT_EVALUAR } = await import('../src/ia/cerebro.js');
+    const antes = PROMPT_EVALUAR('¿Cómo era su casa?', 'Linda.', 8, '', 'vos', [], 0);
+    expect(PROMPT_EVALUAR('¿Cómo era su casa?', 'Linda.', 8, '', 'vos', [], 0, '')).toBe(antes);
+    expect(antes).not.toContain('LO QUE YA CONTÓ OTROS DÍAS');
+  });
+
+  it('evaluarRespuesta le pasa al modelo lo que ya contó', async () => {
+    crearMock.mockResolvedValue({ content: [{ type: 'text', text: '{"suficiente": true}' }] });
+    const { evaluarRespuesta } = await import('../src/ia/cerebro.js');
+    await evaluarRespuesta('¿Y sus abuelos?', 'No sé nada.', 10, '', 'vos', { pausaMs: 0, loQueYaConto: 'su abuela le cocinaba' });
+    expect(JSON.stringify(crearMock.mock.calls.at(-1))).toContain('su abuela le cocinaba');
+  });
+
   it('evaluarRespuesta devuelve dejarTema tal como vino', async () => {
     crearMock.mockResolvedValue({ content: [{ type: 'text', text: '{"suficiente": true, "dejarTema": "su tío y las drogas"}' }] });
     const { evaluarRespuesta } = await import('../src/ia/cerebro.js');

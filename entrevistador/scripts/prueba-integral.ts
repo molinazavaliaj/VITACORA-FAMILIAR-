@@ -74,7 +74,9 @@ for (const quien of NARRADORES) {
 
   // 1. El perfil, sin ficha.
   let perfil: Perfil = perfilVacio();
+  const perfilAntes: Perfil[] = [];
   for (const [i, par] of pares.entries()) {
+    perfilAntes.push(perfil);
     const r = await actualizarPerfil(cliente, perfil, null, par.pregunta, par.respuesta);
     perfil = r.perfil;
     gasto += USD(r.usage);
@@ -103,8 +105,27 @@ for (const quien of NARRADORES) {
     console.log(`${n.como_le_dicen}: pregunta ${escritas.length}/${objetivos.length} · USD ${gasto.toFixed(2)}`);
   }
 
+  // C1: la repregunta que pidió lo que ya había contado. Se re-evalúa esa respuesta real dos
+  // veces —sin y con lo que ya contó (el perfil de ESE momento)— y se comparan las repreguntas.
+  // Se llama al prompt directo, no a evaluarRespuesta, para no escribir el consumo en la base.
+  const casoC1: string[] = [];
+  const iC1 = pares.findIndex((p) => p.respuesta.startsWith('Sinceramente, en esta pregunta no te puedo ayudar'));
+  if (iC1 >= 0) {
+    const { PROMPT_EVALUAR, estiloCerebro } = await import('../src/ia/cerebro.js');
+    for (const [etiqueta, contexto] of [['sin lo que ya contó (hoy)', ''], ['con lo que ya contó (v2)', perfilEnTexto(perfilAntes[iC1])]] as const) {
+      const r = await cliente.messages.create({
+        model: 'claude-opus-5', max_tokens: 500, system: estiloCerebro('vos'),
+        messages: [{ role: 'user', content: PROMPT_EVALUAR(pares[iC1].pregunta, pares[iC1].respuesta, 33, '', 'vos', [], 0, contexto) }],
+      });
+      gasto += USD(r.usage);
+      const bloque = r.content.find((b) => b.type === 'text');
+      casoC1.push(`**${etiqueta}:** ${bloque && bloque.type === 'text' ? bloque.text.trim() : '(vacío)'}`);
+    }
+  }
+
   const informe = [
     `# ${n.como_le_dicen} — ${pares.length} respuestas, sin ficha`, '',
+    ...(casoC1.length ? ['## C1: ¿repregunta lo que ya contó?', '', `Respuesta: «${pares[iC1].respuesta.slice(0, 160)}…»`, '', ...casoC1, ''] : []),
     '## Quién es, según el biógrafo', '', perfilEnTexto(perfil), '',
     '## Reparto de variables', '',
     plan.ok ? Object.entries(plan.variables.reduce<Record<string, number>>((c, v) => ({ ...c, [v.tramo]: (c[v.tramo] ?? 0) + 1 }), {})).map(([t, k]) => `- ${t}: ${k}`).join('\n') : `No planificó: falta ${plan.falta}`, '',

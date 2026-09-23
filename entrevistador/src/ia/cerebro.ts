@@ -115,13 +115,29 @@ ${previas.map((p) => `${p.orden} · ${p.capitulo} · ${p.texto.replace(/\s+/g, '
 `;
 }
 
+/*
+ * Lo que ya contó otros días (biógrafo v2, 23/09). C1: contestó "no sé nada de mis abuelos" y la
+ * repregunta le pidió "¿de tus abuelos te acordás de alguno?", cuando el primer día había contado
+ * que su abuela le cocinaba todos los días. La evaluación no lo veía: era un problema de ENTRADA.
+ * Naza: "no puede repreguntar cosas dichas jamás". Vacío = el prompt de siempre, sin cambios.
+ */
+function loQueYaContoEnTexto(loQueYaConto: string): string {
+  if (!loQueYaConto.trim()) return '';
+  return `
+LO QUE YA CONTÓ OTROS DÍAS (lo que sabés de esta persona):
+${loQueYaConto.trim()}
+
+LA REPREGUNTA NUNCA PIDE LO QUE YA CONTÓ. Antes de escribirla, fijate arriba: si lo que le ibas a pedir ya lo dijo otro día (una persona, un lugar, cómo se llamaba, dónde vivía), no se lo pidas. Preguntá por lo que quedó abierto; y si no queda nada abierto, la respuesta alcanza.
+`;
+}
+
 export const PROMPT_EVALUAR = (
   pregunta: string, transcripcion: string, duracionSegundos: number, evitar = '', trato: Trato = 'usted',
-  preguntasHechas: PreguntaHecha[] = [], ordenActual = 0,
+  preguntasHechas: PreguntaHecha[] = [], ordenActual = 0, loQueYaConto = '',
 ) =>
   `Pregunta de hoy: "${pregunta}"
 Respuesta (duró ${duracionSegundos} segundos): "${transcripcion}"
-${evitar}${listaDePreguntasHechas(preguntasHechas, ordenActual)}
+${evitar}${listaDePreguntasHechas(preguntasHechas, ordenActual)}${loQueYaContoEnTexto(loQueYaConto)}
 ¿Con esta respuesta se puede escribir la página del libro de hoy? Juzgá por SUSTANCIA y contá los detalles concretos que hay: nombres, lugares, fechas, oficios, escenas, cosas que alguien dijo. El largo es una pista, no la regla.
 
 ALCANZA si hay con qué escribir: dos o tres detalles concretos, con al menos una escena o un nombre propio. Un relato largo y con hechos alcanza, aunque siempre se pueda profundizar más.
@@ -166,7 +182,12 @@ const esperar = (ms: number) => (ms > 0 ? new Promise<void>((r) => setTimeout(r,
 
 export type OpcionesDeReintento = { pausaMs?: number; narradorId?: string };
 /** Lo que la evaluación necesita además de la respuesta: las preguntas ya hechas, para ubicar un recuerdo tardío. */
-export type OpcionesDeEvaluacion = OpcionesDeReintento & { preguntasHechas?: PreguntaHecha[]; ordenActual?: number };
+export type OpcionesDeEvaluacion = OpcionesDeReintento & {
+  preguntasHechas?: PreguntaHecha[];
+  ordenActual?: number;
+  /** Lo que ya contó otros días (el perfil en texto): para no repreguntar lo dicho (C1). */
+  loQueYaConto?: string;
+};
 
 /** Lo que la evaluación puede decir: si alcanza, si hay repregunta, y si algo se reserva. */
 export type Evaluacion = {
@@ -252,7 +273,7 @@ export async function evaluarRespuesta(
   const pedirleAlModelo = async () => {
     const respuesta = await cliente.messages.create({
       model: MODELO_EVALUACION, max_tokens: 500, system: estiloCerebro(trato),
-      messages: [{ role: 'user', content: PROMPT_EVALUAR(pregunta, transcripcion, duracionSegundos, evitar, trato, preguntasHechas, ordenActual) }],
+      messages: [{ role: 'user', content: PROMPT_EVALUAR(pregunta, transcripcion, duracionSegundos, evitar, trato, preguntasHechas, ordenActual, opciones.loQueYaConto ?? '') }],
     });
     await registrarUso(db, {
       servicio: 'entrevistador', paso: 'evaluar', modelo: MODELO_EVALUACION, proveedor: 'anthropic',
