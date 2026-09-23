@@ -251,7 +251,11 @@ export type Castellano = 'rioplatense' | 'españa' | 'latinoamerica';
  * fijo en "rioplatense (Argentina)" con glosario argentino, y hay narradores en España: la
  * transcripción los empujaba al argentino. Sin zona, rioplatense (el caso de hoy).
  */
-export function castellanoDe(zonaHoraria: string | undefined | null): Castellano {
+export function castellanoDe(zonaHoraria: string | undefined | null, trato?: unknown): Castellano {
+  // La zona horaria dice dónde vive, no cómo habla: en la base hay un narrador en Europe/Madrid
+  // con trato vos (un argentino en Madrid). Si la familia o la persona ya dijo "vos", es
+  // rioplatense aunque el reloj diga España.
+  if (trato === 'vos') return 'rioplatense';
   if (!zonaHoraria) return 'rioplatense';
   if (/^America\/(Argentina|Montevideo)/.test(zonaHoraria)) return 'rioplatense';
   if (/^(Europe|Atlantic\/Canary|Africa\/Ceuta)/.test(zonaHoraria)) return 'españa';
@@ -266,7 +270,7 @@ const ENCABEZADO: Record<Castellano, string> = {
 };
 
 export function promptDeTranscripcion(contexto: Record<string, any> = {}, comoLeDicen = '', zonaHoraria?: string | null): string {
-  const castellano = castellanoDe(zonaHoraria);
+  const castellano = castellanoDe(zonaHoraria, contexto?.trato);
   const partes = [ENCABEZADO[castellano]];
   // El glosario es solo del habla rioplatense: a una narradora de Madrid le haría "escuchar"
   // palabras argentinas que no dijo.

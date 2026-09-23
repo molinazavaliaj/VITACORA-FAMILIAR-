@@ -16,6 +16,12 @@ describe('castellanoDe', () => {
     expect(castellanoDe('America/Mexico_City')).toBe('latinoamerica');
     expect(castellanoDe(undefined)).toBe('rioplatense');
   });
+
+  it('el trato manda sobre el reloj: un narrador de vos en Europe/Madrid es un argentino en Madrid', () => {
+    expect(castellanoDe('Europe/Madrid', 'vos')).toBe('rioplatense');
+    expect(castellanoDe('Europe/Madrid', 'usted')).toBe('españa');
+    expect(promptDeTranscripcion({ trato: 'vos' }, 'Joaco', 'Europe/Madrid')).toContain('rioplatense');
+  });
 });
 
 describe('promptDeTranscripcion', () => {
