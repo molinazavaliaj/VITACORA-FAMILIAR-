@@ -240,7 +240,7 @@ describe('la presentación del biógrafo (el primer mensaje de todos)', () => {
 
   it('en vos (3t.25, 22/09: sin el audiolibro, con «Su voz» de verdad)', () => {
     expect(bienvenida('Ciro', 'Naza', 'vos')).toBe(
-      'Hola Ciro 👋 Soy tu biógrafo. Naza te hizo un regalo muy especial: vamos a escribir juntos el libro de tu vida. Cada mañana te voy a mandar una pregunta, y vos me respondés con un audio, como le contás las cosas a un amigo. Al final, tu historia queda en un libro para tu familia, y tus mejores frases quedan en tu propia voz: recortes de estos mismos audios, para escucharlas cuando quieran. Al responder SÍ nos das permiso para guardar tus audios y usarlos así. ¿Empezamos? Respondé SÍ y arrancamos mañana.',
+      'Hola Ciro 👋 Soy tu biógrafo. Naza te hizo un regalo muy especial: vamos a escribir juntos el libro de tu vida. Cada mañana te voy a mandar una pregunta, y vos me respondés con un audio, como le contás las cosas a un amigo. Al final, tu historia queda en un libro para tu familia, y tus mejores frases quedan tal cual las contaste: recortes de estos mismos audios, para escucharlas cuando quieran. Al responder SÍ nos das permiso para guardar tus audios y usarlos así. ¿Empezamos? Respondé SÍ y arrancamos mañana.',
     );
   });
 
@@ -251,7 +251,10 @@ describe('la presentación del biógrafo (el primer mensaje de todos)', () => {
     for (const t of textos) {
       expect(t).not.toMatch(/audiolibro|recreada|clonada|sintética/i);
       expect(t).toMatch(/permiso/);
-      expect(t).toMatch(/propia voz/);
+      // "tal cual las contó / contaste" (Joaquín, 23/09): dice lo que de verdad
+      // hacemos —no tocamos nada— en vez de "en su propia voz", que sonaba a que
+      // la voz la ponemos nosotros. El de viaje todavía dice "propia voz".
+      expect(t).toMatch(/tal cual las cont|propia voz/);
       expect(t.length).toBeLessThanOrEqual(1024); // tope del cuerpo de una plantilla de Meta
     }
   });
