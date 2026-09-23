@@ -158,8 +158,8 @@ export function bienvenida(
 ): string {
   const cuando = enseguida ? '' : ' mañana';
   return trato === 'vos'
-    ? `Hola ${comoLeDicen} 👋 Soy tu biógrafo. ${quienRegala} te hizo un regalo muy especial: vamos a escribir juntos el libro de tu vida. Cada mañana te voy a mandar una pregunta, y vos me respondés con un audio, como le contás las cosas a un amigo. Al final, tu historia queda en un libro para tu familia, y tus mejores frases quedan en tu propia voz: recortes de estos mismos audios, para escucharlas cuando quieran. Al responder SÍ nos das permiso para guardar tus audios y usarlos así. ¿Empezamos? Respondé SÍ y arrancamos${cuando}.`
-    : `Hola ${comoLeDicen} 👋 Soy su biógrafo. ${quienRegala} le hizo un regalo muy especial: vamos a escribir juntos el libro de su vida. Cada mañana le voy a mandar una pregunta, y usted me responde con un audio, como le cuenta las cosas a un amigo. Al final, su historia queda en un libro para su familia, y sus mejores frases quedan en su propia voz: recortes de estos mismos audios, para escucharlas cuando quieran. Al responder SÍ nos da permiso para guardar sus audios y usarlos así. ¿Empezamos? Responda SÍ y arrancamos${cuando}.`;
+    ? `Hola ${comoLeDicen} 👋 Soy tu biógrafo. ${quienRegala} te hizo un regalo muy especial: vamos a escribir juntos el libro de tu vida. Cada mañana te voy a mandar una pregunta, y vos me respondés con un audio, como le contás las cosas a un amigo. Al final, tu historia queda en un libro para tu familia, y tus mejores frases quedan tal cual las contaste: recortes de estos mismos audios, para escucharlas cuando quieran. Al responder SÍ nos das permiso para guardar tus audios y usarlos así. ¿Empezamos? Respondé SÍ y arrancamos${cuando}.`
+    : `Hola ${comoLeDicen} 👋 Soy su biógrafo. ${quienRegala} le hizo un regalo muy especial: vamos a escribir juntos el libro de su vida. Cada mañana le voy a mandar una pregunta, y usted me responde con un audio, como le cuenta las cosas a un amigo. Al final, su historia queda en un libro para su familia, y sus mejores frases quedan tal cual las contó: recortes de estos mismos audios, para escucharlas cuando quieran. Al responder SÍ nos da permiso para guardar sus audios y usarlos así. ¿Empezamos? Responda SÍ y arrancamos${cuando}.`;
 }
 
 /**
@@ -169,7 +169,7 @@ export function bienvenida(
  */
 export function bienvenidaViaje(comoLeDicen: string, { enseguida = false } = {}): string {
   const cuando = enseguida ? 'ya' : 'esta noche';
-  return `Hola ${comoLeDicen} 👋 Soy tu biógrafo de viaje. Cada noche te voy a mandar una pregunta sobre el día, y vos me respondés con un audio, como le contás a un amigo. Mandame también la foto del día cuando te la pida, o cuando quieras. Al final, tu viaje queda en un libro, y tus mejores frases quedan en tu propia voz: recortes de estos mismos audios, para escucharlas cuando quieras. Al responder SÍ nos das permiso para guardar tus audios y usarlos así. ¿Arrancamos? Respondé SÍ y empezamos ${cuando}.`;
+  return `Hola ${comoLeDicen} 👋 Soy tu biógrafo de viaje. Cada noche te voy a mandar una pregunta sobre el día, y vos me respondés con un audio, como le contás a un amigo. Mandame también la foto del día cuando te la pida, o cuando quieras. Al final, tu viaje queda en un libro, y tus mejores frases quedan tal cual las contaste: recortes de estos mismos audios, para escucharlas cuando quieras. Al responder SÍ nos das permiso para guardar tus audios y usarlos así. ¿Arrancamos? Respondé SÍ y empezamos ${cuando}.`;
 }
 
 /** Lo que recibe cuando dice que SÍ. Único hogar del texto: `src/flujo/procesar.ts` lo importa de acá. */
