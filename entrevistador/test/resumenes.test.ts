@@ -46,7 +46,7 @@ vi.mock('../src/db/cliente.js', () => {
   return { db: { from: (tabla: string) => cadena(tabla) } };
 });
 
-const { memoriaDeCapitulos, limpiarResumen, PROMPT_RESUMEN, MAX_PALABRAS_RESUMEN, MAX_CARACTERES_RESUMEN } = await import('../src/ia/resumenes.js');
+const { memoriaDeCapitulos, limpiarResumen, PROMPT_RESUMEN, MAX_PALABRAS_RESUMEN, MAX_CARACTERES_RESUMEN, preguntaEnTexto } = await import('../src/ia/resumenes.js');
 
 const narrador = (contexto: Record<string, any> = {}) => ({
   id: 'n1', como_le_dicen: 'Don Osvaldo', contexto,
@@ -290,5 +290,34 @@ describe('memoriaDeCapitulos', () => {
     expect(memoria).toBe('');
     expect(mocks.crear).not.toHaveBeenCalled();
     expect(mocks.updates).toHaveLength(0);
+  });
+});
+
+// C6 (bitácora de Ciro, 23/09): el resumidor leía SOLO las respuestas. Media
+// conversación. Con Ciro escribió «Juventud descontrolada en Concordia» — él
+// nunca nombró esa ciudad para su juventud: la única que aparecía en sus
+// respuestas era "yo venía de Concordia", y el modelo, obligado a ubicar el
+// capítulo, agarró la única que había. Buenos Aires estaba en NUESTRAS
+// preguntas, que no le mandábamos. Medido sobre su material real: 2 de 3 antes,
+// 0 de 6 después de mandar la pregunta.
+describe('preguntaEnTexto — la pregunta entra al material del resumen', () => {
+  const guion = new Map<number, { texto?: string | null }>([[8, { texto: "¿Cómo era un sábado a la noche?" }]]);
+
+  it('manda la pregunta que de verdad recibió, no la del guion', () => {
+    const enviadas = { "8": "¿Cómo era un sábado a la noche en Buenos Aires?" };
+    expect(preguntaEnTexto(8, guion, enviadas)).toContain("en Buenos Aires");
+  });
+
+  it('sin personalizada guardada, cae en la del guion', () => {
+    expect(preguntaEnTexto(8, guion, {})).toContain("¿Cómo era un sábado a la noche?");
+  });
+
+  it('sin ningún texto, queda la etiqueta sola y no rompe el material', () => {
+    expect(preguntaEnTexto(9, new Map(), {})).toBe("Pregunta 9:");
+    expect(preguntaEnTexto(8, guion, { "8": "   " })).toContain("¿Cómo era un sábado a la noche?");
+  });
+
+  it('el número de pregunta sigue estando: el orden cronológico se lee igual', () => {
+    expect(preguntaEnTexto(8, guion, {})).toMatch(/^Pregunta 8 /);
   });
 });

@@ -74,7 +74,7 @@ function estaAlDia(marca: unknown, actual: MarcaDeResumen): boolean {
 type RespuestaFila = {
   pregunta_orden: number; transcripcion: string | null; texto_directo: string | null; es_repregunta: boolean;
 };
-type PreguntaFila = { orden: number; capitulo: string; narrador_id: string | null };
+type PreguntaFila = { orden: number; capitulo: string; narrador_id: string | null; texto?: string | null };
 
 /**
  * El modelo se pasa de largo y a veces agrega títulos o negritas que nadie pidió
@@ -110,6 +110,7 @@ Escribí el resumen de este capítulo para que su biógrafo lo recuerde mientras
 Guardá los hechos importantes, los nombres propios TAL COMO APARECEN, las fechas, los lugares y las frases textuales que valen la pena recuperar. Terminá con una línea que empiece con "Pendiente:" con lo que quedó sin contar de este capítulo.
 
 LO ÚLTIMO MANDA: el material viene en orden cronológico (por número de pregunta, y dentro de cada una, primero la respuesta y después lo que amplió). Si algo de más adelante corrige o contradice algo de más atrás, quedate con lo ÚLTIMO y descartá el dato viejo: "no, a los 12 ya estábamos en otro lado" pisa lo que había dicho antes. Nunca dejes los dos datos como si los dos fueran ciertos, ni aclares que hubo una corrección: el resumen dice lo que vale hoy.
+
 
 Decí también CÓMO fue este capítulo, en una sola frase al final del cuerpo (antes de "Pendiente:"), empezando con "Tono:". Por ejemplo "Tono: infancia dura, padre ausente con adicciones, familia desarticulada" o "Tono: recuerdos cálidos, la casa siempre llena de gente". Es lo que le permite al biógrafo no volver a preguntar por las fiestas de una familia que se desarmó.
 
@@ -152,11 +153,32 @@ async function capitulosConRespuestas(narradorId: string, orden: number): Promis
  * del orden no cambia aunque el material sí — con el orden solo, el resumen viejo
  * seguiría afirmando un dato que el narrador ya corrigió (hallazgo 16).
  */
+/**
+ * Cómo entra una pregunta al material del resumen.
+ *
+ * Hasta el 23/09 el resumidor leía SOLO las respuestas. Media conversación:
+ * "No, el sábado a la noche era descontrol" sin saber qué se le preguntó, y
+ * sobre todo sin los datos que solo están en la pregunta. Con Ciro eso escribió
+ * «Juventud descontrolada en Concordia» — él nunca nombró esa ciudad para su
+ * juventud; la única que aparecía en sus respuestas era "yo venía de Concordia",
+ * y el modelo, obligado a ubicar el capítulo, agarró la única que había. Buenos
+ * Aires estaba en NUESTRAS preguntas, que no le mandábamos (bitácora C6).
+ *
+ * Se manda la pregunta tal como la recibió (la personalizada), no la del guion.
+ */
+export function preguntaEnTexto(
+  orden: number, porOrden: Map<number, { texto?: string | null }>, enviadas: Record<string, unknown> = {},
+): string {
+  const enviada = enviadas[String(orden)];
+  const texto = (typeof enviada === 'string' && enviada.trim() ? enviada : porOrden.get(orden)?.texto ?? '').trim();
+  return texto ? `Pregunta ${orden} — le preguntamos: «${texto}»` : `Pregunta ${orden}:`;
+}
+
 async function materialDeCapitulo(
-  narradorId: string, capitulo: string, orden: number,
+  narradorId: string, capitulo: string, orden: number, enviadas: Record<string, unknown> = {},
 ): Promise<{ material: string; ultimoOrden: number; respuestas: number }> {
   const { data: preguntas } = await db.from('preguntas')
-    .select('orden,capitulo,narrador_id')
+    .select('orden,capitulo,narrador_id,texto')
     .or(`narrador_id.eq.${narradorId},narrador_id.is.null`)
     .eq('capitulo', capitulo)
     .lt('orden', orden);
@@ -182,9 +204,8 @@ async function materialDeCapitulo(
       if (!texto) return '';
       // Las ampliaciones (cuando se le repreguntó) son parte del capítulo: el
       // libro las usa, la memoria tiene que usarlas también.
-      return r.es_repregunta
-        ? `Pregunta ${r.pregunta_orden} (lo amplió después):\n${texto}`
-        : `Pregunta ${r.pregunta_orden}:\n${texto}`;
+      if (r.es_repregunta) return `Pregunta ${r.pregunta_orden} (lo amplió después):\n${texto}`;
+      return `${preguntaEnTexto(r.pregunta_orden, porOrden, enviadas)}\nContestó:\n${texto}`;
     })
     .filter(Boolean)
     .join('\n\n');
@@ -224,7 +245,7 @@ export async function memoriaDeCapitulos(
     const capitulos = (await capitulosConRespuestas(n.id, orden)).filter((c) => c !== capituloActual);
 
     for (const capitulo of capitulos) {
-      const { material, ultimoOrden, respuestas } = await materialDeCapitulo(n.id, capitulo, orden);
+      const { material, ultimoOrden, respuestas } = await materialDeCapitulo(n.id, capitulo, orden, n.contexto?.preguntasEnviadas ?? {});
       if (!material) continue;
 
       const yaResumido = guardados[capitulo];
