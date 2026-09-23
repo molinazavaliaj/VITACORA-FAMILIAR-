@@ -34,6 +34,14 @@ describe('encargoDelLibro', () => {
     expect(t).not.toContain('pulir apenas');
   });
 
+  it('la voz es la de cada persona, en su castellano; lo de "folleto" es para lo que agrega el escritor', () => {
+    const t = encargoDelLibro({ nombre: 'Élida', genero: 'mujer' });
+    expect(t).toContain('SU castellano');
+    expect(t).toContain('si una frase así la dijo esta persona, es suya y va');
+    // Decisión de Naza: que el material sea suyo se garantiza antes de escribir, no en el prompt.
+    expect(t).not.toContain('Nada de otra persona');
+  });
+
   it('no dice "él" en ningún lado cuando es una mujer', () => {
     expect(encargoDelLibro({ nombre: 'Élida', genero: 'mujer' })).not.toMatch(/\bél\b/);
   });

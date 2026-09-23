@@ -47,7 +47,7 @@ la historia y le das a cada escena su lugar y su momento.
 Lo que no cambia es quién habla: no la hagas sonar más culta, más solemne ni más poética de lo
 que es. Y no le agregues frases tuyas que suenen a folleto («fue una época llena de desafíos»,
 «sin duda», «cabe destacar»): si una frase así la dijo esta persona, es suya y va; si la
-agregarías vos, sacala.`;
+agregarías vos, sacala.
 
 LAS CITAS VAN TEXTUALES
 Las frases que destacás como cita (líneas que empiezan con >) van palabra por palabra como las
