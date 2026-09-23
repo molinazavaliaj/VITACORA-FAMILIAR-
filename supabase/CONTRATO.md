@@ -564,3 +564,32 @@ Reglas:
   pero hoy puede ignorarla sin perder nada.
 - **`contexto.sinFotos`** (boolean, lo escribe la web desde el panel): si está en true, las preguntas de
   objeto se saltean. Es para el narrador que no puede sacar ni mandar fotos.
+
+## Saber si el mensaje llegó — `envios.entrega` (PROPUESTA del 23/09, la aplica Naza)
+
+⚠️ **No está aplicada todavía.** La migración es `20260923000200_envios_entrega.sql`. Mientras tanto
+el código funciona sin las columnas: avisa por consola (los logs de Railway ya sirven para saber qué
+pasó) y sigue. Es idempotente y no toca datos.
+
+De dónde sale: el 21/09 salieron tres bienvenidas —Dora, Mariano e Immaculada—, las tres con
+`wa_message_id` de Meta, y **las tres personas dicen que no les llegó nada**. `wa_message_id` solo
+dice que Meta **aceptó** el mensaje; no dice que lo haya entregado. Sin este dato no se pueden
+distinguir tres problemas distintos que hoy parecen uno solo.
+
+| Columna | Tipo | Escribe | Lee | Qué es |
+|---|---|---|---|---|
+| `envios.entrega` | text, null, check `enviado`/`entregado`/`leido`/`fallido` | entrevistador (webhook) | web (admin), entrevistador | Lo último que dijo Meta de este mensaje. Null = todavía no llegó ningún aviso, o el envío es anterior al 23/09. |
+| `envios.entrega_at` | timestamptz, null | entrevistador | web | Cuándo lo dijo Meta (su timestamp, no el nuestro). |
+| `envios.error_codigo` | int, null | entrevistador | web | El código de Meta cuando `entrega = 'fallido'`. |
+| `envios.error_detalle` | text, null | entrevistador | web | Qué dijo Meta. Es lo que hay que leer para saber por qué no llegó. |
+
+Reglas:
+
+- **Los avisos llegan por el mismo webhook** que los mensajes entrantes, en `value.statuses`. Hasta el
+  23/09 los tirábamos a la basura.
+- **Un aviso viejo no pisa a uno nuevo**: el orden es enviado → entregado → leido, y `fallido` gana
+  siempre. Meta no garantiza el orden de llegada.
+- **Nada de esto puede tumbar el webhook**: si la columna no existe o la fila no está, se avisa y se
+  sigue. Un mensaje que no salió de `envios` (la confirmación de una foto) simplemente no se anota.
+- Cómo se lee: `fallido` = el número o la cuenta tienen un problema · `entregado` sin `leido` = le
+  llegó y no lo abrió · `leido` sin respuesta = el problema es lo que dice el mensaje.

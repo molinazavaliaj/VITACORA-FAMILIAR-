@@ -1,5 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import { cargarConfig } from '../config.js';
+import { anotarEntrega, parsearEntregas } from './entregas.js';
 
 export type MensajeEntrante = {
   telefono: string;
@@ -34,6 +35,11 @@ export function registrarWebhook(app: FastifyInstance, procesar: (m: MensajeEntr
 
   app.post('/webhook', async (req, reply) => {
     reply.send({ ok: true }); // 200 inmediato: Meta reintenta ante cualquier otra cosa
+    // Los avisos de entrega (23/09): Meta los manda por acá y hasta hoy los
+    // tirábamos. Son la única forma de saber si el mensaje LLEGÓ.
+    for (const aviso of parsearEntregas(req.body)) {
+      anotarEntrega(aviso).catch((err) => app.log.error({ err, aviso }, 'fallo anotando la entrega'));
+    }
     const entrante = parsearEntrante(req.body);
     if (entrante) {
       procesar(entrante).catch((err) => app.log.error({ err, entrante }, 'fallo procesando entrante'));
