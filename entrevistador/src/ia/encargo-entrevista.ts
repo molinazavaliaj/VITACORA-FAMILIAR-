@@ -1,6 +1,5 @@
 import type { Perfil } from './perfil.js';
-import { contarPalabras, contarPreguntas, marcasDelTratoAjeno } from './control-texto.js';
-import type { Trato } from './trato.js';
+import { contarPalabras, contarPreguntas, marcasDelTratoAjeno, type TratoControlable } from './control-texto.js';
 
 // El encargo compartido del entrevistador (biógrafo v2, 23/09 — BORRADOR de la reescritura, lo
 // aprueba Naza). Todo lo que le escribe a la persona —la pregunta del día y la repregunta— parte
@@ -15,7 +14,7 @@ function dato(d: { valor: string; fuente: string } | null, nombre: string): stri
 /** La ficha en castellano, para los prompts: lo que no se sabe dice "no se sabe". */
 export function perfilEnTexto(p: Perfil): string {
   const lineas = [
-    dato(p.persona.edad ?? p.persona.anioNacimiento, 'Edad'),
+    p.persona.edad ? dato(p.persona.edad, 'Edad') : dato(p.persona.anioNacimiento, 'Año de nacimiento'),
     dato(p.persona.genero, 'Mujer u hombre'),
     dato(p.persona.comoHabla, 'Cómo prefiere que le hablen'),
     dato(p.persona.dondeViveHoy, 'Dónde vive hoy'),
@@ -32,10 +31,10 @@ export function perfilEnTexto(p: Perfil): string {
   return lineas.join('\n');
 }
 
-/** El trato de la ficha, si se sabe (lo que eligió la persona manda). */
-export function tratoDelPerfil(p: Perfil): Trato | null {
+/** El trato de la ficha, si se sabe (lo que eligió la persona manda). El tú es solo para el control. */
+export function tratoDelPerfil(p: Perfil): TratoControlable | null {
   const v = p.persona.comoHabla?.valor?.toLowerCase() ?? '';
-  return v.includes('vos') ? 'vos' : v.includes('usted') ? 'usted' : null;
+  return v.includes('vos') ? 'vos' : v.includes('usted') ? 'usted' : v.includes('tú') || v.includes('tu') ? 'tu' : null;
 }
 
 function comoHablarle(p: Perfil): string {
@@ -84,7 +83,7 @@ LO QUE SE RESPETA SIEMPRE
 const MAX_PALABRAS = 50;
 
 /** Lo que se revisa de todo lo que se le manda, antes de mandarlo. */
-export function controlarTexto(texto: string, trato: Trato | null): { ok: true } | { ok: false; motivo: string } {
+export function controlarTexto(texto: string, trato: TratoControlable | null): { ok: true } | { ok: false; motivo: string } {
   const t = texto.trim();
   if (contarPreguntas(t) === 0) return { ok: false, motivo: 'no tiene ninguna pregunta' };
   if (contarPalabras(t) > MAX_PALABRAS) return { ok: false, motivo: `tiene ${contarPalabras(t)} palabras (máximo ${MAX_PALABRAS})` };

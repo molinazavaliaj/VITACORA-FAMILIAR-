@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { NUCLEO, armarPromptPregunta, controlarPregunta, secuencia, type Objetivo } from '../src/ia/pregunta-v2.js';
+import { describe, it, expect, vi } from 'vitest';
+import { NUCLEO, armarPromptPregunta, controlarPregunta, escribirPregunta, secuencia, type Objetivo } from '../src/ia/pregunta-v2.js';
 import type { Variable } from '../src/ia/plan-preguntas.js';
 
 const nucleo = (i: number): Objetivo => ({ tipo: 'nucleo', ...NUCLEO[i] });
@@ -76,5 +76,24 @@ describe('controlarPregunta', () => {
 
   it('sin trato conocido, solo controla la forma', () => {
     expect(controlarPregunta('¿Cómo era la casa donde pasó su infancia?', null).ok).toBe(true);
+  });
+});
+
+describe('escribirPregunta', () => {
+  it('le pasa al modelo los temas que la persona pidió dejar (antes no llegaban: solo la evaluación los recibía)', async () => {
+    const create = vi.fn().mockResolvedValue({ content: [{ type: 'text', text: '¿Cómo era la plaza con Chupín y Chombita?' }], usage: { input_tokens: 1, output_tokens: 1 } });
+    const r = await escribirPregunta({ messages: { create } } as never, perfilDe({ comoHabla: { valor: 'vos', fuente: 'dicho' } }), nucleo(5), [], [], ['su tío y las drogas']);
+    expect(r.ok).toBe(true);
+    expect(JSON.stringify(create.mock.calls[0])).toContain('su tío y las drogas');
+  });
+
+  it('controla el trato con la ficha: a un narrador de tú no le deja pasar el usted', async () => {
+    const create = vi.fn()
+      .mockResolvedValueOnce({ content: [{ type: 'text', text: 'Cuénteme de su casa: ¿qué veía al entrar?' }], usage: { input_tokens: 1, output_tokens: 1 } })
+      .mockResolvedValueOnce({ content: [{ type: 'text', text: 'Cuéntame de tu casa: ¿qué veías al entrar?' }], usage: { input_tokens: 1, output_tokens: 1 } });
+    const r = await escribirPregunta({ messages: { create } } as never, perfilDe({ comoHabla: { valor: 'tú', fuente: 'dicho' } }), nucleo(0), [], []);
+    expect(r.ok).toBe(true);
+    expect(r.texto).toBe('Cuéntame de tu casa: ¿qué veías al entrar?');
+    expect(create).toHaveBeenCalledTimes(2);
   });
 });

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { encargoDelBiografo } from '../src/ia/encargo-entrevista.js';
+import { encargoDelBiografo, controlarTexto, tratoDelPerfil } from '../src/ia/encargo-entrevista.js';
 import { armarPromptEvaluar, parsearEvaluacion, evaluarV2 } from '../src/ia/evaluar-v2.js';
 import { perfilVacio, type Perfil } from '../src/ia/perfil.js';
 
@@ -30,6 +30,24 @@ describe('encargoDelBiografo', () => {
 
   it('lleva los temas que pidió dejar', () => {
     expect(encargoDelBiografo(perfilDe(), ['su tío y las drogas'])).toContain('su tío y las drogas');
+  });
+
+  it('si solo se sabe el año de nacimiento, lo dice como año y no como edad', () => {
+    expect(encargoDelBiografo(perfilDe({ anioNacimiento: { valor: '1950', fuente: 'ficha' } }))).toContain('Año de nacimiento: 1950');
+    expect(encargoDelBiografo(perfilDe({ edad: { valor: '76', fuente: 'dicho' } }))).toContain('Edad: 76');
+  });
+});
+
+describe('el control con un narrador de tú (España)', () => {
+  it('el perfil con tú da un trato controlable; la puerta manual no lo conoce, pero el control sí', () => {
+    expect(tratoDelPerfil(perfilDe({ comoHabla: { valor: 'tú', fuente: 'dicho' } }))).toBe('tu');
+    expect(tratoDelPerfil(perfilDe({ comoHabla: { valor: 'vos', fuente: 'deducido' } }))).toBe('vos');
+    expect(tratoDelPerfil(perfilDe())).toBeNull();
+  });
+
+  it('a un narrador de tú no le deja pasar el usted, y no confunde el tú con el vos', () => {
+    expect(controlarTexto('Cuénteme de su casa: ¿qué veía al entrar?', 'tu').ok).toBe(false);
+    expect(controlarTexto('Cuéntame de tu casa: ¿qué veías al entrar, sabes?', 'tu')).toEqual({ ok: true });
   });
 });
 

@@ -1,5 +1,12 @@
 import type { Trato } from './trato.js';
 
+/**
+ * Los tratos que el control sabe mirar. `Trato` (usted/vos) es el de producción; `tu` existe
+ * solo acá, para un narrador de España al que el perfil v2 le detectó tú (biógrafo v2, 23/09):
+ * la puerta manual y el flujo siguen sin conocerlo.
+ */
+export type TratoControlable = Trato | 'tu';
+
 // Controles puros sobre el texto que se le manda al narrador. Salieron de personalizar.ts
 // (23/09) para poder usarlos sin conectarse a la base: los usa también la pregunta v2.
 
@@ -60,18 +67,20 @@ const MARCAS: Record<'usted' | 'vos' | 'tu', RegExp> = {
  * eso no molesta: las dos están mal para un narrador de usted, y para uno de
  * vos lo único que importa es que no aparezcan las de usted.
  */
-export function marcasDelTratoAjeno(texto: string, trato: Trato): string[] {
+export function marcasDelTratoAjeno(texto: string, trato: TratoControlable): string[] {
   const limpio = sinAcentos(texto);
-  const sinAcentar: RegExp[] = trato === 'vos' ? [MARCAS.usted] : [MARCAS.vos];
-  const conAcento = MARCAS.tu; // el tú también está mal en los dos tratos
+  const sinAcentar: RegExp[] = trato === 'usted' ? [MARCAS.vos] : [MARCAS.usted];
+  // Para un narrador de tú (España) solo se caza el usted: el tú y el vos comparten formas
+  // ("sabes", "mira", "llevame" sin acento) y cazar el vos daría falsos positivos.
+  const conAcento = trato === 'tu' ? null : MARCAS.tu; // el tú está mal en vos y en usted
   return [
     ...sinAcentar.flatMap((re) => limpio.match(new RegExp(re, 'g')) ?? []),
-    ...(texto.toLowerCase().match(new RegExp(conAcento, 'g')) ?? []),
+    ...(conAcento ? texto.toLowerCase().match(new RegExp(conAcento, 'g')) ?? [] : []),
   ];
 }
 
 /** ¿Esta pregunta le habla al narrador de una manera que no es la suya? */
-export function rompeElTrato(texto: string, trato: Trato): boolean {
+export function rompeElTrato(texto: string, trato: TratoControlable): boolean {
   return marcasDelTratoAjeno(texto, trato).length > 0;
 }
 

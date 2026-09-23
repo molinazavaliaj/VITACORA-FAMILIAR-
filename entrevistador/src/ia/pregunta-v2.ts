@@ -112,8 +112,9 @@ export async function escribirPregunta(
   objetivo: Objetivo,
   conversacion: { pregunta: string; respuesta: string }[],
   yaHechas: string[],
+  evitar: string[] = [],
 ): Promise<{ texto: string; ok: boolean; motivo?: string; usos: Anthropic.Usage[] }> {
-  const prompt = armarPromptPregunta(perfil, objetivo, conversacion, yaHechas);
+  const prompt = armarPromptPregunta(perfil, objetivo, conversacion, yaHechas, evitar);
   const trato = tratoDelPerfil(perfil);
   const usos: Anthropic.Usage[] = [];
   let texto = '';
