@@ -158,14 +158,17 @@ for (const quien of NARRADORES) {
     });
     gasto += USD(hoy.usage);
     const bloqueHoy = hoy.content.find((b) => b.type === 'text');
-    // Sin `evitar`: el caso mide si la v2 lo detecta sola, como el día que pasó.
-    const v2 = await evaluarV2(cliente, perfilAntes[i], pares[i].pregunta, pares[i].respuesta, 40, pares.slice(Math.max(0, i - 6), i), []);
+    // Sin `evitar`: el caso mide si la v2 lo detecta sola, como el día que pasó. No hay un
+    // objetivo real para esta re-evaluación histórica: se usa uno de núcleo cualquiera (el
+    // control de lugar/supuestos igual corre, como correría con el objetivo real del día).
+    const objetivoDelCaso = { tipo: 'nucleo' as const, ...NUCLEO.find((x) => x.id === 'padres')! };
+    const v2 = await evaluarV2(cliente, perfilAntes[i], objetivoDelCaso, pares[i].pregunta, pares[i].respuesta, 40, pares.slice(Math.max(0, i - 6), i), []);
     for (const u of v2.usos) gasto += USD(u);
     casos.push(
       `## ${caso.id}: ${caso.titulo}`, '',
       `Pregunta: «${pares[i].pregunta}»`, '', `Respuesta: «${pares[i].respuesta.slice(0, 220)}…»`, '',
       `**Evaluación de hoy:** ${bloqueHoy && bloqueHoy.type === 'text' ? bloqueHoy.text.trim() : '(vacío)'}`, '',
-      `**Evaluación v2:** ${JSON.stringify(v2.evaluacion)}${v2.controlOk ? '' : ` ⚠ control: ${v2.motivo}`}`, '',
+      `**Evaluación v2:** ${JSON.stringify(v2.evaluacion)}${v2.marca ? ` ⚠ control: ${v2.marca.control} — ${v2.marca.motivo}` : ''}`, '',
     );
   }
 

@@ -1,7 +1,19 @@
 import { describe, it, expect, vi } from 'vitest';
 import { encargoDelBiografo, controlarTexto, tratoDelPerfil } from '../src/ia/encargo-entrevista.js';
-import { armarPromptEvaluar, parsearEvaluacion, evaluarV2 } from '../src/ia/evaluar-v2.js';
+import { armarPromptEvaluar, parsearEvaluacion, evaluarV2, hayCansancio } from '../src/ia/evaluar-v2.js';
 import { perfilVacio, type Perfil } from '../src/ia/perfil.js';
+
+// `objetivoDePrueba`: para el control de lugar de la repregunta se pasa el objetivo de la pregunta
+// de hoy (Task 6/7); acá alcanza con un núcleo de infancia, no importa el detalle. `as never`
+// porque no vale la pena tipar todo `NucleoItem` en el test.
+const objetivoDePrueba = { tipo: 'nucleo', id: 'padres', tramo: 'infancia', bloque: 'infancia', tema: '' } as never;
+
+/** Un cliente falso que devuelve, en orden, un texto por llamada (usado por los tests de `evaluarV2`). */
+const cliente = (textos: string[]) => {
+  const create = vi.fn();
+  for (const t of textos) create.mockResolvedValueOnce({ content: [{ type: 'text', text: t }], usage: { input_tokens: 1, output_tokens: 1 } });
+  return { cliente: { messages: { create } } as never, create };
+};
 
 // El encargo compartido del entrevistador y la evaluación v2 (biógrafo v2, 23/09). La pregunta
 // del día y la repregunta tenían cada una sus reglas, escritas en momentos distintos; la
@@ -101,19 +113,41 @@ describe('parsearEvaluacion', () => {
   });
 });
 
-describe('evaluarV2', () => {
-  const cliente = (textos: string[]) => {
-    const create = vi.fn();
-    for (const t of textos) create.mockResolvedValueOnce({ content: [{ type: 'text', text: t }], usage: { input_tokens: 1, output_tokens: 1 } });
-    return { cliente: { messages: { create } } as never, create };
-  };
+describe('parsearEvaluacion valida por campo', () => {
+  it('ignora lo que viene con el tipo equivocado', () => {
+    const r = parsearEvaluacion('{"suficiente": false, "repregunta": 42, "reservado": "sí", "dejarTema": true, "hoyNo": "no", "quiereParar": true}');
+    expect(r).toEqual({ suficiente: false, quiereParar: true });
+  });
 
+  it('lee hoyNo y quiereParar', () => {
+    expect(parsearEvaluacion('{"suficiente": true, "hoyNo": true}')).toEqual({ suficiente: true, hoyNo: true });
+  });
+});
+
+describe('hayCansancio', () => {
+  it('las dos últimas repreguntas sin contestar → cansancio; una sola, no', () => {
+    expect(hayCansancio([{ contestada: true }, { contestada: false }, { contestada: false }])).toBe(true);
+    expect(hayCansancio([{ contestada: false }, { contestada: true }])).toBe(false);
+    expect(hayCansancio([])).toBe(false);
+  });
+});
+
+describe('el prompt de la evaluación', () => {
+  it('distingue "hoy no" de "no quiero seguir" y de "vamos por otro lado"', () => {
+    const p = armarPromptEvaluar(perfilDe(), '¿?', '…', 5, [], []);
+    expect(p).toContain('"hoyNo"');
+    expect(p).toContain('"quiereParar"');
+    expect(p).toContain('"dejarTema"');
+  });
+});
+
+describe('evaluarV2', () => {
   it('si la repregunta rompe el trato, la pide de nuevo diciendo por qué', async () => {
     const { cliente: c, create } = cliente([
       '{"suficiente": false, "repregunta": "¿Cómo se llamaba? Cuénteme de ella."}',
       '{"suficiente": false, "repregunta": "¿Cómo se llamaba? Contame de ella."}',
     ]);
-    const r = await evaluarV2(c, perfilDe({ comoHabla: { valor: 'vos', fuente: 'dicho' } }), '¿Su abuela?', 'Sí, mi abuela.', 5, [], []);
+    const r = await evaluarV2(c, perfilDe({ comoHabla: { valor: 'vos', fuente: 'dicho' } }), objetivoDePrueba, '¿Su abuela?', 'Sí, mi abuela.', 5, [], []);
     expect(r.evaluacion.repregunta).toBe('¿Cómo se llamaba? Contame de ella.');
     expect(create).toHaveBeenCalledTimes(2);
     expect(JSON.stringify(create.mock.calls[1])).toContain('no sirvió porque');
@@ -121,8 +155,19 @@ describe('evaluarV2', () => {
 
   it('si alcanza, una sola llamada', async () => {
     const { cliente: c, create } = cliente(['{"suficiente": true}']);
-    const r = await evaluarV2(c, perfilDe(), '¿Su casa?', 'Larga respuesta con escenas.', 90, [], []);
+    const r = await evaluarV2(c, perfilDe(), objetivoDePrueba, '¿Su casa?', 'Larga respuesta con escenas.', 90, [], []);
     expect(r.evaluacion).toEqual({ suficiente: true });
     expect(create).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('evaluarV2 con marca', () => {
+  it('si la repregunta falla tres veces, queda marcada y se devuelve igual', async () => {
+    const malo = '{"suficiente": false, "repregunta": "¿Cómo se llamaba? Cuénteme de ella."}';
+    const { cliente: c, create } = cliente([malo, malo, malo]);
+    const r = await evaluarV2(c, perfilDe({ comoHabla: { valor: 'vos', fuente: 'dicho' } }), objetivoDePrueba, '¿Su abuela?', 'Sí.', 5, [], []);
+    expect(create).toHaveBeenCalledTimes(3);
+    expect(r.marca).toMatchObject({ control: 'trato', intentos: 3 });
+    expect(r.evaluacion.repregunta).toContain('Cuénteme');
   });
 });
