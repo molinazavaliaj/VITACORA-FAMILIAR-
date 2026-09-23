@@ -247,3 +247,11 @@ cobertura, trato) son las que dicen si la versión reescrita es mejor que la de 
   podía hacer tirar una etapa de su vida que no se parece al resto); la voz en el castellano de
   cada uno (argentino, de España, el que sea); "suena a folleto" es para lo que agrega el
   escritor — si lo dijo la persona, es suyo y va.
+- **El libro va por las etapas de SU vida, no por los temas del guion** (Naza, 23/09): los
+  capítulos son las etapas de esa persona, con nombres que salen de lo que contó ("Tucumán", "La
+  pensión de Once", "Rubén y el taller"), y uno final de reflexión. La fábrica las arma al final
+  leyendo toda la historia (`fabrica/src/libro/etapas.ts`) y el reparto pone cada oración en su
+  etapa. **Le toca a la web (Joaquín)**: hoy las fotos se suben "por capítulo" del guion y la
+  familia renombra y ordena esos capítulos en el panel; con etapas, los capítulos existen recién
+  al final. Hay que decidir cómo sube fotos la familia antes (¿por etapa de la vida, por época?)
+  y cuándo ve y renombra los capítulos.

@@ -3,7 +3,10 @@
 // borradores de hoy. No escribe NADA en Supabase (ni base ni Storage, ni costos.json): lee, y
 // deja todo en una carpeta local para leerlo.
 //
-//   npx tsx --env-file=.env scripts/prueba-reparto.ts <narradorId> [--salida <carpeta>] [--solo-reparto] [--excluir <id>,<id>]
+//   npx tsx --env-file=.env scripts/prueba-reparto.ts <narradorId> [--salida <carpeta>] [--solo-reparto] [--excluir <id>,<id>] [--etapas]
+//
+// --etapas arma el libro por las etapas de SU vida (decisión de Naza, 23/09) en vez de por los
+// capítulos del guion.
 //
 // --solo-reparto corre solo la llamada del reparto (~USD 0,50) y deja el material de cada
 // capítulo para revisarlo antes de pagar los capítulos (~USD 0,22 cada uno). --excluir deja
@@ -17,6 +20,7 @@ import { obtenerClienteDb, type Pregunta, type Respuesta } from '../src/db.js';
 import { descargarTextoOpcional, formatearNombresCorregidos, textoRespuesta, type Nombres } from '../src/libro/comun.js';
 import { aplicarOrdenCapitulos, aplicarTitulosCapitulos, leerEdicion } from '../src/libro/edicion.js';
 import { numerarRespuestas, materialRepartido, repartir } from '../src/libro/reparto.js';
+import { armarEtapas, capitulosDeEtapas, repartirEnEtapas } from '../src/libro/etapas.js';
 import { escribirCapituloRepartido } from '../src/libro/escribir-capitulo.js';
 import { medirRepeticion, type Medicion } from '../src/libro/medir-repeticion.js';
 import { generoDelMaterial } from '../src/libro/encargo.js';
@@ -32,6 +36,7 @@ const args = process.argv.slice(2);
 const narradorId = args[0]?.startsWith('--') ? undefined : args[0];
 const iSalida = args.indexOf('--salida');
 const soloReparto = args.includes('--solo-reparto');
+const porEtapas = args.includes('--etapas');
 const iExcluir = args.indexOf('--excluir');
 const excluidas = new Set(iExcluir >= 0 ? args[iExcluir + 1].split(',') : []);
 if (!narradorId) {
@@ -84,40 +89,72 @@ for (let i = 0; i < capitulos.length; i++) {
 }
 if (antes.length) informe.push(`**Antes (borradores de hoy):** ${medir(medirRepeticion(antes, fuentes))}`, '');
 
-// El reparto.
+// Quién cuenta: mujer u hombre, de lo que cuenta (la compra no lo pregunta todavía).
+const { genero, evidencia } = generoDelMaterial(publicables.map((x) => x.texto));
+const quien = { nombre: narrador.nombre, genero };
+informe.push(`**Quién cuenta:** ${genero ?? 'no se sabe'}${evidencia.length ? ` (${evidencia.slice(0, 4).join(', ')})` : ''}`, '');
+
 const config = cargarConfig();
 const cliente = new Anthropic({ apiKey: config.anthropicApiKey });
-console.log('Reparto…');
-const reparto = await repartir(cliente, { nombre: narrador.nombre }, numeradas, capitulos);
-let gasto = costo(reparto.usage as Uso);
-await writeFile(path.join(salida, 'reparto-salida.txt'), reparto.salida);
-const { porCapitulo, sinCapitulo } = materialRepartido(numeradas, capitulos, reparto.movidas);
-informe.push(`**Reparto:** ${reparto.movidas.size} oraciones mudadas de capítulo · ${reparto.ignoradas.length} líneas ignoradas · USD ${gasto.toFixed(2)}`);
-for (const l of reparto.ignoradas) informe.push(`- ignorada: \`${l}\``);
-if (sinCapitulo.length) informe.push(`- ⚠ sin capítulo (no entran al libro): ${sinCapitulo.map((r) => `${r.id} (orden ${r.orden})`).join(', ')}`);
+let gasto = 0;
+let libroCapitulos: { nombre: string }[];
+let porCapitulo: string[];
+let sinCapitulo: ReturnType<typeof materialRepartido>['sinCapitulo'];
+
+if (porEtapas) {
+  // El libro por etapas de SU vida (decisión de Naza, 23/09): primero las etapas, después el
+  // reparto con las etapas como capítulos.
+  console.log('Etapas…');
+  const historia = publicables.map(({ r, texto }) => `P: ${preguntaDe.get(r.pregunta_orden) ?? ''}\nR: ${texto}`).join('\n\n');
+  const et = await armarEtapas(cliente, quien, historia);
+  gasto += costo(et.usage as Uso);
+  await writeFile(path.join(salida, 'etapas-salida.txt'), et.salida);
+  if (!et.resultado.ok) throw new Error('El modelo no devolvió etapas legibles: ver etapas-salida.txt');
+  const etapas = et.resultado.etapas;
+  informe.push('**Etapas:**', ...etapas.map((e, i) => `${i + 1}. ${e.nombre}${e.desde !== null ? ` (${e.desde}-${e.hasta ?? '?'})` : ''}: ${e.deQueTrata}`), '');
+  const capituloGuionDe = new Map([...fijas, ...propias].map((p) => [p.orden, p.capitulo ?? '']));
+  const capitulosEtapas = capitulosDeEtapas(etapas, publicables.map(({ r }) => ({ orden: r.pregunta_orden, capituloGuion: capituloGuionDe.get(r.pregunta_orden) ?? '' })));
+  console.log('Reparto en etapas…');
+  const reparto = await repartirEnEtapas(cliente, quien, numeradas, capitulosEtapas, etapas);
+  gasto += costo(reparto.usage as Uso);
+  await writeFile(path.join(salida, 'reparto-salida.txt'), reparto.salida);
+  ({ porCapitulo, sinCapitulo } = materialRepartido(numeradas, capitulosEtapas, reparto.movidas));
+  // Lo que el modelo no ubicó va a la reflexión, y se cuenta: es lo que hay que mirar.
+  if (sinCapitulo.length) {
+    const ultimo = porCapitulo.length - 1;
+    porCapitulo[ultimo] = [porCapitulo[ultimo], ...sinCapitulo.map((r) => `P: ${r.pregunta}\nR: ${r.oraciones.join(' ')}`)].filter(Boolean).join('\n\n');
+  }
+  informe.push(`**Reparto en etapas:** ${reparto.movidas.size} oraciones ubicadas por el modelo · ${reparto.ignoradas.length} líneas ignoradas · ${sinCapitulo.length} respuestas que no ubicó (fueron a la reflexión)`);
+  libroCapitulos = etapas;
+} else {
+  console.log('Reparto…');
+  const reparto = await repartir(cliente, { nombre: narrador.nombre }, numeradas, capitulos);
+  gasto += costo(reparto.usage as Uso);
+  await writeFile(path.join(salida, 'reparto-salida.txt'), reparto.salida);
+  ({ porCapitulo, sinCapitulo } = materialRepartido(numeradas, capitulos, reparto.movidas));
+  informe.push(`**Reparto:** ${reparto.movidas.size} oraciones mudadas de capítulo · ${reparto.ignoradas.length} líneas ignoradas · USD ${gasto.toFixed(2)}`);
+  for (const l of reparto.ignoradas) informe.push(`- ignorada: \`${l}\``);
+  if (sinCapitulo.length) informe.push(`- ⚠ sin capítulo (no entran al libro): ${sinCapitulo.map((r) => `${r.id} (orden ${r.orden})`).join(', ')}`);
+  libroCapitulos = capitulos;
+}
 
 // Cobertura: cada oración en exactamente un material. Es así por construcción; se verifica igual.
 const todo = porCapitulo.join('\n');
 const faltan = numeradas.flatMap((r) => r.oraciones.filter((o) => !todo.includes(o)).map((o) => `${r.id}: ${o.slice(0, 60)}`));
 informe.push(`**Cobertura:** ${faltan.length === 0 ? 'todas las oraciones están en algún capítulo' : `⚠ ${faltan.length} oraciones afuera`}`, '');
 for (const f of faltan) informe.push(`- afuera: ${f}`);
-for (let i = 0; i < capitulos.length; i++) {
-  await writeFile(path.join(salida, `material_cap_${String(i + 1).padStart(2, '0')}.md`), `# ${capitulos[i].nombre}\n\n${porCapitulo[i]}\n`);
+for (let i = 0; i < libroCapitulos.length; i++) {
+  await writeFile(path.join(salida, `material_cap_${String(i + 1).padStart(2, '0')}.md`), `# ${libroCapitulos[i].nombre}\n\n${porCapitulo[i]}\n`);
 }
-
-// Quién cuenta: mujer u hombre, de lo que cuenta (la compra no lo pregunta).
-const { genero, evidencia } = generoDelMaterial(publicables.map((x) => x.texto));
-const quien = { nombre: narrador.nombre, genero };
-informe.push(`**Quién cuenta:** ${genero ?? 'no se sabe'}${evidencia.length ? ` (${evidencia.slice(0, 4).join(', ')})` : ''}`, '');
 
 if (!soloReparto) {
   const despues: { nombre: string; texto: string }[] = [];
-  for (let i = 0; i < capitulos.length; i++) {
-    console.log(`Capítulo ${i + 1}/${capitulos.length}: ${capitulos[i].nombre}…`);
-    const { texto, usage } = await escribirCapituloRepartido(quien, capitulos[i].nombre, porCapitulo[i], formatearNombresCorregidos(nombres.correcciones));
+  for (let i = 0; i < libroCapitulos.length; i++) {
+    console.log(`Capítulo ${i + 1}/${libroCapitulos.length}: ${libroCapitulos[i].nombre}…`);
+    const { texto, usage } = await escribirCapituloRepartido(quien, libroCapitulos[i].nombre, porCapitulo[i], formatearNombresCorregidos(nombres.correcciones));
     gasto += costo(usage as Uso);
-    despues.push({ nombre: capitulos[i].nombre, texto });
-    await writeFile(path.join(salida, `capitulo_${String(i + 1).padStart(2, '0')}.md`), `# ${capitulos[i].nombre}\n\n${texto}\n`);
+    despues.push({ nombre: libroCapitulos[i].nombre, texto });
+    await writeFile(path.join(salida, `capitulo_${String(i + 1).padStart(2, '0')}.md`), `# ${libroCapitulos[i].nombre}\n\n${texto}\n`);
   }
   const m = medirRepeticion(despues, fuentes);
   informe.push(`**Después (con reparto):** ${medir(m)}`, '');
