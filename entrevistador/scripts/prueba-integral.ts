@@ -25,12 +25,16 @@ import { createClient } from '@supabase/supabase-js';
 import { actualizarPerfil, perfilVacio, type Perfil } from '../src/ia/perfil.js';
 import { planificar } from '../src/ia/plan-preguntas.js';
 import { NUCLEO, escribirPregunta, perfilEnTexto, type Objetivo } from '../src/ia/pregunta-v2.js';
+import { evaluarV2 } from '../src/ia/evaluar-v2.js';
 
 const AQUI = dirname(fileURLToPath(import.meta.url));
 for (const linea of readFileSync(resolve(AQUI, '..', '.env'), 'utf8').split('\n')) {
   const m = linea.match(/^\s*([A-Z_][A-Z0-9_]*)\s*=\s*(.*)$/);
   if (m) process.env[m[1]] ??= m[2].trim().replace(/^["']|["']$/g, '');
 }
+// El cerebro (que se importa para comparar la evaluación de hoy) exige las WA_* al cargarse, y en
+// el .env local están vacías (Meta sin habilitar): `||=`, como scripts/prueba-cerebro.ts.
+for (const v of ['OPENAI_API_KEY', 'WA_TOKEN', 'WA_PHONE_NUMBER_ID', 'WA_VERIFY_TOKEN']) process.env[v] ||= 'no-usado-en-esta-prueba';
 const db = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
 const cliente = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! });
 const USD = (u: Anthropic.Usage) => (u.input_tokens * 5 + u.output_tokens * 25) / 1_000_000; // Opus 5, src/costos.ts
@@ -106,27 +110,39 @@ for (const quien of NARRADORES) {
     console.log(`${n.como_le_dicen}: pregunta ${escritas.length}/${objetivos.length} · USD ${gasto.toFixed(2)}`);
   }
 
-  // C1: la repregunta que pidió lo que ya había contado. Se re-evalúa esa respuesta real dos
-  // veces —sin y con lo que ya contó (el perfil de ESE momento)— y se comparan las repreguntas.
-  // Se llama al prompt directo, no a evaluarRespuesta, para no escribir el consumo en la base.
-  const casoC1: string[] = [];
-  const iC1 = pares.findIndex((p) => p.respuesta.startsWith('Sinceramente, en esta pregunta no te puedo ayudar'));
-  if (iC1 >= 0) {
+  // Los casos reales donde la repregunta falló: se re-evalúa esa respuesta con la evaluación de
+  // hoy (el prompt de producción, directo, para no escribir el consumo en la base) y con la v2
+  // (el encargo compartido y el perfil de ESE momento), y se comparan.
+  //   C1: le pidió lo que ya había contado (sus abuelos, cuando su abuela le cocinaba).
+  //   C4: dijo "vamos por otro lado" y la repregunta fue derecho a ese tema.
+  const CASOS = [
+    { id: 'C1', titulo: '¿repregunta lo que ya contó?', es: (r: string) => r.startsWith('Sinceramente, en esta pregunta no te puedo ayudar') },
+    { id: 'C4', titulo: '¿insiste donde pidió cambiar de tema?', es: (r: string) => /vamos por otro lado/i.test(r) },
+  ];
+  const casos: string[] = [];
+  for (const caso of CASOS) {
+    const i = pares.findIndex((p) => caso.es(p.respuesta));
+    if (i < 0) continue;
     const { PROMPT_EVALUAR, estiloCerebro } = await import('../src/ia/cerebro.js');
-    for (const [etiqueta, contexto] of [['sin lo que ya contó (hoy)', ''], ['con lo que ya contó (v2)', perfilEnTexto(perfilAntes[iC1])]] as const) {
-      const r = await cliente.messages.create({
-        model: 'claude-opus-5', max_tokens: 500, system: estiloCerebro('vos'),
-        messages: [{ role: 'user', content: PROMPT_EVALUAR(pares[iC1].pregunta, pares[iC1].respuesta, 33, '', 'vos', [], 0, contexto) }],
-      });
-      gasto += USD(r.usage);
-      const bloque = r.content.find((b) => b.type === 'text');
-      casoC1.push(`**${etiqueta}:** ${bloque && bloque.type === 'text' ? bloque.text.trim() : '(vacío)'}`);
-    }
+    const hoy = await cliente.messages.create({
+      model: 'claude-opus-5', max_tokens: 500, system: estiloCerebro('vos'),
+      messages: [{ role: 'user', content: PROMPT_EVALUAR(pares[i].pregunta, pares[i].respuesta, 40, '', 'vos') }],
+    });
+    gasto += USD(hoy.usage);
+    const bloqueHoy = hoy.content.find((b) => b.type === 'text');
+    const v2 = await evaluarV2(cliente, perfilAntes[i], pares[i].pregunta, pares[i].respuesta, 40, pares.slice(Math.max(0, i - 6), i), []);
+    for (const u of v2.usos) gasto += USD(u);
+    casos.push(
+      `## ${caso.id}: ${caso.titulo}`, '',
+      `Pregunta: «${pares[i].pregunta}»`, '', `Respuesta: «${pares[i].respuesta.slice(0, 220)}…»`, '',
+      `**Evaluación de hoy:** ${bloqueHoy && bloqueHoy.type === 'text' ? bloqueHoy.text.trim() : '(vacío)'}`, '',
+      `**Evaluación v2:** ${JSON.stringify(v2.evaluacion)}${v2.controlOk ? '' : ` ⚠ control: ${v2.motivo}`}`, '',
+    );
   }
 
   const informe = [
     `# ${n.como_le_dicen} — ${pares.length} respuestas, sin ficha`, '',
-    ...(casoC1.length ? ['## C1: ¿repregunta lo que ya contó?', '', `Respuesta: «${pares[iC1].respuesta.slice(0, 160)}…»`, '', ...casoC1, ''] : []),
+    ...casos,
     '## Quién es, según el biógrafo', '', perfilEnTexto(perfil), '',
     '## Reparto de variables', '',
     plan.ok ? Object.entries(plan.variables.reduce<Record<string, number>>((c, v) => ({ ...c, [v.tramo]: (c[v.tramo] ?? 0) + 1 }), {})).map(([t, k]) => `- ${t}: ${k}`).join('\n') : `No planificó: falta ${plan.falta}`, '',
