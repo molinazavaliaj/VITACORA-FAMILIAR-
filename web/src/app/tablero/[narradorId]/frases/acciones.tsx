@@ -49,6 +49,9 @@ export function SelectorDeFrases({
   const [error, setError] = useState<string | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
   const [copiado, setCopiado] = useState(false);
+  // El aviso antes de confirmar (3t.26 fase 2): confirmar manda a imprimir y no
+  // tiene vuelta, así que no puede salir de un solo clic.
+  const [avisoImprenta, setAvisoImprenta] = useState(false);
 
   const cambios = useMemo(() => cambiosParaGuardar(capitulos, seleccion), [capitulos, seleccion]);
   const hayCambios = cambios.length > 0;
@@ -95,7 +98,7 @@ export function SelectorDeFrases({
         setError(datos.error ?? "No pudimos guardar. Intenta de nuevo.");
         return;
       }
-      setAviso(confirmar ? "Selección confirmada: así va al libro impreso." : "Guardado. Podés seguir cambiando cuando quieras.");
+      setAviso(confirmar ? "Confirmada. El libro entra en producción con esta selección." : "Guardado. Podés seguir cambiando cuando quieras.");
       router.refresh();
     } catch {
       setError("No pudimos guardar. Intenta de nuevo.");
@@ -205,17 +208,61 @@ export function SelectorDeFrases({
             <button type="button" className={`${boton} bg-[var(--texto)] text-[var(--fondo)]`} disabled={guardando || !hayCambios} onClick={() => guardar(false)}>
               {guardando ? "Guardando…" : "Guardar"}
             </button>
-            <button type="button" className={`${boton} border border-[var(--linea-fuerte)] hover:bg-[var(--bruma)]`} disabled={guardando} onClick={() => guardar(true)}>
+            <button type="button" className={`${boton} border border-[var(--linea-fuerte)] hover:bg-[var(--bruma)]`} disabled={guardando} onClick={() => setAvisoImprenta(true)}>
               {confirmadoAt ? "Volver a confirmar" : "Dar por buena la selección"}
             </button>
+            {/*
+              ⚠️ Estos dos textos decían lo contrario de lo que pasa desde el
+              portón de imprenta (3t.26 fase 2). Decían "si no confirmás, se
+              imprime la que eligió el biógrafo" — y con el portón, si no
+              confirma NO SE IMPRIME NADA: la familia se quedaba esperando un
+              libro que nunca iba a salir. Y "podés seguir cambiando hasta que
+              se imprima", cuando confirmar ES mandar a imprimir.
+            */}
             <p className="text-[13px] text-[var(--texto-menor)] [font-family:var(--fuente-micro)]">
               {confirmadoAt
-                ? `Confirmada el ${new Date(confirmadoAt).toLocaleDateString("es-AR")}. Podés seguir cambiando hasta que se imprima.`
-                : "Si no confirmás, se imprime la que eligió el biógrafo."}
+                ? `Confirmada el ${new Date(confirmadoAt).toLocaleDateString("es-AR")}. Ya puede entrar a imprenta en cualquier momento.`
+                : "El libro impreso sale recién cuando confirmes esta selección."}
             </p>
           </div>
           {error ? <p className="mt-3 text-sm text-red-700">{error}</p> : null}
           {aviso ? <p className="mt-3 text-sm text-[var(--texto-suave)]">{aviso}</p> : null}
+        </div>
+      ) : null}
+
+      {avisoImprenta ? (
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-4 sm:items-center"
+          onClick={() => setAvisoImprenta(false)}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="titulo-imprenta"
+            className="w-full max-w-md rounded-2xl bg-[var(--fondo)] p-6 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 id="titulo-imprenta" className="text-[20px] leading-tight [font-family:var(--fuente-titulo)]">Esto va a la imprenta</h2>
+            <p className="mt-3 text-[15px] leading-relaxed text-[var(--texto-suave)]">
+              Al confirmar, el libro entra en producción tal como está ahora. Dale una última mirada a
+              <strong className="font-medium text-[var(--texto)]"> los nombres</strong>,
+              <strong className="font-medium text-[var(--texto)]"> el orden de los capítulos</strong> y
+              <strong className="font-medium text-[var(--texto)]"> estas frases</strong>: se imprime en papel y de ahí no tiene vuelta.
+            </p>
+            <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+              <button type="button" className={`${boton} border border-[var(--linea-fuerte)] hover:bg-[var(--bruma)]`} onClick={() => setAvisoImprenta(false)}>
+                Lo reviso una vez más
+              </button>
+              <button
+                type="button"
+                className={`${boton} bg-[var(--texto)] text-[var(--fondo)]`}
+                disabled={guardando}
+                onClick={() => { setAvisoImprenta(false); guardar(true); }}
+              >
+                {guardando ? "Confirmando…" : "Confirmar y mandar a imprenta"}
+              </button>
+            </div>
+          </div>
         </div>
       ) : null}
 
