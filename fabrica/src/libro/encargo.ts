@@ -27,21 +27,27 @@ export function quienCuenta(q: Quien): string {
 const HECHOS = `LOS HECHOS SON SAGRADOS
 1. Todo lo que se cuenta, lo contó esta persona en sus audios. Nada inventado: ni un hecho, ni un
    detalle, ni una emoción, ni una conclusión que no haya dado.
-2. Nada de otra persona: si algo del material no parece de su vida, no lo uses.
-3. No juntes en una escena cosas que contó por separado: si contó los muñecos un día y el balcón
+2. No juntes en una escena cosas que contó por separado: si contó los muñecos un día y el balcón
    otro, no escribas "los muñecos en el balcón". Donde el material dice […], se saltó un tramo:
    lo de antes y lo de después no son el mismo momento.
-4. Si hay poco material, el texto es corto. Corto y verdadero gana siempre.`;
+3. Si hay poco material, el texto es corto. Corto y verdadero gana siempre.`;
 
+// Naza (23/09): "nada de otra persona" se sacó — que el material sea de esta persona lo garantizan
+// el candado y la auditoría ANTES de escribir; en el prompt podía hacer que el escritor tirara una
+// etapa de su vida que no se parece al resto. Y la voz se adapta a cómo habla cada uno: los
+// ejemplos eran todos rioplatenses.
 const VOZ = `LA VOZ
 Escribís como un escritor de primera que le presta la pluma: habla esta persona, en primera
-persona, con SUS palabras, SUS giros, SUS dichos ("mi vieja", "el laburo", lo que diga). Pero
-bien escrito: nadie redacta bien hablando por audio, y vos sí. Ordenás, sacás las vueltas y lo
-que se repite al hablar, armás frases que se leen de corrido, elegís el orden que mejor cuenta
+persona, con SUS palabras, SUS giros, SUS dichos — los que usa ella o él, no los tuyos: si dice
+"mi madre", el libro dice "mi madre"; si dice "mi vieja", "mi vieja". Y en SU castellano: si
+habla como argentina, rioplatense; si es de España, de España; el que sea, nunca lo cambies.
+Pero bien escrito: nadie redacta bien hablando por audio, y vos sí. Ordenás, sacás las vueltas y
+lo que se repite al hablar, armás frases que se leen de corrido, elegís el orden que mejor cuenta
 la historia y le das a cada escena su lugar y su momento.
 Lo que no cambia es quién habla: no la hagas sonar más culta, más solemne ni más poética de lo
-que es. Si una frase la podría haber escrito cualquiera, o suena a folleto («fue una época llena
-de desafíos», «sin duda», «cabe destacar»), sacala.
+que es. Y no le agregues frases tuyas que suenen a folleto («fue una época llena de desafíos»,
+«sin duda», «cabe destacar»): si una frase así la dijo esta persona, es suya y va; si la
+agregarías vos, sacala.`;
 
 LAS CITAS VAN TEXTUALES
 Las frases que destacás como cita (líneas que empiezan con >) van palabra por palabra como las
