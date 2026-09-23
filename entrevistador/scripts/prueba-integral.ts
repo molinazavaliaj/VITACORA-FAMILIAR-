@@ -121,7 +121,7 @@ for (const quien of NARRADORES) {
   // 3. Las preguntas v2.
   const objetivos: Objetivo[] = [
     ...NUCLEO.filter((x) => NUCLEO_A_PROBAR.includes(x.id)).map((x) => ({ tipo: 'nucleo' as const, ...x })),
-    ...(plan.ok ? plan.variables.map((v) => ({ tipo: 'variable' as const, ...v })) : []),
+    ...(plan.ok ? plan.variables.map((v, i) => ({ tipo: 'variable' as const, id: `var-${i}`, ...v })) : []),
   ];
   const conversacion = pares.slice(-6);
   const yaHechas: string[] = pares.map((p) => p.pregunta);
@@ -134,7 +134,7 @@ for (const quien of NARRADORES) {
     const perfilTexto = JSON.stringify(perfil);
     const marcas = SUPUESTOS.filter(([enPregunta, enPerfil]) => enPregunta.test(r.texto) && !enPerfil.test(perfilTexto)).map(([re]) => `supone: ${re.source}`);
     if (!r.ok) marcas.push(`control: ${r.motivo}`);
-    escritas.push({ objetivo: o.tipo === 'nucleo' ? `${o.id}${esPrimerMensaje ? ' (ficha vacía, primer mensaje)' : ''}` : `${o.tramo} (${o.desde}-${o.hasta})`, texto: r.texto, ok: r.ok, marcas });
+    escritas.push({ objetivo: o.tipo === 'nucleo' ? `${o.id}${esPrimerMensaje ? ' (ficha vacía, primer mensaje)' : ''}` : o.tipo === 'variable' ? `${o.tramo} (${o.desde}-${o.hasta})` : `objeto (${o.tramo})`, texto: r.texto, ok: r.ok, marcas });
     if (!esPrimerMensaje) yaHechas.push(r.texto);
     console.log(`${n.como_le_dicen}: pregunta ${escritas.length}/${objetivos.length} · USD ${gasto.toFixed(2)}`);
   }
