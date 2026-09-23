@@ -138,6 +138,58 @@ export function contarPalabras(texto: string): number {
  *
  * Cuando no sirve, se manda el original: el guion firmado siempre gana.
  */
+/*
+ * ¿La pregunta rompe el trato del narrador? (C11, bitácora de Ciro, 23/09)
+ *
+ * El modelo escribe el enganche en vos —"Mirá, vos dijiste…"— y después COPIA
+ * LA COLA DEL GUION TAL CUAL, que está escrita en usted: "¿cómo conoció al amor
+ * de su vida? Lléveme a ese día…". La mitad de la pregunta le habla de una
+ * manera y la otra mitad de otra. Para el narrador es como si de golpe le
+ * escribiera otra persona.
+ *
+ * Se detecta por los IMPERATIVOS, que son las formas que no se pueden confundir:
+ * "Lléveme" solo existe en usted, "llevame" solo en vos, "llévame" solo en tú.
+ * Los verbos en pasado (conoció, pensó) son iguales en usted y en tercera
+ * persona, así que no se miran — pero no hace falta: el guion está lleno de
+ * imperativos ("Cuénteme", "Hábleme", "Lléveme"), y cuando el modelo copia la
+ * cola se los lleva puestos. Es justamente la copia lo que queremos cazar.
+ *
+ * Se comparan sin acentos a propósito: el modelo escribe "Lleveme" tan seguido
+ * como "Lléveme", y la primera vez que medí esto se me escapó por eso.
+ */
+
+const sinAcentos = (t: string) => t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+
+/** Imperativos y pronombres que solo existen en cada trato. */
+const MARCAS: Record<'usted' | 'vos' | 'tu', RegExp> = {
+  usted: /\b(usted|ustedes|cuenteme|cuentenos|cuenteles|hableme|hablenos|digame|diganos|lleveme|llevenos|muestreme|muestrenos|mandeme|mandenos|dejeme|permitame|traigame|pongame|regaleme|regalenos|acuerdese|imaginese|fijese|sientese|pienselo|digalo)\b/,
+  vos: /\b(vos|contame|contanos|decime|decinos|llevame|llevanos|hablame|hablanos|mostrame|mostranos|mandame|mandanos|dejame|acordate|fijate|imaginate|sentate|mira|dale|tenes|queres|sabes|podes)\b/,
+  // Ojo: "llévame" (tú) y "llevame" (vos) son la misma palabra sin acentos, así
+  // que estas se miran CON acento. Por eso van aparte de las otras dos.
+  tu: /\b(cuéntame|dime|llévame|háblame|muéstrame|mándame|acuérdate|imagínate|tráeme|déjame)\b/,
+};
+
+/**
+ * Las marcas del trato equivocado que trae este texto. Vacío = está bien.
+ * `vos` y `tu` comparten varias formas ("llevame" sin acento es de las dos), y
+ * eso no molesta: las dos están mal para un narrador de usted, y para uno de
+ * vos lo único que importa es que no aparezcan las de usted.
+ */
+export function marcasDelTratoAjeno(texto: string, trato: Trato): string[] {
+  const limpio = sinAcentos(texto);
+  const sinAcentar: RegExp[] = trato === 'vos' ? [MARCAS.usted] : [MARCAS.vos];
+  const conAcento = MARCAS.tu; // el tú también está mal en los dos tratos
+  return [
+    ...sinAcentar.flatMap((re) => limpio.match(new RegExp(re, 'g')) ?? []),
+    ...(texto.toLowerCase().match(new RegExp(conAcento, 'g')) ?? []),
+  ];
+}
+
+/** ¿Esta pregunta le habla al narrador de una manera que no es la suya? */
+export function rompeElTrato(texto: string, trato: Trato): boolean {
+  return marcasDelTratoAjeno(texto, trato).length > 0;
+}
+
 export function esPersonalizacionValida(original: string, nueva: string): boolean {
   const limpia = nueva.trim();
   if (!limpia) return false;
@@ -295,7 +347,7 @@ export async function personalizarPregunta(
    * (se puede reintentar con el prompt corto) de "el modelo falló" (la API, la
    * red: el motivo se reporta distinto y no se confunde con lo otro).
    */
-  const intento = async (prompt: string): Promise<{ ok: true; texto: string } | { ok: false; motivo: 'invalida' | 'fallo' }> => {
+  const intento = async (prompt: string): Promise<{ ok: true; texto: string } | { ok: false; motivo: 'invalida' | 'trato' | 'fallo' }> => {
     try {
       const respuesta = await cliente().messages.create({
         model: MODELO, max_tokens: MAX_TOKENS,
@@ -307,7 +359,9 @@ export async function personalizarPregunta(
     });
       const bloque = respuesta.content.find((b) => b.type === 'text');
       const cruda = bloque && bloque.type === 'text' ? bloque.text.trim().replace(/^["'«]|["'»]$/g, '') : '';
-      return esPersonalizacionValida(original, cruda) ? { ok: true, texto: cruda } : { ok: false, motivo: 'invalida' };
+      if (!esPersonalizacionValida(original, cruda)) return { ok: false, motivo: 'invalida' };
+      // C11: la forma está bien pero le habla al narrador de otra manera.
+      return rompeElTrato(cruda, trato) ? { ok: false, motivo: 'trato' } : { ok: true, texto: cruda };
     } catch (err) {
       console.error(`personalizar: el modelo falló en un intento de la orden ${orden} de ${n.id}:`, err);
       return { ok: false, motivo: 'fallo' };
@@ -333,7 +387,9 @@ export async function personalizarPregunta(
       return { texto: primero.texto, personalizada: primero.texto !== original };
     }
     const motivoPrimero = primero.ok ? 'devolvió el original, que está en usted' : primero.motivo;
-    console.warn(`personalizar: la orden ${orden} de ${n.id} no sirvió (${motivoPrimero}) — se manda el original.`);
+    // Decía "se manda el original" acá, antes de intentar de nuevo: cuando el
+    // segundo intento salía bien, el log quedaba mintiendo. Lo que sigue lo dice.
+    console.warn(`personalizar: el primer intento de la orden ${orden} de ${n.id} no sirvió (${motivoPrimero}).`);
 
     // Bitácora 18: con un narrador de vos, el original (escrito de usted) rompe
     // el trato a mitad de la entrevista. Antes de rendirse, un segundo intento
@@ -352,9 +408,11 @@ export async function personalizarPregunta(
       texto: original, personalizada: false,
       motivo: primero.ok
         ? 'el modelo devolvió el original, que está en usted'
-        : primero.motivo === 'invalida'
-          ? 'la versión del modelo no conservaba las preguntas del original'
-          : 'el modelo falló',
+        : primero.motivo === 'trato'
+          ? `la versión del modelo le hablaba en ${trato === 'vos' ? 'usted' : 'vos'} a un narrador de ${trato}`
+          : primero.motivo === 'invalida'
+            ? 'la versión del modelo no conservaba las preguntas del original'
+            : 'el modelo falló',
     };
   } catch (err) {
     console.error(`personalizar: falló la orden ${orden} de ${n.id} — se manda el original:`, err);
