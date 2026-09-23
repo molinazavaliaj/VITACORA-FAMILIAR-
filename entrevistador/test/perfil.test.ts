@@ -138,6 +138,11 @@ describe('aplicarCambios, lo nuevo', () => {
     const p = aplicarCambios(base(), { puertaAbierta: 42 as never });
     expect(p.puertaAbierta).toBeNull();
   });
+
+  it('comoLeDicen dicho por la persona se guarda (la presentación lo pregunta y solo actualizarPerfil lo procesa)', () => {
+    const p = aplicarCambios(base(), { persona: { comoLeDicen: { valor: 'Pocho', fuente: 'dicho' } } });
+    expect(p.persona.comoLeDicen).toEqual({ valor: 'Pocho', fuente: 'dicho' });
+  });
 });
 
 describe('parsearCambios', () => {
@@ -185,5 +190,10 @@ describe('armarPromptPerfil, lo nuevo', () => {
     expect(prompt).toContain('"hoyFueFuerte"');
     expect(prompt).toContain('con-quien-crecio');
     expect(prompt).not.toContain('LO QUE CARGÓ LA FAMILIA');
+  });
+
+  it('pide comoLeDicen en la ficha de salida (la presentación lo pregunta y solo actualizarPerfil lo procesa)', () => {
+    const prompt = armarPromptPerfil(base(), '¿Cómo le dicen en casa?', 'Pocho, de toda la vida.', []);
+    expect(prompt).toContain('comoLeDicen');
   });
 });

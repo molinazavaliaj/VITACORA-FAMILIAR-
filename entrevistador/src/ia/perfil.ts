@@ -159,9 +159,9 @@ export function aplicarCambios(anterior: Perfil, cambios: CambiosDePerfil): Perf
   if (esObjeto(cambios.persona)) {
     for (const [campo, dato] of Object.entries(cambios.persona)) {
       if (!(campo in p.persona) || !esObjeto(dato) || typeof dato.valor !== 'string') continue;
-      const anterior = (p.persona as Record<string, Dato<string>>)[campo];
+      const datoAnterior = (p.persona as Record<string, Dato<string>>)[campo];
       // Lo que la persona dijo no lo pisa una deducción: solo otro "dicho" (o la ficha, si no había nada).
-      if (anterior?.fuente === 'dicho' && dato.fuente !== 'dicho') continue;
+      if (datoAnterior?.fuente === 'dicho' && dato.fuente !== 'dicho') continue;
       (p.persona as Record<string, Dato<string>>)[campo] = dato as Dato<string>;
     }
   }
@@ -256,9 +256,12 @@ Anotá en tu ficha lo que aprendiste hoy. Reglas:
     amor, una mudanza, un trabajo) y hay un tema pendiente que lo cubre, su id. Si no, null.
 14. "hoyFueFuerte": true si hoy contó algo que le costó decir: una muerte, un quiebre, una
     vergüenza. Mañana se le reconoce antes de preguntar.
+15. "comoLeDicen": el nombre o apodo con que dice que le dicen en casa, tal cual lo dijo (fuente
+    "dicho"). Si hoy lo aprendiste, sacá "Cómo le dicen" de "noSabemos" con "resueltos", como
+    hacés con cualquier otro dato que se resuelve.
 
 Devolvé SOLO LO QUE CAMBIÓ, en JSON, usando solo las claves que hagan falta:
-{"persona":{"edad":D,"genero":D,"comoHabla":D,"anioNacimiento":D,"dondeViveHoy":D},
+{"persona":{"edad":D,"genero":D,"comoHabla":D,"anioNacimiento":D,"dondeViveHoy":D,"comoLeDicen":D},
  "agregarEtapas":[{"edades":"","anios":"","lugar":"","conQuien":"","queHacia":"","fuente":""}],
  "corregirEtapas":[{"i":0,"lugar":"..."}],
  "agregarPersonas":[{"nombre":"","vinculo":"","vive":"si|no|no se sabe","fuente":"","nota":""}],
