@@ -21,7 +21,7 @@ import { narracionesListas, narracionesAtascadas, RUTA_NARRACION_JSON } from './
 import { ensamblarAudiolibroClonado } from './voz/ensamblar.js';
 import type { NarracionJson } from './voz/narracion-json.js';
 import { anotarLatido } from './latido.js';
-import { mandarEntregasAImprenta } from './entregas.js';
+import { mandarEntregasAImprenta, avisarHitosDeEntrega } from './entregas.js';
 
 const INTERVALO_MS = 60_000;
 
@@ -91,6 +91,8 @@ export async function tick(): Promise<void> {
     // El portón de impresión: con la dirección puesta y las frases confirmadas,
     // el libro sale a la imprenta (3t.26 fase 2).
     await mandarEntregasAImprenta(obtenerClienteDb());
+    // Y los mails de lo que viaja: falta la dirección, va en camino, ya llegó.
+    await avisarHitosDeEntrega(obtenerClienteDb());
     // El latido, último y con su try adentro: si no puede anotar que la
     // fábrica está viva, el tick no se cae por eso.
     await anotarLatido('fabrica');

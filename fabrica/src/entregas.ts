@@ -5,8 +5,32 @@
 
 import { obtenerClienteDb } from './db.js';
 import { armarLibroDeImprenta } from './libro/imprenta.js';
+import { cargarConfig } from './config.js';
+import { enviarMailHito, type Hito } from './mail/hitos.js';
 
 type Db = ReturnType<typeof obtenerClienteDb>;
+
+/** Donde la familia deja la reseña cuando el libro llegó (Joaquín, 22/09). */
+export const URL_RESENA = 'https://es.trustpilot.com/evaluate/vitacorafamiliar.com';
+
+/** A los 3 días sin dirección se pregunta a dónde va; antes, no se molesta. */
+const DIAS_PARA_PEDIR_DIRECCION = 3;
+
+/**
+ * Los estados de la entrega que le importan a la familia. Los del medio
+ * (`lista`, `en_produccion`, `impreso`) no mandan nada: "lo estamos imprimiendo"
+ * no es una noticia, es la espera normal, y un mail de más gasta la atención que
+ * hace falta cuando llegue la buena.
+ */
+const HITO_POR_ESTADO: Record<string, Hito> = {
+  sin_direccion: 'falta_direccion',
+  enviado: 'enviado',
+  entregado: 'entregado',
+};
+
+/** El candado lleva el id de la entrega: dos pedidos del mismo narrador no se tapan. */
+const candadoDeEntrega = (narradorId: string, entregaId: string, hito: Hito) =>
+  `${narradorId}/paquete/entrega_${entregaId}_${hito}.txt`;
 
 /**
  * El paso del tick: las entregas que ya tienen dirección (`lista`) y frases
@@ -51,4 +75,108 @@ export async function mandarEntregasAImprenta(db: Db): Promise<void> {
       console.error(`imprenta: falló el portón de la entrega ${entrega.id}:`, err);
     }
   }
+}
+
+/**
+ * Los mails de lo físico: "¿a dónde lo mandamos?", "va en camino" y "ya está en
+ * casa". Un mail por ENTREGA y una sola vez, con el candado en Storage que deja
+ * el patrón de la casa: se sube SOLO si Resend confirmó el envío, así que un
+ * fallo de correo se reintenta en el próximo tick en vez de perderse.
+ *
+ * Los estados que avisan son tres (`HITO_POR_ESTADO`); el resto es la espera
+ * normal y no molesta a nadie.
+ */
+export async function avisarHitosDeEntrega(db: Db): Promise<void> {
+  const estados = Object.keys(HITO_POR_ESTADO);
+  let entregas: EntregaParaAviso[];
+  try {
+    const respuesta = await db
+      .from('entregas')
+      .select('id, narrador_id, familia_id, estado, seguimiento, created_at')
+      .in('estado', estados);
+    if (respuesta.error) {
+      console.warn(`entregas: no se pudieron leer para avisar: ${respuesta.error.message}`);
+      return;
+    }
+    entregas = (respuesta.data ?? []) as EntregaParaAviso[];
+  } catch (err) {
+    console.warn('entregas: no se pudieron leer para avisar:', err);
+    return;
+  }
+
+  const { urlBase } = cargarConfig();
+
+  for (const entrega of entregas) {
+    try {
+      const hito = HITO_POR_ESTADO[entrega.estado];
+      if (!hito) continue;
+
+      // Pedir la dirección el mismo día que encargó es apurar a alguien que quizá
+      // está buscando el código postal de su tía: se espera.
+      if (hito === 'falta_direccion' && !pasaronDias(entrega.created_at, DIAS_PARA_PEDIR_DIRECCION)) continue;
+
+      const candado = candadoDeEntrega(entrega.narrador_id, entrega.id, hito);
+      if (await existeCandado(db, entrega.narrador_id, candado)) continue;
+
+      const { data: familia } = await db
+        .from('familias')
+        .select('email')
+        .eq('id', entrega.familia_id)
+        .maybeSingle();
+      const para = (familia as { email?: string } | null)?.email;
+      if (!para) {
+        console.warn(`entregas: la entrega ${entrega.id} no tiene mail de familia; no se avisa.`);
+        continue;
+      }
+
+      const { data: narrador } = await db
+        .from('narradores')
+        .select('como_le_dicen')
+        .eq('id', entrega.narrador_id)
+        .maybeSingle();
+
+      const enviado = await enviarMailHito({
+        hito,
+        para,
+        comoLeDicen: (narrador as { como_le_dicen?: string } | null)?.como_le_dicen ?? 'familiar',
+        // El de "llegó" lleva a dejar la reseña, que es el momento de más alegría
+        // del producto; los otros, al panel.
+        enlace: hito === 'entregado' ? URL_RESENA : `${urlBase}/tablero/${entrega.narrador_id}`,
+        seguimiento: entrega.seguimiento ?? null,
+      });
+
+      // Sin candado si el mail no salió: el próximo tick reintenta.
+      if (!enviado) continue;
+      const { error } = await db.storage
+        .from('audios')
+        .upload(candado, new Blob([`${hito} ${new Date().toISOString()}`]), { upsert: true });
+      if (error) throw new Error(error.message);
+    } catch (err) {
+      console.error(`entregas: falló el aviso de la entrega ${entrega.id}:`, err);
+    }
+  }
+}
+
+type EntregaParaAviso = {
+  id: string;
+  narrador_id: string;
+  familia_id: string;
+  estado: string;
+  seguimiento: string | null;
+  created_at: string;
+};
+
+function pasaronDias(desde: string | null | undefined, dias: number): boolean {
+  if (!desde) return false;
+  const cuando = new Date(desde).getTime();
+  if (Number.isNaN(cuando)) return false;
+  return Date.now() - cuando >= dias * 24 * 60 * 60 * 1000;
+}
+
+/** Los candados viven en el paquete del narrador, como los de los otros mails. */
+async function existeCandado(db: Db, narradorId: string, ruta: string): Promise<boolean> {
+  const { data, error } = await db.storage.from('audios').list(`${narradorId}/paquete`);
+  if (error) throw new Error(`No se pudo listar el paquete de ${narradorId}: ${error.message}`);
+  const nombre = ruta.split('/').pop();
+  return (data ?? []).some((archivo: { name: string }) => archivo.name === nombre);
 }

@@ -10,6 +10,7 @@ const {
   avisarSociosMock,
   obtenerClienteDbMock,
   mandarEntregasAImprentaMock,
+  avisarHitosDeEntregaMock,
 } = vi.hoisted(() => ({
   generarEstructuraMock: vi.fn().mockResolvedValue(undefined),
   generarPrevisualizacionMock: vi.fn().mockResolvedValue(undefined),
@@ -20,6 +21,7 @@ const {
   avisarSociosMock: vi.fn().mockResolvedValue(true),
   obtenerClienteDbMock: vi.fn(),
   mandarEntregasAImprentaMock: vi.fn().mockResolvedValue(undefined),
+  avisarHitosDeEntregaMock: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock('../src/mail/hitos.js', async () => {
@@ -43,6 +45,7 @@ vi.mock('../src/voz/ensamblar.js', () => ({
 
 vi.mock('../src/entregas.js', () => ({
   mandarEntregasAImprenta: mandarEntregasAImprentaMock,
+  avisarHitosDeEntrega: avisarHitosDeEntregaMock,
 }));
 
 vi.mock('../src/config.js', () => ({
@@ -312,6 +315,7 @@ describe('tick', () => {
     await tick();
 
     expect(mandarEntregasAImprentaMock).toHaveBeenCalledTimes(1);
+    expect(avisarHitosDeEntregaMock).toHaveBeenCalledTimes(1);
   });
 
   it('genera la estructura para un narrador completado sin estructura.json en Storage', async () => {
