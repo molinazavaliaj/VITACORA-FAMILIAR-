@@ -267,7 +267,7 @@ async function manejarRespuestaAudio(narrador: Narrador, m: MensajeEntrante): Pr
   // prompt el modelo adivina los nombres propios y salen mal en el libro
   // (#17; medido el 14/09: "de la URA" contra "de laburar").
   const { texto, duracionSegundos } = await transcribirYActualizar(
-    id, audio, promptDeTranscripcion(narrador.contexto ?? {}, narrador.como_le_dicen), narrador.id,
+    id, audio, promptDeTranscripcion(narrador.contexto ?? {}, narrador.como_le_dicen, narrador.zona_horaria), narrador.id,
   );
   await marcarRespondido(narrador.id);
   await trasResponder(narrador, orden, esRepregunta, texto, duracionSegundos, id);

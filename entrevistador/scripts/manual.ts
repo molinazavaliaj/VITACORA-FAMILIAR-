@@ -551,7 +551,7 @@ async function cargar(ref: string | undefined, archivos: string[], flags: Args['
   // El contexto que se le sopla a Whisper: vocabulario rioplatense + los datos
   // del narrador que ya están en su fila. Sin esto, "de laburar" se transcribe
   // como "de la URA" (medido con un audio real).
-  const contexto = promptDeTranscripcion(n.contexto ?? {}, n.como_le_dicen);
+  const contexto = promptDeTranscripcion(n.contexto ?? {}, n.como_le_dicen, n.zona_horaria);
   linea(`Contexto de transcripción (${contexto.length} caracteres): ${contexto.slice(0, 150)}…`);
   const { texto, duracionSegundos } = await mods.transcribirYActualizar(id, audio, contexto);
   linea(`Transcripción (${duracionSegundos}s): ${texto.slice(0, 240)}${texto.length > 240 ? '…' : ''}`);
@@ -827,7 +827,7 @@ async function retranscribir(ref: string | undefined, flags: Args['flags']): Pro
     return;
   }
 
-  const contexto = promptDeTranscripcion(n.contexto ?? {}, n.como_le_dicen);
+  const contexto = promptDeTranscripcion(n.contexto ?? {}, n.como_le_dicen, n.zona_horaria);
   titulo(`Retranscribir ${conAudio.length} respuesta(s) de ${n.como_le_dicen}`);
   linea(`Costo estimado: ~USD ${(0.018 * conAudio.length).toFixed(2)} (${conAudio.length} × 3 min de audio).`);
   if (!flags['si']) {
@@ -860,7 +860,7 @@ async function retranscribir(ref: string | undefined, flags: Args['flags']): Pro
  */
 async function verContexto(ref: string | undefined): Promise<void> {
   const n = await buscarNarrador(ref);
-  const texto = promptDeTranscripcion(n.contexto ?? {}, n.como_le_dicen);
+  const texto = promptDeTranscripcion(n.contexto ?? {}, n.como_le_dicen, n.zona_horaria);
   const contexto = (n.contexto ?? {}) as Record<string, any>;
   const tieneDatos = Boolean(contexto.arbol || contexto.lugarNacimiento || contexto.oficio || contexto.datosExtra);
 

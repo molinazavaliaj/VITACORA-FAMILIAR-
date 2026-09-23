@@ -244,12 +244,34 @@ const NO_ES_NOMBRE = /^(no|ninguno|ninguna|no\s+tuvo|no\s+tiene|no\s+aplica|sin\
  * Es la diferencia entre transcribir sonidos y transcribir a Joaquín. Y no
  * depende de la conversación: va con el primer audio igual que con el trigésimo.
  */
-export function promptDeTranscripcion(contexto: Record<string, any> = {}, comoLeDicen = ''): string {
-  const partes = [
-    'Entrevista de historia de vida en castellano rioplatense (Argentina). Transcribí literal, sin corregir la sintaxis.',
-    `Vocabulario frecuente: ${GLOSARIO_RIOPLATENSE}.`,
-  ];
-  if (comoLeDicen) partes.push(`El narrador es ${comoLeDicen}.`);
+export type Castellano = 'rioplatense' | 'españa' | 'latinoamerica';
+
+/**
+ * Qué castellano esperar, por la zona horaria del narrador (biógrafo v2, 23/09). El prompt estaba
+ * fijo en "rioplatense (Argentina)" con glosario argentino, y hay narradores en España: la
+ * transcripción los empujaba al argentino. Sin zona, rioplatense (el caso de hoy).
+ */
+export function castellanoDe(zonaHoraria: string | undefined | null): Castellano {
+  if (!zonaHoraria) return 'rioplatense';
+  if (/^America\/(Argentina|Montevideo)/.test(zonaHoraria)) return 'rioplatense';
+  if (/^(Europe|Atlantic\/Canary|Africa\/Ceuta)/.test(zonaHoraria)) return 'españa';
+  if (/^America\//.test(zonaHoraria)) return 'latinoamerica';
+  return 'rioplatense';
+}
+
+const ENCABEZADO: Record<Castellano, string> = {
+  rioplatense: 'Entrevista de historia de vida en castellano rioplatense (Argentina). Transcribí literal, sin corregir la sintaxis.',
+  españa: 'Entrevista de historia de vida en castellano de España. Transcribí literal, sin corregir la sintaxis.',
+  latinoamerica: 'Entrevista de historia de vida en castellano de Latinoamérica. Transcribí literal, sin corregir la sintaxis.',
+};
+
+export function promptDeTranscripcion(contexto: Record<string, any> = {}, comoLeDicen = '', zonaHoraria?: string | null): string {
+  const castellano = castellanoDe(zonaHoraria);
+  const partes = [ENCABEZADO[castellano]];
+  // El glosario es solo del habla rioplatense: a una narradora de Madrid le haría "escuchar"
+  // palabras argentinas que no dijo.
+  if (castellano === 'rioplatense') partes.push(`Vocabulario frecuente: ${GLOSARIO_RIOPLATENSE}.`);
+  if (comoLeDicen) partes.push(`Quien habla es ${comoLeDicen}.`);
 
   const arbol = contexto?.arbol ?? {};
   const personas = Object.values(arbol)
@@ -260,11 +282,9 @@ export function promptDeTranscripcion(contexto: Record<string, any> = {}, comoLe
   if (contexto?.lugarNacimiento) partes.push(`Lugar: ${contexto.lugarNacimiento}.`);
   if (typeof contexto?.dondeVive === 'string' && contexto.dondeVive.trim()) partes.push(`Vive en: ${contexto.dondeVive.trim()}.`);
   if (contexto?.oficio) partes.push(`Oficio: ${contexto.oficio}.`);
-  // `datosExtra` es texto libre que carga la familia y puede ser larguísimo:
-  // se recorta porque el prompt se corta a ~224 tokens.
-  if (typeof contexto?.datosExtra === 'string' && contexto.datosExtra.trim()) {
-    partes.push(`Contexto: ${contexto.datosExtra.trim().slice(0, 200)}.`);
-  }
+  // `datosExtra` (el texto libre de la familia) ya NO entra (biógrafo v2, 23/09): la transcripción
+  // puede escribir frases de su prompt que la persona nunca dijo, sobre todo en los silencios. Los
+  // nombres y lugares de arriba sirven —corrigen la ortografía—; las frases no.
   return partes.join(' ');
 }
 

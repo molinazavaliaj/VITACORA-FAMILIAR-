@@ -151,10 +151,12 @@ describe('promptDeTranscripcion', () => {
     expect(prompt).not.toContain('hijos:');
   });
 
-  it('recorta datosExtra: el prompt se corta a ~224 tokens', () => {
-    const prompt = promptDeTranscripcion({ datosExtra: 'x'.repeat(5000) }, 'Alguien');
+  // Biógrafo v2 (23/09): antes entraba recortado; ahora no entra. La transcripción puede escribir
+  // frases de su prompt que la persona nunca dijo: los nombres sirven, las frases de la familia no.
+  it('no mete datosExtra (texto libre de la familia) en el prompt', () => {
+    const prompt = promptDeTranscripcion({ datosExtra: 'No tiene hijos. Enviudó en 2010.' }, 'Alguien');
+    expect(prompt).not.toContain('Enviudó');
     expect(prompt.length).toBeLessThan(600);
-    expect(prompt).toContain('x'.repeat(200));
   });
 
   it('no mete "no tuvo" en el prompt: eso no es un nombre y ensucia el sesgo', () => {
