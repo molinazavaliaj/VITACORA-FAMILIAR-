@@ -83,6 +83,24 @@ describe('seccionesDelLibro', () => {
     expect(secciones.susFrases.heredadas).toEqual(['Salí a buscar lo tuyo.']);
     expect(secciones.muletillas).toEqual(['Viste.', 'Al fin y al cabo.']);
   });
+
+  // Los títulos que el editor le puso de verdad al libro de Joaquín (21/09). Con los nombres
+  // fijos de antes, las heredadas y las muletillas daban 0 y los subtítulos contaban como
+  // capítulos: las frases de sus padres nunca llegaron a elegirse para el QR.
+  it('entiende los subtítulos que el editor inventa, y el cierre no es un capítulo', () => {
+    const s = seccionesDelLibro([
+      '# La infancia', '', '> una cita', '',
+      '# Antes de cerrar el libro', '', '> otra cita', '',
+      '# Sus frases', '',
+      '## Las suyas', '', '- «Confiá en el proceso.»', '',
+      '## Las que le dijeron y no soltó más', '', '- «¿Quién se sacó diez?» — *su vieja*', '',
+      '## Muletillas de entrecasa', '', '- «Mirá.»',
+    ].join('\n'));
+    expect(s.capitulos.map((c) => c.nombre)).toEqual(['La infancia']);
+    expect(s.susFrases.suyas).toEqual(['Confiá en el proceso.']);
+    expect(s.susFrases.heredadas).toEqual(['¿Quién se sacó diez?']);
+    expect(s.muletillas).toEqual(['Mirá.']);
+  });
 });
 
 describe('normalizar y esTextual', () => {

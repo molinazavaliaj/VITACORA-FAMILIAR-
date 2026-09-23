@@ -3,6 +3,7 @@ import { cargarConfig } from '../config.js';
 import { registrarUso, type PasoModelo } from '../costos.js';
 import { obtenerClienteDb } from '../db.js';
 import { extraerTexto } from './comun.js';
+import { encargoDelLibro, type Quien } from './encargo.js';
 
 const MODELO = 'claude-fable-5';
 
@@ -85,33 +86,38 @@ export async function escribirCapitulo(
   return texto.trim();
 }
 
-// EXPERIMENTO del biógrafo v2 (23/09): el capítulo con el material ya repartido, sin la
-// historia completa. Medido en el libro de Joaquín: con la historia completa, cada capítulo
-// traía de ahí lo que "le pertenecía" sin saber qué contaba el otro, y el 18,1 % de los
-// borradores era una frase del audio copiada en otro capítulo. Todavía no lo usa producción.
-const PROMPT_CAPITULO_REPARTIDO = (
-  nombre: string,
+// EXPERIMENTO del biógrafo v2 (23/09 — BORRADOR de la reescritura, lo aprueba Naza): el capítulo
+// con el material ya repartido y el encargo compartido (`encargo.ts`). Dos cambios contra el de
+// producción:
+// - Sin la historia completa: con ella, cada capítulo traía lo que "le pertenecía" sin saber qué
+//   contaba el otro, y el 17,3 % de los borradores de Joaquín era una frase copiada en otro
+//   capítulo. Con el reparto, 1,1 %.
+// - La voz que decidió Naza (sus historias, escritas por un escritor de primera) en vez de
+//   "pulir apenas", y quién cuenta —mujer u hombre— dicho, no supuesto.
+export const PROMPT_CAPITULO_V2 = (
+  quien: Quien,
   capitulo: string,
   materiales: string,
   nombresCorregidos: string
 ) => `
-Estás escribiendo el libro de la vida de ${nombre}, a partir de lo que él mismo contó
-en entrevistas grabadas. Este es el capítulo «${capitulo}».
+Estás escribiendo el libro de la vida de ${quien.nombre}, a partir de lo que contó en entrevistas
+grabadas. Este es el capítulo «${capitulo}».
 
-MATERIAL DE ESTE CAPÍTULO (textual). Ya viene elegido: incluye lo que contó respondiendo
-otras preguntas y pertenece acá (marcado «lo contó respondiendo otra pregunta»). Lo demás
-va en otros capítulos: no lo traigas. Donde ves […] se saltó un tramo que va en otro
-capítulo: no unas lo de antes con lo de después como si fuera un mismo momento.
+${encargoDelLibro(quien)}
+
+EL MATERIAL DE ESTE CAPÍTULO (sus respuestas, textuales). Ya viene elegido: incluye lo que contó
+respondiendo otras preguntas y pertenece acá (marcado «lo contó respondiendo otra pregunta»). Lo
+demás va en otros capítulos: no lo traigas.
 ${materiales}
 
-CORRECCIONES DE NOMBRES (la transcripción automática oyó mal; usar SIEMPRE la forma corregida):
+CORRECCIONES DE NOMBRES (la transcripción automática oyó mal; usá SIEMPRE la forma corregida):
 ${nombresCorregidos}
 
-${REGLAS_DE_VOZ}`;
+Devolvé SOLO el texto del capítulo en Markdown, sin el título.`;
 
-/** Como `escribirCapitulo`, con el material ya repartido (ver `reparto.ts`). */
+/** Como `escribirCapitulo`, con el material ya repartido (ver `reparto.ts`) y el encargo v2. */
 export async function escribirCapituloRepartido(
-  narrador: { nombre: string; id?: string },
+  narrador: Quien & { id?: string },
   capitulo: string,
   materiales: string,
   nombresCorregidos: string
@@ -121,7 +127,7 @@ export async function escribirCapituloRepartido(
   const stream = cliente.messages.stream({
     model: MODELO,
     max_tokens: 20000,
-    messages: [{ role: 'user', content: PROMPT_CAPITULO_REPARTIDO(narrador.nombre, capitulo, materiales, nombresCorregidos) }],
+    messages: [{ role: 'user', content: PROMPT_CAPITULO_V2(narrador, capitulo, materiales, nombresCorregidos) }],
   });
   const mensajeFinal = await stream.finalMessage();
   if (narrador.id) await registrarUso(obtenerClienteDb, narrador.id, { modelo: MODELO, paso: 'capitulo', usage: mensajeFinal.usage });

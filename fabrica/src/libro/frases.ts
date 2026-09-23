@@ -80,7 +80,7 @@ const CRITERIOS = `Los criterios, en orden:
 4. No hiere a alguien que está vivo (nombres, peleas, plata).
 5. Una por tema: dos veces lo mismo no entra.`;
 
-const TITULOS_IGNORADOS = ['a mis lectores', 'el cierre', 'sus frases', 'indice', 'índice', 'colofon', 'colofón', 'contratapa'];
+const TITULOS_IGNORADOS = ['a mis lectores', 'el cierre', 'antes de cerrar el libro', 'sus frases', 'indice', 'índice', 'colofon', 'colofón', 'contratapa'];
 
 /** Un título de capítulo, en minúsculas y sin adornos, para comparar. */
 function tituloLimpio(linea: string): string {
@@ -106,13 +106,18 @@ export function seccionesDelLibro(libroMarkdown: string): SeccionesDelLibro {
       const titulo = tituloLimpio(linea);
       const clave = titulo.toLowerCase();
       // Los subtítulos de la propia página («Las suyas», «Las que heredó», «Las muletillas de
-      // siempre») NO son capítulos ni apagan la página: son los grupos de las frases.
-      const subgrupo = /^las suyas/.test(clave)
+      // siempre») NO son capítulos ni apagan la página: son los grupos de las frases. Adentro de
+      // «Sus frases», CUALQUIER subtítulo es un grupo: el editor elige cómo llamarlos, y en el
+      // libro de Joaquín (21/09) escribió «Las que le dijeron y no soltó más» y «Muletillas de
+      // entrecasa» — con los nombres fijos de antes, las 5 frases de sus padres y sus muletillas
+      // se perdieron y nunca pudieron elegirse para el QR (biógrafo v2, 23/09).
+      const esSubtitulo = /^#{2,3}\s/.test(linea);
+      const subgrupo = /suyas/.test(clave)
         ? 'suyas'
-        : /^las que hered/.test(clave)
-          ? 'heredadas'
-          : /^las muletillas/.test(clave)
-            ? 'muletillas'
+        : /muletilla/.test(clave)
+          ? 'muletillas'
+          : enSusFrases && esSubtitulo
+            ? 'heredadas'
             : null;
       if (clave === 'sus frases') {
         enSusFrases = true;

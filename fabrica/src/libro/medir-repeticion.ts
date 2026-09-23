@@ -18,6 +18,8 @@ export type Medicion = {
   porcentaje: number;
   /** Oraciones del libro que no se parecen a nada de lo que dijo (inventadas, o muy reescritas). */
   sinRespaldo: number;
+  /** Cuántas oraciones se midieron (las de 5 palabras de contenido o más). */
+  oraciones: number;
   frasesEnVariosCapitulos: { fuente: string; oracion: string; capitulos: string[] }[];
 };
 
@@ -68,11 +70,13 @@ export function medirRepeticion(capitulos: CapituloMedible[], fuentes: Fuente[])
 
   let palabras = 0;
   let sinRespaldo = 0;
+  let oraciones_ = 0;
   const usos = new Map<string, { capitulo: string; oracion: string; palabras: number }[]>();
   for (const c of capitulos) {
     for (const o of oraciones(c.texto)) {
       const n = o.split(/\s+/).length;
       palabras += n;
+      oraciones_++;
       const clave = respaldo(o);
       if (!clave) { sinRespaldo++; continue; }
       usos.set(clave, [...(usos.get(clave) ?? []), { capitulo: c.nombre, oracion: o, palabras: n }]);
@@ -91,5 +95,5 @@ export function medirRepeticion(capitulos: CapituloMedible[], fuentes: Fuente[])
     frasesEnVariosCapitulos.push({ fuente, oracion: primera.oracion, capitulos: enCapitulos });
   }
 
-  return { palabras, palabrasDuplicadas, porcentaje: palabras ? (100 * palabrasDuplicadas) / palabras : 0, sinRespaldo, frasesEnVariosCapitulos };
+  return { palabras, palabrasDuplicadas, porcentaje: palabras ? (100 * palabrasDuplicadas) / palabras : 0, sinRespaldo, oraciones: oraciones_, frasesEnVariosCapitulos };
 }

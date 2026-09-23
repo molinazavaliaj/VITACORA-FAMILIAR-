@@ -3,6 +3,7 @@ import { cargarConfig } from '../config.js';
 import { registrarUso } from '../costos.js';
 import { obtenerClienteDb } from '../db.js';
 import { extraerTexto } from './comun.js';
+import { encargoDelLibro, type Quien } from './encargo.js';
 
 const MODELO = 'claude-fable-5';
 
@@ -26,6 +27,29 @@ REGLAS:
    Si necesitás nombrar a alguien, usá el vínculo ("mi vieja", "mi hermano").
 4. Prohibido el perfume a IA: nada de «una época llena de desafíos», «sin duda»,
    «cabe destacar». Si una frase la podría haber escrito un robot, sacala.
+
+Devolvé SOLO el párrafo, sin título y sin comillas.`;
+
+/**
+ * El anticipo v2 (biógrafo v2, 23/09 — BORRADOR de la reescritura, lo aprueba Naza; producción
+ * sigue con PROMPT_ANTICIPO). Es la página que vende: la primera vez que la familia lee a la
+ * persona escrita. Usa el encargo compartido —sus historias, escritas por un escritor de primera,
+ * y quién cuenta dicho, no supuesto— y conserva lo propio del anticipo: poco material, y los
+ * nombres todavía sin corregir.
+ */
+export const PROMPT_ANTICIPO_V2 = (quien: Quien, material: string) => `
+Estas son las primeras respuestas que ${quien.nombre} grabó para el libro de su vida.
+
+${material}
+
+${encargoDelLibro(quien)}
+
+Escribí UN SOLO párrafo, de 60 a 100 palabras, que sirva como primera página del libro. Su trabajo
+no es contar la vida: es que quien lo lea diga "es él", "es ella".
+
+Evitá los nombres propios de personas y de lugares: la transcripción automática todavía puede
+haberlos oído mal y la familia no los corrigió. Si necesitás nombrar a alguien, usá el vínculo
+("mi vieja", "mi hermano"). Y no uses citas con >: esto es un solo párrafo.
 
 Devolvé SOLO el párrafo, sin título y sin comillas.`;
 

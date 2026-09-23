@@ -19,6 +19,8 @@ import { aplicarOrdenCapitulos, aplicarTitulosCapitulos, leerEdicion } from '../
 import { numerarRespuestas, materialRepartido, repartir } from '../src/libro/reparto.js';
 import { escribirCapituloRepartido } from '../src/libro/escribir-capitulo.js';
 import { medirRepeticion, type Medicion } from '../src/libro/medir-repeticion.js';
+import { generoDelMaterial } from '../src/libro/encargo.js';
+import { escribirPaginas, armarLibro, controlarLibro } from '../src/libro/paginas.js';
 
 /** Fable 5, `GASTOS.md` (USD por millón de tokens). */
 const PRECIO_ENTRADA = 10;
@@ -103,11 +105,16 @@ for (let i = 0; i < capitulos.length; i++) {
   await writeFile(path.join(salida, `material_cap_${String(i + 1).padStart(2, '0')}.md`), `# ${capitulos[i].nombre}\n\n${porCapitulo[i]}\n`);
 }
 
+// Quién cuenta: mujer u hombre, de lo que cuenta (la compra no lo pregunta).
+const { genero, evidencia } = generoDelMaterial(publicables.map((x) => x.texto));
+const quien = { nombre: narrador.nombre, genero };
+informe.push(`**Quién cuenta:** ${genero ?? 'no se sabe'}${evidencia.length ? ` (${evidencia.slice(0, 4).join(', ')})` : ''}`, '');
+
 if (!soloReparto) {
   const despues: { nombre: string; texto: string }[] = [];
   for (let i = 0; i < capitulos.length; i++) {
     console.log(`Capítulo ${i + 1}/${capitulos.length}: ${capitulos[i].nombre}…`);
-    const { texto, usage } = await escribirCapituloRepartido({ nombre: narrador.nombre }, capitulos[i].nombre, porCapitulo[i], formatearNombresCorregidos(nombres.correcciones));
+    const { texto, usage } = await escribirCapituloRepartido(quien, capitulos[i].nombre, porCapitulo[i], formatearNombresCorregidos(nombres.correcciones));
     gasto += costo(usage as Uso);
     despues.push({ nombre: capitulos[i].nombre, texto });
     await writeFile(path.join(salida, `capitulo_${String(i + 1).padStart(2, '0')}.md`), `# ${capitulos[i].nombre}\n\n${texto}\n`);
@@ -115,6 +122,22 @@ if (!soloReparto) {
   const m = medirRepeticion(despues, fuentes);
   informe.push(`**Después (con reparto):** ${medir(m)}`, '');
   for (const f of m.frasesEnVariosCapitulos) informe.push(`- ${f.fuente} en ${f.capitulos.join(' + ')}: «${f.oracion.slice(0, 100)}»`);
+
+  // El editor v2: solo lo que el libro no tiene. Los capítulos no se tocan.
+  console.log('Apertura, cierre y «Sus frases»…');
+  const { resultado, usage } = await escribirPaginas(cliente, quien, despues, publicables.map((x) => x.texto));
+  gasto += costo(usage as Uso);
+  if (resultado.ok) {
+    await writeFile(path.join(salida, 'libro.md'), armarLibro(resultado.paginas, despues));
+    const p = resultado.paginas;
+    informe.push('', `**Editor v2:** ${p.suyas.length} suyas, ${p.heredadas.length} heredadas, ${p.muletillas.length} muletillas · ${resultado.caidas.length} frases caídas por no ser textuales${resultado.caidas.length ? `: ${resultado.caidas.map((c) => `«${c}»`).join(', ')}` : ''}`);
+  } else {
+    informe.push('', '**Editor v2:** ⚠ no devolvió un JSON legible');
+  }
+
+  // El control, como si fuera a imprenta.
+  const control = controlarLibro(despues, fuentes, genero);
+  informe.push('', `**Control antes de imprimir:** ${control.avisos.length ? control.avisos.map((a) => `\n- ⚠ ${a}`).join('') : 'sin avisos'}`);
 }
 informe.push('', `**Gasto de la prueba:** USD ${gasto.toFixed(2)}`);
 await writeFile(path.join(salida, 'informe.md'), informe.join('\n'));
