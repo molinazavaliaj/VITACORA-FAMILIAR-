@@ -639,11 +639,15 @@ export function SubirFoto({ narradorId, capitulos, capituloInicial, children, va
 // cambia acá. Rige desde el próximo envío (el scheduler lo lee en cada corrida).
 // `trato` (3t.22): usted o vos. Editable solo hasta la primera pregunta; después
 // se muestra en gris con el porqué. Sin valor: lo decide el biógrafo con la ficha.
-export function Ajustes({ narradorId, ritmo, evitar, sinRitmo = false, horario, propia = false, trato }: {
+export function Ajustes({ narradorId, ritmo, evitar, sinRitmo = false, horario, propia = false, trato, pedirFotos, objetos = [] }: {
   narradorId: string;
   ritmo: Ritmo;
   evitar: string;
   sinRitmo?: boolean;
+  /** «Sus objetos preciados» (3t.30). undefined = no se ofrece (Vitácora de viaje). */
+  pedirFotos?: boolean;
+  /** Los ocho pedidos, para que la familia vea exactamente qué se le va a pedir. */
+  objetos?: { orden: number; capitulo: string; texto: string }[];
   horario?: { hora: string; zona: string };
   /** "te llega" en vez de "le llega": autobiografía o viaje. */
   propia?: boolean;
@@ -652,6 +656,7 @@ export function Ajustes({ narradorId, ritmo, evitar, sinRitmo = false, horario, 
   const router = useRouter();
   const [textoEvitar, setTextoEvitar] = useState(evitar);
   const [tratoElegido, setTratoElegido] = useState<"usted" | "vos" | null>(trato?.valor ?? null);
+  const [fotos, setFotos] = useState(pedirFotos ?? true);
   const [hora, setHora] = useState(horario?.hora ?? "");
   const [zona, setZona] = useState(horario?.zona ?? "");
   // La lista base según el producto; si la hora guardada no está en la lista
@@ -748,6 +753,45 @@ export function Ajustes({ narradorId, ritmo, evitar, sinRitmo = false, horario, 
           </div>
         </fieldset>
       ) : null}
+
+      {pedirFotos === undefined ? null : (
+        <fieldset>
+          <legend className="text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.24em]">{propia ? "Fotos de tus cosas" : "Fotos de sus cosas"}</legend>
+          <p className="mt-2 text-[15px] leading-relaxed text-[var(--texto-suave)]">
+            Al terminar cada capítulo {propia ? "te pedimos" : "le pedimos"} la foto de algo {propia ? "tuyo" : "suyo"} —el primer reloj, un amuleto, la mascota, el mueble que no {propia ? "tirarías" : "tiraría"}— y que cuente de dónde salió. Son ocho en todo el libro, y quedan en la página del capítulo.
+          </p>
+          <label className="mt-3 flex cursor-pointer items-start gap-3 rounded-lg border border-[var(--linea)] p-4 transition-colors hover:border-[var(--linea-fuerte)]">
+            <input
+              type="checkbox"
+              checked={fotos}
+              disabled={ocupado !== null}
+              onChange={(e) => { setFotos(e.target.checked); correr("fotos", { accion: "fotos", pedirFotos: e.target.checked }); }}
+              className="mt-1"
+            />
+            <span>
+              <span className="block text-[16px] [font-family:var(--fuente-titulo)]">{propia ? "Pedirme fotos de mis cosas" : "Pedirle fotos de sus cosas"}</span>
+              <span className="block text-sm text-[var(--texto-menor)]">
+                Si {propia ? "no te" : "no le"} resulta fácil sacar una foto y mandarla, {propia ? "apagalo" : "apagalo"}: nunca {propia ? "te" : "le"} vamos a pedir ninguna y la entrevista sigue igual.
+              </span>
+            </span>
+          </label>
+          {objetos.length > 0 ? (
+            <details className="mt-3 rounded-lg border border-[var(--linea)] p-4">
+              <summary className="cursor-pointer text-[15px] [font-family:var(--fuente-micro)]">Ver las {objetos.length} que le vamos a pedir</summary>
+              <ul className="mt-3 flex flex-col gap-3">
+                {objetos.map((o) => (
+                  <li key={o.orden}>
+                    <span className="block text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.18em]">{o.capitulo}</span>
+                    <span className="mt-1 block text-[15px] leading-relaxed text-[var(--texto-suave)]">{o.texto}</span>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-3 text-sm text-[var(--texto-menor)]">Se piden una sola vez, al terminar cada capítulo. Si no contesta, no insistimos.</p>
+            </details>
+          ) : null}
+          {guardado === "fotos" ? <p className="mt-2 text-sm text-[var(--texto-menor)]">Guardado</p> : null}
+        </fieldset>
+      )}
 
       <div>
         <label className="flex flex-col gap-2">
