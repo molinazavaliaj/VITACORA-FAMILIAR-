@@ -107,9 +107,10 @@ Actualizá tu ficha con lo que aprendiste hoy. Reglas:
 2. Lo que no sabés, no lo inventes: dejalo en null y anotalo en "noSabemos" si conviene
    preguntarlo. Una edad se puede deducir de años y edades que nombra; un rango honesto
    ("entre 25 y 35") vale más que un número inventado.
-3. Cómo habla: fijate en cómo habla ÉL ("vos sabés", "mirá", "usted vio"), no en la edad que
-   suponés. De ahí sale cómo hay que hablarle. El valor es UNA palabra: "vos", "usted" o
-   "tú"; lo que te hizo darte cuenta va en "por", en pocas palabras.
+3. Cómo habla: si dijo cómo prefiere que le hablen ("tratame de vos", "de usted está bien"),
+   ESO manda, con fuente "dicho". Si no lo dijo, fijate en cómo habla ("vos sabés", "mirá",
+   "usted vio"), no en la edad que suponés. El valor es UNA palabra: "vos", "usted" o "tú";
+   lo que te hizo darte cuenta va en "por", en pocas palabras.
 4. Hombre o mujer: solo si surge de cómo se nombra a sí mismo o de lo que dice ("cuando yo
    era chica", "como padre"). De su pareja, lo mismo: si no lo dijo, no se sabe.
 5. Las personas: "vive" es "si" o "no" solo si lo dijo o se desprende sin duda (habla de
