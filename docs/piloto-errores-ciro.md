@@ -12,6 +12,12 @@
 > vivía en tres versiones distintas (`main`, `manual-sin-voz`, `primer-capitulo`) con
 > los mismos números usados para hallazgos diferentes. Un archivo propio, con
 > numeración propia (C1, C2…), no puede chocar al mergear.
+>
+> **Consolidado el 23/09:** las cinco entradas de Ciro que habían quedado en la bitácora
+> de Joaquín (donde eran `31`–`35`, números que ahí ya usaban otros hallazgos) son las
+> `C1`–`C5` de acá; en su lugar quedó un puntero. La regla de qué se anota dónde está en
+> la cabecera de `piloto-bitacora-errores.md`. **Este archivo es el único al día sobre
+> Ciro**: si algo de él aparece numerado en otro lado, es una copia vieja.
 
 **Quién es el narrador:** 28 años, trato `vos`, infancia en Concordia con la madre,
 la abuela Estela y los primos; padre ausente con adicciones; a los 12 se fue a vivir
@@ -194,7 +200,15 @@ Tercera vez que muerde la misma causa: `entrevistador/tsconfig.json` tiene
 `include: ["src"]`, así que `tsc` **nunca** mira `scripts/`. Las otras dos fueron
 `guardarRepreguntaEnviada` faltando en el `return` de `modulos()` (dos veces).
 
-**Hecho:** sacado el camino de voz (commit `1f512f7` en `main`).
+**Hecho:** sacado el camino de voz de `scripts/manual.ts` (commit `1f512f7` en `main`).
+
+**Lo que quedó abierto (verificado el 23/09):** el mismo borrado dejó roto un segundo
+script, `entrevistador/scripts/prueba-consumo.ts`, que también importaba
+`../src/ia/voz.js` — y **sigue roto en `main`**. Es el script que comprueba que el gasto
+de cada llamada quede anotado en `consumo_ia`, así que la herramienta con la que se
+verifica el costeo no arranca. El arreglo está escrito (saca el camino del TTS y deja
+dicho que el único paso por unidad que queda es la transcripción, que necesita un audio
+real), sin mergear.
 **Para repasar, en serio:** sumar `scripts` al include del tsconfig — son tres bugs de
 la misma causa, y el próximo también va a aparecer en medio de una entrevista.
 
