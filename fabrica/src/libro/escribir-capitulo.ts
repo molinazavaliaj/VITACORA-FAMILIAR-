@@ -6,6 +6,23 @@ import { extraerTexto } from './comun.js';
 
 const MODELO = 'claude-fable-5';
 
+// Las reglas de voz, compartidas por las dos formas de escribir un capítulo (con la
+// historia completa, la de producción; y con el material ya repartido, el experimento
+// del biógrafo v2). Textuales: cambiarlas cambia los dos.
+const REGLAS_DE_VOZ = `REGLAS — este libro es SU voz, no la tuya:
+1. Primera persona. El narrador es él.
+2. Usá SUS palabras, SUS giros, SUS muletillas queridas. Tu trabajo es ordenar y pulir
+   apenas, no "redactar bonito". Si él dice «mi vieja», el libro dice «mi vieja».
+3. Las frases más potentes van TEXTUALES, marcadas así: > para destacarlas como cita.
+4. No inventes NADA. Ni un detalle, ni un adjetivo emocional que él no haya dado.
+   Si el material es escaso, el capítulo es corto. Cortito y verdadero gana siempre.
+5. Ordená cronológica o temáticamente dentro del capítulo, uniendo con transiciones
+   mínimas y naturales.
+6. Prohibido el perfume a IA: nada de «fue una época llena de desafíos», «sin duda»,
+   «cabe destacar». Si una frase la podría haber escrito un robot, sacala.
+
+Devolvé SOLO el texto del capítulo en Markdown (sin el título del capítulo).`;
+
 // El prompt del capítulo — el corazón del producto. Se usa textual, no se
 // resume ni se reordena: cada palabra acá decide si el libro suena a él o
 // a un robot. Ver task-7-brief.md.
@@ -30,19 +47,7 @@ ${historiaCompleta}
 CORRECCIONES DE NOMBRES (la transcripción automática oyó mal; usar SIEMPRE la forma corregida):
 ${nombresCorregidos}
 
-REGLAS — este libro es SU voz, no la tuya:
-1. Primera persona. El narrador es él.
-2. Usá SUS palabras, SUS giros, SUS muletillas queridas. Tu trabajo es ordenar y pulir
-   apenas, no "redactar bonito". Si él dice «mi vieja», el libro dice «mi vieja».
-3. Las frases más potentes van TEXTUALES, marcadas así: > para destacarlas como cita.
-4. No inventes NADA. Ni un detalle, ni un adjetivo emocional que él no haya dado.
-   Si el material es escaso, el capítulo es corto. Cortito y verdadero gana siempre.
-5. Ordená cronológica o temáticamente dentro del capítulo, uniendo con transiciones
-   mínimas y naturales.
-6. Prohibido el perfume a IA: nada de «fue una época llena de desafíos», «sin duda»,
-   «cabe destacar». Si una frase la podría haber escrito un robot, sacala.
-
-Devolvé SOLO el texto del capítulo en Markdown (sin el título del capítulo).`;
+${REGLAS_DE_VOZ}`;
 
 /**
  * Escribe un capítulo del libro con la voz del narrador. `materiales` son las
@@ -78,4 +83,48 @@ export async function escribirCapitulo(
   if (narrador.id) await registrarUso(obtenerClienteDb, narrador.id, { modelo: MODELO, paso, usage: mensajeFinal.usage });
   const texto = extraerTexto(mensajeFinal.content as Array<{ type: string; text?: string }>);
   return texto.trim();
+}
+
+// EXPERIMENTO del biógrafo v2 (23/09): el capítulo con el material ya repartido, sin la
+// historia completa. Medido en el libro de Joaquín: con la historia completa, cada capítulo
+// traía de ahí lo que "le pertenecía" sin saber qué contaba el otro, y el 18,1 % de los
+// borradores era una frase del audio copiada en otro capítulo. Todavía no lo usa producción.
+const PROMPT_CAPITULO_REPARTIDO = (
+  nombre: string,
+  capitulo: string,
+  materiales: string,
+  nombresCorregidos: string
+) => `
+Estás escribiendo el libro de la vida de ${nombre}, a partir de lo que él mismo contó
+en entrevistas grabadas. Este es el capítulo «${capitulo}».
+
+MATERIAL DE ESTE CAPÍTULO (textual). Ya viene elegido: incluye lo que contó respondiendo
+otras preguntas y pertenece acá (marcado «lo contó respondiendo otra pregunta»). Lo demás
+va en otros capítulos: no lo traigas. Donde ves […] se saltó un tramo que va en otro
+capítulo: no unas lo de antes con lo de después como si fuera un mismo momento.
+${materiales}
+
+CORRECCIONES DE NOMBRES (la transcripción automática oyó mal; usar SIEMPRE la forma corregida):
+${nombresCorregidos}
+
+${REGLAS_DE_VOZ}`;
+
+/** Como `escribirCapitulo`, con el material ya repartido (ver `reparto.ts`). */
+export async function escribirCapituloRepartido(
+  narrador: { nombre: string; id?: string },
+  capitulo: string,
+  materiales: string,
+  nombresCorregidos: string
+): Promise<{ texto: string; usage: unknown }> {
+  const config = cargarConfig();
+  const cliente = new Anthropic({ apiKey: config.anthropicApiKey });
+  const stream = cliente.messages.stream({
+    model: MODELO,
+    max_tokens: 20000,
+    messages: [{ role: 'user', content: PROMPT_CAPITULO_REPARTIDO(narrador.nombre, capitulo, materiales, nombresCorregidos) }],
+  });
+  const mensajeFinal = await stream.finalMessage();
+  if (narrador.id) await registrarUso(obtenerClienteDb, narrador.id, { modelo: MODELO, paso: 'capitulo', usage: mensajeFinal.usage });
+  const texto = extraerTexto(mensajeFinal.content as Array<{ type: string; text?: string }>);
+  return { texto: texto.trim(), usage: mensajeFinal.usage };
 }

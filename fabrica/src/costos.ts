@@ -13,7 +13,7 @@ import { descargarTextoOpcional, subirTexto } from './libro/comun.js';
 type Db = ReturnType<typeof obtenerClienteDb>;
 
 /** Los pasos de la fábrica que le pagan al modelo. */
-export type PasoModelo = 'estructura' | 'anticipo' | 'preview' | 'capitulo' | 'editor';
+export type PasoModelo = 'estructura' | 'anticipo' | 'preview' | 'capitulo' | 'editor' | 'reparto';
 
 /**
  * Lo que devuelve la API en `message.usage`. Todos opcionales: según el

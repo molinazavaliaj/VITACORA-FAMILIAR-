@@ -210,3 +210,16 @@ con código 1 si hay algo grave, así puede usarse de freno antes de escribir un
 - **Joaquín leyó el PDF del 18/09**, no el guardado hoy (reescrito el 21/09). Las
   mediciones de "repite" se hacen contra ese.
 - El hallazgo 40 decía lo contrario de lo que sabemos; se le puso el aviso arriba.
+
+---
+
+## Regla de Naza para toda la reconstrucción (23/09)
+
+> *"Luego de arreglar todas las cosas quiero que se escriba de nuevo, no quiero todo parches
+> como salieron problemas."*
+
+Los arreglos de esta etapa (el candado, descartar, el reparto de material) son **pruebas para
+aprender qué falla y medirlo**. Al terminar, los prompts del biógrafo —entrevistador y
+fábrica— **se reescriben desde cero, de una sola vez y en conjunto**, con lo aprendido como
+encargo y no como lista de reglas agregadas. Las pruebas automáticas (material, repetición,
+cobertura, trato) son las que dicen si la versión reescrita es mejor que la de hoy.
