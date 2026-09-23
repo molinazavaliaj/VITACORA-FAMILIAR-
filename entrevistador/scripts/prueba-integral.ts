@@ -14,7 +14,8 @@
  * El libro (reparto del material) ya se probó y midió aparte: fabrica/scripts/prueba-reparto.ts.
  *
  * Uso:  npx tsx scripts/prueba-integral.ts [--solo ciro] [--salida <carpeta>]
- * Costo estimado (Opus): ~USD 0,05 por respuesta para el perfil + ~USD 0,03 por pregunta.
+ * Costo estimado (Opus): ~USD 0,025 por respuesta para el perfil (devuelve solo lo que cambió)
+ * + ~USD 0,03 por pregunta.
  */
 import { readFileSync, mkdirSync, writeFileSync } from 'node:fs';
 import { resolve, dirname, join } from 'node:path';
