@@ -6,12 +6,18 @@
  * Por qué existe: los scripts `prueba-*.ts` se arman su PROPIO cliente de Anthropic
  * para comparar modelos, así que no pasan por las funciones de producción y no
  * pueden probar que el costo se anote (medido el 21/09: después de correr
- * `prueba-evaluacion` el panel seguía sin filas). Este script llama a las mismas
- * funciones que corren en el servicio —`detectarIntencion` (Opus, tokens) y
- * `generarAudioVoz` (OpenAI, caracteres)— y después lee la tabla de vuelta.
+ * `prueba-evaluacion` el panel seguía sin filas). Este script llama a la misma
+ * función que corre en el servicio —`detectarIntencion` (Opus, tokens)— y
+ * después lee la tabla de vuelta.
  *
- * Cuesta centavos: una llamada corta de Opus y un TTS de una frase. Las filas que
- * deja son reales (sin narrador: son de una prueba, no del trabajo de alguien).
+ * 22/09 (3t.28): probaba además el camino "por unidad" con `generarAudioVoz`
+ * (OpenAI, caracteres), pero el entrevistador ya no usa TTS y ese módulo no
+ * existe más. El único paso por unidad que queda es la transcripción (por
+ * segundos, `src/ia/transcribir.ts`), y no se puede disparar barato desde acá:
+ * necesita un audio real. Se verifica sola con la primera respuesta del día.
+ *
+ * Cuesta centavos: una llamada corta de Opus. Las filas que deja son reales
+ * (sin narrador: son de una prueba, no del trabajo de alguien).
  */
 import { readFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
@@ -30,7 +36,6 @@ for (const v of ['WA_TOKEN', 'WA_PHONE_NUMBER_ID', 'WA_VERIFY_TOKEN']) {
 }
 
 const { detectarIntencion } = await import('../src/ia/cerebro.js');
-const { generarAudioVoz } = await import('../src/ia/voz.js');
 const { db } = await import('../src/db/cliente.js');
 
 const antes = await db.from('consumo_ia').select('id');
@@ -39,10 +44,6 @@ console.log(`Filas en consumo_ia antes: ${antes.data?.length ?? 'error'}`);
 console.log('\n1) Opus, por tokens (detectarIntencion)…');
 const intencion = await detectarIntencion('Ya no quiero seguir con esto, muchas gracias.', null);
 console.log(`   veredicto: ${intencion}`);
-
-console.log('\n2) OpenAI, por caracteres (generarAudioVoz, el TTS de la pregunta)…');
-const audio = await generarAudioVoz('¿Se acuerda del taller?', null);
-console.log(`   mp3: ${audio.length} bytes`);
 
 const despues = await db
   .from('consumo_ia')
@@ -53,8 +54,8 @@ const despues = await db
 console.log('\nÚltimas filas en consumo_ia (leídas de vuelta):');
 for (const f of despues.data ?? []) console.log('  ', f);
 
-const nuevas = (despues.data ?? []).filter((f) => f.paso === 'intencion' || f.paso === 'voz_pregunta');
-if (nuevas.length < 2) {
+const nuevas = (despues.data ?? []).filter((f) => f.paso === 'intencion');
+if (nuevas.length < 1) {
   console.error('\n✗ FALLÓ: la llamada real no dejó su fila. Mirá los avisos `costos:` de arriba.');
   process.exit(1);
 }
