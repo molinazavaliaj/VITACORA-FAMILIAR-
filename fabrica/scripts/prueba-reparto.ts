@@ -20,7 +20,7 @@ import { obtenerClienteDb, type Pregunta, type Respuesta } from '../src/db.js';
 import { descargarTextoOpcional, formatearNombresCorregidos, textoRespuesta, type Nombres } from '../src/libro/comun.js';
 import { aplicarOrdenCapitulos, aplicarTitulosCapitulos, leerEdicion } from '../src/libro/edicion.js';
 import { numerarRespuestas, materialRepartido, repartir } from '../src/libro/reparto.js';
-import { armarEtapas, capitulosDeEtapas, repartirEnEtapas } from '../src/libro/etapas.js';
+import { armarEtapas, capitulosDeEtapas, repartirEnEtapas, ubicarSueltas } from '../src/libro/etapas.js';
 import { escribirCapituloRepartido } from '../src/libro/escribir-capitulo.js';
 import { medirRepeticion, type Medicion } from '../src/libro/medir-repeticion.js';
 import { generoDelMaterial } from '../src/libro/encargo.js';
@@ -118,13 +118,12 @@ if (porEtapas) {
   const reparto = await repartirEnEtapas(cliente, quien, numeradas, capitulosEtapas, etapas);
   gasto += costo(reparto.usage as Uso);
   await writeFile(path.join(salida, 'reparto-salida.txt'), reparto.salida);
-  ({ porCapitulo, sinCapitulo } = materialRepartido(numeradas, capitulosEtapas, reparto.movidas));
-  // Lo que el modelo no ubicó va a la reflexión, y se cuenta: es lo que hay que mirar.
-  if (sinCapitulo.length) {
-    const ultimo = porCapitulo.length - 1;
-    porCapitulo[ultimo] = [porCapitulo[ultimo], ...sinCapitulo.map((r) => `P: ${r.pregunta}\nR: ${r.oraciones.join(' ')}`)].filter(Boolean).join('\n\n');
-  }
-  informe.push(`**Reparto en etapas:** ${reparto.movidas.size} oraciones ubicadas por el modelo · ${reparto.ignoradas.length} líneas ignoradas · ${sinCapitulo.length} respuestas que no ubicó (fueron a la reflexión)`);
+  // Lo que el modelo no ubicó va con el resto de su respuesta (o a la reflexión si no ubicó
+  // nada), oración por oración: así ninguna queda dos veces. Se cuenta: es lo que hay que mirar.
+  const ubicadas = ubicarSueltas(numeradas, capitulosEtapas, reparto.movidas);
+  ({ porCapitulo, sinCapitulo } = materialRepartido(numeradas, capitulosEtapas, ubicadas.movidas));
+  informe.push(`**Reparto en etapas:** ${reparto.movidas.size} oraciones ubicadas por el modelo · ${reparto.ignoradas.length} líneas ignoradas · ${ubicadas.sueltas} oraciones que no ubicó (fueron con el resto de su respuesta, o a la reflexión)`);
+  for (const l of reparto.ignoradas) informe.push(`- ignorada: \`${l}\``);
   libroCapitulos = etapas;
 } else {
   console.log('Reparto…');

@@ -181,3 +181,34 @@ export async function repartirEnEtapas(
   const salida = extraerTexto(final.content as Array<{ type: string; text?: string }>).trim();
   return { ...parsearReparto(salida, respuestas, capitulos), salida, usage: final.usage };
 }
+
+/**
+ * Lo que el modelo no ubicó de las respuestas "sin capítulo". Cada oración suelta va a donde
+ * fue el resto de su respuesta (el capítulo con más oraciones de ella); si no ubicó ninguna,
+ * la respuesta entera va al último capítulo, la reflexión. Devuelve las mudanzas completas y
+ * cuántas oraciones tuvo que ubicar: es lo que hay que mirar en el informe. Antes, la prueba
+ * mandaba la respuesta ENTERA a la reflexión y las oraciones ya ubicadas quedaban dos veces.
+ */
+export function ubicarSueltas(
+  respuestas: RespuestaNumerada[],
+  capitulos: CapituloParaRepartir[],
+  movidas: Mudanzas,
+): { movidas: Mudanzas; sueltas: number } {
+  const completas: Mudanzas = new Map(movidas);
+  const ultimo = capitulos.length;
+  let sueltas = 0;
+  for (const r of respuestas) {
+    if (capitulos.some((c) => c.ordenes.includes(r.orden))) continue;
+    const cuenta = new Map<number, number>();
+    for (let k = 1; k <= r.oraciones.length; k++) {
+      const cap = movidas.get(`${r.id}.${k}`);
+      if (cap !== undefined) cuenta.set(cap, (cuenta.get(cap) ?? 0) + 1);
+    }
+    const destino = [...cuenta.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? ultimo;
+    for (let k = 1; k <= r.oraciones.length; k++) {
+      const id = `${r.id}.${k}`;
+      if (!completas.has(id)) { completas.set(id, destino); sueltas++; }
+    }
+  }
+  return { movidas: completas, sueltas };
+}

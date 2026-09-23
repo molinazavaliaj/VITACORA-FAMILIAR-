@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { parsearEtapas, capitulosDeEtapas, armarPromptRepartoEtapas, type Etapa } from '../src/libro/etapas.js';
-import { numerarRespuestas } from '../src/libro/reparto.js';
+import { parsearEtapas, capitulosDeEtapas, armarPromptRepartoEtapas, ubicarSueltas, type Etapa } from '../src/libro/etapas.js';
+import { numerarRespuestas, materialRepartido } from '../src/libro/reparto.js';
 
 // El libro por etapas de SU vida (decisión de Naza, 23/09): los capítulos dejan de ser los temas
 // del guion (La infancia, El amor, El oficio…) y pasan a ser las etapas de esta persona, con
@@ -67,5 +67,39 @@ describe('armarPromptRepartoEtapas', () => {
     expect(p).toContain('4. Lo que aprendí');
     expect(p).toContain('[R1 · capítulo 1');
     expect(p).toContain('[R2 · sin capítulo');
+  });
+});
+
+describe('ubicarSueltas', () => {
+  // El reparto en etapas puede ubicar SOLO UNA PARTE de una respuesta "sin capítulo" (el amor,
+  // el oficio…). Antes, la prueba mandaba la respuesta ENTERA a la reflexión: las oraciones ya
+  // ubicadas quedaban dos veces en el libro, justo lo que el reparto vino a arreglar.
+  const respuestas = numerarRespuestas([
+    { orden: 1, pregunta: '¿Su casa?', texto: 'La casa de mis abuelos en Tucumán.' },
+    { orden: 13, pregunta: '¿El amor?', texto: 'A Rubén lo conocí en el taller. Nos casamos a los 27. Hoy pienso que el amor es paciencia.' },
+    { orden: 17, pregunta: '¿El oficio?', texto: 'Cosí toda la vida. Aprendí a los 14.' },
+  ]);
+  const caps = capitulosDeEtapas(ETAPAS, [{ orden: 1, capituloGuion: 'La infancia' }, { orden: 13, capituloGuion: 'El amor' }, { orden: 17, capituloGuion: 'El oficio' }]);
+
+  it('lo que el modelo no ubicó va con el resto de su respuesta, y cada oración queda UNA vez', () => {
+    const { movidas, sueltas } = ubicarSueltas(respuestas, caps, new Map([['R2.1', 3], ['R2.2', 3]]));
+    expect(sueltas).toBe(3); // R2.3 y las dos de R3
+    expect(movidas.get('R2.3')).toBe(3);
+    const todo = materialRepartido(respuestas, caps, movidas).porCapitulo.join('\n');
+    for (const r of respuestas) for (const o of r.oraciones) expect(todo.split(o).length - 1, o).toBe(1);
+  });
+
+  it('una respuesta que no ubicó para nada va al último capítulo (la reflexión)', () => {
+    const { movidas } = ubicarSueltas(respuestas, caps, new Map());
+    expect(movidas.get('R3.1')).toBe(ETAPAS.length);
+    expect(movidas.get('R3.2')).toBe(ETAPAS.length);
+    expect(materialRepartido(respuestas, caps, movidas).sinCapitulo).toEqual([]);
+  });
+
+  it('no toca lo que ya tiene capítulo propio ni lo que el modelo ubicó', () => {
+    const { movidas, sueltas } = ubicarSueltas(respuestas, caps, new Map([['R2.1', 2], ['R2.2', 2], ['R2.3', 4], ['R3.1', 3], ['R3.2', 3]]));
+    expect(sueltas).toBe(0);
+    expect(movidas.get('R2.3')).toBe(4);
+    expect(movidas.has('R1.1')).toBe(false);
   });
 });
