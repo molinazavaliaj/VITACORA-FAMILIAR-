@@ -22,3 +22,8 @@ fabrica/muestra-identidad.*
 .autopilot/
 .agents/
 skills-lock.json
+
+# Salidas locales de las pruebas del biógrafo v2: llevan transcripciones de gente real.
+entrevistador/prueba-integral/
+entrevistador/prueba-perfil-*/
+fabrica/prueba-reparto-*/
