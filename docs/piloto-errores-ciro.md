@@ -27,7 +27,7 @@ pregunta 12 de 26.
 
 | # | Qué | Por qué es grave |
 |---|---|---|
-| C6 | El biógrafo pone los recuerdos **en la ciudad equivocada** (3 de 3) | Es un error de hecho, no de tono: las salidas de la adolescencia fueron en Buenos Aires y las preguntó "en Concordia". La fábrica escribe el libro con el mismo material, así que el error viaja al texto impreso. **Reproducido el 22/09 contra `main` al día (3t.29 incluido): no lo arregla nada de lo de hoy.** |
+| C6 | El biógrafo pone los recuerdos **en la ciudad equivocada** (4 de 4) | Es un error de hecho, no de tono: las salidas de la adolescencia fueron en Buenos Aires y las preguntó "en Concordia". La fábrica escribe el libro con el mismo material, así que el error viaja al texto impreso. **Reproducido el 22/09 contra `main` al día (3t.29 incluido): no lo arregla nada de lo de hoy.** |
 | C8 | La puerta manual quedó **rota entera** por un módulo borrado | `3t.28` borró `src/ia/voz.ts` y dejó el import en `scripts/manual.ts`: cualquier comando moría. Tercera vez que muerde la misma causa — `tsconfig.json` tiene `include: ["src"]`, así que `tsc` **nunca** mira `scripts/`. Arreglado el 22/09; la causa raíz sigue abierta. |
 | C11 | La personalización **devuelve la pregunta entera en usted** a un narrador de vos | No es un verbo suelto como en C6: la 13 arranca "Mirá, vos dijiste…" y sigue "¿cómo **conoció** al amor de su vida? **Lléveme** a ese día… qué **pensó** cuando **la** vio". Si se manda así, el narrador siente que le escribe otra persona. Cuarta aparición de la mezcla, la peor. |
 | C13 | «El amor» es en realidad **«el matrimonio»**: las tres fijas dan por hecho novia, suegros, boda y nietos — y sin pareja el capítulo se **borra entero** | Decisión de Naza (22/09): *"no tiene pareja pero esta pregunta sí va, porque si se ha enamorado no tiene nada que ver"*. Haberse enamorado no depende de estar en pareja. Hoy `arbol.conyuge = 'no tuvo'` hace que las 3 preguntas se reemplacen por otro tema: se pierde uno de los capítulos más fuertes de cualquier vida. |
@@ -304,3 +304,22 @@ propósito. (Si alguien lo "prolija" cargándolo, le apaga el capítulo sin quer
    hablar de eso.
 3. Revisar si «Los hijos» tiene el mismo problema al revés: alguien sin hijos puede
    tener sobrinos, ahijados, pibes que crió.
+
+### C14 · Cuarta reincidencia de la ciudad (y la pareja sigue siendo mujer)
+**23/09.** La pregunta 14 salió: *"Mirá, vos dijiste que fue más obsesión que amor en esa
+época. ¿Cómo era ese noviazgo **en Concordia**? ¿**La** llegaste a presentar en tu casa,
+con tu vieja y tu abuela?"*.
+
+- **La ciudad, 4 de 4** (C6). Y acá no es solo un dato cruzado: Ciro **se fue de Concordia
+  a los 12**. Un noviazgo allá es directamente imposible en su línea de tiempo. El dato
+  está en la base (respuesta 2 y su ampliación) y el biógrafo igual lo ubica ahí.
+- **El género, otra vez** (C12): "¿La llegaste a presentar?". Él dijo "tuve pareja", sin
+  decir quién.
+- **Y el contexto emocional que acaba de dar.** En la respuesta 13 dijo: *"justo ahora me
+  separé hace poco… vengo de una complicada"*. La pregunta pasa por encima de eso y va al
+  noviazgo viejo. No está mal preguntar por el capítulo, pero el biógrafo no registra que
+  la herida es de esta semana.
+
+**Hecho a mano:** reescrita sin ciudad, sin género y reconociendo lo que acaba de contar.
+**Para repasar:** esto refuerza C6 — la **línea de tiempo con lugares** en la ficha deja
+de ser un "estaría bueno" y pasa a ser lo que evita un imposible impreso en el libro.
