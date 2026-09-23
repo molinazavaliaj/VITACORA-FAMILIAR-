@@ -745,6 +745,21 @@ misma causa) y **C3** pregunta por una infancia dura como si hubiera sido un luj
     regla 2 lo empuja a conservar: *"tu trabajo es ordenar y pulir apenas, no redactar
     bonito"*. En un audio de gente mayor repetir es lo normal: se repite para enfatizar o al
     retomar el hilo. Le pedimos fidelidad y nadie le dijo que fidelidad no es transcripción.
+    > **MEDIDO el 23/09 — la causa principal NO es que él repita al hablar.** Se partió el
+    > libro guardado (21/09) en oraciones, se buscaron pares que dicen lo mismo y se rastreó
+    > cada oración hasta la frase del audio de la que salió:
+    > - **El 11,6 % del libro (925 de 8.007 palabras) es una frase del audio impresa en más de
+    >   un capítulo**: 32 frases dichas UNA vez aparecen en 2 o 3 capítulos (43 copias de más).
+    >   Ej.: *"No fue una buena época, pero me pude hacer grande, me hice hombre"* (dia_27_2)
+    >   está en «La juventud», «La familia» y «Las pruebas».
+    > - Que él lo haya dicho dos veces en el mismo audio y el libro lo repita: **3 pares**.
+    > - En los borradores por capítulo (antes del editor) es peor: **18,1 %**. El editor saca
+    >   parte sin que se lo pidan — su instrucción no menciona repeticiones.
+    > - Donde caen las copias: «Las pruebas» 13 y «La sabiduría» 12 de 43. Son los capítulos
+    >   temáticos: cualquier cosa "pertenece" ahí cuando se busca en la historia completa.
+    > **Causa**: cada capítulo se escribe SOLO, con la historia completa y la orden de traer lo
+    > que le pertenezca; nadie sabe qué ya contó el otro. Es de arquitectura, no de la regla 2.
+    > La medición se convierte en prueba permanente en la rama del biógrafo v2.
 
 42. **23/09 · el guion no cubre la vida adulta.** Reparto real de las 26 fijas: La juventud
     5, La infancia 4, Las raíces / El amor / El oficio / Los hijos / La sabiduría 3 cada
