@@ -1,72 +1,47 @@
-// Prueba del reparto de material (biógrafo v2, hallazgo 41). Rehace los capítulos de un libro
-// ya terminado repartiendo el material ANTES de escribir, y mide la repetición contra los
-// borradores de hoy. No escribe NADA en Supabase (ni base ni Storage, ni costos.json): lee, y
-// deja todo en una carpeta local para leerlo.
+// Prueba del libro v2 de punta a punta (biógrafo v2): etapas de SU vida → reparto → un capítulo
+// por etapa → apertura, cierre y «Sus frases» → control → lector final. Todo el camino vive en
+// `armarLibroV2` (src/libro/libro-v2.ts); este script solo lee la base, arma la entrada y deja todo
+// en una carpeta local para leerlo. No escribe NADA en Supabase (ni base ni Storage, ni costos.json).
 //
-//   npx tsx --env-file=.env scripts/prueba-reparto.ts <narradorId> [--salida <carpeta>] [--solo-reparto] [--excluir <id>,<id>] [--etapas]
+//   npx tsx --env-file=.env scripts/prueba-reparto.ts <narradorId> [--salida <carpeta>] [--excluir <id>,<id>]
 //
-// --etapas arma el libro por las etapas de SU vida (decisión de Naza, 23/09) en vez de por los
-// capítulos del guion.
+// De dónde sale la época de cada respuesta (con eso arranca en su etapa):
+// - narrador entrevistado con el cerebro v2 (`contexto.v2`, ej. Naza): el tramo de cada pregunta
+//   hecha, y la línea de tiempo del perfil para armar las etapas (ver scripts/contexto-v2.ts);
+// - material viejo (Joaquín): el capítulo del guion de su pregunta (`EPOCA_DEL_CAPITULO_GUION`).
 //
-// --solo-reparto corre solo la llamada del reparto (~USD 0,50) y deja el material de cada
-// capítulo para revisarlo antes de pagar los capítulos (~USD 0,22 cada uno). --excluir deja
-// afuera respuestas que sabemos que no son de esta persona (ej. el audio de Ciro en la orden 27
-// de Joaquín, que su libro real no descartó): solo en esta corrida, la base no se toca.
+// --etapas se sigue aceptando y no hace nada: el libro v2 ya es siempre por etapas (el camino por
+// capítulos del guion se eliminó). --excluir deja afuera respuestas que sabemos que no son de esta
+// persona (ej. el audio de Ciro en la orden 27 de Joaquín): solo en esta corrida, la base no se toca.
+// Las `bloqueadas` del candado v2 quedan afuera solas.
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import Anthropic from '@anthropic-ai/sdk';
 import { cargarConfig } from '../src/config.js';
 import { obtenerClienteDb, type Pregunta, type Respuesta } from '../src/db.js';
-import { descargarTextoOpcional, formatearNombresCorregidos, textoRespuesta, type Nombres } from '../src/libro/comun.js';
+import { descargarTextoOpcional, formatearNombresCorregidos, type Nombres } from '../src/libro/comun.js';
 import { aplicarOrdenCapitulos, aplicarTitulosCapitulos, leerEdicion } from '../src/libro/edicion.js';
-import { numerarRespuestas, materialRepartido, repartir } from '../src/libro/reparto.js';
-import { armarEtapas, capitulosDeEtapas, repartirEnEtapas, ubicarSueltas, type EpocaDeRespuesta } from '../src/libro/etapas.js';
-import { escribirCapituloRepartido } from '../src/libro/escribir-capitulo.js';
 import { medirRepeticion, type Medicion } from '../src/libro/medir-repeticion.js';
 import { generoDelMaterial } from '../src/libro/encargo.js';
-import { escribirPaginas, armarLibro, controlarLibro } from '../src/libro/paginas.js';
-
-/** Fable 5, `GASTOS.md` (USD por millón de tokens). */
-const PRECIO_ENTRADA = 10;
-const PRECIO_SALIDA = 50;
-type Uso = { input_tokens?: number; output_tokens?: number };
-const costo = (u: Uso) => ((u.input_tokens ?? 0) * PRECIO_ENTRADA + (u.output_tokens ?? 0) * PRECIO_SALIDA) / 1_000_000;
+import { armarLibroV2 } from '../src/libro/libro-v2.js';
+import { hayQueRevisar } from '../src/libro/revision.js';
+import { leerContextoV2, epocaV2, lineaDeTiempoV2, generoV2, epocaDelGuion, materialDeRespuestas } from './contexto-v2.js';
 
 const args = process.argv.slice(2);
 const narradorId = args[0]?.startsWith('--') ? undefined : args[0];
 const iSalida = args.indexOf('--salida');
-const soloReparto = args.includes('--solo-reparto');
-const porEtapas = args.includes('--etapas');
 const iExcluir = args.indexOf('--excluir');
-const excluidas = new Set(iExcluir >= 0 ? args[iExcluir + 1].split(',') : []);
 if (!narradorId) {
-  console.error('Uso: npx tsx scripts/prueba-reparto.ts <narradorId> [--salida <carpeta>] [--solo-reparto]');
+  console.error('Uso: npx tsx --env-file=.env scripts/prueba-reparto.ts <narradorId> [--salida <carpeta>] [--excluir <id>,<id>]');
   process.exit(2);
 }
+if (args.includes('--solo-reparto')) {
+  // Antes de gastar: el v2 corre entero (etapas, reparto, capítulos, páginas, lector) o nada.
+  console.error('--solo-reparto ya no existe: el libro v2 corre entero. Sacalo del comando.');
+  process.exit(2);
+}
+const excluidas = new Set(iExcluir >= 0 ? (args[iExcluir + 1] ?? '').split(',').filter(Boolean) : []);
 const salida = path.resolve(iSalida >= 0 ? args[iSalida + 1] : `prueba-reparto-${narradorId.slice(0, 8)}`);
-
-/**
- * La época de cada capítulo del guion de hoy: con eso cada respuesta arranca en su etapa. Los
- * que cruzan toda la vida (el amor, el oficio, los hijos, las pruebas) no tienen época: esas
- * respuestas las ubica el modelo. Cuando el guion v2 esté en uso, la época sale del tramo de
- * cada pregunta (`EpocaDeRespuesta` ya lo pide así; este mapeo es solo para probar con el guion
- * viejo).
- */
-const EPOCA_DEL_CAPITULO_GUION: Record<string, [number, number] | 'reflexion'> = {
-  'la infancia': [0, 12],
-  'las raices': [0, 12],
-  'la juventud': [13, 22],
-  'la sabiduria': 'reflexion',
-};
-
-const clave = (t: string) => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
-
-const epocaDeRespuesta = (orden: number, capituloGuion: string): EpocaDeRespuesta => {
-  const epoca = EPOCA_DEL_CAPITULO_GUION[clave(capituloGuion)];
-  if (epoca === 'reflexion') return { orden, desde: null, hasta: null, reflexion: true };
-  if (epoca) return { orden, desde: epoca[0], hasta: epoca[1] };
-  return { orden, desde: null, hasta: null };
-};
 
 const db = obtenerClienteDb();
 const leer = async <T>(consulta: PromiseLike<{ data: T | null; error: { message: string } | null }>, que: string): Promise<T> => {
@@ -75,130 +50,110 @@ const leer = async <T>(consulta: PromiseLike<{ data: T | null; error: { message:
   return data;
 };
 
-const narrador = await leer(db.from('narradores').select('*').eq('id', narradorId).single(), 'el narrador') as { nombre: string; edicion: unknown };
+const narrador = await leer(db.from('narradores').select('*').eq('id', narradorId).single(), 'el narrador') as { nombre: string; edicion: unknown; contexto: unknown };
 const fijas = await leer(db.from('preguntas').select('*').is('narrador_id', null), 'las fijas') as Pregunta[];
 const propias = await leer(db.from('preguntas').select('*').eq('narrador_id', narradorId), 'sus preguntas') as Pregunta[];
-const respuestas = await leer(db.from('respuestas').select('*').eq('narrador_id', narradorId), 'las respuestas') as Respuesta[];
-const estructuraTexto = await descargarTextoOpcional(db, `${narradorId}/paquete/estructura.json`);
-if (!estructuraTexto) throw new Error('No hay estructura.json: el libro no llegó a armarse.');
-const estructura = JSON.parse(estructuraTexto) as { capitulos: { nombre: string; ordenes: number[] }[] };
+const filas = await leer(db.from('respuestas').select('*').eq('narrador_id', narradorId), 'las respuestas') as Respuesta[];
 const nombresTexto = await descargarTextoOpcional(db, `${narradorId}/paquete/nombres.json`);
 const nombres: Nombres = nombresTexto ? JSON.parse(nombresTexto) : { correcciones: [] };
 
-// Los capítulos como salen impresos: el orden y los títulos que eligió la dueña.
-const edicion = leerEdicion(narrador.edicion);
-const capitulos = aplicarTitulosCapitulos(aplicarOrdenCapitulos(estructura.capitulos, edicion.ordenCapitulos), edicion.titulosCapitulos);
+const v2 = leerContextoV2(narrador.contexto);
+for (const id of v2?.bloqueadas ?? []) excluidas.add(id);
 
-const preguntaDe = new Map<number, string>();
-for (const p of [...fijas, ...propias]) preguntaDe.set(p.orden, p.texto);
-const publicables = respuestas.filter((r) => !excluidas.has(r.id))
-  .sort((a, b) => a.pregunta_orden - b.pregunta_orden || String(a.recibido_at).localeCompare(String(b.recibido_at)))
-  .map((r) => ({ r, texto: textoRespuesta(r) }))
-  .filter((x): x is { r: Respuesta; texto: string } => Boolean(x.texto));
-const numeradas = numerarRespuestas(publicables.map(({ r, texto }) => ({
-  orden: r.pregunta_orden, pregunta: preguntaDe.get(r.pregunta_orden) ?? `Pregunta ${r.pregunta_orden}`, texto,
-})));
-const fuentes = publicables.map(({ r, texto }) => ({ id: r.audio_path?.split('/').pop() ?? `orden_${r.pregunta_orden}`, texto }));
+// El texto de la pregunta. En el v2 es el que de verdad recibió (las órdenes v2 no son las del guion
+// fijo: buscarlas en `preguntas` daría la pregunta de otro tema).
+const preguntaDelGuion = new Map<number, Pregunta>();
+for (const p of [...fijas, ...propias]) preguntaDelGuion.set(p.orden, p);
+const preguntaDe = (orden: number, esRepregunta: boolean): string => {
+  if (v2) {
+    const enviada = (esRepregunta ? v2.repreguntasEnviadas : v2.preguntasEnviadas)?.[String(orden)] ?? v2.preguntasEnviadas?.[String(orden)];
+    return enviada ?? `Pregunta ${orden}`;
+  }
+  return preguntaDelGuion.get(orden)?.texto ?? `Pregunta ${orden}`;
+};
+
+const { respuestas, reservados } = materialDeRespuestas(filas, excluidas, preguntaDe);
+if (!respuestas.length) throw new Error('No hay respuestas publicables: nada para armar.');
+const ordenes = [...new Set(respuestas.map((r) => r.orden))];
+const epocas = v2
+  ? ordenes.map((o) => epocaV2(v2, o))
+  : ordenes.map((o) => epocaDelGuion(o, preguntaDelGuion.get(o)?.capitulo ?? ''));
+const lineaDeTiempo = v2 ? lineaDeTiempoV2(v2) : '';
+const fuentes = respuestas.map((r) => ({ id: r.fuenteId, texto: r.texto }));
+
+// Quién cuenta: lo que dijo en la entrevista v2 si lo dijo; si no, de lo que cuenta.
+const delMaterial = generoDelMaterial(respuestas.map((r) => r.texto));
+const genero = (v2 && generoV2(v2)) || delMaterial.genero;
+const quien = { nombre: narrador.nombre, genero };
 
 await mkdir(salida, { recursive: true });
-const informe: string[] = [`# Prueba del reparto — ${narrador.nombre}`, '', ...(excluidas.size ? [`Excluidas de esta corrida: ${[...excluidas].join(', ')}`, ''] : []), `${numeradas.length} respuestas · ${numeradas.reduce((n, r) => n + r.oraciones.length, 0)} oraciones · ${capitulos.length} capítulos`, ''];
+const pad = (i: number) => String(i + 1).padStart(2, '0');
 const medir = (m: Medicion) => `${m.porcentaje.toFixed(1)} % copiado (${m.palabrasDuplicadas} de ${m.palabras} palabras, ${m.frasesEnVariosCapitulos.length} frases en varios capítulos) · ${m.sinRespaldo} oraciones sin respaldo`;
+const informe: string[] = [
+  `# Prueba del libro v2 — ${narrador.nombre}`, '',
+  `**Material:** ${v2 ? 'entrevista v2 (épocas del tramo de cada pregunta, línea de tiempo del perfil)' : 'guion viejo (épocas por capítulo del guion, sin línea de tiempo)'}`,
+  ...(excluidas.size ? [`Excluidas de esta corrida: ${[...excluidas].join(', ')}`] : []),
+  `${respuestas.length} respuestas · ${reservados.length} reservas (fuera del libro, se le pasan al lector)`, '',
+  `**Quién cuenta:** ${genero ?? 'no se sabe'}${v2 && generoV2(v2) ? ' (lo dijo en la entrevista)' : delMaterial.evidencia.length ? ` (${delMaterial.evidencia.slice(0, 4).join(', ')})` : ''}`, '',
+];
+if (lineaDeTiempo) informe.push('**Línea de tiempo del perfil:**', lineaDeTiempo, '');
 
-// ANTES: los borradores que están hoy en Storage.
-const antes: { nombre: string; texto: string }[] = [];
-for (let i = 0; i < capitulos.length; i++) {
-  const t = await descargarTextoOpcional(db, `${narradorId}/paquete/borrador_cap_${String(i + 1).padStart(2, '0')}.md`);
-  if (t) antes.push({ nombre: capitulos[i].nombre, texto: t });
+// ANTES: los borradores que están hoy en Storage (solo si el libro viejo llegó a armarse).
+const estructuraTexto = await descargarTextoOpcional(db, `${narradorId}/paquete/estructura.json`);
+if (estructuraTexto) {
+  const estructura = JSON.parse(estructuraTexto) as { capitulos: { nombre: string; ordenes: number[] }[] };
+  const edicion = leerEdicion(narrador.edicion);
+  const capitulosViejos = aplicarTitulosCapitulos(aplicarOrdenCapitulos(estructura.capitulos, edicion.ordenCapitulos), edicion.titulosCapitulos);
+  const antes: { nombre: string; texto: string }[] = [];
+  for (let i = 0; i < capitulosViejos.length; i++) {
+    const t = await descargarTextoOpcional(db, `${narradorId}/paquete/borrador_cap_${pad(i)}.md`);
+    if (t) antes.push({ nombre: capitulosViejos[i].nombre, texto: t });
+  }
+  if (antes.length) informe.push(`**Antes (borradores de hoy):** ${medir(medirRepeticion(antes, fuentes))}`, '');
 }
-if (antes.length) informe.push(`**Antes (borradores de hoy):** ${medir(medirRepeticion(antes, fuentes))}`, '');
-
-// Quién cuenta: mujer u hombre, de lo que cuenta (la compra no lo pregunta todavía).
-const { genero, evidencia } = generoDelMaterial(publicables.map((x) => x.texto));
-const quien = { nombre: narrador.nombre, genero };
-informe.push(`**Quién cuenta:** ${genero ?? 'no se sabe'}${evidencia.length ? ` (${evidencia.slice(0, 4).join(', ')})` : ''}`, '');
 
 const config = cargarConfig();
 const cliente = new Anthropic({ apiKey: config.anthropicApiKey });
-let gasto = 0;
-let libroCapitulos: { nombre: string }[];
-let porCapitulo: string[];
-let sinCapitulo: ReturnType<typeof materialRepartido>['sinCapitulo'];
 
-if (porEtapas) {
-  // El libro por etapas de SU vida (decisión de Naza, 23/09): primero las etapas, después el
-  // reparto con las etapas como capítulos.
-  console.log('Etapas…');
-  const historia = publicables.map(({ r, texto }) => `P: ${preguntaDe.get(r.pregunta_orden) ?? ''}\nR: ${texto}`).join('\n\n');
-  const et = await armarEtapas(cliente, quien, historia);
-  gasto += costo(et.usage as Uso);
-  await writeFile(path.join(salida, 'etapas-salida.txt'), et.salida);
-  if (!et.resultado.ok) throw new Error('El modelo no devolvió etapas legibles: ver etapas-salida.txt');
-  const etapas = et.resultado.etapas;
-  informe.push('**Etapas:**', ...etapas.map((e, i) => `${i + 1}. ${e.nombre}${e.desde !== null ? ` (${e.desde}-${e.hasta ?? '?'})` : ''}: ${e.deQueTrata}`), '');
-  const capituloGuionDe = new Map([...fijas, ...propias].map((p) => [p.orden, p.capitulo ?? '']));
-  const capitulosEtapas = capitulosDeEtapas(etapas, publicables.map(({ r }) => epocaDeRespuesta(r.pregunta_orden, capituloGuionDe.get(r.pregunta_orden) ?? '')));
-  console.log('Reparto en etapas…');
-  const reparto = await repartirEnEtapas(cliente, quien, numeradas, capitulosEtapas, etapas);
-  gasto += costo(reparto.usage as Uso);
-  await writeFile(path.join(salida, 'reparto-salida.txt'), reparto.salida);
-  // Lo que el modelo no ubicó va con el resto de su respuesta (o a la reflexión si no ubicó
-  // nada), oración por oración: así ninguna queda dos veces. Se cuenta: es lo que hay que mirar.
-  const ubicadas = ubicarSueltas(numeradas, capitulosEtapas, reparto.movidas);
-  ({ porCapitulo, sinCapitulo } = materialRepartido(numeradas, capitulosEtapas, ubicadas.movidas));
-  informe.push(`**Reparto en etapas:** ${reparto.movidas.size} oraciones ubicadas por el modelo · ${reparto.ignoradas.length} líneas ignoradas · ${ubicadas.sueltas} oraciones que no ubicó (fueron con el resto de su respuesta, o a la reflexión)`);
-  for (const l of reparto.ignoradas) informe.push(`- ignorada: \`${l}\``);
-  libroCapitulos = etapas;
-} else {
-  console.log('Reparto…');
-  const reparto = await repartir(cliente, { nombre: narrador.nombre }, numeradas, capitulos);
-  gasto += costo(reparto.usage as Uso);
-  await writeFile(path.join(salida, 'reparto-salida.txt'), reparto.salida);
-  ({ porCapitulo, sinCapitulo } = materialRepartido(numeradas, capitulos, reparto.movidas));
-  informe.push(`**Reparto:** ${reparto.movidas.size} oraciones mudadas de capítulo · ${reparto.ignoradas.length} líneas ignoradas · USD ${gasto.toFixed(2)}`);
-  for (const l of reparto.ignoradas) informe.push(`- ignorada: \`${l}\``);
-  if (sinCapitulo.length) informe.push(`- ⚠ sin capítulo (no entran al libro): ${sinCapitulo.map((r) => `${r.id} (orden ${r.orden})`).join(', ')}`);
-  libroCapitulos = capitulos;
+let r: Awaited<ReturnType<typeof armarLibroV2>>;
+try {
+  r = await armarLibroV2({
+    cliente, quien, respuestas, epocas, lineaDeTiempo,
+    nombresCorregidos: formatearNombresCorregidos(nombres.correcciones), reservados,
+    alPaso: (p) => console.log(p),
+  });
+} catch (err) {
+  // Lo que ya se pagó se guarda igual: sin eso no hay cómo saber por qué falló.
+  const e = err as { salidas?: Record<string, string>; gastoUsd?: number };
+  for (const [archivo, texto] of Object.entries(e.salidas ?? {})) await writeFile(path.join(salida, archivo), texto);
+  if (e.gastoUsd !== undefined) console.error(`Gasto hasta el error: USD ${e.gastoUsd.toFixed(2)}`);
+  throw err;
 }
 
-// Cobertura: cada oración en exactamente un material. Es así por construcción; se verifica igual.
-const todo = porCapitulo.join('\n');
-const faltan = numeradas.flatMap((r) => r.oraciones.filter((o) => !todo.includes(o)).map((o) => `${r.id}: ${o.slice(0, 60)}`));
-informe.push(`**Cobertura:** ${faltan.length === 0 ? 'todas las oraciones están en algún capítulo' : `⚠ ${faltan.length} oraciones afuera`}`, '');
-for (const f of faltan) informe.push(`- afuera: ${f}`);
-for (let i = 0; i < libroCapitulos.length; i++) {
-  await writeFile(path.join(salida, `material_cap_${String(i + 1).padStart(2, '0')}.md`), `# ${libroCapitulos[i].nombre}\n\n${porCapitulo[i]}\n`);
+for (const [archivo, texto] of Object.entries(r.salidas)) await writeFile(path.join(salida, archivo), texto);
+for (let i = 0; i < r.etapas.length; i++) {
+  await writeFile(path.join(salida, `material_cap_${pad(i)}.md`), `# ${r.etapas[i].nombre}\n\n${r.materiales[i] ?? ''}\n`);
+  await writeFile(path.join(salida, `capitulo_${pad(i)}.md`), `# ${r.capitulos[i].nombre}\n\n${r.capitulos[i].texto}\n`);
 }
+if (r.libroMarkdown) await writeFile(path.join(salida, 'libro.md'), r.libroMarkdown);
+await writeFile(path.join(salida, 'revision.json'), JSON.stringify(r.informe, null, 2));
 
-if (!soloReparto) {
-  const despues: { nombre: string; texto: string }[] = [];
-  for (let i = 0; i < libroCapitulos.length; i++) {
-    console.log(`Capítulo ${i + 1}/${libroCapitulos.length}: ${libroCapitulos[i].nombre}…`);
-    const { texto, usage } = await escribirCapituloRepartido(quien, libroCapitulos[i].nombre, porCapitulo[i], formatearNombresCorregidos(nombres.correcciones));
-    gasto += costo(usage as Uso);
-    despues.push({ nombre: libroCapitulos[i].nombre, texto });
-    await writeFile(path.join(salida, `capitulo_${String(i + 1).padStart(2, '0')}.md`), `# ${libroCapitulos[i].nombre}\n\n${texto}\n`);
-  }
-  const m = medirRepeticion(despues, fuentes);
-  informe.push(`**Después (con reparto):** ${medir(m)}`, '');
-  for (const f of m.frasesEnVariosCapitulos) informe.push(`- ${f.fuente} en ${f.capitulos.join(' + ')}: «${f.oracion.slice(0, 100)}»`);
-
-  // El editor v2: solo lo que el libro no tiene. Los capítulos no se tocan.
-  console.log('Apertura, cierre y «Sus frases»…');
-  const { resultado, usage } = await escribirPaginas(cliente, quien, despues, publicables.map((x) => x.texto));
-  gasto += costo(usage as Uso);
-  if (resultado.ok) {
-    await writeFile(path.join(salida, 'libro.md'), armarLibro(resultado.paginas, despues));
-    const p = resultado.paginas;
-    informe.push('', `**Editor v2:** ${p.suyas.length} suyas, ${p.heredadas.length} heredadas, ${p.muletillas.length} muletillas · ${resultado.caidas.length} frases caídas por no ser textuales${resultado.caidas.length ? `: ${resultado.caidas.map((c) => `«${c}»`).join(', ')}` : ''}`);
-  } else {
-    informe.push('', '**Editor v2:** ⚠ no devolvió un JSON legible');
-  }
-
-  // El control, como si fuera a imprenta.
-  const control = controlarLibro(despues, fuentes, genero);
-  informe.push('', `**Control antes de imprimir:** ${control.avisos.length ? control.avisos.map((a) => `\n- ⚠ ${a}`).join('') : 'sin avisos'}`);
-}
-informe.push('', `**Gasto de la prueba:** USD ${gasto.toFixed(2)}`);
-await writeFile(path.join(salida, 'informe.md'), informe.join('\n'));
+const d = r.detalle;
+informe.push('**Etapas:**', ...r.etapas.map((e, i) => `${i + 1}. ${e.nombre}${e.desde !== null ? ` (${e.desde}-${e.hasta ?? '?'})` : ''}: ${e.deQueTrata}`), '');
+informe.push(`**Reparto en etapas:** ${d.oraciones} oraciones · ${d.movidas} ubicadas por el modelo · ${d.ignoradas.length} líneas ignoradas · ${d.sueltas} que no ubicó (fueron con el resto de su respuesta, o a la reflexión)`);
+for (const l of d.ignoradas) informe.push(`- ignorada: \`${l}\``);
+informe.push('', `**Cobertura:** ${d.afuera.length === 0 ? 'todas las oraciones están en algún capítulo' : `⚠ ${d.afuera.length} oraciones afuera`}`);
+for (const f of d.afuera) informe.push(`- afuera: ${f}`);
+informe.push('', `**Después (libro v2):** ${medir(r.medicion)}`);
+for (const f of r.medicion.frasesEnVariosCapitulos) informe.push(`- ${f.fuente} en ${f.capitulos.join(' + ')}: «${f.oracion.slice(0, 100)}»`);
+informe.push('', d.frases
+  ? `**Editor v2:** ${d.frases.suyas} suyas, ${d.frases.heredadas} heredadas, ${d.frases.muletillas} muletillas · ${d.caidas.length} frases caídas por no ser textuales${d.caidas.length ? `: ${d.caidas.map((c) => `«${c}»`).join(', ')}` : ''}`
+  : '**Editor v2:** ⚠ no devolvió un JSON legible (no hay libro.md; el lector leyó los capítulos solos)');
+informe.push('', `**Control antes de imprimir:** ${r.informe.control.length ? r.informe.control.map((a) => `\n- ⚠ ${a}`).join('') : 'sin avisos'}`);
+informe.push('', `**Lector final:** ${r.informe.lectorFallo ? '⚠ no devolvió una lista: revisar a mano' : r.informe.lector.length ? `${r.informe.lector.length} aviso(s)` : 'sin avisos'}`);
+for (const a of r.informe.lector) informe.push(`- **${a.capitulo}** — «${a.frase}» — *${a.problema}*: ${a.evidencia}`);
+informe.push('', `**¿Se imprimiría?** ${hayQueRevisar(r.informe) ? 'no: espera revisión (ver revision.json)' : 'sí, sin avisos'}`);
+informe.push('', `**Gasto de la prueba:** USD ${r.gastoUsd.toFixed(2)}`);
+await writeFile(path.join(salida, 'informe.md'), informe.join('\n') + '\n');
 console.log(informe.join('\n'));
 console.log(`\nTodo en ${salida}`);
