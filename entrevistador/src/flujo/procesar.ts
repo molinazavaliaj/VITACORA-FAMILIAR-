@@ -12,7 +12,7 @@ import { generarPreguntasAdaptativas } from '../ia/adaptativas.js';
 import { preguntaDeOrden, preguntasHechasAntes, tieneAdaptativas, ultimoOrden } from '../db/guion.js';
 import { textoEvitar, sumarTemaEvitado } from '../ia/evitar.js';
 import { tratoDe } from '../ia/trato.js';
-import { bienvenidaAceptacion } from '../manual/puro.js';
+import { bienvenidaAceptacion, noEntendi, noQuiereTodavia } from '../manual/puro.js';
 import { mandarHito } from '../mail/hitos.js';
 import { cerrarBitacora } from './cierre.js';
 import { esOrdenDeCierre, faseDeCierre } from './cierre-abierto.js';
@@ -95,7 +95,8 @@ async function preguntasEnviadasHoy(n: Narrador, ahora = new Date()): Promise<nu
 export function leerSiNo(texto: string): 'si' | 'no' | null {
   const limpio = texto.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z\s]/g, ' ').trim();
   if (!limpio || limpio.split(/\s+/).length > 6) return null;
-  if (/^(si|dale|bueno|ok|okey|claro|de acuerdo|va|vamos|si dale|si claro|si bueno|si vamos|bueno dale|dale si|si si)\b/.test(limpio)) return 'si';
+  // `si+` porque "Sii" y "Siii" son de las formas más comunes y fallaban las dos.
+  if (/^(si+|dale|bueno|ok|okey|oka|claro|de acuerdo|va|vamos|vale|listo|perfecto|obvio|de una|empecemos|arranquemos|empezemos|si dale|si claro|si bueno|si vamos|bueno dale|dale si)\b/.test(limpio)) return 'si';
   if (/^(no|ahora no|manana|mañana|despues|mas tarde|hoy no|no gracias)\b/.test(limpio)) return 'no';
   return null;
 }
@@ -154,15 +155,30 @@ export async function procesarEntrante(m: MensajeEntrante): Promise<void> {
 // Paso 2: el "SÍ" del consentimiento.
 async function manejarConsentimiento(narrador: Narrador, m: MensajeEntrante): Promise<void> {
   if (m.tipo !== 'texto' || !m.texto) return; // en 'invitado' solo cuenta el SÍ escrito
-  // Sin acentos y en minúscula: "SÍ", "Sí!", "si dale" valen todos.
-  const limpio = m.texto.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-  const dijoSi = /^si\b/.test(limpio);
+  // Hasta el 23/09 esto tenía su propio `/^si\b/`, más pobre que el `leerSiNo`
+  // que ya vivía en este mismo archivo: "Sii", "Dale", "Ok", "Claro" y "Vamos"
+  // no entraban. Y el bot se quedaba MUDO, así que la persona leía la
+  // bienvenida, contestaba, no pasaba nada y no volvía a intentar.
+  const dijoSi = leerSiNo(m.texto) === 'si';
   if (!dijoSi) {
     // Vitácora de viaje: mientras no haya plantilla aprobada, el viajero escribe
     // primero ("hola") y la bienvenida sale como texto libre, dentro de la ventana.
     if (esViaje(narrador.contexto) && !(await ultimaBienvenida(narrador.id))) {
       const waId = await enviarTexto(narrador.telefono_whatsapp, bienvenidaViaje(narrador.como_le_dicen, { enseguida: ritmoDe(narrador.contexto) === 'seguido' }));
       await db.from('envios').insert({ narrador_id: narrador.id, tipo: 'bienvenida', pregunta_orden: null, wa_message_id: waId });
+      return;
+    }
+    // Escribió algo que no entendimos. El silencio es la peor respuesta: la
+    // persona ya hizo su parte y del otro lado no pasa nada, así que no
+    // vuelve a intentar. Se le pide de nuevo UNA sola vez — insistir a quien
+    // no quiere participar sería peor que no haber preguntado.
+    if (narrador.contexto?.sePidioDeNuevo !== true) {
+      const trato = await tratoDe(narrador);
+      await enviarTexto(narrador.telefono_whatsapp, leerSiNo(m.texto) === 'no'
+        ? noQuiereTodavia(narrador.como_le_dicen, trato)
+        : noEntendi(trato));
+      narrador.contexto = { ...(narrador.contexto ?? {}), sePidioDeNuevo: true };
+      await db.from('narradores').update({ contexto: narrador.contexto }).eq('id', narrador.id);
     }
     return;
   }
