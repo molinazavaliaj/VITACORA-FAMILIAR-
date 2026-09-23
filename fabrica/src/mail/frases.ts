@@ -44,22 +44,43 @@ export function asuntoRecordatorioFrases(comoLeDicen: string): string {
  * importada: son textos distintos y cada uno se aprueba solo). `quien` llega ya
  * escapado para el HTML.
  *
- * Tres párrafos, en este orden y por esto: (1) qué está listo, para que se
- * entienda de qué le hablamos; (2) qué puede hacer y que no hay ninguna
- * obligación —la familia no tiene por qué confirmar nada—; (3) qué pasa si no
- * hace nada, que es la promesa del spec: se imprime lo que eligió el biógrafo.
+ * **Son dos textos, según lo que compró la familia** (Naza, 23/09). Hasta hoy era
+ * uno solo y terminaba diciendo: *"si no tocas nada, cuando se imprima va la lista
+ * que eligió el biógrafo"*. Con el portón de impresión (3t.26 fase 2) eso pasó a
+ * ser exactamente al revés —el libro impreso sale SOLO cuando la familia confirma—
+ * y este mail sale justo a quien no confirmó: le decía "no hagas nada" a la única
+ * persona que tenía que hacer algo para que su libro existiera.
+ *
+ * - **Sin impreso**: elegir las frases es optativo de verdad, así que el mail dice
+ *   que no hay apuro y que quedan guardadas.
+ * - **Con impreso encargado**: hay una acción concreta, y el mail la dice sin
+ *   vueltas, con la salida fácil a mano (si están bien, confirmarlas tal cual).
  */
-const PARRAFOS = (quien: string): string[] => [
-  `El libro de tu ${quien} ya está terminado, y las mejores historias con su voz ya se pueden escuchar.`,
-  `Las eligió el biógrafo entre las cosas que dijo ${quien}. Si quieres sacar alguna, poner otra en su lugar o cambiar el orden, puedes hacerlo desde tu panel.`,
-  `No hay ninguna obligación de hacerlo: si no tocas nada, cuando se imprima va la lista que eligió el biógrafo, tal como está.`,
-];
+const PARRAFOS = (quien: string, conImpreso: boolean): string[] =>
+  conImpreso
+    ? [
+        `El libro de tu ${quien} ya está terminado, y las mejores historias con su voz ya se pueden escuchar.`,
+        `Encargaste el libro impreso, y sale con estas frases: cada una lleva su código para escucharla.`,
+        `<strong>Se manda a imprimir cuando confirmes esta selección.</strong> Échales un vistazo desde tu panel: cambia lo que quieras, y si están bien así, confírmalas tal cual.`,
+      ]
+    : [
+        `El libro de tu ${quien} ya está terminado, y las mejores historias con su voz ya se pueden escuchar.`,
+        `Las eligió el biógrafo entre las cosas que dijo ${quien}. Si quieres sacar alguna, poner otra en su lugar o cambiar el orden, puedes hacerlo desde tu panel.`,
+        `No hay apuro: quedan guardadas así hasta que decidas.`,
+      ];
 
-export function cuerpoRecordatorioFrases(opciones: { comoLeDicen: string; enlace: string }): string {
+export function cuerpoRecordatorioFrases(opciones: {
+  comoLeDicen: string;
+  enlace: string;
+  /** ¿Encargó algo impreso? Sin decirlo se asume que no: mandarle "confirmá o no
+   *  se imprime" a quien compró solo el PDF lo dejaría esperando una acción que no
+   *  le corresponde. */
+  conImpreso?: boolean;
+}): string {
   const quien = escaparHtml(opciones.comoLeDicen);
   const url = escaparHtml(opciones.enlace);
 
-  const parrafos = PARRAFOS(quien)
+  const parrafos = PARRAFOS(quien, opciones.conImpreso === true)
     .map(
       (parrafo) => `        <tr><td style="padding-bottom:24px;">
           ${parrafo}
@@ -104,6 +125,8 @@ export async function enviarMailRecordatorioFrases(opciones: {
   para: string;
   comoLeDicen: string;
   enlace: string;
+  /** ¿Encargó algo impreso? Cambia el texto entero (ver `PARRAFOS`). */
+  conImpreso?: boolean;
 }): Promise<boolean> {
   const { resendApiKey } = cargarConfig();
   if (!resendApiKey) {
@@ -121,7 +144,11 @@ export async function enviarMailRecordatorioFrases(opciones: {
       from: REMITENTE,
       to: [opciones.para],
       subject: asuntoRecordatorioFrases(opciones.comoLeDicen),
-      html: cuerpoRecordatorioFrases({ comoLeDicen: opciones.comoLeDicen, enlace: opciones.enlace }),
+      html: cuerpoRecordatorioFrases({
+        comoLeDicen: opciones.comoLeDicen,
+        enlace: opciones.enlace,
+        conImpreso: opciones.conImpreso,
+      }),
     }),
   });
 

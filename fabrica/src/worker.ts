@@ -22,6 +22,7 @@ import { ensamblarAudiolibroClonado } from './voz/ensamblar.js';
 import type { NarracionJson } from './voz/narracion-json.js';
 import { anotarLatido } from './latido.js';
 import { mandarEntregasAImprenta, avisarHitosDeEntrega } from './entregas.js';
+import { productosDelPedido } from './libro/productos.js';
 
 const INTERVALO_MS = 60_000;
 
@@ -516,14 +517,23 @@ export async function recordarFrasesPendientes(ahora: Date = new Date()): Promis
   const db = obtenerClienteDb();
   const { urlBase } = cargarConfig();
 
-  const { data: pedidos, error } = await db.from('pedidos').select('id, narrador_id').eq('estado', 'entregado');
+  const { data: pedidos, error } = await db.from('pedidos').select('id, narrador_id, extras').eq('estado', 'entregado');
 
   if (error) {
     console.error('tick: no se pudieron leer los pedidos entregados para el recordatorio de frases:', error.message);
     return 0;
   }
 
-  const narradoresEntregados = new Set(((pedidos ?? []) as { narrador_id: string }[]).map((p) => p.narrador_id));
+  // Qué encargó cada narrador: con algo físico el mail dice que sin confirmar no se
+  // imprime; sin nada físico, que no hay apuro (`mail/frases.ts`). Si un narrador
+  // tiene varios pedidos —la dueña y un primo— alcanza con que UNO lleve impreso.
+  const impresoPorNarrador = new Map<string, boolean>();
+  for (const p of (pedidos ?? []) as { narrador_id: string; extras?: unknown }[]) {
+    const productos = productosDelPedido(p.extras);
+    const fisico = productos.impreso !== null || productos.copias > 0 || productos.marcos > 0;
+    impresoPorNarrador.set(p.narrador_id, (impresoPorNarrador.get(p.narrador_id) ?? false) || fisico);
+  }
+  const narradoresEntregados = new Set(impresoPorNarrador.keys());
 
   let enviados = 0;
   for (const narradorId of narradoresEntregados) {
@@ -576,6 +586,7 @@ export async function recordarFrasesPendientes(ahora: Date = new Date()): Promis
         // (`/tablero/{id}/frases`, spec §Arquitectura) la hace la web y se entra
         // desde ahí. Es una línea, el día que la web la publique.
         enlace: `${urlBase}/tablero/${narradorId}`,
+        conImpreso: impresoPorNarrador.get(narradorId) === true,
       });
 
       if (enviado) {
