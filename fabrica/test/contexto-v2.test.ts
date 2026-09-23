@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  leerContextoV2, epocaV2, lineaDeTiempoV2, generoV2, epocaDelGuion, materialDeRespuestas, type ContextoV2, type FilaRespuesta,
+  leerContextoV2, epocaV2, edadV2, preguntaV2, lineaDeTiempoV2, generoV2, epocaDelGuion, materialDeRespuestas, type ContextoV2, type FilaRespuesta,
 } from '../scripts/contexto-v2.js';
 
 // Lo puro del script de prueba del libro v2: de `contexto.v2` (lo escribe el entrevistador) a las
@@ -8,7 +8,7 @@ import {
 
 const v2: ContextoV2 = {
   perfil: {
-    persona: { genero: { valor: 'hombre' } },
+    persona: { genero: { valor: 'hombre' }, edad: { valor: '27' } },
     etapas: [
       { edades: '0-12', anios: '1999-2011', lugar: 'Concordia', conQuien: 'sus padres', queHacia: 'la escuela' },
       { edades: '13-18', lugar: 'Buenos Aires', conQuien: '', queHacia: '' },
@@ -17,16 +17,21 @@ const v2: ContextoV2 = {
   },
   secuencia: {
     hechas: [
-      { id: 'presentacion', orden: 0, tramo: null, objetivo: { tipo: 'nucleo', id: 'presentacion', bloque: 'presentacion' } },
-      { id: 'casa-infancia', orden: 1, tramo: 'infancia', objetivo: { tipo: 'nucleo', id: 'casa-infancia', bloque: 'infancia' } },
+      // Como los guarda el entrevistador: el objetivo del núcleo trae SU tramo (null en los temas que
+      // cruzan la vida) y la hecha, el de `tramoDe` (que a esos les pone 'adulto joven').
+      { id: 'presentacion', orden: 0, tramo: null, objetivo: { tipo: 'nucleo', id: 'presentacion', tramo: null, bloque: 'presentacion' } },
+      { id: 'casa-infancia', orden: 1, tramo: 'infancia', objetivo: { tipo: 'nucleo', id: 'casa-infancia', tramo: 'infancia', bloque: 'inicio' } },
       { id: 'var-juventud-1', orden: 2, tramo: 'juventud', objetivo: { tipo: 'variable', id: 'var-juventud-1', tramo: 'juventud', desde: 13, hasta: 18 } },
-      { id: 'amor', orden: 3, tramo: 'adulto joven', objetivo: { tipo: 'nucleo', id: 'amor', bloque: 'adulto joven' } },
-      { id: 'mensaje', orden: 4, tramo: null, objetivo: { tipo: 'nucleo', id: 'mensaje', bloque: 'reflexion' } },
-      { id: 'dia-de-hoy', orden: 5, tramo: 'hoy', objetivo: { tipo: 'nucleo', id: 'dia-de-hoy', bloque: 'hoy' } },
+      { id: 'amor', orden: 3, tramo: 'adulto joven', objetivo: { tipo: 'nucleo', id: 'amor', tramo: null, bloque: 'adulto joven' } },
+      { id: 'mensaje', orden: 4, tramo: null, objetivo: { tipo: 'nucleo', id: 'mensaje', tramo: null, bloque: 'reflexion' } },
+      { id: 'un-dia-de-hoy', orden: 5, tramo: 'hoy', objetivo: { tipo: 'nucleo', id: 'un-dia-de-hoy', tramo: 'hoy', bloque: 'hoy' } },
+      { id: 'a-los-quince', orden: 6, tramo: 'juventud', objetivo: { tipo: 'nucleo', id: 'a-los-quince', tramo: 'juventud', bloque: 'juventud' } },
+      { id: 'oficio', orden: 7, tramo: 'adulto joven', objetivo: { tipo: 'nucleo', id: 'oficio', tramo: null, bloque: 'adulto joven' } },
     ],
     objetos: [{ orden: 101, tramo: 'infancia' }, { orden: 102, tramo: 'hoy', final: true }],
   },
-  preguntasEnviadas: { '1': '¿Cómo era tu casa?' },
+  preguntasEnviadas: { '0': 'Hola, soy tu biógrafo.', '1': '¿Cómo era tu casa?' },
+  repreguntasEnviadas: { '1': '¿Y quién cocinaba?' },
 };
 
 describe('contexto v2 → épocas', () => {
@@ -41,12 +46,46 @@ describe('contexto v2 → épocas', () => {
     expect(epocaV2(v2, 0)).toEqual({ orden: 0, desde: null, hasta: null });             // presentación: sin época
     expect(epocaV2(v2, 1)).toEqual({ orden: 1, desde: 0, hasta: 12 });                   // tramo del núcleo
     expect(epocaV2(v2, 2)).toEqual({ orden: 2, desde: 13, hasta: 18 });                  // la variable, su propio rango
-    expect(epocaV2(v2, 3)).toEqual({ orden: 3, desde: 23, hasta: 35 });
     expect(epocaV2(v2, 4)).toEqual({ orden: 4, desde: null, hasta: null, reflexion: true });
-    expect(epocaV2(v2, 5)).toEqual({ orden: 5, desde: null, hasta: null });             // "hoy" no es una edad
+    expect(epocaV2(v2, 6)).toEqual({ orden: 6, desde: 13, hasta: 22 });
     expect(epocaV2(v2, 101)).toEqual({ orden: 101, desde: 0, hasta: 12 });               // objeto de la infancia
-    expect(epocaV2(v2, 102)).toEqual({ orden: 102, desde: null, hasta: null });
     expect(epocaV2(v2, 77)).toEqual({ orden: 77, desde: null, hasta: null });            // no se le preguntó
+  });
+
+  it('los temas que cruzan la vida (tramo null en el núcleo) quedan sin época, aunque la hecha diga adulto joven', () => {
+    expect(epocaV2(v2, 3)).toEqual({ orden: 3, desde: null, hasta: null });             // amor
+    expect(epocaV2(v2, 7)).toEqual({ orden: 7, desde: null, hasta: null });             // oficio
+  });
+
+  it('"hoy" es su edad de hoy; sin edad, sin época', () => {
+    expect(edadV2(v2)).toBe(27);
+    expect(epocaV2(v2, 5)).toEqual({ orden: 5, desde: 27, hasta: 27 });
+    expect(epocaV2(v2, 102)).toEqual({ orden: 102, desde: 27, hasta: 27 });              // objeto final, de hoy
+    const sinEdad: ContextoV2 = { ...v2, perfil: { ...v2.perfil, persona: {} } };
+    expect(edadV2(sinEdad)).toBeNull();
+    expect(epocaV2(sinEdad, 5)).toEqual({ orden: 5, desde: null, hasta: null });
+  });
+
+  it('"segunda mitad" llega hasta su edad (no hasta 200); sin edad, sin época', () => {
+    const mayor = (persona: NonNullable<NonNullable<ContextoV2['perfil']>['persona']>): ContextoV2 => ({
+      perfil: { persona },
+      secuencia: {
+        hechas: [{ id: 'var-segunda mitad-1', orden: 9, tramo: 'segunda mitad', objetivo: { tipo: 'nucleo', id: 'x', tramo: 'segunda mitad', bloque: 'segunda mitad' } }],
+        objetos: [{ orden: 105, tramo: 'segunda mitad' }],
+      },
+    });
+    expect(epocaV2(mayor({ edad: { valor: '76' } }), 9)).toEqual({ orden: 9, desde: 56, hasta: 76 });
+    expect(epocaV2(mayor({ edad: { valor: 'entre 70 y 80' } }), 105)).toEqual({ orden: 105, desde: 56, hasta: 75 });
+    expect(epocaV2(mayor({ anioNacimiento: { valor: '1950' } }), 9, 2026)).toEqual({ orden: 9, desde: 56, hasta: 76 });
+    expect(epocaV2(mayor({}), 9)).toEqual({ orden: 9, desde: null, hasta: null });
+    expect(epocaV2(mayor({ edad: { valor: '40' } }), 9)).toEqual({ orden: 9, desde: null, hasta: null });
+  });
+
+  it('el texto de la pregunta es el que recibió; la repregunta si la hay', () => {
+    expect(preguntaV2(v2, 1, false)).toBe('¿Cómo era tu casa?');
+    expect(preguntaV2(v2, 1, true)).toBe('¿Y quién cocinaba?');
+    expect(preguntaV2(v2, 0, true)).toBe('Hola, soy tu biógrafo.');                     // sin repregunta: la pregunta
+    expect(preguntaV2(v2, 42, false)).toBe('Pregunta 42');
   });
 
   it('la línea de tiempo: una etapa por línea, y las bisagras', () => {

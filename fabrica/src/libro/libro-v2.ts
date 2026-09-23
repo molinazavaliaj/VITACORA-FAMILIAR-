@@ -28,7 +28,13 @@ export type EntradaLibroV2 = {
   /** Para escribir cada capítulo (inyectable en tests). */
   escribirCapitulo?: (quien: Quien, nombre: string, material: string, nombres: string) => Promise<{ texto: string; usage: unknown }>;
   alPaso?: (paso: string) => void;
+  /** Cada capítulo apenas se escribió: para guardarlo ya (está pago) aunque después algo falle. */
+  alCapitulo?: (indice: number, nombre: string, texto: string) => void | Promise<void>;
 };
+
+/** Lo que ya se hizo (y se pagó) hasta un momento dado. Un error de `armarLibroV2` lo trae adentro. */
+export type ParcialLibroV2 = { salidas: Record<string, string>; capitulos: { nombre: string; texto: string }[]; gastoUsd: number };
+export type ErrorLibroV2 = Error & ParcialLibroV2;
 
 /** Lo que conviene leer del camino, además del libro: para el informe de la prueba. */
 export type DetalleLibroV2 = {
@@ -55,29 +61,41 @@ export type SalidaLibroV2 = {
 };
 
 /**
- * Arma el libro v2 entero. Tira solo si el modelo no devuelve etapas legibles (sin etapas no hay
- * capítulos); todo lo demás que salga mal queda en el informe, que es lo que frena la impresión.
+ * Arma el libro v2 entero. Si el modelo no devuelve etapas legibles tira (sin etapas no hay
+ * capítulos); lo que el modelo devuelva mal después queda en el informe, que es lo que frena la
+ * impresión. Cualquier error (el de las etapas, o la API que se cae en las páginas o el lector) sale
+ * con lo ya hecho adentro (`ErrorLibroV2`: salidas, capítulos, gasto): esos capítulos ya se pagaron
+ * y quien llama tiene que poder guardarlos.
  */
 export async function armarLibroV2(e: EntradaLibroV2): Promise<SalidaLibroV2> {
+  const parcial: ParcialLibroV2 = { salidas: {}, capitulos: [], gastoUsd: 0 };
+  try {
+    return await armar(e, parcial);
+  } catch (err) {
+    const error = err instanceof Error ? err : new Error(String(err));
+    throw Object.assign(error, parcial) as ErrorLibroV2;
+  }
+}
+
+async function armar(e: EntradaLibroV2, parcial: ParcialLibroV2): Promise<SalidaLibroV2> {
   const paso = e.alPaso ?? (() => {});
-  const salidas: Record<string, string> = {};
-  let gastoUsd = 0;
+  const { salidas, capitulos } = parcial;
+  const gastar = (modelo: string, u: unknown) => { parcial.gastoUsd += costo(modelo, u); };
   const escribir = e.escribirCapitulo ?? escribirCapituloRepartido;
 
   paso('Etapas…');
   const historia = e.respuestas.map((r) => `P: ${r.pregunta}\nR: ${r.texto}`).join('\n\n');
   const et = await armarEtapas(e.cliente, e.quien, historia, e.lineaDeTiempo ?? '');
-  gastoUsd += costo(MODELO_ESCRITOR, et.usage);
+  gastar(MODELO_ESCRITOR, et.usage);
   salidas['etapas-salida.txt'] = et.salida;
-  // Con la salida adentro del error: quien llama puede guardarla y leer por qué (la llamada ya se pagó).
-  if (!et.resultado.ok) throw Object.assign(new Error('El modelo no devolvió etapas legibles: ver etapas-salida.txt'), { salidas, gastoUsd });
+  if (!et.resultado.ok) throw new Error('El modelo no devolvió etapas legibles: ver etapas-salida.txt');
   const etapas = et.resultado.etapas;
 
   paso('Reparto en etapas…');
   const numeradas = numerarRespuestas(e.respuestas.map(({ orden, pregunta, texto }) => ({ orden, pregunta, texto })));
   const capitulosEtapas = capitulosDeEtapas(etapas, e.epocas);
   const reparto = await repartirEnEtapas(e.cliente, e.quien, numeradas, capitulosEtapas, etapas);
-  gastoUsd += costo(MODELO_ESCRITOR, reparto.usage);
+  gastar(MODELO_ESCRITOR, reparto.usage);
   salidas['reparto-salida.txt'] = reparto.salida;
   // Lo que el modelo no ubicó va con el resto de su respuesta (o a la reflexión): ninguna oración dos veces.
   const ubicadas = ubicarSueltas(numeradas, capitulosEtapas, reparto.movidas);
@@ -87,14 +105,14 @@ export async function armarLibroV2(e: EntradaLibroV2): Promise<SalidaLibroV2> {
   const todo = porCapitulo.join('\n');
   const afuera = numeradas.flatMap((r) => r.oraciones.filter((o) => !todo.includes(o)).map((o) => `${r.id} (orden ${r.orden}): ${o.slice(0, 60)}`));
 
-  const capitulos: { nombre: string; texto: string }[] = [];
   const sinMaterial: string[] = [];
   for (let i = 0; i < etapas.length; i++) {
     paso(`Capítulo ${i + 1}/${etapas.length}: ${etapas[i].nombre}…`);
     if (!porCapitulo[i]?.trim()) sinMaterial.push(etapas[i].nombre);
     const { texto, usage } = await escribir(e.quien, etapas[i].nombre, porCapitulo[i] ?? '', e.nombresCorregidos);
-    gastoUsd += costo(MODELO_ESCRITOR, usage);
+    gastar(MODELO_ESCRITOR, usage);
     capitulos.push({ nombre: etapas[i].nombre, texto });
+    await e.alCapitulo?.(i, etapas[i].nombre, texto);
   }
 
   const fuentes = e.respuestas.map((r) => ({ id: r.fuenteId, texto: r.texto }));
@@ -103,13 +121,13 @@ export async function armarLibroV2(e: EntradaLibroV2): Promise<SalidaLibroV2> {
   paso('Apertura, cierre y «Sus frases»…');
   const transcripciones = e.respuestas.map((r) => r.texto);
   const paginas = await escribirPaginas(e.cliente, e.quien, capitulos, transcripciones);
-  gastoUsd += costo(MODELO_ESCRITOR, paginas.usage);
+  gastar(MODELO_ESCRITOR, paginas.usage);
   const libroMarkdown = paginas.resultado.ok ? armarLibro(paginas.resultado.paginas, capitulos) : null;
 
   const control = controlarLibro(capitulos, fuentes, e.quien.genero);
   paso('El lector final…');
   const lectura = await leerLibro(e.cliente, e.quien, libroMarkdown ?? capitulos.map((c) => `# ${c.nombre}\n\n${c.texto}`).join('\n\n'), transcripciones, e.nombresCorregidos, e.reservados);
-  gastoUsd += costo(MODELO_LECTOR, lectura.usage);
+  gastar(MODELO_LECTOR, lectura.usage);
   const informe: InformeRevision = {
     narrador: e.quien.nombre,
     lector: lectura.resultado.ok ? lectura.resultado.avisos : [],
@@ -134,5 +152,5 @@ export async function armarLibroV2(e: EntradaLibroV2): Promise<SalidaLibroV2> {
       : null,
     oraciones: numeradas.reduce((n, r) => n + r.oraciones.length, 0),
   };
-  return { etapas, capitulos, materiales: porCapitulo, libroMarkdown, medicion, informe, salidas, gastoUsd, detalle };
+  return { etapas, capitulos, materiales: porCapitulo, libroMarkdown, medicion, informe, salidas, gastoUsd: parcial.gastoUsd, detalle };
 }

@@ -14,8 +14,8 @@ import type { EpocaDeRespuesta } from '../src/libro/etapas.js';
 export type Tramo = 'infancia' | 'juventud' | 'adulto joven' | 'adultez media' | 'segunda mitad' | 'hoy';
 
 /**
- * Copia de `RANGO_TRAMO` (entrevistador/src/ia/plan-preguntas.ts). "hoy" allá es [0, 200] (no es una
- * edad, es el presente): acá no se usa como rango, ver `epocaDeTramo`.
+ * Copia de `RANGO_TRAMO` (entrevistador/src/ia/plan-preguntas.ts). "segunda mitad" y "hoy" llegan
+ * hasta 200: acá se cierran con su edad, ver `epocaDeTramo`.
  */
 export const RANGO_TRAMO: Record<Tramo, [number, number]> = {
   infancia: [0, 12],
@@ -35,7 +35,11 @@ type ObjetivoV2 =
 /** Lo mínimo de `EstadoV2` (entrevistador/src/manual/estado-v2.ts) + `Secuencia` (ia/secuencia.ts) + `Perfil` (ia/perfil.ts). */
 export type ContextoV2 = {
   perfil?: {
-    persona?: { genero?: { valor?: string } | null };
+    persona?: {
+      genero?: { valor?: string } | null;
+      edad?: { valor?: string } | null;
+      anioNacimiento?: { valor?: string } | null;
+    };
     etapas?: { edades?: string; anios?: string; lugar?: string; conQuien?: string; queHacia?: string }[];
     bisagras?: string[];
   };
@@ -56,11 +60,42 @@ export function leerContextoV2(contexto: unknown): ContextoV2 | null {
 }
 
 /**
- * La época de un tramo. "hoy" no es una edad (es el presente): sin época, la ubica el modelo — como
- * rango [0, 200] daría el medio en 100 años y no caería en ninguna etapa igual.
+ * Su edad hoy, del perfil: copia de `edadDe` (entrevistador/src/ia/plan-preguntas.ts). La edad dicha
+ * ("27", "entre 70 y 75" → el medio) gana; si no, el año de nacimiento contra `anioActual`. Null si
+ * no se sabe.
  */
-function epocaDeTramo(orden: number, tramo: Tramo | null | undefined): EpocaDeRespuesta {
-  if (!tramo || tramo === 'hoy' || !RANGO_TRAMO[tramo]) return { orden, desde: null, hasta: null };
+export function edadV2(v2: ContextoV2, anioActual = new Date().getFullYear()): number | null {
+  const numeros = (texto: string) => (texto.match(/\d+/g) ?? []).map(Number);
+  const edad = v2.perfil?.persona?.edad?.valor;
+  if (edad) {
+    const n = numeros(String(edad)).filter((x) => x < 130);
+    if (n.length >= 2) return Math.round((n[0] + n[1]) / 2);
+    if (n.length === 1) return n[0];
+  }
+  const anio = v2.perfil?.persona?.anioNacimiento?.valor;
+  if (anio) {
+    const n = numeros(String(anio)).find((x) => x > 1900 && x <= anioActual);
+    if (n) return anioActual - n;
+  }
+  return null;
+}
+
+/**
+ * La época de un tramo. Los dos tramos que en el entrevistador no tienen techo real ("segunda mitad"
+ * [56, 200] y "hoy" [0, 200]) se cierran con SU edad, porque el reparto ubica cada respuesta por el
+ * MEDIO del rango: con 200 de techo el medio cae en 128 o en 100 años y no toca ninguna etapa.
+ * - "segunda mitad" → de 56 a su edad; sin edad (o si tiene menos de 56), sin época.
+ * - "hoy" → su edad de hoy, [edad, edad]: cae en la etapa que la cubre; sin edad, sin época.
+ * Sin época, la respuesta la ubica el modelo.
+ */
+function epocaDeTramo(orden: number, tramo: Tramo | null | undefined, edad: number | null): EpocaDeRespuesta {
+  const sin = { orden, desde: null, hasta: null };
+  if (!tramo || !RANGO_TRAMO[tramo]) return sin;
+  if (tramo === 'hoy') return edad === null ? sin : { orden, desde: edad, hasta: edad };
+  if (tramo === 'segunda mitad') {
+    const desde = RANGO_TRAMO[tramo][0];
+    return edad === null || edad < desde ? sin : { orden, desde, hasta: edad };
+  }
   const [desde, hasta] = RANGO_TRAMO[tramo];
   return { orden, desde, hasta };
 }
@@ -68,22 +103,41 @@ function epocaDeTramo(orden: number, tramo: Tramo | null | undefined): EpocaDeRe
 /**
  * La época de cada orden en la entrevista v2 (diseño §3.4): el tramo de la pregunta que la originó.
  * - reflexión (núcleo del bloque 'reflexion') → al capítulo de reflexión;
+ * - núcleo → el tramo que DECLARA la pregunta (`objetivo.tramo`), no el de la hecha: la secuencia le
+ *   pone 'adulto joven' por defecto a los temas que cruzan la vida (amor, con quién hizo su vida,
+ *   oficio, por gusto, amigos, un lugar), y eso los clavaría en una etapa. Con tramo null quedan sin
+ *   época y los ubica el modelo, como hacía el mapeo del guion viejo. La presentación y el inicio
+ *   también quedan sin época (solo entran si el modelo los ubica);
  * - variable → su propio rango de edad (el que usó para preguntar, más fino que el del tramo);
- * - tramo null (presentación, inicio) → sin época: la presentación no es material de una etapa y
- *   solo entra si el modelo la ubica;
+ *   una variable de "hoy", como el tramo;
  * - objeto (101+) → el rango de su tramo.
  */
-export function epocaV2(v2: ContextoV2, orden: number): EpocaDeRespuesta {
+export function epocaV2(v2: ContextoV2, orden: number, anioActual = new Date().getFullYear()): EpocaDeRespuesta {
+  const edad = edadV2(v2, anioActual);
   const objeto = v2.secuencia?.objetos?.find((o) => o.orden === orden);
-  if (objeto) return epocaDeTramo(orden, objeto.tramo);
+  if (objeto) return epocaDeTramo(orden, objeto.tramo, edad);
   const hecha = v2.secuencia?.hechas?.find((h) => h.orden === orden);
   if (!hecha) return { orden, desde: null, hasta: null };
   const o = hecha.objetivo;
-  if (o?.tipo === 'nucleo' && o.bloque === 'reflexion') return { orden, desde: null, hasta: null, reflexion: true };
-  if (o?.tipo === 'variable' && Number.isFinite(o.desde) && Number.isFinite(o.hasta) && o.tramo !== 'hoy') {
+  if (o?.tipo === 'nucleo') {
+    if (o.bloque === 'reflexion') return { orden, desde: null, hasta: null, reflexion: true };
+    return epocaDeTramo(orden, o.tramo ?? null, edad);
+  }
+  if (o?.tipo === 'variable' && o.tramo !== 'hoy' && Number.isFinite(o.desde) && Number.isFinite(o.hasta)) {
     return { orden, desde: o.desde, hasta: o.hasta };
   }
-  return epocaDeTramo(orden, hecha.tramo);
+  return epocaDeTramo(orden, o?.tramo ?? hecha.tramo, edad);
+}
+
+/**
+ * El texto de la pregunta que de verdad recibió en la entrevista v2: la repregunta si la respuesta es
+ * a una repregunta (si no está, la pregunta de esa orden). Las órdenes v2 NO son las del guion fijo:
+ * buscarlas en la tabla `preguntas` daría la pregunta de otro tema.
+ */
+export function preguntaV2(v2: ContextoV2, orden: number, esRepregunta: boolean): string {
+  const clave = String(orden);
+  const repregunta = esRepregunta ? v2.repreguntasEnviadas?.[clave] : undefined;
+  return repregunta ?? v2.preguntasEnviadas?.[clave] ?? `Pregunta ${orden}`;
 }
 
 /**

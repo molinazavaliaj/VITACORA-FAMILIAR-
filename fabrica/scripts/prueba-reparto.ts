@@ -23,9 +23,9 @@ import { descargarTextoOpcional, formatearNombresCorregidos, type Nombres } from
 import { aplicarOrdenCapitulos, aplicarTitulosCapitulos, leerEdicion } from '../src/libro/edicion.js';
 import { medirRepeticion, type Medicion } from '../src/libro/medir-repeticion.js';
 import { generoDelMaterial } from '../src/libro/encargo.js';
-import { armarLibroV2 } from '../src/libro/libro-v2.js';
+import { armarLibroV2, type ErrorLibroV2 } from '../src/libro/libro-v2.js';
 import { hayQueRevisar } from '../src/libro/revision.js';
-import { leerContextoV2, epocaV2, lineaDeTiempoV2, generoV2, epocaDelGuion, materialDeRespuestas } from './contexto-v2.js';
+import { leerContextoV2, epocaV2, lineaDeTiempoV2, generoV2, preguntaV2, epocaDelGuion, materialDeRespuestas } from './contexto-v2.js';
 
 const args = process.argv.slice(2);
 const narradorId = args[0]?.startsWith('--') ? undefined : args[0];
@@ -60,17 +60,11 @@ const nombres: Nombres = nombresTexto ? JSON.parse(nombresTexto) : { correccione
 const v2 = leerContextoV2(narrador.contexto);
 for (const id of v2?.bloqueadas ?? []) excluidas.add(id);
 
-// El texto de la pregunta. En el v2 es el que de verdad recibió (las órdenes v2 no son las del guion
-// fijo: buscarlas en `preguntas` daría la pregunta de otro tema).
+// El texto de la pregunta: en el v2, el que de verdad recibió (`preguntaV2`); en el guion viejo, la tabla.
 const preguntaDelGuion = new Map<number, Pregunta>();
 for (const p of [...fijas, ...propias]) preguntaDelGuion.set(p.orden, p);
-const preguntaDe = (orden: number, esRepregunta: boolean): string => {
-  if (v2) {
-    const enviada = (esRepregunta ? v2.repreguntasEnviadas : v2.preguntasEnviadas)?.[String(orden)] ?? v2.preguntasEnviadas?.[String(orden)];
-    return enviada ?? `Pregunta ${orden}`;
-  }
-  return preguntaDelGuion.get(orden)?.texto ?? `Pregunta ${orden}`;
-};
+const preguntaDe = (orden: number, esRepregunta: boolean): string =>
+  v2 ? preguntaV2(v2, orden, esRepregunta) : preguntaDelGuion.get(orden)?.texto ?? `Pregunta ${orden}`;
 
 const { respuestas, reservados } = materialDeRespuestas(filas, excluidas, preguntaDe);
 if (!respuestas.length) throw new Error('No hay respuestas publicables: nada para armar.');
@@ -115,25 +109,40 @@ if (estructuraTexto) {
 const config = cargarConfig();
 const cliente = new Anthropic({ apiKey: config.anthropicApiKey });
 
+// Cada capítulo se guarda apenas está: ya se pagó, y si algo se cae después no se pierde.
+const guardarCapitulo = (i: number, nombre: string, texto: string) =>
+  writeFile(path.join(salida, `capitulo_${pad(i)}.md`), `# ${nombre}\n\n${texto}\n`);
+
 let r: Awaited<ReturnType<typeof armarLibroV2>>;
 try {
   r = await armarLibroV2({
     cliente, quien, respuestas, epocas, lineaDeTiempo,
     nombresCorregidos: formatearNombresCorregidos(nombres.correcciones), reservados,
     alPaso: (p) => console.log(p),
+    alCapitulo: guardarCapitulo,
   });
 } catch (err) {
-  // Lo que ya se pagó se guarda igual: sin eso no hay cómo saber por qué falló.
-  const e = err as { salidas?: Record<string, string>; gastoUsd?: number };
+  // Lo que ya se pagó se guarda igual (salidas, capítulos, gasto): sin eso no hay cómo saber por qué
+  // falló ni leer lo que salió.
+  const e = err as Partial<ErrorLibroV2> & { message?: string };
   for (const [archivo, texto] of Object.entries(e.salidas ?? {})) await writeFile(path.join(salida, archivo), texto);
-  if (e.gastoUsd !== undefined) console.error(`Gasto hasta el error: USD ${e.gastoUsd.toFixed(2)}`);
+  const capitulosHechos = e.capitulos ?? [];
+  for (let i = 0; i < capitulosHechos.length; i++) await guardarCapitulo(i, capitulosHechos[i].nombre, capitulosHechos[i].texto);
+  const gasto = e.gastoUsd ?? 0;
+  informe.push(
+    `**⚠ La corrida se cortó:** ${e.message ?? String(err)}`, '',
+    `Quedó guardado: ${Object.keys(e.salidas ?? {}).join(', ') || 'nada del modelo'}${capitulosHechos.length ? ` · ${capitulosHechos.length} capítulo(s): ${capitulosHechos.map((c) => c.nombre).join(', ')}` : ''}.`, '',
+    `**Gasto hasta el error:** USD ${gasto.toFixed(2)}`,
+  );
+  await writeFile(path.join(salida, 'informe.md'), informe.join('\n') + '\n');
+  console.error(informe.join('\n'));
+  console.error(`\nLo que quedó, en ${salida}`);
   throw err;
 }
 
 for (const [archivo, texto] of Object.entries(r.salidas)) await writeFile(path.join(salida, archivo), texto);
 for (let i = 0; i < r.etapas.length; i++) {
   await writeFile(path.join(salida, `material_cap_${pad(i)}.md`), `# ${r.etapas[i].nombre}\n\n${r.materiales[i] ?? ''}\n`);
-  await writeFile(path.join(salida, `capitulo_${pad(i)}.md`), `# ${r.capitulos[i].nombre}\n\n${r.capitulos[i].texto}\n`);
 }
 if (r.libroMarkdown) await writeFile(path.join(salida, 'libro.md'), r.libroMarkdown);
 await writeFile(path.join(salida, 'revision.json'), JSON.stringify(r.informe, null, 2));

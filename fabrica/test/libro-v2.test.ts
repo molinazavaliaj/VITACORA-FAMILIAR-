@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { armarLibroV2 } from '../src/libro/libro-v2.js';
+import { armarLibroV2, type ErrorLibroV2 } from '../src/libro/libro-v2.js';
 
 // El orquestador del libro v2: etapas → reparto → capítulos → páginas → control → lector. Sin base:
 // lo usan el script de prueba y, al conectar, la fábrica.
@@ -45,5 +45,41 @@ describe('armarLibroV2', () => {
       .mockReturnValueOnce(respuesta('no sé'));
     const r = await armarLibroV2({ cliente: { messages: { stream } } as never, quien: { nombre: 'X', genero: null }, respuestas: [{ orden: 1, pregunta: 'p', texto: 'Texto con cinco palabras de contenido importantes aquí.', fuenteId: 'f' }], epocas: [{ orden: 1, desde: 0, hasta: 12 }], nombresCorregidos: '', reservados: [], escribirCapitulo: async (_q, n, m) => ({ texto: m, usage: {} }) });
     expect(r.informe.lectorFallo).toBe(true);
+  });
+
+  it('si algo se cae después de los capítulos, el error trae lo ya pagado (capítulos, salidas, gasto)', async () => {
+    const stream = vi.fn()
+      .mockReturnValueOnce(respuesta('{"etapas":[{"nombre":"A","desde":0,"hasta":40,"deQueTrata":""},{"nombre":"B","desde":41,"hasta":80,"deQueTrata":""}]}'))
+      .mockReturnValueOnce(respuesta('NADA'))
+      .mockReturnValueOnce(respuesta('{"apertura":"a","cierre":"b"}'))
+      .mockReturnValueOnce({ finalMessage: async () => { throw new Error('529 overloaded'); } });   // el lector se cae
+    const alCapitulo = vi.fn();
+    const error = await armarLibroV2({
+      cliente: { messages: { stream } } as never, quien: { nombre: 'X', genero: null },
+      respuestas: [{ orden: 1, pregunta: 'p', texto: 'Texto con cinco palabras de contenido importantes aquí.', fuenteId: 'f' }],
+      epocas: [{ orden: 1, desde: 0, hasta: 12 }], nombresCorregidos: '', reservados: [],
+      escribirCapitulo: async (_q, n, m) => ({ texto: `${n}: ${m}`, usage: { input_tokens: 1000, output_tokens: 1000 } }),
+      alCapitulo,
+    }).catch((e: unknown) => e as ErrorLibroV2);
+    expect(error).toBeInstanceOf(Error);
+    expect(error.message).toContain('529');
+    expect(error.capitulos.map((c) => c.nombre)).toEqual(['A', 'B', 'Lo que aprendí']);
+    expect(error.salidas['etapas-salida.txt']).toContain('etapas');
+    expect(error.gastoUsd).toBeGreaterThan(0);
+    // Cada capítulo se avisó apenas estuvo: el script ya lo guardó antes de la caída.
+    expect(alCapitulo).toHaveBeenCalledTimes(3);
+    expect(alCapitulo).toHaveBeenNthCalledWith(1, 0, 'A', expect.stringContaining('Texto con cinco'));
+  });
+
+  it('si las etapas no se leen, el error trae su salida y el gasto', async () => {
+    const stream = vi.fn().mockReturnValueOnce(respuesta('no entendí'));
+    const error = await armarLibroV2({
+      cliente: { messages: { stream } } as never, quien: { nombre: 'X', genero: null },
+      respuestas: [{ orden: 1, pregunta: 'p', texto: 't', fuenteId: 'f' }], epocas: [], nombresCorregidos: '', reservados: [],
+    }).catch((e: unknown) => e as ErrorLibroV2);
+    expect(error.message).toContain('etapas legibles');
+    expect(error.salidas['etapas-salida.txt']).toBe('no entendí');
+    expect(error.capitulos).toEqual([]);
+    expect(error.gastoUsd).toBeGreaterThan(0);
   });
 });
