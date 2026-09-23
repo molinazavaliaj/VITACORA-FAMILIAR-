@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parsearEtapas, capitulosDeEtapas, armarPromptRepartoEtapas, ubicarSueltas, type Etapa } from '../src/libro/etapas.js';
+import { parsearEtapas, capitulosDeEtapas, capituloDeObjeto, armarPromptRepartoEtapas, ubicarSueltas, PROMPT_ETAPAS, type Etapa } from '../src/libro/etapas.js';
 import { numerarRespuestas, materialRepartido } from '../src/libro/reparto.js';
 
 // El libro por etapas de SU vida (decisión de Naza, 23/09): los capítulos dejan de ser los temas
@@ -42,16 +42,29 @@ describe('parsearEtapas', () => {
   });
 });
 
-describe('capitulosDeEtapas', () => {
-  it('cada respuesta arranca en la etapa de la época de su pregunta; los temas de toda la vida quedan sin capítulo', () => {
+describe('capitulosDeEtapas (por edades, no por el capítulo del guion viejo)', () => {
+  it('cada respuesta arranca en la etapa que cubre el medio de su época; sin época, sin capítulo; la reflexión, al final', () => {
     const caps = capitulosDeEtapas(ETAPAS, [
-      { orden: 1, capituloGuion: 'La infancia' },
-      { orden: 8, capituloGuion: 'La juventud' },
-      { orden: 13, capituloGuion: 'El amor' },
-      { orden: 24, capituloGuion: 'La sabiduría' },
+      { orden: 1, desde: 0, hasta: 12 },
+      { orden: 8, desde: 13, hasta: 22 },
+      { orden: 13, desde: null, hasta: null },
+      { orden: 24, desde: null, hasta: null, reflexion: true },
     ]);
-    // La juventud (13-22, el medio es 17) de Élida fue en Tucumán: se fue a los 19.
     expect(caps.map((c) => c.ordenes)).toEqual([[1, 8], [], [], [24]]);
+  });
+});
+
+describe('capituloDeObjeto', () => {
+  it('el objeto de la juventud (13-22) va a la etapa que cubre los 17', () => {
+    expect(capituloDeObjeto([13, 22], ETAPAS)).toBe(0); // Tucumán 0-18
+    expect(capituloDeObjeto([56, 76], ETAPAS)).toBeNull();
+  });
+});
+
+describe('PROMPT_ETAPAS con la línea de tiempo del perfil', () => {
+  it('la incluye cuando hay', () => {
+    expect(PROMPT_ETAPAS('Élida', 'x', '- 0 a 18: Tucumán')).toContain('LO QUE EL BIÓGRAFO YA SABE');
+    expect(PROMPT_ETAPAS('Élida', 'x', '')).not.toContain('LO QUE EL BIÓGRAFO YA SABE');
   });
 });
 
@@ -61,7 +74,7 @@ describe('armarPromptRepartoEtapas', () => {
       { orden: 1, pregunta: '¿Su casa?', texto: 'La casa de mis abuelos en Tucumán.' },
       { orden: 13, pregunta: '¿El amor?', texto: 'A Rubén lo conocí en el taller.' },
     ]);
-    const caps = capitulosDeEtapas(ETAPAS, [{ orden: 1, capituloGuion: 'La infancia' }, { orden: 13, capituloGuion: 'El amor' }]);
+    const caps = capitulosDeEtapas(ETAPAS, [{ orden: 1, desde: 0, hasta: 12 }, { orden: 13, desde: null, hasta: null }]);
     const p = armarPromptRepartoEtapas('Élida', respuestas, caps, ETAPAS);
     expect(p).toContain('1. Tucumán (de 0 a 18 años)');
     expect(p).toContain('4. Lo que aprendí');
@@ -79,7 +92,7 @@ describe('ubicarSueltas', () => {
     { orden: 13, pregunta: '¿El amor?', texto: 'A Rubén lo conocí en el taller. Nos casamos a los 27. Hoy pienso que el amor es paciencia.' },
     { orden: 17, pregunta: '¿El oficio?', texto: 'Cosí toda la vida. Aprendí a los 14.' },
   ]);
-  const caps = capitulosDeEtapas(ETAPAS, [{ orden: 1, capituloGuion: 'La infancia' }, { orden: 13, capituloGuion: 'El amor' }, { orden: 17, capituloGuion: 'El oficio' }]);
+  const caps = capitulosDeEtapas(ETAPAS, [{ orden: 1, desde: 0, hasta: 12 }, { orden: 13, desde: null, hasta: null }, { orden: 17, desde: null, hasta: null }]);
 
   it('lo que el modelo no ubicó va con el resto de su respuesta, y cada oración queda UNA vez', () => {
     const { movidas, sueltas } = ubicarSueltas(respuestas, caps, new Map([['R2.1', 3], ['R2.2', 3]]));

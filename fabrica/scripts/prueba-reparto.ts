@@ -20,7 +20,7 @@ import { obtenerClienteDb, type Pregunta, type Respuesta } from '../src/db.js';
 import { descargarTextoOpcional, formatearNombresCorregidos, textoRespuesta, type Nombres } from '../src/libro/comun.js';
 import { aplicarOrdenCapitulos, aplicarTitulosCapitulos, leerEdicion } from '../src/libro/edicion.js';
 import { numerarRespuestas, materialRepartido, repartir } from '../src/libro/reparto.js';
-import { armarEtapas, capitulosDeEtapas, repartirEnEtapas, ubicarSueltas } from '../src/libro/etapas.js';
+import { armarEtapas, capitulosDeEtapas, repartirEnEtapas, ubicarSueltas, type EpocaDeRespuesta } from '../src/libro/etapas.js';
 import { escribirCapituloRepartido } from '../src/libro/escribir-capitulo.js';
 import { medirRepeticion, type Medicion } from '../src/libro/medir-repeticion.js';
 import { generoDelMaterial } from '../src/libro/encargo.js';
@@ -44,6 +44,29 @@ if (!narradorId) {
   process.exit(2);
 }
 const salida = path.resolve(iSalida >= 0 ? args[iSalida + 1] : `prueba-reparto-${narradorId.slice(0, 8)}`);
+
+/**
+ * La época de cada capítulo del guion de hoy: con eso cada respuesta arranca en su etapa. Los
+ * que cruzan toda la vida (el amor, el oficio, los hijos, las pruebas) no tienen época: esas
+ * respuestas las ubica el modelo. Cuando el guion v2 esté en uso, la época sale del tramo de
+ * cada pregunta (`EpocaDeRespuesta` ya lo pide así; este mapeo es solo para probar con el guion
+ * viejo).
+ */
+const EPOCA_DEL_CAPITULO_GUION: Record<string, [number, number] | 'reflexion'> = {
+  'la infancia': [0, 12],
+  'las raices': [0, 12],
+  'la juventud': [13, 22],
+  'la sabiduria': 'reflexion',
+};
+
+const clave = (t: string) => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+
+const epocaDeRespuesta = (orden: number, capituloGuion: string): EpocaDeRespuesta => {
+  const epoca = EPOCA_DEL_CAPITULO_GUION[clave(capituloGuion)];
+  if (epoca === 'reflexion') return { orden, desde: null, hasta: null, reflexion: true };
+  if (epoca) return { orden, desde: epoca[0], hasta: epoca[1] };
+  return { orden, desde: null, hasta: null };
+};
 
 const db = obtenerClienteDb();
 const leer = async <T>(consulta: PromiseLike<{ data: T | null; error: { message: string } | null }>, que: string): Promise<T> => {
@@ -113,7 +136,7 @@ if (porEtapas) {
   const etapas = et.resultado.etapas;
   informe.push('**Etapas:**', ...etapas.map((e, i) => `${i + 1}. ${e.nombre}${e.desde !== null ? ` (${e.desde}-${e.hasta ?? '?'})` : ''}: ${e.deQueTrata}`), '');
   const capituloGuionDe = new Map([...fijas, ...propias].map((p) => [p.orden, p.capitulo ?? '']));
-  const capitulosEtapas = capitulosDeEtapas(etapas, publicables.map(({ r }) => ({ orden: r.pregunta_orden, capituloGuion: capituloGuionDe.get(r.pregunta_orden) ?? '' })));
+  const capitulosEtapas = capitulosDeEtapas(etapas, publicables.map(({ r }) => epocaDeRespuesta(r.pregunta_orden, capituloGuionDe.get(r.pregunta_orden) ?? '')));
   console.log('Reparto en etapas…');
   const reparto = await repartirEnEtapas(cliente, quien, numeradas, capitulosEtapas, etapas);
   gasto += costo(reparto.usage as Uso);

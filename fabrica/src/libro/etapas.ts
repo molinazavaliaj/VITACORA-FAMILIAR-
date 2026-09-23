@@ -23,10 +23,13 @@ const NOMBRE_REFLEXION = 'Lo que aprendí';
 
 export type Etapa = { nombre: string; desde: number | null; hasta: number | null; deQueTrata: string; reflexion?: boolean };
 
-export const PROMPT_ETAPAS = (nombre: string, historia: string) => `
+export const PROMPT_ETAPAS = (nombre: string, historia: string, lineaDeTiempo: string) => `
 Estás por escribir el libro de la vida de ${nombre}. Antes hay que decidir sus capítulos: las
 etapas de SU vida, en orden.
-
+${lineaDeTiempo ? `
+LO QUE EL BIÓGRAFO YA SABE (su línea de tiempo, de la ficha):
+${lineaDeTiempo}
+` : ''}
 LO QUE CONTÓ (todas sus respuestas, con la pregunta que las originó):
 ${historia}
 
@@ -78,39 +81,32 @@ export function parsearEtapas(salida: string): { ok: true; etapas: Etapa[] } | {
 }
 
 /**
- * La época de cada capítulo del guion de hoy: con eso cada respuesta arranca en su etapa. Los
- * que cruzan toda la vida (el amor, el oficio, los hijos, las pruebas) no tienen época: esas
- * respuestas las ubica el modelo. Cuando el guion v2 esté en uso, esto sale del tramo de cada
- * pregunta.
+ * La época de una respuesta: el tramo de edad de la pregunta que la originó (lo guarda el
+ * entrevistador, `tramoDeEpoca` en `entrevistador/src/preguntas/epocas.ts`), o `reflexion` para
+ * la pregunta final. Sin época (null, null): la ubica el modelo en `repartirEnEtapas`.
  */
-const EPOCA_DEL_CAPITULO_GUION: Record<string, [number, number] | 'reflexion'> = {
-  'la infancia': [0, 12],
-  'las raices': [0, 12],
-  'la juventud': [13, 22],
-  'la sabiduria': 'reflexion',
-};
+export type EpocaDeRespuesta = { orden: number; desde: number | null; hasta: number | null; reflexion?: boolean };
 
-const clave = (t: string) => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+/** El índice de la etapa que cubre el medio del tramo [desde, hasta], o null si ninguna. */
+function indiceDeEpoca(etapas: Etapa[], desde: number, hasta: number): number | null {
+  const medio = (desde + hasta) / 2;
+  const i = etapas.findIndex((e) => !e.reflexion && e.desde !== null && e.hasta !== null && medio >= e.desde && medio <= e.hasta);
+  return i >= 0 ? i : null;
+}
 
 /** Las etapas como capítulos del reparto: cada una con las órdenes que arrancan ahí. */
-export function capitulosDeEtapas(
-  etapas: Etapa[],
-  respuestas: { orden: number; capituloGuion: string }[],
-): CapituloParaRepartir[] {
-  const indiceDe = (capituloGuion: string): number | null => {
-    const epoca = EPOCA_DEL_CAPITULO_GUION[clave(capituloGuion)];
-    if (!epoca) return null;
-    if (epoca === 'reflexion') return etapas.findIndex((e) => e.reflexion);
-    const medio = (epoca[0] + epoca[1]) / 2;
-    const i = etapas.findIndex((e) => !e.reflexion && e.desde !== null && e.hasta !== null && medio >= e.desde && medio <= e.hasta);
-    return i >= 0 ? i : null;
-  };
+export function capitulosDeEtapas(etapas: Etapa[], respuestas: EpocaDeRespuesta[]): CapituloParaRepartir[] {
   const capitulos: CapituloParaRepartir[] = etapas.map((e) => ({ nombre: e.nombre, ordenes: [] }));
   for (const r of respuestas) {
-    const i = indiceDe(r.capituloGuion);
+    const i = r.reflexion ? etapas.findIndex((e) => e.reflexion) : (r.desde !== null && r.hasta !== null ? indiceDeEpoca(etapas, r.desde, r.hasta) : null);
     if (i !== null && i >= 0 && !capitulos[i].ordenes.includes(r.orden)) capitulos[i].ordenes.push(r.orden);
   }
   return capitulos;
+}
+
+/** La foto de un objeto cierra el capítulo de la etapa de su época (diseño §3.4). */
+export function capituloDeObjeto(tramo: [number, number], etapas: Etapa[]): number | null {
+  return indiceDeEpoca(etapas, tramo[0], tramo[1]);
 }
 
 export const PROMPT_REPARTO_ETAPAS = (nombre: string, capitulos: string, historia: string) => `
@@ -158,8 +154,9 @@ export async function armarEtapas(
   cliente: Anthropic,
   quien: Quien,
   historia: string,
+  lineaDeTiempo = '',
 ): Promise<{ resultado: ReturnType<typeof parsearEtapas>; salida: string; usage: Anthropic.Usage }> {
-  const stream = cliente.messages.stream({ model: MODELO, max_tokens: 4000, messages: [{ role: 'user', content: PROMPT_ETAPAS(quien.nombre, historia) }] });
+  const stream = cliente.messages.stream({ model: MODELO, max_tokens: 4000, messages: [{ role: 'user', content: PROMPT_ETAPAS(quien.nombre, historia, lineaDeTiempo) }] });
   const final = await stream.finalMessage();
   const salida = extraerTexto(final.content as Array<{ type: string; text?: string }>).trim();
   return { resultado: parsearEtapas(salida), salida, usage: final.usage };
