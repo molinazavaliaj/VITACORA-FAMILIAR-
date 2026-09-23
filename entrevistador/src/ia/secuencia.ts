@@ -1,5 +1,5 @@
 import { NUCLEO, BLOQUES, type Objetivo, type Bloque } from './pregunta-v2.js';
-import { TECHO_VARIABLES, type Variable, type Tramo } from './plan-preguntas.js';
+import { TECHO_VARIABLES, RANGO_TRAMO, type Variable, type Tramo } from './plan-preguntas.js';
 import type { Perfil } from './perfil.js';
 
 // La secuencia viva (diseño 23/09, §2.5). Hasta acá la lista de preguntas estaba fija de antemano y
@@ -87,15 +87,6 @@ const enElInicio = (s: Secuencia) => s.pendientes.some((o) => o.tipo === 'nucleo
 const contarVariables = (pendientes: Objetivo[], hechas: Hecha[]) =>
   pendientes.filter((p) => p.tipo === 'variable').length + hechas.filter((h) => h.id.startsWith('var-')).length;
 
-const RANGO: Record<Tramo, [number, number]> = {
-  infancia: [0, 12],
-  juventud: [13, 22],
-  'adulto joven': [23, 35],
-  'adultez media': [36, 55],
-  'segunda mitad': [56, 200],
-  hoy: [0, 200],
-};
-
 /**
  * Lo que el perfil de hoy le dice a la secuencia: un tema cubierto se cae (y una variable de su
  * tramo toma su día, si hay lugar bajo el TECHO_VARIABLES —no el tope de 40 preguntas: reemplazar
@@ -123,7 +114,7 @@ export function aplicarPerfil(s: Secuencia, perfil: Perfil, variablesNuevas?: Va
         pendientes.filter((p) => p.tipo === 'variable' && p.tramo === tramo).length +
         s.hechas.filter((h) => h.id.startsWith(`var-${tramo}-`)).length +
         1;
-      const rango = RANGO[tramo];
+      const rango = RANGO_TRAMO[tramo];
       pendientes.push({ tipo: 'variable', id: `var-${tramo}-${n}`, tramo, desde: rango[0], hasta: rango[1], anclas: [] });
     }
   }

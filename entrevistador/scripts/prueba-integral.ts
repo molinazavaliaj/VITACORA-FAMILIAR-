@@ -133,7 +133,7 @@ for (const quien of NARRADORES) {
     for (const u of r.usos) gasto += USD(u);
     const perfilTexto = JSON.stringify(perfil);
     const marcas = SUPUESTOS.filter(([enPregunta, enPerfil]) => enPregunta.test(r.texto) && !enPerfil.test(perfilTexto)).map(([re]) => `supone: ${re.source}`);
-    if (!r.ok) marcas.push(`control: ${r.motivo}`);
+    if (!r.ok) marcas.push(`control: ${r.marca?.control} — ${r.marca?.motivo}`);
     escritas.push({ objetivo: o.tipo === 'nucleo' ? `${o.id}${esPrimerMensaje ? ' (ficha vacía, primer mensaje)' : ''}` : o.tipo === 'variable' ? `${o.tramo} (${o.desde}-${o.hasta})` : `objeto (${o.tramo})`, texto: r.texto, ok: r.ok, marcas });
     if (!esPrimerMensaje) yaHechas.push(r.texto);
     console.log(`${n.como_le_dicen}: pregunta ${escritas.length}/${objetivos.length} · USD ${gasto.toFixed(2)}`);

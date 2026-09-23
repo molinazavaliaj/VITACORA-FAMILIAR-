@@ -90,7 +90,13 @@ LO QUE SE RESPETA SIEMPRE
 export const MAX_PALABRAS = 50;
 export const MAX_PALABRAS_PRESENTACION = 90;
 
-/** Lo que se revisa de todo lo que se le manda, antes de mandarlo. La presentación (`opciones.presentacion`) admite más palabras y no exige signo de pregunta: es la bienvenida, no la pregunta del día. */
+/**
+ * Lo que se revisa de todo lo que se le manda, antes de mandarlo. La presentación
+ * (`opciones.presentacion`) admite más palabras y no exige signo de pregunta: es la bienvenida,
+ * no la pregunta del día. El trato se mira primero (Task 6, control-pregunta.ts: clasifica el
+ * rechazo por el motivo, y una pregunta puede romper el trato Y no tener "?" a la vez — que se
+ * marque como "trato", que es lo que hay que corregir de fondo, no como "le faltó el signo").
+ */
 export function controlarTexto(
   texto: string,
   trato: TratoControlable | null,
@@ -98,11 +104,11 @@ export function controlarTexto(
 ): { ok: true } | { ok: false; motivo: string } {
   const t = texto.trim();
   const tope = opciones.presentacion ? MAX_PALABRAS_PRESENTACION : MAX_PALABRAS;
-  if (!opciones.presentacion && contarPreguntas(t) === 0) return { ok: false, motivo: 'no tiene ninguna pregunta' };
-  if (contarPalabras(t) > tope) return { ok: false, motivo: `tiene ${contarPalabras(t)} palabras (máximo ${tope})` };
   if (trato) {
     const ajenas = marcasDelTratoAjeno(t, trato);
     if (ajenas.length) return { ok: false, motivo: `le habla de otra manera que ${trato}: ${ajenas.join(', ')}` };
   }
+  if (contarPalabras(t) > tope) return { ok: false, motivo: `tiene ${contarPalabras(t)} palabras (máximo ${tope})` };
+  if (!opciones.presentacion && contarPreguntas(t) === 0) return { ok: false, motivo: 'no tiene ninguna pregunta' };
   return { ok: true };
 }

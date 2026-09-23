@@ -15,6 +15,21 @@ import type { Perfil } from './perfil.js';
 
 export type Tramo = 'infancia' | 'juventud' | 'adulto joven' | 'adultez media' | 'segunda mitad' | 'hoy';
 
+/**
+ * El rango de edad de cada tramo (0-200 para "hoy": no es una edad, es el presente). Vive acá
+ * porque `secuencia.ts` (variables nuevas al cubrirse un tema) y `control-pregunta.ts` (el rango
+ * por defecto de una variable, y del tramo de una pregunta del núcleo) necesitan la misma tabla:
+ * antes estaba duplicada.
+ */
+export const RANGO_TRAMO: Record<Tramo, [number, number]> = {
+  infancia: [0, 12],
+  juventud: [13, 22],
+  'adulto joven': [23, 35],
+  'adultez media': [36, 55],
+  'segunda mitad': [56, 200],
+  hoy: [0, 200],
+};
+
 /** Los tramos de una vida, por edad. "hoy" no es un rango: es el presente, y pesa fijo. */
 const TRAMOS: { tramo: Exclude<Tramo, 'hoy'>; desde: number; hasta: number }[] = [
   { tramo: 'infancia', desde: 0, hasta: 12 },

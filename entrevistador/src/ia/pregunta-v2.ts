@@ -1,7 +1,8 @@
 import type Anthropic from '@anthropic-ai/sdk';
 import type { Perfil } from './perfil.js';
 import type { Tramo, Variable } from './plan-preguntas.js';
-import { encargoDelBiografo, perfilEnTexto, tratoDelPerfil, controlarTexto } from './encargo-entrevista.js';
+import { encargoDelBiografo, perfilEnTexto, controlarTexto } from './encargo-entrevista.js';
+import { controlarPregunta as controlarSalida, INTENTOS, type Marca } from './control-pregunta.js';
 
 export { perfilEnTexto };
 
@@ -121,12 +122,18 @@ export function armarPromptPregunta(
   );
 }
 
-/** Lo que se revisa antes de mandar: el mismo control que la repregunta (encargo-entrevista.ts). */
+/**
+ * Lo que se revisa antes de mandar la REPREGUNTA (repregunta.ts u otros llamadores que ya venían
+ * usando esto): el control de forma solo, tal como estaba. La pregunta del día usa el control
+ * completo de `control-pregunta.ts` (forma + lugar + supuestos), más abajo en `escribirPregunta`.
+ */
 export const controlarPregunta = controlarTexto;
 
 /**
- * Escribe la pregunta. Si el control la rechaza, la pide una vez más diciendo por qué; si
- * vuelve a fallar, devuelve la última con `ok: false` para que quien llama decida.
+ * Escribe la pregunta. Hasta `INTENTOS` veces: si el control la rechaza, se lo pide de nuevo
+ * diciendo por qué (a partir del 2.º intento). Si el último también falla, se manda esa versión
+ * igual —mejor una pregunta imperfecta que ninguna— pero con `ok: false` y una `marca` para que
+ * quien llama lo sepa (y, si hace falta, avise).
  */
 export async function escribirPregunta(
   cliente: Anthropic,
@@ -135,21 +142,20 @@ export async function escribirPregunta(
   conversacion: { pregunta: string; respuesta: string }[],
   yaHechas: string[],
   evitar: string[] = [],
-): Promise<{ texto: string; ok: boolean; motivo?: string; usos: Anthropic.Usage[] }> {
+): Promise<{ texto: string; ok: boolean; marca?: Marca; usos: Anthropic.Usage[] }> {
   const prompt = armarPromptPregunta(perfil, objetivo, conversacion, yaHechas, evitar);
-  const trato = tratoDelPerfil(perfil);
   const usos: Anthropic.Usage[] = [];
   let texto = '';
-  let motivo: string | undefined;
-  for (let intento = 1; intento <= 2; intento++) {
-    const contenido = intento === 1 ? prompt : `${prompt}\n\nTu primera versión no sirvió porque ${motivo}. Escribila de nuevo.`;
-    const r = await cliente.messages.create({ model: MODELO, max_tokens: 300, messages: [{ role: 'user', content: contenido }] });
+  let ultimo: { control: string; motivo: string } | null = null;
+  for (let intento = 1; intento <= INTENTOS; intento++) {
+    const contenido = intento === 1 ? prompt : `${prompt}\n\nTu versión anterior no sirvió porque ${ultimo!.motivo}. Escribila de nuevo, cuidando eso.`;
+    const r = await cliente.messages.create({ model: MODELO, max_tokens: 400, messages: [{ role: 'user', content: contenido }] });
     usos.push(r.usage);
     const bloque = r.content.find((b) => b.type === 'text');
     texto = (bloque && bloque.type === 'text' ? bloque.text : '').trim().replace(/^["«]|["»]$/g, '');
-    const control = controlarPregunta(texto, trato);
+    const control = controlarSalida(texto, perfil, objetivo);
     if (control.ok) return { texto, ok: true, usos };
-    motivo = control.motivo;
+    ultimo = control;
   }
-  return { texto, ok: false, motivo, usos };
+  return { texto, ok: false, marca: { ...ultimo!, intentos: INTENTOS }, usos };
 }

@@ -132,4 +132,27 @@ describe('escribirPregunta', () => {
     expect(r.texto).toBe('Cuéntame de tu casa: ¿qué veías al entrar?');
     expect(create).toHaveBeenCalledTimes(2);
   });
+
+  it('tres intentos con el motivo; si el tercero falla, se manda igual, marcada', async () => {
+    const malo = { content: [{ type: 'text', text: 'Cuénteme de su casa: ¿qué veía?' }], usage: { input_tokens: 1, output_tokens: 1 } };
+    const create = vi.fn().mockResolvedValue(malo);
+    const r = await escribirPregunta({ messages: { create } } as never, perfilDe({ comoHabla: { valor: 'vos', fuente: 'dicho' } }), nucleo(1), [], []);
+    expect(create).toHaveBeenCalledTimes(3);
+    expect(r.ok).toBe(false);
+    expect(r.marca).toMatchObject({ control: 'trato', intentos: 3 });
+    expect(r.texto).toBe('Cuénteme de su casa: ¿qué veía?');
+    expect(JSON.stringify(create.mock.calls[2])).toContain('no sirvió porque');
+  });
+
+  it('el control de lugar corre sobre la salida (C6)', async () => {
+    const create = vi.fn()
+      .mockResolvedValueOnce({ content: [{ type: 'text', text: '¿Cómo eran tus sábados en Concordia a los 16?' }], usage: { input_tokens: 1, output_tokens: 1 } })
+      .mockResolvedValueOnce({ content: [{ type: 'text', text: '¿Cómo eran tus sábados en Buenos Aires a los 16?' }], usage: { input_tokens: 1, output_tokens: 1 } });
+    const p = perfilDe({ comoHabla: { valor: 'vos', fuente: 'dicho' } });
+    p.etapas = [{ edades: '0 a 12', lugar: 'Concordia', conQuien: '', queHacia: '', fuente: 'dicho' }, { edades: 'desde los 12', lugar: 'Buenos Aires', conQuien: '', queHacia: '', fuente: 'dicho' }];
+    p.persona.edad = { valor: '28', fuente: 'dicho' };
+    const r = await escribirPregunta({ messages: { create } } as never, p, { tipo: 'variable', id: 'v', tramo: 'juventud', desde: 13, hasta: 22, anclas: [] }, [], []);
+    expect(r.ok).toBe(true);
+    expect(r.texto).toContain('Buenos Aires');
+  });
 });
