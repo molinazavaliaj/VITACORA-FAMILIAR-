@@ -71,7 +71,7 @@ function edadDeBisagra(bisagra: string): number | null {
  */
 export function planificar(
   perfil: Perfil,
-  nucleo: { tramo: Tramo | null }[],
+  nucleo: readonly { tramo: Tramo | null }[],
   cuantas: number,
   anioActual = new Date().getFullYear(),
 ): Plan {
