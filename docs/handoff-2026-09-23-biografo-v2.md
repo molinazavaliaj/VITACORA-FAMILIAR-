@@ -67,11 +67,16 @@ sin "nada de otra persona" en el encargo · el libro por etapas · Opus para la 
 de pruebas pagas sueltas: **una prueba única al final, avisando el costo** · al terminar, los
 prompts se reescriben desde cero, no parches (esta sesión ya hizo buena parte de eso).
 
+> **Revisión de la noche (segunda mirada, 23/09):** `docs/revision-2026-09-23-biografo-v2.md`. Tabla
+> hallazgo por hallazgo, lo que falta con archivo:línea, los dos scripts revisados y arreglados
+> (6 commits, `2ddca99`…`05c5899`), el costo medido de la prueba única (USD 8-10) y las decisiones
+> que quedan para Naza. Leerla antes de correr la prueba.
+
 ## Pendiente
 
 1. **Naza aprueba 3 textos de objetos** (101 infancia, 106 "los chicos de su vida", 107 "le hizo
    compañía"; ver el último mensaje de la sesión) → SQL `update preguntas` de la plantilla.
-2. **La prueba única** (~USD 9): `cd entrevistador && npx tsx scripts/prueba-integral.ts` (~3,5) y
+2. **La prueba única** (~USD 8-10, medido en la revisión): `cd entrevistador && npx tsx scripts/prueba-integral.ts` (~3,5) y
    `cd fabrica && npx tsx --env-file=.env scripts/prueba-reparto.ts <id> --etapas --excluir
    b3bd57db-a5f9-47e2-b638-8615bcb23566` para Joaquín (3691baf4-…) y Osvaldo (d55d75b8-…) (~5,5).
    Solo con el OK de Naza. La cuenta de Anthropic se quedó sin crédito el 23/09 (Naza cargó 24).
