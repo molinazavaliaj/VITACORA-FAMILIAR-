@@ -5,7 +5,6 @@ import { obtenerClienteDb, type Narrador, type Pregunta, type Respuesta } from '
 import { escribirCapitulo } from './escribir-capitulo.js';
 import { construirHtmlLibro } from './plantilla-html.js';
 import { htmlAPdf } from './pdf.js';
-import { generarAudiolibro } from '../audio/audiolibro.js';
 import { generarEstructura, type Estructura } from './estructura.js';
 import { leerEdicion, aplicarOrdenCapitulos, aplicarTitulosCapitulos } from './edicion.js';
 import { cargarFotos } from './fotos.js';
@@ -183,7 +182,7 @@ export async function generarPaquete(pedido: { id: string; narrador_id: string; 
 
     // 1a. Un capítulo por vez, con su voz. Cada uno se cachea en Storage
     // apenas se genera (ANTES de los pasos baratos que pueden fallar más
-    // adelante: PDF, audiolibro) — si un reintento cae acá, reusa lo que ya
+    // adelante: PDF, «Su voz») — si un reintento cae acá, reusa lo que ya
     // pagó en vez de volver a pagarle al modelo por lo mismo. El número de
     // borrador (`i + 1`) sigue el orden FINAL, ya con la edición aplicada:
     // como la edición quedó congelada al cerrar el libro, un reintento ve
@@ -244,9 +243,13 @@ export async function generarPaquete(pedido: { id: string; narrador_id: string; 
     // elige leyendo el libro que acaba de escribir —la página «Sus frases» y las citas de cada
     // capítulo, solo las que él dijo tal cual— y deja `frases.json` + el pedido de corte en el
     // paquete. El audio lo corta el worker de la PC de música sobre los audios reales, sin narrar
-    // nada. El libro NO espera: sigue de largo y se entrega en el paso 4, con o sin las frases
+    // nada. El libro NO espera: sigue de largo y se entrega en el paso 3, con o sin las frases
     // cortadas (si el modelo se cae quedan las alternativas y el pedido igual: nadie se queda sin
     // libro, y el panel dice "Su voz se está preparando" hasta que estén todos los audios).
+    //
+    // Ya no hay audiolibro (23/09): era el paso 3 y concatenaba los audios crudos de cada capítulo
+    // eligiéndolos por NOMBRE de archivo en la carpeta del narrador — así la voz de otro narrador
+    // terminó en un capítulo (bitácora, hallazgo 43). El producto se había descartado el 20/09.
     const frases = await elegirFrases(new Anthropic({ apiKey: cargarConfig().anthropicApiKey }), {
       narradorId,
       pedidoId: pedido.id,
@@ -268,25 +271,19 @@ export async function generarPaquete(pedido: { id: string; narrador_id: string; 
     });
     await publicarFrases(db, frases);
 
-    // 3. Audiolibro: un mp3 por capítulo (en el orden final) + completo.
-    const { data: archivosNarrador, error: errorArchivos } = await db.storage.from('audios').list(narradorId);
-    if (errorArchivos) throw new Error(`No se pudo listar los audios de ${narradorId}: ${errorArchivos.message}`);
-    const nombresArchivos = (archivosNarrador ?? []).map((archivo) => archivo.name);
-
-    const audiolibroPaths = await generarAudiolibro(narradorId, estructuraFinal, nombresArchivos);
-
-    // 4. Entregado.
+    // 3. Entregado. `audiolibro_paths` va en null a propósito: si un pedido viejo se reintenta con
+    // rutas de un audiolibro anterior, no quedan apuntando a un audio que la fábrica ya no arma.
     const { error: errorUpdate } = await db
       .from('pedidos')
       .update({
         estado: 'entregado',
         libro_pdf_path: RUTA_LIBRO_PDF(narradorId),
-        audiolibro_paths: audiolibroPaths,
+        audiolibro_paths: null,
       })
       .eq('id', pedido.id);
     if (errorUpdate) throw new Error(`No se pudo actualizar el pedido ${pedido.id}: ${errorUpdate.message}`);
 
-    // 5. Limpieza.
+    // 4. Limpieza.
     await limpiarBorradores(db, narradorId, estructuraFinal.capitulos.length);
   } catch (err) {
     console.error(`generarPaquete: falló para el pedido ${pedido.id}:`, err);

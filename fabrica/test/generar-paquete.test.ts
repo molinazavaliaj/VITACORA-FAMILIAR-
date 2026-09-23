@@ -7,17 +7,6 @@ vi.mock('../src/libro/escribir-capitulo.js', () => ({
   escribirCapitulo: escribirCapituloMock,
 }));
 
-const { generarAudiolibroMock } = vi.hoisted(() => ({ generarAudiolibroMock: vi.fn() }));
-vi.mock('../src/audio/audiolibro.js', () => ({
-  generarAudiolibro: generarAudiolibroMock,
-}));
-
-const { escribirConectoresMock } = vi.hoisted(() => ({ escribirConectoresMock: vi.fn() }));
-vi.mock('../src/voz/conectores.js', async () => {
-  const actual = await vi.importActual<typeof import('../src/voz/conectores.js')>('../src/voz/conectores.js');
-  return { ...actual, escribirConectores: escribirConectoresMock };
-});
-
 const { generarEstructuraMock } = vi.hoisted(() => ({ generarEstructuraMock: vi.fn() }));
 vi.mock('../src/libro/estructura.js', async () => {
   const actual = await vi.importActual<typeof import('../src/libro/estructura.js')>('../src/libro/estructura.js');
@@ -127,26 +116,12 @@ function construirDbFake(opciones: {
   upload?: ReturnType<typeof vi.fn>;
   pedidosUpdate?: ReturnType<typeof vi.fn>;
   remove?: ReturnType<typeof vi.fn>;
-  /** Cola de resultados para `narraciones`: cada `from('narraciones')` consume uno. */
-  narraciones?: { data: unknown; error: unknown }[];
 }) {
   let fromPreguntasContador = 0;
 
   const pedidosUpdate = opciones.pedidosUpdate ?? vi.fn().mockResolvedValue({ data: null, error: null });
-  const narracionesInsert = vi.fn();
 
   const from = vi.fn((tabla: string) => {
-    if (tabla === 'narraciones') {
-      const resultado = opciones.narraciones?.shift();
-      if (!resultado) throw new Error('sin resultado en cola para narraciones');
-      const builder = construirBuilder(resultado);
-      builder.in = () => builder;
-      builder.insert = (valores: Record<string, unknown>) => {
-        narracionesInsert(valores);
-        return builder;
-      };
-      return builder;
-    }
     if (tabla === 'narradores') return construirBuilder(opciones.narrador ?? { data: null, error: null });
     if (tabla === 'preguntas') {
       const llamada = fromPreguntasContador++;
@@ -180,7 +155,7 @@ function construirDbFake(opciones: {
   const remove = opciones.remove ?? vi.fn().mockResolvedValue({ data: null, error: null });
   const storage = { from: vi.fn(() => ({ download, upload, list, remove })) };
 
-  return { from, storage, download, upload, list, remove, pedidosUpdate, narracionesInsert };
+  return { from, storage, download, upload, list, remove, pedidosUpdate };
 }
 
 beforeEach(() => {
@@ -202,7 +177,7 @@ describe('generarPaquete', () => {
   };
   const nombres = { correcciones: [] };
 
-  it('escribe cada capítulo, edita el libro entero, sube el PDF, arma el audiolibro y entrega el pedido', async () => {
+  it('escribe cada capítulo, edita el libro entero, sube el PDF y entrega el pedido (sin audiolibro)', async () => {
     const db = construirDbFake({
       narrador: {
         data: {
@@ -246,13 +221,9 @@ describe('generarPaquete', () => {
     finalMessageMock.mockResolvedValue({
       content: [{ type: 'text', text: '# A mis lectores\n\nHola.\n\n# Infancia\n\nNací en Rosario.' }],
     });
-    generarAudiolibroMock.mockResolvedValue({
-      capitulos: ['narrador-1/paquete/audiolibro_cap_01.mp3', 'narrador-1/paquete/audiolibro_cap_02.mp3'],
-      completo: 'narrador-1/paquete/audiolibro_completo.mp3',
-    });
-
     // `extras: {}` = pedido anterior al 13/09 (sin la clave `pdf`): PDF +
-    // audiolibro con sus audios, como siempre.
+    // audiolibro con sus audios. El audiolibro ya no se arma (23/09): el pedido
+    // sale con el libro y «Su voz».
     await generarPaquete({ id: 'pedido-1', narrador_id: 'narrador-1', extras: {} });
 
     // escribió los DOS capítulos, en el orden de la estructura.
@@ -287,26 +258,18 @@ describe('generarPaquete', () => {
       { contentType: 'application/pdf', upsert: true }
     );
 
-    // el audiolibro se armó con la estructura (cada capítulo lleva además
-    // `nombreGuion`, la clave de las fotos) y los archivos disponibles del narrador.
-    expect(generarAudiolibroMock).toHaveBeenCalledWith(
-      'narrador-1',
-      {
-        ...estructura,
-        capitulos: estructura.capitulos.map((c) => ({ ...c, nombreGuion: c.nombre })),
-      },
-      ['dia_01.ogg', 'dia_02.ogg']
-    );
+    // Sin audiolibro (23/09, hallazgo 43): no se listan los audios del
+    // narrador ni se sube ningún audiolibro_*.mp3.
+    expect(db.list).not.toHaveBeenCalled();
+    expect(db.upload.mock.calls.map((c) => c[0] as string).filter((r) => r.includes('audiolibro'))).toEqual([]);
 
-    // el pedido queda entregado con las rutas del libro y el audiolibro.
+    // el pedido queda entregado con la ruta del libro y SIN audiolibro: si un
+    // reintento trae rutas viejas, se limpian.
     expect(db.pedidosUpdate).toHaveBeenCalledWith(
       {
         estado: 'entregado',
         libro_pdf_path: 'narrador-1/paquete/libro.pdf',
-        audiolibro_paths: {
-          capitulos: ['narrador-1/paquete/audiolibro_cap_01.mp3', 'narrador-1/paquete/audiolibro_cap_02.mp3'],
-          completo: 'narrador-1/paquete/audiolibro_completo.mp3',
-        },
+        audiolibro_paths: null,
       },
       'pedido-1'
     );
@@ -385,11 +348,6 @@ describe('generarPaquete', () => {
     });
     (obtenerClienteDb as unknown as ReturnType<typeof vi.fn>).mockReturnValue(db);
 
-    generarAudiolibroMock.mockResolvedValue({
-      capitulos: ['narrador-1/paquete/audiolibro_cap_01.mp3', 'narrador-1/paquete/audiolibro_cap_02.mp3'],
-      completo: 'narrador-1/paquete/audiolibro_completo.mp3',
-    });
-
     await generarPaquete({ id: 'pedido-1', narrador_id: 'narrador-1' });
 
     // Ni el modelo de capítulos ni el editor se llamaron: todo salió del caché.
@@ -420,13 +378,12 @@ describe('generarPaquete', () => {
 
     expect(escribirCapituloMock).not.toHaveBeenCalled();
     expect(launchMock).not.toHaveBeenCalled();
-    expect(generarAudiolibroMock).not.toHaveBeenCalled();
     expect(db.pedidosUpdate).toHaveBeenCalledWith({ estado: 'fallido' }, 'pedido-1');
     // no llegó a generar nada que cachear, así que tampoco hay nada que borrar.
     expect(db.remove).not.toHaveBeenCalled();
   });
 
-  it('si falla generarAudiolibro (después de subir el PDF), igual marca el pedido "fallido"', async () => {
+  it('si falla la subida del PDF (después de cachear el borrador), igual marca el pedido "fallido"', async () => {
     const db = construirDbFake({
       narrador: {
         data: { id: 'narrador-1', nombre: 'Roberto', foto_url: null, contexto: {} },
@@ -449,12 +406,14 @@ describe('generarPaquete', () => {
         'narrador-1/paquete/nombres.json': { data: blobFake(JSON.stringify(nombres)), error: null },
       },
       archivosNarrador: ['dia_01.ogg'],
+      upload: vi.fn((ruta: string) =>
+        Promise.resolve(ruta.endsWith('/libro.pdf') ? { data: null, error: { message: 'Storage reventó' } } : { data: { path: ruta }, error: null })
+      ),
     });
     (obtenerClienteDb as unknown as ReturnType<typeof vi.fn>).mockReturnValue(db);
 
     escribirCapituloMock.mockResolvedValue('Capítulo corto.');
     finalMessageMock.mockResolvedValue({ content: [{ type: 'text', text: '# Infancia\n\nCapítulo corto.' }] });
-    generarAudiolibroMock.mockRejectedValue(new Error('ffmpeg reventó'));
 
     await expect(generarPaquete({ id: 'pedido-1', narrador_id: 'narrador-1' })).resolves.toBeUndefined();
 
@@ -561,8 +520,6 @@ describe('generarPaquete', () => {
     (obtenerClienteDb as unknown as ReturnType<typeof vi.fn>).mockReturnValue(db);
 
     escribirCapituloMock.mockResolvedValue('Un capítulo con su voz.');
-    // Conectores de un capítulo con una sola historia (los de N1): sin puentes.
-    escribirConectoresMock.mockResolvedValue({ entrada: 'Empiezo por acá.', entre: [], salida: 'Eso fue.' });
     finalMessageMock.mockResolvedValue({
       content: [
         {
@@ -570,10 +527,6 @@ describe('generarPaquete', () => {
           text: '# A mis lectores\n\nHola.\n\n# La infancia\n\nNací en Rosario.\n\n# El amor\n\nLa conocí bailando.',
         },
       ],
-    });
-    generarAudiolibroMock.mockResolvedValue({
-      capitulos: ['n1/paquete/audiolibro_cap_01.mp3', 'n1/paquete/audiolibro_cap_02.mp3'],
-      completo: 'n1/paquete/audiolibro_completo.mp3',
     });
     return db;
   }
@@ -609,8 +562,6 @@ describe('generarPaquete', () => {
     await generarPaquete({ id: 'p1', narrador_id: 'n1' });
 
     expect(escribirCapituloMock.mock.calls.map((c) => c[1])).toEqual(['El amor', 'La infancia']);
-    const estructuraAlAudiolibro = generarAudiolibroMock.mock.calls[0][1];
-    expect(estructuraAlAudiolibro.capitulos.map((c: { nombre: string }) => c.nombre)).toEqual(['El amor', 'La infancia']);
     const html = setContentMock.mock.calls[0][0] as string;
     expect(html.indexOf('El amor')).toBeLessThan(html.indexOf('La infancia'));
 
@@ -699,7 +650,7 @@ describe('generarPaquete', () => {
     'n1/paquete/estructura.json': { data: blobFake(JSON.stringify(estructuraHijos)), error: null },
   });
 
-  it('aplica titulosCapitulos de la edición: escribe, pagina y narra el capítulo con el título elegido, y las fotos (por nombre del guion) lo siguen', async () => {
+  it('aplica titulosCapitulos de la edición: escribe y pagina el capítulo con el título elegido, y las fotos (por nombre del guion) lo siguen', async () => {
     construirDbN1({
       narrador: { data: narradorN1({ edicion: { titulosCapitulos: { 'Los hijos': 'Los hermanos' } } }), error: null },
       fotos: {
@@ -730,11 +681,6 @@ describe('generarPaquete', () => {
     // capítulo renombrado.
     expect(html).toContain('<div class="foto-epigrafe">Con Sol e Iñaki</div>');
     expect(html).toContain(`data:image/jpeg;base64,${Buffer.from('HERMANOS').toString('base64')}`);
-
-    // El audiolibro (voz real) recibe la estructura con el título elegido:
-    // su intro dice "Capítulo 2: Los hermanos".
-    const estructuraAlAudiolibro = generarAudiolibroMock.mock.calls[0][1];
-    expect(estructuraAlAudiolibro.capitulos.map((c: { nombre: string }) => c.nombre)).toEqual(['La infancia', 'Los hermanos']);
   });
 
   it('«Su voz»: el pedido se entrega con sus frases y ya no pasa por el buzón de narraciones', async () => {
@@ -825,7 +771,7 @@ describe('generarPaquete', () => {
     expect(db.pedidosUpdate).toHaveBeenCalledWith(expect.objectContaining({ estado: 'entregado' }), 'p1');
   });
 
-  // --- Voz clonada: el pedido queda en el buzón `narraciones` ----------------
+  // --- «Su voz» (spec 2026-09-20): ni audiolibro ni buzón `narraciones` ------
 
   const extrasClonada = { pdf: true, audiolibro: 'clonada', impreso: null, copias: 0, marcos: 0 };
 
@@ -879,7 +825,10 @@ describe('generarPaquete', () => {
     expect(db.pedidosUpdate).not.toHaveBeenCalledWith({ estado: 'fallido' }, 'p1');
   });
 
-  it('audiolibro "real" (extras nuevo): exactamente el flujo de siempre, sin tocar el buzón', async () => {
+  // Hallazgo 43 (23/09): el audiolibro elegía los audios por nombre de archivo
+  // (dia_NN*.ogg) y la voz de otro narrador terminó en un capítulo. El producto
+  // ya no existe: aunque un pedido viejo lo haya comprado, no se arma.
+  it('un pedido que compró el audiolibro («real») se entrega igual, sin audiolibro ni buzón', async () => {
     const db = construirDbN1();
 
     await generarPaquete({
@@ -888,7 +837,9 @@ describe('generarPaquete', () => {
       extras: { pdf: true, audiolibro: 'real', impreso: null, copias: 0, marcos: 0 },
     });
 
-    expect(generarAudiolibroMock).toHaveBeenCalledTimes(1);
+    expect(db.list).not.toHaveBeenCalled();
+    expect(db.upload.mock.calls.map((c) => c[0] as string).filter((r) => r.includes('audiolibro'))).toEqual([]);
+    expect(db.pedidosUpdate).toHaveBeenCalledWith(expect.objectContaining({ audiolibro_paths: null }), 'p1');
     expect(db.from).not.toHaveBeenCalledWith('narraciones');
     expect(db.upload.mock.calls.map((c) => c[0])).not.toContain('n1/paquete/narracion.json');
     expect(db.pedidosUpdate).toHaveBeenCalledWith(expect.objectContaining({ estado: 'entregado' }), 'p1');
