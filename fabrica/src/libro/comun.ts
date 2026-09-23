@@ -30,6 +30,20 @@ export function extraerTexto(bloques: Array<{ type: string; text?: string }>): s
 }
 
 /**
+ * Busca el JSON en lo que devolvió el modelo con tolerancia: saca los fences
+ * (```json ... ```) y se queda con lo que hay entre el primer `{` y el
+ * último `}`. Tira si no hay nada parseable. (Vivía en voz/conectores.ts, que
+ * se borró el 23/09; lo usa «Su voz».)
+ */
+export function parsearJsonTolerante(texto: string): unknown {
+  const sinFences = texto.replace(/```[a-zA-Z]*\s*/g, '').replace(/```/g, '');
+  const inicio = sinFences.indexOf('{');
+  const fin = sinFences.lastIndexOf('}');
+  if (inicio === -1 || fin === -1 || fin < inicio) throw new Error('no hay un objeto JSON en la respuesta');
+  return JSON.parse(sinFences.slice(inicio, fin + 1));
+}
+
+/**
  * El pedido del narrador sobre una respuesta puntual: "esto que no vaya al libro"
  * (hallazgo 19). `reservada` = no se publica nada de esa respuesta;
  * `reservado_tramo` = se publica todo menos ese tramo textual.

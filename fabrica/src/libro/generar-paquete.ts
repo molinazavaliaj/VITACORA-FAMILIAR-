@@ -8,8 +8,6 @@ import { htmlAPdf } from './pdf.js';
 import { generarEstructura, type Estructura } from './estructura.js';
 import { leerEdicion, aplicarOrdenCapitulos, aplicarTitulosCapitulos } from './edicion.js';
 import { cargarFotos } from './fotos.js';
-import { armarNarracionJson, type ConectoresNarracion } from '../voz/narracion-json.js';
-import { escribirConectores, historiasDelCapitulo } from '../voz/conectores.js';
 import { elegirFrases } from './frases.js';
 import { publicarFrases } from './publicar-frases.js';
 import {
@@ -147,8 +145,8 @@ export async function generarPaquete(pedido: { id: string; narrador_id: string; 
     // bajan enteras y van embebidas en el HTML.
     //
     // De acá en adelante `capitulo.nombre` es el título que va al libro (el
-    // elegido, o el del guion si no lo renombró): lo ve el escritor, la
-    // plantilla, la intro TTS y narracion.json. El nombre del guion queda en
+    // elegido, o el del guion si no lo renombró): lo ven el escritor, la
+    // plantilla y «Su voz». El nombre del guion queda en
     // `nombreGuion` solo para las fotos, que se cargan con esa clave.
     const edicion = leerEdicion(narrador.edicion);
     const capitulosOrdenados = aplicarTitulosCapitulos(
@@ -248,8 +246,9 @@ export async function generarPaquete(pedido: { id: string; narrador_id: string; 
     // libro, y el panel dice "Su voz se está preparando" hasta que estén todos los audios).
     //
     // Ya no hay audiolibro (23/09): era el paso 3 y concatenaba los audios crudos de cada capítulo
-    // eligiéndolos por NOMBRE de archivo en la carpeta del narrador — así la voz de otro narrador
-    // terminó en un capítulo (bitácora, hallazgo 43). El producto se había descartado el 20/09.
+    // eligiéndolos por NOMBRE de archivo en la carpeta del narrador (todo `dia_NN*.ogg`), sin mirar
+    // la base: ni reservas ni cuál era la respuesta buena. El audio de Ciro cargado por error en
+    // Joaquín (bitácora, hallazgo 43) sonaba en su audiolibro. El producto se descartó el 20/09.
     const frases = await elegirFrases(new Anthropic({ apiKey: cargarConfig().anthropicApiKey }), {
       narradorId,
       pedidoId: pedido.id,
@@ -295,68 +294,10 @@ export async function generarPaquete(pedido: { id: string; narrador_id: string; 
 }
 
 /**
- * Los capítulos como los quiere narracion.json v2: para cada uno (mismo
- * índice en `capitulos` y en `capitulosTexto`, los dos en el orden FINAL),
- * las historias con audio y —si hay alguna— los conectores escritos en su
- * voz. Los conectores se cachean en Storage igual que los borradores
- * (`conectores_cap_NN.json`, numerado por el orden final): un reintento los
- * reusa sin llamar al modelo, y se borran con los borradores al entregar.
- * Un capítulo sin audio no lleva conectores: se narra entero, clonado.
- *
- * Queda sin uso desde el pivote a «Su voz» (spec 2026-09-20): no se borra porque hay narraciones
- * encoladas y el worker todavía lee narracion.json; si en unas semanas no lo usa nadie, se va junto
- * con `voz/narraciones.ts`.
- */
-export async function armarCapitulosParaNarrar(
-  db: ReturnType<typeof obtenerClienteDb>,
-  narrador: Narrador,
-  narradorId: string,
-  args: {
-    capitulos: Estructura['capitulos'];
-    capitulosTexto: { nombre: string; texto: string }[];
-    preguntasPorOrden: Map<number, Pregunta>;
-    respuestasPorOrden: Map<number, Respuesta[]>;
-  }
-): Promise<Parameters<typeof armarNarracionJson>[0]['capitulos']> {
-  let cliente: Anthropic | undefined;
-  const resultado: Parameters<typeof armarNarracionJson>[0]['capitulos'] = [];
-
-  for (let i = 0; i < args.capitulos.length; i++) {
-    const capitulo = args.capitulos[i];
-    const { nombre, texto } = args.capitulosTexto[i];
-    const historias = historiasDelCapitulo(capitulo.ordenes, args.preguntasPorOrden, args.respuestasPorOrden);
-    if (historias.length === 0) {
-      resultado.push({ nombre, markdown: texto });
-      continue;
-    }
-
-    const rutaConectores = RUTA_CONECTORES_CAP(narradorId, i + 1);
-    const cacheado = await descargarTextoOpcional(db, rutaConectores);
-    let conectores: ConectoresNarracion;
-    if (cacheado !== null) {
-      conectores = JSON.parse(cacheado) as ConectoresNarracion;
-    } else {
-      cliente ??= new Anthropic({ apiKey: cargarConfig().anthropicApiKey });
-      conectores = await escribirConectores(cliente, {
-        nombre: narrador.nombre,
-        capitulo: nombre,
-        textoCapitulo: texto,
-        historias: historias.map((h) => ({ pregunta: h.pregunta, texto: h.texto })),
-      });
-      await subirTexto(db, rutaConectores, JSON.stringify(conectores, null, 2), 'application/json');
-    }
-    resultado.push({ nombre, markdown: texto, historias, conectores });
-  }
-
-  return resultado;
-}
-
-/**
  * Los borradores eran solo scaffolding para no repagarle al modelo en un
  * reintento — con el pedido ya entregado no hacen falta. Si el borrado
  * falla no es motivo para marcar el pedido 'fallido' (ya se entregó bien),
- * así que se loguea y se sigue. (El camino de voz clonada hace lo mismo
- * desde worker.ts, cuando entrega.)
+ * así que se loguea y se sigue.
  */
 async function limpiarBorradores(
   db: ReturnType<typeof obtenerClienteDb>,

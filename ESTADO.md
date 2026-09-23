@@ -527,6 +527,12 @@ Queda pendiente: el audiolibro «real» (`generarAudiolibro`) todavía se arma p
 cuando el producto salga del checkout (`web/`); la sección impresa con QR (Task 4) y el recordatorio a los
 15 días (Task 6).
 
+**23/09: el audiolibro salió de la fábrica.** `generarPaquete` ya no lo arma (tomaba todo `dia_NN*.ogg`
+sin mirar la base: el audio de Ciro sonaba en el de Joaquín, hallazgo 43) y entrega con
+`audiolibro_paths = null`. Se borró también el camino de voz clonada (`fabrica/src/voz/`,
+`fabrica/src/audio/`, ensamblado y avisos de `narraciones`, `npm run narracion`). Rama
+`sacar-audiolibro`; detalle en CONTRATO (nota del 23/09).
+
 ## Panel de la empresa — la instrumentación, parte A (branch `panel-de-la-empresa`, 21/09) (Naza)
 
 El panel interno de la empresa (`/admin`; spec en

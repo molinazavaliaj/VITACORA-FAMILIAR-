@@ -6,8 +6,6 @@ const {
   generarPaqueteMock,
   enviarMailHitoMock,
   enviarMailRecordatorioFrasesMock,
-  ensamblarAudiolibroClonadoMock,
-  avisarSociosMock,
   obtenerClienteDbMock,
   mandarEntregasAImprentaMock,
   avisarHitosDeEntregaMock,
@@ -17,8 +15,6 @@ const {
   generarPaqueteMock: vi.fn().mockResolvedValue(undefined),
   enviarMailHitoMock: vi.fn().mockResolvedValue(true),
   enviarMailRecordatorioFrasesMock: vi.fn().mockResolvedValue(true),
-  ensamblarAudiolibroClonadoMock: vi.fn(),
-  avisarSociosMock: vi.fn().mockResolvedValue(true),
   obtenerClienteDbMock: vi.fn(),
   mandarEntregasAImprentaMock: vi.fn().mockResolvedValue(undefined),
   avisarHitosDeEntregaMock: vi.fn().mockResolvedValue(undefined),
@@ -33,15 +29,6 @@ vi.mock('../src/mail/frases.js', async () => {
   const actual = await vi.importActual<typeof import('../src/mail/frases.js')>('../src/mail/frases.js');
   return { ...actual, enviarMailRecordatorioFrases: enviarMailRecordatorioFrasesMock };
 });
-
-vi.mock('../src/mail/socios.js', async () => {
-  const actual = await vi.importActual<typeof import('../src/mail/socios.js')>('../src/mail/socios.js');
-  return { ...actual, avisarSocios: avisarSociosMock };
-});
-
-vi.mock('../src/voz/ensamblar.js', () => ({
-  ensamblarAudiolibroClonado: ensamblarAudiolibroClonadoMock,
-}));
 
 vi.mock('../src/entregas.js', () => ({
   mandarEntregasAImprenta: mandarEntregasAImprentaMock,
@@ -72,9 +59,8 @@ vi.mock('../src/db.js', async () => {
   };
 });
 
-import { tick, procesarPedidosPagados, ensamblarNarracionesListas, avisarNarracionesAtascadas, recordarFrasesPendientes } from '../src/worker.js';
+import { tick, procesarPedidosPagados, recordarFrasesPendientes } from '../src/worker.js';
 import { CANDADO_POR_HITO } from '../src/mail/hitos.js';
-import { CANDADO_AVISO } from '../src/mail/socios.js';
 import { CANDADO_RECORDATORIO_FRASES } from '../src/mail/frases.js';
 
 /**
@@ -1173,113 +1159,13 @@ describe('tick — mails de hitos', () => {
   });
 });
 
-describe('tick — voz clonada: ensamblar narraciones listas', () => {
-  const paths = { capitulos: ['n1/paquete/audiolibro_cap_01.mp3'], completo: 'n1/paquete/audiolibro_completo.mp3' };
-  const narracionJson = {
-    narrador_id: 'n1',
-    pedido_id: 'p1',
-    titulo: 'Mi vida',
-    capitulos: [
-      { numero: 1, nombre: 'Infancia', texto: '...' },
-      { numero: 2, nombre: 'El amor', texto: '...' },
-    ],
-  };
-
-  beforeEach(() => {
-    ensamblarAudiolibroClonadoMock.mockReset();
-    ensamblarAudiolibroClonadoMock.mockResolvedValue(paths);
-    enviarMailHitoMock.mockClear();
-    enviarMailHitoMock.mockResolvedValue(true);
-    generarPaqueteMock.mockClear();
-  });
-
-  it('narración lista con pedido esperando_voz → ensambla con las rutas del worker y los nombres de narracion.json, y deja el pedido entregado con audiolibro_paths', async () => {
-    const db = construirClienteDbMock({
-      narradores: [{ id: 'n1', estado: 'completado', como_le_dicen: 'papá', familia_id: 'f1', libro_aprobado_at: '2026-09-05T10:00:00Z' }],
-      archivosPorNarrador: {},
-      pedidosEsperandoVoz: [{ id: 'p1', narrador_id: 'n1' }],
-      narraciones: [
-        { id: 'nar-1', narrador_id: 'n1', pedido_id: 'p1', estado: 'lista', capitulos_paths: ['n1/voz/cap_01.mp3', 'n1/voz/cap_02.mp3'] },
-      ],
-      narracionJsonPorNarrador: { n1: narracionJson },
-    });
-    obtenerClienteDbMock.mockReturnValue(db);
-
-    await ensamblarNarracionesListas();
-
-    expect(ensamblarAudiolibroClonadoMock).toHaveBeenCalledTimes(1);
-    expect(ensamblarAudiolibroClonadoMock).toHaveBeenCalledWith(db, {
-      narradorId: 'n1',
-      pedidoId: 'p1',
-      capitulosPaths: ['n1/voz/cap_01.mp3', 'n1/voz/cap_02.mp3'],
-      estructura: { capitulos: [{ nombre: 'Infancia' }, { nombre: 'El amor' }] },
-    });
-    expect(db.pedidosEntregadosPorVoz).toEqual([{ id: 'p1', valores: { estado: 'entregado', audiolibro_paths: paths } }]);
-    // Recién con el pedido entregado se borran los borradores (un md por
-    // capítulo de narracion.json más el del libro): hasta acá eran el caché
-    // que evita repagarle al modelo si hay que rehacer el pedido a mano.
-    expect(db.borrados).toEqual([
-      [
-        'n1/paquete/borrador_cap_01.md',
-        'n1/paquete/borrador_cap_02.md',
-        'n1/paquete/borrador_libro.md',
-        'n1/paquete/conectores_cap_01.json',
-        'n1/paquete/conectores_cap_02.json',
-      ],
-    ]);
-  });
-
-  it('si borrar los borradores falla, el pedido ya quedó entregado: se loguea y no se tira', async () => {
-    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    const db = construirClienteDbMock({
-      narradores: [{ id: 'n1' }],
-      archivosPorNarrador: {},
-      pedidosEsperandoVoz: [{ id: 'p1', narrador_id: 'n1' }],
-      narraciones: [{ id: 'nar-1', narrador_id: 'n1', pedido_id: 'p1', estado: 'lista', capitulos_paths: ['n1/voz/cap_01.mp3', 'n1/voz/cap_02.mp3'] }],
-      narracionJsonPorNarrador: { n1: narracionJson },
-    });
-    const bucket = { ...db.storage.from(), remove: () => Promise.resolve({ data: null, error: { message: 'Storage caído' } }) };
-    db.storage.from = () => bucket;
-    obtenerClienteDbMock.mockReturnValue(db);
-
-    await expect(ensamblarNarracionesListas()).resolves.toBeUndefined();
-
-    expect(db.pedidosEntregadosPorVoz.map((p) => p.id)).toEqual(['p1']);
-    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('borradores'), expect.anything());
-    expect(avisarSociosMock).not.toHaveBeenCalled();
-    errorSpy.mockRestore();
-  });
-
-  it('en el tick, después de entregar sale el mail libro_listo (avisarLibrosListos, como siempre)', async () => {
-    const db = construirClienteDbMock({
-      narradores: [{ id: 'n1', estado: 'completado', como_le_dicen: 'papá', familia_id: 'f1', libro_aprobado_at: '2026-09-05T10:00:00Z' }],
-      archivosPorNarrador: { n1: ['estructura.json', 'nombres.json', 'preview.pdf', 'terminado_enviado.txt'] },
-      familias: { f1: 'a@b.c' },
-      pedidosEsperandoVoz: [{ id: 'p1', narrador_id: 'n1' }],
-      // El fake no mueve el pedido de estado: se lo da ya como entregado para
-      // la lectura de avisarLibrosListos, que corre después en el mismo tick.
-      pedidosEntregados: [{ id: 'p1', narrador_id: 'n1' }],
-      narraciones: [{ id: 'nar-1', narrador_id: 'n1', pedido_id: 'p1', estado: 'lista', capitulos_paths: ['n1/voz/cap_01.mp3', 'n1/voz/cap_02.mp3'] }],
-      narracionJsonPorNarrador: { n1: narracionJson },
-    });
-    obtenerClienteDbMock.mockReturnValue(db);
-
-    await tick();
-
-    expect(ensamblarAudiolibroClonadoMock).toHaveBeenCalledTimes(1);
-    expect(db.pedidosEntregadosPorVoz.map((p) => p.id)).toEqual(['p1']);
-    expect(enviarMailHitoMock).toHaveBeenCalledWith(expect.objectContaining({ hito: 'libro_listo', para: 'a@b.c' }));
-    expect(db.subidos['n1']).toContain(CANDADO_POR_HITO.libro_listo);
-    // Invariante (b): el tick entero, con la narración lista y entregada, no
-    // escribió en `narraciones` — la fila sigue siendo del worker de voz.
-    expect(db.escriturasNarraciones).toEqual([]);
-  });
-
-  it('un tick con narraciones en todos los estados (pendiente vieja, procesando, lista, fallida) no escribe en narraciones', async () => {
+// 23/09: el camino de voz clonada se borró (ensamblar narraciones listas y
+// avisar las atascadas). Quedan filas viejas en `narraciones`; el tick no las
+// lee, no las ensambla y no les escribe.
+describe('tick — la tabla narraciones ya no es cosa de la fábrica', () => {
+  it('con narraciones en todos los estados, el tick no entrega nada por voz ni escribe en narraciones', async () => {
     // (console.error se silencia: el branch del anticipo lee `respuestas`, que este fake no mockea.)
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    avisarSociosMock.mockClear();
-    avisarSociosMock.mockResolvedValue(true);
     const db = construirClienteDbMock({
       narradores: [
         { id: 'n1', estado: 'completado', como_le_dicen: 'papá', familia_id: 'f1', libro_aprobado_at: '2026-09-05T10:00:00Z' },
@@ -1292,292 +1178,19 @@ describe('tick — voz clonada: ensamblar narraciones listas', () => {
       familias: { f1: 'a@b.c', f2: 'd@e.f' },
       pedidosEsperandoVoz: [{ id: 'p1', narrador_id: 'n1' }],
       narraciones: [
-        { id: 'nar-1', narrador_id: 'n1', pedido_id: 'p1', estado: 'lista', capitulos_paths: ['n1/voz/cap_01.mp3', 'n1/voz/cap_02.mp3'] },
+        { id: 'nar-1', narrador_id: 'n1', pedido_id: 'p1', estado: 'lista', capitulos_paths: ['n1/voz/cap_01.mp3'] },
         { id: 'nar-2', narrador_id: 'n2', pedido_id: 'p2', estado: 'pendiente', created_at: '2020-01-01T00:00:00Z', actualizada_at: '2020-01-01T00:00:00Z', error: null },
-        { id: 'nar-3', narrador_id: 'n2', pedido_id: 'p3', estado: 'procesando', created_at: '2020-01-01T00:00:00Z', actualizada_at: '2020-01-01T00:00:00Z', error: null },
-        { id: 'nar-4', narrador_id: 'n2', pedido_id: 'p4', estado: 'fallida', created_at: '2020-01-01T00:00:00Z', actualizada_at: '2020-01-01T00:00:00Z', error: 'sin_consentimiento_voz' },
+        { id: 'nar-4', narrador_id: 'n2', pedido_id: 'p4', estado: 'fallida', created_at: '2020-01-01T00:00:00Z', actualizada_at: '2020-01-01T00:00:00Z', error: 'x' },
       ],
-      narracionJsonPorNarrador: { n1: narracionJson },
     });
     obtenerClienteDbMock.mockReturnValue(db);
 
     await expect(tick()).resolves.toBeUndefined();
 
-    expect(db.pedidosEntregadosPorVoz.map((p) => p.id)).toEqual(['p1']);
-    expect(avisarSociosMock).toHaveBeenCalledTimes(3);
+    expect(db.pedidosEntregadosPorVoz).toEqual([]);
     expect(db.escriturasNarraciones).toEqual([]);
-    errorSpy.mockRestore();
-  });
-
-  it('una narración lista cuyo pedido ya no está esperando_voz no se ensambla', async () => {
-    const db = construirClienteDbMock({
-      narradores: [{ id: 'n1' }],
-      archivosPorNarrador: {},
-      pedidosEsperandoVoz: [],
-      narraciones: [{ id: 'nar-1', narrador_id: 'n1', pedido_id: 'p1', estado: 'lista', capitulos_paths: ['n1/voz/cap_01.mp3'] }],
-      narracionJsonPorNarrador: { n1: narracionJson },
-    });
-    obtenerClienteDbMock.mockReturnValue(db);
-
-    await ensamblarNarracionesListas();
-
-    expect(ensamblarAudiolibroClonadoMock).not.toHaveBeenCalled();
-    expect(db.pedidosEntregadosPorVoz).toEqual([]);
-  });
-
-  it('si el ensamblado falla, loguea, no toca el pedido y sigue con la siguiente narración', async () => {
-    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    ensamblarAudiolibroClonadoMock.mockRejectedValueOnce(new Error('ffmpeg reventó')).mockResolvedValueOnce(paths);
-    const db = construirClienteDbMock({
-      narradores: [{ id: 'n1' }, { id: 'n2' }],
-      archivosPorNarrador: {},
-      pedidosEsperandoVoz: [
-        { id: 'p1', narrador_id: 'n1' },
-        { id: 'p2', narrador_id: 'n2' },
-      ],
-      narraciones: [
-        { id: 'nar-1', narrador_id: 'n1', pedido_id: 'p1', estado: 'lista', capitulos_paths: ['n1/voz/cap_01.mp3', 'n1/voz/cap_02.mp3'] },
-        { id: 'nar-2', narrador_id: 'n2', pedido_id: 'p2', estado: 'lista', capitulos_paths: ['n2/voz/cap_01.mp3', 'n2/voz/cap_02.mp3'] },
-      ],
-      narracionJsonPorNarrador: { n1: narracionJson, n2: { ...narracionJson, narrador_id: 'n2', pedido_id: 'p2' } },
-    });
-    obtenerClienteDbMock.mockReturnValue(db);
-
-    await expect(ensamblarNarracionesListas()).resolves.toBeUndefined();
-
-    expect(ensamblarAudiolibroClonadoMock).toHaveBeenCalledTimes(2);
-    // p1 queda como estaba (esperando_voz; la narración sigue lista y el próximo tick reintenta).
-    expect(db.pedidosEntregadosPorVoz.map((p) => p.id)).toEqual(['p2']);
-    // Solo se borran los borradores del que se entregó.
-    expect(db.borrados).toEqual([
-      [
-        'n2/paquete/borrador_cap_01.md',
-        'n2/paquete/borrador_cap_02.md',
-        'n2/paquete/borrador_libro.md',
-        'n2/paquete/conectores_cap_01.json',
-        'n2/paquete/conectores_cap_02.json',
-      ],
-    ]);
-    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('nar-1'), expect.anything());
-    errorSpy.mockRestore();
-  });
-
-  it('si el CAS de entrega no devuelve fila (el pedido ya no está esperando_voz), avisa por consola', async () => {
-    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    const db = construirClienteDbMock({
-      narradores: [{ id: 'n1' }],
-      archivosPorNarrador: {},
-      pedidosEsperandoVoz: [{ id: 'p1', narrador_id: 'n1' }],
-      narraciones: [{ id: 'nar-1', narrador_id: 'n1', pedido_id: 'p1', estado: 'lista', capitulos_paths: ['n1/voz/cap_01.mp3', 'n1/voz/cap_02.mp3'] }],
-      narracionJsonPorNarrador: { n1: narracionJson },
-      entregarPorVoz: () => ({ data: [], error: null }),
-    });
-    obtenerClienteDbMock.mockReturnValue(db);
-
-    await ensamblarNarracionesListas();
-
-    expect(db.pedidosEntregadosPorVoz.map((p) => p.id)).toEqual(['p1']);
-    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('p1'));
-    // Sin entrega no se toca nada: si el pedido volvió a `pagado` a mano
-    // (audiolibro "real"), generarPaquete necesita esos borradores.
-    expect(db.borrados).toEqual([]);
-    warnSpy.mockRestore();
-  });
-
-  it('la primera vez que el ensamblado falla avisa a los socios (ensamblado_fallido) y deja candado; la segunda vuelta reintenta sin repetir el mail', async () => {
-    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    avisarSociosMock.mockClear();
-    avisarSociosMock.mockResolvedValue(true);
-    ensamblarAudiolibroClonadoMock.mockRejectedValue(new Error('ffmpeg reventó'));
-    const db = construirClienteDbMock({
-      narradores: [{ id: 'n1', como_le_dicen: 'papá' }],
-      archivosPorNarrador: {},
-      pedidosEsperandoVoz: [{ id: 'p1', narrador_id: 'n1' }],
-      narraciones: [{ id: 'nar-1', narrador_id: 'n1', pedido_id: 'p1', estado: 'lista', capitulos_paths: ['n1/voz/cap_01.mp3', 'n1/voz/cap_02.mp3'] }],
-      narracionJsonPorNarrador: { n1: narracionJson },
-    });
-    obtenerClienteDbMock.mockReturnValue(db);
-
-    await ensamblarNarracionesListas();
-
-    expect(avisarSociosMock).toHaveBeenCalledTimes(1);
-    const [asunto, cuerpo] = avisarSociosMock.mock.calls[0] as [string, string];
-    expect(asunto).toContain('papá');
-    expect(cuerpo).toContain('no pudo armar el audiolibro clonado de papá: ffmpeg reventó');
-    expect(db.subidos['n1']).toEqual([CANDADO_AVISO('nar-1', 'ensamblado_fallido')]);
-    expect(db.pedidosEntregadosPorVoz).toEqual([]);
-
-    avisarSociosMock.mockClear();
-    await ensamblarNarracionesListas();
-
-    // vuelve a intentar el ensamblado (la narración sigue lista)...
-    expect(ensamblarAudiolibroClonadoMock).toHaveBeenCalledTimes(2);
-    // ...pero el aviso ya salió: el candado lo corta.
-    expect(avisarSociosMock).not.toHaveBeenCalled();
-    expect(db.subidos['n1']).toHaveLength(1);
-    errorSpy.mockRestore();
-  });
-
-  it('si el aviso de ensamblado fallido no sale (sin clave), no deja candado y no frena las demás', async () => {
-    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    avisarSociosMock.mockClear();
-    avisarSociosMock.mockResolvedValueOnce(false);
-    ensamblarAudiolibroClonadoMock.mockRejectedValueOnce(new Error('ffmpeg reventó')).mockResolvedValueOnce(paths);
-    const db = construirClienteDbMock({
-      narradores: [{ id: 'n1', como_le_dicen: 'papá' }, { id: 'n2', como_le_dicen: 'mamá' }],
-      archivosPorNarrador: {},
-      pedidosEsperandoVoz: [
-        { id: 'p1', narrador_id: 'n1' },
-        { id: 'p2', narrador_id: 'n2' },
-      ],
-      narraciones: [
-        { id: 'nar-1', narrador_id: 'n1', pedido_id: 'p1', estado: 'lista', capitulos_paths: ['n1/voz/cap_01.mp3', 'n1/voz/cap_02.mp3'] },
-        { id: 'nar-2', narrador_id: 'n2', pedido_id: 'p2', estado: 'lista', capitulos_paths: ['n2/voz/cap_01.mp3', 'n2/voz/cap_02.mp3'] },
-      ],
-      narracionJsonPorNarrador: { n1: narracionJson, n2: { ...narracionJson, narrador_id: 'n2', pedido_id: 'p2' } },
-    });
-    obtenerClienteDbMock.mockReturnValue(db);
-
-    await ensamblarNarracionesListas();
-
-    expect(avisarSociosMock).toHaveBeenCalledTimes(1);
-    expect(db.subidos['n1']).toBeUndefined();
-    expect(db.pedidosEntregadosPorVoz.map((p) => p.id)).toEqual(['p2']);
-    errorSpy.mockRestore();
-  });
-
-  it('sin narracion.json en Storage no ensambla ni entrega', async () => {
-    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    const db = construirClienteDbMock({
-      narradores: [{ id: 'n1' }],
-      archivosPorNarrador: {},
-      pedidosEsperandoVoz: [{ id: 'p1', narrador_id: 'n1' }],
-      narraciones: [{ id: 'nar-1', narrador_id: 'n1', pedido_id: 'p1', estado: 'lista', capitulos_paths: ['n1/voz/cap_01.mp3'] }],
-    });
-    obtenerClienteDbMock.mockReturnValue(db);
-
-    await ensamblarNarracionesListas();
-
-    expect(ensamblarAudiolibroClonadoMock).not.toHaveBeenCalled();
-    expect(db.pedidosEntregadosPorVoz).toEqual([]);
-    expect(errorSpy).toHaveBeenCalled();
-    errorSpy.mockRestore();
-  });
-});
-
-describe('tick — voz clonada: avisar narraciones atascadas', () => {
-  const HOY = new Date('2026-09-20T12:00:00Z');
-
-  beforeEach(() => {
-    vi.useFakeTimers();
-    vi.setSystemTime(HOY);
-    avisarSociosMock.mockClear();
-    avisarSociosMock.mockResolvedValue(true);
-  });
-
-  afterEach(() => {
-    vi.useRealTimers();
-  });
-
-  it('pendiente hace más de 24 h → un mail a los socios con el como_le_dicen y candado; el segundo tick no repite', async () => {
-    const db = construirClienteDbMock({
-      narradores: [{ id: 'n1', como_le_dicen: 'papá' }],
-      archivosPorNarrador: {},
-      narraciones: [
-        { id: 'nar-1', narrador_id: 'n1', pedido_id: 'p1', estado: 'pendiente', created_at: '2026-09-18T12:00:00Z', actualizada_at: '2026-09-18T12:00:00Z', error: null },
-      ],
-    });
-    obtenerClienteDbMock.mockReturnValue(db);
-
-    await avisarNarracionesAtascadas();
-
-    expect(avisarSociosMock).toHaveBeenCalledTimes(1);
-    const [asunto, cuerpo] = avisarSociosMock.mock.calls[0] as [string, string];
-    expect(asunto).toContain('papá');
-    expect(cuerpo).toContain('lleva más de 24 h sin tomarse');
-    expect(db.subidos['n1']).toEqual([CANDADO_AVISO('nar-1', 'pendiente_24h')]);
-
-    avisarSociosMock.mockClear();
-    await avisarNarracionesAtascadas();
-
-    expect(avisarSociosMock).not.toHaveBeenCalled();
-    expect(db.subidos['n1']).toHaveLength(1);
-  });
-
-  it('pendiente hace 2 h → nada', async () => {
-    const db = construirClienteDbMock({
-      narradores: [{ id: 'n1', como_le_dicen: 'papá' }],
-      archivosPorNarrador: {},
-      narraciones: [
-        { id: 'nar-1', narrador_id: 'n1', pedido_id: 'p1', estado: 'pendiente', created_at: '2026-09-20T10:00:00Z', actualizada_at: '2026-09-20T10:00:00Z', error: null },
-      ],
-    });
-    obtenerClienteDbMock.mockReturnValue(db);
-
-    await avisarNarracionesAtascadas();
-
-    expect(avisarSociosMock).not.toHaveBeenCalled();
-    expect(db.subidos['n1']).toBeUndefined();
-  });
-
-  it('fallida → el mail lleva el error y el comando de reintento con el id; su candado es distinto del de pendiente', async () => {
-    const db = construirClienteDbMock({
-      narradores: [{ id: 'n1', como_le_dicen: 'la abuela' }],
-      archivosPorNarrador: { n1: [CANDADO_AVISO('nar-1', 'pendiente_24h')] },
-      narraciones: [
-        { id: 'nar-1', narrador_id: 'n1', pedido_id: 'p1', estado: 'fallida', created_at: '2026-09-18T12:00:00Z', actualizada_at: '2026-09-18T12:00:00Z', error: 'sin_consentimiento_voz' },
-      ],
-    });
-    obtenerClienteDbMock.mockReturnValue(db);
-
-    await avisarNarracionesAtascadas();
-
-    expect(avisarSociosMock).toHaveBeenCalledTimes(1);
-    const [, cuerpo] = avisarSociosMock.mock.calls[0] as [string, string];
-    expect(cuerpo).toContain('sin_consentimiento_voz');
-    expect(cuerpo).toContain('npm run narracion -- reintentar nar-1');
-    expect(db.subidos['n1']).toEqual([CANDADO_AVISO('nar-1', 'fallida')]);
-  });
-
-  it('si avisarSocios devuelve false (sin clave), no deja candado', async () => {
-    avisarSociosMock.mockResolvedValueOnce(false);
-    const db = construirClienteDbMock({
-      narradores: [{ id: 'n1', como_le_dicen: 'papá' }],
-      archivosPorNarrador: {},
-      narraciones: [
-        { id: 'nar-1', narrador_id: 'n1', pedido_id: 'p1', estado: 'pendiente', created_at: '2026-09-18T12:00:00Z', actualizada_at: '2026-09-18T12:00:00Z', error: null },
-      ],
-    });
-    obtenerClienteDbMock.mockReturnValue(db);
-
-    await avisarNarracionesAtascadas();
-
-    expect(avisarSociosMock).toHaveBeenCalledTimes(1);
-    expect(db.subidos['n1']).toBeUndefined();
-  });
-
-  it('si el mail de una narración falla, sigue con la siguiente', async () => {
-    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    avisarSociosMock.mockRejectedValueOnce(new Error('Resend caído'));
-    const db = construirClienteDbMock({
-      narradores: [
-        { id: 'n1', como_le_dicen: 'papá' },
-        { id: 'n2', como_le_dicen: 'mamá' },
-      ],
-      archivosPorNarrador: {},
-      narraciones: [
-        { id: 'nar-1', narrador_id: 'n1', pedido_id: 'p1', estado: 'pendiente', created_at: '2026-09-18T12:00:00Z', actualizada_at: '2026-09-18T12:00:00Z', error: null },
-        { id: 'nar-2', narrador_id: 'n2', pedido_id: 'p2', estado: 'procesando', created_at: '2026-09-19T12:00:00Z', actualizada_at: '2026-09-20T00:00:00Z', error: null },
-      ],
-    });
-    obtenerClienteDbMock.mockReturnValue(db);
-
-    await expect(avisarNarracionesAtascadas()).resolves.toBeUndefined();
-
-    expect(avisarSociosMock).toHaveBeenCalledTimes(2);
-    expect(db.subidos['n1']).toBeUndefined();
-    expect(db.subidos['n2']).toEqual([CANDADO_AVISO('nar-2', 'procesando_6h')]);
-    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('nar-1'), expect.anything());
+    expect(db.subidos['n1'] ?? []).not.toContainEqual(expect.stringMatching(/^aviso_narracion_/));
+    expect(db.subidos['n2'] ?? []).not.toContainEqual(expect.stringMatching(/^aviso_narracion_/));
     errorSpy.mockRestore();
   });
 });

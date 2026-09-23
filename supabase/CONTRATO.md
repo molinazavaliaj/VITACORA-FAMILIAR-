@@ -11,7 +11,7 @@ migración en `supabase/migrations/` + actualizar este archivo + avisar al otro 
 | `narradores` | web (crea, edita datos, `edicion`, `libro_aprobado_at`) / entrevistador (solo `estado`, `dia_actual`, `ultima_respuesta_at`, `alerta_silencio`, `consentimiento_voz_at`) / fábrica (solo `libro_aprobado_at`, a los 30 días sin cierre) | ambos | Única tabla compartida. La web también apaga `alerta_silencio`. La fábrica lee `edicion` y **no produce nada sin `libro_aprobado_at`** (ni digital ni impreso). Desde el 13/09, si pasan 30 días desde `ultima_respuesta_at` sin cierre, la fábrica misma pone `libro_aprobado_at` (único caso en que alguien más que la web escribe esa columna). |
 | `preguntas` | **web** (copia las fijas al comprar; la familia edita, salta, reordena, agrega) / **entrevistador** (adaptativas y reemplazos) / seed (plantilla global) | ambos | Desde el 12/09 **cada narrador tiene su guion propio**. Las globales (`narrador_id = null`) son solo plantilla. Regla: `orden ≤ dia_actual` está **congelado**, nadie lo toca. |
 | `respuestas` | entrevistador | web, fábrica | La web NUNCA escribe acá. **20/09 (propuesta, sin aplicar):** `reservada` / `reservado_tramo` — "esto que no vaya al libro", ver la sección propia. **21/09 (propuesta, sin aplicar):** `tema_de_orden` / `tema_motivo` — "esto es de otra parte", ver la sección propia. |
-| `saludos` | ~~web / entrevistador~~ | — | **Fuera de la fase 1 (10/09).** Nadie la escribe ni la lee — desde el 13/09 tampoco la fábrica (dejó de leerla en `generarPaquete`/`generarAudiolibro`; el audiolibro ya no tiene bonus de saludos). Se deja por si la fase 2 la revive. |
+| `saludos` | ~~web / entrevistador~~ | — | **Fuera de la fase 1 (10/09).** Nadie la escribe ni la lee — desde el 13/09 tampoco la fábrica (dejó de leerla en `generarPaquete`; el audiolibro, que se borró el 23/09, ya no tenía bonus de saludos). Se deja por si la fase 2 la revive. |
 | `fotos` | web (sube y ordena) | fábrica | Nueva 12/09. Por capítulo; `principal` abre, el resto cierra. Desde el 13/09 la fábrica las embebe como data URI en `libro.html`. **14/09: `capitulo` nullable** — NULL = foto del álbum del libro (candidata a tapa / contratapa / marco), no va en ningún capítulo; la fábrica la ignora al armar capítulos. |
 | `invitados` | web | web | Nueva 12/09. `rol` (13/09): `'invitado'` (hasta 3, con el libro abierto, ven todo) o `'visitante'` (abrió el link del libro cerrado y lo guardó: ve la muestra y compra su copia, sin tope). |
 | `pedidos` | web y fábrica | — | El entrevistador no la mira. Un pedido por comprador: los invitados y visitantes que compran su copia tienen su propia `familia` y su propio pedido sobre el mismo `narrador_id`. |
@@ -109,7 +109,24 @@ sí lee `audiolibro`: `"clonada"` pasa por el buzón `narraciones` (sección sig
 pedido espera en `esperando_voz` hasta que la voz vuelve y la fábrica ensambla. ⚠️ Pendiente
 (3t.14): leer `pdf` y `"narrador"` para producir solo lo comprado.
 
+> **23/09 — la fábrica ya no arma audiolibros.** Ni con los audios crudos (el paso 3 de
+> `generarPaquete` elegía los audios por nombre de archivo y mezcló la voz de Ciro en el
+> libro de Joaquín, bitácora hallazgo 43) ni con voz clonada (se borraron `fabrica/src/voz/`,
+> `fabrica/src/audio/`, el ensamblado de narraciones listas, los avisos de narraciones
+> atascadas y `npm run narracion`). Un pedido que la fábrica entrega queda con
+> **`audiolibro_paths = null`**, aunque sea viejo y haya comprado el audiolibro. Lo que ya
+> estaba entregado no se toca: la web sigue leyendo `audiolibro_paths` y los
+> `audiolibro_cap_NN.mp3` de esos pedidos (lector del tablero, `/api/libro/audio/[indice]`).
+> Un pedido nuevo tampoco copia audio de nadie: el segundo pedido de un narrador ya entregado
+> sigue heredando las rutas del primero, como siempre. La fábrica no lee ni escribe más la
+> tabla `narraciones` (quedan filas viejas: una `lista` de un pedido `fallido` y una
+> `reemplazada`); `esperando_voz` queda en el check pero nada pone un pedido ahí.
+
 ## Narraciones (voz clonada) (migraciones 20260917 y 20260920)
+
+> **Histórico (23/09):** todo lo de esta sección describe un camino que la fábrica ya no
+> tiene (ver la nota de arriba). Queda para leer las filas viejas de `narraciones` y el
+> worker de la PC de música, que todavía sondea la tabla.
 
 ⚠️ **La migración `20260917000000_narraciones.sql` NO se aplica en producción hasta que
 Joaquín lea esta sección.** Toca `pedidos_estado_check` (agrega `esperando_voz`) y agrega
@@ -128,7 +145,7 @@ Quién escribe qué:
 | `narraciones.estado` / `motor` / `muestras` / `capitulos_paths` / `error` / `tomada_at` | worker de voz | fábrica |
 | `narraciones.estado = 'reemplazada'` (+ `error = 'reemplazada por <id nueva>'`) | **fábrica** (`reemplazarNarracion`, migración 20260920) | — (no se narra ni se ensambla) |
 | `narradores.consentimiento_voz_at` | entrevistador (3t.15) — en el piloto, `npm run manual -- ficha <narrador> --voz-si` | worker de voz |
-| `pedidos.estado = 'esperando_voz'` / `'entregado'`, `audiolibro_paths` | fábrica | web |
+| `pedidos.estado = 'esperando_voz'` / `'entregado'`, `audiolibro_paths` | fábrica (desde el 23/09 entrega con `audiolibro_paths = null` y no usa `esperando_voz`) | web |
 | Storage `{narrador}/voz/cap_NN.mp3` (cuerpo narrado, sin intro) | worker de voz | fábrica |
 | Storage `{narrador}/paquete/audiolibro_cap_NN.mp3`, `audiolibro_completo.mp3` | fábrica | web |
 
@@ -285,6 +302,9 @@ no sea `{x, y}` numérico se toma como el centro; fuera de 0..1 se recorta al bo
 
 ## Audiolibro con voz clonada — regla de voz única (Naza, 19/09)
 
+> **Histórico (23/09):** la fábrica ya no arma ningún audiolibro, ni clonado ni con audios
+> reales (la intro TTS también se borró).
+
 En el audiolibro con voz clonada **no suena ninguna voz que no sea la del narrador**:
 ni intro TTS genérica ni conectores con otra voz. La fábrica no antepone nada al mp3
 del worker (solo normaliza volumen); el anuncio del capítulo ("Capítulo uno. La
@@ -294,6 +314,9 @@ reales (`extras.audiolibro = "real"` / pedidos viejos), donde alguien tiene que
 anunciar el capítulo.
 
 ## narracion.json v2 — audiolibro híbrido (decisión de los socios, 20/09)
+
+> **Histórico (23/09):** la fábrica ya no escribe `narracion.json` ni conectores
+> (`fabrica/src/voz/` se borró). Los archivos viejos del paquete no se borran.
 
 **El híbrido es el audiolibro clonado por defecto**: las historias se escuchan con el audio
 REAL del narrador (restaurado por el worker) y la voz clonada narra solo el anuncio del
@@ -378,9 +401,8 @@ Reglas:
 - **La fábrica solo lee**, y respeta las dos en el mismo lugar donde arma el material del
   libro (`fabrica/src/libro/comun.ts`, `textoRespuesta`): el escritor nunca ve una respuesta
   `reservada` (ni en el capítulo ni en "la historia completa"), y el tramo se quita del
-  texto. Tampoco entran al audiolibro híbrido (`historiasDelCapitulo` en
-  `fabrica/src/voz/conectores.ts`) ni a la muestra de audio del anticipo (esa muestra se
-  publica en la landing), porque **un tramo no se puede recortar de una grabación**: una
+  texto. Tampoco entraban al audiolibro híbrido (borrado el 23/09) ni entran a la muestra
+  de audio del anticipo (esa muestra se publica en la landing), porque **un tramo no se puede recortar de una grabación**: una
   reserva parcial también deja el audio afuera (`esPublicable`).
 - **La web solo lee**: muestra la respuesta marcada como reservada ("no va al libro", a
   pedido del narrador). Si algún día la familia quiere re-publicarla, sería escritura de la

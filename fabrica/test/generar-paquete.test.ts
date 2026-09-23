@@ -825,9 +825,10 @@ describe('generarPaquete', () => {
     expect(db.pedidosUpdate).not.toHaveBeenCalledWith({ estado: 'fallido' }, 'p1');
   });
 
-  // Hallazgo 43 (23/09): el audiolibro elegía los audios por nombre de archivo
-  // (dia_NN*.ogg) y la voz de otro narrador terminó en un capítulo. El producto
-  // ya no existe: aunque un pedido viejo lo haya comprado, no se arma.
+  // Hallazgo 43: el audiolibro tomaba todo dia_NN*.ogg de la carpeta sin mirar
+  // la base, y el audio de Ciro cargado por error en Joaquín sonaba en el suyo.
+  // El producto ya no existe (23/09): aunque un pedido viejo lo haya comprado,
+  // no se arma.
   it('un pedido que compró el audiolibro («real») se entrega igual, sin audiolibro ni buzón', async () => {
     const db = construirDbN1();
 
