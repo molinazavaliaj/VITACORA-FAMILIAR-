@@ -71,7 +71,7 @@ describe('cerrarBitacora', () => {
 
   it('no repite la despedida si ya estaba completado', async () => {
     mocks.filas.narrador.estado = 'completado';
-    await cerrarBitacora('n1', 0);
+    await cerrarBitacora('n1');
     expect(mocks.enviarTexto).not.toHaveBeenCalled();
   });
 });

@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { registrarUso } from '../src/costos.js';
 
 // Estos módulos llaman a cargarConfig() al importarse, así que el entorno se
