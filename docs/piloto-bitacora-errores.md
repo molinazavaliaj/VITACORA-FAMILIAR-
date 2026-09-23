@@ -706,7 +706,12 @@ misma causa) y **C3** pregunta por una infancia dura como si hubiera sido un luj
 > terminado por quien lo protagoniza**, y vale más que cualquier revisión nuestra. Lo
 > bueno primero: *"está bien contado, tiene estructura"*, el libro le gustó.
 
-40. **23/09 · GRAVE que resultó FALSO · "hay un párrafo que se lo inventó".** El párrafo
+40. > ⚠ **Esta entrada llegó a una conclusión EQUIVOCADA y la corrige la 43.** El párrafo no
+    > era de Joaquín: era un audio de Ciro cargado en su orden 27. Se verificó contra la base,
+    > que estaba mal, y se le dijo al narrador que se equivocaba. Se deja el texto de abajo
+    > como estaba porque es la lección: verificar contra la transcripción confirma la mentira.
+
+    **23/09 · GRAVE que resultó FALSO · "hay un párrafo que se lo inventó".** El párrafo
     señalado: *"Me acuerdo también que jugábamos mucho con unos muñecos, unas figuras de
     plástico, ahí en el balcón. A la siesta hacíamos mucho ruido y no dejábamos dormir a
     nadie, por eso nos retaban siempre. Nos gustaba tirar cosas por el balcón. Y jugábamos

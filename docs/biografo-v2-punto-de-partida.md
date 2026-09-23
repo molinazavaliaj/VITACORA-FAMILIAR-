@@ -104,10 +104,10 @@ target del Familiar es 60+.**
 
 | Material | Qué es | Dónde |
 |---|---|---|
-| **2 libros terminados** | 89 páginas el de Joaquín; el de Osvaldo | Storage, `{narrador}/paquete/libro.pdf` |
-| **35 + 17 respuestas reales** | transcripciones completas de dos narradores | tabla `respuestas` |
+| **1 libro real terminado** | 89 páginas, el de Joaquín (él leyó el PDF del 18/09). El de Osvaldo es del set dorado: una prueba, no una persona | Storage, `{narrador}/paquete/libro.pdf` |
+| **35 + 18 respuestas reales** | Joaquín y Ciro, **los dos de 28 años**: no hay ninguna respuesta real de alguien de 60+ | tabla `respuestas` |
 | **Los borradores por capítulo** | lo que escribió el modelo ANTES de la pasada de editor | `borrador_cap_NN.md` |
-| **42 hallazgos + 14 de Ciro** | dos años de errores documentados en dos semanas | `docs/piloto-*.md` |
+| **43 hallazgos + 14 de Ciro** | dos años de errores documentados en dos semanas | `docs/piloto-*.md` |
 | **El set dorado** | 30 respuestas para correr el cerebro sin gastar en gente | `npm run prueba-cerebro` |
 
 **Nadie procesó nunca este material en conjunto.** Es lo primero que debería entrar a
@@ -164,3 +164,49 @@ paralelo no los cambia.
    del día.
 5. **¿Qué le decimos al narrador cuando lee su libro?** Joaquín no reconoció sus propias
    palabras. Eso va a pasar siempre.
+
+---
+
+## Pregunta 0, medida (23/09, rama `biografo-v2-material`)
+
+**La prueba existe:** `cd entrevistador && npm run auditar-material -- <como le dicen>` (o
+`--todos`, y `--bajar <carpeta>` para descargar los audios a escuchar). No toca la base. Sale
+con código 1 si hay algo grave, así puede usarse de freno antes de escribir un libro.
+
+**Lo que dio sobre el material real:**
+
+| | Grave | Revisar | Info |
+|---|---|---|---|
+| Joaquín (35) | 1 — la orden 27 es de Ciro | 6 cargas intercaladas | 5 órdenes con dos respuestas, 1 sin audio |
+| Ciro (18) | 1 — su orden 3 está también en Joaquín | 7 cargas intercaladas | 5 órdenes con dos respuestas |
+
+- **El candado separa limpio**: el cruce da 1,00 de parecido; el par ajeno más parecido que
+  le sigue, 0,50. No hay zona gris.
+- **El riesgo fue sistemático, no un minuto de mala suerte**: el 16 y el 17/09 hubo 9 cargas
+  de Joaquín y Ciro intercaladas a menos de 10 minutos. Se cruzó una.
+
+**Lo que la medición enseñó sobre la causa:**
+
+1. **La base no sabe descartar.** Las 12 órdenes con dos respuestas tienen todas la misma
+   forma (respuesta + repregunta), y la orden 27 de Joaquín también: el audio de Ciro quedó
+   igual que cualquier par normal. Quien cargaba se dio cuenta, pero la única salida era
+   borrar la fila — el propio candado de hoy dice "hay que borrar esa fila". Propuesta B:
+   columna `descartada` (cambio de CONTRATO, lo acuerdan los dos; migración la aplica Naza).
+2. **El candado vive solo en la puerta manual.** Por WhatsApp el narrador se identifica por
+   su teléfono (único en la base), así que el cruce entre narradores no pasa por ahí. Pero
+   `parsearEntrante` (`src/whatsapp/webhook.ts`) tira dos datos que Meta manda según su
+   documentación: si el mensaje fue **reenviado** y si el audio es **nota de voz grabada** o
+   archivo adjunto. Es el caso "le reenvió el audio de otra persona". Propuesta C, a
+   confirmar con un mensaje real (código de Joaquín).
+3. **Lo que ninguna prueba sobre texto ve**: otra persona hablando en el teléfono correcto
+   (la esposa que contesta por él). Solo lo detecta el audio: escuchándolo, o con una huella
+   de voz. Queda anotado para más adelante.
+
+**Correcciones de datos que salieron de revisar:**
+
+- **Osvaldo es una prueba** (set dorado, texto sin audio), no un narrador. **Todo el material
+  real es de dos personas de 28 años**; el público es 60+. Cualquier cosa que midamos sobre
+  estilo o cobertura con este material hay que leerla sabiendo eso.
+- **Joaquín leyó el PDF del 18/09**, no el guardado hoy (reescrito el 21/09). Las
+  mediciones de "repite" se hacen contra ese.
+- El hallazgo 40 decía lo contrario de lo que sabemos; se le puso el aviso arriba.

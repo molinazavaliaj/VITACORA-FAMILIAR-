@@ -14,7 +14,8 @@
     "prueba-resumenes": "tsx scripts/prueba-resumenes.ts",
     "prueba-evaluacion": "tsx scripts/prueba-evaluacion.ts",
     "prueba-cerebro": "tsx scripts/prueba-cerebro.ts",
-    "prueba-consumo": "tsx scripts/prueba-consumo.ts"
+    "prueba-consumo": "tsx scripts/prueba-consumo.ts",
+    "auditar-material": "tsx scripts/auditar-material.ts"
   },
   "keywords": [],
   "author": "",
