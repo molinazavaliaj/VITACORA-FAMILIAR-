@@ -1,0 +1,22 @@
+{
+  // El tsconfig de arriba es el de COMPILAR: mira solo `src` y excluye `test`, porque
+  // es lo que va a `dist` para producción. El efecto secundario es que `tsc` nunca
+  // miró `scripts/` ni `test/`: el mismo agujero que en el entrevistador, donde un
+  // import colgado en `scripts/manual.ts` rompió la puerta manual con todo en verde
+  // (bitácora C8). Joaquín lo cerró allá (cb620fb); esto es lo mismo acá.
+  //
+  // No compila nada: solo mira. Lo corre `npm test`.
+  //
+  // `test/` todavía NO entra: al 23/09 tiene 64 errores de tipos, todos de mocks de
+  // Supabase que no tienen la forma completa del cliente (generar-paquete 27,
+  // narracion-v2 15, bulto 9, conectores 6, y 7 sueltos). No son bugs —los tests
+  // corren y pasan—, pero meterlos acá deja `npm test` en rojo. Cuando se ordenen los
+  // mocks, se suma "test" al include.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "rootDir": "."
+  },
+  "include": ["src", "scripts"],
+  "exclude": ["node_modules", "dist"]
+}
