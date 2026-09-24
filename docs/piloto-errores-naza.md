@@ -134,3 +134,17 @@
 - **Dónde:** secuencia v2 + la `puertaAbierta` = `pruebas` que eligió el perfil; el encargo de la
   pregunta (tacto después de algo fuerte).
 - **Qué se hizo a mano:** nada; se mandó así.
+
+## N14 · 24/09 · La pregunta 6 otra vez con 3 intentos, «ayer», y «esos amigos» sin decir cuáles
+- **Qué pasó:** «Tricky, gracias por bancar el relato de ayer, no era poca cosa. Hoy algo más
+  tranqui: de todos esos amigos, ¿quiénes quedaron hasta hoy?…».
+  - De nuevo «Intentos: 3» sin motivo (N12 se repite: ~USD 0,18 esta pregunta).
+  - De nuevo «ayer» (N9).
+  - «bancar el relato» suena raro: el que lo bancó fue él al contarlo.
+  - «esos amigos» no dice cuáles: podrían ser los del Fátima, los del Liceo o Joaquín. Queda
+    colgado.
+- **Lo bueno:** el perfil entendió que Joaquín es un amigo del Liceo al que Naza llama «mi
+  hermano», no un hermano de sangre. También notó la contradicción de quién estaba cuando lo
+  sacaron del Liceo, sin inventar.
+- **Dónde:** pregunta 6 (`amigos`), encargo de la pregunta v2.
+- **Qué se hizo a mano:** nada; se mandó así.
