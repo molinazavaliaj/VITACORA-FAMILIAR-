@@ -64,12 +64,13 @@ const h = vi.hoisted(() => {
     storage: {
       from: () => ({
         list: async () => ({ data: [] }),
-        upload: async () => ({ error: null }),
+        upload: async (path: string) => { subidos.push(path); return { error: null }; },
         download: async (path: string) => { bajados.push(path); return { data: new Blob([new Uint8Array(4096)]), error: null }; },
       }),
     },
   };
   const bajados: string[] = [];
+  const subidos: string[] = [];
   // Fallas a pedido: cuántas veces seguidas se cae la evaluación o la transcripción.
   const fallar = { evaluar: 0, transcribir: 0 };
   const ffmpeg: string[][] = [];
@@ -97,7 +98,7 @@ const h = vi.hoisted(() => {
     }
     throw new Error(`prompt que el modelo falso no conoce: ${prompt.slice(0, 80)}`);
   }
-  return { tablas, db, colaPerfil, colaEvaluar, colaTranscripcion, llamadas, responder, fallar, bajados, ffmpeg };
+  return { tablas, db, colaPerfil, colaEvaluar, colaTranscripcion, llamadas, responder, fallar, bajados, subidos, ffmpeg };
 });
 
 vi.mock('../src/db/cliente.js', () => ({ db: h.db }));
@@ -170,6 +171,8 @@ describe('manual-v2 de punta a punta (base y modelo falsos)', () => {
     expect(naza()).toMatchObject({ telefono_whatsapp: '+manual-pruebav2', estado: 'pausado', dia_actual: 0, familia_id: 'fam-naza' });
     expect(naza().contexto.modoRapido).toBe(true);
     expect(v2().preguntasEnviadas['0']).toMatch(/^Hola, soy el biógrafo/);
+    // El candado del anticipo de producción, desde el día 0: la fábrica no le manda el anticipo v1.
+    expect(h.subidos).toContain(`${naza().id}/paquete/anticipo_enviado.txt`);
     expect(v2().secuencia.hechas.map((x: any) => x.id)).toEqual(['presentacion']);
     // El texto para pegar va entero y al final.
     expect(r.texto.trim().endsWith(v2().preguntasEnviadas['0'])).toBe(true);

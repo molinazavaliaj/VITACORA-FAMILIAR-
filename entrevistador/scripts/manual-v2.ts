@@ -233,6 +233,15 @@ async function empezar(ref: string | undefined, flags: Args['flags']): Promise<v
     linea(`  estado: 'pausado' a propósito: así el scheduler de producción no lo toca. La entrevista v2 corre igual.`);
   }
 
+  // La fábrica de producción manda el anticipo (una llamada paga + un mail a la familia) a todo
+  // narrador 'activo' o 'pausado' con tres respuestas, y su único candado es este archivo en
+  // Storage. Se deja puesto desde el día 0: el piloto v2 no es una venta, y ese anticipo saldría
+  // con el guion viejo. Si Storage falla, se avisa y se sigue: no puede frenar la entrevista.
+  const candado = `${n.id}/paquete/anticipo_enviado.txt`;
+  const { error: errCandado } = await db.storage.from('audios').upload(candado, `piloto v2 (${new Date().toISOString()}): sin anticipo de producción`, { contentType: 'text/plain', upsert: true });
+  if (errCandado) linea(`⚠ No pude dejar el candado del anticipo (${candado}): ${errCandado.message}. La fábrica de producción va a mandar el anticipo v1 a la 3.ª respuesta.`);
+  else linea(`Candado del anticipo de producción puesto (${candado}): la fábrica no le manda el anticipo v1.`);
+
   let estado = planSiHaceFalta(estadoNuevo(n.contexto ?? {}, n.zona_horaria));
   const presentacion = proxima(estado.secuencia)!;
   linea(`Castellano: ${estado.perfil.castellano}. Escribiendo la presentación…`);

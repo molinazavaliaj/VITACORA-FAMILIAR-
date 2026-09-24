@@ -115,9 +115,10 @@ la memoria del proyecto).
 ## Avisos del piloto (para no sorprenderse)
 
 - **El worker de la fábrica (anticipo)** dispara para narradores `activo`/`pausado` con ≥3
-  respuestas: una llamada paga + un mail a la familia. Como el narrador v2 de Naza vive en
-  `pausado` con respuestas cargadas, **el piloto lo va a disparar — mail a su propia familia**.
-  No hay forma de evitarlo sin tocar el worker de producción (fuera del alcance de este plan).
+  respuestas: una llamada paga + un mail a la familia. Resuelto en la revisión (24/09): `empezar`
+  deja puesto el candado `{narrador}/paquete/anticipo_enviado.txt` desde el día 0, así la fábrica
+  de producción no le manda el anticipo v1 al narrador de prueba. Si Storage falla al ponerlo, el
+  comando lo avisa y sigue.
 - El panel de la empresa muestra al narrador v2 como "pausado" (ver arriba): no es un narrador
   colgado, es el mismo truco a propósito.
 - Las fotos de objetos se suben desde el panel de la web (tabla `fotos`); no hay comando CLI en
@@ -144,10 +145,9 @@ Y `docs/biografo-v2-textos-para-aprobar.md` ya existe (14 secciones: temas, enca
 prompts, los textos fijos, los dos mails), generado desde el código.
 
 **Lo que queda anotado, sin tocar (decide Naza):**
-- **El anticipo de producción se va a disparar** para el narrador v2 a la tercera respuesta
-  (`worker.ts:159` mira `activo` y `pausado`): una llamada paga (~USD 0,2) y un mail a
-  nazamateos@gmail.com con el anticipo v1. Inofensivo; para evitarlo hay que tocar el worker de
-  producción, que está fuera de este plan.
+- ~~El anticipo de producción se va a disparar~~ **Resuelto**: `empezar` deja el candado
+  `anticipo_enviado.txt` en el paquete del narrador de prueba (es el candado que mira
+  `worker.ts:173`); no hizo falta tocar el worker.
 - **El control "la ciudad no está en ninguna etapa"** (§2.7) quedó afuera: sin lista de ciudades no
   se detecta. Hoy se controla solo la ciudad equivocada entre las que el perfil conoce.
 - **`tramoDe` da `adulto joven` por defecto** a los temas que cruzan la vida (amor, oficio, amigos…):
