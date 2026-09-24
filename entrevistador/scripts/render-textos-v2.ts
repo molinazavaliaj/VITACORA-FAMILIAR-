@@ -4,9 +4,10 @@
  * Uso: cd entrevistador && npx tsx scripts/render-textos-v2.ts > ../docs/esqueleto-v2-textos-para-aprobar.md
  */
 import { armarGuion, GUION } from '../src/ia/guion-v2.js';
-import { armarPromptPregunta, objetivoEnTexto, type Objetivo } from '../src/ia/pregunta-v2.js';
-import { armarPromptEvaluar, armarPromptPedidos } from '../src/ia/evaluar-v2.js';
-import { armarPromptPerfil, perfilVacio, type Perfil } from '../src/ia/perfil.js';
+import { partirPromptPregunta, objetivoEnTexto, type Objetivo } from '../src/ia/pregunta-v2.js';
+import { partirPromptEvaluar, armarPromptPedidos } from '../src/ia/evaluar-v2.js';
+import { partirPromptPerfil, perfilVacio, type Perfil } from '../src/ia/perfil.js';
+import type { PromptPartido } from '../src/ia/modelos-v2.js';
 import { perfilEnTexto } from '../src/ia/encargo-entrevista.js';
 import { pendientesParaPerfil } from '../src/manual/estado-v2.js';
 import { armarSecuencia } from '../src/ia/secuencia.js';
@@ -33,6 +34,8 @@ function elida(): Perfil {
   return p;
 }
 const bloque = (t: string) => `\n\`\`\`\n${t.trim()}\n\`\`\`\n`;
+/** Ajuste B: el prompt como se manda (lo fijo primero, cacheado). La marca del medio no va al modelo. */
+const partido = (p: PromptPartido) => `${p.fijo}\n\n[— hasta acá la parte fija, cacheada; lo que sigue cambia en cada llamada —]${p.variable}`;
 const out: string[] = [];
 out.push('# Esqueleto v2 — los textos que aprueba Naza (generado con `scripts/render-textos-v2.ts`)\n');
 out.push('> **Pendiente de aprobación de Naza** (los prompts cambiaron: la Tarea 12 del plan los rinde acá).\n');
@@ -48,11 +51,11 @@ for (const [nombre, p] of [['Naza (27)', naza()], ['Élida (76)', elida()]] as c
   out.push(`### La ficha de ${nombre}, en texto (${perfilEnTexto(p).length} caracteres)\n${bloque(perfilEnTexto(p))}`);
   const fila = filas.find((f) => f.id === 'padres-como-eran')!;
   const o: Objetivo = { tipo: 'nucleo', ...fila };
-  out.push(`### El prompt de la pregunta (${fila.id}) para ${nombre}\n${bloque(armarPromptPregunta(p, o, [{ pregunta: '¿Qué ves al entrar a esa casa?', respuesta: 'Una casa de tres pisos, mi mamá en la cocina.' }], [{ id: 'casa-infancia', tema: 'La casa de la infancia' }, { id: 'los-tuyos-hoy', tema: 'Quiénes son los suyos hoy' }]))}`);
-  out.push(`### El prompt de la evaluación para ${nombre}\n${bloque(armarPromptEvaluar(p, o, '¿Cómo eran tu mamá y tu papá?', 'Mi mamá era brava. Mi papá cocinaba.', 25, [], []))}`);
+  out.push(`### El prompt de la pregunta (${fila.id}) para ${nombre}\n${bloque(partido(partirPromptPregunta(p, o, [{ pregunta: '¿Qué ves al entrar a esa casa?', respuesta: 'Una casa de tres pisos, mi mamá en la cocina.' }], [{ id: 'casa-infancia', tema: 'La casa de la infancia' }, { id: 'los-tuyos-hoy', tema: 'Quiénes son los suyos hoy' }])))}`);
+  out.push(`### El prompt de la evaluación para ${nombre}\n${bloque(partido(partirPromptEvaluar(p, o, '¿Cómo eran tu mamá y tu papá?', 'Mi mamá era brava. Mi papá cocinaba.', 25, [], [])))}`);
   const rep: Objetivo = { tipo: 'repregunta', id: 'padres-como-eran-repregunta', tramo: 'infancia', pregunta: '¿Cómo eran tu mamá y tu papá?', falto: ['en qué se parece', 'una escena de cada uno'] };
   out.push(`### El objetivo de la repregunta para ${nombre}\n${bloque(objetivoEnTexto(rep, p))}`);
-  out.push(`### El prompt de la ficha para ${nombre}\n${bloque(armarPromptPerfil(p, '¿Cómo eran tu mamá y tu papá?', 'Mi mamá era brava. Mi papá cocinaba.', pendientesParaPerfil(armarSecuencia(p, ANIO))))}`);
+  out.push(`### El prompt de la ficha para ${nombre}\n${bloque(partido(partirPromptPerfil(p, '¿Cómo eran tu mamá y tu papá?', 'Mi mamá era brava. Mi papá cocinaba.', pendientesParaPerfil(armarSecuencia(p, ANIO)))))}`);
 }
 out.push(`## El prompt de los pedidos (repreguntas y objetos, Haiku)\n${bloque(armarPromptPedidos('De esa época no tengo nada, che.'))}`);
 process.stdout.write(out.join('\n'));
