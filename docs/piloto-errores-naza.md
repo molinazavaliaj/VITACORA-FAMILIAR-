@@ -373,3 +373,12 @@
   corta (34 s), y la evaluación no lo registra como cansancio.
 - **Dónde:** perfil (`corregirPersonas`), evaluación v2 (cansancio / repetición).
 - **Qué se hizo a mano:** nada.
+
+## N36 · 24/09 · La repregunta del campo vuelve a los años sin el padre
+- **Qué pasó:** Naza contó el campo en 43 s («cuando todo estaba normal íbamos todos; muchos años
+  fuimos solamente Ariel y mi mamá»). La repregunta eligió justo los años en que el padre y Juan
+  Manuel no estaban («llevame a uno de esos días con ellos dos… qué sentías vos ahí»), otra vez el
+  período duro (N11, N13), y con «ellos dos» deja afuera que él también iba. La evaluación y la
+  repregunta necesitaron 2 intentos cada una (~USD 0,39 esta carga). No dice qué falló.
+- **Dónde:** evaluación v2 (repregunta), controles (N12).
+- **Qué se hizo a mano:** nada; se mandó así.
