@@ -46,11 +46,12 @@ function nombresDeLugar(lugar: string): { normal: string; original: string }[] {
  * pregunta.
  */
 export function controlarLugar(texto: string, perfil: Perfil, objetivo: Objetivo): { ok: true } | Rechazo {
-  if (objetivo.tipo === 'nucleo' && !objetivo.tramo) return { ok: true };
+  const tramoObjetivo = objetivo.tipo === 'variable' || objetivo.tipo === 'objeto' ? objetivo.tramo : objetivo.tramo ?? null;
+  if (!tramoObjetivo) return { ok: true };
   const edad = edadDe(perfil, new Date().getFullYear()) ?? 100;
   const etapas = perfil.etapas.map((e) => ({ rango: rangoDeEtapa(e.edades, edad), nombres: nombresDeLugar(e.lugar) })).filter((e) => e.rango && e.nombres.length);
   if (!etapas.length) return { ok: true };
-  const [desde, hasta] = objetivo.tipo === 'variable' ? [objetivo.desde, objetivo.hasta] : (RANGO_TRAMO[objetivo.tramo!] ?? [0, 200]);
+  const [desde, hasta] = objetivo.tipo === 'variable' ? [objetivo.desde, objetivo.hasta] : (RANGO_TRAMO[tramoObjetivo] ?? [0, 200]);
   const limpio = sinAcentos(texto);
   const nombrados = etapas.flatMap((e) => e.nombres.filter((n) => nombraLugar(limpio, n.normal)));
   if (!nombrados.length) return { ok: true };

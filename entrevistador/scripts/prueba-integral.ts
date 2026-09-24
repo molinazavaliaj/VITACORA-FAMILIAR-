@@ -163,11 +163,10 @@ try {
       `Pregunta: «${caso.pregunta}»`, '', `Respuesta: «${caso.respuesta.slice(0, 220)}…»`, '',
       `**Evaluación de hoy:** ${bloqueHoy && bloqueHoy.type === 'text' ? bloqueHoy.text.trim() : '(vacío)'}`, '',
       `**Evaluación v2:** suficiente=${e.suficiente}` +
-        `${e.repregunta !== undefined ? ` · repregunta="${e.repregunta}"` : ''}` +
+        `${e.falto.length ? ` · falto=${e.falto.map((f) => `"${f}"`).join(', ')}` : ''}` +
         `${e.dejarTema !== undefined ? ` · dejarTema="${e.dejarTema}"` : ''}` +
         `${e.reservado !== undefined ? ` · reservado=${e.reservado}` : ''}` +
-        `${e.reservadoTramo !== undefined ? ` · reservadoTramo="${e.reservadoTramo}"` : ''}` +
-        `${v2.marca ? ` ⚠ marca: ${v2.marca.control} — ${v2.marca.motivo}` : ''}`,
+        `${e.reservadoTramo !== undefined ? ` · reservadoTramo="${e.reservadoTramo}"` : ''}`,
       '',
     );
     casosEvaluados++;

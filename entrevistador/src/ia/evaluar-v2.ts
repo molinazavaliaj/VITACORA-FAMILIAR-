@@ -1,44 +1,51 @@
 import type Anthropic from '@anthropic-ai/sdk';
 import type { Perfil } from './perfil.js';
 import { encargoDelBiografo } from './encargo-entrevista.js';
-import { controlarPregunta, INTENTOS, type Marca } from './control-pregunta.js';
 import type { Objetivo } from './pregunta-v2.js';
+import { MODELO_EVALUACION, MODELO_PEDIDOS } from './modelos-v2.js';
 
-// La evaluación v2 (biógrafo v2, 23/09 — BORRADOR de la reescritura, lo aprueba Naza; producción
-// sigue con `evaluarRespuesta` de cerebro.ts). Decide si con la respuesta alcanza para escribir la
-// página del día y, si no, escribe la repregunta.
+// La evaluación del esqueleto v2 (24/09). Decide si con la respuesta hay con qué escribir la página
+// del día y, si no, QUÉ FALTÓ de la fila (sus pormenores): la repregunta la escribe Opus después
+// (`escribirPregunta` con un objetivo `repregunta`), junta y en una sola pregunta. Ya no "ahonda en
+// el pormenor" (N37). Sonnet: es un juicio con la ficha, no un texto para la persona.
 //
-// La de hoy es el prompt más parcheado del entrevistador (19 cambios, uno por error) y no veía lo
-// que la persona ya había contado: por eso le pidió a Ciro sus abuelos cuando el primer día había
-// contado que su abuela le cocinaba (C1). Esta parte del encargo compartido —la ficha, cómo
-// hablarle, lo que se respeta— y recibe lo último que hablaron, con sus preguntas. La repregunta
-// pasa por los MISMOS controles que la pregunta del día (trato, largo, que pregunte algo, lugar,
-// supuestos — Task 6) y los mismos `INTENTOS`; si falla el último, queda marcada (§2.8).
-//
-// Lo que ya no hace: marcar a qué pregunta anterior pertenece un recuerdo (`temaDeOrden`). Eso
-// ahora lo resuelve la fábrica al repartir el material en las etapas del libro.
-
-const MODELO = 'claude-opus-5';
+// Para las respuestas a repreguntas y a objetos no se evalúa si alcanza (no se vuelve a repreguntar):
+// `evaluarPedidos` (Haiku, prompt corto) solo busca reserva, tema a dejar, "hoy no" y "no quiero seguir" (N29).
 
 export type EvaluacionV2 = {
   suficiente: boolean;
-  repregunta?: string;
-  /** Pidió que algo no vaya al libro. Quien llama lo pasa por `reservaDe` (cerebro.ts), como hoy. */
+  /** Los pormenores de la fila que quedaron afuera, en pocas palabras (hasta 4). */
+  falto: string[];
   reservado?: boolean;
   reservadoTramo?: string;
-  /** Pidió dejar un tema: cuál, en pocas palabras. */
   dejarTema?: string;
-  /** Hoy no puede: mañana se retoma la MISMA pregunta (no es dejarTema, no hay repregunta). */
   hoyNo?: boolean;
-  /** No quiere seguir con la entrevista: el biógrafo no decide solo, avisa a la familia (quien llama). */
   quiereParar?: boolean;
 };
+export type Pedidos = Pick<EvaluacionV2, 'reservado' | 'reservadoTramo' | 'dejarTema' | 'hoyNo' | 'quiereParar'>;
 
-export const PROMPT_EVALUAR_V2 = (encargo: string, pregunta: string, respuesta: string, segundos: number, conversacion: string) => `
+const PEDIDOS = `- Si pidió cambiar de tema ("vamos por otro lado", "prefiero no hablar de eso"): "dejarTema" con el
+  tema en pocas palabras. Esquivar no es pedir.
+- Si dice que HOY no puede ("hoy no", "mañana te contesto", "estoy cansado hoy"): "hoyNo": true.
+- Si dice que no quiere seguir con la entrevista ("no quiero seguir", "dejemos esto", "no me
+  manden más"): "quiereParar": true. No lo convenzas.
+- Si pidió que algo no vaya al libro ("esto no lo pongas", "que quede para mí"): "reservado": true,
+  y si es una parte, "reservadoTramo" con ese tramo COPIADO TEXTUAL. Ante la duda, reservá.`;
+
+const objetivoEnLinea = (o: Objetivo): string =>
+  o.tipo === 'nucleo' ? `${o.tema}${o.pormenores.length ? `\nPormenores de la fila: ${o.pormenores.join('; ')}.` : ''}`
+    : o.tipo === 'variable' ? `Algo que nombró y no contó: ${o.anclas.join('; ')}.`
+      : o.tipo === 'objeto' ? 'Un objeto de esa época, con foto.'
+        : `Repregunta: ${o.falto.join('; ')}.`;
+
+export const PROMPT_EVALUAR_V2 = (encargo: string, fila: string, pregunta: string, respuesta: string, segundos: number, conversacion: string) => `
 ${encargo}
 
 LO ÚLTIMO QUE HABLARON (cada respuesta con la pregunta que la originó):
 ${conversacion || '(es la primera respuesta)'}
+
+EL TEMA DE HOY (lo que el guion quería que saliera):
+${fila}
 
 LA PREGUNTA DE HOY:
 ${pregunta}
@@ -47,31 +54,25 @@ LO QUE CONTESTÓ (duró ${segundos} segundos):
 ${respuesta}
 
 Tu trabajo: decidir si con esta respuesta hay con qué escribir la página de hoy del libro y, si no,
-escribir UNA repregunta.
+decir QUÉ FALTÓ del tema.
 
 - ALCANZA si hay con qué escribir: dos o tres detalles concretos, con al menos una escena o un
-  nombre. El largo no decide: diez segundos pueden valer un capítulo y cuatro minutos no decir
-  nada. Si alcanza, no pidas más por costumbre.
+  nombre. El largo no decide: diez segundos pueden valer un capítulo. Si alcanza, no pidas más por
+  costumbre, y "falto" queda vacío.
 - NO ALCANZA solo si hay poco material (generalidades sin una escena, sin un nombre, sin un hecho),
-  o si contó algo fuerte y lo dejó en una frase: ahí la repregunta va EXACTAMENTE a eso.
-- La repregunta ahonda en lo que dijo hoy (o en la parte valiosa que quedó afuera). Nunca un tema
-  nuevo, nunca decir que es una repregunta, nunca pedirle que resuma. Si se fue a otro tema, está
-  bien: no se lo reencuadra ni se le pide que vuelva.
-- Si pidió cambiar de tema ("vamos por otro lado", "prefiero no hablar de eso"): alcanza, sin
-  repregunta, y anotá el tema en "dejarTema" (en pocas palabras). Esquivar no es pedir.
-- Si dice que HOY no puede ("hoy no", "mañana te contesto", "estoy cansado hoy"): alcanza, sin
-  repregunta, y "hoyNo": true. No es dejar un tema: mañana se retoma la misma pregunta.
-- Si dice que no quiere seguir con la entrevista ("no quiero seguir", "dejemos esto", "no me
-  manden más"): alcanza, sin repregunta, y "quiereParar": true. No lo convenzas: el biógrafo no
-  decide solo; avisa a la familia.
-- Si pidió que algo no vaya al libro ("esto no lo pongas", "que quede para mí"): "reservado": true,
-  y si es una parte, "reservadoTramo" con ese tramo COPIADO TEXTUAL. Ante la duda, reservá.
+  o si contó algo fuerte y lo dejó en una frase. Entonces "falto": los pormenores del tema que
+  quedaron afuera, tal como están en la fila, hasta 4. Nunca un tema nuevo. Nunca un detalle de un
+  detalle: lo que faltó del TEMA, no más precisión sobre lo que ya contó.
+- Si dijo "esto ya te lo conté" o parecido: alcanza, "falto" vacío.
+- Si se fue a otro tema, está bien: no se lo reencuadra.
+${PEDIDOS}
 
-Respondé SOLO con JSON: {"suficiente": true} o {"suficiente": false, "repregunta": "..."}, y sumá
-"dejarTema", "reservado", "reservadoTramo", "hoyNo" y "quiereParar" cuando corresponda.`;
+Respondé SOLO con JSON: {"suficiente": true, "falto": []} o {"suficiente": false, "falto": ["..."]},
+y sumá "dejarTema", "reservado", "reservadoTramo", "hoyNo" y "quiereParar" cuando corresponda.`;
 
 export function armarPromptEvaluar(
   perfil: Perfil,
+  objetivo: Objetivo,
   pregunta: string,
   respuesta: string,
   segundos: number,
@@ -80,6 +81,7 @@ export function armarPromptEvaluar(
 ): string {
   return PROMPT_EVALUAR_V2(
     encargoDelBiografo(perfil, evitar),
+    objetivoEnLinea(objetivo),
     pregunta,
     respuesta,
     segundos,
@@ -87,43 +89,45 @@ export function armarPromptEvaluar(
   );
 }
 
-/** Lee el JSON, campo por campo: lo que viene con el tipo equivocado se ignora en vez de colarse
- * tal cual al libro o a la base (antes `return crudo as EvaluacionV2` dejaba pasar cualquier cosa).
- * Si viene roto, alcanza: hoy no hay repregunta, pero el día no se corta (§2.8). */
-export function parsearEvaluacion(salida: string): EvaluacionV2 {
+const MAX_FALTO = 4;
+
+function leerJson(salida: string): Record<string, unknown> | null {
   try {
     const limpio = salida.trim();
-    const c = JSON.parse(limpio.slice(limpio.indexOf('{'), limpio.lastIndexOf('}') + 1)) as Record<string, unknown>;
-    if (typeof c?.suficiente !== 'boolean') return { suficiente: true };
-    const e: EvaluacionV2 = { suficiente: c.suficiente };
-    if (typeof c.repregunta === 'string' && c.repregunta.trim()) e.repregunta = c.repregunta.trim();
-    if (c.reservado === true) e.reservado = true;
-    if (typeof c.reservadoTramo === 'string' && c.reservadoTramo.trim()) e.reservadoTramo = c.reservadoTramo.trim();
-    if (typeof c.dejarTema === 'string' && c.dejarTema.trim()) e.dejarTema = c.dejarTema.trim();
-    if (c.hoyNo === true) e.hoyNo = true;
-    if (c.quiereParar === true) e.quiereParar = true;
-    return e;
+    const c = JSON.parse(limpio.slice(limpio.indexOf('{'), limpio.lastIndexOf('}') + 1));
+    return typeof c === 'object' && c !== null ? (c as Record<string, unknown>) : null;
   } catch {
-    return { suficiente: true };
+    return null;
   }
+}
+
+function leerPedidos(c: Record<string, unknown>): Pedidos {
+  const p: Pedidos = {};
+  if (c.reservado === true) p.reservado = true;
+  if (typeof c.reservadoTramo === 'string' && c.reservadoTramo.trim()) p.reservadoTramo = c.reservadoTramo.trim();
+  if (typeof c.dejarTema === 'string' && c.dejarTema.trim()) p.dejarTema = c.dejarTema.trim();
+  if (c.hoyNo === true) p.hoyNo = true;
+  if (c.quiereParar === true) p.quiereParar = true;
+  return p;
+}
+
+/** Campo por campo. Si viene roto, alcanza (el día no se corta) y no hay nada que pedir. */
+export function parsearEvaluacion(salida: string): EvaluacionV2 {
+  const c = leerJson(salida);
+  if (!c || typeof c.suficiente !== 'boolean') return { suficiente: true, falto: [] };
+  const falto = Array.isArray(c.falto) ? c.falto.filter((x): x is string => typeof x === 'string' && x.trim() !== '').map((x) => x.trim()).slice(0, MAX_FALTO) : [];
+  return { suficiente: c.suficiente, falto: c.suficiente ? [] : falto, ...leerPedidos(c) };
 }
 
 export const DIAS_SIN_REPREGUNTAR = 3;
 
-/** Cansancio: si las dos últimas repreguntas quedaron sin contestar, no se repregunta por unos
- * días (`DIAS_SIN_REPREGUNTAR`) aunque la respuesta de hoy diera para repreguntar. Lo decide quien
- * llama (Task 8), esto solo mira el patrón. */
+/** Cansancio: si las dos últimas repreguntas quedaron sin contestar, no se repregunta por unos días. */
 export function hayCansancio(ultimasRepreguntas: { contestada: boolean }[]): boolean {
   const dos = ultimasRepreguntas.slice(-2);
   return dos.length === 2 && dos.every((r) => !r.contestada);
 }
 
-/**
- * Evalúa. La repregunta pasa por los MISMOS controles que la pregunta del día (`controlarPregunta`,
- * con el objetivo de la pregunta de hoy: por eso también se le controla el lugar y los supuestos,
- * no solo la forma) y los mismos `INTENTOS`; si el último intento también falla, se devuelve igual
- * —mejor una repregunta imperfecta que ninguna— pero con `marca` para que quien llama lo sepa.
- */
+/** Una llamada. Sin reintentos: no hay texto para la persona que controlar. */
 export async function evaluarV2(
   cliente: Anthropic,
   perfil: Perfil,
@@ -133,23 +137,32 @@ export async function evaluarV2(
   segundos: number,
   conversacion: { pregunta: string; respuesta: string }[],
   evitar: string[],
-): Promise<{ evaluacion: EvaluacionV2; marca?: Marca; usos: Anthropic.Usage[] }> {
-  const prompt = armarPromptEvaluar(perfil, pregunta, respuesta, segundos, conversacion, evitar);
-  const usos: Anthropic.Usage[] = [];
-  let evaluacion: EvaluacionV2 = { suficiente: true };
-  let ultimo: { control: string; motivo: string } | null = null;
-  for (let intento = 1; intento <= INTENTOS; intento++) {
-    const contenido = intento === 1 ? prompt : `${prompt}\n\nTu versión anterior no sirvió porque ${ultimo!.motivo}. Escribila de nuevo, cuidando eso.`;
-    const r = await cliente.messages.create({ model: MODELO, max_tokens: 500, messages: [{ role: 'user', content: contenido }] });
-    usos.push(r.usage);
-    const bloque = r.content.find((b) => b.type === 'text');
-    evaluacion = parsearEvaluacion(bloque && bloque.type === 'text' ? bloque.text : '');
-    if (evaluacion.suficiente || !evaluacion.repregunta) return { evaluacion, usos };
-    const control = controlarPregunta(evaluacion.repregunta, perfil, objetivo);
-    if (control.ok) return { evaluacion, usos };
-    ultimo = control;
-  }
-  // Campo por campo: `ultimo` es un Rechazo y trae "ok: false" de arrastre, que no pertenece a la
-  // Marca (mismo fix que escribirPregunta en pregunta-v2.ts).
-  return { evaluacion, marca: { control: ultimo!.control, motivo: ultimo!.motivo, intentos: INTENTOS }, usos };
+): Promise<{ evaluacion: EvaluacionV2; usos: Anthropic.Usage[] }> {
+  const r = await cliente.messages.create({ model: MODELO_EVALUACION, max_tokens: 1000, messages: [{ role: 'user', content: armarPromptEvaluar(perfil, objetivo, pregunta, respuesta, segundos, conversacion, evitar) }] });
+  const bloque = r.content.find((b) => b.type === 'text');
+  return { evaluacion: parsearEvaluacion(bloque && bloque.type === 'text' ? bloque.text : ''), usos: [r.usage] };
+}
+
+export const PROMPT_PEDIDOS = (respuesta: string) => `
+Sos el biógrafo que entrevista a una persona por WhatsApp para el libro de su vida. Esta es su
+respuesta a una repregunta o a un pedido de foto. No tenés que juzgar si alcanza: solo fijate si
+PIDE algo.
+
+LO QUE CONTESTÓ:
+${respuesta}
+
+${PEDIDOS}
+
+Respondé SOLO con JSON con las claves que correspondan ({} si no pide nada): {"reservado": true,
+"reservadoTramo": "...", "dejarTema": "...", "hoyNo": true, "quiereParar": true}.`;
+
+export function armarPromptPedidos(respuesta: string): string {
+  return PROMPT_PEDIDOS(respuesta);
+}
+
+export async function evaluarPedidos(cliente: Anthropic, respuesta: string): Promise<{ pedidos: Pedidos; usos: Anthropic.Usage[] }> {
+  const r = await cliente.messages.create({ model: MODELO_PEDIDOS, max_tokens: 300, messages: [{ role: 'user', content: armarPromptPedidos(respuesta) }] });
+  const bloque = r.content.find((b) => b.type === 'text');
+  const c = leerJson(bloque && bloque.type === 'text' ? bloque.text : '');
+  return { pedidos: c ? leerPedidos(c) : {}, usos: [r.usage] };
 }

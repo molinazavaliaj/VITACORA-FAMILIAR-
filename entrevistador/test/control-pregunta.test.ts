@@ -97,3 +97,14 @@ describe('controlarPregunta (todos juntos)', () => {
     expect(controlarPregunta('Hola, soy tu biógrafo. Voy a escribir el libro de tu vida con lo que me cuentes. Decime cómo te dicen en casa.', p, { tipo: 'nucleo', id: 'presentacion', tramo: null, bloque: 'presentacion', tema: '' } as never)).toEqual({ ok: true });
   });
 });
+
+describe('controlarLugar con una repregunta (esqueleto v2)', () => {
+  it('una repregunta de la infancia que nombra la ciudad de la juventud se rechaza; sin tramo, no controla', () => {
+    const p = perfilVacio();
+    p.persona.edad = { valor: '27', fuente: 'dicho' };
+    p.etapas.push({ edades: '0 a 12', lugar: 'Concordia', conQuien: '', queHacia: '', fuente: 'dicho' }, { edades: '13 a 22', lugar: 'Buenos Aires', conQuien: '', queHacia: '', fuente: 'dicho' });
+    const rep = (tramo: 'infancia' | null): Objetivo => ({ tipo: 'repregunta', id: 'x', tramo, pregunta: 'P', falto: ['a'] });
+    expect(controlarPregunta('¿Y en Buenos Aires, qué jugabas de chico?', p, rep('infancia')).ok).toBe(false);
+    expect(controlarPregunta('¿Y en Buenos Aires, qué jugabas de chico?', p, rep(null)).ok).toBe(true);
+  });
+});
