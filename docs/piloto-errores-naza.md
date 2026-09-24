@@ -404,3 +404,12 @@
 - **Dónde:** secuencia v2 (orden de las variables de infancia), evaluación v2 (cansancio),
   `procesar` (evaluar lo que no se va a usar).
 - **Qué se hizo a mano:** nada.
+
+## N38 · 24/09 · La pregunta 22 lo pone con Ciano justo cuando estaban peleados
+- **Qué pasó:** «¿Dónde paraban **con Ciano** y los pibes…?», a los 15-16. Naza contestó que en esos
+  dos años estuvo distanciado de Ciano (por Vicky). La pregunta supuso que Ciano estaba porque era
+  «el amigo del Fátima». No es grave, y la respuesta trajo una bisagra nueva, pero es otro supuesto
+  sobre personas (N19, N21, N25). La pregunta 23 sale con `var-juventud-3`, cubierto después de la
+  respuesta 6: sexto caso de N17 (el tema nuevo, la primera casa solo, está bien elegido).
+- **Dónde:** pregunta 22 (`a-los-quince`), control de supuestos; secuencia (N17).
+- **Qué se hizo a mano:** nada.
