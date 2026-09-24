@@ -210,3 +210,123 @@ describe('recortarAlTope (fix ronda 1, ítem D.5)', () => {
     expect(r.some((f) => f.id === 'presentacion')).toBe(true);
   });
 });
+
+// Fix ronda 2, ítem D.1: pormenores verbatim de §3 (sin agregar ni sacar de más).
+describe('GUION — pormenores verbatim de §3 (fix ronda 2, ítem D.1)', () => {
+  it('estudios: solo lo que dice la columna de §3, "hasta dónde llegó" queda en el tema', () => {
+    const f = GUION.find((x) => x.id === 'estudios')!;
+    expect(f.pormenores).toEqual(['secundaria, facultad u oficio', 'si lo eligió o lo eligió la vida', 'quién lo apoyó']);
+  });
+  it('a-los-quince: sin "con quién" en pormenores (está en el tema)', () => {
+    const f = GUION.find((x) => x.id === 'a-los-quince')!;
+    expect(f.pormenores).not.toContain('con quién');
+    expect(f.tema).toMatch(/con quién/i);
+  });
+  it('pareja-como-llego: "cómo era ella/él", no "cómo era esa persona"', () => {
+    const f = GUION.find((x) => x.id === 'pareja-como-llego')!;
+    expect(f.pormenores).toContain('cómo era ella/él');
+    expect(f.pormenores).not.toContain('cómo era esa persona');
+  });
+  it('hijo-unico: solo "cómo era ser el único", sin pormenores inventados', () => {
+    const f = GUION.find((x) => x.id === 'hermano')!;
+    expect(f.siNoTuvo).toMatchObject({ modo: 'variante', id: 'hijo-unico' });
+    if (f.siNoTuvo?.modo === 'variante') {
+      expect(f.siNoTuvo.tema).toMatch(/único/i);
+      expect(f.siNoTuvo.pormenores ?? []).toEqual([]);
+    }
+  });
+  it('la variante "quienes-fueron-tu-familia" (fila 22) no tiene "una escena": no está en §3', () => {
+    const f = GUION.find((x) => x.id === 'los-hijos-creciendo')!;
+    if (f.siNoTuvo?.modo === 'variante') expect(f.siNoTuvo.pormenores ?? []).not.toContain('una escena');
+  });
+});
+
+// Fix ronda 2, ítem D.2: temas de reflexión y mapa-casas sin contenido agregado.
+describe('GUION — temas sin agregados (fix ronda 2, ítem D.2)', () => {
+  it('mapa-casas: sin "que se sienta como un recorrido..."', () => {
+    expect(GUION.find((x) => x.id === 'mapa-casas')!.tema).not.toMatch(/recorrido/i);
+  });
+  it('reflexión: sin las frases agregadas', () => {
+    expect(GUION.find((x) => x.id === 'pruebas')!.tema).not.toMatch(/pérdida.*fracaso/i);
+    expect(GUION.find((x) => x.id === 'fuerza')!.tema).not.toMatch(/a los suyos/i);
+    expect(GUION.find((x) => x.id === 'alegrias')!.tema).not.toMatch(/orgullo le da/i);
+    expect(GUION.find((x) => x.id === 'lo-que-falta')!.tema).not.toMatch(/turno de traer/i);
+    expect(GUION.find((x) => x.id === 'cinco-minutos')!.tema).not.toMatch(/no le conoce/i);
+  });
+});
+
+// Fix ronda 2, ítem D.3: "sigue trabajando" antes que la edad y que "se jubiló"; sin negaciones falsas.
+describe('armarGuion — dejar-el-trabajo (fix ronda 2, ítem D.3)', () => {
+  const conTexto = (edad: string, texto: string): Perfil => {
+    const p = perfilVacio(); p.persona.edad = dicho(edad);
+    p.etapas.push({ edades: 'siempre', lugar: '', conQuien: '', queHacia: texto, fuente: 'dicho' });
+    return p;
+  };
+  it('70, "sigue trabajando en el taller": la variante, no la fila normal', () => {
+    const f = armarGuion(conTexto('70', 'sigue trabajando en el taller'), ANIO).filas;
+    expect(f.some((x) => x.id === 'dejar-el-trabajo-sigue')).toBe(true);
+    expect(f.some((x) => x.id === 'dejar-el-trabajo')).toBe(false);
+  });
+  it('58, "no se jubiló, sigue en el banco": la variante, no dejar-el-trabajo', () => {
+    const f = armarGuion(conTexto('58', 'no se jubiló, sigue en el banco'), ANIO).filas;
+    expect(f.some((x) => x.id === 'dejar-el-trabajo-sigue')).toBe(true);
+    expect(f.some((x) => x.id === 'dejar-el-trabajo')).toBe(false);
+  });
+  it('58, "se jubiló": entra dejar-el-trabajo (la fila normal)', () => {
+    const f = armarGuion(conTexto('58', 'se jubiló'), ANIO).filas;
+    expect(f.some((x) => x.id === 'dejar-el-trabajo')).toBe(true);
+    expect(f.some((x) => x.id === 'dejar-el-trabajo-sigue')).toBe(false);
+  });
+  it('70, sin decir nada: entra dejar-el-trabajo por la edad', () => {
+    const p = perfilVacio(); p.persona.edad = dicho('70');
+    const f = armarGuion(p, ANIO).filas;
+    expect(f.some((x) => x.id === 'dejar-el-trabajo')).toBe(true);
+  });
+});
+
+// Fix ronda 2, ítem D.3: una sola variante compartida "quienes-fueron-tu-familia".
+describe('armarGuion — quienes-fueron-tu-familia compartida (fix ronda 2, ítem D.3)', () => {
+  it('45, sin pareja ni hijos: exactamente una fila "quienes-fueron-tu-familia"', () => {
+    const p = perfilVacio(); p.persona.edad = dicho('45');
+    const no = aplicarCambios(p, { noTuvo: ['pareja', 'hijos'] });
+    const { filas, caidas } = armarGuion(no, ANIO);
+    expect(filas.filter((f) => f.id === 'quienes-fueron-tu-familia')).toHaveLength(1);
+    expect(caidas.some((c) => c.motivo === 'ya entra quienes-fueron-tu-familia')).toBe(true);
+  });
+});
+
+// Fix ronda 2: "el que más aparece" cuenta la palabra completa, no un substring.
+describe('expandir — "el que más aparece" por palabra completa (fix ronda 2)', () => {
+  it('puede no ser el primero de la lista', () => {
+    const p = naza();
+    p.personas.push(persona('Pedro', 'hermano'), persona('Pablo', 'hermano'));
+    // Pablo (el último de la lista) aparece más veces en la ficha.
+    p.etapas.push({ edades: 'siempre', lugar: '', conQuien: 'Pablo', queHacia: 'Pablo se ocupaba de todo', fuente: 'dicho' });
+    const l = ids(p);
+    expect(l).toContain(`hermano-${slug('Pablo')}`);
+    expect(l).not.toContain(`hermano-${slug('Ariel')}`);
+  });
+  it('"Ana" no gana por aparecer dentro de "Anastasia": cuenta como palabra completa', () => {
+    const p = perfilVacio(); p.persona.edad = dicho('40');
+    p.personas.push(persona('Ana', 'hermana'), persona('Beto', 'hermano'), persona('Cami', 'hermana'), persona('Dana', 'hermana'));
+    p.etapas.push(
+      { edades: 'e1', lugar: '', conQuien: 'Anastasia', queHacia: 'con Beto', fuente: 'dicho' },
+      { edades: 'e2', lugar: '', conQuien: 'Anastasia', queHacia: '', fuente: 'dicho' },
+      { edades: 'e3', lugar: '', conQuien: 'Anastasia', queHacia: '', fuente: 'dicho' },
+    );
+    const l = ids(p);
+    expect(l).toContain('hermanos-todos');
+    expect(l).toContain(`hermano-${slug('Beto')}`);
+    expect(l).not.toContain(`hermano-${slug('Ana')}`);
+  });
+});
+
+// Fix ronda 2: esPareja excluye también "del".
+describe('arbolDe — pareja: "del" también es complemento (fix ronda 2)', () => {
+  it('"compañero del club" y "novia del colegio" no son pareja', () => {
+    const p = perfilVacio();
+    p.personas.push(persona('Rulo', 'compañero del club'), persona('Meli', 'novia del colegio'));
+    expect(arbolDe(p).pareja).toEqual([]);
+  });
+});
+
