@@ -276,3 +276,23 @@
   mismo período.
 - **Dónde:** `RANGO_TRAMO` / armado de tramos por edad en la secuencia v2.
 - **Qué se hizo a mano:** nada.
+
+## N27 · 24/09 · El perfil inventa que Ciro le enseña a programar
+- **Qué pasó:** Naza dijo «acá en la casa ahora mismo está el profe, que es Ciro, un amigo
+  argentino». El perfil escribió la bisagra «se puso a programar, **aprendiendo con Ciro**, un amigo
+  argentino que le hace de profe». «El profe» puede ser un apodo. Que le enseñe a programar es una
+  deducción que se guardó como hecho.
+- **Dónde:** perfil (bisagra de los 27).
+- **Qué se hizo a mano:** nada.
+
+## N28 · 24/09 · La pregunta 15 vuelve a «los primeros días en Berga» y otra vez un id cubierto
+- **Qué pasó:** la pregunta 13 ya fue «el día que pisaste Berga». La 15 es «los primeros días ahí:
+  cómo consiguieron esa casa, cómo se repartieron el laburo y la guita, qué hacían un domingo». Es
+  el mismo período, y otra vez con tres preguntas en una. La `puertaAbierta` fue
+  `var-adulto joven-1`, que el perfil había dado por cubierto después de la respuesta 12 (N17 de
+  nuevo: el mismo id vuelve). Con esta pregunta llegó también el primer objeto (orden 101, tramo
+  «hoy»), en un segundo mensaje.
+- **Dónde:** secuencia v2 (ids de variables, N17/N26), pregunta 15.
+- **Qué se hizo a mano:** nada; se mandaron las dos.
+- **Aviso del handoff:** la foto del objeto no entra por la puerta manual v2. Se sube desde el
+  panel de la web (tabla `fotos`). Por CLI solo entra el audio con `--orden 101`.
