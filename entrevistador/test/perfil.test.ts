@@ -227,6 +227,14 @@ describe('la ficha con topes (esqueleto v2: el perfil del piloto llegó a 12.700
     expect(r.bisagras.filter((b) => /^A los/.test(b))).toHaveLength(10);
     expect(r.bisagras.every((b) => b.length <= TOPES.bisagra)).toBe(true);
   });
+  it('bisagras: con más de 12 CON edad, se quedan las 12 con edad más nuevas y ninguna sin edad (fix ronda 1)', () => {
+    const p = perfilVacio();
+    p.bisagras = [...Array.from({ length: 15 }, (_, i) => `A los ${i + 5} pasó la cosa ${i}`), 'Se fue a España sin decir cuándo', 'Dejó la facultad'];
+    const r = recortarPerfil(p);
+    expect(r.bisagras).toHaveLength(TOPES.bisagras);
+    expect(r.bisagras.every((b) => /^A los/.test(b))).toBe(true);
+    expect(r.bisagras).toEqual(Array.from({ length: 12 }, (_, i) => `A los ${i + 8} pasó la cosa ${i + 3}`));
+  });
   it('personas: la nota a 80 caracteres, y de más de 30 se quedan primero los familiares', () => {
     const p = perfilVacio();
     p.personas.push({ nombre: 'Ariel', vinculo: 'hermano mayor', vive: 'si', fuente: 'dicho', nota: largo(5) });

@@ -109,7 +109,8 @@ export function recortarPerfil(p: Perfil): Perfil {
   r.etapas = r.etapas.map((e) => ({ ...e, lugar: recortar(e.lugar, TOPES.etapaCampo), conQuien: recortar(e.conQuien, TOPES.etapaCampo), queHacia: recortar(e.queHacia, TOPES.etapaCampo) }));
   const conEdad = r.bisagras.filter((b) => /^a los \d/i.test(b));
   const sinEdad = r.bisagras.filter((b) => !/^a los \d/i.test(b));
-  r.bisagras = [...conEdad, ...sinEdad.slice(-Math.max(0, TOPES.bisagras - conEdad.length))].slice(-TOPES.bisagras).map((b) => recortar(b, TOPES.bisagra));
+  const cupo = TOPES.bisagras - conEdad.length;
+  r.bisagras = [...conEdad, ...(cupo > 0 ? sinEdad.slice(-cupo) : [])].slice(-TOPES.bisagras).map((b) => recortar(b, TOPES.bisagra));
   r.personas = r.personas.map((x) => (x.nota ? { ...x, nota: recortar(x.nota, TOPES.notaPersona) } : x));
   if (r.personas.length > TOPES.personas) {
     const familia = r.personas.filter((x) => ES_FAMILIAR.test(x.vinculo.toLowerCase()));
