@@ -1,7 +1,8 @@
 import { perfilDesdeFicha, type Perfil, type TemaPendiente } from '../ia/perfil.js';
-import { armarSecuencia, aplicarPerfil, type Secuencia } from '../ia/secuencia.js';
-import { replanificar, edadDe, type Variable } from '../ia/plan-preguntas.js';
-import { NUCLEO, type Objetivo } from '../ia/pregunta-v2.js';
+import { armarSecuencia, rearmar, type Secuencia } from '../ia/secuencia.js';
+import type { Tramo } from '../ia/plan-preguntas.js';
+import type { YaHecha, Objetivo } from '../ia/pregunta-v2.js';
+import { firmaGuion } from '../ia/guion-v2.js';
 import { tratoDelPerfil } from '../ia/encargo-entrevista.js';
 import { DIAS_SIN_REPREGUNTAR, type EvaluacionV2 } from '../ia/evaluar-v2.js';
 import type { Marca } from '../ia/control-pregunta.js';
@@ -29,8 +30,8 @@ export type EstadoV2 = {
   sinRepreguntarHasta?: string;
   /** La orden en la que se anotó la última pausa por cansancio: las repreguntas de antes ya se contaron. */
   cansancioDesdeOrden?: number;
-  /** Cuántas bisagras tenía el perfil la última vez que se planificó (-1: nunca). */
-  bisagrasPlanificadas: number;
+  /** La firma del guion (edad, árbol, eventos) con la que se armó la secuencia: si la ficha la cambia, se rearma. */
+  firmaGuion: string;
   /** "Hoy no" (§2.8): la orden que se vuelve a mandar tal cual; mientras esté, no se avanza. */
   retomar?: number;
   /** USD acumulados de esta entrevista (modelo + transcripción). */
@@ -54,15 +55,16 @@ export type EstadoV2 = {
   terminada?: string;
 };
 
-/** El estado del día 0: el perfil con lo que haya en la ficha y la secuencia sin variables (sin edad no hay plan). */
-export function estadoNuevo(contexto: Record<string, any>, zonaHoraria: string): EstadoV2 {
+/** El estado del día 0: el perfil con lo que haya en la ficha y el guion ya armado. */
+export function estadoNuevo(contexto: Record<string, any>, zonaHoraria: string, anioActual = new Date().getFullYear()): EstadoV2 {
+  const perfil = perfilDesdeFicha(contexto, zonaHoraria);
   return {
-    perfil: perfilDesdeFicha(contexto, zonaHoraria),
-    secuencia: armarSecuencia([]),
+    perfil,
+    secuencia: armarSecuencia(perfil, anioActual),
+    firmaGuion: firmaGuion(perfil, anioActual),
     marcas: {},
     preguntasEnviadas: {},
     repreguntasEnviadas: {},
-    bisagrasPlanificadas: -1,
     gastoUsd: 0,
     procesadas: [],
     bloqueadas: [],
@@ -73,7 +75,9 @@ export function estadoNuevo(contexto: Record<string, any>, zonaHoraria: string):
 export function leerEstado(contexto: Record<string, any>, zonaHoraria: string): EstadoV2 | null {
   const v2 = contexto?.v2;
   if (!v2 || typeof v2 !== 'object' || !v2.perfil || !v2.secuencia) return null;
-  return { ...estadoNuevo(contexto, zonaHoraria), ...v2 };
+  const estado = { ...estadoNuevo(contexto, zonaHoraria), ...v2 } as EstadoV2;
+  estado.secuencia = { caidas: [], libres: 0, ...(estado.secuencia as unknown as Partial<Secuencia>) } as Secuencia;
+  return estado;
 }
 
 /** El contexto con el estado adentro, sin tocar las otras claves (el panel y el flujo v1 las leen). */
@@ -81,48 +85,16 @@ export function contextoConEstado(contexto: Record<string, any>, estado: EstadoV
   return { ...contexto, v2: estado };
 }
 
-/**
- * TODAS las variables ya asignadas —las hechas y las pendientes—, en el orden en que se asignaron.
- * `replanificar` las conserva y suma lo que falte; `aplicarPerfil` cuenta hechas + pendientes por
- * tramo para numerar. Si acá fueran solo las pendientes (el borrador del plan lo hacía así), el
- * plan nuevo "creería" que faltan más y `aplicarPerfil` se comería las nuevas al cortar por tramo.
- */
-export function variablesAsignadas(s: Secuencia): Variable[] {
-  const aVariable = (o: Objetivo): Variable | null =>
-    o.tipo === 'variable' ? { tramo: o.tramo, desde: o.desde, hasta: o.hasta, anclas: o.anclas } : null;
-  return [...s.hechas.map((h) => h.objetivo), ...s.pendientes]
-    .map(aVariable)
-    .filter((v): v is Variable => v !== null);
+/** Rearma la secuencia cuando la ficha cambió lo que decide el guion (edad, árbol, noTuvo, eventos). */
+export function rearmarSiHaceFalta(estado: EstadoV2, anioActual = new Date().getFullYear()): EstadoV2 {
+  const firma = firmaGuion(estado.perfil, anioActual);
+  if (firma === estado.firmaGuion) return estado;
+  return { ...estado, secuencia: rearmar(estado.secuencia, estado.perfil, anioActual), firmaGuion: firma };
 }
 
-/**
- * Planifica cuando hace falta: la primera vez que el perfil trae edad, y de nuevo cuando aparecen
- * bisagras nuevas. Es un solo camino (`replanificar` con lo ya asignado): con nada asignado es el
- * plan entero, y si un tema cubierto ya sumó una variable antes de saberse la edad, no se pierde
- * ni se duplica. Sin edad no toca nada (la entrevista nunca frena por la edad, §2.2).
- */
-export function planSiHaceFalta(estado: EstadoV2, anioActual = new Date().getFullYear()): EstadoV2 {
-  const { perfil, secuencia } = estado;
-  if (edadDe(perfil, anioActual) === null) return estado;
-  const nunca = estado.bisagrasPlanificadas < 0;
-  if (!nunca && perfil.bisagras.length <= estado.bisagrasPlanificadas) return estado;
-  const plan = replanificar(perfil, NUCLEO, variablesAsignadas(secuencia), secuencia.hechas.length, anioActual);
-  if (!plan.ok) return estado;
-  // Sin cubiertos ni puerta: acá solo entran las variables; el perfil de hoy se aplica aparte.
-  const soloPlan = { ...perfil, cubiertos: [], puertaAbierta: null };
-  return { ...estado, secuencia: aplicarPerfil(secuencia, soloPlan, plan.variables), bisagrasPlanificadas: perfil.bisagras.length };
-}
-
-/** Los temas que todavía faltan, para que el perfil diga cuáles ya contó o cuál abrió hoy. */
+/** Los temas que todavía faltan, para que el perfil diga cuáles ya contó o cuál abrió hoy. Las libres no. */
 export function pendientesParaPerfil(s: Secuencia): TemaPendiente[] {
-  return s.pendientes.flatMap((o): TemaPendiente[] => {
-    if (o.tipo === 'nucleo') return o.id === 'presentacion' ? [] : [{ id: o.id, tema: o.tema }];
-    if (o.tipo === 'variable') {
-      const cuando = o.tramo === 'hoy' ? 'su vida de hoy' : `su ${o.tramo}, entre los ${o.desde} y los ${o.hasta} años`;
-      return [{ id: o.id, tema: `Algo de ${cuando} que todavía no contó` }];
-    }
-    return [];
-  });
+  return s.pendientes.flatMap((o): TemaPendiente[] => (o.tipo === 'nucleo' && o.id !== 'presentacion' ? [{ id: o.id, tema: o.tema }] : []));
 }
 
 /**
@@ -198,7 +170,7 @@ type FilaRespuesta = { id?: string; pregunta_orden: number; es_repregunta: boole
  * 101+ y, ordenados por número, después de tres objetos "lo último que hablaron" eran siempre las
  * fotos y nunca la pregunta de ayer.
  */
-export function conversacionDe(estado: EstadoV2, filas: FilaRespuesta[], max = 6): { pregunta: string; respuesta: string }[] {
+export function conversacionDe(estado: EstadoV2, filas: FilaRespuesta[], max = 3): { pregunta: string; respuesta: string }[] {
   const porLlegada = filas.every((f) => f.recibido_at)
     ? [...filas].sort((a, b) => String(a.recibido_at).localeCompare(String(b.recibido_at)))
     : filas;
@@ -212,10 +184,16 @@ export function conversacionDe(estado: EstadoV2, filas: FilaRespuesta[], max = 6
     .slice(-max);
 }
 
-/** Todo lo que ya se le preguntó (para no repetir): preguntas, objetos y repreguntas; la presentación no pregunta. */
-export function yaHechasDe(estado: EstadoV2): string[] {
-  const sinPresentacion = Object.entries(estado.preguntasEnviadas).filter(([o]) => o !== '0').map(([, t]) => t);
-  return [...sinPresentacion, ...Object.values(estado.repreguntasEnviadas)];
+/** Los temas ya preguntados (id y tema, no el texto: el prompt no crece) y las repreguntas mandadas. */
+export function yaHechasDe(estado: EstadoV2): YaHecha[] {
+  const temas: YaHecha[] = estado.secuencia.hechas
+    .filter((h) => h.id !== 'presentacion')
+    .map((h) => ({ id: h.id, tema: h.objetivo.tipo === 'nucleo' ? h.objetivo.tema : h.objetivo.tipo === 'variable' ? `Algo que nombró y no contó: ${h.objetivo.anclas.join('; ')}` : h.objetivo.id }));
+  const repreguntas: YaHecha[] = Object.entries(estado.repreguntasEnviadas).map(([orden, texto]) => {
+    const h = estado.secuencia.hechas.find((x) => String(x.orden) === orden);
+    return { id: `${h?.id ?? orden}-repregunta`, tema: `(repregunta) ${texto}` };
+  });
+  return [...temas, ...repreguntas];
 }
 
 /** `contexto.evitar` es texto libre (lo escribe la familia en el panel, y `sumarTemaEvitado`): el encargo v2 lo quiere en lista. */
@@ -252,38 +230,43 @@ export function repreguntasParaCansancio(estado: EstadoV2, ordenActual: number, 
 export type Decision =
   | { accion: 'parar' }
   | { accion: 'hoyNo' }
-  | { accion: 'repreguntar'; texto: string }
+  | { accion: 'repreguntar'; falto: string[] }
   | { accion: 'nada'; motivo: string; sinRepreguntarHasta?: string; cansancioDesdeOrden?: number };
 
+/** Una respuesta más corta que esto, que saltó dos o más pormenores, merece la segunda repregunta de la etapa. */
+export const SEGUNDOS_RESPUESTA_CORTA = 40;
+
 /**
- * Qué se hace con la evaluación (§2.8). "No quiero seguir" manda sobre todo; la respuesta a una
- * repregunta no se vuelve a repreguntar ni reabre la pregunta con un "hoy no" (se evalúa solo para
- * la reserva y los pedidos); "hoy no" deja la misma pregunta para mañana; y la repregunta no sale si ya hubo una en esa orden, si hay una pausa por cansancio
- * vigente, o si hoy aparece el cansancio (y ahí se anota la pausa).
+ * Qué se hace con la evaluación (guion §2, decidido 24/09): parar manda; una respuesta a repregunta u
+ * objeto no se repregunta; "hoy no" deja la misma pregunta; si alcanza, nada. Si no alcanza: la
+ * primera repregunta de la etapa sale siempre; la segunda solo si la respuesta duró menos de
+ * SEGUNDOS_RESPUESTA_CORTA y faltaron dos o más pormenores. Y nunca si ya hubo una en esa orden, hay
+ * pausa por cansancio o el cansancio aparece hoy.
  */
 export function decidirTrasEvaluar(
   ev: EvaluacionV2,
-  // `esRepregunta` vale también para la respuesta a un objeto: solo cuentan la reserva y el "no quiero seguir".
-  c: { esRepregunta: boolean; yaHayRepregunta: boolean; hoy: string; orden: number; cansancio: boolean; sinRepreguntarHasta?: string },
+  c: { esRepregunta: boolean; yaHayRepregunta: boolean; hoy: string; orden: number; cansancio: boolean; sinRepreguntarHasta?: string; repreguntasEnEtapa: number; segundos: number },
 ): Decision {
   if (ev.quiereParar) return { accion: 'parar' };
-  // La pregunta del día ya está contestada: un "hoy no" en la repregunta no la vuelve a abrir.
   if (c.esRepregunta) return { accion: 'nada', motivo: 'es la respuesta a una repregunta o a un objeto: no se repregunta' };
   if (ev.hoyNo) return { accion: 'hoyNo' };
-  if (ev.suficiente || !ev.repregunta) return { accion: 'nada', motivo: 'la respuesta alcanza' };
+  if (ev.suficiente || !ev.falto.length) return { accion: 'nada', motivo: 'la respuesta alcanza' };
   if (c.yaHayRepregunta) return { accion: 'nada', motivo: 'ya hubo una repregunta en esta orden' };
-  if (c.sinRepreguntarHasta && c.sinRepreguntarHasta > c.hoy) {
-    return { accion: 'nada', motivo: `pausa por cansancio hasta el ${c.sinRepreguntarHasta}` };
-  }
+  if (c.sinRepreguntarHasta && c.sinRepreguntarHasta > c.hoy) return { accion: 'nada', motivo: `pausa por cansancio hasta el ${c.sinRepreguntarHasta}` };
   if (c.cansancio) {
-    return {
-      accion: 'nada',
-      motivo: `cansancio: las dos últimas repreguntas quedaron sin contestar; no se repregunta por ${DIAS_SIN_REPREGUNTAR} días`,
-      sinRepreguntarHasta: sumarDias(c.hoy, DIAS_SIN_REPREGUNTAR),
-      cansancioDesdeOrden: c.orden,
-    };
+    return { accion: 'nada', motivo: `cansancio: las dos últimas repreguntas quedaron sin contestar; no se repregunta por ${DIAS_SIN_REPREGUNTAR} días`, sinRepreguntarHasta: sumarDias(c.hoy, DIAS_SIN_REPREGUNTAR), cansancioDesdeOrden: c.orden };
   }
-  return { accion: 'repreguntar', texto: ev.repregunta };
+  if (c.repreguntasEnEtapa >= 1 && !(c.segundos < SEGUNDOS_RESPUESTA_CORTA && ev.falto.length >= 2)) {
+    return { accion: 'nada', motivo: 'ya hubo una repregunta en esta etapa y la respuesta no fue corta' };
+  }
+  return { accion: 'repreguntar', falto: ev.falto };
+}
+
+/** Cuántas repreguntas se mandaron en preguntas de ese tramo. */
+export function repreguntasEnEtapa(estado: EstadoV2, tramo: Tramo | null): number {
+  if (!tramo) return 0;
+  const ordenes = new Set(estado.secuencia.hechas.filter((h) => h.tramo === tramo).map((h) => String(h.orden)));
+  return Object.keys(estado.repreguntasEnviadas).filter((o) => ordenes.has(o)).length;
 }
 
 /** Suma al gasto de la entrevista lo que costaron estas llamadas (y los segundos transcriptos). */
