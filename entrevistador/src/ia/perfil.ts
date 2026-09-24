@@ -296,7 +296,7 @@ export async function actualizarPerfil(
 ): Promise<{ ok: boolean; perfil: Perfil; usage: Anthropic.Usage }> {
   const r = await cliente.messages.create({
     model: MODELO_PERFIL,
-    max_tokens: 2000,
+    max_tokens: 8000,
     messages: [{ role: 'user', content: armarPromptPerfil(perfil, pregunta, respuesta, pendientes) }],
   });
   const bloque = r.content.find((b) => b.type === 'text');

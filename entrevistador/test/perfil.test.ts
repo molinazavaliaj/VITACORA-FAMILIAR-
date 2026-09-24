@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { perfilVacio, perfilDesdeFicha, aplicarCambios, parsearCambios, armarPromptPerfil, type Perfil } from '../src/ia/perfil.js';
+import { perfilVacio, perfilDesdeFicha, aplicarCambios, parsearCambios, armarPromptPerfil, actualizarPerfil, type Perfil } from '../src/ia/perfil.js';
 
 // El perfil (biógrafo v2, 23/09): quién es la persona y la línea de tiempo de su vida, armado
 // con lo que CUENTA aunque la familia no cargue nada. Pedido de Naza: "es importante que el
@@ -195,5 +195,24 @@ describe('armarPromptPerfil, lo nuevo', () => {
   it('pide comoLeDicen en la ficha de salida (la presentación lo pregunta y solo actualizarPerfil lo procesa)', () => {
     const prompt = armarPromptPerfil(base(), '¿Cómo le dicen en casa?', 'Pocho, de toda la vida.', []);
     expect(prompt).toContain('comoLeDicen');
+  });
+});
+
+describe('actualizarPerfil', () => {
+  // Piloto de Naza, N6: con 2000 tokens una respuesta con familia entera cortaba el JSON y el
+  // perfil no aprendía nada ("salida ilegible"), dos veces seguidas.
+  it('pide 8000 tokens: con 2000 el JSON de una respuesta rica no entraba', async () => {
+    let pedido: { max_tokens?: number } = {};
+    const cliente = {
+      messages: {
+        create: async (p: { max_tokens: number }) => {
+          pedido = p;
+          return { content: [{ type: 'text', text: '{}' }], usage: { input_tokens: 1, output_tokens: 1 } };
+        },
+      },
+    } as unknown as Parameters<typeof actualizarPerfil>[0];
+    const r = await actualizarPerfil(cliente, perfilVacio(), 'pregunta', 'respuesta', []);
+    expect(r.ok).toBe(true);
+    expect(pedido.max_tokens).toBe(8000);
   });
 });

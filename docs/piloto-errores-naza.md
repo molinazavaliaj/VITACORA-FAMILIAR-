@@ -57,3 +57,17 @@
 - **Dónde:** pregunta 1 (`casa-infancia`), el encargo de la pregunta v2 (cómo elige el nombre
   cuando `comoLeDicen` trae más de uno).
 - **Qué se hizo a mano:** nada; se mandó así.
+
+## N6 · 24/09 · El perfil no aprende de una respuesta larga: el JSON se corta (ARREGLADO EN CALIENTE)
+- **Qué pasó:** con la respuesta 1 (casa de la infancia, 106 s: Martínez, padres, dos hermanos,
+  dos perros) `cargar` dijo «⚠ El perfil no se entendió (salida ilegible): queda como estaba».
+  Con `--reprocesar` pasó lo mismo. En `consumo_ia` las dos llamadas `v2-perfil` salieron con
+  `output_tokens: 2000` justos: el modelo llegó al tope y el JSON quedó cortado. El comando sigue,
+  pero el perfil se queda sin nada de lo contado y el piloto no mide lo que tiene que medir. Es el
+  mismo bug que ya se había arreglado en las adaptativas v1 («con 2000 el JSON no entraba»).
+- **Dónde:** `entrevistador/src/ia/perfil.ts` (`actualizarPerfil`, `max_tokens: 2000`).
+- **Qué se hizo:** con el OK de Naza, `max_tokens` pasa a 8000 (solo se paga lo que se escribe),
+  con test en `test/perfil.test.ts` (falla con 2000, pasa con 8000; suite 553/553, tsc limpio).
+  Después, `cargar … --reprocesar --orden 1`. Las dos corridas fallidas costaron ~USD 0,15.
+- **Para la revisión:** que `cargar` diga *por qué* no se entendió (tope alcanzado vs. JSON
+  roto), y revisar los otros `max_tokens` del v2 con respuestas largas.
