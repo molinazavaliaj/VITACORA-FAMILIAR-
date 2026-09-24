@@ -40,3 +40,20 @@
   (`docs/biografo-v2-textos-para-aprobar.md`, sección de la presentación). Comparar con la
   presentación del flujo v1, que sí nombraba a quien regala.
 - **Qué se hizo a mano:** nada; se mandó así.
+
+## N4 · 24/09 · El perfil calcula mal el año de nacimiento
+- **Qué pasó:** con «tengo 27 años» (entrevista en 2026) el perfil guardó `anioNacimiento: 1997 o
+  1998 (deducido)`. La cuenta da 1998 o 1999. Queda corrido un año, y de ese dato salen las
+  edades de las etapas y la línea de tiempo.
+- **Dónde:** la ficha/perfil que se actualiza en `cargar` (orden 0), lo imprime el bloque «Perfil».
+  El modelo hace la cuenta: no se le pasa el año actual, o no se calcula en código.
+- **Qué se hizo a mano:** nada.
+
+## N5 · 24/09 · La pregunta 1 lo llama «Triki» y juega con el nombre
+- **Qué pasó:** en la presentación Naza dijo que la familia le dice Naza y los amigos Triki (su
+  nombre de artista). La pregunta 1 (casa de la infancia) arranca «Dale, Triki…» y agrega «esa
+  donde eras Naza». Elige el nombre de los amigos para un libro familiar y hace un juego de
+  palabras con los dos nombres. Es una suposición y suena armado.
+- **Dónde:** pregunta 1 (`casa-infancia`), el encargo de la pregunta v2 (cómo elige el nombre
+  cuando `comoLeDicen` trae más de uno).
+- **Qué se hizo a mano:** nada; se mandó así.
