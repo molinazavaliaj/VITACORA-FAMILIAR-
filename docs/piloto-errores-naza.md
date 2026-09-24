@@ -174,3 +174,13 @@
 - **Dónde:** evaluación v2 (`src/ia/evaluar-v2.ts`: ¿sabe la edad y le da peso?) y la secuencia /
   variables (¿cuánto espacio le da a «amigos» según el tramo de vida?).
 - **Qué se hizo a mano:** nada.
+
+## N17 · 24/09 · Pregunta un tema que había dado por cubierto (`var-juventud-1`)
+- **Qué pasó:** después de la respuesta 3 el perfil marcó `cubiertos: var-infancia-1,
+  var-juventud-1`. En la respuesta 7 eligió `puertaAbierta: var-juventud-1`, y la pregunta 8 salió
+  con ese id (el primer día de vuelta en el Fátima). Puede ser que el plan de variables se rearmara
+  (8 → 11 → 13 → 14 → 15) y el id se reusara para otro tema, o que un tema cubierto vuelva a la
+  lista. Sea cual sea, un id no debería significar dos cosas distintas.
+- **Lo bueno:** la pregunta en sí está bien: engancha con algo que él contó y no lo repite.
+- **Dónde:** `planSiHaceFalta` / `aplicarPerfil` (secuencia v2) y los ids de las variables.
+- **Qué se hizo a mano:** nada.
