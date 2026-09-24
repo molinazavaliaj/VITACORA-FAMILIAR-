@@ -10,7 +10,8 @@ import { calcularUsd, registrarUso } from '../src/costos.js';
 
 // Ajuste B (24/09, aprobado por Naza): la parte FIJA de cada prompt (reglas e instrucciones, igual
 // en todas las llamadas del mismo tipo) va primero, en su propio bloque con `cache_control`; lo que
-// cambia (ficha, conversación, respuesta) va después. El modelo ve LAS MISMAS PALABRAS que antes: solo
+// cambia (ficha, conversación, respuesta) va después (solo pregunta y ficha: la evaluación y los
+// pedidos no llegan al mínimo cacheable y van enteros, en su orden). El modelo ve LAS MISMAS PALABRAS que antes: solo
 // cambia el orden (lo fijo adelante, porque la caché es por prefijo). Y la ficha, la evaluación y los
 // pedidos van sin "pensar" (`thinking: {type: 'disabled'}`); la pregunta (Opus) no se toca.
 
@@ -98,22 +99,13 @@ describe('escribirPregunta (Opus): caché de la parte fija, el thinking no se to
   });
 });
 
-describe('evaluarV2 (Sonnet): caché de la parte fija y sin pensar', () => {
-  it('fijo + variable son las mismas líneas que armarPromptEvaluar; thinking disabled', async () => {
+describe('evaluarV2 (Sonnet): sin pensar; el prompt no se parte (lo fijo no llega al mínimo cacheable de Sonnet)', () => {
+  it('manda el prompt de siempre, entero y en su orden, con thinking disabled', async () => {
     const { c, pedidos } = clienteQueGuarda(['{"suficiente": true, "falto": []}']);
     await evaluarV2(c, perfilLleno(), laEscuela, '¿Cómo era tu escuela?', 'Tuve una maestra.', 20, conversacion, evitar);
-    const { fijo, variable } = esperarPartido(pedidos[0]);
-    expect(lineas(fijo + variable)).toEqual(lineas(armarPromptEvaluar(perfilLleno(), laEscuela, '¿Cómo era tu escuela?', 'Tuve una maestra.', 20, conversacion, evitar)));
-    expect(fijo).not.toContain('Tuve una maestra');
+    expect(pedidos[0].messages[0].content).toBe(armarPromptEvaluar(perfilLleno(), laEscuela, '¿Cómo era tu escuela?', 'Tuve una maestra.', 20, conversacion, evitar));
     expect(pedidos[0].thinking).toEqual({ type: 'disabled' });
     expect(pedidos[0].model).toBe('claude-sonnet-5');
-  });
-  it('lo fijo es idéntico entre llamadas con personas y respuestas distintas', async () => {
-    const a = clienteQueGuarda(['{"suficiente": true}']);
-    const b = clienteQueGuarda(['{"suficiente": true}']);
-    await evaluarV2(a.c, perfilVacio(), laEscuela, 'P', 'R', 5, [], []);
-    await evaluarV2(b.c, perfilLleno(), { ...laEscuela, tema: 'Otra cosa' } as Objetivo, 'P2', 'R2', 50, conversacion, evitar);
-    expect(esperarPartido(a.pedidos[0]).fijo).toBe(esperarPartido(b.pedidos[0]).fijo);
   });
 });
 

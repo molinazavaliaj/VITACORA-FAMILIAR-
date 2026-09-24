@@ -5,7 +5,7 @@
  */
 import { armarGuion, GUION } from '../src/ia/guion-v2.js';
 import { partirPromptPregunta, objetivoEnTexto, type Objetivo } from '../src/ia/pregunta-v2.js';
-import { partirPromptEvaluar, armarPromptPedidos } from '../src/ia/evaluar-v2.js';
+import { armarPromptEvaluar, armarPromptPedidos } from '../src/ia/evaluar-v2.js';
 import { partirPromptPerfil, perfilVacio, type Perfil } from '../src/ia/perfil.js';
 import type { PromptPartido } from '../src/ia/modelos-v2.js';
 import { perfilEnTexto } from '../src/ia/encargo-entrevista.js';
@@ -52,7 +52,7 @@ for (const [nombre, p] of [['Naza (27)', naza()], ['Élida (76)', elida()]] as c
   const fila = filas.find((f) => f.id === 'padres-como-eran')!;
   const o: Objetivo = { tipo: 'nucleo', ...fila };
   out.push(`### El prompt de la pregunta (${fila.id}) para ${nombre}\n${bloque(partido(partirPromptPregunta(p, o, [{ pregunta: '¿Qué ves al entrar a esa casa?', respuesta: 'Una casa de tres pisos, mi mamá en la cocina.' }], [{ id: 'casa-infancia', tema: 'La casa de la infancia' }, { id: 'los-tuyos-hoy', tema: 'Quiénes son los suyos hoy' }])))}`);
-  out.push(`### El prompt de la evaluación para ${nombre}\n${bloque(partido(partirPromptEvaluar(p, o, '¿Cómo eran tu mamá y tu papá?', 'Mi mamá era brava. Mi papá cocinaba.', 25, [], [])))}`);
+  out.push(`### El prompt de la evaluación para ${nombre}\n${bloque(armarPromptEvaluar(p, o, '¿Cómo eran tu mamá y tu papá?', 'Mi mamá era brava. Mi papá cocinaba.', 25, [], []))}`);
   const rep: Objetivo = { tipo: 'repregunta', id: 'padres-como-eran-repregunta', tramo: 'infancia', pregunta: '¿Cómo eran tu mamá y tu papá?', falto: ['en qué se parece', 'una escena de cada uno'] };
   out.push(`### El objetivo de la repregunta para ${nombre}\n${bloque(objetivoEnTexto(rep, p))}`);
   out.push(`### El prompt de la ficha para ${nombre}\n${bloque(partido(partirPromptPerfil(p, '¿Cómo eran tu mamá y tu papá?', 'Mi mamá era brava. Mi papá cocinaba.', pendientesParaPerfil(armarSecuencia(p, ANIO)))))}`);

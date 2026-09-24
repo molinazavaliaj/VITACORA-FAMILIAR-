@@ -1,8 +1,8 @@
 import type Anthropic from '@anthropic-ai/sdk';
 import type { Perfil } from './perfil.js';
-import { encargoDelBiografo, ENCARGO_FIJO, encargoVariable } from './encargo-entrevista.js';
+import { encargoDelBiografo } from './encargo-entrevista.js';
 import type { Objetivo } from './pregunta-v2.js';
-import { MODELO_EVALUACION, MODELO_PEDIDOS, textoDelModelo, contenidoConCache, SIN_PENSAR, type PromptPartido } from './modelos-v2.js';
+import { MODELO_EVALUACION, MODELO_PEDIDOS, textoDelModelo, SIN_PENSAR } from './modelos-v2.js';
 
 // La evaluación del esqueleto v2 (24/09). Decide si con la respuesta hay con qué escribir la página
 // del día y, si no, QUÉ FALTÓ de la fila (sus pormenores): la repregunta la escribe Opus después
@@ -91,26 +91,6 @@ export function armarPromptEvaluar(
   return PROMPT_EVALUAR_V2(encargoDelBiografo(perfil, evitar), objetivoEnLinea(objetivo), pregunta, respuesta, segundos, enTexto(conversacion));
 }
 
-/**
- * Ajuste B (caché): lo que se le MANDA al modelo. Mismas palabras que `armarPromptEvaluar`, en otro
- * orden: lo fijo primero (el encargo que es igual para todos y la tarea con los pedidos), después la
- * ficha, lo que hablaron, el tema, la pregunta, la respuesta y, al final como antes, el formato.
- */
-export function partirPromptEvaluar(
-  perfil: Perfil,
-  objetivo: Objetivo,
-  pregunta: string,
-  respuesta: string,
-  segundos: number,
-  conversacion: { pregunta: string; respuesta: string }[],
-  evitar: string[],
-): PromptPartido {
-  return {
-    fijo: `\n${ENCARGO_FIJO}\n\n${TAREA_EVALUAR}`,
-    variable: `\n\n${encargoVariable(perfil, evitar)}\n\n${DATOS_EVALUAR(objetivoEnLinea(objetivo), pregunta, respuesta, segundos, enTexto(conversacion))}\n\n${FORMATO_EVALUAR}`,
-  };
-}
-
 const MAX_FALTO = 4;
 
 function leerJson(salida: string): Record<string, unknown> | null {
@@ -182,7 +162,9 @@ export async function evaluarV2(
 ): Promise<{ evaluacion: EvaluacionV2; usos: Anthropic.Usage[] }> {
   const r = await cliente.messages.create({
     model: MODELO_EVALUACION, max_tokens: 4000, thinking: SIN_PENSAR,
-    messages: [{ role: 'user', content: contenidoConCache(partirPromptEvaluar(perfil, objetivo, pregunta, respuesta, segundos, conversacion, evitar)) }],
+    // Sin caché (ajuste B): lo fijo (~2.900 caracteres) no llega al mínimo cacheable de Sonnet 5
+    // (1024 tokens), así que se manda entero y en su orden de siempre.
+    messages: [{ role: 'user', content: armarPromptEvaluar(perfil, objetivo, pregunta, respuesta, segundos, conversacion, evitar) }],
   });
   return { evaluacion: parsearEvaluacion(textoDelModelo(r, 'la evaluación')), usos: [r.usage] };
 }
