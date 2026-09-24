@@ -1,6 +1,8 @@
 # Biógrafo v2 — los textos que aprueba Naza (generado el 24/09/2026)
 
 > Generado con un script de una vez sobre la rama `biografo-v2-fabrica`. Nada de esto se manda solo: son los prompts (lo que lee el modelo) y los textos fijos (lo que lee la persona). Lo que cambies acá se cambia en el código con su test.
+>
+> **Aprobado por Naza el 24/09/2026** para correr el piloto. Lo que en el piloto no le suene a él se anota en `docs/piloto-errores-naza.md`, no acá.
 
 ## 1. Los 22 temas del núcleo (`NUCLEO`, `entrevistador/src/ia/pregunta-v2.ts`)
 
