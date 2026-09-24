@@ -184,3 +184,14 @@
 - **Lo bueno:** la pregunta en sí está bien: engancha con algo que él contó y no lo repite.
 - **Dónde:** `planSiHaceFalta` / `aplicarPerfil` (secuencia v2) y los ids de las variables.
 - **Qué se hizo a mano:** nada.
+
+## N18 · 24/09 · La entrevista no se achica: van 9 preguntas y siguen quedando 28
+- **Qué pasó:** «Quedan N pendientes» fue 28 → 27 → 26 → 28 → 28 → 27 → 27 → 27 → 28, con 9
+  preguntas hechas. Cada respuesta rica agrega variables (0 → 8 → 11 → 13 → 14 → 15 → 16) más
+  rápido de lo que se cubren. A este ritmo la entrevista pasa las 37 preguntas. Hay que ver si el
+  techo de 19 variables frena, o si el tope de 40 va a ser el que corte. También para costos: van
+  ~USD 2,3 en 9 preguntas.
+- **Dónde:** plan de variables (`planSiHaceFalta`) y la secuencia v2.
+- **Qué se hizo a mano:** nada.
+- **Además:** la pregunta 9 vuelve a decir «ayer» (N9) y «de pasada», cuando Naza contó que fueron
+  dos años de novios.
