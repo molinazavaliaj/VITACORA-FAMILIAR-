@@ -430,3 +430,15 @@
   sugerencia; y sumar «una pandemia» a los ejemplos.
 - **Dónde:** `pregunta-v2.ts` (`HISTORIA_GRANDE`, `objetivoEnTexto`), diseño §2.
 - **Qué se hizo a mano:** nada.
+
+## N40 · 24/09 · Se desdijo de «a los 18 se fue a vivir solo» y la bisagra vieja queda
+- **Qué pasó:** en la respuesta 23 Naza corrige lo que dijo en la 3: al empezar la facultad
+  **seguía en la casa de sus padres** (casi solo, porque ellos iban al campo), y la primera mudanza
+  fue al dejar la facultad, con Ciano, a un boating de Nordelta, **en pandemia**. El perfil agregó
+  bisagras nuevas pero no hay señal de que corrigiera la vieja («Al empezar la facultad, alrededor
+  de los 18, se fue a vivir solo»). Quedan las dos, contradictorias (lo mismo que N34). Además
+  ubica la pandemia «alrededor de los 22/23»: si nació en 1998/99, en 2020 tenía 21/22 (N4, el año
+  corrido, arrastra).
+- **Lo bueno:** la pandemia salió sola, sin preguntarla (N39), y el perfil la registró.
+- **Dónde:** perfil (bisagras sin corrección), N4.
+- **Qué se hizo a mano:** nada.
