@@ -192,6 +192,8 @@
   Quinto caso: la pregunta 20 sale con `var-infancia-3`, cubierto después de la respuesta 7. Esta
   vez el tema es nuevo (el campo de los fines de semana), así que el id cubierto no se repite en
   contenido. Confirma que el id se reusa para otro tema.
+  Séptimo caso: la pregunta 25 sale con `var-infancia-4`, cubierto después de la respuesta 17, y
+  vuelve a la infancia (un recreo en el Saint John's) después de haber pasado a la juventud (N37).
 - **Dónde:** `planSiHaceFalta` / `aplicarPerfil` (secuencia v2) y los ids de las variables.
 - **Qué se hizo a mano:** nada.
 
