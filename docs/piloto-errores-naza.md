@@ -464,3 +464,34 @@
 - **Dónde:** `escribirPregunta` (`pregunta-v2.ts:131-160`), `armarPromptPregunta` (qué entra al
   prompt), el mismo tamaño en perfil y evaluación.
 - **Qué se hizo a mano:** (ver abajo, según decida Naza).
+
+## N42 · 24/09 · Lo que dice Naza al cortar: faltó profundidad donde importa, y el costo se disparó
+- **Qué faltó (palabras de Naza, ordenadas):**
+  - **El futuro:** nunca le preguntó en serio qué quiere para su vida (los sueños, la música, la
+    libertad financiera, Barcelona). Para alguien de 27 es la mitad del libro.
+  - **Los hermanos:** Ariel y Juan Manuel aparecen de costado (la discográfica, la cancillería, los
+    problemas legales, la facultad), pero nunca hubo una pregunta sobre ellos: cómo son, qué
+    relación tiene con cada uno.
+  - **Las personalidades:** cómo es su madre, cómo es su padre, cómo son sus hermanos. Se supo
+    qué hicieron, no cómo son.
+  - **Sobrinos / familia de hoy:** no le preguntó si tiene sobrinos ni cómo está la familia hoy.
+  - **Rondó siempre sobre lo mismo:** volvió a temas ya contados (la casa de Martínez, la
+    infancia, el Fátima). Reconoce que algunas repeticiones le dispararon recuerdos nuevos, pero
+    faltó mucho de lo otro.
+- **El costo:** USD 11,06 por 25 preguntas + 4 repreguntas + 2 objetos, sin el libro. Por paso:
+  perfil 34 llamadas USD 4,54 · pregunta 35 llamadas USD 3,01 · evaluación 35 llamadas USD 2,99 ·
+  objetos USD 0,30 · transcripción USD 0,21 · presentación USD 0,01. La entrada media de perfil,
+  pregunta y evaluación es de ~15-16 mil tokens y al final ~25-28 mil (N41). A ese precio casi no
+  queda margen para publicidad.
+- **La duda de fondo:** Naza empieza a pensar que la mejor manera era un **esqueleto de preguntas**
+  (el guion fijo de v1, con temas obligatorios: familia, cada hermano, personalidades, futuro), con
+  el cerebro solo para adaptar el texto y repreguntar, y no un biógrafo que elige todo solo.
+- **Decisión:** el piloto se corta acá, en la pregunta 26 (vacía, N41). No se arma el libro todavía.
+  Lo analiza un agente aparte (Fable) con estos 42 hallazgos, los audios transcriptos y el código.
+
+## Cierre del piloto (24/09, 05:10)
+- Narrador `ea17b848-760a-416a-935c-51f186c7b0ef`: 25 respuestas + 4 repreguntas + 2 objetos
+  (órdenes 0-25, 101-102). Pendientes que no se hicieron: 7 variables (infancia/juventud) y las 5
+  de reflexión (`fuerza`, `alegrias`, `lo-que-falta`, `mensaje`, `cinco-minutos`) y la despedida:
+  **el cierre nunca se probó**.
+- Único arreglo en caliente: N6 (perfil a 8000 tokens de salida, commit `6ceb13f`).
