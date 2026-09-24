@@ -151,3 +151,14 @@
   sacaron del Liceo, sin inventar.
 - **Dónde:** pregunta 6 (`amigos`), encargo de la pregunta v2.
 - **Qué se hizo a mano:** nada; se mandó así.
+
+## N15 · 24/09 · El perfil decide quién fue echado del Fátima con él
+- **Qué pasó:** en la respuesta 6 Naza cierra con «nos tuvimos que ir del colegio, el Isho,
+  Cianito y yo». No se entiende quién es «el Isho» (¿otro amigo? ¿«Tincho» mal transcripto?). El
+  perfil escribió en la bisagra que los echaron a él, a Ciano **y a Juan Arbizu**, pero Arbizu era
+  el compañero al que le quería mostrar el cuchillo, y Naza no dijo que lo echaran. Además la
+  transcripción trae el mismo amigo como «Martín Ricci», «Tincho Richie» y «Ciano/Cianito»: el
+  perfil pasó de 7 a 13 personas y puede tener duplicados.
+- **Dónde:** transcripción + perfil (bisagra de los 12-13, lista de personas).
+- **Qué se hizo a mano:** nada. Para la revisión: cuando un dato es ambiguo, que el perfil lo deje
+  en `noSabemos` en vez de elegir.
