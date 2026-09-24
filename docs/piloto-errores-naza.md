@@ -401,6 +401,10 @@
 - **Y encima repregunta el pormenor:** a la respuesta 21 (26 s, el fútbol en la plaza), la
   evaluación le pide todavía más detalle del mismo pormenor (dónde jugaban, cómo armaban los arcos,
   una vez que volvió tarde). Es justo lo contrario de lo que pide Naza.
+- **Otro pormenor como pregunta entera:** la pregunta 24 es solo sobre «el mes en otro colegio que
+  no te gustó», entre el Liceo y la vuelta al Fátima. Además ya lo había nombrado en la respuesta 3
+  (el colegio Dardo Rocha, que la transcripción puso «Gardo Rocha», N10) y la pregunta pregunta
+  «¿cómo se llamaba?».
 - **Dónde:** secuencia v2 (orden de las variables de infancia), evaluación v2 (cansancio),
   `procesar` (evaluar lo que no se va a usar).
 - **Qué se hizo a mano:** nada.
