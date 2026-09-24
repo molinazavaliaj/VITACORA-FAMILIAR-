@@ -71,3 +71,30 @@
   Después, `cargar … --reprocesar --orden 1`. Las dos corridas fallidas costaron ~USD 0,15.
 - **Para la revisión:** que `cargar` diga *por qué* no se entendió (tope alcanzado vs. JSON
   roto), y revisar los otros `max_tokens` del v2 con respuestas largas.
+
+## N7 · 24/09 · La pregunta 2 suena a formulario («la habitaste»)
+- **Qué pasó:** «¿hasta qué edad la habitaste? Contame el recorrido de casas que vino después: en
+  qué barrio o ciudad cada una, con quién viviste y hasta cuándo.» Dice «habitaste», que nadie usa
+  en rioplatense, y pide cuatro datos por casa, como un formulario. Sigue diciéndole «Tricky»
+  (N5), aunque ahora con la ortografía corregida.
+- **Dónde:** pregunta 2 (`mapa-casas`), encargo de la pregunta v2 / tema del NUCLEO.
+- **Qué se hizo a mano:** nada; se mandó así.
+
+## N8 · 24/09 · El mapa de casas quedó a medias y la evaluación dijo «alcanza»
+- **Qué pasó:** la pregunta 2 pedía el recorrido de casas. Naza contó una sola mudanza (Martínez →
+  calle Paraná, a los 10-11, con la madre y el hermano mayor; el padre y el hermano del medio
+  ausentes por problemas legales). No dijo hasta cuándo vivió ahí ni qué casas vinieron después.
+  La evaluación dio `suficiente: true` y la secuencia pasó a otro tema. Puede estar bien (la
+  respuesta fue fuerte, `hoyFueFuerte`), pero el mapa de casas es la columna de la línea de tiempo
+  y quedó incompleto. Hay que ver si el perfil lo anota en `noSabemos` y si vuelve más adelante.
+- **Lo bueno:** entendió que «Paraná» es una calle de Martínez y no la ciudad.
+- **Dónde:** evaluación v2 (`src/ia/evaluar-v2.ts`) sobre `mapa-casas`.
+- **Qué se hizo a mano:** nada.
+
+## N9 · 24/09 · «Gracias por contarme lo de ayer» cuando fue hace minutos
+- **Qué pasó:** la pregunta 3 abre con «lo de ayer». En el piloto rápido no pasa un día entre
+  preguntas, así que es un efecto del piloto. Igual conviene que el texto no suponga el tiempo que
+  pasó: en producción alguien puede contestar dos preguntas el mismo día.
+- **Dónde:** pregunta 3 (`mapa-capitulos`), el tacto después de `hoyFueFuerte` en el encargo de
+  la pregunta v2.
+- **Qué se hizo a mano:** nada.
