@@ -30,6 +30,11 @@ describe('calcularUsd', () => {
     expect(calcularUsd('modelo-desconocido', { input_tokens: 5000 })).toBe(0);
     expect(aviso).toHaveBeenCalledOnce();
   });
+
+  it('cobra sonnet-5 (la ficha y la evaluación del esqueleto v2): 2 de entrada, 10 de salida, caché 2,5 / 0,2', () => {
+    expect(calcularUsd('claude-sonnet-5', { input_tokens: 1_000_000, output_tokens: 1_000_000 })).toBe(12);
+    expect(calcularUsd('claude-sonnet-5', { cache_creation_input_tokens: 1_000_000, cache_read_input_tokens: 1_000_000 })).toBe(2.7);
+  });
 });
 
 describe('calcularUsdPorUnidad', () => {
