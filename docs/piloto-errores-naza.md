@@ -98,3 +98,21 @@
 - **Dónde:** pregunta 3 (`mapa-capitulos`), el tacto después de `hoyFueFuerte` en el encargo de
   la pregunta v2.
 - **Qué se hizo a mano:** nada.
+
+## N10 · 24/09 · Errores de transcripción en la respuesta 3
+- **Qué pasó:** la transcripción de la respuesta 3 (239 s) trae «Gardo Rocha» (casi seguro el
+  colegio *Dardo Rocha*), «Viví a sol» (*solo*) y «tuvimos que llamarnos a menos» (*venirnos a
+  menos*). El perfil ya copió «llamarse a menos» en una bisagra. Si nadie lo corrige, llega así al
+  libro, y el lector final solo lo agarra si escucha el audio.
+- **Dónde:** transcripción (OpenAI) → perfil (bisagra de los 8 años).
+- **Qué se hizo a mano:** nada. Queda para la revisión: ¿le pasamos al transcriptor una lista de
+  nombres propios del perfil (colegios, barrios) como pista?
+
+## N11 · 24/09 · La pregunta 4 vuelve a la mudanza dura en vez de a lo que abrió la 3
+- **Qué pasó:** la respuesta 3 abrió capítulos grandes (Saint John's → Fátima, el Liceo Naval,
+  la facultad y la música, España). La pregunta 4 (`un-lugar`) vuelve a «el primer día en la casa
+  de Paraná», que es el momento en que el padre y el hermano faltaban por problemas legales
+  (`hoyFueFuerte` de la respuesta 2), y pide detalle de ese día. No es un error, pero se puede
+  discutir el tacto: la pregunta 3 había prometido «algo más liviano».
+- **Dónde:** secuencia/pregunta v2 (`un-lugar`, puerta abierta que eligió el perfil).
+- **Qué se hizo a mano:** nada; se mandó así.
