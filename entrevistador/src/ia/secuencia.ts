@@ -106,6 +106,10 @@ export function aplicarCubiertos(s: Secuencia, perfil: Perfil): Secuencia {
 //     nada: no cubren ninguna fila, salvo las puertas (`*-puerta`), que son saber un dato.
 //  b. La fila de una persona (`hermano-*`, `hijo-*`, `hermanos-todos`…) solo la cubre contestarla.
 //  c. Inicio, hoy, futuro y reflexión nunca los cubre otra respuesta (`NO_SE_CUBRE`).
+//  d. Piloto 24/09 (segunda vuelta): "más de grande salía de fiesta" en la-cuadra-y-los-juegos
+//     (infancia) marcó a-los-quince (juventud) como contada. Una fila solo la cubre una respuesta de
+//     SU MISMA etapa/bloque; las puertas (`*-puerta`) quedan afuera de esta regla (siguen como antes:
+//     las resuelve cualquier repaso del inicio, sea cual sea su propia etapa).
 
 /** Los repasos del inicio: una pasada por toda la vida, que nombra todo. */
 const REPASOS = new Set(['mapa-casas', 'mapa-capitulos', 'los-tuyos-hoy']);
@@ -124,6 +128,7 @@ export function motivoParaNoCubrir(desde: Objetivo, fila: Objetivo): string | nu
   if (NO_SE_CUBRE.has(fila.bloque)) return `${fila.bloque}: nunca la cubre otra respuesta`;
   if (REPASOS.has(desde.id) && !fila.id.endsWith('-puerta')) return `${desde.id} es un repaso: nombrar no es contar`;
   if (esDeUnaPersona(fila)) return 'es la fila de una persona: solo la cubre contestarla';
+  if (!fila.id.endsWith('-puerta') && fila.bloque !== bloqueDe(desde)) return 'es de otra etapa: solo la cubre una respuesta de su etapa';
   return null;
 }
 

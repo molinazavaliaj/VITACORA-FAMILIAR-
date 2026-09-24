@@ -164,6 +164,13 @@ describe('cubrirDesde (el candado de los cubiertos, piloto 24/09)', () => {
     expect(r.perfil.cubiertos).toEqual(['la-cuadra-y-los-juegos']);
     expect(r.rechazados).toEqual([]);
   });
+  it('piloto 24/09 (segunda vuelta): la-cuadra-y-los-juegos (infancia) no cubre a-los-quince (juventud): es de otra etapa', () => {
+    const s = armarSecuencia(naza(), ANIO);
+    const r = cubrirDesde(s, [], conCubiertos(naza(), ['a-los-quince']), fila(s, 'la-cuadra-y-los-juegos'));
+    expect(ids(r.secuencia)).toContain('a-los-quince');
+    expect(r.rechazados).toEqual([{ id: 'a-los-quince', motivo: expect.stringMatching(/otra etapa/) }]);
+    expect(r.perfil.cubiertos).not.toContain('a-los-quince');
+  });
   it('solo mira los cubiertos NUEVOS de esta respuesta: los de antes quedan como estaban', () => {
     const s = armarSecuencia(naza(), ANIO);
     const r = cubrirDesde(s, ['abuelos-y-raices'], conCubiertos(naza(), ['abuelos-y-raices', 'estudios']), fila(s, 'mapa-capitulos'));
