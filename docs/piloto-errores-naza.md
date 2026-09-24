@@ -321,3 +321,14 @@
   salieron al segundo intento, sin decir por qué (N12). Esa tanda costó ~USD 0,40.
 - **Dónde:** secuencia v2 (reparto de objetos por cambio de tramo) + texto del objeto.
 - **Qué se hizo a mano:** nada; se mandaron las dos.
+
+## N32 · 24/09 · Objeto 102: la corrección del nombre no entra y las fotos quedan afuera
+- **Qué pasó:** en el audio del objeto 102 (19 s) Naza corrige: el estudio se escribe **con G**
+  (la transcripción puso «Leng Studio»; antes «Denk Studio»), y los shows «con Bear» eran los shows
+  con Baby. La transcripción además puso «verde» por *Bear*. El perfil quedó «sin cambios»: no tomó
+  la corrección del nombre. Después mandó **6 fotos** (WhatsApp Image 04.15.48/49), que no entran
+  por la puerta manual v2. La evaluación armó otra repregunta buena («elegime una sola: dónde fue,
+  quién estaba…») y la descartó (N29 otra vez).
+- **Dónde:** perfil sobre respuestas de objeto; flujo de fotos (N30); `procesar` (N29).
+- **Qué se hizo a mano:** nada. Las fotos siguen en Downloads. Si Naza quiere que cuenten para el
+  libro, se suben desde el panel de la web.
