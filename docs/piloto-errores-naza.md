@@ -398,6 +398,9 @@
   pregunten algo tan parecido es un error. Son pormenores (los perros, la cuadra, los parientes, el
   primer día en el Fátima) que tendrían que ir **juntos, dentro de una pregunta del capítulo**, para
   que los cuente de una vez con otra cosa, no una pregunta entera cada uno.
+- **Y encima repregunta el pormenor:** a la respuesta 21 (26 s, el fútbol en la plaza), la
+  evaluación le pide todavía más detalle del mismo pormenor (dónde jugaban, cómo armaban los arcos,
+  una vez que volvió tarde). Es justo lo contrario de lo que pide Naza.
 - **Dónde:** secuencia v2 (orden de las variables de infancia), evaluación v2 (cansancio),
   `procesar` (evaluar lo que no se va a usar).
 - **Qué se hizo a mano:** nada.
