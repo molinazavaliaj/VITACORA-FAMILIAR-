@@ -246,3 +246,14 @@
   El perfil no inventó qué era, y la pregunta 12 (primer trabajo) no lo presiona sobre eso.
 - **Dónde:** transcripción → perfil (bisagras de la música).
 - **Qué se hizo a mano:** nada.
+
+## N24 · 24/09 · Un id de variable con espacio: `var-adulto joven-1`
+- **Qué pasó:** después de la respuesta 12 el perfil marcó `cubiertos: var-adulto joven-1`. El id
+  se arma con el nombre del tramo («adulto joven»), que tiene un espacio. Por ahora no rompe nada,
+  pero un id con espacio se puede partir en cualquier lado donde se tome como palabra (comandos,
+  logs, `split`).
+- **Lo bueno:** la respuesta 12 habló de «ciertos negocios que estaban un poco mal» antes de
+  España. El perfil no lo puso en la bisagra y la repregunta fue a la fábrica de neulas, que es la
+  escena concreta. Buen tacto.
+- **Dónde:** armado de ids de variables en la secuencia v2.
+- **Qué se hizo a mano:** nada.
