@@ -80,25 +80,33 @@ const h = vi.hoisted(() => {
   const colaPerfil: string[] = [];
   const colaEvaluar: string[] = [];
   const colaTranscripcion: string[] = [];
+  const colaPedidos: string[] = [];
   const llamadas: string[] = [];
+  const modelos: string[] = [];
+  /** Lo que dura cada audio falso (segundos). */
+  const duracion = { s: 42 };
   let n = 0;
+  const prompts: string[] = [];
   function responder(prompt: string): string {
+    prompts.push(prompt);
     if (prompt.includes('LO QUE TE TOCA PREGUNTAR HOY')) {
+      if (prompt.includes('Es una repregunta a lo de hoy')) { llamadas.push('repregunta'); return `¿Y de eso que faltó, qué me contás? (${++n})`; }
       llamadas.push('pregunta');
       if (prompt.includes('Es el PRIMER mensaje')) return 'Hola, soy el biógrafo que va a escribir el libro de tu vida. Una pregunta por día, la contestás con un audio cuando puedas. Para empezar: cómo preferís que te hable, cuántos años tenés y cómo te dicen en casa.';
-      if (prompt.includes('El mapa de su vida por las casas')) return 'Contame de las casas donde viviste.'; // sin "?": la marca
+      if (prompt.includes('El censo: quiénes son los suyos hoy')) return 'Contame quiénes son los tuyos hoy.'; // sin "?": la marca
       if (prompt.includes('Pedile UNA cosa')) return `¿Tenés alguna foto o cosa de esa época para mostrarme? (${++n})`;
       return `¿Qué te acordás de aquellos años, lo número ${++n}?`;
     }
     if (prompt.includes('LO QUE YA SABÉS (tu ficha de trabajo')) { llamadas.push('perfil'); return colaPerfil.shift() ?? '{}'; }
+    if (prompt.includes('No tenés que juzgar si alcanza')) { llamadas.push('pedidos'); return colaPedidos.shift() ?? '{}'; }
     if (prompt.includes('LA PREGUNTA DE HOY')) {
       llamadas.push('evaluar');
       if (fallar.evaluar > 0) { fallar.evaluar--; throw new Error('529 overloaded (falso)'); }
-      return colaEvaluar.shift() ?? '{"suficiente": true}';
+      return colaEvaluar.shift() ?? '{"suficiente": true, "falto": []}';
     }
     throw new Error(`prompt que el modelo falso no conoce: ${prompt.slice(0, 80)}`);
   }
-  return { tablas, db, colaPerfil, colaEvaluar, colaTranscripcion, llamadas, responder, fallar, bajados, subidos, ffmpeg };
+  return { tablas, db, colaPerfil, colaEvaluar, colaPedidos, colaTranscripcion, llamadas, modelos, prompts, duracion, responder, fallar, bajados, subidos, ffmpeg };
 });
 
 vi.mock('../src/db/cliente.js', () => ({ db: h.db }));
@@ -106,8 +114,8 @@ vi.mock('../src/ia/transcribir.js', () => ({
   transcribirYActualizar: async (id: string) => {
     if (h.fallar.transcribir > 0) { h.fallar.transcribir--; throw new Error('transcripción caída (falsa)'); }
     const texto = h.colaTranscripcion.shift() ?? 'algo';
-    Object.assign(h.tablas.respuestas.find((r) => r.id === id)!, { transcripcion: texto, duracion_segundos: 42 });
-    return { texto, duracionSegundos: 42 };
+    Object.assign(h.tablas.respuestas.find((r) => r.id === id)!, { transcripcion: texto, duracion_segundos: h.duracion.s });
+    return { texto, duracionSegundos: h.duracion.s };
   },
 }));
 // ffmpeg falso: "une" los audios escribiendo el archivo de salida (el último argumento).
@@ -123,10 +131,10 @@ vi.mock('node:child_process', async () => {
 vi.mock('@anthropic-ai/sdk', () => ({
   default: class {
     messages = {
-      create: async ({ messages }: { messages: { content: string }[] }) => ({
-        content: [{ type: 'text', text: h.responder(messages[0].content) }],
-        usage: { input_tokens: 1000, output_tokens: 100 },
-      }),
+      create: async ({ model, messages }: { model: string; messages: { content: string }[] }) => {
+        h.modelos.push(model);
+        return { content: [{ type: 'text', text: h.responder(messages[0].content) }], usage: { input_tokens: 1000, output_tokens: 100 } };
+      },
     };
   },
 }));
@@ -194,31 +202,52 @@ describe('manual-v2 de punta a punta (base y modelo falsos)', () => {
       persona: { edad: { valor: '27', fuente: 'dicho' }, comoHabla: { valor: 'vos', fuente: 'dicho' }, comoLeDicen: { valor: 'Naza', fuente: 'dicho' }, genero: { valor: 'hombre', fuente: 'deducido', por: 'habla de sí en masculino' } },
     }));
     h.llamadas.length = 0;
+    const firmaAntes = v2().firmaGuion;
     const r = await correr('cargar', 'pruebav2', '--texto', 'Hola, de vos. Tengo 27 y me dicen Naza.', '--orden', '0');
     expect(r.fallo).toBe(false);
     expect(h.llamadas).toEqual(['perfil']);
     expect(v2().perfil.persona.comoLeDicen.valor).toBe('Naza');
-    expect(v2().secuencia.pendientes.filter((o: any) => o.tipo === 'variable').length).toBeGreaterThanOrEqual(8);
+    // Con la edad, el guion se rearma (la firma cambia) y el adulto joven sigue adentro.
+    expect(v2().firmaGuion).not.toBe('');
+    expect(v2().firmaGuion).not.toBe(firmaAntes);
+    expect(v2().secuencia.pendientes.some((o: any) => o.id === 'oficio')).toBe(true);
     expect(h.tablas.respuestas.filter((x) => x.narrador_id === naza().id)).toHaveLength(1);
   });
 
   it('cargar la casa: evalúa y la repregunta sale entera al final; la respuesta a la repregunta no se repregunta', async () => {
-    h.colaEvaluar.push('{"suficiente": false, "repregunta": "¿Y quién más vivía en esa casa?"}');
+    h.colaEvaluar.push('{"suficiente": false, "falto": ["el olor", "quién estaba"]}');
+    h.llamadas.length = 0;
     const r = await correr('cargar', 'pruebav2', '--texto', 'Era una casa chica en Quilmes con un patio.');
     expect(r.fallo).toBe(false);
-    expect(v2().repreguntasEnviadas['1']).toBe('¿Y quién más vivía en esa casa?');
-    expect(r.texto.trim().endsWith('¿Y quién más vivía en esa casa?')).toBe(true);
-    h.colaEvaluar.push('{"suficiente": false, "repregunta": "¿Otra más?"}');
+    expect(h.llamadas).toContain('repregunta');
+    expect(v2().repreguntasEnviadas['1']).toMatch(/^¿Y de eso que faltó, qué me contás\? \(\d+\)$/);
+    expect(r.texto).toMatch(/faltó: el olor; quién estaba/);
+    expect(r.texto.trim().endsWith(v2().repreguntasEnviadas['1'])).toBe(true);
+    // La respuesta a la repregunta no se evalúa entera: solo los pedidos (Haiku).
     const rr = await correr('cargar', 'pruebav2', '--texto', 'Mis viejos y mi hermana.', '--repregunta');
     expect(rr.fallo).toBe(false);
+    expect(h.llamadas.at(-1)).toBe('pedidos');
     expect(rr.texto).toMatch(/no se repregunta/);
     expect(Object.keys(v2().repreguntasEnviadas)).toEqual(['1']);
+  });
+
+  it('cada paso anota su modelo: la ficha con Sonnet, la evaluación con Sonnet, la pregunta con Opus, los pedidos con Haiku', async () => {
+    const consumo = h.tablas.consumo_ia;
+    const de = (paso: string) => consumo.filter((c) => c.paso === paso).map((c) => c.modelo);
+    expect(new Set(de('v2-perfil'))).toEqual(new Set(['claude-sonnet-5']));
+    expect(new Set(de('v2-evaluar'))).toEqual(new Set(['claude-sonnet-5']));
+    expect(new Set(de('v2-pregunta'))).toEqual(new Set(['claude-opus-5']));
+    expect(new Set(de('v2-pedidos'))).toEqual(new Set(['claude-haiku-4-5']));
+    expect(new Set(de('v2-repregunta'))).toEqual(new Set(['claude-opus-5']));
+    // Y el modelo anotado es el que de verdad se llamó.
+    expect(new Set(h.modelos)).toEqual(new Set(['claude-opus-5', 'claude-sonnet-5', 'claude-haiku-4-5']));
   });
 
   it('una pregunta que no pasa los controles sale igual, marcada, y se ve cuántos intentos llevó', async () => {
     const r = await correr('siguiente', 'pruebav2');
     expect(r.fallo).toBe(false);
-    expect(v2().secuencia.hechas.at(-1).id).toBe('mapa-casas');
+    // Con la edad, el guion rearmado pone el censo (los-tuyos-hoy) antes del mapa de las casas.
+    expect(v2().secuencia.hechas.at(-1).id).toBe('los-tuyos-hoy');
     expect(v2().marcas['2']).toMatchObject({ control: 'pregunta', intentos: 3 });
     expect(r.texto).toMatch(/MARCADA/);
   });
@@ -283,6 +312,8 @@ describe('manual-v2 de punta a punta (base y modelo falsos)', () => {
     expect(s.texto).toContain(`--reprocesar --orden ${orden}`);
     const ok = await correr('cargar', 'pruebav2', '--reprocesar', '--orden', String(orden));
     expect(ok.fallo).toBe(false);
+    // Una respuesta escrita no tiene duración en la base: se estima por palabras, no se evalúa como "0 segundos".
+    expect(h.prompts.filter((x) => x.includes('LA PREGUNTA DE HOY')).at(-1)).toMatch(/duró 2 segundos/);
     expect(v2().procesadas).toContain(fila.id);
     expect(h.tablas.respuestas.filter((x) => x.narrador_id === naza().id && x.pregunta_orden === orden)).toHaveLength(1);
   });
@@ -332,9 +363,27 @@ describe('manual-v2 de punta a punta (base y modelo falsos)', () => {
     expect(naza().estado).toBe('pausado');
   });
 
+  it('al cerrar una etapa, si la ficha dejó un "[infancia] …" en noSabemos, la próxima es una libre; estado muestra caídas y libres', async () => {
+    // La del reanudar fue la cuadra: la próxima es la última fila de infancia (la escuela).
+    expect(v2().secuencia.hechas.at(-1).id).toBe('la-cuadra-y-los-juegos');
+    expect(v2().secuencia.pendientes[0].id).toBe('la-escuela');
+    h.colaPerfil.length = 0;
+    h.colaPerfil.push('{"agregarNoSabemos": ["[infancia] Qué pasó con los perros"]}');
+    await correr('cargar', 'pruebav2', audio('inf.ogg'));
+    const s = await correr('siguiente', 'pruebav2');
+    expect(s.fallo).toBe(false);
+    expect(v2().secuencia.hechas.at(-1).id).toBe('la-escuela');
+    expect(s.texto).toMatch(/pregunta libre/i);
+    expect(v2().secuencia.pendientes[0]).toMatchObject({ id: 'libre-infancia-1', tipo: 'variable', anclas: ['Qué pasó con los perros'] });
+    expect(v2().secuencia.libres).toBe(1);
+    const e = await correr('estado', 'pruebav2');
+    expect(e.texto).toMatch(/Se cayeron|caídas/i);
+    expect(e.texto).toMatch(/libres/i);
+  });
+
   it('cansancio: con dos repreguntas sin contestar, la tercera no sale y queda la pausa de 3 días', async () => {
     const repreguntarUna = async () => {
-      h.colaEvaluar.push('{"suficiente": false, "repregunta": "¿Y cómo fue eso?"}');
+      h.colaEvaluar.push('{"suficiente": false, "falto": ["cómo fue", "quién estaba"]}');
       await correr('cargar', 'pruebav2', '--texto', 'Algo corto.');
       await correr('siguiente', 'pruebav2');
     };
@@ -342,7 +391,7 @@ describe('manual-v2 de punta a punta (base y modelo falsos)', () => {
     await correr('siguiente', 'pruebav2');
     await repreguntarUna();
     await repreguntarUna();
-    h.colaEvaluar.push('{"suficiente": false, "repregunta": "¿Y cómo fue eso?"}');
+    h.colaEvaluar.push('{"suficiente": false, "falto": ["cómo fue", "quién estaba"]}');
     const r = await correr('cargar', 'pruebav2', '--texto', 'Otra corta.');
     expect(r.texto).toMatch(/cansancio/);
     expect(v2().sinRepreguntarHasta).toBeTruthy();
@@ -358,16 +407,18 @@ describe('manual-v2 de punta a punta (base y modelo falsos)', () => {
     expect(otraVez.texto).toMatch(/ya terminó/);
     expect(ultimo.texto).toMatch(/Objeto final/);
     expect(ultimo.texto.trim().endsWith('Una vida entera, charla por charla. Fue un honor enorme escuchar tu historia, y ya la estamos convirtiendo en tu libro.')).toBe(true);
+    // No se fija el número exacto (el techo y las libres lo mueven): el guion entero, hasta los cinco minutos.
+    expect(v2().secuencia.hechas.length - 1).toBeGreaterThanOrEqual(25);
+    expect(v2().secuencia.hechas.at(-1).id).toBe('cinco-minutos');
     const objetos = v2().secuencia.objetos;
     expect(objetos.length).toBeGreaterThanOrEqual(2);
     expect(objetos.filter((o: any) => o.final)).toHaveLength(1);
     for (const o of objetos) expect(v2().preguntasEnviadas[String(o.orden)]).toBeTruthy();
-    // Lo que cuenta de un objeto se carga con su orden: perfil + evaluación, nunca repregunta.
-    h.colaEvaluar.push('{"suficiente": false, "repregunta": "¿Y de quién era?"}');
+    // Lo que cuenta de un objeto se carga con su orden: perfil + pedidos (Haiku), nunca repregunta.
     h.llamadas.length = 0;
     const obj = await correr('cargar', 'pruebav2', '--texto', 'Es la pelota de cuero de mi viejo.', '--orden', String(objetos[0].orden));
     expect(obj.fallo).toBe(false);
-    expect(h.llamadas).toEqual(['perfil', 'evaluar']);
+    expect(h.llamadas).toEqual(['perfil', 'pedidos']);
     expect(obj.texto).toMatch(/no se repregunta/);
     expect(v2().repreguntasEnviadas[String(objetos[0].orden)]).toBeUndefined();
     const e = await correr('estado', 'pruebav2');

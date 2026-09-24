@@ -282,6 +282,13 @@ describe('el gasto', () => {
     expect(g.gastoUsd).toBeCloseTo(5 + 1 + 0.0045, 6);
     expect(sumarGasto(g, []).gastoUsd).toBeCloseTo(g.gastoUsd, 9);
   });
+  it('cobra con el modelo que se usó: la ficha con Sonnet, los pedidos con Haiku (por defecto, Opus)', () => {
+    const e = estadoNuevo({}, BA, 2026);
+    const millon = [{ input_tokens: 1_000_000, output_tokens: 100_000 }];
+    expect(sumarGasto(e, millon, 0, 'claude-sonnet-5').gastoUsd).toBeCloseTo(2 + 1, 6);
+    expect(sumarGasto(e, millon, 0, 'claude-haiku-4-5').gastoUsd).toBeCloseTo(1 + 0.5, 6);
+    expect(sumarGasto(e, millon).gastoUsd).toBeCloseTo(5 + 2.5, 6);
+  });
 });
 
 describe('los textos fijos para la persona', () => {

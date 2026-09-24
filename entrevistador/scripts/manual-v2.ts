@@ -1,6 +1,6 @@
 /**
  * LA PUERTA MANUAL v2 (diseño 23/09, §4.1): la entrevista entera con el cerebro nuevo —perfil,
- * plan, secuencia viva, encargo, controles, evaluación—, para que Naza se entreviste a sí mismo
+ * guion fijo por etapas, secuencia, encargo, controles, evaluación—, para que Naza se entreviste a sí mismo
  * copiando cada mensaje a WhatsApp a mano. No toca el flujo automático ni la puerta manual vieja
  * (`scripts/manual.ts`, que no se importa). Todo el estado vive en `narradores.contexto.v2`; lo
  * que se puede decidir sin base ni modelo está en `src/manual/estado-v2.ts`, con tests.
@@ -34,14 +34,16 @@ import {
   parsearArgs, slug, archivoCanonico, promptDeTranscripcion, motivoParaRechazarAudio, listaParaConcatenar, type Args,
 } from '../src/manual/puro.js';
 import {
-  estadoNuevo, leerEstado, contextoConEstado, planSiHaceFalta, pendientesParaPerfil, preguntaParaCargar,
-  queHaceSiguiente, conversacionDe, yaHechasDe, evitarDe, hoyEn, repreguntasParaCansancio, decidirTrasEvaluar,
+  estadoNuevo, leerEstado, contextoConEstado, rearmarSiHaceFalta, pendientesParaPerfil, preguntaParaCargar,
+  queHaceSiguiente, conversacionDe, yaHechasDe, evitarDe, hoyEn, repreguntasParaCansancio, repreguntasEnEtapa, decidirTrasEvaluar,
   sumarGasto, mensajeHoyNo, cierreQuiereParar, mailQuiereParar, despedidaV2, type EstadoV2, type FilaParaSiguiente,
 } from '../src/manual/estado-v2.js';
 import { actualizarPerfil } from '../src/ia/perfil.js';
-import { proxima, avanzar, aplicarPerfil, tocaObjeto, registrarObjeto } from '../src/ia/secuencia.js';
-import { escribirPregunta, perfilEnTexto, type Objetivo } from '../src/ia/pregunta-v2.js';
-import { evaluarV2, hayCansancio } from '../src/ia/evaluar-v2.js';
+import { proxima, avanzar, aplicarCubiertos, etapaCerrada, agregarLibre, tocaObjeto, registrarObjeto, tramoDe } from '../src/ia/secuencia.js';
+import { escribirPregunta, perfilEnTexto, type Objetivo, type YaHecha } from '../src/ia/pregunta-v2.js';
+import { evaluarV2, evaluarPedidos, hayCansancio, type EvaluacionV2 } from '../src/ia/evaluar-v2.js';
+import { modeloDePaso, type PasoV2 } from '../src/ia/modelos-v2.js';
+import { MAX_LIBRES } from '../src/ia/guion-v2.js';
 import type { Marca } from '../src/ia/control-pregunta.js';
 import type { Tramo } from '../src/ia/plan-preguntas.js';
 
@@ -158,13 +160,19 @@ async function guardar(n: NarradorFila, estado: EstadoV2, extra: Record<string, 
   n.contexto = contexto;
 }
 
-/** Cada llamada al modelo queda en `consumo_ia` como el resto del entrevistador (el panel suma el día). */
-async function anotarUsos(paso: string, narradorId: string, usos: Anthropic.Usage[]): Promise<void> {
+/**
+ * Cada llamada al modelo queda en `consumo_ia` como el resto del entrevistador (el panel suma el día),
+ * con el modelo que de verdad usó ese paso (Opus, Sonnet o Haiku: `modeloDePaso`).
+ */
+async function anotarUsos(paso: PasoV2, narradorId: string, usos: Anthropic.Usage[]): Promise<void> {
   const { db, registrarUso, cuentaDeEsteServicio } = await modulos();
   for (const uso of usos) {
-    await registrarUso(db, { servicio: 'entrevistador', paso, modelo: 'claude-opus-5', proveedor: 'anthropic', cuenta: cuentaDeEsteServicio(), narradorId, uso });
+    await registrarUso(db, { servicio: 'entrevistador', paso, modelo: modeloDePaso(paso), proveedor: 'anthropic', cuenta: cuentaDeEsteServicio(), narradorId, uso });
   }
 }
+
+/** Lo que duraría dicho en voz alta (~150 palabras por minuto): para una respuesta escrita, que no tiene audio. */
+const segundosDeTexto = (texto: string) => Math.round(texto.split(/\s+/).filter(Boolean).length / 2.5);
 
 const nombreDe = (n: NarradorFila, e: EstadoV2) => e.perfil.persona.comoLeDicen?.valor ?? n.como_le_dicen;
 const marcaEnTexto = (m?: Marca) => (m ? `⚠ MARCADA (${m.control}): ${m.motivo} — salió igual tras ${m.intentos} intentos` : 'pasó los controles');
@@ -242,12 +250,12 @@ async function empezar(ref: string | undefined, flags: Args['flags']): Promise<v
   if (errCandado) linea(`⚠ No pude dejar el candado del anticipo (${candado}): ${errCandado.message}. La fábrica de producción va a mandar el anticipo v1 a la 3.ª respuesta.`);
   else linea(`Candado del anticipo de producción puesto (${candado}): la fábrica no le manda el anticipo v1.`);
 
-  let estado = planSiHaceFalta(estadoNuevo(n.contexto ?? {}, n.zona_horaria));
+  let estado = estadoNuevo(n.contexto ?? {}, n.zona_horaria);
   const presentacion = proxima(estado.secuencia)!;
   linea(`Castellano: ${estado.perfil.castellano}. Escribiendo la presentación…`);
   const r = await escribirPregunta(cliente(), estado.perfil, presentacion, [], [], evitarDe(n.contexto ?? {}));
   estado = {
-    ...sumarGasto(estado, r.usos),
+    ...sumarGasto(estado, r.usos, 0, modeloDePaso('v2-presentacion')),
     preguntasEnviadas: { '0': r.texto },
     marcas: r.marca ? { '0': r.marca } : {},
     secuencia: avanzar(estado.secuencia, presentacion, 0),
@@ -316,7 +324,7 @@ async function bajarAudio(audioPath: string): Promise<Buffer> {
 
 /**
  * Carga una respuesta (audio —una o varias notas—, texto, o la que ya está si una carga anterior
- * se cortó) y hace lo que haría el día: perfil, plan, secuencia; evaluación (salvo la
+ * se cortó) y hace lo que haría el día: ficha, guion rearmado, cubiertos; evaluación (salvo la
  * presentación); reserva, tema a dejar, cansancio, "hoy no", "no quiero seguir"; la repregunta si
  * toca. Todo lo que pasa después de guardar la fila va dentro de un try: si algo se cae, dice el
  * comando exacto para retomar (`--reprocesar`).
@@ -376,7 +384,9 @@ async function cargar(ref: string | undefined, archivos: string[], flags: Args['
     }
     respuestaId = fila.id;
     respuesta = (fila.transcripcion ?? fila.texto_directo ?? '').trim();
-    segundos = fila.duracion_segundos ?? 0;
+    // Una respuesta escrita no tiene duración: con 0 toda respuesta escrita contaría como "corta" y
+    // abriría la segunda repregunta de la etapa. Se estima como en la carga con --texto.
+    segundos = fila.duracion_segundos ?? segundosDeTexto(respuesta);
     if (!respuesta) {
       if (!fila.audio_path) {
         throw new Error(`La respuesta ${fila.id} no tiene texto ni audio. Sacala con: ${comandoDescartar(n, fila.id, 'carga vacía')}`);
@@ -394,7 +404,7 @@ async function cargar(ref: string | undefined, archivos: string[], flags: Args['
     respuesta = texto;
     // Lo que duraría dicho en voz alta (~150 palabras por minuto): "duró 0 segundos" empujaba a
     // la evaluación a pedir más de una respuesta escrita que alcanzaba.
-    segundos = Math.round(texto.split(/\s+/).filter(Boolean).length / 2.5);
+    segundos = segundosDeTexto(texto);
     respuestaId = (data as { id: string }).id;
     linea(`Respuesta escrita (${segundos}s estimados si la hubiera dicho): ${texto}`);
   } else {
@@ -460,39 +470,45 @@ async function procesar(
   let estado = leido;
   const s = slug(n.como_le_dicen);
 
-  // 1. El perfil aprende de la respuesta; el plan y la secuencia se acomodan.
-  const usos: Anthropic.Usage[] = [];
+  // 1. La ficha aprende de la respuesta; si cambió lo que decide el guion (edad, árbol), la secuencia se rearma;
+  //    lo que la ficha dio por contado se cae.
   const antes = estado.perfil;
   const p = await actualizarPerfil(cliente(), estado.perfil, abierta.texto, respuesta, pendientesParaPerfil(estado.secuencia));
-  usos.push(p.usage);
+  estado = sumarGasto(estado, [p.usage], 0, modeloDePaso('v2-perfil'));
   await anotarUsos('v2-perfil', n.id, [p.usage]);
-  if (!p.ok) linea('⚠ El perfil no se entendió (salida ilegible): queda como estaba.');
-  const variablesAntes = estado.secuencia.pendientes.filter((o) => o.tipo === 'variable').length;
-  estado = planSiHaceFalta({ ...estado, perfil: p.perfil });
-  estado = { ...estado, secuencia: aplicarPerfil(estado.secuencia, estado.perfil) };
-  imprimirCambiosDePerfil(antes, estado, variablesAntes);
+  if (!p.ok) linea('⚠ La ficha no se entendió (salida ilegible): queda como estaba.');
+  const pendientesAntes = estado.secuencia.pendientes.map((o) => o.id);
+  estado = rearmarSiHaceFalta({ ...estado, perfil: p.perfil });
+  estado = { ...estado, secuencia: aplicarCubiertos(estado.secuencia, estado.perfil) };
+  imprimirCambiosDePerfil(antes, estado, pendientesAntes);
   const procesada = (e: EstadoV2): EstadoV2 => ({ ...e, procesadas: [...new Set([...e.procesadas, respuestaId])] });
 
-  // 2. La presentación solo alimenta el perfil (§2.2): no se evalúa ni se repregunta.
+  // 2. La presentación solo alimenta la ficha: no se evalúa ni se repregunta.
   if (objetivo.tipo === 'nucleo' && objetivo.id === 'presentacion' && !esRepregunta) {
-    estado = procesada(sumarGasto(estado, usos, segundosTranscriptos));
+    estado = procesada(sumarGasto(estado, [], segundosTranscriptos));
     await guardar(n, estado);
     linea(`Gasto acumulado: USD ${estado.gastoUsd.toFixed(3)}`);
     linea(`Ahora: npm run manual-v2 -- siguiente ${s}`);
     return;
   }
 
-  // 3. La evaluación, con lo último que hablaron (sin la respuesta de hoy). La de una repregunta o
-  //    un objeto se evalúa solo por la reserva, el tema a dejar y el "no quiero seguir".
+  // 3. La evaluación. A una repregunta o a un objeto solo se le miran los pedidos (reserva, dejar,
+  //    hoy no, parar): no se vuelve a repreguntar, así que no se paga una evaluación entera (N29).
   const previas = filas.filter((f) => f.id !== respuestaId);
-  const ev = await evaluarV2(
-    cliente(), estado.perfil, objetivo, abierta.texto, respuesta, segundos,
-    conversacionDe(estado, previas), evitarDe(n.contexto ?? {}),
-  );
-  usos.push(...ev.usos);
-  await anotarUsos('v2-evaluar', n.id, ev.usos);
-  const e = ev.evaluacion;
-  linea(`Evaluación (${ev.usos.length} intento${ev.usos.length === 1 ? '' : 's'}): ${JSON.stringify(e)}`);
+  let e: EvaluacionV2;
+  if (esRepregunta || esObjeto) {
+    const r = await evaluarPedidos(cliente(), respuesta);
+    estado = sumarGasto(estado, r.usos, 0, modeloDePaso('v2-pedidos'));
+    await anotarUsos('v2-pedidos', n.id, r.usos);
+    e = { suficiente: true, falto: [], ...r.pedidos };
+    linea(`Pedidos: ${JSON.stringify(r.pedidos)}`);
+  } else {
+    const r = await evaluarV2(cliente(), estado.perfil, objetivo, abierta.texto, respuesta, segundos, conversacionDe(estado, previas), evitarDe(n.contexto ?? {}));
+    estado = sumarGasto(estado, r.usos, 0, modeloDePaso('v2-evaluar'));
+    await anotarUsos('v2-evaluar', n.id, r.usos);
+    e = r.evaluacion;
+    linea(`Evaluación: ${JSON.stringify(e)}`);
+  }
 
   // 4. Lo que se anota siempre, venga lo que venga después.
   const reserva = mods.reservaDe(e, respuesta);
@@ -508,8 +524,10 @@ async function procesar(
     if (nuevo) evitarNuevo = nuevo.evitar;
   }
 
-  // 5. ¿Repregunta? Cansancio, "hoy no", "no quiero seguir".
+  // 5. ¿Repregunta? Una por etapa (más una si la respuesta fue corta y saltó pormenores), cansancio, "hoy no", "no quiero seguir".
   const contestadas = filas.filter((f) => f.es_repregunta).map((f) => f.pregunta_orden).concat(esRepregunta ? [orden] : []);
+  // La hecha que se está evaluando: la etapa se cuenta por su bloque (un objeto no tiene, y no se repregunta igual).
+  const hecha = esObjeto ? undefined : estado.secuencia.hechas.find((x) => x.orden === orden);
   const decision = decidirTrasEvaluar(e, {
     esRepregunta: esRepregunta || esObjeto,
     yaHayRepregunta: Boolean(estado.repreguntasEnviadas[String(orden)]),
@@ -517,6 +535,8 @@ async function procesar(
     orden,
     cansancio: hayCansancio(repreguntasParaCansancio(estado, orden, contestadas)),
     sinRepreguntarHasta: estado.sinRepreguntarHasta,
+    repreguntasEnEtapa: hecha ? repreguntasEnEtapa(estado, hecha) : 0,
+    segundos,
   });
   // La respuesta que llegó después de un "hoy no" cierra la espera (salvo que hoy tampoco pueda).
   if (estado.retomar === orden && !esRepregunta && decision.accion !== 'hoyNo') estado = { ...estado, retomar: undefined };
@@ -549,16 +569,24 @@ async function procesar(
       linea('Esta respuesta ("hoy no") quedó reservada: no va al libro.');
       mensajes.push({ titulo: 'Mañana se retoma', texto: mensajeHoyNo(nombre, estado.perfil) });
       break;
-    case 'repreguntar':
+    case 'repreguntar': {
+      // La escribe Opus con el encargo: lo que faltó, junto, en una sola pregunta; pasa por los controles.
+      // La conversación lleva la respuesta de hoy (las `filas` se leyeron antes de guardarla).
+      const obj: Objetivo = { tipo: 'repregunta', id: `${objetivo.id}-repregunta`, tramo: tramoDe(objetivo), pregunta: abierta.texto, falto: decision.falto };
+      const deHoy = { id: respuestaId, pregunta_orden: orden, es_repregunta: false, transcripcion: respuesta, texto_directo: null, recibido_at: new Date().toISOString() };
+      const r = await escribirPregunta(cliente(), estado.perfil, obj, conversacionDe(estado, [...previas, deHoy]), yaHechasDe(estado), evitarDe(n.contexto ?? {}));
+      estado = sumarGasto(estado, r.usos, 0, modeloDePaso('v2-repregunta'));
+      await anotarUsos('v2-repregunta', n.id, r.usos);
       estado = {
         ...estado,
-        repreguntasEnviadas: { ...estado.repreguntasEnviadas, [orden]: decision.texto },
-        marcas: ev.marca ? { ...estado.marcas, [`${orden}-repregunta`]: ev.marca } : estado.marcas,
+        repreguntasEnviadas: { ...estado.repreguntasEnviadas, [orden]: r.texto },
+        marcas: r.marca ? { ...estado.marcas, [`${orden}-repregunta`]: r.marca } : estado.marcas,
       };
-      linea(`Repregunta: ${ev.usos.length} intento${ev.usos.length === 1 ? '' : 's'} · ${marcaEnTexto(ev.marca)}`);
+      linea(`Repregunta (faltó: ${decision.falto.join('; ')}): ${r.usos.length} intento${r.usos.length === 1 ? '' : 's'} · ${marcaEnTexto(r.marca)}`);
       linea(`Cuando conteste: npm run manual-v2 -- cargar ${s} <audio.ogg> --repregunta${orden !== estado.secuencia.hechas.at(-1)?.orden ? ` --orden ${orden}` : ''}`);
-      mensajes.push({ titulo: `Repregunta de la orden ${orden}`, texto: decision.texto });
+      mensajes.push({ titulo: `Repregunta de la orden ${orden}`, texto: r.texto });
       break;
+    }
     case 'nada':
       if (decision.sinRepreguntarHasta) {
         estado = { ...estado, sinRepreguntarHasta: decision.sinRepreguntarHasta, cansancioDesdeOrden: decision.cansancioDesdeOrden };
@@ -568,14 +596,14 @@ async function procesar(
       break;
   }
 
-  estado = procesada(sumarGasto(estado, usos, segundosTranscriptos));
+  estado = procesada(sumarGasto(estado, [], segundosTranscriptos));
   await guardar(n, estado, {}, evitarNuevo);
   linea(`Gasto acumulado: USD ${estado.gastoUsd.toFixed(3)}`);
   imprimirParaPegar(mensajes);
 }
 
 /** Lo que el perfil aprendió hoy, en pocas líneas: para ver si se da cuenta solo de quién es. */
-function imprimirCambiosDePerfil(antes: EstadoV2['perfil'], estado: EstadoV2, variablesAntes: number): void {
+function imprimirCambiosDePerfil(antes: EstadoV2['perfil'], estado: EstadoV2, pendientesAntes: string[]): void {
   const p = estado.perfil;
   const cambios: string[] = [];
   for (const [campo, dato] of Object.entries(p.persona)) {
@@ -588,10 +616,13 @@ function imprimirCambiosDePerfil(antes: EstadoV2['perfil'], estado: EstadoV2, va
   if (bisagras.length) cambios.push(`bisagras nuevas: ${bisagras.join(' · ')}`);
   const cubiertos = p.cubiertos.filter((c) => !antes.cubiertos.includes(c));
   if (cubiertos.length) cambios.push(`cubiertos (no se preguntan): ${cubiertos.join(', ')}`);
-  if (p.puertaAbierta) cambios.push(`puerta abierta: ${p.puertaAbierta}`);
   if (p.hoyFueFuerte) cambios.push('hoy fue fuerte: mañana lo reconoce antes de preguntar');
-  const variables = estado.secuencia.pendientes.filter((o) => o.tipo === 'variable').length;
-  if (variables !== variablesAntes) cambios.push(`variables pendientes: ${variablesAntes} → ${variables}`);
+  if (p.noTuvo.length !== antes.noTuvo.length) cambios.push(`no tuvo: ${p.noTuvo.join(', ')}`);
+  const ahora = estado.secuencia.pendientes.map((o) => o.id);
+  const entraron = ahora.filter((id) => !pendientesAntes.includes(id));
+  const salieron = pendientesAntes.filter((id) => !ahora.includes(id));
+  if (entraron.length) cambios.push(`filas que entraron al guion: ${entraron.join(', ')}`);
+  if (salieron.length) cambios.push(`filas que salieron del guion: ${salieron.join(', ')}`);
   linea(cambios.length ? `Perfil:\n  ${cambios.join('\n  ')}` : 'Perfil: sin cambios.');
 }
 
@@ -644,14 +675,14 @@ async function siguiente(ref: string | undefined, flags: Args['flags']): Promise
   const evitar = evitarDe(n.contexto ?? {});
   const sinFotos = Boolean(n.contexto?.sinFotos);
   const nombre = nombreDe(n, estado);
-  const usos: Anthropic.Usage[] = [];
   const mensajes: { titulo: string; texto: string }[] = [];
 
   /** El objeto (§2.5): lo escribe el mismo cerebro, y va con su orden 101+ al lado de las preguntas. */
-  const pedirObjeto = async (tramo: Tramo, final: boolean, hechasHasta: string[]) => {
+  const pedirObjeto = async (tramo: Tramo, final: boolean, hechasHasta: YaHecha[]) => {
     const obj: Objetivo = { tipo: 'objeto', id: `objeto-${tramo}${final ? '-final' : ''}`, tramo };
     const r = await escribirPregunta(cliente(), estado.perfil, obj, conversacion, hechasHasta, evitar);
-    usos.push(...r.usos);
+    estado = sumarGasto(estado, r.usos, 0, modeloDePaso('v2-objeto'));
+    await anotarUsos('v2-objeto', n.id, r.usos);
     const ordenObjeto = 101 + estado.secuencia.objetos.length;
     estado = {
       ...estado,
@@ -669,10 +700,9 @@ async function siguiente(ref: string | undefined, flags: Args['flags']): Promise
     const tramo = tocaObjeto(estado.secuencia, null, sinFotos);
     if (tramo) mensajes.push({ titulo: 'Objeto final', texto: await pedirObjeto(tramo, true, yaHechas) });
     mensajes.push({ titulo: 'Despedida', texto: despedidaV2(nombre, estado.perfil) });
-    estado = { ...sumarGasto(estado, usos), terminada: hoyEn(n.zona_horaria) };
+    estado = { ...estado, terminada: hoyEn(n.zona_horaria) };
     // Sigue 'pausado' en la base a propósito: 'completado' dispararía la fábrica de producción.
     await guardar(n, estado, { estado: 'pausado' });
-    await anotarUsos('v2-objeto', n.id, usos);
     titulo(`${n.como_le_dicen} terminó: ${estado.secuencia.hechas.length - 1} preguntas (queda 'pausado' en la base; terminada en contexto.v2)`);
     linea(`El libro: cd ../fabrica && npx tsx --env-file=.env scripts/prueba-reparto.ts ${n.id} --salida prueba-libro-${s}`);
     linea(`Gasto de la entrevista: USD ${estado.gastoUsd.toFixed(3)}`);
@@ -685,7 +715,7 @@ async function siguiente(ref: string | undefined, flags: Args['flags']): Promise
   const orden = estado.secuencia.hechas.length;
   titulo(`Pregunta ${orden} para ${n.como_le_dicen} — ${sig.id}${sig.tipo === 'variable' ? ` (${sig.tramo}, ${sig.desde}-${sig.hasta} años)` : ''}`);
   const r = await escribirPregunta(cliente(), estado.perfil, sig, conversacion, yaHechas, evitar);
-  usos.push(...r.usos);
+  estado = sumarGasto(estado, r.usos, 0, modeloDePaso('v2-pregunta'));
   await anotarUsos('v2-pregunta', n.id, r.usos);
   estado = {
     ...estado,
@@ -696,13 +726,20 @@ async function siguiente(ref: string | undefined, flags: Args['flags']): Promise
   linea(`Intentos: ${r.usos.length} · ${marcaEnTexto(r.marca)}`);
   mensajes.push({ titulo: `Pregunta ${orden}`, texto: r.texto });
 
-  if (tramoObjeto) {
-    const usosAntes = usos.length;
-    mensajes.push({ titulo: 'Segundo mensaje: el objeto', texto: await pedirObjeto(tramoObjeto, false, [...yaHechas, r.texto]) });
-    await anotarUsos('v2-objeto', n.id, usos.slice(usosAntes));
+  // Si esta fila cerró su etapa, la próxima es una libre: lo que nombró y no contó de esa etapa
+  // (un "[etapa] …" de noSabemos). Una sola por etapa (`agregarLibre` rechaza la segunda).
+  const cerrado = etapaCerrada(estado.secuencia, sig);
+  if (cerrado) {
+    const { secuencia, libre } = agregarLibre(estado.secuencia, estado.perfil, cerrado);
+    estado = { ...estado, secuencia };
+    linea(libre ? `Se cerró ${cerrado}: la próxima es una pregunta libre (${libre.id}: ${libre.anclas[0]}).` : `Se cerró ${cerrado}: sin pregunta libre (nada nombrado sin contar, o ya hay ${MAX_LIBRES}).`);
   }
 
-  estado = sumarGasto(estado, usos);
+  if (tramoObjeto) {
+    const hechaHoy: YaHecha = { id: sig.id, tema: sig.tipo === 'nucleo' ? sig.tema : sig.id };
+    mensajes.push({ titulo: 'Segundo mensaje: el objeto', texto: await pedirObjeto(tramoObjeto, false, [...yaHechas, hechaHoy]) });
+  }
+
   await guardar(n, estado, { dia_actual: orden });
   const quedan = estado.secuencia.pendientes.length;
   linea(`Quedan ${quedan} pendiente${quedan === 1 ? '' : 's'} · gasto acumulado: USD ${estado.gastoUsd.toFixed(3)}`);
@@ -732,6 +769,9 @@ async function verEstado(ref: string | undefined): Promise<void> {
     const donde = o.tipo === 'nucleo' ? o.bloque : o.tipo === 'variable' ? `${o.tramo}, ${o.desde}-${o.hasta} años` : o.tramo;
     linea(`  ${o.id} — ${donde}`);
   }
+  titulo(`Se cayeron (${sec.caidas.length})`);
+  for (const c of sec.caidas) linea(`  ${c.id} — ${c.motivo}`);
+  linea(`  libres agregadas: ${sec.libres} de ${MAX_LIBRES}`);
   titulo('Lo demás');
   linea(`  cubiertos (se cayeron): ${sec.cubiertos.length ? sec.cubiertos.join(', ') : 'ninguno'}`);
   linea(`  objetos: ${sec.objetos.length ? sec.objetos.map((o) => `${o.orden} ${o.tramo}${o.final ? ' (final)' : ''}`).join(' · ') : 'ninguno'}`);

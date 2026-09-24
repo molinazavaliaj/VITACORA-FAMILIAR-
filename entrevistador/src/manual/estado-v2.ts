@@ -6,6 +6,7 @@ import { tratoDelPerfil } from '../ia/encargo-entrevista.js';
 import { DIAS_SIN_REPREGUNTAR, type EvaluacionV2 } from '../ia/evaluar-v2.js';
 import type { Marca } from '../ia/control-pregunta.js';
 import { calcularUsd, calcularUsdPorUnidad, type Uso } from '../costos.js';
+import { MODELO_PREGUNTA } from '../ia/modelos-v2.js';
 
 // Lo puro de la puerta manual v2 (diseño 23/09, §4.1): qué se guarda, qué pregunta está abierta,
 // si toca repreguntar y los textos fijos que se pegan en WhatsApp. Vive acá y no en el script para
@@ -13,9 +14,6 @@ import { calcularUsd, calcularUsdPorUnidad, type Uso } from '../costos.js';
 // guarda. Todo el estado v2 va bajo UNA clave, `contexto.v2`, para no chocar con las claves del
 // flujo v1 (`preguntasEnviadas`, `repreguntasEnviadas`, `evitar`…); el cambio de CONTRATO se
 // escribe en la Task 14.
-
-/** El modelo de todas las llamadas del cerebro v2 (perfil, pregunta, evaluación): para el gasto. */
-const MODELO_V2 = 'claude-opus-5';
 
 export type EstadoV2 = {
   perfil: Perfil;
@@ -291,11 +289,14 @@ export function repreguntasEnEtapa(estado: EstadoV2, hecha: Hecha): number {
   return Object.keys(estado.repreguntasEnviadas).filter((o) => ordenes.has(o)).length;
 }
 
-/** Suma al gasto de la entrevista lo que costaron estas llamadas (y los segundos transcriptos). */
-export function sumarGasto(estado: EstadoV2, usos: Uso[], segundosTranscriptos = 0): EstadoV2 {
-  const modelo = usos.reduce((s, u) => s + calcularUsd(MODELO_V2, u), 0);
+/**
+ * Suma al gasto de la entrevista lo que costaron estas llamadas (y los segundos transcriptos). Los
+ * `usos` son todos del mismo `modelo` (el del paso: `modeloDePaso`): quien llama suma paso por paso.
+ */
+export function sumarGasto(estado: EstadoV2, usos: Uso[], segundosTranscriptos = 0, modelo: string = MODELO_PREGUNTA): EstadoV2 {
+  const usd = usos.reduce((s, u) => s + calcularUsd(modelo, u), 0);
   const audio = segundosTranscriptos > 0 ? calcularUsdPorUnidad('gpt-transcribe', segundosTranscriptos) : 0;
-  return { ...estado, gastoUsd: Math.round((estado.gastoUsd + modelo + audio) * 1e6) / 1e6 };
+  return { ...estado, gastoUsd: Math.round((estado.gastoUsd + usd + audio) * 1e6) / 1e6 };
 }
 
 // ── Los textos fijos (los aprueba Naza) ──────────────────────────────────
