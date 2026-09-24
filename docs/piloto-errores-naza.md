@@ -185,6 +185,10 @@
 - **Se repite:** la pregunta 18 sale con `var-infancia-1` (el primer día en el Fátima), el otro id
   que se había dado por cubierto después de la respuesta 3. Ya son tres casos (N17, N28 y este).
   Los ids de variables se reusan cuando el plan se rearma.
+  Cuarto caso: la pregunta 19 sale con `var-infancia-2`, cubierto después de la respuesta 4.
+  Encima pide «una tarde con los perros», cuando de Corcho Naza había dicho «era muy bebé».
+  Ya van 3 preguntas seguidas (16, 17, 19) sobre la casa de Martínez y la familia de la
+  infancia.
 - **Dónde:** `planSiHaceFalta` / `aplicarPerfil` (secuencia v2) y los ids de las variables.
 - **Qué se hizo a mano:** nada.
 
