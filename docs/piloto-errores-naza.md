@@ -361,3 +361,12 @@
   deducción guardada como dicho.
 - **Dónde:** perfil (`agregarBisagras` no tiene «corregir», solo `sinRepetir` por texto exacto).
 - **Qué se hizo a mano:** nada.
+
+## N35 · 24/09 · «Se llamaba Homero», y el perfil sigue diciendo Romero
+- **Qué pasó:** en la respuesta 19 Naza corrige: el mastín se llamaba **Homero**, «como Homero
+  Simpson» (la transcripción de la respuesta 1 había puesto «Romero»). El perfil: «sin cambios». Es
+  la segunda corrección de nombre que no entra (N32, el estudio con G) y la regla 11 del prompt
+  pide justamente eso. Además dice por segunda vez «eso creo que ya lo respondí» (N33), respuesta
+  corta (34 s), y la evaluación no lo registra como cansancio.
+- **Dónde:** perfil (`corregirPersonas`), evaluación v2 (cansancio / repetición).
+- **Qué se hizo a mano:** nada.
