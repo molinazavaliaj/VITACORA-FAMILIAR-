@@ -296,3 +296,28 @@
 - **Qué se hizo a mano:** nada; se mandaron las dos.
 - **Aviso del handoff:** la foto del objeto no entra por la puerta manual v2. Se sube desde el
   panel de la web (tabla `fotos`). Por CLI solo entra el audio con `--orden 101`.
+
+## N29 · 24/09 · En el objeto, la evaluación escribe una repregunta y después la tira
+- **Qué pasó:** la respuesta al objeto 101 fue «de esa época acá en Berga no tengo nada». La
+  evaluación devolvió `suficiente: false` con una buena repregunta (la valija, qué dejó en
+  Argentina, una caja en lo de sus viejos). Enseguida el comando dijo «es la respuesta a una
+  repregunta o a un objeto: no se repregunta» y la descartó. Se pagó una repregunta que no se usa.
+  O el objeto no se evalúa, o esa repregunta vale y se manda.
+- **Dónde:** `scripts/manual-v2.ts` (`procesar`, la evaluación corre antes de mirar si es objeto).
+- **Qué se hizo a mano:** nada.
+
+## N30 · 24/09 · «Te mando una foto» en una respuesta normal
+- **Qué pasó:** en la respuesta 15 Naza dice «te mando una foto» (de la casa vacía de Berga). En
+  WhatsApp de verdad esa foto llegaría y hoy no hay dónde ponerla, fuera del objeto. En el piloto
+  no hay comando para fotos (se suben desde el panel).
+- **Dónde:** puerta manual v2 / flujo de fotos.
+- **Qué se hizo a mano:** nada.
+
+## N31 · 24/09 · El objeto 102 cita mal lo que dijo y llega pegado al anterior
+- **Qué pasó:** «ya me dijiste que **de la infancia** no guardaste nada». Naza dijo que de la época
+  de **Berga** no tiene nada, y el objeto 101 tampoco era de la infancia (era del tramo «hoy»).
+  Además llegó un segundo objeto (102, adulto joven) en la pregunta siguiente, justo después de
+  que dijo que no tenía nada: dos pedidos de objeto seguidos. La pregunta 16 y el objeto 102
+  salieron al segundo intento, sin decir por qué (N12). Esa tanda costó ~USD 0,40.
+- **Dónde:** secuencia v2 (reparto de objetos por cambio de tramo) + texto del objeto.
+- **Qué se hizo a mano:** nada; se mandaron las dos.
