@@ -121,6 +121,16 @@ describe('pendientesParaPerfil y yaHechasDe', () => {
     expect(ya[2].tema).toContain('¿Y el olor de esa casa?');
     expect(JSON.stringify(ya)).not.toContain('texto 1');
   });
+  it('una repregunta larga entra recortada a 100 caracteres (arreglo final I1)', () => {
+    let e = estadoNuevo({ anioNacimiento: 1999 }, BA, 2026);
+    for (let i = 0; i < 2; i++) e = { ...e, secuencia: avanzar(e.secuencia, proxima(e.secuencia)!, i) };
+    e = { ...e, repreguntasEnviadas: { '1': 'Y de esa casa, ¿quién más vivía con ustedes y cómo era un domingo cualquiera ahí adentro, con la radio, la comida y la familia entera?' } };
+    const rep = yaHechasDe(e).find((y) => y.id.endsWith('-repregunta'))!;
+    const texto = rep.tema.replace('(repregunta) ', '');
+    expect(texto.length).toBeLessThanOrEqual(100);
+    expect(texto.endsWith('…')).toBe(true);
+    expect(texto.startsWith('Y de esa casa, ¿quién más vivía')).toBe(true);
+  });
 });
 
 describe('qué pregunta está abierta', () => {

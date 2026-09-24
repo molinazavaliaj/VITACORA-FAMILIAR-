@@ -477,7 +477,7 @@ describe('manual-v2 de punta a punta (base y modelo falsos)', () => {
     const encargoFinal = promptFinal.slice(promptFinal.indexOf('LO QUE TE TOCA PREGUNTAR HOY'));
     expect(encargoFinal).toMatch(/toda su vida/);
     expect(encargoFinal).not.toMatch(/de esa época/);
-    for (const o of objetos.filter((x: any) => !x.final)) expect(promptFinal).toContain(`- objeto-${o.tramo}: (objeto) ${o.tramo}`);
+    for (const o of objetos.filter((x: any) => !x.final)) expect(promptFinal).toContain(`- (objeto) ${o.tramo}`);
     const deTramo = objetos.filter((o: any) => !o.final).map((o: any) => o.tramo);
     expect(new Set(deTramo).size).toBe(deTramo.length);
     // Lo que cuenta de un objeto se carga con su orden: perfil + pedidos (Haiku), nunca repregunta.

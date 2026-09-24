@@ -1,7 +1,7 @@
 import { perfilDesdeFicha, type Perfil, type TemaPendiente } from '../ia/perfil.js';
 import type { Tramo } from '../ia/plan-preguntas.js';
 import { armarSecuencia, rearmar, type Secuencia, type Hecha } from '../ia/secuencia.js';
-import type { YaHecha, Objetivo } from '../ia/pregunta-v2.js';
+import { recortarHecha, MAX_REPREGUNTA_HECHA, type YaHecha, type Objetivo } from '../ia/pregunta-v2.js';
 import { firmaGuion } from '../ia/guion-v2.js';
 import { tratoDelPerfil } from '../ia/encargo-entrevista.js';
 import { DIAS_SIN_REPREGUNTAR, type EvaluacionV2 } from '../ia/evaluar-v2.js';
@@ -204,10 +204,11 @@ export function objetoDe(o: { tramo: Tramo; final?: boolean }): Extract<Objetivo
 export function yaHechasDe(estado: EstadoV2): YaHecha[] {
   const temas: YaHecha[] = estado.secuencia.hechas
     .filter((h) => h.id !== 'presentacion')
-    .map((h) => ({ id: h.id, tema: h.objetivo.tipo === 'nucleo' ? h.objetivo.tema : h.objetivo.tipo === 'variable' ? `Algo que nombró y no contó: ${h.objetivo.anclas.join('; ')}` : h.objetivo.id }));
+    .map((h) => ({ id: h.id, tema: h.objetivo.tipo === 'nucleo' ? h.objetivo.tema : h.objetivo.tipo === 'variable' ? `(libre) ${h.objetivo.anclas.join('; ')}` : h.objetivo.id }));
   const repreguntas: YaHecha[] = Object.entries(estado.repreguntasEnviadas).map(([orden, texto]) => {
     const h = estado.secuencia.hechas.find((x) => String(x.orden) === orden);
-    return { id: `${h?.id ?? orden}-repregunta`, tema: `(repregunta) ${texto}` };
+    // Recortada (arreglo final I1): el texto entero de cada repregunta hacía crecer el prompt.
+    return { id: `${h?.id ?? orden}-repregunta`, tema: `(repregunta) ${recortarHecha(texto, MAX_REPREGUNTA_HECHA)}` };
   });
   // Los objetos ya pedidos, cortos (arreglo final I3): sin esto, el modelo no sabía que ya había
   // pedido el de "hoy" y el final lo repetía.

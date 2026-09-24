@@ -75,6 +75,54 @@ export function objetivoEnTexto(o: Objetivo, perfil: Perfil): string {
   return `${o.tema}${pormenores}${escena}`;
 }
 
+/** Cuánto entra de cada tema ya hecho y de cada repregunta ya mandada en "TEMAS QUE YA LE PREGUNTASTE". */
+export const MAX_TEMA_HECHO = 80;
+export const MAX_REPREGUNTA_HECHA = 100;
+const PREFIJO_REPREGUNTA = '(repregunta) ';
+
+/**
+ * Un texto recortado para la lista de ya hechas: la primera oración entera si entra en `max`; si
+ * no, hasta `max` cortando en una palabra entera, con "…". Idempotente.
+ */
+export function recortarHecha(texto: string, max: number): string {
+  const limpio = texto.replace(/\s+/g, ' ').trim();
+  const primera = limpio.match(/^.+?[.?!…](?=\s|$)/)?.[0] ?? limpio;
+  if (primera.length <= max) return primera;
+  const corte = primera.slice(0, max - 1);
+  const espacio = corte.lastIndexOf(' ');
+  return `${(espacio > max / 2 ? corte.slice(0, espacio) : corte).replace(/[\s,;:¿¡(]+$/, '')}…`;
+}
+
+/** Lo que ya viene corto y marcado (repreguntas, libres, objetos): no se le busca la cabeza. */
+const MARCADO = /^\((repregunta|libre|objeto)\) /;
+
+/**
+ * Cómo se lista una ya hecha (arreglo final I1: con los temas enteros, la lista llevaba el prompt de
+ * la pregunta 40 a 15.400 caracteres, sobre un presupuesto de 13.800). Un tema del guion: su primera
+ * oración hasta MAX_TEMA_HECHO y, si tiene cabeza antes de ":", " (" o ", " (de 12 caracteres o más),
+ * solo la cabeza ("La casa donde pasó su infancia"). Una repregunta: su texto hasta
+ * MAX_REPREGUNTA_HECHA. Los temas del guion no cambian: solo cómo se listan los ya hechos (para "no
+ * vuelvas sobre esto" alcanza con reconocerlo).
+ */
+export function temaHechoEnLinea(q: YaHecha): string {
+  if (q.tema.startsWith(PREFIJO_REPREGUNTA)) return `${PREFIJO_REPREGUNTA}${recortarHecha(q.tema.slice(PREFIJO_REPREGUNTA.length), MAX_REPREGUNTA_HECHA)}`;
+  const corto = recortarHecha(q.tema, MAX_TEMA_HECHO);
+  if (MARCADO.test(q.tema)) return corto;
+  const partes = corto.split(/:| \(|, /);
+  if (partes.length === 1) return corto;
+  const cabeza = partes[0].trim();
+  return cabeza.length >= 12 ? cabeza : corto;
+}
+
+/**
+ * La lista de "TEMAS QUE YA LE PREGUNTASTE": una línea por tema, SIN el id (arreglo final I1: los ids
+ * sumaban ~500 caracteres que el modelo no usa; con id, ni cortando los temas a 80 entraba en el
+ * presupuesto) y sin repetir líneas iguales.
+ */
+export function listaDeHechas(yaHechas: YaHecha[]): string {
+  return [...new Set(yaHechas.map(temaHechoEnLinea))].map((l) => `- ${l}`).join('\n');
+}
+
 export const PROMPT_PREGUNTA_V2 = (encargo: string, conversacion: string, yaHechas: string, objetivo: string) => `
 ${encargo}
 
@@ -103,7 +151,7 @@ export function armarPromptPregunta(
   return PROMPT_PREGUNTA_V2(
     encargoDelBiografo(perfil, evitar),
     conversacion.map((c) => `P: ${c.pregunta}\nR: ${c.respuesta}`).join('\n\n'),
-    yaHechas.map((q) => `- ${q.id}: ${q.tema}`).join('\n'),
+    listaDeHechas(yaHechas),
     objetivoEnTexto(objetivo, perfil),
   );
 }
