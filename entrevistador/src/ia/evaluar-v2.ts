@@ -2,7 +2,7 @@ import type Anthropic from '@anthropic-ai/sdk';
 import type { Perfil } from './perfil.js';
 import { encargoDelBiografo } from './encargo-entrevista.js';
 import type { Objetivo } from './pregunta-v2.js';
-import { MODELO_EVALUACION, MODELO_PEDIDOS } from './modelos-v2.js';
+import { MODELO_EVALUACION, MODELO_PEDIDOS, textoDelModelo } from './modelos-v2.js';
 
 // La evaluación del esqueleto v2 (24/09). Decide si con la respuesta hay con qué escribir la página
 // del día y, si no, QUÉ FALTÓ de la fila (sus pormenores): la repregunta la escribe Opus después
@@ -143,7 +143,11 @@ export function hayCansancio(ultimasRepreguntas: { contestada: boolean }[]): boo
   return dos.length === 2 && dos.every((r) => !r.contestada);
 }
 
-/** Una llamada. Sin reintentos: no hay texto para la persona que controlar. */
+/**
+ * Una llamada. Sin reintentos: no hay texto para la persona que controlar. `max_tokens` 4000 (el que
+ * no se usa no se cobra); si igual se corta o viene sin texto, tira (`textoDelModelo`): una evaluación
+ * vacía se leía como "alcanza" y se perdía un "no quiero seguir" (arreglo final I2).
+ */
 export async function evaluarV2(
   cliente: Anthropic,
   perfil: Perfil,
@@ -154,9 +158,8 @@ export async function evaluarV2(
   conversacion: { pregunta: string; respuesta: string }[],
   evitar: string[],
 ): Promise<{ evaluacion: EvaluacionV2; usos: Anthropic.Usage[] }> {
-  const r = await cliente.messages.create({ model: MODELO_EVALUACION, max_tokens: 1000, messages: [{ role: 'user', content: armarPromptEvaluar(perfil, objetivo, pregunta, respuesta, segundos, conversacion, evitar) }] });
-  const bloque = r.content.find((b) => b.type === 'text');
-  return { evaluacion: parsearEvaluacion(bloque && bloque.type === 'text' ? bloque.text : ''), usos: [r.usage] };
+  const r = await cliente.messages.create({ model: MODELO_EVALUACION, max_tokens: 4000, messages: [{ role: 'user', content: armarPromptEvaluar(perfil, objetivo, pregunta, respuesta, segundos, conversacion, evitar) }] });
+  return { evaluacion: parsearEvaluacion(textoDelModelo(r, 'la evaluación')), usos: [r.usage] };
 }
 
 export const PROMPT_PEDIDOS = (respuesta: string) => `
@@ -177,9 +180,8 @@ export function armarPromptPedidos(respuesta: string): string {
 }
 
 export async function evaluarPedidos(cliente: Anthropic, respuesta: string): Promise<{ pedidos: Pedidos; usos: Anthropic.Usage[] }> {
-  const r = await cliente.messages.create({ model: MODELO_PEDIDOS, max_tokens: 600, messages: [{ role: 'user', content: armarPromptPedidos(respuesta) }] });
-  const bloque = r.content.find((b) => b.type === 'text');
-  const texto = bloque && bloque.type === 'text' ? bloque.text : '';
+  const r = await cliente.messages.create({ model: MODELO_PEDIDOS, max_tokens: 2000, messages: [{ role: 'user', content: armarPromptPedidos(respuesta) }] });
+  const texto = textoDelModelo(r, 'la evaluación de pedidos');
   const c = leerJson(texto);
   return { pedidos: c ? leerPedidos(c) : leerPedidosPorRegex(texto), usos: [r.usage] };
 }

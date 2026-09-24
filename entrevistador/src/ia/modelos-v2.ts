@@ -18,3 +18,24 @@ export function modeloDePaso(paso: PasoV2): string {
     default: return MODELO_PREGUNTA;
   }
 }
+
+/**
+ * El texto de la respuesta del modelo, o un Error si se cortó (arreglo final I2). Si el modelo llegó
+ * al `max_tokens` (`stop_reason: 'max_tokens'`) o no devolvió texto, parsear eso se leía como "todo
+ * bien": una evaluación vacía daba "alcanza" sin banderas (se perdía un "no quiero seguir") y una
+ * ficha cortada se descartaba. Se tira para que la carga quede a medio procesar y la retome
+ * `cargar --reprocesar` (más seguro que medio JSON). `vacioEsCorte`: para la pregunta un texto vacío
+ * NO es corte (lo toma el control y lo pide de nuevo); sin bloque de texto, sí.
+ */
+export function textoDelModelo(
+  r: { content: { type: string; text?: string }[]; stop_reason?: string | null },
+  paso: string,
+  vacioEsCorte = true,
+): string {
+  if (r.stop_reason === 'max_tokens') throw new Error(`la respuesta del modelo se cortó: ${paso} llegó al max_tokens`);
+  const bloque = r.content.find((b) => b.type === 'text');
+  const texto = bloque && typeof bloque.text === 'string' ? bloque.text : null;
+  if (texto === null) throw new Error(`la respuesta del modelo se cortó: ${paso} no devolvió texto`);
+  if (vacioEsCorte && !texto.trim()) throw new Error(`la respuesta del modelo se cortó: ${paso} devolvió un texto vacío`);
+  return texto;
+}

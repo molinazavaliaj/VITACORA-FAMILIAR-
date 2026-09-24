@@ -1,6 +1,6 @@
 import type Anthropic from '@anthropic-ai/sdk';
 import { castellanoDe, type Castellano } from '../manual/puro.js';
-import { MODELO_FICHA } from './modelos-v2.js';
+import { MODELO_FICHA, textoDelModelo } from './modelos-v2.js';
 
 // El perfil del narrador (biógrafo v2, 23/09 — EXPERIMENTO, todavía no lo usa el flujo).
 //
@@ -492,10 +492,10 @@ export async function actualizarPerfil(
 ): Promise<{ ok: boolean; perfil: Perfil; usage: Anthropic.Usage }> {
   const r = await cliente.messages.create({
     model: MODELO_FICHA,
-    max_tokens: 4000,
+    max_tokens: 8000,
     messages: [{ role: 'user', content: armarPromptPerfil(perfil, pregunta, respuesta, pendientes) }],
   });
-  const bloque = r.content.find((b) => b.type === 'text');
-  const texto = bloque && bloque.type === 'text' ? bloque.text : '';
+  // Cortada (max_tokens) o sin texto: tira en vez de descartar la ficha en silencio (arreglo final I2).
+  const texto = textoDelModelo(r, 'la ficha');
   return { ...parsearCambios(texto, perfil), usage: r.usage };
 }

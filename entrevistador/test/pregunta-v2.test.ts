@@ -82,12 +82,12 @@ describe('escribirPregunta (cliente falso)', () => {
     let i = 0;
     return { messages: { create: vi.fn(async () => ({ content: [{ type: 'text', text: textos[Math.min(i++, textos.length - 1)] }], usage: { input_tokens: 10, output_tokens: 5 } })) } } as unknown as Anthropic;
   };
-  it('usa Opus, da lugar al pensamiento (max_tokens 1500) y devuelve la pregunta limpia de comillas', async () => {
+  it('usa Opus, da lugar al pensamiento (max_tokens 4000) y devuelve la pregunta limpia de comillas', async () => {
     const c = clienteQueDevuelve(['«¿Cómo era tu escuela, Naza?»']);
     const r = await escribirPregunta(c, perfilDeVos(), fila('la-escuela'), [], []);
     expect(r.ok).toBe(true); expect(r.texto).toBe('¿Cómo era tu escuela, Naza?');
     const args = (c.messages.create as ReturnType<typeof vi.fn>).mock.calls[0][0] as { model: string; max_tokens: number };
-    expect(args.model).toBe('claude-opus-5'); expect(args.max_tokens).toBe(1500);
+    expect(args.model).toBe('claude-opus-5'); expect(args.max_tokens).toBe(4000);
   });
   it('tres intentos con el motivo y marcada si el tercero también falla; un texto vacío queda marcado como "pregunta"', async () => {
     const c = clienteQueDevuelve(['Contame de tu escuela.', '', '']);
@@ -95,5 +95,10 @@ describe('escribirPregunta (cliente falso)', () => {
     expect(r.ok).toBe(false); expect(r.usos).toHaveLength(3); expect(r.marca?.control).toBe('pregunta');
     const segunda = (c.messages.create as ReturnType<typeof vi.fn>).mock.calls[1][0] as { messages: { content: string }[] };
     expect(segunda.messages[0].content).toMatch(/no sirvió porque/);
+  });
+  it('stop_reason max_tokens o sin bloque de texto: tira un error claro, no manda media pregunta (I2)', async () => {
+    const cortado = (content: unknown[], stop_reason: string) => ({ messages: { create: vi.fn(async () => ({ content, stop_reason, usage: { input_tokens: 10, output_tokens: 5 } })) } } as unknown as Anthropic);
+    await expect(escribirPregunta(cortado([{ type: 'text', text: '¿Cómo era tu escuela y qu' }], 'max_tokens'), perfilDeVos(), fila('la-escuela'), [], [])).rejects.toThrow(/la respuesta del modelo se cortó/);
+    await expect(escribirPregunta(cortado([], 'end_turn'), perfilDeVos(), fila('la-escuela'), [], [])).rejects.toThrow(/la respuesta del modelo se cortó/);
   });
 });

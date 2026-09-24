@@ -5,6 +5,7 @@ import { perfilVacio } from '../src/ia/perfil.js';
 import type { Objetivo } from '../src/ia/pregunta-v2.js';
 
 const laEscuela: Objetivo = { tipo: 'nucleo', id: 'la-escuela', tramo: 'infancia', bloque: 'infancia', tema: 'La escuela primaria', pormenores: ['un maestro', 'un compañero', 'cómo le iba', 'si cambió de colegio y por qué'], fila: 'la-escuela' };
+const clienteCortado = (content: unknown[], stop_reason = 'max_tokens') => ({ messages: { create: vi.fn(async () => ({ content, stop_reason, usage: { input_tokens: 10, output_tokens: 5 } })) } } as unknown as Anthropic);
 const cliente = (texto: string) => ({ messages: { create: vi.fn(async () => ({ content: [{ type: 'text', text: texto }], usage: { input_tokens: 10, output_tokens: 5 } })) } } as unknown as Anthropic);
 
 describe('armarPromptEvaluar', () => {
@@ -39,13 +40,13 @@ describe('parsearEvaluacion', () => {
 });
 
 describe('evaluarV2', () => {
-  it('una sola llamada con Sonnet y max_tokens 1000; devuelve la evaluación y el uso', async () => {
+  it('una sola llamada con Sonnet y max_tokens 4000; devuelve la evaluación y el uso', async () => {
     const c = cliente('{"suficiente": false, "falto": ["un maestro"]}');
     const r = await evaluarV2(c, perfilVacio(), laEscuela, 'P', 'R', 30, [], []);
     expect(r.evaluacion).toEqual({ suficiente: false, falto: ['un maestro'] });
     expect(r.usos).toHaveLength(1);
     const args = (c.messages.create as ReturnType<typeof vi.fn>).mock.calls[0][0] as { model: string; max_tokens: number };
-    expect(args.model).toBe('claude-sonnet-5'); expect(args.max_tokens).toBe(1000);
+    expect(args.model).toBe('claude-sonnet-5'); expect(args.max_tokens).toBe(4000);
   });
 });
 
@@ -60,7 +61,7 @@ describe('evaluarPedidos (repreguntas y objetos: solo lo que la persona pide)', 
     const r = await evaluarPedidos(c, 'esto no lo pongas en el libro');
     expect(r.pedidos).toEqual({ reservado: true, reservadoTramo: 'esto no lo pongas', dejarTema: 'la enfermedad' });
     const args = (c.messages.create as ReturnType<typeof vi.fn>).mock.calls[0][0] as { model: string; max_tokens: number };
-    expect(args.model).toBe('claude-haiku-4-5'); expect(args.max_tokens).toBe(600);
+    expect(args.model).toBe('claude-haiku-4-5'); expect(args.max_tokens).toBe(2000);
     expect((await evaluarPedidos(cliente('roto'), 'x')).pedidos).toEqual({});
   });
 
@@ -80,5 +81,26 @@ describe('hayCansancio', () => {
   it('la última sí contestada, o sin repreguntas: no hay cansancio', () => {
     expect(hayCansancio([{ contestada: false }, { contestada: true }])).toBe(false);
     expect(hayCansancio([])).toBe(false);
+  });
+});
+
+describe('salida cortada o vacía (arreglo final I2): se tira, no se lee como "alcanza"', () => {
+  it('evaluarV2 con stop_reason max_tokens tira un error claro (aunque traiga medio JSON)', async () => {
+    await expect(evaluarV2(clienteCortado([{ type: 'text', text: '{"suficiente": false, "quiereParar": tr' }]), perfilVacio(), laEscuela, 'P', 'R', 30, [], []))
+      .rejects.toThrow(/la respuesta del modelo se cortó/);
+  });
+  it('evaluarV2 sin bloque de texto, o con el texto vacío, tira', async () => {
+    await expect(evaluarV2(clienteCortado([], 'end_turn'), perfilVacio(), laEscuela, 'P', 'R', 30, [], [])).rejects.toThrow(/la respuesta del modelo se cortó/);
+    await expect(evaluarV2(clienteCortado([{ type: 'text', text: '  ' }], 'end_turn'), perfilVacio(), laEscuela, 'P', 'R', 30, [], [])).rejects.toThrow(/la respuesta del modelo se cortó/);
+  });
+  it('evaluarPedidos con stop_reason max_tokens o sin texto tira', async () => {
+    await expect(evaluarPedidos(clienteCortado([{ type: 'text', text: '{"hoyNo": true, "reservadoTramo": "algo' }]), 'x')).rejects.toThrow(/la respuesta del modelo se cortó/);
+    await expect(evaluarPedidos(clienteCortado([], 'end_turn'), 'x')).rejects.toThrow(/la respuesta del modelo se cortó/);
+  });
+  it('con end_turn y JSON roto, la recuperación por regex sigue andando (no se rompe la Tarea 8)', async () => {
+    const r = await evaluarPedidos(clienteCortado([{ type: 'text', text: '{"reservado": true, "reservadoTramo": "a medi' }], 'end_turn'), 'x');
+    expect(r.pedidos).toEqual({ reservado: true });
+    const e = await evaluarV2(clienteCortado([{ type: 'text', text: '{"suficiente": false, "hoyNo": true, "dejarTema": "a medi' }], 'end_turn'), perfilVacio(), laEscuela, 'P', 'R', 30, [], []);
+    expect(e.evaluacion).toEqual({ suficiente: true, falto: [], hoyNo: true });
   });
 });

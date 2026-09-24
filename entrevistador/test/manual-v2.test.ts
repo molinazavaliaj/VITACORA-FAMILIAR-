@@ -73,6 +73,8 @@ const h = vi.hoisted(() => {
   const subidos: string[] = [];
   // Fallas a pedido: cuántas veces seguidas se cae la evaluación o la transcripción.
   const fallar = { evaluar: 0, transcribir: 0 };
+  // Salidas cortadas a pedido (stop_reason max_tokens, arreglo final I2): cuántas evaluaciones seguidas.
+  const cortar = { evaluar: 0 };
   const ffmpeg: string[][] = [];
 
   // El modelo falso: contesta según qué prompt le llega. Las colas dicen qué devuelve el perfil y
@@ -106,7 +108,7 @@ const h = vi.hoisted(() => {
     }
     throw new Error(`prompt que el modelo falso no conoce: ${prompt.slice(0, 80)}`);
   }
-  return { tablas, db, colaPerfil, colaEvaluar, colaPedidos, colaTranscripcion, llamadas, modelos, prompts, duracion, responder, fallar, bajados, subidos, ffmpeg };
+  return { tablas, db, cortar, colaPerfil, colaEvaluar, colaPedidos, colaTranscripcion, llamadas, modelos, prompts, duracion, responder, fallar, bajados, subidos, ffmpeg };
 });
 
 vi.mock('../src/db/cliente.js', () => ({ db: h.db }));
@@ -133,7 +135,13 @@ vi.mock('@anthropic-ai/sdk', () => ({
     messages = {
       create: async ({ model, messages }: { model: string; messages: { content: string }[] }) => {
         h.modelos.push(model);
-        return { content: [{ type: 'text', text: h.responder(messages[0].content) }], usage: { input_tokens: 1000, output_tokens: 100 } };
+        const texto = h.responder(messages[0].content);
+        const esEvaluacion = messages[0].content.includes('LA PREGUNTA DE HOY') && !messages[0].content.includes('LO QUE TE TOCA PREGUNTAR HOY');
+        if (esEvaluacion && h.cortar.evaluar > 0) {
+          h.cortar.evaluar--;
+          return { content: [{ type: 'text', text: '{"suficiente": false, "quiereParar": tr' }], stop_reason: 'max_tokens', usage: { input_tokens: 1000, output_tokens: 4000 } };
+        }
+        return { content: [{ type: 'text', text: texto }], stop_reason: 'end_turn', usage: { input_tokens: 1000, output_tokens: 100 } };
       },
     };
   },
@@ -311,6 +319,15 @@ describe('manual-v2 de punta a punta (base y modelo falsos)', () => {
     expect(s.fallo).toBe(true);
     expect(s.texto).toMatch(/no terminaron de procesarse/);
     expect(s.texto).toContain(`--reprocesar --orden ${orden}`);
+    // Arreglo final I2: si al reprocesar la evaluación vuelve cortada por max_tokens (medio JSON con un
+    // "quiereParar"), no se lee como "alcanza": tira, no pausa ni marca procesada, y queda para otro --reprocesar.
+    h.cortar.evaluar = 1;
+    const cortada = await correr('cargar', 'pruebav2', '--reprocesar', '--orden', String(orden));
+    expect(cortada.fallo).toBe(true);
+    expect(cortada.texto).toMatch(/la respuesta del modelo se cortó/);
+    expect(cortada.texto).toContain(`npm run manual-v2 -- cargar pruebav2 --reprocesar --orden ${orden}`);
+    expect(v2().procesadas).not.toContain(fila.id);
+    expect(v2().pausa).toBeUndefined();
     const ok = await correr('cargar', 'pruebav2', '--reprocesar', '--orden', String(orden));
     expect(ok.fallo).toBe(false);
     // Una respuesta escrita no tiene duración en la base: se estima por palabras, no se evalúa como "0 segundos".

@@ -194,7 +194,7 @@ describe('armarPromptPerfil, lo nuevo', () => {
 describe('actualizarPerfil', () => {
   // Piloto de Naza, N6: con 2000 tokens una respuesta con familia entera cortaba el JSON y el
   // perfil no aprendía nada ("salida ilegible"), dos veces seguidas.
-  it('pide 4000 tokens (esqueleto v2: la salida ya no trae etapas enteras)', async () => {
+  it('pide 8000 tokens (arreglo final I2: el max_tokens que no se usa no se cobra, y una ficha cortada se perdía)', async () => {
     let pedido: { max_tokens?: number } = {};
     const cliente = {
       messages: {
@@ -206,7 +206,17 @@ describe('actualizarPerfil', () => {
     } as unknown as Parameters<typeof actualizarPerfil>[0];
     const r = await actualizarPerfil(cliente, perfilVacio(), 'pregunta', 'respuesta', []);
     expect(r.ok).toBe(true);
-    expect(pedido.max_tokens).toBe(4000);
+    expect(pedido.max_tokens).toBe(8000);
+  });
+  const cortado = (content: unknown[], stop_reason: string) => ({
+    messages: { create: async () => ({ content, stop_reason, usage: { input_tokens: 1, output_tokens: 1 } }) },
+  } as unknown as Parameters<typeof actualizarPerfil>[0]);
+  it('con stop_reason max_tokens tira un error claro en vez de descartar la ficha en silencio (I2)', async () => {
+    await expect(actualizarPerfil(cortado([{ type: 'text', text: '{"agregarEtapas":[{"edades":"0 a' }], 'max_tokens'), perfilVacio(), 'p', 'r', []))
+      .rejects.toThrow(/la respuesta del modelo se cortó/);
+  });
+  it('sin bloque de texto tira (I2)', async () => {
+    await expect(actualizarPerfil(cortado([], 'end_turn'), perfilVacio(), 'p', 'r', [])).rejects.toThrow(/la respuesta del modelo se cortó/);
   });
 });
 

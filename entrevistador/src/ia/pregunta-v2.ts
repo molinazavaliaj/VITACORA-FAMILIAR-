@@ -4,7 +4,7 @@ import type { Tramo } from './plan-preguntas.js';
 import { GUION, type FilaObjetivo, type Bloque } from './guion-v2.js';
 import { encargoDelBiografo, perfilEnTexto } from './encargo-entrevista.js';
 import { controlarPregunta as controlarSalida, INTENTOS, type Marca } from './control-pregunta.js';
-import { MODELO_PREGUNTA } from './modelos-v2.js';
+import { MODELO_PREGUNTA, textoDelModelo } from './modelos-v2.js';
 
 export { perfilEnTexto };
 export type { Bloque };
@@ -109,8 +109,10 @@ export function armarPromptPregunta(
  * rechaza, se lo pide de nuevo diciendo por qué (a partir del 2.º intento). Si el último también
  * falla, se manda esa versión igual —mejor una pregunta imperfecta que ninguna— pero con
  * `ok: false` y una `marca` para que quien llama lo sepa (y, si hace falta, avise).
- * `max_tokens` 1500: Opus 5 piensa por defecto y eso cuenta como salida; con 400 la pregunta
- * salía cortada o vacía.
+ * `max_tokens` 4000: Opus 5 piensa por defecto y eso cuenta como salida; con 400 la pregunta
+ * salía cortada o vacía (el que no se usa no se cobra). Si igual se corta (`stop_reason:
+ * 'max_tokens'`) o no trae bloque de texto, tira (`textoDelModelo`, arreglo final I2): media
+ * pregunta no se manda.
  */
 export async function escribirPregunta(
   cliente: Anthropic,
@@ -126,10 +128,9 @@ export async function escribirPregunta(
   let ultimo: { control: string; motivo: string } | null = null;
   for (let intento = 1; intento <= INTENTOS; intento++) {
     const contenido = intento === 1 ? prompt : `${prompt}\n\nTu versión anterior no sirvió porque ${ultimo!.motivo}. Escribila de nuevo, cuidando eso.`;
-    const r = await cliente.messages.create({ model: MODELO_PREGUNTA, max_tokens: 1500, messages: [{ role: 'user', content: contenido }] });
+    const r = await cliente.messages.create({ model: MODELO_PREGUNTA, max_tokens: 4000, messages: [{ role: 'user', content: contenido }] });
     usos.push(r.usage);
-    const bloque = r.content.find((b) => b.type === 'text');
-    texto = (bloque && bloque.type === 'text' ? bloque.text : '').trim().replace(/^["«]|["»]$/g, '');
+    texto = textoDelModelo(r, 'la pregunta', false).trim().replace(/^["«]|["»]$/g, '');
     const control = controlarSalida(texto, perfil, objetivo);
     if (control.ok) return { texto, ok: true, usos };
     ultimo = control;
