@@ -153,8 +153,10 @@ try {
     const bloqueHoy = hoy.content.find((b) => b.type === 'text');
     // Sin `evitar`: el caso mide si la v2 lo detecta sola, como el día que pasó (o como pasaría
     // con RESERVA). No hay un objetivo real para C1/C4 (es una re-evaluación histórica): se usa
-    // 'padres', el mismo de RESERVA — el control de lugar/supuestos igual corre, como correría
-    // con el objetivo real del día.
+    // 'padres', el mismo de RESERVA. Desde Task 8 `evaluarV2` ya no escribe ni controla una
+    // repregunta (eso lo hace `escribirPregunta`, Opus, con el objetivo `repregunta` y ahí sí
+    // corre el control de lugar/supuestos): acá solo se mide "suficiente"/"falto" contra la
+    // evaluación de hoy, C1 ya no compara texto de repregunta contra repregunta.
     const v2 = await evaluarV2(cliente, caso.perfilAntes, OBJETIVO_PADRES, caso.pregunta, caso.respuesta, 40, caso.conversacion, []);
     for (const u of v2.usos) gasto += USD(u);
     const e = v2.evaluacion;

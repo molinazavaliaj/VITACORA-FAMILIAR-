@@ -27,6 +27,15 @@ describe('parsearEvaluacion', () => {
     const e = parsearEvaluacion('{"suficiente": false, "falto": ["a","b","c","d","e"," "]}');
     expect(e.falto).toEqual(['a', 'b', 'c', 'd']);
   });
+
+  it('si "suficiente" viene mal tipado, igual lee los pedidos (fix ronda 1: no se descartaban)', () => {
+    expect(parsearEvaluacion('{"quiereParar": true}')).toEqual({ suficiente: true, falto: [], quiereParar: true });
+  });
+
+  it('JSON cortado a mitad de camino: recupera los pedidos booleanos por regex en vez de perderlos todos (fix ronda 1)', () => {
+    const cortado = '{"suficiente": false, "hoyNo": true, "dejarTema": "un tema muy largo que se corta a la mit';
+    expect(parsearEvaluacion(cortado)).toEqual({ suficiente: true, falto: [], hoyNo: true });
+  });
 });
 
 describe('evaluarV2', () => {
@@ -50,9 +59,15 @@ describe('evaluarPedidos (repreguntas y objetos: solo lo que la persona pide)', 
     const c = cliente('{"reservado": true, "reservadoTramo": "esto no lo pongas", "dejarTema": "la enfermedad"}');
     const r = await evaluarPedidos(c, 'esto no lo pongas en el libro');
     expect(r.pedidos).toEqual({ reservado: true, reservadoTramo: 'esto no lo pongas', dejarTema: 'la enfermedad' });
-    const args = (c.messages.create as ReturnType<typeof vi.fn>).mock.calls[0][0] as { model: string };
-    expect(args.model).toBe('claude-haiku-4-5');
+    const args = (c.messages.create as ReturnType<typeof vi.fn>).mock.calls[0][0] as { model: string; max_tokens: number };
+    expect(args.model).toBe('claude-haiku-4-5'); expect(args.max_tokens).toBe(600);
     expect((await evaluarPedidos(cliente('roto'), 'x')).pedidos).toEqual({});
+  });
+
+  it('un "reservadoTramo" largo corta el JSON (max_tokens de Haiku): igual recupera "reservado" por regex (fix ronda 1)', async () => {
+    const cortado = '{"reservado": true, "reservadoTramo": "esto es un tramo larguísimo que se corta justo a la mit';
+    const r = await evaluarPedidos(cliente(cortado), 'x');
+    expect(r.pedidos).toEqual({ reservado: true });
   });
 });
 
@@ -60,5 +75,10 @@ describe('hayCansancio', () => {
   it('dos repreguntas seguidas sin contestar', () => {
     expect(hayCansancio([{ contestada: true }, { contestada: false }, { contestada: false }])).toBe(true);
     expect(hayCansancio([{ contestada: false }])).toBe(false);
+  });
+
+  it('la última sí contestada, o sin repreguntas: no hay cansancio', () => {
+    expect(hayCansancio([{ contestada: false }, { contestada: true }])).toBe(false);
+    expect(hayCansancio([])).toBe(false);
   });
 });

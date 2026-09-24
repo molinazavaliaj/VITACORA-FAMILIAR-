@@ -68,7 +68,7 @@ decir QUÉ FALTÓ del tema.
 ${PEDIDOS}
 
 Respondé SOLO con JSON: {"suficiente": true, "falto": []} o {"suficiente": false, "falto": ["..."]},
-y sumá "dejarTema", "reservado", "reservadoTramo", "hoyNo" y "quiereParar" cuando corresponda.`;
+y sumá "reservado", "hoyNo", "quiereParar", "dejarTema" y "reservadoTramo" cuando corresponda.`;
 
 export function armarPromptEvaluar(
   perfil: Perfil,
@@ -111,10 +111,26 @@ function leerPedidos(c: Record<string, unknown>): Pedidos {
   return p;
 }
 
-/** Campo por campo. Si viene roto, alcanza (el día no se corta) y no hay nada que pedir. */
+/**
+ * Cuando el JSON viene cortado (`leerJson` devuelve `null`: un `max_tokens` corto puede cortar un
+ * "reservadoTramo" largo a mitad de camino y tirar todo el JSON), los pedidos booleanos igual se
+ * recuperan por regex en vez de perderse todos — el texto libre (reservadoTramo/dejarTema) no,
+ * porque cortado no sirve.
+ */
+function leerPedidosPorRegex(salida: string): Pedidos {
+  const p: Pedidos = {};
+  if (/"reservado"\s*:\s*true/.test(salida)) p.reservado = true;
+  if (/"hoyNo"\s*:\s*true/.test(salida)) p.hoyNo = true;
+  if (/"quiereParar"\s*:\s*true/.test(salida)) p.quiereParar = true;
+  return p;
+}
+
+/** Campo por campo. Si viene roto, alcanza (el día no se corta) pero los pedidos booleanos se
+ * recuperan igual (por regex si el JSON está cortado). */
 export function parsearEvaluacion(salida: string): EvaluacionV2 {
   const c = leerJson(salida);
-  if (!c || typeof c.suficiente !== 'boolean') return { suficiente: true, falto: [] };
+  if (!c) return { suficiente: true, falto: [], ...leerPedidosPorRegex(salida) };
+  if (typeof c.suficiente !== 'boolean') return { suficiente: true, falto: [], ...leerPedidos(c) };
   const falto = Array.isArray(c.falto) ? c.falto.filter((x): x is string => typeof x === 'string' && x.trim() !== '').map((x) => x.trim()).slice(0, MAX_FALTO) : [];
   return { suficiente: c.suficiente, falto: c.suficiente ? [] : falto, ...leerPedidos(c) };
 }
@@ -154,15 +170,16 @@ ${respuesta}
 ${PEDIDOS}
 
 Respondé SOLO con JSON con las claves que correspondan ({} si no pide nada): {"reservado": true,
-"reservadoTramo": "...", "dejarTema": "...", "hoyNo": true, "quiereParar": true}.`;
+"hoyNo": true, "quiereParar": true, "reservadoTramo": "...", "dejarTema": "..."}.`;
 
 export function armarPromptPedidos(respuesta: string): string {
   return PROMPT_PEDIDOS(respuesta);
 }
 
 export async function evaluarPedidos(cliente: Anthropic, respuesta: string): Promise<{ pedidos: Pedidos; usos: Anthropic.Usage[] }> {
-  const r = await cliente.messages.create({ model: MODELO_PEDIDOS, max_tokens: 300, messages: [{ role: 'user', content: armarPromptPedidos(respuesta) }] });
+  const r = await cliente.messages.create({ model: MODELO_PEDIDOS, max_tokens: 600, messages: [{ role: 'user', content: armarPromptPedidos(respuesta) }] });
   const bloque = r.content.find((b) => b.type === 'text');
-  const c = leerJson(bloque && bloque.type === 'text' ? bloque.text : '');
-  return { pedidos: c ? leerPedidos(c) : {}, usos: [r.usage] };
+  const texto = bloque && bloque.type === 'text' ? bloque.text : '';
+  const c = leerJson(texto);
+  return { pedidos: c ? leerPedidos(c) : leerPedidosPorRegex(texto), usos: [r.usage] };
 }
