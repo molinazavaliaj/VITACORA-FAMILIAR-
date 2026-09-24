@@ -182,6 +182,9 @@
   (8 → 11 → 13 → 14 → 15) y el id se reusara para otro tema, o que un tema cubierto vuelva a la
   lista. Sea cual sea, un id no debería significar dos cosas distintas.
 - **Lo bueno:** la pregunta en sí está bien: engancha con algo que él contó y no lo repite.
+- **Se repite:** la pregunta 18 sale con `var-infancia-1` (el primer día en el Fátima), el otro id
+  que se había dado por cubierto después de la respuesta 3. Ya son tres casos (N17, N28 y este).
+  Los ids de variables se reusan cuando el plan se rearma.
 - **Dónde:** `planSiHaceFalta` / `aplicarPerfil` (secuencia v2) y los ids de las variables.
 - **Qué se hizo a mano:** nada.
 
