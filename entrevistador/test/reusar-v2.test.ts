@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import type Anthropic from '@anthropic-ai/sdk';
 import { armarPromptReusar, parsearReusar, buscarReusable, MAX_PREGUNTA_VIEJA, MAX_RESPUESTA_VIEJA } from '../src/ia/reusar-v2.js';
-import { viejasDe, candidatasPara, seBusca, pasaPorCandado, lineaReusada, opcionesDeReuso, reusadasEnTexto } from '../src/manual/reusar-v2.js';
+import { viejasDe, candidatasPara, seBusca, pasaPorCandado, lineaReusada, opcionesDeReuso, reusadasEnTexto, quienLoReusa } from '../src/manual/reusar-v2.js';
 import { modeloDePaso, MODELO_EVALUACION } from '../src/ia/modelos-v2.js';
 import type { Objetivo } from '../src/ia/pregunta-v2.js';
 
@@ -104,6 +104,28 @@ describe('las respuestas viejas', () => {
       ['R2', 'v-1', '¿Cómo era tu casa?', 'Una casa de tres pisos.'],
       ['R3', 'v-1r', '¿Quién vivía ahí?', 'Mis viejos y mis hermanos.'],
     ]);
+  });
+  it('afuera lo reservado (entero o un tramo, incluido el "hoy no") y los objetos (101+); transcripción vacía cae al texto escrito', () => {
+    const v = viejasDe({
+      contexto: { v2: { preguntasEnviadas: { 1: '¿La casa?', 2: '¿La escuela?', 3: '¿La cuadra?', 101: '¿Una foto?', 4: '¿Los quince?' } } },
+      respuestas: [
+        { id: 'ok', pregunta_orden: 1, es_repregunta: false, transcripcion: 'La casa de Martínez.', texto_directo: null, recibido_at: '1', reservada: false, reservado_tramo: null },
+        { id: 'reservada', pregunta_orden: 2, es_repregunta: false, transcripcion: 'Esto no lo pongas.', texto_directo: null, recibido_at: '2', reservada: true, reservado_tramo: null },
+        { id: 'tramo', pregunta_orden: 3, es_repregunta: false, transcripcion: 'Algo con un tramo reservado.', texto_directo: null, recibido_at: '3', reservada: false, reservado_tramo: 'un tramo' },
+        { id: 'objeto', pregunta_orden: 101, es_repregunta: false, transcripcion: 'La pelota de mi viejo.', texto_directo: null, recibido_at: '4' },
+        { id: 'escrita', pregunta_orden: 4, es_repregunta: false, transcripcion: '', texto_directo: 'A los quince, la plaza.', recibido_at: '5' },
+      ],
+    });
+    expect(v.map((x) => [x.id, x.respuesta])).toEqual([['ok', 'La casa de Martínez.'], ['escrita', 'A los quince, la plaza.']]);
+  });
+  it('quién reusa a quién: el piloto viejo se reconoce por el reusar.desde de otro narrador', () => {
+    const narradores = [
+      { id: 'viejo', como_le_dicen: 'Naza', contexto: { v2: {} } },
+      { id: 'nuevo', como_le_dicen: 'Naza reusa', contexto: { v2: { reusar: { desde: 'viejo', usadas: {} } } } },
+      { id: 'otro', como_le_dicen: 'Ciro', contexto: null },
+    ];
+    expect(quienLoReusa(narradores, 'viejo')?.como_le_dicen).toBe('Naza reusa');
+    expect(quienLoReusa(narradores, 'nuevo')).toBeNull();
   });
   it('las ya usadas no vuelven a ser candidatas', () => {
     const v = viejasDe(datos);

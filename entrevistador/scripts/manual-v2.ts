@@ -44,8 +44,9 @@ import {
   queHaceSiguiente, conversacionDe, yaHechasDe, objetoDe, evitarDe, hoyEn, repreguntasParaCansancio, repreguntasEnEtapa, decidirTrasEvaluar,
   sumarGasto, mensajeHoyNo, cierreQuiereParar, mailQuiereParar, despedidaV2, type EstadoV2, type FilaParaSiguiente, type Decision,
 } from '../src/manual/estado-v2.js';
-import { viejasDe, candidatasPara, seBusca, pasaPorCandado, lineaReusada, opcionesDeReuso, reusadasEnTexto, type Vieja } from '../src/manual/reusar-v2.js';
-import { leerPiloto } from '../src/manual/comparar-modelos.js';
+import {
+  viejasDe, candidatasPara, seBusca, pasaPorCandado, lineaReusada, opcionesDeReuso, reusadasEnTexto, leerViejasDeBase, quienLoReusa, type Vieja,
+} from '../src/manual/reusar-v2.js';
 import { buscarReusable } from '../src/ia/reusar-v2.js';
 import { actualizarPerfil } from '../src/ia/perfil.js';
 import { proxima, avanzar, aplicarCubiertos, etapaCerrada, agregarLibre, tocaObjeto, registrarObjeto, tramoDe } from '../src/ia/secuencia.js';
@@ -136,10 +137,23 @@ async function buscarNarrador(ref: string): Promise<NarradorFila | null> {
   return todos.find((n) => n.id === ref) ?? todos.find((n) => slug(n.como_le_dicen) === s) ?? todos.find((n) => slug(n.nombre) === s) ?? null;
 }
 
-async function exigirNarrador(ref: string | undefined): Promise<{ n: NarradorFila; estado: EstadoV2 }> {
+/**
+ * `guardia` (los flags de `siguiente`/`cargar`): si este narrador es el piloto VIEJO de un piloto que
+ * reusa (ajuste D; los dos se llaman "Naza"), frena salvo `--forzar`: escribirle al viejo por error
+ * mezclaría las dos entrevistas.
+ */
+async function exigirNarrador(ref: string | undefined, guardia?: Args['flags']): Promise<{ n: NarradorFila; estado: EstadoV2 }> {
   if (!ref) throw new Error('Falta el narrador (por ejemplo: naza).');
   const n = await buscarNarrador(ref);
   if (!n) throw new Error(`No encontré a «${ref}». Empezá con: npm run manual-v2 -- empezar ${slug(ref)}`);
+  if (guardia && !guardia['forzar']) {
+    const { db } = await modulos();
+    const { data } = await db.from('narradores').select('id, como_le_dicen, contexto');
+    const nuevo = quienLoReusa((data as NarradorFila[] | null) ?? [], n.id);
+    if (nuevo) {
+      throw new Error(`«${n.como_le_dicen}» (${n.id}) es el piloto viejo: sus respuestas las reusa ${nuevo.como_le_dicen}. Usá ${slug(nuevo.como_le_dicen)} (si de verdad querés este: --forzar).`);
+    }
+  }
   const estado = leerEstado(n.contexto ?? {}, n.zona_horaria);
   if (!estado) throw new Error(`${n.como_le_dicen} no tiene entrevista v2 empezada. Empezá con: npm run manual-v2 -- empezar ${slug(n.como_le_dicen)}`);
   return { n, estado };
@@ -370,7 +384,7 @@ async function bajarAudio(audioPath: string): Promise<Buffer> {
  * comando exacto para retomar (`--reprocesar`).
  */
 async function cargar(ref: string | undefined, archivos: string[], flags: Args['flags']): Promise<void> {
-  const { n, estado: leido } = await exigirNarrador(ref);
+  const { n, estado: leido } = await exigirNarrador(ref, flags);
   const mods = await modulos();
   let estado = leido;
   const esRepregunta = Boolean(flags['repregunta']);
@@ -681,7 +695,7 @@ type Paso = { mensajes: Mensaje[]; nueva?: { orden: number; objetivo: Objetivo; 
 
 /** `siguiente`: un paso; en el piloto que reusa, además, la búsqueda y el encadenado (`seguirReusando`). */
 async function siguiente(ref: string | undefined, flags: Args['flags']): Promise<void> {
-  const { estado } = await exigirNarrador(ref);
+  const { estado } = await exigirNarrador(ref, flags);
   if (estado.reusar) opcionesDeReuso(flags); // un --max mal escrito frena antes de gastar
   const paso = await pasoSiguiente(ref, flags);
   if (!estado.reusar) { imprimirParaPegar(paso.mensajes); return; }
@@ -831,47 +845,50 @@ async function seguirReusando(ref: string, flags: Args['flags'], primero: Paso, 
   let pasos = 1;
   let reusadas = 0;
 
-  for (;;) {
-    const nueva = paso.nueva;
-    // Terminó, un "hoy no" que se retoma, o algo que no se busca: se imprime tal cual.
-    if (!nueva || !seBusca(nueva.objetivo)) { alFinal.push(...paso.mensajes); break; }
+  try {
+    for (;;) {
+      const nueva = paso.nueva;
+      // Terminó, un "hoy no" que se retoma, o algo que no se busca: se imprime tal cual.
+      if (!nueva || !seBusca(nueva.objetivo)) { alFinal.push(...paso.mensajes); break; }
 
-    const { n: fila, estado } = await exigirNarrador(ref);
-    const candidatas = candidatasPara(viejas, estado.reusar?.usadas ?? {});
-    const b = await buscarReusable(cliente(), nueva.objetivo, nueva.texto, candidatas);
-    if (b.usos.length) {
-      await guardar(fila, sumarGasto(estado, b.usos, 0, modeloDePaso('v2-reusar')));
-      await anotarUsos('v2-reusar', fila.id, b.usos);
-    }
-    const vieja = b.corto ? candidatas.find((c) => c.corto === b.corto) : undefined;
-    if (!vieja) {
-      linea(`Sin respuesta vieja para la pregunta ${nueva.orden}${b.motivo ? ` (${b.motivo})` : ''}: esta la contestás vos.`);
-      alFinal.push(...paso.mensajes);
-      break;
-    }
+      const { n: fila, estado } = await exigirNarrador(ref);
+      const candidatas = candidatasPara(viejas, estado.reusar?.usadas ?? {});
+      const b = await buscarReusable(cliente(), nueva.objetivo, nueva.texto, candidatas);
+      if (b.usos.length) {
+        await guardar(fila, sumarGasto(estado, b.usos, 0, modeloDePaso('v2-reusar')));
+        await anotarUsos('v2-reusar', fila.id, b.usos);
+      }
+      const vieja = b.corto ? candidatas.find((c) => c.corto === b.corto) : undefined;
+      if (!vieja) {
+        linea(`Sin respuesta vieja para la pregunta ${nueva.orden}${b.motivo ? ` (${b.motivo})` : ''}: esta la contestás vos.`);
+        alFinal.push(...paso.mensajes);
+        break;
+      }
 
-    const hecho = await cargarReusada(ref, vieja, nueva.orden, b.cubre);
-    reusadas++;
-    if (paso.objeto) alFinal.push(paso.objeto);
-    alFinal.push(...hecho.mensajes);
-    // Repregunta, "hoy no", "no quiero seguir": los ve Naza (a una repregunta no se le busca respuesta vieja).
-    if (hecho.accion !== 'nada' && hecho.accion !== 'presentacion') break;
-    if (paso.objeto) { linea(`Salió un objeto con la pregunta ${nueva.orden}: ese lo contestás vos. Después: npm run manual-v2 -- siguiente ${s}`); break; }
-    if (!seguido) { linea(`Para seguir: npm run manual-v2 -- siguiente ${s}`); break; }
-    if (pasos >= max) { linea(`Llegué a --max ${max} en esta corrida. Para seguir: npm run manual-v2 -- siguiente ${s}`); break; }
-    paso = await pasoSiguiente(ref, {});
-    pasos++;
+      const hecho = await cargarReusada(ref, vieja, nueva.orden, b.cubre);
+      reusadas++;
+      if (paso.objeto) alFinal.push(paso.objeto);
+      alFinal.push(...hecho.mensajes);
+      // Repregunta, "hoy no", "no quiero seguir": los ve Naza (a una repregunta no se le busca respuesta vieja).
+      if (hecho.accion !== 'nada' && hecho.accion !== 'presentacion') break;
+      if (paso.objeto) { linea(`Salió un objeto con la pregunta ${nueva.orden}: ese lo contestás vos. Después: npm run manual-v2 -- siguiente ${s}`); break; }
+      if (!seguido) { linea(`Para seguir: npm run manual-v2 -- siguiente ${s}`); break; }
+      if (pasos >= max) { linea(`Llegué a --max ${max} en esta corrida. Para seguir: npm run manual-v2 -- siguiente ${s}`); break; }
+      paso = await pasoSiguiente(ref, {});
+      pasos++;
+    }
+  } finally {
+    // Aunque un paso se caiga, se ve cuánto se reusó y cuánto se gastó en esta corrida.
+    const { estado: fin } = await exigirNarrador(ref);
+    titulo(`Esta corrida: reusé ${reusadas} · gasto de la corrida USD ${(fin.gastoUsd - gastoInicial).toFixed(3)} · acumulado USD ${fin.gastoUsd.toFixed(3)}`);
   }
-
-  const { estado: fin } = await exigirNarrador(ref);
-  titulo(`Esta corrida: reusé ${reusadas} · gasto de la corrida USD ${(fin.gastoUsd - gastoInicial).toFixed(3)} · acumulado USD ${fin.gastoUsd.toFixed(3)}`);
   imprimirParaPegar(alFinal);
 }
 
-/** Las respuestas del piloto viejo (solo lectura: `leerPiloto` hace `select` y nada más). */
+/** Las respuestas del piloto viejo que se pueden reusar (solo lectura: `select` y nada más; sin lo reservado). */
 async function leerViejas(desde: string): Promise<Vieja[]> {
   const { db } = await modulos();
-  return viejasDe(await leerPiloto(db, desde));
+  return viejasDe(await leerViejasDeBase(db, desde));
 }
 
 /**
@@ -889,14 +906,16 @@ async function cargarReusada(ref: string, vieja: Vieja, orden: number, cubre: st
   if (filas.some((f) => f.pregunta_orden === orden && !f.es_repregunta)) throw new Error(`La orden ${orden} ya tiene respuesta: no reuso encima.`);
 
   const texto = vieja.respuesta;
+  // La usada se anota ANTES de insertar: si se corta entre una cosa y la otra, a lo sumo se pierde
+  // una candidata (nunca se ofrece dos veces la misma).
+  const reusar = leido.reusar!;
+  const estado: EstadoV2 = { ...leido, reusar: { ...reusar, usadas: { ...reusar.usadas, [String(orden)]: vieja.id } } };
+  await guardar(n, estado);
   const { data, error } = await mods.db.from('respuestas')
     .insert({ narrador_id: n.id, pregunta_orden: orden, texto_directo: texto, transcripcion: texto, es_repregunta: false })
     .select('id').single();
   if (error) throw new Error(`No pude insertar la respuesta reusada: ${error.message}`);
   const respuestaId = (data as { id: string }).id;
-  const reusar = leido.reusar!;
-  const estado: EstadoV2 = { ...leido, reusar: { ...reusar, usadas: { ...reusar.usadas, [String(orden)]: vieja.id } } };
-  await guardar(n, estado);
 
   titulo(`${n.como_le_dicen}, orden ${orden} — ${abierta.objetivo.id} (reusada, cubre: ${cubre})`);
   linea(`Pregunta: ${abierta.texto}`);
@@ -977,6 +996,7 @@ Puerta manual v2 — la entrevista con el cerebro nuevo (nada sale por WhatsApp:
   · --reprocesar: si una carga se cortó (se cayó el modelo), retoma la que quedó guardada.
   · --saltar pasa a la próxima sin respuesta procesada; NO saltea un "hoy no" (se espera la
     respuesta a la misma) ni una respuesta frenada por el candado de audio cruzado.
+  · En el piloto VIEJO de uno que reusa, siguiente y cargar frenan (--forzar si de verdad es ese).
   · Con --reusar, cada pregunta nueva (presentación, núcleo o libre) se busca entre las respuestas
     viejas; si una la contesta, se carga sola y se sigue con la próxima (--seguido no: de a una;
     --max N: hasta N preguntas por corrida, 8 si no se dice). Repreguntas y objetos: siempre vos.

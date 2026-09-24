@@ -542,6 +542,13 @@ describe('manual-v2 reusando las respuestas de un piloto viejo (base y modelo fa
     VIEJAS.forEach((v, i) => h.tablas.respuestas.push({ ...v, narrador_id: 'viejo-piloto', texto_directo: null, duracion_segundos: 30, audio_path: null, recibido_at: `2026-09-20T1${i}:00:00Z` }));
     // La que el candado frenó en el piloto viejo (el audio de Ciro): nunca es candidata.
     h.tablas.respuestas.push({ id: 'v-ajena', narrador_id: 'viejo-piloto', pregunta_orden: 6, es_repregunta: false, transcripcion: h.tablas.respuestas[0].transcripcion, texto_directo: null, duracion_segundos: 30, audio_path: null, recibido_at: '2026-09-20T19:00:00Z' });
+    // Lo que pidió que no vaya al libro (entero, un tramo o un "hoy no") y un objeto: nunca candidatas.
+    const extra = { narrador_id: 'viejo-piloto', es_repregunta: false, texto_directo: null, duracion_segundos: 30, audio_path: null };
+    h.tablas.respuestas.push(
+      { ...extra, id: 'v-reservada', pregunta_orden: 6, transcripcion: 'Lo de mi primo preso esto no lo pongas en el libro, que quede entre nosotros por favor.', reservada: true, reservado_tramo: null, recibido_at: '2026-09-20T20:00:00Z' },
+      { ...extra, id: 'v-tramo', pregunta_orden: 6, transcripcion: 'Mi primer laburo fue en una pizzería de Martínez y ahí pasó algo que prefiero guardarme.', reservada: false, reservado_tramo: 'algo que prefiero guardarme', recibido_at: '2026-09-20T21:00:00Z' },
+      { ...extra, id: 'v-objeto', pregunta_orden: 101, transcripcion: 'La foto es de la pelota de cuero de mi viejo, la guardo desde que tengo memoria.', recibido_at: '2026-09-20T22:00:00Z' },
+    );
     fotoViejo = viejo();
     h.colaPerfil.length = 0; h.colaEvaluar.length = 0; h.colaPedidos.length = 0; h.colaReusar.length = 0;
   });
@@ -597,6 +604,7 @@ describe('manual-v2 reusando las respuestas de un piloto viejo (base y modelo fa
     const busqueda = h.prompts.filter((x) => x.includes('LAS RESPUESTAS VIEJAS')).at(-1)!;
     expect(busqueda).not.toContain('[R1]'); expect(busqueda).not.toContain('[R2]'); expect(busqueda).toContain('[R3]');
     expect(busqueda).not.toContain('Concordia');
+    for (const x of ['primo preso', 'pizzería', 'pelota de cuero']) expect(busqueda).not.toContain(x);
     expect(r2().secuencia.hechas.at(-1).orden).toBe(2);
     expect(deNuevo().some((x) => x.pregunta_orden === 2)).toBe(false);
     expect(r.texto).toMatch(/esta la contestás vos/);
@@ -662,6 +670,21 @@ describe('manual-v2 reusando las respuestas de un piloto viejo (base y modelo fa
     expect(h.llamadas).toEqual([]);
     const frenada = deNuevo().at(-1)!;
     expect(r2().bloqueadas).toContain(frenada.id);
+  });
+
+  it('siguiente y cargar frenan sobre el piloto VIEJO (se llama igual): dicen cuál usar; --forzar pasa la guardia', async () => {
+    h.llamadas.length = 0;
+    const s = await correr('siguiente', 'viejo-piloto');
+    expect(s.fallo).toBe(true);
+    expect(s.texto).toMatch(/es el piloto viejo/);
+    expect(s.texto).toContain('Usá reusov2');
+    const c = await correr('cargar', 'viejo-piloto', '--texto', 'Algo.');
+    expect(c.fallo).toBe(true);
+    expect(c.texto).toMatch(/es el piloto viejo/);
+    // Con --forzar la guardia no frena (acá sigue fallando porque el viejo de prueba no tiene perfil v2).
+    const f = await correr('siguiente', 'viejo-piloto', '--forzar');
+    expect(f.texto).not.toMatch(/es el piloto viejo/);
+    expect(h.llamadas).toEqual([]);
   });
 
   it('estado muestra cuántas se reusaron de cuántas y orden → tema; el narrador viejo quedó intacto', async () => {
