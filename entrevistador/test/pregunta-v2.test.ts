@@ -177,8 +177,8 @@ describe('escribirPregunta (cliente falso)', () => {
     const c = clienteQueDevuelve(['Contame de tu escuela.', '', '']);
     const r = await escribirPregunta(c, perfilDeVos(), fila('la-escuela'), [], []);
     expect(r.ok).toBe(false); expect(r.usos).toHaveLength(3); expect(r.marca?.control).toBe('pregunta');
-    const segunda = (c.messages.create as ReturnType<typeof vi.fn>).mock.calls[1][0] as { messages: { content: string }[] };
-    expect(segunda.messages[0].content).toMatch(/no sirvió porque/);
+    const segunda = (c.messages.create as ReturnType<typeof vi.fn>).mock.calls[1][0] as { messages: { content: { text: string }[] }[] };
+    expect(segunda.messages[0].content.at(-1)!.text).toMatch(/no sirvió porque/); // ajuste B: al final de lo variable
   });
   it('stop_reason max_tokens o sin bloque de texto: tira un error claro, no manda media pregunta (I2)', async () => {
     const cortado = (content: unknown[], stop_reason: string) => ({ messages: { create: vi.fn(async () => ({ content, stop_reason, usage: { input_tokens: 10, output_tokens: 5 } })) } } as unknown as Anthropic);

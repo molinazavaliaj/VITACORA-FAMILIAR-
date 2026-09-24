@@ -40,29 +40,19 @@ function comoHablarle(p: Perfil): string {
   return `${trato}\n${genero}\n${suCastellano}${comoLeDicen}${fuerte}`;
 }
 
-/**
- * El encargo: quién es, cómo se le habla y lo que se respeta siempre. `evitar` son los temas que
- * la persona pidió dejar (quedan para toda la entrevista).
- */
-export function encargoDelBiografo(p: Perfil, evitar: string[] = []): string {
-  return `Sos el biógrafo de esta persona: le escribís por WhatsApp una pregunta por día y te contesta
-con audios, para el libro de su vida.
+const ENCARGO_INTRO = `Sos el biógrafo de esta persona: le escribís por WhatsApp una pregunta por día y te contesta
+con audios, para el libro de su vida.`;
 
-QUIÉN ES (tu ficha; lo que dice "no se sabe" NO lo sabés):
-${perfilEnTexto(p)}
-
-CÓMO LE HABLÁS
-${comoHablarle(p)}
-
-LO QUE SE RESPETA SIEMPRE
+const REGLAS_HASTA_3 = `LO QUE SE RESPETA SIEMPRE
 1. No supongas nada que tu ficha no diga: ni pareja, ni hijos, ni nietos, ni que alguien vive o
    murió, ni que la infancia fue linda, ni que salía, ni que viajó. Si hace falta saberlo, se
    pregunta, con cuidado.
 2. Nunca le pidas lo que ya contó: mirá los temas que ya le preguntaste. Si algo que contó sirve de puente,
    usalo en una frase; la pregunta va a lo que todavía no contó. Si el tema trae varios pormenores,
    pedilos juntos en una sola pregunta, no uno por día.
-3. Si pidió dejar un tema, no se vuelve ahí nunca más, de ninguna forma.${evitar.length ? `\n   Temas que pidió dejar: ${evitar.join('; ')}.` : ''}
-4. Si pidió que algo no vaya al libro, se respeta: eso no se toca.
+3. Si pidió dejar un tema, no se vuelve ahí nunca más, de ninguna forma.`;
+
+const REGLAS_DESDE_4 = `4. Si pidió que algo no vaya al libro, se respeta: eso no se toca.
 5. Si una época fue dura, no la adornes: preguntá por lo que había, quién estaba, qué le dio sostén.
 6. No abras con algo que nombró de pasada y duele o avergüenza (el alcohol, una pelea, una
    enfermedad): si lo trae, se escucha; no lo convertís vos en el tema.
@@ -71,6 +61,45 @@ LO QUE SE RESPETA SIEMPRE
    escena de yapa, no la escena en lugar del carácter.
 8. Una pregunta clara (dos como mucho, si van juntas), de hasta 45 palabras: la lee en el
    celular. La presentación es la excepción: hasta 90.`;
+
+const temasDejados = (evitar: string[]) => `Temas que pidió dejar: ${evitar.join('; ')}.`;
+
+const quienEsYComoLeHablas = (p: Perfil) => `QUIÉN ES (tu ficha; lo que dice "no se sabe" NO lo sabés):
+${perfilEnTexto(p)}
+
+CÓMO LE HABLÁS
+${comoHablarle(p)}`;
+
+/**
+ * El encargo: quién es, cómo se le habla y lo que se respeta siempre. `evitar` son los temas que
+ * la persona pidió dejar (quedan para toda la entrevista). Es el texto en el orden de lectura (el
+ * que aprobó Naza); lo que se le MANDA al modelo va partido (`ENCARGO_FIJO` + `encargoVariable`).
+ */
+export function encargoDelBiografo(p: Perfil, evitar: string[] = []): string {
+  return `${ENCARGO_INTRO}
+
+${quienEsYComoLeHablas(p)}
+
+${REGLAS_HASTA_3}${evitar.length ? `\n   ${temasDejados(evitar)}` : ''}
+${REGLAS_DESDE_4}`;
+}
+
+/**
+ * Ajuste B (caché): la parte del encargo que es igual para todas las personas —quién es el biógrafo
+ * y lo que se respeta siempre—. Va primero en el prompt, en el bloque cacheado.
+ */
+export const ENCARGO_FIJO = `${ENCARGO_INTRO}
+
+${REGLAS_HASTA_3}
+${REGLAS_DESDE_4}`;
+
+/**
+ * Ajuste B (caché): lo del encargo que es de esta persona —su ficha, cómo se le habla y los temas
+ * que pidió dejar (la regla 3 queda en lo fijo; la lista de temas, acá)—. Mismas palabras que en
+ * `encargoDelBiografo`.
+ */
+export function encargoVariable(p: Perfil, evitar: string[] = []): string {
+  return `${quienEsYComoLeHablas(p)}${evitar.length ? `\n\n${temasDejados(evitar)}` : ''}`;
 }
 
 export const MAX_PALABRAS = 50;

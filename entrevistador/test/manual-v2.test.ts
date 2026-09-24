@@ -133,10 +133,13 @@ vi.mock('node:child_process', async () => {
 vi.mock('@anthropic-ai/sdk', () => ({
   default: class {
     messages = {
-      create: async ({ model, messages }: { model: string; messages: { content: string }[] }) => {
+      create: async ({ model, messages }: { model: string; messages: { content: string | { text: string }[] }[] }) => {
         h.modelos.push(model);
-        const texto = h.responder(messages[0].content);
-        const esEvaluacion = messages[0].content.includes('LA PREGUNTA DE HOY') && !messages[0].content.includes('LO QUE TE TOCA PREGUNTAR HOY');
+        // Ajuste B: el prompt llega partido en bloques (lo fijo cacheado + lo variable); acá se lee entero.
+        const c = messages[0].content;
+        const prompt = typeof c === 'string' ? c : c.map((b) => b.text).join('');
+        const texto = h.responder(prompt);
+        const esEvaluacion = prompt.includes('LA PREGUNTA DE HOY') && !prompt.includes('LO QUE TE TOCA PREGUNTAR HOY');
         if (esEvaluacion && h.cortar.evaluar > 0) {
           h.cortar.evaluar--;
           return { content: [{ type: 'text', text: '{"suficiente": false, "quiereParar": tr' }], stop_reason: 'max_tokens', usage: { input_tokens: 1000, output_tokens: 4000 } };

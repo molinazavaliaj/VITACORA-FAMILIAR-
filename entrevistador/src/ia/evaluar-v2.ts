@@ -1,8 +1,8 @@
 import type Anthropic from '@anthropic-ai/sdk';
 import type { Perfil } from './perfil.js';
-import { encargoDelBiografo } from './encargo-entrevista.js';
+import { encargoDelBiografo, ENCARGO_FIJO, encargoVariable } from './encargo-entrevista.js';
 import type { Objetivo } from './pregunta-v2.js';
-import { MODELO_EVALUACION, MODELO_PEDIDOS, textoDelModelo } from './modelos-v2.js';
+import { MODELO_EVALUACION, MODELO_PEDIDOS, textoDelModelo, contenidoConCache, SIN_PENSAR, type PromptPartido } from './modelos-v2.js';
 
 // La evaluación del esqueleto v2 (24/09). Decide si con la respuesta hay con qué escribir la página
 // del día y, si no, QUÉ FALTÓ de la fila (sus pormenores): la repregunta la escribe Opus después
@@ -38,10 +38,7 @@ const objetivoEnLinea = (o: Objetivo): string =>
       : o.tipo === 'objeto' ? (o.final ? 'La cosa que guardaría de toda su vida, con foto.' : 'Un objeto de esa época, con foto.')
         : `Repregunta: ${o.falto.join('; ')}.`;
 
-export const PROMPT_EVALUAR_V2 = (encargo: string, fila: string, pregunta: string, respuesta: string, segundos: number, conversacion: string) => `
-${encargo}
-
-LO ÚLTIMO QUE HABLARON (cada respuesta con la pregunta que la originó):
+const DATOS_EVALUAR = (fila: string, pregunta: string, respuesta: string, segundos: number, conversacion: string) => `LO ÚLTIMO QUE HABLARON (cada respuesta con la pregunta que la originó):
 ${conversacion || '(es la primera respuesta)'}
 
 EL TEMA DE HOY (lo que el guion quería que saliera):
@@ -51,9 +48,9 @@ LA PREGUNTA DE HOY:
 ${pregunta}
 
 LO QUE CONTESTÓ (duró ${segundos} segundos):
-${respuesta}
+${respuesta}`;
 
-Tu trabajo: decidir si con esta respuesta hay con qué escribir la página de hoy del libro y, si no,
+const TAREA_EVALUAR = `Tu trabajo: decidir si con esta respuesta hay con qué escribir la página de hoy del libro y, si no,
 decir QUÉ FALTÓ del tema.
 
 - ALCANZA si hay con qué escribir: dos o tres detalles concretos, con al menos una escena o un
@@ -65,11 +62,23 @@ decir QUÉ FALTÓ del tema.
   detalle: lo que faltó del TEMA, no más precisión sobre lo que ya contó.
 - Si dijo "esto ya te lo conté" o parecido: alcanza, "falto" vacío.
 - Si se fue a otro tema, está bien: no se lo reencuadra.
-${PEDIDOS}
+${PEDIDOS}`;
 
-Respondé SOLO con JSON: {"suficiente": true, "falto": []} o {"suficiente": false, "falto": ["..."]},
+const FORMATO_EVALUAR = `Respondé SOLO con JSON: {"suficiente": true, "falto": []} o {"suficiente": false, "falto": ["..."]},
 y sumá "reservado", "hoyNo", "quiereParar", "dejarTema" y "reservadoTramo" cuando corresponda.`;
 
+export const PROMPT_EVALUAR_V2 = (encargo: string, fila: string, pregunta: string, respuesta: string, segundos: number, conversacion: string) => `
+${encargo}
+
+${DATOS_EVALUAR(fila, pregunta, respuesta, segundos, conversacion)}
+
+${TAREA_EVALUAR}
+
+${FORMATO_EVALUAR}`;
+
+const enTexto = (c: { pregunta: string; respuesta: string }[]) => c.map((x) => `P: ${x.pregunta}\nR: ${x.respuesta}`).join('\n\n');
+
+/** El prompt en el orden de lectura (el que aprobó Naza; `render-textos-v2.ts` y los tests lo miran). */
 export function armarPromptEvaluar(
   perfil: Perfil,
   objetivo: Objetivo,
@@ -79,14 +88,27 @@ export function armarPromptEvaluar(
   conversacion: { pregunta: string; respuesta: string }[],
   evitar: string[],
 ): string {
-  return PROMPT_EVALUAR_V2(
-    encargoDelBiografo(perfil, evitar),
-    objetivoEnLinea(objetivo),
-    pregunta,
-    respuesta,
-    segundos,
-    conversacion.map((c) => `P: ${c.pregunta}\nR: ${c.respuesta}`).join('\n\n'),
-  );
+  return PROMPT_EVALUAR_V2(encargoDelBiografo(perfil, evitar), objetivoEnLinea(objetivo), pregunta, respuesta, segundos, enTexto(conversacion));
+}
+
+/**
+ * Ajuste B (caché): lo que se le MANDA al modelo. Mismas palabras que `armarPromptEvaluar`, en otro
+ * orden: lo fijo primero (el encargo que es igual para todos y la tarea con los pedidos), después la
+ * ficha, lo que hablaron, el tema, la pregunta, la respuesta y, al final como antes, el formato.
+ */
+export function partirPromptEvaluar(
+  perfil: Perfil,
+  objetivo: Objetivo,
+  pregunta: string,
+  respuesta: string,
+  segundos: number,
+  conversacion: { pregunta: string; respuesta: string }[],
+  evitar: string[],
+): PromptPartido {
+  return {
+    fijo: `\n${ENCARGO_FIJO}\n\n${TAREA_EVALUAR}`,
+    variable: `\n\n${encargoVariable(perfil, evitar)}\n\n${DATOS_EVALUAR(objetivoEnLinea(objetivo), pregunta, respuesta, segundos, enTexto(conversacion))}\n\n${FORMATO_EVALUAR}`,
+  };
 }
 
 const MAX_FALTO = 4;
@@ -158,7 +180,10 @@ export async function evaluarV2(
   conversacion: { pregunta: string; respuesta: string }[],
   evitar: string[],
 ): Promise<{ evaluacion: EvaluacionV2; usos: Anthropic.Usage[] }> {
-  const r = await cliente.messages.create({ model: MODELO_EVALUACION, max_tokens: 4000, messages: [{ role: 'user', content: armarPromptEvaluar(perfil, objetivo, pregunta, respuesta, segundos, conversacion, evitar) }] });
+  const r = await cliente.messages.create({
+    model: MODELO_EVALUACION, max_tokens: 4000, thinking: SIN_PENSAR,
+    messages: [{ role: 'user', content: contenidoConCache(partirPromptEvaluar(perfil, objetivo, pregunta, respuesta, segundos, conversacion, evitar)) }],
+  });
   return { evaluacion: parsearEvaluacion(textoDelModelo(r, 'la evaluación')), usos: [r.usage] };
 }
 
@@ -180,7 +205,9 @@ export function armarPromptPedidos(respuesta: string): string {
 }
 
 export async function evaluarPedidos(cliente: Anthropic, respuesta: string): Promise<{ pedidos: Pedidos; usos: Anthropic.Usage[] }> {
-  const r = await cliente.messages.create({ model: MODELO_PEDIDOS, max_tokens: 2000, messages: [{ role: 'user', content: armarPromptPedidos(respuesta) }] });
+  // Sin caché (ajuste B): el prompt entero (~350 tokens) no llega al mínimo cacheable de Haiku 4.5
+  // (4096), así que partirlo no ahorraría nada y cambiaría el orden por nada.
+  const r = await cliente.messages.create({ model: MODELO_PEDIDOS, max_tokens: 2000, thinking: SIN_PENSAR, messages: [{ role: 'user', content: armarPromptPedidos(respuesta) }] });
   const texto = textoDelModelo(r, 'la evaluación de pedidos');
   const c = leerJson(texto);
   return { pedidos: c ? leerPedidos(c) : leerPedidosPorRegex(texto), usos: [r.usage] };

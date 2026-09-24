@@ -2,9 +2,9 @@ import type Anthropic from '@anthropic-ai/sdk';
 import type { Perfil } from './perfil.js';
 import type { Tramo } from './plan-preguntas.js';
 import { GUION, nombreDeEvento, type FilaObjetivo, type Bloque } from './guion-v2.js';
-import { encargoDelBiografo, perfilEnTexto } from './encargo-entrevista.js';
+import { encargoDelBiografo, ENCARGO_FIJO, encargoVariable, perfilEnTexto } from './encargo-entrevista.js';
 import { controlarPregunta as controlarSalida, INTENTOS, type Marca } from './control-pregunta.js';
-import { MODELO_PREGUNTA, textoDelModelo } from './modelos-v2.js';
+import { MODELO_PREGUNTA, textoDelModelo, contenidoConCache, type PromptPartido } from './modelos-v2.js';
 
 export { perfilEnTexto };
 export type { Bloque };
@@ -149,24 +149,34 @@ export function listaDeHechas(yaHechas: YaHecha[]): string {
   return [...new Set(yaHechas.map(temaHechoEnLinea))].map((l) => `- ${l}`).join('\n');
 }
 
-export const PROMPT_PREGUNTA_V2 = (encargo: string, conversacion: string, yaHechas: string, objetivo: string) => `
-${encargo}
-
-LO ÚLTIMO QUE HABLARON (cada respuesta con la pregunta que la originó):
+const DATOS_PREGUNTA = (conversacion: string, yaHechas: string, objetivo: string) => `LO ÚLTIMO QUE HABLARON (cada respuesta con la pregunta que la originó):
 ${conversacion || '(todavía no hablaron)'}
 
 TEMAS QUE YA LE PREGUNTASTE (no vuelvas sobre ninguno; si algo de ahí sirve de puente, una frase):
 ${yaHechas || '(ninguno)'}
 
 LO QUE TE TOCA PREGUNTAR HOY:
-${objetivo}
+${objetivo}`;
 
-Tu trabajo hoy es decidir cómo preguntarle esto a ESTA persona, con lo que ya sabés: el guion
+const TAREA_PREGUNTA = `Tu trabajo hoy es decidir cómo preguntarle esto a ESTA persona, con lo que ya sabés: el guion
 te da el tema, no el texto. Si algo que contó sirve de puente, usalo; la pregunta va a lo que
-todavía no contó.
+todavía no contó.`;
 
-Respondé SOLO con la pregunta, sin comillas ni saludo.`;
+const FORMATO_PREGUNTA = 'Respondé SOLO con la pregunta, sin comillas ni saludo.';
 
+export const PROMPT_PREGUNTA_V2 = (encargo: string, conversacion: string, yaHechas: string, objetivo: string) => `
+${encargo}
+
+${DATOS_PREGUNTA(conversacion, yaHechas, objetivo)}
+
+${TAREA_PREGUNTA}
+
+${FORMATO_PREGUNTA}`;
+
+const datosDePregunta = (conversacion: { pregunta: string; respuesta: string }[], yaHechas: YaHecha[], objetivo: Objetivo, perfil: Perfil) =>
+  [conversacion.map((c) => `P: ${c.pregunta}\nR: ${c.respuesta}`).join('\n\n'), listaDeHechas(yaHechas), objetivoEnTexto(objetivo, perfil)] as const;
+
+/** El prompt en el orden de lectura (el que aprobó Naza; `render-textos-v2.ts` y los tests lo miran). */
 export function armarPromptPregunta(
   perfil: Perfil,
   objetivo: Objetivo,
@@ -174,12 +184,25 @@ export function armarPromptPregunta(
   yaHechas: YaHecha[],
   evitar: string[] = [],
 ): string {
-  return PROMPT_PREGUNTA_V2(
-    encargoDelBiografo(perfil, evitar),
-    conversacion.map((c) => `P: ${c.pregunta}\nR: ${c.respuesta}`).join('\n\n'),
-    listaDeHechas(yaHechas),
-    objetivoEnTexto(objetivo, perfil),
-  );
+  return PROMPT_PREGUNTA_V2(encargoDelBiografo(perfil, evitar), ...datosDePregunta(conversacion, yaHechas, objetivo, perfil));
+}
+
+/**
+ * Ajuste B (caché): lo que se le MANDA al modelo. Mismas palabras que `armarPromptPregunta`, en
+ * otro orden: lo fijo primero (el encargo que es igual para todos y la tarea), después la ficha, lo
+ * que hablaron, los temas hechos, el objetivo y, al final como antes, el formato de la respuesta.
+ */
+export function partirPromptPregunta(
+  perfil: Perfil,
+  objetivo: Objetivo,
+  conversacion: { pregunta: string; respuesta: string }[],
+  yaHechas: YaHecha[],
+  evitar: string[] = [],
+): PromptPartido {
+  return {
+    fijo: `\n${ENCARGO_FIJO}\n\n${TAREA_PREGUNTA}`,
+    variable: `\n\n${encargoVariable(perfil, evitar)}\n\n${DATOS_PREGUNTA(...datosDePregunta(conversacion, yaHechas, objetivo, perfil))}\n\n${FORMATO_PREGUNTA}`,
+  };
 }
 
 /**
@@ -200,13 +223,14 @@ export async function escribirPregunta(
   yaHechas: YaHecha[],
   evitar: string[] = [],
 ): Promise<{ texto: string; ok: boolean; marca?: Marca; usos: Anthropic.Usage[] }> {
-  const prompt = armarPromptPregunta(perfil, objetivo, conversacion, yaHechas, evitar);
+  const prompt = partirPromptPregunta(perfil, objetivo, conversacion, yaHechas, evitar);
   const usos: Anthropic.Usage[] = [];
   let texto = '';
   let ultimo: { control: string; motivo: string } | null = null;
   for (let intento = 1; intento <= INTENTOS; intento++) {
-    const contenido = intento === 1 ? prompt : `${prompt}\n\nTu versión anterior no sirvió porque ${ultimo!.motivo}. Escribila de nuevo, cuidando eso.`;
-    const r = await cliente.messages.create({ model: MODELO_PREGUNTA, max_tokens: 4000, messages: [{ role: 'user', content: contenido }] });
+    // Lo fijo es el mismo bloque en cada intento: el 2.º y el 3.º lo leen de la caché (ajuste B).
+    const motivo = intento === 1 ? '' : `\n\nTu versión anterior no sirvió porque ${ultimo!.motivo}. Escribila de nuevo, cuidando eso.`;
+    const r = await cliente.messages.create({ model: MODELO_PREGUNTA, max_tokens: 4000, messages: [{ role: 'user', content: contenidoConCache(prompt, motivo) }] });
     usos.push(r.usage);
     texto = textoDelModelo(r, 'la pregunta', false).trim().replace(/^["«]|["»]$/g, '');
     const control = controlarSalida(texto, perfil, objetivo);

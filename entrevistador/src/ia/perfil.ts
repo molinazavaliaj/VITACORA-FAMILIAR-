@@ -1,6 +1,6 @@
 import type Anthropic from '@anthropic-ai/sdk';
 import { castellanoDe, type Castellano } from '../manual/puro.js';
-import { MODELO_FICHA, textoDelModelo } from './modelos-v2.js';
+import { MODELO_FICHA, textoDelModelo, contenidoConCache, SIN_PENSAR, type PromptPartido } from './modelos-v2.js';
 
 // El perfil del narrador (biógrafo v2, 23/09 — EXPERIMENTO, todavía no lo usa el flujo).
 //
@@ -390,14 +390,13 @@ export function parsearCambios(salida: string, anterior: Perfil): { ok: boolean;
 /** Un tema pendiente del guion: `armarPromptPerfil` se lo pasa al modelo para "cubiertos" y "puertaAbierta". */
 export type TemaPendiente = { id: string; tema: string };
 
-export const PROMPT_PERFIL = (perfil: string, pregunta: string, respuesta: string, pendientes: string) => `
-Sos el biógrafo que está entrevistando a una persona para escribir el libro de su vida. Le
+const INTRO_PERFIL = `Sos el biógrafo que está entrevistando a una persona para escribir el libro de su vida. Le
 mandás una pregunta por día y te contesta con audios. Antes de preguntarle nada, tenés que
 saber con quién hablás: qué edad tiene, si es hombre o mujer, cómo habla, dónde vivió y con
 quién, quién de su familia vive. Muchas veces la familia no te cuenta nada: te tenés que dar
-cuenta por lo que él o ella cuenta.
+cuenta por lo que él o ella cuenta.`;
 
-LO QUE YA SABÉS (tu ficha de trabajo, en JSON; cada etapa y cada persona tiene su número "i"):
+const DATOS_PERFIL = (perfil: string, pregunta: string, respuesta: string, pendientes: string) => `LO QUE YA SABÉS (tu ficha de trabajo, en JSON; cada etapa y cada persona tiene su número "i"):
 ${perfil}
 
 LOS TEMAS QUE TODAVÍA NO SE LE PREGUNTARON (id: de qué trata):
@@ -407,9 +406,9 @@ LA PREGUNTA DE HOY:
 ${pregunta}
 
 LO QUE CONTESTÓ (transcripción de su audio):
-${respuesta}
+${respuesta}`;
 
-Anotá en tu ficha lo que aprendiste hoy. Reglas:
+const REGLAS_PERFIL = `Anotá en tu ficha lo que aprendiste hoy. Reglas:
 
 1. Cada dato dice de dónde salió: "dicho" (lo dijo), "ficha" (lo cargó la familia) o
    "deducido". Si es deducido, en "por" poné la evidencia en pocas palabras ("dice que a los
@@ -450,9 +449,9 @@ Anotá en tu ficha lo que aprendiste hoy. Reglas:
     hacés con cualquier otro dato que se resuelve.
 16. "agregarNoSabemos": solo lo que conviene preguntar después, como mucho 3 por respuesta, y
     cada uno empieza con la etapa entre corchetes: [infancia], [juventud], [adulto joven],
-    [adultez media], [segunda mitad] o [hoy]. Lo que hoy se contestó va en "resueltos".
+    [adultez media], [segunda mitad] o [hoy]. Lo que hoy se contestó va en "resueltos".`;
 
-Devolvé SOLO LO QUE CAMBIÓ, en JSON, usando solo las claves que hagan falta:
+const FORMATO_PERFIL = `Devolvé SOLO LO QUE CAMBIÓ, en JSON, usando solo las claves que hagan falta:
 {"persona":{"edad":D,"genero":D,"comoHabla":D,"anioNacimiento":D,"dondeViveHoy":D,"comoLeDicen":D},
  "agregarEtapas":[{"edades":"","anios":"","lugar":"","conQuien":"","queHacia":"","fuente":""}],
  "corregirEtapas":[{"i":0,"lugar":"..."}],
@@ -465,8 +464,17 @@ Devolvé SOLO LO QUE CAMBIÓ, en JSON, usando solo las claves que hagan falta:
 donde D es {"valor":"","fuente":"dicho|ficha|deducido","por":""}. Si hoy no aprendiste nada
 nuevo, devolvé {}.`;
 
+export const PROMPT_PERFIL = (perfil: string, pregunta: string, respuesta: string, pendientes: string) => `
+${INTRO_PERFIL}
+
+${DATOS_PERFIL(perfil, pregunta, respuesta, pendientes)}
+
+${REGLAS_PERFIL}
+
+${FORMATO_PERFIL}`;
+
 /** La ficha para el prompt: las listas llevan su número, que es lo que el modelo usa para corregir. */
-export function armarPromptPerfil(perfil: Perfil, pregunta: string, respuesta: string, pendientes: TemaPendiente[]): string {
+function datosDelPerfil(perfil: Perfil, pendientes: TemaPendiente[]): [string, string] {
   // puertaAbierta ya no lo pide el prompt (esqueleto v2): queda en el tipo solo para no romper lo
   // ya guardado en contexto.v2, así que no viaja en la ficha que ve el modelo.
   const { puertaAbierta: _puertaAbierta, ...sinPuertaAbierta } = perfil;
@@ -476,7 +484,27 @@ export function armarPromptPerfil(perfil: Perfil, pregunta: string, respuesta: s
     personas: perfil.personas.map((x, i) => ({ i, ...x })),
   };
   const listaPendientes = pendientes.length ? pendientes.map((p) => `- ${p.id}: ${p.tema}`).join('\n') : '- (ninguno)';
-  return PROMPT_PERFIL(JSON.stringify(numerada, null, 1), pregunta, respuesta, listaPendientes);
+  return [JSON.stringify(numerada, null, 1), listaPendientes];
+}
+
+/** El prompt en el orden de lectura (el que aprobó Naza; `render-textos-v2.ts` y los tests lo miran). */
+export function armarPromptPerfil(perfil: Perfil, pregunta: string, respuesta: string, pendientes: TemaPendiente[]): string {
+  const [ficha, lista] = datosDelPerfil(perfil, pendientes);
+  return PROMPT_PERFIL(ficha, pregunta, respuesta, lista);
+}
+
+/**
+ * Ajuste B (caché): lo que se le MANDA al modelo. Mismas palabras que `armarPromptPerfil`, en otro
+ * orden: lo fijo primero (quién es el biógrafo, las 16 reglas y el formato de salida) y después la
+ * ficha, los temas pendientes, la pregunta y la respuesta. El formato entra en lo fijo: sin él, lo
+ * fijo quedaba cerca del mínimo cacheable de Sonnet (1024 tokens).
+ */
+export function partirPromptPerfil(perfil: Perfil, pregunta: string, respuesta: string, pendientes: TemaPendiente[]): PromptPartido {
+  const [ficha, lista] = datosDelPerfil(perfil, pendientes);
+  return {
+    fijo: `\n${INTRO_PERFIL}\n\n${REGLAS_PERFIL}\n\n${FORMATO_PERFIL}`,
+    variable: `\n\n${DATOS_PERFIL(ficha, pregunta, respuesta, lista)}`,
+  };
 }
 
 /**
@@ -493,7 +521,8 @@ export async function actualizarPerfil(
   const r = await cliente.messages.create({
     model: MODELO_FICHA,
     max_tokens: 8000,
-    messages: [{ role: 'user', content: armarPromptPerfil(perfil, pregunta, respuesta, pendientes) }],
+    thinking: SIN_PENSAR,
+    messages: [{ role: 'user', content: contenidoConCache(partirPromptPerfil(perfil, pregunta, respuesta, pendientes)) }],
   });
   // Cortada (max_tokens) o sin texto: tira en vez de descartar la ficha en silencio (arreglo final I2).
   const texto = textoDelModelo(r, 'la ficha');
