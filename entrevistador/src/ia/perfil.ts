@@ -1,6 +1,6 @@
 import type Anthropic from '@anthropic-ai/sdk';
 import { castellanoDe, type Castellano } from '../manual/puro.js';
-import { MODELO_FICHA, textoDelModelo, contenidoConCache, SIN_PENSAR, type PromptPartido } from './modelos-v2.js';
+import { MODELO_FICHA, textoDelModelo, contenidoConCache, type PromptPartido } from './modelos-v2.js';
 
 // El perfil del narrador (biógrafo v2, 23/09 — EXPERIMENTO, todavía no lo usa el flujo).
 //
@@ -521,7 +521,8 @@ export async function actualizarPerfil(
   const r = await cliente.messages.create({
     model: MODELO_FICHA,
     max_tokens: 8000,
-    thinking: SIN_PENSAR,
+    // Sin `thinking`: la ficha piensa (adaptativo). Piloto de Naza, 24/09: sin pensar perdía datos
+    // clave (Juan Manuel preso, correcciones) y el biógrafo preguntaba mal. Cuesta ~USD 0,30-0,50 más por libro.
     messages: [{ role: 'user', content: contenidoConCache(partirPromptPerfil(perfil, pregunta, respuesta, pendientes)) }],
   });
   // Cortada (max_tokens) o sin texto: tira en vez de descartar la ficha en silencio (arreglo final I2).

@@ -13,8 +13,8 @@ import { calcularUsd, registrarUso } from '../src/costos.js';
 // cambia (ficha, conversación, respuesta) va después (la pregunta y la ficha se parten así; la
 // evaluación y los pedidos no llegan al mínimo cacheable y van enteros, en su orden). El modelo ve
 // LAS MISMAS PALABRAS que antes: solo cambia el orden (lo fijo adelante, porque la caché es por
-// prefijo). Y la ficha, la evaluación y los pedidos van sin "pensar" (`thinking: {type:
-// 'disabled'}`); la pregunta no se toca (sigue pensando).
+// prefijo). La evaluación y los pedidos van sin "pensar" (`thinking: {type: 'disabled'}`); la
+// pregunta y la ficha piensan (la ficha volvió a pensar el 24/09: sin pensar perdía datos clave).
 // Ajuste C (24/09): la pregunta pasó de Opus a Sonnet. Se sigue partiendo igual (mismo código), pero
 // lo fijo de la pregunta (~714 tokens) queda por debajo del mínimo cacheable de Sonnet 5 (1.024
 // tokens) — con Opus (mínimo 512) sí se cacheaba. No se restructuró el prompt por esto (Naza, 24/09):
@@ -115,7 +115,7 @@ describe('evaluarV2 (Sonnet): sin pensar; el prompt no se parte (lo fijo no lleg
 });
 
 describe('actualizarPerfil (Sonnet): caché de la parte fija y sin pensar', () => {
-  it('fijo + variable son las mismas líneas que armarPromptPerfil; thinking disabled; lo fijo no cambia con la ficha', async () => {
+  it('fijo + variable son las mismas líneas que armarPromptPerfil; la ficha SÍ piensa (piloto 24/09); lo fijo no cambia con la ficha', async () => {
     const a = clienteQueGuarda(['{}']);
     const b = clienteQueGuarda(['{}']);
     await actualizarPerfil(a.c, perfilLleno(), '¿Pregunta?', 'Respuesta.', [{ id: 'la-escuela', tema: 'La escuela' }]);
@@ -123,7 +123,9 @@ describe('actualizarPerfil (Sonnet): caché de la parte fija y sin pensar', () =
     const { fijo, variable } = esperarPartido(a.pedidos[0]);
     expect(lineas(fijo + variable)).toEqual(lineas(armarPromptPerfil(perfilLleno(), '¿Pregunta?', 'Respuesta.', [{ id: 'la-escuela', tema: 'La escuela' }])));
     expect(esperarPartido(b.pedidos[0]).fijo).toBe(fijo);
-    expect(a.pedidos[0].thinking).toEqual({ type: 'disabled' });
+    // Piloto de Naza, 24/09: sin pensar, la ficha perdía datos clave (que Juan Manuel está preso, las
+    // correcciones). Se vuelve a dejar pensar (thinking omitido = adaptativo en Sonnet 5).
+    expect(a.pedidos[0].thinking).toBeUndefined();
     expect(a.pedidos[0].model).toBe('claude-sonnet-5');
   });
 });
