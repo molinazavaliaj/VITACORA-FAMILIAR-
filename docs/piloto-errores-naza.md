@@ -347,3 +347,13 @@
 - **Dónde:** secuencia v2 (el tema `padres` después de que la respuesta 1 ya lo cubrió: el perfil
   no marcó `padres` en `cubiertos`), evaluación v2 (el cansancio y el «ya te lo dije»).
 - **Qué se hizo a mano:** nada.
+
+## N34 · 24/09 · Bisagra repetida: el cambio de colegio a los 8 queda dos veces
+- **Qué pasó:** con la respuesta 18 el perfil agregó una bisagra nueva «A los 8 aproximadamente
+  pasó del Saint John's al Fátima…». Ya existía una de la respuesta 3 («A los 8 aproximadamente
+  tuvo que dejar el Saint John's…»). No corrigió la vieja (la que decía «no sabía por qué»): puso
+  otra al lado, contra la regla 11 del prompt. Además escribió «de grande sabe que también pesaron
+  los problemas de la familia». Naza dijo «era una de las razones», sin nombrar la familia: eso es
+  deducción guardada como dicho.
+- **Dónde:** perfil (`agregarBisagras` no tiene «corregir», solo `sinRepetir` por texto exacto).
+- **Qué se hizo a mano:** nada.
