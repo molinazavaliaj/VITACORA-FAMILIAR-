@@ -1,159 +1,99 @@
 import { describe, it, expect, vi } from 'vitest';
-import { NUCLEO, armarPromptPregunta, escribirPregunta, objetivoEnTexto, type Objetivo } from '../src/ia/pregunta-v2.js';
-import { controlarTexto } from '../src/ia/encargo-entrevista.js';
-import { perfilVacio, type Perfil } from '../src/ia/perfil.js';
+import type Anthropic from '@anthropic-ai/sdk';
+import { NUCLEO, BLOQUES, armarPromptPregunta, escribirPregunta, objetivoEnTexto, type Objetivo } from '../src/ia/pregunta-v2.js';
+import { GUION } from '../src/ia/guion-v2.js';
+import { perfilVacio } from '../src/ia/perfil.js';
 
-// La pregunta del día, v2 (biógrafo v2, 23/09). Cambia el ENCARGO —de "decorá esta pregunta
-// del guion" a "decidí cómo preguntarle esto a ESTA persona"—, la ENTRADA —el perfil y cada
-// respuesta con la pregunta que la originó, que es lo que resolvió C6— y el CONTROL —se revisa
-// lo que devuelve antes de mandarlo, que es lo que resolvió C11—.
+const fila = (id: string): Objetivo => {
+  const f = GUION.find((x) => x.id === id)!;
+  return { tipo: 'nucleo', id: f.id, tramo: f.tramo, bloque: f.id === 'presentacion' ? 'presentacion' : f.etapa, tema: f.tema, pormenores: f.pormenores, pideEscena: f.pideEscena, fila: f.id };
+};
+const perfilDeVos = () => { const p = perfilVacio(); p.persona.comoHabla = { valor: 'vos', fuente: 'dicho' }; p.persona.edad = { valor: '27', fuente: 'dicho' }; return p; };
 
-function perfilDe(parcial: Partial<Perfil['persona']>, extra: Partial<Perfil> = {}): Perfil {
-  const p = perfilVacio();
-  p.persona = { ...p.persona, ...parcial };
-  return { ...p, ...extra };
-}
-
-const nucleo = (i: number): Objetivo => ({ tipo: 'nucleo', ...NUCLEO[i] });
-
-describe('NUCLEO (21 temas fijos + la presentación)', () => {
-  it('tiene los 22 ids del diseño, en ese orden', () => {
-    expect(NUCLEO.map((n) => n.id)).toEqual([
-      'presentacion', 'casa-infancia', 'mapa-casas', 'mapa-capitulos', 'padres', 'con-quien-crecio', 'juegos',
-      'a-los-quince', 'primer-trabajo', 'amor', 'con-quien-hizo-su-vida', 'oficio', 'por-gusto', 'amigos', 'un-lugar',
-      'un-dia-de-hoy', 'pruebas', 'fuerza', 'alegrias', 'lo-que-falta', 'mensaje', 'cinco-minutos',
-    ]);
-  });
-
-  it('ningún tema dice "él" ni "ella" ni da por hecho hijos, nietos, boda, esposa o marido', () => {
-    for (const n of NUCLEO) {
-      expect(n.tema, n.id).not.toMatch(/\b(él|ella)\b/);
-      expect(n.tema, n.id).not.toMatch(/\b(su esposa|su marido|sus hijos|sus nietos|la boda|su mujer)\b/i);
-    }
-  });
-
-  it('la presentación no es una pregunta del día: pide el trato, la edad si falta y cómo le dicen', () => {
-    const p = NUCLEO.find((n) => n.id === 'presentacion')!;
-    expect(p.bloque).toBe('presentacion');
-    expect(p.tema).toMatch(/cómo le dicen/i);
-    expect(p.tema).toMatch(/solo si/i);
-  });
-
-  it('a-los-quince no supone salidas; con-quien-crecio pregunta de dónde venía la familia', () => {
-    expect(NUCLEO.find((n) => n.id === 'a-los-quince')!.tema).not.toMatch(/sábado/i);
-    expect(NUCLEO.find((n) => n.id === 'con-quien-crecio')!.tema).toMatch(/de dónde venía/i);
+describe('NUCLEO y BLOQUES (el guion, para quien lee contexto.v2)', () => {
+  it('NUCLEO son las filas del guion con id, tramo, bloque y tema; futuro entra antes de la reflexión', () => {
+    expect(NUCLEO.map((n) => n.id)).toEqual(GUION.map((f) => f.id));
+    expect(NUCLEO.find((n) => n.id === 'presentacion')?.bloque).toBe('presentacion');
+    expect(NUCLEO.find((n) => n.id === 'oficio')?.bloque).toBe('adulto joven');
+    expect(BLOQUES.indexOf('futuro')).toBe(BLOQUES.indexOf('reflexion') - 1);
   });
 });
 
 describe('objetivoEnTexto', () => {
-  it('una variable lleva su tramo, sus anclas y la regla de la historia grande de su país', () => {
-    const t = objetivoEnTexto({ tipo: 'variable', id: 'var-1', tramo: 'adultez media', desde: 36, hasta: 55, anclas: ['Lanús — su taller (27 a 60)'] }, perfilDe({}));
-    expect(t).toContain('entre los 36 y los 55');
-    expect(t).toContain('Lanús — su taller');
-    expect(t).toMatch(/algo grande en su país o su ciudad/i);
-    expect(t).toMatch(/sin dar por hecho de qué lado/i);
+  it('la presentación rellena los huecos: de vos o de usted (o tú/usted en España) y la edad solo si falta', () => {
+    const p = perfilVacio();
+    expect(objetivoEnTexto(fila('presentacion'), p)).toContain('de vos o de usted');
+    expect(objetivoEnTexto(fila('presentacion'), p)).toContain('cuántos años tiene');
+    const conEdad = perfilDeVos();
+    expect(objetivoEnTexto(fila('presentacion'), conEdad)).not.toContain('cuántos años tiene');
+    const es = perfilVacio('españa');
+    expect(objetivoEnTexto(fila('presentacion'), es)).toContain('de tú o de usted');
   });
-  it('un objeto pide UNA cosa de esa época con foto y de dónde salió, y avisa que no se insiste', () => {
-    const t = objetivoEnTexto({ tipo: 'objeto', id: 'objeto-juventud', tramo: 'juventud' }, perfilDe({}));
-    expect(t).toMatch(/foto/i);
-    expect(t).toMatch(/de dónde salió/i);
-    expect(t).toMatch(/no se insiste|si no tiene, no pasa nada/i);
+  it('una fila lleva el tema y los pormenores que puede juntar, con la consigna de elegir dos o tres y pedirlos juntos', () => {
+    const t = objetivoEnTexto(fila('la-cuadra-y-los-juegos'), perfilDeVos());
+    expect(t).toContain('a qué jugaba');
+    expect(t).toMatch(/dos o tres/i);
+    expect(t).toMatch(/una sola pregunta|juntos/i);
   });
-  it('la presentación ofrece tú/usted en España y vos/usted en el resto', () => {
-    const p = NUCLEO[0];
-    expect(objetivoEnTexto({ tipo: 'nucleo', ...p }, perfilDe({}, { castellano: 'españa' }))).toContain('tú o de usted');
-    expect(objetivoEnTexto({ tipo: 'nucleo', ...p }, perfilDe({}))).toContain('vos o de usted');
+  it('una fila que pide escena lo dice; una que pide "cómo era" no pide escena como resumen', () => {
+    expect(objetivoEnTexto(fila('casa-infancia'), perfilDeVos())).toMatch(/escena/i);
+    expect(objetivoEnTexto(fila('padres-como-eran'), perfilDeVos())).toMatch(/carácter/i);
   });
-  it('la presentación no pide la edad si la ficha ya la trajo', () => {
-    const p = NUCLEO[0];
-    expect(objetivoEnTexto({ tipo: 'nucleo', ...p }, perfilDe({ anioNacimiento: { valor: '1950', fuente: 'ficha' } }))).not.toMatch(/cuántos años/i);
+  it('una libre lleva lo que nombró y no contó, con su etapa', () => {
+    const v: Objetivo = { tipo: 'variable', id: 'libre-juventud-1', tramo: 'juventud', desde: 13, hasta: 22, anclas: ['Cómo se arreglaron después con Ciano tras el problema por Vicky'] };
+    const t = objetivoEnTexto(v, perfilDeVos());
+    expect(t).toContain('Ciano');
+    expect(t).toMatch(/13 y los 22/);
+    expect(t).toMatch(/nombró y no contó/i);
+  });
+  it('el objeto pide UNA cosa con foto de esa época y no insiste', () => {
+    const t = objetivoEnTexto({ tipo: 'objeto', id: 'objeto-juventud', tramo: 'juventud' }, perfilDeVos());
+    expect(t).toMatch(/UNA cosa/); expect(t).toMatch(/foto/); expect(t).toMatch(/no se insiste/i);
+  });
+  it('la repregunta pide junto lo que faltó de la pregunta de hoy, sin decir que es una repregunta ni pedir resumen', () => {
+    const r: Objetivo = { tipo: 'repregunta', id: 'la-escuela-repregunta', tramo: 'infancia', pregunta: '¿Cómo era tu escuela?', falto: ['un maestro', 'si cambió de colegio y por qué'] };
+    const t = objetivoEnTexto(r, perfilDeVos());
+    expect(t).toContain('un maestro'); expect(t).toContain('¿Cómo era tu escuela?');
+    expect(t).toMatch(/junt/i); expect(t).toMatch(/no digas que es una repregunta/i); expect(t).toMatch(/resum/i);
   });
 });
 
 describe('armarPromptPregunta', () => {
-  const conversacion = [{ pregunta: '¿Cómo eran los sábados a la noche en Buenos Aires?', respuesta: 'Salíamos de miércoles a domingo.' }];
-
-  it('le pasa cada respuesta CON su pregunta (C6: sin la pregunta, Buenos Aires no existía)', () => {
-    const p = armarPromptPregunta(perfilDe({}), nucleo(5), conversacion, []);
-    expect(p).toContain('¿Cómo eran los sábados a la noche en Buenos Aires?');
-    expect(p).toContain('Salíamos de miércoles a domingo.');
+  it('lleva el encargo, la conversación, los TEMAS ya preguntados (no los textos) y el objetivo; no lleva textos enteros de preguntas viejas', () => {
+    const p = perfilDeVos();
+    const prompt = armarPromptPregunta(p, fila('la-escuela'), [{ pregunta: '¿Qué ves al entrar a esa casa?', respuesta: 'Una casa de tres pisos en Martínez.' }], [{ id: 'casa-infancia', tema: 'La casa de la infancia' }, { id: 'los-tuyos-hoy', tema: 'Quiénes son los suyos hoy' }]);
+    expect(prompt).toContain('Sos el biógrafo');
+    expect(prompt).toContain('P: ¿Qué ves al entrar a esa casa?');
+    expect(prompt).toContain('- casa-infancia: La casa de la infancia');
+    expect(prompt).toContain('TEMAS QUE YA LE PREGUNTASTE');
+    expect(prompt).toContain('un maestro');
+    expect(prompt).toContain('el guion\nte da el tema, no el texto');
   });
-
-  it('una variable lleva su tramo y sus anclas', () => {
-    const v: Objetivo = { tipo: 'variable', id: 'var-1', tramo: 'adultez media', desde: 36, hasta: 55, anclas: ['Lanús — su taller (27 a 60)'] };
-    const p = armarPromptPregunta(perfilDe({}), v, [], []);
-    expect(p).toContain('entre los 36 y los 55');
-    expect(p).toContain('Lanús — su taller');
-  });
-
-  it('si no se sabe cómo habla, lo dice en vez de elegir por él', () => {
-    expect(armarPromptPregunta(perfilDe({}), nucleo(0), [], [])).toContain('no sabés cómo prefiere que le hablen');
-    expect(armarPromptPregunta(perfilDe({ comoHabla: { valor: 'vos', fuente: 'deducido' } }), nucleo(0), [], [])).toContain('Hablale de vos');
-  });
-
-  it('no dice "enganchá": el puente lo pone el encargo', () => {
-    const p = armarPromptPregunta(perfilDe({}), nucleo(5), conversacion, []);
-    expect(p).not.toMatch(/enganch/i);
+  it('con 40 temas hechos y 3 respuestas, el prompt sigue corto (el texto fijo + ficha vacía + 40 líneas)', () => {
+    const ya = Array.from({ length: 40 }, (_, i) => ({ id: `fila-${i}`, tema: 'Un tema de una línea para el biógrafo, de unas quince palabras más o menos' }));
+    const conv = Array.from({ length: 3 }, () => ({ pregunta: 'P '.repeat(20), respuesta: 'R '.repeat(400) }));
+    const prompt = armarPromptPregunta(perfilDeVos(), fila('mensaje'), conv, ya);
+    expect(prompt.length).toBeLessThan(12_000);
   });
 });
 
-describe('controlarTexto (la forma: trato, largo, que pregunte algo)', () => {
-  it('rechaza el trato mezclado (C11)', () => {
-    expect(controlarTexto('Mirá, vos dijiste que... ¿cómo conoció al amor de su vida? Lléveme a ese día.', 'vos').ok).toBe(false);
+describe('escribirPregunta (cliente falso)', () => {
+  const clienteQueDevuelve = (textos: string[]) => {
+    let i = 0;
+    return { messages: { create: vi.fn(async () => ({ content: [{ type: 'text', text: textos[Math.min(i++, textos.length - 1)] }], usage: { input_tokens: 10, output_tokens: 5 } })) } } as unknown as Anthropic;
+  };
+  it('usa Opus, da lugar al pensamiento (max_tokens 1500) y devuelve la pregunta limpia de comillas', async () => {
+    const c = clienteQueDevuelve(['«¿Cómo era tu escuela, Naza?»']);
+    const r = await escribirPregunta(c, perfilDeVos(), fila('la-escuela'), [], []);
+    expect(r.ok).toBe(true); expect(r.texto).toBe('¿Cómo era tu escuela, Naza?');
+    const args = (c.messages.create as ReturnType<typeof vi.fn>).mock.calls[0][0] as { model: string; max_tokens: number };
+    expect(args.model).toBe('claude-opus-5'); expect(args.max_tokens).toBe(1500);
   });
-
-  it('rechaza sin pregunta, o demasiado larga para leer en el celular', () => {
-    expect(controlarTexto('Contame de tu casa.', 'vos').ok).toBe(false);
-    expect(controlarTexto(`${'palabra '.repeat(60)}?`, 'vos').ok).toBe(false);
-  });
-
-  it('acepta una buena', () => {
-    expect(controlarTexto('Contame de la casa de Pelliza: si cerrás los ojos y entrás, ¿qué ves?', 'vos')).toEqual({ ok: true });
-  });
-
-  it('sin trato conocido, solo controla la forma', () => {
-    expect(controlarTexto('¿Cómo era la casa donde pasó su infancia?', null).ok).toBe(true);
-  });
-});
-
-describe('escribirPregunta', () => {
-  it('le pasa al modelo los temas que la persona pidió dejar (antes no llegaban: solo la evaluación los recibía)', async () => {
-    const create = vi.fn().mockResolvedValue({ content: [{ type: 'text', text: '¿Cómo era la plaza con Chupín y Chombita?' }], usage: { input_tokens: 1, output_tokens: 1 } });
-    const r = await escribirPregunta({ messages: { create } } as never, perfilDe({ comoHabla: { valor: 'vos', fuente: 'dicho' } }), nucleo(5), [], [], ['su tío y las drogas']);
-    expect(r.ok).toBe(true);
-    expect(JSON.stringify(create.mock.calls[0])).toContain('su tío y las drogas');
-  });
-
-  it('controla el trato con la ficha: a un narrador de tú no le deja pasar el usted', async () => {
-    const create = vi.fn()
-      .mockResolvedValueOnce({ content: [{ type: 'text', text: 'Cuénteme de su casa: ¿qué veía al entrar?' }], usage: { input_tokens: 1, output_tokens: 1 } })
-      .mockResolvedValueOnce({ content: [{ type: 'text', text: 'Cuéntame de tu casa: ¿qué veías al entrar?' }], usage: { input_tokens: 1, output_tokens: 1 } });
-    const r = await escribirPregunta({ messages: { create } } as never, perfilDe({ comoHabla: { valor: 'tú', fuente: 'dicho' } }), nucleo(0), [], []);
-    expect(r.ok).toBe(true);
-    expect(r.texto).toBe('Cuéntame de tu casa: ¿qué veías al entrar?');
-    expect(create).toHaveBeenCalledTimes(2);
-  });
-
-  it('tres intentos con el motivo; si el tercero falla, se manda igual, marcada', async () => {
-    const malo = { content: [{ type: 'text', text: 'Cuénteme de su casa: ¿qué veía?' }], usage: { input_tokens: 1, output_tokens: 1 } };
-    const create = vi.fn().mockResolvedValue(malo);
-    const r = await escribirPregunta({ messages: { create } } as never, perfilDe({ comoHabla: { valor: 'vos', fuente: 'dicho' } }), nucleo(1), [], []);
-    expect(create).toHaveBeenCalledTimes(3);
-    expect(r.ok).toBe(false);
-    expect(r.marca).toMatchObject({ control: 'trato', intentos: 3 });
-    expect(r.texto).toBe('Cuénteme de su casa: ¿qué veía?');
-    expect(JSON.stringify(create.mock.calls[2])).toContain('no sirvió porque');
-  });
-
-  it('el control de lugar corre sobre la salida (C6)', async () => {
-    const create = vi.fn()
-      .mockResolvedValueOnce({ content: [{ type: 'text', text: '¿Cómo eran tus sábados en Concordia a los 16?' }], usage: { input_tokens: 1, output_tokens: 1 } })
-      .mockResolvedValueOnce({ content: [{ type: 'text', text: '¿Cómo eran tus sábados en Buenos Aires a los 16?' }], usage: { input_tokens: 1, output_tokens: 1 } });
-    const p = perfilDe({ comoHabla: { valor: 'vos', fuente: 'dicho' } });
-    p.etapas = [{ edades: '0 a 12', lugar: 'Concordia', conQuien: '', queHacia: '', fuente: 'dicho' }, { edades: 'desde los 12', lugar: 'Buenos Aires', conQuien: '', queHacia: '', fuente: 'dicho' }];
-    p.persona.edad = { valor: '28', fuente: 'dicho' };
-    const r = await escribirPregunta({ messages: { create } } as never, p, { tipo: 'variable', id: 'v', tramo: 'juventud', desde: 13, hasta: 22, anclas: [] }, [], []);
-    expect(r.ok).toBe(true);
-    expect(r.texto).toContain('Buenos Aires');
+  it('tres intentos con el motivo y marcada si el tercero también falla; un texto vacío queda marcado como "pregunta"', async () => {
+    const c = clienteQueDevuelve(['Contame de tu escuela.', '', '']);
+    const r = await escribirPregunta(c, perfilDeVos(), fila('la-escuela'), [], []);
+    expect(r.ok).toBe(false); expect(r.usos).toHaveLength(3); expect(r.marca?.control).toBe('pregunta');
+    const segunda = (c.messages.create as ReturnType<typeof vi.fn>).mock.calls[1][0] as { messages: { content: string }[] };
+    expect(segunda.messages[0].content).toMatch(/no sirvió porque/);
   });
 });

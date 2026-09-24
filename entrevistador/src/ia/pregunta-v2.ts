@@ -1,92 +1,74 @@
 import type Anthropic from '@anthropic-ai/sdk';
 import type { Perfil } from './perfil.js';
-import type { Tramo, Variable } from './plan-preguntas.js';
+import type { Tramo } from './plan-preguntas.js';
+import { GUION, type FilaObjetivo, type Bloque } from './guion-v2.js';
 import { encargoDelBiografo, perfilEnTexto } from './encargo-entrevista.js';
 import { controlarPregunta as controlarSalida, INTENTOS, type Marca } from './control-pregunta.js';
+import { MODELO_PREGUNTA } from './modelos-v2.js';
 
 export { perfilEnTexto };
+export type { Bloque };
 
-// La pregunta del día, v2 (biógrafo v2, 23/09 — EXPERIMENTO; el prompt es un BORRADOR para la
-// reescritura final, que aprueba Naza). Cambia los tres ejes de Joaquín:
-//
-// - ENCARGO: hoy le pedimos "reescribila para que se note que lo escuchaste" sobre una pregunta
-//   fija, y ante la duda "devolvé el original" —con el supuesto adentro—. Acá el encargo es
-//   decidir cómo preguntarle esto a ESTA persona: el guion da el tema, no el texto.
-// - ENTRADA: el perfil (quién es, su línea de tiempo, qué no sabemos) y cada respuesta CON la
-//   pregunta que la originó. Sin la pregunta, Buenos Aires no existía para el modelo (C6).
-// - CONTROL: lo que devuelve se revisa antes de mandarlo (trato, largo, que pregunte algo). El
-//   prompt decía "tratalo de vos" y se obedecía la mitad de las veces; lo arregló mirar la
-//   salida, no una regla más (C11).
+// La pregunta del día (esqueleto v2, 24/09). El guion (`guion-v2.ts`) decide QUÉ se pregunta y si
+// entra para esta persona; acá el modelo decide CÓMO preguntárselo: con la ficha corta, las últimas
+// respuestas, los temas ya hechos (no sus textos: el prompt no crece) y el tema con sus pormenores.
+// Lo que devuelve pasa por los controles (trato, largo, que pregunte, lugar, supuestos), tres
+// intentos, marcada si falla el último. La repregunta es un objetivo más: "lo que faltó, junto".
 
-const MODELO = 'claude-opus-5';
+/** Las filas del guion tal como las leen los tests y la fábrica (`contexto-v2.ts`): id, tramo, bloque, tema. */
+export const NUCLEO: readonly { id: string; tramo: Tramo | null; bloque: Bloque; tema: string }[] = GUION.map((f) => ({
+  id: f.id, tramo: f.tramo, bloque: f.id === 'presentacion' ? 'presentacion' : f.etapa, tema: f.tema,
+}));
 
-/**
- * El núcleo: los 21 temas fijos más la presentación (biógrafo v2, Task 3: antes eran 14 y
- * dejaban afuera la mitad de la vida — 35 a 75 años sin pregunta propia). `tema` es para el
- * biógrafo, no es el texto que se manda (salvo la presentación, que sí se manda casi tal cual
- * porque no hay margen para que el modelo la arruine el primer día). `tramo` es el tramo de
- * vida al que apunta (para el reparto de variables; null = puede caer en cualquiera); `bloque`
- * es dónde va en la secuencia (Task 4 arma el orden).
- */
-export const NUCLEO = [
-  { id: 'presentacion', tramo: null, bloque: 'presentacion', tema: 'Es el PRIMER mensaje: la bienvenida. Quién sos (el biógrafo que va a escribir el libro de su vida), cómo va a ser esto (una pregunta por día, se contesta con un audio cuando pueda, sin apuro), y lo que necesitás saber para escribirle bien: cómo prefiere que le hablen ({TRATOS}), {EDAD}cómo le dicen en casa (la edad se pregunta acá, solo si todavía no la sabemos). Entre 70 y 90 palabras, cálido, con ganas; que se pueda contestar con una línea o un audio corto. No es una pregunta del día: no preguntes todavía por su vida.' },
-  { id: 'casa-infancia', tramo: 'infancia', bloque: 'inicio', tema: 'La casa donde pasó su infancia, como una escena: si cierra los ojos y entra por la puerta, qué ve, qué huele, quién está. Usá lo que la presentación ya sacó (el trato, cómo le dicen).' },
-  { id: 'mapa-casas', tramo: null, bloque: 'inicio', tema: 'El mapa de su vida por las casas: después de aquella casa, para dónde fue la vida. Las casas en que vivió, una tras otra: en qué ciudad, con quién, hasta qué edad más o menos. Que se sienta como un recorrido, no como un formulario. Si todavía no sabés su edad, este es el lugar para que salga sola ("hasta qué edad, más o menos, en cada una").' },
-  { id: 'mapa-capitulos', tramo: null, bloque: 'inicio', tema: 'Si su vida fuera un libro, cuáles serían sus capítulos: los grandes pedazos, y qué hizo que uno terminara y empezara otro.' },
-  { id: 'padres', tramo: 'infancia', bloque: 'infancia', tema: 'Cómo eran su mamá y su papá (o quienes le criaron), cómo recuerda a cada uno.' },
-  { id: 'con-quien-crecio', tramo: 'infancia', bloque: 'infancia', tema: 'Las personas con las que creció (hermanos, abuelos, quien haya estado en esa casa) y de dónde venía la familia: de qué pueblo, de qué país, cómo llegaron.' },
-  { id: 'juegos', tramo: 'infancia', bloque: 'infancia', tema: 'A qué jugaba en la infancia y con quién; alguna escena que todavía le haga sonreír. Si la infancia fue dura: qué había, quién estaba, qué rescataba.' },
-  { id: 'a-los-quince', tramo: 'juventud', bloque: 'juventud', tema: 'Qué hacía a los quince, dieciséis años cuando no estaba en la escuela ni trabajando: dónde, con quién, qué sonaba. En la ciudad donde vivía ENTONCES. Sin dar por hecho que salía.' },
-  { id: 'primer-trabajo', tramo: 'juventud', bloque: 'juventud', tema: 'Su primer trabajo y su primer sueldo: cómo lo consiguió, qué hizo con esa plata.' },
-  { id: 'amor', tramo: null, bloque: 'adulto joven', tema: 'El amor: si se enamoró, de quién, cómo fue. Sin dar por hecho que hubo pareja, boda ni de qué género; si no sabés, preguntá si hubo.' },
-  { id: 'con-quien-hizo-su-vida', tramo: null, bloque: 'adulto joven', tema: 'Las personas con las que hizo su vida: pareja, hijos, o quienes fueron su familia. Quiénes son y cómo llegaron a su vida, no el festejo del casamiento. Si la ficha dice que no tuvo hijos o pareja, preguntá por quienes fueron su familia igual.' },
-  { id: 'oficio', tramo: null, bloque: 'adulto joven', tema: 'A qué le dedicó la vida y cómo llegó ahí; la anécdota de trabajo que contaba al llegar a casa.' },
-  { id: 'por-gusto', tramo: null, bloque: 'adultez media', tema: 'Lo que hacía por gusto, cuando nadie se lo pedía: el deporte, el club, la música, el baile, la huerta, lo que sea que ya nombró. Si no nombró nada, preguntá abierto qué hacía por gusto.' },
-  { id: 'amigos', tramo: null, bloque: 'adultez media', tema: 'Los amigos de siempre: los de la cuadra, los del trabajo, quiénes quedaron. Una escena con ellos.' },
-  { id: 'un-lugar', tramo: null, bloque: 'adultez media', tema: 'Un lugar que le cambió algo: un viaje, una mudanza, un barrio, un pueblo. Sin dar por hecho que viajó: puede ser la esquina de siempre.' },
-  { id: 'un-dia-de-hoy', tramo: 'hoy', bloque: 'hoy', tema: 'Cómo es un día suyo hoy: dónde vive, con quién, qué hace, qué le alegra.' },
-  { id: 'pruebas', tramo: null, bloque: 'reflexion', tema: 'Las pruebas que le puso la vida: una pérdida, un fracaso, una época que dolió. Lo que quiera contar, como quiera.' },
-  { id: 'fuerza', tramo: null, bloque: 'reflexion', tema: 'De dónde sacó fuerza en esas épocas y qué aprendió que le quiera dejar dicho a los suyos.' },
-  { id: 'alegrias', tramo: null, bloque: 'reflexion', tema: 'Sus alegrías más grandes y lo que más orgullo le da; los dichos que repite desde siempre.' },
-  { id: 'lo-que-falta', tramo: null, bloque: 'reflexion', tema: 'Qué no le preguntaste que tiene que estar en el libro: una persona, una época, una historia que se quedó con ganas de contar. Es su turno de traer lo que vos no viste.' },
-  { id: 'mensaje', tramo: null, bloque: 'reflexion', tema: 'Qué les quiere decir a los que escuchen esto dentro de cincuenta años (sin dar por hecho que tiene hijos o nietos).' },
-  { id: 'cinco-minutos', tramo: null, bloque: 'reflexion', tema: 'Su vida en cinco minutos, para alguien que no le conoce: lo que no puede faltar.' },
-] as const;
-
-export type NucleoItem = (typeof NUCLEO)[number];
 export type Objetivo =
-  | ({ tipo: 'nucleo' } & NucleoItem)
-  | ({ tipo: 'variable'; id: string } & Variable)
-  | { tipo: 'objeto'; id: string; tramo: Tramo };
+  | ({ tipo: 'nucleo' } & FilaObjetivo)
+  | { tipo: 'variable'; id: string; tramo: Tramo; desde: number; hasta: number; anclas: string[] }
+  | { tipo: 'objeto'; id: string; tramo: Tramo }
+  | { tipo: 'repregunta'; id: string; tramo: Tramo | null; pregunta: string; falto: string[] };
 
-export const BLOQUES = ['presentacion', 'inicio', 'infancia', 'juventud', 'adulto joven', 'adultez media', 'segunda mitad', 'hoy', 'reflexion'] as const;
-export type Bloque = (typeof BLOQUES)[number];
+export const BLOQUES = ['presentacion', 'inicio', 'infancia', 'juventud', 'adulto joven', 'adultez media', 'segunda mitad', 'hoy', 'futuro', 'reflexion'] as const;
+
+export type YaHecha = { id: string; tema: string };
 
 /** Si el objetivo es la presentación: no es una pregunta del día, es la bienvenida. */
 export const esPresentacion = (o: Objetivo): boolean => o.tipo === 'nucleo' && o.id === 'presentacion';
 
-/** La regla de la historia grande: se ofrece en toda variable, sin suponer de qué lado estuvo. */
-const HISTORIA_GRANDE = 'Si en esos años pasó algo grande en su país o su ciudad (una dictadura, una guerra, una crisis, una inundación), preguntá cómo lo vivió esta persona, en su casa, sin dar por hecho de qué lado estuvo.';
+/** Cuánto entra de cada ancla de una libre: una línea, no un párrafo. */
+const MAX_ANCLA = 160;
 
 /**
  * El texto que le llega al modelo para este objetivo. La presentación reemplaza sus huecos
  * ({TRATOS}, {EDAD}) según el perfil (castellano, si ya sabemos la edad); el objeto pide UNA
- * cosa con foto de esa época sin insistir; la variable lleva el tramo, sus anclas y la
- * historia grande del país.
+ * cosa con foto de esa época sin insistir; la variable lleva el tramo y sus anclas; la
+ * repregunta pide junto lo que faltó, sin decir que es una repregunta ni pedir resumen; una
+ * fila del guion lleva su tema con los pormenores que puede juntar (dos o tres, en una sola
+ * pregunta) y, si pide escena, lo dice.
  */
 export function objetivoEnTexto(o: Objetivo, perfil: Perfil): string {
   if (o.tipo === 'objeto') {
     return `Pedile UNA cosa que tenga en casa de esa época (${o.tramo}): un objeto, un papel, una foto vieja, lo que haya guardado. Con una foto, y que cuente de dónde salió. Si no tiene, no pasa nada: no se insiste nunca.`;
   }
-  if (o.tipo === 'nucleo') {
-    if (o.id !== 'presentacion') return o.tema;
+  if (o.tipo === 'repregunta') {
+    return [
+      `Es una repregunta a lo de hoy. Le preguntaste: "${o.pregunta}". De eso faltó: ${o.falto.map((f) => `"${f}"`).join(', ')}.`,
+      'Pedilo junto, en UNA sola pregunta corta, como quien sigue la charla. No digas que es una repregunta, no le pidas que resuma ni que repita lo que ya dijo, no abras un tema nuevo.',
+    ].join('\n');
+  }
+  if (o.tipo === 'variable') {
+    const cuando = o.tramo === 'hoy' ? 'su vida de hoy' : `su vida entre los ${o.desde} y los ${o.hasta} años`;
+    const anclas = o.anclas.map((a) => a.slice(0, MAX_ANCLA));
+    return `Algo de ${cuando} que nombró y no contó: ${anclas.map((a) => `"${a}"`).join('; ')}. Preguntale por eso, como una escena o una persona concreta.`;
+  }
+  if (o.id === 'presentacion') {
     const tratos = perfil.castellano === 'españa' ? 'de tú o de usted' : 'de vos o de usted';
     const edad = perfil.persona.edad || perfil.persona.anioNacimiento ? '' : 'cuántos años tiene, ';
     return o.tema.replace('{TRATOS}', tratos).replace('{EDAD}', edad);
   }
-  const anclas = o.anclas.length ? `\nLo que sabés de esos años:\n${o.anclas.map((a) => `- ${a}`).join('\n')}` : '';
-  const cuando = o.tramo === 'hoy' ? 'su vida de hoy' : `algo de su vida entre los ${o.desde} y los ${o.hasta} años`;
-  return `${cuando}. Buscá lo que todavía no contó de esa época: una casa, un trabajo, una persona, un cambio. ${HISTORIA_GRANDE}${anclas}`;
+  const pormenores = o.pormenores.length
+    ? `\nPormenores que podés juntar en la misma pregunta (elegí dos o tres según lo que ya contó y pedilos juntos, en una sola pregunta): ${o.pormenores.join('; ')}.`
+    : '';
+  const escena = o.pideEscena ? '\nPedila como una escena: un día, un lugar, quién estaba.' : '';
+  return `${o.tema}${pormenores}${escena}`;
 }
 
 export const PROMPT_PREGUNTA_V2 = (encargo: string, conversacion: string, yaHechas: string, objetivo: string) => `
@@ -95,8 +77,8 @@ ${encargo}
 LO ÚLTIMO QUE HABLARON (cada respuesta con la pregunta que la originó):
 ${conversacion || '(todavía no hablaron)'}
 
-PREGUNTAS QUE YA LE HICISTE (no repitas ninguna):
-${yaHechas || '(ninguna)'}
+TEMAS QUE YA LE PREGUNTASTE (no vuelvas sobre ninguno; si algo de ahí sirve de puente, una frase):
+${yaHechas || '(ninguno)'}
 
 LO QUE TE TOCA PREGUNTAR HOY:
 ${objetivo}
@@ -111,29 +93,31 @@ export function armarPromptPregunta(
   perfil: Perfil,
   objetivo: Objetivo,
   conversacion: { pregunta: string; respuesta: string }[],
-  yaHechas: string[],
+  yaHechas: YaHecha[],
   evitar: string[] = [],
 ): string {
   return PROMPT_PREGUNTA_V2(
     encargoDelBiografo(perfil, evitar),
     conversacion.map((c) => `P: ${c.pregunta}\nR: ${c.respuesta}`).join('\n\n'),
-    yaHechas.map((q) => `- ${q}`).join('\n'),
+    yaHechas.map((q) => `- ${q.id}: ${q.tema}`).join('\n'),
     objetivoEnTexto(objetivo, perfil),
   );
 }
 
 /**
- * Escribe la pregunta. Hasta `INTENTOS` veces: si el control la rechaza, se lo pide de nuevo
- * diciendo por qué (a partir del 2.º intento). Si el último también falla, se manda esa versión
- * igual —mejor una pregunta imperfecta que ninguna— pero con `ok: false` y una `marca` para que
- * quien llama lo sepa (y, si hace falta, avise).
+ * Escribe la pregunta (o la repregunta, o el objeto). Hasta `INTENTOS` veces: si el control la
+ * rechaza, se lo pide de nuevo diciendo por qué (a partir del 2.º intento). Si el último también
+ * falla, se manda esa versión igual —mejor una pregunta imperfecta que ninguna— pero con
+ * `ok: false` y una `marca` para que quien llama lo sepa (y, si hace falta, avise).
+ * `max_tokens` 1500: Opus 5 piensa por defecto y eso cuenta como salida; con 400 la pregunta
+ * salía cortada o vacía.
  */
 export async function escribirPregunta(
   cliente: Anthropic,
   perfil: Perfil,
   objetivo: Objetivo,
   conversacion: { pregunta: string; respuesta: string }[],
-  yaHechas: string[],
+  yaHechas: YaHecha[],
   evitar: string[] = [],
 ): Promise<{ texto: string; ok: boolean; marca?: Marca; usos: Anthropic.Usage[] }> {
   const prompt = armarPromptPregunta(perfil, objetivo, conversacion, yaHechas, evitar);
@@ -142,7 +126,7 @@ export async function escribirPregunta(
   let ultimo: { control: string; motivo: string } | null = null;
   for (let intento = 1; intento <= INTENTOS; intento++) {
     const contenido = intento === 1 ? prompt : `${prompt}\n\nTu versión anterior no sirvió porque ${ultimo!.motivo}. Escribila de nuevo, cuidando eso.`;
-    const r = await cliente.messages.create({ model: MODELO, max_tokens: 400, messages: [{ role: 'user', content: contenido }] });
+    const r = await cliente.messages.create({ model: MODELO_PREGUNTA, max_tokens: 1500, messages: [{ role: 'user', content: contenido }] });
     usos.push(r.usage);
     const bloque = r.content.find((b) => b.type === 'text');
     texto = (bloque && bloque.type === 'text' ? bloque.text : '').trim().replace(/^["«]|["»]$/g, '');

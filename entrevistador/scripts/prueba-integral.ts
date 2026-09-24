@@ -31,7 +31,8 @@ import { fileURLToPath } from 'node:url';
 import Anthropic from '@anthropic-ai/sdk';
 import { createClient } from '@supabase/supabase-js';
 import { actualizarPerfil, perfilVacio, type Perfil } from '../src/ia/perfil.js';
-import { NUCLEO, perfilEnTexto, type Objetivo } from '../src/ia/pregunta-v2.js';
+import { perfilEnTexto, type Objetivo } from '../src/ia/pregunta-v2.js';
+import { GUION } from '../src/ia/guion-v2.js';
 import { evaluarV2 } from '../src/ia/evaluar-v2.js';
 
 const AQUI = dirname(fileURLToPath(import.meta.url));
@@ -51,13 +52,16 @@ const valor = (flag: string) => (args.includes(flag) ? args[args.indexOf(flag) +
 const salida = resolve(valor('--salida') ?? 'prueba-integral');
 const reusarPerfil = args.includes('--reusar-perfil');
 
-// El objetivo 'padres' (¿cómo era su padre?): los tres casos usan el mismo, real o inventado —
-// C1 y C4 porque así se los volvió a evaluar el 23/09, y RESERVA porque la pregunta que se le
-// inventa es esa. Sin `!`: si el núcleo cambiara de ids, avisa con un mensaje claro en vez de
-// tirar la excepción críptica de un non-null que apunta a `undefined`.
-const PADRES = NUCLEO.find((x) => x.id === 'padres');
-if (!PADRES) throw new Error('el núcleo (NUCLEO en pregunta-v2.ts) ya no tiene el objetivo "padres": actualizá esta prueba');
-const OBJETIVO_PADRES: Objetivo = { tipo: 'nucleo' as const, ...PADRES };
+// El objetivo 'padres-como-eran' (¿cómo era su padre?): los tres casos usan el mismo, real o
+// inventado — C1 y C4 porque así se los volvió a evaluar el 23/09, y RESERVA porque la pregunta
+// que se le inventa es esa. Sin `!`: si el guion cambiara de ids, avisa con un mensaje claro en
+// vez de tirar la excepción críptica de un non-null que apunta a `undefined`.
+const PADRES = GUION.find((x) => x.id === 'padres-como-eran');
+if (!PADRES) throw new Error('el guion (GUION en guion-v2.ts) ya no tiene la fila "padres-como-eran": actualizá esta prueba');
+const OBJETIVO_PADRES: Objetivo = {
+  tipo: 'nucleo', id: PADRES.id, tramo: PADRES.tramo, bloque: PADRES.etapa, tema: PADRES.tema,
+  pormenores: PADRES.pormenores, pideEscena: PADRES.pideEscena, fila: PADRES.id,
+};
 
 mkdirSync(salida, { recursive: true });
 const { data: narradores } = await db.from('narradores').select('id, como_le_dicen, contexto');
