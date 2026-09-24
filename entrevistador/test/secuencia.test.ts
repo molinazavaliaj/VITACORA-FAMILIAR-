@@ -60,7 +60,10 @@ describe('armarSecuencia y rearmar', () => {
     // ahora se sabe: pareja, hijos, nietos, hermanos y una pérdida — las dos puertas ya no existen
     // en el guion nuevo (las reemplazan pareja-como-llego y las filas de cada hermano), y la ficha
     // nueva, con lugar (para que entre la historia grande) y bastante familia, llena el resto de los
-    // cupos hasta el techo de un 70 (44).
+    // cupos hasta el techo de un 70 (44; +1 de pendientes es la presentación, que no cuenta para el
+    // techo). Ajuste A (24/09): con lugar en Argentina de toda la vida, esta persona de 70 también
+    // tiene pandemia y Mundial (fuera del máximo de dos), así que el guion fresco pasa el techo por
+    // sí solo y `recortarAlTope` saca un evento "grande" (nunca pandemia ni Mundial) para entrar justo.
     const p0 = aplicarCambios(base, {
       agregarPersonas: [
         persona('Marta', 'marido'), persona('Ana', 'hija'), persona('Bruno', 'hijo'), persona('Cora', 'hijo'),
@@ -70,7 +73,8 @@ describe('armarSecuencia y rearmar', () => {
     });
     const p = aplicarCambios(p0, { corregirPersonas: [{ i: p0.personas.findIndex((x) => x.nombre === 'Facundo'), vive: 'no' }] });
     const fresco = armarSecuencia(p, ANIO);
-    expect(fresco.pendientes.length).toBe(tope(70)); // el guion fresco ya está en el techo por sí solo
+    expect(fresco.pendientes.length).toBe(tope(70) + 1); // +1: la presentación no cuenta para el techo
+    expect(fresco.pendientes.map((o) => o.id)).toEqual(expect.arrayContaining(['historia-grande-pandemia', 'historia-grande-mundial']));
 
     const r = rearmar(s, p, ANIO);
     expect(ids(r)).not.toContain('hermanos-puerta'); expect(ids(r)).not.toContain('pareja-puerta');

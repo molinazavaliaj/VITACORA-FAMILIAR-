@@ -165,7 +165,7 @@
 **cinco-minutos** (reflexion)
 > Su vida en cinco minutos.
 
-## El guion de Naza (27): 30 preguntas
+## El guion de Naza (27): 31 preguntas
 
 - presentacion (presentacion)
 - casa-infancia (inicio)
@@ -183,6 +183,7 @@
 - primer-trabajo (juventud)
 - primer-amor (juventud)
 - historia-grande-pandemia (juventud)
+- historia-grande-mundial (juventud)
 - oficio (adulto joven)
 - pareja-como-llego (adulto joven)
 - un-lugar-que-cambio-algo (adulto joven)
@@ -295,8 +296,8 @@ P: ¿Qué ves al entrar a esa casa?
 R: Una casa de tres pisos, mi mamá en la cocina.
 
 TEMAS QUE YA LE PREGUNTASTE (no vuelvas sobre ninguno; si algo de ahí sirve de puente, una frase):
-- casa-infancia: La casa de la infancia
-- los-tuyos-hoy: Quiénes son los suyos hoy
+- La casa de la infancia
+- Quiénes son los suyos hoy
 
 LO QUE TE TOCA PREGUNTAR HOY:
 Cómo era su mamá y cómo era su papá (o quienes le criaron): el carácter, no la cronología. Si la ficha no tiene padres, "quienes le criaron".
@@ -534,6 +535,7 @@ LOS TEMAS QUE TODAVÍA NO SE LE PREGUNTARON (id: de qué trata):
 - primer-trabajo: El primer trabajo y la primera plata. Si ya contó que no trabajó de joven, preguntá de qué vivía y cuál fue la primera plata propia.
 - primer-amor: Si se enamoró, de quién, cómo fue. Sin dar por hecho pareja ni género: si no sabés, preguntá si hubo alguna vez en esos años.
 - historia-grande-pandemia: Lo grande que le tocó al país en esa época (la pandemia, cuando tenía 21 años). Sin dar por hecho de qué lado estuvo.
+- historia-grande-mundial: Un Mundial que ganó Argentina (el de 2022, cuando tenía 23 años). Sin dar por hecho que le gusta el fútbol: preguntá primero si le gusta el fútbol o algún deporte, y si le gusta, cómo vivió ese Mundial.
 - oficio: A qué le dedicó la vida y cómo llegó ahí. Si la ficha no lo ubica en el tiempo, va acá igual.
 - pareja-como-llego: Con quién hizo su vida y cómo llegó esa persona (Ima). NO la boda.
 - un-lugar-que-cambio-algo: Un lugar que le cambió la vida: una mudanza, un viaje, otro país, otra ciudad. Quién lo esperaba, sin suponerlo. Si no se mudó nunca: la esquina de siempre, qué la hace suya.
@@ -613,7 +615,7 @@ donde D es {"valor":"","fuente":"dicho|ficha|deducido","por":""}. Si hoy no apre
 nuevo, devolvé {}.
 ```
 
-## El guion de Élida (76): 40 preguntas
+## El guion de Élida (76): 42 preguntas
 
 - presentacion (presentacion)
 - casa-infancia (inicio)
@@ -646,6 +648,8 @@ nuevo, devolvé {}.
 - dejar-el-trabajo (segunda mitad)
 - nietos (segunda mitad)
 - perdidas (segunda mitad)
+- historia-grande-pandemia (segunda mitad)
+- historia-grande-mundial (segunda mitad)
 - un-dia-de-hoy (hoy)
 - los-tuyos-hoy-como-estan (hoy)
 - lo-que-te-queda-por-hacer (futuro)
@@ -657,7 +661,7 @@ nuevo, devolvé {}.
 - mensaje (reflexion)
 - cinco-minutos (reflexion)
 
-Se cayeron: historia-grande (no le tocó nada grande en esa etapa)
+Se cayeron: ninguna
 
 ### La ficha de Élida (76), en texto (722 caracteres)
 
@@ -761,8 +765,8 @@ P: ¿Qué ves al entrar a esa casa?
 R: Una casa de tres pisos, mi mamá en la cocina.
 
 TEMAS QUE YA LE PREGUNTASTE (no vuelvas sobre ninguno; si algo de ahí sirve de puente, una frase):
-- casa-infancia: La casa de la infancia
-- los-tuyos-hoy: Quiénes son los suyos hoy
+- La casa de la infancia
+- Quiénes son los suyos hoy
 
 LO QUE TE TOCA PREGUNTAR HOY:
 Cómo era su mamá y cómo era su papá (o quienes le criaron): el carácter, no la cronología. Si la ficha no tiene padres, "quienes le criaron".
@@ -1045,6 +1049,8 @@ LOS TEMAS QUE TODAVÍA NO SE LE PREGUNTARON (id: de qué trata):
 - dejar-el-trabajo: La jubilación o dejar el trabajo: cómo fue ese día, qué hizo con el tiempo.
 - nietos: Los nietos (Sofía, Tomás, Lucas): quiénes son, cómo es ser abuela/o.
 - perdidas: Las personas que perdió en estos años (Rubén) (pareja, hermanos, amigos), con tacto. Solo las que la ficha dice que murieron.
+- historia-grande-pandemia: Lo grande que le tocó al país en esa época (la pandemia, cuando tenía 70 años). Sin dar por hecho de qué lado estuvo.
+- historia-grande-mundial: Un Mundial que ganó Argentina (el de 2022, cuando tenía 72 años). Sin dar por hecho que le gusta el fútbol: preguntá primero si le gusta el fútbol o algún deporte, y si le gusta, cómo vivió ese Mundial.
 - un-dia-de-hoy: Cómo es un día suyo hoy.
 - los-tuyos-hoy-como-estan: La familia hoy: cómo está cada uno y cómo es la relación (sobrinos, hermanos, hijos, la pareja). Sin dar por hecho nada que el censo no dijo.
 - lo-que-te-queda-por-hacer: Lo que quiere para su vida de acá en adelante: sueños, planes, lo que le queda por ver. A los veinte es la mitad del libro; a los ochenta es "qué le queda por hacer y qué ya no".

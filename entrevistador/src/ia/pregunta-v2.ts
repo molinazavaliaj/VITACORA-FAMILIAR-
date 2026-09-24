@@ -95,17 +95,40 @@ export function recortarHecha(texto: string, max: number): string {
 
 /** Lo que ya viene corto y marcado (repreguntas, libres, objetos): no se le busca la cabeza. */
 const MARCADO = /^\((repregunta|libre|objeto)\) /;
+/** ids `historia-grande-*` (ajuste A, 24/09): la cabeza genérica ("Lo grande que le tocó al país...") no distingue pandemia de Mundial ni de los demás eventos. */
+const ID_HISTORIA_GRANDE = /^historia-grande-/;
+
+/**
+ * Ajuste A: para una fila `historia-grande-*` ya hecha, la línea dice el EVENTO, no la cabeza
+ * genérica del tema (que es la misma para todos: "Lo grande que le tocó al país en esa época…").
+ * Sin esto, pandemia hecha y Mundial pendiente quedaban con la misma línea y no se distinguían
+ * (o, con las dos hechas, se deduplicaban a una sola). El Mundial saca el año de su propio texto
+ * ("el de <año>, cuando tenía…"); los demás (pandemia incluida) sacan el nombre del evento del
+ * paréntesis del tema HISTORIA ("(la pandemia, cuando tenía…" → "la pandemia").
+ */
+function lineaHistoriaGrande(q: YaHecha): string | null {
+  if (!ID_HISTORIA_GRANDE.test(q.id)) return null;
+  if (q.id === 'historia-grande-mundial') {
+    const anio = q.tema.match(/el de (\d{4})/)?.[1];
+    return anio ? `Historia grande: el Mundial de ${anio}` : 'Historia grande: el Mundial';
+  }
+  const nombre = q.tema.match(/\(([^,]+),/)?.[1]?.trim();
+  return nombre ? `Historia grande: ${nombre}` : `Historia grande: ${q.id.slice('historia-grande-'.length)}`;
+}
 
 /**
  * Cómo se lista una ya hecha (arreglo final I1: con los temas enteros, la lista llevaba el prompt de
  * la pregunta 40 a 15.400 caracteres, sobre un presupuesto de 13.800). Un tema del guion: su primera
  * oración hasta MAX_TEMA_HECHO y, si tiene cabeza antes de ":", " (" o ", " (de 12 caracteres o más),
  * solo la cabeza ("La casa donde pasó su infancia"). Una repregunta: su texto hasta
- * MAX_REPREGUNTA_HECHA. Los temas del guion no cambian: solo cómo se listan los ya hechos (para "no
- * vuelvas sobre esto" alcanza con reconocerlo).
+ * MAX_REPREGUNTA_HECHA. Una fila `historia-grande-*`: el evento (ajuste A, arriba). Los temas del
+ * guion no cambian: solo cómo se listan los ya hechos (para "no vuelvas sobre esto" alcanza con
+ * reconocerlo).
  */
 export function temaHechoEnLinea(q: YaHecha): string {
   if (q.tema.startsWith(PREFIJO_REPREGUNTA)) return `${PREFIJO_REPREGUNTA}${recortarHecha(q.tema.slice(PREFIJO_REPREGUNTA.length), MAX_REPREGUNTA_HECHA)}`;
+  const historia = lineaHistoriaGrande(q);
+  if (historia) return historia;
   const corto = recortarHecha(q.tema, MAX_TEMA_HECHO);
   if (MARCADO.test(q.tema)) return corto;
   const partes = corto.split(/:| \(|, /);

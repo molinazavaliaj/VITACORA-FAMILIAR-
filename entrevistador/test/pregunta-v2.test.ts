@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import type Anthropic from '@anthropic-ai/sdk';
 import { readFileSync } from 'node:fs';
-import { NUCLEO, BLOQUES, armarPromptPregunta, escribirPregunta, objetivoEnTexto, type Objetivo, type YaHecha } from '../src/ia/pregunta-v2.js';
+import { NUCLEO, BLOQUES, armarPromptPregunta, escribirPregunta, objetivoEnTexto, listaDeHechas, temaHechoEnLinea, type Objetivo, type YaHecha } from '../src/ia/pregunta-v2.js';
 import { armarSecuencia } from '../src/ia/secuencia.js';
 import { recortarPerfil } from '../src/ia/perfil.js';
 import { GUION } from '../src/ia/guion-v2.js';
@@ -109,8 +109,8 @@ describe('armarPromptPregunta', () => {
       { id: 'amigos', tema: 'Quiénes eran sus amigos de siempre, los de la cuadra y los del colegio. Qué hacían los fines de semana.' },
       { id: 'censo', tema: 'El censo: quiénes son los suyos hoy.' },
       { id: 'sin-punto', tema: 'Una línea muy larga sin ningún punto ni coma que sigue y sigue hablando de la casa del barrio de la gente y de todo lo demás' },
-      { id: 'pandemia', tema: 'Lo grande que le tocó al país en esa época (la pandemia, cuando tenía 21 años).' },
-      { id: 'mundial', tema: 'Lo grande que le tocó al país en esa época (un Mundial ganado, cuando tenía 23 años).' },
+      { id: 'historia-grande-pandemia', tema: 'Lo grande que le tocó al país en esa época (la pandemia, cuando tenía 21 años). Sin dar por hecho de qué lado estuvo.' },
+      { id: 'historia-grande-mundial', tema: 'Un Mundial que ganó Argentina (el de 2022, cuando tenía 23 años). Sin dar por hecho que le gusta el fútbol: preguntá primero si le gusta el fútbol o algún deporte, y si le gusta, cómo vivió ese Mundial.' },
       { id: 'libre-juventud-1', tema: '(libre) la banda de rock que armó con los amigos del colegio' },
       { id: 'x-repregunta', tema: `(repregunta) ${'¿Y con quién estabas ese día, y qué pasó después? '.repeat(4)}` },
       { id: 'objeto-hoy', tema: '(objeto) hoy' },
@@ -118,8 +118,9 @@ describe('armarPromptPregunta', () => {
     const lista = prompt.slice(prompt.indexOf('TEMAS QUE YA LE PREGUNTASTE'), prompt.indexOf('LO QUE TE TOCA PREGUNTAR HOY')).split('\n').filter((l) => l.startsWith('- '));
     expect(lista).toContain('- Quiénes eran sus amigos de siempre');
     expect(lista).toContain('- El censo: quiénes son los suyos hoy.');
-    expect(lista).toContain('- Lo grande que le tocó al país en esa época');
-    expect(lista.filter((l) => l.startsWith('- Lo grande'))).toHaveLength(1);
+    expect(lista).toContain('- Historia grande: la pandemia');
+    expect(lista).toContain('- Historia grande: el Mundial de 2022');
+    expect(lista.filter((l) => l.startsWith('- Historia grande'))).toHaveLength(2);
     expect(lista).toContain('- (libre) la banda de rock que armó con los amigos del colegio');
     expect(lista).toContain('- (objeto) hoy');
     const sinPunto = lista.find((l) => l.startsWith('- Una línea'))!.slice(2);
@@ -128,6 +129,28 @@ describe('armarPromptPregunta', () => {
     expect(rep.length).toBeLessThanOrEqual(100);
     expect(rep.startsWith('¿Y con quién estabas ese día, y qué pasó después?')).toBe(true);
     expect(lista.some((l) => /- (amigos|censo|x-repregunta|objeto-hoy):/.test(l))).toBe(false);
+  });
+});
+
+// Ajuste A (24/09): la lista de "ya hechas" distingue el evento de historia grande, no solo la
+// cabeza genérica ("Lo grande que le tocó al país..."), para que pandemia y Mundial no se confundan.
+describe('temaHechoEnLinea / listaDeHechas — historia grande distingue el evento (ajuste A)', () => {
+  const pandemiaHecha: YaHecha = { id: 'historia-grande-pandemia', tema: 'Lo grande que le tocó al país en esa época (la pandemia, cuando tenía 70 años). Sin dar por hecho de qué lado estuvo.' };
+  const mundialHecha: YaHecha = { id: 'historia-grande-mundial', tema: 'Un Mundial que ganó Argentina (el de 2022, cuando tenía 72 años). Sin dar por hecho que le gusta el fútbol: preguntá primero si le gusta el fútbol o algún deporte, y si le gusta, cómo vivió ese Mundial.' };
+  const dictaduraHecha: YaHecha = { id: 'historia-grande-dictadura', tema: 'Lo grande que le tocó al país en esa época (la dictadura, cuando tenía 26 años). Sin dar por hecho de qué lado estuvo.' };
+
+  it('pandemia hecha, Mundial pendiente: una línea con "pandemia", ninguna que se confunda con el Mundial', () => {
+    const lista = listaDeHechas([pandemiaHecha]);
+    expect(lista).toBe('- Historia grande: la pandemia');
+    expect(lista).not.toMatch(/Mundial/);
+  });
+  it('con las dos hechas, dos líneas distintas', () => {
+    const lista = listaDeHechas([pandemiaHecha, mundialHecha]).split('\n');
+    expect(lista).toHaveLength(2);
+    expect(lista).toEqual(expect.arrayContaining(['- Historia grande: la pandemia', '- Historia grande: el Mundial de 2022']));
+  });
+  it('un evento "grande" (no pandemia ni Mundial) también dice el evento, no la cabeza genérica', () => {
+    expect(temaHechoEnLinea(dictaduraHecha)).toBe('Historia grande: la dictadura');
   });
 });
 

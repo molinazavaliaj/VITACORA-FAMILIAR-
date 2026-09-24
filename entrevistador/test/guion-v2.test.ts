@@ -69,37 +69,58 @@ describe('paisDe y eventosDe (la historia grande, §4)', () => {
     expect(paisDe('Berga, Barcelona, España')).toBe('ES');
     expect(paisDe('Montevideo')).toBeNull();
   });
-  it('Naza (1999, Argentina hasta los 22): la pandemia a los 21, en juventud; el 2001 no (tenía 2)', () => {
+  it('Naza (1999, Argentina hasta los 22): la pandemia a los 21 y el Mundial 2022 a los 23, aunque en 2022 vivía en España (ajuste A: pandemia y Mundial entran siempre, fuera del máximo de dos)', () => {
     const e = eventosDe(naza(), ANIO);
-    expect(e.map((x) => x.id)).toEqual(['pandemia']);
+    expect(e.map((x) => x.id)).toEqual(['pandemia', 'mundial']);
     expect(e[0]).toMatchObject({ tramo: 'juventud', edad: 21 });
+    expect(e[1]).toMatchObject({ tramo: 'adulto joven', edad: 23, nombre: 'un Mundial ganado' });
   });
-  it('Élida (1950, Argentina): la dictadura (26) y el 2001 (51); la pandemia queda afuera por el máximo de dos', () => {
+  it('Élida (1950, Argentina): la dictadura (26) y el 2001 (51) como los dos "grandes"; la pandemia (70) y el Mundial de 2022 (72) entran igual, fuera del máximo de dos (ajuste A)', () => {
     const e = eventosDe(elida(), ANIO);
-    expect(e.map((x) => x.id)).toEqual(['dictadura', 'crisis-2001']);
+    expect(e.map((x) => x.id)).toEqual(['dictadura', 'crisis-2001', 'pandemia', 'mundial']);
     expect(e[0].tramo).toBe('adulto joven');
     expect(e[1].tramo).toBe('adultez media');
+    expect(e[2]).toMatchObject({ tramo: 'segunda mitad', edad: 70 });
+    expect(e[3]).toMatchObject({ tramo: 'segunda mitad', edad: 72 });
   });
   it('sin edad no hay eventos', () => { expect(eventosDe(perfilVacio(), ANIO)).toEqual([]); });
+  it('alguien de 5 años en 2020 no tiene pandemia; alguien de 6 sí (ajuste A: se mide en 2020, no en toda la ventana)', () => {
+    const p5 = perfilVacio(); p5.persona.edad = dicho('11'); // 2026 - 11 = 2015: 5 años en 2020
+    expect(eventosDe(p5, ANIO).some((x) => x.id === 'pandemia')).toBe(false);
+    const p6 = perfilVacio(); p6.persona.edad = dicho('12'); // 2026 - 12 = 2014: 6 años en 2020
+    expect(eventosDe(p6, ANIO).some((x) => x.id === 'pandemia')).toBe(true);
+  });
+  it('alguien que nunca vivió en Argentina no tiene Mundial (ajuste A)', () => {
+    const p = perfilVacio(); p.persona.edad = dicho('40');
+    p.etapas.push({ edades: 'siempre', lugar: 'Berga, Barcelona, España', conQuien: '', queHacia: '', fuente: 'dicho' });
+    expect(eventosDe(p, ANIO).some((x) => x.id === 'mundial')).toBe(false);
+  });
 });
 
 describe('armarGuion', () => {
-  it('Naza: 30 preguntas (el guion §5 dice 29 porque no contó la pandemia), un hermano por hermano, la pareja resuelta, sin hijos, sin adultez media', () => {
+  it('Naza: 31 preguntas (ajuste A: entran pandemia Y Mundial, fuera del máximo de dos), un hermano por hermano, la pareja resuelta, sin hijos, sin adultez media', () => {
     const { filas, caidas } = armarGuion(naza(), ANIO);
-    expect(preguntas(naza())).toBe(30);
+    expect(preguntas(naza())).toBe(31);
     const l = filas.map((f) => f.id);
     expect(l).toContain(`hermano-${slug('Ariel')}`); expect(l).toContain(`hermano-${slug('Juan Manuel')}`);
     expect(l).toContain('pareja-como-llego'); expect(l).not.toContain('hijos-llegada'); expect(l).not.toContain('el-trabajo-y-la-plata');
     expect(l).toContain('historia-grande-pandemia');
+    expect(l).toContain('historia-grande-mundial');
     expect(l.indexOf('por-gusto')).toBeLessThan(l.indexOf('un-dia-de-hoy'));
     expect(l.slice(-6)).toEqual(['pruebas', 'fuerza', 'alegrias', 'lo-que-falta', 'mensaje', 'cinco-minutos']);
     expect(caidas.map((c) => c.id)).toEqual(expect.arrayContaining(['hijos-llegada', 'nietos', 'dejar-el-trabajo']));
   });
-  it('Élida: 40 preguntas justas, con dos hijos, la pérdida de Rubén, los padres de grande y los nietos', () => {
-    expect(preguntas(elida())).toBe(40);
+  it('Élida: 42 preguntas (ajuste A: pandemia y Mundial se suman a la dictadura y el 2001), con dos hijos, la pérdida de Rubén, los padres de grande y los nietos', () => {
+    expect(preguntas(elida())).toBe(42);
     const l = ids(elida());
-    expect(l).toEqual(expect.arrayContaining([`hijo-${slug('Marta')}`, `hijo-${slug('Jorge')}`, 'perdidas', 'los-padres-de-grande', 'nietos', 'la-pareja-con-los-anos', 'dejar-el-trabajo', 'historia-grande-dictadura', 'historia-grande-crisis-2001']));
+    expect(l).toEqual(expect.arrayContaining([`hijo-${slug('Marta')}`, `hijo-${slug('Jorge')}`, 'perdidas', 'los-padres-de-grande', 'nietos', 'la-pareja-con-los-anos', 'dejar-el-trabajo', 'historia-grande-dictadura', 'historia-grande-crisis-2001', 'historia-grande-pandemia', 'historia-grande-mundial']));
     expect(l).not.toContain('hermanos-todos');
+  });
+  it('el tema del Mundial pregunta primero si le gusta el fútbol o algún deporte, sin dar por hecho, con su propio EVENTO ("el de <año>, cuando tenía <edad> años")', () => {
+    const f = armarGuion(elida(), ANIO).filas.find((x) => x.id === 'historia-grande-mundial');
+    expect(f?.tema).toContain('si le gusta el fútbol');
+    expect(f?.tema).toContain('el de 2022, cuando tenía 72 años');
+    expect(f?.pormenores).toEqual(['si le gusta el fútbol o algún deporte', 'dónde lo vio', 'con quién']);
   });
   it('si no se sabe si hubo hermanos, la fila se vuelve puerta; si dijo que no tuvo, entra como hijo único (fix ronda 1, D.3) y los hijos caen con su variante', () => {
     const sin = perfilVacio(); sin.persona.edad = dicho('40');
@@ -117,18 +138,22 @@ describe('armarGuion', () => {
     const l = ids(p);
     expect(l).toContain('hermanos-todos'); expect(l).toContain(`hermano-${slug('Ariel')}`); expect(l).not.toContain(`hermano-${slug('Pablo')}`);
   });
-  it('la vida más llena posible (82, tres hermanos, tres hijos, pareja, nietos, pérdidas, dos eventos) se queda cerca del techo de 44 y no lo pasa', () => {
-    // Contado a mano contra el guion (40 filas fijas sin presentación: 35 siempre/condicionales +
-    // hermano + hijo + 3 historia-grande): el máximo natural es 35 + 3 hermanos + 3 hijos (el tope
-    // de la expansión "uno por uno", guion §3) + 2 historia-grande (máximo del libro, §4) = 43, no
-    // 44: el techo de 44 es una cota (para cuando el guion crezca), no algo que esta persona
-    // alcance hoy. Desvío del brief anotado en el reporte de la tarea 4.
+  it('la vida más llena posible (82, tres hermanos, tres hijos, pareja, nietos, pérdidas, cuatro eventos) toca el techo de 44 y recorta un evento chico antes que pandemia o el Mundial (ajuste A)', () => {
+    // Contado a mano contra el guion (35 siempre/condicionales + hermano + hijo + hasta 4
+    // historia-grande, ahora que pandemia y Mundial entran siempre además de los dos "grandes"):
+    // el máximo natural es 35 + 3 hermanos + 3 hijos + 4 historia-grande = 45, uno más que el techo
+    // de 44 (edad ≥ 56): recortarAlTope saca un evento "grande" (no pandemia ni Mundial) para
+    // entrar justo en 44.
     const p = elida(); p.persona.edad = dicho('82');
     p.personas.push(persona('Ana', 'hija'), persona('Pedro', 'hermano'), persona('Elsa', 'hermana'));
     const { filas, caidas } = armarGuion(p, ANIO);
-    expect(filas.filter((f) => f.id !== 'presentacion').length).toBe(43);
-    expect(caidas.some((c) => /techo/.test(c.motivo))).toBe(false);
-    expect(filas.map((f) => f.id)).toEqual(expect.arrayContaining(['cinco-minutos', 'lo-que-te-queda-por-hacer', 'un-dia-de-hoy', `hijo-${slug('Ana')}`, `hermano-${slug('Elsa')}`]));
+    expect(filas.filter((f) => f.id !== 'presentacion').length).toBe(44);
+    expect(caidas.some((c) => /techo/.test(c.motivo))).toBe(true);
+    const l = filas.map((f) => f.id);
+    expect(l).toContain('historia-grande-pandemia');
+    expect(l).toContain('historia-grande-mundial');
+    expect(l.filter((id) => id.startsWith('historia-grande-') && id !== 'historia-grande-pandemia' && id !== 'historia-grande-mundial')).toHaveLength(1);
+    expect(l).toEqual(expect.arrayContaining(['cinco-minutos', 'lo-que-te-queda-por-hacer', 'un-dia-de-hoy', `hijo-${slug('Ana')}`, `hermano-${slug('Elsa')}`]));
   });
   it('cada fila lleva tramo y bloque para la fábrica: futuro y reflexión sin tramo, oficio en adulto joven', () => {
     const f = armarGuion(naza(), ANIO).filas;
@@ -193,21 +218,44 @@ describe('arbolDe — pérdidas desde las listas clasificadas, medio hermanos (f
 
 // Fix ronda 1, ítem D.5: recortarAlTope exportada y testeada aparte.
 describe('recortarAlTope (fix ronda 1, ítem D.5)', () => {
-  it('saca, en orden, historias de más, expansiones de hijo/hermano de más y amigos-de-siempre, hasta entrar en el techo', () => {
+  it('saca, en orden, historias de más (nunca pandemia), expansiones de hijo/hermano de más y amigos-de-siempre, hasta entrar en el techo', () => {
     const base = (id: string, fila = id): FilaObjetivo => ({ id, tramo: null, bloque: 'adulto joven', tema: '', pormenores: [], fila });
     const filas: FilaObjetivo[] = [
       base('presentacion'),
       ...Array.from({ length: 30 }, (_, i) => base(`x${i}`)),
-      base('historia-grande-a', 'historia-grande'), base('historia-grande-b', 'historia-grande'),
+      base('historia-grande-a', 'historia-grande'), base('historia-grande-pandemia', 'historia-grande'),
       base('hijo-1', 'hijo'), base('hijo-2', 'hijo'), base('hijo-3', 'hijo'),
       base('amigos-de-siempre'),
     ];
     const caidas: Caida[] = [];
     const r = recortarAlTope(filas, 33, caidas);
     expect(r.filter((f) => f.id !== 'presentacion').length).toBe(33);
-    expect(caidas.some((c) => c.id === 'historia-grande-b')).toBe(true);
+    expect(caidas.some((c) => c.id === 'historia-grande-a')).toBe(true);
     expect(caidas.some((c) => c.id === 'amigos-de-siempre')).toBe(true);
+    expect(r.some((f) => f.id === 'historia-grande-pandemia')).toBe(true);
     expect(r.some((f) => f.id === 'presentacion')).toBe(true);
+  });
+});
+
+// Ajuste A (24/09): pandemia y Mundial nunca se recortan; caen otros eventos primero.
+describe('recortarAlTope — nunca saca pandemia ni Mundial (ajuste A)', () => {
+  it('con cuatro historia-grande de más, saca las otras dos y deja pandemia y Mundial', () => {
+    const base = (id: string, fila = id): FilaObjetivo => ({ id, tramo: null, bloque: 'adulto joven', tema: '', pormenores: [], fila });
+    const filas: FilaObjetivo[] = [
+      base('presentacion'),
+      ...Array.from({ length: 38 }, (_, i) => base(`x${i}`)),
+      base('historia-grande-dictadura', 'historia-grande'),
+      base('historia-grande-crisis-2001', 'historia-grande'),
+      base('historia-grande-pandemia', 'historia-grande'),
+      base('historia-grande-mundial', 'historia-grande'),
+    ];
+    const caidas: Caida[] = [];
+    const r = recortarAlTope(filas, 40, caidas);
+    expect(r.filter((f) => f.id !== 'presentacion').length).toBe(40);
+    expect(r.some((f) => f.id === 'historia-grande-pandemia')).toBe(true);
+    expect(r.some((f) => f.id === 'historia-grande-mundial')).toBe(true);
+    expect(caidas.some((c) => c.id === 'historia-grande-dictadura')).toBe(true);
+    expect(caidas.some((c) => c.id === 'historia-grande-crisis-2001')).toBe(true);
   });
 });
 

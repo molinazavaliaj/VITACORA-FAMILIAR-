@@ -67,6 +67,15 @@ const cae = { modo: 'cae' as const };
 const HISTORIA = 'Lo grande que le tocó al país en esa época ({EVENTO}). Sin dar por hecho de qué lado estuvo.';
 const HISTORIA_PORMENORES = ['cómo se vivió en su casa', 'qué cambió'];
 /**
+ * Ajuste A (24/09, decisión de Naza en el chat, cambia el §4 aprobado): el Mundial tiene su propio
+ * tema y pormenores (texto nuevo, verbatim de `brief-A-historia.md`), porque a diferencia de la
+ * pandemia y los demás no se da por hecho que le gusta el fútbol: la fila pregunta primero si le
+ * gusta el fútbol o algún deporte. `{EVENTO}` para el Mundial es "el de <año>, cuando tenía <edad>
+ * años" (no el nombre genérico del evento, como en HISTORIA).
+ */
+const MUNDIAL_TEMA = 'Un Mundial que ganó Argentina ({EVENTO}). Sin dar por hecho que le gusta el fútbol: preguntá primero si le gusta el fútbol o algún deporte, y si le gusta, cómo vivió ese Mundial.';
+const MUNDIAL_PORMENORES = ['si le gusta el fútbol o algún deporte', 'dónde lo vio', 'con quién'];
+/**
  * Fix ronda 2, ítem D.3: §3 le da el mismo destino ("quienes-fueron-tu-familia") a la fila 16
  * (pareja-como-llego, si dijo que no) y a la fila 22 (los-hijos-creciendo, si dijo que no): una
  * sola variante compartida, con el texto de la fila 22 (la que lo dice más completo). Si las dos
@@ -206,6 +215,9 @@ function masNombrado(p: Perfil, nombres: string[]): string {
 }
 
 // ── La historia grande (guion §4) ───────────────────────────────────────────
+// Ajuste A (24/09): la pandemia y el Mundial entran SIEMPRE (con sus propias reglas, abajo) y no
+// cuentan para el máximo de 2 eventos por libro; los demás (dictadura, Malvinas, hiper, 2001,
+// transición, 23-F, Barcelona 92, 11-M, crisis 2008) siguen con máximo 2, los de más peso.
 type Pais = 'AR' | 'ES';
 const EVENTOS: { id: string; nombre: string; desde: number; hasta: number; pais: Pais | '*'; edadMin: number; peso: number }[] = [
   { id: 'dictadura', nombre: 'la dictadura', desde: 1976, hasta: 1983, pais: 'AR', edadMin: 8, peso: 10 },
@@ -222,12 +234,19 @@ const EVENTOS: { id: string; nombre: string; desde: number; hasta: number; pais:
 ];
 const EDAD_MAX_EVENTO = 60;
 const MUNDIALES = [1978, 1986, 2022];
+/** Eventos que entran siempre, fuera del máximo de 2 y sin el tope de edad de los demás (ajuste A). */
+const SIEMPRE_ENTRAN = new Set(['pandemia', 'mundial']);
 
 export function paisDe(lugar: string): Pais | null {
   const l = norm(lugar);
   if (/espan|barcelona|madrid|catal|berga|valencia|sevilla|andaluc|bilbao|zaragoza|malaga|galicia/.test(l)) return 'ES';
   if (/argentin|buenos aires|rosario|tucum|cordoba|mendoza|martinez|lanus|provincia|conurbano|santa fe|salta|neuquen/.test(l)) return 'AR';
   return null;
+}
+
+/** Si alguna etapa de la ficha fue en Argentina, en cualquier momento de la vida (ajuste A: el Mundial cuenta aunque ese año viviera afuera). */
+function vivioEnArgentina(p: Perfil): boolean {
+  return p.etapas.some((e) => paisDe(e.lugar) === 'AR');
 }
 
 function tramoDeEdad(e: number): Tramo {
@@ -244,22 +263,40 @@ function paisA(p: Perfil, edadActual: number, edad: number): Pais | null {
   return null;
 }
 
-export function eventosDe(p: Perfil, anioActual = new Date().getFullYear()): { id: string; nombre: string; tramo: Tramo; edad: number }[] {
+export function eventosDe(p: Perfil, anioActual = new Date().getFullYear()): { id: string; nombre: string; tramo: Tramo; edad: number; anio: number }[] {
   const edad = edadDe(p, anioActual);
   if (edad === null) return [];
   const nacio = anioActual - edad;
   const candidatos = EVENTOS.flatMap((ev) => {
-    let anio = Math.max(ev.desde, nacio + ev.edadMin);
-    if (ev.id === 'mundial') { const m = MUNDIALES.find((x) => x - nacio >= ev.edadMin && x - nacio <= EDAD_MAX_EVENTO); if (!m) return []; anio = m; }
+    let anio: number;
+    if (ev.id === 'pandemia') {
+      // Ajuste A: se mide en 2020 en punto ("tenía 6 años o más en 2020"), no en toda la ventana
+      // 2020-2021 (si no, alguien de 5 en 2020 entraba igual por cumplir 6 en 2021).
+      if (ev.desde - nacio < ev.edadMin) return [];
+      anio = ev.desde;
+    } else if (ev.id === 'mundial') {
+      // Ajuste A: entra siempre que haya vivido, con 6+ años, un Mundial ganado por Argentina; el
+      // más reciente que le tocó, sin tope de edad, y cuenta si alguna etapa de su vida fue en
+      // Argentina (aunque ese año viviera afuera) — no el país en el año exacto del Mundial.
+      if (!vivioEnArgentina(p)) return [];
+      const m = MUNDIALES.filter((x) => x - nacio >= ev.edadMin).at(-1);
+      if (m === undefined) return [];
+      anio = m;
+    } else {
+      anio = Math.max(ev.desde, nacio + ev.edadMin);
+    }
     if (anio > ev.hasta) return [];
     const e = anio - nacio;
-    if (e < ev.edadMin || e > EDAD_MAX_EVENTO) return [];
-    if (ev.pais !== '*' && paisA(p, edad, e) !== ev.pais) return [];
+    if (e < ev.edadMin) return [];
+    if (!SIEMPRE_ENTRAN.has(ev.id) && e > EDAD_MAX_EVENTO) return [];
+    if (ev.id !== 'mundial' && ev.pais !== '*' && paisA(p, edad, e) !== ev.pais) return [];
     return [{ id: ev.id, nombre: ev.nombre, tramo: tramoDeEdad(e), edad: e, peso: ev.peso, anio }];
   });
-  const grandes = candidatos.filter((c) => c.id !== 'mundial').sort((a, b) => b.peso - a.peso).slice(0, 2);
-  const elegidos = grandes.length < 2 ? [...grandes, ...candidatos.filter((c) => c.id === 'mundial')].slice(0, 2) : grandes;
-  return elegidos.sort((a, b) => a.anio - b.anio).map(({ id, nombre, tramo, edad: e }) => ({ id, nombre, tramo, edad: e }));
+  // Ajuste A: pandemia y Mundial entran siempre, fuera del máximo de 2 (que sigue rigiendo para
+  // los demás eventos, por peso).
+  const siempre = candidatos.filter((c) => SIEMPRE_ENTRAN.has(c.id));
+  const grandes = candidatos.filter((c) => !SIEMPRE_ENTRAN.has(c.id)).sort((a, b) => b.peso - a.peso).slice(0, 2);
+  return [...grandes, ...siempre].sort((a, b) => a.anio - b.anio).map(({ id, nombre, tramo, edad: e, anio }) => ({ id, nombre, tramo, edad: e, anio }));
 }
 
 // ── Armar el guion de ESTA persona ──────────────────────────────────────────
@@ -347,7 +384,15 @@ function resolver(f: Fila, arbol: Arbol, edad: number | null, eventos: ReturnTyp
   }
   if ('evento' in c) {
     const ev = eventos.filter((e) => etapaHistoriaDe(e.tramo) === f.etapa);
-    return ev.length ? { entra: ev.map((e) => objetivoDe(f, `historia-grande-${e.id}`, f.tema.replace('{EVENTO}', `${e.nombre}, cuando tenía ${e.edad} años`))) } : { cae: 'no le tocó nada grande en esa etapa' };
+    return ev.length
+      ? {
+          entra: ev.map((e) =>
+            e.id === 'mundial'
+              ? objetivoDe(f, `historia-grande-${e.id}`, MUNDIAL_TEMA.replace('{EVENTO}', `el de ${e.anio}, cuando tenía ${e.edad} años`), MUNDIAL_PORMENORES)
+              : objetivoDe(f, `historia-grande-${e.id}`, f.tema.replace('{EVENTO}', `${e.nombre}, cuando tenía ${e.edad} años`)),
+          ),
+        }
+      : { cae: 'no le tocó nada grande en esa etapa' };
   }
   switch (c.arbol) {
     case 'hermanos': return porArbol('hermanos', arbol.hermanos, () => expandir(f, arbol.hermanos, p));
@@ -370,8 +415,11 @@ export function recortarAlTope(filas: FilaObjetivo[], max: number, caidas: Caida
     r.splice(i, 1);
     return true;
   };
+  // Ajuste A: pandemia y Mundial nunca se recortan; si hay que sacar historia grande, primero
+  // caen los demás eventos ("otros"), nunca historia-grande-pandemia ni historia-grande-mundial.
+  const esHistoriaProtegida = (id: string) => id === 'historia-grande-pandemia' || id === 'historia-grande-mundial';
   const pasos: ((f: FilaObjetivo) => boolean)[] = [
-    (f) => f.fila === 'historia-grande' && r.filter((x) => x.fila === 'historia-grande').length > 1,
+    (f) => f.fila === 'historia-grande' && !esHistoriaProtegida(f.id),
     (f) => (f.fila === 'hijo' || f.fila === 'hermano') && r.filter((x) => x.fila === f.fila).length > 2,
     (f) => f.id === 'amigos-de-siempre',
   ];

@@ -86,3 +86,42 @@ cd entrevistador && npm run manual-v2 -- empezar naza-esqueleto --nombre "Naza"
 ```
 
 Costo estimado: el plan calculaba ~USD 4-5; la revisión final del arreglo lo estimó en **~USD 5-6** (≈50 llamadas a Opus a ~USD 0,07 c/u + ≈70 a Sonnet a ~USD 0,03 c/u + transcripción), antes de contar reintentos. **~USD 5-6, lo disparás vos.**
+
+## Ajustes del 24/09 después del reporte
+
+Decisión de Naza (24/09, en el chat, cambia el §4 del guion aprobado), implementada en `entrevistador/src/ia/guion-v2.ts` y `pregunta-v2.ts` (rama `esqueleto-v2`, brief en `.superpowers/sdd/esqueleto-v2-ajustes/brief-A-historia.md`, reporte de la tarea en `.superpowers/sdd/esqueleto-v2-ajustes/report-A.md`):
+
+- **La pandemia entra SIEMPRE** para todos los que tenían 6 años o más en 2020 (medido en 2020 en punto, no en toda la ventana 2020-2021), sin tope de edad y sin importar el país, y **no cuenta para el máximo de 2** eventos por libro.
+- **El Mundial entra siempre** que haya vivido, con 6 años o más, un Mundial ganado por Argentina (el más reciente, sin tope de edad), **aunque ese año viviera afuera** (cuenta si alguna etapa de su ficha fue en Argentina, en cualquier momento — no el país en el año exacto del Mundial). Tampoco cuenta para el máximo de 2. Pero no se da por hecho que le gusta el fútbol: tiene su propio tema, texto nuevo aprobado por Naza:
+
+  > tema: `Un Mundial que ganó Argentina ({EVENTO}). Sin dar por hecho que le gusta el fútbol: preguntá primero si le gusta el fútbol o algún deporte, y si le gusta, cómo vivió ese Mundial.`
+  > pormenores: `['si le gusta el fútbol o algún deporte', 'dónde lo vio', 'con quién']`
+  > `{EVENTO}` = `el de <año>, cuando tenía <edad> años`.
+
+- Los demás eventos (dictadura, Malvinas, hiper, 2001, transición, 23-F, Barcelona 92, 11-M, crisis 2008) siguen como estaban: máximo 2, los de más peso.
+- `recortarAlTope` nunca saca pandemia ni Mundial: si hay que recortar historia grande para no pasar el techo, caen primero los otros eventos.
+- La lista de "ya hechas" (`temaHechoEnLinea`, `pregunta-v2.ts`) distingue el evento para las filas `historia-grande-*`: antes todas quedaban con la misma cabeza genérica ("Lo grande que le tocó al país en esa época") y se confundían o se deduplicaban a una sola línea; ahora dicen el evento, p. ej. `Historia grande: la pandemia` / `Historia grande: el Mundial de 2022`. Esto además cierra el punto que había quedado anotado como pendiente en "Lo que quedó sin hacer" de este mismo reporte.
+
+### Conteos que cambian
+
+| Ficha | Antes | Ahora |
+|---|---|---|
+| Naza-tipo (27, Argentina 0-22, España desde los 23) | 30 preguntas (solo pandemia; el Mundial de 2022 quedaba afuera por vivir en España ese año) | **31** (pandemia + Mundial) |
+| Élida-tipo (76, Argentina) | 40 preguntas (dictadura + 2001; la pandemia quedaba afuera por el máximo de 2) | **42** (dictadura + 2001 + pandemia + Mundial) |
+| Naza con la ficha real del piloto (`perfil-naza-piloto.json`) | 31 filas (solo pandemia) | **32** (pandemia + Mundial) |
+
+### La pregunta 40 (medición de la Tarea 13, re-ejecutada)
+
+Con la ficha real de Naza, sin llamar al modelo:
+
+| | Antes (reporte original) | Ahora (con el Mundial) |
+|---|---|---|
+| Prompt exacto (32→40 del guion real + 8 repreguntas, sin objetos) | — | 13.251 caracteres |
+| Peor caso (32 filas + 4 libres + 8 repreguntas + 8 objetos) | 13.680 caracteres | **13.662 caracteres (~5.940 tokens)** |
+| Techo acordado | 13.800 caracteres (~6.000 tokens) | 13.800 caracteres (~6.000 tokens) |
+
+Sigue entrando en el techo, pero el margen bajó de ~120 a ~138 caracteres en el peor caso (el tema y los pormenores nuevos del Mundial son más largos que los de HISTORIA). **Anotado como preocupación**: con la ficha real un poco más cargada (más libres u objetos), este caso puede llegar a pasarse; si eso pasa hay que acortar el tema del Mundial o revisar el presupuesto de la lista de hechas.
+
+### Tests
+
+`entrevistador`: 623 → **630** verdes (7 tests nuevos del ajuste, tipos limpios). `fabrica`: sin tocar, sigue en 537 verdes.
