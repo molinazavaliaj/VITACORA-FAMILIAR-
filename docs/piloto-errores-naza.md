@@ -265,3 +265,14 @@
   fue a España, que es la bisagra más grande de su vida adulta.
 - **Dónde:** pregunta 13 (`var-adulto joven-2`), control de supuestos.
 - **Qué se hizo a mano:** nada; se mandó así.
+- **Después:** esta vez el supuesto salió bien (a Naza lo esperó Iñaki, «Babyface», en el
+  aeropuerto), y la respuesta contó igual el porqué de España sin que se lo preguntaran. La
+  observación de N25 sigue valiendo: acertar de casualidad no es lo mismo que preguntar.
+
+## N26 · 24/09 · El tramo «hoy» se imprime como «27-27 años»
+- **Qué pasó:** la pregunta 14 salió como `var-hoy-1 (hoy, 27-27 años)`. Es un detalle de
+  impresión (el tramo «hoy» de alguien de 27 arranca y termina en 27), pero en un narrador joven el
+  tramo «adulto joven» (23-27) y «hoy» (27) se pisan. Hay que ver si eso duplica variables del
+  mismo período.
+- **Dónde:** `RANGO_TRAMO` / armado de tramos por edad en la secuencia v2.
+- **Qué se hizo a mano:** nada.
