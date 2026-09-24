@@ -89,8 +89,13 @@ export function vinculoNoTuvo(vinculo: string): (typeof VINCULOS_NO_TUVO)[number
   return null;
 }
 
-/** Los topes de la ficha (esqueleto v2, guion §2): la ficha es una ficha, no una transcripción. */
-export const TOPES = { etapaCampo: 220, bisagra: 150, bisagras: 12, notaPersona: 80, personas: 30, noSabemos: 12, tono: 300 } as const;
+/**
+ * Los topes de la ficha (esqueleto v2, guion §2): la ficha es una ficha, no una transcripción.
+ * `fichaCaracteres` es el objetivo medible ("nunca pasa de 2.500 tokens" = 5.750 caracteres de
+ * `perfilEnTexto`); los topes por campo son máximos, pero no alcanzan solos con una vida larga
+ * y con mucha familia (fix ronda 1: la ficha real de Naza daba 12.013 con los topes solos).
+ */
+export const TOPES = { etapaCampo: 220, bisagra: 150, bisagras: 12, notaPersona: 80, personas: 30, noSabemos: 12, tono: 300, fichaCaracteres: 5750 } as const;
 
 /** Corta en la última oración entera que entra; si no hay ninguna, corta seco. Idempotente. */
 export function recortar(texto: string, max: number): string {
@@ -102,25 +107,120 @@ export function recortar(texto: string, max: number): string {
 }
 
 const ES_FAMILIAR = /padre|madre|papá|mamá|papa|mama|herman|hij|niet|sobrin|abuel|conyug|espos|marido|mujer|pareja|novi|tío|tía|prim/;
+const esFamiliar = (vinculo: string) => ES_FAMILIAR.test(vinculo.toLowerCase());
+const TIENE_EDAD = /^a los \d/i;
+
+function dato(d: { valor: string; fuente: string } | null, nombre: string): string {
+  return d ? `${nombre}: ${d.valor} (${d.fuente === 'dicho' ? 'lo dijo' : d.fuente === 'ficha' ? 'lo cargó la familia' : 'deducido'})` : `${nombre}: no se sabe`;
+}
+
+/**
+ * Una etapa en una línea. La ficha de la compra puede dejar etapas a medio llenar (el oficio sin
+ * edad ni lugar): se dice lo que hay, sin "- : ; con no se sabe" en el prompt.
+ */
+function etapaEnTexto(e: Perfil['etapas'][number]): string {
+  const cuando = [e.edades, e.anios ? `(${e.anios})` : ''].filter(Boolean).join(' ') || 'edad sin saber';
+  const que = [e.lugar, e.conQuien ? `con ${e.conQuien}` : '', e.queHacia].filter(Boolean).join('; ');
+  return `- ${cuando}: ${que || 'sin datos'}`;
+}
+
+/** La ficha en castellano, para los prompts: lo que no se sabe dice "no se sabe". */
+export function perfilEnTexto(p: Perfil): string {
+  const lineas = [
+    p.persona.edad ? dato(p.persona.edad, 'Edad') : dato(p.persona.anioNacimiento, 'Año de nacimiento'),
+    dato(p.persona.genero, 'Mujer u hombre'),
+    dato(p.persona.comoHabla, 'Cómo prefiere que le hablen'),
+    dato(p.persona.dondeViveHoy, 'Dónde vive hoy'),
+    '',
+    'Su vida, por etapas:',
+    ...(p.etapas.length ? p.etapas.map(etapaEnTexto) : ['- todavía no se sabe']),
+    '',
+    'Personas:',
+    ...(p.personas.length ? p.personas.map((x) => `- ${x.nombre ?? '(sin nombre)'}, ${x.vinculo} — ${x.vive === 'si' ? 'vive' : x.vive === 'no' ? 'murió' : 'no se sabe si vive'}${x.nota ? ` (${x.nota})` : ''}`) : ['- todavía ninguna']),
+    ...(p.bisagras.length ? ['', 'Momentos que partieron su vida:', ...p.bisagras.map((b) => `- ${b}`)] : []),
+    ...(p.tono ? ['', `Cómo fue esta vida: ${p.tono}`] : []),
+    ...(p.noSabemos.length ? ['', 'NO SABÉS (no lo supongas):', ...p.noSabemos.map((x) => `- ${x}`)] : []),
+  ];
+  return lineas.join('\n');
+}
+
+/**
+ * Poda lo que ya está dentro de los topes por campo cuando, aun así, `perfilEnTexto` supera
+ * `TOPES.fichaCaracteres` (fix ronda 1). Orden fijo, un escalón completo antes del siguiente, y
+ * se corta apenas entra en el presupuesto:
+ *   a. la nota de las personas NO familiares, de la más vieja a la más nueva;
+ *   b. las personas NO familiares mismas, de la más vieja a la más nueva (familiares: nunca);
+ *   c. `noSabemos`: los más viejos, dejando como mínimo 6;
+ *   d. etapas: `queHacia` a 120, de la más vieja a la más nueva sin tocar la última; después
+ *      `lugar` y `conQuien` a 120, mismo orden;
+ *   e. bisagras: las más viejas sin edad primero, después las más viejas con edad, mínimo 6;
+ *   f. notas de familiares a 40, de la más vieja a la más nueva;
+ *   g. si todavía no entra, se deja así: no se inventa más poda.
+ * `persona`, `noTuvo` y los nombres/vínculos/vive de los familiares nunca se tocan.
+ */
+function ajustarAlPresupuesto(p: Perfil): Perfil {
+  const r: Perfil = structuredClone(p);
+  const entra = () => perfilEnTexto(r).length <= TOPES.fichaCaracteres;
+  if (entra()) return r;
+
+  // a. la nota de las personas no familiares, de la más vieja a la más nueva
+  for (const x of r.personas) {
+    if (entra()) break;
+    if (x.nota && !esFamiliar(x.vinculo)) delete x.nota;
+  }
+
+  // b. las personas no familiares, de la más vieja a la más nueva (nunca las familiares)
+  while (!entra()) {
+    const i = r.personas.findIndex((x) => !esFamiliar(x.vinculo));
+    if (i < 0) break;
+    r.personas.splice(i, 1);
+  }
+
+  // c. noSabemos: los más viejos, dejando como mínimo 6
+  while (!entra() && r.noSabemos.length > 6) r.noSabemos.shift();
+
+  // d. etapas: queHacia a 120 (sin tocar la última), después lugar y conQuien a 120
+  for (let i = 0; i < r.etapas.length - 1 && !entra(); i++) {
+    r.etapas[i] = { ...r.etapas[i], queHacia: recortar(r.etapas[i].queHacia, 120) };
+  }
+  for (let i = 0; i < r.etapas.length - 1 && !entra(); i++) {
+    r.etapas[i] = { ...r.etapas[i], lugar: recortar(r.etapas[i].lugar, 120), conQuien: recortar(r.etapas[i].conQuien, 120) };
+  }
+
+  // e. bisagras: las más viejas sin edad primero, después las más viejas con edad; mínimo 6
+  while (!entra() && r.bisagras.length > 6) {
+    const iSinEdad = r.bisagras.findIndex((b) => !TIENE_EDAD.test(b));
+    r.bisagras.splice(iSinEdad >= 0 ? iSinEdad : 0, 1);
+  }
+
+  // f. notas de familiares a 40, de la más vieja a la más nueva
+  for (let i = 0; i < r.personas.length && !entra(); i++) {
+    const x = r.personas[i];
+    if (x.nota && esFamiliar(x.vinculo)) r.personas[i] = { ...x, nota: recortar(x.nota, 40) };
+  }
+
+  // g. si todavía no entra, se deja así: no se inventa más poda.
+  return r;
+}
 
 /** Aplica los TOPES. Puro e idempotente: se llama después de cada cambio y sobre lo guardado. */
 export function recortarPerfil(p: Perfil): Perfil {
   const r: Perfil = structuredClone(p);
   r.etapas = r.etapas.map((e) => ({ ...e, lugar: recortar(e.lugar, TOPES.etapaCampo), conQuien: recortar(e.conQuien, TOPES.etapaCampo), queHacia: recortar(e.queHacia, TOPES.etapaCampo) }));
-  const conEdad = r.bisagras.filter((b) => /^a los \d/i.test(b));
-  const sinEdad = r.bisagras.filter((b) => !/^a los \d/i.test(b));
+  const conEdad = r.bisagras.filter((b) => TIENE_EDAD.test(b));
+  const sinEdad = r.bisagras.filter((b) => !TIENE_EDAD.test(b));
   const cupo = TOPES.bisagras - conEdad.length;
   r.bisagras = [...conEdad, ...(cupo > 0 ? sinEdad.slice(-cupo) : [])].slice(-TOPES.bisagras).map((b) => recortar(b, TOPES.bisagra));
   r.personas = r.personas.map((x) => (x.nota ? { ...x, nota: recortar(x.nota, TOPES.notaPersona) } : x));
   if (r.personas.length > TOPES.personas) {
-    const familia = r.personas.filter((x) => ES_FAMILIAR.test(x.vinculo.toLowerCase()));
-    const resto = r.personas.filter((x) => !ES_FAMILIAR.test(x.vinculo.toLowerCase()));
+    const familia = r.personas.filter((x) => esFamiliar(x.vinculo));
+    const resto = r.personas.filter((x) => !esFamiliar(x.vinculo));
     r.personas = [...familia, ...resto].slice(0, TOPES.personas);
   }
   r.noSabemos = r.noSabemos.slice(-TOPES.noSabemos);
   r.tono = recortar(r.tono, TOPES.tono);
   r.noTuvo = [...new Set((r.noTuvo ?? []).filter((v): v is (typeof VINCULOS_NO_TUVO)[number] => (VINCULOS_NO_TUVO as readonly string[]).includes(v)))];
-  return r;
+  return ajustarAlPresupuesto(r);
 }
 
 /**

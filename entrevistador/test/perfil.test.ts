@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { perfilVacio, perfilDesdeFicha, aplicarCambios, parsearCambios, armarPromptPerfil, actualizarPerfil, recortarPerfil, TOPES, type Perfil } from '../src/ia/perfil.js';
+import { perfilVacio, perfilDesdeFicha, aplicarCambios, parsearCambios, armarPromptPerfil, actualizarPerfil, recortarPerfil, TOPES, perfilEnTexto, type Perfil } from '../src/ia/perfil.js';
+import { perfilEnTexto as perfilEnTextoDesdeEncargo } from '../src/ia/encargo-entrevista.js';
 
 // El perfil (biógrafo v2, 23/09): quién es la persona y la línea de tiempo de su vida, armado
 // con lo que CUENTA aunque la familia no cargue nada. Pedido de Naza: "es importante que el
@@ -257,6 +258,76 @@ describe('la ficha con topes (esqueleto v2: el perfil del piloto llegó a 12.700
   it('aplicarCambios recorta siempre: una etapa gigante no entra entera', () => {
     const p = aplicarCambios(perfilVacio(), { agregarEtapas: [{ edades: '0 a 12', lugar: largo(30), conQuien: '', queHacia: '', fuente: 'dicho' }] });
     expect(p.etapas[0].lugar.length).toBeLessThanOrEqual(TOPES.etapaCampo);
+  });
+});
+
+describe('el presupuesto total de la ficha (fix ronda 1: los topes por campo solos no alcanzan)', () => {
+  const largo = (n: number, sep = '. ') => Array.from({ length: n }, (_, i) => `Oración número ${i} de la etapa`).join(sep) + '.';
+  const notaLarga = (n: number) => Array.from({ length: n }, (_, i) => `dato ${i}`).join(', ');
+
+  // El brief describe "15 etapas de 3×220": con 15 etapas al tope y la última siempre exenta del
+  // recorte a 120 (regla d), el bloque de etapas solo ya pasa el presupuesto de 5.750 aunque todo
+  // lo demás (personas, bisagras, noSabemos) baje a su piso — no hay forma de que entre (visto acá
+  // con 6 etapas, que sí entra; ver "Desvíos / notas para Naza" del reporte).
+  function fichaEnorme(): Perfil {
+    const p = perfilVacio();
+    p.persona.edad = { valor: '60', fuente: 'dicho' };
+    p.etapas = Array.from({ length: 6 }, (_, i) => ({
+      edades: `${i * 5} a ${i * 5 + 5}`,
+      lugar: largo(30),
+      conQuien: largo(30),
+      queHacia: largo(30),
+      fuente: 'dicho' as const,
+    }));
+    p.personas = [
+      ...Array.from({ length: 10 }, (_, i) => ({ nombre: `Familiar ${i}`, vinculo: 'hermano', vive: 'si' as const, fuente: 'dicho' as const, nota: notaLarga(20) })),
+      ...Array.from({ length: 20 }, (_, i) => ({ nombre: `Amigo ${i}`, vinculo: 'amigo del colegio', vive: 'no se sabe' as const, fuente: 'dicho' as const, nota: notaLarga(20) })),
+    ];
+    p.bisagras = Array.from({ length: 12 }, (_, i) => `A los ${i + 5} pasó la cosa ${i} ${largo(6, ', ')}`);
+    p.noSabemos = Array.from({ length: 12 }, (_, i) => `[infancia] cosa larga número ${i} ${largo(3, ', ')}`);
+    p.tono = largo(12);
+    return p;
+  }
+
+  it('una ficha sintética enorme entra en el presupuesto, conserva a los 10 familiares y a la persona intacta, y es idempotente', () => {
+    const p = fichaEnorme();
+    const r = recortarPerfil(p);
+    expect(perfilEnTexto(r).length).toBeLessThanOrEqual(TOPES.fichaCaracteres);
+    expect(r.personas.filter((x) => x.vinculo === 'hermano')).toHaveLength(10);
+    expect(r.persona.edad?.valor).toBe('60');
+    expect(recortarPerfil(r)).toEqual(r);
+  });
+
+  it('el orden: una ficha apenas pasada del presupuesto por notas de no familiares pierde alguna de esas notas primero y conserva todas las personas y todos los noSabemos', () => {
+    const p = perfilVacio();
+    p.persona.edad = { valor: '50', fuente: 'dicho' };
+    p.etapas = Array.from({ length: 3 }, (_, i) => ({ edades: `${i * 5} a ${i * 5 + 5}`, lugar: largo(30), conQuien: largo(30), queHacia: largo(30), fuente: 'dicho' as const }));
+    p.personas = [
+      { nombre: 'Meri', vinculo: 'madre', vive: 'si', fuente: 'dicho' },
+      ...Array.from({ length: 28 }, (_, i) => ({ nombre: `Amigo ${i}`, vinculo: 'amigo del colegio', vive: 'no se sabe' as const, fuente: 'dicho' as const, nota: notaLarga(19) })),
+    ];
+    p.noSabemos = Array.from({ length: 10 }, (_, i) => `[infancia] cosa ${i}`);
+    const r = recortarPerfil(p);
+    expect(perfilEnTexto(r).length).toBeLessThanOrEqual(TOPES.fichaCaracteres);
+    // el punto de partida (solo con los topes por campo) pasaba el presupuesto: hizo falta podar.
+    expect(perfilEnTexto(p).length).toBeGreaterThan(TOPES.fichaCaracteres);
+    expect(r.personas).toHaveLength(p.personas.length);
+    expect(r.noSabemos).toHaveLength(p.noSabemos.length);
+    // se llegó al presupuesto sacando notas de no familiares, no sacando personas ni etapas enteras.
+    expect(r.personas.filter((x) => x.nota).length).toBeLessThan(p.personas.filter((x) => x.nota).length);
+    expect(r.personas.find((x) => x.vinculo === 'madre')?.nota).toBeUndefined();
+  });
+
+  it('una ficha chica no cambia por el presupuesto: queda igual que solo con los topes por campo', () => {
+    const p = base();
+    const r = recortarPerfil(p);
+    expect(perfilEnTexto(r).length).toBeLessThanOrEqual(TOPES.fichaCaracteres);
+    expect(r.etapas).toEqual(p.etapas);
+    expect(r.personas).toEqual(p.personas);
+  });
+
+  it('perfilEnTexto es la misma función, importada desde perfil.js o desde encargo-entrevista.js', () => {
+    expect(perfilEnTextoDesdeEncargo).toBe(perfilEnTexto);
   });
 });
 

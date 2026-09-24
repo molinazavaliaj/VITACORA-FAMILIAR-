@@ -1,4 +1,4 @@
-import type { Perfil } from './perfil.js';
+import { perfilEnTexto, type Perfil } from './perfil.js';
 import { contarPalabras, contarPreguntas, marcasDelTratoAjeno, type TratoControlable } from './control-texto.js';
 
 // El encargo compartido del entrevistador (biógrafo v2, 23/09 — BORRADOR de la reescritura, lo
@@ -7,39 +7,13 @@ import { contarPalabras, contarPreguntas, marcasDelTratoAjeno, type TratoControl
 // reglas, escritas en momentos distintos: la evaluación llegó a 19 cambios, uno por error.
 // Es lo mismo que `fabrica/src/libro/encargo.ts` del lado del libro.
 
-function dato(d: { valor: string; fuente: string } | null, nombre: string): string {
-  return d ? `${nombre}: ${d.valor} (${d.fuente === 'dicho' ? 'lo dijo' : d.fuente === 'ficha' ? 'lo cargó la familia' : 'deducido'})` : `${nombre}: no se sabe`;
-}
-
 /**
- * Una etapa en una línea. La ficha de la compra puede dejar etapas a medio llenar (el oficio sin
- * edad ni lugar): se dice lo que hay, sin "- : ; con no se sabe" en el prompt.
+ * La ficha en castellano, para los prompts: lo que no se sabe dice "no se sabe". Vive en
+ * `perfil.ts` (fix ronda 1: `recortarPerfil` la necesita para medir el presupuesto total de la
+ * ficha, y esto evitaba un import circular entre los dos módulos); se re-exporta acá para que
+ * todo lo que ya la importaba de este archivo siga andando igual.
  */
-function etapaEnTexto(e: Perfil['etapas'][number]): string {
-  const cuando = [e.edades, e.anios ? `(${e.anios})` : ''].filter(Boolean).join(' ') || 'edad sin saber';
-  const que = [e.lugar, e.conQuien ? `con ${e.conQuien}` : '', e.queHacia].filter(Boolean).join('; ');
-  return `- ${cuando}: ${que || 'sin datos'}`;
-}
-
-/** La ficha en castellano, para los prompts: lo que no se sabe dice "no se sabe". */
-export function perfilEnTexto(p: Perfil): string {
-  const lineas = [
-    p.persona.edad ? dato(p.persona.edad, 'Edad') : dato(p.persona.anioNacimiento, 'Año de nacimiento'),
-    dato(p.persona.genero, 'Mujer u hombre'),
-    dato(p.persona.comoHabla, 'Cómo prefiere que le hablen'),
-    dato(p.persona.dondeViveHoy, 'Dónde vive hoy'),
-    '',
-    'Su vida, por etapas:',
-    ...(p.etapas.length ? p.etapas.map(etapaEnTexto) : ['- todavía no se sabe']),
-    '',
-    'Personas:',
-    ...(p.personas.length ? p.personas.map((x) => `- ${x.nombre ?? '(sin nombre)'}, ${x.vinculo} — ${x.vive === 'si' ? 'vive' : x.vive === 'no' ? 'murió' : 'no se sabe si vive'}${x.nota ? ` (${x.nota})` : ''}`) : ['- todavía ninguna']),
-    ...(p.bisagras.length ? ['', 'Momentos que partieron su vida:', ...p.bisagras.map((b) => `- ${b}`)] : []),
-    ...(p.tono ? ['', `Cómo fue esta vida: ${p.tono}`] : []),
-    ...(p.noSabemos.length ? ['', 'NO SABÉS (no lo supongas):', ...p.noSabemos.map((x) => `- ${x}`)] : []),
-  ];
-  return lineas.join('\n');
-}
+export { perfilEnTexto };
 
 /** El trato de la ficha, si se sabe (lo que eligió la persona manda). El tú es solo para el control. */
 export function tratoDelPerfil(p: Perfil): TratoControlable | null {
