@@ -146,8 +146,8 @@ export function perfilEnTexto(p: Perfil): string {
 
 /**
  * Poda lo que ya está dentro de los topes por campo cuando, aun así, `perfilEnTexto` supera
- * `TOPES.fichaCaracteres` (fix ronda 1). Orden fijo, un escalón completo antes del siguiente, y
- * se corta apenas entra en el presupuesto:
+ * `TOPES.fichaCaracteres` (fix ronda 1, con el paso h de la ronda 2). Orden fijo, un escalón
+ * completo antes del siguiente, y se corta apenas entra en el presupuesto:
  *   a. la nota de las personas NO familiares, de la más vieja a la más nueva;
  *   b. las personas NO familiares mismas, de la más vieja a la más nueva (familiares: nunca);
  *   c. `noSabemos`: los más viejos, dejando como mínimo 6;
@@ -155,6 +155,9 @@ export function perfilEnTexto(p: Perfil): string {
  *      `lugar` y `conQuien` a 120, mismo orden;
  *   e. bisagras: las más viejas sin edad primero, después las más viejas con edad, mínimo 6;
  *   f. notas de familiares a 40, de la más vieja a la más nueva;
+ *   h. etapas otra vez (fix ronda 2): `queHacia` a 60, de la más vieja a la más nueva sin tocar
+ *      la última; después `conQuien` a 60, mismo orden. `lugar` queda en 120: de ahí depende
+ *      ubicar en qué lugar pasó cada etapa;
  *   g. si todavía no entra, se deja así: no se inventa más poda.
  * `persona`, `noTuvo` y los nombres/vínculos/vive de los familiares nunca se tocan.
  */
@@ -197,6 +200,15 @@ function ajustarAlPresupuesto(p: Perfil): Perfil {
   for (let i = 0; i < r.personas.length && !entra(); i++) {
     const x = r.personas[i];
     if (x.nota && esFamiliar(x.vinculo)) r.personas[i] = { ...x, nota: recortar(x.nota, 40) };
+  }
+
+  // h. etapas (fix ronda 2): queHacia a 60 (sin tocar la última), después conQuien a 60, mismo
+  // orden. `lugar` queda en 120: de ahí depende ubicar en qué lugar pasó cada etapa.
+  for (let i = 0; i < r.etapas.length - 1 && !entra(); i++) {
+    r.etapas[i] = { ...r.etapas[i], queHacia: recortar(r.etapas[i].queHacia, 60) };
+  }
+  for (let i = 0; i < r.etapas.length - 1 && !entra(); i++) {
+    r.etapas[i] = { ...r.etapas[i], conQuien: recortar(r.etapas[i].conQuien, 60) };
   }
 
   // g. si todavía no entra, se deja así: no se inventa más poda.

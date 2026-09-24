@@ -265,14 +265,14 @@ describe('el presupuesto total de la ficha (fix ronda 1: los topes por campo sol
   const largo = (n: number, sep = '. ') => Array.from({ length: n }, (_, i) => `Oración número ${i} de la etapa`).join(sep) + '.';
   const notaLarga = (n: number) => Array.from({ length: n }, (_, i) => `dato ${i}`).join(', ');
 
-  // El brief describe "15 etapas de 3×220": con 15 etapas al tope y la última siempre exenta del
-  // recorte a 120 (regla d), el bloque de etapas solo ya pasa el presupuesto de 5.750 aunque todo
-  // lo demás (personas, bisagras, noSabemos) baje a su piso — no hay forma de que entre (visto acá
-  // con 6 etapas, que sí entra; ver "Desvíos / notas para Naza" del reporte).
+  // El brief describe "15 etapas de 3×220": ni con el paso h de la ronda 2 (queHacia y conQuien a
+  // 60, la última etapa siempre exenta) entran 15 etapas al tope en el presupuesto — el máximo que
+  // entra con esta ficha (30 personas, 10 familiares; 12 bisagras; 12 noSabemos; tono 300) es 9 (con
+  // 10 ya no entra: 5.852 > 5.750). Ver "Desvíos / notas para Naza" del reporte.
   function fichaEnorme(): Perfil {
     const p = perfilVacio();
     p.persona.edad = { valor: '60', fuente: 'dicho' };
-    p.etapas = Array.from({ length: 6 }, (_, i) => ({
+    p.etapas = Array.from({ length: 9 }, (_, i) => ({
       edades: `${i * 5} a ${i * 5 + 5}`,
       lugar: largo(30),
       conQuien: largo(30),
@@ -324,6 +324,23 @@ describe('el presupuesto total de la ficha (fix ronda 1: los topes por campo sol
     expect(perfilEnTexto(r).length).toBeLessThanOrEqual(TOPES.fichaCaracteres);
     expect(r.etapas).toEqual(p.etapas);
     expect(r.personas).toEqual(p.personas);
+  });
+
+  it('el paso h (fix ronda 2) solo corre si hace falta después del f: una ficha que ya entra con d+e+f deja queHacia en 120, no en 60', () => {
+    const p = perfilVacio();
+    p.persona.edad = { valor: '55', fuente: 'dicho' };
+    p.etapas = Array.from({ length: 8 }, (_, i) => ({ edades: `${i * 5} a ${i * 5 + 5}`, lugar: largo(30), conQuien: largo(30), queHacia: largo(30), fuente: 'dicho' as const }));
+    p.personas = Array.from({ length: 5 }, (_, i) => ({ nombre: `Familiar ${i}`, vinculo: 'hermano', vive: 'si' as const, fuente: 'dicho' as const, nota: notaLarga(20) }));
+    p.bisagras = Array.from({ length: 6 }, (_, i) => `A los ${i + 5} pasó la cosa ${i}`);
+    p.noSabemos = Array.from({ length: 6 }, (_, i) => `[infancia] cosa ${i}`);
+    const r = recortarPerfil(p);
+    expect(perfilEnTexto(r).length).toBeLessThanOrEqual(TOPES.fichaCaracteres);
+    // hizo falta podar (el punto de partida, solo con los topes por campo, no entraba):
+    expect(perfilEnTexto(p).length).toBeGreaterThan(TOPES.fichaCaracteres);
+    // con d (más e y f) ya alcanzó el presupuesto ("se corta apenas entra"): el h nunca corrió,
+    // así que ningún queHacia (salvo la última etapa, que nunca se toca) bajó de 120 hasta 60.
+    expect(r.etapas.slice(0, -1).every((e) => e.queHacia.length > 60)).toBe(true);
+    expect(r.etapas.slice(0, -1).some((e) => e.queHacia.length <= 120)).toBe(true);
   });
 
   it('perfilEnTexto es la misma función, importada desde perfil.js o desde encargo-entrevista.js', () => {
