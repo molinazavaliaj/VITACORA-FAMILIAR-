@@ -88,6 +88,25 @@ describe('controlarSupuestos', () => {
     if (!r.ok) expect(r.control).toBe('supuestos');
   });
 
+  it('el censo y la familia de hoy: la pregunta abierta por hijos o nietos pasa sin ficha (arreglo final M1: gastaba hasta 3 llamadas a Opus)', () => {
+    for (const t of [
+      'Contame quiénes son los tuyos hoy: ¿tenés pareja, hermanos, nietos o sobrinos?',
+      '¿Tenés hijos o nietos? Contame de ellos.',
+      '¿Cómo están tus sobrinos y tus nietos, si los hay?',
+      '¿Y tus hijos, si los hay, qué esperás para ellos?',
+      '¿Qué esperás para los tuyos, si hay hijos o nietos?',
+      '¿Qué esperás para los tuyos? Si tenés hijos, contame de ellos.',
+      '¿Tiene nietos? ¿Cómo se llaman?',
+      '¿Hay nietos en la familia?',
+    ]) expect(controlarSupuestos(t, perfilVacio()).ok, t).toBe(true);
+  });
+  it('M1 no afloja las afirmaciones: "tus nietos te quieren" y "tus hijos ya son grandes" siguen rechazadas sin ficha', () => {
+    for (const t of ['¿Tus nietos te quieren mucho?', '¿Cómo son tus hijos ahora que ya son grandes?', '¿Qué le dejarías a tus nietos?', '¿Qué hay de tus nietos?']) {
+      const r = controlarSupuestos(t, perfilVacio());
+      expect(r.ok, t).toBe(false);
+    }
+  });
+
   it('los patrones están sin acentos: "señora" y "enamoró" también se cazan (fix ronda 1)', () => {
     expect(controlarSupuestos('¿Cómo conociste a tu señora?', perfilVacio()).ok).toBe(false);
   });

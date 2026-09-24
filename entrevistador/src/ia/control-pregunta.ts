@@ -76,16 +76,27 @@ export function controlarLugar(texto: string, perfil: Perfil, objetivo: Objetivo
  * importa dónde. Ahora el escape tiene que estar pegado al mismo sustantivo que dispara el
  * supuesto (fix ronda 1).
  */
+/**
+ * Arreglo final M1: la pregunta ABIERTA por hijos o nietos ("¿tenés nietos o sobrinos?", "¿tenés
+ * pareja, hermanos, nietos?", "tus nietos, si los hay") no da nada por hecho. Las filas del censo y
+ * de la familia de hoy nombran hijos y nietos en sus pormenores, y sin esto cada una se rechazaba y
+ * gastaba hasta 3 llamadas a Opus. El verbo va antes del sustantivo (con hasta 4 cosas en lista en el
+ * medio: "tenés pareja, hermanos, nietos"), o "si los hay" justo después. Las afirmaciones ("tus
+ * nietos te quieren", "¿qué hay de tus nietos?") siguen rechazadas.
+ */
+const preguntaAbierta = (sustantivo: string) =>
+  `\\b(tenes|tiene|tenia|hay) ([a-z]+(, | o | y )){0,4}${sustantivo}\\b|\\b${sustantivo},? si (los|las) hay\\b`;
+
 const SUPUESTOS: { re: RegExp; exime?: RegExp; vinculos: RegExp; nombre: string }[] = [
   {
     re: /\b(tus|sus) (hij[oa]s?|chic[oa]s?)\b|\bhij[oa]s? de chic[oa]s?\b/,
-    exime: /\b(tuvi?ste|tuvo|hub[oi]) (hij[oa]s?|chic[oa]s?)\b/,
+    exime: new RegExp(`\\b(tuvi?ste|tuvo|hub[oi]) (hij[oa]s?|chic[oa]s?)\\b|${preguntaAbierta('(hij[oa]s?|chic[oa]s?)')}`),
     vinculos: /hij/,
     nombre: 'hijos',
   },
   {
     re: /\bniet[oa]s?\b/,
-    exime: /\b(tuvi?ste|tuvo|hub[oi]) niet[oa]s?\b/,
+    exime: new RegExp(`\\b(tuvi?ste|tuvo|hub[oi]) niet[oa]s?\\b|${preguntaAbierta('niet[oa]s?')}`),
     vinculos: /niet/,
     nombre: 'nietos',
   },
