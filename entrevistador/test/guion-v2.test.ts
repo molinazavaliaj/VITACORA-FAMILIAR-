@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { GUION, tope, arbolDe, paisDe, eventosDe, armarGuion, firmaGuion } from '../src/ia/guion-v2.js';
+import { GUION, tope, arbolDe, paisDe, eventosDe, armarGuion, firmaGuion, recortarAlTope, type FilaObjetivo, type Caida } from '../src/ia/guion-v2.js';
 import { perfilVacio, aplicarCambios, type Perfil } from '../src/ia/perfil.js';
 import { slug } from '../src/manual/puro.js';
 
@@ -101,14 +101,15 @@ describe('armarGuion', () => {
     expect(l).toEqual(expect.arrayContaining([`hijo-${slug('Marta')}`, `hijo-${slug('Jorge')}`, 'perdidas', 'los-padres-de-grande', 'nietos', 'la-pareja-con-los-anos', 'dejar-el-trabajo', 'historia-grande-dictadura', 'historia-grande-crisis-2001']));
     expect(l).not.toContain('hermanos-todos');
   });
-  it('si no se sabe si hubo hermanos, la fila se vuelve puerta; si dijo que no tuvo, se cae con motivo y los hijos tienen su variante', () => {
+  it('si no se sabe si hubo hermanos, la fila se vuelve puerta; si dijo que no tuvo, entra como hijo único (fix ronda 1, D.3) y los hijos caen con su variante', () => {
     const sin = perfilVacio(); sin.persona.edad = dicho('40');
     const puerta = armarGuion(sin, ANIO).filas.find((f) => f.id === 'hermanos-puerta');
     expect(puerta?.tema).toMatch(/únic/i);
     const no = aplicarCambios(sin, { noTuvo: ['hermanos', 'hijos'] });
     const g = armarGuion(no, ANIO);
     expect(g.filas.some((f) => f.id.startsWith('hermano'))).toBe(false);
-    expect(g.caidas).toEqual(expect.arrayContaining([{ id: 'hermano', motivo: 'dijo que no tuvo hermanos' }]));
+    expect(g.filas.find((f) => f.id === 'hijo-unico')?.tema).toMatch(/únic/i);
+    expect(g.caidas).toEqual(expect.arrayContaining([{ id: 'hijos-llegada', motivo: 'dijo que no tuvo hijos' }]));
     expect(g.filas.find((f) => f.id === 'quienes-fueron-tu-familia')).toBeDefined();
   });
   it('cuatro hermanos: uno "de todos" y uno por el primero', () => {
@@ -141,5 +142,71 @@ describe('armarGuion', () => {
     const a = firmaGuion(p, ANIO);
     expect(firmaGuion(aplicarCambios(p, { agregarBisagras: ['A los 20 dejó la facultad'] }), ANIO)).toBe(a);
     expect(firmaGuion(aplicarCambios(p, { agregarPersonas: [persona('Lola', 'hija')] }), ANIO)).not.toBe(a);
+  });
+
+  // Fix ronda 1, ítem A: la historia grande se enganchaba mal o se perdía.
+  it('30 años (1996, Rosario, Argentina) conserva historia-grande-pandemia, enganchada en la fila de juventud', () => {
+    const p = perfilVacio(); p.persona.edad = dicho('30');
+    p.etapas.push({ edades: '0 a 30', lugar: 'Rosario, Argentina', conQuien: '', queHacia: '', fuente: 'dicho' });
+    const { filas } = armarGuion(p, ANIO);
+    const fila = filas.find((f) => f.id === 'historia-grande-pandemia');
+    expect(fila).toBeDefined();
+    expect(fila?.bloque).toBe('juventud');
+  });
+  it('Élida: la dictadura (26, adulto joven) entra en Juventud y el 2001 (51) en Adultez media, como dice el guion §5 (Juventud 5, Adultez media 6)', () => {
+    const f = armarGuion(elida(), ANIO).filas;
+    expect(f.find((x) => x.id === 'historia-grande-dictadura')?.bloque).toBe('juventud');
+    expect(f.find((x) => x.id === 'historia-grande-crisis-2001')?.bloque).toBe('adultez media');
+    const cuenta = (bloque: string) => f.filter((x) => x.bloque === bloque).length;
+    expect(cuenta('juventud')).toBe(5);
+    expect(cuenta('adultez media')).toBe(6);
+  });
+});
+
+// Fix ronda 1, ítem B: el regex de pareja daba falsos positivos con complementos ("de X").
+describe('arbolDe — pareja sin falsos positivos (fix ronda 1, ítem B)', () => {
+  it('"compañero de trabajo", "novia de Ariel", "mujer de mi hermano" no son pareja', () => {
+    const p = perfilVacio();
+    p.personas.push(persona('Coco', 'compañero de trabajo'), persona('Any', 'novia de Ariel'), persona('Susi', 'mujer de mi hermano'));
+    expect(arbolDe(p).pareja).toEqual([]);
+  });
+  it('"novia", "esposo" y "compañera de vida" sí son pareja', () => {
+    const p = perfilVacio();
+    p.personas.push(persona('Ima', 'novia'), persona('Beto', 'esposo'), persona('Cata', 'compañera de vida'));
+    expect(arbolDe(p).pareja).toEqual(['Ima', 'Beto', 'Cata']);
+  });
+});
+
+// Fix ronda 1, ítem C: `perdidas` re-testeaba vínculos por su cuenta y perdía medio hermanos.
+describe('arbolDe — pérdidas desde las listas clasificadas, medio hermanos (fix ronda 1, ítem C)', () => {
+  it('"hermano de padre", "hermano de madre" y "medio hermano" cuentan como hermanos', () => {
+    const p = perfilVacio();
+    p.personas.push(persona('Nico', 'hermano de padre'), persona('Vale', 'hermano de madre'), persona('Kevin', 'medio hermano'));
+    expect(arbolDe(p).hermanos).toEqual(['Nico', 'Vale', 'Kevin']);
+  });
+  it('perdidas sale de las listas ya clasificadas: un medio hermano muerto cuenta, un compañero de trabajo no', () => {
+    const p = perfilVacio();
+    p.personas.push(persona('Nico', 'hermano de padre', 'no'), persona('Coco', 'compañero de trabajo', 'no'));
+    expect(arbolDe(p).perdidas).toEqual(['Nico']);
+  });
+});
+
+// Fix ronda 1, ítem D.5: recortarAlTope exportada y testeada aparte.
+describe('recortarAlTope (fix ronda 1, ítem D.5)', () => {
+  it('saca, en orden, historias de más, expansiones de hijo/hermano de más y amigos-de-siempre, hasta entrar en el techo', () => {
+    const base = (id: string, fila = id): FilaObjetivo => ({ id, tramo: null, bloque: 'adulto joven', tema: '', pormenores: [], fila });
+    const filas: FilaObjetivo[] = [
+      base('presentacion'),
+      ...Array.from({ length: 30 }, (_, i) => base(`x${i}`)),
+      base('historia-grande-a', 'historia-grande'), base('historia-grande-b', 'historia-grande'),
+      base('hijo-1', 'hijo'), base('hijo-2', 'hijo'), base('hijo-3', 'hijo'),
+      base('amigos-de-siempre'),
+    ];
+    const caidas: Caida[] = [];
+    const r = recortarAlTope(filas, 33, caidas);
+    expect(r.filter((f) => f.id !== 'presentacion').length).toBe(33);
+    expect(caidas.some((c) => c.id === 'historia-grande-b')).toBe(true);
+    expect(caidas.some((c) => c.id === 'amigos-de-siempre')).toBe(true);
+    expect(r.some((f) => f.id === 'presentacion')).toBe(true);
   });
 });
