@@ -588,6 +588,12 @@ async function procesar(
       break;
     }
     case 'nada':
+      // "Hoy no" al contestar una repregunta o un objeto: no hay pregunta que retomar (la del día ya
+      // se contestó), pero "hoy no puedo" no es material del libro: se reserva, como en 'hoyNo'.
+      if ((esRepregunta || esObjeto) && e.hoyNo && !(reserva.reservada && !reserva.tramo)) {
+        await mods.guardarReserva(respuestaId, { reservada: true, tramo: null });
+        linea('Dijo "hoy no": no hay nada que retomar, y esta respuesta quedó reservada: no va al libro.');
+      }
       if (decision.sinRepreguntarHasta) {
         estado = { ...estado, sinRepreguntarHasta: decision.sinRepreguntarHasta, cansancioDesdeOrden: decision.cansancioDesdeOrden };
       }
@@ -695,6 +701,18 @@ async function siguiente(ref: string | undefined, flags: Args['flags']): Promise
     return r.texto;
   };
 
+  // Si la última que se mandó cerró su etapa, y su respuesta ya pasó por la ficha, va una libre: lo
+  // que nombró y no contó de esa etapa (un "[etapa] …" de noSabemos), incluido lo de esa última
+  // respuesta. Se elige acá y no al mandar la última fila, que todavía no tenía respuesta. Una sola
+  // por etapa (`agregarLibre` rechaza la segunda), hasta MAX_LIBRES y sin pasar el techo.
+  const ultimaHecha = estado.secuencia.hechas.at(-1);
+  const cerrado = ultimaHecha ? etapaCerrada(estado.secuencia, ultimaHecha.objetivo) : null;
+  if (cerrado) {
+    const { secuencia, libre } = agregarLibre(estado.secuencia, estado.perfil, cerrado);
+    estado = { ...estado, secuencia };
+    linea(libre ? `Se cerró ${cerrado}: va una pregunta libre (${libre.id}: ${libre.anclas[0]}).` : `Se cerró ${cerrado}: sin pregunta libre (nada nombrado sin contar, ya hay una, ya hay ${MAX_LIBRES} o se llegó al techo).`);
+  }
+
   const sig = proxima(estado.secuencia);
   if (!sig) {
     const tramo = tocaObjeto(estado.secuencia, null, sinFotos);
@@ -725,15 +743,6 @@ async function siguiente(ref: string | undefined, flags: Args['flags']): Promise
   };
   linea(`Intentos: ${r.usos.length} · ${marcaEnTexto(r.marca)}`);
   mensajes.push({ titulo: `Pregunta ${orden}`, texto: r.texto });
-
-  // Si esta fila cerró su etapa, la próxima es una libre: lo que nombró y no contó de esa etapa
-  // (un "[etapa] …" de noSabemos). Una sola por etapa (`agregarLibre` rechaza la segunda).
-  const cerrado = etapaCerrada(estado.secuencia, sig);
-  if (cerrado) {
-    const { secuencia, libre } = agregarLibre(estado.secuencia, estado.perfil, cerrado);
-    estado = { ...estado, secuencia };
-    linea(libre ? `Se cerró ${cerrado}: la próxima es una pregunta libre (${libre.id}: ${libre.anclas[0]}).` : `Se cerró ${cerrado}: sin pregunta libre (nada nombrado sin contar, o ya hay ${MAX_LIBRES}).`);
-  }
 
   if (tramoObjeto) {
     const hechaHoy: YaHecha = { id: sig.id, tema: sig.tipo === 'nucleo' ? sig.tema : sig.id };

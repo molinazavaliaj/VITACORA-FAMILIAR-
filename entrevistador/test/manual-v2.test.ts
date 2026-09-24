@@ -224,9 +224,10 @@ describe('manual-v2 de punta a punta (base y modelo falsos)', () => {
     expect(r.texto).toMatch(/faltó: el olor; quién estaba/);
     expect(r.texto.trim().endsWith(v2().repreguntasEnviadas['1'])).toBe(true);
     // La respuesta a la repregunta no se evalúa entera: solo los pedidos (Haiku).
+    const desde = h.llamadas.length;
     const rr = await correr('cargar', 'pruebav2', '--texto', 'Mis viejos y mi hermana.', '--repregunta');
     expect(rr.fallo).toBe(false);
-    expect(h.llamadas.at(-1)).toBe('pedidos');
+    expect(h.llamadas.slice(desde)).toEqual(['perfil', 'pedidos']);
     expect(rr.texto).toMatch(/no se repregunta/);
     expect(Object.keys(v2().repreguntasEnviadas)).toEqual(['1']);
   });
@@ -363,22 +364,61 @@ describe('manual-v2 de punta a punta (base y modelo falsos)', () => {
     expect(naza().estado).toBe('pausado');
   });
 
-  it('al cerrar una etapa, si la ficha dejó un "[infancia] …" en noSabemos, la próxima es una libre; estado muestra caídas y libres', async () => {
+  it('al cerrar una etapa, la libre sale de lo que nombró en la ÚLTIMA respuesta de esa etapa; estado muestra caídas y libres', async () => {
     // La del reanudar fue la cuadra: la próxima es la última fila de infancia (la escuela).
     expect(v2().secuencia.hechas.at(-1).id).toBe('la-cuadra-y-los-juegos');
     expect(v2().secuencia.pendientes[0].id).toBe('la-escuela');
     h.colaPerfil.length = 0;
+    await correr('cargar', 'pruebav2', audio('cuadra.ogg'));
+    const escuela = await correr('siguiente', 'pruebav2');
+    expect(escuela.fallo).toBe(false);
+    expect(v2().secuencia.hechas.at(-1).id).toBe('la-escuela');
+    // Todavía no: la libre se elige cuando la última de la etapa ya se contestó.
+    expect(escuela.texto).not.toMatch(/pregunta libre/i);
+    expect(v2().secuencia.libres).toBe(0);
+    // Lo que nombra en la respuesta a la escuela es lo que se vuelve libre.
     h.colaPerfil.push('{"agregarNoSabemos": ["[infancia] Qué pasó con los perros"]}');
     await correr('cargar', 'pruebav2', audio('inf.ogg'));
     const s = await correr('siguiente', 'pruebav2');
     expect(s.fallo).toBe(false);
-    expect(v2().secuencia.hechas.at(-1).id).toBe('la-escuela');
     expect(s.texto).toMatch(/pregunta libre/i);
-    expect(v2().secuencia.pendientes[0]).toMatchObject({ id: 'libre-infancia-1', tipo: 'variable', anclas: ['Qué pasó con los perros'] });
+    expect(v2().secuencia.hechas.at(-1)).toMatchObject({ id: 'libre-infancia-1', objetivo: { tipo: 'variable', anclas: ['Qué pasó con los perros'] } });
     expect(v2().secuencia.libres).toBe(1);
     const e = await correr('estado', 'pruebav2');
     expect(e.texto).toMatch(/Se cayeron|caídas/i);
-    expect(e.texto).toMatch(/libres/i);
+    expect(e.texto).toMatch(/libres agregadas: 1 de 4/);
+  });
+
+  it('una repregunta por etapa, más una si la respuesta fue corta; nunca una tercera', async () => {
+    const falto = '{"suficiente": false, "falto": ["dónde paraban", "qué sonaba"]}';
+    const cargarAudio = async (seg: number) => { h.duracion.s = seg; h.colaEvaluar.push(falto); const r = await correr('cargar', 'pruebav2', audio(`etapa-${seg}.ogg`)); h.duracion.s = 42; return r; };
+    await correr('cargar', 'pruebav2', '--texto', 'Los perros se escaparon un verano y nunca volvieron, fue muy triste para todos en casa.');
+    await correr('siguiente', 'pruebav2');
+    expect(v2().secuencia.hechas.at(-1).id).toBe('a-los-quince');
+    // Primera de la juventud: sale.
+    const primera = await cargarAudio(42);
+    expect(primera.texto).toMatch(/Repregunta \(faltó/);
+    await correr('cargar', 'pruebav2', '--texto', 'Parábamos en la plaza.', '--repregunta');
+    // Segunda de la etapa con una respuesta que no fue corta: no sale.
+    await correr('siguiente', 'pruebav2');
+    const larga = await cargarAudio(42);
+    expect(larga.texto).toMatch(/ya hubo una repregunta en esta etapa/);
+    // Corta (20 s) y con dos faltantes: sale la segunda.
+    await correr('siguiente', 'pruebav2');
+    const corta = await cargarAudio(20);
+    expect(corta.texto).toMatch(/Repregunta \(faltó/);
+    await correr('cargar', 'pruebav2', '--texto', 'En una fábrica de pastas.', '--repregunta');
+    // Con dos en la etapa, ni una corta abre una tercera.
+    await correr('siguiente', 'pruebav2');
+    const tercera = await cargarAudio(20);
+    expect(tercera.texto).toMatch(/ya hubo dos repreguntas en esta etapa/);
+    const juventud = v2().secuencia.hechas.filter((x: any) => x.objetivo.bloque === 'juventud').map((x: any) => String(x.orden));
+    expect(Object.keys(v2().repreguntasEnviadas).filter((o) => juventud.includes(o))).toHaveLength(2);
+    // Se cierra la juventud (la historia grande) y queda mandada la primera del adulto joven.
+    await correr('siguiente', 'pruebav2');
+    await correr('cargar', 'pruebav2', audio('historia.ogg'));
+    await correr('siguiente', 'pruebav2');
+    expect(v2().secuencia.hechas.at(-1).id).toBe('oficio');
   });
 
   it('cansancio: con dos repreguntas sin contestar, la tercera no sale y queda la pausa de 3 días', async () => {
@@ -421,6 +461,14 @@ describe('manual-v2 de punta a punta (base y modelo falsos)', () => {
     expect(h.llamadas).toEqual(['perfil', 'pedidos']);
     expect(obj.texto).toMatch(/no se repregunta/);
     expect(v2().repreguntasEnviadas[String(objetos[0].orden)]).toBeUndefined();
+    // "Hoy no" al contestar un objeto (o una repregunta): no hay nada que retomar, pero no va al libro.
+    h.colaPedidos.push('{"hoyNo": true}');
+    const hoyNo = await correr('cargar', 'pruebav2', '--texto', 'Hoy no puedo, mañana te la busco.', '--orden', String(objetos[1].orden));
+    expect(hoyNo.fallo).toBe(false);
+    const filaHoyNo = h.tablas.respuestas.filter((x) => x.narrador_id === naza().id).at(-1)!;
+    expect(filaHoyNo).toMatchObject({ pregunta_orden: objetos[1].orden, reservada: true, reservado_tramo: null });
+    expect(hoyNo.texto).toMatch(/reservada: no va al libro/);
+    expect(v2().retomar).toBeUndefined();
     const e = await correr('estado', 'pruebav2');
     expect(e.fallo).toBe(false);
     expect(e.texto).toMatch(/gasto: USD/);

@@ -248,7 +248,7 @@ export const SEGUNDOS_RESPUESTA_CORTA = 40;
  * Qué se hace con la evaluación (guion §2, decidido 24/09): parar manda; una respuesta a repregunta u
  * objeto no se repregunta; "hoy no" deja la misma pregunta; si alcanza, nada. Si no alcanza: la
  * primera repregunta de la etapa sale siempre; la segunda solo si la respuesta duró menos de
- * SEGUNDOS_RESPUESTA_CORTA y faltaron dos o más pormenores. Y nunca si ya hubo una en esa orden, hay
+ * SEGUNDOS_RESPUESTA_CORTA y faltaron dos o más pormenores; una tercera, nunca. Y nunca si ya hubo una en esa orden, hay
  * pausa por cansancio o el cansancio aparece hoy.
  */
 export function decidirTrasEvaluar(
@@ -264,6 +264,8 @@ export function decidirTrasEvaluar(
   if (c.cansancio) {
     return { accion: 'nada', motivo: `cansancio: las dos últimas repreguntas quedaron sin contestar; no se repregunta por ${DIAS_SIN_REPREGUNTAR} días`, sinRepreguntarHasta: sumarDias(c.hoy, DIAS_SIN_REPREGUNTAR), cansancioDesdeOrden: c.orden };
   }
+  // Una por etapa, más una si la respuesta fue corta: dos es el techo (guion §2 y §6).
+  if (c.repreguntasEnEtapa >= 2) return { accion: 'nada', motivo: 'ya hubo dos repreguntas en esta etapa' };
   if (c.repreguntasEnEtapa >= 1 && !(c.segundos < SEGUNDOS_RESPUESTA_CORTA && ev.falto.length >= 2)) {
     return { accion: 'nada', motivo: 'ya hubo una repregunta en esta etapa y la respuesta no fue corta' };
   }

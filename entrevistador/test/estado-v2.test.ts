@@ -219,6 +219,10 @@ describe('decidirTrasEvaluar (una repregunta por etapa, más una si la respuesta
     expect(decidirTrasEvaluar(noAlcanza, { ...base, repreguntasEnEtapa: 1, segundos: 30 }).accion).toBe('repreguntar');
     expect(decidirTrasEvaluar({ suficiente: false, falto: ['uno'] }, { ...base, repreguntasEnEtapa: 1, segundos: 30 }).accion).toBe('nada');
   });
+  it('con dos en la etapa, ni una respuesta corta abre una tercera (una por etapa, más una)', () => {
+    expect(decidirTrasEvaluar(noAlcanza, { ...base, repreguntasEnEtapa: 2, segundos: 10 })).toEqual({ accion: 'nada', motivo: 'ya hubo dos repreguntas en esta etapa' });
+    expect(decidirTrasEvaluar(noAlcanza, { ...base, repreguntasEnEtapa: 3, segundos: 10 }).accion).toBe('nada');
+  });
   it('ya hubo repregunta en esta orden, pausa por cansancio o cansancio nuevo: nada (y la pausa se anota)', () => {
     expect(decidirTrasEvaluar(noAlcanza, { ...base, yaHayRepregunta: true }).accion).toBe('nada');
     expect(decidirTrasEvaluar(noAlcanza, { ...base, sinRepreguntarHasta: '2026-09-30' }).accion).toBe('nada');
