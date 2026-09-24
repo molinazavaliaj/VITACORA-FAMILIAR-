@@ -45,14 +45,31 @@ describe('estado-v2 (lo que la puerta manual v2 guarda en contexto)', () => {
     expect(vuelta.secuencia).toEqual(e.secuencia);
     expect(vuelta.perfil).toEqual(e.perfil);
   });
-  it('un contexto.v2 guardado sin firmaGuion (el piloto del 24/09) no coincide, y rearma en el primer llamado', () => {
-    const e = estadoNuevo({ anioNacimiento: 1999 }, BA, 2026);
+  it('un contexto.v2 del piloto del 24/09 (sin firmaGuion, NUCLEO viejo, var-* del plan por peso) se rearma aunque la ficha dé la misma firma', () => {
+    // La ficha está en la raíz del contexto: la firma calculada desde ahí es la MISMA que la del perfil guardado.
+    const ficha = { anioNacimiento: 1999, trato: 'vos' };
+    let e = estadoNuevo(ficha, BA, 2026);
+    for (let i = 0; i < 2; i++) e = { ...e, secuencia: avanzar(e.secuencia, proxima(e.secuencia)!, i) };
+    const hechas = structuredClone(e.secuencia.hechas);
+    const vars = Array.from({ length: 10 }, (_, i) => ({ tipo: 'variable' as const, id: `var-infancia-${i + 1}`, tramo: 'infancia' as const, desde: 0, hasta: 12, anclas: [] }));
+    const libre = { tipo: 'variable' as const, id: 'libre-infancia-1', tramo: 'infancia' as const, desde: 0, hasta: 12, anclas: ['el club'] };
     const { firmaGuion, ...sinFirma } = e;
-    const leido = leerEstado({ v2: sinFirma }, BA)!;
-    expect(leido.firmaGuion).not.toBe(firmaGuionDe(leido.perfil, 2026));
+    const viejo = { ...sinFirma, bisagrasPlanificadas: 0, secuencia: { ...e.secuencia, pendientes: [{ tipo: 'nucleo', id: 'juegos', tramo: 'infancia', bloque: 'infancia', tema: 'A qué jugaba' }, ...vars, libre] } };
+    expect(firmaGuionDe(estadoNuevo(ficha, BA, 2026).perfil, 2026)).toBe(firmaGuion);
+    const leido = leerEstado({ ...ficha, v2: viejo }, BA)!;
+    expect(leido.firmaGuion).toBe('');
     const rearmado = rearmarSiHaceFalta(leido, 2026);
-    expect(rearmado.firmaGuion).toBe(firmaGuionDe(leido.perfil, 2026));
-    expect(rearmado.secuencia).toEqual(e.secuencia);
+    expect(rearmado.firmaGuion).toBe(firmaGuion);
+    const ids = rearmado.secuencia.pendientes.map((o) => o.id);
+    expect(ids.some((id) => id.startsWith('var-'))).toBe(false);
+    expect(ids).not.toContain('juegos');
+    expect(ids).toContain('la-escuela');
+    expect(ids).toContain('libre-infancia-1');
+    expect(rearmado.secuencia.hechas).toEqual(hechas);
+  });
+  it('un estado con firmaGuion guardada la conserva tal cual', () => {
+    const e = estadoNuevo({ anioNacimiento: 1999 }, BA, 2026);
+    expect(leerEstado({ v2: { ...e, firmaGuion: 'x' } }, BA)!.firmaGuion).toBe('x');
   });
   it('un contexto.v2 guardado sin caidas/libres en la secuencia (piloto viejo) se completa con [] y 0', () => {
     const e = estadoNuevo({}, BA, 2026);
@@ -64,11 +81,13 @@ describe('estado-v2 (lo que la puerta manual v2 guarda en contexto)', () => {
   it('un objeto registrado (registrarObjeto) nunca entra a hechas: no cuenta para el techo ni para yaHechasDe', () => {
     let e = estadoNuevo({ anioNacimiento: 1999 }, BA, 2026);
     e = { ...e, secuencia: avanzar(e.secuencia, proxima(e.secuencia)!, 0) };
+    e = { ...e, secuencia: avanzar(e.secuencia, proxima(e.secuencia)!, 1) };
     const hechasAntes = e.secuencia.hechas.length;
-    e = { ...e, secuencia: registrarObjeto(e.secuencia, 'infancia', 101) };
+    const yaAntes = yaHechasDe(e).length;
+    e = { ...e, secuencia: registrarObjeto(e.secuencia, 'infancia', 101), preguntasEnviadas: { ...e.preguntasEnviadas, '101': '¿Tenés algo de esa época?' } };
     expect(e.secuencia.hechas).toHaveLength(hechasAntes);
     expect(e.secuencia.hechas.some((h) => h.objetivo.tipo === 'objeto')).toBe(false);
-    expect(yaHechasDe(e).some((y) => y.tema.includes('objeto'))).toBe(false);
+    expect(yaHechasDe(e)).toHaveLength(yaAntes);
   });
 });
 
@@ -208,15 +227,38 @@ describe('decidirTrasEvaluar (una repregunta por etapa, más una si la respuesta
   });
 });
 
-describe('repreguntasEnEtapa', () => {
-  it('cuenta las repreguntas enviadas en hechas de ese tramo', () => {
+describe('repreguntasEnEtapa (por bloque de la fila, no por tramo: guion §2, una por etapa)', () => {
+  const hastaElFinal = (): EstadoV2 => {
     let e = estadoNuevo({ anioNacimiento: 1999 }, BA, 2026);
     let orden = 0;
-    while (proxima(e.secuencia) && proxima(e.secuencia)!.id !== 'a-los-quince') e = { ...e, secuencia: avanzar(e.secuencia, proxima(e.secuencia)!, orden++) };
-    const deInfancia = e.secuencia.hechas.filter((h) => h.tramo === 'infancia').map((h) => String(h.orden));
-    e = { ...e, repreguntasEnviadas: { [deInfancia[0]]: 'r1', [deInfancia[1]]: 'r2' } };
-    expect(repreguntasEnEtapa(e, 'infancia')).toBe(2);
-    expect(repreguntasEnEtapa(e, 'juventud')).toBe(0);
+    while (proxima(e.secuencia)) e = { ...e, secuencia: avanzar(e.secuencia, proxima(e.secuencia)!, orden++) };
+    return e;
+  };
+  const hecha = (e: EstadoV2, id: string) => e.secuencia.hechas.find((h) => h.id === id)!;
+  const conRepregunta = (e: EstadoV2, ...ids: string[]): EstadoV2 => ({ ...e, repreguntasEnviadas: Object.fromEntries(ids.map((id) => [String(hecha(e, id).orden), `r ${id}`])) });
+  const base = { esRepregunta: false, yaHayRepregunta: false, hoy: '2026-09-24', orden: 9, cansancio: false };
+  const noAlcanza = { suficiente: false, falto: ['uno', 'dos'] };
+
+  it('cuenta las repreguntas de hechas del mismo bloque: casa-infancia es del inicio, no de la infancia', () => {
+    const e = conRepregunta(hastaElFinal(), 'casa-infancia', 'la-escuela');
+    expect(repreguntasEnEtapa(e, hecha(e, 'mapa-casas'))).toBe(1);
+    expect(repreguntasEnEtapa(e, hecha(e, 'padres-como-eran'))).toBe(1);
+    expect(repreguntasEnEtapa(e, hecha(e, 'a-los-quince'))).toBe(0);
+  });
+  it('inicio (filas con tramo null): la segunda repregunta del bloque no sale, salvo respuesta corta', () => {
+    const e = conRepregunta(hastaElFinal(), 'los-tuyos-hoy');
+    const n = repreguntasEnEtapa(e, hecha(e, 'mapa-capitulos'));
+    expect(n).toBe(1);
+    expect(decidirTrasEvaluar(noAlcanza, { ...base, repreguntasEnEtapa: n, segundos: 90 }).accion).toBe('nada');
+    expect(decidirTrasEvaluar(noAlcanza, { ...base, repreguntasEnEtapa: n, segundos: 30 }).accion).toBe('repreguntar');
+  });
+  it('reflexión (todas con tramo null): igual', () => {
+    const e = conRepregunta(hastaElFinal(), 'pruebas');
+    const n = repreguntasEnEtapa(e, hecha(e, 'fuerza'));
+    expect(n).toBe(1);
+    expect(decidirTrasEvaluar(noAlcanza, { ...base, repreguntasEnEtapa: n, segundos: 90 }).accion).toBe('nada');
+    expect(decidirTrasEvaluar(noAlcanza, { ...base, repreguntasEnEtapa: n, segundos: 30 }).accion).toBe('repreguntar');
+    expect(repreguntasEnEtapa(e, hecha(e, 'lo-que-te-queda-por-hacer'))).toBe(0);
   });
 });
 

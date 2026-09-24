@@ -1,6 +1,5 @@
 import { perfilDesdeFicha, type Perfil, type TemaPendiente } from '../ia/perfil.js';
-import { armarSecuencia, rearmar, type Secuencia } from '../ia/secuencia.js';
-import type { Tramo } from '../ia/plan-preguntas.js';
+import { armarSecuencia, rearmar, type Secuencia, type Hecha } from '../ia/secuencia.js';
 import type { YaHecha, Objetivo } from '../ia/pregunta-v2.js';
 import { firmaGuion } from '../ia/guion-v2.js';
 import { tratoDelPerfil } from '../ia/encargo-entrevista.js';
@@ -75,8 +74,19 @@ export function estadoNuevo(contexto: Record<string, any>, zonaHoraria: string, 
 export function leerEstado(contexto: Record<string, any>, zonaHoraria: string): EstadoV2 | null {
   const v2 = contexto?.v2;
   if (!v2 || typeof v2 !== 'object' || !v2.perfil || !v2.secuencia) return null;
-  const estado = { ...estadoNuevo(contexto, zonaHoraria), ...v2 } as EstadoV2;
-  estado.secuencia = { caidas: [], libres: 0, ...(estado.secuencia as unknown as Partial<Secuencia>) } as Secuencia;
+  // Los defaults sin armar el guion: el perfil y la secuencia vienen siempre del guardado. (La zona
+  // ya está dentro del perfil guardado; el parámetro queda por compatibilidad con quien llama.)
+  void zonaHoraria;
+  const defaults = { marcas: {}, preguntasEnviadas: {}, repreguntasEnviadas: {}, gastoUsd: 0, procesadas: [], bloqueadas: [] };
+  const { bisagrasPlanificadas: _plan, ...guardado } = v2 as Record<string, any>;
+  void _plan;
+  const conFirma = typeof guardado.firmaGuion === 'string';
+  const secuencia = { cubiertos: [], objetos: [], ultimoTramo: null, caidas: [], libres: 0, ...guardado.secuencia } as Secuencia;
+  // Sin firma es un estado del piloto del 24/09 (plan por peso): las `var-*` de `replanificar` no son
+  // libres del guion; si quedaran, `rearmar` las conservaría como libres y se comerían el techo.
+  // Las `libre-*` sí quedan. Con firma '' `rearmarSiHaceFalta` rearma sí o sí la primera vez.
+  if (!conFirma) secuencia.pendientes = secuencia.pendientes.filter((o) => o.tipo !== 'variable' || o.id.startsWith('libre-'));
+  const estado: EstadoV2 = { ...defaults, ...guardado, perfil: guardado.perfil as Perfil, secuencia, firmaGuion: conFirma ? guardado.firmaGuion : '' };
   return estado;
 }
 
@@ -262,10 +272,22 @@ export function decidirTrasEvaluar(
   return { accion: 'repreguntar', falto: ev.falto };
 }
 
-/** Cuántas repreguntas se mandaron en preguntas de ese tramo. */
-export function repreguntasEnEtapa(estado: EstadoV2, tramo: Tramo | null): number {
-  if (!tramo) return 0;
-  const ordenes = new Set(estado.secuencia.hechas.filter((h) => h.tramo === tramo).map((h) => String(h.orden)));
+/**
+ * La etapa de una hecha: el `bloque` de la fila del guion (una libre: su tramo). No el `tramo`: muchas
+ * filas tienen `tramo: null` (inicio, futuro, reflexión…) y `casa-infancia` es del inicio aunque su
+ * tramo sea infancia. Es el mismo criterio con el que `secuencia.ts` cierra las etapas.
+ */
+export function bloqueDeHecha(h: Hecha): string {
+  return h.objetivo.tipo === 'nucleo' ? h.objetivo.bloque : (h.tramo ?? 'inicio');
+}
+
+/**
+ * Cuántas repreguntas se mandaron en hechas de la misma etapa (bloque) que `hecha` —la que se está
+ * evaluando—. Guion §2: una repregunta por etapa (más la excepción de la respuesta corta).
+ */
+export function repreguntasEnEtapa(estado: EstadoV2, hecha: Hecha): number {
+  const bloque = bloqueDeHecha(hecha);
+  const ordenes = new Set(estado.secuencia.hechas.filter((h) => bloqueDeHecha(h) === bloque).map((h) => String(h.orden)));
   return Object.keys(estado.repreguntasEnviadas).filter((o) => ordenes.has(o)).length;
 }
 
