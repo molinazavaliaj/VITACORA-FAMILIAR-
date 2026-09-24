@@ -5,7 +5,7 @@ import type { ReusarConfig } from './estado-v2.js';
 
 // Ajuste D (24/09): lo puro del piloto "de cero, reusando respuestas viejas" (ver `src/ia/reusar-v2.ts`
 // para la búsqueda). Las respuestas viejas se leen con `leerPiloto` (solo `select`: el narrador viejo
-// no se toca nunca); acá se arman las candidatas, se decide qué se busca y qué ve el candado.
+// no se toca nunca); acá se arman las candidatas, se decide qué se busca y quién pasa por el candado.
 
 /** Una respuesta del piloto anterior, lista para reusar. `corto` (R1, R2…) es estable: va por orden de llegada. */
 export type Vieja = Candidata & { id: string; orden: number; esRepregunta: boolean };
@@ -42,13 +42,14 @@ export function candidatasPara(viejas: Vieja[], usadas: ReusarConfig['usadas']):
 export const seBusca = (o: Objetivo): boolean => o.tipo === 'nucleo' || o.tipo === 'variable';
 
 /**
- * Contra qué compara el candado de audio cruzado. Una reusada es texto de esta misma persona cargado
- * en otro narrador_id (el piloto viejo): contra ESE narrador daría "ya está cargado en otro" siempre.
- * Por eso, y SOLO para una reusada, se saca de la comparación al narrador de donde viene; contra los
- * demás (Ciro, Joaquín…) sigue igual. Todo lo que Naza carga en vivo se compara contra todos.
+ * ¿Pasa por el candado de audio cruzado? (hallazgo 43.) Lo que Naza carga en audio, sí (salvo
+ * `--es-suyo`). Una reusada, NUNCA: es texto de esta misma persona, del piloto viejo (otro
+ * narrador_id), y contra ese narrador el candado diría "ya está cargado en otro" siempre. Las que el
+ * piloto viejo tenía frenadas ya no son candidatas (`viejasDe`). El texto escrito (`--texto`) sigue
+ * como estaba: no pasa (no hay audio que se haya podido cruzar).
  */
-export function ajenasParaCandado<T extends { narrador_id: string }>(filas: T[], reusadaDe?: string): T[] {
-  return reusadaDe ? filas.filter((f) => f.narrador_id !== reusadaDe) : filas;
+export function pasaPorCandado(origen: 'audio' | 'texto' | 'reusada', esSuyo = false): boolean {
+  return origen === 'audio' && !esSuyo;
 }
 
 export function lineaReusada(v: Vieja): string {
@@ -59,7 +60,7 @@ export function lineaReusada(v: Vieja): string {
 export const MAX_PASOS_POR_DEFECTO = 8;
 
 /** `--seguido` (sí por defecto; `--seguido no` lo apaga) y `--max N` (pasos por corrida, 8 por defecto). */
-export function opcionesDeReuso(flags: Record<string, string | true>): { seguido: boolean; max: number } {
+export function opcionesDeReuso(flags: Record<string, string | boolean>): { seguido: boolean; max: number } {
   const seguido = flags['seguido'] !== 'no';
   const crudo = flags['max'];
   if (crudo === undefined) return { seguido, max: MAX_PASOS_POR_DEFECTO };

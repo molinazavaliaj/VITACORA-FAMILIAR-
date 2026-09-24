@@ -11,6 +11,7 @@ import type { PromptPartido } from '../src/ia/modelos-v2.js';
 import { perfilEnTexto } from '../src/ia/encargo-entrevista.js';
 import { pendientesParaPerfil } from '../src/manual/estado-v2.js';
 import { armarSecuencia } from '../src/ia/secuencia.js';
+import { armarPromptReusar } from '../src/ia/reusar-v2.js';
 
 const ANIO = 2026;
 const dicho = (valor: string) => ({ valor, fuente: 'dicho' as const });
@@ -58,4 +59,10 @@ for (const [nombre, p] of [['Naza (27)', naza()], ['Élida (76)', elida()]] as c
   out.push(`### El prompt de la ficha para ${nombre}\n${bloque(partido(partirPromptPerfil(p, '¿Cómo eran tu mamá y tu papá?', 'Mi mamá era brava. Mi papá cocinaba.', pendientesParaPerfil(armarSecuencia(p, ANIO)))))}`);
 }
 out.push(`## El prompt de los pedidos (repreguntas y objetos, Haiku)\n${bloque(armarPromptPedidos('De esa época no tengo nada, che.'))}`);
+// Ajuste D (24/09): solo en el piloto que reusa respuestas viejas (`empezar --reusar`). Sonnet, sin pensar.
+const escuela = armarGuion(naza(), ANIO).filas.find((f) => f.id === 'la-escuela')!;
+out.push(`## El prompt de la búsqueda de respuesta vieja (solo en el piloto que reusa, ajuste D; Sonnet)\n${bloque(armarPromptReusar({ tipo: 'nucleo', ...escuela }, '¿Te acordás de alguna maestra o de algún compañero de la primaria?', [
+  { corto: 'R4', pregunta: '¿Cómo era la casa donde te criaste?', respuesta: 'Una casa de tres pisos en Martínez, mi vieja en la cocina, el patio con el limonero.' },
+  { corto: 'R7', pregunta: '¿Qué te acordás del colegio?', respuesta: 'Hice hasta tercero en el Saint John\'s y a los 8 me pasaron al Fátima. Ahí conocí a Fran, que sigue siendo mi mejor amigo.' },
+]))}`);
 process.stdout.write(out.join('\n'));

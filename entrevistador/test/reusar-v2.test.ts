@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import type Anthropic from '@anthropic-ai/sdk';
 import { armarPromptReusar, parsearReusar, buscarReusable, MAX_PREGUNTA_VIEJA, MAX_RESPUESTA_VIEJA } from '../src/ia/reusar-v2.js';
-import { viejasDe, candidatasPara, seBusca, ajenasParaCandado, lineaReusada, opcionesDeReuso, reusadasEnTexto } from '../src/manual/reusar-v2.js';
+import { viejasDe, candidatasPara, seBusca, pasaPorCandado, lineaReusada, opcionesDeReuso, reusadasEnTexto } from '../src/manual/reusar-v2.js';
 import { modeloDePaso, MODELO_EVALUACION } from '../src/ia/modelos-v2.js';
 import type { Objetivo } from '../src/ia/pregunta-v2.js';
 
@@ -125,13 +125,11 @@ describe('qué se busca', () => {
 });
 
 describe('el candado de audio cruzado y las reusadas', () => {
-  const filas = [
-    { narrador_id: 'viejo', pregunta_orden: 1, transcripcion: 'a' },
-    { narrador_id: 'ciro', pregunta_orden: 2, transcripcion: 'b' },
-  ];
-  it('para una reusada, se saca SOLO al narrador de donde viene; para lo demás, se compara contra todos', () => {
-    expect(ajenasParaCandado(filas, 'viejo').map((f) => f.narrador_id)).toEqual(['ciro']);
-    expect(ajenasParaCandado(filas).map((f) => f.narrador_id)).toEqual(['viejo', 'ciro']);
+  it('una reusada nunca pasa por el candado; un audio sí (salvo --es-suyo); el texto escrito, como antes, no', () => {
+    expect(pasaPorCandado('reusada')).toBe(false);
+    expect(pasaPorCandado('audio')).toBe(true);
+    expect(pasaPorCandado('audio', true)).toBe(false);
+    expect(pasaPorCandado('texto')).toBe(false);
   });
 });
 

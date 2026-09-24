@@ -83,6 +83,8 @@ const h = vi.hoisted(() => {
   const colaEvaluar: string[] = [];
   const colaTranscripcion: string[] = [];
   const colaPedidos: string[] = [];
+  /** Ajuste D: lo que contesta la búsqueda de respuesta vieja (vacía: ninguna). */
+  const colaReusar: string[] = [];
   const llamadas: string[] = [];
   const modelos: string[] = [];
   /** Lo que dura cada audio falso (segundos). */
@@ -91,6 +93,7 @@ const h = vi.hoisted(() => {
   const prompts: string[] = [];
   function responder(prompt: string): string {
     prompts.push(prompt);
+    if (prompt.includes('LAS RESPUESTAS VIEJAS')) { llamadas.push('reusar'); return colaReusar.shift() ?? '{"respuesta": null, "cubre": "no"}'; }
     if (prompt.includes('LO QUE TE TOCA PREGUNTAR HOY')) {
       if (prompt.includes('Es una repregunta a lo de hoy')) { llamadas.push('repregunta'); return `¿Y de eso que faltó, qué me contás? (${++n})`; }
       llamadas.push('pregunta');
@@ -108,7 +111,7 @@ const h = vi.hoisted(() => {
     }
     throw new Error(`prompt que el modelo falso no conoce: ${prompt.slice(0, 80)}`);
   }
-  return { tablas, db, cortar, colaPerfil, colaEvaluar, colaPedidos, colaTranscripcion, llamadas, modelos, prompts, duracion, responder, fallar, bajados, subidos, ffmpeg };
+  return { tablas, db, cortar, colaReusar, colaPerfil, colaEvaluar, colaPedidos, colaTranscripcion, llamadas, modelos, prompts, duracion, responder, fallar, bajados, subidos, ffmpeg };
 });
 
 vi.mock('../src/db/cliente.js', () => ({ db: h.db }));
@@ -502,5 +505,171 @@ describe('manual-v2 de punta a punta (base y modelo falsos)', () => {
     expect(e.fallo).toBe(false);
     expect(e.texto).toMatch(/gasto: USD/);
     expect(v2().gastoUsd).toBeGreaterThan(0);
+  });
+});
+
+// Ajuste D (24/09): el piloto "de cero, reusando respuestas viejas". Un narrador viejo (el piloto
+// anterior de Naza) con sus respuestas; el nuevo arranca de cero y las reusa cuando la búsqueda
+// (modelo falso, cola `colaReusar`) dice que una contesta la pregunta.
+describe('manual-v2 reusando las respuestas de un piloto viejo (base y modelo falsos)', () => {
+  const VIEJAS = [
+    { id: 'v-0', pregunta_orden: 0, es_repregunta: false, transcripcion: 'Hablame de vos, tengo veintisiete años y en casa todos me dicen Naza desde que era chiquito.' },
+    { id: 'v-1', pregunta_orden: 1, es_repregunta: false, transcripcion: 'La casa de Martínez tenía tres pisos, mi vieja cocinaba abajo y en el patio había un limonero enorme que trepábamos.' },
+    { id: 'v-1r', pregunta_orden: 1, es_repregunta: true, transcripcion: 'Vivíamos mis viejos, mis dos hermanos y yo, y los fines de semana venía la abuela Coca a cocinar para todos.' },
+    { id: 'v-2', pregunta_orden: 2, es_repregunta: false, transcripcion: 'Hoy los míos son Ima, mi pareja, y mis hermanos Ariel y Juan Manuel, aunque estén lejos, allá en Argentina.' },
+    { id: 'v-3', pregunta_orden: 3, es_repregunta: false, transcripcion: 'En la escuela tuve una maestra, la señorita Ana, que me dejaba dibujar letras de graffiti en el pizarrón.' },
+    { id: 'v-4', pregunta_orden: 4, es_repregunta: false, transcripcion: 'Con los pibes de la cuadra jugábamos a la pelota en la calle hasta que se hacía de noche y nos llamaban.' },
+    { id: 'v-5', pregunta_orden: 5, es_repregunta: false, transcripcion: 'A los quince me la pasaba en la plaza con la guitarra, tocando cosas de los Redondos con los del barrio.' },
+  ];
+  const nuevo = () => h.tablas.narradores.find((x) => x.como_le_dicen === 'Reusov2')!;
+  const r2 = () => nuevo().contexto.v2;
+  const deNuevo = () => h.tablas.respuestas.filter((x) => x.narrador_id === nuevo().id);
+  /** Los reintentos del control (una pregunta marcada llama 3 veces) cuentan como una. */
+  const pasos = () => h.llamadas.filter((x, i) => !(x === 'pregunta' && h.llamadas[i - 1] === 'pregunta'));
+  const elegir = (corto: string | null) => JSON.stringify({ respuesta: corto, cubre: corto ? 'entero' : 'no' });
+  let fotoViejo = '';
+  const viejo = () => JSON.stringify([h.tablas.narradores.find((x) => x.id === 'viejo-piloto'), h.tablas.respuestas.filter((x) => x.narrador_id === 'viejo-piloto')]);
+
+  beforeAll(() => {
+    h.tablas.narradores.push({
+      id: 'viejo-piloto', familia_id: 'fam-naza', nombre: 'Naza', como_le_dicen: 'Naza', zona_horaria: 'America/Argentina/Buenos_Aires', estado: 'pausado', dia_actual: 6, created_at: '2026-09-02T00:00:00Z',
+      contexto: { v2: {
+        preguntasEnviadas: { 0: 'Hola, soy el biógrafo. ¿Cómo querés que te hable?', 1: '¿Cómo era la casa de tu infancia?', 2: '¿Quiénes son los tuyos hoy?', 3: '¿Cómo era tu escuela?', 4: '¿Y la cuadra?', 5: '¿Cómo eras a los quince?', 6: '¿Algo más?' },
+        repreguntasEnviadas: { 1: '¿Quién vivía en esa casa?' },
+        bloqueadas: ['v-ajena'],
+      } },
+    });
+    VIEJAS.forEach((v, i) => h.tablas.respuestas.push({ ...v, narrador_id: 'viejo-piloto', texto_directo: null, duracion_segundos: 30, audio_path: null, recibido_at: `2026-09-20T1${i}:00:00Z` }));
+    // La que el candado frenó en el piloto viejo (el audio de Ciro): nunca es candidata.
+    h.tablas.respuestas.push({ id: 'v-ajena', narrador_id: 'viejo-piloto', pregunta_orden: 6, es_repregunta: false, transcripcion: h.tablas.respuestas[0].transcripcion, texto_directo: null, duracion_segundos: 30, audio_path: null, recibido_at: '2026-09-20T19:00:00Z' });
+    fotoViejo = viejo();
+    h.colaPerfil.length = 0; h.colaEvaluar.length = 0; h.colaPedidos.length = 0; h.colaReusar.length = 0;
+  });
+
+  it('sin --reusar el estado es el de siempre: el piloto de arriba no tiene la clave reusar ni buscó nada', () => {
+    expect('reusar' in v2()).toBe(false);
+    expect(h.tablas.consumo_ia.some((c) => c.paso === 'v2-reusar')).toBe(false);
+  });
+
+  it('empezar --reusar: frena si el nombre choca con otro narrador o el viejo no existe, sin crear nada ni gastar', async () => {
+    const cuantos = h.tablas.narradores.length;
+    h.llamadas.length = 0;
+    const tocayo = await correr('empezar', 'reusov2', '--nombre', 'Naza', '--reusar', 'viejo-piloto');
+    expect(tocayo.fallo).toBe(true);
+    expect(tocayo.texto).toMatch(/--le-dicen/);
+    const noHay = await correr('empezar', 'reusov2', '--nombre', 'Naza', '--le-dicen', 'Reusov2', '--reusar', 'no-existe');
+    expect(noHay.fallo).toBe(true);
+    expect(h.tablas.narradores).toHaveLength(cuantos);
+    expect(h.llamadas).toEqual([]);
+  });
+
+  it('empezar --reusar guarda la config, reusa la presentación por el camino de --texto y frena en --max', async () => {
+    h.colaReusar.push(elegir('R1'));
+    h.llamadas.length = 0;
+    const r = await correr('empezar', 'reusov2', '--nombre', 'Naza', '--le-dicen', 'Reusov2', '--reusar', 'viejo-piloto', '--max', '1');
+    expect(r.fallo).toBe(false);
+    expect(r2().reusar).toEqual({ desde: 'viejo-piloto', usadas: { 0: 'v-0' } });
+    expect(h.llamadas).toEqual(['pregunta', 'reusar', 'perfil']);
+    const fila = deNuevo().find((x) => x.pregunta_orden === 0)!;
+    expect(fila).toMatchObject({ texto_directo: VIEJAS[0].transcripcion, transcripcion: VIEJAS[0].transcripcion, es_repregunta: false });
+    expect(r2().procesadas).toContain(fila.id);
+    expect(r.texto).toContain('Reusé tu respuesta del piloto anterior a «Hola, soy el biógrafo. ¿Cómo querés que te hable?» para esta pregunta.');
+    expect(r.texto).toMatch(/Llegué a --max 1/);
+    expect(r.texto).toMatch(/Esta corrida: reusé 1 · gasto de la corrida USD/);
+    // La búsqueda se anota con su paso y su modelo (Sonnet, el de la evaluación).
+    expect(h.tablas.consumo_ia.filter((c) => c.paso === 'v2-reusar').map((c) => c.modelo)).toEqual(['claude-sonnet-5']);
+  });
+
+  it('siguiente: reusa la casa (la procesa entera), sigue solo, y frena en la primera sin coincidencia, que queda para pegar y sin respuesta', async () => {
+    h.colaReusar.push(elegir('R2'));
+    h.llamadas.length = 0;
+    const r = await correr('siguiente', 'reusov2');
+    expect(r.fallo).toBe(false);
+    expect(pasos()).toEqual(['pregunta', 'reusar', 'perfil', 'evaluar', 'pregunta', 'reusar']);
+    expect(r2().reusar.usadas).toEqual({ 0: 'v-0', 1: 'v-1' });
+    const casa = deNuevo().find((x) => x.pregunta_orden === 1)!;
+    expect(casa.texto_directo).toBe(VIEJAS[1].transcripcion);
+    expect(r2().procesadas).toContain(casa.id);
+    // Duración estimada por palabras, como una respuesta escrita (no "0 segundos").
+    const palabras = VIEJAS[1].transcripcion.split(/\s+/).length;
+    expect(h.prompts.filter((x) => x.includes('LA PREGUNTA DE HOY')).at(-1)).toContain(`duró ${Math.round(palabras / 2.5)} segundos`);
+    // La segunda búsqueda ya no ofrece las usadas; la que frenó el candado en el piloto viejo nunca estuvo.
+    const busqueda = h.prompts.filter((x) => x.includes('LAS RESPUESTAS VIEJAS')).at(-1)!;
+    expect(busqueda).not.toContain('[R1]'); expect(busqueda).not.toContain('[R2]'); expect(busqueda).toContain('[R3]');
+    expect(busqueda).not.toContain('Concordia');
+    expect(r2().secuencia.hechas.at(-1).orden).toBe(2);
+    expect(deNuevo().some((x) => x.pregunta_orden === 2)).toBe(false);
+    expect(r.texto).toMatch(/esta la contestás vos/);
+    expect(r.texto.trim().endsWith(r2().preguntasEnviadas['2'])).toBe(true);
+    // El candado de audio cruzado no frenó las reusadas, aunque su texto está tal cual en el narrador viejo.
+    expect(r2().bloqueadas).toEqual([]);
+  });
+
+  it('una respuesta vieja no se usa dos veces, y una salida basura del buscador no tira: se le pregunta en vivo', async () => {
+    await correr('cargar', 'reusov2', '--texto', 'Hoy los míos son Ima y mis hermanos.');
+    h.colaReusar.push('esto no es JSON');
+    const basura = await correr('siguiente', 'reusov2');
+    expect(basura.fallo).toBe(false);
+    expect(basura.texto).toMatch(/esta la contestás vos/);
+    await correr('cargar', 'reusov2', '--texto', 'Me acuerdo poco, la verdad.');
+    h.colaReusar.push(elegir('R1')); // ya usada en la presentación
+    const repetida = await correr('siguiente', 'reusov2');
+    expect(repetida.fallo).toBe(false);
+    expect(repetida.texto).toMatch(/esta la contestás vos/);
+    expect(Object.values(r2().reusar.usadas)).toEqual(['v-0', 'v-1']);
+    await correr('cargar', 'reusov2', '--texto', 'Otra que contesto en vivo.');
+  });
+
+  it('si la reusada termina en repregunta, la repregunta va a Naza: no se le busca respuesta vieja', async () => {
+    h.colaReusar.push(elegir('R5'));
+    h.colaEvaluar.push('{"suficiente": false, "falto": ["un compañero", "cómo le iba"]}');
+    h.llamadas.length = 0;
+    const r = await correr('siguiente', 'reusov2');
+    expect(r.fallo).toBe(false);
+    expect(pasos()).toEqual(['pregunta', 'reusar', 'perfil', 'evaluar', 'repregunta']);
+    const orden = r2().secuencia.hechas.at(-1).orden;
+    expect(r2().reusar.usadas[orden]).toBe('v-3');
+    expect(r.texto.trim().endsWith(r2().repreguntasEnviadas[String(orden)])).toBe(true);
+    // Naza la contesta en vivo: perfil y pedidos, nada de buscar.
+    h.llamadas.length = 0;
+    const rr = await correr('cargar', 'reusov2', '--texto', 'Mi compañero era Fran y me iba bien.', '--repregunta');
+    expect(rr.fallo).toBe(false);
+    expect(h.llamadas).toEqual(['perfil', 'pedidos']);
+  });
+
+  it('--max corta el encadenado aunque siga habiendo coincidencias', async () => {
+    h.colaReusar.push(elegir('R6'), elegir('R7'), elegir('R4'));
+    h.llamadas.length = 0;
+    const antes = r2().secuencia.hechas.length;
+    const r = await correr('siguiente', 'reusov2', '--max', '2');
+    expect(r.fallo).toBe(false);
+    expect(r2().secuencia.hechas.length - antes).toBe(2);
+    expect(h.llamadas.filter((x) => x === 'reusar')).toHaveLength(2);
+    expect(r.texto).toMatch(/Llegué a --max 2/);
+    expect(r.texto).toMatch(/Esta corrida: reusé 2/);
+    expect(Object.values(r2().reusar.usadas)).toEqual(expect.arrayContaining(['v-4', 'v-5']));
+    h.colaReusar.length = 0;
+  });
+
+  it('el candado de audio cruzado sigue frenando lo que se carga en vivo, aunque sea del piloto viejo', async () => {
+    await correr('siguiente', 'reusov2'); // sin coincidencia (cola vacía): queda para Naza
+    h.colaTranscripcion.push(VIEJAS[3].transcripcion);
+    h.llamadas.length = 0;
+    const r = await correr('cargar', 'reusov2', audio('vieja-en-vivo.ogg'));
+    expect(r.fallo).toBe(false);
+    expect(r.texto).toMatch(/YA ESTÁ CARGADO EN OTRO NARRADOR/);
+    expect(r.texto).toMatch(/Naza, orden 2/);
+    expect(h.llamadas).toEqual([]);
+    const frenada = deNuevo().at(-1)!;
+    expect(r2().bloqueadas).toContain(frenada.id);
+  });
+
+  it('estado muestra cuántas se reusaron de cuántas y orden → tema; el narrador viejo quedó intacto', async () => {
+    const e = await correr('estado', 'reusov2');
+    expect(e.fallo).toBe(false);
+    const usadas = r2().reusar.usadas;
+    expect(e.texto).toContain(`reusadas: ${Object.keys(usadas).length} de 7 (del narrador viejo-piloto)`);
+    expect(e.texto).toMatch(/ {3}1 · casa-infancia/);
+    expect(viejo()).toBe(fotoViejo);
   });
 });
