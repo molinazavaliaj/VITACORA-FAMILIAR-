@@ -10,7 +10,7 @@ import { partirPromptPerfil, perfilVacio, type Perfil } from '../src/ia/perfil.j
 import type { PromptPartido } from '../src/ia/modelos-v2.js';
 import { perfilEnTexto } from '../src/ia/encargo-entrevista.js';
 import { pendientesParaPerfil } from '../src/manual/estado-v2.js';
-import { armarSecuencia } from '../src/ia/secuencia.js';
+import { armarSecuencia, proxima, avanzar, conNombrado } from '../src/ia/secuencia.js';
 import { armarPromptReusar } from '../src/ia/reusar-v2.js';
 
 const ANIO = 2026;
@@ -56,6 +56,11 @@ for (const [nombre, p] of [['Naza (27)', naza()], ['Élida (76)', elida()]] as c
   out.push(`### El prompt de la evaluación para ${nombre}\n${bloque(armarPromptEvaluar(p, o, '¿Cómo eran tu mamá y tu papá?', 'Mi mamá era brava. Mi papá cocinaba.', 25, [], []))}`);
   const rep: Objetivo = { tipo: 'repregunta', id: 'padres-como-eran-repregunta', tramo: 'infancia', pregunta: '¿Cómo eran tu mamá y tu papá?', falto: ['en qué se parece', 'una escena de cada uno'] };
   out.push(`### El objetivo de la repregunta para ${nombre}\n${bloque(objetivoEnTexto(rep, p))}`);
+  // Ajuste E (25/09): una fila que la ficha dio por contada no se tacha; se pregunta igual, con una línea más en el objetivo.
+  let sec = armarSecuencia(p, ANIO);
+  for (let i = 0; proxima(sec) && proxima(sec)!.id !== 'la-escuela'; i++) sec = avanzar(sec, proxima(sec)!, i);
+  sec = { ...sec, nombrados: { 'la-escuela': 'la-cuadra-y-los-juegos' } };
+  out.push(`### El objetivo de una fila ya nombrada (ajuste E: la-escuela, que ya tocó en la cuadra y los juegos) para ${nombre}\n${bloque(objetivoEnTexto(conNombrado(sec, proxima(sec)!), p))}`);
   out.push(`### El prompt de la ficha para ${nombre}\n${bloque(partido(partirPromptPerfil(p, '¿Cómo eran tu mamá y tu papá?', 'Mi mamá era brava. Mi papá cocinaba.', pendientesParaPerfil(armarSecuencia(p, ANIO)))))}`);
 }
 out.push(`## El prompt de los pedidos (repreguntas y objetos, Haiku)\n${bloque(armarPromptPedidos('De esa época no tengo nada, che.'))}`);

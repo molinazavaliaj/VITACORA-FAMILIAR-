@@ -50,7 +50,7 @@ import {
 } from '../src/manual/reusar-v2.js';
 import { buscarReusable } from '../src/ia/reusar-v2.js';
 import { actualizarPerfil } from '../src/ia/perfil.js';
-import { proxima, avanzar, cubrirDesde, descubrir, etapaCerrada, agregarLibre, tocaObjeto, registrarObjeto, tramoDe, type Rechazado } from '../src/ia/secuencia.js';
+import { proxima, avanzar, cubrirDesde, conNombrado, descubrir, etapaCerrada, agregarLibre, tocaObjeto, registrarObjeto, tramoDe, type Rechazado } from '../src/ia/secuencia.js';
 import { escribirPregunta, perfilEnTexto, type Objetivo, type YaHecha } from '../src/ia/pregunta-v2.js';
 import { evaluarV2, evaluarPedidos, hayCansancio, type EvaluacionV2 } from '../src/ia/evaluar-v2.js';
 import { modeloDePaso, type PasoV2 } from '../src/ia/modelos-v2.js';
@@ -527,7 +527,7 @@ async function procesar(
   const s = slug(n.como_le_dicen);
 
   // 1. La ficha aprende de la respuesta; si cambió lo que decide el guion (edad, árbol), la secuencia se rearma;
-  //    lo que la ficha dio por contado se cae.
+  //    de lo que la ficha dio por contado solo se caen las puertas; lo demás queda nombrado (ajuste E, 25/09).
   const antes = estado.perfil;
   const p = await actualizarPerfil(cliente(), estado.perfil, abierta.texto, respuesta, pendientesParaPerfil(estado.secuencia));
   estado = sumarGasto(estado, [p.usage], 0, modeloDePaso('v2-perfil'));
@@ -537,9 +537,10 @@ async function procesar(
   estado = rearmarSiHaceFalta({ ...estado, perfil: p.perfil });
   // El candado de los cubiertos (24/09): un repaso del inicio no cubre nada (salvo puertas), la fila de
   // una persona solo la cubre contestarla, y lo que se rechaza sale de la ficha (`cubrirDesde`).
+  // Ajuste E (25/09): solo se tachan puertas; lo demás que pasa el candado queda nombrado y se pregunta igual.
   const cubre = cubrirDesde(estado.secuencia, antes.cubiertos, estado.perfil, objetivo);
   estado = { ...estado, perfil: cubre.perfil, secuencia: cubre.secuencia };
-  imprimirCambiosDePerfil(antes, estado, pendientesAntes, cubre.rechazados);
+  imprimirCambiosDePerfil(antes, estado, pendientesAntes, cubre);
   const procesada = (e: EstadoV2): EstadoV2 => ({ ...e, procesadas: [...new Set([...e.procesadas, respuestaId])] });
 
   // 2. La presentación solo alimenta la ficha: no se evalúa ni se repregunta.
@@ -668,7 +669,10 @@ async function procesar(
 }
 
 /** Lo que el perfil aprendió hoy, en pocas líneas: para ver si se da cuenta solo de quién es. */
-function imprimirCambiosDePerfil(antes: EstadoV2['perfil'], estado: EstadoV2, pendientesAntes: string[], rechazados: Rechazado[] = []): void {
+function imprimirCambiosDePerfil(
+  antes: EstadoV2['perfil'], estado: EstadoV2, pendientesAntes: string[],
+  { rechazados, cubiertos, nombrados }: { rechazados: Rechazado[]; cubiertos: string[]; nombrados: string[] } = { rechazados: [], cubiertos: [], nombrados: [] },
+): void {
   const p = estado.perfil;
   const cambios: string[] = [];
   for (const [campo, dato] of Object.entries(p.persona)) {
@@ -679,8 +683,8 @@ function imprimirCambiosDePerfil(antes: EstadoV2['perfil'], estado: EstadoV2, pe
   if (p.personas.length !== antes.personas.length) cambios.push(`personas: ${antes.personas.length} → ${p.personas.length}`);
   const bisagras = p.bisagras.filter((b) => !antes.bisagras.includes(b));
   if (bisagras.length) cambios.push(`bisagras nuevas: ${bisagras.join(' · ')}`);
-  const cubiertos = p.cubiertos.filter((c) => !antes.cubiertos.includes(c));
-  if (cubiertos.length) cambios.push(`cubiertos (no se preguntan): ${cubiertos.join(', ')}`);
+  if (cubiertos.length) cambios.push(`puertas resueltas (no se preguntan): ${cubiertos.join(', ')}`);
+  if (nombrados.length) cambios.push(`ya nombrados (se preguntan igual, yendo a lo que falta): ${nombrados.join(', ')}`);
   if (rechazados.length) cambios.push(`cubiertos rechazados (se preguntan igual): ${rechazados.map((r) => `${r.id} (${r.motivo})`).join(', ')}`);
   if (p.hoyFueFuerte) cambios.push('hoy fue fuerte: mañana lo reconoce antes de preguntar');
   if (p.noTuvo.length !== antes.noTuvo.length) cambios.push(`no tuvo: ${p.noTuvo.join(', ')}`);
@@ -805,7 +809,8 @@ async function pasoSiguiente(ref: string | undefined, flags: Args['flags']): Pro
   const tramoObjeto = tocaObjeto(estado.secuencia, sig, sinFotos);
   const orden = estado.secuencia.hechas.length;
   titulo(`Pregunta ${orden} para ${n.como_le_dicen} — ${sig.id}${sig.tipo === 'variable' ? ` (${sig.tramo}, ${sig.desde}-${sig.hasta} años)` : ''}`);
-  const r = await escribirPregunta(cliente(), estado.perfil, sig, conversacion, yaHechas, evitar);
+  // Ajuste E: si la fila ya se nombró en otra respuesta, el objetivo lo dice (no repetir; ir a lo que falta).
+  const r = await escribirPregunta(cliente(), estado.perfil, conNombrado(estado.secuencia, sig), conversacion, yaHechas, evitar);
   estado = sumarGasto(estado, r.usos, 0, modeloDePaso('v2-pregunta'));
   await anotarUsos('v2-pregunta', n.id, r.usos);
   estado = {
@@ -967,6 +972,8 @@ async function verEstado(ref: string | undefined): Promise<void> {
   linea(`  libres agregadas: ${sec.libres} de ${MAX_LIBRES}`);
   titulo('Lo demás');
   linea(`  cubiertos (se cayeron): ${sec.cubiertos.length ? sec.cubiertos.join(', ') : 'ninguno'}`);
+  const nombrados = Object.entries(sec.nombrados ?? {});
+  linea(`  ya nombrados (se preguntan igual): ${nombrados.length ? nombrados.map(([id, desde]) => `${id} (en ${desde})`).join(', ') : 'ninguno'}`);
   linea(`  objetos: ${sec.objetos.length ? sec.objetos.map((o) => `${o.orden} ${o.tramo}${o.final ? ' (final)' : ''}`).join(' · ') : 'ninguno'}`);
   const marcas = Object.entries(estado.marcas);
   linea(`  marcas: ${marcas.length ? '' : 'ninguna'}`);
@@ -999,6 +1006,8 @@ async function descubrirFilas(ref: string | undefined, ids: string[], flags: Arg
   titulo(`${n.como_le_dicen}: vuelven al guion ${ids.join(', ')}`);
   if (noVolvieron.length) linea(`⚠ No entraron (el techo o el guion de hoy no las tienen): ${noVolvieron.join(', ')}`);
   linea(`Cubiertos que quedan: ${r.secuencia.cubiertos.length ? r.secuencia.cubiertos.join(', ') : 'ninguno'}`);
+  const nombrados = Object.keys(r.secuencia.nombrados);
+  linea(`Nombrados que quedan: ${nombrados.length ? nombrados.join(', ') : 'ninguno'}`);
   linea(`Pendientes (${pendientes.length}), en orden:`);
   pendientes.forEach((id, i) => linea(`  ${String(i + 1).padStart(2)}. ${id}${ids.includes(id) ? '   ← volvió' : ''}`));
 }
@@ -1013,7 +1022,7 @@ Puerta manual v2 — la entrevista con el cerebro nuevo (nada sale por WhatsApp:
   npm run manual-v2 -- cargar naza --reprocesar [--repregunta] [--orden N] [--es-suyo]
   npm run manual-v2 -- siguiente naza [--saltar] [--reanudar] [--seguido no] [--max 8]
   npm run manual-v2 -- estado naza
-  npm run manual-v2 -- descubrir naza <id> [<id> ...]   (devuelve al guion filas cubiertas por error; sin modelo)
+  npm run manual-v2 -- descubrir naza <id> [<id> ...]   (devuelve al guion filas cubiertas por error, o las saca de los nombrados; sin modelo)
 
   Piloto que reusa respuestas viejas (ajuste D):
   npm run manual-v2 -- empezar naza-reusa --nombre "Naza" --le-dicen "Naza reusa" --reusar <narrador_id_viejo>

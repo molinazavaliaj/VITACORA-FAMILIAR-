@@ -78,6 +78,18 @@ describe('estado-v2 (lo que la puerta manual v2 guarda en contexto)', () => {
     expect(leido.secuencia.caidas).toEqual([]);
     expect(leido.secuencia.libres).toBe(0);
   });
+  it('ajuste E (25/09): un contexto.v2 guardado sin nombrados (el piloto en vivo) carga con {} y sus cubiertos viejos quedan', () => {
+    const e = estadoNuevo({ anioNacimiento: 1999 }, BA, 2026);
+    const { nombrados, ...restoSecuencia } = e.secuencia;
+    expect(nombrados).toEqual({});
+    const viejo = JSON.parse(JSON.stringify({ ...e, secuencia: { ...restoSecuencia, cubiertos: ['a-los-quince'], pendientes: restoSecuencia.pendientes.filter((o) => o.id !== 'a-los-quince') } }));
+    const leido = leerEstado({ v2: viejo }, BA)!;
+    expect(leido.secuencia.nombrados).toEqual({});
+    expect(leido.secuencia.cubiertos).toEqual(['a-los-quince']);
+    expect(leido.secuencia.pendientes.map((o) => o.id)).not.toContain('a-los-quince');
+    const guardado = { ...e, secuencia: { ...e.secuencia, nombrados: { estudios: 'la-escuela' } } };
+    expect(leerEstado({ v2: JSON.parse(JSON.stringify(guardado)) }, BA)!.secuencia.nombrados).toEqual({ estudios: 'la-escuela' });
+  });
   it('un objeto registrado (registrarObjeto) nunca entra a hechas (no cuenta para el techo), pero yaHechasDe lo lista corto (I3)', () => {
     let e = estadoNuevo({ anioNacimiento: 1999 }, BA, 2026);
     e = { ...e, secuencia: avanzar(e.secuencia, proxima(e.secuencia)!, 0) };

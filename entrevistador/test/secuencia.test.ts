@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { armarSecuencia, rearmar, proxima, avanzar, aplicarCubiertos, cubrirDesde, descubrir, etapaCerrada, agregarLibre, tocaObjeto, registrarObjeto, tramoDe, MAX_OBJETOS } from '../src/ia/secuencia.js';
+import { armarSecuencia, rearmar, proxima, avanzar, aplicarCubiertos, cubrirDesde, descubrir, conNombrado, etapaCerrada, agregarLibre, tocaObjeto, registrarObjeto, tramoDe, MAX_OBJETOS } from '../src/ia/secuencia.js';
 import { perfilVacio, aplicarCambios, type Perfil } from '../src/ia/perfil.js';
 import type { Objetivo } from '../src/ia/pregunta-v2.js';
 import { tope } from '../src/ia/guion-v2.js';
@@ -40,7 +40,7 @@ describe('armarSecuencia y rearmar', () => {
   });
   it('rearmar no resucita una fila cubierta ni borra una libre ya agregada', () => {
     let s = armarSecuencia(naza(), ANIO);
-    s = aplicarCubiertos(s, aplicarCambios(naza(), { cubiertos: ['la-escuela'] }));
+    s = { ...s, pendientes: s.pendientes.filter((o) => o.id !== 'la-escuela'), cubiertos: ['la-escuela'] }; // tachada antes del ajuste E
     const libre: Objetivo = { tipo: 'variable', id: 'libre-infancia-1', tramo: 'infancia', desde: 0, hasta: 12, anclas: ['x'] };
     s = { ...s, pendientes: [...s.pendientes, libre], libres: 1 };
     const r = rearmar(s, aplicarCambios(naza(), { agregarPersonas: [persona('Lola', 'hija')] }), ANIO);
@@ -95,87 +95,143 @@ describe('proxima y avanzar', () => {
   });
 });
 
-describe('aplicarCubiertos', () => {
-  it('una fila que la ficha da por contada se cae, con registro; el inicio, hoy, futuro y la reflexión nunca', () => {
-    const s = aplicarCubiertos(armarSecuencia(naza(), ANIO), aplicarCambios(naza(), { cubiertos: ['abuelos-y-raices', 'mapa-casas', 'cinco-minutos', 'un-dia-de-hoy', 'lo-que-te-queda-por-hacer', 'no-existe'] }));
-    expect(ids(s)).not.toContain('abuelos-y-raices');
-    expect(ids(s)).toEqual(expect.arrayContaining(['mapa-casas', 'cinco-minutos', 'un-dia-de-hoy', 'lo-que-te-queda-por-hacer']));
-    expect(s.cubiertos).toEqual(['abuelos-y-raices']);
+/** Una secuencia guardada con el shape de antes del ajuste E: filas ya tachadas como cubiertas (el piloto del 24/09). */
+function conCubiertosViejos(s: ReturnType<typeof armarSecuencia>, cubiertos: string[]) {
+  return { ...s, pendientes: s.pendientes.filter((o) => !cubiertos.includes(o.id)), cubiertos: [...s.cubiertos, ...cubiertos] };
+}
+
+describe('aplicarCubiertos (ajuste E, 25/09: solo las puertas se tachan)', () => {
+  it('una puerta que la ficha da por resuelta se cae, con registro; cualquier otra fila sigue en el guion', () => {
+    const sinArbol = perfilVacio(); sinArbol.persona.edad = dicho('70');
+    const s = aplicarCubiertos(armarSecuencia(sinArbol, ANIO), aplicarCambios(sinArbol, { cubiertos: ['hermanos-puerta', 'abuelos-y-raices', 'mapa-casas', 'cinco-minutos', 'no-existe'] }));
+    expect(ids(s)).not.toContain('hermanos-puerta');
+    expect(ids(s)).toEqual(expect.arrayContaining(['abuelos-y-raices', 'mapa-casas', 'cinco-minutos']));
+    expect(s.cubiertos).toEqual(['hermanos-puerta']);
   });
-  it('una fila expandida se cubre por su id instanciado', () => {
+  it('una fila expandida (hermano-ariel) tampoco se tacha', () => {
     const s = aplicarCubiertos(armarSecuencia(naza(), ANIO), aplicarCambios(naza(), { cubiertos: ['hermano-ariel'] }));
-    expect(ids(s)).not.toContain('hermano-ariel'); expect(ids(s)).toContain('hermano-juan-manuel');
+    expect(ids(s)).toContain('hermano-ariel'); expect(s.cubiertos).toEqual([]);
   });
 });
 
-describe('cubrirDesde (el candado de los cubiertos, piloto 24/09)', () => {
+describe('cubrirDesde (el candado, piloto 24/09; ajuste E 25/09: lo que pasa el candado queda "nombrado", no se tacha)', () => {
   const fila = (s: ReturnType<typeof armarSecuencia>, id: string) => s.pendientes.find((o) => o.id === id)!;
   /** La ficha de hoy: la de antes más los cubiertos que marcó el modelo con esta respuesta. */
   const conCubiertos = (p: Perfil, cubiertos: string[]) => aplicarCambios(p, { cubiertos });
 
-  it('una respuesta a un repaso del inicio (mapa-capitulos) no cubre nada: a-los-quince, estudios y oficio se siguen preguntando y salen de la ficha', () => {
+  it('una secuencia nueva arranca sin nombrados', () => {
+    expect(armarSecuencia(naza(), ANIO).nombrados).toEqual({});
+  });
+  it('una respuesta a un repaso del inicio (mapa-capitulos) no nombra nada: a-los-quince, estudios y oficio se rechazan y salen de la ficha', () => {
     const s = armarSecuencia(naza(), ANIO);
     const r = cubrirDesde(s, [], conCubiertos(naza(), ['a-los-quince', 'estudios', 'oficio']), fila(s, 'mapa-capitulos'));
     expect(ids(r.secuencia)).toEqual(expect.arrayContaining(['a-los-quince', 'estudios', 'oficio']));
     expect(r.secuencia.cubiertos).toEqual([]);
+    expect(r.secuencia.nombrados).toEqual({});
     expect(r.perfil.cubiertos).toEqual([]);
     expect(r.rechazados.map((x) => x.id)).toEqual(['a-los-quince', 'estudios', 'oficio']);
     expect(r.rechazados[0].motivo).toMatch(/mapa-capitulos/);
   });
-  it('mapa-casas y los-tuyos-hoy tampoco cubren; pero una puerta (saber un dato) sí se resuelve ahí', () => {
+  it('mapa-casas y los-tuyos-hoy tampoco; pero una puerta (saber un dato) sí se resuelve ahí y se tacha', () => {
     const sinArbol = perfilVacio(); sinArbol.persona.edad = dicho('70');
     const s = armarSecuencia(sinArbol, ANIO);
     expect(ids(s)).toEqual(expect.arrayContaining(['hermanos-puerta', 'pareja-puerta']));
     const r = cubrirDesde(s, [], conCubiertos(sinArbol, ['hermanos-puerta', 'la-escuela']), fila(s, 'los-tuyos-hoy'));
     expect(ids(r.secuencia)).not.toContain('hermanos-puerta'); expect(ids(r.secuencia)).toContain('la-escuela');
     expect(r.secuencia.cubiertos).toEqual(['hermanos-puerta']);
+    expect(r.cubiertos).toEqual(['hermanos-puerta']);
     expect(r.rechazados.map((x) => x.id)).toEqual(['la-escuela']);
     const m = cubrirDesde(s, [], conCubiertos(sinArbol, ['pareja-puerta', 'abuelos-y-raices']), fila(s, 'mapa-casas'));
     expect(m.secuencia.cubiertos).toEqual(['pareja-puerta']);
     expect(m.rechazados.map((x) => x.id)).toEqual(['abuelos-y-raices']);
   });
-  it('la fila de una persona (hermano-ariel) no la cubre otra respuesta: "con mi hermano mayor" en padres-como-eran no alcanza', () => {
+  it('la fila de una persona (hermano-ariel) no la nombra otra respuesta: "con mi hermano mayor" en padres-como-eran se rechaza', () => {
     const s = armarSecuencia(naza(), ANIO);
     const r = cubrirDesde(s, [], conCubiertos(naza(), ['hermano-ariel']), fila(s, 'padres-como-eran'));
     expect(ids(r.secuencia)).toContain('hermano-ariel');
     expect(r.rechazados).toEqual([{ id: 'hermano-ariel', motivo: expect.stringMatching(/persona/) }]);
+    expect(r.secuencia.nombrados).toEqual({});
     expect(r.perfil.cubiertos).not.toContain('hermano-ariel');
   });
-  it('lo mismo con un hijo; hijos-llegada no es de una persona y sí se cubre', () => {
+  it('lo mismo con un hijo; hijos-llegada no es de una persona: queda nombrada y se pregunta igual', () => {
     const p = aplicarCambios(naza(), { agregarPersonas: [persona('Lola', 'hija')] });
     const s = armarSecuencia(p, ANIO);
     const r = cubrirDesde(s, [], conCubiertos(p, ['hijo-lola', 'hijos-llegada']), fila(s, 'pareja-como-llego'));
     expect(ids(r.secuencia)).toContain('hijo-lola');
     expect(r.rechazados.map((x) => x.id)).toEqual(['hijo-lola']);
-    expect(ids(r.secuencia)).not.toContain('hijos-llegada');
+    expect(ids(r.secuencia)).toContain('hijos-llegada');
+    expect(r.secuencia.nombrados).toEqual({ 'hijos-llegada': 'pareja-como-llego' });
   });
-  it('la reflexión, el futuro y hoy no los cubre ninguna otra respuesta: se rechazan con motivo y salen de la ficha', () => {
+  it('la reflexión, el futuro y hoy no los nombra ninguna otra respuesta: se rechazan con motivo y salen de la ficha', () => {
     const s = armarSecuencia(naza(), ANIO);
     const r = cubrirDesde(s, [], conCubiertos(naza(), ['cinco-minutos', 'lo-que-te-queda-por-hacer', 'los-tuyos-hoy-como-estan']), fila(s, 'la-escuela'));
     expect(ids(r.secuencia)).toEqual(expect.arrayContaining(['cinco-minutos', 'lo-que-te-queda-por-hacer', 'los-tuyos-hoy-como-estan']));
     expect(r.rechazados.map((x) => x.id)).toEqual(['cinco-minutos', 'lo-que-te-queda-por-hacer', 'los-tuyos-hoy-como-estan']);
     expect(r.perfil.cubiertos).toEqual([]);
   });
-  it('un cubierto normal sigue andando: la-escuela contada con detalle cubre la cuadra y los juegos', () => {
+  it('ajuste E: la-escuela contada con detalle ya NO tacha la cuadra y los juegos: queda en el guion, nombrada desde la-escuela', () => {
     const s = armarSecuencia(naza(), ANIO);
     const r = cubrirDesde(s, [], conCubiertos(naza(), ['la-cuadra-y-los-juegos']), fila(s, 'la-escuela'));
-    expect(ids(r.secuencia)).not.toContain('la-cuadra-y-los-juegos');
-    expect(r.secuencia.cubiertos).toEqual(['la-cuadra-y-los-juegos']);
+    expect(ids(r.secuencia)).toEqual(ids(s));
+    expect(r.secuencia.cubiertos).toEqual([]);
+    expect(r.secuencia.nombrados).toEqual({ 'la-cuadra-y-los-juegos': 'la-escuela' });
+    expect(r.nombrados).toEqual(['la-cuadra-y-los-juegos']);
     expect(r.perfil.cubiertos).toEqual(['la-cuadra-y-los-juegos']);
     expect(r.rechazados).toEqual([]);
   });
-  it('piloto 24/09 (segunda vuelta): la-cuadra-y-los-juegos (infancia) no cubre a-los-quince (juventud): es de otra etapa', () => {
+  it('la primera fila que lo nombró queda: si otra respuesta lo vuelve a marcar, no se pisa', () => {
+    const s = armarSecuencia(naza(), ANIO);
+    const r1 = cubrirDesde(s, [], conCubiertos(naza(), ['la-cuadra-y-los-juegos']), fila(s, 'la-escuela'));
+    const r2 = cubrirDesde(r1.secuencia, [], conCubiertos(naza(), ['la-cuadra-y-los-juegos']), fila(s, 'padres-como-eran'));
+    expect(r2.secuencia.nombrados).toEqual({ 'la-cuadra-y-los-juegos': 'la-escuela' });
+    expect(r2.nombrados).toEqual([]);
+  });
+  it('piloto 24/09 (segunda vuelta): la-cuadra-y-los-juegos (infancia) no nombra a-los-quince (juventud): es de otra etapa', () => {
     const s = armarSecuencia(naza(), ANIO);
     const r = cubrirDesde(s, [], conCubiertos(naza(), ['a-los-quince']), fila(s, 'la-cuadra-y-los-juegos'));
     expect(ids(r.secuencia)).toContain('a-los-quince');
     expect(r.rechazados).toEqual([{ id: 'a-los-quince', motivo: expect.stringMatching(/otra etapa/) }]);
+    expect(r.secuencia.nombrados).toEqual({});
     expect(r.perfil.cubiertos).not.toContain('a-los-quince');
   });
   it('solo mira los cubiertos NUEVOS de esta respuesta: los de antes quedan como estaban', () => {
-    const s = armarSecuencia(naza(), ANIO);
+    const s = conCubiertosViejos(armarSecuencia(naza(), ANIO), ['abuelos-y-raices']);
     const r = cubrirDesde(s, ['abuelos-y-raices'], conCubiertos(naza(), ['abuelos-y-raices', 'estudios']), fila(s, 'mapa-capitulos'));
     expect(r.perfil.cubiertos).toEqual(['abuelos-y-raices']);
     expect(ids(r.secuencia)).not.toContain('abuelos-y-raices'); expect(ids(r.secuencia)).toContain('estudios');
+    expect(r.secuencia.nombrados).toEqual({});
+  });
+  it('una secuencia guardada sin nombrados (el piloto en vivo) anda igual', () => {
+    const { nombrados: _n, ...vieja } = armarSecuencia(naza(), ANIO);
+    void _n;
+    const s = vieja as ReturnType<typeof armarSecuencia>;
+    const r = cubrirDesde(s, [], conCubiertos(naza(), ['la-cuadra-y-los-juegos']), fila(s, 'la-escuela'));
+    expect(r.secuencia.nombrados).toEqual({ 'la-cuadra-y-los-juegos': 'la-escuela' });
+  });
+});
+
+describe('conNombrado (ajuste E: la pregunta de una fila nombrada sabe dónde ya se habló)', () => {
+  it('le pone a la fila el tema corto de la fila de origen (ya hecha); sin nombrado, la deja igual', () => {
+    let s = armarSecuencia(naza(), ANIO);
+    ({ s } = hastaAntesDe(s, 'la-escuela'));
+    expect(s.hechas.some((h) => h.id === 'la-cuadra-y-los-juegos')).toBe(true);
+    s = { ...s, nombrados: { 'la-escuela': 'la-cuadra-y-los-juegos' } };
+    const o = conNombrado(s, proxima(s)!) as { id: string; yaNombradoEn?: string };
+    expect(o.id).toBe('la-escuela');
+    // La cabeza del tema, sin la consigna para el modelo ni el punto final.
+    expect(o.yaNombradoEn).toBe('La cuadra, los juegos y los amigos del barrio');
+    expect(o.yaNombradoEn!.length).toBeLessThanOrEqual(80);
+    expect(o.yaNombradoEn).not.toMatch(/\n/);
+    const otra = s.pendientes[1];
+    expect(conNombrado(s, otra)).toBe(otra);
+    expect(conNombrado({ ...s, nombrados: undefined as never }, otra)).toBe(otra);
+  });
+  it('si lo nombró una repregunta, se usa la fila de la que salió', () => {
+    let s = armarSecuencia(naza(), ANIO);
+    ({ s } = hastaAntesDe(s, 'la-escuela'));
+    const conEscuela = conNombrado({ ...s, nombrados: { 'la-escuela': 'la-cuadra-y-los-juegos' } }, proxima(s)!);
+    const conRepregunta = conNombrado({ ...s, nombrados: { 'la-escuela': 'la-cuadra-y-los-juegos-repregunta' } }, proxima(s)!);
+    expect(conRepregunta).toEqual(conEscuela);
   });
 });
 
@@ -184,7 +240,7 @@ describe('descubrir (devolver filas cubiertas por error)', () => {
     let s = armarSecuencia(naza(), ANIO);
     const orden = ids(s);
     const p = aplicarCambios(naza(), { cubiertos: ['a-los-quince', 'estudios', 'hermano-ariel', 'la-escuela'] });
-    s = aplicarCubiertos(s, p);
+    s = conCubiertosViejos(s, p.cubiertos);
     expect(ids(s)).not.toContain('estudios');
     const r = descubrir(s, p, ['a-los-quince', 'estudios', 'hermano-ariel'], ANIO);
     if ('error' in r) throw new Error(r.error);
@@ -192,10 +248,20 @@ describe('descubrir (devolver filas cubiertas por error)', () => {
     expect(r.secuencia.cubiertos).toEqual(['la-escuela']);
     expect(r.perfil.cubiertos).toEqual(['la-escuela']);
   });
+  it('ajuste E: también saca una fila de los nombrados (y de la ficha)', () => {
+    const s0 = armarSecuencia(naza(), ANIO);
+    const p = aplicarCambios(naza(), { cubiertos: ['la-cuadra-y-los-juegos', 'estudios'] });
+    const s = { ...s0, nombrados: { 'la-cuadra-y-los-juegos': 'la-escuela', estudios: 'a-los-quince' } };
+    const r = descubrir(s, p, ['la-cuadra-y-los-juegos'], ANIO);
+    if ('error' in r) throw new Error(r.error);
+    expect(r.secuencia.nombrados).toEqual({ estudios: 'a-los-quince' });
+    expect(r.perfil.cubiertos).toEqual(['estudios']);
+    expect(ids(r.secuencia).filter((id) => id === 'la-cuadra-y-los-juegos')).toHaveLength(1);
+  });
   it('una que ya estaba pendiente solo sale de la ficha; una que ya se hizo no vuelve', () => {
     let s = armarSecuencia(naza(), ANIO);
     const p = aplicarCambios(naza(), { cubiertos: ['los-tuyos-hoy-como-estan'] });
-    s = aplicarCubiertos(s, p); // hoy no se cubre: sigue pendiente, pero quedó en la ficha
+    s = aplicarCubiertos(s, p); // no es puerta: sigue pendiente, pero quedó en la ficha
     const r = descubrir(s, p, ['los-tuyos-hoy-como-estan'], ANIO);
     if ('error' in r) throw new Error(r.error);
     expect(ids(r.secuencia).filter((id) => id === 'los-tuyos-hoy-como-estan')).toHaveLength(1);
@@ -205,7 +271,7 @@ describe('descubrir (devolver filas cubiertas por error)', () => {
     expect('error' in h && h.error).toMatch(/ya se preguntó/);
   });
   it('un id que no existe frena todo, sin tocar nada', () => {
-    const s = aplicarCubiertos(armarSecuencia(naza(), ANIO), aplicarCambios(naza(), { cubiertos: ['estudios'] }));
+    const s = conCubiertosViejos(armarSecuencia(naza(), ANIO), ['estudios']);
     const r = descubrir(s, naza(), ['estudios', 'no-existe'], ANIO);
     expect('error' in r && r.error).toMatch(/no-existe/);
   });
@@ -215,7 +281,7 @@ describe('descubrir (devolver filas cubiertas por error)', () => {
     const p = aplicarCambios(base, { agregarPersonas: [persona('Marta', 'marido'), persona('Ana', 'hija'), persona('Bruno', 'hijo'), persona('Cora', 'hijo'), persona('Dora', 'hermana'), persona('Emilio', 'hermano'), persona('Hugo', 'nieto')] });
     const cubiertos = ['abuelos-y-raices', 'la-escuela', 'estudios'];
     const pc = aplicarCambios(p, { cubiertos });
-    const s = aplicarCubiertos(armarSecuencia(p, ANIO), pc);
+    const s = conCubiertosViejos(armarSecuencia(p, ANIO), cubiertos);
     const r = descubrir(s, pc, cubiertos, ANIO);
     if ('error' in r) throw new Error(r.error);
     expect(r.secuencia.pendientes.length - 1).toBeLessThanOrEqual(tope(70));

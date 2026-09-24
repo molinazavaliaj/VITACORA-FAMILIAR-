@@ -42,6 +42,13 @@ describe('objetivoEnTexto', () => {
     expect(objetivoEnTexto(fila('casa-infancia'), perfilDeVos())).toMatch(/escena/i);
     expect(objetivoEnTexto(fila('padres-como-eran'), perfilDeVos())).toMatch(/carácter/i);
   });
+  it('ajuste E (25/09): una fila ya nombrada lleva UNA línea más: dónde lo contó, que no lo repita y que vaya a lo que falta', () => {
+    const o = { ...fila('a-los-quince'), yaNombradoEn: 'La cuadra y los juegos' } as Objetivo;
+    const t = objetivoEnTexto(o, perfilDeVos());
+    expect(t).toContain(objetivoEnTexto(fila('a-los-quince'), perfilDeVos()));
+    expect(t.endsWith('\nYa contó algo de esto cuando hablaron de «La cuadra y los juegos»: no le pidas que lo repita; andá a lo que todavía no contó de este tema.')).toBe(true);
+    expect(objetivoEnTexto(fila('a-los-quince'), perfilDeVos())).not.toMatch(/Ya contó algo de esto/);
+  });
   it('una libre lleva lo que nombró y no contó, con su etapa', () => {
     const v: Objetivo = { tipo: 'variable', id: 'libre-juventud-1', tramo: 'juventud', desde: 13, hasta: 22, anclas: ['Cómo se arreglaron después con Ciano tras el problema por Vicky'] };
     const t = objetivoEnTexto(v, perfilDeVos());

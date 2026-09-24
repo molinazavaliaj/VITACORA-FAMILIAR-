@@ -88,7 +88,7 @@ export function leerEstado(contexto: Record<string, any>, zonaHoraria: string): 
   const { bisagrasPlanificadas: _plan, ...guardado } = v2 as Record<string, any>;
   void _plan;
   const conFirma = typeof guardado.firmaGuion === 'string';
-  const secuencia = { cubiertos: [], objetos: [], ultimoTramo: null, caidas: [], libres: 0, ...guardado.secuencia } as Secuencia;
+  const secuencia = { cubiertos: [], nombrados: {}, objetos: [], ultimoTramo: null, caidas: [], libres: 0, ...guardado.secuencia } as Secuencia;
   // Sin firma es un estado del piloto del 24/09 (plan por peso): las `var-*` de `replanificar` no son
   // libres del guion; si quedaran, `rearmar` las conservaría como libres y se comerían el techo.
   // Las `libre-*` sí quedan. Con firma '' `rearmarSiHaceFalta` rearma sí o sí la primera vez.

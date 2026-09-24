@@ -1,5 +1,5 @@
 import { armarGuion, recortarAlTope, MAX_LIBRES, tope, type Caida } from './guion-v2.js';
-import type { Objetivo } from './pregunta-v2.js';
+import { temaHechoEnLinea, type Objetivo } from './pregunta-v2.js';
 import { RANGO_TRAMO, edadDe, type Tramo } from './plan-preguntas.js';
 import type { Perfil } from './perfil.js';
 import { slug } from '../manual/puro.js';
@@ -7,15 +7,23 @@ import { slug } from '../manual/puro.js';
 // La secuencia del esqueleto v2 (24/09): fija, por etapas, sin puerta abierta ni variables por peso.
 // El guion (`guion-v2.ts`) dice qué filas entran para esta persona; acá se guarda dónde está la
 // entrevista: pendientes, hechas (la fábrica las lee para ubicar cada respuesta en su época),
-// cubiertos (filas que la ficha dio por contadas), caídas (filas que no aplican, con motivo), las
-// libres agregadas al cerrar cada etapa y los objetos. Todo puro: se guarda tal cual en
+// cubiertos (solo puertas: ajuste E), nombrados (filas que otra respuesta ya tocó y se preguntan
+// igual), caídas (filas que no aplican, con motivo), las libres agregadas al cerrar cada etapa y los
+// objetos. Todo puro: se guarda tal cual en
 // `contexto.v2.secuencia`.
 
 export type Hecha = { id: string; orden: number; tramo: Tramo | null; objetivo: Objetivo };
 export type Secuencia = {
   pendientes: Objetivo[];
   hechas: Hecha[];
+  /** Ajuste E (25/09): solo puertas (`*-puerta`, saber un dato); ninguna otra fila se tacha sola. */
   cubiertos: string[];
+  /**
+   * Ajuste E (25/09): fila pendiente → fila desde cuya respuesta la ficha la dio por contada. No se
+   * tacha: se pregunta igual, yendo a lo que falta (`conNombrado`). Falta en los estados guardados
+   * antes del 25/09: `leerEstado` pone `{}`.
+   */
+  nombrados: Record<string, string>;
   caidas: Caida[];
   /** `final` marca el objeto de cierre: pasa una sola vez. */
   objetos: { orden: number; tramo: Tramo; final?: boolean }[];
@@ -36,7 +44,7 @@ const bloqueDe = (o: Objetivo): string => (o.tipo === 'nucleo' ? o.bloque : o.ti
 
 export function armarSecuencia(perfil: Perfil, anioActual = new Date().getFullYear()): Secuencia {
   const { filas, caidas } = armarGuion(perfil, anioActual);
-  return { pendientes: filas.map((f) => ({ tipo: 'nucleo' as const, ...f })), hechas: [], cubiertos: [], caidas, objetos: [], ultimoTramo: null, libres: 0 };
+  return { pendientes: filas.map((f) => ({ tipo: 'nucleo' as const, ...f })), hechas: [], cubiertos: [], nombrados: {}, caidas, objetos: [], ultimoTramo: null, libres: 0 };
 }
 
 /**
@@ -84,13 +92,19 @@ export function avanzar(s: Secuencia, o: Objetivo, orden: number): Secuencia {
   };
 }
 
-/** Las filas que la ficha de hoy dio por contadas se caen (menos inicio, hoy, futuro y reflexión), con registro. */
+const esPuerta = (id: string) => id.endsWith('-puerta');
+
+/**
+ * Las puertas que la ficha de hoy dio por resueltas se caen (menos inicio, hoy, futuro y reflexión),
+ * con registro. Ajuste E (25/09): solo las puertas; cualquier otra fila sigue en el guion (ver
+ * `cubrirDesde`, que la anota como nombrada).
+ */
 export function aplicarCubiertos(s: Secuencia, perfil: Perfil): Secuencia {
   let pendientes = [...s.pendientes];
   const cubiertos = [...s.cubiertos];
   for (const id of perfil.cubiertos) {
     const o = pendientes.find((p) => p.id === id);
-    if (!o || o.tipo !== 'nucleo' || NO_SE_CUBRE.has(o.bloque)) continue;
+    if (!o || o.tipo !== 'nucleo' || NO_SE_CUBRE.has(o.bloque) || !esPuerta(id)) continue;
     pendientes = pendientes.filter((p) => p.id !== id);
     if (!cubiertos.includes(id)) cubiertos.push(id);
   }
@@ -110,6 +124,11 @@ export function aplicarCubiertos(s: Secuencia, perfil: Perfil): Secuencia {
 //     (infancia) marcó a-los-quince (juventud) como contada. Una fila solo la cubre una respuesta de
 //     SU MISMA etapa/bloque; las puertas (`*-puerta`) quedan afuera de esta regla (siguen como antes:
 //     las resuelve cualquier repaso del inicio, sea cual sea su propia etapa).
+// Ajuste E (25/09, piloto en vivo): aun con el candado, Sonnet seguía tachando filas que Naza solo
+// había nombrado al pasar (a-los-quince, estudios, oficio, hermano-ariel, primer-amor). Desde ahora
+// ninguna fila se tacha sola: solo las puertas. Lo que pasa el candado queda NOMBRADO
+// (`secuencia.nombrados`) y se pregunta igual, avisándole al modelo dónde ya se habló
+// (`conNombrado` → `objetivoEnTexto`). Lo que el candado rechaza no se anota y sale de la ficha.
 
 /** Los repasos del inicio: una pasada por toda la vida, que nombra todo. */
 const REPASOS = new Set(['mapa-casas', 'mapa-capitulos', 'los-tuyos-hoy']);
@@ -140,35 +159,71 @@ export type Rechazado = { id: string; motivo: string };
  * (si quedaran, la próxima respuesta los aplicaría sin candado); después, `aplicarCubiertos`.
  * Es el único lugar por donde pasan los cubiertos de `procesar` (respuesta en vivo o reusada).
  */
-export function cubrirDesde(s: Secuencia, antes: string[], perfil: Perfil, desde: Objetivo): { secuencia: Secuencia; perfil: Perfil; rechazados: Rechazado[] } {
+export function cubrirDesde(
+  s: Secuencia, antes: string[], perfil: Perfil, desde: Objetivo,
+): { secuencia: Secuencia; perfil: Perfil; rechazados: Rechazado[]; cubiertos: string[]; nombrados: string[] } {
   const rechazados: Rechazado[] = [];
+  const nombrados: Record<string, string> = { ...(s.nombrados ?? {}) };
+  const nuevosNombrados: string[] = [];
   for (const id of perfil.cubiertos) {
     if (antes.includes(id)) continue;
     const fila = s.pendientes.find((p) => p.id === id);
-    const motivo = fila ? motivoParaNoCubrir(desde, fila) : null;
+    if (!fila) continue;
+    const motivo = motivoParaNoCubrir(desde, fila);
     if (motivo) rechazados.push({ id, motivo });
+    // Ajuste E: pasó el candado y no es puerta → se anota (la primera respuesta que lo tocó queda).
+    else if (fila.tipo === 'nucleo' && fila.id !== desde.id && !esPuerta(id) && !nombrados[id]) {
+      nombrados[id] = desde.id;
+      nuevosNombrados.push(id);
+    }
   }
   const fuera = new Set(rechazados.map((r) => r.id));
   const limpio: Perfil = fuera.size ? { ...perfil, cubiertos: perfil.cubiertos.filter((id) => !fuera.has(id)) } : perfil;
-  return { secuencia: aplicarCubiertos(s, limpio), perfil: limpio, rechazados };
+  const secuencia = aplicarCubiertos({ ...s, nombrados }, limpio);
+  const cubiertos = secuencia.cubiertos.filter((id) => !s.cubiertos.includes(id));
+  return { secuencia, perfil: limpio, rechazados, cubiertos, nombrados: nuevosNombrados };
+}
+
+/** Cuánto entra del tema de la fila de origen en la línea de "ya contó algo de esto". */
+const MAX_TEMA_NOMBRADO = 80;
+
+/**
+ * Ajuste E: la fila que se va a preguntar, con `yaNombradoEn` (el tema corto de la fila desde cuya
+ * respuesta se la dio por contada) si está en `secuencia.nombrados`; si no, la misma fila. Solo para
+ * escribir la pregunta: lo que se guarda en la secuencia es la fila sin esto. Si la nombró una
+ * repregunta (`<fila>-repregunta`), se usa la fila de la que salió.
+ */
+export function conNombrado(s: Secuencia, o: Objetivo): Objetivo {
+  const desde = s.nombrados?.[o.id];
+  if (!desde || o.tipo !== 'nucleo') return o;
+  const origen = desde.replace(/-repregunta$/, '');
+  const hecha = s.hechas.find((h) => h.id === origen)?.objetivo;
+  const tema = !hecha ? origen
+    : hecha.tipo === 'nucleo' ? temaHechoEnLinea({ id: hecha.id, tema: hecha.tema })
+    : hecha.tipo === 'variable' ? hecha.anclas[0] ?? origen
+    : origen;
+  // Sin la consigna para el modelo (", en UNA sola pregunta") ni el punto final: va entre comillas en una oración.
+  const corto = tema.replace(/\s+/g, ' ').replace(/,? en UNA sola pregunta/i, '').trim().replace(/[.…]+$/, '');
+  return { ...o, yaNombradoEn: corto.length > MAX_TEMA_NOMBRADO ? `${corto.slice(0, MAX_TEMA_NOMBRADO - 1).trimEnd()}…` : corto };
 }
 
 /**
- * Devuelve al guion filas cubiertas por error (`manual-v2 descubrir`): salen de `secuencia.cubiertos`
- * y de `perfil.cubiertos`, y la secuencia se rearma (`rearmar`: cada fila en su lugar del guion, sin
+ * Devuelve al guion filas cubiertas por error (`manual-v2 descubrir`): salen de `secuencia.cubiertos`,
+ * de `secuencia.nombrados` (ajuste E) y de `perfil.cubiertos`, y la secuencia se rearma (`rearmar`: cada fila en su lugar del guion, sin
  * duplicar, sin volver a las hechas, con el techo). Un id que no es del guion ni está cubierto, o que
  * ya se preguntó, frena todo sin tocar nada.
  */
 export function descubrir(s: Secuencia, perfil: Perfil, ids: string[], anioActual = new Date().getFullYear()): { secuencia: Secuencia; perfil: Perfil } | { error: string } {
   const hechas = new Set(s.hechas.map((h) => h.id));
-  const conocidos = new Set([...armarGuion(perfil, anioActual).filas.map((f) => f.id), ...s.cubiertos, ...perfil.cubiertos, ...s.pendientes.map((o) => o.id)]);
+  const conocidos = new Set([...armarGuion(perfil, anioActual).filas.map((f) => f.id), ...s.cubiertos, ...Object.keys(s.nombrados ?? {}), ...perfil.cubiertos, ...s.pendientes.map((o) => o.id)]);
   const yaHechas = ids.filter((id) => hechas.has(id));
   if (yaHechas.length) return { error: `${yaHechas.join(', ')}: ya se preguntó, no vuelve.` };
   const desconocidos = ids.filter((id) => !conocidos.has(id));
   if (desconocidos.length) return { error: `No conozco ${desconocidos.join(', ')}: no es una fila del guion ni un cubierto.` };
   const fuera = new Set(ids);
   const limpio: Perfil = { ...perfil, cubiertos: perfil.cubiertos.filter((id) => !fuera.has(id)) };
-  const secuencia = rearmar({ ...s, cubiertos: s.cubiertos.filter((id) => !fuera.has(id)) }, limpio, anioActual);
+  const nombrados = Object.fromEntries(Object.entries(s.nombrados ?? {}).filter(([id]) => !fuera.has(id)));
+  const secuencia = rearmar({ ...s, cubiertos: s.cubiertos.filter((id) => !fuera.has(id)), nombrados }, limpio, anioActual);
   return { secuencia, perfil: limpio };
 }
 

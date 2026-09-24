@@ -414,6 +414,14 @@ Es una repregunta a lo de hoy. Le preguntaste: "¿Cómo eran tu mamá y tu papá
 Pedilo junto, en UNA sola pregunta corta, como quien sigue la charla. No digas que es una repregunta, no le pidas que resuma ni que repita lo que ya dijo, no abras un tema nuevo.
 ```
 
+### El objetivo de una fila ya nombrada (ajuste E: la-escuela, que ya tocó en la cuadra y los juegos) para Naza (27)
+
+```
+La escuela primaria.
+Pormenores que podés juntar en la misma pregunta (elegí dos o tres según lo que ya contó y pedilos juntos, en una sola pregunta): un maestro; un compañero; cómo le iba; si cambió de colegio y por qué.
+Ya contó algo de esto cuando hablaron de «La cuadra, los juegos y los amigos del barrio»: no le pidas que lo repita; andá a lo que todavía no contó de este tema.
+```
+
 ### El prompt de la ficha para Naza (27)
 
 ```
@@ -889,6 +897,14 @@ y sumá "reservado", "hoyNo", "quiereParar", "dejarTema" y "reservadoTramo" cuan
 ```
 Es una repregunta a lo de hoy. Le preguntaste: "¿Cómo eran tu mamá y tu papá?". De eso faltó: "en qué se parece", "una escena de cada uno".
 Pedilo junto, en UNA sola pregunta corta, como quien sigue la charla. No digas que es una repregunta, no le pidas que resuma ni que repita lo que ya dijo, no abras un tema nuevo.
+```
+
+### El objetivo de una fila ya nombrada (ajuste E: la-escuela, que ya tocó en la cuadra y los juegos) para Élida (76)
+
+```
+La escuela primaria.
+Pormenores que podés juntar en la misma pregunta (elegí dos o tres según lo que ya contó y pedilos juntos, en una sola pregunta): un maestro; un compañero; cómo le iba; si cambió de colegio y por qué.
+Ya contó algo de esto cuando hablaron de «La cuadra, los juegos y los amigos del barrio»: no le pidas que lo repita; andá a lo que todavía no contó de este tema.
 ```
 
 ### El prompt de la ficha para Élida (76)

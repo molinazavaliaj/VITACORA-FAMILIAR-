@@ -424,12 +424,25 @@ describe('manual-v2 de punta a punta (base y modelo falsos)', () => {
     await correr('cargar', 'pruebav2', '--texto', 'Los perros se escaparon un verano y nunca volvieron, fue muy triste para todos en casa.');
     await correr('siguiente', 'pruebav2');
     expect(v2().secuencia.hechas.at(-1).id).toBe('a-los-quince');
+    // Ajuste E (25/09): la ficha da por contada la próxima fila de la juventud; no se tacha: queda
+    // nombrada y su pregunta sale igual, con la línea de no repetir y buscar lo que falta.
+    const nombrada = v2().secuencia.pendientes[0];
+    expect(nombrada.bloque).toBe('juventud');
+    h.colaPerfil.push(JSON.stringify({ cubiertos: [nombrada.id] }));
     // Primera de la juventud: sale.
     const primera = await cargarAudio(42);
     expect(primera.texto).toMatch(/Repregunta \(faltó/);
+    expect(primera.texto).toContain(`ya nombrados (se preguntan igual, yendo a lo que falta): ${nombrada.id}`);
+    expect(primera.texto).not.toMatch(/no se preguntan/);
+    expect(v2().secuencia.nombrados).toEqual({ [nombrada.id]: 'a-los-quince' });
+    expect(v2().secuencia.cubiertos).not.toContain(nombrada.id);
     await correr('cargar', 'pruebav2', '--texto', 'Parábamos en la plaza.', '--repregunta');
     // Segunda de la etapa con una respuesta que no fue corta: no sale.
+    h.prompts.length = 0;
     await correr('siguiente', 'pruebav2');
+    expect(v2().secuencia.hechas.at(-1).id).toBe(nombrada.id);
+    const prompt = h.prompts.find((x) => x.includes('LO QUE TE TOCA PREGUNTAR HOY'))!;
+    expect(prompt).toMatch(/Ya contó algo de esto cuando hablaron de «[^»\n]+»: no le pidas que lo repita; andá a lo que todavía no contó de este tema\./);
     const larga = await cargarAudio(42);
     expect(larga.texto).toMatch(/ya hubo una repregunta en esta etapa/);
     // Corta (20 s) y con dos faltantes: sale la segunda.

@@ -114,7 +114,7 @@ export function elegirFilas(pendientes: Objetivo[], n: number): Objetivo[] {
 /** Un estado v2 mínimo, para usar los helpers reales de la puerta manual (`conversacionDe`, `yaHechasDe`). */
 function estadoMinimo(v2: Record<string, any>, hechas: Objetivo[] = []): EstadoV2 {
   return {
-    secuencia: { pendientes: [], hechas: hechas.map((o, i) => ({ id: o.id, orden: i + 1, tramo: tramoDe(o), objetivo: o })), cubiertos: [], caidas: [], objetos: [], ultimoTramo: null, libres: 0 },
+    secuencia: { pendientes: [], hechas: hechas.map((o, i) => ({ id: o.id, orden: i + 1, tramo: tramoDe(o), objetivo: o })), cubiertos: [], nombrados: {}, caidas: [], objetos: [], ultimoTramo: null, libres: 0 },
     preguntasEnviadas: v2.preguntasEnviadas ?? {},
     repreguntasEnviadas: v2.repreguntasEnviadas ?? {},
     bloqueadas: v2.bloqueadas ?? [],

@@ -45,7 +45,7 @@ export type Perfil = {
   noSabemos: string[];
   /** Vínculos que dijo NO tener ("no tuve hijos", "nunca me casé"): el guion no pregunta por ellos ni los supone. */
   noTuvo: string[];
-  /** Temas fijos que ya contó con detalle sin que se los preguntaran: no se preguntan. */
+  /** Temas fijos que ya contó con detalle sin que se los preguntaran. Ajuste E (25/09): solo las puertas dejan de preguntarse; los demás se preguntan igual, yendo a lo que falta (`secuencia.nombrados`). */
   cubiertos: string[];
   /** Si la respuesta de HOY abrió un tema pendiente que conviene cruzar mañana (id del tema). De hoy, no se arrastra. */
   puertaAbierta: string | null;

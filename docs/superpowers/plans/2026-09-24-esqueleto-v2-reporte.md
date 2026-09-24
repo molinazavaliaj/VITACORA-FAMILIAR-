@@ -144,3 +144,16 @@ Nota de caché: lo fijo del prompt de la pregunta (~714 tokens) se había partid
 Estimado del piloto: **~USD 3** (antes ~USD 5-6), por el cambio de precio de la pregunta de Opus a Sonnet.
 
 Tests: `entrevistador` 640 → **659** verdes; `fabrica` sin tocar, sigue en 537.
+
+## Ajuste E (25/09): no se tacha ningún tema solo
+
+Decisión de producto de Naza durante su piloto en vivo: aun con el candado de los cubiertos, Sonnet seguía tachando filas que solo había nombrado al pasar (a-los-quince, estudios, oficio, hermano-ariel, primer-amor). Desde ahora **ninguna fila del guion se cae sola**:
+
+- Solo las **puertas** (`*-puerta`, saber un dato) se siguen resolviendo y tachando como antes (`secuencia.cubiertos`).
+- Cualquier otra fila que la ficha dé por contada queda en el guion y se anota como **nombrada**: `secuencia.nombrados` (`fila → fila desde cuya respuesta se nombró`; la primera que la tocó queda). El candado (`motivoParaNoCubrir`) sigue decidiendo cuáles vale la pena anotar: lo que rechaza (repasos del inicio, fila de una persona, otra etapa, inicio/hoy/futuro/reflexión) no se anota, sale de la ficha y se sigue imprimiendo como "cubiertos rechazados".
+- Al escribir la pregunta de una fila nombrada (`conNombrado` → `objetivoEnTexto`), el objetivo suma una línea, **texto nuevo para aprobar** (está en `docs/esqueleto-v2-textos-para-aprobar.md`):
+  > Ya contó algo de esto cuando hablaron de «<tema corto de la fila de origen>»: no le pidas que lo repita; andá a lo que todavía no contó de este tema.
+- La salida de `cargar` pasa de "cubiertos (no se preguntan): …" a **"ya nombrados (se preguntan igual, yendo a lo que falta): …"** (y "puertas resueltas (no se preguntan): …" para las puertas). `estado` y `descubrir` muestran los nombrados; `descubrir` también saca una fila de los nombrados.
+- Compatibilidad: el estado guardado del piloto (sin `nombrados`) carga con `{}`; lo que ya se había tachado antes queda como está (para devolverlo, `descubrir`).
+- Costo: cero; puede sumar alguna pregunta frente a antes (las que se tachaban), siempre dentro del techo del guion.
+- Tests: `entrevistador` 706 → **714** verdes (tipos limpios); `fabrica` sin tocar.

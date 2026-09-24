@@ -21,7 +21,8 @@ export const NUCLEO: readonly { id: string; tramo: Tramo | null; bloque: Bloque;
 }));
 
 export type Objetivo =
-  | ({ tipo: 'nucleo' } & FilaObjetivo)
+  /** `yaNombradoEn` (ajuste E, 25/09): solo al escribir la pregunta (`conNombrado`), el tema corto de donde ya se habló de esto. */
+  | ({ tipo: 'nucleo'; yaNombradoEn?: string } & FilaObjetivo)
   | { tipo: 'variable'; id: string; tramo: Tramo; desde: number; hasta: number; anclas: string[] }
   /** `final`: el objeto de cierre (guion §2: "uno al cerrar cada tramo y uno al final"); su tramo es el último vivido, para la época. */
   | { tipo: 'objeto'; id: string; tramo: Tramo; final?: boolean }
@@ -45,6 +46,9 @@ const MAX_ANCLA = 160;
  * fila del guion lleva su tema con los pormenores que puede juntar (dos o tres, en una sola
  * pregunta) y, si pide escena, lo dice.
  */
+/** Ajuste E (25/09): la línea de una fila que ya se nombró en otra respuesta (texto que aprobó Naza). */
+export const yaNombrado = (tema: string) => `Ya contó algo de esto cuando hablaron de «${tema}»: no le pidas que lo repita; andá a lo que todavía no contó de este tema.`;
+
 export function objetivoEnTexto(o: Objetivo, perfil: Perfil): string {
   if (o.tipo === 'objeto' && o.final) {
     return 'Pedile UNA cosa que tenga en casa y que guardaría de toda su vida: un objeto, un papel, una foto vieja, lo que sea. Con una foto, y que cuente por qué esa. Si no tiene, no pasa nada: no se insiste nunca.';
@@ -72,7 +76,7 @@ export function objetivoEnTexto(o: Objetivo, perfil: Perfil): string {
     ? `\nPormenores que podés juntar en la misma pregunta (elegí dos o tres según lo que ya contó y pedilos juntos, en una sola pregunta): ${o.pormenores.join('; ')}.`
     : '';
   const escena = o.pideEscena ? '\nPedila como una escena: un día, un lugar, quién estaba.' : '';
-  return `${o.tema}${pormenores}${escena}`;
+  return `${o.tema}${pormenores}${escena}${o.yaNombradoEn ? `\n${yaNombrado(o.yaNombradoEn)}` : ''}`;
 }
 
 /** Cuánto entra de cada tema ya hecho y de cada repregunta ya mandada en "TEMAS QUE YA LE PREGUNTASTE". */
