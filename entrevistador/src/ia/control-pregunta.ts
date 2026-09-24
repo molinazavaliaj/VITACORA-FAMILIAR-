@@ -11,7 +11,7 @@ import type { Objetivo } from './pregunta-v2.js';
 // `esPresentacion` se recalcula acá en vez de importarse.
 const esPresentacion = (o: Objetivo) => o.tipo === 'nucleo' && o.id === 'presentacion';
 
-export type Rechazo = { ok: false; control: 'trato' | 'largo' | 'pregunta' | 'lugar' | 'supuestos'; motivo: string };
+export type Rechazo = { ok: false; control: 'trato' | 'largo' | 'pregunta' | 'lugar' | 'supuestos' | 'genero'; motivo: string };
 export type Marca = { control: string; motivo: string; intentos: number };
 /** Cuántas veces se le pide al modelo que reescriba antes de mandar la última igual, marcada. */
 export const INTENTOS = 3;
@@ -127,10 +127,50 @@ export function controlarSupuestos(texto: string, perfil: Perfil): { ok: true } 
 }
 
 /**
+ * Verbos que se dirigen a la persona con un clítico pegado que ya elige género (conocerLA,
+ * llamarLO...). Lista corta y cerrada a propósito: son los que aparecen en la presentación y en
+ * preguntas del día (conocer, llamar, escuchar, acompañar). Sin acentos, como todo acá.
+ */
+const CLITICOS_GENERO = ['conocerla', 'conocerlo', 'llamarla', 'llamarlo', 'escucharla', 'escucharlo', 'acompanarla', 'acompanarlo'];
+
+/**
+ * ¿La pregunta se dirige a la persona en un género que la ficha no respalda? Piloto del 24/09:
+ * con `perfil.persona.genero` vacío, la presentación salió en femenino ("necesito conocerLA un
+ * poco... ¿cómo LA llaman los suyos?") — el encargo ya pide "escribí de manera que sirva para
+ * los dos" pero nada lo controlaba, porque trato/largo/pregunta no miran género. Este control
+ * agarra los casos más claros y comunes (clíticos pegados a un verbo que se dirige a la
+ * persona, "la/lo llaman", y un puñado de adjetivos de saludo) y no más: una lista corta,
+ * porque cada rechazo de más es un reintento pago. "solo" (= únicamente) y palabras ambiguas
+ * como cansada/tranquila/segura quedan afuera a propósito: no hay forma barata de saber si
+ * ahí son de segunda persona sin correr el riesgo de rechazar de más. Cuando el perfil YA sabe
+ * el género (mujer u hombre), este control no hace nada nuevo.
+ */
+export function controlarGenero(texto: string, perfil: Perfil): { ok: true } | Rechazo {
+  const g = perfil.persona.genero?.valor?.toLowerCase() ?? '';
+  if (g.includes('mujer') || g.includes('hombre')) return { ok: true };
+  const limpio = sinAcentos(texto);
+  for (const c of CLITICOS_GENERO) {
+    if (new RegExp(`\\b${c}\\b`).test(limpio)) {
+      return { ok: false, control: 'genero', motivo: `no se sabe si es mujer u hombre y "${c}" ya elige: escribí de manera que sirva para los dos, sin la/lo pegado a la persona` };
+    }
+  }
+  if (/\b(la|lo) llaman\b/.test(limpio)) {
+    return { ok: false, control: 'genero', motivo: 'no se sabe si es mujer u hombre y "la/lo llaman" ya elige: probá "cómo le dicen"' };
+  }
+  if (/(?<!\bla )\bbienvenida\b/.test(limpio) || /\bbienvenido\b/.test(limpio)) {
+    return { ok: false, control: 'genero', motivo: 'no se sabe si es mujer u hombre y "bienvenida/bienvenido" ya elige' };
+  }
+  if (/\bquerida\b/.test(limpio) || /\bquerido\b/.test(limpio)) {
+    return { ok: false, control: 'genero', motivo: 'no se sabe si es mujer u hombre y "querida/querido" ya elige' };
+  }
+  return { ok: true };
+}
+
+/**
  * Todos los controles juntos, en orden: primero la forma (trato, largo, que pregunte algo —
- * `encargo-entrevista.ts`), y solo si la forma está bien, el lugar y los supuestos. La
- * presentación no es una pregunta del día: se controla la forma nomás (con su propio tope de
- * palabras) y no se le exige lugar ni supuestos.
+ * `encargo-entrevista.ts`), después el género (también en la presentación: ahí fue donde
+ * falló). Solo si eso está bien, el lugar y los supuestos. La presentación no es una pregunta
+ * del día: no se le exige lugar ni supuestos.
  */
 export function controlarPregunta(texto: string, perfil: Perfil, objetivo: Objetivo): { ok: true } | Rechazo {
   const presentacion = esPresentacion(objetivo);
@@ -139,6 +179,8 @@ export function controlarPregunta(texto: string, perfil: Perfil, objetivo: Objet
     const control = /habla de otra manera/.test(forma.motivo) ? 'trato' : /palabras/.test(forma.motivo) ? 'largo' : 'pregunta';
     return { ok: false, control, motivo: forma.motivo };
   }
+  const genero = controlarGenero(texto, perfil);
+  if (!genero.ok) return genero;
   if (presentacion) return { ok: true };
   const lugar = controlarLugar(texto, perfil, objetivo);
   if (!lugar.ok) return lugar;

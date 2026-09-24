@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { controlarLugar, controlarSupuestos, controlarPregunta } from '../src/ia/control-pregunta.js';
+import { controlarLugar, controlarSupuestos, controlarGenero, controlarPregunta } from '../src/ia/control-pregunta.js';
 import { perfilVacio, type Perfil } from '../src/ia/perfil.js';
 import type { Objetivo } from '../src/ia/pregunta-v2.js';
 
@@ -118,7 +118,54 @@ describe('controlarPregunta (todos juntos)', () => {
     expect(controlarPregunta('Cuénteme de Concordia.', p, variable(13, 22))).toMatchObject({ ok: false, control: 'trato' });
     expect(controlarPregunta('¿Y tus hijos en Concordia a los 16?', p, variable(13, 22))).toMatchObject({ ok: false, control: 'lugar' });
     expect(controlarPregunta('¿Y tus hijos en Buenos Aires a los 16?', p, variable(13, 22))).toMatchObject({ ok: false, control: 'supuestos' });
-    expect(controlarPregunta('Hola, soy tu biógrafo. Voy a escribir el libro de tu vida con lo que me cuentes. Decime cómo te dicen en casa.', p, { tipo: 'nucleo', id: 'presentacion', tramo: null, bloque: 'presentacion', tema: '' } as never)).toEqual({ ok: true });
+    expect(controlarPregunta('Hola, soy tu biógrafo. Voy a escribir el libro de tu vida con lo que me cuentes. Decime cómo te dicen en casa.', p, { tipo: 'nucleo', id: 'presentacion', tramo: null, bloque: 'presentacion', tema: '' } as never)).toMatchObject({ ok: true });
+  });
+  it('el control de género también corre en la presentación, antes de la forma quedar exenta de lugar/supuestos (piloto 24/09)', () => {
+    const presentacion = { tipo: 'nucleo', id: 'presentacion', tramo: null, bloque: 'presentacion', tema: '' } as never;
+    const p = ciro(); p.persona.comoHabla = { valor: 'vos', fuente: 'dicho' };
+    expect(controlarPregunta('Antes de arrancar necesito conocerla un poco. ¿Cómo la llaman los suyos?', p, presentacion)).toMatchObject({ ok: false, control: 'genero' });
+  });
+});
+
+describe('controlarGenero (piloto 24/09: la presentación salió en femenino con género desconocido)', () => {
+  it('rechaza el texto exacto que se mandó en el piloto, con la ficha sin género', () => {
+    const r = controlarGenero('Antes de arrancar necesito conocerla un poco. Le cuento: voy a escribir el libro de su vida con lo que me cuente. ¿Y cómo la llaman los suyos?', perfilVacio());
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.control).toBe('genero');
+  });
+  it('acepta ese mismo texto si la ficha ya sabe que es mujer', () => {
+    const p = perfilVacio();
+    p.persona.genero = { valor: 'mujer', fuente: 'dicho' };
+    expect(controlarGenero('Antes de arrancar necesito conocerla un poco. ¿Y cómo la llaman los suyos?', p).ok).toBe(true);
+  });
+  it('acepta una reescritura neutra, de vos o de usted, con género desconocido', () => {
+    expect(controlarGenero('Antes de arrancar necesito saber un poco de vos: ¿cómo preferís que te hable?', perfilVacio()).ok).toBe(true);
+    expect(controlarGenero('Antes de arrancar necesito saber un poco de usted: ¿cómo le dicen en su casa?', perfilVacio()).ok).toBe(true);
+  });
+  it('rechaza otros clíticos y adjetivos que ya eligen género, con género desconocido', () => {
+    for (const t of [
+      'Quiero escucharla contar cómo era su casa.',
+      'Quiero escucharlo contar cómo era su casa.',
+      'Me gustaría acompañarla en este libro.',
+      'Me gustaría acompañarlo en este libro.',
+      '¡Bienvenida a este proyecto!',
+      '¡Bienvenido a este proyecto!',
+      'Querida, ¿cómo empezamos?',
+      'Querido, ¿cómo empezamos?',
+    ]) {
+      const r = controlarGenero(t, perfilVacio());
+      expect(r.ok, t).toBe(false);
+    }
+  });
+  it('no rechaza usos de "la/lo" que no se dirigen a la persona (pocos falsos positivos, a propósito)', () => {
+    for (const t of [
+      '¿Cómo era la casa donde creciste?',
+      'Contame de la vez que te llamaron por teléfono con una noticia.',
+      'Te doy la bienvenida a este espacio para contar tu vida.',
+      '¿Cómo era la escuela a la que ibas?',
+    ]) {
+      expect(controlarGenero(t, perfilVacio()).ok, t).toBe(true);
+    }
   });
 });
 
