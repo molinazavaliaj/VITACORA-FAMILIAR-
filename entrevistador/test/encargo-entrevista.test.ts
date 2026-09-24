@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { encargoDelBiografo, controlarTexto, tratoDelPerfil } from '../src/ia/encargo-entrevista.js';
+import { encargoDelBiografo, controlarTexto, tratoDelPerfil, perfilEnTexto } from '../src/ia/encargo-entrevista.js';
 import { perfilVacio, type Perfil } from '../src/ia/perfil.js';
 
 // El encargo compartido del entrevistador y la evaluación v2 (biógrafo v2, 23/09). La pregunta
@@ -80,6 +80,24 @@ describe('encargoDelBiografo', () => {
     expect(controlarTexto(larga, 'vos').ok).toBe(false);
     expect(controlarTexto(larga, 'vos', { presentacion: true })).toEqual({ ok: true });
     expect(controlarTexto(`${'palabra '.repeat(95)}.`, 'vos', { presentacion: true }).ok).toBe(false);
+  });
+});
+
+describe('el encargo (esqueleto v2)', () => {
+  it('la regla 7 pide lo concreto pero deja pedir "cómo era" alguien sin escena obligatoria (N42: se supo qué hicieron, no cómo son)', () => {
+    const e = encargoDelBiografo(perfilVacio());
+    expect(e).toMatch(/7\. Pedí lo concreto/);
+    expect(e).toMatch(/cómo ES alguien/);
+    expect(e).not.toMatch(/Pedí una escena, no un resumen/);
+  });
+  it('la regla 2 remite a los temas ya preguntados y a juntar pormenores en una sola pregunta', () => {
+    const e = encargoDelBiografo(perfilVacio());
+    expect(e).toMatch(/2\. Nunca le pidas lo que ya contó/);
+    expect(e).toMatch(/varios pormenores/);
+  });
+  it('perfilEnTexto muestra noTuvo como "no tuvo" para que el modelo no pregunte por eso', () => {
+    const p = perfilVacio(); p.noTuvo = ['hijos'];
+    expect(perfilEnTexto(p)).toMatch(/No tuvo: hijos/);
   });
 });
 

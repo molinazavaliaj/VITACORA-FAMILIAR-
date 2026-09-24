@@ -140,6 +140,7 @@ export function perfilEnTexto(p: Perfil): string {
     ...(p.bisagras.length ? ['', 'Momentos que partieron su vida:', ...p.bisagras.map((b) => `- ${b}`)] : []),
     ...(p.tono ? ['', `Cómo fue esta vida: ${p.tono}`] : []),
     ...(p.noSabemos.length ? ['', 'NO SABÉS (no lo supongas):', ...p.noSabemos.map((x) => `- ${x}`)] : []),
+    ...(p.noTuvo?.length ? ['', `No tuvo: ${p.noTuvo.join(', ')} (lo dijo: no se pregunta por eso ni se supone).`] : []),
   ];
   return lineas.join('\n');
 }
