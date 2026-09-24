@@ -21,6 +21,7 @@
  *   npm run manual-v2 -- cargar naza --reprocesar [--repregunta] [--orden N] [--es-suyo]
  *   npm run manual-v2 -- siguiente naza [--saltar] [--reanudar] [--seguido no] [--max 8]
  *   npm run manual-v2 -- estado naza
+ *   npm run manual-v2 -- descubrir naza <id> [<id> ...]
  *
  * Piloto "de cero, reusando respuestas viejas" (ajuste D, 24/09): `empezar naza2 --nombre "Naza"
  * --reusar <narrador_id_viejo>`. Cada pregunta nueva (presentación, núcleo o libre) se busca entre
@@ -49,7 +50,7 @@ import {
 } from '../src/manual/reusar-v2.js';
 import { buscarReusable } from '../src/ia/reusar-v2.js';
 import { actualizarPerfil } from '../src/ia/perfil.js';
-import { proxima, avanzar, aplicarCubiertos, etapaCerrada, agregarLibre, tocaObjeto, registrarObjeto, tramoDe } from '../src/ia/secuencia.js';
+import { proxima, avanzar, cubrirDesde, descubrir, etapaCerrada, agregarLibre, tocaObjeto, registrarObjeto, tramoDe, type Rechazado } from '../src/ia/secuencia.js';
 import { escribirPregunta, perfilEnTexto, type Objetivo, type YaHecha } from '../src/ia/pregunta-v2.js';
 import { evaluarV2, evaluarPedidos, hayCansancio, type EvaluacionV2 } from '../src/ia/evaluar-v2.js';
 import { modeloDePaso, type PasoV2 } from '../src/ia/modelos-v2.js';
@@ -534,8 +535,11 @@ async function procesar(
   if (!p.ok) linea('⚠ La ficha no se entendió (salida ilegible): queda como estaba.');
   const pendientesAntes = estado.secuencia.pendientes.map((o) => o.id);
   estado = rearmarSiHaceFalta({ ...estado, perfil: p.perfil });
-  estado = { ...estado, secuencia: aplicarCubiertos(estado.secuencia, estado.perfil) };
-  imprimirCambiosDePerfil(antes, estado, pendientesAntes);
+  // El candado de los cubiertos (24/09): un repaso del inicio no cubre nada (salvo puertas), la fila de
+  // una persona solo la cubre contestarla, y lo que se rechaza sale de la ficha (`cubrirDesde`).
+  const cubre = cubrirDesde(estado.secuencia, antes.cubiertos, estado.perfil, objetivo);
+  estado = { ...estado, perfil: cubre.perfil, secuencia: cubre.secuencia };
+  imprimirCambiosDePerfil(antes, estado, pendientesAntes, cubre.rechazados);
   const procesada = (e: EstadoV2): EstadoV2 => ({ ...e, procesadas: [...new Set([...e.procesadas, respuestaId])] });
 
   // 2. La presentación solo alimenta la ficha: no se evalúa ni se repregunta.
@@ -664,7 +668,7 @@ async function procesar(
 }
 
 /** Lo que el perfil aprendió hoy, en pocas líneas: para ver si se da cuenta solo de quién es. */
-function imprimirCambiosDePerfil(antes: EstadoV2['perfil'], estado: EstadoV2, pendientesAntes: string[]): void {
+function imprimirCambiosDePerfil(antes: EstadoV2['perfil'], estado: EstadoV2, pendientesAntes: string[], rechazados: Rechazado[] = []): void {
   const p = estado.perfil;
   const cambios: string[] = [];
   for (const [campo, dato] of Object.entries(p.persona)) {
@@ -677,6 +681,7 @@ function imprimirCambiosDePerfil(antes: EstadoV2['perfil'], estado: EstadoV2, pe
   if (bisagras.length) cambios.push(`bisagras nuevas: ${bisagras.join(' · ')}`);
   const cubiertos = p.cubiertos.filter((c) => !antes.cubiertos.includes(c));
   if (cubiertos.length) cambios.push(`cubiertos (no se preguntan): ${cubiertos.join(', ')}`);
+  if (rechazados.length) cambios.push(`cubiertos rechazados (se preguntan igual): ${rechazados.map((r) => `${r.id} (${r.motivo})`).join(', ')}`);
   if (p.hoyFueFuerte) cambios.push('hoy fue fuerte: mañana lo reconoce antes de preguntar');
   if (p.noTuvo.length !== antes.noTuvo.length) cambios.push(`no tuvo: ${p.noTuvo.join(', ')}`);
   const ahora = estado.secuencia.pendientes.map((o) => o.id);
@@ -977,6 +982,27 @@ async function verEstado(ref: string | undefined): Promise<void> {
   linea();
 }
 
+/**
+ * `descubrir <narrador> <id> [<id> ...]`: devuelve al guion filas que la ficha dio por contadas por
+ * error (24/09: un repaso del inicio que "cubrió" a-los-quince, estudios y oficio). Sin modelo: saca
+ * los ids de los cubiertos (secuencia y ficha), rearma la secuencia (cada fila en su lugar, sin
+ * duplicar, sin las hechas, con el techo), guarda e imprime cómo quedan las pendientes.
+ */
+async function descubrirFilas(ref: string | undefined, ids: string[], flags: Args['flags']): Promise<void> {
+  if (!ref || !ids.length) throw new Error('Uso: descubrir <narrador> <id> [<id> ...]   (los ids, como los muestra "estado")');
+  const { n, estado } = await exigirNarrador(ref, flags);
+  const r = descubrir(estado.secuencia, estado.perfil, ids);
+  if ('error' in r) throw new Error(`No descubrí nada: ${r.error}`);
+  await guardar(n, { ...estado, secuencia: r.secuencia, perfil: r.perfil });
+  const pendientes = r.secuencia.pendientes.map((o) => o.id);
+  const noVolvieron = ids.filter((id) => !pendientes.includes(id));
+  titulo(`${n.como_le_dicen}: vuelven al guion ${ids.join(', ')}`);
+  if (noVolvieron.length) linea(`⚠ No entraron (el techo o el guion de hoy no las tienen): ${noVolvieron.join(', ')}`);
+  linea(`Cubiertos que quedan: ${r.secuencia.cubiertos.length ? r.secuencia.cubiertos.join(', ') : 'ninguno'}`);
+  linea(`Pendientes (${pendientes.length}), en orden:`);
+  pendientes.forEach((id, i) => linea(`  ${String(i + 1).padStart(2)}. ${id}${ids.includes(id) ? '   ← volvió' : ''}`));
+}
+
 function ayuda(): void {
   linea(`
 Puerta manual v2 — la entrevista con el cerebro nuevo (nada sale por WhatsApp: se imprime para pegar)
@@ -987,6 +1013,7 @@ Puerta manual v2 — la entrevista con el cerebro nuevo (nada sale por WhatsApp:
   npm run manual-v2 -- cargar naza --reprocesar [--repregunta] [--orden N] [--es-suyo]
   npm run manual-v2 -- siguiente naza [--saltar] [--reanudar] [--seguido no] [--max 8]
   npm run manual-v2 -- estado naza
+  npm run manual-v2 -- descubrir naza <id> [<id> ...]   (devuelve al guion filas cubiertas por error; sin modelo)
 
   Piloto que reusa respuestas viejas (ajuste D):
   npm run manual-v2 -- empezar naza-reusa --nombre "Naza" --le-dicen "Naza reusa" --reusar <narrador_id_viejo>
@@ -1011,6 +1038,7 @@ const COMANDOS: Record<string, (a: Args) => Promise<void>> = {
   cargar: (a) => cargar(a.posicionales[0], a.posicionales.slice(1), a.flags),
   siguiente: (a) => siguiente(a.posicionales[0], a.flags),
   estado: (a) => verEstado(a.posicionales[0]),
+  descubrir: (a) => descubrirFilas(a.posicionales[0], a.posicionales.slice(1), a.flags),
   ayuda: async () => ayuda(),
 };
 

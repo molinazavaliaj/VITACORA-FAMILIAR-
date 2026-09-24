@@ -239,10 +239,16 @@ describe('manual-v2 de punta a punta (base y modelo falsos)', () => {
     expect(r.texto.trim().endsWith(v2().repreguntasEnviadas['1'])).toBe(true);
     // La respuesta a la repregunta no se evalúa entera: solo los pedidos (Haiku).
     const desde = h.llamadas.length;
+    // La ficha marca la reflexión como contada: el candado de los cubiertos la rechaza, lo dice y la saca de la ficha.
+    h.colaPerfil.push(JSON.stringify({ cubiertos: ['cinco-minutos'] }));
     const rr = await correr('cargar', 'pruebav2', '--texto', 'Mis viejos y mi hermana.', '--repregunta');
     expect(rr.fallo).toBe(false);
     expect(h.llamadas.slice(desde)).toEqual(['perfil', 'pedidos']);
     expect(rr.texto).toMatch(/no se repregunta/);
+    expect(rr.texto).toMatch(/cubiertos rechazados \(se preguntan igual\): cinco-minutos \(reflexion: nunca la cubre otra respuesta\)/);
+    expect(rr.texto).not.toMatch(/cubiertos \(no se preguntan\)/);
+    expect(v2().perfil.cubiertos).not.toContain('cinco-minutos');
+    expect(v2().secuencia.pendientes.map((o: any) => o.id)).toContain('cinco-minutos');
     expect(Object.keys(v2().repreguntasEnviadas)).toEqual(['1']);
   });
 
@@ -694,5 +700,42 @@ describe('manual-v2 reusando las respuestas de un piloto viejo (base y modelo fa
     expect(e.texto).toContain(`reusadas: ${Object.keys(usadas).length} de 7 (del narrador viejo-piloto)`);
     expect(e.texto).toMatch(/ {3}1 · casa-infancia/);
     expect(viejo()).toBe(fotoViejo);
+  });
+
+  it('descubrir devuelve al guion filas cubiertas por error: en su lugar, sin modelo; un id desconocido frena sin tocar nada; el piloto viejo frena', async () => {
+    // Como en el piloto real: la ficha dio por contadas estudios y a-los-quince (y quedaron en la ficha).
+    const antes = r2().secuencia.pendientes.map((o: any) => o.id);
+    const volver = ['a-los-quince', 'estudios'].filter((id) => antes.includes(id));
+    expect(volver).toEqual(['a-los-quince', 'estudios']);
+    const ctx = nuevo().contexto.v2;
+    ctx.secuencia.pendientes = ctx.secuencia.pendientes.filter((o: any) => !volver.includes(o.id));
+    ctx.secuencia.cubiertos = [...ctx.secuencia.cubiertos, ...volver];
+    ctx.perfil.cubiertos = [...ctx.perfil.cubiertos, ...volver];
+    h.llamadas.length = 0;
+    const gasto = r2().gastoUsd;
+
+    const mal = await correr('descubrir', 'reusov2', 'estudios', 'no-existe');
+    expect(mal.fallo).toBe(true);
+    expect(mal.texto).toMatch(/No conozco no-existe/);
+    expect(r2().secuencia.cubiertos).toEqual(expect.arrayContaining(volver));
+
+    const viejoFrena = await correr('descubrir', 'viejo-piloto', 'estudios');
+    expect(viejoFrena.fallo).toBe(true);
+    expect(viejoFrena.texto).toMatch(/es el piloto viejo/);
+
+    const r = await correr('descubrir', 'reusov2', 'a-los-quince', 'estudios');
+    expect(r.fallo).toBe(false);
+    expect(r2().secuencia.pendientes.map((o: any) => o.id)).toEqual(antes);
+    expect(r2().secuencia.cubiertos.some((id: string) => volver.includes(id))).toBe(false);
+    expect(r2().perfil.cubiertos.some((id: string) => volver.includes(id))).toBe(false);
+    expect(r.texto).toMatch(/a-los-quince {3}← volvió/);
+    expect(r.texto).toMatch(/estudios {3}← volvió/);
+    // Sin modelo y sin gasto.
+    expect(h.llamadas).toEqual([]);
+    expect(r2().gastoUsd).toBe(gasto);
+    // Una que ya se hizo no vuelve.
+    const hecha = await correr('descubrir', 'reusov2', 'casa-infancia');
+    expect(hecha.fallo).toBe(true);
+    expect(hecha.texto).toMatch(/casa-infancia: ya se preguntó/);
   });
 });

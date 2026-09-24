@@ -97,6 +97,76 @@ export function aplicarCubiertos(s: Secuencia, perfil: Perfil): Secuencia {
   return { ...s, pendientes, cubiertos };
 }
 
+// ── El candado de los cubiertos (piloto de Naza, 24/09) ─────────────────────
+// La ficha (Sonnet) marcaba como "ya contadas" filas que solo se nombraron al pasar: la respuesta a
+// mapa-capitulos cubrió a-los-quince, estudios y oficio; "con mi hermano mayor" en padres-como-eran
+// cubrió hermano-ariel. La regla aprobada es "con detalle (una escena, nombres); al pasar, no", y
+// estas tres no dependen del modelo:
+//  a. Los repasos del inicio (mapa-casas, mapa-capitulos, los-tuyos-hoy) nombran todo y no cuentan
+//     nada: no cubren ninguna fila, salvo las puertas (`*-puerta`), que son saber un dato.
+//  b. La fila de una persona (`hermano-*`, `hijo-*`, `hermanos-todos`…) solo la cubre contestarla.
+//  c. Inicio, hoy, futuro y reflexión nunca los cubre otra respuesta (`NO_SE_CUBRE`).
+
+/** Los repasos del inicio: una pasada por toda la vida, que nombra todo. */
+const REPASOS = new Set(['mapa-casas', 'mapa-capitulos', 'los-tuyos-hoy']);
+/** Las filas del guion que se expanden por persona (`expandePor`). */
+const FILAS_POR_PERSONA = new Set(['hermano', 'hijo']);
+
+/** La fila de UNA persona: `hermano-ariel`, `hijo-lola`, `hermanos-todos` (no `hijo-unico` ni `hermanos-puerta`, que salen de la misma fila base). */
+function esDeUnaPersona(o: Extract<Objetivo, { tipo: 'nucleo' }>): boolean {
+  const base = o.fila ?? o.id.split('-')[0];
+  return FILAS_POR_PERSONA.has(base) && (o.id.startsWith(`${base}-`) || o.id === `${base}s-todos`);
+}
+
+/** Por qué la respuesta a `desde` NO puede cubrir la fila pendiente `fila` (null: puede). */
+export function motivoParaNoCubrir(desde: Objetivo, fila: Objetivo): string | null {
+  if (fila.tipo !== 'nucleo' || fila.id === desde.id) return null;
+  if (NO_SE_CUBRE.has(fila.bloque)) return `${fila.bloque}: nunca la cubre otra respuesta`;
+  if (REPASOS.has(desde.id) && !fila.id.endsWith('-puerta')) return `${desde.id} es un repaso: nombrar no es contar`;
+  if (esDeUnaPersona(fila)) return 'es la fila de una persona: solo la cubre contestarla';
+  return null;
+}
+
+export type Rechazado = { id: string; motivo: string };
+
+/**
+ * Los cubiertos de UNA respuesta (la de `desde`), con el candado: de los que la ficha marcó hoy
+ * (`perfil.cubiertos` que no estaban en `antes`), los que no pasan se rechazan y SALEN de la ficha
+ * (si quedaran, la próxima respuesta los aplicaría sin candado); después, `aplicarCubiertos`.
+ * Es el único lugar por donde pasan los cubiertos de `procesar` (respuesta en vivo o reusada).
+ */
+export function cubrirDesde(s: Secuencia, antes: string[], perfil: Perfil, desde: Objetivo): { secuencia: Secuencia; perfil: Perfil; rechazados: Rechazado[] } {
+  const rechazados: Rechazado[] = [];
+  for (const id of perfil.cubiertos) {
+    if (antes.includes(id)) continue;
+    const fila = s.pendientes.find((p) => p.id === id);
+    const motivo = fila ? motivoParaNoCubrir(desde, fila) : null;
+    if (motivo) rechazados.push({ id, motivo });
+  }
+  const fuera = new Set(rechazados.map((r) => r.id));
+  const limpio: Perfil = fuera.size ? { ...perfil, cubiertos: perfil.cubiertos.filter((id) => !fuera.has(id)) } : perfil;
+  return { secuencia: aplicarCubiertos(s, limpio), perfil: limpio, rechazados };
+}
+
+/**
+ * Devuelve al guion filas cubiertas por error (`manual-v2 descubrir`): salen de `secuencia.cubiertos`
+ * y de `perfil.cubiertos`, y la secuencia se rearma (`rearmar`: cada fila en su lugar del guion, sin
+ * duplicar, sin volver a las hechas, con el techo). Un id que no es del guion ni está cubierto, o que
+ * ya se preguntó, frena todo sin tocar nada.
+ */
+export function descubrir(s: Secuencia, perfil: Perfil, ids: string[], anioActual = new Date().getFullYear()): { secuencia: Secuencia; perfil: Perfil } | { error: string } {
+  const hechas = new Set(s.hechas.map((h) => h.id));
+  const conocidos = new Set([...armarGuion(perfil, anioActual).filas.map((f) => f.id), ...s.cubiertos, ...perfil.cubiertos, ...s.pendientes.map((o) => o.id)]);
+  const yaHechas = ids.filter((id) => hechas.has(id));
+  if (yaHechas.length) return { error: `${yaHechas.join(', ')}: ya se preguntó, no vuelve.` };
+  const desconocidos = ids.filter((id) => !conocidos.has(id));
+  if (desconocidos.length) return { error: `No conozco ${desconocidos.join(', ')}: no es una fila del guion ni un cubierto.` };
+  const fuera = new Set(ids);
+  const limpio: Perfil = { ...perfil, cubiertos: perfil.cubiertos.filter((id) => !fuera.has(id)) };
+  const secuencia = rearmar({ ...s, cubiertos: s.cubiertos.filter((id) => !fuera.has(id)) }, limpio, anioActual);
+  return { secuencia, perfil: limpio };
+}
+
 /**
  * Si en el tramo de `s.ultimoTramo` ya no queda ninguna fila abierta, ese tramo se cerró.
  *

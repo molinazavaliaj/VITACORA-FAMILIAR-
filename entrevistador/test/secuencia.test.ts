@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { armarSecuencia, rearmar, proxima, avanzar, aplicarCubiertos, etapaCerrada, agregarLibre, tocaObjeto, registrarObjeto, tramoDe, MAX_OBJETOS } from '../src/ia/secuencia.js';
+import { armarSecuencia, rearmar, proxima, avanzar, aplicarCubiertos, cubrirDesde, descubrir, etapaCerrada, agregarLibre, tocaObjeto, registrarObjeto, tramoDe, MAX_OBJETOS } from '../src/ia/secuencia.js';
 import { perfilVacio, aplicarCambios, type Perfil } from '../src/ia/perfil.js';
 import type { Objetivo } from '../src/ia/pregunta-v2.js';
 import { tope } from '../src/ia/guion-v2.js';
@@ -105,6 +105,114 @@ describe('aplicarCubiertos', () => {
   it('una fila expandida se cubre por su id instanciado', () => {
     const s = aplicarCubiertos(armarSecuencia(naza(), ANIO), aplicarCambios(naza(), { cubiertos: ['hermano-ariel'] }));
     expect(ids(s)).not.toContain('hermano-ariel'); expect(ids(s)).toContain('hermano-juan-manuel');
+  });
+});
+
+describe('cubrirDesde (el candado de los cubiertos, piloto 24/09)', () => {
+  const fila = (s: ReturnType<typeof armarSecuencia>, id: string) => s.pendientes.find((o) => o.id === id)!;
+  /** La ficha de hoy: la de antes más los cubiertos que marcó el modelo con esta respuesta. */
+  const conCubiertos = (p: Perfil, cubiertos: string[]) => aplicarCambios(p, { cubiertos });
+
+  it('una respuesta a un repaso del inicio (mapa-capitulos) no cubre nada: a-los-quince, estudios y oficio se siguen preguntando y salen de la ficha', () => {
+    const s = armarSecuencia(naza(), ANIO);
+    const r = cubrirDesde(s, [], conCubiertos(naza(), ['a-los-quince', 'estudios', 'oficio']), fila(s, 'mapa-capitulos'));
+    expect(ids(r.secuencia)).toEqual(expect.arrayContaining(['a-los-quince', 'estudios', 'oficio']));
+    expect(r.secuencia.cubiertos).toEqual([]);
+    expect(r.perfil.cubiertos).toEqual([]);
+    expect(r.rechazados.map((x) => x.id)).toEqual(['a-los-quince', 'estudios', 'oficio']);
+    expect(r.rechazados[0].motivo).toMatch(/mapa-capitulos/);
+  });
+  it('mapa-casas y los-tuyos-hoy tampoco cubren; pero una puerta (saber un dato) sí se resuelve ahí', () => {
+    const sinArbol = perfilVacio(); sinArbol.persona.edad = dicho('70');
+    const s = armarSecuencia(sinArbol, ANIO);
+    expect(ids(s)).toEqual(expect.arrayContaining(['hermanos-puerta', 'pareja-puerta']));
+    const r = cubrirDesde(s, [], conCubiertos(sinArbol, ['hermanos-puerta', 'la-escuela']), fila(s, 'los-tuyos-hoy'));
+    expect(ids(r.secuencia)).not.toContain('hermanos-puerta'); expect(ids(r.secuencia)).toContain('la-escuela');
+    expect(r.secuencia.cubiertos).toEqual(['hermanos-puerta']);
+    expect(r.rechazados.map((x) => x.id)).toEqual(['la-escuela']);
+    const m = cubrirDesde(s, [], conCubiertos(sinArbol, ['pareja-puerta', 'abuelos-y-raices']), fila(s, 'mapa-casas'));
+    expect(m.secuencia.cubiertos).toEqual(['pareja-puerta']);
+    expect(m.rechazados.map((x) => x.id)).toEqual(['abuelos-y-raices']);
+  });
+  it('la fila de una persona (hermano-ariel) no la cubre otra respuesta: "con mi hermano mayor" en padres-como-eran no alcanza', () => {
+    const s = armarSecuencia(naza(), ANIO);
+    const r = cubrirDesde(s, [], conCubiertos(naza(), ['hermano-ariel']), fila(s, 'padres-como-eran'));
+    expect(ids(r.secuencia)).toContain('hermano-ariel');
+    expect(r.rechazados).toEqual([{ id: 'hermano-ariel', motivo: expect.stringMatching(/persona/) }]);
+    expect(r.perfil.cubiertos).not.toContain('hermano-ariel');
+  });
+  it('lo mismo con un hijo; hijos-llegada no es de una persona y sí se cubre', () => {
+    const p = aplicarCambios(naza(), { agregarPersonas: [persona('Lola', 'hija')] });
+    const s = armarSecuencia(p, ANIO);
+    const r = cubrirDesde(s, [], conCubiertos(p, ['hijo-lola', 'hijos-llegada']), fila(s, 'pareja-como-llego'));
+    expect(ids(r.secuencia)).toContain('hijo-lola');
+    expect(r.rechazados.map((x) => x.id)).toEqual(['hijo-lola']);
+    expect(ids(r.secuencia)).not.toContain('hijos-llegada');
+  });
+  it('la reflexión, el futuro y hoy no los cubre ninguna otra respuesta: se rechazan con motivo y salen de la ficha', () => {
+    const s = armarSecuencia(naza(), ANIO);
+    const r = cubrirDesde(s, [], conCubiertos(naza(), ['cinco-minutos', 'lo-que-te-queda-por-hacer', 'los-tuyos-hoy-como-estan']), fila(s, 'la-escuela'));
+    expect(ids(r.secuencia)).toEqual(expect.arrayContaining(['cinco-minutos', 'lo-que-te-queda-por-hacer', 'los-tuyos-hoy-como-estan']));
+    expect(r.rechazados.map((x) => x.id)).toEqual(['cinco-minutos', 'lo-que-te-queda-por-hacer', 'los-tuyos-hoy-como-estan']);
+    expect(r.perfil.cubiertos).toEqual([]);
+  });
+  it('un cubierto normal sigue andando: la-escuela contada con detalle cubre la cuadra y los juegos', () => {
+    const s = armarSecuencia(naza(), ANIO);
+    const r = cubrirDesde(s, [], conCubiertos(naza(), ['la-cuadra-y-los-juegos']), fila(s, 'la-escuela'));
+    expect(ids(r.secuencia)).not.toContain('la-cuadra-y-los-juegos');
+    expect(r.secuencia.cubiertos).toEqual(['la-cuadra-y-los-juegos']);
+    expect(r.perfil.cubiertos).toEqual(['la-cuadra-y-los-juegos']);
+    expect(r.rechazados).toEqual([]);
+  });
+  it('solo mira los cubiertos NUEVOS de esta respuesta: los de antes quedan como estaban', () => {
+    const s = armarSecuencia(naza(), ANIO);
+    const r = cubrirDesde(s, ['abuelos-y-raices'], conCubiertos(naza(), ['abuelos-y-raices', 'estudios']), fila(s, 'mapa-capitulos'));
+    expect(r.perfil.cubiertos).toEqual(['abuelos-y-raices']);
+    expect(ids(r.secuencia)).not.toContain('abuelos-y-raices'); expect(ids(r.secuencia)).toContain('estudios');
+  });
+});
+
+describe('descubrir (devolver filas cubiertas por error)', () => {
+  it('vuelven al guion en su lugar, salen de los cubiertos de la secuencia y de la ficha, sin duplicar', () => {
+    let s = armarSecuencia(naza(), ANIO);
+    const orden = ids(s);
+    const p = aplicarCambios(naza(), { cubiertos: ['a-los-quince', 'estudios', 'hermano-ariel', 'la-escuela'] });
+    s = aplicarCubiertos(s, p);
+    expect(ids(s)).not.toContain('estudios');
+    const r = descubrir(s, p, ['a-los-quince', 'estudios', 'hermano-ariel'], ANIO);
+    if ('error' in r) throw new Error(r.error);
+    expect(ids(r.secuencia)).toEqual(orden.filter((id) => id !== 'la-escuela'));
+    expect(r.secuencia.cubiertos).toEqual(['la-escuela']);
+    expect(r.perfil.cubiertos).toEqual(['la-escuela']);
+  });
+  it('una que ya estaba pendiente solo sale de la ficha; una que ya se hizo no vuelve', () => {
+    let s = armarSecuencia(naza(), ANIO);
+    const p = aplicarCambios(naza(), { cubiertos: ['los-tuyos-hoy-como-estan'] });
+    s = aplicarCubiertos(s, p); // hoy no se cubre: sigue pendiente, pero quedó en la ficha
+    const r = descubrir(s, p, ['los-tuyos-hoy-como-estan'], ANIO);
+    if ('error' in r) throw new Error(r.error);
+    expect(ids(r.secuencia).filter((id) => id === 'los-tuyos-hoy-como-estan')).toHaveLength(1);
+    expect(r.perfil.cubiertos).toEqual([]);
+    const hecha = avanzar(s, proxima(s)!, 0);
+    const h = descubrir(hecha, p, ['presentacion'], ANIO);
+    expect('error' in h && h.error).toMatch(/ya se preguntó/);
+  });
+  it('un id que no existe frena todo, sin tocar nada', () => {
+    const s = aplicarCubiertos(armarSecuencia(naza(), ANIO), aplicarCambios(naza(), { cubiertos: ['estudios'] }));
+    const r = descubrir(s, naza(), ['estudios', 'no-existe'], ANIO);
+    expect('error' in r && r.error).toMatch(/no-existe/);
+  });
+  it('respeta el techo y nunca duplica', () => {
+    const base = perfilVacio(); base.persona.edad = dicho('70');
+    base.etapas.push({ edades: '0 a 70', lugar: 'Buenos Aires, Argentina', conQuien: '', queHacia: '', fuente: 'dicho' });
+    const p = aplicarCambios(base, { agregarPersonas: [persona('Marta', 'marido'), persona('Ana', 'hija'), persona('Bruno', 'hijo'), persona('Cora', 'hijo'), persona('Dora', 'hermana'), persona('Emilio', 'hermano'), persona('Hugo', 'nieto')] });
+    const cubiertos = ['abuelos-y-raices', 'la-escuela', 'estudios'];
+    const pc = aplicarCambios(p, { cubiertos });
+    const s = aplicarCubiertos(armarSecuencia(p, ANIO), pc);
+    const r = descubrir(s, pc, cubiertos, ANIO);
+    if ('error' in r) throw new Error(r.error);
+    expect(r.secuencia.pendientes.length - 1).toBeLessThanOrEqual(tope(70));
+    expect(new Set(ids(r.secuencia)).size).toBe(ids(r.secuencia).length);
   });
 });
 
