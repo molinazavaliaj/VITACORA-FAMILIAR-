@@ -195,3 +195,14 @@
 - **Qué se hizo a mano:** nada.
 - **Además:** la pregunta 9 vuelve a decir «ayer» (N9) y «de pasada», cuando Naza contó que fueron
   dos años de novios.
+
+## N19 · 24/09 · La pregunta 10 supone que la pareja actual es mujer y que es «para quedarse»
+- **Qué pasó:** «¿Cómo **la** conociste… y qué fue lo que te hizo decir "con **esta** me quedo"?».
+  Naza dijo solamente «ahora mismo estoy de novio», sin nombre ni género. La regla 4 del perfil
+  dice que de la pareja, si no lo dijo, no se sabe. Las novias anteriores eran mujeres, pero el
+  género de la pareja actual es una suposición, y «con esta me quedo» supone además un compromiso
+  que él no mencionó. El control de supuestos no lo agarró. Otra vez dice «ayer» (N9).
+- **Dónde:** pregunta 10 (`con-quien-hizo-su-vida`), encargo de la pregunta v2 + control de
+  supuestos (`src/ia/control-pregunta.ts`, que mira hijos/pareja/nietos pero no el género ni el
+  compromiso).
+- **Qué se hizo a mano:** nada; se mandó así.
