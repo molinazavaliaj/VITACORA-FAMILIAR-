@@ -448,3 +448,19 @@
 - **Lo bueno:** la pandemia salió sola, sin preguntarla (N39), y el perfil la registró.
 - **Dónde:** perfil (bisagras sin corrección), N4.
 - **Qué se hizo a mano:** nada.
+
+## N41 · 24/09 · La pregunta 26 sale VACÍA (marcada «no tiene ninguna pregunta»), y el prompt ya pesa 27 mil tokens
+- **Qué pasó:** `siguiente` imprimió «Intentos: 3 · ⚠ MARCADA (pregunta): no tiene ninguna
+  pregunta — salió igual tras 3 intentos» y un bloque para pegar **vacío**. En `contexto.v2`
+  quedó `preguntasEnviadas["26"] = ""` y la marca. En `consumo_ia` los tres intentos
+  `v2-pregunta` tienen `input_tokens` ≈ 27.700 y `output_tokens` 400, 118 y 400: dos llegaron al
+  tope (`max_tokens: 400`, `src/ia/pregunta-v2.ts:145`) y el tercero devolvió algo sin texto
+  utilizable. La regla «mejor una pregunta imperfecta que ninguna» manda igual un texto vacío: el
+  código no distingue «imperfecta» de «vacía».
+- **El peso del prompt:** la pregunta 1 costó ~1.500 tokens de entrada; la 26, ~27.700 (perfil +
+  conversación + todas las preguntas hechas). Cada intento cuesta ~USD 0,15, y la tanda de la 26
+  ~USD 0,44 sin resultado. El perfil (25 mil de entrada) y la evaluación (24 mil) crecen igual. Esto
+  explica que el gasto por pregunta haya pasado de ~0,02 a ~0,45.
+- **Dónde:** `escribirPregunta` (`pregunta-v2.ts:131-160`), `armarPromptPregunta` (qué entra al
+  prompt), el mismo tamaño en perfil y evaluación.
+- **Qué se hizo a mano:** (ver abajo, según decida Naza).
