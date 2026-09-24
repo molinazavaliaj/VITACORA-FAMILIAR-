@@ -90,7 +90,7 @@ export function vinculoNoTuvo(vinculo: string): (typeof VINCULOS_NO_TUVO)[number
 }
 
 /** Los topes de la ficha (esqueleto v2, guion §2): la ficha es una ficha, no una transcripción. */
-export const TOPES = { etapaCampo: 300, bisagra: 150, bisagras: 12, notaPersona: 80, personas: 30, noSabemos: 12, tono: 300 } as const;
+export const TOPES = { etapaCampo: 220, bisagra: 150, bisagras: 12, notaPersona: 80, personas: 30, noSabemos: 12, tono: 300 } as const;
 
 /** Corta en la última oración entera que entra; si no hay ninguna, corta seco. Idempotente. */
 export function recortar(texto: string, max: number): string {
