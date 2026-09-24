@@ -1,7 +1,7 @@
 import type Anthropic from '@anthropic-ai/sdk';
 import type { Perfil } from './perfil.js';
 import type { Tramo } from './plan-preguntas.js';
-import { GUION, type FilaObjetivo, type Bloque } from './guion-v2.js';
+import { GUION, nombreDeEvento, type FilaObjetivo, type Bloque } from './guion-v2.js';
 import { encargoDelBiografo, perfilEnTexto } from './encargo-entrevista.js';
 import { controlarPregunta as controlarSalida, INTENTOS, type Marca } from './control-pregunta.js';
 import { MODELO_PREGUNTA, textoDelModelo } from './modelos-v2.js';
@@ -103,8 +103,11 @@ const ID_HISTORIA_GRANDE = /^historia-grande-/;
  * genérica del tema (que es la misma para todos: "Lo grande que le tocó al país en esa época…").
  * Sin esto, pandemia hecha y Mundial pendiente quedaban con la misma línea y no se distinguían
  * (o, con las dos hechas, se deduplicaban a una sola). El Mundial saca el año de su propio texto
- * ("el de <año>, cuando tenía…"); los demás (pandemia incluida) sacan el nombre del evento del
- * paréntesis del tema HISTORIA ("(la pandemia, cuando tenía…" → "la pandemia").
+ * ("el de <año>, cuando tenía…"); los demás (pandemia incluida) sacan el nombre por `id` de
+ * `nombreDeEvento` (`guion-v2.ts`), la misma tabla que arma el tema — nunca parseando el tema ya
+ * armado: fix ronda 1, algunos nombres tienen coma adentro de un paréntesis propio ("el 2001 (el
+ * corralito, diciembre)"), y un regex que cortaba en la primera coma lo dejaba a mitad de camino
+ * y con un paréntesis sin cerrar ("el 2001 (el corralito").
  */
 function lineaHistoriaGrande(q: YaHecha): string | null {
   if (!ID_HISTORIA_GRANDE.test(q.id)) return null;
@@ -112,8 +115,8 @@ function lineaHistoriaGrande(q: YaHecha): string | null {
     const anio = q.tema.match(/el de (\d{4})/)?.[1];
     return anio ? `Historia grande: el Mundial de ${anio}` : 'Historia grande: el Mundial';
   }
-  const nombre = q.tema.match(/\(([^,]+),/)?.[1]?.trim();
-  return nombre ? `Historia grande: ${nombre}` : `Historia grande: ${q.id.slice('historia-grande-'.length)}`;
+  const nombre = nombreDeEvento(q.id.slice('historia-grande-'.length));
+  return `Historia grande: ${nombre ?? q.id.slice('historia-grande-'.length)}`;
 }
 
 /**

@@ -152,6 +152,13 @@ describe('temaHechoEnLinea / listaDeHechas — historia grande distingue el even
   it('un evento "grande" (no pandemia ni Mundial) también dice el evento, no la cabeza genérica', () => {
     expect(temaHechoEnLinea(dictaduraHecha)).toBe('Historia grande: la dictadura');
   });
+  // Fix ronda 1 del ajuste A: el nombre de crisis-2001 tiene una coma adentro del paréntesis
+  // ("el 2001 (el corralito, diciembre)"), así que sacarlo con un regex sobre el tema (hasta la
+  // primera coma) lo cortaba mal ("el 2001 (el corralito"), con un paréntesis sin cerrar.
+  it('crisis-2001: el nombre completo, sin cortarse en la coma de adentro del paréntesis', () => {
+    const hecha: YaHecha = { id: 'historia-grande-crisis-2001', tema: 'Lo grande que le tocó al país en esa época (el 2001 (el corralito, diciembre), cuando tenía 51 años). Sin dar por hecho de qué lado estuvo.' };
+    expect(temaHechoEnLinea(hecha)).toBe('Historia grande: el 2001 (el corralito, diciembre)');
+  });
 });
 
 describe('escribirPregunta (cliente falso)', () => {

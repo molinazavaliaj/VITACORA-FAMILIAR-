@@ -237,6 +237,16 @@ const MUNDIALES = [1978, 1986, 2022];
 /** Eventos que entran siempre, fuera del máximo de 2 y sin el tope de edad de los demás (ajuste A). */
 const SIEMPRE_ENTRAN = new Set(['pandemia', 'mundial']);
 
+/**
+ * El nombre de un evento por su id (`pregunta-v2.ts` lo usa para la lista de "ya hechas": fix
+ * ronda 1 del ajuste A, algunos nombres tienen coma adentro de un paréntesis propio —
+ * "el 2001 (el corralito, diciembre)" — así que había que sacarlo de acá, no parseando el tema
+ * ya armado con un regex que cortaba en la primera coma).
+ */
+export function nombreDeEvento(id: string): string | null {
+  return EVENTOS.find((e) => e.id === id)?.nombre ?? null;
+}
+
 export function paisDe(lugar: string): Pais | null {
   const l = norm(lugar);
   if (/espan|barcelona|madrid|catal|berga|valencia|sevilla|andaluc|bilbao|zaragoza|malaga|galicia/.test(l)) return 'ES';
