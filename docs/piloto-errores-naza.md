@@ -393,6 +393,11 @@
 - **Además:** la evaluación de la respuesta a una repregunta corrió 2 intentos (~USD 0,36 la
   carga), aunque su resultado no se puede usar (tras una repregunta no se repregunta). Es lo mismo
   que N29.
+- **Lo que dice Naza:** las preguntas son distintas entre sí, de la misma etapa pero sobre cosas
+  diferentes. El problema es que, en la vida real, con un día entre pregunta y pregunta, que le
+  pregunten algo tan parecido es un error. Son pormenores (los perros, la cuadra, los parientes, el
+  primer día en el Fátima) que tendrían que ir **juntos, dentro de una pregunta del capítulo**, para
+  que los cuente de una vez con otra cosa, no una pregunta entera cada uno.
 - **Dónde:** secuencia v2 (orden de las variables de infancia), evaluación v2 (cansancio),
   `procesar` (evaluar lo que no se va a usar).
 - **Qué se hizo a mano:** nada.
