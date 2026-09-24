@@ -29,3 +29,14 @@
   vos?». Con una barra en el medio suena a formulario, no a una persona.
 - **Dónde:** el texto de la presentación (orden 0), `docs/biografo-v2-textos-para-aprobar.md`.
 - **Qué se hizo a mano:** nada; se mandó así.
+
+## N3 · 24/09 · La presentación no dice quién le regaló el libro ni lo nombra
+- **Qué pasó:** la presentación arranca «Buen día. Me presento: soy quien va a escribir el libro
+  de su vida». No usa el nombre del narrador (que está cargado) y no dice quién le hace el regalo.
+  Naza quiere la estructura de antes, justo en la apertura: «Buen día, <nombre>. Soy su biógrafo;
+  <quien regala> le regaló este libro. Cada mañana, o cuando me responda, le voy a ir preguntando…»
+  y recién después el resto (cómo contestar, las tres preguntas).
+- **Dónde:** el encargo/prompt de la presentación (orden 0) en el entrevistador v2
+  (`docs/biografo-v2-textos-para-aprobar.md`, sección de la presentación). Comparar con la
+  presentación del flujo v1, que sí nombraba a quien regala.
+- **Qué se hizo a mano:** nada; se mandó así.
