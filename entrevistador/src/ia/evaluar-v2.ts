@@ -35,7 +35,7 @@ const PEDIDOS = `- Si pidió cambiar de tema ("vamos por otro lado", "prefiero n
 const objetivoEnLinea = (o: Objetivo): string =>
   o.tipo === 'nucleo' ? `${o.tema}${o.pormenores.length ? `\nPormenores de la fila: ${o.pormenores.join('; ')}.` : ''}`
     : o.tipo === 'variable' ? `Algo que nombró y no contó: ${o.anclas.join('; ')}.`
-      : o.tipo === 'objeto' ? 'Un objeto de esa época, con foto.'
+      : o.tipo === 'objeto' ? (o.final ? 'La cosa que guardaría de toda su vida, con foto.' : 'Un objeto de esa época, con foto.')
         : `Repregunta: ${o.falto.join('; ')}.`;
 
 export const PROMPT_EVALUAR_V2 = (encargo: string, fila: string, pregunta: string, respuesta: string, segundos: number, conversacion: string) => `

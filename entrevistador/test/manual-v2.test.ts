@@ -471,6 +471,15 @@ describe('manual-v2 de punta a punta (base y modelo falsos)', () => {
     expect(objetos.length).toBeGreaterThanOrEqual(2);
     expect(objetos.filter((o: any) => o.final)).toHaveLength(1);
     for (const o of objetos) expect(v2().preguntasEnviadas[String(o.orden)]).toBeTruthy();
+    // Arreglo final I3: el final se pide con su propio encargo ("de toda su vida"), y el prompt ya
+    // lista los objetos pedidos antes (el de "hoy" incluido), así no se repite.
+    const promptFinal = h.prompts.filter((x) => x.includes('Pedile UNA cosa')).at(-1)!;
+    const encargoFinal = promptFinal.slice(promptFinal.indexOf('LO QUE TE TOCA PREGUNTAR HOY'));
+    expect(encargoFinal).toMatch(/toda su vida/);
+    expect(encargoFinal).not.toMatch(/de esa época/);
+    for (const o of objetos.filter((x: any) => !x.final)) expect(promptFinal).toContain(`- objeto-${o.tramo}: (objeto) ${o.tramo}`);
+    const deTramo = objetos.filter((o: any) => !o.final).map((o: any) => o.tramo);
+    expect(new Set(deTramo).size).toBe(deTramo.length);
     // Lo que cuenta de un objeto se carga con su orden: perfil + pedidos (Haiku), nunca repregunta.
     h.llamadas.length = 0;
     const obj = await correr('cargar', 'pruebav2', '--texto', 'Es la pelota de cuero de mi viejo.', '--orden', String(objetos[0].orden));

@@ -50,6 +50,13 @@ describe('objetivoEnTexto', () => {
     const t = objetivoEnTexto({ tipo: 'objeto', id: 'objeto-juventud', tramo: 'juventud' }, perfilDeVos());
     expect(t).toMatch(/UNA cosa/); expect(t).toMatch(/foto/); expect(t).toMatch(/no se insiste/i);
   });
+  it('el objeto final tiene su propio encargo: la cosa que guardaría de toda su vida, no "de esa época" (arreglo final I3)', () => {
+    const t = objetivoEnTexto({ tipo: 'objeto', id: 'objeto-final', tramo: 'hoy', final: true }, perfilDeVos());
+    expect(t).toMatch(/UNA cosa/); expect(t).toMatch(/toda su vida/); expect(t).toMatch(/foto/); expect(t).toMatch(/no se insiste/i);
+    expect(t).not.toMatch(/esa época/); expect(t).not.toContain('(hoy)');
+    const deTramo = objetivoEnTexto({ tipo: 'objeto', id: 'objeto-hoy', tramo: 'hoy' }, perfilDeVos());
+    expect(Math.abs(t.length - deTramo.length)).toBeLessThan(40);
+  });
   it('la repregunta pide junto lo que faltó de la pregunta de hoy, sin decir que es una repregunta ni pedir resumen', () => {
     const r: Objetivo = { tipo: 'repregunta', id: 'la-escuela-repregunta', tramo: 'infancia', pregunta: '¿Cómo era tu escuela?', falto: ['un maestro', 'si cambió de colegio y por qué'] };
     const t = objetivoEnTexto(r, perfilDeVos());

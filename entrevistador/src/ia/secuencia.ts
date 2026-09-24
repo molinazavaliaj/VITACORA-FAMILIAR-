@@ -167,7 +167,10 @@ const enElInicio = (s: Secuencia) => s.pendientes.some((o) => o.tipo === 'nucleo
  * `amigos-de-siempre`/`por-gusto` (tramo null, bloque "adulto joven") el objeto de adulto joven
  * salía apenas se hacía `pareja-como-llego`, antes de esas tres filas); nunca en el inicio;
  * `sinFotos` los apaga; MAX_OBJETOS los corta. Al terminar (`siguiente === null`) toca un objeto
- * final, una sola vez (`final: true`).
+ * final, una sola vez (`final: true`). Arreglo final I3: el tramo que devuelve para el final es el
+ * último vivido (casi siempre "hoy", que ya tuvo su objeto al empezar futuro) y queda solo como época
+ * para la fábrica; el final se pide y se lista como final (`objetoDe`, `objetivoEnTexto`), nunca como
+ * un segundo objeto "de hoy".
  */
 export function tocaObjeto(s: Secuencia, siguiente: Objetivo | null, sinFotos: boolean): Tramo | null {
   if (sinFotos || s.objetos.length >= MAX_OBJETOS) return null;

@@ -23,7 +23,8 @@ export const NUCLEO: readonly { id: string; tramo: Tramo | null; bloque: Bloque;
 export type Objetivo =
   | ({ tipo: 'nucleo' } & FilaObjetivo)
   | { tipo: 'variable'; id: string; tramo: Tramo; desde: number; hasta: number; anclas: string[] }
-  | { tipo: 'objeto'; id: string; tramo: Tramo }
+  /** `final`: el objeto de cierre (guion §2: "uno al cerrar cada tramo y uno al final"); su tramo es el último vivido, para la época. */
+  | { tipo: 'objeto'; id: string; tramo: Tramo; final?: boolean }
   | { tipo: 'repregunta'; id: string; tramo: Tramo | null; pregunta: string; falto: string[] };
 
 export const BLOQUES = ['presentacion', 'inicio', 'infancia', 'juventud', 'adulto joven', 'adultez media', 'segunda mitad', 'hoy', 'futuro', 'reflexion'] as const;
@@ -39,12 +40,15 @@ const MAX_ANCLA = 160;
 /**
  * El texto que le llega al modelo para este objetivo. La presentación reemplaza sus huecos
  * ({TRATOS}, {EDAD}) según el perfil (castellano, si ya sabemos la edad); el objeto pide UNA
- * cosa con foto de esa época sin insistir; la variable lleva el tramo y sus anclas; la
+ * cosa con foto de esa época sin insistir (el final, la que guardaría de toda su vida: arreglo final I3); la variable lleva el tramo y sus anclas; la
  * repregunta pide junto lo que faltó, sin decir que es una repregunta ni pedir resumen; una
  * fila del guion lleva su tema con los pormenores que puede juntar (dos o tres, en una sola
  * pregunta) y, si pide escena, lo dice.
  */
 export function objetivoEnTexto(o: Objetivo, perfil: Perfil): string {
+  if (o.tipo === 'objeto' && o.final) {
+    return 'Pedile UNA cosa que tenga en casa y que guardaría de toda su vida: un objeto, un papel, una foto vieja, lo que sea. Con una foto, y que cuente por qué esa. Si no tiene, no pasa nada: no se insiste nunca.';
+  }
   if (o.tipo === 'objeto') {
     return `Pedile UNA cosa que tenga en casa de esa época (${o.tramo}): un objeto, un papel, una foto vieja, lo que haya guardado. Con una foto, y que cuente de dónde salió. Si no tiene, no pasa nada: no se insiste nunca.`;
   }

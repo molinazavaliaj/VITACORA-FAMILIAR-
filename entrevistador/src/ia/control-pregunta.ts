@@ -43,9 +43,11 @@ function nombresDeLugar(lugar: string): { normal: string; original: string }[] {
  * dejar pasar que rechazar con datos que no hay. El objeto (la foto de esa época) también pasa
  * por este control — diseño §2.7, "el objeto también pasa por los controles": si pide una foto
  * de Concordia para el tramo en que ya vivía en Buenos Aires, es el mismo error que en una
- * pregunta.
+ * pregunta. El objeto final (de toda su vida) no se controla.
  */
 export function controlarLugar(texto: string, perfil: Perfil, objetivo: Objetivo): { ok: true } | Rechazo {
+  // El objeto final pide algo de toda la vida: cualquier ciudad donde vivió vale (arreglo final I3).
+  if (objetivo.tipo === 'objeto' && objetivo.final) return { ok: true };
   const tramoObjetivo = objetivo.tipo === 'variable' || objetivo.tipo === 'objeto' ? objetivo.tramo : objetivo.tramo ?? null;
   if (!tramoObjetivo) return { ok: true };
   const edad = edadDe(perfil, new Date().getFullYear()) ?? 100;

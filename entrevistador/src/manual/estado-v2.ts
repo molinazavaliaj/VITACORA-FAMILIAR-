@@ -1,4 +1,5 @@
 import { perfilDesdeFicha, type Perfil, type TemaPendiente } from '../ia/perfil.js';
+import type { Tramo } from '../ia/plan-preguntas.js';
 import { armarSecuencia, rearmar, type Secuencia, type Hecha } from '../ia/secuencia.js';
 import type { YaHecha, Objetivo } from '../ia/pregunta-v2.js';
 import { firmaGuion } from '../ia/guion-v2.js';
@@ -121,8 +122,7 @@ export function preguntaParaCargar(
     if (esRepregunta) return { error: `La orden ${orden} es un objeto: no tiene repregunta.` };
     const texto = estado.preguntasEnviadas[String(objeto.orden)];
     if (!texto) return { error: `No encuentro el texto enviado del objeto ${objeto.orden}.` };
-    const id = `objeto-${objeto.tramo}${objeto.final ? '-final' : ''}`;
-    return { orden: objeto.orden, objetivo: { tipo: 'objeto', id, tramo: objeto.tramo }, texto, esObjeto: true };
+    return { orden: objeto.orden, objetivo: objetoDe(objeto), texto, esObjeto: true };
   }
   const hecha = orden === undefined ? hechas.at(-1)! : hechas.find((h) => h.orden === orden);
   if (!hecha) {
@@ -192,6 +192,14 @@ export function conversacionDe(estado: EstadoV2, filas: FilaRespuesta[], max = 3
     .slice(-max);
 }
 
+/**
+ * El objetivo de un objeto ya registrado. El final es `objeto-final` (con `final: true`), no
+ * `objeto-<tramo>`: así nunca hay dos objetos "de hoy" (arreglo final I3).
+ */
+export function objetoDe(o: { tramo: Tramo; final?: boolean }): Extract<Objetivo, { tipo: 'objeto' }> {
+  return o.final ? { tipo: 'objeto', id: 'objeto-final', tramo: o.tramo, final: true } : { tipo: 'objeto', id: `objeto-${o.tramo}`, tramo: o.tramo };
+}
+
 /** Los temas ya preguntados (id y tema, no el texto: el prompt no crece) y las repreguntas mandadas. */
 export function yaHechasDe(estado: EstadoV2): YaHecha[] {
   const temas: YaHecha[] = estado.secuencia.hechas
@@ -201,7 +209,13 @@ export function yaHechasDe(estado: EstadoV2): YaHecha[] {
     const h = estado.secuencia.hechas.find((x) => String(x.orden) === orden);
     return { id: `${h?.id ?? orden}-repregunta`, tema: `(repregunta) ${texto}` };
   });
-  return [...temas, ...repreguntas];
+  // Los objetos ya pedidos, cortos (arreglo final I3): sin esto, el modelo no sabía que ya había
+  // pedido el de "hoy" y el final lo repetía.
+  const objetos: YaHecha[] = estado.secuencia.objetos.map((o) => {
+    const cual = o.final ? 'final' : o.tramo;
+    return { id: `objeto-${cual}`, tema: `(objeto) ${cual}` };
+  });
+  return [...temas, ...repreguntas, ...objetos];
 }
 
 /** `contexto.evitar` es texto libre (lo escribe la familia en el panel, y `sumarTemaEvitado`): el encargo v2 lo quiere en lista. */

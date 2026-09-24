@@ -35,7 +35,7 @@ import {
 } from '../src/manual/puro.js';
 import {
   estadoNuevo, leerEstado, contextoConEstado, rearmarSiHaceFalta, pendientesParaPerfil, preguntaParaCargar,
-  queHaceSiguiente, conversacionDe, yaHechasDe, evitarDe, hoyEn, repreguntasParaCansancio, repreguntasEnEtapa, decidirTrasEvaluar,
+  queHaceSiguiente, conversacionDe, yaHechasDe, objetoDe, evitarDe, hoyEn, repreguntasParaCansancio, repreguntasEnEtapa, decidirTrasEvaluar,
   sumarGasto, mensajeHoyNo, cierreQuiereParar, mailQuiereParar, despedidaV2, type EstadoV2, type FilaParaSiguiente,
 } from '../src/manual/estado-v2.js';
 import { actualizarPerfil } from '../src/ia/perfil.js';
@@ -685,7 +685,7 @@ async function siguiente(ref: string | undefined, flags: Args['flags']): Promise
 
   /** El objeto (§2.5): lo escribe el mismo cerebro, y va con su orden 101+ al lado de las preguntas. */
   const pedirObjeto = async (tramo: Tramo, final: boolean, hechasHasta: YaHecha[]) => {
-    const obj: Objetivo = { tipo: 'objeto', id: `objeto-${tramo}${final ? '-final' : ''}`, tramo };
+    const obj: Objetivo = objetoDe({ tramo, final });
     const r = await escribirPregunta(cliente(), estado.perfil, obj, conversacion, hechasHasta, evitar);
     estado = sumarGasto(estado, r.usos, 0, modeloDePaso('v2-objeto'));
     await anotarUsos('v2-objeto', n.id, r.usos);

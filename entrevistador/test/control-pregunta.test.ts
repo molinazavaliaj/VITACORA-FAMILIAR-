@@ -58,6 +58,11 @@ describe('controlarLugar', () => {
     if (!r.ok) { expect(r.control).toBe('lugar'); expect(r.motivo).toMatch(/Buenos Aires/); }
     expect(controlarLugar('Pedile una foto de esa época en Buenos Aires.', ciro(), objeto).ok).toBe(true);
   });
+  it('el objeto final (de toda su vida) no se ata a un tramo: puede nombrar la ciudad de la infancia (I3)', () => {
+    const final: Objetivo = { tipo: 'objeto', id: 'objeto-final', tramo: 'juventud', final: true };
+    expect(controlarLugar('¿Hay algo que guardes de toda tu vida, de Concordia?', ciro(), { ...final, final: undefined }).ok).toBe(false);
+    expect(controlarLugar('¿Hay algo que guardes de toda tu vida, de Concordia?', ciro(), final).ok).toBe(true);
+  });
 });
 
 describe('controlarSupuestos', () => {

@@ -188,6 +188,24 @@ describe('fix ronda 1, ítem 2: el cierre de etapa mira el bloque, no solo el tr
 });
 
 describe('tocaObjeto y registrarObjeto', () => {
+  it('Naza de punta a punta: el de "hoy" sale una sola vez como de tramo; el final sale igual, marcado final (arreglo final I3)', () => {
+    let s = armarSecuencia(naza(), ANIO);
+    let orden = 0;
+    let ordenObjeto = 101;
+    while (proxima(s)) {
+      const sig = proxima(s)!;
+      const t = tocaObjeto(s, sig, false);
+      s = avanzar(s, sig, orden++);
+      if (t) s = registrarObjeto(s, t, ordenObjeto++);
+    }
+    const final = tocaObjeto(s, null, false);
+    expect(final).not.toBeNull();
+    s = registrarObjeto(s, final!, ordenObjeto++, true);
+    const deTramo = s.objetos.filter((o) => !o.final).map((o) => o.tramo);
+    expect(new Set(deTramo).size).toBe(deTramo.length);
+    expect(s.objetos.filter((o) => o.final)).toHaveLength(1);
+    expect(tocaObjeto(s, null, false)).toBeNull();
+  });
   it('nunca en el inicio; toca cuando un tramo se cerró y no tiene objeto; uno por tramo; sinFotos apaga; hasta 8; y el final una sola vez', () => {
     let s = armarSecuencia(naza(), ANIO);
     for (let i = 0; i < 5; i++) s = avanzar(s, proxima(s)!, i);

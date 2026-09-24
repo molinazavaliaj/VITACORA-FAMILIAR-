@@ -78,7 +78,7 @@ describe('estado-v2 (lo que la puerta manual v2 guarda en contexto)', () => {
     expect(leido.secuencia.caidas).toEqual([]);
     expect(leido.secuencia.libres).toBe(0);
   });
-  it('un objeto registrado (registrarObjeto) nunca entra a hechas: no cuenta para el techo ni para yaHechasDe', () => {
+  it('un objeto registrado (registrarObjeto) nunca entra a hechas (no cuenta para el techo), pero yaHechasDe lo lista corto (I3)', () => {
     let e = estadoNuevo({ anioNacimiento: 1999 }, BA, 2026);
     e = { ...e, secuencia: avanzar(e.secuencia, proxima(e.secuencia)!, 0) };
     e = { ...e, secuencia: avanzar(e.secuencia, proxima(e.secuencia)!, 1) };
@@ -87,7 +87,19 @@ describe('estado-v2 (lo que la puerta manual v2 guarda en contexto)', () => {
     e = { ...e, secuencia: registrarObjeto(e.secuencia, 'infancia', 101), preguntasEnviadas: { ...e.preguntasEnviadas, '101': '¿Tenés algo de esa época?' } };
     expect(e.secuencia.hechas).toHaveLength(hechasAntes);
     expect(e.secuencia.hechas.some((h) => h.objetivo.tipo === 'objeto')).toBe(false);
-    expect(yaHechasDe(e)).toHaveLength(yaAntes);
+    expect(yaHechasDe(e)).toHaveLength(yaAntes + 1);
+    expect(yaHechasDe(e).at(-1)).toEqual({ id: 'objeto-infancia', tema: '(objeto) infancia' });
+  });
+  it('yaHechasDe lista el objeto final como final, no como su tramo; y cargar lo reconoce como final (I3)', () => {
+    let e = estadoNuevo({ anioNacimiento: 1999 }, BA, 2026);
+    e = { ...e, secuencia: avanzar(e.secuencia, proxima(e.secuencia)!, 0) };
+    e = { ...e, secuencia: registrarObjeto(registrarObjeto(e.secuencia, 'hoy', 101), 'hoy', 102, true), preguntasEnviadas: { ...e.preguntasEnviadas, '101': 'a', '102': 'b' } };
+    const objetos = yaHechasDe(e).filter((y) => y.id.startsWith('objeto-'));
+    expect(objetos).toEqual([{ id: 'objeto-hoy', tema: '(objeto) hoy' }, { id: 'objeto-final', tema: '(objeto) final' }]);
+    expect(preguntaParaCargar(e, 102, false)).toMatchObject({ objetivo: { tipo: 'objeto', id: 'objeto-final', final: true } });
+    expect(preguntaParaCargar(e, 101, false)).toMatchObject({ objetivo: { tipo: 'objeto', id: 'objeto-hoy' } });
+    const de101 = preguntaParaCargar(e, 101, false);
+    expect('objetivo' in de101 && de101.objetivo.tipo === 'objeto' && de101.objetivo.final).toBeFalsy();
   });
 });
 
