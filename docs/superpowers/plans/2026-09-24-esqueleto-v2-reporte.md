@@ -120,8 +120,15 @@ Con la ficha real de Naza, sin llamar al modelo:
 | Peor caso (32 filas + 4 libres + 8 repreguntas + 8 objetos) | 13.680 caracteres | **13.662 caracteres (~5.940 tokens)** |
 | Techo acordado | 13.800 caracteres (~6.000 tokens) | 13.800 caracteres (~6.000 tokens) |
 
-Sigue entrando en el techo, pero el margen bajó de ~120 a ~138 caracteres en el peor caso (el tema y los pormenores nuevos del Mundial son más largos que los de HISTORIA). **Anotado como preocupación**: con la ficha real un poco más cargada (más libres u objetos), este caso puede llegar a pasarse; si eso pasa hay que acortar el tema del Mundial o revisar el presupuesto de la lista de hechas.
+Sigue entrando en el techo, con ~138 caracteres de margen en el peor caso (antes ~120: la lista de hechas ahora nombra el evento en una línea corta). Es poco margen: si en el piloto la ficha crece, se mira este número.
 
 ### Tests
 
-`entrevistador`: 623 → **630** verdes (7 tests nuevos del ajuste, tipos limpios). `fabrica`: sin tocar, sigue en 537 verdes.
+`entrevistador`: 623 → **631** verdes (8 tests nuevos del ajuste, incluido el arreglo del nombre del 2001 en la lista, tipos limpios). `fabrica`: sin tocar, sigue en 537 verdes.
+
+## Ajuste B (24/09, pedido por Naza): dos ahorros sin tocar la calidad
+
+- **Sin "pensar" en la ficha, la evaluación y los pedidos** (`thinking: {type: 'disabled'}`, confirmado con la referencia de la API). Sonnet 5 piensa por defecto y ese pensamiento se cobra como salida; en estas tres tareas no hace falta. La pregunta (Opus) no se tocó: ahí va la calidad.
+- **Caché de la parte fija** del prompt de la pregunta (Opus) y del de la ficha (Sonnet): las instrucciones que no cambian van primero, marcadas para caché (5 minutos). Las mismas palabras; **cambió el orden** en esos dos prompts (lo fijo primero, lo tuyo después), por eso el doc de textos para aprobar se regeneró y marca dónde termina la parte cacheada. La evaluación y los pedidos quedan como estaban (son más chicos que el mínimo que la API cachea).
+- **Cuánto ahorra**: poco, ~USD 0,50 por libro (0,20-0,60 por el "pensar", hasta 0,25 por la caché). El piloto sigue en **~USD 5-6**. Después de las primeras llamadas se confirma en `consumo_ia` (columnas de caché).
+- Tests: 631 → **640** verdes; fábrica 537 sin tocar. Commits `4aee6d6`, `cb3a19f`, `a28246a`.
