@@ -382,3 +382,17 @@
   repregunta necesitaron 2 intentos cada una (~USD 0,39 esta carga). No dice qué falló.
 - **Dónde:** evaluación v2 (repregunta), controles (N12).
 - **Qué se hizo a mano:** nada; se mandó así.
+
+## N37 · 24/09 · Metida en la infancia de Martínez, con respuestas cada vez más cortas
+- **Qué pasó:** las preguntas 16, 17, 18, 19, 20 y 21 son todas de la infancia y de la casa o
+  el barrio de Martínez (padres, parientes, primer día en el Fátima, los perros, el campo, la
+  cuadra). Las respuestas se fueron achicando (38 s, 58 s, 79 s, 34 s, 43 s, 33 s), con dos «ya te
+  lo respondí» (N33, N35). La secuencia no lo registra como cansancio y el perfil sigue abriendo
+  `var-infancia-N`. Mientras tanto quedan sin tocar temas grandes de su vida adulta (la música en
+  España, el club cannábico, Barcelona, los sueños).
+- **Además:** la evaluación de la respuesta a una repregunta corrió 2 intentos (~USD 0,36 la
+  carga), aunque su resultado no se puede usar (tras una repregunta no se repregunta). Es lo mismo
+  que N29.
+- **Dónde:** secuencia v2 (orden de las variables de infancia), evaluación v2 (cansancio),
+  `procesar` (evaluar lo que no se va a usar).
+- **Qué se hizo a mano:** nada.
