@@ -116,3 +116,21 @@
   discutir el tacto: la pregunta 3 había prometido «algo más liviano».
 - **Dónde:** secuencia/pregunta v2 (`un-lugar`, puerta abierta que eligió el perfil).
 - **Qué se hizo a mano:** nada; se mandó así.
+
+## N12 · 24/09 · La pregunta 5 necesitó 3 intentos y no dice qué control la frenó
+- **Qué pasó:** `siguiente` imprimió «Intentos: 3 · pasó los controles», sin decir qué rechazó los
+  dos primeros (trato, largo, lugar, supuestos). Esa pregunta sola costó ~USD 0,15, contra ~0,02 de
+  una normal. Para revisar el piloto hace falta ver los rechazos.
+- **Dónde:** `scripts/manual-v2.ts` (`siguiente`, la línea de intentos) y los controles de
+  `src/ia/control-pregunta.ts`.
+- **Qué se hizo a mano:** nada.
+
+## N13 · 24/09 · Tres preguntas duras seguidas
+- **Qué pasó:** la respuesta 4 volvió a salir `hoyFueFuerte` (el padre «se había ido a Brasil»).
+  La pregunta 5 (`pruebas`) agradece y va directo a otro momento duro: el día que pidió salir del
+  Liceo Naval porque sufría. Van la 2 (mudanza por problemas legales), la 4 (el primer día en
+  Paraná) y la 5 (el Liceo), todas en lo difícil. El «si te copa» ayuda, pero el tacto de §5 dice
+  «algo más liviano después de algo fuerte», y la 3 lo prometió.
+- **Dónde:** secuencia v2 + la `puertaAbierta` = `pruebas` que eligió el perfil; el encargo de la
+  pregunta (tacto después de algo fuerte).
+- **Qué se hizo a mano:** nada; se mandó así.
