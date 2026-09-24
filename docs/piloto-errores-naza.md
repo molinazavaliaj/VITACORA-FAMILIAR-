@@ -215,6 +215,10 @@
   está en el perfil, el libro y las preguntas que vienen no la conocen.
 - **Dónde:** perfil (`actualizarPerfil`), respuesta de la orden 10. Hay que ver en `estado` si
   quedó algo.
+- **Después, con la repregunta:** se llama **Ima**. «que es Sima» era «que es Ima», un error de
+  transcripción. La bisagra nueva ya dice Ima (club cannábico, la inmobiliaria, la fiesta del
+  pueblo, un año y medio en Berga, lo que desmiente el «recién llegado» de N21), pero la lista de
+  personas sigue sin moverse: Ima no está como persona.
 - **Qué se hizo a mano:** nada.
 
 ## N21 · 24/09 · La repregunta supone que él llegó hace poco a Berga
