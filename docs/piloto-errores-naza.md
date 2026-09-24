@@ -332,3 +332,15 @@
 - **Dónde:** perfil sobre respuestas de objeto; flujo de fotos (N30); `procesar` (N29).
 - **Qué se hizo a mano:** nada. Las fotos siguen en Downloads. Si Naza quiere que cuenten para el
   libro, se suben desde el panel de la web.
+
+## N33 · 24/09 · «Siento que esto ya te lo respondí»
+- **Qué pasó:** la respuesta 16 (padres, 38 s) es corta y cierra con «No, siento que esto ya te lo
+  respondí». La casa de tres pisos, el padre cocinando y la madre ya estaban en la respuesta 1. La
+  pregunta volvió sobre lo mismo y el narrador lo notó. La evaluación dio `suficiente: true`, sin
+  registrar la queja ni el cansancio (la evaluación v2 dice que «sabe del cansancio»), y la puerta
+  abierta que quedó es `con-quien-crecio`, otra vez sobre la misma casa y la misma gente. Además
+  «estuve mucho ausente» se refiere seguro al padre (la transcripción o el habla lo cambió de
+  persona).
+- **Dónde:** secuencia v2 (el tema `padres` después de que la respuesta 1 ya lo cubrió: el perfil
+  no marcó `padres` en `cubiertos`), evaluación v2 (el cansancio y el «ya te lo dije»).
+- **Qué se hizo a mano:** nada.
