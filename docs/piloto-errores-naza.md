@@ -228,3 +228,12 @@
 - **Dónde:** evaluación v2 (la repregunta no pasa por el control de supuestos, o el control no lo
   ve).
 - **Qué se hizo a mano:** nada; se mandó así.
+
+## N22 · 24/09 · La pregunta 11 abre con «Ima, anotado.» y pide tres cosas
+- **Qué pasó:** «Ima, anotado. Tricky, contaste que…». Arrancar con el nombre de la novia suena a
+  que le habla a ella. Además pide tres cosas (cómo arrancó con Ciano, cuándo dijo «a esto le
+  dedico la vida», un día concreto de laburo). Salió al segundo intento, sin decir qué control la
+  frenó (N12).
+- **Dónde:** pregunta 11 (`oficio`), encargo de la pregunta v2 (el acuse de lo que corrigió el
+  narrador).
+- **Qué se hizo a mano:** nada; se mandó así.
