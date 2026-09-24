@@ -17,6 +17,7 @@
     "prueba-cerebro": "tsx scripts/prueba-cerebro.ts",
     "prueba-consumo": "tsx scripts/prueba-consumo.ts",
     "auditar-material": "tsx scripts/auditar-material.ts",
+    "comparar-modelos": "tsx scripts/comparar-modelos.ts",
     "tipos": "tsc --noEmit -p tsconfig.check.json"
   },
   "keywords": [],
