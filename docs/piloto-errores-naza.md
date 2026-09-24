@@ -237,3 +237,12 @@
 - **Dónde:** pregunta 11 (`oficio`), encargo de la pregunta v2 (el acuse de lo que corrigió el
   narrador).
 - **Qué se hizo a mano:** nada; se mandó así.
+
+## N23 · 24/09 · Nombres artísticos mal transcriptos (respuesta 11)
+- **Qué pasó:** «Seven Kane» (seguramente *Seven Kayne*), «Kea» (*KHEA*), «Midel», «Denk Studio»:
+  son nombres de artistas y lugares que el transcriptor no conoce. El perfil los copió tal cual.
+  Es el mismo problema que N10: para el libro, una lista de nombres propios que Naza confirme.
+- **Lo bueno:** Naza dijo que dejó la facultad cuando tuvo «una salida económica… de otra cosa».
+  El perfil no inventó qué era, y la pregunta 12 (primer trabajo) no lo presiona sobre eso.
+- **Dónde:** transcripción → perfil (bisagras de la música).
+- **Qué se hizo a mano:** nada.
