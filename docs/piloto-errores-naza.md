@@ -206,3 +206,21 @@
   supuestos (`src/ia/control-pregunta.ts`, que mira hijos/pareja/nietos pero no el género ni el
   compromiso).
 - **Qué se hizo a mano:** nada; se mandó así.
+
+## N20 · 24/09 · El perfil no anotó a Sima, la pareja actual
+- **Qué pasó:** en la respuesta 10 (dos audios unidos, 83 s) Naza dijo que su novia se llama Sima,
+  que es catalana de Avià, que tiene 42 años y que quiere hijos, y que él la ama pero se guía por
+  sus metas. El perfil solo actualizó `dondeViveHoy` (Berga). No agregó a Sima a las personas (el
+  bloque no imprimió «personas: 22 → 23») ni el dato de la diferencia de edad o de los hijos. Si no
+  está en el perfil, el libro y las preguntas que vienen no la conocen.
+- **Dónde:** perfil (`actualizarPerfil`), respuesta de la orden 10. Hay que ver en `estado` si
+  quedó algo.
+- **Qué se hizo a mano:** nada.
+
+## N21 · 24/09 · La repregunta supone que él llegó hace poco a Berga
+- **Qué pasó:** «Sima, catalana de Avià, y vos **recién llegado** de Argentina a Berga». Naza no
+  dijo cuándo llegó ni si la conoció apenas llegó. Además la repregunta está bien pedida (la
+  pregunta 10 era «cómo la conociste» y no lo contó), pero la arma sobre una suposición.
+- **Dónde:** evaluación v2 (la repregunta no pasa por el control de supuestos, o el control no lo
+  ve).
+- **Qué se hizo a mano:** nada; se mandó así.
