@@ -191,7 +191,7 @@ dictadura (26) y el 2001 (51); la hiper queda afuera por el máximo de dos.
 |---|---|---|
 | Inicio | 4 (más la presentación) | 4 |
 | Infancia | padres, hermano ×2, abuelos, cuadra, escuela = 6 | padres, hermana ×1, abuelos, cuadra, escuela = 5 |
-| Juventud | quince, estudios, primer trabajo (cambia a "de qué vivía"), primer amor = 4 | quince, estudios, primer trabajo, primer amor, historia grande (dictadura) = 5 |
+| Juventud | quince, estudios, primer trabajo (cambia a "de qué vivía"), primer amor, historia grande (la pandemia a los 21) = 5 (la primera versión de esta tabla decía 4: no había contado la pandemia; son 30 fijas, no 29) | quince, estudios, primer trabajo, primer amor, historia grande (dictadura) = 5 |
 | Adulto joven | oficio, pareja (puerta → Ima), un lugar (España), amigos, por gusto (baja acá) = 5 | oficio, pareja (Rubén), hijos llegada, hijo ×2, un lugar (Lanús), amigos = 7 |
 | Adultez media | no vivió | trabajo y plata, hijos creciendo, pareja con los años, padres de grande, por gusto, historia grande (2001) = 6 |
 | Segunda mitad | no vivió | dejar el trabajo, nietos, pérdidas (Rubén) = 3 |
@@ -206,7 +206,18 @@ personalidades (5 para los padres; la de cada hermano va en 6), sobrinos y la fa
 la historia grande (14/26/30). Y los pormenores de Martínez (perros, cuadra, recreo) caben en una
 sola pregunta (8).
 
-## 6. Lo que no cierra todavía y decide Naza
+## 6. Lo que no cerraba — DECIDIDO por Naza el 24/09 ("dale" a las recomendaciones)
+
+- **Techo 44 para mayores de 56** (40 para el resto); las libres son hasta 4 sin pasar el techo.
+- `los-tuyos-hoy` queda como pregunta 2, escrita cálida por el modelo.
+- Repregunta: una por etapa, **más** una cuando la respuesta dura menos de 40 segundos y saltó
+  dos o más pormenores de la fila; siempre con el encargo "lo que faltó, junto".
+- Modelos: Opus 5 en la pregunta y la repregunta; Sonnet 5 en la ficha y en la evaluación;
+  Haiku 4.5 solo en la evaluación reducida de repreguntas y objetos (reserva, dejar, hoy no, parar).
+- Los textos fijos siguen; N2 y N3 se corrigen en la presentación.
+- El plan de implementación: `docs/superpowers/plans/2026-09-24-esqueleto-v2.md`.
+
+(Lo que sigue es el texto original de la discusión, para que quede el porqué.)
 
 1. **Una vida larga y completa llena el techo de 40 con fijas y no deja libres.** Opciones: (a)
    subir el techo a 44 para mayores de 56 (son los que más tienen para contar y el costo por
