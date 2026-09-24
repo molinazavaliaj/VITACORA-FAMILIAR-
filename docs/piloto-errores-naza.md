@@ -257,3 +257,11 @@
   escena concreta. Buen tacto.
 - **Dónde:** armado de ids de variables en la secuencia v2.
 - **Qué se hizo a mano:** nada.
+
+## N25 · 24/09 · La pregunta 13 supone que alguien lo esperaba en Berga
+- **Qué pasó:** «¿con qué llegaste encima, **quién te esperaba ahí** y dónde dormiste esa primera
+  noche?». Naza nunca dijo que alguien lo esperara. Es un supuesto chico, pero de la misma familia
+  que N19 y N21. Además la pregunta va al día de llegada sin haber preguntado nunca **por qué** se
+  fue a España, que es la bisagra más grande de su vida adulta.
+- **Dónde:** pregunta 13 (`var-adulto joven-2`), control de supuestos.
+- **Qué se hizo a mano:** nada; se mandó así.
