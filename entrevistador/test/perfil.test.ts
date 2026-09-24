@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { perfilVacio, perfilDesdeFicha, aplicarCambios, parsearCambios, armarPromptPerfil, actualizarPerfil, type Perfil } from '../src/ia/perfil.js';
+import { perfilVacio, perfilDesdeFicha, aplicarCambios, parsearCambios, armarPromptPerfil, actualizarPerfil, recortarPerfil, TOPES, type Perfil } from '../src/ia/perfil.js';
 
 // El perfil (biógrafo v2, 23/09): quién es la persona y la línea de tiempo de su vida, armado
 // con lo que CUENTA aunque la familia no cargue nada. Pedido de Naza: "es importante que el
@@ -51,12 +51,12 @@ describe('perfilDesdeFicha (la ficha de la compra siembra el perfil el día 0)',
     expect(p.bisagras).toEqual([]);
   });
 
-  it('hijos "no tuvo" queda dicho por la familia, no como persona', () => {
+  it('hijos "no tuvo" queda en noTuvo, no como persona', () => {
     const p = perfilDesdeFicha({ arbol: { hijos: 'no tuvo' } });
     expect(p.personas).toEqual([]);
     expect(p.tono).toBe('');
     expect(p.noSabemos).not.toContain('Si tiene hijos');
-    expect(JSON.stringify(p)).toContain('no tuvo hijos');
+    expect(p.noTuvo).toEqual(['hijos']);
   });
 
   it('con la ficha vacía es el perfil vacío, con el castellano de la zona', () => {
@@ -123,20 +123,13 @@ describe('aplicarCambios, lo nuevo', () => {
     expect(dicho.persona.edad?.valor).toBe('29');
   });
 
-  it('cubiertos se acumulan sin repetir; puertaAbierta y hoyFueFuerte son de hoy, no se arrastran', () => {
+  it('cubiertos se acumulan sin repetir; hoyFueFuerte es de hoy, no se arrastra', () => {
     const uno = aplicarCambios(base(), { cubiertos: ['amigos', 'amigos'], puertaAbierta: 'pruebas', hoyFueFuerte: true });
     expect(uno.cubiertos).toEqual(['amigos']);
-    expect(uno.puertaAbierta).toBe('pruebas');
     expect(uno.hoyFueFuerte).toBe(true);
     const dos = aplicarCambios(uno, { cubiertos: ['padres'] });
     expect(dos.cubiertos).toEqual(['amigos', 'padres']);
-    expect(dos.puertaAbierta).toBeNull();
     expect(dos.hoyFueFuerte).toBe(false);
-  });
-
-  it('una puerta abierta que no es un tema conocido se ignora', () => {
-    const p = aplicarCambios(base(), { puertaAbierta: 42 as never });
-    expect(p.puertaAbierta).toBeNull();
   });
 
   it('comoLeDicen dicho por la persona se guarda (la presentación lo pregunta y solo actualizarPerfil lo procesa)', () => {
@@ -186,7 +179,6 @@ describe('armarPromptPerfil, lo nuevo', () => {
     const prompt = armarPromptPerfil(base(), '¿Sus hermanos?', 'Éramos cinco.', [{ id: 'con-quien-crecio', tema: 'las personas con las que creció' }]);
     expect(prompt).toMatch(/edad[\s\S]*en cifras/i);
     expect(prompt).toContain('"cubiertos"');
-    expect(prompt).toContain('"puertaAbierta"');
     expect(prompt).toContain('"hoyFueFuerte"');
     expect(prompt).toContain('con-quien-crecio');
     expect(prompt).not.toContain('LO QUE CARGÓ LA FAMILIA');
@@ -201,7 +193,7 @@ describe('armarPromptPerfil, lo nuevo', () => {
 describe('actualizarPerfil', () => {
   // Piloto de Naza, N6: con 2000 tokens una respuesta con familia entera cortaba el JSON y el
   // perfil no aprendía nada ("salida ilegible"), dos veces seguidas.
-  it('pide 8000 tokens: con 2000 el JSON de una respuesta rica no entraba', async () => {
+  it('pide 4000 tokens (esqueleto v2: la salida ya no trae etapas enteras)', async () => {
     let pedido: { max_tokens?: number } = {};
     const cliente = {
       messages: {
@@ -213,6 +205,82 @@ describe('actualizarPerfil', () => {
     } as unknown as Parameters<typeof actualizarPerfil>[0];
     const r = await actualizarPerfil(cliente, perfilVacio(), 'pregunta', 'respuesta', []);
     expect(r.ok).toBe(true);
-    expect(pedido.max_tokens).toBe(8000);
+    expect(pedido.max_tokens).toBe(4000);
+  });
+});
+
+describe('la ficha con topes (esqueleto v2: el perfil del piloto llegó a 12.700 tokens)', () => {
+  const largo = (n: number, sep = '. ') => Array.from({ length: n }, (_, i) => `Oración número ${i} de la etapa`).join(sep) + '.';
+  it('recorta cada campo de una etapa a 300 caracteres cortando en una oración entera', () => {
+    const p = perfilVacio();
+    p.etapas.push({ edades: '0 a 12', lugar: 'Martínez', conQuien: 'sus padres', queHacia: largo(40), fuente: 'dicho' });
+    const r = recortarPerfil(p);
+    expect(r.etapas[0].queHacia.length).toBeLessThanOrEqual(TOPES.etapaCampo);
+    expect(r.etapas[0].queHacia.endsWith('.')).toBe(true);
+    expect(recortarPerfil(r)).toEqual(r);
+  });
+  it('bisagras: ≤ 150 caracteres cada una y ≤ 12 en total (se quedan las que tienen edad, después las más nuevas)', () => {
+    const p = perfilVacio();
+    p.bisagras = [...Array.from({ length: 10 }, (_, i) => `A los ${i + 5} pasó la cosa ${i}`), 'Se fue a España sin decir cuándo', 'Dejó la facultad', 'Volvió al Fátima ' + largo(6, ', ')];
+    const r = recortarPerfil(p);
+    expect(r.bisagras).toHaveLength(TOPES.bisagras);
+    expect(r.bisagras.filter((b) => /^A los/.test(b))).toHaveLength(10);
+    expect(r.bisagras.every((b) => b.length <= TOPES.bisagra)).toBe(true);
+  });
+  it('personas: la nota a 80 caracteres, y de más de 30 se quedan primero los familiares', () => {
+    const p = perfilVacio();
+    p.personas.push({ nombre: 'Ariel', vinculo: 'hermano mayor', vive: 'si', fuente: 'dicho', nota: largo(5) });
+    for (let i = 0; i < 32; i++) p.personas.push({ nombre: `Amigo ${i}`, vinculo: 'amigo del colegio', vive: 'no se sabe', fuente: 'dicho' });
+    p.personas.push({ nombre: 'Meri', vinculo: 'madre', vive: 'si', fuente: 'dicho' });
+    const r = recortarPerfil(p);
+    expect(r.personas).toHaveLength(TOPES.personas);
+    expect(r.personas[0].nota!.length).toBeLessThanOrEqual(TOPES.notaPersona);
+    expect(r.personas.map((x) => x.nombre)).toEqual(expect.arrayContaining(['Ariel', 'Meri']));
+  });
+  it('noSabemos: se quedan los 12 más nuevos; el tono a 300', () => {
+    const p = perfilVacio();
+    p.noSabemos = Array.from({ length: 20 }, (_, i) => `[infancia] cosa ${i}`);
+    p.tono = largo(12);
+    const r = recortarPerfil(p);
+    expect(r.noSabemos).toHaveLength(TOPES.noSabemos);
+    expect(r.noSabemos[0]).toBe('[infancia] cosa 8');
+    expect(r.tono.length).toBeLessThanOrEqual(TOPES.tono);
+  });
+  it('aplicarCambios recorta siempre: una etapa gigante no entra entera', () => {
+    const p = aplicarCambios(perfilVacio(), { agregarEtapas: [{ edades: '0 a 12', lugar: largo(30), conQuien: '', queHacia: '', fuente: 'dicho' }] });
+    expect(p.etapas[0].lugar.length).toBeLessThanOrEqual(TOPES.etapaCampo);
+  });
+});
+
+describe('noTuvo y corregir bisagras (esqueleto v2)', () => {
+  it('la ficha "no tuvo hijos" queda en noTuvo (y ya no como texto en noSabemos)', () => {
+    const p = perfilDesdeFicha({ arbol: { hijos: 'no tuvo', conyuge: 'Rubén' } }, 'America/Argentina/Buenos_Aires');
+    expect(p.noTuvo).toEqual(['hijos']);
+    expect(p.noSabemos.some((n) => /no tuvo/.test(n))).toBe(false);
+    expect(p.personas[0]).toMatchObject({ nombre: 'Rubén', vinculo: 'conyuge' });
+  });
+  it('el modelo suma noTuvo sin repetir y solo con vínculos conocidos', () => {
+    const p = aplicarCambios(perfilVacio(), { noTuvo: ['pareja', 'pareja', 'mascotas' as never, 'nietos'] });
+    expect(p.noTuvo).toEqual(['pareja', 'nietos']);
+  });
+  it('corregirBisagras pisa la fila por su número (N34, N40: antes quedaban las dos)', () => {
+    const base = aplicarCambios(perfilVacio(), { agregarBisagras: ['A los 18 se fue a vivir solo', 'A los 22 se fue a España'] });
+    const p = aplicarCambios(base, { corregirBisagras: [{ i: 0, texto: 'A los 22 se mudó por primera vez, con Ciano, a Nordelta' }, { i: 9, texto: 'no existe' }] });
+    expect(p.bisagras).toEqual(['A los 22 se mudó por primera vez, con Ciano, a Nordelta', 'A los 22 se fue a España']);
+  });
+  it('una bisagra nueva con la misma edad y las mismas palabras clave reemplaza a la vieja en vez de sumarse', () => {
+    const base = aplicarCambios(perfilVacio(), { agregarBisagras: ['A los 8 pasó del Saint John\'s al Fátima porque la familia se vino a menos'] });
+    const p = aplicarCambios(base, { agregarBisagras: ['A los 8 pasó del Saint John\'s al Fátima: le dijeron que era por las materias'] });
+    expect(p.bisagras).toHaveLength(1);
+    expect(p.bisagras[0]).toMatch(/materias/);
+  });
+  it('el prompt pide etapas cortas, una bisagra por vuelta de vida, corregirBisagras, noTuvo, noSabemos con la etapa entre corchetes, y ya no pide puertaAbierta', () => {
+    const prompt = armarPromptPerfil(perfilVacio(), 'P', 'R', [{ id: 'padres-como-eran', tema: 'Cómo eran' }]);
+    expect(prompt).toMatch(/dos oraciones/i);
+    expect(prompt).toMatch(/vuelta de vida/i);
+    expect(prompt).toContain('"corregirBisagras"');
+    expect(prompt).toContain('"noTuvo"');
+    expect(prompt).toMatch(/\[infancia\]/);
+    expect(prompt).not.toContain('puertaAbierta');
   });
 });

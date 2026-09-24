@@ -1,5 +1,6 @@
 import type Anthropic from '@anthropic-ai/sdk';
 import { castellanoDe, type Castellano } from '../manual/puro.js';
+import { MODELO_FICHA } from './modelos-v2.js';
 
 // El perfil del narrador (biógrafo v2, 23/09 — EXPERIMENTO, todavía no lo usa el flujo).
 //
@@ -15,8 +16,6 @@ import { castellanoDe, type Castellano } from '../manual/puro.js';
 //
 // Cada dato dice de dónde salió (lo dijo él, lo cargó la familia, se deduce — y por qué), y lo
 // que no se sabe queda en "noSabemos": eso se pregunta, no se supone.
-
-export const MODELO_PERFIL = 'claude-opus-5';
 
 export type Fuente = 'dicho' | 'ficha' | 'deducido';
 export type Dato<T> = { valor: T; fuente: Fuente; por?: string } | null;
@@ -44,6 +43,8 @@ export type Perfil = {
   tono: string;
   /** Lo que conviene preguntar antes de suponer. */
   noSabemos: string[];
+  /** Vínculos que dijo NO tener ("no tuve hijos", "nunca me casé"): el guion no pregunta por ellos ni los supone. */
+  noTuvo: string[];
   /** Temas fijos que ya contó con detalle sin que se los preguntaran: no se preguntan. */
   cubiertos: string[];
   /** Si la respuesta de HOY abrió un tema pendiente que conviene cruzar mañana (id del tema). De hoy, no se arrastra. */
@@ -61,6 +62,7 @@ export function perfilVacio(castellano: Castellano = 'rioplatense'): Perfil {
     bisagras: [],
     tono: '',
     noSabemos: ['Edad', 'Cómo prefiere que le hablen', 'Cómo le dicen'],
+    noTuvo: [],
     cubiertos: [],
     puertaAbierta: null,
     hoyFueFuerte: false,
@@ -75,6 +77,50 @@ const ESTADO_CIVIL_A_PREGUNTAR: Record<string, string> = {
   divorciada: 'Si tuvo pareja (la ficha dice divorciada: preguntar quién era)',
   divorciado: 'Si tuvo pareja (la ficha dice divorciado: preguntar quién era)',
 };
+
+export const VINCULOS_NO_TUVO = ['hijos', 'pareja', 'hermanos', 'nietos'] as const;
+/** "hijos", "conyuge", "esposo" → el vínculo del guion; otra cosa → null. */
+export function vinculoNoTuvo(vinculo: string): (typeof VINCULOS_NO_TUVO)[number] | null {
+  const v = vinculo.toLowerCase();
+  if (/hij/.test(v)) return 'hijos';
+  if (/conyug|espos|marido|mujer|pareja|novi/.test(v)) return 'pareja';
+  if (/herman/.test(v)) return 'hermanos';
+  if (/niet/.test(v)) return 'nietos';
+  return null;
+}
+
+/** Los topes de la ficha (esqueleto v2, guion §2): la ficha es una ficha, no una transcripción. */
+export const TOPES = { etapaCampo: 300, bisagra: 150, bisagras: 12, notaPersona: 80, personas: 30, noSabemos: 12, tono: 300 } as const;
+
+/** Corta en la última oración entera que entra; si no hay ninguna, corta seco. Idempotente. */
+export function recortar(texto: string, max: number): string {
+  const t = texto.trim();
+  if (t.length <= max) return t;
+  const corte = t.slice(0, max);
+  const fin = Math.max(corte.lastIndexOf('. '), corte.lastIndexOf('; '));
+  return fin > max * 0.4 ? corte.slice(0, fin + 1) : corte.trimEnd();
+}
+
+const ES_FAMILIAR = /padre|madre|papá|mamá|papa|mama|herman|hij|niet|sobrin|abuel|conyug|espos|marido|mujer|pareja|novi|tío|tía|prim/;
+
+/** Aplica los TOPES. Puro e idempotente: se llama después de cada cambio y sobre lo guardado. */
+export function recortarPerfil(p: Perfil): Perfil {
+  const r: Perfil = structuredClone(p);
+  r.etapas = r.etapas.map((e) => ({ ...e, lugar: recortar(e.lugar, TOPES.etapaCampo), conQuien: recortar(e.conQuien, TOPES.etapaCampo), queHacia: recortar(e.queHacia, TOPES.etapaCampo) }));
+  const conEdad = r.bisagras.filter((b) => /^a los \d/i.test(b));
+  const sinEdad = r.bisagras.filter((b) => !/^a los \d/i.test(b));
+  r.bisagras = [...conEdad, ...sinEdad.slice(-Math.max(0, TOPES.bisagras - conEdad.length))].slice(-TOPES.bisagras).map((b) => recortar(b, TOPES.bisagra));
+  r.personas = r.personas.map((x) => (x.nota ? { ...x, nota: recortar(x.nota, TOPES.notaPersona) } : x));
+  if (r.personas.length > TOPES.personas) {
+    const familia = r.personas.filter((x) => ES_FAMILIAR.test(x.vinculo.toLowerCase()));
+    const resto = r.personas.filter((x) => !ES_FAMILIAR.test(x.vinculo.toLowerCase()));
+    r.personas = [...familia, ...resto].slice(0, TOPES.personas);
+  }
+  r.noSabemos = r.noSabemos.slice(-TOPES.noSabemos);
+  r.tono = recortar(r.tono, TOPES.tono);
+  r.noTuvo = [...new Set((r.noTuvo ?? []).filter((v): v is (typeof VINCULOS_NO_TUVO)[number] => (VINCULOS_NO_TUVO as readonly string[]).includes(v)))];
+  return r;
+}
 
 /**
  * El perfil del día 0, con lo que cargó la familia al comprar. Cada dato dice "ficha": lo que la
@@ -101,8 +147,8 @@ export function perfilDesdeFicha(contexto: Record<string, any> = {}, zonaHoraria
   for (const [vinculo, nombre] of Object.entries(arbol)) {
     if (typeof nombre !== 'string' || !nombre.trim()) continue;
     if (nombre.trim().toLowerCase() === 'no tuvo') {
-      // Queda dicho en "noSabemos" (el encargo lo lee ahí) en vez de armar una persona fantasma.
-      p.noSabemos.push(`(la familia dice que no tuvo ${vinculo})`);
+      const v = vinculoNoTuvo(vinculo);
+      if (v && !p.noTuvo.includes(v)) p.noTuvo.push(v);
       continue;
     }
     p.personas.push({ nombre: nombre.trim(), vinculo, vive: 'no se sabe', fuente: 'ficha' });
@@ -132,6 +178,10 @@ export type CambiosDePerfil = {
   agregarPersonas?: Persona[];
   corregirPersonas?: (Partial<Persona> & { i: number })[];
   agregarBisagras?: string[];
+  /** Corrige una bisagra por su número (el texto entero nuevo). Corregir pisa, no agrega (N34, N40). */
+  corregirBisagras?: { i: number; texto: string }[];
+  /** Vínculos que hoy dijo no tener: "hijos" | "pareja" | "hermanos" | "nietos". */
+  noTuvo?: string[];
   tono?: string;
   /** Cosas de "noSabemos" que hoy se resolvieron (el texto tal cual figura). */
   resueltos?: string[];
@@ -148,6 +198,17 @@ const lista = <T>(x: unknown): T[] => (Array.isArray(x) ? (x as T[]) : []);
 const esObjeto = (x: unknown): x is Record<string, unknown> => typeof x === 'object' && x !== null && !Array.isArray(x);
 const sinRepetir = (xs: string[]) => [...new Set(xs.filter((x) => typeof x === 'string' && x.trim()))];
 const vive = (v: unknown): Persona['vive'] => (VIVE.has(v as string) ? (v as Persona['vive']) : 'no se sabe');
+
+const palabrasClave = (t: string) => new Set(t.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').match(/[a-z]{5,}/g) ?? []);
+/** Dos bisagras son la misma vuelta de vida si tienen la misma edad ("A los N") y comparten la mitad de sus palabras largas. */
+export function mismaVuelta(a: string, b: string): boolean {
+  const ea = /^a los (\d+)/i.exec(a)?.[1], eb = /^a los (\d+)/i.exec(b)?.[1];
+  if (!ea || ea !== eb) return false;
+  const pa = palabrasClave(a), pb = palabrasClave(b);
+  if (!pa.size || !pb.size) return false;
+  const comunes = [...pa].filter((w) => pb.has(w)).length;
+  return comunes >= Math.min(pa.size, pb.size) / 2;
+}
 
 /**
  * Aplica los cambios sobre la ficha anterior. Lo que venga mal armado se ignora pieza por pieza:
@@ -176,7 +237,17 @@ export function aplicarCambios(anterior: Perfil, cambios: CambiosDePerfil): Perf
       p.personas[i] = { ...p.personas[i], ...resto, vive: vive(resto.vive ?? p.personas[i].vive) };
     }
   }
-  p.bisagras = sinRepetir([...p.bisagras, ...lista<string>(cambios.agregarBisagras)]);
+  for (const c of lista<{ i: number; texto: string }>(cambios.corregirBisagras)) {
+    if (esObjeto(c) && typeof c.texto === 'string' && c.texto.trim() && p.bisagras[c.i] !== undefined) p.bisagras[c.i] = c.texto.trim();
+  }
+  for (const nueva of lista<string>(cambios.agregarBisagras)) {
+    if (typeof nueva !== 'string' || !nueva.trim()) continue;
+    const gemela = p.bisagras.findIndex((vieja) => mismaVuelta(vieja, nueva));
+    if (gemela >= 0) p.bisagras[gemela] = nueva.trim();
+    else p.bisagras.push(nueva.trim());
+  }
+  p.bisagras = sinRepetir(p.bisagras);
+  p.noTuvo = sinRepetir([...(p.noTuvo ?? []), ...lista<string>(cambios.noTuvo)]);
   if (typeof cambios.tono === 'string' && cambios.tono.trim()) p.tono = cambios.tono.trim();
   const resueltos = new Set(lista<string>(cambios.resueltos).map((r) => String(r).trim().toLowerCase()));
   p.noSabemos = sinRepetir([...p.noSabemos.filter((n) => !resueltos.has(n.trim().toLowerCase())), ...lista<string>(cambios.agregarNoSabemos)]);
@@ -184,7 +255,7 @@ export function aplicarCambios(anterior: Perfil, cambios: CambiosDePerfil): Perf
   // puertaAbierta y hoyFueFuerte son de HOY: se reemplazan en cada respuesta, no se acumulan.
   p.puertaAbierta = typeof cambios.puertaAbierta === 'string' && cambios.puertaAbierta.trim() ? cambios.puertaAbierta.trim() : null;
   p.hoyFueFuerte = cambios.hoyFueFuerte === true;
-  return p;
+  return recortarPerfil(p);
 }
 
 /**
@@ -240,25 +311,32 @@ Anotá en tu ficha lo que aprendiste hoy. Reglas:
    lo dijo. De su pareja, lo mismo: si no lo dijo, no se sabe.
 5. Las personas: "vive" es "si" o "no" solo si lo dijo o se desprende sin duda (habla de
    ella en presente como alguien que está, o cuenta su muerte). Si no, "no se sabe".
-6. La línea de tiempo: etapas con edades (o años), lugar, con quién vivía y qué hacía. Si
-   algo pasó en otra ciudad, que quede claro dónde: no mezcles lugares de etapas distintas.
+6. La línea de tiempo: etapas con edades (o años), lugar, con quién vivía y qué hacía, en DOS ORACIONES
+   como mucho por campo. No reescribas una etapa que ya está: corregí por su número solo lo que
+   cambió. Si algo pasó en otra ciudad, que quede claro dónde.
 7. "tono": cómo fue esta vida hasta donde sabés, en una o dos líneas, sin adornar. Si hubo
    una infancia dura, decilo; si no sabés, dejalo vacío.
 8. Lo que ya sabías queda: solo se corrige si hoy lo corrigió la persona.
-9. Las bisagras empiezan con la edad que tenía ("A los 12 se fue a vivir con el padre a
-   Buenos Aires"). Si no hay forma de saber la edad, sin número.
+9. Las bisagras son las vueltas de vida (una mudanza, una pérdida, un cambio de país, dejar un
+   trabajo), no cada anécdota: como mucho una vuelta de vida por respuesta, de hasta 25 palabras, y
+   empiezan con la edad ("A los 12 se fue a Buenos Aires"). Una anécdota va en "queHacia" de su
+   etapa, corta.
 10. La edad va SIEMPRE en cifras ("70", "entre 65 y 75"), nunca en letras.
-11. Si hoy corrigió algo que la ficha tenía mal ("está viva", "no fue en Concordia"),
-    corregilo en la fila que ya existe, por su número: no agregues otra al lado.
+11. Si hoy corrigió algo ("está viva", "no fue en Concordia", "se llamaba Homero", "no me fui a
+    vivir solo a los 18"), corregilo en la fila que ya existe, por su número, con "corregirEtapas",
+    "corregirPersonas" o "corregirBisagras": no agregues otra al lado.
 12. "cubiertos": los ids de los temas pendientes que HOY contó con detalle sin que se los
     preguntaran (una escena, nombres). Si solo los nombró al pasar, no.
-13. "puertaAbierta": si hoy abrió algo que conviene cruzar mañana (nombró una pérdida, un
-    amor, una mudanza, un trabajo) y hay un tema pendiente que lo cubre, su id. Si no, null.
+13. "noTuvo": si hoy dijo que NO tuvo hijos, pareja, hermanos o nietos, el vínculo ("hijos",
+    "pareja", "hermanos", "nietos"). Nunca por deducción: solo si lo dijo.
 14. "hoyFueFuerte": true si hoy contó algo que le costó decir: una muerte, un quiebre, una
     vergüenza. Mañana se le reconoce antes de preguntar.
 15. "comoLeDicen": el nombre o apodo con que dice que le dicen en casa, tal cual lo dijo (fuente
     "dicho"). Si hoy lo aprendiste, sacá "Cómo le dicen" de "noSabemos" con "resueltos", como
     hacés con cualquier otro dato que se resuelve.
+16. "agregarNoSabemos": solo lo que conviene preguntar después, como mucho 3 por respuesta, y
+    cada uno empieza con la etapa entre corchetes: [infancia], [juventud], [adulto joven],
+    [adultez media], [segunda mitad] o [hoy]. Lo que hoy se contestó va en "resueltos".
 
 Devolvé SOLO LO QUE CAMBIÓ, en JSON, usando solo las claves que hagan falta:
 {"persona":{"edad":D,"genero":D,"comoHabla":D,"anioNacimiento":D,"dondeViveHoy":D,"comoLeDicen":D},
@@ -266,16 +344,20 @@ Devolvé SOLO LO QUE CAMBIÓ, en JSON, usando solo las claves que hagan falta:
  "corregirEtapas":[{"i":0,"lugar":"..."}],
  "agregarPersonas":[{"nombre":"","vinculo":"","vive":"si|no|no se sabe","fuente":"","nota":""}],
  "corregirPersonas":[{"i":0,"vive":"si","nota":"..."}],
- "agregarBisagras":["A los 12 se fue a vivir con el padre a Buenos Aires"],"tono":"(solo si cambió)",
- "resueltos":["(el texto de noSabemos que hoy se resolvió, tal cual)"],"agregarNoSabemos":[""],
- "cubiertos":["id"],"puertaAbierta":"id|null","hoyFueFuerte":false}
+ "agregarBisagras":["A los 12 se fue a vivir con el padre a Buenos Aires"],
+ "corregirBisagras":[{"i":0,"texto":"A los 22 se mudó por primera vez"}],"tono":"(solo si cambió)",
+ "resueltos":["(el texto de noSabemos que hoy se resolvió, tal cual)"],"agregarNoSabemos":["[juventud] ..."],
+ "cubiertos":["id"],"noTuvo":["hijos"],"hoyFueFuerte":false}
 donde D es {"valor":"","fuente":"dicho|ficha|deducido","por":""}. Si hoy no aprendiste nada
 nuevo, devolvé {}.`;
 
 /** La ficha para el prompt: las listas llevan su número, que es lo que el modelo usa para corregir. */
 export function armarPromptPerfil(perfil: Perfil, pregunta: string, respuesta: string, pendientes: TemaPendiente[]): string {
+  // puertaAbierta ya no lo pide el prompt (esqueleto v2): queda en el tipo solo para no romper lo
+  // ya guardado en contexto.v2, así que no viaja en la ficha que ve el modelo.
+  const { puertaAbierta: _puertaAbierta, ...sinPuertaAbierta } = perfil;
   const numerada = {
-    ...perfil,
+    ...sinPuertaAbierta,
     etapas: perfil.etapas.map((e, i) => ({ i, ...e })),
     personas: perfil.personas.map((x, i) => ({ i, ...x })),
   };
@@ -295,8 +377,8 @@ export async function actualizarPerfil(
   pendientes: TemaPendiente[],
 ): Promise<{ ok: boolean; perfil: Perfil; usage: Anthropic.Usage }> {
   const r = await cliente.messages.create({
-    model: MODELO_PERFIL,
-    max_tokens: 8000,
+    model: MODELO_FICHA,
+    max_tokens: 4000,
     messages: [{ role: 'user', content: armarPromptPerfil(perfil, pregunta, respuesta, pendientes) }],
   });
   const bloque = r.content.find((b) => b.type === 'text');
