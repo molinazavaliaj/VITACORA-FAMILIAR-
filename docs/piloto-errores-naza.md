@@ -413,3 +413,20 @@
   respuesta 6: sexto caso de N17 (el tema nuevo, la primera casa solo, está bien elegido).
 - **Dónde:** pregunta 22 (`a-los-quince`), control de supuestos; secuencia (N17).
 - **Qué se hizo a mano:** nada.
+
+## N39 · 24/09 · La «historia grande» (pandemia y demás) está en el diseño, pero nunca salió
+- **Qué preguntó Naza:** ¿dónde está contemplado preguntar por lo grande que le tocó a todos (la
+  pandemia, crisis, etc.)?
+- **Lo que hay:** diseño §«La historia grande que le tocó» (`docs/superpowers/specs/2026-09-23-
+  biografo-que-piensa-design.md:132`), implementado como **una frase opcional** que se agrega a
+  cada variable (`HISTORIA_GRANDE`, `entrevistador/src/ia/pregunta-v2.ts:69`): «Si en esos años
+  pasó algo grande en su país o su ciudad (una dictadura, una guerra, una crisis, una
+  inundación), preguntá cómo lo vivió…». No es un tema del NUCLEO: el modelo decide si la usa.
+- **Qué pasó en el piloto:** en 23 preguntas no la usó nunca. Naza tenía ~21 años en 2020: la
+  pandemia (con la cuarentena larga de Argentina) cae justo en la facultad, la música y la etapa
+  antes de España, y no apareció. Tampoco la lista de ejemplos nombra pandemia.
+- **Para la revisión:** decidir si la historia grande es un tema propio (con la época calculada
+  por la edad: pandemia, 2001, Malvinas, el Mundial, lo que le toque) o si sigue siendo una
+  sugerencia; y sumar «una pandemia» a los ejemplos.
+- **Dónde:** `pregunta-v2.ts` (`HISTORIA_GRANDE`, `objetivoEnTexto`), diseño §2.
+- **Qué se hizo a mano:** nada.
