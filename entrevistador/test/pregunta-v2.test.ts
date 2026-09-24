@@ -173,6 +173,17 @@ describe('escribirPregunta (cliente falso)', () => {
     const args = (c.messages.create as ReturnType<typeof vi.fn>).mock.calls[0][0] as { model: string; max_tokens: number };
     expect(args.model).toBe('claude-opus-5'); expect(args.max_tokens).toBe(4000);
   });
+  it('con `modelo` (ajuste C, la comparación a ciegas) usa ese modelo y el mismo contenido; sin él, sigue Opus', async () => {
+    const opus = clienteQueDevuelve(['¿Cómo era tu escuela, Naza?']);
+    const sonnet = clienteQueDevuelve(['¿Cómo era tu escuela, Naza?']);
+    await escribirPregunta(opus, perfilDeVos(), fila('la-escuela'), [], []);
+    await escribirPregunta(sonnet, perfilDeVos(), fila('la-escuela'), [], [], [], 'claude-sonnet-5');
+    const a = (opus.messages.create as ReturnType<typeof vi.fn>).mock.calls[0][0] as { model: string; max_tokens: number; messages: unknown };
+    const b = (sonnet.messages.create as ReturnType<typeof vi.fn>).mock.calls[0][0] as { model: string; max_tokens: number; messages: unknown };
+    expect(a.model).toBe('claude-opus-5'); expect(b.model).toBe('claude-sonnet-5');
+    expect(b.max_tokens).toBe(a.max_tokens); expect(b.messages).toEqual(a.messages);
+    expect(Object.keys(b).sort()).toEqual(Object.keys(a).sort());
+  });
   it('tres intentos con el motivo y marcada si el tercero también falla; un texto vacío queda marcado como "pregunta"', async () => {
     const c = clienteQueDevuelve(['Contame de tu escuela.', '', '']);
     const r = await escribirPregunta(c, perfilDeVos(), fila('la-escuela'), [], []);

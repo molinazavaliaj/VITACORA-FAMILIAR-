@@ -214,6 +214,9 @@ export function partirPromptPregunta(
  * salía cortada o vacía (el que no se usa no se cobra). Si igual se corta (`stop_reason:
  * 'max_tokens'`) o no trae bloque de texto, tira (`textoDelModelo`, arreglo final I2): media
  * pregunta no se manda.
+ * `modelo` (ajuste C, 24/09): solo para la comparación a ciegas (`scripts/comparar-modelos.ts`),
+ * que escribe la misma pregunta con Opus y con Sonnet con el mismo prompt, los mismos parámetros y
+ * los mismos controles. Sin pasarlo, es `MODELO_PREGUNTA` como siempre.
  */
 export async function escribirPregunta(
   cliente: Anthropic,
@@ -222,6 +225,7 @@ export async function escribirPregunta(
   conversacion: { pregunta: string; respuesta: string }[],
   yaHechas: YaHecha[],
   evitar: string[] = [],
+  modelo: string = MODELO_PREGUNTA,
 ): Promise<{ texto: string; ok: boolean; marca?: Marca; usos: Anthropic.Usage[] }> {
   const prompt = partirPromptPregunta(perfil, objetivo, conversacion, yaHechas, evitar);
   const usos: Anthropic.Usage[] = [];
@@ -230,7 +234,7 @@ export async function escribirPregunta(
   for (let intento = 1; intento <= INTENTOS; intento++) {
     // Lo fijo es el mismo bloque en cada intento: el 2.º y el 3.º lo leen de la caché (ajuste B).
     const motivo = intento === 1 ? '' : `\n\nTu versión anterior no sirvió porque ${ultimo!.motivo}. Escribila de nuevo, cuidando eso.`;
-    const r = await cliente.messages.create({ model: MODELO_PREGUNTA, max_tokens: 4000, messages: [{ role: 'user', content: contenidoConCache(prompt, motivo) }] });
+    const r = await cliente.messages.create({ model: modelo, max_tokens: 4000, messages: [{ role: 'user', content: contenidoConCache(prompt, motivo) }] });
     usos.push(r.usage);
     texto = textoDelModelo(r, 'la pregunta', false).trim().replace(/^["«]|["»]$/g, '');
     const control = controlarSalida(texto, perfil, objetivo);
