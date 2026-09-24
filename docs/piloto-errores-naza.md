@@ -162,3 +162,15 @@
 - **Dónde:** transcripción + perfil (bisagra de los 12-13, lista de personas).
 - **Qué se hizo a mano:** nada. Para la revisión: cuando un dato es ambiguo, que el perfil lo deje
   en `noSabemos` en vez de elegir.
+
+## N16 · 24/09 · Con un narrador joven, los amigos merecen más que una pregunta
+- **Qué pasó:** en la respuesta 6 Naza nombró a muchos amigos (Saint John's, Fátima, Liceo) y dijo
+  que con Joaquín en el Liceo «habremos pasado mil quinientas anécdotas… ahora no se me viene».
+  La evaluación dio `suficiente: true`, sin repregunta, y la secuencia siguió a otro tema
+  (`por-gusto`). Naza dice que el biógrafo tendría que darse cuenta de que con alguien de 27 años
+  los amigos son una parte central de la vida y conviene pedir más anécdotas: una repregunta
+  («¿alguna con Joaquín en el Liceo que te acuerdes ahora?») o que el tema vuelva más adelante
+  con otro amigo.
+- **Dónde:** evaluación v2 (`src/ia/evaluar-v2.ts`: ¿sabe la edad y le da peso?) y la secuencia /
+  variables (¿cuánto espacio le da a «amigos» según el tramo de vida?).
+- **Qué se hizo a mano:** nada.
