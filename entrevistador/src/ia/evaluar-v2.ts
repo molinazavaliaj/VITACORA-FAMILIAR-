@@ -32,7 +32,8 @@ const PEDIDOS = `- Si pidió cambiar de tema ("vamos por otro lado", "prefiero n
 - Si pidió que algo no vaya al libro ("esto no lo pongas", "que quede para mí"): "reservado": true,
   y si es una parte, "reservadoTramo" con ese tramo COPIADO TEXTUAL. Ante la duda, reservá.`;
 
-const objetivoEnLinea = (o: Objetivo): string =>
+/** El tema de la fila en pocas líneas (también lo usa la búsqueda del piloto que reusa, `reusar-v2.ts`). */
+export const objetivoEnLinea = (o: Objetivo): string =>
   o.tipo === 'nucleo' ? `${o.tema}${o.pormenores.length ? `\nPormenores de la fila: ${o.pormenores.join('; ')}.` : ''}`
     : o.tipo === 'variable' ? `Algo que nombró y no contó: ${o.anclas.join('; ')}.`
       : o.tipo === 'objeto' ? (o.final ? 'La cosa que guardaría de toda su vida, con foto.' : 'Un objeto de esa época, con foto.')

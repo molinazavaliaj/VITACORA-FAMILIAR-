@@ -13,12 +13,14 @@ export const MODELO_FICHA = 'claude-sonnet-5';
 export const MODELO_EVALUACION = 'claude-sonnet-5';
 export const MODELO_PEDIDOS = 'claude-haiku-4-5';
 
-export type PasoV2 = 'v2-presentacion' | 'v2-pregunta' | 'v2-repregunta' | 'v2-objeto' | 'v2-perfil' | 'v2-evaluar' | 'v2-pedidos';
+/** `v2-reusar`: solo en el piloto que reusa respuestas viejas (ajuste D, 24/09): busca una que ya conteste la pregunta. */
+export type PasoV2 = 'v2-presentacion' | 'v2-pregunta' | 'v2-repregunta' | 'v2-objeto' | 'v2-perfil' | 'v2-evaluar' | 'v2-pedidos' | 'v2-reusar';
 
 export function modeloDePaso(paso: PasoV2): string {
   switch (paso) {
     case 'v2-perfil': return MODELO_FICHA;
     case 'v2-evaluar': return MODELO_EVALUACION;
+    case 'v2-reusar': return MODELO_EVALUACION;
     case 'v2-pedidos': return MODELO_PEDIDOS;
     default: return MODELO_PREGUNTA;
   }

@@ -51,7 +51,15 @@ export type EstadoV2 = {
    * 'pausado' de punta a punta; su libro lo arma `fabrica/scripts/prueba-reparto.ts` a mano.
    */
   terminada?: string;
+  /**
+   * Solo en el piloto "de cero, reusando respuestas viejas" (ajuste D, 24/09; `empezar --reusar`):
+   * de qué narrador se toman y cuáles ya se usaron (orden nueva → id de la respuesta vieja). Sin
+   * `--reusar` no existe y nada cambia.
+   */
+  reusar?: ReusarConfig;
 };
+
+export type ReusarConfig = { desde: string; usadas: Record<string, string> };
 
 /** El estado del día 0: el perfil con lo que haya en la ficha y el guion ya armado. */
 export function estadoNuevo(contexto: Record<string, any>, zonaHoraria: string, anioActual = new Date().getFullYear()): EstadoV2 {
