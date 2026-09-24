@@ -143,6 +143,9 @@
   - «bancar el relato» suena raro: el que lo bancó fue él al contarlo.
   - «esos amigos» no dice cuáles: podrían ser los del Fátima, los del Liceo o Joaquín. Queda
     colgado.
+- **Lo que dice Naza:** está rara de redacción. Tendría que nombrar la etapa y preguntar
+  simple, por ejemplo: «De los amigos de la etapa escolar, ¿te quedó alguno? ¿Quiénes?», y
+  recién después pedir el día concreto.
 - **Lo bueno:** el perfil entendió que Joaquín es un amigo del Liceo al que Naza llama «mi
   hermano», no un hermano de sangre. También notó la contradicción de quién estaba cuando lo
   sacaron del Liceo, sin inventar.
