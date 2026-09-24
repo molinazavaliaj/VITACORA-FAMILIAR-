@@ -132,3 +132,15 @@ Sigue entrando en el techo, con ~138 caracteres de margen en el peor caso (antes
 - **Caché de la parte fija** del prompt de la pregunta (Opus) y del de la ficha (Sonnet): las instrucciones que no cambian van primero, marcadas para caché (5 minutos). Las mismas palabras; **cambió el orden** en esos dos prompts (lo fijo primero, lo tuyo después), por eso el doc de textos para aprobar se regeneró y marca dónde termina la parte cacheada. La evaluación y los pedidos quedan como estaban (son más chicos que el mínimo que la API cachea).
 - **Cuánto ahorra**: poco, ~USD 0,50 por libro (0,20-0,60 por el "pensar", hasta 0,25 por la caché). El piloto sigue en **~USD 5-6**. Después de las primeras llamadas se confirma en `consumo_ia` (columnas de caché).
 - Tests: 631 → **640** verdes; fábrica 537 sin tocar. Commits `4aee6d6`, `cb3a19f`, `a28246a`.
+
+## Ajuste C (24/09): las preguntas pasan a Sonnet
+
+Decisión de producto de Naza, después de una comparación a ciegas de 10 momentos del piloto (mismo prompt, misma función, mismos controles; solo cambiaba el modelo): Sonnet ganó 1, empataron 9, Opus 0 momentos; Sonnet usó en promedio 1,2 intentos de control contra 1,4 de Opus; USD 0,018 contra USD 0,047 por pregunta. `MODELO_PREGUNTA` (`entrevistador/src/ia/modelos-v2.ts`) pasa de `claude-opus-5` a `claude-sonnet-5` — la pregunta, la repregunta, la presentación y el objeto (que comparten modelo por `modeloDePaso`).
+
+El script de la comparación (`entrevistador/src/manual/comparar-modelos.ts`, `scripts/comparar-modelos.ts`) sigue comparando Opus contra Sonnet de forma explícita (`MODELO_OPUS`, fijo, ya no toma `MODELO_PREGUNTA`), para no terminar comparando Sonnet contra Sonnet.
+
+Nota de caché: lo fijo del prompt de la pregunta (~714 tokens) se había partido para el mínimo cacheable de Opus (512 tokens). El de Sonnet 5 es más alto (1.024 tokens), así que con Sonnet esa parte ya no llega al mínimo y la API no la cachea (tampoco cobra de más). No se restructuró el prompt por esto; queda anotado en el código (`modelos-v2.ts`, `cache-y-thinking-v2.test.ts`).
+
+Estimado del piloto: **~USD 3** (antes ~USD 5-6), por el cambio de precio de la pregunta de Opus a Sonnet.
+
+Tests: `entrevistador` 640 → **659** verdes; `fabrica` sin tocar, sigue en 537.

@@ -1,11 +1,14 @@
 import type Anthropic from '@anthropic-ai/sdk';
 
 // Los modelos del esqueleto v2, por paso (decisión de Naza, 24/09, `docs/esqueleto-v2-guion-para-aprobar.md` §6).
-// Opus donde se nota (lo que lee la persona); Sonnet donde es extracción o juicio con la ficha; Haiku
-// donde solo se buscan pedidos (reserva, dejar, hoy no, parar). Un solo lugar: el gasto se anota con
-// el modelo que de verdad se usó (`anotarUsos` en manual-v2.ts).
+// Ajuste C (24/09, decisión de producto de Naza tras una comparación a ciegas de 10 momentos del
+// piloto: Sonnet ganó 1, empataron 9, Opus 0; Sonnet con 1,2 intentos de control contra 1,4 de Opus;
+// USD 0,018 contra USD 0,047 por pregunta): la pregunta (y la repregunta, la presentación y el
+// objeto, que comparten modelo) pasa de Opus a Sonnet. Sonnet donde es extracción o juicio con la
+// ficha; Haiku donde solo se buscan pedidos (reserva, dejar, hoy no, parar). Un solo lugar: el gasto
+// se anota con el modelo que de verdad se usó (`anotarUsos` en manual-v2.ts).
 
-export const MODELO_PREGUNTA = 'claude-opus-5';
+export const MODELO_PREGUNTA = 'claude-sonnet-5';
 export const MODELO_FICHA = 'claude-sonnet-5';
 export const MODELO_EVALUACION = 'claude-sonnet-5';
 export const MODELO_PEDIDOS = 'claude-haiku-4-5';

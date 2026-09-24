@@ -162,7 +162,8 @@ async function guardar(n: NarradorFila, estado: EstadoV2, extra: Record<string, 
 
 /**
  * Cada llamada al modelo queda en `consumo_ia` como el resto del entrevistador (el panel suma el día),
- * con el modelo que de verdad usó ese paso (Opus, Sonnet o Haiku: `modeloDePaso`).
+ * con el modelo que de verdad usó ese paso (Sonnet o Haiku: `modeloDePaso`; desde el ajuste C, 24/09,
+ * ya no hay ningún paso del esqueleto v2 con Opus).
  */
 async function anotarUsos(paso: PasoV2, narradorId: string, usos: Anthropic.Usage[]): Promise<void> {
   const { db, registrarUso, cuentaDeEsteServicio } = await modulos();
@@ -570,7 +571,7 @@ async function procesar(
       mensajes.push({ titulo: 'Mañana se retoma', texto: mensajeHoyNo(nombre, estado.perfil) });
       break;
     case 'repreguntar': {
-      // La escribe Opus con el encargo: lo que faltó, junto, en una sola pregunta; pasa por los controles.
+      // La escribe el modelo de la pregunta (Sonnet, ajuste C 24/09) con el encargo: lo que faltó, junto, en una sola pregunta; pasa por los controles.
       // La conversación lleva la respuesta de hoy (las `filas` se leyeron antes de guardarla).
       const obj: Objetivo = { tipo: 'repregunta', id: `${objetivo.id}-repregunta`, tramo: tramoDe(objetivo), pregunta: abierta.texto, falto: decision.falto };
       const deHoy = { id: respuestaId, pregunta_orden: orden, es_repregunta: false, transcripcion: respuesta, texto_directo: null, recibido_at: new Date().toISOString() };

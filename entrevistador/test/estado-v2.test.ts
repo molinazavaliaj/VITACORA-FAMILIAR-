@@ -302,18 +302,18 @@ describe('el cansancio (sin cambios)', () => {
 });
 
 describe('el gasto', () => {
-  it('suma los tokens de Opus y los segundos de transcripción', () => {
+  it('suma los tokens de Sonnet (MODELO_PREGUNTA, por defecto) y los segundos de transcripción', () => {
     const e = estadoNuevo({}, BA, 2026);
     const g = sumarGasto(e, [{ input_tokens: 1_000_000, output_tokens: 0 }, { input_tokens: 0, output_tokens: 40_000 }], 60);
-    expect(g.gastoUsd).toBeCloseTo(5 + 1 + 0.0045, 6);
+    expect(g.gastoUsd).toBeCloseTo(2 + 0.4 + 0.0045, 6);
     expect(sumarGasto(g, []).gastoUsd).toBeCloseTo(g.gastoUsd, 9);
   });
-  it('cobra con el modelo que se usó: la ficha con Sonnet, los pedidos con Haiku (por defecto, Opus)', () => {
+  it('cobra con el modelo que se usó: la ficha con Sonnet, los pedidos con Haiku (por defecto, MODELO_PREGUNTA, Sonnet desde el ajuste C)', () => {
     const e = estadoNuevo({}, BA, 2026);
     const millon = [{ input_tokens: 1_000_000, output_tokens: 100_000 }];
     expect(sumarGasto(e, millon, 0, 'claude-sonnet-5').gastoUsd).toBeCloseTo(2 + 1, 6);
     expect(sumarGasto(e, millon, 0, 'claude-haiku-4-5').gastoUsd).toBeCloseTo(1 + 0.5, 6);
-    expect(sumarGasto(e, millon).gastoUsd).toBeCloseTo(5 + 2.5, 6);
+    expect(sumarGasto(e, millon).gastoUsd).toBeCloseTo(2 + 1, 6);
   });
 });
 

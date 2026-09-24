@@ -243,16 +243,16 @@ describe('manual-v2 de punta a punta (base y modelo falsos)', () => {
     expect(Object.keys(v2().repreguntasEnviadas)).toEqual(['1']);
   });
 
-  it('cada paso anota su modelo: la ficha con Sonnet, la evaluación con Sonnet, la pregunta con Opus, los pedidos con Haiku', async () => {
+  it('cada paso anota su modelo: la ficha con Sonnet, la evaluación con Sonnet, la pregunta con Sonnet (ajuste C, 24/09), los pedidos con Haiku', async () => {
     const consumo = h.tablas.consumo_ia;
     const de = (paso: string) => consumo.filter((c) => c.paso === paso).map((c) => c.modelo);
     expect(new Set(de('v2-perfil'))).toEqual(new Set(['claude-sonnet-5']));
     expect(new Set(de('v2-evaluar'))).toEqual(new Set(['claude-sonnet-5']));
-    expect(new Set(de('v2-pregunta'))).toEqual(new Set(['claude-opus-5']));
+    expect(new Set(de('v2-pregunta'))).toEqual(new Set(['claude-sonnet-5']));
     expect(new Set(de('v2-pedidos'))).toEqual(new Set(['claude-haiku-4-5']));
-    expect(new Set(de('v2-repregunta'))).toEqual(new Set(['claude-opus-5']));
+    expect(new Set(de('v2-repregunta'))).toEqual(new Set(['claude-sonnet-5']));
     // Y el modelo anotado es el que de verdad se llamó.
-    expect(new Set(h.modelos)).toEqual(new Set(['claude-opus-5', 'claude-sonnet-5', 'claude-haiku-4-5']));
+    expect(new Set(h.modelos)).toEqual(new Set(['claude-sonnet-5', 'claude-haiku-4-5']));
   });
 
   it('una pregunta que no pasa los controles sale igual, marcada, y se ve cuántos intentos llevó', async () => {

@@ -5,13 +5,22 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import {
   elegirFilas, armarMomentos, estimarUsd, correrComparacion, revelar, main, leerPiloto, fichaDelPiloto,
-  MODELO_A_COMPARAR, type DatosPiloto,
+  MODELO_A_COMPARAR, MODELO_OPUS, type DatosPiloto,
 } from '../src/manual/comparar-modelos.js';
 import { armarSecuencia } from '../src/ia/secuencia.js';
 import { MODELO_PREGUNTA } from '../src/ia/modelos-v2.js';
 
 // Ajuste C: la comparación a ciegas Opus contra Sonnet. Todo con base FALSA y cliente FALSO:
 // ninguna llamada sale de acá.
+
+describe('la comparación sigue siendo Opus contra Sonnet, pase lo que pase con MODELO_PREGUNTA', () => {
+  it('MODELO_OPUS no depende de MODELO_PREGUNTA (que desde el ajuste C ya es Sonnet)', () => {
+    expect(MODELO_OPUS).toBe('claude-opus-5');
+    expect(MODELO_A_COMPARAR).toBe('claude-sonnet-5');
+    expect(MODELO_PREGUNTA).toBe(MODELO_A_COMPARAR);
+    expect(MODELO_OPUS).not.toBe(MODELO_PREGUNTA);
+  });
+});
 
 const RUTA_FICHA = new URL('./fixtures/perfil-naza-piloto.json', import.meta.url);
 const ficha = fichaDelPiloto(RUTA_FICHA);
@@ -35,7 +44,7 @@ function pilotoFalso(pares = 20): DatosPiloto {
 function clienteFalso(textos: Record<string, string[]> = {}) {
   const i: Record<string, number> = {};
   const create = vi.fn(async (args: { model: string }) => {
-    const lista = textos[args.model] ?? [args.model === MODELO_PREGUNTA ? '¿Cómo te acordás de eso, Naza?' : '¿Qué te quedó de ese momento, Naza?'];
+    const lista = textos[args.model] ?? [args.model === MODELO_OPUS ? '¿Cómo te acordás de eso, Naza?' : '¿Qué te quedó de ese momento, Naza?'];
     const k = i[args.model] ?? 0;
     i[args.model] = k + 1;
     return { content: [{ type: 'text', text: lista[Math.min(k, lista.length - 1)] }], stop_reason: 'end_turn', usage: { input_tokens: 1000, output_tokens: 200 } };
@@ -132,7 +141,7 @@ describe('correrComparacion (cliente falso)', () => {
     const llamadas = create.mock.calls.map((c) => c[0] as { model: string; max_tokens: number; messages: unknown });
     for (let k = 0; k < 10; k++) {
       const [a, b] = [llamadas[2 * k], llamadas[2 * k + 1]];
-      expect(new Set([a.model, b.model])).toEqual(new Set([MODELO_PREGUNTA, MODELO_A_COMPARAR]));
+      expect(new Set([a.model, b.model])).toEqual(new Set([MODELO_OPUS, MODELO_A_COMPARAR]));
       expect(a.messages).toEqual(b.messages);
       expect(a.max_tokens).toBe(b.max_tokens);
     }

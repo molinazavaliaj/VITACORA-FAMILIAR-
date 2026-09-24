@@ -166,21 +166,21 @@ describe('escribirPregunta (cliente falso)', () => {
     let i = 0;
     return { messages: { create: vi.fn(async () => ({ content: [{ type: 'text', text: textos[Math.min(i++, textos.length - 1)] }], usage: { input_tokens: 10, output_tokens: 5 } })) } } as unknown as Anthropic;
   };
-  it('usa Opus, da lugar al pensamiento (max_tokens 4000) y devuelve la pregunta limpia de comillas', async () => {
+  it('usa Sonnet (ajuste C, 24/09), da lugar al pensamiento (max_tokens 4000) y devuelve la pregunta limpia de comillas', async () => {
     const c = clienteQueDevuelve(['«¿Cómo era tu escuela, Naza?»']);
     const r = await escribirPregunta(c, perfilDeVos(), fila('la-escuela'), [], []);
     expect(r.ok).toBe(true); expect(r.texto).toBe('¿Cómo era tu escuela, Naza?');
     const args = (c.messages.create as ReturnType<typeof vi.fn>).mock.calls[0][0] as { model: string; max_tokens: number };
-    expect(args.model).toBe('claude-opus-5'); expect(args.max_tokens).toBe(4000);
+    expect(args.model).toBe('claude-sonnet-5'); expect(args.max_tokens).toBe(4000);
   });
-  it('con `modelo` (ajuste C, la comparación a ciegas) usa ese modelo y el mismo contenido; sin él, sigue Opus', async () => {
-    const opus = clienteQueDevuelve(['¿Cómo era tu escuela, Naza?']);
+  it('con `modelo` (ajuste C, la comparación a ciegas) usa ese modelo y el mismo contenido; sin él, sigue MODELO_PREGUNTA (Sonnet)', async () => {
     const sonnet = clienteQueDevuelve(['¿Cómo era tu escuela, Naza?']);
-    await escribirPregunta(opus, perfilDeVos(), fila('la-escuela'), [], []);
-    await escribirPregunta(sonnet, perfilDeVos(), fila('la-escuela'), [], [], [], 'claude-sonnet-5');
-    const a = (opus.messages.create as ReturnType<typeof vi.fn>).mock.calls[0][0] as { model: string; max_tokens: number; messages: unknown };
-    const b = (sonnet.messages.create as ReturnType<typeof vi.fn>).mock.calls[0][0] as { model: string; max_tokens: number; messages: unknown };
-    expect(a.model).toBe('claude-opus-5'); expect(b.model).toBe('claude-sonnet-5');
+    const opus = clienteQueDevuelve(['¿Cómo era tu escuela, Naza?']);
+    await escribirPregunta(sonnet, perfilDeVos(), fila('la-escuela'), [], []);
+    await escribirPregunta(opus, perfilDeVos(), fila('la-escuela'), [], [], [], 'claude-opus-5');
+    const a = (sonnet.messages.create as ReturnType<typeof vi.fn>).mock.calls[0][0] as { model: string; max_tokens: number; messages: unknown };
+    const b = (opus.messages.create as ReturnType<typeof vi.fn>).mock.calls[0][0] as { model: string; max_tokens: number; messages: unknown };
+    expect(a.model).toBe('claude-sonnet-5'); expect(b.model).toBe('claude-opus-5');
     expect(b.max_tokens).toBe(a.max_tokens); expect(b.messages).toEqual(a.messages);
     expect(Object.keys(b).sort()).toEqual(Object.keys(a).sort());
   });

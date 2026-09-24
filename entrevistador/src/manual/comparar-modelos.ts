@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { recortarPerfil, type Perfil } from '../ia/perfil.js';
 import { armarSecuencia, tramoDe } from '../ia/secuencia.js';
 import { escribirPregunta, partirPromptPregunta, temaHechoEnLinea, type Objetivo, type YaHecha } from '../ia/pregunta-v2.js';
-import { MODELO_PREGUNTA, type PromptPartido } from '../ia/modelos-v2.js';
+import type { PromptPartido } from '../ia/modelos-v2.js';
 import { INTENTOS } from '../ia/control-pregunta.js';
 import { calcularUsd, PRECIOS_USD_POR_MILLON, type Uso } from '../costos.js';
 import { conversacionDe, yaHechasDe, evitarDe, type EstadoV2 } from './estado-v2.js';
@@ -16,9 +16,15 @@ import { conversacionDe, yaHechasDe, evitarDe, type EstadoV2 } from './estado-v2
 // cruza lo que eligió Naza con la clave). Nada de acá escribe en la base. El script
 // (`scripts/comparar-modelos.ts`) solo carga el entorno y conecta la base y el cliente.
 
-/** El otro modelo de la comparación (Opus es `MODELO_PREGUNTA`, el de hoy). */
+/**
+ * Opus, fijo para la comparación. Antes del ajuste C era `MODELO_PREGUNTA`; desde que la pregunta
+ * pasó a Sonnet, va a mano para que la comparación siga siendo Opus contra Sonnet (si tomara
+ * `MODELO_PREGUNTA` ahora compararía Sonnet contra Sonnet).
+ */
+export const MODELO_OPUS = 'claude-opus-5';
+/** El otro modelo de la comparación (desde el ajuste C, el mismo que `MODELO_PREGUNTA` de hoy). */
 export const MODELO_A_COMPARAR = 'claude-sonnet-5';
-export const MODELOS = { opus: MODELO_PREGUNTA, sonnet: MODELO_A_COMPARAR } as const;
+export const MODELOS = { opus: MODELO_OPUS, sonnet: MODELO_A_COMPARAR } as const;
 export type QuienEs = keyof typeof MODELOS;
 
 /** El narrador del piloto v2 (Naza). */

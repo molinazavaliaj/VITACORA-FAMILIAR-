@@ -10,10 +10,15 @@ import { calcularUsd, registrarUso } from '../src/costos.js';
 
 // Ajuste B (24/09, aprobado por Naza): la parte FIJA de cada prompt (reglas e instrucciones, igual
 // en todas las llamadas del mismo tipo) va primero, en su propio bloque con `cache_control`; lo que
-// cambia (ficha, conversación, respuesta) va después (solo pregunta y ficha: la evaluación y los
-// pedidos no llegan al mínimo cacheable y van enteros, en su orden). El modelo ve LAS MISMAS PALABRAS que antes: solo
-// cambia el orden (lo fijo adelante, porque la caché es por prefijo). Y la ficha, la evaluación y los
-// pedidos van sin "pensar" (`thinking: {type: 'disabled'}`); la pregunta (Opus) no se toca.
+// cambia (ficha, conversación, respuesta) va después (la pregunta y la ficha se parten así; la
+// evaluación y los pedidos no llegan al mínimo cacheable y van enteros, en su orden). El modelo ve
+// LAS MISMAS PALABRAS que antes: solo cambia el orden (lo fijo adelante, porque la caché es por
+// prefijo). Y la ficha, la evaluación y los pedidos van sin "pensar" (`thinking: {type:
+// 'disabled'}`); la pregunta no se toca (sigue pensando).
+// Ajuste C (24/09): la pregunta pasó de Opus a Sonnet. Se sigue partiendo igual (mismo código), pero
+// lo fijo de la pregunta (~714 tokens) queda por debajo del mínimo cacheable de Sonnet 5 (1.024
+// tokens) — con Opus (mínimo 512) sí se cacheaba. No se restructuró el prompt por esto (Naza, 24/09):
+// la API simplemente no cachea ni cobra de más cuando no llega al mínimo (ver `modelos-v2.ts`).
 
 /** Las líneas del texto, sin sangría ni vacías, ordenadas: mismas palabras aunque cambie el orden. */
 const lineas = (t: string) => t.split('\n').map((l) => l.trim()).filter(Boolean).sort();
@@ -71,7 +76,7 @@ describe('el encargo, partido en fijo y variable', () => {
   });
 });
 
-describe('escribirPregunta (Opus): caché de la parte fija, el thinking no se toca', () => {
+describe('escribirPregunta (Sonnet, ajuste C 24/09): caché de la parte fija (bajo el mínimo de Sonnet, no se cachea de verdad), el thinking no se toca', () => {
   it('manda fijo (con cache_control) + variable, con las mismas líneas que armarPromptPregunta; sin parámetro thinking', async () => {
     const { c, pedidos } = clienteQueGuarda(['¿Cómo era tu escuela, y quién era tu maestra?']);
     await escribirPregunta(c, perfilLleno(), laEscuela, conversacion, [{ id: 'x', tema: 'La casa' }], evitar);
@@ -79,7 +84,7 @@ describe('escribirPregunta (Opus): caché de la parte fija, el thinking no se to
     expect(lineas(fijo + variable)).toEqual(lineas(armarPromptPregunta(perfilLleno(), laEscuela, conversacion, [{ id: 'x', tema: 'La casa' }], evitar)));
     expect(fijo).not.toContain('QUIÉN ES'); // la ficha va en lo variable
     expect(pedidos[0]).not.toHaveProperty('thinking');
-    expect(pedidos[0].model).toBe('claude-opus-5');
+    expect(pedidos[0].model).toBe('claude-sonnet-5');
   });
   it('lo fijo es idéntico para dos personas distintas (si no, la caché no pega)', async () => {
     const a = clienteQueGuarda(['¿Cómo era tu escuela?']);

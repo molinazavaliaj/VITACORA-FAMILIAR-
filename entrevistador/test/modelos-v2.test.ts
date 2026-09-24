@@ -2,9 +2,9 @@ import { describe, it, expect } from 'vitest';
 import { MODELO_PREGUNTA, MODELO_FICHA, MODELO_EVALUACION, MODELO_PEDIDOS, modeloDePaso } from '../src/ia/modelos-v2.js';
 import { PRECIOS_USD_POR_MILLON } from '../src/costos.js';
 
-describe('modelos del esqueleto v2 (decisión de Naza, 24/09)', () => {
-  it('Opus escribe; Sonnet lee la ficha y evalúa; Haiku solo mira pedidos', () => {
-    expect(MODELO_PREGUNTA).toBe('claude-opus-5');
+describe('modelos del esqueleto v2 (decisión de Naza, 24/09; ajuste C del 24/09 pasó la pregunta a Sonnet)', () => {
+  it('Sonnet escribe la pregunta, lee la ficha y evalúa; Haiku solo mira pedidos', () => {
+    expect(MODELO_PREGUNTA).toBe('claude-sonnet-5');
     expect(MODELO_FICHA).toBe('claude-sonnet-5');
     expect(MODELO_EVALUACION).toBe('claude-sonnet-5');
     expect(MODELO_PEDIDOS).toBe('claude-haiku-4-5');

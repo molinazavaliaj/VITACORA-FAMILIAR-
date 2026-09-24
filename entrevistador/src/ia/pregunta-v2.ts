@@ -210,13 +210,14 @@ export function partirPromptPregunta(
  * rechaza, se lo pide de nuevo diciendo por qué (a partir del 2.º intento). Si el último también
  * falla, se manda esa versión igual —mejor una pregunta imperfecta que ninguna— pero con
  * `ok: false` y una `marca` para que quien llama lo sepa (y, si hace falta, avise).
- * `max_tokens` 4000: Opus 5 piensa por defecto y eso cuenta como salida; con 400 la pregunta
+ * `max_tokens` 4000: Sonnet 5 (el modelo de la pregunta desde el ajuste C, 24/09; antes Opus 5,
+ * que también piensa por defecto) piensa por defecto y eso cuenta como salida; con 400 la pregunta
  * salía cortada o vacía (el que no se usa no se cobra). Si igual se corta (`stop_reason:
  * 'max_tokens'`) o no trae bloque de texto, tira (`textoDelModelo`, arreglo final I2): media
  * pregunta no se manda.
  * `modelo` (ajuste C, 24/09): solo para la comparación a ciegas (`scripts/comparar-modelos.ts`),
  * que escribe la misma pregunta con Opus y con Sonnet con el mismo prompt, los mismos parámetros y
- * los mismos controles. Sin pasarlo, es `MODELO_PREGUNTA` como siempre.
+ * los mismos controles. Sin pasarlo, es `MODELO_PREGUNTA` como siempre (Sonnet, desde el ajuste C).
  */
 export async function escribirPregunta(
   cliente: Anthropic,
