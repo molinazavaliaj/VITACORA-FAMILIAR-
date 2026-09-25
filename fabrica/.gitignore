@@ -1,3 +1,6 @@
 
 # Salidas locales de los scripts de medición (prueba-frases-*.json)
 prueba-frases-*.json
+
+# Pruebas del escritor V3 con material real de un narrador (tiene su vida: nunca al repo)
+prueba-v3-*/

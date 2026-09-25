@@ -143,13 +143,17 @@ Sin que un modelo interprete nada. Todo es número, nombre de la ficha, botón o
 Orden fijo (decisión de Naza, 25/09). El libro no se escribe hasta que el narrador terminó de revisar.
 
 1. **Termina la entrevista.**
-2. **El narrador ve en el dashboard todas sus respuestas transcriptas tal cual**, pregunta por pregunta, con el audio al lado.
-3. **Corrige lo que quiera:**
-   - **Nombres.** El Juntador arma la lista de nombres de todos los audios, por reglas. Por cada nombre: cómo lo escribió la transcripción, cuántas veces aparece, un clip de unos 3 segundos del audio, y "qué es tuyo" (hermano/a, amigo/a, pareja, jefe, vecino, otro, no sé). Corrige la grafía, marca la relación, descarta falsos positivos con un clic.
-   - **Datos.** Años, lugares, lo que la transcripción entendió mal.
-   - **Sacar respuestas.** Lo que no quiere que esté en el libro, fuera, con calma (por eso se descartó el "esto no lo pongas" por WhatsApp).
+2. **Se arma la biblia** (paso 1 del escritor). Todavía no se escribe nada del libro.
+3. **Pantalla de revisión en el dashboard** (aprobada por Naza el 25/09, salió de la prueba del escritor): el escritor no adivina nada; lo que no está claro, lo decide el narrador. Todo junto, en pocos minutos:
+   - **Sus respuestas tal cual**, pregunta por pregunta, con el audio al lado. Corrige errores de transcripción ("Llevamos" → "Llegamos") y datos, y saca las respuestas que no quiere en el libro (por eso se descartó el "esto no lo pongas" por WhatsApp).
+   - **Nombres.** El Juntador arma la lista de nombres de todos los audios, por reglas, más los "nombres dudosos" de la biblia. Por cada nombre: cómo lo escribió la transcripción, cuántas veces aparece, un clip de unos 3 segundos del audio, y "qué es tuyo" (hermano/a, amigo/a, pareja, jefe, vecino, otro, no sé). Corrige la grafía, marca la relación, descarta falsos positivos con un clic.
+   - **Tus frases.** Las citas candidatas de la biblia. Saca las que no le gustan y agrega las que quiere. Una cita mal dicha va al libro solo si él la deja.
+   - **Dudas.** Las contradicciones y deducciones de la biblia, como preguntas cortas con botones: "¿El viaje de egresados fue con Vicky?" [Sí] [No, con ___]; "¿El hermano que trabajaba en Cancillería era Ariel?".
+   - **Contenido delicado.** Lo que la biblia marca como posiblemente delicado para la familia (cárcel, drogas, negocios, sexo): "¿Querés que esto esté en el libro?" [Sí] [No] [Contarlo más suave].
+   - **Tu línea de tiempo.** Su vida en orden con edades aproximadas, para confirmar el orden.
+   - **Fotos.** Cada foto con su epígrafe y el capítulo donde va; la puede mover.
 4. Propuesta a validar con E3: retranscribir todo con la lista de nombres confirmada (~USD 1).
-5. **Recién ahí se escribe el libro. Una sola vez.**
+5. **Recién ahí se escriben el plan y los capítulos. Una sola vez.** La biblia se ajusta con lo que confirmó (sin volver a llamar al modelo si alcanza con editar el JSON).
 
 Después del libro: ver "Revisión del PDF" en temas abiertos (recomendación de Claude).
 
@@ -268,7 +272,11 @@ Un solo documento: el material arriba, las instrucciones abajo.
 
 **Títulos.** Por etapa o años más una frase propia. Nunca un lugar solo. "1958–1965. La casa de la calle Alsina" no; "Los años del taller (1971–1984)" o "«Nunca me faltó trabajo»" sí.
 
-**Citas.** Clean verbatim: sin muletillas ni falsos arranques, con la sintaxis del narrador, sin cambiar el sentido. Pocas: 10–18 en el cuerpo y 8–12 en "Sus frases" (números de Fable). Cada una con QR a su audio.
+**Citas.** Clean verbatim: sin muletillas ni falsos arranques, con la sintaxis del narrador, sin cambiar el sentido. Pocas: 10–18 en el cuerpo y 8–12 en "Sus frases" (números de Fable). Cada una con QR a su audio. **Decisión de Naza (25/09):** una frase mal dicha no se tira: si no sirve como cita, su contenido igual entra al capítulo contado por el escritor, solo que no entre comillas. Los errores de transcripción los corrige el narrador antes de escribir, y las citas finales las elige él en la pantalla de revisión. El plan elige citas que tengan sentido en el lugar donde caen.
+
+**Largo.** Sale de cuánto material hay, no de un número fijo por capítulo (en la prueba, el plan pidió 1.500 palabras y el material daba 700).
+
+**Gente con poca historia.** Solo se presenta a quien tiene algo que contar; a los demás se los nombra y listo (evita las listas "Juan Collins… Juanco Belver…").
 
 ### Controles de código
 
@@ -279,6 +287,12 @@ Si algo falla, vuelve al paso 4 como problema.
 - **Años:** cada año de cuatro cifras está en el material, la ficha o la línea de tiempo calculada.
 - **Citas:** las palabras de la cita aparecen en ese orden en la transcripción cruda entre sus marcas de tiempo (solo se permite borrar muletillas de una lista fija). Si no pasa, la cita se saca; no se retoca.
 - **Presentaciones:** ninguna frase de presentación de la biblia aparece dos veces.
+- **Cobertura (salió de la prueba: se perdieron la jardinería y Seven Kayne):** cada respuesta del narrador aparece en alguna anécdota de la biblia y cada anécdota en algún capítulo, o en "no usar" con un motivo. Si queda alguna sin usar, el plan se rehace.
+- **Biblia contra material:** cada hecho de la biblia tiene que estar en las respuestas que cita (en la prueba, la biblia inventó "aeropuerto de Berga"). Lo que no pasa, se marca como duda para la pantalla de revisión.
+
+### Prueba fija (regresión)
+
+El material de Naza (57 respuestas, sin repetidos, con nombres corregidos) queda guardado **fuera del repo** como prueba estándar. Cada cambio de prompt se corre contra esa historia y se compara con la versión anterior, para saber si mejoró o empeoró y no volver a errores ya arreglados. Primero dentro de la sesión (sin API); con la API solo la corrida final que mide el costo.
 
 ### Piezas fijas
 

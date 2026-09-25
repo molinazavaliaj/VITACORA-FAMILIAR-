@@ -1,5 +1,7 @@
 # Prompts del escritor V3 — borrador para aprobar
 
+**Ronda 2 (25/09):** se sumaron cobertura total, deducciones, contenido delicado, gente con/sin historia, citas que tengan sentido donde caen, largo según material.
+
 **Pendiente (no está en estos prompts todavía):** fotos con su epígrafe en el material y en el plan; línea de tiempo y álbum como piezas fijas; el prompt de retoque que aplica los problemas del paso 4 (máximo 2 rondas); la lista de muletillas compartida con el control de código.
 
 Estado: **borrador de prueba (25/09/2026)**, pendiente de aprobación de Naza. Son los textos EXACTOS que recibe el modelo en cada paso; la prueba en la sesión y la API usan los mismos.
@@ -33,21 +35,23 @@ Reglas:
 
 Devolvé SOLO un JSON con esta forma:
 {
-  "personas": [{"id": "corto-y-unico", "nombre": "", "alias": [], "relacion": "", "presentacion": "una frase de hasta 25 palabras que la presente a un lector que no la conoce, con un detalle concreto", "hechos": [{"hecho": "", "ids": []}], "ids": []}],
+  "personas": [{"id": "corto-y-unico", "nombre": "", "alias": [], "relacion": "", "tiene_historia": true, "presentacion": "si tiene historia: una frase de hasta 25 palabras, en primera persona del narrador, que la presente a un lector que no la conoce, con un detalle concreto; si no, vacío", "hechos": [{"hecho": "", "ids": []}], "ids": []}],
   "lugares": [{"nombre": "", "que_es": "", "periodo": "", "ids": []}],
   "linea_de_tiempo": [{"orden": 1, "cuando": "como lo dijo: año, edad, grado del colegio, etapa o hecho", "edad_aprox": "", "anio_aprox": "", "evento": "", "calculado": true, "ids": []}],
   "anecdotas": [{"titulo": "", "resumen": "2-3 frases con principio y fin", "cuando": "", "personas": [], "ids": [], "es_escena": true, "tiene_giro": false}],
   "contradicciones": [{"que": "", "ids": []}],
   "nombres_dudosos": [{"como_aparece": "", "ids": [], "por_que": ""}],
+  "deducciones": [{"que": "lo que dedujiste sin que lo dijera (ej.: 'el hermano de Cancillería es Ariel')", "ids": []}],
+  "delicado": [{"que": "", "ids": [], "por_que": "cárcel, drogas, negocios, sexo, algo que la familia podría no querer leer"}],
   "citas_candidatas": [{"id": "R..", "texto": ""}],
   "voz": ["rasgos de cómo habla: palabras, giros, muletillas que lo caracterizan"]
 }
 
 Cuidados:
-- anecdotas: una entrada por historia, aunque la haya contado en varias respuestas (juntá los ids). Si contó lo mismo dos veces, es UNA anécdota. Son la misma si es el mismo hecho o el mismo día; si son hechos distintos que se tocan, van separadas.
+- anecdotas: TODO lo que contó tiene que caer en alguna anécdota (también los datos sueltos, como un trabajo que tuvo unos meses): ninguna respuesta queda afuera. Una entrada por historia, aunque la haya contado en varias respuestas (juntá los ids). Si contó lo mismo dos veces, es UNA anécdota. Son la misma si es el mismo hecho o el mismo día; si son hechos distintos que se tocan, van separadas.
 - linea_de_tiempo: TODA su vida en orden ("orden" 1, 2, 3…), incluidos los hechos que ubica por grado del colegio ("en tercer grado"), por etapa ("en la pandemia") o por hecho histórico. "cuando" va como lo dijo; "edad_aprox" y "anio_aprox" los calculás con aritmética simple desde el año de nacimiento (tercer grado ≈ 8 años) o de la fecha del hecho. "calculado": false solo si dijo el año exacto.
 - citas_candidatas: 30 a 40 frases suyas que se entiendan solas y estén bien dichas, de 8 a 30 palabras. Copiá el texto de la respuesta; solo podés sacar muletillas ("eh", "o sea", "viste", "digamos", "como que", y "bueno" o "nada" solo cuando no dicen nada: "no pasó nada" se queda) y repeticiones, y cortar al principio o al final siempre que quede una idea completa que arranque con mayúscula. Nunca cambiar ni agregar palabras.
-- contradicciones: no las resuelvas, marcalas.
+- contradicciones y deducciones: no las resuelvas, marcalas; las va a contestar el narrador antes de escribir. Nunca pongas en la biblia un dato que no está en las respuestas que citás (si dijo "el aeropuerto", no es "el aeropuerto de Berga").
 ```
 
 ## Paso 2 · Plan del libro
@@ -61,12 +65,12 @@ Estructura fija:
 - "cierre": una página final en su voz, armada con sus respuestas de reflexión y legado (lo que aprendió, lo que les dice a los suyos), casi textuales: se ordenan y se les sacan las muletillas, no se reescriben.
 
 Reglas duras (se verifican con código):
-- Cada anécdota de la biblia va en UN solo capítulo, o en "no_usar" con el motivo.
-- Cada persona se presenta en UN solo capítulo ("capitulo_presentacion"). En los demás aparece solo por su nombre.
-- Cada cita candidata se usa a lo sumo una vez. Entre 1 y 3 citas por capítulo. Las que no entran van a "sus_frases" (8 a 12).
+- Cada anécdota de la biblia va en UN solo capítulo, o en "no_usar" con el motivo. Y cada respuesta (R..) tiene que quedar usada en algún capítulo o anécdota.
+- Cada persona con historia ("tiene_historia": true) se presenta en UN solo capítulo. Las que no tienen historia no se presentan: se nombran. En los demás capítulos, todas aparecen solo por su nombre.
+- Cada cita candidata se usa a lo sumo una vez. Entre 1 y 3 citas por capítulo, y solo donde tengan sentido en ese punto del relato (una cita que habla de volver al colegio no va antes de que vuelva). No hace falta usar todas: las que no entran van a "sus_frases" (8 a 12) o quedan sin usar. Una cita no puede repetir la escena que el capítulo ya cuenta.
 - Títulos: la etapa o los años más una frase propia del narrador o una imagen de ese tiempo. Nunca un lugar solo ("La casa de la calle X" está prohibido).
-- El largo de cada capítulo sale del material que tiene: nunca estirar. Un capítulo con poco material es corto.
-- Un hecho va en el capítulo de la época en que pasó, no donde lo contó.
+- El largo de cada capítulo sale del material que tiene: estimá "palabras_objetivo" como lo que ocupa contar bien sus anécdotas, nunca más. Un capítulo con poco material es corto.
+- Un hecho va en el capítulo de la época en que pasó, no donde lo contó. Si no tiene fecha, va donde mejor se entiende.
 
 Devolvé SOLO un JSON:
 {
@@ -98,7 +102,8 @@ Lo que tenés que hacer (esto es escribir, no copiar):
 - Reordenar, juntar lo que contó en respuestas distintas sobre lo mismo, resumir, parafrasear, y poner transiciones y contexto que estén en la biblia o la ficha ("Para entonces ya vivía solo").
 - Un dato suelto nunca queda solo en una oración: se engancha a la historia que le da sentido. Una respuesta de opinión ("fue un momento de gran felicidad") va como cierre de la escena a la que pertenece, no suelta.
 - Forma del capítulo: abrir en la escena de apertura del plan, desarrollar las anécdotas en el orden del plan, llegar al giro, cerrar con el remate. Nunca terminar con "y después vino…" ni anunciando lo que sigue.
-- Presentar solo a las personas de "presenta_a", con su frase de la biblia la primera vez. A los demás, solo por su nombre ("mi hermano Juan Manuel").
+- Presentar solo a las personas de "presenta_a", usando su frase de la biblia como base, adaptada al relato. A los demás, solo por su nombre ("mi hermano Juan Manuel"); nunca una lista de nombres con una frase vacía para cada uno.
+- Si el plan pide algo que el material no respalda (una causa, una escena que no hay), no lo escribas: contá lo que sí hay.
 - Citas: solo las del plan para este capítulo, exactamente como están en el plan, en su propio párrafo precedido de ">". Ninguna otra frase va entre comillas como cita.
 
 Lo que no podés hacer:
