@@ -26,7 +26,8 @@ export type Objetivo =
   | { tipo: 'variable'; id: string; tramo: Tramo; desde: number; hasta: number; anclas: string[] }
   /** `final`: el objeto de cierre (guion §2: "uno al cerrar cada tramo y uno al final"); su tramo es el último vivido, para la época. */
   | { tipo: 'objeto'; id: string; tramo: Tramo; final?: boolean }
-  | { tipo: 'repregunta'; id: string; tramo: Tramo | null; pregunta: string; falto: string[] };
+  /** `proxima` (E17, 25/09): el tema de la próxima fila del guion, para que la repregunta no lo pida antes. */
+  | { tipo: 'repregunta'; id: string; tramo: Tramo | null; pregunta: string; falto: string[]; proxima?: string };
 
 export const BLOQUES = ['presentacion', 'inicio', 'infancia', 'juventud', 'adulto joven', 'adultez media', 'segunda mitad', 'hoy', 'futuro', 'reflexion'] as const;
 
@@ -60,6 +61,7 @@ export function objetivoEnTexto(o: Objetivo, perfil: Perfil): string {
     return [
       `Es una repregunta a lo de hoy. Le preguntaste: "${o.pregunta}". De eso faltó: ${o.falto.map((f) => `"${f}"`).join(', ')}.`,
       'Pedilo junto, en UNA sola pregunta corta, como quien sigue la charla. No digas que es una repregunta, no le pidas que resuma ni que repita lo que ya dijo, no abras un tema nuevo.',
+      ...(o.proxima ? [`No pidas lo que va a tratar la próxima pregunta: "${o.proxima}"`] : []),
     ].join('\n');
   }
   if (o.tipo === 'variable') {

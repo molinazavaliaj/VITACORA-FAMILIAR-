@@ -51,7 +51,7 @@ import {
 import { buscarReusable } from '../src/ia/reusar-v2.js';
 import { actualizarPerfil } from '../src/ia/perfil.js';
 import { proxima, avanzar, cubrirDesde, conNombrado, descubrir, etapaCerrada, agregarLibre, tocaObjeto, registrarObjeto, tramoDe, type Rechazado } from '../src/ia/secuencia.js';
-import { escribirPregunta, perfilEnTexto, type Objetivo, type YaHecha } from '../src/ia/pregunta-v2.js';
+import { escribirPregunta, perfilEnTexto, recortarHecha, type Objetivo, type YaHecha } from '../src/ia/pregunta-v2.js';
 import { evaluarV2, evaluarPedidos, hayCansancio, type EvaluacionV2 } from '../src/ia/evaluar-v2.js';
 import { modeloDePaso, type PasoV2 } from '../src/ia/modelos-v2.js';
 import { MAX_LIBRES } from '../src/ia/guion-v2.js';
@@ -566,7 +566,8 @@ async function procesar(
     e = { suficiente: true, falto: [], ...r.pedidos };
     linea(`Pedidos: ${JSON.stringify(r.pedidos)}`);
   } else {
-    const r = await evaluarV2(cliente(), estado.perfil, objetivo, abierta.texto, respuesta, segundos, conversacionDe(estado, previas), evitarDe(n.contexto ?? {}));
+    // E17: la evaluación sabe qué va a pedir la próxima fila del guion, y eso no "falta" acá.
+    const r = await evaluarV2(cliente(), estado.perfil, objetivo, abierta.texto, respuesta, segundos, conversacionDe(estado, previas), evitarDe(n.contexto ?? {}), proxima(estado.secuencia));
     estado = sumarGasto(estado, r.usos, 0, modeloDePaso('v2-evaluar'));
     await anotarUsos('v2-evaluar', n.id, r.usos);
     e = r.evaluacion;
@@ -635,7 +636,12 @@ async function procesar(
     case 'repreguntar': {
       // La escribe el modelo de la pregunta (Sonnet, ajuste C 24/09) con el encargo: lo que faltó, junto, en una sola pregunta; pasa por los controles.
       // La conversación lleva la respuesta de hoy (las `filas` se leyeron antes de guardarla).
-      const obj: Objetivo = { tipo: 'repregunta', id: `${objetivo.id}-repregunta`, tramo: tramoDe(objetivo), pregunta: abierta.texto, falto: decision.falto };
+      // E17: la repregunta también sabe qué trata la próxima fila, para no pedirlo antes.
+      const sig = proxima(estado.secuencia);
+      const obj: Objetivo = {
+        tipo: 'repregunta', id: `${objetivo.id}-repregunta`, tramo: tramoDe(objetivo), pregunta: abierta.texto, falto: decision.falto,
+        ...(sig?.tipo === 'nucleo' ? { proxima: recortarHecha(sig.tema, 160) } : {}),
+      };
       const deHoy = { id: respuestaId, pregunta_orden: orden, es_repregunta: false, transcripcion: respuesta, texto_directo: null, recibido_at: new Date().toISOString() };
       // E18: la repregunta sale a los minutos de la respuesta ("hace unos minutos", no "ayer").
       const r = await escribirPregunta(cliente(), estado.perfil, obj, conversacionDe(estado, [...previas, deHoy]), yaHechasDe(estado), evitarDe(n.contexto ?? {}), undefined, cuandoContesto(deHoy.recibido_at, n.zona_horaria));

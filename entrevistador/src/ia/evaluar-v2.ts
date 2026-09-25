@@ -39,12 +39,15 @@ export const objetivoEnLinea = (o: Objetivo): string =>
       : o.tipo === 'objeto' ? (o.final ? 'La cosa que guardaría de toda su vida, con foto.' : 'Un objeto de esa época, con foto.')
         : `Repregunta: ${o.falto.join('; ')}.`;
 
-const DATOS_EVALUAR = (fila: string, pregunta: string, respuesta: string, segundos: number, conversacion: string) => `LO ÚLTIMO QUE HABLARON (cada respuesta con la pregunta que la originó):
+const DATOS_EVALUAR = (fila: string, pregunta: string, respuesta: string, segundos: number, conversacion: string, proxima: string | null) => `LO ÚLTIMO QUE HABLARON (cada respuesta con la pregunta que la originó):
 ${conversacion || '(es la primera respuesta)'}
 
 EL TEMA DE HOY (lo que el guion quería que saliera):
 ${fila}
-
+${proxima ? `
+LA PRÓXIMA PREGUNTA (otro día) VA A TRATAR:
+${proxima}
+` : ''}
 LA PREGUNTA DE HOY:
 ${pregunta}
 
@@ -67,15 +70,19 @@ decir QUÉ FALTÓ del tema.
 - Si se fue a otro tema, está bien: no se lo reencuadra.
 ${PEDIDOS}`;
 
+/** E17 (25/09): la regla que se suma a la tarea solo cuando hay próxima fila. */
+const REGLA_PROXIMA = '- Lo que va a tratar LA PRÓXIMA PREGUNTA no falta acá: no lo pongas en "falto", se pregunta ahí.';
+
 const FORMATO_EVALUAR = `Respondé SOLO con JSON: {"suficiente": true, "falto": []} o {"suficiente": false, "falto": ["..."]},
 y sumá "reservado", "hoyNo", "quiereParar", "dejarTema" y "reservadoTramo" cuando corresponda.`;
 
-export const PROMPT_EVALUAR_V2 = (encargo: string, fila: string, pregunta: string, respuesta: string, segundos: number, conversacion: string) => `
+export const PROMPT_EVALUAR_V2 = (encargo: string, fila: string, pregunta: string, respuesta: string, segundos: number, conversacion: string, proxima: string | null = null) => `
 ${encargo}
 
-${DATOS_EVALUAR(fila, pregunta, respuesta, segundos, conversacion)}
+${DATOS_EVALUAR(fila, pregunta, respuesta, segundos, conversacion, proxima)}
 
-${TAREA_EVALUAR}
+${TAREA_EVALUAR}${proxima ? `
+${REGLA_PROXIMA}` : ''}
 
 ${FORMATO_EVALUAR}`;
 
@@ -90,8 +97,37 @@ export function armarPromptEvaluar(
   segundos: number,
   conversacion: { pregunta: string; respuesta: string }[],
   evitar: string[],
+  proxima: Objetivo | null = null,
 ): string {
-  return PROMPT_EVALUAR_V2(encargoDelBiografo(perfil, evitar), objetivoEnLinea(objetivo), pregunta, respuesta, segundos, enTexto(conversacion));
+  return PROMPT_EVALUAR_V2(encargoDelBiografo(perfil, evitar), objetivoEnLinea(objetivo), pregunta, respuesta, segundos, enTexto(conversacion), temaDeProxima(proxima));
+}
+
+/** E17: el tema de la próxima fila para la evaluación (solo del guion: una libre u objeto no pisa una repregunta). */
+function temaDeProxima(proxima: Objetivo | null): string | null {
+  return proxima?.tipo === 'nucleo' ? objetivoEnLinea(proxima) : null;
+}
+
+const PALABRAS_VACIAS = new Set(['como', 'cuando', 'donde', 'quien', 'quienes', 'cual', 'cuales', 'porque', 'para', 'pero', 'esto', 'esta', 'este', 'estos', 'estas', 'esos', 'esas', 'algo', 'cada', 'todo', 'toda', 'todos', 'todas', 'sobre', 'entre', 'desde', 'hasta', 'tiene', 'tenia', 'hacia', 'eran', 'fueron', 'sino', 'tambien', 'mucho', 'muchos', 'otro', 'otra', 'otros', 'otras', 'suyo', 'suya', 'suyos', 'suyas']);
+/** Las palabras que dicen algo (4 letras o más, sin tildes, sin las vacías), por su raíz corta (5 letras): "aprendió" = "aprendio". */
+function raices(texto: string): Set<string> {
+  const palabras = texto.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').match(/[a-zñ]+/g) ?? [];
+  return new Set(palabras.filter((p) => p.length >= 4 && !PALABRAS_VACIAS.has(p)).map((p) => p.slice(0, 5)));
+}
+
+/**
+ * E17 (piloto esqueleto v2, 25/09): lo que faltó que en realidad va a pedir la próxima fila no se
+ * repregunta ("quién te bancó" en `pruebas`, cuando `fuerza` venía después). Determinista: se saca
+ * un "faltó" si la mitad o más de sus palabras con sentido están en el tema o los pormenores de la
+ * próxima fila del guion. Es la red de la regla del prompt (que ve el sentido, no solo las palabras).
+ */
+export function sinLoDeLaProxima(falto: string[], proxima: Objetivo | null): string[] {
+  if (proxima?.tipo !== 'nucleo') return falto;
+  const deLaProxima = raices(`${proxima.tema} ${proxima.pormenores.join(' ')}`);
+  return falto.filter((f) => {
+    const propias = [...raices(f)];
+    if (!propias.length) return true;
+    return propias.filter((r) => deLaProxima.has(r)).length / propias.length < 0.5;
+  });
 }
 
 const MAX_FALTO = 4;
@@ -152,6 +188,7 @@ export function hayCansancio(ultimasRepreguntas: { contestada: boolean }[]): boo
  * Una llamada. Sin reintentos: no hay texto para la persona que controlar. `max_tokens` 4000 (el que
  * no se usa no se cobra); si igual se corta o viene sin texto, tira (`textoDelModelo`): una evaluación
  * vacía se leía como "alcanza" y se perdía un "no quiero seguir" (arreglo final I2).
+ * `proxima` (E17, 25/09): la próxima fila pendiente del guion; lo que va a pedir ella no falta acá.
  */
 export async function evaluarV2(
   cliente: Anthropic,
@@ -162,14 +199,17 @@ export async function evaluarV2(
   segundos: number,
   conversacion: { pregunta: string; respuesta: string }[],
   evitar: string[],
+  proxima: Objetivo | null = null,
 ): Promise<{ evaluacion: EvaluacionV2; usos: Anthropic.Usage[] }> {
   const r = await cliente.messages.create({
     model: MODELO_EVALUACION, max_tokens: 4000, thinking: SIN_PENSAR,
     // Sin caché (ajuste B): lo fijo (~2.900 caracteres) no llega al mínimo cacheable de Sonnet 5
     // (1024 tokens), así que se manda entero y en su orden de siempre.
-    messages: [{ role: 'user', content: armarPromptEvaluar(perfil, objetivo, pregunta, respuesta, segundos, conversacion, evitar) }],
+    messages: [{ role: 'user', content: armarPromptEvaluar(perfil, objetivo, pregunta, respuesta, segundos, conversacion, evitar, proxima) }],
   });
-  return { evaluacion: parsearEvaluacion(textoDelModelo(r, 'la evaluación')), usos: [r.usage] };
+  const evaluacion = parsearEvaluacion(textoDelModelo(r, 'la evaluación'));
+  // E17: si todo lo que faltó es de la próxima fila, queda vacío y no hay repregunta (`decidirTrasEvaluar`).
+  return { evaluacion: { ...evaluacion, falto: sinLoDeLaProxima(evaluacion.falto, proxima) }, usos: [r.usage] };
 }
 
 export const PROMPT_PEDIDOS = (respuesta: string) => `
