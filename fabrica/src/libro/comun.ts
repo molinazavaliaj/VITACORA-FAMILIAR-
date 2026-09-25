@@ -1,4 +1,5 @@
 import { execFile } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { promisify } from 'node:util';
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -437,6 +438,41 @@ export async function subirTexto(
 export const RUTA_BORRADOR_CAP = (narradorId: string, numeroCapitulo: number) =>
   `${narradorId}/paquete/borrador_cap_${String(numeroCapitulo).padStart(2, '0')}.md`;
 export const RUTA_BORRADOR_LIBRO = (narradorId: string) => `${narradorId}/paquete/borrador_libro.md`;
+/**
+ * Con qué se escribieron los borradores (revisión del ajuste G). Los borradores se guardan por
+ * posición: si entre dos corridas cambia la lista de capítulos (una respuesta descartada, un
+ * capítulo que se cae por excluidas) o lo que la familia excluyó o corrigió, reusarlos metería
+ * contenido excluido o correría los capítulos uno. `capitulos` es el nombre del guion de cada
+ * posición ya escrita, en orden; `libro`, si el borrador del libro editado es de esta misma huella.
+ */
+export const RUTA_MANIFIESTO_BORRADORES = (narradorId: string) => `${narradorId}/paquete/borradores.json`;
+export type ManifiestoBorradores = { huella: string; capitulos: string[]; libro: boolean };
+
+/**
+ * La huella de lo que decide el contenido de los borradores más allá de la lista de capítulos: las
+ * respuestas que entran al libro, las excluidas y las correcciones de la familia.
+ */
+export function huellaDeBorradores(respuestas: { id?: string }[], excluidas: string[], correcciones: string | null): string {
+  const datos = {
+    respuestas: respuestas.map((r) => r.id ?? '').sort(),
+    excluidas: [...excluidas].sort(),
+    correcciones: correcciones ?? '',
+  };
+  return createHash('sha256').update(JSON.stringify(datos)).digest('hex');
+}
+
+/** Lee el manifiesto guardado; uno roto o de otra forma vale como "no hay" (se escribe todo de nuevo). */
+export function leerManifiestoBorradores(texto: string | null): ManifiestoBorradores | null {
+  if (!texto) return null;
+  try {
+    const m = JSON.parse(texto) as Partial<ManifiestoBorradores>;
+    if (typeof m.huella !== 'string' || !Array.isArray(m.capitulos)) return null;
+    return { huella: m.huella, capitulos: m.capitulos.filter((c): c is string => typeof c === 'string'), libro: m.libro === true };
+  } catch {
+    return null;
+  }
+}
+
 /** Los conectores de un capítulo del audiolibro híbrido (mismo número que el borrador): también son caché del modelo. */
 export const RUTA_CONECTORES_CAP = (narradorId: string, numeroCapitulo: number) =>
   `${narradorId}/paquete/conectores_cap_${String(numeroCapitulo).padStart(2, '0')}.json`;

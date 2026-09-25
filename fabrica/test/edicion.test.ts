@@ -89,6 +89,10 @@ describe('leerEdicion', () => {
     expect(leerEdicion({ correcciones: 42 }).correcciones).toBeNull();
     warn.mockRestore();
   });
+
+  it('correcciones: como mucho 4000 caracteres, el mismo tope que la web', () => {
+    expect(leerEdicion({ correcciones: 'a'.repeat(5000) }).correcciones).toHaveLength(4000);
+  });
 });
 
 describe('seccionCorrecciones', () => {
@@ -169,6 +173,20 @@ describe('aplicarTitulosCapitulos', () => {
     const copia = structuredClone(capitulos);
     aplicarTitulosCapitulos(capitulos, { 'Los hijos': 'Los hermanos' });
     expect(capitulos).toEqual(copia);
+  });
+});
+
+describe('sinOrdenesExcluidas con lo que no se puede publicar', () => {
+  it('una respuesta sin nada publicable (reservada entera) cuenta como ida, igual que una excluida', () => {
+    const respuestas = [
+      { id: 'r1', pregunta_orden: 1, reservada: true },
+      { id: 'r2', pregunta_orden: 2 },
+      { id: 'r3', pregunta_orden: 2, reservada: true },
+    ];
+    const publicable = (r: { reservada?: boolean }) => r.reservada !== true;
+    expect(sinOrdenesExcluidas([{ nombre: 'A', ordenes: [1] }, { nombre: 'B', ordenes: [2] }], respuestas, [], publicable))
+      .toEqual([{ nombre: 'B', ordenes: [2] }]);
+    expect(sinOrdenesExcluidas([{ nombre: 'B', ordenes: [2] }], respuestas, ['r2'], publicable)).toEqual([]);
   });
 });
 

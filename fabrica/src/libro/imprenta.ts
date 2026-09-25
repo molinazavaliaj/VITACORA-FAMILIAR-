@@ -20,7 +20,7 @@
 import { obtenerClienteDb, type Narrador } from '../db.js';
 import { construirHtmlLibro } from './plantilla-html.js';
 import { htmlAPdf } from './pdf.js';
-import { descargarTextoOpcional, RUTA_BORRADOR_LIBRO } from './comun.js';
+import { descargarTextoOpcional, RUTA_BORRADOR_LIBRO, textoRespuesta } from './comun.js';
 import { leerEdicion, aplicarOrdenCapitulos, aplicarTitulosCapitulos, ampliarExcluidas, sinOrdenesExcluidas } from './edicion.js';
 import { cargarFotos } from './fotos.js';
 import { leerFrases } from './publicar-frases.js';
@@ -77,21 +77,24 @@ export async function armarLibroDeImprenta(db: Db, narradorId: string): Promise<
 
   // 3. Lo que la dueña editó manda, igual que en el libro entregado: su título de
   // tapa, el orden de los capítulos, los nombres que les puso y los capítulos que
-  // quedaron vacíos por lo que excluyó (`generarPaquete` no los escribió).
+  // quedaron vacíos por lo que excluyó o por lo reservado (`generarPaquete` no los
+  // escribió: mismo criterio, mismas funciones).
   const edicion = leerEdicion(narrador.edicion);
-  let capitulosDelLibro = estructura.capitulos;
-  if (edicion.excluidas.length > 0) {
-    const { data: respuestas, error: errorRespuestas } = await db
-      .from('respuestas')
-      .select('id, pregunta_orden, es_repregunta')
-      .eq('narrador_id', narradorId);
-    if (errorRespuestas) {
-      console.error(`imprenta: no se pudieron leer las respuestas de ${narradorId}: ${errorRespuestas.message}`);
-      return false;
-    }
-    const filas = (respuestas ?? []) as { id: string; pregunta_orden: number; es_repregunta: boolean }[];
-    capitulosDelLibro = sinOrdenesExcluidas(estructura.capitulos, filas, ampliarExcluidas(filas, edicion.excluidas));
+  const { data: respuestas, error: errorRespuestas } = await db
+    .from('respuestas')
+    .select('id, pregunta_orden, es_repregunta, transcripcion, texto_directo, reservada, reservado_tramo')
+    .eq('narrador_id', narradorId);
+  if (errorRespuestas) {
+    console.error(`imprenta: no se pudieron leer las respuestas de ${narradorId}: ${errorRespuestas.message}`);
+    return false;
   }
+  const filas = (respuestas ?? []) as (Parameters<typeof textoRespuesta>[0] & { id: string; pregunta_orden: number; es_repregunta: boolean })[];
+  const capitulosDelLibro = sinOrdenesExcluidas(
+    estructura.capitulos,
+    filas,
+    ampliarExcluidas(filas, edicion.excluidas),
+    (r) => textoRespuesta(r) !== null
+  );
   const capitulos = aplicarTitulosCapitulos(
     aplicarOrdenCapitulos(capitulosDelLibro, edicion.ordenCapitulos),
     edicion.titulosCapitulos

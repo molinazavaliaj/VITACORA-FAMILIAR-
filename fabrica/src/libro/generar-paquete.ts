@@ -29,6 +29,10 @@ import {
   descargarTextoOpcional,
   extraerTexto,
   formatearNombresCorregidos,
+  huellaDeBorradores,
+  leerManifiestoBorradores,
+  RUTA_MANIFIESTO_BORRADORES,
+  type ManifiestoBorradores,
   rutasDeBorradores,
   RUTA_BORRADOR_CAP,
   RUTA_BORRADOR_LIBRO,
@@ -171,7 +175,10 @@ export async function generarPaquete(pedido: { id: string; narrador_id: string; 
     // plantilla, la intro TTS y narracion.json. El nombre del guion queda en
     // `nombreGuion` solo para las fotos, que se cargan con esa clave.
     const capitulosOrdenados = aplicarTitulosCapitulos(
-      aplicarOrdenCapitulos(sinOrdenesExcluidas(estructura.capitulos, todasLasRespuestas, excluidas), edicion.ordenCapitulos),
+      aplicarOrdenCapitulos(
+        sinOrdenesExcluidas(estructura.capitulos, todasLasRespuestas, excluidas, (r) => textoRespuesta(r) !== null),
+        edicion.ordenCapitulos
+      ),
       edicion.titulosCapitulos
     );
     const estructuraFinal: Estructura = { ...estructura, capitulos: capitulosOrdenados };
@@ -203,15 +210,28 @@ export async function generarPaquete(pedido: { id: string; narrador_id: string; 
     // apenas se genera (ANTES de los pasos baratos que pueden fallar más
     // adelante: PDF, audiolibro) — si un reintento cae acá, reusa lo que ya
     // pagó en vez de volver a pagarle al modelo por lo mismo. El número de
-    // borrador (`i + 1`) sigue el orden FINAL, ya con la edición aplicada:
-    // como la edición quedó congelada al cerrar el libro, un reintento ve
-    // el mismo orden y reusa los mismos archivos.
+    // borrador (`i + 1`) sigue el orden FINAL, ya con la edición aplicada.
+    // Un borrador se reusa SOLO si el manifiesto (`borradores.json`) dice que
+    // en esa posición se escribió este mismo capítulo con esta misma huella
+    // (respuestas, excluidas, correcciones): entre corridas puede cambiar la
+    // lista (una respuesta descartada) o el código que la arma (un deploy), y
+    // un borrador viejo metería lo excluido o correría los capítulos uno. El
+    // manifiesto se actualiza después de subir cada borrador: si se corta en
+    // el medio, lo que no está anotado se escribe de nuevo.
+    const huella = huellaDeBorradores(respuestasList, excluidas, edicion.correcciones);
+    const guardado = leerManifiestoBorradores(await descargarTextoOpcional(db, RUTA_MANIFIESTO_BORRADORES(narradorId)));
+    const previo = guardado && guardado.huella === huella ? guardado : null;
+    const manifiesto: ManifiestoBorradores = { huella, capitulos: [], libro: false };
+    const anotar = () => subirTexto(db, RUTA_MANIFIESTO_BORRADORES(narradorId), JSON.stringify(manifiesto), 'application/json');
+
     const capitulosTexto: { nombre: string; texto: string }[] = [];
     for (let i = 0; i < estructuraFinal.capitulos.length; i++) {
       const capitulo = estructuraFinal.capitulos[i];
       const rutaBorrador = RUTA_BORRADOR_CAP(narradorId, i + 1);
 
-      const cacheado = await descargarTextoOpcional(db, rutaBorrador);
+      const nombreGuion = capitulosOrdenados[i].nombreGuion;
+      const vale = previo !== null && previo.capitulos[i] === nombreGuion;
+      const cacheado = vale ? await descargarTextoOpcional(db, rutaBorrador) : null;
       let texto: string;
       if (cacheado !== null) {
         texto = cacheado;
@@ -221,13 +241,23 @@ export async function generarPaquete(pedido: { id: string; narrador_id: string; 
         await subirTexto(db, rutaBorrador, texto);
       }
       capitulosTexto.push({ nombre: capitulo.nombre, texto });
+      manifiesto.capitulos.push(nombreGuion);
+      if (cacheado === null) await anotar();
     }
 
     // 1b. Pasada de editor con el libro entero: coherencia, apertura, cierre,
     // "Sus frases". Mismo checkpoint: se cachea antes del PDF.
     const borrador = capitulosTexto.map((c) => `# ${c.nombre}\n\n${c.texto}`).join('\n\n');
     const rutaBorradorLibro = RUTA_BORRADOR_LIBRO(narradorId);
-    const libroCacheado = await descargarTextoOpcional(db, rutaBorradorLibro);
+    // El libro editado depende de TODOS los capítulos: se reusa solo si es de esta huella y la lista
+    // entera es la misma (mismo material; si un borrador de capítulo faltaba y se reescribió, el
+    // libro ya editado con ese mismo material vale igual, como siempre).
+    const mismaLista =
+      previo !== null &&
+      previo.libro &&
+      previo.capitulos.length === manifiesto.capitulos.length &&
+      previo.capitulos.every((c, i) => c === manifiesto.capitulos[i]);
+    const libroCacheado = mismaLista ? await descargarTextoOpcional(db, rutaBorradorLibro) : null;
     let libroMarkdown: string;
     if (libroCacheado !== null) {
       libroMarkdown = libroCacheado;
@@ -236,6 +266,8 @@ export async function generarPaquete(pedido: { id: string; narrador_id: string; 
       const cliente = new Anthropic({ apiKey: config.anthropicApiKey });
       libroMarkdown = await editarLibro(cliente, borrador, narradorId, edicion.correcciones);
       await subirTexto(db, rutaBorradorLibro, libroMarkdown);
+      manifiesto.libro = true;
+      await anotar();
     }
 
     // 1c. HTML → Storage (el lector online carga ese mismo archivo) y
@@ -391,7 +423,7 @@ async function limpiarBorradores(
   cantidadCapitulos: number
 ): Promise<void> {
   try {
-    await borrarArchivos(db, rutasDeBorradores(narradorId, cantidadCapitulos));
+    await borrarArchivos(db, [...rutasDeBorradores(narradorId, cantidadCapitulos), RUTA_MANIFIESTO_BORRADORES(narradorId)]);
   } catch (errorLimpieza) {
     console.error(`generarPaquete: no se pudieron borrar los borradores de ${narradorId}:`, errorLimpieza);
   }

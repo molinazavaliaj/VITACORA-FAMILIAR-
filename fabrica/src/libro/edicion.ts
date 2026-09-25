@@ -26,6 +26,8 @@ export type Edicion = {
   correcciones: string | null;
 };
 
+export const CORRECCIONES_MAXIMO = 4000;
+
 const EDICION_VACIA: Edicion = {
   ordenCapitulos: [],
   titulo: null,
@@ -68,7 +70,8 @@ export function leerEdicion(valor: unknown): Edicion {
     portadaFotoId: textoONull(objeto.portadaFotoId, 'portadaFotoId'),
     titulosCapitulos: leerTitulosCapitulos(objeto.titulosCapitulos),
     excluidas: leerExcluidas(objeto.excluidas),
-    correcciones: textoONull(objeto.correcciones, 'correcciones'),
+    // El mismo tope que la web (web/src/lib/edicion.ts): un jsonb escrito a mano no infla los prompts.
+    correcciones: textoONull(objeto.correcciones, 'correcciones')?.slice(0, CORRECCIONES_MAXIMO) ?? null,
   };
 }
 
@@ -113,29 +116,35 @@ export function sinExcluidas<T extends { id?: string }>(respuestas: T[], excluid
 }
 
 /**
- * Los capítulos sin lo que la familia vació: una orden cuyas respuestas fueron TODAS excluidas sale
- * del capítulo, y un capítulo que se queda sin órdenes sale del libro (escrito sin material, solo
- * podría ser inventado). Una orden que nunca tuvo respuestas propias queda: puede recibir un
- * recuerdo de otro tema (`tema_de_orden`). No muta la entrada.
+ * Los capítulos sin lo que quedó vacío: una orden cuyas respuestas se fueron TODAS —excluidas por la
+ * familia, o sin nada publicable según `publicable` (una reservada entera)— sale del capítulo, y un
+ * capítulo que se queda sin órdenes sale del libro (escrito sin material, solo podría ser
+ * inventado). Una orden que nunca tuvo respuestas propias queda: puede recibir un recuerdo de otro
+ * tema (`tema_de_orden`). No muta la entrada.
  */
-export function sinOrdenesExcluidas<T extends { ordenes: number[] }>(
+export function sinOrdenesExcluidas<T extends { ordenes: number[] }, R extends { id?: string; pregunta_orden: number }>(
   capitulos: T[],
-  respuestas: { id?: string; pregunta_orden: number }[],
-  excluidas: Iterable<string>
+  respuestas: R[],
+  excluidas: Iterable<string>,
+  publicable: (r: R) => boolean = () => true
 ): T[] {
   const fuera = new Set(excluidas);
-  if (fuera.size === 0) return capitulos.map((c) => ({ ...c }));
   const porOrden = new Map<number, boolean[]>();
   for (const r of respuestas) {
-    porOrden.set(r.pregunta_orden, [...(porOrden.get(r.pregunta_orden) ?? []), Boolean(r.id && fuera.has(r.id))]);
+    const ida = Boolean(r.id && fuera.has(r.id)) || !publicable(r);
+    porOrden.set(r.pregunta_orden, [...(porOrden.get(r.pregunta_orden) ?? []), ida]);
   }
   const vaciada = (orden: number) => {
     const marcas = porOrden.get(orden);
     return Boolean(marcas && marcas.length > 0 && marcas.every(Boolean));
   };
-  return capitulos
-    .map((c) => ({ ...c, ordenes: c.ordenes.filter((o) => !vaciada(o)) }))
-    .filter((c) => c.ordenes.length > 0);
+  // Solo se cae el capítulo que PERDIÓ todas sus órdenes: uno que ya venía sin órdenes (o con
+  // otra forma) no es asunto de esta función.
+  return capitulos.flatMap((c) => {
+    if (!Array.isArray(c.ordenes)) return [{ ...c }];
+    const ordenes = c.ordenes.filter((o) => !vaciada(o));
+    return ordenes.length === 0 && c.ordenes.length > 0 ? [] : [{ ...c, ordenes }];
+  });
 }
 
 /**

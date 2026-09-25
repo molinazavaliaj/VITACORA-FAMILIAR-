@@ -65,6 +65,7 @@ vi.mock('../src/db.js', async () => {
 
 import { obtenerClienteDb } from '../src/db.js';
 import { generarPaquete } from '../src/libro/generar-paquete.js';
+import { huellaDeBorradores } from '../src/libro/comun.js';
 
 // `arrayBuffer` copia a un Uint8Array nuevo: el `.buffer` de un Buffer chico
 // es el slab compartido de 8 KB, no los bytes exactos (ver fotos.test.ts).
@@ -374,6 +375,14 @@ describe('generarPaquete', () => {
       descargas: {
         'narrador-1/paquete/estructura.json': { data: blobFake(JSON.stringify(estructura)), error: null },
         'narrador-1/paquete/nombres.json': { data: blobFake(JSON.stringify(nombres)), error: null },
+        'narrador-1/paquete/borradores.json': {
+          data: blobFake(JSON.stringify({
+            huella: huellaDeBorradores([{ pregunta_orden: 1 }, { pregunta_orden: 2 }], [], null),
+            capitulos: ['Infancia', 'El amor'],
+            libro: true,
+          })),
+          error: null,
+        },
         'narrador-1/paquete/borrador_cap_01.md': { data: blobFake('Cap. 1 ya pagado antes.'), error: null },
         'narrador-1/paquete/borrador_cap_02.md': { data: blobFake('Cap. 2 ya pagado antes.'), error: null },
         'narrador-1/paquete/borrador_libro.md': {
@@ -487,6 +496,10 @@ describe('generarPaquete', () => {
           error: null,
         },
         'narrador-1/paquete/nombres.json': { data: blobFake(JSON.stringify(nombres)), error: null },
+        'narrador-1/paquete/borradores.json': {
+          data: blobFake(JSON.stringify({ huella: huellaDeBorradores([{ pregunta_orden: 1 }], [], null), capitulos: ['Infancia'], libro: false })),
+          error: null,
+        },
         // Un 500 de Storage: no dice nada de si el borrador está o no.
         'narrador-1/paquete/borrador_cap_01.md': { data: null, error: { message: 'Internal server error', statusCode: '500' } },
       },
@@ -739,7 +752,7 @@ describe('generarPaquete', () => {
 
   it('«Su voz»: el pedido se entrega con sus frases y ya no pasa por el buzón de narraciones', async () => {
     const db = construirDbN1({
-      descargas: { ...descargasN1(), 'n1/paquete/borrador_libro.md': libroConFrases() },
+      descargas: { ...descargasN1(), 'n1/paquete/borradores.json': { data: blobFake(JSON.stringify(manifiestoN1())), error: null }, 'n1/paquete/borrador_libro.md': libroConFrases() },
     });
 
     await generarPaquete({ id: 'p1', narrador_id: 'n1', extras: extrasClonada });
@@ -938,7 +951,7 @@ describe('generarPaquete', () => {
       stop_reason: 'end_turn',
     });
     const db = construirDbN1({
-      descargas: { ...descargasN1(), 'n1/paquete/borrador_libro.md': libroConFrases() },
+      descargas: { ...descargasN1(), 'n1/paquete/borradores.json': { data: blobFake(JSON.stringify(manifiestoN1())), error: null }, 'n1/paquete/borrador_libro.md': libroConFrases() },
     });
 
     await generarPaquete({ id: 'p1', narrador_id: 'n1' });
@@ -957,7 +970,7 @@ describe('generarPaquete', () => {
   it('«Su voz»: si el modelo se cae, el libro se entrega igual con las frases pendientes', async () => {
     createMock.mockRejectedValueOnce(new Error('se cayó')).mockRejectedValueOnce(new Error('se cayó de nuevo'));
     const db = construirDbN1({
-      descargas: { ...descargasN1(), 'n1/paquete/borrador_libro.md': libroConFrases() },
+      descargas: { ...descargasN1(), 'n1/paquete/borradores.json': { data: blobFake(JSON.stringify(manifiestoN1())), error: null }, 'n1/paquete/borrador_libro.md': libroConFrases() },
     });
 
     await expect(generarPaquete({ id: 'p1', narrador_id: 'n1' })).resolves.toBeUndefined();
@@ -983,6 +996,84 @@ describe('generarPaquete', () => {
     expect(db.from).not.toHaveBeenCalledWith('narraciones');
     expect(db.upload.mock.calls.map((c) => c[0])).not.toContain('n1/paquete/narracion.json');
     expect(db.pedidosUpdate).toHaveBeenCalledWith(expect.objectContaining({ estado: 'entregado' }), 'p1');
+  });
+
+  // --- El caché de borradores lleva un manifiesto (revisión del ajuste G) ------------------------
+  //
+  // Los borradores se guardan por posición (`borrador_cap_NN`). Si entre dos corridas cambia la
+  // lista de capítulos (una respuesta descartada, un capítulo que se cae por excluidas) o lo que la
+  // familia excluyó o corrigió, reusarlos metería contenido excluido o correría los capítulos uno.
+  // `borradores.json` dice con qué se escribieron; si no coincide, se escribe de nuevo.
+
+  const RESPUESTAS_N1 = [
+    { id: 'r1', pregunta_orden: 1, transcripcion: 'En Rosario.', texto_directo: null, es_repregunta: false, audio_path: 'n1/dia_01.ogg', duracion_segundos: 120, recibido_at: '2026-09-01T10:00:00Z' },
+    { id: 'r2', pregunta_orden: 2, transcripcion: 'La conocí bailando.', texto_directo: null, es_repregunta: false, audio_path: 'n1/dia_02.ogg', duracion_segundos: 95.4, recibido_at: '2026-09-02T10:00:00Z' },
+  ];
+  const cacheN1 = (manifiesto: unknown | undefined) => ({
+    ...descargasN1(),
+    ...(manifiesto === undefined ? {} : { 'n1/paquete/borradores.json': { data: blobFake(JSON.stringify(manifiesto)), error: null } }),
+    'n1/paquete/borrador_cap_01.md': { data: blobFake('Cap. 1 viejo.'), error: null },
+    'n1/paquete/borrador_cap_02.md': { data: blobFake('Cap. 2 viejo.'), error: null },
+    'n1/paquete/borrador_libro.md': { data: blobFake('# A mis lectores\n\nLibro viejo.'), error: null },
+  });
+  const manifiestoN1 = (ajustes: { capitulos?: string[]; excluidas?: string[]; correcciones?: string | null } = {}) => ({
+    huella: huellaDeBorradores(RESPUESTAS_N1, ajustes.excluidas ?? [], ajustes.correcciones ?? null),
+    capitulos: ajustes.capitulos ?? ['La infancia', 'El amor'],
+    libro: true,
+  });
+
+  it('borradores con manifiesto que coincide: los reusa y no le paga al modelo', async () => {
+    construirDbN1({ descargas: cacheN1(manifiestoN1()) });
+
+    await generarPaquete({ id: 'p1', narrador_id: 'n1' });
+
+    expect(escribirCapituloMock).not.toHaveBeenCalled();
+    expect(streamMock).not.toHaveBeenCalled();
+    expect(setContentMock.mock.calls[0][0]).toContain('Libro viejo.');
+  });
+
+  it('borradores escritos con otra lista de capítulos: se escriben de nuevo', async () => {
+    construirDbN1({ descargas: cacheN1(manifiestoN1({ capitulos: ['El amor', 'La infancia'] })) });
+
+    await generarPaquete({ id: 'p1', narrador_id: 'n1' });
+
+    expect(escribirCapituloMock).toHaveBeenCalledTimes(2);
+    expect(streamMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('borradores escritos con otras excluidas u otras correcciones: se escriben de nuevo', async () => {
+    for (const viejo of [manifiestoN1({ excluidas: ['r9'] }), manifiestoN1({ correcciones: 'Otra cosa.' })]) {
+      vi.clearAllMocks();
+      construirDbN1({ descargas: cacheN1(viejo) });
+
+      await generarPaquete({ id: 'p1', narrador_id: 'n1' });
+
+      expect(escribirCapituloMock).toHaveBeenCalledTimes(2);
+      expect(streamMock).toHaveBeenCalledTimes(1);
+    }
+  });
+
+  it('borradores viejos sin manifiesto: se escriben de nuevo, y queda el manifiesto de esta corrida', async () => {
+    const db = construirDbN1({ descargas: cacheN1(undefined) });
+
+    await generarPaquete({ id: 'p1', narrador_id: 'n1' });
+
+    expect(escribirCapituloMock).toHaveBeenCalledTimes(2);
+    expect(streamMock).toHaveBeenCalledTimes(1);
+    const manifiestos = db.upload.mock.calls.filter((c) => c[0] === 'n1/paquete/borradores.json').map((c) => JSON.parse(c[1] as string));
+    expect(manifiestos.at(-1)).toEqual(manifiestoN1());
+    // Y se borra con los borradores al entregar.
+    expect(db.remove.mock.calls.at(-1)![0]).toContain('n1/paquete/borradores.json');
+  });
+
+  it('un capítulo sin nada publicable (respuesta reservada entera) se cae, igual que uno excluido', async () => {
+    construirDbN1({
+      respuestas: { data: [{ ...RESPUESTAS_N1[0], reservada: true }, RESPUESTAS_N1[1]], error: null },
+    });
+
+    await generarPaquete({ id: 'p1', narrador_id: 'n1' });
+
+    expect(escribirCapituloMock.mock.calls.map((c) => c[1])).toEqual(['El amor']);
   });
 
   // --- La marca `tema_de_orden` (columnas nuevas, migración sin aplicar) -----

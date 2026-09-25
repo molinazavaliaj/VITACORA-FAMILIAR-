@@ -24,7 +24,7 @@ vi.mock('../src/libro/pdf.js', () => ({ htmlAPdf: generarPdfMock }));
 const { armarLibroDeImprenta, RUTA_LIBRO_IMPRENTA } = await import('../src/libro/imprenta.js');
 
 /** Una base de mentira: Storage con archivos en memoria y `narradores` con una fila. */
-function baseFalsa(opciones: { archivos: Record<string, string>; narrador?: Record<string, unknown>; respuestas?: { id: string; pregunta_orden: number }[] }) {
+function baseFalsa(opciones: { archivos: Record<string, string>; narrador?: Record<string, unknown>; respuestas?: { id: string; pregunta_orden: number; transcripcion?: string }[] }) {
   const subidos: Record<string, { cuerpo: unknown; tipo?: string }> = {};
   const narrador = {
     id: 'n1',
@@ -178,7 +178,7 @@ describe('armarLibroDeImprenta', () => {
         }),
       },
       narrador: { edicion: { excluidas: ['r1'] } },
-      respuestas: [{ id: 'r1', pregunta_orden: 1 }, { id: 'r2', pregunta_orden: 2 }],
+      respuestas: [{ id: 'r1', pregunta_orden: 1, transcripcion: 'En Rosario.' }, { id: 'r2', pregunta_orden: 2, transcripcion: 'La conocí bailando.' }],
     });
 
     await armarLibroDeImprenta(db, 'n1');
