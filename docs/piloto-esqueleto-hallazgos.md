@@ -27,3 +27,10 @@ Piloto de cero reusando respuestas del piloto viejo (`--reusar`). Numeración pr
 ## Correcciones de Naza para el libro (dichas en el chat, no en un audio)
 - Orden 32: la camioneta que perdió antes de venir a España **es la EcoSport** (no son dos autos distintos). Autos: el 207 a los 17, un Focus, la EcoSport.
 - La "tapa de Ñaquiver" (orden 27) era "la etapa de Berga"; "Starán" era Fran; el perro era Homero, con H.
+| E20 | La despedida pegó el campo "cómo le dicen" entero ("Naza (así quiere que le digan; su nombre artístico es Tricky…)…"). Causa: la corrección a mano del controlador puso la aclaración dentro del valor. Arreglado en la ficha (valor "Naza", la aclaración en `por`); pendiente: que la despedida/presentación use solo el nombre aunque el valor traiga aclaraciones. | Arreglado a mano / pendiente en código. |
+
+## Cambios al guion aprobados por Naza (25/09, para después del piloto)
+- **G1. Negocios, épocas flacas y un riesgo que salió mal, desde el adulto joven** (no solo desde los 36): "una persona de 27 ya intentó de todo". Hoy vive en `el-trabajo-y-la-plata` (adultez media).
+- **G2 (propuesto, falta el sí de Naza): pérdidas para cualquier edad** cuando la ficha tenga a alguien que murió (hoy solo 56+).
+- **G3. Sin opciones de ejemplo en las preguntas** (hecho: `12a04dc`).
+- **G4. No decir "ayer" si no se sabe cuándo fue la última respuesta** (E18).
