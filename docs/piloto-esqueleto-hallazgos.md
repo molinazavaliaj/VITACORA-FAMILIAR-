@@ -47,7 +47,7 @@ Piloto de cero reusando respuestas del piloto viejo (`--reusar`). Numeración pr
 | # | Qué pasó | Estado |
 |---|---|---|
 | L1 | "A los diecisiete tuve mi primer auto, un Focus": era el 207. Causa: la corrección a mano de la EcoSport dejó la frase ambigua. | Arreglado: transcripción y `libro.md` de prueba (a mano). El lector final lo encontró solo. |
-| L2 | "Una familia atípica, con la que hemos tenido momentos buenos": dijo "momentos buenos, momentos buenos" (seguramente "buenos y malos"). | A confirmar con Naza. |
+| L2 | "Una familia atípica, con la que hemos tenido momentos buenos": dijo "momentos buenos, momentos buenos"; Naza confirmó "buenos y malos". | Arreglado en la transcripción y en el `libro.md` de prueba. |
 | L3 | El lector final falló ("no devolvió una lista"): Opus 5 piensa por defecto y el tope de 8.000 tokens no alcanzaba (al re-leer usó 8.239 de salida). | Arreglado (`b99ace5`): tope 32.000, dice por qué falla, guarda la respuesta. Re-lectura: 1 aviso (el Focus), USD 0,34. |
 | L4 | Contenido sensible que entra tal cual (porro/marihuana, club cannábico, cárcel de su padre y de Juan Manuel, "negocios que estaban un poco mal", "invitábamos minas"). El libro es para la familia: ¿se reserva algo? | Decisión de Naza. |
 | L5 | Frases de relleno del escritor: "Y después de todo eso viene la etapa que me vine a vivir a España…" al cierre del cap. 6. | Menor. |
