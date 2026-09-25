@@ -29,13 +29,20 @@ describe('la evaluación mira la próxima fila (E17)', () => {
 });
 
 describe('sinLoDeLaProxima', () => {
-  it('saca lo que comparte palabras con la próxima fila (pruebas → fuerza)', () => {
+  it('saca lo que comparte dos palabras o más con la próxima fila (pruebas → fuerza)', () => {
     expect(sinLoDeLaProxima(['de dónde sacó la fuerza', 'qué pasó con la camioneta'], fuerza)).toEqual(['qué pasó con la camioneta']);
-    expect(sinLoDeLaProxima(['qué aprendió de eso'], fuerza)).toEqual([]);
   });
-  it('con los pormenores de la próxima también (la-escuela → a-los-quince no comparte; casa → cuadra sí)', () => {
+  it('una sola palabra en común nunca alcanza para sacarlo (eso lo decide la regla del prompt, que ve el sentido)', () => {
+    expect(sinLoDeLaProxima(['qué aprendió de eso'], fuerza)).toEqual(['qué aprendió de eso']);
+    expect(sinLoDeLaProxima(['qué aprendió de esa etapa'], fuerza)).toEqual(['qué aprendió de esa etapa']);
+    expect(sinLoDeLaProxima(['con quién jugaba', 'olores'], nucleo('la-cuadra-y-los-juegos'))).toEqual(['con quién jugaba', 'olores']);
+  });
+  it('dos palabras en común pero menos de la mitad de las suyas: queda', () => {
+    expect(sinLoDeLaProxima(['qué aprendió y de dónde sacó ánimo cuando perdió la camioneta en Buenos Aires'], fuerza)).toHaveLength(1);
+  });
+  it('con los pormenores de la próxima también (la-escuela → a-los-quince no comparte; un sábado a la noche sí)', () => {
     expect(sinLoDeLaProxima(['un maestro', 'cómo le iba'], nucleo('a-los-quince'))).toEqual(['un maestro', 'cómo le iba']);
-    expect(sinLoDeLaProxima(['con quién jugaba', 'olores'], nucleo('la-cuadra-y-los-juegos'))).toEqual(['olores']);
+    expect(sinLoDeLaProxima(['un sábado a la noche', 'un maestro'], nucleo('a-los-quince'))).toEqual(['un maestro']);
   });
   it('sin próxima, o una próxima que no es del guion, no saca nada', () => {
     expect(sinLoDeLaProxima(['la fuerza'], null)).toEqual(['la fuerza']);
@@ -45,7 +52,7 @@ describe('sinLoDeLaProxima', () => {
 
 describe('evaluarV2 con la próxima fila', () => {
   it('si todo lo que faltó es de la próxima, no queda nada: no hay repregunta', async () => {
-    const r = await evaluarV2(cliente('{"suficiente": false, "falto": ["de dónde sacó fuerza", "qué aprendió"]}'), perfilVacio(), pruebas, '¿Qué pruebas?', 'Perdí todo.', 20, [], [], fuerza);
+    const r = await evaluarV2(cliente('{"suficiente": false, "falto": ["de dónde sacó fuerza", "qué aprendió que quiera dejar"]}'), perfilVacio(), pruebas, '¿Qué pruebas?', 'Perdí todo.', 20, [], [], fuerza);
     expect(r.evaluacion.falto).toEqual([]);
   });
   it('lo que no es de la próxima queda', async () => {

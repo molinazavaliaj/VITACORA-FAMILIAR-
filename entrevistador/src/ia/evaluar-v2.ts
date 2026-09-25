@@ -117,16 +117,19 @@ function raices(texto: string): Set<string> {
 /**
  * E17 (piloto esqueleto v2, 25/09): lo que faltó que en realidad va a pedir la próxima fila no se
  * repregunta ("quién te bancó" en `pruebas`, cuando `fuerza` venía después). Determinista: se saca
- * un "faltó" si la mitad o más de sus palabras con sentido están en el tema o los pormenores de la
- * próxima fila del guion. Es la red de la regla del prompt (que ve el sentido, no solo las palabras).
+ * un "faltó" solo si comparte con el tema o los pormenores de la próxima fila del guion al menos
+ * MIN_RAICES_EN_COMUN palabras con sentido Y la mitad o más de las suyas. Peca de sacar de menos: una
+ * sola palabra en común ("qué aprendió de esa etapa") puede ser casualidad y nunca la saca el código;
+ * eso lo decide la regla del prompt, que ve el sentido (el caso real no compartía ninguna palabra).
  */
+const MIN_RAICES_EN_COMUN = 2;
 export function sinLoDeLaProxima(falto: string[], proxima: Objetivo | null): string[] {
   if (proxima?.tipo !== 'nucleo') return falto;
   const deLaProxima = raices(`${proxima.tema} ${proxima.pormenores.join(' ')}`);
   return falto.filter((f) => {
     const propias = [...raices(f)];
-    if (!propias.length) return true;
-    return propias.filter((r) => deLaProxima.has(r)).length / propias.length < 0.5;
+    const enComun = propias.filter((r) => deLaProxima.has(r)).length;
+    return !(enComun >= MIN_RAICES_EN_COMUN && enComun / propias.length >= 0.5);
   });
 }
 
