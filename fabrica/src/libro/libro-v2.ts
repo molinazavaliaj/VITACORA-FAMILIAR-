@@ -25,8 +25,11 @@ export type EntradaLibroV2 = {
   cliente: Anthropic; quien: Quien;
   respuestas: { orden: number; pregunta: string; texto: string; fuenteId: string }[];
   epocas: EpocaDeRespuesta[]; lineaDeTiempo?: string; nombresCorregidos: string; reservados: string[];
+  /** Lo que la familia corrigió en texto libre en el tablero (`narradores.edicion.correcciones`): va al
+   *  escritor de cada capítulo, al editor y al lector final. Vacío o ausente, los prompts quedan como siempre. */
+  correcciones?: string | null;
   /** Para escribir cada capítulo (inyectable en tests). */
-  escribirCapitulo?: (quien: Quien, nombre: string, material: string, nombres: string) => Promise<{ texto: string; usage: unknown }>;
+  escribirCapitulo?: (quien: Quien, nombre: string, material: string, nombres: string, correcciones?: string | null) => Promise<{ texto: string; usage: unknown }>;
   alPaso?: (paso: string) => void;
   /** Cada capítulo apenas se escribió: para guardarlo ya (está pago) aunque después algo falle. */
   alCapitulo?: (indice: number, nombre: string, texto: string) => void | Promise<void>;
@@ -84,6 +87,7 @@ async function armar(e: EntradaLibroV2, parcial: ParcialLibroV2): Promise<Salida
   const { salidas, capitulos } = parcial;
   const gastar = (modelo: string, u: unknown) => { parcial.gastoUsd += costo(modelo, u); };
   const escribir = e.escribirCapitulo ?? escribirCapituloRepartido;
+  const correcciones = e.correcciones?.trim() || null;
 
   paso('Etapas…');
   const historia = e.respuestas.map((r) => `P: ${r.pregunta}\nR: ${r.texto}`).join('\n\n');
@@ -111,7 +115,7 @@ async function armar(e: EntradaLibroV2, parcial: ParcialLibroV2): Promise<Salida
   for (let i = 0; i < etapas.length; i++) {
     paso(`Capítulo ${i + 1}/${etapas.length}: ${etapas[i].nombre}…`);
     if (!porCapitulo[i]?.trim()) sinMaterial.push(etapas[i].nombre);
-    const { texto, usage } = await escribir(e.quien, etapas[i].nombre, porCapitulo[i] ?? '', e.nombresCorregidos);
+    const { texto, usage } = await escribir(e.quien, etapas[i].nombre, porCapitulo[i] ?? '', e.nombresCorregidos, correcciones);
     gastar(MODELO_ESCRITOR, usage);
     capitulos.push({ nombre: etapas[i].nombre, texto });
     await e.alCapitulo?.(i, etapas[i].nombre, texto);
@@ -122,13 +126,13 @@ async function armar(e: EntradaLibroV2, parcial: ParcialLibroV2): Promise<Salida
 
   paso('Apertura, cierre y «Sus frases»…');
   const transcripciones = e.respuestas.map((r) => r.texto);
-  const paginas = await escribirPaginas(e.cliente, e.quien, capitulos, transcripciones);
+  const paginas = await escribirPaginas(e.cliente, e.quien, capitulos, transcripciones, correcciones);
   gastar(MODELO_ESCRITOR, paginas.usage);
   const libroMarkdown = paginas.resultado.ok ? armarLibro(paginas.resultado.paginas, capitulos) : null;
 
   const control = controlarLibro(capitulos, fuentes, e.quien.genero);
   paso('El lector final…');
-  const lectura = await leerLibro(e.cliente, e.quien, libroMarkdown ?? capitulos.map((c) => `# ${c.nombre}\n\n${c.texto}`).join('\n\n'), transcripciones, e.nombresCorregidos, e.reservados);
+  const lectura = await leerLibro(e.cliente, e.quien, libroMarkdown ?? capitulos.map((c) => `# ${c.nombre}\n\n${c.texto}`).join('\n\n'), transcripciones, e.nombresCorregidos, e.reservados, correcciones);
   gastar(MODELO_LECTOR, lectura.usage);
   const informe: InformeRevision = {
     narrador: e.quien.nombre,

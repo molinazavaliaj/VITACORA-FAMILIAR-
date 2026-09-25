@@ -3,6 +3,7 @@ import { cargarConfig } from '../config.js';
 import { registrarUso, type PasoModelo } from '../costos.js';
 import { obtenerClienteDb } from '../db.js';
 import { extraerTexto } from './comun.js';
+import { seccionCorrecciones } from './edicion.js';
 import { encargoDelLibro, type Quien } from './encargo.js';
 
 const MODELO = 'claude-fable-5';
@@ -32,7 +33,8 @@ const PROMPT_CAPITULO = (
   capitulo: string,
   materiales: string,
   historiaCompleta: string,
-  nombresCorregidos: string
+  nombresCorregidos: string,
+  correcciones?: string | null
 ) => `
 Estás escribiendo el libro de la vida de ${nombre}, a partir de lo que él mismo contó
 en entrevistas grabadas. Este es el capítulo «${capitulo}».
@@ -46,7 +48,7 @@ NO traigas lo que claramente pertenece a otro capítulo):
 ${historiaCompleta}
 
 CORRECCIONES DE NOMBRES (la transcripción automática oyó mal; usar SIEMPRE la forma corregida):
-${nombresCorregidos}
+${nombresCorregidos}${seccionCorrecciones(correcciones)}
 
 ${REGLAS_DE_VOZ}`;
 
@@ -55,7 +57,9 @@ ${REGLAS_DE_VOZ}`;
  * respuestas textuales de las preguntas de este capítulo; `historiaCompleta`
  * es todo lo dicho en las entrevistas, por si algo que pertenece a este
  * capítulo se contó otro día; `nombresCorregidos` son las correcciones de
- * ortografía que la familia hizo sobre lo que la transcripción oyó mal.
+ * ortografía que la familia hizo sobre lo que la transcripción oyó mal;
+ * `correcciones` es lo que la familia corrigió en texto libre en el tablero
+ * (`narradores.edicion.correcciones`): vacío, el prompt queda como siempre.
  *
  * Si `narrador` trae `id`, el costo de la llamada se anota en su
  * costos.json bajo `paso` (`capitulo` para el libro; la previsualización
@@ -67,12 +71,13 @@ export async function escribirCapitulo(
   materiales: string,
   historiaCompleta: string,
   nombresCorregidos: string,
-  paso: Extract<PasoModelo, 'capitulo' | 'preview'> = 'capitulo'
+  paso: Extract<PasoModelo, 'capitulo' | 'preview'> = 'capitulo',
+  correcciones: string | null = null
 ): Promise<string> {
   const config = cargarConfig();
   const cliente = new Anthropic({ apiKey: config.anthropicApiKey });
 
-  const prompt = PROMPT_CAPITULO(narrador.nombre, capitulo, materiales, historiaCompleta, nombresCorregidos);
+  const prompt = PROMPT_CAPITULO(narrador.nombre, capitulo, materiales, historiaCompleta, nombresCorregidos, correcciones);
 
   const stream = cliente.messages.stream({
     model: MODELO,
@@ -98,7 +103,8 @@ export const PROMPT_CAPITULO_V2 = (
   quien: Quien,
   capitulo: string,
   materiales: string,
-  nombresCorregidos: string
+  nombresCorregidos: string,
+  correcciones?: string | null
 ) => `
 Estás escribiendo el libro de la vida de ${quien.nombre}, a partir de lo que contó en entrevistas
 grabadas. Este es el capítulo «${capitulo}».
@@ -111,7 +117,7 @@ demás va en otros capítulos: no lo traigas.
 ${materiales}
 
 CORRECCIONES DE NOMBRES (la transcripción automática oyó mal; usá SIEMPRE la forma corregida):
-${nombresCorregidos}
+${nombresCorregidos}${seccionCorrecciones(correcciones)}
 
 Devolvé SOLO el texto del capítulo en Markdown, sin el título.`;
 
@@ -120,14 +126,15 @@ export async function escribirCapituloRepartido(
   narrador: Quien & { id?: string },
   capitulo: string,
   materiales: string,
-  nombresCorregidos: string
+  nombresCorregidos: string,
+  correcciones: string | null = null
 ): Promise<{ texto: string; usage: unknown }> {
   const config = cargarConfig();
   const cliente = new Anthropic({ apiKey: config.anthropicApiKey });
   const stream = cliente.messages.stream({
     model: MODELO,
     max_tokens: 20000,
-    messages: [{ role: 'user', content: PROMPT_CAPITULO_V2(narrador, capitulo, materiales, nombresCorregidos) }],
+    messages: [{ role: 'user', content: PROMPT_CAPITULO_V2(narrador, capitulo, materiales, nombresCorregidos, correcciones) }],
   });
   const mensajeFinal = await stream.finalMessage();
   if (narrador.id) await registrarUso(obtenerClienteDb, narrador.id, { modelo: MODELO, paso: 'capitulo', usage: mensajeFinal.usage });

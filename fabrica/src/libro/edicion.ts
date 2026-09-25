@@ -1,10 +1,12 @@
 // La edición final que la dueña deja en `narradores.edicion` (jsonb, la
 // escribe la web — spec docs/panel-usuario.md §7.2). La fábrica aplica
-// SOLO orden de capítulos, título de cada capítulo (`titulosCapitulos`),
-// título, subtítulo y foto de tapa. `excluidas` y `correcciones` existen en
-// el contrato pero se ignoran a propósito: una
-// vez respondida una pregunta no se modifica nada (decisión de Naza,
-// 13/09, ver docs/superpowers/specs/2026-09-13-fabrica-aprobacion-design.md).
+// orden de capítulos, título de cada capítulo (`titulosCapitulos`), título,
+// subtítulo y foto de tapa, y desde el 25/09 (decisión D1 de Naza, que da
+// vuelta la del 13/09) también lo que la familia excluye o corrige:
+// - `excluidas` (ids de `respuestas`): quedan afuera del libro y del
+//   audiolibro, igual que una reservada (`sinExcluidas`).
+// - `correcciones` (texto libre): va a todos los pasos que escriben o revisan
+//   el libro —escritor, editor, lector— con `seccionCorrecciones`.
 //
 // Nunca tira: un jsonb roto no puede tumbar un pedido pagado. Lo que no se
 // entiende se descarta con un aviso y se usa el default.
@@ -18,6 +20,10 @@ export type Edicion = {
    *  recortado, nunca vacío). Los capítulos que no están acá conservan el
    *  nombre del guion. */
   titulosCapitulos: Record<string, string>;
+  /** Ids de `respuestas` que la familia sacó del libro (sin repetidos). */
+  excluidas: string[];
+  /** Lo que la familia corrigió, en texto libre (recortado), o null si no escribió nada. */
+  correcciones: string | null;
 };
 
 const EDICION_VACIA: Edicion = {
@@ -26,6 +32,8 @@ const EDICION_VACIA: Edicion = {
   subtitulo: null,
   portadaFotoId: null,
   titulosCapitulos: {},
+  excluidas: [],
+  correcciones: null,
 };
 
 function textoONull(valor: unknown, clave: string): string | null {
@@ -59,7 +67,86 @@ export function leerEdicion(valor: unknown): Edicion {
     subtitulo: textoONull(objeto.subtitulo, 'subtitulo'),
     portadaFotoId: textoONull(objeto.portadaFotoId, 'portadaFotoId'),
     titulosCapitulos: leerTitulosCapitulos(objeto.titulosCapitulos),
+    excluidas: leerExcluidas(objeto.excluidas),
+    correcciones: textoONull(objeto.correcciones, 'correcciones'),
   };
+}
+
+function leerExcluidas(valor: unknown): string[] {
+  if (valor === undefined || valor === null) return [];
+  if (!Array.isArray(valor)) {
+    console.warn('leerEdicion: "excluidas" no es una lista, se ignora.');
+    return [];
+  }
+  const ids = valor.filter((id): id is string => typeof id === 'string').map((id) => id.trim()).filter(Boolean);
+  return [...new Set(ids)];
+}
+
+/**
+ * Las excluidas como las entiende la familia. El tablero muestra una fila por pregunta —la respuesta
+ * principal, sin sus repreguntas (web/src/app/tablero/[narradorId]/libro/page.tsx)— y dice "si hay
+ * algo que no querés que salga, destildalo": destildar esa fila es sacar la pregunta entera, así que
+ * una principal excluida se lleva las repreguntas de su misma orden. Una repregunta excluida por id
+ * se va sola. Ante la duda, de menos.
+ */
+export function ampliarExcluidas(
+  respuestas: { id?: string; pregunta_orden: number; es_repregunta?: boolean | null }[],
+  excluidas: string[]
+): string[] {
+  if (excluidas.length === 0) return [];
+  const fuera = new Set(excluidas);
+  const ordenesFuera = new Set(respuestas.filter((r) => r.id && fuera.has(r.id) && !r.es_repregunta).map((r) => r.pregunta_orden));
+  for (const r of respuestas) {
+    if (r.id && r.es_repregunta && ordenesFuera.has(r.pregunta_orden)) fuera.add(r.id);
+  }
+  return [...fuera];
+}
+
+/**
+ * Las respuestas sin las que la familia excluyó. Una excluida es como una reservada: no existe para
+ * el libro (ni para el material, ni para la historia completa, ni para «Su voz», ni para el audio).
+ */
+export function sinExcluidas<T extends { id?: string }>(respuestas: T[], excluidas: Iterable<string>): T[] {
+  const fuera = new Set(excluidas);
+  if (fuera.size === 0) return [...respuestas];
+  return respuestas.filter((r) => !(r.id && fuera.has(r.id)));
+}
+
+/**
+ * Los capítulos sin lo que la familia vació: una orden cuyas respuestas fueron TODAS excluidas sale
+ * del capítulo, y un capítulo que se queda sin órdenes sale del libro (escrito sin material, solo
+ * podría ser inventado). Una orden que nunca tuvo respuestas propias queda: puede recibir un
+ * recuerdo de otro tema (`tema_de_orden`). No muta la entrada.
+ */
+export function sinOrdenesExcluidas<T extends { ordenes: number[] }>(
+  capitulos: T[],
+  respuestas: { id?: string; pregunta_orden: number }[],
+  excluidas: Iterable<string>
+): T[] {
+  const fuera = new Set(excluidas);
+  if (fuera.size === 0) return capitulos.map((c) => ({ ...c }));
+  const porOrden = new Map<number, boolean[]>();
+  for (const r of respuestas) {
+    porOrden.set(r.pregunta_orden, [...(porOrden.get(r.pregunta_orden) ?? []), Boolean(r.id && fuera.has(r.id))]);
+  }
+  const vaciada = (orden: number) => {
+    const marcas = porOrden.get(orden);
+    return Boolean(marcas && marcas.length > 0 && marcas.every(Boolean));
+  };
+  return capitulos
+    .map((c) => ({ ...c, ordenes: c.ordenes.filter((o) => !vaciada(o)) }))
+    .filter((c) => c.ordenes.length > 0);
+}
+
+/**
+ * La sección de las correcciones de la familia para los prompts del escritor, el editor y el
+ * lector. Empieza con su propio salto de párrafo para que, vacía, el prompt quede byte por byte
+ * como antes.
+ */
+export function seccionCorrecciones(correcciones: string | null | undefined): string {
+  const texto = typeof correcciones === 'string' ? correcciones.trim() : '';
+  if (!texto) return '';
+  return `\n\nCORRECCIONES DE LA FAMILIA (mandan sobre lo que se transcribió; aplicalas donde corresponda, sin inventar nada más): ${texto}`;
 }
 
 // La web guarda solo títulos recortados y no vacíos (web/src/lib/edicion.ts),

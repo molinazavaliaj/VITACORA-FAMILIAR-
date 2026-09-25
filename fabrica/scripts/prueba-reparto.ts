@@ -13,7 +13,9 @@
 // --etapas se sigue aceptando y no hace nada: el libro v2 ya es siempre por etapas (el camino por
 // capítulos del guion se eliminó). --excluir deja afuera respuestas que sabemos que no son de esta
 // persona (ej. el audio de Ciro en la orden 27 de Joaquín): solo en esta corrida, la base no se toca.
-// Las `bloqueadas` del candado v2 quedan afuera solas.
+// Las `bloqueadas` del candado v2 quedan afuera solas, y lo que la familia hizo en el tablero
+// (`narradores.edicion`) se aplica igual que en producción: `excluidas` quedan afuera y `correcciones`
+// va al escritor, al editor y al lector (D1, 25/09).
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import Anthropic from '@anthropic-ai/sdk';
@@ -44,7 +46,7 @@ const excluidas = new Set(iExcluir >= 0 ? (args[iExcluir + 1] ?? '').split(',').
 const salida = path.resolve(iSalida >= 0 ? args[iSalida + 1] : `prueba-reparto-${narradorId.slice(0, 8)}`);
 
 const db = obtenerClienteDb();
-const { narrador, v2, excluidas: fuera, respuestas, reservados, epocas, lineaDeTiempo, nombres, quien, delMaterial } =
+const { narrador, v2, excluidas: fuera, respuestas, reservados, epocas, lineaDeTiempo, nombres, correcciones, quien, delMaterial } =
   await cargarMaterialDelNarrador(db, narradorId, excluidas);
 const genero = quien.genero;
 const fuentes = respuestas.map((r) => ({ id: r.fuenteId, texto: r.texto }));
@@ -56,6 +58,7 @@ const informe: string[] = [
   `# Prueba del libro v2 — ${narrador.nombre}`, '',
   `**Material:** ${v2 ? 'entrevista v2 (épocas del tramo de cada pregunta, línea de tiempo del perfil)' : 'guion viejo (épocas por capítulo del guion, sin línea de tiempo)'}`,
   ...(fuera.size ? [`Excluidas de esta corrida: ${[...fuera].join(', ')}`] : []),
+  ...(correcciones ? [`Correcciones de la familia (van al escritor, al editor y al lector): ${correcciones}`] : []),
   `${respuestas.length} respuestas · ${reservados.length} reservas (fuera del libro, se le pasan al lector)`, '',
   `**Quién cuenta:** ${genero ?? 'no se sabe'}${v2 && generoV2(v2) ? ' (lo dijo en la entrevista)' : delMaterial.evidencia.length ? ` (${delMaterial.evidencia.slice(0, 4).join(', ')})` : ''}`, '',
 ];
@@ -86,7 +89,7 @@ let r: Awaited<ReturnType<typeof armarLibroV2>>;
 try {
   r = await armarLibroV2({
     cliente, quien, respuestas, epocas, lineaDeTiempo,
-    nombresCorregidos: formatearNombresCorregidos(nombres.correcciones), reservados,
+    nombresCorregidos: formatearNombresCorregidos(nombres.correcciones), reservados, correcciones,
     alPaso: (p) => console.log(p),
     alCapitulo: guardarCapitulo,
   });

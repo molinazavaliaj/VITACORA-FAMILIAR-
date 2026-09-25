@@ -24,7 +24,7 @@ vi.mock('../src/libro/pdf.js', () => ({ htmlAPdf: generarPdfMock }));
 const { armarLibroDeImprenta, RUTA_LIBRO_IMPRENTA } = await import('../src/libro/imprenta.js');
 
 /** Una base de mentira: Storage con archivos en memoria y `narradores` con una fila. */
-function baseFalsa(opciones: { archivos: Record<string, string>; narrador?: Record<string, unknown> }) {
+function baseFalsa(opciones: { archivos: Record<string, string>; narrador?: Record<string, unknown>; respuestas?: { id: string; pregunta_orden: number }[] }) {
   const subidos: Record<string, { cuerpo: unknown; tipo?: string }> = {};
   const narrador = {
     id: 'n1',
@@ -45,6 +45,9 @@ function baseFalsa(opciones: { archivos: Record<string, string>; narrador?: Reco
           single: async () => ({ data: tabla === 'narradores' ? narrador : null, error: null }),
           // `fotos` se lee ordenada; sin fotos cargadas devuelve una lista vacía.
           order: async () => ({ data: [], error: null }),
+          // `respuestas` se lee sin más (solo si la familia excluyó alguna).
+          then: (ok: (v: unknown) => unknown) =>
+            Promise.resolve({ data: tabla === 'respuestas' ? opciones.respuestas ?? [] : null, error: null }).then(ok),
         }),
       }),
     }),
@@ -163,6 +166,24 @@ describe('armarLibroDeImprenta', () => {
     const datos = construirHtmlLibroMock.mock.calls[0][0];
     expect(datos.tapa).toEqual({ titulo: 'Mi viejo', subtitulo: 'Una vida' });
     expect(datos.indice).toEqual(['La infancia']);
+  });
+
+  it('un capítulo que la familia vació con excluidas no aparece en el índice (el libro entregado tampoco lo tiene)', async () => {
+    const { db } = baseFalsa({
+      archivos: {
+        ...archivos(FRASES_CONFIRMADAS),
+        'n1/paquete/estructura.json': JSON.stringify({
+          titulo: 'La historia de Roberto',
+          capitulos: [{ nombre: 'La infancia', ordenes: [1] }, { nombre: 'El amor', ordenes: [2] }],
+        }),
+      },
+      narrador: { edicion: { excluidas: ['r1'] } },
+      respuestas: [{ id: 'r1', pregunta_orden: 1 }, { id: 'r2', pregunta_orden: 2 }],
+    });
+
+    await armarLibroDeImprenta(db, 'n1');
+
+    expect(construirHtmlLibroMock.mock.calls[0][0].indice).toEqual(['El amor']);
   });
 
   it('no reescribe el libro: usa el borrador que ya está guardado (escribirlo de nuevo cuesta dólares)', async () => {

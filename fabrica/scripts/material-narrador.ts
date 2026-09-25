@@ -1,5 +1,6 @@
 // Lo que la fábrica lee de la base para armar (o releer) el libro de prueba de un narrador: sus
-// respuestas publicables en orden, lo reservado, quién cuenta, los nombres corregidos y las épocas.
+// respuestas publicables en orden, lo reservado, quién cuenta, los nombres corregidos, las épocas y
+// lo que la familia excluyó o corrigió en el tablero (`narradores.edicion`, D1 25/09).
 // Lo comparten `prueba-reparto.ts` (el libro entero) y `releer-libro.ts` (solo el lector final),
 // para que el lector relea EXACTAMENTE el mismo material con el que se escribió. Solo lee.
 import type { SupabaseClient } from '@supabase/supabase-js';
@@ -7,6 +8,7 @@ import type { Pregunta, Respuesta } from '../src/db.js';
 import { descargarTextoOpcional, type Nombres } from '../src/libro/comun.js';
 import { generoDelMaterial, type Quien } from '../src/libro/encargo.js';
 import type { EpocaDeRespuesta } from '../src/libro/etapas.js';
+import { leerEdicion, ampliarExcluidas } from '../src/libro/edicion.js';
 import {
   leerContextoV2, epocaV2, lineaDeTiempoV2, generoV2, preguntaV2, epocaDelGuion, materialDeRespuestas,
   type ContextoV2, type RespuestaDelLibro,
@@ -15,13 +17,16 @@ import {
 export type MaterialDelNarrador = {
   narrador: { nombre: string; edicion: unknown; contexto: unknown };
   v2: ContextoV2 | null;
-  /** Las que quedan afuera en esta corrida: las de `--excluir` más las `bloqueadas` del candado v2. */
+  /** Las que quedan afuera en esta corrida: las de `--excluir`, las que la familia excluyó en el
+   *  tablero (`edicion.excluidas`) y las `bloqueadas` del candado v2. */
   excluidas: Set<string>;
   respuestas: RespuestaDelLibro[];
   reservados: string[];
   epocas: EpocaDeRespuesta[];
   lineaDeTiempo: string;
   nombres: Nombres;
+  /** Lo que la familia corrigió en texto libre en el tablero (`edicion.correcciones`), o null. */
+  correcciones: string | null;
   quien: Quien;
   /** De dónde salió el género si no lo dijo en la entrevista. */
   delMaterial: ReturnType<typeof generoDelMaterial>;
@@ -45,7 +50,9 @@ export async function cargarMaterialDelNarrador(
   const nombresTexto = await descargarTextoOpcional(db, `${narradorId}/paquete/nombres.json`);
   const nombres: Nombres = nombresTexto ? JSON.parse(nombresTexto) : { correcciones: [] };
 
-  const excluidas = new Set(excluirPorArgumento);
+  const edicion = leerEdicion(narrador.edicion);
+  // Una principal excluida en el tablero se lleva sus repreguntas, igual que en producción.
+  const excluidas = new Set([...excluirPorArgumento, ...ampliarExcluidas(filas, edicion.excluidas)]);
   const v2 = leerContextoV2(narrador.contexto);
   for (const id of v2?.bloqueadas ?? []) excluidas.add(id);
 
@@ -67,5 +74,5 @@ export async function cargarMaterialDelNarrador(
   const delMaterial = generoDelMaterial(respuestas.map((r) => r.texto));
   const genero = (v2 && generoV2(v2)) || delMaterial.genero;
 
-  return { narrador, v2, excluidas, respuestas, reservados, epocas, lineaDeTiempo, nombres, quien: { nombre: narrador.nombre, genero }, delMaterial };
+  return { narrador, v2, excluidas, respuestas, reservados, epocas, lineaDeTiempo, nombres, correcciones: edicion.correcciones, quien: { nombre: narrador.nombre, genero }, delMaterial };
 }

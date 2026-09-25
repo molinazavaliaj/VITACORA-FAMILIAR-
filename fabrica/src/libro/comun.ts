@@ -95,6 +95,28 @@ export function esPublicable(r: Partial<ReservaDeRespuesta>): boolean {
   return r.reservada !== true && tramo === '';
 }
 
+/**
+ * Los audios del narrador (nombres en Storage, `dia_NN[_k].ogg`) que pueden sonar en el audiolibro:
+ * sin el de las respuestas que la familia excluyó en el tablero (`edicion.excluidas`, D1 25/09) ni
+ * el de las reservadas (`esPublicable`). Un archivo que no es de ninguna respuesta conocida queda,
+ * como siempre. El audiolibro arma su lista por nombre de archivo, no por respuesta: sin este filtro
+ * lo reservado y lo excluido sonaban igual.
+ */
+export function audiosPublicables(
+  archivos: string[],
+  narradorId: string,
+  respuestas: (Partial<ReservaDeRespuesta> & { id?: string; audio_path?: string | null })[],
+  excluidas: Iterable<string>
+): string[] {
+  const fuera = new Set(excluidas);
+  const callados = new Set(
+    respuestas
+      .filter((r) => r.audio_path && ((r.id && fuera.has(r.id)) || !esPublicable(r)))
+      .map((r) => r.audio_path as string)
+  );
+  return archivos.filter((archivo) => !callados.has(`${narradorId}/${archivo}`));
+}
+
 export function escaparHtml(texto: string): string {
   return texto
     .replace(/&/g, '&amp;')

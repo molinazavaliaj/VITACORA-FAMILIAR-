@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import {
   armarContextoDeTemas,
+  audiosPublicables,
   armarMaterial,
   descargarTextoOpcional,
   esErrorDeNoEncontrado,
@@ -294,5 +295,26 @@ describe('la marca tema_de_orden', () => {
     expect(armarMaterial([2], preguntas, respuestas, temas)).toBe(materialDeHoy[2]);
     // De la respuesta reservada no se publica nada: ni en su capítulo ni en el del tema.
     expect(armarMaterial([9], preguntas, respuestas, temas)).toBe('');
+  });
+});
+
+// D1 (25/09): el audio de lo que la familia excluyó —y el de lo reservado— no suena en el audiolibro.
+describe('audiosPublicables', () => {
+  const r = (id: string, audio_path: string | null, extra: Record<string, unknown> = {}) => ({ id, audio_path, ...extra });
+
+  it('saca el audio de las excluidas y el de las reservadas (entera o por tramo); deja el resto y los que no son de nadie', () => {
+    const archivos = ['dia_01.ogg', 'dia_01_2.ogg', 'dia_02.ogg', 'dia_03.ogg', 'dia_04.ogg'];
+    const respuestas = [
+      r('a', 'n1/dia_01.ogg'),
+      r('b', 'n1/dia_01_2.ogg'),
+      r('c', 'n1/dia_02.ogg', { reservada: true }),
+      r('d', 'n1/dia_03.ogg', { reservado_tramo: 'lo de la plata' }),
+      r('e', null),
+    ];
+    expect(audiosPublicables(archivos, 'n1', respuestas, ['b'])).toEqual(['dia_01.ogg', 'dia_04.ogg']);
+  });
+
+  it('sin excluidas ni reservas, la lista queda igual', () => {
+    expect(audiosPublicables(['dia_01.ogg'], 'n1', [r('a', 'n1/dia_01.ogg')], [])).toEqual(['dia_01.ogg']);
   });
 });

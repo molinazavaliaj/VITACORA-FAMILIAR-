@@ -1,6 +1,7 @@
 import type Anthropic from '@anthropic-ai/sdk';
 import { encargoDelLibro, type Quien } from './encargo.js';
 import { extraerTexto } from './comun.js';
+import { seccionCorrecciones } from './edicion.js';
 import { calcularUsd } from '../costos.js';
 
 // El lector final (diseño §3.2, idea de Naza): antes de imprimir, otro modelo —no el que
@@ -27,7 +28,7 @@ const PROBLEMAS = new Set<ProblemaLector>(['inventado', 'epoca-o-lugar', 'fundid
 
 export type AvisoLector = { capitulo: string; frase: string; problema: ProblemaLector; evidencia: string };
 
-export const PROMPT_LECTOR = (encargo: string, libro: string, transcripciones: string, nombres: string, reservado: string) => `
+export const PROMPT_LECTOR = (encargo: string, libro: string, transcripciones: string, nombres: string, reservado: string, correcciones?: string | null) => `
 Sos el lector final de este libro, antes de que se imprima. No lo escribiste vos. Tu trabajo es leerlo
 entero contra lo que la persona dijo de verdad y avisar lo que está mal. Si está bien, decís que está bien.
 
@@ -41,7 +42,7 @@ LO QUE LA PERSONA DIJO EN SUS AUDIOS, TEXTUAL (la única fuente de verdad):
 ${transcripciones}
 
 NOMBRES CORREGIDOS POR LA FAMILIA (la forma correcta):
-${nombres || '(ninguno)'}
+${nombres || '(ninguno)'}${seccionCorrecciones(correcciones)}
 
 LO QUE LA PERSONA PIDIÓ QUE NO VAYA AL LIBRO:
 ${reservado || '(nada)'}
@@ -95,8 +96,8 @@ export function parsearLectura(salida: string): ResultadoLector {
 }
 
 /** El pedido entero, tal cual lo recibe el lector (lo usan `leerLibro` y la estimación). */
-function promptDelLector(quien: Quien, libro: string, transcripciones: string[], nombres: string, reservados: string[]): string {
-  return PROMPT_LECTOR(encargoDelLibro(quien), libro, transcripciones.join('\n\n---\n\n'), nombres, reservados.join('\n'));
+function promptDelLector(quien: Quien, libro: string, transcripciones: string[], nombres: string, reservados: string[], correcciones?: string | null): string {
+  return PROMPT_LECTOR(encargoDelLibro(quien), libro, transcripciones.join('\n\n---\n\n'), nombres, reservados.join('\n'), correcciones);
 }
 
 /**
@@ -104,8 +105,8 @@ function promptDelLector(quien: Quien, libro: string, transcripciones: string[],
  * a 3 caracteres por token (castellano con el tokenizer de Opus 5: tira para arriba, a propósito).
  * La salida no se sabe: va de una lectura corta (~4000 tokens entre pensar y la lista) al tope entero.
  */
-export function estimarLector(quien: Quien, libro: string, transcripciones: string[], nombres: string, reservados: string[]) {
-  const tokensEntrada = Math.ceil(promptDelLector(quien, libro, transcripciones, nombres, reservados).length / 3);
+export function estimarLector(quien: Quien, libro: string, transcripciones: string[], nombres: string, reservados: string[], correcciones?: string | null) {
+  const tokensEntrada = Math.ceil(promptDelLector(quien, libro, transcripciones, nombres, reservados, correcciones).length / 3);
   const usd = (salida: number) => calcularUsd(MODELO_LECTOR, { input_tokens: tokensEntrada, output_tokens: salida });
   return { tokensEntrada, usdMin: usd(4000), usdMax: usd(TOPE_LECTOR) };
 }
@@ -130,7 +131,8 @@ export async function leerLibro(
   libroMarkdown: string,
   transcripciones: string[],
   nombresCorregidos: string,
-  reservados: string[]
+  reservados: string[],
+  correcciones: string | null = null
 ): Promise<{ resultado: ResultadoLector; usage: Anthropic.Usage; crudo: string }> {
   const stream = cliente.messages.stream({
     model: MODELO_LECTOR,
@@ -138,7 +140,7 @@ export async function leerLibro(
     messages: [
       {
         role: 'user',
-        content: promptDelLector(quien, libroMarkdown, transcripciones, nombresCorregidos, reservados),
+        content: promptDelLector(quien, libroMarkdown, transcripciones, nombresCorregidos, reservados, correcciones),
       },
     ],
   });

@@ -7,7 +7,15 @@ import { construirHtmlLibro } from './plantilla-html.js';
 import { htmlAPdf } from './pdf.js';
 import { generarAudiolibro } from '../audio/audiolibro.js';
 import { generarEstructura, type Estructura } from './estructura.js';
-import { leerEdicion, aplicarOrdenCapitulos, aplicarTitulosCapitulos } from './edicion.js';
+import {
+  leerEdicion,
+  aplicarOrdenCapitulos,
+  aplicarTitulosCapitulos,
+  ampliarExcluidas,
+  seccionCorrecciones,
+  sinExcluidas,
+  sinOrdenesExcluidas,
+} from './edicion.js';
 import { cargarFotos } from './fotos.js';
 import { armarNarracionJson, type ConectoresNarracion } from '../voz/narracion-json.js';
 import { escribirConectores, historiasDelCapitulo } from '../voz/conectores.js';
@@ -16,6 +24,7 @@ import { publicarFrases } from './publicar-frases.js';
 import {
   armarContextoDeTemas,
   armarMaterial,
+  audiosPublicables,
   borrarArchivos,
   descargarTextoOpcional,
   extraerTexto,
@@ -41,8 +50,8 @@ const INSTRUCCION_EDITOR = `Revisá coherencia entre capítulos, agregá referen
  * capítulos ya escritos, concatenados) para que quede coherente entre sí,
  * gane la apertura y el cierre en su voz, y sume la página "Sus frases".
  */
-async function editarLibro(cliente: Anthropic, borrador: string, narradorId?: string): Promise<string> {
-  const prompt = `${borrador}\n\n---\n\n${INSTRUCCION_EDITOR}`;
+async function editarLibro(cliente: Anthropic, borrador: string, narradorId?: string, correcciones?: string | null): Promise<string> {
+  const prompt = `${borrador}\n\n---\n\n${INSTRUCCION_EDITOR}${seccionCorrecciones(correcciones)}`;
 
   const stream = cliente.messages.stream({
     model: 'claude-fable-5',
@@ -64,8 +73,8 @@ async function editarLibro(cliente: Anthropic, borrador: string, narradorId?: st
  * su audio para escuchar por QR (spec 2026-09-20). Corre
  * recién cuando la dueña cerró el libro (`narradores.libro_aprobado_at`,
  * lo gatea el worker), así que la edición que se aplica acá (orden y
- * títulos de capítulos, título, subtítulo, foto de tapa) ya está
- * congelada. Ante
+ * títulos de capítulos, título, subtítulo, foto de tapa, respuestas
+ * excluidas y correcciones de la familia) ya está congelada. Ante
  * cualquier excepción, marca el pedido `fallido` y loguea — no reintenta
  * solo; alguien tiene que poner el estado de vuelta en `pagado` para que el
  * próximo tick lo tome de nuevo.
@@ -107,6 +116,9 @@ export async function generarPaquete(pedido: { id: string; narrador_id: string; 
       throw new Error(`No se pudo leer el narrador ${narradorId}: ${errorNarrador?.message ?? 'sin datos'}`);
     }
     const narrador = narradorData as Narrador;
+    // La edición de la familia, congelada al cerrar el libro (ver edicion.ts). Se lee antes que las
+    // respuestas porque `excluidas` decide cuáles existen para este libro.
+    const edicion = leerEdicion(narrador.edicion);
 
     const { data: preguntasFijas, error: errorFijas } = await db
       .from('preguntas')
@@ -133,7 +145,13 @@ export async function generarPaquete(pedido: { id: string; narrador_id: string; 
       .select('*')
       .eq('narrador_id', narradorId);
     if (errorRespuestas) throw new Error(`No se pudieron leer las respuestas: ${errorRespuestas.message}`);
-    const respuestasList = (respuestas ?? []) as Respuesta[];
+    // Lo que la familia excluyó en el tablero (D1, 25/09) no existe para el libro: ni para el
+    // material, ni para la historia completa, ni para «Su voz», ni para el audiolibro. Igual que
+    // una reservada; una principal excluida se lleva sus repreguntas (`ampliarExcluidas`).
+    // `todasLasRespuestas` queda solo para saber qué órdenes y qué audios vació.
+    const todasLasRespuestas = (respuestas ?? []) as Respuesta[];
+    const excluidas = ampliarExcluidas(todasLasRespuestas, edicion.excluidas);
+    const respuestasList = sinExcluidas(todasLasRespuestas, excluidas);
 
     const respuestasPorOrden = new Map<number, Respuesta[]>();
     for (const respuesta of respuestasList) {
@@ -142,18 +160,18 @@ export async function generarPaquete(pedido: { id: string; narrador_id: string; 
       respuestasPorOrden.set(respuesta.pregunta_orden, lista);
     }
 
-    // La edición de la dueña: solo el orden de capítulos, el título de cada
-    // capítulo, el título, el subtítulo y la foto de tapa (ver edicion.ts —
-    // `excluidas` y `correcciones` se ignoran a propósito). Las fotos se
-    // bajan enteras y van embebidas en el HTML.
+    // La edición de la dueña: el orden de capítulos, el título de cada
+    // capítulo, el título, el subtítulo y la foto de tapa; las órdenes que la
+    // familia vació con `excluidas` salen, y un capítulo que queda sin nada
+    // también (`sinOrdenesExcluidas`). Las `correcciones` van al escritor y al
+    // editor. Las fotos se bajan enteras y van embebidas en el HTML.
     //
     // De acá en adelante `capitulo.nombre` es el título que va al libro (el
     // elegido, o el del guion si no lo renombró): lo ve el escritor, la
     // plantilla, la intro TTS y narracion.json. El nombre del guion queda en
     // `nombreGuion` solo para las fotos, que se cargan con esa clave.
-    const edicion = leerEdicion(narrador.edicion);
     const capitulosOrdenados = aplicarTitulosCapitulos(
-      aplicarOrdenCapitulos(estructura.capitulos, edicion.ordenCapitulos),
+      aplicarOrdenCapitulos(sinOrdenesExcluidas(estructura.capitulos, todasLasRespuestas, excluidas), edicion.ordenCapitulos),
       edicion.titulosCapitulos
     );
     const estructuraFinal: Estructura = { ...estructura, capitulos: capitulosOrdenados };
@@ -199,7 +217,7 @@ export async function generarPaquete(pedido: { id: string; narrador_id: string; 
         texto = cacheado;
       } else {
         const material = armarMaterial(capitulo.ordenes, preguntasPorOrden, respuestasPorOrden, temasDelLibro);
-        texto = await escribirCapitulo(narrador, capitulo.nombre, material, historiaCompleta, nombresCorregidos);
+        texto = await escribirCapitulo(narrador, capitulo.nombre, material, historiaCompleta, nombresCorregidos, 'capitulo', edicion.correcciones);
         await subirTexto(db, rutaBorrador, texto);
       }
       capitulosTexto.push({ nombre: capitulo.nombre, texto });
@@ -216,7 +234,7 @@ export async function generarPaquete(pedido: { id: string; narrador_id: string; 
     } else {
       const config = cargarConfig();
       const cliente = new Anthropic({ apiKey: config.anthropicApiKey });
-      libroMarkdown = await editarLibro(cliente, borrador, narradorId);
+      libroMarkdown = await editarLibro(cliente, borrador, narradorId, edicion.correcciones);
       await subirTexto(db, rutaBorradorLibro, libroMarkdown);
     }
 
@@ -271,7 +289,13 @@ export async function generarPaquete(pedido: { id: string; narrador_id: string; 
     // 3. Audiolibro: un mp3 por capítulo (en el orden final) + completo.
     const { data: archivosNarrador, error: errorArchivos } = await db.storage.from('audios').list(narradorId);
     if (errorArchivos) throw new Error(`No se pudo listar los audios de ${narradorId}: ${errorArchivos.message}`);
-    const nombresArchivos = (archivosNarrador ?? []).map((archivo) => archivo.name);
+    // Sin el audio de lo excluido ni de lo reservado: el audiolibro elige por nombre de archivo.
+    const nombresArchivos = audiosPublicables(
+      (archivosNarrador ?? []).map((archivo) => archivo.name),
+      narradorId,
+      todasLasRespuestas,
+      excluidas
+    );
 
     const audiolibroPaths = await generarAudiolibro(narradorId, estructuraFinal, nombresArchivos);
 

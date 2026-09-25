@@ -89,3 +89,20 @@ describe('avisosPorCapitulo', () => {
     expect(g.map(([c, l]) => [c, l.map((x) => x.frase)])).toEqual([['Lanús', ['1', '3']], ['Tucumán', ['2']]]);
   });
 });
+
+// D1 (25/09): el lector final también sabe lo que la familia corrigió.
+describe('las correcciones de la familia en el lector', () => {
+  const SECCION = 'CORRECCIONES DE LA FAMILIA (mandan sobre lo que se transcribió; aplicalas donde corresponda, sin inventar nada más): Rosa, no Rosana.';
+
+  it('PROMPT_LECTOR las lleva; vacío queda igual que antes', () => {
+    expect(PROMPT_LECTOR('E', 'L', 'A', 'N', 'R', 'Rosa, no Rosana.')).toContain(SECCION);
+    expect(PROMPT_LECTOR('E', 'L', 'A', 'N', 'R', '')).toBe(PROMPT_LECTOR('E', 'L', 'A', 'N', 'R'));
+    expect(PROMPT_LECTOR('E', 'L', 'A', 'N', 'R')).not.toContain('CORRECCIONES DE LA FAMILIA');
+  });
+
+  it('leerLibro se las pasa al modelo', async () => {
+    const stream = vi.fn().mockReturnValue({ finalMessage: async () => ({ content: [{ type: 'text', text: '{"avisos":[]}' }], usage: {} }) });
+    await leerLibro({ messages: { stream } } as never, { nombre: 'X', genero: null }, '# A', ['audio'], '', [], 'Rosa, no Rosana.');
+    expect(stream.mock.calls[0][0].messages[0].content).toContain(SECCION);
+  });
+});

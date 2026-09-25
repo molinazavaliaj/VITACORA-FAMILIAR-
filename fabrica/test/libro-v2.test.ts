@@ -86,3 +86,36 @@ describe('armarLibroV2', () => {
     expect(error.gastoUsd).toBeGreaterThan(0);
   });
 });
+
+// D1 (25/09): lo que la familia corrigió en el tablero llega a TODOS los pasos que escriben o revisan.
+describe('armarLibroV2: las correcciones de la familia', () => {
+  const SECCION = 'CORRECCIONES DE LA FAMILIA (mandan sobre lo que se transcribió; aplicalas donde corresponda, sin inventar nada más): Rosa, no Rosana.';
+  const correr = async (correcciones?: string | null) => {
+    const stream = vi.fn()
+      .mockReturnValueOnce(respuesta('{"etapas":[{"nombre":"A","desde":0,"hasta":40,"deQueTrata":""},{"nombre":"B","desde":41,"hasta":80,"deQueTrata":""}]}'))
+      .mockReturnValueOnce(respuesta('NADA'))
+      .mockReturnValueOnce(respuesta('{"apertura":"a","cierre":"b"}'))
+      .mockReturnValueOnce(respuesta('{"avisos":[]}'));
+    const escribirCapitulo = vi.fn(async (_q: unknown, n: string, m: string) => ({ texto: `${n}: ${m}`, usage: {} }));
+    await armarLibroV2({
+      cliente: { messages: { stream } } as never, quien: { nombre: 'X', genero: null },
+      respuestas: [{ orden: 1, pregunta: 'p', texto: 'Texto con cinco palabras de contenido importantes aquí.', fuenteId: 'f' }],
+      epocas: [{ orden: 1, desde: 0, hasta: 12 }], nombresCorregidos: '', reservados: [], escribirCapitulo, correcciones,
+    });
+    const prompts = stream.mock.calls.map((c) => c[0].messages[0].content as string);
+    return { escribirCapitulo, paginas: prompts[2], lector: prompts[3], etapas: prompts[0], reparto: prompts[1] };
+  };
+
+  it('las recibe el escritor de cada capítulo, el editor (apertura, cierre, «Sus frases») y el lector final', async () => {
+    const r = await correr('Rosa, no Rosana.');
+    for (const llamada of r.escribirCapitulo.mock.calls) expect(llamada[4]).toBe('Rosa, no Rosana.');
+    expect(r.paginas).toContain(SECCION);
+    expect(r.lector).toContain(SECCION);
+  });
+
+  it('vacías no agregan nada a ningún prompt', async () => {
+    const r = await correr('');
+    for (const p of [r.paginas, r.lector, r.etapas, r.reparto]) expect(p).not.toContain('CORRECCIONES DE LA FAMILIA');
+    for (const llamada of r.escribirCapitulo.mock.calls) expect(llamada[4] ?? null).toBeNull();
+  });
+});

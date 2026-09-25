@@ -21,7 +21,7 @@ import { obtenerClienteDb, type Narrador } from '../db.js';
 import { construirHtmlLibro } from './plantilla-html.js';
 import { htmlAPdf } from './pdf.js';
 import { descargarTextoOpcional, RUTA_BORRADOR_LIBRO } from './comun.js';
-import { leerEdicion, aplicarOrdenCapitulos, aplicarTitulosCapitulos } from './edicion.js';
+import { leerEdicion, aplicarOrdenCapitulos, aplicarTitulosCapitulos, ampliarExcluidas, sinOrdenesExcluidas } from './edicion.js';
 import { cargarFotos } from './fotos.js';
 import { leerFrases } from './publicar-frases.js';
 import { urlVozDeNarrador } from './token-voz.js';
@@ -76,10 +76,24 @@ export async function armarLibroDeImprenta(db: Db, narradorId: string): Promise<
   const narrador = narradorData as Narrador;
 
   // 3. Lo que la dueña editó manda, igual que en el libro entregado: su título de
-  // tapa, el orden de los capítulos y los nombres que les puso.
+  // tapa, el orden de los capítulos, los nombres que les puso y los capítulos que
+  // quedaron vacíos por lo que excluyó (`generarPaquete` no los escribió).
   const edicion = leerEdicion(narrador.edicion);
+  let capitulosDelLibro = estructura.capitulos;
+  if (edicion.excluidas.length > 0) {
+    const { data: respuestas, error: errorRespuestas } = await db
+      .from('respuestas')
+      .select('id, pregunta_orden, es_repregunta')
+      .eq('narrador_id', narradorId);
+    if (errorRespuestas) {
+      console.error(`imprenta: no se pudieron leer las respuestas de ${narradorId}: ${errorRespuestas.message}`);
+      return false;
+    }
+    const filas = (respuestas ?? []) as { id: string; pregunta_orden: number; es_repregunta: boolean }[];
+    capitulosDelLibro = sinOrdenesExcluidas(estructura.capitulos, filas, ampliarExcluidas(filas, edicion.excluidas));
+  }
   const capitulos = aplicarTitulosCapitulos(
-    aplicarOrdenCapitulos(estructura.capitulos, edicion.ordenCapitulos),
+    aplicarOrdenCapitulos(capitulosDelLibro, edicion.ordenCapitulos),
     edicion.titulosCapitulos
   );
   const fotos = await cargarFotos(db, narradorId);

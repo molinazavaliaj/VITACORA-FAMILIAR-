@@ -766,22 +766,113 @@ describe('generarPaquete', () => {
     expect(llamadaHtml[2]).toMatchObject({ contentType: 'text/html; charset=utf-8', upsert: true });
   });
 
-  it('excluidas y correcciones en la edición no cambian nada', async () => {
+  // D1 (25/09, da vuelta la decisión del 13/09): lo que la familia excluye o corrige en el tablero llega al libro.
+  const SECCION_FAMILIA = 'CORRECCIONES DE LA FAMILIA (mandan sobre lo que se transcribió; aplicalas donde corresponda, sin inventar nada más): Mi hermana es Rosa, no Rosana.';
+  const respuestaN1 = (id: string, orden: number, transcripcion: string, audio: string | null, extra: Record<string, unknown> = {}) => ({
+    id, pregunta_orden: orden, transcripcion, texto_directo: null, es_repregunta: false, audio_path: audio, duracion_segundos: 60, recibido_at: '2026-09-01T10:00:00Z', ...extra,
+  });
+
+  it('excluidas: la respuesta no existe para el libro — ni material, ni historia completa, ni «Su voz», ni audiolibro; un capítulo que se queda sin nada se cae', async () => {
     construirDbN1({
-      narrador: {
-        data: narradorN1({ edicion: { excluidas: ['r1', 'r2'], correcciones: 'cambiá todo' } }),
+      narrador: { data: narradorN1({ edicion: { excluidas: ['r1'] } }), error: null },
+      respuestas: {
+        data: [respuestaN1('r1', 1, 'En Rosario.', 'n1/dia_01.ogg'), respuestaN1('r2', 2, 'La conocí bailando.', 'n1/dia_02.ogg')],
         error: null,
       },
     });
 
     await generarPaquete({ id: 'p1', narrador_id: 'n1' });
 
-    // se escriben todos los capítulos con todo el material (mismas llamadas
-    // que el primer test).
+    // «La infancia» solo tenía la r1: se cae; queda «El amor» sin rastro de la excluida.
+    expect(escribirCapituloMock.mock.calls.map((c) => c[1])).toEqual(['El amor']);
+    for (const llamada of escribirCapituloMock.mock.calls) {
+      expect(llamada[2]).not.toContain('En Rosario.');
+      expect(llamada[3]).not.toContain('En Rosario.');
+    }
+    const [, estructuraAudio, archivos] = generarAudiolibroMock.mock.calls[0];
+    expect(estructuraAudio.capitulos.map((c: { nombre: string }) => c.nombre)).toEqual(['El amor']);
+    expect(archivos).toEqual(['dia_02.ogg']);
+    expect(createMock.mock.calls.map((c) => JSON.stringify(c[0])).join(' ')).not.toContain('En Rosario.');
+  });
+
+  it('excluidas: sacar una repregunta deja el capítulo, sin ella y sin su audio', async () => {
+    construirDbN1({
+      narrador: { data: narradorN1({ edicion: { excluidas: ['r1b'] } }), error: null },
+      respuestas: {
+        data: [
+          respuestaN1('r1', 1, 'En Rosario.', 'n1/dia_01.ogg'),
+          respuestaN1('r1b', 1, 'Eso no lo cuento.', 'n1/dia_01_2.ogg', { es_repregunta: true }),
+          respuestaN1('r2', 2, 'La conocí bailando.', 'n1/dia_02.ogg'),
+        ],
+        error: null,
+      },
+      archivosNarrador: ['dia_01.ogg', 'dia_01_2.ogg', 'dia_02.ogg'],
+    });
+
+    await generarPaquete({ id: 'p1', narrador_id: 'n1' });
+
+    expect(escribirCapituloMock.mock.calls.map((c) => c[1])).toEqual(['La infancia', 'El amor']);
+    expect(escribirCapituloMock.mock.calls[0][2]).toBe('P: ¿Dónde naciste?\nR: En Rosario.');
+    expect(escribirCapituloMock.mock.calls[0][3]).not.toContain('Eso no lo cuento.');
+    expect(generarAudiolibroMock.mock.calls[0][2]).toEqual(['dia_01.ogg', 'dia_02.ogg']);
+  });
+
+  it('excluidas: destildar una pregunta en el tablero (su respuesta principal) se lleva también sus repreguntas', async () => {
+    construirDbN1({
+      narrador: { data: narradorN1({ edicion: { excluidas: ['r1'] } }), error: null },
+      respuestas: {
+        data: [
+          respuestaN1('r1', 1, 'En Rosario.', 'n1/dia_01.ogg'),
+          respuestaN1('r1b', 1, 'Y en Funes después.', 'n1/dia_01_2.ogg', { es_repregunta: true }),
+          respuestaN1('r2', 2, 'La conocí bailando.', 'n1/dia_02.ogg'),
+        ],
+        error: null,
+      },
+      archivosNarrador: ['dia_01.ogg', 'dia_01_2.ogg', 'dia_02.ogg'],
+    });
+
+    await generarPaquete({ id: 'p1', narrador_id: 'n1' });
+
+    expect(escribirCapituloMock.mock.calls.map((c) => c[1])).toEqual(['El amor']);
+    expect(escribirCapituloMock.mock.calls[0][3]).not.toContain('Funes');
+    expect(generarAudiolibroMock.mock.calls[0][2]).toEqual(['dia_02.ogg']);
+  });
+
+  it('una respuesta reservada tampoco suena en el audiolibro (no se puede recortar su voz)', async () => {
+    construirDbN1({
+      respuestas: {
+        data: [respuestaN1('r1', 1, 'En Rosario.', 'n1/dia_01.ogg'), respuestaN1('r2', 2, 'La conocí bailando.', 'n1/dia_02.ogg', { reservado_tramo: 'bailando' })],
+        error: null,
+      },
+    });
+
+    await generarPaquete({ id: 'p1', narrador_id: 'n1' });
+
+    expect(generarAudiolibroMock.mock.calls[0][2]).toEqual(['dia_01.ogg']);
+  });
+
+  it('correcciones: llegan al escritor de cada capítulo y al editor', async () => {
+    construirDbN1({ narrador: { data: narradorN1({ edicion: { correcciones: '  Mi hermana es Rosa, no Rosana. ' } }), error: null } });
+
+    await generarPaquete({ id: 'p1', narrador_id: 'n1' });
+
     expect(escribirCapituloMock).toHaveBeenCalledTimes(2);
-    const material = escribirCapituloMock.mock.calls[0][2] as string;
-    expect(material).toContain('En Rosario.');
-    expect(material).not.toContain('cambiá todo');
+    for (const llamada of escribirCapituloMock.mock.calls) {
+      expect(llamada[5]).toBe('capitulo');
+      expect(llamada[6]).toBe('Mi hermana es Rosa, no Rosana.');
+    }
+    expect(streamMock.mock.calls[0][0].messages[0].content).toContain(SECCION_FAMILIA);
+  });
+
+  it('sin correcciones ni excluidas, todo como siempre: el editor no recibe ninguna sección nueva', async () => {
+    construirDbN1();
+
+    await generarPaquete({ id: 'p1', narrador_id: 'n1' });
+
+    expect(escribirCapituloMock).toHaveBeenCalledTimes(2);
+    for (const llamada of escribirCapituloMock.mock.calls) expect(llamada[6] ?? null).toBeNull();
+    expect(streamMock.mock.calls[0][0].messages[0].content).not.toContain('CORRECCIONES DE LA FAMILIA');
+    expect(generarAudiolibroMock.mock.calls[0][2]).toEqual(['dia_01.ogg', 'dia_02.ogg']);
   });
 
   it('si falta estructura.json pero el libro está aprobado, la genera ahí mismo en vez de fallar', async () => {

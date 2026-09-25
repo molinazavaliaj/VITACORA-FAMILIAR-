@@ -21,7 +21,7 @@ vi.mock('../src/costos.js', () => ({ registrarUso: registrarUsoMock }));
 vi.mock('../src/db.js', () => ({ obtenerClienteDb: vi.fn() }));
 
 import { obtenerClienteDb } from '../src/db.js';
-import { escribirCapitulo } from '../src/libro/escribir-capitulo.js';
+import { escribirCapitulo, escribirCapituloRepartido, PROMPT_CAPITULO_V2 } from '../src/libro/escribir-capitulo.js';
 
 describe('escribirCapitulo', () => {
   beforeEach(() => {
@@ -142,5 +142,43 @@ describe('escribirCapitulo', () => {
 
     expect(resultado).toBe('Capítulo.');
     expect(registrarUsoMock).not.toHaveBeenCalled();
+  });
+});
+
+// D1 (25/09): lo que la familia corrige en el tablero llega a quien escribe cada capítulo.
+describe('las correcciones de la familia en el capítulo', () => {
+  const SECCION = 'CORRECCIONES DE LA FAMILIA (mandan sobre lo que se transcribió; aplicalas donde corresponda, sin inventar nada más): Mi hermana es Rosa, no Rosana.';
+
+  beforeEach(() => {
+    streamMock.mockClear();
+    finalMessageMock.mockReset();
+    process.env.SUPABASE_URL = 'https://x.supabase.co';
+    process.env.SUPABASE_SERVICE_ROLE_KEY = 'clave-service-role';
+    process.env.ANTHROPIC_API_KEY = 'clave-anthropic';
+    process.env.OPENAI_API_KEY = 'clave-openai';
+    finalMessageMock.mockResolvedValue({ content: [{ type: 'text', text: 'Capítulo.' }], usage: {} });
+  });
+
+  const promptEnviado = () => (streamMock.mock.calls.at(-1)![0] as { messages: { content: string }[] }).messages[0].content;
+
+  it('producción: con correcciones, el prompt las lleva; sin ellas, queda igual que antes', async () => {
+    await escribirCapitulo({ nombre: 'Ana' }, 'Infancia', 'material', 'historia', '(sin correcciones)', 'capitulo', 'Mi hermana es Rosa, no Rosana.');
+    expect(promptEnviado()).toContain(SECCION);
+
+    await escribirCapitulo({ nombre: 'Ana' }, 'Infancia', 'material', 'historia', '(sin correcciones)', 'capitulo', '');
+    const vacio = promptEnviado();
+    await escribirCapitulo({ nombre: 'Ana' }, 'Infancia', 'material', 'historia', '(sin correcciones)');
+    expect(vacio).not.toContain('CORRECCIONES DE LA FAMILIA');
+    expect(vacio).toBe(promptEnviado());
+  });
+
+  it('v2: PROMPT_CAPITULO_V2 y escribirCapituloRepartido las llevan; vacío no agrega nada', async () => {
+    const quien = { nombre: 'Ana', genero: 'mujer' as const };
+    expect(PROMPT_CAPITULO_V2(quien, 'Tucumán', 'material', 'Bausa → Bausá', 'Mi hermana es Rosa, no Rosana.')).toContain(SECCION);
+    expect(PROMPT_CAPITULO_V2(quien, 'Tucumán', 'material', 'Bausa → Bausá', null)).toBe(PROMPT_CAPITULO_V2(quien, 'Tucumán', 'material', 'Bausa → Bausá'));
+    expect(PROMPT_CAPITULO_V2(quien, 'Tucumán', 'material', 'Bausa → Bausá')).not.toContain('CORRECCIONES DE LA FAMILIA');
+
+    await escribirCapituloRepartido(quien, 'Tucumán', 'material', 'Bausa → Bausá', 'Mi hermana es Rosa, no Rosana.');
+    expect(promptEnviado()).toContain(SECCION);
   });
 });

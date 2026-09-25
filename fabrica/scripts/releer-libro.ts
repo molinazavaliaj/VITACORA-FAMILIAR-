@@ -1,6 +1,7 @@
 // Corre SOLO el lector final sobre un libro de prueba que ya está en una carpeta (el que dejó
 // `prueba-reparto.ts`): lee `<carpeta>/libro.md`, carga de la base el mismo material con el que se
-// escribió (transcripciones, quién cuenta, nombres corregidos, reservas; ver material-narrador.ts)
+// escribió (transcripciones, quién cuenta, nombres corregidos, reservas, lo que la familia excluyó
+// o corrigió en el tablero; ver material-narrador.ts)
 // y le pide al lector que lo lea contra los audios. Existe porque el 25/09 el lector se quedó sin
 // tope y no devolvió la lista: rehacer el libro entero para eso eran varios dólares tirados.
 //
@@ -44,10 +45,11 @@ const db = obtenerClienteDb();
 const m = await cargarMaterialDelNarrador(db, narradorId, excluidas);
 const transcripciones = m.respuestas.map((r) => r.texto);
 const nombres = formatearNombresCorregidos(m.nombres.correcciones);
-const est = estimarLector(m.quien, libro, transcripciones, nombres, m.reservados);
+const est = estimarLector(m.quien, libro, transcripciones, nombres, m.reservados, m.correcciones);
 
 console.log(`Libro de ${m.narrador.nombre} (${m.quien.genero ?? 'género no se sabe'}): ${libro.length} caracteres · ${m.respuestas.length} respuestas (${transcripciones.join('').length} caracteres) · ${m.reservados.length} reservas`);
 if (m.excluidas.size) console.log(`Excluidas: ${[...m.excluidas].join(', ')}`);
+if (m.correcciones) console.log(`Correcciones de la familia: ${m.correcciones}`);
 console.log(`Estimado con ${MODELO_LECTOR}: ~${est.tokensEntrada.toLocaleString('es-AR')} tokens de entrada → entre USD ${est.usdMin.toFixed(2)} y USD ${est.usdMax.toFixed(2)} (según cuánto piense y escriba).`);
 
 if (!args.includes('--si')) {
@@ -58,7 +60,7 @@ if (!args.includes('--si')) {
 
 const cliente = new Anthropic({ apiKey: cargarConfig().anthropicApiKey });
 console.log('\nEl lector final está leyendo…');
-const lectura = await leerLibro(cliente, m.quien, libro, transcripciones, nombres, m.reservados);
+const lectura = await leerLibro(cliente, m.quien, libro, transcripciones, nombres, m.reservados, m.correcciones);
 const usd = calcularUsd(MODELO_LECTOR, lectura.usage);
 
 await writeFile(path.join(carpeta, 'lector-crudo.txt'), lectura.crudo);

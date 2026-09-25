@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { parsearPaginas, armarLibro, controlarLibro } from '../src/libro/paginas.js';
+import { describe, it, expect, vi } from 'vitest';
+import { parsearPaginas, armarLibro, controlarLibro, PROMPT_PAGINAS, escribirPaginas } from '../src/libro/paginas.js';
 import { seccionesDelLibro } from '../src/libro/frases.js';
 
 // El editor v2 (biógrafo v2, 23/09). El de hoy relee el libro ENTERO y lo reescribe con una
@@ -71,5 +71,22 @@ describe('controlarLibro', () => {
     expect(r.avisos.join(' ')).toMatch(/repite/);
     const inventado = controlarLibro([{ nombre: 'A', texto: 'Viajamos a París en un globo aerostático rojo con mi primo Esteban.' }], fuentes, null);
     expect(inventado.avisos.join(' ')).toMatch(/respaldo/);
+  });
+});
+
+// D1 (25/09): el editor (apertura, cierre, «Sus frases») también sabe lo que la familia corrigió.
+describe('las correcciones de la familia en el editor v2', () => {
+  const SECCION = 'CORRECCIONES DE LA FAMILIA (mandan sobre lo que se transcribió; aplicalas donde corresponda, sin inventar nada más): Rosa, no Rosana.';
+
+  it('PROMPT_PAGINAS las lleva; vacío queda igual que antes', () => {
+    expect(PROMPT_PAGINAS('E', 'C', 'T', 'Rosa, no Rosana.')).toContain(SECCION);
+    expect(PROMPT_PAGINAS('E', 'C', 'T', '  ')).toBe(PROMPT_PAGINAS('E', 'C', 'T'));
+    expect(PROMPT_PAGINAS('E', 'C', 'T')).not.toContain('CORRECCIONES DE LA FAMILIA');
+  });
+
+  it('escribirPaginas se las pasa al modelo', async () => {
+    const stream = vi.fn().mockReturnValue({ finalMessage: async () => ({ content: [{ type: 'text', text: '{"apertura":"a","cierre":"b"}' }], usage: {} }) });
+    await escribirPaginas({ messages: { stream } } as never, { nombre: 'X', genero: null }, [{ nombre: 'A', texto: 't' }], ['t'], 'Rosa, no Rosana.');
+    expect(stream.mock.calls[0][0].messages[0].content).toContain(SECCION);
   });
 });

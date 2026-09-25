@@ -2,6 +2,7 @@ import type Anthropic from '@anthropic-ai/sdk';
 import { encargoDelLibro, formasDeGenero, type Genero, type Quien } from './encargo.js';
 import { esTextual } from './frases.js';
 import { extraerTexto } from './comun.js';
+import { seccionCorrecciones } from './edicion.js';
 import { medirRepeticion, type Fuente } from './medir-repeticion.js';
 
 // El editor v2 y el control del libro (biógrafo v2, 23/09 — EXPERIMENTO; producción sigue con
@@ -27,7 +28,7 @@ export type Paginas = {
   muletillas: string[];
 };
 
-export const PROMPT_PAGINAS = (encargo: string, capitulos: string, transcripciones: string) => `
+export const PROMPT_PAGINAS = (encargo: string, capitulos: string, transcripciones: string, correcciones?: string | null) => `
 Estás terminando el libro de una vida.
 
 ${encargo}
@@ -36,7 +37,7 @@ EL LIBRO YA ESCRITO (los capítulos, en orden — no se tocan):
 ${capitulos}
 
 LO QUE CONTÓ, TEXTUAL (todas sus respuestas):
-${transcripciones}
+${transcripciones}${seccionCorrecciones(correcciones)}
 
 Te toca escribir lo que el libro todavía no tiene:
 
@@ -116,12 +117,13 @@ export async function escribirPaginas(
   quien: Quien,
   capitulos: { nombre: string; texto: string }[],
   transcripciones: string[],
+  correcciones: string | null = null,
 ): Promise<{ resultado: ReturnType<typeof parsearPaginas>; usage: Anthropic.Usage }> {
   const libro = capitulos.map((c) => `# ${c.nombre}\n\n${c.texto}`).join('\n\n');
   const stream = cliente.messages.stream({
     model: MODELO,
     max_tokens: 16000,
-    messages: [{ role: 'user', content: PROMPT_PAGINAS(encargoDelLibro(quien), libro, transcripciones.join('\n\n---\n\n')) }],
+    messages: [{ role: 'user', content: PROMPT_PAGINAS(encargoDelLibro(quien), libro, transcripciones.join('\n\n---\n\n'), correcciones) }],
   });
   const final = await stream.finalMessage();
   const texto = extraerTexto(final.content as Array<{ type: string; text?: string }>);
