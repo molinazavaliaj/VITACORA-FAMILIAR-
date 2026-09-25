@@ -31,6 +31,7 @@ describe('armarLibroV2', () => {
     expect(r.libroMarkdown).toContain('# A mis lectores');
     expect(r.informe.lector).toEqual([]);
     expect(r.informe.lectorFallo).toBe(false);
+    expect(r.informe.lectorMotivo).toBeUndefined();
     expect(r.gastoUsd).toBeGreaterThan(0);
     // La reflexión no tuvo material: un capítulo escrito de la nada se avisa (y frena).
     expect(r.informe.control.some((c) => c.includes('«Lo que aprendí» se escribió sin material'))).toBe(true);
@@ -45,6 +46,8 @@ describe('armarLibroV2', () => {
       .mockReturnValueOnce(respuesta('no sé'));
     const r = await armarLibroV2({ cliente: { messages: { stream } } as never, quien: { nombre: 'X', genero: null }, respuestas: [{ orden: 1, pregunta: 'p', texto: 'Texto con cinco palabras de contenido importantes aquí.', fuenteId: 'f' }], epocas: [{ orden: 1, desde: 0, hasta: 12 }], nombresCorregidos: '', reservados: [], escribirCapitulo: async (_q, n, m) => ({ texto: m, usage: {} }) });
     expect(r.informe.lectorFallo).toBe(true);
+    expect(r.informe.lectorMotivo).toBe('no es JSON');
+    expect(r.lectorCrudo).toBe('no sé');
   });
 
   it('si algo se cae después de los capítulos, el error trae lo ya pagado (capítulos, salidas, gasto)', async () => {

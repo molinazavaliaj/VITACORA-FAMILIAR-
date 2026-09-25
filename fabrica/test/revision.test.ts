@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { hayQueRevisar, mailDeRevision, dejarEnRevision, RUTA_REVISION, type InformeRevision } from '../src/libro/revision.js';
+import { hayQueRevisar, mailDeRevision, dejarEnRevision, lineaDelLector, RUTA_REVISION, type InformeRevision } from '../src/libro/revision.js';
 
 const { avisarSociosMock } = vi.hoisted(() => ({ avisarSociosMock: vi.fn().mockResolvedValue(true) }));
 vi.mock('../src/mail/socios.js', () => ({ avisarSocios: avisarSociosMock }));
@@ -45,6 +45,22 @@ describe('mailDeRevision', () => {
   it('cuando el lector no pudo leer, avisa que hay que revisar a mano', () => {
     const m = mailDeRevision({ ...base, lectorFallo: true }, 'ped-2');
     expect(m.html).toMatch(/no pudo leerlo/i);
+    expect(m.html).toContain('no devolvió una lista');
+  });
+
+  it('si se sabe por qué falló el lector, el mail lo dice', () => {
+    const m = mailDeRevision({ ...base, lectorFallo: true, lectorMotivo: 'cortada por el tope de tokens' }, 'ped-3');
+    expect(m.html).toContain('no pudo leerlo (cortada por el tope de tokens)');
+    expect(m.html).not.toContain('no devolvió una lista');
+  });
+});
+
+describe('lineaDelLector', () => {
+  it('sin avisos, con avisos, y cuando falló (con y sin motivo)', () => {
+    expect(lineaDelLector(base)).toBe('sin avisos');
+    expect(lineaDelLector({ ...base, lector: [{ capitulo: 'A', frase: 'B', problema: 'inventado', evidencia: '' }] })).toBe('1 aviso(s)');
+    expect(lineaDelLector({ ...base, lectorFallo: true })).toBe('⚠ no devolvió una lista: revisar a mano');
+    expect(lineaDelLector({ ...base, lectorFallo: true, lectorMotivo: 'cortada por el tope de tokens' })).toBe('⚠ el lector final falló: cortada por el tope de tokens');
   });
 });
 

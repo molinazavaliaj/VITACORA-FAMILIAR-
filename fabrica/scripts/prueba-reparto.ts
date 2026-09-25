@@ -18,14 +18,14 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import Anthropic from '@anthropic-ai/sdk';
 import { cargarConfig } from '../src/config.js';
-import { obtenerClienteDb, type Pregunta, type Respuesta } from '../src/db.js';
-import { descargarTextoOpcional, formatearNombresCorregidos, type Nombres } from '../src/libro/comun.js';
+import { obtenerClienteDb } from '../src/db.js';
+import { descargarTextoOpcional, formatearNombresCorregidos } from '../src/libro/comun.js';
 import { aplicarOrdenCapitulos, aplicarTitulosCapitulos, leerEdicion } from '../src/libro/edicion.js';
 import { medirRepeticion, type Medicion } from '../src/libro/medir-repeticion.js';
-import { generoDelMaterial } from '../src/libro/encargo.js';
 import { armarLibroV2, type ErrorLibroV2 } from '../src/libro/libro-v2.js';
-import { hayQueRevisar } from '../src/libro/revision.js';
-import { leerContextoV2, epocaV2, lineaDeTiempoV2, generoV2, preguntaV2, epocaDelGuion, materialDeRespuestas } from './contexto-v2.js';
+import { hayQueRevisar, lineaDelLector } from '../src/libro/revision.js';
+import { generoV2 } from './contexto-v2.js';
+import { cargarMaterialDelNarrador } from './material-narrador.js';
 
 const args = process.argv.slice(2);
 const narradorId = args[0]?.startsWith('--') ? undefined : args[0];
@@ -44,41 +44,10 @@ const excluidas = new Set(iExcluir >= 0 ? (args[iExcluir + 1] ?? '').split(',').
 const salida = path.resolve(iSalida >= 0 ? args[iSalida + 1] : `prueba-reparto-${narradorId.slice(0, 8)}`);
 
 const db = obtenerClienteDb();
-const leer = async <T>(consulta: PromiseLike<{ data: T | null; error: { message: string } | null }>, que: string): Promise<T> => {
-  const { data, error } = await consulta;
-  if (error || !data) throw new Error(`No pude leer ${que}: ${error?.message ?? 'vacío'}`);
-  return data;
-};
-
-const narrador = await leer(db.from('narradores').select('*').eq('id', narradorId).single(), 'el narrador') as { nombre: string; edicion: unknown; contexto: unknown };
-const fijas = await leer(db.from('preguntas').select('*').is('narrador_id', null), 'las fijas') as Pregunta[];
-const propias = await leer(db.from('preguntas').select('*').eq('narrador_id', narradorId), 'sus preguntas') as Pregunta[];
-const filas = await leer(db.from('respuestas').select('*').eq('narrador_id', narradorId), 'las respuestas') as Respuesta[];
-const nombresTexto = await descargarTextoOpcional(db, `${narradorId}/paquete/nombres.json`);
-const nombres: Nombres = nombresTexto ? JSON.parse(nombresTexto) : { correcciones: [] };
-
-const v2 = leerContextoV2(narrador.contexto);
-for (const id of v2?.bloqueadas ?? []) excluidas.add(id);
-
-// El texto de la pregunta: en el v2, el que de verdad recibió (`preguntaV2`); en el guion viejo, la tabla.
-const preguntaDelGuion = new Map<number, Pregunta>();
-for (const p of [...fijas, ...propias]) preguntaDelGuion.set(p.orden, p);
-const preguntaDe = (orden: number, esRepregunta: boolean): string =>
-  v2 ? preguntaV2(v2, orden, esRepregunta) : preguntaDelGuion.get(orden)?.texto ?? `Pregunta ${orden}`;
-
-const { respuestas, reservados } = materialDeRespuestas(filas, excluidas, preguntaDe);
-if (!respuestas.length) throw new Error('No hay respuestas publicables: nada para armar.');
-const ordenes = [...new Set(respuestas.map((r) => r.orden))];
-const epocas = v2
-  ? ordenes.map((o) => epocaV2(v2, o))
-  : ordenes.map((o) => epocaDelGuion(o, preguntaDelGuion.get(o)?.capitulo ?? ''));
-const lineaDeTiempo = v2 ? lineaDeTiempoV2(v2) : '';
+const { narrador, v2, excluidas: fuera, respuestas, reservados, epocas, lineaDeTiempo, nombres, quien, delMaterial } =
+  await cargarMaterialDelNarrador(db, narradorId, excluidas);
+const genero = quien.genero;
 const fuentes = respuestas.map((r) => ({ id: r.fuenteId, texto: r.texto }));
-
-// Quién cuenta: lo que dijo en la entrevista v2 si lo dijo; si no, de lo que cuenta.
-const delMaterial = generoDelMaterial(respuestas.map((r) => r.texto));
-const genero = (v2 && generoV2(v2)) || delMaterial.genero;
-const quien = { nombre: narrador.nombre, genero };
 
 await mkdir(salida, { recursive: true });
 const pad = (i: number) => String(i + 1).padStart(2, '0');
@@ -86,7 +55,7 @@ const medir = (m: Medicion) => `${m.porcentaje.toFixed(1)} % copiado (${m.palabr
 const informe: string[] = [
   `# Prueba del libro v2 — ${narrador.nombre}`, '',
   `**Material:** ${v2 ? 'entrevista v2 (épocas del tramo de cada pregunta, línea de tiempo del perfil)' : 'guion viejo (épocas por capítulo del guion, sin línea de tiempo)'}`,
-  ...(excluidas.size ? [`Excluidas de esta corrida: ${[...excluidas].join(', ')}`] : []),
+  ...(fuera.size ? [`Excluidas de esta corrida: ${[...fuera].join(', ')}`] : []),
   `${respuestas.length} respuestas · ${reservados.length} reservas (fuera del libro, se le pasan al lector)`, '',
   `**Quién cuenta:** ${genero ?? 'no se sabe'}${v2 && generoV2(v2) ? ' (lo dijo en la entrevista)' : delMaterial.evidencia.length ? ` (${delMaterial.evidencia.slice(0, 4).join(', ')})` : ''}`, '',
 ];
@@ -146,6 +115,8 @@ for (let i = 0; i < r.etapas.length; i++) {
 }
 if (r.libroMarkdown) await writeFile(path.join(salida, 'libro.md'), r.libroMarkdown);
 await writeFile(path.join(salida, 'revision.json'), JSON.stringify(r.informe, null, 2));
+// Lo que devolvió el lector tal cual: si falló, es lo único que dice por qué (y se puede releer con releer-libro.ts).
+if (r.lectorCrudo) await writeFile(path.join(salida, 'lector-crudo.txt'), r.lectorCrudo);
 
 const d = r.detalle;
 informe.push('**Etapas:**', ...r.etapas.map((e, i) => `${i + 1}. ${e.nombre}${e.desde !== null ? ` (${e.desde}-${e.hasta ?? '?'})` : ''}: ${e.deQueTrata}`), '');
@@ -159,7 +130,7 @@ informe.push('', d.frases
   ? `**Editor v2:** ${d.frases.suyas} suyas, ${d.frases.heredadas} heredadas, ${d.frases.muletillas} muletillas · ${d.caidas.length} frases caídas por no ser textuales${d.caidas.length ? `: ${d.caidas.map((c) => `«${c}»`).join(', ')}` : ''}`
   : '**Editor v2:** ⚠ no devolvió un JSON legible (no hay libro.md; el lector leyó los capítulos solos)');
 informe.push('', `**Control antes de imprimir:** ${r.informe.control.length ? r.informe.control.map((a) => `\n- ⚠ ${a}`).join('') : 'sin avisos'}`);
-informe.push('', `**Lector final:** ${r.informe.lectorFallo ? '⚠ no devolvió una lista: revisar a mano' : r.informe.lector.length ? `${r.informe.lector.length} aviso(s)` : 'sin avisos'}`);
+informe.push('', `**Lector final:** ${lineaDelLector(r.informe)}`);
 for (const a of r.informe.lector) informe.push(`- **${a.capitulo}** — «${a.frase}» — *${a.problema}*: ${a.evidencia}`);
 informe.push('', `**¿Se imprimiría?** ${hayQueRevisar(r.informe) ? 'no: espera revisión (ver revision.json)' : 'sí, sin avisos'}`);
 informe.push('', `**Gasto de la prueba:** USD ${r.gastoUsd.toFixed(2)}`);

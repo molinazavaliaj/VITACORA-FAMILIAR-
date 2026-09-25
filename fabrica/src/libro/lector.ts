@@ -1,14 +1,26 @@
 import type Anthropic from '@anthropic-ai/sdk';
 import { encargoDelLibro, type Quien } from './encargo.js';
 import { extraerTexto } from './comun.js';
+import { calcularUsd } from '../costos.js';
 
 // El lector final (diseño §3.2, idea de Naza): antes de imprimir, otro modelo —no el que
 // escribió— lee el libro entero contra los audios de verdad y avisa lo que ningún contador
 // automático ve: un hecho inventado, una escena fundida de dos audios distintos, algo que la
 // persona pidió reservar y quedó adentro. Con avisos, el libro espera a que un socio los mire;
 // sin avisos, sigue. Esfuerzo alto: es el default de Opus 5, no hace falta parámetro.
+//
+// El tope (25/09): Opus 5 piensa aunque no se le pida (sin `thinking` corre adaptativo), y lo que
+// piensa cuenta dentro de `max_tokens` junto con la respuesta. Con 8000 y un libro de ~30 mil
+// caracteres contra ~34 mil de audios, el pensamiento se comió el tope y el JSON no llegó
+// ("no devolvió una lista", libro de prueba de Naza). 32000 deja lugar; con streaming el techo del
+// modelo es 128K. Y si igual se corta, se dice ESO, no "no es una lista".
 
 export const MODELO_LECTOR = 'claude-opus-5';
+export const TOPE_LECTOR = 32000;
+
+/** Por qué el lector no dejó una lista. Va al informe, al mail y al script, tal cual. */
+export type MotivoFalloLector = 'cortada por el tope de tokens' | 'sin texto' | 'no es JSON' | 'sin lista de avisos' | 'el modelo se negó a leerlo';
+export type ResultadoLector = { ok: true; avisos: AvisoLector[] } | { ok: false; motivo: MotivoFalloLector };
 
 export type ProblemaLector = 'inventado' | 'epoca-o-lugar' | 'fundido' | 'reservado' | 'genero' | 'nombre' | 'otro';
 const PROBLEMAS = new Set<ProblemaLector>(['inventado', 'epoca-o-lugar', 'fundido', 'reservado', 'genero', 'nombre', 'otro']);
@@ -55,15 +67,15 @@ Si el libro está bien: {"avisos":[]}`;
  * no debería tapar el resto de lo que el lector encontró. Sin JSON reconocible, `ok: false`: el
  * que llama decide qué hacer (reintentar, avisar a mano) sin inventar un "libro sin problemas".
  */
-export function parsearLectura(salida: string): { ok: true; avisos: AvisoLector[] } | { ok: false } {
+export function parsearLectura(salida: string): ResultadoLector {
   let crudo: { avisos?: unknown };
   try {
     const limpio = salida.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
     crudo = JSON.parse(limpio.slice(limpio.indexOf('{'), limpio.lastIndexOf('}') + 1));
   } catch {
-    return { ok: false };
+    return { ok: false, motivo: 'no es JSON' };
   }
-  if (!Array.isArray(crudo.avisos)) return { ok: false };
+  if (!crudo || !Array.isArray(crudo.avisos)) return { ok: false, motivo: 'sin lista de avisos' };
   const avisos = (crudo.avisos as Record<string, unknown>[])
     .filter(
       (a) =>
@@ -82,9 +94,35 @@ export function parsearLectura(salida: string): { ok: true; avisos: AvisoLector[
   return { ok: true, avisos };
 }
 
+/** El pedido entero, tal cual lo recibe el lector (lo usan `leerLibro` y la estimación). */
+function promptDelLector(quien: Quien, libro: string, transcripciones: string[], nombres: string, reservados: string[]): string {
+  return PROMPT_LECTOR(encargoDelLibro(quien), libro, transcripciones.join('\n\n---\n\n'), nombres, reservados.join('\n'));
+}
+
+/**
+ * Cuánto va a costar una lectura, ANTES de pagarla (para `releer-libro.ts`). La entrada se cuenta
+ * a 3 caracteres por token (castellano con el tokenizer de Opus 5: tira para arriba, a propósito).
+ * La salida no se sabe: va de una lectura corta (~4000 tokens entre pensar y la lista) al tope entero.
+ */
+export function estimarLector(quien: Quien, libro: string, transcripciones: string[], nombres: string, reservados: string[]) {
+  const tokensEntrada = Math.ceil(promptDelLector(quien, libro, transcripciones, nombres, reservados).length / 3);
+  const usd = (salida: number) => calcularUsd(MODELO_LECTOR, { input_tokens: tokensEntrada, output_tokens: salida });
+  return { tokensEntrada, usdMin: usd(4000), usdMax: usd(TOPE_LECTOR) };
+}
+
+/** Los avisos agrupados por capítulo, en el orden en que aparece cada capítulo. */
+export function avisosPorCapitulo(avisos: AvisoLector[]): [string, AvisoLector[]][] {
+  const grupos = new Map<string, AvisoLector[]>();
+  for (const a of avisos) grupos.set(a.capitulo, [...(grupos.get(a.capitulo) ?? []), a]);
+  return [...grupos];
+}
+
 /**
  * Le pasa el libro entero al lector (Opus, no el modelo que escribió) y devuelve sus avisos.
- * `usage` sale para que quien llama lo registre como cualquier otro paso pago de la fábrica.
+ * `usage` sale para que quien llama lo registre como cualquier otro paso pago de la fábrica, y
+ * `crudo` (el texto tal cual lo devolvió) para guardarlo: si falla, es lo único que dice por qué.
+ * Cortada por el tope gana a todo lo demás: un pedazo de JSON que por casualidad parsea no es
+ * la lista entera.
  */
 export async function leerLibro(
   cliente: Anthropic,
@@ -93,26 +131,25 @@ export async function leerLibro(
   transcripciones: string[],
   nombresCorregidos: string,
   reservados: string[]
-): Promise<{ resultado: ReturnType<typeof parsearLectura>; usage: Anthropic.Usage }> {
+): Promise<{ resultado: ResultadoLector; usage: Anthropic.Usage; crudo: string }> {
   const stream = cliente.messages.stream({
     model: MODELO_LECTOR,
-    max_tokens: 8000,
+    max_tokens: TOPE_LECTOR,
     messages: [
       {
         role: 'user',
-        content: PROMPT_LECTOR(
-          encargoDelLibro(quien),
-          libroMarkdown,
-          transcripciones.join('\n\n---\n\n'),
-          nombresCorregidos,
-          reservados.join('\n')
-        ),
+        content: promptDelLector(quien, libroMarkdown, transcripciones, nombresCorregidos, reservados),
       },
     ],
   });
   const final = await stream.finalMessage();
-  return {
-    resultado: parsearLectura(extraerTexto(final.content as Array<{ type: string; text?: string }>)),
-    usage: final.usage,
-  };
+  const bloques = (final.content ?? []) as Array<{ type: string; text?: string }>;
+  const crudo = extraerTexto(bloques);
+  const stop = (final as { stop_reason?: string | null }).stop_reason;
+  const resultado: ResultadoLector =
+    stop === 'max_tokens' ? { ok: false, motivo: 'cortada por el tope de tokens' }
+    : stop === 'refusal' ? { ok: false, motivo: 'el modelo se negó a leerlo' }
+    : !bloques.some((b) => b.type === 'text') || !crudo.trim() ? { ok: false, motivo: 'sin texto' }
+    : parsearLectura(crudo);
+  return { resultado, usage: final.usage, crudo };
 }

@@ -58,6 +58,8 @@ export type SalidaLibroV2 = {
   etapas: Etapa[]; capitulos: { nombre: string; texto: string }[]; materiales: string[];
   libroMarkdown: string | null; medicion: Medicion; informe: InformeRevision; salidas: Record<string, string>; gastoUsd: number;
   detalle: DetalleLibroV2;
+  /** El texto tal cual lo devolvió el lector final: para guardarlo (si falló, es lo que dice por qué). */
+  lectorCrudo: string;
 };
 
 /**
@@ -139,6 +141,7 @@ async function armar(e: EntradaLibroV2, parcial: ParcialLibroV2): Promise<Salida
       ...(afuera.length ? [`${afuera.length} oraciones no quedaron en ningún capítulo.`] : []),
     ],
     lectorFallo: !lectura.resultado.ok,
+    ...(lectura.resultado.ok ? {} : { lectorMotivo: lectura.resultado.motivo }),
     fecha: new Date().toISOString().slice(0, 10),
   };
   const detalle: DetalleLibroV2 = {
@@ -152,5 +155,5 @@ async function armar(e: EntradaLibroV2, parcial: ParcialLibroV2): Promise<Salida
       : null,
     oraciones: numeradas.reduce((n, r) => n + r.oraciones.length, 0),
   };
-  return { etapas, capitulos, materiales: porCapitulo, libroMarkdown, medicion, informe, salidas, gastoUsd: parcial.gastoUsd, detalle };
+  return { etapas, capitulos, materiales: porCapitulo, libroMarkdown, medicion, informe, salidas, gastoUsd: parcial.gastoUsd, detalle, lectorCrudo: lectura.crudo };
 }
