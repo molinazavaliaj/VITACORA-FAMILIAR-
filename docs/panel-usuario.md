@@ -325,7 +325,8 @@ enviado está congelado, renumerar las futuras no rompe nada.
 > Construido el 13/09 según
 > `docs/superpowers/specs/2026-09-13-fabrica-aprobacion-design.md`, que difiere en tres
 > puntos: (1) antes de cerrar no hay libro escrito, el lector muestra la propuesta;
-> (2) `excluidas` y `correcciones` no se aplican; (3) el mail "terminó" y el cierre
+> (2) `excluidas` y `correcciones` no se aplican —**ya no: desde el 25/09 (D1) la fábrica los
+> aplica, ver `supabase/CONTRATO.md` "Cerrar el libro"**—; (3) el mail "terminó" y el cierre
 > automático a los 30 días los manda la fábrica, no el entrevistador ni la web.
 
 - Leer `narradores.edicion`: orden de capítulos, respuestas excluidas, título, subtítulo,

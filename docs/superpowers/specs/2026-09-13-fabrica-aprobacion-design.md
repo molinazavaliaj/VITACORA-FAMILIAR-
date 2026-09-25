@@ -21,6 +21,9 @@ al cerrar, escribe el libro aplicando la edición, arma HTML, PDF y audiolibro, 
    cosa del guion (§6, solo `orden > dia_actual`), lo hace la web. Antes de generar, la
    dueña **verifica los datos dudosos** que detectó el modelo (nombres, lugares) — eso es el
    `nombres.json` que ya existe — y cierra.
+> **25/09 — ya no vale:** la decisión D1 de Naza da vuelta el punto 3; la fábrica aplica
+> `excluidas` y `correcciones` (ver `supabase/CONTRATO.md` "Cerrar el libro").
+
 3. **⚠️ La fábrica ignora `edicion.excluidas` y `edicion.correcciones`** aunque el contrato
    los defina. El paso 3 del wizard de Joaquín no debería ofrecer "excluir respuestas" ni
    "correcciones libres".

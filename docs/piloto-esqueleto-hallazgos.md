@@ -39,7 +39,7 @@ Piloto de cero reusando respuestas del piloto viejo (`--reusar`). Numeración pr
 - **G4. No decir "ayer" si no se sabe cuándo fue la última respuesta** (E18, hecho en el ajuste F).
 
 ## Decisiones de Naza (25/09)
-- **D1. Lo que la familia corrige o excluye en el dashboard tiene que llegar al libro.** Hoy la fábrica ignora `edicion.correcciones` y `edicion.excluidas` (decisión del 13/09). Tarea prioritaria después del libro de Naza: la fábrica los aplica; formato de `correcciones` a acordar con Joaquín.
+- **D1. Lo que la familia corrige o excluye en el dashboard tiene que llegar al libro.** Hoy la fábrica ignora `edicion.correcciones` y `edicion.excluidas` (decisión del 13/09). Tarea prioritaria después del libro de Naza: la fábrica los aplica; formato de `correcciones` a acordar con Joaquín. **Hecho (ajuste G, 25/09):** `excluidas` quedan afuera del libro y del audiolibro como una reservada (una principal se lleva sus repreguntas; un capítulo vacío se cae), en producción (`generarPaquete`, `imprenta`) y en el v2 (`prueba-reparto`/`releer-libro`); `correcciones` va tal cual (texto libre, sin formato a acordar) al escritor, al editor y al lector final. De paso: el audiolibro de producción ya no hace sonar las respuestas reservadas (antes elegía por nombre de archivo y no las miraba).
 - **D2. Despedida nueva (versión A)**, más cercana.
 
 ## El libro de prueba (25/09, `fabrica/prueba-libro-naza-reusa/`, USD 2,84)

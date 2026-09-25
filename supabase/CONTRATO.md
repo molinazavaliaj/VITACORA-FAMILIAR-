@@ -259,9 +259,19 @@ cierra~~ **desde el 13/09 la fábrica** lo cierra (pone `libro_aprobado_at`, man
 aviso) y lo produce en el mismo tick, con la propuesta por defecto (está en los
 términos).
 
-La fábrica aplica `ordenCapitulos`, `titulo`, `subtitulo` y `portadaFotoId`; **ignora
-`excluidas` y `correcciones`** (decisión 13/09, ver
-`docs/superpowers/specs/2026-09-13-fabrica-aprobacion-design.md`).
+La fábrica aplica `ordenCapitulos`, `titulosCapitulos`, `titulo`, `subtitulo` y `portadaFotoId`,
+y **desde el 25/09 también `excluidas` y `correcciones`** (decisión D1 de Naza, que da vuelta la
+del 13/09; ver `fabrica/src/libro/edicion.ts`):
+- `excluidas`: esas respuestas quedan afuera del libro y del audiolibro, igual que una reservada
+  (ni material, ni «la historia completa», ni «Su voz», ni audio). Una respuesta principal
+  excluida se lleva las repreguntas de su misma orden (el tablero muestra una fila por pregunta).
+  Si todas las respuestas de una orden quedaron afuera, la orden sale de su capítulo, y un
+  capítulo que se queda sin órdenes sale del libro.
+- `correcciones` (texto libre): va a todos los pasos que escriben o revisan el libro —el escritor
+  de cada capítulo, el editor y, en el camino v2, el lector final— como una sección
+  `CORRECCIONES DE LA FAMILIA (mandan sobre lo que se transcribió; …)`. Vacío, no aparece.
+  `paquete/nombres.json` (la página de nombres) se sigue usando como siempre, aparte.
+Como la edición se congela al cerrar el libro, un reintento ve lo mismo.
 
 ## Dónde va y cómo se encuadra la foto del capítulo (migración 20260918 — PROPUESTA de Joaquín, 18/09)
 
