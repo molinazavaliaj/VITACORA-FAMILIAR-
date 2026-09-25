@@ -22,3 +22,8 @@ Piloto de cero reusando respuestas del piloto viejo (`--reusar`). Numeración pr
 | E16 | A veces no se anota el gasto en `consumo_ia` (tardó más de 1500 ms). El total local sí. | Pendiente, menor. |
 | E17 | La repregunta de `pruebas` pidió "quién te bancó" y la fila siguiente (`fuerza`) pedía lo mismo: la repregunta no mira qué pide la fila que viene. | Pendiente. |
 | E18 | El biógrafo dice "ayer se notó…" aunque la respuesta fue el mismo día. Naza: los usuarios pueden pedir más preguntas en el día; el biógrafo no puede suponer que pasó un día. Tiene que saber cuándo llegó la última respuesta (hoy / ayer / hace días) o hablar sin marcar el tiempo. | Pendiente (decisión de Naza, 25/09). |
+| E19 | La fila `lo-que-falta` ("qué no te pregunté que tiene que estar") se usó para rematar lo que faltó de `alegrias` (el dicho): el biógrafo se desvió del tema de la fila. La evaluación de `alegrias` había dicho "alcanza" aunque faltaba el dicho. | Pendiente. |
+
+## Correcciones de Naza para el libro (dichas en el chat, no en un audio)
+- Orden 32: la camioneta que perdió antes de venir a España **es la EcoSport** (no son dos autos distintos). Autos: el 207 a los 17, un Focus, la EcoSport.
+- La "tapa de Ñaquiver" (orden 27) era "la etapa de Berga"; "Starán" era Fran; el perro era Homero, con H.
