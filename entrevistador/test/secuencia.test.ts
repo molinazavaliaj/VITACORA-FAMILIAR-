@@ -410,3 +410,45 @@ describe('tocaObjeto y registrarObjeto', () => {
     expect(tocaObjeto(lleno, null, false)).toBeNull();
   });
 });
+
+// Revisión del ajuste F: G1 y G2 cambian de fila con la edad; al rearmar no se duplica nada.
+describe('rearmar con G1 (lo-que-salio-mal) y G2 (perdidas antes de la segunda mitad)', () => {
+  const cuenta = (s: ReturnType<typeof armarSecuencia>, id: string) => s.hechas.filter((h) => h.id === id).length + s.pendientes.filter((o) => o.id === id).length;
+  const conEdad = (p: Perfil, edad: string) => aplicarCambios(p, { persona: { edad: { valor: edad, fuente: 'dicho' } } });
+
+  it('lo-que-salio-mal contestada sin edad; después resulta que tiene 40: no vuelve, y el-trabajo-y-la-plata entra una vez (lo dice el guion para 36+)', () => {
+    const { s: antes, orden } = hastaAntesDe(armarSecuencia(perfilVacio(), ANIO), 'lo-que-salio-mal');
+    const s = avanzar(antes, proxima(antes)!, orden);
+    const r = rearmar(s, conEdad(perfilVacio(), '40'), ANIO);
+    expect(cuenta(r, 'lo-que-salio-mal')).toBe(1);
+    expect(ids(r)).not.toContain('lo-que-salio-mal');
+    expect(cuenta(r, 'el-trabajo-y-la-plata')).toBe(1);
+    expect(r.caidas.find((c) => c.id === 'lo-que-salio-mal')?.motivo).toMatch(/36 o más/);
+  });
+  it('sin contestar todavía, al llegar la edad (40) lo-que-salio-mal sale de pendientes y queda solo el-trabajo-y-la-plata', () => {
+    const r = rearmar(armarSecuencia(perfilVacio(), ANIO), conEdad(perfilVacio(), '40'), ANIO);
+    expect(ids(r)).not.toContain('lo-que-salio-mal');
+    expect(ids(r).filter((id) => id === 'el-trabajo-y-la-plata')).toHaveLength(1);
+  });
+
+  const conPerdida = (edad: string) => {
+    const p = conEdad(perfilVacio(), edad);
+    p.personas.push({ nombre: 'Ana', vinculo: 'hermana', vive: 'no', fuente: 'dicho' });
+    return p;
+  };
+  it('perdidas contestada a los 55 (en adultez media); cumple 56: no vuelve en la segunda mitad', () => {
+    const { s: antes, orden } = hastaAntesDe(armarSecuencia(conPerdida('55'), ANIO), 'perdidas');
+    const p = proxima(antes)!;
+    expect(p.tipo === 'nucleo' ? p.bloque : null).toBe('adultez media');
+    const s = avanzar(antes, proxima(antes)!, orden);
+    const r = rearmar(s, conPerdida('56'), ANIO);
+    expect(cuenta(r, 'perdidas')).toBe(1);
+    expect(ids(r)).not.toContain('perdidas');
+  });
+  it('perdidas sin contestar a los 55; cumple 56: una sola, ahora en la segunda mitad', () => {
+    const r = rearmar(armarSecuencia(conPerdida('55'), ANIO), conPerdida('56'), ANIO);
+    const p = r.pendientes.filter((o) => o.id === 'perdidas');
+    expect(p).toHaveLength(1);
+    expect(p[0].tipo === 'nucleo' ? p[0].bloque : null).toBe('segunda mitad');
+  });
+});
