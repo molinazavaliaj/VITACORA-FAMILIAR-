@@ -11,6 +11,7 @@
  */
 
 import type { Trato } from '../ia/trato.js';
+import type { Perfil } from '../ia/perfil.js';
 
 export type Args = {
   comando: string;
@@ -269,7 +270,64 @@ const ENCABEZADO: Record<Castellano, string> = {
   latinoamerica: 'Entrevista de historia de vida en castellano de Latinoamérica. Transcribí literal, sin corregir la sintaxis.',
 };
 
-export function promptDeTranscripcion(contexto: Record<string, any> = {}, comoLeDicen = '', zonaHoraria?: string | null): string {
+/**
+ * E12 (piloto esqueleto v2, 25/09): el tope del prompt de transcripción. `transcribir.ts` documenta
+ * que el modelo corta el prompt a ~224 tokens; los nombres propios gastan más tokens por letra que
+ * el castellano corriente (~3,2 caracteres por token), así que 700 caracteres queda adentro con
+ * margen. Lo que no entra son los nombres del final de la lista (los menos prioritarios).
+ */
+export const TOPE_PROMPT_TRANSCRIPCION = 700;
+
+const EMPIEZA_MAYUSCULA = /^[A-ZÁÉÍÓÚÑÜ]/;
+const ES_FAMILIA = /padre|madre|papá|mamá|papa|mama|herman|hij|niet|sobrin|abuel|conyug|cónyug|espos|marido|mujer|pareja|novi|tío|tía|tio|tia|prim/i;
+
+/** "Martín Ricci ("Ciano", también le dice Tincho)" → Martín Ricci, Ciano, Tincho. Las aclaraciones no. */
+function nombresDePersona(nombre: string): string[] {
+  const principal = nombre.split('(')[0].trim();
+  const out = EMPIEZA_MAYUSCULA.test(principal) ? [principal] : [];
+  const parentesis = nombre.slice(principal.length);
+  // Apodos entre comillas, de una o dos palabras ("el Isho" → Isho). Tres o más es una aclaración
+  // ("nombre según se escucha: "Juan y Damico""), no un apodo: mejor no soplarla.
+  for (const m of parentesis.matchAll(/["“«]([^"”»]+)["”»]/g)) {
+    const apodo = m[1].trim().replace(/^(el|la|los|las)\s+/i, '');
+    if (apodo.split(/\s+/).length <= 2 && EMPIEZA_MAYUSCULA.test(apodo)) out.push(apodo);
+  }
+  for (const m of parentesis.matchAll(/le dicen?\s+([A-ZÁÉÍÓÚÑÜ][\p{L}]+)/gu)) out.push(m[1]);
+  return out;
+}
+
+/** "Martínez, provincia de Buenos Aires: casa de tres pisos…" → Martínez. */
+function nombreDeLugar(lugar: string): string | null {
+  const l = lugar.split(':')[0].split(',')[0].split('(')[0].trim();
+  return l && EMPIEZA_MAYUSCULA.test(l) ? l : null;
+}
+
+/**
+ * E12: los nombres propios que ya sabe la ficha del v2, para que la transcripción los escriba bien
+ * ("Berga", no "verga"; "Homero", no "Romero"). En orden de prioridad: cómo le dicen, la familia,
+ * los lugares (etapas y dónde vive hoy), el resto de las personas (amigos, mascotas). Sin repetir.
+ */
+export function nombresDeLaFicha(perfil: Perfil): string[] {
+  const comoLeDicen = (perfil.persona.comoLeDicen?.valor ?? '')
+    .replace(/\([^)]*\)/g, '')
+    .split(/\/|,|;|\s+o\s+|\s+y\s+/)
+    .map((x) => x.trim())
+    .filter((x) => EMPIEZA_MAYUSCULA.test(x));
+  const familia = perfil.personas.filter((x) => ES_FAMILIA.test(x.vinculo)).flatMap((x) => nombresDePersona(x.nombre));
+  const lugares = [...perfil.etapas.map((e) => e.lugar), perfil.persona.dondeViveHoy?.valor ?? '']
+    .map(nombreDeLugar)
+    .filter((x): x is string => x !== null);
+  const resto = perfil.personas.filter((x) => !ES_FAMILIA.test(x.vinculo)).flatMap((x) => nombresDePersona(x.nombre));
+  const vistos = new Set<string>();
+  return [...comoLeDicen, ...familia, ...lugares, ...resto].filter((n) => {
+    const clave = n.toLowerCase();
+    if (vistos.has(clave)) return false;
+    vistos.add(clave);
+    return true;
+  });
+}
+
+export function promptDeTranscripcion(contexto: Record<string, any> = {}, comoLeDicen = '', zonaHoraria?: string | null, perfil?: Perfil): string {
   const castellano = castellanoDe(zonaHoraria, contexto?.trato);
   const partes = [ENCABEZADO[castellano]];
   // El glosario es solo del habla rioplatense: a una narradora de Madrid le haría "escuchar"
@@ -289,7 +347,16 @@ export function promptDeTranscripcion(contexto: Record<string, any> = {}, comoLe
   // `datosExtra` (el texto libre de la familia) ya NO entra (biógrafo v2, 23/09): la transcripción
   // puede escribir frases de su prompt que la persona nunca dijo, sobre todo en los silencios. Los
   // nombres y lugares de arriba sirven —corrigen la ortografía—; las frases no.
-  return partes.join(' ');
+  const base = partes.join(' ');
+  if (!perfil) return base;
+  // E12: los nombres de la ficha del v2 que todavía no están en el prompt, hasta el tope.
+  const nuevos = nombresDeLaFicha(perfil).filter((n) => !base.toLowerCase().includes(n.toLowerCase()));
+  const entran: string[] = [];
+  for (const n of nuevos) {
+    if (`${base} Nombres propios: ${[...entran, n].join(', ')}.`.length > TOPE_PROMPT_TRANSCRIPCION) break;
+    entran.push(n);
+  }
+  return entran.length ? `${base} Nombres propios: ${entran.join(', ')}.` : base;
 }
 
 /**

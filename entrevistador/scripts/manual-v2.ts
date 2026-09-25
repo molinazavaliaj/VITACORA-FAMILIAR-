@@ -486,7 +486,8 @@ async function cargar(ref: string | undefined, archivos: string[], flags: Args['
 
   try {
     if (audioParaTranscribir) {
-      const prompt = promptDeTranscripcion(n.contexto ?? {}, nombreDe(n, estado), n.zona_horaria);
+      // E12: con los nombres propios que ya sabe la ficha (Berga, Homero, Tricky…).
+      const prompt = promptDeTranscripcion(n.contexto ?? {}, nombreDe(n, estado), n.zona_horaria, estado.perfil);
       const t = await mods.transcribirYActualizar(respuestaId, audioParaTranscribir, prompt, n.id);
       respuesta = t.texto;
       segundos = t.duracionSegundos;

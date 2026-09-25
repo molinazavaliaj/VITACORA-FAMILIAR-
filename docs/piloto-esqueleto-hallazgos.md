@@ -15,7 +15,7 @@ Piloto de cero reusando respuestas del piloto viejo (`--reusar`). Numeración pr
 | E9 | "No tengo foto, se la pido a mi madre" se clasificó como "hoy no" (Haiku). | Pendiente. |
 | E10 | "Primer amor" (juventud) lo llevó a Ima en España; después hizo repetir cómo la conoció. | Pendiente (respetar la época de la fila). |
 | E11 | El buscador de reuso le pegó al Mundial una respuesta de fútbol de chico. | Arreglado a mano; pendiente: no reusar historia grande si la respuesta vieja no nombra el evento. |
-| E12 | La transcripción escribe "verga" por Berga; "Starán" por Fran; "Romero" por Homero; "la tapa de Ñaquiver" por "la etapa de Berga" (y la ficha lo anotó como pendiente real). | Pendiente: sumar nombres propios (Berga, Avià, Homero, Tricky…) al prompt de transcripción. |
+| E12 | La transcripción escribe "verga" por Berga; "Starán" por Fran; "Romero" por Homero; "la tapa de Ñaquiver" por "la etapa de Berga" (y la ficha lo anotó como pendiente real). | Arreglado (ajuste F): el prompt de transcripción suma los nombres propios de la ficha (cómo le dicen, familia, lugares de las etapas y dónde vive, el resto de las personas con sus apodos), sin aclaraciones y hasta 700 caracteres en total (el modelo corta a ~224 tokens). |
 | E13 | "Perfil: sin cambios" en pantalla aunque la ficha sí cambió (etapas). | Pendiente (solo lo que se muestra). |
 | E14 | Las preguntas ofrecen opciones de ejemplo ("tipo pesca o algo con las manos") y la evaluación trata los ejemplos como obligatorios (repreguntó por huerta, baile y pesca). | En arreglo: sin opciones de ejemplo; los pormenores no son lista para tachar. |
 | E15 | `descartar` falla: falta la función `descartar_respuesta` en la base (migración no aplicada). | Pendiente: aplicar la migración (Naza, SQL Editor). |
