@@ -108,8 +108,8 @@
 > Pormenores: quién se ocupó; una charla que recuerde; qué le dejaron dicho
 
 **por-gusto** (adultez media)
-> Lo que hacía por gusto, cuando nadie se lo pedía: lo que ya nombró. Si no nombró nada, preguntá abierto.
-> Pormenores: el club; la huerta; la música; el baile; la pesca; con quién
+> Lo que hacía por gusto, cuando nadie se lo pedía: lo que ya nombró. Si no nombró nada, preguntá abierto, sin ofrecerle opciones ni ejemplos: que lo diga con sus palabras.
+> Pormenores: qué hacía por gusto; con quién
 
 **historia-grande** (adultez media)
 > Lo grande que le tocó al país en esa época ({EVENTO}). Sin dar por hecho de qué lado estuvo.
@@ -141,7 +141,7 @@
 
 **lo-que-te-queda-por-hacer** (futuro)
 > Lo que quiere para su vida de acá en adelante: sueños, planes, lo que le queda por ver. A los veinte es la mitad del libro; a los ochenta es "qué le queda por hacer y qué ya no".
-> Pormenores: un viaje; un proyecto; una mudanza; la música; la libertad
+> Pormenores: qué le queda por hacer; con quién; qué le falta para que pase
 
 **lo-que-esperas-para-los-tuyos** (futuro)
 > Lo que espera para los suyos. Sin dar por hecho hijos ni nietos: usa el censo.
@@ -256,6 +256,8 @@ LO QUE SE RESPETA SIEMPRE
    escena de yapa, no la escena en lugar del carácter.
 8. Una pregunta clara (dos como mucho, si van juntas), de hasta 45 palabras: la lee en el
    celular. La presentación es la excepción: hasta 90.
+9. No le ofrezcas opciones ni ejemplos de respuesta ("tipo la pesca, la huerta…"): preguntá
+   abierto y que lo diga con sus palabras.
 
 Tu trabajo hoy es decidir cómo preguntarle esto a ESTA persona, con lo que ya sabés: el guion
 te da el tema, no el texto. Si algo que contó sirve de puente, usalo; la pregunta va a lo que
@@ -369,6 +371,8 @@ LO QUE SE RESPETA SIEMPRE
    escena de yapa, no la escena en lugar del carácter.
 8. Una pregunta clara (dos como mucho, si van juntas), de hasta 45 palabras: la lee en el
    celular. La presentación es la excepción: hasta 90.
+9. No le ofrezcas opciones ni ejemplos de respuesta ("tipo la pesca, la huerta…"): preguntá
+   abierto y que lo diga con sus palabras.
 
 LO ÚLTIMO QUE HABLARON (cada respuesta con la pregunta que la originó):
 (es la primera respuesta)
@@ -393,6 +397,8 @@ decir QUÉ FALTÓ del tema.
   o si contó algo fuerte y lo dejó en una frase. Entonces "falto": los pormenores del tema que
   quedaron afuera, tal como están en la fila, hasta 4. Nunca un tema nuevo. Nunca un detalle de un
   detalle: lo que faltó del TEMA, no más precisión sobre lo que ya contó.
+- Los pormenores son lo que conviene juntar, no una lista para tachar: si no nombró algo que el
+  tema daba de ejemplo, no falta.
 - Si dijo "esto ya te lo conté" o parecido: alcanza, "falto" vacío.
 - Si se fue a otro tema, está bien: no se lo reencuadra.
 - Si pidió cambiar de tema ("vamos por otro lado", "prefiero no hablar de eso"): "dejarTema" con el
@@ -608,7 +614,7 @@ LOS TEMAS QUE TODAVÍA NO SE LE PREGUNTARON (id: de qué trata):
 - pareja-como-llego: Con quién hizo su vida y cómo llegó esa persona (Ima). NO la boda.
 - un-lugar-que-cambio-algo: Un lugar que le cambió la vida: una mudanza, un viaje, otro país, otra ciudad. Quién lo esperaba, sin suponerlo. Si no se mudó nunca: la esquina de siempre, qué la hace suya.
 - amigos-de-siempre: Los amigos de la vida adulta: del trabajo, del club, los que quedaron de antes.
-- por-gusto: Lo que hacía por gusto, cuando nadie se lo pedía: lo que ya nombró. Si no nombró nada, preguntá abierto.
+- por-gusto: Lo que hacía por gusto, cuando nadie se lo pedía: lo que ya nombró. Si no nombró nada, preguntá abierto, sin ofrecerle opciones ni ejemplos: que lo diga con sus palabras.
 - un-dia-de-hoy: Cómo es un día suyo hoy.
 - los-tuyos-hoy-como-estan: La familia hoy: cómo está cada uno y cómo es la relación (sobrinos, hermanos, hijos, la pareja). Sin dar por hecho nada que el censo no dijo.
 - lo-que-te-queda-por-hacer: Lo que quiere para su vida de acá en adelante: sueños, planes, lo que le queda por ver. A los veinte es la mitad del libro; a los ochenta es "qué le queda por hacer y qué ya no".
@@ -733,6 +739,8 @@ LO QUE SE RESPETA SIEMPRE
    escena de yapa, no la escena en lugar del carácter.
 8. Una pregunta clara (dos como mucho, si van juntas), de hasta 45 palabras: la lee en el
    celular. La presentación es la excepción: hasta 90.
+9. No le ofrezcas opciones ni ejemplos de respuesta ("tipo la pesca, la huerta…"): preguntá
+   abierto y que lo diga con sus palabras.
 
 Tu trabajo hoy es decidir cómo preguntarle esto a ESTA persona, con lo que ya sabés: el guion
 te da el tema, no el texto. Si algo que contó sirve de puente, usalo; la pregunta va a lo que
@@ -854,6 +862,8 @@ LO QUE SE RESPETA SIEMPRE
    escena de yapa, no la escena en lugar del carácter.
 8. Una pregunta clara (dos como mucho, si van juntas), de hasta 45 palabras: la lee en el
    celular. La presentación es la excepción: hasta 90.
+9. No le ofrezcas opciones ni ejemplos de respuesta ("tipo la pesca, la huerta…"): preguntá
+   abierto y que lo diga con sus palabras.
 
 LO ÚLTIMO QUE HABLARON (cada respuesta con la pregunta que la originó):
 (es la primera respuesta)
@@ -878,6 +888,8 @@ decir QUÉ FALTÓ del tema.
   o si contó algo fuerte y lo dejó en una frase. Entonces "falto": los pormenores del tema que
   quedaron afuera, tal como están en la fila, hasta 4. Nunca un tema nuevo. Nunca un detalle de un
   detalle: lo que faltó del TEMA, no más precisión sobre lo que ya contó.
+- Los pormenores son lo que conviene juntar, no una lista para tachar: si no nombró algo que el
+  tema daba de ejemplo, no falta.
 - Si dijo "esto ya te lo conté" o parecido: alcanza, "falto" vacío.
 - Si se fue a otro tema, está bien: no se lo reencuadra.
 - Si pidió cambiar de tema ("vamos por otro lado", "prefiero no hablar de eso"): "dejarTema" con el
@@ -1124,7 +1136,7 @@ LOS TEMAS QUE TODAVÍA NO SE LE PREGUNTARON (id: de qué trata):
 - los-hijos-creciendo: Cómo fue como madre/padre mientras crecían.
 - la-pareja-con-los-anos: La pareja con los años (Rubén): las tormentas, cómo siguieron o cómo terminó. Si enviudó o se separó, cómo fue y quién estuvo.
 - los-padres-de-grande: Sus padres cuando ya era grande: cómo envejecieron, cómo los acompañó, cómo fue perderlos. Si viven, cómo es la relación hoy: no supongas la muerte.
-- por-gusto: Lo que hacía por gusto, cuando nadie se lo pedía: lo que ya nombró. Si no nombró nada, preguntá abierto.
+- por-gusto: Lo que hacía por gusto, cuando nadie se lo pedía: lo que ya nombró. Si no nombró nada, preguntá abierto, sin ofrecerle opciones ni ejemplos: que lo diga con sus palabras.
 - historia-grande-crisis-2001: Lo grande que le tocó al país en esa época (el 2001 (el corralito, diciembre), cuando tenía 51 años). Sin dar por hecho de qué lado estuvo.
 - dejar-el-trabajo: La jubilación o dejar el trabajo: cómo fue ese día, qué hizo con el tiempo.
 - nietos: Los nietos (Sofía, Tomás, Lucas): quiénes son, cómo es ser abuela/o.

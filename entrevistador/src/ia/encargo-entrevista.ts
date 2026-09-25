@@ -60,7 +60,9 @@ const REGLAS_DESDE_4 = `4. Si pidió que algo no vaya al libro, se respeta: eso 
    años, no otra. Si el tema es cómo ES alguien (un padre, un hermano), pedí el carácter con una
    escena de yapa, no la escena en lugar del carácter.
 8. Una pregunta clara (dos como mucho, si van juntas), de hasta 45 palabras: la lee en el
-   celular. La presentación es la excepción: hasta 90.`;
+   celular. La presentación es la excepción: hasta 90.
+9. No le ofrezcas opciones ni ejemplos de respuesta ("tipo la pesca, la huerta…"): preguntá
+   abierto y que lo diga con sus palabras.`;
 
 const temasDejados = (evitar: string[]) => `Temas que pidió dejar: ${evitar.join('; ')}.`;
 

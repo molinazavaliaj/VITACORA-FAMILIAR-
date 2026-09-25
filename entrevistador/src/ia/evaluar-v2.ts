@@ -61,6 +61,8 @@ decir QUÉ FALTÓ del tema.
   o si contó algo fuerte y lo dejó en una frase. Entonces "falto": los pormenores del tema que
   quedaron afuera, tal como están en la fila, hasta 4. Nunca un tema nuevo. Nunca un detalle de un
   detalle: lo que faltó del TEMA, no más precisión sobre lo que ya contó.
+- Los pormenores son lo que conviene juntar, no una lista para tachar: si no nombró algo que el
+  tema daba de ejemplo, no falta.
 - Si dijo "esto ya te lo conté" o parecido: alcanza, "falto" vacío.
 - Si se fue a otro tema, está bien: no se lo reencuadra.
 ${PEDIDOS}`;
