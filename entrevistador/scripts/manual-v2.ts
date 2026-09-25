@@ -42,7 +42,7 @@ import {
 } from '../src/manual/puro.js';
 import {
   estadoNuevo, leerEstado, contextoConEstado, rearmarSiHaceFalta, pendientesParaPerfil, preguntaParaCargar,
-  queHaceSiguiente, conversacionDe, yaHechasDe, objetoDe, evitarDe, hoyEn, cuandoContesto, ultimaRespuestaAt, repreguntasParaCansancio, repreguntasEnEtapa, decidirTrasEvaluar,
+  queHaceSiguiente, conversacionDe, yaHechasDe, objetoDe, evitarDe, hoyEn, cuandoContesto, ultimaRespuestaAt, recibidoAtDe, repreguntasParaCansancio, repreguntasEnEtapa, decidirTrasEvaluar,
   sumarGasto, mensajeHoyNo, cierreQuiereParar, mailQuiereParar, despedidaV2, nombreLimpio, type EstadoV2, type FilaParaSiguiente, type Decision,
 } from '../src/manual/estado-v2.js';
 import {
@@ -642,8 +642,8 @@ async function procesar(
         tipo: 'repregunta', id: `${objetivo.id}-repregunta`, tramo: tramoDe(objetivo), pregunta: abierta.texto, falto: decision.falto,
         ...(sig?.tipo === 'nucleo' ? { proxima: recortarHecha(sig.tema, 160) } : {}),
       };
-      const deHoy = { id: respuestaId, pregunta_orden: orden, es_repregunta: false, transcripcion: respuesta, texto_directo: null, recibido_at: new Date().toISOString() };
-      // E18: la repregunta sale a los minutos de la respuesta ("hace unos minutos", no "ayer").
+      // E18: la hora real de la respuesta (con --reprocesar horas después, no es "hace unos minutos").
+      const deHoy = { id: respuestaId, pregunta_orden: orden, es_repregunta: false, transcripcion: respuesta, texto_directo: null, recibido_at: recibidoAtDe(filas, respuestaId) };
       const r = await escribirPregunta(cliente(), estado.perfil, obj, conversacionDe(estado, [...previas, deHoy]), yaHechasDe(estado), evitarDe(n.contexto ?? {}), undefined, cuandoContesto(deHoy.recibido_at, n.zona_horaria));
       estado = sumarGasto(estado, r.usos, 0, modeloDePaso('v2-repregunta'));
       await anotarUsos('v2-repregunta', n.id, r.usos);

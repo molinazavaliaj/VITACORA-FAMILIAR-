@@ -264,6 +264,15 @@ export function ultimaRespuestaAt(estado: EstadoV2, filas: { id?: string; recibi
     .at(-1);
 }
 
+/**
+ * E18 (revisión del ajuste F): la hora en que llegó la respuesta que se está procesando. Si ya estaba
+ * en la base (`--reprocesar`, quizá horas después), la suya real; si se acaba de cargar, ahora. Así
+ * la repregunta de un reproceso no dice "hace unos minutos".
+ */
+export function recibidoAtDe(filas: { id?: string; recibido_at?: string }[], respuestaId: string, ahora = new Date()): string {
+  return filas.find((f) => f.id === respuestaId)?.recibido_at ?? ahora.toISOString();
+}
+
 export function sumarDias(fecha: string, dias: number): string {
   const d = new Date(`${fecha}T12:00:00Z`);
   d.setUTCDate(d.getUTCDate() + dias);

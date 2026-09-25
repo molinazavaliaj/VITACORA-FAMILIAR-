@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { cuandoContesto, ultimaRespuestaAt, estadoNuevo } from '../src/manual/estado-v2.js';
+import { cuandoContesto, ultimaRespuestaAt, recibidoAtDe, estadoNuevo } from '../src/manual/estado-v2.js';
 import { armarPromptPregunta, partirPromptPregunta, type Objetivo } from '../src/ia/pregunta-v2.js';
 import { GUION } from '../src/ia/guion-v2.js';
 import { perfilVacio } from '../src/ia/perfil.js';
@@ -63,5 +63,19 @@ describe('el prompt de la pregunta dice cuándo contestó (E18)', () => {
     expect(p.fijo).toContain('No digas "ayer"');
     expect(p.variable).toContain('CUÁNDO CONTESTÓ: ayer.');
     expect(p.fijo).not.toContain('CUÁNDO CONTESTÓ: ayer');
+  });
+});
+
+// Revisión del ajuste F: la repregunta que sale al reprocesar horas después no puede decir "hace unos
+// minutos": vale la hora real en que llegó la respuesta que se está procesando.
+describe('recibidoAtDe (la hora de la respuesta que se procesa)', () => {
+  const ahora = new Date('2026-09-25T18:00:00Z');
+  it('si la fila ya estaba en la base (--reprocesar), su recibido_at real', () => {
+    const filas = [{ id: 'r1', recibido_at: '2026-09-25T08:00:00Z' }, { id: 'r2', recibido_at: '2026-09-25T09:00:00Z' }];
+    expect(recibidoAtDe(filas, 'r1', ahora)).toBe('2026-09-25T08:00:00Z');
+    expect(cuandoContesto(recibidoAtDe(filas, 'r1', ahora), MADRID, ahora)).toBe('hoy más temprano');
+  });
+  it('si se acaba de cargar (no estaba en las filas leídas), ahora', () => {
+    expect(recibidoAtDe([{ id: 'r1', recibido_at: '2026-09-25T08:00:00Z' }], 'nueva', ahora)).toBe(ahora.toISOString());
   });
 });
