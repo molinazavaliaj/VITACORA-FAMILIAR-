@@ -41,3 +41,13 @@ Piloto de cero reusando respuestas del piloto viejo (`--reusar`). Numeración pr
 ## Decisiones de Naza (25/09)
 - **D1. Lo que la familia corrige o excluye en el dashboard tiene que llegar al libro.** Hoy la fábrica ignora `edicion.correcciones` y `edicion.excluidas` (decisión del 13/09). Tarea prioritaria después del libro de Naza: la fábrica los aplica; formato de `correcciones` a acordar con Joaquín.
 - **D2. Despedida nueva (versión A)**, más cercana.
+
+## El libro de prueba (25/09, `fabrica/prueba-libro-naza-reusa/`, USD 2,84)
+8 capítulos por etapa + apertura, cierre y «Sus frases». 0 % copiado, 8 oraciones sin respaldo, sin avisos del control.
+| # | Qué pasó | Estado |
+|---|---|---|
+| L1 | "A los diecisiete tuve mi primer auto, un Focus": era el 207. Causa: la corrección a mano de la EcoSport dejó la frase ambigua. | Transcripción arreglada; en el libro de prueba hay que corregirlo a mano o re-armar. |
+| L2 | "Una familia atípica, con la que hemos tenido momentos buenos": dijo "momentos buenos, momentos buenos" (seguramente "buenos y malos"). | A confirmar con Naza. |
+| L3 | El lector final falló ("no devolvió una lista"): el libro queda "espera revisión". | Pendiente (fábrica). |
+| L4 | Contenido sensible que entra tal cual (porro/marihuana, club cannábico, cárcel de su padre y de Juan Manuel, "negocios que estaban un poco mal", "invitábamos minas"). El libro es para la familia: ¿se reserva algo? | Decisión de Naza. |
+| L5 | Frases de relleno del escritor: "Y después de todo eso viene la etapa que me vine a vivir a España…" al cierre del cap. 6. | Menor. |
