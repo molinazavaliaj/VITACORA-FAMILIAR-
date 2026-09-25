@@ -33,8 +33,8 @@ Piloto de cero reusando respuestas del piloto viejo (`--reusar`). Numeración pr
 | E20 | La despedida pegó el campo "cómo le dicen" entero ("Naza (así quiere que le digan; su nombre artístico es Tricky…)…"). Causa: la corrección a mano del controlador puso la aclaración dentro del valor. Arreglado en la ficha (valor "Naza", la aclaración en `por`); pendiente: que la despedida/presentación use solo el nombre aunque el valor traiga aclaraciones. | Arreglado a mano / pendiente en código. |
 
 ## Cambios al guion aprobados por Naza (25/09, para después del piloto)
-- **G1. Negocios, épocas flacas y un riesgo que salió mal, desde el adulto joven** (no solo desde los 36): "una persona de 27 ya intentó de todo". Hoy vive en `el-trabajo-y-la-plata` (adultez media).
-- **G2 (propuesto, falta el sí de Naza): pérdidas para cualquier edad** cuando la ficha tenga a alguien que murió (hoy solo 56+).
+- **G1. Negocios, épocas flacas y un riesgo que salió mal, desde el adulto joven** (no solo desde los 36): "una persona de 27 ya intentó de todo". Hoy vive en `el-trabajo-y-la-plata` (adultez media). **Hecho (ajuste F):** fila nueva `lo-que-salio-mal` en adulto joven para menores de 36 (sin edad todavía, entra); de 36 en adelante cae y queda `el-trabajo-y-la-plata`. Naza (27) pasa de 31 a 32 preguntas.
+- **G2 (aprobado por Naza): pérdidas para cualquier edad** cuando la ficha tenga a alguien que murió (hoy solo 56+). **Hecho (ajuste F):** si no vive la segunda mitad y la ficha tiene a alguien cercano con `vive: no` (familia de cualquier grado, pareja, amigos; no mascotas ni "el abuelo de un amigo"), `perdidas` entra en su última etapa vivida, sin época y con un tema sin "en estos años". 56+ sin cambios.
 - **G3. Sin opciones de ejemplo en las preguntas** (hecho: `12a04dc`).
 - **G4. No decir "ayer" si no se sabe cuándo fue la última respuesta** (E18, hecho en el ajuste F).
 

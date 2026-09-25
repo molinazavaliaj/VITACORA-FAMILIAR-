@@ -98,9 +98,9 @@ describe('paisDe y eventosDe (la historia grande, §4)', () => {
 });
 
 describe('armarGuion', () => {
-  it('Naza: 31 preguntas (ajuste A: entran pandemia Y Mundial, fuera del máximo de dos), un hermano por hermano, la pareja resuelta, sin hijos, sin adultez media', () => {
+  it('Naza: 32 preguntas (ajuste A: entran pandemia Y Mundial, fuera del máximo de dos; G1: lo-que-salio-mal), un hermano por hermano, la pareja resuelta, sin hijos, sin adultez media', () => {
     const { filas, caidas } = armarGuion(naza(), ANIO);
-    expect(preguntas(naza())).toBe(31);
+    expect(preguntas(naza())).toBe(32);
     const l = filas.map((f) => f.id);
     expect(l).toContain(`hermano-${slug('Ariel')}`); expect(l).toContain(`hermano-${slug('Juan Manuel')}`);
     expect(l).toContain('pareja-como-llego'); expect(l).not.toContain('hijos-llegada'); expect(l).not.toContain('el-trabajo-y-la-plata');
@@ -378,3 +378,79 @@ describe('arbolDe — pareja: "del" también es complemento (fix ronda 2)', () =
   });
 });
 
+
+// G1 (aprobado por Naza, 25/09): "una persona de 27 ya intentó de todo". Negocios, épocas flacas y un
+// riesgo que salió mal vivían solo en `el-trabajo-y-la-plata` (adultez media, 36+). Para quien no
+// vivió la adultez media, una fila en adulto joven con ese tema; si la vivió, no se duplica.
+describe('G1: lo-que-salio-mal desde el adulto joven', () => {
+  it('la fila existe en adulto joven, sin ofrecer opciones de ejemplo en la pregunta', () => {
+    const f = GUION.find((x) => x.id === 'lo-que-salio-mal')!;
+    expect(f.etapa).toBe('adulto joven');
+    expect(f.tema).toContain('sin ofrecerle opciones ni ejemplos');
+    expect(f.pormenores).toContain('las épocas flacas');
+  });
+  it('Naza (27) la tiene, en adulto joven, y no tiene el-trabajo-y-la-plata', () => {
+    const f = armarGuion(naza(), ANIO).filas.find((x) => x.id === 'lo-que-salio-mal');
+    expect(f?.bloque).toBe('adulto joven');
+    expect(ids(naza())).not.toContain('el-trabajo-y-la-plata');
+  });
+  it('Élida (76) no la duplica: tiene el-trabajo-y-la-plata y lo-que-salio-mal cae', () => {
+    const { filas, caidas } = armarGuion(elida(), ANIO);
+    expect(filas.map((f) => f.id)).toContain('el-trabajo-y-la-plata');
+    expect(filas.map((f) => f.id)).not.toContain('lo-que-salio-mal');
+    expect(caidas.find((c) => c.id === 'lo-que-salio-mal')?.motivo).toMatch(/el-trabajo-y-la-plata/);
+  });
+  it('a los 36 justo ya es el-trabajo-y-la-plata; a los 35, lo-que-salio-mal; sin edad todavía, entra', () => {
+    const de = (edad: string) => { const p = perfilVacio(); p.persona.edad = dicho(edad); return ids(p); };
+    expect(de('36')).toContain('el-trabajo-y-la-plata'); expect(de('36')).not.toContain('lo-que-salio-mal');
+    expect(de('35')).toContain('lo-que-salio-mal'); expect(de('35')).not.toContain('el-trabajo-y-la-plata');
+    expect(ids(perfilVacio())).toContain('lo-que-salio-mal');
+  });
+  it('el techo se respeta (40 hasta los 55, 44 desde los 56)', () => {
+    expect(preguntas(naza())).toBeLessThanOrEqual(40);
+    expect(preguntas(elida())).toBeLessThanOrEqual(44);
+  });
+});
+
+// G2 (aprobado por Naza, 25/09): `perdidas` solo entraba en la segunda mitad (56+). Si la ficha tiene a
+// alguien que murió y la persona no vive la segunda mitad, la fila entra en su última etapa vivida
+// antes de "hoy". Para 56+ queda como está.
+describe('G2: pérdidas para cualquier edad', () => {
+  it('27 con un tío muerto: entra en adulto joven, con su nombre y sin "en estos años"', () => {
+    const p = naza(); p.personas.push(persona('Carlos', 'tío', 'no'));
+    const f = armarGuion(p, ANIO).filas.find((x) => x.id === 'perdidas');
+    expect(f?.bloque).toBe('adulto joven');
+    expect(f?.tramo).toBeNull();
+    expect(f?.tema).toContain('Carlos');
+    expect(f?.tema).toContain('con tacto');
+    expect(f?.tema).not.toContain('en estos años');
+    expect(f?.pormenores).toEqual(['cómo fue', 'quién estuvo', 'cómo las lleva consigo']);
+  });
+  it('27 sin muertos: no entra', () => {
+    const { filas, caidas } = armarGuion(naza(), ANIO);
+    expect(filas.map((f) => f.id)).not.toContain('perdidas');
+    expect(caidas.find((c) => c.id === 'perdidas')).toBeDefined();
+  });
+  it('no cuentan los de otros ("abuelo de su amigo") ni las mascotas', () => {
+    const p = naza(); p.personas.push(persona('sin nombre (abuelo de Ciano)', 'abuelo de su amigo Martín', 'no'), persona('Homero', 'perro de la infancia', 'no'));
+    expect(ids(p)).not.toContain('perdidas');
+  });
+  it('un padre muerto sí cuenta (a los 27 no hay "los padres de grande")', () => {
+    const p = naza(); p.personas.push(persona('Roberto', 'padre', 'no'));
+    expect(ids(p)).toContain('perdidas');
+  });
+  it('45 (vive la adultez media, no la segunda mitad): entra en adultez media', () => {
+    const p = perfilVacio(); p.persona.edad = dicho('45'); p.personas.push(persona('Ana', 'hermana', 'no'));
+    expect(armarGuion(p, ANIO).filas.find((x) => x.id === 'perdidas')?.bloque).toBe('adultez media');
+  });
+  it('76 queda como estaba: segunda mitad, tema de siempre', () => {
+    const f = armarGuion(elida(), ANIO).filas.find((x) => x.id === 'perdidas');
+    expect(f?.bloque).toBe('segunda mitad');
+    expect(f?.tema).toContain('en estos años');
+  });
+  it('una muerte nueva en la ficha cambia la firma (el guion se rearma)', () => {
+    const p = naza(); const antes = firmaGuion(p, ANIO);
+    p.personas.push(persona('Carlos', 'tío', 'no'));
+    expect(firmaGuion(p, ANIO)).not.toBe(antes);
+  });
+});

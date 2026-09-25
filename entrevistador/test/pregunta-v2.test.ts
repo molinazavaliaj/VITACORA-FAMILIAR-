@@ -111,7 +111,7 @@ describe('armarPromptPregunta', () => {
     const exacto = armarPromptPregunta(p, s.pendientes.at(-1)!, conv, [...s.pendientes.slice(0, 40).map((o) => ({ id: o.id, tema: o.tipo === 'nucleo' ? o.tema : o.id })), ...repreguntas]);
     expect(exacto.length).toBeLessThanOrEqual(13_800);
   });
-  it('los ya hechos se listan cortos y sin id: la cabeza del tema (primera oración, hasta 80), la repregunta hasta 80 (E18: era 100; bajó para que entre CUÁNDO CONTESTÓ en el techo), la libre con su ancla; sin repetidos (I1)', () => {
+  it('los ya hechos se listan cortos y sin id: la cabeza del tema (primera oración, hasta 80), la repregunta hasta 75 (ajuste F: era 100; bajó para que entren CUÁNDO CONTESTÓ y lo-que-salio-mal en el techo), la libre con su ancla; sin repetidos (I1)', () => {
     const prompt = armarPromptPregunta(perfilDeVos(), fila('la-escuela'), [], [
       { id: 'amigos', tema: 'Quiénes eran sus amigos de siempre, los de la cuadra y los del colegio. Qué hacían los fines de semana.' },
       { id: 'censo', tema: 'El censo: quiénes son los suyos hoy.' },
@@ -133,7 +133,7 @@ describe('armarPromptPregunta', () => {
     const sinPunto = lista.find((l) => l.startsWith('- Una línea'))!.slice(2);
     expect(sinPunto.length).toBeLessThanOrEqual(80); expect(sinPunto.endsWith('…')).toBe(true);
     const rep = lista.find((l) => l.startsWith('- (repregunta) '))!.slice('- (repregunta) '.length);
-    expect(rep.length).toBeLessThanOrEqual(80);
+    expect(rep.length).toBeLessThanOrEqual(75);
     expect(rep.startsWith('¿Y con quién estabas ese día, y qué pasó después?')).toBe(true);
     expect(lista.some((l) => /- (amigos|censo|x-repregunta|objeto-hoy):/.test(l))).toBe(false);
   });

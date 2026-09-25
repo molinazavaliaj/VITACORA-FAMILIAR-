@@ -83,8 +83,8 @@ export function objetivoEnTexto(o: Objetivo, perfil: Perfil): string {
 
 /** Cuánto entra de cada tema ya hecho y de cada repregunta ya mandada en "TEMAS QUE YA LE PREGUNTASTE". */
 export const MAX_TEMA_HECHO = 80;
-/** E18 (25/09): era 100; bajó a 80 para que CUÁNDO CONTESTÓ y su regla entren en el techo de 13.800 del prompt de la pregunta 40. */
-export const MAX_REPREGUNTA_HECHA = 80;
+/** Ajuste F (25/09): era 100; bajó a 75 para que CUÁNDO CONTESTÓ (E18) y la fila lo-que-salio-mal (G1) entren en el techo de 13.800 del prompt de la pregunta 40. */
+export const MAX_REPREGUNTA_HECHA = 75;
 const PREFIJO_REPREGUNTA = '(repregunta) ';
 
 /**

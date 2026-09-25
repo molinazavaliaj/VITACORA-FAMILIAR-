@@ -26,6 +26,8 @@ export type Bloque = 'presentacion' | Etapa;
 export type Condicion =
   | 'siempre'
   | { edadMin: number }
+  /** G1 (25/09): solo para quien todavía no vive esa edad (sin edad todavía, entra: se rearma cuando llega). */
+  | { edadMenor: number }
   | { arbol: 'hermanos' | 'hijos' | 'pareja' | 'nietos' | 'padresGrandes' | 'perdidas' }
   | { evento: true };
 export type Fila = {
@@ -82,6 +84,10 @@ const MUNDIAL_PORMENORES = ['si le gusta el fútbol o algún deporte', 'dónde l
  * filas la disparan para la misma persona (sin pareja NI hijos), `armarGuion` deja pasar solo la
  * primera y cae la segunda con motivo "ya entra quienes-fueron-tu-familia".
  */
+/** G1 (25/09, texto nuevo para aprobar): negocios, épocas flacas y un riesgo, desde el adulto joven. */
+const LO_QUE_SALIO_MAL = 'Algo que intentó y le salió mal (un negocio, un proyecto, una apuesta) y las épocas flacas: qué pasó y qué aprendió. Preguntá abierto, sin ofrecerle opciones ni ejemplos: que lo diga con sus palabras.';
+/** G2 (25/09, texto nuevo para aprobar): `perdidas` para quien no vive la segunda mitad; sin "en estos años". */
+const PERDIDAS_ANTES = 'Las personas que perdió ({NOMBRES}), con tacto. Solo las que la ficha dice que murieron.';
 const FAMILIA_VARIANTE = variante('quienes-fueron-tu-familia', 'De quién se ocupó y quién fue su familia en esos años.', ['de quién se ocupó', 'quién fue su familia']);
 
 export const GUION: readonly Fila[] = [
@@ -109,6 +115,9 @@ export const GUION: readonly Fila[] = [
   { id: 'hijos-llegada', etapa: 'adulto joven', tramo: 'adulto joven', aplica: { arbol: 'hijos' }, tema: 'El día que nació su primer hijo/a y cómo fueron llegando los demás.', pormenores: ['dónde estaba', 'qué sintió', 'cómo eligieron el nombre'] },
   { id: 'hijo', etapa: 'adulto joven', tramo: 'adulto joven', aplica: { arbol: 'hijos' }, expandePor: 'hijos', tema: 'Cada hijo/a {NOMBRE}, uno por uno: cómo es, a quién salió, qué admira.', pormenores: ['cómo era de chico/a', 'una escena', 'cómo es hoy'] },
   { id: 'un-lugar-que-cambio-algo', etapa: 'adulto joven', tramo: null, aplica: S, tema: 'Un lugar que le cambió la vida: una mudanza, un viaje, otro país, otra ciudad. Quién lo esperaba, sin suponerlo. Si no se mudó nunca: la esquina de siempre, qué la hace suya.', pormenores: ['el primer día ahí', 'quién lo esperaba', 'qué dejó atrás', 'por qué se fue'] },
+  // G1 (aprobado por Naza, 25/09): "una persona de 27 ya intentó de todo". Para quien no vive la
+  // adultez media; si la vive, esto ya está en `el-trabajo-y-la-plata` y no se duplica.
+  { id: 'lo-que-salio-mal', etapa: 'adulto joven', tramo: 'adulto joven', aplica: { edadMenor: 36 }, tema: LO_QUE_SALIO_MAL, pormenores: ['qué intentó y por qué', 'cómo salió mal', 'las épocas flacas', 'qué aprendió'] },
   { id: 'amigos-de-siempre', etapa: 'adulto joven', tramo: null, aplica: S, tema: 'Los amigos de la vida adulta: del trabajo, del club, los que quedaron de antes.', pormenores: ['una escena con ellos', 'cómo se mantienen'] },
   // Adultez media (por-gusto cruza la vida: si no vivió esta etapa, armarGuion la baja al adulto joven)
   { id: 'el-trabajo-y-la-plata', etapa: 'adultez media', tramo: 'adultez media', aplica: { edadMin: 36 }, tema: 'Los años fuertes del trabajo, y la plata con confianza.', pormenores: ['la mejor anécdota', 'un jefe o un socio', 'épocas flacas', 'un riesgo (un negocio, una casa)', 'qué relación ve entre la plata y la felicidad'] },
@@ -142,6 +151,8 @@ export type Arbol = {
   hermanos: string[]; hijos: string[]; pareja: string[]; nietos: string[]; sobrinos: string[];
   padres: { nombre: string; vive: 'si' | 'no' | 'no se sabe' }[];
   perdidas: string[];
+  /** G2 (25/09): toda persona cercana que la ficha dice que murió (familia de cualquier grado, pareja, amigos; no mascotas ni "el abuelo de un amigo"). Para `perdidas` antes de la segunda mitad. */
+  perdidasTodas: string[];
   noTuvo: string[];
 };
 
@@ -170,8 +181,11 @@ const esPareja = (v: string) => {
   return empieza(v, /^(pareja|novi[oa]|espos[oa]|marido|mujer|conyuge|companer[oa])\b(?!\s+(de|del)\b)/);
 };
 
+/** G2: un vínculo cercano (familia de cualquier grado, amigos), sin complemento con "de"/"del". */
+const CERCANO = /^(padre|madre|papa|mama|padrastro|madrastra|hij[oa]s?|niet[oa]s?|bisniet[oa]s?|sobrin[oa]s?|abuel[oa]s?|bisabuel[oa]s?|ti[oa]s?|prim[oa]s?|cunad[oa]s?|suegr[oa]s?|yerno|nuera|padrino|madrina|ahijad[oa]|amig[oa]s?)\b(?!\s+(de|del)\b)/;
+
 export function arbolDe(p: Perfil): Arbol {
-  const a: Arbol = { hermanos: [], hijos: [], pareja: [], nietos: [], sobrinos: [], padres: [], perdidas: [], noTuvo: [...(p.noTuvo ?? [])] };
+  const a: Arbol = { hermanos: [], hijos: [], pareja: [], nietos: [], sobrinos: [], padres: [], perdidas: [], perdidasTodas: [], noTuvo: [...(p.noTuvo ?? [])] };
   const amigos: string[] = [];
   for (const x of p.personas) {
     const v = x.vinculo;
@@ -188,6 +202,11 @@ export function arbolDe(p: Perfil): Arbol {
   // solo si ya cuenta como hermano, sin duplicar ni perder criterio con la clasificación de arriba.
   const muertos = new Set(p.personas.filter((x) => x.vive === 'no').map((x) => x.nombre));
   a.perdidas = [...a.pareja, ...a.hermanos, ...a.hijos, ...amigos].filter((n) => muertos.has(n));
+  // G2: con el mismo criterio de "empieza por la palabra, sin complemento" (así "abuelo de su amigo"
+  // no cuenta). Sin nombre ("sin nombre (…)"), se nombra por el vínculo.
+  a.perdidasTodas = p.personas
+    .filter((x) => x.vive === 'no' && (esHermano(x.vinculo) || esPareja(x.vinculo) || empieza(x.vinculo, CERCANO)))
+    .map((x) => (/^[A-ZÁÉÍÓÚÑÜ]/.test(x.nombre.trim()) ? x.nombre.trim() : x.vinculo.trim()));
   return a;
 }
 
@@ -380,6 +399,10 @@ function resolver(f: Fila, arbol: Arbol, edad: number | null, eventos: ReturnTyp
     nombres.length ? { entra: entra() } : arbol.noTuvo.includes(vinculo) ? resolverNoTuvo(vinculo) : resolverNoSabe(vinculo);
   const c = f.aplica;
   if (c === 'siempre') return { entra: [objetivoDe(f)] };
+  if ('edadMenor' in c) {
+    // G1: sin edad todavía entra (el guion se arma hasta el adulto joven y se rearma cuando llega).
+    return edad === null || edad < c.edadMenor ? { entra: [objetivoDe(f)] } : { cae: `tiene ${c.edadMenor} o más: va en el-trabajo-y-la-plata` };
+  }
   if ('edadMin' in c) {
     // guion §3, fila 27: "sigue trabajando" manda primero (antes de la edad y de "se jubiló"): a
     // los 70 con "sigue trabajando en el taller" le toca la variante, no la fila normal (fix ronda 2).
@@ -449,9 +472,19 @@ export function armarGuion(p: Perfil, anioActual = new Date().getFullYear()): { 
   // ("quienes-fueron-tu-familia") cuando dijo que no tuvo pareja o hijos; si las dos se disparan
   // para la misma persona, entra una sola vez (la que aparece primero en el guion) y la segunda cae.
   let familiaEmitida = false;
+  // G2: la última etapa vivida antes de "hoy" (sin edad todavía, el adulto joven).
+  const ultimaVivida = [...TRAMOS_ORDEN].reverse().find((t) => vividos.has(t))!;
   for (const f of GUION) {
     if (!vividos.has(f.etapa)) {
       if (f.id === 'por-gusto') { filas.push({ ...objetivoDe(f), bloque: 'adulto joven' }); continue; }
+      // G2: si no vive la segunda mitad y la ficha tiene a alguien cercano que murió, `perdidas` entra
+      // en su última etapa vivida, sin época (puede haber sido en cualquier momento de su vida).
+      if (f.id === 'perdidas') {
+        if (arbol.perdidasTodas.length) {
+          filas.push({ ...objetivoDe(f, f.id, PERDIDAS_ANTES.replace('{NOMBRES}', arbol.perdidasTodas.join(', '))), tramo: null, bloque: ultimaVivida });
+        } else caidas.push({ id: f.id, motivo: 'la ficha no tiene a nadie cercano que murió' });
+        continue;
+      }
       caidas.push({ id: f.id, motivo: `no vivió ${f.etapa}` });
       continue;
     }
