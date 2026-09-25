@@ -9,9 +9,10 @@
 3. No hay repregunta. Lo que un lector necesita (cómo terminó, qué fue de esa persona) va como pregunta propia. Al cerrar cada bloque, el narrador elige qué ampliar.
 4. Ritmo por turnos: el narrador tiene siempre una sola pregunta pendiente. La siguiente llega cuando responde.
 5. La ficha la carga quien regala (6 campos obligatorios, género incluido). Lo que falta se le pregunta al narrador como dato, con botones.
-6. Antes de escribir, el narrador corrige los nombres en el dashboard. El libro se escribe una sola vez.
+6. Termina la entrevista → el narrador ve en el dashboard sus respuestas transcriptas tal cual y corrige lo que quiera (nombres, datos, sacar respuestas) → recién ahí se escribe el libro, una vez.
 7. El escritor es un solo modelo en 4 pasos, con controles de código. La pasada única de Naza se compara en la prueba.
-8. No se gasta en modelos hasta pasar E3 y E4. El escritor se prueba (E7) sobre una sola historia, la de Naza: primero dentro de la sesión, sin gastar API, con los mismos prompts que irían a la API; por API, ~USD 5–6.
+8. El Estándar reparte las preguntas por etapa vivida: al menos 6 por etapa (infancia, escuela, adolescencia, juventud), 8 si el narrador tiene menos de 45. Vida típica de 60+: 102 con puertas. Joven de 29 sin pareja ni hijos, emigrado: 82 de historia, 95 con puertas.
+9. No se gasta en modelos hasta pasar E3 y E4. El escritor se prueba (E7) sobre una sola historia, la de Naza: primero dentro de la sesión, sin gastar API, con los mismos prompts que irían a la API; por API, ~USD 5–6.
 
 El banco completo está en [`banco-v3.md`](banco-v3.md).
 
@@ -38,12 +39,13 @@ Mandan sobre los informes. Donde un informe dice otra cosa, gana esto.
 | Ritmo | Por turnos, no por días ni por cupo semanal. Responde → llega la siguiente. Siempre una sola pendiente. Los audios que llegan con la pregunta abierta se suman a la misma respuesta; la siguiente llega sola a los 3-5 minutos sin audios nuevos, o antes con el botón [Siguiente]. Responde a su tiempo. Recordatorio suave si pasan días. Puede decir "pausa". |
 | Ficha | La carga quien regala. Obligatorio: nombre (y cómo le dicen), año de nacimiento, país, para quién es el libro (y qué es del narrador), género. Lo demás es opcional con tres estados: lleno / "no tiene" / "no sé". País de nacimiento y de residencia por separado. Oficio: "a qué se dedica / se dedicó", con opción "trabajó en su casa". Campos nuevos del informe 3. "Temas que no tocar". Otros nombres con grafía. |
 | Datos que faltan | Primero la ficha. Si falta, se le pregunta al narrador como dato al abrir el bloque: botones o primera palabra del audio. En las de datos sí se piden varias cosas juntas. También se le puede pedir a quien regala por mail. Si igual no hay dato: versión genérica, solo en preguntas no sensibles. |
-| Nombres | Los corrige el narrador (es su historia) en el dashboard, al terminar la entrevista y antes de escribir. El sistema junta los nombres por reglas, no por modelo, con clip de audio y "qué es tuyo". El libro se escribe una vez. Retranscribir con la lista (~USD 1): propuesta a validar con E3. |
+| Dashboard y escritura | Orden fijo (25/09): termina la entrevista → el narrador ve en el dashboard sus respuestas transcriptas tal cual y corrige lo que quiera (nombres, datos, sacar respuestas) → recién ahí se escribe el libro, una vez. Los nombres los corrige el narrador (es su historia); el sistema los junta por reglas, no por modelo, con clip de audio y "qué es tuyo". Retranscribir con la lista (~USD 1): propuesta a validar con E3. |
 | Sentirse escuchado | Aprobado: biógrafo con nombre y voz, nombres de la ficha, acuses cálidos fijos (set sobrio para pérdidas y legado), avance a la vista con progreso dotado desde el primer mensaje, elegir el tema del turno siguiente entre 2, reacciones de la familia, preguntas de la familia, conteos sin contenido, preguntas grabadas con voz humana. Descartado: párrafos de su libro mientras narra, capítulo de mitad de programa, que el biógrafo comente o resuma, rachas y medallas. |
 | Sensibles | Solo con dato confirmado (ficha o botón). Excluibles desde la ficha. "Paso" siempre. Acuse sobrio. El aviso va justo antes de la primera sensible del bloque, en el mismo turno. Una vez por bloque. |
 | ID1 | Se suma ("¿Hubo una parte de vos que tuviste que esconder durante años?…"): sensible, Estándar. |
-| Temas nuevos | Oficio, pasiones y hobbies, una ayuda recibida, una traición (textos del informe 3). Pandemia y Mundial que ganó Argentina (si lo vivió con 6+ años) van siempre, fuera del menú de HG1. |
-| Tamaños | Breve (~50 preguntas, libro breve ~45 páginas), Estándar (~95 enviadas para una vida típica, ~70 páginas), Completo (~145). No se prometen páginas fijas: varían con la vida. |
+| Temas nuevos | Oficio, pasiones y hobbies, una ayuda recibida, una traición (textos del informe 3). Pandemia: pregunta fija, fuera del menú de HG1 (**confirmada por Naza (25/09)**). Mundial (25/09): deja de ser pregunta fija y vuelve al menú de HG1 (Argentina: 78, 86, 2022). |
+| Lo militar | (25/09) En vez de "servicio militar": "¿Tuviste alguna experiencia con lo militar: la colimba, la mili, un colegio militar, alguien de tu familia en las fuerzas?" [Sí] [No]. Si Sí: un día de esa experiencia (Estándar) y, en Completo, alguien que conoció ahí. Sin condición de género ni de edad. |
+| Tamaños | Breve (~50 preguntas, libro breve ~45 páginas), Estándar (~95 enviadas para una vida típica, ~70 páginas), Completo (~145). No se prometen páginas fijas: varían con la vida. **Estándar balanceado por etapa vivida (25/09):** cada etapa vivida (infancia, escuela, adolescencia, juventud) recibe al menos 6 preguntas de historia; con menos de 45 años, al menos 8, porque no hay adultez que contar. Resultado: vida típica 60+ = 102 con puertas; joven de 29 = 82 de historia (objetivo 70–85), 95 con puertas. |
 | Escritor | Un modelo en 4 pasos: biblia → plan → capítulos → lectura de continuidad. Controles de código: nombres, años, citas, personas presentadas una vez. Cronológico con marco. Capítulos con apertura, giro y remate. Títulos por etapa o frase propia, nunca por lugar solo. Citas clean verbatim, pocas y verificadas. Nunca estirar. La pasada única de Naza es un brazo de la prueba. |
 | Arquitectura | No son "agentes" autónomos. Es una cadena fija de roles controlada por código. |
 
@@ -136,15 +138,20 @@ Sin que un modelo interprete nada. Todo es número, nombre de la ficha, botón o
 - **Epígrafe por audio.** Cada pedido termina con "contame en un audio quiénes están, dónde es y de qué año más o menos". Ese audio es el epígrafe.
 - Van al cerrar el bloque, atados a un tema ya preguntado. Son 14 pedidos posibles; con 8–10 fotos el libro se arma bien (informe 1). Tabla en el banco.
 
-### Nombres y correcciones
+### Dashboard: revisión antes de escribir
 
-Al terminar la entrevista y **antes** de escribir:
+Orden fijo (decisión de Naza, 25/09). El libro no se escribe hasta que el narrador terminó de revisar.
 
-1. El Juntador arma la lista de nombres de todos los audios, por reglas.
-2. El narrador la ve en el dashboard. Por cada nombre: cómo lo escribió la transcripción, cuántas veces aparece, un clip de unos 3 segundos del audio, y "qué es tuyo" (hermano/a, amigo/a, pareja, jefe, vecino, otro, no sé).
-3. Corrige la grafía, marca la relación, descarta falsos positivos con un clic.
-4. Propuesta a validar con E3: retranscribir todo con la lista confirmada (~USD 1).
-5. Recién ahí escribe el escritor. Una sola vez.
+1. **Termina la entrevista.**
+2. **El narrador ve en el dashboard todas sus respuestas transcriptas tal cual**, pregunta por pregunta, con el audio al lado.
+3. **Corrige lo que quiera:**
+   - **Nombres.** El Juntador arma la lista de nombres de todos los audios, por reglas. Por cada nombre: cómo lo escribió la transcripción, cuántas veces aparece, un clip de unos 3 segundos del audio, y "qué es tuyo" (hermano/a, amigo/a, pareja, jefe, vecino, otro, no sé). Corrige la grafía, marca la relación, descarta falsos positivos con un clic.
+   - **Datos.** Años, lugares, lo que la transcripción entendió mal.
+   - **Sacar respuestas.** Lo que no quiere que esté en el libro, fuera, con calma (por eso se descartó el "esto no lo pongas" por WhatsApp).
+4. Propuesta a validar con E3: retranscribir todo con la lista de nombres confirmada (~USD 1).
+5. **Recién ahí se escribe el libro. Una sola vez.**
+
+Después del libro: ver "Revisión del PDF" en temas abiertos (recomendación de Claude).
 
 ## 4. La ficha
 
@@ -156,7 +163,7 @@ La carga quien regala en la compra. Queda en el dashboard y se puede editar.
 |---|---|---|---|
 | Nombre completo, con grafía exacta, y cómo le dicen | Sí | lleno | Portada, `{{nombre}}`, `{{apodo}}` (OR6.2), primer término para el STT |
 | Género: varón / mujer / otro, y cómo prefiere que le hablen | Sí | lleno | `{{o/a}}` en todo el banco |
-| Año de nacimiento | Sí | lleno | Variantes por edad, Mundial, línea de tiempo |
+| Año de nacimiento | Sí | lleno | Variantes por edad (E:45+, E:60+, E-joven), línea de tiempo |
 | País de nacimiento | Sí | lleno | Menú de historia grande |
 | País de residencia, y cómo habla (vos / tú) | Sí | lleno | Voseo o tuteo por defecto |
 | Para quién es el libro: nombres y qué son del narrador | Sí | lleno | Dedicatoria, `{{destinatarios}}` (LE2, LE8), "tu nieta Juli" |
@@ -172,7 +179,7 @@ La carga quien regala en la compra. Queda en el dashboard y se puede editar.
 | A qué se dedica / se dedicó (texto según edad, 1 a 4), con opción "trabajó en su casa" | No | lleno / no tiene / no sé | TR2–TR6, OB1, OB2; `{{trabajo_principal}}` |
 | Dejó de trabajar | No | lleno / no tiene / no sé | TR9 |
 | Estudió después del secundario; si lo terminó | No | lleno / no tiene / no sé | JU2, JU3, PR1, JU2b; JU4 si "no tiene" |
-| Servicio militar | No | lleno / no tiene / no sé | JU5–JU7 |
+| Experiencia con lo militar: colimba, mili, colegio militar, familiar en las fuerzas | No | lleno / no tiene / no sé | JU5, JU6. Sin condición de género ni de edad |
 | Religión | No | lleno / no tiene / no sé | ES9, RE1, RE2 |
 | Persona importante que no entra en las categorías: nombre y cómo la describiría | No | lleno / no tiene / no sé | PI1, PI2. Solo por ficha |
 | Enfermedad de largo plazo (solo si quiere que esté en el libro) | No | lleno / no tiene / no sé | EC1. Solo por ficha |
@@ -183,40 +190,43 @@ La carga quien regala en la compra. Queda en el dashboard y se puede editar.
 
 Detalle, textos, preguntas de datos, fotos y mensajes fijos: [`banco-v3.md`](banco-v3.md).
 
-- **197 filas de historia** en 15 bloques, más 13 puertas abiertas, 12 válvulas "más", 16 preguntas de datos, 14 pedidos de foto y 20 mensajes fijos.
+- **195 filas de historia** en 15 bloques, más 13 puertas abiertas, 12 válvulas "más", 16 preguntas de datos, 14 pedidos de foto y 20 mensajes fijos.
 - Cada pregunta pide **una escena**. Las que pedían dos historias se partieron.
 - Todo "pendiente de aprobación": Naza aprueba cada texto.
+- **Estándar balanceado por etapa vivida** (regla de Naza, 25/09): en Estándar, cada etapa vivida (bloques 2 a 5) recibe al menos 6 preguntas de historia; si el narrador tiene menos de 45, al menos 8. Para eso se pasaron de C a E ES5, ES5b, ES6, JU2, JU4, JU12, JU12b y JU13; se sumaron JU15 (amigos de la juventud) y JU5 (lo militar); y hay 8 filas **E-joven** que entran en Estándar solo con menos de 45: CA13, CA17, ES3, ES8, AD4, AD8, JU16 y JU17. Con la ficha más flaca, cada etapa da 6 (45 o más) u 8 (menos de 45).
 
-Filas por bloque y tamaño (B = Breve, E = entra en Estándar, C = solo Completo). "Estándar típica" = lo que recibe una vida típica de 60+ con hermanos, pareja actual, dos hijos y nietos.
+Filas por bloque y tamaño (B = Breve, E = entra en Estándar, C = solo Completo; la columna "menos de 45" suma las E-joven). "Estándar típica" = lo que recibe una vida típica de 60+ con hermanos, pareja actual, dos hijos y nietos. "Estándar joven" = un joven de 29, emigrado, sin pareja ni hijos, con estudios terminados (detalle de las dos fichas en el banco).
 
-| # | Bloque | Breve | Estándar | Completo | Estándar típica |
-|---|---|---|---|---|---|
-| 1 | Origen y raíces | 3 | 3 | 7 | 3 |
-| 2 | La casa y la familia de la infancia | 6 | 7 | 18 | 6 |
-| 3 | La escuela y los juegos | 3 | 3 | 12 | 3 |
-| 4 | Adolescencia | 4 | 6 | 15 | 6 |
-| 5 | Juventud: estudios, servicio militar, migración, irse de casa | 3 | 6 | 21 | 1 |
-| 6 | Amor y pareja | 5 | 18 | 20 | 10 |
-| 7 | Trabajo y oficio | 6 | 13 | 23 | 10 |
-| 8 | Hijos y nietos | 4 | 13 | 13 | 11 |
-| 9 | Lugares y pasiones | 2 | 4 | 8 | 4 |
-| 10 | Amistades y ayudas | 2 | 4 | 8 | 3 |
-| 11 | Pérdidas y crisis (sensible) | 3 | 11 | 13 | 8 |
-| 12 | La historia grande | 3 | 3 | 7 | 3 |
-| 13 | Puntos altos, bajos y giros | 2 | 4 | 15 | 4 |
-| 14 | Hoy | 2 | 3 | 8 | 3 |
-| 15 | Legado y cierre | 4 | 8 | 9 | 7 |
-| | **Total** | **52** | **106** | **197** | **82** |
+| # | Bloque | Breve | Estándar | Estándar (menos de 45) | Completo | Estándar típica | Estándar joven |
+|---|---|---|---|---|---|---|---|
+| 1 | Origen y raíces | 3 | 3 | 3 | 7 | 3 | 3 |
+| 2 | La casa y la familia de la infancia | 6 | 7 | 9 | 18 | 6 | 8 |
+| 3 | La escuela y los juegos | 3 | 6 | 8 | 12 | 6 | 8 |
+| 4 | Adolescencia | 4 | 6 | 8 | 15 | 6 | 8 |
+| 5 | Juventud: estudios, lo militar, migración, irse de casa | 3 | 13 | 15 | 21 | 6 | 13 |
+| 6 | Amor y pareja | 5 | 18 | 18 | 20 | 10 | 1 |
+| 7 | Trabajo y oficio | 6 | 13 | 13 | 23 | 10 | 11 |
+| 8 | Hijos y nietos | 4 | 13 | 13 | 13 | 11 | 1 |
+| 9 | Lugares y pasiones | 2 | 4 | 4 | 8 | 4 | 4 |
+| 10 | Amistades y ayudas | 2 | 4 | 4 | 8 | 3 | 3 |
+| 11 | Pérdidas y crisis (sensible) | 3 | 11 | 11 | 13 | 8 | 6 |
+| 12 | La historia grande | 2 | 2 | 2 | 5 | 2 | 2 |
+| 13 | Puntos altos, bajos y giros | 2 | 4 | 4 | 15 | 4 | 4 |
+| 14 | Hoy | 2 | 3 | 3 | 8 | 3 | 3 |
+| 15 | Legado y cierre | 4 | 8 | 8 | 9 | 7 | 7 |
+| | **Total** | **51** | **115** | **123** | **195** | **89** | **82** |
 
-Lo que le llega a la vida típica:
+Lo que le llega a cada ficha:
 
-| | Breve | Estándar | Completo |
-|---|---|---|---|
-| Preguntas de historia | 49 | 82 | 159 |
-| + 13 puertas abiertas | — (a decidir) | **95** | 172 |
-| + 12 válvulas "más" | — (a decidir) | 107 | 184 |
+| | Típica 60+: Breve | Típica 60+: Estándar | Típica 60+: Completo | Joven 29: Breve | Joven 29: Estándar | Joven 29: Completo |
+|---|---|---|---|---|---|---|
+| Preguntas de historia | 48 | 89 | 160 | 40 | 82 | 143 |
+| + 13 puertas abiertas | — (a decidir) | **102** | 173 | — (a decidir) | **95** | 156 |
+| + 12 válvulas "más" | — (a decidir) | 114 | 185 | — (a decidir) | 107 | 168 |
 
-El Estándar con puertas da 95, como pide la decisión de tamaños (fila 12). El Completo da más que los ~145 del informe 3 porque ahora hay 17 cierres de lector como filas propias, 4 preguntas partidas y el Mundial viejo.
+- **Vida típica 60+:** el Estándar con puertas pasó de 95 a **102** (objetivo ~95, techo 105): +8 por la regla de etapas y −1 por sacar el Mundial fijo. No hizo falta compensar con los bloques de adultez.
+- **Joven de 29:** **82 de historia**, dentro del objetivo 70–85; con puertas, 95. Las etapas vividas le dan 37 (antes 21). Si el objetivo era con puertas, no se llega tocando solo las etapas: sin ninguna E-joven daría 87, porque el peso está en trabajo (11) y pérdidas (6). A decidir.
+- El Completo da más que los ~145 del informe 3 porque ahora hay 16 cierres de lector como filas propias y 3 preguntas partidas.
 
 ## 6. El escritor
 
@@ -281,7 +291,7 @@ Si algo falla, vuelve al paso 4 como problema.
 
 ## 7. Costos
 
-**Precios de Fable, sin verificar.** Salen del informe 1 (C.5), que dice haber leído la página de precios de Anthropic el 25/09/2026. Supone 130 preguntas, 4 horas de audio y un libro de 18 mil palabras. Con el Estándar de ~95 debería salir menos; no está recalculado.
+**Precios de Fable, sin verificar.** Salen del informe 1 (C.5), que dice haber leído la página de precios de Anthropic el 25/09/2026. Supone 130 preguntas, 4 horas de audio y un libro de 18 mil palabras. Con el Estándar de ~102 (vida típica, con puertas) debería salir menos; no está recalculado.
 
 Precios por millón de tokens:
 
@@ -386,7 +396,9 @@ Estado según lo que dijo Naza el 25/09: P1, P2 y P3 aprobadas; P4 pendiente; P5
 | Rachas y medallas | Decisión 8. Sin evidencia en mayores (informe 2). |
 | Genéricos en preguntas sensibles | Crueles (E2). Sin dato, no se mandan. |
 | La familia confirma los nombres / llamada para confirmar la ficha | Decisión 7: los corrige el narrador en el dashboard. |
-| Pandemia y Mundial dentro del menú de HG1 | Decisión 11: van siempre, como preguntas propias. |
+| Mundial como pregunta fija (HG5 final de 2022, HG6 el 78 o el 86) | Decisión de Naza, 25/09: vuelve a ser una opción del menú de HG1. La pandemia sigue fija (a confirmar). |
+| Servicio militar con gate propio y cinco preguntas (JU5, JU6, JU6b, JU7, JU7.2) | Decisión de Naza, 25/09: pasa a "experiencia con lo militar" (D5 + JU5 + JU6), sin género ni edad. |
+| Estándar flaco en la primera mitad de la vida (1 sola pregunta de juventud en la vida típica) | Regla de etapas, 25/09: al menos 6 por etapa vivida, 8 con menos de 45. |
 | AS2, AS3, HO3, TR7 | Reemplazadas por AY1, OF2/HJ8, PA2 y CR1 (informe 3). |
 | "Gracias, quedó guardado. Mañana seguimos." | Habla de tiempo; con turnos no hay "mañana". |
 | El viaje del héroe como estructura del libro; arquetipos (mentor, sombra…) como preguntas | Distorsiona vidas comunes; los arquetipos obligan a etiquetar gente real (informes 1 y 3). |
@@ -397,16 +409,16 @@ Estado según lo que dijo Naza el 25/09: P1, P2 y P3 aprobadas; P4 pendiente; P5
 ## 11. Temas abiertos
 
 - **Repregunta.** E1 dio mediana de 58 s y 15 % de escenas; 6 de 9 escenas vinieron con repregunta. Se decide con los datos de E4. Si la mediana queda bajo 50 s, la opción que no lee historias es una repregunta universal fija ("Contame una vez concreta en que pasó eso") disparada por duración (informe 2).
-- **Textos del banco.** ID1 y los 197 textos, 13 puertas, 16 de datos, 14 fotos y 20 mensajes: todos pendientes de aprobación. Faltan redactar acuses, recordatorios, presentación del biógrafo, respuesta a "pausa" y cierre.
-- **Tamaños.** La asignación B/E/C de las filas viejas es de este documento (regla en el banco). Hay que aprobarla. Breve hoy no tiene puertas ni válvula.
+- **Textos del banco.** ID1 y los 195 textos, 13 puertas, 16 de datos, 14 fotos y 20 mensajes: todos pendientes de aprobación. Faltan redactar acuses, recordatorios, presentación del biógrafo, respuesta a "pausa" y cierre.
+- **Tamaños.** La asignación B/E/C de las filas viejas es de este documento (regla en el banco). Hay que aprobarla. Breve hoy no tiene puertas ni válvula. Regla de etapas: qué filas pasaron a E y cuáles son E-joven (CA13, CA17, ES3, ES8, AD4, AD8, JU16, JU17) es elección de este documento; el corte de 45 años es el de Naza. Falta decidir si el 70–85 del joven es con o sin puertas (hoy: 82 sin, 95 con).
 - **Cómo le llega el mail a quien regala** para completar datos: cuándo, qué se le pide, qué pasa si no contesta.
 - **Qué hace Joaquín en la web / dashboard.**
 - **Limpieza clean verbatim.** Fable la hacía con Haiku en cada respuesta. No está decidido si se hace o si el escritor lee la transcripción cruda.
-- **Revisión antes de imprimir.** Fable proponía que el narrador lea el PDF y marque errores (una ronda de retoques, ~USD 0,3). La decisión 7 dice que el libro se escribe una vez: falta decir si hay retoques puntuales después.
+- **Revisión del PDF (recomendación de Claude).** El orden ya está decidido: el narrador corrige sus respuestas en el dashboard y recién ahí se escribe el libro, una vez. Lo que falta decidir es qué pasa después. Recomendación: que vea el PDF para aprobarlo antes de imprimir; si marca un error, se reescribe **solo ese párrafo** (centavos: el material ya está en caché y la llamada es chica), **nunca el libro entero**. Así el libro sigue escribiéndose una vez y el narrador no imprime algo que no aprobó. A decidir por Naza: cuántas rondas (propuesta: una) y si puede marcar errores o también pedir cambios de gusto.
 - **Recordatorios:** cuántos días, a qué hora, cuántos como máximo, y si también le llega uno a la familia.
 - **Elegir el tema:** cada cuánto se ofrecen las dos opciones.
 - **Biógrafo:** nombre, voz, y si los nombres van por texto o con voz sintética.
-- **Mundial:** solo 2022, o también el primero que vivió (1978 o 1986). Y qué se hace con los narradores de España.
+- **Pandemia fija:** HG4 queda como pregunta fija, fuera del menú de HG1 (confirmado por Naza el 25/09). (El Mundial ya está resuelto: vuelve al menú; en España se sumó el Mundial 2010, a aprobar.)
 
 ## Fuentes
 

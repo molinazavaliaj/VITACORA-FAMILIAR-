@@ -4,7 +4,7 @@
 
 Este archivo es el banco completo. El diseño (por qué, cómo funciona, escritor, pruebas) está en [`diseno-v3.md`](diseno-v3.md).
 
-Sale de: banco del informe 1 (C.2) + cambios del informe 2 (sin repregunta, pandemia y Mundial) + todo el informe 3 (secciones 3, 4 y 5) + las decisiones de Naza. Donde se contradicen, ganan las decisiones de Naza.
+Sale de: banco del informe 1 (C.2) + cambios del informe 2 (sin repregunta, pandemia y Mundial; el 25/09 el Mundial volvió al menú de HG1) + todo el informe 3 (secciones 3, 4 y 5) + las decisiones de Naza. Donde se contradicen, ganan las decisiones de Naza.
 
 ## Cómo leer este banco
 
@@ -22,7 +22,7 @@ Si la respuesta empieza con "paso", la pregunta queda saltada y no se vuelve a m
 |---|---|
 | ID | Código fijo de la pregunta. `XX1b` = cierre de lector (cómo terminó, cuánto duró, qué fue de esa persona) que antes era seguimiento. `XX1.2` = segunda mitad de una pregunta que pedía dos historias y se partió. |
 | Tipo | **O** = obligatoria. **C:DATO** = solo si el dato está confirmado (ficha o botón). **C:¬DATO** = solo si la ficha o el botón dicen "no tiene". **S** = sensible. **E:edad** = según la edad (sale del año de nacimiento). |
-| Tamaño | **B** = Breve (entra en los tres). **E** = Estándar (entra en Estándar y Completo). **C** = solo Completo. |
+| Tamaño | **B** = Breve (entra en los tres). **E** = Estándar (entra en Estándar y Completo). **E-joven** = entra en Estándar solo si el narrador tiene menos de 45 años; si no, solo en Completo. **C** = solo Completo. |
 | Estado | Todas: pendiente de aprobación. |
 
 ### Notación de los textos
@@ -39,7 +39,7 @@ Las listas (`{{hijos}}`, `{{nietos}}`, `{{hermanos}}`) se leen como "Pablo y Ana
 
 ### Voseo y tuteo
 
-El banco está en voseo rioplatense. Para quien habla de tú (sale de "país de residencia" y se puede cambiar en la ficha: "cómo habla: vos / tú") hay una **tabla de reemplazo**, no otro banco. La del informe 1: contame → cuéntame, acordate → acuérdate, decí → di, tenés → tienes, vos → tú. **Falta completarla** con todas las formas del banco (querés, sabés, elegí, hacés, pensá, describime, presentame…). Menú de historia grande y "colimba / mili" también cambian por país.
+El banco está en voseo rioplatense. Para quien habla de tú (sale de "país de residencia" y se puede cambiar en la ficha: "cómo habla: vos / tú") hay una **tabla de reemplazo**, no otro banco. La del informe 1: contame → cuéntame, acordate → acuérdate, decí → di, tenés → tienes, vos → tú. **Falta completarla** con todas las formas del banco (querés, sabés, elegí, hacés, pensá, describime, presentame…). El menú de historia grande también cambia por país.
 
 ### Reglas de armado
 
@@ -55,11 +55,31 @@ El banco está en voseo rioplatense. Para quien habla de tú (sale de "país de 
 
 El informe 3 marca el tamaño de sus filas y el informe 1 marca con ★ las de la versión corta, pero nadie marcó el tamaño de las demás filas del informe 1. Regla usada (sale del informe 2, C.5):
 
-- **B** = las 46 ★ del informe 1 + las B del informe 3 (OF1, MA1, PA2, AY1) + pandemia y Mundial 2022.
-- **E** = las E del informe 3 + las condicionales de pareja e hijos + los cierres `b` de preguntas B o E + CA8 (par de AM15 y HI10) + LE7 y LE8 (las usa el escritor: título y carta final).
+- **B** = las 46 ★ del informe 1 + las B del informe 3 (OF1, MA1, PA2, AY1) + pandemia.
+- **E** = las E del informe 3 + las condicionales de pareja e hijos + los cierres `b` de preguntas B o E + CA8 (par de AM15 y HI10) + LE7 y LE8 (las usa el escritor: título y carta final) + las que entraron por la regla de etapas (abajo) + JU5 (lo militar).
+- **E-joven** = las que se suman por la regla de etapas para menores de 45 (abajo).
 - **C** = todo lo demás del informe 1 (incluidas las opcionales por edad) + las C del informe 3.
 
 Esta asignación es de este documento, no de Naza: **hay que aprobarla.**
+
+### Estándar balanceado por etapa vivida
+
+Regla de Naza (25/09). Antes el Estándar era flaco en las etapas de la primera mitad de la vida: una vida típica recibía 3 preguntas de escuela y 1 sola de juventud. Para un narrador joven era grave, porque no tiene adultez que contar.
+
+- **Etapas vividas** = bloques 2 (infancia), 3 (escuela), 4 (adolescencia) y 5 (juventud). Los bloques de adultez (6 a 11) son por tema y se cuentan aparte; los bloques 1, 12, 13, 14 y 15 no son etapas.
+- **En Estándar, cada etapa vivida recibe al menos 6 preguntas de historia** (sin contar puertas, válvulas ni datos). Se cumple para cualquier ficha de 45 o más: sin hermanos, sin estudios, sin migración y sin lo militar, cada uno de esos bloques da 6.
+- **Si el narrador tiene menos de 45, cada una recibe al menos 8.** Las filas marcadas **E-joven** se suman solo en ese caso. Con la ficha más flaca (sin hermanos, sin estudios, sin migración), cada bloque da 8.
+
+Cómo se implementó:
+
+| Bloque | Pasaron de C a E (todos) | E-joven (menos de 45) | Nuevas |
+|---|---|---|---|
+| 2 La casa y la familia | — (ya daba 6) | CA13 barrio, CA17 momento difícil | — |
+| 3 La escuela y los juegos | ES5 mejor amigo, ES5b qué fue de ese amigo, ES6 travesura | ES3 qué alumno eras, ES8 las vacaciones | — |
+| 4 Adolescencia | — (ya daba 6) | AD4 una salida, AD8 pelea con los padres | — |
+| 5 Juventud | JU2 lo que estudiaste, JU4 cómo aprendiste el oficio, JU12 primer lugar propio, JU12b cuánto duró ahí, JU13 aventura | — | JU15 amigos de la juventud (E), JU16 momento feliz (E-joven), JU17 momento difícil (E-joven), JU5 lo militar (E) |
+
+ES5b y JU12b pasan a E por la regla de los cierres (tamaño de la madre). No hizo falta compensar en los bloques de adultez: la vida típica quedó en 102 con puertas, por debajo del techo de 105.
 
 ### Bloque 1 · Origen y raíces
 
@@ -92,11 +112,11 @@ Notas: OR6 se partió en dos (nombre / apodo). OR6.2 se manda solo si "cómo le 
 | CA10 | Contame un domingo típico de tu infancia, de la mañana a la noche: qué se comía, quién cocinaba, qué se hacía después. | O | B | pendiente de aprobación |
 | CA11 | Contame cómo se pasaba la Navidad o la fiesta más importante del año en tu casa: dónde, quiénes venían, qué se hacía. Elegí una en particular que recuerdes. | O | C | pendiente de aprobación |
 | CA12 | ¿Cómo andaban de plata en tu casa cuando eras chic{{o/a}}? Contame una vez concreta en que se notara, para bien o para mal. | O | C | pendiente de aprobación |
-| CA13 | Contame cómo era el barrio o el pueblo donde creciste, {{ciudad_infancia}}: qué había en la cuadra, quiénes eran los vecinos, a dónde ibas a jugar. | O | C | pendiente de aprobación |
+| CA13 | Contame cómo era el barrio o el pueblo donde creciste, {{ciudad_infancia}}: qué había en la cuadra, quiénes eran los vecinos, a dónde ibas a jugar. | O | E-joven | pendiente de aprobación |
 | CA14 | ¿Tuviste algún animal de chic{{o/a}}? Contame cómo llegó a tu casa y qué pasó con él. | O | C | pendiente de aprobación |
 | CA15 | Contame una vez que tuviste mucho miedo de chic{{o/a}}: qué pasó, dónde estabas, quién te calmó. | O | C | pendiente de aprobación |
 | CA16 | Contame un momento muy feliz de tu infancia, uno concreto: qué pasó, quién estaba, qué sentiste. | O | B | pendiente de aprobación |
-| CA17 | Contame un momento triste o difícil de tu infancia, uno concreto: qué pasó y cómo lo pasaste. | O | C | pendiente de aprobación |
+| CA17 | Contame un momento triste o difícil de tu infancia, uno concreto: qué pasó y cómo lo pasaste. | O | E-joven | pendiente de aprobación |
 
 Notas: CA9b es el cierre de lector que el informe 1 tenía como seguimiento ("¿Qué fue de esa persona después?").
 
@@ -106,13 +126,13 @@ Notas: CA9b es el cierre de lector que el informe 1 tenía como seguimiento ("¿
 |---|---|---|---|---|
 | ES1 | Contame tu primer día de escuela o lo primero que recuerdes de la escuela primaria: cómo se llamaba la escuela, quién te llevó, qué sentiste. | O | B | pendiente de aprobación |
 | ES2 | Contame de una maestra o un maestro que te marcó: cómo se llamaba, cómo era, y una vez concreta que recuerdes con esa persona. | O | B | pendiente de aprobación |
-| ES3 | ¿Qué tipo de alumn{{o/a}} eras? Contame una vez que te fue muy bien o muy mal en la escuela. | O | C | pendiente de aprobación |
+| ES3 | ¿Qué tipo de alumn{{o/a}} eras? Contame una vez que te fue muy bien o muy mal en la escuela. | O | E-joven | pendiente de aprobación |
 | ES4 | Contame a qué jugabas de chic{{o/a}} y con quién: un juego concreto, dónde se jugaba, quiénes eran los amigos de esa época. Decime sus nombres. | O | B | pendiente de aprobación |
-| ES5 | Contame de tu mejor amigo o amiga de la infancia: cómo se llamaba, cómo se conocieron, qué hacían juntos. | O | C | pendiente de aprobación |
-| ES5b | Contame qué fue de tu mejor amigo o amiga de la infancia: si se volvieron a ver, la última vez que supiste de esa persona. | O | C | pendiente de aprobación |
-| ES6 | Contame una travesura grande de la escuela o del barrio, una que todavía te haga reír o te dé vergüenza. | O | C | pendiente de aprobación |
+| ES5 | Contame de tu mejor amigo o amiga de la infancia: cómo se llamaba, cómo se conocieron, qué hacían juntos. | O | E | pendiente de aprobación |
+| ES5b | Contame qué fue de tu mejor amigo o amiga de la infancia: si se volvieron a ver, la última vez que supiste de esa persona. | O | E | pendiente de aprobación |
+| ES6 | Contame una travesura grande de la escuela o del barrio, una que todavía te haga reír o te dé vergüenza. | O | E | pendiente de aprobación |
 | ES7 | ¿Qué querías ser cuando fueras grande? Contame de dónde salió esa idea. | O | C | pendiente de aprobación |
-| ES8 | Contame cómo eran las vacaciones o el verano cuando eras chic{{o/a}}: a dónde se iba (o por qué no se iba), y un día concreto de esas vacaciones. | O | C | pendiente de aprobación |
+| ES8 | Contame cómo eran las vacaciones o el verano cuando eras chic{{o/a}}: a dónde se iba (o por qué no se iba), y un día concreto de esas vacaciones. | O | E-joven | pendiente de aprobación |
 | ES9 | Contame un momento concreto de la religión en tu infancia: tu comunión, una misa, una fiesta religiosa. Qué pasó, quién te llevaba. | C:RELIGIÓN | C | pendiente de aprobación |
 | ES10 | ¿Qué se escuchaba en tu casa: radio, discos, alguien que cantaba? Contame una canción o un programa que recuerdes y con quién lo escuchabas. | E:60+ | C | pendiente de aprobación |
 | ES11 | Contame de un objeto que fue muy importante para vos de chic{{o/a}}: un juguete, una bicicleta, un libro. Cómo llegó a tus manos y qué pasó con él. | O | C | pendiente de aprobación |
@@ -127,12 +147,12 @@ Notas: ES9 se reescribió para que no pregunte "¿había religión?" (eso lo res
 | AD2 | Contame de la escuela secundaria (o de lo que hacías a esa edad si no fuiste): cómo se llamaba, cómo llegaste ahí, y una escena concreta de esos años. | O | B | pendiente de aprobación |
 | AD2b | Contame cómo terminó tu secundaria: si la terminaste, cómo fue el último día; si la dejaste, por qué y qué hiciste en vez de eso. | O | E | pendiente de aprobación |
 | AD3 | Contame de tu grupo de amigos de la adolescencia: cómo se llamaban, dónde se juntaban, qué hacían. Presentame a cada uno como si yo no los conociera. | O | B | pendiente de aprobación |
-| AD4 | Contame una noche o una salida de esa época que recuerdes bien: a dónde fueron, cómo llegaron, qué pasó. | O | C | pendiente de aprobación |
+| AD4 | Contame una noche o una salida de esa época que recuerdes bien: a dónde fueron, cómo llegaron, qué pasó. | O | E-joven | pendiente de aprobación |
 | AD5 | ¿Qué música escuchabas y dónde se bailaba? Contame una vez que fuiste a bailar o a un recital. | O | C | pendiente de aprobación |
 | AD6 | Contame de tu primer amor o la primera persona que te gustó en serio: cómo se llamaba, cómo se conocieron, qué pasó. | O | B | pendiente de aprobación |
 | AD6b | Contame cómo terminó lo de tu primer amor y qué fue de esa persona después. | O | E | pendiente de aprobación |
 | AD7 | Contame la primera vez que ganaste plata: qué hiciste, cuántos años tenías, qué hiciste con esa plata. | O | C | pendiente de aprobación |
-| AD8 | Contame una pelea o un desacuerdo grande que tuviste con tus padres de adolescente: por qué fue y cómo terminó. | O | C | pendiente de aprobación |
+| AD8 | Contame una pelea o un desacuerdo grande que tuviste con tus padres de adolescente: por qué fue y cómo terminó. | O | E-joven | pendiente de aprobación |
 | AD9 | Contame una vez que te metiste en un lío de adolescente: qué pasó, quién te sacó y qué aprendiste. | O | C | pendiente de aprobación |
 | AD10 | ¿Había alguien mayor que vos que fue como un guía en esos años: un tío, un profesor, un cura, un entrenador? Contame quién era y una vez concreta que te ayudó. | O | C | pendiente de aprobación |
 | AD10b | Si en tu adolescencia hubo alguien mayor que fue como un guía para vos, contame qué fue de esa persona después. | O | C | pendiente de aprobación |
@@ -141,21 +161,18 @@ Notas: ES9 se reescribió para que no pregunte "¿había religión?" (eso lo res
 
 Notas: AD2b, AD6b y AD10b son cierres de lector que antes eran seguimiento.
 
-### Bloque 5 · Juventud: estudios, servicio militar, migración, irse de casa
+### Bloque 5 · Juventud: estudios, lo militar, migración, irse de casa
 
 | ID | Pregunta | Tipo | Tamaño | Estado |
 |---|---|---|---|---|
 | JU1 | Contame el día que te fuiste de la casa de tus padres: cuántos años tenías, a dónde te fuiste, con quién, y cómo fue la despedida. | O | B | pendiente de aprobación |
-| JU2 | Contame de lo que estudiaste después del colegio: qué, dónde, por qué eso y no otra cosa, y un día concreto de esa época de estudiante. | C:ESTUDIOS | C | pendiente de aprobación |
+| JU2 | Contame de lo que estudiaste después del colegio: qué, dónde, por qué eso y no otra cosa, y un día concreto de esa época de estudiante. | C:ESTUDIOS | E | pendiente de aprobación |
 | JU2b | Contame el momento en que dejaste de estudiar: por qué fue, quién lo supo primero, y qué hiciste después. | C:ESTUDIOS_SIN_TERMINAR | C | pendiente de aprobación |
 | JU3 | Contame de un amigo o una amiga que hiciste en esa época de estudio y que fue importante: cómo se llamaba, cómo se conocieron. | C:ESTUDIOS | C | pendiente de aprobación |
 | JU3b | Contame qué fue de ese amigo o esa amiga de la época de estudio: si siguen en contacto, la última vez que se vieron. | C:ESTUDIOS | C | pendiente de aprobación |
-| JU4 | Contame cómo aprendiste tu oficio o tu trabajo, si no fue estudiando: quién te enseñó, dónde, cuánto tardaste en manejarte sol{{o/a}}. | C:¬ESTUDIOS | C | pendiente de aprobación |
-| JU5 | Contame el día que entraste al servicio militar (la colimba, la mili): a dónde te mandaron, cómo fue la llegada, qué sentiste. | C:MILITAR | C | pendiente de aprobación |
-| JU6 | Contame de un compañero del servicio militar que recuerdes: cómo se llamaba, de dónde era, y una vez concreta con él. | C:MILITAR | C | pendiente de aprobación |
-| JU6b | Contame qué fue de ese compañero del servicio militar: si lo volviste a ver, cuándo fue la última vez. | C:MILITAR | C | pendiente de aprobación |
-| JU7 | Contame lo más duro del servicio militar: una escena, un día concreto. | C:MILITAR | C | pendiente de aprobación |
-| JU7.2 | Contame lo más lindo del servicio militar: una escena, un día concreto. | C:MILITAR | C | pendiente de aprobación |
+| JU4 | Contame cómo aprendiste tu oficio o tu trabajo, si no fue estudiando: quién te enseñó, dónde, cuánto tardaste en manejarte sol{{o/a}}. | C:¬ESTUDIOS | E | pendiente de aprobación |
+| JU5 | Contame un día de esa experiencia: dónde estabas, quién estaba y qué pasó. | C:MILITAR | E | pendiente de aprobación |
+| JU6 | Contame de alguien que conociste en esa experiencia: cómo se llamaba, qué era tuyo y una vez concreta con esa persona. | C:MILITAR | C | pendiente de aprobación |
 | JU8 | Contame el día que decidiste irte de {{lugar_origen}} [del lugar donde creciste]: por qué te fuiste, quién lo supo primero, qué dijeron. | C:MIGRACIÓN | B | pendiente de aprobación |
 | JU9 | Contame el viaje y la llegada a {{lugar_destino}} [al lugar nuevo]: cómo viajaste, qué llevabas, quién te esperaba (o nadie), y la primera noche. | C:MIGRACIÓN | B | pendiente de aprobación |
 | JU10 | Contame quién te dio una mano en los primeros meses en {{lugar_destino}} [el lugar nuevo]: cómo se llamaba, qué era tuyo, y una vez concreta en que te ayudó. | C:MIGRACIÓN | E | pendiente de aprobación |
@@ -163,11 +180,14 @@ Notas: AD2b, AD6b y AD10b son cierres de lector que antes eran seguimiento.
 | JU11 | Contame el momento en que sentiste por primera vez que ya eras de {{lugar_destino}} [del lugar nuevo], o el momento en que entendiste que nunca lo ibas a ser del todo. | C:MIGRACIÓN | E | pendiente de aprobación |
 | MI1 | Contame una vez que te hicieron sentir de afuera cuando llegaste a {{lugar_destino}} [al lugar nuevo], por cómo hablabas o de dónde venías. | C:MIGRACIÓN | C | pendiente de aprobación |
 | MI1.2 | Contame una vez que te hicieron sentir de adentro en {{lugar_destino}} [el lugar nuevo]: quién fue, qué pasó. | C:MIGRACIÓN | C | pendiente de aprobación |
-| JU12 | Contame el primer lugar donde viviste por tu cuenta: cómo era, con quién, cómo lo pagabas, y una escena de un día común ahí. | O | C | pendiente de aprobación |
-| JU12b | Contame cuánto tiempo viviste en el primer lugar que tuviste por tu cuenta y por qué te fuiste de ahí. | O | C | pendiente de aprobación |
-| JU13 | Contame una locura o una aventura de tu juventud: un viaje, una apuesta, algo que hoy no harías. | O | C | pendiente de aprobación |
+| JU12 | Contame el primer lugar donde viviste por tu cuenta: cómo era, con quién, cómo lo pagabas, y una escena de un día común ahí. | O | E | pendiente de aprobación |
+| JU12b | Contame cuánto tiempo viviste en el primer lugar que tuviste por tu cuenta y por qué te fuiste de ahí. | O | E | pendiente de aprobación |
+| JU15 | Contame de tus amigos de la juventud, los de cuando empezabas a hacer tu vida: cómo se llamaban, dónde se juntaban y una vez concreta con ellos. | O | E | pendiente de aprobación |
+| JU13 | Contame una locura o una aventura de tu juventud: un viaje, una apuesta, algo que hoy no harías. | O | E | pendiente de aprobación |
+| JU16 | Contame un momento muy feliz de tu juventud, uno concreto: qué pasó, quién estaba, qué sentiste. | O | E-joven | pendiente de aprobación |
+| JU17 | Contame un momento triste o difícil de tu juventud, uno concreto: qué pasó y cómo lo pasaste. | O | E-joven | pendiente de aprobación |
 
-Notas: JU5 ya no tiene seguimiento "¿cuánto tiempo estuviste?": ese dato se pide en la pregunta de datos del servicio militar. JU7 y MI1 se partieron en dos. JU10 se partió: el "qué fue de esa persona" del informe 3 pasó a JU10b. JU2b es nueva (sale del seguimiento "¿Terminaste?") y solo va si el botón dijo [Lo dejé].
+Notas: **Lo militar (decisión de Naza, 25/09):** el viejo gate de servicio militar y sus cinco preguntas (JU5, JU6, JU6b, JU7, JU7.2) se reemplazaron por la pregunta de datos D5 ("¿Tuviste alguna experiencia con lo militar…?") y dos preguntas: JU5 (un día de esa experiencia, Estándar) y JU6 (alguien que conociste ahí, solo Completo). Sin condición de género ni de edad: vale para la colimba, la mili, un colegio militar o un familiar en las fuerzas. Ojo al aprobar: "esa experiencia" se apoya en D5; si el dato vino de la ficha o D5 quedó varios turnos atrás, puede quedar colgado (alternativa: "Contame un día de tu experiencia con lo militar: …"). JU15 (amigos), JU16 (momento feliz) y JU17 (momento difícil) son nuevas, por la regla de etapas (ver "Estándar balanceado por etapa vivida"). MI1 se partió en dos. JU10 se partió: el "qué fue de esa persona" del informe 3 pasó a JU10b. JU2b es nueva (sale del seguimiento "¿Terminaste?") y solo va si el botón dijo [Lo dejé].
 
 ### Bloque 6 · Amor y pareja
 
@@ -300,15 +320,13 @@ Notas: Todo el bloque es sensible: aviso antes de la primera pregunta sensible d
 
 | ID | Pregunta | Tipo | Tamaño | Estado |
 |---|---|---|---|---|
-| HG1 | De los hechos grandes que le pasaron al país mientras vivías ahí, elegí UNO que te haya tocado de cerca y contame dónde estabas y qué te pasó a vos ese día o esa época. Argentina: la dictadura, Malvinas, la vuelta de la democracia, la hiperinflación, el 2001. España: la posguerra, la muerte de Franco, la Transición, el 23-F, el 92, el 11-M. | O | B | pendiente de aprobación |
+| HG1 | De los hechos grandes que le pasaron al país mientras vivías ahí, elegí UNO que te haya tocado de cerca y contame dónde estabas y qué te pasó a vos ese día o esa época. Argentina: la dictadura, el Mundial 78, Malvinas, la vuelta de la democracia, el Mundial 86, la hiperinflación, el 2001, el Mundial 2022. España: la posguerra, la muerte de Franco, la Transición, el 23-F, el 92, el 11-M, el Mundial 2010. | O | B | pendiente de aprobación |
 | HG2 | ¿Hay otro hecho grande del país que te haya tocado de cerca? Contame igual: dónde estabas, qué te pasó a vos. | O | C | pendiente de aprobación |
-| HG4 | Contame un día concreto de la pandemia: dónde estabas, con quién, qué hacías para pasar el tiempo. | O | B | pendiente de aprobación |
-| HG5 | ¿Dónde viste la final del Mundial 2022 y con quién? Contame ese día. | C:ARGENTINA · E:6+ en 2022 | B | pendiente de aprobación |
-| HG6 | ¿Dónde viste la final del Mundial {{anio_mundial}} y con quién? Contame ese día. | C:ARGENTINA · E:6+ en 1978 o 1986 | C | pendiente de aprobación |
+| HG4 | Contame un día concreto de la pandemia: dónde estabas, con quién, qué hacías para pasar el tiempo. | O | B | pendiente de aprobación · fija: confirmada por Naza (25/09) |
 | HG3 | Contame cómo era la vida cotidiana en algo que hoy no existe más: cómo se llamaba por teléfono, cómo se enteraban de las noticias, cómo se pagaba, cómo se viajaba. Elegí una cosa y contame una escena. | E:60+ | C | pendiente de aprobación |
 | DE1 | Contame algo que hoy es normal y en tu juventud no se podía, para las mujeres o para la gente como vos: trabajar, salir sola, estudiar, decidir. Una vez que lo viviste en carne propia. | O | C | pendiente de aprobación |
 
-Notas: Pandemia (HG4) y Mundial (HG5) van siempre y salieron del menú de HG1. HG6 = el primer Mundial que ganó Argentina que vivió con 6 años o más ({{anio_mundial}} = 1978 o 1986, según el año de nacimiento); es opcional y está pendiente (ver dudas). El menú de HG1 sale del país (ficha); para otros países, HG1 va sin menú. Este bloque no tiene puerta abierta.
+Notas: **Mundial (decisión de Naza, 25/09):** deja de ser pregunta fija. Se sacaron HG5 (final de 2022) y HG6 (78 o 86) y el Mundial vuelve a ser una opción del menú de HG1. En España se sumó el Mundial 2010 al menú (agregado de este documento, a aprobar). **Pandemia (HG4):** queda fija, fuera del menú, **confirmada por Naza (25/09)**. El menú de HG1 sale del país (ficha); para otros países, HG1 va sin menú. Este bloque no tiene puerta abierta.
 
 ### Bloque 13 · Puntos altos, bajos y giros
 
@@ -377,7 +395,7 @@ Texto de la válvula (informe 2), igual en todos los bloques que la llevan:
 | CA18 | 2 | ¿Hay algo de tu casa o de tu familia de chic{{o/a}} que no te pregunté y querés contar? | sí | E | pendiente de aprobación |
 | ES12 | 3 | ¿Hay algo de la escuela, los amigos o los juegos de chic{{o/a}} que no te pregunté y querés contar? | sí | E | pendiente de aprobación |
 | AD13 | 4 | ¿Hay algo de tu adolescencia que no te pregunté y querés contar? | sí | E | pendiente de aprobación |
-| JU14 | 5 | ¿Hay algo de tu juventud (estudios, servicio militar, mudanzas, la vida por tu cuenta) que no te pregunté y querés contar? | sí | E | pendiente de aprobación |
+| JU14 | 5 | ¿Hay algo de tu juventud (estudios, mudanzas, la vida por tu cuenta) que no te pregunté y querés contar? | sí | E | pendiente de aprobación |
 | AM16 | 6 | ¿Hay algo del amor o de tus parejas que no te pregunté y querés contar? | sí | E | pendiente de aprobación |
 | TR10 | 7 | ¿Hay algo de tu vida de trabajo que no te pregunté y querés contar? | sí | E | pendiente de aprobación |
 | HI11 | 8 | ¿Hay algo de tus hijos o nietos (o de los chicos importantes de tu vida) que no te pregunté y querés contar? | sí | E | pendiente de aprobación |
@@ -387,7 +405,7 @@ Texto de la válvula (informe 2), igual en todos los bloques que la llevan:
 | HO7 | 14 | ¿Hay algo de tu vida de hoy que no te pregunté y querés contar? | sí | E | pendiente de aprobación |
 | LE9 | 15 | Última: ¿hay algo que no te pregunté en todo este tiempo y que tenés ganas de que esté en el libro? | no | E | pendiente de aprobación |
 
-Notas: LU6 y AS6 suman "pasión" y "ayuda" por el cambio de nombre de sus bloques. Puertas y válvulas van en Estándar y Completo (informe 2, C.5). **Breve queda sin puertas ni válvula: a decidir** (ver dudas en `diseno-v3.md`).
+Notas: LU6 y AS6 suman "pasión" y "ayuda" por el cambio de nombre de sus bloques. JU14 ya no nombra el servicio militar (ahora es "lo militar" y solo para quien dijo que sí). Puertas y válvulas van en Estándar y Completo (informe 2, C.5). **Breve queda sin puertas ni válvula: a decidir** (ver dudas en `diseno-v3.md`).
 
 ## Preguntas de datos (gates)
 
@@ -401,7 +419,7 @@ Se mandan al abrir el bloque, **solo si la ficha no trae el dato**. Son datos, n
 | D2 | Abre bloque 2 | ¿Tuviste hermanos? | [Sí] [No] → si Sí: "Decime sus nombres, del mayor al menor." (audio) | HERMANOS, `{{hermanos}}`, CA8 | pendiente de aprobación |
 | D3 | Abre bloque 3 | ¿La religión fue parte de tu vida? | [Sí] [No] | RELIGIÓN (ES9, RE1, RE2) | pendiente de aprobación |
 | D4 | Abre bloque 5 | ¿Estudiaste algo después del colegio? | [Sí] [No] → si Sí: "¿Qué estudiaste y dónde?" (audio) → "¿Lo terminaste?" [Lo terminé] [Lo dejé] [Sigo] | ESTUDIOS, ESTUDIOS_TERMINADOS (PR1), ESTUDIOS_SIN_TERMINAR (JU2b) | pendiente de aprobación |
-| D5 | Abre bloque 5 | ¿Hiciste el servicio militar? | [Sí] [No] → si Sí: "Decime dónde lo hiciste y cuánto tiempo estuviste." (audio) | MILITAR; reemplaza el viejo seguimiento de JU5 | pendiente de aprobación |
+| D5 | Abre bloque 5 | ¿Tuviste alguna experiencia con lo militar: la colimba, la mili, un colegio militar, alguien de tu familia en las fuerzas? | [Sí] [No] | MILITAR (JU5, JU6). Sin condición de género ni de edad | pendiente de aprobación |
 | D6 | Abre bloque 5 | ¿Viviste en otra provincia, región o país distinto del lugar donde creciste? | [Sí] [No] → si Sí: "Decime de dónde a dónde te fuiste y cuántos años tenías." (audio) | MIGRACIÓN, `{{lugar_origen}}`, `{{lugar_destino}}` | pendiente de aprobación |
 | D7 | Abre bloque 6 | ¿Tuviste pareja en tu vida: marido, mujer, compañero o compañera? | [Sí] [No] → si Sí: "Decime su nombre. Si hubo más de una pareja importante, decime los nombres en orden." (audio) | PAREJA, ¬PAREJA, SEGUNDA_PAREJA, `{{pareja_1}}`, `{{pareja_2}}` | pendiente de aprobación |
 | D7.1 | Después de D7, por cada pareja | ¿Siguen juntos con {{pareja_n}}? | [Sí] [No] → si No: "¿Se separaron o falleció?" [Separación] [Falleció] | PAREJA_ACTUAL, PAREJA_TERMINÓ, PAREJA_FALLECIÓ | pendiente de aprobación |
@@ -414,7 +432,7 @@ Se mandan al abrir el bloque, **solo si la ficha no trae el dato**. Son datos, n
 
 **Solo por ficha, sin botón** (preguntarlo por botón sería una intromisión): HIJO_FALLECIÓ, PERSONA_IMPORTANTE, ENFERMEDAD_LARGA, temas que no tocar. Sin ese dato, esas preguntas no se mandan.
 
-**Sin pregunta de datos:** APODO y ARGENTINA/edad (salen de campos obligatorios de la ficha); MUDANZA (si la ficha no trae lugares, LU2 va en genérico).
+**Sin pregunta de datos:** APODO y edad (salen de campos obligatorios de la ficha; la edad decide E:45+, E:60+ y E-joven); MUDANZA (si la ficha no trae lugares, LU2 va en genérico).
 
 Los nombres que llegan por audio en D1, D2, D6, D7, D11, D12 y D13 quedan "sin confirmar" hasta que el narrador revise los nombres al final. Hasta entonces entran en las preguntas como los escribió la transcripción.
 
@@ -431,7 +449,7 @@ Reglas (informe 1, C.3): **un pedido por turno, una sola foto por pedido, epígr
 | F3 | Bloque 2 | Una foto de la casa o del barrio de tu infancia, si existe. | Qué se ve | — | pendiente de aprobación |
 | F4 | Bloque 3 | Una foto de la escuela o con compañeros de la primaria. | Quiénes son, qué grado | — | pendiente de aprobación |
 | F5 | Bloque 4 | Una foto tuya de adolescente con amigos. | Quiénes son, dónde, año aproximado | — | pendiente de aprobación |
-| F6 | Bloque 5 | Una foto de esa época: del estudio, del servicio militar o del viaje. | Qué se ve, año | El sistema elige una según el gate activo; nunca se ofrecen las tres | pendiente de aprobación |
+| F6 | Bloque 5 | Una foto de esa época: del estudio, de tu experiencia con lo militar o del viaje. | Qué se ve, año | El sistema elige una según el gate activo; nunca se ofrecen las tres | pendiente de aprobación |
 | F7 | Bloque 6 | Una foto con {{pareja_1}}, la que más te guste. | Dónde, año, qué estaba pasando | C:PAREJA | pendiente de aprobación |
 | F8 | Bloque 6 | Una foto del día que se casaron o se fueron a vivir juntos, si hay. | Quiénes están | C:PAREJA | pendiente de aprobación |
 | F9 | Bloque 7 | Una foto tuya trabajando o con compañeros de trabajo. | Quiénes son, dónde, año | — | pendiente de aprobación |
@@ -474,55 +492,74 @@ Ninguno lleva contenido de lo que el narrador contó. Donde los informes traen t
 
 ## Resumen de conteos
 
-Contado sobre las tablas de arriba (solo preguntas de historia; puertas, válvulas, datos y fotos van aparte).
+Contado con un script sobre las tablas de arriba (solo preguntas de historia; puertas, válvulas, datos y fotos van aparte). Recontado el 25/09 después de sacar el Mundial fijo, cambiar lo militar y aplicar la regla de etapas.
 
-- **Filas B / E / C:** cuántas filas tienen esa marca.
-- **Breve / Estándar / Completo:** cuántas filas entran en ese tamaño (B; B+E; B+E+C), sin mirar los gates.
-- **Vida típica:** lo que le llega a una persona de 60+ en Argentina, con hermanos, una pareja actual, dos hijos, nietos, padres fallecidos, que trabajó afuera y se jubiló, sin estudios después del colegio, sin servicio militar, sin migración, sin campo, sin religión y con apodo. Cuenta HI2 y HI3 dos veces (dos hijos).
+- **Filas B / E / E-joven / C:** cuántas filas tienen esa marca.
+- **Breve / Estándar / Estándar (menos de 45) / Completo:** cuántas filas entran en ese tamaño (B; B+E; B+E+E-joven; todas), sin mirar los gates.
+- **Vida típica:** lo que le llega a una persona de 60+ en Argentina, con hermanos, una pareja actual, dos hijos, nietos, padres fallecidos, que trabajó afuera y se jubiló, sin estudios después del colegio, sin experiencia militar, sin migración, sin campo, sin religión y con apodo. Cuenta HI2 y HI3 dos veces (dos hijos).
+- **Joven:** 29 años, nació en Argentina y emigró a Barcelona, con hermanos, padres vivos, sin pareja, sin hijos, trabajó afuera, terminó estudios después del colegio, sin experiencia militar, sin campo, sin religión y con apodo. Recibe las E-joven.
 
-| Bloque | Filas B | Filas E | Filas C | Breve | Estándar | Completo | Breve típica | Estándar típica | Completo típica | Puerta | Válvula |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-| 1 Origen y raíces | 3 | 0 | 4 | 3 | 3 | 7 | 3 | 3 | 7 | 1 | 1 |
-| 2 La casa y la familia de la infancia | 6 | 1 | 11 | 6 | 7 | 18 | 6 | 6 | 17 | 1 | 1 |
-| 3 La escuela y los juegos | 3 | 0 | 9 | 3 | 3 | 12 | 3 | 3 | 11 | 1 | 1 |
-| 4 Adolescencia | 4 | 2 | 9 | 4 | 6 | 15 | 4 | 6 | 15 | 1 | 1 |
-| 5 Juventud: estudios, servicio militar, migración, irse de casa | 3 | 3 | 15 | 3 | 6 | 21 | 1 | 1 | 5 | 1 | 1 |
-| 6 Amor y pareja | 5 | 13 | 2 | 5 | 18 | 20 | 3 | 10 | 12 | 1 | 1 |
-| 7 Trabajo y oficio | 6 | 7 | 10 | 6 | 13 | 23 | 6 | 10 | 19 | 1 | 1 |
-| 8 Hijos y nietos | 4 | 9 | 0 | 4 | 13 | 13 | 5 | 11 | 11 | 1 | 1 |
-| 9 Lugares y pasiones | 2 | 2 | 4 | 2 | 4 | 8 | 2 | 4 | 8 | 1 | 1 |
-| 10 Amistades y ayudas | 2 | 2 | 4 | 2 | 4 | 8 | 2 | 3 | 6 | 1 | 1 |
-| 11 Pérdidas y crisis (bloque sensible) | 3 | 8 | 2 | 3 | 11 | 13 | 3 | 8 | 10 | 1 | 1 |
-| 12 La historia grande | 3 | 0 | 4 | 3 | 3 | 7 | 3 | 3 | 7 | — | — |
-| 13 Puntos altos, bajos y giros | 2 | 2 | 11 | 2 | 4 | 15 | 2 | 4 | 15 | — | — |
-| 14 Hoy | 2 | 1 | 5 | 2 | 3 | 8 | 2 | 3 | 8 | 1 | 1 |
-| 15 Legado y cierre | 4 | 4 | 1 | 4 | 8 | 9 | 4 | 7 | 8 | 1 | — |
-| **Total** | 52 | 54 | 91 | **52** | **106** | **197** | **49** | **82** | **159** | 13 | 12 |
+| Bloque | Filas B | Filas E | Filas E-joven | Filas C | Breve | Estándar | Estándar (menos de 45) | Completo | Breve típica | Estándar típica | Completo típica | Breve joven | Estándar joven | Completo joven | Puerta | Válvula |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 1 Origen y raíces | 3 | 0 | 0 | 4 | 3 | 3 | 3 | 7 | 3 | 3 | 7 | 3 | 3 | 7 | 1 | 1 |
+| 2 La casa y la familia de la infancia | 6 | 1 | 2 | 9 | 6 | 7 | 9 | 18 | 6 | 6 | 17 | 6 | 8 | 17 | 1 | 1 |
+| 3 La escuela y los juegos | 3 | 3 | 2 | 4 | 3 | 6 | 8 | 12 | 3 | 6 | 11 | 3 | 8 | 10 | 1 | 1 |
+| 4 Adolescencia | 4 | 2 | 2 | 7 | 4 | 6 | 8 | 15 | 4 | 6 | 15 | 4 | 8 | 15 | 1 | 1 |
+| 5 Juventud: estudios, lo militar, migración, irse de casa | 3 | 10 | 2 | 6 | 3 | 13 | 15 | 21 | 1 | 6 | 8 | 3 | 13 | 17 | 1 | 1 |
+| 6 Amor y pareja | 5 | 13 | 0 | 2 | 5 | 18 | 18 | 20 | 3 | 10 | 12 | 0 | 1 | 3 | 1 | 1 |
+| 7 Trabajo y oficio | 6 | 7 | 0 | 10 | 6 | 13 | 13 | 23 | 6 | 10 | 19 | 6 | 11 | 19 | 1 | 1 |
+| 8 Hijos y nietos | 4 | 9 | 0 | 0 | 4 | 13 | 13 | 13 | 5 | 11 | 11 | 0 | 1 | 1 | 1 | 1 |
+| 9 Lugares y pasiones | 2 | 2 | 0 | 4 | 2 | 4 | 4 | 8 | 2 | 4 | 8 | 2 | 4 | 7 | 1 | 1 |
+| 10 Amistades y ayudas | 2 | 2 | 0 | 4 | 2 | 4 | 4 | 8 | 2 | 3 | 6 | 2 | 3 | 6 | 1 | 1 |
+| 11 Pérdidas y crisis (bloque sensible) | 3 | 8 | 0 | 2 | 3 | 11 | 11 | 13 | 3 | 8 | 10 | 1 | 6 | 8 | 1 | 1 |
+| 12 La historia grande | 2 | 0 | 0 | 3 | 2 | 2 | 2 | 5 | 2 | 2 | 5 | 2 | 2 | 4 | — | — |
+| 13 Puntos altos, bajos y giros | 2 | 2 | 0 | 11 | 2 | 4 | 4 | 15 | 2 | 4 | 15 | 2 | 4 | 14 | — | — |
+| 14 Hoy | 2 | 1 | 0 | 5 | 2 | 3 | 3 | 8 | 2 | 3 | 8 | 2 | 3 | 8 | 1 | 1 |
+| 15 Legado y cierre | 4 | 4 | 0 | 1 | 4 | 8 | 8 | 9 | 4 | 7 | 8 | 4 | 7 | 7 | 1 | — |
+| **Total** | 51 | 64 | 8 | 72 | **51** | **115** | **123** | **195** | **48** | **89** | **160** | **40** | **82** | **143** | 13 | 12 |
 
-**Total de filas de historia en el banco: 197.**
+**Total de filas de historia en el banco: 195.**
 
-### Lo que le llega a la vida típica
+Mínimo por etapa vivida en Estándar (bloques 2 / 3 / 4 / 5), con la ficha más flaca (sin hermanos, sin estudios, sin migración, sin lo militar): **6 / 6 / 6 / 6** para 45 o más y **8 / 8 / 8 / 8** para menos de 45. Se cumple la regla.
+
+### Lo que le llega a la vida típica (60+)
 
 | | Breve | Estándar | Completo |
 |---|---|---|---|
-| Preguntas de historia | 49 | 82 | 159 |
+| Preguntas de historia | 48 | 89 | 160 |
 | Puertas abiertas | a decidir (hoy 0) | 13 | 13 |
 | Válvulas "más" | a decidir (hoy 0) | 12 | 12 |
-| **Historia + puertas** | **49** | **95** | **172** |
-| **Historia + puertas + válvulas** | **49** | **107** | **184** |
+| **Historia + puertas** | **48** | **102** | **173** |
+| **Historia + puertas + válvulas** | **48** | **114** | **185** |
 | Preguntas de datos | 0 si la ficha está llena; si viene vacía, hasta 16 con botón más los pedidos de nombres por audio | igual | igual |
 | Pedidos de foto | a decidir | hasta 14 | hasta 14 |
 
-Lectura: con puertas, el Estándar da **95**, igual que los ~95 del informe 3. El Breve da **49–52** (52 filas B; la vida típica no recibe JU8, JU9, AM9 ni AM11 y suma un HI2 por el segundo hijo). El Completo da **172**, más que los ~145 del informe 3: la diferencia son los 17 cierres `b`, las 4 preguntas partidas y el Mundial viejo, que el informe 3 no contaba.
+### Lo que le llega al joven de 29 (sin pareja ni hijos, emigrado)
+
+| | Breve | Estándar | Completo |
+|---|---|---|---|
+| Preguntas de historia | 40 | 82 | 143 |
+| Puertas abiertas | a decidir (hoy 0) | 13 | 13 |
+| Válvulas "más" | a decidir (hoy 0) | 12 | 12 |
+| **Historia + puertas** | **40** | **95** | **156** |
+| **Historia + puertas + válvulas** | **40** | **107** | **168** |
+
+Lectura:
+
+- **Vida típica:** el Estándar con puertas pasó de 95 a **102** (objetivo ~95, techo 105): +8 por la regla de etapas (ES5, ES5b, ES6, JU4, JU12, JU12b, JU13, JU15) y −1 por sacar el Mundial 2022 fijo. No hizo falta compensar. El Breve da **48** (51 filas B; la vida típica no recibe JU8, JU9, AM9 ni AM11 y suma un HI2 por el segundo hijo). El Completo da **173**.
+- **Joven de 29:** **82 preguntas de historia** en Estándar, dentro del objetivo 70–85; con las 13 puertas son **95**. De esas 82, 37 son de las etapas vividas (8 + 8 + 8 + 13): antes eran 21. Si el 70–85 era con puertas, no se llega recortando solo la infancia y la juventud: sin ninguna E-joven ya daría 87 con puertas, porque el peso está en trabajo (11) y pérdidas (6). A decidir por Naza.
+- Variante del joven sin estudios después del colegio: 81 de historia en Estándar (94 con puertas).
 
 ## Qué cambió respecto de los informes
 
 - **Sacadas:** AS2 (la reemplaza AY1), AS3, HO3 (la reemplaza PA2), TR7 (la reemplaza CR1).
 - **Reescritas con el texto del informe 3:** TR1, JU8, JU9, JU10, JU11, AM13, AM15, HI10, AS5, PE3, PE5, GI2.
 - **Nuevas del informe 3:** CS1–CS3, DE1, MA1, OB1, OB2, PR1, CP1–CP3, MI1, RE1, RE2, PI1, PI2, ID1, HF1, HF2, NC1, NC2, EC1, CR1, CO1, HE1, DES1, HJ1, HJ2, HJ5–HJ9, OF1–OF4, PA1, PA2, AY1, PE8.
-- **Nuevas por decisión de Naza (con redacción del informe 2):** HG4 pandemia, HG5 Mundial 2022. HG6 (primer Mundial ganado, 1978 o 1986) queda pendiente.
-- **Cierres de lector que antes eran seguimiento (17):** CA9b, ES5b, AD2b, AD6b, AD10b, JU2b, JU3b, JU6b, JU10b, JU12b, AM9b, AM14b, TR1b, TR3b, LU1b, AS1b, AS4b. Redacción de este documento a partir del seguimiento del informe 1.
-- **Partidas en dos:** OR6 (nombre / apodo), JU7 (lo más duro / lo más lindo), MI1 (afuera / adentro), HO2 (reír / enojar), JU10 (la ayuda / qué fue de esa persona). AM13 quedó solo con la escena.
+- **Nuevas por decisión de Naza (con redacción del informe 2):** HG4 pandemia (fija). El Mundial fue pregunta fija (HG5, HG6) y el 25/09 volvió al menú de HG1.
+- **Lo militar (decisión de Naza, 25/09):** JU5, JU6, JU6b, JU7 y JU7.2 (servicio militar) se reemplazaron por D5 nueva + JU5 (un día de esa experiencia, E) + JU6 (alguien que conociste ahí, C). Textos de Naza.
+- **Nuevas por la regla de etapas (25/09, redacción de este documento):** JU15 (amigos de la juventud), JU16 (momento feliz de la juventud), JU17 (momento difícil de la juventud).
+- **Cierres de lector que antes eran seguimiento (16):** CA9b, ES5b, AD2b, AD6b, AD10b, JU2b, JU3b, JU10b, JU12b, AM9b, AM14b, TR1b, TR3b, LU1b, AS1b, AS4b. Redacción de este documento a partir del seguimiento del informe 1.
+- **Partidas en dos:** OR6 (nombre / apodo), MI1 (afuera / adentro), HO2 (reír / enojar), JU10 (la ayuda / qué fue de esa persona). AM13 quedó solo con la escena.
 - **Frases de contenido previo sacadas:** AM14 ("del que no hablamos"), PE3 ("aparte de las que ya hablamos"; ya venía sacada en la reescritura del informe 3).
 - **Retoques menores de este documento:** "madre/padre" → "mamá/papá" con el nombre en aposición; ES9 pregunta la escena y no "¿había religión?"; AM1 sin "al verla o verlo"; HI3, HI4 y HF1 sin pronombres de género del hijo; LE4 con plural simple; "casamiento" → "se casaron o se fueron a vivir juntos" (AM3, AM4, AM5, F8); LU6 y AS6 suman pasión y ayuda. Todo pendiente de aprobación.
-- **Gates nuevos que no estaban en ningún informe:** OFICIO_AFUERA también para TR6, OB1 y OB2; ESTUDIOS_TERMINADOS para PR1; ESTUDIOS_SIN_TERMINAR para JU2b; APODO para OR6.2; ARGENTINA para el Mundial.
+- **Gates nuevos que no estaban en ningún informe:** OFICIO_AFUERA también para TR6, OB1 y OB2; ESTUDIOS_TERMINADOS para PR1; ESTUDIOS_SIN_TERMINAR para JU2b; APODO para OR6.2. (ARGENTINA para el Mundial se sacó el 25/09, con HG5 y HG6.)
