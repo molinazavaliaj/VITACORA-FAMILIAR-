@@ -24,7 +24,10 @@ Piloto de cero reusando respuestas del piloto viejo (`--reusar`). Numeración pr
 | E18 | El biógrafo dice "ayer se notó…" aunque la respuesta fue el mismo día. Naza: los usuarios pueden pedir más preguntas en el día; el biógrafo no puede suponer que pasó un día. Tiene que saber cuándo llegó la última respuesta (hoy / ayer / hace días) o hablar sin marcar el tiempo. | Pendiente (decisión de Naza, 25/09). |
 | E19 | La fila `lo-que-falta` ("qué no te pregunté que tiene que estar") se usó para rematar lo que faltó de `alegrias` (el dicho): el biógrafo se desvió del tema de la fila. La evaluación de `alegrias` había dicho "alcanza" aunque faltaba el dicho. | Pendiente. |
 
-## Correcciones de Naza para el libro (dichas en el chat, no en un audio)
+## Correcciones de Naza para el libro — APLICADAS el 25/09 en las transcripciones (los audios no se tocaron)
+- Tricky (no Triki), Homero y Corcho, Amelia Meri del Vecchio, "venirnos a menos" (es un decir: bajar de nivel), Dardo Rocha, "viví solo", Saint John's, Avià, Ima (no Sima), Fran (no Starán), Berga (no "verga"), "la etapa de Berga" (no "la tapa de Ñaquiver"), "dejé la facultad", la EcoSport es la camioneta que perdió, club amateur de la cuarta catalana, Khea, Seven Kayne, Don Roque. Babyface = Baby = Iñaki. El Fran del Mundial es otro Fran (de Barcelona).
+
+### Lo que dijo en el chat
 - Orden 32: la camioneta que perdió antes de venir a España **es la EcoSport** (no son dos autos distintos). Autos: el 207 a los 17, un Focus, la EcoSport.
 - La "tapa de Ñaquiver" (orden 27) era "la etapa de Berga"; "Starán" era Fran; el perro era Homero, con H.
 | E20 | La despedida pegó el campo "cómo le dicen" entero ("Naza (así quiere que le digan; su nombre artístico es Tricky…)…"). Causa: la corrección a mano del controlador puso la aclaración dentro del valor. Arreglado en la ficha (valor "Naza", la aclaración en `por`); pendiente: que la despedida/presentación use solo el nombre aunque el valor traiga aclaraciones. | Arreglado a mano / pendiente en código. |
@@ -34,3 +37,7 @@ Piloto de cero reusando respuestas del piloto viejo (`--reusar`). Numeración pr
 - **G2 (propuesto, falta el sí de Naza): pérdidas para cualquier edad** cuando la ficha tenga a alguien que murió (hoy solo 56+).
 - **G3. Sin opciones de ejemplo en las preguntas** (hecho: `12a04dc`).
 - **G4. No decir "ayer" si no se sabe cuándo fue la última respuesta** (E18).
+
+## Decisiones de Naza (25/09)
+- **D1. Lo que la familia corrige o excluye en el dashboard tiene que llegar al libro.** Hoy la fábrica ignora `edicion.correcciones` y `edicion.excluidas` (decisión del 13/09). Tarea prioritaria después del libro de Naza: la fábrica los aplica; formato de `correcciones` a acordar con Joaquín.
+- **D2. Despedida nueva (versión A)**, más cercana.
