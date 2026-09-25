@@ -12,6 +12,7 @@ import { perfilEnTexto } from '../src/ia/encargo-entrevista.js';
 import { pendientesParaPerfil } from '../src/manual/estado-v2.js';
 import { armarSecuencia, proxima, avanzar, conNombrado } from '../src/ia/secuencia.js';
 import { armarPromptReusar } from '../src/ia/reusar-v2.js';
+import { promptDeTranscripcion } from '../src/manual/puro.js';
 
 const ANIO = 2026;
 const dicho = (valor: string) => ({ valor, fuente: 'dicho' as const });
@@ -52,7 +53,7 @@ for (const [nombre, p] of [['Naza (27)', naza()], ['Élida (76)', elida()]] as c
   out.push(`### La ficha de ${nombre}, en texto (${perfilEnTexto(p).length} caracteres)\n${bloque(perfilEnTexto(p))}`);
   const fila = filas.find((f) => f.id === 'padres-como-eran')!;
   const o: Objetivo = { tipo: 'nucleo', ...fila };
-  out.push(`### El prompt de la pregunta (${fila.id}) para ${nombre}\n${bloque(partido(partirPromptPregunta(p, o, [{ pregunta: '¿Qué ves al entrar a esa casa?', respuesta: 'Una casa de tres pisos, mi mamá en la cocina.' }], [{ id: 'casa-infancia', tema: 'La casa de la infancia' }, { id: 'los-tuyos-hoy', tema: 'Quiénes son los suyos hoy' }])))}`);
+  out.push(`### El prompt de la pregunta (${fila.id}) para ${nombre}\n${bloque(partido(partirPromptPregunta(p, o, [{ pregunta: '¿Qué ves al entrar a esa casa?', respuesta: 'Una casa de tres pisos, mi mamá en la cocina.' }], [{ id: 'casa-infancia', tema: 'La casa de la infancia' }, { id: 'los-tuyos-hoy', tema: 'Quiénes son los suyos hoy' }], [], 'hace unos minutos')))}`);
   out.push(`### El prompt de la evaluación para ${nombre}\n${bloque(armarPromptEvaluar(p, o, '¿Cómo eran tu mamá y tu papá?', 'Mi mamá era brava. Mi papá cocinaba.', 25, [], []))}`);
   const rep: Objetivo = { tipo: 'repregunta', id: 'padres-como-eran-repregunta', tramo: 'infancia', pregunta: '¿Cómo eran tu mamá y tu papá?', falto: ['en qué se parece', 'una escena de cada uno'] };
   out.push(`### El objetivo de la repregunta para ${nombre}\n${bloque(objetivoEnTexto(rep, p))}`);
@@ -62,6 +63,25 @@ for (const [nombre, p] of [['Naza (27)', naza()], ['Élida (76)', elida()]] as c
   sec = { ...sec, nombrados: { 'la-escuela': 'la-cuadra-y-los-juegos' } };
   out.push(`### El objetivo de una fila ya nombrada (ajuste E: la-escuela, que ya tocó en la cuadra y los juegos) para ${nombre}\n${bloque(objetivoEnTexto(conNombrado(sec, proxima(sec)!), p))}`);
   out.push(`### El prompt de la ficha para ${nombre}\n${bloque(partido(partirPromptPerfil(p, '¿Cómo eran tu mamá y tu papá?', 'Mi mamá era brava. Mi papá cocinaba.', pendientesParaPerfil(armarSecuencia(p, ANIO)))))}`);
+}
+// Ajuste F (25/09, después del piloto): E12, E17, G1, G2 (E18 ya se ve arriba: CUÁNDO CONTESTÓ en el prompt de la pregunta).
+{
+  out.push('## Ajuste F (después del piloto): los textos nuevos\n');
+  const conTio = naza();
+  conTio.personas.push({ nombre: 'Homero', vinculo: 'perro de la infancia', vive: 'no se sabe', fuente: 'dicho' }, { nombre: 'Carlos', vinculo: 'tío', vive: 'no', fuente: 'dicho' });
+  conTio.etapas.push({ edades: '23 a 24', lugar: 'Avià, cerca de Berga', conQuien: '', queHacia: '', fuente: 'dicho' });
+  conTio.persona.comoLeDicen = { valor: 'Naza (en la familia) / Tricky (amigos y nombre de artista)', fuente: 'dicho' };
+  out.push(`### E12 — el prompt de la transcripción de Naza, con los nombres de la ficha (tope 700 caracteres)\n${bloque(promptDeTranscripcion({ trato: 'vos' }, 'Naza', 'Europe/Madrid', conTio))}`);
+  const deGuion = (id: string): Objetivo => ({ tipo: 'nucleo', ...armarGuion(naza(), ANIO).filas.find((f) => f.id === id)! });
+  const fuerza = deGuion('fuerza');
+  out.push(`### E17 — la evaluación de \`pruebas\` sabiendo que la próxima es \`fuerza\` (Naza)\n${bloque(armarPromptEvaluar(naza(), deGuion('pruebas'), '¿Qué pruebas te puso la vida?', 'Perdí la camioneta antes de venir a España.', 30, [], [], fuerza))}`);
+  const repF: Objetivo = { tipo: 'repregunta', id: 'pruebas-repregunta', tramo: null, pregunta: '¿Qué pruebas te puso la vida?', falto: ['cómo fue perder la camioneta'], proxima: fuerza.tipo === 'nucleo' ? fuerza.tema : '' };
+  out.push(`### E17 — el objetivo de la repregunta, con la próxima fila\n${bloque(objetivoEnTexto(repF, naza()))}`);
+  const g = armarGuion(conTio, ANIO).filas;
+  const perdidas = g.find((f) => f.id === 'perdidas')!;
+  const salio = g.find((f) => f.id === 'lo-que-salio-mal')!;
+  out.push(`### G1 — la fila nueva \`lo-que-salio-mal\` (${salio.bloque}), para Naza\n${bloque(objetivoEnTexto({ tipo: 'nucleo', ...salio }, naza()))}`);
+  out.push(`### G2 — \`perdidas\` para Naza con un tío muerto (Carlos): entra en ${perdidas.bloque}, sin época\n${bloque(objetivoEnTexto({ tipo: 'nucleo', ...perdidas }, conTio))}`);
 }
 out.push(`## El prompt de los pedidos (repreguntas y objetos, Haiku)\n${bloque(armarPromptPedidos('De esa época no tengo nada, che.'))}`);
 // Ajuste D (24/09): solo en el piloto que reusa respuestas viejas (`empezar --reusar`). Sonnet, sin pensar.
