@@ -3,7 +3,7 @@ import {
   estadoNuevo, leerEstado, contextoConEstado, rearmarSiHaceFalta, pendientesParaPerfil,
   preguntaParaCargar, queHaceSiguiente, conversacionDe, yaHechasDe, evitarDe, sumarDias, hoyEn,
   repreguntasParaCansancio, decidirTrasEvaluar, repreguntasEnEtapa, sumarGasto, tratoParaTextos, mensajeHoyNo,
-  cierreQuiereParar, mailQuiereParar, despedidaV2, type EstadoV2,
+  cierreQuiereParar, mailQuiereParar, despedidaV2, nombreLimpio, type EstadoV2,
 } from '../src/manual/estado-v2.js';
 import { proxima, avanzar, registrarObjeto } from '../src/ia/secuencia.js';
 import { aplicarCambios, perfilVacio } from '../src/ia/perfil.js';
@@ -352,6 +352,29 @@ describe('los textos fijos para la persona', () => {
     expect(mensajeHoyNo('Naza', conTrato('vos'))).toMatch(/te la vuelvo a mandar/);
     expect(mensajeHoyNo('Naza', conTrato('usted'))).toMatch(/se la vuelvo a mandar/);
     expect(cierreQuiereParar('Naza', conTrato('tú', 'españa'))).toMatch(/aquí/);
+  });
+  it('la despedida (aprobada 25/09): agradece, dice que cada historia tiene su lugar, y el honor de acompañar', () => {
+    const vos = despedidaV2('Naza', conTrato('vos'));
+    expect(vos).toBe(
+      'Naza, llegamos al final. Gracias por abrirme tu vida entera, con lo lindo y con lo que costó contar. '
+      + 'Cada historia que me diste ahora tiene su lugar, y los tuyos la van a poder leer y escuchar cuando quieran. '
+      + 'Fue un honor acompañarte en este viaje.',
+    );
+    const tu = despedidaV2('Naza', conTrato('tú', 'españa'));
+    expect(tu).toBe(vos.replace('Naza', 'Naza'));
+    const usted = despedidaV2('Élida', conTrato('usted'));
+    expect(usted).toBe(
+      'Élida, llegamos al final. Gracias por abrirme su vida entera, con lo lindo y con lo que costó contar. '
+      + 'Cada historia que me dio ahora tiene su lugar, y los suyos la van a poder leer y escuchar cuando quieran. '
+      + 'Fue un honor hacer este viaje con usted.',
+    );
+  });
+  it('el nombre limpio (E20): si la ficha trae una aclaración entre paréntesis o después de ";", se corta', () => {
+    expect(nombreLimpio('Naza')).toBe('Naza');
+    expect(nombreLimpio('Naza (así quiere que le digan; también le dicen Nazareno)')).toBe('Naza');
+    expect(nombreLimpio('Naza; también le dicen Nazareno')).toBe('Naza');
+    expect(nombreLimpio('  Naza  ')).toBe('Naza');
+    expect(nombreLimpio('Élida (76 años)')).toBe('Élida');
   });
   it('el mail para los dueños dice quién, qué contestó y qué hacer', () => {
     const m = mailQuiereParar({ nombre: 'Naza', narradorId: 'abc', orden: 7, pregunta: '¿Y tu viejo?', respuesta: 'no quiero seguir', respuestas: 9 });

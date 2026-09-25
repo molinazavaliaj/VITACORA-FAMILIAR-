@@ -43,7 +43,7 @@ import {
 import {
   estadoNuevo, leerEstado, contextoConEstado, rearmarSiHaceFalta, pendientesParaPerfil, preguntaParaCargar,
   queHaceSiguiente, conversacionDe, yaHechasDe, objetoDe, evitarDe, hoyEn, repreguntasParaCansancio, repreguntasEnEtapa, decidirTrasEvaluar,
-  sumarGasto, mensajeHoyNo, cierreQuiereParar, mailQuiereParar, despedidaV2, type EstadoV2, type FilaParaSiguiente, type Decision,
+  sumarGasto, mensajeHoyNo, cierreQuiereParar, mailQuiereParar, despedidaV2, nombreLimpio, type EstadoV2, type FilaParaSiguiente, type Decision,
 } from '../src/manual/estado-v2.js';
 import {
   viejasDe, candidatasPara, seBusca, pasaPorCandado, lineaReusada, opcionesDeReuso, reusadasEnTexto, leerViejasDeBase, quienLoReusa, type Vieja,
@@ -199,7 +199,9 @@ async function anotarUsos(paso: PasoV2, narradorId: string, usos: Anthropic.Usag
 /** Lo que duraría dicho en voz alta (~150 palabras por minuto): para una respuesta escrita, que no tiene audio. */
 const segundosDeTexto = (texto: string) => Math.round(texto.split(/\s+/).filter(Boolean).length / 2.5);
 
-const nombreDe = (n: NarradorFila, e: EstadoV2) => e.perfil.persona.comoLeDicen?.valor ?? n.como_le_dicen;
+// E20: la ficha puede traer una aclaración ("Naza (así quiere que le digan; ...)"); nombreLimpio
+// se queda solo con el nombre para todo lo que se le muestra a la persona o a los dueños.
+const nombreDe = (n: NarradorFila, e: EstadoV2) => nombreLimpio(e.perfil.persona.comoLeDicen?.valor ?? n.como_le_dicen);
 const marcaEnTexto = (m?: Marca) => (m ? `⚠ MARCADA (${m.control}): ${m.motivo} — salió igual tras ${m.intentos} intentos` : 'pasó los controles');
 const comandoDescartar = (n: NarradorFila, id: string, motivo: string) =>
   `npm run manual -- descartar ${slug(n.como_le_dicen)} ${id} --motivo "${motivo}" --si`;

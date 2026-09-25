@@ -357,12 +357,28 @@ export function cierreQuiereParar(nombre: string, perfil: Perfil): string {
 }
 
 /**
- * La despedida del v2. La de `puro.ts` dice "Treinta charlas" y en el v2 son entre 29 y 40, y
- * "escucharlo" supone un hombre: esta no cuenta ni supone.
+ * El nombre solo, sin la aclaración que a veces trae la ficha (E20): "Naza (así quiere que le
+ * digan; también le dicen Nazareno)" tiene que quedar en "Naza". Se corta antes del primer "(" o
+ * ";" y se recortan los espacios. Se usa en todo lo que el v2 le muestra a la persona o a los
+ * dueños con el nombre que sacó de la ficha (presentación, despedida, mail, objetos).
+ */
+export function nombreLimpio(valor: string): string {
+  const corte = valor.search(/[(;]/);
+  return (corte === -1 ? valor : valor.slice(0, corte)).trim();
+}
+
+/**
+ * La despedida del v2 (aprobada 25/09). La de `puro.ts` dice "Treinta charlas" y en el v2 son
+ * entre 29 y 40, y "escucharlo" supone un hombre: esta no cuenta ni supone.
  */
 export function despedidaV2(nombre: string, perfil: Perfil): string {
-  const su = tratoParaTextos(perfil) === 'usted' ? 'su' : 'tu';
-  return `${nombre}... llegamos al final del viaje. Una vida entera, charla por charla. Fue un honor enorme escuchar ${su} historia, y ya la estamos convirtiendo en ${su} libro.`;
+  return tratoParaTextos(perfil) === 'usted'
+    ? `${nombre}, llegamos al final. Gracias por abrirme su vida entera, con lo lindo y con lo que costó contar. `
+      + `Cada historia que me dio ahora tiene su lugar, y los suyos la van a poder leer y escuchar cuando quieran. `
+      + `Fue un honor hacer este viaje con usted.`
+    : `${nombre}, llegamos al final. Gracias por abrirme tu vida entera, con lo lindo y con lo que costó contar. `
+      + `Cada historia que me diste ahora tiene su lugar, y los tuyos la van a poder leer y escuchar cuando quieran. `
+      + `Fue un honor acompañarte en este viaje.`;
 }
 
 /** El mail para los dueños cuando pide parar: el biógrafo no decide solo (§2.8). Se imprime; no se manda. */

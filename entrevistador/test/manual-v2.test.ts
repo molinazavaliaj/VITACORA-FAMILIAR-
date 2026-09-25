@@ -488,7 +488,7 @@ describe('manual-v2 de punta a punta (base y modelo falsos)', () => {
     const otraVez = await correr('siguiente', 'pruebav2');
     expect(otraVez.texto).toMatch(/ya terminó/);
     expect(ultimo.texto).toMatch(/Objeto final/);
-    expect(ultimo.texto.trim().endsWith('Una vida entera, charla por charla. Fue un honor enorme escuchar tu historia, y ya la estamos convirtiendo en tu libro.')).toBe(true);
+    expect(ultimo.texto.trim().endsWith('Cada historia que me diste ahora tiene su lugar, y los tuyos la van a poder leer y escuchar cuando quieran. Fue un honor acompañarte en este viaje.')).toBe(true);
     // No se fija el número exacto (el techo y las libres lo mueven): el guion entero, hasta los cinco minutos.
     expect(v2().secuencia.hechas.length - 1).toBeGreaterThanOrEqual(25);
     expect(v2().secuencia.hechas.at(-1).id).toBe('cinco-minutos');
