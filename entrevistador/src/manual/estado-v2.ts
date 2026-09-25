@@ -238,6 +238,32 @@ export function hoyEn(zona: string, ahora = new Date()): string {
   return new Intl.DateTimeFormat('sv-SE', { timeZone: zona }).format(ahora);
 }
 
+/**
+ * E18 (piloto esqueleto v2, 25/09): cuándo llegó la última respuesta, dicho como lo diría el
+ * biógrafo, contado en los días de la persona (su zona): "hace unos minutos" (menos de una hora),
+ * "hoy más temprano", "ayer", "hace N días". null si no hay hora: el prompt dice que no marque el
+ * tiempo. Se pueden pedir varias preguntas por día: sin esto, el modelo suponía "ayer".
+ */
+export function cuandoContesto(recibidoAt: string | null | undefined, zona: string, ahora = new Date()): string | null {
+  if (!recibidoAt) return null;
+  const llego = new Date(recibidoAt);
+  if (Number.isNaN(llego.getTime())) return null;
+  if (ahora.getTime() - llego.getTime() < 60 * 60 * 1000) return 'hace unos minutos';
+  const dias = Math.round((Date.parse(`${hoyEn(zona, ahora)}T12:00:00Z`) - Date.parse(`${hoyEn(zona, llego)}T12:00:00Z`)) / 86_400_000);
+  if (dias <= 0) return 'hoy más temprano';
+  if (dias === 1) return 'ayer';
+  return `hace ${dias} días`;
+}
+
+/** E18: la hora de la última respuesta cargada (por llegada), sin las que frenó el candado de audio cruzado. */
+export function ultimaRespuestaAt(estado: EstadoV2, filas: { id?: string; recibido_at?: string }[]): string | undefined {
+  return filas
+    .filter((f) => f.recibido_at && !(f.id && estado.bloqueadas.includes(f.id)))
+    .map((f) => f.recibido_at as string)
+    .sort((a, b) => Date.parse(a) - Date.parse(b))
+    .at(-1);
+}
+
 export function sumarDias(fecha: string, dias: number): string {
   const d = new Date(`${fecha}T12:00:00Z`);
   d.setUTCDate(d.getUTCDate() + dias);

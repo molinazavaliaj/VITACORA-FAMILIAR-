@@ -81,7 +81,8 @@ export function objetivoEnTexto(o: Objetivo, perfil: Perfil): string {
 
 /** Cuánto entra de cada tema ya hecho y de cada repregunta ya mandada en "TEMAS QUE YA LE PREGUNTASTE". */
 export const MAX_TEMA_HECHO = 80;
-export const MAX_REPREGUNTA_HECHA = 100;
+/** E18 (25/09): era 100; bajó a 80 para que CUÁNDO CONTESTÓ y su regla entren en el techo de 13.800 del prompt de la pregunta 40. */
+export const MAX_REPREGUNTA_HECHA = 80;
 const PREFIJO_REPREGUNTA = '(repregunta) ';
 
 /**
@@ -153,8 +154,10 @@ export function listaDeHechas(yaHechas: YaHecha[]): string {
   return [...new Set(yaHechas.map(temaHechoEnLinea))].map((l) => `- ${l}`).join('\n');
 }
 
-const DATOS_PREGUNTA = (conversacion: string, yaHechas: string, objetivo: string) => `LO ÚLTIMO QUE HABLARON (cada respuesta con la pregunta que la originó):
+const DATOS_PREGUNTA = (conversacion: string, yaHechas: string, objetivo: string, cuando: string) => `LO ÚLTIMO QUE HABLARON (cada respuesta con la pregunta que la originó):
 ${conversacion || '(todavía no hablaron)'}
+
+CUÁNDO CONTESTÓ: ${cuando}.
 
 TEMAS QUE YA LE PREGUNTASTE (no vuelvas sobre ninguno; si algo de ahí sirve de puente, una frase):
 ${yaHechas || '(ninguno)'}
@@ -164,21 +167,25 @@ ${objetivo}`;
 
 const TAREA_PREGUNTA = `Tu trabajo hoy es decidir cómo preguntarle esto a ESTA persona, con lo que ya sabés: el guion
 te da el tema, no el texto. Si algo que contó sirve de puente, usalo; la pregunta va a lo que
-todavía no contó.`;
+todavía no contó.
+No digas "ayer" ni "el otro día" si no coincide con CUÁNDO CONTESTÓ; si no se sabe, no marques el tiempo.`;
+
+/** E18 (25/09): lo que dice CUÁNDO CONTESTÓ si no hay hora de la última respuesta. */
+export const CUANDO_NO_SE_SABE = 'no se sabe';
 
 const FORMATO_PREGUNTA = 'Respondé SOLO con la pregunta, sin comillas ni saludo.';
 
-export const PROMPT_PREGUNTA_V2 = (encargo: string, conversacion: string, yaHechas: string, objetivo: string) => `
+export const PROMPT_PREGUNTA_V2 = (encargo: string, conversacion: string, yaHechas: string, objetivo: string, cuando: string = CUANDO_NO_SE_SABE) => `
 ${encargo}
 
-${DATOS_PREGUNTA(conversacion, yaHechas, objetivo)}
+${DATOS_PREGUNTA(conversacion, yaHechas, objetivo, cuando)}
 
 ${TAREA_PREGUNTA}
 
 ${FORMATO_PREGUNTA}`;
 
-const datosDePregunta = (conversacion: { pregunta: string; respuesta: string }[], yaHechas: YaHecha[], objetivo: Objetivo, perfil: Perfil) =>
-  [conversacion.map((c) => `P: ${c.pregunta}\nR: ${c.respuesta}`).join('\n\n'), listaDeHechas(yaHechas), objetivoEnTexto(objetivo, perfil)] as const;
+const datosDePregunta = (conversacion: { pregunta: string; respuesta: string }[], yaHechas: YaHecha[], objetivo: Objetivo, perfil: Perfil, cuando: string | null) =>
+  [conversacion.map((c) => `P: ${c.pregunta}\nR: ${c.respuesta}`).join('\n\n'), listaDeHechas(yaHechas), objetivoEnTexto(objetivo, perfil), cuando ?? CUANDO_NO_SE_SABE] as const;
 
 /** El prompt en el orden de lectura (el que aprobó Naza; `render-textos-v2.ts` y los tests lo miran). */
 export function armarPromptPregunta(
@@ -187,8 +194,9 @@ export function armarPromptPregunta(
   conversacion: { pregunta: string; respuesta: string }[],
   yaHechas: YaHecha[],
   evitar: string[] = [],
+  cuando: string | null = null,
 ): string {
-  return PROMPT_PREGUNTA_V2(encargoDelBiografo(perfil, evitar), ...datosDePregunta(conversacion, yaHechas, objetivo, perfil));
+  return PROMPT_PREGUNTA_V2(encargoDelBiografo(perfil, evitar), ...datosDePregunta(conversacion, yaHechas, objetivo, perfil, cuando));
 }
 
 /**
@@ -202,10 +210,11 @@ export function partirPromptPregunta(
   conversacion: { pregunta: string; respuesta: string }[],
   yaHechas: YaHecha[],
   evitar: string[] = [],
+  cuando: string | null = null,
 ): PromptPartido {
   return {
     fijo: `\n${ENCARGO_FIJO}\n\n${TAREA_PREGUNTA}`,
-    variable: `\n\n${encargoVariable(perfil, evitar)}\n\n${DATOS_PREGUNTA(...datosDePregunta(conversacion, yaHechas, objetivo, perfil))}\n\n${FORMATO_PREGUNTA}`,
+    variable: `\n\n${encargoVariable(perfil, evitar)}\n\n${DATOS_PREGUNTA(...datosDePregunta(conversacion, yaHechas, objetivo, perfil, cuando))}\n\n${FORMATO_PREGUNTA}`,
   };
 }
 
@@ -222,6 +231,8 @@ export function partirPromptPregunta(
  * `modelo` (ajuste C, 24/09): solo para la comparación a ciegas (`scripts/comparar-modelos.ts`),
  * que escribe la misma pregunta con Opus y con Sonnet con el mismo prompt, los mismos parámetros y
  * los mismos controles. Sin pasarlo, es `MODELO_PREGUNTA` como siempre (Sonnet, desde el ajuste C).
+ * `cuando` (E18, 25/09): cuándo llegó la última respuesta ("hace unos minutos", "ayer"…, de
+ * `cuandoContesto`); sin eso, el prompt le dice que no marque el tiempo.
  */
 export async function escribirPregunta(
   cliente: Anthropic,
@@ -231,8 +242,9 @@ export async function escribirPregunta(
   yaHechas: YaHecha[],
   evitar: string[] = [],
   modelo: string = MODELO_PREGUNTA,
+  cuando: string | null = null,
 ): Promise<{ texto: string; ok: boolean; marca?: Marca; usos: Anthropic.Usage[] }> {
-  const prompt = partirPromptPregunta(perfil, objetivo, conversacion, yaHechas, evitar);
+  const prompt = partirPromptPregunta(perfil, objetivo, conversacion, yaHechas, evitar, cuando);
   const usos: Anthropic.Usage[] = [];
   let texto = '';
   let ultimo: { control: string; motivo: string } | null = null;

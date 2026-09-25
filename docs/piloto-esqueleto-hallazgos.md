@@ -21,7 +21,7 @@ Piloto de cero reusando respuestas del piloto viejo (`--reusar`). Numeración pr
 | E15 | `descartar` falla: falta la función `descartar_respuesta` en la base (migración no aplicada). | Pendiente: aplicar la migración (Naza, SQL Editor). |
 | E16 | A veces no se anota el gasto en `consumo_ia` (tardó más de 1500 ms). El total local sí. | Pendiente, menor. |
 | E17 | La repregunta de `pruebas` pidió "quién te bancó" y la fila siguiente (`fuerza`) pedía lo mismo: la repregunta no mira qué pide la fila que viene. | Pendiente. |
-| E18 | El biógrafo dice "ayer se notó…" aunque la respuesta fue el mismo día. Naza: los usuarios pueden pedir más preguntas en el día; el biógrafo no puede suponer que pasó un día. Tiene que saber cuándo llegó la última respuesta (hoy / ayer / hace días) o hablar sin marcar el tiempo. | Pendiente (decisión de Naza, 25/09). |
+| E18 | El biógrafo dice "ayer se notó…" aunque la respuesta fue el mismo día. Naza: los usuarios pueden pedir más preguntas en el día; el biógrafo no puede suponer que pasó un día. Tiene que saber cuándo llegó la última respuesta (hoy / ayer / hace días) o hablar sin marcar el tiempo. | Arreglado (ajuste F): el prompt de la pregunta (y de la repregunta y el objeto) lleva "CUÁNDO CONTESTÓ: hace unos minutos / hoy más temprano / ayer / hace N días / no se sabe", contado en la zona de la persona con la hora de la última respuesta cargada, y la regla de no decir "ayer" si no coincide. Para que entre en el techo de 13.800, la línea de cada repregunta ya hecha bajó de 100 a 80 caracteres. |
 | E19 | La fila `lo-que-falta` ("qué no te pregunté que tiene que estar") se usó para rematar lo que faltó de `alegrias` (el dicho): el biógrafo se desvió del tema de la fila. La evaluación de `alegrias` había dicho "alcanza" aunque faltaba el dicho. | Pendiente. |
 
 ## Correcciones de Naza para el libro — APLICADAS el 25/09 en las transcripciones (los audios no se tocaron)
@@ -36,7 +36,7 @@ Piloto de cero reusando respuestas del piloto viejo (`--reusar`). Numeración pr
 - **G1. Negocios, épocas flacas y un riesgo que salió mal, desde el adulto joven** (no solo desde los 36): "una persona de 27 ya intentó de todo". Hoy vive en `el-trabajo-y-la-plata` (adultez media).
 - **G2 (propuesto, falta el sí de Naza): pérdidas para cualquier edad** cuando la ficha tenga a alguien que murió (hoy solo 56+).
 - **G3. Sin opciones de ejemplo en las preguntas** (hecho: `12a04dc`).
-- **G4. No decir "ayer" si no se sabe cuándo fue la última respuesta** (E18).
+- **G4. No decir "ayer" si no se sabe cuándo fue la última respuesta** (E18, hecho en el ajuste F).
 
 ## Decisiones de Naza (25/09)
 - **D1. Lo que la familia corrige o excluye en el dashboard tiene que llegar al libro.** Hoy la fábrica ignora `edicion.correcciones` y `edicion.excluidas` (decisión del 13/09). Tarea prioritaria después del libro de Naza: la fábrica los aplica; formato de `correcciones` a acordar con Joaquín.

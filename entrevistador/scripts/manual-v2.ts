@@ -42,7 +42,7 @@ import {
 } from '../src/manual/puro.js';
 import {
   estadoNuevo, leerEstado, contextoConEstado, rearmarSiHaceFalta, pendientesParaPerfil, preguntaParaCargar,
-  queHaceSiguiente, conversacionDe, yaHechasDe, objetoDe, evitarDe, hoyEn, repreguntasParaCansancio, repreguntasEnEtapa, decidirTrasEvaluar,
+  queHaceSiguiente, conversacionDe, yaHechasDe, objetoDe, evitarDe, hoyEn, cuandoContesto, ultimaRespuestaAt, repreguntasParaCansancio, repreguntasEnEtapa, decidirTrasEvaluar,
   sumarGasto, mensajeHoyNo, cierreQuiereParar, mailQuiereParar, despedidaV2, nombreLimpio, type EstadoV2, type FilaParaSiguiente, type Decision,
 } from '../src/manual/estado-v2.js';
 import {
@@ -637,7 +637,8 @@ async function procesar(
       // La conversación lleva la respuesta de hoy (las `filas` se leyeron antes de guardarla).
       const obj: Objetivo = { tipo: 'repregunta', id: `${objetivo.id}-repregunta`, tramo: tramoDe(objetivo), pregunta: abierta.texto, falto: decision.falto };
       const deHoy = { id: respuestaId, pregunta_orden: orden, es_repregunta: false, transcripcion: respuesta, texto_directo: null, recibido_at: new Date().toISOString() };
-      const r = await escribirPregunta(cliente(), estado.perfil, obj, conversacionDe(estado, [...previas, deHoy]), yaHechasDe(estado), evitarDe(n.contexto ?? {}));
+      // E18: la repregunta sale a los minutos de la respuesta ("hace unos minutos", no "ayer").
+      const r = await escribirPregunta(cliente(), estado.perfil, obj, conversacionDe(estado, [...previas, deHoy]), yaHechasDe(estado), evitarDe(n.contexto ?? {}), undefined, cuandoContesto(deHoy.recibido_at, n.zona_horaria));
       estado = sumarGasto(estado, r.usos, 0, modeloDePaso('v2-repregunta'));
       await anotarUsos('v2-repregunta', n.id, r.usos);
       estado = {
@@ -758,6 +759,8 @@ async function pasoSiguiente(ref: string | undefined, flags: Args['flags']): Pro
   }
 
   const conversacion = conversacionDe(estado, filas);
+  // E18: cuándo llegó la última respuesta, en su zona (se pueden pedir varias preguntas por día).
+  const cuando = cuandoContesto(ultimaRespuestaAt(estado, filas), n.zona_horaria);
   const yaHechas = yaHechasDe(estado);
   const evitar = evitarDe(n.contexto ?? {});
   const sinFotos = Boolean(n.contexto?.sinFotos);
@@ -767,7 +770,7 @@ async function pasoSiguiente(ref: string | undefined, flags: Args['flags']): Pro
   /** El objeto (§2.5): lo escribe el mismo cerebro, y va con su orden 101+ al lado de las preguntas. */
   const pedirObjeto = async (tramo: Tramo, final: boolean, hechasHasta: YaHecha[]) => {
     const obj: Objetivo = objetoDe({ tramo, final });
-    const r = await escribirPregunta(cliente(), estado.perfil, obj, conversacion, hechasHasta, evitar);
+    const r = await escribirPregunta(cliente(), estado.perfil, obj, conversacion, hechasHasta, evitar, undefined, cuando);
     estado = sumarGasto(estado, r.usos, 0, modeloDePaso('v2-objeto'));
     await anotarUsos('v2-objeto', n.id, r.usos);
     const ordenObjeto = 101 + estado.secuencia.objetos.length;
@@ -813,7 +816,7 @@ async function pasoSiguiente(ref: string | undefined, flags: Args['flags']): Pro
   const orden = estado.secuencia.hechas.length;
   titulo(`Pregunta ${orden} para ${n.como_le_dicen} — ${sig.id}${sig.tipo === 'variable' ? ` (${sig.tramo}, ${sig.desde}-${sig.hasta} años)` : ''}`);
   // Ajuste E: si la fila ya se nombró en otra respuesta, el objetivo lo dice (no repetir; ir a lo que falta).
-  const r = await escribirPregunta(cliente(), estado.perfil, conNombrado(estado.secuencia, sig), conversacion, yaHechas, evitar);
+  const r = await escribirPregunta(cliente(), estado.perfil, conNombrado(estado.secuencia, sig), conversacion, yaHechas, evitar, undefined, cuando);
   estado = sumarGasto(estado, r.usos, 0, modeloDePaso('v2-pregunta'));
   await anotarUsos('v2-pregunta', n.id, r.usos);
   estado = {
