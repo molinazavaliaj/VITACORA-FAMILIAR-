@@ -185,7 +185,21 @@ function raiz(nombre: string): string {
 
 /** ¿El texto nombra esa actividad? Por raíz: "música" encuentra "músico"; "programación", "programador". */
 export function mencionaActividad(texto: string, actividad: string): boolean {
-  return new RegExp(`\\b${escapar(raiz(actividad))}`).test(normalizar(texto));
+  return posicionActividad(texto, actividad) >= 0;
+}
+
+/**
+ * Posición de la primera mención de la actividad en el texto (por raíz, igual
+ * que `mencionaActividad`), o -1 si no aparece. Antes `primeraMencion` (en
+ * indice.ts) buscaba los primeros 5 caracteres del nombre completo en vez de
+ * la raíz: con nombres de varias palabras ("ama de casa") esa búsqueda podía
+ * no encontrar nada y devolver -1 aunque la actividad sí estuviera mencionada
+ * (por ejemplo, "dueña de casa"), haciendo ganar por error a esa actividad
+ * como si fuera la primera del texto.
+ */
+export function posicionActividad(texto: string, actividad: string): number {
+  const m = new RegExp(`\\b${escapar(raiz(actividad))}`).exec(normalizar(texto));
+  return m ? m.index : -1;
 }
 
 /**

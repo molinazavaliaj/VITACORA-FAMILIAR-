@@ -170,6 +170,13 @@ describe('armarIndice: crisis de chico y oficio o pasión (Naza)', () => {
     const indice = armarIndice([...vidaCompleta(), r('PA1', 300, { texto: 'Ser modista me apasionaba.' })], { ...FICHA, actividades: [] }, op);
     expect(capituloDe(indice, 'R14')!.madre).toBe(6);
   });
+
+  it('la pasión mencionada primero gana aunque el oficio de varias palabras aparezca con otra forma después', () => {
+    const ficha: FichaV3 = { ...FICHA, actividades: [{ nombre: 'pintura', marca: 'pasion' }, { nombre: 'ama de casa', marca: 'oficio' }] };
+    const texto = 'La pintura fue mi gran amor de toda la vida; después fui dueña de casa siempre.';
+    const indice = armarIndice([...vidaCompleta(), r('PA1', 300, { texto })], ficha, op);
+    expect(capituloDe(indice, 'R14')!.madre).toBe(8);
+  });
 });
 
 describe('armarIndice: fusión por mínimo', () => {
@@ -329,6 +336,30 @@ describe('armarIndice: El viaje', () => {
     const indice = armarIndice(resp, ficha, op);
     expect(indice.capitulos.filter((c) => c.titulo === 'El viaje' && c.madre !== 4)).toHaveLength(0);
     expect(indice.avisos.some((a) => /bisagra/i.test(a))).toBe(true);
+  });
+
+  it('con bisagra, el resto del capítulo 4 (fusionado o no) no se titula también "El viaje"', () => {
+    // JU1 (400) queda en el capítulo 4 después de sacar la migración por la
+    // bisagra; TR1 (400, más chico) se fusiona hacia el capítulo 4. Antes del
+    // arreglo, el título de esa fusión se calculaba con la migración adentro
+    // (proporción ≥ 60 %, edad de migración 26 ≤ 30) y quedaba "El viaje",
+    // duplicando el título del capítulo que insertó la bisagra.
+    const ficha: FichaV3 = {
+      ...FICHA,
+      parejas: [
+        { nombre: 'Carmen', actual: false, fin: 'separacion', anioInicio: 1975, anioFin: 1990 },
+        { nombre: 'Norma', actual: true, fin: null, anioInicio: 1996 },
+      ],
+      migracion: { de: 'Rosario', a: 'Madrid', anio: 1976, edad: 26 },
+    };
+    const resp = [
+      ...vidaCompleta().filter((x) => !['AM1', 'JU1', 'TR1'].includes(x.preguntaId)),
+      r('JU1', 400), r('TR1', 400),
+      r('AM1', 2000, { sujeto: 'pareja:1' }), r('AM1', 2000, { sujeto: 'pareja:2' }),
+      r('JU8', 900), r('JU9', 900),
+    ];
+    const indice = armarIndice(resp, ficha, op);
+    expect(indice.capitulos.filter((c) => c.titulo === 'El viaje')).toHaveLength(1);
   });
 });
 

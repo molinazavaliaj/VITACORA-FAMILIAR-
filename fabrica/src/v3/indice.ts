@@ -22,7 +22,7 @@
 
 import { preguntaPorId } from './banco.js';
 import { anioMigracion, edadMigracion, estado, lista, type FichaV3 } from './ficha.js';
-import { edadDicha, etapaPorLexico, madrePorEdad, mencionaActividad, personaNombrada } from './etapa.js';
+import { edadDicha, etapaPorLexico, madrePorEdad, mencionaActividad, personaNombrada, posicionActividad } from './etapa.js';
 
 // ---------------------------------------------------------------- tipos
 
@@ -231,8 +231,8 @@ function ubicar(
 function primeraMencion<T extends { n: string }>(texto: string, candidatos: T[]): T | null {
   let mejor: { pos: number; c: T } | null = null;
   for (const c of candidatos) {
-    if (!mencionaActividad(texto, c.n)) continue;
-    const pos = texto.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').search(c.n.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').slice(0, 5));
+    const pos = posicionActividad(texto, c.n);
+    if (pos < 0) continue;
     if (!mejor || pos < mejor.pos) mejor = { pos, c };
   }
   return mejor?.c ?? null;
@@ -451,14 +451,12 @@ export function armarIndice(respuestas: RespuestaV3[], ficha: FichaV3, opciones:
     if (u.ubicacion) flotantes.push({ respuestaId: r.id, preguntaId: r.preguntaId, ...u.ubicacion });
   });
 
-  // "El viaje" como título del capítulo 4.
-  const del4 = items.filter((x) => x.madre === 4);
-  const edadMig = edadMigracion(ficha);
-  const palabrasMig4 = palabras(del4.filter((x) => MIGRACION.has(x.r.preguntaId)));
-  const esViaje = edadMig !== null && edadMig <= EDAD_VIAJE && palabras(del4) > 0 && palabrasMig4 / palabras(del4) >= PROPORCION_VIAJE;
-  const titulo4 = esViaje ? TITULO_VIAJE : TITULOS[4];
-
-  // 2. Bisagra: se separan las respuestas de migración antes de fusionar.
+  // 2. Bisagra: se separan las respuestas de migración antes de calcular el
+  // título del capítulo 4 y antes de fusionar. Si no se hace en este orden,
+  // el capítulo 4 (o su fusión) puede quedar titulado "El viaje" por su
+  // proporción de migración ANTES de la bisagra, mientras la bisagra inserta
+  // otro capítulo, también "El viaje", con las respuestas ya sacadas: dos
+  // capítulos con el mismo título.
   let bisagra = detectarBisagra(ficha, avisos);
   let viaje: Item[] = [];
   if (bisagra) {
@@ -478,6 +476,14 @@ export function armarIndice(respuestas: RespuestaV3[], ficha: FichaV3, opciones:
       for (let i = items.length - 1; i >= 0; i--) if (ids.has(items[i].r.id)) items.splice(i, 1);
     }
   }
+
+  // "El viaje" como título del capítulo 4, con las respuestas de la bisagra
+  // (si hubo) ya afuera de `items`.
+  const del4 = items.filter((x) => x.madre === 4);
+  const edadMig = edadMigracion(ficha);
+  const palabrasMig4 = palabras(del4.filter((x) => MIGRACION.has(x.r.preguntaId)));
+  const esViaje = edadMig !== null && edadMig <= EDAD_VIAJE && palabras(del4) > 0 && palabrasMig4 / palabras(del4) >= PROPORCION_VIAJE;
+  const titulo4 = esViaje ? TITULO_VIAJE : TITULOS[4];
 
   // 3. Fusión por mínimo.
   const W = (m: number) => palabras(items.filter((x) => x.madre === m));
