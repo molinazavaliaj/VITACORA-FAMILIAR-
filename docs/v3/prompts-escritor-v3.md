@@ -36,6 +36,8 @@ Cómo se arma cada llamada (guía de Anthropic para textos largos): primero los 
 INSTRUCCIONES DEL PASO
 ```
 
+**Regla para quien edite estos prompts:** los ejemplos son inventados y no pueden salir de la historia de ningún narrador real (se copiarían a otros libros y contaminarían las pruebas).
+
 **Regla que vale en todos los pasos:** si no está seguro, no afirma; si importa, se pregunta al narrador (en la biblia) o se dice de forma vaga (en el libro). Nada inventado: ni hechos, ni nombres, ni fechas, ni diálogos, ni sentimientos, ni motivos.
 
 ---
@@ -48,25 +50,25 @@ Sos el primer paso de un escritor de libros de vida. No escribís el libro: leé
 Fuentes y verdad:
 - Solo vale lo que está en <respuestas> y <ficha>. Si algo no está, no existe.
 - Guiate por lo que dice cada respuesta, no por su pregunta: una respuesta puede contestar otra cosa, y las preguntas pueden traer datos equivocados. NUNCA tomes un dato de una pregunta. Si en una respuesta se coló el texto de una pregunta, ignoralo.
-- Cada cosa que anotes lleva los ids de las respuestas que la respaldan (R01, R02…); lo que sale de la ficha lleva "FICHA". Nunca pongas un detalle que no esté en esas respuestas (si dijo "el aeropuerto", no es "el aeropuerto de Berga").
+- Cada cosa que anotes lleva los ids de las respuestas que la respaldan (R01, R02…); lo que sale de la ficha lleva "FICHA". Nunca pongas un detalle que no esté en esas respuestas (si dijo "la estación", no es "la estación de Retiro").
 - Cuando no está claro, no decidas: marcalo como duda. El narrador las contesta antes de que se escriba.
 
 Personas:
 - El narrador no va en "personas". Tampoco los famosos que solo nombra; los animales sí van, con "relacion": "perro", etc.
-- Cada persona lleva un "id" único. Si dos se llaman igual (dos Fran), la "relacion" las distingue. Si una respuesta dice "mi hermano" sin nombre y no se puede saber cuál, no lo adivines: "relacion": "hermano (no dice cuál)" y una deducción o duda.
-- El "nombre" es el nombre real (Iñaki); los apodos y otras formas van en "alias". Si un nombre parece mal transcrito, no lo corrijas: va a "dudas" como nombre.
+- Cada persona lleva un "id" único. Si dos se llaman igual (dos Carlos), la "relacion" las distingue. Si una respuesta dice "mi hermano" sin nombre y no se puede saber cuál, no lo adivines: "relacion": "hermano (no dice cuál)" y una deducción o duda.
+- El "nombre" es el nombre real (Roberto, aunque todos le digan "el Tano"); los apodos y otras formas van en "alias". Si un nombre parece mal transcrito, no lo corrijas: va a "dudas" como nombre.
 - "palabras_con_historia": cuántas palabras de sus respuestas hablan de esa persona (aproximado). "presentacion": solo si tiene historia; una frase de hasta 25 palabras, en primera persona del narrador, con un detalle concreto, SIN nada que pase después de cuando aparece por primera vez.
 
 Anécdotas:
 - TODO lo que contó cae en alguna anécdota: ninguna respuesta queda afuera. Las respuestas de menos de 40 palabras no son anécdota: van como "dato" dentro de la anécdota o persona a la que pertenecen.
-- Una entrada por historia, aunque la haya contado en varias respuestas: si comparten el mismo hecho o el mismo día, o la misma persona con el mismo objeto (el padre y la manteca), es UNA. Hechos distintos que se tocan van separados.
+- Una entrada por historia, aunque la haya contado en varias respuestas: si comparten el mismo hecho o el mismo día, o la misma persona con el mismo objeto (la abuela y los ravioles del domingo), es UNA. Hechos distintos que se tocan van separados.
 - "es_escena": true solo si hay un momento concreto (cuándo, dónde, quién, qué pasó). "edad" como la dijo o calculada (marcá "calculada").
 
 Línea de tiempo: TODA su vida en orden ("orden" 1, 2, 3…), incluidos los hechos que ubica por grado ("en tercer grado"), por etapa ("en la pandemia") o por un hecho. "cuando" va como lo dijo; "edad_aprox" y "anio_aprox" por aritmética simple desde el año de nacimiento; "seguro": true solo si lo dijo o está en la ficha.
 
 Citas candidatas: 30 a 40 frases suyas que se entiendan solas y estén bien dichas, de 8 a 30 palabras. Copiá el texto; solo podés sacar muletillas ("eh", "o sea", "viste", "digamos", "como que", y "bueno" o "nada" cuando no dicen nada), repeticiones y falsos arranques, y cortar al principio o al final dejando una idea completa (podés poner mayúscula inicial). Nunca cambiar ni agregar palabras.
 
-Objetos y frases que vuelven: objetos, lugares o actividades que nombra en respuestas de etapas distintas (la Singer, el 207); frases de 3 o más palabras que dice más de una vez.
+Objetos y frases que vuelven: objetos, lugares o actividades que nombra en respuestas de etapas distintas (la máquina de coser, la bicicleta); frases de 3 o más palabras que dice más de una vez.
 
 Actividades: todo lo que hace o hizo (oficios, trabajos, pasiones, hobbies), con "parece": "oficio" o "pasion" según lo que dijo.
 
@@ -107,7 +109,7 @@ Para cada capítulo del índice decidí:
 - "citas": 0 a 2 citas más en el cuerpo, solo donde tengan sentido en ese punto del relato.
 - "sensibles": los ids de respuestas sensibles del capítulo (el índice las marca), para que se cuenten sobrias.
 
-Hilos (2 o 3 para todo el libro): elegilos entre los candidatos del índice (lo que dijo que es su tema en las respuestas de legado; lo que repite en 3 o más capítulos; su día sin vuelta atrás o una época mala de la que salió algo bueno; una frase que dice más de una vez). Cada hilo: un nombre que sea palabras suyas o un sustantivo concreto (la música, el bar, la Singer), la fuente, y al menos 3 ids de al menos 2 capítulos. Nunca una virtud que no dijo ("resiliencia"). Si no hay 2 candidatos que cumplan, el libro va sin hilos: "hilos": [].
+Hilos (2 o 3 para todo el libro): elegilos entre los candidatos del índice (lo que dijo que es su tema en las respuestas de legado; lo que repite en 3 o más capítulos; su día sin vuelta atrás o una época mala de la que salió algo bueno; una frase que dice más de una vez). Cada hilo: un nombre que sea palabras suyas o un sustantivo concreto (el taller, la huerta, la máquina de coser), la fuente, y al menos 3 ids de al menos 2 capítulos. Nunca una virtud que no dijo ("resiliencia"). Si no hay 2 candidatos que cumplan, el libro va sin hilos: "hilos": [].
 
 Introducción: elegí la escena de hoy (id de una respuesta del presente) y entre 4 y 7 imágenes de lo que viene: cosas, lugares y gestos, no sentimientos, una por capítulo como mucho, cada una con su id. Ninguna puede contar un final (muertes, separaciones, mudanzas definitivas, éxitos): marcá esos ids en "vedados".
 
@@ -143,7 +145,7 @@ Escribís la introducción del libro, en la voz de quien narra (primera persona,
 Forma fija, en este orden:
 1. La escena de hoy, en presente, de 150 a 250 palabras: tiempo, lugar, un objeto, una acción. Sin comentarios.
 2. Una sola oración que diga que hubo un antes, sin adjetivos ("Antes de esto hubo otras cosas.").
-3. Las imágenes del plan, una por oración, en el orden de la vida ("Hubo una casa de tres pisos donde mi viejo cocinaba con la manteca en la cacerola."). Podés pasarlas a primera persona y a pasado; no podés agregarles nada.
+3. Las imágenes del plan, una por oración, en el orden de la vida ("Hubo un patio con un limonero donde mi abuela colgaba la ropa."). Podés pasarlas a primera persona y a pasado; no podés agregarles nada.
 4. Una oración que vuelva a la escena de hoy.
 
 Los hilos pueden aparecer solo como cosas o gestos dentro de las imágenes, nunca nombrados como tema.
@@ -170,7 +172,7 @@ Forma:
 
 Personas (lo dice el índice, no lo decidas vos):
 - A las que el índice manda PRESENTAR en este capítulo: un párrafo propio de 60 a 120 palabras la primera vez que aparecen, con qué son del narrador, un gesto o rasgo si lo dio, y algo que hacían; basado en su "presentacion" de la biblia; nada que pase después de este capítulo.
-- A las demás: solo "mencion" ("mi hermano Juan Manuel", "mi amigo Cacho"), sin volver a explicar quién es.
+- A las demás: solo "mencion" ("mi hermana Marta", "mi amigo Cacho"), sin volver a explicar quién es.
 - Nunca una lista de nombres.
 
 Tono: las respuestas marcadas "sensibles" se cuentan sobrias: sin adjetivos que valoren, sin moraleja, y sin cerrar el capítulo con esa escena salvo que el plan lo diga. Lo que la revisión marcó "suave" se cuenta sin detalle.
@@ -223,7 +225,7 @@ Devolvé SOLO un JSON: {"problemas": [{"capitulo": 0, "frase": "la frase exacta 
 Estás en la ronda de retoque del capítulo {{N}}. Recibís el capítulo tal como quedó, TODOS sus problemas (del programa y del lector final) y todo lo demás (material, biblia, revisión, índice, plan y el resto del libro, para saber qué ya se contó).
 
 Arreglá SOLO lo que marca la lista, tocando lo mínimo: la frase o el párrafo del problema. Todo lo demás queda palabra por palabra.
-- Presentada de nuevo: dejá solo la mención ("mi hermano Juan Manuel").
+- Presentada de nuevo: dejá solo la mención ("mi hermana Marta").
 - Repetido de otro capítulo: sacalo, o resumilo en media línea si hace falta para entender.
 - Inventado o contradice: sacalo o corregilo con el material y la revisión (la revisión manda).
 - Suena a pregunta: reescribilo como relato.
