@@ -112,7 +112,7 @@ Libro:
 - "apodos": cada apodo o nombre artístico del narrador que esté en la ficha o en la biblia, con el capítulo donde se cuenta (el primero donde aparece en el material) y sus ids. Ninguno queda afuera.
 
 Para cada capítulo:
-- "titulo": una frase suya de ese capítulo, textual, de 2 a 8 palabras. Nunca un lugar solo, nunca un nombre que el lector no conoce todavía, nunca un final (muerte, separación). Los años los pone el código.
+- "titulo": una frase suya de ese capítulo, textual, de 2 a 8 palabras. Nunca un lugar solo, nunca un nombre que el lector no conoce todavía, nunca un final (muerte, separación), nunca una imagen o frase tuya. Si no hay una frase textual que sirva, dejalo vacío: el título queda solo con la etapa y los años. Los años los pone el código.
 - "apertura": cómo arranca, con su id: una escena, un objeto, una persona que entra, una frase suya o un día común de esa etapa. Tiene que ser de la primera anécdota del capítulo. Dos capítulos seguidos no arrancan igual.
 - "puente" (desde el segundo capítulo): una oración que ubica el salto de tiempo y lugar desde el anterior, sin resumirlo ("Ya vivíamos en el centro y yo trabajaba en la fábrica"). Cada hecho del puente con respaldo en "puente_ids". Un número o un plazo solo si él lo dijo o está en la ficha.
 - "presentar": para cada persona que el índice manda presentar acá, su frase de presentación: hasta 25 palabras, en primera persona, qué es del narrador y un detalle concreto, usando SOLO hechos de este capítulo o de antes. Nada que pase después.
@@ -160,8 +160,8 @@ Contar una historia, no llenar un formulario:
 - Antes de escribir, decidí de qué trata esta escena en una frase: qué le está pasando hoy, en ese momento (por ejemplo: "la huerta se secó y este año no hay tomates para la salsa"). Ese es el hilo. No hace falta que sea una frase textual suya: alcanza con que sea lo que él contó. No lo escribas en el texto.
 - El hilo decide qué se cuenta largo y qué corto, no qué entra. Lo que contó de esa escena entra entero; lo que no sirve al hilo va en media línea, dentro de la escena. Nunca lo saques.
 - El lector no escuchó las preguntas ni conoce su vida. La primera vez que aparece en el libro un lugar, una persona o una cosa, decí qué es con lo que él contó ("el galpón del fondo, donde mi suegro arreglaba bicicletas", no "el galpón"); si no contó qué es, nombralo por lo que sí dijo. Nunca agregues un dato para presentarlo.
-- Cada párrafo sigue del anterior por tiempo, lugar o causa. Si un párrafo no se engancha con el anterior, buscale el enganche con lo que él contó.
-- Nada de listas de estado o de rutina ("mi hija vive en Rosario, el mayor está casado, en casa quedamos los dos"): eso se cuenta como algo que le pasa a él, dentro de una escena o con su efecto en él.
+- Cada párrafo sigue del anterior por tiempo, lugar o causa. Si un párrafo no se engancha con el anterior, el enganche es de tiempo o de lugar, con lo que él contó; nunca una causa que él no dijo. Si no hay, un salto limpio de párrafo.
+- Nada de listas de estado o de rutina ("mi hija vive en Rosario, el mayor está casado, en casa quedamos los dos"): eso se cuenta como algo que le pasa a él, dentro de una escena o con su efecto en él, si lo dijo. Si no lo dijo, el dato va en una sola oración, pegado a la historia más cercana, y no se le agrega efecto.
 - Los datos de la ficha que ubican al lector (dónde vive, a qué se dedica) entran solo dentro de la escena y si sirven al hilo, nunca como lista.
 
 Lo que no va:
@@ -180,11 +180,11 @@ Regla de todo el libro: solo vale lo que el narrador dijo o está en la ficha. S
 Sos el escritor. Escribís el capítulo {{N}} ("{{TITULO}}"), en primera persona, con la voz de quien narra: como si lo contara esa persona, bien contado, en su forma de hablar (biblia, "voz"). Lo anterior ya está escrito (<libro_hasta_aca>): leelo antes, para no repetir nada de lo que ya se contó, no volver a presentar a nadie y seguir con el mismo tono.
 
 Contar una historia, no llenar un formulario:
-- Antes de escribir, decidí de qué trata este capítulo en una frase. Si el plan tiene giro, ese es el hilo. Si dice "sin giro", el hilo es qué le pasa en esa etapa, no qué cambia (por ejemplo: "los años del taller de costura, con la casa llena de clientas"). No hace falta que sea una frase textual suya: alcanza con que sea lo que él contó. No lo escribas en el texto.
+- Antes de escribir, decidí de qué trata este capítulo en una frase. Si el plan tiene giro, el hilo es lo que lleva a ese giro. Si dice "sin giro", el hilo es qué le pasa en esa etapa, no qué cambia (por ejemplo: "los años del taller de costura, con la casa llena de clientas"). No hace falta que sea una frase textual suya: alcanza con que sea lo que él contó. No lo escribas en el texto.
 - El hilo decide qué se cuenta largo y qué corto; el orden es el del plan. Todas las anécdotas del plan entran: lo que no sirve al hilo va en media línea dentro de la historia a la que pertenece. Nunca saques una anécdota ni un hecho del material.
 - El lector no escuchó las preguntas ni conoce su vida. La primera vez que aparece en el libro un lugar o una cosa, decí qué es con lo que él contó ("el galpón del fondo, donde mi suegro arreglaba bicicletas", no "el galpón"); si no contó qué es, nombralo por lo que sí dijo. Nunca agregues un dato para presentarlo. Las personas, como dice "Personas" más abajo.
-- Cada párrafo sigue del anterior por tiempo, lugar o causa. Si un párrafo no se engancha con el anterior, buscale el enganche con lo que él contó.
-- Nada de listas de estado o de rutina ("mi hija vive en Rosario, el mayor está casado, en casa quedamos los dos"): eso se cuenta como algo que le pasa a él, dentro de una escena o con su efecto en él.
+- Cada párrafo sigue del anterior por tiempo, lugar o causa. Si un párrafo no se engancha con el anterior, el enganche es de tiempo o de lugar, con lo que él contó; nunca una causa que él no dijo. Si no hay, un salto limpio de párrafo.
+- Nada de listas de estado o de rutina ("mi hija vive en Rosario, el mayor está casado, en casa quedamos los dos"): eso se cuenta como algo que le pasa a él, dentro de una escena o con su efecto en él, si lo dijo. Si no lo dijo, el dato va en una sola oración, pegado a la historia más cercana, y no se le agrega efecto.
 
 Escribir es esto, no copiar:
 - Contar historias, no listar datos. Cada escena con dónde, cuándo, quién estaba y qué pasó; lo que sintió, solo si lo dijo y con sus palabras. Lo que solo se mencionó va resumido en una o dos oraciones dentro de la historia a la que pertenece.
@@ -302,12 +302,12 @@ Devolvé SOLO el capítulo completo corregido, en markdown, y al final, después
 - **3b · huecos**: `{{PALABRAS}}` = 1,4 × palabras escritas estimadas del capítulo (la suma de las palabras escritas de sus anécdotas, calculadas como en 1b); igual rige "nunca estirar". `{{ESCENA_HOY}}` = el texto de la respuesta `prologo.id` del plan, no un texto del modelo.
 - **4 · controles**: nombres contra biblia, ficha y respuestas (también con las palabras pegadas o partidas: "San Telmo" contra "santelmo"); cada apodo o nombre artístico de la ficha aparece en el libro; cada cita y cada tramo entre comillas es subsecuencia de una respuesta; años contra material y ficha, salteando los títulos de capítulo (sus años los pone el código); 6 palabras seguidas repetidas entre capítulos; eco de preguntas (el ancla de una repregunta del cazador no cuenta: son palabras del narrador).
 - **6 · retoque medido**: los párrafos sin problema tienen que quedar idénticos; las falsas alarmas se registran para mejorar los controles.
-- **Título impreso de cada capítulo**: "{desde}–{hasta o hoy}. {título del plan}" (el formato de los años está pendiente, K5).
+- **Título impreso de cada capítulo** (Fable, K5): "{desde}–{hasta o hoy}. {título del plan}" solo si los dos cortes son seguros (ficha, o dichos por él con número); si alguno es calculado, sin años: la frase suya sola. Si el plan dejó el título vacío, la etapa ("De chico", "La secundaria"…) y los años si son seguros.
 
 ## Pendiente de decisión (Naza/Fable)
 
-- **K2 · Muerte y enfermedad en el cazador:** para un público de 60+, la última vez con un padre o la viudez suelen ser las escenas centrales. ¿Se excluyen del todo o solo si el narrador las marcó? Hoy siguen excluidas.
-- **K5 · Años de los títulos:** ¿años calculados ("1998–2004") o "hacia 2004" cuando el corte no es seguro? El control de años ya saltea los títulos.
+- **K2 · Resuelto (Fable):** ver cazador-de-escenas.md.
+- **K5 · Resuelto (Fable):** años en el título solo si los dos cortes son seguros; si no, la frase sola. Título solo textual, nunca una imagen inventada.
 - **K6 · Piso del capítulo (7 % del libro, entre 600 y 900, propuesta de Fable ya en código):** confirmarlo con otro narrador.
 - **K7 · Resuelto (Naza, 26/09):** "Juancito" es otra persona, no Juan Damico.
-- **K8 · Cuota y largo del ancla del cazador:** 2 o 3 por bloque con tope ~10, y anclas de hasta 20 palabras en un WhatsApp para alguien de 75.
+- **K8 · Resuelto (Fable):** cuota 2 por bloque, tope 10, ancla de 6 a 14 palabras.

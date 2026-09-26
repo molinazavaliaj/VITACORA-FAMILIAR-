@@ -26,7 +26,8 @@ export type TipoCambio =
   | 'pareja' | 'separacion' | 'viudez' | 'hijo' | 'oficio' | 'jubilacion' | 'migracion'
   | 'mudanza' | 'escuela' | 'perdida' | 'otro';
 
-export type Cambio = { anio: number; tipo: TipoCambio; que: string; fuente: 'ficha' | 'biblia' | 'edad' };
+/** `seguro`: el año sale de la ficha o él lo dijo con número (fecha_segura de la biblia). Los cortes de edad no lo son. */
+export type Cambio = { anio: number; tipo: TipoCambio; que: string; fuente: 'ficha' | 'biblia' | 'edad'; seguro?: boolean };
 
 /** Una anécdota de la biblia con su año (calculado) y sus palabras escritas estimadas. `rol`: 'pareja:<nombre>' u 'oficio:<nombre>'. */
 export type AnecdotaEtapa = { id: string; anio: number | null; palabras: number; rol?: string };
@@ -40,6 +41,8 @@ export type CapituloEtapa = {
   /** El cambio que abre el capítulo (null en el primero y en los de rol). */
   abre: Cambio | null;
   rol?: string;
+  /** Los años van en el título solo si los dos cortes son seguros (Fable, K5); si no, la frase sola. */
+  aniosSeguros?: boolean;
 };
 
 export type Etapas = { capitulos: CapituloEtapa[]; sinAnio: string[]; avisos: string[] };
@@ -53,23 +56,23 @@ export function cambiosDeFicha(ficha: FichaV3, anioActual: number): Cambio[] {
   const nac = ficha.anioNacimiento;
   const out: Cambio[] = [];
   for (const p of lista(ficha.parejas)) {
-    if (p.anioInicio !== undefined) out.push({ anio: p.anioInicio, tipo: 'pareja', que: `empieza con ${p.nombre}`, fuente: 'ficha' });
-    if (p.anioFin !== undefined && p.fin) out.push({ anio: p.anioFin, tipo: p.fin === 'fallecio' ? 'viudez' : 'separacion', que: `${p.fin === 'fallecio' ? 'muere' : 'se separa de'} ${p.nombre}`, fuente: 'ficha' });
+    if (p.anioInicio !== undefined) out.push({ anio: p.anioInicio, tipo: 'pareja', que: `empieza con ${p.nombre}`, fuente: 'ficha', seguro: true });
+    if (p.anioFin !== undefined && p.fin) out.push({ anio: p.anioFin, tipo: p.fin === 'fallecio' ? 'viudez' : 'separacion', que: `${p.fin === 'fallecio' ? 'muere' : 'se separa de'} ${p.nombre}`, fuente: 'ficha', seguro: true });
   }
   const primerHijo = lista(ficha.hijos).filter((h) => h.anio !== undefined).sort((x, y) => x.anio! - y.anio!)[0];
-  if (primerHijo) out.push({ anio: primerHijo.anio!, tipo: 'hijo', que: `nace ${primerHijo.nombre}`, fuente: 'ficha' });
-  for (const o of lista(ficha.oficios)) if (o.desde !== undefined) out.push({ anio: o.desde, tipo: 'oficio', que: `empieza como ${o.nombre}`, fuente: 'ficha' });
+  if (primerHijo) out.push({ anio: primerHijo.anio!, tipo: 'hijo', que: `nace ${primerHijo.nombre}`, fuente: 'ficha', seguro: true });
+  for (const o of lista(ficha.oficios)) if (o.desde !== undefined) out.push({ anio: o.desde, tipo: 'oficio', que: `empieza como ${o.nombre}`, fuente: 'ficha', seguro: true });
   const m = valor(ficha.migracion);
   if (m) {
     const anio = m.anio ?? (m.edad !== undefined ? nac + m.edad : undefined);
-    if (anio !== undefined) out.push({ anio, tipo: 'migracion', que: `se va a ${m.a}`, fuente: 'ficha' });
+    if (anio !== undefined) out.push({ anio, tipo: 'migracion', que: `se va a ${m.a}`, fuente: 'ficha', seguro: true });
   }
   return out.filter((x) => x.anio > nac && x.anio <= anioActual).sort((x, y) => x.anio - y.anio);
 }
 
 /** Los cortes de la escuela (13 y 18 años) que ya pasaron. */
 export function cambiosDeEdad(anioNacimiento: number, anioActual: number): Cambio[] {
-  return EDADES_DE_CORTE.map((e) => ({ anio: anioNacimiento + e, tipo: 'escuela' as const, que: e === 13 ? 'empieza la secundaria' : 'termina el colegio', fuente: 'edad' as const }))
+  return EDADES_DE_CORTE.map((e) => ({ anio: anioNacimiento + e, tipo: 'escuela' as const, que: e === 13 ? 'empieza la secundaria' : 'termina el colegio', fuente: 'edad' as const, seguro: false }))
     .filter((x) => x.anio < anioActual);
 }
 
@@ -103,7 +106,7 @@ export function armarEtapas(anecdotas: AnecdotaEtapa[], cambios: Cambio[], opcio
     if (palabras < pisoRol) continue;
     const ordenadas = [...xs].sort(porAnio);
     const enLaVida = (anio: number) => Math.min(hoy, Math.max(nac, anio));
-    capRol.push({ desde: enLaVida(ordenadas[0].anio!), hasta: enLaVida(ordenadas[ordenadas.length - 1].anio!), anecdotas: ordenadas.map((x) => x.id), palabras, abre: null, rol });
+    capRol.push({ desde: enLaVida(ordenadas[0].anio!), hasta: enLaVida(ordenadas[ordenadas.length - 1].anio!), anecdotas: ordenadas.map((x) => x.id), palabras, abre: null, rol, aniosSeguros: false });
     for (const x of xs) apartadas.add(x.id);
   }
   const resto = conAnio.filter((x) => !apartadas.has(x.id));
@@ -156,9 +159,12 @@ export function armarEtapas(anecdotas: AnecdotaEtapa[], cambios: Cambio[], opcio
   }
 
   // Un tramo sin anécdotas solo queda si todo el material con año era de un rol: no es capítulo.
-  const capitulos: CapituloEtapa[] = tramos
-    .filter((t) => t.anecdotas.length)
-    .map((t) => ({ desde: t.desde, hasta: t.hasta, anecdotas: t.anecdotas.map((x) => x.id), palabras: suma(t), abre: t.abre }));
+  const conMaterial = tramos.filter((t) => t.anecdotas.length);
+  const capitulos: CapituloEtapa[] = conMaterial.map((t, i) => {
+    const cierra = conMaterial[i + 1]?.abre;
+    const aniosSeguros = (t.abre === null || t.abre.seguro === true) && (t.hasta === null || cierra?.seguro === true);
+    return { desde: t.desde, hasta: t.hasta, anecdotas: t.anecdotas.map((x) => x.id), palabras: suma(t), abre: t.abre, aniosSeguros };
+  });
   for (const cap of capitulos) if (cap.palabras > techo) avisos.push(`${cap.desde}–${cap.hasta ?? 'hoy'} pasa el techo (${cap.palabras} > ${techo}) y no hay otro cambio donde cortar.`);
   // El rol va en el año en que empieza, pero nunca después del capítulo que llega a hoy (ahí termina el libro).
   const hayUltimo = capitulos.length > 0;

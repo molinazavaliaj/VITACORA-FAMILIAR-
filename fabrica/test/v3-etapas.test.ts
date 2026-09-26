@@ -27,6 +27,23 @@ describe('pisoEtapa (Fable, 26/09: 7 % de las palabras escritas del libro, entre
   });
 });
 
+describe('años seguros para el título (Fable, K5: los dos cortes seguros, o sin años)', () => {
+  it('los cortes de la ficha son seguros; los de edad (13 y 18) no', () => {
+    const ficha: FichaV3 = { nombre: 'X', anioNacimiento: 1950, genero: 'mujer', paisNacimiento: 'AR', paisResidencia: 'AR', hijos: [{ nombre: 'P', anio: 1975 }] };
+    expect(cambiosDeFicha(ficha, ANIO).every((x) => x.seguro)).toBe(true);
+    expect(cambiosDeEdad(1950, ANIO).every((x) => !x.seguro)).toBe(true);
+  });
+  it('un capítulo tiene años seguros si lo abre el nacimiento o un corte seguro, y lo cierra hoy o un corte seguro', () => {
+    const r = armarEtapas([a('A1', 1960, 900), a('A2', 1975, 900), a('A3', 1990, 900)], [{ ...c(1970), seguro: true }, { ...c(1985), seguro: false }], base);
+    expect(r.capitulos.map((x) => x.aniosSeguros)).toEqual([true, false, false]);
+  });
+  it('sin cortes, el único capítulo (nacimiento a hoy) es seguro; un capítulo de rol, no', () => {
+    expect(armarEtapas([a('A1', 1960, 900)], [], base).capitulos[0].aniosSeguros).toBe(true);
+    const r = armarEtapas([a('A1', 1960, 900), a('R1', 1972, 700, 'pareja:X'), a('R2', 1990, 700, 'pareja:X')], [], base);
+    expect(r.capitulos.find((x) => x.rol)!.aniosSeguros).toBe(false);
+  });
+});
+
 describe('cambiosDeFicha', () => {
   const ficha: FichaV3 = {
     nombre: 'Rosa', anioNacimiento: 1950, genero: 'mujer', paisNacimiento: 'Argentina', paisResidencia: 'España',
