@@ -308,6 +308,6 @@ Devolvé SOLO el capítulo completo corregido, en markdown, y al final, después
 
 - **K2 · Muerte y enfermedad en el cazador:** para un público de 60+, la última vez con un padre o la viudez suelen ser las escenas centrales. ¿Se excluyen del todo o solo si el narrador las marcó? Hoy siguen excluidas.
 - **K5 · Años de los títulos:** ¿años calculados ("1998–2004") o "hacia 2004" cuando el corte no es seguro? El control de años ya saltea los títulos.
-- **K6 · Piso de 600 palabras por capítulo:** el revisor recomienda confirmarlo con otro narrador.
+- **K6 · Piso del capítulo (7 % del libro, entre 600 y 900, propuesta de Fable ya en código):** confirmarlo con otro narrador.
 - **K7 · ¿"Juancito" es Juan Damico?** Lo contesta Naza.
 - **K8 · Cuota y largo del ancla del cazador:** 2 o 3 por bloque con tope ~10, y anclas de hasta 20 palabras en un WhatsApp para alguien de 75.
