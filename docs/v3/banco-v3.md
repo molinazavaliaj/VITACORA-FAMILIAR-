@@ -482,7 +482,7 @@ Ninguno lleva contenido de lo que el narrador contó. Donde los informes traen t
 | M9 | Recordatorio a la familia si el narrador no responde | A redactar. Fable proponía uno a los 7 días con el consejo "llamalo". | Informe 2, C.3 | a redactar |
 | M10 | Conteo al cerrar un bloque | En esta etapa contaste {{n_historias}} historias y nombraste a {{n_personas}} personas. Ya están guardadas. | Informe 2, C.6 | pendiente de aprobación |
 | M11 | Hito al cerrar un bloque | Terminó {{etapa}}: {{n}} de {{total}} etapas. | Informe 2, C.3 | pendiente de aprobación |
-| M12 | Avance y progreso dotado (desde el primer mensaje) | Tu libro ya tiene {{n}} páginas. | Informe 2, C.3 | pendiente de aprobación |
+| M12 | Avance por etapas (sin números: Naza, 26/09) | Terminamos {{etapa}}. Ya está guardada en tu libro. | Naza, 26/09 (reemplaza "Tu libro ya tiene {{n}} páginas") | pendiente de aprobación |
 | M13 | Elegir el tema del siguiente turno | ¿Seguimos con {{tema_a}} o pasamos a {{tema_b}}? [botón] [botón] | Informe 2, C.3 (sin "hoy") | pendiente de aprobación |
 | M14 | Reacción de la familia | {{quien}} escuchó lo que contaste y te manda esto. | Informe 2, C.6 (se sacó "lo de ayer") | pendiente de aprobación |
 | M15 | Pregunta que manda la familia | Esta te la manda {{quien}}. | Informe 2, C.6 | pendiente de aprobación |

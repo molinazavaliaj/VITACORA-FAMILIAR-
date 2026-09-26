@@ -1,6 +1,6 @@
 # Títulos de capítulo del libro V3
 
-**Estado: pendiente de aprobación — 26/09/2026.** Todos los títulos de esta lista los usa el código tal cual; ninguno lo inventa el modelo. Naza aprueba la lista de una vez (o cambia los que quiera) antes de que llegue a un libro.
+**Estado: aprobados por Naza el 26/09/2026.** Todos los títulos de esta lista los usa el código tal cual; ninguno lo inventa el modelo. Naza aprueba la lista de una vez (o cambia los que quiera) antes de que llegue a un libro.
 
 Sale de: la propuesta de Fable "Agrupaciones fijas de capítulos" (secciones 2 y 3), que Naza aprobó el 26/09, más cinco títulos que agregó el código para combinaciones que la propuesta no cubría (marcados con **nuevo**, al final).
 
