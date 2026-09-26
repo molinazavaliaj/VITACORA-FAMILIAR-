@@ -66,7 +66,7 @@ function textoSintetico(p: PreguntaInstanciada, ficha: FichaV3, azar: Azar, anio
   return partes.join('. ') + '.';
 }
 
-export type OpcionesSimulacion = { semilla?: number; perfil?: Perfil; anioActual?: number };
+export type OpcionesSimulacion = { semilla?: number; perfil?: Perfil; anioActual?: number; minimo?: number };
 
 /** Una respuesta por pregunta que le llega, con su sujeto; ~15 % "paso". */
 export function respuestasSinteticas(ficha: FichaV3, tamanio: 'B' | 'E' | 'C', opciones: OpcionesSimulacion = {}): RespuestaV3[] {
@@ -92,7 +92,7 @@ export type Simulacion = { preguntas: number; respuestas: RespuestaV3[]; palabra
 export function simular(ficha: FichaV3, tamanio: 'B' | 'E' | 'C', opciones: OpcionesSimulacion = {}): Simulacion {
   const anioActual = opciones.anioActual ?? new Date().getFullYear();
   const respuestas = respuestasSinteticas(ficha, tamanio, opciones);
-  const indice = armarIndice(respuestas, ficha, { tamanio, anioActual });
+  const indice = armarIndice(respuestas, ficha, { tamanio, anioActual, minimo: opciones.minimo });
   const palabras = respuestas.filter((r) => !r.paso).reduce((s, r) => s + r.palabras, 0);
   return { preguntas: respuestas.length, respuestas, palabras, indice };
 }

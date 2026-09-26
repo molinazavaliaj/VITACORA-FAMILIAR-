@@ -67,7 +67,12 @@ export type Indice = {
   avisos: string[];
 };
 
-export type OpcionesIndice = { tamanio?: 'B' | 'E' | 'C'; anioActual?: number };
+export type OpcionesIndice = {
+  tamanio?: 'B' | 'E' | 'C';
+  anioActual?: number;
+  /** Mínimo de palabras habladas para existir (por defecto MINIMO). Solo para calibrar con el simulador. */
+  minimo?: number;
+};
 
 // ---------------------------------------------------------------- tablas fijas
 
@@ -349,10 +354,10 @@ function juntarConVecina(partes: Parte[], i: number): void {
  * Parte los items de un capítulo (anfitrión + fusionados) por la clave de su
  * anfitrión. Los de un capítulo fusionado van a la primera parte si su madre
  * es anterior al anfitrión y a la última si es posterior; los que la clave no
- * reconoce, a la primera. Después: ninguna parte bajo MINIMO y no más de
+ * reconoce, a la primera. Después: ninguna parte bajo el mínimo y no más de
  * `maxPartes`.
  */
-function partir(host: number, items: Item[], ficha: FichaV3, maxPartes: number): Parte[] | null {
+function partir(host: number, items: Item[], ficha: FichaV3, maxPartes: number, minimo: number): Parte[] | null {
   const clave = claveDePartición(host, items.filter((x) => x.madre === host), ficha);
   if (!clave) return null;
   const partes: Parte[] = clave.orden.map((o) => ({ ...o, items: [] as Item[] }));
@@ -373,7 +378,7 @@ function partir(host: number, items: Item[], ficha: FichaV3, maxPartes: number):
   conMaterial[conMaterial.length - 1].items.push(...sueltos.despues);
 
   for (;;) {
-    const chica = conMaterial.findIndex((p) => palabras(p.items) < MINIMO);
+    const chica = conMaterial.findIndex((p) => palabras(p.items) < minimo);
     if (chica < 0 || conMaterial.length === 1) break;
     const menor = conMaterial.reduce((m, p, i) => (palabras(p.items) < palabras(conMaterial[m].items) ? i : m), chica);
     juntarConVecina(conMaterial, menor);
@@ -426,6 +431,7 @@ function detectarBisagra(ficha: FichaV3, avisos: string[]): Bisagra {
 export function armarIndice(respuestas: RespuestaV3[], ficha: FichaV3, opciones: OpcionesIndice = {}): Indice {
   const anioActual = opciones.anioActual ?? new Date().getFullYear();
   const tamanio = opciones.tamanio ?? 'E';
+  const minimo = opciones.minimo ?? MINIMO;
   const avisos: string[] = [];
   const flotantes: Ubicacion[] = [];
   const cierre: string[] = [];
@@ -459,9 +465,9 @@ export function armarIndice(respuestas: RespuestaV3[], ficha: FichaV3, opciones:
     const destino = bisagra.tipo === 'pareja' ? 5 : 6;
     const migracion = items.filter((x) => x.madre === 4 && MIGRACION.has(x.r.preguntaId));
     const propias = items.filter((x) => x.madre === destino);
-    const partesDestino = partir(destino, propias, ficha, 2);
-    if (palabras(migracion) < MINIMO) {
-      avisos.push(`Bisagra: la migración cae entre dos ${bisagra.tipo === 'pareja' ? 'parejas' : 'oficios'}, pero sus respuestas suman ${miles(palabras(migracion))} palabras (mínimo ${miles(MINIMO)}); "El viaje" queda en su capítulo.`);
+    const partesDestino = partir(destino, propias, ficha, 2, minimo);
+    if (palabras(migracion) < minimo) {
+      avisos.push(`Bisagra: la migración cae entre dos ${bisagra.tipo === 'pareja' ? 'parejas' : 'oficios'}, pero sus respuestas suman ${miles(palabras(migracion))} palabras (mínimo ${miles(minimo)}); "El viaje" queda en su capítulo.`);
       bisagra = null;
     } else if (!partesDestino || partesDestino.length < 2) {
       avisos.push(`Bisagra: la migración cae entre dos ${bisagra.tipo === 'pareja' ? 'parejas' : 'oficios'}, pero "${TITULOS[destino]}" no da dos partes con material; "El viaje" queda en su capítulo.`);
@@ -482,7 +488,7 @@ export function armarIndice(respuestas: RespuestaV3[], ficha: FichaV3, opciones:
     for (const [h, g] of grupos) if (g.madres.includes(m)) return h;
     return null;
   };
-  const minimoDe = (h: number) => (h === 1 && grupos.get(1)!.madres.length === 1 ? MINIMO_ORIGEN : MINIMO);
+  const minimoDe = (h: number) => (h === 1 && grupos.get(1)!.madres.length === 1 ? Math.min(MINIMO_ORIGEN, minimo) : minimo);
   for (;;) {
     const bajo = [...grupos.entries()]
       .filter(([h, g]) => h !== 2 && h !== 10 && g.W < minimoDe(h))
@@ -510,7 +516,7 @@ export function armarIndice(respuestas: RespuestaV3[], ficha: FichaV3, opciones:
   }
   // El ancla (2) no tiene vecino hacia atrás: si quedó corta, absorbe al
   // capítulo de etapa que le sigue (3, o 4 si no hay 3), no al revés.
-  while (grupos.has(2) && grupos.get(2)!.W < MINIMO) {
+  while (grupos.has(2) && grupos.get(2)!.W < minimo) {
     const siguiente = [3, 4].find((h) => grupos.has(h));
     const g2 = grupos.get(2)!;
     if (siguiente === undefined) {
@@ -534,10 +540,10 @@ export function armarIndice(respuestas: RespuestaV3[], ficha: FichaV3, opciones:
     const maxPartes = forzada ? Math.max(2, g.W > MAXIMO_SEGUNDA && tamanio === 'C' ? 3 : 2) : g.W > MAXIMO_SEGUNDA && tamanio === 'C' ? 3 : g.W > MAXIMO ? 2 : 1;
     let partes: Parte[] | null = null;
     if (maxPartes > 1) {
-      partes = partir(host, suyos, ficha, maxPartes);
+      partes = partir(host, suyos, ficha, maxPartes, minimo);
       if (!partes) avisos.push(`"${titulo}" tiene ${miles(g.W)} palabras (más de ${miles(MAXIMO)}) y no se parte: no tiene clave de partición.`);
       else if (partes.length === 1) {
-        avisos.push(`"${titulo}" tiene ${miles(g.W)} palabras (más de ${miles(MAXIMO)}) y no se parte: su clave (${partes[0].clave}) no da dos partes de ${miles(MINIMO)}.`);
+        avisos.push(`"${titulo}" tiene ${miles(g.W)} palabras (más de ${miles(MAXIMO)}) y no se parte: su clave (${partes[0].clave}) no da dos partes de ${miles(minimo)}.`);
         partes = null;
       } else {
         avisos.push(`"${titulo}" (${miles(g.W)} palabras) se parte en ${partes.length}: ${partes.map((p) => p.nombre).join(' / ')}.`);

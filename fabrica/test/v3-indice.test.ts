@@ -215,6 +215,12 @@ describe('armarIndice: fusión por mínimo', () => {
     expect(indice.capitulos[0]).toMatchObject({ madre: 2, madres: [1, 2, 3], titulo: 'Crecer', palabrasHabladas: 2400 });
   });
 
+  it('el mínimo se puede bajar para calibrar (opción minimo)', () => {
+    const resp = vidaCompleta();
+    resp[3].palabras = 1000;
+    expect(armarIndice(resp, FICHA, { ...op, minimo: 900 }).capitulos.find((c) => c.madre === 3)!.madres).toEqual([3]);
+  });
+
   it('un capítulo madre sin material no existe (no se fusiona: no está)', () => {
     const indice = armarIndice(vidaCompleta().filter((x) => x.preguntaId !== 'HI1'), FICHA, op);
     expect(indice.capitulos.some((c) => c.madres.includes(7))).toBe(false);
