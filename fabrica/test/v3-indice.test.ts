@@ -207,6 +207,14 @@ describe('armarIndice: fusión por mínimo', () => {
     expect(cap).toMatchObject({ madre: 8, madres: [5, 7, 8], titulo: 'La familia y mi gente', palabrasHabladas: 3100 });
   });
 
+  it('el ancla (Los primeros años) corta absorbe a la etapa siguiente', () => {
+    const resp = vidaCompleta().filter((x) => x.preguntaId !== 'ES1');
+    resp[0].palabras = 300; // OR1
+    resp[1].palabras = 500; // CA1
+    const indice = armarIndice(resp, FICHA, op);
+    expect(indice.capitulos[0]).toMatchObject({ madre: 2, madres: [1, 2, 3], titulo: 'Crecer', palabrasHabladas: 2400 });
+  });
+
   it('un capítulo madre sin material no existe (no se fusiona: no está)', () => {
     const indice = armarIndice(vidaCompleta().filter((x) => x.preguntaId !== 'HI1'), FICHA, op);
     expect(indice.capitulos.some((c) => c.madres.includes(7))).toBe(false);

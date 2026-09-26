@@ -508,7 +508,21 @@ export function armarIndice(respuestas: RespuestaV3[], ficha: FichaV3, opciones:
     d.W += g.W;
     grupos.delete(h);
   }
-  if ((grupos.get(2)?.W ?? MINIMO) < MINIMO) avisos.push(`"Los primeros años" quedó con ${miles(grupos.get(2)!.W)} palabras (bajo el mínimo): es el ancla, no se fusiona.`);
+  // El ancla (2) no tiene vecino hacia atrás: si quedó corta, absorbe al
+  // capítulo de etapa que le sigue (3, o 4 si no hay 3), no al revés.
+  while (grupos.has(2) && grupos.get(2)!.W < MINIMO) {
+    const siguiente = [3, 4].find((h) => grupos.has(h));
+    const g2 = grupos.get(2)!;
+    if (siguiente === undefined) {
+      avisos.push(`"${nombreGrupo(g2.madres, 2, titulo4)}" quedó con ${miles(g2.W)} palabras (bajo el mínimo) y no hay etapa siguiente con qué juntarla.`);
+      break;
+    }
+    const s = grupos.get(siguiente)!;
+    avisos.push(`"${nombreGrupo(g2.madres, 2, titulo4)}" (${miles(g2.W)} palabras) es el ancla y quedó corta: absorbe a "${nombreGrupo(s.madres, siguiente, titulo4)}".`);
+    g2.madres = [...g2.madres, ...s.madres].sort((a, b) => a - b);
+    g2.W += s.W;
+    grupos.delete(siguiente);
+  }
 
   // 4. Capítulos, con partición.
   const capitulos: Capitulo[] = [];
