@@ -1,6 +1,9 @@
 import { describe, it, expect, beforeEach } from 'vitest';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import {
-  armarIndice, esTituloPosible, FACTOR_ESCRITO, escritas, TITULO_VIAJE_HASTA_HOY,
+  armarIndice, esTituloPosible, FACTOR_ESCRITO, escritas, TITULO_VIAJE_HASTA_HOY, TITULOS_POSIBLES, NOMBRES_DE_PARTE,
   type RespuestaV3, type Indice, type OpcionesIndice,
 } from '../src/v3/indice.js';
 import { preguntaPorId } from '../src/v3/banco.js';
@@ -520,6 +523,12 @@ describe('invariantes', () => {
       invariantes(resp, indice);
       expect(indice.avisos.some((a) => /XX9/.test(a))).toBe(true);
     }
+  });
+
+  it('cada título y cada nombre de parte del código está en docs/v3/titulos-capitulos.md (lo que aprueba Naza)', () => {
+    const md = readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'docs', 'v3', 'titulos-capitulos.md'), 'utf8');
+    expect(md).toMatch(/pendiente de aprobación/);
+    for (const t of [...TITULOS_POSIBLES, ...NOMBRES_DE_PARTE, 'Hoy, en {{lugar_destino}}', 'Mi pasión: {{pasión}}']) expect(md, t).toContain(`«${t}»`);
   });
 
   it('esTituloPosible acepta los títulos de la tabla y las plantillas, y nada inventado', () => {
