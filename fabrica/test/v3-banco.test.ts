@@ -18,12 +18,12 @@ const FILAS_POR_BLOQUE: Record<number, [number, number, number, number]> = {
   6: [5, 13, 0, 2],
   7: [6, 7, 0, 10],
   8: [4, 9, 0, 0],
-  9: [2, 2, 0, 4],
+  9: [2, 3, 0, 3],
   10: [2, 2, 0, 4],
   11: [3, 8, 0, 2],
   12: [2, 0, 0, 3],
   13: [2, 2, 0, 11],
-  14: [2, 1, 0, 5],
+  14: [4, 2, 0, 6],
   15: [4, 4, 0, 1],
 };
 
@@ -31,8 +31,8 @@ describe('banco v3 (parseo del md)', () => {
   const banco = parsearBancoMd(MD);
   const historia = banco.filter((p) => p.clase === 'historia');
 
-  it('tiene 195 filas de historia, 13 puertas y 12 válvulas', () => {
-    expect(historia).toHaveLength(195);
+  it('tiene 199 filas de historia, 13 puertas y 12 válvulas', () => {
+    expect(historia).toHaveLength(199);
     expect(banco.filter((p) => p.clase === 'puerta')).toHaveLength(13);
     expect(banco.filter((p) => p.clase === 'valvula')).toHaveLength(12);
   });
@@ -45,12 +45,12 @@ describe('banco v3 (parseo del md)', () => {
     }
   });
 
-  it('entran 51 en Breve, 115 en Estándar, 123 en Estándar joven y 195 en Completo (sin gates)', () => {
+  it('entran 53 en Breve, 119 en Estándar, 127 en Estándar joven y 199 en Completo (sin gates)', () => {
     const cuenta = (t: 'B' | 'E' | 'C', joven: boolean) => historia.filter((p) => entraEnTamanio(p, t, joven)).length;
-    expect(cuenta('B', false)).toBe(51);
-    expect(cuenta('E', false)).toBe(115);
-    expect(cuenta('E', true)).toBe(123);
-    expect(cuenta('C', false)).toBe(195);
+    expect(cuenta('B', false)).toBe(53);
+    expect(cuenta('E', false)).toBe(119);
+    expect(cuenta('E', true)).toBe(127);
+    expect(cuenta('C', false)).toBe(199);
   });
 
   it('parsea el tipo: gate, negado, sensible, edad y repetición por hijo', () => {

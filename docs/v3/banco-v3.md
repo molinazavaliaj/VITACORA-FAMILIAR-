@@ -277,9 +277,9 @@ Notas: HI2 y HI3 se repiten por cada hijo, en orden de nacimiento, en turnos dis
 | LU4 | Contame el viaje más importante de tu vida: a dónde, con quién, y un día concreto de ese viaje. | O | B | pendiente de aprobación |
 | HE1 | Contame el día que tuviste tu propia casa, o el día que entendiste que nunca la ibas a tener: cómo fue, quién te ayudó, la primera noche. | O | C | pendiente de aprobación |
 | PA1 | Contame de algo que te apasionó de grande, fuera del trabajo y de la familia: el fútbol, la huerta, la música, los autos, el tejido, la pesca. Cómo empezó y un día entero entregado a eso. | O | E | pendiente de aprobación |
-| LU5 | Contame de un auto, una moto o un vehículo que fue importante: cómo lo conseguiste, a dónde te llevó, qué pasó con él. | E:60+ | C | pendiente de aprobación |
+| LU5 | Contame de un auto, una moto o un vehículo que fue importante: cómo lo conseguiste, a dónde te llevó, qué pasó con él. | O | E | pendiente de aprobación |
 
-Notas: Antes "Casas, mudanzas y lugares". LU2 tiene versión genérica si la ficha no trae lugares (no es sensible).
+Notas: Antes "Casas, mudanzas y lugares". LU2 tiene versión genérica si la ficha no trae lugares (no es sensible). LU5 pasó de E:60+ en Completo a obligatoria en Estándar (Fable, sección 4, 26/09): el vehículo es un objeto recurrente a cualquier edad.
 
 ### Bloque 10 · Amistades y ayudas
 
@@ -355,6 +355,8 @@ Notas: GI2 es la reescrita del informe 3 ("el día sin vuelta atrás"). Este blo
 | ID | Pregunta | Tipo | Tamaño | Estado |
 |---|---|---|---|---|
 | HO1 | Contame un día común tuyo de ahora, de que te levantás hasta que te acostás: qué hacés, a quién ves, qué comés. | O | B | pendiente de aprobación |
+| HO8 | ¿Quiénes son los tuyos hoy, la gente con la que contás día a día? Nombralos, decime qué son tuyos, y contame la última vez que estuvieron todos juntos: dónde, qué hicieron. | O | B | pendiente de aprobación |
+| HO9 | Contame tu lugar de hoy: la casa, el barrio, el bar, el club. Cómo llegaste a él y un día concreto ahí, de que entrás hasta que te vas. | O | E | pendiente de aprobación |
 | PA2 | ¿Qué hacés hoy cuando nadie te pide nada? Contame la última vez que lo hiciste: dónde, cuánto rato, qué sentís mientras lo hacés. | O | B | pendiente de aprobación |
 | HO2 | Contame qué te hace reír hoy, con un ejemplo concreto: la última vez que te reíste así. | O | C | pendiente de aprobación |
 | HO2.2 | Contame qué te hace enojar hoy, con un ejemplo concreto: la última vez que te pasó. | O | C | pendiente de aprobación |
@@ -362,8 +364,10 @@ Notas: GI2 es la reescrita del informe 3 ("el día sin vuelta atrás"). Este blo
 | HO5 | Contame qué es lo que más te gusta de la vida que tenés ahora y qué es lo que más te cuesta. | O | C | pendiente de aprobación |
 | HO6 | Contame una costumbre tuya que todos en la familia conocen: una frase, una comida, una manía. Cómo empezó. | O | C | pendiente de aprobación |
 | CO1 | Contame un plato que sea tuyo: cómo se hace, quién te lo enseñó, y una vez que lo cocinaste para alguien. | O | E | pendiente de aprobación |
+| FU1 | Contame algo que todavía querés hacer: un viaje, un proyecto, una cuenta pendiente. Cómo te lo imaginás: dónde, con quién, qué harías ese día. | O | B | pendiente de aprobación |
+| FU2 | Imaginate un día tuyo dentro de diez años y contámelo como si ya estuviera pasando: dónde te levantás, quién está, qué hacés. (60 o más: "dentro de unos años") | O | C | pendiente de aprobación |
 
-Notas: PA2 reemplaza a HO3. HO2 se partió en dos (reír / enojar). HO5 queda entera: es opinión del presente, no historia (ver dudas).
+Notas: PA2 reemplaza a HO3. HO2 se partió en dos (reír / enojar). HO5 queda entera: es opinión del presente, no historia (ver dudas). HO8, HO9, FU1 y FU2 son nuevas (Fable, agrupaciones fijas, sección 4, 26/09): le dan a "Hoy" (o a "El viaje, hasta hoy") las personas y el lugar del presente, y el único guion futuro del banco (McAdams). FU2 solo en Completo porque se parece a FU1.
 
 ### Bloque 15 · Legado y cierre
 
@@ -492,7 +496,7 @@ Ninguno lleva contenido de lo que el narrador contó. Donde los informes traen t
 
 ## Resumen de conteos
 
-Contado con un script sobre las tablas de arriba (solo preguntas de historia; puertas, válvulas, datos y fotos van aparte). Recontado el 25/09 después de sacar el Mundial fijo, cambiar lo militar y aplicar la regla de etapas.
+Contado con un script sobre las tablas de arriba (solo preguntas de historia; puertas, válvulas, datos y fotos van aparte). Recontado el 25/09 después de sacar el Mundial fijo, cambiar lo militar y aplicar la regla de etapas. Recontado otra vez el 26/09 con HO8, HO9, FU1, FU2 (nuevas, bloque 14) y LU5 obligatoria en Estándar (antes E:60+ en Completo): +4 en Estándar para la vida típica y para el joven.
 
 - **Filas B / E / E-joven / C:** cuántas filas tienen esa marca.
 - **Breve / Estándar / Estándar (menos de 45) / Completo:** cuántas filas entran en ese tamaño (B; B+E; B+E+E-joven; todas), sin mirar los gates.
@@ -509,16 +513,16 @@ Contado con un script sobre las tablas de arriba (solo preguntas de historia; pu
 | 6 Amor y pareja | 5 | 13 | 0 | 2 | 5 | 18 | 18 | 20 | 3 | 10 | 12 | 0 | 1 | 3 | 1 | 1 |
 | 7 Trabajo y oficio | 6 | 7 | 0 | 10 | 6 | 13 | 13 | 23 | 6 | 10 | 19 | 6 | 11 | 19 | 1 | 1 |
 | 8 Hijos y nietos | 4 | 9 | 0 | 0 | 4 | 13 | 13 | 13 | 5 | 11 | 11 | 0 | 1 | 1 | 1 | 1 |
-| 9 Lugares y pasiones | 2 | 2 | 0 | 4 | 2 | 4 | 4 | 8 | 2 | 4 | 8 | 2 | 4 | 7 | 1 | 1 |
+| 9 Lugares y pasiones | 2 | 3 | 0 | 3 | 2 | 5 | 5 | 8 | 2 | 5 | 8 | 2 | 5 | 8 | 1 | 1 |
 | 10 Amistades y ayudas | 2 | 2 | 0 | 4 | 2 | 4 | 4 | 8 | 2 | 3 | 6 | 2 | 3 | 6 | 1 | 1 |
 | 11 Pérdidas y crisis (bloque sensible) | 3 | 8 | 0 | 2 | 3 | 11 | 11 | 13 | 3 | 8 | 10 | 1 | 6 | 8 | 1 | 1 |
 | 12 La historia grande | 2 | 0 | 0 | 3 | 2 | 2 | 2 | 5 | 2 | 2 | 5 | 2 | 2 | 4 | — | — |
 | 13 Puntos altos, bajos y giros | 2 | 2 | 0 | 11 | 2 | 4 | 4 | 15 | 2 | 4 | 15 | 2 | 4 | 14 | — | — |
-| 14 Hoy | 2 | 1 | 0 | 5 | 2 | 3 | 3 | 8 | 2 | 3 | 8 | 2 | 3 | 8 | 1 | 1 |
+| 14 Hoy | 4 | 2 | 0 | 6 | 4 | 6 | 6 | 12 | 4 | 6 | 12 | 4 | 6 | 12 | 1 | 1 |
 | 15 Legado y cierre | 4 | 4 | 0 | 1 | 4 | 8 | 8 | 9 | 4 | 7 | 8 | 4 | 7 | 7 | 1 | — |
-| **Total** | 51 | 64 | 8 | 72 | **51** | **115** | **123** | **195** | **48** | **89** | **160** | **40** | **82** | **143** | 13 | 12 |
+| **Total** | 53 | 66 | 8 | 72 | **53** | **119** | **127** | **199** | **50** | **93** | **164** | **42** | **86** | **148** | 13 | 12 |
 
-**Total de filas de historia en el banco: 195.**
+**Total de filas de historia en el banco: 199.**
 
 Mínimo por etapa vivida en Estándar (bloques 2 / 3 / 4 / 5), con la ficha más flaca (sin hermanos, sin estudios, sin migración, sin lo militar): **6 / 6 / 6 / 6** para 45 o más y **8 / 8 / 8 / 8** para menos de 45. Se cumple la regla.
 
@@ -526,11 +530,11 @@ Mínimo por etapa vivida en Estándar (bloques 2 / 3 / 4 / 5), con la ficha más
 
 | | Breve | Estándar | Completo |
 |---|---|---|---|
-| Preguntas de historia | 48 | 89 | 160 |
+| Preguntas de historia | 50 | 93 | 164 |
 | Puertas abiertas | a decidir (hoy 0) | 13 | 13 |
 | Válvulas "más" | a decidir (hoy 0) | 12 | 12 |
-| **Historia + puertas** | **48** | **102** | **173** |
-| **Historia + puertas + válvulas** | **48** | **114** | **185** |
+| **Historia + puertas** | **50** | **106** | **177** |
+| **Historia + puertas + válvulas** | **50** | **118** | **189** |
 | Preguntas de datos | 0 si la ficha está llena; si viene vacía, hasta 16 con botón más los pedidos de nombres por audio | igual | igual |
 | Pedidos de foto | a decidir | hasta 14 | hasta 14 |
 
@@ -538,13 +542,13 @@ Mínimo por etapa vivida en Estándar (bloques 2 / 3 / 4 / 5), con la ficha más
 
 | | Breve | Estándar | Completo |
 |---|---|---|---|
-| Preguntas de historia | 40 | 82 | 143 |
+| Preguntas de historia | 42 | 86 | 148 |
 | Puertas abiertas | a decidir (hoy 0) | 13 | 13 |
 | Válvulas "más" | a decidir (hoy 0) | 12 | 12 |
-| **Historia + puertas** | **40** | **95** | **156** |
-| **Historia + puertas + válvulas** | **40** | **107** | **168** |
+| **Historia + puertas** | **42** | **99** | **161** |
+| **Historia + puertas + válvulas** | **42** | **111** | **173** |
 
-Lectura:
+Lectura (los números de abajo son del 25/09; el 26/09 las preguntas nuevas del bloque 14 y LU5 suman 4 al Estándar: la vida típica queda en **106 con puertas, por encima del techo de 105**, y el joven en 86 de historia, 99 con puertas. Fable recomienda subir el Estándar a ~115 igual; a decidir por Naza):
 
 - **Vida típica:** el Estándar con puertas pasó de 95 a **102** (objetivo ~95, techo 105): +8 por la regla de etapas (ES5, ES5b, ES6, JU4, JU12, JU12b, JU13, JU15) y −1 por sacar el Mundial 2022 fijo. No hizo falta compensar. El Breve da **48** (51 filas B; la vida típica no recibe JU8, JU9, AM9 ni AM11 y suma un HI2 por el segundo hijo). El Completo da **173**.
 - **Joven de 29:** **82 preguntas de historia** en Estándar, dentro del objetivo 70–85; con las 13 puertas son **95**. De esas 82, 37 son de las etapas vividas (8 + 8 + 8 + 13): antes eran 21. Si el 70–85 era con puertas, no se llega recortando solo la infancia y la juventud: sin ninguna E-joven ya daría 87 con puertas, porque el peso está en trabajo (11) y pérdidas (6). A decidir por Naza.

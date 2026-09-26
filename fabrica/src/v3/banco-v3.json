@@ -2132,13 +2132,13 @@
     "bloque": 9,
     "orden": 153,
     "texto": "Contame de un auto, una moto o un vehículo que fue importante: cómo lo conseguiste, a dónde te llevó, qué pasó con él.",
-    "tipo": "E:60+",
-    "tamanio": "C",
+    "tipo": "O",
+    "tamanio": "E",
     "clase": "historia",
     "gate": null,
     "gateNegado": false,
     "sensible": false,
-    "edadMin": 60,
+    "edadMin": null,
     "repite": null
   },
   {
@@ -2814,9 +2814,37 @@
     "repite": null
   },
   {
-    "id": "PA2",
+    "id": "HO8",
     "bloque": 14,
     "orden": 202,
+    "texto": "¿Quiénes son los tuyos hoy, la gente con la que contás día a día? Nombralos, decime qué son tuyos, y contame la última vez que estuvieron todos juntos: dónde, qué hicieron.",
+    "tipo": "O",
+    "tamanio": "B",
+    "clase": "historia",
+    "gate": null,
+    "gateNegado": false,
+    "sensible": false,
+    "edadMin": null,
+    "repite": null
+  },
+  {
+    "id": "HO9",
+    "bloque": 14,
+    "orden": 203,
+    "texto": "Contame tu lugar de hoy: la casa, el barrio, el bar, el club. Cómo llegaste a él y un día concreto ahí, de que entrás hasta que te vas.",
+    "tipo": "O",
+    "tamanio": "E",
+    "clase": "historia",
+    "gate": null,
+    "gateNegado": false,
+    "sensible": false,
+    "edadMin": null,
+    "repite": null
+  },
+  {
+    "id": "PA2",
+    "bloque": 14,
+    "orden": 204,
     "texto": "¿Qué hacés hoy cuando nadie te pide nada? Contame la última vez que lo hiciste: dónde, cuánto rato, qué sentís mientras lo hacés.",
     "tipo": "O",
     "tamanio": "B",
@@ -2830,7 +2858,7 @@
   {
     "id": "HO2",
     "bloque": 14,
-    "orden": 203,
+    "orden": 205,
     "texto": "Contame qué te hace reír hoy, con un ejemplo concreto: la última vez que te reíste así.",
     "tipo": "O",
     "tamanio": "C",
@@ -2844,7 +2872,7 @@
   {
     "id": "HO2.2",
     "bloque": 14,
-    "orden": 204,
+    "orden": 206,
     "texto": "Contame qué te hace enojar hoy, con un ejemplo concreto: la última vez que te pasó.",
     "tipo": "O",
     "tamanio": "C",
@@ -2858,7 +2886,7 @@
   {
     "id": "HO4",
     "bloque": 14,
-    "orden": 205,
+    "orden": 207,
     "texto": "Contame de un objeto que tenés hoy en tu casa y que no regalarías nunca: qué es, de dónde vino, qué historia tiene.",
     "tipo": "O",
     "tamanio": "C",
@@ -2872,7 +2900,7 @@
   {
     "id": "HO5",
     "bloque": 14,
-    "orden": 206,
+    "orden": 208,
     "texto": "Contame qué es lo que más te gusta de la vida que tenés ahora y qué es lo que más te cuesta.",
     "tipo": "O",
     "tamanio": "C",
@@ -2886,7 +2914,7 @@
   {
     "id": "HO6",
     "bloque": 14,
-    "orden": 207,
+    "orden": 209,
     "texto": "Contame una costumbre tuya que todos en la familia conocen: una frase, una comida, una manía. Cómo empezó.",
     "tipo": "O",
     "tamanio": "C",
@@ -2900,7 +2928,7 @@
   {
     "id": "CO1",
     "bloque": 14,
-    "orden": 208,
+    "orden": 210,
     "texto": "Contame un plato que sea tuyo: cómo se hace, quién te lo enseñó, y una vez que lo cocinaste para alguien.",
     "tipo": "O",
     "tamanio": "E",
@@ -2912,9 +2940,37 @@
     "repite": null
   },
   {
+    "id": "FU1",
+    "bloque": 14,
+    "orden": 211,
+    "texto": "Contame algo que todavía querés hacer: un viaje, un proyecto, una cuenta pendiente. Cómo te lo imaginás: dónde, con quién, qué harías ese día.",
+    "tipo": "O",
+    "tamanio": "B",
+    "clase": "historia",
+    "gate": null,
+    "gateNegado": false,
+    "sensible": false,
+    "edadMin": null,
+    "repite": null
+  },
+  {
+    "id": "FU2",
+    "bloque": 14,
+    "orden": 212,
+    "texto": "Imaginate un día tuyo dentro de diez años y contámelo como si ya estuviera pasando: dónde te levantás, quién está, qué hacés. (60 o más: \"dentro de unos años\")",
+    "tipo": "O",
+    "tamanio": "C",
+    "clase": "historia",
+    "gate": null,
+    "gateNegado": false,
+    "sensible": false,
+    "edadMin": null,
+    "repite": null
+  },
+  {
     "id": "HO7",
     "bloque": 14,
-    "orden": 209,
+    "orden": 213,
     "texto": "¿Hay algo de tu vida de hoy que no te pregunté y querés contar?",
     "tipo": "puerta",
     "tamanio": "E",
@@ -2928,7 +2984,7 @@
   {
     "id": "MAS14",
     "bloque": 14,
-    "orden": 210,
+    "orden": 214,
     "texto": "De lo que contaste de esta época, ¿hay algo que quieras contar más largo? Elegí vos y contalo.",
     "tipo": "valvula",
     "tamanio": "E",
@@ -2942,7 +2998,7 @@
   {
     "id": "LE1",
     "bloque": 15,
-    "orden": 211,
+    "orden": 215,
     "texto": "Mirando toda tu vida, ¿de qué estás más orgullos{{o/a}}? Puede ser algo grande o algo chico.",
     "tipo": "O",
     "tamanio": "B",
@@ -2956,7 +3012,7 @@
   {
     "id": "LE2",
     "bloque": 15,
-    "orden": 212,
+    "orden": 216,
     "texto": "¿Qué aprendiste de la vida que te gustaría que {{destinatarios}} [tu familia] sepan? Decilo como se lo dirías a ellos.",
     "tipo": "O",
     "tamanio": "B",
@@ -2970,7 +3026,7 @@
   {
     "id": "LE3",
     "bloque": 15,
-    "orden": 213,
+    "orden": 217,
     "texto": "¿Hay algo que querés decirle a alguien de la familia y que nunca dijiste, o que querés volver a decir? Decilo ahora, con nombre.",
     "tipo": "O",
     "tamanio": "B",
@@ -2984,7 +3040,7 @@
   {
     "id": "LE4",
     "bloque": 15,
-    "orden": 214,
+    "orden": 218,
     "texto": "Pensá en {{hijos}} y en {{nietos}}. ¿Qué deseás para cada uno? Nombralos uno por uno. (Sin nietos se borra \"y en {{nietos}}\".)",
     "tipo": "C:HIJOS",
     "tamanio": "E",
@@ -2998,7 +3054,7 @@
   {
     "id": "LE5",
     "bloque": 15,
-    "orden": 215,
+    "orden": 219,
     "texto": "¿Qué deseás para las personas más importantes de tu vida? Nombralas una por una.",
     "tipo": "C:¬HIJOS",
     "tamanio": "E",
@@ -3012,7 +3068,7 @@
   {
     "id": "LE6",
     "bloque": 15,
-    "orden": 216,
+    "orden": 220,
     "texto": "¿Cómo te gustaría que te recuerden? Una frase, una imagen, una escena. (Menos de 45 años: \"¿Cómo te gustaría que te recuerden dentro de muchos años?\")",
     "tipo": "O",
     "tamanio": "B",
@@ -3026,7 +3082,7 @@
   {
     "id": "LE7",
     "bloque": 15,
-    "orden": 217,
+    "orden": 221,
     "texto": "Si tu vida fuera un libro, ¿qué título le pondrías? Y si tuviera capítulos, ¿cuáles serían?",
     "tipo": "O",
     "tamanio": "E",
@@ -3040,7 +3096,7 @@
   {
     "id": "LE8",
     "bloque": 15,
-    "orden": 218,
+    "orden": 222,
     "texto": "Este libro es para {{destinatarios}} [tu familia]. Decile algo directamente a cada uno, como si lo tuvieras enfrente. Tomate el tiempo que quieras.",
     "tipo": "O",
     "tamanio": "E",
@@ -3054,7 +3110,7 @@
   {
     "id": "DES1",
     "bloque": 15,
-    "orden": 219,
+    "orden": 223,
     "texto": "Cuando llegue el día en que no estés, ¿cómo te gustaría que te despidan? Decilo con tus palabras.",
     "tipo": "E:60+ · S",
     "tamanio": "C",
@@ -3068,7 +3124,7 @@
   {
     "id": "LE9",
     "bloque": 15,
-    "orden": 220,
+    "orden": 224,
     "texto": "Última: ¿hay algo que no te pregunté en todo este tiempo y que tenés ganas de que esté en el libro?",
     "tipo": "puerta",
     "tamanio": "E",

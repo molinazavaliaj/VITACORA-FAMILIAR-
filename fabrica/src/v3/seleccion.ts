@@ -164,13 +164,19 @@ export function renderizar(texto: string, ficha: FichaV3, ctx: Contexto, anioAct
   const joven = edadActual(ficha, anioActual) < EDAD_JOVEN;
   let t = texto;
 
-  // Notas del banco dentro de la celda: LE4 (sin nietos) y LE6 (menos de 45).
+  // Notas del banco dentro de la celda: LE4 (sin nietos), LE6 (menos de 45) y FU2 (60 o más).
   if (!valores.nietos) t = t.replace(/ y en \{\{nietos\}\}/, '');
   t = t.replace(/\s*\(Sin nietos[^)]*\)/, '');
   const variante = /\s*\(Menos de 45 años: "([^"]+)"\)/.exec(t);
   if (variante) {
     t = t.replace(variante[0], '');
     if (joven) t = t.replace(/¿Cómo te gustaría que te recuerden\?/, variante[1]);
+  }
+  // FU2 (60 o más): "dentro de unos años" en vez de "dentro de diez años".
+  const mayor = /\s*\(60 o más: "([^"]+)"\)/.exec(t);
+  if (mayor) {
+    t = t.replace(mayor[0], '');
+    if (edadActual(ficha, anioActual) >= 60) t = t.replace(/dentro de diez años/, mayor[1]);
   }
 
   // Singular / plural.

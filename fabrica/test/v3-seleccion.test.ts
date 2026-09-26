@@ -28,11 +28,11 @@ const JOVEN: FichaV3 = {
 // [Breve, Estándar, Completo] por bloque, de la tabla del md.
 const ESPERADO_TIPICA: Record<number, [number, number, number]> = {
   1: [3, 3, 7], 2: [6, 6, 17], 3: [3, 6, 11], 4: [4, 6, 15], 5: [1, 6, 8], 6: [3, 10, 12], 7: [6, 10, 19], 8: [5, 11, 11],
-  9: [2, 4, 8], 10: [2, 3, 6], 11: [3, 8, 10], 12: [2, 2, 5], 13: [2, 4, 15], 14: [2, 3, 8], 15: [4, 7, 8],
+  9: [2, 5, 8], 10: [2, 3, 6], 11: [3, 8, 10], 12: [2, 2, 5], 13: [2, 4, 15], 14: [4, 6, 12], 15: [4, 7, 8],
 };
 const ESPERADO_JOVEN: Record<number, [number, number, number]> = {
   1: [3, 3, 7], 2: [6, 8, 17], 3: [3, 8, 10], 4: [4, 8, 15], 5: [3, 13, 17], 6: [0, 1, 3], 7: [6, 11, 19], 8: [0, 1, 1],
-  9: [2, 4, 7], 10: [2, 3, 6], 11: [1, 6, 8], 12: [2, 2, 4], 13: [2, 4, 14], 14: [2, 3, 8], 15: [4, 7, 7],
+  9: [2, 5, 8], 10: [2, 3, 6], 11: [1, 6, 8], 12: [2, 2, 4], 13: [2, 4, 14], 14: [4, 6, 12], 15: [4, 7, 7],
 };
 
 function historiaPorBloque(ficha: FichaV3, tamanio: 'B' | 'E' | 'C'): Record<number, number> {
@@ -48,8 +48,8 @@ const ids = (ficha: FichaV3, t: 'B' | 'E' | 'C') => preguntasPara(ficha, t, op).
 
 describe('preguntasPara: las fichas de la tabla del banco', () => {
   for (const [nombre, ficha, esperado, totales] of [
-    ['vida típica 60+', TIPICA, ESPERADO_TIPICA, [48, 89, 160]],
-    ['joven de 29 emigrado', JOVEN, ESPERADO_JOVEN, [40, 82, 143]],
+    ['vida típica 60+', TIPICA, ESPERADO_TIPICA, [50, 93, 164]],
+    ['joven de 29 emigrado', JOVEN, ESPERADO_JOVEN, [42, 86, 148]],
   ] as const) {
     it(`${nombre}: preguntas de historia por bloque y tamaño`, () => {
       (['B', 'E', 'C'] as const).forEach((t, i) => {
@@ -88,8 +88,29 @@ describe('preguntasPara: casos borde de E2', () => {
 
   it('joven no recibe DES1 ni las de 45+/60+', () => {
     const c = ids(JOVEN, 'C');
-    for (const id of ['DES1', 'HJ5', 'TR9', 'ES10', 'LU5', 'HG3']) expect(c).not.toContain(id);
+    for (const id of ['DES1', 'HJ5', 'TR9', 'ES10', 'HG3']) expect(c).not.toContain(id);
     expect(ids(TIPICA, 'C')).toContain('DES1');
+  });
+
+  it('LU5 (el vehículo) ya no es de 60+: le llega al joven en Estándar', () => {
+    expect(ids(JOVEN, 'E')).toContain('LU5');
+    expect(ids(JOVEN, 'B')).not.toContain('LU5');
+  });
+
+  it('bloque 14: HO8 y FU1 en Breve, HO9 en Estándar, FU2 solo en Completo', () => {
+    expect(ids(TIPICA, 'B')).toEqual(expect.arrayContaining(['HO8', 'FU1']));
+    expect(ids(TIPICA, 'B')).not.toContain('HO9');
+    expect(ids(TIPICA, 'E')).toEqual(expect.arrayContaining(['HO8', 'HO9', 'FU1']));
+    expect(ids(TIPICA, 'E')).not.toContain('FU2');
+    expect(ids(TIPICA, 'C')).toContain('FU2');
+  });
+
+  it('FU2: "dentro de diez años" al joven, "dentro de unos años" a 60 o más, sin la nota', () => {
+    const fu2 = (f: FichaV3) => preguntasPara(f, 'C', op).find((p) => p.preguntaId === 'FU2')!.texto;
+    expect(fu2(JOVEN)).toMatch(/dentro de diez años/);
+    expect(fu2(TIPICA)).toMatch(/dentro de unos años/);
+    expect(fu2(TIPICA)).not.toMatch(/diez|60 o más/);
+    expect(fu2(JOVEN)).not.toMatch(/60 o más/);
   });
 
   it('LE6 al joven le pregunta "dentro de muchos años"', () => {
