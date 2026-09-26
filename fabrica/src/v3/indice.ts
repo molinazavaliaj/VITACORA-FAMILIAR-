@@ -1,30 +1,44 @@
-// El índice del libro V3, calculado por código antes de llamar al modelo
-// (docs/v3/diseno-v3.md, "Capítulos madre, hilos y forma del libro"; reglas
-// finas de la opción C de Fable y su revisión). Diez capítulos madre fijos:
+// El índice del libro V3, calculado por código antes de llamar al modelo:
+// AGRUPACIONES FIJAS POR TAMAÑO (Fable, "Agrupaciones fijas de capítulos",
+// aprobado por Naza el 26/09). Reemplaza a la fusión en cadena de los diez
+// capítulos madre, que en la simulación colapsaba.
 //
-//   1 De dónde vengo · 2 Los primeros años · 3 Adolescencia · 4 Salir al mundo
-//   (o "El viaje") · 5 Amor · 6 Trabajo y oficio · 7 Hijos y nietos · 8 Mi gente
-//   y mis lugares · 9 Lo que costó · 10 Hoy
+// Cada tamaño tiene su lista de capítulos con título fijo, los temas (los
+// diez capítulos madre de antes, que ahora son la unidad de ubicación) que
+// entran en cada uno, un piso en palabras ESCRITAS y un receptor fijo si no
+// llega al piso. Pasos, todos deterministas y en este orden:
 //
-// Pasos, todos deterministas:
-//   1. Cada respuesta va al capítulo de su bloque (ancla). Las flotantes
-//      (bloques 12 y 13) se ubican por edad dicha, léxico de etapa, persona de
-//      la ficha o, si no, por defecto. Puertas y válvulas van al capítulo del
-//      bloque que cierran. Crisis (bloque 11) de antes de los 25 → su etapa,
-//      marcadas sensibles. PA1/PA2 de una actividad que es oficio → Trabajo.
-//   2. Bisagra: si la migración cae entre dos parejas u oficios de la ficha,
-//      sus respuestas forman "El viaje" entre esas dos partes.
-//   3. Fusión por mínimo con el vecino fijo, en cadena, con títulos de tabla.
-//   4. Partición por clave fija de la ficha cuando desborda. Nunca por años.
+//   1. Ubicar cada respuesta en un tema: ancla por bloque; flotantes (12, 13)
+//      por edad dicha, léxico, persona o defecto (13-altos → Hoy); crisis
+//      (bloque 11) de antes de los 25 → su etapa; el resto del bloque 11 con
+//      un receptor por pregunta (PE1 → origen, CR1 → Trabajo…). En Breve y
+//      Estándar "Lo que costó" no existe y el receptor es la ubicación.
+//   2. Gates de la ficha: sin pareja ni hijos, "Amor y la familia que armé"
+//      no existe (Completo: sin pareja, "Amor" no existe); títulos variantes.
+//   3. Modo migrante joven: si migró hace 10 años o menos, el último capítulo
+//      es "El viaje, hasta hoy" y absorbe a Hoy (sin coda).
+//   4. Pisos y receptores: una sola pasada, de arriba hacia abajo. El que no
+//      llega va entero a su receptor fijo; el que recibió ya no se mueve. Si
+//      el receptor ya no está, el capítulo queda corto (avisado): sin cadenas,
+//      máximo un salto por respuesta. Hoy bajo el piso es la coda.
+//   5. Solo en Completo, particiones por clave fija de la tabla.
+//
+// NO se prometen páginas: el tamaño solo define cuántas preguntas. Los pisos
+// son de palabras escritas = habladas × FACTOR_ESCRITO.
 //
 // El índice NO decide personas, subtítulos ni orden interno fino: eso viene
-// después (subtitulo: null).
+// después (subtitulo: null). Ningún título lo inventa el modelo: todos están
+// en las tablas de acá y en docs/v3/titulos-capitulos.md.
 
 import { preguntaPorId } from './banco.js';
-import { anioMigracion, edadMigracion, estado, lista, type FichaV3 } from './ficha.js';
-import { edadDicha, etapaPorLexico, madrePorEdad, mencionaActividad, personaNombrada, posicionActividad } from './etapa.js';
+import { edadActual, edadMigracion, anioMigracion, estado, lista, valor, type FichaV3 } from './ficha.js';
+import {
+  edadDicha, etapaPorLexico, madrePorEdad, mencionaActividad, nombraLugar, personaDePresentacion, personaNombrada, posicionActividad,
+} from './etapa.js';
 
 // ---------------------------------------------------------------- tipos
+
+export type Tamanio = 'B' | 'E' | 'C';
 
 export type RespuestaV3 = {
   id: string;
@@ -36,12 +50,15 @@ export type RespuestaV3 = {
   paso?: boolean;
 };
 
-export type Motivo = 'edad-numero' | 'lexico' | 'persona' | 'defecto' | 'oficio';
+export type Motivo = 'edad-numero' | 'lexico' | 'persona' | 'defecto' | 'oficio' | 'receptor';
 
+/** Dónde se ubicó una respuesta que no va por el ancla de su bloque (flotantes, crisis, pasiones que son oficio). */
 export type Ubicacion = {
   respuestaId: string;
   preguntaId: string;
-  madre: number; // capítulo madre antes de fusiones y particiones
+  tema: number;
+  /** Bloque 11: el tema al que va si "Lo que costó" no existe o no llega al piso. */
+  receptor?: number;
   motivo: Motivo;
   edad?: number;
   expresion?: string;
@@ -49,10 +66,14 @@ export type Ubicacion = {
 };
 
 export type Capitulo = {
-  madre: number; // el capítulo madre anfitrión (el que da la posición)
-  madres: number[]; // todos los capítulos madre que contiene (más de uno si hubo fusión)
+  clave: string; // 'E3', 'C10', 'VIAJE'
+  claves: string[]; // la propia y las de los capítulos que recibió por piso
   titulo: string;
   parte?: { clave: string; nombre: string };
+  /** Existe bajo su piso: Amor corto (≥ 250) o un receptor que ya no está. */
+  corto?: true;
+  /** Hoy bajo el piso: dos páginas sin número antes de la carta. */
+  coda?: true;
   subtitulo: null;
   respuestaIds: string[];
   sensibles: string[];
@@ -60,89 +81,175 @@ export type Capitulo = {
   palabrasEscritasObjetivo: number;
 };
 
+export type Salto = { respuestaId: string; de: string; a: string };
+
+export type Momento = 'antes' | 'despues' | 'sin-senal' | 'regla';
+
+/** Cómo clasificó el modo migrante joven cada respuesta que mira (para vigilar a mano). */
+export type Clasificacion = {
+  respuestaId: string;
+  preguntaId: string;
+  bloque: number;
+  momento: Momento;
+  senal: string;
+  capitulo: string; // clave del capítulo donde quedó
+};
+
+export type MigranteJoven = {
+  edadMigracion: number;
+  edadActual: number;
+  lugaresDestino: string[];
+  clasificacion: Clasificacion[];
+};
+
 export type Indice = {
+  tamanio: Tamanio;
   capitulos: Capitulo[];
+  coda: Capitulo | null;
   cierre: string[]; // legado (bloque 15): carta final, fuera del índice
   flotantes: Ubicacion[];
+  saltos: Salto[];
+  migranteJoven: MigranteJoven | null;
   avisos: string[];
 };
 
-export type OpcionesIndice = {
-  tamanio?: 'B' | 'E' | 'C';
-  anioActual?: number;
-  /** Mínimo de palabras habladas para existir (por defecto MINIMO). Solo para calibrar con el simulador. */
-  minimo?: number;
+export type OpcionesIndice = { tamanio?: Tamanio; anioActual?: number };
+
+// ---------------------------------------------------------------- constantes
+
+/**
+ * Palabras escritas por palabra hablada. El cociente real medido con el
+ * escritor sobre el material de Naza (9.489 habladas) es 0,70; Fable había
+ * supuesto 0,6.
+ */
+export const FACTOR_ESCRITO = 0.7;
+export const escritas = (habladas: number): number => Math.round(FACTOR_ESCRITO * habladas);
+
+/** Amor bajo su piso (500) existe corto si llega a esto; si no, va a Mi gente. */
+export const PISO_AMOR_CORTO = 250;
+/** Solo Completo: un capítulo con más escritas que esto se parte… */
+export const TOPE_PARTICION = 3000;
+/** …y en tres (si su clave da tres partes) con más que esto. */
+export const TOPE_SEGUNDA_PARTICION = 6000;
+/** Una pasión que suma esto (escritas) parte "Mi gente y mis lugares" en "Mi pasión: X". */
+export const PASION_GRANDE = 1200;
+/** "El viaje" (título) si migró con esta edad o menos. Por ficha, no por porcentaje. */
+export const EDAD_VIAJE = 30;
+/** Modo migrante joven: si migró hace esta cantidad de años o menos. */
+export const ANIOS_MIGRANTE_JOVEN = 10;
+export const ANIO_PANDEMIA = 2020; // HG4 sin fecha dicha: el año se sabe
+
+/** Temas: los diez capítulos madre de antes, más el viaje del migrante joven. */
+export const TEMAS: Record<number, string> = {
+  1: 'Origen', 2: 'Primeros años', 3: 'Adolescencia', 4: 'Salir al mundo', 5: 'Amor', 6: 'Trabajo',
+  7: 'Hijos y nietos', 8: 'Mi gente y mis lugares', 9: 'Lo que costó', 10: 'Hoy', 11: 'El viaje, hasta hoy',
 };
+const TEMA_VIAJE = 11;
 
 // ---------------------------------------------------------------- tablas fijas
 
-export const TITULOS: Record<number, string> = {
-  1: 'De dónde vengo',
-  2: 'Los primeros años',
-  3: 'Adolescencia',
-  4: 'Salir al mundo',
-  5: 'Amor',
-  6: 'Trabajo y oficio',
-  7: 'Hijos y nietos',
-  8: 'Mi gente y mis lugares',
-  9: 'Lo que costó',
-  10: 'Hoy',
+export type Agrupacion = {
+  clave: string;
+  titulo: string;
+  temas: number[];
+  /** Palabras escritas para existir; null = siempre existe. */
+  piso: number | null;
+  /**
+   * A dónde va si no llega al piso: la clave de otro capítulo, 'coda' (Hoy),
+   * 'reparto' (Lo que costó: cada respuesta a su receptor por pregunta) o
+   * 'amor' (corto desde 250; si no, a Mi gente).
+   */
+  receptor: string | 'coda' | 'reparto' | 'amor' | null;
 };
 
-export const TITULO_VIAJE = 'El viaje';
+/** Sección 2 de Fable. El orden de cada lista es el orden del libro y el de la pasada de pisos. */
+export const AGRUPACIONES: Record<Tamanio, Agrupacion[]> = {
+  B: [
+    { clave: 'B1', titulo: 'Crecer', temas: [1, 2, 3], piso: null, receptor: null },
+    { clave: 'B2', titulo: 'Salir al mundo y el trabajo', temas: [4, 6], piso: 500, receptor: 'B1' },
+    { clave: 'B3', titulo: 'Los míos', temas: [5, 7, 8], piso: 500, receptor: 'B4' },
+    { clave: 'B4', titulo: 'Hoy', temas: [10], piso: 400, receptor: 'coda' },
+  ],
+  E: [
+    { clave: 'E1', titulo: 'De dónde vengo y los primeros años', temas: [1, 2], piso: null, receptor: null },
+    { clave: 'E2', titulo: 'Hacerse grande', temas: [3, 4], piso: 700, receptor: 'E1' },
+    { clave: 'E3', titulo: 'Amor y la familia que armé', temas: [5, 7], piso: 500, receptor: 'amor' },
+    { clave: 'E4', titulo: 'Trabajo y oficio', temas: [6], piso: 700, receptor: 'E2' },
+    { clave: 'E5', titulo: 'Mi gente y mis lugares', temas: [8], piso: 700, receptor: 'E6' },
+    { clave: 'E6', titulo: 'Hoy', temas: [10], piso: 600, receptor: 'coda' },
+  ],
+  C: [
+    { clave: 'C1', titulo: 'De dónde vengo', temas: [1], piso: 600, receptor: 'C2' },
+    { clave: 'C2', titulo: 'Los primeros años', temas: [2], piso: null, receptor: null },
+    { clave: 'C3', titulo: 'Adolescencia', temas: [3], piso: 900, receptor: 'C2' },
+    { clave: 'C4', titulo: 'Salir al mundo', temas: [4], piso: 900, receptor: 'C3' },
+    { clave: 'C5', titulo: 'Amor', temas: [5], piso: 500, receptor: 'amor' },
+    { clave: 'C6', titulo: 'Trabajo y oficio', temas: [6], piso: 900, receptor: 'C4' },
+    { clave: 'C7', titulo: 'Hijos y nietos', temas: [7], piso: 700, receptor: 'C5' },
+    { clave: 'C8', titulo: 'Mi gente y mis lugares', temas: [8], piso: 900, receptor: 'C10' },
+    { clave: 'C9', titulo: 'Lo que costó', temas: [9], piso: 900, receptor: 'reparto' },
+    { clave: 'C10', titulo: 'Hoy', temas: [10], piso: 600, receptor: 'coda' },
+  ],
+};
 
-/** Vecino de fusión (opción C de Fable). 2 es el ancla; 10 (Hoy) siempre existe. */
-export const VECINO_FUSION: Record<number, number> = { 1: 2, 3: 2, 4: 3, 5: 8, 6: 4, 7: 5, 8: 6, 9: 8 };
+export const TITULO_VIAJE_HASTA_HOY = 'El viaje, hasta hoy';
+const FILA_VIAJE: Agrupacion = { clave: 'VIAJE', titulo: TITULO_VIAJE_HASTA_HOY, temas: [TEMA_VIAJE], piso: null, receptor: null };
+
+/** Títulos que cambian por la ficha (gates). */
+export const TITULOS_GATE = {
+  hacerseGrandeYElViaje: 'Hacerse grande y el viaje', // E2, migró con ≤ 30 y no es migrante joven
+  amor: 'Amor', // E3 sin hijos
+  laFamiliaQueArme: 'La familia que armé', // E3 sin pareja, con hijos
+  elViaje: 'El viaje', // C4, migró con ≤ 30 y no es migrante joven
+} as const;
 
 /**
- * Títulos de fusión, escritos de antemano (Fable 5, crítica 1b). La clave son
- * los capítulos madre que quedaron juntos, ordenados. Como cada capítulo se
- * fusiona hacia su vecino fijo, los grupos posibles son los subárboles del
- * árbol 2 ← 1, 2 ← 3 ← 4 ← 6 ← 8 ← {5 ← 7, 9}:
- *
- *   pares:  1+2, 2+3, 3+4, 4+6, 6+8, 5+8, 8+9, 5+7
- *   tríos y más: los que aparecen en la simulación con alguna frecuencia.
- *
- * Un grupo que no está en la tabla usa el título de su anfitrión y deja un
- * aviso (así se ve en la simulación y se agrega acá, nunca lo inventa el modelo).
- * "{viaje}" = el título del capítulo 4 ("Salir al mundo" o "El viaje").
- * Un 2 sin 3 (Adolescencia sin material) se trata como 2+3.
+ * Título del receptor cuando recibe a otro capítulo por piso, escrito de
+ * antemano: `receptor ← el que llega`. Una combinación que no está acá deja
+ * el título del receptor y un aviso "sin tabla" (el test de invariantes lo
+ * rechaza). "El viaje, hasta hoy" no cambia al recibir.
  */
-export const TITULOS_FUSION: Record<string, string> = {
-  '1+2': 'De dónde vengo y los primeros años',
-  '2+3': 'Crecer',
-  '1+2+3': 'Crecer',
-  '2+4': 'Crecer',
-  '2+3+4': 'Crecer',
-  '1+2+3+4': 'Crecer',
-  '1+2+4': 'Crecer',
-  '3+4': 'Hacerse grande',
-  '3+4+6': 'Hacerse grande',
-  '2+3+4+6': 'Crecer',
-  '1+2+3+4+6': 'Crecer',
-  '4+6': '{viaje}',
-  '5+8': 'Mi gente',
-  '5+7': 'La familia',
-  '5+7+8': 'La familia y mi gente',
-  '6+8': 'El trabajo y mi gente',
-  '5+6+8': 'El trabajo y mi gente',
-  '8+9': 'Mi gente y lo que costó',
-  '5+8+9': 'Mi gente y lo que costó',
-  '6+8+9': 'El trabajo y lo que costó',
-  '5+6+8+9': 'El trabajo y lo que costó',
-  '4+6+8': '{viaje}',
-  '4+6+8+9': '{viaje}',
+export const AL_RECIBIR: Record<string, string> = {
+  // Estándar
+  'De dónde vengo y los primeros años ← Hacerse grande': 'Crecer',
+  'De dónde vengo y los primeros años ← Hacerse grande y el viaje': 'Crecer y el viaje',
+  'Hacerse grande ← Trabajo y oficio': 'Hacerse grande y el trabajo',
+  'Hacerse grande y el viaje ← Trabajo y oficio': 'Hacerse grande, el viaje y el trabajo',
+  'Mi gente y mis lugares ← Amor y la familia que armé': 'Mi gente y mis lugares',
+  'Mi gente y mis lugares ← Amor': 'Mi gente y mis lugares',
+  'Mi gente y mis lugares ← La familia que armé': 'Mi gente y mis lugares',
+  'Hoy ← Mi gente y mis lugares': 'Mi gente, hoy',
+  // Completo
+  'Los primeros años ← De dónde vengo': 'De dónde vengo y los primeros años',
+  'Los primeros años ← Adolescencia': 'Crecer',
+  'De dónde vengo y los primeros años ← Adolescencia': 'Crecer',
+  'Adolescencia ← Salir al mundo': 'Adolescencia y salir al mundo',
+  'Adolescencia ← El viaje': 'Adolescencia y el viaje',
+  'Salir al mundo ← Trabajo y oficio': 'Salir al mundo y el trabajo',
+  'El viaje ← Trabajo y oficio': 'El viaje y el trabajo',
+  'Amor ← Hijos y nietos': 'Amor y la familia que armé',
+  // Breve
+  'Crecer ← Salir al mundo y el trabajo': 'Crecer y salir al mundo',
+  'Hoy ← Los míos': 'Los míos, hoy',
 };
 
-export const MINIMO = 1500; // palabras habladas para existir
-export const MINIMO_ORIGEN = 800; // De dónde vengo abre el libro: existe con menos
-export const MAXIMO = 5000; // más que esto se parte
-export const MAXIMO_SEGUNDA = 9000; // segunda partición, solo Completo
-export const PASION_GRANDE = 2000; // una pasión que suma esto parte "Mi gente y mis lugares"
-export const FACTOR_ESCRITO = 0.6; // palabras escritas ≈ 0,6 × habladas
-export const EDAD_VIAJE = 30; // "El viaje" si migró con esto o menos…
-export const PROPORCION_VIAJE = 0.6; // …y la migración es al menos esto del capítulo 4
-export const ANIO_PANDEMIA = 2020; // HG4 sin fecha dicha: el año se sabe
+/** Nombres fijos de las partes (solo Completo). Además: nombre de cada pareja u oficio, "Mi pasión: X" y "Hoy, en {{lugar_destino}}". */
+export const NOMBRES_DE_PARTE = [
+  'La casa', 'La escuela', 'Irse de casa', 'Los estudios', 'Lo militar', 'El viaje', 'Otras personas', 'El campo', 'Después',
+  'Cuando eran chicos', 'Cuando crecieron, y los nietos', 'Mis lugares y pasiones', 'Mi gente', 'Mi gente y mis lugares',
+];
+
+export const TITULOS_POSIBLES: ReadonlySet<string> = new Set([
+  ...Object.values(AGRUPACIONES).flatMap((filas) => filas.map((f) => f.titulo)),
+  TITULO_VIAJE_HASTA_HOY,
+  ...Object.values(TITULOS_GATE),
+  ...Object.values(AL_RECIBIR),
+]);
+
+/** ¿El título de capítulo está en las tablas fijas? */
+export function esTituloPosible(titulo: string): boolean {
+  return TITULOS_POSIBLES.has(titulo);
+}
 
 const ANCLA: Record<number, number> = { 1: 1, 2: 2, 3: 2, 4: 3, 5: 4, 6: 5, 7: 6, 8: 7, 9: 8, 10: 8, 11: 9, 14: 10 };
 const MIGRACION = new Set(['JU8', 'JU9', 'JU10', 'JU10b', 'JU11', 'MI1', 'MI1.2']);
@@ -152,50 +259,60 @@ const CAMPO = new Set(['CP1', 'CP2', 'CP3']);
 const HIJOS_CHICOS = new Set(['HI1', 'HI2', 'HI3', 'HI3b', 'HI4', 'HI5', 'HI6']);
 const HIJOS_FALLECIDOS = new Set(['HF1', 'HF2']);
 const PASIONES = new Set(['PA1', 'PA2']);
-/** Bloque 13 "bajos" (por defecto a Lo que costó); el resto son altos o giros (por defecto a Hoy). */
-const BAJOS_13 = new Set(['GI3', 'HJ1', 'HJ2', 'GI5', 'HJ9']);
+/** Preguntas de pareja que siguen a una pareja (sujeto pareja:k). */
+const DE_PAREJA = new Set(['AM1', 'AM2', 'AM3', 'AM4', 'AM5', 'AM6', 'AM7', 'AM8', 'CS3']);
+/** Bloque 13 "bajos": por defecto a Lo que costó (Completo) o a Hoy. GI1, HJ1 y HJ2 son altos: a Hoy. */
+const BAJOS_13 = new Set(['GI3', 'GI5', 'HJ9']);
 /** HJ5 (volver al lugar donde creció) va por defecto a Mi gente y mis lugares. */
 const LUGARES_13 = new Set(['HJ5']);
+/**
+ * Modo migrante joven: bloques cuyas respuestas van al viaje solo con señal
+ * de "después" en el texto. Fable nombra 7 (trabajo) y 10 (amigos); acá se
+ * suman 9 (lugares: Fable pone el bloque 9 en el viaje en la sección 3 y en
+ * Mi gente en su índice de Naza de la sección 5) y los flotantes 12 y 13
+ * (una respuesta fechada después de migrar no puede quedar en "Hacerse
+ * grande"). Ver el reporte de la simulación.
+ */
+const BLOQUES_CON_SENAL = new Set([7, 9, 10, 12, 13]);
 
 // ---------------------------------------------------------------- utilidades
 
-type Item = { r: RespuestaV3; madre: number; orden: number; indice: number; sensible: boolean };
+type Item = { r: RespuestaV3; tema: number; receptor?: number; orden: number; indice: number; sensible: boolean };
+type Grupo = {
+  fila: Agrupacion;
+  titulo: string;
+  items: Item[];
+  claves: string[];
+  recibio: boolean; // recibió a otro capítulo entero: ya no se mueve
+  destino: string | null; // se fue entero a este receptor
+  repartido: boolean; // Lo que costó repartido por pregunta
+  corto: boolean;
+  coda: boolean;
+};
 type Parte = { clave: string; nombre: string; items: Item[] };
 
 const palabras = (items: Item[]) => items.reduce((s, x) => s + x.r.palabras, 0);
+const escritasDe = (items: Item[]) => escritas(palabras(items));
 const miles = (n: number) => n.toLocaleString('es-AR');
 const numeroDe = (sujeto: string | undefined, tipo: string): number | null => {
   const m = sujeto ? new RegExp(`^${tipo}:(\\d+)$`).exec(sujeto) : null;
   return m ? Number(m[1]) : null;
 };
+const unicos = (xs: (string | null | undefined)[]) => [...new Set(xs.filter((x): x is string => !!x && x.trim() !== ''))];
 
 // ---------------------------------------------------------------- 1. ubicar cada respuesta
 
-function ubicar(
-  r: RespuestaV3,
-  ficha: FichaV3,
-  anioActual: number,
-  avisos: string[],
-): { madre: number | 'cierre' | null; ubicacion?: Omit<Ubicacion, 'respuestaId' | 'preguntaId'> } {
+type Ubicado = { tema: number | 'cierre' | null; receptor?: number; ubicacion?: Omit<Ubicacion, 'respuestaId' | 'preguntaId'> };
+
+function ubicar(r: RespuestaV3, ficha: FichaV3, anioActual: number, avisos: string[]): Ubicado {
   const p = preguntaPorId(r.preguntaId);
   if (!p) avisos.push(`${r.id}: la pregunta ${r.preguntaId} no está en el banco; se ancla por su bloque (${r.bloque}).`);
   const bloque = r.bloque;
   const clase = p?.clase ?? 'historia';
 
-  if (bloque === 15) return { madre: 'cierre' };
-  if (HIJOS_FALLECIDOS.has(r.preguntaId)) return { madre: 7 };
-
-  // Crisis (bloque 11, puerta y válvula incluidas): de chico, a su etapa.
-  if (bloque === 11) {
-    const edad = edadDicha(r.texto, ficha, anioActual);
-    const porEdad = edad ? madrePorEdad(edad.edad) : null;
-    if (edad && porEdad) return { madre: porEdad, ubicacion: { madre: porEdad, motivo: 'edad-numero', edad: edad.edad, expresion: edad.expresion, sensible: true } };
-    if (!edad) {
-      const lex = etapaPorLexico(r.texto, ficha);
-      if (lex && lex.madre <= 4) return { madre: lex.madre, ubicacion: { madre: lex.madre, motivo: 'lexico', expresion: lex.expresion, sensible: true } };
-    }
-    return clase === 'historia' ? { madre: 9 } : { madre: 9, ubicacion: { madre: 9, motivo: 'defecto', sensible: true } };
-  }
+  if (bloque === 15) return { tema: 'cierre' };
+  if (HIJOS_FALLECIDOS.has(r.preguntaId)) return { tema: 7 };
+  if (bloque === 11) return ubicarCrisis(r, ficha, anioActual);
 
   // Oficio o pasión: la actividad que es oficio va a Trabajo.
   if (PASIONES.has(r.preguntaId)) {
@@ -205,27 +322,74 @@ function ubicar(
     ];
     const pasiones = (ficha.actividades ?? []).filter((a) => a.marca === 'pasion').map((a) => a.nombre);
     const primera = primeraMencion(r.texto, [...oficios.map((n) => ({ n, oficio: true })), ...pasiones.map((n) => ({ n, oficio: false }))]);
-    if (primera?.oficio) return { madre: 6, ubicacion: { madre: 6, motivo: 'oficio', expresion: primera.n } };
+    if (primera?.oficio) return { tema: 6, ubicacion: { tema: 6, motivo: 'oficio', expresion: primera.n } };
   }
 
   if (clase === 'puerta' || clase === 'valvula') {
-    const madre = bloque === 8 && estado(ficha.hijos) !== 'lleno' ? 8 : ANCLA[bloque];
-    return { madre: madre ?? null, ubicacion: madre ? { madre, motivo: 'defecto' } : undefined };
+    const tema = bloque === 8 && estado(ficha.hijos) !== 'lleno' ? 8 : ANCLA[bloque];
+    return { tema: tema ?? null, ubicacion: tema ? { tema, motivo: 'defecto' } : undefined };
   }
 
   if (bloque === 12 || bloque === 13) {
     const u = ubicarFlotante(r, ficha, anioActual);
-    return { madre: u.madre, ubicacion: u };
+    return { tema: u.tema, receptor: u.receptor, ubicacion: u };
   }
 
-  if (r.preguntaId === 'HI10') return { madre: 8 };
-  const madre = ANCLA[bloque];
-  if (madre === 7 && estado(ficha.hijos) !== 'lleno' && !r.preguntaId.startsWith('HI') && !r.preguntaId.startsWith('NC')) return { madre: 8 };
-  if (!madre) {
+  if (r.preguntaId === 'HI10') return { tema: 8 };
+  const tema = ANCLA[bloque];
+  if (tema === 7 && estado(ficha.hijos) !== 'lleno' && !r.preguntaId.startsWith('HI') && !r.preguntaId.startsWith('NC')) return { tema: 8 };
+  if (!tema) {
     avisos.push(`${r.id}: bloque ${bloque} desconocido; la respuesta queda fuera del índice.`);
-    return { madre: null };
+    return { tema: null };
   }
-  return { madre };
+  return { tema };
+}
+
+/**
+ * Bloque 11 (puerta y válvula incluidas). De antes de los 25, a su etapa
+ * (edad dicha o léxico de etapa). Si no, al tema 9 (Lo que costó) con su
+ * receptor por pregunta, que es donde va cuando Lo que costó no existe.
+ */
+function ubicarCrisis(r: RespuestaV3, ficha: FichaV3, anioActual: number): Ubicado {
+  const edad = edadDicha(r.texto, ficha, anioActual);
+  const porEdad = edad ? madrePorEdad(edad.edad) : null;
+  if (edad && porEdad) return { tema: porEdad, ubicacion: { tema: porEdad, motivo: 'edad-numero', edad: edad.edad, expresion: edad.expresion, sensible: true } };
+  const lex = etapaPorLexico(r.texto, ficha);
+  if (!edad && lex && lex.madre <= 4) return { tema: lex.madre, ubicacion: { tema: lex.madre, motivo: 'lexico', expresion: lex.expresion, sensible: true } };
+  const rec = receptorCrisis(r, ficha, lex);
+  return {
+    tema: 9,
+    receptor: rec.tema,
+    ubicacion: { tema: 9, receptor: rec.tema, motivo: 'receptor', ...(edad ? { edad: edad.edad } : {}), ...(rec.expresion ? { expresion: rec.expresion } : {}), sensible: true },
+  };
+}
+
+/** Tabla de receptores del bloque 11 (Fable, sección 2). */
+function receptorCrisis(r: RespuestaV3, ficha: FichaV3, lex: { madre: number; expresion: string } | null): { tema: number; expresion?: string } {
+  switch (r.preguntaId) {
+    case 'PE1':
+    case 'PE2':
+      return { tema: 2 }; // donde se presentó a la madre o al padre, como cierre de su presencia
+    case 'PE3': {
+      const p = personaDePresentacion(r.texto, ficha);
+      return p ?? { tema: 8 };
+    }
+    case 'HJ7': {
+      const p = personaDePresentacion(r.texto, ficha);
+      return p ?? { tema: 6 };
+    }
+    case 'PE5':
+    case 'EC1':
+      return { tema: 10 };
+    case 'PE6':
+    case 'PE8':
+      return { tema: 8 };
+    case 'CR1':
+      return { tema: 6 };
+    default:
+      // PE4, ID1, la puerta y la válvula: por léxico de adulto; si no, Hoy.
+      return lex && lex.madre >= 5 ? { tema: lex.madre, expresion: lex.expresion } : { tema: 10 };
+  }
 }
 
 function primeraMencion<T extends { n: string }>(texto: string, candidatos: T[]): T | null {
@@ -238,68 +402,152 @@ function primeraMencion<T extends { n: string }>(texto: string, candidatos: T[])
   return mejor?.c ?? null;
 }
 
-function defectoFlotante(r: RespuestaV3): number {
-  if (r.bloque === 12) return 9;
-  if (LUGARES_13.has(r.preguntaId)) return 8;
-  return BAJOS_13.has(r.preguntaId) ? 9 : 10;
-}
-
 /** Flotantes (bloques 12 y 13): edad dicha → léxico → persona → defecto. */
 function ubicarFlotante(r: RespuestaV3, ficha: FichaV3, anioActual: number): Omit<Ubicacion, 'respuestaId' | 'preguntaId'> {
-  const dicha = edadDicha(r.texto, ficha, anioActual);
-  const edad = dicha ?? (r.preguntaId === 'HG4' ? { edad: ANIO_PANDEMIA - ficha.anioNacimiento, expresion: `pandemia (${ANIO_PANDEMIA})` } : null);
+  const edad = edadDeFlotante(r, ficha, anioActual);
   if (edad && edad.edad >= 0) {
     const etapa = madrePorEdad(edad.edad);
-    if (etapa) return { madre: etapa, motivo: 'edad-numero', edad: edad.edad, expresion: edad.expresion };
+    if (etapa) return { tema: etapa, motivo: 'edad-numero', edad: edad.edad, expresion: edad.expresion };
   }
   const conEdad = edad ? { edad: edad.edad } : {};
   const lex = etapaPorLexico(r.texto, ficha);
-  if (lex && !(edad && lex.madre <= 4)) return { madre: lex.madre, motivo: 'lexico', expresion: lex.expresion, ...conEdad };
+  if (lex && !(edad && lex.madre <= 4)) return { tema: lex.madre, motivo: 'lexico', expresion: lex.expresion, ...conEdad };
   const persona = personaNombrada(r.texto, ficha);
-  if (persona) return { madre: persona, motivo: 'persona', ...conEdad };
-  return { madre: defectoFlotante(r), motivo: 'defecto', ...conEdad };
+  if (persona) return { tema: persona, motivo: 'persona', ...conEdad };
+  // Por defecto: bloque 12 y 13-bajos a Lo que costó (con Hoy de receptor); HJ5 a Mi gente; 13-altos a Hoy.
+  if (r.bloque === 12 || BAJOS_13.has(r.preguntaId)) return { tema: 9, receptor: 10, motivo: 'defecto', ...conEdad };
+  return { tema: LUGARES_13.has(r.preguntaId) ? 8 : 10, motivo: 'defecto', ...conEdad };
 }
 
-// ---------------------------------------------------------------- 4. partición
+function edadDeFlotante(r: RespuestaV3, ficha: FichaV3, anioActual: number): { edad: number; expresion: string } | null {
+  const dicha = edadDicha(r.texto, ficha, anioActual);
+  if (dicha) return dicha;
+  return r.preguntaId === 'HG4' ? { edad: ANIO_PANDEMIA - ficha.anioNacimiento, expresion: `pandemia (${ANIO_PANDEMIA})` } : null;
+}
+
+// ---------------------------------------------------------------- 3. modo migrante joven
+
+type Migracion = { edadMigracion: number; anioMigracion: number; edadActual: number; destino: string[]; origen: string[]; lugar: string };
+
+/** Migró y (edad actual − edad al migrar) ≤ 10. Null si no, o si la ficha no trae el año ni la edad. */
+function detectarMigranteJoven(ficha: FichaV3, anioActual: number): Migracion | null {
+  const m = valor(ficha.migracion);
+  const edadMig = edadMigracion(ficha);
+  const anioMig = anioMigracion(ficha);
+  if (!m || edadMig === null || anioMig === null) return null;
+  const edad = edadActual(ficha, anioActual);
+  if (edad - edadMig > ANIOS_MIGRANTE_JOVEN) return null;
+  const otroPais = ficha.paisResidencia !== ficha.paisNacimiento;
+  return {
+    edadMigracion: edadMig,
+    anioMigracion: anioMig,
+    edadActual: edad,
+    destino: unicos([m.a, otroPais ? ficha.paisResidencia : null]),
+    origen: unicos([m.de, otroPais ? ficha.paisNacimiento : null]),
+    lugar: m.a,
+  };
+}
+
+function esParejaActual(x: Item, ficha: FichaV3): boolean {
+  if (x.r.preguntaId === 'AM13') return true;
+  const parejas = lista(ficha.parejas);
+  const k = numeroDe(x.r.sujeto, 'pareja');
+  if (k !== null) return parejas[k - 1]?.actual === true;
+  return DE_PAREJA.has(x.r.preguntaId) && parejas.length === 1 && parejas[0].actual;
+}
+
+function oficioDe(x: Item, ficha: FichaV3): { nombre: string; desde?: number } | null {
+  const oficios = lista(ficha.oficios);
+  const k = numeroDe(x.r.sujeto, 'oficio');
+  if (k !== null && oficios[k - 1]) return oficios[k - 1];
+  return oficios.find((o) => mencionaActividad(x.r.texto, o.nombre)) ?? null;
+}
+
+/**
+ * ¿La respuesta es de antes o de después de emigrar? Regla de texto, no de
+ * interpretación: nombra el lugar de destino (o su país), dice una edad ≥ la
+ * de migración, o habla de un oficio de la ficha que empezó después.
+ */
+function senalMigracion(x: Item, ficha: FichaV3, anioActual: number, mig: Migracion): { momento: Momento; senal: string } {
+  const lugar = nombraLugar(x.r.texto, mig.destino);
+  if (lugar) return { momento: 'despues', senal: `nombra "${lugar}"` };
+  const edad = edadDeFlotante(x.r, ficha, anioActual);
+  const conEdad = edad ? `edad ${edad.edad} ("${edad.expresion}")` : '';
+  if (edad && edad.edad >= mig.edadMigracion) return { momento: 'despues', senal: conEdad };
+  const oficio = oficioDe(x, ficha);
+  const conOficio = oficio && typeof oficio.desde === 'number' ? `oficio "${oficio.nombre}" desde ${oficio.desde}` : '';
+  if (oficio && typeof oficio.desde === 'number' && oficio.desde >= mig.anioMigracion) return { momento: 'despues', senal: conOficio };
+  if (edad) return { momento: 'antes', senal: conEdad };
+  if (conOficio) return { momento: 'antes', senal: conOficio };
+  const origen = nombraLugar(x.r.texto, mig.origen);
+  if (origen) return { momento: 'antes', senal: `nombra "${origen}"` };
+  return { momento: 'sin-senal', senal: 'sin señal' };
+}
+
+/** Pasa al tema del viaje lo que absorbe "El viaje, hasta hoy" y devuelve la clasificación de cada respuesta mirada. */
+function clasificarMigracion(items: Item[], ficha: FichaV3, anioActual: number, mig: Migracion): Omit<Clasificacion, 'capitulo'>[] {
+  const salida: Omit<Clasificacion, 'capitulo'>[] = [];
+  for (const x of items) {
+    const base = { respuestaId: x.r.id, preguntaId: x.r.preguntaId, bloque: x.r.bloque };
+    let regla: string | null = null;
+    if (x.r.bloque === 5 && MIGRACION.has(x.r.preguntaId)) regla = 'bloque 5, migración';
+    else if (x.tema === 10) regla = 'Hoy';
+    else if (x.r.bloque === 6 && esParejaActual(x, ficha)) regla = 'pareja actual';
+    if (regla) {
+      x.tema = TEMA_VIAJE;
+      salida.push({ ...base, momento: 'regla', senal: regla });
+      continue;
+    }
+    if (!BLOQUES_CON_SENAL.has(x.r.bloque) || x.tema === 9) continue;
+    const s = senalMigracion(x, ficha, anioActual, mig);
+    if (s.momento === 'despues') x.tema = TEMA_VIAJE;
+    salida.push({ ...base, ...s });
+  }
+  return salida;
+}
+
+// ---------------------------------------------------------------- 5. partición
 
 type Clave = { orden: { clave: string; nombre: string }[]; claveDe: (x: Item) => string | null };
 
-/** La clave fija de partición de cada capítulo madre, o null si no se parte (1, 3, 9, 10). */
-function claveDePartición(madre: number, items: Item[], ficha: FichaV3): Clave | null {
-  switch (madre) {
-    case 2:
+/** La clave fija de partición de cada capítulo de Completo (y del viaje), o null si no se parte. */
+function claveDeParticion(g: Grupo, ficha: FichaV3, mig: Migracion | null, anioActual: number): Clave | null {
+  const tema = g.fila.temas[0];
+  const propios = (x: Item) => x.tema === tema;
+  switch (g.fila.clave) {
+    case 'C2':
       return {
         orden: [{ clave: 'casa', nombre: 'La casa' }, { clave: 'escuela', nombre: 'La escuela' }],
         claveDe: (x) => (x.r.bloque === 3 ? 'escuela' : 'casa'),
       };
-    case 4:
+    case 'C4':
       return {
         orden: [
           { clave: 'general', nombre: 'Irse de casa' }, { clave: 'estudios', nombre: 'Los estudios' },
-          { clave: 'militar', nombre: 'Lo militar' }, { clave: 'migracion', nombre: TITULO_VIAJE },
+          { clave: 'militar', nombre: 'Lo militar' }, { clave: 'migracion', nombre: 'El viaje' },
         ],
         claveDe: (x) => (ESTUDIOS.has(x.r.preguntaId) ? 'estudios' : MILITAR.has(x.r.preguntaId) ? 'militar' : MIGRACION.has(x.r.preguntaId) ? 'migracion' : 'general'),
       };
-    case 5: {
+    case 'C5': {
       const parejas = lista(ficha.parejas);
       if (parejas.length < 2) return null;
       const actual = parejas.findIndex((p) => p.actual) + 1;
       return {
         orden: [...parejas.map((p, i) => ({ clave: `pareja:${i + 1}`, nombre: p.nombre })), { clave: 'otros', nombre: 'Otras personas' }],
         claveDe: (x) => {
-          const n = numeroDe(x.r.sujeto, 'pareja') ?? (x.r.preguntaId === 'AM13' && actual > 0 ? actual : null);
-          return n && n <= parejas.length ? `pareja:${n}` : 'otros';
+          const k = numeroDe(x.r.sujeto, 'pareja') ?? (x.r.preguntaId === 'AM13' && actual > 0 ? actual : null);
+          return k && k <= parejas.length ? `pareja:${k}` : 'otros';
         },
       };
     }
-    case 6: {
+    case 'C6': {
       const oficios = lista(ficha.oficios);
       if (oficios.length >= 2) {
         return {
           orden: oficios.map((o, i) => ({ clave: `oficio:${i + 1}`, nombre: o.nombre })),
           claveDe: (x) => {
-            const n = numeroDe(x.r.sujeto, 'oficio');
-            if (n && n <= oficios.length) return `oficio:${n}`;
+            const k = numeroDe(x.r.sujeto, 'oficio');
+            if (k && k <= oficios.length) return `oficio:${k}`;
             const i = oficios.findIndex((o) => mencionaActividad(x.r.texto, o.nombre));
             return i >= 0 ? `oficio:${i + 1}` : null;
           },
@@ -307,32 +555,44 @@ function claveDePartición(madre: number, items: Item[], ficha: FichaV3): Clave 
       }
       if (estado(ficha.campo) === 'lleno') {
         return {
-          orden: [{ clave: 'campo', nombre: 'El campo' }, { clave: 'despues', nombre: 'Después del campo' }],
+          orden: [{ clave: 'campo', nombre: 'El campo' }, { clave: 'despues', nombre: 'Después' }],
           claveDe: (x) => (CAMPO.has(x.r.preguntaId) ? 'campo' : 'despues'),
         };
       }
       return null;
     }
-    case 7:
+    case 'C7':
       return {
-        orden: [{ clave: 'chicos', nombre: 'Cuando eran chicos' }, { clave: 'grandes', nombre: 'Cuando crecieron y los nietos' }],
+        orden: [{ clave: 'chicos', nombre: 'Cuando eran chicos' }, { clave: 'grandes', nombre: 'Cuando crecieron, y los nietos' }],
         claveDe: (x) => (HIJOS_CHICOS.has(x.r.preguntaId) ? 'chicos' : 'grandes'),
       };
-    case 8: {
-      // "Mi pasión: X" si una pasión suma PASION_GRANDE o más.
+    case 'C8': {
+      // "Mi pasión: X" si una pasión suma PASION_GRANDE escritas o más.
       for (const a of (ficha.actividades ?? []).filter((x) => x.marca === 'pasion')) {
-        const suyas = items.filter((x) => mencionaActividad(x.r.texto, a.nombre));
-        if (palabras(suyas) >= PASION_GRANDE) {
+        const suyas = g.items.filter((x) => propios(x) && mencionaActividad(x.r.texto, a.nombre));
+        if (escritasDe(suyas) >= PASION_GRANDE) {
           const ids = new Set(suyas.map((x) => x.r.id));
           return {
-            orden: [{ clave: 'resto', nombre: TITULOS[8] }, { clave: 'pasion', nombre: `Mi pasión: ${a.nombre}` }],
+            orden: [{ clave: 'resto', nombre: 'Mi gente y mis lugares' }, { clave: 'pasion', nombre: `Mi pasión: ${a.nombre}` }],
             claveDe: (x) => (ids.has(x.r.id) ? 'pasion' : 'resto'),
           };
         }
       }
       return {
-        orden: [{ clave: 'lugares', nombre: 'Lugares y pasiones' }, { clave: 'gente', nombre: 'Mi gente' }],
+        orden: [{ clave: 'lugares', nombre: 'Mis lugares y pasiones' }, { clave: 'gente', nombre: 'Mi gente' }],
         claveDe: (x) => (x.r.bloque === 10 || x.r.preguntaId === 'HI10' ? 'gente' : 'lugares'),
+      };
+    }
+    case 'VIAJE': {
+      if (!mig) return null;
+      // Edad de instalación = edad de migración + 1: lo de antes va a "El viaje".
+      return {
+        orden: [{ clave: 'viaje', nombre: 'El viaje' }, { clave: 'hoy', nombre: `Hoy, en ${mig.lugar}` }],
+        claveDe: (x) => {
+          if (MIGRACION.has(x.r.preguntaId)) return 'viaje';
+          const edad = edadDeFlotante(x.r, ficha, anioActual);
+          return edad && edad.edad <= mig.edadMigracion + 1 ? 'viaje' : 'hoy';
+        },
       };
     }
     default:
@@ -351,20 +611,18 @@ function juntarConVecina(partes: Parte[], i: number): void {
 }
 
 /**
- * Parte los items de un capítulo (anfitrión + fusionados) por la clave de su
- * anfitrión. Los de un capítulo fusionado van a la primera parte si su madre
- * es anterior al anfitrión y a la última si es posterior; los que la clave no
- * reconoce, a la primera. Después: ninguna parte bajo el mínimo y no más de
- * `maxPartes`.
+ * Parte un capítulo por su clave. Lo recibido de otro tema va a la primera
+ * parte si su tema es anterior y a la última si es posterior; lo que la
+ * clave no reconoce, a la primera. Ninguna parte bajo `minimo` escritas y no
+ * más de `maxPartes`.
  */
-function partir(host: number, items: Item[], ficha: FichaV3, maxPartes: number, minimo: number): Parte[] | null {
-  const clave = claveDePartición(host, items.filter((x) => x.madre === host), ficha);
-  if (!clave) return null;
+function partir(g: Grupo, clave: Clave, maxPartes: number, minimo: number): Parte[] | null {
+  const tema = g.fila.temas[0];
   const partes: Parte[] = clave.orden.map((o) => ({ ...o, items: [] as Item[] }));
   const sueltos: { antes: Item[]; despues: Item[] } = { antes: [], despues: [] };
-  for (const x of items) {
-    if (x.madre !== host) {
-      (x.madre < host ? sueltos.antes : sueltos.despues).push(x);
+  for (const x of g.items) {
+    if (g.fila.clave !== 'VIAJE' && x.tema !== tema) {
+      (x.tema < tema ? sueltos.antes : sueltos.despues).push(x);
       continue;
     }
     const c = clave.claveDe(x);
@@ -378,7 +636,7 @@ function partir(host: number, items: Item[], ficha: FichaV3, maxPartes: number, 
   conMaterial[conMaterial.length - 1].items.push(...sueltos.despues);
 
   for (;;) {
-    const chica = conMaterial.findIndex((p) => palabras(p.items) < minimo);
+    const chica = conMaterial.findIndex((p) => escritasDe(p.items) < minimo);
     if (chica < 0 || conMaterial.length === 1) break;
     const menor = conMaterial.reduce((m, p, i) => (palabras(p.items) < palabras(conMaterial[m].items) ? i : m), chica);
     juntarConVecina(conMaterial, menor);
@@ -390,222 +648,222 @@ function partir(host: number, items: Item[], ficha: FichaV3, maxPartes: number, 
   return conMaterial;
 }
 
-// ---------------------------------------------------------------- 2. bisagra
-
-type Bisagra = { tipo: 'pareja' | 'oficio'; k: number } | null;
-
-/** ¿El año de migración cae entre la pareja (u oficio) k y la k+1 de la ficha? Solo con años en la ficha. */
-function detectarBisagra(ficha: FichaV3, avisos: string[]): Bisagra {
-  if (estado(ficha.migracion) !== 'lleno') return null;
-  const anio = anioMigracion(ficha);
-  const parejas = lista(ficha.parejas);
-  const oficios = lista(ficha.oficios);
-  const hayPares = parejas.length >= 2 || oficios.length >= 2;
-  if (anio === null) {
-    if (hayPares) avisos.push('Bisagra: la ficha no trae el año ni la edad de la migración; no se puede ver si cae entre dos parejas u oficios.');
-    return null;
-  }
-  if (parejas.length >= 2) {
-    if (parejas.every((p) => typeof p.anioInicio === 'number')) {
-      for (let k = 1; k < parejas.length; k++) {
-        if (parejas[k - 1].anioInicio! < anio && anio < parejas[k].anioInicio!) return { tipo: 'pareja', k };
-      }
-    } else {
-      avisos.push('Bisagra: faltan los años de las parejas en la ficha; no se puede ver si la migración cae entre dos.');
-    }
-  }
-  if (oficios.length >= 2) {
-    if (oficios.every((o) => typeof o.desde === 'number')) {
-      for (let k = 1; k < oficios.length; k++) {
-        if (oficios[k - 1].desde! < anio && anio < oficios[k].desde!) return { tipo: 'oficio', k };
-      }
-    } else {
-      avisos.push('Bisagra: faltan los años de los oficios en la ficha; no se puede ver si la migración cae entre dos.');
-    }
-  }
-  return null;
-}
-
 // ---------------------------------------------------------------- armado
 
 export function armarIndice(respuestas: RespuestaV3[], ficha: FichaV3, opciones: OpcionesIndice = {}): Indice {
   const anioActual = opciones.anioActual ?? new Date().getFullYear();
   const tamanio = opciones.tamanio ?? 'E';
-  const minimo = opciones.minimo ?? MINIMO;
   const avisos: string[] = [];
   const flotantes: Ubicacion[] = [];
   const cierre: string[] = [];
+  const saltos: Salto[] = [];
   const items: Item[] = [];
 
+  // 1. Ubicar.
   respuestas.forEach((r, indice) => {
     if (r.paso) return;
     const u = ubicar(r, ficha, anioActual, avisos);
-    if (u.madre === 'cierre') {
+    if (u.tema === 'cierre') {
       cierre.push(r.id);
       return;
     }
-    if (u.madre === null) return;
+    if (u.tema === null) return;
     const p = preguntaPorId(r.preguntaId);
     const sensible = !!p?.sensible || r.bloque === 11 || !!u.ubicacion?.sensible;
-    items.push({ r, madre: u.madre, orden: p?.orden ?? Number.MAX_SAFE_INTEGER, indice, sensible });
+    items.push({ r, tema: u.tema, ...(u.receptor !== undefined ? { receptor: u.receptor } : {}), orden: p?.orden ?? Number.MAX_SAFE_INTEGER, indice, sensible });
     if (u.ubicacion) flotantes.push({ respuestaId: r.id, preguntaId: r.preguntaId, ...u.ubicacion });
   });
+  // En Breve y Estándar "Lo que costó" no es capítulo: el receptor es la ubicación.
+  if (tamanio !== 'C') for (const x of items) if (x.tema === 9) x.tema = x.receptor ?? 10;
 
-  // 2. Bisagra: se separan las respuestas de migración antes de calcular el
-  // título del capítulo 4 y antes de fusionar. Si no se hace en este orden,
-  // el capítulo 4 (o su fusión) puede quedar titulado "El viaje" por su
-  // proporción de migración ANTES de la bisagra, mientras la bisagra inserta
-  // otro capítulo, también "El viaje", con las respuestas ya sacadas: dos
-  // capítulos con el mismo título.
-  let bisagra = detectarBisagra(ficha, avisos);
-  let viaje: Item[] = [];
-  if (bisagra) {
-    const destino = bisagra.tipo === 'pareja' ? 5 : 6;
-    const migracion = items.filter((x) => x.madre === 4 && MIGRACION.has(x.r.preguntaId));
-    const propias = items.filter((x) => x.madre === destino);
-    const partesDestino = partir(destino, propias, ficha, 2, minimo);
-    if (palabras(migracion) < minimo) {
-      avisos.push(`Bisagra: la migración cae entre dos ${bisagra.tipo === 'pareja' ? 'parejas' : 'oficios'}, pero sus respuestas suman ${miles(palabras(migracion))} palabras (mínimo ${miles(minimo)}); "El viaje" queda en su capítulo.`);
-      bisagra = null;
-    } else if (!partesDestino || partesDestino.length < 2) {
-      avisos.push(`Bisagra: la migración cae entre dos ${bisagra.tipo === 'pareja' ? 'parejas' : 'oficios'}, pero "${TITULOS[destino]}" no da dos partes con material; "El viaje" queda en su capítulo.`);
-      bisagra = null;
-    } else {
-      viaje = migracion;
-      const ids = new Set(viaje.map((x) => x.r.id));
-      for (let i = items.length - 1; i >= 0; i--) if (ids.has(items[i].r.id)) items.splice(i, 1);
+  // 2. Gates de la ficha.
+  const conPareja = estado(ficha.parejas) === 'lleno';
+  const conHijos = estado(ficha.hijos) === 'lleno';
+  const quitados = tamanio === 'E' && !conPareja && !conHijos ? [5, 7] : tamanio === 'C' && !conPareja ? [5] : [];
+  if (quitados.length) {
+    for (const x of items) {
+      if (quitados.includes(x.tema)) x.tema = 8;
+      if (x.receptor !== undefined && quitados.includes(x.receptor)) x.receptor = 8;
     }
+    const cual = tamanio === 'E' ? '"Amor y la familia que armé"' : '"Amor"';
+    avisos.push(`Sin pareja${tamanio === 'E' ? ' y sin hijos' : ''} en la ficha: ${cual} no existe; sus respuestas (PI, AM15…) van a "Mi gente y mis lugares".`);
   }
+  const edadMig = estado(ficha.migracion) === 'lleno' ? edadMigracion(ficha) : null;
+  if (estado(ficha.migracion) === 'lleno' && edadMig === null) avisos.push('La ficha no trae el año ni la edad de la migración: no se puede titular "El viaje" ni ver si es migrante joven.');
 
-  // "El viaje" como título del capítulo 4, con las respuestas de la bisagra
-  // (si hubo) ya afuera de `items`.
-  const del4 = items.filter((x) => x.madre === 4);
-  const edadMig = edadMigracion(ficha);
-  const palabrasMig4 = palabras(del4.filter((x) => MIGRACION.has(x.r.preguntaId)));
-  const esViaje = edadMig !== null && edadMig <= EDAD_VIAJE && palabras(del4) > 0 && palabrasMig4 / palabras(del4) >= PROPORCION_VIAJE;
-  const titulo4 = esViaje ? TITULO_VIAJE : TITULOS[4];
+  // 3. Modo migrante joven.
+  const mig = detectarMigranteJoven(ficha, anioActual);
+  const clasificacion = mig ? clasificarMigracion(items, ficha, anioActual, mig) : [];
+  const conViaje = edadMig !== null && edadMig <= EDAD_VIAJE && !mig;
 
-  // 3. Fusión por mínimo.
-  const W = (m: number) => palabras(items.filter((x) => x.madre === m));
-  const grupos = new Map<number, { madres: number[]; W: number }>(); // anfitrión → grupo
-  for (let m = 1; m <= 10; m++) if (W(m) > 0 || m === 10) grupos.set(m, { madres: [m], W: W(m) });
-  if (W(10) === 0) avisos.push('Hoy no tiene material; el capítulo existe igual (lleva el prólogo espejo).');
-  const anfitrionDe = (m: number): number | null => {
-    for (const [h, g] of grupos) if (g.madres.includes(m)) return h;
-    return null;
-  };
-  const minimoDe = (h: number) => (h === 1 && grupos.get(1)!.madres.length === 1 ? Math.min(MINIMO_ORIGEN, minimo) : minimo);
-  for (;;) {
-    const bajo = [...grupos.entries()]
-      .filter(([h, g]) => h !== 2 && h !== 10 && g.W < minimoDe(h))
-      .sort((a, b) => a[1].W - b[1].W || b[0] - a[0]);
-    if (!bajo.length) break;
-    const [h, g] = bajo[0];
-    let destino = VECINO_FUSION[h];
-    for (;;) {
-      const a = anfitrionDe(destino);
-      if (a !== null) {
-        destino = a;
-        break;
-      }
-      if (destino === 2) {
-        grupos.set(2, { madres: [2], W: 0 });
-        break;
-      }
-      destino = VECINO_FUSION[destino];
-    }
-    const d = grupos.get(destino)!;
-    avisos.push(`"${nombreGrupo(g.madres, h, titulo4)}" (${miles(g.W)} palabras, mínimo ${miles(minimoDe(h))}) se fusiona con "${nombreGrupo(d.madres, destino, titulo4)}".`);
-    d.madres = [...d.madres, ...g.madres].sort((a, b) => a - b);
-    d.W += g.W;
-    grupos.delete(h);
-  }
-  // El ancla (2) no tiene vecino hacia atrás: si quedó corta, absorbe al
-  // capítulo de etapa que le sigue (3, o 4 si no hay 3), no al revés.
-  while (grupos.has(2) && grupos.get(2)!.W < minimo) {
-    const siguiente = [3, 4].find((h) => grupos.has(h));
-    const g2 = grupos.get(2)!;
-    if (siguiente === undefined) {
-      avisos.push(`"${nombreGrupo(g2.madres, 2, titulo4)}" quedó con ${miles(g2.W)} palabras (bajo el mínimo) y no hay etapa siguiente con qué juntarla.`);
-      break;
-    }
-    const s = grupos.get(siguiente)!;
-    avisos.push(`"${nombreGrupo(g2.madres, 2, titulo4)}" (${miles(g2.W)} palabras) es el ancla y quedó corta: absorbe a "${nombreGrupo(s.madres, siguiente, titulo4)}".`);
-    g2.madres = [...g2.madres, ...s.madres].sort((a, b) => a - b);
-    g2.W += s.W;
-    grupos.delete(siguiente);
-  }
-
-  // 4. Capítulos, con partición.
-  const capitulos: Capitulo[] = [];
-  for (const host of [...grupos.keys()].sort((a, b) => a - b)) {
-    const g = grupos.get(host)!;
-    const titulo = tituloGrupo(g.madres, host, titulo4, avisos);
-    const suyos = items.filter((x) => g.madres.includes(x.madre));
-    const forzada = bisagra && host === (bisagra.tipo === 'pareja' ? 5 : 6);
-    const maxPartes = forzada ? Math.max(2, g.W > MAXIMO_SEGUNDA && tamanio === 'C' ? 3 : 2) : g.W > MAXIMO_SEGUNDA && tamanio === 'C' ? 3 : g.W > MAXIMO ? 2 : 1;
-    let partes: Parte[] | null = null;
-    if (maxPartes > 1) {
-      partes = partir(host, suyos, ficha, maxPartes, minimo);
-      if (!partes) avisos.push(`"${titulo}" tiene ${miles(g.W)} palabras (más de ${miles(MAXIMO)}) y no se parte: no tiene clave de partición.`);
-      else if (partes.length === 1) {
-        avisos.push(`"${titulo}" tiene ${miles(g.W)} palabras (más de ${miles(MAXIMO)}) y no se parte: su clave (${partes[0].clave}) no da dos partes de ${miles(minimo)}.`);
-        partes = null;
-      } else {
-        avisos.push(`"${titulo}" (${miles(g.W)} palabras) se parte en ${partes.length}: ${partes.map((p) => p.nombre).join(' / ')}.`);
-      }
-    }
-    if (!partes) {
-      capitulos.push(armarCapitulo(host, g.madres, titulo, undefined, suyos));
-      continue;
-    }
-    const clavesViaje = bisagra && forzada ? `${bisagra.tipo}:${bisagra.k}` : null;
-    partes.forEach((parte) => {
-      capitulos.push(armarCapitulo(host, g.madres, titulo, { clave: parte.clave, nombre: parte.nombre }, parte.items));
-      if (clavesViaje && parte.items.some((x) => claveDePartición(host, [], ficha)?.claveDe(x) === clavesViaje) && viaje.length) {
-        capitulos.push(armarCapitulo(4, [4], TITULO_VIAJE, undefined, viaje));
-        avisos.push(`Bisagra: "El viaje" (${miles(palabras(viaje))} palabras) va entre las partes de "${titulo}".`);
-        viaje = [];
-      }
+  // Grupos por la tabla del tamaño.
+  const filas = mig ? [...AGRUPACIONES[tamanio], FILA_VIAJE] : AGRUPACIONES[tamanio];
+  const grupos = new Map<string, Grupo>();
+  for (const fila of filas) {
+    grupos.set(fila.clave, {
+      fila,
+      titulo: tituloInicial(fila, { conPareja, conHijos, conViaje }),
+      items: items.filter((x) => fila.temas.includes(x.tema)),
+      claves: [fila.clave],
+      recibio: false,
+      destino: null,
+      repartido: false,
+      corto: false,
+      coda: false,
     });
   }
+  const posicion = (clave: string) => filas.findIndex((f) => f.clave === clave);
+  const esHoy = (clave: string) => AGRUPACIONES[tamanio].find((f) => f.clave === clave)?.temas.includes(10) ?? false;
+  const claveDeTema = (tema: number): string | null =>
+    tema === TEMA_VIAJE || (mig && tema === 10) ? 'VIAJE' : filas.find((f) => f.temas.includes(tema))?.clave ?? null;
+  const huesped = (clave: string): Grupo => {
+    let g = grupos.get(clave)!;
+    while (g.destino) g = grupos.get(g.destino)!;
+    return g;
+  };
+  const mover = (xs: Item[], de: Grupo, a: Grupo) => {
+    for (const x of xs) {
+      a.items.push(x);
+      saltos.push({ respuestaId: x.r.id, de: de.fila.clave, a: a.fila.clave });
+    }
+  };
+  const recibirEntero = (g: Grupo, a: Grupo) => {
+    mover(g.items, g, a);
+    a.recibio = true;
+    a.claves.push(...g.claves);
+    if (a.fila.clave !== 'VIAJE') a.titulo = alRecibir(a.titulo, g.titulo, avisos);
+    g.items = [];
+    g.destino = a.fila.clave;
+  };
 
-  if (viaje.length) {
-    // No debería pasar (la bisagra se chequea antes), pero ninguna respuesta se pierde.
-    const i = capitulos.findIndex((c) => c.madre > 4);
-    capitulos.splice(i < 0 ? capitulos.length : i, 0, armarCapitulo(4, [4], TITULO_VIAJE, undefined, viaje));
-    avisos.push('Bisagra: no se encontró dónde insertar "El viaje"; queda después de Salir al mundo.');
+  // 4. Pisos y receptores: una sola pasada, de arriba hacia abajo.
+  for (const fila of filas) {
+    const g = grupos.get(fila.clave)!;
+    if (mig && esHoy(fila.clave)) continue; // Hoy lo absorbe "El viaje, hasta hoy"
+    if (!g.items.length) {
+      if (esHoy(fila.clave)) avisos.push('Hoy no tiene material: no hay capítulo ni coda.');
+      continue;
+    }
+    const w = escritasDe(g.items);
+    if (fila.piso === null || g.recibio || w >= fila.piso) continue;
+    const bajo = `"${g.titulo}" (${miles(w)} escritas, piso ${miles(fila.piso)})`;
+
+    if (fila.receptor === 'coda') {
+      g.coda = true;
+      avisos.push(`${bajo} se vuelve la coda: dos páginas sin número antes de la carta.`);
+    } else if (fila.receptor === 'reparto') {
+      avisos.push(`${bajo} no existe: sus respuestas se reparten por pregunta.`);
+      for (const x of g.items) mover([x], g, destinoDeReparto(x.receptor ?? 10));
+      g.items = [];
+      g.repartido = true;
+    } else if (fila.receptor === 'amor') {
+      if (w >= PISO_AMOR_CORTO) {
+        g.corto = true;
+        avisos.push(`Amor: ${bajo} existe corto (tiene ${miles(PISO_AMOR_CORTO)} o más) y no se funde.`);
+      } else {
+        const gente = huesped(claveDeTema(8)!);
+        avisos.push(`Amor: ${bajo} tiene menos de ${miles(PISO_AMOR_CORTO)}: sus respuestas van a "${gente.titulo}".`);
+        recibirEntero(g, gente);
+      }
+    } else if (fila.receptor) {
+      const clave = mig && esHoy(fila.receptor) ? 'VIAJE' : fila.receptor;
+      const rec = grupos.get(clave)!;
+      const usable = !rec.destino && !rec.repartido && (rec.items.length > 0 || posicion(clave) > posicion(fila.clave));
+      if (usable) {
+        avisos.push(`${bajo} va a "${rec.titulo}".`);
+        recibirEntero(g, rec);
+      } else {
+        g.corto = true;
+        avisos.push(`${bajo} queda corto: su receptor "${rec.fila.titulo}" ya no está (sin cadenas).`);
+      }
+    }
   }
 
-  return { capitulos, cierre, flotantes, avisos };
+  /** Lo que costó bajo el piso: cada respuesta a su receptor, directo al capítulo que hoy lo tiene (un salto). */
+  function destinoDeReparto(tema: number): Grupo {
+    const aca = posicion('C9');
+    for (const t of [tema, 8, 10]) {
+      const clave = claveDeTema(t);
+      if (!clave) continue;
+      const g = huesped(clave);
+      if (!g.repartido && (g.items.length > 0 || posicion(g.fila.clave) > aca)) return g;
+    }
+    return huesped(claveDeTema(10)!);
+  }
+
+  // 5. Capítulos, coda y particiones (solo Completo).
+  const capitulos: Capitulo[] = [];
+  let coda: Capitulo | null = null;
+  for (const fila of filas) {
+    const g = grupos.get(fila.clave)!;
+    if (g.destino || g.repartido || !g.items.length) continue;
+    if (g.coda) {
+      coda = armarCapitulo(g, g.titulo, undefined, g.items, true);
+      continue;
+    }
+    const w = escritasDe(g.items);
+    let partes: Parte[] | null = null;
+    if (tamanio === 'C' && w > TOPE_PARTICION) {
+      const clave = claveDeParticion(g, ficha, mig, anioActual);
+      const maxPartes = w > TOPE_SEGUNDA_PARTICION ? 3 : 2;
+      if (!clave) {
+        avisos.push(`"${g.titulo}" tiene ${miles(w)} escritas (más de ${miles(TOPE_PARTICION)}) y no se parte: ${fila.clave === 'C3' ? 'su clave son los capítulos de LE7, que el código no lee' : 'no tiene clave de partición'}.`);
+      } else {
+        partes = partir(g, clave, maxPartes, fila.piso ?? 900);
+        if (partes && partes.length === 1) {
+          avisos.push(`"${g.titulo}" tiene ${miles(w)} escritas y no se parte: su clave no da dos partes sobre el piso.`);
+          partes = null;
+        } else if (partes) {
+          avisos.push(`"${g.titulo}" (${miles(w)} escritas) se parte en ${partes.length}: ${partes.map((p) => p.nombre).join(' / ')}.`);
+        }
+      }
+    }
+    if (!partes) capitulos.push(armarCapitulo(g, g.titulo, undefined, g.items));
+    else for (const p of partes) capitulos.push(armarCapitulo(g, g.titulo, { clave: p.clave, nombre: p.nombre }, p.items));
+  }
+
+  const dondeQuedo = (id: string) => [...capitulos, ...(coda ? [coda] : [])].find((c) => c.respuestaIds.includes(id))?.clave ?? '';
+  const migranteJoven: MigranteJoven | null = mig
+    ? {
+        edadMigracion: mig.edadMigracion,
+        edadActual: mig.edadActual,
+        lugaresDestino: mig.destino,
+        clasificacion: clasificacion.map((c) => ({ ...c, capitulo: dondeQuedo(c.respuestaId) })),
+      }
+    : null;
+
+  return { tamanio, capitulos, coda, cierre, flotantes, saltos, migranteJoven, avisos };
 }
 
-function nombreGrupo(madres: number[], host: number, titulo4: string): string {
-  if (madres.length === 1) return host === 4 ? titulo4 : TITULOS[host];
-  return madres.map((m) => (m === 4 ? titulo4 : TITULOS[m])).join(' + ');
+function tituloInicial(fila: Agrupacion, f: { conPareja: boolean; conHijos: boolean; conViaje: boolean }): string {
+  if (fila.clave === 'E2' && f.conViaje) return TITULOS_GATE.hacerseGrandeYElViaje;
+  if (fila.clave === 'C4' && f.conViaje) return TITULOS_GATE.elViaje;
+  if (fila.clave === 'E3' && f.conPareja && !f.conHijos) return TITULOS_GATE.amor;
+  if (fila.clave === 'E3' && !f.conPareja && f.conHijos) return TITULOS_GATE.laFamiliaQueArme;
+  return fila.titulo;
 }
 
-function tituloGrupo(madres: number[], host: number, titulo4: string, avisos: string[]): string {
-  if (madres.length === 1) return host === 4 ? titulo4 : TITULOS[host];
-  const fijo = TITULOS_FUSION[madres.join('+')];
-  if (fijo) return fijo.replace('{viaje}', titulo4);
-  avisos.push(`Fusión ${madres.join('+')} sin título en la tabla: se usa el del anfitrión ("${TITULOS[host]}").`);
-  return host === 4 ? titulo4 : TITULOS[host];
+function alRecibir(receptor: string, llega: string, avisos: string[]): string {
+  const titulo = AL_RECIBIR[`${receptor} ← ${llega}`];
+  if (titulo) return titulo;
+  avisos.push(`Título sin tabla: "${receptor}" recibe a "${llega}"; queda "${receptor}".`);
+  return receptor;
 }
 
-function armarCapitulo(madre: number, madres: number[], titulo: string, parte: Capitulo['parte'], items: Item[]): Capitulo {
+function armarCapitulo(g: Grupo, titulo: string, parte: Capitulo['parte'], items: Item[], coda = false): Capitulo {
   const ordenados = [...items].sort((a, b) => a.r.bloque - b.r.bloque || a.orden - b.orden || a.indice - b.indice);
   const W = palabras(items);
   return {
-    madre,
-    madres,
+    clave: g.fila.clave,
+    claves: [...g.claves],
     titulo,
     ...(parte ? { parte } : {}),
+    ...(g.corto ? { corto: true as const } : {}),
+    ...(coda ? { coda: true as const } : {}),
     subtitulo: null,
     respuestaIds: ordenados.map((x) => x.r.id),
     sensibles: ordenados.filter((x) => x.sensible).map((x) => x.r.id),
     palabrasHabladas: W,
-    palabrasEscritasObjetivo: Math.round(FACTOR_ESCRITO * W),
+    palabrasEscritasObjetivo: escritas(W),
   };
 }
-

@@ -2,7 +2,9 @@
 // respuestas sintéticas (qué preguntas le llegan sale de seleccion.ts; cuánto
 // habla sale de la distribución empírica de E1) y arma el índice. Sirve para
 // calibrar los umbrales del índice (mínimo, máximo, fusiones) contra cientos de
-// vidas, gratis y con semilla fija (Fable 5, punto 7).
+// vidas, gratis y con semilla fija (Fable 5, punto 7). Con las agrupaciones
+// fijas ya no hay umbrales que calibrar: sirve para ver cuántos capítulos,
+// codas y receptores salen por tamaño y perfil.
 
 import { edadActual, lista, type FichaV3, type Hijo, type Oficio, type Pareja } from './ficha.js';
 import { preguntasPara, type PreguntaInstanciada } from './seleccion.js';
@@ -66,7 +68,7 @@ function textoSintetico(p: PreguntaInstanciada, ficha: FichaV3, azar: Azar, anio
   return partes.join('. ') + '.';
 }
 
-export type OpcionesSimulacion = { semilla?: number; perfil?: Perfil; anioActual?: number; minimo?: number };
+export type OpcionesSimulacion = { semilla?: number; perfil?: Perfil; anioActual?: number };
 
 /** Una respuesta por pregunta que le llega, con su sujeto; ~15 % "paso". */
 export function respuestasSinteticas(ficha: FichaV3, tamanio: 'B' | 'E' | 'C', opciones: OpcionesSimulacion = {}): RespuestaV3[] {
@@ -92,35 +94,42 @@ export type Simulacion = { preguntas: number; respuestas: RespuestaV3[]; palabra
 export function simular(ficha: FichaV3, tamanio: 'B' | 'E' | 'C', opciones: OpcionesSimulacion = {}): Simulacion {
   const anioActual = opciones.anioActual ?? new Date().getFullYear();
   const respuestas = respuestasSinteticas(ficha, tamanio, opciones);
-  const indice = armarIndice(respuestas, ficha, { tamanio, anioActual, minimo: opciones.minimo });
+  const indice = armarIndice(respuestas, ficha, { tamanio, anioActual });
   const palabras = respuestas.filter((r) => !r.paso).reduce((s, r) => s + r.palabras, 0);
   return { preguntas: respuestas.length, respuestas, palabras, indice };
 }
 
 export type Estadisticas = {
   libros: number;
-  capitulosPromedio: number;
+  capitulosPromedio: number; // capítulos numerados (la coda no cuenta; cada parte cuenta)
   capitulosMin: number;
   capitulosMax: number;
-  pctFusionados: number; // capítulos que son fusión de dos o más madres / capítulos
+  pctConCoda: number; // libros con coda
+  pctConReceptor: number; // libros donde algún capítulo no llegó al piso y fue a su receptor (Lo que costó repartido incluido)
+  pctConCorto: number; // libros con algún capítulo corto (Amor corto o receptor que ya no estaba)
   pctPartidos: number; // capítulos que son una parte de una partición / capítulos
+  pctMigranteJoven: number; // libros en modo migrante joven
   menosDe4: number; // libros con menos de 4 capítulos
-  avisosFusionSinTitulo: number;
+  avisosSinTitulo: number; // combinaciones de receptor sin título en la tabla (tiene que ser 0)
 };
 
 export function estadisticas(indices: Indice[]): Estadisticas {
   const caps = indices.map((i) => i.capitulos.length);
   const todos = indices.flatMap((i) => i.capitulos);
-  const pct = (n: number) => (todos.length ? Math.round((1000 * n) / todos.length) / 10 : 0);
+  const pct = (n: number, de: number) => (de ? Math.round((1000 * n) / de) / 10 : 0);
+  const libros = indices.length;
   return {
-    libros: indices.length,
+    libros,
     capitulosPromedio: Math.round((10 * caps.reduce((s, x) => s + x, 0)) / Math.max(1, caps.length)) / 10,
     capitulosMin: Math.min(...caps),
     capitulosMax: Math.max(...caps),
-    pctFusionados: pct(todos.filter((c) => c.madres.length > 1).length),
-    pctPartidos: pct(todos.filter((c) => c.parte).length),
+    pctConCoda: pct(indices.filter((i) => i.coda).length, libros),
+    pctConReceptor: pct(indices.filter((i) => i.saltos.length > 0).length, libros),
+    pctConCorto: pct(indices.filter((i) => i.capitulos.some((c) => c.corto)).length, libros),
+    pctPartidos: pct(todos.filter((c) => c.parte).length, todos.length),
+    pctMigranteJoven: pct(indices.filter((i) => i.migranteJoven).length, libros),
     menosDe4: caps.filter((n) => n < 4).length,
-    avisosFusionSinTitulo: indices.flatMap((i) => i.avisos).filter((a) => /sin título en la tabla/.test(a)).length,
+    avisosSinTitulo: indices.flatMap((i) => i.avisos).filter((a) => /sin tabla/.test(a)).length,
   };
 }
 
