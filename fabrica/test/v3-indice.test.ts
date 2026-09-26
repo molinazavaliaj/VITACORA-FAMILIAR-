@@ -356,6 +356,13 @@ describe('Completo', () => {
   it('Hoy bajo 600 → coda', () => {
     expect(armarIndice(con(vidaC(), 'HO1', 500), FICHA, op('C')).coda).toMatchObject({ clave: 'C10', coda: true });
   });
+
+  it('sin hijos, "Hijos y nietos" no existe: lo que cae ahí por léxico va a Mi gente', () => {
+    const ficha: FichaV3 = { ...FICHA, hijos: 'no-tiene', nietos: 'no-tiene' };
+    const indice = armarIndice([...sin(vidaC(), 'HI1'), r('GI7', 60, { texto: 'Cuando nacieron los chicos de mi hermana.' })], ficha, op('C'));
+    expect(indice.capitulos.some((c) => c.clave === 'C7')).toBe(false);
+    expect(capituloDe(indice, 'R15')!.clave).toBe('C8');
+  });
 });
 
 describe('Completo: particiones (solo > 3.000 escritas, con las claves de la tabla)', () => {
@@ -431,6 +438,12 @@ describe('modo migrante joven', () => {
     const indice = armarIndice(vidaJoven(), JOVEN, op());
     for (const id of ['R5', 'R6', 'R8', 'R10', 'R11']) expect(capituloDe(indice, id)!.clave, id).toBe('VIAJE');
     expect(capituloDe(indice, 'R7')!.clave).toBe('E3');
+  });
+
+  it('todo el bloque 14 va al viaje, aunque PA2 hable de un oficio (en otro modo iría a Trabajo)', () => {
+    const indice = armarIndice([...vidaJoven(), r('PA2', 200, { texto: 'Hoy programo en el sillón; como músico ya casi no.' })], JOVEN, op());
+    expect(capituloDe(indice, 'R12')!.clave).toBe('VIAJE');
+    expect(indice.migranteJoven!.clasificacion.find((c) => c.respuestaId === 'R12')).toMatchObject({ momento: 'regla', senal: 'bloque 14' });
   });
 
   it('estudios y lo militar se quedan en "Hacerse grande" (sin "y el viaje")', () => {

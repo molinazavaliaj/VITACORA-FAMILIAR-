@@ -491,6 +491,7 @@ function clasificarMigracion(items: Item[], ficha: FichaV3, anioActual: number, 
     const base = { respuestaId: x.r.id, preguntaId: x.r.preguntaId, bloque: x.r.bloque };
     let regla: string | null = null;
     if (x.r.bloque === 5 && MIGRACION.has(x.r.preguntaId)) regla = 'bloque 5, migración';
+    else if (x.r.bloque === 14) regla = 'bloque 14';
     else if (x.tema === 10) regla = 'Hoy';
     else if (x.r.bloque === 6 && esParejaActual(x, ficha)) regla = 'pareja actual';
     if (regla) {
@@ -679,14 +680,20 @@ export function armarIndice(respuestas: RespuestaV3[], ficha: FichaV3, opciones:
   // 2. Gates de la ficha.
   const conPareja = estado(ficha.parejas) === 'lleno';
   const conHijos = estado(ficha.hijos) === 'lleno';
-  const quitados = tamanio === 'E' && !conPareja && !conHijos ? [5, 7] : tamanio === 'C' && !conPareja ? [5] : [];
+  // Estándar: sin pareja y sin hijos, E3 no existe. Completo: sin pareja, C5
+  // no existe; sin hijos, C7 no existe (lo que cae en hijos por léxico, "cuando
+  // nacieron los chicos" de otro, iría a un capítulo de hijos de nadie).
+  const quitados =
+    tamanio === 'E' ? (!conPareja && !conHijos ? [5, 7] : [])
+    : tamanio === 'C' ? [...(!conPareja ? [5] : []), ...(!conHijos ? [7] : [])]
+    : [];
   if (quitados.length) {
     for (const x of items) {
       if (quitados.includes(x.tema)) x.tema = 8;
       if (x.receptor !== undefined && quitados.includes(x.receptor)) x.receptor = 8;
     }
-    const cual = tamanio === 'E' ? '"Amor y la familia que armé"' : '"Amor"';
-    avisos.push(`Sin pareja${tamanio === 'E' ? ' y sin hijos' : ''} en la ficha: ${cual} no existe; sus respuestas (PI, AM15…) van a "Mi gente y mis lugares".`);
+    const cual = tamanio === 'E' ? ['"Amor y la familia que armé"'] : [...(quitados.includes(5) ? ['"Amor"'] : []), ...(quitados.includes(7) ? ['"Hijos y nietos"'] : [])];
+    avisos.push(`Por la ficha (${[!conPareja ? 'sin pareja' : '', !conHijos ? 'sin hijos' : ''].filter(Boolean).join(', ')}), ${cual.join(' y ')} no existe; sus respuestas (PI, AM15, HI10…) van a "Mi gente y mis lugares".`);
   }
   const edadMig = estado(ficha.migracion) === 'lleno' ? edadMigracion(ficha) : null;
   if (estado(ficha.migracion) === 'lleno' && edadMig === null) avisos.push('La ficha no trae el año ni la edad de la migración: no se puede titular "El viaje" ni ver si es migrante joven.');
