@@ -665,7 +665,7 @@ describe('invariantes', () => {
 
   it('cada título y cada nombre de parte del código está en docs/v3/titulos-capitulos.md (lo que aprueba Naza)', () => {
     const md = readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..', 'docs', 'v3', 'titulos-capitulos.md'), 'utf8');
-    expect(md).toMatch(/pendiente de aprobación/);
+    expect(md).toMatch(/aprobados por Naza/);
     for (const t of [...TITULOS_POSIBLES, ...NOMBRES_DE_PARTE, 'Hoy, en {{lugar_destino}}', 'Mi pasión: {{pasión}}']) expect(md, t).toContain(`«${t}»`);
   });
 
