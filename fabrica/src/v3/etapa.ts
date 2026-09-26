@@ -224,3 +224,54 @@ export function personaNombrada(texto: string, ficha: FichaV3): number | null {
   if (lista(ficha.oficios).some((o) => mencionaActividad(texto, o.nombre))) return 6;
   return null;
 }
+
+/** Parentescos que presentan a una persona en un capítulo: familia de origen → 2, pareja → 5, hijos y nietos → 7. */
+const PARENTESCO_PRESENTACION: { expresion: string; tema: number }[] = [
+  ...['mi mama', 'mi papa', 'mi madre', 'mi padre', 'mi vieja', 'mi viejo', 'mi hermano', 'mi hermana', 'mi abuelo', 'mi abuela']
+    .map((expresion) => ({ expresion, tema: 2 })),
+  ...['mi marido', 'mi mujer', 'mi esposo', 'mi esposa'].map((expresion) => ({ expresion, tema: 5 })),
+  ...['mi hijo', 'mi hija', 'mi nieto', 'mi nieta'].map((expresion) => ({ expresion, tema: 7 })),
+];
+
+/**
+ * El capítulo (tema) donde el lector conoció a la persona que nombra el
+ * texto: padres y hermanos de la ficha, o "mi mamá", "mi abuela"… → 2 (el de
+ * origen); pareja o persona importante → 5; hijo o nieto → 7. Gana la primera
+ * mención. Lo usan los receptores del bloque 11 (PE3, HJ7): la pérdida de una
+ * persona cierra su presencia donde fue presentada. A diferencia de
+ * `personaNombrada`, un oficio no cuenta.
+ */
+export function personaDePresentacion(texto: string, ficha: FichaV3): { tema: number; expresion: string } | null {
+  const conMayus = sinTildes(texto);
+  const t = normalizar(texto);
+  const padres = valor(ficha.padres);
+  const nombres: { nombre: string; tema: number }[] = [
+    ...[padres?.madre?.nombre, padres?.padre?.nombre].filter((n): n is string => !!n).map((nombre) => ({ nombre, tema: 2 })),
+    ...lista(ficha.hermanos).map((nombre) => ({ nombre, tema: 2 })),
+    ...lista(ficha.parejas).map((p) => ({ nombre: p.nombre, tema: 5 })),
+    ...(valor(ficha.personaImportante) ? [{ nombre: valor(ficha.personaImportante)!.nombre, tema: 5 }] : []),
+    ...lista(ficha.hijos).map((h) => ({ nombre: h.nombre, tema: 7 })),
+    ...lista(ficha.nietos).map((nombre) => ({ nombre, tema: 7 })),
+  ];
+  let mejor: { pos: number; tema: number; expresion: string } | null = null;
+  for (const c of nombres) {
+    const m = new RegExp(`\\b${escapar(sinTildes(c.nombre))}\\b`).exec(conMayus);
+    if (m && (!mejor || m.index < mejor.pos)) mejor = { pos: m.index, tema: c.tema, expresion: c.nombre };
+  }
+  for (const c of PARENTESCO_PRESENTACION) {
+    const m = new RegExp(`\\b${escapar(c.expresion)}\\b`).exec(t);
+    if (m && (!mejor || m.index < mejor.pos)) mejor = { pos: m.index, tema: c.tema, expresion: c.expresion };
+  }
+  return mejor ? { tema: mejor.tema, expresion: mejor.expresion } : null;
+}
+
+/** El primer lugar de la lista que el texto nombra (sin tildes ni mayúsculas, palabra entera), o null. */
+export function nombraLugar(texto: string, lugares: string[]): string | null {
+  const t = normalizar(texto);
+  let mejor: { pos: number; lugar: string } | null = null;
+  for (const lugar of lugares) {
+    const m = new RegExp(`\\b${escapar(normalizar(lugar))}\\b`).exec(t);
+    if (m && (!mejor || m.index < mejor.pos)) mejor = { pos: m.index, lugar };
+  }
+  return mejor?.lugar ?? null;
+}

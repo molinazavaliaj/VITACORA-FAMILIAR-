@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { edadDicha, etapaPorLexico, madrePorEdad, personaNombrada, mencionaActividad, numeroEnPalabras } from '../src/v3/etapa.js';
+import { edadDicha, etapaPorLexico, madrePorEdad, personaNombrada, personaDePresentacion, nombraLugar, mencionaActividad, numeroEnPalabras } from '../src/v3/etapa.js';
 import type { FichaV3 } from '../src/v3/ficha.js';
 
 const FICHA: FichaV3 = {
@@ -95,5 +95,36 @@ describe('personaNombrada y mencionaActividad', () => {
     expect(mencionaActividad('Soy músico desde chico', 'música')).toBe(true);
     expect(mencionaActividad('trabajo de programador', 'programación')).toBe(true);
     expect(mencionaActividad('juego al fútbol', 'música')).toBe(false);
+  });
+});
+
+describe('personaDePresentacion: el capítulo donde se presentó a esa persona (receptores del bloque 11)', () => {
+  const ficha: FichaV3 = { ...FICHA, padres: { madre: { nombre: 'Elsa', vive: false }, padre: { nombre: 'Juan', vive: false } }, hermanos: ['Pedro'] };
+  it('padres y hermanos (por nombre o parentesco) → 2; pareja → 5; hijo o nieto → 7', () => {
+    expect(personaDePresentacion('Extraño a Elsa todos los días.', ficha)?.tema).toBe(2);
+    expect(personaDePresentacion('Pedro se fue primero.', ficha)?.tema).toBe(2);
+    expect(personaDePresentacion('A mi abuela la extraño.', ficha)?.tema).toBe(2);
+    expect(personaDePresentacion('Ricardo era todo.', ficha)?.tema).toBe(5);
+    expect(personaDePresentacion('Cuando se fue mi marido.', ficha)?.tema).toBe(5);
+    expect(personaDePresentacion('Juli, mi nieta.', ficha)?.tema).toBe(7);
+  });
+  it('gana la primera mencionada; sin persona, null', () => {
+    expect(personaDePresentacion('Mi hijo y después Elsa.', ficha)).toMatchObject({ tema: 7, expresion: 'mi hijo' });
+    expect(personaDePresentacion('Un amigo del club.', ficha)).toBeNull();
+  });
+  it('un oficio no es una persona', () => {
+    expect(personaDePresentacion('De modista cosía.', ficha)).toBeNull();
+  });
+});
+
+describe('nombraLugar', () => {
+  it('encuentra el lugar sin tildes ni mayúsculas, como palabra entera', () => {
+    expect(nombraLugar('Vivo acá en espana hace años.', ['España', 'Berga'])).toBe('España');
+    expect(nombraLugar('En Berga, en la montaña.', ['España', 'Berga'])).toBe('Berga');
+    expect(nombraLugar('Los bergantines del puerto.', ['Berga'])).toBeNull();
+    expect(nombraLugar('Nada.', [])).toBeNull();
+  });
+  it('lugares de varias palabras', () => {
+    expect(nombraLugar('Llegué a Buenos Aires en el 74.', ['Buenos Aires'])).toBe('Buenos Aires');
   });
 });
