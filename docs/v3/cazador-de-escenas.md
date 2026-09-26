@@ -28,6 +28,25 @@ Las dudas de nombres y fechas siguen yendo al dashboard. **Descartada** la repre
 
 Riesgos: en la v2 un modelo que leía el contexto metía errores ("ayer", hermanos mezclados, repetir lo dicho); acá el modelo solo elige y el narrador ve un texto fijo más sus propias palabras. Con mayores, sentirse examinados: bajo si la cita es literal y llega más tarde; alto si llega enseguida o se acumulan (por eso la cola, el tope y "nunca dos seguidas").
 
+## Ubicar en el tiempo (idea de Naza, aprobada por Fable, 26/09 noche)
+
+La misma llamada del cierre de bloque marca, además, **como mucho 1 historia del bloque que no se puede ubicar en el tiempo** y le pregunta al narrador cuándo fue, con botones. Mejor que el dashboard: la historia está fresca y la respuesta es un toque. Motivo: el índice por etapas depende del año de cada historia; en el libro de prueba de Naza, 8 historias quedaron sin año y la mayoría de las dudas eran de "cuándo".
+
+Condiciones (Fable):
+1. **Prioridad al cazador.** Entre las dos cosas, como mucho 2 intervenciones por bloque, nunca seguidas. Si hay que elegir, va la escena.
+2. **Solo historias con peso:** más de ~80 palabras o escena. Lo demás lo ubica el escritor con "un tiempo después".
+3. **Botones, nunca audio libre.** Si toca un botón, es dato. Si manda audio, se guarda como "dicho por él" y va a la línea de tiempo con la regla de los números.
+4. **Nunca sobre historias sensibles** (misma lista que el cazador): esas van al dashboard, agrupadas por tema, o quedan sin fecha.
+
+Mensaje (molde fijo; mismas variantes de tratamiento que el cazador):
+> Me quedé pensando en algo que me contaste: «{ancla}». ¿Te acordás más o menos cuándo fue?
+
+Botones, armados por código, en este orden de fuentes (así ninguna vida se queda sin botones):
+1. **Etapas fijas**, que existen para todos: [De chico/a] [En el secundario] [De joven, antes de los 25] [De grande] [Ya de mayor] (solo las que ya vivió). Alcanzan para el índice, que corta a los 13 y a los 18 y después por cambios de vida.
+2. **Hechos que ya quedaron fechados** en bloques anteriores (con año o edad dichos por él o de la ficha): el código toma los dos o tres más cercanos y arma "Antes de…" / "Después de…" con sus palabras ("Antes de entrar a la fábrica" / "Después de casarme"). Salen del campo `fechados` que devuelve esta misma llamada en cada bloque.
+3. **Hechos grandes del país** que ya contestó (bloque 12), como último recurso: [Antes de la pandemia] [Después].
+Siempre, además: **[Tenía unos __ años]** (teclado numérico) y **[No me acuerdo]** (la historia va al escritor con la etiqueta "sin fecha" y la regla de vaguedad).
+
 ## Prompt
 
 ```
@@ -44,12 +63,16 @@ Elegí como mucho {{CUOTA}}. No elijas:
 Si ninguna vale la pena, devolvé una lista vacía: es mejor no preguntar que preguntar de más.
 
 Para cada una, el "ancla": un pedazo de SU respuesta copiado tal cual, de 6 a 20 palabras, que se entienda solo, sin la pregunta ni el resto de la respuesta: tiene que decir de qué habla (sí: "los veranos ayudaba a mi tío a descargar el camión de la fruta"; no: "eso fue cuando pasó lo otro", que no dice qué). Sin nombres de personas que no estén en la ficha. El narrador la va a ver entre comillas, como algo suyo que nos quedó dando vueltas. Nunca cambies ni agregues palabras; si ningún pedazo textual cumple, no la elijas. "tema": de qué habla, en pocas palabras ("el camión de la fruta"). Y "por_que": una línea sobre qué escena podría salir.
+
+Además, ubicar en el tiempo:
+- "sin_fecha": como mucho UNA respuesta de la tanda que cuenta una historia con peso (más de 80 palabras, o una escena) y no dice cuándo pasó: ni año, ni edad, ni grado, ni etapa, ni un hecho que la ubique ("cuando me casé", "en la pandemia"). Nunca una sensible. Con su "ancla" (mismas reglas que arriba) y su "tema". Si no hay, null.
+- "fechados": los hechos de la tanda que SÍ dicen cuándo pasaron, con año o edad dichos por él ("a los doce", "en el 2008") o de la ficha. Cada uno con "hecho" (pocas palabras, como él lo diría: "entrar a la fábrica"), "anio" o "edad" como número, y el id. Sirven para armar botones más adelante; no inventes ni calcules nada que él no dijo.
 ```
 
 Esquema de salida:
 
 ```json
-{"elegidas": [{"id": "R..", "ancla": "", "tema": "", "por_que": ""}]}
+{"elegidas": [{"id": "R..", "ancla": "", "tema": "", "por_que": ""}], "sin_fecha": {"id": "R..", "ancla": "", "tema": ""}, "fechados": [{"id": "R..", "hecho": "", "anio": null, "edad": null}]}
 ```
 
 ## Prueba 1 (26/09 noche, sobre las 57 respuestas de Naza, 4 tandas, USD 0)
@@ -66,3 +89,11 @@ Esquema de salida:
 - **K6 · Piso del capítulo (7 % del libro, entre 600 y 900, propuesta de Fable ya en código):** confirmarlo con otro narrador. (Del escritor.)
 - **K7 · ¿"Juancito" es Juan Damico?** Lo contesta Naza. (Del escritor.)
 - **K8 · Cuota y largo del ancla:** 2 o 3 por bloque con tope ~10, y anclas de hasta 20 palabras en un WhatsApp para alguien de 75.
+
+## Prueba 2 (26/09 noche, cazador + ubicar en el tiempo, 4 bloques en secuencia con lo ya repreguntado, USD 0)
+
+- **Escenas:** 8 elegidas, 8 pasan el control, **ningún tema repetido** (lo ya repreguntado funcionó): el Liceo, Ariel como padre, la final del Mundial, la competencia de rap que organizaban, el estudio de Tortuguitas, la cadena, el viaje de egresados, el viaje a Miami. Dos anclas flojas ("con mi estudio de música, hice un estudio de música increíble…", "…viajé a Miami con este chico": "este chico" no se entiende solo).
+- **Ubicar en el tiempo casi no se usa:** marcó 1 sola historia sin fecha en 4 bloques (los dos días en la fábrica) y quedó sin lugar porque el cazador ya había usado las 2 intervenciones del bloque. Con "prioridad al cazador" y cuota 2, ubicar no corre nunca.
+- **"fechados" trae ruido** ("tener 27 años", el mismo hecho dos veces).
+
+Propuesta (a decidir): si en un bloque hay una historia sin fecha, el cupo es 1 escena + 1 "¿cuándo?" (el botón cuesta un toque; la escena, un audio). Además, que el ancla no tenga palabras que apuntan a algo de afuera ("este", "eso", "ahí") y que "fechados" sean solo cambios de vida con año o edad, sin repetir.
