@@ -1,16 +1,16 @@
 # Vitácora Familiar V3 — entrevistador y escritor
 
-**Estado: Borrador para aprobar — 25/09/2026.**
+**Estado: Borrador para aprobar — 25/09/2026, con las decisiones del 26/09 en §6 (D1-D6 del escritor y la regla de momentos, D7 del diseño).**
 
 **Resumen**
 
 1. La V3 se hace desde cero: entrevistador y escritor nuevos. No se parchea el esqueleto v2.
-2. La entrevista no tiene un modelo que lea lo que contó el narrador. Es un banco fijo de preguntas que piden escenas. Lo único personal son los datos de la ficha.
-3. No hay repregunta. Lo que un lector necesita (cómo terminó, qué fue de esa persona) va como pregunta propia. Al cerrar cada bloque, el narrador elige qué ampliar.
+2. La entrevista no tiene un modelo que lea lo que contó el narrador. Es un banco fijo de preguntas que piden escenas. Lo único personal son los datos de la ficha. (26/09: el cazador de escenas, si Naza lo aprueba, cambia esta decisión: trae de vuelta un modelo con candado que solo elige qué pedir; ver [`cazador-de-escenas.md`](cazador-de-escenas.md) y §6.)
+3. No hay repregunta. Lo que un lector necesita (cómo terminó, qué fue de esa persona) va como pregunta propia. Al cerrar cada bloque, el narrador elige qué ampliar. (26/09: el cazador de escenas, si Naza lo aprueba, cambia esta decisión: trae de vuelta un modelo con candado que solo elige qué pedir; ver [`cazador-de-escenas.md`](cazador-de-escenas.md) y §6.)
 4. Ritmo por turnos: el narrador tiene siempre una sola pregunta pendiente. La siguiente llega cuando responde.
 5. La ficha la carga quien regala (6 campos obligatorios, género incluido). Lo que falta se le pregunta al narrador como dato, con botones.
 6. Termina la entrevista → el narrador ve en el dashboard sus respuestas transcriptas tal cual y corrige lo que quiera (nombres, datos, sacar respuestas) → recién ahí se escribe el libro, una vez.
-7. El escritor es un solo modelo en 4 pasos, con controles de código. La pasada única de Naza se compara en la prueba.
+7. El escritor es un solo modelo en pasos (biblia, plan, prólogo, capítulos en secuencia, carta, lectura final, retoque), con pasos de código en el medio. Detalle en [`prompts-escritor-v3.md`](prompts-escritor-v3.md) (v5).
 8. El Estándar reparte las preguntas por etapa vivida: al menos 6 por etapa (infancia, escuela, adolescencia, juventud), 8 si el narrador tiene menos de 45. Vida típica de 60+: 106 con puertas. Joven de 29 sin pareja ni hijos, emigrado: 86 de historia, 99 con puertas.
 9. No se gasta en modelos hasta pasar E3 y E4. El escritor se prueba (E7) sobre una sola historia, la de Naza: primero dentro de la sesión, sin gastar API, con los mismos prompts que irían a la API; por API, ~USD 5–6.
 
@@ -35,7 +35,7 @@ Mandan sobre los informes. Donde un informe dice otra cosa, gana esto.
 |---|---|
 | Punto de partida | V3 desde cero, entrevistador y escritor. No se parchea el v2. No se corren modelos pagos hasta saber si vale la pena. El escritor se prueba sobre una sola historia: la de Naza, con sus 32+ respuestas completas. |
 | Cómo se pregunta | Sin modelo que lea el contexto. Banco fijo de preguntas que piden escenas ("contame una vez / el día que… qué pasó, quién estaba"), con "decí *paso*" si no aplica. Única personalización: nombres y datos de la ficha en `{{campos}}`. |
-| Repregunta | No hay. Si contesta poco, es lo que dijo. Lo que un lector necesita va como pregunta propia del banco. Tema abierto: se revisa con datos de gente mayor. Se mantiene la válvula "más" al cerrar cada bloque. |
+| Repregunta | No hay. Si contesta poco, es lo que dijo. Lo que un lector necesita va como pregunta propia del banco. Tema abierto: se revisa con datos de gente mayor. Se mantiene la válvula "más" al cerrar cada bloque. (26/09: el cazador de escenas, si Naza lo aprueba, cambia esta decisión: trae de vuelta un modelo con candado que solo elige qué pedir; ver [`cazador-de-escenas.md`](cazador-de-escenas.md) y §6.) |
 | Ritmo | Por turnos, no por días ni por cupo semanal. Responde → llega la siguiente. Siempre una sola pendiente. Los audios que llegan con la pregunta abierta se suman a la misma respuesta; la siguiente llega sola a los 3-5 minutos sin audios nuevos, o antes con el botón [Siguiente]. Responde a su tiempo. Recordatorio suave si pasan días. Puede decir "pausa". |
 | Ficha | La carga quien regala. Obligatorio: nombre (y cómo le dicen), año de nacimiento, país, para quién es el libro (y qué es del narrador), género. Lo demás es opcional con tres estados: lleno / "no tiene" / "no sé". País de nacimiento y de residencia por separado. Oficio: "a qué se dedica / se dedicó", con opción "trabajó en su casa". Campos nuevos del informe 3. "Temas que no tocar". Otros nombres con grafía. |
 | Datos que faltan | Primero la ficha. Si falta, se le pregunta al narrador como dato al abrir el bloque: botones o primera palabra del audio. En las de datos sí se piden varias cosas juntas. También se le puede pedir a quien regala por mail. Si igual no hay dato: versión genérica, solo en preguntas no sensibles. |
@@ -46,7 +46,7 @@ Mandan sobre los informes. Donde un informe dice otra cosa, gana esto.
 | Temas nuevos | Oficio, pasiones y hobbies, una ayuda recibida, una traición (textos del informe 3). Pandemia: pregunta fija, fuera del menú de HG1 (**confirmada por Naza (25/09)**). Mundial (25/09): deja de ser pregunta fija y vuelve al menú de HG1 (Argentina: 78, 86, 2022). |
 | Lo militar | (25/09) En vez de "servicio militar": "¿Tuviste alguna experiencia con lo militar: la colimba, la mili, un colegio militar, alguien de tu familia en las fuerzas?" [Sí] [No]. Si Sí: un día de esa experiencia (Estándar) y, en Completo, alguien que conoció ahí. Sin condición de género ni de edad. |
 | Tamaños | Breve (~50 preguntas), Estándar (~95 enviadas para una vida típica), Completo (~145). **No se prometen páginas (decisión de Naza, 26/09): el tamaño solo define cuántas preguntas.** Con la mediana real de 127 palabras por respuesta, Fable calcula Breve ~25 páginas, Estándar ~45–50 y Completo ~70, pero varían con la vida. **Estándar balanceado por etapa vivida (25/09):** cada etapa vivida (infancia, escuela, adolescencia, juventud) recibe al menos 6 preguntas de historia; con menos de 45 años, al menos 8, porque no hay adultez que contar. Resultado: vida típica 60+ = 102 con puertas; joven de 29 = 82 de historia (objetivo 70–85), 95 con puertas. Con HO8, HO9, FU1 y LU5 (26/09): 106 y 86 (99 con puertas). |
-| Escritor | Un modelo en 4 pasos: biblia → plan → capítulos → lectura de continuidad. Controles de código: nombres, años, citas, personas presentadas una vez. Cronológico con marco. Capítulos con apertura, giro y remate. Títulos por etapa o frase propia, nunca por lugar solo. Citas clean verbatim, pocas y verificadas. Nunca estirar. La pasada única de Naza es un brazo de la prueba. |
+| Escritor | Un modelo en pasos: biblia → plan → prólogo → capítulos en secuencia → carta → lectura final → retoque (ver §6 y [`prompts-escritor-v3.md`](prompts-escritor-v3.md) v5). Capítulos por etapas de la vida (D1-D4). Controles de código: nombres, años, citas, personas presentadas una vez. Cronológico con marco. Capítulos con apertura, giro y remate. Títulos por etapa o frase propia, nunca por lugar solo. Citas clean verbatim, pocas y verificadas. Nunca estirar. La pasada única de Naza es un brazo de la prueba. |
 | Arquitectura | No son "agentes" autónomos. Es una cadena fija de roles controlada por código. |
 
 ## 3. Cómo funciona la entrevista
@@ -234,7 +234,7 @@ Lo que le llega a cada ficha:
 
 ## 6. El escritor
 
-Un solo modelo, cuatro pasos encadenados sobre el mismo material cacheado. Cada paso deja algo que el código puede revisar. Las decisiones creativas se toman en el plan, no al escribir.
+Un solo modelo, pasos encadenados sobre el mismo material cacheado (eran cuatro el 25/09; el recorrido vigente es el de la v5, ver abajo). Cada paso deja algo que el código puede revisar. Las decisiones creativas se toman en el plan, no al escribir.
 
 ### Qué recibe
 
@@ -245,7 +245,9 @@ Un solo documento: el material arriba, las instrucciones abajo.
 - **Las saltadas**, marcadas como saltadas y sin texto: el escritor sabe que ahí no hay nada y no lo inventa.
 - **Las fotos**, con su epígrafe transcrito.
 
-### Los cuatro pasos
+### Los cuatro pasos (histórico, 25/09)
+
+> **Histórico:** tabla del 25/09, superada. "8–12 capítulos" y "en paralelo" ya no valen: los capítulos van **en secuencia** y la cantidad la da el piso (etapas, D1-D4 más abajo). El recorrido vigente está en [`prompts-escritor-v3.md`](prompts-escritor-v3.md) v5 ("El recorrido completo"): biblia → etapas → revisión → plan → prólogo → capítulos en secuencia → carta → controles → lectura final → retoque.
 
 | Paso | Qué hace | Qué deja |
 |---|---|---|
@@ -272,7 +274,7 @@ Un solo documento: el material arriba, las instrucciones abajo.
 
 **Títulos.** Por etapa o años más una frase propia. Nunca un lugar solo. "1958–1965. La casa de la calle Alsina" no; "Los años del taller (1971–1984)" o "«Nunca me faltó trabajo»" sí.
 
-**Citas.** Clean verbatim: sin muletillas ni falsos arranques, con la sintaxis del narrador, sin cambiar el sentido. Pocas: 10–18 en el cuerpo y 8–12 en "Sus frases" (números de Fable). Cada una con QR a su audio. **Decisión de Naza (25/09):** una frase mal dicha no se tira: si no sirve como cita, su contenido igual entra al capítulo contado por el escritor, solo que no entre comillas. Los errores de transcripción los corrige el narrador antes de escribir, y las citas finales las elige él en la pantalla de revisión. El plan elige citas que tengan sentido en el lugar donde caen.
+**Citas.** Clean verbatim: sin muletillas ni falsos arranques, con la sintaxis del narrador, sin cambiar el sentido. Pocas: 10–18 en el cuerpo y 8–12 en "Sus frases" (números de Fable; el plan v5 pide 0 a 2 por capítulo). Cada una con QR a su audio. **Decisión de Naza (25/09):** una frase mal dicha no se tira: si no sirve como cita, su contenido igual entra al capítulo contado por el escritor, solo que no entre comillas. Los errores de transcripción los corrige el narrador antes de escribir, y las citas finales las elige él en la pantalla de revisión. El plan elige citas que tengan sentido en el lugar donde caen.
 
 **Largo.** Sale de cuánto material hay, no de un número fijo por capítulo (en la prueba, el plan pidió 1.500 palabras y el material daba 700).
 
@@ -313,11 +315,11 @@ La prueba de la v4 ([`prueba-libro-v4.md`](prueba-libro-v4.md)) mostró que los 
 - **D5 · Se quedan de la v4:** revisión aplicada antes de escribir, dudas sin respuesta no se afirman, nada de sentimientos ni motivos que no dijo, diálogos solo citados, presentaciones sin futuro, citas verificadas, controles, lectura final.
 - **D6 · Se corrige:** todo número que dijo es afirmable; sin mínimos de largo; retoque con "falsa alarma"; la respuesta "qué capítulos tendría tu vida" fuera de la carta.
 
-- **D7 · El "formulario" viene de las preguntas** (prueba con 4 audios, 26/09): una pregunta que pide describir da una ficha; una que pide un momento da una escena. Dos cambios en la entrevista, recomendados por Fable (siguiendo el protocolo de McAdams: "una escena con él", no "cómo era"):
+- **D7 · Regla de momentos (D7 del diseño; no confundir con la pregunta D7 del banco). El "formulario" viene de las preguntas** (prueba con 4 audios, 26/09): una pregunta que pide describir da una ficha; una que pide un momento da una escena. Dos cambios en la entrevista, recomendados por Fable (siguiendo el protocolo de McAdams: "una escena con él", no "cómo era"):
   - **Banco:** una pregunta queda como "describir" solo si su respuesta es un dato para la ficha o la biblia (nombres, orden de hermanos, lista de trabajos, quiénes son los suyos hoy); todo lo demás pasa a "momento" ("el día que…", "una vez que…"). Prueba por pregunta: si se contesta con una lista o con adjetivos y no es de datos, se reescribe. Las de personas, mixtas: el dato primero y la escena al final ("decime cómo se llama y qué es tuyo, y contame una vez concreta con él"). Las de datos puros salen del banco y van a la ficha por voz (gates). **Pendiente: reescribir el banco y que Naza apruebe los textos.**
   - **Cazador de escenas** al cerrar cada bloque: [`cazador-de-escenas.md`](cazador-de-escenas.md). Vuelve un modelo a la entrevista, con candado (solo elige; el narrador ve un molde fijo con sus palabras). Cambia la decisión 3. **Pendiente de aprobación de Naza.**
 
-Lo que sigue de esta sección (capítulos madre, agrupaciones, "El viaje, hasta hoy", coda de "Hoy", introducción con "Hubo…") queda **descartado para el escritor**; se deja como historial.
+Lo que sigue de esta sección queda **descartado** en lo que es índice y forma del libro: capítulos madre, agrupaciones fijas, "El viaje, hasta hoy", coda de "Hoy", introducción con "Hubo…", epígrafe con título madre, hilos. Se deja como historial. **Siguen valiendo:** personas en dos niveles, aperturas que rotan, frase puente, diálogo solo citado, fotos con ojos, dashboard (sin el "índice con título y subtítulo"; la duda "¿antes o después de irte?" sigue pendiente de código) y los controles de código antes de la lectura final.
 
 ### Capítulos madre, hilos y forma del libro (decisiones del 26/09, descartadas a la noche)
 
@@ -325,7 +327,7 @@ Salió de la prueba del libro de Naza (le gustó la redacción; lo flojo fueron 
 
 **Índice fijo para todos (opción C de Fable).** Diez capítulos madre: De dónde vengo · Los primeros años · Adolescencia · Salir al mundo (o "El viaje") · Amor · Trabajo y oficio · Hijos y nietos · Mi gente y mis lugares · Lo que costó · Hoy. El índice lo calcula **código** antes de llamar al modelo:
 - Cada respuesta va al capítulo de su bloque (anclada). Flotantes (historia grande, giros, puertas, válvulas) por edad: número dicho ("yo tenía N", año de 4 cifras) o **léxico fijo de etapa** ("de chico", "en la colimba", "de soltera", "cuando nació {{hijo}}" con el año de la ficha).
-- ~~Un capítulo con poco material se fusiona con su vecino, en cadena; el número de capítulos sale del material (Breve 5–6, Estándar 8–11, Completo 12–14); "El viaje" se inserta si la migración fue la bisagra.~~ **Reemplazado el 26/09** (la simulación mostró que la fusión en cadena colapsaba): **agrupaciones fijas por tamaño** (propuesta de Fable aprobada por Naza). Breve 4 capítulos (Crecer · Salir al mundo y el trabajo · Los míos · Hoy), Estándar 6 (De dónde vengo y los primeros años · Hacerse grande · Amor y la familia que armé · Trabajo y oficio · Mi gente y mis lugares · Hoy), Completo 10 (los diez madre). Cada uno con piso en palabras escritas (escritas = 0,70 × habladas, el cociente real) y un receptor fijo si no llega: una sola pasada, sin cadenas. Hoy bajo el piso es una coda sin número. Si migró hace 10 años o menos, el último capítulo es "El viaje, hasta hoy". Solo Completo se parte, por una clave de la ficha (pareja, oficio, hijos chicos/grandes, una pasión grande). No se prometen páginas: el tamaño solo define cuántas preguntas. Todos los títulos posibles, en [`titulos-capitulos.md`](titulos-capitulos.md) (**aprobados por Naza el 26/09**). El modelo no crea, fusiona ni parte capítulos, ni titula con años.
+- ~~Un capítulo con poco material se fusiona con su vecino, en cadena; el número de capítulos sale del material (Breve 5–6, Estándar 8–11, Completo 12–14); "El viaje" se inserta si la migración fue la bisagra.~~ **Reemplazado el 26/09** (la simulación mostró que la fusión en cadena colapsaba): **agrupaciones fijas por tamaño** (propuesta de Fable aprobada por Naza). Breve 4 capítulos (Crecer · Salir al mundo y el trabajo · Los míos · Hoy), Estándar 6 (De dónde vengo y los primeros años · Hacerse grande · Amor y la familia que armé · Trabajo y oficio · Mi gente y mis lugares · Hoy), Completo 10 (los diez madre). Cada uno con piso en palabras escritas (escritas = 0,70 × habladas, el cociente real) y un receptor fijo si no llega: una sola pasada, sin cadenas. Hoy bajo el piso es una coda sin número. Si migró hace 10 años o menos, el último capítulo es "El viaje, hasta hoy". Solo Completo se parte, por una clave de la ficha (pareja, oficio, hijos chicos/grandes, una pasión grande). No se prometen páginas: el tamaño solo define cuántas preguntas. Todos los títulos posibles, en [`titulos-capitulos.md`](titulos-capitulos.md) (aprobados por Naza el 26/09; descartados a la noche, historial). El modelo no crea, fusiona ni parte capítulos, ni titula con años.
 
 **Cambios de Naza a la opción C:**
 - **Subtítulo:** frase textual suya sacada de las respuestas de ese capítulo (no principalmente de "¿qué capítulos tendría tu vida?", porque ahí puede olvidar algo que cuenta después). Filtros: sin muerte/separación (no adelantar el final), sin nombres no presentados, sin años, 2–8 palabras. El narrador ve 3 candidatos y elige o escribe el suyo.
@@ -353,6 +355,8 @@ Salió de la prueba del libro de Naza (le gustó la redacción; lo flojo fueron 
 **Anotado para después (no decidido):** biblia en dos partes (global chica + una por capítulo); Sonnet para extraer la biblia (Naza: Opus para todo por ahora); menos pensamiento en capítulos (se queda alto hasta medirlo por API, ~USD 1–2); lote en capítulos y retoques; un retoque por capítulo con todos sus problemas.
 
 ## 7. Costos
+
+**Ojo:** la tabla del libro de abajo usa la estructura de pasos del 25/09. El costo medido con count_tokens de la v1-2 es ~USD 4 con caché (ver el pase de manos). Hay que recalcularlo con los pasos de la v5.
 
 **Precios de Fable, sin verificar.** Salen del informe 1 (C.5), que dice haber leído la página de precios de Anthropic el 25/09/2026. Supone 130 preguntas, 4 horas de audio y un libro de 18 mil palabras. Con el Estándar de ~102 (vida típica, con puertas) debería salir menos; no está recalculado.
 
@@ -419,7 +423,7 @@ Límite: un solo narrador, de 27 años, que habla mucho. No dice nada seguro sob
 - Conteo: las ★ eran 46 y las puertas 13 (no 48 y 15). El Breve variaba entre 37 y 52 según la ficha.
 - Todo eso lo tomó el informe 3 y está aplicado en el banco.
 
-**E7a — Escritor v4 en la sesión, sobre la historia de Naza (26/09).** USD 0. Detalle en [`prueba-libro-v4.md`](prueba-libro-v4.md). Contra el libro anterior (prompts v1-2): 0 datos falsos contra 1, pero 21 errores de armado contra 17 y se lee más tieso. Lo que se aprendió: las reglas de verdad funcionan; las de redacción con mínimos (largo de introducción y de presentaciones) y la regla de plazos seguros aplicada a lo que él dijo con número quitan vida; el índice de 3 capítulos anclado por palabras mezcla épocas. Propuesta R1-R6 pendiente de Naza.
+**E7a — Escritor v4 en la sesión, sobre la historia de Naza (26/09).** USD 0. Detalle en [`prueba-libro-v4.md`](prueba-libro-v4.md). Contra el libro anterior (prompts v1-2): 0 datos falsos contra 1, pero 21 errores de armado contra 17 y se lee más tieso. Lo que se aprendió: las reglas de verdad funcionan; las de redacción con mínimos (largo de introducción y de presentaciones) y la regla de plazos seguros aplicada a lo que él dijo con número quitan vida; el índice de 3 capítulos anclado por palabras mezcla épocas. R1-R6 se aplicaron en la v5 (E7b).
 
 **E7b — Escritor v5 en la sesión (26/09 noche).** USD 0. Detalle en [`prueba-libro-v5.md`](prueba-libro-v5.md). A ciegas contra el de la mañana y la v4 (vara fija [`comparador.md`](comparador.md)): errores graves/leves 0/7 (mañana), **1/9 (v5)**, 2/15 (v4); 0 fuera de orden; en vida, casi empate con el de la mañana y "el que más suena a Naza". El grave: se perdió "Tricky". 11 hallazgos para la v6.
 
@@ -428,8 +432,8 @@ Límite: un solo narrador, de 27 años, que habla mucho. No dice nada seguro sob
 | Prueba | Qué es | Costo | Seguir si | Frenar o cambiar si |
 |---|---|---|---|---|
 | **E3 — Nombres** | El audio que ya existe, transcrito con y sin la lista de nombres correctos como términos. Se cuentan errores de nombre cada 100 menciones. | < USD 1 | La lista baja los errores a la mitad o más → se aprueba retranscribir (~USD 1 por libro) | No mejora → los nombres se corrigen por búsqueda y reemplazo en el texto |
-| **E4 — Entrevista a mano** | Antes de vender. 2–3 mayores conocidos. Una persona manda las preguntas del banco por WhatsApp, por turnos, con acuses fijos y sin comentar nada. Se mide: duración, "paso", escenas, abandono, si tocan botones o hablan, cuántos gates caen a genérico, y una encuesta de 3 preguntas (¿te sentiste escuchado?, ¿hubo preguntas sin sentido?, ¿te dieron ganas de seguir?, de 1 a 5). Con sus palabras se proyecta el largo del libro (E5 del informe 2). | USD 0 en modelos; el tiempo de una persona (Fable calculaba 2 semanas y ~25 preguntas) | Mediana ≥ 75 s, "paso" ≤ 15 %, escena ≥ 60 %, encuesta ≥ 4 | Mediana < 50 s o escena < 40 % → se reabre la repregunta. "Escuchado" < 3,5 → reforzar lo de sentirse escuchado antes de programar |
-| **E7 — Escritor** | Sobre la historia de Naza: 4 pasos contra pasada única. Naza lee las dos a ciegas. | USD 0 dentro de la sesión (mismos prompts que la API); ~USD 5–6 por API | 0 hechos inventados, 0 personas presentadas dos veces, 0 anécdotas repetidas, "¿suena a mí?" ≥ 4. Si la pasada única empata en calidad, se adopta porque es más barata (informe 1) | Inventa → revisar los controles antes de seguir. No suena a él → más citas y menos reescritura |
+| **E4 — Entrevista a mano** | Antes de vender. 2–3 mayores conocidos. Una persona manda las preguntas del banco por WhatsApp, por turnos, con acuses fijos y sin comentar nada. Se mide: duración, "paso", escenas, abandono, si tocan botones o hablan, cuántos gates caen a genérico, y una encuesta de 3 preguntas (¿te sentiste escuchado?, ¿hubo preguntas sin sentido?, ¿te dieron ganas de seguir?, de 1 a 5). Con sus palabras se proyecta el largo del libro (E5 del informe 2). | USD 0 en modelos; el tiempo de una persona (Fable calculaba 2 semanas y ~25 preguntas) | Mediana ≥ 75 s, "paso" ≤ 15 %, escena ≥ 60 %, encuesta ≥ 4 | Mediana < 50 s o escena < 40 % → se ajusta la cuota del cazador de escenas. "Escuchado" < 3,5 → reforzar lo de sentirse escuchado antes de programar |
+| **E7 — Escritor** | Sobre la historia de Naza: 4 pasos contra pasada única. (26/09: E7a y E7b ya se corrieron en la sesión, sin pasada única. Queda la corrida por API que mide el costo; la pasada única no se probó.) Naza lee las dos a ciegas. | USD 0 dentro de la sesión (mismos prompts que la API); ~USD 5–6 por API | 0 hechos inventados, 0 personas presentadas dos veces, 0 anécdotas repetidas, "¿suena a mí?" ≥ 4. Si la pasada única empata en calidad, se adopta porque es más barata (informe 1) | Inventa → revisar los controles antes de seguir. No suena a él → más citas y menos reescritura |
 
 Orden propuesto por el informe 2: E3 y E4 primero; E7 último y solo si E4 pasa.
 
@@ -452,7 +456,7 @@ Estado según lo que dijo Naza el 25/09: P1, P2 y P3 aprobadas; P4 pendiente; P5
 |---|---|
 | Modelo que arma cada pregunta leyendo el contexto (v2) | Produce errores de lectura de contexto: "ayer", hermanos mezclados, repetir lo dicho (informe 1). |
 | Parchear el esqueleto v2 | Decisión 1: se hace desde cero. |
-| Repregunta fija si el audio dura menos de 40 s | Decisión 3. Queda como tema abierto con datos de mayores. |
+| Repregunta fija por duración (audio corto) | Descartada el 26/09 (Fable): la duración no distingue una respuesta corta y completa de una ficha. La reemplaza el cazador de escenas ([`cazador-de-escenas.md`](cazador-de-escenas.md)). |
 | Clasificadores con Haiku ("¿escena u opinión?", "¿sí o no?") | Leen respuestas. Los botones y la primera palabra alcanzan (informe 2). |
 | Una pregunta por día, seis días por semana | Decisión 4: ritmo por turnos. |
 | 3 sesiones por semana de 3–4 preguntas, a la mañana | Decisión 4: se descarta el cupo semanal de Fable. |
@@ -475,7 +479,7 @@ Estado según lo que dijo Naza el 25/09: P1, P2 y P3 aprobadas; P4 pendiente; P5
 
 ## 11. Temas abiertos
 
-- **Repregunta.** E1 dio mediana de 58 s y 15 % de escenas; 6 de 9 escenas vinieron con repregunta. Se decide con los datos de E4. Si la mediana queda bajo 50 s, la opción que no lee historias es una repregunta universal fija ("Contame una vez concreta en que pasó eso") disparada por duración (informe 2).
+- **Repregunta.** E1 dio mediana de 58 s y 15 % de escenas; 6 de 9 escenas vinieron con repregunta. Propuesta del 26/09: el cazador de escenas al cerrar cada bloque ([`cazador-de-escenas.md`](cazador-de-escenas.md), §6), pendiente de aprobación de Naza. La repregunta fija por duración quedó descartada (Fable). E4 dirá si la cuota por bloque alcanza con gente mayor.
 - **Textos del banco.** ID1 y los 195 textos, 13 puertas, 16 de datos, 14 fotos y 20 mensajes: todos pendientes de aprobación. Faltan redactar acuses, recordatorios, presentación del biógrafo, respuesta a "pausa" y cierre.
 - **Tamaños.** La asignación B/E/C de las filas viejas es de este documento (regla en el banco). Hay que aprobarla. Breve hoy no tiene puertas ni válvula. Regla de etapas: qué filas pasaron a E y cuáles son E-joven (CA13, CA17, ES3, ES8, AD4, AD8, JU16, JU17) es elección de este documento; el corte de 45 años es el de Naza. Falta decidir si el 70–85 del joven es con o sin puertas (hoy: 82 sin, 95 con).
 - **Cómo le llega el mail a quien regala** para completar datos: cuándo, qué se le pide, qué pasa si no contesta.

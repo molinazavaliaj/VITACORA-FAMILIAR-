@@ -1,6 +1,6 @@
 # Banco de preguntas V3
 
-**Estado: borrador para aprobar — 25/09/2026.** Todas las filas están "pendiente de aprobación": Naza aprueba cada texto antes de que llegue a un narrador.
+**Estado: borrador para aprobar — 25/09/2026.** Todas las filas están "pendiente de aprobación": Naza aprueba cada texto antes de que llegue a un narrador. **Pendiente (26/09): reescribir el banco con la regla de momentos (D7 del diseño, [`diseno-v3.md`](diseno-v3.md) §6; no es la pregunta D7 de este banco): preguntas que piden un momento, no describir. Los textos de abajo van a cambiar.** Además, HO8, HO9, FU1 y FU2 ya no alimentan "Hoy" ni "El viaje, hasta hoy": esos capítulos se descartaron (hoy los capítulos son por etapas).
 
 Este archivo es el banco completo. El diseño (por qué, cómo funciona, escritor, pruebas) está en [`diseno-v3.md`](diseno-v3.md).
 
@@ -367,7 +367,7 @@ Notas: GI2 es la reescrita del informe 3 ("el día sin vuelta atrás"). Este blo
 | FU1 | Contame algo que todavía querés hacer: un viaje, un proyecto, una cuenta pendiente. Cómo te lo imaginás: dónde, con quién, qué harías ese día. | O | B | pendiente de aprobación |
 | FU2 | Imaginate un día tuyo dentro de diez años y contámelo como si ya estuviera pasando: dónde te levantás, quién está, qué hacés. (60 o más: "dentro de unos años") | O | C | pendiente de aprobación |
 
-Notas: PA2 reemplaza a HO3. HO2 se partió en dos (reír / enojar). HO5 queda entera: es opinión del presente, no historia (ver dudas). HO8, HO9, FU1 y FU2 son nuevas (Fable, agrupaciones fijas, sección 4, 26/09): le dan a "Hoy" (o a "El viaje, hasta hoy") las personas y el lugar del presente, y el único guion futuro del banco (McAdams). FU2 solo en Completo porque se parece a FU1.
+Notas: PA2 reemplaza a HO3. HO2 se partió en dos (reír / enojar). HO5 queda entera: es opinión del presente, no historia (ver dudas). HO8, HO9, FU1 y FU2 son nuevas (Fable, agrupaciones fijas, sección 4, 26/09): le daban a "Hoy" (o a "El viaje, hasta hoy"), capítulos descartados el 26/09 a la noche, las personas y el lugar del presente; ahora se los dan al último capítulo (el que llega a hoy) y al prólogo. FU1 y FU2 son el único guion futuro del banco (McAdams). FU2 solo en Completo porque se parece a FU1.
 
 ### Bloque 15 · Legado y cierre
 

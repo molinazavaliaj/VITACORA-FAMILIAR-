@@ -1,6 +1,8 @@
 # Títulos de capítulo del libro V3
 
-**Estado: aprobados por Naza el 26/09/2026.** Todos los títulos de esta lista los usa el código tal cual; ninguno lo inventa el modelo. Naza aprueba la lista de una vez (o cambia los que quiera) antes de que llegue a un libro.
+> **DESCARTADO el 26/09 a la noche (historial).** Los capítulos ahora son por etapas de la vida ([`diseno-v3.md`](diseno-v3.md) §6, D1-D6; `fabrica/src/v3/etapas.ts`). El título de cada capítulo es una frase del narrador que elige el plan, con los años adelante ("{desde}–{hasta o hoy}. {título}"). No hay coda de "Hoy" ni "El viaje, hasta hoy". Lo de abajo se aprobó el 26/09 a la mañana y quedó sin uso; `indice.ts` tampoco se usa.
+
+**Estado (histórico): aprobados por Naza el 26/09/2026.** Todos los títulos de esta lista los usa el código tal cual; ninguno lo inventa el modelo. Naza aprueba la lista de una vez (o cambia los que quiera) antes de que llegue a un libro.
 
 Sale de: la propuesta de Fable "Agrupaciones fijas de capítulos" (secciones 2 y 3), que Naza aprobó el 26/09, más cinco títulos que agregó el código para combinaciones que la propuesta no cubría (marcados con **nuevo**, al final).
 

@@ -181,7 +181,7 @@ describe('armarEtapas', () => {
       const r = armarEtapas([a('A1', 1960, 900), a('R1', 1962, 500, 'oficio:modista')], [], base);
       expect(r.capitulos).toHaveLength(1);
       expect(r.capitulos[0].anecdotas).toEqual(['A1', 'R1']);
-      expect(r.capitulos[0].rol).toBeUndefined();
+      expect(r.capitulos[r.capitulos.length - 1].hasta).toBeNull();
     });
 
     it('un rol que empieza dentro del último capítulo va antes de él: el libro siempre termina en el que llega a hoy', () => {
@@ -193,6 +193,13 @@ describe('armarEtapas', () => {
     it('si todo el material con año es de un rol, no queda un capítulo vacío', () => {
       const r = armarEtapas([a('R1', 1950, 700, 'pareja:Z'), a('R2', 1990, 700, 'pareja:Z')], [], base);
       expect(r.capitulos.map((x) => x.rol)).toEqual(['pareja:Z']);
+    });
+
+    it('un rol con años fuera de la vida se acota a la vida (con un solo capítulo regular, va antes del que llega a hoy)', () => {
+      const r = armarEtapas([a('REG', 2003, 900), a('R1', 1995, 800, 'pareja:X'), a('R2', 2015, 700, 'pareja:X')], [], { anioNacimiento: 2000, anioActual: 2010 });
+      const rol = r.capitulos.find((x) => x.rol)!;
+      expect([rol.desde, rol.hasta]).toEqual([2000, 2010]);
+      expect(r.capitulos[r.capitulos.length - 1].hasta).toBeNull();
     });
 
     it('un rol cuyas anécdotas no tienen año no se separa', () => {

@@ -2,7 +2,7 @@
 // escritor v4: docs/v3/prueba-libro-v4.md). Reemplaza a los capítulos madre
 // por tema: los capítulos van en el orden de la vida y se cortan en los
 // cambios de vida (los de la ficha y los que la biblia fecha), nunca por un
-// año solo. Topes en palabras escritas (piso proporcional entre 600 y 900, techo 2.500): bajo el piso se pega al vecino más
+// año solo. Topes en palabras escritas (piso proporcional entre 600 y 900, techo 2.500): bajo el piso se pega del lado del corte más débil (con igual fuerza, al vecino más
 // chico; sobre el techo queda largo y se avisa (no hay dónde cortar). Una
 // pareja o un oficio que junta 1.200 palabras va como capítulo propio,
 // intercalado en el año en que empieza.
@@ -102,7 +102,8 @@ export function armarEtapas(anecdotas: AnecdotaEtapa[], cambios: Cambio[], opcio
     const palabras = xs.reduce((s, x) => s + x.palabras, 0);
     if (palabras < pisoRol) continue;
     const ordenadas = [...xs].sort(porAnio);
-    capRol.push({ desde: ordenadas[0].anio!, hasta: ordenadas[ordenadas.length - 1].anio!, anecdotas: ordenadas.map((x) => x.id), palabras, abre: null, rol });
+    const enLaVida = (anio: number) => Math.min(hoy, Math.max(nac, anio));
+    capRol.push({ desde: enLaVida(ordenadas[0].anio!), hasta: enLaVida(ordenadas[ordenadas.length - 1].anio!), anecdotas: ordenadas.map((x) => x.id), palabras, abre: null, rol });
     for (const x of xs) apartadas.add(x.id);
   }
   const resto = conAnio.filter((x) => !apartadas.has(x.id));
@@ -137,7 +138,7 @@ export function armarEtapas(anecdotas: AnecdotaEtapa[], cambios: Cambio[], opcio
     else tramos.push(t);
   }
 
-  // Bajo el piso: se pega al vecino más chico, empezando por el más chico.
+  // Bajo el piso: se pega del lado del corte más débil, empezando por el tramo más chico.
   for (;;) {
     if (tramos.length < 2) break;
     const bajos = tramos.map((t, i) => ({ i, p: suma(t) })).filter((x) => x.p < piso);

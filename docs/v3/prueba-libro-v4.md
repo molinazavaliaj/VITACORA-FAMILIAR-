@@ -1,6 +1,6 @@
 # Prueba del escritor con los prompts v4 — 26/09/2026
 
-Libro de prueba de Naza escrito con los prompts **versión 4** ([`prompts-escritor-v3.md`](prompts-escritor-v3.md)), dentro de la sesión (USD 0 de API). Cada paso con modelo lo hizo un agente de contexto limpio que leía solo su llamada (los documentos + el prompt v4 tal cual, extraído del md por código). Los pasos de código (1b, 1c, 2b, 4, 6-medido) se hicieron con scripts a mano en `fabrica/prueba-v3-naza/libro-v4/` (carpeta ignorada: tiene su vida). Este documento no repite contenido de su vida: solo lo que se aprendió.
+Libro de prueba de Naza escrito con los prompts **versión 4** ([`prompts-escritor-v3.md`](prompts-escritor-v3.md); la v4 hoy está en git, `f7df750`: el archivo tiene la v5), dentro de la sesión (USD 0 de API). Cada paso con modelo lo hizo un agente de contexto limpio que leía solo su llamada (los documentos + el prompt v4 tal cual, extraído del md por código). Los pasos de código (1b, 1c, 2b, 4, 6-medido) se hicieron con scripts a mano en `fabrica/prueba-v3-naza/libro-v4/` (carpeta ignorada: tiene su vida). Este documento no repite contenido de su vida: solo lo que se aprendió.
 
 ## Cómo se corrió
 
