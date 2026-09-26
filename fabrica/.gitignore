@@ -4,3 +4,6 @@ prueba-frases-*.json
 
 # Pruebas del escritor V3 con material real de un narrador (tiene su vida: nunca al repo)
 prueba-v3-*/
+
+# audios de la prueba E4 (vidas reales)
+prueba-e4/
