@@ -2,14 +2,16 @@
 // escritor v4: docs/v3/prueba-libro-v4.md). Reemplaza a los capítulos madre
 // por tema: los capítulos van en el orden de la vida y se cortan en los
 // cambios de vida (los de la ficha y los que la biblia fecha), nunca por un
-// año solo. Topes en palabras escritas: bajo el piso se pega al vecino más
+// año solo. Topes en palabras escritas (piso 600, techo 2.500): bajo el piso se pega al vecino más
 // chico; sobre el techo queda largo y se avisa (no hay dónde cortar). Una
 // pareja o un oficio que junta 1.200 palabras va como capítulo propio,
 // intercalado en el año en que empieza.
 
 import { lista, valor, type FichaV3 } from './ficha.js';
 
-export const PISO_ETAPA = 800;
+// Fable proponía 800; con 800 el libro de Naza daba 4-5 capítulos y el que le gustó tenía ~700 palabras
+// por capítulo: 600 le da 6 (prueba v5, 26/09). A confirmar con más narradores.
+export const PISO_ETAPA = 600;
 export const TECHO_ETAPA = 2500;
 export const PISO_ROL = 1200;
 /** Cortes universales de la escuela: empieza la secundaria, termina el colegio. */

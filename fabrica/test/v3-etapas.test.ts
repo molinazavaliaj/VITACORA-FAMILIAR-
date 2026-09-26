@@ -8,8 +8,8 @@ const a = (id: string, anio: number | null, palabras: number, rol?: string): Ane
 const c = (anio: number, tipo: Cambio['tipo'] = 'mudanza', fuente: Cambio['fuente'] = 'biblia'): Cambio => ({ anio, tipo, que: `${tipo} ${anio}`, fuente });
 
 describe('constantes (decisión de Naza con Fable, 26/09)', () => {
-  it('piso 800, techo 2.500, rol propio desde 1.200 palabras escritas', () => {
-    expect(PISO_ETAPA).toBe(800);
+  it('piso 600, techo 2.500, rol propio desde 1.200 palabras escritas', () => {
+    expect(PISO_ETAPA).toBe(600);
     expect(TECHO_ETAPA).toBe(2500);
     expect(PISO_ROL).toBe(1200);
   });

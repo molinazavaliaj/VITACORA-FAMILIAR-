@@ -303,7 +303,19 @@ El material de Naza (57 respuestas, sin repetidos, con nombres corregidos) queda
 - **Álbum:** las fotos que no entraron en capítulos.
 - **Dedicatoria y título:** `{{destinatarios}}`; título de LE7 si lo dio, si no lo propone el plan a partir de una cita.
 
-### Capítulos madre, hilos y forma del libro (decisiones del 26/09)
+### Capítulos por etapas (decisión de Naza con Fable, 26/09 noche) — reemplaza a los capítulos madre
+
+La prueba de la v4 ([`prueba-libro-v4.md`](prueba-libro-v4.md)) mostró que los capítulos madre por tema mezclan épocas y se leen "como un formulario sin preguntas". Decisiones (D1-D6), aplicadas en la v5 ([`prueba-libro-v5.md`](prueba-libro-v5.md)):
+- **D1 · Etapas de la vida, en orden**, cortadas por código en los cambios de vida: los de la ficha (pareja, separación, viudez, primer hijo, oficio, migración), los que la biblia fecha (mudanza, escuela, trabajo, pérdida…) y los 13 y 18 años. Nunca por un año solo. Código: `fabrica/src/v3/etapas.ts`.
+- **D2 · Topes** en palabras escritas: piso **600** (Fable proponía 800; con 800 el libro de Naza daba 4 capítulos), techo 2.500. Título: años + frase suya.
+- **D3 · Capítulo de rol:** pareja u oficio con ≥ 1.200 palabras va aparte, en el año en que empieza, nunca después del capítulo que llega a hoy.
+- **D4 · Capítulos en secuencia**, cada uno leyendo los anteriores.
+- **D5 · Se quedan de la v4:** revisión aplicada antes de escribir, dudas sin respuesta no se afirman, nada de sentimientos ni motivos que no dijo, diálogos solo citados, presentaciones sin futuro, citas verificadas, controles, lectura final.
+- **D6 · Se corrige:** todo número que dijo es afirmable; sin mínimos de largo; retoque con "falsa alarma"; la respuesta "qué capítulos tendría tu vida" fuera de la carta.
+
+Lo que sigue de esta sección (capítulos madre, agrupaciones, "El viaje, hasta hoy", coda de "Hoy", introducción con "Hubo…") queda **descartado para el escritor**; se deja como historial.
+
+### Capítulos madre, hilos y forma del libro (decisiones del 26/09, descartadas a la noche)
 
 Salió de la prueba del libro de Naza (le gustó la redacción; lo flojo fueron los capítulos) y de dos informes de Fable ([capítulos madre](https://claude.ai/artifact/HtiabAUeTQBhuqwzKDvTHA), [revisión](https://claude.ai/artifact/XiZTrwHp8MSNSVcGFCwKhK)).
 
@@ -405,6 +417,8 @@ Límite: un solo narrador, de 27 años, que habla mucho. No dice nada seguro sob
 
 **E7a — Escritor v4 en la sesión, sobre la historia de Naza (26/09).** USD 0. Detalle en [`prueba-libro-v4.md`](prueba-libro-v4.md). Contra el libro anterior (prompts v1-2): 0 datos falsos contra 1, pero 21 errores de armado contra 17 y se lee más tieso. Lo que se aprendió: las reglas de verdad funcionan; las de redacción con mínimos (largo de introducción y de presentaciones) y la regla de plazos seguros aplicada a lo que él dijo con número quitan vida; el índice de 3 capítulos anclado por palabras mezcla épocas. Propuesta R1-R6 pendiente de Naza.
 
+**E7b — Escritor v5 en la sesión (26/09 noche).** USD 0. Detalle en [`prueba-libro-v5.md`](prueba-libro-v5.md). A ciegas contra el de la mañana y la v4 (vara fija [`comparador.md`](comparador.md)): errores graves/leves 0/7 (mañana), **1/9 (v5)**, 2/15 (v4); 0 fuera de orden; en vida, casi empate con el de la mañana y "el que más suena a Naza". El grave: se perdió "Tricky". 11 hallazgos para la v6.
+
 ### Pendientes
 
 | Prueba | Qué es | Costo | Seguir si | Frenar o cambiar si |
@@ -469,7 +483,8 @@ Estado según lo que dijo Naza el 25/09: P1, P2 y P3 aprobadas; P4 pendiente; P5
 - **Biógrafo:** nombre, voz, y si los nombres van por texto o con voz sintética.
 - **Pandemia fija:** HG4 queda como pregunta fija, fuera del menú de HG1 (confirmado por Naza el 25/09). (El Mundial ya está resuelto: vuelve al menú; en España se sumó el Mundial 2010, a aprobar.)
 
-- **Escritor v5 (desde la prueba E7a, 26/09).** Aprobar R1-R6 de [`prueba-libro-v4.md`](prueba-libro-v4.md); sumar al plan título del libro y oración de cierre de la carta; anclar anécdotas por edad en 1b; la respuesta "qué capítulos tendría tu vida" fuera de la carta; retoque con salida "falsa alarma".
+- **Escritor v6 (desde E7b, 26/09 noche).** Los 11 hallazgos de [`prueba-libro-v5.md`](prueba-libro-v5.md); lo más importante: el apodo de la ficha siempre en el libro, la vuelta al prólogo no es "repetido", el retoque no borra hechos que no están en otro lado, 1c corrige el texto de la biblia. Y probar con el material de Joaquín.
+- **Escritor v5 (desde la prueba E7a, 26/09) — hecho en E7b.** Aprobar R1-R6 de [`prueba-libro-v4.md`](prueba-libro-v4.md); sumar al plan título del libro y oración de cierre de la carta; anclar anécdotas por edad en 1b; la respuesta "qué capítulos tendría tu vida" fuera de la carta; retoque con salida "falsa alarma".
 
 ## Fuentes
 
