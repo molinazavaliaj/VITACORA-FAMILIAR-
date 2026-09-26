@@ -303,6 +303,40 @@ El material de Naza (57 respuestas, sin repetidos, con nombres corregidos) queda
 - **Álbum:** las fotos que no entraron en capítulos.
 - **Dedicatoria y título:** `{{destinatarios}}`; título de LE7 si lo dio, si no lo propone el plan a partir de una cita.
 
+### Capítulos madre, hilos y forma del libro (decisiones del 26/09)
+
+Salió de la prueba del libro de Naza (le gustó la redacción; lo flojo fueron los capítulos) y de dos informes de Fable ([capítulos madre](https://claude.ai/artifact/HtiabAUeTQBhuqwzKDvTHA), [revisión](https://claude.ai/artifact/XiZTrwHp8MSNSVcGFCwKhK)).
+
+**Índice fijo para todos (opción C de Fable).** Diez capítulos madre: De dónde vengo · Los primeros años · Adolescencia · Salir al mundo (o "El viaje") · Amor · Trabajo y oficio · Hijos y nietos · Mi gente y mis lugares · Lo que costó · Hoy. El índice lo calcula **código** antes de llamar al modelo:
+- Cada respuesta va al capítulo de su bloque (anclada). Flotantes (historia grande, giros, puertas, válvulas) por edad: número dicho ("yo tenía N", año de 4 cifras) o **léxico fijo de etapa** ("de chico", "en la colimba", "de soltera", "cuando nació {{hijo}}" con el año de la ficha).
+- Un capítulo con poco material se fusiona con su vecino, con **títulos de fusión escritos de antemano** ("Crecer", "Hacerse grande"). Uno que desborda se parte por una clave de la ficha (pareja, oficio, hijos chicos/grandes, una pasión grande). "El viaje" también se inserta si la migración fue la bisagra (cae entre dos parejas u oficios).
+- El número de capítulos sale del material (Breve 5–6, Estándar 8–11, Completo 12–14). El modelo no crea, fusiona ni parte capítulos, ni titula con años.
+
+**Cambios de Naza a la opción C:**
+- **Subtítulo:** frase textual suya sacada de las respuestas de ese capítulo (no principalmente de "¿qué capítulos tendría tu vida?", porque ahí puede olvidar algo que cuenta después). Filtros: sin muerte/separación (no adelantar el final), sin nombres no presentados, sin años, 2–8 palabras. El narrador ve 3 candidatos y elige o escribe el suyo.
+- **Oficio o pasión:** una pasión que coincide con un oficio (músico) va a "Trabajo y oficio"; en el dashboard cada actividad tiene [Mi oficio] [Mi pasión].
+- **Las pérdidas y crisis de antes de los 25 van al capítulo de su etapa** (la cárcel del padre en la infancia), con marca de sensible (sin valoraciones ni moraleja); solo las de adulto van a "Lo que costó".
+
+**Que sea un cuento y no un álbum:**
+- **Hilos:** 2 o 3 por libro, solo de fuentes verificables (lo que dijo que es su tema en legado; lo que repite en 3+ capítulos; su giro o redención; una frase que dice más de una vez), con ≥ 3 respuestas de ≥ 2 capítulos que lo sostengan. Nunca una virtud que no dijo. Si no hay hilos verificables, el libro va sin hilos.
+- **Introducción** (reemplaza la "poética libre"): escena de hoy en presente → "Antes de esto hubo otras cosas" → 4 a 7 imágenes concretas suyas de lo que viene ("Hubo una casa de tres pisos donde mi viejo cocinaba con la manteca en la cacerola…"), cosas y gestos, sin valoraciones, sin contar finales → vuelve a hoy. Lista negra de palabras cursis (legado, resiliencia, huella, camino, viaje salvo literal…). Cada remate de capítulo toca un hilo con una imagen o frase suya, nunca explicándolo.
+- **Epígrafe por capítulo:** título madre / subtítulo / una frase suya con QR a su voz.
+- **Aperturas que rotan** (escena, objeto, persona que entra, frase suya, un día común); dos seguidas nunca iguales; el plan elige la que le queda al material.
+- **Frase puente al inicio de cada capítulo** (salto de tiempo y lugar). **Solo afirma lo que se sabe** (dicho, ficha o confirmado en el dashboard); si es un cálculo, va vago ("un tiempo después", "ya más grande"); si el dato importa, se pregunta en el dashboard. Regla general: si no está seguro, no afirma; si importa, pregunta.
+- **Ritmo:** al menos dos escenas por capítulo, máximo 40 % resumen; una respuesta de menos de 60 palabras nunca es escena.
+- **Nada de diálogo inventado:** solo el que el narrador citó.
+- **La pregunta invisible:** control de código contra frases que repiten el texto de la pregunta.
+
+**Personas en dos niveles:** *mención* ("mi amigo Cacho", en cualquier capítulo) y *presentación* (una vez, en el primer capítulo donde tiene historia —≥150 palabras— o en el de su rol, sin adelantar nada del futuro). El código le dice a cada capítulo a quién presenta y a quién solo nombra.
+
+**Fotos con ojos (aprobado):** un modelo mira cada foto y anota qué se ve, detecta capturas de pantalla (la foto de Snapchat de Naza) y avisa si no coincide con lo que dijo el narrador. ~USD 0,03 por libro con Haiku.
+
+**Dashboard (antes de escribir):** 1) Tu libro por dentro (índice, subtítulos, "unas N páginas"); 2) Cosas para confirmar (máx. 15: nombres con 3 s de audio, fechas, temas delicados agrupados, dudas de comprensión); 3) Tus actividades (oficio/pasión); 4) Tus respuestas, opcional (el texto tal cual, para corregir). Botón "Dejá todo como está"; si no entra en 5 días, se escribe con lo que hay. Duda "importante" por regla: nombre de persona con historia, año de la línea de tiempo, sensible, o contradicción ficha/audio.
+
+**Controles de código antes de la lectura final:** nombres, años, citas, presentaciones únicas, frases repetidas entre capítulos (6 palabras seguidas), eco de preguntas. La ficha se valida contra la biblia y cada diferencia es una duda.
+
+**Anotado para después (no decidido):** biblia en dos partes (global chica + una por capítulo); Sonnet para extraer la biblia (Naza: Opus para todo por ahora); menos pensamiento en capítulos (se queda alto hasta medirlo por API, ~USD 1–2); lote en capítulos y retoques; un retoque por capítulo con todos sus problemas.
+
 ## 7. Costos
 
 **Precios de Fable, sin verificar.** Salen del informe 1 (C.5), que dice haber leído la página de precios de Anthropic el 25/09/2026. Supone 130 preguntas, 4 horas de audio y un libro de 18 mil palabras. Con el Estándar de ~102 (vida típica, con puertas) debería salir menos; no está recalculado.
