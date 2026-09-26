@@ -26,6 +26,21 @@ export type Actividad = { nombre: string; marca: 'oficio' | 'pasion' };
 
 export type Persona = { nombre?: string; vive?: boolean };
 
+/**
+ * Otra persona de la vida del narrador (amigos, socios, compañeros) que no
+ * entra en los otros campos. `lugar` (donde la conoció o de donde es) o
+ * `despuesDeMigrar: true` la marcan como del destino: en el modo migrante
+ * joven, nombrarla es señal de "después de emigrar". Se busca por nombre y
+ * por cada alias, con su mayúscula.
+ */
+export type PersonaFicha = { nombre: string; alias?: string[]; relacion?: string; lugar?: string; despuesDeMigrar?: boolean };
+
+/**
+ * `lugares`: otros lugares del destino además de `a` (la ciudad o región
+ * grande, los pueblos vecinos: "Barcelona", "Avià" para quien vive en Berga).
+ */
+export type Migracion = { de: string; a: string; anio?: number; edad?: number; lugares?: string[] };
+
 export type FichaV3 = {
   // Obligatorios
   nombre: string;
@@ -45,7 +60,7 @@ export type FichaV3 = {
   nietos?: Opcional<string[]>;
   nietosACargo?: Opcional<string[]>;
   ciudadInfancia?: string;
-  migracion?: Opcional<{ de: string; a: string; anio?: number; edad?: number }>;
+  migracion?: Opcional<Migracion>;
   campo?: Opcional<boolean>;
   oficios?: Opcional<Oficio[]>;
   dejoDeTrabajar?: Opcional<boolean>;
@@ -55,6 +70,7 @@ export type FichaV3 = {
   religion?: Opcional<string>;
   // Solo por ficha, sin botón
   personaImportante?: Opcional<{ nombre: string; descripcion?: string }>;
+  personas?: PersonaFicha[];
   enfermedadLarga?: Opcional<{ nombre?: string }>;
   noTocar?: { preguntas?: string[]; bloques?: number[]; texto?: string };
 };

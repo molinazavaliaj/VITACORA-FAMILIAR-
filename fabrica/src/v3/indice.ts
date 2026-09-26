@@ -17,6 +17,10 @@
 //      no existe (Completo: sin pareja, "Amor" no existe); títulos variantes.
 //   3. Modo migrante joven: si migró hace 10 años o menos, el último capítulo
 //      es "El viaje, hasta hoy" y absorbe a Hoy (sin coda).
+//      Solo recibe lo que es de "después" (señal de texto, edad, oficio o
+//      herencia de la pregunta madre en las "b") o va por regla (migración
+//      del bloque 5, bloque 14, pareja actual); lo demás, a su etapa o a
+//      "Hacerse grande", también cuando un capítulo previo cae bajo el piso.
 //   4. Pisos y receptores: una sola pasada, de arriba hacia abajo. El que no
 //      llega va entero a su receptor fijo; el que recibió ya no se mueve. Si
 //      el receptor ya no está, el capítulo queda corto (avisado): sin cadenas,
@@ -33,7 +37,7 @@
 import { preguntaPorId } from './banco.js';
 import { edadActual, edadMigracion, anioMigracion, estado, lista, valor, type FichaV3 } from './ficha.js';
 import {
-  edadDicha, etapaPorLexico, madrePorEdad, mencionaActividad, nombraLugar, personaDePresentacion, personaNombrada, posicionActividad,
+  edadDicha, etapaPorLexico, madrePorEdad, mencionaActividad, nombraLugar, normalizar, ocurrencias, personaDePresentacion, personaNombrada, posicionActividad,
 } from './etapa.js';
 
 // ---------------------------------------------------------------- tipos
@@ -92,6 +96,8 @@ export type Clasificacion = {
   bloque: number;
   momento: Momento;
   senal: string;
+  /** Edad dicha en el texto (o la de la pandemia en HG4), si la hay. */
+  edad?: number;
   capitulo: string; // clave del capítulo donde quedó
 };
 
@@ -427,7 +433,27 @@ function edadDeFlotante(r: RespuestaV3, ficha: FichaV3, anioActual: number): { e
 
 // ---------------------------------------------------------------- 3. modo migrante joven
 
-type Migracion = { edadMigracion: number; anioMigracion: number; edadActual: number; destino: string[]; origen: string[]; lugar: string };
+type Migracion = {
+  edadMigracion: number;
+  anioMigracion: number;
+  edadActual: number;
+  /** Lugares del destino que se buscan en el texto: `a`, los `lugares` extra de la ficha y el país si es otro. */
+  destino: string[];
+  origen: string[];
+  lugar: string;
+  /** Pareja actual y personas de la ficha marcadas como del destino (nombre y alias). */
+  personasDestino: string[];
+  /** Expresiones de presente en el destino ("acá en el pueblo"): solo si vive en el destino. */
+  expresiones: string[];
+};
+
+/**
+ * Expresiones de presente en el destino. Cuentan solo si la ficha dice que
+ * vive en el destino (país de residencia distinto del de nacimiento): quien
+ * volvió también dice "acá en el pueblo", y es el de origen. Se suma "acá en
+ * {{país de residencia}}".
+ */
+export const PRESENTE_EN_DESTINO = ['acá en el pueblo'];
 
 /** Migró y (edad actual − edad al migrar) ≤ 10. Null si no, o si la ficha no trae el año ni la edad. */
 function detectarMigranteJoven(ficha: FichaV3, anioActual: number): Migracion | null {
@@ -438,13 +464,20 @@ function detectarMigranteJoven(ficha: FichaV3, anioActual: number): Migracion | 
   const edad = edadActual(ficha, anioActual);
   if (edad - edadMig > ANIOS_MIGRANTE_JOVEN) return null;
   const otroPais = ficha.paisResidencia !== ficha.paisNacimiento;
+  const destino = unicos([m.a, ...(m.lugares ?? []), otroPais ? ficha.paisResidencia : null]);
+  const esDestino = (lugar: string | undefined) => !!lugar && destino.some((d) => normalizar(d) === normalizar(lugar));
   return {
     edadMigracion: edadMig,
     anioMigracion: anioMig,
     edadActual: edad,
-    destino: unicos([m.a, otroPais ? ficha.paisResidencia : null]),
+    destino,
     origen: unicos([m.de, otroPais ? ficha.paisNacimiento : null]),
     lugar: m.a,
+    personasDestino: unicos([
+      ...lista(ficha.parejas).filter((p) => p.actual).map((p) => p.nombre),
+      ...(ficha.personas ?? []).filter((p) => p.despuesDeMigrar === true || esDestino(p.lugar)).flatMap((p) => [p.nombre, ...(p.alias ?? [])]),
+    ]),
+    expresiones: otroPais ? [...PRESENTE_EN_DESTINO, `acá en ${ficha.paisResidencia}`] : [],
   };
 }
 
@@ -463,48 +496,152 @@ function oficioDe(x: Item, ficha: FichaV3): { nombre: string; desde?: number } |
   return oficios.find((o) => mencionaActividad(x.r.texto, o.nombre)) ?? null;
 }
 
+type Senal = { momento: Exclude<Momento, 'regla'>; senal: string; edad?: number };
+
+/**
+ * Las señales de "después" que tiene el texto: lugares del destino, personas
+ * del destino (con su mayúscula) y expresiones de presente en el destino.
+ * Una expresión que contiene un lugar ("acá en España") cuenta una sola vez.
+ */
+function marcasDeDespues(texto: string, mig: Migracion): { pos: number; senal: string }[] {
+  const todas = [
+    ...ocurrencias(texto, mig.destino, false).map((o) => ({ ...o, senal: `nombra "${o.que}"` })),
+    ...ocurrencias(texto, mig.personasDestino, true).map((o) => ({ ...o, senal: `nombra a "${o.que}"` })),
+    ...ocurrencias(texto, mig.expresiones, false).map((o) => ({ ...o, senal: `dice "${o.que}"` })),
+  ].sort((a, b) => a.pos - b.pos || b.fin - a.fin);
+  const salida: typeof todas = [];
+  for (const m of todas) if (!salida.length || m.pos >= salida[salida.length - 1].fin) salida.push(m);
+  return salida;
+}
+
 /**
  * ¿La respuesta es de antes o de después de emigrar? Regla de texto, no de
- * interpretación: nombra el lugar de destino (o su país), dice una edad ≥ la
- * de migración, o habla de un oficio de la ficha que empezó después.
+ * interpretación, en este orden:
+ *
+ *   1. Una edad dicha menor a la de migración: antes (gana aunque nombre el destino).
+ *   2. Señales de texto (lugar, persona o expresión del destino): cuentan si
+ *      la primera está en la primera mitad del texto o si hay dos o más. Una
+ *      sola, al final, es una mención de pasada: no alcanza.
+ *   3. Una edad dicha ≥ la de migración, o un oficio de la ficha que empezó
+ *      después: después.
+ *   4. Un oficio de antes o un lugar de origen: antes. Si no, sin señal.
  */
-function senalMigracion(x: Item, ficha: FichaV3, anioActual: number, mig: Migracion): { momento: Momento; senal: string } {
-  const lugar = nombraLugar(x.r.texto, mig.destino);
-  if (lugar) return { momento: 'despues', senal: `nombra "${lugar}"` };
+function senalMigracion(x: Item, ficha: FichaV3, anioActual: number, mig: Migracion): Senal {
   const edad = edadDeFlotante(x.r, ficha, anioActual);
   const conEdad = edad ? `edad ${edad.edad} ("${edad.expresion}")` : '';
-  if (edad && edad.edad >= mig.edadMigracion) return { momento: 'despues', senal: conEdad };
+  if (edad && edad.edad < mig.edadMigracion) return { momento: 'antes', senal: conEdad, edad: edad.edad };
+  const marcas = marcasDeDespues(x.r.texto, mig);
+  const mitad = normalizar(x.r.texto).length / 2;
+  if (marcas.length >= 2 || (marcas.length === 1 && marcas[0].pos < mitad)) {
+    return { momento: 'despues', senal: marcas[0].senal + (marcas.length > 1 ? ` (${marcas.length} señales)` : ''), ...(edad ? { edad: edad.edad } : {}) };
+  }
+  if (edad) return { momento: 'despues', senal: conEdad, edad: edad.edad };
   const oficio = oficioDe(x, ficha);
   const conOficio = oficio && typeof oficio.desde === 'number' ? `oficio "${oficio.nombre}" desde ${oficio.desde}` : '';
   if (oficio && typeof oficio.desde === 'number' && oficio.desde >= mig.anioMigracion) return { momento: 'despues', senal: conOficio };
-  if (edad) return { momento: 'antes', senal: conEdad };
   if (conOficio) return { momento: 'antes', senal: conOficio };
   const origen = nombraLugar(x.r.texto, mig.origen);
   if (origen) return { momento: 'antes', senal: `nombra "${origen}"` };
+  if (marcas.length) return { momento: 'sin-senal', senal: `${marcas[0].senal} una sola vez, en la segunda mitad: no alcanza` };
   return { momento: 'sin-senal', senal: 'sin señal' };
 }
 
-/** Pasa al tema del viaje lo que absorbe "El viaje, hasta hoy" y devuelve la clasificación de cada respuesta mirada. */
-function clasificarMigracion(items: Item[], ficha: FichaV3, anioActual: number, mig: Migracion): Omit<Clasificacion, 'capitulo'>[] {
-  const salida: Omit<Clasificacion, 'capitulo'>[] = [];
+/** La regla fija que manda una respuesta al viaje sin mirar el texto, o null. */
+function reglaDeViaje(x: Item, ficha: FichaV3): string | null {
+  if (x.r.bloque === 5 && MIGRACION.has(x.r.preguntaId)) return 'bloque 5, migración';
+  if (x.r.bloque === 14) return 'bloque 14';
+  if (x.r.bloque === 6 && esParejaActual(x, ficha)) return 'pareja actual';
+  return null;
+}
+
+/**
+ * Clasificador del modo migrante joven para un libro: guarda lo que ya
+ * calculó (una respuesta se clasifica una vez) y lo que se reporta.
+ *
+ * Una pregunta de seguimiento ("TR1b") sin señal propia hereda la
+ * clasificación de su pregunta madre ("TR1"): la del mismo sujeto y, entre
+ * esas, la última anterior. Si la madre va al viaje por regla, la hija es
+ * "después".
+ */
+function clasificadorMigracion(todos: Item[], ficha: FichaV3, anioActual: number, mig: Migracion) {
+  const memo = new Map<string, Senal>();
+  const registro = new Map<string, { x: Item; c: Omit<Clasificacion, 'capitulo'> }>();
+
+  const madreDe = (x: Item): Item | null => {
+    const m = /^(.*\d)b$/.exec(x.r.preguntaId);
+    if (!m) return null;
+    const candidatas = todos.filter((y) => y.r.preguntaId === m[1]);
+    const mismoSujeto = candidatas.filter((y) => y.r.sujeto === x.r.sujeto);
+    const pool = mismoSujeto.length ? mismoSujeto : candidatas;
+    const anteriores = pool.filter((y) => y.indice < x.indice);
+    return anteriores.length ? anteriores[anteriores.length - 1] : pool[0] ?? null;
+  };
+
+  const momento = (x: Item): Senal => {
+    const guardado = memo.get(x.r.id);
+    if (guardado) return guardado;
+    let s = senalMigracion(x, ficha, anioActual, mig);
+    const madre = s.momento === 'sin-senal' ? madreDe(x) : null;
+    if (madre) {
+      const regla = reglaDeViaje(madre, ficha);
+      const deMadre: Senal | null = regla ? { momento: 'despues', senal: regla } : momento(madre);
+      if (deMadre.momento !== 'sin-senal') s = { momento: deMadre.momento, senal: `hereda de ${madre.r.id} ${madre.r.preguntaId} (${deMadre.senal})` };
+    }
+    memo.set(x.r.id, s);
+    return s;
+  };
+
+  const anotar = (x: Item, c: { momento: Momento; senal: string; edad?: number }) =>
+    registro.set(x.r.id, { x, c: { respuestaId: x.r.id, preguntaId: x.r.preguntaId, bloque: x.r.bloque, ...c } });
+
+  /** Clasifica y anota una respuesta (para el reporte y el invariante). */
+  const clasificar = (x: Item): Senal => {
+    const s = momento(x);
+    anotar(x, s);
+    return s;
+  };
+
+  /**
+   * El tema de etapa de una respuesta que no es de "después": por la edad
+   * dicha, por el léxico de etapa (hasta Salir al mundo) y, si no, Salir al
+   * mundo ("Hacerse grande" en Estándar).
+   */
+  const temaDeEtapa = (x: Item, s: Senal): number => {
+    if (s.edad !== undefined) return madrePorEdad(s.edad) ?? 4;
+    const lex = etapaPorLexico(x.r.texto, ficha);
+    return lex && lex.madre <= 4 ? lex.madre : 4;
+  };
+
+  const clasificados = () => [...registro.values()].sort((a, b) => a.x.indice - b.x.indice).map((v) => v.c);
+
+  return { clasificar, anotar, temaDeEtapa, clasificados };
+}
+
+type Clasificador = ReturnType<typeof clasificadorMigracion>;
+
+/**
+ * Antes de agrupar: pasa al tema del viaje lo que absorbe "El viaje, hasta
+ * hoy" por regla (bloque 5 de migración, bloque 14, pareja actual) o por
+ * señal de "después" (trabajo, lugares, amigos, flotantes y lo que iría a
+ * Hoy). Lo que iría a Hoy sin señal de "después" va a su etapa: en este modo
+ * no hay Hoy y el viaje no recibe lo que no es de después.
+ */
+function clasificarMigracion(items: Item[], ficha: FichaV3, cl: Clasificador): void {
   for (const x of items) {
-    const base = { respuestaId: x.r.id, preguntaId: x.r.preguntaId, bloque: x.r.bloque };
-    let regla: string | null = null;
-    if (x.r.bloque === 5 && MIGRACION.has(x.r.preguntaId)) regla = 'bloque 5, migración';
-    else if (x.r.bloque === 14) regla = 'bloque 14';
-    else if (x.tema === 10) regla = 'Hoy';
-    else if (x.r.bloque === 6 && esParejaActual(x, ficha)) regla = 'pareja actual';
+    const regla = reglaDeViaje(x, ficha);
     if (regla) {
       x.tema = TEMA_VIAJE;
-      salida.push({ ...base, momento: 'regla', senal: regla });
-      continue;
+      cl.anotar(x, { momento: 'regla', senal: regla });
     }
-    if (!BLOQUES_CON_SENAL.has(x.r.bloque) || x.tema === 9) continue;
-    const s = senalMigracion(x, ficha, anioActual, mig);
-    if (s.momento === 'despues') x.tema = TEMA_VIAJE;
-    salida.push({ ...base, ...s });
   }
-  return salida;
+  for (const x of items) {
+    if (x.tema === TEMA_VIAJE) continue;
+    const hoy = x.tema === 10;
+    if (!hoy && (!BLOQUES_CON_SENAL.has(x.r.bloque) || x.tema === 9)) continue;
+    const s = cl.clasificar(x);
+    if (s.momento === 'despues') x.tema = TEMA_VIAJE;
+    else if (hoy) x.tema = cl.temaDeEtapa(x, s);
+  }
 }
 
 // ---------------------------------------------------------------- 5. partición
@@ -700,7 +837,8 @@ export function armarIndice(respuestas: RespuestaV3[], ficha: FichaV3, opciones:
 
   // 3. Modo migrante joven.
   const mig = detectarMigranteJoven(ficha, anioActual);
-  const clasificacion = mig ? clasificarMigracion(items, ficha, anioActual, mig) : [];
+  const cl = mig ? clasificadorMigracion(items, ficha, anioActual, mig) : null;
+  if (cl) clasificarMigracion(items, ficha, cl);
   const conViaje = edadMig !== null && edadMig <= EDAD_VIAJE && !mig;
 
   // Grupos por la tabla del tamaño.
@@ -728,17 +866,45 @@ export function armarIndice(respuestas: RespuestaV3[], ficha: FichaV3, opciones:
     while (g.destino) g = grupos.get(g.destino)!;
     return g;
   };
-  const mover = (xs: Item[], de: Grupo, a: Grupo) => {
-    for (const x of xs) {
-      a.items.push(x);
-      saltos.push({ respuestaId: x.r.id, de: de.fila.clave, a: a.fila.clave });
+  /**
+   * Modo migrante joven: el viaje solo recibe lo que es de "después". Lo
+   * demás va al capítulo de su etapa (edad, léxico; si no, "Hacerse grande"),
+   * o al último que exista antes si ese no está.
+   */
+  const grupoDeEtapa = (tema: number): Grupo => {
+    const g = huesped(claveDeTema(tema)!);
+    if (g.items.length) return g;
+    for (let i = posicion(g.fila.clave) - 1; i >= 0; i--) {
+      const otro = grupos.get(filas[i].clave)!;
+      if (!otro.destino && !otro.repartido && otro.items.length) return otro;
     }
+    return g;
+  };
+  const destinoDe = (x: Item, a: Grupo): Grupo => {
+    if (!cl || a.fila.clave !== 'VIAJE') return a;
+    const s = cl.clasificar(x);
+    return s.momento === 'despues' ? a : grupoDeEtapa(cl.temaDeEtapa(x, s));
+  };
+  /** Mueve cada respuesta (un salto) y devuelve los grupos que recibieron. */
+  const mover = (xs: Item[], de: Grupo, a: Grupo): Set<Grupo> => {
+    const recibieron = new Set<Grupo>();
+    for (const x of xs) {
+      const d = destinoDe(x, a);
+      d.items.push(x);
+      recibieron.add(d);
+      saltos.push({ respuestaId: x.r.id, de: de.fila.clave, a: d.fila.clave });
+    }
+    return recibieron;
   };
   const recibirEntero = (g: Grupo, a: Grupo) => {
-    mover(g.items, g, a);
+    const recibieron = mover(g.items, g, a);
     a.recibio = true;
-    a.claves.push(...g.claves);
+    for (const d of recibieron) if (d !== a) d.claves.push(...g.claves.filter((k) => !d.claves.includes(k)));
+    if (recibieron.has(a) || a.fila.clave !== 'VIAJE') a.claves.push(...g.claves);
     if (a.fila.clave !== 'VIAJE') a.titulo = alRecibir(a.titulo, g.titulo, avisos);
+    else if ([...recibieron].some((d) => d !== a)) {
+      avisos.push(`Modo migrante joven: de "${g.titulo}", al viaje solo lo que tiene señal de "después"; lo demás va a ${[...recibieron].filter((d) => d !== a).map((d) => `"${d.titulo}"`).join(' y ')}.`);
+    }
     g.items = [];
     g.destino = a.fila.clave;
   };
@@ -835,7 +1001,7 @@ export function armarIndice(respuestas: RespuestaV3[], ficha: FichaV3, opciones:
         edadMigracion: mig.edadMigracion,
         edadActual: mig.edadActual,
         lugaresDestino: mig.destino,
-        clasificacion: clasificacion.map((c) => ({ ...c, capitulo: dondeQuedo(c.respuestaId) })),
+        clasificacion: cl!.clasificados().map((c) => ({ ...c, capitulo: dondeQuedo(c.respuestaId) })),
       }
     : null;
 

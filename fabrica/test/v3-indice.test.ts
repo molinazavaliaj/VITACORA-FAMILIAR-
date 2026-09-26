@@ -425,7 +425,7 @@ describe('modo migrante joven', () => {
     return [
       r('CA1', 2000), r('AD1', 800), r('JU2', 500), r('JU5', 400), r('JU8', 500), r('JU9', 600),
       r('AM1', 400, { sujeto: 'pareja:1' }), r('AM1', 300, { sujeto: 'pareja:2' }), r('LU1', 1100, { texto: 'La casa de Martínez.' }),
-      r('HO1', 400), r('GI1', 200, { texto: 'Un domingo.' }),
+      r('HO1', 400), r('GI1', 200, { texto: 'En Berga, un domingo.' }),
     ];
   }
 
@@ -458,12 +458,12 @@ describe('modo migrante joven', () => {
   it('trabajo, lugares y amigos van al viaje solo con señal de "después"; sin señal quedan en su capítulo', () => {
     const resp = [
       ...vidaJoven(),
-      r('TR1', 300, { texto: 'Mi primer trabajo fue acá en España.' }), // R12: nombra el país de destino
+      r('TR1', 300, { texto: 'En España, mi primer trabajo.' }), // R12: nombra el país de destino
       r('TR2', 300, { texto: 'A los 25 cortaba pasto.' }), // R13: edad ≥ 23
       r('TR3', 300, { texto: 'A los 18 repartía volantes.' }), // R14: edad < 23 → antes
       r('TR6', 300, { texto: 'Un jefe que gritaba.' }), // R15: sin señal
       r('OF1', 300, { sujeto: 'oficio:2' }), // R16: oficio de la ficha desde 2023
-      r('AS1', 300, { texto: 'Mis amigos de Berga.' }), // R17
+      r('AS1', 300, { texto: 'De Berga, mis amigos.' }), // R17
       r('HE1', 300, { texto: 'El piso de Berga, sin una lamparita.' }), // R18: bloque 9 con señal
     ];
     const indice = armarIndice(resp, JOVEN, op());
@@ -482,9 +482,57 @@ describe('modo migrante joven', () => {
     invariantes(resp, indice);
   });
 
-  it('Mi gente bajo el piso va al viaje (no hay Hoy)', () => {
-    const indice = armarIndice(con(vidaJoven(), 'LU1', 300), JOVEN, op());
-    expect(capituloDe(indice, 'R9')).toMatchObject({ clave: 'VIAJE', titulo: TITULO_VIAJE_HASTA_HOY });
+  it('Mi gente bajo el piso: al viaje solo lo que tiene señal de "después"; lo demás, a su etapa o a "Hacerse grande"', () => {
+    const resp = [
+      ...con(vidaJoven(), 'LU1', 100), // R9 "La casa de Martínez.": sin señal → Hacerse grande
+      r('LU2', 100, { texto: 'Yo tenía 8 y la casa tenía un patio.' }), // R12: edad 8 → De dónde vengo
+      r('LU3', 100, { texto: 'Cuando era chico íbamos al campo.' }), // R13: léxico de chico → De dónde vengo
+      r('HE1', 100, { texto: 'El piso de Berga, sin una lamparita.' }), // R14: señal → viaje
+    ];
+    const indice = armarIndice(resp, JOVEN, op());
+    expect(indice.capitulos.some((c) => c.clave === 'E5')).toBe(false);
+    expect(capituloDe(indice, 'R14')).toMatchObject({ clave: 'VIAJE', titulo: TITULO_VIAJE_HASTA_HOY });
+    expect(capituloDe(indice, 'R9')).toMatchObject({ clave: 'E2', titulo: 'Hacerse grande' });
+    expect(capituloDe(indice, 'R12')!.clave).toBe('E1');
+    expect(capituloDe(indice, 'R13')!.clave).toBe('E1');
+    for (const id of ['R9', 'R12', 'R13']) expect(indice.saltos.filter((s) => s.respuestaId === id), id).toHaveLength(1);
+    invariantes(resp, indice);
+  });
+
+  it('lo que iría a Hoy sin señal de "después" (13-altos, crisis) no va al viaje: a su etapa o a "Hacerse grande"', () => {
+    const resp = [
+      ...vidaJoven(),
+      r('GI1', 200, { texto: 'Un domingo cualquiera.' }), // R12: 13-alto sin señal
+      r('PE4', 200, { texto: 'Mi familia, con sus altibajos.' }), // R13: crisis sin señal (receptor Hoy)
+      r('HJ1', 200, { texto: 'Yo tenía 15 y me escapé.' }), // R14: edad 15
+    ];
+    const indice = armarIndice(resp, JOVEN, op());
+    expect(capituloDe(indice, 'R11')!.clave).toBe('VIAJE'); // "En Berga, un domingo."
+    expect(capituloDe(indice, 'R12')!.clave).toBe('E2');
+    expect(capituloDe(indice, 'R13')!.clave).toBe('E2');
+    expect(capituloDe(indice, 'R14')!.clave).toBe('E2');
+    invariantes(resp, indice);
+  });
+
+  it('una edad menor a la de migración gana aunque el texto nombre el destino', () => {
+    const resp = [...vidaJoven(), r('TR2', 300, { texto: 'A los 18 fui de vacaciones a España y trabajé en un bar.' })];
+    const indice = armarIndice(resp, JOVEN, op());
+    expect(indice.migranteJoven!.clasificacion.find((c) => c.respuestaId === 'R12')).toMatchObject({ momento: 'antes', edad: 18 });
+    expect(capituloDe(indice, 'R12')!.clave).not.toBe('VIAJE');
+  });
+
+  it('invariante: en los tres tamaños, nada con edad menor a la de migración ni sin señal de "después" termina en el viaje', () => {
+    const resp = [
+      ...con(vidaJoven(), 'LU1', 100),
+      r('TR1', 100, { texto: 'Repartía volantes.' }), r('TR1b', 100, { texto: 'Era en el centro.' }),
+      r('AS1', 100, { texto: 'Mis amigos del barrio.' }), r('AS4', 100, { texto: 'Con Fran en Berga.' }),
+      r('GI1', 100, { texto: 'Un domingo.' }), r('HG4', 100), r('PE4', 100), r('CR1', 100), r('AM1', 100, { sujeto: 'pareja:1', texto: 'Vicky.' }),
+    ];
+    for (const t of ['B', 'E', 'C'] as const) {
+      const indice = armarIndice(resp, JOVEN, op(t));
+      expect(indice.migranteJoven).not.toBeNull();
+      invariantes(resp, indice);
+    }
   });
 
   it('migró hace más de 10 años: no hay modo joven', () => {
@@ -500,6 +548,96 @@ describe('modo migrante joven', () => {
     expect(partes.map((c) => c.parte?.nombre)).toEqual(['El viaje', 'Hoy, en Berga']);
     expect(partes[0].respuestaIds).toEqual(expect.arrayContaining(['R5', 'R6']));
     expect(partes[1].respuestaIds).toEqual(expect.arrayContaining(['R10', 'R8']));
+  });
+
+  describe('preguntas de seguimiento ("b")', () => {
+    it('TR1b sin señal propia hereda el "después" de TR1', () => {
+      const resp = [
+        ...vidaJoven(),
+        r('TR1', 300, { texto: 'Acá en España, mi primer trabajo fue en una fábrica de cubanitos.' }), // R12
+        r('TR1b', 300, { texto: 'Era una fábrica, ocho horas parado haciendo un trabajo de robot.' }), // R13
+      ];
+      const indice = armarIndice(resp, JOVEN, op());
+      const c = indice.migranteJoven!.clasificacion.find((x) => x.respuestaId === 'R13')!;
+      expect(c).toMatchObject({ momento: 'despues', capitulo: 'VIAJE' });
+      expect(c.senal).toMatch(/hereda de R12 TR1/);
+    });
+
+    it('TR1b sin señal propia hereda el "antes" de TR1', () => {
+      const resp = [...vidaJoven(), r('TR1', 300, { texto: 'A los 18 repartía volantes.' }), r('TR1b', 300, { texto: 'Era en el centro, con lluvia.' })];
+      const indice = armarIndice(resp, JOVEN, op());
+      expect(indice.migranteJoven!.clasificacion.find((x) => x.respuestaId === 'R13')).toMatchObject({ momento: 'antes' });
+      expect(capituloDe(indice, 'R13')!.clave).not.toBe('VIAJE');
+    });
+
+    it('con señal propia no hereda', () => {
+      const resp = [...vidaJoven(), r('TR1', 300, { texto: 'A los 18 repartía volantes.' }), r('TR1b', 300, { texto: 'Después, en Berga, cortaba pasto.' })];
+      const indice = armarIndice(resp, JOVEN, op());
+      expect(indice.migranteJoven!.clasificacion.find((x) => x.respuestaId === 'R13')).toMatchObject({ momento: 'despues', senal: 'nombra "Berga"', capitulo: 'VIAJE' });
+    });
+  });
+
+  describe('señales de "después" por personas, lugares y expresiones de la ficha', () => {
+    const CON_GENTE: FichaV3 = {
+      ...JOVEN,
+      migracion: { de: 'Buenos Aires', a: 'Berga', anio: 2021, lugares: ['Barcelona', 'Avià'] },
+      personas: [
+        { nombre: 'Babyface', alias: ['Baby', 'Iñaki'], despuesDeMigrar: true },
+        { nombre: 'Ñaco', lugar: 'Berga' },
+        { nombre: 'Pepe', lugar: 'Tortuguitas' },
+      ],
+    };
+    const clasif = (texto: string, ficha: FichaV3 = CON_GENTE) =>
+      armarIndice([...vidaJoven(), r('TR8', 300, { texto })], ficha, op()).migranteJoven!.clasificacion.find((x) => x.respuestaId === 'R12')!;
+
+    it('nombrar a la pareja actual es señal', () => {
+      expect(clasif('Con Ima pintamos el local entero.')).toMatchObject({ momento: 'despues', senal: 'nombra a "Ima"', capitulo: 'VIAJE' });
+    });
+
+    it('nombrar a una persona marcada como del destino (por nombre o alias) es señal', () => {
+      expect(clasif('Lo del club con Baby fue un fracaso.')).toMatchObject({ momento: 'despues', senal: 'nombra a "Baby"' });
+      expect(clasif('Iñaki me enseñó a vender.')).toMatchObject({ momento: 'despues' });
+      expect(clasif('Ñaco trabajaba en una maderera.')).toMatchObject({ momento: 'despues', senal: 'nombra a "Ñaco"' });
+    });
+
+    it('una persona con un lugar que no es del destino no es señal', () => {
+      expect(clasif('Pepe me enseñó a vender.')).toMatchObject({ momento: 'sin-senal' });
+    });
+
+    it('los lugares extra del destino (Barcelona, Avià) son señal', () => {
+      expect(clasif('Vivo en Barcelona desde entonces.')).toMatchObject({ momento: 'despues', senal: 'nombra "Barcelona"' });
+      expect(clasif('En Avià no había nada.')).toMatchObject({ momento: 'despues', senal: 'nombra "Avià"' });
+    });
+
+    it('"acá en el pueblo" es presente en el destino solo si vive en el destino', () => {
+      expect(clasif('Acá en el pueblo nadie quería el club.')).toMatchObject({ momento: 'despues', senal: 'dice "acá en el pueblo"' });
+      const volvio: FichaV3 = { ...CON_GENTE, paisResidencia: 'Argentina' };
+      expect(clasif('Acá en el pueblo nadie quería el club.', volvio)).toMatchObject({ momento: 'sin-senal' });
+    });
+  });
+
+  describe('la señal cuenta si está en la primera mitad del texto o si hay dos o más', () => {
+    const relleno = 'La casa de Tortuguitas tenía pileta y un estudio de música que armé yo, súper profesional, con todo lo que había juntado.';
+    const clasifLU1 = (texto: string) =>
+      armarIndice([...vidaJoven(), r('LU1', 300, { texto })], JOVEN, op()).migranteJoven!.clasificacion.find((x) => x.respuestaId === 'R12')!;
+
+    it('una sola mención del destino en la segunda mitad no alcanza: sin señal', () => {
+      const c = clasifLU1(`${relleno} Fue justo antes de venirme a España.`);
+      expect(c.momento).toBe('sin-senal');
+      expect(c.senal).toMatch(/España/);
+    });
+
+    it('en la primera mitad, alcanza', () => {
+      expect(clasifLU1(`Antes de España. ${relleno}`)).toMatchObject({ momento: 'despues', senal: 'nombra "España"' });
+    });
+
+    it('dos menciones, aunque sean en la segunda mitad, alcanzan', () => {
+      expect(clasifLU1(`${relleno} Después vine a España, a Berga.`).momento).toBe('despues');
+    });
+
+    it('"acá en España" es una sola señal, no dos', () => {
+      expect(clasifLU1(`${relleno} Ahora vivo acá en España.`).momento).toBe('sin-senal');
+    });
   });
 
   it('también en Breve: el viaje es el último capítulo y no hay coda', () => {

@@ -34,6 +34,8 @@ const SALIDA = path.join(CARPETA, 'simulacion.md');
  * tres oficios y el Liceo Naval: las etiquetas usan sujetos pareja:3 y
  * oficio:1-3 con ese orden. Los oficios no traen años (la ficha nueva los
  * pide): la señal "oficio posterior a la migración" no se puede usar.
+ * Para el modo migrante joven: Barcelona y Avià como lugares del destino, y
+ * las personas de allá (nombrarlas es señal de "después de emigrar").
  */
 const FICHA_NAZA: FichaV3 = {
   nombre: 'Naza', apodo: 'Tricky', anioNacimiento: 1998, genero: 'varon', paisNacimiento: 'Argentina', paisResidencia: 'España',
@@ -45,7 +47,15 @@ const FICHA_NAZA: FichaV3 = {
     { nombre: 'Ima', actual: true, fin: null },
   ],
   hijos: 'no-tiene', nietos: 'no-tiene', nietosACargo: 'no-tiene',
-  migracion: { de: 'Buenos Aires', a: 'Berga', anio: 2021, edad: 23 },
+  migracion: { de: 'Buenos Aires', a: 'Berga', anio: 2021, edad: 23, lugares: ['Barcelona', 'Avià'] },
+  personas: [
+    { nombre: 'Ima', relacion: 'pareja actual', lugar: 'Avià' },
+    { nombre: 'Babyface', alias: ['Baby', 'Iñaki'], relacion: 'socio del club', despuesDeMigrar: true },
+    { nombre: 'Fran', relacion: 'productor', despuesDeMigrar: true },
+    { nombre: 'Ñaco', relacion: 'amigo, vive con él en Berga', despuesDeMigrar: true },
+    { nombre: 'Ciro', despuesDeMigrar: true },
+    { nombre: 'Fran', relacion: 'amigo de Barcelona', lugar: 'Barcelona' },
+  ],
   campo: 'no-tiene',
   oficios: [{ nombre: 'músico' }, { nombre: 'programador' }, { nombre: 'jardinero' }],
   actividades: [{ nombre: 'música', marca: 'oficio' }, { nombre: 'programación', marca: 'oficio' }, { nombre: 'fútbol', marca: 'pasion' }],
@@ -191,7 +201,7 @@ if (!existsSync(ETIQUETAS)) {
   const mj = indice.migranteJoven;
   if (!mj) out('La ficha de Naza no activa el modo migrante joven.');
   else {
-    out(`Edad al migrar ${mj.edadMigracion}, edad actual ${mj.edadActual}; lugares de destino que se buscan en el texto: ${mj.lugaresDestino.join(', ')}.`);
+    out(`Edad al migrar ${mj.edadMigracion}, edad actual ${mj.edadActual}; lugares de destino que se buscan en el texto: ${mj.lugaresDestino.join(', ')}; personas del destino: ${(FICHA_NAZA.personas ?? []).map((p) => [p.nombre, ...(p.alias ?? [])].join('/')).join(', ')} y la pareja actual. Una señal de texto cuenta si está en la primera mitad o si hay dos o más; una "b" sin señal hereda de su madre; el viaje solo recibe lo que es de "después" (o de regla: bloque 5 de migración, bloque 14, pareja actual).`);
     out();
     out('| Respuesta | Pregunta | Bloque | Clasificación | Señal | Quedó en | Comienzo del texto |');
     out('|---|---|---|---|---|---|---|');

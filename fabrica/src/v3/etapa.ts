@@ -275,3 +275,28 @@ export function nombraLugar(texto: string, lugares: string[]): string | null {
   }
   return mejor?.lugar ?? null;
 }
+
+export type Ocurrencia = { pos: number; fin: number; que: string };
+
+/**
+ * Todas las apariciones en el texto de cada término (palabra entera). Con
+ * `conMayuscula` se respeta la mayúscula del término (nombres propios: así
+ * "Ima" no aparece en "imagen"); si no, se compara en minúsculas. Siempre sin
+ * tildes. Las posiciones son sobre el texto sin tildes (mismo largo que el
+ * original salvo transcripciones con tildes descompuestas).
+ */
+export function ocurrencias(texto: string, terminos: string[], conMayuscula: boolean): Ocurrencia[] {
+  const t = conMayuscula ? sinTildes(texto) : normalizar(texto);
+  const salida: Ocurrencia[] = [];
+  for (const que of unicosNoVacios(terminos)) {
+    const buscado = conMayuscula ? sinTildes(que) : normalizar(que);
+    for (const m of t.matchAll(new RegExp(`(?<![\p{L}\p{N}])${escapar(buscado)}(?![\p{L}\p{N}])`, 'gu'))) {
+      salida.push({ pos: m.index!, fin: m.index! + m[0].length, que });
+    }
+  }
+  return salida.sort((a, b) => a.pos - b.pos || b.fin - a.fin);
+}
+
+function unicosNoVacios(xs: string[]): string[] {
+  return [...new Set(xs.filter((x) => x.trim() !== ''))];
+}

@@ -49,6 +49,30 @@ export function invariantes(resp: RespuestaV3[], indice: Indice): void {
     expect(indice.migranteJoven).toBeNull();
   }
 
+  // Modo migrante joven: en "El viaje, hasta hoy" solo lo que tiene señal de
+  // "después" (y ninguna edad dicha menor a la de migración), salvo las
+  // reglas fijas: bloque 14, pareja actual y la migración del bloque 5.
+  const mj = indice.migranteJoven;
+  if (mj) {
+    const exentas: Record<string, (x: RespuestaV3) => boolean> = {
+      'bloque 14': (x) => x.bloque === 14,
+      'pareja actual': (x) => x.bloque === 6,
+      'bloque 5, migración': (x) => x.bloque === 5,
+    };
+    for (const id of todos.filter((c) => c.clave === 'VIAJE').flatMap((c) => c.respuestaIds)) {
+      const c = mj.clasificacion.find((x) => x.respuestaId === id);
+      expect(c, `${id} está en el viaje sin clasificar`).toBeDefined();
+      const r = resp.find((x) => x.id === id)!;
+      if (c!.momento === 'regla') {
+        expect(Object.keys(exentas), `${id}: regla "${c!.senal}"`).toContain(c!.senal);
+        expect(exentas[c!.senal](r), `${id}: regla "${c!.senal}" en el bloque ${r.bloque}`).toBe(true);
+        continue;
+      }
+      expect(c!.momento, `${id} (${r.preguntaId}) en el viaje: ${c!.senal}`).toBe('despues');
+      if (c!.edad !== undefined) expect(c!.edad, `${id}: edad dicha`).toBeGreaterThanOrEqual(mj.edadMigracion);
+    }
+  }
+
   // Particiones solo en Completo.
   if (indice.tamanio !== 'C') expect(indice.capitulos.some((c) => c.parte)).toBe(false);
 }
