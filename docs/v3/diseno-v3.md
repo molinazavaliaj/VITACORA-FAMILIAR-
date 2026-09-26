@@ -11,7 +11,7 @@
 5. La ficha la carga quien regala (6 campos obligatorios, género incluido). Lo que falta se le pregunta al narrador como dato, con botones.
 6. Termina la entrevista → el narrador ve en el dashboard sus respuestas transcriptas tal cual y corrige lo que quiera (nombres, datos, sacar respuestas) → recién ahí se escribe el libro, una vez.
 7. El escritor es un solo modelo en 4 pasos, con controles de código. La pasada única de Naza se compara en la prueba.
-8. El Estándar reparte las preguntas por etapa vivida: al menos 6 por etapa (infancia, escuela, adolescencia, juventud), 8 si el narrador tiene menos de 45. Vida típica de 60+: 102 con puertas. Joven de 29 sin pareja ni hijos, emigrado: 82 de historia, 95 con puertas.
+8. El Estándar reparte las preguntas por etapa vivida: al menos 6 por etapa (infancia, escuela, adolescencia, juventud), 8 si el narrador tiene menos de 45. Vida típica de 60+: 106 con puertas. Joven de 29 sin pareja ni hijos, emigrado: 86 de historia, 99 con puertas.
 9. No se gasta en modelos hasta pasar E3 y E4. El escritor se prueba (E7) sobre una sola historia, la de Naza: primero dentro de la sesión, sin gastar API, con los mismos prompts que irían a la API; por API, ~USD 5–6.
 
 El banco completo está en [`banco-v3.md`](banco-v3.md).
@@ -211,25 +211,25 @@ Filas por bloque y tamaño (B = Breve, E = entra en Estándar, C = solo Completo
 | 6 | Amor y pareja | 5 | 18 | 18 | 20 | 10 | 1 |
 | 7 | Trabajo y oficio | 6 | 13 | 13 | 23 | 10 | 11 |
 | 8 | Hijos y nietos | 4 | 13 | 13 | 13 | 11 | 1 |
-| 9 | Lugares y pasiones | 2 | 4 | 4 | 8 | 4 | 4 |
+| 9 | Lugares y pasiones | 2 | 5 | 5 | 8 | 5 | 5 |
 | 10 | Amistades y ayudas | 2 | 4 | 4 | 8 | 3 | 3 |
 | 11 | Pérdidas y crisis (sensible) | 3 | 11 | 11 | 13 | 8 | 6 |
 | 12 | La historia grande | 2 | 2 | 2 | 5 | 2 | 2 |
 | 13 | Puntos altos, bajos y giros | 2 | 4 | 4 | 15 | 4 | 4 |
-| 14 | Hoy | 2 | 3 | 3 | 8 | 3 | 3 |
+| 14 | Hoy | 4 | 6 | 6 | 12 | 6 | 6 |
 | 15 | Legado y cierre | 4 | 8 | 8 | 9 | 7 | 7 |
-| | **Total** | **51** | **115** | **123** | **195** | **89** | **82** |
+| | **Total** | **53** | **119** | **127** | **199** | **93** | **86** |
 
 Lo que le llega a cada ficha:
 
 | | Típica 60+: Breve | Típica 60+: Estándar | Típica 60+: Completo | Joven 29: Breve | Joven 29: Estándar | Joven 29: Completo |
 |---|---|---|---|---|---|---|
-| Preguntas de historia | 48 | 89 | 160 | 40 | 82 | 143 |
-| + 13 puertas abiertas | — (a decidir) | **102** | 173 | — (a decidir) | **95** | 156 |
-| + 12 válvulas "más" | — (a decidir) | 114 | 185 | — (a decidir) | 107 | 168 |
+| Preguntas de historia | 50 | 93 | 164 | 42 | 86 | 148 |
+| + 13 puertas abiertas | — (a decidir) | **106** | 177 | — (a decidir) | **99** | 161 |
+| + 12 válvulas "más" | — (a decidir) | 118 | 189 | — (a decidir) | 111 | 173 |
 
-- **Vida típica 60+:** el Estándar con puertas pasó de 95 a **102** (objetivo ~95, techo 105): +8 por la regla de etapas y −1 por sacar el Mundial fijo. No hizo falta compensar con los bloques de adultez.
-- **Joven de 29:** **82 de historia**, dentro del objetivo 70–85; con puertas, 95. Las etapas vividas le dan 37 (antes 21). Si el objetivo era con puertas, no se llega tocando solo las etapas: sin ninguna E-joven daría 87, porque el peso está en trabajo (11) y pérdidas (6). A decidir.
+- **Vida típica 60+:** el Estándar con puertas pasó de 95 a **106** (objetivo ~95, techo 105, por encima del techo): +8 por la regla de etapas, −1 por sacar el Mundial fijo y +4 por HO8, HO9, FU1 y LU5 obligatoria (26/09). No hizo falta compensar con los bloques de adultez.
+- **Joven de 29:** **86 de historia** (antes 82; +4 por HO8, HO9, FU1 y LU5, 26/09), por encima del objetivo 70–85; con puertas, 99. Las etapas vividas le dan 37 (antes 21). Si el objetivo era con puertas, no se llega tocando solo las etapas: sin ninguna E-joven daría 87, porque el peso está en trabajo (11) y pérdidas (6). A decidir.
 - El Completo da más que los ~145 del informe 3 porque ahora hay 16 cierres de lector como filas propias y 3 preguntas partidas.
 
 ## 6. El escritor
