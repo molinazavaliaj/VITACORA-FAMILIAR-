@@ -62,11 +62,11 @@ Elegí como mucho {{CUOTA}}. No elijas:
 - una respuesta de menos de 30 palabras.
 Si ninguna vale la pena, devolvé una lista vacía: es mejor no preguntar que preguntar de más.
 
-Para cada una, el "ancla": un pedazo de SU respuesta copiado tal cual, de 6 a 20 palabras, que se entienda solo, sin la pregunta ni el resto de la respuesta: tiene que decir de qué habla (sí: "los veranos ayudaba a mi tío a descargar el camión de la fruta"; no: "eso fue cuando pasó lo otro", que no dice qué). Sin nombres de personas que no estén en la ficha. El narrador la va a ver entre comillas, como algo suyo que nos quedó dando vueltas. Nunca cambies ni agregues palabras; si ningún pedazo textual cumple, no la elijas. "tema": de qué habla, en pocas palabras ("el camión de la fruta"). Y "por_que": una línea sobre qué escena podría salir.
+Para cada una, el "ancla": un pedazo de SU respuesta copiado tal cual, de 6 a 20 palabras, que se entienda solo, sin la pregunta ni el resto de la respuesta: tiene que decir de qué habla (sí: "los veranos ayudaba a mi tío a descargar el camión de la fruta"; no: "eso fue cuando pasó lo otro", que no dice qué). Sin nombres de personas que no estén en la ficha. Tiene que nombrar al menos una cosa, lugar o persona concreta ("el estudio que armamos en el garaje" sí; "me quedé con ganas de seguir" no), y no puede apuntar a algo de afuera ("este", "eso", "ahí", "él"). El narrador la va a ver entre comillas, como algo suyo que nos quedó dando vueltas. Nunca cambies ni agregues palabras; si ningún pedazo textual cumple, no la elijas. "tema": de qué habla, en pocas palabras ("el camión de la fruta"). Y "por_que": una línea sobre qué escena podría salir.
 
 Además, ubicar en el tiempo:
 - "sin_fecha": como mucho UNA respuesta de la tanda que cuenta una historia con peso (más de 80 palabras, o una escena) y no dice cuándo pasó: ni año, ni edad, ni grado, ni etapa, ni un hecho que la ubique ("cuando me casé", "en la pandemia"). Nunca una sensible. Con su "ancla" (mismas reglas que arriba) y su "tema". Si no hay, null.
-- "fechados": los hechos de la tanda que SÍ dicen cuándo pasaron, con año o edad dichos por él ("a los doce", "en el 2008") o de la ficha. Cada uno con "hecho" (pocas palabras, como él lo diría: "entrar a la fábrica"), "anio" o "edad" como número, y el id. Sirven para armar botones más adelante; no inventes ni calcules nada que él no dijo.
+- "fechados": solo los CAMBIOS DE VIDA de la tanda (mudarse, empezar o dejar un colegio o un trabajo, casarse, un hijo, irse del país, una pérdida) que dicen cuándo pasaron, con el año o la edad TAL COMO los dijo él ("a los doce", "en el 2008") o de la ficha. Nada que no sea un cambio ("tener 27 años" no), nada repetido de <ya_repreguntado> o de tandas anteriores. Cada uno con "hecho" (pocas palabras, como él lo diría: "entrar a la fábrica"), "anio" o "edad" como número, y el id. No calcules nada.
 ```
 
 Esquema de salida:
@@ -97,3 +97,12 @@ Esquema de salida:
 - **"fechados" trae ruido** ("tener 27 años", el mismo hecho dos veces).
 
 Propuesta (a decidir): si en un bloque hay una historia sin fecha, el cupo es 1 escena + 1 "¿cuándo?" (el botón cuesta un toque; la escena, un audio). Además, que el ancla no tenga palabras que apuntan a algo de afuera ("este", "eso", "ahí") y que "fechados" sean solo cambios de vida con año o edad, sin repetir.
+
+## Ajustes de Fable a la prueba 2 (26/09 noche) — aplicados en el diseño
+
+1. **Cupo 2 por bloque.** La segunda plaza la gana el "¿cuándo fue?" solo si su historia tiene peso (escena o más de ~80 palabras); si no, la gana la segunda escena (el escritor ubica los resúmenes chicos con "un tiempo después"). Con mayores, que fechan menos, va a pasar más seguido, y el botón es barato.
+2. **Palabras que apuntan afuera, por lista fija en código** (no por instrucción al modelo): este/esta/estos/estas, ese/esa/esos/esas, aquel/aquella, esto, eso, aquello, ahí, allá, allí, él, ella, ellos, ellas, entonces, "después de eso", "ahí mismo". Si el ancla tiene alguna, se rechaza y se le pide otra al modelo; si no hay otra, no hay intervención. **Ojo, decisión nuestra:** Fable listó también "lo, la, le", pero "la" y "lo" son artículos ("la fruta", "lo mejor") y el código no los distingue de los pronombres; quedan afuera de la lista (el modelo igual tiene la instrucción de que el ancla se entienda sola).
+3. **Sustantivo concreto:** el ancla tiene que tener al menos uno ("el estudio que armamos en el garaje" sí; "me quedé con ganas de seguir" no). Esto lo juzga el modelo (instrucción en el prompt); el código solo exige al menos una palabra de contenido de 4 letras o más fuera de una lista de palabras vacías.
+4. **"fechados"**: solo cambios de vida con año o edad **tal como los dijo** (no calculados), sin repetir, **ordenados por tiempo**. Los botones "Antes de… / Después de…" se arman con los **dos vecinos más cercanos a la etapa del bloque**, no con los dos últimos guardados.
+
+Control con la lista fija, corrido sobre las anclas de la prueba 2: rechaza justo las dos flojas ("…ese fue un momento de felicidad…", "…viajé a Miami con este chico") y una tercera más ("…el carrito ese…"). En vivo, a cada rechazo se le pide otra ancla al modelo; si no hay, no hay intervención.
