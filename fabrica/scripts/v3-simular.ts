@@ -1,6 +1,6 @@
-// Simula el índice V3 (capítulos madre) sin gastar nada: las seis fichas de
-// E2 en los tres tamaños, la viuda con perfil "parco", 200 fichas al azar y,
-// si existe, el material real etiquetado de Naza:
+// Simula el índice V3 (agrupaciones fijas por tamaño) sin gastar nada: las
+// seis fichas de E2 en los tres tamaños, la viuda con perfil "parco", 200
+// fichas al azar y, si existe, el material real etiquetado de Naza:
 //
 //   npx tsx scripts/v3-simular.ts
 //
@@ -11,7 +11,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { armarIndice, type Capitulo, type Indice, type RespuestaV3 } from '../src/v3/indice.js';
+import { armarIndice, FACTOR_ESCRITO, escritas, type Capitulo, type Indice, type RespuestaV3, type Tamanio } from '../src/v3/indice.js';
 import { crearAzar, estadisticas, fichaAlAzar, FICHAS_E2, simular, type Perfil } from '../src/v3/simulador.js';
 import type { FichaV3 } from '../src/v3/ficha.js';
 
@@ -32,7 +32,8 @@ const SALIDA = path.join(CARPETA, 'simulacion.md');
  * hijos, estudios sin terminar, música y programación como oficio, fútbol como
  * pasión) más, de su ficha.xml, las parejas anteriores (Vicky, Chiara), los
  * tres oficios y el Liceo Naval: las etiquetas usan sujetos pareja:3 y
- * oficio:1-3 con ese orden.
+ * oficio:1-3 con ese orden. Los oficios no traen años (la ficha nueva los
+ * pide): la señal "oficio posterior a la migración" no se puede usar.
  */
 const FICHA_NAZA: FichaV3 = {
   nombre: 'Naza', apodo: 'Tricky', anioNacimiento: 1998, genero: 'varon', paisNacimiento: 'Argentina', paisResidencia: 'España',
@@ -53,25 +54,66 @@ const FICHA_NAZA: FichaV3 = {
 };
 
 const miles = (n: number) => n.toLocaleString('es-AR');
-const nombreCap = (c: Capitulo) => `${c.titulo}${c.parte ? ` / ${c.parte.nombre}` : ''}`;
-const listaCaps = (indice: Indice) => indice.capitulos.map((c) => `${nombreCap(c)} (${miles(c.palabrasEscritasObjetivo)})`).join(' · ');
+const nombreCap = (c: Capitulo) => `${c.titulo}${c.parte ? ` / ${c.parte.nombre}` : ''}${c.corto ? ' (corto)' : ''}`;
+const listaCaps = (indice: Indice) =>
+  indice.capitulos.map((c, i) => `${i + 1}. ${nombreCap(c)} (${miles(c.palabrasEscritasObjetivo)})`).join(' · ') +
+  (indice.coda ? ` · coda: Hoy (${miles(indice.coda.palabrasEscritasObjetivo)})` : '');
+const celdaIndice = (indice: Indice) =>
+  indice.capitulos.map((c, i) => `${i + 1}. ${nombreCap(c)} (${miles(c.palabrasEscritasObjetivo)})`).join('<br>') +
+  (indice.coda ? `<br>coda: Hoy (${miles(indice.coda.palabrasEscritasObjetivo)})` : '');
 
 const salida: string[] = [];
 const out = (linea = '') => salida.push(linea);
 
-out('# Simulación del índice V3');
+out('# Simulación del índice V3 — agrupaciones fijas por tamaño');
 out();
 out(`Generado por \`scripts/v3-simular.ts\` (sin modelo, sin costo). Año de referencia ${ANIO}, semilla ${SEMILLA}.`);
 out('Largos: log-normal con mediana 127 palabras habladas (58 s), p25 ≈ 88, p75 ≈ 185; perfil "parco" con mediana 75; 15 % "paso".');
-out('Umbrales: mínimo 1.500 habladas (De dónde vengo 800), partición > 5.000 (segunda > 9.000, solo Completo). Escritas = 0,6 × habladas.');
-out('Entre paréntesis, las palabras escritas objetivo de cada capítulo.');
+out(`Escritas = ${String(FACTOR_ESCRITO).replace('.', ',')} × habladas (cociente real medido). Pisos en escritas: los de la tabla de Fable (Breve 500/400, Estándar 700, Amor 500, Hoy 600, Completo 900/700/600). Particiones solo en Completo, desde 3.000 escritas.`);
+out('Entre paréntesis, las palabras escritas objetivo de cada capítulo. "(corto)": existe bajo su piso (Amor entre 250 y 500, o su receptor ya no estaba). "coda": Hoy bajo su piso, sin número.');
+out();
+
+// ---------------------------------------------------------------- 200 al azar
+out(`## ${FICHAS_AL_AZAR} fichas al azar`);
+out();
+out('| Tamaño | Perfil | Capítulos promedio | Mín–máx | % con coda | % con receptores usados | % con capítulo corto | % partes | % migrante joven | Libros con < 4 | Combinaciones sin título |');
+out('|---|---|---|---|---|---|---|---|---|---|---|');
+for (const t of TAMANIOS) {
+  for (const perfil of ['normal', 'parco'] as const) {
+    const azar = crearAzar(2026);
+    const indices = Array.from({ length: FICHAS_AL_AZAR }, (_x, i) => simular(fichaAlAzar(azar, ANIO), t, { semilla: i + 1, perfil, anioActual: ANIO }).indice);
+    const e = estadisticas(indices);
+    out(`| ${NOMBRE_TAMANIO[t]} | ${perfil} | ${String(e.capitulosPromedio).replace('.', ',')} | ${e.capitulosMin}–${e.capitulosMax} | ${e.pctConCoda} % | ${e.pctConReceptor} % | ${e.pctConCorto} % | ${e.pctPartidos} % | ${e.pctMigranteJoven} % | ${e.menosDe4} | ${e.avisosSinTitulo} |`);
+  }
+}
+out();
+out('"Receptores usados": algún capítulo no llegó a su piso y fue entero a su receptor (o, en Completo, Lo que costó se repartió). "Partes": capítulos que son una parte de una partición, sobre el total de capítulos.');
+out();
+
+// Cuántas veces cae cada capítulo bajo su piso (para ver qué receptor trabaja más).
+out('### Qué capítulos caen bajo el piso (perfil normal, 200 fichas)');
+out();
+out('| Tamaño | Capítulo → receptor (veces) |');
+out('|---|---|');
+for (const t of TAMANIOS) {
+  const azar = crearAzar(2026);
+  const cuenta = new Map<string, number>();
+  for (let i = 0; i < FICHAS_AL_AZAR; i++) {
+    const indice = simular(fichaAlAzar(azar, ANIO), t, { semilla: i + 1, anioActual: ANIO }).indice;
+    const pares = new Set(indice.saltos.map((s) => `${s.de} → ${s.a}`));
+    for (const p of pares) cuenta.set(p, (cuenta.get(p) ?? 0) + 1);
+    if (indice.coda) cuenta.set(`${indice.coda.clave} → coda`, (cuenta.get(`${indice.coda.clave} → coda`) ?? 0) + 1);
+    for (const c of indice.capitulos.filter((x) => x.corto)) cuenta.set(`${c.clave} corto`, (cuenta.get(`${c.clave} corto`) ?? 0) + 1);
+  }
+  out(`| ${NOMBRE_TAMANIO[t]} | ${[...cuenta.entries()].sort((a, b) => b[1] - a[1]).map(([k, v]) => `${k} (${v})`).join(', ')} |`);
+}
 out();
 
 // ---------------------------------------------------------------- fichas de E2
-out('## Fichas de E2');
+out('## Fichas de E2 (respuestas sintéticas, semilla 1)');
 out();
-out('| Ficha | Tamaño | Preguntas | Respondidas | Habladas | Capítulos | Índice (escritas objetivo) |');
-out('|---|---|---|---|---|---|---|');
+out('| Ficha | Tamaño | Preguntas | Respondidas | Habladas | Escritas | Capítulos | Índice (escritas objetivo) |');
+out('|---|---|---|---|---|---|---|---|');
 const casos: { nombre: string; ficha: FichaV3; perfil: Perfil }[] = [
   ...FICHAS_E2.map((f) => ({ nombre: f.nombre, ficha: f.ficha, perfil: 'normal' as Perfil })),
   { nombre: `${FICHAS_E2[0].nombre} — perfil parco`, ficha: FICHAS_E2[0].ficha, perfil: 'parco' },
@@ -81,63 +123,18 @@ for (const caso of casos) {
   for (const t of TAMANIOS) {
     const s = simular(caso.ficha, t, { semilla: SEMILLA, perfil: caso.perfil, anioActual: ANIO });
     const respondidas = s.respuestas.filter((r) => !r.paso).length;
-    out(`| ${caso.nombre} | ${NOMBRE_TAMANIO[t]} | ${s.preguntas} | ${respondidas} | ${miles(s.palabras)} | ${s.indice.capitulos.length} | ${listaCaps(s.indice)} |`);
-    for (const a of s.indice.avisos) if (/sin título|no se parte|Bisagra|no hay etapa/.test(a)) avisosE2.push(`${caso.nombre}, ${NOMBRE_TAMANIO[t]}: ${a}`);
+    out(`| ${caso.nombre} | ${NOMBRE_TAMANIO[t]} | ${s.preguntas} | ${respondidas} | ${miles(s.palabras)} | ${miles(escritas(s.palabras))} | ${s.indice.capitulos.length}${s.indice.coda ? ' + coda' : ''} | ${listaCaps(s.indice)} |`);
+    for (const a of s.indice.avisos) if (/corto|coda|va a|no existe|se parte|no se parte/.test(a)) avisosE2.push(`${caso.nombre}, ${NOMBRE_TAMANIO[t]}: ${a}`);
   }
 }
 out();
-if (avisosE2.length) {
-  out('Avisos que importan (fusiones sin título, capítulos que desbordan sin clave, bisagra, ancla corta):');
-  out();
-  for (const a of avisosE2) out(`- ${a}`);
-  out();
-}
-
-// ---------------------------------------------------------------- 200 al azar
-out(`## ${FICHAS_AL_AZAR} fichas al azar`);
+out('Avisos (pisos, receptores, cortos, codas, particiones):');
 out();
-out('| Tamaño | Perfil | Capítulos promedio | Mín–máx | % capítulos fusionados | % capítulos partidos | Libros con < 4 capítulos | Fusiones sin título |');
-out('|---|---|---|---|---|---|---|---|');
-const sinTitulo = new Map<string, number>();
-for (const t of TAMANIOS) {
-  for (const perfil of ['normal', 'parco'] as const) {
-    const azar = crearAzar(2026);
-    const indices = Array.from({ length: FICHAS_AL_AZAR }, (_x, i) => simular(fichaAlAzar(azar, ANIO), t, { semilla: i + 1, perfil, anioActual: ANIO }).indice);
-    for (const a of indices.flatMap((x) => x.avisos)) {
-      const m = /Fusión ([\d+]+) sin título/.exec(a);
-      if (m) sinTitulo.set(m[1], (sinTitulo.get(m[1]) ?? 0) + 1);
-    }
-    const e = estadisticas(indices);
-    out(`| ${NOMBRE_TAMANIO[t]} | ${perfil} | ${e.capitulosPromedio} | ${e.capitulosMin}–${e.capitulosMax} | ${e.pctFusionados} % | ${e.pctPartidos} % | ${e.menosDe4} de ${e.libros} | ${e.avisosFusionSinTitulo} |`);
-  }
-}
-out();
-if (sinTitulo.size) {
-  out('Grupos de fusión que no están en la tabla de títulos (usan el título del anfitrión):');
-  out();
-  for (const [grupo, veces] of [...sinTitulo.entries()].sort((a, b) => b[1] - a[1])) out(`- ${grupo}: ${veces} veces`);
-  out();
-}
-
-// ---------------------------------------------------------------- sensibilidad al mínimo
-out('### Sensibilidad al mínimo (mismas 200 fichas, perfil normal)');
-out();
-out('Para decidir el umbral con datos: capítulos promedio y libros con < 4 capítulos según el mínimo de palabras habladas.');
-out();
-out('| Mínimo | Breve: capítulos | Breve: < 4 | Estándar: capítulos | Estándar: < 4 | Completo: capítulos | Completo: < 4 |');
-out('|---|---|---|---|---|---|---|');
-for (const minimo of [1500, 1200, 1000, 800]) {
-  const celdas: string[] = [];
-  for (const t of TAMANIOS) {
-    const azar = crearAzar(2026);
-    const e = estadisticas(Array.from({ length: FICHAS_AL_AZAR }, (_x, i) => simular(fichaAlAzar(azar, ANIO), t, { semilla: i + 1, anioActual: ANIO, minimo }).indice));
-    celdas.push(`${e.capitulosPromedio} (${e.capitulosMin}–${e.capitulosMax})`, `${e.menosDe4}`);
-  }
-  out(`| ${miles(minimo)} | ${celdas.join(' | ')} |`);
-}
+for (const a of avisosE2) out(`- ${a}`);
 out();
 
 // ---------------------------------------------------------------- Naza
+let naza: { respuestas: RespuestaV3[]; indices: Record<Tamanio, Indice> } | null = null;
 out('## Naza (material real etiquetado)');
 out();
 if (!existsSync(ETIQUETAS)) {
@@ -155,36 +152,84 @@ if (!existsSync(ETIQUETAS)) {
     texto: String(x.texto ?? ''),
     paso: x.paso === true,
   }));
-  const indice = armarIndice(respuestas, FICHA_NAZA, { tamanio: 'E', anioActual: ANIO });
+  const indices = { B: armarIndice(respuestas, FICHA_NAZA, { tamanio: 'B', anioActual: ANIO }), E: armarIndice(respuestas, FICHA_NAZA, { tamanio: 'E', anioActual: ANIO }), C: armarIndice(respuestas, FICHA_NAZA, { tamanio: 'C', anioActual: ANIO }) };
+  naza = { respuestas, indices };
+  const indice = indices.E;
   const habladas = respuestas.filter((r) => !r.paso).reduce((s, r) => s + r.palabras, 0);
-  out(`${respuestas.length} respuestas (${respuestas.filter((r) => r.paso).length} "paso"), ${miles(habladas)} palabras habladas → ${indice.capitulos.length} capítulos, ${miles(Math.round(0.6 * habladas))} escritas.`);
+  const porId = (id: string) => respuestas.find((r) => r.id === id)!;
+  out(`${respuestas.length} respuestas (${respuestas.filter((r) => r.paso).length} "paso"), ${miles(habladas)} palabras habladas ≈ ${miles(escritas(habladas))} escritas. Estándar → ${indice.capitulos.length} capítulos${indice.coda ? ' + coda' : ''}.`);
   out();
-  out('| # | Capítulo | Madres | Habladas | Escritas objetivo | Respuestas |');
+  out('| # | Capítulo | Claves | Habladas | Escritas objetivo | Respuestas |');
   out('|---|---|---|---|---|---|');
   indice.capitulos.forEach((c, i) => {
-    const ids = c.respuestaIds.map((id) => `${id} ${respuestas.find((r) => r.id === id)!.preguntaId}${c.sensibles.includes(id) ? ' (S)' : ''}`).join(', ');
-    out(`| ${i + 1} | ${nombreCap(c)} | ${c.madres.join('+')} | ${miles(c.palabrasHabladas)} | ${miles(c.palabrasEscritasObjetivo)} | ${ids} |`);
+    const ids = c.respuestaIds.map((id) => `${id} ${porId(id).preguntaId}${c.sensibles.includes(id) ? ' (S)' : ''}`).join(', ');
+    out(`| ${i + 1} | ${nombreCap(c)} | ${c.claves.join('+')} | ${miles(c.palabrasHabladas)} | ${miles(c.palabrasEscritasObjetivo)} | ${ids} |`);
   });
+  if (indice.coda) out(`| coda | Hoy | ${indice.coda.clave} | ${miles(indice.coda.palabrasHabladas)} | ${miles(indice.coda.palabrasEscritasObjetivo)} | ${indice.coda.respuestaIds.join(', ')} |`);
   out();
   out(`Cierre (legado): ${indice.cierre.join(', ') || '—'}`);
   out();
-  out('Flotantes y reubicadas:');
+  out('Saltos por piso:');
+  out();
+  for (const s of indice.saltos) out(`- ${s.respuestaId} ${porId(s.respuestaId).preguntaId}: ${s.de} → ${s.a}`);
+  if (!indice.saltos.length) out('- ninguno');
+  out();
+  out('Flotantes, crisis y reubicadas:');
   out();
   for (const f of indice.flotantes) {
-    out(`- ${f.respuestaId} ${f.preguntaId} → ${f.madre} (${f.motivo}${f.edad !== undefined ? `, edad ${f.edad}` : ''}${f.expresion ? `, "${f.expresion}"` : ''}${f.sensible ? ', sensible' : ''})`);
+    out(`- ${f.respuestaId} ${f.preguntaId} → tema ${f.tema}${f.receptor !== undefined ? ` (receptor ${f.receptor})` : ''} (${f.motivo}${f.edad !== undefined ? `, edad ${f.edad}` : ''}${f.expresion ? `, "${f.expresion}"` : ''}${f.sensible ? ', sensible' : ''})`);
   }
   out();
   out('Avisos:');
   out();
   for (const a of indice.avisos) out(`- ${a}`);
   out();
-  out('Con otro mínimo (solo para comparar):');
+
+  // 9a. Vigilancia del modo migrante joven.
+  out('### Vigilancia: antes / después de emigrar (modo migrante joven, Estándar)');
   out();
-  for (const minimo of [1000, 800]) {
-    const otro = armarIndice(respuestas, FICHA_NAZA, { tamanio: 'E', anioActual: ANIO, minimo });
-    out(`- Mínimo ${miles(minimo)}: ${otro.capitulos.length} capítulos — ${listaCaps(otro)}`);
+  const mj = indice.migranteJoven;
+  if (!mj) out('La ficha de Naza no activa el modo migrante joven.');
+  else {
+    out(`Edad al migrar ${mj.edadMigracion}, edad actual ${mj.edadActual}; lugares de destino que se buscan en el texto: ${mj.lugaresDestino.join(', ')}.`);
+    out();
+    out('| Respuesta | Pregunta | Bloque | Clasificación | Señal | Quedó en | Comienzo del texto |');
+    out('|---|---|---|---|---|---|---|');
+    for (const c of mj.clasificacion) {
+      const texto = porId(c.respuestaId).texto.replace(/\s+/g, ' ').slice(0, 160).replace(/\|/g, '/');
+      out(`| ${c.respuestaId} | ${c.preguntaId} | ${c.bloque} | ${c.momento} | ${c.senal} | ${c.capitulo} | ${texto}… |`);
+    }
   }
+  out();
 }
+
+// ---------------------------------------------------------------- 9c. lado a lado
+out('## La misma ficha en Breve, Estándar y Completo');
+out();
+const viuda = FICHAS_E2.find((f) => f.clave === 'viuda')!;
+const filasLado: { nombre: string; indices: Record<Tamanio, Indice> }[] = [
+  { nombre: 'Viuda de 82 (sintética, semilla 1)', indices: { B: simular(viuda.ficha, 'B', { semilla: SEMILLA, anioActual: ANIO }).indice, E: simular(viuda.ficha, 'E', { semilla: SEMILLA, anioActual: ANIO }).indice, C: simular(viuda.ficha, 'C', { semilla: SEMILLA, anioActual: ANIO }).indice } },
+  ...(naza ? [{ nombre: 'Naza (material real: las mismas 57 respuestas en los tres)', indices: naza.indices }] : []),
+];
+out('| Ficha | Breve | Estándar | Completo |');
+out('|---|---|---|---|');
+for (const f of filasLado) out(`| ${f.nombre} | ${celdaIndice(f.indices.B)} | ${celdaIndice(f.indices.E)} | ${celdaIndice(f.indices.C)} |`);
+out();
+
+// ---------------------------------------------------------------- contra Fable
+out('## Contra los índices que predijo Fable (sección 5)');
+out();
+const gallego = FICHAS_E2.find((f) => f.clave === 'gallego')!;
+const predicciones: { nombre: string; fable: string; indice: Indice | null }[] = [
+  { nombre: 'Naza, Estándar (real)', fable: 'De dónde vengo y los primeros años (1.300) · Hacerse grande (1.500) · Mi gente y mis lugares (900) · El viaje, hasta hoy (2.000)', indice: naza?.indices.E ?? null },
+  { nombre: 'Viuda de 82, Estándar', fable: 'De dónde vengo y los primeros años (2.000) · Hacerse grande (1.000) · Amor y la familia que armé (2.300) · Trabajo y oficio (1.100) · Mi gente y mis lugares (1.000) · Hoy (900)', indice: simular(viuda.ficha, 'E', { semilla: SEMILLA, anioActual: ANIO }).indice },
+  { nombre: 'Gallego de 71, Estándar', fable: 'De dónde vengo y los primeros años (1.800) · Hacerse grande y el viaje (1.500) · Amor y la familia que armé (2.600) · Trabajo y oficio (1.400) · Mi gente y mis lugares (1.000) · Hoy (800)', indice: simular(gallego.ficha, 'E', { semilla: SEMILLA, anioActual: ANIO }).indice },
+  { nombre: 'Viuda parca, Breve', fable: 'Crecer y salir al mundo (1.050) · Los míos (550) · coda: Hoy (300)', indice: simular(viuda.ficha, 'B', { semilla: SEMILLA, perfil: 'parco', anioActual: ANIO }).indice },
+];
+out('| Caso | Fable | Código |');
+out('|---|---|---|');
+for (const p of predicciones) out(`| ${p.nombre} | ${p.fable} | ${p.indice ? listaCaps(p.indice) : '—'} |`);
+out();
 
 const texto = salida.join('\n') + '\n';
 mkdirSync(CARPETA, { recursive: true });
