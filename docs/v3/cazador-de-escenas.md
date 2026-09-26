@@ -87,7 +87,7 @@ Esquema de salida:
 - **K2 · Muerte y enfermedad:** para un público de 60+, la última vez con un padre o la viudez suelen ser las escenas centrales. ¿Se excluyen del todo o solo si el narrador las marcó? Hoy siguen excluidas.
 - **K5 · Años de los títulos del libro:** ¿años calculados ("1998–2004") o "hacia 2004" cuando el corte no es seguro? (Del escritor; se anota acá para tener la lista junta.)
 - **K6 · Piso del capítulo (7 % del libro, entre 600 y 900, propuesta de Fable ya en código):** confirmarlo con otro narrador. (Del escritor.)
-- **K7 · ¿"Juancito" es Juan Damico?** Lo contesta Naza. (Del escritor.)
+- **K7 · Resuelto (Naza, 26/09):** "Juancito" es otra persona, no Juan Damico. (Del escritor.)
 - **K8 · Cuota y largo del ancla:** 2 o 3 por bloque con tope ~10, y anclas de hasta 20 palabras en un WhatsApp para alguien de 75.
 
 ## Prueba 2 (26/09 noche, cazador + ubicar en el tiempo, 4 bloques en secuencia con lo ya repreguntado, USD 0)

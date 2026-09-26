@@ -39,7 +39,7 @@ Segunda prueba del día, después de la [v4](prueba-libro-v4.md). Base: el escri
 8. **El tope de palabras por capítulo quedó justo** (×1,15 de lo estimado): un capítulo con 6 anécdotas tuvo 800. Propuesta: ×1,4; igual rige "nunca estirar".
 9. **Presentaciones:** dos personas aparecen en el capítulo 5 y se presentan en el 6 (la regla de ≥150 palabras eligió el 6). Propuesta: se presenta en el primer capítulo donde tiene un hecho propio.
 10. **Los años de los títulos son calculados** (1998–2004…). El control de años tiene que saltear los títulos; si se quiere, "hacia 2004" cuando el corte no es seguro. A decidir.
-11. **Duda para Naza:** ¿"Juancito" (mejor amigo de la facultad) es Juan Damico (amigo del Fátima)?
+11. **Resuelto (Naza):** "Juancito" (mejor amigo de la facultad) NO es Juan Damico (amigo del Fátima).
 
 ## Tokens
 
