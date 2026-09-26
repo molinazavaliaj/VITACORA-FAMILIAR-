@@ -31,6 +31,9 @@ describe('edadDicha: solo con sujeto propio', () => {
     expect(edad('A los quince me compraron el vestido.')).toBe(15);
     expect(edad('Cuando tenía veintitrés años llegué.')).toBe(23);
   });
+  it('"yo tenía N" es del narrador aunque después venga un pariente', () => {
+    expect(edad('Yo tenía 8 años y mi papá cayó preso.')).toBe(8);
+  });
   it('rechaza la edad de otro: parentesco en las 3 palabras siguientes', () => {
     expect(edad('Fue a los 17 de mi hija, cuando se recibió.')).toBeNull();
     expect(edad('a los cinco años de mi nieto le regalamos la bici')).toBeNull();

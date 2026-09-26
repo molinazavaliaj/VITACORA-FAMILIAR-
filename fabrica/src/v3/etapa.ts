@@ -68,18 +68,25 @@ export type EdadDicha = { edad: number; motivo: 'edad-numero'; expresion: string
  */
 export function edadDicha(texto: string, ficha: Pick<FichaV3, 'anioNacimiento'>, anioActual: number): EdadDicha | null {
   const t = normalizar(texto);
-  const patrones = [
-    new RegExp(`\\byo tenia ${NUMERO}\\b`, 'g'),
-    new RegExp(`\\btenia yo ${NUMERO}\\b`, 'g'),
-    new RegExp(`\\bcuando tenia ${NUMERO}\\b`, 'g'),
-    new RegExp(`\\ba mis ${NUMERO}\\b`, 'g'),
-    new RegExp(`\\ba los ${NUMERO}\\b`, 'g'),
+  // Solo "a los N" puede ser la edad de otro ("a los 17 de mi hija"): el
+  // chequeo de parentesco y de duración va solo ahí. "Yo tenía 8 años y mi
+  // papá…" es del narrador aunque después venga un pariente.
+  const patrones: [RegExp, boolean][] = [
+    [new RegExp(`\\byo tenia ${NUMERO}\\b`, 'g'), false],
+    [new RegExp(`\\btenia yo ${NUMERO}\\b`, 'g'), false],
+    [new RegExp(`\\bcuando tenia ${NUMERO}\\b`, 'g'), false],
+    [new RegExp(`\\ba mis ${NUMERO}\\b`, 'g'), false],
+    [new RegExp(`\\ba los ${NUMERO}\\b`, 'g'), true],
   ];
   const candidatos: { pos: number; edad: number; expresion: string }[] = [];
-  for (const re of patrones) {
+  for (const [re, ambiguo] of patrones) {
     for (const m of t.matchAll(re)) {
       const edad = numeroEnPalabras(m[1]);
       if (edad === null) continue;
+      if (!ambiguo) {
+        candidatos.push({ pos: m.index!, edad, expresion: m[0] });
+        continue;
+      }
       const despues = t.slice(m.index! + m[0].length).split(/[^a-zñ0-9]+/).filter(Boolean);
       if (DURACION.has(despues[0])) continue; // "a los 5 minutos"
       if (/^anos?$/.test(despues[0] ?? '') && despues[1] === 'de') continue; // "a los dos años de casados"
