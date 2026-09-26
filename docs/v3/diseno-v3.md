@@ -403,6 +403,8 @@ Límite: un solo narrador, de 27 años, que habla mucho. No dice nada seguro sob
 - Conteo: las ★ eran 46 y las puertas 13 (no 48 y 15). El Breve variaba entre 37 y 52 según la ficha.
 - Todo eso lo tomó el informe 3 y está aplicado en el banco.
 
+**E7a — Escritor v4 en la sesión, sobre la historia de Naza (26/09).** USD 0. Detalle en [`prueba-libro-v4.md`](prueba-libro-v4.md). Contra el libro anterior (prompts v1-2): 0 datos falsos contra 1, pero 21 errores de armado contra 17 y se lee más tieso. Lo que se aprendió: las reglas de verdad funcionan; las de redacción con mínimos (largo de introducción y de presentaciones) y la regla de plazos seguros aplicada a lo que él dijo con número quitan vida; el índice de 3 capítulos anclado por palabras mezcla épocas. Propuesta R1-R6 pendiente de Naza.
+
 ### Pendientes
 
 | Prueba | Qué es | Costo | Seguir si | Frenar o cambiar si |
@@ -466,6 +468,8 @@ Estado según lo que dijo Naza el 25/09: P1, P2 y P3 aprobadas; P4 pendiente; P5
 - **Elegir el tema:** cada cuánto se ofrecen las dos opciones.
 - **Biógrafo:** nombre, voz, y si los nombres van por texto o con voz sintética.
 - **Pandemia fija:** HG4 queda como pregunta fija, fuera del menú de HG1 (confirmado por Naza el 25/09). (El Mundial ya está resuelto: vuelve al menú; en España se sumó el Mundial 2010, a aprobar.)
+
+- **Escritor v5 (desde la prueba E7a, 26/09).** Aprobar R1-R6 de [`prueba-libro-v4.md`](prueba-libro-v4.md); sumar al plan título del libro y oración de cierre de la carta; anclar anécdotas por edad en 1b; la respuesta "qué capítulos tendría tu vida" fuera de la carta; retoque con salida "falsa alarma".
 
 ## Fuentes
 
