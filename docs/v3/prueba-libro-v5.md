@@ -44,3 +44,17 @@ Segunda prueba del día, después de la [v4](prueba-libro-v4.md). Base: el escri
 ## Tokens
 
 Unos 3,5 millones de tokens de agentes dentro de la suscripción; USD 0 de API.
+
+## Después: "parece un formulario sin preguntas" (26/09, última prueba del día)
+
+Naza marcó un párrafo del prólogo ("En la casa ahora mismo está el profe…": ¿qué casa?) como el defecto de fondo: se lee como respuestas a preguntas que el lector no ve. Tres pruebas sobre el prólogo y el capítulo de Berga, USD 0:
+
+| Prueba | Resultado |
+|---|---|
+| Regla "Contar una historia, no llenar un formulario" en 3a y 3b (hilo por pieza, presentar todo antes de nombrarlo, cada párrafo engancha con el anterior, nada de listas de estado) | Mejora chica: el prólogo presenta la casa y le da un para qué a la rutina; el capítulo casi no cambia |
+| + "elegí 2-3 escenas y cortá el resto" | Más ordenado, pero los párrafos-ficha siguen ("tiene 42 años y tiene hijos…") |
+| **4 audios nuevos de Naza contestando "una vez concreta"** (la fiesta con Ima, un día de estas semanas, la primera noche en el piso, la última vez con Juan Manuel) | **El capítulo pasa de ficha a escenas**: la pista de baile y el auto, la charla en el sillón, la primera noche haciendo música antes que tener una silla, Juan Manuel llevándolo a Ezeiza a las cuatro de la mañana |
+
+**Conclusión:** el "formulario" viene del material, no del escritor. Una pregunta que pide describir ("¿cómo es ella?") da una ficha, y el escritor no puede hacerla escena sin inventar. Una pregunta que pide un momento da una escena en menos de un minuto de audio. El arreglo va en la **entrevista**: preguntas de momentos en el banco y una repregunta fija ("¿Te acordás de una vez concreta? Contame ese día") cuando la respuesta sale resumen. El escritor se queda con la regla de contar una historia (ayuda, no alcanza).
+
+Pendiente de la prueba: el prólogo no usó el día nuevo porque el plan lo fija a la respuesta de rutina; el plan tiene que elegir para el prólogo una respuesta que sea escena. Transcripción: vosk local (gratis), con 4 pedazos dudosos que no se usaron hasta que Naza los confirme.
