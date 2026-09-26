@@ -1,30 +1,32 @@
 # Cazador de escenas (borrador, 26/09 noche)
 
-**Estado: borrador de prueba, pendiente de aprobación de Naza.** Propuesta de Naza: cada 15 preguntas, una llamada que lea lo contado y le pida al narrador lo que falta. Se enfoca en lo que el dashboard no cubre: **escenas**. Las dudas de nombres y fechas siguen yendo al dashboard.
+**Estado: borrador v2 con los ajustes de Fable (26/09 noche), pendiente de aprobación de Naza.** Propuesta de Naza: cada tantas preguntas, una llamada que lea lo contado y le pida al narrador lo que falta. Se enfoca en lo que el dashboard no cubre: **escenas**. Las dudas de nombres y fechas siguen yendo al dashboard.
 
 Por qué: la prueba del 26/09 ([`prueba-libro-v5.md`](prueba-libro-v5.md)) mostró que el "formulario" viene de respuestas que describen en vez de contar un momento; con cuatro audios de "una vez concreta", el capítulo pasó de ficha a escenas.
 
-## Cómo funciona
+## Cómo funciona (con los ajustes de Fable)
 
-1. Cada 15 respuestas, una llamada recibe la ficha, TODAS las respuestas hasta ahí y las repreguntas que ya se hicieron (`<ya_repreguntado>`); elige solo entre las últimas 15.
-2. Devuelve como mucho 2 elecciones, cada una con un **ancla**: un pedazo copiado tal cual de la respuesta (de 3 a 15 palabras).
-3. El código verifica que el ancla esté textual en esa respuesta (sin tildes ni mayúsculas); si no está, no se manda. Tampoco se manda si la respuesta es sensible, si ya se repreguntó por esa respuesta o si el ancla nombra a alguien que no está en la ficha ni en la respuesta.
-4. El mensaje es un molde fijo, no lo redacta el modelo:
-   > Hace un rato me dijiste: «{ancla}». ¿Te acordás de una vez concreta? Contame ese día: dónde estabas, quién estaba, qué pasó.
+1. **Frecuencia por bloque**, no cada 15: se corre al cerrar cada bloque del banco. Máximo 2 por bloque; **3** si en ese bloque más de la mitad de las respuestas duraron menos de 40 s (cuota adaptativa, por regla, para el narrador parco). Tope total ~10 en Estándar. Nunca dos repreguntas seguidas.
+2. La llamada recibe la ficha, TODAS las respuestas hasta ahí y lo ya repreguntado (`<ya_repreguntado>`); elige solo entre las respuestas del bloque que cerró.
+3. Devuelve cada elección con un **ancla**: un pedazo copiado tal cual de la respuesta, de **6 a 20 palabras**, que se entienda solo y **sin nombres de personas que no estén en la ficha**.
+4. El código verifica: ancla textual en su respuesta (sin tildes ni mayúsculas), 6 a 20 palabras, sin nombres fuera de la ficha, respuesta no sensible, tema no repreguntado. Si algo falla, no se manda.
+5. **Molde fijo, sin referencia de tiempo** ("hace un rato" puede ser hace cuatro días):
+   > Me contaste esto: «{ancla}». ¿Te acordás de una vez concreta? Contame ese día: dónde estabas, quién estaba, qué pasó. Si preferís, decí paso.
+6. **Entra a la cola como una pregunta más**, nunca enseguida de la respuesta que la originó: mínimo tres preguntas después, ideal la sesión siguiente.
+7. Si contesta con el mismo resumen, se acepta y no se insiste. La respuesta entra al material pegada a la original.
 
-   (Primera versión: "Hace un rato contaste que {ancla}". Falló en la prueba: el ancla es suya, en primera persona, y quedaba "contaste que me fui a vivir solo". Con la cita entre comillas vale en cualquier persona y el modelo no reescribe nada.)
-5. La respuesta entra al material como una respuesta más, pegada a la original.
+Las dudas de nombres y fechas siguen yendo al dashboard. **Descartada** la repregunta fija por duración (sin modelo): la duración no distingue una respuesta corta y completa de una ficha (Fable).
 
-Riesgo que cuida el diseño: en la v2 un modelo que leía el contexto metía errores ("ayer", hermanos mezclados, repetir lo dicho). Acá el modelo solo elige; el texto que ve el narrador es fijo más sus propias palabras.
+Riesgos: en la v2 un modelo que leía el contexto metía errores ("ayer", hermanos mezclados, repetir lo dicho); acá el modelo solo elige y el narrador ve un texto fijo más sus propias palabras. Con mayores, sentirse examinados: bajo si la cita es literal y llega más tarde; alto si llega enseguida o se acumulan (por eso la cola, el tope y "nunca dos seguidas").
 
 ## Prompt
 
 ```
 Sos el cazador de escenas de una entrevista para un libro de vida. No hablás con el narrador: elegís de qué respuesta vale la pena pedirle una escena.
 
-Recibís la ficha y todas sus respuestas hasta ahora. Mirá SOLO las respuestas marcadas "tanda" (las últimas 15). Una escena es un momento concreto: un día, un lugar, quién estaba, qué pasó, qué se dijo. Buscá respuestas que se quedaron en resumen o en descripción ("siempre íbamos al campo", "ella es muy buena", "fue una época dura") pero nombran algo que seguro tuvo un momento que contar.
+Recibís la ficha, todas sus respuestas hasta ahora y lo que ya se le repreguntó. Mirá SOLO las respuestas marcadas "tanda" (las del bloque que acaba de cerrar). Una escena es un momento concreto: un día, un lugar, quién estaba, qué pasó, qué se dijo. Buscá respuestas que se quedaron en resumen o en descripción ("siempre íbamos al campo", "ella es muy buena", "fue una época dura") pero nombran algo que seguro tuvo un momento que contar.
 
-Elegí como mucho 2. No elijas:
+Elegí como mucho {{CUOTA}}. No elijas:
 - una respuesta que ya cuenta una escena (aunque sea corta);
 - algo que ya está contado como escena en otra respuesta, de esta tanda o de antes, o un tema por el que ya se repreguntó (<ya_repreguntado>), aunque sea en otra respuesta;
 - temas sensibles: muerte, enfermedad, cárcel, drogas, delitos, abuso, violencia, sexo, deudas;
@@ -32,7 +34,7 @@ Elegí como mucho 2. No elijas:
 - una respuesta de menos de 30 palabras.
 Si ninguna vale la pena, devolvé una lista vacía: es mejor no preguntar que preguntar de más.
 
-Para cada una, el "ancla": un pedazo de SU respuesta copiado tal cual, de 3 a 15 palabras, que se entienda solo, sin la pregunta ni el resto de la respuesta: tiene que decir de qué habla (sí: "los fines de semana nos íbamos al campo"; no: "lo vi acá con un amigo", que no dice qué). Va entre comillas después de "Hace un rato me dijiste:". Nunca cambies ni agregues palabras; si ningún pedazo textual se entiende solo, no la elijas. Y "por_que": una línea sobre qué escena podría salir.
+Para cada una, el "ancla": un pedazo de SU respuesta copiado tal cual, de 6 a 20 palabras, que se entienda solo, sin la pregunta ni el resto de la respuesta: tiene que decir de qué habla (sí: "los fines de semana nos íbamos al campo con mis hermanos"; no: "lo vi acá con un amigo", que no dice qué). Sin nombres de personas que no estén en la ficha. Va entre comillas después de "Me contaste esto:". Nunca cambies ni agregues palabras; si ningún pedazo textual cumple, no la elijas. Y "por_que": una línea sobre qué escena podría salir.
 ```
 
 Esquema de salida:

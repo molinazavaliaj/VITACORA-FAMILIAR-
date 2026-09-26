@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { armarEtapas, cambiosDeFicha, cambiosDeEdad, PISO_ETAPA, TECHO_ETAPA, PISO_ROL, type AnecdotaEtapa, type Cambio } from '../src/v3/etapas.js';
+import { armarEtapas, cambiosDeFicha, cambiosDeEdad, pisoEtapa, PISO_MIN, PISO_MAX, TECHO_ETAPA, PISO_ROL, type AnecdotaEtapa, type Cambio } from '../src/v3/etapas.js';
 import type { FichaV3 } from '../src/v3/ficha.js';
 
 const ANIO = 2026;
@@ -8,10 +8,22 @@ const a = (id: string, anio: number | null, palabras: number, rol?: string): Ane
 const c = (anio: number, tipo: Cambio['tipo'] = 'mudanza', fuente: Cambio['fuente'] = 'biblia'): Cambio => ({ anio, tipo, que: `${tipo} ${anio}`, fuente });
 
 describe('constantes (decisión de Naza con Fable, 26/09)', () => {
-  it('piso 600, techo 2.500, rol propio desde 1.200 palabras escritas', () => {
-    expect(PISO_ETAPA).toBe(600);
+  it('piso entre 600 y 900, techo 2.500, rol propio desde 1.200 palabras escritas', () => {
+    expect([PISO_MIN, PISO_MAX]).toEqual([600, 900]);
     expect(TECHO_ETAPA).toBe(2500);
     expect(PISO_ROL).toBe(1200);
+  });
+});
+
+describe('pisoEtapa (Fable, 26/09: 7 % de las palabras escritas del libro, entre 600 y 900)', () => {
+  it('un libro corto queda en 600', () => expect(pisoEtapa(6000)).toBe(600));
+  it('un Estándar de 60+ queda cerca de 600-700', () => expect(pisoEtapa(9500)).toBe(665));
+  it('un Completo llega a 900', () => expect(pisoEtapa(14000)).toBe(900));
+  it('armarEtapas lo usa por defecto', () => {
+    const muchas = Array.from({ length: 20 }, (_x, i) => a(`A${i}`, 1951 + i * 3, 700));
+    const cortes = Array.from({ length: 19 }, (_x, i) => c(1952 + i * 3));
+    const r = armarEtapas(muchas, cortes, base); // 14.000 palabras → piso 900: nada queda con 700 solo
+    expect(r.capitulos.every((x) => x.palabras >= 900)).toBe(true);
   });
 });
 
@@ -74,6 +86,22 @@ describe('armarEtapas', () => {
     const r = armarEtapas([a('A1', 1960, 2000), a('A2', 1972, 300), a('A3', 1990, 900)], [c(1970), c(1985)], base);
     expect(r.capitulos.map((x) => x.anecdotas)).toEqual([['A1'], ['A2', 'A3']]);
     expect(r.capitulos[1].desde).toBe(1970);
+  });
+
+  it('un tramo corto se pega del lado del corte más débil: nunca cruza una migración si hay otra salida', () => {
+    // 2019-2023 grande, 2023 migración (tramo corto), 2024 pareja, 2026 oficio
+    const r = armarEtapas(
+      [a('F', 2019, 650), a('M', 2023, 300), a('P', 2024, 900), a('O', 2026, 700)],
+      [c(2019, 'escuela'), { anio: 2023, tipo: 'migracion', que: 'se va', fuente: 'biblia' }, c(2024, 'pareja'), c(2026, 'oficio')],
+      { anioNacimiento: 1998, anioActual: 2026 },
+    );
+    expect(r.capitulos.map((x) => x.anecdotas)).toEqual([['F'], ['M', 'P'], ['O']]);
+    expect(r.capitulos[1].abre?.tipo).toBe('migracion');
+  });
+
+  it('con cortes de la misma fuerza, se pega al vecino más chico', () => {
+    const r = armarEtapas([a('A1', 1960, 2000), a('A2', 1972, 300), a('A3', 1990, 900)], [c(1970), c(1985)], base);
+    expect(r.capitulos.map((x) => x.anecdotas)).toEqual([['A1'], ['A2', 'A3']]);
   });
 
   it('el primero bajo el piso se pega al siguiente y el último al anterior', () => {

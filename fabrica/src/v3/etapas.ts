@@ -2,16 +2,21 @@
 // escritor v4: docs/v3/prueba-libro-v4.md). Reemplaza a los capítulos madre
 // por tema: los capítulos van en el orden de la vida y se cortan en los
 // cambios de vida (los de la ficha y los que la biblia fecha), nunca por un
-// año solo. Topes en palabras escritas (piso 600, techo 2.500): bajo el piso se pega al vecino más
+// año solo. Topes en palabras escritas (piso proporcional entre 600 y 900, techo 2.500): bajo el piso se pega al vecino más
 // chico; sobre el techo queda largo y se avisa (no hay dónde cortar). Una
 // pareja o un oficio que junta 1.200 palabras va como capítulo propio,
 // intercalado en el año en que empieza.
 
 import { lista, valor, type FichaV3 } from './ficha.js';
 
-// Fable proponía 800; con 800 el libro de Naza daba 4-5 capítulos y el que le gustó tenía ~700 palabras
-// por capítulo: 600 le da 6 (prueba v5, 26/09). A confirmar con más narradores.
-export const PISO_ETAPA = 600;
+// Piso proporcional (Fable, 26/09): 7 % de las palabras escritas del libro, entre 600 y 900.
+// Con 800 fijo el libro de Naza (6.000 escritas) daba 4 capítulos; un Estándar de 60+ con
+// 8.500-9.500 da 600-665 y un Completo llega a 900.
+export const PISO_MIN = 600;
+export const PISO_MAX = 900;
+export const PISO_FRACCION = 0.07;
+export const pisoEtapa = (palabrasEscritasDelLibro: number): number =>
+  Math.min(PISO_MAX, Math.max(PISO_MIN, Math.round(PISO_FRACCION * palabrasEscritasDelLibro)));
 export const TECHO_ETAPA = 2500;
 export const PISO_ROL = 1200;
 /** Cortes universales de la escuela: empieza la secundaria, termina el colegio. */
@@ -68,12 +73,15 @@ export function cambiosDeEdad(anioNacimiento: number, anioActual: number): Cambi
     .filter((x) => x.anio < anioActual);
 }
 
+/** Qué tan fuerte es un corte: la migración manda; después la ficha, la biblia y la edad. */
+const fuerza = (x: Cambio | null): number => (x ? (x.tipo === 'migracion' ? 10 : 0) + { ficha: 3, biblia: 2, edad: 1 }[x.fuente] : 0);
+
 type Tramo = { desde: number; hasta: number | null; abre: Cambio | null; anecdotas: AnecdotaEtapa[] };
 const suma = (t: Tramo) => t.anecdotas.reduce((s, x) => s + x.palabras, 0);
 
 export function armarEtapas(anecdotas: AnecdotaEtapa[], cambios: Cambio[], opciones: OpcionesEtapas): Etapas {
   const { anioNacimiento: nac, anioActual: hoy } = opciones;
-  const piso = opciones.piso ?? PISO_ETAPA;
+  const piso = opciones.piso ?? pisoEtapa(anecdotas.reduce((sum, x) => sum + x.palabras, 0));
   const techo = opciones.techo ?? TECHO_ETAPA;
   const pisoRol = opciones.pisoRol ?? PISO_ROL;
   const avisos: string[] = [];
@@ -135,9 +143,14 @@ export function armarEtapas(anecdotas: AnecdotaEtapa[], cambios: Cambio[], opcio
     const bajos = tramos.map((t, i) => ({ i, p: suma(t) })).filter((x) => x.p < piso);
     if (!bajos.length) break;
     const { i } = bajos.reduce((m, x) => (x.p < m.p ? x : m));
+    // Se borra el corte más débil de los dos que lo rodean (la migración es el más fuerte);
+    // con la misma fuerza, se pega al vecino más chico.
+    const cortePrev = i > 0 ? fuerza(tramos[i].abre) : -Infinity;
+    const corteNext = i < tramos.length - 1 ? fuerza(tramos[i + 1].abre) : -Infinity;
     const prev = i > 0 ? suma(tramos[i - 1]) : Infinity;
     const next = i < tramos.length - 1 ? suma(tramos[i + 1]) : Infinity;
-    if (next < prev) tramos.splice(i, 2, juntar(tramos[i], tramos[i + 1]));
+    const conSiguiente = i === 0 || (i < tramos.length - 1 && (corteNext < cortePrev || (corteNext === cortePrev && next < prev)));
+    if (conSiguiente) tramos.splice(i, 2, juntar(tramos[i], tramos[i + 1]));
     else tramos.splice(i - 1, 2, juntar(tramos[i - 1], tramos[i]));
   }
 

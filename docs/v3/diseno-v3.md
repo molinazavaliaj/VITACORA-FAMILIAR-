@@ -307,11 +307,15 @@ El material de Naza (57 respuestas, sin repetidos, con nombres corregidos) queda
 
 La prueba de la v4 ([`prueba-libro-v4.md`](prueba-libro-v4.md)) mostró que los capítulos madre por tema mezclan épocas y se leen "como un formulario sin preguntas". Decisiones (D1-D6), aplicadas en la v5 ([`prueba-libro-v5.md`](prueba-libro-v5.md)):
 - **D1 · Etapas de la vida, en orden**, cortadas por código en los cambios de vida: los de la ficha (pareja, separación, viudez, primer hijo, oficio, migración), los que la biblia fecha (mudanza, escuela, trabajo, pérdida…) y los 13 y 18 años. Nunca por un año solo. Código: `fabrica/src/v3/etapas.ts`.
-- **D2 · Topes** en palabras escritas: piso **600** (Fable proponía 800; con 800 el libro de Naza daba 4 capítulos), techo 2.500. Título: años + frase suya.
+- **D2 · Topes** en palabras escritas: piso **7 % de las palabras escritas del libro, entre 600 y 900** (Fable, 26/09: el libro de Naza da 600; un Estándar de 60+, 600–700; un Completo, 900), techo 2.500. Un tramo bajo el piso se pega del lado del corte más débil (la migración es el más fuerte); con igual fuerza, al vecino más chico. Título: años + frase suya.
 - **D3 · Capítulo de rol:** pareja u oficio con ≥ 1.200 palabras va aparte, en el año en que empieza, nunca después del capítulo que llega a hoy.
 - **D4 · Capítulos en secuencia**, cada uno leyendo los anteriores.
 - **D5 · Se quedan de la v4:** revisión aplicada antes de escribir, dudas sin respuesta no se afirman, nada de sentimientos ni motivos que no dijo, diálogos solo citados, presentaciones sin futuro, citas verificadas, controles, lectura final.
 - **D6 · Se corrige:** todo número que dijo es afirmable; sin mínimos de largo; retoque con "falsa alarma"; la respuesta "qué capítulos tendría tu vida" fuera de la carta.
+
+- **D7 · El "formulario" viene de las preguntas** (prueba con 4 audios, 26/09): una pregunta que pide describir da una ficha; una que pide un momento da una escena. Dos cambios en la entrevista, recomendados por Fable (siguiendo el protocolo de McAdams: "una escena con él", no "cómo era"):
+  - **Banco:** una pregunta queda como "describir" solo si su respuesta es un dato para la ficha o la biblia (nombres, orden de hermanos, lista de trabajos, quiénes son los suyos hoy); todo lo demás pasa a "momento" ("el día que…", "una vez que…"). Prueba por pregunta: si se contesta con una lista o con adjetivos y no es de datos, se reescribe. Las de personas, mixtas: el dato primero y la escena al final ("decime cómo se llama y qué es tuyo, y contame una vez concreta con él"). Las de datos puros salen del banco y van a la ficha por voz (gates). **Pendiente: reescribir el banco y que Naza apruebe los textos.**
+  - **Cazador de escenas** al cerrar cada bloque: [`cazador-de-escenas.md`](cazador-de-escenas.md). Vuelve un modelo a la entrevista, con candado (solo elige; el narrador ve un molde fijo con sus palabras). Cambia la decisión 3. **Pendiente de aprobación de Naza.**
 
 Lo que sigue de esta sección (capítulos madre, agrupaciones, "El viaje, hasta hoy", coda de "Hoy", introducción con "Hubo…") queda **descartado para el escritor**; se deja como historial.
 
