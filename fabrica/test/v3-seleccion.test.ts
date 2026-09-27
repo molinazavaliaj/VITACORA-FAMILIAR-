@@ -203,9 +203,9 @@ describe('preguntasPara: casos borde de E2', () => {
   it('género, aposición y genérico', () => {
     const b = preguntasPara(TIPICA, 'C', op);
     expect(b.find((p) => p.preguntaId === 'CA1')!.texto).toMatch(/de chica,/);
-    expect(b.find((p) => p.preguntaId === 'CA2')!.texto).toMatch(/^Contame cómo era tu mamá, Elsa:/);
+    expect(b.find((p) => p.preguntaId === 'CA2')!.texto).toMatch(/^Contame de tu mamá, Elsa, cuando eras chica:/);
     const sinNombres = preguntasPara({ ...TIPICA, padres: { madre: { vive: false } } }, 'B', op);
-    expect(sinNombres.find((p) => p.preguntaId === 'CA2')!.texto).toMatch(/^Contame cómo era tu mamá: cómo era/);
+    expect(sinNombres.find((p) => p.preguntaId === 'CA2')!.texto).toMatch(/^Contame de tu mamá,? cuando eras chica:/);
     expect(renderizar('Contame el viaje a {{lugar_destino}} [al lugar nuevo].', { ...TIPICA, migracion: 'no-sabe' }, {}, ANIO)).toBe(
       'Contame el viaje a al lugar nuevo.'.replace('a al', 'al'),
     );
