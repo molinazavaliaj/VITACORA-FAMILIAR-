@@ -5,6 +5,7 @@ import {
   descargarTextoOpcional,
   esErrorDeNoEncontrado,
   esPublicable,
+  parsearJsonTolerante,
   subirTexto,
   textoRespuesta,
   type RespuestaPublicable,
@@ -294,5 +295,17 @@ describe('la marca tema_de_orden', () => {
     expect(armarMaterial([2], preguntas, respuestas, temas)).toBe(materialDeHoy[2]);
     // De la respuesta reservada no se publica nada: ni en su capítulo ni en el del tema.
     expect(armarMaterial([9], preguntas, respuestas, temas)).toBe('');
+  });
+});
+
+// Vivía en voz/conectores.ts (borrado el 23/09) y ahí se probaba por el camino
+// de los conectores; ahora lo usa «Su voz» (frases.ts) y se prueba solo.
+describe('parsearJsonTolerante', () => {
+  it('lee el JSON aunque venga entre fences y con texto alrededor', () => {
+    expect(parsearJsonTolerante('Acá va:\n```json\n{"elegidas": [1, 2]}\n```\nListo.')).toEqual({ elegidas: [1, 2] });
+  });
+
+  it('tira si no hay ningún objeto', () => {
+    expect(() => parsearJsonTolerante('no hay nada')).toThrow('no hay un objeto JSON');
   });
 });
