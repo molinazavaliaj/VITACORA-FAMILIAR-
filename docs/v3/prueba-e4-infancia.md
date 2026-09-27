@@ -70,3 +70,20 @@ Conclusiones:
 2. **La repregunta específica es la que saca escenas:** ayer, 4 de 4 audios de "contame esa noche / ese día" (sobre algo que ya había nombrado) fueron escenas. Hoy, 4 respuestas quedaron a una repregunta de serlo. El cazador de escenas es la palanca principal, no solo el banco.
 3. Para el banco: preferir "el día que / la primera vez / la última vez" a "un X que recuerdes"; para personas, "la última vez que lo viste" o "el día que…" antes que "una vez con él".
 4. Límites: una sola persona, de 28, que ya había contado estos temas y contestó rápido (mediana ~44 s). **E4 con mayores sigue siendo la prueba que decide.**
+
+## Piloto del cazador con Naza (27/09): 4 repreguntas sobre sus respuestas de hoy
+
+| # | Ancla (sus palabras) | Qué salió |
+|---|---|---|
+| C1 | "él es el que hace la oferta, es muy bueno negociando" | casi escena: un auto que perdieron; sobre todo costumbre ("siempre mirábamos coches con mi papá") |
+| C2 | "cuando se escuchaba llegar el auto" | costumbre con detalle nuevo y vivo (la ventana del segundo piso, el auto con asientos naranja), pero "sea la hora que sea" |
+| C3 | "a veces íbamos a Rosario, a veces venían los primos" | **rechazo:** "eso ya te conté todo" (13 s) |
+| C4 | "…me ha llevado de viaje con su familia a Punta del Este" | descripción viva (la casa como un hotel, la heladera de chocolates "como la fábrica de Willy Wonka"), no un día |
+
+**0 escenas claras de 4, pero más detalle concreto que en la primera respuesta.** Contra ayer (4 de 4 escenas): ayer las anclas eran **hechos únicos** ("la noche de la fiesta", "la primera noche en el piso", "la última vez con tu hermano"); hoy eran **costumbres** (negociar, el auto que llegaba, los domingos, los viajes). Con una costumbre, "¿te acordás de algún día en particular?" vuelve a dar la costumbre.
+
+Propuestas para el cazador (a decidir):
+1. **Elegir anclas que nombren un hecho único** (una vez, una noche, un viaje, la primera o la última); descartar las que son costumbre ("siempre", "a veces", "cada domingo").
+2. **Si solo hay costumbre, otro molde:** "¿Te acordás de la primera vez, o de una vez que fue distinta a las demás?" (pedir la excepción es lo que rompe la costumbre).
+3. **No repreguntar un tema que ya salió en dos respuestas:** la C3 cansó ("ya te conté todo").
+Límite: Naza contestó rápido (mediana ~36 s) y cansado de repetir su vida; con un mayor que cuenta por primera vez puede ser distinto.
