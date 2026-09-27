@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/worker.ts",
-    "test": "vitest run",
+    "test": "npm run tipos && vitest run",
+    "tipos": "tsc --noEmit -p tsconfig.check.json",
     "build": "tsc",
     "set-dorado": "tsx src/cargar-set-dorado.ts",
     "narracion": "tsx src/reintentar-narracion.ts",
