@@ -51,3 +51,22 @@ Con sus respuestas, se eligen 2 que hayan quedado en resumen y se manda el molde
 ## Cierre para mandar
 
 > ¡Terminamos! Muchísimas gracias. Una última cosa, si querés: ¿alguna pregunta te pareció rara o difícil de contestar? ¿Te dieron ganas de seguir contando?
+
+## Piloto: Naza contestó las 15 (27/09) — resultado
+
+Transcripción con vosk (gratis), clasificación a ciegas por un agente, revisada a mano en tres respuestas. La 5 no vale: se guardó el mismo audio que la 4.
+
+**3 escenas de 14 = 21 %** (su material viejo: 15 %). **Por debajo del 50 %.** Dos de las tres son débiles.
+
+Lo que dice el detalle (lo importante):
+| Tipo de pregunta | Ejemplos | Resultado |
+|---|---|---|
+| **Un hecho único** ("el día que te llegó algo", "tu primer día de escuela", "el primer recuerdo de la casa") | 14, 11, 3 | **escena** (las 3 escenas salen de acá) |
+| **Elegí uno de muchos** ("un domingo que recuerdes", "una tarde en el barrio", "un momento feliz", "tu mejor amigo") | 7, 9, 15, 13 | **costumbre**: contesta cómo eran los domingos, "casi siempre", una lista de amigos |
+| Mixta de persona (nombre + "una vez con…") | 2, 4, 6, 12 | dato + resumen; en 4 respuestas quedó **a una repregunta** de ser escena (la madrugada que le abría la puerta al hermano, la expulsión, la visita a la cárcel, el viaje con un amigo) |
+
+Conclusiones:
+1. **Pedir "una vez" no alcanza si el tema es repetido** (domingos, tardes, amigos): el narrador describe la costumbre. Funciona cuando la pregunta nombra un **hecho único** ("el día que…", "la primera vez que…", "la última vez que…").
+2. **La repregunta específica es la que saca escenas:** ayer, 4 de 4 audios de "contame esa noche / ese día" (sobre algo que ya había nombrado) fueron escenas. Hoy, 4 respuestas quedaron a una repregunta de serlo. El cazador de escenas es la palanca principal, no solo el banco.
+3. Para el banco: preferir "el día que / la primera vez / la última vez" a "un X que recuerdes"; para personas, "la última vez que lo viste" o "el día que…" antes que "una vez con él".
+4. Límites: una sola persona, de 28, que ya había contado estos temas y contestó rápido (mediana ~44 s). **E4 con mayores sigue siendo la prueba que decide.**
