@@ -8,6 +8,8 @@ Sale de: banco del informe 1 (C.2) + cambios del informe 2 (sin repregunta, pand
 
 ## Cómo leer este banco
 
+**Regla (Naza, 27/09):** ninguna pregunta da por muerta, perdida ni terminada a una persona o una cosa. "Su nombre" en vez de "cómo se llamaba"; "qué es o qué era tuyo"; "se dedica o se dedicaba"; si la ficha ya tiene el nombre, no se pide; si dice si vive, el tiempo verbal lo pone el código. Lo que es claramente del pasado (la escuela, la infancia) va en pasado, pero sin suponer que la persona o la cosa ya no está.
+
 ### La frase de "paso"
 
 Toda pregunta de historia termina con esta frase. No se repite en las tablas:
@@ -86,8 +88,8 @@ ES5b y JU12b pasan a E por la regla de los cierres (tamaño de la madre). No hiz
 | ID | Pregunta | Tipo | Tamaño | Estado |
 |---|---|---|---|---|
 | OR1 | Contame dónde y cómo naciste, según lo que te contaron en tu casa: en qué lugar, quién estaba, si hubo alguna historia alrededor de ese día. | O | B | pendiente de aprobación |
-| OR2 | ¿De dónde venía la familia de tu mamá, {{madre}}? Contame lo que sepas de tus abuelos por ese lado: cómo se llamaban, de dónde eran, a qué se dedicaban. | O | B | pendiente de aprobación |
-| OR3 | ¿De dónde venía la familia de tu papá, {{padre}}? Contame lo que sepas de tus abuelos por ese lado: cómo se llamaban, de dónde eran, a qué se dedicaban. | O | B | pendiente de aprobación |
+| OR2 | ¿De dónde venía la familia de tu mamá, {{madre}}? Contame lo que sepas de tus abuelos por ese lado: sus nombres, de dónde son o eran, a qué se dedican o se dedicaban. | O | B | pendiente de aprobación |
+| OR3 | ¿De dónde venía la familia de tu papá, {{padre}}? Contame lo que sepas de tus abuelos por ese lado: sus nombres, de dónde son o eran, a qué se dedican o se dedicaban. | O | B | pendiente de aprobación |
 | OR4 | Contame una historia que se contaba en tu familia sobre algún antepasado: un viaje, una desgracia, una hazaña, algo que se repetía en las sobremesas. | O | C | pendiente de aprobación |
 | OR5 | ¿Cómo se conocieron tu mamá y tu papá? Contame lo que te contaron: dónde, cuándo, quién dio el primer paso. | O | C | pendiente de aprobación |
 | OR6 | ¿Por qué te pusieron {{nombre}}? Contame lo que te contaron de cómo eligieron tu nombre. | O | C | pendiente de aprobación |
@@ -100,8 +102,8 @@ Notas: OR6 se partió en dos (nombre / apodo). OR6.2 se manda solo si "cómo le 
 | ID | Pregunta | Tipo | Tamaño | Estado |
 |---|---|---|---|---|
 | CA1 | Describime la casa donde viviste de chic{{o/a}}, la primera que recuerdes bien: cómo era por dentro, dónde dormías, qué se veía desde la puerta. | O | B | pendiente de aprobación |
-| CA2 | Contame cómo era tu mamá, {{madre}}: cómo era físicamente, cómo hablaba, qué hacía en un día común. Elegí un momento concreto en que la veas haciendo algo. | O | B | pendiente de aprobación |
-| CA3 | Contame cómo era tu papá, {{padre}}: cómo era físicamente, cómo hablaba, en qué trabajaba. Elegí un momento concreto en que lo veas haciendo algo. | O | B | pendiente de aprobación |
+| CA2 | Contame de tu mamá, {{madre}}, cuando eras chic{{o/a}}: cómo la veías, cómo hablaba, qué hacía en un día común. Elegí un momento concreto en que la veas haciendo algo. | O | B | pendiente de aprobación |
+| CA3 | Contame de tu papá, {{padre}}, cuando eras chic{{o/a}}: cómo lo veías, cómo hablaba, en qué trabajaba en esa época. Elegí un momento concreto en que lo veas haciendo algo. | O | B | pendiente de aprobación |
 | CA4 | Contame una vez que tu mamá o tu papá te enseñaron algo que todavía hacés o pensás hoy. Una vez concreta: qué pasó y qué te dijeron. | O | C | pendiente de aprobación |
 | CA5 | Contame una vez que te retaron o te castigaron de chic{{o/a}}: qué habías hecho, quién te retó y cómo terminó. | O | C | pendiente de aprobación |
 | CA6 | «pl: Contame de tus hermanos, {{hermanos}}: quién era el mayor, cómo eran de chicos, con cuál te llevabas mejor. Presentame a cada uno como si yo no los conociera. ‖ sg: Contame de {{hermanos}}: cómo era de chico o chica, cómo se llevaban. Contámelo como si yo no conociera a nadie de tu familia.» | C:HERMANOS | B | pendiente de aprobación |
@@ -124,11 +126,11 @@ Notas: CA9b es el cierre de lector que el informe 1 tenía como seguimiento ("¿
 
 | ID | Pregunta | Tipo | Tamaño | Estado |
 |---|---|---|---|---|
-| ES1 | Contame tu primer día de escuela o lo primero que recuerdes de la escuela primaria: cómo se llamaba la escuela, quién te llevó, qué sentiste. | O | B | pendiente de aprobación |
-| ES2 | Contame de una maestra o un maestro que te marcó: cómo se llamaba, cómo era, y una vez concreta que recuerdes con esa persona. | O | B | pendiente de aprobación |
+| ES1 | Contame tu primer día de escuela o lo primero que recuerdes de la escuela primaria: el nombre de la escuela, quién te llevó, qué sentiste. | O | B | pendiente de aprobación |
+| ES2 | Contame de una maestra o un maestro que te marcó: su nombre, cómo te acordás de esa persona, y una vez concreta que recuerdes con esa persona. | O | B | pendiente de aprobación |
 | ES3 | ¿Qué tipo de alumn{{o/a}} eras? Contame una vez que te fue muy bien o muy mal en la escuela. | O | E-joven | pendiente de aprobación |
 | ES4 | Contame a qué jugabas de chic{{o/a}} y con quién: un juego concreto, dónde se jugaba, quiénes eran los amigos de esa época. Decime sus nombres. | O | B | pendiente de aprobación |
-| ES5 | Contame de tu mejor amigo o amiga de la infancia: cómo se llamaba, cómo se conocieron, qué hacían juntos. | O | E | pendiente de aprobación |
+| ES5 | Contame de tu mejor amigo o amiga de la infancia: su nombre, cómo se conocieron, qué hacían juntos. | O | E | pendiente de aprobación |
 | ES5b | Contame qué fue de tu mejor amigo o amiga de la infancia: si se volvieron a ver, la última vez que supiste de esa persona. | O | E | pendiente de aprobación |
 | ES6 | Contame una travesura grande de la escuela o del barrio, una que todavía te haga reír o te dé vergüenza. | O | E | pendiente de aprobación |
 | ES7 | ¿Qué querías ser cuando fueras grande? Contame de dónde salió esa idea. | O | C | pendiente de aprobación |
@@ -144,12 +146,12 @@ Notas: ES9 se reescribió para que no pregunte "¿había religión?" (eso lo res
 | ID | Pregunta | Tipo | Tamaño | Estado |
 |---|---|---|---|---|
 | AD1 | Contame cómo eras a los quince: cómo te vestías, cómo te peinabas, qué te gustaba, qué te daba vergüenza. Elegí un día concreto de esa edad. | O | B | pendiente de aprobación |
-| AD2 | Contame de la escuela secundaria (o de lo que hacías a esa edad si no fuiste): cómo se llamaba, cómo llegaste ahí, y una escena concreta de esos años. | O | B | pendiente de aprobación |
+| AD2 | Contame de la escuela secundaria (o de lo que hacías a esa edad si no fuiste): el nombre, cómo llegaste ahí, y una escena concreta de esos años. | O | B | pendiente de aprobación |
 | AD2b | Contame cómo terminó tu secundaria: si la terminaste, cómo fue el último día; si la dejaste, por qué y qué hiciste en vez de eso. | O | E | pendiente de aprobación |
-| AD3 | Contame de tu grupo de amigos de la adolescencia: cómo se llamaban, dónde se juntaban, qué hacían. Presentame a cada uno como si yo no los conociera. | O | B | pendiente de aprobación |
+| AD3 | Contame de tu grupo de amigos de la adolescencia: sus nombres, dónde se juntaban, qué hacían. Presentame a cada uno como si yo no los conociera. | O | B | pendiente de aprobación |
 | AD4 | Contame una noche o una salida de esa época que recuerdes bien: a dónde fueron, cómo llegaron, qué pasó. | O | E-joven | pendiente de aprobación |
 | AD5 | ¿Qué música escuchabas y dónde se bailaba? Contame una vez que fuiste a bailar o a un recital. | O | C | pendiente de aprobación |
-| AD6 | Contame de tu primer amor o la primera persona que te gustó en serio: cómo se llamaba, cómo se conocieron, qué pasó. | O | B | pendiente de aprobación |
+| AD6 | Contame de tu primer amor o la primera persona que te gustó en serio: su nombre, cómo se conocieron, qué pasó. | O | B | pendiente de aprobación |
 | AD6b | Contame cómo terminó lo de tu primer amor y qué fue de esa persona después. | O | E | pendiente de aprobación |
 | AD7 | Contame la primera vez que ganaste plata: qué hiciste, cuántos años tenías, qué hiciste con esa plata. | O | C | pendiente de aprobación |
 | AD8 | Contame una pelea o un desacuerdo grande que tuviste con tus padres de adolescente: por qué fue y cómo terminó. | O | E-joven | pendiente de aprobación |
@@ -168,21 +170,21 @@ Notas: AD2b, AD6b y AD10b son cierres de lector que antes eran seguimiento.
 | JU1 | Contame el día que te fuiste de la casa de tus padres: cuántos años tenías, a dónde te fuiste, con quién, y cómo fue la despedida. | O | B | pendiente de aprobación |
 | JU2 | Contame de lo que estudiaste después del colegio: qué, dónde, por qué eso y no otra cosa, y un día concreto de esa época de estudiante. | C:ESTUDIOS | E | pendiente de aprobación |
 | JU2b | Contame el momento en que dejaste de estudiar: por qué fue, quién lo supo primero, y qué hiciste después. | C:ESTUDIOS_SIN_TERMINAR | C | pendiente de aprobación |
-| JU3 | Contame de un amigo o una amiga que hiciste en esa época de estudio y que fue importante: cómo se llamaba, cómo se conocieron. | C:ESTUDIOS | C | pendiente de aprobación |
+| JU3 | Contame de un amigo o una amiga que hiciste en esa época de estudio y que fue importante: su nombre, cómo se conocieron. | C:ESTUDIOS | C | pendiente de aprobación |
 | JU3b | Contame qué fue de ese amigo o esa amiga de la época de estudio: si siguen en contacto, la última vez que se vieron. | C:ESTUDIOS | C | pendiente de aprobación |
 | JU4 | Contame cómo aprendiste tu oficio o tu trabajo, si no fue estudiando: quién te enseñó, dónde, cuánto tardaste en manejarte sol{{o/a}}. | C:¬ESTUDIOS | E | pendiente de aprobación |
 | JU5 | Contame un día de esa experiencia: dónde estabas, quién estaba y qué pasó. | C:MILITAR | E | pendiente de aprobación |
-| JU6 | Contame de alguien que conociste en esa experiencia: cómo se llamaba, qué era tuyo y una vez concreta con esa persona. | C:MILITAR | C | pendiente de aprobación |
+| JU6 | Contame de alguien que conociste en esa experiencia: su nombre, qué es o qué era tuyo y una vez concreta con esa persona. | C:MILITAR | C | pendiente de aprobación |
 | JU8 | Contame el día que decidiste irte de {{lugar_origen}} [del lugar donde creciste]: por qué te fuiste, quién lo supo primero, qué dijeron. | C:MIGRACIÓN | B | pendiente de aprobación |
 | JU9 | Contame el viaje y la llegada a {{lugar_destino}} [al lugar nuevo]: cómo viajaste, qué llevabas, quién te esperaba (o nadie), y la primera noche. | C:MIGRACIÓN | B | pendiente de aprobación |
-| JU10 | Contame quién te dio una mano en los primeros meses en {{lugar_destino}} [el lugar nuevo]: cómo se llamaba, qué era tuyo, y una vez concreta en que te ayudó. | C:MIGRACIÓN | E | pendiente de aprobación |
+| JU10 | Contame quién te dio una mano en los primeros meses en {{lugar_destino}} [el lugar nuevo]: su nombre, qué es o qué era tuyo, y una vez concreta en que te ayudó. | C:MIGRACIÓN | E | pendiente de aprobación |
 | JU10b | Contame qué fue de la persona que te dio una mano en tus primeros meses en {{lugar_destino}} [el lugar nuevo]: si la seguiste viendo, si le pudiste devolver el favor. | C:MIGRACIÓN | E | pendiente de aprobación |
 | JU11 | Contame el momento en que sentiste por primera vez que ya eras de {{lugar_destino}} [del lugar nuevo], o el momento en que entendiste que nunca lo ibas a ser del todo. | C:MIGRACIÓN | E | pendiente de aprobación |
 | MI1 | Contame una vez que te hicieron sentir de afuera cuando llegaste a {{lugar_destino}} [al lugar nuevo], por cómo hablabas o de dónde venías. | C:MIGRACIÓN | C | pendiente de aprobación |
 | MI1.2 | Contame una vez que te hicieron sentir de adentro en {{lugar_destino}} [el lugar nuevo]: quién fue, qué pasó. | C:MIGRACIÓN | C | pendiente de aprobación |
 | JU12 | Contame el primer lugar donde viviste por tu cuenta: cómo era, con quién, cómo lo pagabas, y una escena de un día común ahí. | O | E | pendiente de aprobación |
 | JU12b | Contame cuánto tiempo viviste en el primer lugar que tuviste por tu cuenta y por qué te fuiste de ahí. | O | E | pendiente de aprobación |
-| JU15 | Contame de tus amigos de la juventud, los de cuando empezabas a hacer tu vida: cómo se llamaban, dónde se juntaban y una vez concreta con ellos. | O | E | pendiente de aprobación |
+| JU15 | Contame de tus amigos de la juventud, los de cuando empezabas a hacer tu vida: sus nombres, dónde se juntaban y una vez concreta con ellos. | O | E | pendiente de aprobación |
 | JU13 | Contame una locura o una aventura de tu juventud: un viaje, una apuesta, algo que hoy no harías. | O | E | pendiente de aprobación |
 | JU16 | Contame un momento muy feliz de tu juventud, uno concreto: qué pasó, quién estaba, qué sentiste. | O | E-joven | pendiente de aprobación |
 | JU17 | Contame un momento triste o difícil de tu juventud, uno concreto: qué pasó y cómo lo pasaste. | O | E-joven | pendiente de aprobación |
@@ -225,7 +227,7 @@ Notas: AM1–AM8 se repiten para {{pareja_2}} si hay segunda pareja (gate SEGUND
 | OF1 | Contame el día que sentiste que ya sabías hacer tu trabajo: qué pasó ese día, quién estaba, qué hiciste que antes no podías. | O | B | pendiente de aprobación |
 | MA1 | ¿Qué sabés hacer con las manos? Contame cómo lo aprendiste, quién te lo enseñó y la última vez que lo hiciste. | O | B | pendiente de aprobación |
 | TR2 | Contame un día común de tu trabajo como {{trabajo_principal}} [en el trabajo al que más años le diste], de que te levantabas hasta que volvías: horarios, tareas, con quién. | C:OFICIO_AFUERA | B | pendiente de aprobación |
-| TR3 | Contame de una persona del trabajo que te marcó: un jefe, un compañero, un cliente. Cómo se llamaba, qué era tuyo, y una vez concreta con esa persona. | C:OFICIO_AFUERA | B | pendiente de aprobación |
+| TR3 | Contame de una persona del trabajo que te marcó: un jefe, un compañero, un cliente. Su nombre, qué es o qué era tuyo, y una vez concreta con esa persona. | C:OFICIO_AFUERA | B | pendiente de aprobación |
 | TR3b | Contame qué fue, con los años, de la persona del trabajo que más te marcó: si la volviste a ver, qué sabés de ella hoy. | C:OFICIO_AFUERA | E | pendiente de aprobación |
 | TR4 | Contame el peor día o la peor época de tu trabajo: qué pasó y cómo saliste. | C:OFICIO_AFUERA | C | pendiente de aprobación |
 | TR5 | Contame el día de trabajo del que estás más orgullos{{o/a}}: qué hiciste, quién lo vio. | C:OFICIO_AFUERA | C | pendiente de aprobación |
@@ -417,7 +419,7 @@ Se mandan al abrir el bloque, **solo si la ficha no trae el dato**. Son datos, n
 
 | ID | Cuándo | Pregunta | Botones o respuesta | Qué resuelve | Estado |
 |---|---|---|---|---|---|
-| D1 | Abre bloque 1 | ¿Cómo se llaman (o se llamaban) tu mamá y tu papá? Decime los dos nombres. | Audio | `{{madre}}`, `{{padre}}` | pendiente de aprobación |
+| D1 | Abre bloque 1 | Decime los nombres de tu mamá y de tu papá. | Audio | `{{madre}}`, `{{padre}}` | pendiente de aprobación |
 | D1.1 | Abre bloque 1 | ¿Vive tu mamá? | [Sí] [No] | MADRE_FALLECIÓ (PE1) | pendiente de aprobación |
 | D1.2 | Abre bloque 1 | ¿Vive tu papá? | [Sí] [No] | PADRE_FALLECIÓ (PE2) | pendiente de aprobación |
 | D2 | Abre bloque 2 | ¿Tuviste hermanos? | [Sí] [No] → si Sí: "Decime sus nombres, del mayor al menor." (audio) | HERMANOS, `{{hermanos}}`, CA8 | pendiente de aprobación |
