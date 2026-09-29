@@ -657,3 +657,23 @@ Aprobadas: GI2, HJ1 (distinta de ES7 y AD16: esas piden el deseo, esta el moment
 - **FI7 (la política):** ¿Qué es la política para vos? ¿Hubo algún momento de tu vida en que te tocó de cerca? Contame cuál fue y qué pensás hoy. (Si dice algo delicado, el dashboard le pregunta si lo quiere en el libro.)
 
 **Bloque 13: cerrado (29/09).** FI6 y FI7 aprobadas.
+
+## 18. Bloque 14 · Hoy (propuesta, redactada con Fable, a todos, en presente)
+
+Salen: HO2 (reír: ya está reírse hasta llorar), HO8 (los tuyos hoy: la cena), HO9 (tu lugar: barrio preferido). FU1 y FU2 se juntan (FU2 sola, a los 75, suena a "cuánto me queda").
+
+- **HO1:** Contame un día cualquiera de los de ahora, desde que abrís los ojos hasta que apagás la luz. Qué hacés, a qué hora, con quién. Si querés, el de ayer mismo.
+- **PA2:** ¿Qué hacés cuando nadie te pide nada? Puede ser en tu casa o afuera, sol{{o/a}} o con alguien. Contame la última vez que tuviste un rato así y qué hiciste.
+- **HO2.2:** ¿Hay algo que te haga enojar hoy, aunque sea una pavada? Contame la última vez que te agarró la bronca: dónde estabas, qué había pasado y qué hiciste.
+- **HO4:** ¿Hay algo en tu casa que no regalarías nunca, valga lo que valga? Contame de dónde vino, cómo llegó a vos, y la última vez que lo tuviste en las manos.
+- **HO5:** ¿Qué es lo que más te gusta de la vida que tenés ahora? Puede ser algo enorme o algo chiquito de todos los días. Contame un momento de esta semana en que lo sentiste.
+- **HO6:** ¿Tenés alguna costumbre que tu gente conoce de memoria? Una frase que repetís, una manía, algo que hacés siempre igual. Contame cómo empezó y la última vez que alguien te la marcó.
+- **CO1:** ¿Hay un plato que sea tuyo, el que te piden o el que te sale siempre igual? Contame quién te lo enseñó y una vez que lo cocinaste para alguien.
+- **FU1:** ¿Hay algo que todavía querés hacer, aunque sea chiquito? Contámelo como si ya estuviera pasando: dónde estás, con quién, qué ves.
+- **HO10 (aprobada):** ¿Hubo algo que te acompañó muchos años, el cigarrillo, el vino, el café de la mañana? Contame cómo empezó y un momento con eso que te guste recordar.
+- **G1, música:** ¿Qué música ponés hoy cuando estás a tu aire? Contame la última vez que sonó algo y te quedaste escuchando: dónde estabas y qué era.
+- **G2, comer:** ¿Qué es lo que más te gusta comer, así, sin pensarlo mucho? Contame la última vez que lo comiste: quién lo hizo, dónde, con quién estabas.
+- **G3, ver o leer:** ¿Qué te gusta ver o leer hoy? Un programa, un libro, lo que sea. Contame la última vez que te quedaste enganchad{{o/a}} y se te pasó la hora.
+- **G4, placer chiquito:** ¿Cuál es tu placer chiquito de todos los días? Puede ser una siesta, o algo mucho más tonto. Contame el de hoy: a qué hora fue y cómo estuvo.
+- **Cierre:** Hasta acá lo de hoy. Ya te conozco un poco más: cómo son tus días y qué te gusta. Gracias por contármelo con tanta paciencia.
+Fable sacaría PA2 y G4 (rozan la soledad y el café de la mañana).
