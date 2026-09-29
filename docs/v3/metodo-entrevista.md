@@ -355,3 +355,9 @@ AM0 y AM9 aprobadas. AM4 y AM5 le llegan solo a quien dijo que hubo un amor (dep
 - **AM4:** Hay días que quedan grabados para siempre. ¿Hubo uno en que se casaron, o en que empezaron a vivir juntos? Si lo hubo, contame ese día como si lo estuvieras viendo: el lugar, la gente, la ropa, lo que más te quedó.
 - **AM5:** ¿Te acordás de la primera casa que fue de los dos? Grande o chiquita, propia, alquilada o prestada. Contame cómo llegaron a ella, cómo era por dentro, y cómo fue esa primera noche ahí, con todo lo que tenía y todo lo que le faltaba.
 - **AM15 (ajuste):** Contame quiénes son las personas con las que más compartiste o compartís la vida: un hermano, una amiga, un vecino, quien sea. Pensá en una y contame un día de ustedes dos que te haya quedado.
+
+### Bloque 6, vuelta 4 (Naza, 29/09)
+AM4 y AM13 aprobadas.
+**Regla (Naza):** no juntar tiempos ("compartiste o compartís"): si la pregunta es de hoy, presente; si es del pasado, pasado. Solo se juntan cuando no hay forma de saber (AM7: "repite o repetía", porque va antes de AM9).
+- **AM5:** Contame a dónde se mudaron juntos por primera vez: cómo llegaron a ese lugar, cómo era por dentro, y cómo fue esa primera noche ahí, con todo lo que tenía y todo lo que le faltaba.
+- **AM15:** ¿Quiénes son hoy las personas con las que compartís la vida: un hermano, una amiga, un vecino, quien sea? Pensá en una y contame un día de ustedes que te haya quedado.
