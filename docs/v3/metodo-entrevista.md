@@ -744,3 +744,16 @@ Aprobadas: LE7, LE9. Salen LE3 y DES1. **{{destinatarios}} se reemplaza por "tu 
 - **M22 (nuevo, si manda texto):** Lo leí, gracias. Si podés, contámelo también en audio: así queda tu voz y tu manera de decirlo, que es lo que va al libro. Y si te resulta más cómodo escribir, escribí nomás.
 - **M23 (nuevo, audio cortado):** Se me cortó el audio o no llegó bien, {{nombre}}. ¿Me lo mandás de nuevo cuando puedas? Sin apuro.
 - Salen: M11 (hito con números), M12 (lo reemplaza M10), M16 y M17 (fotos), M18 (lo cubre el mensaje final), M19 (mail por datos que faltan: ya no se piden datos por la ficha).
+
+### Mensajes fijos, vuelta 2 (Naza, 29/09)
+Aprobados: M3, M4, M9, M21 (paso), M22 (texto), M23 (audio cortado), FOTO.
+- **No existe la pausa** (Naza). Salen M7a y M7b. M6 pasa a explicar el ritmo:
+  - **M6:** Una cosa más, y ya arrancamos: cada vez que me contestes, te llega la pregunta que sigue. Vos marcás el ritmo: esto dura lo que vos tardes en ir contando.
+  - **M8 (sin la pausa):** Hola, {{nombre}}. Pasaron unos días y quería saber cómo andás. Tu historia está acá, guardada tal como la dejaste. Cuando tengas un rato me contestás la que quedó pendiente. Sin apuro.
+- **M10 (se avisa y se sigue de una):** Terminamos {{etapa}}, {{nombre}}. Ya quedó guardado todo eso. Seguimos con lo que viene.
+- **M13 (elegir entre dos temas): sale.** El orden es fijo.
+- **M14 (reacción de la familia): sale.**
+- **M15:** Esta pregunta te la hace tu familia.
+- **M20 y el botón [Siguiente]: salen.** Los audios que llegan mientras la pregunta está abierta se suman a esa respuesta; la siguiente llega sola cuando pasan unos minutos sin audios nuevos.
+- **M1 va en otra línea y en cursiva** (WhatsApp no tiene colores ni letra más chica; sí cursiva con _texto_): la pregunta, una línea en blanco, y _Si no va con vos, decí paso y vamos a otra._
+Ojo (textos que quedan mintiendo): "pausa" aparece en diseno-v3.md (M6, M7, flujo) y en el código del biógrafo; se saca cuando se pase todo al banco.
