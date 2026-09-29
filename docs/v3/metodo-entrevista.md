@@ -458,3 +458,31 @@ Aprobadas: TR3, OF2, OB1. Bienvenida B con nombre y algo que motive:
 Bienvenida aprobada. N4 (lo que compró) queda afuera salvo que Naza la pida.
 - **OB2 (sin la huelga):** ¿Tuviste alguna vez un choque fuerte en tu oficio, o alguien que te decepcionó: un patrón, un socio, un compañero? Si te pasó, contame ese día: qué pasó, de qué lado estabas, cómo terminó.
 - **N1 (con la plata ajustada):** ¿Te quedaste alguna vez sin trabajo sin haberlo elegido, o te tocó una época de plata muy ajustada? Si te pasó, contame un día de ese tiempo que tengas bien presente, y cómo lo fuiste llevando.
+
+**Bloque 7: cerrado (29/09).**
+
+## 12. Bloque 8 · Hijos y nietos (propuesta, redactada con Fable, a todos)
+
+HI0 abre hijos: si es un "no" corto, no van HI1 a HI7 ni los nuevos N1-N3; va HI10. HI8 abre nietos y va a todos (hay abuelos por crianza o por pareja); si es "no", no van HI9 ni NC1. Salen: HI3 por hijo y HI2 por hijo (una sola pregunta para todos los hijos, porque no sabemos cuántos son), HI3b (casa llena), NC2.
+
+- **HI0:** Ahora vamos a los hijos. ¿Tuviste hijos, o criaste a alguno como si lo fuera? Si sí, contame quiénes son, así los voy conociendo. Y si no, decímelo nomás y seguimos por otro lado.
+- **HI1:** Hay noticias que te cambian la vida. ¿Cómo fue el día que te enteraste de que ibas a ser {{padre/madre}} por primera vez? Dónde estabas, quién estaba con vos, y lo primero que pensaste.
+- **HI2:** ¿Y el día que llegó tu primer hijo? Contame ese día como si lo estuvieras viendo: dónde fue, quién estaba, y el momento en que lo tuviste en brazos por primera vez.
+- **HI2b:** ¿Y los que vinieron después? Cada llegada tiene su historia. Contame de a uno, con el tiempo que necesites: cómo fue esa vez y qué era distinto de la anterior. Si tuviste uno solo, decímelo nomás.
+- **HI3:** ¿Cómo era cada uno de chico? El carácter, las mañas, lo que lo hacía distinto de los demás. Y contame una escena de esa época que todavía te haga sonreír.
+- **HI4:** ¿Cómo era un día cualquiera en tu casa cuando los chicos eran chicos? Las mañanas, la comida, el ruido, la hora de dormir. Y contame un día de esos que te haya quedado grabado.
+- **HI5:** Ser {{padre/madre}} también tiene sus tiempos duros. ¿Cuál fue la época más difícil para vos como {{padre/madre}}? Qué pasaba, cómo la fuiste llevando, y un día de esa época que te haya marcado.
+- **HI6:** Contame una vez que se te hinchó el pecho por uno de tus hijos. No hace falta que sea algo que salió en el diario: qué hizo, dónde estabas, qué le dijiste.
+- **HI7:** Un día los hijos se van de casa. ¿Te acordás del día en que se fue el primero? Cómo fue la despedida, y cómo quedó la casa esa noche. Si todavía no se fue ninguno, me decís nomás.
+- **HI10 (solo si HI0 fue "no"):** ¿Hubo chicos o jóvenes que fueron importantes en tu vida? Alguien que viste crecer, a quien le enseñaste algo o tuviste cerca. Contame quién es y una vez con esa persona que te haya quedado.
+- **HI8 (abre nietos, a todos):** Ahora, los nietos. ¿Llegaron nietos a tu vida? Contame el día que conociste al primero, como si lo estuvieras viendo. Si no hay nietos, me lo decís y pasamos a otra cosa.
+- **HI9:** ¿Hay algo que hacés con tus nietos que es de ustedes, que no lo hacen con nadie más? Un juego, por ejemplo. Contame qué es y una vez que te haya quedado grabada.
+- **NC1:** A veces a los abuelos les toca criar a un nieto, o tenerlo a cargo un tiempo. Si te pasó, contame cómo se dio y cómo fue el primer día. Y si no te tocó, decímelo y seguimos.
+- **Cierre:** Con esto cerramos este tema. ¿Quedó alguien o algo que no tuvo su pregunta? Un cumpleaños, una charla en la cocina, alguien que no entró en ningún lado. Es el momento de contarlo, sin apuro.
+
+Lo que le falta (Fable, a decidir):
+- **N1, el nombre:** ¿Cómo eligieron el nombre de cada hijo? De dónde salió, quién lo propuso, si hubo discusión. Contame la historia del nombre, aunque sea corta.
+- **N2, lo suyo en ellos:** ¿Qué cosa tuya ves hoy en tus hijos? Un gesto, una manía, una forma de hablar. Contame una vez que lo viste y te diste cuenta.
+- **N3, lo que le enseñaron los hijos:** Los hijos también enseñan. ¿Qué aprendiste vos por ellos, algo que no sabías antes de ser {{padre/madre}}? Contame el día que te diste cuenta.
+- **N4, de padre a abuelo:** Dicen que uno es distinto de abuel{{o/a}} de lo que fue de {{padre/madre}}. ¿A vos te pasa? Contame en qué, y una vez con un nieto en que lo notaste.
+Nota: el bloque de pérdidas va después de este (la persona ya contó a sus hijos vivos antes de cualquier pregunta de pérdida).
