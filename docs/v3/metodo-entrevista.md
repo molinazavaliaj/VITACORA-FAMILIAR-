@@ -870,3 +870,15 @@ Repeticiones que marcó Fable (a decidir por Naza):
 - Contra decisiones ya tomadas por Naza: sacar PE4 (época dura de grande), GI1 sin el "clic", PA2 (momento solo) fuera, N3 bl.5 fuera, FI6 (el futuro) floja, JU9 floja, AS1b chica.
 - Ya propuestas: CA10 y JU15 a Extra.
 Hueco: los padres de grande (verlos envejecer, cuidarlos). Muletillas: "Contame" en ~150, "¿Hubo…?" ~39 (siete seguidas en el 13), "que te haya quedado" ~20, "la última vez" 8 seguidas en el 14: variar aperturas en un tercio al pasar al banco.
+
+### Decisiones de Naza sobre la revisión de Fable (29-30/09)
+Aceptadas: 1 (GI2+HJ6), 4 (visita+HJ5), 5 (JU19 a extra), 6 (AM14+AM18), 7 (AM13 cambia; HO1 queda), 8 (AD10+AD14), 9 (PE6+PE9), 13 (JU4 sin "quién te inspiró"). Rechazadas: 2 (JU12 y AM5 quedan separadas: pudo vivir solo años antes de juntarse), 11 (quedan HO6 y LE6), 12 (LU6 y LU8 son distintas). 3 al revés: **sale LU1 (la casa que sentís tuya) y queda HO9 (dónde vivís hoy)**. Pendiente: 10 (vicios), grupo B, grupo C, padres de grande, variar aperturas.
+Textos de las fusiones (Fable, a aprobar; la primera es la elegida):
+- **GI2 (con HJ6):** Pensá en un día que empezó como cualquier otro y terminó cambiándote algo. Contame ese día entero: cómo arrancó la mañana, en qué momento te diste cuenta de que ya no había vuelta atrás, y cómo terminó.
+- **HJ5 (con la visita):** Ya con tu propia vida armada, ¿cómo fue volver a la casa donde te criaste? Contame la vez que más te acordás, mirando todo con ojos de visita: cómo llegaste, qué encontraste distinto y qué te pasó por dentro.
+- **AM14 (con AM18):** ¿Tuviste algún amor que te marcó y no fue el de toda la vida? Uno que dejó huella, aunque haya durado poco. Si te pasó, contame cómo se cruzaron y el momento que más te acordás de esa persona.
+- **AM13:** Hay cosas que una pareja arma con los años sin darse cuenta, como una frase que solo entienden los dos. ¿Cuál es la de ustedes hoy? Contame la última vez que pasó: dónde estaban, qué se dijeron.
+- **AD10 (con AD14):** En esos años, ¿había alguien mayor que te entendía y a quien escuchabas de verdad, la mamá de un amigo, por ejemplo? Contame cómo era con vos y una vez que estuvo de tu lado cuando lo necesitabas.
+- **PE6 (con PE9):** Hay equivocaciones que uno arrastra años. Si tenés una así, y querés contarla, decime qué pasó, quién la pagó, y en qué quedó todo después.
+- **JU4:** ¿Cómo aprendiste a hacer eso que es tuyo, lo que más te ocupa o más te gusta, sea tu trabajo o algo que hacés por gusto? Contame cómo fue arrancar: un día de cuando recién empezabas.
+- **Padres de grande (nueva, propuesta):** Contame de tus viejos cuando vos ya eras grande, con tu propia vida. Una vez que los notaste más viejos, un gesto, algo chiquito, y qué te pasó a vos. Si no los tuviste cerca, contame cómo fue eso.
