@@ -227,13 +227,19 @@ Textos (elegida de Fable; la otra, de respaldo):
 
 - **AD1:** ¿Cómo eras a los quince? Cómo te vestías, qué te gustaba hacer, qué te daba vergüenza. Y contame un día de esa edad que te acuerdes bien, como si lo estuvieras viviendo de nuevo.
 - **AD2:** Después de la primaria, ¿dónde pasabas los días a los trece, catorce años? ¿Cómo llegaste ahí? Contame una vez de esos años que te quedó grabada.
-- **AD2b:** ¿Te acordás de tu último día en el colegio? Como haya sido, contame cómo fue: qué pasó, con quién estabas, qué sentiste.
-- **AD3:** ¿Tenías una barra de amigos a los quince, dieciséis? ¿Cómo eran, qué hacían cuando se juntaban? Contame una noche o una salida con ellos que todavía te acordás.
-- **AD5:** ¿Qué se escuchaba en tu casa y en el barrio a los dieciséis, diecisiete? Contame de una vez que fuiste a bailar o a ver tocar a alguien: cómo te preparaste y cómo fue la noche.
+- **AD2b:** ¿Qué recordás de tu último año en el colegio, o del último año que fuiste? Es un año que marca. Contame lo que te quedó de esos meses: algún momento, algo que pasó, cómo fue la despedida.
+- **AD3:** ¿Tenías una barra de amigos a los quince, dieciséis? ¿Cómo eran, qué hacían cuando se juntaban? Contame una noche o una salida con ellos que todavía te acordás. Es una edad que queda marcada: si se te vienen más historias, contalas todas.
+- **AD5:** ¿Te acordás de la primera vez que saliste de noche, a un baile o a una fiesta? Contame cómo te preparaste, con quién fuiste y cómo fue esa noche.
 - **AD6:** ¿Te acordás de la primera vez que alguien te gustó en serio? Contame cómo se conocieron, cómo era esa persona, y un momento de los dos que todavía llevás guardado.
 - **AD8:** A esa edad uno choca con los de la casa. ¿Cuál fue la pelea más grande que tuviste con tu mamá o con tu papá? Contame por qué fue y cómo se vivió en tu casa.
 - **AD9:** ¿En qué lío te metiste de adolescente, de esos que ya no eran travesuras de chic{{o/a}}? Contame qué pasó y quién te sacó del apuro, o cómo saliste.
 - **AD10:** ¿Hubo alguien mayor que te marcó en esos años, alguien a quien escuchabas de verdad? ¿Cómo era con vos? Contame una vez que te dio una mano cuando la necesitabas.
-- **AD11:** ¿Qué te sacaba de la cama a los dieciséis? ¿Un deporte, un taller, algo que hacías con ganas? Contame un día de eso, uno en particular, desde el principio.
-- **AD12:** Llega un momento en que se decide qué viene después. ¿Cómo fue el tuyo? A veces lo decide uno, a veces lo decide la casa. Contame ese momento, quién habló y qué se dijo.
+- **AD11:** ¿Qué cosas te gustaban a los dieciséis, qué te sacaba de la cama? Un deporte, un taller, la música, lo que fuera. Contame qué eran, y un día de eso en particular.
+- **AD12:** ¿Cuándo sentiste por primera vez que ya no eras chic{{o/a}}? Algo que tuviste que decidir o hacer por tu cuenta, una responsabilidad nueva. Contame ese momento.
 - **Cierre:** Con esto cerramos tu adolescencia. Antes de pasar a los años de grande, ¿quedó algo de esa época que no encontró su pregunta? Un recuerdo suelto, una cara, una noche. Contámelo ahora, tranquil{{o/a}}, que hay tiempo.
+
+**Bloque 4, vuelta 2 (Naza, 29/09):** aprobadas AD1, AD3, AD6, AD8, AD9, AD10, AD11. Orden: AD2 va antes que AD1 (13 años antes que 15). AD2b pasa al último año, no solo al último día. AD5 pasa a la primera vez que salió de noche. AD12 pasa a "la primera vez que sentiste que ya no eras chico". Nuevas:
+- **AD14 (nueva, C):** ¿Había algún adulto que era tu cómplice en esos años, el papá o la mamá de un amigo, un vecino, alguien que te entendía? Contame una vez que estuvo de tu lado.
+- **AD15 (nueva, E):** ¿Hubo algún momento duro en tu adolescencia que creas que no puede quedar afuera de tu historia? ¿Algo que te marcó? Si querés, contame qué pasó y cómo lo viviste.
+
+**Regla (Naza, 29/09):** cada etapa vivida (infancia, adolescencia, juventud) tiene su pregunta de "algo duro que te marcó", con el molde de CA17, y le llega a todos.
