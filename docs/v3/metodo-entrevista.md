@@ -821,3 +821,12 @@ Más ~14 cierres de bloque: **unos 200 turnos** para una vida completa. A 5 por 
 - b: Esto va así: te mando una pregunta y vos me la contás en audio. Si te salen dos o tres audios, mejor. Cuando quedás en silencio un ratito, entiendo que terminaste y te mando la próxima. No hay apuro: vamos al paso que vos vayas marcando.
 - a: Una cosa más, y arrancamos. Yo te mando una pregunta, vos me contestás con los audios que quieras, uno o varios, y cuando veo que terminaste te mando la que sigue. Nada más que eso. El tiempo lo ponés vos: un rato hoy, otro mañana, como te venga bien.
 - c: Antes de la primera, te cuento el ritmo. Vos contestás cuando puedas y ahí te llega la siguiente; si una pregunta te da para varios audios, mandalos todos, yo espero. Esto dura lo que vos tardes en ir contando, y así está bien.
+
+### Cierre del proceso, vuelta 2 (Naza, 29/09)
+- **M6 (b, con el nombre, después de la bienvenida):** Ahora te explico cómo va la entrevista, {{nombre}}. Te mando una pregunta y vos me la contás en audio. Si te salen dos o tres audios, mejor. Cuando quedás en silencio un ratito, entiendo que terminaste y te mando la próxima. No hay apuro: vamos al paso que vos vayas marcando.
+- Preguntas de datos: salen todas (aprobado).
+- Álbum de fotos: se puede subir hasta que se escriba el libro.
+- **Ficha contra respuesta (propuesta):** la ficha no decide qué se manda, pero el código compara. Si la ficha dice que tiene hijos (o pareja, hermanos…) y la persona contestó un "no" corto, se respeta la respuesta (puede ser una pérdida que no quiere tocar) y queda como duda en el dashboard, donde decide el narrador.
+- **Nombres:** ninguna pregunta los pide; salen en las historias y se confirman en el dashboard. Propuesta: si un nombre central nunca apareció (mamá, papá, pareja, hijos), el dashboard lo pregunta como duda.
+- Dashboard: también corrige lo que quedó confuso (dudas).
+- Preguntas de la familia: cuándo van, a decidir (propuesta: al empezar el bloque siguiente, para no cortar un tema).
