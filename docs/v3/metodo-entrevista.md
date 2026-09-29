@@ -887,3 +887,5 @@ Textos de las fusiones (Fable, a aprobar; la primera es la elegida):
 Aprobadas todas las fusiones y la de los padres de grande. "El amor que te marcó" (AM14) entra al núcleo. Grupo B: queda lo que había decidido Naza. JU15 (amigos de la juventud) queda en el núcleo; CA10 pasa a Extra. Aperturas: sí, solo el comienzo de las preguntas, sin tocar lo aprobado.
 - **AD10:** En esos años, ¿había alguien mayor que te entendía y a quien escuchabas de verdad, un tío, la mamá de un amigo, el amigo de un hermano? Contame cómo era con vos y una vez que estuvo de tu lado cuando lo necesitabas.
 - **HO10 (con PE10, bloque 14):** ¿Hubo algo que te acompañó muchos años, el cigarrillo, el vino, el café de la mañana? Contame cómo empezó y un momento con eso. Y si en algún momento te costó dejarlo, contame eso también.
+
+**30/09:** ES9, CP1, TR8 y CS1 pasan al Núcleo (baratas para la mayoría, centrales para algunos): núcleo 88. Aprobados por Naza la pasada de aperturas y M1, M8, M10, M15.
