@@ -604,3 +604,9 @@ Aprobadas: HG2, HG3, DE1, cierre.
 Pendiente (Naza): vicios y adicciones. Propuesta: una liviana en el bloque 14 (el cigarrillo, el vino, el mate, como costumbre) y una con permiso en el bloque 11 ("algo de lo que te costó salir").
 
 Se suman N1 (algo nuevo que llegó a la casa) y N3 (votar). N2 (hecho del mundo) afuera: ya entra en HG1.
+
+**Bloque 12: cerrado (29/09).** Pandemia: opción B (HG4 se queda; HG1 sin la pandemia):
+- **HG1:** Cuando pasó algo grande, en el país o en el mundo, un Mundial, una guerra, ¿cómo lo pasaste vos? Contame lo que recuerdes: dónde estabas, si lo viviste de cerca o te lo contaron, y qué pasó ese día.
+**Vicios (Naza, aprobadas las dos):**
+- **HO10 (bloque 14, liviana):** ¿Hubo algo que te acompañó muchos años, el cigarrillo, el vino, el café de la mañana? Contame cómo empezó y un momento con eso que te guste recordar.
+- **PE10 (bloque 11, con permiso):** ¿Hubo algo de lo que te costó mucho salir, un vicio o algo que te hacía mal? Si querés que esté en tu historia, contame cómo fue.
