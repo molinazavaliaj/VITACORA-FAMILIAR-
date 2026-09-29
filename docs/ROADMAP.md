@@ -42,6 +42,22 @@ record tipo Paddle/Lemon Squeezy). Decisión del 2026-09-04.
 > **15/10**. Esta sección manda sobre las filas viejas de abajo cuando se contradicen. La página para la
 > reunión de la semana se armó a partir de esta sección.
 
+### ▶️ LOS PRÓXIMOS PASOS — salieron de la reunión del 29/09
+
+> **Esto es lo que sigue, en este orden.** Hasta terminar estos ocho no se abre nada nuevo. Después
+> se vuelve a «Lo que falta para el 15/10, por frente» (más abajo), que sigue valiendo entero.
+
+| # | Paso | Quién | Estado | Punto de partida (27-29/09) |
+|---|---|---|---|---|
+| P1 | **Mandar a imprimir el libro modelo** para hacer contenido (D27.8). | **J** | 🔄 | Formato **A5** (D27.4). Hay que elegir qué libro va de modelo (Osvaldo, Joaquín o uno de prueba de Naza con v2/v3) y con qué plantilla sale el PDF. Con el libro en la mano se graba a Dora. Sirve también para cerrar el proveedor de imprenta (precio, plazo, envío). |
+| P2 | **Terminar el entrevistador y el escritor de la última versión** (v3). | **N** | 🔄 | Rama `v3`, activa (último commit: 30/09, «cuatro preguntas condicionales al núcleo; aperturas y mensajes aprobados»). Pendiente según su pase de manos: OK a los textos (banco, escritor v6, cazador de escenas), el código de los pasos que hoy son scripts a mano, y la prueba con el material de Joaquín. Nada se conecta a producción hasta que Naza lo dé por listo. |
+| P3 | **Plantillas y entrevistador en catalán** para Imma (D27.7). | **A** | ☐ | Las plantillas de Meta en catalán son nuevas y van a revisión (de horas a días): cargarlas apenas estén los textos. Además: el bot en catalán, la transcripción con idioma catalán y el libro. Hoy todo está en castellano. |
+| P4 | **Autónoma en España + Stripe** (8.4). | **N** | ☐ | El código de Stripe ya existe; falta la cuenta. Sin eso, España no cobra. Plan B si se demora: merchant of record (Lemon Squeezy / Paddle). |
+| P5 | **Terminar la landing: secciones de viaje y Kids.** | **J** | ☐ | Viaje: `/viaje` existe (landing mínima del 19/09) y la home tiene una sección que lleva ahí. Kids: la landing `/kids` («Próximamente» + lista de espera) está en la rama `vitacora-kids`, **sin mergear**; no tiene checkout ni modo en el bot. ⚠️ No cargar `PRECIO_KIDS_*` en Vercel: con precio, la página pasa sola a vender. Textos → OK de Naza. |
+| P6 | **Ñako: ¿está respondiendo o solo le llegan preguntas?** | **J** | ☐ | Mirarlo en `/admin` → Familias (la charla real: lo que se le preguntó y lo que contestó) y en la tabla `envios` (desde el 23/09 guarda los avisos de entrega de Meta: **aceptado no es entregado**, mirar `envios.entrega` y el error 131042). El 22/09 estaba en el día 1, sin responder. Si no responde: llamarlo; si no le llega: ver la ventana de 24 hs y la plantilla. |
+| P7 | **Joaquín y Naza responden las preguntas con el formato nuevo** (v3). | **A** | ☐ | Los dos de narradores de prueba, antes que Dora e Imma: es la última vuelta para encontrar fallas del v3 con gente que las sabe ver. Depende de P2. |
+| P8 | **Panel de superadmin: la evolución de cada cliente y de cada libro.** Ver en qué quedó y actualizarlo. | **J** | ☐ | Hoy `/admin` tiene cinco pantallas (21/09, Naza): **Estado** (qué se frenó hoy), **Familias** (la charla, historia por historia), **Plata**, **Gastos** y **Cerebros** (los 14 nodos de IA). **Falta:** seguir la **producción de cada libro** (estructura → escritura → frases → cierre → imprenta → entrega), las **entregas** (3t.26 fase 3) y las **herramientas de soporte** (D27.9: devolver el dinero, resetear el bot, reenviar, pausar). La pantalla Plata dice «septiembre, del 1 al 21»: revisar si el período está fijo. |
+
 ### Decisiones del 27/09 (Joaquín, a confirmar con Naza en la reunión)
 
 | # | Decisión | Qué cambia |
@@ -73,7 +89,7 @@ Se mergearon a `main` las cuatro que estaban listas, con los tests de las tres p
 - `esqueleto-v2`, `biografo-v2-*` y `v3`: son de Naza y en construcción; los mergea ella.
 - `vitacora-kids`: espera la decisión D27.10.
 
-### Lo que falta para el 15/10, por frente
+### Lo que falta para el 15/10, por frente (se retoma al terminar P1-P8)
 
 **1 · Biógrafo y fábrica (N, con J)**
 - [ ] v3: OK de Naza a los textos (banco, escritor v6, cazador de escenas) → código de los pasos → prueba con el material de Joaquín.
