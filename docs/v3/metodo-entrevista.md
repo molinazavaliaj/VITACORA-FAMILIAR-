@@ -897,3 +897,5 @@ AM0 pasa a ser un repaso (idea de Naza) y pide empezar por la primera en serio. 
 - **AM17 (idea de Naza, "en el amor" en vez de "tu pareja"):** En el amor, ¿alguna vez alguien te cuidó cuando lo necesitabas, en una enfermedad o un mal momento? Si te pasó, contame qué hizo y qué te dijo.
 - **HS1 (nueva, bloque 8, con la idea de Naza):** ¿Cómo viviste la crianza de tus hijos? ¿La llevaste sol{{o/a}}, o tuviste alguna ayuda cerca? Contame un día de esa época que te acuerdes bien.
 - **CS3 ("en el amor"):** ¿Te acordás de la primera vez que conociste a la familia de un amor tuyo? Contame cómo fue: quién te abrió la puerta, cómo te recibieron y qué pensaste cuando te fuiste.
+
+**30/09: banco cerrado.** HS1 aprobada; CS3 sale. Siguiente paso, con OK de Naza: pasar a banco-v3.md + código + tests + revisión.
