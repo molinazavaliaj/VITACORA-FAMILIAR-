@@ -566,3 +566,9 @@ De 13 sensibles a 6 + aviso + cierre. Se juntan: PE1+PE2 (padres, una sola); PE3
 - **Cierre:** Gracias por contarme esto; sé que no es fácil. Si hay otro momento difícil que sentís que tiene que estar en tu historia y no te lo pregunté, contámelo acá.
 
 Opcional (a decidir): **PE4, la época más dura de grande** (infancia, adolescencia y juventud ya tienen su "momento duro"; la adultez no).
+
+### Bloque 11, vuelta 2 (Naza, 29/09)
+PE8 afuera. PE1 y PE3 se juntan en una sola pregunta de pérdidas (idea de Naza):
+- **PE1:** ¿Perdiste a alguien importante en tu vida? Si querés, contame quiénes fueron, qué eran para vos y cómo lo fuiste llevando. Y si hay un momento con alguna de esas personas que te guste recordar, contámelo también.
+- **PE4 (nueva forma, la época dura de grande):** ¿Hubo alguna época dura en tu vida de grande que creas que no puede quedar afuera de tu historia? ¿Algo que te marcó? Si querés, contame qué pasó y cómo lo viviste.
+Quedan: aviso, PE1, PE5, PE6, ID1, PE4, cierre.
