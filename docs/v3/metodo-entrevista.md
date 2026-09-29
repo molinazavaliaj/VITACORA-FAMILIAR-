@@ -341,3 +341,11 @@ Lo que le falta (Fable, a decidir):
 - **N2 (depende de AM0):** ¿Cómo se decían entre ustedes? Un apodo, una forma de hablarse, una broma que era solo de los dos. Contame de dónde salió, o una vez que lo usaron.
 - **N3 (a todos):** ¿Hubo un amor que no pudo ser? Alguien que quisiste y no se dio, por lo que fuera. Si te pasó, contame quién era y el momento en que supiste que no iba a ser.
 - **N4 (a todos):** ¿Guardás algo de un amor tuyo: una carta, una foto, un regalo, una canción que no podés escuchar sin pensar en alguien? Contame qué es, y la última vez que lo tuviste enfrente.
+
+### Bloque 6, vuelta 2 (Naza, 29/09)
+Aprobadas: AM2, AM3, CS3, AM7, AM6, AM8, AM14, AM15, cierre. Orden nuevo: AM9 (el final) va antes que AM13 (hoy); AM13 se manda solo si AM9 fue un "no" corto (siguen juntos).
+- **AM0:** Ahora vamos al amor. ¿Hubo un amor con quien armaste tu vida, o con quien la compartís hoy? Si fueron varios, empezá por el que quieras. Y si no hubo, decímelo nomás, que también vale.
+- **AM4:** ¿Hubo un casamiento, o un día en que empezaron a vivir juntos? Si lo hubo, contame ese día: lo que más te quedó grabado.
+- **AM5:** ¿Te acordás de la primera casa de los dos, aunque haya sido una pieza prestada? Contame cómo llegaron a ella y cómo fue la primera noche ahí.
+- **AM13 (solo si AM9 fue "no"):** Y hoy, ¿cómo es un día de ustedes dos? Contame uno cualquiera: el desayuno, las charlas, lo que hacen a la tarde.
+Nota: AM1 no cambia; la persona con la que armó la vida sin ser pareja (un amigo, una hermana) entra por AM15, porque AM0 ahora dice "un amor". Varias parejas: el bloque sigue a la que eligió en AM0; las otras entran por AM14 y el cierre.
