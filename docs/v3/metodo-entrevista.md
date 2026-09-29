@@ -655,3 +655,5 @@ Aprobadas: GI2, HJ1 (distinta de ES7 y AD16: esas piden el deseo, esta el moment
 **Bloque 13: aprobadas GI1, cierre simple, FI1, FI2, FI3, FI4.** Nuevas (idea de Naza, a aprobar; son de opinión, las usa el escritor como voz):
 - **FI6 (el futuro):** ¿Cómo te imaginás el mundo dentro de cien años? Contame cómo lo ves, y qué te gustaría que no se pierda.
 - **FI7 (la política):** ¿Qué es la política para vos? ¿Hubo algún momento de tu vida en que te tocó de cerca? Contame cuál fue y qué pensás hoy. (Si dice algo delicado, el dashboard le pregunta si lo quiere en el libro.)
+
+**Bloque 13: cerrado (29/09).** FI6 y FI7 aprobadas.
