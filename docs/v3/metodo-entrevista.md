@@ -399,3 +399,23 @@ Lo que le falta (Fable, a decidir):
 - **N3, trabajar con la familia:** ¿Trabajaste alguna vez con gente de tu familia, en un negocio, en el campo, en la casa, en lo que fuera? Si fue así, contame cómo era trabajar juntos, y un día en que eso se notó.
 - **N4, lo que compró con su trabajo:** ¿Hay algo que compraste con plata de tu trabajo y que todavía recordás? Una casa, un terreno, una heladera, un viaje, un vestido, una bicicleta. Contame el día que lo pagaste y lo llevaste a casa.
 - **N5, empezar de cero:** ¿Alguna vez cambiaste a un trabajo muy distinto, o empezaste de cero ya grande? Si fue así, contame el primer día en lo nuevo y los años que tenías.
+
+### Bloque 7, vuelta 2 (Naza, 29/09; redactado con Fable)
+Aprobadas: MA1, TR5, OF4, CP1, PR1, cierre. "Trabajo" se amplía a lo que hizo para ganarse la vida o a lo que le dedicó sus días (negocio, negocio familiar, deporte, arte, la casa). TR9 pasa a todos, sin edad.
+
+**Regla (Naza):** si algo ya lo contó antes, puede decir "ya te lo conté" o sumar lo que falte; el escritor lee todo junto.
+
+- **Entrada al bloque (A):** Ahora vamos a lo que hiciste con tus días: cómo te ganaste la vida, o a qué le pusiste los años. Un trabajo, un negocio, un oficio, un deporte, la casa, lo que haya sido. Cuando las preguntas digan "tu trabajo", pensá en eso tuyo.
+- **Entrada (B):** Vamos a entrar en el trabajo, pero entendelo a tu manera: lo que hiciste para vivir, o aquello a lo que le diste tus mejores horas. Un empleo, un negocio, un deporte, el campo, la casa. Cuando digamos "tu trabajo", es eso.
+- **TR1:** ¿Te acordás de la primera vez que te ganaste algo, o que trabajaste sin cobrar? Una changa, un negocio, la casa, el campo. ¿Qué edad tenías? Contame ese primer día, y en qué se fue esa primera plata, si la hubo.
+- **TR6:** Hagamos el repaso de a qué le diste tus años, más o menos en qué años: trabajos, negocios, un oficio, un deporte, la casa, lo que haya sido. Cuál te quedó más grabado, y si fue una sola cosa, cómo fue quedarte ahí.
+- **OF1:** Hay un momento en que uno deja de sentirse nuev{{o/a}} en lo suyo y se da cuenta de que ya sabe: en un trabajo, un negocio, una cancha, una cocina. ¿Te pasó? Contame ese día: qué estabas haciendo, quién estaba, qué sentiste.
+- **TR2:** Pensá en eso a lo que le diste más años: un trabajo, un negocio, un deporte, la casa. ¿Cómo era un día común? Desde que arrancabas hasta que terminaba, qué hacías, con quién. Y contame uno de esos días que te haya quedado.
+- **TR3:** ¿Hubo una persona, en eso que hacías, que no te olvidás? Alguien con quien trabajabas, un socio, alguien de la familia en el negocio, quien te entrenaba, alguien que atendías. Contame cómo era, y una vez con esa persona.
+- **OF2:** De toda la gente para la que hiciste algo en lo tuyo, alguien que atendiste, cuidaste, le enseñaste, le vendiste, le cocinaste, o alguien que te fue a ver, ¿hay una persona que te quedó? Contame esa vez.
+- **TR4:** ¿Hubo un día, o una época, en que lo tuyo se te hizo cuesta arriba? El trabajo, el negocio, el deporte, la casa. Contame cómo era levantarse entonces, qué te sostenía, y el momento en que sentiste que empezaba a pasar.
+- **OB1:** ¿Tuviste gente al lado en lo tuyo: compañeros de trabajo, de equipo, del negocio, socios? Si la tuviste, contame cómo era ese grupo, si se juntaban fuera, y una vez que alguien te cubrió, o vos a alguien, cuando hacía falta.
+- **OB2:** ¿Te tocó alguna vez un conflicto grande en lo tuyo? Una huelga, una pelea con el patrón, un quiebre con un socio, con un cliente, con un amigo del trabajo. Si te tocó, contame ese día: de qué lado estabas, cómo terminó.
+- **TR8:** Si tuviste un negocio o algo propio, aunque fuera chico, este es su lugar. Si ya me lo contaste, con decírmelo alcanza. Si quedó algo afuera, cómo empezó, de dónde salió la idea, con qué plata, un día de esos, contámelo ahora.
+- **CS1:** Fuera de lo tuyo, hay cosas que hacés bien y nadie te paga: cocinar para todos, cuidar a alguien, tener la casa andando, hacer rendir la plata, armar una fiesta. ¿Hay alguna que sea tuya? Contame una vez que te lució, que la gente lo notó.
+- **TR9 (a todos):** ¿Ya dejaste eso que hacías, el trabajo, el negocio, el deporte? Si seguís, decímelo y listo. Si ya lo dejaste, contame el último día: cómo fue, si lo sabías de antes, qué hiciste al salir. Y el día siguiente, el primero sin ir.
