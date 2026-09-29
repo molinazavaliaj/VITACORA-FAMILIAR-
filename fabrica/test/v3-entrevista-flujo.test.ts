@@ -46,7 +46,28 @@ describe('entrevista: "no" corto', () => {
   it('"paso" se reconoce con signos y mayúsculas, y nada más', () => {
     expect(esPaso('Paso')).toBe(true);
     expect(esPaso('paso.')).toBe(true);
-    expect(esPaso('paso, gracias')).toBe(false);
+    expect(esPaso('paso, gracias')).toBe(true);
+    expect(esPaso('Paso, no quiero hablar de eso')).toBe(true);
+    expect(esPaso('Bueno, paso')).toBe(true);
+    expect(esPaso('Paso a contarte lo del viaje que hicimos con mi hermano a Mendoza en el sesenta')).toBe(false);
+  });
+
+  // Revisión del segundo agente (30/09): muletillas, letras estiradas, "pero".
+  it.each(['Eh, no', 'Mmm, no.', 'Bueno, nunca', 'Nooo', 'Ninguno', 'Tampoco', 'A ver... no, no tuve'])('"%s" es un no corto', (r) => {
+    expect(esNoCorto(r)).toBe(true);
+  });
+  it.each(['Nunca lo pensé pero me acuerdo que mi abuelo llegó en barco', 'No, aunque una vez casi me fui a Córdoba'])(
+    '"%s" no es un no corto (sigue con algo que contar)',
+    (r) => {
+      expect(esNoCorto(r)).toBe(false);
+    },
+  );
+});
+
+describe('entrevista: una transcripción vacía no cuenta como respuesta', () => {
+  const am1 = () => preguntaPorId('AM1')!;
+  it.each(['', '   ', '👍'])('AM0 = "%s" no habilita las preguntas de pareja', (r) => {
+    expect(cumple(am1(), new Map([['AM0', r]]))).toBe(false);
   });
 });
 

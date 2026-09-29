@@ -26,28 +26,53 @@ export function normalizar(texto: string): string {
 }
 
 function palabras(texto: string): string[] {
-  const n = normalizar(texto);
+  const n = normalizar(texto).replace(/(\p{L})\1{2,}/gu, '$1'); // "nooo" → "no"
   return n === '' ? [] : n.split(' ');
 }
 
-/** ¿Dijo "paso"? (M1: "decí paso y vamos a otra"). */
+/** Muletillas de audio que se saltean al buscar la primera palabra ("Eh, no", "Bueno, paso"). */
+const MULETILLAS = new Set(['eh', 'em', 'm', 'mm', 'este', 'bueno', 'mira', 'mire', 'ay', 'ah', 'uh', 'pues']);
+const MULETILLAS_DOBLES = [['a', 'ver'], ['o', 'sea']];
+
+/** Las palabras sin las muletillas del principio. */
+function sinMuletillas(p: string[]): string[] {
+  let i = 0;
+  for (;;) {
+    if (MULETILLAS.has(p[i])) { i++; continue; }
+    if (MULETILLAS_DOBLES.some(([a, b]) => p[i] === a && p[i + 1] === b)) { i += 2; continue; }
+    return p.slice(i);
+  }
+}
+
+/** Largo máximo (en palabras, sin muletillas) de un "paso" con algo más ("paso, no quiero hablar"). */
+const PALABRAS_PASO = 8;
+
+/**
+ * ¿Dijo "paso"? (M1: "decí paso y vamos a otra"). Vale si la primera palabra
+ * (sin muletillas) es "paso" y la respuesta es corta: "paso, no quiero
+ * hablar" es paso; "Paso a contarte lo del viaje, que fue…" no.
+ */
 export function esPaso(respuesta: Respuesta): boolean {
-  return normalizar(respuesta) === 'paso';
+  const p = sinMuletillas(palabras(respuesta));
+  return p[0] === 'paso' && p.length <= PALABRAS_PASO;
 }
 
 /** Límite del "no" corto: menos de 15 palabras. */
 export const PALABRAS_NO_CORTO = 15;
-const ARRANQUES_NO = new Set(['no', 'nunca', 'jamas']);
+const ARRANQUES_NO = new Set(['no', 'nunca', 'jamas', 'ninguno', 'ninguna', 'nada', 'tampoco']);
+/** Si aparecen, el "no" viene seguido de algo que contar ("Nunca lo pensé pero…"). */
+const CONTRASTES = new Set(['pero', 'aunque']);
 
 /**
- * "No" corto: menos de 15 palabras y empieza con no / nunca / jamás
- * (sin importar mayúsculas, tildes ni signos). "No sabés lo que fue ese
- * viaje…" largo no cuenta; "paso" tampoco.
+ * "No" corto: menos de 15 palabras, empieza (sin muletillas) con no / nunca /
+ * jamás / ninguno / nada / tampoco, y no sigue con "pero" o "aunque". Sin
+ * importar mayúsculas, tildes, signos ni letras estiradas ("Nooo"). "No
+ * sabés lo que fue ese viaje…" largo no cuenta; "paso" tampoco.
  */
 export function esNoCorto(respuesta: Respuesta): boolean {
   if (esPaso(respuesta)) return false;
-  const p = palabras(respuesta);
-  return p.length > 0 && p.length < PALABRAS_NO_CORTO && ARRANQUES_NO.has(p[0]);
+  const p = sinMuletillas(palabras(respuesta));
+  return p.length > 0 && p.length < PALABRAS_NO_CORTO && ARRANQUES_NO.has(p[0]) && !p.some((w) => CONTRASTES.has(w));
 }
 
 /** X se contestó con un "no" corto. */
@@ -56,10 +81,10 @@ export function respondioNo(respuestas: Respuestas, id: string): boolean {
   return r !== undefined && esNoCorto(r);
 }
 
-/** X se contestó y no fue un "no" corto ni "paso": contó algo. */
+/** X se contestó con al menos una palabra y no fue un "no" corto ni "paso": contó algo (una transcripción vacía o un emoji no cuenta). */
 export function contoAlgo(respuestas: Respuestas, id: string): boolean {
   const r = respuestas.get(id);
-  return r !== undefined && !esPaso(r) && !esNoCorto(r);
+  return r !== undefined && palabras(r).length > 0 && !esPaso(r) && !esNoCorto(r);
 }
 
 /**
