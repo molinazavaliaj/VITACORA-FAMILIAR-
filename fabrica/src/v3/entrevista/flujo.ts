@@ -1,0 +1,206 @@
+// El flujo de la entrevista (docs/v3/entrevista/banco.md, "Reglas del
+// flujo"): qué cuenta como "no" corto, si una pregunta se manda según las
+// respuestas, cuál es la próxima, qué acuse va después y qué dudas deja la
+// ficha contra las respuestas. Todo puro, sin I/O: el entrevistador guarda el
+// estado y llama a estas funciones.
+
+import { estado, type FichaV3 } from '../ficha.js';
+import { BANCO, type PreguntaEntrevista } from './banco.js';
+
+/** Respuesta a una pregunta: el texto (transcripción) o lo que dijo, incluido "paso". */
+export type Respuesta = string;
+/** Respuestas por ID de pregunta. Solo están las preguntas que se mandaron y se contestaron. */
+export type Respuestas = ReadonlyMap<string, Respuesta>;
+
+// ---------------------------------------------------------------- respuestas
+
+/** Minúsculas, sin tildes y sin signos: "¡No, Nunca!" → "no nunca". */
+export function normalizar(texto: string): string {
+  return texto
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[^\p{L}\p{N}\s]/gu, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function palabras(texto: string): string[] {
+  const n = normalizar(texto);
+  return n === '' ? [] : n.split(' ');
+}
+
+/** ¿Dijo "paso"? (M1: "decí paso y vamos a otra"). */
+export function esPaso(respuesta: Respuesta): boolean {
+  return normalizar(respuesta) === 'paso';
+}
+
+/** Límite del "no" corto: menos de 15 palabras. */
+export const PALABRAS_NO_CORTO = 15;
+const ARRANQUES_NO = new Set(['no', 'nunca', 'jamas']);
+
+/**
+ * "No" corto: menos de 15 palabras y empieza con no / nunca / jamás
+ * (sin importar mayúsculas, tildes ni signos). "No sabés lo que fue ese
+ * viaje…" largo no cuenta; "paso" tampoco.
+ */
+export function esNoCorto(respuesta: Respuesta): boolean {
+  if (esPaso(respuesta)) return false;
+  const p = palabras(respuesta);
+  return p.length > 0 && p.length < PALABRAS_NO_CORTO && ARRANQUES_NO.has(p[0]);
+}
+
+/** X se contestó con un "no" corto. */
+export function respondioNo(respuestas: Respuestas, id: string): boolean {
+  const r = respuestas.get(id);
+  return r !== undefined && esNoCorto(r);
+}
+
+/** X se contestó y no fue un "no" corto ni "paso": contó algo. */
+export function contoAlgo(respuestas: Respuestas, id: string): boolean {
+  const r = respuestas.get(id);
+  return r !== undefined && !esPaso(r) && !esNoCorto(r);
+}
+
+/**
+ * ¿Se manda la pregunta, según sus condiciones? Sin condiciones, sí. Con
+ * varias, alcanza una (OR). `si:X` pide que X haya contado algo; `sino:X`,
+ * que X haya sido un "no" corto. Si X no se mandó o se contestó "paso", no
+ * se cumple ninguna de las dos (ver Dudas del banco).
+ */
+export function cumple(pregunta: Pick<PreguntaEntrevista, 'depende'>, respuestas: Respuestas): boolean {
+  if (pregunta.depende.length === 0) return true;
+  return pregunta.depende.some((c) => (c.tipo === 'si' ? contoAlgo(respuestas, c.de) : respondioNo(respuestas, c.de)));
+}
+
+// ---------------------------------------------------------------- orden
+
+/** Una pregunta que manda la familia (va con M15, al final). */
+export type PreguntaFamilia = { id: string; texto: string };
+
+export type RondaExtra = 'sin-ofrecer' | 'aceptada' | 'rechazada';
+
+export type EstadoEntrevista = {
+  /** Preguntas contestadas (incluye "paso"), del banco y de la familia. */
+  respuestas: Respuestas;
+  /** Lo que se mandó y no espera respuesta (AV11, FIN). */
+  enviados?: ReadonlySet<string>;
+  /** Por defecto 'sin-ofrecer'. */
+  rondaExtra?: RondaExtra;
+  /** Preguntas de la familia, en el orden en que llegaron. */
+  familia?: readonly PreguntaFamilia[];
+};
+
+export type Siguiente =
+  /** Mandar la pregunta; si `conM1`, con M1 abajo en línea aparte y en cursiva. */
+  | { tipo: 'pregunta'; pregunta: PreguntaEntrevista; conM1: boolean; esperaRespuesta: boolean }
+  /** Mandar M15 y después la pregunta de la familia. */
+  | { tipo: 'familia'; pregunta: PreguntaFamilia; antes: 'M15' }
+  /** Terminó el núcleo: ofrecer la ronda extra (texto a redactar con Fable, pendiente de Naza). */
+  | { tipo: 'ofrecer-extra' }
+  /** No queda nada por mandar. */
+  | { tipo: 'terminada' };
+
+/** Bloque que se manda entero al final (legado y cierre: LE1 "Mirando toda tu vida", FO1 "Una última cosa", LE9, FIN). */
+export const BLOQUE_FINAL = 15;
+/** Las preguntas de la familia van antes de esta (y por lo tanto antes de LE9). */
+export const FAMILIA_ANTES_DE = 'FO1';
+
+/** ¿Espera respuesta? El aviso y el mensaje final no. */
+export function esperaRespuesta(p: Pick<PreguntaEntrevista, 'clase'>): boolean {
+  return p.clase !== 'aviso' && p.clase !== 'final';
+}
+
+function comoSiguiente(p: PreguntaEntrevista): Siguiente {
+  return { tipo: 'pregunta', pregunta: p, conM1: p.clase === 'historia', esperaRespuesta: esperaRespuesta(p) };
+}
+
+/**
+ * La próxima cosa para mandar. Orden (banco.md, Reglas del flujo y Dudas 3-4):
+ *   1. el núcleo de los bloques 1 a 14, en orden, salteando lo que no cumple;
+ *   2. la oferta de la ronda extra;
+ *   3. si la aceptó, las extra de los bloques 1 a 14, en orden;
+ *   4. el bloque 15 (con LE6 solo si aceptó la extra), y las preguntas de
+ *      la familia justo antes de FO1.
+ * Una pregunta ya está hecha si tiene respuesta o figura en `enviados`.
+ */
+export function siguientePregunta(e: EstadoEntrevista, banco: readonly PreguntaEntrevista[] = BANCO): Siguiente {
+  const enviados = e.enviados ?? new Set<string>();
+  const ronda = e.rondaExtra ?? 'sin-ofrecer';
+  const hecha = (id: string) => e.respuestas.has(id) || enviados.has(id);
+  const pendiente = (p: PreguntaEntrevista) => !hecha(p.id) && cumple(p, e.respuestas);
+
+  const principal = banco.filter((p) => p.bloque !== BLOQUE_FINAL);
+  for (const p of principal) if (p.parte === 'nucleo' && pendiente(p)) return comoSiguiente(p);
+
+  if (ronda === 'sin-ofrecer') return { tipo: 'ofrecer-extra' };
+  if (ronda === 'aceptada') for (const p of principal) if (p.parte === 'extra' && pendiente(p)) return comoSiguiente(p);
+
+  const final = banco.filter((p) => p.bloque === BLOQUE_FINAL && (p.parte === 'nucleo' || ronda === 'aceptada'));
+  const ordenFamilia = banco.find((p) => p.id === FAMILIA_ANTES_DE)?.orden ?? Infinity;
+  const familia = (e.familia ?? []).find((f) => !e.respuestas.has(f.id));
+  for (const p of final) {
+    if (familia && p.orden >= ordenFamilia) return { tipo: 'familia', pregunta: familia, antes: 'M15' };
+    if (pendiente(p)) return comoSiguiente(p);
+  }
+  if (familia) return { tipo: 'familia', pregunta: familia, antes: 'M15' };
+  return { tipo: 'terminada' };
+}
+
+/** Bloques que son etapas vividas: su cierre va seguido de M10 (Terminamos {{etapa}}…). */
+export const BLOQUES_ETAPA: readonly number[] = [2, 3, 4, 5];
+
+/**
+ * Qué mensajes fijos van después de contestar (familias de mensajes; el
+ * entrevistador rota M3 y M4): "paso" → M21; sensible → M4; si no → M3.
+ * El cierre de una etapa (bloques 2 a 5) va con M10 en vez del acuse. El
+ * aviso y el final no se contestan: nada.
+ */
+export function mensajesDespues(pregunta: Pick<PreguntaEntrevista, 'bloque' | 'clase' | 'sensible'>, respuesta: Respuesta): ('M3' | 'M4' | 'M10' | 'M21')[] {
+  if (!esperaRespuesta(pregunta)) return [];
+  const finDeEtapa = pregunta.clase === 'cierre' && BLOQUES_ETAPA.includes(pregunta.bloque);
+  if (esPaso(respuesta)) return finDeEtapa ? ['M21', 'M10'] : ['M21'];
+  if (finDeEtapa) return ['M10'];
+  return [pregunta.sensible ? 'M4' : 'M3'];
+}
+
+/** El acuse de turno de una familia que rota: M3 tiene 8 (M3.1…M3.8) y M4 tiene 4. */
+export function acuseRotado(familia: 'M3' | 'M4', n: number): string {
+  const total = familia === 'M3' ? 8 : 4;
+  return `${familia}.${(((n % total) + total) % total) + 1}`;
+}
+
+// ---------------------------------------------------------------- ficha contra respuestas
+
+export type DudaFicha = { tema: 'hermanos' | 'pareja' | 'hijos' | 'nietos' | 'mudarse'; pregunta: string; texto: string };
+
+type Tema = { tema: DudaFicha['tema']; pregunta: string; campo: keyof FichaV3; si: string; no: string };
+
+/** Las preguntas que abren un tema y el campo de la ficha que dice lo mismo. */
+const TEMAS: readonly Tema[] = [
+  { tema: 'hermanos', pregunta: 'CA6', campo: 'hermanos', si: 'tiene hermanos', no: 'no tiene hermanos' },
+  { tema: 'mudarse', pregunta: 'JU8', campo: 'migracion', si: 'se fue a vivir a otro lugar', no: 'no se fue a vivir a otro lugar' },
+  { tema: 'pareja', pregunta: 'AM0', campo: 'parejas', si: 'tuvo pareja', no: 'no tuvo pareja' },
+  { tema: 'hijos', pregunta: 'HI0', campo: 'hijos', si: 'tiene hijos', no: 'no tiene hijos' },
+  { tema: 'nietos', pregunta: 'HI8', campo: 'nietos', si: 'tiene nietos', no: 'no tiene nietos' },
+];
+
+/**
+ * La ficha no decide qué se manda, pero se compara con las respuestas que
+ * abren un tema: si la ficha dice que tiene y contestó un "no" corto, o si la
+ * ficha dice que no tiene y contó algo, queda una duda neutral para el
+ * dashboard (decide el narrador). Si la ficha no dice nada, o la respuesta
+ * fue "paso" o no llegó, no hay duda.
+ */
+export function contradiccionesConFicha(ficha: FichaV3, respuestas: Respuestas): DudaFicha[] {
+  const dudas: DudaFicha[] = [];
+  for (const t of TEMAS) {
+    const segunFicha = estado(ficha[t.campo]);
+    if (segunFicha === 'lleno' && respondioNo(respuestas, t.pregunta)) {
+      dudas.push({ tema: t.tema, pregunta: t.pregunta, texto: `La ficha dice que ${t.si} y en la entrevista contestó que no (${t.pregunta}).` });
+    } else if (segunFicha === 'no-tiene' && contoAlgo(respuestas, t.pregunta)) {
+      dudas.push({ tema: t.tema, pregunta: t.pregunta, texto: `La ficha dice que ${t.no} y en la entrevista contó algo (${t.pregunta}).` });
+    }
+  }
+  return dudas;
+}
