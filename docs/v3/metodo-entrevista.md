@@ -419,3 +419,22 @@ Aprobadas: MA1, TR5, OF4, CP1, PR1, cierre. "Trabajo" se amplía a lo que hizo p
 - **TR8:** Si tuviste un negocio o algo propio, aunque fuera chico, este es su lugar. Si ya me lo contaste, con decírmelo alcanza. Si quedó algo afuera, cómo empezó, de dónde salió la idea, con qué plata, un día de esos, contámelo ahora.
 - **CS1:** Fuera de lo tuyo, hay cosas que hacés bien y nadie te paga: cocinar para todos, cuidar a alguien, tener la casa andando, hacer rendir la plata, armar una fiesta. ¿Hay alguna que sea tuya? Contame una vez que te lució, que la gente lo notó.
 - **TR9 (a todos):** ¿Ya dejaste eso que hacías, el trabajo, el negocio, el deporte? Si seguís, decímelo y listo. Si ya lo dejaste, contame el último día: cómo fue, si lo sabías de antes, qué hiciste al salir. Y el día siguiente, el primero sin ir.
+
+### Bloque 7, vuelta 3 (Naza, 29/09; redactado con Fable)
+Se saca la entrada del bloque. En su lugar, **mensaje de bienvenida al principio de toda la entrevista** (va con M2, la presentación del biógrafo):
+- **Bienvenida (A):** Antes de empezar, una sola cosa. Las preguntas que te voy a ir mandando son para conocer tu vida: qué te pasó y qué no. Algunas no van a encajar con tu historia, y está perfecto. Si una no es para vos, contestá que no y listo, o contame lo que en realidad te pasó a vos. No hay respuestas equivocadas.
+- **Bienvenida (B):** Te cuento cómo va esto. Yo pregunto de a una, y vos contás con un audio, como te salga. Las preguntas son para todo el mundo, así que algunas te van a quedar lejos: en ese caso, un "no" alcanza, o contame lo que sí te pasó, que es lo que importa. Lo tuyo es lo que vale acá.
+
+Preguntas más genéricas (sin listas de opciones):
+- **TR1:** ¿Te acordás de la primera vez que te ganaste algo, o que trabajaste sin cobrar? ¿Qué hacías, qué edad tenías? Contame ese primer día, y en qué se fue esa primera plata, si la hubo.
+- **TR6:** Hagamos el repaso de a qué le diste tus años, en orden y más o menos en qué años. Cuál de todo eso te quedó más grabado, y si fue una sola cosa toda la vida, cómo fue quedarte ahí.
+- **OF1:** Hay un momento en que uno deja de sentirse nuev{{o/a}} en lo suyo y se da cuenta de que ya sabe. ¿Te pasó? Contame ese día: qué estabas haciendo, quién estaba, qué sentiste.
+- **TR2:** Pensá en eso a lo que le diste más años. ¿Cómo era un día común? Desde que arrancabas hasta que terminaba, qué hacías, con quién. Y contame uno de esos días que te haya quedado.
+- **TR3:** ¿Hubo una persona, en eso que hacías, que no te olvidás? Alguien que estaba al lado tuyo, o del otro lado. Contame cómo era, y una vez con esa persona que tengas bien clara.
+- **OF2:** De toda la gente para la que hiciste algo en lo tuyo, alguien que atendiste, que cuidaste, que te fue a ver, ¿hay una persona que te quedó? Contame esa vez.
+- **TR4:** ¿Hubo un día, o una época, en que lo tuyo se te hizo cuesta arriba? Contame cómo era levantarse entonces, qué te sostenía, y el momento en que sentiste que empezaba a pasar.
+- **OB1:** ¿Tuviste gente al lado en lo tuyo, compañeros de alguna clase? Si la tuviste, contame cómo era ese grupo, si se juntaban fuera, y una vez que alguien te cubrió, o vos a alguien, cuando hacía falta.
+- **OB2:** ¿Te tocó alguna vez un conflicto grande en lo tuyo, una huelga, una pelea fuerte con alguien con quien trabajabas? Si te tocó, contame ese día: de qué lado estabas, cómo terminó.
+- **TR8:** Si tuviste un negocio o algo propio, aunque fuera chico, este es su lugar. Si ya me lo contaste, con decírmelo alcanza. Si quedó algo afuera, cómo empezó, de dónde salió la idea, con qué plata, un día de esos, contámelo ahora.
+- **CS1:** Fuera de lo tuyo, hay cosas que hacés bien y nadie te paga, cocinar para todos, cuidar a alguien, tener la casa andando. ¿Hay alguna que sea tuya? Contame una vez que te lució, que la gente lo notó.
+- **TR9 (a todos):** ¿Ya dejaste eso a lo que te dedicaste? Si seguís, con decírmelo alcanza. Si ya lo dejaste, contame el último día: cómo fue, si lo sabías de antes, qué hiciste al salir. Y el día siguiente, el primero sin ir.
