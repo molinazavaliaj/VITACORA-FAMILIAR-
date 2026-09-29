@@ -710,3 +710,11 @@ LE4 y LE5 se juntan. Salen: LE3 (algo que nunca dijiste: se pisa con LE8 y empuj
 - **LE8:** Ahora sí, hablales a {{destinatarios}}. Lo que les dirías si los tuvieras sentados enfrente, sin apuro, de a uno. Nadie te corre.
 - **LE9:** Llegamos al final. ¿Hay algo que en todo este tiempo no te pregunté y querés que esté en el libro? Una persona, un lugar, una historia que te quedó dando vueltas.
 - **Mensaje final:** Hasta acá llegamos, {{nombre}}. Gracias por cada audio, por las historias y por la confianza de contarlas así, sin filtro. Con todo lo que me dijiste hay un libro, y es bien tuyo. Antes de que se escriba vas a poder repasar lo que contaste, por si querés cambiar o agregar algo. Fue un gusto enorme escucharte.
+
+### Bloque 15, vuelta 2 (Naza, 29/09)
+Aprobadas: LE7, LE9. Salen LE3 y DES1. **{{destinatarios}} se reemplaza por "tu familia"** (Naza: más simple).
+- **LE1 (sin el "pecho", que ya usa HI6):** Mirando toda tu vida hasta hoy, ¿qué es lo que más orgullo te da? Puede ser algo grande o algo que nadie más notó. Contame qué fue y el momento en que te diste cuenta.
+- **LE2:** ¿Qué aprendiste de la vida que te gustaría que tu familia sepa? Decímelo como un consejo, algo que vos mism{{o/a}} descifraste viviendo.
+- **LE6:** Cuando la gente que te quiere piensa en vos, ¿qué te gustaría que se le venga a la cabeza? Una frase tuya, una imagen, una escena.
+- **LE8 (absorbe LE4, los deseos, que se pisaban):** Ahora sí, hablale a tu familia, a los que van a leer este libro. Lo que les dirías y lo que les deseás si los tuvieras sentados enfrente, sin apuro, de a uno. Nadie te corre.
+- **Mensaje final:** Hasta acá llegamos, {{nombre}}. Gracias por cada audio, por cada historia y por la confianza de contarlas así. Con todo lo que me contaste vamos a armar un libro que va a quedar en tu familia para siempre, y es bien tuyo. Antes de escribirlo vas a poder repasar lo que contaste, por si querés cambiar o agregar algo. Fue un gusto enorme escucharte.
