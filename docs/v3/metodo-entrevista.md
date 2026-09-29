@@ -139,10 +139,10 @@ Lo que le contaron, de antes de que se acuerde. Es la primera impresión del bi�
 Textos (elegida de Fable; la otra, de respaldo):
 - **OR1:** Arranquemos por el principio, por lo que te contaron. ¿Qué se decía en tu casa del día que naciste? Siempre hay algo: un apuro, una espera, alguien que llegó justo. Contame esa historia como te la contaron.
   - Respaldo: Empecemos por antes de que te acuerdes. En tu casa, ¿qué se contaba de cuando naciste? Del día, del lugar, de quién andaba dando vueltas. ¿Hay alguna anécdota que se repetía? Contámela.
-- **OR2:** En todas las familias hay una historia de los de antes, de los abuelos o más atrás, que se contaba en las sobremesas: un viaje, una llegada, alguna hazaña. ¿Cuál era la de la tuya? Contámela como la escuchaste.
+- **OR2 (aprobada con cambio de Naza):** En todas las familias hay una historia de los de antes, de los abuelos o más atrás, que se contaba en las sobremesas: un viaje, una llegada, alguna hazaña. ¿Cuál sabés de tu familia? Contámela como la escuchaste.
   - Respaldo: Vamos más atrás, a tus abuelos o bisabuelos, de cualquiera de los dos lados. Aunque sepas poquito, algo se contaba en tu casa: de dónde venían, algo que hicieron. ¿Te acordás de una historia de ellos que se repetía en la mesa? Contámela.
-- **OR5:** ¿Cómo se conocieron tu mamá, {{madre}}, y tu papá, {{padre}}? Seguro en casa lo contaron más de una vez: un baile, una casualidad, alguien que los presentó. Contame ese día como te lo contaron.
-- **OR6:** ¿Por qué te pusieron {{nombre}}? En las casas siempre hay una historia atrás de un nombre: una discusión, un santo, alguien a quien querían mucho. Contame la que te contaron a vos, aunque sea cortita.
+- **OR5 (aprobada):** ¿Cómo se conocieron tu mamá, {{madre}}, y tu papá, {{padre}}? Seguro en casa lo contaron más de una vez: un baile, una casualidad, alguien que los presentó. Contame ese día como te lo contaron.
+- **OR6 (aprobada):** ¿Por qué te pusieron {{nombre}}? En las casas siempre hay una historia atrás de un nombre: una discusión, un santo, alguien a quien querían mucho. Contame la que te contaron a vos, aunque sea cortita.
 - **OR6.2:** ¿Cómo fue que te quedó {{apodo}}? Seguro hay una anécdota atrás: una travesura, una palabra mal dicha, alguien que lo dijo una vez y pegó. Contámela, que los apodos dicen mucho de una casa.
 
 ### Bloque 1, versión 2 (29/09, correcciones de Naza, redactado con Fable)
@@ -150,8 +150,10 @@ Textos (elegida de Fable; la otra, de respaldo):
 - Apodo para todos, en una sola pregunta sin botón (se saca el gate APODO).
 - OR7 vuelve: cierre del bloque 1 (Naza: "es clave y no cuesta plata").
 
-- **OR1:** Empecemos por cuando llegaste al mundo, según te contaron. No el día en sí, sino la época: dónde vivían, en qué andaban tu mamá y tu papá, cómo te esperaban. ¿Qué historia de ese tiempo se contaba en casa? Contámela.
+- **OR1 (aprobada con cambio de Naza: pide cómo era la vida, no una anécdota; es contexto de apertura):** Empecemos por cuando llegaste al mundo, según te contaron. No el día en sí, sino la época: dónde vivían, en qué andaban tu mamá y tu papá, cómo te esperaban. ¿Qué sabés de cómo era la vida de ellos en ese entonces? Contame.
   - Respaldo: Arranquemos por la casa a la que llegaste. ¿Cómo andaba tu familia por entonces: dónde vivían, de qué trabajaban tus viejos, qué se decía de que venías vos? Seguro te contaron algo de esos meses, antes o después de nacer. Contame eso.
-- **OR6.2 (a todos, sin botón: Naza, 29/09; si no tiene, lo dice en el audio):** ¿Tenés o tuviste algún apodo? Si es así, contame cómo nació: quién te lo puso, por qué justo ese, y si te gusta. Casi siempre hay una anécdota atrás.
+- **OR6.2 (aprobada; a todos, sin botón: Naza, 29/09; si no tiene, lo dice en el audio):** ¿Tenés o tuviste algún apodo? Si es así, contame cómo nació: quién te lo puso, por qué justo ese, y si te gusta. Casi siempre hay una anécdota atrás.
 - OR7 descartada: Hasta acá, la familia que había antes de vos. Seguro mientras contabas se te cruzó alguna otra historia de los de antes que no tuvo lugar en mis preguntas. Es el momento: contámela con calma, que tenemos todo el tiempo del mundo.
 - **OR7 (aprobada, la de respaldo):** Con esto cerramos lo de tu familia de antes, la de antes de que llegaras vos. Y me pregunto si se me escapó algo: una historia de tus abuelos, de tus viejos de jóvenes, de esa casa. Si hay una dando vueltas, contámela ahora.
+
+**Bloque 1: cerrado (29/09).** Aprobadas OR1, OR2, OR5, OR6, OR6.2 y OR7. OR3 y OR4 se juntan en OR2.
