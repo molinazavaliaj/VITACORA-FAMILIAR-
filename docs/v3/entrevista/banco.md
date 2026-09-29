@@ -253,6 +253,7 @@
 | PE1 | ¿Perdiste a alguien importante en tu vida? Si querés, contame quiénes fueron, qué eran para vos y cómo lo fuiste llevando. Y si hay un momento con alguna de esas personas que te guste recordar, contámelo también. |  | núcleo | historia | sí |
 | PE5 | Si alguna vez tu salud te frenó en serio, ¿querés contármelo? Cómo fueron esos días, quién estuvo cerca, y cómo lo fuiste llevando. Y si es algo que todavía llevás, también vale. |  | núcleo | historia | sí |
 | PE6 | Hay equivocaciones que uno arrastra años. Si tenés una así, y querés contarla, decime qué pasó, quién la pagó, y en qué quedó todo después. |  | extra | historia | sí |
+| ID1 | Mucha gente durante años tuvo que guardarse una parte de lo que era, o de lo que sentía. Si a vos te pasó, y querés que quede en tu historia, contámelo como vos quieras. |  | extra | historia | sí |
 | PE4 | ¿Hubo alguna época dura en tu vida de grande que creas que no puede quedar afuera de tu historia? ¿Algo que te marcó? Si querés, contame qué pasó y cómo lo viviste. |  | núcleo | historia | sí |
 | CI11 | Gracias por contarme esto; sé que no es fácil. Si hay otro momento difícil que sentís que tiene que estar en tu historia y no te lo pregunté, contámelo acá. |  | extra | cierre | sí |
 
