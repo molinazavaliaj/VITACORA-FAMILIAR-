@@ -93,18 +93,18 @@ Voz del biógrafo (propuesta, sale de la corrección de Naza):
 4. No pide lo que otra pregunta del mismo bloque va a pedir (si no, las respuestas se repiten).
 
 - **CA1 (aprobada):** Contame el primer recuerdo que tengas de la casa donde creciste: un día, qué estabas haciendo, quién andaba por ahí.
-- **CA2:** Viajemos un rato a cuando eras chic{{o/a}}. ¿Cómo era tu mamá, {{madre}}, con vos en esa época? Si te viene a la cabeza alguna anécdota con ella, contámela: dónde estaban, qué pasó.
-- **CA3:** ¿Y tu papá, {{padre}}? ¿A qué se dedicaba cuando eras chic{{o/a}}? Contame alguna vez que lo acompañaste o lo viste trabajando.
+- **CA2:** Viajemos un rato a cuando eras chic{{o/a}}. ¿Cómo era tu mamá con vos en esa época? Si te viene a la cabeza alguna anécdota con ella, contámela: dónde estaban, qué pasó.
+- **CA3:** ¿Y tu papá? ¿A qué se dedicaba cuando eras chic{{o/a}}? Contame alguna vez que lo acompañaste o lo viste trabajando.
 - **CA4 (aprobada):** Contame el día que alguien de tu casa te enseñó a hacer algo por primera vez: andar en bicicleta, nadar, silbar. Cómo fue ese día.
 - **CA5 (aprobada):** Contame la vez que más te retaron o te castigaron de chic{{o/a}}: qué habías hecho, quién te retó y cómo terminó.
-- **CA6:** «pl: ¿Con cuál de tus hermanos eras más compinche de chic{{o/a}}? Contame alguna aventura que hayan hecho: qué se les ocurrió y cómo terminó. ‖ sg: ¿Cómo te llevabas con {{hermanos}} de chic{{o/a}}? Contame alguna aventura que hayan hecho: qué se les ocurrió y cómo terminó.»
+- **CA6:** «pl: ¿Con cuál de tus hermanos eras más cercan{{o/a}} de chic{{o/a}}? Contame alguna aventura que hayan hecho: qué se les ocurrió y cómo terminó. ‖ sg: ¿Cómo te llevabas con {{hermanos}} de chic{{o/a}}? Contame alguna aventura que hayan hecho: qué se les ocurrió y cómo terminó.»
 - **CA8 (aprobada; le llega a todos, sin gate de hijo único: Naza, 29/09):** De chic{{o/a}}, ¿a qué jugabas en casa? Uno se arma un mundo con cualquier cosa: una sábana, un patio, un perro. ¿Te acordás de un día que te quedaste jugando hasta que te llamaron a comer? Contámelo.
 - **CA9:** ¿Había alguien más que viviera con ustedes o que estuviera siempre en tu casa, como un abuelo, una tía o alguien que ayudaba? Si había alguien, contame alguna vez con esa persona que se te quedó grabada.
-- **CA10:** Pensá en las comidas en familia de cuando eras chic{{o/a}}: una Navidad, un cumpleaños, un domingo. ¿Hubo alguna distinta a todas, por algo que pasó? Contámela: quiénes estaban y qué pasó.
-- **CA12:** ¿Te acordás de algo que compraron en tu casa con mucho esfuerzo cuando eras chic{{o/a}}? Contame cómo fue el día que llegó.
+- **CA10:** Pensá en las fiestas y comidas en familia de cuando eras chic{{o/a}}: una Navidad, un cumpleaños, un domingo. ¿Cómo eran en tu casa? Y si hubo una que recuerdes distinta a las demás, contámela.
+- **CA12:** De chic{{o/a}}, ¿hubo algo que costó mucho tener en tu casa, o algo que vos esperaste mucho tiempo hasta que por fin llegó? Contame cómo fue ese día.
 - **CA12.2:** eliminada (Naza).
 - **CA13:** ¿A qué edad empezaste a salir a jugar sin que nadie te cuidara? Contame la primera vez que saliste sol{{o/a}}: a dónde fuiste y qué pasó.
-- **CA14:** ¿Tuviste animales de chic{{o/a}}? Contame el primer recuerdo que tengas con alguno.
+- **CA14:** ¿Hubo algún animal que te acompañó de chic{{o/a}}? Una mascota de la casa, un perro del barrio, el gato de tu abuela. Contame un recuerdo lindo que tengas con él.
 - **CA15:** ¿A qué le tenías miedo de chic{{o/a}}, y por qué? ¿Te acordás de alguna vez que te hayas asustado mucho? Contame qué pasó.
 - **CA16 (aprobada):** Contame un día de chic{{o/a}} que esperabas con muchas ganas: qué era, quién estaba, qué pasó.
 - **CA17 (aprobada, sin marca de sensible):** Contame el momento más difícil que recuerdes de cuando eras chic{{o/a}}: qué pasó y cómo terminó.
@@ -141,7 +141,7 @@ Textos (elegida de Fable; la otra, de respaldo):
   - Respaldo: Empecemos por antes de que te acuerdes. En tu casa, ¿qué se contaba de cuando naciste? Del día, del lugar, de quién andaba dando vueltas. ¿Hay alguna anécdota que se repetía? Contámela.
 - **OR2 (aprobada con cambio de Naza):** En todas las familias hay una historia de los de antes, de los abuelos o más atrás, que se contaba en las sobremesas: un viaje, una llegada, alguna hazaña. ¿Cuál sabés de tu familia? Contámela como la escuchaste.
   - Respaldo: Vamos más atrás, a tus abuelos o bisabuelos, de cualquiera de los dos lados. Aunque sepas poquito, algo se contaba en tu casa: de dónde venían, algo que hicieron. ¿Te acordás de una historia de ellos que se repetía en la mesa? Contámela.
-- **OR5 (aprobada):** ¿Cómo se conocieron tu mamá, {{madre}}, y tu papá, {{padre}}? Seguro en casa lo contaron más de una vez: un baile, una casualidad, alguien que los presentó. Contame ese día como te lo contaron.
+- **OR5 (aprobada):** ¿Cómo se conocieron tu mamá y tu papá? Seguro en casa lo contaron más de una vez: un baile, una casualidad, alguien que los presentó. Contame ese día como te lo contaron.
 - **OR6 (aprobada):** ¿Por qué te pusieron {{nombre}}? En las casas siempre hay una historia atrás de un nombre: una discusión, un santo, alguien a quien querían mucho. Contame la que te contaron a vos, aunque sea cortita.
 - **OR6.2:** ¿Cómo fue que te quedó {{apodo}}? Seguro hay una anécdota atrás: una travesura, una palabra mal dicha, alguien que lo dijo una vez y pegó. Contámela, que los apodos dicen mucho de una casa.
 
@@ -157,3 +157,5 @@ Textos (elegida de Fable; la otra, de respaldo):
 - **OR7 (aprobada, la de respaldo):** Con esto cerramos lo de tu familia de antes, la de antes de que llegaras vos. Y me pregunto si se me escapó algo: una historia de tus abuelos, de tus viejos de jóvenes, de esa casa. Si hay una dando vueltas, contámela ahora.
 
 **Bloque 1: cerrado (29/09).** Aprobadas OR1, OR2, OR5, OR6, OR6.2 y OR7. OR3 y OR4 se juntan en OR2.
+
+**Regla (Naza, 29/09):** mamá y papá se nombran igual para todos ("tu mamá", "tu papá"), sin el nombre de la ficha en la pregunta. Aplicado a CA2, CA3 y OR5. Aprobadas del bloque 2 en esta vuelta: CA9, CA13; CA6 con "más cercano".
