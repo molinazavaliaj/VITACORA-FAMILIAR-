@@ -361,3 +361,5 @@ AM4 y AM13 aprobadas.
 **Regla (Naza):** no juntar tiempos ("compartiste o compartís"): si la pregunta es de hoy, presente; si es del pasado, pasado. Solo se juntan cuando no hay forma de saber (AM7: "repite o repetía", porque va antes de AM9).
 - **AM5:** Contame a dónde se mudaron juntos por primera vez: cómo llegaron a ese lugar, cómo era por dentro, y cómo fue esa primera noche ahí, con todo lo que tenía y todo lo que le faltaba.
 - **AM15:** ¿Quiénes son hoy las personas con las que compartís la vida: un hermano, una amiga, un vecino, quien sea? Pensá en una y contame un día de ustedes que te haya quedado.
+
+**Bloque 6, vuelta 5 (Naza, 29/09):** AM5 y AM15 aprobadas. AM7 pasa después de AM9 y el código elige "repite" (si AM9 fue "no") o "repetía". Pendiente de OK (propuesta: sí): segunda pareja, N1 y N3; N2 y N4 opcionales.
