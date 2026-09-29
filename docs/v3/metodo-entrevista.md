@@ -12,7 +12,7 @@ El contrato de una pregunta (se revisa pregunta por pregunta):
    - **el día que / la noche que** ("el día que te llegó…", "el día que te fuiste");
    - **la primera vez** / **el primer recuerdo** ("tu primer día de escuela", "el primer recuerdo de la casa");
    - **la última vez**, solo para cosas y lugares (para personas choca con la regla 4: con un mayor lleva a la muerte);
-   - **la vez que más** (superlativo: "la vez que más miedo tuviste"), o **la excepción** ("una comida que fue distinta a todas"). **Ojo: superlativo y excepción no están probados**; salen de la conclusión del piloto del cazador (pedir la excepción rompe la costumbre). Se prueban en E4.
+   - **la vez que más** (superlativo: "la vez que más miedo tuviste"), o **la excepción** ("una comida que fue distinta a todas"). **Ojo: superlativo y excepción no están probados**; salen de la conclusión del piloto del cazador (pedir la excepción rompe la costumbre). A validar más adelante.
    
    Lo que **no** funciona (dio costumbre en el piloto): "un X que recuerdes" cuando X se repite (domingos, tardes, amigos), "describime", "cómo era", "un día común", "contame de tu mamá".
 2. **Una sola historia.** Si ofrece dos puertas ("una travesura o una pelea"), el narrador elige una; nunca pide dos cosas.
@@ -36,7 +36,7 @@ El banco es la palanca principal; el cazador rescata lo que el banco dejó a med
 
 El Estándar hoy le manda **106-118 turnos** a la vida típica (93 de historia + 13 puertas + 12 válvulas), más datos, fotos y hasta 10 del cazador. A 3-5 preguntas por día son **1-2 meses** de WhatsApp: el riesgo real con un mayor es que abandone por la mitad, y un libro sin los últimos bloques no tiene final.
 
-Lo que hace falta para un libro de 6-10 mil palabras con vida son **~30-40 escenas**. Si el banco nuevo da ~50 % de escenas (meta, no resultado: el piloto dio 21 %) y el cazador suma ~8, eso sale de unas **60-65 preguntas de historia**. Con 21 % darían ~22: por eso la prueba con 2-3 mayores (E4) decide si el número alcanza.
+Lo que hace falta para un libro de 6-10 mil palabras con vida son **~30-40 escenas**. Si el banco nuevo da ~50 % de escenas (meta, no resultado: el piloto dio 21 %) y el cazador suma ~8, eso sale de unas **60-65 preguntas de historia**. Con 21 % darían ~22. (La prueba con mayores no va hasta que Naza vea el banco listo para eso.)
 
 **Recomendación:**
 
@@ -98,17 +98,20 @@ Voz del biógrafo (propuesta, sale de la corrección de Naza):
 - **CA4 (aprobada):** Contame el día que alguien de tu casa te enseñó a hacer algo por primera vez: andar en bicicleta, nadar, silbar. Cómo fue ese día.
 - **CA5 (aprobada):** Contame la vez que más te retaron o te castigaron de chic{{o/a}}: qué habías hecho, quién te retó y cómo terminó.
 - **CA6:** «pl: ¿Con cuál de tus hermanos eras más compinche de chic{{o/a}}? Contame alguna aventura que hayan hecho: qué se les ocurrió y cómo terminó. ‖ sg: ¿Cómo te llevabas con {{hermanos}} de chic{{o/a}}? Contame alguna aventura que hayan hecho: qué se les ocurrió y cómo terminó.»
-- **CA8 (solo si no tiene hermanos):** ¿Cómo fue crecer sin hermanos? ¿Pasabas mucho tiempo sol{{o/a}} en casa? Contame alguna vez que te quedaste sol{{o/a}} en casa y qué se te ocurrió hacer.
+- **CA8 (solo si no tiene hermanos; no lo nombra, a pedido de Naza):** De chic{{o/a}}, ¿a qué jugabas en casa? Uno se arma un mundo con cualquier cosa: una sábana, un patio, un perro. ¿Te acordás de un día que te quedaste jugando hasta que te llamaron a comer? Contámelo.
 - **CA9:** ¿Había alguien más que viviera con ustedes o que estuviera siempre en tu casa, como un abuelo, una tía o alguien que ayudaba? Si había alguien, contame alguna vez con esa persona que se te quedó grabada.
 - **CA10:** Pensá en las comidas en familia de cuando eras chic{{o/a}}: una Navidad, un cumpleaños, un domingo. ¿Hubo alguna distinta a todas, por algo que pasó? Contámela: quiénes estaban y qué pasó.
 - **CA12:** ¿Te acordás de algo que compraron en tu casa con mucho esfuerzo cuando eras chic{{o/a}}? Contame cómo fue el día que llegó.
-- **CA12.2 (nueva, Completo):** ¿Y te acordás de algo que tuvieron que vender en tu casa cuando eras chic{{o/a}}, algo que a vos te gustaba? Contame qué era y cómo fue ese día.
+- **CA12.2:** eliminada (Naza).
 - **CA13:** ¿A qué edad empezaste a salir a jugar sin que nadie te cuidara? Contame la primera vez que saliste sol{{o/a}}: a dónde fuiste y qué pasó.
 - **CA14:** ¿Tuviste animales de chic{{o/a}}? Contame el primer recuerdo que tengas con alguno.
 - **CA15:** ¿A qué le tenías miedo de chic{{o/a}}, y por qué? ¿Te acordás de alguna vez que te hayas asustado mucho? Contame qué pasó.
 - **CA16 (aprobada):** Contame un día de chic{{o/a}} que esperabas con muchas ganas: qué era, quién estaba, qué pasó.
 - **CA17 (aprobada, sin marca de sensible):** Contame el momento más difícil que recuerdes de cuando eras chic{{o/a}}: qué pasó y cómo terminó.
-- **CA18:** ¿Hay algo de tu casa o de tu familia de chic{{o/a}} que no te pregunté y querés contar?
+- **Cierre de etapa (reemplaza la puerta CA18 y la válvula; va al final de los bloques 2 a 5 con {{etapa}}), 3 versiones, redactadas con Fable:**
+  - A1: Ya casi terminamos con {{etapa}}, y me quedo pensando si te dejé algo afuera. ¿Hubo alguna historia que se te vino a la cabeza mientras contabas y no tuvo dónde entrar? Contámela ahora, tranquil{{o/a}}, que hay tiempo.
+  - A2: Con {{etapa}} ya casi estamos. Mientras contabas, ¿se te cruzó alguna cosa que quedó ahí, sin decirla? Puede ser algo chiquito, o algo que te da vueltas hace años. Lo que sea, contámelo ahora.
+  - A3: Ya recorrimos {{etapa}}. ¿Con qué te quedás? Y si hay una historia que no tuvo su lugar, linda o de las otras, este es el momento. Contámela antes de que cerremos esta parte.
 - **D1:** sin cambios (se descarta sumar "de qué trabajaban": el trabajo del papá entra en CA3).
 
 Cuentas: el bloque sigue dando 6 en Estándar (CA1, CA2, CA3, CA6 o CA8, CA10, CA16) y 8 con menos de 45 (+CA13, CA17). Completo baja de 18 a 15 filas. Orden propuesto para no repetir la fórmula seguida: CA1, CA2, CA10, CA3, CA6/CA8, CA16, y después las de Completo. Con hijo único de menos de 45, CA8 y CA13 comparten "la primera vez… sol{{o/a}}": van separadas.
