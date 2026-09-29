@@ -757,3 +757,62 @@ Aprobados: M3, M4, M9, M21 (paso), M22 (texto), M23 (audio cortado), FOTO.
 - **M20 y el botón [Siguiente]: salen.** Los audios que llegan mientras la pregunta está abierta se suman a esa respuesta; la siguiente llega sola cuando pasan unos minutos sin audios nuevos.
 - **M1 va en otra línea y en cursiva** (WhatsApp no tiene colores ni letra más chica; sí cursiva con _texto_): la pregunta, una línea en blanco, y _Si no va con vos, decí paso y vamos a otra._
 Ojo (textos que quedan mintiendo): "pausa" aparece en diseno-v3.md (M6, M7, flujo) y en el código del biógrafo; se saca cuando se pase todo al banco.
+
+## 21. Preguntas de datos (D1-D13): salen todas (propuesta, 29/09)
+
+Con la regla de Naza (ninguna pregunta depende de la ficha; la pregunta que abre un tema lo decide con la respuesta), ninguna de las 16 preguntas de datos hace falta:
+
+| Dato | Lo resuelve ahora |
+|---|---|
+| D1 nombres de mamá y papá; D1.1/D1.2 si viven | mamá y papá sin nombre; PE1 (pérdidas) a todos |
+| D2 hermanos | CA6 abre el tema |
+| D3 religión | ES9 abre el tema |
+| D4 estudios | JU2 y JU2b a todos |
+| D5 lo militar | JU5 a todos |
+| D6 migración | JU8 abre el tema (JU10 y JU11 ya no usan el lugar de la ficha) |
+| D7 pareja; D7.1 si siguen | AM0 abre el tema; AM9 decide si va AM13 |
+| D8 trabajo; D9 jubilado; D10 campo | TR1-TR9 y CP1 a todos |
+| D11 hijos; D12 nietos; D13 nieto a cargo | HI0 y HI8 abren los temas |
+
+Lo que el código sí necesita de la ficha para la entrevista: nombre, género (para {{o/a}} y {{padre/madre}}), vos o tú, y quién regaló (para el aviso M9). Todo lo demás de la ficha queda para el escritor y el dashboard. La ficha se puede achicar mucho (a decidir aparte).
+
+## 22. El proceso completo, de punta a punta (propuesta, 29/09)
+
+1. **Compra.** Quien regala carga la ficha corta (nombre, cómo le dicen, género, vos/tú, su propio contacto) y, si quiere, un álbum de fotos.
+2. **Bienvenida.** Llega la bienvenida y el mensaje del ritmo (M6). Enseguida, la primera pregunta.
+3. **Cada pregunta.** Una por vez, con la frase de "paso" abajo en cursiva. La persona contesta con uno o varios audios; se suman a esa pregunta. Pasados unos minutos sin audios nuevos, llega un agradecimiento (M3, o M4 si era difícil) y la siguiente pregunta. Si dice "paso": M21 y la siguiente. Si manda texto: M22. Si el audio llega cortado: M23.
+4. **Temas que se abren.** Si una pregunta que abre un tema (hermanos, pareja, hijos, nietos, mudarse) recibe un "no" corto, las que dependen de ella no se mandan.
+5. **Fin de cada etapa (bloques 2-5).** Pregunta de cierre de etapa y después M10 ("Terminamos… Seguimos con lo que viene"). Los demás bloques terminan con su pregunta de cierre.
+6. **Bloque 11.** Antes de la primera, el aviso de preguntas difíciles; después de cada una, acuse sobrio (M4).
+7. **Preguntas de la familia.** Entran a la cola con M15 ("Esta pregunta te la hace tu familia").
+8. **Si deja de contestar.** A los pocos días, M8 a la persona. A la semana, M9 a quien regaló.
+9. **Final.** La pregunta de fotos, LE9 y el mensaje final ("Hasta acá llegamos…").
+10. **Dashboard.** El narrador revisa sus respuestas con el audio al lado, corrige nombres y fechas, contesta las dudas, decide qué no va y qué se cuenta más suave, y ve sus fotos.
+11. **Libro.** Recién ahí se escribe, una sola vez.
+
+Durante la entrevista no se llama a ningún modelo para decidir: solo la transcripción de los audios. El cazador de escenas queda en pausa.
+
+## 23. Recuento (29/09)
+
+Preguntas de historia que quedaron aprobadas, por bloque (sin contar cierres, avisos ni mensajes):
+
+| Bloque | Vida completa (pareja, hijos, nietos, se mudó) | Sin pareja ni hijos, no se mudó |
+|---|---|---|
+| 1 Origen | 5 | 5 |
+| 2 Infancia en casa | 16 | 15 |
+| 3 Escuela | 12 | 12 |
+| 4 Adolescencia | 15 | 15 |
+| 5 Juventud | 19 | 17 |
+| 6 Amor | 15 | 4 |
+| 7 Trabajo | 18 | 18 |
+| 8 Hijos y nietos | 14 | 3 |
+| 9 Lugares y pasiones | 9 | 9 |
+| 10 Amistades | 10 | 10 |
+| 11 Momentos difíciles | 7 | 7 |
+| 12 Historia grande | 7 | 7 |
+| 13 Giros y filosóficas | 14 | 14 |
+| 14 Hoy | 16 | 16 |
+| 15 Legado | 7 | 7 |
+| **Total** | **~184** | **~159** |
+
+Más ~14 cierres de bloque: **unos 200 turnos** para una vida completa. A 5 por día son 40 días; a 3 por día, más de dos meses. La recomendación del principio (sección 3) era ~80 para el Estándar. Queda por decidir cómo se reparte en tamaños.
