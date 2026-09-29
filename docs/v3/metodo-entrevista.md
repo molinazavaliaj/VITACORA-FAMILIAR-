@@ -643,3 +643,11 @@ Más del estilo de GI9 (Fable, a decidir):
 - **FI4, cómo lo ven los otros:** ¿Hubo alguna vez que alguien te dijo algo de vos que no sabías, y te quedó para siempre? Contame ese momento: quién era, dónde estaban, qué te dijo.
 - **FI5, el desconocido:** ¿Alguna vez alguien que viste una sola vez en la vida te dejó algo, una frase, por ejemplo? Contame ese encuentro: dónde fue, cómo era esa persona, qué pasó.
 - Reserva: ¿Hubo un momento en que sentiste que estabas justo donde tenías que estar? Puede ser una tarde cualquiera. Contame dónde era, qué hacías, quién andaba cerca.
+
+### Bloque 13, vuelta 3 (Naza, 29/09)
+Aprobadas: GI2, HJ1 (distinta de ES7 y AD16: esas piden el deseo, esta el momento en que se cayó). FI2 aprobada. FI5 afuera.
+- **GI1 (B con el "clic"):** ¿Hay algún día de tu vida que, si pudieras, volverías a vivir tal cual? O un momento en que sentiste que algo hizo clic. Contámelo desde el principio: dónde estabas, con quién, y qué fue lo que pasó.
+- **Cierre:** Naza prefiere A, pero A y B se pisan con AY2 ("una vez que fuiste vos quien le dio una mano a alguien", bloque 10). Propuesta: cierre simple, como los otros: "Con esto cerramos esta parte. ¿Quedó algún momento importante de tu vida que no tuvo su pregunta? Contámelo ahora, tranquil{{o/a}}."
+- **FI1 (soledad):** ¿Qué lugar tiene la soledad en tu vida? ¿Te hace bien tener momentos con vos mism{{o/a}}? Contame alguno que te acuerdes: dónde estabas y qué hacías.
+- **FI3 (lo heredado):** ¿Qué cosa sentís que heredaste de tu familia en tu forma de ser? Un carácter, una manera de hacer las cosas. Contame una vez que te diste cuenta de que eso venía de ellos.
+- **FI4 (lo que piensan los demás):** ¿Te importa lo que los demás piensan de vos? ¿Te importó siempre igual? Contame una vez en que eso se notó.
