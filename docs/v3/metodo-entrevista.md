@@ -579,3 +579,19 @@ Aprobadas: PE1 (pérdidas), PE4 (época dura), PE5, PE6, ID1, cierre.
 - **PE9 (nueva, idea de Naza):** ¿Hubo alguna equivocación que pagaste caro en tu propia vida? Si querés, contame qué pasó y cómo siguió todo después. (Ojo: se parece a GI5, "algo de lo que te arrepentís", bloque 13.)
 
 **Bloque 11: cerrado (29/09).** Aviso y PE9 aprobados.
+
+## 16. Bloque 12 · La historia grande (propuesta, redactada con Fable, a todos)
+
+HG2 depende de HG1. El menú largo por país se va: HG1 da tipos de hecho, no una lista de fechas (la dictadura entra en "unos años muy difíciles" sin nombrarla).
+
+- **HG1:** Cuando pasó algo grande en el país, un Mundial, una guerra, unos años muy difíciles, ¿alguno te agarró de lleno? Contame cuál fue, dónde estabas cuando te enteraste y qué hiciste ese día.
+- **HG2:** Con los años pasan muchas cosas en un país. ¿Hay otra que te haya tocado a vos de lleno? Contame cómo te enteraste y qué pasó en tu casa ese día.
+- **HG4 (pandemia, fija):** Te quiero pedir un día concreto de la pandemia. No toda esa época: un solo día. Dónde estabas, con quién, qué hiciste, cómo te sentías. Pensá en el que más te haya quedado.
+- **HG3:** Hay cosas de todos los días que ya no se hacen como antes, hablar por teléfono, por ejemplo. Pensá en una y contame una escena: dónde estabas, qué hacías, cómo era.
+- **DE1:** Cuando eras joven había cosas que no se podían hacer, o estaban mal vistas, y hoy nadie se sorprende. ¿Te pasó con alguna? Contame ese día: qué querías hacer y qué te dijeron.
+- **Cierre:** Hasta acá lo del país y el mundo. Si hay algo que te marcó y no salió, mandámelo ahora, aunque sea corto, con dónde estabas cuando pasó.
+
+Lo que le falta (Fable, a decidir):
+- **N1, algo nuevo que llegó a la casa:** ¿Te acordás de cuando llegó a tu casa algo que cambió la vida de todos, como la primera tele? Contame ese día: quién lo trajo, dónde lo pusieron, quiénes vinieron a verlo.
+- **N2, un hecho del mundo:** ¿Hubo algo que pasó lejos, en otro país, y que igual te llegó, como cuando el hombre pisó la luna? Contame dónde estabas cuando te enteraste y con quién lo comentaste.
+- **N3, votar:** ¿Te acordás de alguna vez que fuiste a votar y sentiste que era importante? Contame ese día: con quién fuiste, cómo estaba la calle, qué esperabas que pasara.
