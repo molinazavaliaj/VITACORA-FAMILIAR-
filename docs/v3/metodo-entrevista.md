@@ -857,3 +857,6 @@ Criterio: por bloque, las que mejor sacan una escena, un momento duro por etapa,
 | 15 Legado (6) | LE1 orgullo, LE2 el consejo, LE7 el título, LE8 hablale a tu familia, FOTO, LE9 lo que no te pregunté | LE6 |
 
 **Núcleo: ~79 preguntas + 4 cierres de etapa ≈ 83 turnos** (vida completa); sin pareja ni hijos, ~69. **Completo: ~184 + 14 cierres ≈ 200.**
+
+### Tamaños: opinión de Fable (29/09)
+Naza: las 6 filosóficas y la cena van en el núcleo. Fable recomienda **un solo producto, el núcleo**, y el resto del banco como "ronda extra" que el narrador elige al terminar ("¿Querés seguir un poco más?"), sin cambiar el precio. Razones: abandono de la persona de 70, la familia elige el grande por culpa, el grosor lo da el narrador y no el producto, operar un solo flujo. Para no pasar de ~80 con las filosóficas, Fable sacaría CA10, TR6, JU15, HO2, HG4, LE7 (HO2, HG4, LE7 y TR6 ya las había decidido Naza: se muestran igual). Sugiere repartir las filosóficas: FI3 después de la infancia, FI2 después de hijos y nietos, FI6 y FI7 antes del legado. Riesgo que marca: las filosóficas dan voz, no escenas.
