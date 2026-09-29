@@ -283,3 +283,20 @@ Lo que le falta a la etapa (propuestas de Fable, a decidir):
 - **N1, volver de visita a la casa de los viejos:** Ya viviendo tu vida, ¿cómo era volver a la casa de tus viejos? Contame la primera vez que fuiste de visita, de afuera: cómo te recibieron, qué notaste distinto, cómo te fuiste esa vez.
 - **N3, arreglarse con poco:** En esos primeros años por tu cuenta, ¿cómo te arreglabas con la plata? Contame una vez que no alcanzó y cómo hiciste ese mes: a quién recurriste, de qué te privaste, qué inventaste. (Se pisa con CS2, bloque 7.)
 - **N2, lo que pasaba en el país:** ya está en el bloque 12 (HG1). **N4, lo que le apasionaba:** se pisa con AD11 y PA1. **N5, lo que soñaba a los veinte:** se pisa con AD16 y ES7.
+
+### Bloque 5, vuelta 2 (Naza, 29/09)
+
+**Regla (Naza, 29/09): las preguntas de historia no se deciden por la ficha.** Es riesgoso (la ficha puede estar mal o vacía). La pregunta le llega a todos y está redactada para que "no me pasó" sea una respuesta válida ("¿Tuviste alguna experiencia con lo militar…? Si la tuviste, contame…"). La ficha queda para el escritor. Si la respuesta a una pregunta que abre un tema empieza con "no" o "nunca", las que siguen de ese tema no se mandan (se decide por la respuesta, no por la ficha). A revisar con esta regla: CA6 (hermanos), ES9 (religión) y los bloques que vienen. Es cambio de código (selección y preguntas de datos).
+
+- **JU2 (a todos):** ¿Qué hiciste después del colegio? Si seguiste estudiando, contame qué y cómo eran esos años; si la vida te llevó para otro lado, contame en qué andabas. Y un día de esa época que te haya quedado.
+- **JU2b (a todos):** ¿Hubo algo que empezaste a estudiar y dejaste? Si te pasó, contame cómo fue ese momento: qué pasaba en tu vida, si lo hablaste con alguien.
+- **JU4 (a todos):** ¿Cómo aprendiste tu oficio, lo que sabés hacer de trabajo? En un aula, al lado de alguien, a los golpes. Contame quién te enseñó y un día de cuando recién empezabas.
+- **JU5 (a todos):** ¿Tuviste alguna experiencia con lo militar: la colimba, la mili, un colegio militar? Si la tuviste, contame cómo era un día ahí y alguna vez que todavía te acordás.
+- **JU6:** afuera (ya está en JU5).
+- **JU8 (a todos, abre el tema):** ¿Alguna vez te fuiste a vivir a otra ciudad o a otro país? Si te pasó, contame cómo lo decidiste: qué te empujó y a quién se lo dijiste primero.
+- **JU10 (si JU8 no fue "no"):** Cuando llegaste a vivir a ese lugar nuevo, ¿hubo alguien que te dio una mano? Alguien que te abrió la puerta, te explicó cómo eran las cosas. Contame una vez que te ayudó.
+- **JU11 (si JU8 no fue "no"):** Un día uno se da cuenta de que ya es de ahí: conoce las calles, lo saludan, se siente en casa. ¿Te pasó con ese lugar nuevo? Contame ese momento.
+- **MI1:** afuera (Naza: muy profunda para este criterio).
+- **JU9 (pasa a viajes de joven, a todos):** De joven, ¿qué lugares recorriste? Vacaciones, viajes, escapadas. Contame un viaje de esos años que se te haya quedado.
+- **N1 (aprobada):** Ya viviendo tu vida, ¿cómo era volver a la casa de tus viejos? Contame la primera vez que fuiste de visita, de afuera: cómo te recibieron, qué notaste distinto, cómo te fuiste esa vez.
+- **N3 (a todos):** ¿Cómo fueron tus primeros años por tu cuenta? ¿Cómo te arreglabas, qué hacías para salir adelante? Contame algún momento de esa época que te acuerdes.
