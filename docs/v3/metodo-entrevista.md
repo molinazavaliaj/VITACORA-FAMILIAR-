@@ -677,3 +677,13 @@ Salen: HO2 (reír: ya está reírse hasta llorar), HO8 (los tuyos hoy: la cena),
 - **G4, placer chiquito:** ¿Cuál es tu placer chiquito de todos los días? Puede ser una siesta, o algo mucho más tonto. Contame el de hoy: a qué hora fue y cómo estuvo.
 - **Cierre:** Hasta acá lo de hoy. Ya te conozco un poco más: cómo son tus días y qué te gusta. Gracias por contármelo con tanta paciencia.
 Fable sacaría PA2 y G4 (rozan la soledad y el café de la mañana).
+
+### Bloque 14, vuelta 2 (Naza, 29/09)
+Aprobadas: HO1 (AM13 pide un día de la pareja; esta es para todos), HO4, HO5, CO1, vicios. FU2 afuera.
+- **HO2 (vuelve; Naza la prefiere a GI7):** ¿Qué cosas te hacen gracia hoy, qué te hace reír? Contame la última vez que te reíste con ganas: dónde estabas y qué había pasado.
+- **HO9 (vuelve: el lugar donde vive hoy; LU6 es el preferido, no necesariamente donde vive):** ¿Cómo es el lugar donde vivís hoy, la casa, el barrio? Contame cómo llegaste ahí y un momento de estos días que lo pinte.
+- **PA2:** ¿Qué hacés cuando tenés un momento sol{{o/a}}, en tu casa o donde te toque? Contame la última vez que tuviste un rato así y qué hiciste.
+- **HO2.2:** ¿Qué cosas son las que más te hacen enojar o te agotan la paciencia? Contame la última vez que te pasó: dónde estabas, qué había pasado y qué hiciste.
+- **HO6:** ¿Hay algo de tu forma de ser que todos los que te conocen reconocen enseguida? Una frase que repetís, una manía, tu carácter. Contame una vez que alguien te lo marcó.
+- **FU1:** ¿Hay algo que todavía querés hacer? Contámelo como si ya estuviera pasando: dónde estás, con quién, qué ves.
+A decidir: GI7 (reírse hasta llorar, bloque 13) queda o sale ahora que vuelve HO2; PA2 y FI1 (soledad, bloque 13) se parecen.
