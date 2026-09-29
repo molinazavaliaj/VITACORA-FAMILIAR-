@@ -148,7 +148,7 @@ Orden: AM9 (el final) va antes que AM13 (hoy); AM7 va después de AM9 y el códi
 
 | ID | Texto final | Depende de | Núcleo o Extra | Estado |
 |---|---|---|---|---|
-| AM0 | Ahora vamos al amor. ¿Hubo un amor con quien armaste tu vida, o con quien la compartís hoy? Si fueron varios, empezá por el que quieras. Y si no hubo, decímelo nomás, que también vale. | — (abre el tema pareja) | Núcleo | aprobada |
+| AM0 | Ahora vamos al amor. Haceme un repaso corto: cuántas veces te enamoraste, cuáles llegaron a algo serio, más o menos en qué años. Después vamos de a una, empezando por la primera que fue en serio. Si no hubo, decímelo nomás, que también vale. | — (abre el tema pareja) | Núcleo | aprobada |
 | AM1 | Contame el día que se conocieron. ¿Dónde fue, quién los presentó o cómo se cruzaron? ¿Y qué fue lo primero que te llamó la atención de esa persona? | AM0 | Núcleo | aprobada |
 | AM2 | ¿Cómo fue el noviazgo, o esos primeros tiempos? Pensá en un momento: una cita, un paseo, una tarde que todavía tenés fresca. Contámela como si la vieras de vuelta. Si se te vienen más, contalas también. | AM0 | Extra | aprobada |
 | AM3 | Y después, ¿cómo decidieron armar la vida juntos: casarse, irse a vivir, lo que haya sido? ¿Quién lo dijo primero, o se fue dando solo? Contame ese momento: dónde estaban, qué se dijeron. | AM0 | Núcleo | aprobada |
@@ -159,9 +159,10 @@ Orden: AM9 (el final) va antes que AM13 (hoy); AM7 va después de AM9 y el códi
 | AM8 | Imaginate que podés guardar un solo momento con esa persona, ¿cuál sería? Contámelo entero: el lugar, el día, qué hacían. Si se te vienen otros, contalos también. | AM0 | Núcleo | aprobada |
 | AM9 (sensible) | Si esa historia tuvo un final, una separación o una despedida, ¿querés contármelo? Solo lo que vos quieras. Y si no querés, con decir "paso" alcanza; lo demás de tu historia sigue igual. | AM0 | Núcleo | aprobada |
 | AM7 | Contame algo muy de esa persona: una frase que repite o repetía, una costumbre, una manía. Y una vez puntual en que salió eso, para que quien lea la tenga enfrente. | AM0 (va después de AM9; tiempo según AM9) | Extra | aprobada |
-| AM13 | Hay cosas que una pareja arma con los años sin darse cuenta, como una frase que solo entienden los dos. ¿Cuál es la de ustedes hoy? Contame la última vez que pasó: dónde estaban, qué se dijeron. | solo si AM9 fue "no" | Núcleo | aprobada |
-| AM16 | Si después de esa historia hubo otro amor con quien armaste tu vida, contame el día que se conocieron y un momento de los dos que te haya quedado. | solo si AM9 contó un final | Núcleo | aprobada |
-| AM17 | Contame una vez que esa persona te cuidó: una enfermedad, un mal momento, un día en que vos no podías. Qué hizo, qué te dijo, cómo te acordás de eso. | AM0 | Extra | aprobada |
+| AM13 | Hay cosas que una pareja arma con los años sin darse cuenta, como una frase que solo entienden los dos. ¿Cuál es la de ustedes? Contame la última vez que pasó: dónde estaban, qué se dijeron. | si AM9 fue "no", o si AM16 no fue "no" | Núcleo | aprobada |
+| AM19 | Y después de esa historia, ¿hubo un tiempo en que seguiste por tu cuenta? Contame cómo era un día tuyo entonces: qué hacías, quién andaba cerca. Si no hubo un tiempo así, decime no nomás. | solo si AM9 no fue "no" | Núcleo | aprobada (30/09) |
+| AM16 | Si después de esa historia hubo otro amor, contame del que compartís hoy, o del último: el día que se conocieron y un momento de los dos que te haya quedado. Si no lo hubo, decime no nomás. | solo si AM9 no fue "no" | Núcleo | aprobada |
+| AM17 | Contame una vez que tu pareja te cuidó: una enfermedad, un mal momento, un día en que vos no podías. Qué hizo, qué te dijo, cómo te acordás de eso. | AM0 | Extra | aprobada |
 | AM14 | ¿Tuviste algún amor que te marcó y no fue el de toda la vida? Uno que dejó huella, aunque haya durado poco. Si te pasó, contame cómo se cruzaron y el momento que más te acordás de esa persona. | — (a todos) | Núcleo | aprobada |
 | AM18 | SALE: se junta en AM14. | — | — | sale |
 | AM15 | ¿Quiénes son hoy las personas con las que compartís la vida: un hermano, una amiga, un vecino, quien sea? Pensá en una y contame un día de ustedes que tengas bien guardado. | solo si AM0 fue "no" | Núcleo (sin pareja) | aprobada |

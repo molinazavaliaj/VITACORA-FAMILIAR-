@@ -889,3 +889,6 @@ Aprobadas todas las fusiones y la de los padres de grande. "El amor que te marc�
 - **HO10 (con PE10, bloque 14):** ¿Hubo algo que te acompañó muchos años, el cigarrillo, el vino, el café de la mañana? Contame cómo empezó y un momento con eso. Y si en algún momento te costó dejarlo, contame eso también.
 
 **30/09:** ES9, CP1, TR8 y CS1 pasan al Núcleo (baratas para la mayoría, centrales para algunos): núcleo 88. Aprobados por Naza la pasada de aperturas y M1, M8, M10, M15.
+
+### Bloque 6, arreglo para quien se separó o enviudó y rehízo su vida (Naza + Fable, 30/09)
+AM0 pasa a ser un repaso (idea de Naza) y pide empezar por la primera en serio. Nueva AM19 (el tiempo por tu cuenta, si AM9 contó un final). AM16 pide la pareja de hoy o la última. AM13 sin "hoy" y le llega también a quien contó una segunda pareja. AM17 dice "tu pareja". Orden: AM0 → AM1, AM2, AM3, AM4, AM5, CS3, AM6, AM8 → AM9 → AM7 → AM19 → AM16 → AM13 → AM17 → AM14 → AM15 → cierre. Recorrido con 6 vidas (sigue con la primera; separada sola; separada y de nuevo en pareja; viuda sola; viuda y rehízo; nunca tuvo pareja): a cada una le llega lo suyo.
