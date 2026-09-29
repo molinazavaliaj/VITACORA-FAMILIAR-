@@ -541,3 +541,10 @@ Lo que le falta (Fable, a decidir):
 - **AS6, el vecino:** ¿Hubo un vecino o una vecina que terminó siendo alguien importante para vos? Contame cómo se fue dando eso, y una vez que lo muestre.
 - **AS7, a quién le cuenta hoy:** Hoy, cuando te pasa algo importante, ¿a quién se lo contás primero? Contame una vez que le hayas contado algo así.
 - **AS8, un amigo que ya no está (delicada):** Si hay alguna amistad que ya no está, y querés, contame de esa persona: cómo era, y una vez juntos que te guste recordar.
+
+### Bloque 10, vuelta 2 (Naza, 29/09)
+Aprobadas: AS1b, AY1, AS4, RE1, AS9, AY2, AS7. AS6 afuera. AS8 pasa al bloque 11 (PE3 ya pregunta por una persona querida que se perdió, amigo o familiar).
+- **AS1 (solo el de grande; el de la infancia ya está en ES5):** Ya de grande, ¿hubo alguien que conociste y se volvió muy importante en tu vida, un amigo o una amiga? Contame cómo se conocieron, y una vez que muestre bien cómo es esa amistad.
+- **AS5:** ¿Formaste parte alguna vez de un grupo que se juntaba por algo, como un club o una comisión del barrio? Contame una vez que hicieron algo juntos que te haya quedado.
+- **HE2:** Ya de grandes, ¿tus hermanos también se volvieron amigos? Contame algún momento de adultos en que estuvieron bien cerca: un viaje, una charla, una mano que se dieron. Si no tuviste hermanos, decime y seguimos.
+- **Cierre:** Con esto cerramos amistades y ayudas. ¿Quedó alguien que te acompañó y no tuvo su pregunta? Un vecino, alguien del trabajo, una persona que apareció una sola vez. Y si querés contar de otros amigos importantes, de quien sea, es el momento. Contalo tranquil{{o/a}}.
