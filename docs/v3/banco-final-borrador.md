@@ -18,13 +18,13 @@ Convenciones:
 
 | ID | Cuándo | Texto final | Estado |
 |---|---|---|---|
-| M1 | Al final de cada pregunta, en línea aparte y en cursiva | _Si no va con vos, decí paso y vamos a otra._ | pendiente de OK explícito |
+| M1 | Al final de cada pregunta, en línea aparte y en cursiva | _Si no va con vos, decí paso y vamos a otra._ | aprobada |
 | M3 | Acuses, rotan | Gracias, {{nombre}}. Ya lo guardé. / Te escuché. Vamos con la que sigue. / Anotado. Sigo con otra. / Gracias por contármelo. Seguimos. / Guardado, {{nombre}}. Te mando la próxima. / Lo tengo. Vamos con otra. / Listo, quedó guardado. Sigo. / Escuchado. Vamos por la siguiente. | aprobada |
 | M4 | Acuses sobrios, después de algo difícil (y en todo el bloque 11) | Gracias por contarme esto, {{nombre}}. Queda guardado con cuidado. / Te escuché. Gracias por confiármelo. / Lo guardo tal como lo contaste. Gracias. / Gracias por animarte a contarlo. Cuando quieras, seguimos. | aprobada |
-| M8 | Recordatorio a la persona, a los pocos días sin respuesta | Hola, {{nombre}}. Pasaron unos días y quería saber cómo andás. Tu historia está acá, guardada tal como la dejaste. Cuando tengas un rato me contestás la que quedó pendiente. Sin apuro. | pendiente de OK explícito |
+| M8 | Recordatorio a la persona, a los pocos días sin respuesta | Hola, {{nombre}}. Pasaron unos días y quería saber cómo andás. Tu historia está acá, guardada tal como la dejaste. Cuando tengas un rato me contestás la que quedó pendiente. Sin apuro. | aprobada |
 | M9 | Aviso a la familia, una semana sin audios | Hola, {{quien_regala}}. Te aviso que {{nombre}} hace una semana que no manda audios. Puede ser cualquier cosa: que ande con otras cosas, que no mire mucho el celular o que le cueste un poco arrancar de nuevo. Si podés, pegale un llamado o hacele una visita y preguntale cómo viene con el libro; muchas veces con una charla con alguien de la familia se vuelve a enganchar. Lo que ya contó está guardado. Si hay algo que tenga que saber, me avisás. | aprobada |
-| M10 | Fin de etapa (bloques 2 a 5), después del cierre | Terminamos {{etapa}}, {{nombre}}. Ya quedó guardado todo eso. Seguimos con lo que viene. | pendiente de OK explícito |
-| M15 | Pregunta de la familia (todas al final, antes de LE9) | Esta pregunta te la hace tu familia. | pendiente de OK explícito |
+| M10 | Fin de etapa (bloques 2 a 5), después del cierre | Terminamos {{etapa}}, {{nombre}}. Ya quedó guardado todo eso. Seguimos con lo que viene. | aprobada |
+| M15 | Pregunta de la familia (todas al final, antes de LE9) | Esta pregunta te la hace tu familia. | aprobada |
 | M21 | Después de "paso" | Dale, la salteamos. Vamos con otra. | aprobada |
 | M22 | Si manda texto | Lo leí, gracias. Si podés, contámelo también en audio: así queda tu voz y tu manera de decirlo, que es lo que va al libro. Y si te resulta más cómodo escribir, escribí nomás. | aprobada |
 | M23 | Audio cortado | Se me cortó el audio o no llegó bien, {{nombre}}. ¿Me lo mandás de nuevo cuando puedas? Sin apuro. | aprobada |
@@ -32,7 +32,7 @@ Convenciones:
 La pregunta de fotos (FOTO), el aviso del bloque 11 y el mensaje final están como filas en sus bloques (11 y 15).
 
 - Versiones que quedan (30/09): M6 con nombre ("Ahora te explico cómo va la entrevista, {{nombre}}…"); M8 sin pausa; M10 la de "Seguimos con lo que viene"; M15 "Esta pregunta te la hace tu familia."; M1 en línea aparte y en cursiva.
-- M1, M8, M10 y M15: pendientes de OK explícito de Naza.
+- M1, M8, M10 y M15: aprobados por Naza (30/09).
 - Las preguntas de la familia (con M15) van al final de la entrevista, antes de LE9.
 
 ## Bloque 1 · Origen y raíces
