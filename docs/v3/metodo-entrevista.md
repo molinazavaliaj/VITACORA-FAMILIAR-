@@ -438,3 +438,12 @@ Preguntas más genéricas (sin listas de opciones):
 - **TR8:** Si tuviste un negocio o algo propio, aunque fuera chico, este es su lugar. Si ya me lo contaste, con decírmelo alcanza. Si quedó algo afuera, cómo empezó, de dónde salió la idea, con qué plata, un día de esos, contámelo ahora.
 - **CS1:** Fuera de lo tuyo, hay cosas que hacés bien y nadie te paga, cocinar para todos, cuidar a alguien, tener la casa andando. ¿Hay alguna que sea tuya? Contame una vez que te lució, que la gente lo notó.
 - **TR9 (a todos):** ¿Ya dejaste eso a lo que te dedicaste? Si seguís, con decírmelo alcanza. Si ya lo dejaste, contame el último día: cómo fue, si lo sabías de antes, qué hiciste al salir. Y el día siguiente, el primero sin ir.
+
+### Bloque 7, vuelta 4 (Naza, 29/09; Fable)
+Aprobadas: TR1, TR6, OF1, TR2, TR4, TR8, CS1, TR9. Propuestas (la primera es la recomendada):
+- **Bienvenida (B):** Te cuento cómo es esto, así vamos tranquilos. Yo te pregunto cosas de tu vida, una por vez, y vos me las contás como se las contarías a alguien en la mesa. Si alguna pregunta no tiene que ver con lo que viviste, no pasa nada: me decís que no, o me contás lo que en realidad te tocó a vos, que eso es lo que quiero saber.
+- **Bienvenida (A):** Bueno, arrancamos. Te voy a ir mandando preguntas de a una, y vos me contestás con un audio cuando puedas, sin apuro. Son preguntas sobre tu vida: qué te pasó y qué no. Alguna te va a quedar lejos, porque son las mismas para todos. Ahí me decís que no, nomás, o me contás lo que sí te pasó a vos.
+- **TR3:** ¿Hubo alguien que te dio una mano en tu camino? Alguien que te enseñó, te acompañó o te abrió una puerta en lo que hiciste. Contame cómo era esa persona, y una vez con ella que tengas bien clara.
+- **OF2:** ¿Hay alguien a quien atendiste, cuidaste o le enseñaste algo, y que no te olvidás? Contame cómo era, y esa vez que te quedó grabada.
+- **OB1:** ¿Tuviste compañeros? Si los tuviste, contame cómo eran, y una vez que uno te cubrió, o vos a él, cuando hacía falta.
+- **OB2:** ¿Tuviste alguna vez un choque fuerte en tu oficio, con un patrón, un socio, un compañero, o te tocó una huelga? Si te pasó, contame ese día: de qué lado estabas, cómo terminó.
