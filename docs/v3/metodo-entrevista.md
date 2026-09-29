@@ -695,3 +695,5 @@ Cierre aprobado. **Regla (Naza):** no pedir "con quién estabas" por reflejo en 
 - **G3, ver o leer:** ¿Te gusta leer, o sos más de mirar películas o series? ¿Con qué te enganchás? Contame la última vez que se te pasó la hora con algo así.
 - **G4, placer chiquito:** ¿Cuál es tu placer chiquito de todos los días? Una siesta, un chocolate, lo que sea. Contame el de hoy: a qué hora fue y cómo estuvo.
 - **G5, un gusto grande (nueva, idea de Naza):** ¿Y un gusto grande? ¿En qué te gusta darte el lujo de gastar tu plata? Contame la última vez que te diste ese gusto.
+
+**Bloque 14: cerrado (29/09).** Aprobadas todas (HO2, HO9, PA2, HO2.2, HO6, FU1, G1-G5, cierre). GI7 (reírse hasta llorar) sale del bloque 13. FI1 (soledad) y PA2 quedan las dos.
