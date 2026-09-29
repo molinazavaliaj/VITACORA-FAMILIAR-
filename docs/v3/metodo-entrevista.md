@@ -816,3 +816,8 @@ Preguntas de historia que quedaron aprobadas, por bloque (sin contar cierres, av
 | **Total** | **~184** | **~159** |
 
 Más ~14 cierres de bloque: **unos 200 turnos** para una vida completa. A 5 por día son 40 días; a 3 por día, más de dos meses. La recomendación del principio (sección 3) era ~80 para el Estándar. Queda por decidir cómo se reparte en tamaños.
+
+**M6, sin pausa (Fable, 3 versiones; recomendada la b):**
+- b: Esto va así: te mando una pregunta y vos me la contás en audio. Si te salen dos o tres audios, mejor. Cuando quedás en silencio un ratito, entiendo que terminaste y te mando la próxima. No hay apuro: vamos al paso que vos vayas marcando.
+- a: Una cosa más, y arrancamos. Yo te mando una pregunta, vos me contestás con los audios que quieras, uno o varios, y cuando veo que terminaste te mando la que sigue. Nada más que eso. El tiempo lo ponés vos: un rato hoy, otro mañana, como te venga bien.
+- c: Antes de la primera, te cuento el ritmo. Vos contestás cuando puedas y ahí te llega la siguiente; si una pregunta te da para varios audios, mandalos todos, yo espero. Esto dura lo que vos tardes en ir contando, y así está bien.
