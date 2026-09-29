@@ -551,3 +551,18 @@ Aprobadas: AS1b, AY1, AS4, RE1, AS9, AY2, AS7. AS6 afuera. AS8 pasa al bloque 11
 - **AS5 (con el grupo de amigos):** ¿Formaste parte alguna vez de un grupo que se juntaba por algo, un club, una comisión del barrio, o un grupo de amigos? Contame una vez que hicieron algo juntos que te haya quedado.
 
 **Bloque 10: cerrado (29/09).** AS1, HE2 y el cierre aprobados.
+
+## 15. Bloque 11 · Pérdidas y momentos difíciles (propuesta, redactada con Fable, a todos)
+
+De 13 sensibles a 6 + aviso + cierre. Se juntan: PE1+PE2 (padres, una sola); PE3 absorbe HF1, HF2 (hijo) y AS8 (amigo que ya no está), sin nombrar a nadie; PE5 absorbe EC1 (enfermedad larga). Salen: CR1 (perder algo de golpe: ya está en la época de plata ajustada), HJ7 (algo que empezó bien y terminó mal). PE4 (la peor época de la vida) a decidir. Todas con permiso, sin dar por muerto a nadie.
+
+- **Aviso:** Ahora vienen unas preguntas sobre momentos difíciles. Van para todos, así que si alguna no tiene que ver con tu vida, con un *paso* alcanza y seguimos. Vos manejás.
+- **PE1 (padres):** Si alguno de tus padres ya no está, y querés, contame cómo fue ese momento para vos. Puede ser algo chiquito de esos días que te haya quedado grabado.
+- **PE3 (persona querida):** Si hay una persona querida que perdiste, ¿querés contarme de ella? Quién era para vos, algo que te haya quedado de esa persona, un momento juntos que te guste recordar.
+- **PE5 (salud):** Si alguna vez tu salud te frenó en serio, ¿querés contármelo? Cómo fueron esos días, quién estuvo cerca, y cómo lo fuiste llevando. Y si es algo que todavía llevás, también vale.
+- **PE6:** ¿Hubo alguna vez que te equivocaste con alguien y te quedó dando vueltas? Si querés, contame qué pasó y en qué quedó eso entre ustedes.
+- **PE8:** ¿Hubo alguien en quien confiabas, fuera del trabajo, que te falló? No hace falta que digas el nombre. Si querés, contame cómo te enteraste.
+- **ID1:** Hay gente que durante años tuvo que guardarse una parte de lo que era, o de lo que sentía. Si a vos te pasó, y querés que quede en tu historia, contámelo como vos quieras.
+- **Cierre:** Gracias por contarme esto; sé que no es fácil. Si hay otro momento difícil que sentís que tiene que estar en tu historia y no te lo pregunté, contámelo acá.
+
+Opcional (a decidir): **PE4, la época más dura de grande** (infancia, adolescencia y juventud ya tienen su "momento duro"; la adultez no).
