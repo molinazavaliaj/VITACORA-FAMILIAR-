@@ -193,9 +193,11 @@ Textos (elegida de Fable; la otra, de respaldo):
 - **ES2:** ¿Hubo una maestra o un maestro que te marcó en la primaria? ¿Cómo era con ustedes? Contame una vez con esa persona que no te olvidás: qué pasó en el aula ese día.
 - **ES3:** ¿Cómo eras en la escuela? ¿Te gustaba ir, tenías alguna materia que esperabas? Contame un día de esa época que te quedó grabado: un acto, una prueba, un boletín que llevaste a tu casa.
 - **ES5:** De chic{{o/a}}, ¿tenías un mejor amigo o una mejor amiga, de la escuela o del barrio? ¿Qué hacían cuando andaban juntos? Contame una tarde con esa persona que todavía te hace sonreír.
-- **ES6:** ¿Cuál fue la travesura más grande que hiciste de chic{{o/a}}, en la escuela o en el barrio? Esa que todavía te da risa, o un poco de vergüenza. Contame cómo fue y si te agarraron.
+- **ES6:** ¿Cuál fue la travesura más grande que hiciste de chic{{o/a}}, en la escuela o en el barrio? Esa que todavía te da risa, o un poco de vergüenza. Contame cómo fue y si te agarraron. Y si se te vienen más, contalas también.
 - **ES7:** ¿Qué querías ser cuando fueras grande? ¿De dónde te vino esa idea: alguien que veías, algo que pasó? Si te acordás del momento en que lo decidiste, o de quién te lo metió en la cabeza, contámelo.
-- **ES8:** ¿Cómo eran tus veranos de chic{{o/a}}? El calor, los días largos, lo que se hacía en tu casa en esos meses. Contame un verano que fue distinto de los demás y qué pasó.
+- **ES8:** ¿Cómo eran tus veranos de chic{{o/a}}? El calor, los días largos, lo que se hacía en tu casa en esos meses. Contame.
 - **ES9:** ¿Cómo se vivía la religión en tu casa cuando eras chic{{o/a}}? ¿Hubo una ceremonia o una fiesta que te tocó de cerca? Contame ese día: dónde fue, con quién estabas.
 - **ES10:** De chic{{o/a}}, ¿qué se escuchaba en tu casa: radio, discos, alguien que cantaba mientras cocinaba? Seguro hay una canción que, apenas la oís, te devuelve ahí. ¿Cuál es, y adónde te lleva?
 - **Cierre:** Con esto cerramos tus años de escuela. Antes de seguir, ¿te quedó alguna historia de esa época dando vueltas, algo que no entró en ninguna pregunta? Contámela ahora, con calma, que la quiero escuchar.
+
+**Bloque 3 (Naza, 29/09):** aprobadas ES1, ES2, ES3, ES9. ES6 abre a contar más de una. ES8 pide cómo eran, sin el verano distinto. Nada de recortes por ahora: el recuento se hace al final.
