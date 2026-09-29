@@ -247,3 +247,10 @@ Textos (elegida de Fable; la otra, de respaldo):
 **Bloque 4, vuelta 3 (Naza, 29/09):** aprobadas AD2, AD2b, AD3, AD5, AD11, AD12, AD14, AD15. Nuevas propuestas por Naza (textos a aprobar):
 - **AD16 (nueva, E):** Cuando se terminaba el colegio, o esa etapa para vos, ¿qué planes tenías? ¿Qué te imaginabas para lo que venía? Si te acordás de alguna charla o algún momento en que lo pensaste, contámelo.
 - **AD17 (nueva, E):** ¿Aprendiste a manejar? Contame la primera vez que agarraste un volante: quién te enseñó, dónde fue, cómo te fue. (No dice "en esa época": si aprendió de grande, el escritor lo ubica por fecha.)
+
+**Bloque 4:** AD16 y AD17 aprobadas. Falta solo el OK del cierre.
+
+**Nuevas de escuela (Naza, 29/09), van al bloque 3 porque sirven para primaria y secundaria (textos a aprobar):**
+- **ES13 (nueva, E):** ¿Fuiste siempre a la misma escuela, o te tocó cambiarte? Si te cambiaste, contame cómo fue el primer día en la nueva: cómo llegaste, qué te encontraste.
+- **ES14 (nueva, C):** ¿Cómo eran los recreos en tu escuela? ¿A qué se jugaba, dónde te metías vos? Contame algún recreo que se te haya quedado grabado.
+- **ES15 (nueva, C):** ¿Había algún compañero o compañera que no te caía bien? ¿Por qué? Contame alguna vez que se cruzaron.
