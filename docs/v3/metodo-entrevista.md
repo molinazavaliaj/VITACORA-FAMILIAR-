@@ -577,3 +577,5 @@ Quedan: aviso, PE1, PE5, PE6, ID1, PE4, cierre.
 Aprobadas: PE1 (pérdidas), PE4 (época dura), PE5, PE6, ID1, cierre.
 - **Aviso (sin "van para todos"):** Ahora vienen unas preguntas sobre momentos difíciles. Si alguna no tiene que ver con tu vida o no querés entrar, con un *paso* alcanza y seguimos. Vos manejás.
 - **PE9 (nueva, idea de Naza):** ¿Hubo alguna equivocación que pagaste caro en tu propia vida? Si querés, contame qué pasó y cómo siguió todo después. (Ojo: se parece a GI5, "algo de lo que te arrepentís", bloque 13.)
+
+**Bloque 11: cerrado (29/09).** Aviso y PE9 aprobados.
