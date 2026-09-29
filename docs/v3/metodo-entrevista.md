@@ -720,3 +720,27 @@ Aprobadas: LE7, LE9. Salen LE3 y DES1. **{{destinatarios}} se reemplaza por "tu 
 - **Mensaje final:** Hasta acá llegamos, {{nombre}}. Gracias por cada audio, por cada historia y por la confianza de contarlas así. Con todo lo que me contaste vamos a armar un libro que va a quedar en tu familia para siempre, y es bien tuyo. Antes de escribirlo vas a poder repasar lo que contaste, por si querés cambiar o agregar algo. Fue un gusto enorme escucharte.
 
 **Bloque 15: cerrado (29/09).** LE1, LE2, LE6, LE8 y el mensaje final aprobados. **Los 15 bloques quedaron revisados y aprobados por Naza (29/09).** Falta: pedidos de fotos, mensajes fijos, preguntas de datos (con la regla de no depender de la ficha), cazador, recuento final; después pasar todo a banco-v3.md y al código.
+
+## 20. Fuera de los bloques (Naza, 29/09)
+- **Fotos:** se sacan los 14 pedidos (F1-F14, M16, M17). Las fotos salen del álbum que se carga en el dashboard, más una sola pregunta al final.
+- **Cazador de escenas: en pausa** (Naza: "ya se le preguntó de todo"). Se retoma si con respuestas reales faltan escenas.
+
+### Mensajes fijos (propuesta, redactada con Fable; sin adjetivos con género)
+- **M1 (final de cada pregunta):** Si no va con vos, decí *paso* y vamos a otra. (alternativa: Si esto no es lo tuyo, con un *paso* seguimos.)
+- **M6 (explicar la pausa, después de la bienvenida):** Una cosa más, y ya arrancamos: esto no tiene apuro. Si algún día querés frenar unos días, me escribís *pausa* y yo no te mando nada hasta que vos me digas *seguimos*. Ahí retomamos justo donde quedamos.
+- **M7a (pausa):** Dale, frenamos acá. Todo lo que me contaste queda guardado. Cuando tengas ganas me escribís *seguimos* y retomamos donde quedamos. Sin apuro.
+- **M7b (seguimos):** Acá estoy. Retomamos justo donde habíamos quedado; te mando la que sigue.
+- **M3 (acuses, rotan):** Gracias, {{nombre}}. Ya lo guardé. / Te escuché. Vamos con la que sigue. / Anotado. Sigo con otra. / Gracias por contármelo. Seguimos. / Guardado, {{nombre}}. Te mando la próxima. / Lo tengo. Vamos con otra. / Listo, quedó guardado. Sigo. / Escuchado. Vamos por la siguiente.
+- **M4 (acuses sobrios, después de algo difícil):** Gracias por contarme esto, {{nombre}}. Queda guardado con cuidado. / Te escuché. Gracias por confiármelo. / Lo guardo tal como lo contaste. Gracias. / Gracias por animarte a contarlo. Cuando quieras, seguimos.
+- **M8 (recordatorio a la persona):** Hola, {{nombre}}. Pasaron unos días y quería saber cómo andás. Tu historia está acá, guardada tal como la dejaste. Cuando tengas un rato me contestás la que quedó pendiente, y si preferís frenar un tiempo me decís *pausa*. Sin apuro.
+- **M9 (aviso a la familia, una semana sin audios):** Hola, {{quien_regala}}. Te aviso que {{nombre}} hace una semana que no manda audios. Puede ser cualquier cosa: que ande con otras cosas, que no mire mucho el celular o que le cueste un poco arrancar de nuevo. Si podés, pegale un llamado o hacele una visita y preguntale cómo viene con el libro; muchas veces con una charla con alguien de la familia se vuelve a enganchar. Lo que ya contó está guardado. Si hay algo que tenga que saber, me avisás.
+- **M10 (fin de etapa):** Terminamos {{etapa}}, {{nombre}}. Ya quedó guardado todo eso. Cuando quieras, seguimos.
+- **M13 (dos temas):** Acá se abren dos caminos. ¿Seguimos con {{tema_a}} o pasamos a {{tema_b}}? Andá por el que tengas más ganas de contar. [{{tema_a}}] [{{tema_b}}]
+- **M14 (reacción de la familia):** Mirá, {{nombre}}: {{quien}} estuvo escuchando tus audios y te dejó esto.
+- **M15 (pregunta de la familia):** Esta te la manda {{quien}}. Contestale como si te la hiciera en la mesa.
+- **M20 (varios audios):** Voy escuchando todo, mandá los que quieras. Cuando termines con esta, tocá *Siguiente* y paso a la próxima. [Siguiente]
+- **FOTO (única pregunta de fotos, al final):** Una última cosa, {{nombre}}. ¿Hay alguna foto, en el celular o en algún cajón de tu casa, que quieras que quede para siempre en este libro? Si la tenés a mano, sacale una foto y mandámela, y después contame en un audio qué se ve y quiénes están. Y si no encontrás ninguna, no pasa nada: el libro va igual.
+- **M21 (nuevo, después de "paso"):** Dale, la salteamos. Vamos con otra.
+- **M22 (nuevo, si manda texto):** Lo leí, gracias. Si podés, contámelo también en audio: así queda tu voz y tu manera de decirlo, que es lo que va al libro. Y si te resulta más cómodo escribir, escribí nomás.
+- **M23 (nuevo, audio cortado):** Se me cortó el audio o no llegó bien, {{nombre}}. ¿Me lo mandás de nuevo cuando puedas? Sin apuro.
+- Salen: M11 (hito con números), M12 (lo reemplaza M10), M16 y M17 (fotos), M18 (lo cubre el mensaje final), M19 (mail por datos que faltan: ya no se piden datos por la ficha).
