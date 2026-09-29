@@ -162,7 +162,7 @@ Orden: AM9 (el final) va antes que AM13 (hoy); AM7 va después de AM9 y el códi
 | AM13 | Contame una pelea que tuvieron, de esas que después dan risa. Por qué fue, quién aflojó primero y cómo hicieron las paces. | si AM9 fue "no", o si AM16 no fue "no" | Núcleo | aprobada |
 | AM19 | Y después de esa historia, ¿hubo un tiempo en que seguiste por tu cuenta? Contame cómo era un día tuyo entonces: qué hacías, quién andaba cerca. Si no hubo un tiempo así, decime no nomás. | solo si AM9 no fue "no" | Núcleo | pendiente de OK |
 | AM16 | Si después de esa historia hubo otro amor, contame del que compartís hoy, o del último: el día que se conocieron y un momento de los dos que te haya quedado. Si no lo hubo, decime no nomás. | solo si AM9 no fue "no" | Núcleo | aprobada |
-| AM17 | Contame una vez que tu pareja te cuidó: una enfermedad, un mal momento, un día en que vos no podías. Qué hizo, qué te dijo, cómo te acordás de eso. | AM0 | Extra | aprobada |
+| AM17 | En el amor, ¿alguna vez alguien te cuidó cuando lo necesitabas, en una enfermedad o un mal momento? Si te pasó, contame qué hizo y qué te dijo. | AM0 | Extra | pendiente de OK |
 | AM14 | ¿Tuviste algún amor que te marcó y no fue el de toda la vida? Uno que dejó huella, aunque haya durado poco. Si te pasó, contame cómo se cruzaron y el momento que más te acordás de esa persona. | — (a todos) | Núcleo | aprobada |
 | AM18 | SALE: se junta en AM14. | — | — | sale |
 | AM15 | ¿Quiénes son hoy las personas con las que compartís la vida: un hermano, una amiga, un vecino, quien sea? Pensá en una y contame un día de ustedes que tengas bien guardado. | solo si AM0 fue "no" | Núcleo (sin pareja) | aprobada |
