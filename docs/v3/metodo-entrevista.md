@@ -491,3 +491,5 @@ Nota: el bloque de pérdidas va después de este (la persona ya contó a sus hij
 Aprobadas: HI0, HI1, HI2, HI3, HI4, HI5, HI7, HI10, HI8, HI9, NC1, cierre.
 - **HI2b:** ¿Tuviste más hijos, o hay alguien más que sentís que criaste o cuidaste como propio? Si fue así, contame cómo fue la llegada de cada uno, con el tiempo que necesites. Cada llegada tiene su historia.
 - **HI6:** Contame una vez que se te hinchó el pecho por uno de tus hijos. No hace falta que sea algo que salió en el diario: qué hizo, dónde estabas, qué le dijiste. Y si se te vienen de varios, contalas todas, que hay lugar para cada uno.
+
+**Bloque 8: cerrado (29/09).** HI2b y HI6 aprobadas. Se suman N1 (el nombre de cada hijo) y N2 (qué cosa tuya ves hoy en tus hijos), ambas dependen de HI0. N3 y N4 afuera.
