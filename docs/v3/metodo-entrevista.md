@@ -610,3 +610,18 @@ Se suman N1 (algo nuevo que llegó a la casa) y N3 (votar). N2 (hecho del mundo)
 **Vicios (Naza, aprobadas las dos):**
 - **HO10 (bloque 14, liviana):** ¿Hubo algo que te acompañó muchos años, el cigarrillo, el vino, el café de la mañana? Contame cómo empezó y un momento con eso que te guste recordar.
 - **PE10 (bloque 11, con permiso):** ¿Hubo algo de lo que te costó mucho salir, un vicio o algo que te hacía mal? Si querés que esté en tu historia, contame cómo fue.
+
+## 17. Bloque 13 · Puntos altos, bajos y giros (propuesta, redactada con Fable, a todos)
+
+De 15 a 9 + cierre. Se juntan: GI3 en GI2 (las dos son "la decisión grande"), GI6 en GI4, HJ8 en el cierre. Salen: GI5 (arrepentimiento: ya hay dos de equivocaciones), HJ2 (repite la época dura; queda como hilo para el cazador), HJ9 (desilusión: casi nadie la cuenta por WhatsApp). Orden: alternando pesada y liviana.
+
+- **GI1:** Si tuvieras que quedarte con un solo día feliz de toda tu vida, ¿cuál sería? El primero que te venga, no lo pienses mucho. Contame ese día desde que te levantaste: dónde estabas, con quién, qué pasó.
+- **GI7:** ¿Te acordás de alguna vez que te reíste hasta llorar? Contame dónde estabas, con quién, y qué fue lo que pasó para que no pudieras parar.
+- **GI2:** ¿Hubo un día en que hiciste algo sin vuelta atrás, como subirte a un tren sabiendo que no volvías? Contame esa mañana: cómo te despertaste, qué tenías en la cabeza, quién estaba cerca.
+- **HJ6:** ¿Hubo un día que empezó como cualquier otro y terminó cambiándote algo? Contame ese día completo: cómo arrancó la mañana, en qué momento te diste cuenta de que algo pasaba, y cómo terminó.
+- **GI8:** ¿Cuál fue el golpe de suerte más grande que tuviste? Algo que no dependió de vos y te cambió las cosas. Contame cómo fue ese día: dónde estabas cuando te enteraste y qué hiciste después.
+- **HJ1:** ¿Hubo algo que querías hacer con tu vida y al final no se dio? Contame el momento en que te diste cuenta de que ya no iba a pasar: dónde estabas, qué pasó ese día, quién estaba con vos.
+- **GI4:** ¿Hubo alguna vez que fuiste valiente y nadie se enteró? No hace falta que sea algo grande, a veces es decir algo que costaba decir. Contame ese momento: dónde estabas y qué hiciste.
+- **GI9:** ¿Hubo algún momento en tu vida en que te sentiste chiquit{{o/a}} frente a algo enorme? Un cielo de noche, por ejemplo. Contame ese momento: dónde estabas, con quién, qué había alrededor.
+- **HJ5:** ¿Volviste alguna vez, después de muchos años, al lugar donde te criaste? Contame ese día: cómo llegaste, qué fue lo primero que viste, y qué te vino a la cabeza.
+- **Cierre (absorbe HJ8):** Última de esta tanda. De todo lo que fuiste para otros en la vida, ¿hay algo que sientas que hiciste bien? Contame una vez concreta: qué pasó, con quién.
