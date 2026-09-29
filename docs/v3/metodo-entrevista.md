@@ -511,3 +511,11 @@ Lo que le falta (Fable, a decidir):
 - **LU7, las vacaciones de todos los años:** ¿Hubo un lugar adonde iban de vacaciones cuando los chicos eran chicos? Contame cómo era eso, cómo llegaban, y un día de esas vacaciones que te haya quedado.
 - **PA2, hincha:** ¿Sos hincha de algún club? Contame cómo empezó eso, si alguien te llevó, y un partido que no te olvidás más.
 - **LU8, el lugar al que volvería:** ¿Hay un lugar al que te gustaría volver, aunque sea por un rato? Contame qué lugar es, y la última vez que estuviste ahí.
+
+### Bloque 9, vuelta 2 (Naza, 29/09)
+Aprobadas: LU3, LU5, PA2, LU8. HE1 (casa propia): se pisa con JU12 (primer lugar propio) y AM5 (primera casa de los dos): propuesta, sacarla.
+- **LU1:** ¿Hay una casa que sientas tuya de verdad, la de hoy o alguna de antes? Contame cómo llegaste a ella y un momento ahí que te haya quedado grabado.
+- **LU4:** Ya de grande, ¿cuál fue el viaje más importante de tu vida, o uno que recuerdes con mucha fuerza? Contame si fuiste con alguien, y un día de ese viaje que te haya quedado como una foto.
+- **PA1:** Fuera del trabajo y de la familia, ¿hubo algo que te apasionara de grande? Contame cómo empezó eso, y un día entero que le hayas dedicado, de la mañana a la noche. Si sentís que ya me lo contaste, decímelo.
+- **LU6:** ¿Cuál es tu barrio preferido, o el lugar donde te sentís más cómod{{o/a}}? Si pudieras estar ahí ahora mismo, contame cómo sería ese momento: qué ves, quién está, qué hacés.
+- **LU7 (sin suponer hijos):** De grande, ¿hubo un lugar adonde ibas de vacaciones una y otra vez? Contame cómo era eso, cómo llegaban, y un día de esas vacaciones que te haya quedado.
