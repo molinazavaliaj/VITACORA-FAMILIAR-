@@ -97,14 +97,14 @@ Voz del biógrafo (propuesta, sale de la corrección de Naza):
 - **CA3:** ¿Y tu papá? ¿A qué se dedicaba cuando eras chic{{o/a}}? Contame alguna vez que lo acompañaste o lo viste trabajando.
 - **CA4 (aprobada):** Contame el día que alguien de tu casa te enseñó a hacer algo por primera vez: andar en bicicleta, nadar, silbar. Cómo fue ese día.
 - **CA5 (aprobada):** Contame la vez que más te retaron o te castigaron de chic{{o/a}}: qué habías hecho, quién te retó y cómo terminó.
-- **CA6:** «pl: ¿Con cuál de tus hermanos eras más cercan{{o/a}} de chic{{o/a}}? Contame alguna aventura que hayan hecho: qué se les ocurrió y cómo terminó. ‖ sg: ¿Cómo te llevabas con {{hermanos}} de chic{{o/a}}? Contame alguna aventura que hayan hecho: qué se les ocurrió y cómo terminó.»
+- **CA6:** «pl: ¿Con cuál de tus hermanos eras más cercan{{o/a}} de chic{{o/a}}? Contame alguna aventura que hayan hecho juntos; seguro tienen varias. ‖ sg: ¿Cómo te llevabas con {{hermanos}} de chic{{o/a}}? Contame alguna aventura que hayan hecho juntos; seguro tienen varias.»
 - **CA8 (aprobada; le llega a todos, sin gate de hijo único: Naza, 29/09):** De chic{{o/a}}, ¿a qué jugabas en casa? Uno se arma un mundo con cualquier cosa: una sábana, un patio, un perro. ¿Te acordás de un día que te quedaste jugando hasta que te llamaron a comer? Contámelo.
 - **CA9:** ¿Había alguien más que viviera con ustedes o que estuviera siempre en tu casa, como un abuelo, una tía o alguien que ayudaba? Si había alguien, contame alguna vez con esa persona que se te quedó grabada.
 - **CA10:** Pensá en las fiestas y comidas en familia de cuando eras chic{{o/a}}: una Navidad, un cumpleaños, un domingo. ¿Cómo eran en tu casa? Y si hubo una que recuerdes distinta a las demás, contámela.
 - **CA12:** De chic{{o/a}}, ¿hubo algo que costó mucho tener en tu casa, o algo que vos esperaste mucho tiempo hasta que por fin llegó? Contame cómo fue ese día.
 - **CA12.2:** eliminada (Naza).
 - **CA13:** ¿A qué edad empezaste a salir a jugar sin que nadie te cuidara? Contame la primera vez que saliste sol{{o/a}}: a dónde fuiste y qué pasó.
-- **CA14:** ¿Hubo algún animal que te acompañó de chic{{o/a}}? Una mascota de la casa, un perro del barrio, el gato de tu abuela. Contame un recuerdo lindo que tengas con él.
+- **CA14:** ¿Hubo algún animal que te acompañó de chic{{o/a}}? Una mascota de la casa o el perro de algún vecino. Contame un recuerdo lindo que tengas con él.
 - **CA15:** ¿A qué le tenías miedo de chic{{o/a}}, y por qué? ¿Te acordás de alguna vez que te hayas asustado mucho? Contame qué pasó.
 - **CA16 (aprobada):** Contame un día de chic{{o/a}} que esperabas con muchas ganas: qué era, quién estaba, qué pasó.
 - **CA17 (aprobada, sin marca de sensible):** Contame el momento más difícil que recuerdes de cuando eras chic{{o/a}}: qué pasó y cómo terminó.
@@ -159,3 +159,5 @@ Textos (elegida de Fable; la otra, de respaldo):
 **Bloque 1: cerrado (29/09).** Aprobadas OR1, OR2, OR5, OR6, OR6.2 y OR7. OR3 y OR4 se juntan en OR2.
 
 **Regla (Naza, 29/09):** mamá y papá se nombran igual para todos ("tu mamá", "tu papá"), sin el nombre de la ficha en la pregunta. Aplicado a CA2, CA3 y OR5. Aprobadas del bloque 2 en esta vuelta: CA9, CA13; CA6 con "más cercano".
+
+**Regla (Naza, 29/09):** los ejemplos de una pregunta no suponen familiares que la persona quizás no tuvo (nada de "el gato de tu abuela"). Mamá y papá quedan sin nombre (más simple). Aprobadas: CA2, CA3, CA6, CA10, CA12, CA14. Falta solo CA15.
