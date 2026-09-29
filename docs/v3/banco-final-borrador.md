@@ -55,8 +55,8 @@ Orden propuesto en el doc: CA1, CA2, CA10, CA3, CA6/CA8, CA16, y después las de
 | CA1 | Contame el primer recuerdo que tengas de la casa donde creciste: un día, qué estabas haciendo, quién andaba por ahí. | — | Núcleo | aprobada |
 | CA2 | Viajemos un rato a cuando eras chic{{o/a}}. ¿Cómo era tu mamá con vos en esa época? Si te viene a la cabeza alguna anécdota con ella, contámela: dónde estaban, qué pasó. | — | Núcleo | aprobada |
 | CA3 | ¿Y tu papá? ¿A qué se dedicaba cuando eras chic{{o/a}}? Contame alguna vez que lo acompañaste o lo viste trabajando. | — | Núcleo | aprobada |
-| CA4 | Contame el día que alguien de tu casa te enseñó a hacer algo por primera vez: andar en bicicleta, nadar, silbar. Cómo fue ese día. | — | Extra | aprobada |
-| CA5 | Contame la vez que más te retaron o te castigaron de chic{{o/a}}: qué habías hecho, quién te retó y cómo terminó. | — | Extra | aprobada |
+| CA4 | Pensá en el día que alguien de tu casa te enseñó a hacer algo por primera vez: andar en bicicleta, nadar, silbar. Cómo fue ese día. | — | Extra | aprobada |
+| CA5 | Vamos a la vez que más te retaron o te castigaron de chic{{o/a}}: qué habías hecho, quién te retó y cómo terminó. | — | Extra | aprobada |
 | CA6 | ¿Tuviste hermanos? Si tuviste, ¿con cuál eras más cercan{{o/a}} de chic{{o/a}}? Contame alguna aventura que hayan hecho juntos; seguro tienen varias. | — (abre el tema hermanos) | Núcleo | aprobada |
 | CA7 | ¿Y con tus otros hermanos? Contame alguna historia de chicos con alguno de ellos. | CA6 (solo con más de un hermano; si CA6 es "no", no va) | Extra | aprobada |
 | CA8 | De chic{{o/a}}, ¿a qué jugabas en casa? Uno se arma un mundo con cualquier cosa: una sábana, un patio, un perro. ¿Te acordás de un día que te quedaste jugando hasta que te llamaron a comer? Contámelo. | — | Extra | aprobada |
@@ -64,7 +64,7 @@ Orden propuesto en el doc: CA1, CA2, CA10, CA3, CA6/CA8, CA16, y después las de
 | CA10 | Pensá en las fiestas y comidas en familia de cuando eras chic{{o/a}}: una Navidad, un cumpleaños, un domingo. ¿Cómo eran en tu casa? Y si hubo una que recuerdes distinta a las demás, contámela. | — | Extra | aprobada |
 | CA12 | De chic{{o/a}}, ¿hubo algo que costó mucho tener en tu casa, o algo que vos esperaste mucho tiempo hasta que por fin llegó? Contame cómo fue ese día. | — | Extra | aprobada |
 | CA13 | ¿A qué edad empezaste a salir a jugar sin que nadie te cuidara? Contame la primera vez que saliste sol{{o/a}}: a dónde fuiste y qué pasó. | — | Extra | aprobada |
-| CA14 | ¿Hubo algún animal que te acompañó de chic{{o/a}}? Una mascota de la casa o el perro de algún vecino. Contame un recuerdo lindo que tengas con él. | — | Extra | aprobada |
+| CA14 | ¿Algún animal te acompañó de chic{{o/a}}? Una mascota de la casa o el perro de algún vecino. Contame un recuerdo lindo que tengas con él. | — | Extra | aprobada |
 | CA15 | ¿A qué le tenías miedo de chic{{o/a}}, y por qué? ¿Te acordás de alguna vez que te hayas asustado mucho? Contame qué pasó. | — | Extra | aprobada |
 | CA16 | Contame un día de chic{{o/a}} que esperabas con muchas ganas: qué era, quién estaba, qué pasó. | — | Núcleo | aprobada |
 | CA17 | ¿Hubo algún momento difícil de tu infancia que creas que no puede quedar afuera de tu historia? ¿Algo que te marcó? Si querés, contame qué pasó y cómo lo viviste. | — | Núcleo | aprobada |
@@ -77,7 +77,7 @@ Orden propuesto en el doc: CA1, CA2, CA10, CA3, CA6/CA8, CA16, y después las de
 | ID | Texto final | Depende de | Núcleo o Extra | Estado |
 |---|---|---|---|---|
 | ES1 | ¿Cómo fue tu primer día de escuela? ¿Quién te llevó hasta la puerta, y qué sentiste cuando se fue? Si ese día no lo tenés, contame lo primero que te acuerdes de la primaria. | — | Núcleo | aprobada |
-| ES2 | ¿Hubo una maestra o un maestro que te marcó en la primaria? ¿Cómo era con ustedes? Contame una vez con esa persona que no te olvidás: qué pasó en el aula ese día. | — | Núcleo | aprobada |
+| ES2 | ¿Tuviste una maestra o un maestro que te marcó en la primaria? ¿Cómo era con ustedes? Contame una vez con esa persona que no te olvidás: qué pasó en el aula ese día. | — | Núcleo | aprobada |
 | ES3 | ¿Cómo eras en la escuela? ¿Te gustaba ir, tenías alguna materia que esperabas? Contame un día de esa época que te quedó grabado: un acto, una prueba, un boletín que llevaste a tu casa. | — | Extra | aprobada |
 | ES5 | De chic{{o/a}}, ¿tenías un mejor amigo o una mejor amiga, de la escuela o del barrio? ¿Qué hacían cuando andaban juntos? Contame una tarde con esa persona que todavía te hace sonreír. | — | Núcleo | aprobada |
 | ES6 | ¿Cuál fue la travesura más grande que hiciste de chic{{o/a}}, en la escuela o en el barrio? Esa que todavía te da risa, o un poco de vergüenza. Contame cómo fue y si te agarraron. Y si se te vienen más, contalas también. | — | Núcleo | aprobada |
@@ -102,7 +102,7 @@ Orden: AD2 va antes que AD1.
 | AD2b | ¿Qué recordás de tu último año en el colegio, o del último año que fuiste? Es un año que marca. Contame lo que te quedó de esos meses: algún momento, algo que pasó, cómo fue la despedida. | — | Extra | aprobada |
 | AD3 | ¿Tenías una barra de amigos a los quince, dieciséis? ¿Cómo eran, qué hacían cuando se juntaban? Contame una noche o una salida con ellos que todavía te acordás. Es una edad que queda marcada: si se te vienen más historias, contalas todas. | — | Núcleo | aprobada |
 | AD5 | ¿Te acordás de la primera vez que saliste de noche, a un baile o a una fiesta? Contame cómo te preparaste, con quién fuiste y cómo fue esa noche. | — | Núcleo | aprobada |
-| AD6 | ¿Te acordás de la primera vez que alguien te gustó en serio? Contame cómo se conocieron, cómo era esa persona, y un momento de los dos que todavía llevás guardado. | — | Núcleo | aprobada |
+| AD6 | ¿Y la primera vez que alguien te gustó en serio? Contame cómo se conocieron, cómo era esa persona, y un momento de los dos que todavía llevás guardado. | — | Núcleo | aprobada |
 | AD8 | A esa edad uno choca con los de la casa. ¿Cuál fue la pelea más grande que tuviste con tu mamá o con tu papá? Contame por qué fue y cómo se vivió en tu casa. | — | Extra | aprobada |
 | AD9 | ¿En qué lío te metiste de adolescente, de esos que ya no eran travesuras de chic{{o/a}}? Contame qué pasó y quién te sacó del apuro, o cómo saliste. | — | Extra | aprobada |
 | AD10 | En esos años, ¿había alguien mayor que te entendía y a quien escuchabas de verdad, un tío, la mamá de un amigo, el amigo de un hermano? Contame cómo era con vos y una vez que estuvo de tu lado cuando lo necesitabas. | — | Extra | aprobada |
@@ -120,7 +120,7 @@ Orden: AD2 va antes que AD1.
 |---|---|---|---|---|
 | JU1 | ¿Te acordás del día que te fuiste de la casa de tus viejos? A dónde te fuiste, con quién, cómo fue esa despedida. Y si te quedaste ahí muchos años, contame cómo era esa casa con vos ya de grande. | — | Núcleo | aprobada |
 | JU2 | ¿Qué hiciste después del colegio? Si seguiste estudiando, contame qué y cómo eran esos años; si la vida te llevó para otro lado, contame en qué andabas. Y un día de esa época que te haya quedado. | — | Núcleo | aprobada |
-| JU2b | ¿Hubo algo que empezaste a estudiar y dejaste? Si te pasó, contame cómo fue ese momento: qué pasaba en tu vida, si lo hablaste con alguien. | — | Extra | aprobada |
+| JU2b | ¿Te pasó de empezar a estudiar algo y dejarlo? Si te pasó, contame cómo fue ese momento: qué pasaba en tu vida, si lo hablaste con alguien. | — | Extra | aprobada |
 | JU4 | ¿Cómo aprendiste a hacer eso que es tuyo, lo que más te ocupa o más te gusta, sea tu trabajo o algo que hacés por gusto? Contame cómo fue arrancar: un día de cuando recién empezabas. | — | Núcleo | aprobada |
 | JU5 | ¿Tuviste alguna experiencia con lo militar: la colimba, la mili, un colegio militar? ¿O alguna época de disciplina dura, en tu casa, en un colegio, en un trabajo? Contame cómo era y alguna vez que todavía te acordás. | — | Núcleo | aprobada |
 | JU8 | ¿Alguna vez te fuiste a vivir a otra ciudad o a otro país? Si te pasó, contame cómo lo decidiste: qué te empujó y a quién se lo dijiste primero. | — (abre el tema mudarse) | Núcleo | aprobada |
@@ -135,7 +135,7 @@ Orden: AD2 va antes que AD1.
 | JU16 | Pensá en un momento muy feliz de tu juventud. No hace falta que sea algo grande: una tarde, una noticia, un lugar. ¿Dónde estabas, qué pasó? Contámelo como si estuvieras ahí de nuevo. | — | Extra | aprobada |
 | JU17 | ¿Hubo algún momento duro en tu juventud que creas que no puede quedar afuera de tu historia? ¿Algo que te marcó? Si querés, contame qué pasó y cómo lo viviste. | — | Núcleo | aprobada |
 | JU18 | ¿Cómo eran las fiestas y las salidas en tu juventud? Los bailes, los cumpleaños, las noches largas. Contame una que no te olvidás. Y si se te vienen más, contalas también. | — | Extra | aprobada |
-| JU19 | ¿Hubo algún flechazo en esos años, alguien que te movió el piso? Contame cómo fue: dónde se cruzaron, qué pasó. | — | Extra | aprobada |
+| JU19 | ¿Tuviste algún flechazo en esos años, alguien que te movió el piso? Contame cómo fue: dónde se cruzaron, qué pasó. | — | Extra | aprobada |
 | JU20 | ¿Te mudaste muchas veces en tu vida? Contame por qué casas o lugares fuiste pasando, más o menos en qué años, y cuál de esas mudanzas te quedó más grabada. | — | Extra | aprobada |
 | Cierre | Y así llegamos al final de tu juventud, los años en que empezaste a hacer tu vida. Antes de seguir, ¿te quedó algo de esa época sin contar? Un lugar, una persona, una tarde que se te aparece de vez en cuando. Contámelo ahora, con calma. | — | Núcleo | aprobada |
 
@@ -151,12 +151,12 @@ Orden: AM9 (el final) va antes que AM13 (hoy); AM7 va después de AM9 y el códi
 | AM0 | Ahora vamos al amor. ¿Hubo un amor con quien armaste tu vida, o con quien la compartís hoy? Si fueron varios, empezá por el que quieras. Y si no hubo, decímelo nomás, que también vale. | — (abre el tema pareja) | Núcleo | aprobada |
 | AM1 | Contame el día que se conocieron. ¿Dónde fue, quién los presentó o cómo se cruzaron? ¿Y qué fue lo primero que te llamó la atención de esa persona? | AM0 | Núcleo | aprobada |
 | AM2 | ¿Cómo fue el noviazgo, o esos primeros tiempos? Pensá en un momento: una cita, un paseo, una tarde que todavía tenés fresca. Contámela como si la vieras de vuelta. Si se te vienen más, contalas también. | AM0 | Extra | aprobada |
-| AM3 | ¿Cómo decidieron armar la vida juntos: casarse, irse a vivir, lo que haya sido? ¿Quién lo dijo primero, o se fue dando solo? Contame ese momento: dónde estaban, qué se dijeron. | AM0 | Núcleo | aprobada |
+| AM3 | Y después, ¿cómo decidieron armar la vida juntos: casarse, irse a vivir, lo que haya sido? ¿Quién lo dijo primero, o se fue dando solo? Contame ese momento: dónde estaban, qué se dijeron. | AM0 | Núcleo | aprobada |
 | AM4 | Hay días que quedan grabados para siempre. ¿Hubo uno en que se casaron, o en que empezaron a vivir juntos? Si lo hubo, contame ese día como si lo estuvieras viendo: el lugar, la gente, la ropa, lo que más te quedó. | AM0 | Núcleo | aprobada |
 | AM5 | Contame a dónde se mudaron juntos por primera vez: cómo llegaron a ese lugar, cómo era por dentro, y cómo fue esa primera noche ahí, con todo lo que tenía y todo lo que le faltaba. | AM0 | Extra | aprobada |
 | CS3 | ¿Cómo fue el primer día que fuiste a la casa de la familia de tu pareja? Contame quién te abrió la puerta, cómo te recibieron, y qué pensaste cuando te fuiste. | AM0 | Extra | aprobada |
-| AM6 | ¿Hubo una época difícil entre ustedes? Si la hubo, contame qué pasaba y cómo la fueron llevando: qué hizo cada uno, si hubo un día que lo cambió. Si preferís no entrar, también está bien. | AM0 | Extra | aprobada |
-| AM8 | Si tuvieras que guardar un solo momento con esa persona, ¿cuál sería? Contámelo entero: el lugar, el día, qué hacían. Si se te vienen otros, contalos también. | AM0 | Núcleo | aprobada |
+| AM6 | ¿Tuvieron una época difícil entre ustedes? Si la hubo, contame qué pasaba y cómo la fueron llevando: qué hizo cada uno, si hubo un día que lo cambió. Si preferís no entrar, también está bien. | AM0 | Extra | aprobada |
+| AM8 | Imaginate que podés guardar un solo momento con esa persona, ¿cuál sería? Contámelo entero: el lugar, el día, qué hacían. Si se te vienen otros, contalos también. | AM0 | Núcleo | aprobada |
 | AM9 (sensible) | Si esa historia tuvo un final, una separación o una despedida, ¿querés contármelo? Solo lo que vos quieras. Y si no querés, con decir "paso" alcanza; lo demás de tu historia sigue igual. | AM0 | Núcleo | aprobada |
 | AM7 | Contame algo muy de esa persona: una frase que repite o repetía, una costumbre, una manía. Y una vez puntual en que salió eso, para que quien lea la tenga enfrente. | AM0 (va después de AM9; tiempo según AM9) | Extra | aprobada |
 | AM13 | Hay cosas que una pareja arma con los años sin darse cuenta, como una frase que solo entienden los dos. ¿Cuál es la de ustedes hoy? Contame la última vez que pasó: dónde estaban, qué se dijeron. | solo si AM9 fue "no" | Núcleo | aprobada |
@@ -164,7 +164,7 @@ Orden: AM9 (el final) va antes que AM13 (hoy); AM7 va después de AM9 y el códi
 | AM17 | Contame una vez que esa persona te cuidó: una enfermedad, un mal momento, un día en que vos no podías. Qué hizo, qué te dijo, cómo te acordás de eso. | AM0 | Extra | aprobada |
 | AM14 | ¿Tuviste algún amor que te marcó y no fue el de toda la vida? Uno que dejó huella, aunque haya durado poco. Si te pasó, contame cómo se cruzaron y el momento que más te acordás de esa persona. | — (a todos) | Núcleo | aprobada |
 | AM18 | SALE: se junta en AM14. | — | — | sale |
-| AM15 | ¿Quiénes son hoy las personas con las que compartís la vida: un hermano, una amiga, un vecino, quien sea? Pensá en una y contame un día de ustedes que te haya quedado. | solo si AM0 fue "no" | Núcleo (sin pareja) | aprobada |
+| AM15 | ¿Quiénes son hoy las personas con las que compartís la vida: un hermano, una amiga, un vecino, quien sea? Pensá en una y contame un día de ustedes que tengas bien guardado. | solo si AM0 fue "no" | Núcleo (sin pareja) | aprobada |
 | Cierre | Con esto cerramos el amor. ¿Quedó alguien o algo de este tema que no tuvo su pregunta? Una persona, una carta, un baile, una charla que no entró en ningún lado. Es el momento de contarlo, sin apuro. | — | Extra | aprobada |
 
 - AM13: texto nuevo (con pareja, el día de hoy ya lo pide HO1). AM14 absorbe AM18 y pasa al Núcleo.
@@ -178,14 +178,14 @@ Orden: AM9 (el final) va antes que AM13 (hoy); AM7 va después de AM9 y el códi
 | TR6 | Hagamos el repaso de a qué le diste tus años, en orden y más o menos en qué años. Cuál de todo eso te quedó más grabado, y si fue una sola cosa toda la vida, cómo fue quedarte ahí. | — | Núcleo | aprobada |
 | OF1 | Hay un momento en que uno deja de sentirse nuev{{o/a}} en lo suyo y se da cuenta de que ya sabe. ¿Te pasó? Contame ese día: qué estabas haciendo, quién estaba, qué sentiste. | — | Extra | aprobada |
 | MA1 | ¿Hay algo que sepas hacer bien con las manos? Cocinar, arreglar, coser, sembrar, curar, lo que sea. Contame cómo lo hacés, y la última vez que lo hiciste: para quién fue, cómo salió. | — | Extra | aprobada |
-| TR2 | Pensá en eso a lo que le diste más años. ¿Cómo era un día común? Desde que arrancabas hasta que terminaba, qué hacías, con quién. Y contame uno de esos días que te haya quedado. | — | Núcleo | aprobada |
-| TR3 | ¿Hubo alguien que te dio una mano en tu camino? Alguien que te enseñó, te acompañó o te abrió una puerta en lo que hiciste. Contame cómo era esa persona, y una vez con ella que tengas bien clara. | — | Núcleo | aprobada |
+| TR2 | Pensá en eso a lo que le diste más años. ¿Cómo era un día común? Desde que arrancabas hasta que terminaba, qué hacías, con quién. Y contame uno de esos días que todavía tengas fresco. | — | Núcleo | aprobada |
+| TR3 | ¿Alguien te dio una mano en tu camino? Alguien que te enseñó, te acompañó o te abrió una puerta en lo que hiciste. Contame cómo era esa persona, y una vez con ella que tengas bien clara. | — | Núcleo | aprobada |
 | OF2 | ¿Hay alguien a quien atendiste, cuidaste o le enseñaste algo, y que no te olvidás? Contame cómo era, y esa vez que te quedó grabada. | — | Extra | aprobada |
 | TR5 | ¿Cuál fue el día de trabajo del que estás más orgullos{{o/a}}? No hace falta que haya sido grande: algo que salió bien, que alguien reconoció, o que solo vos sabés lo que costó. Contámelo. | — | Núcleo | aprobada |
-| TR4 | ¿Hubo un día, o una época, en que lo tuyo se te hizo cuesta arriba? Contame cómo era levantarse entonces, qué te sostenía, y el momento en que sentiste que empezaba a pasar. | — | Extra | aprobada |
+| TR4 | ¿Pasaste por un día, o una época, en que lo tuyo se te hizo cuesta arriba? Contame cómo era levantarse entonces, qué te sostenía, y el momento en que sentiste que empezaba a pasar. | — | Extra | aprobada |
 | OF4 | Todos metemos la pata alguna vez trabajando. ¿Cuál fue tu error más grande? Contame ese día: qué pasó, quién se enteró, qué hiciste después. | — | Extra | aprobada |
 | OB1 | ¿Tuviste compañeros? Si los tuviste, contame cómo eran, y una vez que uno te cubrió, o vos a él, cuando hacía falta. | — | Extra | aprobada |
-| OB2 | ¿Tuviste alguna vez un choque fuerte en tu oficio, o alguien que te decepcionó: un patrón, un socio, un compañero? Si te pasó, contame ese día: qué pasó, de qué lado estabas, cómo terminó. | — | Extra | aprobada |
+| OB2 | ¿Alguna vez tuviste un choque fuerte en tu oficio, o alguien que te decepcionó: un patrón, un socio, un compañero? Si te pasó, contame ese día: qué pasó, de qué lado estabas, cómo terminó. | — | Extra | aprobada |
 | N1 (bl. 7) | ¿Te quedaste alguna vez sin trabajo sin haberlo elegido, o te tocó una época de plata muy ajustada? Si te pasó, contame un día de ese tiempo que tengas bien presente, y cómo lo fuiste llevando. | — | Núcleo | aprobada |
 | TR8 | Si tuviste un negocio o algo propio, aunque fuera chico, este es su lugar. Si ya me lo contaste, con decírmelo alcanza. Si quedó algo afuera, cómo empezó, de dónde salió la idea, con qué plata, un día de esos, contámelo ahora. | — | Extra | aprobada |
 | CS1 | Fuera de lo tuyo, hay cosas que hacés bien y nadie te paga, cocinar para todos, cuidar a alguien, tener la casa andando. ¿Hay alguna que sea tuya? Contame una vez que te lució, que la gente lo notó. | — | Extra | aprobada |
@@ -207,15 +207,15 @@ PG1 (los padres de grande, nueva del 30/09) abre el bloque: la relación con los
 | HI2 | ¿Y el día que llegó tu primer hijo? Contame ese día como si lo estuvieras viendo: dónde fue, quién estaba, y el momento en que lo tuviste en brazos por primera vez. | HI0 | Núcleo | aprobada |
 | HI2b | ¿Tuviste más hijos, o hay alguien más que sentís que criaste o cuidaste como propio? Si fue así, contame cómo fue la llegada de cada uno, con el tiempo que necesites. Cada llegada tiene su historia. | HI0 | Núcleo | aprobada |
 | HI3 | ¿Cómo era cada uno de chico? El carácter, las mañas, lo que lo hacía distinto de los demás. Y contame una escena de esa época que todavía te haga sonreír. | HI0 | Núcleo | aprobada |
-| HI4 | ¿Cómo era un día cualquiera en tu casa cuando los chicos eran chicos? Las mañanas, la comida, el ruido, la hora de dormir. Y contame un día de esos que te haya quedado grabado. | HI0 | Extra | aprobada |
+| HI4 | Pensá en un día cualquiera en tu casa cuando los chicos eran chicos. Las mañanas, la comida, el ruido, la hora de dormir. Y contame un día de esos que tengas bien grabado. | HI0 | Extra | aprobada |
 | HI5 | Ser {{padre/madre}} también tiene sus tiempos duros. ¿Cuál fue la época más difícil para vos como {{padre/madre}}? Qué pasaba, cómo la fuiste llevando, y un día de esa época que te haya marcado. | HI0 | Extra | aprobada |
 | HI6 | Contame una vez que se te hinchó el pecho por uno de tus hijos. No hace falta que sea algo que salió en el diario: qué hizo, dónde estabas, qué le dijiste. Y si se te vienen de varios, contalas todas, que hay lugar para cada uno. | HI0 | Núcleo | aprobada |
 | HI7 | Un día los hijos se van de casa. ¿Te acordás del día en que se fue el primero? Cómo fue la despedida, y cómo quedó la casa esa noche. Si todavía no se fue ninguno, me decís nomás. | HI0 | Extra | aprobada |
 | N1 (bl. 8) | ¿Cómo eligieron el nombre de cada hijo? De dónde salió, quién lo propuso, si hubo discusión. Contame la historia del nombre, aunque sea corta. | HI0 | Extra | aprobada |
 | N2 (bl. 8) | ¿Qué cosa tuya ves hoy en tus hijos? Un gesto, una manía, una forma de hablar. Contame una vez que lo viste y te diste cuenta. | HI0 | Extra | aprobada |
-| HI10 | ¿Hubo chicos o jóvenes que fueron importantes en tu vida? Alguien que viste crecer, a quien le enseñaste algo o tuviste cerca. Contame quién es y una vez con esa persona que te haya quedado. | solo si HI0 fue "no" | Núcleo (sin hijos) | aprobada |
+| HI10 | ¿Algún chico o joven fue importante en tu vida? Alguien que viste crecer, a quien le enseñaste algo o tuviste cerca. Contame quién es y una vez con esa persona que no te olvidás. | solo si HI0 fue "no" | Núcleo (sin hijos) | aprobada |
 | HI8 | Ahora, los nietos. ¿Llegaron nietos a tu vida? Contame el día que conociste al primero, como si lo estuvieras viendo. Si no hay nietos, me lo decís y pasamos a otra cosa. | — (a todos; abre el tema nietos) | Núcleo | aprobada |
-| HI9 | ¿Hay algo que hacés con tus nietos que es de ustedes, que no lo hacen con nadie más? Un juego, por ejemplo. Contame qué es y una vez que te haya quedado grabada. | HI8 | Núcleo | aprobada |
+| HI9 | ¿Hay algo que hacés con tus nietos que es de ustedes, que no lo hacen con nadie más? Un juego, por ejemplo. Contame qué es y una vez que tengas bien grabada. | HI8 | Núcleo | aprobada |
 | NC1 | A veces a los abuelos les toca criar a un nieto, o tenerlo a cargo un tiempo. Si te pasó, contame cómo se dio y cómo fue el primer día. Y si no te tocó, decímelo y seguimos. | HI8 | Extra | aprobada |
 | Cierre | Con esto cerramos este tema. ¿Quedó alguien o algo que no tuvo su pregunta? Un cumpleaños, una charla en la cocina, alguien que no entró en ningún lado. Es el momento de contarlo, sin apuro. | — | Extra | aprobada |
 
@@ -224,12 +224,12 @@ PG1 (los padres de grande, nueva del 30/09) abre el bloque: la relación con los
 | ID | Texto final | Depende de | Núcleo o Extra | Estado |
 |---|---|---|---|---|
 | LU1 | SALE: queda HO9 (dónde vivís hoy, bloque 14), que pasa al Núcleo en su lugar. | — | — | sale |
-| LU3 | Fuera de tu casa, ¿hubo un lugar al que volvías siempre? Un club, por ejemplo, o cualquier lugar que fuera un poco tuyo. Contame cómo era y una vez ahí que te haya quedado. | — | Extra | aprobada |
+| LU3 | Fuera de tu casa, ¿hubo un lugar al que volvías siempre? Un club, por ejemplo, o cualquier lugar que fuera un poco tuyo. Contame cómo era y una vez ahí que todavía te acuerdes. | — | Extra | aprobada |
 | LU4 | Ya de grande, ¿cuál fue el viaje más importante de tu vida, o uno que recuerdes con mucha fuerza? Contame si fuiste con alguien, y un día de ese viaje que te haya quedado como una foto. | — | Núcleo | aprobada |
 | PA1 | Fuera del trabajo y de la familia, ¿hubo algo que te apasionara de grande? Contame cómo empezó eso, y un día entero que le hayas dedicado, de la mañana a la noche. Si sentís que ya me lo contaste, decímelo. | — | Núcleo | aprobada |
 | LU5 | Hay vehículos que terminan siendo casi de la familia. ¿Tuviste uno así? Contame cómo llegó a vos y un día arriba de él que todavía te acuerdes. | — | Extra | aprobada |
 | LU6 | ¿Cuál es tu barrio preferido, o el lugar donde te sentís más cómod{{o/a}}? Si pudieras estar ahí ahora mismo, contame cómo sería ese momento: qué ves, quién está, qué hacés. | — | Extra | aprobada |
-| LU7 | De grande, ¿hubo un lugar adonde ibas de vacaciones una y otra vez? Contame cómo era eso, cómo llegaban, y un día de esas vacaciones que te haya quedado. | — | Extra | aprobada |
+| LU7 | De grande, ¿hubo un lugar adonde ibas de vacaciones una y otra vez? Contame cómo era eso, cómo llegaban, y un día de esas vacaciones que tengas guardado. | — | Extra | aprobada |
 | PA3 (hincha) | ¿Sos hincha de algún club? Contame cómo empezó eso, si alguien te llevó, y un partido que no te olvidás más. | — | Extra | aprobada |
 | LU8 | ¿Hay un lugar al que te gustaría volver, aunque sea por un rato? Contame qué lugar es, y la última vez que estuviste ahí. | — | Extra | aprobada |
 | Cierre | Con esto cerramos lugares y pasiones. ¿Quedó algún lugar o algo que te gustó mucho y no tuvo su pregunta? Una esquina, un hobby que duró poco, un rincón de tu casa. Contalo ahora, tranquil{{o/a}}. | — | Extra | aprobada |
@@ -243,13 +243,13 @@ PG1 (los padres de grande, nueva del 30/09) abre el bloque: la relación con los
 |---|---|---|---|---|
 | AS1 | Ya de grande, ¿hubo alguien que conociste y se volvió muy importante en tu vida, un amigo o una amiga? Contame cómo se conocieron, y una vez que muestre bien cómo es esa amistad. | — | Núcleo | aprobada |
 | AS1b | Volviendo a esa amistad: contame algo que hicieron juntos hace poco. Aunque sea una charla por teléfono. | AS1 | Extra | aprobada |
-| AY1 | ¿Hubo una vez en que necesitabas ayuda de verdad y alguien te la dio, sea quien sea? Contame qué hizo esa persona ese día, y si después se lo pudiste devolver. | — | Núcleo | aprobada |
+| AY1 | ¿Alguna vez necesitaste ayuda de verdad y alguien te la dio, sea quien sea? Contame qué hizo esa persona ese día, y si después se lo pudiste devolver. | — | Núcleo | aprobada |
 | AS4 | A veces una amistad se enfría sin que nadie lo decida. ¿Te pasó con alguna? Contame cómo era esa amistad y qué fue pasando, hasta donde tengas ganas. | — | Extra | aprobada |
-| AS5 | ¿Formaste parte alguna vez de un grupo que se juntaba por algo, un club, una comisión del barrio, o un grupo de amigos? Contame una vez que hicieron algo juntos que te haya quedado. | — | Extra | aprobada |
+| AS5 | ¿Formaste parte alguna vez de un grupo que se juntaba por algo, un club, una comisión del barrio, o un grupo de amigos? Contame una vez que hicieron algo juntos que todavía recuerdes. | — | Extra | aprobada |
 | RE1 | ¿Hubo una vez en que nada te ayudaba y te sostuvo algo en lo que creías? La fe, o lo que sea para vos. Contame ese momento y cómo te agarraste de eso. | — | Extra | aprobada |
 | HE2 | Ya de grandes, ¿tus hermanos también se volvieron amigos? Contame algún momento de adultos en que estuvieron bien cerca: un viaje, una charla, una mano que se dieron. Si no tuviste hermanos, decime y seguimos. | — | Extra | aprobada |
 | AS9 | Imaginate que armás una cena y podés invitar a tu gente más cercana. ¿Quiénes se sientan en esa mesa? Contame quién va, y por qué cada uno se ganó su lugar. | — | Núcleo | aprobada |
-| AY2 | ¿Hubo una vez en que fuiste vos quien le dio una mano a alguien que la necesitaba? Contame qué pasó y qué hiciste ese día. | — | Extra | aprobada |
+| AY2 | ¿Y te tocó ser vos quien le dio una mano a alguien que la necesitaba? Contame qué pasó y qué hiciste ese día. | — | Extra | aprobada |
 | AS7 | Hoy, cuando te pasa algo importante, ¿a quién se lo contás primero? Contame una vez que le hayas contado algo así. | — | Extra | aprobada |
 | Cierre | Con esto cerramos amistades y ayudas. ¿Quedó alguien que te acompañó y no tuvo su pregunta? Un vecino, alguien del trabajo, una persona que apareció una sola vez. Y si querés contar de otros amigos importantes, de quien sea, es el momento. Contalo tranquil{{o/a}}. | — | Extra | aprobada |
 
@@ -266,7 +266,7 @@ Acuse M4 después de cada una.
 | PE1 | ¿Perdiste a alguien importante en tu vida? Si querés, contame quiénes fueron, qué eran para vos y cómo lo fuiste llevando. Y si hay un momento con alguna de esas personas que te guste recordar, contámelo también. | — | Núcleo | aprobada |
 | PE5 | Si alguna vez tu salud te frenó en serio, ¿querés contármelo? Cómo fueron esos días, quién estuvo cerca, y cómo lo fuiste llevando. Y si es algo que todavía llevás, también vale. | — | Núcleo | aprobada |
 | PE6 | Hay equivocaciones que uno arrastra años. Si tenés una así, y querés contarla, decime qué pasó, quién la pagó, y en qué quedó todo después. | — | Extra | aprobada |
-| ID1 | Hay gente que durante años tuvo que guardarse una parte de lo que era, o de lo que sentía. Si a vos te pasó, y querés que quede en tu historia, contámelo como vos quieras. | — | Extra | aprobada |
+| ID1 | Mucha gente durante años tuvo que guardarse una parte de lo que era, o de lo que sentía. Si a vos te pasó, y querés que quede en tu historia, contámelo como vos quieras. | — | Extra | aprobada |
 | PE4 | ¿Hubo alguna época dura en tu vida de grande que creas que no puede quedar afuera de tu historia? ¿Algo que te marcó? Si querés, contame qué pasó y cómo lo viviste. | — | Núcleo | aprobada |
 | PE9 | SALE: se junta en PE6. | — | — | sale |
 | PE10 | SALE: se junta en HO10 (bloque 14). | — | — | sale |
@@ -282,7 +282,7 @@ Acuse M4 después de cada una.
 | HG3 | Hay cosas de todos los días que ya no se hacen como antes, hablar por teléfono, por ejemplo. Pensá en una y contame una escena: dónde estabas, qué hacías, cómo era. | — | Extra | aprobada |
 | DE1 | Cuando eras joven había cosas que no se podían hacer, o estaban mal vistas, y hoy nadie se sorprende. ¿Te pasó con alguna? Contame ese día: qué querías hacer y qué te dijeron. | — | Núcleo | aprobada |
 | N1 (bl. 12) | ¿Te acordás de cuando llegó a tu casa algo que cambió la vida de todos, como la primera tele? Contame ese día: quién lo trajo, dónde lo pusieron, quiénes vinieron a verlo. | — | Extra | aprobada |
-| N3 (bl. 12) | ¿Te acordás de alguna vez que fuiste a votar y sentiste que era importante? Contame ese día: con quién fuiste, cómo estaba la calle, qué esperabas que pasara. | — | Extra | aprobada |
+| N3 (bl. 12) | ¿Y alguna vez fuiste a votar y sentiste que era importante? Contame ese día: con quién fuiste, cómo estaba la calle, qué esperabas que pasara. | — | Extra | aprobada |
 | Cierre | Hasta acá lo del país y el mundo. Si hay algo que te marcó y no salió, mandámelo ahora, aunque sea corto, con dónde estabas cuando pasó. | — | Extra | aprobada |
 
 - HG4: se queda por la opción B que eligió Naza.
@@ -296,8 +296,8 @@ Acuse M4 después de cada una.
 | GI2 | Pensá en un día que empezó como cualquier otro y terminó cambiándote algo. Contame ese día entero: cómo arrancó la mañana, en qué momento te diste cuenta de que ya no había vuelta atrás, y cómo terminó. | — | Núcleo | aprobada |
 | HJ6 | SALE: se junta en GI2. | — | — | sale |
 | GI8 | ¿Cuál fue el golpe de suerte más grande que tuviste? Algo que no dependió de vos y te cambió las cosas. Contame cómo fue ese día: dónde estabas cuando te enteraste y qué hiciste después. | — | Extra | aprobada |
-| HJ1 | ¿Hubo algo que querías hacer con tu vida y al final no se dio? Contame el momento en que te diste cuenta de que ya no iba a pasar: dónde estabas y qué pasó ese día. | — | Núcleo | aprobada |
-| GI4 | ¿Hubo alguna vez que fuiste valiente y nadie se enteró? No hace falta que sea algo grande, a veces es decir algo que costaba decir. Contame ese momento: dónde estabas y qué hiciste. | — | Extra | aprobada |
+| HJ1 | ¿Te quedó algo que querías hacer con tu vida y al final no se dio? Contame el momento en que te diste cuenta de que ya no iba a pasar: dónde estabas y qué pasó ese día. | — | Núcleo | aprobada |
+| GI4 | ¿Te pasó de ser valiente y que nadie se enterara? No hace falta que sea algo grande, a veces es decir algo que costaba decir. Contame ese momento: dónde estabas y qué hiciste. | — | Extra | aprobada |
 | GI9 | ¿Hubo algún momento en tu vida en que te sentiste chiquit{{o/a}} frente a algo enorme? Un cielo de noche, por ejemplo. Contame ese momento: dónde estabas, con quién, qué había alrededor. | — | Núcleo | aprobada |
 | HJ5 | Ya con tu propia vida armada, ¿cómo fue volver a la casa donde te criaste? Contame la vez que más te acordás, mirando todo con ojos de visita: cómo llegaste, qué encontraste distinto y qué te pasó por dentro. | — | Extra | aprobada |
 | FI1 (soledad) | ¿Qué lugar tiene la soledad en tu vida? ¿Te hace bien tener momentos con vos mism{{o/a}}? Contame alguno que te acuerdes: dónde estabas y qué hacías. | — | Núcleo | aprobada |
@@ -318,16 +318,16 @@ Acuse M4 después de cada una.
 | HO1 | Contame un día cualquiera de los de ahora, desde que abrís los ojos hasta que apagás la luz. Qué hacés, a qué hora, con quién. Si querés, el de ayer mismo. | — | Núcleo | aprobada |
 | PA2 (momento solo) | ¿Qué hacés cuando tenés un momento sol{{o/a}}, en tu casa o donde te toque? Contame la última vez que tuviste un rato así y qué hiciste. | — | Extra | aprobada |
 | HO2 | ¿Qué cosas te hacen gracia hoy, qué te hace reír? Contame la última vez que te reíste con ganas: dónde estabas y qué había pasado. | — | Núcleo | aprobada |
-| HO2.2 | ¿Qué cosas son las que más te hacen enojar o te agotan la paciencia? Contame la última vez que te pasó: dónde estabas, qué había pasado y qué hiciste. | — | Extra | aprobada |
+| HO2.2 | ¿Y qué es lo que más te hace enojar o te agota la paciencia? Contame la última vez que te pasó: dónde estabas, qué había pasado y qué hiciste. | — | Extra | aprobada |
 | HO4 | ¿Hay algo en tu casa que no regalarías nunca, valga lo que valga? Contame de dónde vino, cómo llegó a vos, y la última vez que lo tuviste en las manos. | — | Extra | aprobada |
 | HO5 | ¿Qué es lo que más te gusta de la vida que tenés ahora? Puede ser algo enorme o algo chiquito de todos los días. Contame un momento de esta semana en que lo sentiste. | — | Núcleo | aprobada |
 | HO6 | ¿Hay algo de tu forma de ser que todos los que te conocen reconocen enseguida? Una frase que repetís, una manía, tu carácter. Contame una vez que alguien te lo marcó. | — | Extra | aprobada |
-| CO1 | ¿Hay un plato que sea tuyo, el que te piden o el que te sale siempre igual? Contame quién te lo enseñó y una vez que lo cocinaste para alguien. | — | Núcleo | aprobada |
-| FU1 | ¿Hay algo que todavía querés hacer? Contámelo como si ya estuviera pasando: dónde estás, con quién, qué ves. | — | Núcleo | aprobada |
+| CO1 | ¿Tenés un plato que sea tuyo, el que te piden o el que te sale siempre igual? Contame quién te lo enseñó y una vez que lo cocinaste para alguien. | — | Núcleo | aprobada |
+| FU1 | ¿Queda algo que todavía querés hacer? Contámelo como si ya estuviera pasando: dónde estás, con quién, qué ves. | — | Núcleo | aprobada |
 | HO9 | ¿Cómo es el lugar donde vivís hoy, la casa, el barrio? Contame cómo llegaste ahí y un momento de estos días que lo pinte. | — | Núcleo | aprobada |
-| HO10 (vicios, liviana) | ¿Hubo algo que te acompañó muchos años, el cigarrillo, el vino, el café de la mañana? Contame cómo empezó y un momento con eso. Y si en algún momento te costó dejarlo, contame eso también. | — | Extra | aprobada |
+| HO10 (vicios, liviana) | ¿Algo te acompañó muchos años, el cigarrillo, el vino, el café de la mañana? Contame cómo empezó y un momento con eso. Y si en algún momento te costó dejarlo, contame eso también. | — | Extra | aprobada |
 | G1 (música) | ¿Qué música ponés hoy cuando estás a tu aire? ¿Cuál fue la última canción que escuchaste, y qué estabas haciendo? | — | Extra | aprobada |
-| G2 (comer) | ¿Qué es lo que más te gusta comer, así, sin pensarlo mucho? Contame la última vez que lo comiste: quién lo hizo y dónde. | — | Extra | aprobada |
+| G2 (comer) | ¿Y lo que más te gusta comer, así, sin pensarlo mucho? Contame la última vez que lo comiste: quién lo hizo y dónde. | — | Extra | aprobada |
 | G3 (ver o leer) | ¿Te gusta leer, o sos más de mirar películas o series? ¿Con qué te enganchás? Contame la última vez que se te pasó la hora con algo así. | — | Extra | aprobada |
 | G4 (placer chiquito) | ¿Cuál es tu placer chiquito de todos los días? Una siesta, un chocolate, lo que sea. Contame el de hoy: a qué hora fue y cómo estuvo. | — | Extra | aprobada |
 | G5 (gusto grande) | ¿Y un gusto grande? ¿En qué te gusta darte el lujo de gastar tu plata? Contame la última vez que te diste ese gusto. | — | Extra | aprobada |
