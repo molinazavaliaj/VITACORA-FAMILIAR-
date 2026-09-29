@@ -167,7 +167,9 @@ Textos (elegida de Fable; la otra, de respaldo):
 **Pendiente para los bloques de adultez (Naza, 29/09):** los hermanos no tienen ninguna pregunta después de la infancia. Proponer una sola, de grandes, con gate HERMANOS (una ayuda, un viaje, un reencuentro), al llegar al bloque 10 o al 14. Lo que cuente de un hermano en cualquier bloque el escritor lo ubica por fecha en su etapa.
 
 **Bloque 2: cerrado (29/09).** CA15 aprobada con "y por qué".
-**CA17 (Naza, 29/09):** la infancia no tenía momento difícil para 60+ (CA17 era E-joven). Propuesta: pasa a E para todos, con texto nuevo: "¿Hubo algún momento difícil de tu infancia que quieras que esté en tu historia, algo que te marcó? Si querés, contame qué pasó y cómo lo viviste." (pendiente de OK)
+**CA17 (Naza, 29/09):** la infancia no tenía momento difícil para 60+ (CA17 era E-joven). Aprobada, E para todos: "¿Hubo algún momento difícil de tu infancia que creas que no puede quedar afuera de tu historia? ¿Algo que te marcó? Si querés, contame qué pasó y cómo lo viviste."
+
+**Regla (Naza, 29/09): se acaba "E-joven".** Las preguntas de una etapa le llegan a todos los que la vivieron, sin importar la edad de hoy. Solo se filtra por edad lo que todavía no vivió (a alguien de 40 no se le pregunta por ser abuelo). CA13, CA17, ES3, ES8, AD4, AD8, JU16 y JU17 pasan de E-joven a E. Afecta el recuento final.
 
 ## 7. Bloque 3 · La escuela y los juegos (propuesta, redactada con Fable)
 
