@@ -369,3 +369,33 @@ AM4 y AM13 aprobadas.
 - **N1 → AM17 (depende de AM0):** Contame una vez que esa persona te cuidó: una enfermedad, un mal momento, un día en que vos no podías. Qué hizo, qué te dijo, cómo te acordás de eso.
 - **N3+N4 → AM18 (a todos):** ¿Hubo algún amor que te marcó aunque no haya podido ser, o que pasó de largo? Alguien que estuvo poco en tu vida pero te dejó algo. Si te pasó, contame cómo se cruzaron y el momento que más te quedó.
 - N2 (cómo se decían): afuera.
+
+## 11. Bloque 7 · Trabajo y oficio (propuesta, redactada con Fable, a todos)
+
+Ninguna depende de otra ni de la ficha. Salen: TR1b (cuánto duró el primer trabajo), TR3b (qué fue de esa persona), OF3 (herramienta: "qué pasó con él"; entra en el cierre), CS2 (la plata que no alcanzaba: ya está en los primeros años por tu cuenta), CP2 y CP3 (se juntan en CP1). TR9 solo a mayores de 45.
+
+- **TR1:** Todos tenemos un primer trabajo, aunque haya sido una changa o ayudar en casa. ¿Cuál fue el tuyo y qué edad tenías? Contame el primer día, y qué hiciste con esa primera plata, si la hubo.
+- **TR6:** Contame por qué trabajos fuiste pasando en la vida, más o menos en qué años, y cuál de todos te quedó más grabado. Si fue uno solo casi siempre, contame cómo fue quedarte tanto tiempo ahí.
+- **OF1:** Hay un momento en que uno deja de sentirse nuev{{o/a}} y se da cuenta de que ya sabe. ¿Te pasó con tu trabajo? Contame ese día: qué estabas haciendo, quién estaba, qué sentiste.
+- **MA1:** ¿Hay algo que sepas hacer bien con las manos? Cocinar, arreglar, coser, sembrar, curar, lo que sea. Contame cómo lo hacés, y la última vez que lo hiciste: para quién fue, cómo salió.
+- **TR2:** Pensá en el trabajo que más años hiciste. ¿Cómo era un día común? A qué hora arrancabas, qué hacías primero, con quién, cómo terminaba. Y contame uno de esos días que te haya quedado.
+- **TR3:** ¿Hubo una persona en el trabajo que no te olvidás? Alguien con quien trabajabas, alguien que atendías, alguien que aprendía de vos. Contame cómo era, y una vez con esa persona que tengas bien clara.
+- **OF2:** De toda la gente para la que hiciste algo en tu trabajo, alguien que atendiste, cuidaste, le enseñaste, le cocinaste o le arreglaste algo, ¿hay una persona que te quedó? Contame esa vez.
+- **TR5:** ¿Cuál fue el día de trabajo del que estás más orgullos{{o/a}}? No hace falta que haya sido grande: algo que salió bien, que alguien reconoció, o que solo vos sabés lo que costó. Contámelo.
+- **TR4:** ¿Hubo un día, o una época, en que el trabajo se te hizo cuesta arriba? Contame cómo era levantarse entonces, qué te sostenía, y el momento en que sentiste que empezaba a pasar.
+- **OF4:** Todos metemos la pata alguna vez trabajando. ¿Cuál fue tu error más grande? Contame ese día: qué pasó, quién se enteró, qué hiciste después.
+- **OB1:** ¿Tuviste compañeros de trabajo? Si los tuviste, contame cómo era ese grupo, si se juntaban fuera del trabajo, y una vez que alguien te cubrió, o vos a alguien, cuando hacía falta.
+- **OB2:** ¿Te tocó alguna vez una huelga, un conflicto grande o una pelea con el patrón o la empresa? Si te tocó, contame ese día: de qué lado estabas, qué se sentía, cómo terminó.
+- **TR8:** ¿Tuviste alguna vez un negocio o algo propio, aunque haya sido chico? Si lo tuviste, contame cómo empezó: de dónde salió la idea, con qué plata, y un día de esos que te acuerdes.
+- **CS1:** Hay un trabajo que nadie llamaba trabajo: cocinar para todos, coser, cuidar, hacer rendir la plata. ¿Te tocó a vos? Contame un día de esos, de la mañana a la noche.
+- **CP1:** ¿Viviste o trabajaste en el campo alguna vez, aunque fuera de chic{{o/a}} o por una temporada? Si fue así, contame un día entero ahí, y una vez que el clima mandó: una seca, una helada, una tormenta.
+- **PR1:** ¿Terminaste algún estudio, un curso, un oficio, una carrera? Si fue así, contame el día que te recibiste o que terminaste: dónde estabas, si había alguien tuyo mirando, qué hiciste esa noche.
+- **TR9 (mayores de 45):** ¿Ya dejaste de trabajar? Si fue así, contame el último día: cómo fue, si lo sabías de antes, qué hiciste al salir. Y el día siguiente, el primero sin ir.
+- **Cierre:** Con esto cerramos el trabajo. ¿Quedó algo que no tuvo su pregunta? Un lugar, una herramienta, un olor, una persona, una changa de la que nadie sabe. Es el momento de contarlo, sin apuro.
+
+Lo que le falta (Fable, a decidir):
+- **N1, quedarse sin trabajo:** ¿Te quedaste alguna vez sin trabajo sin haberlo elegido? Si te pasó, contame el día que te enteraste, y cómo fue llegar a tu casa con esa noticia.
+- **N2, estar a cargo:** ¿Te tocó alguna vez estar a cargo de otros: mandar, enseñarle a los nuevos, tener gente a tu cuidado? Si te tocó, contame la primera vez que tuviste que decirle a alguien qué hacer, y cómo te salió.
+- **N3, trabajar con la familia:** ¿Trabajaste alguna vez con gente de tu familia, en un negocio, en el campo, en la casa, en lo que fuera? Si fue así, contame cómo era trabajar juntos, y un día en que eso se notó.
+- **N4, lo que compró con su trabajo:** ¿Hay algo que compraste con plata de tu trabajo y que todavía recordás? Una casa, un terreno, una heladera, un viaje, un vestido, una bicicleta. Contame el día que lo pagaste y lo llevaste a casa.
+- **N5, empezar de cero:** ¿Alguna vez cambiaste a un trabajo muy distinto, o empezaste de cero ya grande? Si fue así, contame el primer día en lo nuevo y los años que tenías.
