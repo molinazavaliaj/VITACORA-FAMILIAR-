@@ -144,3 +144,15 @@ Textos (elegida de Fable; la otra, de respaldo):
 - **OR5:** ¿Cómo se conocieron tu mamá, {{madre}}, y tu papá, {{padre}}? Seguro en casa lo contaron más de una vez: un baile, una casualidad, alguien que los presentó. Contame ese día como te lo contaron.
 - **OR6:** ¿Por qué te pusieron {{nombre}}? En las casas siempre hay una historia atrás de un nombre: una discusión, un santo, alguien a quien querían mucho. Contame la que te contaron a vos, aunque sea cortita.
 - **OR6.2:** ¿Cómo fue que te quedó {{apodo}}? Seguro hay una anécdota atrás: una travesura, una palabra mal dicha, alguien que lo dijo una vez y pegó. Contámela, que los apodos dicen mucho de una casa.
+
+### Bloque 1, versión 2 (29/09, correcciones de Naza, redactado con Fable)
+- OR1 ya no es el día del nacimiento: es la vida de la familia cuando llegó. OR2 (historia de los de antes) queda para abuelos o más atrás.
+- Apodo para todos: botón primero, pregunta si dice que sí (el gate APODO pasa de la ficha a un botón; si la ficha ya trae "cómo le dicen", no hace falta el botón).
+- OR7 vuelve: cierre del bloque 1 (Naza: "es clave y no cuesta plata").
+
+- **OR1:** Empecemos por cuando llegaste al mundo, según te contaron. No el día en sí, sino la época: dónde vivían, en qué andaban tu mamá y tu papá, cómo te esperaban. ¿Qué historia de ese tiempo se contaba en casa? Contámela.
+  - Respaldo: Arranquemos por la casa a la que llegaste. ¿Cómo andaba tu familia por entonces: dónde vivían, de qué trabajaban tus viejos, qué se decía de que venías vos? Seguro te contaron algo de esos meses, antes o después de nacer. Contame eso.
+- **Botón del apodo:** Una preguntita antes de seguir: ¿tenés o tuviste algún apodo? [Sí] [No]
+- **OR6.2 (si toca Sí):** Contame de ese apodo. ¿Quién te lo puso y por qué justo ese? Casi siempre hay una anécdota atrás: una travesura, una palabra mal dicha, algo que pasó una vez. Contame cómo nació, y si te gusta o no.
+- **OR7:** Hasta acá, la familia que había antes de vos. Seguro mientras contabas se te cruzó alguna otra historia de los de antes que no tuvo lugar en mis preguntas. Es el momento: contámela con calma, que tenemos todo el tiempo del mundo.
+  - Respaldo: Con esto cerramos lo de tu familia de antes, la de antes de que llegaras vos. Y me pregunto si se me escapó algo: una historia de tus abuelos, de tus viejos de jóvenes, de esa casa. Si hay una dando vueltas, contámela ahora.
