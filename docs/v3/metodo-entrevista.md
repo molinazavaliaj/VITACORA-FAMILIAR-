@@ -625,3 +625,21 @@ De 15 a 9 + cierre. Se juntan: GI3 en GI2 (las dos son "la decisión grande"), G
 - **GI9:** ¿Hubo algún momento en tu vida en que te sentiste chiquit{{o/a}} frente a algo enorme? Un cielo de noche, por ejemplo. Contame ese momento: dónde estabas, con quién, qué había alrededor.
 - **HJ5:** ¿Volviste alguna vez, después de muchos años, al lugar donde te criaste? Contame ese día: cómo llegaste, qué fue lo primero que viste, y qué te vino a la cabeza.
 - **Cierre (absorbe HJ8):** Última de esta tanda. De todo lo que fuiste para otros en la vida, ¿hay algo que sientas que hiciste bien? Contame una vez concreta: qué pasó, con quién.
+
+### Bloque 13, vuelta 2 (Naza, 29/09; Fable)
+Aprobadas: GI7, HJ6, GI8, GI4, GI9, HJ5.
+- **GI1 (opción B, recomendada):** ¿Hay algún día de tu vida que, si pudieras, volverías a vivir tal cual? Contámelo desde la mañana: dónde estabas, con quién, y qué fue lo que pasó.
+  - A: No hace falta que sea el más feliz de todos. Pensá en un día en que fuiste feliz de verdad, de esos que uno se acuerda enteros. Contame ese día desde que te levantaste: dónde estabas, con quién, qué pasó.
+  - C: ¿Tuviste algún día en que todo te salió bien de punta a punta? Contame uno, el que te venga primero: cómo arrancó, dónde estabas, y qué hizo que fuera tan lindo.
+- **GI2:** ¿Hubo un día en que hiciste algo sin vuelta atrás, como subirte a un tren sabiendo que no volvías? Contame esa mañana: cómo te despertaste, qué tenías en la cabeza. Si ya me lo contaste, recordámelo en dos palabras y esta vez contame qué te pasaba por dentro.
+- **HJ1:** ¿Hubo algo que querías hacer con tu vida y al final no se dio? Contame el momento en que te diste cuenta de que ya no iba a pasar: dónde estabas y qué pasó ese día.
+- **Cierre (B, recomendado):** Última de esta tanda. Pensá en una vez que alguien te necesitó y vos estuviste. Contame esa vez: quién era, qué pasaba, y qué hiciste.
+  - A: Última de esta tanda. Contame una vez que hiciste algo bueno por alguien, algo de lo que hoy estás content{{o/a}}. Qué pasó, quién era, dónde estabas.
+
+Más del estilo de GI9 (Fable, a decidir):
+- **FI1, la soledad buena:** ¿Hubo alguna vez que estuviste sol{{o/a}} y estuvo bien, con la sensación de que no faltaba nada? Contame ese momento: dónde estabas, qué hora era, qué había a tu alrededor.
+- **FI2, el tiempo que pasó de golpe:** ¿Hubo un momento en que te diste cuenta, de golpe, de que el tiempo había pasado? Algo chiquito, alguien que te trató de usted, por ejemplo. Contame dónde estabas y qué pasó.
+- **FI3, lo que se trajo de la casa:** ¿Alguna vez te descubriste haciendo algo igual a como se hacía en tu casa cuando eras chic{{o/a}}, una frase, por ejemplo? Contame esa vez: qué era, dónde estabas, qué pensaste.
+- **FI4, cómo lo ven los otros:** ¿Hubo alguna vez que alguien te dijo algo de vos que no sabías, y te quedó para siempre? Contame ese momento: quién era, dónde estaban, qué te dijo.
+- **FI5, el desconocido:** ¿Alguna vez alguien que viste una sola vez en la vida te dejó algo, una frase, por ejemplo? Contame ese encuentro: dónde fue, cómo era esa persona, qué pasó.
+- Reserva: ¿Hubo un momento en que sentiste que estabas justo donde tenías que estar? Puede ser una tarde cualquiera. Contame dónde era, qué hacías, quién andaba cerca.
