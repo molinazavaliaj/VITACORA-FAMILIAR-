@@ -519,3 +519,5 @@ Aprobadas: LU3, LU5, PA2, LU8. HE1 (casa propia): se pisa con JU12 (primer lugar
 - **PA1:** Fuera del trabajo y de la familia, ¿hubo algo que te apasionara de grande? Contame cómo empezó eso, y un día entero que le hayas dedicado, de la mañana a la noche. Si sentís que ya me lo contaste, decímelo.
 - **LU6:** ¿Cuál es tu barrio preferido, o el lugar donde te sentís más cómod{{o/a}}? Si pudieras estar ahí ahora mismo, contame cómo sería ese momento: qué ves, quién está, qué hacés.
 - **LU7 (sin suponer hijos):** De grande, ¿hubo un lugar adonde ibas de vacaciones una y otra vez? Contame cómo era eso, cómo llegaban, y un día de esas vacaciones que te haya quedado.
+
+**Bloque 9: cerrado (29/09).** LU1, LU4, PA1, LU6, LU7 aprobadas; HE1 afuera. Se suman LU6, LU7, PA2, LU8.
