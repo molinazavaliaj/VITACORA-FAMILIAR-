@@ -363,3 +363,9 @@ AM4 y AM13 aprobadas.
 - **AM15:** ¿Quiénes son hoy las personas con las que compartís la vida: un hermano, una amiga, un vecino, quien sea? Pensá en una y contame un día de ustedes que te haya quedado.
 
 **Bloque 6, vuelta 5 (Naza, 29/09):** AM5 y AM15 aprobadas. AM7 pasa después de AM9 y el código elige "repite" (si AM9 fue "no") o "repetía". Pendiente de OK (propuesta: sí): segunda pareja, N1 y N3; N2 y N4 opcionales.
+
+**Bloque 6: cerrado (29/09).** Aprobadas también:
+- **AM16 (segunda pareja; solo si AM9 contó un final):** Si después de esa historia hubo otro amor con quien armaste tu vida, contame el día que se conocieron y un momento de los dos que te haya quedado.
+- **N1 → AM17 (depende de AM0):** Contame una vez que esa persona te cuidó: una enfermedad, un mal momento, un día en que vos no podías. Qué hizo, qué te dijo, cómo te acordás de eso.
+- **N3+N4 → AM18 (a todos):** ¿Hubo algún amor que te marcó aunque no haya podido ser, o que pasó de largo? Alguien que estuvo poco en tu vida pero te dejó algo. Si te pasó, contame cómo se cruzaron y el momento que más te quedó.
+- N2 (cómo se decían): afuera.
