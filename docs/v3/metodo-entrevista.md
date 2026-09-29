@@ -521,3 +521,23 @@ Aprobadas: LU3, LU5, PA2, LU8. HE1 (casa propia): se pisa con JU12 (primer lugar
 - **LU7 (sin suponer hijos):** De grande, ¿hubo un lugar adonde ibas de vacaciones una y otra vez? Contame cómo era eso, cómo llegaban, y un día de esas vacaciones que te haya quedado.
 
 **Bloque 9: cerrado (29/09).** LU1, LU4, PA1, LU6, LU7 aprobadas; HE1 afuera. Se suman LU6, LU7, PA2, LU8.
+
+## 14. Bloque 10 · Amistades y ayudas (propuesta, redactada con Fable, a todos)
+
+AS1b depende de AS1. Salen: AS4b (qué sabés hoy de esa persona), RE2 (comunidad religiosa: entra en AS5).
+
+- **AS1:** ¿Tenés un amigo o una amiga de toda la vida, o alguien que se volvió importante ya de grande? Contame cómo se conocieron, y una vez que muestre bien cómo es esa amistad.
+- **AS1b:** Volviendo a esa amistad: contame algo que hicieron juntos hace poco. Aunque sea una charla por teléfono.
+- **AY1:** ¿Hubo una vez en que necesitabas ayuda de verdad y alguien te la dio, sea quien sea? Contame qué hizo esa persona ese día, y si después se lo pudiste devolver.
+- **AS4:** A veces una amistad se enfría sin que nadie lo decida. ¿Te pasó con alguna? Contame cómo era esa amistad y qué fue pasando, hasta donde tengas ganas.
+- **AS5:** De grande, ¿te metiste en algún grupo con una causa, como una cooperadora? Contame cómo llegaste ahí, y una vez que pelearon juntos por algo.
+- **RE1:** ¿Hubo una vez en que nada te ayudaba y te sostuvo algo en lo que creías? La fe, o lo que sea para vos. Contame ese momento y cómo te agarraste de eso.
+- **HE2 (hermanos de grandes):** Los hermanos, ya de grandes: ¿hubo una vez, de adultos, en que estuviste bien cerca de alguno? Un viaje, por ejemplo. Contame ese momento. Si no tuviste hermanos, decime y seguimos.
+- **AS9 (idea de Naza, la cena):** Imaginate que armás una cena y podés invitar a tu gente más cercana. ¿Quiénes se sientan en esa mesa? Contame quién va, y por qué cada uno se ganó su lugar.
+- **Cierre:** Con esto cerramos amistades y ayudas. ¿Quedó alguien que te acompañó y no tuvo su pregunta? Un vecino, alguien del trabajo, una persona que apareció una sola vez. Contalo ahora, tranquil{{o/a}}.
+
+Lo que le falta (Fable, a decidir):
+- **AY2, la mano que dio:** ¿Hubo una vez en que fuiste vos quien le dio una mano a alguien que la necesitaba? Contame qué pasó y qué hiciste ese día.
+- **AS6, el vecino:** ¿Hubo un vecino o una vecina que terminó siendo alguien importante para vos? Contame cómo se fue dando eso, y una vez que lo muestre.
+- **AS7, a quién le cuenta hoy:** Hoy, cuando te pasa algo importante, ¿a quién se lo contás primero? Contame una vez que le hayas contado algo así.
+- **AS8, un amigo que ya no está (delicada):** Si hay alguna amistad que ya no está, y querés, contame de esa persona: cómo era, y una vez juntos que te guste recordar.
