@@ -447,3 +447,9 @@ Aprobadas: TR1, TR6, OF1, TR2, TR4, TR8, CS1, TR9. Propuestas (la primera es la 
 - **OF2:** ¿Hay alguien a quien atendiste, cuidaste o le enseñaste algo, y que no te olvidás? Contame cómo era, y esa vez que te quedó grabada.
 - **OB1:** ¿Tuviste compañeros? Si los tuviste, contame cómo eran, y una vez que uno te cubrió, o vos a él, cuando hacía falta.
 - **OB2:** ¿Tuviste alguna vez un choque fuerte en tu oficio, con un patrón, un socio, un compañero, o te tocó una huelga? Si te pasó, contame ese día: de qué lado estabas, cómo terminó.
+
+### Bloque 7, vuelta 5 (Naza, 29/09)
+Aprobadas: TR3, OF2, OB1. Bienvenida B con nombre y algo que motive:
+- **Bienvenida:** Hola, {{nombre}}. Juntos vamos a escribir la historia de tu vida, y quiero que sea bien tuya. Te cuento cómo es esto, así vamos tranquilos: yo te pregunto cosas de tu vida, una por vez, y vos me las contás como se las contarías a alguien en la mesa. Si alguna pregunta no tiene que ver con lo que viviste, no pasa nada: me decís que no, o me contás lo que en realidad te tocó a vos, que eso es lo que quiero saber.
+- **OB2:** ¿Tuviste alguna vez un choque fuerte en tu oficio, o alguien que te decepcionó: un patrón, un socio, un compañero? ¿O te tocó una huelga? Si te pasó, contame ese día: qué pasó, de qué lado estabas, cómo terminó.
+- **N1 (se suma, la época mala):** ¿Te quedaste alguna vez sin trabajo sin haberlo elegido? Si te pasó, contame el día que te enteraste, y cómo fue llegar a tu casa con esa noticia.
