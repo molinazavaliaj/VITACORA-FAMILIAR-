@@ -572,3 +572,8 @@ PE8 afuera. PE1 y PE3 se juntan en una sola pregunta de pérdidas (idea de Naza)
 - **PE1:** ¿Perdiste a alguien importante en tu vida? Si querés, contame quiénes fueron, qué eran para vos y cómo lo fuiste llevando. Y si hay un momento con alguna de esas personas que te guste recordar, contámelo también.
 - **PE4 (nueva forma, la época dura de grande):** ¿Hubo alguna época dura en tu vida de grande que creas que no puede quedar afuera de tu historia? ¿Algo que te marcó? Si querés, contame qué pasó y cómo lo viviste.
 Quedan: aviso, PE1, PE5, PE6, ID1, PE4, cierre.
+
+### Bloque 11, vuelta 3 (Naza, 29/09)
+Aprobadas: PE1 (pérdidas), PE4 (época dura), PE5, PE6, ID1, cierre.
+- **Aviso (sin "van para todos"):** Ahora vienen unas preguntas sobre momentos difíciles. Si alguna no tiene que ver con tu vida o no querés entrar, con un *paso* alcanza y seguimos. Vos manejás.
+- **PE9 (nueva, idea de Naza):** ¿Hubo alguna equivocación que pagaste caro en tu propia vida? Si querés, contame qué pasó y cómo siguió todo después. (Ojo: se parece a GI5, "algo de lo que te arrepentís", bloque 13.)
