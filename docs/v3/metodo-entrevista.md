@@ -313,3 +313,31 @@ Nota: si el flechazo es su pareja de después, el escritor lo junta con el bloqu
 
 **Bloque 5, vuelta 5 (Naza, 29/09):** JU18 y JU19 aprobadas. JU12 vuelve sin el agregado de mudanzas. JU4 reescrita (arriba). Nueva, a aprobar:
 - **JU20 (nueva, reemplaza a LU2 del bloque 9):** ¿Te mudaste muchas veces en tu vida? Contame por qué casas o lugares fuiste pasando, más o menos en qué años, y cuál de esas mudanzas te quedó más grabada.
+
+**Bloque 5: cerrado (29/09).** JU4 y JU20 aprobadas.
+
+## 10. Bloque 6 · Amor y pareja (propuesta, redactada con Fable, con la regla de "a todos")
+
+AM0 abre el tema; AM1 a AM13 y AM9 dependen de AM0 (si la respuesta es un "no" corto, no se mandan y va AM15). AM14, N3, N4 y el cierre van a todos. Sin nombres (no se piden; salen en la historia). Salen: AM9b, AM10, AM12 (se juntan en AM9), AM14b, PI1, PI2 (dependían de la ficha).
+
+- **AM0:** Ahora vamos al amor. ¿Hubo alguien con quien armaste, o armás, tu vida: un marido, una mujer, un compañero, una compañera? Si fueron varias personas, empezá por la que quieras. Y si no hubo, decímelo nomás, que también vale.
+- **AM1:** Contame el día que se conocieron. ¿Dónde fue, quién los presentó o cómo se cruzaron? ¿Y qué fue lo primero que te llamó la atención de esa persona?
+- **AM2:** ¿Cómo fue el noviazgo, o esos primeros tiempos? Pensá en un momento: una cita, un paseo, una tarde que todavía tenés fresca. Contámela como si la vieras de vuelta. Si se te vienen más, contalas también.
+- **AM3:** ¿Cómo decidieron armar la vida juntos: casarse, irse a vivir, lo que haya sido? ¿Quién lo dijo primero, o se fue dando solo? Contame ese momento: dónde estaban, qué se dijeron.
+- **AM4:** El día que empezaron a vivir juntos, si lo hubo, sea el casamiento o la mudanza: ¿qué momento de ese día se te quedó grabado? Contame ese momento nomás, con todo lo que tenga.
+- **AM5:** La primera casa de los dos, si la hubo, aunque fuera una pieza en lo de alguien: ¿cómo la consiguieron, cómo era? Y contame la primera noche ahí: qué había, qué faltaba, qué hicieron.
+- **CS3:** ¿Cómo fue el primer día que fuiste a la casa de la familia de tu pareja? Contame quién te abrió la puerta, cómo te recibieron, y qué pensaste cuando te fuiste.
+- **AM7:** Contame algo muy de esa persona: una frase que repite o repetía, una costumbre, una manía. Y una vez puntual en que salió eso, para que quien lea la tenga enfrente.
+- **AM6:** ¿Hubo una época difícil entre ustedes? Si la hubo, contame qué pasaba y cómo la fueron llevando: qué hizo cada uno, si hubo un día que lo cambió. Si preferís no entrar, también está bien.
+- **AM8:** Si tuvieras que guardar un solo momento con esa persona, ¿cuál sería? Contámelo entero: el lugar, el día, qué hacían. Si se te vienen otros, contalos también.
+- **AM13:** ¿Cómo es un día de ustedes dos hoy? Si siguen compartiendo la vida, contame uno cualquiera: el desayuno, las charlas, lo que hacen a la tarde. Si hoy es distinto, contame cómo es hoy para vos.
+- **AM9 (sensible):** Si esa historia tuvo un final, una separación o una despedida, ¿querés contármelo? Solo lo que vos quieras. Y si no querés, con decir "paso" alcanza; lo demás de tu historia sigue igual.
+- **AM14 (a todos):** ¿Hubo otro amor importante en tu vida, antes, después o entre medio? Alguien que contó de verdad. Si lo hubo, contame quién era y una vez que te acordás con esa persona. Si no, seguimos.
+- **AM15 (solo si AM0 fue "no"):** Contame quiénes son las personas con las que más compartiste la vida: un hermano, una amiga, un vecino, quien sea. Pensá en una y contame un día de ustedes dos que te haya quedado.
+- **Cierre:** Con esto cerramos el amor. ¿Quedó alguien o algo de este tema que no tuvo su pregunta? Una persona, una carta, un baile, una charla que no entró en ningún lado. Es el momento de contarlo, sin apuro.
+
+Lo que le falta (Fable, a decidir):
+- **N1 (depende de AM0):** Contame una vez que esa persona te cuidó: una enfermedad, un mal momento, un día en que vos no podías. Qué hizo, qué te dijo, cómo te acordás de eso.
+- **N2 (depende de AM0):** ¿Cómo se decían entre ustedes? Un apodo, una forma de hablarse, una broma que era solo de los dos. Contame de dónde salió, o una vez que lo usaron.
+- **N3 (a todos):** ¿Hubo un amor que no pudo ser? Alguien que quisiste y no se dio, por lo que fuera. Si te pasó, contame quién era y el momento en que supiste que no iba a ser.
+- **N4 (a todos):** ¿Guardás algo de un amor tuyo: una carta, una foto, un regalo, una canción que no podés escuchar sin pensar en alguien? Contame qué es, y la última vez que lo tuviste enfrente.
