@@ -97,7 +97,7 @@ Voz del biógrafo (propuesta, sale de la corrección de Naza):
 - **CA3:** ¿Y tu papá? ¿A qué se dedicaba cuando eras chic{{o/a}}? Contame alguna vez que lo acompañaste o lo viste trabajando.
 - **CA4 (aprobada):** Contame el día que alguien de tu casa te enseñó a hacer algo por primera vez: andar en bicicleta, nadar, silbar. Cómo fue ese día.
 - **CA5 (aprobada):** Contame la vez que más te retaron o te castigaron de chic{{o/a}}: qué habías hecho, quién te retó y cómo terminó.
-- **CA6:** «pl: ¿Con cuál de tus hermanos eras más cercan{{o/a}} de chic{{o/a}}? Contame alguna aventura que hayan hecho juntos; seguro tienen varias. ‖ sg: ¿Cómo te llevabas con {{hermanos}} de chic{{o/a}}? Contame alguna aventura que hayan hecho juntos; seguro tienen varias.»
+- **CA6 (a todos, regla nueva):** ¿Tuviste hermanos? Si tuviste, ¿con cuál eras más cercan{{o/a}} de chic{{o/a}}? Contame alguna aventura que hayan hecho juntos; seguro tienen varias. (Si la respuesta es "no", no va CA7.)
 - **CA8 (aprobada; le llega a todos, sin gate de hijo único: Naza, 29/09):** De chic{{o/a}}, ¿a qué jugabas en casa? Uno se arma un mundo con cualquier cosa: una sábana, un patio, un perro. ¿Te acordás de un día que te quedaste jugando hasta que te llamaron a comer? Contámelo.
 - **CA9:** ¿Había alguien más que viviera con ustedes o que estuviera siempre en tu casa, como un abuelo, una tía o alguien que ayudaba? Si había alguien, contame alguna vez con esa persona que se te quedó grabada.
 - **CA10:** Pensá en las fiestas y comidas en familia de cuando eras chic{{o/a}}: una Navidad, un cumpleaños, un domingo. ¿Cómo eran en tu casa? Y si hubo una que recuerdes distinta a las demás, contámela.
@@ -196,7 +196,7 @@ Textos (elegida de Fable; la otra, de respaldo):
 - **ES6:** ¿Cuál fue la travesura más grande que hiciste de chic{{o/a}}, en la escuela o en el barrio? Esa que todavía te da risa, o un poco de vergüenza. Contame cómo fue y si te agarraron. Y si se te vienen más, contalas también.
 - **ES7:** ¿Qué querías ser cuando fueras grande? ¿De dónde te vino esa idea: alguien que veías, algo que pasó? Si te acordás del momento en que lo decidiste, o de quién te lo metió en la cabeza, contámelo.
 - **ES8:** ¿Cómo eran tus veranos de chic{{o/a}}? El calor, los días largos, lo que se hacía en tu casa en esos meses. Contame.
-- **ES9:** ¿Cómo se vivía la religión en tu casa cuando eras chic{{o/a}}? ¿Hubo una ceremonia o una fiesta que te tocó de cerca? Contame ese día: dónde fue, con quién estabas.
+- **ES9 (a todos, regla nueva):** ¿La religión estaba presente en tu casa cuando eras chic{{o/a}}? Si fue así, ¿hubo una ceremonia o una fiesta que te tocó de cerca? Contame ese día: dónde fue, con quién estabas.
 - **ES10:** De chic{{o/a}}, ¿qué se escuchaba en tu casa: radio, discos, alguien que cantaba mientras cocinaba? Seguro hay una canción que, apenas la oís, te devuelve ahí. ¿Cuál es, y adónde te lleva?
 - **Cierre:** Con esto cerramos tus años de escuela. Antes de seguir, ¿te quedó alguna historia de esa época dando vueltas, algo que no entró en ninguna pregunta? Contámela ahora, con calma, que la quiero escuchar.
 
@@ -290,8 +290,8 @@ Lo que le falta a la etapa (propuestas de Fable, a decidir):
 
 - **JU2 (a todos):** ¿Qué hiciste después del colegio? Si seguiste estudiando, contame qué y cómo eran esos años; si la vida te llevó para otro lado, contame en qué andabas. Y un día de esa época que te haya quedado.
 - **JU2b (a todos):** ¿Hubo algo que empezaste a estudiar y dejaste? Si te pasó, contame cómo fue ese momento: qué pasaba en tu vida, si lo hablaste con alguien.
-- **JU4 (a todos):** ¿Cómo aprendiste tu oficio, lo que sabés hacer de trabajo? En un aula, al lado de alguien, a los golpes. Contame quién te enseñó y un día de cuando recién empezabas.
-- **JU5 (a todos):** ¿Tuviste alguna experiencia con lo militar: la colimba, la mili, un colegio militar? Si la tuviste, contame cómo era un día ahí y alguna vez que todavía te acordás.
+- **JU4 (a todos):** ¿Cómo aprendiste tu oficio, lo que sabés hacer de trabajo? En un aula, al lado de alguien, a los golpes. Contame quién te enseñó, o quién te inspiró a hacer lo que te gusta, y un día de cuando recién empezabas.
+- **JU5 (a todos):** ¿Tuviste alguna experiencia con lo militar: la colimba, la mili, un colegio militar? ¿O alguna época de disciplina dura, en tu casa, en un colegio, en un trabajo? Contame cómo era y alguna vez que todavía te acordás.
 - **JU6:** afuera (ya está en JU5).
 - **JU8 (a todos, abre el tema):** ¿Alguna vez te fuiste a vivir a otra ciudad o a otro país? Si te pasó, contame cómo lo decidiste: qué te empujó y a quién se lo dijiste primero.
 - **JU10 (si JU8 no fue "no"):** Cuando llegaste a vivir a ese lugar nuevo, ¿hubo alguien que te dio una mano? Alguien que te abrió la puerta, te explicó cómo eran las cosas. Contame una vez que te ayudó.
@@ -300,3 +300,7 @@ Lo que le falta a la etapa (propuestas de Fable, a decidir):
 - **JU9 (pasa a viajes de joven, a todos):** De joven, ¿qué lugares recorriste? Vacaciones, viajes, escapadas. Contame un viaje de esos años que se te haya quedado.
 - **N1 (aprobada):** Ya viviendo tu vida, ¿cómo era volver a la casa de tus viejos? Contame la primera vez que fuiste de visita, de afuera: cómo te recibieron, qué notaste distinto, cómo te fuiste esa vez.
 - **N3 (a todos):** ¿Cómo fueron tus primeros años por tu cuenta? ¿Cómo te arreglabas, qué hacías para salir adelante? Contame algún momento de esa época que te acuerdes.
+
+**Bloque 5, vuelta 3 (Naza, 29/09):** aprobadas JU2, JU2b, JU8, JU10, JU11, JU9 (viajes), N1, N3. JU4 suma "quién te inspiró"; JU5 suma la disciplina dura para quien no pasó por lo militar. CA6 y ES9 pasan a la regla nueva.
+
+**Cómo se decide "no" en las que siguen un tema (propuesta, código, sin modelo):** se saltean las siguientes solo si la transcripción de la respuesta que abre el tema es corta (menos de ~15 palabras) y empieza con "no", "nunca" o "jamás". Una respuesta larga que empieza "No sabés lo que fue…" no cuenta como no. Si igual se cuela una de más, está escrita con "si te pasó" y tiene el "paso".
