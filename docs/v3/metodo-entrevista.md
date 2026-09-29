@@ -882,3 +882,8 @@ Textos de las fusiones (Fable, a aprobar; la primera es la elegida):
 - **PE6 (con PE9):** Hay equivocaciones que uno arrastra años. Si tenés una así, y querés contarla, decime qué pasó, quién la pagó, y en qué quedó todo después.
 - **JU4:** ¿Cómo aprendiste a hacer eso que es tuyo, lo que más te ocupa o más te gusta, sea tu trabajo o algo que hacés por gusto? Contame cómo fue arrancar: un día de cuando recién empezabas.
 - **Padres de grande (nueva, propuesta):** Contame de tus viejos cuando vos ya eras grande, con tu propia vida. Una vez que los notaste más viejos, un gesto, algo chiquito, y qué te pasó a vos. Si no los tuviste cerca, contame cómo fue eso.
+
+### Últimas decisiones (Naza, 30/09)
+Aprobadas todas las fusiones y la de los padres de grande. "El amor que te marcó" (AM14) entra al núcleo. Grupo B: queda lo que había decidido Naza. JU15 (amigos de la juventud) queda en el núcleo; CA10 pasa a Extra. Aperturas: sí, solo el comienzo de las preguntas, sin tocar lo aprobado.
+- **AD10:** En esos años, ¿había alguien mayor que te entendía y a quien escuchabas de verdad, un tío, la mamá de un amigo, el amigo de un hermano? Contame cómo era con vos y una vez que estuvo de tu lado cuando lo necesitabas.
+- **HO10 (con PE10, bloque 14):** ¿Hubo algo que te acompañó muchos años, el cigarrillo, el vino, el café de la mañana? Contame cómo empezó y un momento con eso. Y si en algún momento te costó dejarlo, contame eso también.
