@@ -1,0 +1,231 @@
+import { describe, it, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { parsearEntrevistaMd, parsearDepende } from '../src/v3/entrevista/banco-md.js';
+import { BANCO, MENSAJES, preguntaPorId } from '../src/v3/entrevista/banco.js';
+import { idsEnVariantes } from '../src/v3/entrevista/texto.js';
+import { BANCO as BANCO_VIEJO } from '../src/v3/banco.js';
+import bancoJson from '../src/v3/entrevista/banco.json' with { type: 'json' };
+
+const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
+const MD = readFileSync(path.join(RAIZ, 'docs', 'v3', 'entrevista', 'banco.md'), 'utf8');
+const BORRADOR = readFileSync(path.join(RAIZ, 'docs', 'v3', 'banco-final-borrador.md'), 'utf8');
+
+const celdas = (linea: string) =>
+  linea.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map((c) => c.trim());
+
+/** Espacios colapsados y la variante «sino:X: a ‖ b» vuelta a "a o b" (así estaba en el borrador). */
+const normalizar = (t: string) =>
+  t.replace(/«sino:[^:]+: (.*?) ‖ (.*?)»/g, '$1 o $2').replace(/\s+/g, ' ').trim();
+
+type FilaBorrador = { clave: string; bloque: number; texto: string; sale: boolean };
+
+/** Las filas de los bloques del borrador; la clave de los cierres lleva el bloque ("Cierre (bloque 3)"). */
+function filasBorrador(): FilaBorrador[] {
+  const filas: FilaBorrador[] = [];
+  let bloque = 0;
+  for (const linea of BORRADOR.split(/\r?\n/)) {
+    const b = /^## Bloque (\d+)/.exec(linea);
+    if (b) bloque = Number(b[1]);
+    else if (/^## /.test(linea)) bloque = 0;
+    if (!bloque || !linea.startsWith('|') || /^\|\s*(ID \||---)/.test(linea)) continue;
+    const [id, texto, , , estado] = celdas(linea);
+    filas.push({ clave: id === 'Cierre' ? `Cierre (bloque ${bloque})` : id, bloque, texto, sale: estado === 'sale' });
+  }
+  return filas;
+}
+
+/** La tabla "Equivalencias de IDs" del banco nuevo: ID del borrador → ID nuevo. */
+function equivalencias(): Map<string, string> {
+  const desde = MD.indexOf('## Equivalencias de IDs');
+  const m = new Map<string, string>();
+  for (const linea of MD.slice(desde).split(/\r?\n/)) {
+    if (!linea.startsWith('|') || /^\|\s*(ID del|---)/.test(linea)) continue;
+    const [de, a] = celdas(linea);
+    m.set(de, a);
+  }
+  return m;
+}
+
+// IDs que ya existían en el banco viejo (docs/v3/banco-v3.md) y siguen con el
+// mismo tema (se reescribió el texto, no el sentido). Sale de comparar los dos
+// bancos pregunta por pregunta el 30/09.
+const MISMO_SENTIDO = [
+  'OR1', 'OR2', 'OR5', 'OR6', 'OR6.2', 'CA1', 'CA2', 'CA3', 'CA4', 'CA5', 'CA6', 'CA7', 'CA8', 'CA9', 'CA10', 'CA12', 'CA13',
+  'CA14', 'CA15', 'CA16', 'CA17', 'ES1', 'ES2', 'ES3', 'ES5', 'ES6', 'ES7', 'ES8', 'ES9', 'ES10', 'AD2', 'AD1', 'AD2b', 'AD3',
+  'AD5', 'AD6', 'AD8', 'AD9', 'AD10', 'AD11', 'JU1', 'JU2', 'JU2b', 'JU4', 'JU5', 'JU8', 'JU10', 'JU11', 'JU12', 'JU13', 'JU15',
+  'JU16', 'JU17', 'AM1', 'AM2', 'AM3', 'AM4', 'AM5', 'AM6', 'AM8', 'AM9', 'AM7', 'AM14', 'AM15', 'TR1', 'TR6', 'OF1', 'MA1',
+  'TR2', 'TR3', 'OF2', 'TR5', 'TR4', 'OF4', 'OB1', 'OB2', 'TR8', 'CS1', 'CP1', 'PR1', 'TR9', 'HI1', 'HI2', 'HI3', 'HI4', 'HI5',
+  'HI6', 'HI7', 'HI10', 'HI8', 'HI9', 'NC1', 'LU3', 'LU4', 'PA1', 'LU5', 'AS1', 'AS1b', 'AY1', 'AS4', 'AS5', 'RE1', 'PE1',
+  'PE5', 'PE6', 'ID1', 'PE4', 'HG1', 'HG2', 'HG4', 'HG3', 'DE1', 'GI1', 'GI2', 'GI8', 'HJ1', 'GI4', 'GI9', 'HJ5', 'HO1', 'PA2',
+  'HO2', 'HO2.2', 'HO4', 'HO5', 'HO6', 'CO1', 'FU1', 'HO9', 'LE1', 'LE2', 'LE6', 'LE7', 'LE8', 'LE9',
+];
+// Existían en el banco viejo con OTRA pregunta; el borrador les mantuvo el ID.
+// Anotado en "Dudas" de banco.md (AM16 y LU6 ya estaban en banco-descartadas.md).
+const OTRO_SENTIDO = ['AM13', 'AM16', 'LU6', 'AD12', 'JU9'];
+
+describe('entrevista: el banco (md ↔ json)', () => {
+  const parseado = parsearEntrevistaMd(MD);
+
+  it('el json está al día con el md (si falla: npx tsx scripts/v3-entrevista-json.ts)', () => {
+    expect(bancoJson).toEqual(parseado);
+  });
+
+  it('tiene 198 filas en 15 bloques, 22 mensajes, y las clases esperadas', () => {
+    expect(BANCO).toHaveLength(198);
+    expect(new Set(BANCO.map((p) => p.bloque))).toEqual(new Set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]));
+    expect(MENSAJES).toHaveLength(22);
+    const clase = (c: string) => BANCO.filter((p) => p.clase === c).map((p) => p.id);
+    expect(clase('cierre')).toEqual(['CI1', 'CI2', 'CI3', 'CI4', 'CI5', 'CI6', 'CI7', 'CI8', 'CI9', 'CI10', 'CI11', 'CI12', 'CI13', 'CI14']);
+    expect(clase('aviso')).toEqual(['AV11']);
+    expect(clase('foto')).toEqual(['FO1']);
+    expect(clase('final')).toEqual(['FIN']);
+    expect(BANCO.map((p) => p.orden)).toEqual(BANCO.map((_, i) => i + 1));
+  });
+
+  it('los mensajes: arranque, M3.1-M3.8, M4.1-M4.4 y los fijos', () => {
+    expect(MENSAJES.map((m) => m.id)).toEqual([
+      'BIEN', 'M6', 'M1', 'M3.1', 'M3.2', 'M3.3', 'M3.4', 'M3.5', 'M3.6', 'M3.7', 'M3.8',
+      'M4.1', 'M4.2', 'M4.3', 'M4.4', 'M8', 'M9', 'M10', 'M15', 'M21', 'M22', 'M23',
+    ]);
+  });
+
+  it('el orden de los bloques 4, 6 y 8 es el de la última vuelta', () => {
+    const ids = (b: number) => BANCO.filter((p) => p.bloque === b).map((p) => p.id);
+    expect(ids(4).slice(0, 2)).toEqual(['AD2', 'AD1']);
+    expect(ids(6)).toEqual([
+      'AM0', 'AM1', 'AM2', 'AM3', 'AM4', 'AM5', 'AM6', 'AM8', 'AM9', 'AM7', 'AM19', 'AM16', 'AM13', 'AM17', 'AM14', 'AM15', 'CI6',
+    ]);
+    const b8 = ids(8);
+    expect(b8.slice(0, 2)).toEqual(['PG1', 'HI0']);
+    expect(b8.indexOf('HS1')).toBeGreaterThan(b8.indexOf('HI3'));
+    expect(b8.indexOf('HS1')).toBeLessThan(b8.indexOf('HI6'));
+  });
+
+  it('sensibles: todo el bloque 11 y AM9, nada más', () => {
+    const sensibles = BANCO.filter((p) => p.sensible).map((p) => p.id);
+    expect(sensibles).toEqual(['AM9', ...BANCO.filter((p) => p.bloque === 11).map((p) => p.id)]);
+  });
+
+  it('parsea "Depende de" con si:, sino: y " o "', () => {
+    expect(parsearDepende('')).toEqual([]);
+    expect(parsearDepende('si:AM0')).toEqual([{ tipo: 'si', de: 'AM0' }]);
+    expect(parsearDepende('sino:AM9 o si:AM16')).toEqual([
+      { tipo: 'sino', de: 'AM9' },
+      { tipo: 'si', de: 'AM16' },
+    ]);
+    expect(() => parsearDepende('AM0 (si no fue "no")')).toThrow();
+    expect(preguntaPorId('AM13')?.depende).toEqual([
+      { tipo: 'sino', de: 'AM9' },
+      { tipo: 'si', de: 'AM16' },
+    ]);
+  });
+});
+
+describe('entrevista: el banco contra el borrador aprobado', () => {
+  const borrador = filasBorrador();
+  const equiv = equivalencias();
+  const idNuevo = (clave: string) => equiv.get(clave) ?? clave;
+
+  it('toda fila viva del borrador está, con el mismo texto', () => {
+    const vivas = borrador.filter((f) => !f.sale);
+    expect(vivas).toHaveLength(BANCO.length);
+    for (const f of vivas) {
+      const p = preguntaPorId(idNuevo(f.clave));
+      expect(p, `${f.clave} → ${idNuevo(f.clave)}`).toBeDefined();
+      expect(p!.bloque, f.clave).toBe(f.bloque);
+      expect(normalizar(p!.texto), f.clave).toBe(normalizar(f.texto));
+    }
+  });
+
+  it('ninguna fila "sale" está en el banco', () => {
+    const salen = borrador.filter((f) => f.sale);
+    expect(salen.map((f) => f.clave)).toEqual(['AD14', 'N1 (bl. 5)', 'CS3', 'AM18', 'LU1', 'PE9', 'PE10', 'HJ6']);
+    for (const f of salen) expect(preguntaPorId(idNuevo(f.clave)), f.clave).toBeUndefined();
+  });
+
+  it('los mensajes son los del borrador (M3 y M4 partidos en sus acuses)', () => {
+    const texto = (id: string) => MENSAJES.find((m) => m.id === id)!.texto;
+    expect(texto('M3.1')).toBe('Gracias, {{nombre}}. Ya lo guardé.');
+    expect(texto('M4.4')).toBe('Gracias por animarte a contarlo. Cuando quieras, seguimos.');
+    expect(texto('M1')).toBe('_Si no va con vos, decí paso y vamos a otra._');
+    for (const m of MENSAJES.filter((m) => !/^M[34]\./.test(m.id))) {
+      const clave = m.id === 'BIEN' ? '| Bienvenida |' : m.id === 'M6' ? '| M6 (después de la bienvenida) |' : `| ${m.id} |`;
+      const linea = BORRADOR.split(/\r?\n/).find((l) => l.startsWith(clave));
+      expect(linea, m.id).toBeDefined();
+      expect(linea!.includes(m.texto), m.id).toBe(true);
+    }
+  });
+});
+
+describe('entrevista: IDs y dependencias', () => {
+  const ids = BANCO.map((p) => p.id);
+
+  it('IDs únicos y limpios (sin paréntesis ni espacios), también contra los mensajes', () => {
+    const todos = [...ids, ...MENSAJES.map((m) => m.id)];
+    expect(new Set(todos).size).toBe(todos.length);
+    for (const id of todos) expect(id).toMatch(/^[A-Z]{1,4}\d*(\.\d+)?b?$/);
+  });
+
+  it('ningún ID nuevo reusa uno del banco viejo, salvo las listas explícitas', () => {
+    const viejos = new Set(BANCO_VIEJO.map((p) => p.id));
+    const reusados = ids.filter((id) => viejos.has(id));
+    expect(new Set(reusados)).toEqual(new Set([...MISMO_SENTIDO, ...OTRO_SENTIDO]));
+    // Los IDs creados para el banco nuevo (en las equivalencias, los que no son
+    // el mismo ID sin el paréntesis: "PA3 (hincha)" → PA3 no cuenta) no existían.
+    const creados = [...equivalencias()].filter(([clave, nuevo]) => !/^M[34] /.test(clave) && !clave.startsWith(`${nuevo} `));
+    expect(creados.map(([, nuevo]) => nuevo)).toContain('JU22');
+    for (const [clave, nuevo] of creados) expect(viejos.has(nuevo), `${clave} → ${nuevo}`).toBe(false);
+  });
+
+  it('toda dependencia (y toda variante «sino:X») apunta a una pregunta que existe y va antes', () => {
+    for (const p of BANCO) {
+      const refs = [...p.depende.map((c) => c.de), ...idsEnVariantes(p.texto)];
+      for (const de of refs) {
+        const otra = preguntaPorId(de);
+        expect(otra, `${p.id} depende de ${de}, que no existe`).toBeDefined();
+        expect(otra!.orden, `${p.id} depende de ${de}, que va después`).toBeLessThan(p.orden);
+      }
+    }
+  });
+
+  it('ninguna pregunta del núcleo depende de una extra (la extra llega después)', () => {
+    for (const p of BANCO.filter((q) => q.parte === 'nucleo')) {
+      for (const c of p.depende) expect(preguntaPorId(c.de)!.parte, `${p.id} → ${c.de}`).toBe('nucleo');
+    }
+  });
+
+  it('las dependencias son las de la última vuelta', () => {
+    const dep = (id: string) => preguntaPorId(id)!.depende.map((c) => `${c.tipo}:${c.de}`).join(' o ');
+    const esperado: Record<string, string> = {
+      CA7: 'si:CA6', JU10: 'si:JU8', JU11: 'si:JU8',
+      AM1: 'si:AM0', AM2: 'si:AM0', AM3: 'si:AM0', AM4: 'si:AM0', AM5: 'si:AM0', AM6: 'si:AM0', AM8: 'si:AM0', AM9: 'si:AM0', AM7: 'si:AM0', AM17: 'si:AM0',
+      AM19: 'si:AM9', AM16: 'si:AM9', AM13: 'sino:AM9 o si:AM16', AM15: 'sino:AM0',
+      HI1: 'si:HI0', HI2: 'si:HI0', HI2b: 'si:HI0', HI3: 'si:HI0', HI4: 'si:HI0', HI5: 'si:HI0', HS1: 'si:HI0', HI6: 'si:HI0', HI7: 'si:HI0', HI12: 'si:HI0', HI13: 'si:HI0',
+      HI10: 'sino:HI0', HI9: 'si:HI8', NC1: 'si:HI8', AS1b: 'si:AS1', HG2: 'si:HG1',
+    };
+    for (const p of BANCO) expect(dep(p.id), p.id).toBe(esperado[p.id] ?? '');
+  });
+});
+
+describe('entrevista: textos limpios', () => {
+  const textos = [...BANCO.map((p) => [p.id, p.texto]), ...MENSAJES.map((m) => [m.id, m.texto])] as const;
+
+  it('sin placeholders viejos ni genéricos entre corchetes', () => {
+    const viejos = ['{{madre}}', '{{padre}}', '{{hermanos}}', '{{pareja_1}}', '{{destinatarios}}', '{{ciudad_infancia}}', '{{lugar_origen}}', '{{lugar_destino}}'];
+    for (const [id, t] of textos) {
+      for (const v of viejos) expect(t.includes(v), `${id} tiene ${v}`).toBe(false);
+      expect(t, id).not.toMatch(/\[[^\]]+\]/);
+      // Solo las marcas nuevas.
+      for (const m of t.matchAll(/\{\{([^}]+)\}\}/g)) expect(['o/a', 'padre/madre', 'nombre', 'etapa', 'quien_regala'], `${id}: {{${m[1]}}}`).toContain(m[1]);
+    }
+  });
+
+  it('sin "pausa" ni "elegí"', () => {
+    for (const [id, t] of textos) {
+      expect(t.toLowerCase(), id).not.toMatch(/pausa/);
+      expect(t.toLowerCase(), id).not.toMatch(/elegí/);
+    }
+  });
+});
