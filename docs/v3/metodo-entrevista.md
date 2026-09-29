@@ -493,3 +493,21 @@ Aprobadas: HI0, HI1, HI2, HI3, HI4, HI5, HI7, HI10, HI8, HI9, NC1, cierre.
 - **HI6:** Contame una vez que se te hinchó el pecho por uno de tus hijos. No hace falta que sea algo que salió en el diario: qué hizo, dónde estabas, qué le dijiste. Y si se te vienen de varios, contalas todas, que hay lugar para cada uno.
 
 **Bloque 8: cerrado (29/09).** HI2b y HI6 aprobadas. Se suman N1 (el nombre de cada hijo) y N2 (qué cosa tuya ves hoy en tus hijos), ambas dependen de HI0. N3 y N4 afuera.
+
+## 13. Bloque 9 · Lugares y pasiones (propuesta, redactada con Fable, a todos)
+
+Ninguna depende de otra. Salen: LU1b (qué pasó con la casa: la da por terminada), LU2 (la reemplaza JU20, mudanzas).
+
+- **LU1:** De todas las casas donde viviste, ¿cuál sentís más tuya? Contame cómo llegaste a esa casa y un momento ahí que te haya quedado grabado.
+- **HE1:** Tener la casa propia, para mucha gente, es un día que no se olvida. ¿Lo tuviste vos? Contame cómo llegaste a ese día, si alguien te ayudó, y esa primera noche adentro.
+- **LU3:** Fuera de tu casa, ¿hubo un lugar al que volvías siempre? Un club, por ejemplo, o cualquier lugar que fuera un poco tuyo. Contame cómo era y una vez ahí que te haya quedado.
+- **LU4:** Ya de grande, ¿cuál fue el viaje más importante de tu vida? Contame si fuiste con alguien, y un día de ese viaje que te haya quedado como una foto.
+- **PA1:** Fuera del trabajo y de la familia, ¿hubo algo que te apasionara de grande? Contame cómo empezó eso, y un día entero que le hayas dedicado, de la mañana a la noche.
+- **LU5:** Hay vehículos que terminan siendo casi de la familia. ¿Tuviste uno así? Contame cómo llegó a vos y un día arriba de él que todavía te acuerdes.
+- **Cierre:** Con esto cerramos lugares y pasiones. ¿Quedó algún lugar o algo que te gustó mucho y no tuvo su pregunta? Una esquina, un hobby que duró poco, un rincón de tu casa. Contalo ahora, tranquil{{o/a}}.
+
+Lo que le falta (Fable, a decidir):
+- **LU6, el barrio:** ¿Hubo un barrio, de grande, que sintieras tuyo? Contame cómo era la vida ahí, la gente de la cuadra, y un día en ese barrio que te haya quedado.
+- **LU7, las vacaciones de todos los años:** ¿Hubo un lugar adonde iban de vacaciones cuando los chicos eran chicos? Contame cómo era eso, cómo llegaban, y un día de esas vacaciones que te haya quedado.
+- **PA2, hincha:** ¿Sos hincha de algún club? Contame cómo empezó eso, si alguien te llevó, y un partido que no te olvidás más.
+- **LU8, el lugar al que volvería:** ¿Hay un lugar al que te gustaría volver, aunque sea por un rato? Contame qué lugar es, y la última vez que estuviste ahí.
