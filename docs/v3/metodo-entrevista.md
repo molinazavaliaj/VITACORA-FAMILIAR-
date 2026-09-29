@@ -290,7 +290,7 @@ Lo que le falta a la etapa (propuestas de Fable, a decidir):
 
 - **JU2 (a todos):** ¿Qué hiciste después del colegio? Si seguiste estudiando, contame qué y cómo eran esos años; si la vida te llevó para otro lado, contame en qué andabas. Y un día de esa época que te haya quedado.
 - **JU2b (a todos):** ¿Hubo algo que empezaste a estudiar y dejaste? Si te pasó, contame cómo fue ese momento: qué pasaba en tu vida, si lo hablaste con alguien.
-- **JU4 (a todos):** ¿Cómo aprendiste a hacer tu trabajo, sea un oficio, un puesto o lo que te tocó para ganarte la vida? Contame quién te enseñó, o quién te inspiró, y un día de cuando recién empezabas.
+- **JU4 (a todos):** ¿Cómo aprendiste a hacer eso que es tuyo, lo que más te ocupa o más te gusta, sea tu trabajo o algo que hacés por gusto? ¿Quién te inspiró? Contame cómo fue arrancar: un día de cuando recién empezabas.
 - **JU5 (a todos):** ¿Tuviste alguna experiencia con lo militar: la colimba, la mili, un colegio militar? ¿O alguna época de disciplina dura, en tu casa, en un colegio, en un trabajo? Contame cómo era y alguna vez que todavía te acordás.
 - **JU6:** afuera (ya está en JU5).
 - **JU8 (a todos, abre el tema):** ¿Alguna vez te fuiste a vivir a otra ciudad o a otro país? Si te pasó, contame cómo lo decidiste: qué te empujó y a quién se lo dijiste primero.
@@ -310,3 +310,6 @@ Lo que le falta a la etapa (propuestas de Fable, a decidir):
 - **JU18 (nueva):** ¿Cómo eran las fiestas y las salidas en tu juventud? Los bailes, los cumpleaños, las noches largas. Contame una que no te olvidás. Y si se te vienen más, contalas también.
 - **JU19 (nueva):** ¿Hubo algún flechazo en esos años, alguien que te movió el piso? Contame cómo fue: dónde se cruzaron, qué pasó.
 Nota: si el flechazo es su pareja de después, el escritor lo junta con el bloque 6 (lee todo junto).
+
+**Bloque 5, vuelta 5 (Naza, 29/09):** JU18 y JU19 aprobadas. JU12 vuelve sin el agregado de mudanzas. JU4 reescrita (arriba). Nueva, a aprobar:
+- **JU20 (nueva, reemplaza a LU2 del bloque 9):** ¿Te mudaste muchas veces en tu vida? Contame por qué casas o lugares fuiste pasando, más o menos en qué años, y cuál de esas mudanzas te quedó más grabada.
