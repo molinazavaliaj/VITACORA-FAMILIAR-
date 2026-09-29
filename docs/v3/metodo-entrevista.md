@@ -147,12 +147,11 @@ Textos (elegida de Fable; la otra, de respaldo):
 
 ### Bloque 1, versión 2 (29/09, correcciones de Naza, redactado con Fable)
 - OR1 ya no es el día del nacimiento: es la vida de la familia cuando llegó. OR2 (historia de los de antes) queda para abuelos o más atrás.
-- Apodo para todos: botón primero, pregunta si dice que sí (el gate APODO pasa de la ficha a un botón; si la ficha ya trae "cómo le dicen", no hace falta el botón).
+- Apodo para todos, en una sola pregunta sin botón (se saca el gate APODO).
 - OR7 vuelve: cierre del bloque 1 (Naza: "es clave y no cuesta plata").
 
 - **OR1:** Empecemos por cuando llegaste al mundo, según te contaron. No el día en sí, sino la época: dónde vivían, en qué andaban tu mamá y tu papá, cómo te esperaban. ¿Qué historia de ese tiempo se contaba en casa? Contámela.
   - Respaldo: Arranquemos por la casa a la que llegaste. ¿Cómo andaba tu familia por entonces: dónde vivían, de qué trabajaban tus viejos, qué se decía de que venías vos? Seguro te contaron algo de esos meses, antes o después de nacer. Contame eso.
-- **Botón del apodo:** Una preguntita antes de seguir: ¿tenés o tuviste algún apodo? [Sí] [No]
-- **OR6.2 (si toca Sí):** Contame de ese apodo. ¿Quién te lo puso y por qué justo ese? Casi siempre hay una anécdota atrás: una travesura, una palabra mal dicha, algo que pasó una vez. Contame cómo nació, y si te gusta o no.
-- **OR7:** Hasta acá, la familia que había antes de vos. Seguro mientras contabas se te cruzó alguna otra historia de los de antes que no tuvo lugar en mis preguntas. Es el momento: contámela con calma, que tenemos todo el tiempo del mundo.
-  - Respaldo: Con esto cerramos lo de tu familia de antes, la de antes de que llegaras vos. Y me pregunto si se me escapó algo: una historia de tus abuelos, de tus viejos de jóvenes, de esa casa. Si hay una dando vueltas, contámela ahora.
+- **OR6.2 (a todos, sin botón: Naza, 29/09; si no tiene, lo dice en el audio):** ¿Tenés o tuviste algún apodo? Si es así, contame cómo nació: quién te lo puso, por qué justo ese, y si te gusta. Casi siempre hay una anécdota atrás.
+- OR7 descartada: Hasta acá, la familia que había antes de vos. Seguro mientras contabas se te cruzó alguna otra historia de los de antes que no tuvo lugar en mis preguntas. Es el momento: contámela con calma, que tenemos todo el tiempo del mundo.
+- **OR7 (aprobada, la de respaldo):** Con esto cerramos lo de tu familia de antes, la de antes de que llegaras vos. Y me pregunto si se me escapó algo: una historia de tus abuelos, de tus viejos de jóvenes, de esa casa. Si hay una dando vueltas, contámela ahora.
