@@ -697,3 +697,16 @@ Cierre aprobado. **Regla (Naza):** no pedir "con quién estabas" por reflejo en 
 - **G5, un gusto grande (nueva, idea de Naza):** ¿Y un gusto grande? ¿En qué te gusta darte el lujo de gastar tu plata? Contame la última vez que te diste ese gusto.
 
 **Bloque 14: cerrado (29/09).** Aprobadas todas (HO2, HO9, PA2, HO2.2, HO6, FU1, G1-G5, cierre). GI7 (reírse hasta llorar) sale del bloque 13. FI1 (soledad) y PA2 quedan las dos.
+
+## 19. Bloque 15 · Legado y cierre (propuesta, redactada con Fable, a todos)
+
+LE4 y LE5 se juntan. Salen: LE3 (algo que nunca dijiste: se pisa con LE8 y empuja a arrepentimientos), DES1 (cómo querés que te despidan: suena a testamento). LE6 pasa a presente ("que te recuerden" daba por muerta a la persona). LE7 solo el título.
+
+- **LE1:** ¿Hay algo que hiciste en tu vida y que, cuando lo pensás, todavía te llena el pecho? Contame qué fue y el momento exacto en que te diste cuenta de que lo habías logrado.
+- **LE2:** ¿Qué aprendiste de la vida que te gustaría que {{destinatarios}} sepan? Decíselo como si los tuvieras enfrente, con tus palabras, y si te acordás, contame cuándo lo aprendiste vos.
+- **LE6:** Cuando {{destinatarios}} piensen en vos, ¿qué te gustaría que les venga a la cabeza? Una frase tuya, una imagen, una escena. Contame cuál y por qué esa.
+- **LE7:** Si tu vida fuera un libro, ¿qué título le pondrías? Decímelo y contame por qué ese.
+- **LE4:** Pensá en las personas más importantes de tu vida hoy. ¿Qué le deseás a cada una? Nombralas y decíselo de a una, como si se lo dijeras al oído.
+- **LE8:** Ahora sí, hablales a {{destinatarios}}. Lo que les dirías si los tuvieras sentados enfrente, sin apuro, de a uno. Nadie te corre.
+- **LE9:** Llegamos al final. ¿Hay algo que en todo este tiempo no te pregunté y querés que esté en el libro? Una persona, un lugar, una historia que te quedó dando vueltas.
+- **Mensaje final:** Hasta acá llegamos, {{nombre}}. Gracias por cada audio, por las historias y por la confianza de contarlas así, sin filtro. Con todo lo que me dijiste hay un libro, y es bien tuyo. Antes de que se escriba vas a poder repasar lo que contaste, por si querés cambiar o agregar algo. Fue un gusto enorme escucharte.
