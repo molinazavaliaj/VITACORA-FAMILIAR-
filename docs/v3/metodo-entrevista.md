@@ -290,7 +290,7 @@ Lo que le falta a la etapa (propuestas de Fable, a decidir):
 
 - **JU2 (a todos):** ¿Qué hiciste después del colegio? Si seguiste estudiando, contame qué y cómo eran esos años; si la vida te llevó para otro lado, contame en qué andabas. Y un día de esa época que te haya quedado.
 - **JU2b (a todos):** ¿Hubo algo que empezaste a estudiar y dejaste? Si te pasó, contame cómo fue ese momento: qué pasaba en tu vida, si lo hablaste con alguien.
-- **JU4 (a todos):** ¿Cómo aprendiste tu oficio, lo que sabés hacer de trabajo? En un aula, al lado de alguien, a los golpes. Contame quién te enseñó, o quién te inspiró a hacer lo que te gusta, y un día de cuando recién empezabas.
+- **JU4 (a todos):** ¿Cómo aprendiste a hacer tu trabajo, sea un oficio, un puesto o lo que te tocó para ganarte la vida? Contame quién te enseñó, o quién te inspiró, y un día de cuando recién empezabas.
 - **JU5 (a todos):** ¿Tuviste alguna experiencia con lo militar: la colimba, la mili, un colegio militar? ¿O alguna época de disciplina dura, en tu casa, en un colegio, en un trabajo? Contame cómo era y alguna vez que todavía te acordás.
 - **JU6:** afuera (ya está en JU5).
 - **JU8 (a todos, abre el tema):** ¿Alguna vez te fuiste a vivir a otra ciudad o a otro país? Si te pasó, contame cómo lo decidiste: qué te empujó y a quién se lo dijiste primero.
@@ -304,3 +304,9 @@ Lo que le falta a la etapa (propuestas de Fable, a decidir):
 **Bloque 5, vuelta 3 (Naza, 29/09):** aprobadas JU2, JU2b, JU8, JU10, JU11, JU9 (viajes), N1, N3. JU4 suma "quién te inspiró"; JU5 suma la disciplina dura para quien no pasó por lo militar. CA6 y ES9 pasan a la regla nueva.
 
 **Cómo se decide "no" en las que siguen un tema (propuesta, código, sin modelo):** se saltean las siguientes solo si la transcripción de la respuesta que abre el tema es corta (menos de ~15 palabras) y empieza con "no", "nunca" o "jamás". Una respuesta larga que empieza "No sabés lo que fue…" no cuenta como no. Si igual se cuela una de más, está escrita con "si te pasó" y tiene el "paso".
+
+**Bloque 5, vuelta 4 (Naza, 29/09):** aprobadas JU1, JU5, JU12, JU13, JU15, JU16, JU17, CA6, ES9 y el cierre. JU4 pasa a "tu trabajo, sea un oficio, un puesto o lo que te tocó". Propuestas nuevas (a aprobar):
+- **JU12, agregado:** … Y esa primera noche ahí, ¿cómo fue? Y si después te mudaste varias veces, contame de alguna mudanza que te haya quedado.
+- **JU18 (nueva):** ¿Cómo eran las fiestas y las salidas en tu juventud? Los bailes, los cumpleaños, las noches largas. Contame una que no te olvidás. Y si se te vienen más, contalas también.
+- **JU19 (nueva):** ¿Hubo algún flechazo en esos años, alguien que te movió el piso? Contame cómo fue: dónde se cruzaron, qué pasó.
+Nota: si el flechazo es su pareja de después, el escritor lo junta con el bloque 6 (lee todo junto).
