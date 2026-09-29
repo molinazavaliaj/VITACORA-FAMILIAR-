@@ -256,3 +256,30 @@ Textos (elegida de Fable; la otra, de respaldo):
 - **ES15 (nueva, C):** ¿Había algún compañero o compañera que no te caía bien? ¿Por qué? Contame alguna vez que se cruzaron.
 
 **Bloque 3 y 4: cerrados (29/09).** ES13, ES14, ES15 y el cierre de la adolescencia aprobados por Naza.
+
+## 9. Bloque 5 · Juventud (propuesta, redactada con Fable)
+
+Salen: JU3 y JU3b (amigo de estudio y qué fue de él: los amigos van en JU15), JU10b (qué fue de quien lo ayudó), JU12b (cuánto duró en el primer lugar), MI1.2 (el "de adentro" ya está en JU11). JU14 (puerta) pasa a cierre.
+
+- **JU1:** ¿Te acordás del día que te fuiste de la casa de tus viejos? A dónde te fuiste, con quién, cómo fue esa despedida. Y si te quedaste ahí muchos años, contame cómo era esa casa con vos ya de grande.
+- **JU2 (si estudió):** ¿Qué estudiaste después del colegio? ¿Cómo eran esos años, cómo era ir a estudiar? Contame un día de estudiante que te haya quedado: una clase, un examen, una mañana cualquiera.
+- **JU2b (si lo dejó):** En algún momento dejaste de estudiar. ¿Cómo eran las cosas en tu vida en ese tiempo? Contame cómo fue dejarlo: qué pasó esos días, si lo hablaste con alguien, cómo te quedaste vos.
+- **JU4 (si no estudió):** ¿Cómo aprendiste tu oficio, lo que sabés hacer? Quién te enseñó, dónde, cómo era ir aprendiendo al lado de alguien. Contame un día de esos primeros tiempos, de cuando recién empezabas.
+- **JU5 (lo militar):** Contame de tu época en lo militar, la colimba, la mili o el colegio militar, lo que te haya tocado. ¿Cómo era un día ahí, desde que te levantaban? Y una vez en particular, algo que pasó y todavía te acordás.
+- **JU6 (lo militar):** En esa época militar se conoce gente de todos lados. ¿Hubo alguien que te quedó, un compañero, un superior? Contame cómo era y una vez con esa persona que no te olvidás.
+- **JU8 (si se mudó):** ¿Cómo fue que decidiste irte de {{lugar_origen}} [de donde creciste]? Qué te empujó, qué pasaba en tu vida en ese momento. Contame el día que lo decidiste y a quién se lo dijiste primero.
+- **JU9 (si se mudó):** Contame el viaje a {{lugar_destino}} [al lugar nuevo]: cómo fuiste, qué llevabas, si viajaste con alguien. Y la llegada: qué viste al bajar, a dónde fuiste primero. (La primera noche queda para JU12.)
+- **JU10 (si se mudó):** En los primeros meses en {{lugar_destino}} [en el lugar nuevo], ¿hubo alguien que te dio una mano? Alguien que te abrió la puerta, te explicó cómo eran las cosas ahí. Contame quién era y una vez que te ayudó.
+- **JU11 (si se mudó):** Un día uno se da cuenta de que ya es de ahí: conoce las calles, lo saludan, se siente en casa. ¿Cuándo te pasó a vos con {{lugar_destino}} [con el lugar nuevo]? Contame ese momento.
+- **MI1 (si se mudó):** Cuando uno llega de afuera, a veces se lo hacen notar: por cómo habla, por de dónde viene. ¿Te pasó en {{lugar_destino}} [en el lugar nuevo]? Contame una vez que te hicieron sentir que no eras de ahí.
+- **JU12:** Contame del primer lugar que fue tuyo, donde ya vivías por tu cuenta: cómo era, con qué lo fuiste armando, qué se veía por la ventana. Y esa primera noche ahí, ¿cómo fue?
+- **JU15:** ¿Y los amigos de esos años, de cuando empezabas a hacer tu vida? Cómo eran, dónde se juntaban, qué hacían. Contame una vez con ellos que te quedó. Y si se te vienen más, contalas también.
+- **JU13:** ¿Hiciste alguna locura de joven? Un viaje a dedo, una apuesta, algo que hoy no harías. Contame esa vez desde que empezó, con todo lo que pasó.
+- **JU16:** Pensá en un momento muy feliz de tu juventud. No hace falta que sea algo grande: una tarde, una noticia, un lugar. ¿Dónde estabas, qué pasó? Contámelo como si estuvieras ahí de nuevo.
+- **JU17:** ¿Hubo algún momento duro en tu juventud que creas que no puede quedar afuera de tu historia? ¿Algo que te marcó? Si querés, contame qué pasó y cómo lo viviste.
+- **Cierre:** Y así llegamos al final de tu juventud, los años en que empezaste a hacer tu vida. Antes de seguir, ¿te quedó algo de esa época sin contar? Un lugar, una persona, una tarde que se te aparece de vez en cuando. Contámelo ahora, con calma.
+
+Lo que le falta a la etapa (propuestas de Fable, a decidir):
+- **N1, volver de visita a la casa de los viejos:** Ya viviendo tu vida, ¿cómo era volver a la casa de tus viejos? Contame la primera vez que fuiste de visita, de afuera: cómo te recibieron, qué notaste distinto, cómo te fuiste esa vez.
+- **N3, arreglarse con poco:** En esos primeros años por tu cuenta, ¿cómo te arreglabas con la plata? Contame una vez que no alcanzó y cómo hiciste ese mes: a quién recurriste, de qué te privaste, qué inventaste. (Se pisa con CS2, bloque 7.)
+- **N2, lo que pasaba en el país:** ya está en el bloque 12 (HG1). **N4, lo que le apasionaba:** se pisa con AD11 y PA1. **N5, lo que soñaba a los veinte:** se pisa con AD16 y ES7.
