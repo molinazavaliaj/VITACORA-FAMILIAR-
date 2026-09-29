@@ -165,3 +165,35 @@ Textos (elegida de Fable; la otra, de respaldo):
 **CA7 vuelve (Naza, 29/09, opción B):** solo Completo, solo con más de un hermano, después de CA6: "¿Y con tus otros hermanos? Contame alguna historia de chicos con alguno de ellos."
 
 **Pendiente para los bloques de adultez (Naza, 29/09):** los hermanos no tienen ninguna pregunta después de la infancia. Proponer una sola, de grandes, con gate HERMANOS (una ayuda, un viaje, un reencuentro), al llegar al bloque 10 o al 14. Lo que cuente de un hermano en cualquier bloque el escritor lo ubica por fecha en su etapa.
+
+**Bloque 2: cerrado (29/09).** CA15 aprobada con "y por qué".
+**CA17 (Naza, 29/09):** la infancia no tenía momento difícil para 60+ (CA17 era E-joven). Propuesta: pasa a E para todos, con texto nuevo: "¿Hubo algún momento difícil de tu infancia que quieras que esté en tu historia, algo que te marcó? Si querés, contame qué pasó y cómo lo viviste." (pendiente de OK)
+
+## 7. Bloque 3 · La escuela y los juegos (propuesta, redactada con Fable)
+
+| ID | Qué busca | Decisión | Tamaño |
+|---|---|---|---|
+| ES1 | Primer día de escuela | queda (hecho único, dio escena); sin pedir el nombre de la escuela | B |
+| ES2 | Maestro que lo marcó | se reescribe sin pedir nombre | B |
+| ES3 | Cómo se llevaba con la escuela | se reescribe sin opuestos, cierra en un día | E-joven |
+| ES4 | Juegos y amigos (con nombres) | **se junta en ES5** (lista; "a qué jugabas en casa" ya está en CA8) | — |
+| ES5 | Mejor amigo de esa época | se reescribe, absorbe ES4 | B |
+| ES5b | Qué fue de ese amigo | **afuera** (da por terminada) | — |
+| ES6 | La travesura más grande | queda, redacción nueva | E |
+| ES7 | Qué quería ser | queda (acepta opinión), redacción nueva | C |
+| ES8 | Los veranos | se reescribe: cierra en un verano distinto; no supone vacaciones | E-joven |
+| ES9 | Religión (con D3) | queda, redacción nueva | C |
+| ES10 | Música de la casa (60+) | se reescribe: una canción que lo lleva a esa época | C |
+| ES11 | Objeto que le llegó | **afuera** (repetida con CA12 nueva) | — |
+| ES12 | Puerta | pasa a cierre de etapa | E |
+
+- **ES1:** ¿Cómo fue tu primer día de escuela? ¿Quién te llevó hasta la puerta, y qué sentiste cuando se fue? Si ese día no lo tenés, contame lo primero que te acuerdes de la primaria.
+- **ES2:** ¿Hubo una maestra o un maestro que te marcó en la primaria? ¿Cómo era con ustedes? Contame una vez con esa persona que no te olvidás: qué pasó en el aula ese día.
+- **ES3:** ¿Cómo eras en la escuela? ¿Te gustaba ir, tenías alguna materia que esperabas? Contame un día de esa época que te quedó grabado: un acto, una prueba, un boletín que llevaste a tu casa.
+- **ES5:** De chic{{o/a}}, ¿tenías un mejor amigo o una mejor amiga, de la escuela o del barrio? ¿Qué hacían cuando andaban juntos? Contame una tarde con esa persona que todavía te hace sonreír.
+- **ES6:** ¿Cuál fue la travesura más grande que hiciste de chic{{o/a}}, en la escuela o en el barrio? Esa que todavía te da risa, o un poco de vergüenza. Contame cómo fue y si te agarraron.
+- **ES7:** ¿Qué querías ser cuando fueras grande? ¿De dónde te vino esa idea: alguien que veías, algo que pasó? Si te acordás del momento en que lo decidiste, o de quién te lo metió en la cabeza, contámelo.
+- **ES8:** ¿Cómo eran tus veranos de chic{{o/a}}? El calor, los días largos, lo que se hacía en tu casa en esos meses. Contame un verano que fue distinto de los demás y qué pasó.
+- **ES9:** ¿Cómo se vivía la religión en tu casa cuando eras chic{{o/a}}? ¿Hubo una ceremonia o una fiesta que te tocó de cerca? Contame ese día: dónde fue, con quién estabas.
+- **ES10:** De chic{{o/a}}, ¿qué se escuchaba en tu casa: radio, discos, alguien que cantaba mientras cocinaba? Seguro hay una canción que, apenas la oís, te devuelve ahí. ¿Cuál es, y adónde te lleva?
+- **Cierre:** Con esto cerramos tus años de escuela. Antes de seguir, ¿te quedó alguna historia de esa época dando vueltas, algo que no entró en ninguna pregunta? Contámela ahora, con calma, que la quiero escuchar.
