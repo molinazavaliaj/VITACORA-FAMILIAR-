@@ -548,3 +548,6 @@ Aprobadas: AS1b, AY1, AS4, RE1, AS9, AY2, AS7. AS6 afuera. AS8 pasa al bloque 11
 - **AS5:** ¿Formaste parte alguna vez de un grupo que se juntaba por algo, como un club o una comisión del barrio? Contame una vez que hicieron algo juntos que te haya quedado.
 - **HE2:** Ya de grandes, ¿tus hermanos también se volvieron amigos? Contame algún momento de adultos en que estuvieron bien cerca: un viaje, una charla, una mano que se dieron. Si no tuviste hermanos, decime y seguimos.
 - **Cierre:** Con esto cerramos amistades y ayudas. ¿Quedó alguien que te acompañó y no tuvo su pregunta? Un vecino, alguien del trabajo, una persona que apareció una sola vez. Y si querés contar de otros amigos importantes, de quien sea, es el momento. Contalo tranquil{{o/a}}.
+- **AS5 (con el grupo de amigos):** ¿Formaste parte alguna vez de un grupo que se juntaba por algo, un club, una comisión del barrio, o un grupo de amigos? Contame una vez que hicieron algo juntos que te haya quedado.
+
+**Bloque 10: cerrado (29/09).** AS1, HE2 y el cierre aprobados.
