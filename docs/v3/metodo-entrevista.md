@@ -243,3 +243,7 @@ Textos (elegida de Fable; la otra, de respaldo):
 - **AD15 (nueva, E):** ¿Hubo algún momento duro en tu adolescencia que creas que no puede quedar afuera de tu historia? ¿Algo que te marcó? Si querés, contame qué pasó y cómo lo viviste.
 
 **Regla (Naza, 29/09):** cada etapa vivida (infancia, adolescencia, juventud) tiene su pregunta de "algo duro que te marcó", con el molde de CA17, y le llega a todos.
+
+**Bloque 4, vuelta 3 (Naza, 29/09):** aprobadas AD2, AD2b, AD3, AD5, AD11, AD12, AD14, AD15. Nuevas propuestas por Naza (textos a aprobar):
+- **AD16 (nueva, E):** Cuando se terminaba el colegio, o esa etapa para vos, ¿qué planes tenías? ¿Qué te imaginabas para lo que venía? Si te acordás de alguna charla o algún momento en que lo pensaste, contámelo.
+- **AD17 (nueva, E):** ¿Aprendiste a manejar? Contame la primera vez que agarraste un volante: quién te enseñó, dónde fue, cómo te fue. (No dice "en esa época": si aprendió de grande, el escritor lo ubica por fecha.)
