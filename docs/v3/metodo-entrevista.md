@@ -69,14 +69,14 @@ Tipo: **HU** hecho único · **1V** una vez (de una categoría) · **CO** costum
 | CA5 | Un reto | 1V | costumbre ("me retaban siempre") | se reescribe con superlativo | HU la vez que más | C |
 | CA6 | Los hermanos | CO + lista ("presentame a cada uno") | lista, costumbre | se reescribe y **se junta con CA7**; los nombres ya salen de D2 | HU la vez que más | B |
 | CA7 | Travesura con hermanos | 1V | repetida con ES6 | **se junta en CA6** | — | — |
-| CA8 | Hijo único | CO ("un día tuyo en casa") | costumbre | se reescribe | HU primera vez | E |
+| CA8 | Hijo único | CO ("un día tuyo en casa") | costumbre | se reescribe (texto de Naza, con más tacto) | 1V | E |
 | CA9 | Otra persona en la casa | DA + 1V ("quién era y un recuerdo") | dato + resumen | se reescribe | HU el recuerdo más claro | C |
 | CA9b | Qué fue de esa persona | DA ("qué fue de") | da por terminada; con un mayor lleva a la muerte sin aviso | **afuera** (lo que fue de esa persona, si importa, sale en el dashboard) | — | — |
 | CA10 | La mesa familiar | CO ("un domingo típico") | costumbre (también falló "un domingo que recuerdes") | se reescribe con excepción y **se junta con CA11** | HU excepción | B |
 | CA11 | Navidad o fiesta | 1V | repetida con CA10 | **se junta en CA10** | — | — |
 | CA12 | La plata en casa | CO ("cómo andaban de plata") | opinión, resumen ("siempre fuimos pobres") | se reescribe: algo grande que se compró o se vendió | HU el día que | C |
 | CA13 | El barrio | CO ("cómo era el barrio") | costumbre (también falló "una tarde en el barrio") | se reescribe | HU primera vez | E-joven |
-| CA14 | Un animal | 1V ("qué pasó con él") | da por terminado | se reescribe: el día que llegó | HU el día que | C |
+| CA14 | Un animal | 1V ("qué pasó con él") | da por terminado | se reescribe (texto de Naza): el primer recuerdo con un animal | HU primer recuerdo | C |
 | CA15 | El miedo | 1V ("quién te calmó") | costumbre leve; supone que alguien lo calmó | se reescribe con superlativo | HU la vez que más | C |
 | CA16 | Momento feliz | 1V ("un momento feliz") | costumbre (falló en el piloto); repetida con GI1 (las dos son B) | se reescribe: un día esperado | HU el día que | B |
 | CA17 | Momento difícil | 1V ("cómo lo pasaste") | costumbre; puede llevar a una muerte o a violencia | se reescribe con superlativo (ver decisión 5) | HU el más difícil | E-joven |
@@ -84,25 +84,32 @@ Tipo: **HU** hecho único · **1V** una vez (de una categoría) · **CO** costum
 | D2 | Hermanos | DA | — | queda | DA | — |
 | D1 (bloque 1) | Padres | DA | — | se le suma una pregunta por audio: de qué trabajaban | DA | — |
 
-### Textos nuevos (sin la frase de "paso", que se agrega sola)
+### Textos nuevos, versión 2 (29/09, con las correcciones de Naza: "no tiene alma de biógrafo")
 
-- **CA1:** Contame el primer recuerdo que tengas de la casa donde creciste: un día, qué estabas haciendo, quién andaba por ahí.
-- **CA2:** Contame una vez, de cuando eras chic{{o/a}}, en que tu mamá, {{madre}}, hizo algo que no te esperabas: dónde estaban, qué pasó.
-- **CA3:** Contame el primer recuerdo que tengas de tu papá, {{padre}}: dónde estaban, qué estaba haciendo él.
-- **CA4:** Contame el día que alguien de tu casa te enseñó a hacer algo por primera vez: andar en bicicleta, nadar, silbar. Cómo fue ese día.
-- **CA5:** Contame la vez que más te retaron o te castigaron de chic{{o/a}}: qué habías hecho, quién te retó y cómo terminó.
-- **CA6:** «pl: Contame la vez que más te divertiste con alguno de tus hermanos, o la pelea más grande que tuvieron, cuando eras chic{{o/a}}: qué pasó y cómo terminó. ‖ sg: Contame la vez que más te divertiste con {{hermanos}}, o la pelea más grande que tuvieron, cuando eras chic{{o/a}}: qué pasó y cómo terminó.»
-- **CA8:** Fuiste hij{{o/a}} únic{{o/a}}. Contame la primera vez que te acordás de haberte quedado sol{{o/a}} en tu casa: cuántos años tenías, qué hiciste.
-- **CA9:** Si de chic{{o/a}} había alguien que vivía en tu casa o estaba siempre (un abuelo, una tía, alguien que trabajaba ahí), contame el recuerdo más claro que tengas con esa persona.
-- **CA10:** Contame una comida familiar de tu infancia que fue distinta a todas: una Navidad, un cumpleaños, un domingo raro. Quiénes estaban y qué pasó.
-- **CA12:** Contame el día que en tu casa se compró algo grande, o hubo que vender algo, cuando eras chic{{o/a}}: qué era, quién lo decidió, qué pasó.
-- **CA13:** Contame la primera vez que te dejaron ir sol{{o/a}} a algún lado de chic{{o/a}}, en {{ciudad_infancia}} [donde creciste]: a dónde fuiste, qué pasó en el camino.
-- **CA14:** Contame el día que llegó a tu casa un animal que fue tuyo de chic{{o/a}}: un perro, un gato, un pájaro. De dónde vino y quién lo trajo.
-- **CA15:** Contame la vez que más miedo tuviste de chic{{o/a}}: dónde estabas, qué pasó, cómo terminó.
-- **CA16:** Contame un día de chic{{o/a}} que esperabas con muchas ganas: qué era, quién estaba, qué pasó.
-- **CA17:** Contame el momento más difícil que recuerdes de cuando eras chic{{o/a}}: qué pasó y cómo terminó.
-- **CA18 (queda):** ¿Hay algo de tu casa o de tu familia de chic{{o/a}} que no te pregunté y querés contar?
-- **D1, pregunta nueva por audio:** ¿De qué trabajaban tu mamá y tu papá cuando eras chic{{o/a}}?
+Voz del biógrafo (propuesta, sale de la corrección de Naza):
+1. Habla como una persona que está sentada con él: "¿te acordás…?", "contame", "viajemos a…". Nunca "describime", "elegí", "presentame".
+2. Puede entrar con una pregunta abierta y liviana ("¿cómo era tu mamá con vos?", "¿a qué le tenías miedo?"), pero **siempre termina pidiendo una vez concreta** ("contame alguna anécdota", "¿te acordás de una vez que…?"). La entrada calienta; el cierre trae la escena.
+3. Nunca pide dos historias opuestas en la misma pregunta.
+4. No pide lo que otra pregunta del mismo bloque va a pedir (si no, las respuestas se repiten).
+
+- **CA1 (aprobada):** Contame el primer recuerdo que tengas de la casa donde creciste: un día, qué estabas haciendo, quién andaba por ahí.
+- **CA2:** Viajemos un rato a cuando eras chic{{o/a}}. ¿Cómo era tu mamá, {{madre}}, con vos en esa época? Si te viene a la cabeza alguna anécdota con ella, contámela: dónde estaban, qué pasó.
+- **CA3:** ¿Y tu papá, {{padre}}? ¿A qué se dedicaba cuando eras chic{{o/a}}? Contame alguna vez que lo acompañaste o lo viste trabajando.
+- **CA4 (aprobada):** Contame el día que alguien de tu casa te enseñó a hacer algo por primera vez: andar en bicicleta, nadar, silbar. Cómo fue ese día.
+- **CA5 (aprobada):** Contame la vez que más te retaron o te castigaron de chic{{o/a}}: qué habías hecho, quién te retó y cómo terminó.
+- **CA6:** «pl: ¿Con cuál de tus hermanos eras más compinche de chic{{o/a}}? Contame alguna aventura que hayan hecho: qué se les ocurrió y cómo terminó. ‖ sg: ¿Cómo te llevabas con {{hermanos}} de chic{{o/a}}? Contame alguna aventura que hayan hecho: qué se les ocurrió y cómo terminó.»
+- **CA8 (solo si no tiene hermanos):** ¿Cómo fue crecer sin hermanos? ¿Pasabas mucho tiempo sol{{o/a}} en casa? Contame alguna vez que te quedaste sol{{o/a}} en casa y qué se te ocurrió hacer.
+- **CA9:** ¿Había alguien más que viviera con ustedes o que estuviera siempre en tu casa, como un abuelo, una tía o alguien que ayudaba? Si había alguien, contame alguna vez con esa persona que se te quedó grabada.
+- **CA10:** Pensá en las comidas en familia de cuando eras chic{{o/a}}: una Navidad, un cumpleaños, un domingo. ¿Hubo alguna distinta a todas, por algo que pasó? Contámela: quiénes estaban y qué pasó.
+- **CA12:** ¿Te acordás de algo que compraron en tu casa con mucho esfuerzo cuando eras chic{{o/a}}? Contame cómo fue el día que llegó.
+- **CA12.2 (nueva, Completo):** ¿Y te acordás de algo que tuvieron que vender en tu casa cuando eras chic{{o/a}}, algo que a vos te gustaba? Contame qué era y cómo fue ese día.
+- **CA13:** ¿A qué edad empezaste a salir a jugar sin que nadie te cuidara? Contame la primera vez que saliste sol{{o/a}}: a dónde fuiste y qué pasó.
+- **CA14:** ¿Tuviste animales de chic{{o/a}}? Contame el primer recuerdo que tengas con alguno.
+- **CA15:** ¿A qué le tenías miedo de chic{{o/a}}, y por qué? ¿Te acordás de alguna vez que te hayas asustado mucho? Contame qué pasó.
+- **CA16 (aprobada):** Contame un día de chic{{o/a}} que esperabas con muchas ganas: qué era, quién estaba, qué pasó.
+- **CA17 (aprobada, sin marca de sensible):** Contame el momento más difícil que recuerdes de cuando eras chic{{o/a}}: qué pasó y cómo terminó.
+- **CA18:** ¿Hay algo de tu casa o de tu familia de chic{{o/a}} que no te pregunté y querés contar?
+- **D1:** sin cambios (se descarta sumar "de qué trabajaban": el trabajo del papá entra en CA3).
 
 Cuentas: el bloque sigue dando 6 en Estándar (CA1, CA2, CA3, CA6 o CA8, CA10, CA16) y 8 con menos de 45 (+CA13, CA17). Completo baja de 18 a 15 filas. Orden propuesto para no repetir la fórmula seguida: CA1, CA2, CA10, CA3, CA6/CA8, CA16, y después las de Completo. Con hijo único de menos de 45, CA8 y CA13 comparten "la primera vez… sol{{o/a}}": van separadas.
 
