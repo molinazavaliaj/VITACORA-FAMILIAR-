@@ -860,3 +860,13 @@ Criterio: por bloque, las que mejor sacan una escena, un momento duro por etapa,
 
 ### Tamaños: opinión de Fable (29/09)
 Naza: las 6 filosóficas y la cena van en el núcleo. Fable recomienda **un solo producto, el núcleo**, y el resto del banco como "ronda extra" que el narrador elige al terminar ("¿Querés seguir un poco más?"), sin cambiar el precio. Razones: abandono de la persona de 70, la familia elige el grande por culpa, el grosor lo da el narrador y no el producto, operar un solo flujo. Para no pasar de ~80 con las filosóficas, Fable sacaría CA10, TR6, JU15, HO2, HG4, LE7 (HO2, HG4, LE7 y TR6 ya las había decidido Naza: se muestran igual). Sugiere repartir las filosóficas: FI3 después de la infancia, FI2 después de hijos y nietos, FI6 y FI7 antes del legado. Riesgo que marca: las filosóficas dan voz, no escenas.
+
+## 25. Revisión de Fable del banco entero (29/09)
+
+Naza: un solo producto (núcleo + ronda extra). Compilado en limpio en `banco-final-borrador.md` (187 preguntas; núcleo ~85 para una vida completa).
+
+Repeticiones que marcó Fable (a decidir por Naza):
+- Nuevas: GI2+HJ6 (dos "el día que cambió todo" en el núcleo, seguidas); JU12 absorbe AM5 (misma primera noche); HO9 fuera (se pisa con LU1); N1 bl.5 (volver de visita) dentro de HJ5; JU19 fuera del núcleo (el flechazo suele ser la pareja: AM1); AM14+AM18 juntas; AM13 cambiar (con pareja es el mismo día que HO1); AD10+AD14 juntas; PE6+PE9 juntas; PE10 dentro de HO10; LE6 fuera (se pisa con HO6); LU6+LU8 juntas; sacar "¿quién te inspiró?" de JU4 (lo pide TR3).
+- Contra decisiones ya tomadas por Naza: sacar PE4 (época dura de grande), GI1 sin el "clic", PA2 (momento solo) fuera, N3 bl.5 fuera, FI6 (el futuro) floja, JU9 floja, AS1b chica.
+- Ya propuestas: CA10 y JU15 a Extra.
+Hueco: los padres de grande (verlos envejecer, cuidarlos). Muletillas: "Contame" en ~150, "¿Hubo…?" ~39 (siete seguidas en el 13), "que te haya quedado" ~20, "la última vez" 8 seguidas en el 14: variar aperturas en un tercio al pasar al banco.
