@@ -687,3 +687,11 @@ Aprobadas: HO1 (AM13 pide un día de la pareja; esta es para todos), HO4, HO5, C
 - **HO6:** ¿Hay algo de tu forma de ser que todos los que te conocen reconocen enseguida? Una frase que repetís, una manía, tu carácter. Contame una vez que alguien te lo marcó.
 - **FU1:** ¿Hay algo que todavía querés hacer? Contámelo como si ya estuviera pasando: dónde estás, con quién, qué ves.
 A decidir: GI7 (reírse hasta llorar, bloque 13) queda o sale ahora que vuelve HO2; PA2 y FI1 (soledad, bloque 13) se parecen.
+
+### Bloque 14, vuelta 3 (Naza, 29/09)
+Cierre aprobado. **Regla (Naza):** no pedir "con quién estabas" por reflejo en todas; solo cuando la gente es parte de lo que se busca.
+- **G1, música:** ¿Qué música ponés hoy cuando estás a tu aire? ¿Cuál fue la última canción que escuchaste, y qué estabas haciendo?
+- **G2, comer:** ¿Qué es lo que más te gusta comer, así, sin pensarlo mucho? Contame la última vez que lo comiste: quién lo hizo y dónde.
+- **G3, ver o leer:** ¿Te gusta leer, o sos más de mirar películas o series? ¿Con qué te enganchás? Contame la última vez que se te pasó la hora con algo así.
+- **G4, placer chiquito:** ¿Cuál es tu placer chiquito de todos los días? Una siesta, un chocolate, lo que sea. Contame el de hoy: a qué hora fue y cómo estuvo.
+- **G5, un gusto grande (nueva, idea de Naza):** ¿Y un gusto grande? ¿En qué te gusta darte el lujo de gastar tu plata? Contame la última vez que te diste ese gusto.
