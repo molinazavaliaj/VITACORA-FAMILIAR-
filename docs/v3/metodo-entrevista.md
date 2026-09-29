@@ -595,3 +595,10 @@ Lo que le falta (Fable, a decidir):
 - **N1, algo nuevo que llegó a la casa:** ¿Te acordás de cuando llegó a tu casa algo que cambió la vida de todos, como la primera tele? Contame ese día: quién lo trajo, dónde lo pusieron, quiénes vinieron a verlo.
 - **N2, un hecho del mundo:** ¿Hubo algo que pasó lejos, en otro país, y que igual te llegó, como cuando el hombre pisó la luna? Contame dónde estabas cuando te enteraste y con quién lo comentaste.
 - **N3, votar:** ¿Te acordás de alguna vez que fuiste a votar y sentiste que era importante? Contame ese día: con quién fuiste, cómo estaba la calle, qué esperabas que pasara.
+
+### Bloque 12, vuelta 2 (Naza, 29/09)
+Aprobadas: HG2, HG3, DE1, cierre.
+- **HG1:** Cuando pasó algo grande, en el país o en el mundo, un Mundial, una guerra, una pandemia, ¿cómo lo pasaste vos? Contame lo que recuerdes: dónde estabas, si lo viviste de cerca o te lo contaron, y qué pasó ese día.
+- A decidir: con la pandemia en HG1, **HG4 (un día de la pandemia) sale**, o HG1 sin pandemia y HG4 se queda.
+
+Pendiente (Naza): vicios y adicciones. Propuesta: una liviana en el bloque 14 (el cigarrillo, el vino, el mate, como costumbre) y una con permiso en el bloque 11 ("algo de lo que te costó salir").
