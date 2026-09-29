@@ -830,3 +830,30 @@ Más ~14 cierres de bloque: **unos 200 turnos** para una vida completa. A 5 por 
 - **Nombres:** ninguna pregunta los pide; salen en las historias y se confirman en el dashboard. Propuesta: si un nombre central nunca apareció (mamá, papá, pareja, hijos), el dashboard lo pregunta como duda.
 - Dashboard: también corrige lo que quedó confuso (dudas).
 - Preguntas de la familia: cuándo van, a decidir (propuesta: al empezar el bloque siguiente, para no cortar un tema).
+
+### Cierre del proceso, vuelta 3 (Naza, 29/09)
+M6 aprobado. Ficha contra respuesta: aprobado. Nombres pendientes, dudosos o que nunca dijo: se preguntan en el dashboard (aprobado). **Preguntas de la familia: todas al final de la entrevista** (antes de LE9).
+
+## 24. Propuesta de núcleo (~80) para comparar con el total (29/09)
+
+Criterio: por bloque, las que mejor sacan una escena, un momento duro por etapa, y lo que el escritor necesita (padres, hermanos, pareja, hijos, trabajo, hoy, legado). Cierres solo en las etapas (bloques 2-5) y el final.
+
+| Bloque | Núcleo | Queda solo en el Completo |
+|---|---|---|
+| 1 Origen (3) | OR1 la época en que llegaste, OR2 la historia de los de antes, OR5 cómo se conocieron tus padres | OR6 nombre, OR6.2 apodo, cierre |
+| 2 Infancia (7) | CA1 primer recuerdo de la casa, CA2 mamá, CA3 papá, CA6 hermanos, CA10 comida familiar distinta, CA16 un día esperado, CA17 momento difícil | CA4, CA5, CA7, CA8, CA9, CA12, CA13, CA14, CA15 |
+| 3 Escuela (5) | ES1 primer día, ES2 maestra, ES5 mejor amigo, ES6 travesura, ES7 qué querías ser | ES3, ES8, ES9, ES10, ES13, ES14, ES15 |
+| 4 Adolescencia (6) | AD2 dónde pasabas los días, AD3 la barra, AD5 primera salida, AD6 primer amor, AD12 ya no eras chico, AD15 momento duro | AD1, AD2b, AD8, AD9, AD10, AD11, AD14, AD16, AD17 |
+| 5 Juventud (9) | JU1 irse de casa, JU2 después del colegio, JU4 aprender lo tuyo, JU5 lo militar, JU8 irse a vivir a otro lado, JU12 primer lugar propio, JU15 amigos, JU19 flechazo, JU17 momento duro | JU2b, JU9, JU10, JU11, JU13, JU16, JU18, JU20, visita a los viejos, primeros años por tu cuenta |
+| 6 Amor (7 con pareja; 1 sin) | AM0, AM1 el día que se conocieron, AM3 decidir juntos, AM4 el día que se casaron, AM8 un momento para guardar, AM9 el final, AM13 hoy / AM16 segunda pareja; sin pareja: AM15 | AM2, AM5, CS3, AM6, AM7, AM14, AM17, AM18, cierre |
+| 7 Trabajo (7) | TR1 primer trabajo, TR6 repaso, TR2 un día común, TR3 quien te dio una mano, TR5 día de orgullo, época sin trabajo o plata ajustada, TR9 el último día | OF1, MA1, OF2, TR4, OF4, OB1, OB2, TR8, CS1, CP1, PR1, cierre |
+| 8 Hijos y nietos (7 con; 3 sin) | HI0, HI2 el primero, HI2b los otros, HI3 cómo era cada uno, HI6 orgullo, HI8 nietos, HI9 algo con los nietos; sin hijos: HI10 | HI1, HI4, HI5, HI7, NC1, el nombre de cada hijo, lo tuyo en ellos, cierre |
+| 9 Lugares (3) | LU1 la casa tuya, LU4 el viaje, PA1 la pasión | LU3, LU5, LU6, LU7, hincha, LU8, cierre |
+| 10 Amistades (3) | AS1 el amigo de grande, AY1 alguien te ayudó, AS9 la cena | AS1b, AS4, AS5, RE1, HE2, AY2, AS7, cierre |
+| 11 Difíciles (3 + aviso) | PE1 pérdidas, PE5 salud, PE4 época dura de grande | PE6, ID1, PE9, PE10, cierre |
+| 12 Historia (3) | HG1 algo grande, HG4 la pandemia, DE1 lo que no se podía | HG2, HG3, la primera tele, votar, cierre |
+| 13 Giros (5) | GI1 el día que volverías a vivir, GI2 sin vuelta atrás, HJ6 el día que cambió algo, HJ1 lo que no se dio, GI9 chiquito frente a algo enorme | GI8, GI4, HJ5, soledad, el tiempo, lo heredado, los demás, el futuro, la política, cierre |
+| 14 Hoy (5) | HO1 un día de ahora, HO2 qué te hace reír, HO5 lo que más te gusta de tu vida, CO1 tu plato, FU1 lo que todavía querés hacer | HO9, PA2, HO2.2, HO4, HO6, vicios, música, comer, ver o leer, placer chiquito, gusto grande, cierre |
+| 15 Legado (6) | LE1 orgullo, LE2 el consejo, LE7 el título, LE8 hablale a tu familia, FOTO, LE9 lo que no te pregunté | LE6 |
+
+**Núcleo: ~79 preguntas + 4 cierres de etapa ≈ 83 turnos** (vida completa); sin pareja ni hijos, ~69. **Completo: ~184 + 14 cierres ≈ 200.**
