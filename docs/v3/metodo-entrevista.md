@@ -602,3 +602,5 @@ Aprobadas: HG2, HG3, DE1, cierre.
 - A decidir: con la pandemia en HG1, **HG4 (un día de la pandemia) sale**, o HG1 sin pandemia y HG4 se queda.
 
 Pendiente (Naza): vicios y adicciones. Propuesta: una liviana en el bloque 14 (el cigarrillo, el vino, el mate, como costumbre) y una con permiso en el bloque 11 ("algo de lo que te costó salir").
+
+Se suman N1 (algo nuevo que llegó a la casa) y N3 (votar). N2 (hecho del mundo) afuera: ya entra en HG1.
