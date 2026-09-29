@@ -254,3 +254,5 @@ Textos (elegida de Fable; la otra, de respaldo):
 - **ES13 (nueva, E):** ¿Fuiste siempre a la misma escuela, o te tocó cambiarte? Si te cambiaste, contame cómo fue el primer día en la nueva: cómo llegaste, qué te encontraste.
 - **ES14 (nueva, C):** ¿Cómo eran los recreos en tu escuela? ¿A qué se jugaba, dónde te metías vos? Contame algún recreo que se te haya quedado grabado.
 - **ES15 (nueva, C):** ¿Había algún compañero o compañera que no te caía bien? ¿Por qué? Contame alguna vez que se cruzaron.
+
+**Bloque 3 y 4: cerrados (29/09).** ES13, ES14, ES15 y el cierre de la adolescencia aprobados por Naza.
