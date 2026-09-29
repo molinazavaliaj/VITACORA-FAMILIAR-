@@ -201,3 +201,39 @@ Textos (elegida de Fable; la otra, de respaldo):
 - **Cierre:** Con esto cerramos tus años de escuela. Antes de seguir, ¿te quedó alguna historia de esa época dando vueltas, algo que no entró en ninguna pregunta? Contámela ahora, con calma, que la quiero escuchar.
 
 **Bloque 3 (Naza, 29/09):** aprobadas ES1, ES2, ES3, ES9. ES6 abre a contar más de una. ES8 pide cómo eran, sin el verano distinto. Nada de recortes por ahora: el recuento se hace al final.
+
+**Bloque 3: cerrado (29/09).** Aprobadas también ES5, ES7, ES10 y el cierre.
+
+## 8. Bloque 4 · Adolescencia (propuesta, redactada con Fable)
+
+| ID | Qué busca | Decisión | Tamaño |
+|---|---|---|---|
+| AD1 | Cómo era a los quince | queda, cierra en un día | B |
+| AD2 | La secundaria o lo que hacía a esa edad | queda, sin pedir el nombre del colegio; sirve al que no fue | B |
+| AD2b | El final de esa etapa | queda (último día, sirve si la terminó o la dejó) | E |
+| AD3 | El grupo de amigos | se reescribe y **absorbe AD4** (una noche o una salida) | B |
+| AD4 | Una noche o salida | **se junta en AD3** | — |
+| AD5 | Música y bailes | queda | C |
+| AD6 | Primer amor | queda, sin nombre y sin darlo por terminado | B |
+| AD6b | Cómo terminó el primer amor | **afuera** (da por terminado; para muchos es su pareja de hoy) | — |
+| AD7 | Primera plata ganada | **afuera** (repetida con TR1, primer trabajo) | — |
+| AD8 | Pelea con los padres | queda, con superlativo | E |
+| AD9 | Un lío de adolescente | queda, sin "qué aprendiste" | C |
+| AD10 | Un mayor que fue guía | queda | C |
+| AD10b | Qué fue de esa persona | **afuera** (da por terminada) | — |
+| AD11 | Deporte o pasión | queda | C |
+| AD12 | Qué hacer después | queda | C |
+| AD13 | Puerta | pasa a cierre de etapa | E |
+
+- **AD1:** ¿Cómo eras a los quince? Cómo te vestías, qué te gustaba hacer, qué te daba vergüenza. Y contame un día de esa edad que te acuerdes bien, como si lo estuvieras viviendo de nuevo.
+- **AD2:** Después de la primaria, ¿dónde pasabas los días a los trece, catorce años? ¿Cómo llegaste ahí? Contame una vez de esos años que te quedó grabada.
+- **AD2b:** ¿Te acordás de tu último día en el colegio? Como haya sido, contame cómo fue: qué pasó, con quién estabas, qué sentiste.
+- **AD3:** ¿Tenías una barra de amigos a los quince, dieciséis? ¿Cómo eran, qué hacían cuando se juntaban? Contame una noche o una salida con ellos que todavía te acordás.
+- **AD5:** ¿Qué se escuchaba en tu casa y en el barrio a los dieciséis, diecisiete? Contame de una vez que fuiste a bailar o a ver tocar a alguien: cómo te preparaste y cómo fue la noche.
+- **AD6:** ¿Te acordás de la primera vez que alguien te gustó en serio? Contame cómo se conocieron, cómo era esa persona, y un momento de los dos que todavía llevás guardado.
+- **AD8:** A esa edad uno choca con los de la casa. ¿Cuál fue la pelea más grande que tuviste con tu mamá o con tu papá? Contame por qué fue y cómo se vivió en tu casa.
+- **AD9:** ¿En qué lío te metiste de adolescente, de esos que ya no eran travesuras de chic{{o/a}}? Contame qué pasó y quién te sacó del apuro, o cómo saliste.
+- **AD10:** ¿Hubo alguien mayor que te marcó en esos años, alguien a quien escuchabas de verdad? ¿Cómo era con vos? Contame una vez que te dio una mano cuando la necesitabas.
+- **AD11:** ¿Qué te sacaba de la cama a los dieciséis? ¿Un deporte, un taller, algo que hacías con ganas? Contame un día de eso, uno en particular, desde el principio.
+- **AD12:** Llega un momento en que se decide qué viene después. ¿Cómo fue el tuyo? A veces lo decide uno, a veces lo decide la casa. Contame ese momento, quién habló y qué se dijo.
+- **Cierre:** Con esto cerramos tu adolescencia. Antes de pasar a los años de grande, ¿quedó algo de esa época que no encontró su pregunta? Un recuerdo suelto, una cara, una noche. Contámelo ahora, tranquil{{o/a}}, que hay tiempo.
