@@ -161,3 +161,7 @@ Textos (elegida de Fable; la otra, de respaldo):
 **Regla (Naza, 29/09):** mamá y papá se nombran igual para todos ("tu mamá", "tu papá"), sin el nombre de la ficha en la pregunta. Aplicado a CA2, CA3 y OR5. Aprobadas del bloque 2 en esta vuelta: CA9, CA13; CA6 con "más cercano".
 
 **Regla (Naza, 29/09):** los ejemplos de una pregunta no suponen familiares que la persona quizás no tuvo (nada de "el gato de tu abuela"). Mamá y papá quedan sin nombre (más simple). Aprobadas: CA2, CA3, CA6, CA10, CA12, CA14. Falta solo CA15.
+
+**CA7 vuelve (Naza, 29/09, opción B):** solo Completo, solo con más de un hermano, después de CA6: "¿Y con tus otros hermanos? Contame alguna historia de chicos con alguno de ellos."
+
+**Pendiente para los bloques de adultez (Naza, 29/09):** los hermanos no tienen ninguna pregunta después de la infancia. Proponer una sola, de grandes, con gate HERMANOS (una ayuda, un viaje, un reencuentro), al llegar al bloque 10 o al 14. Lo que cuente de un hermano en cualquier bloque el escritor lo ubica por fecha en su etapa.
