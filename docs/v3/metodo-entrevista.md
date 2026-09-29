@@ -486,3 +486,8 @@ Lo que le falta (Fable, a decidir):
 - **N3, lo que le enseñaron los hijos:** Los hijos también enseñan. ¿Qué aprendiste vos por ellos, algo que no sabías antes de ser {{padre/madre}}? Contame el día que te diste cuenta.
 - **N4, de padre a abuelo:** Dicen que uno es distinto de abuel{{o/a}} de lo que fue de {{padre/madre}}. ¿A vos te pasa? Contame en qué, y una vez con un nieto en que lo notaste.
 Nota: el bloque de pérdidas va después de este (la persona ya contó a sus hijos vivos antes de cualquier pregunta de pérdida).
+
+### Bloque 8, vuelta 2 (Naza, 29/09)
+Aprobadas: HI0, HI1, HI2, HI3, HI4, HI5, HI7, HI10, HI8, HI9, NC1, cierre.
+- **HI2b:** ¿Tuviste más hijos, o hay alguien más que sentís que criaste o cuidaste como propio? Si fue así, contame cómo fue la llegada de cada uno, con el tiempo que necesites. Cada llegada tiene su historia.
+- **HI6:** Contame una vez que se te hinchó el pecho por uno de tus hijos. No hace falta que sea algo que salió en el diario: qué hizo, dónde estabas, qué le dijiste. Y si se te vienen de varios, contalas todas, que hay lugar para cada uno.
