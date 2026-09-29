@@ -98,7 +98,7 @@ Voz del biógrafo (propuesta, sale de la corrección de Naza):
 - **CA4 (aprobada):** Contame el día que alguien de tu casa te enseñó a hacer algo por primera vez: andar en bicicleta, nadar, silbar. Cómo fue ese día.
 - **CA5 (aprobada):** Contame la vez que más te retaron o te castigaron de chic{{o/a}}: qué habías hecho, quién te retó y cómo terminó.
 - **CA6:** «pl: ¿Con cuál de tus hermanos eras más compinche de chic{{o/a}}? Contame alguna aventura que hayan hecho: qué se les ocurrió y cómo terminó. ‖ sg: ¿Cómo te llevabas con {{hermanos}} de chic{{o/a}}? Contame alguna aventura que hayan hecho: qué se les ocurrió y cómo terminó.»
-- **CA8 (solo si no tiene hermanos; no lo nombra, a pedido de Naza):** De chic{{o/a}}, ¿a qué jugabas en casa? Uno se arma un mundo con cualquier cosa: una sábana, un patio, un perro. ¿Te acordás de un día que te quedaste jugando hasta que te llamaron a comer? Contámelo.
+- **CA8 (aprobada; le llega a todos, sin gate de hijo único: Naza, 29/09):** De chic{{o/a}}, ¿a qué jugabas en casa? Uno se arma un mundo con cualquier cosa: una sábana, un patio, un perro. ¿Te acordás de un día que te quedaste jugando hasta que te llamaron a comer? Contámelo.
 - **CA9:** ¿Había alguien más que viviera con ustedes o que estuviera siempre en tu casa, como un abuelo, una tía o alguien que ayudaba? Si había alguien, contame alguna vez con esa persona que se te quedó grabada.
 - **CA10:** Pensá en las comidas en familia de cuando eras chic{{o/a}}: una Navidad, un cumpleaños, un domingo. ¿Hubo alguna distinta a todas, por algo que pasó? Contámela: quiénes estaban y qué pasó.
 - **CA12:** ¿Te acordás de algo que compraron en tu casa con mucho esfuerzo cuando eras chic{{o/a}}? Contame cómo fue el día que llegó.
@@ -109,7 +109,7 @@ Voz del biógrafo (propuesta, sale de la corrección de Naza):
 - **CA16 (aprobada):** Contame un día de chic{{o/a}} que esperabas con muchas ganas: qué era, quién estaba, qué pasó.
 - **CA17 (aprobada, sin marca de sensible):** Contame el momento más difícil que recuerdes de cuando eras chic{{o/a}}: qué pasó y cómo terminó.
 - **Cierre de etapa (reemplaza la puerta CA18 y la válvula; va al final de los bloques 2 a 5 con {{etapa}}), 3 versiones, redactadas con Fable:**
-  - A1: Ya casi terminamos con {{etapa}}, y me quedo pensando si te dejé algo afuera. ¿Hubo alguna historia que se te vino a la cabeza mientras contabas y no tuvo dónde entrar? Contámela ahora, tranquil{{o/a}}, que hay tiempo.
+  - **A1 (elegida por Naza):** Ya casi terminamos con {{etapa}}, y me quedo pensando si te dejé algo afuera. ¿Hubo alguna historia que se te vino a la cabeza mientras contabas y no tuvo dónde entrar? Contámela ahora, tranquil{{o/a}}, que hay tiempo.
   - A2: Con {{etapa}} ya casi estamos. Mientras contabas, ¿se te cruzó alguna cosa que quedó ahí, sin decirla? Puede ser algo chiquito, o algo que te da vueltas hace años. Lo que sea, contámelo ahora.
   - A3: Ya recorrimos {{etapa}}. ¿Con qué te quedás? Y si hay una historia que no tuvo su lugar, linda o de las otras, este es el momento. Contámela antes de que cerremos esta parte.
 - **D1:** sin cambios (se descarta sumar "de qué trabajaban": el trabajo del papá entra en CA3).
@@ -120,3 +120,27 @@ Cuentas: el bloque sigue dando 6 en Estándar (CA1, CA2, CA3, CA6 o CA8, CA10, C
 - ES6 (travesura) y ES11 (el día que te llegó algo; todavía dice "qué pasó con él") se revisan en el bloque 3 contra CA6 y CA14.
 - GI1 (día más feliz de tu vida) queda como el único "más feliz" del banco.
 - En `cazador-de-escenas.md`, el ejemplo del ancla "el estudio que armamos en el garaje" se parece al estudio de Naza: cambiarlo por uno inventado (texto a aprobar).
+
+## 6. Bloque 1 · Origen y raíces (propuesta, redactada con Fable)
+
+Lo que le contaron, de antes de que se acuerde. Es la primera impresión del biógrafo.
+
+| ID | Qué busca | Decisión | Tamaño |
+|---|---|---|---|
+| OR1 | Su nacimiento, contado en casa | queda, redacción nueva | B |
+| OR2 | La familia de antes | **junta OR2, OR3 y OR4**: una historia de sobremesa de los abuelos o más atrás, sin nombres, orígenes ni oficios | B |
+| OR3 | Abuelos del lado del papá | **se junta en OR2** | — |
+| OR4 | Historia de un antepasado | **se junta en OR2** | — |
+| OR5 | Cómo se conocieron los padres | queda, redacción nueva | C (a decidir en el recorte final) |
+| OR6 | Por qué su nombre | queda, redacción nueva | C |
+| OR6.2 | Su apodo | queda, redacción nueva (solo con apodo) | C |
+| OR7 | Puerta | afuera (el cierre de etapa va solo en los bloques 2 a 5) | — |
+
+Textos (elegida de Fable; la otra, de respaldo):
+- **OR1:** Arranquemos por el principio, por lo que te contaron. ¿Qué se decía en tu casa del día que naciste? Siempre hay algo: un apuro, una espera, alguien que llegó justo. Contame esa historia como te la contaron.
+  - Respaldo: Empecemos por antes de que te acuerdes. En tu casa, ¿qué se contaba de cuando naciste? Del día, del lugar, de quién andaba dando vueltas. ¿Hay alguna anécdota que se repetía? Contámela.
+- **OR2:** En todas las familias hay una historia de los de antes, de los abuelos o más atrás, que se contaba en las sobremesas: un viaje, una llegada, alguna hazaña. ¿Cuál era la de la tuya? Contámela como la escuchaste.
+  - Respaldo: Vamos más atrás, a tus abuelos o bisabuelos, de cualquiera de los dos lados. Aunque sepas poquito, algo se contaba en tu casa: de dónde venían, algo que hicieron. ¿Te acordás de una historia de ellos que se repetía en la mesa? Contámela.
+- **OR5:** ¿Cómo se conocieron tu mamá, {{madre}}, y tu papá, {{padre}}? Seguro en casa lo contaron más de una vez: un baile, una casualidad, alguien que los presentó. Contame ese día como te lo contaron.
+- **OR6:** ¿Por qué te pusieron {{nombre}}? En las casas siempre hay una historia atrás de un nombre: una discusión, un santo, alguien a quien querían mucho. Contame la que te contaron a vos, aunque sea cortita.
+- **OR6.2:** ¿Cómo fue que te quedó {{apodo}}? Seguro hay una anécdota atrás: una travesura, una palabra mal dicha, alguien que lo dijo una vez y pegó. Contámela, que los apodos dicen mucho de una casa.
