@@ -718,3 +718,5 @@ Aprobadas: LE7, LE9. Salen LE3 y DES1. **{{destinatarios}} se reemplaza por "tu 
 - **LE6:** Cuando la gente que te quiere piensa en vos, ¿qué te gustaría que se le venga a la cabeza? Una frase tuya, una imagen, una escena.
 - **LE8 (absorbe LE4, los deseos, que se pisaban):** Ahora sí, hablale a tu familia, a los que van a leer este libro. Lo que les dirías y lo que les deseás si los tuvieras sentados enfrente, sin apuro, de a uno. Nadie te corre.
 - **Mensaje final:** Hasta acá llegamos, {{nombre}}. Gracias por cada audio, por cada historia y por la confianza de contarlas así. Con todo lo que me contaste vamos a armar un libro que va a quedar en tu familia para siempre, y es bien tuyo. Antes de escribirlo vas a poder repasar lo que contaste, por si querés cambiar o agregar algo. Fue un gusto enorme escucharte.
+
+**Bloque 15: cerrado (29/09).** LE1, LE2, LE6, LE8 y el mensaje final aprobados. **Los 15 bloques quedaron revisados y aprobados por Naza (29/09).** Falta: pedidos de fotos, mensajes fijos, preguntas de datos (con la regla de no depender de la ficha), cazador, recuento final; después pasar todo a banco-v3.md y al código.
