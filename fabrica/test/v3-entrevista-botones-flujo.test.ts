@@ -42,7 +42,8 @@ describe('siguientePregunta: botones y ayuda (reglas 1 y 8)', () => {
     const conAyuda = pasos.flatMap((x) => (x.tipo === 'pregunta' && x.ayudaBotones ? [x.pregunta.id] : []));
     expect(conAyuda).toEqual(['CI1']);
     const conBotones = pasos.flatMap((x) => (x.tipo === 'pregunta' && x.botones ? [x.pregunta.id] : []));
-    expect(conBotones).toEqual(expect.arrayContaining(['CI1', 'CA6', 'CA17', 'AM0', 'AM3', 'AM9', 'HI0', 'HI8', 'PE1', 'FO1']));
+    // Sigue con su pareja: desde la prueba de Naza (30/09) no llega AM9; llegan AMH y AM21.
+    expect(conBotones).toEqual(expect.arrayContaining(['CI1', 'CA6', 'CA17', 'AM0', 'AMH', 'AM3', 'AM21', 'HI0', 'HI8', 'PE1', 'FO1']));
   });
 });
 

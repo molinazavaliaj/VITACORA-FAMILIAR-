@@ -128,7 +128,7 @@ describe('3. bienvenida en un solo mensaje (opción B de Fable, con el cambio de
     expect(bien.split('\n\n')).toHaveLength(3);
     expect(bien).toContain('Una persona que te quiere mucho');
     expect(bien).toContain('yo soy quien te va a entrevistar');
-    expect(bien).toContain('la pregunta que sigue te llega sola');
+    expect(bien).toContain('te mando la pregunta que sigue'); // párrafo 2 nuevo desde la prueba de Naza en la página (30/09)
     expect(bien).toContain('como si me lo estuvieras contando en persona');
     // Naza, 30/09: sin "eh", sin "mejor amigo", sin "nada", sin "dejalo ahí nomás".
     expect(bien).not.toMatch(/quien_regala|mates|bien tuya|mejor amigo|(?<![a-z])nada(?![a-z])|nomás|, eh(?![a-z])/);
@@ -179,7 +179,8 @@ describe('ronda 3 (Fable releyó la versión 4 como Rogelio; Naza, 30/09)', () =
 describe('ronda 4 (Fable leyó la versión 6; Naza, 30/09)', () => {
   it('1. CI14 sin el nombre (el acuse de antes ya lo dice)', () => {
     expect(p('CI14').texto).not.toContain('{{nombre}}');
-    expect(p('CI14').texto.startsWith('Con esto cerramos lo de hoy, y ya te conozco un poco más.')).toBe(true);
+    // "Con esto cerramos" pasó a "Hasta acá" después de la prueba de Naza en la página (30/09).
+    expect(p('CI14').texto.startsWith('Hasta acá lo de hoy, y ya te conozco un poco más.')).toBe(true);
   });
 
   it('2. LE8 arranca sola: después de LE9 no va acuse, ni con "paso"', () => {

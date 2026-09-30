@@ -1,12 +1,24 @@
-// Seis vidas de ejemplo para recorrer la entrevista (metodo-entrevista.md,
-// "Bloque 6, arreglo para quien se separó o enviudó y rehízo su vida").
+// Vidas de ejemplo para recorrer la entrevista (metodo-entrevista.md,
+// "Bloque 6, arreglo para quien se separó o enviudó y rehízo su vida"; desde
+// la prueba de Naza en la página, 30/09, el bloque 6 pregunta primero si la
+// pareja de ahora o la última sigue al lado: AMH).
 // INVENTADAS: nunca usar la vida de un narrador real. Solo traen las
 // respuestas que abren temas; al resto el simulador contesta "Sí, te cuento…".
 
+import { respuestaDeBoton } from './respuesta.js';
 import type { FichaTexto } from './texto.js';
 
 export type VidaEjemplo = {
-  clave: 'sigue-con-la-primera' | 'separada-sola' | 'separada-de-nuevo-en-pareja' | 'viuda-sola' | 'viuda-rehizo' | 'nunca-pareja-con-hijos' | 'nunca-pareja-sin-hijos';
+  clave:
+    | 'sigue-con-la-primera'
+    | 'separada-sola'
+    | 'separada-de-nuevo-en-pareja'
+    | 'viuda-sola'
+    | 'viuda-rehizo'
+    | 'muchas-parejas'
+    | 'madre-soltera'
+    | 'nunca-pareja-con-hijos'
+    | 'nunca-pareja-sin-hijos';
   nombre: string;
   ficha: FichaTexto;
   respuestas: Record<string, string>;
@@ -22,12 +34,16 @@ const FAMILIA_COMPLETA = {
   HI8: 'Sí, el primero nació un invierno y fui corriendo al hospital a conocerlo.',
 };
 
+const SIGUE = respuestaDeBoton('Sí, seguimos juntos');
+const YA_NO_ESTA = respuestaDeBoton('Ya no está conmigo');
+const FUE_LA_UNICA = respuestaDeBoton('Fue la única');
+
 export const VIDAS_EJEMPLO: readonly VidaEjemplo[] = [
   {
     clave: 'sigue-con-la-primera',
     nombre: 'Rogelio, sigue con su primera pareja',
     ficha: { nombre: 'Rogelio', genero: 'varon' },
-    respuestas: { ...FAMILIA_COMPLETA, AM0: 'Una sola vez, con Marta, desde los veinte años hasta hoy.', AM9: 'No, seguimos juntos.' },
+    respuestas: { ...FAMILIA_COMPLETA, AM0: 'Una sola vez, con Marta, desde los veinte años hasta hoy.', AMH: SIGUE, AM21: FUE_LA_UNICA },
   },
   {
     clave: 'separada-sola',
@@ -36,9 +52,10 @@ export const VIDAS_EJEMPLO: readonly VidaEjemplo[] = [
     respuestas: {
       ...FAMILIA_COMPLETA,
       AM0: 'Me enamoré dos veces, pero en serio fue una, con el padre de mis hijos.',
+      AMH: 'Ya no, nos separamos hace muchos años.',
       AM9: CONTO,
       AM19: 'Sí, desde entonces vivo sola y armé mi rutina con mis amigas del barrio.',
-      AM16: 'No, no hubo otro.',
+      AM21: 'No, en serio fue esa sola.',
     },
   },
   {
@@ -48,21 +65,21 @@ export const VIDAS_EJEMPLO: readonly VidaEjemplo[] = [
     respuestas: {
       ...FAMILIA_COMPLETA,
       AM0: 'Dos veces en serio: mi primer marido y el compañero que tengo hoy.',
-      AM9: CONTO,
-      AM19: 'Un par de años sola, trabajando mucho y saliendo con mis hermanas.',
-      AM16: 'Sí, a Julio lo conocí en un baile de jubilados y hace diez años que estamos juntos.',
+      AMH: 'Sí, a Julio lo conocí en un baile de jubilados y hace diez años que estamos juntos.',
+      AM21: 'Sí, mi primer marido: te cuento el verano que fuimos al mar con los chicos.',
     },
   },
   {
     clave: 'viuda-sola',
-    nombre: 'Amalia, enviudó y sigue sola',
+    nombre: 'Amalia, enviudó y sigue sola (un solo amor)',
     ficha: { nombre: 'Amalia', genero: 'mujer' },
     respuestas: {
       ...FAMILIA_COMPLETA,
       AM0: 'Una sola vez, con mi marido, cuarenta años juntos.',
+      AMH: YA_NO_ESTA,
       AM9: 'Él se enfermó hace cinco años y lo cuidé hasta el final, te lo cuento despacio.',
       AM19: 'Sí, ahora vivo sola, con la radio y las visitas de mis nietos los domingos.',
-      AM16: 'No.',
+      AM21: FUE_LA_UNICA,
     },
   },
   {
@@ -72,9 +89,33 @@ export const VIDAS_EJEMPLO: readonly VidaEjemplo[] = [
     respuestas: {
       ...FAMILIA_COMPLETA,
       AM0: 'Dos amores en serio: mi marido, que falleció, y Raúl, que llegó después.',
-      AM9: 'Mi marido falleció de repente una mañana de invierno, te lo cuento como fue.',
-      AM19: 'Unos años sola, con el taller de costura y mis hijos cerca.',
-      AM16: 'Sí, Raúl, lo conocí en el club y ahora compartimos todo.',
+      AMH: 'Sí, con Raúl; lo conocí en el club y ahora compartimos todo.',
+      AM21: 'Sí, mi marido, que falleció de repente; te cuento una tarde de domingo con él.',
+    },
+  },
+  {
+    clave: 'muchas-parejas',
+    nombre: 'Estela, muchas parejas y hoy con Hugo',
+    ficha: { nombre: 'Estela', genero: 'mujer' },
+    respuestas: {
+      ...FAMILIA_COMPLETA,
+      AM0: 'Muchas: dos casamientos, varios noviazgos, y hoy estoy con Hugo.',
+      AMH: SIGUE,
+      AM21: respuestaDeBoton('Sí, hubo otras'),
+    },
+  },
+  {
+    clave: 'madre-soltera',
+    nombre: 'Rosa, madre soltera; la última, un noviazgo que terminó',
+    ficha: { nombre: 'Rosa', genero: 'mujer' },
+    respuestas: {
+      ...FAMILIA_COMPLETA,
+      AM0: 'Dos noviazgos en serio; el último fue con el padre de mi hija.',
+      AMH: YA_NO_ESTA,
+      AM3: respuestaDeBoton('No llegamos a eso'),
+      AM9: CONTO,
+      AM21: 'Sí, el primero, de la juventud: te cuento un baile de carnaval.',
+      HI0: 'Sí, una hija, que crié sola.',
     },
   },
   {

@@ -15,8 +15,12 @@ import type { Boton, PreguntaEntrevista, ValeBoton } from './banco-md.js';
  */
 export type Interpretacion = 'no' | 'paso' | 'olvido' | 'olvido-a-medias' | 'no-ahondar' | 'ya-conto' | 'conto' | 'vacio';
 
-/** Lo que hace falta saber de la pregunta para interpretar: si es cierre, si es sensible y qué botones tiene. */
-export type PreguntaParaInterpretar = Pick<PreguntaEntrevista, 'id' | 'clase' | 'sensible'> & { botones?: readonly Boton[] };
+/**
+ * Lo que hace falta saber de la pregunta para interpretar: si es cierre, si
+ * es sensible y qué botones tiene. El texto, si viene, sirve para el olvido:
+ * lo que repite la pregunta no es un "pedacito" (prueba de Naza, 30/09).
+ */
+export type PreguntaParaInterpretar = Pick<PreguntaEntrevista, 'id' | 'clase' | 'sensible'> & { botones?: readonly Boton[]; texto?: string };
 
 /** Una pregunta común, para cuando no se sabe cuál es (una de la familia). */
 export const PREGUNTA_COMUN: PreguntaParaInterpretar = { id: '', clase: 'historia', sensible: false };
@@ -54,8 +58,11 @@ export function valeBoton(pregunta: Pick<PreguntaParaInterpretar, 'botones'>, te
   const b = pregunta.botones?.find((x) => x.texto === texto);
   if (b) return b.vale;
   if (/^s[ií](?![a-záéíóúñ])/i.test(texto.trim())) return 'si';
-  return normalizar(texto) === 'paso esta' ? 'paso' : 'no';
+  return BOTONES_DE_PASO.includes(normalizar(texto)) ? 'paso' : 'no';
 }
+
+/** [Paso esta] pasó a llamarse [Prefiero no contarla] (Naza, 30/09, prueba en la página); el viejo sigue valiendo paso en los estados guardados. */
+const BOTONES_DE_PASO = ['prefiero no contarla', 'paso esta'];
 
 // ---------------------------------------------------------------- palabras
 
@@ -137,8 +144,12 @@ const frases = (lista: string[]) => lista.map((x) => x.split(' '));
 export const PALABRAS_NO_CORTO = 15;
 /** Tope del "no" corto en cierres, LE9, sensibles y las que abren tema (regla 13). */
 export const PALABRAS_NO_LARGO = 40;
-/** Las 9 que abren tema (llevan botón de "Sí"; regla 1). */
-export const ABREN_TEMA: readonly string[] = ['CA6', 'JU8', 'AM0', 'AM3', 'AM9', 'AM16', 'AM20', 'HI0', 'HI8'];
+/**
+ * Las 8 que abren tema (llevan botón de "Sí"; regla 1). Desde la prueba de
+ * Naza en la página (30/09): entran AMH y AM21; salen AM9 (ya no abre tema:
+ * sigue con tope 40 por sensible), AM16 y AM20 (fuera del banco).
+ */
+export const ABREN_TEMA: readonly string[] = ['CA6', 'JU8', 'AM0', 'AMH', 'AM3', 'AM21', 'HI0', 'HI8'];
 const LE9 = 'LE9';
 
 /** Hasta cuántas palabras puede tener un "no" corto en esta pregunta (regla 13). */
@@ -161,7 +172,7 @@ const DESPUES_DE_PASO = new Set(['a', 'por', 'de', 'que', 'el', 'la', 'los', 'la
 const FRASES_PASO_SOLAS = frases(['siguiente', 'otra', 'salteala', 'esa no', 'eso no', 'de eso no', 'prefiero no', 'mejor no', 'no hablemos']);
 /** Las negativas completas: valen como paso aunque sigan palabras ("Eso me lo guardo, ya fue"). */
 const FRASES_PASO_COMPLETAS = frases([
-  'no quiero hablar de eso', 'prefiero no hablar de eso', 'prefiero no contarlo', 'eso me lo guardo', 'me lo guardo', 'dejemoslo ahi', 'mejor otra',
+  'no quiero hablar de eso', 'prefiero no hablar de eso', 'prefiero no contarlo', 'prefiero no contarla', 'eso me lo guardo', 'me lo guardo', 'dejemoslo ahi', 'mejor otra',
   // Después de la revisión: "De eso mejor no hablemos" y las formas con "esto" también son negativas completas.
   'no hablemos de eso', 'no hablemos de esto', 'no quiero hablar de esto', 'prefiero no hablar de esto', 'de eso no quiero hablar',
 ]);
@@ -242,10 +253,25 @@ function arrancaConOlvido(f: string[]): boolean {
   return finDelArranqueDeOlvido(f) >= 0;
 }
 
-function esOlvido(f: string[], pal: string[]): boolean {
+/** Una palabra "está en la pregunta" si está tal cual o, con 4 letras o más, si arranca igual ("marcado" y "marcó"). */
+const LETRAS_RAIZ = 4;
+
+function palabrasDeLaPregunta(texto: string | undefined): (w: string) => boolean {
+  if (!texto) return () => false;
+  const ws = fichas(texto).filter((w) => !esCorte(w));
+  const exactas = new Set(ws);
+  const raices = new Set(ws.filter((w) => w.length >= LETRAS_RAIZ).map((w) => w.slice(0, LETRAS_RAIZ)));
+  return (w) => exactas.has(w) || (w.length >= LETRAS_RAIZ && raices.has(w.slice(0, LETRAS_RAIZ)));
+}
+
+function esOlvido(f: string[], pal: string[], pregunta?: PreguntaParaInterpretar): boolean {
   if (pal.length > PALABRAS_OLVIDO || pal.some((w) => CONTRASTES.has(w))) return false;
   const fin = finDelArranqueDeOlvido(f);
-  if (fin >= 0) return f.slice(fin).filter((w) => !esCorte(w)).length <= DESPUES_DEL_OLVIDO;
+  if (fin >= 0) {
+    // Prueba de Naza (30/09): lo que repite la pregunta no es un pedacito ("No recuerdo, la verdad, algún maestro o maestra que me haya marcado en la primaria").
+    const estaEnLaPregunta = palabrasDeLaPregunta(pregunta?.texto);
+    return f.slice(fin).filter((w) => !esCorte(w) && !estaEnLaPregunta(w)).length <= DESPUES_DEL_OLVIDO;
+  }
   const todo = ` ${pal.join(' ')} `;
   if (` ${pal.slice(0, PRIMERAS_OLVIDO).join(' ')} `.includes(` ${SE_ME_BORRO} `)) return true;
   return MEMORIA.some((m) => todo.includes(` ${m} `)) && FALLA.some((x) => todo.includes(` ${x} `));
@@ -256,8 +282,8 @@ function esOlvido(f: string[], pal: string[]): boolean {
  * pero no es olvido (más de 20 palabras o con "pero/aunque"): "No me acuerdo
  * bien, pero sé que había un patio…". Contó algo; lleva M28.4.
  */
-function esOlvidoAMedias(f: string[], pal: string[]): boolean {
-  return arrancaConOlvido(f) && !esOlvido(f, pal);
+function esOlvidoAMedias(f: string[], pal: string[], pregunta?: PreguntaParaInterpretar): boolean {
+  return arrancaConOlvido(f) && !esOlvido(f, pal, pregunta);
 }
 
 /**
@@ -362,7 +388,23 @@ function esNoDicho(p: PreguntaParaInterpretar, f: string[], pal: string[]): bool
   // En un cierre o LE9, si agrega algo no es "no", aunque empiece con "no" o con la fórmula (segunda revisión de la ronda 2).
   if ((p.clase === 'cierre' || p.id === LE9) && agregaAlgo(pal)) return false;
   if (esNoCortoDicho(p, f, pal)) return true;
+  if (esYaNoEsta(p, f, pal)) return true;
   return esFormulaDeCierre(p, f, pal);
+}
+
+/**
+ * AMH ("¿esa persona sigue hoy a tu lado?"; Naza, 30/09, prueba en la
+ * página): además del "no" corto, una respuesta que arranca con "ya no" o con
+ * una palabra de final es un "no" (ya no está), con el tope de 40 palabras.
+ * "Sí, con Raúl; a mi primer marido lo perdí, falleció joven" es un sí.
+ */
+const AMH = 'AMH';
+const ARRANQUES_YA_NO_ESTA = frases([
+  'ya no', 'fallecio', 'murio', 'enviude', 'nos separamos', 'me separe', 'nos divorciamos', 'me divorcie', 'terminamos', 'cortamos',
+]);
+
+function esYaNoEsta(p: PreguntaParaInterpretar, f: string[], pal: string[]): boolean {
+  return p.id === AMH && pal.length <= topeNoCorto(p) && ARRANQUES_YA_NO_ESTA.some((a) => hayFraseEn(f, 0, a));
 }
 
 function esNoCortoDicho(p: PreguntaParaInterpretar, f: string[], pal: string[]): boolean {
@@ -397,8 +439,8 @@ export function interpretar(pregunta: PreguntaParaInterpretar, respuesta: string
   const pal = f.filter((w) => !esCorte(w));
   if (pal.length === 0) return 'vacio';
   if (esPasoDicho(f, pal)) return 'paso';
-  if (esOlvido(f, pal)) return 'olvido';
-  if (esOlvidoAMedias(f, pal)) return 'olvido-a-medias';
+  if (esOlvido(f, pal, pregunta)) return 'olvido';
+  if (esOlvidoAMedias(f, pal, pregunta)) return 'olvido-a-medias';
   if (esNoAhondar(f)) return 'no-ahondar';
   if (esNoDicho(pregunta, f, pal)) return 'no';
   if (esYaConto(pal)) return 'ya-conto';

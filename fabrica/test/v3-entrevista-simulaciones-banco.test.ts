@@ -22,13 +22,12 @@ describe('textos de preguntas aprobados (textos-finales.md, sección 2, con los 
     CA16: 'Contame un día de chic{{o/a}} que esperabas con muchas ganas: qué era, quién estaba, qué pasó. Y si no te vuelve un día en particular, contame qué cosas esperabas con ganas en esa época, que con eso me arreglo.',
     AD5: '¿Te acordás de la primera vez que saliste de noche, a un baile o a una fiesta? Contame cómo te preparaste, con quién fuiste y cómo fue esa noche. Y si la primera no te vuelve, contame cómo eran esas salidas en general.',
     JU12: 'Contame del primer lugar que fue tuyo, donde ya vivías por tu cuenta: cómo era, con qué lo fuiste armando, qué se veía por la ventana. Y esa primera noche ahí, ¿cómo fue? Si la noche justa no te vuelve, contame cómo eran los primeros tiempos ahí. Y si nunca te fuiste de la casa de tus viejos, contame el día en que esa casa pasó a ser tuya, o el rincón que siempre fue tuyo.',
-    AM0: 'Ahora vamos al amor. ¿Hubo alguien con quien tuviste una historia en serio? Si hubo, haceme un repaso corto: cuántas veces te enamoraste, cuáles llegaron a algo serio, más o menos en qué años. Después te pregunto más de la primera que fue en serio, y de las que vinieron después también va a haber lugar. Y si no hubo, también vale.',
-    AM1: 'Vamos a la primera que fue en serio. Contame el día que se conocieron: dónde fue, quién los presentó o cómo se cruzaron, y qué fue lo primero que te llamó la atención de esa persona. Si ya me lo contaste cuando hablamos de tu adolescencia, decímelo y vamos a lo que sigue.',
     AM3: 'Y después, ¿llegaron a armar la vida juntos: casarse, irse a vivir, lo que haya sido? Si llegaron, contame ese momento: quién lo dijo primero, o si se fue dando solo, dónde estaban, qué se dijeron. Si ya me lo contaste recién, con decírmelo alcanza.',
     AM4: 'Hay días que quedan grabados para siempre: el del casamiento, o el primero viviendo juntos. Contame ese día como si lo estuvieras viendo: el lugar, la gente, la ropa, lo que más te quedó. Si ya me lo contaste recién, con decírmelo alcanza.',
     AM13: 'Contame una pelea que tuvieron, de esas que después dan risa: por qué fue, quién aflojó primero y cómo hicieron las paces. Si no hubo ninguna que hoy dé risa, con decírmelo alcanza.',
     AM19: 'Y después, cuando quedaste por tu cuenta, ¿cómo fueron esos primeros tiempos? Qué cambió en la casa y en los días, quién anduvo cerca. Si ese tiempo es el de ahora, contame igual cómo lo estás llevando. Y si no hubo un tiempo así, con decírmelo alcanza.',
     // AM16 y AM20 cambiaron otra vez en la ronda 2 (Naza, 30/09): v3-entrevista-ronda2.test.ts.
+    // AM0, AM1 y CI1 cambiaron otra vez después de la prueba de Naza en la página (30/09): v3-entrevista-prueba-naza.test.ts.
     AM14: '¿Hubo algún amor que te marcó, aunque haya durado poco o no haya llegado a nada? Si lo hubo, contame cómo se cruzaron y el momento que más te acordás de esa persona. Y si no hubo, con un no alcanza.',
     PG1: 'Contame de tus viejos cuando vos ya eras grande, con tu propia vida. Una vez que los notaste más viejos, un gesto, algo chiquito, y qué te pasó a vos. Y si te tocó cuidarlos, contame cómo era un día de esos: qué hacías por ellos, qué te decían. Si no los tuviste cerca, contame cómo fue eso.',
     HS1: '¿Cómo fue criar a tus hijos? Quién estaba cerca, cómo se repartían las cosas, o si te tocó llevarla sol{{o/a}}. Contame un día de esa época que te acuerdes bien.',
@@ -40,7 +39,6 @@ describe('textos de preguntas aprobados (textos-finales.md, sección 2, con los 
     HO2: '¿Qué cosas te hacen gracia hoy, qué te hace reír? Contame la última vez que te reíste con ganas: dónde estabas y qué había pasado. Y si la última no te vuelve, contame con qué te reís seguido.',
     PE1: 'Puede que ya me hayas hablado de alguna pérdida; acá hay lugar para lo que no entró. Si perdiste a alguien importante, contame de cada uno lo que quieras: qué era para vos, cómo fueron los días de después y cómo lo fuiste llevando. Y si hay un momento con alguna de esas personas que te guste recordar, contámelo también.',
     PE4: '¿Hubo alguna época dura en tu vida de grande que creas que no puede quedar afuera de tu historia? ¿Algo que te marcó? Si querés, contame qué pasó y cómo lo viviste. Y si ya me la contaste, con decírmelo alcanza.',
-    CI1: 'Con esto cerramos lo de tu familia de antes, la de antes de que llegaras vos. Y me pregunto si se me escapó algo: una historia de tus abuelos, de tus viejos de jóvenes, de esa casa. Si hay una dando vueltas, contámela ahora. Y si algo se te viene más tarde, a cualquier hora, mandámelo cuando quieras: va al libro igual.',
     FO1: 'Otra cosa, {{nombre}}. ¿Hay alguna foto, en el celular o en algún cajón de tu casa, que quieras que quede para siempre en este libro? Si la tenés, sacale una foto y mandámela, y después contame en un audio qué se ve y quiénes están. Tomate el tiempo que necesites para buscarla: la pregunta que sigue te la mando cuando me llegue la foto o me digas algo. Y si no la encontrás, no pasa nada: el libro va igual, y la podés mandar más adelante.',
     // FIN sin "y es bien tuyo" (duda 4, Naza) y con la frase de la foto.
     // FIN: desde la ronda 2 la frase de la foto va con la variante «sino:FO1» (sin ella si tocó [No tengo foto]).
@@ -52,15 +50,15 @@ describe('textos de preguntas aprobados (textos-finales.md, sección 2, con los 
   });
 
   it('son 28 preguntas que cambian (con FO1 y FIN) más AM20, que es nueva (AM16 y AM20 se prueban en la ronda 2)', () => {
-    expect(Object.keys(APROBADOS)).toHaveLength(27);
+    expect(Object.keys(APROBADOS)).toHaveLength(24); // 27 menos AM0, AM1 y CI1 (cambiaron en la prueba de Naza)
   });
 
   it('HI2b se saca del banco (Naza, 30/09: estorba; HI0 ya pide presentarlos a todos)', () => {
     expect(preguntaPorId('HI2b')).toBeUndefined();
   });
 
-  it('AM9 no cambia de texto', () => {
-    expect(texto('AM9')).toBe('Si esa historia tuvo un final, una separación o una despedida, ¿querés contármelo? Solo lo que vos quieras. Y si no querés, con decir "paso" alcanza; lo demás de tu historia sigue igual.');
+  it('AM9 no cambió en las simulaciones (sí después de la prueba de Naza en la página: v3-entrevista-prueba-naza.test.ts)', () => {
+    expect(texto('AM9').startsWith('Si querés, contame cómo fue el final de esa historia')).toBe(true);
   });
 });
 
@@ -98,7 +96,7 @@ describe('mensajes fijos aprobados (textos-finales.md, sección 3)', () => {
 
   it('los mensajes nuevos van después de M26, antes de las dudas del dashboard', () => {
     const ids = MENSAJES.map((m) => m.id);
-    expect(ids.slice(ids.indexOf('M26'), ids.indexOf('DD1'))).toEqual(['M26', 'M27.1', 'M27.2', 'M27.3', 'M28.1', 'M28.2', 'M28.3', 'M28.4', 'M29', 'M30', 'M31', 'M32.1', 'M32.2']);
+    expect(ids.slice(ids.indexOf('M26'), ids.indexOf('DD1'))).toEqual(['M26', 'M27.1', 'M27.2', 'M27.3', 'M28.1', 'M28.2', 'M28.3', 'M28.4', 'M28.5', 'M29', 'M30', 'M31', 'M32.1', 'M32.2']);
   });
 });
 
@@ -111,12 +109,13 @@ describe('dependencias y orden (textos-finales.md, reglas 19 a 25)', () => {
   it('AM13 depende de AM3 y va después de AM6 y antes de AM8 (regla 20)', () => {
     expect(dep('AM13')).toBe('si:AM3');
     const b6 = BANCO.filter((p) => p.bloque === 6).map((p) => p.id);
-    expect(b6).toEqual(['AM0', 'AM1', 'AM2', 'AM3', 'AM4', 'AM5', 'AM6', 'AM13', 'AM8', 'AM9', 'AM7', 'AM19', 'AM16', 'AM20', 'AM17', 'AM14', 'AM15', 'CI6']);
+    // Con AMH y AM21 (prueba de Naza en la página, 30/09).
+    expect(b6).toEqual(['AM0', 'AMH', 'AM1', 'AM2', 'AM3', 'AM4', 'AM5', 'AM6', 'AM13', 'AM8', 'AM9', 'AM7', 'AM19', 'AM21', 'AM17', 'AM14', 'AM15', 'CI6']);
   });
 
-  it('AM20 es nueva, del núcleo, historia, no sensible, y depende de AM16 (regla 21)', () => {
-    expect(preguntaPorId('AM20')).toMatchObject({ bloque: 6, parte: 'nucleo', clase: 'historia', sensible: false });
-    expect(dep('AM20')).toBe('si:AM16');
+  it('AM20 entró en las simulaciones (regla 21) y salió después de la prueba de Naza en la página: la reemplaza AM21', () => {
+    expect(preguntaPorId('AM20')).toBeUndefined();
+    expect(dep('AM21')).toBe('si:AM0');
   });
 
   it('HI8 depende de HI0 (regla 22); HI3, HS1 y HI6 de HI2 (regla 24)', () => {
@@ -129,21 +128,21 @@ describe('dependencias y orden (textos-finales.md, reglas 19 a 25)', () => {
 describe('botones (textos-finales.md, sección 1 y regla 1; PLAN-codigo.md)', () => {
   const botones = (id: string) => (preguntaPorId(id)!.botones ?? []).map((b) => `${b.texto}=${b.vale}`);
 
-  it('las 9 que abren tema llevan Sí y No (AM9 además Paso esta)', () => {
+  it('las que abren tema llevan Sí y No (desde la prueba de Naza: AMH y AM21; AM9 solo [Prefiero no contarla])', () => {
     expect(botones('CA6')).toEqual(['Sí, tuve=si', 'No tuve hermanos=no']);
     expect(botones('JU8')).toEqual(['Sí, me mudé=si', 'No, nunca me mudé=no']);
     expect(botones('AM0')).toEqual(['Sí, hubo=si', 'No hubo=no']);
     expect(botones('AM3')).toEqual(['Sí=si', 'No llegamos a eso=no']);
-    expect(botones('AM9')).toEqual(['Sí, hubo un final=si', 'Seguimos juntos=no', 'Paso esta=paso']);
-    expect(botones('AM16')).toEqual(['Sí, hubo otro=si', 'No, nadie más=no']);
-    expect(botones('AM20')).toEqual(['Sí, hubo=si', 'Nadie en el medio=no']);
+    expect(botones('AMH')).toEqual(['Sí, seguimos juntos=si', 'Ya no está conmigo=no']);
+    expect(botones('AM9')).toEqual(['Prefiero no contarla=paso']);
+    expect(botones('AM21')).toEqual(['Sí, hubo otras=si', 'Fue la única=no']);
     expect(botones('HI0')).toEqual(['Sí, tuve=si', 'No tuve hijos=no']);
     expect(botones('HI8')).toEqual(['Sí, llegaron=si', 'No hay nietos=no']);
   });
 
-  it('las 7 sensibles llevan [Paso esta]; desde la ronda 2, CA17, AD15, JU17, TR11 y PE4 también [No, nada así]', () => {
-    for (const id of ['PE1', 'PE5']) expect(botones(id), id).toEqual(['Paso esta=paso']);
-    for (const id of ['CA17', 'AD15', 'JU17', 'TR11', 'PE4']) expect(botones(id), id).toEqual(['Paso esta=paso', 'No, nada así=no']);
+  it('las 7 sensibles llevan [Prefiero no contarla] (antes [Paso esta]); desde la ronda 2, CA17, AD15, JU17, TR11 y PE4 también [No, nada así]', () => {
+    for (const id of ['PE1', 'PE5']) expect(botones(id), id).toEqual(['Prefiero no contarla=paso']);
+    for (const id of ['CA17', 'AD15', 'JU17', 'TR11', 'PE4']) expect(botones(id), id).toEqual(['Prefiero no contarla=paso', 'No, nada así=no']);
   });
 
   it('los 14 cierres llevan solo [No, está todo]; FO1 [No tengo foto]', () => {

@@ -14,13 +14,13 @@
 // Botones (Naza, 30/09, simulaciones): van debajo del mensaje como
 // "[botones: (Sí, tuve) (No tuve hijos)]". Con un botón de "Sí" llega M30 solo
 // y la pregunta sigue esperando: el texto siguiente se suma a esa respuesta.
-// Con "No" o "Paso esta" la respuesta queda cerrada y sigue la charla.
+// Con "No" o "Prefiero no contarla" (y el "Sí" de AMH) la respuesta queda cerrada y sigue la charla.
 
 import { readFileSync, writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { mensajePorId, NOMBRES_BLOQUE, preguntaPorId } from '../src/v3/entrevista/banco.js';
 import { alTocarBoton, mensajesDespues, siguientePregunta, type PreguntaFamilia } from '../src/v3/entrevista/flujo.js';
-import { acuseDeTurno, anotarAcuse, armarTurno, entradaSegunAcuse, vueltasEnCero, type AcusePendiente, type Vueltas } from '../src/v3/entrevista/mensajes.js';
+import { acuseDeTurno, anotarAcuse, armarTurno, entradaSegunAcuse, preguntaSegunAcuse, vueltasEnCero, type AcusePendiente, type Vueltas } from '../src/v3/entrevista/mensajes.js';
 import { sumarAudio } from '../src/v3/entrevista/respuesta.js';
 import { renderizar, type FichaTexto } from '../src/v3/entrevista/texto.js';
 
@@ -108,7 +108,7 @@ export function responder(anterior: EstadoSimulacion, respuesta: string): Result
 
 /**
  * Toca un botón de la pregunta que está esperando. "Sí": llega M30 solo y se
- * sigue esperando la misma pregunta. "No" o "Paso esta": la respuesta queda
+ * sigue esperando la misma pregunta. "No" o "Prefiero no contarla": la respuesta queda
  * cerrada y sigue la charla (alTocarBoton en flujo.ts).
  */
 export function tocarBoton(anterior: EstadoSimulacion, texto: string): Resultado {
@@ -150,6 +150,7 @@ function cerrarRespuesta(estado: EstadoSimulacion): void {
   } else {
     estado.vueltas.M27 ??= 0; // estados de antes de las simulaciones
     estado.vueltas.M32 ??= 0; // y de antes de la ronda 2
+    estado.vueltas['M28.4'] ??= 0; // y de antes de la prueba de Naza en la página
     for (const fam of mensajesDespues(p, r, anteriores)) estado.acuse = anotarAcuse(fam, estado.vueltas);
   }
   avanzar(estado);
@@ -176,7 +177,11 @@ function avanzar(e: EstadoSimulacion): void {
     const quePregunta = preguntaPorId(t.pregunta) ?? { id: t.pregunta, clase: 'historia' as const };
     const a = e.acuse;
     const idAcuse = a && acuseDeTurno(a.familia, a.n, siguiente, quePregunta);
-    if (t.entrada) textos[t.entrada] = renderizar(entradaSegunAcuse(mensajePorId(t.entrada)!.texto, idAcuse && mensajePorId(idAcuse)?.texto), e.ficha);
+    const textoAcuse = idAcuse ? mensajePorId(idAcuse)?.texto : undefined;
+    if (t.entrada) textos[t.entrada] = renderizar(entradaSegunAcuse(mensajePorId(t.entrada)!.texto, textoAcuse), e.ficha);
+    // FO1 va sin el nombre si el acuse pegado ya lo dice (prueba de Naza en la página, 30/09).
+    const delBanco = preguntaPorId(t.pregunta);
+    if (!t.entrada && delBanco) textos[t.pregunta] = renderizar(preguntaSegunAcuse(t.pregunta, delBanco.texto, textoAcuse), e.ficha, respuestas);
     const porId = armarTurno({ acuse: idAcuse, familia: a?.familia, entrada: t.entrada, pregunta: t.pregunta, m1: t.conM1 ? 'M1' : undefined, ayuda: t.ayuda ? 'M31' : undefined });
     for (const m of porId) e.charla.push({ de: 'bio', partes: m.split('\n').map((id) => ({ id, texto: textos[id] ?? texto(id) })) });
     // Los botones van debajo del mensaje de la pregunta (el último del turno).

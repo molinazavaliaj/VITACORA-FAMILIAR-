@@ -43,7 +43,9 @@ describe('M1 solo donde aplica (Naza, 30/09)', () => {
   const conM1 = (clave: string) => preguntas(recorrer(clave)).filter((p) => p.conM1).map((p) => p.pregunta.id);
 
   it('vida completa: las 3 primeras, las 6 que abren tema y las del bloque 11', () => {
-    expect(conM1('sigue-con-la-primera')).toEqual(['OR1', 'OR2', 'OR5', 'CA6', 'JU8', 'AM0', 'AM9', 'HI0', 'HI8', 'PE1', 'PE5', 'PE4']);
+    // Desde la prueba de Naza en la página (30/09) AM9 solo llega si esa persona ya no está: acá sigue.
+    expect(conM1('sigue-con-la-primera')).toEqual(['OR1', 'OR2', 'OR5', 'CA6', 'JU8', 'AM0', 'HI0', 'HI8', 'PE1', 'PE5', 'PE4']);
+    expect(conM1('viuda-sola')).toContain('AM9');
   });
 
   it('sin pareja: AM9 no llega, así que tampoco su M1; sin hijos, desde las simulaciones tampoco HI8', () => {

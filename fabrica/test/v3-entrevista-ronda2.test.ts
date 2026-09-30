@@ -46,28 +46,24 @@ describe('1. en cierres y LE9, "está todo / es todo / ya está / nada más" al 
 
 describe('2. [No, nada así] en CA17, AD15, JU17, TR11 y PE4', () => {
   const botones = (id: string) => (p(id).botones ?? []).map((b) => `${b.texto}=${b.vale}`);
-  it.each(['CA17', 'AD15', 'JU17', 'TR11', 'PE4'])('%s: [Paso esta] y [No, nada así]', (id) => {
-    expect(botones(id)).toEqual(['Paso esta=paso', 'No, nada así=no']);
+  // Desde la prueba de Naza en la página (30/09) [Paso esta] se llama [Prefiero no contarla].
+  it.each(['CA17', 'AD15', 'JU17', 'TR11', 'PE4'])('%s: [Prefiero no contarla] y [No, nada así]', (id) => {
+    expect(botones(id)).toEqual(['Prefiero no contarla=paso', 'No, nada así=no']);
     expect(mensajesDespues(p(id), respuestaDeBoton('No, nada así'))).toEqual(['M25']);
   });
 
-  it('PE1 y PE5 siguen solo con [Paso esta]', () => {
-    expect(botones('PE1')).toEqual(['Paso esta=paso']);
-    expect(botones('PE5')).toEqual(['Paso esta=paso']);
+  it('PE1 y PE5 siguen solo con [Prefiero no contarla] (antes [Paso esta])', () => {
+    expect(botones('PE1')).toEqual(['Prefiero no contarla=paso']);
+    expect(botones('PE5')).toEqual(['Prefiero no contarla=paso']);
   });
 });
 
 describe('3. AM16 y AM20, textos nuevos', () => {
-  it('AM16', () => {
-    expect(p('AM16').texto).toBe(
-      'Y más adelante, ¿hubo otro amor? Si hubo, contame por ahora solo del que compartís hoy, o del último: el día que se conocieron y un momento de los dos que te haya quedado. De las del medio, si hubo, te pregunto después.',
-    );
-  });
-
-  it('AM20 (el resto igual)', () => {
-    expect(p('AM20').texto).toBe(
-      'Ahora sí, las del medio. Entre la primera que fue en serio y la de ahora, o la última, ¿hubo otras historias que fueron en serio? Un casamiento, alguien con quien viviste años. Este es su lugar, aunque me las hayas nombrado en el repaso: contame de cada una lo que quieras que quede, cómo se cruzaron y cómo terminó.',
-    );
+  // Después de la prueba de Naza en la página (30/09) salieron del banco: AM21 ("las de antes") las reemplaza.
+  // Sus textos quedan en docs/v3/banco-descartadas.md y en simulaciones/textos-prueba-naza.md.
+  it('ya no están en el banco', () => {
+    expect(preguntaPorId('AM16')).toBeUndefined();
+    expect(preguntaPorId('AM20')).toBeUndefined();
   });
 });
 
@@ -78,12 +74,14 @@ describe('4. AM19 solo si convivió (si:AM9 y si:AM3)', () => {
       { tipo: 'si', de: 'AM9' },
       { tipo: 'paso', de: 'AM9' },
     ]);
-    expect(p('AM19').depende).toEqual([{ tipo: 'si', de: 'AM9', y: [{ tipo: 'si', de: 'AM3' }] }]);
+    // Desde la prueba de Naza en la página (30/09): sino:AMH y si:AM3.
+    expect(p('AM19').depende).toEqual([{ tipo: 'sino', de: 'AMH', y: [{ tipo: 'si', de: 'AM3' }] }]);
   });
 
-  it('Aníbal: AM3 [No llegamos a eso] y AM9 contó un final → no va AM19', () => {
-    expect(cumple(p('AM19'), r({ AM3: respuestaDeBoton('No llegamos a eso'), AM9: CUENTA }))).toBe(false);
-    expect(cumple(p('AM19'), r({ AM3: CUENTA, AM9: CUENTA }))).toBe(true);
+  it('Aníbal: AM3 [No llegamos a eso] y ya no está → no va AM19', () => {
+    const yaNo = respuestaDeBoton('Ya no está conmigo');
+    expect(cumple(p('AM19'), r({ AMH: yaNo, AM3: respuestaDeBoton('No llegamos a eso'), AM9: CUENTA }))).toBe(false);
+    expect(cumple(p('AM19'), r({ AMH: yaNo, AM3: CUENTA, AM9: CUENTA }))).toBe(true);
   });
 });
 
@@ -166,13 +164,14 @@ describe('7. M28.4: olvido a medias', () => {
 });
 
 describe('8. AM16 va igual tras paso en AM9; FIN según FO1; M26 delante de AM20', () => {
-  it('AM9 [Paso esta] o "paso": no va AM19, AM16 sí', () => {
-    for (const am9 of [respuestaDeBoton('Paso esta'), 'Paso']) {
-      const resp = r({ AM3: CUENTA, AM9: am9 });
-      expect(cumple(p('AM19'), resp)).toBe(false);
-      expect(cumple(p('AM16'), resp)).toBe(true);
+  // Desde la prueba de Naza en la página (30/09) AM16 no existe: AM21 llega a todos los que tuvieron pareja, y
+  // AM19 ya no mira AM9 sino AMH.
+  it('AM9 [Prefiero no contarla] o "paso": AM19 va igual (si convivieron) y AM21 también', () => {
+    for (const am9 of [respuestaDeBoton('Prefiero no contarla'), 'Paso']) {
+      const resp = r({ AM0: CUENTA, AMH: respuestaDeBoton('Ya no está conmigo'), AM3: CUENTA, AM9: am9 });
+      expect(cumple(p('AM19'), resp)).toBe(true);
+      expect(cumple(p('AM21'), resp)).toBe(true);
     }
-    expect(cumple(p('AM16'), r({ AM3: CUENTA, AM9: respuestaDeBoton('Seguimos juntos') }))).toBe(false);
   });
 
   it('FIN sin la frase de la foto si tocó [No tengo foto]; con ella si no', () => {
@@ -187,8 +186,8 @@ describe('8. AM16 va igual tras paso en AM9; FIN según FO1; M26 delante de AM20
     );
   });
 
-  it('delante de AM20 el acuse común es M26', () => {
-    expect(acuseAntesDe('M3.7', 'M3', p('AM20'))).toBe('M26');
+  it('delante de AM21 (antes AM20) el acuse común es M26', () => {
+    expect(acuseAntesDe('M3.7', 'M3', p('AM21'))).toBe('M26');
   });
 });
 

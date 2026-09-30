@@ -11,7 +11,7 @@
 import { writeFileSync } from 'node:fs';
 import { condicionesDe, mensajePorId, NOMBRES_BLOQUE, BANCO, preguntaPorId } from '../src/v3/entrevista/banco.js';
 import { mensajesDespues, type PreguntaFamilia } from '../src/v3/entrevista/flujo.js';
-import { acuseDeTurno, anotarAcuse, armarTurno, entradaSegunAcuse, vueltasEnCero, type AcusePendiente } from '../src/v3/entrevista/mensajes.js';
+import { acuseDeTurno, anotarAcuse, armarTurno, entradaSegunAcuse, preguntaSegunAcuse, vueltasEnCero, type AcusePendiente } from '../src/v3/entrevista/mensajes.js';
 import { cuentaComoPregunta, simularRecorrido } from '../src/v3/entrevista/seleccion.js';
 import { renderizar, type FichaTexto } from '../src/v3/entrevista/texto.js';
 import { VIDAS_EJEMPLO } from '../src/v3/entrevista/vidas-ejemplo.js';
@@ -62,7 +62,11 @@ function mandar(t: { entrada?: string; pregunta: string; conM1?: boolean; ayuda?
   const quePregunta = preguntaPorId(t.pregunta) ?? { id: t.pregunta, clase: 'historia' as const };
   const idAcuse = acuse && acuseDeTurno(acuse.familia, acuse.n, siguiente, quePregunta);
   // Si el acuse ya dice el nombre, la entrada del mismo mensaje va sin el nombre.
-  if (t.entrada) textos[t.entrada] = renderizar(entradaSegunAcuse(mensajePorId(t.entrada)!.texto, idAcuse && mensajePorId(idAcuse)?.texto), ficha);
+  const textoAcuse = idAcuse ? mensajePorId(idAcuse)?.texto : undefined;
+  if (t.entrada) textos[t.entrada] = renderizar(entradaSegunAcuse(mensajePorId(t.entrada)!.texto, textoAcuse), ficha);
+  // FO1 va sin el nombre si el acuse pegado ya lo dice (prueba de Naza en la página, 30/09).
+  const delBanco = preguntaPorId(t.pregunta);
+  if (!t.entrada && delBanco) textos[t.pregunta] = renderizar(preguntaSegunAcuse(t.pregunta, delBanco.texto, textoAcuse), ficha, anteriores);
   const porId = armarTurno({ acuse: idAcuse, familia: acuse?.familia, entrada: t.entrada, pregunta: t.pregunta, m1: t.conM1 ? 'M1' : undefined, ayuda: t.ayuda ? 'M31' : undefined });
   for (const m of porId) globos.push({ de: 'bio', partes: m.split('\n').map((id) => ({ id, texto: textos[id] ?? texto(id) })) });
   acuse = undefined;

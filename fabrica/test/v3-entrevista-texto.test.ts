@@ -35,21 +35,22 @@ describe('entrevista: renderizar', () => {
     expect(renderizar(mensajePorId('M10')!.texto, mujer)).not.toContain('{{etapa}}'); // 30/09: M10 ya no usa {{etapa}}
   });
 
-  it('AM7: "repite" si AM9 fue un "no" corto; "repetía" si contó un final, dijo "paso" o no hay respuesta', () => {
+  // Desde la prueba de Naza en la página (30/09) la variante mira AMH ("¿esa persona sigue hoy a tu lado?"), no AM9.
+  it('AM7: "repetía" si AMH fue un "no" (ya no está); "repite" si sigue o no hay respuesta', () => {
     const am7 = texto('AM7');
-    expect(idsEnVariantes(am7)).toEqual(['AM9']);
-    const con = (am9?: string) => renderizar(am7, mujer, am9 === undefined ? undefined : new Map([['AM9', am9]]));
-    expect(con('No, seguimos juntos.')).toBe(
+    expect(idsEnVariantes(am7)).toEqual(['AMH']);
+    const con = (amh?: string) => renderizar(am7, mujer, amh === undefined ? undefined : new Map([['AMH', amh]]));
+    expect(con('Sí, seguimos juntos.')).toBe(
       'Contame algo muy de esa persona: una frase que repite, una costumbre, una manía. Y una vez puntual en que salió eso, para que quien lea la tenga enfrente.',
     );
-    expect(con('Nos separamos hace muchos años, después de una época difícil para los dos.')).toContain('una frase que repetía, una costumbre');
-    expect(con('paso')).toContain('una frase que repetía,');
-    expect(con()).toContain('una frase que repetía,');
+    expect(con('No, ya no.')).toContain('una frase que repetía, una costumbre');
+    expect(con('Ya no, nos separamos hace muchos años.')).toContain('una frase que repetía,');
+    expect(con()).toContain('una frase que repite,');
   });
 
   it('ningún texto del banco queda con marcas de género ni variantes sin resolver', () => {
     for (const id of ['CA2', 'AM7', 'HI5', 'HS1', 'GI9', 'FI1', 'LE2']) {
-      const t = renderizar(texto(id), varon, new Map([['AM9', 'No.']]));
+      const t = renderizar(texto(id), varon, new Map([['AMH', 'No.']]));
       expect(t, id).not.toMatch(/\{\{|«|»/);
     }
   });

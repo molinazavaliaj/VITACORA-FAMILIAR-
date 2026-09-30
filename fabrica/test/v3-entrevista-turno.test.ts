@@ -164,9 +164,9 @@ describe('botones (Naza, 30/09, simulaciones)', () => {
     expect(r.estado.esperando).toBe('HI10');
   });
 
-  it('[Paso esta] en una sensible: M27 arriba de lo que sigue', () => {
+  it('[Prefiero no contarla] (antes [Paso esta]) en una sensible: M27 arriba de lo que sigue', () => {
     let r = hasta('CA17');
-    r = tocarBoton(r.estado, 'Paso esta');
+    r = tocarBoton(r.estado, 'Prefiero no contarla');
     expect(r.mensajes[0]).toMatch(/^(Está bien, Marta\. Lo dejamos ahí y seguimos por otro lado\.|Claro, sin problema\. Vamos con otra\.)\n/);
   });
 

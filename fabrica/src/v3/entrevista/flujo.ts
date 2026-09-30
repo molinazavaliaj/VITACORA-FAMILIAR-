@@ -26,7 +26,7 @@ function preguntaDe(id: string): PreguntaParaInterpretar {
   return preguntaPorId(id) ?? { ...PREGUNTA_COMUN, id };
 }
 
-/** ¿Dijo "paso"? (o tocó [Paso esta]). Sin pregunta, se toma como una común. */
+/** ¿Dijo "paso"? (o tocó [Prefiero no contarla]). Sin pregunta, se toma como una común. */
 export function esPaso(respuesta: Respuesta, pregunta: PreguntaParaInterpretar = PREGUNTA_COMUN): boolean {
   return interpretar(pregunta, respuesta) === 'paso';
 }
@@ -65,9 +65,10 @@ export function contoAlgo(respuestas: Respuestas, id: string): boolean {
  * contó algo, dijo "ya te lo conté" o no se acordó (un olvido cuenta como
  * "sí": mejor una pregunta de más que un capítulo de menos; Naza, 30/09,
  * simulaciones). `sino:X` pide que X haya sido un "no" corto o un botón de
- * "No". `paso:X` pide que X haya sido "paso" (ronda 2: AM16 va igual si AM9
- * fue paso). Si X no se mandó, no se cumple ninguna. Un término con " y "
- * pide todas sus condiciones (AM19: `si:AM9 y si:AM3`, solo si convivió).
+ * "No". `paso:X` pide que X haya sido "paso" (ronda 2; hoy sin uso). Si X no
+ * se mandó, no se cumple ninguna. Un término con " y " pide todas sus
+ * condiciones (AM19: `sino:AMH y si:AM3`, solo si esa persona ya no está y
+ * convivieron).
  */
 export function cumple(pregunta: Pick<PreguntaEntrevista, 'depende'>, respuestas: Respuestas): boolean {
   if (pregunta.depende.length === 0) return true;
@@ -183,18 +184,26 @@ function comoSiguiente(p: PreguntaEntrevista, respuestas: Respuestas, banco: rea
 export type AlTocarBoton =
   /** "Sí": se manda M30 ("Contame, te escucho.") solo y se sigue esperando audio en la misma pregunta; los audios se suman a `respuesta`. */
   | { vale: 'si'; respuesta: string; mandar: 'M30'; esperaAudio: true }
-  /** "No" o "Paso esta": la respuesta queda cerrada así y sigue el flujo (acuse y siguiente pregunta). */
-  | { vale: Exclude<ValeBoton, 'si'>; respuesta: string; esperaAudio: false };
+  /** "No" o "Prefiero no contarla" (y el "Sí" de AMH, que no pide audio): la respuesta queda cerrada así y sigue el flujo (acuse y siguiente pregunta). */
+  | { vale: ValeBoton; respuesta: string; esperaAudio: false };
+
+/**
+ * Preguntas de ubicación: su botón de "Sí" no pide audio (no va M30), cierra
+ * la respuesta. AMH, "¿esa persona sigue hoy a tu lado?" (Naza, 30/09,
+ * prueba en la página).
+ */
+export const SI_SIN_AUDIO: readonly string[] = ['AMH'];
 
 /**
  * Tocó un botón: la respuesta que se guarda (la marca del botón; si después
  * manda audio, se suma atrás con `sumarAudio`) y qué sigue. Con "Sí", M30 y
  * esperar el audio; con "No" o "Paso", seguir (Naza, 30/09, simulaciones).
  */
-export function alTocarBoton(pregunta: Pick<PreguntaParaInterpretar, 'botones'>, texto: string): AlTocarBoton {
+export function alTocarBoton(pregunta: Pick<PreguntaParaInterpretar, 'botones'> & { id?: string }, texto: string): AlTocarBoton {
   const vale = valeBoton(pregunta, texto);
   const respuesta = respuestaDeBoton(texto);
-  return vale === 'si' ? { vale, respuesta, mandar: 'M30', esperaAudio: true } : { vale, respuesta, esperaAudio: false };
+  const pideAudio = vale === 'si' && !SI_SIN_AUDIO.includes(pregunta.id ?? '');
+  return pideAudio ? { vale, respuesta, mandar: 'M30', esperaAudio: true } : { vale, respuesta, esperaAudio: false };
 }
 
 /**
@@ -240,22 +249,28 @@ export const SIN_ACUSE_ANTES_DEL_FINAL = 'LE8';
 export const SIN_ACUSE: readonly string[] = ['LE9', SIN_ACUSE_ANTES_DEL_FINAL];
 
 /**
- * Las familias de acuse. Rotan M3 (8), M4 (4), M24 (4), M25 (3), M27 (3) y
- * M32 (2, ronda 2); M28.4 (olvido a medias, ronda 2) es uno solo;
+ * Las familias de acuse. Rotan M3 (8), M4 (4), M24 (4), M25 (3), M27 (3),
+ * M32 (2, ronda 2) y M28.4 (olvido a medias: M28.4 y M28.5, desde la prueba
+ * de Naza en la página);
  * M28 tiene uno solo en uso (M28.1: M28.2 y M28.3 en reserva); M21, M26 y
  * M29 son uno.
  */
 export type FamiliaAcuse = 'M3' | 'M4' | 'M21' | 'M24' | 'M25' | 'M26' | 'M27' | 'M28' | 'M28.4' | 'M29' | 'M32';
 
-/** Después de PG1 ("tus viejos de grande", a veces su muerte) el acuse es siempre "Gracias, {{nombre}}." (Naza, 30/09, simulaciones). */
-export const SIEMPRE_M26 = 'PG1';
+/**
+ * Después de estas el acuse es siempre "Gracias, {{nombre}}.": PG1 ("tus
+ * viejos de grande", a veces su muerte; Naza, 30/09, simulaciones) y AMH
+ * (un "Bien, seguimos." después de "Ya no está conmigo" es frío; prueba de
+ * Naza en la página, 30/09).
+ */
+export const SIEMPRE_M26: readonly string[] = ['PG1', 'AMH'];
 /** M29 va una sola vez, al tercer olvido seguido (regla 17). */
 export const OLVIDOS_PARA_M29 = 3;
 
 /** ¿Después de esta pregunta puede ir un acuse de olvido? (no en las que no llevan acuse ni en PG1, que lleva M26). */
 function llevaAcuseDeOlvido(id: string): boolean {
   const p = preguntaPorId(id);
-  return (!p || esperaRespuesta(p)) && !SIN_ACUSE.includes(id) && id !== SIEMPRE_M26;
+  return (!p || esperaRespuesta(p)) && !SIN_ACUSE.includes(id) && !SIEMPRE_M26.includes(id);
 }
 
 /**
@@ -305,7 +320,7 @@ export function mensajesDespues(
 ): FamiliaAcuse[] {
   if (!esperaRespuesta(pregunta)) return [];
   if (SIN_ACUSE.includes(pregunta.id)) return [];
-  if (pregunta.id === SIEMPRE_M26) return ['M26'];
+  if (SIEMPRE_M26.includes(pregunta.id)) return ['M26'];
   const dijo = interpretar(pregunta, respuesta);
   if (dijo === 'no' || dijo === 'ya-conto') return ['M25'];
   if (dijo === 'paso') return [pregunta.clase === 'cierre' ? 'M25' : pregunta.sensible ? 'M27' : 'M21'];
@@ -318,12 +333,16 @@ export function mensajesDespues(
 }
 
 /** Las familias que rotan y cuántos tienen. */
-export const ROTAN = { M3: 8, M4: 4, M24: 4, M25: 3, M27: 3, M32: 2 } as const;
+export const ROTAN = { M3: 8, M4: 4, M24: 4, M25: 3, M27: 3, M32: 2, 'M28.4': 2 } as const;
 
-/** El acuse de turno de una familia que rota: M3 tiene 8 (M3.1…M3.8), M4 y M24 tienen 4, M25 y M27 tienen 3. */
+/** El olvido a medias rota entre estos dos: nunca dos "Con ese pedacito" seguidos (Naza, 30/09, prueba en la página). */
+export const OLVIDO_A_MEDIAS = ['M28.4', 'M28.5'] as const;
+
+/** El acuse de turno de una familia que rota: M3 tiene 8 (M3.1…M3.8), M4 y M24 tienen 4, M25 y M27 tienen 3; M28.4 da M28.4 o M28.5. */
 export function acuseRotado(familia: keyof typeof ROTAN, n: number): string {
   const total = ROTAN[familia];
-  return `${familia}.${(((n % total) + total) % total) + 1}`;
+  const i = ((n % total) + total) % total;
+  return familia === 'M28.4' ? OLVIDO_A_MEDIAS[i] : `${familia}.${i + 1}`;
 }
 
 // ---------------------------------------------------------------- ficha contra respuestas

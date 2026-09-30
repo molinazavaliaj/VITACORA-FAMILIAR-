@@ -88,10 +88,11 @@ describe('botones (reglas 2 a 6)', () => {
     expect(que('AM0', respuestaDeBoton('Sí, hubo'))).toBe('conto');
   });
 
-  it('las que abren tema son las 9 con botón de "Sí"', () => {
+  // Prueba de Naza en la página (30/09): entran AMH y AM21; salen AM9 (ya no abre tema), AM16 y AM20.
+  it('las que abren tema son las 8 con botón de "Sí"', () => {
     const conSi = BANCO.filter((q) => q.botones?.some((b) => b.vale === 'si')).map((q) => q.id);
     expect([...ABREN_TEMA]).toEqual(conSi);
-    expect(conSi).toEqual(['CA6', 'JU8', 'AM0', 'AM3', 'AM9', 'AM16', 'AM20', 'HI0', 'HI8']);
+    expect(conSi).toEqual(['CA6', 'JU8', 'AM0', 'AMH', 'AM3', 'AM21', 'HI0', 'HI8']);
   });
 });
 
@@ -198,7 +199,7 @@ describe('"no" corto (reglas 13 y 14)', () => {
     expect(topeNoCorto(p('CA2'))).toBe(15);
   });
 
-  it.each(['CI1', 'CI11', 'LE9', 'CA17', 'PE5', 'AM9', 'CA6', 'AM3', 'AM20', 'HI8'])('hasta 40 en %s', (id) => {
+  it.each(['CI1', 'CI11', 'LE9', 'CA17', 'PE5', 'AM9', 'CA6', 'AM3', 'AMH', 'AM21', 'HI8'])('hasta 40 en %s', (id) => {
     expect(topeNoCorto(p(id))).toBe(40);
     expect(que(id, noDe(40))).toBe('no');
     expect(que(id, noDe(41))).toBe('conto');
@@ -322,10 +323,11 @@ describe('las dependencias con botones', () => {
     expect(cumple(p('HI10'), r)).toBe(true);
   });
 
-  it('AM9 [Paso esta]: no va AM19; desde la ronda 2 AM16 va igual (Naza, 30/09)', () => {
-    const r = new Map([['AM9', respuestaDeBoton('Paso esta')]]);
-    expect(cumple(p('AM19'), r)).toBe(false);
-    expect(cumple(p('AM16'), r)).toBe(true);
+  // Desde la prueba de Naza en la página (30/09) AM19 depende de AMH y AM3, no de AM9; AM16 salió (lo cubre AM21).
+  it('AM9 [Prefiero no contarla]: AM19 va igual si ya no está y convivieron; AM21 va igual', () => {
+    const r = new Map([['AM0', 'Sí, una vez.'], ['AMH', respuestaDeBoton('Ya no está conmigo')], ['AM3', 'Sí, nos casamos.'], ['AM9', respuestaDeBoton('Prefiero no contarla')]]);
+    expect(cumple(p('AM19'), r)).toBe(true);
+    expect(cumple(p('AM21'), r)).toBe(true);
   });
 
   it('HI2 con un "no" corto o "paso" cierra el tema: no van HI3, HS1 ni HI6 (regla 24)', () => {
