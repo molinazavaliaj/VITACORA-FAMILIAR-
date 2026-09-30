@@ -191,3 +191,17 @@ describe('8. AM16 va igual tras paso en AM9; FIN según FO1; M26 delante de AM20
     expect(acuseAntesDe('M3.7', 'M3', p('AM20'))).toBe('M26');
   });
 });
+
+// Revisión de la ronda 2 (30/09): la fórmula de cierre tiene que cerrar la frase y vale el tope de 40.
+describe('fórmulas de cierre: sin falsos positivos', () => {
+  const ci3 = preguntaPorId('CI3')!;
+  it.each(['Creo que está todo.', 'Sí, está todo.', 'Nada más, gracias.', 'Ya está, eso es todo lo que me acuerdo.', 'Bueno, es todo por ahora'])('"%s" es no', (r) => {
+    expect(interpretar(ci3, r)).toBe('no');
+  });
+  it.each([
+    'Nada más lindo que esos veranos en el río con mis primos, nos tirábamos del puente y mi tía nos esperaba con pan casero.',
+    'Ya está, eso es todo lo de la escuela. Ahora que lo pienso, había un chico, Tito, que me llevaba los libros todos los días y un día me regaló una flor que había cortado de la plaza, y la maestra lo vio y lo retó delante de todos, y yo me quería morir de vergüenza.',
+  ])('"%s" cuenta algo', (r) => {
+    expect(interpretar(ci3, r)).toBe('conto');
+  });
+});

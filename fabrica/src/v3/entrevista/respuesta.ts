@@ -276,26 +276,44 @@ function crioAAlguien(pal: string[]): boolean {
 /**
  * En los cierres y en LE9, "está todo / es todo / ya está / nada más" en las
  * primeras 6 palabras es un "no" aunque no empiece con "no" ("Sí, está todo.
- * Fue una vida plena") y sin tope de largo; con "pero" o "aunque" en las
- * primeras 5 palabras, no (ronda 2, Naza, 30/09).
+ * Fue una vida plena"); con "pero" o "aunque" en las primeras 5 palabras, no
+ * (ronda 2, Naza, 30/09). Revisión: la fórmula tiene que cerrar la frase
+ * (seguida de un signo o del final), así "Nada más lindo que esos veranos…"
+ * cuenta algo; y vale el tope de 40 palabras (decisión B de Naza), así un
+ * "Ya está, eso es todo. Ahora que lo pienso, había un chico…" largo también.
  */
-const FORMULAS_DE_CIERRE = ['esta todo', 'es todo', 'ya esta', 'nada mas'];
+const FORMULAS_DE_CIERRE = frases(['esta todo', 'es todo', 'ya esta', 'nada mas']);
 const PRIMERAS_FORMULA = 6;
 
-function esFormulaDeCierre(p: PreguntaParaInterpretar, pal: string[]): boolean {
+/** Después de la fórmula: un signo, el final, "por ahora" o "lo que…" ("Es todo lo que tengo para contar"). */
+function cierraFormula(f: readonly string[], k: number): boolean {
+  return f[k] === undefined || f[k] === CORTE || (f[k] === 'por' && f[k + 1] === 'ahora') || (f[k] === 'lo' && f[k + 1] === 'que');
+}
+
+function esFormulaDeCierre(p: PreguntaParaInterpretar, f: string[], pal: string[]): boolean {
   if (p.clase !== 'cierre' && p.id !== LE9) return false;
-  const primeras = ` ${pal.slice(0, PRIMERAS_FORMULA).join(' ')} `;
-  return FORMULAS_DE_CIERRE.some((x) => primeras.includes(` ${x} `)) && !pal.slice(0, PRIMERAS_CONTRASTE).some((w) => CONTRASTES.has(w));
+  // El tope de 40 no corre si arranca con "no" ("No, creo que está todo. Las historias que tengo son esas…").
+  if ((pal[0] !== 'no' && pal.length > topeNoCorto(p)) || pal.slice(0, PRIMERAS_CONTRASTE).some((w) => CONTRASTES.has(w))) return false;
+  let palabras = 0;
+  for (let i = 0; i < f.length && palabras < PRIMERAS_FORMULA; i++) {
+    if (f[i] === CORTE) continue;
+    const cierra = FORMULAS_DE_CIERRE.some((x) => hayFraseEn(f, i, x) && cierraFormula(f, i + x.length));
+    if (cierra) return true;
+    palabras++;
+  }
+  return false;
 }
 
 function esNoDicho(p: PreguntaParaInterpretar, f: string[], pal: string[]): boolean {
   if (esNoCortoDicho(p, f, pal)) return true;
-  return esFormulaDeCierre(p, pal);
+  return esFormulaDeCierre(p, f, pal);
 }
 
 function esNoCortoDicho(p: PreguntaParaInterpretar, f: string[], pal: string[]): boolean {
   if (!ARRANQUES_NO.has(pal[0]) || pal.length > topeNoCorto(p)) return false;
   if (ARRANQUES_QUE_CUENTAN.some((a) => hayFraseEn(f, 0, a))) return false;
+  // "Nada más lindo que esos veranos…" cuenta algo; "Nada más." o "Nada más, gracias." no.
+  if (f[0] === 'nada' && f[1] === 'mas' && f[2] !== undefined && f[2] !== CORTE) return false;
   if (p.id === HI0 && crioAAlguien(pal)) return false;
   // En los cierres "pero" no lo da vuelta: "No, pero ya está todo" sigue siendo que no.
   return p.clase === 'cierre' || !pal.slice(0, PRIMERAS_CONTRASTE).some((w) => CONTRASTES.has(w));
