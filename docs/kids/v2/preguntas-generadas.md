@@ -72,3 +72,7 @@ Estado actualizado (ronda 4): "Todavía no te dejan" va en la versión original 
 | Entrada cap. 1 | Primer capítulo: de chiquito. Una pregunta por día, la contestás con un audio cuando puedas. | alternativa |
 | Cierre cap. 1 | Eso fue lo de chiquito. ¿Quedó algo de esa época que no te pregunté y querés que esté en el libro? | a confirmar |
 | Cierre cap. 1 | Antes de pasar a tu gente: ¿hay algo de cuando eras chico que te quedó en la punta de la lengua? | alternativa |
+
+## Capítulo 2 «Mi gente»
+
+Lo aprobado y las escenas extra están en [paso-2-cap2-aprobadas.md](paso-2-cap2-aprobadas.md); todas las versiones no elegidas, en [paso-2-cap2-fable-ronda1.md](paso-2-cap2-fable-ronda1.md) y [paso-2-cap2-fable-ronda2.md](paso-2-cap2-fable-ronda2.md). Estado: principal (días 6 a 11), otra puerta, nueva (primos, tíos, alguien importante, familia ensamblada, barrio), extra (escenas de mamá, papá, hermanos y amigos), alternativa (lo demás de las rondas). Naza también quiere las otras puertas de mamá y papá como preguntas propias.
