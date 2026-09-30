@@ -5,7 +5,8 @@
 // estado y llama a estas funciones.
 
 import { estado, type FichaV3 } from '../ficha.js';
-import { BANCO, mensajePorId, type PreguntaEntrevista } from './banco.js';
+import { BANCO, mensajePorId, preguntaPorId, type PreguntaEntrevista } from './banco.js';
+import { habilitaLasQueDependen, interpretar, PREGUNTA_COMUN, type Interpretacion, type PreguntaParaInterpretar } from './respuesta.js';
 
 /** Respuesta a una pregunta: el texto (transcripción) o lo que dijo, incluido "paso". */
 export type Respuesta = string;
@@ -14,88 +15,64 @@ export type Respuestas = ReadonlyMap<string, Respuesta>;
 
 // ---------------------------------------------------------------- respuestas
 
-/** Minúsculas, sin tildes y sin signos: "¡No, Nunca!" → "no nunca". */
-export function normalizar(texto: string): string {
-  return texto
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .replace(/[^\p{L}\p{N}\s]/gu, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
+// Qué dijo la persona lo decide una sola función, `interpretar` (respuesta.ts;
+// Naza, 30/09, simulaciones). Estas son las preguntas que le hacen los demás
+// módulos; todas pasan por ahí, con la pregunta para saber el tope del "no".
+
+export { normalizar, PALABRAS_NO_CORTO } from './respuesta.js';
+
+/** La pregunta del banco con ese ID; si no está (una de la familia), una común. */
+function preguntaDe(id: string): PreguntaParaInterpretar {
+  return preguntaPorId(id) ?? { ...PREGUNTA_COMUN, id };
 }
 
-function palabras(texto: string): string[] {
-  const n = normalizar(texto).replace(/(\p{L})\1{2,}/gu, '$1'); // "nooo" → "no"
-  return n === '' ? [] : n.split(' ');
+/** ¿Dijo "paso"? (o tocó [Paso esta]). Sin pregunta, se toma como una común. */
+export function esPaso(respuesta: Respuesta, pregunta: PreguntaParaInterpretar = PREGUNTA_COMUN): boolean {
+  return interpretar(pregunta, respuesta) === 'paso';
 }
-
-/** Muletillas de audio que se saltean al buscar la primera palabra ("Eh, no", "Bueno, paso"). */
-const MULETILLAS = new Set(['eh', 'em', 'm', 'mm', 'este', 'bueno', 'mira', 'mire', 'ay', 'ah', 'uh', 'pues']);
-const MULETILLAS_DOBLES = [['a', 'ver'], ['o', 'sea']];
-
-/** Las palabras sin las muletillas del principio. */
-function sinMuletillas(p: string[]): string[] {
-  let i = 0;
-  for (;;) {
-    if (MULETILLAS.has(p[i])) { i++; continue; }
-    if (MULETILLAS_DOBLES.some(([a, b]) => p[i] === a && p[i + 1] === b)) { i += 2; continue; }
-    return p.slice(i);
-  }
-}
-
-/** Largo máximo (en palabras, sin muletillas) de un "paso" con algo más ("paso, no quiero hablar"). */
-const PALABRAS_PASO = 8;
 
 /**
- * ¿Dijo "paso"? (M1: "decí paso y vamos a otra"). Vale si la primera palabra
- * (sin muletillas) es "paso" y la respuesta es corta: "paso, no quiero
- * hablar" es paso; "Paso a contarte lo del viaje, que fue…" no.
+ * ¿Fue un "no" corto (o tocó un botón de "No")? Hasta 15 palabras en una
+ * común y hasta 40 en cierres, LE9, sensibles y las que abren tema (Naza,
+ * 30/09, simulaciones; antes: menos de 15 en todas). Sin pregunta, se toma
+ * como una común.
  */
-export function esPaso(respuesta: Respuesta): boolean {
-  const p = sinMuletillas(palabras(respuesta));
-  return p[0] === 'paso' && p.length <= PALABRAS_PASO;
+export function esNoCorto(respuesta: Respuesta, pregunta: PreguntaParaInterpretar = PREGUNTA_COMUN): boolean {
+  return interpretar(pregunta, respuesta) === 'no';
 }
 
-/** Límite del "no" corto: menos de 15 palabras. */
-export const PALABRAS_NO_CORTO = 15;
-const ARRANQUES_NO = new Set(['no', 'nunca', 'jamas', 'ninguno', 'ninguna', 'nada', 'tampoco']);
-/** Si aparecen, el "no" viene seguido de algo que contar ("Nunca lo pensé pero…"). */
-const CONTRASTES = new Set(['pero', 'aunque']);
-
-/**
- * "No" corto: menos de 15 palabras, empieza (sin muletillas) con no / nunca /
- * jamás / ninguno / nada / tampoco, y no sigue con "pero" o "aunque". Sin
- * importar mayúsculas, tildes, signos ni letras estiradas ("Nooo"). "No
- * sabés lo que fue ese viaje…" largo no cuenta; "paso" tampoco.
- */
-export function esNoCorto(respuesta: Respuesta): boolean {
-  if (esPaso(respuesta)) return false;
-  const p = sinMuletillas(palabras(respuesta));
-  return p.length > 0 && p.length < PALABRAS_NO_CORTO && ARRANQUES_NO.has(p[0]) && !p.some((w) => CONTRASTES.has(w));
+/** Qué dijo en la pregunta X (undefined si X no se contestó). */
+export function interpretacionDe(respuestas: Respuestas, id: string): Interpretacion | undefined {
+  const r = respuestas.get(id);
+  return r === undefined ? undefined : interpretar(preguntaDe(id), r);
 }
 
-/** X se contestó con un "no" corto. */
+/** X se contestó con un "no" corto o un botón de "No". */
 export function respondioNo(respuestas: Respuestas, id: string): boolean {
-  const r = respuestas.get(id);
-  return r !== undefined && esNoCorto(r);
+  return interpretacionDe(respuestas, id) === 'no';
 }
 
-/** X se contestó con al menos una palabra y no fue un "no" corto ni "paso": contó algo (una transcripción vacía o un emoji no cuenta). */
+/** X se contestó contando algo (o tocando "Sí", o con un "ya te lo conté"): no un "no", un "paso", un olvido ni nada. */
 export function contoAlgo(respuestas: Respuestas, id: string): boolean {
-  const r = respuestas.get(id);
-  return r !== undefined && palabras(r).length > 0 && !esPaso(r) && !esNoCorto(r);
+  const i = interpretacionDe(respuestas, id);
+  return i === 'conto' || i === 'ya-conto';
 }
 
 /**
  * ¿Se manda la pregunta, según sus condiciones? Sin condiciones, sí. Con
- * varias, alcanza una (OR). `si:X` pide que X haya contado algo; `sino:X`,
- * que X haya sido un "no" corto. Si X no se mandó o se contestó "paso", no
- * se cumple ninguna de las dos (ver Dudas del banco).
+ * varias, alcanza una (OR). `si:X` pide que X haya sido un "sí": tocó "Sí",
+ * contó algo, dijo "ya te lo conté" o no se acordó (un olvido cuenta como
+ * "sí": mejor una pregunta de más que un capítulo de menos; Naza, 30/09,
+ * simulaciones). `sino:X` pide que X haya sido un "no" corto o un botón de
+ * "No". Si X no se mandó o fue "paso", no se cumple ninguna de las dos.
  */
 export function cumple(pregunta: Pick<PreguntaEntrevista, 'depende'>, respuestas: Respuestas): boolean {
   if (pregunta.depende.length === 0) return true;
-  return pregunta.depende.some((c) => (c.tipo === 'si' ? contoAlgo(respuestas, c.de) : respondioNo(respuestas, c.de)));
+  return pregunta.depende.some((c) => {
+    const i = interpretacionDe(respuestas, c.de);
+    if (i === undefined) return false;
+    return c.tipo === 'si' ? habilitaLasQueDependen(i) : i === 'no';
+  });
 }
 
 // ---------------------------------------------------------------- orden
@@ -227,10 +204,10 @@ export function mensajesDespues(pregunta: Pick<PreguntaEntrevista, 'id' | 'bloqu
   if (!esperaRespuesta(pregunta)) return [];
   if (SIN_ACUSE.includes(pregunta.id)) return [];
   // Un cierre contestado con un "no" corto o "paso": acuse neutro, sin agradecer un contenido que no hubo (Naza, 30/09).
-  if (pregunta.clase === 'cierre') return esPaso(respuesta) || esNoCorto(respuesta) ? ['M25'] : ['M24'];
+  if (pregunta.clase === 'cierre') return esPaso(respuesta, pregunta) || esNoCorto(respuesta, pregunta) ? ['M25'] : ['M24'];
   // Lo mismo con una sensible: "Gracias por confiármelo" no va después de un "no" o un "paso" (Naza, 30/09, ronda 3).
-  if (pregunta.sensible && (esPaso(respuesta) || esNoCorto(respuesta))) return ['M25'];
-  if (esPaso(respuesta)) return ['M21'];
+  if (pregunta.sensible && (esPaso(respuesta, pregunta) || esNoCorto(respuesta, pregunta))) return ['M25'];
+  if (esPaso(respuesta, pregunta)) return ['M21'];
   return [pregunta.sensible ? 'M4' : 'M3'];
 }
 

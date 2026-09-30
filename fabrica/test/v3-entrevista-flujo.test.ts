@@ -37,10 +37,11 @@ describe('entrevista: "no" corto', () => {
     expect(esNoCorto(r)).toBe(false);
   });
 
-  it('el límite es de 14 palabras', () => {
-    expect(esNoCorto('no ' + 'uno '.repeat(12).trim())).toBe(true); // 13 palabras
-    expect(esNoCorto('no ' + 'uno '.repeat(13).trim())).toBe(true); // 14
-    expect(esNoCorto('no ' + 'uno '.repeat(14).trim())).toBe(false); // 15
+  // Desde las simulaciones (Naza, 30/09) el tope es "hasta 15" (antes "menos de 15") en una común.
+  it('el límite es de 15 palabras en una pregunta común', () => {
+    expect(esNoCorto('no ' + 'uno '.repeat(13).trim())).toBe(true); // 14 palabras
+    expect(esNoCorto('no ' + 'uno '.repeat(14).trim())).toBe(true); // 15
+    expect(esNoCorto('no ' + 'uno '.repeat(15).trim())).toBe(false); // 16
   });
 
   it('"paso" se reconoce con signos y mayúsculas, y nada más', () => {
