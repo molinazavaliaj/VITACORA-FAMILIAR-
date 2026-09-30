@@ -127,3 +127,16 @@ El código no entiende el contenido: a veces pregunta algo que no encaja ("¿esa
 > Te pregunto algo y vos me lo contás en un audio, como se lo contarías a un amigo. Uno, dos, los que necesites. Si te vas por las ramas, mejor: ahí suelen estar las cosas lindas. Cuando pasa un rato sin audios, doy por hecho que terminaste y te mando otra pregunta.
 >
 > Si alguna no tiene que ver con lo que te pasó a vos, decime "esa no" y seguimos, o contame lo que sí fue. Y tomate el tiempo que quieras, acá no hay apuro.
+
+### Bienvenida: Naza elige la B con cambios (30/09)
+Cambios pedidos: sin "tomando unos mates" (el producto es internacional): "como si se lo estuvieras contando a tu mejor amigo"; y explicar mejor cómo llega la pregunta siguiente. Versión de Fable (sin aprobar):
+> Hola, {{nombre}}, ¿cómo estás? {{quien_regala}} quiere que la historia de tu vida quede escrita en un libro, y yo soy quien te va a entrevistar para armarlo. Lo hacemos acá, por WhatsApp, tranquilos.
+>
+> Funciona así: te mando una pregunta y vos me respondés en audio, como si se lo estuvieras contando a tu mejor amigo. Podés mandarme todos los audios que quieras. Y cuando termines de contar, no tenés que avisarme nada: cuando pasa un ratito sin que mandes nada, te llega sola la pregunta que sigue.
+>
+> Si alguna pregunta no va con tu vida, no pasa nada: me decís que no, o me contás lo que sí te pasó a vos. Y sin apuro, eh. Esto lo hacemos al ritmo que vos quieras.
+
+Palabras que Fable marca para España: "sin apuro" (allá "apuro" es vergüenza o aprieto: "sin prisa"), "armarlo" (allá "hacerlo").
+
+## Pendiente grande: el banco entero está en "vos"
+Al revisar la bienvenida para España apareció esto: **todos los textos del banco (preguntas y mensajes) están escritos con voseo** ("contame", "tenés", "vos"). La ficha no tiene un campo de "vos o tú" (`formaTrato` en `fabrica/src/v3/ficha.ts` es solo el género del trato) y `renderizar` no adapta nada. `flujo-vigente.md` dice que la ficha pide "si habla de vos o de tú": eso **no está programado**. Para vender en España hace falta: un campo en la ficha, una versión en "tú" de cada texto (la redacta Fable, la aprueba Naza) y que el código elija. También revisar palabras locales ("apuro", "armar", "colimba", "barra", "changa"…). No se hizo nada todavía.
