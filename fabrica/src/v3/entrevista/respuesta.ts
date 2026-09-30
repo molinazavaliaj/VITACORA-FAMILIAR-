@@ -253,24 +253,32 @@ function arrancaConOlvido(f: string[]): boolean {
   return finDelArranqueDeOlvido(f) >= 0;
 }
 
-/** Una palabra "está en la pregunta" si está tal cual o, con 4 letras o más, si arranca igual ("marcado" y "marcó"). */
-const LETRAS_RAIZ = 4;
+/**
+ * Palabras sin contenido: no cuentan ni como "pedacito" en la respuesta ni
+ * como palabra de la pregunta (revisión de la tanda de la prueba de Naza).
+ */
+const SIN_CONTENIDO = new Set(
+  ('a al algo algun alguna alguno algunos ante asi bien cada casi como con cual cuando de del donde el ella ellas ellos en entonces era eran es esa ese eso esta este esto estaba '
+    + 'fue fueron ha hace haya hay la las le les lo los me mi mis mucho muy nada ni no nos o para pero poco por que quien se si sin su sus tan te tu tus un una uno unos unas vos y ya yo').split(' '),
+);
+/** Con texto de pregunta: después de la frase de olvido, como mucho estas palabras con contenido que no estén en la pregunta. */
+const PEDACITO = 3;
 
-function palabrasDeLaPregunta(texto: string | undefined): (w: string) => boolean {
-  if (!texto) return () => false;
-  const ws = fichas(texto).filter((w) => !esCorte(w));
-  const exactas = new Set(ws);
-  const raices = new Set(ws.filter((w) => w.length >= LETRAS_RAIZ).map((w) => w.slice(0, LETRAS_RAIZ)));
-  return (w) => exactas.has(w) || (w.length >= LETRAS_RAIZ && raices.has(w.slice(0, LETRAS_RAIZ)));
+/** Las palabras con contenido de la pregunta, completas y sin tildes. */
+function palabrasDeLaPregunta(texto: string): Set<string> {
+  return new Set(fichas(texto).filter((w) => !esCorte(w) && !SIN_CONTENIDO.has(w)));
 }
 
 function esOlvido(f: string[], pal: string[], pregunta?: PreguntaParaInterpretar): boolean {
   if (pal.length > PALABRAS_OLVIDO || pal.some((w) => CONTRASTES.has(w))) return false;
   const fin = finDelArranqueDeOlvido(f);
   if (fin >= 0) {
-    // Prueba de Naza (30/09): lo que repite la pregunta no es un pedacito ("No recuerdo, la verdad, algún maestro o maestra que me haya marcado en la primaria").
-    const estaEnLaPregunta = palabrasDeLaPregunta(pregunta?.texto);
-    return f.slice(fin).filter((w) => !esCorte(w) && !estaEnLaPregunta(w)).length <= DESPUES_DEL_OLVIDO;
+    const despues = f.slice(fin).filter((w) => !esCorte(w));
+    if (!pregunta?.texto) return despues.length <= DESPUES_DEL_OLVIDO;
+    // Prueba de Naza (30/09): lo que repite la pregunta no es un pedacito ("No recuerdo, la verdad, algún maestro o maestra que me haya
+    // marcado en la primaria"). Revisión: palabras completas y solo las que tienen contenido.
+    const deLaPregunta = palabrasDeLaPregunta(pregunta.texto);
+    return despues.filter((w) => !SIN_CONTENIDO.has(w) && !deLaPregunta.has(w)).length <= PEDACITO;
   }
   const todo = ` ${pal.join(' ')} `;
   if (` ${pal.slice(0, PRIMERAS_OLVIDO).join(' ')} `.includes(` ${SE_ME_BORRO} `)) return true;
@@ -388,23 +396,36 @@ function esNoDicho(p: PreguntaParaInterpretar, f: string[], pal: string[]): bool
   // En un cierre o LE9, si agrega algo no es "no", aunque empiece con "no" o con la fórmula (segunda revisión de la ronda 2).
   if ((p.clase === 'cierre' || p.id === LE9) && agregaAlgo(pal)) return false;
   if (esNoCortoDicho(p, f, pal)) return true;
-  if (esYaNoEsta(p, f, pal)) return true;
   return esFormulaDeCierre(p, f, pal);
 }
 
 /**
  * AMH ("¿esa persona sigue hoy a tu lado?"; Naza, 30/09, prueba en la
- * página): además del "no" corto, una respuesta que arranca con "ya no" o con
- * una palabra de final es un "no" (ya no está), con el tope de 40 palabras.
- * "Sí, con Raúl; a mi primer marido lo perdí, falleció joven" es un sí.
+ * página) se lee como "¿hoy hay alguien a tu lado?" (revisión de la tanda):
+ *   - si dice que hoy hay alguien ("volvimos", "seguimos juntos/casados",
+ *     "sigue conmigo", "estoy con…") o arranca con "sí", sigue;
+ *   - si no, una palabra de final en las primeras 10 palabras (falleció,
+ *     murió, quedé viuda, ya no está, nos separamos…), o un "no" corto, o
+ *     "ya no" solo, es "ya no está";
+ *   - ante la duda, sigue.
  */
 const AMH = 'AMH';
-const ARRANQUES_YA_NO_ESTA = frases([
-  'ya no', 'fallecio', 'murio', 'enviude', 'nos separamos', 'me separe', 'nos divorciamos', 'me divorcie', 'terminamos', 'cortamos',
+const HOY_HAY_ALGUIEN = frases(['volvimos', 'seguimos juntos', 'seguimos casados', 'sigue conmigo', 'estoy con']);
+const FINALES = frases([
+  'fallecio', 'murio', 'se murio', 'quede viuda', 'quede viudo', 'enviude', 'ya no esta', 'nos separamos', 'me separe', 'nos divorciamos', 'me divorcie', 'terminamos', 'cortamos',
 ]);
+/** La palabra de final cuenta en las primeras 10 palabras. */
+const PRIMERAS_FINAL = 10;
 
-function esYaNoEsta(p: PreguntaParaInterpretar, f: string[], pal: string[]): boolean {
-  return p.id === AMH && pal.length <= topeNoCorto(p) && ARRANQUES_YA_NO_ESTA.some((a) => hayFraseEn(f, 0, a));
+const hayFraseEnPalabras = (pal: readonly string[], frase: readonly string[]) => pal.some((_, i) => hayFraseEn(pal, i, frase));
+
+function interpretarAMH(p: PreguntaParaInterpretar, f: string[], pal: string[]): Interpretacion {
+  if (pal[0] === 'si' || HOY_HAY_ALGUIEN.some((x) => hayFraseEnPalabras(pal, x))) return 'conto';
+  const primeras = pal.slice(0, PRIMERAS_FINAL);
+  if (FINALES.some((x) => hayFraseEnPalabras(primeras, x))) return 'no';
+  if (pal.join(' ') === 'ya no') return 'no';
+  if (esNoCortoDicho(p, f, pal)) return 'no';
+  return 'conto';
 }
 
 function esNoCortoDicho(p: PreguntaParaInterpretar, f: string[], pal: string[]): boolean {
@@ -439,6 +460,7 @@ export function interpretar(pregunta: PreguntaParaInterpretar, respuesta: string
   const pal = f.filter((w) => !esCorte(w));
   if (pal.length === 0) return 'vacio';
   if (esPasoDicho(f, pal)) return 'paso';
+  if (pregunta.id === AMH) return interpretarAMH(pregunta, f, pal);
   if (esOlvido(f, pal, pregunta)) return 'olvido';
   if (esOlvidoAMedias(f, pal, pregunta)) return 'olvido-a-medias';
   if (esNoAhondar(f)) return 'no-ahondar';

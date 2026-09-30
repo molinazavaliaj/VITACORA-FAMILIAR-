@@ -6,7 +6,7 @@
 import { describe, expect, it } from 'vitest';
 import { BANCO, preguntaPorId } from '../src/v3/entrevista/banco.js';
 import { contoAlgo, cumple, esNoCorto, esPaso, respondioNo } from '../src/v3/entrevista/flujo.js';
-import { ABREN_TEMA, interpretar, leerBoton, respuestaDeBoton, sumarAudio, topeNoCorto, valeBoton } from '../src/v3/entrevista/respuesta.js';
+import { ABREN_TEMA, interpretar, leerBoton, PREGUNTA_COMUN, respuestaDeBoton, sumarAudio, topeNoCorto, valeBoton } from '../src/v3/entrevista/respuesta.js';
 
 const p = (id: string) => preguntaPorId(id)!;
 const que = (id: string, r: string) => interpretar(p(id), r);
@@ -266,9 +266,16 @@ describe('revisión: olvido más angosto', () => {
   });
 
   // Revisión de la ronda 2: es olvido solo si después de la frase quedan como mucho 6 palabras (antes: hasta 20 en total).
-  it('después de la frase de olvido, hasta 6 palabras', () => {
-    expect(que('ES2', `No me acuerdo ${'uno '.repeat(6).trim()}`)).toBe('olvido');
-    expect(que('ES2', `No me acuerdo ${'uno '.repeat(7).trim()}`)).toBe('olvido-a-medias');
+  it('después de la frase de olvido, hasta 6 palabras (sin texto de pregunta)', () => {
+    expect(interpretar(PREGUNTA_COMUN, `No me acuerdo ${'uno '.repeat(6).trim()}`)).toBe('olvido');
+    expect(interpretar(PREGUNTA_COMUN, `No me acuerdo ${'uno '.repeat(7).trim()}`)).toBe('olvido-a-medias');
+  });
+
+  // Revisión de la tanda de la prueba de Naza (30/09): con la pregunta, cuentan solo las palabras con contenido que no están en ella.
+  it('con la pregunta, hasta 3 palabras con contenido que no estén en ella', () => {
+    expect(que('ES2', `No me acuerdo ${'río '.repeat(3).trim()}`)).toBe('olvido');
+    expect(que('ES2', `No me acuerdo ${'río '.repeat(4).trim()}`)).toBe('olvido-a-medias');
+    expect(que('ES2', 'No me acuerdo de la maestra de la primaria, la verdad')).toBe('olvido');
   });
 });
 
