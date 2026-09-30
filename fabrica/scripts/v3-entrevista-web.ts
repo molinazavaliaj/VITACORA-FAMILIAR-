@@ -95,7 +95,8 @@ export function capitalizarNombre(nombre: string): string {
  */
 export function pareceCortada(texto: string): boolean {
   const t = texto.trim();
-  if (t === '') return false;
+  // Una respuesta de 3 palabras o menos ("Sí, claro") no se marca: es corta a propósito (revisión, 30/09).
+  if (t.split(/\s+/).filter((w) => /[\p{L}\p{N}]/u.test(w)).length <= 3) return false;
   if (/(\.\.\.|…)$/.test(t)) return true;
   return !/[.!?»"')\]]$/.test(t);
 }
@@ -293,6 +294,20 @@ export function crearManejador(o: OpcionesWeb): RequestListener {
     return t.texto;
   }
 
+  /** ¿Ese audio ya se transcribió con palabras? (está en los pendientes o tiene una línea con texto en transcripciones.jsonl). */
+  function yaTranscripto(archivo: string): boolean {
+    if ((actual!.estado.pendientes ?? []).some((x) => x.archivo === archivo)) return true;
+    const ruta = join(dir(), 'transcripciones.jsonl');
+    if (!existsSync(ruta)) return false;
+    return readFileSync(ruta, 'utf8')
+      .split('\n')
+      .filter((l) => l.trim())
+      .some((l) => {
+        const x = JSON.parse(l) as { archivo: string; texto: string };
+        return x.archivo === archivo && x.texto.trim() !== '';
+      });
+  }
+
   /** Manda la respuesta: los audios pendientes en orden (y el texto, si vino), juntos. */
   function mandarRespuesta(texto?: string): void {
     const e = actual!.estado;
@@ -377,6 +392,8 @@ export function crearManejador(o: OpcionesWeb): RequestListener {
       const m = /^audios\/\d+-([A-Za-z0-9.]+?)\.([a-z0-9]+)$/.exec(archivo);
       if (!m || !TIPOS[m[2]] || !existsSync(join(dir(), archivo))) throw new ErrorHttp(400, 'Ese audio no está.');
       if (m[1] !== e.esperando) throw new ErrorHttp(409, 'Ese audio era de otra pregunta.');
+      // Un audio que ya está transcripto no se manda de nuevo a OpenAI (dos clicks en "Reintentar" = una sola transcripción).
+      if (yaTranscripto(archivo)) throw new ErrorHttp(409, 'Ese audio ya está transcripto.');
       return { transcripcion: await transcribirAPendiente(archivo, m[1], TIPOS[m[2]]) };
     },
   };

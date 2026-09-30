@@ -250,3 +250,61 @@ describe('sin conexión: el servidor reintenta solo', () => {
     expect(esReintentable(envuelta)).toBe(true);
   });
 });
+
+// ---------------------------------------------------------------- revisión (30/09)
+
+describe('revisión: reintentar no transcribe dos veces el mismo audio', () => {
+  it('dos reintentos del mismo archivo = una sola llamada a transcribir', async () => {
+    const datos = nuevaCarpeta();
+    let falla = true;
+    let llamadas = 0;
+    const base = await levantar({
+      datos,
+      transcribir: async () => {
+        llamadas++;
+        if (falla) throw new Error('OpenAI 400: no');
+        return { texto: 'Ahora sí.', duracionSegundos: 2 };
+      },
+    });
+    await post(base, '/api/nueva', { nombre: 'Naza', genero: 'varon' });
+    const r = await audio(base);
+    expect(r.status).toBe(502);
+    falla = false;
+    llamadas = 0;
+    const [a, b] = await Promise.all([post(base, '/api/reintentar', { archivo: r.json.reintentar }), post(base, '/api/reintentar', { archivo: r.json.reintentar })]);
+    expect(llamadas).toBe(1);
+    expect([a.status, b.status].sort()).toEqual([200, 409]);
+    expect((await estado(base)).pendientes).toHaveLength(1);
+  });
+});
+
+describe('revisión: timeout de 60 s a OpenAI', () => {
+  it('si OpenAI no contesta, se corta y cuenta como error de red (reintentable)', async () => {
+    const colgado = ((_url: string, init: RequestInit) =>
+      new Promise((_ok, mal) => {
+        init.signal?.addEventListener('abort', () => mal(new DOMException('This operation was aborted', 'AbortError')));
+      })) as unknown as typeof fetch;
+    const err = await transcribirAudio(Buffer.from('a'), { key: 'k', tipo: 'audio/webm', nombreArchivo: 'a.webm', fetch: colgado, timeoutMs: 20 }).catch((e: unknown) => e);
+    expect(esReintentable(err)).toBe(true);
+    expect((err as Error).message).toMatch(/60 s|tardó/);
+  });
+
+  it('por defecto espera 60 segundos', async () => {
+    const { TIMEOUT_TRANSCRIPCION_MS } = await import('../src/v3/entrevista/transcribir.js');
+    expect(TIMEOUT_TRANSCRIPCION_MS).toBe(60_000);
+  });
+});
+
+describe('revisión: aviso de cortado y la página sin servidor', () => {
+  it.each(['Sí, claro', 'No sé', 'Mi mamá y'])('"%s" (3 palabras o menos) no avisa', (t) => {
+    expect(pareceCortada(t)).toBe(false);
+  });
+
+  it('si la página no puede hablar con el servidor, ofrece "Reintentar" que recarga el estado', async () => {
+    const base = await levantar({ datos: nuevaCarpeta() });
+    const html = await (await fetch(base + '/')).text();
+    expect(html).toContain("mostrarError('No pude hablar con el servidor. ¿Sigue prendido en la terminal?', null, true)");
+    expect(html).toMatch(/if \(sinServidor\)[\s\S]*b\.onclick = reintentarEnvio/);
+    expect(html).toMatch(/async function reintentarEnvio[\s\S]*await cargar\(\)/);
+  });
+});

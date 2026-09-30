@@ -33,7 +33,12 @@ export type OpcionesTranscribir = {
   nombreArchivo: string;
   prompt?: string;
   fetch?: typeof fetch;
+  /** Cuánto se espera a OpenAI antes de cortar (por defecto 60 s); cortar cuenta como error de red. */
+  timeoutMs?: number;
 };
+
+/** Si OpenAI no contesta en 60 segundos, se corta y se reintenta como un error de red (revisión de la prueba de Naza, 30/09). */
+export const TIMEOUT_TRANSCRIPCION_MS = 60_000;
 
 /**
  * Un error de la transcripción que dice si vale la pena reintentar: la red
@@ -66,17 +71,25 @@ export async function transcribirAudio(audio: Buffer, o: OpcionesTranscribir): P
   form.append('language', 'es');
   form.append('response_format', 'json');
   if (o.prompt) form.append('prompt', o.prompt);
+  const timeoutMs = o.timeoutMs ?? TIMEOUT_TRANSCRIPCION_MS;
+  const corte = new AbortController();
+  const reloj = setTimeout(() => corte.abort(), timeoutMs);
   let res: Response;
+  let cuerpo: string;
   try {
     res = await (o.fetch ?? fetch)(URL_TRANSCRIPCION, {
       method: 'POST',
       headers: { Authorization: `Bearer ${o.key}` },
       body: form,
+      signal: corte.signal,
     });
+    cuerpo = await res.text();
   } catch (err) {
+    if (corte.signal.aborted) throw new ErrorTranscripcion(`La transcripción tardó más de ${Math.round(timeoutMs / 1000)} s (límite: 60 s) y se cortó.`, true);
     throw new ErrorTranscripcion(taparKey(`La transcripción no llegó a OpenAI (¿sin conexión?): ${(err as Error).message}`, o.key), esReintentable(err));
+  } finally {
+    clearTimeout(reloj);
   }
-  const cuerpo = await res.text();
   if (!res.ok) {
     let mensaje = cuerpo;
     try {

@@ -128,11 +128,33 @@
   const escapar = (s) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const conCursiva = (s) => escapar(s).replace(/(^|[\s(¿¡"])_([^_\n]+)_(?=$|[\s.,;:!?)"])/g, '$1<em>$2</em>');
 
-  function mostrarError(msg, archivo) {
+  // Lo último que se intentó mandar, por si el servidor no contestó (se cortó la conexión con la página).
+  let ultimoEnvio = null;
+
+  /**
+   * "Reintentar" cuando la página no pudo hablar con el servidor: recarga el
+   * estado y, si lo que se mandó no llegó (el chat quedó igual), lo reenvía.
+   */
+  async function reintentarEnvio() {
+    const envio = ultimoEnvio;
+    limpiarError();
+    const antes = envio && envio.huella;
+    await cargar();
+    if (envio && vista && huella(vista) === antes) mandar(envio.ruta, envio.cuerpo, envio.texto, envio.tipo);
+  }
+  const huella = (v) => JSON.stringify([(v.globos || []).length, (v.pendientes || []).length]);
+
+  function mostrarError(msg, archivo, sinServidor) {
     reintentar = archivo || null;
     const caja = $('error');
     caja.innerHTML = '';
     caja.append(document.createTextNode(msg));
+    if (sinServidor) {
+      const b = document.createElement('button');
+      b.type = 'button'; b.textContent = 'Reintentar'; b.style.display = 'block'; b.style.marginTop = '8px';
+      b.onclick = reintentarEnvio;
+      caja.append(b);
+    }
     if (reintentar) {
       const b = document.createElement('button');
       b.type = 'button'; b.textContent = 'Reintentar'; b.style.display = 'block'; b.style.marginTop = '8px';
@@ -237,6 +259,7 @@
     if (ocupado) return;
     limpiarError();
     setOcupado(true, texto);
+    ultimoEnvio = { ruta, cuerpo, texto, tipo, huella: vista ? huella(vista) : null };
     // Mientras se transcribe, se mira si el servidor está reintentando porque se cayó la red.
     let mirar = null;
     if (ruta === '/api/audio' || ruta === '/api/reintentar') {
@@ -269,7 +292,7 @@
       pintar();
       if (ruta === '/api/texto') $('texto').value = '';
     } catch (e) {
-      mostrarError('No pude hablar con el servidor. ¿Sigue prendido en la terminal?');
+      mostrarError('No pude hablar con el servidor. ¿Sigue prendido en la terminal?', null, true);
     } finally {
       if (mirar) clearInterval(mirar);
       setOcupado(false);
@@ -283,7 +306,7 @@
       vista = await (await fetch('/api/estado')).json();
       pintar();
     } catch (e) {
-      mostrarError('No pude hablar con el servidor. ¿Sigue prendido en la terminal?');
+      mostrarError('No pude hablar con el servidor. ¿Sigue prendido en la terminal?', null, true);
     }
   }
 
