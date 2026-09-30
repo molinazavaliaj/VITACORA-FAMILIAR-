@@ -12,7 +12,9 @@ Carpeta del rediseño de la entrevista de Vitácora de Viaje (30/09/2026), hecho
 `paso-1*.md` (diseño) → `paso-2-*` (el banco, parte por parte, rondas y aprobadas) → `paso-3-*` (mensajes fijos) → `paso-4-revision-fable.md` (revisión del banco entero). Versiones viejas en [`historial/`](historial/). `diseno-vigente.md` quedó superado por `flujo-vigente.md`.
 
 ## Código
-`fabrica/src/viaje-v2/` (puro, sin I/O): banco-md, banco (json generado), texto, horas, calendario, mensajes, estado, album, lectura. Tests en `fabrica/test/viaje-v2-*.test.ts` (142, en verde al 30/09).
+`fabrica/src/viaje-v2/` (puro, sin I/O): banco-md, banco (json generado), texto, horas, calendario, mensajes, estado, album, lectura. Tests en `fabrica/test/viaje-v2-*.test.ts` (237, en verde al 30/09, incluido uno que corre los 2400 viajes; se saltea con `VIAJE_V2_SIN_2400=1`).
+
+**Simulaciones** ([`simulaciones/`](simulaciones/)): `npx tsx scripts/viaje-v2-simular.ts` corre 2400 viajes inventados contra 40 controles (cero fallas al 30/09); `resumen.md` tiene las estadísticas, y hay lecturas de 1, 2 y 30 días más la lectura de Fable "como la persona". Viaje de 30 días publicado: https://claude.ai/artifact/XpFjHLKfNAhStEhT9hcXmd
 
 ```bash
 cd fabrica
