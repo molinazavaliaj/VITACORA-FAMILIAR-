@@ -79,7 +79,7 @@ describe('4. AM19 solo si convivió (si:AM9 y si:AM3)', () => {
   });
 
   it('Aníbal: AM3 [No llegamos a eso] y ya no está → no va AM19', () => {
-    const yaNo = respuestaDeBoton('Ya no está conmigo');
+    const yaNo = respuestaDeBoton('No estoy en pareja');
     expect(cumple(p('AM19'), r({ AMH: yaNo, AM3: respuestaDeBoton('No llegamos a eso'), AM9: CUENTA }))).toBe(false);
     expect(cumple(p('AM19'), r({ AMH: yaNo, AM3: CUENTA, AM9: CUENTA }))).toBe(true);
   });
@@ -168,7 +168,7 @@ describe('8. AM16 va igual tras paso en AM9; FIN según FO1; M26 delante de AM20
   // AM19 ya no mira AM9 sino AMH.
   it('AM9 [Prefiero no contarla] o "paso": AM19 va igual (si convivieron) y AM21 también', () => {
     for (const am9 of [respuestaDeBoton('Prefiero no contarla'), 'Paso']) {
-      const resp = r({ AM0: CUENTA, AMH: respuestaDeBoton('Ya no está conmigo'), AM3: CUENTA, AM9: am9 });
+      const resp = r({ AM0: CUENTA, AMH: respuestaDeBoton('No estoy en pareja'), AM3: CUENTA, AM9: am9 });
       expect(cumple(p('AM19'), resp)).toBe(true);
       expect(cumple(p('AM21'), resp)).toBe(true);
     }

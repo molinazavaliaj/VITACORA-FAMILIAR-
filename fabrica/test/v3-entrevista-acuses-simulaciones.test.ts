@@ -107,7 +107,7 @@ describe('regla 30: después de tocar "Sí" no va acuse; el audio de después ll
   });
 });
 
-describe('regla 29: M27 y M28 van pegados, como M25; M27.1 no va delante de "Seguimos" o "Pasamos"', () => {
+describe('regla 29: M27 y M28 van pegados, como M25', () => {
   it('pegados; el sobrio (M4) sigue solo', () => {
     for (const f of ['M25', 'M26', 'M27', 'M28', 'M29'] as const) expect(acuseVaAparte(f), f).toBe(false);
     expect(acuseVaAparte('M4')).toBe(true);
@@ -118,9 +118,10 @@ describe('regla 29: M27 y M28 van pegados, como M25; M27.1 no va delante de "Seg
     expect([0, 1, 2, 3].map((n) => acuseNegado(n, 'Si alguna vez tu salud te frenó…'))).toEqual(['M27.1', 'M27.2', 'M27.3', 'M27.1']);
   });
 
-  it('delante de "Seguimos…" o "Pasamos…" va M27.2 en lugar de M27.1', () => {
-    expect(acuseNegado(0, 'Seguimos con la escuela: la primaria…')).toBe('M27.2');
-    expect(acuseNegado(3, 'Pasamos a tu juventud, Rogelio…')).toBe('M27.2');
+  // Hasta el 30/09 delante de "Seguimos…" o "Pasamos…" iba M27.2 en lugar de M27.1 ("…y seguimos por otro lado");
+  // desde que M27.1 es "Lo dejamos ahí." rotan sin excepción: v3-entrevista-fable-extras.test.ts.
+  it('delante de "Seguimos…" o "Pasamos…" rotan igual', () => {
+    expect(acuseNegado(0, 'Seguimos con la escuela: la primaria…')).toBe('M27.1');
     expect(acuseNegado(2, 'Pasamos a tu juventud')).toBe('M27.3');
   });
 });
@@ -134,7 +135,7 @@ describe('acuseDeTurno: el ID del acuse, sabiendo qué se manda después', () =>
     expect(acuseDeTurno('M4', 5, '…', sigue('CA16'))).toBe('M4.2');
     expect(acuseDeTurno('M24', 0, 'Seguimos con la escuela…', sigue('ES1'))).toBe('M24.1');
     expect(acuseDeTurno('M25', 0, 'Seguimos con la escuela…', sigue('ES1'))).toBe('M25.3');
-    expect(acuseDeTurno('M27', 0, 'Seguimos con la escuela…', sigue('ES1'))).toBe('M27.2');
+    expect(acuseDeTurno('M27', 0, 'Seguimos con la escuela…', sigue('ES1'))).toBe('M27.1');
     expect(acuseDeTurno('M28', 7, '…', sigue('CA16'))).toBe('M28.1'); // M28.2 y M28.3 en reserva
     expect(acuseDeTurno('M21', 3, '…', sigue('CA16'))).toBe('M21');
     expect(acuseDeTurno('M26', 3, '…', sigue('CA16'))).toBe('M26');

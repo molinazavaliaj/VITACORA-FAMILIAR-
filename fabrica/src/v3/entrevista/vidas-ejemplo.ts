@@ -1,7 +1,7 @@
 // Vidas de ejemplo para recorrer la entrevista (metodo-entrevista.md,
 // "Bloque 6, arreglo para quien se separó o enviudó y rehízo su vida"; desde
-// la prueba de Naza en la página, 30/09, el bloque 6 pregunta primero si la
-// pareja de ahora o la última sigue al lado: AMH).
+// la prueba de Naza en la página, 30/09, el bloque 6 pregunta primero
+// "¿Hoy estás en pareja?": AMH).
 // INVENTADAS: nunca usar la vida de un narrador real. Solo traen las
 // respuestas que abren temas; al resto el simulador contesta "Sí, te cuento…".
 
@@ -34,8 +34,8 @@ const FAMILIA_COMPLETA = {
   HI8: 'Sí, el primero nació un invierno y fui corriendo al hospital a conocerlo.',
 };
 
-const SIGUE = respuestaDeBoton('Sí, seguimos juntos');
-const YA_NO_ESTA = respuestaDeBoton('Ya no está conmigo');
+const SIGUE = respuestaDeBoton('Sí, estoy en pareja');
+const YA_NO_ESTA = respuestaDeBoton('No estoy en pareja');
 const FUE_LA_UNICA = respuestaDeBoton('Fue la única');
 
 export const VIDAS_EJEMPLO: readonly VidaEjemplo[] = [

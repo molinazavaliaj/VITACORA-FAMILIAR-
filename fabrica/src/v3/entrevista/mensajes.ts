@@ -57,14 +57,14 @@ function arrancaConSeguimos(siguiente: string): boolean {
 }
 
 /**
- * El acuse de turno cuando se negó en una sensible (M27), sabiendo con qué
- * arranca lo que sigue: M27.1 termina en "seguimos por otro lado", así que
- * delante de algo que arranca con "Seguimos" o "Pasamos" va M27.2 (regla 29;
- * Naza, 30/09, simulaciones).
+ * El acuse de turno cuando se negó en una sensible (M27): rotan sin excepción.
+ * Hasta el 30/09 M27.1 terminaba en "seguimos por otro lado" y delante de
+ * "Seguimos…" o "Pasamos…" iba M27.2; desde que M27.1 es "Lo dejamos ahí."
+ * (propuesta de Fable después de la prueba de Naza) ya no hace falta.
+ * `_siguiente` queda en la firma por simetría con acuseNeutro.
  */
-export function acuseNegado(n: number, siguiente: string): string {
-  const id = acuseRotado('M27', n);
-  return id === 'M27.1' && arrancaConSeguimos(siguiente) ? 'M27.2' : id;
+export function acuseNegado(n: number, _siguiente: string): string {
+  return acuseRotado('M27', n);
 }
 
 /** Cuántas veces salió cada familia que rota (para saber cuál le toca). */
@@ -110,7 +110,7 @@ export function acuseDeTurno(familia: FamiliaAcuse, n: number, siguienteTexto: s
     case 'M28':
       return ACUSE_OLVIDO;
     case 'M32': {
-      // M32.2 termina en "Seguimos.": delante de "Seguimos…" o "Pasamos…" va M32.1 (como M27.1; revisión de la ronda 2).
+      // M32.2 termina en "Seguimos.": delante de "Seguimos…" o "Pasamos…" va M32.1 (como M25.3; revisión de la ronda 2).
       const id = acuseRotado('M32', n);
       return acuseAntesDe(id === 'M32.2' && arrancaConSeguimos(siguienteTexto) ? 'M32.1' : id, 'M32', siguiente);
     }

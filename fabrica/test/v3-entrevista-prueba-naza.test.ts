@@ -108,19 +108,16 @@ describe('6. salidas "si ya me lo contaste"', () => {
     );
   });
 
-  it.each([
-    ['AD15', 'adolescencia'],
-    ['JU17', 'juventud'],
-  ])('%s: "decime "ya te lo conté" y seguimos"', (id, epoca) => {
-    expect(texto(id)).toBe(
-      `¿Hubo algún momento duro en tu ${epoca} que creas que no puede quedar afuera de tu historia? ¿Algo que te marcó? Si querés, contame qué pasó y cómo lo viviste. Y si ya me lo contaste, decime "ya te lo conté" y seguimos.`,
-    );
+  // La salida cambió otra vez (Naza, 30/09: "Si ya me lo contaste, decímelo, y si querés reforzar algo, es el momento.")
+  // y JU17 dice "en esos años de empezar tu vida": los textos exactos, en v3-entrevista-fable-extras.test.ts.
+  it.each(['AD15', 'JU17'])('%s: salida "si ya me lo contaste"', (id) => {
+    expect(texto(id)).toMatch(/Si ya me lo contaste, decímelo, y si querés reforzar algo, es el momento\.$/);
     expect(mensajesDespues(p(id), 'Ya te lo conté.')).toEqual(['M25']);
   });
 
-  it('AM1: sin "la primera", con "decime "ya te lo conté""', () => {
+  it('AM1: sin "la primera"', () => {
     expect(texto('AM1')).toBe(
-      'Contame el día que se conocieron: dónde fue, quién los presentó o cómo se cruzaron, y qué fue lo primero que te llamó la atención de esa persona. Si ese día ya me lo contaste antes, decime "ya te lo conté" y seguimos con lo que vino después.',
+      'Contame el día que se conocieron: dónde fue, quién los presentó o cómo se cruzaron, y qué fue lo primero que te llamó la atención de esa persona. Si ya me lo contaste, decímelo, y si querés reforzar algo, es el momento.',
     );
   });
 });
@@ -154,9 +151,8 @@ describe('7. bloque 6 nuevo', () => {
     expect(texto('AM0')).toBe(
       'Ahora vamos al amor. ¿Hubo alguien con quien tuviste una historia en serio? Si hubo, haceme un repaso corto: cuántas veces te enamoraste, cuáles llegaron a algo serio, más o menos en qué años, y si hoy hay alguien a tu lado. Después te pregunto más de la pareja de ahora, o de la última, y de las de antes también va a haber lugar. Y si no hubo, también vale.',
     );
-    expect(texto('AMH')).toBe(
-      'Vamos a la pareja de ahora, o a la última si hoy no hay nadie. Antes de preguntarte por esa historia, decime desde dónde te pregunto: ¿esa persona sigue hoy a tu lado?',
-    );
+    // AMH cambió otra vez (Naza, 30/09: "¿Hoy estás en pareja?"): v3-entrevista-fable-extras.test.ts.
+    expect(texto('AMH')).toMatch(/¿Hoy estás en pareja\?$/);
     expect(texto('AM9')).toBe(
       'Si querés, contame cómo fue el final de esa historia: una separación, una despedida, lo que haya sido. Solo lo que vos quieras, y hasta donde quieras. Si preferís no entrar ahí, con el botón alcanza; lo demás de tu historia sigue igual.',
     );
@@ -171,22 +167,22 @@ describe('7. bloque 6 nuevo', () => {
   });
 
   it('botones', () => {
-    expect(botones('AMH')).toEqual(['Sí, seguimos juntos=si', 'Ya no está conmigo=no']);
+    expect(botones('AMH')).toEqual(['Sí, estoy en pareja=si', 'No estoy en pareja=no']);
     expect(botones('AM9')).toEqual(['Prefiero no contarla=paso']);
     expect(botones('AM21')).toEqual(['Sí, hubo otras=si', 'Fue la única=no']);
   });
 
   it('AM7: "repetía" si ya no está (AMH no), "repite" si sigue', () => {
     const am7 = (amh: string) => renderizar(texto('AM7'), { nombre: 'Elsa', genero: 'mujer' }, r({ AMH: amh }));
-    expect(am7(respuestaDeBoton('Ya no está conmigo'))).toContain('una frase que repetía,');
-    expect(am7(respuestaDeBoton('Sí, seguimos juntos'))).toContain('una frase que repite,');
+    expect(am7(respuestaDeBoton('No estoy en pareja'))).toContain('una frase que repetía,');
+    expect(am7(respuestaDeBoton('Sí, estoy en pareja'))).toContain('una frase que repite,');
   });
 
-  it('AMH [Sí, seguimos juntos]: no pide audio (no va M30); después de AMH va siempre M26', () => {
-    expect(alTocarBoton(p('AMH'), 'Sí, seguimos juntos')).toEqual({ vale: 'si', respuesta: respuestaDeBoton('Sí, seguimos juntos'), esperaAudio: false });
+  it('AMH [Sí, estoy en pareja]: no pide audio (no va M30); después de AMH va siempre M26', () => {
+    expect(alTocarBoton(p('AMH'), 'Sí, estoy en pareja')).toEqual({ vale: 'si', respuesta: respuestaDeBoton('Sí, estoy en pareja'), esperaAudio: false });
     expect(alTocarBoton(p('AM21'), 'Sí, hubo otras')).toMatchObject({ vale: 'si', mandar: 'M30', esperaAudio: true });
-    expect(mensajesDespues(p('AMH'), respuestaDeBoton('Sí, seguimos juntos'))).toEqual(['M26']);
-    expect(mensajesDespues(p('AMH'), respuestaDeBoton('Ya no está conmigo'))).toEqual(['M26']);
+    expect(mensajesDespues(p('AMH'), respuestaDeBoton('Sí, estoy en pareja'))).toEqual(['M26']);
+    expect(mensajesDespues(p('AMH'), respuestaDeBoton('No estoy en pareja'))).toEqual(['M26']);
     expect(mensajesDespues(p('AMH'), 'No.')).toEqual(['M26']);
   });
 
@@ -256,8 +252,8 @@ describe('7. bloque 6: cada vida', () => {
     }
   });
 
-  it('AMH [Ya no está conmigo] y AM9 [Prefiero no contarla]: no va AM19 si no armaron la vida; AM21 va igual', () => {
-    const base = { AM0: CUENTA, AMH: respuestaDeBoton('Ya no está conmigo'), AM9: respuestaDeBoton('Prefiero no contarla') };
+  it('AMH [No estoy en pareja] y AM9 [Prefiero no contarla]: no va AM19 si no armaron la vida; AM21 va igual', () => {
+    const base = { AM0: CUENTA, AMH: respuestaDeBoton('No estoy en pareja'), AM9: respuestaDeBoton('Prefiero no contarla') };
     expect(cumple(p('AM19'), r({ ...base, AM3: CUENTA }))).toBe(true);
     expect(cumple(p('AM19'), r({ ...base, AM3: respuestaDeBoton('No llegamos a eso') }))).toBe(false);
     expect(cumple(p('AM21'), r(base))).toBe(true);

@@ -332,7 +332,7 @@ describe('las dependencias con botones', () => {
 
   // Desde la prueba de Naza en la página (30/09) AM19 depende de AMH y AM3, no de AM9; AM16 salió (lo cubre AM21).
   it('AM9 [Prefiero no contarla]: AM19 va igual si ya no está y convivieron; AM21 va igual', () => {
-    const r = new Map([['AM0', 'Sí, una vez.'], ['AMH', respuestaDeBoton('Ya no está conmigo')], ['AM3', 'Sí, nos casamos.'], ['AM9', respuestaDeBoton('Prefiero no contarla')]]);
+    const r = new Map([['AM0', 'Sí, una vez.'], ['AMH', respuestaDeBoton('No estoy en pareja')], ['AM3', 'Sí, nos casamos.'], ['AM9', respuestaDeBoton('Prefiero no contarla')]]);
     expect(cumple(p('AM19'), r)).toBe(true);
     expect(cumple(p('AM21'), r)).toBe(true);
   });

@@ -21,9 +21,7 @@ describe('textos de preguntas aprobados (textos-finales.md, sección 2, con los 
     // Sección 2 de textos-finales.md.
     CA16: 'Contame un día de chic{{o/a}} que esperabas con muchas ganas: qué era, quién estaba, qué pasó. Y si no te vuelve un día en particular, contame qué cosas esperabas con ganas en esa época, que con eso me arreglo.',
     AD5: '¿Te acordás de la primera vez que saliste de noche, a un baile o a una fiesta? Contame cómo te preparaste, con quién fuiste y cómo fue esa noche. Y si la primera no te vuelve, contame cómo eran esas salidas en general.',
-    JU12: 'Contame del primer lugar que fue tuyo, donde ya vivías por tu cuenta: cómo era, con qué lo fuiste armando, qué se veía por la ventana. Y esa primera noche ahí, ¿cómo fue? Si la noche justa no te vuelve, contame cómo eran los primeros tiempos ahí. Y si nunca te fuiste de la casa de tus viejos, contame el día en que esa casa pasó a ser tuya, o el rincón que siempre fue tuyo.',
-    AM3: 'Y después, ¿llegaron a armar la vida juntos: casarse, irse a vivir, lo que haya sido? Si llegaron, contame ese momento: quién lo dijo primero, o si se fue dando solo, dónde estaban, qué se dijeron. Si ya me lo contaste recién, con decírmelo alcanza.',
-    AM4: 'Hay días que quedan grabados para siempre: el del casamiento, o el primero viviendo juntos. Contame ese día como si lo estuvieras viendo: el lugar, la gente, la ropa, lo que más te quedó. Si ya me lo contaste recién, con decírmelo alcanza.',
+    // JU12, AM3, AM4, GI1, GI2 y PE4 cambiaron después (salida de Naza y textos de Fable, 30/09): v3-entrevista-fable-extras.test.ts.
     AM13: 'Contame una pelea que tuvieron, de esas que después dan risa: por qué fue, quién aflojó primero y cómo hicieron las paces. Si no hubo ninguna que hoy dé risa, con decírmelo alcanza.',
     AM19: 'Y después, cuando quedaste por tu cuenta, ¿cómo fueron esos primeros tiempos? Qué cambió en la casa y en los días, quién anduvo cerca. Si ese tiempo es el de ahora, contame igual cómo lo estás llevando. Y si no hubo un tiempo así, con decírmelo alcanza.',
     // AM16 y AM20 cambiaron otra vez en la ronda 2 (Naza, 30/09): v3-entrevista-ronda2.test.ts.
@@ -33,12 +31,9 @@ describe('textos de preguntas aprobados (textos-finales.md, sección 2, con los 
     HS1: '¿Cómo fue criar a tus hijos? Quién estaba cerca, cómo se repartían las cosas, o si te tocó llevarla sol{{o/a}}. Contame un día de esa época que te acuerdes bien.',
     TR5: '¿Cuál fue el día de trabajo del que estás más orgullos{{o/a}}? No hace falta que haya sido grande: algo que salió bien, que alguien reconoció, o que solo vos sabés lo que costó. Contámelo. Y si no te viene un día puntual, contame de qué parte de tu trabajo estás más orgullos{{o/a}}.',
     HG4: 'Te quiero pedir un día concreto de la pandemia. No toda esa época: un solo día. Dónde estabas, con quién, qué hiciste, cómo te sentías. Pensá en el que más te haya quedado. Y si ninguno se te separa de los demás, contame cómo eran tus días entonces.',
-    GI1: '¿Hay algún día de tu vida que, si pudieras, volverías a vivir tal cual? O un momento en que sentiste que algo hizo clic. Contámelo desde el principio: dónde estabas, con quién, y qué fue lo que pasó. Si es uno que ya me contaste, decímelo y, si querés, agregale lo que te faltó.',
-    GI2: 'Pensá en un día que empezó como cualquier otro y terminó cambiándote algo. Contame ese día entero: cómo arrancó la mañana, en qué momento te diste cuenta de que ya no había vuelta atrás, y cómo terminó. Si ya me lo contaste, con decírmelo alcanza. Y si el día justo no te vuelve, contame lo que te acuerdes de esa época.',
     GI9: '¿Hubo algún momento en tu vida en que te sentiste chiquit{{o/a}} frente a algo enorme? Un cielo de noche, por ejemplo. Contame ese momento: dónde estabas, con quién, qué había alrededor. Y si no te vuelve un momento puntual, contame frente a qué cosas te pasa eso.',
     HO2: '¿Qué cosas te hacen gracia hoy, qué te hace reír? Contame la última vez que te reíste con ganas: dónde estabas y qué había pasado. Y si la última no te vuelve, contame con qué te reís seguido.',
     PE1: 'Puede que ya me hayas hablado de alguna pérdida; acá hay lugar para lo que no entró. Si perdiste a alguien importante, contame de cada uno lo que quieras: qué era para vos, cómo fueron los días de después y cómo lo fuiste llevando. Y si hay un momento con alguna de esas personas que te guste recordar, contámelo también.',
-    PE4: '¿Hubo alguna época dura en tu vida de grande que creas que no puede quedar afuera de tu historia? ¿Algo que te marcó? Si querés, contame qué pasó y cómo lo viviste. Y si ya me la contaste, con decírmelo alcanza.',
     FO1: 'Otra cosa, {{nombre}}. ¿Hay alguna foto, en el celular o en algún cajón de tu casa, que quieras que quede para siempre en este libro? Si la tenés, sacale una foto y mandámela, y después contame en un audio qué se ve y quiénes están. Tomate el tiempo que necesites para buscarla: la pregunta que sigue te la mando cuando me llegue la foto o me digas algo. Y si no la encontrás, no pasa nada: el libro va igual, y la podés mandar más adelante.',
     // FIN sin "y es bien tuyo" (duda 4, Naza) y con la frase de la foto.
     // FIN: desde la ronda 2 la frase de la foto va con la variante «sino:FO1» (sin ella si tocó [No tengo foto]).
@@ -50,7 +45,7 @@ describe('textos de preguntas aprobados (textos-finales.md, sección 2, con los 
   });
 
   it('son 28 preguntas que cambian (con FO1 y FIN) más AM20, que es nueva (AM16 y AM20 se prueban en la ronda 2)', () => {
-    expect(Object.keys(APROBADOS)).toHaveLength(24); // 27 menos AM0, AM1 y CI1 (cambiaron en la prueba de Naza)
+    expect(Object.keys(APROBADOS)).toHaveLength(18); // 27 menos AM0, AM1 y CI1 (prueba de Naza) y JU12, AM3, AM4, GI1, GI2 y PE4 (propuestas de Fable que faltaban)
   });
 
   it('HI2b se saca del banco (Naza, 30/09: estorba; HI0 ya pide presentarlos a todos)', () => {
@@ -68,7 +63,7 @@ describe('mensajes fijos aprobados (textos-finales.md, sección 3)', () => {
     'M3.6': 'Lo tengo, gracias. Vamos con otra.',
     'M3.7': 'Quedó guardado, {{nombre}}. Sigo con la que viene.',
     'M3.8': 'Te escuché bien. Vamos por la siguiente.',
-    'M27.1': 'Está bien, {{nombre}}. Lo dejamos ahí y seguimos por otro lado.',
+    // M27.1 cambió después (Fable, 30/09: "Lo dejamos ahí."): v3-entrevista-fable-extras.test.ts.
     'M27.2': 'Claro, sin problema. Vamos con otra.',
     'M27.3': 'Entiendo, {{nombre}}. No hace falta entrar ahí. Vamos con la que viene.', // ronda 2: sin "Perfecto"
     'M28.1': 'No pasa nada, {{nombre}}. Vamos con otra.',
@@ -133,7 +128,7 @@ describe('botones (textos-finales.md, sección 1 y regla 1; PLAN-codigo.md)', ()
     expect(botones('JU8')).toEqual(['Sí, me mudé=si', 'No, nunca me mudé=no']);
     expect(botones('AM0')).toEqual(['Sí, hubo=si', 'No hubo=no']);
     expect(botones('AM3')).toEqual(['Sí=si', 'No llegamos a eso=no']);
-    expect(botones('AMH')).toEqual(['Sí, seguimos juntos=si', 'Ya no está conmigo=no']);
+    expect(botones('AMH')).toEqual(['Sí, estoy en pareja=si', 'No estoy en pareja=no']);
     expect(botones('AM9')).toEqual(['Prefiero no contarla=paso']);
     expect(botones('AM21')).toEqual(['Sí, hubo otras=si', 'Fue la única=no']);
     expect(botones('HI0')).toEqual(['Sí, tuve=si', 'No tuve hijos=no']);

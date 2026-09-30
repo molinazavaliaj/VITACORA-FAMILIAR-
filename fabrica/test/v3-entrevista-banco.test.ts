@@ -143,6 +143,8 @@ describe('entrevista: el banco contra el borrador aprobado', () => {
   // Después de la prueba de Naza en la página (30/09) cambiaron estos (AM7 solo la variante de tiempo);
   // AMH, AM21 y HO11 son nuevas y AM16 salió: v3-entrevista-prueba-naza.test.ts.
   const CAMBIADAS_PRUEBA_NAZA = new Set(['CI3', 'CI4', 'CI6', 'CI7', 'CI8', 'CI9', 'CI10', 'CI13', 'CA3', 'AD15', 'JU17', 'AM9', 'AM7']);
+  // Y después, con las propuestas de Fable que faltaban (textos-fable-extras.md, 30/09).
+  const CAMBIADAS_FABLE_EXTRAS = new Set(['AD6', 'CS1', 'PA1', 'TR8', 'HO10', 'HE2']);
   const NUEVAS = ['AM20', 'AMH', 'AM21', 'HO11'];
 
   it('toda fila viva del borrador está, con el mismo texto (salvo lo que cambió en las simulaciones)', () => {
@@ -156,7 +158,7 @@ describe('entrevista: el banco contra el borrador aprobado', () => {
       // CI14 se reescribió el 30/09 después de la lectura corrida (correcciones-lectura.md): ahora pregunta.
       // CI11 perdió su primera frase en la ronda 2.
       if (p!.id === 'CI14' || p!.id === 'CI11' || p!.id === 'FO1') continue; // FO1: "Otra cosa" desde la ronda 3
-      if (CAMBIADAS_SIMULACIONES.has(p!.id) || CAMBIADAS_PRUEBA_NAZA.has(p!.id)) continue;
+      if (CAMBIADAS_SIMULACIONES.has(p!.id) || CAMBIADAS_PRUEBA_NAZA.has(p!.id) || CAMBIADAS_FABLE_EXTRAS.has(p!.id)) continue;
       expect(normalizar(p!.texto), f.clave).toBe(normalizar(f.texto));
     }
   });

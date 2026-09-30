@@ -35,7 +35,7 @@ describe('entrevista: renderizar', () => {
     expect(renderizar(mensajePorId('M10')!.texto, mujer)).not.toContain('{{etapa}}'); // 30/09: M10 ya no usa {{etapa}}
   });
 
-  // Desde la prueba de Naza en la página (30/09) la variante mira AMH ("¿esa persona sigue hoy a tu lado?"), no AM9.
+  // Desde la prueba de Naza en la página (30/09) la variante mira AMH ("¿Hoy estás en pareja?"; antes "¿esa persona sigue hoy a tu lado?"), no AM9.
   it('AM7: "repetía" si AMH fue un "no" (ya no está); "repite" si sigue o no hay respuesta', () => {
     const am7 = texto('AM7');
     expect(idsEnVariantes(am7)).toEqual(['AMH']);

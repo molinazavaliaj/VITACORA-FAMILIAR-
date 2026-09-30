@@ -400,17 +400,27 @@ function esNoDicho(p: PreguntaParaInterpretar, f: string[], pal: string[]): bool
 }
 
 /**
- * AMH ("¿esa persona sigue hoy a tu lado?"; Naza, 30/09, prueba en la
- * página) se lee como "¿hoy hay alguien a tu lado?" (revisión de la tanda):
- *   - si dice que hoy hay alguien ("volvimos", "seguimos juntos/casados",
- *     "sigue conmigo", "estoy con…") o arranca con "sí", sigue;
+ * AMH ("¿Hoy estás en pareja?"; Naza, 30/09: antes "¿esa persona sigue hoy a
+ * tu lado?", que no se entendía de quién hablaba):
+ *   - si arranca con "sí", está en pareja;
+ *   - si en las primeras 5 palabras dice que no hay nadie ("no estoy en
+ *     pareja", "no estoy con nadie", "no tengo pareja", "estoy sola",
+ *     "quedé solo", "sin pareja", "soltera"…), no está;
+ *   - si dice que hoy hay alguien ("estoy en pareja", "tengo pareja",
+ *     "volvimos", "seguimos juntos/casados", "sigue conmigo", "estoy con…"),
+ *     está en pareja, aunque arranque con "no" ("No, estoy con Hugo");
  *   - si no, una palabra de final en las primeras 10 palabras (falleció,
- *     murió, quedé viuda, ya no está, nos separamos…), o un "no" corto, o
- *     "ya no" solo, es "ya no está";
- *   - ante la duda, sigue.
+ *     murió, quedé viuda, ya no está, nos separamos…), "ya no" solo o un
+ *     "no" corto, no está;
+ *   - ante la duda, está en pareja.
  */
 const AMH = 'AMH';
-const HOY_HAY_ALGUIEN = frases(['volvimos', 'seguimos juntos', 'seguimos casados', 'sigue conmigo', 'estoy con']);
+const HOY_HAY_ALGUIEN = frases(['estoy en pareja', 'tengo pareja', 'volvimos', 'seguimos juntos', 'seguimos casados', 'sigue conmigo', 'estoy con']);
+const HOY_NO_HAY_NADIE = frases([
+  'no estoy en pareja', 'no estoy con nadie', 'no tengo pareja', 'estoy sola', 'estoy solo', 'quede sola', 'quede solo', 'sin pareja', 'soltera', 'soltero',
+]);
+/** "No hay nadie" cuenta en las primeras 5 palabras ("Estoy con Rubén, aunque a veces estoy sola" está en pareja). */
+const PRIMERAS_NADIE = 5;
 const FINALES = frases([
   'fallecio', 'murio', 'se murio', 'quede viuda', 'quede viudo', 'enviude', 'ya no esta', 'nos separamos', 'me separe', 'nos divorciamos', 'me divorcie', 'terminamos', 'cortamos',
 ]);
@@ -420,7 +430,9 @@ const PRIMERAS_FINAL = 10;
 const hayFraseEnPalabras = (pal: readonly string[], frase: readonly string[]) => pal.some((_, i) => hayFraseEn(pal, i, frase));
 
 function interpretarAMH(p: PreguntaParaInterpretar, f: string[], pal: string[]): Interpretacion {
-  if (pal[0] === 'si' || HOY_HAY_ALGUIEN.some((x) => hayFraseEnPalabras(pal, x))) return 'conto';
+  if (pal[0] === 'si') return 'conto';
+  if (HOY_NO_HAY_NADIE.some((x) => hayFraseEnPalabras(pal.slice(0, PRIMERAS_NADIE), x))) return 'no';
+  if (HOY_HAY_ALGUIEN.some((x) => hayFraseEnPalabras(pal, x))) return 'conto';
   const primeras = pal.slice(0, PRIMERAS_FINAL);
   if (FINALES.some((x) => hayFraseEnPalabras(primeras, x))) return 'no';
   if (pal.join(' ') === 'ya no') return 'no';

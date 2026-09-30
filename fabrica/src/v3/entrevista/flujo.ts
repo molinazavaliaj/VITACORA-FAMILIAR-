@@ -189,8 +189,8 @@ export type AlTocarBoton =
 
 /**
  * Preguntas de ubicación: su botón de "Sí" no pide audio (no va M30), cierra
- * la respuesta. AMH, "¿esa persona sigue hoy a tu lado?" (Naza, 30/09,
- * prueba en la página).
+ * la respuesta. AMH, "¿Hoy estás en pareja?" (Naza, 30/09, prueba en la
+ * página; antes "¿esa persona sigue hoy a tu lado?").
  */
 export const SI_SIN_AUDIO: readonly string[] = ['AMH'];
 
@@ -260,7 +260,7 @@ export type FamiliaAcuse = 'M3' | 'M4' | 'M21' | 'M24' | 'M25' | 'M26' | 'M27' |
 /**
  * Después de estas el acuse es siempre "Gracias, {{nombre}}.": PG1 ("tus
  * viejos de grande", a veces su muerte; Naza, 30/09, simulaciones) y AMH
- * (un "Bien, seguimos." después de "Ya no está conmigo" es frío; prueba de
+ * (un "Bien, seguimos." después de [No estoy en pareja] (antes "Ya no está conmigo") es frío; prueba de
  * Naza en la página, 30/09).
  */
 export const SIEMPRE_M26: readonly string[] = ['PG1', 'AMH'];
