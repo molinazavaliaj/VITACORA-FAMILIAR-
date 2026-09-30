@@ -38,3 +38,7 @@ S1 a S6 se repitieron en casi todas (S2 en las 6: unos 70 "no"/"paso" mal leído
 | S13 | leve | Dashboard y escritor: nietos/hermanos en nombres pendientes, la familia completa nombres y fechas, marcas "pidió no ahondar" y "no se acuerda". | Ver consolidado. | propuesto |
 
 Sumas a los ya aprobados: **S4** (M26 antes de una sensible; "no" corto → M25 en todas las preguntas; PG1 → M26) y **S5** (la salida también en AM3 y AM4; "ya te lo conté" → acuse neutro). Orden que recomienda Fable: S2 + botones → S7, S1 → S8, S9 → S10, S3 → S4, S5, S11, S12 → S13, S6.
+
+### Decisiones de Naza sobre las simulaciones (30/09)
+- **Botones de WhatsApp en las preguntas que abren tema y en los 14 cierres: aprobado.** Falta: qué preguntas exactas, los textos de pregunta y botones (los redacta Fable, los aprueba Naza) y qué hace Joaquín en el entrevistador.
+- S2, las reglas de respaldo para quien contesta con audio en vez de tocar un botón ("no" hasta 40 palabras donde importa, "paso" como primera palabra sin tope, "pero" solo al principio): explicadas, esperando respuesta.
