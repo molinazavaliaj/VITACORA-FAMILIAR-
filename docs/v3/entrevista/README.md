@@ -11,6 +11,7 @@ Regla de nombres: lo que dice **vigente** es lo actual y no cambia de nombre; cu
 - [`lectura-corrida.md`](lectura-corrida.md): la entrevista completa de una vida inventada, mensaje por mensaje, como llega por WhatsApp (se genera con `scripts/v3-entrevista-lectura.ts`).
 - [`correcciones-lectura.md`](correcciones-lectura.md): lo que Naza marcó al leerla, qué se decidió y los textos aprobados.
 - [`simulaciones/PLAN.md`](simulaciones/PLAN.md): el plan para simular la entrevista con narradores inventados (agentes de IA) y encontrar fallas antes de la prueba real.
+- [`plan-whatsapp.md`](plan-whatsapp.md): cómo conectar la entrevista nueva al entrevistador de WhatsApp para que Naza y Joaquín la prueben (propuesta; lo hace Joaquín).
 - [`banco.md`](banco.md): **el banco vigente**, fuente de verdad. Arranque, mensajes fijos, los 15 bloques en orden de envío (con "Depende de", Parte, Clase y Sensible), las reglas del flujo, las dudas abiertas y la tabla de equivalencias de IDs.
 
 ## Docs relacionados
