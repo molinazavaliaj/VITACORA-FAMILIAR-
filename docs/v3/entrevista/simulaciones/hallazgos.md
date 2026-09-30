@@ -43,3 +43,8 @@ Sumas a los ya aprobados: **S4** (M26 antes de una sensible; "no" corto → M25 
 - **Botones de WhatsApp en las preguntas que abren tema y en los 14 cierres: aprobado.** Falta: qué preguntas exactas, los textos de pregunta y botones (los redacta Fable, los aprueba Naza) y qué hace Joaquín en el entrevistador.
 - **S2, reglas de respaldo** para quien contesta con audio en vez de tocar un botón ("no" hasta 40 palabras en cierres, sensibles y las que abren tema; "paso" como primera palabra sin tope; "pero" solo al principio): **aprobadas** (Naza las ve bien; Fable las recomienda junto con los botones).
 - **S7: HI2b ("¿Tuviste más hijos?") se saca** (Naza: estorba, y HI0 ya da lugar a contar de varios hijos).
+- **S1: botón en AM3 ("¿Llegaron a armar la vida juntos?" [Sí] [No llegamos a eso]): aprobado** (con "No" no llegan AM4 ni la pelea).
+- **S8: botón [Paso esta] en las 8 sensibles: aprobado.**
+- **S9: acuses de olvido: aprobada la idea**; Naza pidió textos más simples ("no pasa nada si no recuerda, no hay problema, vamos con otra"). Nueva versión de Fable (sin aprobar):
+  - M28.1 "No pasa nada, {{nombre}}. Vamos con otra." · M28.2 "Está bien, no hay problema. Te pregunto otra cosa." · M28.3 "Tranquil{{o/a}}, no importa. Seguimos con la que viene."
+  - M29 (una vez, al tercer olvido seguido): "Una cosa, {{nombre}}: no te hagas problema si algo no te acordás. Para el libro alcanza con lo que sí tenés. Y si de alguna te acordás a medias, contame ese pedacito nomás: un olor, una cara, cómo era en general. Eso también es tu historia."
