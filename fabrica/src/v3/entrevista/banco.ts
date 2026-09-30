@@ -5,7 +5,8 @@
 import bancoJson from './banco.json' with { type: 'json' };
 import type { BancoEntrevista, MensajeEntrevista, PreguntaEntrevista } from './banco-md.js';
 
-export type { BancoEntrevista, MensajeEntrevista, PreguntaEntrevista, Condicion, Parte, Clase, Boton, ValeBoton } from './banco-md.js';
+export type { BancoEntrevista, MensajeEntrevista, PreguntaEntrevista, Condicion, CondicionSimple, Parte, Clase, Boton, ValeBoton } from './banco-md.js';
+export { condicionesDe } from './banco-md.js';
 
 const DATOS = bancoJson as BancoEntrevista;
 

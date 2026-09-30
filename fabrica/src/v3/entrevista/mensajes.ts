@@ -71,7 +71,7 @@ export function acuseNegado(n: number, siguiente: string): string {
 export type Vueltas = Record<keyof typeof ROTAN, number>;
 
 export function vueltasEnCero(): Vueltas {
-  return { M3: 0, M4: 0, M24: 0, M25: 0, M27: 0 };
+  return { M3: 0, M4: 0, M24: 0, M25: 0, M27: 0, M32: 0 };
 }
 
 /** El acuse de una respuesta, a la espera de saber qué se manda después (ahí se elige el ID con `acuseDeTurno`). */
@@ -109,6 +109,10 @@ export function acuseDeTurno(familia: FamiliaAcuse, n: number, siguienteTexto: s
       return acuseNegado(n, siguienteTexto);
     case 'M28':
       return ACUSE_OLVIDO;
+    case 'M32':
+      return acuseAntesDe(acuseRotado('M32', n), 'M32', siguiente);
+    case 'M28.4':
+      return acuseAntesDe('M28.4', 'M28.4', siguiente);
     default:
       return familia; // M21, M26 y M29: uno solo
   }
@@ -116,6 +120,8 @@ export function acuseDeTurno(familia: FamiliaAcuse, n: number, siguienteTexto: s
 
 /** Después de esta pregunta viene el final: el acuse común no anuncia "otra" (Naza, 30/09, ronda 3). */
 const ANTES_DE_LE9 = 'LE9';
+/** Delante de AM20 el acuse común también es M26 (ronda 2, Naza, 30/09). */
+const ANTES_DE_AM20 = 'AM20';
 
 /**
  * El acuse que va de verdad, sabiendo qué se manda después: si es un acuse
@@ -126,8 +132,12 @@ const ANTES_DE_LE9 = 'LE9';
  * (Naza, 30/09, simulaciones, regla 26). Los demás no cambian.
  */
 export function acuseAntesDe(id: string, familia: FamiliaAcuse, siguiente: Pick<PreguntaEntrevista, 'id' | 'clase'> & { sensible?: boolean }): string {
+  const cierreOLe9 = siguiente.clase === 'cierre' || siguiente.id === ANTES_DE_LE9;
+  // Ronda 2 (Naza, 30/09): M32 y M28.4 también dejan lugar a M26 antes de un cierre o de LE9.
+  if (familia === 'M32' || familia === 'M28.4') return cierreOLe9 ? 'M26' : id;
   if (familia !== 'M3') return id;
-  return siguiente.clase === 'cierre' || siguiente.id === ANTES_DE_LE9 || siguiente.sensible === true ? 'M26' : id;
+  // M26 también delante de AM20 ("Ahora sí, las del medio"), después de contar el último amor (ronda 2).
+  return cierreOLe9 || siguiente.sensible === true || siguiente.id === ANTES_DE_AM20 ? 'M26' : id;
 }
 
 /**

@@ -244,6 +244,10 @@
         {
           "texto": "Paso esta",
           "vale": "paso"
+        },
+        {
+          "texto": "No, nada así",
+          "vale": "no"
         }
       ]
     },
@@ -522,6 +526,10 @@
         {
           "texto": "Paso esta",
           "vale": "paso"
+        },
+        {
+          "texto": "No, nada así",
+          "vale": "no"
         }
       ]
     },
@@ -734,6 +742,10 @@
         {
           "texto": "Paso esta",
           "vale": "paso"
+        },
+        {
+          "texto": "No, nada así",
+          "vale": "no"
         }
       ]
     },
@@ -985,7 +997,13 @@
       "depende": [
         {
           "tipo": "si",
-          "de": "AM9"
+          "de": "AM9",
+          "y": [
+            {
+              "tipo": "si",
+              "de": "AM3"
+            }
+          ]
         }
       ],
       "parte": "nucleo",
@@ -996,10 +1014,14 @@
       "id": "AM16",
       "bloque": 6,
       "orden": 83,
-      "texto": "Y más adelante, ¿hubo otro amor? Si hubo, contame del que compartís hoy, o del último: el día que se conocieron y un momento de los dos que te haya quedado.",
+      "texto": "Y más adelante, ¿hubo otro amor? Si hubo, contame por ahora solo del que compartís hoy, o del último: el día que se conocieron y un momento de los dos que te haya quedado. De las del medio, si hubo, te pregunto después.",
       "depende": [
         {
           "tipo": "si",
+          "de": "AM9"
+        },
+        {
+          "tipo": "paso",
           "de": "AM9"
         }
       ],
@@ -1021,7 +1043,7 @@
       "id": "AM20",
       "bloque": 6,
       "orden": 84,
-      "texto": "Y entre la primera y esta última, ¿hubo otras historias que fueron en serio? Un casamiento, alguien con quien viviste años. Este es su lugar, aunque me las hayas nombrado en el repaso: contame de cada una lo que quieras que quede, cómo se cruzaron y cómo terminó.",
+      "texto": "Ahora sí, las del medio. Entre la primera que fue en serio y la de ahora, o la última, ¿hubo otras historias que fueron en serio? Un casamiento, alguien con quien viviste años. Este es su lugar, aunque me las hayas nombrado en el repaso: contame de cada una lo que quieras que quede, cómo se cruzaron y cómo terminó.",
       "depende": [
         {
           "tipo": "si",
@@ -1231,6 +1253,10 @@
         {
           "texto": "Paso esta",
           "vale": "paso"
+        },
+        {
+          "texto": "No, nada así",
+          "vale": "no"
         }
       ]
     },
@@ -1858,6 +1884,10 @@
         {
           "texto": "Paso esta",
           "vale": "paso"
+        },
+        {
+          "texto": "No, nada así",
+          "vale": "no"
         }
       ]
     },
@@ -2370,7 +2400,7 @@
       "id": "FIN",
       "bloque": 15,
       "orden": 198,
-      "texto": "Hasta acá llegamos, {{nombre}}. Gracias por cada audio, por cada historia y por la confianza de contarlas así. Con todo lo que me contaste vamos a armar un libro que va a quedar en tu familia para siempre. Antes de escribirlo vas a poder repasar lo que contaste, por si querés cambiar o agregar algo. Y si te quedó alguna foto por mandar, mandámela por acá cuando la encuentres: entra igual. Fue un gusto enorme escucharte.",
+      "texto": "Hasta acá llegamos, {{nombre}}. Gracias por cada audio, por cada historia y por la confianza de contarlas así. Con todo lo que me contaste vamos a armar un libro que va a quedar en tu familia para siempre. Antes de escribirlo vas a poder repasar lo que contaste, por si querés cambiar o agregar algo.«sino:FO1:  ‖  Y si te quedó alguna foto por mandar, mandámela por acá cuando la encuentres: entra igual.» Fue un gusto enorme escucharte.",
       "depende": [],
       "parte": "nucleo",
       "clase": "final",
@@ -2541,7 +2571,7 @@
     {
       "id": "M27.3",
       "cuando": "Se niega en una sensible (toca [Paso esta], dice \"paso\" o una frase de la lista); rotan; primera línea del mensaje que sigue",
-      "texto": "Perfecto, {{nombre}}. No hace falta entrar ahí. Vamos con la que viene."
+      "texto": "Entiendo, {{nombre}}. No hace falta entrar ahí. Vamos con la que viene."
     },
     {
       "id": "M28.1",
@@ -2559,6 +2589,11 @@
       "texto": "Tranquil{{o/a}}, no importa. Seguimos con la que viene."
     },
     {
+      "id": "M28.4",
+      "cuando": "Olvido a medias: la respuesta arranca con una frase de olvido y sigue contando (más de 20 palabras o con \"pero/aunque\"); en lugar de M3 o M4; primera línea del mensaje que sigue; delante de un cierre o de LE9 va M26. No suma al contador de M29 (Naza, 30/09, ronda 2)",
+      "texto": "Con ese pedacito me alcanza, {{nombre}}. Gracias."
+    },
+    {
       "id": "M29",
       "cuando": "Una sola vez en toda la entrevista, al tercer olvido seguido, en lugar de M28 y arriba de la pregunta que sigue (primera línea del mensaje que sigue)",
       "texto": "Una cosa, {{nombre}}: no te hagas problema si algo no te acordás. Para el libro alcanza con lo que sí tenés. Y si de alguna te acordás a medias, contame ese pedacito nomás: un olor, una cara, cómo era en general. Eso también es tu historia."
@@ -2572,6 +2607,16 @@
       "id": "M31",
       "cuando": "Una sola vez: debajo del primer mensaje de la entrevista que lleva botones (CI1 en una vida completa), en línea aparte y en cursiva, como M1",
       "texto": "_Podés tocar el botón de abajo, o contestarme en audio como siempre._"
+    },
+    {
+      "id": "M32.1",
+      "cuando": "Se negó pero siguió contando: la respuesta arranca con una frase de la lista del paso y sigue larga (no es paso); rotan; en lugar de M3 o M4; primera línea del mensaje que sigue; delante de un cierre o de LE9 va M26 (Naza, 30/09, ronda 2)",
+      "texto": "Con lo que me dijiste alcanza, {{nombre}}. Lo demás queda tuyo. Vamos con otra."
+    },
+    {
+      "id": "M32.2",
+      "cuando": "Se negó pero siguió contando: la respuesta arranca con una frase de la lista del paso y sigue larga (no es paso); rotan; en lugar de M3 o M4; primera línea del mensaje que sigue; delante de un cierre o de LE9 va M26 (Naza, 30/09, ronda 2)",
+      "texto": "Está bien. Lo que me contaste queda, y lo que no, no hace falta. Seguimos."
     },
     {
       "id": "DD1",

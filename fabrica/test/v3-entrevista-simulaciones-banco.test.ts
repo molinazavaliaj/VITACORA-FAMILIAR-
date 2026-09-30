@@ -9,7 +9,7 @@ import { BANCO, MENSAJES, mensajePorId, preguntaPorId } from '../src/v3/entrevis
 
 const texto = (id: string) => preguntaPorId(id)?.texto;
 const mensaje = (id: string) => mensajePorId(id)?.texto;
-const dep = (id: string) => preguntaPorId(id)!.depende.map((c) => `${c.tipo}:${c.de}`).join(' o ');
+const dep = (id: string) => preguntaPorId(id)!.depende.map((c) => [c, ...(c.y ?? [])].map((x) => `${x.tipo}:${x.de}`).join(' y ')).join(' o ');
 
 describe('textos de preguntas aprobados (textos-finales.md, sección 2, con los cambios de PLAN-codigo.md)', () => {
   const APROBADOS: Record<string, string> = {
@@ -28,8 +28,7 @@ describe('textos de preguntas aprobados (textos-finales.md, sección 2, con los 
     AM4: 'Hay días que quedan grabados para siempre: el del casamiento, o el primero viviendo juntos. Contame ese día como si lo estuvieras viendo: el lugar, la gente, la ropa, lo que más te quedó. Si ya me lo contaste recién, con decírmelo alcanza.',
     AM13: 'Contame una pelea que tuvieron, de esas que después dan risa: por qué fue, quién aflojó primero y cómo hicieron las paces. Si no hubo ninguna que hoy dé risa, con decírmelo alcanza.',
     AM19: 'Y después, cuando quedaste por tu cuenta, ¿cómo fueron esos primeros tiempos? Qué cambió en la casa y en los días, quién anduvo cerca. Si ese tiempo es el de ahora, contame igual cómo lo estás llevando. Y si no hubo un tiempo así, con decírmelo alcanza.',
-    AM16: 'Y más adelante, ¿hubo otro amor? Si hubo, contame del que compartís hoy, o del último: el día que se conocieron y un momento de los dos que te haya quedado.',
-    AM20: 'Y entre la primera y esta última, ¿hubo otras historias que fueron en serio? Un casamiento, alguien con quien viviste años. Este es su lugar, aunque me las hayas nombrado en el repaso: contame de cada una lo que quieras que quede, cómo se cruzaron y cómo terminó.',
+    // AM16 y AM20 cambiaron otra vez en la ronda 2 (Naza, 30/09): v3-entrevista-ronda2.test.ts.
     AM14: '¿Hubo algún amor que te marcó, aunque haya durado poco o no haya llegado a nada? Si lo hubo, contame cómo se cruzaron y el momento que más te acordás de esa persona. Y si no hubo, con un no alcanza.',
     PG1: 'Contame de tus viejos cuando vos ya eras grande, con tu propia vida. Una vez que los notaste más viejos, un gesto, algo chiquito, y qué te pasó a vos. Y si te tocó cuidarlos, contame cómo era un día de esos: qué hacías por ellos, qué te decían. Si no los tuviste cerca, contame cómo fue eso.',
     HS1: '¿Cómo fue criar a tus hijos? Quién estaba cerca, cómo se repartían las cosas, o si te tocó llevarla sol{{o/a}}. Contame un día de esa época que te acuerdes bien.',
@@ -44,15 +43,16 @@ describe('textos de preguntas aprobados (textos-finales.md, sección 2, con los 
     CI1: 'Con esto cerramos lo de tu familia de antes, la de antes de que llegaras vos. Y me pregunto si se me escapó algo: una historia de tus abuelos, de tus viejos de jóvenes, de esa casa. Si hay una dando vueltas, contámela ahora. Y si algo se te viene más tarde, a cualquier hora, mandámelo cuando quieras: va al libro igual.',
     FO1: 'Otra cosa, {{nombre}}. ¿Hay alguna foto, en el celular o en algún cajón de tu casa, que quieras que quede para siempre en este libro? Si la tenés, sacale una foto y mandámela, y después contame en un audio qué se ve y quiénes están. Tomate el tiempo que necesites para buscarla: la pregunta que sigue te la mando cuando me llegue la foto o me digas algo. Y si no la encontrás, no pasa nada: el libro va igual, y la podés mandar más adelante.',
     // FIN sin "y es bien tuyo" (duda 4, Naza) y con la frase de la foto.
-    FIN: 'Hasta acá llegamos, {{nombre}}. Gracias por cada audio, por cada historia y por la confianza de contarlas así. Con todo lo que me contaste vamos a armar un libro que va a quedar en tu familia para siempre. Antes de escribirlo vas a poder repasar lo que contaste, por si querés cambiar o agregar algo. Y si te quedó alguna foto por mandar, mandámela por acá cuando la encuentres: entra igual. Fue un gusto enorme escucharte.',
+    // FIN: desde la ronda 2 la frase de la foto va con la variante «sino:FO1» (sin ella si tocó [No tengo foto]).
+    FIN: 'Hasta acá llegamos, {{nombre}}. Gracias por cada audio, por cada historia y por la confianza de contarlas así. Con todo lo que me contaste vamos a armar un libro que va a quedar en tu familia para siempre. Antes de escribirlo vas a poder repasar lo que contaste, por si querés cambiar o agregar algo.«sino:FO1:  ‖  Y si te quedó alguna foto por mandar, mandámela por acá cuando la encuentres: entra igual.» Fue un gusto enorme escucharte.',
   };
 
   it.each(Object.entries(APROBADOS))('%s, letra por letra', (id, esperado) => {
     expect(texto(id)).toBe(esperado);
   });
 
-  it('son 28 preguntas que cambian (con FO1 y FIN) más AM20, que es nueva', () => {
-    expect(Object.keys(APROBADOS)).toHaveLength(29);
+  it('son 28 preguntas que cambian (con FO1 y FIN) más AM20, que es nueva (AM16 y AM20 se prueban en la ronda 2)', () => {
+    expect(Object.keys(APROBADOS)).toHaveLength(27);
   });
 
   it('HI2b se saca del banco (Naza, 30/09: estorba; HI0 ya pide presentarlos a todos)', () => {
@@ -72,7 +72,7 @@ describe('mensajes fijos aprobados (textos-finales.md, sección 3)', () => {
     'M3.8': 'Te escuché bien. Vamos por la siguiente.',
     'M27.1': 'Está bien, {{nombre}}. Lo dejamos ahí y seguimos por otro lado.',
     'M27.2': 'Claro, sin problema. Vamos con otra.',
-    'M27.3': 'Perfecto, {{nombre}}. No hace falta entrar ahí. Vamos con la que viene.',
+    'M27.3': 'Entiendo, {{nombre}}. No hace falta entrar ahí. Vamos con la que viene.', // ronda 2: sin "Perfecto"
     'M28.1': 'No pasa nada, {{nombre}}. Vamos con otra.',
     'M28.2': 'Está bien, no hay problema. Te pregunto otra cosa.',
     'M28.3': 'Tranquil{{o/a}}, no importa. Seguimos con la que viene.',
@@ -98,7 +98,7 @@ describe('mensajes fijos aprobados (textos-finales.md, sección 3)', () => {
 
   it('los mensajes nuevos van después de M26, antes de las dudas del dashboard', () => {
     const ids = MENSAJES.map((m) => m.id);
-    expect(ids.slice(ids.indexOf('M26'), ids.indexOf('DD1'))).toEqual(['M26', 'M27.1', 'M27.2', 'M27.3', 'M28.1', 'M28.2', 'M28.3', 'M29', 'M30', 'M31']);
+    expect(ids.slice(ids.indexOf('M26'), ids.indexOf('DD1'))).toEqual(['M26', 'M27.1', 'M27.2', 'M27.3', 'M28.1', 'M28.2', 'M28.3', 'M28.4', 'M29', 'M30', 'M31', 'M32.1', 'M32.2']);
   });
 });
 
@@ -141,8 +141,9 @@ describe('botones (textos-finales.md, sección 1 y regla 1; PLAN-codigo.md)', ()
     expect(botones('HI8')).toEqual(['Sí, llegaron=si', 'No hay nietos=no']);
   });
 
-  it('las 7 sensibles llevan solo [Paso esta], que vale como paso', () => {
-    for (const id of ['CA17', 'AD15', 'JU17', 'TR11', 'PE1', 'PE5', 'PE4']) expect(botones(id), id).toEqual(['Paso esta=paso']);
+  it('las 7 sensibles llevan [Paso esta]; desde la ronda 2, CA17, AD15, JU17, TR11 y PE4 también [No, nada así]', () => {
+    for (const id of ['PE1', 'PE5']) expect(botones(id), id).toEqual(['Paso esta=paso']);
+    for (const id of ['CA17', 'AD15', 'JU17', 'TR11', 'PE4']) expect(botones(id), id).toEqual(['Paso esta=paso', 'No, nada así=no']);
   });
 
   it('los 14 cierres llevan solo [No, está todo]; FO1 [No tengo foto]', () => {

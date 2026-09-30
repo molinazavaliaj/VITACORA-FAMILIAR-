@@ -149,6 +149,7 @@ function cerrarRespuesta(estado: EstadoSimulacion): void {
     estado.acuse = anotarAcuse('M3', estado.vueltas);
   } else {
     estado.vueltas.M27 ??= 0; // estados de antes de las simulaciones
+    estado.vueltas.M32 ??= 0; // y de antes de la ronda 2
     for (const fam of mensajesDespues(p, r, anteriores)) estado.acuse = anotarAcuse(fam, estado.vueltas);
   }
   avanzar(estado);

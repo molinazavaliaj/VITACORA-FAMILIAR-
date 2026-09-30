@@ -49,9 +49,10 @@ describe('los casos de las simulaciones (PLAN-codigo.md)', () => {
     expect(que('CI1', 'No, creo que está todo. De eso no hay mucho más que contar, vos. La vida en la aldea era tranquila, siempre igual.')).toBe('no');
   });
 
-  it('Nelly en CI6 (52 palabras, más que el tope aprobado de 40): no es "no"; con el botón, sí', () => {
+  // Desde la ronda 2 (Naza, 30/09) "está todo" en las primeras 6 palabras de un cierre es "no" sin tope: Nelly queda bien leída.
+  it('Nelly en CI6 (52 palabras, más que el tope de 40): es "no" por "está todo" (ronda 2); con el botón, también', () => {
     const ci6 = 'No, creo que está todo. La verdad es que mi historia de amor es corta, viste. No fue una vida de película, fue una vida real, simple, con un hijo y trabajo. Está bien así. Ahora tengo mis amigas, mis hijos, mis nietos, mi costura. Eso es lo que llena mi corazón.';
-    expect(que('CI6', ci6)).toBe('conto');
+    expect(que('CI6', ci6)).toBe('no');
     expect(que('CI6', respuestaDeBoton('No, está todo'))).toBe('no');
   });
 });
@@ -174,9 +175,9 @@ describe('olvido (reglas 15 y 16)', () => {
     expect(que('ES2', 'No, se fue a vivir a Córdoba.')).toBe('no');
   });
 
-  it('hasta 40 palabras; más largo, contó algo', () => {
+  it('largo, no es olvido: desde la ronda 2 es un olvido a medias (contó algo, M28.4)', () => {
     const larga = `No me acuerdo bien, ${'pero sé que había un patio grande y un perro '.repeat(4)}`;
-    expect(que('ES2', larga)).toBe('conto');
+    expect(que('ES2', larga)).toBe('olvido-a-medias');
   });
 
   it('en una que abre tema, un olvido cuenta como "sí" (llegan las que dependen)', () => {
@@ -320,10 +321,10 @@ describe('las dependencias con botones', () => {
     expect(cumple(p('HI10'), r)).toBe(true);
   });
 
-  it('AM9 [Paso esta]: no van AM19 ni AM16 (regla 4)', () => {
+  it('AM9 [Paso esta]: no va AM19; desde la ronda 2 AM16 va igual (Naza, 30/09)', () => {
     const r = new Map([['AM9', respuestaDeBoton('Paso esta')]]);
     expect(cumple(p('AM19'), r)).toBe(false);
-    expect(cumple(p('AM16'), r)).toBe(false);
+    expect(cumple(p('AM16'), r)).toBe(true);
   });
 
   it('HI2 con un "no" corto o "paso" cierra el tema: no van HI3, HS1 ni HI6 (regla 24)', () => {

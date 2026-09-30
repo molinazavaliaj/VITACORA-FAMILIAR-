@@ -7,7 +7,13 @@
 
 import type { Boton, PreguntaEntrevista, ValeBoton } from './banco-md.js';
 
-export type Interpretacion = 'no' | 'paso' | 'olvido' | 'ya-conto' | 'conto' | 'vacio';
+/**
+ * Qué dijo. Desde la ronda 2 de simulaciones (Naza, 30/09) hay dos formas de
+ * "contó algo" con su propio acuse: 'olvido-a-medias' (arranca con "no me
+ * acuerdo" y sigue contando: M28.4) y 'no-ahondar' (arranca negándose y
+ * sigue largo: M32).
+ */
+export type Interpretacion = 'no' | 'paso' | 'olvido' | 'olvido-a-medias' | 'no-ahondar' | 'ya-conto' | 'conto' | 'vacio';
 
 /** Lo que hace falta saber de la pregunta para interpretar: si es cierre, si es sensible y qué botones tiene. */
 export type PreguntaParaInterpretar = Pick<PreguntaEntrevista, 'id' | 'clase' | 'sensible'> & { botones?: readonly Boton[] };
@@ -196,17 +202,52 @@ const FALLA = ['me falla', 'me esta fallando', 'se me borro', 'no me da'];
 const PRIMERAS_OLVIDO = 8;
 const CONTRASTES = new Set(['pero', 'aunque']);
 
-function esOlvido(f: string[], pal: string[]): boolean {
-  if (pal.length > PALABRAS_OLVIDO || pal.some((w) => CONTRASTES.has(w))) return false;
+/** ¿Arranca con una frase de olvido? ("No, no me acuerdo" también; "no sé si/por/cómo…" no). */
+function arrancaConOlvido(f: string[]): boolean {
   // "No, no me acuerdo" también arranca con "no me acuerdo": el primer "no," es el mismo olvido dicho dos veces.
   const desde = f[0] === 'no' && f[1] === CORTE ? [0, 2] : [0];
-  const arranca = desde.some((i) =>
-    ARRANQUES_OLVIDO.some((a) => hayFraseEn(f, i, a) && !(a.join(' ') === 'no se' && DESPUES_DE_NO_SE.has(f[i + 2]))),
-  );
-  if (arranca) return true;
+  return desde.some((i) => ARRANQUES_OLVIDO.some((a) => hayFraseEn(f, i, a) && !(a.join(' ') === 'no se' && DESPUES_DE_NO_SE.has(f[i + 2]))));
+}
+
+function esOlvido(f: string[], pal: string[]): boolean {
+  if (pal.length > PALABRAS_OLVIDO || pal.some((w) => CONTRASTES.has(w))) return false;
+  if (arrancaConOlvido(f)) return true;
   const todo = ` ${pal.join(' ')} `;
   if (` ${pal.slice(0, PRIMERAS_OLVIDO).join(' ')} `.includes(` ${SE_ME_BORRO} `)) return true;
   return MEMORIA.some((m) => todo.includes(` ${m} `)) && FALLA.some((x) => todo.includes(` ${x} `));
+}
+
+/**
+ * Olvido a medias (ronda 2, Naza, 30/09): arranca con una frase de olvido
+ * pero no es olvido (más de 20 palabras o con "pero/aunque"): "No me acuerdo
+ * bien, pero sé que había un patio…". Contó algo; lleva M28.4.
+ */
+function esOlvidoAMedias(f: string[], pal: string[]): boolean {
+  return arrancaConOlvido(f) && !esOlvido(f, pal);
+}
+
+/**
+ * Se negó pero siguió contando (ronda 2, Naza, 30/09; antes la regla 12): la
+ * respuesta arranca con una frase de la lista del paso que es una negativa
+ * (una completa, una sola seguida de un signo, o una seguida de "hablemos",
+ * "hablar", "contar"… y de un signo o "de eso") y sigue larga, así que no es paso. "De eso mejor no
+ * hablemos. La política es complicada…" lleva M32. "Otra vez fuimos al río"
+ * o "Mejor no ir solo" no son negarse.
+ */
+const VERBOS_DE_NEGARSE = new Set(['hablemos', 'hablar', 'hablo', 'contar', 'contarlo', 'contarte', 'entrar', 'meterme']);
+
+function esNoAhondar(f: string[]): boolean {
+  return comienzos(f).some(
+    (i) =>
+      FRASES_PASO_COMPLETAS.some((frase) => hayFraseEn(f, i, frase)) ||
+      FRASES_PASO_SOLAS.some((frase) => {
+        if (!hayFraseEn(f, i, frase)) return false;
+        const j = i + frase.length;
+        const cierra = (k: number) => f[k] === undefined || f[k] === CORTE || (f[k] === 'de' && f[k + 1] === 'eso');
+        // "Mejor no hablemos." o "prefiero no hablar de eso": se niega. "Prefiero no hablar mal de él…": cuenta.
+        return cierra(j) || (VERBOS_DE_NEGARSE.has(f[j]) && cierra(j + 1));
+      }),
+  );
 }
 
 /** "No" corto (reglas 13 y 14). */
@@ -232,7 +273,27 @@ function crioAAlguien(pal: string[]): boolean {
   return pal.some((w) => w === 'propios' || w === 'propias' || CRIAR.test(w)) || COMO_HIJO.some((x) => t.includes(` ${x} `));
 }
 
+/**
+ * En los cierres y en LE9, "está todo / es todo / ya está / nada más" en las
+ * primeras 6 palabras es un "no" aunque no empiece con "no" ("Sí, está todo.
+ * Fue una vida plena") y sin tope de largo; con "pero" o "aunque" en las
+ * primeras 5 palabras, no (ronda 2, Naza, 30/09).
+ */
+const FORMULAS_DE_CIERRE = ['esta todo', 'es todo', 'ya esta', 'nada mas'];
+const PRIMERAS_FORMULA = 6;
+
+function esFormulaDeCierre(p: PreguntaParaInterpretar, pal: string[]): boolean {
+  if (p.clase !== 'cierre' && p.id !== LE9) return false;
+  const primeras = ` ${pal.slice(0, PRIMERAS_FORMULA).join(' ')} `;
+  return FORMULAS_DE_CIERRE.some((x) => primeras.includes(` ${x} `)) && !pal.slice(0, PRIMERAS_CONTRASTE).some((w) => CONTRASTES.has(w));
+}
+
 function esNoDicho(p: PreguntaParaInterpretar, f: string[], pal: string[]): boolean {
+  if (esNoCortoDicho(p, f, pal)) return true;
+  return esFormulaDeCierre(p, pal);
+}
+
+function esNoCortoDicho(p: PreguntaParaInterpretar, f: string[], pal: string[]): boolean {
   if (!ARRANQUES_NO.has(pal[0]) || pal.length > topeNoCorto(p)) return false;
   if (ARRANQUES_QUE_CUENTAN.some((a) => hayFraseEn(f, 0, a))) return false;
   if (p.id === HI0 && crioAAlguien(pal)) return false;
@@ -245,8 +306,9 @@ function esNoDicho(p: PreguntaParaInterpretar, f: string[], pal: string[]): bool
  *   - si tocó un botón, manda el botón, aunque después haya mandado audio
  *     (regla 6): "sí" → 'conto', "no" → 'no', "paso" → 'paso';
  *   - si no dijo nada (transcripción vacía, un emoji) → 'vacio';
- *   - paso (reglas 10 y 11), olvido (15), "no" corto (13 y 14) y "ya te lo
- *     conté" (18), en ese orden: "Paso, mejor no. Ya lo conté…" es paso,
+ *   - paso (reglas 10 y 11), olvido (15), olvido a medias y "no ahondar"
+ *     (ronda 2), "no" corto (13 y 14, y las fórmulas de cierre de la ronda 2)
+ *     y "ya te lo conté" (18), en ese orden: "Paso, mejor no. Ya lo conté…" es paso,
  *     "No me acuerdo" es olvido antes que "no", y "No tuve hijos, ya te lo
  *     conté" es un "no" (revisión del 30/09: el "no" le gana);
  *   - si no, contó algo.
@@ -262,6 +324,8 @@ export function interpretar(pregunta: PreguntaParaInterpretar, respuesta: string
   if (pal.length === 0) return 'vacio';
   if (esPasoDicho(f, pal)) return 'paso';
   if (esOlvido(f, pal)) return 'olvido';
+  if (esOlvidoAMedias(f, pal)) return 'olvido-a-medias';
+  if (esNoAhondar(f)) return 'no-ahondar';
   if (esNoDicho(pregunta, f, pal)) return 'no';
   if (esYaConto(pal)) return 'ya-conto';
   return 'conto';
@@ -269,5 +333,5 @@ export function interpretar(pregunta: PreguntaParaInterpretar, respuesta: string
 
 /** Para las que dependen (`si:X`): tocó "Sí", contó algo, dijo "ya te lo conté" o no se acordó (reglas 16 y 18). */
 export function habilitaLasQueDependen(i: Interpretacion): boolean {
-  return i === 'conto' || i === 'ya-conto' || i === 'olvido';
+  return i === 'conto' || i === 'ya-conto' || i === 'olvido' || i === 'olvido-a-medias' || i === 'no-ahondar';
 }

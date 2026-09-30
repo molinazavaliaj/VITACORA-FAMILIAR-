@@ -76,7 +76,7 @@ describe('entrevista: el banco (md ↔ json)', () => {
     expect(BANCO).toHaveLength(198);
     expect(new Set(BANCO.map((p) => p.bloque))).toEqual(new Set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]));
     // 22 + M24.1-M24.4, M25.1-M25.3, M26, DD1 y DD2 + 12 entradas de bloque (30/09) + M27.1-3, M28.1-3, M29, M30 y M31 (simulaciones, 30/09)
-    expect(MENSAJES).toHaveLength(53);
+    expect(MENSAJES).toHaveLength(56); // + M28.4, M32.1 y M32.2 (ronda 2, 30/09)
     const clase = (c: string) => BANCO.filter((p) => p.clase === c).map((p) => p.id);
     expect(clase('cierre')).toEqual(['CI1', 'CI2', 'CI3', 'CI4', 'CI5', 'CI6', 'CI7', 'CI8', 'CI9', 'CI10', 'CI11', 'CI12', 'CI13', 'CI14']);
     expect(clase('aviso')).toEqual(['AV11']);
@@ -89,7 +89,7 @@ describe('entrevista: el banco (md ↔ json)', () => {
     expect(MENSAJES.map((m) => m.id)).toEqual([
       'BIEN', 'M6', 'M1', 'M3.1', 'M3.2', 'M3.3', 'M3.4', 'M3.5', 'M3.6', 'M3.7', 'M3.8',
       'M4.1', 'M4.2', 'M4.3', 'M4.4', 'M8', 'M9', 'M10', 'M15', 'M21', 'M22', 'M23', 'M24.1', 'M24.2', 'M24.3', 'M24.4', 'M25.1', 'M25.2', 'M25.3', 'M26',
-      'M27.1', 'M27.2', 'M27.3', 'M28.1', 'M28.2', 'M28.3', 'M29', 'M30', 'M31', 'DD1', 'DD2',
+      'M27.1', 'M27.2', 'M27.3', 'M28.1', 'M28.2', 'M28.3', 'M28.4', 'M29', 'M30', 'M31', 'M32.1', 'M32.2', 'DD1', 'DD2',
       'EN2', 'EN3', 'EN4', 'EN5', 'EN7', 'EN8', 'EN9', 'EN10', 'EN12', 'EN13', 'EN14', 'EN15',
     ]);
   });
@@ -167,7 +167,7 @@ describe('entrevista: el banco contra el borrador aprobado', () => {
     expect(texto('M1')).toBe('_Si no va con vos, decí paso y vamos a otra._');
     // M24, M25, DD1-DD2, las entradas EN y la bienvenida en un solo mensaje (BIEN) los aprobó Naza el 30/09, después del borrador (metodo-entrevista.md §26, correcciones-lectura.md).
     // M27 a M31 los aprobó Naza después de las simulaciones (30/09, simulaciones/textos-finales.md).
-    for (const m of MENSAJES.filter((m) => !/^M[34]\./.test(m.id) && !/^(M24\.|M25\.|M26$|M2[789]|M3[01]$|DD|EN|BIEN$)/.test(m.id))) {
+    for (const m of MENSAJES.filter((m) => !/^M[34]\./.test(m.id) && !/^(M24\.|M25\.|M26$|M2[789]|M3[012]|DD|EN|BIEN$)/.test(m.id))) {
       const clave = m.id === 'BIEN' ? '| Bienvenida |' : m.id === 'M6' ? '| M6 (después de la bienvenida) |' : `| ${m.id} |`;
       const linea = BORRADOR.split(/\r?\n/).find((l) => l.startsWith(clave));
       expect(linea, m.id).toBeDefined();
@@ -214,12 +214,13 @@ describe('entrevista: IDs y dependencias', () => {
   });
 
   it('las dependencias son las de la última vuelta', () => {
-    const dep = (id: string) => preguntaPorId(id)!.depende.map((c) => `${c.tipo}:${c.de}`).join(' o ');
+    const dep = (id: string) => preguntaPorId(id)!.depende.map((c) => [c, ...(c.y ?? [])].map((x) => `${x.tipo}:${x.de}`).join(' y ')).join(' o ');
     const esperado: Record<string, string> = {
       CA7: 'si:CA6', JU10: 'si:JU8', JU11: 'si:JU8',
       // Simulaciones (Naza, 30/09): AM4, AM5 y AM13 dependen de AM3; AM20 de AM16; HI8 de HI0; HI3, HS1 y HI6 de HI2; HI2b salió.
       AM1: 'si:AM0', AM2: 'si:AM0', AM3: 'si:AM0', AM4: 'si:AM3', AM5: 'si:AM3', AM6: 'si:AM0', AM8: 'si:AM0', AM9: 'si:AM0', AM7: 'si:AM0', AM17: 'si:AM0',
-      AM19: 'si:AM9', AM16: 'si:AM9', AM20: 'si:AM16', AM13: 'si:AM3', AM15: 'sino:AM0',
+      // Ronda 2 (Naza, 30/09): AM19 solo si convivió; AM16 va igual si AM9 fue paso.
+      AM19: 'si:AM9 y si:AM3', AM16: 'si:AM9 o paso:AM9', AM20: 'si:AM16', AM13: 'si:AM3', AM15: 'sino:AM0',
       HI1: 'si:HI0', HI2: 'si:HI0', HI3: 'si:HI2', HI4: 'si:HI0', HI5: 'si:HI0', HS1: 'si:HI2', HI6: 'si:HI2', HI7: 'si:HI0', HI12: 'si:HI0', HI13: 'si:HI0',
       HI10: 'sino:HI0', HI8: 'si:HI0', HI9: 'si:HI8', NC1: 'si:HI8', AS1b: 'si:AS1', HG2: 'si:HG1',
     };

@@ -6,8 +6,24 @@
 export type Parte = 'nucleo' | 'extra';
 export type Clase = 'historia' | 'cierre' | 'aviso' | 'foto' | 'final';
 
-/** Una condición de "Depende de": `si:X` (X no fue un "no" corto) o `sino:X` (X fue un "no" corto). */
-export type Condicion = { tipo: 'si' | 'sino'; de: string };
+/**
+ * Una condición simple de "Depende de": `si:X` (X fue un "sí"), `sino:X` (X
+ * fue un "no" corto) o `paso:X` (X fue "paso"; ronda 2 de simulaciones: AM16
+ * va igual si AM9 fue paso).
+ */
+export type CondicionSimple = { tipo: 'si' | 'sino' | 'paso'; de: string };
+
+/**
+ * Un término de "Depende de" (se juntan con " o "). Si trae `y`, tienen que
+ * cumplirse todas: `si:AM9 y si:AM3` (AM19 solo si convivió; Naza, 30/09,
+ * ronda 2).
+ */
+export type Condicion = CondicionSimple & { y?: CondicionSimple[] };
+
+/** Todas las condiciones simples de un término (la principal y las de `y`). */
+export function condicionesDe(c: Condicion): CondicionSimple[] {
+  return [{ tipo: c.tipo, de: c.de }, ...(c.y ?? [])];
+}
 
 /** Qué vale tocar un botón: "sí" (contame), "no" (un "no" corto) o "paso" (Naza, 30/09, simulaciones). */
 export type ValeBoton = 'si' | 'no' | 'paso';
@@ -61,14 +77,22 @@ function celdas(linea: string): string[] {
     .map((c) => c.trim());
 }
 
-/** Lee la columna "Depende de": "", "si:AM0", "sino:AM9 o si:AM16". Tira error si no respeta la sintaxis. */
+/**
+ * Lee la columna "Depende de": "", "si:AM0", "sino:AM9 o si:AM16", "si:AM9 y
+ * si:AM3", "si:AM9 o paso:AM9". " o " separa términos (alcanza uno); " y "
+ * junta condiciones dentro de un término (tienen que cumplirse todas). Tira
+ * error si no respeta la sintaxis.
+ */
 export function parsearDepende(celda: string): Condicion[] {
   const t = celda.trim();
   if (t === '') return [];
-  return t.split(' o ').map((parte) => {
-    const m = /^(si|sino):([A-Z]{1,4}\d*(?:\.\d+)?b?)$/.exec(parte.trim());
-    if (!m) throw new Error(`"Depende de" mal escrito: "${celda}"`);
-    return { tipo: m[1] as 'si' | 'sino', de: m[2] };
+  return t.split(' o ').map((termino) => {
+    const [primera, ...resto] = termino.split(' y ').map((parte) => {
+      const m = /^(si|sino|paso):([A-Z]{1,4}\d*(?:\.\d+)?b?)$/.exec(parte.trim());
+      if (!m) throw new Error(`"Depende de" mal escrito: "${celda}"`);
+      return { tipo: m[1] as CondicionSimple['tipo'], de: m[2] };
+    });
+    return resto.length > 0 ? { ...primera, y: resto } : primera;
   });
 }
 

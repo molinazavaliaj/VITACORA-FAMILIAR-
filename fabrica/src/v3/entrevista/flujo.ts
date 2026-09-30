@@ -5,7 +5,7 @@
 // estado y llama a estas funciones.
 
 import { estado, type FichaV3 } from '../ficha.js';
-import { BANCO, mensajePorId, preguntaPorId, type Boton, type PreguntaEntrevista, type ValeBoton } from './banco.js';
+import { BANCO, condicionesDe, mensajePorId, preguntaPorId, type Boton, type CondicionSimple, type PreguntaEntrevista, type ValeBoton } from './banco.js';
 import { habilitaLasQueDependen, interpretar, PREGUNTA_COMUN, respuestaDeBoton, valeBoton, type Interpretacion, type PreguntaParaInterpretar } from './respuesta.js';
 
 /** Respuesta a una pregunta: el texto (transcripción) o lo que dijo, incluido "paso". */
@@ -55,7 +55,8 @@ export function respondioNo(respuestas: Respuestas, id: string): boolean {
 /** X se contestó contando algo (o tocando "Sí", o con un "ya te lo conté"): no un "no", un "paso", un olvido ni nada. */
 export function contoAlgo(respuestas: Respuestas, id: string): boolean {
   const i = interpretacionDe(respuestas, id);
-  return i === 'conto' || i === 'ya-conto';
+  // Ronda 2 (Naza, 30/09): el olvido a medias y el que se niega pero sigue contando también contaron algo.
+  return i === 'conto' || i === 'ya-conto' || i === 'olvido-a-medias' || i === 'no-ahondar';
 }
 
 /**
@@ -64,15 +65,18 @@ export function contoAlgo(respuestas: Respuestas, id: string): boolean {
  * contó algo, dijo "ya te lo conté" o no se acordó (un olvido cuenta como
  * "sí": mejor una pregunta de más que un capítulo de menos; Naza, 30/09,
  * simulaciones). `sino:X` pide que X haya sido un "no" corto o un botón de
- * "No". Si X no se mandó o fue "paso", no se cumple ninguna de las dos.
+ * "No". `paso:X` pide que X haya sido "paso" (ronda 2: AM16 va igual si AM9
+ * fue paso). Si X no se mandó, no se cumple ninguna. Un término con " y "
+ * pide todas sus condiciones (AM19: `si:AM9 y si:AM3`, solo si convivió).
  */
 export function cumple(pregunta: Pick<PreguntaEntrevista, 'depende'>, respuestas: Respuestas): boolean {
   if (pregunta.depende.length === 0) return true;
-  return pregunta.depende.some((c) => {
+  const simple = (c: CondicionSimple) => {
     const i = interpretacionDe(respuestas, c.de);
     if (i === undefined) return false;
-    return c.tipo === 'si' ? habilitaLasQueDependen(i) : i === 'no';
-  });
+    return c.tipo === 'si' ? habilitaLasQueDependen(i) : c.tipo === 'sino' ? i === 'no' : i === 'paso';
+  };
+  return pregunta.depende.some((c) => condicionesDe(c).every(simple));
 }
 
 // ---------------------------------------------------------------- orden
@@ -236,11 +240,12 @@ export const SIN_ACUSE_ANTES_DEL_FINAL = 'LE8';
 export const SIN_ACUSE: readonly string[] = ['LE9', SIN_ACUSE_ANTES_DEL_FINAL];
 
 /**
- * Las familias de acuse. Rotan M3 (8), M4 (4), M24 (4), M25 (3) y M27 (3);
+ * Las familias de acuse. Rotan M3 (8), M4 (4), M24 (4), M25 (3), M27 (3) y
+ * M32 (2, ronda 2); M28.4 (olvido a medias, ronda 2) es uno solo;
  * M28 tiene uno solo en uso (M28.1: M28.2 y M28.3 en reserva); M21, M26 y
  * M29 son uno.
  */
-export type FamiliaAcuse = 'M3' | 'M4' | 'M21' | 'M24' | 'M25' | 'M26' | 'M27' | 'M28' | 'M29';
+export type FamiliaAcuse = 'M3' | 'M4' | 'M21' | 'M24' | 'M25' | 'M26' | 'M27' | 'M28' | 'M28.4' | 'M29' | 'M32';
 
 /** Después de PG1 ("tus viejos de grande", a veces su muerte) el acuse es siempre "Gracias, {{nombre}}." (Naza, 30/09, simulaciones). */
 export const SIEMPRE_M26 = 'PG1';
@@ -263,7 +268,10 @@ function esElOlvidoDeM29(pregunta: Pick<PreguntaEntrevista, 'id'>, anteriores: R
   let seguidos = 0;
   let usado = false;
   const toca = (id: string, r: Respuesta) => {
-    if (interpretar(preguntaDe(id), r) !== 'olvido') {
+    const i = interpretar(preguntaDe(id), r);
+    // El olvido a medias no suma ni corta la cuenta (ronda 2: contó un pedacito, pero sigue costándole).
+    if (i === 'olvido-a-medias') return false;
+    if (i !== 'olvido') {
       seguidos = 0;
       return false;
     }
@@ -302,12 +310,15 @@ export function mensajesDespues(
   if (dijo === 'no' || dijo === 'ya-conto') return ['M25'];
   if (dijo === 'paso') return [pregunta.clase === 'cierre' ? 'M25' : pregunta.sensible ? 'M27' : 'M21'];
   if (dijo === 'olvido') return [esElOlvidoDeM29(pregunta, anteriores) ? 'M29' : 'M28'];
+  // Ronda 2 (Naza, 30/09): en lugar de M3 o M4, el acuse que respeta lo que pasó; en un cierre sigue M24.
+  if (dijo === 'olvido-a-medias' && pregunta.clase !== 'cierre') return ['M28.4'];
+  if (dijo === 'no-ahondar' && pregunta.clase !== 'cierre') return ['M32'];
   if (pregunta.clase === 'cierre') return ['M24'];
   return [pregunta.sensible ? 'M4' : 'M3'];
 }
 
 /** Las familias que rotan y cuántos tienen. */
-export const ROTAN = { M3: 8, M4: 4, M24: 4, M25: 3, M27: 3 } as const;
+export const ROTAN = { M3: 8, M4: 4, M24: 4, M25: 3, M27: 3, M32: 2 } as const;
 
 /** El acuse de turno de una familia que rota: M3 tiene 8 (M3.1…M3.8), M4 y M24 tienen 4, M25 y M27 tienen 3. */
 export function acuseRotado(familia: keyof typeof ROTAN, n: number): string {
