@@ -2282,6 +2282,21 @@
       "texto": "Gracias por eso. Cada detalle que agregás suma."
     },
     {
+      "id": "M25.1",
+      "cuando": "Después del cierre de un bloque contestado con un \"no\" corto o \"paso\", rotan. Primera línea del mensaje que sigue; si ese mensaje arranca con \"Seguimos\" o \"Pasamos\", no va M25.1",
+      "texto": "Bien, seguimos."
+    },
+    {
+      "id": "M25.2",
+      "cuando": "Después del cierre de un bloque contestado con un \"no\" corto o \"paso\", rotan. Primera línea del mensaje que sigue; si ese mensaje arranca con \"Seguimos\" o \"Pasamos\", no va M25.1",
+      "texto": "Dale."
+    },
+    {
+      "id": "M25.3",
+      "cuando": "Después del cierre de un bloque contestado con un \"no\" corto o \"paso\", rotan. Primera línea del mensaje que sigue; si ese mensaje arranca con \"Seguimos\" o \"Pasamos\", no va M25.1",
+      "texto": "Bien, entonces."
+    },
+    {
       "id": "DD1",
       "cuando": "Dashboard (no WhatsApp): la ficha dice que sí y en la entrevista contestó que no. Botones: [Lo dejo así] [Quiero contar algo] [Error de la ficha]",
       "texto": "Una duda chiquita sobre {{tema}}, {{nombre}}. En la ficha aparece y en la entrevista no salió. No hay nada que corregir si no querés: el libro se escribe con lo que vos contaste. Pero si hay algo que quieras sumar, o si la ficha está mal, acá podés decírmelo."

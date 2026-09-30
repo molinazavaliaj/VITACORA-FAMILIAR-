@@ -1,19 +1,18 @@
 # La entrevista leída de corrido
 
-**Qué es:** la entrevista completa de una vida **inventada** (Rogelio, 72 años, varón, con hermanos, que se fue a otra ciudad, sigue con su primera pareja, tiene hijos y nietos), tal como le llegaría por WhatsApp. Generada con el código de `fabrica/src/v3/entrevista/` por `fabrica/scripts/v3-entrevista-lectura.ts` (sin ronda extra).
+**Qué es:** la entrevista completa de una vida **inventada** (Rogelio, 72 años, varón, con hermanos, que se fue a otra ciudad, sigue con su primera pareja, tiene hijos y nietos; contesta "No, nada más." al cierre de lugares y "Paso" al de historia grande), tal como le llegaría por WhatsApp. Generada con el código de `fabrica/src/v3/entrevista/` por `fabrica/scripts/v3-entrevista-lectura.ts` (sin ronda extra).
 
-**Cuenta:** 89 preguntas del banco (12 con la frase de "paso" debajo) + 1 de la familia · **128 mensajes de WhatsApp del biógrafo** en total. Los agradecimientos van como primera línea del mensaje que sigue; solo los 8 sobrios van solos. 12 frases de entrada de bloque.
+**Cuenta:** 89 preguntas del banco (12 con la frase de "paso" debajo) + 1 de la familia · **129 mensajes de WhatsApp del biógrafo** en total. Los agradecimientos van como primera línea del mensaje que sigue; solo los 8 sobrios van solos. 12 frases de entrada de bloque.
 
-Versión 4 (30/09, ronda 2): agradecimiento pegado a lo que sigue, sin "Terminamos esta etapa", acuse sobrio en los momentos difíciles de cada época, el final LE7 → familia → FO1 → LE9 → LE8 → FIN, la política en la historia grande y "lo que todavía querés hacer" en el legado. La bienvenida en un solo mensaje está marcada como PROPUESTA. Registro en [`correcciones-lectura.md`](correcciones-lectura.md).
+Versión 4 (30/09, ronda 2): agradecimiento pegado a lo que sigue, sin "Terminamos esta etapa", acuse sobrio en los momentos difíciles de cada época, el final LE7 → familia → FO1 → LE9 → LE8 → FIN, la política en la historia grande y "lo que todavía querés hacer" en el legado. El acuse neutro (M25) cuando un cierre se contesta con un "no" corto o "paso". La bienvenida sigue en dos mensajes hasta que Naza elija la versión en uno. Registro en [`correcciones-lectura.md`](correcciones-lectura.md).
 
 Cómo leerlo: cada **Biógrafo** es un mensaje de WhatsApp (las líneas citadas debajo van juntas en ese mensaje); **Persona** es la respuesta (acá solo "[responde]"; en las preguntas que abren un tema va la respuesta corta de la vida de ejemplo). Los títulos de bloque y los IDs (entre corchetes) son para vos: la persona no los ve.
 
-**Biógrafo** `[BIEN+M6]` (PROPUESTA: bienvenida y M6 en un solo mensaje, sin aprobar):
-> Hola, Rogelio. Juntos vamos a escribir la historia de tu vida, y quiero que sea bien tuya. Te cuento cómo es esto, así vamos tranquilos.
->
-> Yo te pregunto cosas de tu vida, una por vez, y vos me las contás en audio, como se las contarías a alguien en la mesa. Si te salen dos o tres audios, mejor. Cuando quedás en silencio un ratito, entiendo que terminaste y te mando la próxima.
->
-> Si alguna pregunta no tiene que ver con lo que viviste, no pasa nada: me decís que no, o me contás lo que en realidad te tocó a vos, que eso es lo que quiero saber. No hay apuro: vamos al paso que vos vayas marcando.
+**Biógrafo** `[BIEN]`:
+> Hola, Rogelio. Juntos vamos a escribir la historia de tu vida, y quiero que sea bien tuya. Te cuento cómo es esto, así vamos tranquilos: yo te pregunto cosas de tu vida, una por vez, y vos me las contás como se las contarías a alguien en la mesa. Si alguna pregunta no tiene que ver con lo que viviste, no pasa nada: me decís que no, o me contás lo que en realidad te tocó a vos, que eso es lo que quiero saber.
+
+**Biógrafo** `[M6]`:
+> Ahora te explico cómo va la entrevista, Rogelio. Te mando una pregunta y vos me la contás en audio. Si te salen dos o tres audios, mejor. Cuando quedás en silencio un ratito, entiendo que terminaste y te mando la próxima. No hay apuro: vamos al paso que vos vayas marcando.
 
 ## Bloque 1 · Origen y raíces
 
@@ -542,12 +541,12 @@ Cómo leerlo: cada **Biógrafo** es un mensaje de WhatsApp (las líneas citadas 
 >
 > Con esto cerramos lugares y pasiones. ¿Quedó algún lugar o algo que te gustó mucho y no tuvo su pregunta? Una esquina, un hobby que duró poco, un rincón de tu casa. Contalo ahora, tranquilo.
 
-**Persona:** [responde]
+**Persona:** [responde: «No, nada más.»]
 
 ## Bloque 10 · Amistades y ayudas
 
-**Biógrafo** `[M24.1 + EN10]`:
-> Gracias, Rogelio. Eso también va al libro.
+**Biógrafo** `[M25.1 + EN10]`:
+> Bien, seguimos.
 >
 > Hablemos de los amigos, Rogelio, y de la gente que te dio una mano en la vida.
 
@@ -579,8 +578,8 @@ Cómo leerlo: cada **Biógrafo** es un mensaje de WhatsApp (las líneas citadas 
 
 ## Bloque 11 · Pérdidas y momentos difíciles
 
-**Biógrafo** `[M24.2 + AV11]`:
-> Anotado, gracias. Quedó guardado junto con el resto.
+**Biógrafo** `[M24.1 + AV11]`:
+> Gracias, Rogelio. Eso también va al libro.
 >
 > Ahora vienen unas preguntas sobre momentos difíciles. Si alguna no tiene que ver con tu vida o no querés entrar, con un *paso* alcanza y seguimos. Vos manejás.
 
@@ -621,8 +620,8 @@ Cómo leerlo: cada **Biógrafo** es un mensaje de WhatsApp (las líneas citadas 
 
 ## Bloque 12 · La historia grande
 
-**Biógrafo** `[M24.3 + EN12]`:
-> Bien, Rogelio. Lo sumo a lo que ya me contaste de eso.
+**Biógrafo** `[M24.2 + EN12]`:
+> Anotado, gracias. Quedó guardado junto con el resto.
 >
 > Ahora salimos un poco de tu casa: vamos a las cosas grandes que pasaron en el país y en el mundo mientras vos vivías tu vida.
 
@@ -657,12 +656,12 @@ Cómo leerlo: cada **Biógrafo** es un mensaje de WhatsApp (las líneas citadas 
 >
 > Hasta acá lo del país y el mundo. Si hay algo que te marcó y no salió, mandámelo ahora, aunque sea corto, con dónde estabas cuando pasó.
 
-**Persona:** [responde]
+**Persona:** [responde: «Paso»]
 
 ## Bloque 13 · Puntos altos, bajos y giros
 
-**Biógrafo** `[M24.4 + EN13]`:
-> Gracias por eso. Cada detalle que agregás suma.
+**Biógrafo** `[M25.2 + EN13]`:
+> Dale.
 >
 > Llegamos a los días que te cambiaron algo: los buenos, los que te agarraron de sorpresa, y algunas preguntas para pensar un rato.
 
@@ -736,8 +735,8 @@ Cómo leerlo: cada **Biógrafo** es un mensaje de WhatsApp (las líneas citadas 
 
 ## Bloque 14 · Hoy
 
-**Biógrafo** `[M24.1 + EN14]`:
-> Gracias, Rogelio. Eso también va al libro.
+**Biógrafo** `[M24.3 + EN14]`:
+> Bien, Rogelio. Lo sumo a lo que ya me contaste de eso.
 >
 > Dejamos el pasado un rato y venimos a hoy, Rogelio: cómo son tus días y qué te gusta ahora.
 
@@ -783,8 +782,8 @@ Cómo leerlo: cada **Biógrafo** es un mensaje de WhatsApp (las líneas citadas 
 
 ## Bloque 15 · Legado y cierre
 
-**Biógrafo** `[M24.2 + EN15]`:
-> Anotado, gracias. Quedó guardado junto con el resto.
+**Biógrafo** `[M24.4 + EN15]`:
+> Gracias por eso. Cada detalle que agregás suma.
 >
 > Ya estamos en la última parte, Rogelio: lo que te dejó todo esto y lo que querés dejarle a tu familia.
 

@@ -13,7 +13,7 @@ Cómo funciona la entrevista de punta a punta. **Este es el documento vigente** 
 
 ## 2. El arranque
 1. **Bienvenida (BIEN):** "Hola, {{nombre}}. Juntos vamos a escribir la historia de tu vida…"
-2. **Cómo va (M6):** "Ahora te explico cómo va la entrevista, {{nombre}}. Te mando una pregunta y vos me la contás en audio…" (Naza pidió juntar BIEN y M6 en un solo mensaje; la propuesta de Fable espera aprobación en [`correcciones-lectura.md`](correcciones-lectura.md)).
+2. **Cómo va (M6):** "Ahora te explico cómo va la entrevista, {{nombre}}. Te mando una pregunta y vos me la contás en audio…" (Naza pidió juntar BIEN y M6 en un solo mensaje; tres opciones de Fable esperan su elección en [`correcciones-lectura.md`](correcciones-lectura.md)).
 3. La primera pregunta (OR1, que ya arranca con "Empecemos por…", por eso el bloque 1 no lleva frase de entrada).
 
 ## 3. Cada bloque
@@ -36,8 +36,8 @@ Así se lee el paso de un bloque a otro, en mensajes de WhatsApp: [cierre] → r
 - **Agradecimiento** después de cada respuesta. Va como **primera línea del mensaje que sigue** (el de la pregunta o el de la frase de entrada), no como mensaje aparte; solo el sobrio (M4) va **solo**:
   - una de las 8 frases que rotan (M3: "Gracias, {{nombre}}. Ya lo guardé.");
   - después de una pregunta difícil (el momento difícil de cada época CA17, AD15, JU17; la plata ajustada TR11; AM9; todo el bloque 11), una de las 4 sobrias (M4), sola;
-  - después de un cierre: M24 (sección 3);
-  - si dijo **"paso"**: "Dale, la salteamos. Vamos con otra." (M21);
+  - después de un cierre: M24 (sección 3), o uno neutro si lo contestó con un "no" corto o "paso" (M25: "Bien, seguimos.", "Dale.", "Bien, entonces."; "Bien, seguimos." no va delante de algo que arranca con "Seguimos" o "Pasamos");
+  - si dijo **"paso"** en una pregunta que no es cierre: "Dale, la salteamos. Vamos con otra." (M21);
   - si mandó **texto** en vez de audio: M22; si el audio llegó **cortado**: M23;
   - después de **LE8** ("hablale a tu familia"), la última pregunta: **nada**, va directo el mensaje final.
 - **"No" corto:** menos de 15 palabras que empiezan con no / nunca / jamás / ninguno / nada / tampoco (entiende "Eh, no", "Nooo"; no cuenta "Nunca lo pensé, pero…"). **"Paso":** la primera palabra es "paso" y la respuesta es corta ("Paso, no quiero hablar").
@@ -81,7 +81,7 @@ En todos los casos el cierre del bloque llega igual (sección 3), así que siemp
 
 | Vida | Preguntas de historia (con la foto) | Turnos (preguntas, cierres, aviso y final) | Mensajes de WhatsApp del biógrafo |
 |---|---|---|---|
-| Completa (pareja, hijos, nietos, hermanos, se mudó) | 89 | 105 | 128 (incluye una pregunta de la familia de ejemplo; antes de la ronda 2 eran 224) |
+| Completa (pareja, hijos, nietos, hermanos, se mudó) | 89 | 105 | 129 (128 con la bienvenida en un solo mensaje; incluye una pregunta de la familia de ejemplo; antes de la ronda 2 eran 224) |
 | Sin pareja ni hijos (sin hermanos, no se mudó) | 79 | 95 | — |
 
 La **ronda extra** (89 preguntas más) está en el banco pero **por ahora no se ofrece** (`ofrecerExtra` en el código). Si algún día se activa, hay que decidir dónde van los cierres: hoy llegarían antes de las preguntas extra de su bloque.
@@ -106,7 +106,7 @@ Recién después se escribe el libro, una sola vez.
 | El banco (`banco.json` generado desde `banco.md`) | `banco-md.ts`, `banco.ts` |
 | Qué va después: pregunta, frase de entrada (`entrada`), si lleva M1 (`conM1`), si espera respuesta | `siguientePregunta` en `flujo.ts` |
 | "No" corto y "paso" | `esNoCorto`, `esPaso` en `flujo.ts` |
-| Qué agradecimiento va después (M3, M4, M21, M24 o nada) y cuál de la rotación | `mensajesDespues`, `acuseRotado` en `flujo.ts` |
+| Qué agradecimiento va después (M3, M4, M21, M24, M25 o nada) y cuál de la rotación | `mensajesDespues`, `acuseRotado` en `flujo.ts` |
 | Las dudas para el dashboard | `contradiccionesConFicha` en `flujo.ts` |
 | Los textos según género y nombre | `renderizar` en `texto.ts` |
 | Recorrido de vidas inventadas y la lectura corrida | `scripts/v3-entrevista-recorrido.ts`, `scripts/v3-entrevista-lectura.ts` |

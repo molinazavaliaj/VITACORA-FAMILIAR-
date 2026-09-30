@@ -215,23 +215,24 @@ export const SIN_ACUSE_ANTES_DEL_FINAL = 'LE8';
 
 /**
  * Qué acuse va después de contestar (familias de mensajes; el entrevistador
- * rota M3, M4 y M24): "paso" → M21; sensible → M4; cierre de bloque → M24;
- * si no → M3. El aviso y el final no se contestan: nada. LE8 tampoco lleva
+ * rota M3, M4, M24 y M25): cierre de bloque → M24, o M25 (neutro) si se
+ * contestó con un "no" corto o "paso"; "paso" → M21; sensible → M4; si no → M3. El aviso y el final no se contestan: nada. LE8 tampoco lleva
  * acuse: después va directo FIN. Desde el 30/09 (ronda 2) no va M10: la frase
  * de entrada del bloque siguiente hace de pasaje. Cómo se arma el mensaje
  * (pegado a lo que sigue o solo): `armarTurno` en mensajes.ts.
  */
-export function mensajesDespues(pregunta: Pick<PreguntaEntrevista, 'id' | 'bloque' | 'clase' | 'sensible'>, respuesta: Respuesta): ('M3' | 'M4' | 'M21' | 'M24')[] {
+export function mensajesDespues(pregunta: Pick<PreguntaEntrevista, 'id' | 'bloque' | 'clase' | 'sensible'>, respuesta: Respuesta): ('M3' | 'M4' | 'M21' | 'M24' | 'M25')[] {
   if (!esperaRespuesta(pregunta)) return [];
   if (pregunta.id === SIN_ACUSE_ANTES_DEL_FINAL) return [];
+  // Un cierre contestado con un "no" corto o "paso": acuse neutro, sin agradecer un contenido que no hubo (Naza, 30/09).
+  if (pregunta.clase === 'cierre') return esPaso(respuesta) || esNoCorto(respuesta) ? ['M25'] : ['M24'];
   if (esPaso(respuesta)) return ['M21'];
-  if (pregunta.clase === 'cierre') return ['M24'];
   return [pregunta.sensible ? 'M4' : 'M3'];
 }
 
-/** El acuse de turno de una familia que rota: M3 tiene 8 (M3.1…M3.8) y M4 tiene 4. */
-export function acuseRotado(familia: 'M3' | 'M4' | 'M24', n: number): string {
-  const total = familia === 'M3' ? 8 : 4;
+/** El acuse de turno de una familia que rota: M3 tiene 8 (M3.1…M3.8), M4 y M24 tienen 4, M25 tiene 3. */
+export function acuseRotado(familia: 'M3' | 'M4' | 'M24' | 'M25', n: number): string {
+  const total = familia === 'M3' ? 8 : familia === 'M25' ? 3 : 4;
   return `${familia}.${(((n % total) + total) % total) + 1}`;
 }
 

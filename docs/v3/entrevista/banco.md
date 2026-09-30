@@ -54,6 +54,9 @@
 | M24.2 | Después del cierre de cualquier bloque (1 a 14), rotan. Van como primera línea del mensaje que sigue (la frase de entrada) | Anotado, gracias. Quedó guardado junto con el resto. |
 | M24.3 | Después del cierre de cualquier bloque (1 a 14), rotan. Van como primera línea del mensaje que sigue (la frase de entrada) | Bien, {{nombre}}. Lo sumo a lo que ya me contaste de eso. |
 | M24.4 | Después del cierre de cualquier bloque (1 a 14), rotan. Van como primera línea del mensaje que sigue (la frase de entrada) | Gracias por eso. Cada detalle que agregás suma. |
+| M25.1 | Después del cierre de un bloque contestado con un "no" corto o "paso", rotan. Primera línea del mensaje que sigue; si ese mensaje arranca con "Seguimos" o "Pasamos", no va M25.1 | Bien, seguimos. |
+| M25.2 | Después del cierre de un bloque contestado con un "no" corto o "paso", rotan. Primera línea del mensaje que sigue; si ese mensaje arranca con "Seguimos" o "Pasamos", no va M25.1 | Dale. |
+| M25.3 | Después del cierre de un bloque contestado con un "no" corto o "paso", rotan. Primera línea del mensaje que sigue; si ese mensaje arranca con "Seguimos" o "Pasamos", no va M25.1 | Bien, entonces. |
 | DD1 | Dashboard (no WhatsApp): la ficha dice que sí y en la entrevista contestó que no. Botones: [Lo dejo así] [Quiero contar algo] [Error de la ficha] | Una duda chiquita sobre {{tema}}, {{nombre}}. En la ficha aparece y en la entrevista no salió. No hay nada que corregir si no querés: el libro se escribe con lo que vos contaste. Pero si hay algo que quieras sumar, o si la ficha está mal, acá podés decírmelo. |
 | DD2 | Dashboard (no WhatsApp): la ficha dice que no y en la entrevista contó algo. Botones: [Dejalo como lo conté] [Quiero agregar algo] [Sacalo del libro] | {{nombre}}, sobre {{tema}}: en la ficha no figuraba, pero en la entrevista lo nombraste. Quiero asegurarme de que en el libro quede como vos querés. Podemos dejarlo tal cual lo contaste, podés agregar algo, o si se coló por error, lo saco. |
 
@@ -357,7 +360,7 @@ Todas salen de [`metodo-entrevista.md`](../metodo-entrevista.md) (secciones 20 a
 1. **Arranque:** BIEN y enseguida M6; después, la primera pregunta (§22 y "Cierre del proceso, vuelta 2").
 2. **Una pregunta por vez.** M1 va debajo, en línea aparte y en cursiva, **solo** en las 3 primeras preguntas que se mandan, en las 6 que abren un tema (CA6, JU8, AM0, AM9, HI0, HI8) y en las preguntas de historia del bloque 11. En el resto, la pregunta va sin esa línea. Nunca debajo de cierres, aviso, foto ni final (Naza, 30/09, después de leer la entrevista de corrido; antes iba debajo de todas las de historia).
 3. **Audios:** los que llegan mientras la pregunta está abierta se suman a esa respuesta; la siguiente llega sola cuando pasan unos minutos sin audios nuevos. No hay botón [Siguiente] (§20, vuelta 2).
-4. **Acuses:** después de cada respuesta, uno de M3 (rotan); después de una pregunta `sensible`, uno de M4; después de un cierre, M24; después de LE8, nada (va directo FIN). M3, M21 y M24 van como **primera línea del mensaje que sigue** (la frase de entrada si hay, si no la pregunta); M4 va **solo**, en mensaje aparte (Naza, 30/09, ronda 2). Después de "paso", M21. Si manda texto, M22; si el audio llega cortado, M23 (§22.3).
+4. **Acuses:** después de cada respuesta, uno de M3 (rotan); después de una pregunta `sensible`, uno de M4; después de un cierre, M24 (o M25, neutro, si el cierre se contestó con un "no" corto o "paso"); después de LE8, nada (va directo FIN). M3, M21, M24 y M25 van como **primera línea del mensaje que sigue** (la frase de entrada si hay, si no la pregunta); M4 va **solo**, en mensaje aparte (Naza, 30/09, ronda 2). Después de "paso" en una pregunta que no es cierre, M21. Si manda texto, M22; si el audio llega cortado, M23 (§22.3).
 5. **"No" corto:** menos de 15 palabras y empieza con no / nunca / jamás. "Paso" no cuenta como "no". Si la pregunta que abre un tema (hermanos CA6, pareja AM0, hijos HI0, nietos HI8, mudarse JU8) recibe un "no" corto, las que dependen de ella no se mandan (§22.4).
 6. **Entradas y cierres:** antes de la primera pregunta de cada bloque (la primera que se manda de ese bloque) va su frase de entrada EN, si tiene (Naza, 30/09). Además, todos los bloques del 1 al 14 terminan con su cierre (CI1 a CI14), siempre, en el núcleo. Después del cierre, M24 en todos (desde la ronda 2 no va M10: la entrada del bloque siguiente hace de pasaje). Antes solo iban CI2 a CI5 (Naza, 30/09).
 7. **Bloque 11:** antes de la primera, el aviso AV11; después de cada una, M4 (§22.6).
@@ -452,8 +455,8 @@ Registro en [`correcciones-lectura.md`](correcciones-lectura.md).
 ## Cambios del 30/09, ronda 2 (Naza, después de que Fable leyó la lectura corrida como el narrador)
 Registro en [`correcciones-lectura.md`](correcciones-lectura.md).
 - M3, M21 y M24 van como primera línea del mensaje que sigue; M4 va solo.
-- M10 sin uso: la entrada del bloque siguiente hace de pasaje. Después de cualquier cierre, M24.
+- M10 sin uso: la entrada del bloque siguiente hace de pasaje. Después de cualquier cierre, M24 (más tarde el mismo día: M25 si el cierre se contestó con un "no" corto o "paso").
 - CA17, AD15, JU17 y TR11 pasan a sensibles (acuse sobrio M4).
 - Final: LE7 → preguntas de la familia → FO1 → LE9 → LE8 → FIN; después de LE8 no va acuse. FU1 pasa al bloque 15, antes de LE7. FI7 pasa al bloque 12, antes de CI12.
 - CI11 sin su primera frase (antes: "Gracias por contarme esto; sé que no es fácil. Si hay otro momento difícil…").
-- Pendientes de aprobar: la bienvenida y M6 en un solo mensaje, y los acuses neutros para cuando un cierre se contesta con un "no" corto o "paso" (los redacta Fable).
+- Aprobados después (30/09): los acuses neutros M25.1-M25.3 para cuando un cierre se contesta con un "no" corto o "paso" (redactados por Fable). Pendiente de aprobar: la bienvenida y M6 en un solo mensaje (Naza pidió 3 opciones nuevas).

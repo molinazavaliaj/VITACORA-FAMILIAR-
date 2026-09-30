@@ -101,3 +101,29 @@ Regla que propone Fable: si la entrada que sigue arranca con "Seguimos" o "Pasam
 ## Plan B (anotado, sin programar)
 
 El código no entiende el contenido: a veces pregunta algo que no encaja ("¿esa historia tuvo un final?" cuando en el repaso del amor ya dijo que sigue con su pareja; "¿tuviste más hijos?" cuando ya dijo cuántos) o entiende mal un "no". **Por ahora se deja así.** Si en la prueba real pasa seguido: un modelo chico (Haiku) lee solo la respuesta de las preguntas que abren tema y contesta sí / no / no está claro (en el amor, también "¿sigue con esa pareja hoy?"; en hijos, "¿tuvo más de uno?"). El código decide con eso; si el modelo no está seguro, recién ahí un botón de WhatsApp. Costo estimado: menos de 1 centavo de dólar por entrevista.
+
+### Respuesta de Naza a la ronda 2 (30/09)
+- **Acuses neutros: aprobados** tal cual (M25.1 "Bien, seguimos.", M25.2 "Dale.", M25.3 "Bien, entonces."), con la regla de Fable: M25.1 no va delante de algo que arranca con "Seguimos" o "Pasamos". **Aplicado** (`acuseNeutro` en `mensajes.ts`). Un cierre con "paso" ahora lleva el neutro en vez de M21.
+- **"Dale, la salteamos" pegado a lo que sigue:** Naza preguntó si podía salirle a quien no le toca. No: solo sale si esa persona dijo "paso" en la pregunta anterior y se pega solo a su próximo mensaje. Queda pegado.
+- **Bienvenida junta: rechazada** ("no me gusta 'bien tuya'; más cálido, menos IA, que se presente como el entrevistador"). Fable propuso 3 opciones nuevas (sin aprobar):
+
+**A — Directa y sencilla.**
+> Hola, {{nombre}}. Soy quien te va a hacer la entrevista para el libro de tu vida. Lo vamos a armar entre los dos, de a poco, acá por WhatsApp.
+>
+> Te voy a ir mandando una pregunta por vez. Vos me contestás con un audio, contándome como se lo contarías a alguien en la mesa de tu casa. Si te salen dos o tres audios, mejor todavía. Cuando pasa un ratito y no llega nada más, entiendo que terminaste y te mando la siguiente.
+>
+> Si alguna pregunta no tiene que ver con lo que viviste, decime que no y listo, o contame lo que sí te pasó a vos. No hay ningún apuro. Vamos a tu ritmo.
+
+**B — Arranca por el regalo** (la favorita de Fable; usa {{quien_regala}}; si falta ese dato, va la A).
+> Hola, {{nombre}}, ¿cómo estás? {{quien_regala}} quiere que la historia de tu vida quede escrita en un libro, y yo soy quien te va a entrevistar para armarlo. Lo hacemos acá, por WhatsApp, tranquilos.
+>
+> Funciona así: te mando una pregunta y vos me respondés en audio, como si me lo estuvieras contando tomando unos mates. Podés mandarme todos los audios que quieras. Cuando hace un rato que no llega nada, entiendo que terminaste con esa y te mando la que sigue.
+>
+> Si alguna pregunta no va con tu vida, no pasa nada: me decís que no, o me contás lo que sí te pasó a vos. Y sin apuro, eh. Esto lo hacemos al ritmo que vos quieras.
+
+**C — Charlada, con un poco de humor.**
+> Hola, {{nombre}}. Mucho gusto. Soy quien te va a estar preguntando por tu vida de acá en adelante, para que quede escrita en un libro. Nada de exámenes: es una charla, nomás que por WhatsApp.
+>
+> Te pregunto algo y vos me lo contás en un audio, como se lo contarías a un amigo. Uno, dos, los que necesites. Si te vas por las ramas, mejor: ahí suelen estar las cosas lindas. Cuando pasa un rato sin audios, doy por hecho que terminaste y te mando otra pregunta.
+>
+> Si alguna no tiene que ver con lo que te pasó a vos, decime "esa no" y seguimos, o contame lo que sí fue. Y tomate el tiempo que quieras, acá no hay apuro.

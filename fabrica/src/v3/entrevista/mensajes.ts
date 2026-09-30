@@ -5,8 +5,10 @@
 // mensajes separados; M1 va al final del mensaje de la pregunta. Puro: recibe
 // textos ya renderizados.
 
+import { acuseRotado } from './flujo.js';
+
 /** Las familias de acuse que devuelve `mensajesDespues`. */
-export type FamiliaAcuse = 'M3' | 'M4' | 'M21' | 'M24';
+export type FamiliaAcuse = 'M3' | 'M4' | 'M21' | 'M24' | 'M25';
 
 /** ¿El acuse va solo, en su propio mensaje? Solo el sobrio (M4): después de algo difícil no se pega la pregunta siguiente. */
 export function acuseVaAparte(familia: FamiliaAcuse): boolean {
@@ -33,4 +35,15 @@ export function armarTurno(t: Turno): string[] {
   if (!t.acuse) return siguientes;
   if (t.familia && acuseVaAparte(t.familia)) return [t.acuse, ...siguientes];
   return [`${t.acuse}\n${siguientes[0]}`, ...siguientes.slice(1)];
+}
+
+/**
+ * El acuse neutro (M25) de turno, sabiendo con qué arranca lo que sigue:
+ * "Bien, seguimos." (M25.1) no va delante de un mensaje que arranca con
+ * "Seguimos" o "Pasamos"; en ese caso va el siguiente de la rotación
+ * (propuesta de Fable, aprobada por Naza el 30/09).
+ */
+export function acuseNeutro(n: number, siguiente: string): string {
+  const id = acuseRotado('M25', n);
+  return id === 'M25.1' && /^(seguimos|pasamos)(?![a-záéíóúñ])/i.test(siguiente.trim()) ? 'M25.2' : id;
 }

@@ -11,7 +11,7 @@
 import { writeFileSync } from 'node:fs';
 import { mensajePorId, NOMBRES_BLOQUE, BANCO } from '../src/v3/entrevista/banco.js';
 import { acuseRotado, mensajesDespues, type PreguntaFamilia } from '../src/v3/entrevista/flujo.js';
-import { armarTurno, type FamiliaAcuse } from '../src/v3/entrevista/mensajes.js';
+import { acuseNeutro, armarTurno, type FamiliaAcuse } from '../src/v3/entrevista/mensajes.js';
 import { cuentaComoPregunta, simularRecorrido } from '../src/v3/entrevista/seleccion.js';
 import { renderizar, type FichaTexto } from '../src/v3/entrevista/texto.js';
 import { VIDAS_EJEMPLO } from '../src/v3/entrevista/vidas-ejemplo.js';
@@ -32,37 +32,34 @@ const ficha: FichaTexto = vida.ficha;
 const EDAD = 72;
 const FAMILIA: PreguntaFamilia[] = [{ id: 'FAM1', texto: '[acá va la pregunta que escribió alguien de la familia]' }];
 
-// PROPUESTA de Fable (30/09, ronda 2), sin aprobar: BIEN y M6 en un solo
-// mensaje. Cuando Naza la apruebe pasa a banco.md y sale de acá.
-const BIENVENIDA_PROPUESTA = [
-  'Hola, {{nombre}}. Juntos vamos a escribir la historia de tu vida, y quiero que sea bien tuya. Te cuento cómo es esto, así vamos tranquilos.',
-  'Yo te pregunto cosas de tu vida, una por vez, y vos me las contás en audio, como se las contarías a alguien en la mesa. Si te salen dos o tres audios, mejor. Cuando quedás en silencio un ratito, entiendo que terminaste y te mando la próxima.',
-  'Si alguna pregunta no tiene que ver con lo que viviste, no pasa nada: me decís que no, o me contás lo que en realidad te tocó a vos, que eso es lo que quiero saber. No hay apuro: vamos al paso que vos vayas marcando.',
-];
-
 const texto = (id: string) => renderizar(mensajePorId(id)!.texto, ficha);
 const abreTema = new Set(BANCO.flatMap((p) => p.depende.map((c) => c.de)));
 
-const pasos = simularRecorrido(ficha, (id) => vida.respuestas[id], { familia: FAMILIA });
+// Dos cierres contestados con un "no" corto y con "paso", para que se vea el acuse neutro (M25).
+const RESPUESTAS_CORTAS: Record<string, string> = { CI9: 'No, nada más.', CI12: 'Paso' };
+const responder = (id: string) => RESPUESTAS_CORTAS[id] ?? vida.respuestas[id];
 
+const pasos = simularRecorrido(ficha, responder, { familia: FAMILIA });
+
+// BIEN y M6 van como están en el banco hasta que Naza elija la bienvenida en un solo mensaje (correcciones-lectura.md).
 const globos: Globo[] = [
-  {
-    de: 'bio',
-    partes: BIENVENIDA_PROPUESTA.map((t) => ({ id: 'BIEN+M6', texto: renderizar(t, ficha) })),
-    propuesta: 'bienvenida y M6 en un solo mensaje, sin aprobar',
-  },
+  { de: 'bio', partes: [{ id: 'BIEN', texto: texto('BIEN') }] },
+  { de: 'bio', partes: [{ id: 'M6', texto: texto('M6') }] },
 ];
-const vueltas = { M3: 0, M4: 0, M24: 0 };
+const vueltas = { M3: 0, M4: 0, M24: 0, M25: 0 };
 let bloqueActual = 0;
 /** El acuse de la respuesta anterior: se arma con lo que se manda después. */
-let acuse: { id: string; familia: FamiliaAcuse } | undefined;
+let acuse: { id: string; familia: FamiliaAcuse } | { familia: 'M25'; n: number } | undefined;
 
 /**
  * Manda un turno: arma los mensajes con `armarTurno` sobre los IDs (así se
  * sabe qué línea es qué) y después pone los textos.
  */
 function mandar(t: { entrada?: string; pregunta: string; conM1?: boolean }, textos: Record<string, string>): void {
-  const porId = armarTurno({ acuse: acuse?.id, familia: acuse?.familia, entrada: t.entrada, pregunta: t.pregunta, m1: t.conM1 ? 'M1' : undefined });
+  // El neutro (M25) se elige sabiendo con qué arranca lo que sigue.
+  const siguiente = t.entrada ? texto(t.entrada) : (textos[t.pregunta] ?? texto(t.pregunta));
+  const idAcuse = acuse && ('n' in acuse ? acuseNeutro(acuse.n, siguiente) : acuse.id);
+  const porId = armarTurno({ acuse: idAcuse, familia: acuse?.familia, entrada: t.entrada, pregunta: t.pregunta, m1: t.conM1 ? 'M1' : undefined });
   for (const m of porId) globos.push({ de: 'bio', partes: m.split('\n').map((id) => ({ id, texto: textos[id] ?? texto(id) })) });
   acuse = undefined;
 }
@@ -82,9 +79,11 @@ for (const paso of pasos) {
   }
   mandar({ entrada: paso.entrada, pregunta: p.id, conM1: paso.conM1 }, { [p.id]: p.texto });
   if (paso.respuesta === undefined) continue; // aviso y final: no esperan respuesta
-  globos.push({ de: 'persona', texto: abreTema.has(p.id) && vida.respuestas[p.id] ? `[responde: «${vida.respuestas[p.id]}»]` : '[responde]' });
+  const corta = RESPUESTAS_CORTAS[p.id] ?? (abreTema.has(p.id) ? vida.respuestas[p.id] : undefined);
+  globos.push({ de: 'persona', texto: corta ? `[responde: «${corta}»]` : '[responde]' });
   for (const fam of mensajesDespues(p, paso.respuesta)) {
-    acuse = { id: fam === 'M21' ? fam : acuseRotado(fam, vueltas[fam]++), familia: fam };
+    if (fam === 'M25') acuse = { familia: 'M25', n: vueltas.M25++ };
+    else acuse = { id: fam === 'M21' ? fam : acuseRotado(fam, vueltas[fam]++), familia: fam };
   }
 }
 
@@ -99,11 +98,11 @@ const acusesSolos = globos.filter((g) => g.de === 'bio' && g.partes.length === 1
 const lineas: string[] = [
   '# La entrevista leída de corrido',
   '',
-  `**Qué es:** la entrevista completa de una vida **inventada** (${ficha.nombre}, ${EDAD} años, varón, con hermanos, que se fue a otra ciudad, sigue con su primera pareja, tiene hijos y nietos), tal como le llegaría por WhatsApp. Generada con el código de \`fabrica/src/v3/entrevista/\` por \`fabrica/scripts/v3-entrevista-lectura.ts\` (sin ronda extra).`,
+  `**Qué es:** la entrevista completa de una vida **inventada** (${ficha.nombre}, ${EDAD} años, varón, con hermanos, que se fue a otra ciudad, sigue con su primera pareja, tiene hijos y nietos; contesta "No, nada más." al cierre de lugares y "Paso" al de historia grande), tal como le llegaría por WhatsApp. Generada con el código de \`fabrica/src/v3/entrevista/\` por \`fabrica/scripts/v3-entrevista-lectura.ts\` (sin ronda extra).`,
   '',
   `**Cuenta:** ${preguntas} preguntas del banco (${conM1} con la frase de "paso" debajo) + ${FAMILIA.length} de la familia · **${mensajesBio} mensajes de WhatsApp del biógrafo** en total. Los agradecimientos van como primera línea del mensaje que sigue; solo los ${acusesSolos} sobrios van solos. ${entradas} frases de entrada de bloque.`,
   '',
-  'Versión 4 (30/09, ronda 2): agradecimiento pegado a lo que sigue, sin "Terminamos esta etapa", acuse sobrio en los momentos difíciles de cada época, el final LE7 → familia → FO1 → LE9 → LE8 → FIN, la política en la historia grande y "lo que todavía querés hacer" en el legado. La bienvenida en un solo mensaje está marcada como PROPUESTA. Registro en [`correcciones-lectura.md`](correcciones-lectura.md).',
+  'Versión 4 (30/09, ronda 2): agradecimiento pegado a lo que sigue, sin "Terminamos esta etapa", acuse sobrio en los momentos difíciles de cada época, el final LE7 → familia → FO1 → LE9 → LE8 → FIN, la política en la historia grande y "lo que todavía querés hacer" en el legado. El acuse neutro (M25) cuando un cierre se contesta con un "no" corto o "paso". La bienvenida sigue en dos mensajes hasta que Naza elija la versión en uno. Registro en [`correcciones-lectura.md`](correcciones-lectura.md).',
   '',
   'Cómo leerlo: cada **Biógrafo** es un mensaje de WhatsApp (las líneas citadas debajo van juntas en ese mensaje); **Persona** es la respuesta (acá solo "[responde]"; en las preguntas que abren un tema va la respuesta corta de la vida de ejemplo). Los títulos de bloque y los IDs (entre corchetes) son para vos: la persona no los ve.',
   '',

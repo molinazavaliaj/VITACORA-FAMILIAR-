@@ -5,7 +5,7 @@
 import { describe, expect, it } from 'vitest';
 import { BANCO, preguntaPorId } from '../src/v3/entrevista/banco.js';
 import { mensajesDespues } from '../src/v3/entrevista/flujo.js';
-import { acuseVaAparte, armarTurno } from '../src/v3/entrevista/mensajes.js';
+import { acuseNeutro, acuseVaAparte, armarTurno } from '../src/v3/entrevista/mensajes.js';
 import { simularRecorrido } from '../src/v3/entrevista/seleccion.js';
 import { VIDAS_EJEMPLO } from '../src/v3/entrevista/vidas-ejemplo.js';
 
@@ -96,5 +96,28 @@ describe('8. FI7 al bloque 12 y FU1 al 15, antes de LE7', () => {
 
   it('el bloque 15 queda en este orden', () => {
     expect(BANCO.filter((q) => q.bloque === 15).map((q) => q.id)).toEqual(['LE1', 'LE2', 'LE6', 'FU1', 'LE7', 'FO1', 'LE9', 'LE8', 'FIN']);
+  });
+});
+
+describe('7. acuse neutro si un cierre se contesta con un "no" corto o "paso" (Naza, 30/09)', () => {
+  it('cierre con "no" corto o "paso" → M25; con algo contado → M24', () => {
+    expect(mensajesDespues(p('CI9'), 'No, nada más.')).toEqual(['M25']);
+    expect(mensajesDespues(p('CI3'), 'Paso')).toEqual(['M25']);
+    expect(mensajesDespues(p('CI3'), 'Sí, me acordé del acto del 25 de mayo.')).toEqual(['M24']);
+  });
+
+  it('"paso" en una pregunta que no es cierre sigue con M21', () => {
+    expect(mensajesDespues(p('CA2'), 'paso')).toEqual(['M21']);
+  });
+
+  it('M25 va pegado y rota entre las 3', () => {
+    expect(acuseVaAparte('M25')).toBe(false);
+    expect([0, 1, 2, 3].map((n) => acuseNeutro(n, 'Hablemos de los amigos.'))).toEqual(['M25.1', 'M25.2', 'M25.3', 'M25.1']);
+  });
+
+  it('"Bien, seguimos." no va delante de algo que arranca con "Seguimos" o "Pasamos"', () => {
+    expect(acuseNeutro(0, 'Seguimos con la escuela: la primaria…')).toBe('M25.2');
+    expect(acuseNeutro(3, 'Pasamos a tu juventud, Rogelio…')).toBe('M25.2');
+    expect(acuseNeutro(1, 'Seguimos con la escuela')).toBe('M25.2');
   });
 });

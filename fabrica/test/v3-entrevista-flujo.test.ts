@@ -276,10 +276,10 @@ describe('entrevista: acuses', () => {
     expect(mensajesDespues(p('OR1'), 'paso')).toEqual(['M21']);
   });
 
-  it('todos los cierres van con M24; M10 ya no se usa (Naza, 30/09, ronda 2)', () => {
+  it('los cierres van con M24, o M25 si se contestan con un "no" corto o "paso"; M10 ya no se usa (Naza, 30/09, ronda 2)', () => {
     expect(mensajesDespues(p('CI2'), 'Sí, una más.')).toEqual(['M24']);
-    expect(mensajesDespues(p('CI5'), 'Paso')).toEqual(['M21']);
-    expect(mensajesDespues(p('CI6'), 'No.')).toEqual(['M24']);
+    expect(mensajesDespues(p('CI5'), 'Paso')).toEqual(['M25']); // cierre con paso: acuse neutro
+    expect(mensajesDespues(p('CI6'), 'No.')).toEqual(['M25']); // cierre con un "no" corto: acuse neutro
   });
 
   it('el aviso y el final no llevan acuse', () => {
