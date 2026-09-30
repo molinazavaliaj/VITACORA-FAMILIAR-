@@ -139,7 +139,6 @@ Orden = orden de envío de la v2 (un viaje corto recibe las primeras; cuando se 
 | FN1 | ultima-noche | | Mañana te volvés. Antes de armar la valija, contame una cosa de este viaje que no querés que se te olvide, una sola, y por qué esa. Si tenés una foto, que venga. | |
 | VU0 | vuelta | | Hoy se vuelve, {{nombre}}. ¿Qué te traés en la valija que no estaba a la ida? Sacale una foto, donde estés. | |
 | VU1 | dia-siguiente-vuelta | | La vuelta se hace distinto que la ida. Contame el momento de la vuelta en que sentiste que ya estabas volviendo, lo que fuera que te lo marcó. Qué había alrededor y en qué pensabas. | |
-| IV1 | dia-siguiente-vuelta | | Ayer fue el viaje, ida y vuelta en el día. Contame un rato del camino, a la ida o a la vuelta, en que no estabas haciendo nada, solo yendo. Qué había del otro lado de la ventanilla y qué pensabas. | |
 | CA1 | noche-casa | | Cuando entres a casa, quedate en el primer rato, con la valija todavía cerrada: contame qué te llamó la atención de tu propia casa después de estar afuera, aunque sea una pavada. Si tenés una foto de eso, mandala. | |
 
 ## El álbum
@@ -174,13 +173,11 @@ Rotan dentro de su grupo. Van como primera línea del mensaje que sigue, o solos
 | ID | Momento | Orden | Texto | Ya de viaje |
 |---|---|---|---|---|
 | PAS-V | caso | | Dale, esta la salteamos. Mañana hay otra. | |
-| PAS-V2 | caso | | Dale, esta la salteamos. | |
 | PAS-A | caso | | Perfecto, {{nombre}}, sin problema. Seguimos con la próxima. | |
 | PAS-A2 | caso | | Perfecto, {{nombre}}, sin problema. Ya está: silencio hasta el día que te vas. | |
 | TXT | caso | | Lo leí, gracias. Si podés, contámelo también en audio: tu voz es lo que va al libro. Y si te queda más cómodo escribir, escribí nomás. | |
 | COR | caso | | Se me cortó el audio o no llegó bien, {{nombre}}. ¿Me lo mandás de nuevo cuando puedas? Sin apuro. | |
 | REC1 | caso | | Hola, {{nombre}}. Te quedó una pregunta esperando, sin apuro. Cuando tengas un rato, contestámela en audio, o "paso" y seguimos con la que viene. | |
-| REC1-U | caso | | Hola, {{nombre}}. Te quedó una pregunta esperando, sin apuro. Cuando tengas un rato, contestámela en audio, o 'paso', y nos vemos el día que salís. | |
 
 Cuándo va cada uno: PAS-V, "paso" en el viaje · PAS-A, "paso" antes de salir (la siguiente sale enseguida) · TXT, escribe en vez de mandar audio · COR, audio cortado o que no se entiende (el ruido de la calle no cuenta) · REC1, antes de salir, una pregunta sin contestar 3 días.
 
@@ -281,11 +278,3 @@ Copiadas de `flujo-vigente.md` (y de los aprobados donde se indica).
 - CA1 → AL1 ya no lleva ACA: AL1 trae su agradecimiento adentro.
 - Compra: la fecha de vuelta se pide como "el día que emprendés la vuelta" (el día de salir de allá).
 - Se mantienen por decisión de Naza: AS1 y AS2 como están; DES con "antes de que se cierre".
-
-**Lectura corrida y viajes cortos (aprobado por Naza, 30/09; versión anterior en `historial/banco-2026-09-30-antes-de-los-viajes-cortos.md`)**
-- PAS-V2 ("Dale, esta la salteamos."): "paso" cuando ese mismo día todavía llega otra pregunta (mediodía, UC1, ID1, VU1, VU0 en un viaje de un día). PAS-V ("…Mañana hay otra.") queda solo para cuando no llega nada más ese día.
-- REC1-U: el recordatorio cuando la pregunta colgada es VA1 (la última de antes de salir). Para las demás, REC1.
-- Viaje de 1 día (salida = vuelta): ese día UC1 10:00 (hora de casa) y VU0 13:00; al día siguiente IV1 10:00 (en lugar de ID1 y VU1) y CA1 a la noche → AL1. Sin FN1 ni noches comunes.
-- Viaje de 2 días: día 1 solo UC1; día 2 ID1 10:00 y VU0 13:00 (sin noche); al día siguiente VU1 10:00 y CA1 a la noche.
-- En viajes cortos, las de antes de salir que no entran en ninguna noche quedan en los avisos para Naza (no se le mandan a la persona).
-- Después de VA1 contestada sigue ACM1 o ACM2 solo (Fable sugirió un acuse de cierre nuevo; no hace falta: "Ya está, gracias." no promete nada).
