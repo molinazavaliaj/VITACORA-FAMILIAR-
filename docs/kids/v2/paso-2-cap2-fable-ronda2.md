@@ -1,0 +1,22 @@
+# Kids V2 · Paso 2 · Capítulo 2 — correcciones de Naza y Fable, ronda 6 (30/09/2026)
+
+## Lo que aprobó Naza sobre la ronda 5
+- Regla de género `{{o/a}}`: sí.
+- Antes de las serias: "Hay otra, pero es de las que se piensan con calma. ¿Vas ahora o mañana?" [Voy ahora] [Mañana mejor]. **Va pegado a la pregunta, no al día**: antes de la 16 ("la historia que contás siempre") y de la 18 ("el día feo"), cuando le toquen (el chico puede ir adelantado).
+- Mamá: forma B, pero la escena "te hizo reír mucho" no lo convence. Papá: B y su otra puerta. Las otras puertas de mamá y papá, también como preguntas propias.
+- Hermanos "sí" V1 y las dos otras puertas. Día 10 V1. M13. Familia ensamblada.
+
+## Fable, ronda 6
+
+1. **Mamá**, "Hoy, tu mamá. Contame cómo es, y …": a) una vez que te cuidó cuando estabas enferm{{o/a}} (elige Fable) · b) la última vez que te sorprendió con algo · c) una vez que la viste enojada de verdad (⚠ el padre lee).
+2. **Hermanos "no"**: V1 ¿Te hubiera gustado tener un hermano o una hermana? (recomendada; la otra puerta sale siempre en esta rama) · V2 …Contame un momento en que lo pensaste. (⚠ dos pedidos)
+3. **Abuelos**: "Hoy, abuelos." [Sí, tengo] [No tengo cerca]. Sí: Contame la última vez que estuviste con un abuelo o una abuela. No (estricta, recomendada): Contame una vez con alguien mayor que sea como un abuelo o una abuela para vos. Otra puerta queda.
+4. **Día 10, otra puerta**: a) ¿Y un lugar al que te llevaron y te dijeron "acá venía yo de chic{{o/a}}"? Contame ese día. (elige Fable) · b) ¿Y algo que hacen en tu casa porque "siempre se hizo así" y nadie sabe de dónde salió? (⚠ costumbre)
+5. **Día 11** sin superlativo: Contame una tarde con un amigo o una amiga que no te querías ir a tu casa. (Claude: gramática, mejor "…en la que no te querías ir a tu casa"). Otra puerta: a) ¿Y cómo te hiciste amig{{o/a}} de la persona con la que mejor te llevás? Contame ese día. (elige Fable) · b) ¿Y la persona con la que mejor te llevás: cómo empezó eso? Contame el primer día.
+6. **Mostrame**: M4 Si tenés mascota, sacale una foto y mandámela. ¿Cómo llegó a tu casa? · M10 V1 ¿Hacés algún deporte? Sacale una foto a lo que usás para jugarlo. (elige Fable, [No hago]) · V2 ¿Hacés algún deporte? Mandame una foto de tus cosas de ese deporte. · Día 9: Buscá la foto o la cosa más vieja que haya en tu casa y sacale una foto. ¿Qué sabés de eso? · M11 V2 ¿Sos hincha de algún club? Sacale una foto a algo que tengas de ese club y contame cómo te hiciste hincha. (elige Fable, [Sí] [De ninguno]) · V1 ¿Sos hincha de algún club, de fútbol o del deporte que sea? Mostrame algo de ese club. ¿Cómo te hiciste hincha? · M12 ¿Tenés un ídolo, o varios, del deporte o de lo que sea? Mandame una foto y contame qué tienen.
+7. **Entrada cap. 2**: V2 Ahora vamos con la gente de tu vida: tu familia, tus amigos y los que querés. Contá como te salga. (elige Fable) · V1 Segunda parte: tu familia, tus amigos y la gente que querés. Cinco días de eso, uno por uno. **Cierre**: V1 Eso fue tu familia y tus amigos. ¿Quedó alguien que querés y no te pregunté? Contame de esa persona. · V2 Antes de pasar a tu vida de ahora: ¿hay alguien importante para vos que se me pasó?
+8. **Qué le falta**:
+   - Primos, cerca de Naza: ¿Tenés primos o primas? ¿Te llevás con ellos, hacen planes seguido, o no tanto? (⚠ tres preguntas, costumbre) · con regla: Si tenés primos o primas, contame la última vez que se juntaron. Si casi no los ves, también vale. · OP: ¿Y alguien de tu familia de tu edad que ves poco pero es como si nada? Contame la última vez.
+   - Tíos, cerca de Naza: ¿Hay un tío o una tía con quien te llevás mejor, si es que tenés? Contame cómo es. (⚠ descripción) · con regla: Si tenés tíos o tías, contame la última vez que uno te dejó hacer algo que en tu casa no. · OP: ¿Y un grande de la familia con el que te reís más? Contame la última vez.
+   - Alguien importante que no es de la familia: V2 Contame una vez con alguien que no es de tu familia pero es importante para vos. (elige Fable) · V1 ¿Hay alguien que no sea de tu familia y sea importante para vos? Contame una vez con esa persona. · OP: ¿Y un grande que te enseñó algo que en tu casa nadie sabe hacer? Contame el día.
+   - Barrio: ¿Alguna vez necesitaste algo y te lo dio alguien del barrio o del edificio? Contame esa vez. (o con botones [Sí, una vez] [No me pasó]) · OP: ¿Y alguien del barrio que te saluda siempre? Contame la última vez.
