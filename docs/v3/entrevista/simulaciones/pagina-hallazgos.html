@@ -1,0 +1,390 @@
+<title>Seis entrevistas inventadas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&display=swap">
+<style>
+/* Layout: una columna de lectura para el celular; cada falla es un bloque con la charla de WhatsApp adentro */
+:root {
+  --bg: #f6f7f5;
+  --fg: #1d2421;
+  --muted: #5d6963;
+  --line: #d9ded9;
+  --card: #ffffff;
+  --accent: #1f6f5c;
+  --bio: #ffffff;
+  --narr: #dcf3e4;
+  --chat: #ebe6dc;
+  --grave: #b3261e;
+  --media: #a8620a;
+  --leve: #4f6d8f;
+  --ok: #1f6f5c;
+  --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #131816; --fg: #e6ebe8; --muted: #9aa8a1; --line: #2c3531; --card: #1b211e;
+    --accent: #5fc3a6; --bio: #232b27; --narr: #1d4034; --chat: #0f1412;
+    --grave: #f2877f; --media: #e9ae5c; --leve: #9db8d8; --ok: #5fc3a6; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #131816; --fg: #e6ebe8; --muted: #9aa8a1; --line: #2c3531; --card: #1b211e;
+  --accent: #5fc3a6; --bio: #232b27; --narr: #1d4034; --chat: #0f1412;
+  --grave: #f2877f; --media: #e9ae5c; --leve: #9db8d8; --ok: #5fc3a6; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 17px; line-height: 1.5; }
+.wrap { max-width: 680px; margin: 0 auto; padding-inline: 16px; padding-block: 24px 64px; display: flex; flex-direction: column; gap: 28px; }
+h1, h2, h3 { font-family: var(--display); line-height: 1.15; text-wrap: balance; margin: 0; }
+h1 { font-size: 1.85rem; font-weight: 700; }
+h2 { font-size: 1.3rem; font-weight: 700; }
+h3 { font-size: 1.12rem; font-weight: 700; }
+p { margin: 0; }
+.lead { color: var(--muted); }
+.eyebrow { font-size: .78rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+header { display: flex; flex-direction: column; gap: 10px; }
+.tabla { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: .95rem; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: .78rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; }
+td.num { white-space: nowrap; font-weight: 600; }
+.bad { color: var(--grave); }
+.section { display: flex; flex-direction: column; gap: 12px; }
+.nota { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; }
+details.falla { background: var(--card); border: 1px solid var(--line); border-radius: 12px; }
+details.falla > summary { list-style: none; cursor: pointer; padding: 14px 16px; display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; align-items: start; }
+details.falla > summary::-webkit-details-marker { display: none; }
+details.falla > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 12px; }
+.num-s { font-family: var(--display); font-weight: 700; font-size: 1rem; color: var(--muted); min-width: 2.4em; padding-top: 2px; }
+.sum-txt { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font-size: .75rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; padding: 2px 8px; border-radius: 99px; border: 1px solid currentColor; }
+.g-grave { color: var(--grave); } .g-media { color: var(--media); } .g-leve { color: var(--leve); } .g-ok { color: var(--ok); }
+.quien { font-size: .88rem; color: var(--muted); }
+.cuerpo { padding: 0 16px 16px; display: flex; flex-direction: column; gap: 14px; }
+.chat { background: var(--chat); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+.msg { max-width: 88%; padding: 8px 11px; border-radius: 10px; font-size: .95rem; box-shadow: 0 1px 0 rgba(0,0,0,.06); }
+.msg.bio { background: var(--bio); align-self: flex-start; border-top-left-radius: 2px; }
+.msg.narr { background: var(--narr); align-self: flex-end; border-top-right-radius: 2px; }
+.msg .de { display: block; font-size: .72rem; font-weight: 600; color: var(--accent); margin-bottom: 2px; letter-spacing: .02em; }
+.msg.narr .de { color: var(--muted); }
+.bloque { display: flex; flex-direction: column; gap: 6px; }
+.bloque .t { font-size: .78rem; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+ul { margin: 0; padding-left: 1.1em; display: flex; flex-direction: column; gap: 5px; }
+blockquote { margin: 0; padding: 8px 12px; border-left: 3px solid var(--accent); background: var(--bg); border-radius: 0 8px 8px 0; font-size: .95rem; }
+.botones { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.btn { font-size: .85rem; padding: 4px 12px; border-radius: 99px; background: var(--bg); border: 1px solid var(--accent); color: var(--accent); font-weight: 600; }
+.decide { background: var(--bg); border: 1px dashed var(--accent); border-radius: 10px; padding: 10px 12px; font-weight: 600; }
+.decide span { display: block; font-size: .75rem; text-transform: uppercase; letter-spacing: .07em; color: var(--accent); margin-bottom: 2px; }
+.orden { counter-reset: o; list-style: none; padding: 0; }
+.orden li { counter-increment: o; display: grid; grid-template-columns: 1.8em 1fr; gap: 8px; }
+.orden li::before { content: counter(o); font-family: var(--display); font-weight: 700; color: var(--accent); }
+footer { color: var(--muted); font-size: .9rem; }
+@media (prefers-reduced-motion: no-preference) { details.falla[open] .cuerpo { animation: in .18s ease-out; } @keyframes in { from { opacity: .4; } to { opacity: 1; } } }
+</style>
+
+<div class="wrap">
+<header>
+  <span class="eyebrow">Vitácora V3 · entrevista · 30/09</span>
+  <h1>Seis entrevistas inventadas</h1>
+  <p class="lead">Seis narradores inventados (agentes de IA) contestaron la entrevista entera por un WhatsApp simulado, con el código real. Después Fable leyó cada charla como biógrafo. Acá está todo junto, de lo más grave a lo más leve, con el mensaje exacto y lo que propone Fable. Tocá cada falla para abrirla.</p>
+</header>
+
+<section class="section">
+  <h2>Los seis y lo que el código entendió</h2>
+  <p class="lead">"Entendidos" cuenta los "no" y "paso" que el código reconoció como tales. El resto lo tomó como si hubieran contado algo.</p>
+  <div class="tabla">
+  <table>
+    <thead><tr><th>Narrador</th><th>Vida</th><th>"No"/"paso" entendidos</th></tr></thead>
+    <tbody>
+      <tr><td>Nelly, 68</td><td>Madre soltera</td><td class="num bad">0 de 12</td></tr>
+      <tr><td>Amalia, 74</td><td>Viuda</td><td class="num bad">2 de 21</td></tr>
+      <tr><td>Aníbal, 77</td><td>Solterón</td><td class="num">19 de 41</td></tr>
+      <tr><td>Chela, 71</td><td>Tres matrimonios</td><td class="num bad">2 de 6</td></tr>
+      <tr><td>Manuel, 70</td><td>Gallego, reservado</td><td class="num bad">7 de 25</td></tr>
+      <tr><td>Elsa, 80</td><td>No se acuerda</td><td class="num">11 de 47</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="nota">
+    <p><strong>El veredicto de Fable:</strong> la entrevista aguanta bien a quien tuvo una vida "estándar" y habla corto. Se rompe con quien no tuvo lo que la pregunta da por hecho y lo dice como cualquiera, con una explicación atrás. Ninguna pregunta lastimó de verdad, pero el biógrafo agradeció "por animarse a contar" a quien pidió no contar, "guardó" treinta olvidos y le mandó seis preguntas de hijos a un hombre sin hijos.</p>
+    <p><strong>Tus botones</strong> resuelven de raíz lo más grave. Fable recomienda botones más unas reglas de respaldo, porque mucha gente va a mandar audio igual.</p>
+  </div>
+</section>
+
+<section class="section">
+  <h2>Las fallas</h2>
+
+  <details class="falla" open>
+    <summary><span class="num-s">S2</span><span class="sum-txt"><h3>Un "no" o un "paso" con explicación no se entiende</h3><span class="chips"><span class="chip g-grave">grave</span></span><span class="quien">En las 6 charlas · unos 70 mal leídos</span></span></summary>
+    <div class="cuerpo">
+      <p>La gente no dice "no" y se calla: dice "no" y explica. El código solo lee "no" si son menos de 15 palabras, y "paso" si son menos de 8.</p>
+      <div class="chat">
+        <div class="msg narr"><span class="de">Nelly · CI12</span>No, creo que conté lo importante. La dictadura, los Mundiales, la crisis, la pandemia…</div>
+        <div class="msg bio"><span class="de">Biógrafo</span>Gracias por eso. Cada detalle que agregás suma.</div>
+      </div>
+      <div class="bloque"><span class="t">Consecuencias</span>
+        <ul>
+          <li>En 4 charlas, un "no, no hubo otro amor" largo mandó "Contame una pelea que tuvieron" a gente sin pareja.</li>
+          <li>A Aníbal le llegaron las 6 preguntas de hijos (ver S7).</li>
+          <li>Manuel dijo "No, seguimos juntos… pero no nos separamos", y por el "pero" le preguntaron por "otro amor" con 44 años de casado.</li>
+        </ul>
+      </div>
+      <div class="bloque"><span class="t">Propuesta de Fable</span>
+        <ul>
+          <li>"Paso" como primera palabra vale siempre, sin tope de largo.</li>
+          <li>En cierres, sensibles y las que abren tema, un "no" al principio vale hasta 40 palabras.</li>
+          <li>"Pero" solo da vuelta el "no" si está en las primeras 5 palabras.</li>
+          <li>Tus botones en las que abren tema, y además un botón en los 14 cierres:</li>
+        </ul>
+        <div class="botones"><span class="btn">No, está todo</span></div>
+      </div>
+      <p class="decide"><span>Vos decidís</span>¿Botón "No, está todo" en los 14 cierres, además de sí/no en las que abren tema?</p>
+    </div>
+  </details>
+
+  <details class="falla">
+    <summary><span class="num-s">S7</span><span class="sum-txt"><h3>Los hijos le llegan enteros a quien no tiene</h3><span class="chips"><span class="chip g-grave">grave</span></span><span class="quien">Aníbal (6 preguntas de más) · "¿más hijos?" en 3 charlas</span></span></summary>
+    <div class="cuerpo">
+      <div class="chat">
+        <div class="msg narr"><span class="de">Aníbal · HI0</span>No, nunca tuve hijos. No se me dio, qué sé yo. Tengo sobrinos de mi hermana Olga…</div>
+        <div class="msg bio"><span class="de">Biógrafo · HI3</span>Escuchado. Vamos por la siguiente.<br>¿Cómo era cada uno de chico? El carácter, las mañas…</div>
+        <div class="msg narr"><span class="de">Aníbal</span>No tengo hijos. Paso.</div>
+      </div>
+      <p>Lo dijo tres veces seguidas y no se cortó: la de nietos no depende de nada. Nunca le llegó la pregunta pensada para él, "¿algún chico o joven fue importante en tu vida?" (los sobrinos).</p>
+      <div class="bloque"><span class="t">Propuesta de Fable</span>
+        <blockquote>Ahora vamos a los hijos. ¿Tuviste hijos, o criaste a alguno como si lo fuera? Tocá abajo, o contame directo.</blockquote>
+        <div class="botones"><span class="btn">Sí, tuve</span><span class="btn">No tuve</span></div>
+        <blockquote>Ahora, los nietos. ¿Llegaron nietos a tu vida?</blockquote>
+        <div class="botones"><span class="btn">Sí, llegaron</span><span class="btn">No hay nietos</span></div>
+        <ul>
+          <li>Nietos solo si hubo hijos. "¿Tuviste más hijos?" solo si contó el primero.</li>
+          <li>Texto nuevo para la crianza: "¿Cómo fue criar a tus hijos? Quién estaba cerca, cómo se repartían las cosas, o si te tocó llevarla sol{o/a}…"</li>
+        </ul>
+      </div>
+      <p class="decide"><span>Vos decidís</span>¿Botones en hijos y nietos? ¿"¿Tuviste más hijos?" queda (con la regla nueva) o se saca?</p>
+    </div>
+  </details>
+
+  <details class="falla">
+    <summary><span class="num-s">S1</span><span class="sum-txt"><h3>El amor no está armado para quien no convivió</h3><span class="chips"><span class="chip g-grave">grave</span></span><span class="quien">Nelly y Aníbal · el bloque entero</span></span></summary>
+    <div class="cuerpo">
+      <div class="chat">
+        <div class="msg bio"><span class="de">Biógrafo · AM4</span>Hay días que quedan grabados para siempre. ¿Hubo uno en que se casaron, o en que empezaron a vivir juntos?…</div>
+        <div class="msg narr"><span class="de">Nelly</span>Paso, eso no me pasó. Nunca me casé ni conviví con nadie.</div>
+        <div class="msg bio"><span class="de">Biógrafo · después de AM9</span>Gracias por animarte a contarlo. Cuando quieras, seguimos.</div>
+      </div>
+      <p>Ese último agradecimiento llegó después de "Paso, mejor no. Ya lo conté". Fable lo marca como el peor de las 6 charlas.</p>
+      <div class="bloque"><span class="t">Propuesta de Fable</span>
+        <blockquote>Y después, ¿llegaron a armar la vida juntos: casarse, irse a vivir, lo que haya sido?</blockquote>
+        <div class="botones"><span class="btn">Sí</span><span class="btn">No llegamos a eso</span></div>
+        <ul>
+          <li>Con "No" se saltean el casamiento y la pelea de pareja.</li>
+          <li>"¿Tuviste algún amor que no fue el de toda la vida?" pasa a: "¿Hubo otro amor que te marcó, aunque haya durado poco o no haya llegado a nada?…"</li>
+          <li>"El día que se conocieron" suma: "Si ya me lo contaste cuando hablamos de tu adolescencia, decímelo y vamos a lo que sigue."</li>
+        </ul>
+      </div>
+      <p class="decide"><span>Vos decidís</span>¿"Armar la vida juntos" con botón, o solo con la salida escrita?</p>
+    </div>
+  </details>
+
+  <details class="falla">
+    <summary><span class="num-s">S8</span><span class="sum-txt"><h3>El "paso" dicho con otras palabras no existe</h3><span class="chips"><span class="chip g-grave">grave</span></span><span class="quien">Manuel 4 de 4 · Amalia · Aníbal</span></span></summary>
+    <div class="cuerpo">
+      <div class="chat">
+        <div class="msg narr"><span class="de">Manuel · momento duro de joven</span>De eso no. Hay cosas que prefiero guardarme.</div>
+        <div class="msg bio"><span class="de">Biógrafo</span>Lo guardo tal como lo contaste. Gracias.</div>
+        <div class="msg narr"><span class="de">Manuel · tus viejos de grande</span>Eso no. Mejor otra.</div>
+        <div class="msg bio"><span class="de">Biógrafo</span>Gracias por contármelo. Seguimos.</div>
+      </div>
+      <p>Encima, "Eso no. Mejor otra." queda guardado como si fuera su respuesta para el libro.</p>
+      <div class="bloque"><span class="t">Propuesta de Fable</span>
+        <ul>
+          <li>Valen como paso las respuestas cortas que arrancan con: siguiente, otra, mejor otra, salteala, esa no, eso no, de eso no, no quiero hablar de eso, prefiero no, mejor no, eso me lo guardo, dejémoslo ahí.</li>
+          <li>Si contó algo y se frenó, va "Lo guardo tal como lo contaste" y se marca "pidió no ahondar" para el escritor.</li>
+          <li>Agradecimiento nuevo para cuando se niega en una pregunta difícil (rotan):</li>
+        </ul>
+        <blockquote>Está bien, {nombre}. Eso queda tuyo. Seguimos por otro lado.<br>Claro. Lo dejamos ahí, sin problema.<br>Perfecto, {nombre}. Hay cosas que son de uno. Vamos con otra.</blockquote>
+        <ul><li>Y un botón en las 8 preguntas difíciles:</li></ul>
+        <div class="botones"><span class="btn">Paso esta</span></div>
+      </div>
+      <p class="decide"><span>Vos decidís</span>¿Botón "Paso esta" en las 8 difíciles, además de la lista de frases?</p>
+    </div>
+  </details>
+
+  <details class="falla">
+    <summary><span class="num-s">S9</span><span class="sum-txt"><h3>A la que no se acuerda le dicen "ya lo guardé" 30 veces</h3><span class="chips"><span class="chip g-grave">grave</span></span><span class="quien">Elsa · 11 disculpas sin un "no pasa nada"</span></span></summary>
+    <div class="cuerpo">
+      <div class="chat">
+        <div class="msg narr"><span class="de">Elsa · momento duro de joven</span>No me acuerdo de nada muy duro… La verdad es que no recuerdo.</div>
+        <div class="msg bio"><span class="de">Biógrafo</span>Lo guardo tal como lo contaste. Gracias.</div>
+      </div>
+      <p>Y queda el riesgo de que "No me acuerdo bien cuándo nació el primero" se tome como "no hay nietos": 8 palabras que empiezan con "no".</p>
+      <div class="bloque"><span class="t">Propuesta de Fable</span>
+        <ul><li>Si arranca con "no me acuerdo", "no sé" o "ni idea", es un olvido: ni "no me pasó" ni contenido. Van agradecimientos nuevos (rotan):</li></ul>
+        <blockquote>No pasa nada, {nombre}. Lo que no vuelve, no vuelve. Vamos con otra.<br>Está bien, hay cosas que se van. Seguimos.<br>Tranquil{o/a}, que con lo que sí te acordás alcanza. Vamos a la siguiente.</blockquote>
+        <ul><li>Y una sola vez, al tercer olvido seguido:</li></ul>
+        <blockquote>Una cosa antes de seguir, {nombre}: no te hagas problema por lo que no vuelve. Para el libro alcanza con lo que sí tenés. Y si de alguna te acordás a medias, contame ese pedacito nomás: un olor, una cara, cómo era en general. Eso también es tu historia.</blockquote>
+        <ul>
+          <li>En las 8 que piden "un día concreto": "Y si el día justo no te vuelve, contame cómo era en general, que con eso me arreglo."</li>
+          <li>En el primer cierre: "Y si algo se te viene más tarde, a cualquier hora, mandámelo nomás: yo lo pongo donde va."</li>
+        </ul>
+      </div>
+      <p class="decide"><span>Vos decidís</span>¿Los agradecimientos de olvido y el mensaje único? ¿Que quien regala pueda marcar "le cuesta recordar" en la ficha?</p>
+    </div>
+  </details>
+
+  <details class="falla">
+    <summary><span class="num-s">S10</span><span class="sum-txt"><h3>El amor después de la primera historia</h3><span class="chips"><span class="chip g-grave">grave</span><span class="chip g-media">media</span></span><span class="quien">Chela · Amalia · Elsa · Manuel</span></span></summary>
+    <div class="cuerpo">
+      <div class="chat">
+        <div class="msg bio"><span class="de">Biógrafo · AM1</span>Contame el día que se conocieron. ¿Dónde fue, quién los presentó…?</div>
+        <div class="msg narr"><span class="de">Chela</span>¿Cuál de todos? Porque tengo un par. Pero bueno, te voy a contar de Raúl, el primero de verdad.</div>
+      </div>
+      <ul>
+        <li>Los dos matrimonios del medio de Chela (10 y 14 años) no tuvieron ninguna pregunta.</li>
+        <li>A las viudas les dicen dos veces "después de esa historia" justo después de contar la muerte del marido.</li>
+        <li>"La pelea que da risa" nunca le llega a una viuda que tuvo un solo amor. A Amalia le llegó por error y fue la escena más luminosa de sus 50 años de casada.</li>
+      </ul>
+      <div class="bloque"><span class="t">Propuesta de Fable</span>
+        <blockquote>Y entre esa primera historia y la de ahora, ¿hubo otras que fueron en serio? Un casamiento, alguien con quien viviste años. Este es su lugar, aunque me las hayas nombrado en el repaso: contame de cada una lo que quieras que quede, cómo se cruzaron y cómo terminó.</blockquote>
+        <div class="botones"><span class="btn">Sí, hubo</span><span class="btn">No, nadie en el medio</span></div>
+        <ul>
+          <li>"El día que se conocieron" arranca con: "Vamos a la primera que fue en serio, la que me nombraste primero…"</li>
+          <li>"¿Seguiste por tu cuenta?" pasa a: "Y después, cuando quedaste por tu cuenta, ¿cómo fueron esos primeros tiempos?… Si ese tiempo es el de ahora, contame igual cómo lo estás llevando."</li>
+          <li>"¿Hubo otro amor?" con botones <span class="btn">Sí, hubo otro</span> <span class="btn">No, nadie más</span></li>
+          <li>La pelea que da risa va antes de "¿esa historia tuvo un final?" y le llega a quien convivió.</li>
+        </ul>
+      </div>
+      <p class="decide"><span>Vos decidís</span>¿Pregunta nueva para las historias del medio, y la pelea antes de la despedida?</p>
+    </div>
+  </details>
+
+  <details class="falla">
+    <summary><span class="num-s">S3</span><span class="sum-txt"><h3>Las que abren tema suenan a que no escuchó</h3><span class="chips"><span class="chip g-media">media</span></span><span class="quien">En las 6 charlas · 22 veces</span></span></summary>
+    <div class="cuerpo">
+      <div class="chat">
+        <div class="msg bio"><span class="de">Biógrafo · pregunta 55</span>Ahora vamos a los hijos. ¿Tuviste hijos, o criaste a alguno como si lo fuera?…</div>
+        <div class="msg narr"><span class="de">Nelly</span>Pablo nació en 1981, como ya sabe…</div>
+      </div>
+      <div class="bloque"><span class="t">Propuesta de Fable (textos, sirven con o sin botones)</span>
+        <blockquote>Tus hermanos, si tuviste: ¿con cuál eras más cercan{o/a} de chic{o/a}? Contame alguna aventura que hayan hecho juntos; seguro tienen varias.</blockquote>
+        <div class="botones"><span class="btn">Sí, tuve</span><span class="btn">Hij{o/a} únic{o/a}</span></div>
+        <blockquote>Si en algún momento te fuiste a vivir a otra ciudad o a otro país, aunque ya me lo hayas nombrado, contame la llegada: el primer día, dónde dormiste esa noche, quién te esperaba y qué fue lo que más te costó.</blockquote>
+        <div class="botones"><span class="btn">Sí, me mudé</span><span class="btn">Siempre el mismo lugar</span></div>
+        <blockquote>Sé que ya me hablaste de algunas pérdidas. Acá hay lugar para lo que no entró: si hubo alguien más que perdiste, y con cada uno, cómo fueron los días de después y cómo lo fuiste llevando…</blockquote>
+      </div>
+      <p class="decide"><span>Vos decidís</span>¿Botones en las 6 que abren tema (hermanos, mudarse, amor, "¿tuvo un final?", hijos, nietos) o solo en amor e hijos?</p>
+    </div>
+  </details>
+
+  <details class="falla">
+    <summary><span class="num-s">S4</span><span class="sum-txt"><h3>Agradecimientos que suenan mal</h3><span class="chips"><span class="chip g-media">media</span><span class="chip g-ok">idea aprobada</span></span><span class="quien">En las 6 charlas · 26 veces</span></span></summary>
+    <div class="cuerpo">
+      <div class="chat">
+        <div class="msg narr"><span class="de">Nelly · tus viejos de grande</span>…Ella se murió años después, en el 2003. Eso fue lo más duro de mi vida…</div>
+        <div class="msg bio"><span class="de">Biógrafo</span>Guardado, Nelly. Te mando la próxima.<br>Ahora vamos a los hijos. ¿Tuviste hijos…?</div>
+      </div>
+      <p>Ya aprobaste suavizar las 4 frases más frías ("Anotado. Sigo con otra." pasa a "Gracias, lo anoté. Sigo con otra."). Fable suma tres cosas:</p>
+      <ul>
+        <li>Antes de una pregunta difícil va solo "Gracias, {nombre}." (hoy va "Escuchado. Vamos por la siguiente." arriba de "¿Hubo algún momento difícil…?").</li>
+        <li>Un "no" corto en cualquier pregunta lleva "Bien, seguimos.", no "Gracias, ya lo guardé".</li>
+        <li>Después de "tus viejos de grande" (casi siempre termina en una muerte), siempre "Gracias, {nombre}."</li>
+      </ul>
+      <p class="decide"><span>Vos decidís</span>¿Aprobás las tres sumas?</p>
+    </div>
+  </details>
+
+  <details class="falla">
+    <summary><span class="num-s">S11</span><span class="sum-txt"><h3>Historias grandes que no tienen pregunta</h3><span class="chips"><span class="chip g-media">media</span></span><span class="quien">Aníbal · Manuel</span></span></summary>
+    <div class="cuerpo">
+      <ul>
+        <li>Aníbal cuidó a su madre hasta el final ("lo que más orgullo me da") y nadie se lo preguntó.</li>
+        <li>A Manuel, que emigró, nadie le preguntó por la llegada: esas preguntas existen pero están en la ronda extra, que no se ofrece.</li>
+        <li>A Aníbal, que vivió 77 años en la misma casa, le preguntaron "el primer lugar que fue tuyo".</li>
+      </ul>
+      <div class="bloque"><span class="t">Propuesta de Fable</span>
+        <blockquote>(tus viejos de grande, al final) Y si te tocó cuidarlos, contame cómo era un día de esos: qué hacías por ellos, qué te decían.</blockquote>
+        <blockquote>(el primer lugar tuyo, al final) Si nunca te fuiste de la casa de tus viejos, contame el día en que esa casa pasó a ser tuya, o el rincón de ahí que siempre fue tuyo.</blockquote>
+        <ul><li>La pregunta de mudarse pide la llegada (texto en S3).</li></ul>
+      </div>
+      <p class="decide"><span>Vos decidís</span>¿Los tres textos, y que la de mudarse pregunte por la llegada?</p>
+    </div>
+  </details>
+
+  <details class="falla">
+    <summary><span class="num-s">S12</span><span class="sum-txt"><h3>La foto: la próxima pregunta llega mientras la buscan</h3><span class="chips"><span class="chip g-media">media</span></span><span class="quien">Amalia · Chela · Manuel</span></span></summary>
+    <div class="cuerpo">
+      <div class="chat">
+        <div class="msg narr"><span class="de">Manuel · la foto</span>…Te la mando ahora, espera.</div>
+        <div class="msg bio"><span class="de">Biógrafo</span>Gracias, Manuel.<br>Llegamos al final. ¿Hay algo que en todo este tiempo no te pregunté…</div>
+      </div>
+      <p>Con el reloj de hoy (unos minutos de silencio y llega la siguiente), la última pregunta le cae mientras busca la foto en el cajón.</p>
+      <div class="bloque"><span class="t">Propuesta de Fable</span>
+        <ul><li>Después de pedir la foto, esperar la foto o un audio (horas, no minutos). La foto que llegue después se pega a esa pregunta.</li></ul>
+        <blockquote>Tomate el tiempo que necesites para buscarla: hasta que no me mandes la foto o me digas algo, no te mando nada más. Y si no la encontrás, no pasa nada: el libro va igual, y la podés mandar más adelante.</blockquote>
+        <blockquote>(en el mensaje final) Y si te quedó alguna foto por mandar, mandámela por acá cuando la encuentres: entra igual.</blockquote>
+      </div>
+      <p class="decide"><span>Vos decidís</span>¿Esperar la foto sin reloj corto, y las dos frases?</p>
+    </div>
+  </details>
+
+  <details class="falla">
+    <summary><span class="num-s">S5</span><span class="sum-txt"><h3>La misma historia varias veces</h3><span class="chips"><span class="chip g-media">media-leve</span><span class="chip g-ok">idea aprobada</span></span><span class="quien">En las 6 charlas</span></span></summary>
+    <div class="cuerpo">
+      <p>El embarazo de Nelly 7 veces, la muerte de Horacio contada entera 4, el club de Aníbal 8. Chela contó su casamiento 3 veces en 4 preguntas seguidas.</p>
+      <p>Ya aprobaste "si ya me la contaste" en 3 preguntas. Fable suma lo mismo en "armar la vida juntos" y "el casamiento", porque donde ya estaba la salida, Chela la usó sola. Y que un "ya te lo conté" corto reciba "Bien, seguimos.", no "Gracias por animarte a contarlo".</p>
+      <p class="decide"><span>Vos decidís</span>¿Sumar esas dos preguntas, y "ya te lo conté" con agradecimiento neutro?</p>
+    </div>
+  </details>
+
+  <details class="falla">
+    <summary><span class="num-s">S13</span><span class="sum-txt"><h3>Para el dashboard y el escritor</h3><span class="chips"><span class="chip g-leve">leve</span></span><span class="quien">Elsa · Amalia · Manuel</span></span></summary>
+    <div class="cuerpo">
+      <ul>
+        <li>Elsa: "No sé los nombres bien… Claudia puede decirte". Hoy nietos, bisnietos y hermanos no están en "nombres pendientes".</li>
+        <li>Lo que se contó a medias con un "prefiero no" y los "no me acuerdo" quedan marcados, para que el escritor no los tome como contenido.</li>
+      </ul>
+      <p class="decide"><span>Vos decidís</span>¿La familia puede completar nombres y fechas en el dashboard (solo eso)?</p>
+    </div>
+  </details>
+
+  <details class="falla">
+    <summary><span class="num-s">S6</span><span class="sum-txt"><h3>Detalles de tono</h3><span class="chips"><span class="chip g-leve">leve</span></span><span class="quien">En las 6 charlas</span></span></summary>
+    <div class="cuerpo">
+      <ul>
+        <li>"¿Esa historia tuvo un final?" trae tres avisos de "paso" en un solo mensaje. En el bloque 11 hay cuatro "decí paso" seguidos.</li>
+        <li>La pregunta de la familia llega con la firma pegada al final ("…nunca te vimos cansada? Carina"). Propuesta: "Esta pregunta te la manda Carina:" y abajo la pregunta.</li>
+        <li>Primer cierre: "lo de tu familia de antes, la de antes de que llegaras vos" pasa a "lo de tu familia de antes de que llegaras vos".</li>
+        <li>El cierre de hijos dice "este tema" y pasa a decir "la familia de grande".</li>
+      </ul>
+      <p class="decide"><span>Vos decidís</span>¿Sacar la frase del "paso" donde la pregunta ya trae su salida (o lleva botón), y los tres textos chicos?</p>
+    </div>
+  </details>
+</section>
+
+<section class="section">
+  <h2>Lo que funcionó</h2>
+  <ul>
+    <li>Los agradecimientos sobrios después de algo difícil sonaron bien en las 6 cuando sí contaron algo.</li>
+    <li>Las preguntas que ya traen su salida escrita ("si ya me lo contaste…") anduvieron solas.</li>
+    <li>Con gente de pocas palabras, los "no" cortos se entendieron y recibieron "Bien, seguimos."</li>
+    <li>El final (lo que no te pregunté, hablale a tu familia, el mensaje final) emocionó en las 6.</li>
+  </ul>
+</section>
+
+<section class="section">
+  <h2>El orden que recomienda Fable</h2>
+  <ol class="orden">
+    <li><span>S2 y los botones: son la raíz de S1, S7, S9 y la mitad de S10.</span></li>
+    <li><span>S7 y S1: hijos y amor.</span></li>
+    <li><span>S8 y S9: el reservado y la que no se acuerda.</span></li>
+    <li><span>S10 y S3: textos del amor y de las que abren tema.</span></li>
+    <li><span>S4, S5, S11 y S12: pulido y la prueba real.</span></li>
+    <li><span>S13 y S6 al final.</span></li>
+  </ol>
+</section>
+
+<footer>Todas las vidas son inventadas. Los textos nuevos son propuestas de Fable: nada se cambia en el banco sin tu OK. Registro completo en docs/v3/entrevista/simulaciones/ (consolidado-fable.md y hallazgos.md).</footer>
+</div>
