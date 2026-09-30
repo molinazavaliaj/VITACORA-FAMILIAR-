@@ -48,3 +48,4 @@ Sumas a los ya aprobados: **S4** (M26 antes de una sensible; "no" corto → M25 
 - **S9: acuses de olvido: aprobada la idea**; Naza pidió textos más simples ("no pasa nada si no recuerda, no hay problema, vamos con otra"). Nueva versión de Fable (sin aprobar):
   - M28.1 "No pasa nada, {{nombre}}. Vamos con otra." · M28.2 "Está bien, no hay problema. Te pregunto otra cosa." · M28.3 "Tranquil{{o/a}}, no importa. Seguimos con la que viene."
   - M29 (una vez, al tercer olvido seguido): "Una cosa, {{nombre}}: no te hagas problema si algo no te acordás. Para el libro alcanza con lo que sí tenés. Y si de alguna te acordás a medias, contame ese pedacito nomás: un olor, una cara, cómo era en general. Eso también es tu historia."
+- **S9: aprobadas M28.1 "No pasa nada, {{nombre}}. Vamos con otra." y M29 (la de tres olvidos seguidos) tal cual.** M28.2 y M28.3 quedan en reserva por si con alguien que se olvida mucho se nota la repetición.
