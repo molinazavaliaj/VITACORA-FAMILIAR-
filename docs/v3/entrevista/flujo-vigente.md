@@ -110,11 +110,11 @@ En todos los casos el cierre del bloque llega igual (sección 3), así que siemp
 
 | Vida | Preguntas de historia (con la foto) | Turnos (preguntas, cierres, aviso y final) | Mensajes de WhatsApp del biógrafo |
 |---|---|---|---|
-| Completa (pareja, hijos, nietos, hermanos, se mudó) | 90 | 106 | 128 (incluye una pregunta de la familia de ejemplo; antes de la prueba de Naza, 88 · 104 · 126) |
+| Completa (pareja, hijos, nietos, hermanos, se mudó) | 103 | 119 | 141 (incluye una pregunta de la familia de ejemplo; antes de pasar las 13 ⭐ al núcleo, 90 · 106 · 128; antes de la prueba de Naza, 88 · 104 · 126) |
 | Completa, pero esa persona ya no está (separación o viudez, convivieron) | 92 | 108 | — |
-| Sin pareja ni hijos (sin hermanos, no se mudó) | 79 | 95 | — (antes 78 · 94) |
+| Sin pareja ni hijos (sin hermanos, no se mudó) | 90 | 106 | — (antes 79 · 95, y antes 78 · 94) |
 
-La **ronda extra** (88 preguntas más) está en el banco pero **por ahora no se ofrece** (`ofrecerExtra` en el código). Si algún día se activa, hay que decidir dónde van los cierres: hoy llegarían antes de las preguntas extra de su bloque.
+Naza (30/09, después de su prueba) pasó al núcleo 13 de la extra: OR6, OR6.2, CA10, CA14, ES8, JU13, HI7, HI12, PA3, AS7, HO4, HO10 y G3 (la primera tele, HG7, no). La **ronda extra** (75 preguntas más) está en el banco pero **por ahora no se ofrece** (`ofrecerExtra` en el código). Si algún día se activa, hay que decidir dónde van los cierres: hoy llegarían antes de las preguntas extra de su bloque.
 
 ## 7. Si deja de contestar
 - A los pocos días: recordatorio suave a la persona (M8).

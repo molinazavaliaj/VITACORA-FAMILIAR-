@@ -154,3 +154,7 @@ Las extra del bloque (AM2, AM5, AM6, AM7, AM17) quedan en su lugar y con sus dep
 - Si una transcripción parece cortada (termina en "..." o "…", o sin puntuación final), la página muestra: "Parece que se cortó. ¿Querés mandar otro audio para completar?"
 - Varios audios por pregunta: cada audio se transcribe y se muestra; la respuesta se manda recién con el botón "Listo, siguiente pregunta" (las transcripciones se juntan en una sola respuesta, en orden; los archivos se guardan todos).
 - Si la transcripción falla por la red (sin conexión, o OpenAI devuelve 5xx o 429), el servidor reintenta solo hasta 3 veces (2 s, 5 s y 10 s de espera) y la página muestra "Sin conexión, reintentando…". El audio queda guardado siempre.
+
+
+## Después: 13 de la extra al núcleo (Naza, 30/09)
+De la lista de extras, Naza eligió pasar al núcleo las marcadas con ⭐ menos HG7 (la primera tele): OR6, OR6.2, CA10, CA14, ES8, JU13, HI7, HI12, PA3, AS7, HO4, HO10 y G3. Mismo texto y mismo lugar en su bloque; HI7 e HI12 siguen dependiendo de HI0. Vida completa: 103 preguntas de historia (antes 90); sin pareja ni hijos: 90 (antes 79).

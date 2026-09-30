@@ -90,7 +90,7 @@ describe('5. núcleo y extra: G1 y HE2 entran, FI6 sale', () => {
   it('HE2 al núcleo, en el bloque 10 después de AS1, si:CA6', () => {
     expect(p('HE2')).toMatchObject({ bloque: 10, parte: 'nucleo' });
     expect(dep('HE2')).toBe('si:CA6');
-    expect(nucleoDelBloque(10)).toEqual(['AS1', 'HE2', 'AY1', 'AS9', 'CI10']);
+    expect(nucleoDelBloque(10)).toEqual(['AS1', 'HE2', 'AY1', 'AS9', 'AS7', 'CI10']); // AS7 pasó al núcleo (Naza, 30/09)
     expect(cumple(p('HE2'), r({ CA6: respuestaDeBoton('No tuve hermanos') }))).toBe(false);
     expect(cumple(p('HE2'), r({ CA6: CUENTA }))).toBe(true);
   });
@@ -304,5 +304,31 @@ describe('el recorrido entero sigue andando', () => {
     const ps = simularRecorrido(v.ficha, (id) => v.respuestas[id], {});
     expect(ps.at(-1)).toMatchObject({ tipo: 'pregunta', pregunta: { id: 'FIN' } });
     expect(siguientePregunta({ respuestas: new Map() })).toMatchObject({ pregunta: { id: 'OR1' } });
+  });
+});
+
+// Naza, 30/09: no había ninguna pregunta de tatuajes. Versión A de Fable, núcleo, bloque 14 (HO7 y HO8 ya existieron).
+describe('HO11: la marca en el cuerpo (tatuajes y cicatrices)', () => {
+  it('está en el núcleo del bloque 14, antes de CO1, sin dependencias ni botones, con el texto aprobado', () => {
+    expect(p('HO11')).toMatchObject({ bloque: 14, parte: 'nucleo', clase: 'historia', sensible: false, depende: [] });
+    expect(p('HO11').botones ?? []).toEqual([]);
+    const b14 = BANCO.filter((q) => q.parte === 'nucleo' && q.bloque === 14).map((q) => q.id);
+    expect(b14.indexOf('HO11')).toBeLessThan(b14.indexOf('CO1'));
+    expect(p('HO11').texto).toBe(
+      '¿Tenés alguna marca en el cuerpo que tenga historia? Una cicatriz, un tatuaje, una quemadura de la cocina. Contame cómo te la hiciste: dónde estabas, cuántos años tenías, quién estaba con vos y qué pasó después. Y si no tenés ninguna que valga la pena, contame de una que tenga alguien de tu familia y que siempre pregunten de dónde salió.',
+    );
+  });
+});
+
+// Naza, 30/09: las ⭐ de la lista de extras pasan al núcleo (menos HG7, la primera tele).
+describe('las 13 que pasaron de extra al núcleo', () => {
+  const ids = ['OR6', 'OR6.2', 'CA10', 'CA14', 'ES8', 'JU13', 'HI7', 'HI12', 'PA3', 'AS7', 'HO4', 'HO10', 'G3'];
+  it.each(ids)('%s está en el núcleo', (id) => {
+    expect(p(id).parte).toBe('nucleo');
+  });
+  it('HG7 sigue en la extra; HI7 y HI12 solo si tuvo hijos', () => {
+    expect(p('HG7').parte).toBe('extra');
+    expect(p('HI7').depende).toEqual([{ tipo: 'si', de: 'HI0' }]);
+    expect(p('HI12').depende).toEqual([{ tipo: 'si', de: 'HI0' }]);
   });
 });

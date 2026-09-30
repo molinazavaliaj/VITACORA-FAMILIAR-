@@ -36,7 +36,7 @@
       "orden": 4,
       "texto": "¿Por qué te pusieron {{nombre}}? En las casas siempre hay una historia atrás de un nombre: una discusión, un santo, alguien a quien querían mucho. Contame la que te contaron a vos, aunque sea cortita.",
       "depende": [],
-      "parte": "extra",
+      "parte": "nucleo",
       "clase": "historia",
       "sensible": false
     },
@@ -46,7 +46,7 @@
       "orden": 5,
       "texto": "¿Tenés o tuviste algún apodo? Si es así, contame cómo nació: quién te lo puso, por qué justo ese, y si te gusta. Casi siempre hay una anécdota atrás.",
       "depende": [],
-      "parte": "extra",
+      "parte": "nucleo",
       "clase": "historia",
       "sensible": false
     },
@@ -177,7 +177,7 @@
       "orden": 16,
       "texto": "Pensá en las fiestas y comidas en familia de cuando eras chic{{o/a}}: una Navidad, un cumpleaños, un domingo. ¿Cómo eran en tu casa? Y si hubo una que recuerdes distinta a las demás, contámela.",
       "depende": [],
-      "parte": "extra",
+      "parte": "nucleo",
       "clase": "historia",
       "sensible": false
     },
@@ -207,7 +207,7 @@
       "orden": 19,
       "texto": "¿Algún animal te acompañó de chic{{o/a}}? Una mascota de la casa o el perro de algún vecino. Contame un recuerdo lindo que tengas con él.",
       "depende": [],
-      "parte": "extra",
+      "parte": "nucleo",
       "clase": "historia",
       "sensible": false
     },
@@ -333,7 +333,7 @@
       "orden": 30,
       "texto": "¿Cómo eran tus veranos de chic{{o/a}}? El calor, los días largos, lo que se hacía en tu casa en esos meses. Contame.",
       "depende": [],
-      "parte": "extra",
+      "parte": "nucleo",
       "clase": "historia",
       "sensible": false
     },
@@ -705,7 +705,7 @@
       "orden": 63,
       "texto": "¿Hiciste alguna locura de joven? Un viaje a dedo, una apuesta, algo que hoy no harías. Contame esa vez desde que empezó, con todo lo que pasó.",
       "depende": [],
-      "parte": "extra",
+      "parte": "nucleo",
       "clase": "historia",
       "sensible": false
     },
@@ -1465,7 +1465,7 @@
           "de": "HI0"
         }
       ],
-      "parte": "extra",
+      "parte": "nucleo",
       "clase": "historia",
       "sensible": false
     },
@@ -1480,7 +1480,7 @@
           "de": "HI0"
         }
       ],
-      "parte": "extra",
+      "parte": "nucleo",
       "clase": "historia",
       "sensible": false
     },
@@ -1651,7 +1651,7 @@
       "orden": 131,
       "texto": "¿Sos hincha de algún club? Contame cómo empezó eso, si alguien te llevó, y un partido que no te olvidás más.",
       "depende": [],
-      "parte": "extra",
+      "parte": "nucleo",
       "clase": "historia",
       "sensible": false
     },
@@ -1787,7 +1787,7 @@
       "orden": 143,
       "texto": "Hoy, cuando te pasa algo importante, ¿a quién se lo contás primero? Contame una vez que le hayas contado algo así.",
       "depende": [],
-      "parte": "extra",
+      "parte": "nucleo",
       "clase": "historia",
       "sensible": false
     },
@@ -2188,7 +2188,7 @@
       "orden": 178,
       "texto": "¿Hay algo en tu casa que no regalarías nunca, valga lo que valga? Contame de dónde vino, cómo llegó a vos, y la última vez que lo tuviste en las manos.",
       "depende": [],
-      "parte": "extra",
+      "parte": "nucleo",
       "clase": "historia",
       "sensible": false
     },
@@ -2258,7 +2258,7 @@
       "orden": 185,
       "texto": "¿Algo te acompañó muchos años, el cigarrillo, el vino, el café de la mañana? Contame cómo empezó y un momento con eso. Y si en algún momento te costó dejarlo, contame eso también.",
       "depende": [],
-      "parte": "extra",
+      "parte": "nucleo",
       "clase": "historia",
       "sensible": false
     },
@@ -2278,7 +2278,7 @@
       "orden": 187,
       "texto": "¿Te gusta leer, o sos más de mirar películas o series? ¿Con qué te enganchás? Contame la última vez que se te pasó la hora con algo así.",
       "depende": [],
-      "parte": "extra",
+      "parte": "nucleo",
       "clase": "historia",
       "sensible": false
     },

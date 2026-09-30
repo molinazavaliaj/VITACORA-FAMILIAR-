@@ -152,7 +152,7 @@ describe('botones (Naza, 30/09, simulaciones)', () => {
     expect(r.estado.esperando).toBe('CA6');
     r = responder(r.estado, 'Éramos cuatro y con el más chico hicimos de todo.');
     expect(r.estado.respuestas.at(-1)).toEqual(['CA6', '⟦botón:Sí, tuve⟧ Éramos cuatro y con el más chico hicimos de todo.']);
-    expect(r.estado.esperando).toBe('CA16');
+    expect(r.estado.esperando).toBe('CA10'); // CA10 pasó al núcleo (Naza, 30/09)
     expect(r.mensajes[0]).not.toMatch(/^Bien, seguimos\./); // contó algo: acuse común
   });
 
@@ -191,7 +191,7 @@ describe('botones (Naza, 30/09, simulaciones)', () => {
   it('por la CLI: responder <estado> --boton "<texto>"', () => {
     const estado = join(dir, 'boton.json');
     main(['nueva', estado, '--nombre', 'Marta', '--genero', 'mujer']);
-    for (let i = 0; i < 3; i++) main(['responder', estado, '--respuesta', CUENTA]);
+    for (let i = 0; i < 5; i++) main(['responder', estado, '--respuesta', CUENTA]); // OR1, OR2, OR5, OR6, OR6.2 (Naza, 30/09)
     const salida = main(['responder', estado, '--boton', 'No, está todo']);
     expect(salida).toMatch(/Te toca contestar/);
     const e = JSON.parse(readFileSync(estado, 'utf8')) as EstadoSimulacion;

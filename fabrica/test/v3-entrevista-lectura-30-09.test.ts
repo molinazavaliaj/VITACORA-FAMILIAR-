@@ -96,7 +96,8 @@ describe('frases de entrada de bloque (Naza, 30/09)', () => {
   });
 
   it('si ya se mandó algo del bloque, la que sigue no lleva entrada', () => {
-    const r = new Map([['OR1', 'a'], ['OR2', 'b'], ['OR5', 'c'], ['CI1', 'd']]);
+    // OR6 y OR6.2 pasaron al núcleo (Naza, 30/09).
+    const r = new Map([['OR1', 'a'], ['OR2', 'b'], ['OR5', 'c'], ['OR6', 'e'], ['OR6.2', 'f'], ['CI1', 'd']]);
     expect(siguientePregunta({ respuestas: r })).toMatchObject({ pregunta: { id: 'CA1' }, entrada: 'EN2' });
     r.set('CA1', 'Te cuento de la casa.');
     const s = siguientePregunta({ respuestas: r });
