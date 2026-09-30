@@ -90,8 +90,6 @@ BIEN-1 y BIEN-1R son alternativas (una u otra, según sea para sí o un regalo);
 | C1 | noche-comienzo | 1 | Contame cómo fue hoy, {{nombre}}, como se lo contarías a alguien que te quiere y no estuvo. | |
 | C2 | noche-comienzo | 2 | Ya terminó el día. Contámelo como si alguien de casa te llamara ahora mismo a preguntarte cómo te fue. | |
 | C3 | noche-comienzo | 3 | ¿Cómo fue hoy, {{nombre}}? Contámelo como se lo contarías en la mesa cuando vuelvas, con lo que valga la pena. | |
-| C4 | noche-comienzo | 4 | Dejame verlo como lo viste vos, {{nombre}}: contame el día de hoy como si me lo estuvieras mostrando en las fotos, una por una. | |
-| C5 | noche-comienzo | 5 | Otra noche allá. Contame cómo fue hoy, pero como se lo contás a alguien que sabe cómo sos y se da cuenta si le resumís. | |
 
 ### Puertas
 
@@ -114,8 +112,6 @@ BIEN-1 y BIEN-1R son alternativas (una u otra, según sea para sí o un regalo);
 | F1 | noche-cierre | 1 | , y de ahí seguí por donde quieras. Mandá las fotos que quieras que queden. | |
 | F2 | noche-cierre | 2 | , y después seguí con lo que venga. Si hay fotos, mandalas. | |
 | F3 | noche-cierre | 3 | , y de ahí andá por donde te lleve el día. Las fotos que quieras guardar, mandámelas. | |
-| F4 | noche-cierre | 4 | , y después contame lo demás, lo que se te vaya ocurriendo. Las fotos de hoy, todas las que quieras, acá. | |
-| F5 | noche-cierre | 5 | , y desde ahí seguí hasta donde te dé. Si hay fotos que quieras guardar, mandalas. | |
 
 ## El mediodía
 
@@ -153,7 +149,6 @@ Orden = orden de envío de la v2 (un viaje corto recibe las primeras; cuando se 
 | AL1 | album | 1 | Gracias, {{nombre}}. Y una última cosa: el álbum. Juntá las {{fotos_album}} fotos del viaje que más quieras tener en el libro y mandámelas acá mismo, en una tanda o en varias, como te quede cómodo. Cuando estén todas, escribime "listo"; si te olvidás, en un rato te pregunto yo. | |
 | AL1-P | album | | Una última cosa, {{nombre}}: el álbum. Juntá las {{fotos_album}} fotos del viaje que más quieras tener en el libro y mandámelas acá mismo, en una tanda o en varias, como te quede cómodo. Cuando estén todas, escribime "listo"; si te olvidás, en un rato te pregunto yo. | |
 | AL2 | album | 2 | ¿Ya están todas, {{nombre}}? Si me decís que sí, o si no me contestás, cierro el álbum con las que mandaste. | |
-| AL3 | album | 3 | Mandaste {{fotos_mandadas}} fotos y en el álbum entran {{fotos_album}}. Si querés, elegí vos cuáles quedan afuera: reenviame las que saco. Si no me decís nada en unas horas, me quedo con las primeras {{fotos_album}}. | |
 
 ## Acuses
 
@@ -207,8 +202,6 @@ PR-R si es un regalo; PR-P si las dejó el viajero. La pregunta va tal cual la e
 | ID | Momento | Orden | Texto | Ya de viaje |
 |---|---|---|---|---|
 | PR-R | propia | | Hoy la pregunta no es mía, es de {{quien_regala}}: «{{pregunta}}». Contale a esa persona, aunque me lo mandes a mí. Si hay foto, va. | |
-| PR-R2 | propia | 2 | Esta noche te escribe otra persona, no yo. {{quien_regala}} te dejó esta pregunta: «{{pregunta}}». Contestale como si la tuvieras enfrente. Si hay foto, mandala. | |
-| PR-R3 | propia | 3 | {{quien_regala}} quiso saber esto de tu viaje: «{{pregunta}}». Es para esa persona, así que hablale aunque llegue por acá. Si tenés una foto que vaya, mandala. | |
 | PR-P | propia | | Hoy va una que te dejaste vos, {{nombre}}, antes de salir: «{{pregunta}}». A ver qué le decís ahora. Si tenés una foto, mandala. | |
 
 ## Despedida
@@ -296,21 +289,3 @@ Copiadas de `flujo-vigente.md` (y de los aprobados donde se indica).
 - Viaje de 2 días: día 1 solo UC1; día 2 ID1 10:00 y VU0 13:00 (sin noche); al día siguiente VU1 10:00 y CA1 a la noche.
 - En viajes cortos, las de antes de salir que no entran en ninguna noche quedan en los avisos para Naza (no se le mandan a la persona).
 - Después de VA1 contestada sigue ACM1 o ACM2 solo (Fable sugirió un acuse de cierre nuevo; no hace falta: "Ya está, gracias." no promete nada).
-
-**Simulaciones y lectura de Fable (aprobado por Naza, 30/09; detalle en `simulaciones/`; versión anterior en `historial/banco-2026-09-30-antes-de-las-simulaciones.md`)**
-- Nuevos: C4, C5, F4, F5, PR-R2, PR-R3 (PR-R rota entre PR-R, PR-R2 y PR-R3) y AL3. Marcas nuevas: {{fotos_mandadas}}.
-- **Mínimo 3 días de viaje** en la compra (las escapadas de 1 y 2 días quedan para otro producto). El código de 1 y 2 días queda, pero la compra no lo permite.
-- **Hora de la noche**: solo entre 19:00 y 22:30.
-- **Mediodía y fotos sueltas**: el acuse es una **reacción ❤️ de WhatsApp** sobre el mensaje, sin texto. UC1, ID1 y VU1 siguen con ACM en texto; la noche con ACN.
-- **Segunda vuelta del mediodía**: usa las 12, en el mismo orden (se deja sin efecto lo de "solo MD1, MD5, MD3, MD4 y MD6").
-- **Rotación de la noche**: 5 comienzos × 9 puertas × 5 cierres, sin repetir comienzo, puerta ni cierre dos noches seguidas.
-- **ATR-V** no va dos noches seguidas: si la noche anterior ya llevó ATR-V, esta va sin ATR.
-- **TXT** va solo, no pegado a una pregunta; la pregunta siguiente sale a su hora.
-- **Si el SÍ llega después de la salida**, AS1 va en su versión "ya de viaje".
-- **ID1** nunca sale el mismo día calendario de la salida en la zona de casa: sale a las 10:00 del día siguiente en la zona del viaje o en la de casa, la que sea más tarde.
-- **"Lo escuché"** (ACA2, ACN3) no se usa si la respuesta fue solo texto o solo fotos.
-- **Compra el día de salida y SÍ después de las 10:00**: UC1 sale 2 horas después del SÍ si todavía es ese día (respetando la franja); si no, no sale.
-- **CA1 sin respuesta**: al día siguiente a las 13:00 sale AL1-P igual.
-- **AL2 dentro de la franja 23-8**: se corre a las 10:00, no a las 8:00.
-- **Fotos de más**: antes de DES, AL3. Las fotos que reenvía se sacan; si contesta otra cosa o no contesta en 5 horas, quedan las primeras {{fotos_album}} y va DES con DES+.
-- **Fotos después del cierre**: se guardan en el panel, sin contestar.
