@@ -5,8 +5,8 @@
 // estado y llama a estas funciones.
 
 import { estado, type FichaV3 } from '../ficha.js';
-import { BANCO, mensajePorId, preguntaPorId, type PreguntaEntrevista } from './banco.js';
-import { habilitaLasQueDependen, interpretar, PREGUNTA_COMUN, type Interpretacion, type PreguntaParaInterpretar } from './respuesta.js';
+import { BANCO, mensajePorId, preguntaPorId, type Boton, type PreguntaEntrevista, type ValeBoton } from './banco.js';
+import { habilitaLasQueDependen, interpretar, PREGUNTA_COMUN, respuestaDeBoton, valeBoton, type Interpretacion, type PreguntaParaInterpretar } from './respuesta.js';
 
 /** Respuesta a una pregunta: el texto (transcripción) o lo que dijo, incluido "paso". */
 export type Respuesta = string;
@@ -100,8 +100,22 @@ export type Siguiente =
    * Mandar la pregunta; si `conM1`, con M1 abajo en línea aparte y en
    * cursiva. Si viene `entrada` (EN2…EN15), mandar antes ese mensaje: es la
    * primera pregunta que se manda de su bloque (Naza, 30/09).
+   * Desde las simulaciones (Naza, 30/09): `botones`, los botones de
+   * respuesta que van debajo del mensaje (si lleva); `ayudaBotones`, si es el
+   * primer mensaje con botones de la entrevista (va M31 debajo, una sola vez);
+   * `esperaFoto`, en FO1: no corre el reloj de minutos, se espera una foto o un
+   * audio (el tope de 24 horas y pegar la foto a FO1 los hace el entrevistador).
    */
-  | { tipo: 'pregunta'; pregunta: PreguntaEntrevista; conM1: boolean; esperaRespuesta: boolean; entrada?: string }
+  | {
+      tipo: 'pregunta';
+      pregunta: PreguntaEntrevista;
+      conM1: boolean;
+      esperaRespuesta: boolean;
+      entrada?: string;
+      botones?: readonly Boton[];
+      ayudaBotones?: true;
+      esperaFoto?: true;
+    }
   /** Mandar M15 y después la pregunta de la familia. */
   | { tipo: 'familia'; pregunta: PreguntaFamilia; antes: 'M15' }
   /** Terminó el núcleo: ofrecer la ronda extra (texto a redactar con Fable, pendiente de Naza). */
@@ -147,7 +161,36 @@ export function entradaDeBloque(bloque: number): string | undefined {
 function comoSiguiente(p: PreguntaEntrevista, respuestas: Respuestas, banco: readonly PreguntaEntrevista[], hecha: (id: string) => boolean): Siguiente {
   const primeraDelBloque = !banco.some((q) => q.bloque === p.bloque && hecha(q.id));
   const entrada = primeraDelBloque ? entradaDeBloque(p.bloque) : undefined;
-  return { tipo: 'pregunta', pregunta: p, conM1: llevaM1(p, respuestas, banco), esperaRespuesta: esperaRespuesta(p), ...(entrada ? { entrada } : {}) };
+  // M31 va una sola vez: debajo del primer mensaje con botones que se manda (regla 8).
+  const ayudaBotones = p.botones !== undefined && !banco.some((q) => q.botones && q.id !== p.id && hecha(q.id));
+  return {
+    tipo: 'pregunta',
+    pregunta: p,
+    conM1: llevaM1(p, respuestas, banco),
+    esperaRespuesta: esperaRespuesta(p),
+    ...(entrada ? { entrada } : {}),
+    ...(p.botones ? { botones: p.botones } : {}),
+    ...(ayudaBotones ? { ayudaBotones: true as const } : {}),
+    ...(p.clase === 'foto' ? { esperaFoto: true as const } : {}),
+  };
+}
+
+/** Qué hacer cuando la persona toca un botón (reglas 2 a 5). */
+export type AlTocarBoton =
+  /** "Sí": se manda M30 ("Contame, te escucho.") solo y se sigue esperando audio en la misma pregunta; los audios se suman a `respuesta`. */
+  | { vale: 'si'; respuesta: string; mandar: 'M30'; esperaAudio: true }
+  /** "No" o "Paso esta": la respuesta queda cerrada así y sigue el flujo (acuse y siguiente pregunta). */
+  | { vale: Exclude<ValeBoton, 'si'>; respuesta: string; esperaAudio: false };
+
+/**
+ * Tocó un botón: la respuesta que se guarda (la marca del botón; si después
+ * manda audio, se suma atrás con `sumarAudio`) y qué sigue. Con "Sí", M30 y
+ * esperar el audio; con "No" o "Paso", seguir (Naza, 30/09, simulaciones).
+ */
+export function alTocarBoton(pregunta: Pick<PreguntaParaInterpretar, 'botones'>, texto: string): AlTocarBoton {
+  const vale = valeBoton(pregunta, texto);
+  const respuesta = respuestaDeBoton(texto);
+  return vale === 'si' ? { vale, respuesta, mandar: 'M30', esperaAudio: true } : { vale, respuesta, esperaAudio: false };
 }
 
 /**

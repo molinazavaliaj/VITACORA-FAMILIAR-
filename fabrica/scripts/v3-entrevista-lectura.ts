@@ -54,7 +54,7 @@ let acuse: AcusePendiente | undefined;
  * Manda un turno: arma los mensajes con `armarTurno` sobre los IDs (así se
  * sabe qué línea es qué) y después pone los textos.
  */
-function mandar(t: { entrada?: string; pregunta: string; conM1?: boolean }, textos: Record<string, string>): void {
+function mandar(t: { entrada?: string; pregunta: string; conM1?: boolean; ayuda?: boolean }, textos: Record<string, string>): void {
   // El acuse se elige sabiendo qué sigue: el neutro (M25) y el de negarse
   // (M27) miran con qué arranca; el común (M3) pasa a M26 antes de un
   // cierre, de LE9 o de una sensible.
@@ -63,7 +63,7 @@ function mandar(t: { entrada?: string; pregunta: string; conM1?: boolean }, text
   const idAcuse = acuse && acuseDeTurno(acuse.familia, acuse.n, siguiente, quePregunta);
   // Si el acuse ya dice el nombre, la entrada del mismo mensaje va sin el nombre.
   if (t.entrada) textos[t.entrada] = renderizar(entradaSegunAcuse(mensajePorId(t.entrada)!.texto, idAcuse && mensajePorId(idAcuse)?.texto), ficha);
-  const porId = armarTurno({ acuse: idAcuse, familia: acuse?.familia, entrada: t.entrada, pregunta: t.pregunta, m1: t.conM1 ? 'M1' : undefined });
+  const porId = armarTurno({ acuse: idAcuse, familia: acuse?.familia, entrada: t.entrada, pregunta: t.pregunta, m1: t.conM1 ? 'M1' : undefined, ayuda: t.ayuda ? 'M31' : undefined });
   for (const m of porId) globos.push({ de: 'bio', partes: m.split('\n').map((id) => ({ id, texto: textos[id] ?? texto(id) })) });
   acuse = undefined;
 }
@@ -82,7 +82,7 @@ for (const paso of pasos) {
     bloqueActual = p.bloque;
     globos.push({ de: 'bloque', bloque: p.bloque, nombre: NOMBRES_BLOQUE[p.bloque] });
   }
-  mandar({ entrada: paso.entrada, pregunta: p.id, conM1: paso.conM1 }, { [p.id]: p.texto });
+  mandar({ entrada: paso.entrada, pregunta: p.id, conM1: paso.conM1, ayuda: paso.ayudaBotones }, { [p.id]: p.texto });
   if (paso.respuesta === undefined) continue; // aviso y final: no esperan respuesta
   const corta = RESPUESTAS_CORTAS[p.id] ?? (abreTema.has(p.id) ? vida.respuestas[p.id] : undefined);
   globos.push({ de: 'persona', texto: corta ? `[responde: «${corta}»]` : '[responde]' });

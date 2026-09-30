@@ -113,13 +113,13 @@ function avanzar(e: EstadoSimulacion): void {
   const texto = (id: string) => renderizar(mensajePorId(id)!.texto, e.ficha);
 
   /** Igual que `mandar` en v3-entrevista-lectura.ts. */
-  const mandar = (t: { entrada?: string; pregunta: string; conM1?: boolean }, textos: Record<string, string>): void => {
+  const mandar = (t: { entrada?: string; pregunta: string; conM1?: boolean; ayuda?: boolean }, textos: Record<string, string>): void => {
     const siguiente = t.entrada ? texto(t.entrada) : (textos[t.pregunta] ?? texto(t.pregunta));
     const quePregunta = preguntaPorId(t.pregunta) ?? { id: t.pregunta, clase: 'historia' as const };
     const a = e.acuse;
     const idAcuse = a && acuseDeTurno(a.familia, a.n, siguiente, quePregunta);
     if (t.entrada) textos[t.entrada] = renderizar(entradaSegunAcuse(mensajePorId(t.entrada)!.texto, idAcuse && mensajePorId(idAcuse)?.texto), e.ficha);
-    const porId = armarTurno({ acuse: idAcuse, familia: a?.familia, entrada: t.entrada, pregunta: t.pregunta, m1: t.conM1 ? 'M1' : undefined });
+    const porId = armarTurno({ acuse: idAcuse, familia: a?.familia, entrada: t.entrada, pregunta: t.pregunta, m1: t.conM1 ? 'M1' : undefined, ayuda: t.ayuda ? 'M31' : undefined });
     for (const m of porId) e.charla.push({ de: 'bio', partes: m.split('\n').map((id) => ({ id, texto: textos[id] ?? texto(id) })) });
     e.acuse = undefined;
   };
@@ -141,7 +141,7 @@ function avanzar(e: EstadoSimulacion): void {
       e.bloqueActual = p.bloque;
       e.charla.push({ de: 'bloque', bloque: p.bloque, nombre: NOMBRES_BLOQUE[p.bloque] });
     }
-    mandar({ entrada: s.entrada, pregunta: p.id, conM1: s.conM1 }, { [p.id]: renderizar(p.texto, e.ficha, respuestas) });
+    mandar({ entrada: s.entrada, pregunta: p.id, conM1: s.conM1, ayuda: s.ayudaBotones }, { [p.id]: renderizar(p.texto, e.ficha, respuestas) });
     if (s.esperaRespuesta) {
       e.esperando = p.id;
       return;

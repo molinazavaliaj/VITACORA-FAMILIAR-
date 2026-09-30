@@ -4,7 +4,7 @@
 // lo que PODRÍA llegar; `simularRecorrido` da lo que llega de verdad con unas
 // respuestas dadas. Puro.
 
-import { BANCO, type PreguntaEntrevista } from './banco.js';
+import { BANCO, type Boton, type PreguntaEntrevista } from './banco.js';
 import { siguientePregunta, type EstadoEntrevista, type PreguntaFamilia, type Respuesta } from './flujo.js';
 import { renderizar, type FichaTexto, type OpcionesTexto } from './texto.js';
 
@@ -33,7 +33,16 @@ export function cuentaComoPregunta(p: Pick<PreguntaEntrevista, 'clase'>): boolea
 }
 
 export type PasoRecorrido =
-  | { tipo: 'pregunta'; pregunta: PreguntaRenderizada; conM1: boolean; entrada?: string; respuesta?: Respuesta }
+  | {
+      tipo: 'pregunta';
+      pregunta: PreguntaRenderizada;
+      conM1: boolean;
+      entrada?: string;
+      respuesta?: Respuesta;
+      /** Los botones debajo del mensaje y si va la ayuda M31 (Naza, 30/09, simulaciones). */
+      botones?: readonly Boton[];
+      ayudaBotones?: true;
+    }
   | { tipo: 'familia'; pregunta: PreguntaFamilia; respuesta: Respuesta }
   | { tipo: 'ofrecer-extra'; acepta: boolean };
 
@@ -74,14 +83,15 @@ export function simularRecorrido(
       continue;
     }
     const pregunta = render(s.pregunta, ficha, respuestas, opciones);
+    const extras = { ...(s.entrada ? { entrada: s.entrada } : {}), ...(s.botones ? { botones: s.botones } : {}), ...(s.ayudaBotones ? { ayudaBotones: s.ayudaBotones } : {}) };
     if (!s.esperaRespuesta) {
       enviados.add(s.pregunta.id);
-      pasos.push({ tipo: 'pregunta', pregunta, conM1: s.conM1, ...(s.entrada ? { entrada: s.entrada } : {}) });
+      pasos.push({ tipo: 'pregunta', pregunta, conM1: s.conM1, ...extras });
       continue;
     }
     const r = responder(s.pregunta.id) ?? 'Sí, te cuento: fue una historia larga que me acuerdo muy bien.';
     respuestas.set(s.pregunta.id, r);
-    pasos.push({ tipo: 'pregunta', pregunta, conM1: s.conM1, ...(s.entrada ? { entrada: s.entrada } : {}), respuesta: r });
+    pasos.push({ tipo: 'pregunta', pregunta, conM1: s.conM1, ...extras, respuesta: r });
   }
   throw new Error('simularRecorrido: más de 1000 vueltas (¿una pregunta que nunca queda hecha?)');
 }

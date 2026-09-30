@@ -2,7 +2,8 @@
 // banco.md, regla 4; Naza, 30/09, ronda 2): el acuse de la respuesta
 // anterior va como primera línea del mensaje que sigue, salvo el acuse
 // sobrio (M4), que va solo. La frase de entrada y la pregunta van en
-// mensajes separados; M1 va al final del mensaje de la pregunta. Puro: recibe
+// mensajes separados; M1 va al final del mensaje de la pregunta, y M31 (la
+// ayuda de los botones, una sola vez) debajo de M1. Puro: recibe
 // textos ya renderizados.
 
 import type { PreguntaEntrevista } from './banco.js';
@@ -27,11 +28,13 @@ export type Turno = {
   pregunta: string;
   /** M1 renderizado, si la pregunta lo lleva. */
   m1?: string;
+  /** M31 renderizado, si es el primer mensaje con botones de la entrevista: va debajo, en línea aparte, después de M1 (Naza, 30/09, simulaciones). */
+  ayuda?: string;
 };
 
 /** Los mensajes de WhatsApp de un turno, en orden. */
 export function armarTurno(t: Turno): string[] {
-  const pregunta = t.m1 ? `${t.pregunta}\n${t.m1}` : t.pregunta;
+  const pregunta = [t.pregunta, t.m1, t.ayuda].filter((x) => x !== undefined).join('\n');
   const siguientes = t.entrada ? [t.entrada, pregunta] : [pregunta];
   if (!t.acuse) return siguientes;
   if (t.familia && acuseVaAparte(t.familia)) return [t.acuse, ...siguientes];
