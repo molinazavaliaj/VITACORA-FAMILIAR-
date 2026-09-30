@@ -2053,7 +2053,7 @@
       "id": "CI14",
       "bloque": 14,
       "orden": 189,
-      "texto": "Con esto cerramos lo de hoy, {{nombre}}, y ya te conozco un poco más. ¿Quedó algo de tu vida de ahora que no tuvo su pregunta? Una costumbre, alguien que ves seguido, un rato del día que es tuyo. Contámelo ahora, tranquil{{o/a}}.",
+      "texto": "Con esto cerramos lo de hoy, y ya te conozco un poco más. ¿Quedó algo de tu vida de ahora que no tuvo su pregunta? Una costumbre, alguien que ves seguido, un rato del día que es tuyo. Contámelo ahora, tranquil{{o/a}}.",
       "depende": [],
       "parte": "nucleo",
       "clase": "cierre",

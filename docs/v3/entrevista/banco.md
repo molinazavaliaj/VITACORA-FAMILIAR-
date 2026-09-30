@@ -338,7 +338,7 @@ Una frase al empezar cada bloque, antes de su primera pregunta; no espera respue
 | G3 | ¿Te gusta leer, o sos más de mirar películas o series? ¿Con qué te enganchás? Contame la última vez que se te pasó la hora con algo así. |  | extra | historia |  |
 | G4 | ¿Cuál es tu placer chiquito de todos los días? Una siesta, un chocolate, lo que sea. Contame el de hoy: a qué hora fue y cómo estuvo. |  | extra | historia |  |
 | G5 | ¿Y un gusto grande? ¿En qué te gusta darte el lujo de gastar tu plata? Contame la última vez que te diste ese gusto. |  | extra | historia |  |
-| CI14 | Con esto cerramos lo de hoy, {{nombre}}, y ya te conozco un poco más. ¿Quedó algo de tu vida de ahora que no tuvo su pregunta? Una costumbre, alguien que ves seguido, un rato del día que es tuyo. Contámelo ahora, tranquil{{o/a}}. |  | núcleo | cierre |  |
+| CI14 | Con esto cerramos lo de hoy, y ya te conozco un poco más. ¿Quedó algo de tu vida de ahora que no tuvo su pregunta? Una costumbre, alguien que ves seguido, un rato del día que es tuyo. Contámelo ahora, tranquil{{o/a}}. |  | núcleo | cierre |  |
 
 ## Bloque 15 · Legado y cierre
 
@@ -362,7 +362,7 @@ Todas salen de [`metodo-entrevista.md`](../metodo-entrevista.md) (secciones 20 a
 1. **Arranque:** BIEN (bienvenida y cómo va, en un solo mensaje; M6 ya no se manda); después, la primera pregunta (Naza, 30/09).
 2. **Una pregunta por vez.** M1 va debajo, en línea aparte y en cursiva, **solo** en las 3 primeras preguntas que se mandan, en las 6 que abren un tema (CA6, JU8, AM0, AM9, HI0, HI8) y en las preguntas de historia del bloque 11. En el resto, la pregunta va sin esa línea. Nunca debajo de cierres, aviso, foto ni final (Naza, 30/09, después de leer la entrevista de corrido; antes iba debajo de todas las de historia).
 3. **Audios:** los que llegan mientras la pregunta está abierta se suman a esa respuesta; la siguiente llega sola cuando pasan unos minutos sin audios nuevos. No hay botón [Siguiente] (§20, vuelta 2).
-4. **Acuses:** después de cada respuesta, uno de M3 (rotan); después de una pregunta `sensible`, uno de M4 (o M25 si la contestó con un "no" corto o "paso"); si lo que sigue es un cierre o LE9, en lugar de M3 va M26 ("Gracias, {{nombre}}."); si el acuse pegado lleva el nombre, la frase de entrada que va en el mismo mensaje se manda sin el nombre; después de un cierre, M24 (o M25, neutro, si el cierre se contestó con un "no" corto o "paso"); después de LE8, nada (va directo FIN). M3, M21, M24, M25 y M26 van como **primera línea del mensaje que sigue** (la frase de entrada si hay, si no la pregunta); M4 va **solo**, en mensaje aparte (Naza, 30/09, ronda 2). Después de "paso" en una pregunta que no es cierre, M21. Si manda texto, M22; si el audio llega cortado, M23 (§22.3).
+4. **Acuses:** después de cada respuesta, uno de M3 (rotan); después de una pregunta `sensible`, uno de M4 (o M25 si la contestó con un "no" corto o "paso"); si lo que sigue es un cierre o LE9, en lugar de M3 va M26 ("Gracias, {{nombre}}."); si el acuse pegado lleva el nombre, la frase de entrada que va en el mismo mensaje se manda sin el nombre; después de un cierre, M24 (o M25, neutro, si el cierre se contestó con un "no" corto o "paso"); después de LE9 y de LE8, nada (LE8 arranca sola y después de LE8 va directo FIN). M3, M21, M24, M25 y M26 van como **primera línea del mensaje que sigue** (la frase de entrada si hay, si no la pregunta); M4 va **solo**, en mensaje aparte (Naza, 30/09, ronda 2). Después de "paso" en una pregunta que no es cierre, M21. Si manda texto, M22; si el audio llega cortado, M23 (§22.3).
 5. **"No" corto:** menos de 15 palabras y empieza con no / nunca / jamás. "Paso" no cuenta como "no". Si la pregunta que abre un tema (hermanos CA6, pareja AM0, hijos HI0, nietos HI8, mudarse JU8) recibe un "no" corto, las que dependen de ella no se mandan (§22.4).
 6. **Entradas y cierres:** antes de la primera pregunta de cada bloque (la primera que se manda de ese bloque) va su frase de entrada EN, si tiene (Naza, 30/09). Además, todos los bloques del 1 al 14 terminan con su cierre (CI1 a CI14), siempre, en el núcleo. Después del cierre, M24 en todos (desde la ronda 2 no va M10: la entrada del bloque siguiente hace de pasaje). Antes solo iban CI2 a CI5 (Naza, 30/09).
 7. **Bloque 11:** antes de la primera, el aviso AV11; después de cada una, M4 (§22.6).
@@ -472,3 +472,7 @@ Registro en [`correcciones-lectura.md`](correcciones-lectura.md).
 - Si el acuse pegado lleva el nombre, la frase de entrada del mismo mensaje va sin el nombre.
 - M25.2 pasa de "Dale." a "Bien, seguimos."; delante de algo que arranca con "Seguimos" o "Pasamos" va M25.3 ("Bien, entonces.").
 - No se tocan HI2b ni JU1/JU8 (plan B).
+
+## Cambios del 30/09, ronda 4 (Naza, después de que Fable leyó la versión 6)
+- CI14 sin el nombre (el acuse de antes, M26, ya lo dice). Antes: "Con esto cerramos lo de hoy, {{nombre}}, y ya te conozco un poco más…".
+- Después de LE9 no va acuse: LE8 ("Ahora sí, hablale a tu familia…") arranca sola (antes quedaban dos mensajes seguidos que empezaban "Gracias, {{nombre}}.").

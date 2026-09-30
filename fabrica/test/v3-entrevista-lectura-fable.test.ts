@@ -70,9 +70,9 @@ describe('5. el final: LE7 → familia → FO1 → LE9 → LE8 → FIN', () => {
     expect(ids().slice(-6)).toEqual(['LE7', 'FAM1', 'FO1', 'LE9', 'LE8', 'FIN']);
   });
 
-  it('después de LE8 no va acuse; LE9 sí lleva', () => {
+  it('después de LE8 no va acuse; desde la ronda 4, después de LE9 tampoco (LE8 arranca sola)', () => {
     expect(mensajesDespues(p('LE8'), 'Los quiero mucho.')).toEqual([]);
-    expect(mensajesDespues(p('LE9'), 'No, creo que está todo.')).toEqual(['M3']);
+    expect(mensajesDespues(p('LE9'), 'No, creo que está todo.')).toEqual([]);
   });
 });
 
@@ -171,5 +171,17 @@ describe('ronda 3 (Fable releyó la versión 4 como Rogelio; Naza, 30/09)', () =
     expect(acuseNeutro(1, 'Seguimos con la escuela')).toBe('M25.3');
     expect(acuseNeutro(0, 'Pasamos a tu juventud')).toBe('M25.3');
     expect(acuseNeutro(1, 'Hablemos de los amigos')).toBe('M25.2');
+  });
+});
+
+describe('ronda 4 (Fable leyó la versión 6; Naza, 30/09)', () => {
+  it('1. CI14 sin el nombre (el acuse de antes ya lo dice)', () => {
+    expect(p('CI14').texto).not.toContain('{{nombre}}');
+    expect(p('CI14').texto.startsWith('Con esto cerramos lo de hoy, y ya te conozco un poco más.')).toBe(true);
+  });
+
+  it('2. LE8 arranca sola: después de LE9 no va acuse, ni con "paso"', () => {
+    expect(mensajesDespues(p('LE9'), 'Sí, quería contarte de mi hermano.')).toEqual([]);
+    expect(mensajesDespues(p('LE9'), 'paso')).toEqual([]);
   });
 });

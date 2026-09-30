@@ -1,6 +1,6 @@
 # El flujo de la entrevista (vigente)
 
-Cómo funciona la entrevista de punta a punta. **Este es el documento vigente** (última actualización: 30/09/2026, ronda 2 de la lectura corrida). Las versiones anteriores están en [`historial/`](historial/).
+Cómo funciona la entrevista de punta a punta. **Este es el documento vigente** (última actualización: 30/09/2026, ronda 4 de la lectura corrida). Las versiones anteriores están en [`historial/`](historial/).
 
 - Los textos exactos: [`banco.md`](banco.md) (fuente de verdad; el código se genera desde ahí).
 - La entrevista completa de una vida inventada, mensaje por mensaje: [`lectura-corrida.md`](lectura-corrida.md).
@@ -38,6 +38,7 @@ Así se lee el paso de un bloque a otro, en mensajes de WhatsApp: [cierre] → r
   - después de un cierre: M24 (sección 3), o uno neutro si lo contestó con un "no" corto o "paso" (M25: "Bien, seguimos." o "Bien, entonces."; delante de algo que arranca con "Seguimos" o "Pasamos" va "Bien, entonces.");
   - si dijo **"paso"** en una pregunta que no es cierre: "Dale, la salteamos. Vamos con otra." (M21);
   - si mandó **texto** en vez de audio: M22; si el audio llegó **cortado**: M23;
+  - después de **LE9** ("¿algo que no te pregunté?"): **nada**, LE8 arranca sola;
   - después de **LE8** ("hablale a tu familia"), la última pregunta: **nada**, va directo el mensaje final.
 - **"No" corto:** menos de 15 palabras que empiezan con no / nunca / jamás / ninguno / nada / tampoco (entiende "Eh, no", "Nooo"; no cuenta "Nunca lo pensé, pero…"). **"Paso":** la primera palabra es "paso" y la respuesta es corta ("Paso, no quiero hablar").
 
@@ -113,6 +114,8 @@ Recién después se escribe el libro, una sola vez.
 **Cómo se arma cada mensaje de WhatsApp** (acuse pegado o solo, entrada, pregunta con M1): `armarTurno` en `mensajes.ts`; qué acuse va según lo que sigue: `acuseAntesDe` y `acuseNeutro`; la entrada sin el nombre si el acuse ya lo dice: `entradaSegunAcuse`.
 
 **Plan B** (anotado en [`correcciones-lectura.md`](correcciones-lectura.md), sin programar): si en la prueba real el código pregunta cosas que no encajan o entiende mal un "no", un modelo chico (Haiku) lee solo las respuestas que abren tema. Menos de 1 centavo por entrevista.
+
+**Para mirar en la prueba real:** si molesta que los agradecimientos roten siempre en el mismo orden, y si el bloque 13 (nueve preguntas para pensar) se hace largo.
 
 **Falta:**
 1. Conectar el flujo al **entrevistador** de WhatsApp (Joaquín): guardar las respuestas, llamar a `siguientePregunta` y `mensajesDespues`, armar los mensajes con `armarTurno`, esperar unos minutos sin audios, los agradecimientos y los recordatorios M8/M9. El plan es el paso 3 del chat del 30/09 (a hacer).

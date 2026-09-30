@@ -212,6 +212,8 @@ export function siguientePregunta(e: EstadoEntrevista, banco: readonly PreguntaE
 
 /** Después de esta pregunta va directo el mensaje final, sin acuse (Naza, 30/09, ronda 2: el final es LE7 → familia → FO1 → LE9 → LE8 → FIN). */
 export const SIN_ACUSE_ANTES_DEL_FINAL = 'LE8';
+/** Después de LE9 tampoco va acuse: "Ahora sí, hablale a tu familia…" (LE8) arranca sola (Naza, 30/09, ronda 4). */
+export const SIN_ACUSE: readonly string[] = ['LE9', SIN_ACUSE_ANTES_DEL_FINAL];
 
 /**
  * Qué acuse va después de contestar (familias de mensajes; el entrevistador
@@ -223,7 +225,7 @@ export const SIN_ACUSE_ANTES_DEL_FINAL = 'LE8';
  */
 export function mensajesDespues(pregunta: Pick<PreguntaEntrevista, 'id' | 'bloque' | 'clase' | 'sensible'>, respuesta: Respuesta): ('M3' | 'M4' | 'M21' | 'M24' | 'M25')[] {
   if (!esperaRespuesta(pregunta)) return [];
-  if (pregunta.id === SIN_ACUSE_ANTES_DEL_FINAL) return [];
+  if (SIN_ACUSE.includes(pregunta.id)) return [];
   // Un cierre contestado con un "no" corto o "paso": acuse neutro, sin agradecer un contenido que no hubo (Naza, 30/09).
   if (pregunta.clase === 'cierre') return esPaso(respuesta) || esNoCorto(respuesta) ? ['M25'] : ['M24'];
   // Lo mismo con una sensible: "Gracias por confiármelo" no va después de un "no" o un "paso" (Naza, 30/09, ronda 3).

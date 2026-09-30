@@ -161,3 +161,19 @@ No se tocan HI2b ni JU1/JU8 (plan B). Resultado: **127 mensajes de WhatsApp** en
 Naza: "dice nada 6 veces". La aprobada tiene 3 "nada" y 4 negaciones más. Fable propuso dos versiones (sin aprobar; el primer párrafo no cambia):
 - **1 (lo más parecida):** "…Y cuando termines de contar, dejalo ahí nomás: apenas pasa un ratito de silencio, te llega sola la pregunta que sigue. / Si alguna pregunta no va con tu vida, está todo bien: me decís que no, o me contás lo que en realidad te pasó a vos. Y sin apuro, eh…" (0 "nada", 2 "no").
 - **2 (más libre):** "…Mandame todos los audios que quieras. Y cuando termines de contar, ya está: con un ratito de silencio, la pregunta que sigue te llega sola. / Si alguna pregunta te queda lejos, está todo bien: me decís que no, o me contás lo que sí te pasó a vos. Y sin apuro, eh…" (0 "nada", 1 "no").
+
+## Ronda 4 (30/09): Fable leyó la versión 6
+Veredicto de Fable: **lista para que la pruebe una persona real.** Dos detalles, **aplicados**:
+1. CI14 sin el nombre (el acuse de antes, M26, ya lo dice).
+2. Después de LE9 no va acuse: LE8 ("Ahora sí, hablale a tu familia…") arranca sola (antes quedaban dos mensajes seguidos que empezaban "Gracias, {{nombre}}.").
+
+AM9 sigue en el plan B. Resultado: **127 mensajes de WhatsApp** en la vida completa.
+
+### Para mirar en la prueba real (Naza)
+- ¿Molesta que los agradecimientos roten siempre en el mismo orden (M3.1, M3.2, … y vuelta a empezar)? Si se nota, se puede sortear el orden.
+- ¿Se hace largo el bloque 13? Son nueve preguntas para pensar seguidas (GI1, GI2, HJ1, GI9, FI1, FI2, FI3, FI4, FI6).
+
+### Bienvenida: sin "eh", sin "dejalo ahí nomás", sin "mejor amigo" (30/09)
+Naza: "nadie escribe con eh, solo la IA"; "dejalo ahí nomás" es demasiado rioplatense; no le gustó "mejor amigo". Fable propuso (sin aprobar; el primer párrafo no cambia):
+- **A (la que elige Fable):** "Funciona así: te mando una pregunta y vos me respondés en audio, hablando como hablás siempre, como en una charla. Mandame todos los audios que quieras. Y cuando termines de contar, ya está: con un ratito de silencio, la pregunta que sigue te llega sola. / Si alguna pregunta no tiene que ver con tu vida, me decís que no y pasamos a otra, o me contás lo que sí te pasó a vos. Sin apuro: esto va al ritmo que vos quieras."
+- **B:** "Funciona así: te mando una pregunta y vos me la contás en audio, como si me lo estuvieras contando en persona. Mandame todos los audios que quieras. Cuando termines, ya está: con un ratito de silencio, la pregunta que sigue te llega sola. / Si alguna pregunta no tiene que ver con tu vida, me decís que no, o me contás lo que sí te pasó a vos. Y sin apuro: esto lo hacemos al ritmo que vos quieras."

@@ -4,7 +4,7 @@
 
 **Cuenta:** 89 preguntas del banco (12 con la frase de "paso" debajo) + 1 de la familia · **127 mensajes de WhatsApp del biógrafo** en total. Los agradecimientos van como primera línea del mensaje que sigue; solo los 7 sobrios van solos. 12 frases de entrada de bloque.
 
-Versión 6 (30/09, rondas 2 y 3): bienvenida en un solo mensaje; agradecimiento pegado a lo que sigue (el sobrio va solo); "Gracias, {{nombre}}." antes de cada cierre y de LE9; neutro si un cierre o una pregunta difícil se contesta con un no o paso; la entrada sin el nombre si el agradecimiento ya lo dice; final LE7 → familia → FO1 → LE9 → LE8 → FIN. Registro en [`correcciones-lectura.md`](correcciones-lectura.md).
+Versión 7 (30/09, rondas 2 a 4): CI14 sin el nombre; LE8 arranca sola, sin agradecimiento; bienvenida en un solo mensaje; agradecimiento pegado a lo que sigue (el sobrio va solo); "Gracias, {{nombre}}." antes de cada cierre y de LE9; neutro si un cierre o una pregunta difícil se contesta con un no o paso; la entrada sin el nombre si el agradecimiento ya lo dice; final LE7 → familia → FO1 → LE9 → LE8 → FIN. Registro en [`correcciones-lectura.md`](correcciones-lectura.md).
 
 Cómo leerlo: cada **Biógrafo** es un mensaje de WhatsApp (las líneas citadas debajo van juntas en ese mensaje); **Persona** es la respuesta (acá solo "[responde]"; en las preguntas que abren un tema va la respuesta corta de la vida de ejemplo). Los títulos de bloque y los IDs (entre corchetes) son para vos: la persona no los ve.
 
@@ -776,7 +776,7 @@ Cómo leerlo: cada **Biógrafo** es un mensaje de WhatsApp (las líneas citadas 
 **Biógrafo** `[M26 + CI14]`:
 > Gracias, Rogelio.
 >
-> Con esto cerramos lo de hoy, Rogelio, y ya te conozco un poco más. ¿Quedó algo de tu vida de ahora que no tuvo su pregunta? Una costumbre, alguien que ves seguido, un rato del día que es tuyo. Contámelo ahora, tranquilo.
+> Con esto cerramos lo de hoy, y ya te conozco un poco más. ¿Quedó algo de tu vida de ahora que no tuvo su pregunta? Una costumbre, alguien que ves seguido, un rato del día que es tuyo. Contámelo ahora, tranquilo.
 
 **Persona:** [responde]
 
@@ -837,9 +837,7 @@ Cómo leerlo: cada **Biógrafo** es un mensaje de WhatsApp (las líneas citadas 
 
 **Persona:** [responde]
 
-**Biógrafo** `[M3.1 + LE8]`:
-> Gracias, Rogelio. Ya lo guardé.
->
+**Biógrafo** `[LE8]`:
 > Ahora sí, hablale a tu familia, a los que van a leer este libro. Lo que les dirías y lo que les deseás si los tuvieras sentados enfrente, sin apuro, de a uno. Nadie te corre.
 
 **Persona:** [responde]

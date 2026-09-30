@@ -103,7 +103,7 @@ const lineas: string[] = [
   '',
   `**Cuenta:** ${preguntas} preguntas del banco (${conM1} con la frase de "paso" debajo) + ${FAMILIA.length} de la familia · **${mensajesBio} mensajes de WhatsApp del biógrafo** en total. Los agradecimientos van como primera línea del mensaje que sigue; solo los ${acusesSolos} sobrios van solos. ${entradas} frases de entrada de bloque.`,
   '',
-  'Versión 6 (30/09, rondas 2 y 3): bienvenida en un solo mensaje; agradecimiento pegado a lo que sigue (el sobrio va solo); "Gracias, {{nombre}}." antes de cada cierre y de LE9; neutro si un cierre o una pregunta difícil se contesta con un no o paso; la entrada sin el nombre si el agradecimiento ya lo dice; final LE7 → familia → FO1 → LE9 → LE8 → FIN. Registro en [`correcciones-lectura.md`](correcciones-lectura.md).',
+  'Versión 7 (30/09, rondas 2 a 4): CI14 sin el nombre; LE8 arranca sola, sin agradecimiento; bienvenida en un solo mensaje; agradecimiento pegado a lo que sigue (el sobrio va solo); "Gracias, {{nombre}}." antes de cada cierre y de LE9; neutro si un cierre o una pregunta difícil se contesta con un no o paso; la entrada sin el nombre si el agradecimiento ya lo dice; final LE7 → familia → FO1 → LE9 → LE8 → FIN. Registro en [`correcciones-lectura.md`](correcciones-lectura.md).',
   '',
   'Cómo leerlo: cada **Biógrafo** es un mensaje de WhatsApp (las líneas citadas debajo van juntas en ese mensaje); **Persona** es la respuesta (acá solo "[responde]"; en las preguntas que abren un tema va la respuesta corta de la vida de ejemplo). Los títulos de bloque y los IDs (entre corchetes) son para vos: la persona no los ve.',
   '',

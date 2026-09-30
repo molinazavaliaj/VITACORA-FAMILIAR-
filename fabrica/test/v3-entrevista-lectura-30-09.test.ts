@@ -73,7 +73,7 @@ describe('antes del final va directo FIN (Naza, 30/09; desde la ronda 2 la últi
   });
 
   it('las demás del bloque 15 siguen con su acuse', () => {
-    expect(mensajesDespues(preguntaPorId('LE9')!, 'No, creo que está todo.')).toEqual(['M3']);
+    expect(mensajesDespues(preguntaPorId('LE9')!, 'No, creo que está todo.')).toEqual([]); // ronda 4: LE8 arranca sola
     expect(mensajesDespues(preguntaPorId('FO1')!, 'Te mando la del casamiento.')).toEqual(['M3']);
   });
 });
