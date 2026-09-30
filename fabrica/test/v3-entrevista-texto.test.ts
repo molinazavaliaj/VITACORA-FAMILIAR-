@@ -10,7 +10,7 @@ describe('entrevista: renderizar', () => {
   it('{{o/a}} según el género', () => {
     expect(renderizar(texto('CA13'), varon)).toContain('la primera vez que saliste solo:');
     expect(renderizar(texto('CA13'), mujer)).toContain('la primera vez que saliste sola:');
-    expect(renderizar(texto('CA6'), mujer)).toContain('¿con cuál eras más cercana de chica?');
+    expect(renderizar(texto('CA6'), mujer)).toContain('contame con cuál eras más cercana de chica y alguna aventura'); // texto de las simulaciones (Naza, 30/09)
   });
 
   it('{{padre/madre}} según el género', () => {

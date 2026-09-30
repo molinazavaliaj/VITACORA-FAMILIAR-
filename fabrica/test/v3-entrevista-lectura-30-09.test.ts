@@ -46,8 +46,8 @@ describe('M1 solo donde aplica (Naza, 30/09)', () => {
     expect(conM1('sigue-con-la-primera')).toEqual(['OR1', 'OR2', 'OR5', 'CA6', 'JU8', 'AM0', 'AM9', 'HI0', 'HI8', 'PE1', 'PE5', 'PE4']);
   });
 
-  it('sin pareja: AM9 no llega, así que tampoco su M1', () => {
-    expect(conM1('nunca-pareja-sin-hijos')).toEqual(['OR1', 'OR2', 'OR5', 'CA6', 'JU8', 'AM0', 'HI0', 'HI8', 'PE1', 'PE5', 'PE4']);
+  it('sin pareja: AM9 no llega, así que tampoco su M1; sin hijos, desde las simulaciones tampoco HI8', () => {
+    expect(conM1('nunca-pareja-sin-hijos')).toEqual(['OR1', 'OR2', 'OR5', 'CA6', 'JU8', 'AM0', 'HI0', 'PE1', 'PE5', 'PE4']);
   });
 
   it('las 3 primeras son las 3 primeras que se mandan, aunque se conteste "paso"', () => {

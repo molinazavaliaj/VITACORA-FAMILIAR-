@@ -96,25 +96,27 @@ describe('entrevista: condiciones', () => {
   it('"paso" no es ni sí ni no (banco.md, Dudas 2)', () => {
     expect(cumple(am1, r({ AM0: 'paso' }))).toBe(false);
     expect(cumple(am15, r({ AM0: 'paso' }))).toBe(false);
-    expect(cumple(am13, r({ AM0: 'Sí, una vez.', AM9: 'paso' }))).toBe(false);
+    expect(cumple(am13, r({ AM0: 'Sí, una vez.', AM3: 'paso' }))).toBe(false);
   });
 
-  it('AM13: alcanza con una (AM9 fue "no", o AM16 contó algo)', () => {
-    expect(cumple(am13, r({ AM9: 'No, seguimos juntos.' }))).toBe(true);
-    expect(cumple(am13, r({ AM9: 'Nos separamos después de muchos años, te cuento.', AM16: 'Sí, con Julio, hace diez años.' }))).toBe(true);
-    expect(cumple(am13, r({ AM9: 'Nos separamos después de muchos años, te cuento.', AM16: 'No.' }))).toBe(false);
+  // Hasta las simulaciones AM13 era "sino:AM9 o si:AM16"; desde el 30/09 (Naza, S10) depende de AM3 y va antes de AM8.
+  it('AM13: llega si armaron la vida juntos (AM3), sin importar cómo terminó', () => {
+    expect(cumple(am13, r({ AM3: 'Sí, nos casamos en el setenta.' }))).toBe(true);
+    expect(cumple(am13, r({ AM3: 'Sí, nos casamos en el setenta.', AM9: 'Nos separamos después de muchos años, te cuento.' }))).toBe(true);
+    expect(cumple(am13, r({ AM3: 'No, no llegamos a eso.' }))).toBe(false);
   });
 });
 
 describe('entrevista: los recorridos del amor (metodo-entrevista.md, "Bloque 6, arreglo…")', () => {
-  const CON_PAREJA_ANTES = ['AM0', 'AM1', 'AM3', 'AM4', 'AM8', 'AM9'];
+  // Simulaciones (Naza, 30/09): AM13 (la pelea) depende de AM3 y va antes de AM8; AM20 (las del medio) llega si AM16 contó algo.
+  const CON_PAREJA_ANTES = ['AM0', 'AM1', 'AM3', 'AM4', 'AM13', 'AM8', 'AM9'];
   const EXTRA_CON_PAREJA = ['AM2', 'AM5', 'AM6', 'AM7', 'AM17'];
   const esperado: Record<VidaEjemplo['clave'], string[]> = {
-    'sigue-con-la-primera': [...CON_PAREJA_ANTES, 'AM13', 'AM14'],
+    'sigue-con-la-primera': [...CON_PAREJA_ANTES, 'AM14'],
     'separada-sola': [...CON_PAREJA_ANTES, 'AM19', 'AM16', 'AM14'],
-    'separada-de-nuevo-en-pareja': [...CON_PAREJA_ANTES, 'AM19', 'AM16', 'AM13', 'AM14'],
+    'separada-de-nuevo-en-pareja': [...CON_PAREJA_ANTES, 'AM19', 'AM16', 'AM20', 'AM14'],
     'viuda-sola': [...CON_PAREJA_ANTES, 'AM19', 'AM16', 'AM14'],
-    'viuda-rehizo': [...CON_PAREJA_ANTES, 'AM19', 'AM16', 'AM13', 'AM14'],
+    'viuda-rehizo': [...CON_PAREJA_ANTES, 'AM19', 'AM16', 'AM20', 'AM14'],
     'nunca-pareja-con-hijos': ['AM0', 'AM14', 'AM15'],
     'nunca-pareja-sin-hijos': ['AM0', 'AM14', 'AM15'],
   };
@@ -141,14 +143,15 @@ describe('entrevista: los recorridos del amor (metodo-entrevista.md, "Bloque 6, 
 });
 
 describe('entrevista: hijos y nietos', () => {
-  it('sin hijos: HI10 y ninguna de HI1-HS1 (ni HI12, HI13)', () => {
+  it('sin hijos: HI10 y ninguna de HI1-HS1 (ni HI12, HI13); desde las simulaciones tampoco HI8 (depende de HI0)', () => {
     const b8 = delBloque(recorrer(vida('nunca-pareja-sin-hijos'), true), 8);
-    expect(b8).toEqual(['PG1', 'HI0', 'HI10', 'HI8', 'CI8']);
+    expect(b8).toEqual(['PG1', 'HI0', 'HI10', 'CI8']);
   });
 
   it('con hijos y sin nietos: nada de HI9 ni NC1, y no va HI10', () => {
     const b8 = delBloque(recorrer(vida('nunca-pareja-con-hijos'), true), 8);
-    expect(b8).toEqual(['PG1', 'HI0', 'HI2', 'HI2b', 'HI3', 'HS1', 'HI6', 'HI8', 'CI8', 'HI1', 'HI4', 'HI5', 'HI7', 'HI12', 'HI13']);
+    // HI2b salió del banco (Naza, 30/09, simulaciones).
+    expect(b8).toEqual(['PG1', 'HI0', 'HI2', 'HI3', 'HS1', 'HI6', 'HI8', 'CI8', 'HI1', 'HI4', 'HI5', 'HI7', 'HI12', 'HI13']);
   });
 
   it('con hijos y nietos: todo el bloque menos HI10', () => {
@@ -239,13 +242,14 @@ describe('entrevista: conteos', () => {
   // (FO1) y no cuenta cierres, aviso ni final; "turnos" cuenta todo lo que
   // se manda (sin acuses ni M1). El borrador decía 84 y 75: desde entonces
   // ES9, CP1, TR8 y CS1 pasaron al núcleo y entró HS1.
-  it('vida completa (sigue con su primera pareja, hermanos, se mudó, hijos y nietos): 89 de historia en el núcleo', () => {
-    expect(contar(vida('sigue-con-la-primera'), false)).toEqual({ historia: 89, turnos: 105 }); // 95 + CI1 y CI6 a CI14 (Naza, 30/09)
-    expect(contar(vida('sigue-con-la-primera'), true)).toEqual({ historia: 178, turnos: 194 });
+  // Simulaciones (Naza, 30/09): sale HI2b (una menos para quien tiene hijos) y HI8 depende de HI0 (una menos para quien no tiene).
+  it('vida completa (sigue con su primera pareja, hermanos, se mudó, hijos y nietos): 88 de historia en el núcleo', () => {
+    expect(contar(vida('sigue-con-la-primera'), false)).toEqual({ historia: 88, turnos: 104 }); // antes 89 y 105 (con HI2b)
+    expect(contar(vida('sigue-con-la-primera'), true)).toEqual({ historia: 177, turnos: 193 });
   });
 
-  it('sin pareja ni hijos (sin hermanos, no se mudó): 79 de historia en el núcleo', () => {
-    expect(contar(vida('nunca-pareja-sin-hijos'), false)).toEqual({ historia: 79, turnos: 95 });
+  it('sin pareja ni hijos (sin hermanos, no se mudó): 78 de historia en el núcleo', () => {
+    expect(contar(vida('nunca-pareja-sin-hijos'), false)).toEqual({ historia: 78, turnos: 94 }); // antes 79 y 95 (con HI8)
   });
 
   it('el banco tiene 109 filas en el núcleo y 89 en la extra (todas de historia: los cierres pasaron al núcleo el 30/09)', () => {

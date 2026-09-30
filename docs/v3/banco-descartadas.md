@@ -98,8 +98,9 @@ Convenciones:
 | NC2 | Contame un día común criando a {{nieto_a_cargo}}: qué hacías distinto de cuando criaste a tus hijos, y qué te costó más. | "Salen: … NC2." Salió en la propuesta del bloque 8; queda NC1 (29/09). | **en ningún lado** (NC1 pide cómo se dio y el primer día) | Claude/Fable proponen; Naza cierra el bloque 8, 29/09 |
 | N3 (bl. 8, propuesta) | Los hijos también enseñan. ¿Qué aprendiste vos por ellos, algo que no sabías antes de ser {{padre/madre}}? Contame el día que te diste cuenta. | "N3 y N4 afuera." Naza aprobó solo N1 y N2 del bloque 8 (29/09). | **en ningún lado** | Fable la propone; Naza, 29/09 |
 | N4 (bl. 8, propuesta) | Dicen que uno es distinto de abuel{{o/a}} de lo que fue de {{padre/madre}}. ¿A vos te pasa? Contame en qué, y una vez con un nieto en que lo notaste. | "N3 y N4 afuera." Naza aprobó solo N1 y N2 del bloque 8 (29/09). | **en ningún lado** (lo más cercano, HI9) | Fable la propone; Naza, 29/09 |
+| HI2b | ¿Tuviste más hijos, o hay alguien más que sentís que criaste o cuidaste como propio? Si fue así, contame cómo fue la llegada de cada uno, con el tiempo que necesites. Cada llegada tiene su historia. | "HI2b se saca" (Naza, después de las simulaciones): estorba, y HI0 ya da lugar a contar de varios hijos. En 3 de las 6 simulaciones llegó "¿más hijos?" después de que la persona ya los había presentado a todos (S7, [`entrevista/simulaciones/hallazgos.md`](entrevista/simulaciones/hallazgos.md)). | HI0 ("Presentámelos de a uno… cómo se llama cada uno y cuándo llegó") y HI3 ("cómo era cada uno") | Fable lo marca en las simulaciones; Naza lo saca, 30/09 |
 
-Nota: además dejó de existir el mecanismo "HI2 y HI3 se repiten por cada hijo" del banco viejo; hoy HI2b y HI3 piden a todos los hijos en una sola pregunta.
+Nota: además dejó de existir el mecanismo "HI2 y HI3 se repiten por cada hijo" del banco viejo; hoy HI2b y HI3 piden a todos los hijos en una sola pregunta. _Desde el 30/09 (simulaciones) HI2b tampoco está: HI0 pide presentarlos a todos y HI3 pregunta por cada uno._
 
 ## Bloque 9 · Lugares y pasiones
 
@@ -284,6 +285,8 @@ Motivo común (§20): "**Fotos:** se sacan los 14 pedidos (F1-F14, M16, M17). La
 | En pausa | 1 | Cazador de escenas |
 | Reescrita, no descartada (solo cambió el texto) | 1 | PA2 vieja |
 | **Total** | **145** | |
+
+Después de este resumen (30/09, simulaciones): salió **HI2b** (repetida con HI0; ver el bloque 8). No está contada en la tabla.
 
 ### En ningún lado
 
