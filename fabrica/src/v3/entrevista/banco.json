@@ -54,7 +54,7 @@
       "id": "CI1",
       "bloque": 1,
       "orden": 6,
-      "texto": "Con esto cerramos lo de tu familia de antes, la de antes de que llegaras vos. Y me pregunto si se me escapó algo: una historia de tus abuelos, de tus viejos de jóvenes, de esa casa. Si hay una dando vueltas, contámela ahora. Y si algo se te viene más tarde, a cualquier hora, mandámelo cuando quieras: va al libro igual.",
+      "texto": "Hasta acá lo de tu familia de antes de que llegaras vos. Y me pregunto si se me escapó algo: una historia de tus abuelos, de tus viejos de jóvenes, de esa casa. Si hay una dando vueltas, contámela ahora. Y si algo se te viene más tarde, a cualquier hora, mandámelo cuando quieras: va al libro igual.",
       "depende": [],
       "parte": "nucleo",
       "clase": "cierre",
@@ -90,7 +90,7 @@
       "id": "CA3",
       "bloque": 2,
       "orden": 9,
-      "texto": "¿Y tu papá? ¿A qué se dedicaba cuando eras chic{{o/a}}? Contame alguna vez que lo acompañaste o lo viste trabajando.",
+      "texto": "¿Y tu papá? ¿A qué se dedicaba cuando eras chic{{o/a}}? Contame alguna vez que lo acompañaste o lo viste trabajando. Y si tu papá no estuvo, o preferís no entrar, contame lo que vos quieras de él.",
       "depende": [],
       "parte": "nucleo",
       "clase": "historia",
@@ -242,7 +242,7 @@
       "sensible": true,
       "botones": [
         {
-          "texto": "Paso esta",
+          "texto": "Prefiero no contarla",
           "vale": "paso"
         },
         {
@@ -391,7 +391,7 @@
       "id": "CI3",
       "bloque": 3,
       "orden": 36,
-      "texto": "Con esto cerramos tus años de escuela. Antes de seguir, ¿te quedó alguna historia de esa época dando vueltas, algo que no entró en ninguna pregunta? Contámela ahora, con calma, que la quiero escuchar.",
+      "texto": "Hasta acá lo de la escuela. ¿Te quedó alguna historia de esos años que no te pregunté? Puede ser de la primaria o del colegio de después. Si hay una, contámela ahora, con calma. Si no, tocá el botón.",
       "depende": [],
       "parte": "nucleo",
       "clase": "cierre",
@@ -517,14 +517,14 @@
       "id": "AD15",
       "bloque": 4,
       "orden": 48,
-      "texto": "¿Hubo algún momento duro en tu adolescencia que creas que no puede quedar afuera de tu historia? ¿Algo que te marcó? Si querés, contame qué pasó y cómo lo viviste.",
+      "texto": "¿Hubo algún momento duro en tu adolescencia que creas que no puede quedar afuera de tu historia? ¿Algo que te marcó? Si querés, contame qué pasó y cómo lo viviste. Y si ya me lo contaste, decime \"ya te lo conté\" y seguimos.",
       "depende": [],
       "parte": "nucleo",
       "clase": "historia",
       "sensible": true,
       "botones": [
         {
-          "texto": "Paso esta",
+          "texto": "Prefiero no contarla",
           "vale": "paso"
         },
         {
@@ -557,7 +557,7 @@
       "id": "CI4",
       "bloque": 4,
       "orden": 51,
-      "texto": "Con esto cerramos tu adolescencia. Antes de pasar a los años de grande, ¿quedó algo de esa época que no encontró su pregunta? Un recuerdo suelto, una cara, una noche. Contámelo ahora, tranquil{{o/a}}, que hay tiempo.",
+      "texto": "Hasta acá tu adolescencia. Antes de pasar a los años de grande, ¿quedó algo de esa época que no encontró su pregunta? Un recuerdo suelto, una cara, una noche. Contámelo ahora, tranquil{{o/a}}, que hay tiempo.",
       "depende": [],
       "parte": "nucleo",
       "clase": "cierre",
@@ -733,14 +733,14 @@
       "id": "JU17",
       "bloque": 5,
       "orden": 66,
-      "texto": "¿Hubo algún momento duro en tu juventud que creas que no puede quedar afuera de tu historia? ¿Algo que te marcó? Si querés, contame qué pasó y cómo lo viviste.",
+      "texto": "¿Hubo algún momento duro en tu juventud que creas que no puede quedar afuera de tu historia? ¿Algo que te marcó? Si querés, contame qué pasó y cómo lo viviste. Y si ya me lo contaste, decime \"ya te lo conté\" y seguimos.",
       "depende": [],
       "parte": "nucleo",
       "clase": "historia",
       "sensible": true,
       "botones": [
         {
-          "texto": "Paso esta",
+          "texto": "Prefiero no contarla",
           "vale": "paso"
         },
         {
@@ -799,7 +799,7 @@
       "id": "AM0",
       "bloque": 6,
       "orden": 71,
-      "texto": "Ahora vamos al amor. ¿Hubo alguien con quien tuviste una historia en serio? Si hubo, haceme un repaso corto: cuántas veces te enamoraste, cuáles llegaron a algo serio, más o menos en qué años. Después te pregunto más de la primera que fue en serio, y de las que vinieron después también va a haber lugar. Y si no hubo, también vale.",
+      "texto": "Ahora vamos al amor. ¿Hubo alguien con quien tuviste una historia en serio? Si hubo, haceme un repaso corto: cuántas veces te enamoraste, cuáles llegaron a algo serio, más o menos en qué años, y si hoy hay alguien a tu lado. Después te pregunto más de la pareja de ahora, o de la última, y de las de antes también va a haber lugar. Y si no hubo, también vale.",
       "depende": [],
       "parte": "nucleo",
       "clase": "historia",
@@ -816,10 +816,35 @@
       ]
     },
     {
-      "id": "AM1",
+      "id": "AMH",
       "bloque": 6,
       "orden": 72,
-      "texto": "Vamos a la primera que fue en serio. Contame el día que se conocieron: dónde fue, quién los presentó o cómo se cruzaron, y qué fue lo primero que te llamó la atención de esa persona. Si ya me lo contaste cuando hablamos de tu adolescencia, decímelo y vamos a lo que sigue.",
+      "texto": "Vamos a la pareja de ahora, o a la última si hoy no hay nadie. Antes de preguntarte por esa historia, decime desde dónde te pregunto: ¿esa persona sigue hoy a tu lado?",
+      "depende": [
+        {
+          "tipo": "si",
+          "de": "AM0"
+        }
+      ],
+      "parte": "nucleo",
+      "clase": "historia",
+      "sensible": false,
+      "botones": [
+        {
+          "texto": "Sí, seguimos juntos",
+          "vale": "si"
+        },
+        {
+          "texto": "Ya no está conmigo",
+          "vale": "no"
+        }
+      ]
+    },
+    {
+      "id": "AM1",
+      "bloque": 6,
+      "orden": 73,
+      "texto": "Contame el día que se conocieron: dónde fue, quién los presentó o cómo se cruzaron, y qué fue lo primero que te llamó la atención de esa persona. Si ese día ya me lo contaste antes, decime \"ya te lo conté\" y seguimos con lo que vino después.",
       "depende": [
         {
           "tipo": "si",
@@ -833,7 +858,7 @@
     {
       "id": "AM2",
       "bloque": 6,
-      "orden": 73,
+      "orden": 74,
       "texto": "¿Cómo fue el noviazgo, o esos primeros tiempos? Pensá en un momento: una cita, un paseo, una tarde que todavía tenés fresca. Contámela como si la vieras de vuelta. Si se te vienen más, contalas también.",
       "depende": [
         {
@@ -848,7 +873,7 @@
     {
       "id": "AM3",
       "bloque": 6,
-      "orden": 74,
+      "orden": 75,
       "texto": "Y después, ¿llegaron a armar la vida juntos: casarse, irse a vivir, lo que haya sido? Si llegaron, contame ese momento: quién lo dijo primero, o si se fue dando solo, dónde estaban, qué se dijeron. Si ya me lo contaste recién, con decírmelo alcanza.",
       "depende": [
         {
@@ -873,7 +898,7 @@
     {
       "id": "AM4",
       "bloque": 6,
-      "orden": 75,
+      "orden": 76,
       "texto": "Hay días que quedan grabados para siempre: el del casamiento, o el primero viviendo juntos. Contame ese día como si lo estuvieras viendo: el lugar, la gente, la ropa, lo que más te quedó. Si ya me lo contaste recién, con decírmelo alcanza.",
       "depende": [
         {
@@ -888,7 +913,7 @@
     {
       "id": "AM5",
       "bloque": 6,
-      "orden": 76,
+      "orden": 77,
       "texto": "Contame a dónde se mudaron juntos por primera vez: cómo llegaron a ese lugar, cómo era por dentro, y cómo fue esa primera noche ahí, con todo lo que tenía y todo lo que le faltaba.",
       "depende": [
         {
@@ -903,7 +928,7 @@
     {
       "id": "AM6",
       "bloque": 6,
-      "orden": 77,
+      "orden": 78,
       "texto": "¿Tuvieron una época difícil entre ustedes? Si la hubo, contame qué pasaba y cómo la fueron llevando: qué hizo cada uno, si hubo un día que lo cambió. Si preferís no entrar, también está bien.",
       "depende": [
         {
@@ -918,7 +943,7 @@
     {
       "id": "AM13",
       "bloque": 6,
-      "orden": 78,
+      "orden": 79,
       "texto": "Contame una pelea que tuvieron, de esas que después dan risa: por qué fue, quién aflojó primero y cómo hicieron las paces. Si no hubo ninguna que hoy dé risa, con decírmelo alcanza.",
       "depende": [
         {
@@ -933,7 +958,7 @@
     {
       "id": "AM8",
       "bloque": 6,
-      "orden": 79,
+      "orden": 80,
       "texto": "Imaginate que podés guardar un solo momento con esa persona, ¿cuál sería? Contámelo entero: el lugar, el día, qué hacían. Si se te vienen otros, contalos también.",
       "depende": [
         {
@@ -948,12 +973,12 @@
     {
       "id": "AM9",
       "bloque": 6,
-      "orden": 80,
-      "texto": "Si esa historia tuvo un final, una separación o una despedida, ¿querés contármelo? Solo lo que vos quieras. Y si no querés, con decir \"paso\" alcanza; lo demás de tu historia sigue igual.",
+      "orden": 81,
+      "texto": "Si querés, contame cómo fue el final de esa historia: una separación, una despedida, lo que haya sido. Solo lo que vos quieras, y hasta donde quieras. Si preferís no entrar ahí, con el botón alcanza; lo demás de tu historia sigue igual.",
       "depende": [
         {
-          "tipo": "si",
-          "de": "AM0"
+          "tipo": "sino",
+          "de": "AMH"
         }
       ],
       "parte": "nucleo",
@@ -961,15 +986,7 @@
       "sensible": true,
       "botones": [
         {
-          "texto": "Sí, hubo un final",
-          "vale": "si"
-        },
-        {
-          "texto": "Seguimos juntos",
-          "vale": "no"
-        },
-        {
-          "texto": "Paso esta",
+          "texto": "Prefiero no contarla",
           "vale": "paso"
         }
       ]
@@ -977,8 +994,8 @@
     {
       "id": "AM7",
       "bloque": 6,
-      "orden": 81,
-      "texto": "Contame algo muy de esa persona: una frase que «sino:AM9: repite ‖ repetía», una costumbre, una manía. Y una vez puntual en que salió eso, para que quien lea la tenga enfrente.",
+      "orden": 82,
+      "texto": "Contame algo muy de esa persona: una frase que «sino:AMH: repetía ‖ repite», una costumbre, una manía. Y una vez puntual en que salió eso, para que quien lea la tenga enfrente.",
       "depende": [
         {
           "tipo": "si",
@@ -992,12 +1009,12 @@
     {
       "id": "AM19",
       "bloque": 6,
-      "orden": 82,
+      "orden": 83,
       "texto": "Y después, cuando quedaste por tu cuenta, ¿cómo fueron esos primeros tiempos? Qué cambió en la casa y en los días, quién anduvo cerca. Si ese tiempo es el de ahora, contame igual cómo lo estás llevando. Y si no hubo un tiempo así, con decírmelo alcanza.",
       "depende": [
         {
-          "tipo": "si",
-          "de": "AM9",
+          "tipo": "sino",
+          "de": "AMH",
           "y": [
             {
               "tipo": "si",
@@ -1011,43 +1028,14 @@
       "sensible": false
     },
     {
-      "id": "AM16",
-      "bloque": 6,
-      "orden": 83,
-      "texto": "Y más adelante, ¿hubo otro amor? Si hubo, contame por ahora solo del que compartís hoy, o del último: el día que se conocieron y un momento de los dos que te haya quedado. De las del medio, si hubo, te pregunto después.",
-      "depende": [
-        {
-          "tipo": "si",
-          "de": "AM9"
-        },
-        {
-          "tipo": "paso",
-          "de": "AM9"
-        }
-      ],
-      "parte": "nucleo",
-      "clase": "historia",
-      "sensible": false,
-      "botones": [
-        {
-          "texto": "Sí, hubo otro",
-          "vale": "si"
-        },
-        {
-          "texto": "No, nadie más",
-          "vale": "no"
-        }
-      ]
-    },
-    {
-      "id": "AM20",
+      "id": "AM21",
       "bloque": 6,
       "orden": 84,
-      "texto": "Ahora sí, las del medio. Entre la primera que fue en serio y la de ahora, o la última, ¿hubo otras historias que fueron en serio? Un casamiento, alguien con quien viviste años. Este es su lugar, aunque me las hayas nombrado en el repaso: contame de cada una lo que quieras que quede, cómo se cruzaron y cómo terminó.",
+      "texto": "Ahora las de antes. Si en el repaso me nombraste otras historias que fueron en serio, este es su lugar, pero sin tanto detalle: de cada una, contame un momento que quieras que quede en el libro, el que se te venga primero, y si querés, cómo terminó. Y si hubo alguien que te marcó aunque no haya llegado a nada, también entra acá. Si esa fue la única, con el botón alcanza.",
       "depende": [
         {
           "tipo": "si",
-          "de": "AM16"
+          "de": "AM0"
         }
       ],
       "parte": "nucleo",
@@ -1055,11 +1043,11 @@
       "sensible": false,
       "botones": [
         {
-          "texto": "Sí, hubo",
+          "texto": "Sí, hubo otras",
           "vale": "si"
         },
         {
-          "texto": "Nadie en el medio",
+          "texto": "Fue la única",
           "vale": "no"
         }
       ]
@@ -1084,7 +1072,12 @@
       "bloque": 6,
       "orden": 86,
       "texto": "¿Hubo algún amor que te marcó, aunque haya durado poco o no haya llegado a nada? Si lo hubo, contame cómo se cruzaron y el momento que más te acordás de esa persona. Y si no hubo, con un no alcanza.",
-      "depende": [],
+      "depende": [
+        {
+          "tipo": "sino",
+          "de": "AM0"
+        }
+      ],
       "parte": "nucleo",
       "clase": "historia",
       "sensible": false
@@ -1108,7 +1101,7 @@
       "id": "CI6",
       "bloque": 6,
       "orden": 88,
-      "texto": "Con esto cerramos el amor. ¿Quedó alguien o algo de este tema que no tuvo su pregunta? Una persona, una carta, un baile, una charla que no entró en ningún lado. Es el momento de contarlo, sin apuro.",
+      "texto": "Hasta acá lo del amor. ¿Quedó alguien o algo de eso que no te pregunté? Una persona, una carta, un baile, una charla que no entró en ningún lado. Es el momento de contarlo, sin apuro.",
       "depende": [],
       "parte": "nucleo",
       "clase": "cierre",
@@ -1251,7 +1244,7 @@
       "sensible": true,
       "botones": [
         {
-          "texto": "Paso esta",
+          "texto": "Prefiero no contarla",
           "vale": "paso"
         },
         {
@@ -1314,7 +1307,7 @@
       "id": "CI7",
       "bloque": 7,
       "orden": 107,
-      "texto": "Con esto cerramos el trabajo. ¿Quedó algo que no tuvo su pregunta? Un lugar, una herramienta, un olor, una persona, una changa de la que nadie sabe. Es el momento de contarlo, sin apuro.",
+      "texto": "Hasta acá lo de tu trabajo y tu oficio. ¿Quedó algo de eso que no te pregunté? Un lugar, una herramienta, un olor, una persona, un trabajo de unos días que nadie recuerda. Es el momento de contarlo, sin apuro.",
       "depende": [],
       "parte": "nucleo",
       "clase": "cierre",
@@ -1580,7 +1573,7 @@
       "id": "CI8",
       "bloque": 8,
       "orden": 124,
-      "texto": "Con esto cerramos este tema. ¿Quedó alguien o algo que no tuvo su pregunta? Un cumpleaños, una charla en la cocina, alguien que no entró en ningún lado. Es el momento de contarlo, sin apuro.",
+      "texto": "Hasta acá lo de la familia de grande. ¿Quedó alguien o algo que no te pregunté? Un cumpleaños, una charla en la cocina, alguien que no entró en ningún lado. Es el momento de contarlo, sin apuro.",
       "depende": [],
       "parte": "nucleo",
       "clase": "cierre",
@@ -1676,7 +1669,7 @@
       "id": "CI9",
       "bloque": 9,
       "orden": 133,
-      "texto": "Con esto cerramos lugares y pasiones. ¿Quedó algún lugar o algo que te gustó mucho y no tuvo su pregunta? Una esquina, un hobby que duró poco, un rincón de tu casa. Contalo ahora, tranquil{{o/a}}.",
+      "texto": "Hasta acá los lugares y las pasiones. ¿Quedó algún lugar o algo que te gustó mucho y no tuvo su pregunta? Una esquina, un hobby que duró poco, un rincón de tu casa. Contalo ahora, tranquil{{o/a}}.",
       "depende": [],
       "parte": "nucleo",
       "clase": "cierre",
@@ -1699,9 +1692,24 @@
       "sensible": false
     },
     {
-      "id": "AS1b",
+      "id": "HE2",
       "bloque": 10,
       "orden": 135,
+      "texto": "Ya de grandes, ¿tus hermanos también se volvieron amigos? Contame algún momento de adultos en que estuvieron bien cerca: un viaje, una charla, una mano que se dieron. Si no tuviste hermanos, decime y seguimos.",
+      "depende": [
+        {
+          "tipo": "si",
+          "de": "CA6"
+        }
+      ],
+      "parte": "nucleo",
+      "clase": "historia",
+      "sensible": false
+    },
+    {
+      "id": "AS1b",
+      "bloque": 10,
+      "orden": 136,
       "texto": "Volviendo a esa amistad: contame algo que hicieron juntos hace poco. Aunque sea una charla por teléfono.",
       "depende": [
         {
@@ -1716,7 +1724,7 @@
     {
       "id": "AY1",
       "bloque": 10,
-      "orden": 136,
+      "orden": 137,
       "texto": "¿Alguna vez necesitaste ayuda de verdad y alguien te la dio, sea quien sea? Contame qué hizo esa persona ese día, y si después se lo pudiste devolver.",
       "depende": [],
       "parte": "nucleo",
@@ -1726,7 +1734,7 @@
     {
       "id": "AS4",
       "bloque": 10,
-      "orden": 137,
+      "orden": 138,
       "texto": "A veces una amistad se enfría sin que nadie lo decida. ¿Te pasó con alguna? Contame cómo era esa amistad y qué fue pasando, hasta donde tengas ganas.",
       "depende": [],
       "parte": "extra",
@@ -1736,7 +1744,7 @@
     {
       "id": "AS5",
       "bloque": 10,
-      "orden": 138,
+      "orden": 139,
       "texto": "¿Formaste parte alguna vez de un grupo que se juntaba por algo, un club, una comisión del barrio, o un grupo de amigos? Contame una vez que hicieron algo juntos que todavía recuerdes.",
       "depende": [],
       "parte": "extra",
@@ -1746,18 +1754,8 @@
     {
       "id": "RE1",
       "bloque": 10,
-      "orden": 139,
-      "texto": "¿Hubo una vez en que nada te ayudaba y te sostuvo algo en lo que creías? La fe, o lo que sea para vos. Contame ese momento y cómo te agarraste de eso.",
-      "depende": [],
-      "parte": "extra",
-      "clase": "historia",
-      "sensible": false
-    },
-    {
-      "id": "HE2",
-      "bloque": 10,
       "orden": 140,
-      "texto": "Ya de grandes, ¿tus hermanos también se volvieron amigos? Contame algún momento de adultos en que estuvieron bien cerca: un viaje, una charla, una mano que se dieron. Si no tuviste hermanos, decime y seguimos.",
+      "texto": "¿Hubo una vez en que nada te ayudaba y te sostuvo algo en lo que creías? La fe, o lo que sea para vos. Contame ese momento y cómo te agarraste de eso.",
       "depende": [],
       "parte": "extra",
       "clase": "historia",
@@ -1797,7 +1795,7 @@
       "id": "CI10",
       "bloque": 10,
       "orden": 144,
-      "texto": "Con esto cerramos amistades y ayudas. ¿Quedó alguien que te acompañó y no tuvo su pregunta? Un vecino, alguien del trabajo, una persona que apareció una sola vez. Y si querés contar de otros amigos importantes, de quien sea, es el momento. Contalo tranquil{{o/a}}.",
+      "texto": "Hasta acá los amigos y la gente que te ayudó. ¿Quedó alguien que te acompañó y no tuvo su pregunta? Un vecino, alguien del trabajo, una persona que apareció una sola vez. Y si querés contar de otros amigos importantes, de quien sea, es el momento. Contalo tranquil{{o/a}}.",
       "depende": [],
       "parte": "nucleo",
       "clase": "cierre",
@@ -1830,7 +1828,7 @@
       "sensible": true,
       "botones": [
         {
-          "texto": "Paso esta",
+          "texto": "Prefiero no contarla",
           "vale": "paso"
         }
       ]
@@ -1846,7 +1844,7 @@
       "sensible": true,
       "botones": [
         {
-          "texto": "Paso esta",
+          "texto": "Prefiero no contarla",
           "vale": "paso"
         }
       ]
@@ -1882,7 +1880,7 @@
       "sensible": true,
       "botones": [
         {
-          "texto": "Paso esta",
+          "texto": "Prefiero no contarla",
           "vale": "paso"
         },
         {
@@ -2124,7 +2122,7 @@
       "orden": 172,
       "texto": "¿Cómo te imaginás el mundo dentro de cien años? Contame cómo lo ves, y qué te gustaría que no se pierda.",
       "depende": [],
-      "parte": "nucleo",
+      "parte": "extra",
       "clase": "historia",
       "sensible": false
     },
@@ -2132,7 +2130,7 @@
       "id": "CI13",
       "bloque": 13,
       "orden": 173,
-      "texto": "Con esto cerramos esta parte. ¿Quedó algún momento importante de tu vida que no tuvo su pregunta? Contámelo ahora, tranquil{{o/a}}.",
+      "texto": "Hasta acá esta parte. ¿Quedó algún momento importante de tu vida que no tuvo su pregunta? Contámelo ahora, tranquil{{o/a}}.",
       "depende": [],
       "parte": "nucleo",
       "clase": "cierre",
@@ -2215,10 +2213,30 @@
       "sensible": false
     },
     {
-      "id": "CO1",
+      "id": "HO11",
       "bloque": 14,
       "orden": 181,
+      "texto": "¿Tenés alguna marca en el cuerpo que tenga historia? Una cicatriz, un tatuaje, una quemadura de la cocina. Contame cómo te la hiciste: dónde estabas, cuántos años tenías, quién estaba con vos y qué pasó después. Y si no tenés ninguna que valga la pena, contame de una que tenga alguien de tu familia y que siempre pregunten de dónde salió.",
+      "depende": [],
+      "parte": "nucleo",
+      "clase": "historia",
+      "sensible": false
+    },
+    {
+      "id": "CO1",
+      "bloque": 14,
+      "orden": 182,
       "texto": "¿Tenés un plato que sea tuyo, el que te piden o el que te sale siempre igual? Contame quién te lo enseñó y una vez que lo cocinaste para alguien.",
+      "depende": [],
+      "parte": "nucleo",
+      "clase": "historia",
+      "sensible": false
+    },
+    {
+      "id": "G1",
+      "bloque": 14,
+      "orden": 183,
+      "texto": "¿Qué música ponés hoy cuando estás a tu aire? ¿Cuál fue la última canción que escuchaste, y qué estabas haciendo?",
       "depende": [],
       "parte": "nucleo",
       "clase": "historia",
@@ -2227,7 +2245,7 @@
     {
       "id": "HO9",
       "bloque": 14,
-      "orden": 182,
+      "orden": 184,
       "texto": "¿Cómo es el lugar donde vivís hoy, la casa, el barrio? Contame cómo llegaste ahí y un momento de estos días que lo pinte.",
       "depende": [],
       "parte": "nucleo",
@@ -2237,18 +2255,8 @@
     {
       "id": "HO10",
       "bloque": 14,
-      "orden": 183,
+      "orden": 185,
       "texto": "¿Algo te acompañó muchos años, el cigarrillo, el vino, el café de la mañana? Contame cómo empezó y un momento con eso. Y si en algún momento te costó dejarlo, contame eso también.",
-      "depende": [],
-      "parte": "extra",
-      "clase": "historia",
-      "sensible": false
-    },
-    {
-      "id": "G1",
-      "bloque": 14,
-      "orden": 184,
-      "texto": "¿Qué música ponés hoy cuando estás a tu aire? ¿Cuál fue la última canción que escuchaste, y qué estabas haciendo?",
       "depende": [],
       "parte": "extra",
       "clase": "historia",
@@ -2257,7 +2265,7 @@
     {
       "id": "G2",
       "bloque": 14,
-      "orden": 185,
+      "orden": 186,
       "texto": "¿Y lo que más te gusta comer, así, sin pensarlo mucho? Contame la última vez que lo comiste: quién lo hizo y dónde.",
       "depende": [],
       "parte": "extra",
@@ -2267,7 +2275,7 @@
     {
       "id": "G3",
       "bloque": 14,
-      "orden": 186,
+      "orden": 187,
       "texto": "¿Te gusta leer, o sos más de mirar películas o series? ¿Con qué te enganchás? Contame la última vez que se te pasó la hora con algo así.",
       "depende": [],
       "parte": "extra",
@@ -2277,7 +2285,7 @@
     {
       "id": "G4",
       "bloque": 14,
-      "orden": 187,
+      "orden": 188,
       "texto": "¿Cuál es tu placer chiquito de todos los días? Una siesta, un chocolate, lo que sea. Contame el de hoy: a qué hora fue y cómo estuvo.",
       "depende": [],
       "parte": "extra",
@@ -2287,7 +2295,7 @@
     {
       "id": "G5",
       "bloque": 14,
-      "orden": 188,
+      "orden": 189,
       "texto": "¿Y un gusto grande? ¿En qué te gusta darte el lujo de gastar tu plata? Contame la última vez que te diste ese gusto.",
       "depende": [],
       "parte": "extra",
@@ -2297,8 +2305,8 @@
     {
       "id": "CI14",
       "bloque": 14,
-      "orden": 189,
-      "texto": "Con esto cerramos lo de hoy, y ya te conozco un poco más. ¿Quedó algo de tu vida de ahora que no tuvo su pregunta? Una costumbre, alguien que ves seguido, un rato del día que es tuyo. Contámelo ahora, tranquil{{o/a}}.",
+      "orden": 190,
+      "texto": "Hasta acá lo de hoy, y ya te conozco un poco más. ¿Quedó algo de tu vida de ahora que no tuvo su pregunta? Una costumbre, alguien que ves seguido, un rato del día que es tuyo. Contámelo ahora, tranquil{{o/a}}.",
       "depende": [],
       "parte": "nucleo",
       "clase": "cierre",
@@ -2313,7 +2321,7 @@
     {
       "id": "LE1",
       "bloque": 15,
-      "orden": 190,
+      "orden": 191,
       "texto": "Mirando toda tu vida hasta hoy, ¿qué es lo que más orgullo te da? Puede ser algo grande o algo que nadie más notó. Contame qué fue y el momento en que te diste cuenta.",
       "depende": [],
       "parte": "nucleo",
@@ -2323,7 +2331,7 @@
     {
       "id": "LE2",
       "bloque": 15,
-      "orden": 191,
+      "orden": 192,
       "texto": "¿Qué aprendiste de la vida que te gustaría que tu familia sepa? Decímelo como un consejo, algo que vos mism{{o/a}} descifraste viviendo.",
       "depende": [],
       "parte": "nucleo",
@@ -2333,7 +2341,7 @@
     {
       "id": "LE6",
       "bloque": 15,
-      "orden": 192,
+      "orden": 193,
       "texto": "Cuando la gente que te quiere piensa en vos, ¿qué te gustaría que se le venga a la cabeza? Una frase tuya, una imagen, una escena.",
       "depende": [],
       "parte": "extra",
@@ -2343,7 +2351,7 @@
     {
       "id": "FU1",
       "bloque": 15,
-      "orden": 193,
+      "orden": 194,
       "texto": "¿Queda algo que todavía querés hacer? Contámelo como si ya estuviera pasando: dónde estás, con quién, qué ves.",
       "depende": [],
       "parte": "nucleo",
@@ -2353,7 +2361,7 @@
     {
       "id": "LE7",
       "bloque": 15,
-      "orden": 194,
+      "orden": 195,
       "texto": "Si tu vida fuera un libro, ¿qué título le pondrías? Decímelo y contame por qué ese.",
       "depende": [],
       "parte": "nucleo",
@@ -2363,7 +2371,7 @@
     {
       "id": "FO1",
       "bloque": 15,
-      "orden": 195,
+      "orden": 196,
       "texto": "Otra cosa, {{nombre}}. ¿Hay alguna foto, en el celular o en algún cajón de tu casa, que quieras que quede para siempre en este libro? Si la tenés, sacale una foto y mandámela, y después contame en un audio qué se ve y quiénes están. Tomate el tiempo que necesites para buscarla: la pregunta que sigue te la mando cuando me llegue la foto o me digas algo. Y si no la encontrás, no pasa nada: el libro va igual, y la podés mandar más adelante.",
       "depende": [],
       "parte": "nucleo",
@@ -2379,7 +2387,7 @@
     {
       "id": "LE9",
       "bloque": 15,
-      "orden": 196,
+      "orden": 197,
       "texto": "Llegamos al final. ¿Hay algo que en todo este tiempo no te pregunté y querés que esté en el libro? Una persona, un lugar, una historia que te quedó dando vueltas.",
       "depende": [],
       "parte": "nucleo",
@@ -2389,7 +2397,7 @@
     {
       "id": "LE8",
       "bloque": 15,
-      "orden": 197,
+      "orden": 198,
       "texto": "Ahora sí, hablale a tu familia, a los que van a leer este libro. Lo que les dirías y lo que les deseás si los tuvieras sentados enfrente, sin apuro, de a uno. Nadie te corre.",
       "depende": [],
       "parte": "nucleo",
@@ -2399,7 +2407,7 @@
     {
       "id": "FIN",
       "bloque": 15,
-      "orden": 198,
+      "orden": 199,
       "texto": "Hasta acá llegamos, {{nombre}}. Gracias por cada audio, por cada historia y por la confianza de contarlas así. Con todo lo que me contaste vamos a armar un libro que va a quedar en tu familia para siempre. Antes de escribirlo vas a poder repasar lo que contaste, por si querés cambiar o agregar algo.«sino:FO1:  ‖  Y si te quedó alguna foto por mandar, mandámela por acá cuando la encuentres: entra igual.» Fue un gusto enorme escucharte.",
       "depende": [],
       "parte": "nucleo",
@@ -2411,7 +2419,7 @@
     {
       "id": "BIEN",
       "cuando": "Primer mensaje (bienvenida y cómo va, en un solo mensaje; `<br>` = salto de línea)",
-      "texto": "Hola, {{nombre}}, ¿cómo estás? Una persona que te quiere mucho te regaló un libro con la historia de tu vida, y yo soy quien te va a entrevistar para armarlo. Lo hacemos acá, por WhatsApp, tranquilos.\n\nFunciona así: te mando una pregunta y vos me la contás en audio, como si me lo estuvieras contando en persona. Mandame todos los audios que quieras. Cuando termines, ya está: con un ratito de silencio, la pregunta que sigue te llega sola.\n\nSi alguna pregunta no tiene que ver con tu vida, me decís que no, o me contás lo que sí te pasó a vos. Y sin apuro: esto lo hacemos al ritmo que vos quieras."
+      "texto": "Hola, {{nombre}}, ¿cómo estás? Una persona que te quiere mucho te regaló un libro con la historia de tu vida, y yo soy quien te va a entrevistar para armarlo. Lo hacemos acá, por WhatsApp, tranquilos.\n\nFunciona así: te mando una pregunta y vos me la contás en audio, como si me lo estuvieras contando en persona. Mandame todos los audios que quieras. Cuando termines no hace falta que me avises: si pasan unos minutos sin audios nuevos, te mando la pregunta que sigue.\n\nSi alguna pregunta no tiene que ver con tu vida, me decís que no, o me contás lo que sí te pasó a vos. Y sin apuro: esto lo hacemos al ritmo que vos quieras."
     },
     {
       "id": "M6",
@@ -2420,7 +2428,7 @@
     },
     {
       "id": "M1",
-      "cuando": "Al final de la pregunta, en línea aparte y en cursiva: solo en las 3 primeras de la entrevista, en las 6 que abren tema (CA6, JU8, AM0, AM9, HI0, HI8) y en las del bloque 11",
+      "cuando": "Al final de la pregunta, en línea aparte y en cursiva: solo en las 3 primeras de la entrevista, en CA6, JU8, AM0, AM9, HI0 y HI8 y en las del bloque 11",
       "texto": "_Si no va con vos, decí paso y vamos a otra._"
     },
     {
@@ -2481,7 +2489,7 @@
     {
       "id": "M4.4",
       "cuando": "Acuses sobrios, después de algo difícil (AM9, CA17, AD15, JU17, TR11 y todo el bloque 11), si contó algo (con un \"no\" corto va M25; con \"paso\", M27; con un olvido, M28.1). Van solos, en mensaje aparte",
-      "texto": "Gracias por animarte a contarlo. Cuando quieras, seguimos."
+      "texto": "Gracias por animarte a contarlo. Lo guardo con cuidado."
     },
     {
       "id": "M8",
@@ -2555,22 +2563,22 @@
     },
     {
       "id": "M26",
-      "cuando": "En lugar del acuse común (M3) cuando lo que sigue es un cierre de bloque, LE9 o una sensible (CA17, AD15, JU17, TR11, AM9, PE1, PE5, PE4): no anuncia \"otra pregunta\" antes de \"Con esto cerramos…\"; y siempre después de PG1 (Naza, 30/09, simulaciones)",
+      "cuando": "En lugar del acuse común (M3) cuando lo que sigue es un cierre de bloque, LE9, AM21 o una sensible (CA17, AD15, JU17, TR11, AM9, PE1, PE5, PE4): no anuncia \"otra pregunta\" antes de \"Hasta acá lo de…\"; y siempre después de PG1 y de AMH (Naza, 30/09, simulaciones y prueba en la página)",
       "texto": "Gracias, {{nombre}}."
     },
     {
       "id": "M27.1",
-      "cuando": "Se niega en una sensible (toca [Paso esta], dice \"paso\" o una frase de la lista); rotan; primera línea del mensaje que sigue. Delante de algo que arranca con \"Seguimos\" o \"Pasamos\" no va M27.1 sino M27.2",
+      "cuando": "Se niega en una sensible (toca [Prefiero no contarla], dice \"paso\" o una frase de la lista); rotan; primera línea del mensaje que sigue. Delante de algo que arranca con \"Seguimos\" o \"Pasamos\" no va M27.1 sino M27.2",
       "texto": "Está bien, {{nombre}}. Lo dejamos ahí y seguimos por otro lado."
     },
     {
       "id": "M27.2",
-      "cuando": "Se niega en una sensible (toca [Paso esta], dice \"paso\" o una frase de la lista); rotan; primera línea del mensaje que sigue",
+      "cuando": "Se niega en una sensible (toca [Prefiero no contarla], dice \"paso\" o una frase de la lista); rotan; primera línea del mensaje que sigue",
       "texto": "Claro, sin problema. Vamos con otra."
     },
     {
       "id": "M27.3",
-      "cuando": "Se niega en una sensible (toca [Paso esta], dice \"paso\" o una frase de la lista); rotan; primera línea del mensaje que sigue",
+      "cuando": "Se niega en una sensible (toca [Prefiero no contarla], dice \"paso\" o una frase de la lista); rotan; primera línea del mensaje que sigue",
       "texto": "Entiendo, {{nombre}}. No hace falta entrar ahí. Vamos con la que viene."
     },
     {
@@ -2590,8 +2598,13 @@
     },
     {
       "id": "M28.4",
-      "cuando": "Olvido a medias: la respuesta arranca con una frase de olvido y sigue contando (más de 20 palabras o con \"pero/aunque\"); en lugar de M3 o M4; primera línea del mensaje que sigue; delante de un cierre o de LE9 va M26. No suma al contador de M29 (Naza, 30/09, ronda 2)",
+      "cuando": "Olvido a medias: la respuesta arranca con una frase de olvido y sigue contando (más de 20 palabras o con \"pero/aunque\"); en lugar de M3 o M4; rota con M28.5 (nunca dos iguales seguidos); primera línea del mensaje que sigue; delante de un cierre o de LE9 va M26. No suma al contador de M29 (Naza, 30/09, ronda 2)",
       "texto": "Con ese pedacito me alcanza, {{nombre}}. Gracias."
+    },
+    {
+      "id": "M28.5",
+      "cuando": "Olvido a medias, rota con M28.4 (Naza, 30/09, prueba en la página: \"Con ese pedacito\" salió dos veces seguidas); mismas reglas que M28.4",
+      "texto": "Con eso me alcanza, gracias. Vamos con otra."
     },
     {
       "id": "M29",
@@ -2631,7 +2644,7 @@
     {
       "id": "EN2",
       "cuando": "Antes de la primera pregunta del bloque 2",
-      "texto": "Ahora vamos a tu infancia, {{nombre}}: la casa donde creciste y los de tu casa de entonces."
+      "texto": "Ahora vamos a tu infancia, {{nombre}}: la casa donde creciste y la gente que vivía con vos."
     },
     {
       "id": "EN3",

@@ -51,6 +51,9 @@ Regla que acompaña: dicho en audio, "prefiero no contarla" también vale como p
 
 Los textos de G1, HE2 y FI6 no cambian.
 
+**HO11 (nueva, aprobada por Naza el 30/09 en la misma tanda):** bloque 14 · Hoy, **núcleo**, después de HO6 y antes de CO1, sin dependencias, historia, no sensible, sin botones. Iba a llamarse HO7, pero ese ID ya existió con otro sentido (la puerta vieja del bloque 14, anotada en `banco-descartadas.md`); HO8 también está usado allí, así que queda HO11, el primero libre.
+- "¿Tenés alguna marca en el cuerpo que tenga historia? Una cicatriz, un tatuaje, una quemadura de la cocina. Contame cómo te la hiciste: dónde estabas, cuántos años tenías, quién estaba con vos y qué pasó después. Y si no tenés ninguna que valga la pena, contame de una que tenga alguien de tu familia y que siempre pregunten de dónde salió."
+
 ## 6. Salidas: "si ya me lo contaste"
 
 | ID | ANTES | DESPUÉS |

@@ -9,13 +9,13 @@
 - **Orden:** el de las tablas es el orden de envío (bloque 1 a 15, fila por fila).
 - **Depende de:**
   - vacío = le llega a todos;
-  - `si:X` = solo si X se mandó y se contestó con un "sí": tocó un botón de "Sí", contó algo, dijo "ya te lo conté" o no se acordó (un olvido cuenta como "sí": mejor una pregunta de más que un capítulo de menos). No se cumple si X fue un "no" corto, un botón de "No", un "paso" o un botón [Paso esta] (Naza, 30/09, simulaciones);
+  - `si:X` = solo si X se mandó y se contestó con un "sí": tocó un botón de "Sí", contó algo, dijo "ya te lo conté" o no se acordó (un olvido cuenta como "sí": mejor una pregunta de más que un capítulo de menos). No se cumple si X fue un "no" corto, un botón de "No", un "paso" o un botón [Prefiero no contarla] (Naza, 30/09, simulaciones; el botón se llamaba [Paso esta] hasta la prueba de Naza en la página);
   - `sino:X` = solo si la respuesta a X fue un "no" corto o un botón de "No";
-  - `paso:X` = solo si X se contestó con "paso" o con el botón [Paso esta] (AM16: `si:AM9 o paso:AM9`, va igual si no quiso contar el final; Naza, 30/09, ronda 2);
+  - `paso:X` = solo si X se contestó con "paso" o con el botón [Prefiero no contarla] (hoy sin uso: la usaba AM16, que salió del banco después de la prueba de Naza en la página; Naza, 30/09, ronda 2);
   - varias condiciones separadas por ` o ` = alcanza con que se cumpla una;
-  - condiciones unidas por ` y ` (dentro de un ` o `) = tienen que cumplirse todas (AM19: `si:AM9 y si:AM3`, solo si hubo un final y habían armado la vida juntos; Naza, 30/09, ronda 2).
+  - condiciones unidas por ` y ` (dentro de un ` o `) = tienen que cumplirse todas (AM19: `sino:AMH y si:AM3`, solo si esa persona ya no está y habían armado la vida juntos; Naza, 30/09, ronda 2 y prueba en la página).
   - Una pregunta solo puede depender de otra que se manda **antes**.
-- **"No" corto:** hasta 15 palabras y empieza con no / nunca / jamás / ninguno / nada / tampoco (sin importar mayúsculas, tildes ni signos); en los 14 cierres, en LE9, en las sensibles y en las 9 que abren tema (CA6, JU8, AM0, AM3, AM9, AM16, AM20, HI0, HI8) el tope es **40 palabras**. "Pero" o "aunque" en las primeras 5 palabras lo dan vuelta (salvo en los cierres). "Paso", un olvido y "ya te lo conté" no son un "no". Las reglas completas, en "Reglas del flujo" (Naza, 30/09, simulaciones; antes: menos de 15 palabras en todas).
+- **"No" corto:** hasta 15 palabras y empieza con no / nunca / jamás / ninguno / nada / tampoco (sin importar mayúsculas, tildes ni signos); en los 14 cierres, en LE9, en las sensibles y en las 8 que abren tema (CA6, JU8, AM0, AMH, AM3, AM21, HI0, HI8) el tope es **40 palabras**. "Pero" o "aunque" en las primeras 5 palabras lo dan vuelta (salvo en los cierres). "Paso", un olvido y "ya te lo conté" no son un "no". Las reglas completas, en "Reglas del flujo" (Naza, 30/09, simulaciones; antes: menos de 15 palabras en todas).
 - **Botones:** los de la sección "Botones" (antes de "Reglas del flujo"): una fila por botón, con lo que vale tocarlo (`sí`, `no` o `paso`). Si tocó un botón, manda el botón.
 - **Parte:** `núcleo` (lo que se manda a todos) o `extra` (la ronda extra, si la persona la acepta).
 - **Clase:** `historia` (pregunta de historia), `cierre` (pregunta de cierre de bloque), `aviso` (mensaje que no espera respuesta), `foto` (la única pregunta de fotos), `final` (el mensaje final).
@@ -27,14 +27,14 @@
 
 | ID | Cuándo | Texto |
 |---|---|---|
-| BIEN | Primer mensaje (bienvenida y cómo va, en un solo mensaje; `<br>` = salto de línea) | Hola, {{nombre}}, ¿cómo estás? Una persona que te quiere mucho te regaló un libro con la historia de tu vida, y yo soy quien te va a entrevistar para armarlo. Lo hacemos acá, por WhatsApp, tranquilos.<br><br>Funciona así: te mando una pregunta y vos me la contás en audio, como si me lo estuvieras contando en persona. Mandame todos los audios que quieras. Cuando termines, ya está: con un ratito de silencio, la pregunta que sigue te llega sola.<br><br>Si alguna pregunta no tiene que ver con tu vida, me decís que no, o me contás lo que sí te pasó a vos. Y sin apuro: esto lo hacemos al ritmo que vos quieras. |
+| BIEN | Primer mensaje (bienvenida y cómo va, en un solo mensaje; `<br>` = salto de línea) | Hola, {{nombre}}, ¿cómo estás? Una persona que te quiere mucho te regaló un libro con la historia de tu vida, y yo soy quien te va a entrevistar para armarlo. Lo hacemos acá, por WhatsApp, tranquilos.<br><br>Funciona así: te mando una pregunta y vos me la contás en audio, como si me lo estuvieras contando en persona. Mandame todos los audios que quieras. Cuando termines no hace falta que me avises: si pasan unos minutos sin audios nuevos, te mando la pregunta que sigue.<br><br>Si alguna pregunta no tiene que ver con tu vida, me decís que no, o me contás lo que sí te pasó a vos. Y sin apuro: esto lo hacemos al ritmo que vos quieras. |
 | M6 | **Sin uso desde el 30/09** (Naza): su contenido va dentro de BIEN. Antes: después de la bienvenida | Ahora te explico cómo va la entrevista, {{nombre}}. Te mando una pregunta y vos me la contás en audio. Si te salen dos o tres audios, mejor. Cuando quedás en silencio un ratito, entiendo que terminaste y te mando la próxima. No hay apuro: vamos al paso que vos vayas marcando. |
 
 ## Mensajes fijos
 
 | ID | Cuándo | Texto |
 |---|---|---|
-| M1 | Al final de la pregunta, en línea aparte y en cursiva: solo en las 3 primeras de la entrevista, en las 6 que abren tema (CA6, JU8, AM0, AM9, HI0, HI8) y en las del bloque 11 | _Si no va con vos, decí paso y vamos a otra._ |
+| M1 | Al final de la pregunta, en línea aparte y en cursiva: solo en las 3 primeras de la entrevista, en CA6, JU8, AM0, AM9, HI0 y HI8 y en las del bloque 11 | _Si no va con vos, decí paso y vamos a otra._ |
 | M3.1 | Acuses, rotan. Van como primera línea del mensaje que sigue (Naza, 30/09) | Gracias, {{nombre}}. Ya lo guardé. |
 | M3.2 | Acuses, rotan. Van como primera línea del mensaje que sigue (Naza, 30/09) | Te escuché. Vamos con la que sigue. |
 | M3.3 | Acuses, rotan. Van como primera línea del mensaje que sigue (Naza, 30/09) | Lo anoté, gracias. Sigo con otra. |
@@ -46,7 +46,7 @@
 | M4.1 | Acuses sobrios, después de algo difícil (AM9, CA17, AD15, JU17, TR11 y todo el bloque 11), si contó algo (con un "no" corto va M25; con "paso", M27; con un olvido, M28.1). Van solos, en mensaje aparte | Gracias por contarme esto, {{nombre}}. Queda guardado con cuidado. |
 | M4.2 | Acuses sobrios, después de algo difícil (AM9, CA17, AD15, JU17, TR11 y todo el bloque 11), si contó algo (con un "no" corto va M25; con "paso", M27; con un olvido, M28.1). Van solos, en mensaje aparte | Te escuché. Gracias por confiármelo. |
 | M4.3 | Acuses sobrios, después de algo difícil (AM9, CA17, AD15, JU17, TR11 y todo el bloque 11), si contó algo (con un "no" corto va M25; con "paso", M27; con un olvido, M28.1). Van solos, en mensaje aparte | Lo guardo tal como lo contaste. Gracias. |
-| M4.4 | Acuses sobrios, después de algo difícil (AM9, CA17, AD15, JU17, TR11 y todo el bloque 11), si contó algo (con un "no" corto va M25; con "paso", M27; con un olvido, M28.1). Van solos, en mensaje aparte | Gracias por animarte a contarlo. Cuando quieras, seguimos. |
+| M4.4 | Acuses sobrios, después de algo difícil (AM9, CA17, AD15, JU17, TR11 y todo el bloque 11), si contó algo (con un "no" corto va M25; con "paso", M27; con un olvido, M28.1). Van solos, en mensaje aparte | Gracias por animarte a contarlo. Lo guardo con cuidado. |
 | M8 | Recordatorio a la persona, a los pocos días sin respuesta | Hola, {{nombre}}. Pasaron unos días y quería saber cómo andás. Tu historia está acá, guardada tal como la dejaste. Cuando tengas un rato me contestás la que quedó pendiente. Sin apuro. |
 | M9 | Aviso a la familia, una semana sin audios | Hola, {{quien_regala}}. Te aviso que {{nombre}} hace una semana que no manda audios. Puede ser cualquier cosa: que ande con otras cosas, que no mire mucho el celular o que le cueste un poco arrancar de nuevo. Si podés, pegale un llamado o hacele una visita y preguntale cómo viene con el libro; muchas veces con una charla con alguien de la familia se vuelve a enganchar. Lo que ya contó está guardado. Si hay algo que tenga que saber, me avisás. |
 | M10 | **Sin uso desde el 30/09** (Naza): la frase de entrada del bloque siguiente hace de pasaje. Antes: fin de etapa (bloques 2 a 5), después del cierre | Terminamos esta etapa, {{nombre}}. Pasamos a la siguiente. |
@@ -61,14 +61,15 @@
 | M25.1 | Después de un "no" corto o de un botón de "No" en cualquier pregunta, de un "paso" en un cierre y de un "ya te lo conté" corto (Naza, 30/09, simulaciones); rotan. Primera línea del mensaje que sigue; si ese mensaje arranca con "Seguimos" o "Pasamos", va M25.3 | Bien, seguimos. |
 | M25.2 | Después de un "no" corto o de un botón de "No" en cualquier pregunta, de un "paso" en un cierre y de un "ya te lo conté" corto (Naza, 30/09, simulaciones); rotan. Primera línea del mensaje que sigue; si ese mensaje arranca con "Seguimos" o "Pasamos", va M25.3 | Bien, seguimos. |
 | M25.3 | Después de un "no" corto o de un botón de "No" en cualquier pregunta, de un "paso" en un cierre y de un "ya te lo conté" corto (Naza, 30/09, simulaciones); rotan. Primera línea del mensaje que sigue; si ese mensaje arranca con "Seguimos" o "Pasamos", va M25.3 | Bien, entonces. |
-| M26 | En lugar del acuse común (M3) cuando lo que sigue es un cierre de bloque, LE9 o una sensible (CA17, AD15, JU17, TR11, AM9, PE1, PE5, PE4): no anuncia "otra pregunta" antes de "Con esto cerramos…"; y siempre después de PG1 (Naza, 30/09, simulaciones) | Gracias, {{nombre}}. |
-| M27.1 | Se niega en una sensible (toca [Paso esta], dice "paso" o una frase de la lista); rotan; primera línea del mensaje que sigue. Delante de algo que arranca con "Seguimos" o "Pasamos" no va M27.1 sino M27.2 | Está bien, {{nombre}}. Lo dejamos ahí y seguimos por otro lado. |
-| M27.2 | Se niega en una sensible (toca [Paso esta], dice "paso" o una frase de la lista); rotan; primera línea del mensaje que sigue | Claro, sin problema. Vamos con otra. |
-| M27.3 | Se niega en una sensible (toca [Paso esta], dice "paso" o una frase de la lista); rotan; primera línea del mensaje que sigue | Entiendo, {{nombre}}. No hace falta entrar ahí. Vamos con la que viene. |
+| M26 | En lugar del acuse común (M3) cuando lo que sigue es un cierre de bloque, LE9, AM21 o una sensible (CA17, AD15, JU17, TR11, AM9, PE1, PE5, PE4): no anuncia "otra pregunta" antes de "Hasta acá lo de…"; y siempre después de PG1 y de AMH (Naza, 30/09, simulaciones y prueba en la página) | Gracias, {{nombre}}. |
+| M27.1 | Se niega en una sensible (toca [Prefiero no contarla], dice "paso" o una frase de la lista); rotan; primera línea del mensaje que sigue. Delante de algo que arranca con "Seguimos" o "Pasamos" no va M27.1 sino M27.2 | Está bien, {{nombre}}. Lo dejamos ahí y seguimos por otro lado. |
+| M27.2 | Se niega en una sensible (toca [Prefiero no contarla], dice "paso" o una frase de la lista); rotan; primera línea del mensaje que sigue | Claro, sin problema. Vamos con otra. |
+| M27.3 | Se niega en una sensible (toca [Prefiero no contarla], dice "paso" o una frase de la lista); rotan; primera línea del mensaje que sigue | Entiendo, {{nombre}}. No hace falta entrar ahí. Vamos con la que viene. |
 | M28.1 | Después de un olvido ("no me acuerdo", "no sé"…), en lugar de M3 o M4; primera línea del mensaje que sigue. Es el único de olvido en uso (Naza, 30/09) | No pasa nada, {{nombre}}. Vamos con otra. |
 | M28.2 | **Reserva, sin uso** (Naza, 30/09): solo si con alguien que se olvida mucho se nota la repetición de M28.1 | Está bien, no hay problema. Te pregunto otra cosa. |
 | M28.3 | **Reserva, sin uso** (Naza, 30/09): solo si con alguien que se olvida mucho se nota la repetición de M28.1 | Tranquil{{o/a}}, no importa. Seguimos con la que viene. |
-| M28.4 | Olvido a medias: la respuesta arranca con una frase de olvido y sigue contando (más de 20 palabras o con "pero/aunque"); en lugar de M3 o M4; primera línea del mensaje que sigue; delante de un cierre o de LE9 va M26. No suma al contador de M29 (Naza, 30/09, ronda 2) | Con ese pedacito me alcanza, {{nombre}}. Gracias. |
+| M28.4 | Olvido a medias: la respuesta arranca con una frase de olvido y sigue contando (más de 20 palabras o con "pero/aunque"); en lugar de M3 o M4; rota con M28.5 (nunca dos iguales seguidos); primera línea del mensaje que sigue; delante de un cierre o de LE9 va M26. No suma al contador de M29 (Naza, 30/09, ronda 2) | Con ese pedacito me alcanza, {{nombre}}. Gracias. |
+| M28.5 | Olvido a medias, rota con M28.4 (Naza, 30/09, prueba en la página: "Con ese pedacito" salió dos veces seguidas); mismas reglas que M28.4 | Con eso me alcanza, gracias. Vamos con otra. |
 | M29 | Una sola vez en toda la entrevista, al tercer olvido seguido, en lugar de M28 y arriba de la pregunta que sigue (primera línea del mensaje que sigue) | Una cosa, {{nombre}}: no te hagas problema si algo no te acordás. Para el libro alcanza con lo que sí tenés. Y si de alguna te acordás a medias, contame ese pedacito nomás: un olor, una cara, cómo era en general. Eso también es tu historia. |
 | M30 | Cuando toca un botón de "Sí" en una pregunta que abre tema; mensaje solo, y se espera el audio en la misma pregunta | Contame, te escucho. |
 | M31 | Una sola vez: debajo del primer mensaje de la entrevista que lleva botones (CI1 en una vida completa), en línea aparte y en cursiva, como M1 | _Podés tocar el botón de abajo, o contestarme en audio como siempre._ |
@@ -83,7 +84,7 @@ Una frase al empezar cada bloque, antes de su primera pregunta; no espera respue
 
 | ID | Cuándo | Texto |
 |---|---|---|
-| EN2 | Antes de la primera pregunta del bloque 2 | Ahora vamos a tu infancia, {{nombre}}: la casa donde creciste y los de tu casa de entonces. |
+| EN2 | Antes de la primera pregunta del bloque 2 | Ahora vamos a tu infancia, {{nombre}}: la casa donde creciste y la gente que vivía con vos. |
 | EN3 | Antes de la primera pregunta del bloque 3 | Seguimos con la escuela: la primaria, los maestros y los juegos de esa edad. |
 | EN4 | Antes de la primera pregunta del bloque 4 | Ahora vamos a tu adolescencia: esos años en que uno deja de ser chic{{o/a}} y todavía no es grande. |
 | EN5 | Antes de la primera pregunta del bloque 5 | Pasamos a tu juventud, {{nombre}}: cuando empezaste a armar tu propia vida. |
@@ -105,7 +106,7 @@ Una frase al empezar cada bloque, antes de su primera pregunta; no espera respue
 | OR5 | ¿Cómo se conocieron tu mamá y tu papá? Seguro en casa lo contaron más de una vez: un baile, una casualidad, alguien que los presentó. Contame ese día como te lo contaron. |  | núcleo | historia |  |
 | OR6 | ¿Por qué te pusieron {{nombre}}? En las casas siempre hay una historia atrás de un nombre: una discusión, un santo, alguien a quien querían mucho. Contame la que te contaron a vos, aunque sea cortita. |  | extra | historia |  |
 | OR6.2 | ¿Tenés o tuviste algún apodo? Si es así, contame cómo nació: quién te lo puso, por qué justo ese, y si te gusta. Casi siempre hay una anécdota atrás. |  | extra | historia |  |
-| CI1 | Con esto cerramos lo de tu familia de antes, la de antes de que llegaras vos. Y me pregunto si se me escapó algo: una historia de tus abuelos, de tus viejos de jóvenes, de esa casa. Si hay una dando vueltas, contámela ahora. Y si algo se te viene más tarde, a cualquier hora, mandámelo cuando quieras: va al libro igual. |  | núcleo | cierre |  |
+| CI1 | Hasta acá lo de tu familia de antes de que llegaras vos. Y me pregunto si se me escapó algo: una historia de tus abuelos, de tus viejos de jóvenes, de esa casa. Si hay una dando vueltas, contámela ahora. Y si algo se te viene más tarde, a cualquier hora, mandámelo cuando quieras: va al libro igual. |  | núcleo | cierre |  |
 
 ## Bloque 2 · La casa y la familia de la infancia
 
@@ -113,7 +114,7 @@ Una frase al empezar cada bloque, antes de su primera pregunta; no espera respue
 |---|---|---|---|---|---|
 | CA1 | Contame el primer recuerdo que tengas de la casa donde creciste: un día, qué estabas haciendo, quién andaba por ahí. |  | núcleo | historia |  |
 | CA2 | Viajemos un rato a cuando eras chic{{o/a}}. ¿Cómo era tu mamá con vos en esa época? Si te viene a la cabeza alguna anécdota con ella, contámela: dónde estaban, qué pasó. |  | núcleo | historia |  |
-| CA3 | ¿Y tu papá? ¿A qué se dedicaba cuando eras chic{{o/a}}? Contame alguna vez que lo acompañaste o lo viste trabajando. |  | núcleo | historia |  |
+| CA3 | ¿Y tu papá? ¿A qué se dedicaba cuando eras chic{{o/a}}? Contame alguna vez que lo acompañaste o lo viste trabajando. Y si tu papá no estuvo, o preferís no entrar, contame lo que vos quieras de él. |  | núcleo | historia |  |
 | CA4 | Pensá en el día que alguien de tu casa te enseñó a hacer algo por primera vez: andar en bicicleta, nadar, silbar. Cómo fue ese día. |  | extra | historia |  |
 | CA5 | Vamos a la vez que más te retaron o te castigaron de chic{{o/a}}: qué habías hecho, quién te retó y cómo terminó. |  | extra | historia |  |
 | CA6 | ¿Tuviste hermanos? Si ya salieron en la charla no importa, quiero saber más: contame con cuál eras más cercan{{o/a}} de chic{{o/a}} y alguna aventura que hayan hecho juntos; seguro tienen varias. |  | núcleo | historia |  |
@@ -145,7 +146,7 @@ Una frase al empezar cada bloque, antes de su primera pregunta; no espera respue
 | ES13 | ¿Fuiste siempre a la misma escuela, o te tocó cambiarte? Si te cambiaste, contame cómo fue el primer día en la nueva: cómo llegaste, qué te encontraste. |  | extra | historia |  |
 | ES14 | ¿Cómo eran los recreos en tu escuela? ¿A qué se jugaba, dónde te metías vos? Contame algún recreo que se te haya quedado grabado. |  | extra | historia |  |
 | ES15 | ¿Había algún compañero o compañera que no te caía bien? ¿Por qué? Contame alguna vez que se cruzaron. |  | extra | historia |  |
-| CI3 | Con esto cerramos tus años de escuela. Antes de seguir, ¿te quedó alguna historia de esa época dando vueltas, algo que no entró en ninguna pregunta? Contámela ahora, con calma, que la quiero escuchar. |  | núcleo | cierre |  |
+| CI3 | Hasta acá lo de la escuela. ¿Te quedó alguna historia de esos años que no te pregunté? Puede ser de la primaria o del colegio de después. Si hay una, contámela ahora, con calma. Si no, tocá el botón. |  | núcleo | cierre |  |
 
 ## Bloque 4 · Adolescencia
 
@@ -162,10 +163,10 @@ Una frase al empezar cada bloque, antes de su primera pregunta; no espera respue
 | AD10 | En esos años, ¿había alguien mayor que te entendía y a quien escuchabas de verdad, un tío, la mamá de un amigo, el amigo de un hermano? Contame cómo era con vos y una vez que estuvo de tu lado cuando lo necesitabas. |  | extra | historia |  |
 | AD11 | ¿Qué cosas te gustaban a los dieciséis, qué te sacaba de la cama? Un deporte, un taller, la música, lo que fuera. Contame qué eran, y un día de eso en particular. |  | extra | historia |  |
 | AD12 | ¿Cuándo sentiste por primera vez que ya no eras chic{{o/a}}? Algo que tuviste que decidir o hacer por tu cuenta, una responsabilidad nueva. Contame ese momento. |  | núcleo | historia |  |
-| AD15 | ¿Hubo algún momento duro en tu adolescencia que creas que no puede quedar afuera de tu historia? ¿Algo que te marcó? Si querés, contame qué pasó y cómo lo viviste. |  | núcleo | historia | sí |
+| AD15 | ¿Hubo algún momento duro en tu adolescencia que creas que no puede quedar afuera de tu historia? ¿Algo que te marcó? Si querés, contame qué pasó y cómo lo viviste. Y si ya me lo contaste, decime "ya te lo conté" y seguimos. |  | núcleo | historia | sí |
 | AD16 | Cuando se terminaba el colegio, o esa etapa para vos, ¿qué planes tenías? ¿Qué te imaginabas para lo que venía? Si te acordás de alguna charla o algún momento en que lo pensaste, contámelo. |  | extra | historia |  |
 | AD17 | ¿Aprendiste a manejar? Contame la primera vez que agarraste un volante: quién te enseñó, dónde fue, cómo te fue. |  | extra | historia |  |
-| CI4 | Con esto cerramos tu adolescencia. Antes de pasar a los años de grande, ¿quedó algo de esa época que no encontró su pregunta? Un recuerdo suelto, una cara, una noche. Contámelo ahora, tranquil{{o/a}}, que hay tiempo. |  | núcleo | cierre |  |
+| CI4 | Hasta acá tu adolescencia. Antes de pasar a los años de grande, ¿quedó algo de esa época que no encontró su pregunta? Un recuerdo suelto, una cara, una noche. Contámelo ahora, tranquil{{o/a}}, que hay tiempo. |  | núcleo | cierre |  |
 
 ## Bloque 5 · Juventud
 
@@ -185,7 +186,7 @@ Una frase al empezar cada bloque, antes de su primera pregunta; no espera respue
 | JU13 | ¿Hiciste alguna locura de joven? Un viaje a dedo, una apuesta, algo que hoy no harías. Contame esa vez desde que empezó, con todo lo que pasó. |  | extra | historia |  |
 | JU15 | ¿Y los amigos de esos años, de cuando empezabas a hacer tu vida? Cómo eran, dónde se juntaban, qué hacían. Contame una vez con ellos que te quedó. Y si se te vienen más, contalas también. |  | núcleo | historia |  |
 | JU16 | Pensá en un momento muy feliz de tu juventud. No hace falta que sea algo grande: una tarde, una noticia, un lugar. ¿Dónde estabas, qué pasó? Contámelo como si estuvieras ahí de nuevo. |  | extra | historia |  |
-| JU17 | ¿Hubo algún momento duro en tu juventud que creas que no puede quedar afuera de tu historia? ¿Algo que te marcó? Si querés, contame qué pasó y cómo lo viviste. |  | núcleo | historia | sí |
+| JU17 | ¿Hubo algún momento duro en tu juventud que creas que no puede quedar afuera de tu historia? ¿Algo que te marcó? Si querés, contame qué pasó y cómo lo viviste. Y si ya me lo contaste, decime "ya te lo conté" y seguimos. |  | núcleo | historia | sí |
 | JU18 | ¿Cómo eran las fiestas y las salidas en tu juventud? Los bailes, los cumpleaños, las noches largas. Contame una que no te olvidás. Y si se te vienen más, contalas también. |  | extra | historia |  |
 | JU19 | ¿Tuviste algún flechazo en esos años, alguien que te movió el piso? Contame cómo fue: dónde se cruzaron, qué pasó. |  | extra | historia |  |
 | JU20 | ¿Te mudaste muchas veces en tu vida? Contame por qué casas o lugares fuiste pasando, más o menos en qué años, y cuál de esas mudanzas te quedó más grabada. |  | extra | historia |  |
@@ -195,8 +196,9 @@ Una frase al empezar cada bloque, antes de su primera pregunta; no espera respue
 
 | ID | Pregunta | Depende de | Parte | Clase | Sensible |
 |---|---|---|---|---|---|
-| AM0 | Ahora vamos al amor. ¿Hubo alguien con quien tuviste una historia en serio? Si hubo, haceme un repaso corto: cuántas veces te enamoraste, cuáles llegaron a algo serio, más o menos en qué años. Después te pregunto más de la primera que fue en serio, y de las que vinieron después también va a haber lugar. Y si no hubo, también vale. |  | núcleo | historia |  |
-| AM1 | Vamos a la primera que fue en serio. Contame el día que se conocieron: dónde fue, quién los presentó o cómo se cruzaron, y qué fue lo primero que te llamó la atención de esa persona. Si ya me lo contaste cuando hablamos de tu adolescencia, decímelo y vamos a lo que sigue. | si:AM0 | núcleo | historia |  |
+| AM0 | Ahora vamos al amor. ¿Hubo alguien con quien tuviste una historia en serio? Si hubo, haceme un repaso corto: cuántas veces te enamoraste, cuáles llegaron a algo serio, más o menos en qué años, y si hoy hay alguien a tu lado. Después te pregunto más de la pareja de ahora, o de la última, y de las de antes también va a haber lugar. Y si no hubo, también vale. |  | núcleo | historia |  |
+| AMH | Vamos a la pareja de ahora, o a la última si hoy no hay nadie. Antes de preguntarte por esa historia, decime desde dónde te pregunto: ¿esa persona sigue hoy a tu lado? | si:AM0 | núcleo | historia |  |
+| AM1 | Contame el día que se conocieron: dónde fue, quién los presentó o cómo se cruzaron, y qué fue lo primero que te llamó la atención de esa persona. Si ese día ya me lo contaste antes, decime "ya te lo conté" y seguimos con lo que vino después. | si:AM0 | núcleo | historia |  |
 | AM2 | ¿Cómo fue el noviazgo, o esos primeros tiempos? Pensá en un momento: una cita, un paseo, una tarde que todavía tenés fresca. Contámela como si la vieras de vuelta. Si se te vienen más, contalas también. | si:AM0 | extra | historia |  |
 | AM3 | Y después, ¿llegaron a armar la vida juntos: casarse, irse a vivir, lo que haya sido? Si llegaron, contame ese momento: quién lo dijo primero, o si se fue dando solo, dónde estaban, qué se dijeron. Si ya me lo contaste recién, con decírmelo alcanza. | si:AM0 | núcleo | historia |  |
 | AM4 | Hay días que quedan grabados para siempre: el del casamiento, o el primero viviendo juntos. Contame ese día como si lo estuvieras viendo: el lugar, la gente, la ropa, lo que más te quedó. Si ya me lo contaste recién, con decírmelo alcanza. | si:AM3 | núcleo | historia |  |
@@ -204,15 +206,14 @@ Una frase al empezar cada bloque, antes de su primera pregunta; no espera respue
 | AM6 | ¿Tuvieron una época difícil entre ustedes? Si la hubo, contame qué pasaba y cómo la fueron llevando: qué hizo cada uno, si hubo un día que lo cambió. Si preferís no entrar, también está bien. | si:AM0 | extra | historia |  |
 | AM13 | Contame una pelea que tuvieron, de esas que después dan risa: por qué fue, quién aflojó primero y cómo hicieron las paces. Si no hubo ninguna que hoy dé risa, con decírmelo alcanza. | si:AM3 | núcleo | historia |  |
 | AM8 | Imaginate que podés guardar un solo momento con esa persona, ¿cuál sería? Contámelo entero: el lugar, el día, qué hacían. Si se te vienen otros, contalos también. | si:AM0 | núcleo | historia |  |
-| AM9 | Si esa historia tuvo un final, una separación o una despedida, ¿querés contármelo? Solo lo que vos quieras. Y si no querés, con decir "paso" alcanza; lo demás de tu historia sigue igual. | si:AM0 | núcleo | historia | sí |
-| AM7 | Contame algo muy de esa persona: una frase que «sino:AM9: repite ‖ repetía», una costumbre, una manía. Y una vez puntual en que salió eso, para que quien lea la tenga enfrente. | si:AM0 | extra | historia |  |
-| AM19 | Y después, cuando quedaste por tu cuenta, ¿cómo fueron esos primeros tiempos? Qué cambió en la casa y en los días, quién anduvo cerca. Si ese tiempo es el de ahora, contame igual cómo lo estás llevando. Y si no hubo un tiempo así, con decírmelo alcanza. | si:AM9 y si:AM3 | núcleo | historia |  |
-| AM16 | Y más adelante, ¿hubo otro amor? Si hubo, contame por ahora solo del que compartís hoy, o del último: el día que se conocieron y un momento de los dos que te haya quedado. De las del medio, si hubo, te pregunto después. | si:AM9 o paso:AM9 | núcleo | historia |  |
-| AM20 | Ahora sí, las del medio. Entre la primera que fue en serio y la de ahora, o la última, ¿hubo otras historias que fueron en serio? Un casamiento, alguien con quien viviste años. Este es su lugar, aunque me las hayas nombrado en el repaso: contame de cada una lo que quieras que quede, cómo se cruzaron y cómo terminó. | si:AM16 | núcleo | historia |  |
+| AM9 | Si querés, contame cómo fue el final de esa historia: una separación, una despedida, lo que haya sido. Solo lo que vos quieras, y hasta donde quieras. Si preferís no entrar ahí, con el botón alcanza; lo demás de tu historia sigue igual. | sino:AMH | núcleo | historia | sí |
+| AM7 | Contame algo muy de esa persona: una frase que «sino:AMH: repetía ‖ repite», una costumbre, una manía. Y una vez puntual en que salió eso, para que quien lea la tenga enfrente. | si:AM0 | extra | historia |  |
+| AM19 | Y después, cuando quedaste por tu cuenta, ¿cómo fueron esos primeros tiempos? Qué cambió en la casa y en los días, quién anduvo cerca. Si ese tiempo es el de ahora, contame igual cómo lo estás llevando. Y si no hubo un tiempo así, con decírmelo alcanza. | sino:AMH y si:AM3 | núcleo | historia |  |
+| AM21 | Ahora las de antes. Si en el repaso me nombraste otras historias que fueron en serio, este es su lugar, pero sin tanto detalle: de cada una, contame un momento que quieras que quede en el libro, el que se te venga primero, y si querés, cómo terminó. Y si hubo alguien que te marcó aunque no haya llegado a nada, también entra acá. Si esa fue la única, con el botón alcanza. | si:AM0 | núcleo | historia |  |
 | AM17 | En el amor, ¿alguna vez alguien te cuidó cuando lo necesitabas, en una enfermedad o un mal momento? Si te pasó, contame qué hizo y qué te dijo. | si:AM0 | extra | historia |  |
-| AM14 | ¿Hubo algún amor que te marcó, aunque haya durado poco o no haya llegado a nada? Si lo hubo, contame cómo se cruzaron y el momento que más te acordás de esa persona. Y si no hubo, con un no alcanza. |  | núcleo | historia |  |
+| AM14 | ¿Hubo algún amor que te marcó, aunque haya durado poco o no haya llegado a nada? Si lo hubo, contame cómo se cruzaron y el momento que más te acordás de esa persona. Y si no hubo, con un no alcanza. | sino:AM0 | núcleo | historia |  |
 | AM15 | ¿Quiénes son hoy las personas con las que compartís la vida: un hermano, una amiga, un vecino, quien sea? Pensá en una y contame un día de ustedes que tengas bien guardado. | sino:AM0 | núcleo | historia |  |
-| CI6 | Con esto cerramos el amor. ¿Quedó alguien o algo de este tema que no tuvo su pregunta? Una persona, una carta, un baile, una charla que no entró en ningún lado. Es el momento de contarlo, sin apuro. |  | núcleo | cierre |  |
+| CI6 | Hasta acá lo del amor. ¿Quedó alguien o algo de eso que no te pregunté? Una persona, una carta, un baile, una charla que no entró en ningún lado. Es el momento de contarlo, sin apuro. |  | núcleo | cierre |  |
 
 ## Bloque 7 · Trabajo y oficio
 
@@ -236,7 +237,7 @@ Una frase al empezar cada bloque, antes de su primera pregunta; no espera respue
 | CP1 | ¿Viviste o trabajaste en el campo alguna vez, aunque fuera de chic{{o/a}} o por una temporada? Si fue así, contame un día entero ahí, y una vez que el clima mandó: una seca, una helada, una tormenta. |  | núcleo | historia |  |
 | PR1 | ¿Terminaste algún estudio, un curso, un oficio, una carrera? Si fue así, contame el día que te recibiste o que terminaste: dónde estabas, si había alguien tuyo mirando, qué hiciste esa noche. |  | extra | historia |  |
 | TR9 | ¿Ya dejaste eso a lo que te dedicaste? Si seguís, con decírmelo alcanza. Si ya lo dejaste, contame el último día: cómo fue, si lo sabías de antes, qué hiciste al salir. Y el día siguiente, el primero sin ir. |  | núcleo | historia |  |
-| CI7 | Con esto cerramos el trabajo. ¿Quedó algo que no tuvo su pregunta? Un lugar, una herramienta, un olor, una persona, una changa de la que nadie sabe. Es el momento de contarlo, sin apuro. |  | núcleo | cierre |  |
+| CI7 | Hasta acá lo de tu trabajo y tu oficio. ¿Quedó algo de eso que no te pregunté? Un lugar, una herramienta, un olor, una persona, un trabajo de unos días que nadie recuerda. Es el momento de contarlo, sin apuro. |  | núcleo | cierre |  |
 
 ## Bloque 8 · Hijos y nietos
 
@@ -258,7 +259,7 @@ Una frase al empezar cada bloque, antes de su primera pregunta; no espera respue
 | HI8 | Ahora, los nietos. ¿Llegaron nietos a tu vida? Puede que ya los hayas mencionado; contame el día que conociste al primero, como si lo estuvieras viendo. Si no hay nietos, pasamos a otra cosa. | si:HI0 | núcleo | historia |  |
 | HI9 | ¿Hay algo que hacés con tus nietos que es de ustedes, que no lo hacen con nadie más? Un juego, por ejemplo. Contame qué es y una vez que tengas bien grabada. | si:HI8 | núcleo | historia |  |
 | NC1 | A veces a los abuelos les toca criar a un nieto, o tenerlo a cargo un tiempo. Si te pasó, contame cómo se dio y cómo fue el primer día. Y si no te tocó, decímelo y seguimos. | si:HI8 | extra | historia |  |
-| CI8 | Con esto cerramos este tema. ¿Quedó alguien o algo que no tuvo su pregunta? Un cumpleaños, una charla en la cocina, alguien que no entró en ningún lado. Es el momento de contarlo, sin apuro. |  | núcleo | cierre |  |
+| CI8 | Hasta acá lo de la familia de grande. ¿Quedó alguien o algo que no te pregunté? Un cumpleaños, una charla en la cocina, alguien que no entró en ningún lado. Es el momento de contarlo, sin apuro. |  | núcleo | cierre |  |
 
 ## Bloque 9 · Lugares y pasiones
 
@@ -272,23 +273,23 @@ Una frase al empezar cada bloque, antes de su primera pregunta; no espera respue
 | LU7 | De grande, ¿hubo un lugar adonde ibas de vacaciones una y otra vez? Contame cómo era eso, cómo llegaban, y un día de esas vacaciones que tengas guardado. |  | extra | historia |  |
 | PA3 | ¿Sos hincha de algún club? Contame cómo empezó eso, si alguien te llevó, y un partido que no te olvidás más. |  | extra | historia |  |
 | LU8 | ¿Hay un lugar al que te gustaría volver, aunque sea por un rato? Contame qué lugar es, y la última vez que estuviste ahí. |  | extra | historia |  |
-| CI9 | Con esto cerramos lugares y pasiones. ¿Quedó algún lugar o algo que te gustó mucho y no tuvo su pregunta? Una esquina, un hobby que duró poco, un rincón de tu casa. Contalo ahora, tranquil{{o/a}}. |  | núcleo | cierre |  |
+| CI9 | Hasta acá los lugares y las pasiones. ¿Quedó algún lugar o algo que te gustó mucho y no tuvo su pregunta? Una esquina, un hobby que duró poco, un rincón de tu casa. Contalo ahora, tranquil{{o/a}}. |  | núcleo | cierre |  |
 
 ## Bloque 10 · Amistades y ayudas
 
 | ID | Pregunta | Depende de | Parte | Clase | Sensible |
 |---|---|---|---|---|---|
 | AS1 | Ya de grande, ¿hubo alguien que conociste y se volvió muy importante en tu vida, un amigo o una amiga? Contame cómo se conocieron, y una vez que muestre bien cómo es esa amistad. |  | núcleo | historia |  |
+| HE2 | Ya de grandes, ¿tus hermanos también se volvieron amigos? Contame algún momento de adultos en que estuvieron bien cerca: un viaje, una charla, una mano que se dieron. Si no tuviste hermanos, decime y seguimos. | si:CA6 | núcleo | historia |  |
 | AS1b | Volviendo a esa amistad: contame algo que hicieron juntos hace poco. Aunque sea una charla por teléfono. | si:AS1 | extra | historia |  |
 | AY1 | ¿Alguna vez necesitaste ayuda de verdad y alguien te la dio, sea quien sea? Contame qué hizo esa persona ese día, y si después se lo pudiste devolver. |  | núcleo | historia |  |
 | AS4 | A veces una amistad se enfría sin que nadie lo decida. ¿Te pasó con alguna? Contame cómo era esa amistad y qué fue pasando, hasta donde tengas ganas. |  | extra | historia |  |
 | AS5 | ¿Formaste parte alguna vez de un grupo que se juntaba por algo, un club, una comisión del barrio, o un grupo de amigos? Contame una vez que hicieron algo juntos que todavía recuerdes. |  | extra | historia |  |
 | RE1 | ¿Hubo una vez en que nada te ayudaba y te sostuvo algo en lo que creías? La fe, o lo que sea para vos. Contame ese momento y cómo te agarraste de eso. |  | extra | historia |  |
-| HE2 | Ya de grandes, ¿tus hermanos también se volvieron amigos? Contame algún momento de adultos en que estuvieron bien cerca: un viaje, una charla, una mano que se dieron. Si no tuviste hermanos, decime y seguimos. |  | extra | historia |  |
 | AS9 | Imaginate que armás una cena y podés invitar a tu gente más cercana. ¿Quiénes se sientan en esa mesa? Contame quién va, y por qué cada uno se ganó su lugar. |  | núcleo | historia |  |
 | AY2 | ¿Y te tocó ser vos quien le dio una mano a alguien que la necesitaba? Contame qué pasó y qué hiciste ese día. |  | extra | historia |  |
 | AS7 | Hoy, cuando te pasa algo importante, ¿a quién se lo contás primero? Contame una vez que le hayas contado algo así. |  | extra | historia |  |
-| CI10 | Con esto cerramos amistades y ayudas. ¿Quedó alguien que te acompañó y no tuvo su pregunta? Un vecino, alguien del trabajo, una persona que apareció una sola vez. Y si querés contar de otros amigos importantes, de quien sea, es el momento. Contalo tranquil{{o/a}}. |  | núcleo | cierre |  |
+| CI10 | Hasta acá los amigos y la gente que te ayudó. ¿Quedó alguien que te acompañó y no tuvo su pregunta? Un vecino, alguien del trabajo, una persona que apareció una sola vez. Y si querés contar de otros amigos importantes, de quien sea, es el momento. Contalo tranquil{{o/a}}. |  | núcleo | cierre |  |
 
 ## Bloque 11 · Pérdidas y momentos difíciles
 
@@ -331,8 +332,8 @@ Una frase al empezar cada bloque, antes de su primera pregunta; no espera respue
 | FI2 | ¿Hubo un momento en que te diste cuenta, de golpe, de que el tiempo había pasado? Algo chiquito, alguien que te trató de usted, por ejemplo. Contame dónde estabas y qué pasó. |  | núcleo | historia |  |
 | FI3 | ¿Qué cosa sentís que heredaste de tu familia en tu forma de ser? Un carácter, una manera de hacer las cosas. Contame una vez que te diste cuenta de que eso venía de ellos. |  | núcleo | historia |  |
 | FI4 | ¿Te importa lo que los demás piensan de vos? ¿Te importó siempre igual? Contame una vez en que eso se notó. |  | núcleo | historia |  |
-| FI6 | ¿Cómo te imaginás el mundo dentro de cien años? Contame cómo lo ves, y qué te gustaría que no se pierda. |  | núcleo | historia |  |
-| CI13 | Con esto cerramos esta parte. ¿Quedó algún momento importante de tu vida que no tuvo su pregunta? Contámelo ahora, tranquil{{o/a}}. |  | núcleo | cierre |  |
+| FI6 | ¿Cómo te imaginás el mundo dentro de cien años? Contame cómo lo ves, y qué te gustaría que no se pierda. |  | extra | historia |  |
+| CI13 | Hasta acá esta parte. ¿Quedó algún momento importante de tu vida que no tuvo su pregunta? Contámelo ahora, tranquil{{o/a}}. |  | núcleo | cierre |  |
 
 ## Bloque 14 · Hoy
 
@@ -345,15 +346,16 @@ Una frase al empezar cada bloque, antes de su primera pregunta; no espera respue
 | HO4 | ¿Hay algo en tu casa que no regalarías nunca, valga lo que valga? Contame de dónde vino, cómo llegó a vos, y la última vez que lo tuviste en las manos. |  | extra | historia |  |
 | HO5 | ¿Qué es lo que más te gusta de la vida que tenés ahora? Puede ser algo enorme o algo chiquito de todos los días. Contame un momento de esta semana en que lo sentiste. |  | núcleo | historia |  |
 | HO6 | ¿Hay algo de tu forma de ser que todos los que te conocen reconocen enseguida? Una frase que repetís, una manía, tu carácter. Contame una vez que alguien te lo marcó. |  | extra | historia |  |
+| HO11 | ¿Tenés alguna marca en el cuerpo que tenga historia? Una cicatriz, un tatuaje, una quemadura de la cocina. Contame cómo te la hiciste: dónde estabas, cuántos años tenías, quién estaba con vos y qué pasó después. Y si no tenés ninguna que valga la pena, contame de una que tenga alguien de tu familia y que siempre pregunten de dónde salió. |  | núcleo | historia |  |
 | CO1 | ¿Tenés un plato que sea tuyo, el que te piden o el que te sale siempre igual? Contame quién te lo enseñó y una vez que lo cocinaste para alguien. |  | núcleo | historia |  |
+| G1 | ¿Qué música ponés hoy cuando estás a tu aire? ¿Cuál fue la última canción que escuchaste, y qué estabas haciendo? |  | núcleo | historia |  |
 | HO9 | ¿Cómo es el lugar donde vivís hoy, la casa, el barrio? Contame cómo llegaste ahí y un momento de estos días que lo pinte. |  | núcleo | historia |  |
 | HO10 | ¿Algo te acompañó muchos años, el cigarrillo, el vino, el café de la mañana? Contame cómo empezó y un momento con eso. Y si en algún momento te costó dejarlo, contame eso también. |  | extra | historia |  |
-| G1 | ¿Qué música ponés hoy cuando estás a tu aire? ¿Cuál fue la última canción que escuchaste, y qué estabas haciendo? |  | extra | historia |  |
 | G2 | ¿Y lo que más te gusta comer, así, sin pensarlo mucho? Contame la última vez que lo comiste: quién lo hizo y dónde. |  | extra | historia |  |
 | G3 | ¿Te gusta leer, o sos más de mirar películas o series? ¿Con qué te enganchás? Contame la última vez que se te pasó la hora con algo así. |  | extra | historia |  |
 | G4 | ¿Cuál es tu placer chiquito de todos los días? Una siesta, un chocolate, lo que sea. Contame el de hoy: a qué hora fue y cómo estuvo. |  | extra | historia |  |
 | G5 | ¿Y un gusto grande? ¿En qué te gusta darte el lujo de gastar tu plata? Contame la última vez que te diste ese gusto. |  | extra | historia |  |
-| CI14 | Con esto cerramos lo de hoy, y ya te conozco un poco más. ¿Quedó algo de tu vida de ahora que no tuvo su pregunta? Una costumbre, alguien que ves seguido, un rato del día que es tuyo. Contámelo ahora, tranquil{{o/a}}. |  | núcleo | cierre |  |
+| CI14 | Hasta acá lo de hoy, y ya te conozco un poco más. ¿Quedó algo de tu vida de ahora que no tuvo su pregunta? Una costumbre, alguien que ves seguido, un rato del día que es tuyo. Contámelo ahora, tranquil{{o/a}}. |  | núcleo | cierre |  |
 
 ## Bloque 15 · Legado y cierre
 
@@ -372,7 +374,7 @@ Una frase al empezar cada bloque, antes de su primera pregunta; no espera respue
 
 ## Botones
 
-Los botones de respuesta de WhatsApp que van debajo de la pregunta (Naza, 30/09, después de las simulaciones; textos de Fable en [`simulaciones/textos-finales.md`](simulaciones/textos-finales.md)). Una fila por botón, en el orden en que se muestran. **Vale como:** `sí` = la pregunta cuenta como contestada que sí (se manda M30 solo y se espera el audio en la misma pregunta); `no` = un "no" corto (M25 arriba de lo que sigue; no van las que dependen con `si:`); `paso` = paso (M27 en una sensible). WhatsApp acepta hasta 3 botones por mensaje y hasta 20 letras por botón: el parser lo valida. La pregunta va entera en el mensaje, así se puede contestar tocando o en audio; si manda audio sin tocar, valen las reglas de respaldo (Reglas del flujo, 5).
+Los botones de respuesta de WhatsApp que van debajo de la pregunta (Naza, 30/09, después de las simulaciones; textos de Fable en [`simulaciones/textos-finales.md`](simulaciones/textos-finales.md)). Una fila por botón, en el orden en que se muestran. **Vale como:** `sí` = la pregunta cuenta como contestada que sí (se manda M30 solo y se espera el audio en la misma pregunta; en AMH no: es una pregunta de ubicación y la respuesta queda cerrada); `no` = un "no" corto (M25 arriba de lo que sigue; no van las que dependen con `si:`); `paso` = paso (M27 en una sensible). WhatsApp acepta hasta 3 botones por mensaje y hasta 20 letras por botón: el parser lo valida. La pregunta va entera en el mensaje, así se puede contestar tocando o en audio; si manda audio sin tocar, valen las reglas de respaldo (Reglas del flujo, 5).
 
 | ID | Botón | Vale como |
 |---|---|---|
@@ -382,30 +384,28 @@ Los botones de respuesta de WhatsApp que van debajo de la pregunta (Naza, 30/09,
 | JU8 | No, nunca me mudé | no |
 | AM0 | Sí, hubo | sí |
 | AM0 | No hubo | no |
+| AMH | Sí, seguimos juntos | sí |
+| AMH | Ya no está conmigo | no |
 | AM3 | Sí | sí |
 | AM3 | No llegamos a eso | no |
-| AM9 | Sí, hubo un final | sí |
-| AM9 | Seguimos juntos | no |
-| AM9 | Paso esta | paso |
-| AM16 | Sí, hubo otro | sí |
-| AM16 | No, nadie más | no |
-| AM20 | Sí, hubo | sí |
-| AM20 | Nadie en el medio | no |
+| AM9 | Prefiero no contarla | paso |
+| AM21 | Sí, hubo otras | sí |
+| AM21 | Fue la única | no |
 | HI0 | Sí, tuve | sí |
 | HI0 | No tuve hijos | no |
 | HI8 | Sí, llegaron | sí |
 | HI8 | No hay nietos | no |
-| CA17 | Paso esta | paso |
+| CA17 | Prefiero no contarla | paso |
 | CA17 | No, nada así | no |
-| AD15 | Paso esta | paso |
+| AD15 | Prefiero no contarla | paso |
 | AD15 | No, nada así | no |
-| JU17 | Paso esta | paso |
+| JU17 | Prefiero no contarla | paso |
 | JU17 | No, nada así | no |
-| TR11 | Paso esta | paso |
+| TR11 | Prefiero no contarla | paso |
 | TR11 | No, nada así | no |
-| PE1 | Paso esta | paso |
-| PE5 | Paso esta | paso |
-| PE4 | Paso esta | paso |
+| PE1 | Prefiero no contarla | paso |
+| PE5 | Prefiero no contarla | paso |
+| PE4 | Prefiero no contarla | paso |
 | PE4 | No, nada así | no |
 | CI1 | No, está todo | no |
 | CI2 | No, está todo | no |
@@ -428,15 +428,16 @@ Los botones de respuesta de WhatsApp que van debajo de la pregunta (Naza, 30/09,
 Todas salen de [`metodo-entrevista.md`](../metodo-entrevista.md) (secciones 20 a 25 y las últimas vueltas); el código las implementa en `fabrica/src/v3/entrevista/flujo.ts`.
 
 1. **Arranque:** BIEN (bienvenida y cómo va, en un solo mensaje; M6 ya no se manda); después, la primera pregunta (Naza, 30/09).
-2. **Una pregunta por vez.** Si la pregunta lleva botones (sección "Botones"), van debajo del mensaje; la primera vez en la entrevista que un mensaje lleva botones (CI1 en una vida completa), debajo va M31, una sola vez, en línea aparte y en cursiva, como M1 (Naza, 30/09, simulaciones). M1 va debajo, en línea aparte y en cursiva, **solo** en las 3 primeras preguntas que se mandan, en las 6 que abren un tema (CA6, JU8, AM0, AM9, HI0, HI8) y en las preguntas de historia del bloque 11. En el resto, la pregunta va sin esa línea. Nunca debajo de cierres, aviso, foto ni final (Naza, 30/09, después de leer la entrevista de corrido; antes iba debajo de todas las de historia).
+2. **Una pregunta por vez.** Si la pregunta lleva botones (sección "Botones"), van debajo del mensaje; la primera vez en la entrevista que un mensaje lleva botones (CI1 en una vida completa), debajo va M31, una sola vez, en línea aparte y en cursiva, como M1 (Naza, 30/09, simulaciones). M1 va debajo, en línea aparte y en cursiva, **solo** en las 3 primeras preguntas que se mandan, en CA6, JU8, AM0, AM9, HI0 y HI8 y en las preguntas de historia del bloque 11 (AMH y AM21 no llevan M1). En el resto, la pregunta va sin esa línea. Nunca debajo de cierres, aviso, foto ni final (Naza, 30/09, después de leer la entrevista de corrido; antes iba debajo de todas las de historia).
 3. **Audios:** los que llegan mientras la pregunta está abierta se suman a esa respuesta; la siguiente llega sola cuando pasan unos minutos sin audios nuevos. No hay botón [Siguiente] (§20, vuelta 2).
-4. **Acuses:** después de cada respuesta, uno de M3 (rotan); después de una pregunta `sensible`, uno de M4 (o M25 si la contestó con un "no" corto; M27 si dijo "paso"); si lo que sigue es un cierre, LE9 o una sensible, en lugar de M3 va M26 ("Gracias, {{nombre}}."); después de PG1, siempre M26; si el acuse pegado lleva el nombre, la frase de entrada que va en el mismo mensaje se manda sin el nombre; después de un cierre, M24 (o M25, neutro, si el cierre se contestó con un "no" corto o "paso"); después de LE9 y de LE8, nada (LE8 arranca sola y después de LE8 va directo FIN). M3, M21, M24, M25 y M26 van como **primera línea del mensaje que sigue** (la frase de entrada si hay, si no la pregunta); M4 va **solo**, en mensaje aparte (Naza, 30/09, ronda 2). Después de "paso" en una pregunta que no es cierre, M21. Si manda texto, M22; si el audio llega cortado, M23 (§22.3). **Desde las simulaciones (Naza, 30/09):** un "no" corto o un botón de "No" lleva M25 en **todas** las preguntas; "paso" lleva M21 en una común, M27 en una sensible (rotan; delante de algo que arranca con "Seguimos" o "Pasamos" no va M27.1 sino M27.2) y M25 en un cierre; un olvido lleva M28.1; al tercer olvido seguido va M29 en su lugar, una sola vez en toda la entrevista; un "ya te lo conté" corto lleva M25. M27, M28 y M29 van pegados, como M25. Después de tocar un botón de "Sí" va M30 solo y no va acuse; el audio que llega después lleva el acuse normal de esa pregunta.
+4. **Acuses:** después de cada respuesta, uno de M3 (rotan); después de una pregunta `sensible`, uno de M4 (o M25 si la contestó con un "no" corto; M27 si dijo "paso"); si lo que sigue es un cierre, LE9 o una sensible, en lugar de M3 va M26 ("Gracias, {{nombre}}."); después de PG1 y de AMH, siempre M26; delante de AM21, M26 en lugar de M3; si el acuse pegado lleva el nombre, la frase de entrada que va en el mismo mensaje se manda sin el nombre (y FO1 también: "Otra cosa. ¿Hay alguna foto…"); después de un cierre, M24 (o M25, neutro, si el cierre se contestó con un "no" corto o "paso"); después de LE9 y de LE8, nada (LE8 arranca sola y después de LE8 va directo FIN). M3, M21, M24, M25 y M26 van como **primera línea del mensaje que sigue** (la frase de entrada si hay, si no la pregunta); M4 va **solo**, en mensaje aparte (Naza, 30/09, ronda 2). Después de "paso" en una pregunta que no es cierre, M21. Si manda texto, M22; si el audio llega cortado, M23 (§22.3). **Desde las simulaciones (Naza, 30/09):** un "no" corto o un botón de "No" lleva M25 en **todas** las preguntas; "paso" lleva M21 en una común, M27 en una sensible (rotan; delante de algo que arranca con "Seguimos" o "Pasamos" no va M27.1 sino M27.2) y M25 en un cierre; un olvido lleva M28.1; un olvido a medias, M28.4 o M28.5 (rotan); al tercer olvido seguido va M29 en su lugar, una sola vez en toda la entrevista; un "ya te lo conté" corto lleva M25. M27, M28 y M29 van pegados, como M25. Después de tocar un botón de "Sí" va M30 solo y no va acuse; el audio que llega después lleva el acuse normal de esa pregunta.
 5. **Qué dijo (reglas de respaldo, cuando contesta en audio en vez de tocar un botón; Naza, 30/09, simulaciones).** Si tocó un botón, manda el botón, aunque después mande audio. Si no:
-   - **Paso:** "paso" como primera palabra, sin tope de largo, salvo que siga "a", "por", "de", "que", "el", "la", "los", "las", "un", "una", "mucho", "tiempo" o "todo" ("paso a contarte…", "paso el río…"); o "paso" como última palabra de una respuesta de hasta 12 palabras; o una respuesta de hasta 12 palabras con una de estas frases sola, seguida de un signo o del final (admitiendo "eso", "esa", "de eso", "ahí" o "mejor" adelante): siguiente · otra · salteala · esa no · eso no · de eso no · prefiero no · mejor no; o con una negativa completa, aunque siga algo: no quiero hablar de eso · prefiero no hablar de eso · prefiero no contarlo · eso me lo guardo · me lo guardo · dejémoslo ahí · mejor otra. Si la frase aparece pero la respuesta es larga, o sigue algo que cuenta ("Otra vez fuimos al río"), no es paso (Revisión del 30/09 (Naza, decisión A en las frases)).
+   - **Paso:** tocar [Prefiero no contarla] (antes [Paso esta]); "paso" como primera palabra, sin tope de largo, salvo que siga "a", "por", "de", "que", "el", "la", "los", "las", "un", "una", "mucho", "tiempo" o "todo" ("paso a contarte…", "paso el río…"); o "paso" como última palabra de una respuesta de hasta 12 palabras; o una respuesta de hasta 12 palabras con una de estas frases sola, seguida de un signo o del final (admitiendo "eso", "esa", "de eso", "ahí" o "mejor" adelante): siguiente · otra · salteala · esa no · eso no · de eso no · prefiero no · mejor no; o con una negativa completa, aunque siga algo: no quiero hablar de eso · prefiero no hablar de eso · prefiero no contarlo · prefiero no contarla · eso me lo guardo · me lo guardo · dejémoslo ahí · mejor otra. Si la frase aparece pero la respuesta es larga, o sigue algo que cuenta ("Otra vez fuimos al río"), no es paso (Revisión del 30/09 (Naza, decisión A en las frases)).
    - **"Ya te lo conté":** hasta 15 palabras con "ya te lo conté", "ya te conté", "ya lo conté" o "ya te lo dije", si no es un "no" corto ("No tuve hijos, ya te lo conté" es un "no"). Cuenta como "sí" para las que dependen.
+   - **AMH (Naza, 30/09, prueba en la página):** un "no" corto (hasta 40 palabras) o una respuesta que arranca con "ya no" o con una palabra de final (falleció, murió, enviudé, nos separamos, me separé, nos divorciamos, me divorcié, terminamos, cortamos) vale "no" (ya no está); "sí" vale sí. El botón [Sí, seguimos juntos] no lleva M30: cierra la respuesta.
    - **Olvido:** hasta 20 palabras, sin "pero" ni "aunque", que arrancan con "no me acuerdo", "no recuerdo", "no sé" (sin "si", "por", "cómo", "qué", "cuál", "dónde" ni "cuándo" después), "ni idea" o "no tengo idea"; o con "se me borró" en las primeras 8 palabras; o con "la memoria"/"la cabeza" junto a "me falla", "me está fallando", "se me borró" o "no me da" (Revisión del 30/09 (Naza, decisión A en las frases)). No es "no" ni "contó algo"; para las que dependen cuenta como "sí" (mejor una pregunta de más que un capítulo de menos).
-   - **Ronda 2 (Naza, 30/09):** en los cierres y en LE9, "está todo", "es todo", "ya está" o "nada más" en las primeras 6 palabras es un "no", aunque no empiece con "no" y sin tope de largo ("Sí, está todo. Fue una vida plena"), salvo "pero/aunque" en las primeras 5. Una respuesta que arranca con una frase de olvido y sigue contando (más de 20 palabras o con "pero/aunque") es un **olvido a medias**: contó algo, lleva M28.4 y no suma ni corta la cuenta de M29. Una que arranca negándose con una frase de la lista y sigue larga **contó algo** y lleva M32. **Revisión de la ronda 2 (30/09):** la fórmula de cierre tiene que empezar en las primeras 4 palabras y cerrar la frase; si no arranca con "no", después quedan como mucho 6 palabras (o "lo que…" hasta 12 en total); con una señal de que agrega algo (agregar, sumar, me acordé, me acuerdo de, quiero contar, "ah, y") no es "no". El olvido es olvido si después de la frase quedan como mucho 6 palabras; si sigue contando, es olvido a medias (M28.4). Para M32 la frase tiene que ser una negativa completa o ir seguida de un signo fuerte (punto, punto y coma, dos puntos, exclamación; no una coma), y nunca de "dijo / decía / me dijo" ("Otra, dijo mi mamá…" cuenta). M32.2 termina en "Seguimos.": delante de "Seguimos…" o "Pasamos…" va M32.1.
-   - **"No" corto:** empieza con no / nunca / jamás / ninguno / nada / tampoco y tiene hasta 15 palabras; hasta 40 en los 14 cierres, en LE9, en las sensibles y en las 9 que abren tema. "Pero" o "aunque" en las primeras 5 palabras lo dan vuelta; en los cierres, nunca. No cuentan como "no" "nada que ver…", "nunca me voy a olvidar…", "no sabés…", "no te imaginás…", "no me lo vas a creer…" ni "no sé…"; en HI0, "propios", "crié/criamos…" o "como mi hijo" cuentan como "sí" (Revisión del 30/09 (Naza, decisión A en las frases)).
+   - **Ronda 2 (Naza, 30/09):** en los cierres y en LE9, "está todo", "es todo", "ya está" o "nada más" en las primeras 6 palabras es un "no", aunque no empiece con "no" y sin tope de largo ("Sí, está todo. Fue una vida plena"), salvo "pero/aunque" en las primeras 5. Una respuesta que arranca con una frase de olvido y sigue contando (más de 20 palabras o con "pero/aunque") es un **olvido a medias**: contó algo, lleva M28.4 y no suma ni corta la cuenta de M29. Una que arranca negándose con una frase de la lista y sigue larga **contó algo** y lleva M32. **Revisión de la ronda 2 (30/09):** la fórmula de cierre tiene que empezar en las primeras 4 palabras y cerrar la frase; si no arranca con "no", después quedan como mucho 6 palabras (o "lo que…" hasta 12 en total); con una señal de que agrega algo (agregar, sumar, me acordé, me acuerdo de, quiero contar, "ah, y") no es "no". El olvido es olvido si después de la frase quedan como mucho 6 palabras que no estén en la pregunta (desde la prueba de Naza en la página: "No recuerdo, la verdad, algún maestro o maestra que me haya marcado en la primaria" repite la pregunta y es olvido); si sigue contando, es olvido a medias (M28.4/M28.5). Para M32 la frase tiene que ser una negativa completa o ir seguida de un signo fuerte (punto, punto y coma, dos puntos, exclamación; no una coma), y nunca de "dijo / decía / me dijo" ("Otra, dijo mi mamá…" cuenta). M32.2 termina en "Seguimos.": delante de "Seguimos…" o "Pasamos…" va M32.1.
+   - **"No" corto:** empieza con no / nunca / jamás / ninguno / nada / tampoco y tiene hasta 15 palabras; hasta 40 en los 14 cierres, en LE9, en las sensibles y en las 8 que abren tema. "Pero" o "aunque" en las primeras 5 palabras lo dan vuelta; en los cierres, nunca. No cuentan como "no" "nada que ver…", "nunca me voy a olvidar…", "no sabés…", "no te imaginás…", "no me lo vas a creer…" ni "no sé…"; en HI0, "propios", "crié/criamos…" o "como mi hijo" cuentan como "sí" (Revisión del 30/09 (Naza, decisión A en las frases)).
    - Si la pregunta que abre un tema recibe un "no" corto (o un botón de "No") o un "paso", las que dependen de ella no se mandan (§22.4). Antes (hasta el 30/09): menos de 15 palabras y "paso" solo como primera palabra de una respuesta de hasta 8.
 6. **Entradas y cierres:** antes de la primera pregunta de cada bloque (la primera que se manda de ese bloque) va su frase de entrada EN, si tiene (Naza, 30/09). Además, todos los bloques del 1 al 14 terminan con su cierre (CI1 a CI14), siempre, en el núcleo. Después del cierre, M24 en todos (desde la ronda 2 no va M10: la entrada del bloque siguiente hace de pasaje). Antes solo iban CI2 a CI5 (Naza, 30/09).
 7. **Bloque 11:** antes de la primera, el aviso AV11; después de cada una, M4 (§22.6).
@@ -458,7 +459,7 @@ Cosas ambiguas que encontré al armar este banco. No cambian ningún texto; las 
 5. **{{etapa}} no tiene texto aprobado.** M10 y CI2 lo usan. El único ejemplo escrito es "Terminamos tu infancia" (diseno-v3.md). El código recibe la etapa de afuera y, si no llega, deja `{{etapa}}` sin reemplazar.
 6. **No hay CI15.** El bloque 15 no tiene fila de cierre: termina con FIN. Los cierres van de CI1 a CI14.
 7. **IDs viejos con otro sentido.** Se mantuvieron los IDs del borrador, pero cinco existían en `banco-v3.md` con otra pregunta: AM13 (antes "un día de ustedes dos ahora"), AM16 (antes la puerta del bloque 6), LU6 (antes la puerta del bloque 9), AD12 (antes "qué ibas a hacer después del colegio"; hoy eso está en AD16) y JU9 (antes "el viaje y la llegada al lugar nuevo"). banco-descartadas.md ya anota AM16 y LU6; AM13, AD12 y JU9 no.
-8. **HE2 no depende de CA6.** Le llega a todos y deja decir "no tuve hermanos" (así está en el borrador). Si CA6 fue un "no" corto igual se manda.
+8. **HE2 no depende de CA6.** Le llega a todos y deja decir "no tuve hermanos" (así está en el borrador). Si CA6 fue un "no" corto igual se manda. **Resuelta (Naza, 30/09, prueba en la página): HE2 pasa al núcleo con `si:CA6`.**
 9. **M1 debajo de qué.** La regla dice "debajo de cada pregunta de historia". Lo apliqué a la clase `historia`; los cierres, FO1, el aviso y el final van sin M1. ¿Los cierres también llevan M1? **Resuelta (Naza, 30/09): no.**
 10. **Género "otro" sin forma de trato.** `{{o/a}}` y `{{padre/madre}}` usan la forma femenina si el género es "otro" y la ficha no dice cómo prefiere que le hablen (el mismo criterio que `seleccion.ts` viejo).
 11. **Acuse después de un cierre.** Los bloques 2 a 5 cierran con M10; en los demás cierres el código manda un M3 común. No está escrito si va M3, M10 o nada. **Resuelta (Naza, 30/09): M10 en las etapas y M24 en los demás.**
@@ -573,3 +574,14 @@ Registro en [`simulaciones/hallazgos.md`](simulaciones/hallazgos.md), "Ronda 2 (
 - M27.3 sin "Perfecto" (antes: "Perfecto, {{nombre}}. No hace falta entrar ahí. Vamos con la que viene.").
 - M32.1-M32.2 (se negó pero siguió contando) y M28.4 (olvido a medias), nuevos.
 - FIN sin la frase de la foto si FO1 se contestó con [No tengo foto]. M26 delante de AM20.
+
+## Cambios del 30/09, después de la prueba de Naza en la página (Naza)
+Registro con todos los ANTES y DESPUÉS en [`simulaciones/textos-prueba-naza.md`](simulaciones/textos-prueba-naza.md); la decisión en [`simulaciones/hallazgos.md`](simulaciones/hallazgos.md), "Prueba de Naza en la página web (30/09)". La versión anterior de este banco: [`historial/banco-2026-09-30-antes-de-la-prueba-de-naza.md`](historial/banco-2026-09-30-antes-de-la-prueba-de-naza.md).
+- Cierres: "Con esto cerramos…" pasa a "Hasta acá lo de…" (CI1, CI3, CI4, CI6 a CI10, CI13, CI14); CI3 y CI7 con texto nuevo.
+- EN2 ("la gente que vivía con vos") y BIEN, párrafo 2 ("Cuando termines no hace falta que me avises…").
+- El botón [Paso esta] pasa a [Prefiero no contarla] (vale paso) en CA17, AD15, JU17, TR11, PE1, PE5, PE4 y AM9.
+- G1 al núcleo (bloque 14, después de CO1); HE2 al núcleo (bloque 10, después de AS1, `si:CA6`); FI6 a extra.
+- HO11 nueva (una marca en el cuerpo con historia), núcleo, bloque 14, después de HO6 y antes de CO1 (Naza, 30/09). Iba a llamarse HO7, pero HO7 ya existió con otro sentido (la puerta vieja del bloque 14, en banco-descartadas.md).
+- Salidas: CA3 (si el papá no estuvo), AD15 y JU17 ("decime 'ya te lo conté' y seguimos"), AM1 nuevo.
+- Bloque 6 nuevo: AM0 con texto nuevo; AMH nueva ("¿esa persona sigue hoy a tu lado?", botones [Sí, seguimos juntos] [Ya no está conmigo], M26 siempre después, sin M30); AM9 con texto nuevo, `sino:AMH`, solo [Prefiero no contarla]; AM19 `sino:AMH y si:AM3`; AM21 nueva (las de antes, un momento de cada una); AM14 `sino:AM0`; AM7 «sino:AMH: repetía ‖ repite». AM16 y AM20 salen del banco (a [`../banco-descartadas.md`](../banco-descartadas.md)).
+- Acuses: M4.4 "…Lo guardo con cuidado."; M28.5 nuevo (rota con M28.4); el olvido que solo repite la pregunta es olvido, no olvido a medias; FO1 sin el nombre si el acuse pegado ya lo dice.
