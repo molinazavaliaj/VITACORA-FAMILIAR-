@@ -26,7 +26,8 @@ export const COMPRA_LECTURA: Compra = {
   fotosAlbum: 20,
 };
 
-type Linea = { instante: Date; zona: Zona; de: 'vita' | 'persona' | 'nota'; texto: string; ids?: string[] };
+/** 'corazon': la reacción ❤️ de WhatsApp sobre el mensaje de ella (no es un mensaje). */
+type Linea = { instante: Date; zona: Zona; de: 'vita' | 'persona' | 'nota' | 'corazon'; texto: string; ids?: string[] };
 
 /** Lo que contesta Lucía: cuándo (hora local de esa parte del viaje) y qué. */
 type Guion = { hora: string; respuesta: Respuesta; dice: string; fotos?: number };
@@ -57,7 +58,11 @@ const GUION: Record<string, Guion[]> = {
   'D8-noche': [{ hora: '22:10', respuesta: { tipo: 'audio' }, dice: 'audio: que mi casa huele a mi casa; nunca lo había notado' }],
 };
 
-/** El álbum: 15 fotos esa noche, 8 a la mañana siguiente, y "sí" al segundo AL2. Hora de casa. */
+/**
+ * El álbum: 15 fotos esa noche, 8 a la mañana siguiente (antes del AL2, que por
+ * la franja espera a las 10:00), "sí" al AL2, y a AL3 no le contesta: a las 5
+ * horas quedan las primeras 20 y va DES con DES+. Hora de casa.
+ */
 const GUION_ALBUM: { fecha: string; hora: string; evento: 'foto' | 'si'; cantidad?: number; dice: string }[] = [
   { fecha: '2026-10-18', hora: '22:30', evento: 'foto', cantidad: 15, dice: '15 fotos' },
   { fecha: '2026-10-19', hora: '09:00', evento: 'foto', cantidad: 8, dice: '8 fotos más' },
@@ -78,7 +83,7 @@ export function lecturaCorrida(compra: Compra = COMPRA_LECTURA): string {
   vita(compraEn, casa, arranque(compra));
   const si = en('2026-10-01', '18:20', casa);
   persona(si, casa, 'texto: SÍ');
-  for (const m of alDecirSi(compra)) vita(si, casa, m);
+  for (const m of alDecirSi(compra, si)) vita(si, casa, m);
   estado = anotarEnvio(estado, { clave: 'AS1', tipo: 'cadena', ids: ['AS1'], en: si.toISOString() });
 
   const cadena: { id: IdAntes; fecha: string; hora: string; respuesta: Respuesta; dice: string }[] = [
@@ -136,6 +141,7 @@ export function lecturaCorrida(compra: Compra = COMPRA_LECTURA): string {
     let e2: Estado = { ...e, rotacion: r.rot, fotosSueltas: e.fotosSueltas + (suelta ? 1 : 0) + (g.fotos ?? 0) };
     if (!suelta) e2 = anotarRespuesta(e2, p.clave, { ...g.respuesta, en: t.toISOString() });
     for (const m of r.mensajes) vita(t, p.zona, m);
+    for (const x of r.reacciones) lineas.push({ instante: t, zona: p.zona, de: 'corazon', texto: x.emoji });
     if (r.abreAlbum) e2 = { ...e2, album: iniciarAlbum(t, compra) };
     return e2;
   }
@@ -149,7 +155,8 @@ export function lecturaCorrida(compra: Compra = COMPRA_LECTURA): string {
       for (const s of r.salidas) {
         if (s.tipo === 'mensaje') vita(ev.en, casa, s.mensaje);
         else if (s.tipo === 'avisar-naza') nota(ev.en, casa, `Aviso a Naza: ${s.motivo}`);
-        else nota(ev.en, casa, `Se cierra el álbum: ${a!.fotos} fotos mandadas, guardadas ${s.guardadas}, afuera ${s.descartadas}.`);
+        else if (s.tipo === 'cerrado') nota(ev.en, casa, `Se cierra el álbum: ${a!.fotos} fotos mandadas, guardadas ${s.guardadas}, afuera ${s.descartadas}.`);
+        else nota(ev.en, casa, `${s.cantidad} fotos al panel, sin contestar.`);
       }
     };
     for (const g of GUION_ALBUM) {
@@ -159,6 +166,8 @@ export function lecturaCorrida(compra: Compra = COMPRA_LECTURA): string {
       persona(t, casa, g.dice);
       aplicar(g.evento === 'foto' ? { tipo: 'foto', en: t, cantidad: g.cantidad } : { tipo: 'si', en: t });
     }
+    // Lo que queda por reloj (AL3 sin respuesta → DES).
+    while (a!.vence && a!.fase !== 'cerrado') aplicar({ tipo: 'reloj', en: new Date(a!.vence) });
     return { ...e, album: a };
   }
 
@@ -209,6 +218,10 @@ function escribirMd(lineas: Linea[], compra: Compra): string {
     }
     if (l.de === 'persona') {
       out.push(`**${hora} · ${compra.nombre}**  `, `_[${l.texto}]_`);
+      continue;
+    }
+    if (l.de === 'corazon') {
+      out.push(`**${hora} · Vitácora** reacciona ${l.texto} a su mensaje`);
       continue;
     }
     out.push(`**${hora} · Vitácora** ${l.ids!.map((id) => `\`${id}\``).join(' + ')}  `);

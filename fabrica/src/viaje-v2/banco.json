@@ -84,6 +84,20 @@
     "yaDeViaje": null
   },
   {
+    "id": "C4",
+    "momento": "noche-comienzo",
+    "orden": 4,
+    "texto": "Dejame verlo como lo viste vos, {{nombre}}: contame el día de hoy como si me lo estuvieras mostrando en las fotos, una por una.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "C5",
+    "momento": "noche-comienzo",
+    "orden": 5,
+    "texto": "Otra noche allá. Contame cómo fue hoy, pero como se lo contás a alguien que sabe cómo sos y se da cuenta si le resumís.",
+    "yaDeViaje": null
+  },
+  {
     "id": "NO1",
     "momento": "noche-puerta",
     "orden": 1,
@@ -165,6 +179,20 @@
     "momento": "noche-cierre",
     "orden": 3,
     "texto": ", y de ahí andá por donde te lleve el día. Las fotos que quieras guardar, mandámelas.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "F4",
+    "momento": "noche-cierre",
+    "orden": 4,
+    "texto": ", y después contame lo demás, lo que se te vaya ocurriendo. Las fotos de hoy, todas las que quieras, acá.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "F5",
+    "momento": "noche-cierre",
+    "orden": 5,
+    "texto": ", y desde ahí seguí hasta donde te dé. Si hay fotos que quieras guardar, mandalas.",
     "yaDeViaje": null
   },
   {
@@ -305,6 +333,13 @@
     "momento": "album",
     "orden": 2,
     "texto": "¿Ya están todas, {{nombre}}? Si me decís que sí, o si no me contestás, cierro el álbum con las que mandaste.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "AL3",
+    "momento": "album",
+    "orden": 3,
+    "texto": "Mandaste {{fotos_mandadas}} fotos y en el álbum entran {{fotos_album}}. Si querés, elegí vos cuáles quedan afuera: reenviame las que saco. Si no me decís nada en unas horas, me quedo con las primeras {{fotos_album}}.",
     "yaDeViaje": null
   },
   {
@@ -480,6 +515,20 @@
     "momento": "propia",
     "orden": null,
     "texto": "Hoy la pregunta no es mía, es de {{quien_regala}}: «{{pregunta}}». Contale a esa persona, aunque me lo mandes a mí. Si hay foto, va.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "PR-R2",
+    "momento": "propia",
+    "orden": 2,
+    "texto": "Esta noche te escribe otra persona, no yo. {{quien_regala}} te dejó esta pregunta: «{{pregunta}}». Contestale como si la tuvieras enfrente. Si hay foto, mandala.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "PR-R3",
+    "momento": "propia",
+    "orden": 3,
+    "texto": "{{quien_regala}} quiso saber esto de tu viaje: «{{pregunta}}». Es para esa persona, así que hablale aunque llegue por acá. Si tenés una foto que vaya, mandala.",
     "yaDeViaje": null
   },
   {

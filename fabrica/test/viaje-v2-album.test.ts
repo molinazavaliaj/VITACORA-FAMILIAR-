@@ -39,7 +39,7 @@ describe('viaje v2: álbum', () => {
     ]);
     expect(estado.fase).toBe('cerrado');
     expect(ids(salidas)).toEqual(['DES', 'cerrado']);
-    expect(salidas[1]).toEqual({ tipo: 'cerrado', guardadas: 12, descartadas: 0 });
+    expect(salidas[1]).toMatchObject({ tipo: 'cerrado', guardadas: 12, descartadas: 0 });
   });
 
   it('a las 5 horas sin fotos nuevas: AL2; cada foto corre el reloj', () => {
@@ -55,11 +55,11 @@ describe('viaje v2: álbum', () => {
     expect(estado.fotos).toBe(5);
   });
 
-  it('el AL2 respeta la franja: si las 5 horas caen de madrugada, sale a las 8:00', () => {
+  it('el AL2 respeta la franja: si las 5 horas caen de madrugada, sale a las 10:00 (simulaciones)', () => {
     let estado = iniciarAlbum(hora('22:10'), COMPRA);
     estado = pasoAlbum(estado, { tipo: 'foto', en: hora('22:30'), cantidad: 15 }, COMPRA).estado;
-    expect(aLocal(new Date(estado.vence!), BA)).toEqual({ fecha: '2026-10-19', hora: '08:00' });
-    const r = pasoAlbum(estado, { tipo: 'reloj', en: hora('03:30', '2026-10-19') }, COMPRA);
+    expect(aLocal(new Date(estado.vence!), BA)).toEqual({ fecha: '2026-10-19', hora: '10:00' });
+    const r = pasoAlbum(estado, { tipo: 'reloj', en: hora('08:00', '2026-10-19') }, COMPRA);
     expect(r.salidas).toEqual([]);
   });
 
@@ -85,14 +85,15 @@ describe('viaje v2: álbum', () => {
     expect(estado.fotos).toBe(8);
   });
 
-  it('manda de más: se guardan las primeras N y va DES+', () => {
+  it('manda de más: primero AL3; si no elige, se guardan las primeras N y va DES+', () => {
     const { salidas } = correr([
       { tipo: 'foto', en: hora('12:30'), cantidad: 15 },
       { tipo: 'foto', en: hora('13:00'), cantidad: 8 },
       { tipo: 'listo', en: hora('13:05') },
+      { tipo: 'reloj', en: hora('18:05') },
     ]);
-    expect(ids(salidas)).toEqual(['DES+DES+', 'cerrado']);
-    expect(salidas[1]).toEqual({ tipo: 'cerrado', guardadas: 20, descartadas: 3 });
+    expect(ids(salidas)).toEqual(['AL3', 'DES+DES+', 'cerrado']);
+    expect(salidas[2]).toMatchObject({ tipo: 'cerrado', guardadas: 20, descartadas: 3 });
   });
 
   it('cero fotos: a las 5 horas se avisa a Naza (un evento, no un mensaje), sin AL2; la despedida espera', () => {
@@ -122,14 +123,15 @@ describe('viaje v2: álbum', () => {
     expect(estado.fotos).toBe(4);
   });
 
-  it('cerrado es cerrado: lo que llega después no cambia nada', () => {
+  it('cerrado es cerrado: lo que llega después no cambia nada (las fotos van al panel, sin contestar)', () => {
     const { estado } = correr([
       { tipo: 'foto', en: hora('12:30'), cantidad: 2 },
       { tipo: 'listo', en: hora('12:40') },
     ]);
     const r = pasoAlbum(estado, { tipo: 'foto', en: hora('13:00'), cantidad: 5 }, COMPRA);
     expect(r.estado).toEqual(estado);
-    expect(r.salidas).toEqual([]);
+    expect(r.salidas).toEqual([{ tipo: 'al-panel', cantidad: 5 }]);
+    expect(pasoAlbum(estado, { tipo: 'si', en: hora('13:00') }, COMPRA).salidas).toEqual([]);
   });
 
   it('un "sí" suelto antes de AL2 no cierra nada', () => {

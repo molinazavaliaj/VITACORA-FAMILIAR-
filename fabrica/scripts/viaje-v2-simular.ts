@@ -10,7 +10,9 @@
 // WhatsApp lo va a hacer Joaquín), con estas decisiones propias, anotadas en
 // docs/viajes-v2/simulaciones/resumen.md:
 //   · BIEN-1 sale al comprar (corrido a las 8:00 si cae en la franja).
-//   · Lo programado que ya pasó cuando dice SÍ no sale (queda "vencido").
+//   · UC1 con un SÍ tardío el día de salida: 2 horas después (momentoUC1);
+//     lo demás programado que ya pasó cuando dice SÍ no sale (queda "vencido").
+//   · CA1 sin respuesta: al día siguiente a las 13:00, AL1-P igual (momentoAlbumSinCA1).
 //   · El calendario definitivo se arma justo antes de ID1 (o IV1): recién ahí
 //     se sabe qué quedó pendiente de antes de salir.
 //   · La persona contesta cada pregunta antes de que llegue la siguiente.
@@ -25,6 +27,9 @@ import { porId } from '../src/viaje-v2/banco.js';
 import {
   armarCalendario,
   CADENA_ANTES,
+  momentoAlbumSinCA1,
+  momentoUC1,
+  validarCompra,
   momentoDeLaSiguiente,
   momentoRecordatorio,
   pendientesAntes,
@@ -35,9 +40,9 @@ import {
   type IdAntes,
   type Programado,
 } from '../src/viaje-v2/calendario.js';
-import { anotarEnvio, anotarRespuesta, contestadasAntes, nochesSinContestar, nuevoEstado, type Estado } from '../src/viaje-v2/estado.js';
+import { anotarEnvio, anotarRespuesta, contestadasAntes, nochesSinContestar, nuevoEstado, pendientesParaElViaje, type Estado } from '../src/viaje-v2/estado.js';
 import { aInstante, aLocal, diaDeSemana, diasEntre, nombreDeZona, respetarFranja, sumarDias } from '../src/viaje-v2/horas.js';
-import { alDecirSi, arranque, preguntaProgramada, reaccion, recordatorioAntes, type Respuesta } from '../src/viaje-v2/mensajes.js';
+import { alDecirSi, albumSinRespuesta, arranque, preguntaProgramada, reaccion, recordatorioAntes, type ReaccionEmoji, type Respuesta } from '../src/viaje-v2/mensajes.js';
 import { datosDeCompra, renderizar } from '../src/viaje-v2/texto.js';
 import type { Compra, Mensaje, Zona } from '../src/viaje-v2/tipos.js';
 
@@ -70,7 +75,7 @@ const mas = (t: Date, ms: number) => new Date(t.getTime() + ms);
 export type Intento = { en: Date; respuesta: Respuesta; dice: string; fotos?: number };
 /** Una pregunta que le llegó: qué, cuándo, y hasta cuándo puede contestar (lo próximo que llega). */
 export type Pregunta = { clave: string; tipo: string; ids: string[]; enviada: Date; zona: Zona; fecha: string; limite: Date | null; dia?: number };
-export type GestoAlbum = { en: Date; evento: 'foto' | 'listo' | 'si' | 'no'; cantidad?: number; dice: string };
+export type GestoAlbum = { en: Date; evento: 'foto' | 'listo' | 'si' | 'no' | 'otra' | 'reenvio'; cantidad?: number; ids?: string[]; dice: string };
 
 export interface Persona {
   si(bien1: Date): { en: Date; dice: string };
@@ -79,6 +84,8 @@ export interface Persona {
   sueltas(programados: readonly Programado[]): { en: Date; dice: string }[];
   album(al1: Date): GestoAlbum[];
   alAL2(al2: Date, numero: number): GestoAlbum | null;
+  /** Qué hace con AL3 ("reenviame las que saco"): `ids` son las del álbum, entran `entran`. */
+  alAL3(al3: Date, ids: readonly string[], entran: number): GestoAlbum | null;
   /** Cuándo decide Naza cerrar un álbum con cero fotos. */
   nazaCierra(aviso: Date): Date;
 }
@@ -99,11 +106,14 @@ export type Enviado = {
   reaccionA?: { tipo: string; respuesta: Respuesta };
 };
 
-export type Linea = { instante: Date; zona: Zona; de: 'vita' | 'persona' | 'nota'; texto: string; ids?: string[] };
+export type Linea = { instante: Date; zona: Zona; de: 'vita' | 'persona' | 'nota' | 'corazon'; texto: string; ids?: string[] };
+/** Una reacción ❤️ de WhatsApp (no es un mensaje): a qué tipo de pregunta respondía. */
+export type Corazon = { en: Date; zona: Zona; a: string };
 
 export type Resultado = {
   compra: Compra;
   enviados: Enviado[];
+  corazones: Corazon[];
   lineas: Linea[];
   calPrevio: Calendario;
   cal: Calendario | null;
@@ -143,6 +153,7 @@ export function simular(compra: Compra, compraEn: Date, persona: Persona): Resul
   const cola = new Cola();
   const casa = compra.zonaCasa;
   const enviados: Enviado[] = [];
+  const corazones: Corazon[] = [];
   const lineas: Linea[] = [];
   let estado: Estado = nuevoEstado();
   const calPrevio = armarCalendario(compra, [...CADENA_ANTES]);
@@ -162,6 +173,10 @@ export function simular(compra: Compra, compraEn: Date, persona: Persona): Resul
   };
   const decir = (en: Date, zona: Zona, dice: string) => lineas.push({ instante: en, zona, de: 'persona', texto: dice });
   const nota = (en: Date, zona: Zona, texto: string) => lineas.push({ instante: en, zona, de: 'nota', texto });
+  const corazon = (en: Date, zona: Zona, x: ReaccionEmoji, a: string) => {
+    corazones.push({ en, zona, a });
+    lineas.push({ instante: en, zona, de: 'corazon', texto: x.emoji });
+  };
   const vencido = (p: Programado) => vencidos.includes(p);
   /** Lo próximo que llega por reloj después de t (del calendario vigente). */
   const proxima = (t: Date): Date | null => {
@@ -183,22 +198,28 @@ export function simular(compra: Compra, compraEn: Date, persona: Persona): Resul
 
   cola.push(siEn, () => {
     decir(siEn, casa, si.dice);
-    const [b2, as1] = alDecirSi(compra);
+    const [b2, as1] = alDecirSi(compra, siEn);
     mandar(siEn, casa, b2, 'reaccion', false);
     mandar(siEn, casa, as1, 'arranque', false);
-    estado = anotarEnvio(estado, { clave: 'AS1', tipo: 'cadena', ids: ['AS1'], en: siEn.toISOString() });
+    const yaDeViaje = aLocal(siEn, casa).fecha > compra.salida;
+    estado = anotarEnvio(estado, { clave: 'AS1', tipo: 'cadena', ids: ['AS1'], en: siEn.toISOString(), ...(yaDeViaje ? { yaDeViaje } : {}) });
     preguntarCadena('AS1', siEn);
   });
 
   for (const p of calPrevio.programados.filter((x) => x.dia === 0)) {
-    if (p.instante < siEn) {
+    const t = p.tipo === 'UC1' ? momentoUC1(p, siEn, compra) : p.instante >= siEn ? p.instante : null;
+    if (!t) {
       vencidos.push(p);
       nota(siEn, casa, `${p.ids[0]} ya pasó (${p.hora}) cuando dijo SÍ: no sale.`);
+    } else if (t.getTime() !== p.instante.getTime()) {
+      const corrido = { ...p, instante: t, ...aLocal(t, p.zona) };
+      nota(siEn, casa, `${p.ids[0]} ya pasó (${p.hora}) cuando dijo SÍ: sale 2 horas después.`);
+      cola.push(t, () => enviarProgramado(corrido));
     } else cola.push(p.instante, () => enviarProgramado(p));
   }
 
   cola.push(armarEn, () => {
-    cal = armarCalendario(compra, pendientesAntes(contestadasAntes(estado)));
+    cal = armarCalendario(compra, pendientesParaElViaje(estado));
     for (const aviso of cal.avisosNaza) nota(armarEn, casa, `Aviso a Naza: ${aviso}`);
     for (const p of cal.programados.filter((x) => x.dia >= 1)) {
       if (p.instante.getTime() < armarEn.getTime()) {
@@ -214,6 +235,7 @@ export function simular(compra: Compra, compraEn: Date, persona: Persona): Resul
         const r = reaccion({ tipo: 'foto-suelta', quedaNoche: quedaNocheEseDia(programados(), s.en) }, { tipo: 'foto' }, compra, estado.rotacion);
         estado = { ...estado, rotacion: r.rot, fotosSueltas: estado.fotosSueltas + 1 };
         for (const m of r.mensajes) mandar(s.en, compra.zonaViaje, m, 'reaccion', false, { reaccionA: { tipo: 'foto-suelta', respuesta: { tipo: 'foto' } } });
+        for (const x of r.reacciones) corazon(s.en, compra.zonaViaje, x, 'foto-suelta');
       });
     }
   });
@@ -270,8 +292,17 @@ export function simular(compra: Compra, compraEn: Date, persona: Persona): Resul
     if (q0.mensaje.ids.some((id) => id.startsWith('ATR'))) nota(p.instante, p.zona, 'La noche anterior quedó sin contestar.');
     mandar(p.instante, p.zona, q0.mensaje, 'programado', true, { programado: p });
     estado = anotarEnvio(estado, { clave: p.clave, tipo: p.tipo, ids: p.ids, en: p.instante.toISOString() });
-    const q: Pregunta = { clave: p.clave, tipo: p.tipo, ids: p.ids, enviada: p.instante, zona: p.zona, fecha: p.fecha, limite: proxima(p.instante), dia: p.dia };
+    const sinCA1 = p.tipo === 'CA1' ? momentoAlbumSinCA1(p, compra) : null;
+    const q: Pregunta = { clave: p.clave, tipo: p.tipo, ids: p.ids, enviada: p.instante, zona: p.zona, fecha: p.fecha, limite: sinCA1 ?? proxima(p.instante), dia: p.dia };
     for (const it of persona.contestar(q)) if (it.en > p.instante && (!q.limite || it.en < q.limite)) cola.push(it.en, () => responder(p, it));
+    if (sinCA1) {
+      cola.push(sinCA1, () => {
+        if (al1En) return;
+        nota(sinCA1, casa, 'CA1 quedó sin respuesta: sale AL1-P igual.');
+        mandar(sinCA1, casa, albumSinRespuesta(compra), 'album-reloj', true);
+        abrirAlbum(sinCA1);
+      });
+    }
   }
 
   function responder(p: Programado, it: Intento) {
@@ -287,6 +318,7 @@ export function simular(compra: Compra, compraEn: Date, persona: Persona): Resul
     estado = { ...estado, rotacion: r.rot, fotosSueltas: estado.fotosSueltas + (it.fotos ?? 0) };
     estado = anotarRespuesta(estado, p.clave, { ...it.respuesta, en: it.en.toISOString() });
     for (const m of r.mensajes) mandar(it.en, p.zona, m, 'reaccion', false, { reaccionA: { tipo: p.tipo, respuesta: it.respuesta } });
+    for (const x of r.reacciones) corazon(it.en, p.zona, x, p.tipo);
     if (r.abreAlbum) abrirAlbum(it.en);
   }
 
@@ -307,14 +339,13 @@ export function simular(compra: Compra, compraEn: Date, persona: Persona): Resul
 
   function gesto(g: GestoAlbum) {
     decir(g.en, casa, g.dice);
-    if (!album || album.fase === 'cerrado') {
-      if (g.evento === 'foto') {
-        fotosTarde += g.cantidad ?? 1;
-        nota(g.en, casa, 'Llegan después de cerrado el álbum: no entran.');
-      }
-      return;
-    }
-    const ev: EventoAlbum = g.evento === 'foto' ? { tipo: 'foto', en: g.en, cantidad: g.cantidad } : { tipo: g.evento, en: g.en };
+    if (!album) return;
+    const ev: EventoAlbum =
+      g.evento === 'foto'
+        ? { tipo: 'foto', en: g.en, cantidad: g.cantidad }
+        : g.evento === 'reenvio'
+          ? { tipo: 'reenvio', en: g.en, ids: g.ids ?? [] }
+          : { tipo: g.evento, en: g.en };
     aplicar(ev, 'album-reaccion');
   }
 
@@ -330,6 +361,10 @@ export function simular(compra: Compra, compraEn: Date, persona: Persona): Resul
           const g = persona.alAL2(ev.en, album.al2Mandados);
           if (g) cola.push(g.en, () => gesto(g));
         }
+        if (s.mensaje.ids.includes('AL3')) {
+          const g = persona.alAL3(ev.en, album.ids, compra.fotosAlbum);
+          if (g) cola.push(g.en, () => gesto(g));
+        }
         if (s.mensaje.ids.includes('DES')) desEn = ev.en;
       } else if (s.tipo === 'avisar-naza') {
         avisosAlbum.push(ev.en);
@@ -340,8 +375,11 @@ export function simular(compra: Compra, compraEn: Date, persona: Persona): Resul
           nota(d, casa, 'Naza decide cerrar el álbum.');
           aplicar({ tipo: 'naza-cierra', en: d }, 'naza');
         });
+      } else if (s.tipo === 'cerrado') {
+        nota(ev.en, casa, `Se cierra el álbum: ${album.fotos} fotos quedan, guardadas ${s.guardadas}, afuera ${s.descartadas}.`);
       } else {
-        nota(ev.en, casa, `Se cierra el álbum: ${album.fotos} fotos mandadas, guardadas ${s.guardadas}, afuera ${s.descartadas}.`);
+        fotosTarde += s.cantidad;
+        nota(ev.en, casa, `${s.cantidad} fotos después del cierre: al panel, sin contestar.`);
       }
     }
     if (album.vence && album.vence !== antes) reloj();
@@ -358,7 +396,7 @@ export function simular(compra: Compra, compraEn: Date, persona: Persona): Resul
     error = e instanceof Error ? e.message : String(e);
   }
 
-  return { compra, enviados, lineas, calPrevio, cal, estado, album, siEn, al1En, desEn, avisosAlbum, nazaDecide, vencidos, fotosTarde, error };
+  return { compra, enviados, corazones, lineas, calPrevio, cal, estado, album, siEn, al1En, desEn, avisosAlbum, nazaDecide, vencidos, fotosTarde, error };
 }
 
 // ── Los viajes inventados ────────────────────────────────────────────────────
@@ -372,7 +410,8 @@ export const ZONAS = {
   montevideo: 'America/Montevideo',
 } as const;
 
-export const DURACIONES = [1, 2, 3, 4, 7, 15, 30, 60] as const;
+/** La compra pide al menos 3 días (banco.md, simulaciones). */
+export const DURACIONES = [3, 4, 5, 7, 10, 15, 30, 60] as const;
 export const CONDUCTAS = ['todo', 'nunca', 'azar', 'paso', 'escribe', 'cortados', 'saltea', 'sueltas'] as const;
 export const ALBUMES = ['cero', 'pocas', 'justas', 'demas', 'tandas'] as const;
 export type Conducta = (typeof CONDUCTAS)[number];
@@ -391,7 +430,8 @@ const PROPIAS = [
 ];
 /** Días cerca de un cambio de horario (Europa: 25/10/2026 y 28/3/2027; Estados Unidos: 1/11/2026 y 14/3/2027). */
 const CAMBIOS_DE_HORA = ['2026-10-25', '2026-11-01', '2027-03-14', '2027-03-28'];
-const NOCHES_POSIBLES = ['21:30', '20:00', '22:59', '23:30', '07:00', undefined] as const;
+/** La compra pide la noche entre 19:00 y 22:30 (banco.md, simulaciones). */
+const NOCHES_POSIBLES = ['21:30', '20:00', '19:00', '22:30', undefined] as const;
 
 export type Escenario = {
   semilla: number;
@@ -408,7 +448,7 @@ export type Escenario = {
 export function escenario(semilla: number): Escenario {
   const r = azar(semilla * 7919 + 17);
   const k = semilla % 9;
-  const dias = k < 8 ? DURACIONES[k] : r.entre(1, 45);
+  const dias = k < 8 ? DURACIONES[k] : r.entre(3, 45);
   const conducta = CONDUCTAS[Math.floor(semilla / 9) % CONDUCTAS.length];
   const conductaAlbum = ALBUMES[Math.floor(semilla / 72) % ALBUMES.length];
   const cruza = r.si(0.35);
@@ -620,6 +660,28 @@ export class PersonaSimulada implements Persona {
     return null;
   }
 
+  alAL3(al3: Date, ids: readonly string[], entran: number): GestoAlbum | null {
+    const en = mas(al3, this.r.entre(5, 8 * 60) * MIN);
+    const sobran = ids.length - entran;
+    const x = this.r();
+    const elegir = (cuantas: number) => {
+      const quedan = [...ids];
+      const saca: string[] = [];
+      for (let i = 0; i < cuantas && quedan.length; i++) saca.push(quedan.splice(this.r.entre(0, quedan.length - 1), 1)[0]);
+      return saca;
+    };
+    if (x < 0.4) {
+      const saca = elegir(sobran);
+      return { en, evento: 'reenvio', ids: saca, dice: `reenvía ${saca.length} fotos para sacar` };
+    }
+    if (x < 0.55 && sobran > 1) {
+      const saca = elegir(this.r.entre(1, sobran - 1));
+      return { en, evento: 'reenvio', ids: saca, dice: `reenvía ${saca.length} fotos para sacar (le faltan)` };
+    }
+    if (x < 0.7) return { en, evento: 'otra', dice: 'texto: dejá, elegí vos' };
+    return null;
+  }
+
   nazaCierra(aviso: Date): Date {
     const casa = this.e.compra.zonaCasa;
     return aInstante(sumarDias(aLocal(aviso, casa).fecha, 1), '12:00', casa);
@@ -645,15 +707,19 @@ export const INVARIANTES: Record<string, string> = {
   d1: 'd) "Hasta la noche" sin noche más tarde ese día',
   d2: 'd) "Mañana hay otra" con otra ese día, o sin otra al día siguiente',
   d3: 'd) PAS-A ("Seguimos con la próxima") sin próxima',
-  d4: 'd) "Lo escuché" después de un texto',
+  d4: 'd) "Lo escuché" (ACA2/ACN3) después de una respuesta que fue solo texto o solo fotos',
   d5: 'd) ATR arriba de algo que no es la noche común',
   d6: 'd) Versión "ya de viaje" antes de salir, o la normal ya de viaje',
   d7: 'd) "Ayer" (ID1) fuera del día siguiente a la salida',
+  d8: 'd) ATR-V dos noches seguidas',
+  d9: 'd) Acuse en texto (ACM) al mediodía, a VU0 o a una foto suelta (va la reacción ❤️), o sin reacción',
+  d10: 'd) ID1 el mismo día de salida en hora de casa',
   e1: 'e) Una de antes de salir sale dos veces (misma versión), o "ya de viaje" después de contestada',
   e2: 'e) Una de antes de salir no contestada, que no sale ni queda en avisosNaza',
   e3: 'e) Una pregunta propia sale dos veces',
   e4: 'e) Una pregunta propia que no sale ni queda en avisosNaza',
-  f1: 'f) Mediodía fuera de orden, fuera de la segunda vuelta o en un día que no va',
+  e5: 'e) Dos preguntas propias de regalo seguidas con el mismo envoltorio (PR-R, PR-R2, PR-R3)',
+  f1: 'f) Mediodía fuera de orden (las 12 en cada vuelta) o en un día que no va',
   f2: 'f) Choque MD2/NO1 o MD8/NO6 el mismo día',
   f3: 'f) Mismo comienzo, puerta o cierre dos noches comunes seguidas',
   g1: 'g) TXT más de 2 veces',
@@ -661,30 +727,34 @@ export const INVARIANTES: Record<string, string> = {
   g3: 'g) AL2 más de 2 veces',
   g4: 'g) DES no sale exactamente 1 vez con el álbum cerrado (o sale sin cerrar)',
   g5: 'g) Álbum con 0 fotos: sin aviso a Naza, o DES sin esperar su decisión',
+  g6: 'g) TXT pegado a otra cosa en el mismo mensaje',
+  g7: 'g) El viaje termina sin DES (el álbum nunca se cierra)',
+  g8: 'g) DES+ sin AL3 antes (no le preguntó cuáles sacar)',
   h1: 'h) El calendario no está en orden creciente de tiempo',
   h2: 'h) Algún mensaje después de DES',
   h3: 'h) Otra pregunta entre AL1 y DES',
+  k: 'La compra del escenario no pasa validarCompra (mínimo 3 días, noche 19:00-22:30)',
   x: 'El código tira un error (el viaje no termina)',
 };
 
 export const HALLAZGOS: Record<string, string> = {
-  i1: 'ID1 ("Ayer fue el día del viaje") llega el mismo día de salida en hora de casa',
-  i2: '"Lo escuché" (ACN3/ACA2) después de una respuesta que fue solo una foto',
   i3: 'Una noche común ("cómo fue hoy", "ya terminó el día") sale antes de las 12:00',
   i4: 'FN1 ("Mañana te volvés") no sale la víspera de la vuelta',
   i5: 'Algo programado ya pasó cuando dice SÍ y no sale nunca (UC1, VU0; si el SÍ llega muy tarde, también ID1 y noches)',
   i6: 'AS1 (versión normal) llega el día de salida, con el SÍ (documentado en alDecirSi)',
-  i7: 'CA1 sin respuesta: no se abre el álbum y no hay DES (la entrevista queda abierta)',
-  i8: 'Fotos del álbum que llegan después de cerrado',
+  i7: 'CA1 sin respuesta: el álbum se abre al día siguiente con AL1-P',
+  i8: 'Fotos del álbum que llegan después de cerrado (van al panel, sin contestar)',
   i9: 'Una de antes de salir mandada y sin respuesta vuelve "ya de viaje" (por diseño)',
   i10: 'Una reacción con pregunta adentro (AS1 con el SÍ, o COR) sale entre las 23:00 y las 8:00',
-  i11: 'AL2 o DES por reloj a las 8:00 justas (el reloj cayó en la franja)',
+  i11: 'AL2, AL3 o DES por reloj a las 8:00 justas (debería correrse a las 10:00)',
+  i12: 'ID1 después de la noche del día 1 (12 horas o más de diferencia: las 10 de casa son la noche de allá)',
+  i13: 'UC1 corrida 2 horas después de un SÍ tardío el día de salida',
 };
 
 export type Violacion = { inv: string; detalle: string };
 
 const PRIMERA_VUELTA_MD = ['MD1', 'MD5', 'MD3', 'MD4', 'MD9', 'MD2', 'MD10', 'MD6', 'MD7', 'MD12', 'MD8', 'MD11']; // banco.md, tabla del mediodía
-const SEGUNDA_VUELTA = ['MD1', 'MD5', 'MD3', 'MD4', 'MD6'];
+const SEGUNDA_VUELTA = PRIMERA_VUELTA_MD; // simulaciones: la segunda vuelta usa las 12
 const CHOQUES: Record<string, string> = { MD2: 'NO1', MD8: 'NO6' };
 const hora = (t: Date, z: Zona) => aLocal(t, z).hora;
 const fecha = (t: Date, z: Zona) => aLocal(t, z).fecha;
@@ -709,7 +779,7 @@ function formas(id: string, compra: Compra): string[] {
     }
   };
   const out: (string | null)[] = [];
-  if (id === 'PR-R' || id === 'PR-P') for (const p of compra.preguntasPropias) out.push(r(f.texto, p));
+  if (id.startsWith('PR-')) for (const p of compra.preguntasPropias) out.push(r(f.texto, p));
   else out.push(r(f.texto));
   if (f.yaDeViaje) out.push(r(f.yaDeViaje));
   return out.filter((x): x is string => x !== null);
@@ -717,6 +787,10 @@ function formas(id: string, compra: Compra): string[] {
 
 /** ¿El mensaje se puede armar con los textos del banco de sus IDs, con las reglas de empalme? */
 function saleDelBanco(m: Enviado, compra: Compra): boolean {
+  if (m.ids.includes('AL3')) {
+    const n = /^Mandaste (\d+) fotos/.exec(m.texto)?.[1];
+    return n !== undefined && m.texto === renderizar(porId('AL3').texto, { ...datosDeCompra(compra), fotos_mandadas: n });
+  }
   if (m.ids.includes('DES+')) {
     const des = formas('DES', compra)[0];
     const mas = formas('DES+', compra)[0];
@@ -748,6 +822,11 @@ export function revisar(res: Resultado): { violaciones: Violacion[]; hallazgos: 
   const preguntas = env.filter(esPregunta);
 
   if (res.error) mal('x', res.error);
+  try {
+    validarCompra(c);
+  } catch (e) {
+    mal('k', e instanceof Error ? e.message : String(e));
+  }
 
   // a) franja
   for (const m of env) {
@@ -802,8 +881,10 @@ export function revisar(res: Resultado): { violaciones: Violacion[]; hallazgos: 
     }
     const iPas = m.ids.indexOf('PAS-A');
     if (iPas >= 0 && !esCadena(m.ids[iPas + 1] ?? '')) mal('d3', `${m.ids.join('+')} ${cuando(m)}`);
-    if (m.reaccionA?.respuesta.tipo === 'texto' && (m.ids.includes('ACA2') || m.ids.includes('ACN3'))) mal('d4', `${m.ids.join('+')} ${cuando(m)}`);
-    if (m.reaccionA?.respuesta.tipo === 'foto' && (m.ids.includes('ACA2') || m.ids.includes('ACN3'))) ojo('i2', `${m.ids.join('+')} después de ${m.reaccionA.tipo}`);
+    const sinAudio = m.reaccionA?.respuesta.tipo === 'texto' || m.reaccionA?.respuesta.tipo === 'foto';
+    if (sinAudio && (m.ids.includes('ACA2') || m.ids.includes('ACN3'))) mal('d4', `${m.ids.join('+')} después de ${m.reaccionA!.respuesta.tipo} (${m.reaccionA!.tipo}) ${cuando(m)}`);
+    if (m.reaccionA && ['MD', 'VU0', 'foto-suelta'].includes(m.reaccionA.tipo) && m.ids.some((id) => id.startsWith('ACM'))) mal('d9', `${m.ids.join('+')} después de ${m.reaccionA.tipo} ${cuando(m)}`);
+    if (m.ids.includes('TXT') && m.ids.length > 1) mal('g6', `${m.ids.join('+')} ${cuando(m)}`);
     if (m.ids.some((id) => id.startsWith('ATR')) && !m.ids.some((id) => /^C\d$/.test(id))) mal('d5', `${m.ids.join('+')} ${cuando(m)}`);
     for (const id of m.ids.filter(esCadena)) {
       const f = porId(id);
@@ -814,11 +895,24 @@ export function revisar(res: Resultado): { violaciones: Violacion[]; hallazgos: 
     }
     if (m.ids.includes('ID1')) {
       if (fecha(m.en, m.zona) !== sumarDias(c.salida, 1)) mal('d7', `ID1 ${cuando(m)}`);
-      if (fecha(m.en, casa) === c.salida) ojo('i1', `ID1 ${cuando(m)} = ${hora(m.en, casa)} en casa, el día de salida`);
+      if (fecha(m.en, casa) === c.salida) mal('d10', `ID1 ${cuando(m)} = ${hora(m.en, casa)} en casa, el día de salida`);
+      const noche1 = preguntas.find((q) => q.programado?.dia === 1 && q.programado.momento === 'noche');
+      if (noche1 && noche1.en < m.en) ojo('i12', `ID1 ${cuando(m)} después de ${noche1.ids.filter((id) => !id.startsWith('ATR')).join('+')} ${cuando(noche1)}`);
     }
     if (m.ids.some((id) => /^C\d$/.test(id)) && hora(m.en, m.zona) < '12:00') ojo('i3', `${m.ids.join('+')} ${cuando(m)}`);
     if (m.ids.includes('FN1') && fecha(m.en, m.zona) !== sumarDias(c.vuelta, -1)) ojo('i4', `FN1 ${cuando(m)} (vuelta ${c.vuelta})`);
   }
+  // d8) ATR-V dos noches del viaje seguidas
+  const nochesViaje = env.filter((m) => m.programado && ['noche', 'antes-en-viaje', 'propia', 'FN1'].includes(m.programado.tipo));
+  for (let i = 1; i < nochesViaje.length; i++) {
+    if (nochesViaje[i].ids.includes('ATR-V') && nochesViaje[i - 1].ids.includes('ATR-V')) mal('d8', `${cuando(nochesViaje[i - 1])} y ${cuando(nochesViaje[i])}`);
+  }
+  // d9) el mediodía, VU0 y las fotos sueltas contestadas llevan ❤️
+  const respuestasCorazon = res.estado.envios.filter((x) => (x.tipo === 'MD' || x.tipo === 'VU0') && x.respuestas.some((r) => !r.audioMal && r.tipo !== 'paso')).length;
+  const corazonesProgramados = res.corazones.filter((x) => x.a === 'MD' || x.a === 'VU0').length;
+  if (corazonesProgramados !== respuestasCorazon) mal('d9', `${respuestasCorazon} mediodías contestados y ${corazonesProgramados} ❤️`);
+  const uc1 = env.find((m) => m.ids[0] === 'UC1' && m.origen === 'programado');
+  if (uc1 && uc1.programado && uc1.en.getTime() !== res.calPrevio.programados[0].instante.getTime()) ojo('i13', `UC1 ${cuando(uc1)} (SÍ a las ${hora(res.siEn, casa)})`);
   for (const p of res.vencidos) ojo('i5', `${p.ids[0]} (${p.fecha} ${p.hora}) vence: SÍ a las ${hora(res.siEn, casa)}`);
 
   // e) de antes de salir y propias
@@ -839,7 +933,9 @@ export function revisar(res: Resultado): { violaciones: Violacion[]; hallazgos: 
     }
     if (normal.length && !contestadaEn && ydv.length) ojo('i9', `${id}`);
   }
-  const propiasEnviadas = env.filter((m) => m.ids.includes('PR-R') || m.ids.includes('PR-P'));
+  const propiasEnviadas = env.filter((m) => m.ids.some((id) => id.startsWith('PR-')));
+  const envoltorios = propiasEnviadas.map((m) => m.ids.find((id) => id.startsWith('PR-R'))).filter((x): x is string => !!x);
+  for (let i = 1; i < envoltorios.length; i++) if (envoltorios[i] === envoltorios[i - 1]) mal('e5', `${envoltorios[i]} dos veces seguidas`);
   const vistas = new Map<string, number>();
   for (const p of c.preguntasPropias) vistas.set(p, (vistas.get(p) ?? 0) + 1);
   for (const [p, veces] of vistas) {
@@ -889,7 +985,10 @@ export function revisar(res: Resultado): { violaciones: Violacion[]; hallazgos: 
     const des = env.find((m) => m.ids.includes('DES'))!;
     if (!res.avisosAlbum.length || des.origen !== 'naza') mal('g5', `DES con 0 fotos (${des.origen}), avisos: ${res.avisosAlbum.length}`);
   }
-  if (res.al1En === null && env.some((m) => m.ids.includes('CA1'))) ojo('i7', 'CA1 sin respuesta');
+  if (env.some((m) => m.ids.includes('AL1-P') && m.origen === 'album-reloj')) ojo('i7', 'CA1 sin respuesta: AL1-P al día siguiente');
+  if (!res.error && !cerrado) mal('g7', `álbum ${res.album?.fase ?? 'sin abrir'}`);
+  const iDes = env.findIndex((m) => m.ids.includes('DES+'));
+  if (iDes >= 0 && !env.slice(0, iDes).some((m) => m.ids.includes('AL3'))) mal('g8', `DES+ ${cuando(env[iDes])} sin AL3`);
   if (res.fotosTarde) ojo('i8', `${res.fotosTarde} fotos`);
 
   // h) orden
@@ -922,18 +1021,20 @@ export function resumenMd(corridas: Corrida[]): string {
     `Generado por \`fabrica/scripts/viaje-v2-simular.ts\` (no editar a mano): **${total} viajes inventados** corridos de punta a punta con el código de \`fabrica/src/viaje-v2/\`, semillas 1 a ${total}. Cualquier viaje se repite con \`npx tsx scripts/viaje-v2-simular.ts --semilla N\`.`,
     '',
     '## Qué varía',
-    '- Duración: 1, 2, 3, 4, 7, 15, 30 y 60 días, y al azar (1 a 45). Rotan con la semilla, parejo.',
+    '- Duración: 3, 4, 5, 7, 10, 15, 30 y 60 días, y al azar (3 a 45). Rotan con la semilla, parejo. (La compra pide al menos 3 días; las escapadas de 1 y 2 días quedan en sus lecturas.)',
     '- Compra: el mismo día que sale, 1, 3 o 20 días antes, a cualquier hora entre las 8 y las 23.',
     '- Casa en Buenos Aires, Madrid o Ciudad de México; viaje en Madrid, Tokio, Buenos Aires o Nueva York. Un 35% cae sobre un cambio de horario (Europa 25/10/2026 y 28/3/2027; EE. UU. 1/11/2026 y 14/3/2027).',
-    '- Noche: 21:30, 20:00, 22:59, 23:30, 07:00 o sin elegir. Regalo o para uno; 0 a 5 propias; PDF o impreso; álbum de 20 o 40.',
+    '- Noche: 21:30, 20:00, 19:00, 22:30 o sin elegir (la compra pide entre 19:00 y 22:30). Regalo o para uno; 0 a 5 propias; PDF o impreso; álbum de 20 o 40.',
     '- Conducta: contesta todo · no contesta nunca · al azar · "paso" seguido · escribe · audios cortados · se saltea noches seguidas · manda fotos sueltas.',
-    '- Álbum: 0 fotos · pocas · justas · de más · de a tandas con pausas de 6 a 30 horas. Al AL2: sí, no, más fotos o silencio.',
+    '- Álbum: 0 fotos · pocas · justas · de más · de a tandas con pausas de 6 a 30 horas. Al AL2: sí, no, más fotos o silencio. Al AL3: reenvía las que sobran, reenvía menos, contesta otra cosa o nada.',
     '',
     '## Decisiones del simulador (el planificador todavía no existe)',
     '- BIEN-1 sale al comprar (corrido a las 8:00 si cae en la franja). La persona siempre dice SÍ (a veces 8 a 26 horas después).',
-    '- Lo programado que ya pasó cuando dice SÍ no sale ("vencido"; ver i5).',
+    '- Con un SÍ tardío el día de salida, UC1 sale 2 horas después (i13); lo demás programado que ya pasó cuando dice SÍ no sale ("vencido"; ver i5). Un SÍ después del día de salida trae AS1 "ya de viaje".',
+    '- CA1 sin respuesta: al día siguiente a las 13:00 sale AL1-P igual (i7).',
     '- El calendario definitivo se arma justo antes de ID1 (o IV1), con lo que quedó pendiente de antes de salir. La persona contesta cada pregunta antes de que llegue la siguiente.',
-    '- Mensajes "por reloj" (los que revisa la invariante a): todo lo programado, BIEN-1, REC1, AL2 y DES por reloj o por Naza, y las de la cadena. Las reacciones inmediatas (acuses, COR, AL1, DES con "listo") no.',
+    '- Mensajes "por reloj" (los que revisa la invariante a): todo lo programado, BIEN-1, REC1, AL1-P sin CA1, AL2, AL3 y DES por reloj o por Naza, y las de la cadena. Las reacciones inmediatas (acuses, COR, AL1, DES con "listo") no.',
+    '- Las reacciones ❤️ (mediodía, VU0, fotos sueltas) no son mensajes: no cuentan en los totales y van en su propia columna.',
     '- Naza cierra un álbum con cero fotos al día siguiente del aviso, a las 12:00 (hora de casa).',
   );
 
@@ -956,13 +1057,13 @@ export function resumenMd(corridas: Corrida[]): string {
   tabla(HALLAZGOS, (c) => c.hallazgos);
 
   // Por duración
-  out.push('', '## Mensajes que le llegan, por duración', '', 'Mensajes de Vitácora (todo lo que sale, acuses incluidos). "Por día": total dividido por los días de calendario entre el primer y el último mensaje; "máx. en un día": el día más cargado (fecha local de cada mensaje).', '', '| Días | Viajes | Total (prom.) | Total (máx.) | Por día (prom.) | Máx. en un día | Preguntas por día de viaje (prom.) |', '|---|---|---|---|---|---|---|');
+  out.push('', '## Mensajes que le llegan, por duración', '', 'Mensajes de Vitácora (todo lo que sale, acuses incluidos). "Por día": total dividido por los días de calendario entre el primer y el último mensaje; "máx. en un día": el día más cargado (fecha local de cada mensaje).', '', '| Días | Viajes | Total (prom.) | Total (máx.) | Por día (prom.) | Máx. en un día | Preguntas por día de viaje (prom.) | Reacciones ❤️ (prom.) |', '|---|---|---|---|---|---|---|---|');
   const grupos = new Map<string, Corrida[]>();
   for (const c of corridas) {
-    const g = (DURACIONES as readonly number[]).includes(c.e.dias) ? String(c.e.dias) : 'otras (1-45)';
+    const g = (DURACIONES as readonly number[]).includes(c.e.dias) ? String(c.e.dias) : 'otras (3-45)';
     grupos.set(g, [...(grupos.get(g) ?? []), c]);
   }
-  const orden = [...DURACIONES.map(String), 'otras (1-45)'];
+  const orden = [...DURACIONES.map(String), 'otras (3-45)'];
   for (const g of orden) {
     const cs = grupos.get(g) ?? [];
     if (!cs.length) continue;
@@ -979,7 +1080,8 @@ export function resumenMd(corridas: Corrida[]): string {
       return Math.max(0, ...m.values());
     });
     const pregDia = cs.map((c) => c.res.enviados.filter((m) => m.origen === 'programado').length / (c.e.dias + 1));
-    out.push(`| ${g} | ${cs.length} | ${f1(prom(totales))} | ${Math.max(...totales)} | ${f1(prom(porDia))} | ${Math.max(...maxDia)} | ${f1(prom(pregDia))} |`);
+    const cor = cs.map((c) => c.res.corazones.length);
+    out.push(`| ${g} | ${cs.length} | ${f1(prom(totales))} | ${Math.max(...totales)} | ${f1(prom(porDia))} | ${Math.max(...maxDia)} | ${f1(prom(pregDia))} | ${f1(prom(cor))} |`);
   }
 
   // Repeticiones
@@ -1013,7 +1115,13 @@ export function resumenMd(corridas: Corrida[]): string {
     out.push(`| ${a} | ${cs.length} | ${cerrados.length} | ${f1(prom(horas))} | ${f1(Math.max(0, ...horas))} | ${f1(prom(al2))} |`);
   }
   const sinAlbum = corridas.filter((c) => !c.res.al1En).length;
-  out.push('', `${sinAlbum} viajes no abren el álbum (CA1 sin respuesta o "no contesta nunca"): no hay AL1 ni DES.`);
+  const conAl3 = corridas.filter((c) => c.res.enviados.some((m) => m.ids.includes('AL3')));
+  const eligio = conAl3.filter((c) => !c.res.enviados.some((m) => m.ids.includes('DES+'))).length;
+  out.push(
+    '',
+    `${sinAlbum} viajes no abren el álbum. Con CA1 sin respuesta, el álbum se abre igual al día siguiente con AL1-P.`,
+    `AL3 (fotos de más): ${conAl3.length} viajes; en ${eligio} eligió cuáles sacar (DES sin DES+), en ${conAl3.length - eligio} quedaron las primeras (DES+).`,
+  );
   return out.join('\n') + '\n';
 }
 
@@ -1056,6 +1164,7 @@ export function lecturaMd(res: Resultado, titulo: string, encabezado: string[]):
     out.push('');
     if (l.de === 'nota') out.push(`_(${l.texto})_`);
     else if (l.de === 'persona') out.push(`**${hh} · ${res.compra.nombre}**  `, `_[${l.texto}]_`);
+    else if (l.de === 'corazon') out.push(`**${hh} · Vitácora** reacciona ${l.texto} a su mensaje`);
     else {
       out.push(`**${hh} · Vitácora** ${l.ids!.map((id) => `\`${id}\``).join(' + ')}  `);
       out.push(...l.texto.split('\n\n').flatMap((p, i) => (i === 0 ? [`> ${p}`] : ['>', `> ${p}`])));
@@ -1076,6 +1185,8 @@ export type Guion = {
   sueltas?: { dia: number; hora: string; dice: string }[];
   album: { masDias: number; hora: string; evento: GestoAlbum['evento']; cantidad?: number; dice: string }[];
   alAL2?: ({ minutos: number; evento: GestoAlbum['evento']; cantidad?: number; dice: string } | null)[];
+  /** A AL3: reenvía las últimas `sacaUltimas` fotos, o contesta otra cosa. */
+  alAL3?: { minutos: number; sacaUltimas?: number; dice: string };
 };
 
 export class PersonaGuion implements Persona {
@@ -1105,6 +1216,12 @@ export class PersonaGuion implements Persona {
   alAL2(al2: Date, numero: number): GestoAlbum | null {
     const a = this.g.alAL2?.[numero - 1];
     return a ? { en: mas(al2, a.minutos * MIN), evento: a.evento, cantidad: a.cantidad, dice: a.dice } : null;
+  }
+  alAL3(al3: Date, ids: readonly string[]): GestoAlbum | null {
+    const a = this.g.alAL3;
+    if (!a) return null;
+    const en = mas(al3, a.minutos * MIN);
+    return a.sacaUltimas ? { en, evento: 'reenvio', ids: ids.slice(-a.sacaUltimas), dice: a.dice } : { en, evento: 'otra', dice: a.dice };
   }
   nazaCierra(aviso: Date): Date {
     return mas(aviso, 20 * HORA);
@@ -1148,6 +1265,7 @@ export function lecturaUnDia(): { res: Resultado; md: string } {
   };
   const res = simular(compra, aInstante('2026-11-14', '08:20', compra.zonaCasa), new PersonaGuion(compra, g));
   const md = lecturaMd(res, 'Lectura: escapada de un día', [
+    '**La compra ya no permite viajes de 1 día (mínimo 3; simulaciones).** Esta lectura queda como prueba del código de viajes cortos, que sigue.',
     'Nora, para ella; escapada de un día (sale y vuelve el 2026-11-14). **Compra el mismo día que sale**, a las 8:20.',
     'Casa y viaje: Buenos Aires. Noche a las 21:30. Libro en PDF, álbum de 20. Sin preguntas propias.',
   ]);
@@ -1192,6 +1310,7 @@ export function lecturaDosDias(): { res: Resultado; md: string } {
   };
   const res = simular(compra, aInstante('2026-11-30', '19:40', compra.zonaCasa), new PersonaGuion(compra, g));
   const md = lecturaMd(res, 'Lectura: dos días en Montevideo', [
+    '**La compra ya no permite viajes de 2 días (mínimo 3; simulaciones).** Esta lectura queda como prueba del código de viajes cortos, que sigue.',
     'Ramiro, regalo de su pareja Celeste; 2 días (sale el 2026-12-05, emprende la vuelta el 2026-12-06). Compra el 30/11.',
     'Casa: Buenos Aires. Viaje: Montevideo. Noche a las 21:30. Libro impreso, álbum de 20.',
     'Pregunta de Celeste: «¿Qué te hizo acordar a nosotros?» (un viaje de 2 días no tiene noches comunes: no entra y queda en los avisos a Naza).',
@@ -1275,13 +1394,14 @@ export function lecturaTreintaDias(): { res: Resultado; md: string } {
       { masDias: 1, hora: '10:00', evento: 'foto', cantidad: 20, dice: '20 fotos más' },
       { masDias: 1, hora: '10:05', evento: 'listo', dice: 'texto: listo' },
     ],
+    alAL3: { minutos: 25, sacaUltimas: 5, dice: 'reenvía 5 fotos para sacar' },
   };
   const res = simular(compra, aInstante('2026-09-22', '17:30', compra.zonaCasa), new PersonaGuion(compra, g));
   const md = lecturaMd(res, 'Lectura: treinta días en Japón', [
     'Irene, regalo de su hermano Bruno; 30 días (sale el 2026-10-12, emprende la vuelta el 2026-11-10). Compra el 22/9. Cruza el cambio de hora de Europa (25/10).',
     'Casa: Madrid. Viaje: Tokio (+7 h en octubre, +8 h desde el 25/10). Noche a las 21:30. Libro impreso, álbum de 40.',
     `Preguntas de Bruno: ${compra.preguntasPropias.map((p) => `«${p}»`).join(' · ')}`,
-    'Deja VA1 colgada (le llega REC1-U y tampoco contesta), se saltea las noches de los días 10, 11 y 12, escribe tres noches y manda dos fotos sueltas. Al álbum le manda 45 fotos.',
+    'Deja VA1 colgada (le llega REC1-U y tampoco contesta), se saltea las noches de los días 10, 11 y 12, escribe tres noches y manda dos fotos sueltas. Al álbum le manda 45 fotos y, con AL3, reenvía las 5 que saca.',
   ]);
   return { res, md };
 }

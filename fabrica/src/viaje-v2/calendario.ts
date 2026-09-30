@@ -4,12 +4,16 @@
 // Días: el día 0 es el de salida, el día N el de vuelta ("el día que emprendés
 // la vuelta") y el N+1 el siguiente, ya en casa.
 //   · Día 0: solo UC1, 10:00, hora de casa.
-//   · Día 1: ID1 (en pasado), 10:00, hora del viaje, en lugar del mediodía; a la noche, la noche.
-//   · Días 2 a N-1: mediodía (MD) 13:00 y noche, hora del viaje.
+//   · Día 1: ID1 (en pasado), 10:00 del viaje o de casa (la más tarde; ver
+//     agregarID1), en lugar del mediodía; a la noche, la noche.
+//   · Días 2 a N-1: mediodía (MD) 13:00 y noche, hora del viaje. El mediodía
+//     recorre las 12 MD en orden y vuelve a empezar.
 //   · Día N-1: la noche es FN1 (el mediodía es normal).
 //   · Día N: solo VU0, 13:00, hora del viaje.
 //   · Día N+1: VU1 10:00 y CA1 a la hora de la noche, hora de casa.
-// Viajes cortos (banco.md, "Lectura corrida y viajes cortos", Naza 30/09):
+// La compra pide al menos 3 días y la noche entre 19:00 y 22:30 (validarCompra).
+// Viajes cortos (banco.md, "Lectura corrida y viajes cortos", Naza 30/09;
+// la compra ya no los permite, pero el código queda):
 //   · 1 día (salida = vuelta): ese día UC1 10:00 y VU0 13:00; al otro, IV1
 //     10:00 (en lugar de ID1 y VU1) y CA1 a la noche. Sin FN1 ni noches.
 //     Todo en hora de CASA, también VU0: un viaje de un día suele ser cerca,
@@ -30,7 +34,7 @@
 // planificador que conecte esto con WhatsApp (Joaquín).
 
 import { deMomento } from './banco.js';
-import { aInstante, aLocal, diasEntre, esFecha, esHora, respetarFranja, sumarDias, zonaValida } from './horas.js';
+import { aInstante, aLocal, diasEntre, esFecha, esHora, respetarFranja, respetarFranjas, sumarDias, zonaValida } from './horas.js';
 import { HORA_NOCHE_POR_DEFECTO, MAX_PREGUNTAS_PROPIAS, type Compra, type Fecha, type Hora, type Zona } from './tipos.js';
 
 export const HORA_MANANA: Hora = '10:00';
@@ -39,8 +43,17 @@ export const HORA_MEDIODIA: Hora = '13:00';
 export const CADENA_ANTES = ['AS1', 'AS2', 'IM1', 'VA1'] as const;
 export type IdAntes = (typeof CADENA_ANTES)[number];
 
-export const COMIENZOS = ['C1', 'C2', 'C3'] as const;
-export const CIERRES = ['F1', 'F2', 'F3'] as const;
+export const COMIENZOS = ['C1', 'C2', 'C3', 'C4', 'C5'] as const;
+export const CIERRES = ['F1', 'F2', 'F3', 'F4', 'F5'] as const;
+
+/** Mínimo de días de viaje que acepta la compra (banco.md, simulaciones: las escapadas quedan para otro producto). */
+export const MINIMO_DIAS = 3;
+/** La hora de la noche que acepta la compra (banco.md, simulaciones). */
+export const NOCHE_DESDE: Hora = '19:00';
+export const NOCHE_HASTA: Hora = '22:30';
+
+/** Los envoltorios de las preguntas propias de un regalo: rotan (banco.md, simulaciones). */
+export const PROPIAS_REGALO = ['PR-R', 'PR-R2', 'PR-R3'] as const;
 
 /**
  * Rotación fija de las puertas de la noche. El criterio (Fable, aprobado con
@@ -57,8 +70,6 @@ export const CIERRES = ['F1', 'F2', 'F3'] as const;
  */
 export const ORDEN_PUERTAS = ['NO1', 'NO2', 'NO4', 'NO3', 'NO9', 'NO8', 'NO5', 'NO7', 'NO6'] as const;
 
-/** Segunda vuelta del mediodía (y siguientes): solo estas, en este orden (banco.md, decisiones del compilado). */
-export const SEGUNDA_VUELTA_MD = ['MD1', 'MD5', 'MD3', 'MD4', 'MD6'] as const;
 
 /** Choques mediodía/noche: esa MD se saltea si la puerta de esa noche es esta. */
 export const CHOQUES_MD: Readonly<Record<string, string>> = { MD2: 'NO1', MD8: 'NO6' };
@@ -69,7 +80,7 @@ export type TipoProgramado =
   | 'MD'
   | 'noche' // noche común: ids = [comienzo, puerta, cierre]
   | 'antes-en-viaje' // una de antes de salir que faltó, con su variante "ya de viaje"
-  | 'propia' // ids = ['PR-R'] o ['PR-P'], y la pregunta
+  | 'propia' // ids = ['PR-R'], ['PR-R2'], ['PR-R3'] (rotan) o ['PR-P'], y la pregunta
   | 'FN1'
   | 'VU0'
   | 'VU1'
@@ -106,8 +117,12 @@ export type Calendario = {
   propiasQueNoEntran: string[];
 };
 
-/** Tira un error claro si la compra no sirve para armar el calendario. */
-export function validarCompra(compra: Compra): void {
+/**
+ * Tira un error claro si la compra no sirve. Con `minimoDias` (por defecto 3,
+ * la regla de la compra): armarCalendario lo llama con 1, así el código de los
+ * viajes de 1 y 2 días sigue andando aunque la compra ya no los deje pasar.
+ */
+export function validarCompra(compra: Compra, { minimoDias = MINIMO_DIAS }: { minimoDias?: number } = {}): void {
   if (!compra.nombre.trim()) throw new Error('Compra sin nombre');
   if (!esFecha(compra.salida)) throw new Error(`Fecha de salida mal escrita: "${compra.salida}" (va YYYY-MM-DD)`);
   if (!esFecha(compra.vuelta)) throw new Error(`Fecha de vuelta mal escrita: "${compra.vuelta}" (va YYYY-MM-DD)`);
@@ -115,7 +130,12 @@ export function validarCompra(compra: Compra): void {
   for (const [campo, zona] of [['zonaCasa', compra.zonaCasa], ['zonaViaje', compra.zonaViaje]] as const) {
     if (!zonaValida(zona)) throw new Error(`${campo}: zona horaria desconocida "${zona}"`);
   }
+  const dias = diasEntre(compra.salida, compra.vuelta) + 1;
+  if (dias < minimoDias) throw new Error(`El viaje tiene que durar al menos ${minimoDias} días (salida y vuelta incluidas); este dura ${dias}`);
   if (compra.horaNoche !== undefined && !esHora(compra.horaNoche)) throw new Error(`horaNoche mal escrita: "${compra.horaNoche}" (va HH:MM)`);
+  if (compra.horaNoche !== undefined && (compra.horaNoche < NOCHE_DESDE || compra.horaNoche > NOCHE_HASTA)) {
+    throw new Error(`horaNoche ${compra.horaNoche}: la noche va entre las ${NOCHE_DESDE} y las ${NOCHE_HASTA}`);
+  }
   if (compra.preguntasPropias.length > MAX_PREGUNTAS_PROPIAS) {
     throw new Error(`Hay ${compra.preguntasPropias.length} preguntas propias y van hasta ${MAX_PREGUNTAS_PROPIAS}`);
   }
@@ -124,24 +144,23 @@ export function validarCompra(compra: Compra): void {
 }
 
 /**
- * Comienzo, puerta y cierre de la noche común número i (desde 0). Rotan por
- * separado: la puerta avanza de a una (ciclo de 9); el comienzo avanza de a
- * uno y además se corre uno cada vuelta de puertas (cada 9 noches), así la
- * noche 10 no repite comienzo+puerta de la 1; el cierre avanza de a uno, se
- * corre uno cada 3 noches y se atrasa uno cada 27. Resultado: en las primeras
- * 9 noches salen las 9 de comienzo+cierre, en 27 las 27 de comienzo+puerta, y
- * en 81 las 81 combinaciones sin repetir; nunca el mismo comienzo ni el mismo
- * cierre dos noches seguidas.
+ * Comienzo, puerta y cierre de la noche común número i (desde 0): 5 × 9 × 5
+ * (banco.md, simulaciones). Rotan por separado:
+ *   · comienzo: i % 5 (avanza de a uno);
+ *   · puerta:   i % 9 (ORDEN_PUERTAS);
+ *   · cierre:   (2i + ⌊i/5⌋) % 5 (avanza de a dos, y uno más cada 5 noches).
+ * Ninguno se repite dos noches seguidas (el cierre avanza 2 o 3, nunca 0 ni
+ * 5). Comienzo+puerta recorren las 45 parejas cada 45 noches, y cada vuelta
+ * de 45 el cierre queda corrido (99 ≡ 4 mod 5): las 225 combinaciones salen
+ * sin repetir antes de la noche 226.
  */
 export function combinacionDeNoche(i: number): [string, string, string] {
-  const c = (i + Math.floor(i / 9)) % 3;
-  const f = (((i + Math.floor(i / 3) - Math.floor(i / 27)) % 3) + 3) % 3;
-  return [COMIENZOS[c], ORDEN_PUERTAS[i % ORDEN_PUERTAS.length], CIERRES[f]];
+  return [COMIENZOS[i % 5], ORDEN_PUERTAS[i % ORDEN_PUERTAS.length], CIERRES[(2 * i + Math.floor(i / 5)) % 5]];
 }
 
-/** La MD número k (desde 0): la primera vuelta es la tabla entera; después, solo SEGUNDA_VUELTA_MD. */
-function mdEnPosicion(k: number, primera: readonly string[]): string {
-  return k < primera.length ? primera[k] : SEGUNDA_VUELTA_MD[(k - primera.length) % SEGUNDA_VUELTA_MD.length];
+/** La MD número k (desde 0): la tabla entera, en orden, y vuelve a empezar (la segunda vuelta usa las 12). */
+function mdEnPosicion(k: number, orden: readonly string[]): string {
+  return orden[k % orden.length];
 }
 
 /** Índices (dentro de `libres`) donde van `cuantas` propias, repartidas parejas: el centro de cada tramo. */
@@ -152,10 +171,10 @@ function repartir(cuantas: number, libres: number): number[] {
 type Noche = { tipo: 'noche' | 'antes-en-viaje' | 'propia'; ids: string[]; pregunta?: string };
 
 export function armarCalendario(compra: Compra, pendientesAntes: readonly IdAntes[]): Calendario {
-  validarCompra(compra);
+  validarCompra(compra, { minimoDias: 1 });
   const n = diasEntre(compra.salida, compra.vuelta);
   const horaNoche = compra.horaNoche ?? HORA_NOCHE_POR_DEFECTO;
-  const propia = compra.regalo ? 'PR-R' : 'PR-P';
+  const propia = (i: number) => (compra.regalo ? PROPIAS_REGALO[i % PROPIAS_REGALO.length] : 'PR-P');
 
   // Noches comunes: días 1 a N-2 (la N-1 es FN1; el día 0 y el N no tienen noche).
   const diasComunes: number[] = [];
@@ -167,7 +186,7 @@ export function armarCalendario(compra: Compra, pendientesAntes: readonly IdAnte
   const libres = diasComunes.slice(antesEntran.length);
   const propiasEntran = compra.preguntasPropias.slice(0, libres.length);
   repartir(propiasEntran.length, libres.length).forEach((idx, i) =>
-    noches.set(libres[idx], { tipo: 'propia', ids: [propia], pregunta: propiasEntran[i] }),
+    noches.set(libres[idx], { tipo: 'propia', ids: [propia(i)], pregunta: propiasEntran[i] }),
   );
   let comun = 0;
   for (const d of diasComunes) {
@@ -179,12 +198,29 @@ export function armarCalendario(compra: Compra, pendientesAntes: readonly IdAnte
   const primeraMd = deMomento('mediodia').map((f) => f.id);
   let proximaMd = 0;
   const programados: Programado[] = [];
-  const agregar = (dia: number, momento: Programado['momento'], tipo: TipoProgramado, ids: string[], zona: Zona, hora: Hora, pregunta?: string) => {
+  const agregar = (dia: number, momento: Programado['momento'], tipo: TipoProgramado, ids: string[], zona: Zona, hora: Hora, pregunta?: string, fijo?: Date) => {
     const fechaDia = sumarDias(compra.salida, dia);
-    const instante = respetarFranja(aInstante(fechaDia, hora, zona), zona);
+    const instante = fijo ?? respetarFranja(aInstante(fechaDia, hora, zona), zona);
     const local = aLocal(instante, zona);
     programados.push({ dia, momento, tipo, ids, zona, fecha: local.fecha, hora: local.hora, instante, clave: `D${dia}-${momento}`, ...(pregunta !== undefined ? { pregunta } : {}) });
   };
+
+  /**
+   * ID1 nunca el mismo día de salida en casa (banco.md, simulaciones): a las
+   * 10:00 del día siguiente en la zona del viaje o en la de casa, la que sea
+   * más tarde (esa es su zona). Además, fuera de la franja 23-8 en las dos
+   * zonas: con 12 horas o más de diferencia, las 10 de casa pueden ser de
+   * madrugada allá, y se corre a las 8 de allá. Ahí ID1 puede quedar después
+   * de la noche del día 1: el calendario se ordena por tiempo al final.
+   */
+  function agregarID1(d: number) {
+    const f = sumarDias(compra.salida, d);
+    const enViaje = aInstante(f, HORA_MANANA, compra.zonaViaje);
+    const enCasa = aInstante(f, HORA_MANANA, compra.zonaCasa);
+    const zona = enCasa > enViaje ? compra.zonaCasa : compra.zonaViaje;
+    const t = respetarFranjas(enCasa > enViaje ? enCasa : enViaje, [compra.zonaViaje, compra.zonaCasa]);
+    agregar(d, 'manana', 'ID1', ['ID1'], zona, HORA_MANANA, undefined, t);
+  }
 
   if (n === 0) {
     agregar(0, 'manana', 'UC1', ['UC1'], compra.zonaCasa, HORA_MANANA);
@@ -204,14 +240,14 @@ export function armarCalendario(compra: Compra, pendientesAntes: readonly IdAnte
       continue;
     }
     if (d === n) {
-      if (n === 1) agregar(d, 'manana', 'ID1', ['ID1'], compra.zonaViaje, HORA_MANANA); // 2 días: ID1 y VU0, sin noche
+      if (n === 1) agregarID1(d); // 2 días: ID1 y VU0, sin noche
       agregar(d, 'mediodia', 'VU0', ['VU0'], compra.zonaViaje, HORA_MEDIODIA);
       continue;
     }
     // Días 1 a N-1: en el viaje.
     const noche = d === n - 1 ? null : noches.get(d)!;
     if (d === 1) {
-      agregar(d, 'manana', 'ID1', ['ID1'], compra.zonaViaje, HORA_MANANA);
+      agregarID1(d);
     } else {
       const puerta = noche?.tipo === 'noche' ? noche.ids[1] : null;
       let md = mdEnPosicion(proximaMd++, primeraMd);
@@ -221,6 +257,8 @@ export function armarCalendario(compra: Compra, pendientesAntes: readonly IdAnte
     if (noche === null) agregar(d, 'noche', 'FN1', ['FN1'], compra.zonaViaje, horaNoche);
     else agregar(d, 'noche', noche.tipo, noche.ids, compra.zonaViaje, horaNoche, noche.pregunta);
   }
+
+  programados.sort((a, b) => a.instante.getTime() - b.instante.getTime());
 
   const antesQueNoEntran = pendientesAntes.slice(antesEntran.length);
   const propiasQueNoEntran = compra.preguntasPropias.slice(propiasEntran.length);
@@ -248,6 +286,22 @@ export function quedaNocheEseDia(programados: readonly Programado[], t: Date): b
  */
 export function quedaOtraEseDia(programados: readonly Programado[], t: Date): boolean {
   return programados.some((p) => p.instante.getTime() > t.getTime() && aLocal(t, p.zona).fecha === p.fecha);
+}
+
+/**
+ * Cuándo sale UC1 (banco.md, simulaciones): a su hora; si el SÍ llega después
+ * (compra el día de salida), 2 horas después del SÍ si todavía es el día de
+ * salida en casa, respetando la franja; si no, null (no sale).
+ */
+export function momentoUC1(uc1: Programado, siEn: Date, compra: Compra): Date | null {
+  if (siEn.getTime() <= uc1.instante.getTime()) return uc1.instante;
+  const t = respetarFranja(new Date(siEn.getTime() + 2 * 3_600_000), compra.zonaCasa);
+  return aLocal(t, compra.zonaCasa).fecha === compra.salida ? t : null;
+}
+
+/** CA1 sin respuesta: al día siguiente a las 13:00 (hora de casa) sale AL1-P igual (banco.md, simulaciones). */
+export function momentoAlbumSinCA1(ca1: Programado, compra: Compra): Date {
+  return respetarFranja(aInstante(sumarDias(ca1.fecha, 1), HORA_MEDIODIA, compra.zonaCasa), compra.zonaCasa);
 }
 
 // ── Antes de salir: la cadena ────────────────────────────────────────────────

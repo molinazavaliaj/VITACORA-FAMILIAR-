@@ -3,7 +3,7 @@
 // respuestas. Todo inmutable (cada función devuelve un Estado nuevo).
 
 import type { EstadoAlbum } from './album.js';
-import type { TipoProgramado } from './calendario.js';
+import { CADENA_ANTES, type IdAntes, type TipoProgramado } from './calendario.js';
 import { ROTACION_INICIAL, type Respuesta as RespuestaMensaje, type Rotacion } from './mensajes.js';
 
 export type Respuesta = RespuestaMensaje & {
@@ -18,6 +18,8 @@ export type Envio = {
   ids: string[];
   /** ISO. */
   en: string;
+  /** Solo en la cadena: salió en su versión "ya de viaje" (AS1 con un SÍ tardío). */
+  yaDeViaje?: boolean;
   respuestas: Respuesta[];
 };
 
@@ -78,4 +80,15 @@ export function nochesSinContestar(e: Estado): number {
 /** Las de la cadena de antes de salir que contestó (o pasó). Un audio que llegó mal solo no alcanza: sigue pendiente. */
 export function contestadasAntes(e: Estado): Set<string> {
   return new Set(e.envios.filter((x) => x.tipo === 'cadena' && contestado(x)).map((x) => x.clave));
+}
+
+/**
+ * Las de antes de salir que van a las noches del viaje: las que no contestó
+ * (ni pasó), salvo las que ya salieron en su versión "ya de viaje" (AS1 con un
+ * SÍ tardío): esas no se repiten.
+ */
+export function pendientesParaElViaje(e: Estado): IdAntes[] {
+  const contestadas = contestadasAntes(e);
+  const yaDeViaje = new Set(e.envios.filter((x) => x.tipo === 'cadena' && x.yaDeViaje).map((x) => x.clave));
+  return CADENA_ANTES.filter((id) => !contestadas.has(id) && !yaDeViaje.has(id));
 }

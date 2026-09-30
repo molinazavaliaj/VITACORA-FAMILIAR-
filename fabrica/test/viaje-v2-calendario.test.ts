@@ -53,7 +53,8 @@ describe('viaje v2: calendario, la forma del viaje', () => {
     expect([uc1.zona, uc1.fecha, uc1.hora]).toEqual([BA, '2026-10-10', '10:00']);
     expect(uc1.instante.toISOString()).toBe('2026-10-10T13:00:00.000Z');
     const id1 = programados.find((p) => p.tipo === 'ID1')!;
-    expect([id1.zona, id1.fecha, id1.hora]).toEqual([MADRID, '2026-10-11', '10:00']);
+    // ID1: las 10 de casa (15 de Madrid) son más tarde que las 10 de Madrid (simulaciones)
+    expect([id1.zona, id1.fecha, id1.hora]).toEqual([BA, '2026-10-11', '10:00']);
     const md = programados.find((p) => p.tipo === 'MD')!;
     expect([md.zona, md.hora]).toEqual([MADRID, '13:00']);
     const noche = programados.find((p) => p.tipo === 'noche')!;
@@ -72,14 +73,13 @@ describe('viaje v2: calendario, la forma del viaje', () => {
     expect(programados.find((p) => p.tipo === 'CA1')!.hora).toBe('20:00');
   });
 
-  it('nunca entre las 23:00 y las 8:00 locales: una noche a las 23:15 pasa a las 8:00 del día siguiente', () => {
-    const { programados } = armarCalendario(compra('2026-10-10', '2026-10-17', { horaNoche: '23:15' }), []);
+  it('una noche a las 23:15 ya no se acepta (la noche va entre 19:00 y 22:30); con 22:30, nada cae en la franja', () => {
+    expect(() => armarCalendario(compra('2026-10-10', '2026-10-17', { horaNoche: '23:15' }), [])).toThrow(/22:30/);
+    const { programados } = armarCalendario(compra('2026-10-10', '2026-10-17', { horaNoche: '22:30' }), []);
     for (const p of programados) {
       const { hora } = aLocal(p.instante, p.zona);
       expect(hora >= '08:00' && hora < '23:00', `${p.tipo} ${p.fecha} ${hora}`).toBe(true);
     }
-    const primera = noches(programados)[0];
-    expect([primera.fecha, primera.hora]).toEqual(['2026-10-12', '08:00']);
   });
 
   it('todos los instantes están en orden y ninguno cae en la franja', () => {
@@ -104,7 +104,8 @@ describe('viaje v2: calendario, viajes cortos y largos', () => {
   it('2 días: UC1; después ID1 y VU0 sin noche; al otro VU1 y CA1 (detalle en viaje-v2-cortos)', () => {
     const r = armarCalendario(compra('2026-10-10', '2026-10-11'), []);
     expect(tipos(r.programados, 0)).toEqual(['UC1']);
-    expect(tipos(r.programados, 1)).toEqual(['ID1', 'VU0']);
+    // ID1 va a las 10 de casa (15 de Madrid): queda después de VU0 (13 de Madrid). La compra ya no deja 2 días.
+    expect(tipos(r.programados, 1)).toEqual(['VU0', 'ID1']);
     expect(tipos(r.programados, 2)).toEqual(['VU1', 'CA1']);
     expect(noches(r.programados)).toHaveLength(0);
   });
@@ -116,18 +117,12 @@ describe('viaje v2: calendario, viajes cortos y largos', () => {
     expect(r.programados.some((p) => p.tipo === 'MD')).toBe(false);
   });
 
-  it('30 días: segunda vuelta del mediodía solo con MD1, MD5, MD3, MD4, MD6', () => {
+  it('30 días: la segunda vuelta del mediodía usa las 12, en el mismo orden (simulaciones)', () => {
     const { programados } = armarCalendario(compra('2026-10-01', '2026-10-30'), []);
     const mds = programados.filter((p) => p.tipo === 'MD').map((p) => p.ids[0]);
     expect(mds).toHaveLength(27); // días 2 a 28
-    const primera = mds.slice(0, 12);
-    // MD2 se saltea si cae el día de la puerta NO1 (comida); MD8 con NO6
-    expect(new Set(primera).size).toBe(primera.length);
-    const idxSegunda = mds.findIndex((id, i) => i > 0 && mds.slice(0, i).includes(id));
-    const segunda = mds.slice(idxSegunda);
-    expect(segunda.every((id) => ['MD1', 'MD5', 'MD3', 'MD4', 'MD6'].includes(id))).toBe(true);
-    expect(segunda.slice(0, 5)).toEqual(['MD1', 'MD5', 'MD3', 'MD4', 'MD6']);
-    expect(segunda.slice(5, 10)).toEqual(['MD1', 'MD5', 'MD3', 'MD4', 'MD6']);
+    // En la segunda vuelta MD2 cae el día 19, que es de NO1 (comida): se saltea y va MD10.
+    expect(mds.slice(12, 23)).toEqual(['MD1', 'MD5', 'MD3', 'MD4', 'MD9', 'MD10', 'MD6', 'MD7', 'MD12', 'MD8', 'MD11']);
   });
 
   it('nunca MD2 el día de la puerta NO1, ni MD8 el día de NO6: va la siguiente', () => {
@@ -148,7 +143,6 @@ describe('viaje v2: calendario, viajes cortos y largos', () => {
     expect(delDia(programados, 12).find((p) => p.tipo === 'noche')!.ids[1]).toBe('NO6');
     expect(delDia(programados, 12).find((p) => p.tipo === 'MD')!.ids).toEqual(['MD11']);
     const mds = programados.filter((p) => p.tipo === 'MD').map((p) => p.ids[0]);
-    expect(mds).not.toContain('MD8'); // no vuelve en la segunda vuelta
     expect(mds.slice(0, 11)).toEqual(['MD1', 'MD5', 'MD3', 'MD4', 'MD9', 'MD2', 'MD10', 'MD6', 'MD7', 'MD12', 'MD11']);
   });
 
@@ -184,7 +178,7 @@ describe('viaje v2: la noche común', () => {
     }
   });
 
-  it('comienzo, puerta y cierre rotan por separado: en 9 noches salen las 9 combinaciones de comienzo y cierre', () => {
+  it('comienzo, puerta y cierre rotan por separado: en 9 noches, 9 combinaciones distintas de comienzo y cierre', () => {
     const { programados } = armarCalendario(compra('2026-10-01', '2026-10-12'), []); // 11 días → 9 noches comunes
     const comunes = programados.filter((p) => p.tipo === 'noche');
     expect(comunes).toHaveLength(9);
@@ -212,7 +206,7 @@ describe('viaje v2: pendientes de antes y preguntas propias', () => {
     expect(ns.map((p) => p.tipo)).toEqual(['antes-en-viaje', 'noche', 'propia', 'noche', 'propia', 'FN1']);
     expect(ns.filter((p) => p.tipo === 'propia').map((p) => [p.ids[0], p.pregunta])).toEqual([
       ['PR-R', '¿uno?'],
-      ['PR-R', '¿dos?'],
+      ['PR-R2', '¿dos?'], // PR-R rota (simulaciones)
     ]);
     expect(propiasQueNoEntran).toEqual([]);
   });
@@ -311,10 +305,11 @@ describe('viaje v2: antes de salir (la cadena)', () => {
 });
 
 describe('viaje v2: zonas con 5 horas de diferencia', () => {
-  it('la mañana del día siguiente a la salida es las 10 de Madrid (5 de Buenos Aires), no las 10 de casa', () => {
+  it('ID1: las 10 de casa si son más tarde que las 10 del viaje (nunca las 5 de casa); VU1 a las 10 de casa', () => {
     const { programados } = armarCalendario(compra('2026-10-10', '2026-10-17'), []);
     const id1 = programados.find((p) => p.tipo === 'ID1')!;
-    expect(aLocal(id1.instante, BA)).toEqual({ fecha: '2026-10-11', hora: '05:00' });
+    expect(aLocal(id1.instante, BA)).toEqual({ fecha: '2026-10-11', hora: '10:00' });
+    expect(aLocal(id1.instante, MADRID)).toEqual({ fecha: '2026-10-11', hora: '15:00' });
     const vu1 = programados.find((p) => p.tipo === 'VU1')!;
     expect(aLocal(vu1.instante, MADRID)).toEqual({ fecha: '2026-10-18', hora: '15:00' });
   });

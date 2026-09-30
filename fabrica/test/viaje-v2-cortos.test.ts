@@ -86,8 +86,9 @@ describe('viaje de 1 día (salida = vuelta)', () => {
 describe('viaje de 2 días', () => {
   const r = armarCalendario({ ...COMPRA, vuelta: '2026-10-11' }, ['AS2', 'VA1']);
 
-  it('día 1 solo UC1; día 2 ID1 10:00 y VU0 13:00 sin noche; al otro VU1 10:00 y CA1', () => {
-    expect(resumen(r.programados)).toEqual(['0 UC1 10:00 casa', '1 ID1 10:00 viaje', '1 VU0 13:00 viaje', '2 VU1 10:00 casa', '2 CA1 21:30 casa']);
+  it('día 1 solo UC1; día 2 ID1 y VU0 sin noche; al otro VU1 10:00 y CA1', () => {
+    // ID1 a las 10 de casa (la más tarde; simulaciones): en Madrid son las 15, después de VU0.
+    expect(resumen(r.programados)).toEqual(['0 UC1 10:00 casa', '1 VU0 13:00 viaje', '1 ID1 10:00 casa', '2 VU1 10:00 casa', '2 CA1 21:30 casa']);
   });
 
   it('las de antes que no entran van a los avisos para Naza', () => {

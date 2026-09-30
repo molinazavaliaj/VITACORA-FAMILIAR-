@@ -1,5 +1,6 @@
 // Llena un texto del banco de viaje (docs/viajes-v2/banco.md, "Notación"):
-// {{nombre}}, {{quien_regala}}, {{formato}}, {{fotos_album}} y {{pregunta}}.
+// {{nombre}}, {{quien_regala}}, {{formato}}, {{fotos_album}}, {{pregunta}} y
+// {{fotos_mandadas}} (AL3: cuántas fotos mandó al álbum).
 // Puro. A diferencia de V3, si falta un dato que el texto usa, tira error:
 // en viaje no hay revisión humana antes de mandar, y un "{{quien_regala}}"
 // no puede llegar a un WhatsApp.
@@ -12,6 +13,7 @@ export type DatosTexto = {
   formato?: string;
   fotos_album?: string;
   pregunta?: string;
+  fotos_mandadas?: string;
 };
 
 const MARCA = /\{\{(\w+)\}\}/g;

@@ -172,14 +172,17 @@ describe('viaje v2: reacciones (acuses y casos)', () => {
     }
   });
 
-  it('noche → ACN solo; mediodía y foto suelta → ACM solo', () => {
+  it('noche → ACN solo; mediodía y foto suelta → reacción ❤️, sin texto (simulaciones)', () => {
     expect(reaccion({ tipo: 'noche' }, audio, COMPRA, ROTACION_INICIAL).mensajes[0].ids).toEqual(['ACN1']);
-    expect(reaccion({ tipo: 'MD' }, { tipo: 'foto' }, COMPRA, ROTACION_INICIAL).mensajes[0].ids).toEqual(['ACM1']);
-    expect(reaccion({ tipo: 'foto-suelta' }, { tipo: 'foto' }, COMPRA, { ...ROTACION_INICIAL, ACM: 'ACM1' }).mensajes[0].ids).toEqual(['ACM2']);
+    for (const tipo of ['MD', 'foto-suelta'] as const) {
+      const r = reaccion({ tipo }, { tipo: 'foto' }, COMPRA, ROTACION_INICIAL);
+      expect(r.mensajes).toEqual([]);
+      expect(r.reacciones[0].emoji).toBe('❤️');
+    }
   });
 
-  it('UC1 (y VU0: ese día no hay noche) → solo ACM1 o ACM2, nunca "Hasta la noche"', () => {
-    for (const tipo of ['UC1', 'VU0'] as const) {
+  it('UC1 (ese día no hay noche) → solo ACM1 o ACM2, nunca "Hasta la noche" (VU0 ahora va con ❤️)', () => {
+    for (const tipo of ['UC1'] as const) {
       let rot: Rotacion = { ...ROTACION_INICIAL, ACM: 'ACM2' };
       for (let i = 0; i < 4; i++) {
         const r = reaccion({ tipo }, audio, COMPRA, rot);
@@ -212,9 +215,9 @@ describe('viaje v2: reacciones (acuses y casos)', () => {
     expect(r.abreAlbum).toBe(true);
   });
 
-  it('CA1 en texto: TXT arriba de AL1-P (sin el segundo "gracias")', () => {
+  it('CA1 en texto: TXT solo, y AL1-P en otro mensaje (sin el segundo "gracias")', () => {
     const r = reaccion({ tipo: 'CA1' }, { tipo: 'texto' }, COMPRA, ROTACION_INICIAL);
-    expect(r.mensajes).toEqual([{ ids: ['TXT', 'AL1-P'], texto: `${t('TXT')}\n\n${t('AL1-P')}` }]);
+    expect(r.mensajes).toEqual([{ ids: ['TXT'], texto: t('TXT') }, { ids: ['AL1-P'], texto: t('AL1-P') }]);
   });
 
   it('A5: si contestó en texto (y ya no va TXT), no se usan ACA2 ni ACN3 ("Lo escuché")', () => {
@@ -237,14 +240,16 @@ describe('viaje v2: reacciones (acuses y casos)', () => {
     expect(ids).toEqual([['TXT'], ['TXT'], ['ACN1']]);
   });
 
-  it('TXT antes de salir va arriba de la siguiente, y cuenta para el tope', () => {
+  it('TXT antes de salir va solo y la siguiente en otro mensaje; cuenta para el tope', () => {
     const r = reaccion({ tipo: 'cadena', siguiente: 'IM1' }, { tipo: 'texto' }, COMPRA, ROTACION_INICIAL);
-    expect(r.mensajes[0].ids).toEqual(['TXT', 'IM1']);
+    expect(r.mensajes.map((m) => m.ids)).toEqual([['TXT'], ['IM1']]);
     expect(r.rot.txtUsados).toBe(1);
   });
 
-  it('un texto al mediodía no dispara TXT (el mediodía es foto o frase)', () => {
-    expect(reaccion({ tipo: 'MD' }, { tipo: 'texto' }, COMPRA, ROTACION_INICIAL).mensajes[0].ids).toEqual(['ACM1']);
+  it('un texto al mediodía no dispara TXT (el mediodía es foto o frase): va la ❤️', () => {
+    const r = reaccion({ tipo: 'MD' }, { tipo: 'texto' }, COMPRA, ROTACION_INICIAL);
+    expect(r.mensajes).toEqual([]);
+    expect(r.reacciones).toHaveLength(1);
   });
 
   it('audio que llegó mal: COR solo; la pregunta sigue abierta; no gasta rotación', () => {

@@ -24,7 +24,7 @@ describe('viaje v2: lectura corrida (un viaje inventado)', () => {
   });
 
   it('aparece todo lo que tiene que aparecer', () => {
-    for (const id of ['BIEN-1R', 'BIEN-2', 'AS1', 'AS2', 'IM1', 'PAS-A', 'REC1-U', 'UC1', 'ID1', 'VA1', 'ATR1', 'PR-R', 'PAS-V2', 'TXT', 'COR', 'FN1', 'VU0', 'VU1', 'CA1', 'AL1', 'AL2', 'DES', 'DES+']) {
+    for (const id of ['BIEN-1R', 'BIEN-2', 'AS1', 'AS2', 'IM1', 'PAS-A', 'REC1-U', 'UC1', 'ID1', 'VA1', 'ATR1', 'PR-R', 'PR-R2', 'PAS-V2', 'TXT', 'COR', 'FN1', 'VU0', 'VU1', 'CA1', 'AL1', 'AL2', 'AL3', 'DES', 'DES+']) {
       expect(md, id).toContain(`\`${id}\``);
     }
   });
@@ -34,6 +34,12 @@ describe('viaje v2: lectura corrida (un viaje inventado)', () => {
     expect(dia4).toContain('`PAS-V2`');
     expect(md).not.toContain('`PAS-V`');
     expect(md).not.toContain('`REC1`');
+  });
+
+  it('el mediodía y la foto suelta llevan una reacción ❤️, no un acuse en texto', () => {
+    expect(md).toContain('reacciona ❤️ a su mensaje');
+    const dia3 = md.slice(md.indexOf('## Día 3 del viaje'), md.indexOf('## Día 4 del viaje'));
+    expect(dia3).not.toContain('`ACM'); // el día 3 solo tiene mediodía y noche: ningún ACM
   });
 
   it('TXT como mucho 2 veces', () => {

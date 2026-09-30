@@ -67,7 +67,7 @@ _[audio: el mate en la mesada, la valija parada en el pasillo, y la duda de si c
 **10:40 · Vitácora** `ACM1`  
 > Ya está, gracias.
 
-## Día 2 del viaje · domingo 11/10 (hora de Madrid)
+## Día 2 del viaje · domingo 11/10 (hora de Buenos Aires)
 
 **10:00 · Vitácora** `ID1`  
 > Ayer fue el día del viaje, Lucía. No me cuentes horarios: contame un rato del camino en el que no estabas haciendo nada, solo yendo, y te diste cuenta de que ya estabas lejos. Qué había del otro lado de la ventanilla y qué pensabas.
@@ -77,6 +77,8 @@ _[audio: del avión me acuerdo de nada; del tren desde el aeropuerto, los campos
 
 **12:15 · Vitácora** `ACM2`  
 > Gracias, quedó.
+
+## Día 2 del viaje · domingo 11/10 (hora de Madrid)
 
 **21:30 · Vitácora** `VA1`  
 > Ya estás allá y la valija ya viajó. Contame una cosa que metiste y que no podía faltar, Lucía. No el cargador ni los documentos: algo tuyo. Qué es y por qué va con vos.
@@ -95,8 +97,7 @@ _[audio: un pañuelo de mi abuela; lo llevo a todos lados desde que ella no est�
 **13:20 · Lucía**  
 _[foto]_
 
-**13:20 · Vitácora** `ACM3`  
-> Lo tengo. Hasta la noche.
+**13:20 · Vitácora** reacciona ❤️ a su mensaje
 
 **21:30 · Vitácora** `C1` + `NO1` + `F1`  
 > Contame cómo fue hoy, Lucía, como se lo contarías a alguien que te quiere y no estuvo. Arrancá por algo que comiste, y de ahí seguí por donde quieras. Mandá las fotos que quieras que queden.
@@ -129,15 +130,14 @@ _[texto: paso]_
 **13:40 · Lucía**  
 _[audio: diez segundos de campanas y motos]_
 
-**13:40 · Vitácora** `ACM4`  
-> Llegó, Lucía. Hasta la noche.
+**13:40 · Vitácora** reacciona ❤️ a su mensaje
 
 _(La noche anterior quedó sin contestar.)_
 
-**21:30 · Vitácora** `ATR1` + `C2` + `NO2` + `F2`  
+**21:30 · Vitácora** `ATR1` + `C2` + `NO2` + `F3`  
 > Ayer no me contaste, y no pasa nada. Si querés, metelo hoy junto con lo de hoy.
 >
-> Ya terminó el día. Contámelo como si alguien de casa te llamara ahora mismo a preguntarte cómo te fue. Arrancá por un lugar donde te quedaste un rato, y después seguí con lo que venga. Si hay fotos, mandalas.
+> Ya terminó el día. Contámelo como si alguien de casa te llamara ahora mismo a preguntarte cómo te fue. Arrancá por un lugar donde te quedaste un rato, y de ahí andá por donde te lleve el día. Las fotos que quieras guardar, mandámelas.
 
 **22:50 · Lucía**  
 _[texto: hoy me quedé dos horas en una plaza mirando a unos viejos jugar a la petanca, no sé por qué me emocionó]_
@@ -153,17 +153,15 @@ _[texto: hoy me quedé dos horas en una plaza mirando a unos viejos jugar a la p
 **13:05 · Lucía**  
 _[foto]_
 
-**13:05 · Vitácora** `ACM1`  
-> Ya está, gracias.
+**13:05 · Vitácora** reacciona ❤️ a su mensaje
 
 **18:30 · Lucía**  
 _[foto suelta: un balcón con ropa colgada]_
 
-**18:30 · Vitácora** `ACM2`  
-> Gracias, quedó.
+**18:30 · Vitácora** reacciona ❤️ a su mensaje
 
-**21:30 · Vitácora** `PR-R`  
-> Hoy la pregunta no es mía, es de Tomás: «¿Con quién te hubiera gustado estar ahí, aunque sea un rato?». Contale a esa persona, aunque me lo mandes a mí. Si hay foto, va.
+**21:30 · Vitácora** `PR-R2`  
+> Esta noche te escribe otra persona, no yo. Tomás te dejó esta pregunta: «¿Con quién te hubiera gustado estar ahí, aunque sea un rato?». Contestale como si la tuvieras enfrente. Si hay foto, mandala.
 
 **21:50 · Lucía**  
 _[audio cortado, no se entiende]_
@@ -185,8 +183,7 @@ _[audio: con mi viejo; le hubiera encantado el mercado]_
 **14:00 · Lucía**  
 _[audio: «vale», lo dicen para todo]_
 
-**14:00 · Vitácora** `ACM3`  
-> Lo tengo. Hasta la noche.
+**14:00 · Vitácora** reacciona ❤️ a su mensaje
 
 **21:30 · Vitácora** `FN1`  
 > Mañana te volvés. Antes de armar la valija, contame una cosa de este viaje que no querés que se te olvide, una sola, y por qué esa. Si tenés una foto, que venga.
@@ -205,8 +202,7 @@ _[audio: la señora del hostal que me dio un abrazo al despedirme + una foto]_
 **13:30 · Lucía**  
 _[foto: un frasco de aceitunas envuelto en una remera]_
 
-**13:30 · Vitácora** `ACM1`  
-> Ya está, gracias.
+**13:30 · Vitácora** reacciona ❤️ a su mensaje
 
 ## Ya en casa · domingo 18/10 (hora de Buenos Aires)
 
@@ -216,8 +212,8 @@ _[foto: un frasco de aceitunas envuelto en una remera]_
 **11:00 · Lucía**  
 _[audio: en la escala, cuando escuché a alguien hablar en porteño]_
 
-**11:00 · Vitácora** `ACM2`  
-> Gracias, quedó.
+**11:00 · Vitácora** `ACM3`  
+> Lo tengo. Hasta la noche.
 
 **21:30 · Vitácora** `CA1`  
 > Cuando entres a casa, quedate en el primer rato, con la valija todavía cerrada: contame qué te llamó la atención de tu propia casa después de estar afuera, aunque sea una pavada. Si tenés una foto de eso, mandala.
@@ -233,9 +229,6 @@ _[15 fotos]_
 
 ## Ya en casa · lunes 19/10 (hora de Buenos Aires)
 
-**08:00 · Vitácora** `AL2`  
-> ¿Ya están todas, Lucía? Si me decís que sí, o si no me contestás, cierro el álbum con las que mandaste.
-
 **09:00 · Lucía**  
 _[8 fotos más]_
 
@@ -245,7 +238,10 @@ _[8 fotos más]_
 **14:20 · Lucía**  
 _[texto: sí, ya está]_
 
-**14:20 · Vitácora** `DES` + `DES+`  
+**14:20 · Vitácora** `AL3`  
+> Mandaste 23 fotos y en el álbum entran 20. Si querés, elegí vos cuáles quedan afuera: reenviame las que saco. Si no me decís nada en unas horas, me quedo con las primeras 20.
+
+**19:20 · Vitácora** `DES` + `DES+`  
 > Ya está, Lucía: el viaje quedó contado, con tu voz. Ahora me toca a mí armar el libro con lo que me diste; lo vas a poder leer en tu panel antes de que se cierre, y ahí cambiás lo que haga falta. Del álbum me quedé con las primeras 20 que mandaste, que son las que entran. Fue lindo acompañarte. Gracias por dejarme entrar en tu viaje.
 
 _(Se cierra el álbum: 23 fotos mandadas, guardadas 20, afuera 3.)_

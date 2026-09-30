@@ -67,12 +67,26 @@ export function aInstante(fecha: Fecha, hora: Hora, zona: Zona): Date {
   return new Date(t);
 }
 
-/** Si el instante cae entre las 23:00 y las 8:00 locales, lo corre a las 8:00 siguientes. */
-export function respetarFranja(instante: Date, zona: Zona): Date {
+/**
+ * Si el instante cae entre las 23:00 y las 8:00 locales, lo corre a la mañana
+ * siguiente: a las 8:00, o a la hora que se pida (el álbum usa las 10:00).
+ */
+export function respetarFranja(instante: Date, zona: Zona, a: Hora = FRANJA_HASTA): Date {
   const { fecha, hora } = aLocal(instante, zona);
-  if (hora >= FRANJA_DESDE) return aInstante(sumarDias(fecha, 1), FRANJA_HASTA, zona);
-  if (hora < FRANJA_HASTA) return aInstante(fecha, FRANJA_HASTA, zona);
+  if (hora >= FRANJA_DESDE) return aInstante(sumarDias(fecha, 1), a, zona);
+  if (hora < FRANJA_HASTA) return aInstante(fecha, a, zona);
   return instante;
+}
+
+/** La franja en varias zonas a la vez (ID1: ni de madrugada en casa ni en el viaje). */
+export function respetarFranjas(instante: Date, zonas: readonly Zona[]): Date {
+  let t = instante;
+  for (let vuelta = 0; vuelta < 6; vuelta++) {
+    const antes = t.getTime();
+    for (const z of zonas) t = respetarFranja(t, z);
+    if (t.getTime() === antes) return t;
+  }
+  throw new Error(`No hay hora fuera de la franja en ${zonas.join(' y ')}`);
 }
 
 export function sumarDias(fecha: Fecha, dias: number): Fecha {

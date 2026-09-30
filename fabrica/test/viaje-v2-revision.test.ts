@@ -56,24 +56,24 @@ describe('2. "Hasta la noche" (ACM3, ACM4) solo si de verdad queda una noche ese
     expect(quedaNocheEseDia(cal, aInstante('2026-10-18', '11:00', BA))).toBe(true); // CA1 esa noche
   });
 
-  it('foto suelta, MD, UC1 y VU0 sin noche por delante: solo ACM1 o ACM2, aunque la rueda diga ACM3', () => {
+  it('UC1, ID1 y VU1 sin noche por delante: solo ACM1 o ACM2, aunque la rueda diga ACM3 (MD, VU0 y fotos sueltas van con ❤️)', () => {
     const rot: Rotacion = { ...ROTACION_INICIAL, ACM: 'ACM2' };
-    for (const tipo of ['foto-suelta', 'MD', 'UC1', 'VU0', 'ID1', 'VU1'] as const) {
-      const r = reaccion({ tipo, quedaNoche: false }, { tipo: 'foto' }, COMPRA, rot);
+    for (const tipo of ['UC1', 'ID1', 'VU1'] as const) {
+      const r = reaccion({ tipo, quedaNoche: false }, { tipo: 'audio' }, COMPRA, rot);
       expect(r.mensajes[0].ids, tipo).toEqual(['ACM1']);
     }
   });
 
   it('con noche por delante, la rueda sigue entera (ACM3 después de ACM2)', () => {
     const rot: Rotacion = { ...ROTACION_INICIAL, ACM: 'ACM2' };
-    for (const tipo of ['foto-suelta', 'MD', 'ID1', 'VU1'] as const) {
-      expect(reaccion({ tipo, quedaNoche: true }, { tipo: 'foto' }, COMPRA, rot).mensajes[0].ids, tipo).toEqual(['ACM3']);
+    for (const tipo of ['ID1', 'VU1'] as const) {
+      expect(reaccion({ tipo, quedaNoche: true }, { tipo: 'audio' }, COMPRA, rot).mensajes[0].ids, tipo).toEqual(['ACM3']);
     }
   });
 
   it('sin decir nada de la noche, se asume que no queda (lo seguro)', () => {
     const rot: Rotacion = { ...ROTACION_INICIAL, ACM: 'ACM2' };
-    expect(reaccion({ tipo: 'foto-suelta' }, { tipo: 'foto' }, COMPRA, rot).mensajes[0].ids).toEqual(['ACM1']);
+    expect(reaccion({ tipo: 'ID1' }, { tipo: 'audio' }, COMPRA, rot).mensajes[0].ids).toEqual(['ACM1']);
   });
 });
 

@@ -20,17 +20,17 @@ describe('viaje v2: banco.md → filas', () => {
     const cuenta = (m: string) => BANCO.filter((f) => f.momento === m).length;
     expect(cuenta('arranque')).toBe(3);
     expect(cuenta('antes')).toBe(4);
-    expect(cuenta('noche-comienzo')).toBe(3);
+    expect(cuenta('noche-comienzo')).toBe(5); // + C4, C5 (simulaciones)
     expect(cuenta('noche-puerta')).toBe(9);
-    expect(cuenta('noche-cierre')).toBe(3);
+    expect(cuenta('noche-cierre')).toBe(5); // + F4, F5
     expect(cuenta('mediodia')).toBe(12);
     expect(cuenta('acuse-noche') + cuenta('acuse-mediodia') + cuenta('acuse-antes')).toBe(12);
     expect(cuenta('caso')).toBe(8); // con PAS-A2 (Fable), PAS-V2 y REC1-U (viajes cortos)
     expect(cuenta('atraso')).toBe(4);
-    expect(cuenta('propia')).toBe(2);
+    expect(cuenta('propia')).toBe(4); // + PR-R2, PR-R3
     expect(cuenta('despedida')).toBe(2);
-    expect(cuenta('album')).toBe(3); // AL1, AL1-P (revisión de Fable), AL2
-    expect(BANCO).toHaveLength(72); // + IV1, PAS-V2, REC1-U
+    expect(cuenta('album')).toBe(4); // AL1, AL1-P (revisión de Fable), AL2, AL3 (simulaciones)
+    expect(BANCO).toHaveLength(79); // + IV1, PAS-V2, REC1-U; + C4, C5, F4, F5, PR-R2, PR-R3, AL3
     expect(cuenta('dia-siguiente-vuelta')).toBe(2); // VU1 e IV1
   });
 

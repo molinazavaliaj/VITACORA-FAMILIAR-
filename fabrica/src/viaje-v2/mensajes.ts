@@ -9,23 +9,29 @@
 //   · ACA como primera línea de la siguiente de antes de salir. La rotación de
 //     ACA arranca por ACA2; ACA1 (con {{nombre}}) nunca arriba de AS2 ni de VA1 (A6).
 //   · ACN solo, después de la noche (común, de antes en el viaje, propia, FN1).
-//   · ACM solo, después del mediodía, de una foto suelta, de ID1, VU1, UC1 y VU0.
-//     ACM3 y ACM4 dicen "Hasta la noche": solo van si de verdad queda una
-//     pregunta de noche ese día (`quedaNoche`, ver quedaNocheEseDia en
-//     calendario.ts). Sin el dato, se asume que no: ACM1 o ACM2 (A1 y revisión).
+//   · Mediodía (MD), VU0 y fotos sueltas: una reacción ❤️ de WhatsApp sobre
+//     su mensaje, sin texto (`reacciones`, no `mensajes`) (simulaciones).
+//   · ACM solo, después de UC1, ID1, VU1 e IV1. ACM3 y ACM4 dicen "Hasta la
+//     noche": solo van si de verdad queda una pregunta de noche ese día
+//     (`quedaNoche`, ver quedaNocheEseDia en calendario.ts). Sin el dato, se
+//     asume que no: ACM1 o ACM2 (A1 y revisión).
 //   · CA1 → AL1 solo: AL1 trae su "Gracias" adentro. "Paso" en CA1 → AL1-P (A3).
-//   · ATR solo arriba de la noche común (A2): ATR1-3 rotan; ATR-V con 2 o más seguidas.
+//   · ATR solo arriba de la noche común (A2): ATR1-3 rotan; ATR-V con 2 o más
+//     seguidas, pero nunca dos noches seguidas: si la noche anterior llevó
+//     ATR-V, esta va sin ATR (simulaciones).
 //   · "Paso": PAS-A + la siguiente sin acuse (A4); en VA1, PAS-A2 solo; en el viaje,
 //     PAS-V2 si ese día todavía llega otra pregunta (`quedaOtra`), si no PAS-V.
 //     Si la cadena se calló por la fecha (ya es el día de salida), nada que
 //     prometa: ni la siguiente ni PAS-A2 ("silencio hasta el día que te vas");
 //     va ACM1 o ACM2 solo, y lo que falta queda para las noches (revisión).
-//   · Texto en vez de audio: TXT en lugar del acuse, como mucho MAX_TXT veces;
-//     si escribió, nunca ACA2 ni ACN3 ("Lo escuché") (A5).
+//   · Texto en vez de audio: TXT en lugar del acuse, como mucho MAX_TXT veces,
+//     SOLO en su mensaje: si sigue una pregunta, va en otro mensaje (simulaciones).
+//   · Si la respuesta fue solo texto o solo fotos, nunca ACA2 ni ACN3 ("Lo escuché") (A5 y simulaciones).
 //   · Audio que llegó mal (la señal viene de afuera): COR solo; la pregunta sigue abierta.
 
 import { porId } from './banco.js';
 import type { IdAntes, Programado, TipoProgramado } from './calendario.js';
+import { aLocal } from './horas.js';
 import { datosDeCompra, renderizar } from './texto.js';
 import type { Compra, Mensaje } from './tipos.js';
 
@@ -43,8 +49,8 @@ const GRUPOS: Record<Grupo, readonly string[]> = {
 /** Por dónde arranca cada rueda (A6: ACA arranca por ACA2). */
 const INICIO: Record<Grupo, string> = { ACN: 'ACN1', ACM: 'ACM1', ACA: 'ACA2', ATR: 'ATR1' };
 
-/** El último que salió de cada grupo, y cuántos TXT van. */
-export type Rotacion = { ACN?: string; ACM?: string; ACA?: string; ATR?: string; txtUsados: number };
+/** El último que salió de cada grupo, cuántos TXT van, y si la última noche del viaje llevó ATR-V. */
+export type Rotacion = { ACN?: string; ACM?: string; ACA?: string; ATR?: string; txtUsados: number; atrVAnterior?: boolean };
 
 export const ROTACION_INICIAL: Rotacion = { txtUsados: 0 };
 
@@ -101,11 +107,22 @@ export function arranque(compra: Compra): Mensaje {
  * Con el SÍ: BIEN-2 y enseguida AS1 (dos mensajes). AS1 sale SIEMPRE, aunque
  * ya sea el día de salida: BIEN-2 termina en "Ahí va la primera". Así, si la
  * compra es el mismo día que sale, ese día van BIEN-2, AS1 y UC1 (test en
- * viaje-v2-revision). Lo que siga de la cadena ese día ya no sale
- * (momentoDeLaSiguiente da null): queda para las noches.
+ * viaje-v2-revision; UC1 puede correrse: momentoUC1). Lo que siga de la
+ * cadena ese día ya no sale (momentoDeLaSiguiente da null): queda para las noches.
+ *
+ * Si el SÍ (`en`) llega después del día de salida (hora de casa), AS1 va en su
+ * versión "ya de viaje" (simulaciones). Anotarla con `yaDeViaje: true` en el
+ * estado: así no vuelve a salir en las noches (pendientesParaElViaje).
  */
-export function alDecirSi(compra: Compra): Mensaje[] {
-  return [juntar([parte('BIEN-2', compra)]), juntar([parte('AS1', compra)])];
+export function alDecirSi(compra: Compra, en?: Date): Mensaje[] {
+  const yaSalio = en !== undefined && aLocal(en, compra.zonaCasa).fecha > compra.salida;
+  const as1 = yaSalio ? { id: 'AS1', texto: textoYaDeViaje('AS1', compra) } : parte('AS1', compra);
+  return [juntar([parte('BIEN-2', compra)]), juntar([as1])];
+}
+
+/** CA1 sin respuesta: al día siguiente a las 13:00 sale AL1-P igual (momentoAlbumSinCA1). Abre el álbum. */
+export function albumSinRespuesta(compra: Compra): Mensaje {
+  return juntar([parte('AL1-P', compra)]);
 }
 
 /** Una de la cadena sola (para reenviarla, o para lo que haga falta). */
@@ -129,13 +146,15 @@ export function preguntaProgramada(p: Programado, compra: Compra, nochesSinConte
   const partes: { id: string; texto: string }[] = [];
   let r = rot;
   if (p.tipo === 'noche' && nochesSinContestar >= 1) {
-    if (nochesSinContestar >= 2) partes.push(parte('ATR-V', compra));
-    else {
+    if (nochesSinContestar >= 2) {
+      if (!rot.atrVAnterior) partes.push(parte('ATR-V', compra));
+    } else {
       const e = elegirRotando('ATR', r);
       r = e.rot;
       partes.push(parte(e.id, compra));
     }
   }
+  if (NOCHES_DEL_VIAJE.has(p.tipo)) r = { ...r, atrVAnterior: partes.some((x) => x.id === 'ATR-V') };
   if (p.tipo === 'noche') {
     // Comienzo + " " + puerta + cierre (el cierre ya empieza con ", y").
     const [c, no, f] = p.ids;
@@ -147,6 +166,8 @@ export function preguntaProgramada(p: Programado, compra: Compra, nochesSinConte
   else partes.push(parte(p.ids[0], compra));
   return { mensaje: juntar(partes), rot: r };
 }
+
+const NOCHES_DEL_VIAJE: ReadonlySet<string> = new Set(['noche', 'antes-en-viaje', 'propia', 'FN1']);
 
 // ── Reacciones a lo que contesta ─────────────────────────────────────────────
 
@@ -160,10 +181,17 @@ export type QueSeContesta =
   // con "paso", PAS-V2 en vez de PAS-V. Sin el dato, false.
   | { tipo: TipoProgramado | 'foto-suelta'; quedaNoche?: boolean; quedaOtra?: boolean };
 
-export type Respuesta = { tipo: 'audio' | 'texto' | 'foto' | 'paso'; audioMal?: boolean };
+/** Lo que mandó la persona. `idMensaje`: el id de WhatsApp de su mensaje (para la reacción ❤️). */
+export type Respuesta = { tipo: 'audio' | 'texto' | 'foto' | 'paso'; audioMal?: boolean; idMensaje?: string };
+
+/** Una reacción de WhatsApp sobre el mensaje de la persona: no es un mensaje, no lleva texto. */
+export type ReaccionEmoji = { tipo: 'reaccion'; emoji: '❤️'; aMensaje: string | null };
 
 export type Reaccion = {
+  /** Mensajes de texto a mandar, en orden (cada uno es un mensaje de WhatsApp aparte). */
   mensajes: Mensaje[];
+  /** Reacciones ❤️ (mediodía, VU0, fotos sueltas). */
+  reacciones: ReaccionEmoji[];
   rot: Rotacion;
   /** false si el audio llegó mal (COR): la pregunta sigue abierta. */
   contestada: boolean;
@@ -171,19 +199,25 @@ export type Reaccion = {
   abreAlbum: boolean;
 };
 
+/** Donde el acuse es una reacción ❤️ (simulaciones). */
+const CON_CORAZON: ReadonlySet<string> = new Set(['MD', 'VU0', 'foto-suelta']);
+
 /** Donde un texto dispara TXT: las que piden contar. El mediodía y VU0 son foto o frase. */
 const NARRATIVAS: ReadonlySet<string> = new Set(['cadena', 'UC1', 'ID1', 'noche', 'antes-en-viaje', 'propia', 'FN1', 'VU1', 'IV1', 'CA1']);
 const DE_NOCHE: ReadonlySet<string> = new Set(['noche', 'antes-en-viaje', 'propia', 'FN1']);
 
 export function reaccion(de: QueSeContesta, respuesta: Respuesta, compra: Compra, rot: Rotacion): Reaccion {
-  const listo = (mensajes: Mensaje[], r: Rotacion, abreAlbum = false): Reaccion => ({ mensajes, rot: r, contestada: true, abreAlbum });
+  const listo = (mensajes: Mensaje[], r: Rotacion, abreAlbum = false): Reaccion => ({ mensajes, reacciones: [], rot: r, contestada: true, abreAlbum });
 
-  if (respuesta.audioMal) return { mensajes: [juntar([parte('COR', compra)])], rot, contestada: false, abreAlbum: false };
+  if (respuesta.audioMal) return { mensajes: [juntar([parte('COR', compra)])], reacciones: [], rot, contestada: false, abreAlbum: false };
 
   const escribio = respuesta.tipo === 'texto';
   const usaTxt = escribio && NARRATIVAS.has(de.tipo) && rot.txtUsados < MAX_TXT;
   const conTxt: Rotacion = usaTxt ? { ...rot, txtUsados: rot.txtUsados + 1 } : rot;
-  const sinLoEscuche = (ids: readonly string[], fuera: string) => (escribio ? ids.filter((id) => id !== fuera) : ids);
+  // "Lo escuché" no va si no hubo nada que escuchar: solo texto o solo fotos.
+  const sinAudio = respuesta.tipo === 'texto' || respuesta.tipo === 'foto';
+  const sinLoEscuche = (ids: readonly string[], fuera: string) => (sinAudio ? ids.filter((id) => id !== fuera) : ids);
+  const txt = juntar([parte('TXT', compra)]);
 
   if (de.tipo === 'cadena') {
     const sig = de.siguiente;
@@ -193,16 +227,17 @@ export function reaccion(de: QueSeContesta, respuesta: Respuesta, compra: Compra
     };
     if (sig === 'callada') {
       // Ya es el día de salida: no se promete nada (ni PAS-A2 ni la siguiente).
-      if (usaTxt) return listo([juntar([parte('TXT', compra)])], conTxt);
+      if (usaTxt) return listo([txt], conTxt);
       return soloAcm();
     }
     if (sig === 'fin') {
       if (respuesta.tipo === 'paso') return listo([juntar([parte('PAS-A2', compra)])], rot);
-      if (usaTxt) return listo([juntar([parte('TXT', compra)])], conTxt);
+      if (usaTxt) return listo([txt], conTxt);
       return soloAcm();
     }
     if (respuesta.tipo === 'paso') return listo([juntar([parte('PAS-A', compra), parte(sig, compra)])], rot);
-    if (usaTxt) return listo([juntar([parte('TXT', compra), parte(sig, compra)])], conTxt);
+    // TXT va solo; la siguiente, en su propio mensaje.
+    if (usaTxt) return listo([txt, juntar([parte(sig, compra)])], conTxt);
     let permitidos = sinLoEscuche(GRUPOS.ACA, 'ACA2');
     if (sig === 'AS2' || sig === 'VA1') permitidos = permitidos.filter((id) => id !== 'ACA1');
     const e = elegirRotando('ACA', rot, permitidos);
@@ -211,12 +246,15 @@ export function reaccion(de: QueSeContesta, respuesta: Respuesta, compra: Compra
 
   if (de.tipo === 'CA1') {
     if (respuesta.tipo === 'paso') return listo([juntar([parte('AL1-P', compra)])], rot, true);
-    if (usaTxt) return listo([juntar([parte('TXT', compra), parte('AL1-P', compra)])], conTxt, true);
+    if (usaTxt) return listo([txt, juntar([parte('AL1-P', compra)])], conTxt, true);
     return listo([juntar([parte('AL1', compra)])], rot, true);
   }
 
   if (respuesta.tipo === 'paso') return listo([juntar([parte(de.quedaOtra ? 'PAS-V2' : 'PAS-V', compra)])], rot);
-  if (usaTxt) return listo([juntar([parte('TXT', compra)])], conTxt);
+  if (usaTxt) return listo([txt], conTxt);
+  if (CON_CORAZON.has(de.tipo)) {
+    return { mensajes: [], reacciones: [{ tipo: 'reaccion', emoji: '❤️', aMensaje: respuesta.idMensaje ?? null }], rot, contestada: true, abreAlbum: false };
+  }
 
   const e = DE_NOCHE.has(de.tipo)
     ? elegirRotando('ACN', rot, sinLoEscuche(GRUPOS.ACN, 'ACN3'))

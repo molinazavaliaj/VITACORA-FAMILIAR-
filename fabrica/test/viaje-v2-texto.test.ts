@@ -46,7 +46,7 @@ describe('viaje v2: renderizar', () => {
   });
 
   it('todos los textos del banco se pueden llenar con una compra completa', () => {
-    const datos = { ...datosDeCompra(COMPRA), pregunta: 'x' };
+    const datos = { ...datosDeCompra(COMPRA), pregunta: 'x', fotos_mandadas: '23' };
     // Se importa acá para no depender del orden de los describe.
     return import('../src/viaje-v2/banco.js').then(({ BANCO }) => {
       for (const f of BANCO) {

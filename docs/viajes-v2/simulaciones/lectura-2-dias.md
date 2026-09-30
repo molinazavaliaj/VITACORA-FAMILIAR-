@@ -2,6 +2,7 @@
 
 Un viaje **inventado**, mensaje por mensaje, como le llegaría por WhatsApp. Generado por `fabrica/scripts/viaje-v2-simular.ts` con el código de `fabrica/src/viaje-v2/` y los textos de `banco.md`: no editar a mano.
 
+- **La compra ya no permite viajes de 2 días (mínimo 3; simulaciones).** Esta lectura queda como prueba del código de viajes cortos, que sigue.
 - Ramiro, regalo de su pareja Celeste; 2 días (sale el 2026-12-05, emprende la vuelta el 2026-12-06). Compra el 30/11.
 - Casa: Buenos Aires. Viaje: Montevideo. Noche a las 21:30. Libro impreso, álbum de 20.
 - Pregunta de Celeste: «¿Qué te hizo acordar a nosotros?» (un viaje de 2 días no tiene noches comunes: no entra y queda en los avisos a Naza).
@@ -87,8 +88,7 @@ _[audio: el buque saliendo del puerto, el agua marrón, y nadie hablando en la c
 **13:35 · Ramiro**  
 _[foto: una bolsa con alfajores y una tabla de picar de madera]_
 
-**13:35 · Vitácora** `ACM1`  
-> Ya está, gracias.
+**13:35 · Vitácora** reacciona ❤️ a su mensaje
 
 ## Ya en casa · lunes 7/12 (hora de Buenos Aires)
 
@@ -98,8 +98,8 @@ _[foto: una bolsa con alfajores y una tabla de picar de madera]_
 **10:50 · Ramiro**  
 _[audio: cuando vi la costanera de acá desde el barco; se me cerró algo en el pecho]_
 
-**10:50 · Vitácora** `ACM2`  
-> Gracias, quedó.
+**10:50 · Vitácora** `ACM3`  
+> Lo tengo. Hasta la noche.
 
 **21:30 · Vitácora** `CA1`  
 > Cuando entres a casa, quedate en el primer rato, con la valija todavía cerrada: contame qué te llamó la atención de tu propia casa después de estar afuera, aunque sea una pavada. Si tenés una foto de eso, mandala.
@@ -127,8 +127,8 @@ _[texto: sí, están todas]_
 **13:10 · Vitácora** `DES`  
 > Ya está, Ramiro: el viaje quedó contado, con tu voz. Ahora me toca a mí armar el libro con lo que me diste; lo vas a poder leer en tu panel antes de que se cierre, y ahí cambiás lo que haga falta. Fue lindo acompañarte. Gracias por dejarme entrar en tu viaje.
 
-_(Se cierra el álbum: 17 fotos mandadas, guardadas 17, afuera 0.)_
+_(Se cierra el álbum: 17 fotos quedan, guardadas 17, afuera 0.)_
 
 ---
 
-_(Este viaje no rompe ninguna invariante del simulador.)_
+**Invariantes rotas en este viaje:** k (El viaje tiene que durar al menos 3 días (salida y vuelta incluidas); este dura 2)
