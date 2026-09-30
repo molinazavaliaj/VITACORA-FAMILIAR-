@@ -10,7 +10,7 @@ import { join } from 'node:path';
 import { afterAll, describe, expect, it } from 'vitest';
 import { mensajePorId } from '../src/v3/entrevista/banco.js';
 import { VIDAS_EJEMPLO } from '../src/v3/entrevista/vidas-ejemplo.js';
-import { charlaMd, main, nuevaEntrevista, responder, salidaParaNarrador, textoDeGlobo, type EstadoSimulacion, type Parte, type Resultado } from '../scripts/v3-entrevista-turno.js';
+import { charlaMd, main, nuevaEntrevista, responder, salidaParaNarrador, textoDeGlobo, tocarBoton, type EstadoSimulacion, type Parte, type Resultado } from '../scripts/v3-entrevista-turno.js';
 
 const dir = mkdtempSync(join(tmpdir(), 'v3-turno-'));
 afterAll(() => rmSync(dir, { recursive: true, force: true }));
@@ -125,6 +125,78 @@ describe('cada turno', () => {
     const r = hastaElFinal(nuevaEntrevista({ nombre: 'Tito', genero: 'varon' }), () => CUENTA);
     const todo = r.estado.charla.flatMap((g) => (g.de === 'bio' ? [textoDeGlobo(g.partes)] : [])).join('\n');
     expect(todo).not.toMatch(/\{\{/);
+  });
+});
+
+/** Contesta contando algo hasta que la pregunta que espera es `id`. */
+function hasta(id: string, r: Resultado = nuevaEntrevista(MARTA)): Resultado {
+  for (let i = 0; i < 300 && r.estado.esperando !== id; i++) r = responder(r.estado, CUENTA);
+  expect(r.estado.esperando).toBe(id);
+  return r;
+}
+
+describe('botones (Naza, 30/09, simulaciones)', () => {
+  it('se muestran debajo del mensaje; el primero con botones (CI1) lleva la ayuda M31', () => {
+    const r = hasta('CI1');
+    const ultimo = r.mensajes.at(-1)!;
+    expect(ultimo).toMatch(/\n_Podés tocar el botón de abajo, o contestarme en audio como siempre\._\n\[botones: \(No, está todo\)\]$/);
+    const ca6 = hasta('CA6', r).mensajes.at(-1)!;
+    expect(ca6).toMatch(/\[botones: \(Sí, tuve\) \(No tuve hermanos\)\]$/);
+    expect(ca6).not.toContain('Podés tocar');
+  });
+
+  it('"Sí": llega M30 solo, sigue esperando la misma pregunta y el audio se suma a esa respuesta', () => {
+    let r = hasta('CA6');
+    r = tocarBoton(r.estado, 'Sí, tuve');
+    expect(r.mensajes).toEqual(['Contame, te escucho.']);
+    expect(r.estado.esperando).toBe('CA6');
+    r = responder(r.estado, 'Éramos cuatro y con el más chico hicimos de todo.');
+    expect(r.estado.respuestas.at(-1)).toEqual(['CA6', '⟦botón:Sí, tuve⟧ Éramos cuatro y con el más chico hicimos de todo.']);
+    expect(r.estado.esperando).toBe('CA16');
+    expect(r.mensajes[0]).not.toMatch(/^Bien, seguimos\./); // contó algo: acuse común
+  });
+
+  it('"No": la respuesta queda cerrada, va M25 arriba y no llegan las que dependen', () => {
+    let r = hasta('HI0');
+    r = tocarBoton(r.estado, 'No tuve hijos');
+    expect(r.estado.respuestas.at(-1)).toEqual(['HI0', '⟦botón:No tuve hijos⟧']);
+    expect(r.mensajes[0]).toMatch(/^Bien, (seguimos|entonces)\.\n/);
+    expect(r.estado.esperando).toBe('HI10');
+  });
+
+  it('[Paso esta] en una sensible: M27 arriba de lo que sigue', () => {
+    let r = hasta('CA17');
+    r = tocarBoton(r.estado, 'Paso esta');
+    expect(r.mensajes[0]).toMatch(/^(Está bien, Marta\. Lo dejamos ahí y seguimos por otro lado\.|Claro, sin problema\. Vamos con otra\.)\n/);
+  });
+
+  it('errores claros: un botón que la pregunta no tiene, o tocar otro después de "Sí"', () => {
+    const r = hasta('CA6');
+    expect(() => tocarBoton(r.estado, 'No tuve hijos')).toThrow(/Sí, tuve.*No tuve hermanos/);
+    const si = tocarBoton(r.estado, 'Sí, tuve');
+    expect(() => tocarBoton(si.estado, 'No tuve hermanos')).toThrow(/Ya tocó/);
+  });
+
+  it('el md muestra los botones y el toque', () => {
+    let r = hasta('CA6');
+    r = tocarBoton(r.estado, 'Sí, tuve');
+    r = responder(r.estado, 'Éramos cuatro.');
+    const md = charlaMd(r.estado, 'Prueba');
+    expect(md).toContain('> [botones: (Sí, tuve) (No tuve hermanos)]');
+    expect(md).toContain('**Narrador** `[CA6]`: [toca: Sí, tuve]');
+    expect(md).toContain('**Biógrafo** `[M30]`:');
+    expect(md).toContain('**Narrador** `[CA6]`: Éramos cuatro.');
+  });
+
+  it('por la CLI: responder <estado> --boton "<texto>"', () => {
+    const estado = join(dir, 'boton.json');
+    main(['nueva', estado, '--nombre', 'Marta', '--genero', 'mujer']);
+    for (let i = 0; i < 3; i++) main(['responder', estado, '--respuesta', CUENTA]);
+    const salida = main(['responder', estado, '--boton', 'No, está todo']);
+    expect(salida).toMatch(/Te toca contestar/);
+    const e = JSON.parse(readFileSync(estado, 'utf8')) as EstadoSimulacion;
+    expect(e.respuestas.at(-1)).toEqual(['CI1', '⟦botón:No, está todo⟧']);
+    expect(() => main(['responder', estado, '--boton'])).toThrow(/sin texto/);
   });
 });
 
