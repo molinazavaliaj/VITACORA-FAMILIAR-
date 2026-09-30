@@ -157,8 +157,17 @@ export function siguientePregunta(e: EstadoEntrevista, banco: readonly PreguntaE
   const hecha = (id: string) => e.respuestas.has(id) || enviados.has(id);
   const pendiente = (p: PreguntaEntrevista) => !hecha(p.id) && cumple(p, e.respuestas);
 
+  // Naza (30/09): si dijo "paso" en una pregunta que abre un tema, el cierre
+  // de ese bloque ("¿quedó algo de este tema…?") va en el núcleo aunque sea
+  // extra, para que tenga dónde contar lo que sí le pasó de ese tema.
+  const abreTema = new Set(banco.flatMap((p) => p.depende.map((c) => c.de)));
+  const bloquesConPaso = new Set(
+    banco.filter((p) => abreTema.has(p.id) && e.respuestas.has(p.id) && esPaso(e.respuestas.get(p.id)!)).map((p) => p.bloque),
+  );
+  const vaEnNucleo = (p: PreguntaEntrevista) => p.parte === 'nucleo' || (p.clase === 'cierre' && bloquesConPaso.has(p.bloque));
+
   const principal = banco.filter((p) => p.bloque !== BLOQUE_FINAL);
-  for (const p of principal) if (p.parte === 'nucleo' && pendiente(p)) return comoSiguiente(p);
+  for (const p of principal) if (vaEnNucleo(p) && pendiente(p)) return comoSiguiente(p);
 
   if (ronda === 'sin-ofrecer') return { tipo: 'ofrecer-extra' };
   if (ronda === 'aceptada') for (const p of principal) if (p.parte === 'extra' && pendiente(p)) return comoSiguiente(p);

@@ -413,3 +413,5 @@ Las demás filas vivas del borrador mantienen su ID. Las filas "sale" no están 
 - M10 sin {{etapa}}: "Terminamos esta etapa, {{nombre}}. Pasamos a la siguiente." CI2 dice "tu infancia" (el texto aprobado del cierre A1).
 - La ronda extra **por ahora no se ofrece**: después del núcleo de los bloques 1 a 14 va el bloque 15. Las preguntas "extra" quedan en el banco para más adelante (`ofrecerExtra` en el código).
 - "Paso" en una pregunta que abre tema: se sigue a otro tema (como estaba).
+- "Paso" en una pregunta que abre tema (CA6, JU8, AM0, AM9, AM16, HI0, HI8, AS1, HG1): no van las que dependen, y el cierre de ese bloque llega en el núcleo aunque sea extra (Naza, 30/09).
+- Las dudas ficha-respuesta quedan solo en el dashboard (Naza, 30/09).

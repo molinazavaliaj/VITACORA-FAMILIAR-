@@ -316,3 +316,14 @@ describe('entrevista: la ficha contra las respuestas', () => {
     expect(contradiccionesConFicha(ficha, r({ HI0: 'paso' }))).toEqual([]);
   });
 });
+
+describe('entrevista: "paso" en una pregunta que abre tema (Naza, 30/09)', () => {
+  it('AM0 "paso": no van las de pareja, y el cierre del bloque 6 llega en el núcleo', () => {
+    const v = vida('sigue-con-la-primera');
+    const pasos = simularRecorrido(v.ficha, (id) => (id === 'AM0' ? 'Paso' : v.respuestas[id]), {});
+    expect(delBloque(pasos, 6)).toEqual(['AM0', 'AM14', 'CI6']);
+  });
+  it('sin "paso", el cierre del bloque 6 (extra) no llega en el núcleo', () => {
+    expect(delBloque(recorrer(vida('sigue-con-la-primera')), 6)).not.toContain('CI6');
+  });
+});
