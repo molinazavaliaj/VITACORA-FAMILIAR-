@@ -9,6 +9,13 @@
 //   · Día N-1: la noche es FN1 (el mediodía es normal).
 //   · Día N: solo VU0, 13:00, hora del viaje.
 //   · Día N+1: VU1 10:00 y CA1 a la hora de la noche, hora de casa.
+// Viajes cortos (banco.md, "Lectura corrida y viajes cortos", Naza 30/09):
+//   · 1 día (salida = vuelta): ese día UC1 10:00 y VU0 13:00; al otro, IV1
+//     10:00 (en lugar de ID1 y VU1) y CA1 a la noche. Sin FN1 ni noches.
+//     Todo en hora de CASA, también VU0: un viaje de un día suele ser cerca,
+//     y así el día entero queda en la misma zona (decisión del código).
+//   · 2 días: día 1 solo UC1; día 2 ID1 10:00 y VU0 13:00, sin noche (hora
+//     del viaje); al otro, VU1 10:00 y CA1 (hora de casa).
 // Las noches de los días 1 a N-2 son las "noches comunes": primero van las de
 // antes de salir que faltaron (en orden, variante "ya de viaje"), después las
 // preguntas propias repartidas parejas, y el resto, comienzo + puerta + cierre.
@@ -66,6 +73,7 @@ export type TipoProgramado =
   | 'FN1'
   | 'VU0'
   | 'VU1'
+  | 'IV1' // viaje de 1 día: ida y vuelta, al día siguiente
   | 'CA1';
 
 export type Programado = {
@@ -178,7 +186,14 @@ export function armarCalendario(compra: Compra, pendientesAntes: readonly IdAnte
     programados.push({ dia, momento, tipo, ids, zona, fecha: local.fecha, hora: local.hora, instante, clave: `D${dia}-${momento}`, ...(pregunta !== undefined ? { pregunta } : {}) });
   };
 
-  for (let d = 0; d <= n + 1; d++) {
+  if (n === 0) {
+    agregar(0, 'manana', 'UC1', ['UC1'], compra.zonaCasa, HORA_MANANA);
+    agregar(0, 'mediodia', 'VU0', ['VU0'], compra.zonaCasa, HORA_MEDIODIA);
+    agregar(1, 'manana', 'IV1', ['IV1'], compra.zonaCasa, HORA_MANANA);
+    agregar(1, 'noche', 'CA1', ['CA1'], compra.zonaCasa, horaNoche);
+  }
+
+  for (let d = 0; n > 0 && d <= n + 1; d++) {
     if (d === 0) {
       agregar(d, 'manana', 'UC1', ['UC1'], compra.zonaCasa, HORA_MANANA);
       continue;
@@ -189,6 +204,7 @@ export function armarCalendario(compra: Compra, pendientesAntes: readonly IdAnte
       continue;
     }
     if (d === n) {
+      if (n === 1) agregar(d, 'manana', 'ID1', ['ID1'], compra.zonaViaje, HORA_MANANA); // 2 días: ID1 y VU0, sin noche
       agregar(d, 'mediodia', 'VU0', ['VU0'], compra.zonaViaje, HORA_MEDIODIA);
       continue;
     }
@@ -224,6 +240,14 @@ export function armarCalendario(compra: Compra, pendientesAntes: readonly IdAnte
  */
 export function quedaNocheEseDia(programados: readonly Programado[], t: Date): boolean {
   return programados.some((p) => p.momento === 'noche' && p.instante.getTime() > t.getTime() && aLocal(t, p.zona).fecha === p.fecha);
+}
+
+/**
+ * ¿Llega otra pregunta programada más tarde, el mismo día local que `t`? Para
+ * elegir entre PAS-V2 ("Dale, esta la salteamos.") y PAS-V ("…Mañana hay otra.").
+ */
+export function quedaOtraEseDia(programados: readonly Programado[], t: Date): boolean {
+  return programados.some((p) => p.instante.getTime() > t.getTime() && aLocal(t, p.zona).fecha === p.fecha);
 }
 
 // ── Antes de salir: la cadena ────────────────────────────────────────────────

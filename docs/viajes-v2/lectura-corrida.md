@@ -53,8 +53,8 @@ _[texto: paso]_
 
 _(VA1 lleva 3 días sin respuesta.)_
 
-**09:00 · Vitácora** `REC1`  
-> Hola, Lucía. Te quedó una pregunta esperando, sin apuro. Cuando tengas un rato, contestámela en audio, o "paso" y seguimos con la que viene.
+**09:00 · Vitácora** `REC1-U`  
+> Hola, Lucía. Te quedó una pregunta esperando, sin apuro. Cuando tengas un rato, contestámela en audio, o 'paso', y nos vemos el día que salís.
 
 ## Día 1 · salida · sábado 10/10 (hora de Buenos Aires)
 
@@ -115,8 +115,8 @@ _[audio: unas croquetas en un bar de parados, un mozo que me habló como si fuer
 **13:10 · Lucía**  
 _[texto: paso]_
 
-**13:10 · Vitácora** `PAS-V`  
-> Dale, esta la salteamos. Mañana hay otra.
+**13:10 · Vitácora** `PAS-V2`  
+> Dale, esta la salteamos.
 
 **21:30 · Vitácora** `PR-R`  
 > Hoy la pregunta no es mía, es de Tomás: «¿Qué fue lo primero que comiste allá que te hizo acordar a casa?». Contale a esa persona, aunque me lo mandes a mí. Si hay foto, va.

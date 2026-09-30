@@ -15,7 +15,8 @@
 //     calendario.ts). Sin el dato, se asume que no: ACM1 o ACM2 (A1 y revisión).
 //   · CA1 → AL1 solo: AL1 trae su "Gracias" adentro. "Paso" en CA1 → AL1-P (A3).
 //   · ATR solo arriba de la noche común (A2): ATR1-3 rotan; ATR-V con 2 o más seguidas.
-//   · "Paso": PAS-A + la siguiente sin acuse (A4); en VA1, PAS-A2 solo; en el viaje, PAS-V.
+//   · "Paso": PAS-A + la siguiente sin acuse (A4); en VA1, PAS-A2 solo; en el viaje,
+//     PAS-V2 si ese día todavía llega otra pregunta (`quedaOtra`), si no PAS-V.
 //     Si la cadena se calló por la fecha (ya es el día de salida), nada que
 //     prometa: ni la siguiente ni PAS-A2 ("silencio hasta el día que te vas");
 //     va ACM1 o ACM2 solo, y lo que falta queda para las noches (revisión).
@@ -112,9 +113,9 @@ export function preguntaDeLaCadena(id: IdAntes, compra: Compra): Mensaje {
   return juntar([parte(id, compra)]);
 }
 
-/** REC1: el recordatorio de antes de salir. */
-export function recordatorioAntes(compra: Compra): Mensaje {
-  return juntar([parte('REC1', compra)]);
+/** El recordatorio de antes de salir: REC1-U si la colgada es VA1 (la última), REC1 para las demás. */
+export function recordatorioAntes(compra: Compra, colgada: IdAntes): Mensaje {
+  return juntar([parte(colgada === 'VA1' ? 'REC1-U' : 'REC1', compra)]);
 }
 
 // ── Lo programado ────────────────────────────────────────────────────────────
@@ -155,7 +156,9 @@ export type QueSeContesta =
   | { tipo: 'cadena'; siguiente: IdAntes | 'fin' | 'callada' }
   // `quedaNoche`: si ese día queda una pregunta de noche más tarde (habilita
   // ACM3/ACM4, "Hasta la noche"). Sin el dato, false.
-  | { tipo: TipoProgramado | 'foto-suelta'; quedaNoche?: boolean };
+  // `quedaOtra`: si ese día llega otra pregunta programada más tarde (quedaOtraEseDia):
+  // con "paso", PAS-V2 en vez de PAS-V. Sin el dato, false.
+  | { tipo: TipoProgramado | 'foto-suelta'; quedaNoche?: boolean; quedaOtra?: boolean };
 
 export type Respuesta = { tipo: 'audio' | 'texto' | 'foto' | 'paso'; audioMal?: boolean };
 
@@ -169,7 +172,7 @@ export type Reaccion = {
 };
 
 /** Donde un texto dispara TXT: las que piden contar. El mediodía y VU0 son foto o frase. */
-const NARRATIVAS: ReadonlySet<string> = new Set(['cadena', 'UC1', 'ID1', 'noche', 'antes-en-viaje', 'propia', 'FN1', 'VU1', 'CA1']);
+const NARRATIVAS: ReadonlySet<string> = new Set(['cadena', 'UC1', 'ID1', 'noche', 'antes-en-viaje', 'propia', 'FN1', 'VU1', 'IV1', 'CA1']);
 const DE_NOCHE: ReadonlySet<string> = new Set(['noche', 'antes-en-viaje', 'propia', 'FN1']);
 
 export function reaccion(de: QueSeContesta, respuesta: Respuesta, compra: Compra, rot: Rotacion): Reaccion {
@@ -212,7 +215,7 @@ export function reaccion(de: QueSeContesta, respuesta: Respuesta, compra: Compra
     return listo([juntar([parte('AL1', compra)])], rot, true);
   }
 
-  if (respuesta.tipo === 'paso') return listo([juntar([parte('PAS-V', compra)])], rot);
+  if (respuesta.tipo === 'paso') return listo([juntar([parte(de.quedaOtra ? 'PAS-V2' : 'PAS-V', compra)])], rot);
   if (usaTxt) return listo([juntar([parte('TXT', compra)])], conTxt);
 
   const e = DE_NOCHE.has(de.tipo)

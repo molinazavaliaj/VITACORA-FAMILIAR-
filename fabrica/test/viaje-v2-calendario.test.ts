@@ -91,21 +91,20 @@ describe('viaje v2: calendario, la forma del viaje', () => {
 });
 
 describe('viaje v2: calendario, viajes cortos y largos', () => {
-  it('1 día (sale y vuelve el mismo día): solo UC1 ese día; al otro, VU1 y CA1', () => {
+  it('1 día (sale y vuelve el mismo día): UC1 y VU0 ese día; al otro, IV1 y CA1 (detalle en viaje-v2-cortos)', () => {
     const r = armarCalendario(compra('2026-10-10', '2026-10-10', { preguntasPropias: ['¿a?'] }), ['VA1']);
-    expect(tipos(r.programados, 0)).toEqual(['UC1']);
-    expect(tipos(r.programados, 1)).toEqual(['VU1', 'CA1']);
-    expect(r.programados).toHaveLength(3);
+    expect(tipos(r.programados, 0)).toEqual(['UC1', 'VU0']);
+    expect(tipos(r.programados, 1)).toEqual(['IV1', 'CA1']);
+    expect(r.programados).toHaveLength(4);
     expect(r.antesQueNoEntran).toEqual(['VA1']);
     expect(r.propiasQueNoEntran).toEqual(['¿a?']);
-    // el día de vuelta coincide con la salida: VU1 y CA1 van en hora de casa
-    expect(delDia(r.programados, 1).every((p) => p.zona === BA)).toBe(true);
+    expect(r.programados.every((p) => p.zona === BA)).toBe(true);
   });
 
-  it('2 días: el segundo es el de vuelta (solo VU0, sin ID1); no hay noches del viaje', () => {
+  it('2 días: UC1; después ID1 y VU0 sin noche; al otro VU1 y CA1 (detalle en viaje-v2-cortos)', () => {
     const r = armarCalendario(compra('2026-10-10', '2026-10-11'), []);
     expect(tipos(r.programados, 0)).toEqual(['UC1']);
-    expect(tipos(r.programados, 1)).toEqual(['VU0']);
+    expect(tipos(r.programados, 1)).toEqual(['ID1', 'VU0']);
     expect(tipos(r.programados, 2)).toEqual(['VU1', 'CA1']);
     expect(noches(r.programados)).toHaveLength(0);
   });

@@ -7,7 +7,7 @@
 // vida de un narrador real.
 
 import { iniciarAlbum, pasoAlbum, type EventoAlbum } from './album.js';
-import { armarCalendario, quedaNocheEseDia, momentoDeLaSiguiente, momentoRecordatorio, pendientesAntes, siguienteDeLaCadena, type IdAntes, type Programado } from './calendario.js';
+import { armarCalendario, quedaNocheEseDia, quedaOtraEseDia, momentoDeLaSiguiente, momentoRecordatorio, pendientesAntes, siguienteDeLaCadena, type IdAntes, type Programado } from './calendario.js';
 import { anotarEnvio, anotarRespuesta, contestadasAntes, nochesSinContestar, nuevoEstado, type Estado } from './estado.js';
 import { aInstante, aLocal, diaDeSemana, diasEntre, nombreDeZona } from './horas.js';
 import { alDecirSi, arranque, preguntaProgramada, reaccion, recordatorioAntes, type QueSeContesta, type Respuesta } from './mensajes.js';
@@ -104,8 +104,9 @@ export function lecturaCorrida(compra: Compra = COMPRA_LECTURA): string {
   }
   const rec = momentoRecordatorio(ultimaEnviada, compra, estado.recordatorioAntes);
   if (rec) {
-    nota(rec, casa, 'VA1 lleva 3 días sin respuesta.');
-    vita(rec, casa, recordatorioAntes(compra));
+    const colgada = estado.envios.filter((x) => x.tipo === 'cadena').pop()!.clave as IdAntes;
+    nota(rec, casa, `${colgada} lleva 3 días sin respuesta.`);
+    vita(rec, casa, recordatorioAntes(compra, colgada));
     estado = { ...estado, recordatorioAntes: true };
   }
 
@@ -129,7 +130,8 @@ export function lecturaCorrida(compra: Compra = COMPRA_LECTURA): string {
     persona(t, p.zona, g.fotos ? `${g.dice} + ${g.fotos === 1 ? 'una foto' : `${g.fotos} fotos`}` : g.dice);
     const suelta = g.dice.startsWith('foto suelta');
     const quedaNoche = quedaNocheEseDia(cal.programados, t);
-    const de: QueSeContesta = suelta ? { tipo: 'foto-suelta', quedaNoche } : { tipo: p.tipo, quedaNoche };
+    const quedaOtra = quedaOtraEseDia(cal.programados, t);
+    const de: QueSeContesta = suelta ? { tipo: 'foto-suelta', quedaNoche } : { tipo: p.tipo, quedaNoche, quedaOtra };
     const r = reaccion(de, g.respuesta, compra, e.rotacion);
     let e2: Estado = { ...e, rotacion: r.rot, fotosSueltas: e.fotosSueltas + (suelta ? 1 : 0) + (g.fotos ?? 0) };
     if (!suelta) e2 = anotarRespuesta(e2, p.clave, { ...g.respuesta, en: t.toISOString() });

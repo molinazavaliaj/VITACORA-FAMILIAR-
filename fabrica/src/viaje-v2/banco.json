@@ -273,6 +273,13 @@
     "yaDeViaje": null
   },
   {
+    "id": "IV1",
+    "momento": "dia-siguiente-vuelta",
+    "orden": null,
+    "texto": "Ayer fue el viaje, ida y vuelta en el día. Contame un rato del camino, a la ida o a la vuelta, en que no estabas haciendo nada, solo yendo. Qué había del otro lado de la ventanilla y qué pensabas.",
+    "yaDeViaje": null
+  },
+  {
     "id": "CA1",
     "momento": "noche-casa",
     "orden": null,
@@ -392,6 +399,13 @@
     "yaDeViaje": null
   },
   {
+    "id": "PAS-V2",
+    "momento": "caso",
+    "orden": null,
+    "texto": "Dale, esta la salteamos.",
+    "yaDeViaje": null
+  },
+  {
     "id": "PAS-A",
     "momento": "caso",
     "orden": null,
@@ -424,6 +438,13 @@
     "momento": "caso",
     "orden": null,
     "texto": "Hola, {{nombre}}. Te quedó una pregunta esperando, sin apuro. Cuando tengas un rato, contestámela en audio, o \"paso\" y seguimos con la que viene.",
+    "yaDeViaje": null
+  },
+  {
+    "id": "REC1-U",
+    "momento": "caso",
+    "orden": null,
+    "texto": "Hola, {{nombre}}. Te quedó una pregunta esperando, sin apuro. Cuando tengas un rato, contestámela en audio, o 'paso', y nos vemos el día que salís.",
     "yaDeViaje": null
   },
   {
