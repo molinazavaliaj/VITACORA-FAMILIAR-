@@ -124,6 +124,14 @@ describe('paso (reglas 10 y 11)', () => {
     expect(que('PG1', r)).toBe('paso');
   });
 
+  // Después de la revisión del 30/09 (en la primera pasada, "De eso mejor no hablemos" había dejado de ser paso).
+  it.each(['De eso mejor no hablemos.', 'No hablemos de eso, por favor.', 'Prefiero no hablar de esto.', 'De eso no quiero hablar, disculpame.'])(
+    'la negativa "%s" es paso',
+    (r) => {
+      expect(que('JU17', r)).toBe('paso');
+    },
+  );
+
   it('una frase de la lista en una respuesta larga no es paso: contó algo y se frenó (regla 12)', () => {
     expect(que('PE1', 'Prefiero no hablar mucho de eso, pero te cuento que mi papá se fue un invierno y yo tenía veinte años recién cumplidos.')).toBe('conto');
   });

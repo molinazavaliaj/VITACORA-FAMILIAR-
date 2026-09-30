@@ -137,10 +137,12 @@ const DESPUES_DE_PASO = new Set(['a', 'por', 'de', 'que', 'el', 'la', 'los', 'la
  * del final ("Siguiente.", "Esa no.", "De eso no. Hay cosas…"). "Otra vez
  * fuimos al río" o "Esa no era mi casa" cuentan algo.
  */
-const FRASES_PASO_SOLAS = frases(['siguiente', 'otra', 'salteala', 'esa no', 'eso no', 'de eso no', 'prefiero no', 'mejor no']);
+const FRASES_PASO_SOLAS = frases(['siguiente', 'otra', 'salteala', 'esa no', 'eso no', 'de eso no', 'prefiero no', 'mejor no', 'no hablemos']);
 /** Las negativas completas: valen como paso aunque sigan palabras ("Eso me lo guardo, ya fue"). */
 const FRASES_PASO_COMPLETAS = frases([
   'no quiero hablar de eso', 'prefiero no hablar de eso', 'prefiero no contarlo', 'eso me lo guardo', 'me lo guardo', 'dejemoslo ahi', 'mejor otra',
+  // Después de la revisión: "De eso mejor no hablemos" y las formas con "esto" también son negativas completas.
+  'no hablemos de eso', 'no hablemos de esto', 'no quiero hablar de esto', 'prefiero no hablar de esto', 'de eso no quiero hablar',
 ]);
 /** Lo que se admite adelante de una frase de la lista ("Ahí prefiero no", "Esa mejor no"). */
 const ANTES_DE_FRASE = frases(['de eso', 'eso', 'esa', 'ahi', 'mejor']);
