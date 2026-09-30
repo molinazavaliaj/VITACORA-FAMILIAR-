@@ -108,7 +108,7 @@ describe('entrevista: condiciones', () => {
 
 describe('entrevista: los recorridos del amor (metodo-entrevista.md, "Bloque 6, arreglo…")', () => {
   const CON_PAREJA_ANTES = ['AM0', 'AM1', 'AM3', 'AM4', 'AM8', 'AM9'];
-  const EXTRA_CON_PAREJA = ['AM2', 'AM5', 'AM6', 'AM7', 'AM17', 'CI6'];
+  const EXTRA_CON_PAREJA = ['AM2', 'AM5', 'AM6', 'AM7', 'AM17'];
   const esperado: Record<VidaEjemplo['clave'], string[]> = {
     'sigue-con-la-primera': [...CON_PAREJA_ANTES, 'AM13', 'AM14'],
     'separada-sola': [...CON_PAREJA_ANTES, 'AM19', 'AM16', 'AM14'],
@@ -120,12 +120,13 @@ describe('entrevista: los recorridos del amor (metodo-entrevista.md, "Bloque 6, 
   };
 
   it.each(Object.entries(esperado))('%s: solo núcleo', (clave, seq) => {
-    expect(delBloque(recorrer(vida(clave as VidaEjemplo['clave'])), 6)).toEqual(seq);
+    // CI6 va siempre en el núcleo (Naza, 30/09, después de leer la entrevista de corrido).
+    expect(delBloque(recorrer(vida(clave as VidaEjemplo['clave'])), 6)).toEqual([...seq, 'CI6']);
   });
 
   it.each(Object.entries(esperado))('%s: con la ronda extra', (clave, seq) => {
     const conPareja = !clave.startsWith('nunca');
-    expect(delBloque(recorrer(vida(clave as VidaEjemplo['clave']), true), 6)).toEqual([...seq, ...(conPareja ? EXTRA_CON_PAREJA : ['CI6'])]);
+    expect(delBloque(recorrer(vida(clave as VidaEjemplo['clave']), true), 6)).toEqual([...seq, 'CI6', ...(conPareja ? EXTRA_CON_PAREJA : [])]);
   });
 
   it('AM7 dice "repite" si sigue con su pareja (AM9 "no") y "repetía" si no', () => {
@@ -147,7 +148,7 @@ describe('entrevista: hijos y nietos', () => {
 
   it('con hijos y sin nietos: nada de HI9 ni NC1, y no va HI10', () => {
     const b8 = delBloque(recorrer(vida('nunca-pareja-con-hijos'), true), 8);
-    expect(b8).toEqual(['PG1', 'HI0', 'HI2', 'HI2b', 'HI3', 'HS1', 'HI6', 'HI8', 'HI1', 'HI4', 'HI5', 'HI7', 'HI12', 'HI13', 'CI8']);
+    expect(b8).toEqual(['PG1', 'HI0', 'HI2', 'HI2b', 'HI3', 'HS1', 'HI6', 'HI8', 'CI8', 'HI1', 'HI4', 'HI5', 'HI7', 'HI12', 'HI13']);
   });
 
   it('con hijos y nietos: todo el bloque menos HI10', () => {
@@ -180,7 +181,8 @@ describe('entrevista: orden del flujo (núcleo, oferta, extra, final, familia)',
   it('por ahora no se ofrece la ronda extra: después del núcleo de los bloques 1 a 14 va el legado (Naza, 30/09)', () => {
     const seq = ids(recorrer(vida('sigue-con-la-primera'), false, familia));
     expect(seq).not.toContain('OFERTA');
-    expect(seq[seq.indexOf('HO9') + 1]).toBe('LE1');
+    expect(seq[seq.indexOf('HO9') + 1]).toBe('CI14');
+    expect(seq[seq.indexOf('CI14') + 1]).toBe('LE1');
     expect(siguientePregunta({ respuestas: new Map() }).tipo).toBe('pregunta');
   });
 
@@ -191,7 +193,7 @@ describe('entrevista: orden del flujo (núcleo, oferta, extra, final, familia)',
       expect(oferta).toBeGreaterThan(0);
       const antes = seq.slice(0, oferta).map((id) => preguntaPorId(id)!);
       expect(antes.every((p) => p.parte === 'nucleo' && p.bloque < 15)).toBe(true);
-      expect(antes.at(-1)!.id).toBe('HO9'); // la última del núcleo del bloque 14
+      expect(antes.at(-1)!.id).toBe('CI14'); // la última del núcleo del bloque 14: su cierre
       const despues = seq.slice(oferta + 1);
       expect(despues[0]).toBe(aceptaExtra ? 'OR6' : 'LE1');
     }
@@ -238,25 +240,25 @@ describe('entrevista: conteos', () => {
   // se manda (sin acuses ni M1). El borrador decía 84 y 75: desde entonces
   // ES9, CP1, TR8 y CS1 pasaron al núcleo y entró HS1.
   it('vida completa (sigue con su primera pareja, hermanos, se mudó, hijos y nietos): 89 de historia en el núcleo', () => {
-    expect(contar(vida('sigue-con-la-primera'), false)).toEqual({ historia: 89, turnos: 95 });
+    expect(contar(vida('sigue-con-la-primera'), false)).toEqual({ historia: 89, turnos: 105 }); // 95 + CI1 y CI6 a CI14 (Naza, 30/09)
     expect(contar(vida('sigue-con-la-primera'), true)).toEqual({ historia: 178, turnos: 194 });
   });
 
   it('sin pareja ni hijos (sin hermanos, no se mudó): 79 de historia en el núcleo', () => {
-    expect(contar(vida('nunca-pareja-sin-hijos'), false)).toEqual({ historia: 79, turnos: 85 });
+    expect(contar(vida('nunca-pareja-sin-hijos'), false)).toEqual({ historia: 79, turnos: 95 });
   });
 
-  it('el banco tiene 99 filas en el núcleo y 99 en la extra (89 de historia + 10 cierres)', () => {
-    expect(BANCO.filter((p) => p.parte === 'nucleo')).toHaveLength(99);
+  it('el banco tiene 109 filas en el núcleo y 89 en la extra (todas de historia: los cierres pasaron al núcleo el 30/09)', () => {
+    expect(BANCO.filter((p) => p.parte === 'nucleo')).toHaveLength(109);
     const extra = BANCO.filter((p) => p.parte === 'extra');
-    expect(extra).toHaveLength(99);
+    expect(extra).toHaveLength(89);
     expect(extra.filter(cuentaComoPregunta)).toHaveLength(89);
   });
 
   it('preguntasDelNucleo y preguntasCompletas dan todo lo que podría llegar, renderizado', () => {
     const ficha = { nombre: 'Rogelio', genero: 'varon' as const };
     const nucleo = preguntasDelNucleo(ficha);
-    expect(nucleo).toHaveLength(99);
+    expect(nucleo).toHaveLength(109);
     expect(nucleo.map((p) => p.id)).toEqual(expect.arrayContaining(['AM13', 'AM15', 'AM16', 'AM19', 'HI10']));
     expect(preguntasCompletas(ficha)).toHaveLength(198);
     expect(nucleo.find((p) => p.id === 'CA2')!.texto).toContain('cuando eras chico.');
@@ -323,7 +325,7 @@ describe('entrevista: "paso" en una pregunta que abre tema (Naza, 30/09)', () =>
     const pasos = simularRecorrido(v.ficha, (id) => (id === 'AM0' ? 'Paso' : v.respuestas[id]), {});
     expect(delBloque(pasos, 6)).toEqual(['AM0', 'AM14', 'CI6']);
   });
-  it('sin "paso", el cierre del bloque 6 (extra) no llega en el núcleo', () => {
-    expect(delBloque(recorrer(vida('sigue-con-la-primera')), 6)).not.toContain('CI6');
+  it('sin "paso", el cierre del bloque 6 igual llega: todos los cierres van en el núcleo (Naza, 30/09)', () => {
+    expect(delBloque(recorrer(vida('sigue-con-la-primera')), 6).at(-1)).toBe('CI6');
   });
 });

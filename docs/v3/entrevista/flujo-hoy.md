@@ -1,5 +1,7 @@
 # El flujo de la entrevista, hoy (30/09/2026)
 
+> **Actualización 30/09, después de la lectura corrida:** los cierres de todos los bloques van siempre (CI1 a CI14, con M24 o M10 después), M1 va solo en las 3 primeras preguntas, en las 6 que abren tema y en el bloque 11, y después de LE9 va directo FIN. Una vida completa: 89 preguntas, 105 turnos. Donde este documento diga otra cosa, manda [`correcciones-lectura.md`](correcciones-lectura.md).
+
 Cómo funciona la entrevista de punta a punta, con todo lo que decidió Naza el 29 y 30/09. Los textos exactos están en [`banco.md`](banco.md); el porqué de cada decisión, en [`../metodo-entrevista.md`](../metodo-entrevista.md). Lo que ya está programado vive en `fabrica/src/v3/entrevista/` (736 tests verdes); lo que falta conectar está al final.
 
 ## 1. Antes de empezar

@@ -33,7 +33,7 @@ export function cuentaComoPregunta(p: Pick<PreguntaEntrevista, 'clase'>): boolea
 }
 
 export type PasoRecorrido =
-  | { tipo: 'pregunta'; pregunta: PreguntaRenderizada; respuesta?: Respuesta }
+  | { tipo: 'pregunta'; pregunta: PreguntaRenderizada; conM1: boolean; respuesta?: Respuesta }
   | { tipo: 'familia'; pregunta: PreguntaFamilia; respuesta: Respuesta }
   | { tipo: 'ofrecer-extra'; acepta: boolean };
 
@@ -76,12 +76,12 @@ export function simularRecorrido(
     const pregunta = render(s.pregunta, ficha, respuestas, opciones);
     if (!s.esperaRespuesta) {
       enviados.add(s.pregunta.id);
-      pasos.push({ tipo: 'pregunta', pregunta });
+      pasos.push({ tipo: 'pregunta', pregunta, conM1: s.conM1 });
       continue;
     }
     const r = responder(s.pregunta.id) ?? 'Sí, te cuento: fue una historia larga que me acuerdo muy bien.';
     respuestas.set(s.pregunta.id, r);
-    pasos.push({ tipo: 'pregunta', pregunta, respuesta: r });
+    pasos.push({ tipo: 'pregunta', pregunta, conM1: s.conM1, respuesta: r });
   }
   throw new Error('simularRecorrido: más de 1000 vueltas (¿una pregunta que nunca queda hecha?)');
 }

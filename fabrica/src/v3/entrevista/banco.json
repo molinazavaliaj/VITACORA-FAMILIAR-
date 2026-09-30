@@ -56,7 +56,7 @@
       "orden": 6,
       "texto": "Con esto cerramos lo de tu familia de antes, la de antes de que llegaras vos. Y me pregunto si se me escapó algo: una historia de tus abuelos, de tus viejos de jóvenes, de esa casa. Si hay una dando vueltas, contámela ahora.",
       "depende": [],
-      "parte": "extra",
+      "parte": "nucleo",
       "clase": "cierre",
       "sensible": false
     },
@@ -955,7 +955,7 @@
       "orden": 87,
       "texto": "Con esto cerramos el amor. ¿Quedó alguien o algo de este tema que no tuvo su pregunta? Una persona, una carta, un baile, una charla que no entró en ningún lado. Es el momento de contarlo, sin apuro.",
       "depende": [],
-      "parte": "extra",
+      "parte": "nucleo",
       "clase": "cierre",
       "sensible": false
     },
@@ -1145,7 +1145,7 @@
       "orden": 106,
       "texto": "Con esto cerramos el trabajo. ¿Quedó algo que no tuvo su pregunta? Un lugar, una herramienta, un olor, una persona, una changa de la que nadie sabe. Es el momento de contarlo, sin apuro.",
       "depende": [],
-      "parte": "extra",
+      "parte": "nucleo",
       "clase": "cierre",
       "sensible": false
     },
@@ -1395,7 +1395,7 @@
       "orden": 124,
       "texto": "Con esto cerramos este tema. ¿Quedó alguien o algo que no tuvo su pregunta? Un cumpleaños, una charla en la cocina, alguien que no entró en ningún lado. Es el momento de contarlo, sin apuro.",
       "depende": [],
-      "parte": "extra",
+      "parte": "nucleo",
       "clase": "cierre",
       "sensible": false
     },
@@ -1485,7 +1485,7 @@
       "orden": 133,
       "texto": "Con esto cerramos lugares y pasiones. ¿Quedó algún lugar o algo que te gustó mucho y no tuvo su pregunta? Una esquina, un hobby que duró poco, un rincón de tu casa. Contalo ahora, tranquil{{o/a}}.",
       "depende": [],
-      "parte": "extra",
+      "parte": "nucleo",
       "clase": "cierre",
       "sensible": false
     },
@@ -1600,7 +1600,7 @@
       "orden": 144,
       "texto": "Con esto cerramos amistades y ayudas. ¿Quedó alguien que te acompañó y no tuvo su pregunta? Un vecino, alguien del trabajo, una persona que apareció una sola vez. Y si querés contar de otros amigos importantes, de quien sea, es el momento. Contalo tranquil{{o/a}}.",
       "depende": [],
-      "parte": "extra",
+      "parte": "nucleo",
       "clase": "cierre",
       "sensible": false
     },
@@ -1670,7 +1670,7 @@
       "orden": 151,
       "texto": "Gracias por contarme esto; sé que no es fácil. Si hay otro momento difícil que sentís que tiene que estar en tu historia y no te lo pregunté, contámelo acá.",
       "depende": [],
-      "parte": "extra",
+      "parte": "nucleo",
       "clase": "cierre",
       "sensible": true
     },
@@ -1755,7 +1755,7 @@
       "orden": 159,
       "texto": "Hasta acá lo del país y el mundo. Si hay algo que te marcó y no salió, mandámelo ahora, aunque sea corto, con dónde estabas cuando pasó.",
       "depende": [],
-      "parte": "extra",
+      "parte": "nucleo",
       "clase": "cierre",
       "sensible": false
     },
@@ -1895,7 +1895,7 @@
       "orden": 173,
       "texto": "Con esto cerramos esta parte. ¿Quedó algún momento importante de tu vida que no tuvo su pregunta? Contámelo ahora, tranquil{{o/a}}.",
       "depende": [],
-      "parte": "extra",
+      "parte": "nucleo",
       "clase": "cierre",
       "sensible": false
     },
@@ -2065,7 +2065,7 @@
       "orden": 190,
       "texto": "Hasta acá lo de hoy. Ya te conozco un poco más: cómo son tus días y qué te gusta. Gracias por contármelo con tanta paciencia.",
       "depende": [],
-      "parte": "extra",
+      "parte": "nucleo",
       "clase": "cierre",
       "sensible": false
     },
@@ -2163,7 +2163,7 @@
     },
     {
       "id": "M1",
-      "cuando": "Al final de cada pregunta, en línea aparte y en cursiva",
+      "cuando": "Al final de la pregunta, en línea aparte y en cursiva: solo en las 3 primeras de la entrevista, en las 6 que abren tema (CA6, JU8, AM0, AM9, HI0, HI8) y en las del bloque 11",
       "texto": "_Si no va con vos, decí paso y vamos a otra._"
     },
     {

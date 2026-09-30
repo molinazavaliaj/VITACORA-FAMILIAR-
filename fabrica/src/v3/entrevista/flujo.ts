@@ -138,8 +138,27 @@ export function esperaRespuesta(p: Pick<PreguntaEntrevista, 'clase'>): boolean {
   return p.clase !== 'aviso' && p.clase !== 'final';
 }
 
-function comoSiguiente(p: PreguntaEntrevista): Siguiente {
-  return { tipo: 'pregunta', pregunta: p, conM1: p.clase === 'historia', esperaRespuesta: esperaRespuesta(p) };
+/** M1 va debajo de las primeras preguntas que se mandan: estas. */
+export const M1_PRIMERAS = 3;
+/** Las preguntas que abren un tema llevan M1 (Naza, 30/09). */
+export const M1_ABREN_TEMA: readonly string[] = ['CA6', 'JU8', 'AM0', 'AM9', 'HI0', 'HI8'];
+/** Todas las preguntas de historia de este bloque (momentos difíciles) llevan M1. */
+export const M1_BLOQUE = 11;
+
+/**
+ * ¿Va M1 debajo? Solo en preguntas de historia, y solo en las 3 primeras que
+ * se mandan, en las que abren un tema y en las del bloque 11 (Naza, 30/09,
+ * después de leer la entrevista de corrido: debajo de todas se repetía).
+ */
+export function llevaM1(p: Pick<PreguntaEntrevista, 'id' | 'bloque' | 'clase'>, respuestas: Respuestas, banco: readonly PreguntaEntrevista[] = BANCO): boolean {
+  if (p.clase !== 'historia') return false;
+  if (M1_ABREN_TEMA.includes(p.id) || p.bloque === M1_BLOQUE) return true;
+  const yaContestadas = banco.filter((q) => q.clase === 'historia' && respuestas.has(q.id)).length;
+  return yaContestadas < M1_PRIMERAS;
+}
+
+function comoSiguiente(p: PreguntaEntrevista, respuestas: Respuestas, banco: readonly PreguntaEntrevista[]): Siguiente {
+  return { tipo: 'pregunta', pregunta: p, conM1: llevaM1(p, respuestas, banco), esperaRespuesta: esperaRespuesta(p) };
 }
 
 /**
@@ -157,27 +176,23 @@ export function siguientePregunta(e: EstadoEntrevista, banco: readonly PreguntaE
   const hecha = (id: string) => e.respuestas.has(id) || enviados.has(id);
   const pendiente = (p: PreguntaEntrevista) => !hecha(p.id) && cumple(p, e.respuestas);
 
-  // Naza (30/09): si dijo "paso" en una pregunta que abre un tema, el cierre
-  // de ese bloque ("¿quedó algo de este tema…?") va en el núcleo aunque sea
-  // extra, para que tenga dónde contar lo que sí le pasó de ese tema.
-  const abreTema = new Set(banco.flatMap((p) => p.depende.map((c) => c.de)));
-  const bloquesConPaso = new Set(
-    banco.filter((p) => abreTema.has(p.id) && e.respuestas.has(p.id) && esPaso(e.respuestas.get(p.id)!)).map((p) => p.bloque),
-  );
-  const vaEnNucleo = (p: PreguntaEntrevista) => p.parte === 'nucleo' || (p.clase === 'cierre' && bloquesConPaso.has(p.bloque));
+  // Desde el 30/09 todos los cierres son del núcleo (llegan siempre), así que
+  // ya no hace falta la regla de "paso en una pregunta que abre tema → el
+  // cierre va en el núcleo aunque sea extra" (correcciones-lectura.md).
+  const vaEnNucleo = (p: PreguntaEntrevista) => p.parte === 'nucleo';
 
   const principal = banco.filter((p) => p.bloque !== BLOQUE_FINAL);
-  for (const p of principal) if (vaEnNucleo(p) && pendiente(p)) return comoSiguiente(p);
+  for (const p of principal) if (vaEnNucleo(p) && pendiente(p)) return comoSiguiente(p, e.respuestas, banco);
 
   if (ronda === 'sin-ofrecer') return { tipo: 'ofrecer-extra' };
-  if (ronda === 'aceptada') for (const p of principal) if (p.parte === 'extra' && pendiente(p)) return comoSiguiente(p);
+  if (ronda === 'aceptada') for (const p of principal) if (p.parte === 'extra' && pendiente(p)) return comoSiguiente(p, e.respuestas, banco);
 
   const final = banco.filter((p) => p.bloque === BLOQUE_FINAL && (p.parte === 'nucleo' || ronda === 'aceptada'));
   const ordenFamilia = banco.find((p) => p.id === FAMILIA_ANTES_DE)?.orden ?? Infinity;
   const familia = (e.familia ?? []).find((f) => !e.respuestas.has(f.id));
   for (const p of final) {
     if (familia && p.orden >= ordenFamilia) return { tipo: 'familia', pregunta: familia, antes: 'M15' };
-    if (pendiente(p)) return comoSiguiente(p);
+    if (pendiente(p)) return comoSiguiente(p, e.respuestas, banco);
   }
   if (familia) return { tipo: 'familia', pregunta: familia, antes: 'M15' };
   return { tipo: 'terminada' };
@@ -186,14 +201,19 @@ export function siguientePregunta(e: EstadoEntrevista, banco: readonly PreguntaE
 /** Bloques que son etapas vividas: su cierre va seguido de M10 (Terminamos {{etapa}}…). */
 export const BLOQUES_ETAPA: readonly number[] = [2, 3, 4, 5];
 
+/** Después de esta pregunta va directo el mensaje final, sin acuse (Naza, 30/09). */
+export const SIN_ACUSE_ANTES_DEL_FINAL = 'LE9';
+
 /**
  * Qué mensajes fijos van después de contestar (familias de mensajes; el
- * entrevistador rota M3 y M4): "paso" → M21; sensible → M4; si no → M3.
- * El cierre de una etapa (bloques 2 a 5) va con M10 en vez del acuse. El
- * aviso y el final no se contestan: nada.
+ * entrevistador rota M3, M4 y M24): "paso" → M21; sensible → M4; si no → M3.
+ * El cierre de una etapa (bloques 2 a 5) va con M10 en vez del acuse; los
+ * otros cierres, con M24. El aviso y el final no se contestan: nada. LE9
+ * tampoco lleva acuse: después va directo FIN.
  */
-export function mensajesDespues(pregunta: Pick<PreguntaEntrevista, 'bloque' | 'clase' | 'sensible'>, respuesta: Respuesta): ('M3' | 'M4' | 'M10' | 'M21' | 'M24')[] {
+export function mensajesDespues(pregunta: Pick<PreguntaEntrevista, 'id' | 'bloque' | 'clase' | 'sensible'>, respuesta: Respuesta): ('M3' | 'M4' | 'M10' | 'M21' | 'M24')[] {
   if (!esperaRespuesta(pregunta)) return [];
+  if (pregunta.id === SIN_ACUSE_ANTES_DEL_FINAL) return [];
   const finDeEtapa = pregunta.clase === 'cierre' && BLOQUES_ETAPA.includes(pregunta.bloque);
   if (esPaso(respuesta)) return finDeEtapa ? ['M21', 'M10'] : ['M21'];
   if (finDeEtapa) return ['M10'];

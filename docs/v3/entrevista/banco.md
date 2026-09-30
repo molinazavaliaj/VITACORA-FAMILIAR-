@@ -30,7 +30,7 @@
 
 | ID | Cuándo | Texto |
 |---|---|---|
-| M1 | Al final de cada pregunta, en línea aparte y en cursiva | _Si no va con vos, decí paso y vamos a otra._ |
+| M1 | Al final de la pregunta, en línea aparte y en cursiva: solo en las 3 primeras de la entrevista, en las 6 que abren tema (CA6, JU8, AM0, AM9, HI0, HI8) y en las del bloque 11 | _Si no va con vos, decí paso y vamos a otra._ |
 | M3.1 | Acuses, rotan | Gracias, {{nombre}}. Ya lo guardé. |
 | M3.2 | Acuses, rotan | Te escuché. Vamos con la que sigue. |
 | M3.3 | Acuses, rotan | Anotado. Sigo con otra. |
@@ -66,7 +66,7 @@
 | OR5 | ¿Cómo se conocieron tu mamá y tu papá? Seguro en casa lo contaron más de una vez: un baile, una casualidad, alguien que los presentó. Contame ese día como te lo contaron. |  | núcleo | historia |  |
 | OR6 | ¿Por qué te pusieron {{nombre}}? En las casas siempre hay una historia atrás de un nombre: una discusión, un santo, alguien a quien querían mucho. Contame la que te contaron a vos, aunque sea cortita. |  | extra | historia |  |
 | OR6.2 | ¿Tenés o tuviste algún apodo? Si es así, contame cómo nació: quién te lo puso, por qué justo ese, y si te gusta. Casi siempre hay una anécdota atrás. |  | extra | historia |  |
-| CI1 | Con esto cerramos lo de tu familia de antes, la de antes de que llegaras vos. Y me pregunto si se me escapó algo: una historia de tus abuelos, de tus viejos de jóvenes, de esa casa. Si hay una dando vueltas, contámela ahora. |  | extra | cierre |  |
+| CI1 | Con esto cerramos lo de tu familia de antes, la de antes de que llegaras vos. Y me pregunto si se me escapó algo: una historia de tus abuelos, de tus viejos de jóvenes, de esa casa. Si hay una dando vueltas, contámela ahora. |  | núcleo | cierre |  |
 
 ## Bloque 2 · La casa y la familia de la infancia
 
@@ -172,7 +172,7 @@
 | AM17 | En el amor, ¿alguna vez alguien te cuidó cuando lo necesitabas, en una enfermedad o un mal momento? Si te pasó, contame qué hizo y qué te dijo. | si:AM0 | extra | historia |  |
 | AM14 | ¿Tuviste algún amor que te marcó y no fue el de toda la vida? Uno que dejó huella, aunque haya durado poco. Si te pasó, contame cómo se cruzaron y el momento que más te acordás de esa persona. |  | núcleo | historia |  |
 | AM15 | ¿Quiénes son hoy las personas con las que compartís la vida: un hermano, una amiga, un vecino, quien sea? Pensá en una y contame un día de ustedes que tengas bien guardado. | sino:AM0 | núcleo | historia |  |
-| CI6 | Con esto cerramos el amor. ¿Quedó alguien o algo de este tema que no tuvo su pregunta? Una persona, una carta, un baile, una charla que no entró en ningún lado. Es el momento de contarlo, sin apuro. |  | extra | cierre |  |
+| CI6 | Con esto cerramos el amor. ¿Quedó alguien o algo de este tema que no tuvo su pregunta? Una persona, una carta, un baile, una charla que no entró en ningún lado. Es el momento de contarlo, sin apuro. |  | núcleo | cierre |  |
 
 ## Bloque 7 · Trabajo y oficio
 
@@ -196,7 +196,7 @@
 | CP1 | ¿Viviste o trabajaste en el campo alguna vez, aunque fuera de chic{{o/a}} o por una temporada? Si fue así, contame un día entero ahí, y una vez que el clima mandó: una seca, una helada, una tormenta. |  | núcleo | historia |  |
 | PR1 | ¿Terminaste algún estudio, un curso, un oficio, una carrera? Si fue así, contame el día que te recibiste o que terminaste: dónde estabas, si había alguien tuyo mirando, qué hiciste esa noche. |  | extra | historia |  |
 | TR9 | ¿Ya dejaste eso a lo que te dedicaste? Si seguís, con decírmelo alcanza. Si ya lo dejaste, contame el último día: cómo fue, si lo sabías de antes, qué hiciste al salir. Y el día siguiente, el primero sin ir. |  | núcleo | historia |  |
-| CI7 | Con esto cerramos el trabajo. ¿Quedó algo que no tuvo su pregunta? Un lugar, una herramienta, un olor, una persona, una changa de la que nadie sabe. Es el momento de contarlo, sin apuro. |  | extra | cierre |  |
+| CI7 | Con esto cerramos el trabajo. ¿Quedó algo que no tuvo su pregunta? Un lugar, una herramienta, un olor, una persona, una changa de la que nadie sabe. Es el momento de contarlo, sin apuro. |  | núcleo | cierre |  |
 
 ## Bloque 8 · Hijos y nietos
 
@@ -219,7 +219,7 @@
 | HI8 | Ahora, los nietos. ¿Llegaron nietos a tu vida? Contame el día que conociste al primero, como si lo estuvieras viendo. Si no hay nietos, me lo decís y pasamos a otra cosa. |  | núcleo | historia |  |
 | HI9 | ¿Hay algo que hacés con tus nietos que es de ustedes, que no lo hacen con nadie más? Un juego, por ejemplo. Contame qué es y una vez que tengas bien grabada. | si:HI8 | núcleo | historia |  |
 | NC1 | A veces a los abuelos les toca criar a un nieto, o tenerlo a cargo un tiempo. Si te pasó, contame cómo se dio y cómo fue el primer día. Y si no te tocó, decímelo y seguimos. | si:HI8 | extra | historia |  |
-| CI8 | Con esto cerramos este tema. ¿Quedó alguien o algo que no tuvo su pregunta? Un cumpleaños, una charla en la cocina, alguien que no entró en ningún lado. Es el momento de contarlo, sin apuro. |  | extra | cierre |  |
+| CI8 | Con esto cerramos este tema. ¿Quedó alguien o algo que no tuvo su pregunta? Un cumpleaños, una charla en la cocina, alguien que no entró en ningún lado. Es el momento de contarlo, sin apuro. |  | núcleo | cierre |  |
 
 ## Bloque 9 · Lugares y pasiones
 
@@ -233,7 +233,7 @@
 | LU7 | De grande, ¿hubo un lugar adonde ibas de vacaciones una y otra vez? Contame cómo era eso, cómo llegaban, y un día de esas vacaciones que tengas guardado. |  | extra | historia |  |
 | PA3 | ¿Sos hincha de algún club? Contame cómo empezó eso, si alguien te llevó, y un partido que no te olvidás más. |  | extra | historia |  |
 | LU8 | ¿Hay un lugar al que te gustaría volver, aunque sea por un rato? Contame qué lugar es, y la última vez que estuviste ahí. |  | extra | historia |  |
-| CI9 | Con esto cerramos lugares y pasiones. ¿Quedó algún lugar o algo que te gustó mucho y no tuvo su pregunta? Una esquina, un hobby que duró poco, un rincón de tu casa. Contalo ahora, tranquil{{o/a}}. |  | extra | cierre |  |
+| CI9 | Con esto cerramos lugares y pasiones. ¿Quedó algún lugar o algo que te gustó mucho y no tuvo su pregunta? Una esquina, un hobby que duró poco, un rincón de tu casa. Contalo ahora, tranquil{{o/a}}. |  | núcleo | cierre |  |
 
 ## Bloque 10 · Amistades y ayudas
 
@@ -249,7 +249,7 @@
 | AS9 | Imaginate que armás una cena y podés invitar a tu gente más cercana. ¿Quiénes se sientan en esa mesa? Contame quién va, y por qué cada uno se ganó su lugar. |  | núcleo | historia |  |
 | AY2 | ¿Y te tocó ser vos quien le dio una mano a alguien que la necesitaba? Contame qué pasó y qué hiciste ese día. |  | extra | historia |  |
 | AS7 | Hoy, cuando te pasa algo importante, ¿a quién se lo contás primero? Contame una vez que le hayas contado algo así. |  | extra | historia |  |
-| CI10 | Con esto cerramos amistades y ayudas. ¿Quedó alguien que te acompañó y no tuvo su pregunta? Un vecino, alguien del trabajo, una persona que apareció una sola vez. Y si querés contar de otros amigos importantes, de quien sea, es el momento. Contalo tranquil{{o/a}}. |  | extra | cierre |  |
+| CI10 | Con esto cerramos amistades y ayudas. ¿Quedó alguien que te acompañó y no tuvo su pregunta? Un vecino, alguien del trabajo, una persona que apareció una sola vez. Y si querés contar de otros amigos importantes, de quien sea, es el momento. Contalo tranquil{{o/a}}. |  | núcleo | cierre |  |
 
 ## Bloque 11 · Pérdidas y momentos difíciles
 
@@ -261,7 +261,7 @@
 | PE6 | Hay equivocaciones que uno arrastra años. Si tenés una así, y querés contarla, decime qué pasó, quién la pagó, y en qué quedó todo después. |  | extra | historia | sí |
 | ID1 | Mucha gente durante años tuvo que guardarse una parte de lo que era, o de lo que sentía. Si a vos te pasó, y querés que quede en tu historia, contámelo como vos quieras. |  | extra | historia | sí |
 | PE4 | ¿Hubo alguna época dura en tu vida de grande que creas que no puede quedar afuera de tu historia? ¿Algo que te marcó? Si querés, contame qué pasó y cómo lo viviste. |  | núcleo | historia | sí |
-| CI11 | Gracias por contarme esto; sé que no es fácil. Si hay otro momento difícil que sentís que tiene que estar en tu historia y no te lo pregunté, contámelo acá. |  | extra | cierre | sí |
+| CI11 | Gracias por contarme esto; sé que no es fácil. Si hay otro momento difícil que sentís que tiene que estar en tu historia y no te lo pregunté, contámelo acá. |  | núcleo | cierre | sí |
 
 ## Bloque 12 · La historia grande
 
@@ -274,7 +274,7 @@
 | DE1 | Cuando eras joven había cosas que no se podían hacer, o estaban mal vistas, y hoy nadie se sorprende. ¿Te pasó con alguna? Contame ese día: qué querías hacer y qué te dijeron. |  | núcleo | historia |  |
 | HG7 | ¿Te acordás de cuando llegó a tu casa algo que cambió la vida de todos, como la primera tele? Contame ese día: quién lo trajo, dónde lo pusieron, quiénes vinieron a verlo. |  | extra | historia |  |
 | HG8 | ¿Y alguna vez fuiste a votar y sentiste que era importante? Contame ese día: con quién fuiste, cómo estaba la calle, qué esperabas que pasara. |  | extra | historia |  |
-| CI12 | Hasta acá lo del país y el mundo. Si hay algo que te marcó y no salió, mandámelo ahora, aunque sea corto, con dónde estabas cuando pasó. |  | extra | cierre |  |
+| CI12 | Hasta acá lo del país y el mundo. Si hay algo que te marcó y no salió, mandámelo ahora, aunque sea corto, con dónde estabas cuando pasó. |  | núcleo | cierre |  |
 
 ## Bloque 13 · Puntos altos, bajos y giros
 
@@ -293,7 +293,7 @@
 | FI4 | ¿Te importa lo que los demás piensan de vos? ¿Te importó siempre igual? Contame una vez en que eso se notó. |  | núcleo | historia |  |
 | FI6 | ¿Cómo te imaginás el mundo dentro de cien años? Contame cómo lo ves, y qué te gustaría que no se pierda. |  | núcleo | historia |  |
 | FI7 | ¿Qué es la política para vos? ¿Hubo algún momento de tu vida en que te tocó de cerca? Contame cuál fue y qué pensás hoy. |  | núcleo | historia |  |
-| CI13 | Con esto cerramos esta parte. ¿Quedó algún momento importante de tu vida que no tuvo su pregunta? Contámelo ahora, tranquil{{o/a}}. |  | extra | cierre |  |
+| CI13 | Con esto cerramos esta parte. ¿Quedó algún momento importante de tu vida que no tuvo su pregunta? Contámelo ahora, tranquil{{o/a}}. |  | núcleo | cierre |  |
 
 ## Bloque 14 · Hoy
 
@@ -315,7 +315,7 @@
 | G3 | ¿Te gusta leer, o sos más de mirar películas o series? ¿Con qué te enganchás? Contame la última vez que se te pasó la hora con algo así. |  | extra | historia |  |
 | G4 | ¿Cuál es tu placer chiquito de todos los días? Una siesta, un chocolate, lo que sea. Contame el de hoy: a qué hora fue y cómo estuvo. |  | extra | historia |  |
 | G5 | ¿Y un gusto grande? ¿En qué te gusta darte el lujo de gastar tu plata? Contame la última vez que te diste ese gusto. |  | extra | historia |  |
-| CI14 | Hasta acá lo de hoy. Ya te conozco un poco más: cómo son tus días y qué te gusta. Gracias por contármelo con tanta paciencia. |  | extra | cierre |  |
+| CI14 | Hasta acá lo de hoy. Ya te conozco un poco más: cómo son tus días y qué te gusta. Gracias por contármelo con tanta paciencia. |  | núcleo | cierre |  |
 
 ## Bloque 15 · Legado y cierre
 
@@ -336,11 +336,11 @@
 Todas salen de [`metodo-entrevista.md`](../metodo-entrevista.md) (secciones 20 a 25 y las últimas vueltas); el código las implementa en `fabrica/src/v3/entrevista/flujo.ts`.
 
 1. **Arranque:** BIEN y enseguida M6; después, la primera pregunta (§22 y "Cierre del proceso, vuelta 2").
-2. **Una pregunta por vez.** Debajo de cada pregunta de historia, en línea aparte y en cursiva, va M1 (§20, "Mensajes fijos, vuelta 2").
+2. **Una pregunta por vez.** M1 va debajo, en línea aparte y en cursiva, **solo** en las 3 primeras preguntas que se mandan, en las 6 que abren un tema (CA6, JU8, AM0, AM9, HI0, HI8) y en las preguntas de historia del bloque 11. En el resto, la pregunta va sin esa línea. Nunca debajo de cierres, aviso, foto ni final (Naza, 30/09, después de leer la entrevista de corrido; antes iba debajo de todas las de historia).
 3. **Audios:** los que llegan mientras la pregunta está abierta se suman a esa respuesta; la siguiente llega sola cuando pasan unos minutos sin audios nuevos. No hay botón [Siguiente] (§20, vuelta 2).
-4. **Acuses:** después de cada respuesta, uno de M3 (rotan); después de una pregunta `sensible`, uno de M4. Después de "paso", M21. Si manda texto, M22; si el audio llega cortado, M23 (§22.3).
+4. **Acuses:** después de cada respuesta, uno de M3 (rotan); después de una pregunta `sensible`, uno de M4; después de un cierre, M24 (o M10 en las etapas, regla 6); después de LE9, nada. Después de "paso", M21. Si manda texto, M22; si el audio llega cortado, M23 (§22.3).
 5. **"No" corto:** menos de 15 palabras y empieza con no / nunca / jamás. "Paso" no cuenta como "no". Si la pregunta que abre un tema (hermanos CA6, pareja AM0, hijos HI0, nietos HI8, mudarse JU8) recibe un "no" corto, las que dependen de ella no se mandan (§22.4).
-6. **Fin de etapa (bloques 2 a 5):** la pregunta de cierre del bloque y después M10 (§22.5).
+6. **Cierres:** todos los bloques del 1 al 14 terminan con su cierre (CI1 a CI14), siempre, en el núcleo. Después del cierre: M10 en las etapas (bloques 2 a 5) y M24 en los demás (Naza, 30/09; antes solo iban CI2 a CI5). Después de LE9 no va acuse: va directo FIN (Naza, 30/09).
 7. **Bloque 11:** antes de la primera, el aviso AV11; después de cada una, M4 (§22.6).
 8. **Núcleo y ronda extra:** primero el núcleo completo; después se ofrece la ronda extra. **El texto de esa oferta todavía no está redactado: a redactar con Fable, pendiente de Naza** (§24, "Tamaños: opinión de Fable"). Si la acepta, van las `extra` en el orden del banco.
 9. **Preguntas de la familia:** todas al final de la entrevista, antes de LE9, cada una precedida por M15 ("Cierre del proceso, vuelta 3").
@@ -360,9 +360,9 @@ Cosas ambiguas que encontré al armar este banco. No cambian ningún texto; las 
 6. **No hay CI15.** El bloque 15 no tiene fila de cierre: termina con FIN. Los cierres van de CI1 a CI14.
 7. **IDs viejos con otro sentido.** Se mantuvieron los IDs del borrador, pero cinco existían en `banco-v3.md` con otra pregunta: AM13 (antes "un día de ustedes dos ahora"), AM16 (antes la puerta del bloque 6), LU6 (antes la puerta del bloque 9), AD12 (antes "qué ibas a hacer después del colegio"; hoy eso está en AD16) y JU9 (antes "el viaje y la llegada al lugar nuevo"). banco-descartadas.md ya anota AM16 y LU6; AM13, AD12 y JU9 no.
 8. **HE2 no depende de CA6.** Le llega a todos y deja decir "no tuve hermanos" (así está en el borrador). Si CA6 fue un "no" corto igual se manda.
-9. **M1 debajo de qué.** La regla dice "debajo de cada pregunta de historia". Lo apliqué a la clase `historia`; los cierres, FO1, el aviso y el final van sin M1. ¿Los cierres también llevan M1?
+9. **M1 debajo de qué.** La regla dice "debajo de cada pregunta de historia". Lo apliqué a la clase `historia`; los cierres, FO1, el aviso y el final van sin M1. ¿Los cierres también llevan M1? **Resuelta (Naza, 30/09): no.**
 10. **Género "otro" sin forma de trato.** `{{o/a}}` y `{{padre/madre}}` usan la forma femenina si el género es "otro" y la ficha no dice cómo prefiere que le hablen (el mismo criterio que `seleccion.ts` viejo).
-11. **Acuse después de un cierre.** Los bloques 2 a 5 cierran con M10; en los demás cierres el código manda un M3 común. No está escrito si va M3, M10 o nada.
+11. **Acuse después de un cierre.** Los bloques 2 a 5 cierran con M10; en los demás cierres el código manda un M3 común. No está escrito si va M3, M10 o nada. **Resuelta (Naza, 30/09): M10 en las etapas y M24 en los demás.**
 12. **Pendientes que siguen abiertos en el borrador** y no tocan este banco: la regla del dashboard de FI7 (si dice algo delicado); la sugerencia de Fable de repartir las filosóficas entre bloques (no decidida: quedan en el bloque 13).
 
 ## Equivalencias de IDs
@@ -419,6 +419,13 @@ Las demás filas vivas del borrador mantienen su ID. Las filas "sale" no están 
 - M10 sin {{etapa}}: "Terminamos esta etapa, {{nombre}}. Pasamos a la siguiente." CI2 dice "tu infancia" (el texto aprobado del cierre A1).
 - La ronda extra **por ahora no se ofrece**: después del núcleo de los bloques 1 a 14 va el bloque 15. Las preguntas "extra" quedan en el banco para más adelante (`ofrecerExtra` en el código).
 - "Paso" en una pregunta que abre tema: se sigue a otro tema (como estaba).
-- "Paso" en una pregunta que abre tema (CA6, JU8, AM0, AM9, AM16, HI0, HI8, AS1, HG1): no van las que dependen, y el cierre de ese bloque llega en el núcleo aunque sea extra (Naza, 30/09).
+- "Paso" en una pregunta que abre tema (CA6, JU8, AM0, AM9, AM16, HI0, HI8, AS1, HG1): no van las que dependen, y el cierre de ese bloque llega en el núcleo aunque sea extra (Naza, 30/09). _Más tarde el mismo día todos los cierres pasaron al núcleo: esta regla ya no hace falta (ver abajo)._
 - Las dudas ficha-respuesta quedan solo en el dashboard (Naza, 30/09).
 - Aprobados por Naza (30/09): M24.1-M24.4 (después del cierre de un bloque que no es etapa) y DD1-DD2 (dudas del dashboard, con {{tema}}: "tus hermanos", "el amor", "tus hijos", "tus nietos", "vivir en otro lugar").
+
+## Cambios del 30/09, después de leer la entrevista de corrido (Naza)
+Registro en [`correcciones-lectura.md`](correcciones-lectura.md).
+- Los cierres de todos los bloques (CI1, CI6 a CI14) pasan al **núcleo**: llegan siempre, no solo después de un "paso". Después de cada uno, M24 (o M10 en las etapas).
+- M1 solo en las 3 primeras preguntas, en las 6 que abren tema (CA6, JU8, AM0, AM9, HI0, HI8) y en las del bloque 11.
+- Después de LE9, directo FIN (sin acuse).
+- Pendiente de aprobar: una frase de entrada al empezar cada bloque (la redacta Fable) y un CI14 nuevo que pregunte algo (el de hoy no pregunta nada y ahora espera respuesta).
