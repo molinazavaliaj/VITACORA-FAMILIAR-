@@ -72,10 +72,10 @@ describe('entrevista: el banco (md ↔ json)', () => {
     expect(bancoJson).toEqual(parseado);
   });
 
-  it('tiene 198 filas en 15 bloques, 22 mensajes, y las clases esperadas', () => {
+  it('tiene 198 filas en 15 bloques, 28 mensajes, y las clases esperadas', () => {
     expect(BANCO).toHaveLength(198);
     expect(new Set(BANCO.map((p) => p.bloque))).toEqual(new Set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]));
-    expect(MENSAJES).toHaveLength(22);
+    expect(MENSAJES).toHaveLength(28); // 22 + M24.1-M24.4, DD1 y DD2 (30/09)
     const clase = (c: string) => BANCO.filter((p) => p.clase === c).map((p) => p.id);
     expect(clase('cierre')).toEqual(['CI1', 'CI2', 'CI3', 'CI4', 'CI5', 'CI6', 'CI7', 'CI8', 'CI9', 'CI10', 'CI11', 'CI12', 'CI13', 'CI14']);
     expect(clase('aviso')).toEqual(['AV11']);
@@ -87,7 +87,7 @@ describe('entrevista: el banco (md ↔ json)', () => {
   it('los mensajes: arranque, M3.1-M3.8, M4.1-M4.4 y los fijos', () => {
     expect(MENSAJES.map((m) => m.id)).toEqual([
       'BIEN', 'M6', 'M1', 'M3.1', 'M3.2', 'M3.3', 'M3.4', 'M3.5', 'M3.6', 'M3.7', 'M3.8',
-      'M4.1', 'M4.2', 'M4.3', 'M4.4', 'M8', 'M9', 'M10', 'M15', 'M21', 'M22', 'M23',
+      'M4.1', 'M4.2', 'M4.3', 'M4.4', 'M8', 'M9', 'M10', 'M15', 'M21', 'M22', 'M23', 'M24.1', 'M24.2', 'M24.3', 'M24.4', 'DD1', 'DD2',
     ]);
   });
 
@@ -150,7 +150,8 @@ describe('entrevista: el banco contra el borrador aprobado', () => {
     expect(texto('M3.1')).toBe('Gracias, {{nombre}}. Ya lo guardé.');
     expect(texto('M4.4')).toBe('Gracias por animarte a contarlo. Cuando quieras, seguimos.');
     expect(texto('M1')).toBe('_Si no va con vos, decí paso y vamos a otra._');
-    for (const m of MENSAJES.filter((m) => !/^M[34]\./.test(m.id))) {
+    // M24 y DD1-DD2 los aprobó Naza el 30/09, después del borrador (metodo-entrevista.md §26).
+    for (const m of MENSAJES.filter((m) => !/^M[34]\./.test(m.id) && !/^(M24\.|DD)/.test(m.id))) {
       const clave = m.id === 'BIEN' ? '| Bienvenida |' : m.id === 'M6' ? '| M6 (después de la bienvenida) |' : `| ${m.id} |`;
       const linea = BORRADOR.split(/\r?\n/).find((l) => l.startsWith(clave));
       expect(linea, m.id).toBeDefined();
@@ -218,7 +219,7 @@ describe('entrevista: textos limpios', () => {
       for (const v of viejos) expect(t.includes(v), `${id} tiene ${v}`).toBe(false);
       expect(t, id).not.toMatch(/\[[^\]]+\]/);
       // Solo las marcas nuevas.
-      for (const m of t.matchAll(/\{\{([^}]+)\}\}/g)) expect(['o/a', 'padre/madre', 'nombre', 'etapa', 'quien_regala'], `${id}: {{${m[1]}}}`).toContain(m[1]);
+      for (const m of t.matchAll(/\{\{([^}]+)\}\}/g)) expect(['o/a', 'padre/madre', 'nombre', 'etapa', 'quien_regala', 'tema'], `${id}: {{${m[1]}}}`).toContain(m[1]);
     }
   });
 

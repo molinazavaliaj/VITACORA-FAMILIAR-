@@ -18,6 +18,8 @@ export type FichaTexto = Pick<FichaEntrevista, 'nombre' | 'genero' | 'formaTrato
 export type OpcionesTexto = {
   /** Cómo se nombra la etapa en M10 y CI2 ("tu infancia"…). Sin texto aprobado todavía: si no llega, queda {{etapa}}. */
   etapa?: string;
+  /** El tema de una duda del dashboard (DD1, DD2): "tus hijos", "el amor"… */
+  tema?: string;
 };
 
 /** ¿Se le habla en masculino? Varón, u "otro" que prefiere trato masculino; si no, femenino (mismo criterio que seleccion.ts viejo). */
@@ -43,6 +45,7 @@ export function renderizar(texto: string, ficha: FichaTexto, respuestas?: Respue
     nombre: ficha.nombre,
     etapa: opciones.etapa,
     quien_regala: ficha.quienRegala,
+    tema: opciones.tema,
   };
   let t = texto;
   // Variante según la respuesta a otra pregunta: si fue un "no" corto, la primera forma.

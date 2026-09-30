@@ -2260,6 +2260,36 @@
       "id": "M23",
       "cuando": "Audio cortado",
       "texto": "Se me cortó el audio o no llegó bien, {{nombre}}. ¿Me lo mandás de nuevo cuando puedas? Sin apuro."
+    },
+    {
+      "id": "M24.1",
+      "cuando": "Después del cierre de un bloque que no es etapa (1 y 6 a 14), rotan",
+      "texto": "Gracias, {{nombre}}. Con eso cerramos acá. Pasamos a otra cosa."
+    },
+    {
+      "id": "M24.2",
+      "cuando": "Después del cierre de un bloque que no es etapa (1 y 6 a 14), rotan",
+      "texto": "Anotado. Ya quedó guardado. Vamos con lo que sigue."
+    },
+    {
+      "id": "M24.3",
+      "cuando": "Después del cierre de un bloque que no es etapa (1 y 6 a 14), rotan",
+      "texto": "Bien, {{nombre}}. Eso queda ahí, bien guardado. Cambiamos de tema."
+    },
+    {
+      "id": "M24.4",
+      "cuando": "Después del cierre de un bloque que no es etapa (1 y 6 a 14), rotan",
+      "texto": "Gracias por eso. Damos vuelta la página y seguimos."
+    },
+    {
+      "id": "DD1",
+      "cuando": "Dashboard (no WhatsApp): la ficha dice que sí y en la entrevista contestó que no. Botones: [Lo dejo así] [Quiero contar algo] [Error de la ficha]",
+      "texto": "Una duda chiquita sobre {{tema}}, {{nombre}}. En la ficha aparece y en la entrevista no salió. No hay nada que corregir si no querés: el libro se escribe con lo que vos contaste. Pero si hay algo que quieras sumar, o si la ficha está mal, acá podés decírmelo."
+    },
+    {
+      "id": "DD2",
+      "cuando": "Dashboard (no WhatsApp): la ficha dice que no y en la entrevista contó algo. Botones: [Dejalo como lo conté] [Quiero agregar algo] [Sacalo del libro]",
+      "texto": "{{nombre}}, sobre {{tema}}: en la ficha no figuraba, pero en la entrevista lo nombraste. Quiero asegurarme de que en el libro quede como vos querés. Podemos dejarlo tal cual lo contaste, podés agregar algo, o si se coló por error, lo saco."
     }
   ],
   "nombresBloque": {

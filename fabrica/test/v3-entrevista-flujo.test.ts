@@ -277,7 +277,7 @@ describe('entrevista: acuses', () => {
   it('el cierre de una etapa (bloques 2 a 5) va con M10; los otros cierres con M3', () => {
     expect(mensajesDespues(p('CI2'), 'Sí, una más.')).toEqual(['M10']);
     expect(mensajesDespues(p('CI5'), 'Paso')).toEqual(['M21', 'M10']);
-    expect(mensajesDespues(p('CI6'), 'No.')).toEqual(['M3']);
+    expect(mensajesDespues(p('CI6'), 'No.')).toEqual(['M24']);
   });
 
   it('el aviso y el final no llevan acuse', () => {
@@ -306,7 +306,7 @@ describe('entrevista: la ficha contra las respuestas', () => {
   it('la ficha dice que no tiene y contó algo', () => {
     const ficha: FichaV3 = { ...base, nietos: 'no-tiene', migracion: 'no-tiene' };
     expect(contradiccionesConFicha(ficha, r({ HI8: 'Sí, el primero nació en invierno y fui a verlo.', JU8: 'No.' }))).toEqual([
-      { tema: 'nietos', pregunta: 'HI8', texto: 'La ficha dice que no tiene nietos y en la entrevista contó algo (HI8).' },
+      { tema: 'nietos', pregunta: 'HI8', texto: 'La ficha dice que no tiene nietos y en la entrevista contó algo (HI8).', mensaje: 'DD2', temaTexto: 'tus nietos' },
     ]);
   });
 

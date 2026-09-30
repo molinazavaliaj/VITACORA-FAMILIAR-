@@ -50,6 +50,12 @@
 | M21 | Después de "paso" | Dale, la salteamos. Vamos con otra. |
 | M22 | Si manda texto | Lo leí, gracias. Si podés, contámelo también en audio: así queda tu voz y tu manera de decirlo, que es lo que va al libro. Y si te resulta más cómodo escribir, escribí nomás. |
 | M23 | Audio cortado | Se me cortó el audio o no llegó bien, {{nombre}}. ¿Me lo mandás de nuevo cuando puedas? Sin apuro. |
+| M24.1 | Después del cierre de un bloque que no es etapa (1 y 6 a 14), rotan | Gracias, {{nombre}}. Con eso cerramos acá. Pasamos a otra cosa. |
+| M24.2 | Después del cierre de un bloque que no es etapa (1 y 6 a 14), rotan | Anotado. Ya quedó guardado. Vamos con lo que sigue. |
+| M24.3 | Después del cierre de un bloque que no es etapa (1 y 6 a 14), rotan | Bien, {{nombre}}. Eso queda ahí, bien guardado. Cambiamos de tema. |
+| M24.4 | Después del cierre de un bloque que no es etapa (1 y 6 a 14), rotan | Gracias por eso. Damos vuelta la página y seguimos. |
+| DD1 | Dashboard (no WhatsApp): la ficha dice que sí y en la entrevista contestó que no. Botones: [Lo dejo así] [Quiero contar algo] [Error de la ficha] | Una duda chiquita sobre {{tema}}, {{nombre}}. En la ficha aparece y en la entrevista no salió. No hay nada que corregir si no querés: el libro se escribe con lo que vos contaste. Pero si hay algo que quieras sumar, o si la ficha está mal, acá podés decírmelo. |
+| DD2 | Dashboard (no WhatsApp): la ficha dice que no y en la entrevista contó algo. Botones: [Dejalo como lo conté] [Quiero agregar algo] [Sacalo del libro] | {{nombre}}, sobre {{tema}}: en la ficha no figuraba, pero en la entrevista lo nombraste. Quiero asegurarme de que en el libro quede como vos querés. Podemos dejarlo tal cual lo contaste, podés agregar algo, o si se coló por error, lo saco. |
 
 ## Bloque 1 · Origen y raíces
 
@@ -415,3 +421,4 @@ Las demás filas vivas del borrador mantienen su ID. Las filas "sale" no están 
 - "Paso" en una pregunta que abre tema: se sigue a otro tema (como estaba).
 - "Paso" en una pregunta que abre tema (CA6, JU8, AM0, AM9, AM16, HI0, HI8, AS1, HG1): no van las que dependen, y el cierre de ese bloque llega en el núcleo aunque sea extra (Naza, 30/09).
 - Las dudas ficha-respuesta quedan solo en el dashboard (Naza, 30/09).
+- Aprobados por Naza (30/09): M24.1-M24.4 (después del cierre de un bloque que no es etapa) y DD1-DD2 (dudas del dashboard, con {{tema}}: "tus hermanos", "el amor", "tus hijos", "tus nietos", "vivir en otro lugar").

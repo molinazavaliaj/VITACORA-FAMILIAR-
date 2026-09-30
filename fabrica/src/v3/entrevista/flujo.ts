@@ -192,27 +192,49 @@ export const BLOQUES_ETAPA: readonly number[] = [2, 3, 4, 5];
  * El cierre de una etapa (bloques 2 a 5) va con M10 en vez del acuse. El
  * aviso y el final no se contestan: nada.
  */
-export function mensajesDespues(pregunta: Pick<PreguntaEntrevista, 'bloque' | 'clase' | 'sensible'>, respuesta: Respuesta): ('M3' | 'M4' | 'M10' | 'M21')[] {
+export function mensajesDespues(pregunta: Pick<PreguntaEntrevista, 'bloque' | 'clase' | 'sensible'>, respuesta: Respuesta): ('M3' | 'M4' | 'M10' | 'M21' | 'M24')[] {
   if (!esperaRespuesta(pregunta)) return [];
   const finDeEtapa = pregunta.clase === 'cierre' && BLOQUES_ETAPA.includes(pregunta.bloque);
   if (esPaso(respuesta)) return finDeEtapa ? ['M21', 'M10'] : ['M21'];
   if (finDeEtapa) return ['M10'];
+  if (pregunta.clase === 'cierre') return ['M24']; // cierre de un bloque que no es etapa (Naza, 30/09)
   return [pregunta.sensible ? 'M4' : 'M3'];
 }
 
 /** El acuse de turno de una familia que rota: M3 tiene 8 (M3.1…M3.8) y M4 tiene 4. */
-export function acuseRotado(familia: 'M3' | 'M4', n: number): string {
+export function acuseRotado(familia: 'M3' | 'M4' | 'M24', n: number): string {
   const total = familia === 'M3' ? 8 : 4;
   return `${familia}.${(((n % total) + total) % total) + 1}`;
 }
 
 // ---------------------------------------------------------------- ficha contra respuestas
 
-export type DudaFicha = { tema: 'hermanos' | 'pareja' | 'hijos' | 'nietos' | 'mudarse'; pregunta: string; texto: string };
+/**
+ * Una duda para el dashboard (no se manda por WhatsApp: Naza, 30/09). `mensaje`
+ * dice qué texto aprobado mostrar (DD1: la ficha dice que sí y contestó que
+ * no; DD2: la ficha dice que no y contó algo) y `temaTexto` llena {{tema}}.
+ * `texto` es la descripción interna, para el equipo.
+ */
+export type DudaFicha = {
+  tema: 'hermanos' | 'pareja' | 'hijos' | 'nietos' | 'mudarse';
+  pregunta: string;
+  texto: string;
+  mensaje: 'DD1' | 'DD2';
+  temaTexto: string;
+};
 
 type Tema = { tema: DudaFicha['tema']; pregunta: string; campo: keyof FichaV3; si: string; no: string };
 
 /** Las preguntas que abren un tema y el campo de la ficha que dice lo mismo. */
+/** Cómo se nombra el tema en DD1 y DD2 ({{tema}}). "El amor" y no "tu pareja" (Naza, 30/09). */
+export const TEMA_TEXTO: Record<DudaFicha['tema'], string> = {
+  hermanos: 'tus hermanos',
+  pareja: 'el amor',
+  hijos: 'tus hijos',
+  nietos: 'tus nietos',
+  mudarse: 'vivir en otro lugar',
+};
+
 const TEMAS: readonly Tema[] = [
   { tema: 'hermanos', pregunta: 'CA6', campo: 'hermanos', si: 'tiene hermanos', no: 'no tiene hermanos' },
   { tema: 'mudarse', pregunta: 'JU8', campo: 'migracion', si: 'se fue a vivir a otro lugar', no: 'no se fue a vivir a otro lugar' },
@@ -233,9 +255,9 @@ export function contradiccionesConFicha(ficha: FichaV3, respuestas: Respuestas):
   for (const t of TEMAS) {
     const segunFicha = estado(ficha[t.campo]);
     if (segunFicha === 'lleno' && respondioNo(respuestas, t.pregunta)) {
-      dudas.push({ tema: t.tema, pregunta: t.pregunta, texto: `La ficha dice que ${t.si} y en la entrevista contestó que no (${t.pregunta}).` });
+      dudas.push({ tema: t.tema, pregunta: t.pregunta, texto: `La ficha dice que ${t.si} y en la entrevista contestó que no (${t.pregunta}).`, mensaje: 'DD1', temaTexto: TEMA_TEXTO[t.tema] });
     } else if (segunFicha === 'no-tiene' && contoAlgo(respuestas, t.pregunta)) {
-      dudas.push({ tema: t.tema, pregunta: t.pregunta, texto: `La ficha dice que ${t.no} y en la entrevista contó algo (${t.pregunta}).` });
+      dudas.push({ tema: t.tema, pregunta: t.pregunta, texto: `La ficha dice que ${t.no} y en la entrevista contó algo (${t.pregunta}).`, mensaje: 'DD2', temaTexto: TEMA_TEXTO[t.tema] });
     }
   }
   return dudas;
