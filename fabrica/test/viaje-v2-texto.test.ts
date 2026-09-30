@@ -30,7 +30,7 @@ describe('viaje v2: renderizar', () => {
 
   it('{{pregunta}} va tal cual, sin corregir, entre «»', () => {
     const t = renderizar(porId('PR-R').texto, { ...datosDeCompra(COMPRA), pregunta: '¿qué comiste?' });
-    expect(t).toBe('Hoy la pregunta no es mía, es de Tomás: «¿qué comiste?». Contale a esa persona, aunque me lo mandes a mí. Si hay foto, va.');
+    expect(t).toBe('Hoy la pregunta no es mía, es de Tomás: «¿qué comiste?». Contale a Tomás, aunque me lo mandes a mí. Si hay foto, va.'); // lectura final: {{quien_regala}} en vez de "esa persona"
   });
 
   it('si el texto usa un dato que falta, error claro con el nombre del dato', () => {

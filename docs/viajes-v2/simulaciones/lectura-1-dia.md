@@ -58,13 +58,20 @@ _[audio: a la vuelta, en el micro, con la cabeza contra el vidrio, mirando los c
 > Lo tengo. Hasta la noche.
 
 **21:30 · Vitácora** `CA1`  
-> Cuando entres a casa, quedate en el primer rato, con la valija todavía cerrada: contame qué te llamó la atención de tu propia casa después de estar afuera, aunque sea una pavada. Si tenés una foto de eso, mandala.
+> Volvé al primer rato en que entraste a casa, con la valija todavía cerrada: ¿qué te llamó la atención de tu propia casa después de estar afuera, aunque sea una pavada? Si tenés una foto de eso, mandala.
 
 **21:55 · Nora**  
 _[audio: que la casa estaba igual pero yo no; y que la gata ni se enteró que me fui + una foto]_
 
-**21:55 · Vitácora** `AL1`  
+**21:55 · Vitácora** `ACN1`  
+> Gracias, Nora. A dormir, que mañana sigue.
+
+## Ya en casa · lunes 16/11 (hora de Buenos Aires)
+
+**10:00 · Vitácora** `AL1`  
 > Gracias, Nora. Y una última cosa: el álbum. Juntá las 20 fotos del viaje que más quieras tener en el libro y mandámelas acá mismo, en una tanda o en varias, como te quede cómodo. Cuando estén todas, escribime "listo"; si te olvidás, en un rato te pregunto yo.
+
+_(Aviso a Naza: El álbum lleva 5 horas sin fotos: cero fotos. La despedida espera tu decisión.)_
 
 **22:10 · Nora**  
 _[9 fotos]_
@@ -76,6 +83,10 @@ _[texto: listo, son esas]_
 > Ya está, Nora: el viaje quedó contado, con tu voz. Ahora me toca a mí armar el libro con lo que me diste; lo vas a poder leer en tu panel antes de que se cierre, y ahí cambiás lo que haga falta. Fue lindo acompañarte. Gracias por dejarme entrar en tu viaje.
 
 _(Se cierra el álbum: 9 fotos quedan, guardadas 9, afuera 0.)_
+
+## Ya en casa · martes 17/11 (hora de Buenos Aires)
+
+_(Naza decide cerrar el álbum.)_
 
 ---
 

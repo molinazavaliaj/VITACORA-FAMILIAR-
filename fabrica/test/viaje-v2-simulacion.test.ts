@@ -68,7 +68,7 @@ describe('viaje v2: simulación de 300 viajes', () => {
 });
 
 describe('viaje v2: simulación, lo que cambió con las reglas de las simulaciones', () => {
-  it('ya no hay viajes sin cerrar: CA1 sin respuesta abre el álbum con AL1-P', () => {
+  it('ya no hay viajes sin cerrar: CA1 sin respuesta abre el álbum con AL1-P a la mañana siguiente', () => {
     expect(CORRIDAS.every((c) => c.res.album?.fase === 'cerrado')).toBe(true);
     expect(CORRIDAS.some((c) => c.hallazgos.some((h) => h.inv === 'i7'))).toBe(true);
   });
@@ -123,6 +123,21 @@ describe('viaje v2: los controles del simulador detectan lo que tienen que detec
     const j = d.res.enviados.findIndex((m) => m.ids[0] === 'PAS-V');
     const cambiado2 = d.res.enviados.map((m, k) => (k === j ? { ...m, ids: ['PAS-V2'] } : m));
     expect(invs({ ...d.res, enviados: cambiado2 })).toContain('d12');
+  });
+
+  it('d13: ATR-PR después de una noche que no fue de quien regala, salta; y ATR-PR aparece en las corridas', () => {
+    const c = buscar((x) => x.res.enviados.some((m) => m.ids[0] === 'ATR1' || m.ids[0] === 'ATR2' || m.ids[0] === 'ATR3'));
+    const i = c.res.enviados.findIndex((m) => /^ATR[123]$/.test(m.ids[0]));
+    const cambiado = c.res.enviados.map((m, k) => (k === i ? { ...m, ids: ['ATR-PR', ...m.ids.slice(1)] } : m));
+    expect(invs({ ...c.res, enviados: cambiado })).toContain('d13');
+    expect(CORRIDAS.some((x) => x.res.enviados.some((m) => m.ids[0] === 'ATR-PR'))).toBe(true);
+  });
+
+  it('h4: AL1 el mismo día que CA1, salta', () => {
+    const c = buscar((x) => x.res.enviados.some((m) => m.ids[0] === 'AL1'));
+    const ca1 = c.res.enviados.find((m) => m.ids[0] === 'CA1')!;
+    const cambiado = c.res.enviados.map((m) => (m.ids[0] === 'AL1' ? { ...m, en: new Date(ca1.en.getTime() + 60_000) } : m));
+    expect(invs({ ...c.res, enviados: cambiado })).toContain('h4');
   });
 
   it('i11 dice lo que controla', () => {

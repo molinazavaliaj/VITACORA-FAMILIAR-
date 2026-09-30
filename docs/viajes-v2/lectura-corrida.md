@@ -120,7 +120,7 @@ _[texto: paso]_
 > Dale, esta la salteamos.
 
 **21:30 · Vitácora** `PR-R`  
-> Hoy la pregunta no es mía, es de Tomás: «¿Qué fue lo primero que comiste allá que te hizo acordar a casa?». Contale a esa persona, aunque me lo mandes a mí. Si hay foto, va.
+> Hoy la pregunta no es mía, es de Tomás: «¿Qué fue lo primero que comiste allá que te hizo acordar a casa?». Contale a Tomás, aunque me lo mandes a mí. Si hay foto, va.
 
 ## Día 5 del viaje · miércoles 14/10 (hora de Madrid)
 
@@ -134,8 +134,8 @@ _[audio: diez segundos de campanas y motos]_
 
 _(La noche anterior quedó sin contestar.)_
 
-**21:30 · Vitácora** `ATR1` + `C2` + `NO2` + `F3`  
-> Ayer no me contaste, y no pasa nada. Si querés, metelo hoy junto con lo de hoy.
+**21:30 · Vitácora** `ATR-PR` + `C2` + `NO2` + `F3`  
+> Ayer te dejé la pregunta de Tomás y no me contaste, no pasa nada. Si querés, metela hoy junto con lo de hoy.
 >
 > Ya terminó el día. Contámelo como si alguien de casa te llamara ahora mismo a preguntarte cómo te fue. Arrancá por un lugar donde te quedaste un rato, y de ahí andá por donde te lleve el día. Las fotos que quieras guardar, mandámelas.
 
@@ -216,32 +216,35 @@ _[audio: en la escala, cuando escuché a alguien hablar en porteño]_
 > Lo tengo. Hasta la noche.
 
 **21:30 · Vitácora** `CA1`  
-> Cuando entres a casa, quedate en el primer rato, con la valija todavía cerrada: contame qué te llamó la atención de tu propia casa después de estar afuera, aunque sea una pavada. Si tenés una foto de eso, mandala.
+> Volvé al primer rato en que entraste a casa, con la valija todavía cerrada: ¿qué te llamó la atención de tu propia casa después de estar afuera, aunque sea una pavada? Si tenés una foto de eso, mandala.
 
 **22:10 · Lucía**  
 _[audio: que mi casa huele a mi casa; nunca lo había notado]_
 
-**22:10 · Vitácora** `AL1`  
-> Gracias, Lucía. Y una última cosa: el álbum. Juntá las 20 fotos del viaje que más quieras tener en el libro y mandámelas acá mismo, en una tanda o en varias, como te quede cómodo. Cuando estén todas, escribime "listo"; si te olvidás, en un rato te pregunto yo.
-
-**22:30 · Lucía**  
-_[15 fotos]_
+**22:10 · Vitácora** `ACN1`  
+> Gracias, Lucía. A dormir, que mañana sigue.
 
 ## Ya en casa · lunes 19/10 (hora de Buenos Aires)
 
-**09:00 · Lucía**  
+**10:00 · Vitácora** `AL1`  
+> Gracias, Lucía. Y una última cosa: el álbum. Juntá las 20 fotos del viaje que más quieras tener en el libro y mandámelas acá mismo, en una tanda o en varias, como te quede cómodo. Cuando estén todas, escribime "listo"; si te olvidás, en un rato te pregunto yo.
+
+**10:30 · Lucía**  
+_[15 fotos]_
+
+**12:00 · Lucía**  
 _[8 fotos más]_
 
-**14:00 · Vitácora** `AL2`  
+**17:00 · Vitácora** `AL2`  
 > ¿Ya están todas, Lucía? Si me decís que sí, o si no me contestás, cierro el álbum con las que mandaste.
 
-**14:20 · Lucía**  
+**17:20 · Lucía**  
 _[texto: sí, ya está]_
 
-**14:20 · Vitácora** `AL3`  
+**17:20 · Vitácora** `AL3`  
 > Mandaste 23 fotos y en el álbum entran 20. Si querés, elegí vos cuáles quedan afuera: reenviame las que saco. Si no me decís nada en unas horas, me quedo con las primeras 20.
 
-**19:20 · Vitácora** `DES` + `DES+`  
+**22:20 · Vitácora** `DES` + `DES+`  
 > Ya está, Lucía: el viaje quedó contado, con tu voz. Ahora me toca a mí armar el libro con lo que me diste; lo vas a poder leer en tu panel antes de que se cierre, y ahí cambiás lo que haga falta. Del álbum me quedé con las primeras 20 que mandaste, que son las que entran. Fue lindo acompañarte. Gracias por dejarme entrar en tu viaje.
 
 _(Se cierra el álbum: 23 fotos mandadas, guardadas 20, afuera 3.)_

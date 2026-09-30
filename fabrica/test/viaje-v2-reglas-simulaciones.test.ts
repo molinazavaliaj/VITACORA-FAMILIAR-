@@ -5,12 +5,12 @@ import {
   validarCompra,
   combinacionDeNoche,
   momentoUC1,
-  momentoAlbumSinCA1,
+  momentoAL1,
   COMIENZOS,
   CIERRES,
   ORDEN_PUERTAS,
 } from '../src/viaje-v2/calendario.js';
-import { alDecirSi, preguntaProgramada, reaccion, albumSinRespuesta, ROTACION_INICIAL, type Rotacion } from '../src/viaje-v2/mensajes.js';
+import { alDecirSi, preguntaProgramada, reaccion, mensajeAlbum, ROTACION_INICIAL, type Rotacion } from '../src/viaje-v2/mensajes.js';
 import { iniciarAlbum, pasoAlbum, type EstadoAlbum, type EventoAlbum, type SalidaAlbum } from '../src/viaje-v2/album.js';
 import { anotarEnvio, nuevoEstado, pendientesParaElViaje, anotarRespuesta } from '../src/viaje-v2/estado.js';
 import { porId } from '../src/viaje-v2/banco.js';
@@ -261,9 +261,9 @@ describe('TXT va solo', () => {
     expect(r.mensajes[1].texto).toBe(t('IM1'));
   });
 
-  it('en CA1: TXT y después AL1-P, en dos mensajes', () => {
+  it('en CA1: TXT solo (AL1 va a la mañana siguiente, lectura final)', () => {
     const r = reaccion({ tipo: 'CA1' }, { tipo: 'texto' }, COMPRA, ROTACION_INICIAL);
-    expect(r.mensajes.map((m) => m.ids)).toEqual([['TXT'], ['AL1-P']]);
+    expect(r.mensajes.map((m) => m.ids)).toEqual([['TXT']]);
   });
 
   it('ningún mensaje junta TXT con otra cosa', () => {
@@ -274,10 +274,10 @@ describe('TXT va solo', () => {
 });
 
 describe('CA1 sin respuesta', () => {
-  it('al día siguiente a las 13:00 (hora de casa) sale AL1-P igual', () => {
+  it('al día siguiente sale AL1-P igual, a las 10:00 hora de casa (lectura final: antes 13:00)', () => {
     const ca1 = armarCalendario(COMPRA, []).programados.find((p) => p.tipo === 'CA1')!;
-    expect(aLocal(momentoAlbumSinCA1(ca1, COMPRA), BA)).toEqual({ fecha: '2026-10-19', hora: '13:00' });
-    expect(albumSinRespuesta(COMPRA)).toEqual({ ids: ['AL1-P'], texto: t('AL1-P') });
+    expect(aLocal(momentoAL1(ca1, COMPRA), BA)).toEqual({ fecha: '2026-10-19', hora: '10:00' });
+    expect(mensajeAlbum(COMPRA, 'AL1-P')).toEqual({ ids: ['AL1-P'], texto: t('AL1-P') });
   });
 });
 

@@ -77,6 +77,11 @@ export function nochesSinContestar(e: Estado): number {
   return n;
 }
 
+/** La última noche del viaje que se mandó (para ATR-PR: ¿fue una pregunta de quien regala?). */
+export function nocheAnterior(e: Estado): Envio | undefined {
+  return [...e.envios].reverse().find((x) => NOCHES_DEL_VIAJE.has(x.tipo));
+}
+
 /** Las de la cadena de antes de salir que contestó (o pasó). Un audio que llegó mal solo no alcanza: sigue pendiente. */
 export function contestadasAntes(e: Estado): Set<string> {
   return new Set(e.envios.filter((x) => x.tipo === 'cadena' && contestado(x)).map((x) => x.clave));

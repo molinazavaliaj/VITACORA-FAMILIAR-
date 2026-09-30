@@ -12,7 +12,8 @@
 //   · BIEN-1 sale al comprar (corrido a las 8:00 si cae en la franja).
 //   · UC1 con un SÍ tardío el día de salida: 2 horas después (momentoUC1);
 //     lo demás programado que ya pasó cuando dice SÍ no sale (queda "vencido").
-//   · CA1 sin respuesta: al día siguiente a las 13:00, AL1-P igual (momentoAlbumSinCA1).
+//   · AL1 sale a las 10:00 del día siguiente de CA1 (momentoAL1); AL1-P si CA1
+//     fue "paso" o quedó sin respuesta.
 //   · El calendario definitivo se arma justo antes de ID1 (o IV1): recién ahí
 //     se sabe qué quedó pendiente de antes de salir.
 //   · La persona contesta cada pregunta antes de que llegue la siguiente.
@@ -27,7 +28,7 @@ import { porId } from '../src/viaje-v2/banco.js';
 import {
   armarCalendario,
   CADENA_ANTES,
-  momentoAlbumSinCA1,
+  momentoAL1,
   momentoUC1,
   validarCompra,
   momentoDeLaSiguiente,
@@ -40,9 +41,9 @@ import {
   type IdAntes,
   type Programado,
 } from '../src/viaje-v2/calendario.js';
-import { anotarEnvio, anotarRespuesta, contestadasAntes, nochesSinContestar, nuevoEstado, pendientesParaElViaje, type Estado } from '../src/viaje-v2/estado.js';
+import { anotarEnvio, anotarRespuesta, contestadasAntes, nocheAnterior, nochesSinContestar, nuevoEstado, pendientesParaElViaje, type Estado } from '../src/viaje-v2/estado.js';
 import { aInstante, aLocal, diaDeSemana, diasEntre, nombreDeZona, respetarFranja, sumarDias } from '../src/viaje-v2/horas.js';
-import { alDecirSi, albumSinRespuesta, arranque, preguntaProgramada, reaccion, recordatorioAntes, type ReaccionEmoji, type Respuesta } from '../src/viaje-v2/mensajes.js';
+import { alDecirSi, arranque, mensajeAlbum, preguntaProgramada, reaccion, recordatorioAntes, type ReaccionEmoji, type Respuesta } from '../src/viaje-v2/mensajes.js';
 import { datosDeCompra, renderizar } from '../src/viaje-v2/texto.js';
 import type { Compra, Mensaje, Zona } from '../src/viaje-v2/tipos.js';
 
@@ -299,20 +300,22 @@ export function simular(compra: Compra, compraEn: Date, persona: Persona): Resul
 
   // ── El viaje ──
   function enviarProgramado(p: Programado) {
-    const q0 = preguntaProgramada(p, compra, nochesSinContestar(estado), estado.rotacion);
+    const q0 = preguntaProgramada(p, compra, nochesSinContestar(estado), estado.rotacion, nocheAnterior(estado)?.ids);
     estado = { ...estado, rotacion: q0.rot };
     if (q0.mensaje.ids.some((id) => id.startsWith('ATR'))) nota(p.instante, p.zona, 'La noche anterior quedó sin contestar.');
     mandar(p.instante, p.zona, q0.mensaje, 'programado', true, { programado: p });
     estado = anotarEnvio(estado, { clave: p.clave, tipo: p.tipo, ids: p.ids, en: p.instante.toISOString() });
-    const sinCA1 = p.tipo === 'CA1' ? momentoAlbumSinCA1(p, compra) : null;
-    const q: Pregunta = { clave: p.clave, tipo: p.tipo, ids: p.ids, enviada: p.instante, zona: p.zona, fecha: p.fecha, limite: sinCA1 ?? proxima(p.instante), dia: p.dia };
+    const al1 = p.tipo === 'CA1' ? momentoAL1(p, compra) : null;
+    const q: Pregunta = { clave: p.clave, tipo: p.tipo, ids: p.ids, enviada: p.instante, zona: p.zona, fecha: p.fecha, limite: al1 ?? proxima(p.instante), dia: p.dia };
     for (const it of persona.contestar(q)) if (it.en > p.instante && (!q.limite || it.en < q.limite)) cola.push(it.en, () => responder(p, it));
-    if (sinCA1) {
-      cola.push(sinCA1, () => {
-        if (al1En) return;
-        nota(sinCA1, casa, 'CA1 quedó sin respuesta: sale AL1-P igual.');
-        mandar(sinCA1, casa, albumSinRespuesta(compra), 'album-reloj', true);
-        abrirAlbum(sinCA1);
+    if (al1) {
+      // AL1 a las 10:00 del día siguiente: AL1 si contestó CA1; AL1-P si dijo "paso" o no contestó.
+      cola.push(al1, () => {
+        const envio = estado.envios.filter((x) => x.clave === p.clave).pop();
+        const contesto = envio?.respuestas.some((r) => !r.audioMal && r.tipo !== 'paso') ?? false;
+        if (!envio?.respuestas.some((r) => !r.audioMal)) nota(al1, casa, 'CA1 quedó sin respuesta: sale AL1-P igual.');
+        mandar(al1, casa, mensajeAlbum(compra, contesto ? 'AL1' : 'AL1-P'), 'album-reloj', true);
+        abrirAlbum(al1);
       });
     }
   }
@@ -332,7 +335,6 @@ export function simular(compra: Compra, compraEn: Date, persona: Persona): Resul
     estado = anotarRespuesta(estado, p.clave, { ...it.respuesta, en: it.en.toISOString() });
     for (const m of r.mensajes) mandar(it.en, p.zona, m, 'reaccion', false, { reaccionA: { tipo: p.tipo, respuesta: it.respuesta } });
     for (const x of r.reacciones) corazon(it.en, p.zona, x, p.tipo, idMensaje);
-    if (r.abreAlbum) abrirAlbum(it.en);
   }
 
   // ── El álbum ──
@@ -727,6 +729,7 @@ export const INVARIANTES: Record<string, string> = {
   d8: 'd) ATR-V dos noches seguidas',
   d9: 'd) Acuse en texto (ACM) al mediodía, a VU0 o a una foto suelta (va la reacción ❤️), una respuesta o foto suelta sin su ❤️, o una ❤️ que apunta a otro mensaje',
   d10: 'd) ID1 el mismo día de salida en hora de casa',
+  d13: 'd) ATR-PR sin una pregunta de quien regala (PR-R, PR-R2, PR-R3) sin contestar la noche anterior',
   d12: 'd) PAS-V2 ("esta la salteamos") sin otra pregunta ese día, o PAS-V ("Mañana hay otra") con otra ese día',
   d11: 'd) ID1 después de la noche del día 1 (con 12 h o más de diferencia, ID1 ocupa esa noche)',
   e1: 'e) Una de antes de salir sale dos veces (misma versión), o "ya de viaje" después de contestada',
@@ -745,6 +748,7 @@ export const INVARIANTES: Record<string, string> = {
   g6: 'g) TXT pegado a otra cosa en el mismo mensaje',
   g7: 'g) El viaje termina sin DES (el álbum nunca se cierra)',
   g8: 'g) DES+ sin AL3 antes (no le preguntó cuáles sacar)',
+  h4: 'h) AL1 (o AL1-P) el mismo día que CA1 (va a las 10:00 del día siguiente)',
   g9: 'g) Viaje de 3 días o más sin FN1 (salvo el caso aceptado: 3 días con ID1 en la noche del día 1)',
   h1: 'h) El calendario no está en orden creciente de tiempo',
   h2: 'h) Algún mensaje después de DES',
@@ -758,7 +762,7 @@ export const HALLAZGOS: Record<string, string> = {
   i4: 'FN1 ("Mañana te volvés") no sale la víspera de la vuelta',
   i5: 'Algo programado ya pasó cuando dice SÍ y no sale nunca (UC1, VU0; si el SÍ llega muy tarde, también ID1 y noches)',
   i6: 'AS1 (versión normal) llega el día de salida, con el SÍ (documentado en alDecirSi)',
-  i7: 'CA1 sin respuesta: el álbum se abre al día siguiente con AL1-P',
+  i7: 'CA1 sin respuesta: el álbum se abre igual a la mañana siguiente con AL1-P',
   i8: 'Fotos del álbum que llegan después de cerrado (van al panel, sin contestar)',
   i9: 'Una de antes de salir mandada y sin respuesta vuelve "ya de viaje" (por diseño)',
   i10: 'Una reacción con pregunta adentro (AS1 con el SÍ, o COR) sale entre las 23:00 y las 8:00',
@@ -921,6 +925,14 @@ export function revisar(res: Resultado): { violaciones: Violacion[]; hallazgos: 
   }
   // d8) ATR-V dos noches del viaje seguidas
   const nochesViaje = env.filter((m) => m.programado && ['noche', 'antes-en-viaje', 'propia', 'FN1'].includes(m.programado.tipo));
+  // d13) ATR-PR solo después de una pregunta de quien regala que quedó sin contestar
+  for (let i = 0; i < nochesViaje.length; i++) {
+    if (!nochesViaje[i].ids.includes('ATR-PR')) continue;
+    const ant = i > 0 ? nochesViaje[i - 1] : null;
+    const envio = ant ? res.estado.envios.filter((x) => x.clave === ant.programado!.clave).pop() : undefined;
+    const fueDeRegalo = !!ant && ant.ids.some((id) => /^PR-R\d?$/.test(id));
+    if (!fueDeRegalo || !envio || envio.respuestas.length > 0) mal('d13', `ATR-PR ${cuando(nochesViaje[i])} después de ${ant ? ant.ids.join('+') : 'nada'}`);
+  }
   for (let i = 1; i < nochesViaje.length; i++) {
     if (nochesViaje[i].ids.includes('ATR-V') && nochesViaje[i - 1].ids.includes('ATR-V')) mal('d8', `${cuando(nochesViaje[i - 1])} y ${cuando(nochesViaje[i])}`);
   }
@@ -1031,6 +1043,8 @@ export function revisar(res: Resultado): { violaciones: Violacion[]; hallazgos: 
   const des = env.find((m) => m.ids.includes('DES'));
   if (des) for (const m of env.filter((x) => x.en > des.en)) mal('h2', `${m.ids.join('+')} ${cuando(m)} después de DES`);
   const al1 = env.find((m) => m.ids.includes('AL1') || m.ids.includes('AL1-P'));
+  const ca1 = env.find((m) => m.ids[0] === 'CA1' && m.origen === 'programado');
+  if (al1 && ca1 && fecha(al1.en, casa) <= fecha(ca1.en, casa)) mal('h4', `AL1 ${cuando(al1)} y CA1 ${cuando(ca1)}`);
   if (al1) for (const m of preguntas.filter((x) => x.en > al1.en && (!des || x.en < des.en))) mal('h3', `${m.ids.join('+')} ${cuando(m)} entre AL1 y DES`);
 
   return { violaciones: v, hallazgos: h };
@@ -1061,9 +1075,9 @@ export function resumenMd(corridas: Corrida[]): string {
     '## Decisiones del simulador (el planificador todavía no existe)',
     '- BIEN-1 sale al comprar (corrido a las 8:00 si cae en la franja). La persona siempre dice SÍ (a veces 8 a 26 horas después).',
     '- Con un SÍ tardío el día de salida, UC1 sale 2 horas después (i13); lo demás programado que ya pasó cuando dice SÍ no sale ("vencido"; ver i5). Un SÍ después del día de salida trae AS1 "ya de viaje".',
-    '- CA1 sin respuesta: al día siguiente a las 13:00 sale AL1-P igual (i7).',
+    '- AL1 sale a las 10:00 del día siguiente de CA1 (hora de casa); AL1-P si CA1 fue "paso" o quedó sin respuesta (i7).',
     '- El calendario definitivo se arma justo antes de ID1 (o IV1), con lo que quedó pendiente de antes de salir. La persona contesta cada pregunta antes de que llegue la siguiente.',
-    '- Mensajes "por reloj" (los que revisa la invariante a): todo lo programado, BIEN-1, REC1, AL1-P sin CA1, AL2, AL3 y DES por reloj o por Naza, y las de la cadena. Las reacciones inmediatas (acuses, COR, AL1, DES con "listo") no.',
+    '- Mensajes "por reloj" (los que revisa la invariante a): todo lo programado, BIEN-1, REC1, AL1/AL1-P, AL2, AL3 y DES por reloj o por Naza, y las de la cadena. Las reacciones inmediatas (acuses, COR, DES con "listo") no.',
     '- Las reacciones ❤️ (mediodía, VU0, fotos sueltas) no son mensajes: no cuentan en los totales y van en su propia columna.',
     '- Naza cierra un álbum con cero fotos al día siguiente del aviso, a las 12:00 (hora de casa).',
   );

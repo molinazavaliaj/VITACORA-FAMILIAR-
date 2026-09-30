@@ -202,22 +202,23 @@ describe('viaje v2: reacciones (acuses y casos)', () => {
     }
   });
 
-  it('CA1 → AL1 solo, sin ACA: AL1 trae su "Gracias" adentro', () => {
+  it('CA1 → ACN; AL1 (con su "Gracias" adentro) sale a la mañana siguiente, no pegada (lectura final)', () => {
     const r = reaccion({ tipo: 'CA1' }, audio, COMPRA, ROTACION_INICIAL);
-    expect(r.mensajes).toEqual([{ ids: ['AL1'], texto: t('AL1') }]);
-    expect(r.mensajes[0].texto).toMatch(/^Gracias, Lucía\. Y una última cosa: el álbum\./);
-    expect(r.abreAlbum).toBe(true);
+    expect(r.mensajes).toEqual([{ ids: ['ACN1'], texto: t('ACN1') }]);
+    expect(r.albumManana).toBe('AL1');
+    expect(t('AL1')).toMatch(/^Gracias, Lucía\. Y una última cosa: el álbum\./);
   });
 
-  it('A3: "paso" en CA1 → directo AL1-P, sin PAS-V', () => {
+  it('A3: "paso" en CA1 → sin PAS-V; AL1-P a la mañana siguiente', () => {
     const r = reaccion({ tipo: 'CA1' }, { tipo: 'paso' }, COMPRA, ROTACION_INICIAL);
-    expect(r.mensajes).toEqual([{ ids: ['AL1-P'], texto: t('AL1-P') }]);
-    expect(r.abreAlbum).toBe(true);
+    expect(r.mensajes).toEqual([]);
+    expect(r.albumManana).toBe('AL1-P');
   });
 
-  it('CA1 en texto: TXT solo, y AL1-P en otro mensaje (sin el segundo "gracias")', () => {
+  it('CA1 en texto: TXT solo; AL1 a la mañana siguiente', () => {
     const r = reaccion({ tipo: 'CA1' }, { tipo: 'texto' }, COMPRA, ROTACION_INICIAL);
-    expect(r.mensajes).toEqual([{ ids: ['TXT'], texto: t('TXT') }, { ids: ['AL1-P'], texto: t('AL1-P') }]);
+    expect(r.mensajes).toEqual([{ ids: ['TXT'], texto: t('TXT') }]);
+    expect(r.albumManana).toBe('AL1');
   });
 
   it('A5: si contestó en texto (y ya no va TXT), no se usan ACA2 ni ACN3 ("Lo escuché")', () => {

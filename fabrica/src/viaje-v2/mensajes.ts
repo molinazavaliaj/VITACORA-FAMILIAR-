@@ -15,10 +15,13 @@
 //     noche": solo van si de verdad queda una pregunta de noche ese día
 //     (`quedaNoche`, ver quedaNocheEseDia en calendario.ts). Sin el dato, se
 //     asume que no: ACM1 o ACM2 (A1 y revisión).
-//   · CA1 → AL1 solo: AL1 trae su "Gracias" adentro. "Paso" en CA1 → AL1-P (A3).
-//   · ATR solo arriba de la noche común (A2): ATR1-3 rotan; ATR-V con 2 o más
-//     seguidas, pero nunca dos noches seguidas: si la noche anterior llevó
-//     ATR-V, esta va sin ATR (simulaciones).
+//   · CA1 contestada → ACN (o TXT). AL1 no va pegada: sale a las 10:00 del día
+//     siguiente (momentoAL1); si CA1 fue "paso" o quedó sin respuesta, AL1-P.
+//     Con "paso" en CA1 no va nada en el momento (A3: sin PAS-V) (lectura final).
+//   · ATR solo arriba de la noche común (A2): ATR1-3 rotan; si la noche sin
+//     contestar fue una pregunta de quien regala (PR-R, PR-R2, PR-R3), ATR-PR
+//     en su lugar (lectura final); ATR-V con 2 o más seguidas, pero nunca dos
+//     noches seguidas: si la noche anterior llevó ATR-V, esta va sin ATR (simulaciones).
 //   · "Paso": PAS-A + la siguiente sin acuse (A4); en VA1, PAS-A2 solo; en el viaje,
 //     PAS-V2 si ese día todavía llega otra pregunta (`quedaOtra`), si no PAS-V.
 //     Si la cadena se calló por la fecha (ya es el día de salida), nada que
@@ -120,9 +123,13 @@ export function alDecirSi(compra: Compra, en?: Date): Mensaje[] {
   return [juntar([parte('BIEN-2', compra)]), juntar([as1])];
 }
 
-/** CA1 sin respuesta: al día siguiente a las 13:00 sale AL1-P igual (momentoAlbumSinCA1). Abre el álbum. */
-export function albumSinRespuesta(compra: Compra): Mensaje {
-  return juntar([parte('AL1-P', compra)]);
+/**
+ * El pedido del álbum, a las 10:00 del día siguiente de CA1 (momentoAL1): AL1
+ * si contestó CA1 (trae su "Gracias"), AL1-P si dijo "paso" o no contestó.
+ * Abre el álbum: AL2 corre desde que sale.
+ */
+export function mensajeAlbum(compra: Compra, cual: 'AL1' | 'AL1-P'): Mensaje {
+  return juntar([parte(cual, compra)]);
 }
 
 /** Una de la cadena sola (para reenviarla, o para lo que haga falta). */
@@ -140,14 +147,23 @@ export function recordatorioAntes(compra: Compra, colgada: IdAntes): Mensaje {
 /**
  * El mensaje de algo del calendario. `nochesSinContestar` son las noches del
  * viaje seguidas sin contestar justo antes de esta (lo cuenta estado.ts): con
- * 1, ATR1-3 rotando; con 2 o más, ATR-V. Solo arriba de la noche común (A2).
+ * 1, ATR1-3 rotando (o ATR-PR si esa noche, `anteriorIds`, fue una pregunta
+ * de quien regala); con 2 o más, ATR-V. Solo arriba de la noche común (A2).
  */
-export function preguntaProgramada(p: Programado, compra: Compra, nochesSinContestar: number, rot: Rotacion): { mensaje: Mensaje; rot: Rotacion } {
+export function preguntaProgramada(
+  p: Programado,
+  compra: Compra,
+  nochesSinContestar: number,
+  rot: Rotacion,
+  anteriorIds: readonly string[] = [],
+): { mensaje: Mensaje; rot: Rotacion } {
   const partes: { id: string; texto: string }[] = [];
   let r = rot;
   if (p.tipo === 'noche' && nochesSinContestar >= 1) {
     if (nochesSinContestar >= 2) {
       if (!rot.atrVAnterior) partes.push(parte('ATR-V', compra));
+    } else if (anteriorIds.some((id) => /^PR-R\d?$/.test(id))) {
+      partes.push(parte('ATR-PR', compra));
     } else {
       const e = elegirRotando('ATR', r);
       r = e.rot;
@@ -195,8 +211,8 @@ export type Reaccion = {
   rot: Rotacion;
   /** false si el audio llegó mal (COR): la pregunta sigue abierta. */
   contestada: boolean;
-  /** true después de CA1: acaba de salir AL1 (o AL1-P) y arranca el álbum. */
-  abreAlbum: boolean;
+  /** Después de CA1: qué pedido del álbum sale a las 10:00 del día siguiente (momentoAL1). Si no, null. */
+  albumManana: 'AL1' | 'AL1-P' | null;
 };
 
 /** Donde el acuse es una reacción ❤️ (simulaciones). */
@@ -204,12 +220,13 @@ const CON_CORAZON: ReadonlySet<string> = new Set(['MD', 'VU0', 'foto-suelta']);
 
 /** Donde un texto dispara TXT: las que piden contar. El mediodía y VU0 son foto o frase. */
 const NARRATIVAS: ReadonlySet<string> = new Set(['cadena', 'UC1', 'ID1', 'noche', 'antes-en-viaje', 'propia', 'FN1', 'VU1', 'IV1', 'CA1']);
-const DE_NOCHE: ReadonlySet<string> = new Set(['noche', 'antes-en-viaje', 'propia', 'FN1']);
+const DE_NOCHE: ReadonlySet<string> = new Set(['noche', 'antes-en-viaje', 'propia', 'FN1', 'CA1']);
 
 export function reaccion(de: QueSeContesta, respuesta: Respuesta, compra: Compra, rot: Rotacion): Reaccion {
-  const listo = (mensajes: Mensaje[], r: Rotacion, abreAlbum = false): Reaccion => ({ mensajes, reacciones: [], rot: r, contestada: true, abreAlbum });
+  const albumManana = de.tipo === 'CA1' ? (respuesta.tipo === 'paso' ? 'AL1-P' : 'AL1') : null;
+  const listo = (mensajes: Mensaje[], r: Rotacion): Reaccion => ({ mensajes, reacciones: [], rot: r, contestada: true, albumManana });
 
-  if (respuesta.audioMal) return { mensajes: [juntar([parte('COR', compra)])], reacciones: [], rot, contestada: false, abreAlbum: false };
+  if (respuesta.audioMal) return { mensajes: [juntar([parte('COR', compra)])], reacciones: [], rot, contestada: false, albumManana: null };
 
   const escribio = respuesta.tipo === 'texto';
   const usaTxt = escribio && NARRATIVAS.has(de.tipo) && rot.txtUsados < MAX_TXT;
@@ -244,16 +261,13 @@ export function reaccion(de: QueSeContesta, respuesta: Respuesta, compra: Compra
     return listo([juntar([parte(e.id, compra), parte(sig, compra)])], e.rot);
   }
 
-  if (de.tipo === 'CA1') {
-    if (respuesta.tipo === 'paso') return listo([juntar([parte('AL1-P', compra)])], rot, true);
-    if (usaTxt) return listo([txt, juntar([parte('AL1-P', compra)])], conTxt, true);
-    return listo([juntar([parte('AL1', compra)])], rot, true);
-  }
+  // CA1: "paso" → nada ahora (A3); si contestó, lo de abajo (TXT o ACN). AL1 va a la mañana.
+  if (de.tipo === 'CA1' && respuesta.tipo === 'paso') return listo([], rot);
 
   if (respuesta.tipo === 'paso') return listo([juntar([parte(de.quedaOtra ? 'PAS-V2' : 'PAS-V', compra)])], rot);
   if (usaTxt) return listo([txt], conTxt);
   if (CON_CORAZON.has(de.tipo)) {
-    return { mensajes: [], reacciones: [{ tipo: 'reaccion', emoji: '❤️', aMensaje: respuesta.idMensaje ?? null }], rot, contestada: true, abreAlbum: false };
+    return { mensajes: [], reacciones: [{ tipo: 'reaccion', emoji: '❤️', aMensaje: respuesta.idMensaje ?? null }], rot, contestada: true, albumManana: null };
   }
 
   const e = DE_NOCHE.has(de.tipo)

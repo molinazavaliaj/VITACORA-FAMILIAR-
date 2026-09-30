@@ -135,7 +135,7 @@ _[foto: un cartel que no entiendo]_
 **13:25 · Vitácora** reacciona ❤️ a su mensaje
 
 **21:30 · Vitácora** `PR-R`  
-> Hoy la pregunta no es mía, es de Bruno: «¿Qué comida te gustaría que aprendamos a cocinar juntos?». Contale a esa persona, aunque me lo mandes a mí. Si hay foto, va.
+> Hoy la pregunta no es mía, es de Bruno: «¿Qué comida te gustaría que aprendamos a cocinar juntos?». Contale a Bruno, aunque me lo mandes a mí. Si hay foto, va.
 
 **22:35 · Irene**  
 _[texto: el tren bala: me dormí y me desperté con la montaña en la ventana]_
@@ -244,8 +244,8 @@ _[foto: un cartel que no entiendo]_
 
 _(La noche anterior quedó sin contestar.)_
 
-**21:30 · Vitácora** `ATR1` + `C2` + `NO5` + `F4`  
-> Ayer no me contaste, y no pasa nada. Si querés, metelo hoy junto con lo de hoy.
+**21:30 · Vitácora** `ATR-PR` + `C2` + `NO5` + `F4`  
+> Ayer te dejé la pregunta de Bruno y no me contaste, no pasa nada. Si querés, metela hoy junto con lo de hoy.
 >
 > Ya terminó el día. Contámelo como si alguien de casa te llamara ahora mismo a preguntarte cómo te fue. Arrancá por alguien que te cruzaste y no conocías, y después contame lo demás, lo que se te vaya ocurriendo. Las fotos de hoy, todas las que quieras, acá.
 
@@ -329,7 +329,7 @@ _[foto: el cielo blanco]_
 **13:25 · Vitácora** reacciona ❤️ a su mensaje
 
 **21:30 · Vitácora** `PR-R3`  
-> Bruno quiso saber esto de tu viaje: «¿Qué palabra de allá te vas a quedar?». Es para esa persona, así que hablale aunque llegue por acá. Si tenés una foto que vaya, mandala.
+> Bruno quiso saber esto de tu viaje: «¿Qué palabra de allá te vas a quedar?». Es para Bruno, así que hablale aunque llegue por acá. Si tenés una foto que vaya, mandala.
 
 **22:35 · Irene**  
 _[texto: caminé hasta que me dolieron los pies y terminé en un parque lleno de ciervos]_
@@ -424,7 +424,7 @@ _[foto: diez segundos de cigarras]_
 **13:25 · Vitácora** reacciona ❤️ a su mensaje
 
 **21:30 · Vitácora** `PR-R`  
-> Hoy la pregunta no es mía, es de Bruno: «¿Qué le mostrarías a mamá si estuviera ahí?». Contale a esa persona, aunque me lo mandes a mí. Si hay foto, va.
+> Hoy la pregunta no es mía, es de Bruno: «¿Qué le mostrarías a mamá si estuviera ahí?». Contale a Bruno, aunque me lo mandes a mí. Si hay foto, va.
 
 **22:20 · Irene**  
 _[audio: el tren bala: me dormí y me desperté con la montaña en la ventana + 2 fotos]_
@@ -596,21 +596,25 @@ _[audio: en el aeropuerto de escala, cuando oí a alguien hablar en español]_
 > Lo tengo. Hasta la noche.
 
 **21:30 · Vitácora** `CA1`  
-> Cuando entres a casa, quedate en el primer rato, con la valija todavía cerrada: contame qué te llamó la atención de tu propia casa después de estar afuera, aunque sea una pavada. Si tenés una foto de eso, mandala.
+> Volvé al primer rato en que entraste a casa, con la valija todavía cerrada: ¿qué te llamó la atención de tu propia casa después de estar afuera, aunque sea una pavada? Si tenés una foto de eso, mandala.
 
 **21:50 · Irene**  
 _[audio: la luz: mi casa tiene una luz amarilla que no sabía que tenía + una foto]_
 
-**21:50 · Vitácora** `AL1`  
+**21:50 · Vitácora** `ACN3`  
+> Lo escuché. Hasta mañana, Irene.
+
+## Ya en casa · jueves 12/11 (hora de Madrid)
+
+**10:00 · Vitácora** `AL1`  
 > Gracias, Irene. Y una última cosa: el álbum. Juntá las 40 fotos del viaje que más quieras tener en el libro y mandámelas acá mismo, en una tanda o en varias, como te quede cómodo. Cuando estén todas, escribime "listo"; si te olvidás, en un rato te pregunto yo.
+
+_(Aviso a Naza: El álbum lleva 5 horas sin fotos: cero fotos. La despedida espera tu decisión.)_
 
 **22:30 · Irene**  
 _[25 fotos]_
 
-## Ya en casa · jueves 12/11 (hora de Madrid)
-
-**10:00 · Vitácora** `AL2`  
-> ¿Ya están todas, Irene? Si me decís que sí, o si no me contestás, cierro el álbum con las que mandaste.
+## Ya en casa · viernes 13/11 (hora de Madrid)
 
 **10:00 · Irene**  
 _[20 fotos más]_
@@ -628,6 +632,8 @@ _[reenvía 5 fotos para sacar]_
 > Ya está, Irene: el viaje quedó contado, con tu voz. Ahora me toca a mí armar el libro con lo que me diste; lo vas a poder leer en tu panel antes de que se cierre, y ahí cambiás lo que haga falta. Fue lindo acompañarte. Gracias por dejarme entrar en tu viaje.
 
 _(Se cierra el álbum: 40 fotos quedan, guardadas 40, afuera 0.)_
+
+_(Naza decide cerrar el álbum.)_
 
 ---
 

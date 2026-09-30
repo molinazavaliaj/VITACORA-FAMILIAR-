@@ -311,7 +311,7 @@
     "id": "CA1",
     "momento": "noche-casa",
     "orden": null,
-    "texto": "Cuando entres a casa, quedate en el primer rato, con la valija todavía cerrada: contame qué te llamó la atención de tu propia casa después de estar afuera, aunque sea una pavada. Si tenés una foto de eso, mandala.",
+    "texto": "Volvé al primer rato en que entraste a casa, con la valija todavía cerrada: ¿qué te llamó la atención de tu propia casa después de estar afuera, aunque sea una pavada? Si tenés una foto de eso, mandala.",
     "yaDeViaje": null
   },
   {
@@ -511,10 +511,17 @@
     "yaDeViaje": null
   },
   {
+    "id": "ATR-PR",
+    "momento": "atraso",
+    "orden": null,
+    "texto": "Ayer te dejé la pregunta de {{quien_regala}} y no me contaste, no pasa nada. Si querés, metela hoy junto con lo de hoy.",
+    "yaDeViaje": null
+  },
+  {
     "id": "PR-R",
     "momento": "propia",
     "orden": null,
-    "texto": "Hoy la pregunta no es mía, es de {{quien_regala}}: «{{pregunta}}». Contale a esa persona, aunque me lo mandes a mí. Si hay foto, va.",
+    "texto": "Hoy la pregunta no es mía, es de {{quien_regala}}: «{{pregunta}}». Contale a {{quien_regala}}, aunque me lo mandes a mí. Si hay foto, va.",
     "yaDeViaje": null
   },
   {
@@ -528,7 +535,7 @@
     "id": "PR-R3",
     "momento": "propia",
     "orden": 3,
-    "texto": "{{quien_regala}} quiso saber esto de tu viaje: «{{pregunta}}». Es para esa persona, así que hablale aunque llegue por acá. Si tenés una foto que vaya, mandala.",
+    "texto": "{{quien_regala}} quiso saber esto de tu viaje: «{{pregunta}}». Es para {{quien_regala}}, así que hablale aunque llegue por acá. Si tenés una foto que vaya, mandala.",
     "yaDeViaje": null
   },
   {

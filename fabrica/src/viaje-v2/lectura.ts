@@ -7,10 +7,10 @@
 // vida de un narrador real.
 
 import { iniciarAlbum, pasoAlbum, type EventoAlbum } from './album.js';
-import { armarCalendario, quedaNocheEseDia, quedaOtraEseDia, momentoDeLaSiguiente, momentoRecordatorio, pendientesAntes, siguienteDeLaCadena, type IdAntes, type Programado } from './calendario.js';
-import { anotarEnvio, anotarRespuesta, contestadasAntes, nochesSinContestar, nuevoEstado, type Estado } from './estado.js';
+import { armarCalendario, momentoAL1, quedaNocheEseDia, quedaOtraEseDia, momentoDeLaSiguiente, momentoRecordatorio, pendientesAntes, siguienteDeLaCadena, type IdAntes, type Programado } from './calendario.js';
+import { anotarEnvio, anotarRespuesta, contestadasAntes, nocheAnterior, nochesSinContestar, nuevoEstado, type Estado } from './estado.js';
 import { aInstante, aLocal, diaDeSemana, diasEntre, nombreDeZona } from './horas.js';
-import { alDecirSi, arranque, preguntaProgramada, reaccion, recordatorioAntes, type QueSeContesta, type Respuesta } from './mensajes.js';
+import { alDecirSi, arranque, mensajeAlbum, preguntaProgramada, reaccion, recordatorioAntes, type QueSeContesta, type Respuesta } from './mensajes.js';
 import type { Compra, Mensaje, Zona } from './tipos.js';
 
 export const COMPRA_LECTURA: Compra = {
@@ -59,14 +59,14 @@ const GUION: Record<string, Guion[]> = {
 };
 
 /**
- * El álbum: 15 fotos esa noche, 8 a la mañana siguiente (antes del AL2, que por
- * la franja espera a las 10:00), "sí" al AL2, y a AL3 no le contesta: a las 5
- * horas quedan las primeras 20 y va DES con DES+. Hora de casa.
+ * El álbum: AL1 sale a las 10:00 del día siguiente de CA1. 15 fotos a la
+ * mañana, 8 más al mediodía, "sí" al AL2 (5 horas después), y a AL3 no le
+ * contesta: a las 5 horas quedan las primeras 20 y va DES con DES+. Hora de casa.
  */
 const GUION_ALBUM: { fecha: string; hora: string; evento: 'foto' | 'si'; cantidad?: number; dice: string }[] = [
-  { fecha: '2026-10-18', hora: '22:30', evento: 'foto', cantidad: 15, dice: '15 fotos' },
-  { fecha: '2026-10-19', hora: '09:00', evento: 'foto', cantidad: 8, dice: '8 fotos más' },
-  { fecha: '2026-10-19', hora: '14:20', evento: 'si', dice: 'texto: sí, ya está' },
+  { fecha: '2026-10-19', hora: '10:30', evento: 'foto', cantidad: 15, dice: '15 fotos' },
+  { fecha: '2026-10-19', hora: '12:00', evento: 'foto', cantidad: 8, dice: '8 fotos más' },
+  { fecha: '2026-10-19', hora: '17:20', evento: 'si', dice: 'texto: sí, ya está' },
 ];
 
 export function lecturaCorrida(compra: Compra = COMPRA_LECTURA): string {
@@ -116,17 +116,23 @@ export function lecturaCorrida(compra: Compra = COMPRA_LECTURA): string {
   }
 
   // ── El viaje ──
+  let albumManana: 'AL1' | 'AL1-P' | null = null;
   const pendientes = pendientesAntes(contestadasAntes(estado));
   const cal = armarCalendario(compra, pendientes);
   for (const p of cal.programados) {
     const sinContestar = nochesSinContestar(estado);
-    const q = preguntaProgramada(p, compra, sinContestar, estado.rotacion);
+    const q = preguntaProgramada(p, compra, sinContestar, estado.rotacion, nocheAnterior(estado)?.ids);
     estado = { ...estado, rotacion: q.rot };
     if (q.mensaje.ids.some((id) => id.startsWith('ATR'))) nota(p.instante, p.zona, `La noche anterior quedó sin contestar.`);
     vita(p.instante, p.zona, q.mensaje);
     estado = anotarEnvio(estado, { clave: p.clave, tipo: p.tipo, ids: p.ids, en: p.instante.toISOString() });
     for (const g of GUION[p.clave] ?? []) estado = contestar(p, g, estado);
-    if (p.tipo === 'CA1') estado = album(estado);
+    if (p.tipo === 'CA1') {
+      // AL1 (o AL1-P) a las 10:00 del día siguiente, hora de casa; AL2 corre desde ahí.
+      const al1En = momentoAL1(p, compra);
+      vita(al1En, casa, mensajeAlbum(compra, albumManana ?? 'AL1-P'));
+      estado = album({ ...estado, album: iniciarAlbum(al1En, compra) });
+    }
   }
   for (const aviso of cal.avisosNaza) nota(cal.programados[0].instante, casa, `Aviso a Naza: ${aviso}`);
 
@@ -142,7 +148,7 @@ export function lecturaCorrida(compra: Compra = COMPRA_LECTURA): string {
     if (!suelta) e2 = anotarRespuesta(e2, p.clave, { ...g.respuesta, en: t.toISOString() });
     for (const m of r.mensajes) vita(t, p.zona, m);
     for (const x of r.reacciones) lineas.push({ instante: t, zona: p.zona, de: 'corazon', texto: x.emoji });
-    if (r.abreAlbum) e2 = { ...e2, album: iniciarAlbum(t, compra) };
+    if (r.albumManana) albumManana = r.albumManana;
     return e2;
   }
 

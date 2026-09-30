@@ -316,9 +316,13 @@ export function momentoUC1(uc1: Programado, siEn: Date, compra: Compra): Date | 
   return aLocal(t, compra.zonaCasa).fecha === compra.salida ? t : null;
 }
 
-/** CA1 sin respuesta: al día siguiente a las 13:00 (hora de casa) sale AL1-P igual (banco.md, simulaciones). */
-export function momentoAlbumSinCA1(ca1: Programado, compra: Compra): Date {
-  return respetarFranja(aInstante(sumarDias(ca1.fecha, 1), HORA_MEDIODIA, compra.zonaCasa), compra.zonaCasa);
+/**
+ * AL1 (o AL1-P si CA1 fue "paso" o quedó sin respuesta) sale al día siguiente
+ * de CA1 a las 10:00, hora de casa; ya no va pegada a la respuesta (banco.md,
+ * lectura final; reemplaza las 13:00 de las simulaciones).
+ */
+export function momentoAL1(ca1: Programado, compra: Compra): Date {
+  return respetarFranja(aInstante(sumarDias(ca1.fecha, 1), HORA_MANANA, compra.zonaCasa), compra.zonaCasa);
 }
 
 // ── Antes de salir: la cadena ────────────────────────────────────────────────

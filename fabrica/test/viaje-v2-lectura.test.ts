@@ -24,7 +24,7 @@ describe('viaje v2: lectura corrida (un viaje inventado)', () => {
   });
 
   it('aparece todo lo que tiene que aparecer', () => {
-    for (const id of ['BIEN-1R', 'BIEN-2', 'AS1', 'AS2', 'IM1', 'PAS-A', 'REC1-U', 'UC1', 'ID1', 'VA1', 'ATR1', 'PR-R', 'PR-R2', 'PAS-V2', 'TXT', 'COR', 'FN1', 'VU0', 'VU1', 'CA1', 'AL1', 'AL2', 'AL3', 'DES', 'DES+']) {
+    for (const id of ['BIEN-1R', 'BIEN-2', 'AS1', 'AS2', 'IM1', 'PAS-A', 'REC1-U', 'UC1', 'ID1', 'VA1', 'ATR-PR', 'PR-R', 'PR-R2', 'PAS-V2', 'TXT', 'COR', 'FN1', 'VU0', 'VU1', 'CA1', 'AL1', 'AL2', 'AL3', 'DES', 'DES+']) {
       expect(md, id).toContain(`\`${id}\``);
     }
   });
