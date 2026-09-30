@@ -29,6 +29,7 @@ import {
   armarCalendario,
   CADENA_ANTES,
   momentoAL1,
+  quedaAL1EseDia,
   momentoUC1,
   validarCompra,
   momentoDeLaSiguiente,
@@ -326,7 +327,11 @@ export function simular(compra: Compra, compraEn: Date, persona: Persona): Resul
     decir(it.en, p.zona, it.fotos ? `${it.dice} + ${it.fotos === 1 ? 'una foto' : `${it.fotos} fotos`}` : it.dice);
     const idMensaje = nuevoId();
     const r = reaccion(
-      { tipo: p.tipo, quedaNoche: quedaNocheEseDia(programados(), it.en), quedaOtra: quedaOtraEseDia(programados(), it.en) },
+      {
+        tipo: p.tipo,
+        quedaNoche: quedaNocheEseDia(programados(), it.en),
+        quedaOtra: quedaOtraEseDia(programados(), it.en) || (p.tipo === 'CA1' && quedaAL1EseDia(p, it.en, compra)),
+      },
       { ...it.respuesta, idMensaje },
       compra,
       estado.rotacion,
@@ -895,7 +900,9 @@ export function revisar(res: Resultado): { violaciones: Violacion[]; hallazgos: 
     if (m.ids.includes('PAS-V')) {
       const otraHoy = preguntas.find((q) => q.en > m.en && fecha(q.en, q.zona) === fecha(m.en, q.zona));
       // "Mañana": el día siguiente en la hora del que lo dice o en la de la pregunta que llega (al volver cambia la zona).
-      const manana = preguntas.some((q) => q.en > m.en && [fecha(m.en, q.zona), fecha(m.en, m.zona)].some((f) => fecha(q.en, q.zona) === sumarDias(f, 1)));
+      // AL1/AL1-P (a la mañana siguiente de CA1) también es "otra" (A3, lectura final).
+      const siguen = env.filter((q) => esPregunta(q) || q.ids[0] === 'AL1' || q.ids[0] === 'AL1-P');
+      const manana = siguen.some((q) => q.en > m.en && [fecha(m.en, q.zona), fecha(m.en, m.zona)].some((f) => fecha(q.en, q.zona) === sumarDias(f, 1)));
       if (otraHoy) mal('d2', `PAS-V ${cuando(m)} y el mismo día ${otraHoy.ids.join('+')} ${cuando(otraHoy)}`);
       else if (!manana) mal('d2', `PAS-V ${cuando(m)} y al otro día no llega nada`);
     }
@@ -945,7 +952,8 @@ export function revisar(res: Resultado): { violaciones: Violacion[]; hallazgos: 
   // d12) PAS-V2 / PAS-V según si ese día queda otra pregunta
   for (const m of env) {
     if (m.ids[0] !== 'PAS-V2' && m.ids[0] !== 'PAS-V') continue;
-    const otra = preguntas.some((q) => q.en > m.en && fecha(q.en, q.zona) === fecha(m.en, q.zona));
+    // AL1/AL1-P también cuenta como "otra" (llega después de CA1).
+    const otra = env.some((q) => (esPregunta(q) || q.ids[0] === 'AL1' || q.ids[0] === 'AL1-P') && q.en > m.en && fecha(q.en, q.zona) === fecha(m.en, q.zona));
     if (m.ids[0] === 'PAS-V2' && !otra) mal('d12', `PAS-V2 ${cuando(m)} y ese día no llega nada más`);
     if (m.ids[0] === 'PAS-V' && otra) mal('d12', `PAS-V ${cuando(m)} y ese día llega otra`);
   }

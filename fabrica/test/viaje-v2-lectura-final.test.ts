@@ -94,11 +94,17 @@ describe('AL1 a la mañana siguiente de CA1', () => {
     expect(r.albumManana).toBe('AL1');
   });
 
-  it('"paso" en CA1: nada en el momento (sin PAS-V, A3) y AL1-P a la mañana', () => {
+  it('"paso" en CA1: PAS-V ("Mañana hay otra", que es cierto: AL1-P sale a la mañana) (A3 actualizada)', () => {
     const r = reaccion({ tipo: 'CA1' }, { tipo: 'paso' }, COMPRA, ROTACION_INICIAL);
-    expect(r.mensajes).toEqual([]);
+    expect(r.mensajes).toEqual([{ ids: ['PAS-V'], texto: t('PAS-V') }]);
     expect(r.albumManana).toBe('AL1-P');
     expect(mensajeAlbum(COMPRA, 'AL1-P')).toEqual({ ids: ['AL1-P'], texto: t('AL1-P') });
+  });
+
+  it('"paso" en CA1 después de medianoche (AL1-P sale ese mismo día a las 10): PAS-V2, no "Mañana hay otra"', () => {
+    const r = reaccion({ tipo: 'CA1', quedaOtra: true }, { tipo: 'paso' }, COMPRA, ROTACION_INICIAL);
+    expect(r.mensajes.map((m) => m.ids)).toEqual([['PAS-V2']]);
+    expect(r.albumManana).toBe('AL1-P');
   });
 
   it('las demás preguntas no abren el álbum', () => {

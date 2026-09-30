@@ -88,15 +88,15 @@ Mensajes de Vitácora (todo lo que sale, acuses incluidos). "Por día": total di
 
 | Días | Viajes | Total (prom.) | Total (máx.) | Por día (prom.) | Máx. en un día | Preguntas por día de viaje (prom.) | Reacciones ❤️ (prom.) |
 |---|---|---|---|---|---|---|---|
-| 3 | 272 | 17,1 | 27 | 2,1 | 8 | 1,4 | 1,2 |
-| 4 | 276 | 20,3 | 30 | 2,1 | 8 | 1,6 | 2,3 |
-| 5 | 271 | 23,4 | 36 | 2,0 | 7 | 1,6 | 3,2 |
-| 7 | 273 | 28,9 | 42 | 2,2 | 7 | 1,7 | 5,2 |
-| 10 | 273 | 37,7 | 53 | 2,3 | 8 | 1,8 | 8,2 |
-| 15 | 272 | 52,0 | 71 | 2,4 | 7 | 1,9 | 13,4 |
+| 3 | 272 | 17,2 | 27 | 2,1 | 8 | 1,4 | 1,2 |
+| 4 | 276 | 20,4 | 30 | 2,1 | 8 | 1,6 | 2,3 |
+| 5 | 271 | 23,5 | 36 | 2,1 | 7 | 1,6 | 3,2 |
+| 7 | 273 | 29,0 | 42 | 2,2 | 7 | 1,7 | 5,2 |
+| 10 | 273 | 37,8 | 53 | 2,3 | 8 | 1,8 | 8,2 |
+| 15 | 272 | 52,1 | 71 | 2,4 | 7 | 1,9 | 13,4 |
 | 30 | 273 | 96,3 | 132 | 2,6 | 7 | 1,9 | 28,1 |
-| 60 | 266 | 183,6 | 251 | 2,7 | 7 | 2,0 | 57,8 |
-| otras (3-45) | 224 | 87,1 | 179 | 2,5 | 8 | 1,9 | 26,3 |
+| 60 | 266 | 183,7 | 251 | 2,7 | 7 | 2,0 | 57,8 |
+| otras (3-45) | 224 | 87,2 | 179 | 2,5 | 8 | 1,9 | 26,3 |
 
 ## Cuántas veces se repite cada texto en un viaje de 30 días
 
@@ -119,7 +119,7 @@ Mensajes de Vitácora (todo lo que sale, acuses incluidos). "Por día": total di
 | C5 | 4,1 | 5 |
 | COR | 4,0 | 37 |
 | ACN3 | 3,9 | 7 |
-| PAS-V2 | 3,6 | 35 |
+| PAS-V2 | 3,6 | 36 |
 | MD1 | 3,0 | 3 |
 | MD3 | 3,0 | 3 |
 | MD5 | 3,0 | 3 |
@@ -132,8 +132,8 @@ Mensajes de Vitácora (todo lo que sale, acuses incluidos). "Por día": total di
 | NO8 | 2,3 | 3 |
 | NO5 | 2,2 | 3 |
 | NO7 | 2,1 | 3 |
+| PAS-V | 2,1 | 22 |
 | NO6 | 2,0 | 3 |
-| PAS-V | 2,0 | 22 |
 | MD9 | 2,0 | 3 |
 | MD10 | 2,0 | 2 |
 | MD11 | 2,0 | 2 |
@@ -203,7 +203,7 @@ Preguntas enteras idénticas (el mismo texto, letra por letra) en un viaje de 30
 | MD9 | 5,0 | 5 |
 | MD12 | 4,6 | 5 |
 | MD2 | 4,6 | 5 |
-| PAS-V | 4,1 | 40 |
+| PAS-V | 4,2 | 41 |
 | MD11 | 4,0 | 4 |
 | MD8 | 3,8 | 4 |
 | ATR-V | 3,0 | 16 |

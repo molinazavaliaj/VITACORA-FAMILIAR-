@@ -7,7 +7,7 @@
 // vida de un narrador real.
 
 import { iniciarAlbum, pasoAlbum, type EventoAlbum } from './album.js';
-import { armarCalendario, momentoAL1, quedaNocheEseDia, quedaOtraEseDia, momentoDeLaSiguiente, momentoRecordatorio, pendientesAntes, siguienteDeLaCadena, type IdAntes, type Programado } from './calendario.js';
+import { armarCalendario, momentoAL1, quedaAL1EseDia, quedaNocheEseDia, quedaOtraEseDia, momentoDeLaSiguiente, momentoRecordatorio, pendientesAntes, siguienteDeLaCadena, type IdAntes, type Programado } from './calendario.js';
 import { anotarEnvio, anotarRespuesta, contestadasAntes, nocheAnterior, nochesSinContestar, nuevoEstado, type Estado } from './estado.js';
 import { aInstante, aLocal, diaDeSemana, diasEntre, nombreDeZona } from './horas.js';
 import { alDecirSi, arranque, mensajeAlbum, preguntaProgramada, reaccion, recordatorioAntes, type QueSeContesta, type Respuesta } from './mensajes.js';
@@ -141,7 +141,7 @@ export function lecturaCorrida(compra: Compra = COMPRA_LECTURA): string {
     persona(t, p.zona, g.fotos ? `${g.dice} + ${g.fotos === 1 ? 'una foto' : `${g.fotos} fotos`}` : g.dice);
     const suelta = g.dice.startsWith('foto suelta');
     const quedaNoche = quedaNocheEseDia(cal.programados, t);
-    const quedaOtra = quedaOtraEseDia(cal.programados, t);
+    const quedaOtra = quedaOtraEseDia(cal.programados, t) || (p.tipo === 'CA1' && quedaAL1EseDia(p, t, compra));
     const de: QueSeContesta = suelta ? { tipo: 'foto-suelta', quedaNoche } : { tipo: p.tipo, quedaNoche, quedaOtra };
     const r = reaccion(de, g.respuesta, compra, e.rotacion);
     let e2: Estado = { ...e, rotacion: r.rot, fotosSueltas: e.fotosSueltas + (suelta ? 1 : 0) + (g.fotos ?? 0) };

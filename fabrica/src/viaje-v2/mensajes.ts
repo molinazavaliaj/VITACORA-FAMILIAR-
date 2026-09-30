@@ -17,7 +17,7 @@
 //     asume que no: ACM1 o ACM2 (A1 y revisión).
 //   · CA1 contestada → ACN (o TXT). AL1 no va pegada: sale a las 10:00 del día
 //     siguiente (momentoAL1); si CA1 fue "paso" o quedó sin respuesta, AL1-P.
-//     Con "paso" en CA1 no va nada en el momento (A3: sin PAS-V) (lectura final).
+//     Con "paso" en CA1, PAS-V: "Mañana hay otra" es cierto (A3, actualizada).
 //   · ATR solo arriba de la noche común (A2): ATR1-3 rotan; si la noche sin
 //     contestar fue una pregunta de quien regala (PR-R, PR-R2, PR-R3), ATR-PR
 //     en su lugar (lectura final); ATR-V con 2 o más seguidas, pero nunca dos
@@ -261,8 +261,9 @@ export function reaccion(de: QueSeContesta, respuesta: Respuesta, compra: Compra
     return listo([juntar([parte(e.id, compra), parte(sig, compra)])], e.rot);
   }
 
-  // CA1: "paso" → nada ahora (A3); si contestó, lo de abajo (TXT o ACN). AL1 va a la mañana.
-  if (de.tipo === 'CA1' && respuesta.tipo === 'paso') return listo([], rot);
+  // CA1: "paso" → PAS-V, que acá es cierto: AL1-P sale a la mañana siguiente (A3,
+  // actualizada con la lectura final); si contesta después de medianoche y AL1-P
+  // sale ese mismo día, `quedaOtra` (quedaAL1EseDia) da PAS-V2. Si contestó, TXT o ACN.
 
   if (respuesta.tipo === 'paso') return listo([juntar([parte(de.quedaOtra ? 'PAS-V2' : 'PAS-V', compra)])], rot);
   if (usaTxt) return listo([txt], conTxt);

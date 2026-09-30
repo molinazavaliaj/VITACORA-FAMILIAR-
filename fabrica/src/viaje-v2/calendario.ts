@@ -325,6 +325,16 @@ export function momentoAL1(ca1: Programado, compra: Compra): Date {
   return respetarFranja(aInstante(sumarDias(ca1.fecha, 1), HORA_MANANA, compra.zonaCasa), compra.zonaCasa);
 }
 
+/**
+ * Para un "paso" en CA1: ¿AL1-P sale el mismo día (hora de casa) que `t`? Pasa
+ * si contesta después de medianoche. Ahí va PAS-V2, no "Mañana hay otra": el
+ * planificador lo pasa como `quedaOtra` a reaccion().
+ */
+export function quedaAL1EseDia(ca1: Programado, t: Date, compra: Compra): boolean {
+  const al1 = momentoAL1(ca1, compra);
+  return al1.getTime() > t.getTime() && aLocal(al1, compra.zonaCasa).fecha === aLocal(t, compra.zonaCasa).fecha;
+}
+
 // ── Antes de salir: la cadena ────────────────────────────────────────────────
 
 export function siguienteDeLaCadena(id: IdAntes): IdAntes | null {

@@ -209,9 +209,9 @@ describe('viaje v2: reacciones (acuses y casos)', () => {
     expect(t('AL1')).toMatch(/^Gracias, Lucía\. Y una última cosa: el álbum\./);
   });
 
-  it('A3: "paso" en CA1 → sin PAS-V; AL1-P a la mañana siguiente', () => {
+  it('A3: "paso" en CA1 → PAS-V (AL1-P llega a la mañana siguiente: "Mañana hay otra" es cierto)', () => {
     const r = reaccion({ tipo: 'CA1' }, { tipo: 'paso' }, COMPRA, ROTACION_INICIAL);
-    expect(r.mensajes).toEqual([]);
+    expect(r.mensajes.map((m) => m.ids)).toEqual([['PAS-V']]);
     expect(r.albumManana).toBe('AL1-P');
   });
 
