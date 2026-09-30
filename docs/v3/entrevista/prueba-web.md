@@ -30,5 +30,7 @@ En `audios-crudos\v3-web\<nombre>\`, en la raíz del worktree (esa carpeta **no 
 
 - **Es local**: solo se abre en esta PC (no se puede entrar desde el celular ni desde otra máquina).
 - **La transcripción cuesta**: cada audio va a OpenAI (`gpt-transcribe`, unos USD 0,005 por minuto). El pie de la página muestra los minutos transcriptos. Escribir o tocar botones no cuesta nada.
-- Si la transcripción falla (sin internet, error de OpenAI), el audio queda guardado y aparece "Reintentar".
+- **Varios audios por pregunta** (desde el 30/09): cada audio se transcribe y se muestra; cuando terminaste, tocá **"Listo, siguiente pregunta"** y los audios salen juntos, en orden, como una sola respuesta. Al tocar Enviar la grabación sigue un segundo más. Si una transcripción parece cortada, la página avisa: "Parece que se cortó. ¿Querés mandar otro audio para completar?".
+- Si se cae la red (o OpenAI da un error 5xx o 429), el servidor reintenta solo a los 2, 5 y 10 segundos y la página muestra "Sin conexión, reintentando…". Si igual falla, el audio queda guardado y aparece "Reintentar".
+- El nombre se guarda con mayúscula inicial ("nazareno" → "Nazareno").
 - En la pregunta de la foto (FO1) no se pueden mandar fotos: contala con audio o por escrito.
