@@ -17,7 +17,7 @@ Regla de nombres: lo que dice **vigente** es lo actual y no cambia de nombre; cu
 - [`../metodo-entrevista.md`](../metodo-entrevista.md): el registro de decisiones (por qué cada pregunta es como es; lo que aprobó Naza, vuelta por vuelta).
 - [`../banco-final-borrador.md`](../banco-final-borrador.md): el compilado de trabajo del que salió `banco.md` (con las filas "sale" para rastreo).
 - [`../banco-descartadas.md`](../banco-descartadas.md): lo que salió del banco y por qué.
-- [`historial/`](historial/): versiones viejas de los documentos de esta carpeta, con la fecha en el nombre. Hoy: [`flujo-2026-09-30-antes-de-la-lectura.md`](historial/flujo-2026-09-30-antes-de-la-lectura.md) (el flujo antes de la lectura corrida).
+- [`historial/`](historial/): versiones viejas de los documentos de esta carpeta, con la fecha en el nombre. Hoy: [`flujo-2026-09-30-antes-de-la-lectura.md`](historial/flujo-2026-09-30-antes-de-la-lectura.md) y [`flujo-2026-09-30-antes-de-la-ronda-2.md`](historial/flujo-2026-09-30-antes-de-la-ronda-2.md).
 - [`../banco-v3.md`](../banco-v3.md) y [`../diseno-v3.md`](../diseno-v3.md): historial anterior. **No están vigentes para la entrevista** (tamaños, gates por ficha, pausa, preguntas de datos); quedan como estaban y su código (`fabrica/src/v3/*.ts`) sigue andando.
 
 ## Código
@@ -28,6 +28,7 @@ En `fabrica/src/v3/entrevista/`:
 - `banco.json` (generado) y `banco.ts`: el banco tipado (`BANCO`, `MENSAJES`, `preguntaPorId`).
 - `texto.ts`: `renderizar` (género, nombre, etapa, quien regala y la variante `«sino:X: a ‖ b»`).
 - `flujo.ts`: "no" corto, condiciones, la próxima pregunta (con su frase de entrada y si lleva M1), los acuses y las dudas ficha contra respuesta.
+- `mensajes.ts`: `armarTurno`, cómo se arma cada mensaje de WhatsApp (el acuse pegado a lo que sigue o solo).
 - `seleccion.ts`: las preguntas que podrían llegar (núcleo y completo) para una ficha, para el recuento.
 
 ## Cómo se regenera y se prueba

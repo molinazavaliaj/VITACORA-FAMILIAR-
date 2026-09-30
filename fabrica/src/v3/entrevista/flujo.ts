@@ -132,9 +132,9 @@ export type Siguiente =
   /** No queda nada por mandar. */
   | { tipo: 'terminada' };
 
-/** Bloque que se manda entero al final (legado y cierre: LE1 "Mirando toda tu vida", FO1 "Una última cosa", LE9, FIN). */
+/** Bloque que se manda entero al final (legado: LE1, LE2, FU1, LE7, la familia, FO1, LE9, LE8 y FIN). */
 export const BLOQUE_FINAL = 15;
-/** Las preguntas de la familia van antes de esta (y por lo tanto antes de LE9). */
+/** Las preguntas de la familia van antes de esta: después de LE7 y antes de FO1, LE9 y LE8 (Naza, 30/09, ronda 2). */
 export const FAMILIA_ANTES_DE = 'FO1';
 
 /** ¿Espera respuesta? El aviso y el mensaje final no. */
@@ -210,26 +210,22 @@ export function siguientePregunta(e: EstadoEntrevista, banco: readonly PreguntaE
   return { tipo: 'terminada' };
 }
 
-/** Bloques que son etapas vividas: su cierre va seguido de M10 (Terminamos {{etapa}}…). */
-export const BLOQUES_ETAPA: readonly number[] = [2, 3, 4, 5];
-
-/** Después de esta pregunta va directo el mensaje final, sin acuse (Naza, 30/09). */
-export const SIN_ACUSE_ANTES_DEL_FINAL = 'LE9';
+/** Después de esta pregunta va directo el mensaje final, sin acuse (Naza, 30/09, ronda 2: el final es LE7 → familia → FO1 → LE9 → LE8 → FIN). */
+export const SIN_ACUSE_ANTES_DEL_FINAL = 'LE8';
 
 /**
- * Qué mensajes fijos van después de contestar (familias de mensajes; el
- * entrevistador rota M3, M4 y M24): "paso" → M21; sensible → M4; si no → M3.
- * El cierre de una etapa (bloques 2 a 5) va con M10 en vez del acuse; los
- * otros cierres, con M24. El aviso y el final no se contestan: nada. LE9
- * tampoco lleva acuse: después va directo FIN.
+ * Qué acuse va después de contestar (familias de mensajes; el entrevistador
+ * rota M3, M4 y M24): "paso" → M21; sensible → M4; cierre de bloque → M24;
+ * si no → M3. El aviso y el final no se contestan: nada. LE8 tampoco lleva
+ * acuse: después va directo FIN. Desde el 30/09 (ronda 2) no va M10: la frase
+ * de entrada del bloque siguiente hace de pasaje. Cómo se arma el mensaje
+ * (pegado a lo que sigue o solo): `armarTurno` en mensajes.ts.
  */
-export function mensajesDespues(pregunta: Pick<PreguntaEntrevista, 'id' | 'bloque' | 'clase' | 'sensible'>, respuesta: Respuesta): ('M3' | 'M4' | 'M10' | 'M21' | 'M24')[] {
+export function mensajesDespues(pregunta: Pick<PreguntaEntrevista, 'id' | 'bloque' | 'clase' | 'sensible'>, respuesta: Respuesta): ('M3' | 'M4' | 'M21' | 'M24')[] {
   if (!esperaRespuesta(pregunta)) return [];
   if (pregunta.id === SIN_ACUSE_ANTES_DEL_FINAL) return [];
-  const finDeEtapa = pregunta.clase === 'cierre' && BLOQUES_ETAPA.includes(pregunta.bloque);
-  if (esPaso(respuesta)) return finDeEtapa ? ['M21', 'M10'] : ['M21'];
-  if (finDeEtapa) return ['M10'];
-  if (pregunta.clase === 'cierre') return ['M24']; // cierre de un bloque que no es etapa (Naza, 30/09)
+  if (esPaso(respuesta)) return ['M21'];
+  if (pregunta.clase === 'cierre') return ['M24'];
   return [pregunta.sensible ? 'M4' : 'M3'];
 }
 

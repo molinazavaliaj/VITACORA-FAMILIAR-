@@ -199,11 +199,11 @@ describe('entrevista: orden del flujo (núcleo, oferta, extra, final, familia)',
     }
   });
 
-  it('las preguntas de la familia van al final: después de LE8, antes de FO1 y LE9; FIN cierra', () => {
+  it('las preguntas de la familia van al final: después de LE7, antes de FO1, LE9 y LE8; FIN cierra (Naza, 30/09, ronda 2)', () => {
     for (const aceptaExtra of [false, true]) {
       const seq = ids(recorrer(vida('sigue-con-la-primera'), aceptaExtra, familia));
-      const cola = aceptaExtra ? ['LE1', 'LE2', 'LE6', 'LE7', 'LE8'] : ['LE1', 'LE2', 'LE7', 'LE8'];
-      expect(seq.slice(-(cola.length + 5))).toEqual([...cola, 'FAM1', 'FAM2', 'FO1', 'LE9', 'FIN']);
+      const cola = aceptaExtra ? ['LE1', 'LE2', 'LE6', 'FU1', 'LE7'] : ['LE1', 'LE2', 'FU1', 'LE7'];
+      expect(seq.slice(-(cola.length + 6))).toEqual([...cola, 'FAM1', 'FAM2', 'FO1', 'LE9', 'LE8', 'FIN']);
     }
   });
 
@@ -276,9 +276,9 @@ describe('entrevista: acuses', () => {
     expect(mensajesDespues(p('OR1'), 'paso')).toEqual(['M21']);
   });
 
-  it('el cierre de una etapa (bloques 2 a 5) va con M10; los otros cierres con M3', () => {
-    expect(mensajesDespues(p('CI2'), 'Sí, una más.')).toEqual(['M10']);
-    expect(mensajesDespues(p('CI5'), 'Paso')).toEqual(['M21', 'M10']);
+  it('todos los cierres van con M24; M10 ya no se usa (Naza, 30/09, ronda 2)', () => {
+    expect(mensajesDespues(p('CI2'), 'Sí, una más.')).toEqual(['M24']);
+    expect(mensajesDespues(p('CI5'), 'Paso')).toEqual(['M21']);
     expect(mensajesDespues(p('CI6'), 'No.')).toEqual(['M24']);
   });
 

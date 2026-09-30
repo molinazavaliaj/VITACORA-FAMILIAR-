@@ -55,3 +55,49 @@ Aprobadas tal cual: 2, 3, 4, 5, 12, 14 (1, 6 y 11 sin entrada). Ajustes pedidos:
 - 10: Hablemos de los amigos, {{nombre}}, y de la gente que te dio una mano en la vida.
 - 13: Llegamos a los días que te cambiaron algo: los buenos, los que te agarraron de sorpresa, y algunas preguntas para pensar un rato.
 - 15: Ya estamos en la última parte, {{nombre}}: lo que te dejó todo esto y lo que querés dejarle a tu familia. (alternativa: "lo que aprendiste de todo esto")
+
+## Ronda 2 (30/09): Fable lee la lectura corrida como Rogelio
+
+Conclusión de Fable: se lee como una charla, no como un formulario; lo pesado es la maquinaria alrededor de las preguntas (224 mensajes del biógrafo para 89 preguntas).
+
+| # | Decisión de Naza | Estado |
+|---|---|---|
+| 1 | El acuse (M3/M24) va como primera línea del mensaje que sigue; el sobrio (M4) va solo, aparte. | **Aplicado** (`armarTurno` en `mensajes.ts`). También M21 ("Dale, la salteamos…") va pegado. |
+| 2 | Sin M10 ("Terminamos esta etapa…"): la entrada del bloque siguiente hace de pasaje. | **Aplicado**: después de cualquier cierre, M24. M10 queda en el banco marcado "sin uso". |
+| 3 | Bienvenida y M6 en un solo mensaje. | **Propuesta de Fable, esperando aprobación** (abajo). |
+| 4 | Acuse sobrio (M4) después de CA17, AD15, JU17 y TR11. | **Aplicado** (pasan a sensibles). |
+| 5 | Final: LE7 → preguntas de la familia → FO1 → LE9 → LE8 → FIN; después de LE8, directo FIN. | **Aplicado.** |
+| 6 | CI11 sin "Gracias por contarme esto; sé que no es fácil." | **Aplicado.** |
+| 7 | Si un cierre se contesta con un "no" corto o "paso", acuse neutro. | **Propuesta de Fable, esperando aprobación** (abajo). La lógica se programa con los textos. |
+| 8 | FI7 (la política) al bloque 12; FU1 (lo que todavía querés hacer) al bloque 15, antes de LE7. | **Aplicado.** |
+
+**No cambia (decidido por Naza):** el "momento difícil" de cada época (CA17, AD15, JU17, PE4) queda en las cuatro; los cierres de todos los bloques siguen, incluidos CI9 y CI12; GI1 y GI2 siguen separadas.
+
+**Resultado:** una vida completa pasa de 224 mensajes del biógrafo a **128 mensajes de WhatsApp** (8 agradecimientos sobrios van solos).
+
+### Textos propuestos por Fable (sin aprobar)
+
+**Bienvenida en un solo mensaje (BIEN + M6):**
+
+> Hola, {{nombre}}. Juntos vamos a escribir la historia de tu vida, y quiero que sea bien tuya. Te cuento cómo es esto, así vamos tranquilos.
+>
+> Yo te pregunto cosas de tu vida, una por vez, y vos me las contás en audio, como se las contarías a alguien en la mesa. Si te salen dos o tres audios, mejor. Cuando quedás en silencio un ratito, entiendo que terminaste y te mando la próxima.
+>
+> Si alguna pregunta no tiene que ver con lo que viviste, no pasa nada: me decís que no, o me contás lo que en realidad te tocó a vos, que eso es lo que quiero saber. No hay apuro: vamos al paso que vos vayas marcando.
+
+Sale solo lo repetido: el segundo {{nombre}} y la doble presentación ("te cuento cómo es esto" / "ahora te explico cómo va la entrevista").
+
+**Acuses neutros (cierre contestado con un "no" corto o "paso"):**
+1. "Bien, seguimos." (no va delante de una entrada que arranca con "Seguimos", la del bloque 3.)
+2. "Dale."
+3. "Bien, entonces."
+
+Regla que propone Fable: si la entrada que sigue arranca con "Seguimos" o "Pasamos", usar la 2 o la 3.
+
+### Para mirar en la próxima lectura (no decidido)
+- Con el acuse pegado arriba de la pregunta, algunos M3 terminan anunciando lo que ya está a la vista ("Guardado, Rogelio. Te mando la próxima." y abajo la pregunta). Se podrían acortar.
+- FO1 arranca con "Una última cosa" y ya no es la última: después vienen LE9 y LE8.
+
+## Plan B (anotado, sin programar)
+
+El código no entiende el contenido: a veces pregunta algo que no encaja ("¿esa historia tuvo un final?" cuando en el repaso del amor ya dijo que sigue con su pareja; "¿tuviste más hijos?" cuando ya dijo cuántos) o entiende mal un "no". **Por ahora se deja así.** Si en la prueba real pasa seguido: un modelo chico (Haiku) lee solo la respuesta de las preguntas que abren tema y contesta sí / no / no está claro (en el amor, también "¿sigue con esa pareja hoy?"; en hijos, "¿tuvo más de uno?"). El código decide con eso; si el modelo no está seguro, recién ahí un botón de WhatsApp. Costo estimado: menos de 1 centavo de dólar por entrevista.

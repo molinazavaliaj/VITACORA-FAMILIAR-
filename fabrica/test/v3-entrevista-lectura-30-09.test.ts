@@ -31,9 +31,9 @@ describe('los cierres de todos los bloques van en el núcleo (Naza, 30/09)', () 
     }
   });
 
-  it('después de cada cierre: M10 en las etapas (bloques 2 a 5), M24 en los demás', () => {
+  it('después de cada cierre: M24 (desde la ronda 2 del 30/09 tampoco va M10 en las etapas)', () => {
     for (let b = 1; b <= 14; b++) {
-      const esperado = b >= 2 && b <= 5 ? ['M10'] : ['M24'];
+      const esperado = ['M24'];
       expect(mensajesDespues(preguntaPorId(`CI${b}`)!, 'Sí, una cosa más que me acordé.'), `CI${b}`).toEqual(esperado);
     }
   });
@@ -66,14 +66,14 @@ describe('M1 solo donde aplica (Naza, 30/09)', () => {
   });
 });
 
-describe('después de LE9 va directo el final (Naza, 30/09)', () => {
-  it('LE9 no lleva acuse; "paso" en LE9 tampoco', () => {
-    expect(mensajesDespues(preguntaPorId('LE9')!, 'No, creo que está todo.')).toEqual([]);
-    expect(mensajesDespues(preguntaPorId('LE9')!, 'paso')).toEqual([]);
+describe('antes del final va directo FIN (Naza, 30/09; desde la ronda 2 la última es LE8, no LE9)', () => {
+  it('LE8 no lleva acuse; "paso" en LE8 tampoco', () => {
+    expect(mensajesDespues(preguntaPorId('LE8')!, 'Les digo que los quiero.')).toEqual([]);
+    expect(mensajesDespues(preguntaPorId('LE8')!, 'paso')).toEqual([]);
   });
 
   it('las demás del bloque 15 siguen con su acuse', () => {
-    expect(mensajesDespues(preguntaPorId('LE8')!, 'Les digo que los quiero.')).toEqual(['M3']);
+    expect(mensajesDespues(preguntaPorId('LE9')!, 'No, creo que está todo.')).toEqual(['M3']);
     expect(mensajesDespues(preguntaPorId('FO1')!, 'Te mando la del casamiento.')).toEqual(['M3']);
   });
 });

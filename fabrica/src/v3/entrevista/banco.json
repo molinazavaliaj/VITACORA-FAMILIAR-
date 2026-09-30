@@ -223,7 +223,7 @@
       "depende": [],
       "parte": "nucleo",
       "clase": "historia",
-      "sensible": false
+      "sensible": true
     },
     {
       "id": "CI2",
@@ -483,7 +483,7 @@
       "depende": [],
       "parte": "nucleo",
       "clase": "historia",
-      "sensible": false
+      "sensible": true
     },
     {
       "id": "AD16",
@@ -673,7 +673,7 @@
       "depende": [],
       "parte": "nucleo",
       "clase": "historia",
-      "sensible": false
+      "sensible": true
     },
     {
       "id": "JU18",
@@ -1087,7 +1087,7 @@
       "depende": [],
       "parte": "nucleo",
       "clase": "historia",
-      "sensible": false
+      "sensible": true
     },
     {
       "id": "TR8",
@@ -1668,7 +1668,7 @@
       "id": "CI11",
       "bloque": 11,
       "orden": 151,
-      "texto": "Gracias por contarme esto; sé que no es fácil. Si hay otro momento difícil que sentís que tiene que estar en tu historia y no te lo pregunté, contámelo acá.",
+      "texto": "Si hay otro momento difícil que sentís que tiene que estar en tu historia y no te lo pregunté, contámelo acá.",
       "depende": [],
       "parte": "nucleo",
       "clase": "cierre",
@@ -1750,9 +1750,19 @@
       "sensible": false
     },
     {
-      "id": "CI12",
+      "id": "FI7",
       "bloque": 12,
       "orden": 159,
+      "texto": "¿Qué es la política para vos? ¿Hubo algún momento de tu vida en que te tocó de cerca? Contame cuál fue y qué pensás hoy.",
+      "depende": [],
+      "parte": "nucleo",
+      "clase": "historia",
+      "sensible": false
+    },
+    {
+      "id": "CI12",
+      "bloque": 12,
+      "orden": 160,
       "texto": "Hasta acá lo del país y el mundo. Si hay algo que te marcó y no salió, mandámelo ahora, aunque sea corto, con dónde estabas cuando pasó.",
       "depende": [],
       "parte": "nucleo",
@@ -1762,7 +1772,7 @@
     {
       "id": "GI1",
       "bloque": 13,
-      "orden": 160,
+      "orden": 161,
       "texto": "¿Hay algún día de tu vida que, si pudieras, volverías a vivir tal cual? O un momento en que sentiste que algo hizo clic. Contámelo desde el principio: dónde estabas, con quién, y qué fue lo que pasó.",
       "depende": [],
       "parte": "nucleo",
@@ -1772,7 +1782,7 @@
     {
       "id": "GI2",
       "bloque": 13,
-      "orden": 161,
+      "orden": 162,
       "texto": "Pensá en un día que empezó como cualquier otro y terminó cambiándote algo. Contame ese día entero: cómo arrancó la mañana, en qué momento te diste cuenta de que ya no había vuelta atrás, y cómo terminó.",
       "depende": [],
       "parte": "nucleo",
@@ -1782,7 +1792,7 @@
     {
       "id": "GI8",
       "bloque": 13,
-      "orden": 162,
+      "orden": 163,
       "texto": "¿Cuál fue el golpe de suerte más grande que tuviste? Algo que no dependió de vos y te cambió las cosas. Contame cómo fue ese día: dónde estabas cuando te enteraste y qué hiciste después.",
       "depende": [],
       "parte": "extra",
@@ -1792,7 +1802,7 @@
     {
       "id": "HJ1",
       "bloque": 13,
-      "orden": 163,
+      "orden": 164,
       "texto": "¿Te quedó algo que querías hacer con tu vida y al final no se dio? Contame el momento en que te diste cuenta de que ya no iba a pasar: dónde estabas y qué pasó ese día.",
       "depende": [],
       "parte": "nucleo",
@@ -1802,7 +1812,7 @@
     {
       "id": "GI4",
       "bloque": 13,
-      "orden": 164,
+      "orden": 165,
       "texto": "¿Te pasó de ser valiente y que nadie se enterara? No hace falta que sea algo grande, a veces es decir algo que costaba decir. Contame ese momento: dónde estabas y qué hiciste.",
       "depende": [],
       "parte": "extra",
@@ -1812,7 +1822,7 @@
     {
       "id": "GI9",
       "bloque": 13,
-      "orden": 165,
+      "orden": 166,
       "texto": "¿Hubo algún momento en tu vida en que te sentiste chiquit{{o/a}} frente a algo enorme? Un cielo de noche, por ejemplo. Contame ese momento: dónde estabas, con quién, qué había alrededor.",
       "depende": [],
       "parte": "nucleo",
@@ -1822,7 +1832,7 @@
     {
       "id": "HJ5",
       "bloque": 13,
-      "orden": 166,
+      "orden": 167,
       "texto": "Ya con tu propia vida armada, ¿cómo fue volver a la casa donde te criaste? Contame la vez que más te acordás, mirando todo con ojos de visita: cómo llegaste, qué encontraste distinto y qué te pasó por dentro.",
       "depende": [],
       "parte": "extra",
@@ -1832,7 +1842,7 @@
     {
       "id": "FI1",
       "bloque": 13,
-      "orden": 167,
+      "orden": 168,
       "texto": "¿Qué lugar tiene la soledad en tu vida? ¿Te hace bien tener momentos con vos mism{{o/a}}? Contame alguno que te acuerdes: dónde estabas y qué hacías.",
       "depende": [],
       "parte": "nucleo",
@@ -1842,7 +1852,7 @@
     {
       "id": "FI2",
       "bloque": 13,
-      "orden": 168,
+      "orden": 169,
       "texto": "¿Hubo un momento en que te diste cuenta, de golpe, de que el tiempo había pasado? Algo chiquito, alguien que te trató de usted, por ejemplo. Contame dónde estabas y qué pasó.",
       "depende": [],
       "parte": "nucleo",
@@ -1852,7 +1862,7 @@
     {
       "id": "FI3",
       "bloque": 13,
-      "orden": 169,
+      "orden": 170,
       "texto": "¿Qué cosa sentís que heredaste de tu familia en tu forma de ser? Un carácter, una manera de hacer las cosas. Contame una vez que te diste cuenta de que eso venía de ellos.",
       "depende": [],
       "parte": "nucleo",
@@ -1862,7 +1872,7 @@
     {
       "id": "FI4",
       "bloque": 13,
-      "orden": 170,
+      "orden": 171,
       "texto": "¿Te importa lo que los demás piensan de vos? ¿Te importó siempre igual? Contame una vez en que eso se notó.",
       "depende": [],
       "parte": "nucleo",
@@ -1872,18 +1882,8 @@
     {
       "id": "FI6",
       "bloque": 13,
-      "orden": 171,
-      "texto": "¿Cómo te imaginás el mundo dentro de cien años? Contame cómo lo ves, y qué te gustaría que no se pierda.",
-      "depende": [],
-      "parte": "nucleo",
-      "clase": "historia",
-      "sensible": false
-    },
-    {
-      "id": "FI7",
-      "bloque": 13,
       "orden": 172,
-      "texto": "¿Qué es la política para vos? ¿Hubo algún momento de tu vida en que te tocó de cerca? Contame cuál fue y qué pensás hoy.",
+      "texto": "¿Cómo te imaginás el mundo dentro de cien años? Contame cómo lo ves, y qué te gustaría que no se pierda.",
       "depende": [],
       "parte": "nucleo",
       "clase": "historia",
@@ -1980,19 +1980,9 @@
       "sensible": false
     },
     {
-      "id": "FU1",
-      "bloque": 14,
-      "orden": 182,
-      "texto": "¿Queda algo que todavía querés hacer? Contámelo como si ya estuviera pasando: dónde estás, con quién, qué ves.",
-      "depende": [],
-      "parte": "nucleo",
-      "clase": "historia",
-      "sensible": false
-    },
-    {
       "id": "HO9",
       "bloque": 14,
-      "orden": 183,
+      "orden": 182,
       "texto": "¿Cómo es el lugar donde vivís hoy, la casa, el barrio? Contame cómo llegaste ahí y un momento de estos días que lo pinte.",
       "depende": [],
       "parte": "nucleo",
@@ -2002,7 +1992,7 @@
     {
       "id": "HO10",
       "bloque": 14,
-      "orden": 184,
+      "orden": 183,
       "texto": "¿Algo te acompañó muchos años, el cigarrillo, el vino, el café de la mañana? Contame cómo empezó y un momento con eso. Y si en algún momento te costó dejarlo, contame eso también.",
       "depende": [],
       "parte": "extra",
@@ -2012,7 +2002,7 @@
     {
       "id": "G1",
       "bloque": 14,
-      "orden": 185,
+      "orden": 184,
       "texto": "¿Qué música ponés hoy cuando estás a tu aire? ¿Cuál fue la última canción que escuchaste, y qué estabas haciendo?",
       "depende": [],
       "parte": "extra",
@@ -2022,7 +2012,7 @@
     {
       "id": "G2",
       "bloque": 14,
-      "orden": 186,
+      "orden": 185,
       "texto": "¿Y lo que más te gusta comer, así, sin pensarlo mucho? Contame la última vez que lo comiste: quién lo hizo y dónde.",
       "depende": [],
       "parte": "extra",
@@ -2032,7 +2022,7 @@
     {
       "id": "G3",
       "bloque": 14,
-      "orden": 187,
+      "orden": 186,
       "texto": "¿Te gusta leer, o sos más de mirar películas o series? ¿Con qué te enganchás? Contame la última vez que se te pasó la hora con algo así.",
       "depende": [],
       "parte": "extra",
@@ -2042,7 +2032,7 @@
     {
       "id": "G4",
       "bloque": 14,
-      "orden": 188,
+      "orden": 187,
       "texto": "¿Cuál es tu placer chiquito de todos los días? Una siesta, un chocolate, lo que sea. Contame el de hoy: a qué hora fue y cómo estuvo.",
       "depende": [],
       "parte": "extra",
@@ -2052,7 +2042,7 @@
     {
       "id": "G5",
       "bloque": 14,
-      "orden": 189,
+      "orden": 188,
       "texto": "¿Y un gusto grande? ¿En qué te gusta darte el lujo de gastar tu plata? Contame la última vez que te diste ese gusto.",
       "depende": [],
       "parte": "extra",
@@ -2062,7 +2052,7 @@
     {
       "id": "CI14",
       "bloque": 14,
-      "orden": 190,
+      "orden": 189,
       "texto": "Con esto cerramos lo de hoy, {{nombre}}, y ya te conozco un poco más. ¿Quedó algo de tu vida de ahora que no tuvo su pregunta? Una costumbre, alguien que ves seguido, un rato del día que es tuyo. Contámelo ahora, tranquil{{o/a}}.",
       "depende": [],
       "parte": "nucleo",
@@ -2072,7 +2062,7 @@
     {
       "id": "LE1",
       "bloque": 15,
-      "orden": 191,
+      "orden": 190,
       "texto": "Mirando toda tu vida hasta hoy, ¿qué es lo que más orgullo te da? Puede ser algo grande o algo que nadie más notó. Contame qué fue y el momento en que te diste cuenta.",
       "depende": [],
       "parte": "nucleo",
@@ -2082,7 +2072,7 @@
     {
       "id": "LE2",
       "bloque": 15,
-      "orden": 192,
+      "orden": 191,
       "texto": "¿Qué aprendiste de la vida que te gustaría que tu familia sepa? Decímelo como un consejo, algo que vos mism{{o/a}} descifraste viviendo.",
       "depende": [],
       "parte": "nucleo",
@@ -2092,10 +2082,20 @@
     {
       "id": "LE6",
       "bloque": 15,
-      "orden": 193,
+      "orden": 192,
       "texto": "Cuando la gente que te quiere piensa en vos, ¿qué te gustaría que se le venga a la cabeza? Una frase tuya, una imagen, una escena.",
       "depende": [],
       "parte": "extra",
+      "clase": "historia",
+      "sensible": false
+    },
+    {
+      "id": "FU1",
+      "bloque": 15,
+      "orden": 193,
+      "texto": "¿Queda algo que todavía querés hacer? Contámelo como si ya estuviera pasando: dónde estás, con quién, qué ves.",
+      "depende": [],
+      "parte": "nucleo",
       "clase": "historia",
       "sensible": false
     },
@@ -2110,19 +2110,9 @@
       "sensible": false
     },
     {
-      "id": "LE8",
-      "bloque": 15,
-      "orden": 195,
-      "texto": "Ahora sí, hablale a tu familia, a los que van a leer este libro. Lo que les dirías y lo que les deseás si los tuvieras sentados enfrente, sin apuro, de a uno. Nadie te corre.",
-      "depende": [],
-      "parte": "nucleo",
-      "clase": "historia",
-      "sensible": false
-    },
-    {
       "id": "FO1",
       "bloque": 15,
-      "orden": 196,
+      "orden": 195,
       "texto": "Una última cosa, {{nombre}}. ¿Hay alguna foto, en el celular o en algún cajón de tu casa, que quieras que quede para siempre en este libro? Si la tenés a mano, sacale una foto y mandámela, y después contame en un audio qué se ve y quiénes están. Y si no encontrás ninguna, no pasa nada: el libro va igual.",
       "depende": [],
       "parte": "nucleo",
@@ -2132,8 +2122,18 @@
     {
       "id": "LE9",
       "bloque": 15,
-      "orden": 197,
+      "orden": 196,
       "texto": "Llegamos al final. ¿Hay algo que en todo este tiempo no te pregunté y querés que esté en el libro? Una persona, un lugar, una historia que te quedó dando vueltas.",
+      "depende": [],
+      "parte": "nucleo",
+      "clase": "historia",
+      "sensible": false
+    },
+    {
+      "id": "LE8",
+      "bloque": 15,
+      "orden": 197,
+      "texto": "Ahora sí, hablale a tu familia, a los que van a leer este libro. Lo que les dirías y lo que les deseás si los tuvieras sentados enfrente, sin apuro, de a uno. Nadie te corre.",
       "depende": [],
       "parte": "nucleo",
       "clase": "historia",
@@ -2168,62 +2168,62 @@
     },
     {
       "id": "M3.1",
-      "cuando": "Acuses, rotan",
+      "cuando": "Acuses, rotan. Van como primera línea del mensaje que sigue (Naza, 30/09)",
       "texto": "Gracias, {{nombre}}. Ya lo guardé."
     },
     {
       "id": "M3.2",
-      "cuando": "Acuses, rotan",
+      "cuando": "Acuses, rotan. Van como primera línea del mensaje que sigue (Naza, 30/09)",
       "texto": "Te escuché. Vamos con la que sigue."
     },
     {
       "id": "M3.3",
-      "cuando": "Acuses, rotan",
+      "cuando": "Acuses, rotan. Van como primera línea del mensaje que sigue (Naza, 30/09)",
       "texto": "Anotado. Sigo con otra."
     },
     {
       "id": "M3.4",
-      "cuando": "Acuses, rotan",
+      "cuando": "Acuses, rotan. Van como primera línea del mensaje que sigue (Naza, 30/09)",
       "texto": "Gracias por contármelo. Seguimos."
     },
     {
       "id": "M3.5",
-      "cuando": "Acuses, rotan",
+      "cuando": "Acuses, rotan. Van como primera línea del mensaje que sigue (Naza, 30/09)",
       "texto": "Guardado, {{nombre}}. Te mando la próxima."
     },
     {
       "id": "M3.6",
-      "cuando": "Acuses, rotan",
+      "cuando": "Acuses, rotan. Van como primera línea del mensaje que sigue (Naza, 30/09)",
       "texto": "Lo tengo. Vamos con otra."
     },
     {
       "id": "M3.7",
-      "cuando": "Acuses, rotan",
+      "cuando": "Acuses, rotan. Van como primera línea del mensaje que sigue (Naza, 30/09)",
       "texto": "Listo, quedó guardado. Sigo."
     },
     {
       "id": "M3.8",
-      "cuando": "Acuses, rotan",
+      "cuando": "Acuses, rotan. Van como primera línea del mensaje que sigue (Naza, 30/09)",
       "texto": "Escuchado. Vamos por la siguiente."
     },
     {
       "id": "M4.1",
-      "cuando": "Acuses sobrios, después de algo difícil (y en todo el bloque 11)",
+      "cuando": "Acuses sobrios, después de algo difícil (AM9, CA17, AD15, JU17, TR11 y todo el bloque 11). Van solos, en mensaje aparte",
       "texto": "Gracias por contarme esto, {{nombre}}. Queda guardado con cuidado."
     },
     {
       "id": "M4.2",
-      "cuando": "Acuses sobrios, después de algo difícil (y en todo el bloque 11)",
+      "cuando": "Acuses sobrios, después de algo difícil (AM9, CA17, AD15, JU17, TR11 y todo el bloque 11). Van solos, en mensaje aparte",
       "texto": "Te escuché. Gracias por confiármelo."
     },
     {
       "id": "M4.3",
-      "cuando": "Acuses sobrios, después de algo difícil (y en todo el bloque 11)",
+      "cuando": "Acuses sobrios, después de algo difícil (AM9, CA17, AD15, JU17, TR11 y todo el bloque 11). Van solos, en mensaje aparte",
       "texto": "Lo guardo tal como lo contaste. Gracias."
     },
     {
       "id": "M4.4",
-      "cuando": "Acuses sobrios, después de algo difícil (y en todo el bloque 11)",
+      "cuando": "Acuses sobrios, después de algo difícil (AM9, CA17, AD15, JU17, TR11 y todo el bloque 11). Van solos, en mensaje aparte",
       "texto": "Gracias por animarte a contarlo. Cuando quieras, seguimos."
     },
     {
@@ -2238,17 +2238,17 @@
     },
     {
       "id": "M10",
-      "cuando": "Fin de etapa (bloques 2 a 5), después del cierre",
+      "cuando": "**Sin uso desde el 30/09** (Naza): la frase de entrada del bloque siguiente hace de pasaje. Antes: fin de etapa (bloques 2 a 5), después del cierre",
       "texto": "Terminamos esta etapa, {{nombre}}. Pasamos a la siguiente."
     },
     {
       "id": "M15",
-      "cuando": "Pregunta de la familia (todas al final, antes de LE9)",
+      "cuando": "Pregunta de la familia (todas juntas, después de LE7 y antes de FO1)",
       "texto": "Esta pregunta te la hace tu familia."
     },
     {
       "id": "M21",
-      "cuando": "Después de \"paso\"",
+      "cuando": "Después de \"paso\". Va como primera línea del mensaje que sigue",
       "texto": "Dale, la salteamos. Vamos con otra."
     },
     {
@@ -2263,22 +2263,22 @@
     },
     {
       "id": "M24.1",
-      "cuando": "Después del cierre de un bloque que no es etapa (1 y 6 a 14), rotan",
+      "cuando": "Después del cierre de cualquier bloque (1 a 14), rotan. Van como primera línea del mensaje que sigue (la frase de entrada)",
       "texto": "Gracias, {{nombre}}. Eso también va al libro."
     },
     {
       "id": "M24.2",
-      "cuando": "Después del cierre de un bloque que no es etapa (1 y 6 a 14), rotan",
+      "cuando": "Después del cierre de cualquier bloque (1 a 14), rotan. Van como primera línea del mensaje que sigue (la frase de entrada)",
       "texto": "Anotado, gracias. Quedó guardado junto con el resto."
     },
     {
       "id": "M24.3",
-      "cuando": "Después del cierre de un bloque que no es etapa (1 y 6 a 14), rotan",
+      "cuando": "Después del cierre de cualquier bloque (1 a 14), rotan. Van como primera línea del mensaje que sigue (la frase de entrada)",
       "texto": "Bien, {{nombre}}. Lo sumo a lo que ya me contaste de eso."
     },
     {
       "id": "M24.4",
-      "cuando": "Después del cierre de un bloque que no es etapa (1 y 6 a 14), rotan",
+      "cuando": "Después del cierre de cualquier bloque (1 a 14), rotan. Van como primera línea del mensaje que sigue (la frase de entrada)",
       "texto": "Gracias por eso. Cada detalle que agregás suma."
     },
     {

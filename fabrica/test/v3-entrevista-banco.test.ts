@@ -104,9 +104,9 @@ describe('entrevista: el banco (md ↔ json)', () => {
     expect(b8.indexOf('HS1')).toBeLessThan(b8.indexOf('HI6'));
   });
 
-  it('sensibles: todo el bloque 11 y AM9, nada más', () => {
+  it('sensibles: el momento difícil de cada época, la plata ajustada, AM9 y todo el bloque 11 (Naza, 30/09, ronda 2)', () => {
     const sensibles = BANCO.filter((p) => p.sensible).map((p) => p.id);
-    expect(sensibles).toEqual(['AM9', ...BANCO.filter((p) => p.bloque === 11).map((p) => p.id)]);
+    expect(sensibles).toEqual(['CA17', 'AD15', 'JU17', 'AM9', 'TR11', ...BANCO.filter((p) => p.bloque === 11).map((p) => p.id)]);
   });
 
   it('parsea "Depende de" con si:, sino: y " o "', () => {
@@ -135,9 +135,11 @@ describe('entrevista: el banco contra el borrador aprobado', () => {
     for (const f of vivas) {
       const p = preguntaPorId(idNuevo(f.clave));
       expect(p, `${f.clave} → ${idNuevo(f.clave)}`).toBeDefined();
-      expect(p!.bloque, f.clave).toBe(f.bloque);
+      // FI7 y FU1 cambiaron de bloque en la ronda 2 del 30/09 (correcciones-lectura.md).
+      if (p!.id !== 'FI7' && p!.id !== 'FU1') expect(p!.bloque, f.clave).toBe(f.bloque);
       // CI14 se reescribió el 30/09 después de la lectura corrida (correcciones-lectura.md): ahora pregunta.
-      if (p!.id === 'CI14') continue;
+      // CI11 perdió su primera frase en la ronda 2.
+      if (p!.id === 'CI14' || p!.id === 'CI11') continue;
       expect(normalizar(p!.texto), f.clave).toBe(normalizar(f.texto));
     }
   });
