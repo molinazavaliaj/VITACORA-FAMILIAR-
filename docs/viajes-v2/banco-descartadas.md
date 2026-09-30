@@ -177,3 +177,8 @@ Columnas: **ID o nombre** · **Texto** (si lo hubo) · **Motivo** · **Dónde qu
 | Las de antes de salir que faltaron, al mediodía (propuesta de Claude, ronda 3) | — | El mediodía se contesta en diez segundos en la calle y estas piden una historia. | Van a la noche, una por noche. |
 | Mandar ya de viaje solo AS1 e IM1 (Fable, ronda 4) | — | Contra la regla de Naza: las de antes de salir nunca se saltean. | Van todas, en orden, una por noche. |
 | Vender solo el PDF con el impreso como agregado | — | Decisión de venta: el impreso se muestra como el producto y el PDF como la forma de empezar (para la web, Joaquín). | {{formato}} en BIEN-1 y BIEN-1R. |
+
+## Revisión de Fable del banco entero (30/09)
+- Versiones anteriores de UC1 ("Antes de cerrar la puerta… ahora mismo"), VU1 ("del viaje de ayer"), CA1 ("Ya volviste"), IM1 y VA1 con "Contame", las variantes "en camino" / "la valija está cerrada", ATR1-3 y ATR-V con pedido de fotos, y AL1 sin "Gracias". Motivo: mentían en casos borde (vuelo temprano o largo, variantes que llegan ya instalado) o repetían ("Contame" cuatro veces seguidas, dos pedidos de fotos en un mensaje). Texto completo en `historial/banco-2026-09-30-antes-de-la-revision-de-fable.md`.
+- B9 (DES "antes de mandarlo a hacer"): no entró. Sonaba a imprenta y le mentía a quien compra en PDF; queda "antes de que se cierre".
+- CA1 → ACA arriba de AL1 (decisión del compilado): reemplazado por el "Gracias" que AL1 trae adentro.
