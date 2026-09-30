@@ -8,6 +8,10 @@
 //
 // Guarda todo en audios-crudos/v3-web/<nombre>/ (en .gitignore: voces reales):
 // estado.json, audios/<NN>-<ID>.webm, transcripciones.jsonl y charla.md.
+// Desde la prueba de Naza (30/09): varios audios por pregunta (cada uno se
+// transcribe y se muestra; la respuesta sale con "Listo, siguiente
+// pregunta"), aviso si una transcripción parece cortada, el nombre con
+// mayúscula y reintentos solos si se cae la red (2, 5 y 10 segundos).
 // La transcripción es PAGA (OpenAI, unos centavos por minuto).
 // Guía: docs/v3/entrevista/prueba-web.md
 
@@ -16,7 +20,8 @@ import { createServer, type IncomingMessage, type RequestListener, type ServerRe
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { preguntaPorId } from '../src/v3/entrevista/banco.js';
-import { leerKeyOpenAI, taparKey, transcribirConOpenAI, type Transcribir } from '../src/v3/entrevista/transcribir.js';
+import { sumarAudio } from '../src/v3/entrevista/respuesta.js';
+import { esReintentable, leerKeyOpenAI, taparKey, transcribirConOpenAI, type Transcribir, type Transcripcion } from '../src/v3/entrevista/transcribir.js';
 import { charlaMd, nuevaEntrevista, responder, textoDeGlobo, tocarBoton, type EstadoSimulacion, type Globo } from './v3-entrevista-turno.js';
 
 const AQUI = dirname(fileURLToPath(import.meta.url));
@@ -38,16 +43,26 @@ export type Vista = {
   esperaFoto: boolean;
   terminada: boolean;
   minutosTranscriptos: number;
+  /** Los audios de la pregunta abierta que ya se transcribieron y esperan "Listo, siguiente pregunta" (en orden). */
+  pendientes: { texto: string; cortada: boolean }[];
+  /** Se cayó la red y el servidor está reintentando la transcripción. */
+  reintentando: boolean;
   /** Dónde queda la charla con IDs, para el equipo. */
   charla?: string;
 };
 
-/** La respuesta de un audio: se guarda en el globo del narrador para mostrarlo como audio. */
-type GloboPersonaWeb = Extract<Globo, { de: 'persona' }> & { audio?: string };
+/** La respuesta de uno o varios audios: se guardan en el globo del narrador para mostrarlo como audio (`audio`, de antes del 30/09: uno solo). */
+type GloboPersonaWeb = Extract<Globo, { de: 'persona' }> & { audio?: string; audios?: string[] };
 
-/** Los botones que tiene la pregunta que espera (ninguno si ya tocó "Sí" y ahora va el audio). */
-export function botonesAbiertos(e: EstadoSimulacion): string[] {
-  if (e.terminada || !e.esperando || e.tocoSi) return [];
+/** Un audio ya transcripto de la pregunta abierta, esperando "Listo, siguiente pregunta". */
+export type Pendiente = { archivo: string; texto: string };
+
+/** El estado de la página: el de la simulación más los audios pendientes. */
+export type EstadoWeb = EstadoSimulacion & { pendientes?: Pendiente[] };
+
+/** Los botones que tiene la pregunta que espera (ninguno si ya tocó "Sí" y ahora va el audio, o si ya mandó audios). */
+export function botonesAbiertos(e: EstadoWeb): string[] {
+  if (e.terminada || !e.esperando || e.tocoSi || (e.pendientes ?? []).length > 0) return [];
   return (preguntaPorId(e.esperando)?.botones ?? []).map((b) => b.texto);
 }
 
@@ -57,12 +72,36 @@ export function globosParaNarrador(e: EstadoSimulacion): GloboVista[] {
     if (g.de === 'persona') {
       const p = g as GloboPersonaWeb;
       if (p.boton !== undefined) return [{ de: 'narrador', texto: p.boton, boton: true }];
-      if (p.audio) return [{ de: 'narrador', texto: p.texto, audio: true }];
+      if (p.audio || p.audios) return [{ de: 'narrador', texto: p.texto, audio: true }];
       return [{ de: 'narrador', texto: p.texto }];
     }
     return [];
   });
 }
+
+/** "nazareno pérez" → "Nazareno Pérez": mayúscula al principio de cada palabra; el resto, como lo escribió. */
+export function capitalizarNombre(nombre: string): string {
+  return nombre
+    .trim()
+    .split(/\s+/)
+    .map((w) => w.charAt(0).toLocaleUpperCase('es') + w.slice(1))
+    .join(' ');
+}
+
+/**
+ * ¿La transcripción parece cortada? Termina en "..." o "…", o sin
+ * puntuación final (en una palabra a medias o en una coma). En la prueba de
+ * Naza tres audios terminaron a mitad de frase sin que nadie lo notara.
+ */
+export function pareceCortada(texto: string): boolean {
+  const t = texto.trim();
+  if (t === '') return false;
+  if (/(\.\.\.|…)$/.test(t)) return true;
+  return !/[.!?»"')\]]$/.test(t);
+}
+
+/** Lo que espera el servidor antes de cada reintento si se cae la red: 2, 5 y 10 segundos. */
+export const ESPERAS_REINTENTO = [2000, 5000, 10000];
 
 // ---------------------------------------------------------------- disco
 
@@ -105,6 +144,10 @@ export type OpcionesWeb = {
   /** Si viene, arranca con este narrador (y con `genero`, crea la entrevista si no hay). */
   nombre?: string;
   genero?: 'varon' | 'mujer';
+  /** Las esperas antes de cada reintento de la transcripción (por defecto 2, 5 y 10 s). */
+  esperas?: readonly number[];
+  /** Cómo se espera (los tests la reemplazan para no esperar de verdad). */
+  dormir?: (ms: number) => Promise<void>;
 };
 
 class ErrorHttp extends Error {
@@ -120,15 +163,18 @@ export function crearManejador(o: OpcionesWeb): RequestListener {
   mkdirSync(o.datos, { recursive: true });
   const rutaActual = join(o.datos, 'actual.txt');
 
-  let actual: { carpeta: string; estado: EstadoSimulacion } | undefined;
+  let actual: { carpeta: string; estado: EstadoWeb } | undefined;
+  let reintentando = false;
+  const esperas = o.esperas ?? ESPERAS_REINTENTO;
+  const dormir = o.dormir ?? ((ms: number) => new Promise<void>((ok) => setTimeout(ok, ms)));
   const dir = () => join(o.datos, actual!.carpeta);
 
   function cargar(carpeta: string): void {
     const ruta = join(o.datos, carpeta, 'estado.json');
-    actual = existsSync(ruta) ? { carpeta, estado: JSON.parse(readFileSync(ruta, 'utf8')) as EstadoSimulacion } : undefined;
+    actual = existsSync(ruta) ? { carpeta, estado: JSON.parse(readFileSync(ruta, 'utf8')) as EstadoWeb } : undefined;
   }
 
-  function guardar(estado: EstadoSimulacion): void {
+  function guardar(estado: EstadoWeb): void {
     actual!.estado = estado;
     const d = dir();
     mkdirSync(join(d, 'audios'), { recursive: true });
@@ -153,7 +199,7 @@ export function crearManejador(o: OpcionesWeb): RequestListener {
   }
 
   function vista(): Vista {
-    if (!actual) return { hay: false, globos: [], botones: [], esperaFoto: false, terminada: false, minutosTranscriptos: 0 };
+    if (!actual) return { hay: false, globos: [], botones: [], esperaFoto: false, terminada: false, minutosTranscriptos: 0, pendientes: [], reintentando };
     const e = actual.estado;
     return {
       hay: true,
@@ -163,6 +209,8 @@ export function crearManejador(o: OpcionesWeb): RequestListener {
       esperaFoto: !e.terminada && !!e.esperando && preguntaPorId(e.esperando)?.clase === 'foto',
       terminada: e.terminada,
       minutosTranscriptos: minutosTranscriptos(),
+      pendientes: (e.pendientes ?? []).map((x) => ({ texto: x.texto, cortada: pareceCortada(x.texto) })),
+      reintentando,
       charla: join(dir(), 'charla.md'),
     };
   }
@@ -182,20 +230,20 @@ export function crearManejador(o: OpcionesWeb): RequestListener {
       renameSync(ruta, destino);
       log(`La entrevista anterior quedó en ${destino}`);
     }
-    actual = { carpeta, estado: nuevaEntrevista({ nombre, genero }).estado };
+    actual = { carpeta, estado: nuevaEntrevista({ nombre: capitalizarNombre(nombre), genero }).estado };
     guardar(actual.estado);
     log(`Nueva entrevista: ${nombre} (${carpeta})`);
   }
 
-  function hayQueContestar(): EstadoSimulacion {
+  function hayQueContestar(): EstadoWeb {
     if (!actual) throw new ErrorHttp(409, 'Todavía no hay entrevista: empezá una.');
     if (actual.estado.terminada) throw new ErrorHttp(409, 'La entrevista ya terminó.');
     return actual.estado;
   }
 
   /** Corre el motor; sus errores (respuesta vacía, botón que no existe) son del que contesta: 400. */
-  function motor(f: () => { estado: EstadoSimulacion }): void {
-    let r: { estado: EstadoSimulacion };
+  function motor(f: () => { estado: EstadoWeb }): void {
+    let r: { estado: EstadoWeb };
     try {
       r = f();
     } catch (err) {
@@ -204,26 +252,62 @@ export function crearManejador(o: OpcionesWeb): RequestListener {
     guardar(r.estado);
   }
 
-  /** Transcribe un audio ya guardado y lo manda como respuesta. Si falla, el audio queda para reintentar. */
-  async function contestarConAudio(archivo: string, pregunta: string, tipo: string): Promise<string> {
+  /** Transcribe, y si se cae la red (sin conexión, OpenAI 5xx o 429) reintenta solo, con las esperas de `esperas`. */
+  async function transcribirConReintentos(audio: Buffer, info: Parameters<Transcribir>[1]): Promise<Transcripcion> {
+    for (let intento = 0; ; intento++) {
+      try {
+        return await o.transcribir(audio, info);
+      } catch (err) {
+        if (!esReintentable(err) || intento >= esperas.length) throw err;
+        log(`Sin conexión (${taparKey((err as Error).message)}): reintento ${intento + 1} de ${esperas.length} en ${esperas[intento] / 1000} s`);
+        reintentando = true;
+        try {
+          await dormir(esperas[intento]);
+        } finally {
+          reintentando = false;
+        }
+      }
+    }
+  }
+
+  /**
+   * Transcribe un audio ya guardado y lo deja pendiente en la pregunta
+   * abierta: la respuesta se manda con "Listo, siguiente pregunta" (prueba de
+   * Naza, 30/09). Si falla, el audio queda para reintentar.
+   */
+  async function transcribirAPendiente(archivo: string, pregunta: string, tipo: string): Promise<string> {
     const nombreArchivo = archivo.slice('audios/'.length);
     const audio = readFileSync(join(dir(), archivo));
-    let t;
+    let t: Transcripcion;
     try {
-      t = await o.transcribir(audio, { tipo, nombreArchivo, narrador: actual!.estado.ficha.nombre });
+      t = await transcribirConReintentos(audio, { tipo, nombreArchivo, narrador: actual!.estado.ficha.nombre });
     } catch (err) {
       throw new ErrorHttp(502, taparKey((err as Error).message), { reintentar: archivo });
     }
     appendFileSync(join(dir(), 'transcripciones.jsonl'), JSON.stringify({ archivo, pregunta, texto: t.texto, duracion: t.duracionSegundos, fecha: new Date().toISOString() }) + '\n', 'utf8');
     if (t.texto.trim() === '') throw new ErrorHttp(502, 'El audio llegó sin palabras (¿se grabó el silencio?). Probá de nuevo.', { reintentar: archivo });
-    motor(() => {
-      const r = responder(actual!.estado, t.texto);
-      const ultimo = r.estado.charla.findLast((g) => g.de === 'persona') as GloboPersonaWeb;
-      ultimo.audio = archivo;
-      return r;
-    });
-    log(`Audio ${archivo}: ${t.duracionSegundos ?? '?'} s transcriptos`);
+    const e = actual!.estado;
+    e.pendientes = [...(e.pendientes ?? []), { archivo, texto: t.texto.trim() }];
+    guardar(e);
+    log(`Audio ${archivo}: ${t.duracionSegundos ?? '?'} s transcriptos (${e.pendientes.length} en esta pregunta)`);
     return t.texto;
+  }
+
+  /** Manda la respuesta: los audios pendientes en orden (y el texto, si vino), juntos. */
+  function mandarRespuesta(texto?: string): void {
+    const e = actual!.estado;
+    const pendientes = e.pendientes ?? [];
+    const respuesta = [...pendientes.map((x) => x.texto), texto ?? ''].reduce((a, b) => sumarAudio(a, b), '');
+    motor(() => {
+      const r = responder(e, respuesta);
+      const estado = r.estado as EstadoWeb;
+      if (pendientes.length > 0) {
+        const globo = estado.charla.findLast((g) => g.de === 'persona') as GloboPersonaWeb;
+        globo.audios = pendientes.map((x) => x.archivo);
+      }
+      estado.pendientes = [];
+      return { estado };
+    });
   }
 
   // Arranque: el narrador de la línea de comandos, o el último que se usó.
@@ -250,13 +334,23 @@ export function crearManejador(o: OpcionesWeb): RequestListener {
     '/api/texto': (c) => {
       const { texto } = json(c);
       const e = hayQueContestar();
-      motor(() => responder(e, typeof texto === 'string' ? texto : ''));
+      // Si ya mandó audios en esta pregunta, el texto se suma al final y sale la respuesta entera.
+      if ((e.pendientes ?? []).length > 0) mandarRespuesta(typeof texto === 'string' ? texto : '');
+      else motor(() => responder(e, typeof texto === 'string' ? texto : ''));
       log(`Texto para ${e.esperando}`);
+      return {};
+    },
+    '/api/listo': () => {
+      const e = hayQueContestar();
+      if ((e.pendientes ?? []).length === 0) throw new ErrorHttp(400, 'Todavía no mandaste ningún audio para esta pregunta.');
+      log(`Listo: ${e.pendientes!.length} audio(s) para ${e.esperando}`);
+      mandarRespuesta();
       return {};
     },
     '/api/boton': (c) => {
       const { texto } = json(c);
       const e = hayQueContestar();
+      if ((e.pendientes ?? []).length > 0) throw new ErrorHttp(409, 'Ya mandaste audios para esta pregunta: tocá "Listo, siguiente pregunta".');
       motor(() => tocarBoton(e, String(texto ?? '')));
       log(`Botón "${texto}" en ${e.esperando}`);
       return {};
@@ -275,7 +369,7 @@ export function crearManejador(o: OpcionesWeb): RequestListener {
       do archivo = `audios/${String(nn++).padStart(2, '0')}-${pregunta}.${ext}`;
       while (existsSync(join(dir(), archivo))); // nunca se pisa un audio
       writeFileSync(join(dir(), archivo), c);
-      return { transcripcion: await contestarConAudio(archivo, pregunta, tipo) };
+      return { transcripcion: await transcribirAPendiente(archivo, pregunta, tipo) };
     },
     '/api/reintentar': async (c) => {
       const archivo = String(json(c).archivo ?? '');
@@ -283,7 +377,7 @@ export function crearManejador(o: OpcionesWeb): RequestListener {
       const m = /^audios\/\d+-([A-Za-z0-9.]+?)\.([a-z0-9]+)$/.exec(archivo);
       if (!m || !TIPOS[m[2]] || !existsSync(join(dir(), archivo))) throw new ErrorHttp(400, 'Ese audio no está.');
       if (m[1] !== e.esperando) throw new ErrorHttp(409, 'Ese audio era de otra pregunta.');
-      return { transcripcion: await contestarConAudio(archivo, m[1], TIPOS[m[2]]) };
+      return { transcripcion: await transcribirAPendiente(archivo, m[1], TIPOS[m[2]]) };
     },
   };
 

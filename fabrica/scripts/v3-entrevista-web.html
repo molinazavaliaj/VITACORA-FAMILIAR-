@@ -64,6 +64,8 @@
   :focus-visible { outline: 3px solid var(--foco); outline-offset: 2px; }
   .aviso { margin: 12px 0; padding: 10px 12px; border-radius: 10px; background: var(--papel); border: 1px solid var(--borde); font-size: 15px; }
   .aviso.error { border-color: var(--peligro); color: var(--peligro); }
+  .aviso.cortada { margin-left: auto; max-width: 85%; }
+  .yo.pendiente { opacity: .85; border: 1px dashed var(--acento); }
   .aviso code { overflow-wrap: anywhere; }
   footer.redactar { padding: 10px 16px 12px; border-top: 1px solid var(--borde); background: var(--fondo); display: flex; flex-direction: column; gap: 8px; }
   .fila { display: flex; gap: 8px; }
@@ -91,6 +93,7 @@
     <div id="error" class="aviso error oculto" role="alert"></div>
     <div id="estado" class="estado"></div>
     <div id="controles">
+      <button id="listo" class="principal grande oculto" type="button" style="margin-bottom:8px">Listo, siguiente pregunta</button>
       <div id="modoGrabar">
         <button id="grabar" class="principal grande" type="button">🎤 Grabar</button>
       </div>
@@ -117,6 +120,10 @@
   let vista = null;
   let ocupado = false;
   let reintentar = null;
+  // Al tocar Enviar la grabación sigue un segundo más: así no se corta la última palabra (prueba de Naza, 30/09).
+  const SEGUIR_GRABANDO_MS = 1000;
+  const SIN_CONEXION = 'Sin conexión, reintentando…';
+  const CORTADA = 'Parece que se cortó. ¿Querés mandar otro audio para completar?';
 
   const escapar = (s) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const conCursiva = (s) => escapar(s).replace(/(^|[\s(¿¡"])_([^_\n]+)_(?=$|[\s.,;:!?)"])/g, '$1<em>$2</em>');
@@ -183,6 +190,20 @@
       }
       chat.append(d);
     }
+    const pendientes = vista.pendientes || [];
+    for (const p of pendientes) {
+      const d = document.createElement('div');
+      d.className = 'globo yo pendiente';
+      d.innerHTML = `<span class="etiqueta">🎤 audio</span><span class="transcripcion">${escapar(p.texto)}</span>`;
+      chat.append(d);
+    }
+    if (pendientes.length && pendientes[pendientes.length - 1].cortada) {
+      const a = document.createElement('div');
+      a.className = 'aviso cortada';
+      a.textContent = CORTADA;
+      chat.append(a);
+    }
+    $('listo').classList.toggle('oculto', !pendientes.length || vista.terminada);
     if (vista.botones.length) {
       const caja = document.createElement('div');
       caja.className = 'botones';
@@ -216,6 +237,18 @@
     if (ocupado) return;
     limpiarError();
     setOcupado(true, texto);
+    // Mientras se transcribe, se mira si el servidor está reintentando porque se cayó la red.
+    let mirar = null;
+    if (ruta === '/api/audio' || ruta === '/api/reintentar') {
+      mirar = setInterval(async () => {
+        try {
+          const e = await (await fetch('/api/estado')).json();
+          $('estado').textContent = e.reintentando ? SIN_CONEXION : texto;
+        } catch (e) {
+          $('estado').textContent = SIN_CONEXION;
+        }
+      }, 1500);
+    }
     try {
       const r = await fetch(ruta, {
         method: 'POST',
@@ -238,9 +271,12 @@
     } catch (e) {
       mostrarError('No pude hablar con el servidor. ¿Sigue prendido en la terminal?');
     } finally {
+      if (mirar) clearInterval(mirar);
       setOcupado(false);
     }
   }
+
+  $('listo').onclick = () => mandar('/api/listo', {}, 'Mandando…');
 
   async function cargar() {
     try {
@@ -271,6 +307,8 @@
     $('modoGrabar').classList.toggle('oculto', si);
     $('modoGrabando').classList.toggle('oculto', !si);
     $('formTexto').classList.toggle('oculto', si);
+    if (si) $('listo').classList.add('oculto');
+    else $('listo').classList.toggle('oculto', !(vista && (vista.pendientes || []).length));
   }
 
   $('grabar').onclick = async () => {
@@ -292,6 +330,8 @@
     grabador.ondataavailable = (e) => { if (e.data.size) partes.push(e.data); };
     grabador.onstop = () => {
       stream.getTracks().forEach((tr) => tr.stop());
+      $('enviarAudio').disabled = false;
+      $('cancelar').disabled = false;
       clearInterval(reloj);
       modoGrabando(false);
       if (descartar) return;
@@ -309,7 +349,14 @@
     modoGrabando(true);
     $('enviarAudio').focus();
   };
-  $('enviarAudio').onclick = () => { if (grabador && grabador.state !== 'inactive') grabador.stop(); };
+  $('enviarAudio').onclick = () => {
+    if (!grabador || grabador.state === 'inactive') return;
+    $('enviarAudio').disabled = true;
+    $('cancelar').disabled = true;
+    $('tiempo').textContent = 'Enviando…';
+    clearInterval(reloj);
+    setTimeout(() => { if (grabador.state !== 'inactive') grabador.stop(); }, SEGUIR_GRABANDO_MS);
+  };
   $('cancelar').onclick = () => { descartar = true; if (grabador && grabador.state !== 'inactive') grabador.stop(); };
 
   // ---- empezar de cero

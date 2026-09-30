@@ -23,7 +23,7 @@ afterEach(async () => {
 
 /** Levanta el manejador en un puerto libre y devuelve la URL base. */
 async function levantar(opciones: Partial<OpcionesWeb> & { datos: string }): Promise<string> {
-  const s = createServer(crearManejador({ log: () => {}, transcribir: async () => ({ texto: 'no se usa', duracionSegundos: 1 }), ...opciones }));
+  const s = createServer(crearManejador({ log: () => {}, transcribir: async () => ({ texto: 'no se usa', duracionSegundos: 1 }), dormir: async () => {}, ...opciones }));
   servidores.push(s);
   await new Promise<void>((ok) => s.listen(0, '127.0.0.1', ok));
   return `http://127.0.0.1:${(s.address() as AddressInfo).port}`;
@@ -186,8 +186,12 @@ describe('audio', () => {
     expect(lineas).toHaveLength(1);
     expect(lineas[0]).toMatchObject({ archivo: 'audios/01-OR1.webm', pregunta: 'OR1', texto: 'Nací en Salto, en el 98.', duracion: 42 });
     expect(lineas[0].fecha).toMatch(/^\d{4}-\d\d-\d\dT/);
-    expect(json.globos.find((g) => g.de === 'narrador')).toMatchObject({ audio: true, texto: 'Nací en Salto, en el 98.' });
     expect(json.minutosTranscriptos).toBeCloseTo(0.7);
+    // Desde la prueba de Naza (30/09) el audio queda a la vista y la respuesta se manda con "Listo, siguiente pregunta".
+    expect(json.pendientes).toEqual([{ texto: 'Nací en Salto, en el 98.', cortada: false }]);
+    expect(JSON.parse(readFileSync(join(datos, 'naza', 'estado.json'), 'utf8')).esperando).toBe('OR1');
+    const listo = await post(base, '/api/listo', {});
+    expect(listo.json.globos.find((g) => g.de === 'narrador')).toMatchObject({ audio: true, texto: 'Nací en Salto, en el 98.' });
     expect(JSON.parse(readFileSync(join(datos, 'naza', 'estado.json'), 'utf8')).esperando).not.toBe('OR1');
   });
 
@@ -212,7 +216,7 @@ describe('audio', () => {
     falla = false;
     const otra = await post(base, '/api/reintentar', { archivo: json.reintentar });
     expect(otra.status).toBe(200);
-    expect(otra.json.globos.find((g) => g.de === 'narrador')).toMatchObject({ audio: true, texto: 'Ahora sí.' });
+    expect(otra.json.pendientes).toEqual([{ texto: 'Ahora sí.', cortada: false }]);
     // Un archivo que no es de esta carpeta no se acepta.
     expect((await post(base, '/api/reintentar', { archivo: '../../x.webm' })).status).toBe(400);
   });

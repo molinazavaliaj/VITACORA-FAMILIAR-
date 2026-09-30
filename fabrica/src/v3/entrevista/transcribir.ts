@@ -35,6 +35,30 @@ export type OpcionesTranscribir = {
   fetch?: typeof fetch;
 };
 
+/**
+ * Un error de la transcripción que dice si vale la pena reintentar: la red
+ * caída, o OpenAI con 5xx o 429 (a Naza se le cortó el wifi en la prueba,
+ * 30/09). Una key mala o un audio que no sirve (4xx) no se reintentan.
+ */
+export class ErrorTranscripcion extends Error {
+  constructor(
+    mensaje: string,
+    readonly reintentable: boolean,
+  ) {
+    super(mensaje);
+    this.name = 'ErrorTranscripcion';
+  }
+}
+
+/** Fallas de red de `fetch` en Node ("fetch failed", conexión cortada, sin DNS…). */
+const RED_CAIDA = /fetch failed|network|ECONNRESET|ECONNREFUSED|ETIMEDOUT|ENOTFOUND|EAI_AGAIN|socket/i;
+
+/** ¿Vale la pena reintentar? Lo marca `ErrorTranscripcion`; un TypeError de red de `fetch` también. */
+export function esReintentable(err: unknown): boolean {
+  if (err instanceof ErrorTranscripcion) return err.reintentable;
+  return err instanceof TypeError && RED_CAIDA.test(`${err.message} ${String((err as { cause?: unknown }).cause ?? '')}`);
+}
+
 export async function transcribirAudio(audio: Buffer, o: OpcionesTranscribir): Promise<Transcripcion> {
   const form = new FormData();
   form.append('file', new Blob([new Uint8Array(audio)], { type: o.tipo }), o.nombreArchivo);
@@ -42,11 +66,16 @@ export async function transcribirAudio(audio: Buffer, o: OpcionesTranscribir): P
   form.append('language', 'es');
   form.append('response_format', 'json');
   if (o.prompt) form.append('prompt', o.prompt);
-  const res = await (o.fetch ?? fetch)(URL_TRANSCRIPCION, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${o.key}` },
-    body: form,
-  });
+  let res: Response;
+  try {
+    res = await (o.fetch ?? fetch)(URL_TRANSCRIPCION, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${o.key}` },
+      body: form,
+    });
+  } catch (err) {
+    throw new ErrorTranscripcion(taparKey(`La transcripción no llegó a OpenAI (¿sin conexión?): ${(err as Error).message}`, o.key), esReintentable(err));
+  }
   const cuerpo = await res.text();
   if (!res.ok) {
     let mensaje = cuerpo;
@@ -55,7 +84,8 @@ export async function transcribirAudio(audio: Buffer, o: OpcionesTranscribir): P
     } catch {
       // no era JSON: va el texto tal cual (tapado)
     }
-    throw new Error(taparKey(`La transcripción falló (OpenAI ${res.status}): ${mensaje.slice(0, 500)}`, o.key));
+    const reintentable = res.status >= 500 || res.status === 429;
+    throw new ErrorTranscripcion(taparKey(`La transcripción falló (OpenAI ${res.status}): ${mensaje.slice(0, 500)}`, o.key), reintentable);
   }
   const json = JSON.parse(cuerpo) as { text?: string; duration?: number; usage?: { seconds?: number } };
   if (typeof json.text !== 'string') throw new Error('La transcripción no devolvió texto.');
@@ -92,7 +122,7 @@ export function transcribirConOpenAI(o: { key: () => string; fetch?: typeof fetc
       key = o.key();
       return await transcribirAudio(audio, { key, tipo: info.tipo, nombreArchivo: info.nombreArchivo, prompt: promptDeTranscripcion(info.narrador), fetch: o.fetch });
     } catch (err) {
-      throw new Error(taparKey((err as Error).message, key));
+      throw new ErrorTranscripcion(taparKey((err as Error).message, key), esReintentable(err));
     }
   };
 }
