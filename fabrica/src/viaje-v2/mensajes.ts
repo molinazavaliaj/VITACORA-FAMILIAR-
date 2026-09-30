@@ -9,11 +9,16 @@
 //   · ACA como primera línea de la siguiente de antes de salir. La rotación de
 //     ACA arranca por ACA2; ACA1 (con {{nombre}}) nunca arriba de AS2 ni de VA1 (A6).
 //   · ACN solo, después de la noche (común, de antes en el viaje, propia, FN1).
-//   · ACM solo, después del mediodía, de una foto suelta, de ID1 y de VU1.
-//     Después de UC1 y de VU0, solo ACM1 o ACM2: ese día no hay noche (A1).
+//   · ACM solo, después del mediodía, de una foto suelta, de ID1, VU1, UC1 y VU0.
+//     ACM3 y ACM4 dicen "Hasta la noche": solo van si de verdad queda una
+//     pregunta de noche ese día (`quedaNoche`, ver quedaNocheEseDia en
+//     calendario.ts). Sin el dato, se asume que no: ACM1 o ACM2 (A1 y revisión).
 //   · CA1 → AL1 solo: AL1 trae su "Gracias" adentro. "Paso" en CA1 → AL1-P (A3).
 //   · ATR solo arriba de la noche común (A2): ATR1-3 rotan; ATR-V con 2 o más seguidas.
 //   · "Paso": PAS-A + la siguiente sin acuse (A4); en VA1, PAS-A2 solo; en el viaje, PAS-V.
+//     Si la cadena se calló por la fecha (ya es el día de salida), nada que
+//     prometa: ni la siguiente ni PAS-A2 ("silencio hasta el día que te vas");
+//     va ACM1 o ACM2 solo, y lo que falta queda para las noches (revisión).
 //   · Texto en vez de audio: TXT en lugar del acuse, como mucho MAX_TXT veces;
 //     si escribió, nunca ACA2 ni ACN3 ("Lo escuché") (A5).
 //   · Audio que llegó mal (la señal viene de afuera): COR solo; la pregunta sigue abierta.
@@ -42,7 +47,7 @@ export type Rotacion = { ACN?: string; ACM?: string; ACA?: string; ATR?: string;
 
 export const ROTACION_INICIAL: Rotacion = { txtUsados: 0 };
 
-/** Después de UC1 y VU0: los que no dicen "Hasta la noche". */
+/** Los ACM que no dicen "Hasta la noche": los únicos si ese día no queda noche. */
 const ACM_SIN_NOCHE = ['ACM1', 'ACM2'];
 
 /**
@@ -91,7 +96,13 @@ export function arranque(compra: Compra): Mensaje {
   return juntar([parte(compra.regalo ? 'BIEN-1R' : 'BIEN-1', compra)]);
 }
 
-/** Con el SÍ: BIEN-2 y enseguida AS1 (dos mensajes). */
+/**
+ * Con el SÍ: BIEN-2 y enseguida AS1 (dos mensajes). AS1 sale SIEMPRE, aunque
+ * ya sea el día de salida: BIEN-2 termina en "Ahí va la primera". Así, si la
+ * compra es el mismo día que sale, ese día van BIEN-2, AS1 y UC1 (test en
+ * viaje-v2-revision). Lo que siga de la cadena ese día ya no sale
+ * (momentoDeLaSiguiente da null): queda para las noches.
+ */
 export function alDecirSi(compra: Compra): Mensaje[] {
   return [juntar([parte('BIEN-2', compra)]), juntar([parte('AS1', compra)])];
 }
@@ -139,8 +150,12 @@ export function preguntaProgramada(p: Programado, compra: Compra, nochesSinConte
 // ── Reacciones a lo que contesta ─────────────────────────────────────────────
 
 export type QueSeContesta =
-  | { tipo: 'cadena'; siguiente: IdAntes | null } // antes de salir; `siguiente` null si ya no hay (VA1) o la cadena se calló
-  | { tipo: TipoProgramado | 'foto-suelta' };
+  // Antes de salir. `siguiente`: la que sigue; 'fin' si no hay más (se contestó VA1);
+  // 'callada' si la cadena se calló por la fecha (el día de salida o después).
+  | { tipo: 'cadena'; siguiente: IdAntes | 'fin' | 'callada' }
+  // `quedaNoche`: si ese día queda una pregunta de noche más tarde (habilita
+  // ACM3/ACM4, "Hasta la noche"). Sin el dato, false.
+  | { tipo: TipoProgramado | 'foto-suelta'; quedaNoche?: boolean };
 
 export type Respuesta = { tipo: 'audio' | 'texto' | 'foto' | 'paso'; audioMal?: boolean };
 
@@ -169,12 +184,22 @@ export function reaccion(de: QueSeContesta, respuesta: Respuesta, compra: Compra
 
   if (de.tipo === 'cadena') {
     const sig = de.siguiente;
-    if (respuesta.tipo === 'paso') return listo([juntar(sig ? [parte('PAS-A', compra), parte(sig, compra)] : [parte('PAS-A2', compra)])], rot);
-    if (usaTxt) return listo([juntar(sig ? [parte('TXT', compra), parte(sig, compra)] : [parte('TXT', compra)])], conTxt);
-    if (!sig) {
+    const soloAcm = () => {
       const e = elegirRotando('ACM', rot, ACM_SIN_NOCHE);
       return listo([juntar([parte(e.id, compra)])], e.rot);
+    };
+    if (sig === 'callada') {
+      // Ya es el día de salida: no se promete nada (ni PAS-A2 ni la siguiente).
+      if (usaTxt) return listo([juntar([parte('TXT', compra)])], conTxt);
+      return soloAcm();
     }
+    if (sig === 'fin') {
+      if (respuesta.tipo === 'paso') return listo([juntar([parte('PAS-A2', compra)])], rot);
+      if (usaTxt) return listo([juntar([parte('TXT', compra)])], conTxt);
+      return soloAcm();
+    }
+    if (respuesta.tipo === 'paso') return listo([juntar([parte('PAS-A', compra), parte(sig, compra)])], rot);
+    if (usaTxt) return listo([juntar([parte('TXT', compra), parte(sig, compra)])], conTxt);
     let permitidos = sinLoEscuche(GRUPOS.ACA, 'ACA2');
     if (sig === 'AS2' || sig === 'VA1') permitidos = permitidos.filter((id) => id !== 'ACA1');
     const e = elegirRotando('ACA', rot, permitidos);
@@ -192,7 +217,7 @@ export function reaccion(de: QueSeContesta, respuesta: Respuesta, compra: Compra
 
   const e = DE_NOCHE.has(de.tipo)
     ? elegirRotando('ACN', rot, sinLoEscuche(GRUPOS.ACN, 'ACN3'))
-    : elegirRotando('ACM', rot, de.tipo === 'UC1' || de.tipo === 'VU0' ? ACM_SIN_NOCHE : undefined);
+    : elegirRotando('ACM', rot, de.quedaNoche ? undefined : ACM_SIN_NOCHE);
   return listo([juntar([parte(e.id, compra)])], e.rot);
 }
 

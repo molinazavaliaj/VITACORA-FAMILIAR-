@@ -107,7 +107,8 @@ export function pasoAlbum(estado: EstadoAlbum, evento: EventoAlbum, compra: Comp
       if (estado.fase !== 'juntando') return nada;
       if (estado.fotos === 0) return avisarNaza(estado);
       const al2: Mensaje = { ids: ['AL2'], texto: renderizar(porId('AL2').texto, datosDeCompra(compra)) };
-      const salio = new Date(estado.vence);
+      // AL2 sale ahora (cuando llega el reloj, aunque llegue tarde): el plazo nuevo corre desde acá.
+      const salio = evento.en;
       return {
         estado: { ...estado, fase: 'esperando-al2', al2Mandados: estado.al2Mandados + 1, vence: en5Horas(salio, compra) },
         salidas: [{ tipo: 'mensaje', mensaje: al2 }],

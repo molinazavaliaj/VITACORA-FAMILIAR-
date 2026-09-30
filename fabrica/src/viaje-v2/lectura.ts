@@ -7,7 +7,7 @@
 // vida de un narrador real.
 
 import { iniciarAlbum, pasoAlbum, type EventoAlbum } from './album.js';
-import { armarCalendario, momentoDeLaSiguiente, momentoRecordatorio, pendientesAntes, siguienteDeLaCadena, type IdAntes, type Programado } from './calendario.js';
+import { armarCalendario, quedaNocheEseDia, momentoDeLaSiguiente, momentoRecordatorio, pendientesAntes, siguienteDeLaCadena, type IdAntes, type Programado } from './calendario.js';
 import { anotarEnvio, anotarRespuesta, contestadasAntes, nochesSinContestar, nuevoEstado, type Estado } from './estado.js';
 import { aInstante, aLocal, diaDeSemana, diasEntre, nombreDeZona } from './horas.js';
 import { alDecirSi, arranque, preguntaProgramada, reaccion, recordatorioAntes, type QueSeContesta, type Respuesta } from './mensajes.js';
@@ -94,7 +94,7 @@ export function lecturaCorrida(compra: Compra = COMPRA_LECTURA): string {
     estado = anotarRespuesta(estado, c.id, { ...c.respuesta, en: t.toISOString() });
     const sig = siguienteDeLaCadena(c.id);
     const cuando = momentoDeLaSiguiente(t, compra);
-    const r = reaccion({ tipo: 'cadena', siguiente: cuando ? sig : null }, c.respuesta, compra, estado.rotacion);
+    const r = reaccion({ tipo: 'cadena', siguiente: !cuando ? 'callada' : (sig ?? 'fin') }, c.respuesta, compra, estado.rotacion);
     estado = { ...estado, rotacion: r.rot };
     for (const m of r.mensajes) vita(cuando ?? t, casa, m);
     if (sig && cuando) {
@@ -122,14 +122,14 @@ export function lecturaCorrida(compra: Compra = COMPRA_LECTURA): string {
     for (const g of GUION[p.clave] ?? []) estado = contestar(p, g, estado);
     if (p.tipo === 'CA1') estado = album(estado);
   }
-  if (cal.antesQueNoEntran.length) nota(lineas[lineas.length - 1].instante, casa, `No entraron: ${cal.antesQueNoEntran.join(', ')}`);
-  if (cal.propiasQueNoEntran.length) nota(lineas[lineas.length - 1].instante, casa, `Propias que no entraron: ${cal.propiasQueNoEntran.join(' · ')}`);
+  for (const aviso of cal.avisosNaza) nota(cal.programados[0].instante, casa, `Aviso a Naza: ${aviso}`);
 
   function contestar(p: Programado, g: Guion, e: Estado): Estado {
     const t = en(p.fecha, g.hora, p.zona);
     persona(t, p.zona, g.fotos ? `${g.dice} + ${g.fotos === 1 ? 'una foto' : `${g.fotos} fotos`}` : g.dice);
     const suelta = g.dice.startsWith('foto suelta');
-    const de: QueSeContesta = suelta ? { tipo: 'foto-suelta' } : { tipo: p.tipo };
+    const quedaNoche = quedaNocheEseDia(cal.programados, t);
+    const de: QueSeContesta = suelta ? { tipo: 'foto-suelta', quedaNoche } : { tipo: p.tipo, quedaNoche };
     const r = reaccion(de, g.respuesta, compra, e.rotacion);
     let e2: Estado = { ...e, rotacion: r.rot, fotosSueltas: e.fotosSueltas + (suelta ? 1 : 0) + (g.fotos ?? 0) };
     if (!suelta) e2 = anotarRespuesta(e2, p.clave, { ...g.respuesta, en: t.toISOString() });

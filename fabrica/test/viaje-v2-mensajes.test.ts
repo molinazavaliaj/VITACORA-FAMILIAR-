@@ -150,7 +150,7 @@ describe('viaje v2: reacciones (acuses y casos)', () => {
   });
 
   it('la última de antes (VA1) no tiene siguiente: acuse neutro solo (ACM1 o ACM2)', () => {
-    const r = reaccion({ tipo: 'cadena', siguiente: null }, audio, COMPRA, ROTACION_INICIAL);
+    const r = reaccion({ tipo: 'cadena', siguiente: 'fin' }, audio, COMPRA, ROTACION_INICIAL);
     expect(r.mensajes).toHaveLength(1);
     expect(['ACM1', 'ACM2']).toContain(r.mensajes[0].ids[0]);
   });
@@ -162,7 +162,7 @@ describe('viaje v2: reacciones (acuses y casos)', () => {
   });
 
   it('"paso" en VA1 (la última de antes): PAS-A2 solo', () => {
-    const r = reaccion({ tipo: 'cadena', siguiente: null }, { tipo: 'paso' }, COMPRA, ROTACION_INICIAL);
+    const r = reaccion({ tipo: 'cadena', siguiente: 'fin' }, { tipo: 'paso' }, COMPRA, ROTACION_INICIAL);
     expect(r.mensajes).toEqual([{ ids: ['PAS-A2'], texto: t('PAS-A2') }]);
   });
 
@@ -190,10 +190,10 @@ describe('viaje v2: reacciones (acuses y casos)', () => {
     }
   });
 
-  it('ID1 y VU1 → ACM (cualquiera); FN1, propia y la de antes en el viaje → ACN', () => {
+  it('ID1 y VU1 → ACM (cualquiera, si queda noche); FN1, propia y la de antes en el viaje → ACN', () => {
     const rot = { ...ROTACION_INICIAL, ACM: 'ACM2' };
-    expect(reaccion({ tipo: 'ID1' }, audio, COMPRA, rot).mensajes[0].ids).toEqual(['ACM3']);
-    expect(reaccion({ tipo: 'VU1' }, audio, COMPRA, rot).mensajes[0].ids).toEqual(['ACM3']);
+    expect(reaccion({ tipo: 'ID1', quedaNoche: true }, audio, COMPRA, rot).mensajes[0].ids).toEqual(['ACM3']);
+    expect(reaccion({ tipo: 'VU1', quedaNoche: true }, audio, COMPRA, rot).mensajes[0].ids).toEqual(['ACM3']);
     for (const tipo of ['FN1', 'propia', 'antes-en-viaje'] as const) {
       expect(reaccion({ tipo }, audio, COMPRA, ROTACION_INICIAL).mensajes[0].ids).toEqual(['ACN1']);
     }

@@ -53,6 +53,14 @@ export function contestado(envio: Envio): boolean {
   return envio.respuestas.some((r) => !r.audioMal);
 }
 
+/**
+ * Intentó contestar: cualquier respuesta, aunque sea un audio que llegó mal.
+ * Para el ATR alcanza con el intento: no es una noche "sin contestar".
+ */
+export function intento(envio: Envio): boolean {
+  return envio.respuestas.length > 0;
+}
+
 /** Las noches del viaje: las que cuentan para el ATR. CA1 no (ya volvió). */
 const NOCHES_DEL_VIAJE: ReadonlySet<string> = new Set(['noche', 'antes-en-viaje', 'propia', 'FN1']);
 
@@ -61,13 +69,13 @@ export function nochesSinContestar(e: Estado): number {
   let n = 0;
   for (const envio of [...e.envios].reverse()) {
     if (!NOCHES_DEL_VIAJE.has(envio.tipo)) continue;
-    if (contestado(envio)) break;
+    if (intento(envio)) break;
     n++;
   }
   return n;
 }
 
-/** Las de la cadena de antes de salir que contestó (o pasó). */
+/** Las de la cadena de antes de salir que contestó (o pasó). Un audio que llegó mal solo no alcanza: sigue pendiente. */
 export function contestadasAntes(e: Estado): Set<string> {
   return new Set(e.envios.filter((x) => x.tipo === 'cadena' && contestado(x)).map((x) => x.clave));
 }

@@ -20,11 +20,13 @@ describe('viaje v2: estado', () => {
     expect(nochesSinContestar(conNoches([false, true]))).toBe(0);
   });
 
-  it('"paso" cuenta como contestada; un audio que llegó mal, no', () => {
-    let e = conNoches([false]);
-    e = anotarRespuesta(e, 'D1-noche', { tipo: 'audio', en: T, audioMal: true });
-    expect(nochesSinContestar(e)).toBe(1);
-    e = anotarRespuesta(e, 'D1-noche', { tipo: 'paso', en: T });
+  it('"paso" cuenta como contestada', () => {
+    const e = anotarRespuesta(conNoches([false]), 'D1-noche', { tipo: 'paso', en: T });
+    expect(nochesSinContestar(e)).toBe(0);
+  });
+
+  it('un audio que llegó mal es un intento: para el ATR no cuenta como noche sin contestar (revisión)', () => {
+    const e = anotarRespuesta(conNoches([false]), 'D1-noche', { tipo: 'audio', en: T, audioMal: true });
     expect(nochesSinContestar(e)).toBe(0);
   });
 

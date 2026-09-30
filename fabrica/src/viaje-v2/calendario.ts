@@ -16,6 +16,11 @@
 // Lo que depende de lo que pase en el chat (la cadena de antes de salir, REC1,
 // AL1, el álbum) no está en este calendario: son funciones sueltas de abajo o
 // de album.ts.
+//
+// armarCalendario NO filtra lo que ya pasó: devuelve el viaje entero, aunque
+// la compra sea el mismo día de salida después de las 10:00 (UC1 queda en el
+// pasado). Descartar o decidir qué hacer con lo vencido le toca al
+// planificador que conecte esto con WhatsApp (Joaquín).
 
 import { deMomento } from './banco.js';
 import { aInstante, aLocal, diasEntre, esFecha, esHora, respetarFranja, sumarDias, zonaValida } from './horas.js';
@@ -81,6 +86,11 @@ export type Programado = {
 };
 
 export type Calendario = {
+  /**
+   * Textos cortos para avisarle a Naza (nunca a la persona): lo que no entró.
+   * El planificador decide cómo mandarlos.
+   */
+  avisosNaza: string[];
   programados: Programado[];
   /** Las de antes de salir que no entraron en ninguna noche (viaje muy corto). No se pierden en silencio. */
   antesQueNoEntran: IdAntes[];
@@ -103,6 +113,22 @@ export function validarCompra(compra: Compra): void {
   }
   if (compra.formato !== 'impreso' && compra.formato !== 'pdf') throw new Error(`Formato desconocido "${compra.formato}"`);
   if (compra.fotosAlbum !== 20 && compra.fotosAlbum !== 40) throw new Error(`Álbum de ${compra.fotosAlbum} fotos: va 20 o 40`);
+}
+
+/**
+ * Comienzo, puerta y cierre de la noche común número i (desde 0). Rotan por
+ * separado: la puerta avanza de a una (ciclo de 9); el comienzo avanza de a
+ * uno y además se corre uno cada vuelta de puertas (cada 9 noches), así la
+ * noche 10 no repite comienzo+puerta de la 1; el cierre avanza de a uno, se
+ * corre uno cada 3 noches y se atrasa uno cada 27. Resultado: en las primeras
+ * 9 noches salen las 9 de comienzo+cierre, en 27 las 27 de comienzo+puerta, y
+ * en 81 las 81 combinaciones sin repetir; nunca el mismo comienzo ni el mismo
+ * cierre dos noches seguidas.
+ */
+export function combinacionDeNoche(i: number): [string, string, string] {
+  const c = (i + Math.floor(i / 9)) % 3;
+  const f = (((i + Math.floor(i / 3) - Math.floor(i / 27)) % 3) + 3) % 3;
+  return [COMIENZOS[c], ORDEN_PUERTAS[i % ORDEN_PUERTAS.length], CIERRES[f]];
 }
 
 /** La MD número k (desde 0): la primera vuelta es la tabla entera; después, solo SEGUNDA_VUELTA_MD. */
@@ -139,8 +165,7 @@ export function armarCalendario(compra: Compra, pendientesAntes: readonly IdAnte
   for (const d of diasComunes) {
     if (noches.has(d)) continue;
     const i = comun++;
-    // Comienzo y cierre rotan por separado: el cierre se corre uno cada 3 noches, así salen las 9 combinaciones.
-    noches.set(d, { tipo: 'noche', ids: [COMIENZOS[i % 3], ORDEN_PUERTAS[i % ORDEN_PUERTAS.length], CIERRES[(i + Math.floor(i / 3)) % 3]] });
+    noches.set(d, { tipo: 'noche', ids: combinacionDeNoche(i) });
   }
 
   const primeraMd = deMomento('mediodia').map((f) => f.id);
@@ -181,11 +206,24 @@ export function armarCalendario(compra: Compra, pendientesAntes: readonly IdAnte
     else agregar(d, 'noche', noche.tipo, noche.ids, compra.zonaViaje, horaNoche, noche.pregunta);
   }
 
-  return {
-    programados,
-    antesQueNoEntran: pendientesAntes.slice(antesEntran.length),
-    propiasQueNoEntran: compra.preguntasPropias.slice(propiasEntran.length),
-  };
+  const antesQueNoEntran = pendientesAntes.slice(antesEntran.length);
+  const propiasQueNoEntran = compra.preguntasPropias.slice(propiasEntran.length);
+  const avisosNaza: string[] = [];
+  if (antesQueNoEntran.length) {
+    avisosNaza.push(`No entran en las noches del viaje ${antesQueNoEntran.length} de antes de salir: ${antesQueNoEntran.join(', ')}.`);
+  }
+  if (propiasQueNoEntran.length) {
+    avisosNaza.push(`No entran ${propiasQueNoEntran.length} preguntas propias: ${propiasQueNoEntran.map((p) => `«${p}»`).join(' ')}.`);
+  }
+  return { avisosNaza, programados, antesQueNoEntran, propiasQueNoEntran };
+}
+
+/**
+ * ¿Queda una pregunta de noche (noche del viaje o CA1) más tarde, el mismo día
+ * local que `t`? Para decidir si un acuse puede decir "Hasta la noche".
+ */
+export function quedaNocheEseDia(programados: readonly Programado[], t: Date): boolean {
+  return programados.some((p) => p.momento === 'noche' && p.instante.getTime() > t.getTime() && aLocal(t, p.zona).fecha === p.fecha);
 }
 
 // ── Antes de salir: la cadena ────────────────────────────────────────────────
