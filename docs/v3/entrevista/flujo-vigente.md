@@ -1,6 +1,6 @@
 # El flujo de la entrevista (vigente)
 
-Cómo funciona la entrevista de punta a punta. **Este es el documento vigente** desde el 30/09/2026, después de la lectura corrida; reemplaza a [`flujo-hoy.md`](flujo-hoy.md), que queda como historial.
+Cómo funciona la entrevista de punta a punta. **Este es el documento vigente** desde el 30/09/2026, después de la lectura corrida; reemplaza a [`historial/flujo-2026-09-30-antes-de-la-lectura.md`](historial/flujo-2026-09-30-antes-de-la-lectura.md), que queda como historial.
 
 - Los textos exactos: [`banco.md`](banco.md) (fuente de verdad; el código se genera desde ahí).
 - La entrevista completa de una vida inventada, mensaje por mensaje: [`lectura-corrida.md`](lectura-corrida.md).

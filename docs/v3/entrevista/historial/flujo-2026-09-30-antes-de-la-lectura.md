@@ -1,10 +1,10 @@
 # El flujo de la entrevista, hoy (30/09/2026)
 
-> **HISTORIAL — no vigente.** El flujo vigente está en [`flujo.md`](flujo.md) (30/09, después de la lectura corrida). Este archivo queda como estaba antes de esa lectura.
+> **HISTORIAL — no vigente.** El flujo vigente está en [`flujo-vigente.md`](../flujo-vigente.md) (30/09, después de la lectura corrida). Este archivo queda como estaba antes de esa lectura.
 
-> **Actualización 30/09, después de la lectura corrida:** los cierres de todos los bloques van siempre (CI1 a CI14, con M24 o M10 después), M1 va solo en las 3 primeras preguntas, en las 6 que abren tema y en el bloque 11, y después de LE9 va directo FIN. Además, cada bloque (menos el 1, el 6 y el 11) arranca con una frase de entrada (EN2 a EN15), y cambiaron los M24 y el CI14. Una vida completa: 89 preguntas, 105 turnos, 224 mensajes del biógrafo. Donde este documento diga otra cosa, manda [`correcciones-lectura.md`](correcciones-lectura.md).
+> **Actualización 30/09, después de la lectura corrida:** los cierres de todos los bloques van siempre (CI1 a CI14, con M24 o M10 después), M1 va solo en las 3 primeras preguntas, en las 6 que abren tema y en el bloque 11, y después de LE9 va directo FIN. Además, cada bloque (menos el 1, el 6 y el 11) arranca con una frase de entrada (EN2 a EN15), y cambiaron los M24 y el CI14. Una vida completa: 89 preguntas, 105 turnos, 224 mensajes del biógrafo. Donde este documento diga otra cosa, manda [`correcciones-lectura.md`](../correcciones-lectura.md).
 
-Cómo funciona la entrevista de punta a punta, con todo lo que decidió Naza el 29 y 30/09. Los textos exactos están en [`banco.md`](banco.md); el porqué de cada decisión, en [`../metodo-entrevista.md`](../metodo-entrevista.md). Lo que ya está programado vive en `fabrica/src/v3/entrevista/` (736 tests verdes); lo que falta conectar está al final.
+Cómo funciona la entrevista de punta a punta, con todo lo que decidió Naza el 29 y 30/09. Los textos exactos están en [`banco.md`](../banco.md); el porqué de cada decisión, en [`../metodo-entrevista.md`](../../metodo-entrevista.md). Lo que ya está programado vive en `fabrica/src/v3/entrevista/` (736 tests verdes); lo que falta conectar está al final.
 
 ## 1. Antes de empezar
 - **Compra.** Quien regala carga una ficha corta: nombre, cómo le dicen, género (para "chico/chica", "padre/madre"), si habla de vos o de tú, y su propio contacto (para el aviso M9). Si quiere, sube un **álbum de fotos**, que se puede completar hasta que se escribe el libro.
@@ -59,7 +59,7 @@ Algunas preguntas abren un tema y otras dependen de ellas:
 | 14 Hoy | un día de ahora, qué te hace reír, lo que más te gusta de tu vida, tu plato, lo que todavía querés hacer, el lugar donde vivís | — |
 | 15 Legado | orgullo, el consejo, el título, hablale a tu familia, **preguntas de la familia** (con "Esta pregunta te la hace tu familia"), la foto, lo que no te pregunté, mensaje final | — |
 
-Después del cierre de un bloque que no es etapa va una de las 4 frases M24 (desde el 30/09, más cortas: "Gracias, {{nombre}}. Eso también va al libro."; ver [`correcciones-lectura.md`](correcciones-lectura.md)). Una vida completa recibe **89 preguntas** (95 mensajes contando cierres, aviso y final); sin pareja ni hijos, 79.
+Después del cierre de un bloque que no es etapa va una de las 4 frases M24 (desde el 30/09, más cortas: "Gracias, {{nombre}}. Eso también va al libro."; ver [`correcciones-lectura.md`](../correcciones-lectura.md)). Una vida completa recibe **89 preguntas** (95 mensajes contando cierres, aviso y final); sin pareja ni hijos, 79.
 
 La **ronda extra** (89 preguntas más) está en el banco pero **por ahora no se ofrece** (`ofrecerExtra` en el código).
 

@@ -4,7 +4,10 @@ Carpeta del banco nuevo de la entrevista (30/09/2026).
 
 ## Qué hay acá
 
-- [`flujo.md`](flujo.md): **cómo funciona la entrevista, de punta a punta** (empezar por acá). Vigente desde el 30/09, después de la lectura corrida.
+Regla de nombres: lo que dice **vigente** es lo actual y no cambia de nombre; cuando algo se reemplaza, la versión vieja va a `historial/` con la fecha y el motivo en el nombre.
+
+
+- [`flujo-vigente.md`](flujo-vigente.md): **cómo funciona la entrevista, de punta a punta** (empezar por acá). Vigente desde el 30/09, después de la lectura corrida.
 - [`lectura-corrida.md`](lectura-corrida.md): la entrevista completa de una vida inventada, mensaje por mensaje, como llega por WhatsApp (se genera con `scripts/v3-entrevista-lectura.ts`).
 - [`correcciones-lectura.md`](correcciones-lectura.md): lo que Naza marcó al leerla, qué se decidió y los textos aprobados.
 - [`banco.md`](banco.md): **el banco vigente**, fuente de verdad. Arranque, mensajes fijos, los 15 bloques en orden de envío (con "Depende de", Parte, Clase y Sensible), las reglas del flujo, las dudas abiertas y la tabla de equivalencias de IDs.
@@ -14,7 +17,7 @@ Carpeta del banco nuevo de la entrevista (30/09/2026).
 - [`../metodo-entrevista.md`](../metodo-entrevista.md): el registro de decisiones (por qué cada pregunta es como es; lo que aprobó Naza, vuelta por vuelta).
 - [`../banco-final-borrador.md`](../banco-final-borrador.md): el compilado de trabajo del que salió `banco.md` (con las filas "sale" para rastreo).
 - [`../banco-descartadas.md`](../banco-descartadas.md): lo que salió del banco y por qué.
-- [`flujo-hoy.md`](flujo-hoy.md): el flujo de antes de la lectura corrida (historial).
+- [`historial/`](historial/): versiones viejas de los documentos de esta carpeta, con la fecha en el nombre. Hoy: [`flujo-2026-09-30-antes-de-la-lectura.md`](historial/flujo-2026-09-30-antes-de-la-lectura.md) (el flujo antes de la lectura corrida).
 - [`../banco-v3.md`](../banco-v3.md) y [`../diseno-v3.md`](../diseno-v3.md): historial anterior. **No están vigentes para la entrevista** (tamaños, gates por ficha, pausa, preguntas de datos); quedan como estaban y su código (`fabrica/src/v3/*.ts`) sigue andando.
 
 ## Código
