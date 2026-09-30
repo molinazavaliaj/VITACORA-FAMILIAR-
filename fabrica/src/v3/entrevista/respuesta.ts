@@ -128,11 +128,19 @@ export function topeNoCorto(p: PreguntaParaInterpretar): number {
 /** Hasta cuántas palabras vale "paso" como última palabra, o una frase de la lista (reglas 10 y 11). */
 const PALABRAS_PASO = 12;
 /** "Paso a contarte…", "paso por la casa…": ahí "paso" es un verbo, no un "paso" (regla 10). */
-const DESPUES_DE_PASO = new Set(['a', 'por', 'de', 'que']);
-/** Las frases que valen como paso (regla 11), sin tildes. */
-const FRASES_PASO = frases([
-  'siguiente', 'otra', 'mejor otra', 'salteala', 'esa no', 'eso no', 'de eso no', 'no quiero hablar de eso',
-  'prefiero no', 'mejor no', 'eso me lo guardo', 'me lo guardo', 'dejemoslo ahi',
+// Revisión del 30/09: "Paso el río en bote", "Paso la tarde…", "Paso mucho tiempo…" también son el verbo.
+const DESPUES_DE_PASO = new Set(['a', 'por', 'de', 'que', 'el', 'la', 'los', 'las', 'un', 'una', 'mucho', 'tiempo', 'todo']);
+/**
+ * Las frases que valen como paso (regla 11), sin tildes. Desde la revisión
+ * del 30/09 (Naza, decisión A: "otra" y "siguiente" valen solo si son casi
+ * toda la respuesta), estas valen solo si van solas: seguidas de un signo o
+ * del final ("Siguiente.", "Esa no.", "De eso no. Hay cosas…"). "Otra vez
+ * fuimos al río" o "Esa no era mi casa" cuentan algo.
+ */
+const FRASES_PASO_SOLAS = frases(['siguiente', 'otra', 'salteala', 'esa no', 'eso no', 'de eso no', 'prefiero no', 'mejor no']);
+/** Las negativas completas: valen como paso aunque sigan palabras ("Eso me lo guardo, ya fue"). */
+const FRASES_PASO_COMPLETAS = frases([
+  'no quiero hablar de eso', 'prefiero no hablar de eso', 'prefiero no contarlo', 'eso me lo guardo', 'me lo guardo', 'dejemoslo ahi', 'mejor otra',
 ]);
 /** Lo que se admite adelante de una frase de la lista ("Ahí prefiero no", "Esa mejor no"). */
 const ANTES_DE_FRASE = frases(['de eso', 'eso', 'esa', 'ahi', 'mejor']);
@@ -154,7 +162,11 @@ function esPasoDicho(f: string[], pal: string[]): boolean {
   if (f[0] === 'paso' && !DESPUES_DE_PASO.has(f[1])) return true; // f[1] puede ser un signo: "Paso. A mí…" es paso
   if (pal.length > PALABRAS_PASO) return false;
   if (pal.at(-1) === 'paso') return true;
-  return comienzos(f).some((i) => FRASES_PASO.some((frase) => hayFraseEn(f, i, frase)));
+  return comienzos(f).some(
+    (i) =>
+      FRASES_PASO_COMPLETAS.some((frase) => hayFraseEn(f, i, frase)) ||
+      FRASES_PASO_SOLAS.some((frase) => hayFraseEn(f, i, frase) && (f[i + frase.length] === undefined || f[i + frase.length] === CORTE)),
+  );
 }
 
 /** "Ya te lo conté" corto (regla 18). */
@@ -165,31 +177,63 @@ function esYaConto(pal: string[]): boolean {
   return pal.length <= PALABRAS_NO_CORTO && FRASES_YA_CONTO.some((x) => t.includes(` ${x} `));
 }
 
-/** Olvido (regla 15): hasta 40 palabras. */
-const PALABRAS_OLVIDO = 40;
+/**
+ * Olvido (regla 15), más angosto desde la revisión del 30/09: hasta 20
+ * palabras, sin "pero" ni "aunque" ("La memoria me falla pero mi abuela…"
+ * cuenta algo), y "no sé" no puede seguir con "si", "por (dónde)", "cómo",
+ * "qué"… ("No sé por dónde empezar. Mi hija nació…" cuenta algo).
+ */
+const PALABRAS_OLVIDO = 20;
 const ARRANQUES_OLVIDO = frases(['no me acuerdo', 'no recuerdo', 'no se', 'ni idea', 'no tengo idea']);
-const OLVIDO_ADENTRO = ['se me borro', 'la memoria', 'la cabeza'];
-/** En las primeras palabras (regla 15: "en las primeras 8"). */
+const DESPUES_DE_NO_SE = new Set(['si', 'por', 'como', 'que', 'cual', 'donde', 'cuando']);
+/** "Se me borró" vale solo; "la memoria" y "la cabeza", solo con que falla ("La memoria me falla", no "En la cabeza tenía la idea…"). */
+const SE_ME_BORRO = 'se me borro';
+const MEMORIA = ['la memoria', 'la cabeza'];
+const FALLA = ['me falla', 'me esta fallando', 'se me borro', 'no me da'];
+/** "Se me borró" cuenta en las primeras palabras (regla 15: "en las primeras 8"). */
 const PRIMERAS_OLVIDO = 8;
+const CONTRASTES = new Set(['pero', 'aunque']);
 
 function esOlvido(f: string[], pal: string[]): boolean {
-  if (pal.length > PALABRAS_OLVIDO) return false;
+  if (pal.length > PALABRAS_OLVIDO || pal.some((w) => CONTRASTES.has(w))) return false;
   // "No, no me acuerdo" también arranca con "no me acuerdo": el primer "no," es el mismo olvido dicho dos veces.
   const desde = f[0] === 'no' && f[1] === CORTE ? [0, 2] : [0];
-  if (desde.some((i) => ARRANQUES_OLVIDO.some((a) => hayFraseEn(f, i, a)))) return true;
-  const primeras = ` ${pal.slice(0, PRIMERAS_OLVIDO).join(' ')} `;
-  return OLVIDO_ADENTRO.some((x) => primeras.includes(` ${x} `));
+  const arranca = desde.some((i) =>
+    ARRANQUES_OLVIDO.some((a) => hayFraseEn(f, i, a) && !(a.join(' ') === 'no se' && DESPUES_DE_NO_SE.has(f[i + 2]))),
+  );
+  if (arranca) return true;
+  const todo = ` ${pal.join(' ')} `;
+  if (` ${pal.slice(0, PRIMERAS_OLVIDO).join(' ')} `.includes(` ${SE_ME_BORRO} `)) return true;
+  return MEMORIA.some((m) => todo.includes(` ${m} `)) && FALLA.some((x) => todo.includes(` ${x} `));
 }
 
 /** "No" corto (reglas 13 y 14). */
 const ARRANQUES_NO = new Set(['no', 'nunca', 'jamas', 'ninguno', 'ninguna', 'nada', 'tampoco']);
-/** Si aparecen al principio, el "no" viene seguido de algo que contar ("Nunca lo pensé, pero…"). */
-const CONTRASTES = new Set(['pero', 'aunque']);
+/** Arranques con "no" que en realidad cuentan algo (revisión del 30/09): "No sabés lo que fue…", "Nunca me voy a olvidar…", "No sé por dónde empezar…". */
+const ARRANQUES_QUE_CUENTAN = frases([
+  'nada que ver', 'nunca me voy a olvidar', 'nunca me olvido', 'nunca voy a olvidar', 'no sabes', 'no te imaginas', 'no me lo vas a creer', 'no se',
+]);
 /** Solo cuentan en las primeras 5 palabras (regla 14). */
 const PRIMERAS_CONTRASTE = 5;
 
-function esNoDicho(p: PreguntaParaInterpretar, pal: string[]): boolean {
+/**
+ * En HI0 ("¿Tuviste hijos, o criaste a alguno como si lo fuera?") un "no
+ * tuve hijos propios, criamos a Lucas" es un sí: la pregunta pide a los
+ * criados (revisión del 30/09).
+ */
+const HI0 = 'HI0';
+const CRIAR = /^cri(e|o|amos|aron|aste|ar|ado|ada|ados|adas|aba|abamos|aban)$/;
+const COMO_HIJO = ['como un hijo', 'como mi hijo', 'como una hija', 'como mi hija'];
+
+function crioAAlguien(pal: string[]): boolean {
+  const t = ` ${pal.join(' ')} `;
+  return pal.some((w) => w === 'propios' || w === 'propias' || CRIAR.test(w)) || COMO_HIJO.some((x) => t.includes(` ${x} `));
+}
+
+function esNoDicho(p: PreguntaParaInterpretar, f: string[], pal: string[]): boolean {
   if (!ARRANQUES_NO.has(pal[0]) || pal.length > topeNoCorto(p)) return false;
+  if (ARRANQUES_QUE_CUENTAN.some((a) => hayFraseEn(f, 0, a))) return false;
+  if (p.id === HI0 && crioAAlguien(pal)) return false;
   // En los cierres "pero" no lo da vuelta: "No, pero ya está todo" sigue siendo que no.
   return p.clase === 'cierre' || !pal.slice(0, PRIMERAS_CONTRASTE).some((w) => CONTRASTES.has(w));
 }
@@ -199,9 +243,10 @@ function esNoDicho(p: PreguntaParaInterpretar, pal: string[]): boolean {
  *   - si tocó un botón, manda el botón, aunque después haya mandado audio
  *     (regla 6): "sí" → 'conto', "no" → 'no', "paso" → 'paso';
  *   - si no dijo nada (transcripción vacía, un emoji) → 'vacio';
- *   - paso (reglas 10 y 11), "ya te lo conté" (18), olvido (15) y "no" corto
- *     (13 y 14), en ese orden: "Paso, mejor no. Ya lo conté…" es paso, y
- *     "No me acuerdo" es olvido antes que "no";
+ *   - paso (reglas 10 y 11), olvido (15), "no" corto (13 y 14) y "ya te lo
+ *     conté" (18), en ese orden: "Paso, mejor no. Ya lo conté…" es paso,
+ *     "No me acuerdo" es olvido antes que "no", y "No tuve hijos, ya te lo
+ *     conté" es un "no" (revisión del 30/09: el "no" le gana);
  *   - si no, contó algo.
  */
 export function interpretar(pregunta: PreguntaParaInterpretar, respuesta: string): Interpretacion {
@@ -214,9 +259,9 @@ export function interpretar(pregunta: PreguntaParaInterpretar, respuesta: string
   const pal = f.filter((w) => w !== CORTE);
   if (pal.length === 0) return 'vacio';
   if (esPasoDicho(f, pal)) return 'paso';
-  if (esYaConto(pal)) return 'ya-conto';
   if (esOlvido(f, pal)) return 'olvido';
-  if (esNoDicho(pregunta, pal)) return 'no';
+  if (esNoDicho(pregunta, f, pal)) return 'no';
+  if (esYaConto(pal)) return 'ya-conto';
   return 'conto';
 }
 

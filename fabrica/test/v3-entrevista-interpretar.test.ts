@@ -119,7 +119,7 @@ describe('paso (reglas 10 y 11)', () => {
 
   it.each([
     'Siguiente.', 'Otra.', 'Mejor otra.', 'Salteala.', 'Esa no.', 'Eso no. Mejor otra.', 'De eso no.', 'No quiero hablar de eso.',
-    'Prefiero no.', 'Mejor no.', 'Eso me lo guardo.', 'Me lo guardo.', 'Dejémoslo ahí.', 'Ahí prefiero no, disculpá.', 'Esa mejor no.', 'De eso mejor no hablemos.',
+    'Prefiero no.', 'Mejor no.', 'Eso me lo guardo.', 'Me lo guardo.', 'Dejémoslo ahí.', 'Ahí prefiero no, disculpá.', 'Esa mejor no.', 'De eso mejor no, disculpame.',
   ])('la frase "%s" es paso', (r) => {
     expect(que('PG1', r)).toBe('paso');
   });
@@ -140,7 +140,7 @@ describe('paso (reglas 10 y 11)', () => {
 });
 
 describe('"ya te lo conté" (regla 18)', () => {
-  it.each(['Ya te lo conté.', 'Eso ya te conté, lo del casamiento.', 'Ya lo conté antes.', 'Ya te lo dije, fue en el sesenta.', 'No, ya te lo conté.'])('"%s"', (r) => {
+  it.each(['Ya te lo conté.', 'Eso ya te conté, lo del casamiento.', 'Ya lo conté antes.', 'Ya te lo dije, fue en el sesenta.'])('"%s"', (r) => {
     expect(que('AM4', r)).toBe('ya-conto');
   });
 
@@ -155,7 +155,7 @@ describe('"ya te lo conté" (regla 18)', () => {
 });
 
 describe('olvido (reglas 15 y 16)', () => {
-  it.each(['No me acuerdo.', 'No recuerdo nada de eso.', 'No sé, la verdad.', 'Ni idea.', 'No tengo idea, era muy chica.', 'Uy, eso se me borró por completo.', 'La memoria ya no me da para tanto.', 'Ay, la cabeza mía, no sé.', 'No, no me acuerdo.'])(
+  it.each(['No me acuerdo.', 'No recuerdo nada de eso.', 'No sé, la verdad.', 'Ni idea.', 'No tengo idea, era muy chica.', 'Uy, eso se me borró por completo.', 'La memoria ya no me da para tanto.', 'Ay, la cabeza me está fallando.', 'No, no me acuerdo.'])(
     '"%s" es un olvido',
     (r) => {
       expect(que('ES2', r)).toBe('olvido');
@@ -214,6 +214,87 @@ describe('"no" corto (reglas 13 y 14)', () => {
   it('respondioNo y la variante «sino:X» miran la pregunta X del banco', () => {
     expect(respondioNo(new Map([['AM9', noDe(30)]]), 'AM9')).toBe(true);
     expect(respondioNo(new Map([['AM9', respuestaDeBoton('Seguimos juntos')]]), 'AM9')).toBe(true);
+  });
+});
+
+// Revisión del segundo agente (30/09): falsos positivos. El punto 1 lo decidió
+// Naza (A): una frase de la lista vale como paso solo si va sola (seguida de
+// un signo o del final) o si es una negativa completa.
+describe('revisión: frases de paso solo si van solas o son una negativa completa (Naza, A)', () => {
+  it.each([
+    'Otra vez fuimos al río con mi papá y mi hermano',
+    'Otra cosa que me acuerdo es el olor del pan',
+    'Siguiente a eso vino la mudanza',
+    'Esa no era mi casa, era la de mi tía Rosa',
+    'Mejor no ir solo, dijo mi mamá, y nos fuimos juntos',
+    'Prefiero no hablar mal de él pero era muy duro con nosotros',
+  ])('"%s" contó algo', (r) => {
+    expect(que('CA2', r)).toBe('conto');
+  });
+
+  it.each(['Siguiente.', 'Mejor otra.', 'De eso no.', 'Eso no. Mejor otra.', 'Eso me lo guardo, ya fue.', 'No quiero hablar de eso.', 'Prefiero no hablar de eso.', 'Prefiero no contarlo.', 'Eso no, mejor otra'])(
+    '"%s" sigue siendo paso',
+    (r) => {
+      expect(que('PG1', r)).toBe('paso');
+    },
+  );
+});
+
+describe('revisión: olvido más angosto', () => {
+  it.each([
+    'No sé por dónde empezar. Mi hija nació en el 85 en el hospital de Rosario y mi mamá me acompañó',
+    'No sé si te conté, pero el día que nació mi hijo llovía a cántaros',
+    'En la cabeza tenía la idea de irme',
+    'La memoria me falla pero mi abuela tenía una quinta enorme',
+  ])('"%s" contó algo (también en HI0, con tope 40)', (r) => {
+    expect(que('CA2', r)).toBe('conto');
+    expect(que('HI0', r)).toBe('conto');
+  });
+
+  it.each(['No me acuerdo.', 'No sé.', 'Ay, ni idea, querido.', 'No me acuerdo bien, pasó hace mucho.', 'Uy, eso no me acuerdo, la memoria me falla.'])('"%s" sigue siendo olvido', (r) => {
+    expect(que('ES2', r)).toBe('olvido');
+  });
+
+  it('hasta 20 palabras', () => {
+    expect(que('ES2', `No me acuerdo ${'uno '.repeat(17).trim()}`)).toBe('olvido'); // 20
+    expect(que('ES2', `No me acuerdo ${'uno '.repeat(18).trim()}`)).not.toBe('olvido'); // 21
+  });
+});
+
+describe('revisión: el "no" le gana a "ya te lo conté"', () => {
+  it('HI0 "No tuve hijos, ya te lo conté" es no: no llegan las de hijos', () => {
+    expect(que('HI0', 'No tuve hijos, ya te lo conté')).toBe('no');
+    expect(cumple(p('HI2'), new Map([['HI0', 'No tuve hijos, ya te lo conté']]))).toBe(false);
+  });
+
+  it('AM0 "Nunca me casé, ya te lo conté antes" es no', () => {
+    expect(que('AM0', 'Nunca me casé, ya te lo conté antes')).toBe('no');
+  });
+});
+
+describe('revisión: arranques con "no" que en realidad cuentan', () => {
+  it.each([
+    'Nada que ver con lo de antes: mi hermano se fue a vivir a Mendoza',
+    'Nunca me voy a olvidar de ese día en el campo',
+    'No sabés lo que fue ese día',
+    'No te imaginás cómo llovía',
+    'No me lo vas a creer, pero ganamos',
+  ])('"%s" contó algo', (r) => {
+    expect(que('CA6', r)).toBe('conto');
+  });
+
+  it('HI0: los criados cuentan como "sí" (HI0 los pide)', () => {
+    const lucas = 'No tuve hijos propios. Criamos a Lucas, el hijo de mi hermana, desde los dos años y es como mi hijo';
+    expect(que('HI0', lucas)).toBe('conto');
+    expect(cumple(p('HI2'), new Map([['HI0', lucas]]))).toBe(true);
+    expect(que('HI0', 'No, pero la crié a mi sobrina')).toBe('conto');
+    expect(que('HI0', 'No, no tuve.')).toBe('no');
+  });
+});
+
+describe('revisión: "paso" como verbo', () => {
+  it.each(['Paso el río en bote todos los días', 'Paso la tarde con mis nietos', 'Paso mucho tiempo en la huerta', 'Paso todo el día afuera', 'Paso un rato largo leyendo'])('"%s" contó algo', (r) => {
+    expect(que('CA2', r)).toBe('conto');
   });
 });
 
