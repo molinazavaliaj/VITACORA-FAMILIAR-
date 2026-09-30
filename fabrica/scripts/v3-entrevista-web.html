@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Entrevista de prueba</title>
+<style>
+  :root {
+    --fondo: #ece5dd;
+    --papel: #ffffff;
+    --mio: #d9f7c9;
+    --tinta: #1f2a24;
+    --suave: #5b6a62;
+    --acento: #1f7a55;
+    --acento-tinta: #ffffff;
+    --peligro: #a4262c;
+    --borde: #cfd8d2;
+    --foco: #0b57d0;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --fondo: #10171a; --papel: #1e2a2f; --mio: #1d4a3a; --tinta: #e8efe9; --suave: #9fb0a7;
+      --acento: #3fae82; --acento-tinta: #0b1410; --peligro: #ff8a8f; --borde: #2f3d42; --foco: #8ab4f8;
+    }
+  }
+  :root[data-theme="dark"] {
+    --fondo: #10171a; --papel: #1e2a2f; --mio: #1d4a3a; --tinta: #e8efe9; --suave: #9fb0a7;
+    --acento: #3fae82; --acento-tinta: #0b1410; --peligro: #ff8a8f; --borde: #2f3d42; --foco: #8ab4f8;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: #c9c2b8; color: var(--tinta);
+    font: 17px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) { body { background: #05090a; } }
+  .app {
+    max-width: 480px; margin: 0 auto; height: 100%;
+    display: flex; flex-direction: column; background: var(--fondo);
+  }
+  header {
+    background: var(--acento); color: var(--acento-tinta);
+    padding: 12px 16px; font-weight: 600;
+  }
+  header small { display: block; font-weight: 400; opacity: .85; font-size: 13px; }
+  main { flex: 1; overflow-y: auto; padding: 12px 16px; }
+  .globo {
+    max-width: 85%; padding: 8px 12px; margin: 6px 0; border-radius: 10px;
+    white-space: pre-wrap; overflow-wrap: anywhere; box-shadow: 0 1px 1px rgba(0,0,0,.12);
+  }
+  .bio { background: var(--papel); margin-right: auto; border-top-left-radius: 2px; }
+  .yo { background: var(--mio); margin-left: auto; border-top-right-radius: 2px; }
+  .yo .etiqueta { font-weight: 600; font-size: 15px; }
+  .yo .transcripcion { display: block; font-size: 14px; color: var(--suave); margin-top: 2px; }
+  .botones { display: flex; flex-direction: column; gap: 8px; margin: 10px 0 4px; max-width: 85%; }
+  button {
+    font: inherit; min-height: 44px; min-width: 44px; border-radius: 10px; cursor: pointer;
+    border: 1px solid var(--borde); background: var(--papel); color: var(--tinta); padding: 8px 14px;
+  }
+  button.principal { background: var(--acento); color: var(--acento-tinta); border-color: var(--acento); font-weight: 600; }
+  button.grande { min-height: 56px; font-size: 19px; width: 100%; }
+  button.opcion { color: var(--acento); font-weight: 600; text-align: left; }
+  button:disabled { opacity: .5; cursor: default; }
+  :focus-visible { outline: 3px solid var(--foco); outline-offset: 2px; }
+  .aviso { margin: 12px 0; padding: 10px 12px; border-radius: 10px; background: var(--papel); border: 1px solid var(--borde); font-size: 15px; }
+  .aviso.error { border-color: var(--peligro); color: var(--peligro); }
+  .aviso code { overflow-wrap: anywhere; }
+  footer.redactar { padding: 10px 16px 12px; border-top: 1px solid var(--borde); background: var(--fondo); display: flex; flex-direction: column; gap: 8px; }
+  .fila { display: flex; gap: 8px; }
+  .fila > * { flex: 1; }
+  textarea, input[type=text] {
+    font: inherit; width: 100%; min-height: 44px; padding: 10px 12px; border-radius: 10px;
+    border: 1px solid var(--borde); background: var(--papel); color: var(--tinta); resize: vertical;
+  }
+  .grabando { text-align: center; font-size: 18px; font-weight: 600; color: var(--peligro); }
+  .estado { text-align: center; color: var(--suave); font-size: 15px; min-height: 1.2em; }
+  .pie { font-size: 13px; color: var(--suave); display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .pie button { min-height: 44px; font-size: 13px; padding: 4px 10px; }
+  form.empezar { background: var(--papel); padding: 16px; border-radius: 12px; display: flex; flex-direction: column; gap: 12px; margin-top: 12px; }
+  fieldset { border: 0; padding: 0; margin: 0; display: flex; gap: 16px; }
+  label.radio { display: flex; align-items: center; gap: 6px; min-height: 44px; }
+  label.radio input { width: 22px; height: 22px; }
+  .oculto { display: none !important; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>Tu biógrafo <small id="subtitulo">Prueba local de la entrevista</small></header>
+  <main id="chat" aria-live="polite"></main>
+  <footer class="redactar" id="redactar">
+    <div id="error" class="aviso error oculto" role="alert"></div>
+    <div id="estado" class="estado"></div>
+    <div id="controles">
+      <div id="modoGrabar">
+        <button id="grabar" class="principal grande" type="button">🎤 Grabar</button>
+      </div>
+      <div id="modoGrabando" class="oculto">
+        <div class="grabando" id="tiempo">● 0:00</div>
+        <div class="fila">
+          <button id="cancelar" type="button">Cancelar</button>
+          <button id="enviarAudio" class="principal" type="button">Enviar</button>
+        </div>
+      </div>
+      <form id="formTexto" class="fila" style="margin-top:8px">
+        <label for="texto" class="oculto">Escribí tu respuesta</label>
+        <textarea id="texto" rows="1" placeholder="O escribí acá…" style="flex:3"></textarea>
+        <button class="principal" type="submit" style="flex:1">Enviar</button>
+      </form>
+    </div>
+    <div class="pie"><span id="minutos"></span><button id="otra" type="button">Empezar de cero</button></div>
+  </footer>
+</div>
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const chat = $('chat');
+  let vista = null;
+  let ocupado = false;
+  let reintentar = null;
+
+  const escapar = (s) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const conCursiva = (s) => escapar(s).replace(/(^|[\s(¿¡"])_([^_\n]+)_(?=$|[\s.,;:!?)"])/g, '$1<em>$2</em>');
+
+  function mostrarError(msg, archivo) {
+    reintentar = archivo || null;
+    const caja = $('error');
+    caja.innerHTML = '';
+    caja.append(document.createTextNode(msg));
+    if (reintentar) {
+      const b = document.createElement('button');
+      b.type = 'button'; b.textContent = 'Reintentar'; b.style.display = 'block'; b.style.marginTop = '8px';
+      b.onclick = () => mandar('/api/reintentar', { archivo: reintentar }, 'Transcribiendo…');
+      caja.append(b);
+    }
+    caja.classList.remove('oculto');
+  }
+  function limpiarError() { reintentar = null; $('error').classList.add('oculto'); }
+
+  function setOcupado(si, texto) {
+    ocupado = si;
+    $('estado').textContent = si ? texto : '';
+    document.querySelectorAll('button, textarea, input').forEach((el) => { el.disabled = si; });
+  }
+
+  function formularioInicio(forzar) {
+    const f = document.createElement('form');
+    f.className = 'empezar';
+    f.innerHTML = `
+      <strong>${forzar ? 'Empezar una entrevista nueva' : 'Empezar la entrevista'}</strong>
+      <label>Tu nombre<br><input type="text" name="nombre" required autocomplete="given-name"></label>
+      <fieldset><legend class="oculto">Género</legend>
+        <label class="radio"><input type="radio" name="genero" value="varon" checked> Varón</label>
+        <label class="radio"><input type="radio" name="genero" value="mujer"> Mujer</label>
+      </fieldset>
+      ${forzar ? '<p style="margin:0;font-size:14px">La entrevista anterior no se borra: queda guardada con la fecha.</p>' : ''}
+      <button class="principal grande" type="submit">Empezar</button>`;
+    f.onsubmit = (ev) => {
+      ev.preventDefault();
+      const d = new FormData(f);
+      mandar('/api/nueva', { nombre: d.get('nombre'), genero: d.get('genero'), forzar }, 'Arrancando…');
+    };
+    return f;
+  }
+
+  function pintar() {
+    chat.innerHTML = '';
+    const hay = vista && vista.hay;
+    $('redactar').classList.toggle('oculto', !hay);
+    $('subtitulo').textContent = hay ? `Entrevista de ${vista.nombre} · prueba local` : 'Prueba local de la entrevista';
+    if (!hay) {
+      chat.append(formularioInicio(false));
+      return;
+    }
+    for (const g of vista.globos) {
+      const d = document.createElement('div');
+      if (g.de === 'bio') {
+        d.className = 'globo bio';
+        d.innerHTML = conCursiva(g.texto);
+      } else {
+        d.className = 'globo yo';
+        if (g.audio) d.innerHTML = `<span class="etiqueta">🎤 audio</span><span class="transcripcion">${escapar(g.texto)}</span>`;
+        else d.textContent = g.texto;
+      }
+      chat.append(d);
+    }
+    if (vista.botones.length) {
+      const caja = document.createElement('div');
+      caja.className = 'botones';
+      for (const b of vista.botones) {
+        const btn = document.createElement('button');
+        btn.type = 'button'; btn.className = 'opcion'; btn.textContent = b;
+        btn.onclick = () => mandar('/api/boton', { texto: b }, 'Mandando…');
+        caja.append(btn);
+      }
+      chat.append(caja);
+    }
+    if (vista.esperaFoto) {
+      const a = document.createElement('div');
+      a.className = 'aviso';
+      a.textContent = 'Acá el biógrafo espera una foto. En esta prueba no se pueden mandar fotos: contala con audio o por escrito.';
+      chat.append(a);
+    }
+    if (vista.terminada) {
+      const a = document.createElement('div');
+      a.className = 'aviso';
+      a.innerHTML = `<strong>La entrevista terminó.</strong><br>La charla quedó en <code>${escapar(vista.charla || '')}</code>`;
+      chat.append(a);
+    }
+    $('controles').classList.toggle('oculto', vista.terminada);
+    const min = vista.minutosTranscriptos || 0;
+    $('minutos').textContent = `${String(min).replace('.', ',')} min transcriptos`;
+    chat.scrollTop = chat.scrollHeight;
+  }
+
+  async function mandar(ruta, cuerpo, texto, tipo) {
+    if (ocupado) return;
+    limpiarError();
+    setOcupado(true, texto);
+    try {
+      const r = await fetch(ruta, {
+        method: 'POST',
+        headers: { 'content-type': tipo || 'application/json' },
+        body: tipo ? cuerpo : JSON.stringify(cuerpo),
+      });
+      const j = await r.json();
+      if (!r.ok) {
+        mostrarError(j.error || `Algo falló (${r.status}).`, j.reintentar);
+        if (r.status === 409 && ruta === '/api/nueva' && j.enCurso && confirm(`${j.error}\n\n¿Empezar de cero igual?`)) {
+          setOcupado(false);
+          return mandar(ruta, { ...cuerpo, forzar: true }, texto);
+        }
+        await cargar();
+        return;
+      }
+      vista = j;
+      pintar();
+      if (ruta === '/api/texto') $('texto').value = '';
+    } catch (e) {
+      mostrarError('No pude hablar con el servidor. ¿Sigue prendido en la terminal?');
+    } finally {
+      setOcupado(false);
+    }
+  }
+
+  async function cargar() {
+    try {
+      vista = await (await fetch('/api/estado')).json();
+      pintar();
+    } catch (e) {
+      mostrarError('No pude hablar con el servidor. ¿Sigue prendido en la terminal?');
+    }
+  }
+
+  // ---- texto
+  $('formTexto').onsubmit = (ev) => {
+    ev.preventDefault();
+    const t = $('texto').value.trim();
+    if (!t) return;
+    mandar('/api/texto', { texto: t }, 'Mandando…');
+  };
+  $('texto').addEventListener('keydown', (ev) => {
+    if (ev.key === 'Enter' && !ev.shiftKey) { ev.preventDefault(); $('formTexto').requestSubmit(); }
+  });
+
+  // ---- audio
+  let grabador = null, partes = [], reloj = null, inicio = 0, descartar = false;
+  const tipoAudio = () => ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus', 'audio/mp4']
+    .find((t) => window.MediaRecorder && MediaRecorder.isTypeSupported(t)) || '';
+
+  function modoGrabando(si) {
+    $('modoGrabar').classList.toggle('oculto', si);
+    $('modoGrabando').classList.toggle('oculto', !si);
+    $('formTexto').classList.toggle('oculto', si);
+  }
+
+  $('grabar').onclick = async () => {
+    limpiarError();
+    if (!navigator.mediaDevices || !window.MediaRecorder) {
+      mostrarError('Este navegador no puede grabar. Probá con Chrome o Edge, o contestá por escrito.');
+      return;
+    }
+    let stream;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch (e) {
+      mostrarError('No pude usar el micrófono. Dale permiso desde el candado de la barra de direcciones y probá de nuevo, o contestá por escrito.');
+      return;
+    }
+    const t = tipoAudio();
+    grabador = new MediaRecorder(stream, t ? { mimeType: t } : undefined);
+    partes = []; descartar = false;
+    grabador.ondataavailable = (e) => { if (e.data.size) partes.push(e.data); };
+    grabador.onstop = () => {
+      stream.getTracks().forEach((tr) => tr.stop());
+      clearInterval(reloj);
+      modoGrabando(false);
+      if (descartar) return;
+      const tipo = (grabador.mimeType || t || 'audio/webm').split(';')[0];
+      const blob = new Blob(partes, { type: tipo });
+      mandar('/api/audio', blob, 'Transcribiendo…', tipo);
+    };
+    grabador.start();
+    inicio = Date.now();
+    $('tiempo').textContent = '● 0:00';
+    reloj = setInterval(() => {
+      const s = Math.floor((Date.now() - inicio) / 1000);
+      $('tiempo').textContent = `● ${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+    }, 500);
+    modoGrabando(true);
+    $('enviarAudio').focus();
+  };
+  $('enviarAudio').onclick = () => { if (grabador && grabador.state !== 'inactive') grabador.stop(); };
+  $('cancelar').onclick = () => { descartar = true; if (grabador && grabador.state !== 'inactive') grabador.stop(); };
+
+  // ---- empezar de cero
+  $('otra').onclick = () => {
+    if (!confirm('¿Empezar una entrevista nueva? La de ahora no se borra: queda guardada con la fecha.')) return;
+    chat.innerHTML = '';
+    chat.append(formularioInicio(true));
+    $('controles').classList.add('oculto');
+  };
+
+  cargar();
+})();
+</script>
+</body>
+</html>
