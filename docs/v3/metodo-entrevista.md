@@ -899,3 +899,14 @@ AM0 pasa a ser un repaso (idea de Naza) y pide empezar por la primera en serio. 
 - **CS3 ("en el amor"):** ¿Te acordás de la primera vez que conociste a la familia de un amor tuyo? Contame cómo fue: quién te abrió la puerta, cómo te recibieron y qué pensaste cuando te fuiste.
 
 **30/09: banco cerrado.** HS1 aprobada; CS3 sale. Siguiente paso, con OK de Naza: pasar a banco-v3.md + código + tests + revisión.
+
+## 26. Dudas del flujo y textos finales (30/09)
+Naza: "paso" en una pregunta que abre tema → sigue a otro tema (como está). La ronda extra va después del bloque 14 y antes del legado (como está). M1 no va debajo de los cierres (como está).
+Propuestas de Fable, a aprobar:
+- **Oferta de la ronda extra (C, elegida):** {{nombre}}, con lo que ya me contaste el libro está. Ahora te pregunto a vos: ¿te quedaron ganas de seguir? Si es que sí, damos otra vuelta por estas etapas con preguntas distintas. Si es que no, pasamos a la parte final y listo. Cualquiera de las dos deja tu historia entera. [Otra vuelta] [Ir al cierre]
+  - Si acepta: Dale, {{nombre}}. Seguimos entonces por el mismo camino, ahora con otras preguntas. De a una, como hasta ahora.
+  - Si no: Perfecto, {{nombre}}. Vamos al cierre, entonces. Ya tenemos todo lo que hace falta para tu libro.
+- **Duda del dashboard, la ficha dice que sí y contestó que no (A2):** Una duda chiquita sobre {{tema}}, {{nombre}}. En la ficha aparece y en la entrevista no salió. No hay nada que corregir si no querés: el libro se escribe con lo que vos contaste. Pero si hay algo que quieras sumar, o si la ficha está mal, acá podés decírmelo. [Lo dejo así] [Quiero contar algo] [Error de la ficha]
+- **Duda del dashboard, la ficha dice que no y contó algo (B1):** {{nombre}}, sobre {{tema}}: en la ficha no figuraba, pero en la entrevista lo nombraste. Quiero asegurarme de que en el libro quede como vos querés. Podemos dejarlo tal cual lo contaste, podés agregar algo, o si se coló por error, lo saco. [Dejalo como lo conté] [Quiero agregar algo] [Sacalo del libro]
+- **{{etapa}}:** bloque 2 "la casa de tus primeros años", 3 "la escuela y los juegos", 4 "la adolescencia", 5 "la juventud".
+- **Acuse después de un cierre de bloque (1 y 6-14), rotan:** Gracias, {{nombre}}. Con eso cerramos acá. Pasamos a otra cosa. / Anotado. Ya quedó guardado. Vamos con lo que sigue. / Bien, {{nombre}}. Eso queda ahí, bien guardado. Cambiamos de tema. / Gracias por eso. Damos vuelta la página y seguimos.
