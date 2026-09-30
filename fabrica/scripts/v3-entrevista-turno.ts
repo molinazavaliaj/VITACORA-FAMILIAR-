@@ -2,9 +2,8 @@
 // (docs/v3/entrevista/simulaciones/PLAN.md). Guarda el estado en un JSON;
 // cada llamada recibe la respuesta del narrador y devuelve los mensajes de
 // WhatsApp que siguen, exactamente como llegarían: usa el código real de
-// `src/v3/entrevista/` (`siguientePregunta`, `mensajesDespues`, `acuseRotado`,
-// `acuseAntesDe`, `acuseNeutro`, `entradaSegunAcuse`, `armarTurno`,
-// `renderizar`) y arma cada turno igual que `v3-entrevista-lectura.ts` (un
+// `src/v3/entrevista/` (`siguientePregunta`, `mensajesDespues`, `anotarAcuse`,
+// `acuseDeTurno`, `entradaSegunAcuse`, `armarTurno`, `renderizar`) y arma cada turno igual que `v3-entrevista-lectura.ts` (un
 // test lo compara mensaje por mensaje). Sin modelos ni API: nada pago.
 //
 //   npx tsx scripts/v3-entrevista-turno.ts nueva <estado.json> --nombre <Nombre> --genero <varon|mujer> [--familia "<pregunta>"]…
@@ -14,8 +13,8 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { mensajePorId, NOMBRES_BLOQUE, preguntaPorId } from '../src/v3/entrevista/banco.js';
-import { acuseRotado, mensajesDespues, siguientePregunta, type PreguntaFamilia } from '../src/v3/entrevista/flujo.js';
-import { acuseAntesDe, acuseNeutro, armarTurno, entradaSegunAcuse, type FamiliaAcuse } from '../src/v3/entrevista/mensajes.js';
+import { mensajesDespues, siguientePregunta, type PreguntaFamilia } from '../src/v3/entrevista/flujo.js';
+import { acuseDeTurno, anotarAcuse, armarTurno, entradaSegunAcuse, vueltasEnCero, type AcusePendiente, type Vueltas } from '../src/v3/entrevista/mensajes.js';
 import { renderizar, type FichaTexto } from '../src/v3/entrevista/texto.js';
 
 /** Una línea de un mensaje, con el ID de donde sale. */
@@ -26,8 +25,6 @@ export type Globo =
   | { de: 'persona'; pregunta: string; texto: string }
   | { de: 'bloque'; bloque: number; nombre: string };
 
-type AcusePendiente = { id: string; familia: FamiliaAcuse } | { familia: 'M25'; n: number };
-
 /** Todo lo que hace falta para seguir la charla en la próxima llamada. Se guarda como JSON. */
 export type EstadoSimulacion = {
   version: 1;
@@ -37,7 +34,7 @@ export type EstadoSimulacion = {
   respuestas: [string, string][];
   /** Lo que se mandó y no espera respuesta (AV11, FIN). */
   enviados: string[];
-  vueltas: { M3: number; M4: number; M24: number; M25: number };
+  vueltas: Vueltas;
   /** El acuse de la última respuesta: se arma con lo que se manda después. */
   acuse?: AcusePendiente;
   /** El ID de la pregunta que espera respuesta (del banco o de la familia). */
@@ -67,7 +64,7 @@ export function nuevaEntrevista(ficha: FichaTexto, familia: PreguntaFamilia[] = 
     familia,
     respuestas: [],
     enviados: [],
-    vueltas: { M3: 0, M4: 0, M24: 0, M25: 0 },
+    vueltas: vueltasEnCero(),
     bloqueActual: 0,
     terminada: false,
     charla: [],
@@ -88,6 +85,7 @@ export function responder(anterior: EstadoSimulacion, respuesta: string): Result
   const estado = clonar(anterior);
   const id = estado.esperando!;
   const desde = estado.charla.length;
+  const anteriores = new Map(estado.respuestas); // para M29 (tercer olvido seguido)
   estado.respuestas.push([id, r]);
   estado.charla.push({ de: 'persona', pregunta: id, texto: r });
   estado.esperando = undefined;
@@ -95,12 +93,10 @@ export function responder(anterior: EstadoSimulacion, respuesta: string): Result
   const p = preguntaPorId(id);
   if (!p) {
     // Pregunta de la familia: acuse común, como en la lectura corrida.
-    estado.acuse = { id: acuseRotado('M3', estado.vueltas.M3++), familia: 'M3' };
+    estado.acuse = anotarAcuse('M3', estado.vueltas);
   } else {
-    for (const fam of mensajesDespues(p, r)) {
-      if (fam === 'M25') estado.acuse = { familia: 'M25', n: estado.vueltas.M25++ };
-      else estado.acuse = { id: fam === 'M21' ? fam : acuseRotado(fam, estado.vueltas[fam]++), familia: fam };
-    }
+    estado.vueltas.M27 ??= 0; // estados de antes de las simulaciones
+    for (const fam of mensajesDespues(p, r, anteriores)) estado.acuse = anotarAcuse(fam, estado.vueltas);
   }
   avanzar(estado);
   return { estado, mensajes: mensajesDesde(estado, desde) };
@@ -121,7 +117,7 @@ function avanzar(e: EstadoSimulacion): void {
     const siguiente = t.entrada ? texto(t.entrada) : (textos[t.pregunta] ?? texto(t.pregunta));
     const quePregunta = preguntaPorId(t.pregunta) ?? { id: t.pregunta, clase: 'historia' as const };
     const a = e.acuse;
-    const idAcuse = a && ('n' in a ? acuseNeutro(a.n, siguiente) : acuseAntesDe(a.id, a.familia, quePregunta));
+    const idAcuse = a && acuseDeTurno(a.familia, a.n, siguiente, quePregunta);
     if (t.entrada) textos[t.entrada] = renderizar(entradaSegunAcuse(mensajePorId(t.entrada)!.texto, idAcuse && mensajePorId(idAcuse)?.texto), e.ficha);
     const porId = armarTurno({ acuse: idAcuse, familia: a?.familia, entrada: t.entrada, pregunta: t.pregunta, m1: t.conM1 ? 'M1' : undefined });
     for (const m of porId) e.charla.push({ de: 'bio', partes: m.split('\n').map((id) => ({ id, texto: textos[id] ?? texto(id) })) });

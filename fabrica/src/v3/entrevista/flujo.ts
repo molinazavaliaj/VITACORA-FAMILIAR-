@@ -193,27 +193,82 @@ export const SIN_ACUSE_ANTES_DEL_FINAL = 'LE8';
 export const SIN_ACUSE: readonly string[] = ['LE9', SIN_ACUSE_ANTES_DEL_FINAL];
 
 /**
- * Qué acuse va después de contestar (familias de mensajes; el entrevistador
- * rota M3, M4, M24 y M25): cierre de bloque → M24, o M25 (neutro) si se
- * contestó con un "no" corto o "paso"; "paso" → M21; sensible → M4; si no → M3. El aviso y el final no se contestan: nada. LE8 tampoco lleva
- * acuse: después va directo FIN. Desde el 30/09 (ronda 2) no va M10: la frase
- * de entrada del bloque siguiente hace de pasaje. Cómo se arma el mensaje
- * (pegado a lo que sigue o solo): `armarTurno` en mensajes.ts.
+ * Las familias de acuse. Rotan M3 (8), M4 (4), M24 (4), M25 (3) y M27 (3);
+ * M28 tiene uno solo en uso (M28.1: M28.2 y M28.3 en reserva); M21, M26 y
+ * M29 son uno.
  */
-export function mensajesDespues(pregunta: Pick<PreguntaEntrevista, 'id' | 'bloque' | 'clase' | 'sensible'>, respuesta: Respuesta): ('M3' | 'M4' | 'M21' | 'M24' | 'M25')[] {
+export type FamiliaAcuse = 'M3' | 'M4' | 'M21' | 'M24' | 'M25' | 'M26' | 'M27' | 'M28' | 'M29';
+
+/** Después de PG1 ("tus viejos de grande", a veces su muerte) el acuse es siempre "Gracias, {{nombre}}." (Naza, 30/09, simulaciones). */
+export const SIEMPRE_M26 = 'PG1';
+/** M29 va una sola vez, al tercer olvido seguido (regla 17). */
+export const OLVIDOS_PARA_M29 = 3;
+
+/** ¿Después de esta pregunta puede ir un acuse de olvido? (no en las que no llevan acuse ni en PG1, que lleva M26). */
+function llevaAcuseDeOlvido(id: string): boolean {
+  const p = preguntaPorId(id);
+  return (!p || esperaRespuesta(p)) && !SIN_ACUSE.includes(id) && id !== SIEMPRE_M26;
+}
+
+/**
+ * ¿Este olvido lleva M29? Solo el primero que llega con 3 o más olvidos
+ * seguidos y que lleva acuse; después de eso, nunca más en la entrevista
+ * (regla 17). Se recorren las respuestas anteriores en el orden en que
+ * llegaron (el Map conserva el orden de inserción).
+ */
+function esElOlvidoDeM29(pregunta: Pick<PreguntaEntrevista, 'id'>, anteriores: Respuestas): boolean {
+  let seguidos = 0;
+  let usado = false;
+  const toca = (id: string, r: Respuesta) => {
+    if (interpretar(preguntaDe(id), r) !== 'olvido') {
+      seguidos = 0;
+      return false;
+    }
+    seguidos++;
+    if (usado || seguidos < OLVIDOS_PARA_M29 || !llevaAcuseDeOlvido(id)) return false;
+    usado = true;
+    return true;
+  };
+  for (const [id, r] of anteriores) if (id !== pregunta.id) toca(id, r);
+  return !usado && seguidos + 1 >= OLVIDOS_PARA_M29;
+}
+
+/**
+ * Qué acuse va después de contestar (textos-finales.md, reglas 26 a 31;
+ * Naza, 30/09, simulaciones). El aviso y el final no se contestan: nada;
+ * después de LE9 y LE8, nada. Después de PG1, siempre M26. Si no, según lo
+ * que dijo (`interpretar`):
+ *   - "no" corto o botón de "No", y "ya te lo conté" → M25 (en todas);
+ *   - "paso" → M25 en un cierre, M27 en una sensible, M21 en una común;
+ *   - olvido → M28 (M28.1), o M29 al tercero seguido, una sola vez: para eso
+ *     hacen falta las respuestas anteriores, en orden (`anteriores`);
+ *   - contó algo (o tocó "Sí") → M24 en un cierre, M4 en una sensible, M3.
+ * Qué acuse de la familia va y si cambia por lo que sigue (M26 antes de un
+ * cierre, LE9 o una sensible): `acuseDeTurno` en mensajes.ts; cómo se arma
+ * el mensaje: `armarTurno`.
+ */
+export function mensajesDespues(
+  pregunta: Pick<PreguntaEntrevista, 'id' | 'bloque' | 'clase' | 'sensible'> & Pick<PreguntaParaInterpretar, 'botones'>,
+  respuesta: Respuesta,
+  anteriores: Respuestas = new Map(),
+): FamiliaAcuse[] {
   if (!esperaRespuesta(pregunta)) return [];
   if (SIN_ACUSE.includes(pregunta.id)) return [];
-  // Un cierre contestado con un "no" corto o "paso": acuse neutro, sin agradecer un contenido que no hubo (Naza, 30/09).
-  if (pregunta.clase === 'cierre') return esPaso(respuesta, pregunta) || esNoCorto(respuesta, pregunta) ? ['M25'] : ['M24'];
-  // Lo mismo con una sensible: "Gracias por confiármelo" no va después de un "no" o un "paso" (Naza, 30/09, ronda 3).
-  if (pregunta.sensible && (esPaso(respuesta, pregunta) || esNoCorto(respuesta, pregunta))) return ['M25'];
-  if (esPaso(respuesta, pregunta)) return ['M21'];
+  if (pregunta.id === SIEMPRE_M26) return ['M26'];
+  const dijo = interpretar(pregunta, respuesta);
+  if (dijo === 'no' || dijo === 'ya-conto') return ['M25'];
+  if (dijo === 'paso') return [pregunta.clase === 'cierre' ? 'M25' : pregunta.sensible ? 'M27' : 'M21'];
+  if (dijo === 'olvido') return [esElOlvidoDeM29(pregunta, anteriores) ? 'M29' : 'M28'];
+  if (pregunta.clase === 'cierre') return ['M24'];
   return [pregunta.sensible ? 'M4' : 'M3'];
 }
 
-/** El acuse de turno de una familia que rota: M3 tiene 8 (M3.1…M3.8), M4 y M24 tienen 4, M25 tiene 3. */
-export function acuseRotado(familia: 'M3' | 'M4' | 'M24' | 'M25', n: number): string {
-  const total = familia === 'M3' ? 8 : familia === 'M25' ? 3 : 4;
+/** Las familias que rotan y cuántos tienen. */
+export const ROTAN = { M3: 8, M4: 4, M24: 4, M25: 3, M27: 3 } as const;
+
+/** El acuse de turno de una familia que rota: M3 tiene 8 (M3.1…M3.8), M4 y M24 tienen 4, M25 y M27 tienen 3. */
+export function acuseRotado(familia: keyof typeof ROTAN, n: number): string {
+  const total = ROTAN[familia];
   return `${familia}.${(((n % total) + total) % total) + 1}`;
 }
 

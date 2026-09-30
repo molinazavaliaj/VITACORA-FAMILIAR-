@@ -10,8 +10,8 @@
 
 import { writeFileSync } from 'node:fs';
 import { mensajePorId, NOMBRES_BLOQUE, BANCO, preguntaPorId } from '../src/v3/entrevista/banco.js';
-import { acuseRotado, mensajesDespues, type PreguntaFamilia } from '../src/v3/entrevista/flujo.js';
-import { acuseAntesDe, acuseNeutro, armarTurno, entradaSegunAcuse, type FamiliaAcuse } from '../src/v3/entrevista/mensajes.js';
+import { mensajesDespues, type PreguntaFamilia } from '../src/v3/entrevista/flujo.js';
+import { acuseDeTurno, anotarAcuse, armarTurno, entradaSegunAcuse, vueltasEnCero, type AcusePendiente } from '../src/v3/entrevista/mensajes.js';
 import { cuentaComoPregunta, simularRecorrido } from '../src/v3/entrevista/seleccion.js';
 import { renderizar, type FichaTexto } from '../src/v3/entrevista/texto.js';
 import { VIDAS_EJEMPLO } from '../src/v3/entrevista/vidas-ejemplo.js';
@@ -43,21 +43,24 @@ const pasos = simularRecorrido(ficha, responder, { familia: FAMILIA });
 
 // La bienvenida es un solo mensaje con párrafos (M6 ya no se manda).
 const globos: Globo[] = [{ de: 'bio', partes: texto('BIEN').split('\n\n').map((t) => ({ id: 'BIEN', texto: t })) }];
-const vueltas = { M3: 0, M4: 0, M24: 0, M25: 0 };
+const vueltas = vueltasEnCero();
+/** Las respuestas en el orden en que llegaron (para M29, el tercer olvido seguido). */
+const anteriores = new Map<string, string>();
 let bloqueActual = 0;
 /** El acuse de la respuesta anterior: se arma con lo que se manda después. */
-let acuse: { id: string; familia: FamiliaAcuse } | { familia: 'M25'; n: number } | undefined;
+let acuse: AcusePendiente | undefined;
 
 /**
  * Manda un turno: arma los mensajes con `armarTurno` sobre los IDs (así se
  * sabe qué línea es qué) y después pone los textos.
  */
 function mandar(t: { entrada?: string; pregunta: string; conM1?: boolean }, textos: Record<string, string>): void {
-  // El acuse se elige sabiendo qué sigue: el neutro (M25) mira con qué
-  // arranca; el común (M3) pasa a M26 antes de un cierre o de LE9.
+  // El acuse se elige sabiendo qué sigue: el neutro (M25) y el de negarse
+  // (M27) miran con qué arranca; el común (M3) pasa a M26 antes de un
+  // cierre, de LE9 o de una sensible.
   const siguiente = t.entrada ? texto(t.entrada) : (textos[t.pregunta] ?? texto(t.pregunta));
   const quePregunta = preguntaPorId(t.pregunta) ?? { id: t.pregunta, clase: 'historia' as const };
-  const idAcuse = acuse && ('n' in acuse ? acuseNeutro(acuse.n, siguiente) : acuseAntesDe(acuse.id, acuse.familia, quePregunta));
+  const idAcuse = acuse && acuseDeTurno(acuse.familia, acuse.n, siguiente, quePregunta);
   // Si el acuse ya dice el nombre, la entrada del mismo mensaje va sin el nombre.
   if (t.entrada) textos[t.entrada] = renderizar(entradaSegunAcuse(mensajePorId(t.entrada)!.texto, idAcuse && mensajePorId(idAcuse)?.texto), ficha);
   const porId = armarTurno({ acuse: idAcuse, familia: acuse?.familia, entrada: t.entrada, pregunta: t.pregunta, m1: t.conM1 ? 'M1' : undefined });
@@ -70,7 +73,8 @@ for (const paso of pasos) {
   if (paso.tipo === 'familia') {
     mandar({ entrada: 'M15', pregunta: paso.pregunta.id }, { [paso.pregunta.id]: paso.pregunta.texto }); // el código no le pone M1
     globos.push({ de: 'persona', texto: '[responde]' });
-    acuse = { id: acuseRotado('M3', vueltas.M3++), familia: 'M3' };
+    acuse = anotarAcuse('M3', vueltas);
+    anteriores.set(paso.pregunta.id, paso.respuesta);
     continue;
   }
   const p = paso.pregunta;
@@ -82,10 +86,8 @@ for (const paso of pasos) {
   if (paso.respuesta === undefined) continue; // aviso y final: no esperan respuesta
   const corta = RESPUESTAS_CORTAS[p.id] ?? (abreTema.has(p.id) ? vida.respuestas[p.id] : undefined);
   globos.push({ de: 'persona', texto: corta ? `[responde: «${corta}»]` : '[responde]' });
-  for (const fam of mensajesDespues(p, paso.respuesta)) {
-    if (fam === 'M25') acuse = { familia: 'M25', n: vueltas.M25++ };
-    else acuse = { id: fam === 'M21' ? fam : acuseRotado(fam, vueltas[fam]++), familia: fam };
-  }
+  for (const fam of mensajesDespues(p, paso.respuesta, anteriores)) acuse = anotarAcuse(fam, vueltas);
+  anteriores.set(p.id, paso.respuesta);
 }
 
 // ---------------------------------------------------------------- md

@@ -6,12 +6,12 @@
 // textos ya renderizados.
 
 import type { PreguntaEntrevista } from './banco.js';
-import { acuseRotado } from './flujo.js';
+import { acuseRotado, ROTAN, type FamiliaAcuse } from './flujo.js';
 
 /** Las familias de acuse que devuelve `mensajesDespues`. */
-export type FamiliaAcuse = 'M3' | 'M4' | 'M21' | 'M24' | 'M25';
+export type { FamiliaAcuse } from './flujo.js';
 
-/** ¿El acuse va solo, en su propio mensaje? Solo el sobrio (M4): después de algo difícil no se pega la pregunta siguiente. */
+/** ¿El acuse va solo, en su propio mensaje? Solo el sobrio (M4): después de algo difícil no se pega la pregunta siguiente. M27, M28 y M29 van pegados, como M25 (Naza, 30/09, simulaciones). */
 export function acuseVaAparte(familia: FamiliaAcuse): boolean {
   return familia === 'M4';
 }
@@ -46,7 +46,69 @@ export function armarTurno(t: Turno): string[] {
  */
 export function acuseNeutro(n: number, siguiente: string): string {
   const id = acuseRotado('M25', n);
-  return id !== 'M25.3' && /^(seguimos|pasamos)(?![a-záéíóúñ])/i.test(siguiente.trim()) ? 'M25.3' : id;
+  return id !== 'M25.3' && arrancaConSeguimos(siguiente) ? 'M25.3' : id;
+}
+
+function arrancaConSeguimos(siguiente: string): boolean {
+  return /^(seguimos|pasamos)(?![a-záéíóúñ])/i.test(siguiente.trim());
+}
+
+/**
+ * El acuse de turno cuando se negó en una sensible (M27), sabiendo con qué
+ * arranca lo que sigue: M27.1 termina en "seguimos por otro lado", así que
+ * delante de algo que arranca con "Seguimos" o "Pasamos" va M27.2 (regla 29;
+ * Naza, 30/09, simulaciones).
+ */
+export function acuseNegado(n: number, siguiente: string): string {
+  const id = acuseRotado('M27', n);
+  return id === 'M27.1' && arrancaConSeguimos(siguiente) ? 'M27.2' : id;
+}
+
+/** Cuántas veces salió cada familia que rota (para saber cuál le toca). */
+export type Vueltas = Record<keyof typeof ROTAN, number>;
+
+export function vueltasEnCero(): Vueltas {
+  return { M3: 0, M4: 0, M24: 0, M25: 0, M27: 0 };
+}
+
+/** El acuse de una respuesta, a la espera de saber qué se manda después (ahí se elige el ID con `acuseDeTurno`). */
+export type AcusePendiente = { familia: FamiliaAcuse; n: number };
+
+/** Anota el acuse de una respuesta y, si su familia rota, avanza la vuelta. */
+export function anotarAcuse(familia: FamiliaAcuse, vueltas: Vueltas): AcusePendiente {
+  if (familia in ROTAN) {
+    const f = familia as keyof typeof ROTAN;
+    vueltas[f] = (vueltas[f] ?? 0) + 1;
+    return { familia, n: vueltas[f] - 1 };
+  }
+  return { familia, n: 0 };
+}
+
+/** El único acuse de olvido en uso: M28.2 y M28.3 quedan en reserva (Naza, 30/09). */
+export const ACUSE_OLVIDO = 'M28.1';
+
+/**
+ * El ID del acuse que va de verdad, con el número de vuelta de su familia
+ * (las que rotan) y lo que se manda después: el texto (para M25 y M27, que
+ * miran con qué arranca) y la pregunta (para M26 en lugar de M3). Lo usan el
+ * entrevistador y los scripts de simulación y de lectura.
+ */
+export function acuseDeTurno(familia: FamiliaAcuse, n: number, siguienteTexto: string, siguiente: Pick<PreguntaEntrevista, 'id' | 'clase'> & { sensible?: boolean }): string {
+  switch (familia) {
+    case 'M3':
+      return acuseAntesDe(acuseRotado('M3', n), 'M3', siguiente);
+    case 'M4':
+    case 'M24':
+      return acuseRotado(familia, n);
+    case 'M25':
+      return acuseNeutro(n, siguienteTexto);
+    case 'M27':
+      return acuseNegado(n, siguienteTexto);
+    case 'M28':
+      return ACUSE_OLVIDO;
+    default:
+      return familia; // M21, M26 y M29: uno solo
+  }
 }
 
 /** Después de esta pregunta viene el final: el acuse común no anuncia "otra" (Naza, 30/09, ronda 3). */
@@ -56,11 +118,13 @@ const ANTES_DE_LE9 = 'LE9';
  * El acuse que va de verdad, sabiendo qué se manda después: si es un acuse
  * común (M3) y lo que sigue es un cierre de bloque o LE9, va M26 ("Gracias,
  * {{nombre}}."), porque "Sigo con otra." arriba de "Con esto cerramos…" se
- * contradice (Naza, 30/09, ronda 3). Los demás no cambian.
+ * contradice (Naza, 30/09, ronda 3). Lo mismo antes de una sensible: "Anotado.
+ * Sigo con otra." arriba de "¿Hubo algún momento difícil…?" suena liviano
+ * (Naza, 30/09, simulaciones, regla 26). Los demás no cambian.
  */
-export function acuseAntesDe(id: string, familia: FamiliaAcuse, siguiente: Pick<PreguntaEntrevista, 'id' | 'clase'>): string {
+export function acuseAntesDe(id: string, familia: FamiliaAcuse, siguiente: Pick<PreguntaEntrevista, 'id' | 'clase'> & { sensible?: boolean }): string {
   if (familia !== 'M3') return id;
-  return siguiente.clase === 'cierre' || siguiente.id === ANTES_DE_LE9 ? 'M26' : id;
+  return siguiente.clase === 'cierre' || siguiente.id === ANTES_DE_LE9 || siguiente.sensible === true ? 'M26' : id;
 }
 
 /**

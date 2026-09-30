@@ -153,9 +153,9 @@ describe('ronda 3 (Fable releyó la versión 4 como Rogelio; Naza, 30/09)', () =
     expect(p('FO1').texto).not.toContain('Una última cosa');
   });
 
-  it('3. una sensible contestada con un "no" corto o "paso" lleva el neutro (M25), no el sobrio', () => {
+  it('3. una sensible contestada con un "no" corto lleva el neutro (M25), no el sobrio; con "paso", M27 desde las simulaciones', () => {
     expect(mensajesDespues(p('AM9'), 'No, seguimos juntos.')).toEqual(['M25']);
-    expect(mensajesDespues(p('PE5'), 'Paso')).toEqual(['M25']);
+    expect(mensajesDespues(p('PE5'), 'Paso')).toEqual(['M27']); // antes M25; M27 aprobado por Naza el 30/09 (simulaciones, regla 28)
     expect(mensajesDespues(p('CA17'), 'No, nada.')).toEqual(['M25']);
     expect(mensajesDespues(p('TR11'), 'Sí, en el noventa y pico me quedé sin trabajo.')).toEqual(['M4']);
   });
