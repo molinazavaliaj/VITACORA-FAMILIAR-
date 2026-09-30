@@ -180,7 +180,7 @@ Rotan dentro de su grupo. Van como primera línea del mensaje que sigue, o solos
 | TXT | caso | | Lo leí, gracias. Si podés, contámelo también en audio: tu voz es lo que va al libro. Y si te queda más cómodo escribir, escribí nomás. | |
 | COR | caso | | Se me cortó el audio o no llegó bien, {{nombre}}. ¿Me lo mandás de nuevo cuando puedas? Sin apuro. | |
 | REC1 | caso | | Hola, {{nombre}}. Te quedó una pregunta esperando, sin apuro. Cuando tengas un rato, contestámela en audio, o "paso" y seguimos con la que viene. | |
-| REC1-U | caso | | Hola, {{nombre}}. Te quedó una pregunta esperando, sin apuro. Cuando tengas un rato, contestámela en audio, o 'paso', y nos vemos el día que salís. | |
+| REC1-U | caso | | Hola, {{nombre}}. Te quedó una pregunta esperando, sin apuro. Cuando tengas un rato, contestámela en audio, o "paso", y nos vemos el día que salís. | |
 
 Cuándo va cada uno: PAS-V, "paso" en el viaje · PAS-A, "paso" antes de salir (la siguiente sale enseguida) · TXT, escribe en vez de mandar audio · COR, audio cortado o que no se entiende (el ruido de la calle no cuenta) · REC1, antes de salir, una pregunta sin contestar 3 días.
 

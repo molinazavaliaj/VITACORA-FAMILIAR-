@@ -444,7 +444,7 @@
     "id": "REC1-U",
     "momento": "caso",
     "orden": null,
-    "texto": "Hola, {{nombre}}. Te quedó una pregunta esperando, sin apuro. Cuando tengas un rato, contestámela en audio, o 'paso', y nos vemos el día que salís.",
+    "texto": "Hola, {{nombre}}. Te quedó una pregunta esperando, sin apuro. Cuando tengas un rato, contestámela en audio, o \"paso\", y nos vemos el día que salís.",
     "yaDeViaje": null
   },
   {

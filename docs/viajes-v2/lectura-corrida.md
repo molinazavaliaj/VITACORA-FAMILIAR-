@@ -54,7 +54,7 @@ _[texto: paso]_
 _(VA1 lleva 3 días sin respuesta.)_
 
 **09:00 · Vitácora** `REC1-U`  
-> Hola, Lucía. Te quedó una pregunta esperando, sin apuro. Cuando tengas un rato, contestámela en audio, o 'paso', y nos vemos el día que salís.
+> Hola, Lucía. Te quedó una pregunta esperando, sin apuro. Cuando tengas un rato, contestámela en audio, o "paso", y nos vemos el día que salís.
 
 ## Día 1 · salida · sábado 10/10 (hora de Buenos Aires)
 
