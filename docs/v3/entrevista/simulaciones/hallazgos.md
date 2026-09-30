@@ -52,3 +52,8 @@ Sumas a los ya aprobados: **S4** (M26 antes de una sensible; "no" corto → M25 
 - **S10: pregunta nueva para las historias del medio, con [Sí, hubo] [No, nadie en el medio]: aprobada.**
 - **S4, las tres sumas: aprobadas** (M26 antes de una sensible; "no" corto → M25 en todas; PG1 → M26).
 - **S12, la foto: aprobado** esperar foto o audio sin reloj corto después de FO1, y las dos frases (FO1 y FIN). Lo programamos nosotros junto con todo lo demás; a Joaquín se lo contamos al terminar, cuando esto vaya a main (Naza).
+- **S3 (las que abren tema admiten "aunque ya me hayas hablado de…"; JU8 pide la llegada; PE1 nuevo): aprobado.**
+- **S11 (PG1 suma el cuidado de los viejos; JU12 con salida para quien nunca se fue): aprobado.**
+- **S5, las sumas (salida "si ya me lo contaste" también en AM3 y AM4; "ya te lo conté" → acuse neutro): aprobado.**
+- **S6 (firma de la familia, sacar M1 donde hay botón, CI1 y CI8): descartado** por Naza (30/09). Queda como está.
+- S13 (dashboard): queda para cuando se haga el dashboard.
