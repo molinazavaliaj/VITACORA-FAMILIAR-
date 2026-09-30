@@ -41,4 +41,5 @@ Sumas a los ya aprobados: **S4** (M26 antes de una sensible; "no" corto → M25 
 
 ### Decisiones de Naza sobre las simulaciones (30/09)
 - **Botones de WhatsApp en las preguntas que abren tema y en los 14 cierres: aprobado.** Falta: qué preguntas exactas, los textos de pregunta y botones (los redacta Fable, los aprueba Naza) y qué hace Joaquín en el entrevistador.
-- S2, las reglas de respaldo para quien contesta con audio en vez de tocar un botón ("no" hasta 40 palabras donde importa, "paso" como primera palabra sin tope, "pero" solo al principio): explicadas, esperando respuesta.
+- **S2, reglas de respaldo** para quien contesta con audio en vez de tocar un botón ("no" hasta 40 palabras en cierres, sensibles y las que abren tema; "paso" como primera palabra sin tope; "pero" solo al principio): **aprobadas** (Naza las ve bien; Fable las recomienda junto con los botones).
+- **S7: HI2b ("¿Tuviste más hijos?") se saca** (Naza: estorba, y HI0 ya da lugar a contar de varios hijos).
