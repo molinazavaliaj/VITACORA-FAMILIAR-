@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parsearEntrevistaMd, parsearDepende } from '../src/v3/entrevista/banco-md.js';
-import { BANCO, MENSAJES, preguntaPorId } from '../src/v3/entrevista/banco.js';
+import { BANCO, condicionesDe, MENSAJES, preguntaPorId } from '../src/v3/entrevista/banco.js';
 import { idsEnVariantes } from '../src/v3/entrevista/texto.js';
 import { BANCO as BANCO_VIEJO } from '../src/v3/banco.js';
 import bancoJson from '../src/v3/entrevista/banco.json' with { type: 'json' };
@@ -198,7 +198,9 @@ describe('entrevista: IDs y dependencias', () => {
 
   it('toda dependencia (y toda variante «sino:X») apunta a una pregunta que existe y va antes', () => {
     for (const p of BANCO) {
-      const refs = [...p.depende.map((c) => c.de), ...idsEnVariantes(p.texto)];
+      // Con las condiciones de " y " (el AM3 de AM19, ronda 2).
+      const refs = [...p.depende.flatMap(condicionesDe).map((c) => c.de), ...idsEnVariantes(p.texto)];
+      if (p.id === 'AM19') expect(refs).toContain('AM3');
       for (const de of refs) {
         const otra = preguntaPorId(de);
         expect(otra, `${p.id} depende de ${de}, que no existe`).toBeDefined();
@@ -209,7 +211,7 @@ describe('entrevista: IDs y dependencias', () => {
 
   it('ninguna pregunta del núcleo depende de una extra (la extra llega después)', () => {
     for (const p of BANCO.filter((q) => q.parte === 'nucleo')) {
-      for (const c of p.depende) expect(preguntaPorId(c.de)!.parte, `${p.id} → ${c.de}`).toBe('nucleo');
+      for (const c of p.depende.flatMap(condicionesDe)) expect(preguntaPorId(c.de)!.parte, `${p.id} → ${c.de}`).toBe('nucleo');
     }
   });
 

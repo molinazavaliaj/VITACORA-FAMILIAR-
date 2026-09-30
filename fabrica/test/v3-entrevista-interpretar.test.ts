@@ -264,9 +264,10 @@ describe('revisión: olvido más angosto', () => {
     expect(que('ES2', r)).toBe('olvido');
   });
 
-  it('hasta 20 palabras', () => {
-    expect(que('ES2', `No me acuerdo ${'uno '.repeat(17).trim()}`)).toBe('olvido'); // 20
-    expect(que('ES2', `No me acuerdo ${'uno '.repeat(18).trim()}`)).not.toBe('olvido'); // 21
+  // Revisión de la ronda 2: es olvido solo si después de la frase quedan como mucho 6 palabras (antes: hasta 20 en total).
+  it('después de la frase de olvido, hasta 6 palabras', () => {
+    expect(que('ES2', `No me acuerdo ${'uno '.repeat(6).trim()}`)).toBe('olvido');
+    expect(que('ES2', `No me acuerdo ${'uno '.repeat(7).trim()}`)).toBe('olvido-a-medias');
   });
 });
 

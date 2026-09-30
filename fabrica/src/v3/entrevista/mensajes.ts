@@ -109,8 +109,11 @@ export function acuseDeTurno(familia: FamiliaAcuse, n: number, siguienteTexto: s
       return acuseNegado(n, siguienteTexto);
     case 'M28':
       return ACUSE_OLVIDO;
-    case 'M32':
-      return acuseAntesDe(acuseRotado('M32', n), 'M32', siguiente);
+    case 'M32': {
+      // M32.2 termina en "Seguimos.": delante de "Seguimos…" o "Pasamos…" va M32.1 (como M27.1; revisión de la ronda 2).
+      const id = acuseRotado('M32', n);
+      return acuseAntesDe(id === 'M32.2' && arrancaConSeguimos(siguienteTexto) ? 'M32.1' : id, 'M32', siguiente);
+    }
     case 'M28.4':
       return acuseAntesDe('M28.4', 'M28.4', siguiente);
     default:

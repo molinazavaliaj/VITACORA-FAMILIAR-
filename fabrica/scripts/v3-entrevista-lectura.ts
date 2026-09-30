@@ -9,7 +9,7 @@
 //   npx tsx scripts/v3-entrevista-lectura.ts <salida.md> [<salida.json>]
 
 import { writeFileSync } from 'node:fs';
-import { mensajePorId, NOMBRES_BLOQUE, BANCO, preguntaPorId } from '../src/v3/entrevista/banco.js';
+import { condicionesDe, mensajePorId, NOMBRES_BLOQUE, BANCO, preguntaPorId } from '../src/v3/entrevista/banco.js';
 import { mensajesDespues, type PreguntaFamilia } from '../src/v3/entrevista/flujo.js';
 import { acuseDeTurno, anotarAcuse, armarTurno, entradaSegunAcuse, vueltasEnCero, type AcusePendiente } from '../src/v3/entrevista/mensajes.js';
 import { cuentaComoPregunta, simularRecorrido } from '../src/v3/entrevista/seleccion.js';
@@ -33,7 +33,7 @@ const EDAD = 72;
 const FAMILIA: PreguntaFamilia[] = [{ id: 'FAM1', texto: '[acá va la pregunta que escribió alguien de la familia]' }];
 
 const texto = (id: string) => renderizar(mensajePorId(id)!.texto, ficha);
-const abreTema = new Set(BANCO.flatMap((p) => p.depende.map((c) => c.de)));
+const abreTema = new Set(BANCO.flatMap((p) => p.depende.flatMap(condicionesDe).map((c) => c.de))); // con las de " y " (ronda 2)
 
 // Dos cierres contestados con un "no" corto y con "paso", para que se vea el acuse neutro (M25).
 const RESPUESTAS_CORTAS: Record<string, string> = { CI9: 'No, nada más.', CI12: 'Paso' };

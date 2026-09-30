@@ -22,7 +22,7 @@ describe('1. en cierres y LE9, "está todo / es todo / ya está / nada más" al 
     ['CI5', 'Sí, creo que está todo. Fue una época linda, la verdad.'],
     ['CI4', 'Creo que está todo, gracias.'],
     ['CI12', 'Es todo lo que tengo para contar de eso.'],
-    ['LE9', 'Ya está, me parece que no me queda nada.'],
+    ['LE9', 'Ya está, no me queda nada.'], // antes "Ya está, me parece que no me queda nada.": 7 palabras después de la fórmula, y la revisión pone 6
     ['CI3', 'Nada más, gracias.'],
   ])('%s: "%s"', (id, resp) => {
     expect(que(id, resp)).toBe('no');
@@ -203,5 +203,71 @@ describe('fórmulas de cierre: sin falsos positivos', () => {
     'Ya está, eso es todo lo de la escuela. Ahora que lo pienso, había un chico, Tito, que me llevaba los libros todos los días y un día me regaló una flor que había cortado de la plaza, y la maestra lo vio y lo retó delante de todos, y yo me quería morir de vergüenza.',
   ])('"%s" cuenta algo', (r) => {
     expect(interpretar(ci3, r)).toBe('conto');
+  });
+});
+
+// Revisión de la ronda 2 (30/09): falsos positivos, con las frases del revisor.
+describe('revisión ronda 2: la fórmula de cierre no se come historias', () => {
+  it.each([
+    'Lo que quiero agregar es todo lo que pasó con mi papá cuando se enfermó',
+    'Ya está, quiero agregar lo de mi papá, que murió en el 90',
+    'Está todo, sí. Ah, y quiero sumar lo de la abuela Rosa',
+    'Nada más, que me acordé de algo: mi tío tenía un taller',
+    'Ya está, mi hermano se fue a vivir a Rosario y la casa quedó vacía',
+  ])('"%s" cuenta algo (LE9 y CI3)', (resp) => {
+    expect(que('LE9', resp)).toBe('conto');
+    expect(que('CI3', resp)).toBe('conto');
+  });
+
+  it.each(['Creo que está todo.', 'Sí, está todo.', 'Nada más, gracias.', 'Bueno, es todo por ahora', 'Es todo lo que tengo para contar de eso.', 'Sí, está todo. Fue una vida plena.'])(
+    '"%s" sigue siendo "no"',
+    (resp) => {
+      expect(que('LE9', resp)).toBe('no');
+      expect(que('CI3', resp)).toBe('no');
+    },
+  );
+
+  it('los largos que arrancan con "No, creo que está todo…" siguen siendo "no" (Manuel CI1, Nelly CI6)', () => {
+    expect(que('CI1', 'No, creo que está todo. Las historias que tengo claras de eso son esas. Después empezó mi vida, la mía de verdad, con mis hermanos, la casa. Lo demás es lo que alcanzaban a contarme de vez en cuando, pero lo que te dije es lo que quedó.')).toBe('no');
+    expect(que('CI6', 'No, creo que está todo. La verdad es que mi historia de amor es corta, viste. No fue una vida de película, fue una vida real, simple, con un hijo y trabajo. Está bien así. Ahora tengo mis amigas, mis hijos, mis nietos, mi costura. Eso es lo que llena mi corazón.')).toBe('no');
+  });
+});
+
+describe('revisión ronda 2: M32.2 no va delante de "Seguimos" o "Pasamos"', () => {
+  it('en ese caso va M32.1', () => {
+    expect(acuseDeTurno('M32', 1, 'Seguimos con la escuela: la primaria…', p('ES1'))).toBe('M32.1');
+    expect(acuseDeTurno('M32', 1, 'Pasamos a tu juventud, Nora…', p('JU1'))).toBe('M32.1');
+    expect(acuseDeTurno('M32', 1, 'Contame un día…', p('CA16'))).toBe('M32.2');
+  });
+});
+
+describe('revisión ronda 2: M32 solo si de verdad se niega', () => {
+  it.each([
+    'Esa no, la otra casa era la del río. Ahí vivimos hasta que me casé',
+    'Otra, dijo mi mamá, y nos sirvió más sopa a todos los chicos',
+    'Mejor no, dijo mi tío, y nos fuimos igual a la laguna con las cañas',
+    'Me lo guardo, dijo mi papá, y me dio la moneda para el colectivo',
+  ])('"%s" cuenta algo, con acuse común', (resp) => {
+    expect(que('CA2', resp)).toBe('conto');
+    expect(mensajesDespues(p('CA2'), resp)).toEqual(['M3']);
+  });
+
+  it('siguen siendo M32', () => {
+    expect(mensajesDespues(p('FI7'), 'De eso mejor no hablemos. La política es complicada, tiene opiniones fuertes, y no me interesa meterme ahí para nada.')).toEqual(['M32']);
+    expect(mensajesDespues(p('CA2'), 'De eso no. Hay cosas que prefiero guardarme, pero te digo que mi hermano era muy bueno conmigo de chico.')).toEqual(['M32']);
+  });
+});
+
+describe('revisión ronda 2: olvido corto que cuenta algo es olvido a medias', () => {
+  it.each([
+    'No me acuerdo, éramos muy chicos y mi mamá nos llevaba a todos lados con el carro del pan.',
+    'Ni idea de la fecha, eso sí, me acuerdo de la casa de la calle Sarmiento y del patio.',
+  ])('"%s": M28.4', (resp) => {
+    expect(que('CA1', resp)).toBe('olvido-a-medias');
+    expect(mensajesDespues(p('CA1'), resp)).toEqual(['M28.4']);
+  });
+
+  it.each(['No me acuerdo.', 'No me acuerdo bien, pasó hace mucho.', 'Ay, ni idea, querido.', 'Uy, eso no me acuerdo, la memoria me falla.'])('"%s" sigue siendo olvido', (resp) => {
+    expect(que('CA1', resp)).toBe('olvido');
   });
 });

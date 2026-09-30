@@ -72,6 +72,17 @@ export function normalizar(texto: string): string {
 
 /** Marca de un signo entre palabras: "No, se fue" no es "no se" (olvido), y "Paso." no sigue con "a…". */
 const CORTE = '|';
+/**
+ * Un signo fuerte (punto, punto y coma, dos puntos, exclamación, pregunta):
+ * "Esa no." se niega; "Esa no, la otra casa…" cuenta (revisión de la ronda 2).
+ * Es también un corte: `esCorte` vale para los dos.
+ */
+const PUNTO = '.';
+const SIGNO_FUERTE = /[.;:!?…¡¿]/;
+
+function esCorte(w: string | undefined): boolean {
+  return w === CORTE || w === PUNTO;
+}
 
 /**
  * "Pasó" no es "paso": "Sí, te cuento lo que pasó." contó algo. Es la única
@@ -86,7 +97,11 @@ function fichas(texto: string): string[] {
   for (const c of crudas) {
     const esPalabra = /^[\p{L}\p{M}\p{N}]/u.test(c);
     if (!esPalabra) {
-      if (out.length > 0 && out.at(-1) !== CORTE) out.push(CORTE);
+      const marca = SIGNO_FUERTE.test(c) ? PUNTO : CORTE;
+      if (out.length === 0) continue;
+      if (esCorte(out.at(-1))) {
+        if (marca === PUNTO) out[out.length - 1] = PUNTO;
+      } else out.push(marca);
       continue;
     }
     const w = c === PASO_CON_TILDE ? c : c.normalize('NFD').replace(/[̀-ͯ]/g, '');
@@ -103,7 +118,7 @@ const MULETILLAS_DOBLES = [['a', 'ver'], ['o', 'sea']];
 function sinMuletillas(f: string[]): string[] {
   let i = 0;
   for (;;) {
-    if (f[i] === CORTE || MULETILLAS.has(f[i])) { i++; continue; }
+    if (esCorte(f[i]) || MULETILLAS.has(f[i])) { i++; continue; }
     if (MULETILLAS_DOBLES.some(([a, b]) => f[i] === a && f[i + 1] === b)) { i += 2; continue; }
     return f.slice(i);
   }
@@ -161,9 +176,15 @@ function comienzos(f: readonly string[]): number[] {
     const antes = ANTES_DE_FRASE.find((a) => hayFraseEn(f, i, a));
     if (!antes) return out;
     i += antes.length;
-    if (f[i] === CORTE) i++;
+    if (esCorte(f[i])) i++;
     out.push(i);
   }
+}
+
+/** "Otra, dijo mi mamá…", "Me lo guardo, dijo mi papá…": la frase es de otro, está contando (revisión de la ronda 2). */
+function sigueDijo(f: readonly string[], k: number): boolean {
+  const j = esCorte(f[k]) ? k + 1 : k;
+  return f[j] === 'dijo' || f[j] === 'decia' || (f[j] === 'me' && (f[j + 1] === 'dijo' || f[j + 1] === 'decia'));
 }
 
 function esPasoDicho(f: string[], pal: string[]): boolean {
@@ -172,8 +193,8 @@ function esPasoDicho(f: string[], pal: string[]): boolean {
   if (pal.at(-1) === 'paso') return true;
   return comienzos(f).some(
     (i) =>
-      FRASES_PASO_COMPLETAS.some((frase) => hayFraseEn(f, i, frase)) ||
-      FRASES_PASO_SOLAS.some((frase) => hayFraseEn(f, i, frase) && (f[i + frase.length] === undefined || f[i + frase.length] === CORTE)),
+      FRASES_PASO_COMPLETAS.some((frase) => hayFraseEn(f, i, frase) && !sigueDijo(f, i + frase.length)) ||
+      FRASES_PASO_SOLAS.some((frase) => hayFraseEn(f, i, frase) && (f[i + frase.length] === undefined || esCorte(f[i + frase.length])) && !sigueDijo(f, i + frase.length)),
   );
 }
 
@@ -192,6 +213,8 @@ function esYaConto(pal: string[]): boolean {
  * "qué"… ("No sé por dónde empezar. Mi hija nació…" cuenta algo).
  */
 const PALABRAS_OLVIDO = 20;
+/** Revisión de la ronda 2: después de la frase de olvido quedan como mucho 6 palabras ("No me acuerdo bien, pasó hace mucho."); si sigue contando, es olvido a medias. */
+const DESPUES_DEL_OLVIDO = 6;
 const ARRANQUES_OLVIDO = frases(['no me acuerdo', 'no recuerdo', 'no se', 'ni idea', 'no tengo idea']);
 const DESPUES_DE_NO_SE = new Set(['si', 'por', 'como', 'que', 'cual', 'donde', 'cuando']);
 /** "Se me borró" vale solo; "la memoria" y "la cabeza", solo con que falla ("La memoria me falla", no "En la cabeza tenía la idea…"). */
@@ -203,15 +226,26 @@ const PRIMERAS_OLVIDO = 8;
 const CONTRASTES = new Set(['pero', 'aunque']);
 
 /** ¿Arranca con una frase de olvido? ("No, no me acuerdo" también; "no sé si/por/cómo…" no). */
-function arrancaConOlvido(f: string[]): boolean {
+/** Dónde termina la frase de olvido con la que arranca (índice en las fichas), o -1. */
+function finDelArranqueDeOlvido(f: string[]): number {
   // "No, no me acuerdo" también arranca con "no me acuerdo": el primer "no," es el mismo olvido dicho dos veces.
-  const desde = f[0] === 'no' && f[1] === CORTE ? [0, 2] : [0];
-  return desde.some((i) => ARRANQUES_OLVIDO.some((a) => hayFraseEn(f, i, a) && !(a.join(' ') === 'no se' && DESPUES_DE_NO_SE.has(f[i + 2]))));
+  const desde = f[0] === 'no' && esCorte(f[1]) ? [0, 2] : [0];
+  for (const i of desde) {
+    const a = ARRANQUES_OLVIDO.find((x) => hayFraseEn(f, i, x) && !(x.join(' ') === 'no se' && DESPUES_DE_NO_SE.has(f[i + 2])));
+    if (a) return i + a.length;
+  }
+  return -1;
+}
+
+/** ¿Arranca con una frase de olvido? ("No, no me acuerdo" también; "no sé si/por/cómo…" no). */
+function arrancaConOlvido(f: string[]): boolean {
+  return finDelArranqueDeOlvido(f) >= 0;
 }
 
 function esOlvido(f: string[], pal: string[]): boolean {
   if (pal.length > PALABRAS_OLVIDO || pal.some((w) => CONTRASTES.has(w))) return false;
-  if (arrancaConOlvido(f)) return true;
+  const fin = finDelArranqueDeOlvido(f);
+  if (fin >= 0) return f.slice(fin).filter((w) => !esCorte(w)).length <= DESPUES_DEL_OLVIDO;
   const todo = ` ${pal.join(' ')} `;
   if (` ${pal.slice(0, PRIMERAS_OLVIDO).join(' ')} `.includes(` ${SE_ME_BORRO} `)) return true;
   return MEMORIA.some((m) => todo.includes(` ${m} `)) && FALLA.some((x) => todo.includes(` ${x} `));
@@ -239,11 +273,12 @@ const VERBOS_DE_NEGARSE = new Set(['hablemos', 'hablar', 'hablo', 'contar', 'con
 function esNoAhondar(f: string[]): boolean {
   return comienzos(f).some(
     (i) =>
-      FRASES_PASO_COMPLETAS.some((frase) => hayFraseEn(f, i, frase)) ||
+      FRASES_PASO_COMPLETAS.some((frase) => hayFraseEn(f, i, frase) && !sigueDijo(f, i + frase.length)) ||
       FRASES_PASO_SOLAS.some((frase) => {
         if (!hayFraseEn(f, i, frase)) return false;
         const j = i + frase.length;
-        const cierra = (k: number) => f[k] === undefined || f[k] === CORTE || (f[k] === 'de' && f[k + 1] === 'eso');
+        // Revisión de la ronda 2: la frase sola se niega solo con un signo fuerte ("Esa no." sí, "Esa no, la otra casa…" no).
+        const cierra = (k: number) => f[k] === undefined || f[k] === PUNTO || (f[k] === 'de' && f[k + 1] === 'eso');
         // "Mejor no hablemos." o "prefiero no hablar de eso": se niega. "Prefiero no hablar mal de él…": cuenta.
         return cierra(j) || (VERBOS_DE_NEGARSE.has(f[j]) && cierra(j + 1));
       }),
@@ -283,11 +318,23 @@ function crioAAlguien(pal: string[]): boolean {
  * "Ya está, eso es todo. Ahora que lo pienso, había un chico…" largo también.
  */
 const FORMULAS_DE_CIERRE = frases(['esta todo', 'es todo', 'ya esta', 'nada mas']);
-const PRIMERAS_FORMULA = 6;
+/** Segunda revisión de la ronda 2: la fórmula tiene que empezar en las primeras 4 palabras. */
+const PRIMERAS_FORMULA = 4;
+/** Si no arranca con "no", después de la fórmula quedan como mucho 6 palabras ("Sí, está todo. Fue una vida plena."). */
+const DESPUES_DE_FORMULA = 6;
+/** Con "lo que…" ("Es todo lo que tengo para contar de eso."), hasta 12 palabras en total. */
+const PALABRAS_FORMULA_LO_QUE = 12;
+/** Señales de que agrega algo: con cualquiera, en un cierre o LE9 no es "no" ("Nada más, que me acordé de algo: mi tío…"). */
+const SENIALES_DE_AGREGAR = ['agregar', 'sumar', 'me acorde', 'me acuerdo de', 'quiero contar', 'ah y'];
+
+function agregaAlgo(pal: string[]): boolean {
+  const t = ` ${pal.join(' ')} `;
+  return SENIALES_DE_AGREGAR.some((x) => t.includes(` ${x} `));
+}
 
 /** Después de la fórmula: un signo, el final, "por ahora" o "lo que…" ("Es todo lo que tengo para contar"). */
 function cierraFormula(f: readonly string[], k: number): boolean {
-  return f[k] === undefined || f[k] === CORTE || (f[k] === 'por' && f[k + 1] === 'ahora') || (f[k] === 'lo' && f[k + 1] === 'que');
+  return f[k] === undefined || esCorte(f[k]) || (f[k] === 'por' && f[k + 1] === 'ahora') || (f[k] === 'lo' && f[k + 1] === 'que');
 }
 
 function esFormulaDeCierre(p: PreguntaParaInterpretar, f: string[], pal: string[]): boolean {
@@ -296,15 +343,24 @@ function esFormulaDeCierre(p: PreguntaParaInterpretar, f: string[], pal: string[
   if ((pal[0] !== 'no' && pal.length > topeNoCorto(p)) || pal.slice(0, PRIMERAS_CONTRASTE).some((w) => CONTRASTES.has(w))) return false;
   let palabras = 0;
   for (let i = 0; i < f.length && palabras < PRIMERAS_FORMULA; i++) {
-    if (f[i] === CORTE) continue;
-    const cierra = FORMULAS_DE_CIERRE.some((x) => hayFraseEn(f, i, x) && cierraFormula(f, i + x.length));
-    if (cierra) return true;
+    if (esCorte(f[i])) continue;
+    const x = FORMULAS_DE_CIERRE.find((fr) => hayFraseEn(f, i, fr) && cierraFormula(f, i + fr.length));
+    if (x) {
+      if (pal[0] === 'no') return true;
+      const k = i + x.length;
+      const despues = f.slice(k).filter((w) => !esCorte(w)).length;
+      // "Ya está, mi hermano se fue a vivir a Rosario…" sigue contando; "Ya está, eso es todo lo que me acuerdo." no (vale la segunda fórmula).
+      const cierraCorto = f[k] === 'lo' && f[k + 1] === 'que' ? pal.length <= PALABRAS_FORMULA_LO_QUE : despues <= DESPUES_DE_FORMULA;
+      if (cierraCorto) return true;
+    }
     palabras++;
   }
   return false;
 }
 
 function esNoDicho(p: PreguntaParaInterpretar, f: string[], pal: string[]): boolean {
+  // En un cierre o LE9, si agrega algo no es "no", aunque empiece con "no" o con la fórmula (segunda revisión de la ronda 2).
+  if ((p.clase === 'cierre' || p.id === LE9) && agregaAlgo(pal)) return false;
   if (esNoCortoDicho(p, f, pal)) return true;
   return esFormulaDeCierre(p, f, pal);
 }
@@ -313,7 +369,7 @@ function esNoCortoDicho(p: PreguntaParaInterpretar, f: string[], pal: string[]):
   if (!ARRANQUES_NO.has(pal[0]) || pal.length > topeNoCorto(p)) return false;
   if (ARRANQUES_QUE_CUENTAN.some((a) => hayFraseEn(f, 0, a))) return false;
   // "Nada más lindo que esos veranos…" cuenta algo; "Nada más." o "Nada más, gracias." no.
-  if (f[0] === 'nada' && f[1] === 'mas' && f[2] !== undefined && f[2] !== CORTE) return false;
+  if (f[0] === 'nada' && f[1] === 'mas' && f[2] !== undefined && !esCorte(f[2])) return false;
   if (p.id === HI0 && crioAAlguien(pal)) return false;
   // En los cierres "pero" no lo da vuelta: "No, pero ya está todo" sigue siendo que no.
   return p.clase === 'cierre' || !pal.slice(0, PRIMERAS_CONTRASTE).some((w) => CONTRASTES.has(w));
@@ -338,7 +394,7 @@ export function interpretar(pregunta: PreguntaParaInterpretar, respuesta: string
     return vale === 'si' ? 'conto' : vale;
   }
   const f = sinMuletillas(fichas(resto));
-  const pal = f.filter((w) => w !== CORTE);
+  const pal = f.filter((w) => !esCorte(w));
   if (pal.length === 0) return 'vacio';
   if (esPasoDicho(f, pal)) return 'paso';
   if (esOlvido(f, pal)) return 'olvido';
