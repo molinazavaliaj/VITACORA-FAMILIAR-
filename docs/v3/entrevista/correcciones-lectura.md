@@ -156,3 +156,8 @@ Conclusión de Fable: mejoró mucho (un mensaje por silencio, las pausas sobrias
 | 5 | M25.2 "Dale." → "Bien, seguimos." | **Aplicado.** Queda igual a M25.1; delante de algo que arranca con "Seguimos" o "Pasamos" va M25.3 ("Bien, entonces."). |
 
 No se tocan HI2b ni JU1/JU8 (plan B). Resultado: **127 mensajes de WhatsApp** en la vida completa.
+
+### Bienvenida: demasiados "nada" (30/09)
+Naza: "dice nada 6 veces". La aprobada tiene 3 "nada" y 4 negaciones más. Fable propuso dos versiones (sin aprobar; el primer párrafo no cambia):
+- **1 (lo más parecida):** "…Y cuando termines de contar, dejalo ahí nomás: apenas pasa un ratito de silencio, te llega sola la pregunta que sigue. / Si alguna pregunta no va con tu vida, está todo bien: me decís que no, o me contás lo que en realidad te pasó a vos. Y sin apuro, eh…" (0 "nada", 2 "no").
+- **2 (más libre):** "…Mandame todos los audios que quieras. Y cuando termines de contar, ya está: con un ratito de silencio, la pregunta que sigue te llega sola. / Si alguna pregunta te queda lejos, está todo bien: me decís que no, o me contás lo que sí te pasó a vos. Y sin apuro, eh…" (0 "nada", 1 "no").
