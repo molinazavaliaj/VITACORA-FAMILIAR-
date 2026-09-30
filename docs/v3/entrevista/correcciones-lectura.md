@@ -38,3 +38,11 @@ Conteo de una vida completa (Rogelio): **89 preguntas** de historia (igual que a
 **Observaciones de Fable, para decidir:**
 - Con las entradas, en los bloques que no son etapa quedan tres transiciones seguidas: el cierre ("Con esto cerramos…"), M24 ("…Pasamos a otra cosa.") y la entrada ("Ahora vamos a…"). Fable propone que M24 pierda la cola de transición y quede solo el agradecimiento ("Gracias, {{nombre}}. Con eso cerramos acá."), porque la entrada ya dice a dónde vamos.
 - Bloque 8: la entrada ("Empezamos por tus viejos") y PG1 ("Contame de tus viejos cuando vos ya eras grande") repiten "viejos". Alternativa: dejar solo "Ahora vamos a tu familia de grande, {{nombre}}."
+
+### Respuesta de Naza (30/09) y segunda vuelta de Fable
+- **M24 más corto: aprobado**, con una condición: que ninguno dé a entender que terminan las preguntas. Fable propuso (sin aprobar todavía):
+  - M24.1 Gracias, {{nombre}}. Eso también va al libro.
+  - M24.2 Anotado, gracias. Quedó guardado junto con el resto.
+  - M24.3 Bien, {{nombre}}. Lo sumo a lo que ya me contaste de eso.
+  - M24.4 Gracias por eso. Cada detalle que agregás suma.
+- **Bloque 8:** Naza dudó de "tu familia de grande" (se lee como "familia grande"). Alternativas de Fable: A "Ahora vamos a la familia otra vez, {{nombre}}, pero en tu vida adulta." (favorita) · B "Ahora vamos a tu familia, {{nombre}}: los que venían de antes y los que fueron llegando." (riesgo: supone que llegó alguien) · C "Ahora vamos a tu familia de adult{{o/a}}, {{nombre}}. Primero, los que te criaron."
