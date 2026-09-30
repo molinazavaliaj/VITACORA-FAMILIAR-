@@ -23,7 +23,7 @@ Fable leyó la lectura corrida como la viviría el narrador, tres veces; Naza de
 - **Menos maquinaria:** el acuse va como primera línea del mensaje que sigue (el sobrio M4 va solo); sin "Terminamos esta etapa"; antes de un cierre o de LE9 va "Gracias, {{nombre}}." (M26); después de LE9 y de LE8, nada. De 224 mensajes del biógrafo a **127 mensajes de WhatsApp**. Código nuevo: `fabrica/src/v3/entrevista/mensajes.ts` (`armarTurno`, `acuseAntesDe`, `acuseNeutro`, `entradaSegunAcuse`).
 - **Acuses neutros** (M25) si un cierre o una pregunta difícil se contesta con un "no" corto o "paso".
 - **Orden:** final LE7 → preguntas de la familia → FO1 ("Otra cosa") → LE9 → LE8 → FIN; la política al bloque 12; "lo que todavía querés hacer" al 15. CA17, AD15, JU17 y TR11 con acuse sobrio.
-- **Bienvenida en un solo mensaje** ("Una persona que te quiere mucho te regaló un libro con la historia de tu vida…"). Naza pidió pulirla más (sin "eh", sin "mejor amigo", sin tantos "nada"): dos versiones de Fable esperan su elección.
+- **Bienvenida en un solo mensaje** ("Una persona que te quiere mucho te regaló un libro con la historia de tu vida…"). Después de pulirla (sin "eh", sin "mejor amigo", sin tantos "nada"), Naza aprobó la versión B de Fable.
 - **Veredicto de Fable (ronda 4): lista para que la pruebe una persona real.**
 - **Pendiente grande:** todo el banco está en "vos"; el "tú" y las palabras locales (España) se hacen cuando esté todo cerrado (Naza). **Plan B** (Haiku para las respuestas que abren tema) anotado, sin programar.
 - Documentación: [`entrevista/flujo-vigente.md`](entrevista/flujo-vigente.md) al día; las versiones anteriores del flujo, en `entrevista/historial/`.
@@ -37,8 +37,7 @@ Fable leyó la lectura corrida como la viviría el narrador, tres veces; Naza de
 1. **Paso 3 del chat:** plan para que Naza haga la entrevista como narrador por WhatsApp, mirando el piloto manual del entrevistador (`entrevistador/`, `scripts/manual.ts`, código de Joaquín: **no modificarlo todavía**). Página con: cómo conectar el flujo nuevo, archivos nuevos, qué hace Joaquín, costo de transcripción, y el mensaje para pegarle a Joaquín. No construir nada hasta que Naza apruebe.
 2. Dashboard: dudas DD1/DD2 y nombres pendientes.
 3. Pendiente para cuando se active la ronda extra: dónde van los cierres (hoy llegarían antes de las extra de su bloque).
-4. Elegir la bienvenida final (A o B de Fable) y aplicarla en BIEN.
-5. En la prueba real, mirar: el orden fijo de los agradecimientos y el largo del bloque 13.
+4. En la prueba real, mirar: el orden fijo de los agradecimientos y el largo del bloque 13.
 
 ## Qué NO hacer
 - No pisar archivos: lo nuevo en archivos nuevos (`entrevista/historial/`, `banco-v3.md`, `diseno-v3.md` quedan como historial).

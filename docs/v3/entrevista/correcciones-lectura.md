@@ -177,3 +177,13 @@ AM9 sigue en el plan B. Resultado: **127 mensajes de WhatsApp** en la vida compl
 Naza: "nadie escribe con eh, solo la IA"; "dejalo ahí nomás" es demasiado rioplatense; no le gustó "mejor amigo". Fable propuso (sin aprobar; el primer párrafo no cambia):
 - **A (la que elige Fable):** "Funciona así: te mando una pregunta y vos me respondés en audio, hablando como hablás siempre, como en una charla. Mandame todos los audios que quieras. Y cuando termines de contar, ya está: con un ratito de silencio, la pregunta que sigue te llega sola. / Si alguna pregunta no tiene que ver con tu vida, me decís que no y pasamos a otra, o me contás lo que sí te pasó a vos. Sin apuro: esto va al ritmo que vos quieras."
 - **B:** "Funciona así: te mando una pregunta y vos me la contás en audio, como si me lo estuvieras contando en persona. Mandame todos los audios que quieras. Cuando termines, ya está: con un ratito de silencio, la pregunta que sigue te llega sola. / Si alguna pregunta no tiene que ver con tu vida, me decís que no, o me contás lo que sí te pasó a vos. Y sin apuro: esto lo hacemos al ritmo que vos quieras."
+
+### Bienvenida final: aprobada la B (30/09)
+Naza eligió la **B** tal cual. **Aplicada** en BIEN. Queda:
+> Hola, {{nombre}}, ¿cómo estás? Una persona que te quiere mucho te regaló un libro con la historia de tu vida, y yo soy quien te va a entrevistar para armarlo. Lo hacemos acá, por WhatsApp, tranquilos.
+>
+> Funciona así: te mando una pregunta y vos me la contás en audio, como si me lo estuvieras contando en persona. Mandame todos los audios que quieras. Cuando termines, ya está: con un ratito de silencio, la pregunta que sigue te llega sola.
+>
+> Si alguna pregunta no tiene que ver con tu vida, me decís que no, o me contás lo que sí te pasó a vos. Y sin apuro: esto lo hacemos al ritmo que vos quieras.
+
+Los dos "Bien, seguimos." (M25.1 y M25.2) quedan así (Naza).

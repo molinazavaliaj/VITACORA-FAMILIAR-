@@ -128,8 +128,10 @@ describe('3. bienvenida en un solo mensaje (opción B de Fable, con el cambio de
     expect(bien.split('\n\n')).toHaveLength(3);
     expect(bien).toContain('Una persona que te quiere mucho');
     expect(bien).toContain('yo soy quien te va a entrevistar');
-    expect(bien).toContain('te llega sola la pregunta que sigue');
-    expect(bien).not.toMatch(/quien_regala|mates|bien tuya/);
+    expect(bien).toContain('la pregunta que sigue te llega sola');
+    expect(bien).toContain('como si me lo estuvieras contando en persona');
+    // Naza, 30/09: sin "eh", sin "mejor amigo", sin "nada", sin "dejalo ahí nomás".
+    expect(bien).not.toMatch(/quien_regala|mates|bien tuya|mejor amigo|(?<![a-z])nada(?![a-z])|nomás|, eh(?![a-z])/);
   });
 
   it('M6 queda en el banco sin uso (va dentro de BIEN)', () => {

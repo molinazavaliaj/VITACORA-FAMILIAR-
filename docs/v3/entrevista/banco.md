@@ -24,7 +24,7 @@
 
 | ID | Cuándo | Texto |
 |---|---|---|
-| BIEN | Primer mensaje (bienvenida y cómo va, en un solo mensaje; `<br>` = salto de línea) | Hola, {{nombre}}, ¿cómo estás? Una persona que te quiere mucho te regaló un libro con la historia de tu vida, y yo soy quien te va a entrevistar para armarlo. Lo hacemos acá, por WhatsApp, tranquilos.<br><br>Funciona así: te mando una pregunta y vos me respondés en audio, como si se lo estuvieras contando a tu mejor amigo. Podés mandarme todos los audios que quieras. Y cuando termines de contar, no tenés que avisarme nada: cuando pasa un ratito sin que mandes nada, te llega sola la pregunta que sigue.<br><br>Si alguna pregunta no va con tu vida, no pasa nada: me decís que no, o me contás lo que en realidad te pasó a vos. Y sin apuro, eh. Esto lo hacemos al ritmo que vos quieras. |
+| BIEN | Primer mensaje (bienvenida y cómo va, en un solo mensaje; `<br>` = salto de línea) | Hola, {{nombre}}, ¿cómo estás? Una persona que te quiere mucho te regaló un libro con la historia de tu vida, y yo soy quien te va a entrevistar para armarlo. Lo hacemos acá, por WhatsApp, tranquilos.<br><br>Funciona así: te mando una pregunta y vos me la contás en audio, como si me lo estuvieras contando en persona. Mandame todos los audios que quieras. Cuando termines, ya está: con un ratito de silencio, la pregunta que sigue te llega sola.<br><br>Si alguna pregunta no tiene que ver con tu vida, me decís que no, o me contás lo que sí te pasó a vos. Y sin apuro: esto lo hacemos al ritmo que vos quieras. |
 | M6 | **Sin uso desde el 30/09** (Naza): su contenido va dentro de BIEN. Antes: después de la bienvenida | Ahora te explico cómo va la entrevista, {{nombre}}. Te mando una pregunta y vos me la contás en audio. Si te salen dos o tres audios, mejor. Cuando quedás en silencio un ratito, entiendo que terminaste y te mando la próxima. No hay apuro: vamos al paso que vos vayas marcando. |
 
 ## Mensajes fijos
@@ -476,3 +476,6 @@ Registro en [`correcciones-lectura.md`](correcciones-lectura.md).
 ## Cambios del 30/09, ronda 4 (Naza, después de que Fable leyó la versión 6)
 - CI14 sin el nombre (el acuse de antes, M26, ya lo dice). Antes: "Con esto cerramos lo de hoy, {{nombre}}, y ya te conozco un poco más…".
 - Después de LE9 no va acuse: LE8 ("Ahora sí, hablale a tu familia…") arranca sola (antes quedaban dos mensajes seguidos que empezaban "Gracias, {{nombre}}.").
+
+## Cambios del 30/09, ronda 4: bienvenida final (Naza)
+BIEN, párrafos 2 y 3: la versión B de Fable (sin "eh", sin "mejor amigo", sin "nada", sin "dejalo ahí nomás"). Antes: "Funciona así: te mando una pregunta y vos me respondés en audio, como si se lo estuvieras contando a tu mejor amigo. Podés mandarme todos los audios que quieras. Y cuando termines de contar, no tenés que avisarme nada: cuando pasa un ratito sin que mandes nada, te llega sola la pregunta que sigue. / Si alguna pregunta no va con tu vida, no pasa nada: me decís que no, o me contás lo que en realidad te pasó a vos. Y sin apuro, eh. Esto lo hacemos al ritmo que vos quieras." M25.1 y M25.2 quedan los dos "Bien, seguimos." (Naza).
