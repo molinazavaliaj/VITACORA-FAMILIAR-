@@ -34,6 +34,7 @@ Fable leyó la lectura corrida como la viviría el narrador, tres veces; Naza de
 `665cc72` lectura corrida · `d2194f0` cierres siempre, M1 donde aplica, LE9 directo · correcciones (Fable, 2 commits) · entradas + M24 + CI14 · orden de docs y este pase de manos.
 
 ## Lo que sigue
+0. **Antes del paso 3: simular la entrevista con narradores inventados** (pedido de Naza). Plan en [`entrevista/simulaciones/PLAN.md`](entrevista/simulaciones/PLAN.md); se hace en un chat aparte.
 1. **Paso 3 del chat:** plan para que Naza haga la entrevista como narrador por WhatsApp, mirando el piloto manual del entrevistador (`entrevistador/`, `scripts/manual.ts`, código de Joaquín: **no modificarlo todavía**). Página con: cómo conectar el flujo nuevo, archivos nuevos, qué hace Joaquín, costo de transcripción, y el mensaje para pegarle a Joaquín. No construir nada hasta que Naza apruebe.
 2. Dashboard: dudas DD1/DD2 y nombres pendientes.
 3. Pendiente para cuando se active la ronda extra: dónde van los cierres (hoy llegarían antes de las extra de su bloque).
