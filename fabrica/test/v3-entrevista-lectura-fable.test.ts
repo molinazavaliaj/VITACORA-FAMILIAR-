@@ -3,9 +3,9 @@
 // "Ronda 2"): menos maquinaria alrededor de las preguntas.
 
 import { describe, expect, it } from 'vitest';
-import { BANCO, preguntaPorId } from '../src/v3/entrevista/banco.js';
+import { BANCO, mensajePorId, preguntaPorId } from '../src/v3/entrevista/banco.js';
 import { mensajesDespues } from '../src/v3/entrevista/flujo.js';
-import { acuseNeutro, acuseVaAparte, armarTurno } from '../src/v3/entrevista/mensajes.js';
+import { acuseAntesDe, acuseNeutro, acuseVaAparte, armarTurno, entradaSegunAcuse } from '../src/v3/entrevista/mensajes.js';
 import { simularRecorrido } from '../src/v3/entrevista/seleccion.js';
 import { VIDAS_EJEMPLO } from '../src/v3/entrevista/vidas-ejemplo.js';
 
@@ -116,8 +116,60 @@ describe('7. acuse neutro si un cierre se contesta con un "no" corto o "paso" (N
   });
 
   it('"Bien, seguimos." no va delante de algo que arranca con "Seguimos" o "Pasamos"', () => {
-    expect(acuseNeutro(0, 'Seguimos con la escuela: la primaria…')).toBe('M25.2');
-    expect(acuseNeutro(3, 'Pasamos a tu juventud, Rogelio…')).toBe('M25.2');
-    expect(acuseNeutro(1, 'Seguimos con la escuela')).toBe('M25.2');
+    // Desde la ronda 3, M25.1 y M25.2 dicen lo mismo; delante de "Seguimos"/"Pasamos" va M25.3.
+    expect(acuseNeutro(0, 'Seguimos con la escuela: la primaria…')).toBe('M25.3');
+    expect(acuseNeutro(3, 'Pasamos a tu juventud, Rogelio…')).toBe('M25.3');
+  });
+});
+
+describe('3. bienvenida en un solo mensaje (opción B de Fable, con el cambio de Naza, 30/09)', () => {
+  it('BIEN trae los tres párrafos, se presenta como quien entrevista y no nombra a quien regala', () => {
+    const bien = mensajePorId('BIEN')!.texto;
+    expect(bien.split('\n\n')).toHaveLength(3);
+    expect(bien).toContain('Una persona que te quiere mucho');
+    expect(bien).toContain('yo soy quien te va a entrevistar');
+    expect(bien).toContain('te llega sola la pregunta que sigue');
+    expect(bien).not.toMatch(/quien_regala|mates|bien tuya/);
+  });
+
+  it('M6 queda en el banco sin uso (va dentro de BIEN)', () => {
+    expect(mensajePorId('M6')!.cuando).toMatch(/sin uso/i);
+  });
+});
+
+describe('ronda 3 (Fable releyó la versión 4 como Rogelio; Naza, 30/09)', () => {
+  it('1. antes de un cierre o de LE9, el acuse común pegado es solo "Gracias, {{nombre}}." (M26)', () => {
+    expect(mensajePorId('M26')!.texto).toBe('Gracias, {{nombre}}.');
+    expect(acuseAntesDe('M3.4', 'M3', p('CI2'))).toBe('M26');
+    expect(acuseAntesDe('M3.4', 'M3', p('LE9'))).toBe('M26');
+    expect(acuseAntesDe('M3.4', 'M3', p('CA2'))).toBe('M3.4');
+    expect(acuseAntesDe('M4.1', 'M4', p('CI2'))).toBe('M4.1'); // el sobrio va solo: no se toca
+  });
+
+  it('2. FO1 arranca con "Otra cosa, {{nombre}}."', () => {
+    expect(p('FO1').texto.startsWith('Otra cosa, {{nombre}}.')).toBe(true);
+    expect(p('FO1').texto).not.toContain('Una última cosa');
+  });
+
+  it('3. una sensible contestada con un "no" corto o "paso" lleva el neutro (M25), no el sobrio', () => {
+    expect(mensajesDespues(p('AM9'), 'No, seguimos juntos.')).toEqual(['M25']);
+    expect(mensajesDespues(p('PE5'), 'Paso')).toEqual(['M25']);
+    expect(mensajesDespues(p('CA17'), 'No, nada.')).toEqual(['M25']);
+    expect(mensajesDespues(p('TR11'), 'Sí, en el noventa y pico me quedé sin trabajo.')).toEqual(['M4']);
+  });
+
+  it('4. si el acuse pegado lleva el nombre, la entrada va sin el nombre', () => {
+    expect(entradaSegunAcuse('Ahora vamos a tu infancia, {{nombre}}: la casa.', 'Gracias, {{nombre}}. Eso también va al libro.')).toBe('Ahora vamos a tu infancia: la casa.');
+    expect(entradaSegunAcuse('Volvemos a la familia, {{nombre}}, pero en tu vida adulta.', 'Bien, {{nombre}}. Lo sumo.')).toBe('Volvemos a la familia, pero en tu vida adulta.');
+    expect(entradaSegunAcuse('Hablemos de los amigos, {{nombre}}, y de la gente que te dio una mano.', 'Gracias, {{nombre}}.')).toBe('Hablemos de los amigos y de la gente que te dio una mano.');
+    expect(entradaSegunAcuse('Ahora vamos a tu infancia, {{nombre}}: la casa.', 'Anotado, gracias.')).toBe('Ahora vamos a tu infancia, {{nombre}}: la casa.');
+    expect(entradaSegunAcuse('Ahora vamos a tu infancia, {{nombre}}: la casa.')).toBe('Ahora vamos a tu infancia, {{nombre}}: la casa.');
+  });
+
+  it('5. M25.2 es "Bien, seguimos."; delante de algo que arranca con "Seguimos" o "Pasamos" va "Bien, entonces."', () => {
+    expect(mensajePorId('M25.2')!.texto).toBe('Bien, seguimos.');
+    expect(acuseNeutro(1, 'Seguimos con la escuela')).toBe('M25.3');
+    expect(acuseNeutro(0, 'Pasamos a tu juventud')).toBe('M25.3');
+    expect(acuseNeutro(1, 'Hablemos de los amigos')).toBe('M25.2');
   });
 });

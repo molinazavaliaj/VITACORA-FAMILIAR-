@@ -1,19 +1,22 @@
-# El flujo de la entrevista (vigente)
+# El flujo de la entrevista (antes de la ronda 3, 30/09)
 
-Cómo funciona la entrevista de punta a punta. **Este es el documento vigente** (última actualización: 30/09/2026, ronda 2 de la lectura corrida). Las versiones anteriores están en [`historial/`](historial/).
+> **HISTORIAL — no vigente.** El flujo vigente está en [`flujo-vigente.md`](../flujo-vigente.md). Esta es la versión de antes de la ronda 3 del 30/09.
 
-- Los textos exactos: [`banco.md`](banco.md) (fuente de verdad; el código se genera desde ahí).
-- La entrevista completa de una vida inventada, mensaje por mensaje: [`lectura-corrida.md`](lectura-corrida.md).
-- Qué cambió al leerla y por qué: [`correcciones-lectura.md`](correcciones-lectura.md). El porqué de las decisiones anteriores: [`../metodo-entrevista.md`](../metodo-entrevista.md).
+Cómo funciona la entrevista de punta a punta. **Este es el documento vigente** (última actualización: 30/09/2026, ronda 2 de la lectura corrida). Las versiones anteriores están en [`historial/`](.).
+
+- Los textos exactos: [`banco.md`](../banco.md) (fuente de verdad; el código se genera desde ahí).
+- La entrevista completa de una vida inventada, mensaje por mensaje: [`lectura-corrida.md`](../lectura-corrida.md).
+- Qué cambió al leerla y por qué: [`correcciones-lectura.md`](../correcciones-lectura.md). El porqué de las decisiones anteriores: [`../metodo-entrevista.md`](../../metodo-entrevista.md).
 - El código: `fabrica/src/v3/entrevista/` (tests verdes: `cd fabrica; npx vitest run`). Lo que falta conectar está al final.
 
 ## 1. Antes de empezar
-- **Compra.** Quien regala carga una ficha corta: nombre, cómo le dicen, género (para "chico/chica", "padre/madre"), si habla de vos o de tú (**todavía no programado**: hoy todos los textos están en vos; Naza decidió hacerlo cuando esté todo cerrado; ver "Pendiente grande" en correcciones-lectura.md), y su propio contacto (para el aviso M9). Si quiere, sube un **álbum de fotos**, que se puede completar hasta que se escribe el libro.
+- **Compra.** Quien regala carga una ficha corta: nombre, cómo le dicen, género (para "chico/chica", "padre/madre"), si habla de vos o de tú (**todavía no programado**: hoy todos los textos están en vos; ver "Pendiente grande" en correcciones-lectura.md), y su propio contacto (para el aviso M9). Si quiere, sube un **álbum de fotos**, que se puede completar hasta que se escribe el libro.
 - La ficha **no decide qué preguntas llegan**. Queda para el escritor y para comparar con lo que la persona cuenta (dudas del dashboard, sección 8).
 
 ## 2. El arranque
-1. **Bienvenida (BIEN), un solo mensaje:** "Hola, {{nombre}}, ¿cómo estás? Una persona que te quiere mucho te regaló un libro con la historia de tu vida, y yo soy quien te va a entrevistar para armarlo…", con cómo funciona (audios, que no tiene que avisar nada, que puede decir que no, sin apuro). M6 ya no se manda.
-2. La primera pregunta (OR1, que ya arranca con "Empecemos por…", por eso el bloque 1 no lleva frase de entrada).
+1. **Bienvenida (BIEN):** "Hola, {{nombre}}. Juntos vamos a escribir la historia de tu vida…"
+2. **Cómo va (M6):** "Ahora te explico cómo va la entrevista, {{nombre}}. Te mando una pregunta y vos me la contás en audio…" (Naza pidió juntar BIEN y M6 en un solo mensaje; tres opciones de Fable esperan su elección en [`correcciones-lectura.md`](../correcciones-lectura.md)).
+3. La primera pregunta (OR1, que ya arranca con "Empecemos por…", por eso el bloque 1 no lleva frase de entrada).
 
 ## 3. Cada bloque
 1. **Frase de entrada** (EN2 a EN15): antes de la primera pregunta que se manda del bloque, una frase que anuncia el tema y no pide respuesta ("Hablemos de los amigos, {{nombre}}, y de la gente que te dio una mano en la vida."). No llevan: el bloque 1 (OR1 ya arranca así), el 6 (AM0: "Ahora vamos al amor…") y el 11 (el aviso AV11 cumple ese papel).
@@ -33,9 +36,9 @@ Así se lee el paso de un bloque a otro, en mensajes de WhatsApp: [cierre] → r
   Nunca debajo de cierres, aviso, foto ni final. En una vida completa son 12.
 - La persona contesta con **uno o varios audios**; se suman a esa pregunta. Cuando pasan unos minutos sin audios nuevos, llega el agradecimiento y la siguiente.
 - **Agradecimiento** después de cada respuesta. Va como **primera línea del mensaje que sigue** (el de la pregunta o el de la frase de entrada), no como mensaje aparte; solo el sobrio (M4) va **solo**:
-  - una de las 8 frases que rotan (M3: "Gracias, {{nombre}}. Ya lo guardé."); si lo que sigue es un cierre o LE9, en su lugar va "Gracias, {{nombre}}." (M26), para no anunciar "otra pregunta" arriba de "Con esto cerramos…";
-  - después de una pregunta difícil (el momento difícil de cada época CA17, AD15, JU17; la plata ajustada TR11; AM9; todo el bloque 11), una de las 4 sobrias (M4), sola; si la contestó con un "no" corto o "paso", el neutro (M25) en su lugar;
-  - después de un cierre: M24 (sección 3), o uno neutro si lo contestó con un "no" corto o "paso" (M25: "Bien, seguimos." o "Bien, entonces."; delante de algo que arranca con "Seguimos" o "Pasamos" va "Bien, entonces.");
+  - una de las 8 frases que rotan (M3: "Gracias, {{nombre}}. Ya lo guardé.");
+  - después de una pregunta difícil (el momento difícil de cada época CA17, AD15, JU17; la plata ajustada TR11; AM9; todo el bloque 11), una de las 4 sobrias (M4), sola;
+  - después de un cierre: M24 (sección 3), o uno neutro si lo contestó con un "no" corto o "paso" (M25: "Bien, seguimos.", "Dale.", "Bien, entonces."; "Bien, seguimos." no va delante de algo que arranca con "Seguimos" o "Pasamos");
   - si dijo **"paso"** en una pregunta que no es cierre: "Dale, la salteamos. Vamos con otra." (M21);
   - si mandó **texto** en vez de audio: M22; si el audio llegó **cortado**: M23;
   - después de **LE8** ("hablale a tu familia"), la última pregunta: **nada**, va directo el mensaje final.
@@ -80,7 +83,7 @@ En todos los casos el cierre del bloque llega igual (sección 3), así que siemp
 
 | Vida | Preguntas de historia (con la foto) | Turnos (preguntas, cierres, aviso y final) | Mensajes de WhatsApp del biógrafo |
 |---|---|---|---|
-| Completa (pareja, hijos, nietos, hermanos, se mudó) | 89 | 105 | 127 (incluye una pregunta de la familia de ejemplo; antes de la ronda 2 eran 224) |
+| Completa (pareja, hijos, nietos, hermanos, se mudó) | 89 | 105 | 129 (128 con la bienvenida en un solo mensaje; incluye una pregunta de la familia de ejemplo; antes de la ronda 2 eran 224) |
 | Sin pareja ni hijos (sin hermanos, no se mudó) | 79 | 95 | — |
 
 La **ronda extra** (89 preguntas más) está en el banco pero **por ahora no se ofrece** (`ofrecerExtra` en el código). Si algún día se activa, hay que decidir dónde van los cierres: hoy llegarían antes de las preguntas extra de su bloque.
@@ -105,14 +108,14 @@ Recién después se escribe el libro, una sola vez.
 | El banco (`banco.json` generado desde `banco.md`) | `banco-md.ts`, `banco.ts` |
 | Qué va después: pregunta, frase de entrada (`entrada`), si lleva M1 (`conM1`), si espera respuesta | `siguientePregunta` en `flujo.ts` |
 | "No" corto y "paso" | `esNoCorto`, `esPaso` en `flujo.ts` |
-| Qué agradecimiento va después (M3, M4, M21, M24, M25, M26 o nada) y cuál de la rotación | `mensajesDespues`, `acuseRotado` en `flujo.ts` |
+| Qué agradecimiento va después (M3, M4, M21, M24, M25 o nada) y cuál de la rotación | `mensajesDespues`, `acuseRotado` en `flujo.ts` |
 | Las dudas para el dashboard | `contradiccionesConFicha` en `flujo.ts` |
 | Los textos según género y nombre | `renderizar` en `texto.ts` |
 | Recorrido de vidas inventadas y la lectura corrida | `scripts/v3-entrevista-recorrido.ts`, `scripts/v3-entrevista-lectura.ts` |
 
-**Cómo se arma cada mensaje de WhatsApp** (acuse pegado o solo, entrada, pregunta con M1): `armarTurno` en `mensajes.ts`; qué acuse va según lo que sigue: `acuseAntesDe` y `acuseNeutro`; la entrada sin el nombre si el acuse ya lo dice: `entradaSegunAcuse`.
+**Cómo se arma cada mensaje de WhatsApp** (acuse pegado o solo, entrada, pregunta con M1): `armarTurno` en `mensajes.ts`.
 
-**Plan B** (anotado en [`correcciones-lectura.md`](correcciones-lectura.md), sin programar): si en la prueba real el código pregunta cosas que no encajan o entiende mal un "no", un modelo chico (Haiku) lee solo las respuestas que abren tema. Menos de 1 centavo por entrevista.
+**Plan B** (anotado en [`correcciones-lectura.md`](../correcciones-lectura.md), sin programar): si en la prueba real el código pregunta cosas que no encajan o entiende mal un "no", un modelo chico (Haiku) lee solo las respuestas que abren tema. Menos de 1 centavo por entrevista.
 
 **Falta:**
 1. Conectar el flujo al **entrevistador** de WhatsApp (Joaquín): guardar las respuestas, llamar a `siguientePregunta` y `mensajesDespues`, armar los mensajes con `armarTurno`, esperar unos minutos sin audios, los agradecimientos y los recordatorios M8/M9. El plan es el paso 3 del chat del 30/09 (a hacer).

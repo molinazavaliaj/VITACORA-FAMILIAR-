@@ -28,7 +28,7 @@ describe('entrevista: renderizar', () => {
   });
 
   it('{{nombre}}, {{quien_regala}} y {{etapa}}; lo que no tiene valor queda a la vista', () => {
-    expect(renderizar(texto('FO1'), mujer)).toMatch(/^Una última cosa, Elvira\./);
+    expect(renderizar(texto('FO1'), mujer)).toMatch(/^Otra cosa, Elvira\./); // desde la ronda 3 del 30/09 (antes "Una última cosa")
     expect(renderizar(mensajePorId('M9')!.texto, { ...mujer, quienRegala: 'Lucía' })).toMatch(/^Hola, Lucía\. Te aviso que Elvira hace una semana/);
     expect(renderizar(mensajePorId('M9')!.texto, mujer)).toMatch(/^Hola, \{\{quien_regala\}\}\./);
     expect(renderizar(mensajePorId('M10')!.texto, mujer)).toBe('Terminamos esta etapa, Elvira. Pasamos a la siguiente.');

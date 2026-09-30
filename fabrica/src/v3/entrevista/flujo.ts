@@ -226,6 +226,8 @@ export function mensajesDespues(pregunta: Pick<PreguntaEntrevista, 'id' | 'bloqu
   if (pregunta.id === SIN_ACUSE_ANTES_DEL_FINAL) return [];
   // Un cierre contestado con un "no" corto o "paso": acuse neutro, sin agradecer un contenido que no hubo (Naza, 30/09).
   if (pregunta.clase === 'cierre') return esPaso(respuesta) || esNoCorto(respuesta) ? ['M25'] : ['M24'];
+  // Lo mismo con una sensible: "Gracias por confiármelo" no va después de un "no" o un "paso" (Naza, 30/09, ronda 3).
+  if (pregunta.sensible && (esPaso(respuesta) || esNoCorto(respuesta))) return ['M25'];
   if (esPaso(respuesta)) return ['M21'];
   return [pregunta.sensible ? 'M4' : 'M3'];
 }

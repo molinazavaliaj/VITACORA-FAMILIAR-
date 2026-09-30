@@ -140,3 +140,19 @@ Palabras que Fable marca para España: "sin apuro" (allá "apuro" es vergüenza 
 
 ## Pendiente grande: el banco entero está en "vos"
 Al revisar la bienvenida para España apareció esto: **todos los textos del banco (preguntas y mensajes) están escritos con voseo** ("contame", "tenés", "vos"). La ficha no tiene un campo de "vos o tú" (`formaTrato` en `fabrica/src/v3/ficha.ts` es solo el género del trato) y `renderizar` no adapta nada. `flujo-vigente.md` dice que la ficha pide "si habla de vos o de tú": eso **no está programado**. Para vender en España hace falta: un campo en la ficha, una versión en "tú" de cada texto (la redacta Fable, la aprueba Naza) y que el código elija. También revisar palabras locales ("apuro", "armar", "colimba", "barra", "changa"…). No se hizo nada todavía.
+
+### Bienvenida: aprobada (30/09)
+Naza aprobó la B con un cambio: sin el nombre de quien regala, "Una persona que te quiere mucho te regaló un libro con la historia de tu vida…". **Aplicado** en BIEN (un solo mensaje con tres párrafos; M6 queda sin uso). El cambio de "vos" a "tú" y las palabras locales ("sin apuro", "armarlo") se hacen **cuando esté todo cerrado** (Naza).
+
+## Ronda 3 (30/09): Fable releyó la versión 4 como Rogelio
+Conclusión de Fable: mejoró mucho (un mensaje por silencio, las pausas sobrias funcionan, el final emociona).
+
+| # | Decisión de Naza | Estado |
+|---|---|---|
+| 1 | Antes de un cierre y de LE9, el acuse común pegado es solo "Gracias, {{nombre}}." (antes: "Anotado. Sigo con otra." arriba de "Con esto cerramos…", 9 veces). | **Aplicado**: M26 nuevo, `acuseAntesDe` en `mensajes.ts`. |
+| 2 | FO1: "Una última cosa" → "Otra cosa, {{nombre}}." | **Aplicado.** |
+| 3 | Una sensible (AM9, CA17, AD15, JU17, TR11, bloque 11) contestada con un "no" corto o "paso" lleva el neutro M25, no el sobrio M4. | **Aplicado** (`mensajesDespues`). |
+| 4 | Si el acuse pegado ya lleva el nombre, la entrada del bloque va sin el nombre. | **Aplicado** (`entradaSegunAcuse`). |
+| 5 | M25.2 "Dale." → "Bien, seguimos." | **Aplicado.** Queda igual a M25.1; delante de algo que arranca con "Seguimos" o "Pasamos" va M25.3 ("Bien, entonces."). |
+
+No se tocan HI2b ni JU1/JU8 (plan B). Resultado: **127 mensajes de WhatsApp** en la vida completa.

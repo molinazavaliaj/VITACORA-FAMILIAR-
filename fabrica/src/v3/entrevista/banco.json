@@ -2113,7 +2113,7 @@
       "id": "FO1",
       "bloque": 15,
       "orden": 195,
-      "texto": "Una última cosa, {{nombre}}. ¿Hay alguna foto, en el celular o en algún cajón de tu casa, que quieras que quede para siempre en este libro? Si la tenés a mano, sacale una foto y mandámela, y después contame en un audio qué se ve y quiénes están. Y si no encontrás ninguna, no pasa nada: el libro va igual.",
+      "texto": "Otra cosa, {{nombre}}. ¿Hay alguna foto, en el celular o en algún cajón de tu casa, que quieras que quede para siempre en este libro? Si la tenés a mano, sacale una foto y mandámela, y después contame en un audio qué se ve y quiénes están. Y si no encontrás ninguna, no pasa nada: el libro va igual.",
       "depende": [],
       "parte": "nucleo",
       "clase": "foto",
@@ -2153,12 +2153,12 @@
   "mensajes": [
     {
       "id": "BIEN",
-      "cuando": "Primer mensaje",
-      "texto": "Hola, {{nombre}}. Juntos vamos a escribir la historia de tu vida, y quiero que sea bien tuya. Te cuento cómo es esto, así vamos tranquilos: yo te pregunto cosas de tu vida, una por vez, y vos me las contás como se las contarías a alguien en la mesa. Si alguna pregunta no tiene que ver con lo que viviste, no pasa nada: me decís que no, o me contás lo que en realidad te tocó a vos, que eso es lo que quiero saber."
+      "cuando": "Primer mensaje (bienvenida y cómo va, en un solo mensaje; `<br>` = salto de línea)",
+      "texto": "Hola, {{nombre}}, ¿cómo estás? Una persona que te quiere mucho te regaló un libro con la historia de tu vida, y yo soy quien te va a entrevistar para armarlo. Lo hacemos acá, por WhatsApp, tranquilos.\n\nFunciona así: te mando una pregunta y vos me respondés en audio, como si se lo estuvieras contando a tu mejor amigo. Podés mandarme todos los audios que quieras. Y cuando termines de contar, no tenés que avisarme nada: cuando pasa un ratito sin que mandes nada, te llega sola la pregunta que sigue.\n\nSi alguna pregunta no va con tu vida, no pasa nada: me decís que no, o me contás lo que en realidad te pasó a vos. Y sin apuro, eh. Esto lo hacemos al ritmo que vos quieras."
     },
     {
       "id": "M6",
-      "cuando": "Después de la bienvenida",
+      "cuando": "**Sin uso desde el 30/09** (Naza): su contenido va dentro de BIEN. Antes: después de la bienvenida",
       "texto": "Ahora te explico cómo va la entrevista, {{nombre}}. Te mando una pregunta y vos me la contás en audio. Si te salen dos o tres audios, mejor. Cuando quedás en silencio un ratito, entiendo que terminaste y te mando la próxima. No hay apuro: vamos al paso que vos vayas marcando."
     },
     {
@@ -2208,22 +2208,22 @@
     },
     {
       "id": "M4.1",
-      "cuando": "Acuses sobrios, después de algo difícil (AM9, CA17, AD15, JU17, TR11 y todo el bloque 11). Van solos, en mensaje aparte",
+      "cuando": "Acuses sobrios, después de algo difícil (AM9, CA17, AD15, JU17, TR11 y todo el bloque 11), si contó algo (con un \"no\" corto o \"paso\" va M25). Van solos, en mensaje aparte",
       "texto": "Gracias por contarme esto, {{nombre}}. Queda guardado con cuidado."
     },
     {
       "id": "M4.2",
-      "cuando": "Acuses sobrios, después de algo difícil (AM9, CA17, AD15, JU17, TR11 y todo el bloque 11). Van solos, en mensaje aparte",
+      "cuando": "Acuses sobrios, después de algo difícil (AM9, CA17, AD15, JU17, TR11 y todo el bloque 11), si contó algo (con un \"no\" corto o \"paso\" va M25). Van solos, en mensaje aparte",
       "texto": "Te escuché. Gracias por confiármelo."
     },
     {
       "id": "M4.3",
-      "cuando": "Acuses sobrios, después de algo difícil (AM9, CA17, AD15, JU17, TR11 y todo el bloque 11). Van solos, en mensaje aparte",
+      "cuando": "Acuses sobrios, después de algo difícil (AM9, CA17, AD15, JU17, TR11 y todo el bloque 11), si contó algo (con un \"no\" corto o \"paso\" va M25). Van solos, en mensaje aparte",
       "texto": "Lo guardo tal como lo contaste. Gracias."
     },
     {
       "id": "M4.4",
-      "cuando": "Acuses sobrios, después de algo difícil (AM9, CA17, AD15, JU17, TR11 y todo el bloque 11). Van solos, en mensaje aparte",
+      "cuando": "Acuses sobrios, después de algo difícil (AM9, CA17, AD15, JU17, TR11 y todo el bloque 11), si contó algo (con un \"no\" corto o \"paso\" va M25). Van solos, en mensaje aparte",
       "texto": "Gracias por animarte a contarlo. Cuando quieras, seguimos."
     },
     {
@@ -2283,18 +2283,23 @@
     },
     {
       "id": "M25.1",
-      "cuando": "Después del cierre de un bloque contestado con un \"no\" corto o \"paso\", rotan. Primera línea del mensaje que sigue; si ese mensaje arranca con \"Seguimos\" o \"Pasamos\", no va M25.1",
+      "cuando": "Después de un cierre, o de una pregunta con acuse sobrio (sensible), contestados con un \"no\" corto o \"paso\"; rotan. Primera línea del mensaje que sigue; si ese mensaje arranca con \"Seguimos\" o \"Pasamos\", va M25.3",
       "texto": "Bien, seguimos."
     },
     {
       "id": "M25.2",
-      "cuando": "Después del cierre de un bloque contestado con un \"no\" corto o \"paso\", rotan. Primera línea del mensaje que sigue; si ese mensaje arranca con \"Seguimos\" o \"Pasamos\", no va M25.1",
-      "texto": "Dale."
+      "cuando": "Después de un cierre, o de una pregunta con acuse sobrio (sensible), contestados con un \"no\" corto o \"paso\"; rotan. Primera línea del mensaje que sigue; si ese mensaje arranca con \"Seguimos\" o \"Pasamos\", va M25.3",
+      "texto": "Bien, seguimos."
     },
     {
       "id": "M25.3",
-      "cuando": "Después del cierre de un bloque contestado con un \"no\" corto o \"paso\", rotan. Primera línea del mensaje que sigue; si ese mensaje arranca con \"Seguimos\" o \"Pasamos\", no va M25.1",
+      "cuando": "Después de un cierre, o de una pregunta con acuse sobrio (sensible), contestados con un \"no\" corto o \"paso\"; rotan. Primera línea del mensaje que sigue; si ese mensaje arranca con \"Seguimos\" o \"Pasamos\", va M25.3",
       "texto": "Bien, entonces."
+    },
+    {
+      "id": "M26",
+      "cuando": "En lugar del acuse común (M3) cuando lo que sigue es un cierre de bloque o LE9: no anuncia \"otra pregunta\" antes de \"Con esto cerramos…\"",
+      "texto": "Gracias, {{nombre}}."
     },
     {
       "id": "DD1",

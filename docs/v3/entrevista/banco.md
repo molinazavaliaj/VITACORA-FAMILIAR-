@@ -17,14 +17,15 @@
 - **Parte:** `núcleo` (lo que se manda a todos) o `extra` (la ronda extra, si la persona la acepta).
 - **Clase:** `historia` (pregunta de historia), `cierre` (pregunta de cierre de bloque), `aviso` (mensaje que no espera respuesta), `foto` (la única pregunta de fotos), `final` (el mensaje final).
 - **Sensible:** `sí` = después de la respuesta va un acuse sobrio (M4) en vez de M3.
+- **Saltos de línea:** `<br>` dentro de una celda es un salto de línea en el mensaje (`<br><br>` = párrafo nuevo).
 - **Marcas dentro del texto:** `{{o/a}}` y `{{padre/madre}}` según el género (o la forma de trato); `{{nombre}}`; `{{etapa}}`; `{{quien_regala}}`. **Variante según una respuesta:** `«sino:X: a ‖ b»` = si la respuesta a X fue un "no" corto va *a*; si no (o si X no se contestó), va *b*.
 
 ## Arranque
 
 | ID | Cuándo | Texto |
 |---|---|---|
-| BIEN | Primer mensaje | Hola, {{nombre}}. Juntos vamos a escribir la historia de tu vida, y quiero que sea bien tuya. Te cuento cómo es esto, así vamos tranquilos: yo te pregunto cosas de tu vida, una por vez, y vos me las contás como se las contarías a alguien en la mesa. Si alguna pregunta no tiene que ver con lo que viviste, no pasa nada: me decís que no, o me contás lo que en realidad te tocó a vos, que eso es lo que quiero saber. |
-| M6 | Después de la bienvenida | Ahora te explico cómo va la entrevista, {{nombre}}. Te mando una pregunta y vos me la contás en audio. Si te salen dos o tres audios, mejor. Cuando quedás en silencio un ratito, entiendo que terminaste y te mando la próxima. No hay apuro: vamos al paso que vos vayas marcando. |
+| BIEN | Primer mensaje (bienvenida y cómo va, en un solo mensaje; `<br>` = salto de línea) | Hola, {{nombre}}, ¿cómo estás? Una persona que te quiere mucho te regaló un libro con la historia de tu vida, y yo soy quien te va a entrevistar para armarlo. Lo hacemos acá, por WhatsApp, tranquilos.<br><br>Funciona así: te mando una pregunta y vos me respondés en audio, como si se lo estuvieras contando a tu mejor amigo. Podés mandarme todos los audios que quieras. Y cuando termines de contar, no tenés que avisarme nada: cuando pasa un ratito sin que mandes nada, te llega sola la pregunta que sigue.<br><br>Si alguna pregunta no va con tu vida, no pasa nada: me decís que no, o me contás lo que en realidad te pasó a vos. Y sin apuro, eh. Esto lo hacemos al ritmo que vos quieras. |
+| M6 | **Sin uso desde el 30/09** (Naza): su contenido va dentro de BIEN. Antes: después de la bienvenida | Ahora te explico cómo va la entrevista, {{nombre}}. Te mando una pregunta y vos me la contás en audio. Si te salen dos o tres audios, mejor. Cuando quedás en silencio un ratito, entiendo que terminaste y te mando la próxima. No hay apuro: vamos al paso que vos vayas marcando. |
 
 ## Mensajes fijos
 
@@ -39,10 +40,10 @@
 | M3.6 | Acuses, rotan. Van como primera línea del mensaje que sigue (Naza, 30/09) | Lo tengo. Vamos con otra. |
 | M3.7 | Acuses, rotan. Van como primera línea del mensaje que sigue (Naza, 30/09) | Listo, quedó guardado. Sigo. |
 | M3.8 | Acuses, rotan. Van como primera línea del mensaje que sigue (Naza, 30/09) | Escuchado. Vamos por la siguiente. |
-| M4.1 | Acuses sobrios, después de algo difícil (AM9, CA17, AD15, JU17, TR11 y todo el bloque 11). Van solos, en mensaje aparte | Gracias por contarme esto, {{nombre}}. Queda guardado con cuidado. |
-| M4.2 | Acuses sobrios, después de algo difícil (AM9, CA17, AD15, JU17, TR11 y todo el bloque 11). Van solos, en mensaje aparte | Te escuché. Gracias por confiármelo. |
-| M4.3 | Acuses sobrios, después de algo difícil (AM9, CA17, AD15, JU17, TR11 y todo el bloque 11). Van solos, en mensaje aparte | Lo guardo tal como lo contaste. Gracias. |
-| M4.4 | Acuses sobrios, después de algo difícil (AM9, CA17, AD15, JU17, TR11 y todo el bloque 11). Van solos, en mensaje aparte | Gracias por animarte a contarlo. Cuando quieras, seguimos. |
+| M4.1 | Acuses sobrios, después de algo difícil (AM9, CA17, AD15, JU17, TR11 y todo el bloque 11), si contó algo (con un "no" corto o "paso" va M25). Van solos, en mensaje aparte | Gracias por contarme esto, {{nombre}}. Queda guardado con cuidado. |
+| M4.2 | Acuses sobrios, después de algo difícil (AM9, CA17, AD15, JU17, TR11 y todo el bloque 11), si contó algo (con un "no" corto o "paso" va M25). Van solos, en mensaje aparte | Te escuché. Gracias por confiármelo. |
+| M4.3 | Acuses sobrios, después de algo difícil (AM9, CA17, AD15, JU17, TR11 y todo el bloque 11), si contó algo (con un "no" corto o "paso" va M25). Van solos, en mensaje aparte | Lo guardo tal como lo contaste. Gracias. |
+| M4.4 | Acuses sobrios, después de algo difícil (AM9, CA17, AD15, JU17, TR11 y todo el bloque 11), si contó algo (con un "no" corto o "paso" va M25). Van solos, en mensaje aparte | Gracias por animarte a contarlo. Cuando quieras, seguimos. |
 | M8 | Recordatorio a la persona, a los pocos días sin respuesta | Hola, {{nombre}}. Pasaron unos días y quería saber cómo andás. Tu historia está acá, guardada tal como la dejaste. Cuando tengas un rato me contestás la que quedó pendiente. Sin apuro. |
 | M9 | Aviso a la familia, una semana sin audios | Hola, {{quien_regala}}. Te aviso que {{nombre}} hace una semana que no manda audios. Puede ser cualquier cosa: que ande con otras cosas, que no mire mucho el celular o que le cueste un poco arrancar de nuevo. Si podés, pegale un llamado o hacele una visita y preguntale cómo viene con el libro; muchas veces con una charla con alguien de la familia se vuelve a enganchar. Lo que ya contó está guardado. Si hay algo que tenga que saber, me avisás. |
 | M10 | **Sin uso desde el 30/09** (Naza): la frase de entrada del bloque siguiente hace de pasaje. Antes: fin de etapa (bloques 2 a 5), después del cierre | Terminamos esta etapa, {{nombre}}. Pasamos a la siguiente. |
@@ -54,9 +55,10 @@
 | M24.2 | Después del cierre de cualquier bloque (1 a 14), rotan. Van como primera línea del mensaje que sigue (la frase de entrada) | Anotado, gracias. Quedó guardado junto con el resto. |
 | M24.3 | Después del cierre de cualquier bloque (1 a 14), rotan. Van como primera línea del mensaje que sigue (la frase de entrada) | Bien, {{nombre}}. Lo sumo a lo que ya me contaste de eso. |
 | M24.4 | Después del cierre de cualquier bloque (1 a 14), rotan. Van como primera línea del mensaje que sigue (la frase de entrada) | Gracias por eso. Cada detalle que agregás suma. |
-| M25.1 | Después del cierre de un bloque contestado con un "no" corto o "paso", rotan. Primera línea del mensaje que sigue; si ese mensaje arranca con "Seguimos" o "Pasamos", no va M25.1 | Bien, seguimos. |
-| M25.2 | Después del cierre de un bloque contestado con un "no" corto o "paso", rotan. Primera línea del mensaje que sigue; si ese mensaje arranca con "Seguimos" o "Pasamos", no va M25.1 | Dale. |
-| M25.3 | Después del cierre de un bloque contestado con un "no" corto o "paso", rotan. Primera línea del mensaje que sigue; si ese mensaje arranca con "Seguimos" o "Pasamos", no va M25.1 | Bien, entonces. |
+| M25.1 | Después de un cierre, o de una pregunta con acuse sobrio (sensible), contestados con un "no" corto o "paso"; rotan. Primera línea del mensaje que sigue; si ese mensaje arranca con "Seguimos" o "Pasamos", va M25.3 | Bien, seguimos. |
+| M25.2 | Después de un cierre, o de una pregunta con acuse sobrio (sensible), contestados con un "no" corto o "paso"; rotan. Primera línea del mensaje que sigue; si ese mensaje arranca con "Seguimos" o "Pasamos", va M25.3 | Bien, seguimos. |
+| M25.3 | Después de un cierre, o de una pregunta con acuse sobrio (sensible), contestados con un "no" corto o "paso"; rotan. Primera línea del mensaje que sigue; si ese mensaje arranca con "Seguimos" o "Pasamos", va M25.3 | Bien, entonces. |
+| M26 | En lugar del acuse común (M3) cuando lo que sigue es un cierre de bloque o LE9: no anuncia "otra pregunta" antes de "Con esto cerramos…" | Gracias, {{nombre}}. |
 | DD1 | Dashboard (no WhatsApp): la ficha dice que sí y en la entrevista contestó que no. Botones: [Lo dejo así] [Quiero contar algo] [Error de la ficha] | Una duda chiquita sobre {{tema}}, {{nombre}}. En la ficha aparece y en la entrevista no salió. No hay nada que corregir si no querés: el libro se escribe con lo que vos contaste. Pero si hay algo que quieras sumar, o si la ficha está mal, acá podés decírmelo. |
 | DD2 | Dashboard (no WhatsApp): la ficha dice que no y en la entrevista contó algo. Botones: [Dejalo como lo conté] [Quiero agregar algo] [Sacalo del libro] | {{nombre}}, sobre {{tema}}: en la ficha no figuraba, pero en la entrevista lo nombraste. Quiero asegurarme de que en el libro quede como vos querés. Podemos dejarlo tal cual lo contaste, podés agregar algo, o si se coló por error, lo saco. |
 
@@ -347,7 +349,7 @@ Una frase al empezar cada bloque, antes de su primera pregunta; no espera respue
 | LE6 | Cuando la gente que te quiere piensa en vos, ¿qué te gustaría que se le venga a la cabeza? Una frase tuya, una imagen, una escena. |  | extra | historia |  |
 | FU1 | ¿Queda algo que todavía querés hacer? Contámelo como si ya estuviera pasando: dónde estás, con quién, qué ves. |  | núcleo | historia |  |
 | LE7 | Si tu vida fuera un libro, ¿qué título le pondrías? Decímelo y contame por qué ese. |  | núcleo | historia |  |
-| FO1 | Una última cosa, {{nombre}}. ¿Hay alguna foto, en el celular o en algún cajón de tu casa, que quieras que quede para siempre en este libro? Si la tenés a mano, sacale una foto y mandámela, y después contame en un audio qué se ve y quiénes están. Y si no encontrás ninguna, no pasa nada: el libro va igual. |  | núcleo | foto |  |
+| FO1 | Otra cosa, {{nombre}}. ¿Hay alguna foto, en el celular o en algún cajón de tu casa, que quieras que quede para siempre en este libro? Si la tenés a mano, sacale una foto y mandámela, y después contame en un audio qué se ve y quiénes están. Y si no encontrás ninguna, no pasa nada: el libro va igual. |  | núcleo | foto |  |
 | LE9 | Llegamos al final. ¿Hay algo que en todo este tiempo no te pregunté y querés que esté en el libro? Una persona, un lugar, una historia que te quedó dando vueltas. |  | núcleo | historia |  |
 | LE8 | Ahora sí, hablale a tu familia, a los que van a leer este libro. Lo que les dirías y lo que les deseás si los tuvieras sentados enfrente, sin apuro, de a uno. Nadie te corre. |  | núcleo | historia |  |
 | FIN | Hasta acá llegamos, {{nombre}}. Gracias por cada audio, por cada historia y por la confianza de contarlas así. Con todo lo que me contaste vamos a armar un libro que va a quedar en tu familia para siempre, y es bien tuyo. Antes de escribirlo vas a poder repasar lo que contaste, por si querés cambiar o agregar algo. Fue un gusto enorme escucharte. |  | núcleo | final |  |
@@ -357,10 +359,10 @@ Una frase al empezar cada bloque, antes de su primera pregunta; no espera respue
 
 Todas salen de [`metodo-entrevista.md`](../metodo-entrevista.md) (secciones 20 a 25 y las últimas vueltas); el código las implementa en `fabrica/src/v3/entrevista/flujo.ts`.
 
-1. **Arranque:** BIEN y enseguida M6; después, la primera pregunta (§22 y "Cierre del proceso, vuelta 2").
+1. **Arranque:** BIEN (bienvenida y cómo va, en un solo mensaje; M6 ya no se manda); después, la primera pregunta (Naza, 30/09).
 2. **Una pregunta por vez.** M1 va debajo, en línea aparte y en cursiva, **solo** en las 3 primeras preguntas que se mandan, en las 6 que abren un tema (CA6, JU8, AM0, AM9, HI0, HI8) y en las preguntas de historia del bloque 11. En el resto, la pregunta va sin esa línea. Nunca debajo de cierres, aviso, foto ni final (Naza, 30/09, después de leer la entrevista de corrido; antes iba debajo de todas las de historia).
 3. **Audios:** los que llegan mientras la pregunta está abierta se suman a esa respuesta; la siguiente llega sola cuando pasan unos minutos sin audios nuevos. No hay botón [Siguiente] (§20, vuelta 2).
-4. **Acuses:** después de cada respuesta, uno de M3 (rotan); después de una pregunta `sensible`, uno de M4; después de un cierre, M24 (o M25, neutro, si el cierre se contestó con un "no" corto o "paso"); después de LE8, nada (va directo FIN). M3, M21, M24 y M25 van como **primera línea del mensaje que sigue** (la frase de entrada si hay, si no la pregunta); M4 va **solo**, en mensaje aparte (Naza, 30/09, ronda 2). Después de "paso" en una pregunta que no es cierre, M21. Si manda texto, M22; si el audio llega cortado, M23 (§22.3).
+4. **Acuses:** después de cada respuesta, uno de M3 (rotan); después de una pregunta `sensible`, uno de M4 (o M25 si la contestó con un "no" corto o "paso"); si lo que sigue es un cierre o LE9, en lugar de M3 va M26 ("Gracias, {{nombre}}."); si el acuse pegado lleva el nombre, la frase de entrada que va en el mismo mensaje se manda sin el nombre; después de un cierre, M24 (o M25, neutro, si el cierre se contestó con un "no" corto o "paso"); después de LE8, nada (va directo FIN). M3, M21, M24, M25 y M26 van como **primera línea del mensaje que sigue** (la frase de entrada si hay, si no la pregunta); M4 va **solo**, en mensaje aparte (Naza, 30/09, ronda 2). Después de "paso" en una pregunta que no es cierre, M21. Si manda texto, M22; si el audio llega cortado, M23 (§22.3).
 5. **"No" corto:** menos de 15 palabras y empieza con no / nunca / jamás. "Paso" no cuenta como "no". Si la pregunta que abre un tema (hermanos CA6, pareja AM0, hijos HI0, nietos HI8, mudarse JU8) recibe un "no" corto, las que dependen de ella no se mandan (§22.4).
 6. **Entradas y cierres:** antes de la primera pregunta de cada bloque (la primera que se manda de ese bloque) va su frase de entrada EN, si tiene (Naza, 30/09). Además, todos los bloques del 1 al 14 terminan con su cierre (CI1 a CI14), siempre, en el núcleo. Después del cierre, M24 en todos (desde la ronda 2 no va M10: la entrada del bloque siguiente hace de pasaje). Antes solo iban CI2 a CI5 (Naza, 30/09).
 7. **Bloque 11:** antes de la primera, el aviso AV11; después de cada una, M4 (§22.6).
@@ -459,4 +461,14 @@ Registro en [`correcciones-lectura.md`](correcciones-lectura.md).
 - CA17, AD15, JU17 y TR11 pasan a sensibles (acuse sobrio M4).
 - Final: LE7 → preguntas de la familia → FO1 → LE9 → LE8 → FIN; después de LE8 no va acuse. FU1 pasa al bloque 15, antes de LE7. FI7 pasa al bloque 12, antes de CI12.
 - CI11 sin su primera frase (antes: "Gracias por contarme esto; sé que no es fácil. Si hay otro momento difícil…").
-- Aprobados después (30/09): los acuses neutros M25.1-M25.3 para cuando un cierre se contesta con un "no" corto o "paso" (redactados por Fable). Pendiente de aprobar: la bienvenida y M6 en un solo mensaje (Naza pidió 3 opciones nuevas).
+- Aprobados después (30/09): los acuses neutros M25.1-M25.3 para cuando un cierre se contesta con un "no" corto o "paso" (redactados por Fable). La bienvenida y M6 en un solo mensaje: aprobada más tarde el mismo día (ver abajo).
+- Bienvenida en un solo mensaje (Naza, 30/09): la opción B de Fable, sin "tomando unos mates" y sin el nombre de quien regala ("Una persona que te quiere mucho te regaló…"). M6 queda sin uso. Antes, BIEN: "Hola, {{nombre}}. Juntos vamos a escribir la historia de tu vida, y quiero que sea bien tuya. Te cuento cómo es esto, así vamos tranquilos: yo te pregunto cosas de tu vida, una por vez, y vos me las contás como se las contarías a alguien en la mesa. Si alguna pregunta no tiene que ver con lo que viviste, no pasa nada: me decís que no, o me contás lo que en realidad te tocó a vos, que eso es lo que quiero saber."
+
+## Cambios del 30/09, ronda 3 (Naza, después de que Fable releyó la versión 4 como Rogelio)
+Registro en [`correcciones-lectura.md`](correcciones-lectura.md).
+- M26 nuevo, "Gracias, {{nombre}}.": en lugar de M3 cuando lo que sigue es un cierre o LE9 (antes quedaba "Anotado. Sigo con otra." y abajo "Con esto cerramos…").
+- FO1 arranca con "Otra cosa, {{nombre}}." (antes: "Una última cosa, {{nombre}}."; después vienen LE9 y LE8).
+- Una sensible contestada con un "no" corto o "paso" lleva el neutro M25, no el sobrio M4.
+- Si el acuse pegado lleva el nombre, la frase de entrada del mismo mensaje va sin el nombre.
+- M25.2 pasa de "Dale." a "Bien, seguimos."; delante de algo que arranca con "Seguimos" o "Pasamos" va M25.3 ("Bien, entonces.").
+- No se tocan HI2b ni JU1/JU8 (plan B).

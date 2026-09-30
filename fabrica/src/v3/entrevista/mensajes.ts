@@ -5,6 +5,7 @@
 // mensajes separados; M1 va al final del mensaje de la pregunta. Puro: recibe
 // textos ya renderizados.
 
+import type { PreguntaEntrevista } from './banco.js';
 import { acuseRotado } from './flujo.js';
 
 /** Las familias de acuse que devuelve `mensajesDespues`. */
@@ -39,11 +40,36 @@ export function armarTurno(t: Turno): string[] {
 
 /**
  * El acuse neutro (M25) de turno, sabiendo con qué arranca lo que sigue:
- * "Bien, seguimos." (M25.1) no va delante de un mensaje que arranca con
- * "Seguimos" o "Pasamos"; en ese caso va el siguiente de la rotación
- * (propuesta de Fable, aprobada por Naza el 30/09).
+ * "Bien, seguimos." (M25.1 y, desde la ronda 3, también M25.2) no va delante
+ * de un mensaje que arranca con "Seguimos" o "Pasamos"; en ese caso va M25.3
+ * ("Bien, entonces."). Regla de Fable, aprobada por Naza el 30/09.
  */
 export function acuseNeutro(n: number, siguiente: string): string {
   const id = acuseRotado('M25', n);
-  return id === 'M25.1' && /^(seguimos|pasamos)(?![a-záéíóúñ])/i.test(siguiente.trim()) ? 'M25.2' : id;
+  return id !== 'M25.3' && /^(seguimos|pasamos)(?![a-záéíóúñ])/i.test(siguiente.trim()) ? 'M25.3' : id;
+}
+
+/** Después de esta pregunta viene el final: el acuse común no anuncia "otra" (Naza, 30/09, ronda 3). */
+const ANTES_DE_LE9 = 'LE9';
+
+/**
+ * El acuse que va de verdad, sabiendo qué se manda después: si es un acuse
+ * común (M3) y lo que sigue es un cierre de bloque o LE9, va M26 ("Gracias,
+ * {{nombre}}."), porque "Sigo con otra." arriba de "Con esto cerramos…" se
+ * contradice (Naza, 30/09, ronda 3). Los demás no cambian.
+ */
+export function acuseAntesDe(id: string, familia: FamiliaAcuse, siguiente: Pick<PreguntaEntrevista, 'id' | 'clase'>): string {
+  if (familia !== 'M3') return id;
+  return siguiente.clase === 'cierre' || siguiente.id === ANTES_DE_LE9 ? 'M26' : id;
+}
+
+/**
+ * La frase de entrada (sin renderizar) según el acuse que va pegado en el
+ * mismo mensaje: si el acuse ya dice el nombre, la entrada va sin el nombre,
+ * para no repetirlo (Naza, 30/09, ronda 3). "Hablemos de los amigos,
+ * {{nombre}}, y de…" → "Hablemos de los amigos y de…".
+ */
+export function entradaSegunAcuse(entrada: string, acuse?: string): string {
+  if (!acuse?.includes('{{nombre}}')) return entrada;
+  return entrada.replace(/, \{\{nombre\}\},(?= y )/, '').replace(/, \{\{nombre\}\}/, '');
 }

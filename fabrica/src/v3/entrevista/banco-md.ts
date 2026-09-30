@@ -35,6 +35,11 @@ export type BancoEntrevista = {
 const ID = /^[A-Z]{1,4}\d*(\.\d+)?b?$/;
 const CLASES: readonly Clase[] = ['historia', 'cierre', 'aviso', 'foto', 'final'];
 
+/** `<br>` en una celda es un salto de línea en el mensaje (la bienvenida tiene párrafos). */
+function saltos(texto: string): string {
+  return texto.replace(/<br>/g, '\n');
+}
+
 function celdas(linea: string): string[] {
   return linea
     .trim()
@@ -102,7 +107,7 @@ export function parsearEntrevistaMd(md: string): BancoEntrevista {
 
     if (seccion === 'mensajes') {
       const [id, cuando, texto] = c;
-      mensajes.push({ id, cuando, texto });
+      mensajes.push({ id, cuando, texto: saltos(texto) });
       continue;
     }
     if (c.length !== 6) throw new Error(`${c[0]}: la fila tiene ${c.length} columnas y van 6`);
