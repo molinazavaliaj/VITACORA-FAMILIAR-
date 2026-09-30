@@ -8,7 +8,7 @@
 // entre 19:00 y 22:30 y mínimo 3 días en la compra, AS1 "ya de viaje" con un
 // SÍ tardío, e ID1 nunca el día de salida en casa. Ya no hay `it.fails`.
 import { describe, it, expect } from 'vitest';
-import { correr, correrMuchos, INVARIANTES, lecturaUnDia, lecturaDosDias, lecturaTreintaDias, revisar, escenario } from '../scripts/viaje-v2-simular.js';
+import { correr, correrMuchos, INVARIANTES, HALLAZGOS, lecturaUnDia, lecturaDosDias, lecturaTreintaDias, revisar, escenario } from '../scripts/viaje-v2-simular.js';
 
 const CORRIDAS = correrMuchos(300);
 
@@ -81,5 +81,61 @@ describe('viaje v2: simulación, lo que cambió con las reglas de las simulacion
 
   it('hay reacciones ❤️ y ningún ACM después de un mediodía', () => {
     expect(CORRIDAS.some((c) => c.res.corazones.length > 0)).toBe(true);
+    const acm = CORRIDAS.flatMap((c) =>
+      c.res.enviados.filter((m) => m.reaccionA && ['MD', 'VU0', 'foto-suelta'].includes(m.reaccionA.tipo) && m.ids.some((id) => id.startsWith('ACM'))),
+    );
+    expect(acm).toEqual([]);
   });
+});
+
+describe('viaje v2: los controles del simulador detectan lo que tienen que detectar', () => {
+  const invs = (res: Parameters<typeof revisar>[0]) => revisar(res).violaciones.map((v) => v.inv);
+  const buscar = (f: (c: (typeof CORRIDAS)[number]) => boolean) => CORRIDAS.find(f)!;
+
+  it('g9: si un viaje de 3 días o más se queda sin FN1, salta', () => {
+    const c = buscar((x) => x.res.enviados.some((m) => m.ids.includes('FN1')));
+    const roto = { ...c.res, enviados: c.res.enviados.filter((m) => !m.ids.includes('FN1')) };
+    expect(invs(roto)).toContain('g9');
+  });
+
+  it('g9: el caso aceptado (3 días, ID1 ocupa la noche del día 1) no salta', () => {
+    const r = correr(1026); // 3 días, Buenos Aires → Tokio (el ejemplo de i12 en resumen.md)
+    expect(r.e.dias).toBe(3);
+    expect(r.hallazgos.map((h) => h.inv)).toContain('i12');
+    expect(r!.res.enviados.some((m) => m.ids.includes('FN1'))).toBe(false);
+    expect(r!.violaciones.map((v) => v.inv)).not.toContain('g9');
+  });
+
+  it('d9: una ❤️ que apunta a otro mensaje, o una foto suelta sin ❤️, salta', () => {
+    const c = buscar((x) => x.res.corazones.some((k) => k.a === 'foto-suelta') && x.res.corazones.some((k) => k.a === 'MD'));
+    const mal = { ...c.res, corazones: c.res.corazones.map((k, i) => (i === 0 ? { ...k, aMensaje: 'otro' } : k)) };
+    expect(invs(mal)).toContain('d9');
+    const sinSuelta = { ...c.res, corazones: c.res.corazones.filter((k) => k.a !== 'foto-suelta') };
+    expect(invs(sinSuelta)).toContain('d9');
+  });
+
+  it('d12: PAS-V2 sin otra pregunta ese día, o PAS-V con otra, salta', () => {
+    const c = buscar((x) => x.res.enviados.some((m) => m.ids[0] === 'PAS-V2'));
+    const i = c.res.enviados.findIndex((m) => m.ids[0] === 'PAS-V2');
+    const cambiado = c.res.enviados.map((m, k) => (k === i ? { ...m, ids: ['PAS-V'] } : m));
+    expect(invs({ ...c.res, enviados: cambiado })).toContain('d12');
+    const d = buscar((x) => x.res.enviados.some((m) => m.ids[0] === 'PAS-V'));
+    const j = d.res.enviados.findIndex((m) => m.ids[0] === 'PAS-V');
+    const cambiado2 = d.res.enviados.map((m, k) => (k === j ? { ...m, ids: ['PAS-V2'] } : m));
+    expect(invs({ ...d.res, enviados: cambiado2 })).toContain('d12');
+  });
+
+  it('i11 dice lo que controla', () => {
+    expect(HALLAZGOS.i11).toMatch(/8:00 justas/);
+    expect(HALLAZGOS.i11).not.toMatch(/debería/);
+  });
+});
+
+// La corrida entera (2400 semillas, ~25 s). Se saltea con VIAJE_V2_SIN_2400=1.
+describe.skipIf(process.env.VIAJE_V2_SIN_2400 === '1')('viaje v2: simulación completa, 2400 viajes', () => {
+  it('ninguna invariante se rompe en las 2400 semillas', () => {
+    const todas = correrMuchos(2400);
+    const rotas = todas.flatMap((c) => c.violaciones.map((v) => `semilla ${c.e.semilla} ${v.inv}: ${v.detalle}`));
+    expect(rotas).toEqual([]);
+  }, 180_000);
 });

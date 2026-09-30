@@ -107,13 +107,19 @@ export type Enviado = {
 };
 
 export type Linea = { instante: Date; zona: Zona; de: 'vita' | 'persona' | 'nota' | 'corazon'; texto: string; ids?: string[] };
-/** Una reacción ❤️ de WhatsApp (no es un mensaje): a qué tipo de pregunta respondía. */
-export type Corazon = { en: Date; zona: Zona; a: string };
+/**
+ * Una reacción ❤️ de WhatsApp (no es un mensaje): a qué tipo de pregunta
+ * respondía, a qué mensaje apunta (`aMensaje`, lo que devolvió el código) y a
+ * cuál tenía que apuntar (`esperado`, el id del mensaje de la persona).
+ */
+export type Corazon = { en: Date; zona: Zona; a: string; aMensaje: string | null; esperado: string };
 
 export type Resultado = {
   compra: Compra;
   enviados: Enviado[];
   corazones: Corazon[];
+  /** Los ids de las fotos sueltas que llegaron fuera del álbum (cada una tiene que llevar su ❤️). */
+  sueltasIds: string[];
   lineas: Linea[];
   calPrevio: Calendario;
   cal: Calendario | null;
@@ -154,6 +160,10 @@ export function simular(compra: Compra, compraEn: Date, persona: Persona): Resul
   const casa = compra.zonaCasa;
   const enviados: Enviado[] = [];
   const corazones: Corazon[] = [];
+  const sueltasIds: string[] = [];
+  let idsPersona = 0;
+  /** Un id de WhatsApp inventado para cada mensaje de la persona. */
+  const nuevoId = () => `wamid.${++idsPersona}`;
   const lineas: Linea[] = [];
   let estado: Estado = nuevoEstado();
   const calPrevio = armarCalendario(compra, [...CADENA_ANTES]);
@@ -173,8 +183,8 @@ export function simular(compra: Compra, compraEn: Date, persona: Persona): Resul
   };
   const decir = (en: Date, zona: Zona, dice: string) => lineas.push({ instante: en, zona, de: 'persona', texto: dice });
   const nota = (en: Date, zona: Zona, texto: string) => lineas.push({ instante: en, zona, de: 'nota', texto });
-  const corazon = (en: Date, zona: Zona, x: ReaccionEmoji, a: string) => {
-    corazones.push({ en, zona, a });
+  const corazon = (en: Date, zona: Zona, x: ReaccionEmoji, a: string, esperado: string) => {
+    corazones.push({ en, zona, a, aMensaje: x.aMensaje, esperado });
     lineas.push({ instante: en, zona, de: 'corazon', texto: x.emoji });
   };
   const vencido = (p: Programado) => vencidos.includes(p);
@@ -232,10 +242,12 @@ export function simular(compra: Compra, compraEn: Date, persona: Persona): Resul
       cola.push(s.en, () => {
         if (al1En) return; // ya está el álbum abierto: esas van al álbum, no son sueltas
         decir(s.en, compra.zonaViaje, s.dice);
-        const r = reaccion({ tipo: 'foto-suelta', quedaNoche: quedaNocheEseDia(programados(), s.en) }, { tipo: 'foto' }, compra, estado.rotacion);
+        const idMensaje = nuevoId();
+        sueltasIds.push(idMensaje);
+        const r = reaccion({ tipo: 'foto-suelta', quedaNoche: quedaNocheEseDia(programados(), s.en) }, { tipo: 'foto', idMensaje }, compra, estado.rotacion);
         estado = { ...estado, rotacion: r.rot, fotosSueltas: estado.fotosSueltas + 1 };
         for (const m of r.mensajes) mandar(s.en, compra.zonaViaje, m, 'reaccion', false, { reaccionA: { tipo: 'foto-suelta', respuesta: { tipo: 'foto' } } });
-        for (const x of r.reacciones) corazon(s.en, compra.zonaViaje, x, 'foto-suelta');
+        for (const x of r.reacciones) corazon(s.en, compra.zonaViaje, x, 'foto-suelta', idMensaje);
       });
     }
   });
@@ -309,16 +321,17 @@ export function simular(compra: Compra, compraEn: Date, persona: Persona): Resul
     const envio = estado.envios.filter((x) => x.clave === p.clave).pop();
     if (envio?.respuestas.some((r) => !r.audioMal)) return;
     decir(it.en, p.zona, it.fotos ? `${it.dice} + ${it.fotos === 1 ? 'una foto' : `${it.fotos} fotos`}` : it.dice);
+    const idMensaje = nuevoId();
     const r = reaccion(
       { tipo: p.tipo, quedaNoche: quedaNocheEseDia(programados(), it.en), quedaOtra: quedaOtraEseDia(programados(), it.en) },
-      it.respuesta,
+      { ...it.respuesta, idMensaje },
       compra,
       estado.rotacion,
     );
     estado = { ...estado, rotacion: r.rot, fotosSueltas: estado.fotosSueltas + (it.fotos ?? 0) };
     estado = anotarRespuesta(estado, p.clave, { ...it.respuesta, en: it.en.toISOString() });
     for (const m of r.mensajes) mandar(it.en, p.zona, m, 'reaccion', false, { reaccionA: { tipo: p.tipo, respuesta: it.respuesta } });
-    for (const x of r.reacciones) corazon(it.en, p.zona, x, p.tipo);
+    for (const x of r.reacciones) corazon(it.en, p.zona, x, p.tipo, idMensaje);
     if (r.abreAlbum) abrirAlbum(it.en);
   }
 
@@ -396,7 +409,7 @@ export function simular(compra: Compra, compraEn: Date, persona: Persona): Resul
     error = e instanceof Error ? e.message : String(e);
   }
 
-  return { compra, enviados, corazones, lineas, calPrevio, cal, estado, album, siEn, al1En, desEn, avisosAlbum, nazaDecide, vencidos, fotosTarde, error };
+  return { compra, enviados, corazones, sueltasIds, lineas, calPrevio, cal, estado, album, siEn, al1En, desEn, avisosAlbum, nazaDecide, vencidos, fotosTarde, error };
 }
 
 // ── Los viajes inventados ────────────────────────────────────────────────────
@@ -712,8 +725,9 @@ export const INVARIANTES: Record<string, string> = {
   d6: 'd) Versión "ya de viaje" antes de salir, o la normal ya de viaje',
   d7: 'd) "Ayer" (ID1) fuera del día siguiente a la salida',
   d8: 'd) ATR-V dos noches seguidas',
-  d9: 'd) Acuse en texto (ACM) al mediodía, a VU0 o a una foto suelta (va la reacción ❤️), o sin reacción',
+  d9: 'd) Acuse en texto (ACM) al mediodía, a VU0 o a una foto suelta (va la reacción ❤️), una respuesta o foto suelta sin su ❤️, o una ❤️ que apunta a otro mensaje',
   d10: 'd) ID1 el mismo día de salida en hora de casa',
+  d12: 'd) PAS-V2 ("esta la salteamos") sin otra pregunta ese día, o PAS-V ("Mañana hay otra") con otra ese día',
   d11: 'd) ID1 después de la noche del día 1 (con 12 h o más de diferencia, ID1 ocupa esa noche)',
   e1: 'e) Una de antes de salir sale dos veces (misma versión), o "ya de viaje" después de contestada',
   e2: 'e) Una de antes de salir no contestada, que no sale ni queda en avisosNaza',
@@ -731,6 +745,7 @@ export const INVARIANTES: Record<string, string> = {
   g6: 'g) TXT pegado a otra cosa en el mismo mensaje',
   g7: 'g) El viaje termina sin DES (el álbum nunca se cierra)',
   g8: 'g) DES+ sin AL3 antes (no le preguntó cuáles sacar)',
+  g9: 'g) Viaje de 3 días o más sin FN1 (salvo el caso aceptado: 3 días con ID1 en la noche del día 1)',
   h1: 'h) El calendario no está en orden creciente de tiempo',
   h2: 'h) Algún mensaje después de DES',
   h3: 'h) Otra pregunta entre AL1 y DES',
@@ -747,7 +762,7 @@ export const HALLAZGOS: Record<string, string> = {
   i8: 'Fotos del álbum que llegan después de cerrado (van al panel, sin contestar)',
   i9: 'Una de antes de salir mandada y sin respuesta vuelve "ya de viaje" (por diseño)',
   i10: 'Una reacción con pregunta adentro (AS1 con el SÍ, o COR) sale entre las 23:00 y las 8:00',
-  i11: 'AL2, AL3 o DES por reloj a las 8:00 justas (debería correrse a las 10:00)',
+  i11: 'AL2, AL3 o DES por reloj a las 8:00 justas: no es un error (5 horas después de algo de las 3:00); lo que la franja corre sale a las 10:00',
   i12: 'ID1 ocupa la noche del día 1 (12 horas o más de diferencia: las 10 de casa son la noche de allá)',
   i13: 'UC1 corrida 2 horas después de un SÍ tardío el día de salida',
 };
@@ -913,6 +928,19 @@ export function revisar(res: Resultado): { violaciones: Violacion[]; hallazgos: 
   const respuestasCorazon = res.estado.envios.filter((x) => (x.tipo === 'MD' || x.tipo === 'VU0') && x.respuestas.some((r) => !r.audioMal && r.tipo !== 'paso')).length;
   const corazonesProgramados = res.corazones.filter((x) => x.a === 'MD' || x.a === 'VU0').length;
   if (corazonesProgramados !== respuestasCorazon) mal('d9', `${respuestasCorazon} mediodías contestados y ${corazonesProgramados} ❤️`);
+  for (const id of res.sueltasIds) if (!res.corazones.some((k) => k.a === 'foto-suelta' && k.aMensaje === id)) mal('d9', `foto suelta ${id} sin su ❤️`);
+  for (const k of res.corazones) if (k.aMensaje !== k.esperado) mal('d9', `❤️ a ${k.aMensaje ?? 'nada'} y tenía que ir a ${k.esperado} (${k.a})`);
+  // d12) PAS-V2 / PAS-V según si ese día queda otra pregunta
+  for (const m of env) {
+    if (m.ids[0] !== 'PAS-V2' && m.ids[0] !== 'PAS-V') continue;
+    const otra = preguntas.some((q) => q.en > m.en && fecha(q.en, q.zona) === fecha(m.en, q.zona));
+    if (m.ids[0] === 'PAS-V2' && !otra) mal('d12', `PAS-V2 ${cuando(m)} y ese día no llega nada más`);
+    if (m.ids[0] === 'PAS-V' && otra) mal('d12', `PAS-V ${cuando(m)} y ese día llega otra`);
+  }
+  // g9) FN1 en todo viaje de 3 días o más (salvo 3 días con ID1 en la noche del día 1)
+  const id1EnLaNoche = (res.cal ?? res.calPrevio).programados.some((p) => p.tipo === 'ID1' && p.momento === 'noche');
+  const fn1Vencida = res.vencidos.some((p) => p.tipo === 'FN1');
+  if (n >= 2 && !env.some((m) => m.ids.includes('FN1')) && !fn1Vencida && !(n === 2 && id1EnLaNoche)) mal('g9', `${n + 1} días sin FN1`);
   const uc1 = env.find((m) => m.ids[0] === 'UC1' && m.origen === 'programado');
   if (uc1 && uc1.programado && uc1.en.getTime() !== res.calPrevio.programados[0].instante.getTime()) ojo('i13', `UC1 ${cuando(uc1)} (SÍ a las ${hora(res.siEn, casa)})`);
   for (const p of res.vencidos) ojo('i5', `${p.ids[0]} (${p.fecha} ${p.hora}) vence: SÍ a las ${hora(res.siEn, casa)}`);

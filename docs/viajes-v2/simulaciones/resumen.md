@@ -37,8 +37,9 @@ Generado por `fabrica/scripts/viaje-v2-simular.ts` (no editar a mano): **2400 vi
 | d) Versión "ya de viaje" antes de salir, o la normal ya de viaje | 0 de 2400 | — |
 | d) "Ayer" (ID1) fuera del día siguiente a la salida | 0 de 2400 | — |
 | d) ATR-V dos noches seguidas | 0 de 2400 | — |
-| d) Acuse en texto (ACM) al mediodía, a VU0 o a una foto suelta (va la reacción ❤️), o sin reacción | 0 de 2400 | — |
+| d) Acuse en texto (ACM) al mediodía, a VU0 o a una foto suelta (va la reacción ❤️), una respuesta o foto suelta sin su ❤️, o una ❤️ que apunta a otro mensaje | 0 de 2400 | — |
 | d) ID1 el mismo día de salida en hora de casa | 0 de 2400 | — |
+| d) PAS-V2 ("esta la salteamos") sin otra pregunta ese día, o PAS-V ("Mañana hay otra") con otra ese día | 0 de 2400 | — |
 | d) ID1 después de la noche del día 1 (con 12 h o más de diferencia, ID1 ocupa esa noche) | 0 de 2400 | — |
 | e) Una de antes de salir sale dos veces (misma versión), o "ya de viaje" después de contestada | 0 de 2400 | — |
 | e) Una de antes de salir no contestada, que no sale ni queda en avisosNaza | 0 de 2400 | — |
@@ -56,6 +57,7 @@ Generado por `fabrica/scripts/viaje-v2-simular.ts` (no editar a mano): **2400 vi
 | g) TXT pegado a otra cosa en el mismo mensaje | 0 de 2400 | — |
 | g) El viaje termina sin DES (el álbum nunca se cierra) | 0 de 2400 | — |
 | g) DES+ sin AL3 antes (no le preguntó cuáles sacar) | 0 de 2400 | — |
+| g) Viaje de 3 días o más sin FN1 (salvo el caso aceptado: 3 días con ID1 en la noche del día 1) | 0 de 2400 | — |
 | h) El calendario no está en orden creciente de tiempo | 0 de 2400 | — |
 | h) Algún mensaje después de DES | 0 de 2400 | — |
 | h) Otra pregunta entre AL1 y DES | 0 de 2400 | — |
@@ -74,7 +76,7 @@ Generado por `fabrica/scripts/viaje-v2-simular.ts` (no editar a mano): **2400 vi
 | Fotos del álbum que llegan después de cerrado (van al panel, sin contestar) | 417 de 2400 | semilla 1026: 3 días (2026-10-30 → 2026-11-01) · compra el mismo día a las 20:00 · Buenos Aires → Tokio · noche 21:30 (por defecto) · regalo · 1 propias · impreso, álbum de 20 · conducta azar, álbum tandas · cruza cambio de hora. **28 fotos** |
 | Una de antes de salir mandada y sin respuesta vuelve "ya de viaje" (por diseño) | 1144 de 2400 | semilla 10: 4 días (2026-11-04 → 2026-11-07) · compra 3 días antes a las 17:04 · Madrid → Madrid · noche 21:30 · regalo · 2 propias · pdf, álbum de 40 · conducta nunca, álbum cero · cruza cambio de hora. **AS1** |
 | Una reacción con pregunta adentro (AS1 con el SÍ, o COR) sale entre las 23:00 y las 8:00 | 287 de 2400 | semilla 153: 3 días (2026-10-23 → 2026-10-25) · compra el mismo día a las 22:55 · Buenos Aires → Madrid · noche 21:30 (por defecto) · regalo · 4 propias · impreso, álbum de 20 · conducta nunca, álbum justas · cruza cambio de hora. **AS1 a las 2026-10-24 01:26 Buenos Aires** |
-| AL2, AL3 o DES por reloj a las 8:00 justas (debería correrse a las 10:00) | 1 de 2400 | semilla 1747: 4 días (2026-11-01 → 2026-11-04) · compra 1 día antes a las 09:49 · CDMX → Tokio · noche 20:00 · para uno · 1 propias · impreso, álbum de 40 · conducta azar, álbum tandas · cruza cambio de hora. **AL2 2026-11-06 08:00 CDMX** |
+| AL2, AL3 o DES por reloj a las 8:00 justas: no es un error (5 horas después de algo de las 3:00); lo que la franja corre sale a las 10:00 | 1 de 2400 | semilla 1747: 4 días (2026-11-01 → 2026-11-04) · compra 1 día antes a las 09:49 · CDMX → Tokio · noche 20:00 · para uno · 1 propias · impreso, álbum de 40 · conducta azar, álbum tandas · cruza cambio de hora. **AL2 2026-11-06 08:00 CDMX** |
 | ID1 ocupa la noche del día 1 (12 horas o más de diferencia: las 10 de casa son la noche de allá) | 351 de 2400 | semilla 1026: 3 días (2026-10-30 → 2026-11-01) · compra el mismo día a las 20:00 · Buenos Aires → Tokio · noche 21:30 (por defecto) · regalo · 1 propias · impreso, álbum de 20 · conducta azar, álbum tandas · cruza cambio de hora. **ID1 2026-10-31 21:30 Tokio en lugar de la noche** |
 | UC1 corrida 2 horas después de un SÍ tardío el día de salida | 433 de 2400 | semilla 513: 3 días (2027-01-07 → 2027-01-09) · compra el mismo día a las 09:44 · CDMX → Buenos Aires · noche 21:30 · regalo · 4 propias · impreso, álbum de 20 · conducta nunca, álbum justas. **UC1 2027-01-07 13:09 CDMX (SÍ a las 11:09)** |
 

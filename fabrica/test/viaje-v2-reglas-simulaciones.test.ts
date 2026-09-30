@@ -123,6 +123,14 @@ describe('ID1 nunca el día de salida en casa', () => {
     }
   });
 
+  it('caso aceptado: 3 días con 12 h o más (Buenos Aires → Tokio, 10 al 12/11): ID1 ocupa la noche del día 1 y FN1 no sale', () => {
+    const c = { ...COMPRA, salida: '2026-11-10', vuelta: '2026-11-12', zonaCasa: BA, zonaViaje: TOKIO };
+    const ps = armarCalendario(c, []).programados;
+    expect(ps.map((p) => p.tipo)).toEqual(['UC1', 'ID1', 'VU0', 'VU1', 'CA1']);
+    expect(ps.find((p) => p.tipo === 'ID1')!.momento).toBe('noche');
+    expect(ps.some((p) => p.tipo === 'FN1')).toBe(false);
+  });
+
   it('el resto no cambia: con Madrid o Buenos Aires, ID1 a la mañana y la noche del día 1 sigue', () => {
     for (const [casa, viaje] of [[BA, MADRID], [MADRID, BA], [MADRID, TOKIO], [TOKIO, CDMX]]) {
       const dia1 = armarCalendario({ ...COMPRA, zonaCasa: casa, zonaViaje: viaje }, []).programados.filter((p) => p.dia === 1);

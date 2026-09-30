@@ -193,8 +193,12 @@ export function armarCalendario(compra: Compra, pendientesAntes: readonly IdAnte
    * Con 12 horas o más de diferencia, eso cae después de la noche del día 1
    * (i12): ahí ID1 ocupa el lugar de esa noche, a la hora de la noche del
    * viaje, y ese día no hay otra noche; lo que iba en las noches corre un día
-   * (Naza, 30/09). Solo si el día 1 tiene noche (viajes de 3 días o más; en
-   * uno de 3, la noche del día 1 es FN1, y ID1 la ocupa igual).
+   * (Naza, 30/09). Solo si el día 1 tiene noche (viajes de 3 días o más).
+   *
+   * Caso aceptado (Naza, 30/09, revisión): en un viaje de 3 días la noche del
+   * día 1 es FN1; ID1 la ocupa igual y FN1 no sale (por ejemplo, Buenos Aires
+   * → Tokio del 10 al 12/11; test en viaje-v2-reglas-simulaciones). Es el
+   * viaje más corto que se vende y, con 12 horas de diferencia, casi no pasa.
    */
   const nocheDia1 = respetarFranja(aInstante(f1, horaNoche, compra.zonaViaje), compra.zonaViaje);
   const id1EnLaNoche = n >= 2 && id1.t.getTime() >= nocheDia1.getTime();
