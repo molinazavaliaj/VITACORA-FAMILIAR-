@@ -144,7 +144,7 @@ Orden = orden de envío de la v2 (un viaje corto recibe las primeras; cuando se 
 | VU0 | vuelta | | Hoy se vuelve, {{nombre}}. ¿Qué te traés en la valija que no estaba a la ida? Sacale una foto, donde estés. | |
 | VU1 | dia-siguiente-vuelta | | La vuelta se hace distinto que la ida. Contame el momento de la vuelta en que sentiste que ya estabas volviendo, lo que fuera que te lo marcó. Qué había alrededor y en qué pensabas. | |
 | IV1 | dia-siguiente-vuelta | | Ayer fue el viaje, ida y vuelta en el día. Contame un rato del camino, a la ida o a la vuelta, en que no estabas haciendo nada, solo yendo. Qué había del otro lado de la ventanilla y qué pensabas. | |
-| CA1 | noche-casa | | Volvé al primer rato en que entraste a casa, con la valija todavía cerrada: ¿qué te llamó la atención de tu propia casa después de estar afuera, aunque sea una pavada? Si tenés una foto de eso, mandala. | |
+| CA1 | noche-casa | | Cuando entres a casa, quedate en el primer rato, con la valija todavía cerrada: contame qué te llamó la atención de tu propia casa después de estar afuera, aunque sea una pavada. Si tenés una foto de eso, mandala. | |
 
 ## El álbum
 
@@ -199,7 +199,6 @@ Van pegados arriba de la pregunta de la noche cuando la noche anterior quedó si
 | ATR2 | atraso | 2 | Anoche quedó sin contar, y está bien. Hoy contame los dos días si tenés ganas. | |
 | ATR3 | atraso | 3 | No te preocupes por lo de ayer. Si algo de ese día merece quedar, sumalo hoy. | |
 | ATR-V | atraso | | Hace unos días que no me contás, y no pasa nada. Si querés, hoy contame lo que quieras de esos días, lo que te quedó. Si no, con lo de hoy está bien. | |
-| ATR-PR | atraso | | Ayer te dejé la pregunta de {{quien_regala}} y no me contaste, no pasa nada. Si querés, metela hoy junto con lo de hoy. | |
 
 ## Preguntas propias
 
@@ -207,9 +206,9 @@ PR-R si es un regalo; PR-P si las dejó el viajero. La pregunta va tal cual la e
 
 | ID | Momento | Orden | Texto | Ya de viaje |
 |---|---|---|---|---|
-| PR-R | propia | | Hoy la pregunta no es mía, es de {{quien_regala}}: «{{pregunta}}». Contale a {{quien_regala}}, aunque me lo mandes a mí. Si hay foto, va. | |
+| PR-R | propia | | Hoy la pregunta no es mía, es de {{quien_regala}}: «{{pregunta}}». Contale a esa persona, aunque me lo mandes a mí. Si hay foto, va. | |
 | PR-R2 | propia | 2 | Esta noche te escribe otra persona, no yo. {{quien_regala}} te dejó esta pregunta: «{{pregunta}}». Contestale como si la tuvieras enfrente. Si hay foto, mandala. | |
-| PR-R3 | propia | 3 | {{quien_regala}} quiso saber esto de tu viaje: «{{pregunta}}». Es para {{quien_regala}}, así que hablale aunque llegue por acá. Si tenés una foto que vaya, mandala. | |
+| PR-R3 | propia | 3 | {{quien_regala}} quiso saber esto de tu viaje: «{{pregunta}}». Es para esa persona, así que hablale aunque llegue por acá. Si tenés una foto que vaya, mandala. | |
 | PR-P | propia | | Hoy va una que te dejaste vos, {{nombre}}, antes de salir: «{{pregunta}}». A ver qué le decís ahora. Si tenés una foto, mandala. | |
 
 ## Despedida
@@ -315,10 +314,3 @@ Copiadas de `flujo-vigente.md` (y de los aprobados donde se indica).
 - **AL2 dentro de la franja 23-8**: se corre a las 10:00, no a las 8:00.
 - **Fotos de más**: antes de DES, AL3. Las fotos que reenvía se sacan; si contesta otra cosa o no contesta en 5 horas, quedan las primeras {{fotos_album}} y va DES con DES+.
 - **Fotos después del cierre**: se guardan en el panel, sin contestar.
-
-**Lectura final de Fable (aprobado por Naza, 30/09; detalle en `simulaciones/lectura-final-de-fable.md`; versión anterior en `historial/banco-2026-09-30-antes-de-la-lectura-final.md`)**
-- CA1 pasa a pasado ("Volvé al primer rato en que entraste a casa…"): siempre llega después de haber vuelto.
-- PR-R y PR-R3 usan {{quien_regala}} en vez de "esa persona".
-- ATR-PR: si la noche sin contestar fue una pregunta de quien regala (PR-R, PR-R2, PR-R3), la noche siguiente va ATR-PR en lugar de ATR1-3 (con la regla de ATR-V igual: si ya son 2 o más seguidas, ATR-V). La pregunta de quien regala no se repregunta: queda invitada en ATR-PR.
-- AL1 (y AL1-P) sale al día siguiente de CA1 a las 10:00 (hora de casa), no pegada a la respuesta. AL2 corre desde ahí. CA1 contestada lleva ACN.
-- Más comienzos y cierres para viajes largos: se espera a la prueba con una persona real.
