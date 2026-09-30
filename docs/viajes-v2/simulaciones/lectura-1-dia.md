@@ -71,22 +71,16 @@ _[audio: que la casa estaba igual pero yo no; y que la gata ni se enteró que me
 **10:00 · Vitácora** `AL1`  
 > Gracias, Nora. Y una última cosa: el álbum. Juntá las 20 fotos del viaje que más quieras tener en el libro y mandámelas acá mismo, en una tanda o en varias, como te quede cómodo. Cuando estén todas, escribime "listo"; si te olvidás, en un rato te pregunto yo.
 
-_(Aviso a Naza: El álbum lleva 5 horas sin fotos: cero fotos. La despedida espera tu decisión.)_
-
-**22:10 · Nora**  
+**10:40 · Nora**  
 _[9 fotos]_
 
-**22:14 · Nora**  
+**10:44 · Nora**  
 _[texto: listo, son esas]_
 
-**22:14 · Vitácora** `DES`  
+**10:44 · Vitácora** `DES`  
 > Ya está, Nora: el viaje quedó contado, con tu voz. Ahora me toca a mí armar el libro con lo que me diste; lo vas a poder leer en tu panel antes de que se cierre, y ahí cambiás lo que haga falta. Fue lindo acompañarte. Gracias por dejarme entrar en tu viaje.
 
 _(Se cierra el álbum: 9 fotos quedan, guardadas 9, afuera 0.)_
-
-## Ya en casa · martes 17/11 (hora de Buenos Aires)
-
-_(Naza decide cerrar el álbum.)_
 
 ---
 

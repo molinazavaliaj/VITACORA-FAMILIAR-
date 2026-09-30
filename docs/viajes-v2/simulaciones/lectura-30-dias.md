@@ -609,31 +609,28 @@ _[audio: la luz: mi casa tiene una luz amarilla que no sabía que tenía + una f
 **10:00 · Vitácora** `AL1`  
 > Gracias, Irene. Y una última cosa: el álbum. Juntá las 40 fotos del viaje que más quieras tener en el libro y mandámelas acá mismo, en una tanda o en varias, como te quede cómodo. Cuando estén todas, escribime "listo"; si te olvidás, en un rato te pregunto yo.
 
-_(Aviso a Naza: El álbum lleva 5 horas sin fotos: cero fotos. La despedida espera tu decisión.)_
-
-**22:30 · Irene**  
+**11:00 · Irene**  
 _[25 fotos]_
 
-## Ya en casa · viernes 13/11 (hora de Madrid)
-
-**10:00 · Irene**  
+**15:00 · Irene**  
 _[20 fotos más]_
 
-**10:05 · Irene**  
-_[texto: listo]_
+**20:00 · Vitácora** `AL2`  
+> ¿Ya están todas, Irene? Si me decís que sí, o si no me contestás, cierro el álbum con las que mandaste.
 
-**10:05 · Vitácora** `AL3`  
+**20:30 · Irene**  
+_[texto: sí, ya están]_
+
+**20:30 · Vitácora** `AL3`  
 > Mandaste 45 fotos y en el álbum entran 40. Si querés, elegí vos cuáles quedan afuera: reenviame las que saco. Si no me decís nada en unas horas, me quedo con las primeras 40.
 
-**10:30 · Irene**  
+**20:55 · Irene**  
 _[reenvía 5 fotos para sacar]_
 
-**10:30 · Vitácora** `DES`  
+**20:55 · Vitácora** `DES`  
 > Ya está, Irene: el viaje quedó contado, con tu voz. Ahora me toca a mí armar el libro con lo que me diste; lo vas a poder leer en tu panel antes de que se cierre, y ahí cambiás lo que haga falta. Fue lindo acompañarte. Gracias por dejarme entrar en tu viaje.
 
 _(Se cierra el álbum: 40 fotos quedan, guardadas 40, afuera 0.)_
-
-_(Naza decide cerrar el álbum.)_
 
 ---
 

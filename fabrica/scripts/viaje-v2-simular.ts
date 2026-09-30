@@ -1311,8 +1311,9 @@ export function lecturaUnDia(): { res: Resultado; md: string } {
         } as Record<string, Dicho[]>
       )[q.clave] ?? []),
     album: [
-      { masDias: 0, hora: '22:10', evento: 'foto', cantidad: 9, dice: '9 fotos' },
-      { masDias: 0, hora: '22:14', evento: 'listo', dice: 'texto: listo, son esas' },
+      // AL1 sale a las 10:00 del día siguiente de CA1: las fotos van después.
+      { masDias: 0, hora: '10:40', evento: 'foto', cantidad: 9, dice: '9 fotos' },
+      { masDias: 0, hora: '10:44', evento: 'listo', dice: 'texto: listo, son esas' },
     ],
   };
   const res = simular(compra, aInstante('2026-11-14', '08:20', compra.zonaCasa), new PersonaGuion(compra, g));
@@ -1355,8 +1356,9 @@ export function lecturaDosDias(): { res: Resultado; md: string } {
         } as Record<string, Dicho[]>
       )[q.clave] ?? []),
     album: [
-      { masDias: 0, hora: '22:30', evento: 'foto', cantidad: 12, dice: '12 fotos' },
-      { masDias: 1, hora: '07:30', evento: 'foto', cantidad: 5, dice: '5 fotos más, apenas se despierta' },
+      // AL1 sale a las 10:00 del día siguiente de CA1: las fotos van después.
+      { masDias: 0, hora: '10:30', evento: 'foto', cantidad: 12, dice: '12 fotos' },
+      { masDias: 0, hora: '15:00', evento: 'foto', cantidad: 5, dice: '5 fotos más, a la tarde' },
     ],
     alAL2: [{ minutos: 40, evento: 'si', dice: 'texto: sí, están todas' }],
   };
@@ -1442,10 +1444,11 @@ export function lecturaTreintaDias(): { res: Resultado; md: string } {
       { dia: 18, hora: '19:40', dice: 'foto suelta: el monte Fuji desde el tren' },
     ],
     album: [
-      { masDias: 0, hora: '22:30', evento: 'foto', cantidad: 25, dice: '25 fotos' },
-      { masDias: 1, hora: '10:00', evento: 'foto', cantidad: 20, dice: '20 fotos más' },
-      { masDias: 1, hora: '10:05', evento: 'listo', dice: 'texto: listo' },
+      // AL1 sale a las 10:00 del día siguiente de CA1: las fotos van después.
+      { masDias: 0, hora: '11:00', evento: 'foto', cantidad: 25, dice: '25 fotos' },
+      { masDias: 0, hora: '15:00', evento: 'foto', cantidad: 20, dice: '20 fotos más' },
     ],
+    alAL2: [{ minutos: 30, evento: 'si', dice: 'texto: sí, ya están' }],
     alAL3: { minutos: 25, sacaUltimas: 5, dice: 'reenvía 5 fotos para sacar' },
   };
   const res = simular(compra, aInstante('2026-09-22', '17:30', compra.zonaCasa), new PersonaGuion(compra, g));

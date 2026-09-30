@@ -115,25 +115,19 @@ _[audio: el olor a encierro y el reloj de la cocina, que no había notado nunca 
 **10:00 · Vitácora** `AL1`  
 > Gracias, Ramiro. Y una última cosa: el álbum. Juntá las 20 fotos del viaje que más quieras tener en el libro y mandámelas acá mismo, en una tanda o en varias, como te quede cómodo. Cuando estén todas, escribime "listo"; si te olvidás, en un rato te pregunto yo.
 
-_(Aviso a Naza: El álbum lleva 5 horas sin fotos: cero fotos. La despedida espera tu decisión.)_
-
-**22:30 · Ramiro**  
+**10:30 · Ramiro**  
 _[12 fotos]_
 
-## Ya en casa · miércoles 9/12 (hora de Buenos Aires)
+**15:00 · Ramiro**  
+_[5 fotos más, a la tarde]_
 
-**07:30 · Ramiro**  
-_[5 fotos más, apenas se despierta]_
-
-_(Naza decide cerrar el álbum.)_
-
-**12:30 · Vitácora** `AL2`  
+**20:00 · Vitácora** `AL2`  
 > ¿Ya están todas, Ramiro? Si me decís que sí, o si no me contestás, cierro el álbum con las que mandaste.
 
-**13:10 · Ramiro**  
+**20:40 · Ramiro**  
 _[texto: sí, están todas]_
 
-**13:10 · Vitácora** `DES`  
+**20:40 · Vitácora** `DES`  
 > Ya está, Ramiro: el viaje quedó contado, con tu voz. Ahora me toca a mí armar el libro con lo que me diste; lo vas a poder leer en tu panel antes de que se cierre, y ahí cambiás lo que haga falta. Fue lindo acompañarte. Gracias por dejarme entrar en tu viaje.
 
 _(Se cierra el álbum: 17 fotos quedan, guardadas 17, afuera 0.)_

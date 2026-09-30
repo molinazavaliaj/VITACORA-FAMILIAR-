@@ -59,6 +59,25 @@ describe('viaje v2: simulación de 300 viajes', () => {
     expect(md).toContain('reacciona ❤️ a su mensaje');
   });
 
+  it('las tres lecturas mandan sus fotos después de AL1: nunca "cero fotos"', () => {
+    for (const f of [lecturaUnDia, lecturaDosDias, lecturaTreintaDias]) {
+      const { res, md } = f();
+      expect(res.avisosAlbum, f.name).toEqual([]);
+      expect(md, f.name).not.toContain('cero fotos');
+      const al1 = res.enviados.find((m) => m.ids[0] === 'AL1' || m.ids[0] === 'AL1-P')!;
+      expect(res.album!.fotos, f.name).toBeGreaterThan(0);
+      expect(al1, f.name).toBeDefined();
+    }
+  });
+
+  it('lectura de 30 días: 45 fotos después de AL1, AL2, AL3 y reenvía 5 (como dice el encabezado)', () => {
+    const { res, md } = lecturaTreintaDias();
+    for (const id of ['AL1', 'AL2', 'AL3']) expect(md, id).toContain(`\`${id}\``);
+    expect(md).toContain('reenvía 5 fotos para sacar');
+    expect(res.album!.recibidas).toBe(45);
+    expect(res.album!.fotos).toBe(40);
+  });
+
   it('lectura de 2 días: la propia no entra y queda en los avisos a Naza', () => {
     const { res } = lecturaDosDias();
     expect(res.cal!.propiasQueNoEntran).toHaveLength(1);
