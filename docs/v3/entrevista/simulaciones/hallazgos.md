@@ -74,3 +74,18 @@ Charlas y lecturas de Fable en [`ronda-2/`](ronda-2/). Mejoró mucho: de ~70 "no
 7. M28.4 (olvido a medias: arranca con olvido y sigue contando): "Con ese pedacito me alcanza, {{nombre}}. Gracias." **No suma** al contador de M29.
 8. [Paso esta] o "paso" en AM9: no va AM19, pero **AM16 va igual**. FIN: la frase de la foto no va si tocó [No tengo foto]. M26 delante de AM20.
 - **Aplicado (30/09, rama v3, commit e5209d3): los 8 puntos de la ronda 2.** 1 fórmulas de cierre ("está todo…" en las primeras 6 palabras, sin tope, con la regla del "pero"); 2 [No, nada así] en CA17, AD15, JU17, TR11 y PE4; 3 AM16 y AM20; 4 AM19 `si:AM9 y si:AM3` (notación " y " nueva); 5 M27.3; 6 M32.1-2; 7 M28.4 (el olvido a medias no suma ni corta la cuenta de M29); 8 AM16 `si:AM9 o paso:AM9` (notación `paso:X` nueva), FIN sin la frase de la foto si tocó [No tengo foto], M26 delante de AM20.
+
+## Prueba de Naza en la página web (30/09)
+Naza hizo la entrevista entera como narrador con su vida real en la página de prueba (`fabrica/scripts/v3-entrevista-web.ts`): 95 respuestas, 9 botones, ~80 min de audio (~USD 0,50 de transcripción). La charla, los audios y la lectura de Fable quedan en `audios-crudos/v3-web/` (fuera de git: vida real). Veredicto de Fable: aguanta una vida real; dos fallas de verdad (un "no" en audio en AM9 se leyó como "seguimos juntos" y se perdieron AM16/AM20; palabras de alcance poco claras que lo hicieron preguntar "¿a qué te referís?").
+
+**Naza aprueba (30/09) todo lo que propuso Fable:**
+1. Cierres: "Con esto cerramos…" pasa a "Hasta acá lo de…" (CI7, CI3 y los demás que lo usan; textos de Fable).
+2. EN2: "…la casa donde creciste y la gente que vivía con vos."
+3. BIEN, párrafo 2: "…Cuando termines no hace falta que me avises: si pasan unos minutos sin audios nuevos, te mando la pregunta que sigue."
+4. El botón [Paso esta] pasa a **[Prefiero no contarla]** (20 caracteres).
+5. G1 (música) al núcleo, bloque 14 después de CO1; HE2 (hermanos de grandes) al núcleo, bloque 10 después de AS1, `si:CA6`; FI6 (el mundo en cien años) pasa a extra.
+6. Salidas: CA3 (para quien no tuvo al padre cerca), AD15 y JU17 ("si ya me lo contaste"); AM1 con "decime 'ya te lo conté'".
+7. **Bloque 6 nuevo** (idea de Naza: el detalle va a la pareja de ahora o la última; los amores de antes, una sola pregunta con un momento de cada uno): AM0 → AMH nueva ("¿sigue hoy a tu lado?") → AM1, AM3, AM4, AM13, AM8 sobre la de ahora o la última → AM9 solo si ya no está → AM19 solo si ya no está y convivieron → AM21 nueva (las de antes, un momento de cada una; reemplaza AM16 y AM20) → AM14 y AM15 solo si no hubo. Detalle en la lectura de Fable.
+8. Acuses: M28.4 no dos veces seguidas ni sin "pedacito"; nada de nombre doble (M28.4 + FO1); M4.4 sin "Cuando quieras, seguimos".
+9. Página: nombre con mayúscula; seguir grabando 1 segundo después de Enviar; aviso si la transcripción termina cortada; varios audios por pregunta y "Listo" para pasar a la siguiente.
+Para después: palabras locales (barra, changa, colimba, "tus viejos") con la versión para España.
