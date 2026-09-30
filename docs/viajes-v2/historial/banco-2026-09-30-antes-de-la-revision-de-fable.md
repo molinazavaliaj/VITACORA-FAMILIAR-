@@ -69,16 +69,16 @@ BIEN-1 y BIEN-1R son alternativas (una u otra, según sea para sí o un regalo);
 
 | ID | Momento | Orden | Texto | Ya de viaje |
 |---|---|---|---|---|
-| AS1 | antes | 1 | Empecemos por el principio, antes de cualquier valija. ¿De dónde salió este viaje, {{nombre}}? Contame el momento en que dejó de ser una idea y pasó a ser algo que iba a pasar de verdad. Puede haber sido una charla o una tarde en que dijiste "lo hago". | Ya arrancaste, pero quiero empezar por antes de cualquier valija. ¿De dónde salió este viaje, {{nombre}}? Contame el momento en que dejó de ser una idea y pasó a ser algo que iba a pasar de verdad. Puede haber sido una charla o una tarde en que dijiste "lo hago". |
-| AS2 | antes | 2 | Ya falta poco, {{nombre}}. ¿Cómo andás con este viaje? Ganas, nervios, cansancio, lo que haya, y qué esperás encontrar allá. Contame el momento, en estos días, en que te cayó la ficha de que se viene en serio: qué estabas haciendo y qué se te cruzó por la cabeza. | Ya saliste, así que esta te agarra allá. ¿Cómo venías con este viaje los últimos días? Ganas, nervios, cansancio, lo que haya habido, y qué esperabas encontrar allá. Contame el momento en que te cayó la ficha de que se venía en serio: qué estabas haciendo y qué se te cruzó por la cabeza. |
-| IM1 | antes | 3 | Cuando pensás en este viaje, ¿qué imagen se te aparece? No lo que leíste ni lo que hay que ver: la que se te viene sola, aunque sea una calle. Decime cuál es y de dónde te viene. | Antes de salir, cuando pensabas en este viaje, ¿qué imagen se te aparecía? No lo que habías leído ni lo que había que ver: la que se te venía sola, aunque fuera una calle. Decime cuál era y de dónde te venía. |
-| VA1 | antes | 4 | ¿Qué es lo que va en la valija sí o sí, {{nombre}}? No el cargador ni los documentos: algo tuyo. Y por qué va con vos. | Ya estás allá y la valija ya viajó. Contame una cosa que metiste y que no podía faltar, {{nombre}}. No el cargador ni los documentos: algo tuyo. Qué es y por qué va con vos. |
+| AS1 | antes | 1 | Empecemos por el principio, antes de cualquier valija. ¿De dónde salió este viaje, {{nombre}}? Contame el momento en que dejó de ser una idea y pasó a ser algo que iba a pasar de verdad. Puede haber sido una charla o una tarde en que dijiste "lo hago". | Ya estás en camino, pero quiero empezar por antes de cualquier valija. ¿De dónde salió este viaje, {{nombre}}? Contame el momento en que dejó de ser una idea y pasó a ser algo que iba a pasar de verdad. Puede haber sido una charla o una tarde en que dijiste "lo hago". |
+| AS2 | antes | 2 | Ya falta poco, {{nombre}}. ¿Cómo andás con este viaje? Ganas, nervios, cansancio, lo que haya, y qué esperás encontrar allá. Contame el momento, en estos días, en que te cayó la ficha de que se viene en serio: qué estabas haciendo y qué se te cruzó por la cabeza. | Ya saliste, así que esta te agarra en camino. ¿Cómo venías con este viaje los últimos días? Ganas, nervios, cansancio, lo que haya habido, y qué esperabas encontrar allá. Contame el momento en que te cayó la ficha de que se venía en serio: qué estabas haciendo y qué se te cruzó por la cabeza. |
+| IM1 | antes | 3 | Cuando pensás en este viaje, ¿qué imagen se te aparece? No lo que leíste ni lo que hay que ver: la que se te viene sola, aunque sea una calle. Contame esa imagen y de dónde te viene. | Antes de salir, cuando pensabas en este viaje, ¿qué imagen se te aparecía? No lo que habías leído ni lo que había que ver: la que se te venía sola, aunque fuera una calle. Contame esa imagen y de dónde te venía. |
+| VA1 | antes | 4 | Contame una cosa que va en la valija sí o sí, {{nombre}}. No el cargador ni los documentos: algo tuyo. Qué es y por qué va con vos. | Ya estás en camino y la valija está cerrada. Contame una cosa que metiste y que no podía faltar, {{nombre}}. No el cargador ni los documentos: algo tuyo. Qué es y por qué va con vos. |
 
 ## Salida y día siguiente
 
 | ID | Momento | Orden | Texto | Ya de viaje |
 |---|---|---|---|---|
-| UC1 | salida | | Hoy es el día, {{nombre}}. Estés todavía en casa o ya en camino, contame cómo fue el último rato antes de cerrar la puerta: qué hacías, qué quedó dando vueltas. | |
+| UC1 | salida | | Hoy es el día, {{nombre}}. Antes de cerrar la puerta, contame cómo es este último rato en casa: qué estás haciendo ahora mismo, qué queda dando vueltas. | |
 | ID1 | dia-siguiente-salida | | Ayer fue el día del viaje, {{nombre}}. No me cuentes horarios: contame un rato del camino en el que no estabas haciendo nada, solo yendo, y te diste cuenta de que ya estabas lejos. Qué había del otro lado de la ventanilla y qué pensabas. | |
 
 ## La noche
@@ -138,15 +138,14 @@ Orden = orden de envío de la v2 (un viaje corto recibe las primeras; cuando se 
 |---|---|---|---|---|
 | FN1 | ultima-noche | | Mañana te volvés. Antes de armar la valija, contame una cosa de este viaje que no querés que se te olvide, una sola, y por qué esa. Si tenés una foto, que venga. | |
 | VU0 | vuelta | | Hoy se vuelve, {{nombre}}. ¿Qué te traés en la valija que no estaba a la ida? Sacale una foto, donde estés. | |
-| VU1 | dia-siguiente-vuelta | | La vuelta se hace distinto que la ida. Contame el momento de la vuelta en que sentiste que ya estabas volviendo, lo que fuera que te lo marcó. Qué había alrededor y en qué pensabas. | |
-| CA1 | noche-casa | | Cuando entres a casa, quedate en el primer rato, con la valija todavía cerrada: contame qué te llamó la atención de tu propia casa después de estar afuera, aunque sea una pavada. Si tenés una foto de eso, mandala. | |
+| VU1 | dia-siguiente-vuelta | | La vuelta se hace distinto que la ida. Contame el momento del viaje de ayer en que sentiste que ya estabas volviendo, lo que fuera que te lo marcó. Qué había alrededor y en qué pensabas. | |
+| CA1 | noche-casa | | Ya volviste, {{nombre}}. Quedate en el primer rato en casa, con la valija todavía cerrada: contame qué te llamó la atención de tu propia casa después de estar afuera, aunque sea una pavada. Si tenés una foto de eso, mandala. | |
 
 ## El álbum
 
 | ID | Momento | Orden | Texto | Ya de viaje |
 |---|---|---|---|---|
-| AL1 | album | 1 | Gracias, {{nombre}}. Y una última cosa: el álbum. Juntá las {{fotos_album}} fotos del viaje que más quieras tener en el libro y mandámelas acá mismo, en una tanda o en varias, como te quede cómodo. Cuando estén todas, escribime "listo"; si te olvidás, en un rato te pregunto yo. | |
-| AL1-P | album | | Una última cosa, {{nombre}}: el álbum. Juntá las {{fotos_album}} fotos del viaje que más quieras tener en el libro y mandámelas acá mismo, en una tanda o en varias, como te quede cómodo. Cuando estén todas, escribime "listo"; si te olvidás, en un rato te pregunto yo. | |
+| AL1 | album | 1 | Una última cosa, {{nombre}}: el álbum. Juntá las {{fotos_album}} fotos del viaje que más quieras tener en el libro y mandámelas acá mismo, en una tanda o en varias, como te quede cómodo. Cuando estén todas, escribime "listo"; si te olvidás, en un rato te pregunto yo. | |
 | AL2 | album | 2 | ¿Ya están todas, {{nombre}}? Si me decís que sí, o si no me contestás, cierro el álbum con las que mandaste. | |
 
 ## Acuses
@@ -174,7 +173,6 @@ Rotan dentro de su grupo. Van como primera línea del mensaje que sigue, o solos
 |---|---|---|---|---|
 | PAS-V | caso | | Dale, esta la salteamos. Mañana hay otra. | |
 | PAS-A | caso | | Perfecto, {{nombre}}, sin problema. Seguimos con la próxima. | |
-| PAS-A2 | caso | | Perfecto, {{nombre}}, sin problema. Ya está: silencio hasta el día que te vas. | |
 | TXT | caso | | Lo leí, gracias. Si podés, contámelo también en audio: tu voz es lo que va al libro. Y si te queda más cómodo escribir, escribí nomás. | |
 | COR | caso | | Se me cortó el audio o no llegó bien, {{nombre}}. ¿Me lo mandás de nuevo cuando puedas? Sin apuro. | |
 | REC1 | caso | | Hola, {{nombre}}. Te quedó una pregunta esperando, sin apuro. Cuando tengas un rato, contestámela en audio, o "paso" y seguimos con la que viene. | |
@@ -187,10 +185,10 @@ Van pegados arriba de la pregunta de la noche cuando la noche anterior quedó si
 
 | ID | Momento | Orden | Texto | Ya de viaje |
 |---|---|---|---|---|
-| ATR1 | atraso | 1 | Ayer no me contaste, y no pasa nada. Si querés, metelo hoy junto con lo de hoy. | |
-| ATR2 | atraso | 2 | Anoche quedó sin contar, y está bien. Hoy contame los dos días si tenés ganas. | |
-| ATR3 | atraso | 3 | No te preocupes por lo de ayer. Si algo de ese día merece quedar, sumalo hoy. | |
-| ATR-V | atraso | | Hace unos días que no me contás, y no pasa nada. Si querés, hoy contame lo que quieras de esos días, lo que te quedó. Si no, con lo de hoy está bien. | |
+| ATR1 | atraso | 1 | Ayer no me contaste, y no pasa nada. Si querés, metelo hoy junto con lo de hoy, con esas fotos también. | |
+| ATR2 | atraso | 2 | Anoche quedó sin contar, y está bien. Hoy contame los dos días si tenés ganas, y mandá las fotos que hayan quedado. | |
+| ATR3 | atraso | 3 | No te preocupes por lo de ayer. Si algo de ese día merece quedar, sumalo hoy, con foto si la hay. | |
+| ATR-V | atraso | | Hace unos días que no me contás, y no pasa nada. Si querés, hoy contame lo que quieras de esos días, lo que te quedó, y mandá las fotos que tengas. Si no, con lo de hoy está bien. | |
 
 ## Preguntas propias
 
@@ -265,16 +263,3 @@ Copiadas de `flujo-vigente.md` (y de los aprobados donde se indica).
 - Viajes largos: MD2, MD10, MD7 y MD12 tampoco se repiten. En la segunda vuelta solo van MD1, MD5, MD3, MD4 y MD6, en ese orden, y siguen rotando.
 - Acuses de las sueltas: UC1 → ACM1 o ACM2 (nunca los que dicen "Hasta la noche": ese día no hay noche). ID1 y VU1 → ACM (cualquiera). FN1 → ACN. CA1 → ACA como primera línea de AL1.
 - Álbum con cero fotos: a las 5 horas de AL1 se avisa a Naza, y la despedida espera su decisión.
-
-**Revisión de Fable del banco entero (aprobada por Naza, 30/09; detalle en `paso-4-revision-fable.md`; versión anterior en `historial/banco-2026-09-30-antes-de-la-revision-de-fable.md`)**
-- Textos cambiados: UC1, VU1, CA1, IM1 (y su variante), VA1 (y su variante), las variantes "ya de viaje" de AS1 y AS2, ATR1-ATR3 y ATR-V (sin pedido de fotos), AL1 (con su acuse adentro).
-- Nuevos: AL1-P (AL1 sin "Gracias", si CA1 fue "paso") y PAS-A2 ("paso" en VA1, la última de antes de salir).
-- A1: después de VU0, solo ACM1 o ACM2 (ese día no hay noche).
-- A2: ATR solo arriba de la noche común (comienzo + puerta + cierre); nunca arriba de FN1, de preguntas propias ni de las de antes de salir.
-- A3: "paso" en CA1 → directo AL1-P, sin PAS-V.
-- A4: después de PAS-A o PAS-A2, la siguiente pregunta va sin acuse.
-- A5: si contestó en texto, no se usan ACA2 ni ACN3 ("Lo escuché").
-- A6: en la cadena de antes de salir, ACA1 (con {{nombre}}) nunca arriba de AS2 ni de VA1; la rotación de ACA arranca por ACA2.
-- CA1 → AL1 ya no lleva ACA: AL1 trae su agradecimiento adentro.
-- Compra: la fecha de vuelta se pide como "el día que emprendés la vuelta" (el día de salir de allá).
-- Se mantienen por decisión de Naza: AS1 y AS2 como están; DES con "antes de que se cierre".
