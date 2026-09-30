@@ -62,3 +62,14 @@ Sumas a los ya aprobados: **S4** (M26 antes de una sensible; "no" corto → M25 
 - **Textos finales: todo aprobado por Naza** (30/09): tanda 2 (amor y familia) con la frase "aunque ya me lo hayas nombrado" variada por Fable en CA6, JU8, HI0 y HI8 (JU8 "…ahora contame la llegada"; HI8 "Puede que ya los hayas mencionado; contame el día que conociste al primero…"), y tanda 3 (salidas en las 8 de "un día concreto", JU12, GI1/GI2/PE4, CI1, FO1, FIN sin "es bien tuyo", M3.3/3.6/3.7/3.8). **Siguiente: pasarlo a banco.md y al código.**
 - **Aplicado en el banco y el código (30/09, rama v3, commits 02d5289 a 63d9d34; plan en [`PLAN-codigo.md`](PLAN-codigo.md)): S1, S2, S3, S4, S5, S7, S8, S9, S10, S11 y S12 pasan a aplicado.** Botones en las 31 preguntas (sección "Botones" de banco.md), reglas de respaldo, olvido y "ya te lo conté" (`interpretar`), acuses M25/M26/M27/M28.1/M29, dependencias y orden nuevos, HI2b afuera, todos los textos aprobados y `esperaFoto` en FO1. De S12 falta la parte del entrevistador (el tope de 24 horas y pegar la foto a FO1: lo hace Joaquín). Siguen igual: S6 (descartado) y S13 (para el dashboard).
 - **Después de programar (30/09), Naza decide:** A) "otra" y "siguiente" valen como paso solo si son casi toda la respuesta ("Siguiente.", "Otra.", "Mejor otra"), para que "Otra vez fuimos al río…" no se lea como paso; B) el tope del "no" queda en 40 palabras (los "no" más largos los resuelven los botones).
+
+## Ronda 2 (30/09)
+Charlas y lecturas de Fable en [`ronda-2/`](ronda-2/). Mejoró mucho: de ~70 "no"/"paso" mal leídos a 5; ninguna pregunta que no corresponde. **Naza aprueba los 8 arreglos** (30/09), con tres ajustes:
+1. En cierres y LE9, "está todo / es todo / ya está / nada más" al principio = "no" (sigue la regla del "pero").
+2. Segundo botón **[No, nada así]** (vale "no" → M25) solo en CA17, AD15, JU17, TR11 y PE4 (no en PE1 ni PE5).
+3. AM16: "Y más adelante, ¿hubo otro amor? Si hubo, contame por ahora solo del que compartís hoy, o del último: el día que se conocieron y un momento de los dos que te haya quedado. De las del medio, si hubo, te pregunto después." AM20: "Ahora sí, las del medio. Entre la primera que fue en serio y la de ahora, o la última, ¿hubo otras historias que fueron en serio? …" (el resto igual).
+4. AM19 solo si convivió (`si:AM9` y `si:AM3`).
+5. M27.3: "Entiendo, {{nombre}}. No hace falta entrar ahí. Vamos con la que viene."
+6. M32 (respuesta que arranca con una frase de "paso" y sigue larga): M32.1 "Con lo que me dijiste alcanza, {{nombre}}. Lo demás queda tuyo. Vamos con otra." · M32.2 "Está bien. Lo que me contaste queda, y lo que no, no hace falta. Seguimos."
+7. M28.4 (olvido a medias: arranca con olvido y sigue contando): "Con ese pedacito me alcanza, {{nombre}}. Gracias." **No suma** al contador de M29.
+8. [Paso esta] o "paso" en AM9: no va AM19, pero **AM16 va igual**. FIN: la frase de la foto no va si tocó [No tengo foto]. M26 delante de AM20.
