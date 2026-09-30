@@ -67,7 +67,7 @@ function parsearClase(celda: string, id: string): Clase {
 }
 
 /**
- * Recorre el md: "## Arranque" y "## Mensajes fijos" dan los mensajes
+ * Recorre el md: "## Arranque", "## Mensajes fijos" y "## Entradas de bloque" dan los mensajes
  * (ID | Cuándo | Texto); cada "## Bloque N · Nombre" da sus preguntas
  * (ID | Pregunta | Depende de | Parte | Clase | Sensible). Se corta en
  * "## Reglas del flujo". El orden es el de las tablas.
@@ -88,7 +88,7 @@ export function parsearEntrevistaMd(md: string): BancoEntrevista {
       seccion = 'bloque';
       continue;
     }
-    if (/^## (Arranque|Mensajes fijos)/.test(linea)) {
+    if (/^## (Arranque|Mensajes fijos|Entradas de bloque)/.test(linea)) {
       seccion = 'mensajes';
       continue;
     }

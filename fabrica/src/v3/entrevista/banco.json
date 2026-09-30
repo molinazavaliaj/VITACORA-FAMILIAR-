@@ -2063,7 +2063,7 @@
       "id": "CI14",
       "bloque": 14,
       "orden": 190,
-      "texto": "Hasta acá lo de hoy. Ya te conozco un poco más: cómo son tus días y qué te gusta. Gracias por contármelo con tanta paciencia.",
+      "texto": "Con esto cerramos lo de hoy, {{nombre}}, y ya te conozco un poco más. ¿Quedó algo de tu vida de ahora que no tuvo su pregunta? Una costumbre, alguien que ves seguido, un rato del día que es tuyo. Contámelo ahora, tranquil{{o/a}}.",
       "depende": [],
       "parte": "nucleo",
       "clase": "cierre",
@@ -2264,22 +2264,22 @@
     {
       "id": "M24.1",
       "cuando": "Después del cierre de un bloque que no es etapa (1 y 6 a 14), rotan",
-      "texto": "Gracias, {{nombre}}. Con eso cerramos acá. Pasamos a otra cosa."
+      "texto": "Gracias, {{nombre}}. Eso también va al libro."
     },
     {
       "id": "M24.2",
       "cuando": "Después del cierre de un bloque que no es etapa (1 y 6 a 14), rotan",
-      "texto": "Anotado. Ya quedó guardado. Vamos con lo que sigue."
+      "texto": "Anotado, gracias. Quedó guardado junto con el resto."
     },
     {
       "id": "M24.3",
       "cuando": "Después del cierre de un bloque que no es etapa (1 y 6 a 14), rotan",
-      "texto": "Bien, {{nombre}}. Eso queda ahí, bien guardado. Cambiamos de tema."
+      "texto": "Bien, {{nombre}}. Lo sumo a lo que ya me contaste de eso."
     },
     {
       "id": "M24.4",
       "cuando": "Después del cierre de un bloque que no es etapa (1 y 6 a 14), rotan",
-      "texto": "Gracias por eso. Damos vuelta la página y seguimos."
+      "texto": "Gracias por eso. Cada detalle que agregás suma."
     },
     {
       "id": "DD1",
@@ -2290,6 +2290,66 @@
       "id": "DD2",
       "cuando": "Dashboard (no WhatsApp): la ficha dice que no y en la entrevista contó algo. Botones: [Dejalo como lo conté] [Quiero agregar algo] [Sacalo del libro]",
       "texto": "{{nombre}}, sobre {{tema}}: en la ficha no figuraba, pero en la entrevista lo nombraste. Quiero asegurarme de que en el libro quede como vos querés. Podemos dejarlo tal cual lo contaste, podés agregar algo, o si se coló por error, lo saco."
+    },
+    {
+      "id": "EN2",
+      "cuando": "Antes de la primera pregunta del bloque 2",
+      "texto": "Ahora vamos a tu infancia, {{nombre}}: la casa donde creciste y los de tu casa de entonces."
+    },
+    {
+      "id": "EN3",
+      "cuando": "Antes de la primera pregunta del bloque 3",
+      "texto": "Seguimos con la escuela: la primaria, los maestros y los juegos de esa edad."
+    },
+    {
+      "id": "EN4",
+      "cuando": "Antes de la primera pregunta del bloque 4",
+      "texto": "Ahora vamos a tu adolescencia: esos años en que uno deja de ser chic{{o/a}} y todavía no es grande."
+    },
+    {
+      "id": "EN5",
+      "cuando": "Antes de la primera pregunta del bloque 5",
+      "texto": "Pasamos a tu juventud, {{nombre}}: cuando empezaste a armar tu propia vida."
+    },
+    {
+      "id": "EN7",
+      "cuando": "Antes de la primera pregunta del bloque 7",
+      "texto": "Ahora vamos al trabajo y a tu oficio, {{nombre}}: lo que hiciste con tus días."
+    },
+    {
+      "id": "EN8",
+      "cuando": "Antes de la primera pregunta del bloque 8",
+      "texto": "Volvemos a la familia, {{nombre}}, pero en tu vida adulta."
+    },
+    {
+      "id": "EN9",
+      "cuando": "Antes de la primera pregunta del bloque 9",
+      "texto": "Te llevo a los lugares que fueron tuyos y a las cosas que te apasionaron."
+    },
+    {
+      "id": "EN10",
+      "cuando": "Antes de la primera pregunta del bloque 10",
+      "texto": "Hablemos de los amigos, {{nombre}}, y de la gente que te dio una mano en la vida."
+    },
+    {
+      "id": "EN12",
+      "cuando": "Antes de la primera pregunta del bloque 12",
+      "texto": "Ahora salimos un poco de tu casa: vamos a las cosas grandes que pasaron en el país y en el mundo mientras vos vivías tu vida."
+    },
+    {
+      "id": "EN13",
+      "cuando": "Antes de la primera pregunta del bloque 13",
+      "texto": "Llegamos a los días que te cambiaron algo: los buenos, los que te agarraron de sorpresa, y algunas preguntas para pensar un rato."
+    },
+    {
+      "id": "EN14",
+      "cuando": "Antes de la primera pregunta del bloque 14",
+      "texto": "Dejamos el pasado un rato y venimos a hoy, {{nombre}}: cómo son tus días y qué te gusta ahora."
+    },
+    {
+      "id": "EN15",
+      "cuando": "Antes de la primera pregunta del bloque 15",
+      "texto": "Ya estamos en la última parte, {{nombre}}: lo que te dejó todo esto y lo que querés dejarle a tu familia."
     }
   ],
   "nombresBloque": {

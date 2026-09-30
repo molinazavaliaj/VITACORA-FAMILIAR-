@@ -50,12 +50,31 @@
 | M21 | Después de "paso" | Dale, la salteamos. Vamos con otra. |
 | M22 | Si manda texto | Lo leí, gracias. Si podés, contámelo también en audio: así queda tu voz y tu manera de decirlo, que es lo que va al libro. Y si te resulta más cómodo escribir, escribí nomás. |
 | M23 | Audio cortado | Se me cortó el audio o no llegó bien, {{nombre}}. ¿Me lo mandás de nuevo cuando puedas? Sin apuro. |
-| M24.1 | Después del cierre de un bloque que no es etapa (1 y 6 a 14), rotan | Gracias, {{nombre}}. Con eso cerramos acá. Pasamos a otra cosa. |
-| M24.2 | Después del cierre de un bloque que no es etapa (1 y 6 a 14), rotan | Anotado. Ya quedó guardado. Vamos con lo que sigue. |
-| M24.3 | Después del cierre de un bloque que no es etapa (1 y 6 a 14), rotan | Bien, {{nombre}}. Eso queda ahí, bien guardado. Cambiamos de tema. |
-| M24.4 | Después del cierre de un bloque que no es etapa (1 y 6 a 14), rotan | Gracias por eso. Damos vuelta la página y seguimos. |
+| M24.1 | Después del cierre de un bloque que no es etapa (1 y 6 a 14), rotan | Gracias, {{nombre}}. Eso también va al libro. |
+| M24.2 | Después del cierre de un bloque que no es etapa (1 y 6 a 14), rotan | Anotado, gracias. Quedó guardado junto con el resto. |
+| M24.3 | Después del cierre de un bloque que no es etapa (1 y 6 a 14), rotan | Bien, {{nombre}}. Lo sumo a lo que ya me contaste de eso. |
+| M24.4 | Después del cierre de un bloque que no es etapa (1 y 6 a 14), rotan | Gracias por eso. Cada detalle que agregás suma. |
 | DD1 | Dashboard (no WhatsApp): la ficha dice que sí y en la entrevista contestó que no. Botones: [Lo dejo así] [Quiero contar algo] [Error de la ficha] | Una duda chiquita sobre {{tema}}, {{nombre}}. En la ficha aparece y en la entrevista no salió. No hay nada que corregir si no querés: el libro se escribe con lo que vos contaste. Pero si hay algo que quieras sumar, o si la ficha está mal, acá podés decírmelo. |
 | DD2 | Dashboard (no WhatsApp): la ficha dice que no y en la entrevista contó algo. Botones: [Dejalo como lo conté] [Quiero agregar algo] [Sacalo del libro] | {{nombre}}, sobre {{tema}}: en la ficha no figuraba, pero en la entrevista lo nombraste. Quiero asegurarme de que en el libro quede como vos querés. Podemos dejarlo tal cual lo contaste, podés agregar algo, o si se coló por error, lo saco. |
+
+## Entradas de bloque
+
+Una frase al empezar cada bloque, antes de su primera pregunta; no espera respuesta. Los bloques 1 (OR1 ya arranca así), 6 (AM0) y 11 (el aviso AV11) no llevan. Redactadas por Fable, aprobadas por Naza el 30/09 ([`correcciones-lectura.md`](correcciones-lectura.md)).
+
+| ID | Cuándo | Texto |
+|---|---|---|
+| EN2 | Antes de la primera pregunta del bloque 2 | Ahora vamos a tu infancia, {{nombre}}: la casa donde creciste y los de tu casa de entonces. |
+| EN3 | Antes de la primera pregunta del bloque 3 | Seguimos con la escuela: la primaria, los maestros y los juegos de esa edad. |
+| EN4 | Antes de la primera pregunta del bloque 4 | Ahora vamos a tu adolescencia: esos años en que uno deja de ser chic{{o/a}} y todavía no es grande. |
+| EN5 | Antes de la primera pregunta del bloque 5 | Pasamos a tu juventud, {{nombre}}: cuando empezaste a armar tu propia vida. |
+| EN7 | Antes de la primera pregunta del bloque 7 | Ahora vamos al trabajo y a tu oficio, {{nombre}}: lo que hiciste con tus días. |
+| EN8 | Antes de la primera pregunta del bloque 8 | Volvemos a la familia, {{nombre}}, pero en tu vida adulta. |
+| EN9 | Antes de la primera pregunta del bloque 9 | Te llevo a los lugares que fueron tuyos y a las cosas que te apasionaron. |
+| EN10 | Antes de la primera pregunta del bloque 10 | Hablemos de los amigos, {{nombre}}, y de la gente que te dio una mano en la vida. |
+| EN12 | Antes de la primera pregunta del bloque 12 | Ahora salimos un poco de tu casa: vamos a las cosas grandes que pasaron en el país y en el mundo mientras vos vivías tu vida. |
+| EN13 | Antes de la primera pregunta del bloque 13 | Llegamos a los días que te cambiaron algo: los buenos, los que te agarraron de sorpresa, y algunas preguntas para pensar un rato. |
+| EN14 | Antes de la primera pregunta del bloque 14 | Dejamos el pasado un rato y venimos a hoy, {{nombre}}: cómo son tus días y qué te gusta ahora. |
+| EN15 | Antes de la primera pregunta del bloque 15 | Ya estamos en la última parte, {{nombre}}: lo que te dejó todo esto y lo que querés dejarle a tu familia. |
 
 ## Bloque 1 · Origen y raíces
 
@@ -315,7 +334,7 @@
 | G3 | ¿Te gusta leer, o sos más de mirar películas o series? ¿Con qué te enganchás? Contame la última vez que se te pasó la hora con algo así. |  | extra | historia |  |
 | G4 | ¿Cuál es tu placer chiquito de todos los días? Una siesta, un chocolate, lo que sea. Contame el de hoy: a qué hora fue y cómo estuvo. |  | extra | historia |  |
 | G5 | ¿Y un gusto grande? ¿En qué te gusta darte el lujo de gastar tu plata? Contame la última vez que te diste ese gusto. |  | extra | historia |  |
-| CI14 | Hasta acá lo de hoy. Ya te conozco un poco más: cómo son tus días y qué te gusta. Gracias por contármelo con tanta paciencia. |  | núcleo | cierre |  |
+| CI14 | Con esto cerramos lo de hoy, {{nombre}}, y ya te conozco un poco más. ¿Quedó algo de tu vida de ahora que no tuvo su pregunta? Una costumbre, alguien que ves seguido, un rato del día que es tuyo. Contámelo ahora, tranquil{{o/a}}. |  | núcleo | cierre |  |
 
 ## Bloque 15 · Legado y cierre
 
@@ -340,7 +359,7 @@ Todas salen de [`metodo-entrevista.md`](../metodo-entrevista.md) (secciones 20 a
 3. **Audios:** los que llegan mientras la pregunta está abierta se suman a esa respuesta; la siguiente llega sola cuando pasan unos minutos sin audios nuevos. No hay botón [Siguiente] (§20, vuelta 2).
 4. **Acuses:** después de cada respuesta, uno de M3 (rotan); después de una pregunta `sensible`, uno de M4; después de un cierre, M24 (o M10 en las etapas, regla 6); después de LE9, nada. Después de "paso", M21. Si manda texto, M22; si el audio llega cortado, M23 (§22.3).
 5. **"No" corto:** menos de 15 palabras y empieza con no / nunca / jamás. "Paso" no cuenta como "no". Si la pregunta que abre un tema (hermanos CA6, pareja AM0, hijos HI0, nietos HI8, mudarse JU8) recibe un "no" corto, las que dependen de ella no se mandan (§22.4).
-6. **Cierres:** todos los bloques del 1 al 14 terminan con su cierre (CI1 a CI14), siempre, en el núcleo. Después del cierre: M10 en las etapas (bloques 2 a 5) y M24 en los demás (Naza, 30/09; antes solo iban CI2 a CI5). Después de LE9 no va acuse: va directo FIN (Naza, 30/09).
+6. **Entradas y cierres:** antes de la primera pregunta de cada bloque (la primera que se manda de ese bloque) va su frase de entrada EN, si tiene (Naza, 30/09). Además, todos los bloques del 1 al 14 terminan con su cierre (CI1 a CI14), siempre, en el núcleo. Después del cierre: M10 en las etapas (bloques 2 a 5) y M24 en los demás (Naza, 30/09; antes solo iban CI2 a CI5). Después de LE9 no va acuse: va directo FIN (Naza, 30/09).
 7. **Bloque 11:** antes de la primera, el aviso AV11; después de cada una, M4 (§22.6).
 8. **Núcleo y ronda extra:** primero el núcleo completo; después se ofrece la ronda extra. **El texto de esa oferta todavía no está redactado: a redactar con Fable, pendiente de Naza** (§24, "Tamaños: opinión de Fable"). Si la acepta, van las `extra` en el orden del banco.
 9. **Preguntas de la familia:** todas al final de la entrevista, antes de LE9, cada una precedida por M15 ("Cierre del proceso, vuelta 3").
@@ -428,4 +447,4 @@ Registro en [`correcciones-lectura.md`](correcciones-lectura.md).
 - Los cierres de todos los bloques (CI1, CI6 a CI14) pasan al **núcleo**: llegan siempre, no solo después de un "paso". Después de cada uno, M24 (o M10 en las etapas).
 - M1 solo en las 3 primeras preguntas, en las 6 que abren tema (CA6, JU8, AM0, AM9, HI0, HI8) y en las del bloque 11.
 - Después de LE9, directo FIN (sin acuse).
-- Pendiente de aprobar: una frase de entrada al empezar cada bloque (la redacta Fable) y un CI14 nuevo que pregunte algo (el de hoy no pregunta nada y ahora espera respuesta).
+- Aprobado después (30/09): las frases de entrada (EN2 a EN15, sección "Entradas de bloque"); el CI14 nuevo (antes: "Hasta acá lo de hoy. Ya te conozco un poco más: cómo son tus días y qué te gusta. Gracias por contármelo con tanta paciencia."); los M24 más cortos, sin frases de cierre que suenen a que terminó la entrevista (antes: "Gracias, {{nombre}}. Con eso cerramos acá. Pasamos a otra cosa." / "Anotado. Ya quedó guardado. Vamos con lo que sigue." / "Bien, {{nombre}}. Eso queda ahí, bien guardado. Cambiamos de tema." / "Gracias por eso. Damos vuelta la página y seguimos.").

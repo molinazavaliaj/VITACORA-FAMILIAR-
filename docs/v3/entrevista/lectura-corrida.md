@@ -2,9 +2,9 @@
 
 **Qué es:** la entrevista completa de una vida **inventada** (Rogelio, 72 años, varón, con hermanos, que se fue a otra ciudad, sigue con su primera pareja, tiene hijos y nietos), tal como le llegaría por WhatsApp. Generada con el código de `fabrica/src/v3/entrevista/` por `fabrica/scripts/v3-entrevista-lectura.ts` (banco del 30/09, sin ronda extra).
 
-**Cuenta:** 89 preguntas del banco (12 con la frase de "paso" debajo) + 1 de la familia · 224 mensajes del biógrafo en total (bienvenida, acuses, cierres, aviso y final incluidos), de los cuales 12 son frases de entrada **propuestas, sin aprobar** (marcadas "PROPUESTA").
+**Cuenta:** 89 preguntas del banco (12 con la frase de "paso" debajo) + 1 de la familia · 224 mensajes del biógrafo en total (bienvenida, acuses, cierres, aviso y final incluidos), de los cuales 12 son frases de entrada de bloque.
 
-Versión del 30/09 con las decisiones de Naza después de la primera lectura: los cierres de todos los bloques van siempre, la frase de "paso" solo donde aplica, y después de LE9 va directo el final. Registro en [`correcciones-lectura.md`](correcciones-lectura.md).
+Versión 3 (30/09), con todo lo que aprobó Naza después de la primera lectura: frases de entrada de bloque, cierres de todos los bloques, M24 más cortos, CI14 nuevo, la frase de "paso" solo donde aplica y después de LE9 directo el final. Registro en [`correcciones-lectura.md`](correcciones-lectura.md).
 
 Cómo leerlo: **Biógrafo** es lo que manda la entrevista; **Persona** es la respuesta (acá solo "[responde]"; en las preguntas que abren un tema va la respuesta corta de la vida de ejemplo, para que se entienda por qué siguen las que siguen). Los títulos de bloque y los IDs (entre corchetes) son para vos: la persona no los ve.
 
@@ -39,11 +39,11 @@ _Si no va con vos, decí paso y vamos a otra._
 
 > **Persona:** [responde]
 
-**Biógrafo** `[M24.1]`: Gracias, Rogelio. Con eso cerramos acá. Pasamos a otra cosa.
+**Biógrafo** `[M24.1]`: Gracias, Rogelio. Eso también va al libro.
 
 ## Bloque 2 · La casa y la familia de la infancia
 
-**Biógrafo** `[EN2]` (PROPUESTA, sin aprobar): Ahora vamos a tu infancia, Rogelio: la casa donde creciste y los de tu casa de entonces.
+**Biógrafo** `[EN2]`: Ahora vamos a tu infancia, Rogelio: la casa donde creciste y los de tu casa de entonces.
 
 **Biógrafo** `[CA1]`: Contame el primer recuerdo que tengas de la casa donde creciste: un día, qué estabas haciendo, quién andaba por ahí.
 
@@ -90,7 +90,7 @@ _Si no va con vos, decí paso y vamos a otra._
 
 ## Bloque 3 · La escuela y los juegos
 
-**Biógrafo** `[EN3]` (PROPUESTA, sin aprobar): Seguimos con la escuela: la primaria, los maestros y los juegos de esa edad.
+**Biógrafo** `[EN3]`: Seguimos con la escuela: la primaria, los maestros y los juegos de esa edad.
 
 **Biógrafo** `[ES1]`: ¿Cómo fue tu primer día de escuela? ¿Quién te llevó hasta la puerta, y qué sentiste cuando se fue? Si ese día no lo tenés, contame lo primero que te acuerdes de la primaria.
 
@@ -136,7 +136,7 @@ _Si no va con vos, decí paso y vamos a otra._
 
 ## Bloque 4 · Adolescencia
 
-**Biógrafo** `[EN4]` (PROPUESTA, sin aprobar): Ahora vamos a tu adolescencia: esos años en que uno deja de ser chico y todavía no es grande.
+**Biógrafo** `[EN4]`: Ahora vamos a tu adolescencia: esos años en que uno deja de ser chico y todavía no es grande.
 
 **Biógrafo** `[AD2]`: Después de la primaria, ¿dónde pasabas los días a los trece, catorce años? ¿Cómo llegaste ahí? Contame una vez de esos años que te quedó grabada.
 
@@ -182,7 +182,7 @@ _Si no va con vos, decí paso y vamos a otra._
 
 ## Bloque 5 · Juventud
 
-**Biógrafo** `[EN5]` (PROPUESTA, sin aprobar): Pasamos a tu juventud, Rogelio: cuando empezaste a armar tu propia vida.
+**Biógrafo** `[EN5]`: Pasamos a tu juventud, Rogelio: cuando empezaste a armar tu propia vida.
 
 **Biógrafo** `[JU1]`: ¿Te acordás del día que te fuiste de la casa de tus viejos? A dónde te fuiste, con quién, cómo fue esa despedida. Y si te quedaste ahí muchos años, contame cómo era esa casa con vos ya de grande.
 
@@ -295,11 +295,11 @@ _Si no va con vos, decí paso y vamos a otra._
 
 > **Persona:** [responde]
 
-**Biógrafo** `[M24.2]`: Anotado. Ya quedó guardado. Vamos con lo que sigue.
+**Biógrafo** `[M24.2]`: Anotado, gracias. Quedó guardado junto con el resto.
 
 ## Bloque 7 · Trabajo y oficio
 
-**Biógrafo** `[EN7]` (PROPUESTA, sin aprobar): Ahora vamos al trabajo y a tu oficio, Rogelio: lo que hiciste con tus días y con tus manos.
+**Biógrafo** `[EN7]`: Ahora vamos al trabajo y a tu oficio, Rogelio: lo que hiciste con tus días.
 
 **Biógrafo** `[TR1]`: ¿Te acordás de la primera vez que te ganaste algo, o que trabajaste sin cobrar? ¿Qué hacías, qué edad tenías? Contame ese primer día, y en qué se fue esa primera plata, si la hubo.
 
@@ -365,11 +365,11 @@ _Si no va con vos, decí paso y vamos a otra._
 
 > **Persona:** [responde]
 
-**Biógrafo** `[M24.3]`: Bien, Rogelio. Eso queda ahí, bien guardado. Cambiamos de tema.
+**Biógrafo** `[M24.3]`: Bien, Rogelio. Lo sumo a lo que ya me contaste de eso.
 
 ## Bloque 8 · Hijos y nietos
 
-**Biógrafo** `[EN8]` (PROPUESTA, sin aprobar): Ahora vamos a tu familia de grande, Rogelio. Empezamos por tus viejos.
+**Biógrafo** `[EN8]`: Volvemos a la familia, Rogelio, pero en tu vida adulta.
 
 **Biógrafo** `[PG1]`: Contame de tus viejos cuando vos ya eras grande, con tu propia vida. Una vez que los notaste más viejos, un gesto, algo chiquito, y qué te pasó a vos. Si no los tuviste cerca, contame cómo fue eso.
 
@@ -431,11 +431,11 @@ _Si no va con vos, decí paso y vamos a otra._
 
 > **Persona:** [responde]
 
-**Biógrafo** `[M24.4]`: Gracias por eso. Damos vuelta la página y seguimos.
+**Biógrafo** `[M24.4]`: Gracias por eso. Cada detalle que agregás suma.
 
 ## Bloque 9 · Lugares y pasiones
 
-**Biógrafo** `[EN9]` (PROPUESTA, sin aprobar): Ahora vamos a los lugares que fueron tuyos y a las cosas que te apasionaron.
+**Biógrafo** `[EN9]`: Te llevo a los lugares que fueron tuyos y a las cosas que te apasionaron.
 
 **Biógrafo** `[LU4]`: Ya de grande, ¿cuál fue el viaje más importante de tu vida, o uno que recuerdes con mucha fuerza? Contame si fuiste con alguien, y un día de ese viaje que te haya quedado como una foto.
 
@@ -453,11 +453,11 @@ _Si no va con vos, decí paso y vamos a otra._
 
 > **Persona:** [responde]
 
-**Biógrafo** `[M24.1]`: Gracias, Rogelio. Con eso cerramos acá. Pasamos a otra cosa.
+**Biógrafo** `[M24.1]`: Gracias, Rogelio. Eso también va al libro.
 
 ## Bloque 10 · Amistades y ayudas
 
-**Biógrafo** `[EN10]` (PROPUESTA, sin aprobar): Ahora vamos a los amigos, Rogelio, y a la gente que te dio una mano en la vida.
+**Biógrafo** `[EN10]`: Hablemos de los amigos, Rogelio, y de la gente que te dio una mano en la vida.
 
 **Biógrafo** `[AS1]`: Ya de grande, ¿hubo alguien que conociste y se volvió muy importante en tu vida, un amigo o una amiga? Contame cómo se conocieron, y una vez que muestre bien cómo es esa amistad.
 
@@ -481,7 +481,7 @@ _Si no va con vos, decí paso y vamos a otra._
 
 > **Persona:** [responde]
 
-**Biógrafo** `[M24.2]`: Anotado. Ya quedó guardado. Vamos con lo que sigue.
+**Biógrafo** `[M24.2]`: Anotado, gracias. Quedó guardado junto con el resto.
 
 ## Bloque 11 · Pérdidas y momentos difíciles
 
@@ -512,11 +512,11 @@ _Si no va con vos, decí paso y vamos a otra._
 
 > **Persona:** [responde]
 
-**Biógrafo** `[M24.3]`: Bien, Rogelio. Eso queda ahí, bien guardado. Cambiamos de tema.
+**Biógrafo** `[M24.3]`: Bien, Rogelio. Lo sumo a lo que ya me contaste de eso.
 
 ## Bloque 12 · La historia grande
 
-**Biógrafo** `[EN12]` (PROPUESTA, sin aprobar): Ahora salimos un poco de tu casa: vamos a las cosas grandes que pasaron en el país y en el mundo mientras vos vivías tu vida.
+**Biógrafo** `[EN12]`: Ahora salimos un poco de tu casa: vamos a las cosas grandes que pasaron en el país y en el mundo mientras vos vivías tu vida.
 
 **Biógrafo** `[HG1]`: Cuando pasó algo grande, en el país o en el mundo, un Mundial, una guerra, ¿cómo lo pasaste vos? Contame lo que recuerdes: dónde estabas, si lo viviste de cerca o te lo contaron, y qué pasó ese día.
 
@@ -540,11 +540,11 @@ _Si no va con vos, decí paso y vamos a otra._
 
 > **Persona:** [responde]
 
-**Biógrafo** `[M24.4]`: Gracias por eso. Damos vuelta la página y seguimos.
+**Biógrafo** `[M24.4]`: Gracias por eso. Cada detalle que agregás suma.
 
 ## Bloque 13 · Puntos altos, bajos y giros
 
-**Biógrafo** `[EN13]` (PROPUESTA, sin aprobar): Ahora vamos a los días que te cambiaron algo: los buenos, los que te agarraron de sorpresa, y un par de preguntas para pensar un rato.
+**Biógrafo** `[EN13]`: Llegamos a los días que te cambiaron algo: los buenos, los que te agarraron de sorpresa, y algunas preguntas para pensar un rato.
 
 **Biógrafo** `[GI1]`: ¿Hay algún día de tu vida que, si pudieras, volverías a vivir tal cual? O un momento en que sentiste que algo hizo clic. Contámelo desde el principio: dónde estabas, con quién, y qué fue lo que pasó.
 
@@ -610,11 +610,11 @@ _Si no va con vos, decí paso y vamos a otra._
 
 > **Persona:** [responde]
 
-**Biógrafo** `[M24.1]`: Gracias, Rogelio. Con eso cerramos acá. Pasamos a otra cosa.
+**Biógrafo** `[M24.1]`: Gracias, Rogelio. Eso también va al libro.
 
 ## Bloque 14 · Hoy
 
-**Biógrafo** `[EN14]` (PROPUESTA, sin aprobar): Dejamos el pasado un rato y venimos a hoy, Rogelio: cómo son tus días y qué te gusta ahora.
+**Biógrafo** `[EN14]`: Dejamos el pasado un rato y venimos a hoy, Rogelio: cómo son tus días y qué te gusta ahora.
 
 **Biógrafo** `[HO1]`: Contame un día cualquiera de los de ahora, desde que abrís los ojos hasta que apagás la luz. Qué hacés, a qué hora, con quién. Si querés, el de ayer mismo.
 
@@ -652,16 +652,15 @@ _Si no va con vos, decí paso y vamos a otra._
 
 **Biógrafo** `[M3.7]`: Listo, quedó guardado. Sigo.
 
-**Biógrafo** `[CI14]`: Hasta acá lo de hoy. Ya te conozco un poco más: cómo son tus días y qué te gusta. Gracias por contármelo con tanta paciencia.
-> _Nota: Propuesta de Fable para reemplazarlo: «Con esto cerramos lo de hoy, Rogelio, y ya te conozco un poco más. ¿Quedó algo de tu vida de ahora que no tuvo su pregunta? Una costumbre, alguien que ves seguido, un rato del día que es tuyo. Contámelo ahora, tranquilo.»_
+**Biógrafo** `[CI14]`: Con esto cerramos lo de hoy, Rogelio, y ya te conozco un poco más. ¿Quedó algo de tu vida de ahora que no tuvo su pregunta? Una costumbre, alguien que ves seguido, un rato del día que es tuyo. Contámelo ahora, tranquilo.
 
 > **Persona:** [responde]
 
-**Biógrafo** `[M24.2]`: Anotado. Ya quedó guardado. Vamos con lo que sigue.
+**Biógrafo** `[M24.2]`: Anotado, gracias. Quedó guardado junto con el resto.
 
 ## Bloque 15 · Legado y cierre
 
-**Biógrafo** `[EN15]` (PROPUESTA, sin aprobar): Ya estamos en la última parte, Rogelio: lo que te queda de todo esto y lo que querés dejarle a tu familia.
+**Biógrafo** `[EN15]`: Ya estamos en la última parte, Rogelio: lo que te dejó todo esto y lo que querés dejarle a tu familia.
 
 **Biógrafo** `[LE1]`: Mirando toda tu vida hasta hoy, ¿qué es lo que más orgullo te da? Puede ser algo grande o algo que nadie más notó. Contame qué fue y el momento en que te diste cuenta.
 

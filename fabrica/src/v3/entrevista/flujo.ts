@@ -5,7 +5,7 @@
 // estado y llama a estas funciones.
 
 import { estado, type FichaV3 } from '../ficha.js';
-import { BANCO, type PreguntaEntrevista } from './banco.js';
+import { BANCO, mensajePorId, type PreguntaEntrevista } from './banco.js';
 
 /** Respuesta a una pregunta: el texto (transcripción) o lo que dijo, incluido "paso". */
 export type Respuesta = string;
@@ -119,8 +119,12 @@ export type EstadoEntrevista = {
 };
 
 export type Siguiente =
-  /** Mandar la pregunta; si `conM1`, con M1 abajo en línea aparte y en cursiva. */
-  | { tipo: 'pregunta'; pregunta: PreguntaEntrevista; conM1: boolean; esperaRespuesta: boolean }
+  /**
+   * Mandar la pregunta; si `conM1`, con M1 abajo en línea aparte y en
+   * cursiva. Si viene `entrada` (EN2…EN15), mandar antes ese mensaje: es la
+   * primera pregunta que se manda de su bloque (Naza, 30/09).
+   */
+  | { tipo: 'pregunta'; pregunta: PreguntaEntrevista; conM1: boolean; esperaRespuesta: boolean; entrada?: string }
   /** Mandar M15 y después la pregunta de la familia. */
   | { tipo: 'familia'; pregunta: PreguntaFamilia; antes: 'M15' }
   /** Terminó el núcleo: ofrecer la ronda extra (texto a redactar con Fable, pendiente de Naza). */
@@ -157,8 +161,16 @@ export function llevaM1(p: Pick<PreguntaEntrevista, 'id' | 'bloque' | 'clase'>, 
   return yaContestadas < M1_PRIMERAS;
 }
 
-function comoSiguiente(p: PreguntaEntrevista, respuestas: Respuestas, banco: readonly PreguntaEntrevista[]): Siguiente {
-  return { tipo: 'pregunta', pregunta: p, conM1: llevaM1(p, respuestas, banco), esperaRespuesta: esperaRespuesta(p) };
+/** El ID de la frase de entrada de un bloque (EN2…), si el bloque tiene. */
+export function entradaDeBloque(bloque: number): string | undefined {
+  const id = `EN${bloque}`;
+  return mensajePorId(id) ? id : undefined;
+}
+
+function comoSiguiente(p: PreguntaEntrevista, respuestas: Respuestas, banco: readonly PreguntaEntrevista[], hecha: (id: string) => boolean): Siguiente {
+  const primeraDelBloque = !banco.some((q) => q.bloque === p.bloque && hecha(q.id));
+  const entrada = primeraDelBloque ? entradaDeBloque(p.bloque) : undefined;
+  return { tipo: 'pregunta', pregunta: p, conM1: llevaM1(p, respuestas, banco), esperaRespuesta: esperaRespuesta(p), ...(entrada ? { entrada } : {}) };
 }
 
 /**
@@ -182,17 +194,17 @@ export function siguientePregunta(e: EstadoEntrevista, banco: readonly PreguntaE
   const vaEnNucleo = (p: PreguntaEntrevista) => p.parte === 'nucleo';
 
   const principal = banco.filter((p) => p.bloque !== BLOQUE_FINAL);
-  for (const p of principal) if (vaEnNucleo(p) && pendiente(p)) return comoSiguiente(p, e.respuestas, banco);
+  for (const p of principal) if (vaEnNucleo(p) && pendiente(p)) return comoSiguiente(p, e.respuestas, banco, hecha);
 
   if (ronda === 'sin-ofrecer') return { tipo: 'ofrecer-extra' };
-  if (ronda === 'aceptada') for (const p of principal) if (p.parte === 'extra' && pendiente(p)) return comoSiguiente(p, e.respuestas, banco);
+  if (ronda === 'aceptada') for (const p of principal) if (p.parte === 'extra' && pendiente(p)) return comoSiguiente(p, e.respuestas, banco, hecha);
 
   const final = banco.filter((p) => p.bloque === BLOQUE_FINAL && (p.parte === 'nucleo' || ronda === 'aceptada'));
   const ordenFamilia = banco.find((p) => p.id === FAMILIA_ANTES_DE)?.orden ?? Infinity;
   const familia = (e.familia ?? []).find((f) => !e.respuestas.has(f.id));
   for (const p of final) {
     if (familia && p.orden >= ordenFamilia) return { tipo: 'familia', pregunta: familia, antes: 'M15' };
-    if (pendiente(p)) return comoSiguiente(p, e.respuestas, banco);
+    if (pendiente(p)) return comoSiguiente(p, e.respuestas, banco, hecha);
   }
   if (familia) return { tipo: 'familia', pregunta: familia, antes: 'M15' };
   return { tipo: 'terminada' };

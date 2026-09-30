@@ -4,8 +4,8 @@
 // el final.
 
 import { describe, expect, it } from 'vitest';
-import { BANCO, preguntaPorId } from '../src/v3/entrevista/banco.js';
-import { mensajesDespues, siguientePregunta } from '../src/v3/entrevista/flujo.js';
+import { BANCO, mensajePorId, preguntaPorId } from '../src/v3/entrevista/banco.js';
+import { entradaDeBloque, mensajesDespues, siguientePregunta } from '../src/v3/entrevista/flujo.js';
 import { simularRecorrido, type PasoRecorrido } from '../src/v3/entrevista/seleccion.js';
 import { VIDAS_EJEMPLO } from '../src/v3/entrevista/vidas-ejemplo.js';
 
@@ -75,5 +75,34 @@ describe('después de LE9 va directo el final (Naza, 30/09)', () => {
   it('las demás del bloque 15 siguen con su acuse', () => {
     expect(mensajesDespues(preguntaPorId('LE8')!, 'Les digo que los quiero.')).toEqual(['M3']);
     expect(mensajesDespues(preguntaPorId('FO1')!, 'Te mando la del casamiento.')).toEqual(['M3']);
+  });
+});
+
+describe('frases de entrada de bloque (Naza, 30/09)', () => {
+  it('hay entrada en todos los bloques menos el 1, el 6 y el 11', () => {
+    const con = Array.from({ length: 15 }, (_, i) => i + 1).filter((b) => entradaDeBloque(b));
+    expect(con).toEqual([2, 3, 4, 5, 7, 8, 9, 10, 12, 13, 14, 15]);
+  });
+
+  it('va antes de la primera pregunta que se manda de cada bloque, y una sola vez', () => {
+    const ps = preguntas(recorrer('sigue-con-la-primera'));
+    const conEntrada = ps.filter((p) => p.entrada).map((p) => [p.entrada, p.pregunta.id]);
+    expect(conEntrada).toEqual([
+      ['EN2', 'CA1'], ['EN3', 'ES1'], ['EN4', 'AD2'], ['EN5', 'JU1'], ['EN7', 'TR1'], ['EN8', 'PG1'],
+      ['EN9', 'LU4'], ['EN10', 'AS1'], ['EN12', 'HG1'], ['EN13', 'GI1'], ['EN14', 'HO1'], ['EN15', 'LE1'],
+    ]);
+  });
+
+  it('si ya se mandó algo del bloque, la que sigue no lleva entrada', () => {
+    const r = new Map([['OR1', 'a'], ['OR2', 'b'], ['OR5', 'c'], ['CI1', 'd']]);
+    expect(siguientePregunta({ respuestas: r })).toMatchObject({ pregunta: { id: 'CA1' }, entrada: 'EN2' });
+    r.set('CA1', 'Te cuento de la casa.');
+    const s = siguientePregunta({ respuestas: r });
+    expect(s.tipo === 'pregunta' && s.entrada).toBeFalsy();
+  });
+
+  it('textos aprobados: CI14 pregunta y ningún M24 suena a que terminó', () => {
+    expect(preguntaPorId('CI14')!.texto).toContain('¿Quedó algo de tu vida de ahora que no tuvo su pregunta?');
+    for (const n of [1, 2, 3, 4]) expect(mensajePorId(`M24.${n}`)!.texto).not.toMatch(/cerramos|terminamos|listo|hasta acá|pasamos|seguimos/i);
   });
 });
