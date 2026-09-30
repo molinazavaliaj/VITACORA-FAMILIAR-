@@ -58,3 +58,4 @@ Sumas a los ya aprobados: **S4** (M26 antes de una sensible; "no" corto → M25 
 - **S6 (firma de la familia, sacar M1 donde hay botón, CI1 y CI8): descartado** por Naza (30/09). Queda como está.
 - S13 (dashboard): queda para cuando se haga el dashboard.
 - **Textos finales ([`textos-finales.md`](textos-finales.md)), las 5 dudas de Fable: Naza aprueba las 5 recomendaciones** (30/09): M1 queda como está y se mira en la prueba real; botón [No tengo foto] en FO1 (sigue LE9 con M25); botón de AM20 "Nadie en el medio"; FIN sin "y es bien tuyo"; "le cuesta recordar" en la ficha, no por ahora. Falta el OK de Naza a los textos mismos.
+- **Textos finales, tanda 1 (botones de las 30 preguntas + [No tengo foto], M30, M27.1-3, M31): aprobada por Naza** (30/09).
