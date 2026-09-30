@@ -45,7 +45,7 @@
 | M4.4 | Acuses sobrios, después de algo difícil (y en todo el bloque 11) | Gracias por animarte a contarlo. Cuando quieras, seguimos. |
 | M8 | Recordatorio a la persona, a los pocos días sin respuesta | Hola, {{nombre}}. Pasaron unos días y quería saber cómo andás. Tu historia está acá, guardada tal como la dejaste. Cuando tengas un rato me contestás la que quedó pendiente. Sin apuro. |
 | M9 | Aviso a la familia, una semana sin audios | Hola, {{quien_regala}}. Te aviso que {{nombre}} hace una semana que no manda audios. Puede ser cualquier cosa: que ande con otras cosas, que no mire mucho el celular o que le cueste un poco arrancar de nuevo. Si podés, pegale un llamado o hacele una visita y preguntale cómo viene con el libro; muchas veces con una charla con alguien de la familia se vuelve a enganchar. Lo que ya contó está guardado. Si hay algo que tenga que saber, me avisás. |
-| M10 | Fin de etapa (bloques 2 a 5), después del cierre | Terminamos {{etapa}}, {{nombre}}. Ya quedó guardado todo eso. Seguimos con lo que viene. |
+| M10 | Fin de etapa (bloques 2 a 5), después del cierre | Terminamos esta etapa, {{nombre}}. Pasamos a la siguiente. |
 | M15 | Pregunta de la familia (todas al final, antes de LE9) | Esta pregunta te la hace tu familia. |
 | M21 | Después de "paso" | Dale, la salteamos. Vamos con otra. |
 | M22 | Si manda texto | Lo leí, gracias. Si podés, contámelo también en audio: así queda tu voz y tu manera de decirlo, que es lo que va al libro. Y si te resulta más cómodo escribir, escribí nomás. |
@@ -82,7 +82,7 @@
 | CA15 | ¿A qué le tenías miedo de chic{{o/a}}, y por qué? ¿Te acordás de alguna vez que te hayas asustado mucho? Contame qué pasó. |  | extra | historia |  |
 | CA16 | Contame un día de chic{{o/a}} que esperabas con muchas ganas: qué era, quién estaba, qué pasó. |  | núcleo | historia |  |
 | CA17 | ¿Hubo algún momento difícil de tu infancia que creas que no puede quedar afuera de tu historia? ¿Algo que te marcó? Si querés, contame qué pasó y cómo lo viviste. |  | núcleo | historia |  |
-| CI2 | Ya casi terminamos con {{etapa}}, y me quedo pensando si te dejé algo afuera. ¿Hubo alguna historia que se te vino a la cabeza mientras contabas y no tuvo dónde entrar? Contámela ahora, tranquil{{o/a}}, que hay tiempo. |  | núcleo | cierre |  |
+| CI2 | Ya casi terminamos con tu infancia, y me quedo pensando si te dejé algo afuera. ¿Hubo alguna historia que se te vino a la cabeza mientras contabas y no tuvo dónde entrar? Contámela ahora, tranquil{{o/a}}, que hay tiempo. |  | núcleo | cierre |  |
 
 ## Bloque 3 · La escuela y los juegos
 
@@ -408,3 +408,8 @@ Cosas ambiguas que encontré al armar este banco. No cambian ningún texto; las 
 | M4 (los 4 acuses sobrios) | M4.1 a M4.4, en el mismo orden |
 
 Las demás filas vivas del borrador mantienen su ID. Las filas "sale" no están en este banco (ver [`banco-descartadas.md`](../banco-descartadas.md)).
+
+## Cambios del 30/09 (Naza, después de armar este banco)
+- M10 sin {{etapa}}: "Terminamos esta etapa, {{nombre}}. Pasamos a la siguiente." CI2 dice "tu infancia" (el texto aprobado del cierre A1).
+- La ronda extra **por ahora no se ofrece**: después del núcleo de los bloques 1 a 14 va el bloque 15. Las preguntas "extra" quedan en el banco para más adelante (`ofrecerExtra` en el código).
+- "Paso" en una pregunta que abre tema: se sigue a otro tema (como estaba).

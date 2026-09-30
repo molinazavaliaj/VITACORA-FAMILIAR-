@@ -14,8 +14,8 @@ import { VIDAS_EJEMPLO, type VidaEjemplo } from '../src/v3/entrevista/vidas-ejem
 import type { FichaV3 } from '../src/v3/ficha.js';
 
 const vida = (clave: VidaEjemplo['clave']) => VIDAS_EJEMPLO.find((v) => v.clave === clave)!;
-const recorrer = (v: VidaEjemplo, aceptaExtra = false, familia?: { id: string; texto: string }[]) =>
-  simularRecorrido(v.ficha, (id) => v.respuestas[id], { aceptaExtra, familia });
+const recorrer = (v: VidaEjemplo, aceptaExtra = false, familia?: { id: string; texto: string }[], ofrecerExtra = false) =>
+  simularRecorrido(v.ficha, (id) => v.respuestas[id], { aceptaExtra, familia, ofrecerExtra });
 const ids = (pasos: PasoRecorrido[]) => pasos.flatMap((p) => (p.tipo === 'pregunta' ? [p.pregunta.id] : p.tipo === 'familia' ? [p.pregunta.id] : ['OFERTA']));
 const delBloque = (pasos: PasoRecorrido[], bloque: number) =>
   pasos.flatMap((p) => (p.tipo === 'pregunta' && p.pregunta.bloque === bloque ? [p.pregunta.id] : []));
@@ -177,9 +177,16 @@ describe('entrevista: orden del flujo (núcleo, oferta, extra, final, familia)',
     expect(s.tipo === 'pregunta' && s.pregunta.id).toBe('OR1');
   });
 
-  it('la oferta de extra llega después de todo el núcleo de los bloques 1 a 14 y antes de cualquier extra', () => {
+  it('por ahora no se ofrece la ronda extra: después del núcleo de los bloques 1 a 14 va el legado (Naza, 30/09)', () => {
+    const seq = ids(recorrer(vida('sigue-con-la-primera'), false, familia));
+    expect(seq).not.toContain('OFERTA');
+    expect(seq[seq.indexOf('HO9') + 1]).toBe('LE1');
+    expect(siguientePregunta({ respuestas: new Map() }).tipo).toBe('pregunta');
+  });
+
+  it('si se activa, la oferta de extra llega después de todo el núcleo de los bloques 1 a 14 y antes de cualquier extra', () => {
     for (const aceptaExtra of [false, true]) {
-      const seq = ids(recorrer(vida('sigue-con-la-primera'), aceptaExtra, familia));
+      const seq = ids(recorrer(vida('sigue-con-la-primera'), aceptaExtra, familia, true));
       const oferta = seq.indexOf('OFERTA');
       expect(oferta).toBeGreaterThan(0);
       const antes = seq.slice(0, oferta).map((id) => preguntaPorId(id)!);

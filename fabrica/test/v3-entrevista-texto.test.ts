@@ -31,10 +31,8 @@ describe('entrevista: renderizar', () => {
     expect(renderizar(texto('FO1'), mujer)).toMatch(/^Una última cosa, Elvira\./);
     expect(renderizar(mensajePorId('M9')!.texto, { ...mujer, quienRegala: 'Lucía' })).toMatch(/^Hola, Lucía\. Te aviso que Elvira hace una semana/);
     expect(renderizar(mensajePorId('M9')!.texto, mujer)).toMatch(/^Hola, \{\{quien_regala\}\}\./);
-    expect(renderizar(mensajePorId('M10')!.texto, mujer, undefined, { etapa: 'tu infancia' })).toBe(
-      'Terminamos tu infancia, Elvira. Ya quedó guardado todo eso. Seguimos con lo que viene.',
-    );
-    expect(renderizar(mensajePorId('M10')!.texto, mujer)).toContain('{{etapa}}');
+    expect(renderizar(mensajePorId('M10')!.texto, mujer)).toBe('Terminamos esta etapa, Elvira. Pasamos a la siguiente.');
+    expect(renderizar(mensajePorId('M10')!.texto, mujer)).not.toContain('{{etapa}}'); // 30/09: M10 ya no usa {{etapa}}
   });
 
   it('AM7: "repite" si AM9 fue un "no" corto; "repetía" si contó un final, dijo "paso" o no hay respuesta', () => {

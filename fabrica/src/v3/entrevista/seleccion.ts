@@ -39,6 +39,7 @@ export type PasoRecorrido =
 
 export type OpcionesRecorrido = OpcionesTexto & {
   aceptaExtra?: boolean; // default: no
+  ofrecerExtra?: boolean; // default: no (por ahora no se ofrece); aceptaExtra: true la ofrece
   familia?: readonly PreguntaFamilia[];
 };
 
@@ -55,7 +56,7 @@ export function simularRecorrido(
 ): PasoRecorrido[] {
   const respuestas = new Map<string, Respuesta>();
   const enviados = new Set<string>();
-  const estado: EstadoEntrevista = { respuestas, enviados, rondaExtra: 'sin-ofrecer', familia: opciones.familia };
+  const estado: EstadoEntrevista = { respuestas, enviados, rondaExtra: opciones.ofrecerExtra || opciones.aceptaExtra ? 'sin-ofrecer' : 'rechazada', familia: opciones.familia };
   const pasos: PasoRecorrido[] = [];
   for (let vuelta = 0; vuelta < 1000; vuelta++) {
     const s = siguientePregunta(estado);

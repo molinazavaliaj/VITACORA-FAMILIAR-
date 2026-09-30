@@ -23,7 +23,7 @@ Convenciones:
 | M4 | Acuses sobrios, después de algo difícil (y en todo el bloque 11) | Gracias por contarme esto, {{nombre}}. Queda guardado con cuidado. / Te escuché. Gracias por confiármelo. / Lo guardo tal como lo contaste. Gracias. / Gracias por animarte a contarlo. Cuando quieras, seguimos. | aprobada |
 | M8 | Recordatorio a la persona, a los pocos días sin respuesta | Hola, {{nombre}}. Pasaron unos días y quería saber cómo andás. Tu historia está acá, guardada tal como la dejaste. Cuando tengas un rato me contestás la que quedó pendiente. Sin apuro. | aprobada |
 | M9 | Aviso a la familia, una semana sin audios | Hola, {{quien_regala}}. Te aviso que {{nombre}} hace una semana que no manda audios. Puede ser cualquier cosa: que ande con otras cosas, que no mire mucho el celular o que le cueste un poco arrancar de nuevo. Si podés, pegale un llamado o hacele una visita y preguntale cómo viene con el libro; muchas veces con una charla con alguien de la familia se vuelve a enganchar. Lo que ya contó está guardado. Si hay algo que tenga que saber, me avisás. | aprobada |
-| M10 | Fin de etapa (bloques 2 a 5), después del cierre | Terminamos {{etapa}}, {{nombre}}. Ya quedó guardado todo eso. Seguimos con lo que viene. | aprobada |
+| M10 | Fin de etapa (bloques 2 a 5), después del cierre | Terminamos esta etapa, {{nombre}}. Pasamos a la siguiente. | aprobada |
 | M15 | Pregunta de la familia (todas al final, antes de LE9) | Esta pregunta te la hace tu familia. | aprobada |
 | M21 | Después de "paso" | Dale, la salteamos. Vamos con otra. | aprobada |
 | M22 | Si manda texto | Lo leí, gracias. Si podés, contámelo también en audio: así queda tu voz y tu manera de decirlo, que es lo que va al libro. Y si te resulta más cómodo escribir, escribí nomás. | aprobada |
@@ -68,7 +68,7 @@ Orden propuesto en el doc: CA1, CA2, CA10, CA3, CA6/CA8, CA16, y después las de
 | CA15 | ¿A qué le tenías miedo de chic{{o/a}}, y por qué? ¿Te acordás de alguna vez que te hayas asustado mucho? Contame qué pasó. | — | Extra | aprobada |
 | CA16 | Contame un día de chic{{o/a}} que esperabas con muchas ganas: qué era, quién estaba, qué pasó. | — | Núcleo | aprobada |
 | CA17 | ¿Hubo algún momento difícil de tu infancia que creas que no puede quedar afuera de tu historia? ¿Algo que te marcó? Si querés, contame qué pasó y cómo lo viviste. | — | Núcleo | aprobada |
-| Cierre (A1) | Ya casi terminamos con {{etapa}}, y me quedo pensando si te dejé algo afuera. ¿Hubo alguna historia que se te vino a la cabeza mientras contabas y no tuvo dónde entrar? Contámela ahora, tranquil{{o/a}}, que hay tiempo. | — | Núcleo | aprobada |
+| Cierre (A1) | Ya casi terminamos con tu infancia, y me quedo pensando si te dejé algo afuera. ¿Hubo alguna historia que se te vino a la cabeza mientras contabas y no tuvo dónde entrar? Contámela ahora, tranquil{{o/a}}, que hay tiempo. | — | Núcleo | aprobada |
 
 - Cierre A1: se eligió como molde para los bloques 2 a 5 con {{etapa}}, pero los bloques 3, 4 y 5 terminaron con cierres propios aprobados; acá queda como el del bloque 2.
 

@@ -229,7 +229,7 @@
       "id": "CI2",
       "bloque": 2,
       "orden": 23,
-      "texto": "Ya casi terminamos con {{etapa}}, y me quedo pensando si te dejé algo afuera. ¿Hubo alguna historia que se te vino a la cabeza mientras contabas y no tuvo dónde entrar? Contámela ahora, tranquil{{o/a}}, que hay tiempo.",
+      "texto": "Ya casi terminamos con tu infancia, y me quedo pensando si te dejé algo afuera. ¿Hubo alguna historia que se te vino a la cabeza mientras contabas y no tuvo dónde entrar? Contámela ahora, tranquil{{o/a}}, que hay tiempo.",
       "depende": [],
       "parte": "nucleo",
       "clase": "cierre",
@@ -2239,7 +2239,7 @@
     {
       "id": "M10",
       "cuando": "Fin de etapa (bloques 2 a 5), después del cierre",
-      "texto": "Terminamos {{etapa}}, {{nombre}}. Ya quedó guardado todo eso. Seguimos con lo que viene."
+      "texto": "Terminamos esta etapa, {{nombre}}. Pasamos a la siguiente."
     },
     {
       "id": "M15",

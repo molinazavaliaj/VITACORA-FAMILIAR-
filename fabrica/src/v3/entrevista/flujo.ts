@@ -110,8 +110,10 @@ export type EstadoEntrevista = {
   respuestas: Respuestas;
   /** Lo que se mandó y no espera respuesta (AV11, FIN). */
   enviados?: ReadonlySet<string>;
-  /** Por defecto 'sin-ofrecer'. */
+  /** Si no viene: 'sin-ofrecer' cuando `ofrecerExtra`, y si no 'rechazada' (no se ofrece). */
   rondaExtra?: RondaExtra;
+  /** ¿Se ofrece la ronda extra al terminar el núcleo? Por ahora no (Naza, 30/09: "ya dijimos que acá estaba todo"). */
+  ofrecerExtra?: boolean;
   /** Preguntas de la familia, en el orden en que llegaron. */
   familia?: readonly PreguntaFamilia[];
 };
@@ -151,7 +153,7 @@ function comoSiguiente(p: PreguntaEntrevista): Siguiente {
  */
 export function siguientePregunta(e: EstadoEntrevista, banco: readonly PreguntaEntrevista[] = BANCO): Siguiente {
   const enviados = e.enviados ?? new Set<string>();
-  const ronda = e.rondaExtra ?? 'sin-ofrecer';
+  const ronda = e.rondaExtra ?? (e.ofrecerExtra ? 'sin-ofrecer' : 'rechazada');
   const hecha = (id: string) => e.respuestas.has(id) || enviados.has(id);
   const pendiente = (p: PreguntaEntrevista) => !hecha(p.id) && cumple(p, e.respuestas);
 
