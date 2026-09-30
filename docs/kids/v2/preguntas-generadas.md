@@ -43,6 +43,10 @@ Naza (30/09): "que nada quede afuera". Acá está **toda** pregunta que se escri
 | Qué querés ser | Hoy, con {{edad}}, ¿qué querés ser de grande? Vale aunque mañana cambies de idea. | nueva, aprobada · capítulo 3, después de "lo que mejor te sale" · {{edad}} = la edad el día que se manda; sin edad cargada: "Hoy, ¿qué querés ser de grande? Vale aunque mañana cambies de idea." |
 | Qué querés ser | Contame el día que se te ocurrió qué querés ser de grande. | alternativa |
 | Qué decías que ibas a ser | ¿Y cuando eras más chico, qué decías que ibas a ser? | otra puerta (de "qué querés ser") |
+| Qué querés ser | Hoy, que sos chico, ¿qué es lo que querés hacer de grande? | nueva, ronda 4 (la más cerca de Naza) · Naza decidió sin edad |
+| Qué querés ser | Hoy, ¿qué es lo que querés hacer de grande? Y listo, lo que te salga. | nueva, ronda 4 (Fable la recomienda) |
+
+Estado actualizado (ronda 4): "Todavía no te dejan" va en la versión original de Naza; la de Fable queda alternativa. "Qué querés ser" con {{edad}} queda descartada por Naza (sin edad).
 
 ### Mostrame
 
