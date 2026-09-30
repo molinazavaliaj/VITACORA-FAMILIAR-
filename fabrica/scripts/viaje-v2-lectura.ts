@@ -1,0 +1,18 @@
+// Genera docs/viajes-v2/lectura-corrida.md: la entrevista completa de UN viaje
+// INVENTADO (Lucía, regalo de su hermano Tomás; 8 días; Buenos Aires → Madrid),
+// mensaje por mensaje, con día, hora local y quién habla. Para leer en el celular.
+//
+//   npx tsx scripts/viaje-v2-lectura.ts [<salida.md>]
+
+import { writeFileSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { lecturaCorrida } from '../src/viaje-v2/lectura.js';
+
+const FABRICA = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const SALIDA = process.argv[2] ?? path.join(FABRICA, '..', 'docs', 'viajes-v2', 'lectura-corrida.md');
+
+const md = lecturaCorrida();
+writeFileSync(SALIDA, md, 'utf8');
+const globos = md.split('\n').filter((l) => /^\*\*\d\d:\d\d · /.test(l)).length;
+console.log(`${path.relative(process.cwd(), SALIDA)}: ${globos} mensajes`);
