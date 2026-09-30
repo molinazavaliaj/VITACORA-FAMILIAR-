@@ -4,6 +4,7 @@ Carpeta del banco nuevo de la entrevista (30/09/2026).
 
 ## Qué hay acá
 
+- [`flujo-hoy.md`](flujo-hoy.md): **cómo funciona la entrevista hoy, de punta a punta** (empezar por acá).
 - [`banco.md`](banco.md): **el banco vigente**, fuente de verdad. Arranque, mensajes fijos, los 15 bloques en orden de envío (con "Depende de", Parte, Clase y Sensible), las reglas del flujo, las dudas abiertas y la tabla de equivalencias de IDs.
 
 ## Docs relacionados
