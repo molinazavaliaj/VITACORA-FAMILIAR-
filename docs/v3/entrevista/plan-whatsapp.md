@@ -42,7 +42,7 @@
 
 - **Narradores de prueba:** Naza y Joaquín, cada uno con su número, en modo V3, con un nombre y un género de ficha. Contestan como quieran: esto no se usa para ningún libro.
 - **Para no tardar días:** N = 3 minutos de silencio. Se puede hacer de corrido en una o dos sentadas, o cortar y seguir otro día: la entrevista retoma donde quedó.
-- **Qué mirar:** que los audios se sumen bien a la pregunta, que el silencio dispare el turno a tiempo, que los mensajes lleguen como en la lectura corrida (acuse arriba, M1 en cursiva, entrada separada), que el "no" y el "paso" hagan lo que tienen que hacer, y cómo se siente contestar 89 preguntas. Anotar todo en `docs/v3/entrevista/prueba-whatsapp.md` (nuevo).
+- **Qué mirar:** que los audios se sumen bien a la pregunta, que el silencio dispare el turno a tiempo, que los mensajes lleguen como en la lectura corrida (acuse arriba, M1 en cursiva, entrada separada), que el "no" y el "paso" hagan lo que tienen que hacer, y cómo se siente contestar 88 preguntas (89 antes de las simulaciones: salió HI2b). Y desde las simulaciones, que los botones lleguen y se entiendan. Anotar todo en `docs/v3/entrevista/prueba-whatsapp.md` (nuevo).
 - Conviene correr antes, o en paralelo, la simulación con narradores inventados (`simulaciones/PLAN.md`): encuentra fallas de lógica sin gastar transcripción.
 
 ## Costo
