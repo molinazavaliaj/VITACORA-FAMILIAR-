@@ -1,5 +1,7 @@
 # Vitácora de Viaje V2 · Diseño vigente (cierre del paso 1, 30/09/2026)
 
+> **Superado (30/09):** el diseño de este archivo cambió después. El vigente es [`flujo-vigente.md`](flujo-vigente.md) y los textos están en [`banco.md`](banco.md).
+
 Resumen de lo que decidió Naza en los pasos 1 a 1e (ver `paso-1*.md` en esta carpeta). **Este es el documento vigente**; si algo cambia, la versión vieja va a `historial/` con la fecha.
 
 ## El producto
