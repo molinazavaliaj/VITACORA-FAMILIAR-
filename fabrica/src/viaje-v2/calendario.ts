@@ -177,8 +177,30 @@ export function armarCalendario(compra: Compra, pendientesAntes: readonly IdAnte
   const propia = (i: number) => (compra.regalo ? PROPIAS_REGALO[i % PROPIAS_REGALO.length] : 'PR-P');
 
   // Noches comunes: días 1 a N-2 (la N-1 es FN1; el día 0 y el N no tienen noche).
+  /**
+   * ID1 nunca el mismo día de salida en casa (banco.md, simulaciones): a las
+   * 10:00 del día siguiente en la zona del viaje o en la de casa, la que sea
+   * más tarde (esa es su zona), fuera de la franja 23-8 en las dos zonas.
+   */
+  const f1 = sumarDias(compra.salida, 1);
+  const id1 = (() => {
+    const enViaje = aInstante(f1, HORA_MANANA, compra.zonaViaje);
+    const enCasa = aInstante(f1, HORA_MANANA, compra.zonaCasa);
+    const zona = enCasa > enViaje ? compra.zonaCasa : compra.zonaViaje;
+    return { zona, t: respetarFranjas(enCasa > enViaje ? enCasa : enViaje, [compra.zonaViaje, compra.zonaCasa]) };
+  })();
+  /**
+   * Con 12 horas o más de diferencia, eso cae después de la noche del día 1
+   * (i12): ahí ID1 ocupa el lugar de esa noche, a la hora de la noche del
+   * viaje, y ese día no hay otra noche; lo que iba en las noches corre un día
+   * (Naza, 30/09). Solo si el día 1 tiene noche (viajes de 3 días o más; en
+   * uno de 3, la noche del día 1 es FN1, y ID1 la ocupa igual).
+   */
+  const nocheDia1 = respetarFranja(aInstante(f1, horaNoche, compra.zonaViaje), compra.zonaViaje);
+  const id1EnLaNoche = n >= 2 && id1.t.getTime() >= nocheDia1.getTime();
+
   const diasComunes: number[] = [];
-  for (let d = 1; d <= n - 2; d++) diasComunes.push(d);
+  for (let d = id1EnLaNoche ? 2 : 1; d <= n - 2; d++) diasComunes.push(d);
 
   const noches = new Map<number, Noche>();
   const antesEntran = pendientesAntes.slice(0, diasComunes.length);
@@ -205,21 +227,8 @@ export function armarCalendario(compra: Compra, pendientesAntes: readonly IdAnte
     programados.push({ dia, momento, tipo, ids, zona, fecha: local.fecha, hora: local.hora, instante, clave: `D${dia}-${momento}`, ...(pregunta !== undefined ? { pregunta } : {}) });
   };
 
-  /**
-   * ID1 nunca el mismo día de salida en casa (banco.md, simulaciones): a las
-   * 10:00 del día siguiente en la zona del viaje o en la de casa, la que sea
-   * más tarde (esa es su zona). Además, fuera de la franja 23-8 en las dos
-   * zonas: con 12 horas o más de diferencia, las 10 de casa pueden ser de
-   * madrugada allá, y se corre a las 8 de allá. Ahí ID1 puede quedar después
-   * de la noche del día 1: el calendario se ordena por tiempo al final.
-   */
   function agregarID1(d: number) {
-    const f = sumarDias(compra.salida, d);
-    const enViaje = aInstante(f, HORA_MANANA, compra.zonaViaje);
-    const enCasa = aInstante(f, HORA_MANANA, compra.zonaCasa);
-    const zona = enCasa > enViaje ? compra.zonaCasa : compra.zonaViaje;
-    const t = respetarFranjas(enCasa > enViaje ? enCasa : enViaje, [compra.zonaViaje, compra.zonaCasa]);
-    agregar(d, 'manana', 'ID1', ['ID1'], zona, HORA_MANANA, undefined, t);
+    agregar(d, 'manana', 'ID1', ['ID1'], id1.zona, HORA_MANANA, undefined, id1.t);
   }
 
   if (n === 0) {
@@ -245,6 +254,10 @@ export function armarCalendario(compra: Compra, pendientesAntes: readonly IdAnte
       continue;
     }
     // Días 1 a N-1: en el viaje.
+    if (d === 1 && id1EnLaNoche) {
+      agregar(d, 'noche', 'ID1', ['ID1'], compra.zonaViaje, horaNoche);
+      continue;
+    }
     const noche = d === n - 1 ? null : noches.get(d)!;
     if (d === 1) {
       agregarID1(d);

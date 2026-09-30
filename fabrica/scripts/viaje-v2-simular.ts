@@ -714,6 +714,7 @@ export const INVARIANTES: Record<string, string> = {
   d8: 'd) ATR-V dos noches seguidas',
   d9: 'd) Acuse en texto (ACM) al mediodía, a VU0 o a una foto suelta (va la reacción ❤️), o sin reacción',
   d10: 'd) ID1 el mismo día de salida en hora de casa',
+  d11: 'd) ID1 después de la noche del día 1 (con 12 h o más de diferencia, ID1 ocupa esa noche)',
   e1: 'e) Una de antes de salir sale dos veces (misma versión), o "ya de viaje" después de contestada',
   e2: 'e) Una de antes de salir no contestada, que no sale ni queda en avisosNaza',
   e3: 'e) Una pregunta propia sale dos veces',
@@ -747,7 +748,7 @@ export const HALLAZGOS: Record<string, string> = {
   i9: 'Una de antes de salir mandada y sin respuesta vuelve "ya de viaje" (por diseño)',
   i10: 'Una reacción con pregunta adentro (AS1 con el SÍ, o COR) sale entre las 23:00 y las 8:00',
   i11: 'AL2, AL3 o DES por reloj a las 8:00 justas (debería correrse a las 10:00)',
-  i12: 'ID1 después de la noche del día 1 (12 horas o más de diferencia: las 10 de casa son la noche de allá)',
+  i12: 'ID1 ocupa la noche del día 1 (12 horas o más de diferencia: las 10 de casa son la noche de allá)',
   i13: 'UC1 corrida 2 horas después de un SÍ tardío el día de salida',
 };
 
@@ -896,8 +897,9 @@ export function revisar(res: Resultado): { violaciones: Violacion[]; hallazgos: 
     if (m.ids.includes('ID1')) {
       if (fecha(m.en, m.zona) !== sumarDias(c.salida, 1)) mal('d7', `ID1 ${cuando(m)}`);
       if (fecha(m.en, casa) === c.salida) mal('d10', `ID1 ${cuando(m)} = ${hora(m.en, casa)} en casa, el día de salida`);
-      const noche1 = preguntas.find((q) => q.programado?.dia === 1 && q.programado.momento === 'noche');
-      if (noche1 && noche1.en < m.en) ojo('i12', `ID1 ${cuando(m)} después de ${noche1.ids.filter((id) => !id.startsWith('ATR')).join('+')} ${cuando(noche1)}`);
+      const noche1 = preguntas.find((q) => q.programado?.dia === 1 && q.programado.momento === 'noche' && q.programado.tipo !== 'ID1');
+      if (noche1 && noche1.en < m.en) mal('d11', `ID1 ${cuando(m)} después de ${noche1.ids.filter((id) => !id.startsWith('ATR')).join('+')} ${cuando(noche1)}`);
+      if (m.programado?.momento === 'noche') ojo('i12', `ID1 ${cuando(m)} en lugar de la noche`);
     }
     if (m.ids.some((id) => /^C\d$/.test(id)) && hora(m.en, m.zona) < '12:00') ojo('i3', `${m.ids.join('+')} ${cuando(m)}`);
     if (m.ids.includes('FN1') && fecha(m.en, m.zona) !== sumarDias(c.vuelta, -1)) ojo('i4', `FN1 ${cuando(m)} (vuelta ${c.vuelta})`);

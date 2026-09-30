@@ -96,16 +96,38 @@ describe('ID1 nunca el día de salida en casa', () => {
     expect(id1.instante.toISOString()).toBe(aInstante('2026-10-11', '10:00', BA).toISOString());
   });
 
-  it('Buenos Aires → Tokio (12 h): nunca el día de salida en casa, ni en la franja de ninguna de las dos', () => {
+  it('con cualquier diferencia: nunca el día de salida en casa, ni en la franja de su zona', () => {
     for (const [casa, viaje] of [[BA, TOKIO], [CDMX, TOKIO], [TOKIO, CDMX], [MADRID, TOKIO]]) {
       const c = { ...COMPRA, zonaCasa: casa, zonaViaje: viaje };
       const id1 = armarCalendario(c, []).programados.find((p) => p.tipo === 'ID1')!;
       expect(aLocal(id1.instante, casa).fecha > c.salida, `${casa}→${viaje}`).toBe(true);
-      for (const z of [casa, viaje]) {
-        const h = aLocal(id1.instante, z).hora;
-        expect(h >= '08:00' && h < '23:00', `${casa}→${viaje} en ${z}: ${h}`).toBe(true);
-      }
+      const h = aLocal(id1.instante, id1.zona).hora;
+      expect(h >= '08:00' && h < '23:00', `${casa}→${viaje}: ${h}`).toBe(true);
       expect(aLocal(id1.instante, id1.zona)).toEqual({ fecha: id1.fecha, hora: id1.hora });
+    }
+  });
+
+  it('si ID1 caería después de la noche del día 1 (12 h o más), ID1 ocupa la noche: a la hora de la noche, hora del viaje, y esa noche no hay otra', () => {
+    for (const [casa, viaje] of [[BA, TOKIO], [CDMX, TOKIO]]) {
+      const c = { ...COMPRA, zonaCasa: casa, zonaViaje: viaje, preguntasPropias: ['¿uno?'] };
+      const r = armarCalendario(c, ['VA1']);
+      const dia1 = r.programados.filter((p) => p.dia === 1);
+      expect(dia1.map((p) => [p.tipo, p.zona, p.fecha, p.hora]), `${casa}→${viaje}`).toEqual([['ID1', viaje, '2026-10-11', '21:30']]);
+      expect(dia1[0].momento).toBe('noche');
+      expect(dia1[0].ids).toEqual(['ID1']);
+      // lo que iba en las noches no se pierde: corre un día
+      const noches = r.programados.filter((p) => p.momento === 'noche' && p.tipo !== 'CA1');
+      expect(noches[1]).toMatchObject({ tipo: 'antes-en-viaje', ids: ['VA1'], dia: 2 });
+      expect(r.propiasQueNoEntran).toEqual([]);
+      expect(r.antesQueNoEntran).toEqual([]);
+    }
+  });
+
+  it('el resto no cambia: con Madrid o Buenos Aires, ID1 a la mañana y la noche del día 1 sigue', () => {
+    for (const [casa, viaje] of [[BA, MADRID], [MADRID, BA], [MADRID, TOKIO], [TOKIO, CDMX]]) {
+      const dia1 = armarCalendario({ ...COMPRA, zonaCasa: casa, zonaViaje: viaje }, []).programados.filter((p) => p.dia === 1);
+      expect(dia1.map((p) => p.tipo), `${casa}→${viaje}`).toEqual(['ID1', 'noche']);
+      expect(dia1[0].momento).toBe('manana');
     }
   });
 
