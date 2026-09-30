@@ -46,3 +46,12 @@ Conteo de una vida completa (Rogelio): **89 preguntas** de historia (igual que a
   - M24.3 Bien, {{nombre}}. Lo sumo a lo que ya me contaste de eso.
   - M24.4 Gracias por eso. Cada detalle que agregás suma.
 - **Bloque 8:** Naza dudó de "tu familia de grande" (se lee como "familia grande"). Alternativas de Fable: A "Ahora vamos a la familia otra vez, {{nombre}}, pero en tu vida adulta." (favorita) · B "Ahora vamos a tu familia, {{nombre}}: los que venían de antes y los que fueron llegando." (riesgo: supone que llegó alguien) · C "Ahora vamos a tu familia de adult{{o/a}}, {{nombre}}. Primero, los que te criaron."
+
+### Frases de entrada: Naza aprueba las demás y pide 4 ajustes (30/09)
+Aprobadas tal cual: 2, 3, 4, 5, 12, 14 (1, 6 y 11 sin entrada). Ajustes pedidos: 7 sin "y con tus manos"; 13 "algunas preguntas"; 15 sin "lo que te queda"; variar el comienzo de 3 o 4 que arrancan con "Ahora vamos a…". Propuesta de Fable (sin aprobar):
+- 7: Ahora vamos al trabajo y a tu oficio, {{nombre}}: lo que hiciste con tus días.
+- 8: Volvemos a la familia, {{nombre}}, pero en tu vida adulta. (sigue pendiente la elección del bloque 8)
+- 9: Te llevo a los lugares que fueron tuyos y a las cosas que te apasionaron.
+- 10: Hablemos de los amigos, {{nombre}}, y de la gente que te dio una mano en la vida.
+- 13: Llegamos a los días que te cambiaron algo: los buenos, los que te agarraron de sorpresa, y algunas preguntas para pensar un rato.
+- 15: Ya estamos en la última parte, {{nombre}}: lo que te dejó todo esto y lo que querés dejarle a tu familia. (alternativa: "lo que aprendiste de todo esto")
