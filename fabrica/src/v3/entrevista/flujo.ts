@@ -21,9 +21,85 @@ export type Respuestas = ReadonlyMap<string, Respuesta>;
 
 export { normalizar, PALABRAS_NO_CORTO } from './respuesta.js';
 
-/** La pregunta del banco con ese ID; si no está (una de la familia), una común. */
+// ---------------------------------------------------------------- claves que no son del banco
+
+/**
+ * Las 8 preguntas que piden un día y su segunda oportunidad (Naza, 01/10,
+ * chat "La entrevista trae escenas"): la salida "contame en general" ya no va
+ * en la pregunta (con la salida a la vista, el día no llegaba); va sola,
+ * después de un olvido puro, una sola vez.
+ */
+export const PIDEN_DIA: Readonly<Record<string, string>> = {
+  CA16: 'M33.1',
+  AD5: 'M33.2',
+  JU12: 'M33.3',
+  TR5: 'M33.4',
+  HG4: 'M33.5',
+  GI2: 'M33.6',
+  GI9: 'M33.7',
+  HO2: 'M33.8',
+};
+
+/** Lo que contesta en la segunda oportunidad de X se guarda como "X~2" (no es un ID del banco). */
+export const SUFIJO_SEGUNDA = '~2';
+/** Lo que contesta a una repregunta del cazador sobre la respuesta X se guarda como "RP~X". */
+export const PREFIJO_REPREGUNTA = 'RP~';
+
+export function claveSegunda(id: string): string {
+  return `${id}${SUFIJO_SEGUNDA}`;
+}
+
+/** Si la clave es "X~2" de una de las 8, X; si no, undefined. */
+export function deSegunda(clave: string): string | undefined {
+  if (!clave.endsWith(SUFIJO_SEGUNDA)) return undefined;
+  const id = clave.slice(0, -SUFIJO_SEGUNDA.length);
+  return PIDEN_DIA[id] ? id : undefined;
+}
+
+export function claveRepregunta(origen: string): string {
+  return `${PREFIJO_REPREGUNTA}${origen}`;
+}
+
+/** Si la clave es "RP~X", X; si no, undefined. */
+export function deRepregunta(clave: string): string | undefined {
+  return clave.startsWith(PREFIJO_REPREGUNTA) ? clave.slice(PREFIJO_REPREGUNTA.length) : undefined;
+}
+
+/**
+ * El único botón de una repregunta del cazador: [Ya lo conté todo], que vale
+ * "no" (Naza, 01/10). Va acá y no en el banco porque la repregunta no es una
+ * fila del banco.
+ */
+export const BOTON_YA_LO_CONTE: Boton = { texto: 'Ya lo conté todo', vale: 'no' };
+
+/** Lo que hace falta de una pregunta para interpretar su respuesta y elegir el acuse. */
+export type PreguntaDeClave = PreguntaParaInterpretar & Pick<PreguntaEntrevista, 'bloque'>;
+
+/**
+ * La pregunta detrás de una clave de `respuestas`: la del banco; o, para
+ * "X~2", una común del bloque de X con el texto de su segunda oportunidad
+ * (así lo que repite el mensaje no es un "pedacito"); o, para "RP~X", una
+ * común del bloque de X con el botón [Ya lo conté todo]. Una de la familia
+ * (o una clave desconocida) da undefined.
+ */
+export function preguntaDeClave(clave: string): PreguntaDeClave | undefined {
+  const delBanco = preguntaPorId(clave);
+  if (delBanco) return delBanco;
+  const x = deSegunda(clave);
+  if (x) return { id: clave, bloque: preguntaPorId(x)!.bloque, clase: 'historia', sensible: false, texto: mensajePorId(PIDEN_DIA[x])?.texto };
+  const origen = deRepregunta(clave);
+  if (origen !== undefined) return { id: clave, bloque: preguntaPorId(origen)?.bloque ?? 0, clase: 'historia', sensible: false, botones: [BOTON_YA_LO_CONTE] };
+  return undefined;
+}
+
+/** Los botones de lo que está esperando respuesta: los del banco, o [Ya lo conté todo] en una repregunta. */
+export function botonesDeClave(clave: string): readonly Boton[] | undefined {
+  return preguntaDeClave(clave)?.botones;
+}
+
+/** La pregunta del banco con ese ID (o la de una clave X~2 / RP~X); si no está (una de la familia), una común. */
 function preguntaDe(id: string): PreguntaParaInterpretar {
-  return preguntaPorId(id) ?? { ...PREGUNTA_COMUN, id };
+  return preguntaDeClave(id) ?? { ...PREGUNTA_COMUN, id };
 }
 
 /** ¿Dijo "paso"? (o tocó [Prefiero no contarla]). Sin pregunta, se toma como una común. */
@@ -88,7 +164,11 @@ export type PreguntaFamilia = { id: string; texto: string };
 export type RondaExtra = 'sin-ofrecer' | 'aceptada' | 'rechazada';
 
 export type EstadoEntrevista = {
-  /** Preguntas contestadas (incluye "paso"), del banco y de la familia. */
+  /**
+   * Preguntas contestadas (incluye "paso"), del banco y de la familia, en el
+   * orden en que llegaron. Desde el 01/10 también "X~2" (la segunda
+   * oportunidad de X) y "RP~X" (la repregunta del cazador sobre X).
+   */
   respuestas: Respuestas;
   /** Lo que se mandó y no espera respuesta (AV11, FIN). */
   enviados?: ReadonlySet<string>;
@@ -121,6 +201,12 @@ export type Siguiente =
       ayudaBotones?: true;
       esperaFoto?: true;
     }
+  /**
+   * La segunda oportunidad de `de` (Naza, 01/10): mandar el mensaje `mensaje`
+   * (M33.n) solo, sin acuse delante, y esperar respuesta; lo que conteste se
+   * guarda con la clave `clave` ("CA16~2").
+   */
+  | { tipo: 'segunda-oportunidad'; de: string; mensaje: string; clave: string }
   /** Mandar M15 y después la pregunta de la familia. */
   | { tipo: 'familia'; pregunta: PreguntaFamilia; antes: 'M15' }
   /** Terminó el núcleo: ofrecer la ronda extra (texto a redactar con Fable, pendiente de Naza). */
@@ -214,8 +300,33 @@ export function alTocarBoton(pregunta: Pick<PreguntaParaInterpretar, 'botones'> 
  *   4. el bloque 15 (con LE6 solo si aceptó la extra), y las preguntas de
  *      la familia justo antes de FO1.
  * Una pregunta ya está hecha si tiene respuesta o figura en `enviados`.
+ * Antes de todo eso, la segunda oportunidad, si la última respuesta fue un
+ * olvido puro en una de las 8 que piden un día (Naza, 01/10).
  */
 export function siguientePregunta(e: EstadoEntrevista, banco: readonly PreguntaEntrevista[] = BANCO): Siguiente {
+  const segunda = segundaOportunidad(e.respuestas);
+  if (segunda) return segunda;
+  return siguienteDelBanco(e, banco);
+}
+
+/**
+ * ¿Toca la segunda oportunidad? Solo si lo último que contestó fue una de
+ * las 8 que piden un día, con un olvido puro (no a medias, ni "paso", ni un
+ * "no" corto, ni un botón), y todavía no contestó su "X~2": una sola vez por
+ * pregunta (Naza, 01/10).
+ */
+function segundaOportunidad(respuestas: Respuestas): Siguiente | undefined {
+  let ultima: [string, Respuesta] | undefined;
+  for (const par of respuestas) ultima = par;
+  if (!ultima) return undefined;
+  const [id, r] = ultima;
+  const mensaje = PIDEN_DIA[id];
+  if (!mensaje || respuestas.has(claveSegunda(id)) || interpretar(preguntaDe(id), r) !== 'olvido') return undefined;
+  return { tipo: 'segunda-oportunidad', de: id, mensaje, clave: claveSegunda(id) };
+}
+
+/** Lo que sigue del banco (y la familia), sin la segunda oportunidad. */
+function siguienteDelBanco(e: EstadoEntrevista, banco: readonly PreguntaEntrevista[]): Siguiente {
   const enviados = e.enviados ?? new Set<string>();
   const ronda = e.rondaExtra ?? (e.ofrecerExtra ? 'sin-ofrecer' : 'rechazada');
   const hecha = (id: string) => e.respuestas.has(id) || enviados.has(id);
@@ -295,7 +406,12 @@ function esElOlvidoDeM29(pregunta: Pick<PreguntaEntrevista, 'id'>, anteriores: R
     usado = true;
     return true;
   };
-  for (const [id, r] of anteriores) if (id !== pregunta.id) toca(id, r);
+  for (const [id, r] of anteriores) {
+    if (id === pregunta.id) continue;
+    // La pregunta entera cuenta como UN olvido (Naza, 01/10): si X tuvo segunda oportunidad, cuenta la de X~2, no la de X.
+    if (PIDEN_DIA[id] && (anteriores.has(claveSegunda(id)) || pregunta.id === claveSegunda(id))) continue;
+    toca(id, r);
+  }
   return !usado && seguidos + 1 >= OLVIDOS_PARA_M29;
 }
 
@@ -309,6 +425,10 @@ function esElOlvidoDeM29(pregunta: Pick<PreguntaEntrevista, 'id'>, anteriores: R
  *   - olvido → M28 (M28.1), o M29 al tercero seguido, una sola vez: para eso
  *     hacen falta las respuestas anteriores, en orden (`anteriores`);
  *   - contó algo (o tocó "Sí") → M24 en un cierre, M4 en una sensible, M3.
+ * La segunda oportunidad (Naza, 01/10): un olvido puro en una de las 8 que
+ * piden un día no lleva acuse (el "Está bien, {{nombre}}…" de M33 hace de
+ * acuse); y lo que contesta en "X~2" lleva M28.4/M28.5 si contó, M28 (o M29)
+ * si fue otro olvido o un "no" corto, M21 si dijo "paso".
  * Qué acuse de la familia va y si cambia por lo que sigue (M26 antes de un
  * cierre, LE9 o una sensible): `acuseDeTurno` en mensajes.ts; cómo se arma
  * el mensaje: `armarTurno`.
@@ -322,6 +442,8 @@ export function mensajesDespues(
   if (SIN_ACUSE.includes(pregunta.id)) return [];
   if (SIEMPRE_M26.includes(pregunta.id)) return ['M26'];
   const dijo = interpretar(pregunta, respuesta);
+  if (deSegunda(pregunta.id)) return acuseDeSegunda(dijo, pregunta, anteriores);
+  if (dijo === 'olvido' && PIDEN_DIA[pregunta.id] && !anteriores.has(claveSegunda(pregunta.id))) return [];
   if (dijo === 'no' || dijo === 'ya-conto') return ['M25'];
   if (dijo === 'paso') return [pregunta.clase === 'cierre' ? 'M25' : pregunta.sensible ? 'M27' : 'M21'];
   if (dijo === 'olvido') return [esElOlvidoDeM29(pregunta, anteriores) ? 'M29' : 'M28'];
@@ -330,6 +452,22 @@ export function mensajesDespues(
   if (dijo === 'no-ahondar' && pregunta.clase !== 'cierre') return ['M32'];
   if (pregunta.clase === 'cierre') return ['M24'];
   return [pregunta.sensible ? 'M4' : 'M3'];
+}
+
+/**
+ * El acuse de lo que contesta en la segunda oportunidad (Naza, 01/10): ya
+ * se le pidió dos veces, así que si contó algo va el acuse del pedacito
+ * (M28.4/M28.5, que rotan; delante de un cierre o de LE9, M26 como
+ * siempre); un olvido o un "no" corto, M28.1 (o M29, que cuenta este
+ * olvido y no el de X); "paso", M21. Un "ya te lo conté" corto, M25, como
+ * en todas (el plan no lo nombra).
+ */
+function acuseDeSegunda(dijo: Interpretacion, pregunta: Pick<PreguntaEntrevista, 'id'>, anteriores: Respuestas): FamiliaAcuse[] {
+  if (dijo === 'paso') return ['M21'];
+  if (dijo === 'ya-conto') return ['M25'];
+  if (dijo === 'olvido') return [esElOlvidoDeM29(pregunta, anteriores) ? 'M29' : 'M28'];
+  if (dijo === 'no') return ['M28'];
+  return ['M28.4'];
 }
 
 /** Las familias que rotan y cuántos tienen. */

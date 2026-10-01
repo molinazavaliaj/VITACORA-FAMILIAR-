@@ -44,6 +44,8 @@ export type PasoRecorrido =
       ayudaBotones?: true;
     }
   | { tipo: 'familia'; pregunta: PreguntaFamilia; respuesta: Respuesta }
+  /** La segunda oportunidad de `de` (M33.n), después de un olvido puro; lo que contesta va con la clave `clave` (Naza, 01/10). */
+  | { tipo: 'segunda-oportunidad'; de: string; mensaje: string; clave: string; respuesta: Respuesta }
   | { tipo: 'ofrecer-extra'; acepta: boolean };
 
 export type OpcionesRecorrido = OpcionesTexto & {
@@ -80,6 +82,13 @@ export function simularRecorrido(
       const r = responder(s.pregunta.id) ?? 'Sí, te cuento.';
       respuestas.set(s.pregunta.id, r);
       pasos.push({ tipo: 'familia', pregunta: s.pregunta, respuesta: r });
+      continue;
+    }
+    if (s.tipo === 'segunda-oportunidad') {
+      // Se le pregunta por la clave ("CA16~2"): sin respuesta propia, cuenta algo.
+      const r = responder(s.clave) ?? 'Sí, te cuento: fue una historia larga que me acuerdo muy bien.';
+      respuestas.set(s.clave, r);
+      pasos.push({ ...s, respuesta: r });
       continue;
     }
     const pregunta = render(s.pregunta, ficha, respuestas, opciones);

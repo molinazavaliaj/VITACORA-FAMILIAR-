@@ -18,9 +18,10 @@ describe('textos de preguntas aprobados (textos-finales.md, sección 2, con los 
     JU8: '¿Alguna vez te fuiste a vivir a otra ciudad o a otro país? Capaz ya me contaste algo de esa mudanza; ahora contame la llegada: el primer día, dónde dormiste esa noche, quién te esperaba y qué fue lo que más te costó.',
     HI0: 'Ahora vamos a los hijos. ¿Tuviste hijos, o criaste a alguno como si lo fuera? Presentámelos de a uno, incluso si alguno ya apareció en lo que me venís contando: cómo se llama cada uno y cuándo llegó. Y si no tuviste, seguimos por otro lado.',
     HI8: 'Ahora, los nietos. ¿Llegaron nietos a tu vida? Puede que ya los hayas mencionado; nombrámelos de a uno, y contame el día que conociste al primero, como si lo estuvieras viendo. Si no hay nietos, pasamos a otra cosa.',
-    // Sección 2 de textos-finales.md.
-    CA16: 'Contame un día de chic{{o/a}} que esperabas con muchas ganas: qué era, quién estaba, qué pasó. Y si no te vuelve un día en particular, contame qué cosas esperabas con ganas en esa época, que con eso me arreglo.',
-    AD5: '¿Te acordás de la primera vez que saliste de noche, a un baile o a una fiesta? Contame cómo te preparaste, con quién fuiste y cómo fue esa noche. Y si la primera no te vuelve, contame cómo eran esas salidas en general.',
+    // Sección 2 de textos-finales.md. Desde el 01/10 (Naza) CA16, AD5, TR5, HG4, GI9 y HO2 van sin la salida "Y si no te vuelve…":
+    // va aparte, solo después de un olvido (M33; v3-entrevista-segunda-oportunidad.test.ts).
+    CA16: 'Contame un día de chic{{o/a}} que esperabas con muchas ganas: qué era, quién estaba, qué pasó.',
+    AD5: '¿Te acordás de la primera vez que saliste de noche, a un baile o a una fiesta? Contame cómo te preparaste, con quién fuiste y cómo fue esa noche.',
     // JU12, AM3, AM4, GI1, GI2 y PE4 cambiaron después (salida de Naza y textos de Fable, 30/09): v3-entrevista-fable-extras.test.ts.
     AM13: 'Contame una pelea que tuvieron, de esas que después dan risa: por qué fue, quién aflojó primero y cómo hicieron las paces. Si no hubo ninguna que hoy dé risa, con decírmelo alcanza.',
     AM19: 'Y después, cuando quedaste por tu cuenta, ¿cómo fueron esos primeros tiempos? Qué cambió en la casa y en los días, quién anduvo cerca. Si ese tiempo es el de ahora, contame igual cómo lo estás llevando. Y si no hubo un tiempo así, con decírmelo alcanza.',
@@ -29,10 +30,10 @@ describe('textos de preguntas aprobados (textos-finales.md, sección 2, con los 
     AM14: '¿Hubo algún amor que te marcó, aunque haya durado poco o no haya llegado a nada? Si lo hubo, contame cómo se cruzaron y el momento que más te acordás de esa persona. Y si no hubo, con un no alcanza.',
     PG1: 'Contame de tus viejos cuando vos ya eras grande, con tu propia vida. Una vez que los notaste más viejos, un gesto, algo chiquito, y qué te pasó a vos. Y si te tocó cuidarlos, contame cómo era un día de esos: qué hacías por ellos, qué te decían. Si no los tuviste cerca, contame cómo fue eso.',
     HS1: '¿Cómo fue criar a tus hijos? Quién estaba cerca, cómo se repartían las cosas, o si te tocó llevarla sol{{o/a}}. Contame un día de esa época que te acuerdes bien.',
-    TR5: '¿Cuál fue el día de trabajo del que estás más orgullos{{o/a}}? No hace falta que haya sido grande: algo que salió bien, que alguien reconoció, o que solo vos sabés lo que costó. Contámelo. Y si no te viene un día puntual, contame de qué parte de tu trabajo estás más orgullos{{o/a}}.',
-    HG4: 'Te quiero pedir un día concreto de la pandemia. No toda esa época: un solo día. Dónde estabas, con quién, qué hiciste, cómo te sentías. Pensá en el que más te haya quedado. Y si ninguno se te separa de los demás, contame cómo eran tus días entonces.',
-    GI9: '¿Hubo algún momento en tu vida en que te sentiste chiquit{{o/a}} frente a algo enorme? Un cielo de noche, por ejemplo. Contame ese momento: dónde estabas, con quién, qué había alrededor. Y si no te vuelve un momento puntual, contame frente a qué cosas te pasa eso.',
-    HO2: '¿Qué cosas te hacen gracia hoy, qué te hace reír? Contame la última vez que te reíste con ganas: dónde estabas y qué había pasado. Y si la última no te vuelve, contame con qué te reís seguido.',
+    TR5: '¿Cuál fue el día de trabajo del que estás más orgullos{{o/a}}? No hace falta que haya sido grande: algo que salió bien, que alguien reconoció, o que solo vos sabés lo que costó. Contámelo.',
+    HG4: 'Te quiero pedir un día concreto de la pandemia. No toda esa época: un solo día. Dónde estabas, con quién, qué hiciste, cómo te sentías. Pensá en el que más te haya quedado.',
+    GI9: '¿Hubo algún momento en tu vida en que te sentiste chiquit{{o/a}} frente a algo enorme? Un cielo de noche, por ejemplo. Contame ese momento: dónde estabas, con quién, qué había alrededor.',
+    HO2: '¿Qué cosas te hacen gracia hoy, qué te hace reír? Contame la última vez que te reíste con ganas: dónde estabas y qué había pasado.',
     PE1: 'Puede que ya me hayas hablado de alguna pérdida; acá hay lugar para lo que no entró. Si perdiste a alguien importante, contame de cada uno lo que quieras: qué era para vos, cómo fueron los días de después y cómo lo fuiste llevando. Y si hay un momento con alguna de esas personas que te guste recordar, contámelo también.',
     FO1: 'Otra cosa, {{nombre}}. ¿Hay alguna foto, en el celular o en algún cajón de tu casa, que quieras que quede para siempre en este libro? Si la tenés, sacale una foto y mandámela, y después contame en un audio qué se ve y quiénes están. Tomate el tiempo que necesites para buscarla: la pregunta que sigue te la mando cuando me llegue la foto o me digas algo. Y si no la encontrás, no pasa nada: el libro va igual, y la podés mandar más adelante.',
     // FIN sin "y es bien tuyo" (duda 4, Naza) y con la frase de la foto.
@@ -91,7 +92,7 @@ describe('mensajes fijos aprobados (textos-finales.md, sección 3)', () => {
 
   it('los mensajes nuevos van después de M26, antes de las dudas del dashboard', () => {
     const ids = MENSAJES.map((m) => m.id);
-    expect(ids.slice(ids.indexOf('M26'), ids.indexOf('DD1'))).toEqual(['M26', 'M27.1', 'M27.2', 'M27.3', 'M28.1', 'M28.2', 'M28.3', 'M28.4', 'M28.5', 'M29', 'M30', 'M31', 'M32.1', 'M32.2']);
+    expect(ids.slice(ids.indexOf('M26'), ids.indexOf('DD1'))).toEqual(['M26', 'M27.1', 'M27.2', 'M27.3', 'M28.1', 'M28.2', 'M28.3', 'M28.4', 'M28.5', 'M29', 'M30', 'M31', 'M32.1', 'M32.2', 'M33.1', 'M33.2', 'M33.3', 'M33.4', 'M33.5', 'M33.6', 'M33.7', 'M33.8']); // + M33 (Naza, 01/10)
   });
 });
 

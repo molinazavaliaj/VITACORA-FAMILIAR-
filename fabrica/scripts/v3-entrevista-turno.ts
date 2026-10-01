@@ -19,7 +19,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { mensajePorId, NOMBRES_BLOQUE, preguntaPorId } from '../src/v3/entrevista/banco.js';
-import { alTocarBoton, mensajesDespues, siguientePregunta, type PreguntaFamilia } from '../src/v3/entrevista/flujo.js';
+import { alTocarBoton, mensajesDespues, preguntaDeClave, siguientePregunta, type PreguntaFamilia } from '../src/v3/entrevista/flujo.js';
 import { acuseDeTurno, anotarAcuse, armarTurno, entradaSegunAcuse, preguntaSegunAcuse, vueltasEnCero, type AcusePendiente, type Vueltas } from '../src/v3/entrevista/mensajes.js';
 import { sumarAudio } from '../src/v3/entrevista/respuesta.js';
 import { renderizar, type FichaTexto } from '../src/v3/entrevista/texto.js';
@@ -143,7 +143,8 @@ function cerrarRespuesta(estado: EstadoSimulacion): void {
   estado.esperando = undefined;
   estado.tocoSi = undefined;
   estado.acuse = undefined;
-  const p = preguntaPorId(id);
+  // Las claves CA16~2 (segunda oportunidad) y RP~X (repregunta) también tienen su pregunta (Naza, 01/10).
+  const p = preguntaDeClave(id);
   if (!p) {
     // Pregunta de la familia: acuse común, como en la lectura corrida.
     estado.acuse = anotarAcuse('M3', estado.vueltas);
@@ -201,6 +202,12 @@ function avanzar(e: EstadoSimulacion): void {
     if (s.tipo === 'familia') {
       mandar({ entrada: 'M15', pregunta: s.pregunta.id }, { [s.pregunta.id]: s.pregunta.texto });
       e.esperando = s.pregunta.id;
+      return;
+    }
+    if (s.tipo === 'segunda-oportunidad') {
+      // M33.n va solo (sin acuse delante: mensajesDespues no dejó ninguno); lo que conteste se guarda como CA16~2 (Naza, 01/10).
+      mandar({ pregunta: s.mensaje }, {});
+      e.esperando = s.clave;
       return;
     }
     const p = s.pregunta;

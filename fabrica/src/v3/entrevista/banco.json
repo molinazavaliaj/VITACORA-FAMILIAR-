@@ -225,7 +225,7 @@
       "id": "CA16",
       "bloque": 2,
       "orden": 21,
-      "texto": "Contame un día de chic{{o/a}} que esperabas con muchas ganas: qué era, quién estaba, qué pasó. Y si no te vuelve un día en particular, contame qué cosas esperabas con ganas en esa época, que con eso me arreglo.",
+      "texto": "Contame un día de chic{{o/a}} que esperabas con muchas ganas: qué era, quién estaba, qué pasó.",
       "depende": [],
       "parte": "nucleo",
       "clase": "historia",
@@ -447,7 +447,7 @@
       "id": "AD5",
       "bloque": 4,
       "orden": 41,
-      "texto": "¿Te acordás de la primera vez que saliste de noche, a un baile o a una fiesta? Contame cómo te preparaste, con quién fuiste y cómo fue esa noche. Y si la primera no te vuelve, contame cómo eran esas salidas en general.",
+      "texto": "¿Te acordás de la primera vez que saliste de noche, a un baile o a una fiesta? Contame cómo te preparaste, con quién fuiste y cómo fue esa noche.",
       "depende": [],
       "parte": "nucleo",
       "clase": "historia",
@@ -693,7 +693,7 @@
       "id": "JU12",
       "bloque": 5,
       "orden": 62,
-      "texto": "Contame del primer lugar que fue tuyo, donde ya vivías por tu cuenta. Capaz ya me nombraste ese lugar; ahora contámelo por dentro: cómo era, con qué lo fuiste armando, qué se veía por la ventana. Y esa primera noche ahí, ¿cómo fue? Si la noche justa no te vuelve, contame cómo eran los primeros tiempos ahí. Y si nunca te fuiste de la casa de tus viejos, contame el día en que esa casa pasó a ser tuya, o el rincón que siempre fue tuyo.",
+      "texto": "Contame del primer lugar que fue tuyo, donde ya vivías por tu cuenta. Capaz ya me nombraste ese lugar; ahora contámelo por dentro: cómo era, con qué lo fuiste armando, qué se veía por la ventana. Y esa primera noche ahí, ¿cómo fue? Si nunca te fuiste de la casa de tus viejos, contame el día en que esa casa pasó a ser tuya, o el rincón que siempre fue tuyo.",
       "depende": [],
       "parte": "nucleo",
       "clase": "historia",
@@ -1187,7 +1187,7 @@
       "id": "TR5",
       "bloque": 7,
       "orden": 96,
-      "texto": "¿Cuál fue el día de trabajo del que estás más orgullos{{o/a}}? No hace falta que haya sido grande: algo que salió bien, que alguien reconoció, o que solo vos sabés lo que costó. Contámelo. Y si no te viene un día puntual, contame de qué parte de tu trabajo estás más orgullos{{o/a}}.",
+      "texto": "¿Cuál fue el día de trabajo del que estás más orgullos{{o/a}}? No hace falta que haya sido grande: algo que salió bien, que alguien reconoció, o que solo vos sabés lo que costó. Contámelo.",
       "depende": [],
       "parte": "nucleo",
       "clase": "historia",
@@ -1934,7 +1934,7 @@
       "id": "HG4",
       "bloque": 12,
       "orden": 154,
-      "texto": "Te quiero pedir un día concreto de la pandemia. No toda esa época: un solo día. Dónde estabas, con quién, qué hiciste, cómo te sentías. Pensá en el que más te haya quedado. Y si ninguno se te separa de los demás, contame cómo eran tus días entonces.",
+      "texto": "Te quiero pedir un día concreto de la pandemia. No toda esa época: un solo día. Dónde estabas, con quién, qué hiciste, cómo te sentías. Pensá en el que más te haya quedado.",
       "depende": [],
       "parte": "nucleo",
       "clase": "historia",
@@ -2020,7 +2020,7 @@
       "id": "GI2",
       "bloque": 13,
       "orden": 162,
-      "texto": "Pensá en un día que empezó como cualquier otro y terminó cambiándote algo. Contame ese día entero: cómo arrancó la mañana, en qué momento te diste cuenta de que ya no había vuelta atrás, y cómo terminó. Si ya me lo contaste, decímelo, y si querés reforzar algo, es el momento. Y si el día justo no te vuelve, contame lo que te acuerdes de esa época.",
+      "texto": "Pensá en un día que empezó como cualquier otro y terminó cambiándote algo. Contame ese día entero: cómo arrancó la mañana, en qué momento te diste cuenta de que ya no había vuelta atrás, y cómo terminó. Si ya me lo contaste, decímelo, y si querés reforzar algo, es el momento.",
       "depende": [],
       "parte": "nucleo",
       "clase": "historia",
@@ -2060,7 +2060,7 @@
       "id": "GI9",
       "bloque": 13,
       "orden": 166,
-      "texto": "¿Hubo algún momento en tu vida en que te sentiste chiquit{{o/a}} frente a algo enorme? Un cielo de noche, por ejemplo. Contame ese momento: dónde estabas, con quién, qué había alrededor. Y si no te vuelve un momento puntual, contame frente a qué cosas te pasa eso.",
+      "texto": "¿Hubo algún momento en tu vida en que te sentiste chiquit{{o/a}} frente a algo enorme? Un cielo de noche, por ejemplo. Contame ese momento: dónde estabas, con quién, qué había alrededor.",
       "depende": [],
       "parte": "nucleo",
       "clase": "historia",
@@ -2166,7 +2166,7 @@
       "id": "HO2",
       "bloque": 14,
       "orden": 176,
-      "texto": "¿Qué cosas te hacen gracia hoy, qué te hace reír? Contame la última vez que te reíste con ganas: dónde estabas y qué había pasado. Y si la última no te vuelve, contame con qué te reís seguido.",
+      "texto": "¿Qué cosas te hacen gracia hoy, qué te hace reír? Contame la última vez que te reíste con ganas: dónde estabas y qué había pasado.",
       "depende": [],
       "parte": "nucleo",
       "clase": "historia",
@@ -2630,6 +2630,46 @@
       "id": "M32.2",
       "cuando": "Se negó pero siguió contando: la respuesta arranca con una frase de la lista del paso y sigue larga (no es paso); rotan; en lugar de M3 o M4; primera línea del mensaje que sigue; delante de un cierre o de LE9 va M26 (Naza, 30/09, ronda 2)",
       "texto": "Está bien. Lo que me contaste queda, y lo que no, no hace falta. Seguimos."
+    },
+    {
+      "id": "M33.1",
+      "cuando": "Segunda oportunidad de CA16: solo después de un olvido puro (\"no me acuerdo\", \"no sé\"…; no después de un olvido a medias, un \"paso\", un \"no\" corto ni un botón), una sola vez; va sola, sin acuse delante (su \"Está bien, {{nombre}}…\" hace de acuse). Lo que contesta se guarda como CA16~2 (Naza, 01/10)",
+      "texto": "Está bien, {{nombre}}, no hace falta un día justo. Contame qué cosas esperabas con ganas en esa época, aunque sea una o dos. Y si no, decímelo nomás y vamos con otra."
+    },
+    {
+      "id": "M33.2",
+      "cuando": "Segunda oportunidad de AD5: solo después de un olvido puro (\"no me acuerdo\", \"no sé\"…; no después de un olvido a medias, un \"paso\", un \"no\" corto ni un botón), una sola vez; va sola, sin acuse delante (su \"Está bien, {{nombre}}…\" hace de acuse). Lo que contesta se guarda como AD5~2 (Naza, 01/10)",
+      "texto": "Está bien, {{nombre}}, la primera no hace falta. Contame cómo eran esas salidas de noche en general: adónde iban, con quiénes. Con un par de cosas me alcanza. Y si no, decímelo nomás y vamos con otra."
+    },
+    {
+      "id": "M33.3",
+      "cuando": "Segunda oportunidad de JU12: solo después de un olvido puro (\"no me acuerdo\", \"no sé\"…; no después de un olvido a medias, un \"paso\", un \"no\" corto ni un botón), una sola vez; va sola, sin acuse delante (su \"Está bien, {{nombre}}…\" hace de acuse). Lo que contesta se guarda como JU12~2 (Naza, 01/10)",
+      "texto": "Está bien, {{nombre}}, la noche justa no hace falta. Contame cómo eran los primeros tiempos en ese lugar, lo que te venga. Con un par de cosas me alcanza. Y si no, decímelo nomás y vamos con otra."
+    },
+    {
+      "id": "M33.4",
+      "cuando": "Segunda oportunidad de TR5: solo después de un olvido puro (\"no me acuerdo\", \"no sé\"…; no después de un olvido a medias, un \"paso\", un \"no\" corto ni un botón), una sola vez; va sola, sin acuse delante (su \"Está bien, {{nombre}}…\" hace de acuse). Lo que contesta se guarda como TR5~2 (Naza, 01/10)",
+      "texto": "Está bien, {{nombre}}, no hace falta un día puntual. Contame de qué parte de tu trabajo estás más orgullos{{o/a}}, aunque sea una sola cosa. Y si no, decímelo nomás y vamos con otra."
+    },
+    {
+      "id": "M33.5",
+      "cuando": "Segunda oportunidad de HG4: solo después de un olvido puro (\"no me acuerdo\", \"no sé\"…; no después de un olvido a medias, un \"paso\", un \"no\" corto ni un botón), una sola vez; va sola, sin acuse delante (su \"Está bien, {{nombre}}…\" hace de acuse). Lo que contesta se guarda como HG4~2 (Naza, 01/10)",
+      "texto": "Está bien, {{nombre}}, si ningún día se te separa de los demás, contame cómo eran tus días en la pandemia, así en general. Con un par de cosas me alcanza. Y si no, decímelo nomás y vamos con otra."
+    },
+    {
+      "id": "M33.6",
+      "cuando": "Segunda oportunidad de GI2: solo después de un olvido puro (\"no me acuerdo\", \"no sé\"…; no después de un olvido a medias, un \"paso\", un \"no\" corto ni un botón), una sola vez; va sola, sin acuse delante (su \"Está bien, {{nombre}}…\" hace de acuse). Lo que contesta se guarda como GI2~2 (Naza, 01/10)",
+      "texto": "Está bien, {{nombre}}, el día justo no hace falta. Contame nomás qué fue lo que cambió: cómo eras antes y cómo después. Con eso me alcanza. Y si no, decímelo nomás y vamos con otra."
+    },
+    {
+      "id": "M33.7",
+      "cuando": "Segunda oportunidad de GI9: solo después de un olvido puro (\"no me acuerdo\", \"no sé\"…; no después de un olvido a medias, un \"paso\", un \"no\" corto ni un botón), una sola vez; va sola, sin acuse delante (su \"Está bien, {{nombre}}…\" hace de acuse). Lo que contesta se guarda como GI9~2 (Naza, 01/10)",
+      "texto": "Está bien, {{nombre}}, no hace falta un momento puntual. Contame frente a qué cosas te pasa eso, aunque sea una. Y si no, decímelo nomás y vamos con otra."
+    },
+    {
+      "id": "M33.8",
+      "cuando": "Segunda oportunidad de HO2: solo después de un olvido puro (\"no me acuerdo\", \"no sé\"…; no después de un olvido a medias, un \"paso\", un \"no\" corto ni un botón), una sola vez; va sola, sin acuse delante (su \"Está bien, {{nombre}}…\" hace de acuse). Lo que contesta se guarda como HO2~2 (Naza, 01/10)",
+      "texto": "Está bien, {{nombre}}, la última vez no hace falta. Contame con qué te reís seguido, aunque sea una cosa. Y si no, decímelo nomás y vamos con otra."
     },
     {
       "id": "DD1",

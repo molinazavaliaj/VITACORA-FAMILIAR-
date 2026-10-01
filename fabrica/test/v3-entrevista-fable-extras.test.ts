@@ -40,9 +40,10 @@ describe('textos sueltos', () => {
     );
   });
 
+  // Naza, 01/10: sin "Si la noche justa no te vuelve…": la salida va aparte, después de un olvido (M33.3; v3-entrevista-segunda-oportunidad.test.ts).
   it('JU12: "Capaz ya me nombraste ese lugar; ahora contámelo por dentro"', () => {
     expect(texto('JU12')).toBe(
-      'Contame del primer lugar que fue tuyo, donde ya vivías por tu cuenta. Capaz ya me nombraste ese lugar; ahora contámelo por dentro: cómo era, con qué lo fuiste armando, qué se veía por la ventana. Y esa primera noche ahí, ¿cómo fue? Si la noche justa no te vuelve, contame cómo eran los primeros tiempos ahí. Y si nunca te fuiste de la casa de tus viejos, contame el día en que esa casa pasó a ser tuya, o el rincón que siempre fue tuyo.',
+      'Contame del primer lugar que fue tuyo, donde ya vivías por tu cuenta. Capaz ya me nombraste ese lugar; ahora contámelo por dentro: cómo era, con qué lo fuiste armando, qué se veía por la ventana. Y esa primera noche ahí, ¿cómo fue? Si nunca te fuiste de la casa de tus viejos, contame el día en que esa casa pasó a ser tuya, o el rincón que siempre fue tuyo.',
     );
   });
 
@@ -70,7 +71,7 @@ describe('la salida "si ya me lo contaste", con las palabras de Naza', () => {
     ['PA1', `Fuera del trabajo y de la familia, ¿hubo algo que te apasionara de grande? Contame cómo empezó eso, y un día entero que le hayas dedicado, de la mañana a la noche. ${SALIDA}`],
     ['TR8', `Si tuviste un negocio o algo propio, aunque fuera chico, este es su lugar. ${SALIDA} Si quedó algo afuera, cómo empezó, de dónde salió la idea, con qué plata, un día de esos, contámelo ahora.`],
     ['GI1', `¿Hay algún día de tu vida que, si pudieras, volverías a vivir tal cual? O un momento en que sentiste que algo hizo clic. Contámelo desde el principio: dónde estabas, con quién, y qué fue lo que pasó. ${SALIDA}`],
-    ['GI2', `Pensá en un día que empezó como cualquier otro y terminó cambiándote algo. Contame ese día entero: cómo arrancó la mañana, en qué momento te diste cuenta de que ya no había vuelta atrás, y cómo terminó. ${SALIDA} Y si el día justo no te vuelve, contame lo que te acuerdes de esa época.`],
+    ['GI2', `Pensá en un día que empezó como cualquier otro y terminó cambiándote algo. Contame ese día entero: cómo arrancó la mañana, en qué momento te diste cuenta de que ya no había vuelta atrás, y cómo terminó. ${SALIDA}`], // Naza, 01/10: sin "Y si el día justo no te vuelve…" (va aparte, M33.6)
     ['PE4', `¿Hubo alguna época dura en tu vida de grande que creas que no puede quedar afuera de tu historia? ¿Algo que te marcó? Si querés, contame qué pasó y cómo lo viviste. ${SALIDA}`],
   ])('%s', (id, t) => {
     expect(texto(id)).toBe(t);

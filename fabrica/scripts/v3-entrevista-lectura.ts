@@ -10,7 +10,7 @@
 
 import { writeFileSync } from 'node:fs';
 import { condicionesDe, mensajePorId, NOMBRES_BLOQUE, BANCO, preguntaPorId } from '../src/v3/entrevista/banco.js';
-import { mensajesDespues, type PreguntaFamilia } from '../src/v3/entrevista/flujo.js';
+import { mensajesDespues, preguntaDeClave, type PreguntaFamilia } from '../src/v3/entrevista/flujo.js';
 import { acuseDeTurno, anotarAcuse, armarTurno, entradaSegunAcuse, preguntaSegunAcuse, vueltasEnCero, type AcusePendiente } from '../src/v3/entrevista/mensajes.js';
 import { cuentaComoPregunta, simularRecorrido } from '../src/v3/entrevista/seleccion.js';
 import { renderizar, type FichaTexto } from '../src/v3/entrevista/texto.js';
@@ -79,6 +79,14 @@ for (const paso of pasos) {
     globos.push({ de: 'persona', texto: '[responde]' });
     acuse = anotarAcuse('M3', vueltas);
     anteriores.set(paso.pregunta.id, paso.respuesta);
+    continue;
+  }
+  if (paso.tipo === 'segunda-oportunidad') {
+    // La segunda oportunidad (M33.n, Naza 01/10): va sola, sin acuse delante (mensajesDespues no dejó ninguno).
+    mandar({ pregunta: paso.mensaje }, {});
+    globos.push({ de: 'persona', texto: '[responde]' });
+    for (const fam of mensajesDespues(preguntaDeClave(paso.clave)!, paso.respuesta, anteriores)) acuse = anotarAcuse(fam, vueltas);
+    anteriores.set(paso.clave, paso.respuesta);
     continue;
   }
   const p = paso.pregunta;

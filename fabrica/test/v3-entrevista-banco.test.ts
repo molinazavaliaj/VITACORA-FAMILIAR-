@@ -73,12 +73,13 @@ describe('entrevista: el banco (md ↔ json)', () => {
     expect(bancoJson).toEqual(parseado);
   });
 
-  it('tiene 199 filas en 15 bloques, 57 mensajes, y las clases esperadas', () => {
+  it('tiene 199 filas en 15 bloques, 65 mensajes, y las clases esperadas', () => {
     // Prueba de Naza en la página (30/09): salen AM16 y AM20, entran AMH, AM21 y HO11.
     expect(BANCO).toHaveLength(199);
     expect(new Set(BANCO.map((p) => p.bloque))).toEqual(new Set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]));
     // 22 + M24.1-M24.4, M25.1-M25.3, M26, DD1 y DD2 + 12 entradas de bloque (30/09) + M27.1-3, M28.1-3, M29, M30 y M31 (simulaciones, 30/09)
-    expect(MENSAJES).toHaveLength(57); // + M28.4, M32.1 y M32.2 (ronda 2, 30/09) + M28.5 (prueba de Naza en la página)
+    // + M28.4, M32.1 y M32.2 (ronda 2, 30/09) + M28.5 (prueba de Naza en la página) + M33.1-M33.8 (la segunda oportunidad, Naza 01/10)
+    expect(MENSAJES).toHaveLength(65);
     const clase = (c: string) => BANCO.filter((p) => p.clase === c).map((p) => p.id);
     expect(clase('cierre')).toEqual(['CI1', 'CI2', 'CI3', 'CI4', 'CI5', 'CI6', 'CI7', 'CI8', 'CI9', 'CI10', 'CI11', 'CI12', 'CI13', 'CI14']);
     expect(clase('aviso')).toEqual(['AV11']);
@@ -91,7 +92,8 @@ describe('entrevista: el banco (md ↔ json)', () => {
     expect(MENSAJES.map((m) => m.id)).toEqual([
       'BIEN', 'M6', 'M1', 'M3.1', 'M3.2', 'M3.3', 'M3.4', 'M3.5', 'M3.6', 'M3.7', 'M3.8',
       'M4.1', 'M4.2', 'M4.3', 'M4.4', 'M8', 'M9', 'M10', 'M15', 'M21', 'M22', 'M23', 'M24.1', 'M24.2', 'M24.3', 'M24.4', 'M25.1', 'M25.2', 'M25.3', 'M26',
-      'M27.1', 'M27.2', 'M27.3', 'M28.1', 'M28.2', 'M28.3', 'M28.4', 'M28.5', 'M29', 'M30', 'M31', 'M32.1', 'M32.2', 'DD1', 'DD2',
+      'M27.1', 'M27.2', 'M27.3', 'M28.1', 'M28.2', 'M28.3', 'M28.4', 'M28.5', 'M29', 'M30', 'M31', 'M32.1', 'M32.2',
+      'M33.1', 'M33.2', 'M33.3', 'M33.4', 'M33.5', 'M33.6', 'M33.7', 'M33.8', 'DD1', 'DD2',
       'EN2', 'EN3', 'EN4', 'EN5', 'EN7', 'EN8', 'EN9', 'EN10', 'EN12', 'EN13', 'EN14', 'EN15',
     ]);
   });
@@ -179,7 +181,8 @@ describe('entrevista: el banco contra el borrador aprobado', () => {
     expect(texto('M1')).toBe('_Si no va con vos, decí paso y vamos a otra._');
     // M24, M25, DD1-DD2, las entradas EN y la bienvenida en un solo mensaje (BIEN) los aprobó Naza el 30/09, después del borrador (metodo-entrevista.md §26, correcciones-lectura.md).
     // M27 a M31 los aprobó Naza después de las simulaciones (30/09, simulaciones/textos-finales.md).
-    for (const m of MENSAJES.filter((m) => !/^M[34]\./.test(m.id) && !/^(M24\.|M25\.|M26$|M2[789]|M3[012]|DD|EN|BIEN$)/.test(m.id))) {
+    // M33.1-M33.8 (la segunda oportunidad) los aprobó Naza el 01/10: v3-entrevista-segunda-oportunidad.test.ts.
+    for (const m of MENSAJES.filter((m) => !/^M[34]\./.test(m.id) && !/^(M24\.|M25\.|M26$|M2[789]|M3[0123]|DD|EN|BIEN$)/.test(m.id))) {
       const clave = m.id === 'BIEN' ? '| Bienvenida |' : m.id === 'M6' ? '| M6 (después de la bienvenida) |' : `| ${m.id} |`;
       const linea = BORRADOR.split(/\r?\n/).find((l) => l.startsWith(clave));
       expect(linea, m.id).toBeDefined();
