@@ -92,7 +92,7 @@ En todos los casos el cierre del bloque llega igual (sección 3), así que siemp
 | 2 La casa de chico | EN2 | primer recuerdo de la casa, mamá, papá, hermanos, un día esperado, momento difícil | CI2 + M24 |
 | 3 Escuela | EN3 | primer día, maestra, mejor amigo, travesura, qué querías ser, la religión en tu casa | CI3 + M24 |
 | 4 Adolescencia | EN4 | dónde pasabas los días, la barra, primera salida, primer amor, ya no eras chico, momento duro | CI4 + M24 |
-| 5 Juventud | EN5 | irse de casa, después del colegio, aprender lo tuyo, lo militar, irse a vivir a otro lado, primer lugar propio, amigos, momento duro | CI5 + M24 |
+| 5 Juventud | EN5 | irse de casa, después del colegio, aprender lo tuyo, lo militar, irse a vivir a otro lado, primer lugar propio, las mudanzas (JU20, al núcleo el 01/10 por Naza), amigos, momento duro | CI5 + M24 |
 | 6 Amor | — (AM0) | ¿hubo alguien en serio?, y lo que corresponda según la vida (sección 5) | CI6 + M24 |
 | 7 Trabajo | EN7 | primer trabajo, el repaso de trabajos, un día común, quien te dio una mano, día de orgullo, sin trabajo o plata ajustada, negocio propio, lo que hacés bien y nadie te paga, el campo, el último día | CI7 + M24 |
 | 8 Hijos y nietos | EN8 | tus viejos de grande (y si te tocó cuidarlos), ¿tuviste hijos?, el primero, cómo era cada uno, la crianza, orgullo, nietos (si tuvo hijos), algo con los nietos | CI8 + M24 |

@@ -775,7 +775,7 @@
       "orden": 69,
       "texto": "¿Te mudaste muchas veces en tu vida? Contame por qué casas o lugares fuiste pasando, más o menos en qué años, y cuál de esas mudanzas te quedó más grabada.",
       "depende": [],
-      "parte": "extra",
+      "parte": "nucleo",
       "clase": "historia",
       "sensible": false
     },

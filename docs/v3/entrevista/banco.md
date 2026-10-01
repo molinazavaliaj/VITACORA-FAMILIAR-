@@ -189,7 +189,7 @@ Una frase al empezar cada bloque, antes de su primera pregunta; no espera respue
 | JU17 | ¿Hubo algún momento duro en esos años de empezar tu vida que creas que no puede quedar afuera de tu historia? ¿Algo que te marcó? Si querés, contame qué pasó y cómo lo viviste. Si ya me lo contaste, decímelo, y si querés reforzar algo, es el momento. |  | núcleo | historia | sí |
 | JU18 | ¿Cómo eran las fiestas y las salidas en tu juventud? Los bailes, los cumpleaños, las noches largas. Contame una que no te olvidás. Y si se te vienen más, contalas también. |  | extra | historia |  |
 | JU19 | ¿Tuviste algún flechazo en esos años, alguien que te movió el piso? Contame cómo fue: dónde se cruzaron, qué pasó. |  | extra | historia |  |
-| JU20 | ¿Te mudaste muchas veces en tu vida? Contame por qué casas o lugares fuiste pasando, más o menos en qué años, y cuál de esas mudanzas te quedó más grabada. |  | extra | historia |  |
+| JU20 | ¿Te mudaste muchas veces en tu vida? Contame por qué casas o lugares fuiste pasando, más o menos en qué años, y cuál de esas mudanzas te quedó más grabada. |  | núcleo | historia |  |
 | CI5 | Y así llegamos al final de tu juventud, los años en que empezaste a hacer tu vida. Antes de seguir, ¿te quedó algo de esa época sin contar? Un lugar, una persona, una tarde que se te aparece de vez en cuando. Contámelo ahora, con calma. |  | núcleo | cierre |  |
 
 ## Bloque 6 · Amor y pareja
