@@ -21,11 +21,17 @@
 //     el audio; con un botón solo, queda el texto del botón.
 //   - Foto (FO1): si describió una foto, se queda (bloque 15) y el origen avisa
 //     que la imagen no está en el material.
+//   - La segunda oportunidad (X~2) y la repregunta del cazador (RP~X) van
+//     pegadas a la respuesta X, con el mismo id, sin el texto de lo que se le
+//     preguntó (Naza, 01/10, plan del cazador B3). Solo si contaron algo: un
+//     olvido, un "no", un "paso" o [Ya lo conté todo] no se suman. Si suman,
+//     la respuesta X ya no es "paso" (aunque X haya sido un "no me acuerdo").
 
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { preguntaPorId } from '../src/v3/entrevista/banco.js';
+import { deRepregunta, deSegunda, preguntaDeClave } from '../src/v3/entrevista/flujo.js';
 import { interpretar, leerBoton, valeBoton, PREGUNTA_COMUN, type Interpretacion, type PreguntaParaInterpretar } from '../src/v3/entrevista/respuesta.js';
 import { renderizar, type FichaTexto } from '../src/v3/entrevista/texto.js';
 
@@ -78,6 +84,12 @@ export function aMaterial(e: Estado): Fila[] {
   const antes = new Map<string, string>();
   const filas: Fila[] = [];
   for (const [pid, crudo] of e.respuestas) {
+    const deX = deSegunda(pid) ?? deRepregunta(pid);
+    if (deX !== undefined) {
+      pegarA(filas.findLast((f) => f.preguntaId === deX), pid, crudo);
+      antes.set(pid, crudo);
+      continue;
+    }
     const delBanco = preguntaPorId(pid);
     const esFamilia = !delBanco && familia.has(pid);
     const pregunta = enviados.get(pid)?.texto ?? (delBanco ? renderizar(delBanco.texto, e.ficha, antes) : familia.get(pid) ?? '(pregunta sin texto guardado)');
@@ -99,6 +111,19 @@ export function aMaterial(e: Estado): Fila[] {
     antes.set(pid, crudo);
   }
   return filas;
+}
+
+/** Suma lo que contó en X~2 o RP~X a la fila de X (si contó algo y la fila existe). */
+function pegarA(fila: Fila | undefined, clave: string, crudo: string): void {
+  if (!fila) return;
+  const interp = interpretar(preguntaDeClave(clave)!, crudo);
+  const texto = leerBoton(crudo).resto.trim();
+  if (!texto || PASO.includes(interp) || interp === 'no') return;
+  fila.texto = fila.texto ? `${fila.texto}
+
+${texto}` : texto;
+  fila.palabras = contar(fila.texto);
+  fila.paso = false;
 }
 
 /** Igual que armar-material.mjs de Joaquín: sin &, < ni > (el XML se arma a mano). */
