@@ -1,6 +1,6 @@
 # Receta del escritor (V3, de cero)
 
-**Estado: borrador de Fable, 01/10/2026 (receta nueva, no deriva de la v6).**
+**Estado: borrador de Fable, 01/10/2026 (receta nueva, no deriva de la v6). Naza (01/10): sin máximo de palabras por pieza.**
 
 Esta receta hace cumplir la [guía](guia-biografia.md) aprobada por Naza. Son los textos EXACTOS que recibe el modelo en cada paso, más lo que hace el código entre paso y paso. El modelo es el mismo en todos los pasos y no se fija acá.
 
@@ -22,11 +22,11 @@ Esta receta hace cumplir la [guía](guia-biografia.md) aprobada por Naza. Son lo
 | 1 | **Registro de hechos** (rol: lector del material) | modelo | `registro.json` |
 | 1b | Valida el registro (C14). Si falla, reintenta el paso 1 con el error (máx. 2) | código | registro válido |
 | 2 | **Plan del libro** (rol: editor) | modelo | `plan.json` |
-| 2b | Valida el plan (C12, C13). Si falla, reintenta el paso 2 con el error (máx. 2). Arma los títulos impresos y el tope de palabras por pieza | código | plan válido, `faltantes` |
+| 2b | Valida el plan (C12, C13). Si falla, reintenta el paso 2 con el error (máx. 2). Arma los títulos impresos | código | plan válido, `faltantes` |
 | 3a | **La primera página** (rol: escritor) | modelo | `primera_pagina.md` |
 | 3b | **Capítulos, uno por uno en orden**, cada uno con lo ya escrito y la ficha de voz releída | modelo | `capitulo_NN.md` |
 | 3c | **La carta** | modelo | `carta.md` |
-| 3d | Arma "Sus frases" desde el plan (C6 sobre cada frase) y los controles de forma sobre cada pieza (C1–C3, C5–C8, C10, C11, C15–C17). Lo que falla vuelve a 3 como arreglo (paso 6) | código | libro entero |
+| 3d | Arma "Sus frases" desde el plan (C6 sobre cada frase) y los controles de forma sobre cada pieza (C1–C3, C5–C8, C10, C15–C17). Lo que falla vuelve a 3 como arreglo (paso 6) | código | libro entero |
 | 4 | **Control de hechos** (otro rol: verificador; ve guía, ficha, respuestas, registro y libro; no ve el plan ni los prompts del escritor) | modelo | `hechos.json` |
 | 5 | **Lectura de corrido** (otro rol: lector exigente; ve guía y libro; no ve el material) | modelo | `lectura.json` |
 | 6 | **Arreglo**: por pieza con problemas, una llamada con el prompt de escritura de esa pieza + `<problemas>`; devuelve la pieza entera y la lista de cambios. El código verifica (C9) y vuelve a pasar C1–C17 y el paso 4 sobre la pieza cambiada. Máx. 2 rondas; 3.ª: reescritura de cero con `<evitar>`; si sigue, va al informe | modelo + código | piezas corregidas |
@@ -59,7 +59,7 @@ Antes de `<guia>` va esta línea fija: `Los ejemplos de la guía son de una narr
 
 En el paso 4 y el 5 no entra `<plan>` ni ningún prompt de escritura: el verificador y el lector no saben qué se le pidió al escritor; juzgan lo que hay.
 
-Huecos que llena el código: `{{N}}`, `{{TITULO}}` (título impreso del capítulo), `{{TOPE}}` (tope de palabras de la pieza, ver 2b), `{{NOMBRE}}` (nombre de pila de quien narra, de la ficha).
+Huecos que llena el código: `{{N}}`, `{{TITULO}}` (título impreso del capítulo), `{{NOMBRE}}` (nombre de pila de quien narra, de la ficha).
 
 ---
 
@@ -197,7 +197,7 @@ Valores cerrados: `apertura.tipo` y `cierre.tipo` ∈ escena | objeto | persona_
 ### Paso 2b · Lo que arma el código después del plan
 
 - **Título impreso de cada capítulo:** `titulo.texto` si no está vacío; si está vacío, `etapa` más los años solo si `anios.seguros` es true ("De chica, 1954–1966"; sin años seguros, "De chica").
-- **Tope de palabras** (`{{TOPE}}`): primera página 350; capítulo = palabras habladas de todas las respuestas de sus piezas (una respuesta repartida entre dos capítulos se reparte por mitades); carta = palabras habladas de sus ids. Es un techo, no una meta: la guía manda "nunca estirar".
+- **Sin máximo de palabras (Naza, 01/10):** el largo de cada pieza lo da lo que la persona contó. No hay tope ni meta; lo único que se controla es que no se estire (el lector marca `relleno`: repetir con otras palabras).
 - **"Sus frases"**: lo arma el código desde `plan.sus_frases`: cada frase pasa C6 (textual); el `contexto` lo escribió el plan y lo revisa el verificador como cualquier otra oración.
 
 ### Paso 3a · La primera página
@@ -214,7 +214,7 @@ Bordes:
 4. Cada cosa que afirma está en los ids del plan o en la ficha. Nada que terminó se cuenta en presente.
 5. No se presenta a nadie más que a quien narra; si nombra a alguien, nombre y relación, nada más.
 6. Sin hablar del libro ni del lector, sin valorar la vida, sin adelantar lo que viene.
-7. Largo: lo que den sus ids, hasta {{TOPE}} palabras. Nunca estirar.
+7. Largo: lo que den sus ids. Nunca estirar.
 
 Mal: "Me llamo Nélida Ferraro, nací en Rosario en 1954, tengo tres hijos y vivo en Funes."
 Bien: "Soy Nélida, la de la mercería de Echesortu. Así me conocen todavía, aunque cerré hace años." (vale solo si dijo que la conocen así y que cerró).
@@ -230,7 +230,7 @@ Devolvé solo el texto en markdown, sin título.
 | 4 con respaldo; nada terminado en presente | verificador (presente, inventado) |
 | 5 una sola persona presentada | C17; lector |
 | 6 sin hablar del libro | C1 (molde "este libro"); lector |
-| 7 tope | C11 |
+| 7 no estirar | lector (relleno) |
 
 ### Paso 3b · Un capítulo
 
@@ -248,7 +248,7 @@ Bordes:
 6. Sus palabras: sin adjetivos de catálogo, metáforas ni sentimientos con nombre que no dijo; sin las palabras ni los moldes del anexo A2; diálogo con raya; sin gerundio de posterioridad; el trato (vos o tú) de la ficha de voz.
 7. Lo delicado, como lo contó, con el detalle que dio y nada más. Lo de no_poner, no está.
 8. Ninguna frase cortada del audio: se cierra con lo que dijo en otra respuesta o se corta antes, en una oración entera.
-9. Largo: lo que den los episodios, hasta {{TOPE}} palabras. Nunca estirar ni repetir con otras palabras.
+9. Largo: lo que den los episodios, sin máximo. Nunca estirar ni repetir con otras palabras.
 
 Mal: "Con el transcurrir de los años, mi hija Marcela se convirtió en mi principal sostén." → Bien: "La nena, con los años, fue la que me bancó. Marcela, digo; para mí sigue siendo la nena."
 Mal (cierre): "Y así fue como entendí que la familia es lo más importante." → Bien: "Raúl guardó la calculadora en el cajón y nunca más la sacó."
@@ -266,7 +266,7 @@ Devolvé solo el capítulo en markdown, empezando con "# {{TITULO}}".
 | 6 voz y castellano | C1 (A2), C10 (A6); lector (no_suena_a_ella, ia, deriva) |
 | 7 delicado y no_poner | verificador (delicado) |
 | 8 frases cortadas | C2 |
-| 9 tope | C11 |
+| 9 no estirar | lector (relleno, repetido) |
 
 ### Paso 3c · La carta
 
@@ -295,7 +295,7 @@ Devolvé solo el texto en markdown, sin título.
 | 3 nada agregado | verificador (inventado, sentimiento) |
 | 4 frases cortadas | C2 |
 | 5 encabezado y cierre | C6 (la frase de cierre es textual) |
-| 6 largo | C11 |
+| 6 largo | lector (relleno) |
 
 ### Paso 4 · Control de hechos (otro rol)
 
@@ -337,7 +337,7 @@ Recibe: guía y libro. No recibe el material ni el plan. Manda: sección 13 part
 ```
 Sos el lector exigente. No escribiste el libro y no tenés el material: lo leés entero, de corrido, como lo va a leer la familia, y marcás lo que no se lee como libro. Manda la sección 13, parte 2, de la guía; para reconocer cada cosa, las secciones 1 a 9 y los anexos A2, A3 y A6.
 
-Marcá solo lo que está en la lista de la parte 2: la primera página; cada capítulo (¿se puede decir el hilo en una oración?, ¿tiene una escena?, ¿la primera y la última oración muestran un cambio?); aperturas o cierres repetidos o que explican; títulos que servirían para cualquier vida; personas presentadas dos veces, en lista, o nombradas sin que se sepa quién es; saltos de tiempo que confunden y puentes con molde; último capítulo con reflexiones apiladas o la mesa como lista; carta con algo que no es para la familia; párrafos que no suenan a quien narra o con marcas de IA; repeticiones (cita que repite el párrafo, misma anécdota dos veces, párrafo que repite el anterior); respuestas de botón; deriva de voz entre el primer capítulo y el último.
+Marcá solo lo que está en la lista de la parte 2: la primera página; cada capítulo (¿se puede decir el hilo en una oración?, ¿tiene una escena?, ¿la primera y la última oración muestran un cambio?); aperturas o cierres repetidos o que explican; títulos que servirían para cualquier vida; personas presentadas dos veces, en lista, o nombradas sin que se sepa quién es; saltos de tiempo que confunden y puentes con molde; último capítulo con reflexiones apiladas o la mesa como lista; carta con algo que no es para la familia; párrafos que no suenan a quien narra o con marcas de IA; repeticiones (cita que repite el párrafo, misma anécdota dos veces, párrafo que repite el anterior); respuestas de botón; relleno (oraciones que repiten lo mismo con otras palabras para ocupar lugar); deriva de voz entre el primer capítulo y el último.
 
 Para cada problema: la pieza, la frase o el párrafo exacto (copiado), el tipo y en una línea qué está mal. No propongas el texto nuevo: eso lo hace otro. No marques gusto personal ni lo que harías distinto: solo lo que la guía dice que no va.
 
@@ -352,7 +352,7 @@ Esquema de salida (`lectura.json`):
 {"problemas": [{"n": 1, "pieza": "cap_4", "frase": "", "tipo": "cierre_explica", "que": ""}]}
 ```
 
-`tipo` ∈ primera_pagina | sin_hilo | sin_escena | apertura_repetida | cierre_explica | titulo_generico | persona_dos_veces | lista | sin_presentar | salto_confuso | molde | bolsa | carta_ajena | no_suena | ia | repetido | boton | deriva.
+`tipo` ∈ primera_pagina | sin_hilo | sin_escena | apertura_repetida | cierre_explica | titulo_generico | persona_dos_veces | lista | sin_presentar | salto_confuso | molde | bolsa | carta_ajena | no_suena | ia | repetido | boton | relleno | deriva.
 
 ### Paso 6 · Arreglo (una llamada por pieza con problemas)
 
@@ -407,7 +407,7 @@ Normalización para todos: minúsculas, sin tildes, espacios colapsados; las cit
 | C8 | Cinco o más palabras seguidas del texto de una pregunta que aparecen en el libro (las anclas de repregunta, que son palabras de quien narra, no cuentan) | toda pieza | problema `boton` → arreglo |
 | C9 | Arreglo: cada frase marcada "cambiado" ya no está; disputas solo en hechos; porcentaje de párrafos sin problema que quedaron idénticos | pieza arreglada | ver paso 6 |
 | C10 | Anexo A6: gerundio al inicio de oración ("-ando"/"-iendo" como primera palabra); "fue/fueron/era + participio + por"; diálogo con comillas en vez de raya ("dijo" pegado a comillas); mezcla de trato (tú/tienes/eres/puedes contra vos/tenés/sos/podés) distinta de `voz.trato`; palabras de diagnóstico (depresion, ansiedad, trauma, alcoholico, alcoholismo, adiccion, adicto) que no están textuales en el material | toda pieza | problema `ia` (o `inventado` en diagnóstico) → arreglo |
-| C11 | Palabras de la pieza > `{{TOPE}}` | toda pieza | problema `relleno` → arreglo con "hasta {{TOPE}}" |
+| C11 | (sacado el 01/10: Naza no quiere máximo de palabras; el largo lo da lo que contó) | — | — |
 | C12 | Títulos del plan: cada palabra de contenido del título está en sus ids (textual) o en el material (armado); ninguna de: etapa, linda, lindo, hermosa, hermoso, gran, sueños, sueño, luchas, lucha, difícil, feliz, felicidad, importante, especial, inolvidable; no es solo un nombre de persona; leídos en lista, no hay dos iguales | plan | reintento del paso 2 con el error |
 | C13 | Plan: cada episodio del registro (no `no_poner`) está una sola vez (en `piezas`, `sus_frases` o `carta.ids`); cada capítulo tiene ≥1 pieza `escena`; cada `momento_clave` no vacío está como `escena`; `hilo_ids` no vacío; `apertura.tipo` y `cierre.tipo` distintos del capítulo anterior; cada P en `presenta` de un solo capítulo; el último capítulo tiene `hilo_de_hoy_ids` con estado `sigue_hoy` en el registro; `carta.ids` solo de tipo `mensaje`; `primera_pagina` con ids que existen en `como_se_presenta` o `cosas_concretas_suyas`; `sus_frases.contexto` ≤ 20 palabras | plan | reintento del paso 2 con el error |
 | C14 | Registro: todo id citado existe; cada R (no "paso") aparece en algún episodio o en `sin_lugar`; cada frase de `voz.frases` es subsecuencia de su id y hay entre 15 y 20; `segura: true` solo si en sus ids o en la ficha hay un número; todo "…" de una respuesta usada tiene entrada en `frases_cortadas`; no hay dos personas con mismo nombre y relación; cada línea de `<confirmado_por_el_narrador>` tiene su entrada en `confirmados` con `usado_en` no vacío; `estado` presente en personas, lugares y episodios | registro | reintento del paso 1 con el error |
