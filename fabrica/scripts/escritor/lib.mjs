@@ -101,7 +101,8 @@ export function esquemaDe(encabezado) {
 }
 
 /** Marcas de rastreo [[R12,R15]] al final de cada párrafo (receta v2). */
-export const sinMarcas = (t) => t.replace(/[ \t]*\[\[\s*R[^\]]*\]\]/g, '');
+// También [[FICHA]] (lo que sale de la ficha): en la prueba 3.1 quedaron 27 impresas.
+export const sinMarcas = (t) => t.replace(/[ \t]*\[\[\s*(?:R\d|FICHA)[^\]]*\]\]/g, '');
 export const marcas = (t) => [...t.matchAll(/\[\[([^\]]*)\]\]/g)].flatMap((m) => m[1].split(/[,\s]+/).map((x) => x.trim()).filter((x) => /^R\d+$/.test(x)));
 
 /** El plan puede citar episodios (E..) donde se esperan respuestas (R..): se pasan a sus R. */

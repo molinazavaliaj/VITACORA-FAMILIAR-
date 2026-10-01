@@ -3,7 +3,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { c10, c12, c13, c20, c20Texto, c23, c24, c26, referencias, pasados } from './controles.mjs';
-import { piezaDeR, planConR, armarCambios } from './lib.mjs';
+import { piezaDeR, planConR, armarCambios, sinMarcas } from './lib.mjs';
 
 const reg = () => ({
   personas: [
@@ -250,4 +250,8 @@ test('armarCambios: reemplaza solo el tramo, deja el resto igual y marca lo que 
   ]);
   assert.equal(texto, 'La mercería abría a las ocho. [[R01]]\n\nRaúl tenía la caja. [[R02]]');
   assert.deepEqual(cambios.map((c) => [c.problema, c.resultado]), [[1, 'cambiado'], [2, 'cambiado'], [3, 'no_aplicado'], [4, 'disputa']]);
+});
+
+test('sinMarcas borra también [[FICHA]] y las mixtas, y deja los corchetes que no son marcas', () => {
+  assert.equal(sinMarcas('Vivo en Tandil. [[FICHA]]\n\nAbrí la mercería. [[R02, FICHA]] [nota]'), 'Vivo en Tandil.\n\nAbrí la mercería. [nota]');
 });
