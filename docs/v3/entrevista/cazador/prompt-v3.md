@@ -1,6 +1,6 @@
 # Cazador de escenas — prompt v3 (Fable, 01/10/2026)
 
-**Estado: en prueba.** Sigue a [`prompt-v2.md`](prompt-v2.md) (queda como historial). Decisiones de Naza del 01/10 después de ver la prueba paga de la v2:
+**Estado: en prueba; la simulación gratis sobre la entrevista V3 de Naza le gustó (01/10).** 21 repreguntas en 14 bloques, ninguna repetida; Naza marcó "muy buena" 11 de ellas (hermano mayor, campo de un amigo, la Navidad, fiestas de la adolescencia, dejar la facultad, la fragata, la pareja de hoy, la novia de aquella época, el negocio, el primo, el show) y dijo que 21 no son muchas: *"el narrador no se cansa de contar; lo que lo enoja es una pregunta que no tiene sentido con lo que contó"*. Resultado (fuera de git): `audios-crudos/v3-web/nazareno/cazador-prueba/v3-simulado.md`. Sigue a [`prompt-v2.md`](prompt-v2.md) (queda como historial). Decisiones de Naza del 01/10 después de ver la prueba paga de la v2:
 
 - Hasta **2 por bloque** (tope, no meta). **Nunca dos sobre el mismo tema**: vara dura.
 - La vara pasa de "ya contó algo" a **"ya contó BIEN"**: lo contado a medias se puede pedir (el narrador tiene un botón [Ya lo conté todo]).
