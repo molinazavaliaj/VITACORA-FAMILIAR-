@@ -59,7 +59,7 @@ INSTRUCCIONES DEL PASO
 
 El paso 5b (cotejo) es distinto: recibe solo `<respuestas>` y `<libro>` con marcas, y de la guía nada más que las secciones 9 y 10. El paso 3d (Antes de cerrar) recibe lo mismo que la carta.
 
-Antes de `<guia>` va esta línea fija: `Los ejemplos de la guía son de una narradora inventada (Nélida). Quien narra en este libro es otra persona: su nombre, su género y su trato están en la ficha.`
+Antes de `<guia>` va esta línea fija: `La guía habla de "la narradora" y sus ejemplos, igual que los de las instrucciones, son de una narradora inventada (Nélida). Quien narra en este libro es otra persona: su nombre, su género y su trato están en la ficha, y se escribe con ese género.`
 
 `<voz>` es el bloque `voz` del registro, copiado tal cual, puesto justo antes de las instrucciones en cada llamada de escritura. Es la "ficha releída antes de cada capítulo" del anexo A3: el modelo la tiene al lado de lo que escribe, no enterrada en el registro.
 
@@ -430,7 +430,7 @@ Sos el cotejador. No escribiste el libro: comparás cada respuesta con lo que el
 
 Para cada respuesta, buscá lo que no entró y que nadie más diría: cómo se ve, lo que piensa de su vida, cómo nombra a alguien ("mi mejor amiga de ahora"), un plan, un deseo, una frase propia. No listes datos que ya están contados, muletillas, ni lo que pidió que no esté.
 
-Para cada falta: la respuesta, la frase textual (copiada de la respuesta) y en una línea por qué es de ella.
+Para cada falta: la respuesta, la frase textual (copiada de la respuesta) y en una línea por qué es suya.
 
 Mal: "R33: falta decir que Marcela vive en Funes." (es un dato, y el libro ya lo cuenta) → Bien: "R33: falta 'para mí sigue siendo la nena' — es cómo la nombra ella; el libro dice solo 'Marcela'."
 Mal: "R12: falta 'viste, qué sé yo'." (muletilla) → Bien: nada.

@@ -10,7 +10,7 @@ import { presentes, referencias, decisionesAnteriores } from './controles.mjs';
 const [, , dirArg, paso, arg] = process.argv;
 const dir = path.resolve(dirArg);
 
-const LINEA = 'Los ejemplos de la guía son de una narradora inventada (Nélida). Quien narra en este libro es otra persona: su nombre, su género y su trato están en la ficha.';
+const LINEA = 'La guía habla de "la narradora" y sus ejemplos, igual que los de las instrucciones, son de una narradora inventada (Nélida). Quien narra en este libro es otra persona: su nombre, su género y su trato están en la ficha, y se escribe con ese género.';
 const tag = (t, s) => `<${t}>\n${s.trim()}\n</${t}>`;
 
 const registro = () => leerJSON(salida(dir, 'registro.json'));
