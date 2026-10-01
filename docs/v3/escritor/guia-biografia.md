@@ -1,6 +1,6 @@
 # Guía: qué es una biografía interesante
 
-**Estado: borrador de Fable, 01/10/2026, para aprobar por Naza.**
+**Estado: aprobada por Naza el 01/10/2026 con cambios (gustos al cuerpo, lo delicado sin suavizar).**
 
 Esta guía dice qué tiene que cumplir un libro de vida de Vitácora para que se lea como un libro y no como un formulario contestado. Es una guía de oficio: la lee una persona, y con ella después se escribe la receta del escritor desde cero. Cada criterio trae la regla, el porqué y un ejemplo. Los ejemplos son de una narradora inventada: **Nélida, 72 años, que tuvo una mercería en el barrio Echesortu de Rosario.** Su marido Raúl era chapista y murió en 2014; tiene tres hijos (Marcela, Gustavo y Pablo), una hermana (Chiche), un perro (Tito) y hoy vive en Funes, cerca de Marcela. Nada de eso existe: está acá solo para mostrar lo que está mal y lo que está bien.
 
@@ -17,7 +17,7 @@ Todo lo que sigue es una forma de esta diferencia:
 4. Lo que terminó se cuenta en pasado. Siempre.
 5. Los títulos llevan una cosa que se puede ver, no una valoración.
 6. El último capítulo no es la bolsa de lo que sobró.
-7. Lo que no es historia (gustos, opiniones, listas) entra con otra forma: media línea, Sus frases o la carta.
+7. Los gustos son parte de quién es y van al cuerpo, contados como algo que hace; las opiniones sueltas, como remate de su escena o en Sus frases; las listas de gente, nunca como lista.
 8. El libro suena a la narradora, no a un escritor, y no afirma nada que ella no dijo.
 9. Antes de entregar, un lector exigente controla hechos y tiempo verbal contra el material, y lee de corrido.
 
@@ -38,7 +38,8 @@ Todo lo que sigue es una forma de esta diferencia:
 **Qué más tiene que tener la primera página.**
 - Una sola cosa pasa. No se presenta a más de dos personas (la narradora y, como mucho, una más).
 - Si el prólogo es "hoy", tiene que ser un día concreto de hoy, no una rutina ("me levanto, tomo mate, miro la tele"). Una rutina es ficha con verbos.
-- Si el material de "hoy" no trae ningún momento concreto, el libro abre con la escena más fuerte de toda la vida y "hoy" se guarda para el final. Es mejor abrir con la mercería en 1985 que con una lista de lo que hace hoy.
+- Si el material de "hoy" no trae ningún momento concreto, el libro abre con la escena más fuerte de toda la vida y "hoy" va al final. Es mejor abrir con la mercería en 1985 que con una lista de lo que hace hoy. No es una opción: es la regla.
+- El prólogo se elige por la fuerza de la escena, como cualquier otra. Si la escena más fuerte es dura, igual abre.
 
 **Qué nunca.** Abrir con nombres, edades, datos de ficha, "me llamo", el árbol genealógico, o presentar a cuatro personas en tres oraciones. Tampoco abrir hablando del libro ("este libro es para mis nietos") ni valorando la vida ("tuve una vida llena de altibajos").
 
@@ -66,7 +67,7 @@ Todo lo que sigue es una forma de esta diferencia:
 
 **Cómo se controla.** Leer solo la primera y la última oración del capítulo. Si no se nota que algo cambió entre las dos, el capítulo no tiene hilo. Y contar las escenas: si hay cero, es un resumen largo, no un capítulo.
 
-**Cuándo partir y cuándo juntar.** Un capítulo que mete tres cambios de vida (se casó, abrió el negocio, nació el primer hijo) es tres capítulos o es uno con un hilo que los una ("el año en que todo empezó a la vez"). Si no se puede decir el hilo en una oración, se parte. Un capítulo de menos de una página y media se pega al vecino, salvo que sea un golpe que merece quedar solo (una muerte, una mudanza de país).
+**Cuándo partir y cuándo juntar.** Un capítulo que mete tres cambios de vida (se casó, abrió el negocio, nació el primer hijo) es tres capítulos o es uno con un hilo que los una ("el año en que todo empezó a la vez"). Si no se puede decir el hilo en una oración, se parte. Un capítulo de menos de una página y media se pega al vecino, salvo que sea un golpe que merece quedar solo (una muerte, una mudanza de país). Y una etapa que no tiene ninguna escena en el material no es capítulo: se junta con la vecina, siempre.
 
 ---
 
@@ -151,7 +152,7 @@ Lo que no se hace: estirar un resumen con adjetivos ("eran días hermosos, lleno
 | Mis sueños y mis luchas | Dos cuadras hasta la mercería |
 | Capítulo 3: la familia | La siesta con la Negra |
 
-**De dónde sale.** Primero, de una frase de la narradora: si dijo "en esa casa no se tiraba ni un botón", ese es el título. Si no hay una frase suya con imagen, se construye con una cosa concreta del capítulo, con sus palabras. Si no hay nada concreto, el título queda con la etapa y los años ("1985–1994") y es mejor eso que un título abstracto.
+**De dónde sale.** Primero, de una frase de la narradora: si dijo "en esa casa no se tiraba ni un botón", ese es el título. Si no hay una frase suya con imagen, el título se arma con una cosa concreta del capítulo, usando solo palabras y cosas que ella nombró ("La manija que trababa" vale si ella habló de la manija). Si no hay nada concreto, el título queda con la etapa y los años ("1985–1994") y es mejor eso que un título abstracto.
 
 **El título del libro.** Lo mismo, con una exigencia más: tiene que servir para toda la vida, no para un capítulo. Una frase suya que diga cómo es ella, con una imagen adentro. Si ella misma propuso un título, ese gana, salvo que sea una valoración.
 
@@ -180,7 +181,7 @@ Lo que no se hace: estirar un resumen con adjetivos ("eran días hermosos, lleno
 **Cómo se arma el final.**
 - Cada reflexión va a la escena que la explica, en el capítulo que corresponde, como remate. "Aprendí que la plata va y viene" cierra el capítulo del cierre de la mercería, no el último.
 - La gente querida se nombra donde tiene su historia. Al final, si ella armó la mesa de los suyos, se cuenta como mesa (quién se sienta al lado de quién, qué se come) o no se cuenta.
-- Lo que no tiene escena ni lugar (gustos, opiniones sueltas) va a "Sus frases" o a la carta. No al último capítulo.
+- Los gustos van donde ella se describe a sí misma, contados como algo que hace (sección 8). Las opiniones sueltas van como remate de su escena o a "Sus frases". Nada cae al último capítulo por descarte.
 - El último capítulo tiene un hilo de hoy: algo que le está pasando ahora, concreto. Si el prólogo abrió con una escena de hoy, el final puede volver a ella con otras palabras.
 - El libro cierra con la carta, si hay. La carta es lo que les dice a los suyos: solo eso.
 
@@ -197,17 +198,25 @@ Una entrevista trae mucho que no es relato: gustos, opiniones, reflexiones, list
 | Un momento con lugar y acción | El capítulo de su etapa | Escena |
 | Cómo eran las cosas en general | Pegado a la escena más cercana | Resumen, hasta tres párrafos |
 | Un dato suelto (un trabajo de dos meses, un primo que vivía cerca) | Dentro de la historia a la que pertenece | Media línea |
-| Una opinión o reflexión | Como remate de la escena que la explica | Una o dos oraciones, con sus palabras |
+| Una opinión suelta o reflexión | Como remate de la escena que la explica; si no tiene escena, "Sus frases" | Una o dos oraciones, con sus palabras |
 | Una frase bien dicha que no cabe en ninguna escena | "Sus frases" | Textual, con una línea de contexto |
-| Gustos (qué come, qué escucha, qué fuma) | "Sus frases" o media línea en una escena donde ocurra | Nunca un párrafo propio, nunca en la carta |
+| Gustos y manías (qué come, qué escucha, qué toma, qué fuma, cómo hace las cosas) | El cuerpo del libro: donde ella se describe a sí misma (el tramo que muestra cómo es hoy) o la etapa en que ese gusto nació | Contado como algo que hace, en una escena o pegado a una; nunca lista, nunca en la carta |
 | Lo que les dice a los suyos | La carta final | Casi textual |
 | Una lista de nombres sin historia | Resumen en media línea, o la carta si les habla | Nunca como lista en el cuerpo |
 
+**Los gustos son parte de quién es.** Lo que come, lo que escucha, lo que toma, lo que fuma, sus manías: eso es ella, y la familia lo reconoce al instante. Por eso no se manda al final ni a un apéndice: va en el cuerpo, bien redactado, en el lugar donde el libro muestra cómo es ella. Lo que cambia es la forma: un gusto no se informa ("me gusta X"), se cuenta como algo que hace.
+
+| Mal | Bien |
+|---|---|
+| Me gusta el mate amargo, me gusta escuchar tango en la radio, me gusta bordar y me gusta tomar una copita de vino los domingos. | A la tarde pongo la radio en la de tango, la que tiene siempre el mismo locutor, y me siento con el bastidor al lado de la ventana. El mate lo tomo amargo, y si alguno le pone azúcar en casa, lo mira Tito. Los domingos, con Marcela, una copita de vino: una, porque después me da sueño. |
+
+(La segunda vale solo si ella contó cada cosa: el locutor, el bastidor, Tito, la copita. Si dijo "me gusta el tango" y nada más, la oración es "A la tarde pongo tango en la radio." y punto.)
+
 **Dos cosas que importan.**
-- **La carta es para la familia.** Entra solo lo que les dice a ellos. Una respuesta a "qué te gusta hacer" no es para la familia: es para "Sus frases". Un consejo a los nietos sí es carta.
+- **La carta es para la familia.** Entra solo lo que les dice a ellos. Una respuesta a "qué te gusta hacer" no es para la familia: va al cuerpo. Un consejo a los nietos sí es carta.
 - **Las respuestas de botón** (las que contestan una pregunta que el lector no ve: "Hijos tuve tres.", "No, nunca me fui del país.") no van como están. O se cuentan como relato, o van en media línea, o no van si no agregan nada.
 
-**Cómo se controla.** Buscar en el cuerpo del libro párrafos que podrían moverse a cualquier otro capítulo sin que se note. Esos son los que no tienen lugar: hay que darles uno o moverlos a Sus frases.
+**Cómo se controla.** Buscar en el cuerpo del libro párrafos que podrían moverse a cualquier otro capítulo sin que se note. Esos son los que no tienen lugar: hay que darles uno (un gusto, a la escena donde se la ve hacerlo; una opinión, a la escena que la explica o a Sus frases).
 
 ---
 
@@ -260,13 +269,13 @@ Una entrevista trae mucho que no es relato: gustos, opiniones, reflexiones, list
 
 **Las frases cortadas.** Una frase que el audio cortó ("y todo lo que hiciste por… por la familia") **nunca queda cortada en el libro**. O se cierra con lo que dijo en otro momento, o se corta antes del corte y queda una oración entera, o se le pregunta. Un puntos suspensivos en una carta a una hija se lee como error de imprenta.
 
-**Lo delicado.** Muertes, enfermedades, separaciones, deudas, cárcel, adicciones, peleas familiares: se cuentan si ella las contó, con sobriedad, sin adjetivos que valoren, sin moraleja ni morbo. Si ella no quiso dar detalle, el libro no da detalle. Si no está claro si ella quiere que esté en el libro, no está hasta que lo diga. Nunca en el prólogo.
+**Lo delicado.** Muertes, enfermedades, separaciones, deudas, cárcel, drogas, peleas familiares: **todo lo que contó va como lo contó**, con el detalle que ella dio y en su lugar en la historia. Es la historia de su vida, no el maquillaje de su vida. No se suaviza, no se recorta, no se esconde al final, y puede abrir el libro si es la escena más fuerte. Lo único que el escritor no hace es **agregar**: ni adjetivos que valoren, ni moraleja, ni morbo, ni un detalle que ella no dio, porque eso también es inventar. Y si ella pidió expresamente que algo no esté ("esto no lo pongas"), no está: también es lo que dijo.
 
 | Mal | Bien |
 |---|---|
-| Raúl murió en 2014 después de una larga y dolorosa enfermedad que nos destrozó a todos. | Raúl murió en 2014. Yo seguí abriendo las persianas de casa a las ocho, por costumbre. |
+| Raúl murió en 2014 después de una larga y dolorosa enfermedad que nos destrozó a todos. | Raúl estuvo ocho meses en el Centenario. Yo iba todos los días con el termo y la bolsa de las medias, porque los pies se le enfriaban. Murió en septiembre de 2014. |
 
-(La segunda vale solo si ella contó lo de las persianas. Si no, la oración es "Raúl murió en 2014." y punto.)
+(La segunda vale porque ella contó el hospital, los ocho meses, el termo y las medias. Lo que no vale es "larga y dolorosa" ni "nos destrozó": eso lo puso el escritor. Si ella dijo "esto de las medias no lo pongas", la oración es "Raúl estuvo ocho meses internado y murió en septiembre de 2014.")
 
 ---
 
@@ -280,7 +289,7 @@ Estas cosas no son errores si faltan, pero son la diferencia entre un libro corr
 
 **El lector familiar.** La familia ya conoce las historias. Lo que busca en el libro es **cómo las cuenta ella**: la frase exacta, el detalle que ellos no sabían, el nombre que les puso. Por eso una historia conocida contada con sus palabras vale más que una historia nueva contada con palabras de escritor. Y por eso cada nombre importa: una nieta va a buscar su nombre en el libro.
 
-**Lo que ella no dijo y el lector espera.** Si contó la mercería durante tres capítulos y nunca dijo cómo cerró, el libro no inventa el cierre: termina donde ella terminó, y lo dice de una forma que no deje un agujero ("de la mercería no cuento más: lo que vino después fue otra vida"). Es mejor un corte honesto que un final inventado.
+**Lo que ella no dijo y el lector espera.** Si contó la mercería durante tres capítulos y nunca dijo cómo cerró, el libro no inventa el cierre: termina donde ella terminó, con su última frase o su último hecho sobre eso, y no se agrega ninguna oración de cierre en su voz. Es mejor un corte honesto que un final inventado.
 
 **Largo.** El libro mide lo que da el material. Un capítulo no se estira para llegar a un largo; un resumen de dos líneas no se vuelve de diez. Repetir con otras palabras es la forma más común de estirar y la más visible.
 
@@ -298,12 +307,12 @@ Estas cosas no son errores si faltan, pero son la diferencia entre un libro corr
 8. Poner un título que sea una valoración o que anuncie el final.
 9. Cerrar un capítulo explicando lo que significó.
 10. Hacer del último capítulo la bolsa de reflexiones, gustos y nombres.
-11. Meter gustos u opiniones sueltas en la carta a la familia.
+11. Meter gustos u opiniones sueltas en la carta a la familia, o informar los gustos como lista ("me gusta X, me gusta Y") en vez de contarlos como algo que hace.
 12. Repetir en una cita en bloque lo que el párrafo ya dijo.
 13. Abrir dos capítulos seguidos con el mismo molde.
 14. Dejar una respuesta de botón como está ("Hijos tuve tres.").
 15. Agregar una metáfora, un adjetivo de catálogo o un sentimiento con nombre que ella no dijo.
-16. Contar lo delicado con adjetivos, moraleja o detalle que ella no dio.
+16. Suavizar, recortar o esconder lo delicado que ella contó; o agregarle adjetivos, moraleja, morbo o un detalle que ella no dio.
 17. Estirar para llegar a un largo.
 
 ---
@@ -326,7 +335,7 @@ Se hace **antes** de la lectura de corrido, con lista, no de memoria.
 | Motivos y sentimientos | Cada "porque" y cada sentimiento con nombre tiene su frase en el material. |
 | Lo confirmado | Cada dato que la narradora confirmó aparece usado en el libro (no basta con no contradecirlo). |
 | Frases cortadas | Ningún "…" que venga del audio. |
-| Lo delicado | Nada que ella no haya contado o autorizado, y nada en el prólogo. |
+| Lo delicado | Está como lo contó, con el detalle que dio y sin nada agregado (adjetivo, moraleja, morbo, detalle). Lo que pidió expresamente que no esté, no está. |
 
 ### Parte 2: lectura de corrido (como lector)
 
@@ -358,6 +367,6 @@ El libro se escribe con lo que la narradora contó. Esta guía sirve para contar
 - **Si "hoy" llegó como rutina, el prólogo no va a tener un momento.** Hace falta que la entrevista pida un día concreto de ahora.
 - **Si un nombre o una fecha quedó en duda y nadie preguntó, el libro va a ser vago ahí.** Es lo correcto, pero es menos que tenerlo.
 - **Si la narradora contestó corto porque estaba cansada, el libro va a ser corto.** No se estira.
-- **Si contó algo delicado y no dijo si quiere que esté, el libro lo deja afuera** hasta que lo diga.
+- **Si contó algo delicado en dos líneas, en el libro son dos líneas.** No se agranda ni se achica: el escritor no puede darle a una historia dura más detalle del que ella le dio.
 
 Nada de esto lo arregla el escritor. Lo arregla la entrevista, o una vuelta más con la narradora. El escritor tiene que decirlo en vez de disimularlo: un libro honesto y corto vale más que uno largo con relleno.
