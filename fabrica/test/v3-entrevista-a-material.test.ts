@@ -33,7 +33,8 @@ describe('material: segunda oportunidad y repreguntas pegadas a su respuesta', (
   });
 
   it('la segunda oportunidad que cuenta algo hace que la respuesta cuente (ya no es paso)', () => {
-    expect(filas[1]).toMatchObject({ texto: 'No me acuerdo.\n\nLos carnavales del club y el corso de los sábados.', paso: false });
+    // Revisión del 01/10: el "no me acuerdo" no llega al escritor; queda lo que contó en la segunda oportunidad.
+    expect(filas[1]).toMatchObject({ texto: 'Los carnavales del club y el corso de los sábados.', paso: false, interpretacion: 'conto' });
   });
 
   it('lo que no cuenta nada ([Ya lo conté todo], un olvido) no se suma', () => {

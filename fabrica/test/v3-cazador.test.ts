@@ -141,6 +141,12 @@ describe('la salida del modelo', () => {
     expect(leerSalida('no hay json')).toBeUndefined();
     expect(leerSalida('{"elegidas": [')).toBeUndefined();
   });
+  it('descarta las elegidas con forma rota en lugar de romper la entrevista (revisión del 01/10)', () => {
+    expect(leerSalida('{"elegidas": [null, 3, {"id": "CA2"}, {"id": "CA3", "cita": 5, "pregunta": "¿p?"}, {"id": "CA4", "cita": "c", "pregunta": "¿p?", "tema": "t"}]}')).toEqual({
+      elegidas: [{ id: 'CA4', cita: 'c', pregunta: '¿p?', tema: 't' }],
+      escenasContadas: [],
+    });
+  });
 });
 
 describe('los controles de código (los de la prueba v3, más ids)', () => {

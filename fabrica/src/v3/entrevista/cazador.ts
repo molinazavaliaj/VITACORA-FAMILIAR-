@@ -155,12 +155,19 @@ export function leerSalida(texto: string): { elegidas: Elegida[]; escenasContada
   if (desde < 0 || hasta < desde) return undefined;
   try {
     const json = JSON.parse(texto.slice(desde, hasta + 1)) as { elegidas?: unknown; escenas_contadas_bloque?: unknown };
-    const elegidas = Array.isArray(json.elegidas) ? (json.elegidas as Elegida[]) : [];
+    // Revisión del 01/10: una elegida con forma rota (null, sin cita o pregunta de texto) se descarta acá; si no, rompía los controles.
+    const elegidas = Array.isArray(json.elegidas) ? (json.elegidas as unknown[]).filter(esElegida) : [];
     const escenas = Array.isArray(json.escenas_contadas_bloque) ? (json.escenas_contadas_bloque as unknown[]).filter((x): x is string => typeof x === 'string') : [];
     return { elegidas, escenasContadas: escenas };
   } catch {
     return undefined;
   }
+}
+
+function esElegida(x: unknown): x is Elegida {
+  if (typeof x !== 'object' || x === null) return false;
+  const e = x as Record<string, unknown>;
+  return typeof e.id === 'string' && typeof e.cita === 'string' && typeof e.pregunta === 'string';
 }
 
 const TIEMPO_RELATIVO = /\b(ayer|anoche|hace un rato|recién|recien|la otra vez|esta semana)\b/i;
