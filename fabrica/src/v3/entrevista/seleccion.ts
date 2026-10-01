@@ -91,6 +91,8 @@ export function simularRecorrido(
       pasos.push({ ...s, respuesta: r });
       continue;
     }
+    // El recorrido no lleva cola de repreguntas (no se le pasa `repreguntas`): no puede llegar una.
+    if (s.tipo === 'repregunta') throw new Error('simularRecorrido: no lleva cola de repreguntas');
     const pregunta = render(s.pregunta, ficha, respuestas, opciones);
     const extras = { ...(s.entrada ? { entrada: s.entrada } : {}), ...(s.botones ? { botones: s.botones } : {}), ...(s.ayudaBotones ? { ayudaBotones: s.ayudaBotones } : {}) };
     if (!s.esperaRespuesta) {

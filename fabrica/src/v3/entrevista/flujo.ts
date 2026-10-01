@@ -187,6 +187,11 @@ export type EstadoEntrevista = {
   ofrecerExtra?: boolean;
   /** Preguntas de la familia, en el orden en que llegaron. */
   familia?: readonly PreguntaFamilia[];
+  /**
+   * La cola de repreguntas del cazador (Naza, 01/10): las que entraron, en
+   * orden; las que ya tienen respuesta ("RP~X" en `respuestas`) no salen más.
+   */
+  repreguntas?: readonly Repregunta[];
 };
 
 export type Siguiente =
@@ -216,6 +221,12 @@ export type Siguiente =
    * guarda con la clave `clave` ("CA16~2").
    */
   | { tipo: 'segunda-oportunidad'; de: string; mensaje: string; clave: string }
+  /**
+   * Una repregunta del cazador (Naza, 01/10): mandar `mensajeRepregunta`
+   * (cazador.ts) con `botones` ([Ya lo conté todo]) y esperar respuesta; lo
+   * que conteste se guarda con `repregunta.clave` ("RP~CA2").
+   */
+  | { tipo: 'repregunta'; repregunta: Repregunta; botones: readonly Boton[] }
   /** Mandar M15 y después la pregunta de la familia. */
   | { tipo: 'familia'; pregunta: PreguntaFamilia; antes: 'M15' }
   /** Terminó el núcleo: ofrecer la ronda extra (texto a redactar con Fable, pendiente de Naza). */
@@ -315,7 +326,35 @@ export function alTocarBoton(pregunta: Pick<PreguntaParaInterpretar, 'botones'> 
 export function siguientePregunta(e: EstadoEntrevista, banco: readonly PreguntaEntrevista[] = BANCO): Siguiente {
   const segunda = segundaOportunidad(e.respuestas);
   if (segunda) return segunda;
-  return siguienteDelBanco(e, banco);
+  const delBanco = siguienteDelBanco(e, banco);
+  const repregunta = repreguntaLista(e, delBanco);
+  return repregunta ? { tipo: 'repregunta', repregunta, botones: [BOTON_YA_LO_CONTE] } : delBanco;
+}
+
+/** Cuántas respuestas del banco tienen que pasar después de la de origen para mandar su repregunta (Naza, 01/10). */
+export const RESPUESTAS_ANTES_DE_REPREGUNTAR = 3;
+
+/**
+ * ¿Sale una repregunta de la cola? La primera pendiente que ya tiene 3 o más
+ * respuestas del banco después de la de origen (las X~2, RP~X y las de la
+ * familia no cuentan), si lo último que contestó no fue una repregunta:
+ * nunca dos seguidas. Antes de entrar al bloque 15 (o a la familia, o al
+ * final) salen todas las que queden, aunque no hayan pasado 3 y aunque vayan
+ * seguidas: después ya no hay dónde (plan, B2).
+ */
+function repreguntaLista(e: EstadoEntrevista, delBanco: Siguiente): Repregunta | undefined {
+  const pendientes = (e.repreguntas ?? []).filter((r) => !e.respuestas.has(r.clave));
+  if (pendientes.length === 0) return undefined;
+  const entraAlFinal = delBanco.tipo === 'familia' || delBanco.tipo === 'terminada' || (delBanco.tipo === 'pregunta' && delBanco.pregunta.bloque === BLOQUE_FINAL);
+  if (entraAlFinal) return pendientes[0];
+  const claves = [...e.respuestas.keys()];
+  const ultima = claves.at(-1);
+  if (ultima !== undefined && deRepregunta(ultima) !== undefined) return undefined;
+  return pendientes.find((r) => {
+    const desde = claves.indexOf(r.origen);
+    if (desde < 0) return false;
+    return claves.slice(desde + 1).filter((k) => preguntaPorId(k) !== undefined).length >= RESPUESTAS_ANTES_DE_REPREGUNTAR;
+  });
 }
 
 /**
@@ -417,6 +456,8 @@ function esElOlvidoDeM29(pregunta: Pick<PreguntaEntrevista, 'id'>, anteriores: R
   };
   for (const [id, r] of anteriores) {
     if (id === pregunta.id) continue;
+    // Lo que contesta a una repregunta no suma ni corta la cuenta (Naza, 01/10: "olvido → M28.1 sin sumar a M29").
+    if (deRepregunta(id) !== undefined) continue;
     // La pregunta entera cuenta como UN olvido (Naza, 01/10): si X tuvo segunda oportunidad, cuenta la de X~2, no la de X.
     if (PIDEN_DIA[id] && (anteriores.has(claveSegunda(id)) || pregunta.id === claveSegunda(id))) continue;
     toca(id, r);
@@ -452,6 +493,7 @@ export function mensajesDespues(
   if (SIEMPRE_M26.includes(pregunta.id)) return ['M26'];
   const dijo = interpretar(pregunta, respuesta);
   if (deSegunda(pregunta.id)) return acuseDeSegunda(dijo, pregunta, anteriores);
+  if (deRepregunta(pregunta.id) !== undefined) return acuseDeRepregunta(dijo);
   if (dijo === 'olvido' && PIDEN_DIA[pregunta.id] && !anteriores.has(claveSegunda(pregunta.id))) return [];
   if (dijo === 'no' || dijo === 'ya-conto') return ['M25'];
   if (dijo === 'paso') return [pregunta.clase === 'cierre' ? 'M25' : pregunta.sensible ? 'M27' : 'M21'];
@@ -471,6 +513,22 @@ export function mensajesDespues(
  * olvido y no el de X); "paso", M21. Un "ya te lo conté" corto, M25, como
  * en todas (el plan no lo nombra).
  */
+/**
+ * El acuse de lo que contesta a una repregunta del cazador (Naza, 01/10):
+ * contó → M3 (que con `acuseAntesDe` pasa a M26 delante de un cierre, LE9 o
+ * una sensible); [Ya lo conté todo], un "no" corto o "ya te lo conté" → M25;
+ * olvido → M28.1, nunca M29 (no suma a la cuenta); "paso" → M21. El olvido a
+ * medias y el que se niega pero sigue llevan su acuse de siempre (M28.4, M32).
+ */
+function acuseDeRepregunta(dijo: Interpretacion): FamiliaAcuse[] {
+  if (dijo === 'no' || dijo === 'ya-conto') return ['M25'];
+  if (dijo === 'paso') return ['M21'];
+  if (dijo === 'olvido') return ['M28'];
+  if (dijo === 'olvido-a-medias') return ['M28.4'];
+  if (dijo === 'no-ahondar') return ['M32'];
+  return ['M3'];
+}
+
 function acuseDeSegunda(dijo: Interpretacion, pregunta: Pick<PreguntaEntrevista, 'id'>, anteriores: Respuestas): FamiliaAcuse[] {
   if (dijo === 'paso') return ['M21'];
   if (dijo === 'ya-conto') return ['M25'];
