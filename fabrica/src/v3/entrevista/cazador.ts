@@ -1,0 +1,323 @@
+// El cazador de escenas en la entrevista (Naza, 01/10, chat "La entrevista
+// trae escenas"; plan: docs/v3/entrevista/cazador/plan-codigo.md, parte B1).
+// Al cerrar un bloque, Opus lee sus respuestas y elige hasta 2 de las que
+// valga la pena pedir un momento concreto; el código controla lo que devuelve
+// (cita textual, una sola pregunta corta, sin tiempos relativos, ids
+// distintos y no repetidos) y descarta lo que falla. Lo que pasa entra a la
+// cola de repreguntas (`EstadoEntrevista.repreguntas`, flujo.ts).
+//
+// Todo es puro salvo `cazarBloque`, que llama al modelo por un cliente que se
+// le pasa (el SDK de Anthropic, o uno falso en los tests: ningún test llama a
+// la API). El prompt sale de docs/v3/entrevista/cazador/prompt-v3-1.md:
+// `scripts/v3-cazador-json.ts` genera cazador-prompt.json y un test compara.
+
+import promptJson from './cazador-prompt.json' with { type: 'json' };
+import { preguntaPorId } from './banco.js';
+import { BLOQUE_FINAL, claveRepregunta, deSegunda, PIDEN_DIA, type Repregunta, type Respuestas } from './flujo.js';
+import type { FichaTexto } from './texto.js';
+import { interpretar, leerBoton } from './respuesta.js';
+
+// ---------------------------------------------------------------- constantes
+
+/** HERMES: el entrevistador usa Opus 5. */
+export const MODELO_CAZADOR = 'claude-opus-5';
+export const MAX_TOKENS_CAZADOR = 16000;
+/** USD por token: 5 por millón de entrada, 25 por millón de salida. */
+export const PRECIO_CAZADOR = { entrada: 5 / 1e6, salida: 25 / 1e6 };
+/** Tope de gasto del cazador por entrevista (Naza, 01/10): alcanzado, no se llama más y la entrevista sigue sin cazador. */
+export const TOPE_GASTO_USD = 3;
+/** Hasta cuántas elegidas por bloque se miran (el prompt dice "como mucho DOS"). */
+export const MAX_ELEGIDAS = 2;
+export const MAX_PALABRAS_PREGUNTA = 45;
+
+/** El prompt v3.1 (Fable, 01/10), tal cual la sección "## Prompt" del md. */
+export const PROMPT_CAZADOR: string = (promptJson as { prompt: string }).prompt;
+
+/** La sección "## Prompt" del md: lo que va entre el primer par de ``` después del título. */
+export function extraerPrompt(md: string): string {
+  const despues = md.replace(/\r\n/g, '\n').split('## Prompt')[1];
+  if (despues === undefined) throw new Error('el md del cazador no tiene "## Prompt"');
+  const bloque = despues.split('```')[1];
+  if (bloque === undefined) throw new Error('el md del cazador no tiene el prompt entre ```');
+  return bloque.trim();
+}
+
+/**
+ * Los bloques del banco con un nombre corto y los momentos concretos que
+ * piden sus preguntas del núcleo (los de scripts/v3-cazador-prueba-v3.ts, ya
+ * probados contra la API). El índice es el bloque menos uno.
+ */
+export const BLOQUES_CAZADOR: readonly { nombre: string; momentos: readonly string[] }[] = [
+  { nombre: 'Origen', momentos: ['la época en que naciste', 'la historia de la familia de los de antes', 'cómo se conocieron tus padres'] },
+  { nombre: 'La casa de chico', momentos: ['el primer recuerdo de la casa de chico', 'una anécdota con tu mamá de chico', 'una vez con tu papá trabajando', 'una aventura con tus hermanos', 'un día de chico que esperabas con ganas', 'un momento difícil de chico'] },
+  { nombre: 'Escuela', momentos: ['el primer día de escuela', 'una vez con una maestra que te marcó', 'una tarde con tu mejor amigo de chico', 'una travesura', 'qué querías ser de grande', 'la religión en tu casa'] },
+  { nombre: 'Adolescencia', momentos: ['dónde pasabas los días a los trece', 'una noche con la barra de amigos', 'la primera salida de noche', 'el primer amor', 'cuándo dejaste de ser chico', 'un momento duro de la adolescencia'] },
+  { nombre: 'Juventud', momentos: ['el día que te fuiste de la casa de tus padres', 'qué hiciste después del colegio', 'aprender tu oficio', 'tu paso por lo militar', 'la llegada a vivir a otra ciudad o país', 'el primer lugar propio y su primera noche', 'las mudanzas de tu vida', 'un momento duro de la juventud'] },
+  { nombre: 'Amor', momentos: ['el día que conociste a tu pareja', 'la vida juntos', 'un momento de los dos'] },
+  { nombre: 'Trabajo', momentos: ['el primer trabajo', 'un día común de trabajo', 'quién te dio una mano en el trabajo', 'el día de trabajo del que estás orgulloso', 'una época sin trabajo o con la plata justa', 'el negocio propio', 'el último día de trabajo'] },
+  { nombre: 'Hijos y nietos', momentos: ['tus padres de grande', 'el nacimiento del primer hijo', 'cómo era cada hijo de chico', 'el día que conociste al primer nieto'] },
+  { nombre: 'Lugares', momentos: ['el viaje más importante', 'tu pasión'] },
+  { nombre: 'Amistades', momentos: ['cómo conociste al amigo de grande', 'tus hermanos de grandes', 'alguien que te ayudó', 'la cena con quien quisieras'] },
+  { nombre: 'Momentos difíciles', momentos: ['una pérdida', 'la salud', 'una época dura de grande'] },
+  { nombre: 'Historia grande', momentos: ['algo grande del país que te tocó', 'un día de la pandemia', 'lo que antes no se podía', 'la política'] },
+  { nombre: 'Giros', momentos: ['el día que volverías a vivir', 'el día que te cambió algo', 'algo que no se dio', 'sentirte chiquito frente a algo enorme', 'la soledad', 'el paso del tiempo', 'lo heredado'] },
+  { nombre: 'Hoy', momentos: ['un día cualquiera de ahora', 'la última vez que te reíste con ganas', 'una marca en el cuerpo con historia', 'tu plato', 'la música de ahora', 'el lugar donde vivís'] },
+  { nombre: 'Legado', momentos: ['de qué estás orgulloso', 'tu consejo', 'lo que todavía querés hacer'] },
+];
+
+/** El bloque Hoy: ahí "hoy" sí vale en la pregunta. */
+export const BLOQUE_HOY = 14;
+
+/** Los momentos que el banco va a pedir en los bloques que faltan (después de `bloque`): lo que llega solo, no se repregunta. */
+export function loQueViene(bloque: number): string[] {
+  return BLOQUES_CAZADOR.slice(bloque).flatMap((b) => b.momentos);
+}
+
+// ---------------------------------------------------------------- entrada
+
+/** Una respuesta del bloque como la ve el modelo. `id` es el ID del banco. */
+export type RespuestaParaCazar = { id: string; pregunta: string; texto: string; pedidoDia: boolean; paso: boolean };
+
+/**
+ * Las respuestas del bloque que se le pasan al cazador, en el orden en que
+ * llegaron. No se caza el bloque 15 (legado), ni las respuestas a
+ * repreguntas, ni un botón sin texto; de un botón con audio atrás va el
+ * audio. La segunda oportunidad ("X~2") va pegada a su X, en otra línea
+ * (plan, B1). `textoPregunta` da la pregunta como se mandó.
+ */
+export function respuestasParaCazar(respuestas: Respuestas, bloque: number, textoPregunta: (id: string) => string): RespuestaParaCazar[] {
+  if (bloque === BLOQUE_FINAL) return [];
+  const out: RespuestaParaCazar[] = [];
+  for (const [clave, crudo] of respuestas) {
+    const x = deSegunda(clave);
+    if (x) {
+      const suya = out.find((r) => r.id === x);
+      const texto = leerBoton(crudo).resto.trim();
+      if (suya && texto) suya.texto = suya.texto ? `${suya.texto}\n${texto}` : texto;
+      continue;
+    }
+    // Solo las del banco (las repreguntas y las de la familia no tienen fila en el banco).
+    const p = preguntaPorId(clave);
+    if (!p || p.bloque !== bloque) continue;
+    const texto = leerBoton(crudo).resto.trim();
+    if (!texto) continue;
+    out.push({ id: clave, pregunta: textoPregunta(clave), texto, pedidoDia: PIDEN_DIA[clave] !== undefined, paso: interpretar(p, crudo) === 'paso' });
+  }
+  return out;
+}
+
+/** La ficha que ve el cazador cuando no hay más que nombre y género (la página de prueba y las simulaciones). */
+export function fichaCorta(f: Pick<FichaTexto, 'nombre' | 'genero'>): string {
+  const genero = f.genero === 'varon' ? 'varón' : f.genero;
+  return `<ficha>\nnombre: ${f.nombre}\ngénero: ${genero}\n</ficha>`;
+}
+
+export type EntradaCazador = {
+  /** La ficha ya armada (`<ficha>…</ficha>`). */
+  ficha: string;
+  bloque: number;
+  respuestas: readonly RespuestaParaCazar[];
+  yaRepreguntado: readonly Repregunta[];
+  escenasContadas: readonly string[];
+};
+
+/**
+ * El mensaje del usuario, en el orden de la prueba contra la API
+ * (scripts/v3-cazador-prueba-v3.ts): ficha, bloque, ya_repreguntado,
+ * escenas_contadas, lo_que_viene y al final las respuestas del bloque.
+ */
+export function armarEntrada(e: EntradaCazador): string {
+  const respuestas = e.respuestas
+    .map((r) => {
+      const marcas = (r.pedidoDia ? ' pedido_dia="si"' : '') + (r.paso ? ' paso="si"' : '');
+      return `<respuesta id="${r.id}"${marcas}>\n<pregunta>${r.pregunta}</pregunta>\n<texto>${r.texto}</texto>\n</respuesta>`;
+    })
+    .join('\n');
+  return [
+    e.ficha,
+    `<bloque>${BLOQUES_CAZADOR[e.bloque - 1]?.nombre ?? `Bloque ${e.bloque}`}</bloque>`,
+    `<ya_repreguntado>\n${e.yaRepreguntado.map((r) => `${r.origen}: ${r.tema}`).join('\n')}\n</ya_repreguntado>`,
+    `<escenas_contadas>\n${e.escenasContadas.join('\n')}\n</escenas_contadas>`,
+    `<lo_que_viene>\n${loQueViene(e.bloque).join('\n')}\n</lo_que_viene>`,
+    `<respuestas_del_bloque>\n${respuestas}\n</respuestas_del_bloque>`,
+  ].join('\n\n');
+}
+
+// ---------------------------------------------------------------- salida
+
+/** Lo que devuelve el modelo por cada elegida (por_que y ya_contado_chequeo son para auditar). */
+export type Elegida = { id: string; cita: string; pregunta: string; tema?: string; por_que?: string; ya_contado_chequeo?: string };
+
+/** El JSON de la salida (aunque venga con texto alrededor); undefined si no se puede leer. */
+export function leerSalida(texto: string): { elegidas: Elegida[]; escenasContadas: string[] } | undefined {
+  const desde = texto.indexOf('{');
+  const hasta = texto.lastIndexOf('}');
+  if (desde < 0 || hasta < desde) return undefined;
+  try {
+    const json = JSON.parse(texto.slice(desde, hasta + 1)) as { elegidas?: unknown; escenas_contadas_bloque?: unknown };
+    const elegidas = Array.isArray(json.elegidas) ? (json.elegidas as Elegida[]) : [];
+    const escenas = Array.isArray(json.escenas_contadas_bloque) ? (json.escenas_contadas_bloque as unknown[]).filter((x): x is string => typeof x === 'string') : [];
+    return { elegidas, escenasContadas: escenas };
+  } catch {
+    return undefined;
+  }
+}
+
+const TIEMPO_RELATIVO = /\b(ayer|anoche|hace un rato|recién|recien|la otra vez|esta semana)\b/i;
+const sinMarcas = (s: string) =>
+  s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-zñ0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
+
+/**
+ * Los controles de código de la v3 (movidos de scripts/v3-cazador-prueba-v3.ts,
+ * probados contra la API): la cita es textual y contigua de esa respuesta; la
+ * pregunta lleva un solo "?", hasta 45 palabras, sin "ayer/anoche/hace un
+ * rato/recién/la otra vez/esta semana" ni "hoy" fuera del bloque Hoy.
+ */
+export function controlarElegida(e: Pick<Elegida, 'cita' | 'pregunta'>, respuesta: string, bloqueHoy: boolean): string[] {
+  const fallas: string[] = [];
+  const cita = sinMarcas(e.cita ?? '');
+  if (!cita || !` ${sinMarcas(respuesta)} `.includes(` ${cita} `)) fallas.push('la cita no es textual');
+  const pregunta = e.pregunta ?? '';
+  if ((pregunta.match(/\?/g) ?? []).length !== 1) fallas.push('la pregunta no tiene un solo "?"');
+  if (pregunta.split(/\s+/).filter(Boolean).length > MAX_PALABRAS_PREGUNTA) fallas.push(`pregunta de más de ${MAX_PALABRAS_PREGUNTA} palabras`);
+  if (TIEMPO_RELATIVO.test(pregunta) || (!bloqueHoy && /\bhoy\b/i.test(pregunta))) fallas.push('tiempo relativo');
+  return fallas;
+}
+
+/** Una elegida descartada, con por qué (se registra; no se manda). */
+export type Descartada = { id: string; cita: string; pregunta: string; tema?: string; fallas: string[] };
+
+/**
+ * Pasa las elegidas (hasta 2) por los controles: además de los de
+ * `controlarElegida`, la respuesta tiene que ser de este bloque, no puede
+ * haber dos de la misma ni una ya repreguntada. La que falla se descarta
+ * (plan, B1: hoy no se reintenta).
+ */
+export function revisarElegidas(
+  elegidas: readonly Elegida[],
+  delBloque: readonly RespuestaParaCazar[],
+  bloque: number,
+  yaRepreguntado: readonly Repregunta[],
+): { repreguntas: Repregunta[]; descartadas: Descartada[] } {
+  const repreguntas: Repregunta[] = [];
+  const descartadas: Descartada[] = [];
+  const vistas = new Set<string>();
+  for (const e of elegidas.slice(0, MAX_ELEGIDAS)) {
+    const suya = delBloque.find((r) => r.id === e.id);
+    const fallas = controlarElegida(e, suya?.texto ?? '', bloque === BLOQUE_HOY);
+    if (!suya) fallas.push('la respuesta no es de este bloque');
+    if (vistas.has(e.id)) fallas.push('dos de la misma respuesta');
+    else if (yaRepreguntado.some((r) => r.origen === e.id)) fallas.push('ya repreguntado');
+    vistas.add(e.id);
+    if (fallas.length > 0) descartadas.push({ id: e.id, cita: e.cita, pregunta: e.pregunta, ...(e.tema !== undefined ? { tema: e.tema } : {}), fallas });
+    else repreguntas.push({ clave: claveRepregunta(e.id), origen: e.id, bloque, cita: e.cita, pregunta: e.pregunta, tema: e.tema ?? '' });
+  }
+  return { repreguntas, descartadas };
+}
+
+/**
+ * El mensaje que le llega al narrador: mitad fijo, mitad escrito por el
+ * modelo (Naza, 01/10). Va con el botón [Ya lo conté todo] (BOTON_YA_LO_CONTE
+ * en flujo.ts).
+ */
+export function mensajeRepregunta(e: Pick<Repregunta, 'cita' | 'pregunta'>): string {
+  return `Me quedé pensando en algo que me contaste: «${e.cita}». ${e.pregunta} Y si no te vuelve, o ya me lo contaste todo, decímelo nomás y seguimos con otra.`;
+}
+
+// ---------------------------------------------------------------- la llamada
+
+/** Lo que se le pide al modelo (el subconjunto de messages.create que usamos). */
+export type PedidoModelo = {
+  model: string;
+  max_tokens: number;
+  system: string;
+  messages: { role: 'user'; content: string }[];
+};
+
+/** El cliente: el SDK de Anthropic cumple esta forma; los tests pasan uno falso. */
+export type ClienteModelo = {
+  messages: {
+    create(p: PedidoModelo): Promise<{ content: readonly { type: string; text?: string }[]; usage: { input_tokens: number; output_tokens: number } }>;
+  };
+};
+
+export function costoUsd(usage: { input_tokens: number; output_tokens: number }): number {
+  return usage.input_tokens * PRECIO_CAZADOR.entrada + usage.output_tokens * PRECIO_CAZADOR.salida;
+}
+
+export type PedidoCaza = {
+  cliente: ClienteModelo;
+  /** La ficha ya armada (`fichaCorta`, o la del pedido). */
+  ficha: string;
+  /** El bloque que acaba de cerrar. */
+  bloque: number;
+  /** Todas las respuestas de la entrevista hasta acá, en orden. */
+  respuestas: Respuestas;
+  /** La pregunta como se le mandó (por ID del banco). */
+  textoPregunta: (id: string) => string;
+  /** Las repreguntas que ya entraron a la cola (mandadas o no). */
+  yaRepreguntado: readonly Repregunta[];
+  /** Las escenas que el cazador ya vio bien contadas en bloques anteriores. */
+  escenasContadas: readonly string[];
+  /** Lo gastado en el cazador en esta entrevista, antes de esta llamada. */
+  gastoUsd: number;
+  /** Para probar otra versión del prompt; si no, PROMPT_CAZADOR. */
+  prompt?: string;
+};
+
+export type ResultadoCaza = {
+  bloque: number;
+  /** ¿Se llamó al modelo? */
+  llamo: boolean;
+  /** Por qué no cazó nada, si no cazó. */
+  motivo?: 'legado' | 'sin-respuestas' | 'tope' | 'error' | 'salida-ilegible';
+  repreguntas: Repregunta[];
+  descartadas: Descartada[];
+  /** Las escenas bien contadas de este bloque (para sumar a `escenasContadas`). */
+  escenasContadas: string[];
+  tokens?: { entrada: number; salida: number };
+  /** Lo que costó esta llamada. */
+  costoUsd: number;
+  /** Lo gastado en la entrevista, con esta llamada. */
+  gastoUsd: number;
+  error?: string;
+};
+
+/**
+ * Caza un bloque: arma la entrada, llama al modelo (un reintento si falla; si
+ * vuelve a fallar, ese bloque no caza y la entrevista sigue igual: nunca tira
+ * error), lee la salida y la pasa por los controles. No llama si el bloque es
+ * el 15, si no hay respuestas con texto, o si ya se alcanzó el tope de USD 3
+ * (Naza, 01/10).
+ */
+export async function cazarBloque(p: PedidoCaza): Promise<ResultadoCaza> {
+  const vacio = { bloque: p.bloque, repreguntas: [], descartadas: [], escenasContadas: [], costoUsd: 0, gastoUsd: p.gastoUsd };
+  if (p.bloque === BLOQUE_FINAL) return { ...vacio, llamo: false, motivo: 'legado' };
+  const delBloque = respuestasParaCazar(p.respuestas, p.bloque, p.textoPregunta);
+  if (delBloque.length === 0) return { ...vacio, llamo: false, motivo: 'sin-respuestas' };
+  if (p.gastoUsd >= TOPE_GASTO_USD) return { ...vacio, llamo: false, motivo: 'tope' };
+
+  const pedido: PedidoModelo = {
+    model: MODELO_CAZADOR,
+    max_tokens: MAX_TOKENS_CAZADOR,
+    system: p.prompt ?? PROMPT_CAZADOR,
+    messages: [{ role: 'user', content: armarEntrada({ ficha: p.ficha, bloque: p.bloque, respuestas: delBloque, yaRepreguntado: p.yaRepreguntado, escenasContadas: p.escenasContadas }) }],
+  };
+  let msg: Awaited<ReturnType<ClienteModelo['messages']['create']>> | undefined;
+  let error: unknown;
+  for (let intento = 0; intento < 2 && !msg; intento++) {
+    try {
+      msg = await p.cliente.messages.create(pedido);
+    } catch (err) {
+      error = err;
+    }
+  }
+  if (!msg) return { ...vacio, llamo: true, motivo: 'error', error: error instanceof Error ? error.message : String(error) };
+
+  const costo = costoUsd(msg.usage);
+  const conGasto = { ...vacio, llamo: true, tokens: { entrada: msg.usage.input_tokens, salida: msg.usage.output_tokens }, costoUsd: costo, gastoUsd: p.gastoUsd + costo };
+  const salida = leerSalida(msg.content.flatMap((b) => (b.type === 'text' && b.text ? [b.text] : [])).join(''));
+  if (!salida) return { ...conGasto, motivo: 'salida-ilegible' };
+  const { repreguntas, descartadas } = revisarElegidas(salida.elegidas, delBloque, p.bloque, p.yaRepreguntado);
+  return { ...conGasto, repreguntas, descartadas, escenasContadas: salida.escenasContadas };
+}

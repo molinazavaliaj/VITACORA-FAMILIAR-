@@ -12,33 +12,17 @@ import Anthropic from '@anthropic-ai/sdk';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { BLOQUES_CAZADOR, controlarElegida, mensajeRepregunta, MODELO_CAZADOR, PRECIO_CAZADOR } from '../src/v3/entrevista/cazador.js';
+import { PIDEN_DIA as PIDEN_DIA_FLUJO } from '../src/v3/entrevista/flujo.js';
 
-const MODELO = 'claude-opus-5';
-const PRECIO = { entrada: 5 / 1e6, salida: 25 / 1e6 };
-
+// Las constantes, los bloques y los controles viven en src/v3/entrevista/cazador.ts desde el 01/10 (plan del cazador, B1): acá se importan.
+const MODELO = MODELO_CAZADOR;
+const PRECIO = PRECIO_CAZADOR;
 const FABRICA = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const PROMPT_POR_DEFECTO = path.join(FABRICA, '..', 'docs', 'v3', 'entrevista', 'cazador', 'prompt-v3.md');
 
-// Los bloques del banco (flujo-vigente.md) y los momentos concretos que piden sus preguntas del núcleo.
-const BLOQUES: { nombre: string; momentos: string[] }[] = [
-  { nombre: 'Origen', momentos: ['la época en que naciste', 'la historia de la familia de los de antes', 'cómo se conocieron tus padres'] },
-  { nombre: 'La casa de chico', momentos: ['el primer recuerdo de la casa de chico', 'una anécdota con tu mamá de chico', 'una vez con tu papá trabajando', 'una aventura con tus hermanos', 'un día de chico que esperabas con ganas', 'un momento difícil de chico'] },
-  { nombre: 'Escuela', momentos: ['el primer día de escuela', 'una vez con una maestra que te marcó', 'una tarde con tu mejor amigo de chico', 'una travesura', 'qué querías ser de grande', 'la religión en tu casa'] },
-  { nombre: 'Adolescencia', momentos: ['dónde pasabas los días a los trece', 'una noche con la barra de amigos', 'la primera salida de noche', 'el primer amor', 'cuándo dejaste de ser chico', 'un momento duro de la adolescencia'] },
-  { nombre: 'Juventud', momentos: ['el día que te fuiste de la casa de tus padres', 'qué hiciste después del colegio', 'aprender tu oficio', 'tu paso por lo militar', 'la llegada a vivir a otra ciudad o país', 'el primer lugar propio y su primera noche', 'las mudanzas de tu vida', 'un momento duro de la juventud'] },
-  { nombre: 'Amor', momentos: ['el día que conociste a tu pareja', 'la vida juntos', 'un momento de los dos'] },
-  { nombre: 'Trabajo', momentos: ['el primer trabajo', 'un día común de trabajo', 'quién te dio una mano en el trabajo', 'el día de trabajo del que estás orgulloso', 'una época sin trabajo o con la plata justa', 'el negocio propio', 'el último día de trabajo'] },
-  { nombre: 'Hijos y nietos', momentos: ['tus padres de grande', 'el nacimiento del primer hijo', 'cómo era cada hijo de chico', 'el día que conociste al primer nieto'] },
-  { nombre: 'Lugares', momentos: ['el viaje más importante', 'tu pasión'] },
-  { nombre: 'Amistades', momentos: ['cómo conociste al amigo de grande', 'tus hermanos de grandes', 'alguien que te ayudó', 'la cena con quien quisieras'] },
-  { nombre: 'Momentos difíciles', momentos: ['una pérdida', 'la salud', 'una época dura de grande'] },
-  { nombre: 'Historia grande', momentos: ['algo grande del país que te tocó', 'un día de la pandemia', 'lo que antes no se podía', 'la política'] },
-  { nombre: 'Giros', momentos: ['el día que volverías a vivir', 'el día que te cambió algo', 'algo que no se dio', 'sentirte chiquito frente a algo enorme', 'la soledad', 'el paso del tiempo', 'lo heredado'] },
-  { nombre: 'Hoy', momentos: ['un día cualquiera de ahora', 'la última vez que te reíste con ganas', 'una marca en el cuerpo con historia', 'tu plato', 'la música de ahora', 'el lugar donde vivís'] },
-  { nombre: 'Legado', momentos: ['de qué estás orgulloso', 'tu consejo', 'lo que todavía querés hacer'] },
-];
-const PIDEN_DIA = new Set(['CA16', 'AD5', 'JU12', 'TR5', 'HG4', 'GI2', 'GI9', 'HO2']);
-const TIEMPO_RELATIVO = /\b(ayer|anoche|hace un rato|recién|recien|la otra vez|esta semana)\b/i;
+const BLOQUES = BLOQUES_CAZADOR;
+const PIDEN_DIA = new Set(Object.keys(PIDEN_DIA_FLUJO));
 
 type Respuesta = { id: string; pregunta: string; origen: string; texto: string };
 type Elegida = { id: string; cita: string; pregunta: string; tema: string; por_que: string; ya_contado_chequeo: string };
@@ -47,23 +31,9 @@ const arg = (n: string) => {
   const i = process.argv.indexOf(`--${n}`);
   return i >= 0 ? process.argv[i + 1] : undefined;
 };
-const sinMarcas = (s: string) =>
-  s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-zñ0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
-
-/** Controles de código de la v3: la cita solo tiene que ser textual; la pregunta, corta, una sola y sin tiempos relativos. */
-export function controlarElegida(e: Pick<Elegida, 'cita' | 'pregunta'>, respuesta: string, bloqueHoy: boolean): string[] {
-  const fallas: string[] = [];
-  const cita = sinMarcas(e.cita);
-  if (!cita || !` ${sinMarcas(respuesta)} `.includes(` ${cita} `)) fallas.push('la cita no es textual');
-  if ((e.pregunta.match(/\?/g) ?? []).length !== 1) fallas.push('la pregunta no tiene un solo "?"');
-  if (e.pregunta.split(/\s+/).filter(Boolean).length > 45) fallas.push('pregunta de más de 45 palabras');
-  if (TIEMPO_RELATIVO.test(e.pregunta) || (!bloqueHoy && /\bhoy\b/i.test(e.pregunta))) fallas.push('tiempo relativo');
-  return fallas;
-}
-
-export function mensajeCompleto(e: Pick<Elegida, 'cita' | 'pregunta'>): string {
-  return `Me quedé pensando en algo que me contaste: «${e.cita}». ${e.pregunta} Y si no te vuelve, o ya me lo contaste todo, decímelo nomás y seguimos con otra.`;
-}
+export { controlarElegida };
+/** El mensaje de la repregunta (mensajeRepregunta en cazador.ts). */
+export const mensajeCompleto = mensajeRepregunta;
 
 function leerRespuestas(xml: string): Respuesta[] {
   return xml.split('<respuesta ').slice(1).map((t) => ({

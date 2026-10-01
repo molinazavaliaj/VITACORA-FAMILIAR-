@@ -72,6 +72,15 @@ export function deRepregunta(clave: string): string | undefined {
  */
 export const BOTON_YA_LO_CONTE: Boton = { texto: 'Ya lo conté todo', vale: 'no' };
 
+/**
+ * Una repregunta del cazador de escenas (Naza, 01/10; cazador.ts): sobre la
+ * respuesta `origen` (un ID del banco) del bloque `bloque`, con la `cita`
+ * textual y la `pregunta` que escribió el modelo; `tema` es el momento que
+ * pide, para que no se repita. Lo que contesta se guarda con `clave`
+ * ("RP~<origen>").
+ */
+export type Repregunta = { clave: string; origen: string; bloque: number; cita: string; pregunta: string; tema: string };
+
 /** Lo que hace falta de una pregunta para interpretar su respuesta y elegir el acuse. */
 export type PreguntaDeClave = PreguntaParaInterpretar & Pick<PreguntaEntrevista, 'bloque'>;
 
