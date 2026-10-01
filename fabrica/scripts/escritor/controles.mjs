@@ -333,9 +333,12 @@ function c14(reg, rs, fichaTxt) {
 // ---------- C9: arreglo ----------
 function c9(probs, nueva, vieja) {
   const out = [];
-  const n = ` ${norm(nueva)} `;
+  // Solo el texto de la pieza: el JSON de cambios de abajo trae las frases viejas en "antes".
+  const corte = nueva.lastIndexOf('\n---\n');
+  const pieza = corte < 0 ? nueva : nueva.slice(0, corte);
+  const n = ` ${norm(pieza)} `;
   const FORMA = new Set(['primera_pagina', 'cierre_explica', 'lista', 'repetido', 'cortada', 'molde', 'boton', 'no_suena', 'ia', 'bolsa', 'carta_ajena', 'sin_hilo', 'sin_escena', 'apertura_repetida', 'titulo_generico', 'persona_dos_veces', 'sin_presentar', 'salto_confuso', 'deriva', 'relleno']);
-  const cambios = new Map((nueva.split(/\n---\n/)[1] ? safeJSON(nueva.split(/\n---\n/).pop())?.cambios || [] : []).map((c) => [c.problema, c]));
+  const cambios = new Map((corte >= 0 ? safeJSON(nueva.slice(corte + 5))?.cambios || [] : []).map((c) => [c.problema, c]));
   for (const p of probs) {
     const ch = cambios.get(p.n);
     if (ch?.resultado === 'disputa' && !FORMA.has(p.tipo)) { out.push({ n: p.n, estado: 'disputa', id: ch.disputa_id, cita: ch.disputa_frase, frase: p.frase }); continue; }
