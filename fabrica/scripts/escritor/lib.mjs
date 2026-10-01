@@ -94,3 +94,13 @@ export function esquemaDe(encabezado) {
 /** Marcas de rastreo [[R12,R15]] al final de cada párrafo (receta v2). */
 export const sinMarcas = (t) => t.replace(/[ \t]*\[\[\s*R[^\]]*\]\]/g, '');
 export const marcas = (t) => [...t.matchAll(/\[\[([^\]]*)\]\]/g)].flatMap((m) => m[1].split(/[,\s]+/).map((x) => x.trim()).filter((x) => /^R\d+$/.test(x)));
+
+/** El plan puede citar episodios (E..) donde se esperan respuestas (R..): se pasan a sus R. */
+export function planConR(plan, reg) {
+  const eps = Object.fromEntries((reg?.episodios || []).map((e) => [e.id, e.ids]));
+  const aR = (ids) => [...new Set((ids || []).flatMap((i) => (/^E\d+$/.test(i) ? eps[i] || [] : [i])))];
+  const p = structuredClone(plan);
+  if (p.carta) p.carta.ids = aR(p.carta.ids);
+  p.sus_frases = (p.sus_frases || []).map((f) => ({ ...f, id: /^E\d+$/.test(f.id) ? (eps[f.id] || [f.id])[0] : f.id, ids: aR([f.id]) }));
+  return p;
+}

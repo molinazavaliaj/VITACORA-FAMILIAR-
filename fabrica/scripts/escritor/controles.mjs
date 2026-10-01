@@ -4,7 +4,7 @@
 // Deja <carpeta>/controles/<qué>.json y escribe un resumen. Sale con código 2 si hay problemas.
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { leer, existe, escribir, leerJSON, norm, palabras, respuestas, ficha, salida, piezas, sinMarcas, marcas } from './lib.mjs';
+import { leer, existe, escribir, leerJSON, norm, palabras, respuestas, ficha, salida, piezas, sinMarcas, marcas, planConR } from './lib.mjs';
 
 // ---------- utilidades ----------
 const oraciones = (t) => t.replace(/\n+/g, ' \n ').split(/(?<=[.!?])\s+|\n/).map((s) => s.trim()).filter(Boolean);
@@ -327,6 +327,12 @@ function c14(reg, rs, fichaTxt) {
   const lineas = conf.split('\n').filter((l) => /^\s*-\s+/.test(l));
   if (lineas.length && (reg.confirmados || []).length < lineas.length) out.push(`C14: hay ${lineas.length} confirmados en la ficha y el registro tiene ${(reg.confirmados || []).length}`);
   for (const c of reg.confirmados || []) if (!(c.usado_en || []).length) out.push(`C14: el confirmado "${c.texto.slice(0, 60)}" no tiene usado_en`);
+  // receta v2
+  for (const e of reg.episodios || []) {
+    if (!['familia', 'lector', 'nadie'].includes(e.a_quien)) out.push(`C14 episodio ${e.id}: a_quien tiene que ser familia, lector o nadie`);
+    if (e.es_escena && !(e.detalles || []).length) out.push(`C14 episodio ${e.id}: es escena y no tiene detalles`);
+  }
+  for (const p of reg.personas || []) if (!Array.isArray(p.rasgos_hoy)) out.push(`C14 persona ${p.id}: falta rasgos_hoy (puede ser [])`);
   return out;
 }
 
@@ -363,7 +369,7 @@ const capituloDe = (plan, reg, rid) => {
 // C18: toda respuesta aparece en alguna marca [[R..]] o en Sus frases.
 function c18(psCrudas, rs, reg, plan) {
   const usadas = new Set(psCrudas.flatMap((p) => marcas(p.texto)));
-  for (const f of plan.sus_frases || []) usadas.add(f.id);
+  for (const f of plan.sus_frases || []) for (const i of f.ids || [f.id]) usadas.add(i);
   const fuera = new Set([...(reg.episodios || []).filter((e) => e.no_poner).flatMap((e) => e.ids)]);
   const out = [];
   for (const r of rs) {
@@ -388,7 +394,11 @@ function c20(plan, reg) {
   const eps = Object.fromEntries((reg.episodios || []).map((e) => [e.id, e]));
   const ult = plan.capitulos[plan.capitulos.length - 1];
   const sueltas = (ult.piezas || []).filter((p) => p.forma !== 'media_linea' && ['reflexion', 'gusto'].includes(eps[p.episodio]?.tipo));
-  return sueltas.length > 2 ? [`C20: el último capítulo junta ${sueltas.length} reflexiones o gustos (${sueltas.map((p) => p.episodio).join(', ')}); máximo 2: el resto vuelve a su capítulo o es remate de su escena`] : [];
+  const otros = [];
+  const carta = new Set(plan.carta?.ids || []);
+  for (const e of reg.episodios || []) if (e.a_quien === 'familia' && !e.no_poner && !e.ids.some((i) => carta.has(i))) otros.push(`C19: el episodio ${e.id} le habla a la familia y no está en carta.ids`);
+  if (!plan.carta?.titulo) otros.push('C13: la carta no tiene título');
+  return [...otros, ...(sueltas.length > 2 ? [`C20: el último capítulo junta ${sueltas.length} reflexiones o gustos (${sueltas.map((p) => p.episodio).join(', ')}); máximo 2: el resto vuelve a su capítulo o es remate de su escena`] : [])];
 }
 // C21: cada persona con algún hecho aparece en el libro.
 function c21(ps, reg, plan) {
@@ -430,11 +440,11 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   const reg = existe(salida(dir, 'registro.json')) ? leerJSON(salida(dir, 'registro.json')) : null;
   let problemas = [];
   if (que === 'registro') problemas = c14(reg, rs, fichaTxt);
-  else if (que === 'plan') { const plan = leerJSON(salida(dir, 'plan.json')); problemas = [...c12(plan, rs, reg), ...c13(plan, reg), ...c20(plan, reg)]; }
+  else if (que === 'plan') { const plan = planConR(leerJSON(salida(dir, 'plan.json')), reg); problemas = [...c12(plan, rs, reg), ...c13(plan, reg), ...c20(plan, reg)]; }
   else if (que === 'piezas') {
     const crudas = piezas(dir);
     const ps = crudas.map((p) => ({ ...p, texto: sinMarcas(p.texto) }));
-    const plan = leerJSON(salida(dir, 'plan.json'));
+    const plan = planConR(leerJSON(salida(dir, 'plan.json')), reg);
     problemas.push(...c18(crudas, rs, reg, plan), ...c19(crudas, reg), ...c21(ps, reg, plan), ...c22(ps, reg, plan));
     const regTxt = JSON.stringify(reg || {});
     const ultimo = ps.filter((p) => p.pieza.startsWith('cap_')).pop()?.pieza;
