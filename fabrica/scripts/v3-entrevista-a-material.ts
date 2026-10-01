@@ -119,9 +119,7 @@ function pegarA(fila: Fila | undefined, clave: string, crudo: string): void {
   const interp = interpretar(preguntaDeClave(clave)!, crudo);
   const texto = leerBoton(crudo).resto.trim();
   if (!texto || PASO.includes(interp) || interp === 'no') return;
-  fila.texto = fila.texto ? `${fila.texto}
-
-${texto}` : texto;
+  fila.texto = fila.texto ? `${fila.texto}\n\n${texto}` : texto;
   fila.palabras = contar(fila.texto);
   fila.paso = false;
 }
