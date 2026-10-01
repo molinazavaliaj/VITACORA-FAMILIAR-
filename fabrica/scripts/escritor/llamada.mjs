@@ -4,7 +4,7 @@
 //   Con ERROR=<archivo> en el entorno, pega ese texto al final (reintento del paso 1 o 2).
 // Deja el texto de la llamada en <carpeta>/llamadas/<paso>.txt (sus_frases y libro dejan salidas, no llamadas).
 import path from 'node:path';
-import { sinMarcas, leer, existe, escribir, leerJSON, promptsDe, esquemaDe, guia, ficha, respuestas, respuestasXML, nombreDePila, salida, piezas, tituloImpreso } from './lib.mjs';
+import { guiaDe, sinMarcas, leer, existe, escribir, leerJSON, promptsDe, esquemaDe, guia, ficha, respuestas, respuestasXML, nombreDePila, salida, piezas, tituloImpreso } from './lib.mjs';
 import { presentes } from './controles.mjs';
 
 const [, , dirArg, paso, arg] = process.argv;
@@ -16,12 +16,12 @@ const tag = (t, s) => `<${t}>\n${s.trim()}\n</${t}>`;
 const registro = () => leerJSON(salida(dir, 'registro.json'));
 const plan = () => leerJSON(salida(dir, 'plan.json'));
 const voz = () => JSON.stringify(registro().voz, null, 1);
-const base = () => [LINEA, tag('guia', guia()), tag('ficha', ficha(dir)), tag('respuestas', respuestasXML(respuestas(dir)))];
+const base = (paso) => [LINEA, tag('guia', guiaDe(paso)), tag('ficha', ficha(dir)), tag('respuestas', respuestasXML(respuestas(dir)))];
 const libroComo = (ps) => ps.map((p) => `=== ${p.pieza} ===\n${p.texto.trim()}`).join('\n\n');
 const conError = (instr) => (process.env.ERROR ? `${instr}\n\nTu respuesta anterior no pasó estos controles. Devolvé el JSON completo corregido:\n${leer(process.env.ERROR)}` : instr);
 
 function llamadaEscritura(pieza) {
-  const docs = [...base(), tag('registro', JSON.stringify(registro(), null, 1)), tag('plan', JSON.stringify(plan(), null, 1))];
+  const docs = [...base(pieza === 'primera_pagina' ? 'primera' : pieza === 'carta' ? 'carta' : 'capitulo'), tag('registro', JSON.stringify(registro(), null, 1)), tag('plan', JSON.stringify(plan(), null, 1))];
   const hechas = piezas(dir).filter((p) => p.pieza !== 'sus_frases');
   let instr;
   if (pieza === 'primera_pagina') {
@@ -51,10 +51,10 @@ function guardar(nombre, docs, instr) {
 
 switch (paso) {
   case 'registro':
-    guardar('1-registro', base(), conError(promptsDe('### Paso 1')[0] + esquemaDe('### Paso 1')));
+    guardar('1-registro', base('registro'), conError(promptsDe('### Paso 1')[0] + esquemaDe('### Paso 1')));
     break;
   case 'plan':
-    guardar('2-plan', [...base(), tag('registro', JSON.stringify(registro(), null, 1))], conError(promptsDe('### Paso 2 ·')[0] + esquemaDe('### Paso 2 ·')));
+    guardar('2-plan', [...base('plan'), tag('registro', JSON.stringify(registro(), null, 1))], conError(promptsDe('### Paso 2 ·')[0] + esquemaDe('### Paso 2 ·')));
     break;
   case 'primera': {
     const { docs, instr } = llamadaEscritura('primera_pagina');
@@ -79,7 +79,7 @@ switch (paso) {
   }
   case 'hechos': {
     const ps = piezas(dir);
-    const docs = [...base(), tag('registro', JSON.stringify(registro(), null, 1)), tag('libro', libroComo(ps)),
+    const docs = [...base('hechos'), tag('registro', JSON.stringify(registro(), null, 1)), tag('libro', libroComo(ps)),
       tag('presentes', presentes(ps.map((p) => ({ ...p, texto: sinMarcas(p.texto) }))).map((x) => `${x.pieza} §${x.parrafo}: ${x.oracion}`).join('\n'))];
     guardar('4-hechos', docs, promptsDe('### Paso 4')[0] + esquemaDe('### Paso 4'));
     break;

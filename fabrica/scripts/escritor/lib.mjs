@@ -104,3 +104,29 @@ export function planConR(plan, reg) {
   p.sus_frases = (p.sus_frases || []).map((f) => ({ ...f, id: /^E\d+$/.test(f.id) ? (eps[f.id] || [f.id])[0] : f.id, ids: aR([f.id]) }));
   return p;
 }
+
+/**
+ * Opción B (Naza, 01/10): cada paso recibe solo las secciones de la guía que le tocan
+ * (las que la receta nombra en "Mandan"), más el resumen de arriba. Claves: "1".."13", "A1".."A7".
+ */
+export const SECCIONES = {
+  registro: ['5', '10', 'A1', 'A3', 'A4', 'A5'],
+  plan: ['1', '2', '6', '7', '8', 'A4', 'A5', 'A7'],
+  primera: ['1', '9', 'A3'],
+  capitulo: ['2', '3', '4', '5', '7', '8', '9', '10', 'A2', 'A6', 'A7'],
+  carta: ['8', '10'],
+  hechos: ['5', '10', '13'],
+  lectura: null, // la lectura no lleva el material: va la guía entera
+};
+export function guiaDe(paso) {
+  const g = guia();
+  const claves = SECCIONES[paso];
+  if (!claves) return g;
+  const partes = g.split(/\n(?=## |### A\d)/);
+  const tomar = (p) => {
+    const m = p.match(/^(?:## (\d+)\.|### (A\d)\.)/);
+    return m && claves.includes(m[1] || m[2]);
+  };
+  const resumen = partes.find((p) => p.startsWith('## Si te acordás'));
+  return [partes[0], resumen, ...partes.filter(tomar)].filter(Boolean).join('\n');
+}

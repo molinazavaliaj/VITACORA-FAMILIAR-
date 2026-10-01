@@ -217,7 +217,7 @@ function c17(ps) {
     const vistosAca = new Map();
     for (const o of oraciones(p.texto)) {
       const n = norm(o);
-      const nombres = [...o.matchAll(new RegExp(`\\bmi (?:${REL}) (\\p{Lu}\\p{L}+)`, 'giu'))].map((m) => m[1]);
+      const nombres = [...o.matchAll(new RegExp(`\\b[Mm]i (?:${REL.replace(/a/g, '[aá]')}) (\\p{Lu}\\p{L}+)`, 'gu'))].map((m) => m[1]);
       for (const m of n.matchAll(new RegExp(`\\b(\\p{L}+), (?:mi|que es mi|que era mi) (?:${REL})\\b`, 'gu'))) nombres.push(m[1]);
       for (const nom of nombres) {
         const k = norm(nom);
