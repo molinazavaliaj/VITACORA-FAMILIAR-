@@ -4,7 +4,7 @@
 // Deja <carpeta>/controles/<qué>.json y escribe un resumen. Sale con código 2 si hay problemas.
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { leer, existe, escribir, leerJSON, norm, palabras, respuestas, ficha, salida, piezas } from './lib.mjs';
+import { leer, existe, escribir, leerJSON, norm, palabras, respuestas, ficha, salida, piezas, sinMarcas, marcas } from './lib.mjs';
 
 // ---------- utilidades ----------
 const oraciones = (t) => t.replace(/\n+/g, ' \n ').split(/(?<=[.!?])\s+|\n/).map((s) => s.trim()).filter(Boolean);
@@ -353,6 +353,74 @@ function c9(probs, nueva, vieja) {
 }
 const safeJSON = (s) => { try { return JSON.parse(s.replace(/^```(json)?\s*/m, '').replace(/```\s*$/m, '')); } catch { return null; } };
 
+// ---------- receta v2: C18–C22 ----------
+const capituloDe = (plan, reg, rid) => {
+  const eps = (reg.episodios || []).filter((e) => e.ids.includes(rid)).map((e) => e.id);
+  if ((plan.carta?.ids || []).includes(rid)) return 'carta';
+  for (const c of plan.capitulos) if ((c.piezas || []).some((p) => eps.includes(p.episodio))) return `cap_${c.n}`;
+  return 'cap_' + plan.capitulos[plan.capitulos.length - 1].n;
+};
+// C18: toda respuesta aparece en alguna marca [[R..]] o en Sus frases.
+function c18(psCrudas, rs, reg, plan) {
+  const usadas = new Set(psCrudas.flatMap((p) => marcas(p.texto)));
+  for (const f of plan.sus_frases || []) usadas.add(f.id);
+  const fuera = new Set([...(reg.episodios || []).filter((e) => e.no_poner).flatMap((e) => e.ids)]);
+  const out = [];
+  for (const r of rs) {
+    if (usadas.has(r.id) || fuera.has(r.id)) continue;
+    out.push({ pieza: capituloDe(plan, reg, r.id), control: 'C18', tipo: 'falta', frase: '', que: `falta ${r.id}: "${r.texto.slice(0, 160)}…" no aparece en ninguna marca del libro` });
+  }
+  return out;
+}
+// C19: lo que le habla a la familia está en la carta.
+function c19(psCrudas, reg) {
+  const carta = psCrudas.find((p) => p.pieza === 'carta');
+  const enCarta = new Set(carta ? marcas(carta.texto) : []);
+  const out = [];
+  for (const e of reg.episodios || []) {
+    if (e.a_quien !== 'familia' || e.no_poner) continue;
+    for (const i of e.ids) if (!enCarta.has(i)) out.push({ pieza: 'carta', control: 'C19', tipo: 'falta', frase: '', que: `${i} le habla a la familia (${e.que.slice(0, 80)}) y no está en la carta` });
+  }
+  return out;
+}
+// C20 (plan): el último capítulo no junta más de 2 reflexiones o gustos que no sean media línea.
+function c20(plan, reg) {
+  const eps = Object.fromEntries((reg.episodios || []).map((e) => [e.id, e]));
+  const ult = plan.capitulos[plan.capitulos.length - 1];
+  const sueltas = (ult.piezas || []).filter((p) => p.forma !== 'media_linea' && ['reflexion', 'gusto'].includes(eps[p.episodio]?.tipo));
+  return sueltas.length > 2 ? [`C20: el último capítulo junta ${sueltas.length} reflexiones o gustos (${sueltas.map((p) => p.episodio).join(', ')}); máximo 2: el resto vuelve a su capítulo o es remate de su escena`] : [];
+}
+// C21: cada persona con algún hecho aparece en el libro.
+function c21(ps, reg, plan) {
+  const libro = ` ${norm(ps.filter((p) => p.pieza !== 'sus_frases').map((p) => p.texto).join(' '))} `;
+  const out = [];
+  for (const p of reg.personas || []) {
+    if (!(p.hechos || []).length) continue;
+    const nombres = [p.nombre, ...(p.apodos || [])].filter(Boolean).map(norm).filter((n) => n.length > 1);
+    if (!nombres.length || nombres.some((n) => libro.includes(` ${n} `) || libro.includes(` ${n.split(' ')[0]} `))) continue;
+    const ids = p.hechos.flatMap((h) => h.ids);
+    out.push({ pieza: capituloDe(plan, reg, ids[0]), control: 'C21', tipo: 'falta', frase: '', que: `${p.nombre} (${p.relacion}) no aparece en el libro; lo que se dijo: ${p.hechos.map((h) => h.hecho).join('; ').slice(0, 160)}` });
+  }
+  return out;
+}
+// C22: en cada escena, al menos 70 % de los detalles de su episodio están en el texto.
+function c22(ps, reg, plan) {
+  const eps = Object.fromEntries((reg.episodios || []).map((e) => [e.id, e]));
+  const out = [];
+  for (const c of plan.capitulos) {
+    const p = ps.find((x) => x.pieza === `cap_${c.n}`);
+    if (!p) continue;
+    const txt = ` ${norm(p.texto)} `;
+    for (const pz of (c.piezas || []).filter((x) => x.forma === 'escena')) {
+      const det = eps[pz.episodio]?.detalles || [];
+      if (det.length < 2) continue;
+      const falta = det.filter((d) => { const ws = palabras(d).filter((w) => w.length > 3); return ws.length && ws.filter((w) => txt.includes(` ${w}`)).length < Math.ceil(ws.length / 2); });
+      if (falta.length > det.length * 0.3) out.push({ pieza: p.pieza, control: 'C22', tipo: 'escena_flaca', frase: '', que: `la escena ${pz.episodio} usa ${det.length - falta.length} de ${det.length} detalles; faltan: ${falta.join(' | ')}` });
+    }
+  }
+  return out;
+}
+
 // ---------- main ----------
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const [, , dirArg, que, arg] = process.argv;
@@ -362,9 +430,12 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   const reg = existe(salida(dir, 'registro.json')) ? leerJSON(salida(dir, 'registro.json')) : null;
   let problemas = [];
   if (que === 'registro') problemas = c14(reg, rs, fichaTxt);
-  else if (que === 'plan') { const plan = leerJSON(salida(dir, 'plan.json')); problemas = [...c12(plan, rs, reg), ...c13(plan, reg)]; }
+  else if (que === 'plan') { const plan = leerJSON(salida(dir, 'plan.json')); problemas = [...c12(plan, rs, reg), ...c13(plan, reg), ...c20(plan, reg)]; }
   else if (que === 'piezas') {
-    const ps = piezas(dir);
+    const crudas = piezas(dir);
+    const ps = crudas.map((p) => ({ ...p, texto: sinMarcas(p.texto) }));
+    const plan = leerJSON(salida(dir, 'plan.json'));
+    problemas.push(...c18(crudas, rs, reg, plan), ...c19(crudas, reg), ...c21(ps, reg, plan), ...c22(ps, reg, plan));
     const regTxt = JSON.stringify(reg || {});
     const ultimo = ps.filter((p) => p.pieza.startsWith('cap_')).pop()?.pieza;
     for (const p of ps) {

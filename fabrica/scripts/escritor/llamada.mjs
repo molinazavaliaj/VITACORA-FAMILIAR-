@@ -4,7 +4,7 @@
 //   Con ERROR=<archivo> en el entorno, pega ese texto al final (reintento del paso 1 o 2).
 // Deja el texto de la llamada en <carpeta>/llamadas/<paso>.txt (sus_frases y libro dejan salidas, no llamadas).
 import path from 'node:path';
-import { leer, existe, escribir, leerJSON, promptsDe, esquemaDe, guia, ficha, respuestas, respuestasXML, nombreDePila, salida, piezas, tituloImpreso } from './lib.mjs';
+import { sinMarcas, leer, existe, escribir, leerJSON, promptsDe, esquemaDe, guia, ficha, respuestas, respuestasXML, nombreDePila, salida, piezas, tituloImpreso } from './lib.mjs';
 import { presentes } from './controles.mjs';
 
 const [, , dirArg, paso, arg] = process.argv;
@@ -80,12 +80,12 @@ switch (paso) {
   case 'hechos': {
     const ps = piezas(dir);
     const docs = [...base(), tag('registro', JSON.stringify(registro(), null, 1)), tag('libro', libroComo(ps)),
-      tag('presentes', presentes(ps).map((x) => `${x.pieza} §${x.parrafo}: ${x.oracion}`).join('\n'))];
+      tag('presentes', presentes(ps.map((p) => ({ ...p, texto: sinMarcas(p.texto) }))).map((x) => `${x.pieza} §${x.parrafo}: ${x.oracion}`).join('\n'))];
     guardar('4-hechos', docs, promptsDe('### Paso 4')[0] + esquemaDe('### Paso 4'));
     break;
   }
   case 'lectura':
-    guardar('5-lectura', [LINEA, tag('guia', guia()), tag('libro', libroComo(piezas(dir)))], promptsDe('### Paso 5')[0] + esquemaDe('### Paso 5'));
+    guardar('5-lectura', [LINEA, tag('guia', guia()), tag('libro', libroComo(piezas(dir).map((p) => ({ ...p, texto: sinMarcas(p.texto) }))))], promptsDe('### Paso 5')[0] + esquemaDe('### Paso 5'));
     break;
   case 'arreglo': {
     const pieza = arg; // primera_pagina | cap_N | carta
@@ -95,16 +95,17 @@ switch (paso) {
     const actual = piezas(dir).find((p) => p.pieza === pieza);
     const idx = docs.findIndex((d) => d.startsWith('<voz>'));
     docs.splice(idx, 0, tag('pieza_actual', actual ? actual.texto : ''), ...evitar, tag('problemas', JSON.stringify(probs, null, 1)));
-    guardar(`6-arreglo-${pieza}`, docs, `${instr}\n\n${promptsDe('### Paso 6')[0]}`);
+    guardar(`6-arreglo-${pieza}`, docs, `${instr}\n\n${promptsDe('### Paso 6')[0]}${esquemaDe('### Paso 6')}`);
     break;
   }
   case 'libro': {
     const p = plan();
     const ps = piezas(dir);
-    const limpio = (t) => t.replace(/\s*\[\[cita:[^\]]*\]\]/g, '');
+    const limpio = (t) => sinMarcas(t).replace(/\s*\[\[cita:[^\]]*\]\]/g, '');
     const partes = [`# ${p.titulo_libro?.texto || ''}`];
     for (const x of ps) {
       if (x.pieza === 'sus_frases') partes.push(`# Sus frases\n\n${x.texto.trim()}`);
+      else if (x.pieza === 'carta' && p.carta?.titulo) partes.push(`# ${p.carta.titulo}\n\n${limpio(x.texto.trim())}`);
       else partes.push(limpio(x.texto.trim()));
     }
     escribir(path.join(dir, 'libro.md'), partes.join('\n\n') + '\n');

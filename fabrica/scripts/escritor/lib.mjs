@@ -90,3 +90,7 @@ export function esquemaDe(encabezado) {
   const nota = m[2] && !m[2].startsWith('#') ? `\n${m[2].trim()}` : '';
   return `\n\nEsquema de salida:\n${m[1].trim()}${nota}`;
 }
+
+/** Marcas de rastreo [[R12,R15]] al final de cada párrafo (receta v2). */
+export const sinMarcas = (t) => t.replace(/[ \t]*\[\[\s*R[^\]]*\]\]/g, '');
+export const marcas = (t) => [...t.matchAll(/\[\[([^\]]*)\]\]/g)].flatMap((m) => m[1].split(/[,\s]+/).map((x) => x.trim()).filter((x) => /^R\d+$/.test(x)));
