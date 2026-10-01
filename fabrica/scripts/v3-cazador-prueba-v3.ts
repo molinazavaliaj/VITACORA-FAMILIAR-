@@ -4,7 +4,7 @@
 // GASTA PLATA (claude-opus-5). Corta si el gasto acumulado pasa el tope.
 //
 //   npx tsx scripts/v3-cazador-prueba-v3.ts --respuestas <respuestas.xml> --ficha <ficha.xml> \
-//     --salida <carpeta> [--bloques ci | --bloques 7] [--tope 1.5]
+//     --salida <carpeta> [--bloques ci | --bloques 7] [--tope 1.5] [--prompt <prompt-vX.md>] [--solo 1,12,14 --previo <cazador-v3.json>] [--nombre v3-1]
 //
 // La salida va a una carpeta fuera de git: tiene la vida real del narrador.
 
@@ -17,7 +17,7 @@ const MODELO = 'claude-opus-5';
 const PRECIO = { entrada: 5 / 1e6, salida: 25 / 1e6 };
 
 const FABRICA = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const PROMPT_MD = path.join(FABRICA, '..', 'docs', 'v3', 'entrevista', 'cazador', 'prompt-v3.md');
+const PROMPT_POR_DEFECTO = path.join(FABRICA, '..', 'docs', 'v3', 'entrevista', 'cazador', 'prompt-v3.md');
 
 // Los bloques del banco (flujo-vigente.md) y los momentos concretos que piden sus preguntas del núcleo.
 const BLOQUES: { nombre: string; momentos: string[] }[] = [
@@ -102,12 +102,16 @@ async function main() {
   const modo = arg('bloques') ?? 'ci';
   const tope = Number(arg('tope') ?? '1.5');
 
-  const prompt = readFileSync(PROMPT_MD, 'utf8').split('## Prompt')[1].split('```')[1].trim();
+  const prompt = readFileSync(arg('prompt') ?? PROMPT_POR_DEFECTO, 'utf8').split('## Prompt')[1].split('```')[1].trim();
   const ficha = readFileSync(fichaXml, 'utf8');
   const bloques = armarBloques(leerRespuestas(readFileSync(respuestasXml, 'utf8')), modo);
   const cliente = new Anthropic();
   mkdirSync(salida, { recursive: true });
 
+  const rutaPrevio = arg('previo');
+  const previo = rutaPrevio
+    ? (JSON.parse(readFileSync(rutaPrevio, 'utf8')) as { filas: { bloque: number; elegidas?: Elegida[]; escenas_contadas_bloque?: string[] }[] })
+    : undefined;
   const yaRepreguntado: string[] = [];
   const escenasContadas: string[] = [];
   const filas: unknown[] = [];
@@ -115,6 +119,14 @@ async function main() {
   let gasto = 0;
 
   for (const [i, bloque] of bloques.entries()) {
+    const solo = arg('solo')?.split(',').map(Number);
+    if (solo && !solo.includes(i + 1)) {
+      // Los bloques que no se corren aportan sus listas desde una corrida anterior (--previo), como en vivo.
+      const fila = previo?.filas.find((f) => f.bloque === i + 1);
+      for (const e of fila?.elegidas ?? []) yaRepreguntado.push(`${e.id}: ${e.tema}`);
+      escenasContadas.push(...(fila?.escenas_contadas_bloque ?? []));
+      continue;
+    }
     const nombre = modo === 'ci' ? BLOQUES[i].nombre : `Tramo ${i + 1}`;
     const queViene = modo === 'ci' ? BLOQUES.slice(i + 1).flatMap((b) => b.momentos) : [];
     const respuestas = bloque
@@ -152,8 +164,8 @@ async function main() {
     filas.push({ bloque: i + 1, nombre, respuestas: bloque.map((r) => r.id), elegidas: revisadas, escenas_contadas_bloque: json.escenas_contadas_bloque, tokens: msg.usage, costo_usd: Number(costo.toFixed(4)) });
     mensajes.push(`## ${i + 1} · ${nombre}`, ...(revisadas.length ? revisadas.map((e) => `- **${e.id}** (${e.tema})${e.fallas.length ? ` ⚠ ${e.fallas.join('; ')}` : ''}\n  > ${e.mensaje}`) : ['- (no pregunta nada)']), '');
     console.log(`bloque ${i + 1} ${nombre}: ${revisadas.map((e) => e.id + (e.fallas.length ? '⚠' : '')).join(', ') || '—'} · USD ${costo.toFixed(3)} · acumulado ${gasto.toFixed(3)}`);
-    writeFileSync(path.join(salida, 'cazador-v3.json'), JSON.stringify({ modelo: MODELO, gasto_usd: gasto, filas }, null, 2));
-    writeFileSync(path.join(salida, 'cazador-v3.md'), `# Cazador v3 (${MODELO}) · USD ${gasto.toFixed(2)}\n\n${mensajes.join('\n')}`);
+    writeFileSync(path.join(salida, `cazador-${arg('nombre') ?? 'v3'}.json`), JSON.stringify({ modelo: MODELO, gasto_usd: gasto, filas }, null, 2));
+    writeFileSync(path.join(salida, `cazador-${arg('nombre') ?? 'v3'}.md`), `# Cazador v3 (${MODELO}) · USD ${gasto.toFixed(2)}\n\n${mensajes.join('\n')}`);
     if (gasto > tope) {
       console.log(`Corto: pasé el tope de USD ${tope}.`);
       break;
