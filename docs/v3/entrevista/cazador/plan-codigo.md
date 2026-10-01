@@ -56,3 +56,18 @@ Todo aprobado por Naza el 01/10 (chat "La entrevista trae escenas"). Rama `v3-es
 - Conectar al entrevistador de WhatsApp (Joaquín).
 - Variantes tú/usted de los mensajes nuevos (pendiente grande, igual que el resto del banco).
 - Reintento de una elegida que falla un control (hoy se descarta; ver si hace falta con datos).
+
+## Qué quedó hecho (01/10, rama `v3-escenas`)
+- **A** (commit 24cb3ae): banco sin la salida en las 8, M33.1–M33.8, `banco.json` regenerado; `siguientePregunta` devuelve `segunda-oportunidad`; acuses y M29 como arriba (`flujo.ts`). Test: `fabrica/test/v3-entrevista-segunda-oportunidad.test.ts`; los tests viejos que fijaban los textos, actualizados con la decisión anotada.
+- **B1**: `fabrica/src/v3/entrevista/cazador.ts` (+ `cazador-prompt.json`, generado con `scripts/v3-cazador-json.ts` y comparado con el md por test). `scripts/v3-cazador-prueba-v3.ts` importa los controles del módulo. Test: `v3-cazador.test.ts` (cliente falso).
+- **B2**: `EstadoEntrevista.repreguntas`, `{ tipo: 'repregunta', repregunta, botones }` y los acuses de `RP~X` en `flujo.ts`. Test: `v3-entrevista-repreguntas.test.ts`.
+- **B3**: `scripts/v3-entrevista-a-material.ts` pega `X~2` y `RP~X` a la fila de X (solo si contaron algo). Test: `v3-entrevista-a-material.test.ts`.
+- **B4**: `--cazador` en `v3-entrevista-turno.ts` (responder) y `v3-entrevista-web.ts`; `cazarAlCerrar`, `sumarCaza`, `lineaCaza`. Test: `v3-entrevista-cazador-pagina.test.ts`.
+
+Decisiones que el plan no cubría (para que las mire Naza):
+- Lo que contesta a una repregunta no suma **ni corta** la cuenta de M29 (el plan dice "sin sumar"; tomé que tampoco corta, como si no estuviera).
+- En la segunda oportunidad, un "ya te lo conté" corto lleva M25 (como en todas). En una repregunta, el olvido a medias y el "se negó pero siguió" llevan su acuse de siempre (M28.4, M32) en lugar de M3.
+- Antes del bloque 15 las repreguntas que quedan salen aunque vayan dos seguidas (si no, no habría dónde).
+- Un bloque sin respuestas con texto no llama al modelo (ahorra plata).
+- La entrada al modelo va en el orden del script ya probado contra la API (las respuestas al final), no en el del listado de B1.
+- La segunda oportunidad va pegada a su X en la misma `<texto>`, en otra línea.

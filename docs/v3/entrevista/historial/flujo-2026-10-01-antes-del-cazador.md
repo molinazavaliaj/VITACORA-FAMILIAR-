@@ -1,6 +1,6 @@
 # El flujo de la entrevista (vigente)
 
-Cómo funciona la entrevista de punta a punta. **Este es el documento vigente** (última actualización: 01/10/2026, con la segunda oportunidad después de un "no me acuerdo" y el cazador de escenas: secciones 3b, 4 y 9; plan en [`cazador/plan-codigo.md`](cazador/plan-codigo.md). Antes, 30/09/2026, después de que Naza hizo la entrevista como narrador en la página de prueba: cierres con "Hasta acá lo de…", el botón [Prefiero no contarla], el bloque 6 nuevo con AMH y AM21, G1, HE2 y HO11 al núcleo, FI6 a extra, acuses; los textos en [`simulaciones/textos-prueba-naza.md`](simulaciones/textos-prueba-naza.md); y después, las propuestas de Fable que faltaban y dos decisiones de Naza: AMH "¿Hoy estás en pareja?" y la salida "Si ya me lo contaste, decímelo, y si querés reforzar algo, es el momento.", en [`simulaciones/textos-fable-extras.md`](simulaciones/textos-fable-extras.md)). Las versiones anteriores están en [`historial/`](historial/) (la de justo antes: [`flujo-2026-10-01-antes-del-cazador.md`](historial/flujo-2026-10-01-antes-del-cazador.md)).
+Cómo funciona la entrevista de punta a punta. **Este es el documento vigente** (última actualización: 30/09/2026, después de que Naza hizo la entrevista como narrador en la página de prueba: cierres con "Hasta acá lo de…", el botón [Prefiero no contarla], el bloque 6 nuevo con AMH y AM21, G1, HE2 y HO11 al núcleo, FI6 a extra, acuses; los textos en [`simulaciones/textos-prueba-naza.md`](simulaciones/textos-prueba-naza.md); y después, las propuestas de Fable que faltaban y dos decisiones de Naza: AMH "¿Hoy estás en pareja?" y la salida "Si ya me lo contaste, decímelo, y si querés reforzar algo, es el momento.", en [`simulaciones/textos-fable-extras.md`](simulaciones/textos-fable-extras.md)). Las versiones anteriores están en [`historial/`](historial/) (la de justo antes: [`flujo-2026-09-30-antes-de-la-prueba-de-naza.md`](historial/flujo-2026-09-30-antes-de-la-prueba-de-naza.md)).
 
 - Los textos exactos: [`banco.md`](banco.md) (fuente de verdad; el código se genera desde ahí).
 - La entrevista completa de una vida inventada, mensaje por mensaje: [`lectura-corrida.md`](lectura-corrida.md).
@@ -22,16 +22,6 @@ Cómo funciona la entrevista de punta a punta. **Este es el documento vigente** 
 4. Después del cierre, en todos los bloques: una de las 4 frases M24, que rotan y solo agradecen, sin sonar a que terminó la entrevista ("Gracias, {{nombre}}. Eso también va al libro."). Va como primera línea del mensaje de la frase de entrada. Ya no va "Terminamos esta etapa" (M10): la entrada hace de pasaje.
 
 Así se lee el paso de un bloque a otro, en mensajes de WhatsApp: [cierre] → respuesta → [M24 + frase de entrada] → [primera pregunta].
-
-## 3b. Las repreguntas del cazador de escenas (Naza, 01/10)
-Prompt: [`cazador/prompt-v3-1.md`](cazador/prompt-v3-1.md). Código: `fabrica/src/v3/entrevista/cazador.ts` (y la cola en `flujo.ts`).
-- **Cuándo se llama:** al cerrar un bloque (la respuesta a su CIn), sin frenar la charla. El bloque 15 (legado) no se caza; las respuestas de botón sin texto no se le pasan; la segunda oportunidad va pegada a su pregunta.
-- **Qué devuelve:** hasta 2 respuestas del bloque para pedirles un momento concreto. El código descarta la que falla un control (y anota el motivo): la cita tiene que ser textual y contigua de esa respuesta; la pregunta, un solo "?", hasta 45 palabras, sin "ayer/anoche/hace un rato/recién/la otra vez/esta semana" ni "hoy" fuera del bloque Hoy; dos de la misma respuesta o una ya repreguntada, no.
-- **El mensaje:** "Me quedé pensando en algo que me contaste: «{cita}». {pregunta} Y si no te vuelve, o ya me lo contaste todo, decímelo nomás y seguimos con otra." con el botón **[Ya lo conté todo]** (vale "no").
-- **Cuándo sale:** cuando ya pasaron 3 respuestas del banco después de la de origen, y nunca dos repreguntas seguidas. Antes de entrar al bloque 15 salen todas las que queden (ahí sí pueden ir seguidas: después no hay dónde). La segunda oportunidad va siempre primero.
-- **Acuses:** contó → M3 (M26 delante de un cierre, LE9 o una sensible); [Ya lo conté todo] o "no" corto → M25; olvido → M28.1, sin sumar a M29; "paso" → M21. Lo que contesta se guarda como `RP~<ID>` y al escritor le llega pegado a esa respuesta, sin el texto de la repregunta.
-- **Plata:** Opus 5 (`claude-opus-5`), un reintento si falla la red (si vuelve a fallar, ese bloque no caza y la entrevista sigue igual). **Tope: USD 3 por entrevista**; alcanzado, no se llama más. Cada llamada anota tokens y costo.
-- **Dónde está prendido:** solo en la página de prueba y en la simulación por turnos, con `--cazador` (apagado por defecto). Todavía no en WhatsApp (Joaquín).
 
 ## 4. Cada pregunta
 - Llega **una por vez**.
@@ -55,7 +45,6 @@ Prompt: [`cazador/prompt-v3-1.md`](cazador/prompt-v3-1.md). Código: `fabrica/sr
   - si contestó con un **"no" corto** o tocó un botón de "No", en **cualquier** pregunta: el neutro (M25: "Bien, seguimos." o "Bien, entonces."; delante de algo que arranca con "Seguimos" o "Pasamos" va "Bien, entonces."). Lo mismo con un "ya te lo conté" corto;
   - si dijo **"paso"** (o tocó [Prefiero no contarla]): en una común, "Dale, la salteamos. Vamos con otra." (M21); en una difícil, una de las 3 de M27 ("Está bien, {{nombre}}. Lo dejamos ahí."…); en un cierre, M25;
   - si **no se acordó** ("no me acuerdo", "no sé"…): "No pasa nada, {{nombre}}. Vamos con otra." (M28.1); al tercer olvido seguido, una sola vez en toda la entrevista, en su lugar va M29 ("Una cosa, {{nombre}}: no te hagas problema si algo no te acordás…");
-  - **la segunda oportunidad (Naza, 01/10):** las 8 preguntas que piden un día (CA16, AD5, JU12, TR5, HG4, GI2, GI9, HO2) ya no traen la salida "contame en general" en el mismo mensaje (con la salida a la vista, el día no llegaba). Si contesta con un olvido puro ("No me acuerdo."; no un olvido a medias, ni "paso", ni un "no" corto), en lugar de M28.1 llega **sola** su segunda oportunidad (M33.1 a M33.8: "Está bien, {{nombre}}, no hace falta un día justo. Contame qué cosas esperabas con ganas en esa época, aunque sea una o dos. Y si no, decímelo nomás y vamos con otra."), una sola vez, sin acuse arriba. Lo que contesta se guarda como `CA16~2`. Después: si contó, M28.4/M28.5; si fue otro olvido o un "no" corto, M28.1; si dijo "paso", M21. Para M29 la pregunta entera cuenta como **un** olvido (cuenta el de `X~2`);
   - después de M30 no va acuse (es un mensaje solo); el audio que llega después lleva el acuse normal de esa pregunta;
   - si arrancó con "no me acuerdo" y siguió contando (olvido a medias): "Con ese pedacito me alcanza, {{nombre}}. Gracias." (M28.4) y "Con eso me alcanza, gracias. Vamos con otra." (M28.5), que rotan: nunca dos iguales seguidos (prueba de Naza);
   - si el agradecimiento ya dice el nombre, la foto (FO1) va sin el nombre: "Otra cosa. ¿Hay alguna foto…" (prueba de Naza: "…me alcanza, nazareno. Gracias. / Otra cosa, nazareno.");
@@ -151,9 +140,6 @@ Recién después se escribe el libro, una sola vez.
 | Cómo se guarda un toque (`⟦botón:No tuve hijos⟧`, y el audio de después se suma atrás) y qué hacer al tocar: "Sí" → M30 y seguir esperando; "No"/"Paso" → seguir | `respuestaDeBoton`, `leerBoton`, `sumarAudio` en `respuesta.ts`; `alTocarBoton` en `flujo.ts` |
 | Qué agradecimiento va después (M3, M4, M21, M24, M25, M26, M27, M28, M29 o nada), con las respuestas anteriores en orden para M29 | `mensajesDespues`, `acuseRotado` en `flujo.ts` |
 | Las dudas para el dashboard | `contradiccionesConFicha` en `flujo.ts` |
-| La segunda oportunidad (M33, clave `X~2`) y sus acuses; M29 cuenta la pregunta entera como un olvido (01/10) | `siguientePregunta`, `mensajesDespues`, `PIDEN_DIA` en `flujo.ts` |
-| El cazador: entrada por bloque, controles, tope de USD 3, cliente inyectable (01/10) | `cazarBloque` y compañía en `cazador.ts`; el prompt sale del md (`scripts/v3-cazador-json.ts`) |
-| La cola de repreguntas (clave `RP~X`) y sus acuses (01/10) | `EstadoEntrevista.repreguntas`, `siguientePregunta`, `mensajesDespues` en `flujo.ts` |
 | Los textos según género y nombre | `renderizar` en `texto.ts` |
 | Recorrido de vidas inventadas y la lectura corrida | `scripts/v3-entrevista-recorrido.ts`, `scripts/v3-entrevista-lectura.ts` |
 
@@ -168,5 +154,5 @@ Recién después se escribe el libro, una sola vez.
 **Falta:**
 1. Conectar el flujo al **entrevistador** de WhatsApp (Joaquín): guardar las respuestas, llamar a `siguientePregunta` y `mensajesDespues`, armar los mensajes con `armarTurno`, esperar unos minutos sin audios, los agradecimientos y los recordatorios M8/M9. Desde las simulaciones, además: mandar los botones de respuesta de WhatsApp, guardar un toque con `respuestaDeBoton` (y con "Sí", mandar M30 y seguir esperando), y la foto de FO1 (sin reloj de minutos, tope de 24 horas, la foto siempre con FO1). El plan es el paso 3 del chat del 30/09 (a hacer).
 2. Mostrar en el **dashboard** las dudas DD1/DD2 y los nombres pendientes.
-3. El cazador de escenas está programado (sección 3b) y se prueba en la página con `--cazador`; falta conectarlo al entrevistador de WhatsApp (Joaquín) y las variantes tú/usted de M33 y de la repregunta. Fuera de eso, durante la entrevista no se usa ningún modelo salvo la transcripción.
+3. Durante la entrevista no se usa ningún modelo salvo la transcripción. El cazador de escenas está en pausa.
 4. La marca "no quiso" / "pidió no ahondar" / "no se acuerda" para el escritor y el dashboard (S13): para cuando se haga el dashboard.
