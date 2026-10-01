@@ -1,8 +1,9 @@
 // Paso 6 de la receta nueva: junta los problemas por pieza y aplica lo que devuelve el arreglo.
 // Uso: node arreglos.mjs <carpeta> juntar        → arreglos/problemas-<pieza>.json (código + hechos + lectura, numerados)
+//      node arreglos.mjs <carpeta> armar <pieza>   → aplica arreglos/cambios-<pieza>.json a la pieza actual y deja arreglos/respuesta-<pieza>.txt (receta v3.1)
 //      node arreglos.mjs <carpeta> aplicar <pieza> → pasa la pieza de arreglos/respuesta-<pieza>.txt a salidas/
 import path from 'node:path';
-import { leer, existe, escribir, leerJSON, salida, archivoDe, piezaDeR, piezas, planConR, respuestas } from './lib.mjs';
+import { leer, existe, escribir, leerJSON, salida, archivoDe, piezaDeR, piezas, planConR, respuestas, armarCambios } from './lib.mjs';
 import { cotejoValido } from './controles.mjs';
 
 const [, , dirArg, que, pieza] = process.argv;
@@ -26,6 +27,16 @@ if (que === 'juntar') {
     escribir(path.join(dir, 'arreglos', `problemas-${p}.json`), JSON.stringify(xs.map((x, i) => ({ n: i + 1, ...x })), null, 1));
     console.log(`${p}: ${xs.length} problemas (${[...new Set(xs.map((x) => x.origen))].join(', ')})`);
   }
+} else if (que === 'armar') {
+  const actual = piezas(dir).find((p) => p.pieza === pieza);
+  if (!actual) throw new Error(`no existe la pieza ${pieza}`);
+  const { texto, cambios } = armarCambios(actual.texto.trim(), leerJSON(path.join(dir, 'arreglos', `cambios-${pieza}.json`)).cambios);
+  escribir(path.join(dir, 'arreglos', `respuesta-${pieza}.txt`), `${texto}
+---
+${JSON.stringify({ cambios }, null, 1)}
+`);
+  const no = cambios.filter((c) => c.resultado === 'no_aplicado').length;
+  console.log(`${pieza}: ${cambios.length} cambios por problema, ${no} no aplicados (el "antes" no estaba tal cual)`);
 } else if (que === 'aplicar') {
   const r = leer(path.join(dir, 'arreglos', `respuesta-${pieza}.txt`));
   const corte = r.lastIndexOf('\n---\n');

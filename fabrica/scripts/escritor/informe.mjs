@@ -34,8 +34,15 @@ export function informe(dir) {
   if (desc.length) { L.push('', `Descartado del cotejo (id inexistente o frase no textual): ${desc.length}`); for (const x of desc) L.push(`- ${x.id}: «${recorte(x.frase)}»`); }
 
   const c9s = existe(path.join(dir, 'controles')) ? readdirSync(path.join(dir, 'controles')).filter((f) => /^c9-.+\.json$/.test(f)) : [];
-  L.push('', '## Arreglo (C9)', '', '| Pieza | Siguen | Disputas | Párrafos sin problema idénticos |', '|---|---|---|---|');
-  for (const f of c9s) { const r = leerJSON(ctl(f)); L.push(`| ${f.replace(/^c9-|\.json$/g, '')} | ${r.abiertos.filter((x) => x.estado === 'sigue').length} | ${r.abiertos.filter((x) => x.estado === 'disputa').length} | ${r.identicos} %${r.identicos < 70 ? ' (deriva)' : ''} |`); }
+  // receta v3.1: cambios cuyo "antes" no estaba tal cual en la pieza (no se aplicaron; el problema queda abierto).
+  const noAplicados = (pieza) => {
+    const r = arr(`respuesta-${pieza}.txt`);
+    if (!existe(r)) return [];
+    const t = leer(r), i = t.lastIndexOf('\n---\n');
+    try { return (JSON.parse(t.slice(i + 5)).cambios || []).filter((c) => c.resultado === 'no_aplicado'); } catch { return []; }
+  };
+  L.push('', '## Arreglo (C9)', '', '| Pieza | Siguen | Disputas | No aplicados | Párrafos sin problema idénticos |', '|---|---|---|---|---|');
+  for (const f of c9s) { const r = leerJSON(ctl(f)), p = f.replace(/^c9-|\.json$/g, ''); L.push(`| ${p} | ${r.abiertos.filter((x) => x.estado === 'sigue').length} | ${r.abiertos.filter((x) => x.estado === 'disputa').length} | ${noAplicados(p).length} | ${r.identicos} %${r.identicos < 70 ? ' (deriva)' : ''} |`); }
   const siguen = c9s.flatMap((f) => leerJSON(ctl(f)).abiertos.filter((x) => x.estado === 'sigue').map((x) => ({ ...x, pieza: f.replace(/^c9-|\.json$/g, '') })));
   if (siguen.length) { L.push('', 'Marcados "cambiado" que siguen en el texto:'); for (const x of siguen) L.push(`- ${x.pieza} #${x.n} (${x.tipo}): «${recorte(x.frase)}»`); }
 

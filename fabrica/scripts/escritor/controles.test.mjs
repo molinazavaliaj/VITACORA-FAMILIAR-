@@ -2,8 +2,8 @@
 // Correr: node --test fabrica/scripts/escritor/
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { c12, c13, c20, c20Texto, c23, c24, c26, referencias } from './controles.mjs';
-import { piezaDeR, planConR } from './lib.mjs';
+import { c10, c12, c13, c20, c20Texto, c23, c24, c26, referencias, pasados } from './controles.mjs';
+import { piezaDeR, planConR, armarCambios } from './lib.mjs';
 
 const reg = () => ({
   personas: [
@@ -65,7 +65,7 @@ test('C13: cada capítulo tiene hecho_fuerte en escena, y si hay momento clave e
   assert.ok(c13(p, reg()).some((x) => x.includes('cap_1: sin hecho_fuerte')));
   const q = plan(); q.capitulos[0].hecho_fuerte = 'E01';
   const err = c13(q, reg());
-  assert.ok(err.some((x) => x.includes('no está en sus piezas como escena')));
+  assert.ok(err.some((x) => x.includes('tiene escena y no va como escena')));
   assert.ok(err.some((x) => x.includes('momentos clave (E02)')));
 });
 
@@ -196,4 +196,58 @@ test('revisión 13: el título puede salir de una variante del hecho fuerte', ()
   const r = reg(); r.episodios[1].variantes = [{ que_agrega: 'la luz', ids: ['R04'] }];
   const p = plan(); p.capitulos[0].titulo = { texto: 'la luz de la cocina', id: 'R04' };
   assert.deepEqual(c12(p, [{ id: 'R02', texto: 'y no daba la cuenta, Raúl' }, { id: 'R04', texto: 'la luz de la cocina' }], r), []);
+});
+
+// ---------- receta v3.1 (prueba 3) ----------
+test('C13 v3.1: escena solo si el registro dice es_escena', () => {
+  const p = plan(); p.capitulos[1].piezas.push({ episodio: 'E04', forma: 'escena' });
+  assert.ok(c13(p, reg()).some((x) => x.includes('E04 va como escena y el registro dice que no tiene escena')));
+});
+
+test('C13 v3.1: hecho fuerte sin escena va en apertura o cierre, con faltante para repreguntar', () => {
+  const r = reg(); r.episodios[1].es_escena = false; // E02, momento clave, sin escena
+  const p = plan(); p.capitulos[0].piezas[1].forma = 'resumen'; p.capitulos[0].piezas[0].forma = 'escena';
+  p.capitulos[0].apertura = { tipo: 'escena', episodio: 'E01' }; p.capitulos[0].cierre = { tipo: 'gesto', episodio: 'E01' };
+  const err = c13(p, r);
+  assert.ok(err.some((x) => x.includes('no está ni en la apertura ni en el cierre')));
+  assert.ok(err.some((x) => x.includes('hecho fuerte sin escena')));
+  p.capitulos[0].cierre = { tipo: 'gesto', episodio: 'E02' };
+  p.faltantes.push({ que: 'hecho fuerte sin escena: cómo terminó la noche', donde: 'capítulo 1 — repreguntar' });
+  assert.deepEqual(c13(p, r).filter((x) => x.includes('cap_1')), []);
+});
+
+test('C13 v3.1: si el capítulo tiene escenas, abre en una', () => {
+  const p = plan(); p.capitulos[1].apertura = { tipo: 'dia_comun', episodio: 'E06' };
+  assert.ok(c13(p, reg()).some((x) => x.includes('abre con E06, que no tiene escena')));
+});
+
+test('C20 v3.1: en el último capítulo las medias líneas de reflexión o gusto también cuentan', () => {
+  const r = reg();
+  r.episodios.push({ id: 'E07', que: 'la radio', tipo: 'gusto', es_escena: false, estado: 'sigue_hoy', momento_clave: '', ids: ['R12'], a_quien: 'nadie', detalles: [] },
+    { id: 'E08', que: 'el tiempo pasa', tipo: 'reflexion', es_escena: false, estado: 'sigue_hoy', momento_clave: '', ids: ['R13'], a_quien: 'nadie', detalles: [] });
+  const p = plan(); p.capitulos[1].piezas.push({ episodio: 'E07', forma: 'media_linea' }, { episodio: 'E08', forma: 'media_linea' });
+  assert.ok(c20(p, r).some((x) => x.includes('junta 3 reflexiones o gustos')));
+});
+
+test('C10 v3.1: "vos ya lo sabés" no es tuteo; "tú lo sabes" sí', () => {
+  assert.deepEqual(c10({ texto: 'Marcela, vos ya lo sabés.' }, [], 'vos'), []);
+  assert.ok(c10({ texto: 'Marcela, tú ya lo sabes.' }, [], 'vos').some((x) => x.que.includes('tuteo')));
+});
+
+test('C27: pasados que nombran a alguien que sigue hoy (por nombre o por relación)', () => {
+  const r = reg(); r.personas.push({ id: 'P04', nombre: 'Elsa', apodos: [], relacion: 'madre', estado: 'sigue_hoy', hechos: [], rasgos_hoy: [] });
+  const ps = [{ pieza: 'cap_2', texto: 'Mi mamá era la que cocinaba. Marcela bordaba conmigo.\n\nRaúl era serio. Hoy Gustavo viene los domingos.' }];
+  const xs = pasados(ps, r);
+  assert.deepEqual(xs.map((x) => x.personas.join()), ['Elsa', 'Marcela']); // Raúl terminó: no va; la del presente no va
+});
+
+test('armarCambios: reemplaza solo el tramo, deja el resto igual y marca lo que no encuentra', () => {
+  const t = 'La mercería abría a las ocho. [[R01]]\n\nRaúl tiene la caja. [[R02]]';
+  const { texto, cambios } = armarCambios(t, [
+    { problema: [1, 2], resultado: 'cambiado', antes: 'Raúl tiene la caja.', despues: 'Raúl tenía la caja.' },
+    { problema: 3, resultado: 'cambiado', antes: 'esto no está', despues: 'x' },
+    { problema: 4, resultado: 'disputa', antes: '', despues: '', disputa_id: 'R02', disputa_frase: 'tiene' },
+  ]);
+  assert.equal(texto, 'La mercería abría a las ocho. [[R01]]\n\nRaúl tenía la caja. [[R02]]');
+  assert.deepEqual(cambios.map((c) => [c.problema, c.resultado]), [[1, 'cambiado'], [2, 'cambiado'], [3, 'no_aplicado'], [4, 'disputa']]);
 });

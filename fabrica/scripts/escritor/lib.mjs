@@ -160,3 +160,24 @@ export function piezaDeR(plan, reg, rid, ps = []) {
   if ((plan.primera_pagina?.que_dice_de_si_ids || []).includes(rid)) return 'primera_pagina';
   return 'cap_' + plan.capitulos[plan.capitulos.length - 1].n;
 }
+
+/**
+ * Receta v3.1, paso 6: el arreglo devuelve solo cambios (antes → después) y el código los aplica,
+ * así lo que no tenía problema queda igual letra por letra. Un `antes` que no está tal cual no se aplica
+ * (resultado "no_aplicado": el problema queda abierto). Devuelve el texto nuevo y los cambios, uno por problema.
+ */
+export function armarCambios(texto, cambios) {
+  let t = texto;
+  const out = [];
+  for (const c of cambios || []) {
+    const nums = Array.isArray(c.problema) ? c.problema : [c.problema];
+    let resultado = c.resultado;
+    if (resultado === 'cambiado') {
+      const antes = (c.antes || '').replace(/\r\n/g, '\n').trim();
+      if (antes && t.includes(antes)) t = t.replace(antes, () => (c.despues || '').replace(/\r\n/g, '\n').trim());
+      else resultado = 'no_aplicado';
+    }
+    for (const n of nums) out.push({ ...c, problema: n, resultado });
+  }
+  return { texto: t, cambios: out };
+}

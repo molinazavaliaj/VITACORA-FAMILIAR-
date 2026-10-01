@@ -5,7 +5,7 @@
 // Deja el texto de la llamada en <carpeta>/llamadas/<paso>.txt (sus_frases y libro dejan salidas, no llamadas).
 import path from 'node:path';
 import { guiaDe, sinMarcas, leer, existe, escribir, leerJSON, promptsDe, esquemaDe, guia, ficha, respuestas, respuestasXML, nombreDePila, salida, piezas, tituloImpreso } from './lib.mjs';
-import { presentes, referencias, decisionesAnteriores } from './controles.mjs';
+import { presentes, pasados, referencias, decisionesAnteriores } from './controles.mjs';
 
 const [, , dirArg, paso, arg] = process.argv;
 const dir = path.resolve(dirArg);
@@ -94,7 +94,9 @@ switch (paso) {
     const ps = piezas(dir).filter((p) => !repaso || arregladas(p));
     if (repaso && !ps.length) throw new Error('No hay piezas arregladas (arreglos/respuesta-<pieza>.txt): no hay repaso que hacer');
     const docs = [...base('hechos'), tag('registro', JSON.stringify(registro(), null, 1)), tag('libro', libroComo(ps)),
-      tag('presentes', presentes(ps.map((p) => ({ ...p, texto: sinMarcas(p.texto) }))).map((x) => `${x.pieza} §${x.parrafo}: ${x.oracion}`).join('\n'))];
+      tag('presentes', presentes(ps.map((p) => ({ ...p, texto: sinMarcas(p.texto) }))).map((x) => `${x.pieza} §${x.parrafo}: ${x.oracion}`).join('\n')),
+      // receta v3.1, C27: pasados que nombran a alguien que sigue hoy
+      tag('pasados', pasados(ps.map((p) => ({ ...p, texto: sinMarcas(p.texto) })), registro()).map((x) => `${x.pieza} §${x.parrafo} (${x.personas.join(', ')}): ${x.oracion}`).join('\n') || '(ninguna)')];
     if (repaso) docs.push(tag('decisiones_anteriores', JSON.stringify(decisionesAnteriores(dir), null, 1)));
     const [principal, agregado] = promptsDe('### Paso 4');
     if (repaso && !agregado) throw new Error('La receta no tiene el agregado del repaso en el Paso 4');

@@ -167,7 +167,7 @@ function c8(p, rs) {
 }
 
 // ---------- C10: castellano (anexo A6) ----------
-function c10(p, rs, trato) {
+export function c10(p, rs, trato) {
   const out = [];
   const material = norm(rs.map((r) => r.texto).join(' '));
   for (const o of oraciones(sinCitas(p.texto).replace(/^#.*$/gm, ''))) {
@@ -175,7 +175,9 @@ function c10(p, rs, trato) {
     if (/^\p{L}+(ando|iendo)\b/u.test(n) && !/^(cuando|mando|ando|fernando|orlando|armando)\b/.test(n)) out.push({ control: 'C10', tipo: 'ia', frase: o, que: 'gerundio al inicio' });
     if (/\b(fue|fueron|era|eran) \p{L}+(ado|ada|ido|ida|ados|idas|adas|idos) por\b/u.test(n)) out.push({ control: 'C10', tipo: 'ia', frase: o, que: 'pasiva calcada (fue + participio + por)' });
     if (/(dijo|dije|decia|me dice)\s*[:,]?\s*["“]/.test(o.toLowerCase())) out.push({ control: 'C10', tipo: 'ia', frase: o, que: 'diálogo con comillas en vez de raya' });
-    const tu = /\b(tienes|eres|puedes|quieres|sabes)\b/.test(n), vos = /\b(tenes|sos|podes|queres|sabes)\b/.test(n);
+    // Con tildes: sin ellas, "sabés" (vos) y "sabes" (tú) son la misma palabra (falsa alarma de la prueba 3).
+    const ol = o.toLowerCase();
+    const tu = /(?<!\p{L})(tienes|eres|puedes|quieres|sabes)(?!\p{L})/u.test(ol), vos = /(?<!\p{L})(tenés|sos|podés|querés|sabés)(?!\p{L})/u.test(ol);
     if (trato === 'vos' && tu) out.push({ control: 'C10', tipo: 'ia', frase: o, que: 'tuteo en un libro que vosea' });
     if (trato === 'tu' && vos) out.push({ control: 'C10', tipo: 'ia', frase: o, que: 'voseo en un libro que tutea' });
     for (const d of ['depresion', 'ansiedad', 'trauma', 'alcoholico', 'alcoholismo', 'adiccion', 'adicto']) {
@@ -204,6 +206,29 @@ export function presentes(ps) {
   const out = [];
   for (const p of ps) parrafos(p.texto).forEach((par, i) => {
     for (const o of oraciones(par)) if (PRES.test(norm(o))) out.push({ pieza: p.pieza, parrafo: i + 1, oracion: o });
+  });
+  return out;
+}
+
+// C27 (no bloquea): oraciones en pasado que nombran a una persona que sigue hoy — van al verificador como <pasados>.
+const PASADO = /(?<!\p{L})(era|eran|estaba|estaban|tenia|tenian|vivia|vivian|hacia|hacian|sabia|sabian|queria|querian|iba|iban|solia|solian|\p{L}{2,}aban?)(?!\p{L})/u;
+const SINONIMOS = { padre: ['papa', 'viejo'], madre: ['mama', 'vieja'] };
+export function pasados(ps, reg) {
+  const vivas = (reg?.personas || []).filter((p) => p.estado === 'sigue_hoy');
+  const formas = vivas.map((p) => {
+    const rel = norm(p.relacion || '').split(' ')[0];
+    const nombres = [p.nombre, ...(p.apodos || [])].filter(Boolean).map(norm).filter((n) => n.length > 2);
+    const rels = rel ? [rel, ...(SINONIMOS[rel] || [])].map((r) => `mi ${r}`) : [];
+    return { nombre: p.nombre, claves: [...nombres, ...rels] };
+  });
+  const out = [];
+  for (const p of ps) parrafos(p.texto).forEach((par, i) => {
+    for (const o of oraciones(par)) {
+      const n = ` ${norm(o)} `;
+      if (!PASADO.test(n)) continue;
+      const quien = formas.filter((f) => f.claves.some((k) => n.includes(` ${k} `)));
+      if (quien.length) out.push({ pieza: p.pieza, parrafo: i + 1, oracion: o, personas: quien.map((q) => q.nombre) });
+    }
   });
   return out;
 }
@@ -287,12 +312,21 @@ export function c13(plan, reg) {
   for (const c of plan.capitulos) {
     const formas = (c.piezas || []).map((p) => p.forma);
     if (!formas.includes('escena')) out.push(`C13 cap_${c.n}: no tiene ninguna pieza "escena"`);
-    for (const p of c.piezas || []) { const e = eps[p.episodio]; if (!e) out.push(`C13 cap_${c.n}: el episodio ${p.episodio} no existe en el registro`); else if (e.momento_clave && p.forma !== 'escena' && e.es_escena) out.push(`C13 cap_${c.n}: ${e.id} es momento clave (${e.momento_clave}) y va como "${p.forma}", no como escena`); }
+    for (const p of c.piezas || []) { const e = eps[p.episodio]; if (!e) out.push(`C13 cap_${c.n}: el episodio ${p.episodio} no existe en el registro`); else if (p.forma === 'escena' && !e.es_escena) out.push(`C13 cap_${c.n}: ${e.id} va como escena y el registro dice que no tiene escena (es_escena: false)`); else if (e.momento_clave && p.forma !== 'escena' && e.es_escena) out.push(`C13 cap_${c.n}: ${e.id} es momento clave (${e.momento_clave}) y va como "${p.forma}", no como escena`); }
     if (!(c.hilo_ids || []).length) out.push(`C13 cap_${c.n}: hilo sin ids`);
     // receta v3: el capítulo se corta por su hecho más fuerte.
     const pzHf = (c.piezas || []).find((p) => p.episodio === c.hecho_fuerte);
     if (!c.hecho_fuerte) out.push(`C13 cap_${c.n}: sin hecho_fuerte`);
-    else if (!pzHf || pzHf.forma !== 'escena') out.push(`C13 cap_${c.n}: el hecho_fuerte ${c.hecho_fuerte} no está en sus piezas como escena`);
+    else if (!pzHf) out.push(`C13 cap_${c.n}: el hecho_fuerte ${c.hecho_fuerte} no está en sus piezas`);
+    else if (eps[c.hecho_fuerte]?.es_escena && pzHf.forma !== 'escena') out.push(`C13 cap_${c.n}: el hecho_fuerte ${c.hecho_fuerte} tiene escena y no va como escena`);
+    else if (eps[c.hecho_fuerte] && !eps[c.hecho_fuerte].es_escena) {
+      // receta v3.1: un hecho fuerte sin escena va en resumen en un lugar fuerte (apertura o cierre) y se pide la repregunta.
+      if (![c.apertura?.episodio, c.cierre?.episodio].includes(c.hecho_fuerte)) out.push(`C13 cap_${c.n}: el hecho_fuerte ${c.hecho_fuerte} no tiene escena y no está ni en la apertura ni en el cierre (no se entierra en el medio)`);
+      const f = norm((plan.faltantes || []).map((x) => `${x.que} ${x.donde || ''}`).join(' | '));
+      if (!f.includes('hecho fuerte sin escena')) out.push(`C13 cap_${c.n}: el hecho_fuerte ${c.hecho_fuerte} no tiene escena y falta el faltante "hecho fuerte sin escena" (para repreguntar)`);
+    }
+    const conEscena = (c.piezas || []).map((p) => eps[p.episodio]).filter((e) => e?.es_escena);
+    if (conEscena.length && c.apertura?.episodio && !eps[c.apertura.episodio]?.es_escena) out.push(`C13 cap_${c.n}: abre con ${c.apertura.episodio}, que no tiene escena, y el capítulo tiene escenas (${conEscena.map((e) => e.id).join(', ')}): abre en una de ellas`);
     const claves = (c.piezas || []).map((p) => eps[p.episodio]).filter((e) => e?.momento_clave);
     if (c.hecho_fuerte && claves.length && !claves.some((e) => e.id === c.hecho_fuerte)) out.push(`C13 cap_${c.n}: tiene momentos clave (${claves.map((e) => e.id).join(', ')}) y el hecho_fuerte ${c.hecho_fuerte} no es ninguno`);
     if (prev && prev.apertura?.tipo === c.apertura?.tipo) out.push(`C13 cap_${c.n}: abre igual que el anterior (${c.apertura?.tipo})`);
@@ -309,6 +343,7 @@ export function c13(plan, reg) {
   const imf = ult?.imagen_final || {};
   const epImf = eps[imf.episodio];
   if (!ult?.columna?.texto) out.push('C13: el último capítulo no tiene columna (la oración que ordena sus piezas)');
+  else if (!(ult.columna.ids || []).length) out.push('C13: la columna del último capítulo no tiene ids (receta v3.1: es lo que sigue abierto hoy, con sus respuestas)');
   if (!epImf) out.push('C13: el último capítulo no tiene imagen_final con un episodio del registro');
   else {
     if (!(ult.piezas || []).some((p) => p.episodio === imf.episodio)) out.push(`C13: la imagen_final ${imf.episodio} no está en las piezas del último capítulo`);
@@ -419,7 +454,8 @@ export function c19(psCrudas, reg) {
 export function c20(plan, reg) {
   const eps = Object.fromEntries((reg.episodios || []).map((e) => [e.id, e]));
   const ult = plan.capitulos[plan.capitulos.length - 1];
-  const sueltas = (ult.piezas || []).filter((p) => p.forma !== 'media_linea' && ['reflexion', 'gusto'].includes(eps[p.episodio]?.tipo));
+  // receta v3.1: las medias líneas también cuentan (en la prueba 3 la bolsa volvió por ahí).
+  const sueltas = (ult.piezas || []).filter((p) => ['reflexion', 'gusto'].includes(eps[p.episodio]?.tipo));
   const otros = [];
   const carta = new Set(plan.carta?.ids || []);
   for (const e of reg.episodios || []) if (e.a_quien === 'familia' && !e.no_poner && !e.ids.some((i) => carta.has(i))) otros.push(`C19: el episodio ${e.id} le habla a la familia y no está en carta.ids`);

@@ -86,11 +86,11 @@ phase('Arreglo')
 const jn = await codigo([`${node('arreglos.mjs')}" "${DIR}" juntar`, `${node('estado.mjs')}" "${DIR}" arreglos`], 'juntar', 'Arreglo')
 log(`juntar:\n${jn[0].salida.trim()}`)
 const aArreglar = json(jn[1]).piezas
-await parallel(aArreglar.map((p) => () => rol(`arreglo ${p}`, `6-arreglo-${p}`, `arreglos/respuesta-${p}.txt`, { label: `arreglo ${p}`, phase: 'Arreglo' })))
-// C9 contra la pieza vieja, después se aplica (en serie: el código compara con salidas/)
+await parallel(aArreglar.map((p) => () => rol(`arreglo ${p}`, `6-arreglo-${p}`, `arreglos/cambios-${p}.json`, { label: `arreglo ${p}`, phase: 'Arreglo' })))
+// receta v3.1: el código arma la pieza con los cambios (armar), C9 contra la pieza vieja, después se aplica (en serie: el código compara con salidas/)
 const c9 = await codigo([
   `cp "${DIR}/controles/piezas.json" "${DIR}/controles/piezas-1.json"`,
-  ...aArreglar.flatMap((p) => [`${node('controles.mjs')}" "${DIR}" arreglo ${p}`, `${node('arreglos.mjs')}" "${DIR}" aplicar ${p}`]),
+  ...aArreglar.flatMap((p) => [`${node('arreglos.mjs')}" "${DIR}" armar ${p}`, `${node('controles.mjs')}" "${DIR}" arreglo ${p}`, `${node('arreglos.mjs')}" "${DIR}" aplicar ${p}`]),
   `${node('estado.mjs')}" "${DIR}" disputas`,
 ], 'C9 + aplicar', 'Arreglo')
 log(c9.filter((x) => x.comando.includes(' arreglo ')).map((x) => x.salida.trim()).join('\n'))
