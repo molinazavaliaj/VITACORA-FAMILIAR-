@@ -212,7 +212,8 @@ Una entrevista trae mucho que no es relato: gustos, opiniones, reflexiones, list
 
 (La segunda vale solo si ella contó cada cosa: el locutor, el bastidor, Tito, la copita. Si dijo "me gusta el tango" y nada más, la oración es "A la tarde pongo tango en la radio." y punto.)
 
-**Dos cosas que importan.**
+**Tres cosas que importan.**
+- **Todo entra, pero nada se cuenta dos veces.** Si contó la misma historia en varias respuestas, o dos o tres anécdotas parecidas (tres clientas difíciles, tres veranos en la costa), se cuenta UNA vez: la mejor contada, sumando los detalles que aparecieron en las otras. Lo que las otras tengan de distinto entra en media línea. Nunca la misma historia en dos capítulos, ni dos versiones de la misma en uno.
 - **La carta es para la familia.** Entra solo lo que les dice a ellos. Una respuesta a "qué te gusta hacer" no es para la familia: va al cuerpo. Un consejo a los nietos sí es carta.
 - **Las respuestas de botón** (las que contestan una pregunta que el lector no ve: "Hijos tuve tres.", "No, nunca me fui del país.") no van como están. O se cuentan como relato, o van en media línea, o no van si no agregan nada.
 
@@ -370,3 +371,118 @@ El libro se escribe con lo que la narradora contó. Esta guía sirve para contar
 - **Si contó algo delicado en dos líneas, en el libro son dos líneas.** No se agranda ni se achica: el escritor no puede darle a una historia dura más detalle del que ella le dio.
 
 Nada de esto lo arregla el escritor. Lo arregla la entrevista, o una vuelta más con la narradora. El escritor tiene que decirlo en vez de disimularlo: un libro honesto y corto vale más que uno largo con relleno.
+
+---
+
+## Anexo (01/10): lo que sumamos del manual del biógrafo
+
+Siete puntos tomados de un manual de oficio externo, aprobados por Naza. Mismo formato que el resto de la guía; mismos ejemplos de Nélida. Lo del manual que choca con "todo entra" (elegir, recortar enumeraciones, respetar lo que no quiso contar como regla general) no se tomó: en Vitácora va todo lo que contó, y solo sale lo que pidió expresamente que no esté.
+
+### A1. Leer bien antes de escribir
+
+**Regla.** Antes de la primera línea del libro, el escritor arma un **registro de hechos**: personas (nombre, relación, en qué etapas aparece), lugares, fechas y edades, episodios (qué, cuándo, dónde, quién), dudas de la narradora, temas que repite y frases textuales fuertes. Todo el libro se escribe contra ese registro, no contra la memoria de la transcripción.
+
+**Por qué.** Los errores graves de un libro de vida casi nunca son de redacción: son de lectura. El escritor entiende mal lo que dijo y lo escribe con seguridad. Los errores típicos:
+
+| Error de lectura | Ejemplo con Nélida | Cómo se evita |
+|---|---|---|
+| Confundir personas | Lo que hizo Chiche (la hermana) atribuido a Marcela (la hija) | Lista de personas con relación exacta antes de escribir |
+| Fundir dos episodios | La inundación del 86 y la del 2007 contadas como una | Cada episodio con su año y lugar en el registro |
+| "Creo" tomado como hecho | "Creo que fue en el 89" → "En 1989" | La duda se anota y se conserva: "por el 89" |
+| Ironía leída literal | "Fue el mejor verano de mi vida, imaginate" (con sarcasmo) | Si el tono no está claro, contarlo neutro |
+| Negación perdida | "No me fui con Raúl a Córdoba" → se fue | Releer cada frase con "no", "nunca", "casi" |
+| Pronombre ambiguo | "Él le dijo que cerrara": ¿Raúl a ella, o su padre a Raúl? | Si no se resuelve, no se afirma quién |
+| Error de transcripción | "la Universidad del Litorial" | Usar el nombre confirmado; si suena raro, marcarlo |
+| Orden equivocado | El casamiento antes del servicio militar de Raúl | Línea de tiempo con edades y años antes de escribir |
+| Cuentas de edad | Nació en 1954 y "a los veinte" abrió: 1974, no 1976 | Hacer la cuenta y comprobarla; si no dijo el año, no ponerlo |
+| Sobreinterpretar | "Con mi papá no hablábamos mucho" → "una relación fría y distante" | Quedarse en lo que dijo |
+
+**Cómo se controla.** Cada hecho del libro se puede señalar en el registro, y cada entrada del registro se puede señalar en la transcripción. Si una frase del libro no tiene de dónde salir, se va.
+
+### A2. Vocabulario y moldes de IA (lista cerrada, para buscar)
+
+**Regla.** Ninguna de estas palabras ni estructuras aparece en el libro, salvo que sea una frase textual de la narradora. La lista se busca palabra por palabra antes de entregar.
+
+**Palabras:** entrañable, inolvidable, imborrable, mágico, profundo (como adjetivo de sentimiento), genuino, auténtico, resiliencia, resiliente, tapiz, entramado, sumergirse, adentrarse, florecer, forjar, abrazar (en sentido figurado), transitar (un duelo, una etapa), atesorar, invaluable, sinfín, crisol, testimonio de, un viaje (como metáfora de la vida), crucial, huella, legado, vicisitudes, efímero, melancolía.
+
+**Muletillas de escritor:** sin duda, sin lugar a dudas, cabe destacar, es importante señalar, en definitiva, a lo largo de los años, con el paso del tiempo.
+
+**Moldes:**
+- "Un antes y un después", "un punto de inflexión", "marcó para siempre".
+- "No era solo X, era Y" / "No se trataba de X, sino de Y".
+- "Sin saberlo…", "Poco imaginaba que…", "Aquel día que cambiaría todo", "En ese momento comprendió que…" (si ella no dijo que lo comprendió).
+- Pregunta retórica para abrir ("¿Quién iba a imaginar que…?").
+- Tríadas automáticas ("esfuerzo, sacrificio y dedicación").
+- Raya (—) para dar énfasis cada dos frases; negritas, viñetas o subtítulos dentro de un capítulo.
+- Cada párrafo cerrando con frase lapidaria; todos los párrafos del mismo largo.
+
+| Mal | Bien |
+|---|---|
+| La mercería no era solo un negocio: era un legado. Sin saberlo, aquel local marcaría un antes y un después en su vida. | La mercería la abrimos en el 76, en el local de la calle Mendoza que antes era una zapatería. |
+
+**Cómo se controla.** Buscar cada palabra y molde de esta lista en el texto final. Cero resultados, salvo citas textuales de ella.
+
+### A3. Ficha de voz, releída antes de cada capítulo
+
+**Regla.** Antes de escribir se arma una **ficha de voz**: 15 a 20 frases textuales de la narradora que muestren cómo habla, más su lista de palabras propias ("laburo", "la nena", "una pila de años", "qué sé yo") y sus dichos. Se relee **antes de cada capítulo**, no solo al principio.
+
+**Por qué.** La deriva de voz es el defecto más común: el capítulo 1 suena a ella y el capítulo 8 suena a libro. Pasa porque el escritor va perdiendo el oído a medida que escribe. La ficha lo devuelve.
+
+| Mal (capítulo 8, deriva) | Bien (misma ficha que el capítulo 1) |
+|---|---|
+| Con el transcurrir de los años, mi hija Marcela se convirtió en mi principal sostén. | La nena, con los años, fue la que me bancó. Marcela, digo; para mí sigue siendo la nena. |
+
+**Cómo se controla.** Tomar un párrafo del último capítulo y uno del primero y leerlos seguidos. Si no suenan a la misma persona, hay deriva. Y las palabras propias de la ficha tienen que aparecer en todo el libro, no solo al principio.
+
+### A4. El hilo sale de ella, no se le impone
+
+**Regla.** Toda vida contada tiene dos capas: la **situación** (lo que pasó: fechas, mudanzas, trabajos) y la **historia** (lo que eso significó para ella, lo que vuelve una y otra vez en su forma de contar). El hilo del libro, y el de cada capítulo, se busca en la historia, y se encuentra en tres lugares: lo que repite sin que se lo pregunten, dónde se le quiebra o se le alegra la voz, y sus propias conclusiones ("yo siempre me las arreglé sola"). Nunca lo inventa el escritor.
+
+**Por qué.** Un libro que solo cuenta la situación es un currículum largo. Un libro con un hilo que ella no dijo es un libro de otro.
+
+| Mal (impuesto) | Bien (de ella) |
+|---|---|
+| El hilo del libro: "una mujer que buscó su libertad a través del trabajo". (Ella nunca habló de libertad.) | El hilo del libro: "en esa casa no se tiraba ni un botón". Lo dijo cuatro veces: de su madre, de la mercería, de los hijos y de hoy. |
+
+**Cómo se controla.** El hilo se puede decir con una frase de ella o con algo que ella repitió. Si para enunciarlo hace falta una palabra que ella no usó, no es su hilo. Y la historia se nota en la selección y el orden, no en un párrafo que la explique.
+
+### A5. Los momentos que sostienen un libro
+
+**Regla.** Hay momentos que, si los contó, son el esqueleto del libro y los primeros candidatos a abrir un capítulo o el libro: el **punto más alto**, el **más bajo**, los **giros** (donde la vida cambió de rumbo), el **recuerdo más temprano**, una escena de la infancia, una de la adolescencia y **una decisión difícil**. Se identifican en el registro antes de armar los capítulos.
+
+**Por qué.** Son los momentos que una persona usa para contarse a sí misma. Si están en el material y el libro los entierra en un resumen, el libro perdió lo que más valía.
+
+| Mal | Bien |
+|---|---|
+| El día que decidió no cerrar la mercería después de la inundación va en media línea dentro de un resumen de los años ochenta. | Ese día (la decisión difícil) abre el capítulo, en escena: el agua hasta el segundo estante, Raúl diciendo "se terminó", ella sacando los carreteles mojados al sol. |
+
+**Cómo se controla.** Marcar en el registro cuál es cada uno de esos momentos. Cada uno que exista tiene que estar en escena en el libro, no en resumen.
+
+### A6. Castellano bien escrito
+
+**Regla.** El libro cumple con la norma del castellano escrito, en la voz de ella:
+- **Diálogo con raya**, no con comillas inglesas: —Cerrá, Nélida —me dijo Raúl.
+- **Sin gerundio de posterioridad**: "Se casó en 1975, teniendo tres hijos" está mal; "Se casó en 1975. Tuvieron tres hijos."
+- **Sin pasiva calcada**: "El local fue alquilado por Raúl" → "Raúl alquiló el local".
+- **Voseo o tuteo parejo** en todo el libro: si ella vosea, el libro vosea de la primera página a la carta.
+- **Repetir una palabra antes que buscar sinónimos** ("el negocio", "el local", "el comercio", "el emprendimiento" en el mismo párrafo suena a escuela).
+- **Sin diagnósticos que no dijo**: no se escribe "depresión" si dijo "estuve mal un tiempo"; no se escribe "alcohólico" si dijo "tomaba".
+- Años en cifra; edades con letras; las pausas del habla con punto y coma, no con puntos suspensivos.
+
+| Mal | Bien |
+|---|---|
+| Habiendo cerrado la mercería, Nélida atravesó una depresión. "No salía de casa", recordaría después. | Cerré la mercería y estuve mal un tiempo. No salía de casa. |
+
+**Cómo se controla.** Buscar gerundios al principio de oración, "fue + participio + por", comillas de diálogo, mezcla de "vos" y "tú", y cualquier palabra de diagnóstico (depresión, ansiedad, trauma, alcoholismo, adicción) que no esté textual en el material.
+
+### A7. Todo entra, pero sin repetir
+
+**Regla.** (Decisión de Naza.) Si contó la misma historia en varias respuestas, o dos o tres anécdotas parecidas, se cuenta **una vez**: la mejor contada, sumando los detalles que aparecieron en las otras versiones. Lo que las otras anécdotas tengan de distinto entra en media línea. Nada se cuenta dos veces, ni en el mismo capítulo ni en dos. (También está en la sección 8.)
+
+**Por qué.** "Todo entra" significa que ningún hecho se pierde, no que cada repetición se escribe. Una historia contada dos veces le dice al lector que el libro no se leyó a sí mismo.
+
+| Mal | Bien |
+|---|---|
+| Capítulo 3: la vez que Doña Rosa pagó con un billete viejo y Nélida lo aceptó igual. Capítulo 6: Doña Rosa pagando con un billete fuera de circulación, otra vez, con otras palabras. Y aparte, tres clientas más que "también compraban fiado", cada una en su párrafo. | Una sola vez, en el capítulo 3, con el detalle que dio en cada versión (el billete era de los viejos, lo guardó en la caja de los botones). Y una línea: "Fiado le daba a media cuadra: Doña Rosa, la de la esquina, la mujer del panadero." |
+
+**Cómo se controla.** Buscar la misma anécdota (misma persona + mismo objeto o mismo día) en más de un lugar del libro. Si aparece dos veces, se deja la mejor y la otra se saca o queda en media línea.
