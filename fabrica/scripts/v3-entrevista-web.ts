@@ -4,7 +4,7 @@
 // que las simulaciones (`v3-entrevista-turno.ts`: nuevaEntrevista, responder,
 // tocarBoton, charlaMd); acá solo hay HTTP, disco y transcripción.
 //
-//   npx tsx scripts/v3-entrevista-web.ts [--puerto 5178] [--nombre Naza --genero varon] [--env <ruta .env>] [--datos <carpeta>]
+//   npx tsx scripts/v3-entrevista-web.ts [--puerto 5178] [--nombre Naza --genero varon] [--env <ruta .env>] [--datos <carpeta>] [--cazador]
 //
 // Guarda todo en audios-crudos/v3-web/<nombre>/ (en .gitignore: voces reales):
 // estado.json, audios/<NN>-<ID>.webm, transcripciones.jsonl y charla.md.
@@ -13,16 +13,23 @@
 // pregunta"), aviso si una transcripción parece cortada, el nombre con
 // mayúscula y reintentos solos si se cae la red (2, 5 y 10 segundos).
 // La transcripción es PAGA (OpenAI, unos centavos por minuto).
+// Con --cazador (apagado por defecto; Naza, 01/10, plan del cazador B4): al
+// contestar el cierre de un bloque se llama al cazador de escenas (Opus 5,
+// PAGO, tope USD 3 por entrevista) sin frenar la charla, y lo que devuelve
+// entra a la cola de repreguntas; la consola muestra el costo acumulado.
 // Guía: docs/v3/entrevista/prueba-web.md
 
 import { appendFileSync, existsSync, mkdirSync, readdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
+import Anthropic from '@anthropic-ai/sdk';
 import { createServer, type IncomingMessage, type RequestListener, type ServerResponse } from 'node:http';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { preguntaPorId } from '../src/v3/entrevista/banco.js';
+import type { ClienteModelo } from '../src/v3/entrevista/cazador.js';
+import { botonesDeClave } from '../src/v3/entrevista/flujo.js';
 import { sumarAudio } from '../src/v3/entrevista/respuesta.js';
 import { esReintentable, leerKeyOpenAI, taparKey, transcribirConOpenAI, type Transcribir, type Transcripcion } from '../src/v3/entrevista/transcribir.js';
-import { charlaMd, nuevaEntrevista, responder, textoDeGlobo, tocarBoton, type EstadoSimulacion, type Globo } from './v3-entrevista-turno.js';
+import { cazarAlCerrar, charlaMd, lineaCaza, nuevaEntrevista, responder, sumarCaza, textoDeGlobo, tocarBoton, type EstadoSimulacion, type Globo } from './v3-entrevista-turno.js';
 
 const AQUI = dirname(fileURLToPath(import.meta.url));
 const HTML = join(AQUI, 'v3-entrevista-web.html');
@@ -63,7 +70,8 @@ export type EstadoWeb = EstadoSimulacion & { pendientes?: Pendiente[] };
 /** Los botones que tiene la pregunta que espera (ninguno si ya tocó "Sí" y ahora va el audio, o si ya mandó audios). */
 export function botonesAbiertos(e: EstadoWeb): string[] {
   if (e.terminada || !e.esperando || e.tocoSi || (e.pendientes ?? []).length > 0) return [];
-  return (preguntaPorId(e.esperando)?.botones ?? []).map((b) => b.texto);
+  // En una repregunta del cazador, [Ya lo conté todo] (Naza, 01/10).
+  return (botonesDeClave(e.esperando) ?? []).map((b) => b.texto);
 }
 
 export function globosParaNarrador(e: EstadoSimulacion): GloboVista[] {
@@ -149,6 +157,8 @@ export type OpcionesWeb = {
   esperas?: readonly number[];
   /** Cómo se espera (los tests la reemplazan para no esperar de verdad). */
   dormir?: (ms: number) => Promise<void>;
+  /** Con el cazador de escenas: el cliente del modelo (el SDK de Anthropic; los tests pasan uno falso). Sin él, no se caza. */
+  cazador?: ClienteModelo;
 };
 
 class ErrorHttp extends Error {
@@ -242,15 +252,35 @@ export function crearManejador(o: OpcionesWeb): RequestListener {
     return actual.estado;
   }
 
-  /** Corre el motor; sus errores (respuesta vacía, botón que no existe) son del que contesta: 400. */
-  function motor(f: () => { estado: EstadoWeb }): void {
-    let r: { estado: EstadoWeb };
+  /** Corre el motor; sus errores (respuesta vacía, botón que no existe) son del que contesta: 400. Si cerró un bloque, el cazador (si está prendido). */
+  function motor(f: () => { estado: EstadoWeb; bloqueCerrado?: number }): void {
+    let r: { estado: EstadoWeb; bloqueCerrado?: number };
     try {
       r = f();
     } catch (err) {
       throw new ErrorHttp(400, (err as Error).message);
     }
     guardar(r.estado);
+    if (o.cazador && r.bloqueCerrado !== undefined) cazar(r.bloqueCerrado);
+  }
+
+  /**
+   * Llama al cazador por el bloque que se cerró sin frenar la charla: la
+   * respuesta HTTP sale ya; cuando vuelve, lo que trae entra a la cola del
+   * estado de ese momento (de a una escritura por vez) y se loguea el costo.
+   * Si falla, se loguea y la entrevista sigue sin cazador en ese bloque.
+   */
+  function cazar(bloque: number): void {
+    const carpeta = actual!.carpeta;
+    void cazarAlCerrar(actual!.estado, bloque, o.cazador!)
+      .then((res) =>
+        enSerie(() => {
+          if (!actual || actual.carpeta !== carpeta) return; // cambió la entrevista mientras tanto
+          guardar(sumarCaza(actual.estado, res) as EstadoWeb);
+          log(lineaCaza(res));
+        }),
+      )
+      .catch((err) => log(`ERROR del cazador (bloque ${bloque}): ${(err as Error).message}`));
   }
 
   /** Transcribe, y si se cae la red (sin conexión, OpenAI 5xx o 429) reintenta solo, con las esperas de `esperas`. */
@@ -316,12 +346,13 @@ export function crearManejador(o: OpcionesWeb): RequestListener {
     motor(() => {
       const r = responder(e, respuesta);
       const estado = r.estado as EstadoWeb;
+      const bloqueCerrado = r.bloqueCerrado;
       if (pendientes.length > 0) {
         const globo = estado.charla.findLast((g) => g.de === 'persona') as GloboPersonaWeb;
         globo.audios = pendientes.map((x) => x.archivo);
       }
       estado.pendientes = [];
-      return { estado };
+      return { estado, bloqueCerrado };
     });
   }
 
@@ -389,7 +420,8 @@ export function crearManejador(o: OpcionesWeb): RequestListener {
     '/api/reintentar': async (c) => {
       const archivo = String(json(c).archivo ?? '');
       const e = hayQueContestar();
-      const m = /^audios\/\d+-([A-Za-z0-9.]+?)\.([a-z0-9]+)$/.exec(archivo);
+      // "~": las claves CA16~2 (segunda oportunidad) y RP~X (repregunta), Naza 01/10.
+      const m = /^audios\/\d+-([A-Za-z0-9.~]+?)\.([a-z0-9]+)$/.exec(archivo);
       if (!m || !TIPOS[m[2]] || !existsSync(join(dir(), archivo))) throw new ErrorHttp(400, 'Ese audio no está.');
       if (m[1] !== e.esperando) throw new ErrorHttp(409, 'Ese audio era de otra pregunta.');
       // Un audio que ya está transcripto no se manda de nuevo a OpenAI (dos clicks en "Reintentar" = una sola transcripción).
@@ -468,12 +500,19 @@ function main(args: string[]): void {
   if (genero !== undefined && genero !== 'varon' && genero !== 'mujer') throw new Error('--genero tiene que ser varon o mujer');
   const rutaEnv = opcion(args, '--env') ?? ENV_POR_DEFECTO;
   const datos = resolve(opcion(args, '--datos') ?? join(AQUI, '..', '..', 'audios-crudos', 'v3-web'));
-  const manejador = crearManejador({ datos, nombre, genero, transcribir: transcribirConOpenAI({ key: () => leerKeyOpenAI(rutaEnv) }) });
+  // El cazador: solo con --cazador. La key de Anthropic sale del mismo .env (nunca se imprime).
+  let cazador: ClienteModelo | undefined;
+  if (args.includes('--cazador')) {
+    process.loadEnvFile(rutaEnv);
+    cazador = new Anthropic() as unknown as ClienteModelo;
+  }
+  const manejador = crearManejador({ datos, nombre, genero, cazador, transcribir: transcribirConOpenAI({ key: () => leerKeyOpenAI(rutaEnv) }) });
   // Solo en esta PC: no se abre a la red.
   createServer(manejador).listen(puerto, '127.0.0.1', () => {
     console.log(`Entrevista V3 en http://localhost:${puerto}`);
     console.log(`Datos en ${datos}`);
     console.log('Ojo: cada audio se transcribe con OpenAI (pago). Ctrl+C para apagar.');
+    if (cazador) console.log('Cazador de escenas PRENDIDO: al cerrar cada bloque llama a Opus 5 (pago, tope USD 3 por entrevista).');
   });
 }
 

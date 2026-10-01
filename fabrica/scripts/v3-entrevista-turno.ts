@@ -9,6 +9,7 @@
 //   npx tsx scripts/v3-entrevista-turno.ts nueva <estado.json> --nombre <Nombre> --genero <varon|mujer> [--familia "<pregunta>"]…
 //   npx tsx scripts/v3-entrevista-turno.ts responder <estado.json> [--respuesta "<texto>"]   (sin --respuesta, la lee de stdin)
 //   npx tsx scripts/v3-entrevista-turno.ts responder <estado.json> --boton "<texto del botón>"
+//   … responder … --cazador [--env <ruta .env>]   (GASTA PLATA: al cerrar un bloque llama al cazador de escenas; tope USD 3 por entrevista)
 //   npx tsx scripts/v3-entrevista-turno.ts md <estado.json> <salida.md> [--titulo "<título>"]
 //
 // Botones (Naza, 30/09, simulaciones): van debajo del mensaje como
@@ -19,10 +20,23 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { mensajePorId, NOMBRES_BLOQUE, preguntaPorId } from '../src/v3/entrevista/banco.js';
-import { alTocarBoton, mensajesDespues, preguntaDeClave, siguientePregunta, type PreguntaFamilia } from '../src/v3/entrevista/flujo.js';
+import { cazarBloque, fichaCorta, mensajeRepregunta, type ClienteModelo, type Descartada, type ResultadoCaza } from '../src/v3/entrevista/cazador.js';
+import { alTocarBoton, botonesDeClave, mensajesDespues, preguntaDeClave, siguientePregunta, type PreguntaFamilia, type Repregunta } from '../src/v3/entrevista/flujo.js';
 import { acuseDeTurno, anotarAcuse, armarTurno, entradaSegunAcuse, preguntaSegunAcuse, vueltasEnCero, type AcusePendiente, type Vueltas } from '../src/v3/entrevista/mensajes.js';
 import { sumarAudio } from '../src/v3/entrevista/respuesta.js';
 import { renderizar, type FichaTexto } from '../src/v3/entrevista/texto.js';
+
+/** Lo que se anota de cada llamada al cazador (tokens, costo, qué eligió y qué descartó). */
+export type RegistroCaza = {
+  bloque: number;
+  llamo: boolean;
+  motivo?: ResultadoCaza['motivo'];
+  repreguntas: string[];
+  descartadas: Descartada[];
+  tokens?: { entrada: number; salida: number };
+  costoUsd: number;
+  error?: string;
+};
 
 /** Una línea de un mensaje, con el ID de donde sale. */
 export type Parte = { id: string; texto: string };
@@ -51,10 +65,18 @@ export type EstadoSimulacion = {
   bloqueActual: number;
   terminada: boolean;
   charla: Globo[];
+  /** La cola de repreguntas del cazador (solo con --cazador; Naza, 01/10). */
+  repreguntas?: Repregunta[];
+  /** Lo que lleva el cazador en esta entrevista: el gasto (tope USD 3), las escenas que ya vio contadas y cada llamada. */
+  cazador?: { gastoUsd: number; escenasContadas: string[]; registro: RegistroCaza[] };
 };
 
-/** Lo que devuelve cada llamada: los mensajes de WhatsApp nuevos (texto tal cual) y el estado. */
-export type Resultado = { estado: EstadoSimulacion; mensajes: string[] };
+/**
+ * Lo que devuelve cada llamada: los mensajes de WhatsApp nuevos (texto tal
+ * cual) y el estado. `bloqueCerrado`: la respuesta fue al cierre de ese
+ * bloque (CIn): con el cazador prendido, es cuando se lo llama.
+ */
+export type Resultado = { estado: EstadoSimulacion; mensajes: string[]; bloqueCerrado?: number };
 
 /** El texto de un globo como llega por WhatsApp: los párrafos de un mismo mensaje (BIEN) van separados por una línea en blanco. */
 export function textoDeGlobo(partes: Parte[]): string {
@@ -103,7 +125,13 @@ export function responder(anterior: EstadoSimulacion, respuesta: string): Result
     estado.respuestas.push([id, r]);
   }
   cerrarRespuesta(estado);
-  return { estado, mensajes: mensajesDesde(estado, desde) };
+  return conBloqueCerrado({ estado, mensajes: mensajesDesde(estado, desde) }, id);
+}
+
+/** Si la respuesta fue a un cierre (CIn), avisa qué bloque se cerró: ahí se llama al cazador (plan, B4). */
+function conBloqueCerrado(r: Resultado, id: string): Resultado {
+  const p = preguntaPorId(id);
+  return p?.clase === 'cierre' ? { ...r, bloqueCerrado: p.bloque } : r;
 }
 
 /**
@@ -116,14 +144,15 @@ export function tocarBoton(anterior: EstadoSimulacion, texto: string): Resultado
   if (!anterior.esperando) throw new Error('No hay ninguna pregunta esperando respuesta.');
   if (anterior.tocoSi) throw new Error('Ya tocó "Sí" en esta pregunta: ahora va el audio (--respuesta).');
   const id = anterior.esperando;
-  const botones = preguntaPorId(id)?.botones ?? [];
+  // En una repregunta del cazador, el botón es [Ya lo conté todo] (Naza, 01/10).
+  const botones = botonesDeClave(id) ?? [];
   if (!botones.some((b) => b.texto === texto)) {
     const hay = botones.length > 0 ? botones.map((b) => `(${b.texto})`).join(' ') : 'ninguno';
     throw new Error(`${id} no tiene el botón "${texto}". Botones: ${hay}`);
   }
   const estado = clonar(anterior);
   const desde = estado.charla.length;
-  const toque = alTocarBoton(preguntaPorId(id)!, texto);
+  const toque = alTocarBoton({ id, botones }, texto);
   estado.charla.push({ de: 'persona', pregunta: id, texto: `[toca: ${texto}]`, boton: texto });
   estado.respuestas.push([id, toque.respuesta]);
   if (toque.esperaAudio) {
@@ -133,7 +162,7 @@ export function tocarBoton(anterior: EstadoSimulacion, texto: string): Resultado
     return { estado, mensajes: mensajesDesde(estado, desde) };
   }
   cerrarRespuesta(estado);
-  return { estado, mensajes: mensajesDesde(estado, desde) };
+  return conBloqueCerrado({ estado, mensajes: mensajesDesde(estado, desde) }, id);
 }
 
 /** La respuesta de `esperando` ya está completa (la última de `respuestas`): anota el acuse y manda lo que sigue. */
@@ -173,7 +202,7 @@ function avanzar(e: EstadoSimulacion): void {
   const texto = (id: string) => renderizar(mensajePorId(id)!.texto, e.ficha);
 
   /** Igual que `mandar` en v3-entrevista-lectura.ts. */
-  const mandar = (t: { entrada?: string; pregunta: string; conM1?: boolean; ayuda?: boolean }, textos: Record<string, string>): void => {
+  const mandar = (t: { entrada?: string; pregunta: string; conM1?: boolean; ayuda?: boolean; botones?: string[] }, textos: Record<string, string>): void => {
     const siguiente = t.entrada ? texto(t.entrada) : (textos[t.pregunta] ?? texto(t.pregunta));
     const quePregunta = preguntaPorId(t.pregunta) ?? { id: t.pregunta, clase: 'historia' as const };
     const a = e.acuse;
@@ -186,14 +215,14 @@ function avanzar(e: EstadoSimulacion): void {
     const porId = armarTurno({ acuse: idAcuse, familia: a?.familia, entrada: t.entrada, pregunta: t.pregunta, m1: t.conM1 ? 'M1' : undefined, ayuda: t.ayuda ? 'M31' : undefined });
     for (const m of porId) e.charla.push({ de: 'bio', partes: m.split('\n').map((id) => ({ id, texto: textos[id] ?? texto(id) })) });
     // Los botones van debajo del mensaje de la pregunta (el último del turno).
-    const botones = preguntaPorId(t.pregunta)?.botones;
+    const botones = t.botones ?? preguntaPorId(t.pregunta)?.botones?.map((b) => b.texto);
     const ultimo = e.charla.at(-1)!;
-    if (botones && ultimo.de === 'bio') ultimo.botones = botones.map((b) => b.texto);
+    if (botones && ultimo.de === 'bio') ultimo.botones = botones;
     e.acuse = undefined;
   };
 
   for (let vuelta = 0; vuelta < 50; vuelta++) {
-    const s = siguientePregunta({ respuestas, enviados, rondaExtra: 'rechazada', familia: e.familia });
+    const s = siguientePregunta({ respuestas, enviados, rondaExtra: 'rechazada', familia: e.familia, repreguntas: e.repreguntas });
     if (s.tipo === 'terminada' || s.tipo === 'ofrecer-extra') {
       // La ronda extra por ahora no se ofrece: no puede llegar 'ofrecer-extra'.
       e.terminada = true;
@@ -208,6 +237,13 @@ function avanzar(e: EstadoSimulacion): void {
       // M33.n va solo (sin acuse delante: mensajesDespues no dejó ninguno); lo que conteste se guarda como CA16~2 (Naza, 01/10).
       mandar({ pregunta: s.mensaje }, {});
       e.esperando = s.clave;
+      return;
+    }
+    if (s.tipo === 'repregunta') {
+      // La repregunta del cazador (Naza, 01/10): mitad fijo, mitad escrito, con [Ya lo conté todo]; se guarda como RP~X.
+      const rp = s.repregunta;
+      mandar({ pregunta: rp.clave, botones: s.botones.map((b) => b.texto) }, { [rp.clave]: mensajeRepregunta(rp) });
+      e.esperando = rp.clave;
       return;
     }
     const p = s.pregunta;
@@ -225,6 +261,67 @@ function avanzar(e: EstadoSimulacion): void {
     e.enviados.push(p.id);
   }
   throw new Error('avanzar: más de 50 mensajes sin una pregunta que espere respuesta.');
+}
+
+// ---------------------------------------------------------------- cazador
+
+/** La pregunta como se le mandó (las partes de la charla con ese ID; si no está, la del banco renderizada). */
+export function textoMandado(e: EstadoSimulacion, id: string): string {
+  let texto: string | undefined;
+  for (const g of e.charla) {
+    if (g.de !== 'bio') continue;
+    const partes = g.partes.filter((p) => p.id === id).map((p) => p.texto);
+    if (partes.length > 0) texto = partes.join('\n\n'); // si se mandó dos veces, vale la última
+  }
+  const delBanco = preguntaPorId(id);
+  return texto ?? (delBanco ? renderizar(delBanco.texto, e.ficha) : '');
+}
+
+/**
+ * Llama al cazador por el bloque que se cerró, con lo que lleva la
+ * entrevista (lo ya repreguntado, las escenas contadas y el gasto, para el
+ * tope de USD 3). No toca el estado: lo que devuelve se suma con `sumarCaza`.
+ */
+export function cazarAlCerrar(e: EstadoSimulacion, bloque: number, cliente: ClienteModelo): Promise<ResultadoCaza> {
+  return cazarBloque({
+    cliente,
+    ficha: fichaCorta(e.ficha),
+    bloque,
+    respuestas: new Map(e.respuestas),
+    textoPregunta: (id) => textoMandado(e, id),
+    yaRepreguntado: e.repreguntas ?? [],
+    escenasContadas: e.cazador?.escenasContadas ?? [],
+    gastoUsd: e.cazador?.gastoUsd ?? 0,
+  });
+}
+
+/** Suma lo que devolvió el cazador: las repreguntas entran a la cola (sin repetir clave), y se anotan el gasto, las escenas y la llamada. */
+export function sumarCaza(anterior: EstadoSimulacion, r: ResultadoCaza): EstadoSimulacion {
+  const e = clonar(anterior);
+  if (!r.llamo) return e;
+  const cola = e.repreguntas ?? [];
+  for (const rp of r.repreguntas) if (!cola.some((x) => x.clave === rp.clave)) cola.push(rp);
+  e.repreguntas = cola;
+  const c = (e.cazador ??= { gastoUsd: 0, escenasContadas: [], registro: [] });
+  c.gastoUsd += r.costoUsd;
+  c.escenasContadas.push(...r.escenasContadas);
+  c.registro.push({
+    bloque: r.bloque,
+    llamo: r.llamo,
+    ...(r.motivo ? { motivo: r.motivo } : {}),
+    repreguntas: r.repreguntas.map((x) => x.clave),
+    descartadas: r.descartadas,
+    ...(r.tokens ? { tokens: r.tokens } : {}),
+    costoUsd: r.costoUsd,
+    ...(r.error ? { error: r.error } : {}),
+  });
+  return e;
+}
+
+/** Una línea para la consola: qué cazó y cuánto va. */
+export function lineaCaza(r: ResultadoCaza): string {
+  const que = r.llamo ? `${r.repreguntas.length} repregunta(s)${r.descartadas.length ? `, ${r.descartadas.length} descartada(s)` : ''}${r.motivo ? ` (${r.motivo})` : ''}` : `no llamó (${r.motivo})`;
+  return `cazador, bloque ${r.bloque}: ${que} · USD ${r.costoUsd.toFixed(2)} · acumulado USD ${r.gastoUsd.toFixed(2)}`;
 }
 
 // ---------------------------------------------------------------- md
@@ -315,9 +412,46 @@ export function main(args: string[]): string {
   throw new Error(USO);
 }
 
+/** Si lo último que contestó fue un cierre y el cazador todavía no miró ese bloque, el bloque; si no, undefined. */
+export function bloqueSinCazar(e: EstadoSimulacion): number | undefined {
+  const ultima = e.respuestas.at(-1)?.[0];
+  const p = ultima ? preguntaPorId(ultima) : undefined;
+  if (p?.clase !== 'cierre') return undefined;
+  return e.cazador?.registro.some((x) => x.bloque === p.bloque) ? undefined : p.bloque;
+}
+
+export const ENV_POR_DEFECTO = 'C:\\Users\\Naza\\Desktop\\VITACORA FAMILIAR\\fabrica\\.env';
+
+/**
+ * Con --cazador (apagado por defecto; GASTA PLATA, Opus 5, tope USD 3 por
+ * entrevista): si la respuesta cerró un bloque, llama al cazador y mete lo
+ * que devuelve en la cola. La key sale del .env (--env), nunca se imprime.
+ */
+async function cazarCli(args: string[]): Promise<string | undefined> {
+  const ruta = args[1];
+  const e = leer(ruta);
+  const bloque = bloqueSinCazar(e);
+  if (bloque === undefined) return undefined;
+  process.loadEnvFile(opcion(args, '--env') ?? ENV_POR_DEFECTO);
+  const { default: Anthropic } = await import('@anthropic-ai/sdk');
+  const r = await cazarAlCerrar(e, bloque, new Anthropic() as unknown as ClienteModelo);
+  guardar(ruta, sumarCaza(e, r));
+  return lineaCaza(r);
+}
+
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  const args = process.argv.slice(2);
   try {
-    console.log(main(process.argv.slice(2)));
+    console.log(main(args));
+    if (args[0] === 'responder' && args.includes('--cazador')) {
+      cazarCli(args).then(
+        (linea) => linea && console.error(linea),
+        (err) => {
+          console.error(`ERROR del cazador: ${(err as Error).message}`);
+          process.exit(1);
+        },
+      );
+    }
   } catch (err) {
     console.error(`ERROR: ${(err as Error).message}`);
     process.exit(1);

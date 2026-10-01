@@ -86,7 +86,7 @@ export function aMaterial(e: Estado): Fila[] {
   for (const [pid, crudo] of e.respuestas) {
     const deX = deSegunda(pid) ?? deRepregunta(pid);
     if (deX !== undefined) {
-      pegarA(filas.findLast((f) => f.preguntaId === deX), pid, crudo);
+      pegarA([...filas].reverse().find((f) => f.preguntaId === deX), pid, crudo);
       antes.set(pid, crudo);
       continue;
     }
