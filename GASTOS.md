@@ -11,6 +11,7 @@
 | ~2026-09-16 | Mail de empresa en Hostinger (`soporte@vitacorafamiliar.com`, el que usa Resend/login) | 12€ | Naza | Recurrente (confirmar si anual o mensual) |
 | ~2026-09-03 | Créditos API Anthropic + OpenAI del entrevistador (montos a confirmar por Joaquín) | ~USD 10-20 | Joaquín | Consumible |
 | 2026-09-08 | Prueba dirigida del cerebro contra el set dorado (`npm run prueba-cerebro`) | ~USD 1 | Joaquín | Consumible |
+| 2026-10-01 | Prueba del cazador de escenas v2 (Opus 5, 14 bloques de la entrevista V3 de Naza; `fabrica/scripts/v3-cazador-prueba.ts`) | USD 0,91 | key de Naza | Consumible |
 | — | Vercel, Supabase, Resend, GitHub | USD 0 | — | Gratis (planes free) |
 
 **Total puesto por Naza hasta el 18/09: USD 40 + 47€ ≈ USD 91** (USD 20 de crédito
