@@ -14,10 +14,10 @@ const dep = (id: string) => preguntaPorId(id)!.depende.map((c) => [c, ...(c.y ??
 describe('textos de preguntas aprobados (textos-finales.md, sección 2, con los cambios de PLAN-codigo.md)', () => {
   const APROBADOS: Record<string, string> = {
     // Cambios de PLAN-codigo.md (variantes de Fable a "aunque ya me lo hayas nombrado", aprobadas por Naza).
-    CA6: '¿Tuviste hermanos? Si ya salieron en la charla no importa, quiero saber más: contame con cuál eras más cercan{{o/a}} de chic{{o/a}} y alguna aventura que hayan hecho juntos; seguro tienen varias.',
+    CA6: '¿Tuviste hermanos? Si ya salieron en la charla no importa, quiero saber más: decime sus nombres, contame con cuál eras más cercan{{o/a}} de chic{{o/a}} y alguna aventura que hayan hecho juntos; seguro tienen varias.',
     JU8: '¿Alguna vez te fuiste a vivir a otra ciudad o a otro país? Capaz ya me contaste algo de esa mudanza; ahora contame la llegada: el primer día, dónde dormiste esa noche, quién te esperaba y qué fue lo que más te costó.',
     HI0: 'Ahora vamos a los hijos. ¿Tuviste hijos, o criaste a alguno como si lo fuera? Presentámelos de a uno, incluso si alguno ya apareció en lo que me venís contando: cómo se llama cada uno y cuándo llegó. Y si no tuviste, seguimos por otro lado.',
-    HI8: 'Ahora, los nietos. ¿Llegaron nietos a tu vida? Puede que ya los hayas mencionado; contame el día que conociste al primero, como si lo estuvieras viendo. Si no hay nietos, pasamos a otra cosa.',
+    HI8: 'Ahora, los nietos. ¿Llegaron nietos a tu vida? Puede que ya los hayas mencionado; nombrámelos de a uno, y contame el día que conociste al primero, como si lo estuvieras viendo. Si no hay nietos, pasamos a otra cosa.',
     // Sección 2 de textos-finales.md.
     CA16: 'Contame un día de chic{{o/a}} que esperabas con muchas ganas: qué era, quién estaba, qué pasó. Y si no te vuelve un día en particular, contame qué cosas esperabas con ganas en esa época, que con eso me arreglo.',
     AD5: '¿Te acordás de la primera vez que saliste de noche, a un baile o a una fiesta? Contame cómo te preparaste, con quién fuiste y cómo fue esa noche. Y si la primera no te vuelve, contame cómo eran esas salidas en general.',

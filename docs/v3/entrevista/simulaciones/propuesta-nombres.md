@@ -1,6 +1,6 @@
 # Propuesta: pedir los nombres en la entrevista (Fable, 01/10/2026)
 
-**Qué es:** Naza aclaró que la regla vieja "sin nombres" (`metodo-entrevista.md`) era un malentendido: era que la **pregunta** no nombre a las personas, no que no se le pida al narrador que diga sus nombres. El escritor necesita nombres ("mi vieja", "mi marido" dejan el libro lleno de "él/ella"). Fable redactó el agregado mínimo en la pregunta que presenta a cada persona clave. **Sin aprobar: espera el OK de Naza.** Lo agregado va en negrita.
+**Qué es:** Naza aclaró que la regla vieja "sin nombres" (`metodo-entrevista.md`) era un malentendido: era que la **pregunta** no nombre a las personas, no que no se le pida al narrador que diga sus nombres. El escritor necesita nombres ("mi vieja", "mi marido" dejan el libro lleno de "él/ella"). Fable redactó el agregado mínimo en la pregunta que presenta a cada persona clave. **Aprobada por Naza el 01/10 y aplicada en `banco.md` (test: `fabrica/test/v3-entrevista-nombres.test.ts`).** Lo agregado va en negrita.
 
 Criterio de Fable: donde la persona puede estar viva o no, forma neutra ("con su nombre", "decime su nombre"); "cómo se llamaba" solo donde la relación es de aquella época (maestra, primer amor). Ninguna fórmula se repite. HI0 ya pide los nombres y queda igual. OR1 no (los padres se piden en CA2 y CA3).
 

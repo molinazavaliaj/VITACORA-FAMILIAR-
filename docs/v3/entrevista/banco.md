@@ -102,7 +102,7 @@ Una frase al empezar cada bloque, antes de su primera pregunta; no espera respue
 | ID | Pregunta | Depende de | Parte | Clase | Sensible |
 |---|---|---|---|---|---|
 | OR1 | Empecemos por cuando llegaste al mundo, según te contaron. No el día en sí, sino la época: dónde vivían, en qué andaban tu mamá y tu papá, cómo te esperaban. ¿Qué sabés de cómo era la vida de ellos en ese entonces? Contame. |  | núcleo | historia |  |
-| OR2 | En todas las familias hay una historia de los de antes, de los abuelos o más atrás, que se contaba en las sobremesas: un viaje, una llegada, alguna hazaña. ¿Cuál sabés de tu familia? Contámela como la escuchaste. |  | núcleo | historia |  |
+| OR2 | En todas las familias hay una historia de los de antes, de los abuelos o más atrás, que se contaba en las sobremesas: un viaje, una llegada, alguna hazaña. ¿Cuál sabés de tu familia? Contámela como la escuchaste, con el nombre de quien la vivió. |  | núcleo | historia |  |
 | OR5 | ¿Cómo se conocieron tu mamá y tu papá? Seguro en casa lo contaron más de una vez: un baile, una casualidad, alguien que los presentó. Contame ese día como te lo contaron. |  | núcleo | historia |  |
 | OR6 | ¿Por qué te pusieron {{nombre}}? En las casas siempre hay una historia atrás de un nombre: una discusión, un santo, alguien a quien querían mucho. Contame la que te contaron a vos, aunque sea cortita. |  | núcleo | historia |  |
 | OR6.2 | ¿Tenés o tuviste algún apodo? Si es así, contame cómo nació: quién te lo puso, por qué justo ese, y si te gusta. Casi siempre hay una anécdota atrás. |  | núcleo | historia |  |
@@ -113,11 +113,11 @@ Una frase al empezar cada bloque, antes de su primera pregunta; no espera respue
 | ID | Pregunta | Depende de | Parte | Clase | Sensible |
 |---|---|---|---|---|---|
 | CA1 | Contame el primer recuerdo que tengas de la casa donde creciste: un día, qué estabas haciendo, quién andaba por ahí. |  | núcleo | historia |  |
-| CA2 | Viajemos un rato a cuando eras chic{{o/a}}. ¿Cómo era tu mamá con vos en esa época? Si te viene a la cabeza alguna anécdota con ella, contámela: dónde estaban, qué pasó. |  | núcleo | historia |  |
-| CA3 | ¿Y tu papá? ¿A qué se dedicaba cuando eras chic{{o/a}}? Contame alguna vez que lo acompañaste o lo viste trabajando. Y si tu papá no estuvo, o preferís no entrar, contame lo que vos quieras de él. |  | núcleo | historia |  |
+| CA2 | Viajemos un rato a cuando eras chic{{o/a}}. Presentame a tu mamá con su nombre: ¿cómo era con vos en esa época? Si te viene a la cabeza alguna anécdota con ella, contámela: dónde estaban, qué pasó. |  | núcleo | historia |  |
+| CA3 | ¿Y tu papá? Decime su nombre y a qué se dedicaba cuando eras chic{{o/a}}. Contame alguna vez que lo acompañaste o lo viste trabajando. Y si tu papá no estuvo, o preferís no entrar, contame lo que vos quieras de él. |  | núcleo | historia |  |
 | CA4 | Pensá en el día que alguien de tu casa te enseñó a hacer algo por primera vez: andar en bicicleta, nadar, silbar. Cómo fue ese día. |  | extra | historia |  |
 | CA5 | Vamos a la vez que más te retaron o te castigaron de chic{{o/a}}: qué habías hecho, quién te retó y cómo terminó. |  | extra | historia |  |
-| CA6 | ¿Tuviste hermanos? Si ya salieron en la charla no importa, quiero saber más: contame con cuál eras más cercan{{o/a}} de chic{{o/a}} y alguna aventura que hayan hecho juntos; seguro tienen varias. |  | núcleo | historia |  |
+| CA6 | ¿Tuviste hermanos? Si ya salieron en la charla no importa, quiero saber más: decime sus nombres, contame con cuál eras más cercan{{o/a}} de chic{{o/a}} y alguna aventura que hayan hecho juntos; seguro tienen varias. |  | núcleo | historia |  |
 | CA7 | ¿Y con tus otros hermanos? Contame alguna historia de chicos con alguno de ellos. | si:CA6 | extra | historia |  |
 | CA8 | De chic{{o/a}}, ¿a qué jugabas en casa? Uno se arma un mundo con cualquier cosa: una sábana, un patio, un perro. ¿Te acordás de un día que te quedaste jugando hasta que te llamaron a comer? Contámelo. |  | extra | historia |  |
 | CA9 | ¿Había alguien más que viviera con ustedes o que estuviera siempre en tu casa, como un abuelo, una tía o alguien que ayudaba? Si había alguien, contame alguna vez con esa persona que se te quedó grabada. |  | extra | historia |  |
@@ -135,9 +135,9 @@ Una frase al empezar cada bloque, antes de su primera pregunta; no espera respue
 | ID | Pregunta | Depende de | Parte | Clase | Sensible |
 |---|---|---|---|---|---|
 | ES1 | ¿Cómo fue tu primer día de escuela? ¿Quién te llevó hasta la puerta, y qué sentiste cuando se fue? Si ese día no lo tenés, contame lo primero que te acuerdes de la primaria. |  | núcleo | historia |  |
-| ES2 | ¿Tuviste una maestra o un maestro que te marcó en la primaria? ¿Cómo era con ustedes? Contame una vez con esa persona que no te olvidás: qué pasó en el aula ese día. |  | núcleo | historia |  |
+| ES2 | ¿Tuviste una maestra o un maestro que te marcó en la primaria? ¿Cómo se llamaba? ¿Cómo era con ustedes? Contame una vez con esa persona que no te olvidás: qué pasó en el aula ese día. |  | núcleo | historia |  |
 | ES3 | ¿Cómo eras en la escuela? ¿Te gustaba ir, tenías alguna materia que esperabas? Contame un día de esa época que te quedó grabado: un acto, una prueba, un boletín que llevaste a tu casa. |  | extra | historia |  |
-| ES5 | De chic{{o/a}}, ¿tenías un mejor amigo o una mejor amiga, de la escuela o del barrio? ¿Qué hacían cuando andaban juntos? Contame una tarde con esa persona que todavía te hace sonreír. |  | núcleo | historia |  |
+| ES5 | De chic{{o/a}}, ¿tenías un mejor amigo o una mejor amiga, de la escuela o del barrio? Contame quién era, con nombre, y qué hacían cuando andaban juntos. Contame una tarde con esa persona que todavía te hace sonreír. |  | núcleo | historia |  |
 | ES6 | ¿Cuál fue la travesura más grande que hiciste de chic{{o/a}}, en la escuela o en el barrio? Esa que todavía te da risa, o un poco de vergüenza. Contame cómo fue y si te agarraron. Y si se te vienen más, contalas también. |  | núcleo | historia |  |
 | ES7 | ¿Qué querías ser cuando fueras grande? ¿De dónde te vino esa idea: alguien que veías, algo que pasó? Si te acordás del momento en que lo decidiste, o de quién te lo metió en la cabeza, contámelo. |  | núcleo | historia |  |
 | ES8 | ¿Cómo eran tus veranos de chic{{o/a}}? El calor, los días largos, lo que se hacía en tu casa en esos meses. Contame. |  | núcleo | historia |  |
@@ -157,7 +157,7 @@ Una frase al empezar cada bloque, antes de su primera pregunta; no espera respue
 | AD2b | ¿Qué recordás de tu último año en el colegio, o del último año que fuiste? Es un año que marca. Contame lo que te quedó de esos meses: algún momento, algo que pasó, cómo fue la despedida. |  | extra | historia |  |
 | AD3 | ¿Tenías una barra de amigos a los quince, dieciséis? ¿Cómo eran, qué hacían cuando se juntaban? Contame una noche o una salida con ellos que todavía te acordás. Es una edad que queda marcada: si se te vienen más historias, contalas todas. |  | núcleo | historia |  |
 | AD5 | ¿Te acordás de la primera vez que saliste de noche, a un baile o a una fiesta? Contame cómo te preparaste, con quién fuiste y cómo fue esa noche. Y si la primera no te vuelve, contame cómo eran esas salidas en general. |  | núcleo | historia |  |
-| AD6 | En esos años, ¿cuándo fue la primera vez que alguien te gustó en serio? Contame cómo se conocieron, cómo era esa persona, y un momento de los dos que todavía llevás guardado. |  | núcleo | historia |  |
+| AD6 | En esos años, ¿cuándo fue la primera vez que alguien te gustó en serio? Contame cómo se conocieron, cómo se llamaba, cómo era esa persona, y un momento de los dos que todavía llevás guardado. |  | núcleo | historia |  |
 | AD8 | A esa edad uno choca con los de la casa. ¿Cuál fue la pelea más grande que tuviste con tu mamá o con tu papá? Contame por qué fue y cómo se vivió en tu casa. |  | extra | historia |  |
 | AD9 | ¿En qué lío te metiste de adolescente, de esos que ya no eran travesuras de chic{{o/a}}? Contame qué pasó y quién te sacó del apuro, o cómo saliste. |  | extra | historia |  |
 | AD10 | En esos años, ¿había alguien mayor que te entendía y a quien escuchabas de verdad, un tío, la mamá de un amigo, el amigo de un hermano? Contame cómo era con vos y una vez que estuvo de tu lado cuando lo necesitabas. |  | extra | historia |  |
@@ -198,7 +198,7 @@ Una frase al empezar cada bloque, antes de su primera pregunta; no espera respue
 |---|---|---|---|---|---|
 | AM0 | Ahora vamos al amor. ¿Hubo alguien con quien tuviste una historia en serio? Si hubo, haceme un repaso corto: cuántas veces te enamoraste, cuáles llegaron a algo serio, más o menos en qué años, y si hoy hay alguien a tu lado. Después te pregunto más de la pareja de ahora, o de la última, y de las de antes también va a haber lugar. Y si no hubo, también vale. |  | núcleo | historia |  |
 | AMH | Vamos a la pareja de ahora, o a la última si hoy no hay nadie. ¿Hoy estás en pareja? | si:AM0 | núcleo | historia |  |
-| AM1 | Contame el día que se conocieron: dónde fue, quién los presentó o cómo se cruzaron, y qué fue lo primero que te llamó la atención de esa persona. Si ya me lo contaste, decímelo, y si querés reforzar algo, es el momento. | si:AM0 | núcleo | historia |  |
+| AM1 | Empecemos por su nombre. Y contame el día que se conocieron: dónde fue, quién los presentó o cómo se cruzaron, y qué fue lo primero que te llamó la atención de esa persona. Si ya me lo contaste, decímelo, y si querés reforzar algo, es el momento. | si:AM0 | núcleo | historia |  |
 | AM2 | ¿Cómo fue el noviazgo, o esos primeros tiempos? Pensá en un momento: una cita, un paseo, una tarde que todavía tenés fresca. Contámela como si la vieras de vuelta. Si se te vienen más, contalas también. | si:AM0 | extra | historia |  |
 | AM3 | Y después, ¿llegaron a armar la vida juntos: casarse, irse a vivir, lo que haya sido? Si llegaron, contame ese momento: quién lo dijo primero, o si se fue dando solo, dónde estaban, qué se dijeron. Si ya me lo contaste, decímelo, y si querés reforzar algo, es el momento. | si:AM0 | núcleo | historia |  |
 | AM4 | Hay días que quedan grabados para siempre: el del casamiento, o el primero viviendo juntos. Contame ese día como si lo estuvieras viendo: el lugar, la gente, la ropa, lo que más te quedó. Si ya me lo contaste, decímelo, y si querés reforzar algo, es el momento. | si:AM3 | núcleo | historia |  |
@@ -224,7 +224,7 @@ Una frase al empezar cada bloque, antes de su primera pregunta; no espera respue
 | OF1 | Hay un momento en que uno deja de sentirse nuev{{o/a}} en lo suyo y se da cuenta de que ya sabe. ¿Te pasó? Contame ese día: qué estabas haciendo, quién estaba, qué sentiste. |  | extra | historia |  |
 | MA1 | ¿Hay algo que sepas hacer bien con las manos? Cocinar, arreglar, coser, sembrar, curar, lo que sea. Contame cómo lo hacés, y la última vez que lo hiciste: para quién fue, cómo salió. |  | extra | historia |  |
 | TR2 | Pensá en eso a lo que le diste más años. ¿Cómo era un día común? Desde que arrancabas hasta que terminaba, qué hacías, con quién. Y contame uno de esos días que todavía tengas fresco. |  | núcleo | historia |  |
-| TR3 | ¿Alguien te dio una mano en tu camino? Alguien que te enseñó, te acompañó o te abrió una puerta en lo que hiciste. Contame cómo era esa persona, y una vez con ella que tengas bien clara. |  | núcleo | historia |  |
+| TR3 | ¿Alguien te dio una mano en tu camino? Alguien que te enseñó, te acompañó o te abrió una puerta en lo que hiciste. Contame quién fue, con su nombre, cómo era esa persona, y una vez con ella que tengas bien clara. |  | núcleo | historia |  |
 | OF2 | ¿Hay alguien a quien atendiste, cuidaste o le enseñaste algo, y que no te olvidás? Contame cómo era, y esa vez que te quedó grabada. |  | extra | historia |  |
 | TR5 | ¿Cuál fue el día de trabajo del que estás más orgullos{{o/a}}? No hace falta que haya sido grande: algo que salió bien, que alguien reconoció, o que solo vos sabés lo que costó. Contámelo. Y si no te viene un día puntual, contame de qué parte de tu trabajo estás más orgullos{{o/a}}. |  | núcleo | historia |  |
 | TR4 | ¿Pasaste por un día, o una época, en que lo tuyo se te hizo cuesta arriba? Contame cómo era levantarse entonces, qué te sostenía, y el momento en que sentiste que empezaba a pasar. |  | extra | historia |  |
@@ -256,7 +256,7 @@ Una frase al empezar cada bloque, antes de su primera pregunta; no espera respue
 | HI12 | ¿Cómo eligieron el nombre de cada hijo? De dónde salió, quién lo propuso, si hubo discusión. Contame la historia del nombre, aunque sea corta. | si:HI0 | núcleo | historia |  |
 | HI13 | ¿Qué cosa tuya ves hoy en tus hijos? Un gesto, una manía, una forma de hablar. Contame una vez que lo viste y te diste cuenta. | si:HI0 | extra | historia |  |
 | HI10 | ¿Algún chico o joven fue importante en tu vida? Alguien que viste crecer, a quien le enseñaste algo o tuviste cerca. Contame quién es y una vez con esa persona que no te olvidás. | sino:HI0 | núcleo | historia |  |
-| HI8 | Ahora, los nietos. ¿Llegaron nietos a tu vida? Puede que ya los hayas mencionado; contame el día que conociste al primero, como si lo estuvieras viendo. Si no hay nietos, pasamos a otra cosa. | si:HI0 | núcleo | historia |  |
+| HI8 | Ahora, los nietos. ¿Llegaron nietos a tu vida? Puede que ya los hayas mencionado; nombrámelos de a uno, y contame el día que conociste al primero, como si lo estuvieras viendo. Si no hay nietos, pasamos a otra cosa. | si:HI0 | núcleo | historia |  |
 | HI9 | ¿Hay algo que hacés con tus nietos que es de ustedes, que no lo hacen con nadie más? Un juego, por ejemplo. Contame qué es y una vez que tengas bien grabada. | si:HI8 | núcleo | historia |  |
 | NC1 | A veces a los abuelos les toca criar a un nieto, o tenerlo a cargo un tiempo. Si te pasó, contame cómo se dio y cómo fue el primer día. Y si no te tocó, decímelo y seguimos. | si:HI8 | extra | historia |  |
 | CI8 | Hasta acá lo de la familia de grande. ¿Quedó alguien o algo que no te pregunté? Un cumpleaños, una charla en la cocina, alguien que no entró en ningún lado. Es el momento de contarlo, sin apuro. |  | núcleo | cierre |  |
@@ -279,7 +279,7 @@ Una frase al empezar cada bloque, antes de su primera pregunta; no espera respue
 
 | ID | Pregunta | Depende de | Parte | Clase | Sensible |
 |---|---|---|---|---|---|
-| AS1 | Ya de grande, ¿hubo alguien que conociste y se volvió muy importante en tu vida, un amigo o una amiga? Contame cómo se conocieron, y una vez que muestre bien cómo es esa amistad. |  | núcleo | historia |  |
+| AS1 | Ya de grande, ¿hubo alguien que conociste y se volvió muy importante en tu vida, un amigo o una amiga? Contame de quién hablás, con su nombre, cómo se conocieron, y una vez que muestre bien cómo es esa amistad. |  | núcleo | historia |  |
 | HE2 | Ya de grandes, ¿tus hermanos también se volvieron amigos? Contame algún momento de adultos en que estuvieron bien cerca: un viaje, una charla, una mano que se dieron. | si:CA6 | núcleo | historia |  |
 | AS1b | Volviendo a esa amistad: contame algo que hicieron juntos hace poco. Aunque sea una charla por teléfono. | si:AS1 | extra | historia |  |
 | AY1 | ¿Alguna vez necesitaste ayuda de verdad y alguien te la dio, sea quien sea? Contame qué hizo esa persona ese día, y si después se lo pudiste devolver. |  | núcleo | historia |  |

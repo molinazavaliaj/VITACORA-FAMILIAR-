@@ -21,7 +21,7 @@ const SALIDA = 'Si ya me lo contaste, decímelo, y si querés reforzar algo, es 
 describe('preguntas que dicen en qué época están paradas', () => {
   it('AD6: "En esos años" (antes: "¿Y la primera vez…?", no se sabía si de muy chico o más grande)', () => {
     expect(texto('AD6')).toBe(
-      'En esos años, ¿cuándo fue la primera vez que alguien te gustó en serio? Contame cómo se conocieron, cómo era esa persona, y un momento de los dos que todavía llevás guardado.',
+      'En esos años, ¿cuándo fue la primera vez que alguien te gustó en serio? Contame cómo se conocieron, cómo se llamaba, cómo era esa persona, y un momento de los dos que todavía llevás guardado.',
     );
   });
 
@@ -64,7 +64,7 @@ describe('textos sueltos', () => {
 describe('la salida "si ya me lo contaste", con las palabras de Naza', () => {
   it.each([
     ['AD15', `¿Hubo algún momento duro en tu adolescencia que creas que no puede quedar afuera de tu historia? ¿Algo que te marcó? Si querés, contame qué pasó y cómo lo viviste. ${SALIDA}`],
-    ['AM1', `Contame el día que se conocieron: dónde fue, quién los presentó o cómo se cruzaron, y qué fue lo primero que te llamó la atención de esa persona. ${SALIDA}`],
+    ['AM1', `Empecemos por su nombre. Y contame el día que se conocieron: dónde fue, quién los presentó o cómo se cruzaron, y qué fue lo primero que te llamó la atención de esa persona. ${SALIDA}`],
     ['AM3', `Y después, ¿llegaron a armar la vida juntos: casarse, irse a vivir, lo que haya sido? Si llegaron, contame ese momento: quién lo dijo primero, o si se fue dando solo, dónde estaban, qué se dijeron. ${SALIDA}`],
     ['AM4', `Hay días que quedan grabados para siempre: el del casamiento, o el primero viviendo juntos. Contame ese día como si lo estuvieras viendo: el lugar, la gente, la ropa, lo que más te quedó. ${SALIDA}`],
     ['PA1', `Fuera del trabajo y de la familia, ¿hubo algo que te apasionara de grande? Contame cómo empezó eso, y un día entero que le hayas dedicado, de la mañana a la noche. ${SALIDA}`],

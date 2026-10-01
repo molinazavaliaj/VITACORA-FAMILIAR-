@@ -104,7 +104,7 @@ describe('5. núcleo y extra: G1 y HE2 entran, FI6 sale', () => {
 describe('6. salidas "si ya me lo contaste"', () => {
   it('CA3: para quien no tuvo al papá cerca', () => {
     expect(texto('CA3')).toBe(
-      '¿Y tu papá? ¿A qué se dedicaba cuando eras chic{{o/a}}? Contame alguna vez que lo acompañaste o lo viste trabajando. Y si tu papá no estuvo, o preferís no entrar, contame lo que vos quieras de él.',
+      '¿Y tu papá? Decime su nombre y a qué se dedicaba cuando eras chic{{o/a}}. Contame alguna vez que lo acompañaste o lo viste trabajando. Y si tu papá no estuvo, o preferís no entrar, contame lo que vos quieras de él.',
     );
   });
 
@@ -117,7 +117,7 @@ describe('6. salidas "si ya me lo contaste"', () => {
 
   it('AM1: sin "la primera"', () => {
     expect(texto('AM1')).toBe(
-      'Contame el día que se conocieron: dónde fue, quién los presentó o cómo se cruzaron, y qué fue lo primero que te llamó la atención de esa persona. Si ya me lo contaste, decímelo, y si querés reforzar algo, es el momento.',
+      'Empecemos por su nombre. Y contame el día que se conocieron: dónde fue, quién los presentó o cómo se cruzaron, y qué fue lo primero que te llamó la atención de esa persona. Si ya me lo contaste, decímelo, y si querés reforzar algo, es el momento.',
     );
   });
 });
