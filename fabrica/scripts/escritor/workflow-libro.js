@@ -44,6 +44,9 @@ Devolvé solo "listo" y el número de palabras del archivo que escribiste.`, { l
 // ---------- 1 y 2: registro y plan, con reintentos ----------
 phase('Registro y plan')
 async function conReintentos(paso, llamada, archivo, control, label) {
+  // Si ya está escrito y pasa su control (una corrida anterior que se cortó después), no se rehace.
+  const [ya] = await codigo([`test -f "${DIR}/${archivo}" && ${node('controles.mjs')}" "${DIR}" ${control}`], `¿${control} ya está?`, 'Registro y plan')
+  if (ya.exit === 0) { log(`${control}: ya estaba y pasa`); return true }
   for (let i = 0; i <= 2; i++) {
     const env = i ? `ERROR="${DIR}/controles/${control}.json"` : ''
     await rol(paso, llamada, archivo, { label: `${label}${i ? ` (reintento ${i})` : ''}`, phase: 'Registro y plan', env })

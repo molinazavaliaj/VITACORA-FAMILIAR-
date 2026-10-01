@@ -52,6 +52,14 @@ test('C13: el balance va a Antes de cerrar, no a un capítulo ni afuera', () => 
   assert.ok(c13(q, reg()).some((x) => x.includes('E04 es balance y está en cap_2')));
 });
 
+test('C13: una R compartida entre un episodio y un balance puede ir a Antes de cerrar (piloto 01/10, R66)', () => {
+  const r = reg(); r.episodios[3].ids = ['R09', 'R01'];
+  const p = plan(); p.antes_de_cerrar.ids = ['R09', 'R01'];
+  assert.deepEqual(c13(p, r), []);
+  const q = plan(); q.antes_de_cerrar.ids = ['R09', 'R01'];
+  assert.ok(c13(q, reg()).some((x) => x.includes('E01 no es balance')));
+});
+
 test('C13: cada capítulo tiene hecho_fuerte en escena, y si hay momento clave es ese', () => {
   const p = plan(); delete p.capitulos[0].hecho_fuerte;
   assert.ok(c13(p, reg()).some((x) => x.includes('cap_1: sin hecho_fuerte')));

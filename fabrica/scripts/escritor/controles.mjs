@@ -271,11 +271,13 @@ export function c13(plan, reg) {
   const idsSf = new Set((plan.sus_frases || []).map((f) => f.id));
   const idsCarta = new Set(plan.carta?.ids || []);
   const idsAntes = new Set(plan.antes_de_cerrar?.ids || []);
+  // Una R puede estar en un episodio y en un balance a la vez (variante): esa R va a Antes de cerrar sin culpa del otro episodio.
+  const idsBalance = new Set((reg.episodios || []).filter((e) => e.tipo === 'balance' && !e.no_poner).flatMap((e) => e.ids));
   for (const e of reg.episodios || []) {
     if (e.no_poner) continue;
     const u = usados.get(e.id) || [];
     const enOtro = e.ids.some((i) => idsSf.has(i) || idsCarta.has(i) || idsAntes.has(i));
-    if (e.tipo !== 'balance' && e.ids.some((i) => idsAntes.has(i))) out.push(`C13: el episodio ${e.id} no es balance y está en antes_de_cerrar.ids (ahí va solo el balance)`);
+    if (e.tipo !== 'balance' && e.ids.some((i) => idsAntes.has(i) && !idsBalance.has(i))) out.push(`C13: el episodio ${e.id} no es balance y está en antes_de_cerrar.ids (ahí va solo el balance)`);
     if (e.tipo === 'balance' && !e.ids.every((i) => idsAntes.has(i))) out.push(`C13: el episodio ${e.id} es balance y no está entero en antes_de_cerrar.ids`);
     if (e.tipo === 'balance' && u.length) out.push(`C13: el episodio ${e.id} es balance y está en ${u.join(' y ')} (va a Antes de cerrar)`);
     if (u.length > 1) out.push(`C13: el episodio ${e.id} está en ${u.join(' y ')} (va una sola vez)`);
