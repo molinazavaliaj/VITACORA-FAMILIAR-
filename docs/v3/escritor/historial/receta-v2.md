@@ -1,14 +1,14 @@
 # Receta del escritor (V3, de cero)
 
-**Estado: v3 (01/10): cambios de la prueba 2** ([`prueba-2-receta-v2.md`](prueba-2-receta-v2.md), "Lo que falta corregir"): último capítulo con columna e imagen final; el balance de vida en una pieza propia, "Antes de cerrar" (paso 3d); cotejo respuesta por respuesta antes de entregar (paso 5b); corte de capítulos por hecho fuerte y lectura de referencias colgadas; el verificador no oscila (el registro manda el tiempo verbal; repaso con decisiones anteriores); mensaje para cada persona de la dedicatoria o faltante; una sola ronda de arreglos (Naza: gastar menos). La v2 (cambios de la prueba 1: a quién le habla cada episodio, marcas `[[R..]]`, primera página entera, detalles de cada escena) quedó en [`historial/receta-v2.md`](historial/receta-v2.md). Receta nueva desde el 01/10, no deriva de la v6; sin máximo de palabras por pieza (Naza).
+**Estado: borrador de Fable, 01/10/2026 (receta nueva, no deriva de la v6). Naza (01/10): sin máximo de palabras por pieza. v2 (01/10): cambios de la prueba 1** ([`prueba-1-entrevista-vieja.md`](prueba-1-entrevista-vieja.md): a quién le habla cada episodio y la carta con título; marcas `[[R..]]` de rastreo en cada párrafo; último capítulo con una sola historia; tiempo verbal en las dos direcciones; primera página entera; detalles de cada escena). Aprobados por Naza.
 
 Esta receta hace cumplir la [guía](guia-biografia.md) aprobada por Naza. Son los textos EXACTOS que recibe el modelo en cada paso, más lo que hace el código entre paso y paso. El modelo es el mismo en todos los pasos y no se fija acá.
 
 **Principio (acordado con Naza).** La IA elige, dentro de bordes, y alguien que no es ella controla después. Por eso:
 - Cada prompt es corto: qué hace el paso, sus bordes duros (pocos y chequeables) y uno o dos ejemplos. El oficio entero va como documento: la guía completa entra en cada llamada como `<guia>`, y el prompt dice qué secciones mandan en ese paso.
-- Todo borde tiene quién lo controla: el código (controles C1–C26, abajo), el verificador (paso 4), el lector (paso 5) o el cotejador (paso 5b). Un borde que nadie puede controlar no es un borde: es un deseo, y no está acá.
+- Todo borde tiene quién lo controla: el código (controles C1–C22, abajo), el verificador (paso 4) o el lector (paso 5). Un borde que nadie puede controlar no es un borde: es un deseo, y no está acá.
 - El que escribe no se revisa. El control de hechos y la lectura de corrido los hacen otros roles que no ven las instrucciones del escritor ni el plan. El arreglo dice problema por problema qué cambió, y el código comprueba que el texto marcado cambió de verdad.
-- Si un control falla, la pieza se reescribe entera con los problemas a la vista. Nunca se parcha a mano. Hay una sola ronda de arreglos y, lo que queda abierto después, se entrega en la lista del informe: se dice, no se disimula.
+- Si un control falla, la pieza se reescribe entera con los problemas a la vista. Nunca se parcha a mano. Hay tope de reintentos y, si se agota, el libro se entrega con la lista de lo que quedó abierto: se dice, no se disimula.
 
 **Regla para quien edite esta receta:** los ejemplos son inventados (Nélida, la mercera de la guía, u otro ficticio). Nunca sale nada de la vida de un narrador real.
 
@@ -26,15 +26,13 @@ Esta receta hace cumplir la [guía](guia-biografia.md) aprobada por Naza. Son lo
 | 3a | **La primera página** (rol: escritor) | modelo | `primera_pagina.md` |
 | 3b | **Capítulos, uno por uno en orden**, cada uno con lo ya escrito y la ficha de voz releída | modelo | `capitulo_NN.md` |
 | 3c | **La carta** | modelo | `carta.md` |
-| 3d | **Antes de cerrar** (el balance de vida, si el plan trae `antes_de_cerrar.ids`) | modelo | `antes_de_cerrar.md` |
-| 3e | Arma "Sus frases" desde el plan (C6 sobre cada frase) y los controles de forma y de rastreo sobre cada pieza (C1–C3, C5–C8, C10, C15, C17, C18, C20–C23). Lo que falla vuelve a 3 como arreglo (paso 6) | código | libro entero (con marcas `[[R..]]`) |
+| 3d | Arma "Sus frases" desde el plan (C6 sobre cada frase) y los controles de forma y de rastreo sobre cada pieza (C1–C3, C5–C8, C10, C15, C17, C18, C20–C22). Lo que falla vuelve a 3 como arreglo (paso 6) | código | libro entero (con marcas `[[R..]]`) |
 | 4 | **Control de hechos** (otro rol: verificador; ve guía, ficha, respuestas, registro y libro CON marcas; no ve el plan ni los prompts del escritor) | modelo | `hechos.json` |
-| 5 | **Lectura de corrido** (otro rol: lector exigente; ve guía, libro SIN marcas y `<referencias>` (C25); no ve el material) | modelo | `lectura.json` |
-| 5b | **Cotejo** (otro rol: cotejador; ve respuestas y libro CON marcas; no ve el plan, el registro ni la guía entera) | modelo | `cotejo.json` |
-| 6 | **Arreglo, una sola ronda**: por pieza con problemas, una llamada con el prompt de escritura de esa pieza + `<problemas>` (código, verificador, lector y cotejo juntos); devuelve la pieza entera (con marcas) y la lista de cambios. El código verifica (C9) y vuelve a pasar C1–C24 y el **repaso** del paso 4 (con `<decisiones_anteriores>`) sobre la pieza cambiada. Lo que queda abierto después del repaso va al informe | modelo + código | piezas corregidas |
-| 7 | Borra las marcas e imprime; informe para Naza: `faltantes` del plan, problemas abiertos, lo que el cotejo encontró y no entró, oscilaciones del verificador (C26), disputas resueltas en contra del escritor, falsas alarmas del código | código | `libro.md`, `informe.md` |
+| 5 | **Lectura de corrido** (otro rol: lector exigente; ve guía y libro SIN marcas; no ve el material) | modelo | `lectura.json` |
+| 6 | **Arreglo**: por pieza con problemas, una llamada con el prompt de escritura de esa pieza + `<problemas>`; devuelve la pieza entera (con marcas) y la lista de cambios. El código verifica (C9) y vuelve a pasar C1–C22 y el paso 4 sobre la pieza cambiada. Máx. 2 rondas; 3.ª: reescritura de cero con `<evitar>`; si sigue, va al informe | modelo + código | piezas corregidas |
+| 7 | Borra las marcas e imprime; informe para Naza: `faltantes` del plan, problemas abiertos, disputas resueltas en contra del escritor, falsas alarmas del código | código | `libro.md`, `informe.md` |
 
-Orden del libro: título del libro, la primera página (sin título propio), capítulos, "Antes de cerrar" (si hay), "Sus frases" (si hay), la carta (con su título, si hay).
+Orden del libro: título del libro, la primera página (sin título propio), capítulos, "Sus frases" (si hay), la carta (con su título, si hay).
 
 ---
 
@@ -48,24 +46,20 @@ Documentos primero, siempre en este orden (lo que se repite entre llamadas queda
 <respuestas>…</respuestas>         cada una: id R01…, pregunta, bloque, texto (sin las "paso")
 <registro>…</registro>             desde el paso 2
 <plan>…</plan>                     desde el paso 3 (no en el 4 ni en el 5)
-<libro_hasta_aca>…</libro_hasta_aca>   en 3b, 3c, 3d y 6: las piezas ya escritas, en orden
-<libro>…</libro>                   en 4 y 5b: el libro entero con marcas [[R..]]; en 5: sin marcas
-<referencias>…</referencias>       solo en 5: las oraciones con "ese día", "ahí", "esa casa"… que lista el código (C25)
-<decisiones_anteriores>…</decisiones_anteriores>   solo en el repaso del 4: los problemas de la ronda anterior de esa pieza, con su corrección y si se cambió
-<voz>…</voz>                       en 3a, 3b, 3c, 3d y 6: la ficha de voz del registro, copiada entera
+<libro_hasta_aca>…</libro_hasta_aca>   en 3b, 3c y 6: las piezas ya escritas, en orden
+<libro>…</libro>                   en 4: el libro entero con marcas [[R..]]; en 5: sin marcas
+<voz>…</voz>                       en 3a, 3b, 3c y 6: la ficha de voz del registro, copiada entera
 <problemas>…</problemas>           solo en 6
 INSTRUCCIONES DEL PASO
 ```
-
-El paso 5b (cotejo) es distinto: recibe solo `<respuestas>` y `<libro>` con marcas, y de la guía nada más que las secciones 9 y 10. El paso 3d (Antes de cerrar) recibe lo mismo que la carta.
 
 Antes de `<guia>` va esta línea fija: `Los ejemplos de la guía son de una narradora inventada (Nélida). Quien narra en este libro es otra persona: su nombre, su género y su trato están en la ficha.`
 
 `<voz>` es el bloque `voz` del registro, copiado tal cual, puesto justo antes de las instrucciones en cada llamada de escritura. Es la "ficha releída antes de cada capítulo" del anexo A3: el modelo la tiene al lado de lo que escribe, no enterrada en el registro.
 
-En el paso 4, el 5 y el 5b no entra `<plan>` ni ningún prompt de escritura: el verificador, el lector y el cotejador no saben qué se le pidió al escritor; juzgan lo que hay.
+En el paso 4 y el 5 no entra `<plan>` ni ningún prompt de escritura: el verificador y el lector no saben qué se le pidió al escritor; juzgan lo que hay.
 
-**Marcas de rastreo.** En 3a, 3b, 3c, 3d y en el arreglo, el escritor cierra cada párrafo con `[[R12,R15]]`: los ids de las respuestas que usó en ese párrafo. Con ellas el código controla que todo entró (C18), el verificador sabe contra qué respuesta mirar cada párrafo y el cotejador sabe a qué pieza mandar lo que falta. El código las borra antes de la lectura de corrido (paso 5) y antes de imprimir. Una frase de "Sus frases" lleva su id en el plan, no marca.
+**Marcas de rastreo.** En 3a, 3b, 3c y en el arreglo, el escritor cierra cada párrafo con `[[R12,R15]]`: los ids de las respuestas que usó en ese párrafo. Con ellas el código controla que todo entró (C18) y el verificador sabe contra qué respuesta mirar cada párrafo. El código las borra antes de la lectura de corrido (paso 5) y antes de imprimir. Una frase de "Sus frases" lleva su id en el plan, no marca.
 
 Huecos que llena el código: `{{N}}`, `{{TITULO}}` (título impreso del capítulo), `{{NOMBRE}}` (nombre de pila de quien narra, de la ficha).
 
@@ -85,8 +79,8 @@ Bordes:
 2. Una persona, un id: nombre, apodos y relación juntos. Si la ficha confirmó que dos nombres son la misma persona, es una. Si no se puede saber, van separadas y una duda.
 3. Toda persona, lugar, trabajo, pareja, proyecto y episodio lleva "estado": "termino", "sigue_hoy" o "no_se_sabe". "sigue_hoy" solo si lo dice una respuesta del presente o la ficha. Lo que es verdad hoy va además en "hoy"; lo que sigue siendo verdad de una persona, dicho en presente ("no fuma"), en sus "rasgos_hoy".
 4. Un episodio por historia aunque la haya contado en varias respuestas: la mejor contada de base, lo demás en "variantes", todos los ids. Anécdotas parecidas (tres veranos) son un episodio con variantes. Si es escena, "detalles" lleva TODOS los detalles concretos que dio (objetos, lugares, frases dichas, gestos, cantidades), cortos y con sus palabras.
-5. Ninguna respuesta queda sin lugar: cada id está en un episodio (episodio, dato, reflexión, gusto, mensaje o balance) o en "sin_lugar" con motivo.
-6. Cada episodio dice a quién le habla: "familia" (deseo, consejo, agradecimiento o pedido a los suyos, aunque suene a reflexión), "lector" o "nadie"; y a quién nombra, en "a_quien_nombres". Lo que dice de su vida entera mirando para atrás (la prueba más dura, en qué o en quién se apoyó, los altibajos, cómo se ve, qué espera de lo que viene) es tipo "balance", no "reflexion"; si se lo dice a los suyos, sigue siendo "mensaje".
+5. Ninguna respuesta queda sin lugar: cada id está en un episodio (episodio, dato, reflexión, gusto o mensaje) o en "sin_lugar" con motivo.
+6. Cada episodio dice a quién le habla: "familia" (deseo, consejo, agradecimiento o pedido a los suyos, aunque suene a reflexión), "lector" o "nadie"; y a quién nombra, en "a_quien_nombres".
 7. Fechas y edades como las dijo, "segura": true solo si dijo el número o está en la ficha. No calculás años.
 8. Lo que dijo con duda ("creo", "no sé si"), lo que contradice otra respuesta y los nombres que suenan mal transcriptos van a "dudas", no como hecho. Las frases que el audio cortó van a "frases_cortadas", con el cierre posible si lo dijo entero en otra respuesta.
 9. La ficha de voz: 15 a 20 frases textuales (copiadas; solo se sacan muletillas) que muestren cómo habla, sus palabras propias, sus dichos, si vosea o tutea.
@@ -95,7 +89,6 @@ Bordes:
 Mal: Raúl (marido, chapista) con estado "sigue_hoy" porque ella dice "Raúl es muy terco". → Bien: estado "termino" (R40: murió en 2014), y "Raúl es muy terco" en la ficha de voz como ejemplo de cómo habla de él.
 Mal: "Lo que les diría a mis hijos es que no se peleen por la casa" como tipo "reflexion", a_quien "nadie". → Bien: tipo "mensaje", a_quien "familia", a_quien_nombres ["Marcela", "Gustavo", "Pablo"].
 Mal: la noche de la calculadora, detalles []. → Bien: ["la calculadora en la mesa de la cocina", "que sumara yo", "no daba", "Tito ladró por el camión de la basura"].
-Mal: "Lo más duro fue quedarme sola con el negocio; me apoyé en Chiche y en el bastidor" como tipo "reflexion". → Bien: tipo "balance", a_quien "nadie" (habla de su vida entera, no de una escena ni a los suyos).
 
 Devolvé solo el JSON del esquema.
 ```
@@ -129,7 +122,7 @@ Esquema de salida (`registro.json`):
 }
 ```
 
-Valores cerrados: `tipo` ∈ episodio | dato | reflexion | gusto | mensaje | balance (lo que dice de su vida entera mirando para atrás; va a la pieza "Antes de cerrar", no a "Sus frases" ni al último capítulo). `momento_clave` ∈ "" | alto | bajo | giro | mas_temprano | infancia | adolescencia | decision_dificil. `estado` ∈ termino | sigue_hoy | no_se_sabe. `dudas.tipo` ∈ nombre | fecha | identidad | contradiccion | transcripcion. `a_quien` ∈ familia | lector | nadie. `detalles`: solo en episodios con `es_escena: true` (en los demás, `[]`). `rasgos_hoy`: lo que sigue siendo verdad de esa persona, dicho en presente, con ids. `confirmados`: una entrada por cada línea de `<confirmado_por_el_narrador>`, con dónde quedó usada.
+Valores cerrados: `tipo` ∈ episodio | dato | reflexion | gusto | mensaje. `momento_clave` ∈ "" | alto | bajo | giro | mas_temprano | infancia | adolescencia | decision_dificil. `estado` ∈ termino | sigue_hoy | no_se_sabe. `dudas.tipo` ∈ nombre | fecha | identidad | contradiccion | transcripcion. `a_quien` ∈ familia | lector | nadie. `detalles`: solo en episodios con `es_escena: true` (en los demás, `[]`). `rasgos_hoy`: lo que sigue siendo verdad de esa persona, dicho en presente, con ids. `confirmados`: una entrada por cada línea de `<confirmado_por_el_narrador>`, con dónde quedó usada.
 
 | Borde | Quién controla |
 |---|---|
@@ -138,7 +131,7 @@ Valores cerrados: `tipo` ∈ episodio | dato | reflexion | gusto | mensaje | bal
 | 3 estado en todo; "hoy"; rasgos_hoy | C14 (campo presente); verificador (presente y pasado contra material) |
 | 4 un episodio por historia; detalles de cada escena | lector (repetido); C14 (escena con `detalles` vacío → error); C22 en el texto |
 | 5 ningún id sin lugar | C14; C18 en el texto |
-| 6 a quién le habla; balance | C14 (campo presente; a_quien_nombres son personas del registro); C19 en el plan y el texto; C13 y C23 (cada `balance` en "Antes de cerrar") |
+| 6 a quién le habla | C14 (campo presente; a_quien_nombres son personas del registro); C19 en el plan y el texto |
 | 7 fechas sin calcular | C14 (`segura` true solo si el número está en sus ids o en la ficha) |
 | 8 dudas y frases cortadas | C14 (todo "…" de una respuesta usada tiene entrada en frases_cortadas) |
 | 9 ficha de voz textual | C14 (cada frase es subsecuencia de su id; 15–20) |
@@ -153,20 +146,19 @@ Sos el editor. Con el registro armás el plan del libro: qué capítulos hay, qu
 
 Bordes:
 1. Cada capítulo tiene un hilo en una oración con un verbo de cambio, dicho con palabras del registro (de quien narra o de lo que repite), y por lo menos un episodio con es_escena true. Una etapa sin escena no es capítulo: sus episodios van al capítulo vecino.
-2. Cada episodio del registro va a un solo lugar: a un capítulo con una forma (escena, resumen, media_linea o remate: una reflexión pegada a la escena que la explica), a sus_frases, a carta, o a antes_de_cerrar (todos los "balance", en el orden en que se leen mejor). Ninguno queda afuera, salvo los de no_poner.
-3. Los momentos clave del registro (alto, bajo, giro, más temprano, decisión difícil) van como escena, nunca como resumen. Cada capítulo tiene un "hecho_fuerte": su episodio más fuerte, en escena (uno de sus momentos clave, si tiene). El capítulo se corta donde cae un hecho, no donde cambia una época.
+2. Cada episodio del registro va a un solo capítulo, con una forma: escena, resumen, media_linea, remate (una reflexión pegada a la escena que la explica), sus_frases o carta. Ninguno queda afuera, salvo los de no_poner.
+3. Los momentos clave del registro (alto, bajo, giro, más temprano, decisión difícil) van como escena, nunca como resumen.
 4. La primera página usa TODO lo de "como_se_presenta" y "cosas_concretas_suyas" que no se cuente en un capítulo: al terminarla, el lector sabe qué hace, de dónde es y cómo es. Nada que terminó contado como de hoy; ningún golpe para impactar.
-5. Título del libro y de cada capítulo: una frase textual del registro (con id) que tenga una cosa que se pueda ver, o uno armado solo con palabras que quien narra usó. El de un capítulo sale de su hecho_fuerte, nunca de lo más chico. Si no hay, vacío: el código pone la etapa y los años. Nunca una valoración, un nombre que el lector no conoce todavía ni el final del capítulo.
+5. Título del libro y de cada capítulo: una frase textual del registro (con id) que tenga una cosa que se pueda ver, o uno armado solo con palabras que quien narra usó. Si no hay, vacío: el código pone la etapa y los años. Nunca una valoración, un nombre que el lector no conoce todavía ni el final del capítulo.
 6. Apertura y cierre de cada capítulo con tipo. Dos capítulos seguidos no repiten tipo de apertura ni de cierre.
 7. Cada persona se presenta en un solo capítulo: el primero donde hace algo. Antes de ese, solo nombre y relación.
-8. El último capítulo cuenta UNA sola historia: un episodio sigue_hoy con es_escena true; si no hay ninguno, el episodio escena más reciente. Lleva "columna" (una oración con palabras suyas: qué une lo que se cuenta de hoy) e "imagen_final" (una cosa que se pueda ver, de un episodio sigue_hoy o del bloque "hoy"; el capítulo cierra ahí). Las reflexiones y gustos de hoy van al capítulo donde se la ve hacerlo o de remate de su escena; en el último, como máximo dos que no sean media línea.
-9. Todo episodio con a_quien "familia" va a "carta.ids"; si además es parte de una escena, también en media línea en su capítulo, con otras palabras. La carta lleva título (una frase suya o "Para los míos") y "para_personas": a quiénes está dedicado el libro (ficha). Si a alguna no la nombra ningún episodio "familia", va un faltante; el mensaje nunca se inventa.
-10. Lo que el material no trae (una etapa sin escena, un hoy sin momento, una duda que deja vago un capítulo, un mensaje que falta) va en "faltantes": se dice, no se disimula.
+8. El último capítulo cuenta UNA sola historia: un episodio sigue_hoy con es_escena true; si no hay ninguno, el episodio escena más reciente. Las reflexiones y gustos de hoy van al capítulo donde se la ve hacerlo o de remate de su escena; en el último, como máximo dos que no sean media línea.
+9. Todo episodio con a_quien "familia" va a "carta.ids"; si además es parte de una escena, también en media línea en su capítulo, con otras palabras. La carta lleva título: una frase suya o "Para los míos" / "Antes de cerrar".
+10. Lo que el material no trae (una etapa sin escena, un hoy sin momento, una duda que deja vago un capítulo) va en "faltantes": se dice, no se disimula.
 
 Mal: capítulo "La mercería", doce episodios, hilo "sus años en la mercería". → Bien: hilo "cómo la mercería pasó de ser el sueño de Raúl a ser mi lugar" (lo dijo así en R14 y R22), escena ancla: la noche de la calculadora (E07).
-Mal: capítulo "Los años ochenta", título "El billete viejo" (E15, media línea) cuando lo fuerte es la inundación del 86 (E12, decisión difícil). → Bien: hecho_fuerte E12, título "Los carreteles al sol" (R27, de E12).
-Mal: último capítulo "Hoy", con "lo que heredé de mamá", "mis gustos", "la mesa de los míos" y "lo más duro fue quedarme sola con el negocio". → Bien: último capítulo "Dos cuadras hasta lo de Marcela", hilo: la primera vez que fue sola a la casa nueva (E31, sigue_hoy, es_escena), columna "ahora la que camina soy yo" (R70), imagen_final: la llave colgada al lado de la puerta (E31, R71); "lo que heredé de mamá" de remate en el capítulo de la infancia; los gustos en la tarde con el bastidor (E29); "lo más duro…" (E48, balance) en antes_de_cerrar.ids.
-Mal: "Que Gustavo no se pelee más con Pablo por la casa" (E44, familia) solo como remate del capítulo de la casa. → Bien: E44 en carta.ids; en ese capítulo, media línea. Y si el libro es para los tres hijos y ningún episodio familia nombra a Pablo: faltante "la entrevista no trae un mensaje para Pablo".
+Mal: último capítulo "Hoy", con "lo que heredé de mamá", "mis gustos", "la mesa de los míos" y "qué pienso de la soledad". → Bien: último capítulo "Dos cuadras hasta lo de Marcela", hilo: la primera vez que fue sola a la casa nueva (E31, sigue_hoy, es_escena); "lo que heredé de mamá" de remate en el capítulo de la infancia; los gustos en el tramo de la tarde con el bastidor (E29).
+Mal: "Que Gustavo no se pelee más con Pablo por la casa" (E44, familia) solo como remate del capítulo de la casa. → Bien: E44 en carta.ids; en ese capítulo, media línea.
 
 Devolvé solo el JSON del esquema.
 ```
@@ -182,35 +174,31 @@ Esquema de salida (`plan.json`):
     "titulo": {"texto": "", "id": "", "armado_con_ids": []},
     "etapa": "", "anios": {"desde": "", "hasta": "", "seguros": true},
     "hilo": "", "hilo_ids": [],
-    "hecho_fuerte": "E..",
     "apertura": {"tipo": "escena", "episodio": "E.."},
     "cierre": {"tipo": "gesto", "episodio": "E..", "frase_id": ""},
     "piezas": [{"episodio": "E..", "forma": "escena", "pegado_a": ""}],
     "presenta": ["P01"], "nombra_sin_presentar": ["P03"],
-    "es_ultimo": false, "hilo_de_hoy_ids": [],
-    "columna": {"texto": "", "ids": []},
-    "imagen_final": {"episodio": "E..", "frase_id": "R..", "que": ""}
+    "es_ultimo": false, "hilo_de_hoy_ids": []
   }],
-  "antes_de_cerrar": {"ids": []},
   "sus_frases": [{"id": "", "texto": "", "contexto": ""}],
-  "carta": {"titulo": "", "titulo_id": "", "para": "", "para_personas": ["P.."], "ids": [], "cierre": {"id": "", "texto": ""}},
+  "carta": {"titulo": "", "titulo_id": "", "para": "", "ids": [], "cierre": {"id": "", "texto": ""}},
   "faltantes": [{"que": "", "donde": ""}]
 }
 ```
 
-Valores cerrados: `apertura.tipo` y `cierre.tipo` ∈ escena | objeto | persona_entra | dia_comun | fecha | frase_suya | gesto. `forma` ∈ escena | resumen | media_linea | remate. Los episodios que van a "Sus frases", a la carta o a "Antes de cerrar" no están en `piezas`, salvo un episodio "familia" que además es parte de una escena: ese está en `carta.ids` y en `piezas` como `media_linea`. `hecho_fuerte`: un episodio de `piezas` con forma `escena`. `columna` e `imagen_final`: solo en el capítulo con `es_ultimo: true` (en los demás, `columna.texto` vacío e `imagen_final.episodio` vacío); `imagen_final.episodio` está en `piezas`, es `sigue_hoy` o tiene ids del bloque "hoy", y es el `cierre.episodio`. `antes_de_cerrar.ids`: los ids R de todos los episodios `balance`, en el orden en que se leen; si no hay ninguno, `[]` y la pieza no existe. `primera_pagina.que_dice_de_si_ids`: todos los ids de `como_se_presenta` y `cosas_concretas_suyas` que no estén en una pieza de capítulo. `carta.titulo`: frase suya (con `titulo_id`) o "Para los míos" (sin id); nunca "Antes de cerrar", que es otra pieza; el código imprime `# <titulo>`. `carta.para_personas`: ids de persona del registro que la ficha nombra en "Para quién es el libro". `contexto` de Sus frases: hasta 20 palabras, solo lo que el material dice.
+Valores cerrados: `apertura.tipo` y `cierre.tipo` ∈ escena | objeto | persona_entra | dia_comun | fecha | frase_suya | gesto. `forma` ∈ escena | resumen | media_linea | remate. Los episodios que van a "Sus frases" o a la carta no están en `piezas`, salvo un episodio "familia" que además es parte de una escena: ese está en `carta.ids` y en `piezas` como `media_linea`. `primera_pagina.que_dice_de_si_ids`: todos los ids de `como_se_presenta` y `cosas_concretas_suyas` que no estén en una pieza de capítulo. `carta.titulo`: frase suya (con `titulo_id`) o "Para los míos" / "Antes de cerrar" (sin id); el código imprime `# <titulo>`. `contexto` de Sus frases: hasta 20 palabras, solo lo que el material dice.
 
 | Borde | Quién controla |
 |---|---|
 | 1 hilo con verbo de cambio y escena | C13 (≥1 pieza escena por capítulo; `hilo_ids` no vacío); lector (sin_hilo) |
-| 2 cada episodio una vez; los balance a antes_de_cerrar | C13 (cada episodio `balance` está en `antes_de_cerrar.ids`); C23 en el texto |
-| 3 momentos clave en escena; hecho_fuerte | C13 (cada `momento_clave` como escena; cada capítulo tiene `hecho_fuerte` en sus piezas como escena y, si hay momentos clave, es uno de ellos) |
+| 2 cada episodio una vez | C13 |
+| 3 momentos clave en escena | C13 |
 | 4 primera página entera | C13 (cada id de `como_se_presenta` y `cosas_concretas_suyas` está en `primera_pagina` o en una pieza); verificador (presente); lector (primera_pagina: al terminarla no se sabe quién es) |
-| 5 títulos textuales o con palabras suyas; sin valoración; del hecho fuerte | C12 (también el de la carta; si `titulo.id` no está vacío, es un id del `hecho_fuerte`) |
+| 5 títulos textuales o con palabras suyas; sin valoración | C12 (también el de la carta) |
 | 6 variedad de apertura y cierre | C13 |
 | 7 una presentación por persona | C13 (cada P en `presenta` de un solo capítulo); C17 en el texto |
-| 8 último capítulo con una sola historia, columna e imagen final | C13 (`hilo_de_hoy_ids` con un episodio `sigue_hoy` y `es_escena`, o, si no existe ninguno, el episodio escena más reciente de la línea de tiempo; `columna.texto` no vacío; `imagen_final.episodio` en sus piezas, `sigue_hoy` o con ids de "hoy", y es el `cierre.episodio`); C20 (máx. 2 piezas reflexion/gusto que no sean media_linea en el plan; en el texto, máx. 2 párrafos solo de reflexion/gusto/balance y el último párrafo con un id de `imagen_final`); C15 en el texto |
-| 9 carta: todo lo de "familia", con título; un mensaje por persona dedicada | C19 (cada episodio `a_quien: familia` está en `carta.ids`; cada persona de `para_personas` sin episodio familia que la nombre tiene su faltante; después, cada R de esos episodios está en una marca de la carta); C12 (título); C13 (`carta.titulo` distinto de "Antes de cerrar") |
+| 8 último capítulo con una sola historia | C13 (`hilo_de_hoy_ids` con un episodio `sigue_hoy` y `es_escena`, o, si no existe ninguno, el episodio escena más reciente de la línea de tiempo); C20 (máx. 2 piezas reflexion/gusto que no sean media_linea, en el plan y en el texto); C15 en el texto |
+| 9 carta: todo lo de "familia", con título | C19 (cada episodio `a_quien: familia` está en `carta.ids`; después, cada R de esos episodios está en una marca de la carta); C12 (título) |
 | 10 faltantes | va al informe |
 
 ### Paso 2b · Lo que arma el código después del plan
@@ -219,9 +207,7 @@ Valores cerrados: `apertura.tipo` y `cierre.tipo` ∈ escena | objeto | persona_
 - **Sin máximo de palabras (Naza, 01/10):** el largo de cada pieza lo da lo que la persona contó. No hay tope ni meta; lo único que se controla es que no se estire (el lector marca `relleno`: repetir con otras palabras).
 - **"Sus frases"**: lo arma el código desde `plan.sus_frases`: cada frase pasa C6 (textual); el `contexto` lo escribió el plan y lo revisa el verificador como cualquier otra oración.
 - **Título de la carta:** el código imprime `# <carta.titulo>` arriba de la carta, después de "Sus frases".
-- **Título de "Antes de cerrar":** el código imprime `# Antes de cerrar` arriba de esa pieza, después del último capítulo y antes de "Sus frases". Si `antes_de_cerrar.ids` está vacío, la pieza no existe y el paso 3d no corre.
-- **Dónde va cada R** (para C18): el código arma, desde el plan y el registro, la tabla R → pieza (capítulo de su episodio, `sus_frases`, `carta`, `antes_de_cerrar` o `primera_pagina`); si un R está en dos piezas (episodio "familia" con media línea), vale cualquiera de las dos.
-- **Referencias colgadas** (para C25): nada que armar acá; el código las lista sobre el libro sin marcas, antes del paso 5.
+- **Dónde va cada R** (para C18): el código arma, desde el plan y el registro, la tabla R → pieza (capítulo de su episodio, `sus_frases`, `carta` o `primera_pagina`); si un R está en dos piezas (episodio "familia" con media línea), vale cualquiera de las dos.
 
 ### Paso 3a · La primera página
 
@@ -267,7 +253,7 @@ Bordes:
 1. El hilo es el del plan. Entran todos los episodios del capítulo, en el orden y con la forma del plan: la escena entera y de una vez, con TODOS los "detalles" de su episodio; el resumen con los detalles que dio, hasta tres párrafos seguidos sin algo concreto; la media línea pegada a la historia a la que pertenece; el remate al cierre de su escena. Ningún episodio de otro capítulo.
 2. Nada que no esté en los ids de los episodios del capítulo o en la ficha: ni dato, ni nombre, ni fecha, ni lugar, ni diálogo, ni sentimiento, ni motivo. Lo dudoso, vago; lo que no dijo, no se calcula.
 3. Lo que terminó, en pasado. Lo que el registro tiene en "hoy" o en "rasgos_hoy", en presente.
-4. Abre como dice el plan, sin resumir lo que viene ni ubicar con molde; cierra como dice el plan, sin explicar lo que significó ni anunciar lo que sigue. En el último capítulo, la "columna" del plan es lo que une cada párrafo, y el último párrafo es la "imagen_final": el libro termina en algo que se ve, no en una conclusión.
+4. Abre como dice el plan, sin resumir lo que viene ni ubicar con molde; cierra como dice el plan, sin explicar lo que significó ni anunciar lo que sigue.
 5. Las personas que el plan presenta acá entran haciendo algo, de a una, con su relación y un detalle que dio; las ya presentadas, solo el nombre; las que se presentan después, nombre y relación. Ninguna lista de nombres, pero nadie se cae: los que no tienen historia van en media línea, con sus nombres.
 6. Sus palabras: sin adjetivos de catálogo, metáforas ni sentimientos con nombre que no dijo; sin las palabras ni los moldes del anexo A2; diálogo con raya; sin gerundio de posterioridad; el trato (vos o tú) de la ficha de voz.
 7. Lo delicado, como lo contó, con el detalle que dio y nada más. Lo de no_poner, no está.
@@ -277,7 +263,6 @@ Bordes:
 Mal: "Con el transcurrir de los años, mi hija Marcela se convirtió en mi principal sostén." → Bien: "La nena, con los años, fue la que me bancó. Marcela, digo; para mí sigue siendo la nena. [[R33]]"
 Mal (escena con detalles afuera): "Una noche Raúl me hizo sumar y no daba." cuando el episodio tiene la calculadora, la mesa de la cocina, Tito y el camión de la basura. → Bien: la escena con los cuatro.
 Mal (cierre): "Y así fue como entendí que la familia es lo más importante." → Bien: "Raúl guardó la calculadora en el cajón y nunca más la sacó."
-Mal (último capítulo): termina con "Y hoy, mirando para atrás, creo que hice lo que pude." → Bien: termina con la llave de la casa nueva colgada al lado de la puerta, como dice imagen_final.
 
 Devolvé solo el capítulo en markdown, empezando con "# {{TITULO}}".
 ```
@@ -287,7 +272,7 @@ Devolvé solo el capítulo en markdown, empezando con "# {{TITULO}}".
 | 1 hilo, episodios, formas y detalles del plan | lector (sin_escena, repetido); C7 (6+ palabras repetidas entre piezas); C22 (≥70 % de los detalles de cada escena en el texto) |
 | 2 nada sin respaldo | verificador (inventado, nombre, fecha, lugar, cita, motivo, sentimiento); C4, C5, C6 |
 | 3 pasado / presente en las dos direcciones | verificador (presente, pasado), con "hoy" y "rasgos_hoy" del registro |
-| 4 apertura y cierre; columna e imagen final en el último | lector (apertura_repetida, molde, cierre_explica, bolsa); C1 (moldes de A2 y cierres "y así…"); C20 (último párrafo del último capítulo con un id de `imagen_final`; máx. 2 párrafos solo de reflexion/gusto/balance) |
+| 4 apertura y cierre | lector (apertura_repetida, molde, cierre_explica); C1 (moldes de A2 y cierres "y así…") |
 | 5 personas; nadie se cae | C17; C21 (cada persona con hechos está en el libro por nombre o apodo); lector (persona_dos_veces, lista, sin_presentar) |
 | 6 voz y castellano | C1 (A2), C10 (A6); lector (no_suena, ia, deriva) |
 | 7 delicado y no_poner | verificador (delicado) |
@@ -324,36 +309,6 @@ Devolvé solo el texto en markdown, sin título.
 | 5 encabezado y cierre | C6 (la frase de cierre es textual); el título lo imprime el código desde `carta.titulo` |
 | 6 marcas; todo entra | C18, C19; lector (relleno) |
 
-### Paso 3d · Antes de cerrar
-
-Solo si `plan.antes_de_cerrar.ids` no está vacío. Recibe lo mismo que la carta (`<libro_hasta_aca>`, `<voz>`). Mandan: sección 9 (la voz) y 10 (nada agregado; frases cortadas).
-
-```
-Sos el escritor. Armás "Antes de cerrar": lo que {{NOMBRE}} dice de su vida entera mirando para atrás, con los ids que el plan manda a "antes_de_cerrar", en ese orden. Primera persona, con sus palabras, casi textuales. Leé la ficha <voz>. Mandan las secciones 9 y 10 de la guía.
-
-Bordes:
-1. Entran todos los ids del plan y solo eso. Nada que ya esté contado en un capítulo de <libro_hasta_aca>; si una respuesta mezcla, queda solo lo que dice de su vida entera, con otras palabras que las del capítulo.
-2. No le habla a la familia: eso es la carta. Ninguna idea, consuelo ni conclusión agregada; ningún "aprendí que" que no dijo.
-3. Podés sacar muletillas, falsos arranques y lo que le habla al entrevistador, y cambiar una frase que contesta una pregunta que el lector no ve por su contenido.
-4. Ninguna frase cortada por el audio queda cortada: se cierra con lo que dijo en otra respuesta (con ese id) o se corta antes, en una oración entera.
-5. Corto, como la carta. El título lo pone el código: no lo escribas.
-6. Cada párrafo termina con la marca [[R..]] de las respuestas que usó. Ningún id del plan queda sin marca.
-
-Mal: "Si tuviera que resumir mi vida, diría que fue una lucha constante que me hizo más fuerte." (no lo dijo) → Bien: "Lo más duro fue quedarme sola con el negocio. Me apoyé en Chiche y en el bastidor; con eso fui tirando. [[R62]]"
-Mal: "Marcela, gracias por bancarme todos estos años." (eso es la carta) → Bien: queda en la carta; acá solo lo que dice de su vida.
-
-Devolvé solo el texto en markdown, sin título.
-```
-
-| Borde | Quién controla |
-|---|---|
-| 1 todo lo de "balance" y solo eso; nada repetido | C23 (cada R de un episodio `balance` en una marca de esta pieza); C7 (repetido con capítulos); lector (repetido) |
-| 2 no le habla a la familia; nada agregado | verificador (inventado, sentimiento, motivo); lector (carta_ajena, al revés: un mensaje a los suyos acá) |
-| 3 limpiar sin agregar | verificador |
-| 4 frases cortadas | C2 |
-| 5 corto; sin título | lector (relleno); el título lo imprime el código |
-| 6 marcas; todo entra | C18, C23 |
-
 ### Paso 4 · Control de hechos (otro rol)
 
 Recibe: guía, ficha, respuestas, registro, libro. No recibe el plan ni los prompts de escritura. Manda: sección 13 parte 1; para juzgar, secciones 5 y 10.
@@ -361,8 +316,9 @@ Recibe: guía, ficha, respuestas, registro, libro. No recibe el plan ni los prom
 ```
 Sos el verificador. No escribiste el libro y no lo vas a arreglar: lo comparás con el material y listás lo que no cierra. Manda la sección 13, parte 1, de la guía; para juzgar, las secciones 5 y 10. No opinás de estilo: solo hechos, tiempo verbal y verdad. Cada párrafo del libro termina con [[R..]]: las respuestas que el escritor dice haber usado; empezá por mirar el párrafo contra esas, pero el libro no puede decir nada que no esté en alguna respuesta o en la ficha, lleve la marca que lleve.
 
-Para cada pieza del libro (primera_pagina, cap_N, antes_de_cerrar, sus_frases, carta), con lista, no de memoria:
-1. Tiempo verbal: lo manda el registro. Lo que está en "hoy", en "rasgos_hoy" o con estado "sigue_hoy" va en presente; lo que tiene estado "termino", en pasado; solo si el registro no lo dice se mira la respuesta. Toda oración en presente del libro ("hoy", "ahora", "sigue", "todavía", y los verbos en presente) se busca ahí: si terminó, o nada dice que siga, es problema "presente"; lo que sigue hoy y el libro cuenta en pasado, es problema "pasado". Es el control más importante.
+Para cada pieza del libro (primera_pagina, cap_N, sus_frases, carta), con lista, no de memoria:
+1. Presente: toda oración en presente ("hoy", "ahora", "sigue", "todavía", y los verbos en presente) se busca en el material. Si el material dice que eso terminó, o no dice que siga, es problema. Es el control más importante.
+1b. Pasado: lo que el material dice que sigue hoy (bloque "hoy" y "rasgos_hoy" del registro: "no fuma", "sigue siendo mi amiga") y el libro cuenta en pasado, es problema tipo "pasado".
 2. Nombres: cada nombre está en el material o en la ficha; cada persona tiene un solo nombre (o nombre y apodo juntados una vez).
 3. Fechas, edades y plazos: cada número está en el material como número.
 4. Lugares: con ese nombre en el material.
@@ -375,7 +331,7 @@ Para cada pieza del libro (primera_pagina, cap_N, antes_de_cerrar, sus_frases, c
 Para cada problema: la pieza, la frase exacta del libro (copiada), el tipo, qué dice el material (con ids) y la corrección mínima. Lo que el libro dijo vago porque era dudoso no es problema.
 
 Mal: "'Yo iba todos los días con el termo' — podría ser exagerado." → Bien: "'Hoy sigo yendo a la feria los sábados' — R71: dejó de ir cuando se mudó a Funes. Pasa a pasado: 'Iba a la feria los sábados.'"
-Bien (pasado): "'Chiche fumaba como un escuerzo' — rasgos_hoy de Chiche, R18: 'Chiche fuma como un escuerzo, todavía'. Pasa a presente."
+Bien (pasado): "'Chiche fumaba como un escuerzo' — R18: 'Chiche fuma como un escuerzo, todavía'. Pasa a presente."
 
 Devolvé solo el JSON del esquema.
 ```
@@ -386,29 +342,20 @@ Esquema de salida (`hechos.json`):
 {"problemas": [{"n": 1, "pieza": "cap_3", "frase": "", "tipo": "presente", "material": "", "ids": [], "correccion": ""}]}
 ```
 
-`tipo` ∈ presente | pasado | nombre | fecha | lugar | cita | motivo | sentimiento | confirmado_no_usado | cortada | delicado | inventado | contradice_decision. `pieza` ∈ primera_pagina | cap_N | antes_de_cerrar | sus_frases | carta. `frase` se copia sin la marca `[[R..]]`.
-
-**Repaso (después del arreglo).** El paso 4 vuelve a correr solo sobre las piezas cambiadas, con el mismo prompt y, además, `<decisiones_anteriores>` antes de las instrucciones (los problemas que esa pieza tuvo en la ronda anterior: frase, tipo, corrección y si se cambió) y este agregado al final del prompt (el código lo pega solo en el repaso):
-
-```
-Esta pieza ya pasó por vos una vez: <decisiones_anteriores> tiene lo que marcaste y cómo quedó. No marques lo contrario de una decisión anterior sobre lo mismo (presente ↔ pasado, un nombre por otro) salvo que tengas una respuesta que lo diga textual; en ese caso, tipo "contradice_decision", con el id y la frase de esa respuesta en "material". Lo nuevo que apareció con el cambio se marca como siempre.
-
-Mal: ronda 1 pidió "Chiche fuma" en presente (rasgos_hoy, R18); ahora marcás "'Chiche fuma como un escuerzo' pasa a pasado" sin una respuesta nueva. → Bien: no se marca; o, si R52 dice "Chiche dejó de fumar el año pasado", tipo "contradice_decision", material: R52, "dejó de fumar el año pasado".
-```
+`tipo` ∈ presente | pasado | nombre | fecha | lugar | cita | motivo | sentimiento | confirmado_no_usado | cortada | delicado | inventado. `pieza` ∈ primera_pagina | cap_N | sus_frases | carta. `frase` se copia sin la marca `[[R..]]`.
 
 ### Paso 5 · Lectura de corrido (otro rol)
 
-Recibe: guía, libro y `<referencias>` (C25: las oraciones con "ese día", "esa noche", "ahí", "esa casa"… que listó el código). No recibe el material ni el plan. Manda: sección 13 parte 2; para reconocer, secciones 1 a 9 y anexos A2, A3, A6.
+Recibe: guía y libro. No recibe el material ni el plan. Manda: sección 13 parte 2; para reconocer, secciones 1 a 9 y anexos A2, A3, A6.
 
 ```
 Sos el lector exigente. No escribiste el libro y no tenés el material: lo leés entero, de corrido, como lo va a leer la familia, y marcás lo que no se lee como libro. Manda la sección 13, parte 2, de la guía; para reconocer cada cosa, las secciones 1 a 9 y los anexos A2, A3 y A6.
 
-Marcá solo lo que está en la lista de la parte 2: la primera página (si al terminarla no sabés quién es: qué hace, de dónde es, cómo es; o si abre con ficha o con un golpe); cada capítulo (¿se puede decir el hilo en una oración?, ¿tiene una escena?, ¿la primera y la última oración muestran un cambio?); aperturas o cierres repetidos o que explican; títulos que servirían para cualquier vida; personas presentadas dos veces, en lista, o nombradas sin que se sepa quién es; referencias colgadas ("ese día", "esa noche", "ahí", "esa casa", "él", "ella") que apuntan a algo que el libro todavía no nombró: mirá una por una las de <referencias>, y las que encuentres vos; saltos de tiempo que confunden y puentes con molde; último capítulo con reflexiones apiladas o la mesa como lista; carta con algo que no es para la familia; párrafos que no suenan a quien narra o con marcas de IA; repeticiones (cita que repite el párrafo, misma anécdota dos veces, párrafo que repite el anterior); respuestas de botón; relleno (oraciones que repiten lo mismo con otras palabras para ocupar lugar); deriva de voz entre el primer capítulo y el último.
+Marcá solo lo que está en la lista de la parte 2: la primera página (si al terminarla no sabés quién es: qué hace, de dónde es, cómo es; o si abre con ficha o con un golpe); cada capítulo (¿se puede decir el hilo en una oración?, ¿tiene una escena?, ¿la primera y la última oración muestran un cambio?); aperturas o cierres repetidos o que explican; títulos que servirían para cualquier vida; personas presentadas dos veces, en lista, o nombradas sin que se sepa quién es; saltos de tiempo que confunden y puentes con molde; último capítulo con reflexiones apiladas o la mesa como lista; carta con algo que no es para la familia; párrafos que no suenan a quien narra o con marcas de IA; repeticiones (cita que repite el párrafo, misma anécdota dos veces, párrafo que repite el anterior); respuestas de botón; relleno (oraciones que repiten lo mismo con otras palabras para ocupar lugar); deriva de voz entre el primer capítulo y el último.
 
 Para cada problema: la pieza, la frase o el párrafo exacto (copiado), el tipo y en una línea qué está mal. No propongas el texto nuevo: eso lo hace otro. No marques gusto personal ni lo que harías distinto: solo lo que la guía dice que no va.
 
 Mal: "El capítulo 4 podría ser más emotivo." → Bien: "cap_4, cierre: 'Y así entendí que la plata va y viene' — cierra explicando (sección 7)."
-Bien (referencia): "cap_2: 'Esa casa la pagamos en cuotas' — el libro no nombró ninguna casa antes de esta oración."
 
 Devolvé solo el JSON del esquema.
 ```
@@ -419,52 +366,21 @@ Esquema de salida (`lectura.json`):
 {"problemas": [{"n": 1, "pieza": "cap_4", "frase": "", "tipo": "cierre_explica", "que": ""}]}
 ```
 
-`tipo` ∈ primera_pagina | sin_hilo | sin_escena | apertura_repetida | cierre_explica | titulo_generico | persona_dos_veces | lista | sin_presentar | referencia | salto_confuso | molde | bolsa | carta_ajena | no_suena | ia | repetido | boton | relleno | deriva.
-
-### Paso 5b · Cotejo (otro rol)
-
-Recibe: `<respuestas>` y `<libro>` CON marcas `[[R..]]`; de la guía, solo las secciones 9 y 10. No recibe el plan, el registro ni los prompts de escritura.
-
-```
-Sos el cotejador. No escribiste el libro: comparás cada respuesta con lo que el libro hizo con ella y listás las frases de identidad que se cayeron. Cada párrafo del libro termina con [[R..]]: las respuestas que usó; empezá por ahí, pero una frase cuenta como entrada si está en cualquier parte del libro, dicha igual o de otra manera.
-
-Para cada respuesta, buscá lo que no entró y que nadie más diría: cómo se ve, lo que piensa de su vida, cómo nombra a alguien ("mi mejor amiga de ahora"), un plan, un deseo, una frase propia. No listes datos que ya están contados, muletillas, ni lo que pidió que no esté.
-
-Para cada falta: la respuesta, la frase textual (copiada de la respuesta) y en una línea por qué es de ella.
-
-Mal: "R33: falta decir que Marcela vive en Funes." (es un dato, y el libro ya lo cuenta) → Bien: "R33: falta 'para mí sigue siendo la nena' — es cómo la nombra ella; el libro dice solo 'Marcela'."
-Mal: "R12: falta 'viste, qué sé yo'." (muletilla) → Bien: nada.
-
-Devolvé solo el JSON del esquema.
-```
-
-Esquema de salida (`cotejo.json`):
-
-```json
-{"faltan": [{"n": 1, "id": "R..", "frase": "", "por_que": ""}]}
-```
-
-`frase` es textual de la respuesta. Lo que devuelve va al arreglo (paso 6) de la pieza que le toca: la elige el código (la pieza cuya marca tiene ese id; si no hay ninguna, la de la tabla R → pieza de 2b), como "falta frase de R..: «…»". El arreglo la tiene que meter con sus palabras (C24 lo comprueba).
-
-| Borde | Quién controla |
-|---|---|
-| frase textual de la respuesta | C6 (subsecuencia de su id; si no, se descarta la falta) |
-| entra en el arreglo | C24 (la mitad o más de sus palabras de contenido en el texto de su pieza; si no, al informe) |
+`tipo` ∈ primera_pagina | sin_hilo | sin_escena | apertura_repetida | cierre_explica | titulo_generico | persona_dos_veces | lista | sin_presentar | salto_confuso | molde | bolsa | carta_ajena | no_suena | ia | repetido | boton | relleno | deriva.
 
 ### Paso 6 · Arreglo (una llamada por pieza con problemas)
 
-Una sola ronda (Naza, 01/10: gastar menos). La llamada es la misma de escritura de esa pieza (3a, 3b, 3c o 3d: mismos documentos, misma instrucción), con `<problemas>` antes de las instrucciones (los del código, del verificador, del lector y del cotejo juntos, numerados) y este agregado al final:
+La llamada es la misma de escritura de esa pieza (3a, 3b o 3c: mismos documentos, misma instrucción), con `<problemas>` antes de las instrucciones (los del código, del verificador y del lector juntos, numerados) y este agregado al final:
 
 ```
 Esta pieza volvió del control con problemas (<problemas>). Reescribila entera con las mismas reglas de arriba (marcas [[R..]] incluidas) y, además:
-1. Cada problema cambia el texto marcado. Un problema de forma (primera página, cierre que explica, lista, repetido, frase cortada, molde, botón, no suena, ia, bolsa, carta ajena, referencia colgada, control del código) no se discute: se cambia.
+1. Cada problema cambia el texto marcado. Un problema de forma (primera página, cierre que explica, lista, repetido, frase cortada, molde, botón, no suena, ia, bolsa, carta ajena, control del código) no se discute: se cambia.
 2. Un problema de hecho (presente, pasado, nombre, fecha, lugar, cita, motivo, sentimiento, inventado, confirmado, delicado) se cambia; o, solo si tenés una respuesta que lo respalda tal cual, lo marcás "disputa" con el id y la frase textual de esa respuesta. No decidís vos: lo decide el verificador.
-3. Arreglar una lista nunca saca a nadie: se resume en media línea con los nombres. "Falta R..": ese contenido entra, con su marca. "Falta frase de R..: «…»": esa frase entra con sus palabras (textual o casi), en el lugar donde habla de eso. "Faltan detalles": esos detalles entran en su escena.
+3. Arreglar una lista nunca saca a nadie: se resume en media línea con los nombres. "Falta R..": ese contenido entra, con su marca. "Faltan detalles": esos detalles entran en su escena.
 4. Lo que no tenía problema queda como estaba, salvo lo que haga falta tocar para que el cambio cierre.
 5. No se suma nada del material que no estuviera en el plan para esta pieza.
 
 Mal (lista arreglada sacando gente): "Mis amigas del barrio eran la Negra, Susana, Tere, Alicia y la Beba." → "La Negra venía a la siesta a tomar mate." y las otras cuatro desaparecen. → Bien: la Negra en escena, y "las otras del barrio, Susana, Tere, Alicia y la Beba, venían a comprar; la Negra venía a quedarse."
-Mal (falta frase de R33: «para mí sigue siendo la nena»): se agrega "Marcela, mi hija querida". → Bien: "Marcela, digo; para mí sigue siendo la nena. [[R33]]"
 
 Devolvé la pieza completa en markdown y, después de una línea "---", el JSON del esquema de cambios.
 ```
@@ -486,9 +402,8 @@ Esquema de cambios:
 El escritor dice que esta frase del libro está respaldada por una respuesta. Frase del libro: "{{FRASE}}". Respuesta {{ID}}, frase que cita: "{{CITA}}". ¿La respuesta respalda la frase tal como está en el libro, incluido el tiempo verbal? Contestá solo {"respalda": true} o {"respalda": false, "por_que": ""}.
 ```
 
-  Si respalda, el problema se cierra. Si no, sigue abierto y va al informe. Una disputa por problema.
-- Después del arreglo, sobre la pieza cambiada: C1–C24 otra vez (C24: cada frase del cotejo entró), y el **repaso** del paso 4 con `<decisiones_anteriores>` (la guía lo manda: el control de hechos se vuelve a pasar sobre lo que cambió). No hay segunda ronda: lo que el repaso o los controles encuentren va al informe como abierto, salvo lo que C26 resuelve solo.
-- **C26, el verificador que oscila:** si el repaso marca un problema de tiempo verbal o de nombre sobre una frase que la ronda anterior ya cambió en sentido contrario (presente ↔ pasado, un nombre por otro), no va al arreglo: el código lo manda a disputa automática (la llamada corta de arriba, con la frase del libro, el id y la cita que el verificador puso en "material"). Si el verificador no respalda su propio cambio, el problema se cierra; si lo respalda, va al informe como "el verificador oscila", con las dos decisiones. Un `contradice_decision` con respuesta textual entra en la disputa igual; si respalda, también va al informe (y se anota qué respuesta lo cambió).
+  Si respalda, el problema se cierra. Si no, sigue abierto y la ronda cuenta. Una disputa por problema.
+- Después del arreglo, sobre la pieza cambiada: C1–C22 otra vez, y el paso 4 otra vez (la guía lo manda: el control de hechos se vuelve a pasar sobre lo que cambió). Lo que salga nuevo se suma a la ronda siguiente.
 - Se registra, sin bloquear, qué porcentaje de los párrafos sin problema quedaron idénticos: si baja de 70 % en una pieza, va al informe como aviso de deriva.
 
 ---
@@ -510,23 +425,19 @@ Normalización para todos: minúsculas, sin tildes, espacios colapsados; las cit
 | C9 | Arreglo: cada frase marcada "cambiado" ya no está; disputas solo en hechos; porcentaje de párrafos sin problema que quedaron idénticos | pieza arreglada | ver paso 6 |
 | C10 | Anexo A6: gerundio al inicio de oración ("-ando"/"-iendo" como primera palabra); "fue/fueron/era + participio + por"; diálogo con comillas en vez de raya ("dijo" pegado a comillas); mezcla de trato (tú/tienes/eres/puedes contra vos/tenés/sos/podés) distinta de `voz.trato`; palabras de diagnóstico (depresion, ansiedad, trauma, alcoholico, alcoholismo, adiccion, adicto) que no están textuales en el material | toda pieza | problema `ia` (o `inventado` en diagnóstico) → arreglo |
 | C11 | (sacado el 01/10: Naza no quiere máximo de palabras; el largo lo da lo que contó) | — | — |
-| C12 | Títulos del plan: cada palabra de contenido del título está en sus ids (textual) o en el material (armado); si `titulo.id` no está vacío, es un id del `hecho_fuerte` de ese capítulo; ninguna de: etapa, linda, lindo, hermosa, hermoso, gran, sueños, sueño, luchas, lucha, difícil, feliz, felicidad, importante, especial, inolvidable; no es solo un nombre de persona; leídos en lista, no hay dos iguales | plan | reintento del paso 2 con el error |
-| C13 | Plan: cada episodio del registro (no `no_poner`) está una sola vez (en `piezas`, `sus_frases`, `carta.ids` o `antes_de_cerrar.ids`); cada episodio `balance` está en `antes_de_cerrar.ids`; cada capítulo tiene ≥1 pieza `escena`; cada `momento_clave` no vacío está como `escena`; cada capítulo tiene `hecho_fuerte` que está en sus `piezas` como `escena` y, si el capítulo tiene episodios con `momento_clave`, es uno de ellos; `hilo_ids` no vacío; `apertura.tipo` y `cierre.tipo` distintos del capítulo anterior; cada P en `presenta` de un solo capítulo; el último capítulo tiene en `hilo_de_hoy_ids` un episodio con `sigue_hoy` y `es_escena: true` o, si no existe ninguno en el registro, el episodio `es_escena` más reciente de la línea de tiempo; el último capítulo tiene `columna.texto` no vacío e `imagen_final.episodio` que está en sus piezas, es `sigue_hoy` (o tiene ids del bloque "hoy") y es el `cierre.episodio`; cada id de `como_se_presenta` y `cosas_concretas_suyas` está en `primera_pagina.que_dice_de_si_ids` o en una pieza; `carta.titulo` no vacío, distinto de "Antes de cerrar" (y `titulo_id` existe si lo tiene); `sus_frases.contexto` ≤ 20 palabras. (Lo de "familia" en la carta lo mira C19; el último capítulo sin bolsa, C20) | plan | reintento del paso 2 con el error |
+| C12 | Títulos del plan: cada palabra de contenido del título está en sus ids (textual) o en el material (armado); ninguna de: etapa, linda, lindo, hermosa, hermoso, gran, sueños, sueño, luchas, lucha, difícil, feliz, felicidad, importante, especial, inolvidable; no es solo un nombre de persona; leídos en lista, no hay dos iguales | plan | reintento del paso 2 con el error |
+| C13 | Plan: cada episodio del registro (no `no_poner`) está una sola vez (en `piezas`, `sus_frases` o `carta.ids`); cada capítulo tiene ≥1 pieza `escena`; cada `momento_clave` no vacío está como `escena`; `hilo_ids` no vacío; `apertura.tipo` y `cierre.tipo` distintos del capítulo anterior; cada P en `presenta` de un solo capítulo; el último capítulo tiene en `hilo_de_hoy_ids` un episodio con `sigue_hoy` y `es_escena: true` o, si no existe ninguno en el registro, el episodio `es_escena` más reciente de la línea de tiempo; cada id de `como_se_presenta` y `cosas_concretas_suyas` está en `primera_pagina.que_dice_de_si_ids` o en una pieza; `carta.titulo` no vacío (y `titulo_id` existe si lo tiene); `sus_frases.contexto` ≤ 20 palabras. (Lo de "familia" en la carta lo mira C19; el último capítulo sin bolsa, C20) | plan | reintento del paso 2 con el error |
 | C14 | Registro: todo id citado existe; cada R (no "paso") aparece en algún episodio o en `sin_lugar`; cada frase de `voz.frases` es subsecuencia de su id y hay entre 15 y 20; `segura: true` solo si en sus ids o en la ficha hay un número; todo "…" de una respuesta usada tiene entrada en `frases_cortadas`; no hay dos personas con mismo nombre y relación; cada línea de `<confirmado_por_el_narrador>` tiene su entrada en `confirmados` con `usado_en` no vacío; `estado` presente en personas, lugares y episodios; cada episodio tiene `a_quien` válido y `a_quien_nombres` que son personas del registro; cada episodio `es_escena: true` tiene `detalles` no vacío; cada persona tiene `rasgos_hoy` (puede ser `[]`) | registro | reintento del paso 1 con el error |
 | C15 | Último capítulo: más de dos párrafos seguidos que empiezan con "yo creo que", "creo que", "siento que", "pienso que", "lo que mas me gusta", "lo que herede", "para mi lo mas importante" | último capítulo | problema `bolsa` → arreglo |
 | C16 | Presente sospechoso para el verificador: lista de oraciones con "hoy", "ahora", "todavia", "sigue", "siguen", "sigo" y verbos en presente, con pieza y número de párrafo | libro | no bloquea: se adjunta al paso 4 como `<presentes>` para que la lista sea completa |
 | C17 | Presentaciones: patrón "mi (marido\|mujer\|hermana\|hermano\|hijo\|hija\|madre\|padre\|mama\|papa\|amiga\|amigo\|tia\|tio\|abuela\|abuelo\|nieta\|nieto) [Nombre]" o "[Nombre], (mi\|que es mi) …" para el mismo nombre en dos piezas distintas (o dos veces en la primera página) | libro | problema `persona_dos_veces` en la pieza posterior → arreglo |
-| C18 | **Todo entra (rastreo):** cada párrafo de primera página, capítulos, "Antes de cerrar" y carta termina con una marca `[[R..]]` con ids que existen; toda respuesta (no "paso", no de un episodio `no_poner`) aparece en alguna marca del libro o como id en "Sus frases" | libro | párrafo sin marca → problema `sin_marca` en esa pieza; R sin marca → la pieza que le toca según la tabla R → pieza (2b, que suma `antes_de_cerrar`) vuelve al arreglo con "falta R..: <qué contaba>" (el `que` del episodio o las primeras 15 palabras de la respuesta) |
-| C19 | **A quién le habla:** en el plan, cada episodio con `a_quien: familia` está en `carta.ids`, y cada persona de `carta.para_personas` sin ningún episodio `familia` que la nombre (en `a_quien_nombres`) tiene su entrada en `faltantes` ("la entrevista no trae un mensaje para <nombre>"); en el texto, cada R de esos episodios está en una marca de la carta | plan, carta | plan: reintento del paso 2 con el error; carta: arreglo con "falta R..: <qué les dice>" |
-| C20 | **Último capítulo con una sola historia:** en el plan, el último capítulo tiene como máximo 2 piezas de episodios tipo `reflexion` o `gusto` con forma distinta de `media_linea`; en el texto, como máximo 2 párrafos cuyas marcas sean solo de respuestas de episodios `reflexion`/`gusto`/`balance`, y el último párrafo lleva una marca con un id del `imagen_final` (`frase_id` o un id de su episodio) | plan, último capítulo | plan: reintento del paso 2 con el error; texto: problema `bolsa` → arreglo (el último párrafo sin la imagen final: "el capítulo no cierra en la imagen_final: <que>") |
+| C18 | **Todo entra (rastreo):** cada párrafo de primera página, capítulos y carta termina con una marca `[[R..]]` con ids que existen; toda respuesta (no "paso", no de un episodio `no_poner`) aparece en alguna marca del libro o como id en "Sus frases" | libro | párrafo sin marca → problema `sin_marca` en esa pieza; R sin marca → la pieza que le toca según la tabla R → pieza (2b) vuelve al arreglo con "falta R..: <qué contaba>" (el `que` del episodio o las primeras 15 palabras de la respuesta) |
+| C19 | **A quién le habla:** en el plan, cada episodio con `a_quien: familia` está en `carta.ids`; en el texto, cada R de esos episodios está en una marca de la carta | plan, carta | plan: reintento del paso 2 con el error; carta: arreglo con "falta R..: <qué les dice>" |
+| C20 | **Último capítulo con una sola historia:** en el plan, el último capítulo tiene como máximo 2 piezas de episodios tipo `reflexion` o `gusto` con forma distinta de `media_linea`; en el texto, como máximo 2 párrafos cuyas marcas sean solo de respuestas de episodios `reflexion`/`gusto` | plan, último capítulo | plan: reintento del paso 2 con el error; texto: problema `bolsa` → arreglo |
 | C21 | **Nadie se cae:** cada persona del registro con `hechos` no vacío aparece en el libro (sin marcas) por `nombre` o por alguno de sus `apodos` | libro | problema `lista` en la pieza del capítulo donde el plan la presenta (o, si no la presenta, donde está el episodio de su primer hecho) con "falta <nombre>: <su primer hecho>" → arreglo; el arreglo la pone en media línea, nunca la deja afuera |
 | C22 | **Escenas llenas:** por cada pieza `escena` de un capítulo, al menos el 70 % de los `detalles` de su episodio aparece en el texto del capítulo (cada detalle: sus palabras de contenido, normalizadas, en una ventana de 12 palabras del texto; si tiene un número, el número) | cada capítulo | problema `sin_detalles` → arreglo con "faltan detalles de E..: <lista de los que faltan>" |
-| C23 | **El balance entra:** cada R de un episodio `balance` está en una marca de "Antes de cerrar" | antes_de_cerrar | arreglo de esa pieza con "falta R..: <qué decía>" |
-| C24 | **Lo del cotejo entró:** después del arreglo, cada frase de `cotejo.json` está en el libro: la mitad o más de sus palabras de contenido (normalizadas) en el texto de su pieza | pieza arreglada | no hay segunda ronda: va al informe como "lo que el cotejo encontró y no entró", con la frase y su R |
-| C25 | **Referencias colgadas** (no bloquea): lista de oraciones del libro sin marcas con "ese día", "esa noche", "esa vez", "ese momento", "esa casa", "ese lugar", "ahí", "allá", con pieza y número de párrafo | libro | se adjunta al paso 5 como `<referencias>` para que el lector mire cada una |
-| C26 | **El verificador oscila:** en el repaso, un problema de tipo `presente`, `pasado` o `nombre` (o `contradice_decision`) sobre una frase que la ronda anterior ya cambió en sentido contrario según `<decisiones_anteriores>` | repaso del paso 4 | no va al arreglo: disputa automática (paso 6); si el verificador respalda su nuevo pedido, al informe como "el verificador oscila" con las dos decisiones; si no, se cierra |
 
-Falsas alarmas del código: si el verificador, el lector o el cotejador, en su JSON, no incluyen un problema que C1–C26 marcó, el problema igual va al arreglo (el código manda; no hay quien lo levante). Si el arreglo lo cambia y el cambio empeora, se verá en el repaso y va al informe. Lo que el código marca mal de forma repetida se anota en el informe para ajustar el control, nunca para saltearlo.
+Falsas alarmas del código: si el verificador o el lector, en su JSON, no incluyen un problema que C1–C22 marcó, el problema igual va al arreglo (el código manda; no hay quien lo levante). Si el arreglo lo cambia y el cambio empeora, se verá en la ronda siguiente. Lo que el código marca mal de forma repetida se anota en el informe para ajustar el control, nunca para saltearlo.
 
 ---
 
@@ -536,10 +447,10 @@ Falsas alarmas del código: si el verificador, el lector o el cotejador, en su J
 |---|---|---|
 | Paso 1 (C14 falla) | 2 reintentos con el error pegado al final de las instrucciones | se detiene y avisa: el material o el prompt tienen un problema que no se arregla solo |
 | Paso 2 (C12/C13 fallan) | 2 reintentos con el error | igual |
-| Paso 3 (controles C1–C23 sobre la pieza recién escrita, incluidos rastreo, personas y detalles) | 1 arreglo (paso 6) con solo los problemas del código | si sigue fallando, se sigue y va al informe |
-| Paso 6 (después de 4, 5 y 5b) | **1 ronda** por pieza (Naza, 01/10: gastar menos); junta lo del código, el verificador, el lector y el cotejo | repaso del paso 4 y C1–C24 sobre la pieza cambiada; lo que quede abierto, al informe (C26 resuelve solo las oscilaciones) |
-| Disputa | una por problema (también la automática de C26) | la decide el verificador |
-| Llamadas de 4, 5 y 5b | si el JSON no cumple el esquema, 1 reintento | si vuelve a fallar, se sigue sin esa lista y se avisa en el informe |
+| Paso 3 (controles C1–C22 sobre la pieza recién escrita, incluidos rastreo, personas y detalles) | hasta 2 arreglos (paso 6) con solo los problemas del código | se escribe de cero una vez más con `<evitar>` (la lista de lo que falló); si falla de nuevo, se sigue y va al informe |
+| Paso 6 (después de 4 y 5) | 2 rondas por pieza; cada ronda junta lo del código, el verificador y el lector | 3.ª vez: reescritura de cero con `<evitar>` (los problemas que persisten, para no repetirlos) y vuelta a 4 y 5 sobre la pieza; si sigue, al informe |
+| Disputa | una por problema | la decide el verificador |
+| Llamadas de 4 y 5 | si el JSON no cumple el esquema, 1 reintento | si vuelve a fallar, se sigue sin esa lista y se avisa en el informe |
 
 Lo que llega al informe nunca se arregla a mano en el libro: se arregla la receta, o se le pregunta al narrador (faltantes).
 
@@ -547,5 +458,5 @@ Lo que llega al informe nunca se arregla a mano en el libro: se arregla la recet
 
 ## 6. Qué entrega el circuito
 
-- `libro.md`: título, primera página, capítulos, Antes de cerrar (si hay), Sus frases, carta con su título. Sin marcas `[[R..]]` (quedan en `libro-con-marcas.md`, para revisar).
-- `informe.md`: `faltantes` del plan (etapas sin escena, hoy sin momento, dudas que dejaron algo vago, mensajes que la entrevista no trajo), problemas abiertos por pieza después de la única ronda, lo que el cotejo encontró y no entró (C24, con la frase y su R), oscilaciones del verificador (C26, con las dos decisiones), disputas y cómo se resolvieron, avisos de deriva (C9), falsas alarmas del código, costo por paso. Es para Naza y para quien ajuste la entrevista: lo que el libro no tiene, la guía dice que lo arregla la entrevista, no el escritor.
+- `libro.md`: título, primera página, capítulos, Sus frases, carta con su título. Sin marcas `[[R..]]` (quedan en `libro-con-marcas.md`, para revisar).
+- `informe.md`: `faltantes` del plan (etapas sin escena, hoy sin momento, dudas que dejaron algo vago), problemas abiertos por pieza con sus rondas, disputas y cómo se resolvieron, avisos de deriva (C9), falsas alarmas del código, costo por paso. Es para Naza y para quien ajuste la entrevista: lo que el libro no tiene, la guía dice que lo arregla la entrevista, no el escritor.

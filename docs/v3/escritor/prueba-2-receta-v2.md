@@ -30,3 +30,19 @@ La v2 con Opus gana en primera página, voz, verdad (0 inventos contra 4 + 3 del
 
 ## Opción B ya programada (Naza, 01/10: gastar menos)
 Cada paso recibe solo las secciones de la guía que le tocan (`SECCIONES` en `fabrica/scripts/escritor/lib.mjs`) y una sola ronda de arreglos. Falta el workflow automático (opción A) para correr un libro entero sin llenar el chat.
+
+## Corregido en la receta v3 (01/10, sin correr libros)
+Fable redactó los prompts ([`receta.md`](receta.md); la v2 quedó en [`historial/receta-v2.md`](historial/receta-v2.md)); el código está en `fabrica/scripts/escritor/` con tests (`node --test fabrica/scripts/escritor/controles.test.mjs`, 21 pasan).
+
+| Punto | En la receta | Quién lo controla |
+|---|---|---|
+| 1 Último capítulo bolsa; balance sin casa | `columna` + `imagen_final` (cierra en una imagen de hoy); tipo `balance` → pieza nueva "Antes de cerrar" (paso 3d) | C13 (plan), C20 en el texto (máx. 2 párrafos de reflexión; último párrafo = imagen final), C23 |
+| 2 Se caen líneas chicas | Paso 5b: cotejo respuesta por respuesta (otro rol); lo que falta va al arreglo | C24 (después del arreglo); lo que no es textual se descarta al informe |
+| 3 Corte por época; "ese día" colgado | `hecho_fuerte` por capítulo; el título sale de ahí; el lector recibe `<referencias>` | C12, C13; C25 (lista para el lector) |
+| 4 El verificador oscila | El registro manda el tiempo verbal; repaso con `<decisiones_anteriores>` solo sobre las piezas arregladas | C26 (lo que da vuelta una decisión no va al arreglo: disputa e informe) |
+| 5 Sin mensaje para los padres | `carta.para_personas`; a quien no le dejó mensaje, faltante (nunca se inventa). La pregunta la arregla la entrevista (Chat B) | C19 (plan) |
+| Opción B | Una sola ronda de arreglos | — |
+
+Probado sin modelo sobre una copia de la prueba 2: el C20 nuevo marca solo el último capítulo bolsa (8 párrafos de reflexión), lo mismo que vio el juicio.
+
+Revisión (agente revisor): 8 bugs confirmados, arreglados con test. Quedan anotados, de antes de la v3: C14 no mira que `a_quien_nombres` sean personas del registro; C18 no marca el "párrafo sin marca"; los tipos de C21/C22 en el código (`falta`, `escena_flaca`) no son los de la receta (`lista`, `sin_detalles`); `libro-con-marcas.md` no se escribe.

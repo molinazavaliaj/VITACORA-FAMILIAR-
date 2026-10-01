@@ -19,7 +19,15 @@ export function promptsDe(encabezado) {
   if (i < 0) throw new Error(`No está "${encabezado}" en la receta`);
   const fin = receta.indexOf('\n### ', i + 5);
   const tramo = receta.slice(i, fin < 0 ? undefined : fin);
-  return [...tramo.matchAll(/```\n([\s\S]*?)```/g)].map((m) => m[1].trim());
+  // Línea por línea: un ``` que cierra un ```json no abre un bloque nuevo (pasaba en el Paso 4 y el 6).
+  const bloques = [];
+  let abierto = null;
+  for (const l of tramo.split('\n')) {
+    if (abierto === null) { const m = l.match(/^```(\w*)\s*$/); if (m) abierto = { lengua: m[1], lineas: [] }; continue; }
+    if (/^```\s*$/.test(l)) { if (!abierto.lengua) bloques.push(abierto.lineas.join('\n').trim()); abierto = null; continue; }
+    abierto.lineas.push(l);
+  }
+  return bloques;
 }
 
 export const guia = () => leer(path.join(DOCS, 'guia-biografia.md'));
@@ -64,6 +72,7 @@ export function piezas(dir) {
   if (existe(s('primera_pagina.md'))) out.push({ pieza: 'primera_pagina', archivo: s('primera_pagina.md'), texto: leer(s('primera_pagina.md')) });
   const caps = fs.existsSync(path.join(dir, 'salidas')) ? fs.readdirSync(path.join(dir, 'salidas')).filter((f) => /^capitulo_\d+\.md$/.test(f)).sort() : [];
   for (const f of caps) out.push({ pieza: `cap_${Number(f.match(/\d+/)[0])}`, archivo: s(f), texto: leer(s(f)) });
+  if (existe(s('antes_de_cerrar.md'))) out.push({ pieza: 'antes_de_cerrar', archivo: s('antes_de_cerrar.md'), texto: leer(s('antes_de_cerrar.md')) });
   if (existe(s('sus_frases.md'))) out.push({ pieza: 'sus_frases', archivo: s('sus_frases.md'), texto: leer(s('sus_frases.md')) });
   if (existe(s('carta.md'))) out.push({ pieza: 'carta', archivo: s('carta.md'), texto: leer(s('carta.md')) });
   return out;
@@ -101,6 +110,7 @@ export function planConR(plan, reg) {
   const aR = (ids) => [...new Set((ids || []).flatMap((i) => (/^E\d+$/.test(i) ? eps[i] || [] : [i])))];
   const p = structuredClone(plan);
   if (p.carta) p.carta.ids = aR(p.carta.ids);
+  if (p.antes_de_cerrar) p.antes_de_cerrar.ids = aR(p.antes_de_cerrar.ids);
   p.sus_frases = (p.sus_frases || []).map((f) => ({ ...f, id: /^E\d+$/.test(f.id) ? (eps[f.id] || [f.id])[0] : f.id, ids: aR([f.id]) }));
   return p;
 }
@@ -115,6 +125,8 @@ export const SECCIONES = {
   primera: ['1', '9', 'A3'],
   capitulo: ['2', '3', '4', '5', '7', '8', '9', '10', 'A2', 'A6', 'A7'],
   carta: ['8', '10'],
+  antes: ['9', '10'],
+  cotejo: ['9', '10'],
   hechos: ['5', '10', '13'],
   lectura: null, // la lectura no lleva el material: va la guía entera
 };
@@ -129,4 +141,22 @@ export function guiaDe(paso) {
   };
   const resumen = partes.find((p) => p.startsWith('## Si te acordás'));
   return [partes[0], resumen, ...partes.filter(tomar)].filter(Boolean).join('\n');
+}
+
+/** Archivo de salida de cada pieza. */
+export const archivoDe = (p) => ({ primera_pagina: 'primera_pagina.md', carta: 'carta.md', sus_frases: 'sus_frases.md', antes_de_cerrar: 'antes_de_cerrar.md' })[p] || `capitulo_${String(Number(p.replace('cap_', ''))).padStart(2, '0')}.md`;
+
+/**
+ * La pieza a la que le toca una respuesta (tabla R → pieza de la receta, 2b).
+ * Con `ps` (piezas con marcas), primero la pieza que ya la marca; si no, la que dice el plan.
+ */
+export function piezaDeR(plan, reg, rid, ps = []) {
+  const yaMarcada = ps.find((p) => p.pieza !== 'sus_frases' && marcas(p.texto).includes(rid));
+  if (yaMarcada) return yaMarcada.pieza;
+  if ((plan.carta?.ids || []).includes(rid)) return 'carta';
+  if ((plan.antes_de_cerrar?.ids || []).includes(rid)) return 'antes_de_cerrar';
+  const eps = (reg.episodios || []).filter((e) => e.ids.includes(rid)).map((e) => e.id);
+  for (const c of plan.capitulos) if ((c.piezas || []).some((p) => eps.includes(p.episodio))) return `cap_${c.n}`;
+  if ((plan.primera_pagina?.que_dice_de_si_ids || []).includes(rid)) return 'primera_pagina';
+  return 'cap_' + plan.capitulos[plan.capitulos.length - 1].n;
 }

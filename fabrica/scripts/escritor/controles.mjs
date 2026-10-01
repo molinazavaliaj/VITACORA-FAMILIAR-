@@ -1,10 +1,11 @@
 // Controles por código de la receta nueva (docs/v3/escritor/receta.md, sección 4).
-// Uso: node controles.mjs <carpeta> registro | plan | piezas | arreglo <pieza>
-//   registro → C14 · plan → C12, C13 · piezas → C1–C8, C10, C15, C17 · arreglo → C9
+// Uso: node controles.mjs <carpeta> registro | plan | piezas | arreglo <pieza> | repaso
+//   registro → C14 · plan → C12, C13, C19, C20 · piezas → C1–C8, C10, C15, C17–C24 · arreglo → C9 · repaso → C26
 // Deja <carpeta>/controles/<qué>.json y escribe un resumen. Sale con código 2 si hay problemas.
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { leer, existe, escribir, leerJSON, norm, palabras, respuestas, ficha, salida, piezas, sinMarcas, marcas, planConR } from './lib.mjs';
+import { readdirSync as fsList } from 'node:fs';
+import { leer, existe, escribir, leerJSON, norm, palabras, respuestas, ficha, salida, piezas, sinMarcas, marcas, planConR, piezaDeR } from './lib.mjs';
 
 // ---------- utilidades ----------
 const oraciones = (t) => t.replace(/\n+/g, ' \n ').split(/(?<=[.!?])\s+|\n/).map((s) => s.trim()).filter(Boolean);
@@ -213,7 +214,7 @@ function c17(ps) {
   const out = [];
   const donde = new Map();
   for (const p of ps) {
-    if (p.pieza === 'sus_frases' || p.pieza === 'carta') continue;
+    if (['sus_frases', 'carta', 'antes_de_cerrar'].includes(p.pieza)) continue;
     const vistosAca = new Map();
     for (const o of oraciones(p.texto)) {
       const n = norm(o);
@@ -234,12 +235,20 @@ function c17(ps) {
 // ---------- C12 y C13: plan ----------
 const VALORACION = ['etapa', 'linda', 'lindo', 'hermosa', 'hermoso', 'gran', 'suenos', 'sueno', 'luchas', 'lucha', 'dificil', 'feliz', 'felicidad', 'importante', 'especial', 'inolvidable'];
 const VACIAS = new Set(['el', 'la', 'los', 'las', 'un', 'una', 'de', 'del', 'en', 'y', 'a', 'al', 'con', 'que', 'mi', 'mis', 'me', 'se', 'lo', 'por', 'para', 'su', 'sus', 'es', 'era']);
-function c12(plan, rs, reg) {
+export function c12(plan, rs, reg) {
   const out = [];
+  // receta v3: el título que sale de una frase sale del hecho más fuerte del capítulo.
+  const epsC12 = Object.fromEntries((reg.episodios || []).map((e) => [e.id, e]));
+  for (const c of plan.capitulos) {
+    if (!c.titulo?.id) continue;
+    const hf = epsC12[c.hecho_fuerte];
+    if (hf && ![...hf.ids, ...(hf.variantes || []).flatMap((v) => v.ids || [])].includes(c.titulo.id)) out.push(`C12 cap_${c.n}: el título sale de ${c.titulo.id} y no del hecho más fuerte del capítulo (${hf.id}: ${hf.que.slice(0, 60)})`);
+  }
   const porId = Object.fromEntries(rs.map((r) => [r.id, r.texto]));
   const material = ` ${norm(rs.map((r) => r.texto).join(' '))} `;
   const nombres = new Set((reg.personas || []).flatMap((p) => [p.nombre, ...(p.apodos || [])]).map(norm));
   const titulos = [{ donde: 'libro', t: plan.titulo_libro }, ...plan.capitulos.map((c) => ({ donde: `cap_${c.n}`, t: c.titulo }))];
+  if (plan.carta?.titulo && norm(plan.carta.titulo) !== 'para los mios') titulos.push({ donde: 'carta', t: { texto: plan.carta.titulo, id: plan.carta.titulo_id || '' } });
   const vistos = new Set();
   for (const { donde, t } of titulos) {
     if (!t?.texto) continue;
@@ -253,7 +262,7 @@ function c12(plan, rs, reg) {
   }
   return out;
 }
-function c13(plan, reg) {
+export function c13(plan, reg) {
   const out = [];
   const eps = Object.fromEntries((reg.episodios || []).map((e) => [e.id, e]));
   const usados = new Map();
@@ -261,10 +270,14 @@ function c13(plan, reg) {
   for (const c of plan.capitulos) for (const p of c.piezas || []) usar(p.episodio, `cap_${c.n}`);
   const idsSf = new Set((plan.sus_frases || []).map((f) => f.id));
   const idsCarta = new Set(plan.carta?.ids || []);
+  const idsAntes = new Set(plan.antes_de_cerrar?.ids || []);
   for (const e of reg.episodios || []) {
     if (e.no_poner) continue;
     const u = usados.get(e.id) || [];
-    const enOtro = e.ids.some((i) => idsSf.has(i) || idsCarta.has(i));
+    const enOtro = e.ids.some((i) => idsSf.has(i) || idsCarta.has(i) || idsAntes.has(i));
+    if (e.tipo !== 'balance' && e.ids.some((i) => idsAntes.has(i))) out.push(`C13: el episodio ${e.id} no es balance y está en antes_de_cerrar.ids (ahí va solo el balance)`);
+    if (e.tipo === 'balance' && !e.ids.every((i) => idsAntes.has(i))) out.push(`C13: el episodio ${e.id} es balance y no está entero en antes_de_cerrar.ids`);
+    if (e.tipo === 'balance' && u.length) out.push(`C13: el episodio ${e.id} es balance y está en ${u.join(' y ')} (va a Antes de cerrar)`);
     if (u.length > 1) out.push(`C13: el episodio ${e.id} está en ${u.join(' y ')} (va una sola vez)`);
     if (!u.length && !enOtro) out.push(`C13: el episodio ${e.id} ("${e.que.slice(0, 60)}") no quedó en ningún lado`);
   }
@@ -274,6 +287,12 @@ function c13(plan, reg) {
     if (!formas.includes('escena')) out.push(`C13 cap_${c.n}: no tiene ninguna pieza "escena"`);
     for (const p of c.piezas || []) { const e = eps[p.episodio]; if (!e) out.push(`C13 cap_${c.n}: el episodio ${p.episodio} no existe en el registro`); else if (e.momento_clave && p.forma !== 'escena' && e.es_escena) out.push(`C13 cap_${c.n}: ${e.id} es momento clave (${e.momento_clave}) y va como "${p.forma}", no como escena`); }
     if (!(c.hilo_ids || []).length) out.push(`C13 cap_${c.n}: hilo sin ids`);
+    // receta v3: el capítulo se corta por su hecho más fuerte.
+    const pzHf = (c.piezas || []).find((p) => p.episodio === c.hecho_fuerte);
+    if (!c.hecho_fuerte) out.push(`C13 cap_${c.n}: sin hecho_fuerte`);
+    else if (!pzHf || pzHf.forma !== 'escena') out.push(`C13 cap_${c.n}: el hecho_fuerte ${c.hecho_fuerte} no está en sus piezas como escena`);
+    const claves = (c.piezas || []).map((p) => eps[p.episodio]).filter((e) => e?.momento_clave);
+    if (c.hecho_fuerte && claves.length && !claves.some((e) => e.id === c.hecho_fuerte)) out.push(`C13 cap_${c.n}: tiene momentos clave (${claves.map((e) => e.id).join(', ')}) y el hecho_fuerte ${c.hecho_fuerte} no es ninguno`);
     if (prev && prev.apertura?.tipo === c.apertura?.tipo) out.push(`C13 cap_${c.n}: abre igual que el anterior (${c.apertura?.tipo})`);
     if (prev && prev.cierre?.tipo === c.cierre?.tipo) out.push(`C13 cap_${c.n}: cierra igual que el anterior (${c.cierre?.tipo})`);
     prev = c;
@@ -284,6 +303,17 @@ function c13(plan, reg) {
   const ult = plan.capitulos[plan.capitulos.length - 1];
   const idsHoy = new Set([...(reg.hoy || []).flatMap((h) => h.ids), ...(reg.episodios || []).filter((e) => e.estado === 'sigue_hoy').flatMap((e) => e.ids)]);
   if (!(ult?.hilo_de_hoy_ids || []).some((i) => idsHoy.has(i))) out.push('C13: el último capítulo no tiene un hilo de hoy respaldado (hilo_de_hoy_ids sin nada de "hoy" ni episodios sigue_hoy)');
+  // receta v3: el último capítulo tiene columna y cierra en una imagen de hoy.
+  const imf = ult?.imagen_final || {};
+  const epImf = eps[imf.episodio];
+  if (!ult?.columna?.texto) out.push('C13: el último capítulo no tiene columna (la oración que ordena sus piezas)');
+  if (!epImf) out.push('C13: el último capítulo no tiene imagen_final con un episodio del registro');
+  else {
+    if (!(ult.piezas || []).some((p) => p.episodio === imf.episodio)) out.push(`C13: la imagen_final ${imf.episodio} no está en las piezas del último capítulo`);
+    if (epImf.estado !== 'sigue_hoy' && !epImf.ids.some((i) => idsHoy.has(i))) out.push(`C13: la imagen_final ${imf.episodio} no es de hoy (ni sigue_hoy ni del bloque "hoy")`);
+    if (ult.cierre?.episodio !== imf.episodio) out.push(`C13: el último capítulo no cierra en su imagen_final (cierre ${ult.cierre?.episodio || 'vacío'}, imagen ${imf.episodio})`);
+  }
+  if (norm(plan.carta?.titulo || '') === 'antes de cerrar') out.push('C13: la carta no puede llamarse "Antes de cerrar" (es otra pieza)');
   const tipoDeId = new Map();
   for (const e of reg.episodios || []) for (const i of e.ids) tipoDeId.set(i, [...(tipoDeId.get(i) || []), e.tipo]);
   for (const i of idsCarta) if (!(tipoDeId.get(i) || []).includes('mensaje')) out.push(`C13 carta: ${i} no tiene ningún episodio tipo "mensaje"`);
@@ -343,11 +373,10 @@ function c9(probs, nueva, vieja) {
   const corte = nueva.lastIndexOf('\n---\n');
   const pieza = corte < 0 ? nueva : nueva.slice(0, corte);
   const n = ` ${norm(pieza)} `;
-  const FORMA = new Set(['primera_pagina', 'cierre_explica', 'lista', 'repetido', 'cortada', 'molde', 'boton', 'no_suena', 'ia', 'bolsa', 'carta_ajena', 'sin_hilo', 'sin_escena', 'apertura_repetida', 'titulo_generico', 'persona_dos_veces', 'sin_presentar', 'salto_confuso', 'deriva', 'relleno']);
   const cambios = new Map((corte >= 0 ? safeJSON(nueva.slice(corte + 5))?.cambios || [] : []).map((c) => [c.problema, c]));
   for (const p of probs) {
     const ch = cambios.get(p.n);
-    if (ch?.resultado === 'disputa' && !FORMA.has(p.tipo)) { out.push({ n: p.n, estado: 'disputa', id: ch.disputa_id, cita: ch.disputa_frase, frase: p.frase }); continue; }
+    if (ch?.resultado === 'disputa' && HECHOS.includes(p.tipo)) { out.push({ n: p.n, estado: 'disputa', id: ch.disputa_id, cita: ch.disputa_frase, frase: p.frase }); continue; }
     const f = norm(p.frase || '');
     if (f && f.split(' ').length >= 3 && n.includes(` ${f} `)) out.push({ n: p.n, estado: 'sigue', frase: p.frase, tipo: p.tipo });
   }
@@ -360,14 +389,9 @@ function c9(probs, nueva, vieja) {
 const safeJSON = (s) => { try { return JSON.parse(s.replace(/^```(json)?\s*/m, '').replace(/```\s*$/m, '')); } catch { return null; } };
 
 // ---------- receta v2: C18–C22 ----------
-const capituloDe = (plan, reg, rid) => {
-  const eps = (reg.episodios || []).filter((e) => e.ids.includes(rid)).map((e) => e.id);
-  if ((plan.carta?.ids || []).includes(rid)) return 'carta';
-  for (const c of plan.capitulos) if ((c.piezas || []).some((p) => eps.includes(p.episodio))) return `cap_${c.n}`;
-  return 'cap_' + plan.capitulos[plan.capitulos.length - 1].n;
-};
+const capituloDe = (plan, reg, rid) => piezaDeR(plan, reg, rid);
 // C18: toda respuesta aparece en alguna marca [[R..]] o en Sus frases.
-function c18(psCrudas, rs, reg, plan) {
+export function c18(psCrudas, rs, reg, plan) {
   const usadas = new Set(psCrudas.flatMap((p) => marcas(p.texto)));
   for (const f of plan.sus_frases || []) for (const i of f.ids || [f.id]) usadas.add(i);
   const fuera = new Set([...(reg.episodios || []).filter((e) => e.no_poner).flatMap((e) => e.ids)]);
@@ -379,7 +403,7 @@ function c18(psCrudas, rs, reg, plan) {
   return out;
 }
 // C19: lo que le habla a la familia está en la carta.
-function c19(psCrudas, reg) {
+export function c19(psCrudas, reg) {
   const carta = psCrudas.find((p) => p.pieza === 'carta');
   const enCarta = new Set(carta ? marcas(carta.texto) : []);
   const out = [];
@@ -390,7 +414,7 @@ function c19(psCrudas, reg) {
   return out;
 }
 // C20 (plan): el último capítulo no junta más de 2 reflexiones o gustos que no sean media línea.
-function c20(plan, reg) {
+export function c20(plan, reg) {
   const eps = Object.fromEntries((reg.episodios || []).map((e) => [e.id, e]));
   const ult = plan.capitulos[plan.capitulos.length - 1];
   const sueltas = (ult.piezas || []).filter((p) => p.forma !== 'media_linea' && ['reflexion', 'gusto'].includes(eps[p.episodio]?.tipo));
@@ -398,6 +422,15 @@ function c20(plan, reg) {
   const carta = new Set(plan.carta?.ids || []);
   for (const e of reg.episodios || []) if (e.a_quien === 'familia' && !e.no_poner && !e.ids.some((i) => carta.has(i))) otros.push(`C19: el episodio ${e.id} le habla a la familia y no está en carta.ids`);
   if (!plan.carta?.titulo) otros.push('C13: la carta no tiene título');
+  // receta v3: a quien está dedicado el libro y no le dejó mensaje, se dice en faltantes (nunca se inventa).
+  const faltan = ` ${norm((plan.faltantes || []).map((f) => `${f.que} ${f.donde || ''}`).join(' '))} `;
+  for (const pid of plan.carta?.para_personas || []) {
+    const per = (reg.personas || []).find((p) => p.id === pid);
+    if (!per) { otros.push(`C19: carta.para_personas tiene ${pid}, que no está en el registro`); continue; }
+    const suyos = [per.id, per.nombre, ...(per.apodos || [])].filter(Boolean).map(norm);
+    const leHabla = (reg.episodios || []).some((e) => e.a_quien === 'familia' && !e.no_poner && (e.a_quien_nombres || []).some((n) => suyos.includes(norm(n))));
+    if (!leHabla && !suyos.some((n) => n.length > 1 && faltan.includes(` ${n} `))) otros.push(`C19: el libro está dedicado a ${per.nombre} y no hay mensaje para ${per.nombre} ni faltante que lo diga`);
+  }
   return [...otros, ...(sueltas.length > 2 ? [`C20: el último capítulo junta ${sueltas.length} reflexiones o gustos (${sueltas.map((p) => p.episodio).join(', ')}); máximo 2: el resto vuelve a su capítulo o es remate de su escena`] : [])];
 }
 // C21: cada persona con algún hecho aparece en el libro.
@@ -431,6 +464,110 @@ function c22(ps, reg, plan) {
   return out;
 }
 
+// ---------- receta v3: C20 en el texto, C23–C26 ----------
+const idsDeTipo = (reg, tipos) => new Set((reg.episodios || []).filter((e) => tipos.includes(e.tipo)).flatMap((e) => e.ids));
+// C20 (texto): el último capítulo no apila reflexiones y cierra en su imagen_final.
+export function c20Texto(psCrudas, reg, plan) {
+  const ult = plan.capitulos[plan.capitulos.length - 1];
+  const p = psCrudas.find((x) => x.pieza === `cap_${ult.n}`);
+  if (!p) return [];
+  const out = [];
+  const pars = p.texto.split(/\n\s*\n/).map((x) => x.trim()).filter((x) => x && !x.startsWith('#'));
+  const reflex = idsDeTipo(reg, ['reflexion', 'gusto', 'balance']);
+  const solo = pars.filter((x) => { const m = marcas(x); return m.length && m.every((i) => reflex.has(i)); });
+  if (solo.length > 2) out.push({ pieza: p.pieza, control: 'C20', tipo: 'bolsa', frase: sinMarcas(solo[2]).slice(0, 120), que: `${solo.length} párrafos del último capítulo son solo reflexiones o gustos (máximo 2)` });
+  const epImf = (reg.episodios || []).find((e) => e.id === ult.imagen_final?.episodio);
+  const deImagen = new Set([...(epImf?.ids || []), ult.imagen_final?.frase_id].filter(Boolean));
+  const ultimo = pars[pars.length - 1] || '';
+  if (deImagen.size && !marcas(ultimo).some((i) => deImagen.has(i))) out.push({ pieza: p.pieza, control: 'C20', tipo: 'bolsa', frase: sinMarcas(ultimo).slice(0, 120), que: `el último párrafo no es la imagen final del plan (${ult.imagen_final.episodio}${ult.imagen_final.que ? `: ${ult.imagen_final.que}` : ''})` });
+  return out;
+}
+
+// C23: el balance de vida entra entero en "Antes de cerrar".
+export function c23(psCrudas, reg) {
+  const antes = psCrudas.find((p) => p.pieza === 'antes_de_cerrar');
+  const en = new Set(antes ? marcas(antes.texto) : []);
+  const out = [];
+  for (const e of reg.episodios || []) {
+    if (e.tipo !== 'balance' || e.no_poner) continue;
+    for (const i of e.ids) if (!en.has(i)) out.push({ pieza: 'antes_de_cerrar', control: 'C23', tipo: 'falta', frase: '', que: `falta ${i}: ${e.que.slice(0, 100)} (balance de vida) no está en Antes de cerrar` });
+  }
+  return out;
+}
+
+// C24: lo que el cotejo encontró afuera está en el libro (la mitad o más de sus palabras de contenido, en su pieza).
+export function c24(ps, cotejo, plan, reg, psCrudas = [], rs = null) {
+  const out = [];
+  for (const f of cotejoValido(cotejo, rs).validas) {
+    const pieza = piezaDeR(plan, reg, f.id, psCrudas);
+    const txt = ` ${norm(ps.find((p) => p.pieza === pieza)?.texto || '')} `;
+    const ws = palabras(f.frase || '').filter((w) => w.length > 3);
+    if (!ws.length) continue;
+    const estan = ws.filter((w) => txt.includes(` ${w} `)).length;
+    if (estan < Math.ceil(ws.length / 2)) out.push({ pieza, control: 'C24', tipo: 'falta_frase', frase: '', que: `falta frase de ${f.id}: «${f.frase}»${f.por_que ? ` (${f.por_que})` : ''}` });
+  }
+  return out;
+}
+
+/** Lo del cotejo que vale: id que existe y frase textual de esa respuesta (C6). Lo demás se descarta y va al informe. */
+export function cotejoValido(cotejo, rs) {
+  const validas = [], descartadas = [];
+  for (const f of cotejo?.faltan || []) {
+    const r = rs?.find((x) => x.id === f.id);
+    if (rs && (!r || !esSubsecuencia(f.frase || '', r.texto))) descartadas.push({ ...f, motivo: r ? 'la frase no es textual de esa respuesta' : 'el id no existe' });
+    else validas.push(f);
+  }
+  return { validas, descartadas };
+}
+
+// C25 (no bloquea): oraciones que apuntan a algo con "ese día", "ahí"… — van al lector como <referencias>.
+const REFERENCIA = /\b(ese dia|esa noche|esa tarde|esa manana|esa vez|ese momento|esa casa|ese lugar|ese ano|ahi|alla)\b/;
+export function referencias(ps) {
+  const out = [];
+  for (const p of ps) parrafos(p.texto).forEach((par, i) => {
+    for (const o of oraciones(par)) if (REFERENCIA.test(norm(o))) out.push({ pieza: p.pieza, parrafo: i + 1, oracion: o });
+  });
+  return out;
+}
+
+// C26: en el repaso, el verificador no puede dar vuelta lo que la ronda anterior ya decidió.
+const OPUESTO = { presente: 'pasado', pasado: 'presente', nombre: 'nombre' };
+const seTocan = (a, b) => {
+  const x = [...new Set(palabras(a || '').filter((w) => w.length > 3))], y = new Set(palabras(b || '').filter((w) => w.length > 3));
+  return x.length > 0 && y.size > 0 && x.filter((w) => y.has(w)).length >= Math.ceil(Math.min(x.length, y.size) / 2);
+};
+export function c26(repaso, anteriores) {
+  const res = { oscila: [], contradice: [], nuevos: [] };
+  for (const pr of repaso?.problemas || []) {
+    if (pr.tipo === 'contradice_decision') { res.contradice.push(pr); continue; }
+    const previas = (anteriores[pr.pieza] || []).filter((d) => OPUESTO[d.tipo] === pr.tipo);
+    // Oscila si marca, al revés, lo que la ronda anterior ya cambió (mismo tipo "nombre": solo si de verdad se cambió).
+    const choca = previas.find((d) => d.tipo === pr.tipo ? d.resultado === 'cambiado' && d.despues && seTocan(pr.frase, d.despues) : seTocan(pr.frase, d.despues) || seTocan(pr.frase, d.frase));
+    if (choca) res.oscila.push({ ...pr, control: 'C26', antes: { tipo: choca.tipo, frase: choca.frase, despues: choca.despues } });
+    else res.nuevos.push(pr);
+  }
+  return res;
+}
+
+const HECHOS = ['presente', 'pasado', 'nombre', 'fecha', 'lugar', 'cita', 'motivo', 'sentimiento', 'inventado', 'confirmado_no_usado', 'cortada', 'delicado'];
+/** Decisiones de la ronda anterior, por pieza: los problemas de hechos con lo que devolvió el arreglo. */
+export function decisionesAnteriores(dir) {
+  const carpeta = path.join(dir, 'arreglos');
+  const out = {};
+  if (!existe(carpeta)) return out;
+  for (const f of fsList(carpeta).filter((x) => /^problemas-.+\.json$/.test(x))) {
+    const pieza = f.replace(/^problemas-|\.json$/g, '');
+    const r = path.join(carpeta, `respuesta-${pieza}.txt`);
+    let cambios = [];
+    if (existe(r)) { const t = leer(r); const i = t.lastIndexOf('\n---\n'); cambios = (i >= 0 ? safeJSON(t.slice(i + 5))?.cambios : null) || []; }
+    out[pieza] = leerJSON(path.join(carpeta, f)).filter((p) => p.origen === 'verificador' && HECHOS.includes(p.tipo)).map((p) => {
+      const c = cambios.find((x) => x.problema === p.n) || {};
+      return { n: p.n, tipo: p.tipo, frase: p.frase, correccion: p.correccion || '', resultado: c.resultado || 'sin respuesta', despues: c.despues || '' };
+    });
+  }
+  return out;
+}
+
 // ---------- main ----------
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const [, , dirArg, que, arg] = process.argv;
@@ -445,7 +582,9 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     const crudas = piezas(dir);
     const ps = crudas.map((p) => ({ ...p, texto: sinMarcas(p.texto) }));
     const plan = planConR(leerJSON(salida(dir, 'plan.json')), reg);
-    problemas.push(...c18(crudas, rs, reg, plan), ...c19(crudas, reg), ...c21(ps, reg, plan), ...c22(ps, reg, plan));
+    problemas.push(...c18(crudas, rs, reg, plan), ...c19(crudas, reg), ...c21(ps, reg, plan), ...c22(ps, reg, plan), ...c20Texto(crudas, reg, plan), ...c23(crudas, reg));
+    const arreglado = existe(path.join(dir, 'arreglos')) && fsList(path.join(dir, 'arreglos')).some((f) => f.startsWith('respuesta-'));
+    if (arreglado && existe(salida(dir, 'cotejo.json'))) problemas.push(...c24(ps, leerJSON(salida(dir, 'cotejo.json')), plan, reg, crudas, rs));
     const regTxt = JSON.stringify(reg || {});
     const ultimo = ps.filter((p) => p.pieza.startsWith('cap_')).pop()?.pieza;
     for (const p of ps) {
@@ -462,7 +601,12 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     escribir(path.join(dir, 'controles', `c9-${arg}.json`), JSON.stringify(r, null, 1));
     console.log(`C9 ${arg}: ${r.abiertos.filter((a) => a.estado === 'sigue').length} siguen, ${r.abiertos.filter((a) => a.estado === 'disputa').length} disputas, ${r.identicos} % de párrafos sin problema idénticos${r.identicos < 70 ? ' (AVISO de deriva)' : ''}`);
     process.exit(r.abiertos.length ? 2 : 0);
-  } else { console.error('qué: registro | plan | piezas | arreglo <pieza>'); process.exit(1); }
+  } else if (que === 'repaso') {
+    const r = c26(leerJSON(salida(dir, 'hechos-repaso.json')), decisionesAnteriores(dir));
+    escribir(path.join(dir, 'controles', 'repaso.json'), JSON.stringify(r, null, 1));
+    console.log(`C26 repaso: ${r.nuevos.length} nuevos, ${r.oscila.length} el verificador oscila (no van al arreglo), ${r.contradice.length} contradicen una decisión con respuesta (van a disputa)`);
+    process.exit(r.nuevos.length || r.contradice.length ? 2 : 0);
+  } else { console.error('qué: registro | plan | piezas | arreglo <pieza> | repaso'); process.exit(1); }
   escribir(path.join(dir, 'controles', `${que}.json`), JSON.stringify(problemas, null, 1));
   if (!problemas.length) { console.log(`${que}: ok`); process.exit(0); }
   console.log(`${que}: ${problemas.length} problemas`);
