@@ -1,6 +1,6 @@
 # Guía: qué es una biografía interesante
 
-**Estado: aprobada por Naza el 01/10/2026 con cambios (gustos al cuerpo, lo delicado sin suavizar).**
+**Estado: aprobada por Naza el 01/10/2026 con cambios (gustos al cuerpo, lo delicado sin suavizar, el libro abre con la narradora presentándose).**
 
 Esta guía dice qué tiene que cumplir un libro de vida de Vitácora para que se lea como un libro y no como un formulario contestado. Es una guía de oficio: la lee una persona, y con ella después se escribe la receta del escritor desde cero. Cada criterio trae la regla, el porqué y un ejemplo. Los ejemplos son de una narradora inventada: **Nélida, 72 años, que tuvo una mercería en el barrio Echesortu de Rosario.** Su marido Raúl era chapista y murió en 2014; tiene tres hijos (Marcela, Gustavo y Pablo), una hermana (Chiche), un perro (Tito) y hoy vive en Funes, cerca de Marcela. Nada de eso existe: está acá solo para mostrar lo que está mal y lo que está bien.
 
@@ -11,7 +11,7 @@ Esta guía dice qué tiene que cumplir un libro de vida de Vitácora para que se
 Un libro de vida se lee cuando **pasan cosas**: alguien está en un lugar, hace algo, y eso cambia algo. Un formulario se lee cuando se **informan cosas**: quién es quién, cuántos años, qué le gusta.
 Todo lo que sigue es una forma de esta diferencia:
 
-1. La primera página tiene un momento con lugar y acción antes del primer dato de ficha.
+1. El libro abre con la narradora presentándose con su voz y algo concreto suyo; nunca con una ficha ni con un golpe para impactar.
 2. Cada capítulo cuenta un solo hilo y tiene por lo menos una escena de verdad.
 3. Las personas entran haciendo algo, de a una, nunca en lista.
 4. Lo que terminó se cuenta en pasado. Siempre.
@@ -25,23 +25,28 @@ Todo lo que sigue es una forma de esta diferencia:
 
 ## 1. La primera página
 
-**Regla.** El libro abre con un momento: un lugar, una acción y una persona haciendo algo. El primer dato de ficha (nombre completo, edad, año de nacimiento, cuántos hijos, de dónde es la familia) llega después de ese momento, nunca antes. "Me llamo…" está prohibido como arranque.
+**Regla (Naza, 01/10).** El libro abre con **la narradora presentándose con su propia voz**: quién es ella para sí misma. Sale de lo que dijo de sí misma (cómo se define, a qué se dedicó, de dónde es, lo que repite sin que se lo pregunten) y lleva algo concreto suyo: un objeto, un lugar, un gesto, una frase. El nombre y los datos pueden estar, pero **adentro de su forma de presentarse**, nunca como lista de ficha. No abre con la escena más fuerte de su vida ni con algo triste "para impactar"; si algo duro es parte de cómo ella se presenta, puede estar, pero no es lo que se busca.
 
-**Por qué.** El lector decide en la primera página si está leyendo a una persona o leyendo un expediente. Los datos de ficha no se pueden perder: van a aparecer de todos modos a lo largo del libro. El momento sí se pierde si no abre ahí.
+**Por qué.** Una biografía empieza conociendo a la persona. La ficha ("me llamo, nací, tengo tres hijos") es un expediente; la escena más fuerte suelta (una muerte, un accidente) es un golpe sin saber de quién se trata. La presentación con su voz hace las dos cosas: el lector sabe quién es y la escucha hablar.
 
-| Mal | Bien |
+| | Así abre el libro |
 |---|---|
-| Me llamo Nélida Ferraro, nací en Rosario en 1954. Mi papá era ferroviario y mi mamá costurera. Tengo tres hijos, Marcela, Gustavo y Pablo, y vivo en Funes. | Las persianas de la mercería eran de madera, y a la mañana había que subirlas con una manija que trababa siempre en el mismo lugar. Veinte años subí esa persiana. Raúl me decía que la cambiara; yo le decía que la manija era parte del negocio. |
+| Mal (ficha) | Me llamo Nélida Ferraro, nací en Rosario en 1954, tengo tres hijos y vivo en Funes. |
+| Mal (lo más fuerte) | La noche que murió Raúl yo estaba sola en el hospital… |
+| **Bien (se presenta)** | Soy Nélida, la de la mercería de Echesortu. Así me conocen todavía, aunque cerré hace años. Veinte años subí esa persiana de madera con una manija que trababa siempre en el mismo lugar. Soy rosarina, del 54, y si alguien me pregunta qué fui, digo eso: mercera. |
 
-**Cómo se controla.** Tapar la primera página con la mano hasta la primera oración que tiene un lugar y una acción. Si antes de esa oración aparece un nombre completo, una edad, un año o una lista de parientes, la apertura no cumple.
+(El "bien" vale solo si ella dijo cada cosa: que la conocen así, la persiana, la manija, "mercera". El escritor ordena; no agrega.)
 
-**Qué más tiene que tener la primera página.**
-- Una sola cosa pasa. No se presenta a más de dos personas (la narradora y, como mucho, una más).
-- Si el prólogo es "hoy", tiene que ser un día concreto de hoy, no una rutina ("me levanto, tomo mate, miro la tele"). Una rutina es ficha con verbos.
-- Si el material de "hoy" no trae ningún momento concreto, el libro abre con la escena más fuerte de toda la vida y "hoy" va al final. Es mejor abrir con la mercería en 1985 que con una lista de lo que hace hoy. No es una opción: es la regla.
-- El prólogo se elige por la fuerza de la escena, como cualquier otra. Si la escena más fuerte es dura, igual abre.
+**Cómo se controla.**
+- La primera oración no es "Me llamo…" ni un dato de ficha suelto.
+- Ninguna oración de la primera página junta tres datos de ficha seguidos (nombre, año, hijos, ciudad…).
+- Hay por lo menos una cosa concreta suya (objeto, lugar, gesto o frase textual) en el primer párrafo.
+- Todo lo que dice la presentación está en lo que ella contó de sí misma.
+- No se presenta a más de una persona además de ella.
 
-**Qué nunca.** Abrir con nombres, edades, datos de ficha, "me llamo", el árbol genealógico, o presentar a cuatro personas en tres oraciones. Tampoco abrir hablando del libro ("este libro es para mis nietos") ni valorando la vida ("tuve una vida llena de altibajos").
+**Qué nunca.** Abrir con la lista de datos, "me llamo", el árbol genealógico, cuatro personas en tres oraciones, una muerte o un golpe para impactar, hablando del libro ("este libro es para mis nietos") o valorando la vida ("tuve una vida llena de altibajos"). Y nunca contar en presente algo que ya terminó (ver sección 5).
+
+**El escritor elige, dentro de estos bordes.** No hay una receta única para la presentación: elige qué de lo que ella dijo de sí misma la presenta mejor. Pero lo que elija tiene que pasar los cinco controles de arriba; si no pasa, se vuelve a escribir.
 
 ---
 
@@ -270,7 +275,7 @@ Una entrevista trae mucho que no es relato: gustos, opiniones, reflexiones, list
 
 **Las frases cortadas.** Una frase que el audio cortó ("y todo lo que hiciste por… por la familia") **nunca queda cortada en el libro**. O se cierra con lo que dijo en otro momento, o se corta antes del corte y queda una oración entera, o se le pregunta. Un puntos suspensivos en una carta a una hija se lee como error de imprenta.
 
-**Lo delicado.** Muertes, enfermedades, separaciones, deudas, cárcel, drogas, peleas familiares: **todo lo que contó va como lo contó**, con el detalle que ella dio y en su lugar en la historia. Es la historia de su vida, no el maquillaje de su vida. No se suaviza, no se recorta, no se esconde al final, y puede abrir el libro si es la escena más fuerte. Lo único que el escritor no hace es **agregar**: ni adjetivos que valoren, ni moraleja, ni morbo, ni un detalle que ella no dio, porque eso también es inventar. Y si ella pidió expresamente que algo no esté ("esto no lo pongas"), no está: también es lo que dijo.
+**Lo delicado.** Muertes, enfermedades, separaciones, deudas, cárcel, drogas, peleas familiares: **todo lo que contó va como lo contó**, con el detalle que ella dio y en su lugar en la historia. Es la historia de su vida, no el maquillaje de su vida. No se suaviza, no se recorta, no se esconde al final. Lo único que el escritor no hace es **agregar**: ni adjetivos que valoren, ni moraleja, ni morbo, ni un detalle que ella no dio, porque eso también es inventar. Y si ella pidió expresamente que algo no esté ("esto no lo pongas"), no está: también es lo que dijo.
 
 | Mal | Bien |
 |---|---|
@@ -448,7 +453,7 @@ Siete puntos tomados de un manual de oficio externo, aprobados por Naza. Mismo f
 
 ### A5. Los momentos que sostienen un libro
 
-**Regla.** Hay momentos que, si los contó, son el esqueleto del libro y los primeros candidatos a abrir un capítulo o el libro: el **punto más alto**, el **más bajo**, los **giros** (donde la vida cambió de rumbo), el **recuerdo más temprano**, una escena de la infancia, una de la adolescencia y **una decisión difícil**. Se identifican en el registro antes de armar los capítulos.
+**Regla.** Hay momentos que, si los contó, son el esqueleto del libro y los primeros candidatos a abrir un capítulo: el **punto más alto**, el **más bajo**, los **giros** (donde la vida cambió de rumbo), el **recuerdo más temprano**, una escena de la infancia, una de la adolescencia y **una decisión difícil**. Se identifican en el registro antes de armar los capítulos.
 
 **Por qué.** Son los momentos que una persona usa para contarse a sí misma. Si están en el material y el libro los entierra en un resumen, el libro perdió lo que más valía.
 
