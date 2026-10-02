@@ -18,3 +18,16 @@ Lo que se repite (para la próxima vuelta, después de la lectura de Naza):
 - El final del último capítulo de Joaquín es un inventario de hoy.
 
 Falsas alarmas del código encontradas al correr con material real (arregladas con test): `hilo_de_hoy_ids` con episodios, "mamá" contra "su mamá" en C19, y el último capítulo sin escenas de hoy (fbe4135, 5d7a635).
+
+## Banco 2 — v4.1 (02/10/2026)
+Receta v4.1: un hilo por capítulo, entrar en un momento, imagen que vuelve, golpe preparado. Juez Opus a ciegas con la vara v4.1; en el capítulo fuerte de Naza compite también el "novelista" (ejercicio que Naza leyó y prefirió a todo).
+
+| Narrador | Capítulo | Anterior | v4 | v4.1 | Novelista | Se lee mejor |
+|---|---|---|---|---|---|---|
+| Naza | Hecho fuerte | 7,5 | 6 | 7,5 | **8** | novelista |
+| Naza | Último | 6 | 7 | **7,5** | — | v4.1 |
+| Joaquín | Separación | 6 | **7,5** | 6 | — | v4 |
+| Joaquín | Último | 6 | 7,5 | 7,5 | — | v4 |
+
+- La v4.1 sube en Naza (el capítulo fuerte pasa de 6 a 7,5 y empata con el anterior) pero no llega al novelista: deja lo más grave en una línea.
+- En Joaquín baja el capítulo de la separación por un hecho cambiado (atribuye a Agustín lo que la entrevista da a Naza; el juez marca que R04 y R07 se contradicen).
