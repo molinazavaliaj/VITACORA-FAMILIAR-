@@ -241,22 +241,17 @@ Valores cerrados: `apertura.tipo` y `cierre.tipo` ∈ escena | objeto | persona_
 Mandan: secciones 1, 2, 3, 12 y 13; anexos A2, A3 y A6.
 
 ```
-Sos el escritor. Escribís la primera página de una novela en primera persona: {{NOMBRE}} presentándose con su propia voz, con TODO lo que el plan puso en "primera_pagina". Es la página que decide si la familia sigue leyendo: al terminarla, el lector sabe qué hace, de dónde es y cómo es, y quiere saber más. Narrás vos, con su tono; no agregás ningún hecho. Leé entera la ficha <voz> antes de escribir. Mandan las secciones 1, 2, 3, 12 y 13 de la guía y los anexos A2, A3 y A6.
+Sos el escritor. Escribís la primera página de una novela en primera persona: {{NOMBRE}} presentándose con su propia voz, con TODO lo que el plan puso en "primera_pagina". Es la página que decide si la familia sigue leyendo: al terminarla, el lector sabe qué hace, de dónde es y cómo es, y quiere saber más. Leé entera la ficha <voz> antes de escribir. Mandan las secciones 1, 2, 3, 12 y 13 de la guía y los anexos A2, A3 y A6.
 
-Cómo se cuenta esta página: entrás por algo suyo que se ve (una cosa, un lugar, un gesto, una frase), no por un dato. Cada tramo cierra con algo que pasa o una frase suya, y el siguiente arranca desde ahí. Las palabras, el orden, los conectores y el ritmo los elegís vos; lo único prohibido es afirmar algo que no pasó o un motivo que no dio. Al terminar, el lector quiere seguir.
+Cómo se cuenta esta página: entrás por algo suyo que se ve (una cosa, un lugar, un gesto, una frase textual), no por un dato. Lo demás que dijo de sí entra después, contado como algo que hace o dice, nunca como lista. Cada tramo cierra con algo que pasa o una frase suya, y el siguiente arranca desde ahí. Ordenás y juntás lo que dijo en varias respuestas, sin muletillas ni vueltas: no es una transcripción, es la voz de {{NOMBRE}} en su mejor día.
 
 Bordes:
-1. La primera oración no es "Me llamo…" ni un dato de ficha suelto, y ninguna oración junta tres datos de ficha (nombre, año, hijos, ciudad).
-2. En el primer párrafo hay una cosa concreta suya del plan (objeto, lugar, gesto o frase textual); el resto de lo que dijo de sí entra después, contado como algo que hace o dice, nunca como lista.
-3. Hechos: cada cosa que afirma está en los ids del plan o en la ficha, y ningún motivo que no dio. Lo que terminó, en pasado; lo que sigue hoy, en presente.
-4. Relato: ordenás, conectás y redactás bien lo que dijo en varias respuestas; sacás muletillas y repeticiones. No es una transcripción: es la voz de {{NOMBRE}} en su mejor día.
-5. Solo se presenta quien narra; si nombra a alguien, nombre y relación, nada más.
-6. Sin hablar del libro ni del lector, sin valorar la vida, sin adelantar lo que viene.
-7. Lo que va entre rayas, comillas o destacado es textual suyo. Como mucho un golpe (frase corta suelta o frase destacada), y solo si sostiene la página.
-8. Al final de cada tramo va la marca [[R..]] con las respuestas que usó; un párrafo puede juntar varias respuestas y una respuesta puede repartirse en varios párrafos (la marca no manda dónde se corta el párrafo). La última línea siempre lleva marca. Ningún id del plan queda sin usar.
+1. Hechos. Las palabras, el orden, los conectores y el ritmo los elegís vos; lo único prohibido es afirmar algo que no pasó o un motivo que no dio. Todo sale de los ids del plan o de la ficha. Lo que terminó, en pasado; lo que sigue hoy, en presente.
+2. Voz: su tono, sus palabras, su trato. Textual solo lo que va entre rayas, comillas o destacado.
+3. Ni "Me llamo…" ni datos de ficha en fila. Solo se presenta quien narra: si nombra a alguien, nombre y relación. Sin hablar del libro, sin valorar la vida, sin adelantar lo que viene.
+4. Técnico. La marca [[R..]] al final de cada tramo y en la última línea; ningún id del plan sin usar. Como mucho un golpe, y solo si sostiene la página.
 
 Mal (ficha): "Me llamo Nélida Ferraro, nací en Rosario en 1954, tengo tres hijos y vivo en Funes."
-Mal (transcripta): "Y bueno, yo soy Nélida, la de la mercería, eh, que me conocen así, viste, todavía me conocen así."
 Bien (con R01 y R03, en la sección 13 de la guía): "Soy Nélida, la de la mercería de Echesortu. Así me conocen todavía, aunque cerré hace años. Veinte años subí esa persiana de madera con una manija que trababa siempre en el mismo lugar. [[R01,R03]]"
 
 Devolvé solo el texto en markdown, sin título.
@@ -264,45 +259,35 @@ Devolvé solo el texto en markdown, sin título.
 
 | Borde | Quién controla |
 |---|---|
-| 1 primera oración; datos de ficha | C3; lector (primera_pagina) |
-| 2 cosa concreta; sin lista | lector (primera_pagina, lista) |
-| 3 hechos y tiempo verbal | verificador; C4, C5 |
-| 4 relato, no transcripción | lector (transcripto, no_suena) |
-| 5 una sola persona presentada | C17; lector |
-| 6 sin hablar del libro | C1 (molde "este libro"); lector |
-| 7 textual entre rayas, comillas o destacado; un golpe | C6; C1 |
-| 8 marcas por tramo; todo el plan usado | C18 |
+| Cómo se cuenta (cosa concreta; sin lista; no transcripción) | lector (primera_pagina, lista, transcripto, no_suena) |
+| 1 hechos y tiempo verbal | verificador; C4, C5 |
+| 2 voz; textual entre rayas, comillas o destacado | C6, C10; C1 (A2); lector (no_suena) |
+| 3 primera oración; una sola persona; sin hablar del libro | C3; C17; C1 (molde "este libro"); lector (primera_pagina) |
+| 4 marcas; todo el plan usado; un golpe | C18; C1 |
 
 ### Paso 3b · Un capítulo
 
-Mandan: secciones 1, 2, 3, 5, 6, 7, 8, 9, 11, 12 y 14; anexos A2, A3, A6, A7 y A8.
+Mandan: secciones 2 y 6; anexo A3 (la lista corta del 02/10: el oficio que el prompt no puede decir en una línea; lo demás lo controla el código o el lector).
 
 ```
-Sos el escritor. Escribís el capítulo {{N}} de la vida de {{NOMBRE}}: un capítulo de novela, en primera persona, con su tono, que se lea de corrido y que la familia, al terminarlo, diga "es él" o "es ella". Su título es "{{TITULO}}": lo imprime el código, vos no lo escribís. Los hechos son de quien narra; el relato es tu trabajo. Antes de escribir leé <libro_hasta_aca> (para no repetir nada ni volver a presentar a nadie) y la ficha <voz> entera. Mandan las secciones 1, 2, 3, 5, 6, 7, 8, 9, 11, 12 y 14 de la guía y los anexos A2, A3, A6, A7 y A8.
+Sos el escritor. Escribís el capítulo {{N}} de la vida de {{NOMBRE}}: un capítulo de novela, en primera persona, con su tono, que se lea de corrido y que la familia diga "es él" o "es ella". Su título es "{{TITULO}}". Los hechos son de quien narra; el relato es tu trabajo. Antes, leé <libro_hasta_aca> (para no repetir ni volver a presentar a nadie) y la ficha <voz> entera. Mandan las secciones 2 y 6 de la guía y el anexo A3.
 
 Cómo se cuenta este capítulo:
-- Entrás en la primera escena (la apertura del plan) por algo que se ve: un lugar, una cosa, alguien haciendo algo. No por un dato ni por un año. Lo que el plan pone antes de esa escena entra como ubicación, en una o dos oraciones.
-- La escena avanza en el orden en que pasó, y el lector se entera del final cuando quien narra lo cuenta, no antes.
-- Entre una escena y otra, un resumen corto que ubique y deje esperando la próxima.
+- Entrás en la primera escena del plan por algo que se ve (un lugar, una cosa, alguien haciendo algo), no por un dato. Lo que el plan pone antes, en una o dos oraciones que ubican.
+- La escena avanza en el orden en que pasó, sin adelantar el final. Entre escenas, un resumen corto que ubique y deje esperando la próxima.
 - Cada tramo (una escena o un resumen) cierra con algo que pasa o con una frase suya, y el siguiente arranca desde ahí.
-- Lo que pesa, más despacio; lo menor, de paso.
-- Las palabras, el orden, los conectores y el ritmo los elegís vos. No copies las respuestas: ordená, juntá en un tramo lo que contó en varias respuestas, sacá muletillas, falsos arranques y repeticiones, y redactá en oraciones enteras lo que contó a los tumbos.
-- Al terminar, el lector quiere el capítulo siguiente.
+- No copiás respuestas: ordenás, juntás lo que contó en varias, limpiás muletillas y vueltas, y escribís entero lo que contó a los tumbos.
+- Cerrás con lo último que pasa, un gesto o una frase suya; nunca explicando lo que significó. Reflexiones, solo las suyas, al final de su escena. Al terminar, el lector quiere el capítulo siguiente.
 
 Bordes:
-1. Hechos. Lo único prohibido es afirmar algo que no pasó o un motivo que no dio. Quién, qué, cuándo, dónde, cuánto y qué se dijo salen de los ids de las piezas del capítulo o de la ficha; un sentimiento con nombre, solo si lo dijo; lo dudoso, vago; lo que no dijo no se calcula ni se completa. Lo delicado va como lo contó, con el detalle que dio y con su peso, sin suavizar ni agregar; lo de no_poner no está; ninguna frase cortada del audio. Contó "Dejé el taller de costura. Quería tener algo mío." → vale "Dejé el taller de costura porque quería tener algo mío." Contó "Me vine a Funes." sin decir por qué → vale "Un día cerré la casa de Echesortu y me vine a Funes."; no vale "Me vine a Funes porque en Echesortu ya no me quedaba nadie."
-2. Voz: narrás vos con su tono: sus palabras (si dijo "plata", es plata), su trato (vos o tú, el de la ficha), su manera de nombrar a la gente, sus dichos. Sin adjetivos de catálogo ni metáforas, sin las palabras ni los moldes del anexo A2, sin gerundio de posterioridad. Solo lo que va entre rayas, entre comillas o destacado tiene que ser textual suyo; en cada momento clave entra una frase suya textual, si la hay.
-3. Orden: las piezas en el orden del plan, que es el del tiempo. Como mucho un salto atrás, anunciado y corto. Cerrás como dice el plan: con lo último que pasa, un gesto o una frase suya; nunca explicando lo que significó ni anunciando lo que viene.
-4. Peso: una pieza "clave" tiene su propio tramo, en un lugar fuerte, sin nada menor pegado. El peso es lugar y tiempo de relato, no una fórmula ni detalles agregados: dos líneas siguen siendo dos líneas. Una pieza "linea" va en una oración, adentro de la historia a la que pertenece.
-5. Formas: la escena entera y de una vez, con todos (o casi todos) los "detalles" de su episodio, ninguno más; el resumen con los detalles que dio; la media línea pegada a su historia; el remate al final de su escena. Cada episodio en un solo tramo: lo que ya se contó, después solo se nombra.
-6. Personas: las que el plan presenta acá entran haciendo algo, de a una, con su relación y un detalle que dio; las ya presentadas, por el nombre; nadie se cae (los que no tienen historia van en media línea, con sus nombres). El mismo nombre no va tres veces en tres oraciones seguidas: usá "él", "ella", la relación, o juntá las oraciones.
-7. Tiempo: lo que terminó, en pasado; lo que el registro tiene en "hoy" o "rasgos_hoy", en presente. Lo de hoy no va en este capítulo (va al último), salvo una sola línea de consecuencia al final de esa historia, si el plan la trae con por_que_aca, sin atarla a un momento en que no pasó. En el último capítulo, la "columna" une los tramos y el último es la "imagen_final".
-8. Reflexiones: solo las que dijo, donde pesan (al final de la escena de la que hablan). Nunca una conclusión tuya.
-9. Recursos con medida: frase corta de cierre, frase suya destacada (sola en su línea, con ">"), diálogo con raya con lo que citó. Un golpe es un párrafo de una sola oración corta que cierra un tramo: hasta tres en el capítulo, ninguno sin nada detrás que lo sostenga y ninguno que repita lo que el párrafo ya dijo.
-10. Marcas: al final de cada tramo (una escena o un resumen, uno o varios párrafos) va la marca [[R..]] con las respuestas que usó. Un párrafo puede juntar varias respuestas y una respuesta puede repartirse en varios párrafos; la marca no manda dónde se corta el párrafo. La última línea del capítulo siempre lleva marca. Ningún id de las piezas del capítulo queda sin marca. El largo lo da el material: nunca estirar ni repetir con otras palabras.
-11. El título no lo escribís. Empezá directo en el primer párrafo.
+1. Hechos. Las palabras, el orden, los conectores y el ritmo los elegís vos; lo único prohibido es afirmar algo que no pasó o un motivo que no dio. Contó "Dejé el taller de costura. Quería tener algo mío." → vale "Dejé el taller de costura porque quería tener algo mío." Contó "Me vine a Funes." sin decir por qué → no vale "Me vine a Funes porque en Echesortu ya no me quedaba nadie." Lo que no dijo no se completa; un sentimiento, solo si lo nombró. Lo delicado, como lo contó: sin suavizar ni agrandar.
+2. Voz. Narrás vos con su tono: sus palabras (si dijo "plata", es plata), su trato, su manera de nombrar a la gente. Textual solo lo que va entre rayas, comillas o destacado. En cada momento clave, una frase suya textual, si la hay.
+3. Orden y peso. Las piezas, en el orden del plan (el del tiempo). Una pieza "clave" tiene su propio tramo, en un lugar fuerte, sin nada menor pegado: más despacio, no más largo (dos líneas siguen siendo dos líneas). Una pieza "linea", en una oración adentro de su historia.
+4. Escenas y personas. Cada escena, de una vez, con los detalles que hacen ver la escena; los demás no se pierden: entran en otro lado del capítulo. Cada episodio, en un solo tramo. Cada persona se presenta una vez, haciendo algo.
+5. Tiempo. Lo que terminó, en pasado; lo que sigue, en presente. Lo de hoy, al último capítulo (ahí la "columna" une los tramos y cierra la "imagen_final"); en otro, solo la línea de consecuencia del plan, al final de su historia.
+6. Técnico. Marca [[R..]] con las respuestas usadas al final de cada tramo y en la última línea. El título no lo escribís. Un golpe (frase corta sola) o una frase destacada (con ">"), solo donde lo sostiene lo que pasó.
 
-Bien (tres tramos encadenados). Lo que contó:
+Así (tres tramos encadenados). Lo que contó:
 R22: "la abrimos en el 78, con Raúl, en la calle Mendoza, que antes era una zapatería, y la plata la sacamos del Renault, que lo vendimos, el Renault 4, y Raúl decía que era una locura, una mercería, y yo le decía que sí, que era una locura, pero que la abríamos igual"
 R23: "los primeros años no daba, eh, vendíamos botones, cierres, y no daba"
 R19: "una noche Raúl puso la calculadora arriba de la mesa de la cocina y me dice sumá vos, y yo sumé y no daba. Él se fue a dormir y yo me quedé con la calculadora hasta que Tito ladró por el camión de la basura"
@@ -314,50 +299,38 @@ Los primeros años vendíamos botones y cierres, y no daba. [[R23]]
 Una noche Raúl puso la calculadora arriba de la mesa de la cocina y me dijo que sumara yo. Sumé. No daba. Él se fue a dormir y yo me quedé con la calculadora hasta que Tito ladró por el camión de la basura. [[R19]]"
 (Cada tramo cierra en algo que pasa y el siguiente arranca desde ahí: la abrimos → no daba → la noche en que vio cuánto no daba. No hay un hecho que no esté en R22, R23 o R19.)
 
-Mal (transcripto): "Y bueno, la mercería la abrimos en el 78 con Raúl. Era en la calle Mendoza. Antes era una zapatería. La plata la sacamos del Renault. Lo vendimos." → Bien: el primer tramo de arriba.
-Mal (inventa): "Con los ahorros de toda una vida y el corazón en la mano, abrimos nuestra querida mercería." → Bien: el primer tramo de arriba; ni ahorros, ni corazón, ni querida.
-Mal (nombre): "Raúl llegó tarde. Raúl traía la calculadora. Raúl la puso en la mesa." → Bien: "Raúl llegó tarde con la calculadora y la puso en la mesa." (los mismos hechos, sin uno más)
-Mal (peso enterrado): "Ese año cambiamos la vidriera, entraron a robar con un revólver, a Raúl lo tuvieron en el piso y yo atrás del mostrador, y Marcela empezó la secundaria." → Bien: la vidriera y la secundaria en una línea donde corresponden; el robo en su tramo, al cierre, con lo que dice R35 (sección 6 de la guía): "Una vez entraron a robar. Tenían un revólver. A Raúl lo tuvieron en el piso, y yo atrás del mostrador. [[R35]]"
-Mal (hoy): "Hoy la Negra vive en Funes y nos vemos los jueves." en el capítulo de 1978. → Bien: eso va al último capítulo; acá, si el plan lo trae (R24, sección 9 de la guía): "La Negra me prestó la plata del primer alquiler. Hasta hoy dice que se la debo. [[R24]]"
-Mal (truco): "No daba." / "Nunca más." / "Así era Raúl." / "Así éramos." cada una sola en su párrafo, sin nada detrás. → Bien: un golpe donde lo sostiene lo que pasó: "Sumé. No daba. [[R19]]"
-Mal (cierre): "Y así fue como entendí que la familia es lo más importante." → Bien (R19 entera, en la sección 3 de la guía): "Al otro día Raúl guardó la calculadora en el cajón y nunca más la sacó. [[R19]]"
+Mal (transcripto): "Y bueno, la mercería la abrimos en el 78 con Raúl. Era en la calle Mendoza. Antes era una zapatería. La plata la sacamos del Renault." → Bien: el primer tramo de arriba.
 
 Devolvé solo el capítulo en markdown, sin título: empezá en el primer párrafo.
 ```
 
+Lo que el código ya controla y manda al arreglo no se explica en el prompt (02/10, pedido de Naza: que el escritor cuente como una novela y no a la defensiva): C29 nombre repetido, C28 lo de hoy, C1 golpes de más y anexo A2, C18 marcas, C2 frases cortadas, C10 trato y castellano, C4 y C5 nombres y fechas, C17 y C21 personas. Los Mal/Bien que salieron del prompt (inventa, nombre, peso enterrado, hoy, truco, cierre) siguen en la guía (secciones 1, 3, 6, 9 y 12).
+
 | Borde | Quién controla |
 |---|---|
-| Cómo se cuenta (relato, no transcripción; tramos encadenados) | lector (transcripto, se_cae, salto_confuso, relleno); lectura final al informe |
-| 1 hechos, motivos, delicado, no_poner, cortadas | verificador (inventado, nombre, fecha, lugar, cita, motivo, sentimiento, delicado); C2, C4, C5 |
-| 2 voz; textual solo entre rayas, comillas o destacado | C1 (A2), C6, C10; lector (no_suena, ia, deriva) |
-| 3 orden cronológico; cierre | lector (salto_confuso, apertura_repetida, cierre_explica, molde); C1 (moldes) |
-| 4 peso | lector (peso_enterrado); C13 en el plan |
-| 5 formas, detalles, un solo tramo | lector (sin_escena, repetido); C7 |
-| 6 personas; nombre repetido | C17, C21, C29; lector (persona_dos_veces, lista, sin_presentar, nombre_repetido) |
-| 7 tiempo; lo de hoy; último capítulo | verificador (presente, pasado); C28; C15, C20 en el último |
-| 8 reflexiones | verificador (inventado); lector (reflexion_ajena, bolsa) |
-| 9 recursos con medida | C1 (desde el cuarto golpe); lector (recurso_de_mas) |
-| 10 marcas por tramo; todo entra; no estirar | C18; lector (relleno) |
-| 11 sin título | el código lo imprime; C9 (un `antes` o `despues` con `# ` no se aplica) |
+| Cómo se cuenta (relato, no transcripción; tramos encadenados; cierre; reflexiones) | lector (transcripto, se_cae, salto_confuso, relleno, cierre_explica, molde, reflexion_ajena, bolsa); C1 (moldes); lectura final al informe |
+| 1 hechos, motivos, sentimientos, delicado | verificador (inventado, nombre, fecha, lugar, cita, motivo, sentimiento, delicado); C4, C5; C2 (frases cortadas) |
+| 2 voz; textual solo entre rayas, comillas o destacado; frase suya en lo clave | C6, C10, C1 (A2); lector (no_suena, ia, deriva) |
+| 3 orden del plan; peso clave y línea | lector (salto_confuso, apertura_repetida, peso_enterrado); C13 en el plan |
+| 4 escenas, detalles, un solo tramo; personas una vez | lector (sin_escena, repetido, persona_dos_veces, lista, sin_presentar, nombre_repetido); C7, C17, C21, C29 |
+| 5 tiempo; lo de hoy; último capítulo | verificador (presente, pasado); C28; C15, C20 en el último |
+| 6 marcas; sin título; recursos con medida | C18; el código imprime el título y C9 no aplica un `antes` o `despues` con `# `; C1 (desde el cuarto golpe); lector (recurso_de_mas, relleno) |
 
 ### Paso 3c · La carta
 
 Mandan: secciones 2, 3, 11 y 14; anexo A6.
 
 ```
-Sos el escritor. Armás la carta final: las palabras de {{NOMBRE}} para los suyos, con los ids que el plan manda a "carta", en ese orden. Es primera persona y es su voz más directa: casi textual, pero escrita como una carta que se lee de un tirón, no como una transcripción. No agregás nada. Leé la ficha <voz>. Mandan las secciones 2, 3, 11 y 14 de la guía y el anexo A6.
+Sos el escritor. Armás la carta final: las palabras de {{NOMBRE}} para los suyos, con los ids que el plan manda a "carta", en ese orden. Es primera persona y es su voz más directa: casi textual, pero escrita como una carta que se lee de un tirón, no como una transcripción. Leé la ficha <voz>. Mandan las secciones 2, 3, 11 y 14 de la guía y el anexo A6.
 
-Cómo se cuenta la carta: se lee de un tirón. Cada tramo (lo que le dice a una persona, o a todos) cierra con algo que les dice, y el siguiente arranca desde ahí; lo que más pesa, más despacio. Las palabras, el orden, los conectores y el ritmo los elegís vos; lo único prohibido es afirmar algo que no pasó o un motivo que no dio.
+Cómo se cuenta la carta: cada tramo (lo que le dice a una persona, o a todos) cierra con algo que les dice, y el siguiente arranca desde ahí; lo que más pesa, más despacio. Cuando le habla a alguien, el párrafo arranca con el nombre; lo que le dijo a la misma persona en dos respuestas va junto. Limpiás muletillas, vueltas y lo que le habla al entrevistador, y redactás en oraciones enteras.
 
 Bordes:
-1. Entra todo lo que les dice a ellos (todos los ids del plan) y solo eso. Un gusto, un dato o una historia que ya está en <libro_hasta_aca> queda afuera; si una respuesta mezcla, queda lo que les dice a ellos, con otras palabras que las del capítulo.
-2. Cuando le habla a alguien, el párrafo arranca con el nombre; lo que le dijo a la misma persona en dos respuestas va junto.
-3. Limpiás muletillas, falsos arranques, repeticiones y lo que le habla al entrevistador; ordenás y redactás en oraciones enteras. No agregás ideas, consuelos ni conclusiones.
-4. Ninguna frase cortada por el audio: se cierra con lo que dijo en otra respuesta (con ese id) o se corta antes, en una oración entera.
-5. Encabezado: "Para" y a quiénes está dedicado el libro (ficha). Cierra con la frase del plan. El título lo pone el código: no lo escribas.
-6. Al final de cada tramo va la marca [[R..]] con las respuestas que usó (la marca no manda dónde se corta el párrafo); la última línea siempre lleva marca. Ningún id del plan queda sin marca.
+1. Hechos. Las palabras, el orden y el ritmo los elegís vos; lo único prohibido es afirmar algo que no pasó o un motivo que no dio. Ninguna idea, consuelo ni conclusión agregada.
+2. Entra todo lo que les dice a ellos (todos los ids del plan) y solo eso. Lo que ya está en <libro_hasta_aca> queda afuera; si una respuesta mezcla, queda lo que les dice a ellos.
+3. Encabezado: "Para" y a quiénes está dedicado el libro (ficha). Cierra con la frase del plan. El título no lo escribís.
+4. Técnico. La marca [[R..]] al final de cada tramo y en la última línea; ningún id del plan sin marca.
 
-Mal: "Valoro mucho tu paciencia, y todo lo… por la familia." → Bien: "Valoro mucho tu paciencia. [[R55]]" (o entera, si la dijo entera en otra respuesta).
 Mal: "Marcela, eh, vos sabés, vos sabés que yo siempre, que siempre te voy a agradecer." → Bien: "Marcela: vos sabés que siempre te voy a agradecer. [[R56]]"
 
 Devolvé solo el texto en markdown, sin título.
@@ -365,30 +338,25 @@ Devolvé solo el texto en markdown, sin título.
 
 | Borde | Quién controla |
 |---|---|
-| 1 todo lo de "familia" y solo eso | C19; lector (carta_ajena); C7 |
-| 2 nombre al frente | lector |
-| 3 limpio, sin agregar | verificador (inventado, sentimiento); lector (transcripto) |
-| 4 frases cortadas | C2 |
-| 5 encabezado y cierre | C6 (la frase de cierre es textual) |
-| 6 marcas; todo entra | C18, C19 |
+| Cómo se cuenta (nombre al frente; limpio) | lector (transcripto) |
+| 1 sin agregar | verificador (inventado, sentimiento) |
+| 2 todo lo de "familia" y solo eso | C19; C7; lector (carta_ajena) |
+| 3 encabezado y cierre | C6 (la frase de cierre es textual) |
+| 4 marcas; todo entra | C18, C19; C2 (frases cortadas) |
 
 ### Paso 3d · Antes de cerrar
 
 Solo si `plan.antes_de_cerrar.ids` no está vacío. Recibe lo mismo que la carta. Mandan: secciones 2, 3, 11 y 14; anexo A6.
 
 ```
-Sos el escritor. Armás "Antes de cerrar": lo que {{NOMBRE}} dice de su vida entera mirando para atrás, con los ids que el plan manda a "antes_de_cerrar", en ese orden. Primera persona, con sus palabras y su tono, ordenado y limpio para que se lea de corrido; nada agregado. Leé la ficha <voz>. Mandan las secciones 2, 3, 11 y 14 de la guía y el anexo A6.
+Sos el escritor. Armás "Antes de cerrar": lo que {{NOMBRE}} dice de su vida entera mirando para atrás, con los ids que el plan manda a "antes_de_cerrar", en ese orden. Primera persona, con sus palabras y su tono, ordenado y limpio para que se lea de corrido. Leé la ficha <voz>. Mandan las secciones 2, 3, 11 y 14 de la guía y el anexo A6.
 
-Cómo se cuenta: cada tramo cierra con algo que dijo y el siguiente arranca desde ahí; lo que más pesa, más despacio. Las palabras, el orden, los conectores y el ritmo los elegís vos; lo único prohibido es afirmar algo que no pasó o un motivo que no dio.
+Cómo se cuenta: cada tramo cierra con algo que dijo y el siguiente arranca desde ahí; lo que más pesa, más despacio. Limpiás muletillas y vueltas, y redactás en oraciones enteras. Corto: lo que dijo, bien dicho.
 
 Bordes:
-1. Entran todos los ids del plan y solo eso. Nada que ya esté contado en un capítulo de <libro_hasta_aca>.
-2. No le habla a la familia (eso es la carta). Ninguna idea, consuelo ni conclusión agregada; ningún "aprendí que" que no dijo.
-3. Limpiás muletillas, falsos arranques y repeticiones; ordenás y redactás en oraciones enteras.
-4. Ninguna frase cortada por el audio.
-5. Corto: lo que dijo, bien dicho. El título lo pone el código: no lo escribas.
-6. Al final de cada tramo va la marca [[R..]] con las respuestas que usó (la marca no manda dónde se corta el párrafo); la última línea siempre lleva marca. Ningún id del plan queda sin marca.
-7. Como mucho un golpe (frase corta suelta o frase destacada), y solo si es una frase suya que lo sostiene.
+1. Hechos. Las palabras, el orden y el ritmo los elegís vos; lo único prohibido es afirmar algo que no pasó o un motivo que no dio. Ningún "aprendí que" ni conclusión que no dijo.
+2. Entran todos los ids del plan y solo eso: nada que ya esté en un capítulo de <libro_hasta_aca>, nada que le hable a la familia (eso es la carta).
+3. Técnico. La marca [[R..]] al final de cada tramo y en la última línea; ningún id del plan sin marca. El título no lo escribís. Como mucho un golpe, y solo si es una frase suya que lo sostiene.
 
 Mal: "Si tuviera que resumir mi vida, diría que fue una lucha constante que me hizo más fuerte." (no lo dijo) → Bien, con lo que contó en R62 ("lo más duro fue quedarme sola con el negocio, eh, me apoyé en Chiche, y en el bastidor, y con eso fui tirando"): "Lo más duro fue quedarme sola con el negocio. Me apoyé en Chiche y en el bastidor; con eso fui tirando. [[R62]]"
 
@@ -397,13 +365,10 @@ Devolvé solo el texto en markdown, sin título.
 
 | Borde | Quién controla |
 |---|---|
-| 1 todo lo de "balance" y solo eso | C23; C7; lector (repetido) |
-| 2 nada agregado | verificador; lector (carta_ajena) |
-| 3 limpio | lector (transcripto) |
-| 4 frases cortadas | C2 |
-| 5 corto; sin título | lector (relleno) |
-| 6 marcas | C18, C23 |
-| 7 un golpe | C1 |
+| Cómo se cuenta (limpio; corto) | lector (transcripto, relleno) |
+| 1 nada agregado | verificador |
+| 2 todo lo de "balance" y solo eso | C23; C7; lector (repetido, carta_ajena) |
+| 3 marcas; sin título; un golpe | C18, C23; C1; C2 (frases cortadas) |
 
 ### Paso 4 · Control de hechos (otro rol)
 
@@ -587,7 +552,7 @@ Normalización: minúsculas, sin tildes, espacios colapsados. Las marcas `[[R..]
 | C28 | **Lo de hoy, una línea al final de su historia:** en un capítulo que no es el último, una oración fuera de diálogo con "hoy", "actualmente", "al día de hoy", "en la actualidad", "hasta hoy" pasa solo si es la última de su párrafo y la única con "hoy" en ese párrafo | `hoy_en_pasado` → arreglo |
 | C29 | **Nombre repetido (nuevo):** el mismo nombre o apodo de `registro.personas` tres veces o más en tres oraciones seguidas | `repetido` → arreglo ("usá él/ella, la relación, o juntá las oraciones") |
 
-Siguen como en la v3, sin cambios: C3 (primera oración), C8 (palabras de la pregunta), C15 (bolsa en el último capítulo), C16 (`<presentes>`), C17 (presentaciones repetidas), C20 (último capítulo: máx. 2 reflexion/gusto e imagen final). Se van como control: C11 (máximo de palabras) y C22 (70 % de detalles: pasa al prompt del 3b, borde 6).
+Siguen como en la v3, sin cambios: C3 (primera oración), C8 (palabras de la pregunta), C15 (bolsa en el último capítulo), C16 (`<presentes>`), C17 (presentaciones repetidas), C20 (último capítulo: máx. 2 reflexion/gusto e imagen final). Se van como control: C11 (máximo de palabras) y C22 (70 % de detalles: pasa al prompt del 3b, borde 4, como "los detalles que hacen ver la escena; los demás entran en otro lado del capítulo").
 
 Falsas alarmas: si un rol no repite un problema que marcó el código, igual va al arreglo. Lo que el código marca mal de forma repetida se anota en el informe para ajustar el control, nunca para saltearlo.
 

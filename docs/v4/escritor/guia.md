@@ -201,7 +201,7 @@ Lo que contó (inventado):
 
 ## 7. Escena, resumen y línea
 
-**Escena.** Un momento con cuándo, dónde, quién estaba y qué pasó, en el orden en que pasó. El lector la podría dibujar. Es lo que más atrapa. Lo que contó como escena se cuenta como escena, entera y de una vez, con **los detalles que dio** (los objetos, el lugar, las frases dichas, los gestos, las cantidades): casi todos, porque son lo que la familia reconoce. Ninguno más.
+**Escena.** Un momento con cuándo, dónde, quién estaba y qué pasó, en el orden en que pasó. El lector la podría dibujar. Es lo que más atrapa. Lo que contó como escena se cuenta como escena, entera y de una vez, con **los detalles que hacen ver la escena** (los objetos, el lugar, las frases dichas, los gestos, las cantidades), porque son lo que la familia reconoce; los demás no se pierden: entran en otro lado del capítulo. Ninguno que no dio.
 
 **Resumen.** Lo que pasaba en general ("íbamos todos los domingos", "con Raúl discutíamos por la plata"). Une escenas, ubica. Se cuenta con los detalles que sí dio ("íbamos a la costa en el Fiat 600, apretados", no "íbamos de vacaciones") y nunca más de tres párrafos seguidos sin algo concreto.
 
@@ -524,16 +524,18 @@ Cómo se pasa una respuesta oral a un párrafo de libro, paso por paso. La respu
 
 Cada paso recibe el encabezado de esta guía, "Si te acordás de una sola cosa" y estas secciones (la lectura de corrido recibe la guía entera, porque no tiene el material y tiene que reconocer todo).
 
+**El capítulo, corto (02/10).** El escritor del capítulo (y el arreglo de un capítulo, que es la misma llamada) recibe como mucho 2.000 palabras de guía: encabezado (191) + "Si te acordás de una sola cosa" (371) + sección 2, hechos y relato (693) + sección 6, el peso (495) + anexo A3, la ficha de voz (146) = **1.896**. Lo demás ya lo dice el prompt en una línea (cómo avanza, voz, tiempo) o lo controla el código y lo manda al arreglo (nombre repetido, lo de hoy, golpes, marcas, frases cortadas, trato, nombres y fechas). Las otras secciones siguen valiendo y las recibe el lector.
+
 | Paso | Secciones | Anexos |
 |---|---|---|
 | registro | 2, 6, 9, 14 | A1, A3, A4, A5 |
 | plan | 1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 13 | A4, A5, A7 |
 | primera | 1, 2, 3, 12, 13 | A2, A3, A6 |
-| capitulo | 1, 2, 3, 5, 6, 7, 8, 9, 11, 12, 14 | A2, A3, A6, A7, A8 |
+| capitulo | 2, 6 | A3 |
 | carta | 2, 3, 11, 14 | A6 |
 | antes | 2, 3, 11, 14 | A6 |
 | cotejo | 3, 11, 14 | — |
 | hechos | 2, 9, 14, 15 | — |
 | lectura | todas | todos |
 
-Para `SECCIONES` en `lib.mjs`: `registro: ['2','6','9','14','A1','A3','A4','A5']`, `plan: ['1','2','4','5','6','7','8','9','10','11','13','A4','A5','A7']`, `primera: ['1','2','3','12','13','A2','A3','A6']`, `capitulo: ['1','2','3','5','6','7','8','9','11','12','14','A2','A3','A6','A7','A8']`, `carta: ['2','3','11','14','A6']`, `antes: ['2','3','11','14','A6']`, `cotejo: ['3','11','14']`, `hechos: ['2','9','14','15']`, `lectura: null`.
+Para `SECCIONES` en `lib.mjs`: `registro: ['2','6','9','14','A1','A3','A4','A5']`, `plan: ['1','2','4','5','6','7','8','9','10','11','13','A4','A5','A7']`, `primera: ['1','2','3','12','13','A2','A3','A6']`, `capitulo: ['2','6','A3']`, `carta: ['2','3','11','14','A6']`, `antes: ['2','3','11','14','A6']`, `cotejo: ['3','11','14']`, `hechos: ['2','9','14','15']`, `lectura: null`.

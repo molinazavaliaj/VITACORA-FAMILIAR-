@@ -124,7 +124,7 @@ export const SECCIONES = { // v4: la tabla del final de docs/v4/escritor/guia.md
   registro: ['2', '6', '9', '14', 'A1', 'A3', 'A4', 'A5'],
   plan: ['1', '2', '4', '5', '6', '7', '8', '9', '10', '11', '13', 'A4', 'A5', 'A7'],
   primera: ['1', '2', '3', '12', '13', 'A2', 'A3', 'A6'],
-  capitulo: ['1', '2', '3', '5', '6', '7', '8', '9', '11', '12', '14', 'A2', 'A3', 'A6', 'A7', 'A8'],
+  capitulo: ['2', '6', 'A3'], // corto a propósito (Naza 02/10): lo demás lo controla el código
   carta: ['2', '3', '11', '14', 'A6'],
   antes: ['2', '3', '11', '14', 'A6'],
   cotejo: ['3', '11', '14'],
