@@ -54,3 +54,20 @@ La v3.1 abre mejor (imagen concreta) y no inventa, pero **sigue perdiendo por el
 4. Sin párrafos de una sola oración para hacer peso (C1).
 
 Joaquín: no se corrió (la regla era correrlo si ganaba).
+
+---
+
+# Prueba 3.2 — receta v3.2 y vara fija (02/10/2026, misma entrevista)
+
+Cambios (Fable redactó, código con 36 tests): plan por época (C13 `por_que_aca`), hilo hacia el hecho fuerte, un episodio un lugar, título fijo del plan (lo imprime el código), sin párrafos de golpe ni citas ">" (C1), C28 "hoy" en un capítulo del pasado. El juez usa una **vara fija** (`vara-del-10.md`: 8 criterios, nota del escritor aparte del techo de la entrevista). Para iterar hay una **prueba corta** (`workflow-capitulo.js`: registro, plan y un capítulo, ~45 min); el libro entero, cuando el capítulo gana.
+
+| Corrida | Capítulo fuerte (nuevo vs anterior) | Último capítulo (nuevo vs anterior) |
+|---|---|---|
+| v3 | 5 vs 6,5 | 6 vs 5 |
+| v3.1 | 5,5 vs 6,5 | — |
+| v3.2 prueba corta (vara) | **8 vs 7,5** | — |
+| v3.2 libro entero (vara) | **9 vs 7,5** | **7,5 vs 6,5** |
+
+Techo de la entrevista para ese tramo: 8,5 (el hecho fuerte está en tres líneas sin dónde ni cómo terminó); para el último: 9.
+
+Lo que queda (del juez, para el proceso): el último capítulo tiene columna y cierra en imagen de hoy, pero se le cuelan párrafos barajables y uno que junta seis respuestas; el hecho fuerte de hoy tiene que tener lugar (abrir o cerrar) y el título salir de ahí; saltos de tiempo sin anunciar y listas copiadas del material. Bug arreglado: el arreglo que borraba un párrafo dejaba un hueco.
