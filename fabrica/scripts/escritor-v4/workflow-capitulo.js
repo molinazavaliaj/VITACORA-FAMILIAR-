@@ -11,7 +11,7 @@ export const meta = {
 // Prueba corta del escritor v4 (plan docs/superpowers/plans/2026-10-02-escritor-v4.md, Task 7). Se escriben solo los capítulos
 // del banco y cada uno se juzga a ciegas contra la v3.2 y el libro anterior, con docs/v4/escritor/vara.md. Juez Opus (Naza: "en
 // lo posible siempre Opus"): el escritor también es Opus, así que la nota filtra; decide Naza leyendo.
-// Uso: Workflow({scriptPath, args: {dir, capitulos: [{rid: "R67" | "ultimo", comparar: {"v3.2": "C:/…md", "anterior": "C:/…md"}}]}})
+// Uso: Workflow({scriptPath, args: {dir, version: "v4.1", capitulos: [{rid: "R67" | "ultimo", comparar: {"<nombre>": "C:/…md", …}}]}})
 // Ojo: los capítulos se escriben sin los que no están en el banco (libro_hasta_aca parcial); C18/C17 marcan cosas de otras piezas que acá no se arreglan.
 
 const ESC = 'C:/Users/Naza/Desktop/VITACORA FAMILIAR-v3-escritor/fabrica/scripts/escritor-v4'
@@ -120,22 +120,23 @@ const fin = await codigo([
 ], 'libro + informe', 'Revisión y arreglo')
 log(fin[3].salida.trim())
 
-// ---------- juicio a ciegas: tres textos por capítulo, orden rotado ----------
+// ---------- juicio a ciegas: N textos por capítulo (el nuevo + los de args.comparar), orden rotado ----------
 phase('Juicio')
-const NOTAS = { type: 'object', properties: {
-  notas: { type: 'object', properties: { A: { type: 'number' }, B: { type: 'number' }, C: { type: 'number' } }, required: ['A', 'B', 'C'] },
-  techo: { type: 'number' }, gana: { type: 'string' }, resumen: { type: 'string' } }, required: ['notas', 'gana', 'resumen'] }
 const juicios = await parallel(banco.map((c, i) => async () => {
-  const textos = [{ quien: 'v4', archivo: `${J}/v4-cap${c.n}.md` }, { quien: 'v3.2', archivo: c.comparar['v3.2'] }, { quien: 'anterior', archivo: c.comparar.anterior }]
-  const orden = [...textos.slice((i + 1) % 3), ...textos.slice(0, (i + 1) % 3)] // A, B, C cambian de dueño en cada capítulo
-  const letras = ['A', 'B', 'C']
+  const textos = [{ quien: args.version || 'nuevo', archivo: `${J}/v4-cap${c.n}.md` }, ...Object.entries(c.comparar).map(([quien, archivo]) => ({ quien, archivo }))]
+  const k = (i + 1) % textos.length
+  const orden = [...textos.slice(k), ...textos.slice(0, k)] // las letras cambian de dueño en cada capítulo
+  const letras = orden.map((_, j) => String.fromCharCode(65 + j))
   const clave = Object.fromEntries(orden.map((t, j) => [letras[j], t.quien]))
+  const NOTAS = { type: 'object', properties: {
+    notas: { type: 'object', properties: Object.fromEntries(letras.map((l) => [l, { type: 'number' }])), required: letras },
+    techo: { type: 'number' }, se_lee_mejor: { type: 'string' }, gana: { type: 'string' }, resumen: { type: 'string' } }, required: ['notas', 'gana', 'resumen'] }
   await codigo([...orden.map((t, j) => `cp "${t.archivo}" "${J}/${c.rid}-${letras[j]}.md"`), `echo '${JSON.stringify(clave)}' > "${J}/clave-${c.rid}.json"`], `ciego ${c.rid}`, 'Juicio')
   const r = await agent(`Sos editor de biografías para la familia (memorias en primera persona, escritas desde una entrevista oral). Juzgás a ciegas: no sabés qué proceso escribió cada texto ni cuál es más nuevo. No leas ningún archivo fuera de los que te nombro.
 1) Leé la vara: ${VARA}. Juzgás con ella, criterio por criterio, cada texto por separado; recién al final los comparás.
 2) Material (la verdad): ${DIR}/entradas/respuestas.xml (entera), ${DIR}/entradas/ficha.xml, ${DIR}/entradas/confirmado.xml.
-3) Tres versiones del mismo tramo de vida, de tres libros distintos: ${J}/${c.rid}-A.md, ${J}/${c.rid}-B.md, ${J}/${c.rid}-C.md. Los tramos pueden no coincidir exacto: juzgá cada uno sobre lo que abarca. Ves UN capítulo de cada libro: lo que falta del material puede estar en otro capítulo.
-Escribí el juicio en castellano rioplatense con el formato de salida de la vara (tablas cortas, evidencia citada en frases cortas) en ${J}/juicio-${c.rid}.md, y devolvé las tres notas, el techo de la entrevista, cuál gana (A, B o C) y un resumen de 3 líneas.`, { label: `juicio ${c.rid}`, phase: 'Juicio', schema: NOTAS })
-  return { capitulo: c.n, rid: c.rid, notas: Object.fromEntries(Object.entries(r.notas).map(([l, v]) => [clave[l], v])), techo: r.techo, gana: clave[r.gana] || r.gana, resumen: r.resumen }
+3) ${letras.length} versiones del mismo tramo de vida, de libros distintos: ${letras.map((l) => `${J}/${c.rid}-${l}.md`).join(', ')}. Los tramos pueden no coincidir exacto: juzgá cada uno sobre lo que abarca. Ves UN capítulo de cada libro: lo que falta del material puede estar en otro capítulo.
+Escribí el juicio en castellano rioplatense con el formato de salida de la vara (tablas cortas, evidencia citada en frases cortas) en ${J}/juicio-${c.rid}.md, y devolvé las notas (${letras.join(', ')}), el techo de la entrevista, cuál se lee mejor, cuál gana (una letra) y un resumen de 3 líneas.`, { label: `juicio ${c.rid}`, phase: 'Juicio', schema: NOTAS })
+  return { capitulo: c.n, rid: c.rid, notas: Object.fromEntries(Object.entries(r.notas).map(([l, v]) => [clave[l], v])), techo: r.techo, se_lee_mejor: clave[r.se_lee_mejor] || r.se_lee_mejor, gana: clave[r.gana] || r.gana, resumen: r.resumen }
 }))
 return { banco: juicios.filter(Boolean), disputas: disp1.length, controles_final: fin[0].salida.split('\n')[0], aviso: 'juez y escritor son Opus: la nota filtra, decide Naza leyendo' }
