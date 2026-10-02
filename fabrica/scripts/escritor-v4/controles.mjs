@@ -365,7 +365,10 @@ export function c13(plan, reg) {
   // v4 (prueba del banco): el plan puede poner episodios (E..) en hilo_de_hoy_ids: valen sus R.
   const epsHoy = Object.fromEntries((reg.episodios || []).map((e) => [e.id, e.ids]));
   const hiloHoy = (ult?.hilo_de_hoy_ids || []).flatMap((i) => (/^E\d+$/.test(i) ? epsHoy[i] || [] : [i]));
-  if (!hiloHoy.some((i) => idsHoy.has(i))) out.push('C13: el último capítulo no tiene un hilo de hoy respaldado (hilo_de_hoy_ids sin nada de "hoy" ni episodios sigue_hoy)');
+  // Receta: si el registro no tiene ninguna escena de hoy, el hilo puede ser una escena (la más reciente). Pasó con Joaquín.
+  const hayEscenaHoy = (reg.episodios || []).some((e) => e.estado === 'sigue_hoy' && e.es_escena);
+  const hiloEscena = (ult?.hilo_de_hoy_ids || []).some((i) => (reg.episodios || []).find((e) => (e.id === i || e.ids.includes(i)) && e.es_escena));
+  if (!hiloHoy.some((i) => idsHoy.has(i)) && (hayEscenaHoy || !hiloEscena)) out.push('C13: el último capítulo no tiene un hilo de hoy respaldado (hilo_de_hoy_ids sin nada de "hoy" ni episodios sigue_hoy)');
   // receta v3: el último capítulo tiene columna y cierra en una imagen de hoy.
   const imf = ult?.imagen_final || {};
   const epImf = eps[imf.episodio];

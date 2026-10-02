@@ -289,3 +289,11 @@ test('C13/C19 v4: hilo de hoy con episodios; "mamá" encuentra a "su mamá" (mad
   assert.ok(!c13(p, r).some((x) => x.includes('hilo de hoy')));
   assert.ok(!c20(p, r).some((x) => x.includes('su mamá')));
 });
+
+test('C13 v4: sin escenas de hoy en el registro, el hilo del último puede ser la escena más reciente', () => {
+  const r = reg(); r.episodios[2].estado = 'termino'; r.hoy = [{ que: 'borda', ids: ['R99'] }]; // ya no hay escena sigue_hoy
+  const p = plan(); p.capitulos[1].hilo_de_hoy_ids = ['E02'];
+  assert.ok(!c13(p, r).some((x) => x.includes('hilo de hoy')));
+  p.capitulos[1].hilo_de_hoy_ids = ['E04']; // balance, no es escena
+  assert.ok(c13(p, r).some((x) => x.includes('hilo de hoy')));
+});
