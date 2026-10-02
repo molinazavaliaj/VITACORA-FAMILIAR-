@@ -19,7 +19,7 @@ Hecho es quién, qué, cuándo, dónde, cuánto y qué se dijo. Eso no se toca: 
 1. **Atrapa como una novela.** Se lee de corrido, y la familia, al terminar, dice "es ella".
 2. **Primera persona, siempre**, con el tono de quien narra: narrás vos, con sus palabras, su trato y su manera. En los momentos clave entra una frase suya textual.
 3. **Ningún hecho agregado.** Lo que falta no lo resolvés vos: lo anotás y lo repregunta la entrevista.
-4. **Un capítulo es una etapa de la vida**, en orden, con **un hilo** (una historia que cambia) que todo lo que entra empuja; adentro del capítulo, el tiempo va para adelante.
+4. **Un capítulo es una etapa de la vida**, en orden; adentro del capítulo, el tiempo va para adelante.
 5. **El peso va por importancia, no por largo**: un momento clave contado en dos líneas va en un lugar fuerte y con tiempo de relato; lo menor, de paso, en una línea en el medio.
 6. **Todo entra**, aunque sea en una línea.
 7. **Lo de hoy va al último capítulo.** En un capítulo viejo, solo una línea de consecuencia que cierra su historia.
@@ -152,17 +152,15 @@ Lo que contó (inventado), y de donde salen los ejemplos de la calculadora en to
 
 **Regla.** Dentro de un capítulo, **orden cronológico**. Lo que pasó primero se cuenta primero, aunque ella lo haya contado al final de la entrevista.
 
-**El hilo.** Antes de escribir, el capítulo se dice en una oración con un verbo de cambio: una historia que cambia, no la etapa. Lo que no empuja ese hilo va al capítulo donde sí empuja (anotado en el plan, nunca perdido).
+**Cómo abre.** En la primera escena de la etapa, por algo que se ve: un lugar, una cosa, alguien que hace algo; no por un dato. Si antes de esa escena hay hechos sin escena, pueden ir en una o dos oraciones que ubican, o en **un solo salto atrás anunciado y corto** ("Eso había empezado un año antes") que vuelve enseguida. Dos saltos atrás en un capítulo confunden.
 
-**Cómo abre.** En **un** momento de la primera escena, por algo que se ve: un lugar, una cosa, alguien que hace algo; no por un dato ni por el resumen de muchas veces. Esa imagen puede volver en lo más grave del capítulo. Si antes de esa escena hay hechos sin escena, pueden ir en una o dos oraciones que ubican, o en **un solo salto atrás anunciado y corto** ("Eso había empezado un año antes") que vuelve enseguida. Dos saltos atrás en un capítulo confunden.
-
-**Cómo avanza.** Una escena va en el orden en que pasó, y el lector se entera del final cuando ella lo cuenta, no antes. Entre una escena y otra, un resumen corto que ubique y deje esperando la próxima. Cada tramo (una escena o un resumen) cierra con algo que pasa o con una frase suya, y el siguiente arranca desde ahí. Lo que pesa, más despacio y preparado (antes del hecho grave, lo que lo hace pesar: cuando todo iba bien, las veces anteriores, una anticipación que ella dijo); lo menor, de paso. Un párrafo que no empuja el hilo se saca de ahí. Al terminar el capítulo, el lector quiere el siguiente.
+**Cómo avanza.** Una escena va en el orden en que pasó, y el lector se entera del final cuando ella lo cuenta, no antes. Entre una escena y otra, un resumen corto que ubique y deje esperando la próxima. Cada tramo (una escena o un resumen) cierra con algo que pasa o con una frase suya, y el siguiente arranca desde ahí. Lo que pesa, más despacio; lo menor, de paso. Al terminar el capítulo, el lector quiere el siguiente.
 
 **Cómo conecta.** Cada párrafo tiene que llevar al siguiente. Un puente ubica en tiempo y lugar con lo que ella dijo ("Ese mismo invierno", "Cuando nació Pablo"), sin resumir lo anterior ni adelantar lo que viene, y sin molde: si dos capítulos abren con "Ya vivíamos en… cuando…", se ve la máquina.
 
 **Cada cosa, en un solo tramo.** Un episodio se cuenta una vez, entero. Si la mercería se presentó en el párrafo 2, en el 6 es "la mercería", no "la mercería que abrimos en el 78 en la calle Mendoza".
 
-**Cómo cierra.** Con lo último que pasa, con la imagen del principio, con un gesto o con una frase suya; no con un dato que queda ambiguo. Nunca con una explicación de lo que significó ("y así aprendí que…") ni con un anuncio ("pero eso vino después").
+**Cómo cierra.** Con lo último que pasa, con un gesto o con una frase suya. Nunca con una explicación de lo que significó ("y así aprendí que…") ni con un anuncio ("pero eso vino después").
 
 | Mal (salteado) | Bien (en orden) |
 |---|---|
@@ -176,20 +174,14 @@ Lo que contó (inventado), y de donde salen los ejemplos de la calculadora en to
 
 **Regla.** Lo que más pesa en su vida va en un **lugar fuerte** y con **tiempo de relato**, aunque ella lo haya contado en dos líneas. Lo menor va de paso, en **una línea**, en el medio, pegado a lo suyo.
 
-**El hilo.** Cada capítulo cuenta **una historia que cambia**, no la etapa: se dice en una oración con un verbo de cambio ("la mercería pasó de ser el sueño de Raúl a ser mi lugar"). Todo lo que entra la empuja; lo que no, va al capítulo donde sí empuja, anotado en el plan: nunca se pierde.
-
-**Qué pesa.** Los momentos clave del registro: un giro (donde la vida cambió de rumbo), el punto más alto o el más bajo, una pérdida, un peligro, una decisión difícil. Pesan por lo que son, no por cuánto los contó: un robo con revólver en dos renglones pesa más que un veraneo en una página.
+**Qué pesa.** Los momentos clave del registro: un giro (donde la vida cambió de rumbo), el punto más alto o el más bajo, una pérdida, un peligro, una decisión difícil. Pesan por lo que son, no por cuánto los contó: un robo con revólver contado en dos renglones pesa más que un veraneo contado en una página.
 
 **Qué es un lugar fuerte.**
-- Abre o cierra el capítulo, si el orden del tiempo lo permite.
+- Abre el capítulo o lo cierra, si el orden del tiempo lo permite (el plan corta la etapa para que caiga ahí cuando se puede).
 - Si cae en el medio, tiene **su propio tramo**: nada menor pegado, lo de antes lleva hacia él y lo de después es consecuencia.
-- Lleva **una frase suya textual** si la hay (secciones 3 y 12).
+- Lleva **una frase suya textual** si la hay (sección 3, sección 12).
 
-**Tiempo de relato sin agregar.** Lo que pesa va donde el lector lo ve, más despacio que lo de alrededor; cómo, lo decidís vos. Nunca un detalle, un sentimiento o un "fue terrible" que no dijo: **dos líneas siguen siendo dos líneas**.
-
-**El golpe preparado.** Antes del hecho grave va lo que lo hace pesar, con lo que ella contó: cuando todo iba bien, las veces anteriores, una anticipación que ella dijo. Nada que no dio.
-
-**Entrar en un momento, volver a él.** Se entra en un momento (una noche, una mesa), no en el resumen de muchos. Esa imagen vuelve en lo más grave, y el capítulo cierra en ella o en un gesto, no en un dato. Se limpian los restos del habla ("y bueno", "como te decía") sin perder sus giros.
+**Qué es darle tiempo de relato sin agregar.** El peso es lugar y tiempo, no una fórmula: lo que pesa va donde el lector lo ve, se cuenta más despacio que lo de alrededor, en el orden en que pasó, y el lector se queda ahí antes de seguir. Cómo se logra (largo de las oraciones, dónde se corta el párrafo) lo decidís vos en cada caso. Lo que no se hace nunca: agregar un detalle, un sentimiento o un "fue terrible" que no dijo. **Dos líneas siguen siendo dos líneas**: lo que cambia es dónde van y cómo suenan.
 
 Lo que contó (inventado):
 
@@ -199,13 +191,11 @@ Lo que contó (inventado):
 |---|---|
 | Ese año cambiamos la vidriera, entraron a robar con un revólver, a Raúl lo tuvieron en el piso y yo atrás del mostrador, y Marcela empezó la secundaria. | (al cierre del capítulo, en su tramo) Una vez entraron a robar. Tenían un revólver. A Raúl lo tuvieron en el piso, y yo atrás del mostrador. |
 
-(Todo está en R35; la vidriera y la secundaria van en una línea, en otro lugar.)
+(Todo lo del "bien" está en R35. La vidriera y la secundaria de Marcela van en una línea, en otro lugar del capítulo, pegadas a lo suyo.)
 
-| Mal (resumen) | Bien (un hilo, un momento) |
-|---|---|
-| Fueron años de mucho trabajo. Con Raúl discutíamos por la plata, la Negra venía a tomar mate y Marcela empezó la secundaria. Y bueno, la mercería siguió, como te decía. | Una noche Raúl puso la calculadora arriba de la mesa de la cocina. —Sumá vos —me dijo. Sumé. No daba. (…el hilo de la plata; los mates con la Negra, donde empujen…) Al otro día la guardó en el cajón y nunca más la sacó. |
+**Lo menor, en una línea.** Un dato suelto, un trabajo de dos meses, un primo que vivía cerca: entran (sección 11), pero en una línea, en el medio, adentro de la historia a la que pertenecen. No tienen párrafo propio y no compiten con lo que pesa.
 
-**Cómo se nota.** Marcar los momentos clave antes de leer. ¿Dónde cayó cada uno: en su tramo o en una enumeración? ¿El hilo se dice en una oración? ¿Algún párrafo no lo empuja?
+**Cómo se nota.** Marcar los momentos clave de la etapa en el material antes de leer el capítulo. ¿Dónde cayó cada uno? ¿Tiene su tramo o está en una enumeración? Si un lector que no la conoce no se da cuenta de que eso fue lo importante, el peso falló.
 
 ---
 
@@ -534,7 +524,7 @@ Cómo se pasa una respuesta oral a un párrafo de libro, paso por paso. La respu
 
 Cada paso recibe el encabezado de esta guía, "Si te acordás de una sola cosa" y estas secciones (la lectura de corrido recibe la guía entera, porque no tiene el material y tiene que reconocer todo).
 
-**El capítulo, corto (02/10).** El escritor del capítulo (y el arreglo de un capítulo, que es la misma llamada) recibe como mucho 2.000 palabras de guía: encabezado (191) + "Si te acordás de una sola cosa" (384) + sección 2, hechos y relato (693) + sección 6, el peso (585) + anexo A3, la ficha de voz (146) = **1.999** (v4.1, 02/10: la sección 6 suma el hilo, el golpe preparado y entrar en un momento, y se compactó el resto; la 5 lo repite para el plan). Lo demás ya lo dice el prompt en una línea (cómo avanza, voz, tiempo) o lo controla el código y lo manda al arreglo (nombre repetido, lo de hoy, golpes, marcas, frases cortadas, trato, nombres y fechas). Las otras secciones siguen valiendo y las recibe el lector.
+**El capítulo, corto (02/10).** El escritor del capítulo (y el arreglo de un capítulo, que es la misma llamada) recibe como mucho 2.000 palabras de guía: encabezado (191) + "Si te acordás de una sola cosa" (371) + sección 2, hechos y relato (693) + sección 6, el peso (495) + anexo A3, la ficha de voz (146) = **1.896**. Lo demás ya lo dice el prompt en una línea (cómo avanza, voz, tiempo) o lo controla el código y lo manda al arreglo (nombre repetido, lo de hoy, golpes, marcas, frases cortadas, trato, nombres y fechas). Las otras secciones siguen valiendo y las recibe el lector.
 
 | Paso | Secciones | Anexos |
 |---|---|---|

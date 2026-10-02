@@ -33,11 +33,6 @@ Se lee de corrido; se quiere saber qué pasa después.
 
 **Cómo se cuenta.** Primero, la pregunta obligatoria: **¿hubo por lo menos un lugar donde quisiste saber qué pasaba?** Se contesta citando ese lugar. Si no hubo ninguno, Atrapa no pasa de 6 aunque no haya caídas: un capítulo sin caídas y sin ganas es prolijo, no novela. Después, los trazos de la primera lectura: 0–1 es 10; 2–3 es 7; 4 o más, o un capítulo que en conjunto se lee como transcripción, es 4. **Un capítulo casi transcripto no pasa de 5 en este criterio, por fiel que sea.**
 
-Y tres cuentas más (v4.1); Atrapa es la más baja de todas:
-- **El hilo.** ¿Se puede decir el capítulo en una oración con un verbo de cambio (*"la mercería pasó de ser el sueño de Raúl a ser mi lugar"*), y todo lo empuja? Se escribe esa oración. Si no sale (es "la etapa", no una historia que cambia), Atrapa no pasa de 6.
-- **Párrafos que no empujan el hilo.** Se cuentan y se citan (lo que no empuja va a otro capítulo; se anota adónde, para que no se pierda): 0 es 10; 1 es 8; 2 es 7; 3 o más, no pasa de 6.
-- **Cómo entra.** ¿Entra en **un momento** (*"Una noche Raúl puso la calculadora arriba de la mesa de la cocina"*) o en el resumen de muchos (*"Fueron años de mucho trabajo"*)? Entrar en un resumen, habiendo un momento en la entrevista, cuenta como una caída. Si esa imagen vuelve en lo más grave y el capítulo cierra en ella o en un gesto (y no en un dato ambiguo), se anota a favor.
-
 ### 2. Es él — dueño: escritor (peso doble)
 
 La familia lo reconoce: suena a quien narra contándolo en su mejor día.
@@ -57,8 +52,6 @@ Lo que más pesa en su vida tiene un lugar fuerte y tiempo de relato, aunque est
 - **4:** el momento clave quedó enterrado en una enumeración (*"Ese año cambiamos la vidriera, entraron a robar y a Raúl lo tuvieron en el piso, y Marcela empezó la secundaria."*), o un lector que no la conoce no se da cuenta de que eso fue lo importante.
 
 **Cómo se cuenta.** Por cada momento clave marcado en la entrevista: ¿dónde cayó? ¿Tiene su tramo? ¿Se le agregó algo para inflarlo? (eso no es peso: es Verdad). Todos bien es 10; uno flojo es 7; uno enterrado es 4. **Se juzga el lugar y el ritmo, no el largo**: un momento clave contado en dos líneas en la entrevista puede ser un 10 en dos líneas.
-
-**¿El golpe está preparado?** (v4.1) Antes del hecho grave, ¿está lo que lo hace pesar, con lo que ella contó (cuando todo iba bien, las veces anteriores, una anticipación que ella dijo)? Si la entrevista lo trae y el capítulo lo pone en otro lado o lo deja afuera, ese momento clave cuenta como flojo (7). Si la entrevista no lo trae, no resta: va al techo, con su repregunta. Una preparación con algo que ella no dijo no es peso: es Verdad. Y el peso se mide sobre el hilo: un momento clave que no lo empuja va a otro capítulo, no se entierra en este.
 
 ### 4. Orden y claridad — dueño: escritor
 
@@ -130,20 +123,17 @@ Son dos listas distintas y no se mezclan: lo que separa la nota del techo lo cor
 ```
 CAPÍTULO: [título] — etapa: [años] — material: [Rxx a Ryy]
 LO QUE CAMBIA EN ESTA ETAPA (en una oración, como lo entiende el juez): …
-HILO: "…" (una oración con verbo de cambio, como lo cuenta el capítulo; o "no hay": Atrapa como máximo 6)
-ENTRA EN: un momento ("…") / un resumen ("…") — VUELVE la imagen en lo más grave: sí / no — CIERRA en: imagen / gesto / frase suya / dato ("…")
-MOMENTOS CLAVE según la entrevista: … (R__, en escena / en dos líneas) — golpe preparado: sí / no (falta R__) / el material no lo trae
+MOMENTOS CLAVE según la entrevista: … (R__, en escena / en dos líneas)
 CAÍDAS DE ATENCIÓN en la primera lectura: n — "…", "…"
-PÁRRAFOS QUE NO EMPUJAN: n — "…" (→ a qué capítulo iría); 0 es 10, 1 es 8, 2 es 7, 3 o más, Atrapa como máximo 6
 DÓNDE QUISE SABER QUÉ PASABA: "…" (o "en ningún lado": Atrapa como máximo 6)
 
 (si hay varias versiones) SE LEE MEJOR — MANDA: [A/B/C] — en una línea, por qué.
 
 | Criterio              | Nota | Evidencia citada (del capítulo y de la entrevista)              | Dueño      |
 |-----------------------|------|-----------------------------------------------------------------|------------|
-| 1. Atrapa (×2)        |  _   | quise saber en: "…"; caídas: "…"; hilo: sí/no; párrafos que no empujan: n; entra en momento/resumen | escritor   |
+| 1. Atrapa (×2)        |  _   | quise saber en: "…"; caídas: "…" (transcripto / se cae / hay que releer) | escritor   |
 | 2. Es él (×2)         |  _   | frases que no diría: "…"; frase suya en el momento clave: "…"; R__ para comparar | escritor |
-| 3. Peso               |  _   | momento clave R__: dónde cayó, con tramo propio o enterrado; golpe preparado: sí/no | escritor / entrevista |
+| 3. Peso               |  _   | momento clave R__: dónde cayó, con tramo propio o enterrado      | escritor / entrevista |
 | 4. Orden y claridad   |  _   | saltos, presentaciones, referencias, nombre repetido: "…"        | escritor   |
 | 5. Verdad de hechos   |  _   | hecho cambiado: "…" (no está en R__); agregados chicos: "…"     | escritor   |
 | 6. Todo entra         |  _   | se cayó: R__ "…"                                                 | escritor   |

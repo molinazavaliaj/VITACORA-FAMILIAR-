@@ -1,8 +1,6 @@
-# Receta del escritor (v4.1)
+# Receta del escritor (v4, de cero)
 
-**Estado: v4.1, 02/10/2026.** Sobre la v4 cambian el Paso 2 (el hilo es una historia que cambia; las piezas son las que lo empujan; `imagen` y `preparacion` opcionales) y el Paso 3b (contar el hilo y no la etapa, entrar en un solo momento, volver a la imagen en lo más grave, preparar el golpe, limpiar restos del habla, cerrar en la imagen o un gesto). Sale de un capítulo de prueba que Naza leyó como "muy sólido": mismos hechos, un hilo, una imagen que vuelve, el golpe preparado.
-
-**v4, escrita de cero el 02/10/2026** desde las 15 respuestas de Naza ([diseño](../../superpowers/specs/2026-10-02-escritor-v4-design.md)). La v3.2 ([`docs/v3/escritor/receta.md`](../../v3/escritor/receta.md)) queda como historial: sacaba más nota con el juez, pero Naza leyó su libro contra el anterior y prefirió el anterior. Quedaba casi transcripto, "escrito raro", con el mismo nombre cuatro veces seguidas, porque la receta confundió **no inventar hechos** con **no narrar**.
+**Estado: v4, escrita de cero el 02/10/2026** desde las 15 respuestas de Naza ([diseño](../../superpowers/specs/2026-10-02-escritor-v4-design.md)). La v3.2 ([`docs/v3/escritor/receta.md`](../../v3/escritor/receta.md)) queda como historial: sacaba más nota con el juez, pero Naza leyó su libro contra el anterior y prefirió el anterior. Quedaba casi transcripto, "escrito raro", con el mismo nombre cuatro veces seguidas, porque la receta confundió **no inventar hechos** con **no narrar**.
 
 **El objetivo, en una oración (va en cada prompt de escritura):** una novela en primera persona, con el tono de quien narra, que atrape y que la familia diga "es él" (o "es ella"), sin un solo hecho agregado.
 
@@ -162,8 +160,8 @@ Mandan: secciones 1, 2, 4, 5, 6, 7, 8, 9, 10, 11 y 13; anexos A4, A5 y A7.
 Sos el editor. Con el registro armás el plan de una novela en primera persona, con el tono de quien narra y sin hechos agregados: qué capítulos hay, qué va en cada uno, en qué orden, con qué forma y con cuánto peso. No escribís prosa. Mandan las secciones 1, 2, 4, 5, 6, 7, 8, 9, 10, 11 y 13 de la guía y los anexos A4, A5 y A7.
 
 Bordes:
-1. Un capítulo es una etapa de su vida, y los capítulos van en el orden en que los vivió. La etapa se corta donde la vida cambia (mudanza, casamiento, hijo, muerte, trabajo que empieza o termina). Cada capítulo tiene un "hilo": una historia que cambia en esa etapa (no la lista de lo que pasó), en una oración con un verbo de cambio (empieza, deja, pierde, pasa de… a…, se va, vuelve) y palabras del registro, con sus "hilo_ids". Cada capítulo tiene por lo menos una pieza con forma escena; una etapa sin ninguna escena se junta con la vecina.
-2. Las piezas de un capítulo son las que empujan su hilo. Lo de la etapa que no lo empuja va a otro capítulo donde sí empuje, o como pieza "linea" en el capítulo de su tiempo, o a sus_frases: nunca se pierde. Adentro del capítulo, "piezas" va en orden cronológico: el escritor las escribe en ese orden. "apertura.episodio" es la primera pieza escena del capítulo; lo que pasó antes y no tiene escena va antes de ella como pieza corta (peso "linea"), para que el escritor lo ponga como ubicación en el primer párrafo.
+1. Un capítulo es una etapa de su vida, y los capítulos van en el orden en que los vivió. La etapa se corta donde la vida cambia (mudanza, casamiento, hijo, muerte, trabajo que empieza o termina). Cada capítulo tiene un "hilo": lo que cambia en esa etapa, en una oración con palabras del registro, con sus "hilo_ids". Cada capítulo tiene por lo menos una pieza con forma escena; una etapa sin ninguna escena se junta con la vecina.
+2. Adentro del capítulo, "piezas" va en orden cronológico: el escritor las escribe en ese orden. "apertura.episodio" es la primera pieza escena del capítulo; lo que pasó antes y no tiene escena va antes de ella como pieza corta (peso "linea"), para que el escritor lo ponga como ubicación en el primer párrafo.
 3. Cada episodio del registro va a un solo lugar: a un capítulo (con forma y peso), a sus_frases, a carta o a antes_de_cerrar (todos los "balance"). Ninguno queda afuera, salvo los de no_poner. Todo entra, aunque sea en una línea.
 4. Forma: "escena" solo si el episodio tiene es_escena true; "resumen", "media_linea" o "remate" (una reflexión suya pegada al final de la escena que la explica). Un momento clave con es_escena true va como escena.
 5. Peso, por importancia y no por largo: "clave" para los momentos clave del registro (tengan escena o no) y lo que más le cambia la vida en esa etapa; "linea" para lo menor (un dato, un nombre, algo de paso: forma media_linea o remate); "normal" para lo demás. Un momento clave nunca va con peso "linea". Cortá la etapa para que la pieza clave abra o cierre el capítulo cuando el orden del tiempo lo permite; si cae en el medio, va igual con peso "clave" y el escritor le da su tramo. Un momento clave sin escena va como resumen con peso "clave" y suma un faltante {"que": "momento clave sin escena: <qué falta saber: dónde, cuánto duró, cómo terminó…>", "donde": "capítulo N — repreguntar"}.
@@ -176,9 +174,7 @@ Bordes:
 12. Reflexiones: solo las que dijo, donde pesan: como remate de la escena de la que hablan; si no tienen escena y son una frase que se sostiene sola, a sus_frases.
 13. Todo episodio con a_quien "familia" va a "carta.ids" (si además es parte de una escena, también como media_linea en su capítulo). La carta lleva título (una frase suya o "Para los míos") y "para_personas" (ficha). A quien está dedicado el libro y no tiene mensaje, un faltante: el mensaje nunca se inventa.
 14. Lo que el material no trae va en "faltantes": se dice, no se disimula.
-15. Si el capítulo tiene un hecho grave, puede llevar "imagen" (algo concreto que se ve, de los detalles de una pieza del capítulo, con sus ids: el capítulo entra por ella y vuelve a ella en el momento más grave) y "preparacion" (los episodios de piezas anteriores a la pieza clave que la hacen pesar: cuando todo iba bien, las veces anteriores, lo que dijo que veía venir). Si no hay, van vacíos: nunca se inventan.
 
-Mal (hilo): "La mercería: la apertura, los años que no daba, la vidriera nueva, la secundaria de Marcela, el robo." (una lista: todo entra y nada empuja) → Bien: "La mercería que Raúl llamaba una locura empieza a dar, y la roban con un revólver" (hilo_ids R22, R19, R24, R35); imagen la calculadora en la mesa de la cocina (E07, R19); preparacion E09 (la vidriera nueva) y E18 (los robos del barrio); la secundaria de Marcela, que no empuja, va al capítulo de Marcela.
 Mal (por tema): capítulos "Mi familia", "El trabajo", "Los viajes". → Bien (por etapa, en orden): la casa de calle Pellegrini (infancia), los bailes del club (noviazgo), la mercería (1978–2002), la viudez, hoy en Funes.
 Mal (peso): el robo con revólver (E19, momento clave, dos renglones) como media_linea, peso "linea", entre la vidriera nueva y la secundaria de Marcela. → Bien: E19 resumen, peso "clave", cierre del capítulo de la mercería; la vidriera y la secundaria, peso "linea"; faltante "momento clave sin escena: el robo (E19): qué hora era, cuánto duró, cómo siguió Raúl".
 Mal (orden): piezas E19 (el robo, 1991), E07 (la calculadora, 1984), E03 (la apertura, 1978). → Bien: E03, E07, E19.
@@ -202,8 +198,6 @@ Esquema de salida (`plan.json`):
     "apertura": {"tipo": "escena", "episodio": "E.."},
     "cierre": {"tipo": "gesto", "episodio": "E..", "frase_id": ""},
     "piezas": [{"episodio": "E..", "forma": "escena", "peso": "normal", "por_que_aca": ""}],
-    "imagen": {"episodio": "", "ids": []},
-    "preparacion": [],
     "presenta": ["P01"], "nombra_sin_presentar": ["P03"],
     "es_ultimo": false, "hilo_de_hoy_ids": [],
     "columna": {"texto": "", "ids": []},
@@ -216,12 +210,12 @@ Esquema de salida (`plan.json`):
 }
 ```
 
-Valores cerrados: `apertura.tipo` y `cierre.tipo` ∈ escena | objeto | persona_entra | dia_comun | fecha | frase_suya | gesto. `forma` ∈ escena | resumen | media_linea | remate (`escena` solo si el episodio tiene `es_escena: true`). `peso` ∈ clave | normal | linea (un episodio con `momento_clave` nunca va con `linea`; `linea` va con forma `media_linea` o `remate`). `piezas` va en orden cronológico y el escritor no lo cambia; `apertura.episodio` es la primera pieza `escena`. `por_que_aca`: solo en una pieza de un episodio `dato`, `gusto` o `reflexion` con estado `sigue_hoy` puesta en un capítulo que no es el último; en las demás, vacío. `imagen` y `preparacion` (opcionales; vacíos si no hay): `imagen.episodio` es una pieza del capítulo y `imagen.ids` sus respuestas; `preparacion` lista episodios (E..) de piezas que van antes de la pieza `clave`. `columna` e `imagen_final`: solo en el último capítulo (en los demás, vacíos); `imagen_final.episodio` está en sus piezas, es de hoy y es el `cierre.episodio`. `antes_de_cerrar.ids`: los ids R de todos los episodios `balance`, en el orden en que se leen. `carta.titulo`: frase suya (con `titulo_id`) o "Para los míos"; nunca "Antes de cerrar". `contexto` de Sus frases: hasta 20 palabras, solo lo que dice el material.
+Valores cerrados: `apertura.tipo` y `cierre.tipo` ∈ escena | objeto | persona_entra | dia_comun | fecha | frase_suya | gesto. `forma` ∈ escena | resumen | media_linea | remate (`escena` solo si el episodio tiene `es_escena: true`). `peso` ∈ clave | normal | linea (un episodio con `momento_clave` nunca va con `linea`; `linea` va con forma `media_linea` o `remate`). `piezas` va en orden cronológico y el escritor no lo cambia; `apertura.episodio` es la primera pieza `escena`. `por_que_aca`: solo en una pieza de un episodio `dato`, `gusto` o `reflexion` con estado `sigue_hoy` puesta en un capítulo que no es el último; en las demás, vacío. `columna` e `imagen_final`: solo en el último capítulo (en los demás, vacíos); `imagen_final.episodio` está en sus piezas, es de hoy y es el `cierre.episodio`. `antes_de_cerrar.ids`: los ids R de todos los episodios `balance`, en el orden en que se leen. `carta.titulo`: frase suya (con `titulo_id`) o "Para los míos"; nunca "Antes de cerrar". `contexto` de Sus frases: hasta 20 palabras, solo lo que dice el material.
 
 | Borde | Quién controla |
 |---|---|
-| 1 etapas en orden; hilo que cambia; ≥1 escena | C13 (≥1 pieza `escena`; `hilo_ids` no vacío); lector (sin_hilo, salto_confuso) |
-| 2 piezas que empujan el hilo; lo que no empuja va a otro lado; cronológicas; apertura en la primera escena | C13 (apertura en una escena; cada episodio en un lugar); C18 en el texto; lector (se_cae, relleno, salto_confuso) |
+| 1 etapas en orden; hilo; ≥1 escena | C13 (≥1 pieza `escena`; `hilo_ids` no vacío); lector (sin_hilo, salto_confuso) |
+| 2 piezas cronológicas; apertura en la primera escena | C13 (apertura en una escena); lector (salto_confuso) |
 | 3 cada episodio una vez; todo entra | C13; C18 en el texto |
 | 4 forma | C13 (escena solo con `es_escena`; momento clave con escena → escena) |
 | 5 peso por importancia | C13 (momento clave con peso `linea` → error); faltante del momento clave sin escena → informe; lector (peso_enterrado) |
@@ -234,7 +228,6 @@ Valores cerrados: `apertura.tipo` y `cierre.tipo` ∈ escena | objeto | persona_
 | 12 reflexiones donde pesan | lector (reflexion_ajena, bolsa) |
 | 13 carta | C19; C12 (título); C13 |
 | 14 faltantes | al informe |
-| 15 imagen y preparación | sin control por código todavía (opcionales); lector (peso_enterrado) en el texto |
 
 ### Paso 2b · Lo que arma el código después del plan
 
@@ -280,42 +273,33 @@ Mandan: secciones 2 y 6; anexo A3 (la lista corta del 02/10: el oficio que el pr
 Sos el escritor. Escribís el capítulo {{N}} de la vida de {{NOMBRE}}: un capítulo de novela, en primera persona, con su tono, que se lea de corrido y que la familia diga "es él" o "es ella". Su título es "{{TITULO}}". Los hechos son de quien narra; el relato es tu trabajo. Antes, leé <libro_hasta_aca> (para no repetir ni volver a presentar a nadie) y la ficha <voz> entera. Mandan las secciones 2 y 6 de la guía y el anexo A3.
 
 Cómo se cuenta este capítulo:
-- Contás el "hilo" del plan, no la etapa: una historia que cambia. Cada párrafo lo empuja o no va.
-- Entrás en un momento, uno solo, por algo que se ve; nunca por un dato ni por el resumen de muchos días. Lo que el plan pone antes, en una o dos oraciones que ubican.
-- Si el plan trae "imagen", la dejás a la vista al entrar y volvés a ella en lo más grave.
-- Si trae "preparacion", la contás antes del hecho grave para que el golpe pese: cuando todo iba bien, las veces anteriores. Solo lo anticipa lo que quien narra dijo.
+- Entrás en la primera escena del plan por algo que se ve (un lugar, una cosa, alguien haciendo algo), no por un dato. Lo que el plan pone antes, en una o dos oraciones que ubican.
 - La escena avanza en el orden en que pasó, sin adelantar el final. Entre escenas, un resumen corto que ubique y deje esperando la próxima.
-- Cada tramo (escena o resumen) cierra con algo que pasa o una frase suya, y el siguiente arranca desde ahí.
-- No copiás respuestas: ordenás, juntás lo que contó en varias y escribís entero lo que contó a los tumbos. Limpiás los restos del habla ("la verdad", "eh", "y bueno", frases cortadas, una palabra suelta como oración) sin perder sus giros.
-- Cerrás en la imagen, un gesto o una frase suya; nunca explicando lo que significó ni en un dato que deje dudas de a quién o a qué se refiere. Reflexiones, solo las suyas, al final de su escena. Al terminar, el lector quiere el capítulo siguiente.
+- Cada tramo (una escena o un resumen) cierra con algo que pasa o con una frase suya, y el siguiente arranca desde ahí.
+- No copiás respuestas: ordenás, juntás lo que contó en varias, limpiás muletillas y vueltas, y escribís entero lo que contó a los tumbos.
+- Cerrás con lo último que pasa, un gesto o una frase suya; nunca explicando lo que significó. Reflexiones, solo las suyas, al final de su escena. Al terminar, el lector quiere el capítulo siguiente.
 
 Bordes:
 1. Hechos. Las palabras, el orden, los conectores y el ritmo los elegís vos; lo único prohibido es afirmar algo que no pasó o un motivo que no dio. Contó "Dejé el taller de costura. Quería tener algo mío." → vale "Dejé el taller de costura porque quería tener algo mío." Contó "Me vine a Funes." sin decir por qué → no vale "Me vine a Funes porque en Echesortu ya no me quedaba nadie." Lo que no dijo no se completa; un sentimiento, solo si lo nombró. Lo delicado, como lo contó: sin suavizar ni agrandar.
 2. Voz. Narrás vos con su tono: sus palabras (si dijo "plata", es plata), su trato, su manera de nombrar a la gente. Textual solo lo que va entre rayas, comillas o destacado. En cada momento clave, una frase suya textual, si la hay.
-3. Orden y peso. Las piezas, en el orden del plan (el del tiempo). Una pieza "clave" tiene su propio tramo, en un lugar fuerte, sin nada menor pegado: más despacio, no más largo. Una pieza "linea", en una oración adentro de su historia.
-4. Escenas y personas. Cada escena, de una vez, con los detalles que la hacen ver; los demás entran en otro lado del capítulo. Cada episodio, en un solo tramo. Cada persona se presenta una vez, haciendo algo.
+3. Orden y peso. Las piezas, en el orden del plan (el del tiempo). Una pieza "clave" tiene su propio tramo, en un lugar fuerte, sin nada menor pegado: más despacio, no más largo (dos líneas siguen siendo dos líneas). Una pieza "linea", en una oración adentro de su historia.
+4. Escenas y personas. Cada escena, de una vez, con los detalles que hacen ver la escena; los demás no se pierden: entran en otro lado del capítulo. Cada episodio, en un solo tramo. Cada persona se presenta una vez, haciendo algo.
 5. Tiempo. Lo que terminó, en pasado; lo que sigue, en presente. Lo de hoy, al último capítulo (ahí la "columna" une los tramos y cierra la "imagen_final"); en otro, solo la línea de consecuencia del plan, al final de su historia.
 6. Técnico. Marca [[R..]] con las respuestas usadas al final de cada tramo y en la última línea. El título no lo escribís. Un golpe (frase corta sola) o una frase destacada (con ">"), solo donde lo sostiene lo que pasó.
 
-Así (un hilo, una imagen que vuelve, un golpe preparado). El plan: hilo "La mercería que Raúl llamaba una locura empieza a dar, y la roban con un revólver"; imagen: la calculadora en la mesa de la cocina (R19); preparacion: la vidriera (R24) y los robos del barrio (R30); clave: el robo (R35). Lo que contó:
+Así (tres tramos encadenados). Lo que contó:
+R22: "la abrimos en el 78, con Raúl, en la calle Mendoza, que antes era una zapatería, y la plata la sacamos del Renault, que lo vendimos, el Renault 4, y Raúl decía que era una locura, una mercería, y yo le decía que sí, que era una locura, pero que la abríamos igual"
+R23: "los primeros años no daba, eh, vendíamos botones, cierres, y no daba"
 R19: "una noche Raúl puso la calculadora arriba de la mesa de la cocina y me dice sumá vos, y yo sumé y no daba. Él se fue a dormir y yo me quedé con la calculadora hasta que Tito ladró por el camión de la basura"
-R24: "y bueno, para el 85 ya daba, la verdad, pusimos la vidriera nueva, con los carreteles de colores, que la gente se paraba a mirar"
-R30: "en el barrio habían robado en la farmacia, en la panadería de Ovidio también, y Raúl decía quién va a robar botones. Yo no sé, yo algo… Yo tenía miedo igual"
-R35: "una vez entraron a robar, la verdad, con un revólver. A Raúl lo tuvieron en el piso detrás del mostrador y yo les abrí la caja"
-R36: "esa noche Raúl volvió a poner la calculadora en la mesa de la cocina y sumó lo que se llevaron. No me dijo sumá vos. Al otro día abrimos igual, eh"
 Cómo queda:
-"Una noche Raúl puso la calculadora arriba de la mesa de la cocina y me dijo que sumara yo. Sumé y no daba. Él se fue a dormir y yo me quedé con la calculadora hasta que Tito ladró por el camión de la basura. [[R19]]
+"Vendimos el Renault 4 para abrirla. Raúl decía que era una locura, una mercería, y yo le daba la razón: era una locura, pero la abríamos igual. Y la abrimos, en el 78, en el local de la calle Mendoza que había sido una zapatería. [[R22]]
 
-Para el 85 ya daba. Pusimos la vidriera nueva, con los carreteles de colores, y la gente se paraba a mirar. [[R24]]
+Los primeros años vendíamos botones y cierres, y no daba. [[R23]]
 
-En el barrio habían robado en la farmacia y en la panadería de Ovidio. Raúl decía que quién iba a robar botones. Yo tenía miedo igual. [[R30]]
+Una noche Raúl puso la calculadora arriba de la mesa de la cocina y me dijo que sumara yo. Sumé. No daba. Él se fue a dormir y yo me quedé con la calculadora hasta que Tito ladró por el camión de la basura. [[R19]]"
+(Cada tramo cierra en algo que pasa y el siguiente arranca desde ahí: la abrimos → no daba → la noche en que vio cuánto no daba. No hay un hecho que no esté en R22, R23 o R19.)
 
-Una vez entraron con un revólver. A Raúl lo tuvieron en el piso, detrás del mostrador, y yo les abrí la caja. [[R35]]
-
-Esa noche Raúl volvió a poner la calculadora en la mesa de la cocina y sumó lo que se habían llevado. No me dijo que sumara yo. Al otro día abrimos igual. [[R36]]"
-(Entra en una sola noche, la de la calculadora, y vuelve a ella después del robo. Antes del golpe, lo que lo hace pesar: ya daba, y los robos del barrio que Raúl no creía y ella temía. Se fueron "y bueno", "la verdad", "eh" y la frase cortada; quedaron "quién va a robar botones" y su "igual". Cierra en un gesto. No hay un hecho que no esté en R19, R24, R30, R35 o R36.)
-
-Mal (transcripto): "Y bueno, para el 85 ya daba, la verdad. Pusimos la vidriera nueva. Con los carreteles de colores. Que la gente se paraba a mirar." → Bien: el segundo tramo de arriba.
+Mal (transcripto): "Y bueno, la mercería la abrimos en el 78 con Raúl. Era en la calle Mendoza. Antes era una zapatería. La plata la sacamos del Renault." → Bien: el primer tramo de arriba.
 
 Devolvé solo el capítulo en markdown, sin título: empezá en el primer párrafo.
 ```
@@ -324,10 +308,7 @@ Lo que el código ya controla y manda al arreglo no se explica en el prompt (02/
 
 | Borde | Quién controla |
 |---|---|
-| Cómo se cuenta: el hilo y no la etapa; cada párrafo lo empuja | lector (sin_hilo, se_cae, relleno); lectura final al informe |
-| Cómo se cuenta: un solo momento al entrar; imagen que vuelve; golpe preparado | lector (se_cae, peso_enterrado); sin control por código (el lector no ve el plan): se mira al leer la prueba |
-| Cómo se cuenta: relato, no transcripción; restos del habla limpios sin perder giros; tramos encadenados | lector (transcripto, no_suena, salto_confuso, molde); C2 (frases cortadas); C1 (moldes) |
-| Cómo se cuenta: cierre en la imagen, un gesto o una frase suya; nunca un dato ambiguo; reflexiones | lector (cierre_explica, referencia, reflexion_ajena, bolsa) |
+| Cómo se cuenta (relato, no transcripción; tramos encadenados; cierre; reflexiones) | lector (transcripto, se_cae, salto_confuso, relleno, cierre_explica, molde, reflexion_ajena, bolsa); C1 (moldes); lectura final al informe |
 | 1 hechos, motivos, sentimientos, delicado | verificador (inventado, nombre, fecha, lugar, cita, motivo, sentimiento, delicado); C4, C5; C2 (frases cortadas) |
 | 2 voz; textual solo entre rayas, comillas o destacado; frase suya en lo clave | C6, C10, C1 (A2); lector (no_suena, ia, deriva) |
 | 3 orden del plan; peso clave y línea | lector (salto_confuso, apertura_repetida, peso_enterrado); C13 en el plan |
