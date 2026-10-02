@@ -180,5 +180,6 @@ export function armarCambios(texto, cambios) {
     }
     for (const n of nums) out.push({ ...c, problema: n, resultado });
   }
-  return { texto: t, cambios: out };
+  // Un párrafo borrado (despues vacío) no deja hueco de líneas en blanco (lo vio el juez de la prueba v3.2).
+  return { texto: t.replace(/\n{3,}/g, '\n\n'), cambios: out };
 }

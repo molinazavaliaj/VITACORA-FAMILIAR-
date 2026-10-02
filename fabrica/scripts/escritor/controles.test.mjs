@@ -278,3 +278,8 @@ test('C28: "hoy" en un capítulo del pasado se marca; en un diálogo con raya, n
   const xs = c28({ pieza: 'cap_2', texto: 'Raúl abrió la mercería en el 74. Hoy Marcela tiene la llave.\n\n—Hoy no abrimos, Nélida.' });
   assert.deepEqual(xs.map((x) => x.frase), ['Hoy Marcela tiene la llave.']);
 });
+
+test('armarCambios: borrar un párrafo no deja hueco', () => {
+  const { texto } = armarCambios('Uno. [[R01]]\n\nDos. [[R02]]\n\nTres. [[R03]]', [{ problema: 1, resultado: 'cambiado', antes: 'Dos. [[R02]]', despues: '' }]);
+  assert.equal(texto, 'Uno. [[R01]]\n\nTres. [[R03]]');
+});
