@@ -45,3 +45,17 @@ Mismo registro y plan que la v4.1 (solo cambia el escritor). Juez Opus a ciegas.
 - La v5 no supera a la v4.1; el novelista del ejercicio sigue arriba en el capítulo fuerte de Naza.
 - **Ruido del juez:** el mismo texto (el capítulo fuerte del libro anterior de Naza) sacó 8, 7,5 y 6 en tres corridas. Diferencias de menos de 1,5 puntos entre versiones no dicen nada; decide la lectura de Naza.
 - Diferencia de proceso que queda por probar: el capítulo del novelista no pasó por revisión ni arreglo; los de v4.1 y v5 sí.
+
+## Libro entero v5 de Naza, con revisión solo de hechos (02-03/10/2026)
+`workflow-libro.js` v5 con `soloHechos`: el arreglo recibe solo hechos y lo que falta (no lector ni cotejo); mismo registro y plan que la v4.1. 7 capítulos, 7.399 palabras, sin marcas impresas; el novelista dejó afuera de su capítulo entre 0 y 2 respuestas por capítulo (todas reubicadas). Con revisión completa el capítulo fuerte recibía 23 pedidos de cambio; solo de hechos, 2 (y ninguno en el libro: quedó tal cual se escribió).
+
+Juicio a ciegas (Opus) del capítulo fuerte:
+
+| Versión | Nota |
+|---|---|
+| Ejercicio del novelista (sin plan, sin guía, sin revisión) | **8,5** — se lee mejor |
+| v5 con revisión completa (banco 3) | 7,5 |
+| v5 del libro (sin revisión) | 7,5 — la más fiel (Verdad 10) |
+| Libro anterior | 6 |
+
+Lectura: la revisión completa no fue lo que separaba al novelista (las dos v5 empatan; son corridas distintas, no el mismo texto antes y después). Lo que sigue separando al ejercicio: recibió solo sus respuestas y el pedido corto, sin plan ni guía. Pendientes que marca el juez: que entre la frase central del tramo; no mover un motivo de una persona a otra; no poner al narrador entre comillas dentro de su propia voz; pasarle al juez el índice del libro.
