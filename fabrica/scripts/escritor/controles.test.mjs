@@ -2,7 +2,7 @@
 // Correr: node --test fabrica/scripts/escritor/
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { c10, c12, c13, c20, c20Texto, c23, c24, c26, referencias, pasados } from './controles.mjs';
+import { c1, c10, c12, c13, c20, c20Texto, c23, c24, c26, referencias, pasados } from './controles.mjs';
 import { piezaDeR, planConR, armarCambios, sinMarcas } from './lib.mjs';
 
 const reg = () => ({
@@ -254,4 +254,22 @@ test('armarCambios: reemplaza solo el tramo, deja el resto igual y marca lo que 
 
 test('sinMarcas borra también [[FICHA]] y las mixtas, y deja los corchetes que no son marcas', () => {
   assert.equal(sinMarcas('Vivo en Tandil. [[FICHA]]\n\nAbrí la mercería. [[R02, FICHA]] [nota]'), 'Vivo en Tandil.\n\nAbrí la mercería. [nota]');
+});
+
+// ---------- receta v3.2 (prueba 3.1) ----------
+test('C1 v3.2: párrafo de golpe y cita en bloque; el diálogo con raya y Sus frases no cuentan', () => {
+  const t = '# La cuenta\n\nRaúl contaba la plata de la caja a la noche, con la calculadora y el cuaderno de tapas negras. [[R02]]\n\nEse día fue muy difícil. [[R02]]\n\n—No da la cuenta, Nélida. [[R02]]\n\n> no daba la cuenta [[R02]]';
+  const xs = c1({ pieza: 'cap_1', texto: t.replace(/ \[\[R02\]\]/g, '') }, []);
+  assert.deepEqual(xs.map((x) => x.que.split(':')[0]), ['párrafo de golpe', 'cita en bloque (">")']);
+  assert.deepEqual(c1({ pieza: 'sus_frases', texto: '> no daba la cuenta\n\nde la caja' }, []).filter((x) => /golpe|bloque/.test(x.que)), []);
+});
+
+test('C13 v3.2: lo de hoy no va a un capítulo del pasado sin por_que_aca', () => {
+  const r = reg(); r.episodios.push({ id: 'E09', que: 'mis nietos hoy', tipo: 'dato', es_escena: false, estado: 'sigue_hoy', momento_clave: '', ids: ['R14'], a_quien: 'nadie', detalles: [] });
+  const p = plan(); p.capitulos[0].piezas.push({ episodio: 'E09', forma: 'media_linea' });
+  assert.ok(c13(p, r).some((x) => x.includes('E09') && x.includes('es de hoy')));
+  p.capitulos[0].piezas[2].por_que_aca = 'los nietos juegan con la calculadora de Raúl';
+  assert.ok(!c13(p, r).some((x) => x.includes('es de hoy')));
+  const q = plan(); q.capitulos[1].piezas.push({ episodio: 'E09', forma: 'media_linea' }); // el último capítulo sí
+  assert.ok(!c13(q, r).some((x) => x.includes('es de hoy')));
 });

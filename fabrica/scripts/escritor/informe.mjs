@@ -68,6 +68,9 @@ export function informe(dir) {
   const sf = leerSi(arr('problemas-sus_frases.json'), []);
   if (sf.length) { L.push('', `## Sus frases (no se arreglan: van acá): ${sf.length}`, ''); for (const x of sf) L.push(`- ${x.origen} (${x.tipo}): ${recorte(x.que)} «${recorte(x.frase)}»`); }
 
+  const tit = leerSi(ctl('titulos.json'), []);
+  if (tit.length) { L.push('', `## Títulos que el lector marcó (el título es del plan: se arregla la receta o el plan, no el libro): ${tit.length}`, ''); for (const x of tit) L.push(`- ${x.pieza} (${x.tipo}): «${recorte(x.frase)}» — ${recorte(x.que)}`); }
+
   const libro = existe(path.join(dir, 'libro.md')) ? leer(path.join(dir, 'libro.md')) : '';
   if (libro) L.push('', `Largo del libro: ${libro.split(/\s+/).filter(Boolean).length} palabras.`);
   return L.join('\n') + '\n';

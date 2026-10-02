@@ -134,7 +134,12 @@ switch (paso) {
       if (x.pieza === 'sus_frases') partes.push(`# Sus frases\n\n${x.texto.trim()}`);
       else if (x.pieza === 'antes_de_cerrar') partes.push(`# Antes de cerrar\n\n${limpio(x.texto.trim())}`);
       else if (x.pieza === 'carta' && p.carta?.titulo) partes.push(`# ${p.carta.titulo}\n\n${limpio(x.texto.trim())}`);
-      else partes.push(limpio(x.texto.trim()));
+      else if (x.pieza.startsWith('cap_')) {
+        // receta v3.2: el título es el del plan y lo imprime el código (en la prueba 3.1 el arreglo lo cambió por otro).
+        const cap = p.capitulos.find((c) => c.n === Number(x.pieza.slice(4)));
+        const cuerpo = limpio(x.texto.trim()).replace(/^(#[^\n]*\n+)+/, '');
+        partes.push(cap ? `# ${tituloImpreso(cap)}\n\n${cuerpo}` : limpio(x.texto.trim()));
+      } else partes.push(limpio(x.texto.trim()));
     }
     escribir(path.join(dir, 'libro.md'), partes.join('\n\n') + '\n');
     console.log(`libro.md: ${partes.join(' ').split(/\s+/).length} palabras`);

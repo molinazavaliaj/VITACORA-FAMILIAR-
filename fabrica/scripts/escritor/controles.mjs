@@ -34,7 +34,7 @@ const A2_PALABRAS = ['entranable', 'inolvidable', 'imborrable', 'magico', 'magic
   'sin duda', 'sin lugar a dudas', 'cabe destacar', 'es importante senalar', 'en definitiva', 'a lo largo de los anos', 'con el paso del tiempo'];
 const A2_MOLDES = [/un antes y un despues/, /punto de inflexion/, /marco para siempre/, /marcaria para siempre/, /no era solo .{1,40} era/, /no se trataba de .{1,40} sino/, /sin saberlo/, /poco imaginaba/, /aquel dia que/, /en ese momento comprend/, /quien iba a imaginar/, /y asi (fue como|aprendi|entendi)/, /eso me enseno/, /este libro/];
 
-function c1(p, rs) {
+export function c1(p, rs) {
   const out = [];
   const t = sinCitas(p.texto);
   for (const o of oraciones(t)) {
@@ -55,6 +55,14 @@ function c1(p, rs) {
   }
   if (/\*\*[^*]+\*\*|^\s*[-*] /m.test(t.replace(/^#.*$/m, ''))) out.push({ control: 'C1', tipo: 'ia', frase: '', que: 'negritas o viñetas dentro de la pieza' });
   if ((t.match(/^#/gm) || []).length > 1) out.push({ control: 'C1', tipo: 'ia', frase: '', que: 'subtítulos dentro de la pieza' });
+  // receta v3.2: sin párrafos de golpe (una oración corta sola, que no es diálogo) y sin citas en bloque ">" en el cuerpo.
+  if (p.pieza !== 'sus_frases') {
+    for (const par of parrafos(p.texto)) {
+      if (par.startsWith('>')) { out.push({ control: 'C1', tipo: 'ia', frase: par.slice(1, 120).trim(), que: 'cita en bloque (">"): lo que dijo alguien va con raya o integrado' }); continue; }
+      const os = oraciones(par);
+      if (p.pieza !== 'carta' && os.length === 1 && !/^—/.test(par) && palabras(par).length < 12) out.push({ control: 'C1', tipo: 'ia', frase: par, que: 'párrafo de golpe: una sola oración corta sola en su párrafo' });
+    }
+  }
   return out;
 }
 
@@ -314,6 +322,11 @@ export function c13(plan, reg) {
     if (!formas.includes('escena')) out.push(`C13 cap_${c.n}: no tiene ninguna pieza "escena"`);
     for (const p of c.piezas || []) { const e = eps[p.episodio]; if (!e) out.push(`C13 cap_${c.n}: el episodio ${p.episodio} no existe en el registro`); else if (p.forma === 'escena' && !e.es_escena) out.push(`C13 cap_${c.n}: ${e.id} va como escena y el registro dice que no tiene escena (es_escena: false)`); else if (e.momento_clave && p.forma !== 'escena' && e.es_escena) out.push(`C13 cap_${c.n}: ${e.id} es momento clave (${e.momento_clave}) y va como "${p.forma}", no como escena`); }
     if (!(c.hilo_ids || []).length) out.push(`C13 cap_${c.n}: hilo sin ids`);
+    // receta v3.2: plan por época. Lo de hoy (dato, gusto o reflexión que sigue) no va a un capítulo del pasado sin decir por qué.
+    if (c !== plan.capitulos[plan.capitulos.length - 1]) for (const p of c.piezas || []) {
+      const e = eps[p.episodio];
+      if (e && ['dato', 'gusto', 'reflexion'].includes(e.tipo) && e.estado === 'sigue_hoy' && !String(p.por_que_aca || '').trim()) out.push(`C13 cap_${c.n}: ${e.id} ("${e.que.slice(0, 50)}") es de hoy (${e.tipo}, sigue_hoy) y está en un capítulo del pasado sin "por_que_aca": va al último capítulo, a Antes de cerrar, a Sus frases o a la carta`);
+    }
     // receta v3: el capítulo se corta por su hecho más fuerte.
     const pzHf = (c.piezas || []).find((p) => p.episodio === c.hecho_fuerte);
     if (!c.hecho_fuerte) out.push(`C13 cap_${c.n}: sin hecho_fuerte`);

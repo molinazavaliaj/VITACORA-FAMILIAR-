@@ -15,7 +15,13 @@ if (que === 'juntar') {
   const cod = existe(path.join(dir, 'controles', 'piezas.json')) ? leerJSON(path.join(dir, 'controles', 'piezas.json')) : [];
   for (const c of cod) sumar(c.pieza, { origen: `código ${c.control}`, tipo: c.tipo, frase: c.frase, que: c.que });
   if (existe(salida(dir, 'hechos.json'))) for (const h of leerJSON(salida(dir, 'hechos.json')).problemas) sumar(h.pieza, { origen: 'verificador', tipo: h.tipo, frase: h.frase, que: h.material, ids: h.ids, correccion: h.correccion });
-  if (existe(salida(dir, 'lectura.json'))) for (const l of leerJSON(salida(dir, 'lectura.json')).problemas) sumar(l.pieza, { origen: 'lector', tipo: l.tipo, frase: l.frase, que: l.que });
+  if (existe(salida(dir, 'lectura.json'))) {
+    // receta v3.2: el título es del plan; lo que el lector diga de un título no va al arreglo, va al informe.
+    const lectura = leerJSON(salida(dir, 'lectura.json')).problemas;
+    const titulos = lectura.filter((l) => /^titulo/.test(l.tipo || ''));
+    if (titulos.length) escribir(path.join(dir, 'controles', 'titulos.json'), JSON.stringify(titulos, null, 1));
+    for (const l of lectura.filter((x) => !titulos.includes(x))) sumar(l.pieza, { origen: 'lector', tipo: l.tipo, frase: l.frase, que: l.que });
+  }
   // receta v3, paso 5b: lo que el cotejo encontró afuera va a la pieza que marca esa respuesta (o a la que le toca según el plan).
   if (existe(salida(dir, 'cotejo.json'))) {
     const reg = leerJSON(salida(dir, 'registro.json')), plan = planConR(leerJSON(salida(dir, 'plan.json')), reg), ps = piezas(dir);

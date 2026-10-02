@@ -8,12 +8,19 @@ import path from 'node:path';
 import { readdirSync } from 'node:fs';
 import { existe, leerJSON, salida } from './lib.mjs';
 
-export function estado(dir, que) {
+export function estado(dir, que, rid) {
   const arr = path.join(dir, 'arreglos'), ctl = path.join(dir, 'controles');
   const lista = (d, re) => (existe(d) ? readdirSync(d).filter((f) => re.test(f)).sort() : []);
   if (que === 'capitulos') {
     const plan = leerJSON(salida(dir, 'plan.json'));
     return { n: plan.capitulos.map((c) => c.n), antes: (plan.antes_de_cerrar?.ids || []).length > 0 };
+  }
+  if (que === 'capitulo-de') {
+    // Para la prueba corta: el capítulo del plan que cuenta la respuesta `rid` (el del hecho que se juzga).
+    const plan = leerJSON(salida(dir, 'plan.json')), reg = leerJSON(salida(dir, 'registro.json'));
+    const eps = new Set((reg.episodios || []).filter((e) => e.ids.includes(rid)).map((e) => e.id));
+    const c = plan.capitulos.find((x) => (x.piezas || []).some((p) => eps.has(p.episodio)));
+    return { n: c ? c.n : null, titulo: c ? (c.titulo?.texto || c.etapa || '') : '' };
   }
   if (que === 'arreglos') {
     const ps = lista(arr, /^problemas-.+\.json$/).map((f) => f.replace(/^problemas-|\.json$/g, ''));
@@ -37,6 +44,6 @@ export function estado(dir, que) {
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]).endsWith('estado.mjs')) {
-  const [, , dirArg, que] = process.argv;
-  console.log(JSON.stringify(estado(path.resolve(dirArg), que)));
+  const [, , dirArg, que, rid] = process.argv;
+  console.log(JSON.stringify(estado(path.resolve(dirArg), que, rid)));
 }
