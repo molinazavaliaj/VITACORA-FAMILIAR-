@@ -24,6 +24,7 @@ import { cazarBloque, fichaCorta, mensajeRepregunta, type ClienteModelo, type De
 import { alTocarBoton, botonesDeClave, mensajesDespues, preguntaDeClave, siguientePregunta, type PreguntaFamilia, type Repregunta } from '../src/v3/entrevista/flujo.js';
 import { acuseDeTurno, anotarAcuse, armarTurno, entradaSegunAcuse, preguntaSegunAcuse, vueltasEnCero, type AcusePendiente, type Vueltas } from '../src/v3/entrevista/mensajes.js';
 import { sumarAudio } from '../src/v3/entrevista/respuesta.js';
+import { taparKey } from '../src/v3/entrevista/transcribir.js';
 import { renderizar, type FichaTexto } from '../src/v3/entrevista/texto.js';
 
 /** Lo que se anota de cada llamada al cazador (tokens, costo, qué eligió y qué descartó). */
@@ -321,7 +322,12 @@ export function sumarCaza(anterior: EstadoSimulacion, r: ResultadoCaza): EstadoS
 /** Una línea para la consola: qué cazó y cuánto va. */
 export function lineaCaza(r: ResultadoCaza): string {
   const que = r.llamo ? `${r.repreguntas.length} repregunta(s)${r.descartadas.length ? `, ${r.descartadas.length} descartada(s)` : ''}${r.motivo ? ` (${r.motivo})` : ''}` : `no llamó (${r.motivo})`;
-  return `cazador, bloque ${r.bloque}: ${que} · USD ${r.costoUsd.toFixed(2)} · acumulado USD ${r.gastoUsd.toFixed(2)}`;
+  // 02/10 (prueba de Joaquín): sin el porqué, un "(error)" o una descartada no se pueden diagnosticar. La key nunca se imprime.
+  const porque = [
+    ...(r.error ? [`error: ${taparKey(r.error)}`] : []),
+    ...r.descartadas.map((d) => `descartada ${d.id}: ${d.fallas.join(', ')}`),
+  ];
+  return `cazador, bloque ${r.bloque}: ${que} · USD ${r.costoUsd.toFixed(2)} · acumulado USD ${r.gastoUsd.toFixed(2)}${porque.length ? ` — ${porque.join(' | ')}` : ''}`;
 }
 
 // ---------------------------------------------------------------- md
