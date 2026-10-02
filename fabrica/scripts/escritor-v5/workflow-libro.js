@@ -83,15 +83,20 @@ log(`controles de piezas: ${pz[1].salida.split('\n')[0]}`)
 
 // ---------- 4, 5, 5b: revisión (tres roles ciegos, en paralelo) ----------
 phase('Revisión')
+// v5: con args.soloHechos la revisión solo corrige hechos y que todo entre (el relato no se toca); antes se guarda cada capítulo sin revisar.
+const SOLO = !!args.soloHechos
+await codigo([`mkdir -p "${DIR}/sin-revision" && cp "${DIR}/salidas/"*.md "${DIR}/sin-revision/"`], 'guardar sin revisión', 'Revisión')
 await parallel([
   () => rol('hechos', '4-hechos', 'salidas/hechos.json', { label: 'hechos', phase: 'Revisión' }),
-  () => rol('lectura', '5-lectura', 'salidas/lectura.json', { label: 'lectura', phase: 'Revisión' }),
-  () => rol('cotejo', '5b-cotejo', 'salidas/cotejo.json', { label: 'cotejo', phase: 'Revisión' }),
+  ...(SOLO ? [] : [
+    () => rol('lectura', '5-lectura', 'salidas/lectura.json', { label: 'lectura', phase: 'Revisión' }),
+    () => rol('cotejo', '5b-cotejo', 'salidas/cotejo.json', { label: 'cotejo', phase: 'Revisión' }),
+  ]),
 ])
 
 // ---------- 6: juntar y UNA ronda de arreglos ----------
 phase('Arreglo')
-const jn = await codigo([`${node('arreglos.mjs')}" "${DIR}" juntar`, `${node('estado.mjs')}" "${DIR}" arreglos`], 'juntar', 'Arreglo')
+const jn = await codigo([`${node('arreglos.mjs').replace('node ', SOLO ? 'SOLO_HECHOS=1 node ' : 'node ')}" "${DIR}" juntar`, `${node('estado.mjs')}" "${DIR}" arreglos`], 'juntar', 'Arreglo')
 log(`juntar:\n${jn[0].salida.trim()}`)
 const aArreglar = json(jn[1]).piezas
 await parallel(aArreglar.map((p) => () => rol(`arreglo ${p}`, `6-arreglo-${p}`, `arreglos/cambios-${p}.json`, { label: `arreglo ${p}`, phase: 'Arreglo' })))
