@@ -5,14 +5,15 @@
 **El objetivo, en una oración (va en cada prompt de escritura):** una novela en primera persona, con el tono de quien narra, que atrape y que la familia diga "es él" (o "es ella"), sin un solo hecho agregado.
 
 **Qué cambia respecto de la v3.2.**
-- "No inventar" quiere decir **hechos**: quién, qué, cuándo, dónde, cuánto, qué se dijo (y motivos y sentimientos con nombre). El relato es obligación del escritor: ordenar, conectar, ritmo, limpiar repeticiones y muletillas, redactar bien lo que se contó mal, darle peso a lo importante, cerrar bien.
+- "No inventar" quiere decir **hechos**: quién, qué, cuándo, dónde, cuánto, qué se dijo, y ningún motivo que no dio. **La regla del dueño, que manda sobre cualquier texto:** el escritor usa las palabras, el orden, los conectores y el ritmo que quiera; lo único prohibido es afirmar algo que no pasó o un motivo que no dio. El relato es obligación del escritor: ordenar, conectar, ritmo, limpiar repeticiones y muletillas, redactar bien lo que se contó mal, darle peso a lo importante, cerrar bien.
 - **Voz mezcla**: narra el escritor con el tono del narrador; solo lo que va entre rayas, comillas o destacado tiene que ser textual (C6).
 - **Capítulo = etapa de la vida**, en orden; adentro, cronológico. Se va el "hecho fuerte" como eje del capítulo.
 - **Peso por importancia, no por largo**: cada pieza del plan lleva `peso` (clave, normal, línea); un momento clave nunca va en una línea (C13).
 - **Lo de hoy al último capítulo**; en un capítulo viejo, una sola línea de consecuencia al final de su historia (C28).
-- **Recursos con medida**: frase corta de cierre, frase suya destacada, diálogo con raya; el código marca solo a partir del tercer golpe por capítulo (C1).
+- **Recursos con medida**: frase corta de cierre, frase suya destacada, diálogo con raya; el código marca solo a partir del cuarto golpe por pieza (C1).
 - **El mismo nombre tres veces en tres oraciones** va al arreglo (C29, nuevo).
-- Se mantiene todo lo que cuida los hechos y que todo entre: registro, marcas `[[R..]]` por párrafo, verificador con `<presentes>` y `<pasados>`, lector con `<referencias>`, cotejo, una sola ronda de arreglo por reemplazos, informe.
+- **Cada prompt de escritura enseña el oficio** ("Cómo se cuenta") antes de los bordes, y los bordes son pocos.
+- Se mantiene todo lo que cuida los hechos y que todo entre: registro, marcas `[[R..]]` (ahora por tramo, no por párrafo), verificador con `<presentes>` y `<pasados>`, lector con `<referencias>`, cotejo, una sola ronda de arreglo por reemplazos, lectura final al informe, informe.
 
 Esta receta hace cumplir la [guía](guia.md). Son los textos EXACTOS que recibe el modelo en cada paso, más lo que hace el código entre paso y paso.
 
@@ -40,6 +41,7 @@ Esta receta hace cumplir la [guía](guia.md). Son los textos EXACTOS que recibe 
 | 5 | **Lectura de corrido** (lector: guía entera, libro SIN marcas, `<referencias>`; sin material) | modelo | `lectura.json` |
 | 5b | **Cotejo** (cotejador: respuestas y libro CON marcas) | modelo | `cotejo.json` |
 | 6 | **Arreglo, una ronda**: por pieza con problemas, lista de reemplazos `antes → despues`; el código los aplica (C9), vuelve a correr los controles y el repaso del 4 | modelo + código | piezas corregidas |
+| 6b | **Lectura final**: el paso 5 otra vez, igual, sobre el libro arreglado. Va solo al informe: no hay segunda ronda de arreglo | modelo | `lectura-final.json` |
 | 7 | Borra marcas, imprime títulos desde el plan, arma el informe | código | `libro.md`, `informe.md` |
 
 Orden del libro: título del libro, primera página (sin título), capítulos, "Antes de cerrar" (si hay), "Sus frases" (si hay), la carta con su título.
@@ -70,7 +72,7 @@ INSTRUCCIONES DEL PASO
 
 Antes de `<guia>` va la línea fija: `La guía habla de "la narradora" y sus ejemplos, igual que los de las instrucciones, son de una narradora inventada (Nélida). Quien narra en este libro es otra persona: su nombre, su género y su trato están en la ficha, y se escribe con ese género.`
 
-**Marcas de rastreo.** En 3a, 3b, 3c, 3d y en el arreglo, cada párrafo termina con `[[R12,R15]]`: las respuestas que usó (o `[[FICHA]]` si sale de la ficha). Con ellas el código controla que todo entró (C18), el verificador sabe contra qué mirar y el cotejador sabe adónde va lo que falta. El código las borra antes de la lectura y de imprimir.
+**Marcas de rastreo, por tramo.** En 3a, 3b, 3c, 3d y en el arreglo, al final de cada tramo (una escena o un resumen, uno o varios párrafos) va la marca `[[R12,R15]]` con las respuestas que usó (o `[[FICHA]]` si sale de la ficha). Un párrafo puede juntar varias respuestas y una respuesta puede repartirse en varios párrafos; la marca no manda dónde se corta el párrafo. La última línea de la pieza siempre lleva marca. Con ellas el código controla que todo entró (C18), el verificador sabe contra qué mirar y el cotejador sabe adónde va lo que falta. El código las borra antes de la lectura y de imprimir.
 
 **Huecos que llena el código:** `{{N}}` (número de capítulo), `{{TITULO}}` (título impreso del capítulo: el escritor lo ve para saber adónde va, pero no lo escribe), `{{NOMBRE}}` (nombre de pila de quien narra, de la ficha).
 
@@ -241,19 +243,21 @@ Mandan: secciones 1, 2, 3, 12 y 13; anexos A2, A3 y A6.
 ```
 Sos el escritor. Escribís la primera página de una novela en primera persona: {{NOMBRE}} presentándose con su propia voz, con TODO lo que el plan puso en "primera_pagina". Es la página que decide si la familia sigue leyendo: al terminarla, el lector sabe qué hace, de dónde es y cómo es, y quiere saber más. Narrás vos, con su tono; no agregás ningún hecho. Leé entera la ficha <voz> antes de escribir. Mandan las secciones 1, 2, 3, 12 y 13 de la guía y los anexos A2, A3 y A6.
 
+Cómo se cuenta esta página: entrás por algo suyo que se ve (una cosa, un lugar, un gesto, una frase), no por un dato. Cada tramo cierra con algo que pasa o una frase suya, y el siguiente arranca desde ahí. Las palabras, el orden, los conectores y el ritmo los elegís vos; lo único prohibido es afirmar algo que no pasó o un motivo que no dio. Al terminar, el lector quiere seguir.
+
 Bordes:
 1. La primera oración no es "Me llamo…" ni un dato de ficha suelto, y ninguna oración junta tres datos de ficha (nombre, año, hijos, ciudad).
 2. En el primer párrafo hay una cosa concreta suya del plan (objeto, lugar, gesto o frase textual); el resto de lo que dijo de sí entra después, contado como algo que hace o dice, nunca como lista.
-3. Hechos: cada cosa que afirma está en los ids del plan o en la ficha. Lo que terminó, en pasado; lo que sigue hoy, en presente.
+3. Hechos: cada cosa que afirma está en los ids del plan o en la ficha, y ningún motivo que no dio. Lo que terminó, en pasado; lo que sigue hoy, en presente.
 4. Relato: ordenás, conectás y redactás bien lo que dijo en varias respuestas; sacás muletillas y repeticiones. No es una transcripción: es la voz de {{NOMBRE}} en su mejor día.
 5. Solo se presenta quien narra; si nombra a alguien, nombre y relación, nada más.
 6. Sin hablar del libro ni del lector, sin valorar la vida, sin adelantar lo que viene.
 7. Lo que va entre rayas, comillas o destacado es textual suyo. Como mucho un golpe (frase corta suelta o frase destacada), y solo si sostiene la página.
-8. Cada párrafo termina con la marca [[R..]] de las respuestas que usó. Ningún id del plan queda sin usar.
+8. Al final de cada tramo va la marca [[R..]] con las respuestas que usó; un párrafo puede juntar varias respuestas y una respuesta puede repartirse en varios párrafos (la marca no manda dónde se corta el párrafo). La última línea siempre lleva marca. Ningún id del plan queda sin usar.
 
 Mal (ficha): "Me llamo Nélida Ferraro, nací en Rosario en 1954, tengo tres hijos y vivo en Funes."
 Mal (transcripta): "Y bueno, yo soy Nélida, la de la mercería, eh, que me conocen así, viste, todavía me conocen así."
-Bien: "Soy Nélida, la de la mercería de Echesortu. Así me conocen todavía, aunque cerré hace años. Veinte años subí esa persiana de madera con una manija que trababa siempre en el mismo lugar. [[R01,R03]]" (vale solo si dijo cada cosa).
+Bien (con R01 y R03, en la sección 13 de la guía): "Soy Nélida, la de la mercería de Echesortu. Así me conocen todavía, aunque cerré hace años. Veinte años subí esa persiana de madera con una manija que trababa siempre en el mismo lugar. [[R01,R03]]"
 
 Devolvé solo el texto en markdown, sin título.
 ```
@@ -267,7 +271,7 @@ Devolvé solo el texto en markdown, sin título.
 | 5 una sola persona presentada | C17; lector |
 | 6 sin hablar del libro | C1 (molde "este libro"); lector |
 | 7 textual entre rayas, comillas o destacado; un golpe | C6; C1 |
-| 8 marcas; todo el plan usado | C18 |
+| 8 marcas por tramo; todo el plan usado | C18 |
 
 ### Paso 3b · Un capítulo
 
@@ -276,47 +280,65 @@ Mandan: secciones 1, 2, 3, 5, 6, 7, 8, 9, 11, 12 y 14; anexos A2, A3, A6, A7 y A
 ```
 Sos el escritor. Escribís el capítulo {{N}} de la vida de {{NOMBRE}}: un capítulo de novela, en primera persona, con su tono, que se lea de corrido y que la familia, al terminarlo, diga "es él" o "es ella". Su título es "{{TITULO}}": lo imprime el código, vos no lo escribís. Los hechos son de quien narra; el relato es tu trabajo. Antes de escribir leé <libro_hasta_aca> (para no repetir nada ni volver a presentar a nadie) y la ficha <voz> entera. Mandan las secciones 1, 2, 3, 5, 6, 7, 8, 9, 11, 12 y 14 de la guía y los anexos A2, A3, A6, A7 y A8.
 
-Bordes:
-1. Hechos: nada que no esté en los ids de las piezas del capítulo o en la ficha. Ni quién, ni qué, ni cuándo, ni dónde, ni cuánto, ni qué se dijo; tampoco un motivo ("porque") ni un sentimiento con nombre que no dijo. Lo dudoso, vago; lo que no dijo, no se calcula ni se completa: lo que falta queda como está.
-2. Relato, obligatorio: no copies las respuestas. Ordená, conectá cada párrafo con el siguiente, sacá muletillas, falsos arranques y repeticiones, redactá en oraciones enteras lo que contó a los tumbos, juntá en un tramo lo que contó en varias respuestas. Variá el largo de oraciones y párrafos: lo importante, más despacio; lo menor, rápido.
-3. Voz: narrás vos con su tono: sus palabras (si dijo "plata", es plata), su trato (vos o tú, el de la ficha), su manera de nombrar a la gente, sus dichos. Sin adjetivos de catálogo, metáforas ni sentimientos que no dijo, sin las palabras ni los moldes del anexo A2, sin gerundio de posterioridad. Solo lo que va entre rayas, entre comillas o destacado tiene que ser textual suyo; en cada momento clave entra una frase suya textual, si la hay.
-4. Orden: las piezas en el orden del plan, que es el del tiempo. Abrís en la primera escena (apertura del plan); lo que el plan pone antes de ella va como ubicación en el primer párrafo. Como mucho un salto atrás, anunciado y corto. Cerrás como dice el plan: con lo último que pasa, un gesto o una frase suya; nunca explicando lo que significó ni anunciando lo que viene.
-5. Peso: una pieza "clave" va con su propio tramo, sin nada menor pegado, con oraciones más cortas que las de alrededor y una pausa después (corte de párrafo), aunque en el material sean dos líneas. Dos líneas siguen siendo dos líneas: el peso lo dan el lugar y el ritmo, no detalles agregados. Una pieza "linea" va en una oración, adentro de la historia a la que pertenece.
-6. Formas: la escena entera y de una vez, con todos (o casi todos) los "detalles" de su episodio, ninguno más; el resumen con los detalles que dio; la media línea pegada a su historia; el remate al final de su escena. Cada episodio en un solo tramo: lo que ya se contó, después solo se nombra.
-7. Personas: las que el plan presenta acá entran haciendo algo, de a una, con su relación y un detalle que dio; las ya presentadas, por el nombre; nadie se cae (los que no tienen historia van en media línea, con sus nombres). El mismo nombre no va tres veces en tres oraciones seguidas: usá "él", "ella", la relación, o juntá las oraciones.
-8. Tiempo: lo que terminó, en pasado; lo que el registro tiene en "hoy" o "rasgos_hoy", en presente. Lo de hoy no va en este capítulo (va al último), salvo una sola línea de consecuencia al final del párrafo de esa historia, si el plan la trae con por_que_aca, sin atarla a un momento en que no pasó. En el último capítulo, la "columna" une los párrafos y el último párrafo es la "imagen_final".
-9. Reflexiones: solo las que dijo, donde pesan (al final de la escena de la que hablan). Nunca una conclusión tuya.
-10. Recursos con medida: frase corta de cierre, frase suya destacada (sola en su línea, con ">"), diálogo con raya con lo que ella citó. Como mucho dos golpes en el capítulo (frase corta suelta en su párrafo o destacada), y ninguno que repita lo que el párrafo ya dijo.
-11. Lo delicado, como lo contó, con el detalle que dio y con el peso que tiene; sin suavizar ni agregar. Lo de no_poner no está. Ninguna frase cortada del audio.
-12. Todo entra: cada párrafo termina con la marca [[R..]] de las respuestas que usó, y ningún id de las piezas del capítulo queda sin marca. El largo lo da el material: nunca estirar ni repetir con otras palabras.
-13. El título no lo escribís. Empezá directo en el primer párrafo.
+Cómo se cuenta este capítulo:
+- Entrás en la primera escena (la apertura del plan) por algo que se ve: un lugar, una cosa, alguien haciendo algo. No por un dato ni por un año. Lo que el plan pone antes de esa escena entra como ubicación, en una o dos oraciones.
+- La escena avanza en el orden en que pasó, y el lector se entera del final cuando quien narra lo cuenta, no antes.
+- Entre una escena y otra, un resumen corto que ubique y deje esperando la próxima.
+- Cada tramo (una escena o un resumen) cierra con algo que pasa o con una frase suya, y el siguiente arranca desde ahí.
+- Lo que pesa, más despacio; lo menor, de paso.
+- Las palabras, el orden, los conectores y el ritmo los elegís vos. No copies las respuestas: ordená, juntá en un tramo lo que contó en varias respuestas, sacá muletillas, falsos arranques y repeticiones, y redactá en oraciones enteras lo que contó a los tumbos.
+- Al terminar, el lector quiere el capítulo siguiente.
 
-Mal (transcripto): "Y bueno, la mercería la abrimos en el 78 con Raúl. Era en la calle Mendoza. Antes era una zapatería. La plata la sacamos del Renault. Lo vendimos." → Bien: "Vendimos el Renault 4 para abrirla. Raúl decía que era una locura, una mercería, y yo le daba la razón: era una locura, pero la abríamos igual. [[R22]]"
-Mal (inventa): "Con los ahorros de toda una vida y el corazón en la mano, abrimos nuestra querida mercería." → Bien: lo de arriba; ni ahorros, ni corazón, ni querida.
-Mal (nombre): "Raúl llegó tarde. Raúl traía la calculadora. Raúl la puso en la mesa." → Bien: "Raúl llegó tarde, con la calculadora abajo del brazo, y la puso en la mesa de la cocina. [[R19]]"
-Mal (peso enterrado): "Ese año cambiamos la vidriera, entraron a robar y a Raúl lo tuvieron en el piso, y Marcela empezó la secundaria." → Bien: la vidriera y la secundaria en una línea donde corresponden; el robo en su párrafo, al cierre: "Una vez entraron a robar. Tenían un revólver. A Raúl lo tuvieron en el piso, y yo atrás del mostrador. [[R35]]"
-Mal (hoy): "Hoy la Negra vive en Funes y nos vemos los jueves." en el capítulo de 1978. → Bien: eso va al último capítulo; acá, si el plan lo trae: "La Negra me prestó la plata del primer alquiler. Hasta hoy dice que se la debo. [[R24]]"
-Mal (truco): "No daba." / "Nunca más." / "Así era Raúl." cada una sola en su párrafo. → Bien: un solo golpe, donde sostiene: "Sumé. No daba. [[R19]]"
-Mal (cierre): "Y así fue como entendí que la familia es lo más importante." → Bien: "Raúl guardó la calculadora en el cajón y nunca más la sacó. [[R19]]"
+Bordes:
+1. Hechos. Lo único prohibido es afirmar algo que no pasó o un motivo que no dio. Quién, qué, cuándo, dónde, cuánto y qué se dijo salen de los ids de las piezas del capítulo o de la ficha; un sentimiento con nombre, solo si lo dijo; lo dudoso, vago; lo que no dijo no se calcula ni se completa. Lo delicado va como lo contó, con el detalle que dio y con su peso, sin suavizar ni agregar; lo de no_poner no está; ninguna frase cortada del audio. Contó "Dejé el taller de costura. Quería tener algo mío." → vale "Dejé el taller de costura porque quería tener algo mío." Contó "Me vine a Funes." sin decir por qué → vale "Un día cerré la casa de Echesortu y me vine a Funes."; no vale "Me vine a Funes porque en Echesortu ya no me quedaba nadie."
+2. Voz: narrás vos con su tono: sus palabras (si dijo "plata", es plata), su trato (vos o tú, el de la ficha), su manera de nombrar a la gente, sus dichos. Sin adjetivos de catálogo ni metáforas, sin las palabras ni los moldes del anexo A2, sin gerundio de posterioridad. Solo lo que va entre rayas, entre comillas o destacado tiene que ser textual suyo; en cada momento clave entra una frase suya textual, si la hay.
+3. Orden: las piezas en el orden del plan, que es el del tiempo. Como mucho un salto atrás, anunciado y corto. Cerrás como dice el plan: con lo último que pasa, un gesto o una frase suya; nunca explicando lo que significó ni anunciando lo que viene.
+4. Peso: una pieza "clave" tiene su propio tramo, en un lugar fuerte, sin nada menor pegado. El peso es lugar y tiempo de relato, no una fórmula ni detalles agregados: dos líneas siguen siendo dos líneas. Una pieza "linea" va en una oración, adentro de la historia a la que pertenece.
+5. Formas: la escena entera y de una vez, con todos (o casi todos) los "detalles" de su episodio, ninguno más; el resumen con los detalles que dio; la media línea pegada a su historia; el remate al final de su escena. Cada episodio en un solo tramo: lo que ya se contó, después solo se nombra.
+6. Personas: las que el plan presenta acá entran haciendo algo, de a una, con su relación y un detalle que dio; las ya presentadas, por el nombre; nadie se cae (los que no tienen historia van en media línea, con sus nombres). El mismo nombre no va tres veces en tres oraciones seguidas: usá "él", "ella", la relación, o juntá las oraciones.
+7. Tiempo: lo que terminó, en pasado; lo que el registro tiene en "hoy" o "rasgos_hoy", en presente. Lo de hoy no va en este capítulo (va al último), salvo una sola línea de consecuencia al final de esa historia, si el plan la trae con por_que_aca, sin atarla a un momento en que no pasó. En el último capítulo, la "columna" une los tramos y el último es la "imagen_final".
+8. Reflexiones: solo las que dijo, donde pesan (al final de la escena de la que hablan). Nunca una conclusión tuya.
+9. Recursos con medida: frase corta de cierre, frase suya destacada (sola en su línea, con ">"), diálogo con raya con lo que citó. Un golpe es un párrafo de una sola oración corta que cierra un tramo: hasta tres en el capítulo, ninguno sin nada detrás que lo sostenga y ninguno que repita lo que el párrafo ya dijo.
+10. Marcas: al final de cada tramo (una escena o un resumen, uno o varios párrafos) va la marca [[R..]] con las respuestas que usó. Un párrafo puede juntar varias respuestas y una respuesta puede repartirse en varios párrafos; la marca no manda dónde se corta el párrafo. La última línea del capítulo siempre lleva marca. Ningún id de las piezas del capítulo queda sin marca. El largo lo da el material: nunca estirar ni repetir con otras palabras.
+11. El título no lo escribís. Empezá directo en el primer párrafo.
+
+Bien (tres tramos encadenados). Lo que contó:
+R22: "la abrimos en el 78, con Raúl, en la calle Mendoza, que antes era una zapatería, y la plata la sacamos del Renault, que lo vendimos, el Renault 4, y Raúl decía que era una locura, una mercería, y yo le decía que sí, que era una locura, pero que la abríamos igual"
+R23: "los primeros años no daba, eh, vendíamos botones, cierres, y no daba"
+R19: "una noche Raúl puso la calculadora arriba de la mesa de la cocina y me dice sumá vos, y yo sumé y no daba. Él se fue a dormir y yo me quedé con la calculadora hasta que Tito ladró por el camión de la basura"
+Cómo queda:
+"Vendimos el Renault 4 para abrirla. Raúl decía que era una locura, una mercería, y yo le daba la razón: era una locura, pero la abríamos igual. Y la abrimos, en el 78, en el local de la calle Mendoza que había sido una zapatería. [[R22]]
+
+Los primeros años vendíamos botones y cierres, y no daba. [[R23]]
+
+Una noche Raúl puso la calculadora arriba de la mesa de la cocina y me dijo que sumara yo. Sumé. No daba. Él se fue a dormir y yo me quedé con la calculadora hasta que Tito ladró por el camión de la basura. [[R19]]"
+(Cada tramo cierra en algo que pasa y el siguiente arranca desde ahí: la abrimos → no daba → la noche en que vio cuánto no daba. No hay un hecho que no esté en R22, R23 o R19.)
+
+Mal (transcripto): "Y bueno, la mercería la abrimos en el 78 con Raúl. Era en la calle Mendoza. Antes era una zapatería. La plata la sacamos del Renault. Lo vendimos." → Bien: el primer tramo de arriba.
+Mal (inventa): "Con los ahorros de toda una vida y el corazón en la mano, abrimos nuestra querida mercería." → Bien: el primer tramo de arriba; ni ahorros, ni corazón, ni querida.
+Mal (nombre): "Raúl llegó tarde. Raúl traía la calculadora. Raúl la puso en la mesa." → Bien: "Raúl llegó tarde con la calculadora y la puso en la mesa." (los mismos hechos, sin uno más)
+Mal (peso enterrado): "Ese año cambiamos la vidriera, entraron a robar con un revólver, a Raúl lo tuvieron en el piso y yo atrás del mostrador, y Marcela empezó la secundaria." → Bien: la vidriera y la secundaria en una línea donde corresponden; el robo en su tramo, al cierre, con lo que dice R35 (sección 6 de la guía): "Una vez entraron a robar. Tenían un revólver. A Raúl lo tuvieron en el piso, y yo atrás del mostrador. [[R35]]"
+Mal (hoy): "Hoy la Negra vive en Funes y nos vemos los jueves." en el capítulo de 1978. → Bien: eso va al último capítulo; acá, si el plan lo trae (R24, sección 9 de la guía): "La Negra me prestó la plata del primer alquiler. Hasta hoy dice que se la debo. [[R24]]"
+Mal (truco): "No daba." / "Nunca más." / "Así era Raúl." / "Así éramos." cada una sola en su párrafo, sin nada detrás. → Bien: un golpe donde lo sostiene lo que pasó: "Sumé. No daba. [[R19]]"
+Mal (cierre): "Y así fue como entendí que la familia es lo más importante." → Bien (R19 entera, en la sección 3 de la guía): "Al otro día Raúl guardó la calculadora en el cajón y nunca más la sacó. [[R19]]"
 
 Devolvé solo el capítulo en markdown, sin título: empezá en el primer párrafo.
 ```
 
 | Borde | Quién controla |
 |---|---|
-| 1 hechos | verificador (inventado, nombre, fecha, lugar, cita, motivo, sentimiento); C4, C5 |
-| 2 relato, no transcripción | lector (transcripto, se_cae, relleno) |
-| 3 voz; textual solo entre rayas, comillas o destacado | C1 (A2), C6, C10; lector (no_suena, ia, deriva) |
-| 4 orden cronológico; apertura y cierre | lector (salto_confuso, apertura_repetida, cierre_explica, molde); C1 (moldes) |
-| 5 peso | lector (peso_enterrado); C13 en el plan |
-| 6 formas, detalles, un solo tramo | lector (sin_escena, repetido); C7 |
-| 7 personas; nombre repetido | C17, C21, C29; lector (persona_dos_veces, lista, sin_presentar, nombre_repetido) |
-| 8 tiempo; lo de hoy; último capítulo | verificador (presente, pasado); C28; C15, C20 en el último |
-| 9 reflexiones | verificador (inventado); lector (reflexion_ajena, bolsa) |
-| 10 recursos con medida | C1 (desde el tercer golpe); lector (recurso_de_mas) |
-| 11 delicado; no_poner; cortadas | verificador (delicado); C2 |
-| 12 marcas; todo entra; no estirar | C18; lector (relleno) |
-| 13 sin título | el código lo imprime; C9 (un `antes` o `despues` con `# ` no se aplica) |
+| Cómo se cuenta (relato, no transcripción; tramos encadenados) | lector (transcripto, se_cae, salto_confuso, relleno); lectura final al informe |
+| 1 hechos, motivos, delicado, no_poner, cortadas | verificador (inventado, nombre, fecha, lugar, cita, motivo, sentimiento, delicado); C2, C4, C5 |
+| 2 voz; textual solo entre rayas, comillas o destacado | C1 (A2), C6, C10; lector (no_suena, ia, deriva) |
+| 3 orden cronológico; cierre | lector (salto_confuso, apertura_repetida, cierre_explica, molde); C1 (moldes) |
+| 4 peso | lector (peso_enterrado); C13 en el plan |
+| 5 formas, detalles, un solo tramo | lector (sin_escena, repetido); C7 |
+| 6 personas; nombre repetido | C17, C21, C29; lector (persona_dos_veces, lista, sin_presentar, nombre_repetido) |
+| 7 tiempo; lo de hoy; último capítulo | verificador (presente, pasado); C28; C15, C20 en el último |
+| 8 reflexiones | verificador (inventado); lector (reflexion_ajena, bolsa) |
+| 9 recursos con medida | C1 (desde el cuarto golpe); lector (recurso_de_mas) |
+| 10 marcas por tramo; todo entra; no estirar | C18; lector (relleno) |
+| 11 sin título | el código lo imprime; C9 (un `antes` o `despues` con `# ` no se aplica) |
 
 ### Paso 3c · La carta
 
@@ -325,13 +347,15 @@ Mandan: secciones 2, 3, 11 y 14; anexo A6.
 ```
 Sos el escritor. Armás la carta final: las palabras de {{NOMBRE}} para los suyos, con los ids que el plan manda a "carta", en ese orden. Es primera persona y es su voz más directa: casi textual, pero escrita como una carta que se lee de un tirón, no como una transcripción. No agregás nada. Leé la ficha <voz>. Mandan las secciones 2, 3, 11 y 14 de la guía y el anexo A6.
 
+Cómo se cuenta la carta: se lee de un tirón. Cada tramo (lo que le dice a una persona, o a todos) cierra con algo que les dice, y el siguiente arranca desde ahí; lo que más pesa, más despacio. Las palabras, el orden, los conectores y el ritmo los elegís vos; lo único prohibido es afirmar algo que no pasó o un motivo que no dio.
+
 Bordes:
 1. Entra todo lo que les dice a ellos (todos los ids del plan) y solo eso. Un gusto, un dato o una historia que ya está en <libro_hasta_aca> queda afuera; si una respuesta mezcla, queda lo que les dice a ellos, con otras palabras que las del capítulo.
 2. Cuando le habla a alguien, el párrafo arranca con el nombre; lo que le dijo a la misma persona en dos respuestas va junto.
 3. Limpiás muletillas, falsos arranques, repeticiones y lo que le habla al entrevistador; ordenás y redactás en oraciones enteras. No agregás ideas, consuelos ni conclusiones.
 4. Ninguna frase cortada por el audio: se cierra con lo que dijo en otra respuesta (con ese id) o se corta antes, en una oración entera.
 5. Encabezado: "Para" y a quiénes está dedicado el libro (ficha). Cierra con la frase del plan. El título lo pone el código: no lo escribas.
-6. Cada párrafo termina con la marca [[R..]] de las respuestas que usó. Ningún id del plan queda sin marca.
+6. Al final de cada tramo va la marca [[R..]] con las respuestas que usó (la marca no manda dónde se corta el párrafo); la última línea siempre lleva marca. Ningún id del plan queda sin marca.
 
 Mal: "Valoro mucho tu paciencia, y todo lo… por la familia." → Bien: "Valoro mucho tu paciencia. [[R55]]" (o entera, si la dijo entera en otra respuesta).
 Mal: "Marcela, eh, vos sabés, vos sabés que yo siempre, que siempre te voy a agradecer." → Bien: "Marcela: vos sabés que siempre te voy a agradecer. [[R56]]"
@@ -355,16 +379,18 @@ Solo si `plan.antes_de_cerrar.ids` no está vacío. Recibe lo mismo que la carta
 ```
 Sos el escritor. Armás "Antes de cerrar": lo que {{NOMBRE}} dice de su vida entera mirando para atrás, con los ids que el plan manda a "antes_de_cerrar", en ese orden. Primera persona, con sus palabras y su tono, ordenado y limpio para que se lea de corrido; nada agregado. Leé la ficha <voz>. Mandan las secciones 2, 3, 11 y 14 de la guía y el anexo A6.
 
+Cómo se cuenta: cada tramo cierra con algo que dijo y el siguiente arranca desde ahí; lo que más pesa, más despacio. Las palabras, el orden, los conectores y el ritmo los elegís vos; lo único prohibido es afirmar algo que no pasó o un motivo que no dio.
+
 Bordes:
 1. Entran todos los ids del plan y solo eso. Nada que ya esté contado en un capítulo de <libro_hasta_aca>.
 2. No le habla a la familia (eso es la carta). Ninguna idea, consuelo ni conclusión agregada; ningún "aprendí que" que no dijo.
 3. Limpiás muletillas, falsos arranques y repeticiones; ordenás y redactás en oraciones enteras.
 4. Ninguna frase cortada por el audio.
 5. Corto: lo que dijo, bien dicho. El título lo pone el código: no lo escribas.
-6. Cada párrafo termina con la marca [[R..]] de las respuestas que usó. Ningún id del plan queda sin marca.
+6. Al final de cada tramo va la marca [[R..]] con las respuestas que usó (la marca no manda dónde se corta el párrafo); la última línea siempre lleva marca. Ningún id del plan queda sin marca.
 7. Como mucho un golpe (frase corta suelta o frase destacada), y solo si es una frase suya que lo sostiene.
 
-Mal: "Si tuviera que resumir mi vida, diría que fue una lucha constante que me hizo más fuerte." (no lo dijo) → Bien: "Lo más duro fue quedarme sola con el negocio. Me apoyé en Chiche y en el bastidor; con eso fui tirando. [[R62]]"
+Mal: "Si tuviera que resumir mi vida, diría que fue una lucha constante que me hizo más fuerte." (no lo dijo) → Bien, con lo que contó en R62 ("lo más duro fue quedarme sola con el negocio, eh, me apoyé en Chiche, y en el bastidor, y con eso fui tirando"): "Lo más duro fue quedarme sola con el negocio. Me apoyé en Chiche y en el bastidor; con eso fui tirando. [[R62]]"
 
 Devolvé solo el texto en markdown, sin título.
 ```
@@ -384,7 +410,7 @@ Devolvé solo el texto en markdown, sin título.
 Recibe: guía (secciones 2, 9, 14 y 15), ficha, respuestas, registro, libro con marcas, `<presentes>` (C16) y `<pasados>` (C27). No recibe el plan ni los prompts de escritura.
 
 ```
-Sos el verificador. No escribiste el libro y no lo vas a arreglar: lo comparás con el material y listás los hechos que no cierran. Manda la sección 15, parte 1, de la guía; para juzgar, las secciones 2, 9 y 14. El libro es una novela en primera persona: el escritor tiene que narrar, ordenar y redactar con otras palabras que las de la entrevista. Eso no es un problema. Tu trabajo son los hechos: quién, qué, cuándo, dónde, cuánto, qué se dijo, por qué y qué sintió. Cada párrafo del libro termina con [[R..]]: las respuestas que el escritor dice haber usado; empezá por ahí, pero el libro no puede decir nada que no esté en alguna respuesta o en la ficha.
+Sos el verificador. No escribiste el libro y no lo vas a arreglar: lo comparás con el material y listás los hechos que no cierran. Manda la sección 15, parte 1, de la guía; para juzgar, las secciones 2, 9 y 14. El libro es una novela en primera persona: el escritor tiene que narrar, ordenar y redactar con otras palabras que las de la entrevista. Eso no es un problema: las palabras, el orden, los conectores y el ritmo son del escritor. Tu trabajo son los hechos: quién, qué, cuándo, dónde, cuánto y qué se dijo, y que no haya un motivo que quien narra no dio. Al final de cada tramo del libro (uno o varios párrafos) va [[R..]]: las respuestas que el escritor dice haber usado en ese tramo; empezá por ahí, pero el libro no puede decir nada que no esté en alguna respuesta o en la ficha.
 
 Para cada pieza del libro (primera_pagina, cap_N, antes_de_cerrar, sus_frases, carta), con lista, no de memoria:
 1. Tiempo verbal: lo manda el registro. Lo que está en "hoy", en "rasgos_hoy" o con estado "sigue_hoy" va en presente; lo que tiene estado "termino", en pasado. Toda oración en presente se busca: si terminó, o nada dice que siga, es "presente". <presentes> trae las que encontró el código: mirá cada una, más las que encuentres vos. <pasados> trae las oraciones en pasado que nombran a una persona con estado "sigue_hoy": si lo que dice sigue siendo así hoy, es "pasado"; si terminó de verdad, no es problema. Es el control más importante.
@@ -392,7 +418,7 @@ Para cada pieza del libro (primera_pagina, cap_N, antes_de_cerrar, sus_frases, c
 3. Fechas, edades, plazos y cantidades: cada número está en el material como número.
 4. Lugares: con ese nombre en el material.
 5. Citas: lo que va entre rayas, entre comillas o destacado (">") es textual de una respuesta (se pueden sacar muletillas). La narración no tiene que ser textual.
-6. Motivos ("porque", "por eso") y sentimientos con nombre: tienen su frase en el material.
+6. Motivos y sentimientos: los conectores ("porque", "entonces", "por eso", "un día") son relato y no se marcan por sí solos. Se marca un motivo o una causa que quien narra no dio ("motivo") y un sentimiento con nombre que no dijo ("sentimiento"). Si contó "Dejé el taller de costura. Quería tener algo mío.", "Dejé el taller porque quería tener algo mío" no es problema; si contó "Me vine a Funes." sin decir por qué, "Un día cerré la casa de Echesortu y me vine a Funes" no es problema, y "Me vine a Funes porque en Echesortu ya no me quedaba nadie" es "motivo".
 7. Detalles agregados: un cuándo, un dónde, un cuánto o un gesto que el material no trae ("una tarde de invierno", "dos tipos", "me miró preocupado") es "inventado".
 8. Confirmados: cada dato de <confirmado_por_el_narrador> está usado en el libro.
 9. Frases cortadas: ningún "…" que venga del audio.
@@ -431,7 +457,7 @@ Mal: ronda 1 pidió "Chiche fuma" en presente (rasgos_hoy, R18); ahora marcás "
 
 ### Paso 5 · Lectura de corrido (otro rol)
 
-Recibe: la guía entera, el libro sin marcas y `<referencias>` (C25). No recibe el material ni el plan.
+Recibe: la guía entera, el libro sin marcas y `<referencias>` (C25). No recibe el material ni el plan. Corre dos veces, con el mismo prompt: antes del arreglo (lo que marca va al paso 6) y, después del arreglo, sobre el libro arreglado (la **lectura final**: va solo al informe, no hay segunda ronda).
 
 ```
 Sos el lector exigente. No escribiste el libro y no tenés el material: lo leés entero, de corrido, como lo va a leer la familia, y marcás dónde deja de ser una novela que atrapa y que suena a quien narra. Manda la sección 15, parte 2, de la guía; para reconocer cada cosa, las demás secciones y los anexos.
@@ -469,7 +495,7 @@ Esquema de salida (`lectura.json`):
 Recibe: `<respuestas>` y `<libro>` con marcas; de la guía, las secciones 3, 11 y 14. No recibe el plan, el registro ni los prompts de escritura.
 
 ```
-Sos el cotejador. No escribiste el libro: comparás cada respuesta con lo que el libro hizo con ella y listás lo suyo que se cayó. Todo entra, aunque sea en una línea: lo que buscás es lo que la familia va a extrañar. Cada párrafo del libro termina con [[R..]]: las respuestas que usó; empezá por ahí, pero una cosa cuenta como entrada si está en cualquier parte del libro, dicha igual o narrada con otras palabras.
+Sos el cotejador. No escribiste el libro: comparás cada respuesta con lo que el libro hizo con ella y listás lo suyo que se cayó. Todo entra, aunque sea en una línea: lo que buscás es lo que la familia va a extrañar. Al final de cada tramo del libro (uno o varios párrafos) va [[R..]]: las respuestas que usó en ese tramo; empezá por ahí, pero una cosa cuenta como entrada si está en cualquier parte del libro, dicha igual o narrada con otras palabras.
 
 Para cada respuesta, buscá lo que no entró y que nadie más diría: cómo se ve, lo que piensa de su vida, cómo nombra a alguien ("para mí sigue siendo la nena"), un plan, un deseo, una frase propia, un detalle concreto de una escena. No listes lo que ya está contado aunque sea con otras palabras, ni muletillas, ni lo que pidió que no esté.
 
@@ -487,23 +513,24 @@ Esquema de salida (`cotejo.json`):
 {"faltan": [{"n": 1, "id": "R..", "frase": "", "por_que": ""}]}
 ```
 
-`frase` es textual de la respuesta (C6 lo comprueba; si no, se descarta). Va al arreglo de la pieza que le toca como "falta frase de R..: «…»"; C24 comprueba que entró.
+`frase` es textual de la respuesta (C6 lo comprueba; si no, se descarta). Va al arreglo de la pieza que le toca como "falta frase de R..: «…»": lo que esa frase dice entra donde el tramo ya habla de eso, narrado o textual (textual solo si va entre rayas, comillas o destacado), y ese tramo se reescribe entero para que no se note la costura. C24 comprueba que entró.
 
 ### Paso 6 · Arreglo (una llamada por pieza con problemas)
 
-Una sola ronda. La llamada es la misma de escritura de esa pieza (3a, 3b, 3c o 3d), con `<pieza_actual>` (con marcas, sin la línea del título) y `<problemas>` (código, verificador, lector y cotejo juntos, numerados; un `titulo_generico` no entra), y este agregado al final. Devuelve solo los cambios; el código los aplica.
+Una sola ronda (después viene la lectura final del paso 5, que va solo al informe). La llamada es la misma de escritura de esa pieza (3a, 3b, 3c o 3d), con `<pieza_actual>` (con marcas, sin la línea del título) y `<problemas>` (código, verificador, lector y cotejo juntos, numerados; un `titulo_generico` no entra), y este agregado al final. Devuelve solo los cambios; el código los aplica.
 
 ```
 Esta pieza volvió del control con problemas (<problemas>). No la reescribas: está en <pieza_actual> y queda como está, letra por letra, salvo los tramos que cambies. Cada cambio tiene que dejar el tramo mejor contado, no más cerca de la transcripción: novela en primera persona, con el tono de quien narra, sin hechos agregados. Devolvé solo la lista de cambios, con las mismas reglas de arriba (marcas [[R..]] incluidas) y, además:
 1. Cada problema cambia el texto marcado. Un problema de forma (transcripto, se cae, peso enterrado, nombre repetido, recurso de más, hoy fuera de lugar, reflexión ajena, primera página, cierre que explica, lista, repetido, frase cortada, molde, botón, no suena, ia, bolsa, carta ajena, referencia colgada, control del código) no se discute: se cambia. Un "transcripto" se arregla narrando ese tramo (ordenar, juntar, limpiar), con los mismos hechos. Un "peso enterrado" se arregla sacando el hecho de la enumeración y dándole su párrafo, sin agregarle nada. Un "nombre repetido", con "él", "ella", la relación o juntando oraciones. Un "hoy fuera de lugar" se saca (lo cuenta el último capítulo), salvo una línea de consecuencia al final de su historia.
 2. Un problema de hecho (presente, pasado, nombre, fecha, lugar, cita, motivo, sentimiento, inventado, confirmado, delicado) se cambia con la corrección mínima, sin desarmar la narración; o, solo si tenés una respuesta que lo respalda tal cual, lo marcás "disputa" con el id y la frase textual de esa respuesta, y "antes" y "despues" vacíos. No decidís vos: lo decide el verificador.
-3. Arreglar nunca saca a nadie ni nada: una lista se arregla contando a uno y nombrando al resto en media línea. "Falta R..": ese contenido entra, con su marca, aunque sea en una línea. "Falta frase de R..: «…»": esa frase entra con sus palabras, donde habla de eso.
-4. Cada cambio: "problema" es la lista de números que resuelve; "antes" es un tramo COPIADO EXACTO de <pieza_actual> (con sus marcas [[R..]]: una oración, o uno o más párrafos enteros, lo mínimo que haga falta); "despues" es cómo queda ese tramo, con la marca al final de cada párrafo. Para agregar algo, "antes" es el párrafo donde entra y "despues" ese párrafo con lo agregado. Un "antes" que no está tal cual no se aplica y el problema queda abierto.
-5. Todo lo que no está en un "antes" queda igual. No se suma nada del material que no estuviera en el plan para esta pieza. El título no se toca: no va en ningún "antes" ni "despues". Un arreglo no suma un tercer golpe al capítulo.
+3. Arreglar nunca saca a nadie ni nada: una lista se arregla contando a uno y nombrando al resto en media línea. "Falta R..": ese contenido entra, con su marca, aunque sea en una línea. "Falta frase de R..: «…»": lo que esa frase dice entra donde el tramo ya habla de eso, narrado o textual (textual solo si va entre rayas, comillas o destacado), y ese tramo se reescribe entero para que no se note la costura.
+4. Cada cambio: "problema" es la lista de números que resuelve; "antes" es un tramo COPIADO EXACTO de <pieza_actual>, con su marca [[R..]]. Para un problema de forma o un "falta frase", "antes" es el tramo entero donde está (la escena o el resumen, uno o varios párrafos, hasta su marca). Para un problema de hecho, lo mínimo: la oración o el párrafo. "despues" es cómo queda ese tramo, con la marca al final; la última línea de la pieza sigue llevando marca. Para agregar algo, "antes" es el tramo donde entra y "despues" ese tramo con lo agregado. Un "antes" que no está tal cual no se aplica y el problema queda abierto.
+5. Todo lo que no está en un "antes" queda igual. No se suma nada del material que no estuviera en el plan para esta pieza. El título no se toca: no va en ningún "antes" ni "despues". Un arreglo no suma un cuarto golpe a la pieza.
 
-Mal (lista arreglada sacando gente): antes "Mis amigas del barrio eran la Negra, Susana, Tere y la Beba. [[R21]]", despues "La Negra venía a la siesta a tomar mate. [[R21]]" → Bien: despues "La Negra venía a la siesta a tomar mate; las otras del barrio, Susana, Tere y la Beba, venían a comprar. [[R21]]"
+Mal (lista arreglada sacando gente; R21 dice "la Negra venía a la mercería a la siesta, se sentaba en el banquito del fondo y tomábamos mate; las otras venían a comprar"): antes "Mis amigas del barrio eran la Negra, Susana, Tere y la Beba. [[R21]]", despues "La Negra venía a la siesta a tomar mate. [[R21]]" → Bien: despues "La Negra venía a la siesta a tomar mate; las otras del barrio, Susana, Tere y la Beba, venían a comprar. [[R21]]"
 Mal (arreglo que vuelve a transcribir): problema "inventado: 'una tarde de invierno'", despues "Y bueno, una vez entraron a robar, viste. [[R35]]" → Bien: despues "Una vez entraron a robar. [[R35]]"
-Mal (deriva): un problema en el párrafo 3 y "antes" con los párrafos 1 a 6. → Bien: antes el párrafo 3 solo.
+Mal (costura): problema "falta frase de R33: «para mí sigue siendo la nena»", despues = el tramo igual con "Para mí sigue siendo la nena." pegado al final. → Bien: el tramo donde habla de Marcela, reescrito entero para que la frase caiga donde la nombra: "La nena, con los años, fue la que me bancó. Marcela, digo; para mí sigue siendo la nena. [[R33]]"
+Mal (deriva): un problema en el párrafo 3 y "antes" con los párrafos 1 a 6, que son tres tramos. → Bien: antes el tramo donde está el párrafo 3, hasta su marca.
 
 Devolvé solo el JSON del esquema de cambios.
 ```
@@ -516,7 +543,7 @@ Esquema de cambios:
 
 `resultado` ∈ cambiado | disputa. En una disputa, `antes` y `despues` van vacíos. No existe "falsa alarma".
 
-**Qué hace el código con el arreglo (C9):** aplica cada `antes` → `despues` por reemplazo exacto; un `antes` que no está no se aplica y sus problemas quedan abiertos; un `antes` o `despues` que empiece con `# ` no se aplica; cada frase marcada "cambiado" ya no tiene que estar; "disputa" solo vale en problemas de hecho; después corre otra vez los controles y el repaso del paso 4. Cada disputa va a una llamada corta al verificador (mismos documentos del paso 4) con esta instrucción:
+**Qué hace el código con el arreglo (C9):** aplica cada `antes` → `despues` por reemplazo exacto; un `antes` que no está no se aplica y sus problemas quedan abiertos; un `antes` o `despues` que empiece con `# ` no se aplica; cada frase marcada "cambiado" ya no tiene que estar; "disputa" solo vale en problemas de hecho; después corre otra vez los controles y el repaso del paso 4, y al final la **lectura final**: el paso 5, igual, sobre el libro arreglado entero. Lo que marca la lectura final va solo al informe: no hay segunda ronda de arreglo. Cada disputa va a una llamada corta al verificador (mismos documentos del paso 4) con esta instrucción:
 
 ```
 El escritor dice que esta frase del libro está respaldada por una respuesta. Frase del libro: "{{FRASE}}". Respuesta {{ID}}, frase que cita: "{{CITA}}". ¿La respuesta respalda los hechos de la frase tal como está en el libro (quién, qué, cuándo, dónde, cuánto, qué se dijo, y el tiempo verbal)? Que esté narrada con otras palabras no importa. Contestá solo {"respalda": true} o {"respalda": false, "por_que": ""}.
@@ -528,7 +555,7 @@ Si respalda, el problema se cierra; si no, va al informe. Una disputa por proble
 |---|---|
 | 1–3 cada problema cambia; disputa solo en hechos; nadie se cae | C9; verificador (disputa); C21 |
 | 4 `antes` exacto; `despues` con marcas | C9; C18 |
-| 5 lo demás igual; título intacto; sin tercer golpe | C9; C1 otra vez; aviso de deriva si quedan idénticos menos del 70 % de los párrafos sin problema |
+| 5 lo demás igual; título intacto; sin cuarto golpe | C9; C1 otra vez; aviso de deriva si quedan idénticos menos del 70 % de los párrafos sin problema |
 
 ---
 
@@ -538,17 +565,18 @@ Normalización: minúsculas, sin tildes, espacios colapsados. Las marcas `[[R..]
 
 | # | Qué mira | Si falla |
 |---|---|---|
-| C1 | **Recursos con medida:** lista cerrada del anexo A2 (palabras, muletillas, moldes); negritas, viñetas o subtítulos en una pieza; más de dos rayas por párrafo fuera de diálogo. Los golpes (párrafo de una sola oración de menos de 12 palabras que no es diálogo, y línea destacada con ">") se cuentan por pieza y se marcan **solo a partir del tercero** | `ia` → arreglo |
+| C1 | **Recursos con medida:** lista cerrada del anexo A2 (palabras, muletillas, moldes); negritas, viñetas o subtítulos en una pieza; más de dos rayas por párrafo fuera de diálogo. Los golpes (párrafo de una sola oración corta, de menos de 12 palabras y que no es diálogo, que cierra un tramo) se cuentan por pieza y se marcan **solo a partir del cuarto** (hasta tres está bien) | `ia` → arreglo |
 | C2 | "…" o "..." en el texto | `cortada` → arreglo |
 | C4 | Nombres propios que no están en respuestas, ficha ni registro | `nombre` → arreglo |
 | C5 | Años de cuatro cifras que no están en respuestas ni ficha | `fecha` → arreglo |
 | C6 | **Textual solo donde se cita:** cada tramo entre rayas de diálogo, entre comillas o destacado (">"), cada frase de "Sus frases" y el cierre de la carta es subsecuencia de una respuesta (sin muletillas). La narración no tiene que ser textual | `cita` → arreglo; en Sus frases, la frase sale y va al informe |
+| C7 | **Repetido entre piezas:** seis palabras iguales seguidas en dos piezas. No marca una frase que quien narra repite como estribillo: las que el registro tiene en `voz.frases` y aparecen en más de una respuesta | `repetido` → arreglo |
 | C9 | Arreglo por reemplazos exactos; título intacto; frase marcada "cambiado" ya no está; disputa solo en hechos; % de párrafos idénticos | ver paso 6 |
 | C10 | Anexo A6: gerundio al inicio, pasiva con "por", diálogo con comillas, trato mezclado, diagnósticos que no dijo | `ia` / `inventado` → arreglo |
 | C12 | **Títulos sin hecho fuerte:** cada palabra del título está en su id (textual) o en el material (armado); puede salir de cualquier episodio del capítulo; sin valoraciones (etapa, linda, hermosa, gran, sueños, luchas, difícil, feliz, importante, especial, inolvidable…); no es solo un nombre; no hay dos iguales | reintento del paso 2 |
 | C13 | **Plan por etapas:** cada episodio una sola vez; los `balance` en Antes de cerrar; escena solo con `es_escena`; momento clave con escena como escena; ≥1 escena por capítulo y apertura en una escena; **momento clave con peso "clave", nunca "linea"**; tipos de apertura y cierre distintos del capítulo anterior; una presentación por persona; último capítulo con hilo de hoy, columna e imagen final (que es su cierre); **un `dato`, `gusto` o `reflexion` `sigue_hoy` fuera del último capítulo solo con `por_que_aca`**; primera página con lo suyo; carta con título | reintento del paso 2 |
 | C14 | Registro (mismo esquema y mismas reglas que la v3) | reintento del paso 1 |
-| C18 | **Todo entra:** cada párrafo con marca; cada respuesta (no "paso", no `no_poner`) en alguna marca o en Sus frases | `sin_marca` / "falta R.." → arreglo |
+| C18 | **Todo entra, marcas por tramo:** la marca va al final de cada tramo (una escena o un resumen, uno o varios párrafos), no de cada párrafo: un párrafo sin marca no es falla si el tramo cierra con una más adelante. La última línea de la pieza siempre lleva marca. Cada respuesta (no "paso", no `no_poner`) está en alguna marca o en Sus frases | última línea sin marca: `sin_marca` → arreglo; "falta R.." → arreglo |
 | C19 | **A quién le habla:** episodios `familia` en la carta; dedicados sin mensaje, con faltante | plan: reintento; carta: arreglo |
 | C21 | **Nadie se cae:** cada persona con hechos aparece por nombre o apodo | `lista` → arreglo ("falta <nombre>") |
 | C23 | **El balance entra** en Antes de cerrar | arreglo |
@@ -559,7 +587,7 @@ Normalización: minúsculas, sin tildes, espacios colapsados. Las marcas `[[R..]
 | C28 | **Lo de hoy, una línea al final de su historia:** en un capítulo que no es el último, una oración fuera de diálogo con "hoy", "actualmente", "al día de hoy", "en la actualidad", "hasta hoy" pasa solo si es la última de su párrafo y la única con "hoy" en ese párrafo | `hoy_en_pasado` → arreglo |
 | C29 | **Nombre repetido (nuevo):** el mismo nombre o apodo de `registro.personas` tres veces o más en tres oraciones seguidas | `repetido` → arreglo ("usá él/ella, la relación, o juntá las oraciones") |
 
-Siguen como en la v3, sin cambios: C3 (primera oración), C7 (seis palabras iguales en dos piezas), C8 (palabras de la pregunta), C15 (bolsa en el último capítulo), C16 (`<presentes>`), C17 (presentaciones repetidas), C20 (último capítulo: máx. 2 reflexion/gusto e imagen final). Se van como control: C11 (máximo de palabras) y C22 (70 % de detalles: pasa al prompt del 3b, borde 6).
+Siguen como en la v3, sin cambios: C3 (primera oración), C8 (palabras de la pregunta), C15 (bolsa en el último capítulo), C16 (`<presentes>`), C17 (presentaciones repetidas), C20 (último capítulo: máx. 2 reflexion/gusto e imagen final). Se van como control: C11 (máximo de palabras) y C22 (70 % de detalles: pasa al prompt del 3b, borde 6).
 
 Falsas alarmas: si un rol no repite un problema que marcó el código, igual va al arreglo. Lo que el código marca mal de forma repetida se anota en el informe para ajustar el control, nunca para saltearlo.
 
@@ -573,6 +601,7 @@ Falsas alarmas: si un rol no repite un problema que marcó el código, igual va 
 | Paso 2 (C12, C13, C19, C20) | 2 reintentos con el error | se detiene y avisa |
 | Paso 3 (controles sobre la pieza recién escrita) | entra en la ronda única del paso 6 | lo abierto, al informe |
 | Paso 6 | **1 ronda** por pieza | repaso del paso 4 y controles; lo abierto, al informe |
+| Lectura final (paso 5 sobre el libro arreglado) | 1 vez | solo al informe; no hay segunda ronda |
 | Disputa | una por problema | decide el verificador |
 | Pasos 4, 5 y 5b | 1 reintento si el JSON no cumple el esquema | se sigue sin esa lista y se avisa |
 
@@ -583,6 +612,6 @@ Lo que llega al informe no se arregla a mano en el libro: se arregla la receta, 
 ## 6. Qué entrega el circuito
 
 - `libro.md`: título, primera página, capítulos, Antes de cerrar, Sus frases, carta. Sin marcas (quedan en `libro-con-marcas.md`).
-- `informe.md`: `faltantes` del plan (momentos clave sin escena, etapas sin escena, mensajes que no están: lo que tiene que repreguntar la entrevista), problemas abiertos por pieza, títulos que el lector marcó, lo que el cotejo encontró y no entró, oscilaciones del verificador, disputas, avisos de deriva, falsas alarmas del código, costo por paso.
+- `informe.md`: `faltantes` del plan (momentos clave sin escena, etapas sin escena, mensajes que no están: lo que tiene que repreguntar la entrevista), problemas abiertos por pieza, lo que marcó la **lectura final** (el paso 5 sobre el libro arreglado, que no vuelve al arreglo), títulos que el lector marcó, lo que el cotejo encontró y no entró, oscilaciones del verificador, disputas, avisos de deriva, falsas alarmas del código, costo por paso.
 
-**Quién decide.** El juez (con [`vara.md`](vara.md)) filtra lo que empeora. Ninguna versión se declara mejor sin que Naza la lea contra la anterior.
+**Quién decide.** El juez (con [`vara.md`](vara.md)) filtra lo que empeora; no hay regla de "si la versión nueva pierde con la anterior, no pasa". Decide Naza, leyendo las dos.

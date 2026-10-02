@@ -12,13 +12,15 @@
 
 **Los hechos son de ella. El relato es tuyo.**
 
-Hecho es quién, qué, cuándo, dónde, cuánto y qué se dijo (y también por qué lo hizo y qué sintió, si lo dijo). Eso no se toca: no se agrega, no se cambia, no se calcula. Todo lo demás es trabajo del escritor, y no hacerlo también es fallar: ordenar, conectar, darle ritmo, limpiar repeticiones y muletillas, redactar bien lo que se contó mal, darle peso a lo importante y cerrar bien.
+Hecho es quién, qué, cuándo, dónde, cuánto y qué se dijo. Eso no se toca: no se agrega, no se cambia, no se calcula. Y un motivo o un sentimiento que no dio no se agrega. Todo lo demás es trabajo del escritor, y no hacerlo también es fallar: ordenar, conectar, darle ritmo, limpiar repeticiones y muletillas, redactar bien lo que se contó mal, darle peso a lo importante y cerrar bien.
+
+**La regla que manda sobre cualquier otra línea de esta guía:** el escritor usa las palabras, el orden, los conectores y el ritmo que quiera; **lo único prohibido es afirmar algo que no pasó o un motivo que no dio.** Si contó "Dejé el taller de costura. Quería tener algo mío.", vale "Dejé el taller de costura porque quería tener algo mío." Si contó "Me vine a Funes." sin decir por qué, vale "Un día cerré la casa de Echesortu y me vine a Funes."; no vale "Me vine a Funes porque en Echesortu ya no me quedaba nadie."
 
 1. **Atrapa como una novela.** Se lee de corrido, y la familia, al terminar, dice "es ella".
 2. **Primera persona, siempre**, con el tono de quien narra: narrás vos, con sus palabras, su trato y su manera. En los momentos clave entra una frase suya textual.
 3. **Ningún hecho agregado.** Lo que falta no lo resolvés vos: lo anotás y lo repregunta la entrevista.
 4. **Un capítulo es una etapa de la vida**, en orden; adentro del capítulo, el tiempo va para adelante.
-5. **El peso va por importancia, no por largo**: un momento clave contado en dos líneas va en un lugar fuerte, con ritmo y pausa; lo menor, en una línea en el medio.
+5. **El peso va por importancia, no por largo**: un momento clave contado en dos líneas va en un lugar fuerte y con tiempo de relato; lo menor, de paso, en una línea en el medio.
 6. **Todo entra**, aunque sea en una línea.
 7. **Lo de hoy va al último capítulo.** En un capítulo viejo, solo una línea de consecuencia que cierra su historia.
 8. **Reflexiones, solo las que dijo**, donde pesan.
@@ -37,9 +39,9 @@ Hecho es quién, qué, cuándo, dónde, cuánto y qué se dijo (y también por q
 |---|---|
 | Mal (transcripto) | Y bueno, la mercería la abrimos en el 78 con Raúl. Era en la calle Mendoza. Antes era una zapatería. La plata la sacamos del Renault. Lo vendimos, el Renault 4. |
 | Mal (de otro) | Con los ahorros de toda una vida y una ilusión enorme, Raúl y yo abrimos en 1978 nuestra querida mercería. |
-| **Bien (novela, ella)** | Vendimos el Renault 4 para abrirla. Raúl decía que era una locura, una mercería, y yo le daba la razón: era una locura, pero la abríamos igual. En el 78 alquilamos el local de la calle Mendoza, que había sido una zapatería. |
+| **Bien (novela, ella)** | Vendimos el Renault 4 para abrirla. Raúl decía que era una locura, una mercería, y yo le daba la razón: era una locura, pero la abríamos igual. Y la abrimos, en el 78, en el local de la calle Mendoza que había sido una zapatería. |
 
-(El "bien" vale solo si ella contó el Renault, que Raúl decía "una locura", que ella le daba la razón y la zapatería. Ordena en el tiempo, junta, limpia; no agrega un solo hecho.)
+(El material es R22, en el anexo A8: el Renault, "una locura", que ella le daba la razón, el 78, la calle Mendoza y la zapatería están ahí. El "bien" ordena, junta y limpia; no agrega un solo hecho.)
 
 **Primera persona, siempre.** Todo el libro lo dice ella: "yo", "nosotros", "mi marido". Nunca "Nélida abrió", nunca un narrador de afuera, ni en la primera página ni en la carta.
 
@@ -58,11 +60,12 @@ Hecho es quién, qué, cuándo, dónde, cuánto y qué se dijo (y también por q
 - **Dónde**: lugares, calles, ciudades.
 - **Cuánto**: plata, cantidades, distancias, cuántas veces.
 - **Qué se dijo**: los diálogos y las frases de otros.
-- Y además: **por qué** lo hizo (un motivo es un hecho) y **qué sintió** (un sentimiento con nombre es un hecho). Si no lo dijo, no va.
+
+Y además: **ningún motivo que no dio.** Un motivo o un sentimiento que no dio no se agrega.
 
 **Relato (es tu trabajo, y no hacerlo es fallar):**
 1. **Ordenar**: en el tiempo, aunque lo haya contado salteado.
-2. **Conectar**: que una cosa lleve a la otra, con lo que ella dijo. "Después", "ese verano", "mientras tanto" ubican; "porque", "por eso", "entonces" afirman una causa, y una causa es un hecho.
+2. **Conectar**: que una cosa lleve a la otra. Los conectores son relato y los elegís vos: "después", "ese verano", "un día", "porque", "entonces", "por eso". Lo prohibido no es la palabra: es un motivo o una causa que ella no dio. Si contó "Dejé el taller de costura. Quería tener algo mío.", "Dejé el taller porque quería tener algo mío" es relato; si contó "Me vine a Funes." sin decir por qué, "Me vine a Funes porque en Echesortu ya no me quedaba nadie" es un motivo agregado.
 3. **Ritmo**: oraciones y párrafos de largo distinto; lo importante más despacio, lo menor más rápido.
 4. **Limpiar**: muletillas ("eh", "viste", "qué sé yo", "o sea"), falsos arranques, repeticiones que no dicen nada, lo que le habla al entrevistador, las respuestas de botón.
 5. **Redactar bien lo que contó mal**: oraciones enteras, un sujeto claro, sin "que… que…"; juntar en un párrafo lo que contó en tres respuestas; elegir la mejor de dos versiones de la misma frase.
@@ -78,6 +81,8 @@ Hecho es quién, qué, cuándo, dónde, cuánto y qué se dijo (y también por q
 | "Una vez entraron a robar." | "Una vez entraron a robar." en su párrafo, al cierre del capítulo | "Una tarde de invierno entraron dos tipos." (tarde, invierno, dos) |
 | "Raúl decía que era una locura." | "Raúl decía que era una locura, una mercería." | "—Es una locura, Nélida —me dijo, preocupado." (diálogo armado, gesto, sentimiento) |
 | Contó el robo y, en otra respuesta, que se mudaron | Contarlos en orden, uno después del otro | "Después del robo decidimos mudarnos." (causa que no dijo) |
+| "Dejé el taller de costura. Quería tener algo mío." | "Dejé el taller de costura porque quería tener algo mío." (el motivo lo dio ella) | — |
+| "Me vine a Funes." (sin decir por qué) | "Un día cerré la casa de Echesortu y me vine a Funes." | "Me vine a Funes porque en Echesortu ya no me quedaba nadie." (motivo que no dio) |
 | "Y bueno, fue duro, qué sé yo." | "Fue duro." | "Fue el golpe más duro de mi vida." |
 | "Mi viejo laburaba en el puerto, era estibador, laburaba en el puerto." | "Mi viejo era estibador; laburaba en el puerto." | "Mi viejo, un estibador de manos curtidas, se partía el lomo en el puerto." |
 
@@ -100,17 +105,21 @@ Hecho es quién, qué, cuándo, dónde, cuánto y qué se dijo (y también por q
 
 **Lo textual y lo narrado.** Solo tiene que ser palabra por palabra lo que va **entre rayas, entre comillas o destacado**. Eso es una cita: se copia de la respuesta (se pueden sacar muletillas y falsos arranques, nada más). Todo lo demás es narración: no tiene que ser textual, tiene que sonar a ella y no agregar hechos.
 
+Lo que contó (inventado), y de donde salen los ejemplos de la calculadora en toda la guía:
+
+> R19: Y una noche, eh, Raúl puso la calculadora arriba de la mesa de la cocina, viste, y me dice sumá vos, sumá vos, y yo sumé y no daba, no daba. Él se fue a dormir y yo me quedé ahí con la calculadora hasta que Tito ladró por el camión de la basura. Y al otro día la guardó en el cajón y nunca más la sacó.
+
 | | |
 |---|---|
 | Mal (transcripción) | Y Raúl, eh, Raúl me dice, viste, me dice sumá vos, sumá vos, y yo sumé y no daba, no daba. |
 | Mal (contratapa) | Aquella noche, con la angustia apretándome el pecho, comprendí que nuestro sueño se desmoronaba. |
-| **Bien** | Raúl puso la calculadora en la mesa de la cocina y me la empujó. —Sumá vos. Sumé. No daba. |
+| **Bien** | Una noche Raúl puso la calculadora arriba de la mesa de la cocina. —Sumá vos —me dijo. Sumé. No daba. |
 
 **El mismo nombre, no tres veces seguidas.** En el habla se repite el nombre para no perderse; en un libro, tres "Raúl" en tres oraciones suenan a máquina. Se usa "él", "mi marido", o se juntan las oraciones. (Con las cosas es al revés: mejor repetir "el negocio" que alternar "el local", "el comercio", "el emprendimiento".)
 
 | Mal | Bien |
 |---|---|
-| Raúl llegó tarde. Raúl traía la calculadora. Raúl la puso en la mesa. | Raúl llegó tarde, con la calculadora abajo del brazo, y la puso en la mesa de la cocina. |
+| Raúl llegó tarde. Raúl traía la calculadora. Raúl la puso en la mesa. | Raúl llegó tarde con la calculadora y la puso en la mesa. |
 
 **Qué nunca.** Una palabra más fina que la suya ("dinero" por "plata"), una metáfora que no es de ella, un adjetivo de catálogo, un sentimiento con nombre donde ella puso un hecho. Las palabras y moldes que delatan a una máquina están en el anexo A2.
 
@@ -143,7 +152,9 @@ Hecho es quién, qué, cuándo, dónde, cuánto y qué se dijo (y también por q
 
 **Regla.** Dentro de un capítulo, **orden cronológico**. Lo que pasó primero se cuenta primero, aunque ella lo haya contado al final de la entrevista.
 
-**Cómo abre.** En la primera escena de la etapa: un lugar, una cosa, alguien que hace algo. Si antes de esa escena hay hechos sin escena, pueden ir en una o dos oraciones que ubican, o en **un solo salto atrás anunciado y corto** ("Eso había empezado un año antes") que vuelve enseguida. Dos saltos atrás en un capítulo confunden.
+**Cómo abre.** En la primera escena de la etapa, por algo que se ve: un lugar, una cosa, alguien que hace algo; no por un dato. Si antes de esa escena hay hechos sin escena, pueden ir en una o dos oraciones que ubican, o en **un solo salto atrás anunciado y corto** ("Eso había empezado un año antes") que vuelve enseguida. Dos saltos atrás en un capítulo confunden.
+
+**Cómo avanza.** Una escena va en el orden en que pasó, y el lector se entera del final cuando ella lo cuenta, no antes. Entre una escena y otra, un resumen corto que ubique y deje esperando la próxima. Cada tramo (una escena o un resumen) cierra con algo que pasa o con una frase suya, y el siguiente arranca desde ahí. Lo que pesa, más despacio; lo menor, de paso. Al terminar el capítulo, el lector quiere el siguiente.
 
 **Cómo conecta.** Cada párrafo tiene que llevar al siguiente. Un puente ubica en tiempo y lugar con lo que ella dijo ("Ese mismo invierno", "Cuando nació Pablo"), sin resumir lo anterior ni adelantar lo que viene, y sin molde: si dos capítulos abren con "Ya vivíamos en… cuando…", se ve la máquina.
 
@@ -161,22 +172,26 @@ Hecho es quién, qué, cuándo, dónde, cuánto y qué se dijo (y también por q
 
 ## 6. El peso: por importancia, no por largo
 
-**Regla.** Lo que más pesa en su vida va en un **lugar fuerte**, con **ritmo y pausa**, aunque ella lo haya contado en dos líneas. Lo menor va en **una línea**, en el medio, pegado a lo suyo.
+**Regla.** Lo que más pesa en su vida va en un **lugar fuerte** y con **tiempo de relato**, aunque ella lo haya contado en dos líneas. Lo menor va de paso, en **una línea**, en el medio, pegado a lo suyo.
 
 **Qué pesa.** Los momentos clave del registro: un giro (donde la vida cambió de rumbo), el punto más alto o el más bajo, una pérdida, un peligro, una decisión difícil. Pesan por lo que son, no por cuánto los contó: un robo con revólver contado en dos renglones pesa más que un veraneo contado en una página.
 
 **Qué es un lugar fuerte.**
 - Abre el capítulo o lo cierra, si el orden del tiempo lo permite (el plan corta la etapa para que caiga ahí cuando se puede).
-- Si cae en el medio, tiene **su propio tramo**: su párrafo, nada menor pegado, lo de antes lleva hacia él y lo de después es consecuencia.
+- Si cae en el medio, tiene **su propio tramo**: nada menor pegado, lo de antes lleva hacia él y lo de después es consecuencia.
 - Lleva **una frase suya textual** si la hay (sección 3, sección 12).
 
-**Qué es darle ritmo y pausa sin agregar.** Oraciones más cortas que las de alrededor. Un párrafo propio. Los hechos en el orden en que pasaron, uno por oración. Un corte de párrafo después, para que el lector se quede ahí. Nada más: no se agrega un detalle, un sentimiento ni un "fue terrible" que no dijo. **Dos líneas siguen siendo dos líneas**: lo que cambia es dónde van y cómo suenan.
+**Qué es darle tiempo de relato sin agregar.** El peso es lugar y tiempo, no una fórmula: lo que pesa va donde el lector lo ve, se cuenta más despacio que lo de alrededor, en el orden en que pasó, y el lector se queda ahí antes de seguir. Cómo se logra (largo de las oraciones, dónde se corta el párrafo) lo decidís vos en cada caso. Lo que no se hace nunca: agregar un detalle, un sentimiento o un "fue terrible" que no dijo. **Dos líneas siguen siendo dos líneas**: lo que cambia es dónde van y cómo suenan.
+
+Lo que contó (inventado):
+
+> R35: Una vez entraron a robar, viste, con un revólver. A Raúl lo tuvieron en el piso, y yo atrás del mostrador.
 
 | Mal (enterrado) | Bien (con peso) |
 |---|---|
-| Ese año cambiamos la vidriera, entraron a robar y a Raúl lo tuvieron en el piso, y Marcela empezó la secundaria. | (al cierre del capítulo, en su párrafo) Una vez entraron a robar. Tenían un revólver. A Raúl lo tuvieron en el piso, y yo atrás del mostrador. |
+| Ese año cambiamos la vidriera, entraron a robar con un revólver, a Raúl lo tuvieron en el piso y yo atrás del mostrador, y Marcela empezó la secundaria. | (al cierre del capítulo, en su tramo) Una vez entraron a robar. Tenían un revólver. A Raúl lo tuvieron en el piso, y yo atrás del mostrador. |
 
-(Vale si ella dijo "una vez", el revólver, Raúl en el piso y ella atrás del mostrador. La vidriera y la secundaria de Marcela van en una línea, en otro lugar del capítulo, pegadas a lo suyo.)
+(Todo lo del "bien" está en R35. La vidriera y la secundaria de Marcela van en una línea, en otro lugar del capítulo, pegadas a lo suyo.)
 
 **Lo menor, en una línea.** Un dato suelto, un trabajo de dos meses, un primo que vivía cerca: entran (sección 11), pero en una línea, en el medio, adentro de la historia a la que pertenecen. No tienen párrafo propio y no compiten con lo que pesa.
 
@@ -193,6 +208,8 @@ Hecho es quién, qué, cuándo, dónde, cuánto y qué se dijo (y también por q
 **Media línea.** Un dato, un nombre, algo menor: una oración o media, adentro de la historia a la que pertenece.
 
 **Remate.** Una reflexión suya pegada al final de la escena que la explica.
+
+Con lo que contó en R19 (sección 3):
 
 | Resumen | Escena |
 |---|---|
@@ -213,6 +230,10 @@ Hecho es quién, qué, cuándo, dónde, cuánto y qué se dijo (y también por q
 - **Nadie se cae.** Un nombre que dijo sin historia entra igual, en media línea: "y las otras del barrio, Susana, Tere y la Beba, que venían a comprar". Una lista se arregla contando a uno y nombrando al resto, nunca sacando gente: una nieta va a buscar su nombre.
 - **El mismo nombre no tres veces en tres oraciones** (sección 3).
 
+Lo que contó (inventado):
+
+> R21: Mis amigas del barrio eran la Negra, Susana, Tere y la Beba. La Negra venía a la mercería a la siesta, se sentaba en el banquito del fondo y tomábamos mate. Las otras venían a comprar. La Negra venía a quedarse.
+
 | Mal | Bien |
 |---|---|
 | Mis amigas del barrio eran la Negra, Susana, Tere y la Beba. | La Negra venía a la mercería a la hora de la siesta y se sentaba en el banquito del fondo a tomar mate. Las otras del barrio, Susana, Tere y la Beba, venían a comprar; la Negra venía a quedarse. |
@@ -225,7 +246,7 @@ Hecho es quién, qué, cuándo, dónde, cuánto y qué se dijo (y también por q
 
 **Lo de hoy va al último capítulo.** Lo que tiene hoy, lo que hace hoy, lo que piensa hoy, sus nietos de hoy: todo eso es la etapa de hoy, y la etapa de hoy es el último capítulo.
 
-**La única excepción: una línea de consecuencia.** Al final de una historia vieja puede ir **una sola línea** que dice cómo quedó eso hasta hoy, si ella lo dijo: "La Negra me prestó la plata del primer alquiler. Hasta hoy dice que se la debo." Tres condiciones:
+**La única excepción: una línea de consecuencia.** Al final de una historia vieja puede ir **una sola línea** que dice cómo quedó eso hasta hoy, si ella lo dijo (R24, inventada: "la plata del primer alquiler me la prestó la Negra, y hasta hoy dice que se la debo"): "La Negra me prestó la plata del primer alquiler. Hasta hoy dice que se la debo." Tres condiciones:
 1. Es **una** línea por historia, y va **al final** de esa historia, no en el medio.
 2. Es consecuencia de esa historia, no un dato suelto de hoy.
 3. **No se ata a un momento en que no pasó**: no "esa noche supe que se la iba a deber toda la vida".
@@ -298,11 +319,11 @@ Puede salir de cualquier momento del capítulo: del más fuerte, de un objeto qu
 - **Una frase suya destacada**, sola en su línea, en un momento clave: la que la familia va a subrayar.
 - **Diálogo con raya**, solo con lo que ella citó: "—Sumá vos —me dijo Raúl."
 
-**La medida.** Hasta dos golpes por capítulo (frase corta suelta en su párrafo o frase destacada). Un tercero ya se nota. Y aunque sean dos: si el golpe no tiene nada detrás que lo sostenga, si destaca una frase que el párrafo ya dijo, o si todos los capítulos cierran con el mismo golpe, sobra.
+**La medida.** Un golpe es un párrafo de una sola oración corta que cierra un tramo. Hasta tres por capítulo está bien; un cuarto ya se nota. La frase destacada va solo en un momento clave. Y aunque sean pocos: si el golpe no tiene nada detrás que lo sostenga, si destaca una frase que el párrafo ya dijo, o si todos los capítulos cierran con el mismo golpe, sobra.
 
 | Mal (truco) | Bien (medida) |
 |---|---|
-| Tres párrafos de una línea en una página: "No daba." / "Nunca más." / "Así era Raúl." | Uno solo, al final del tramo de la calculadora: "No daba." |
+| Cuatro párrafos de una línea en una página, sin nada detrás: "No daba." / "Nunca más." / "Así era Raúl." / "Así éramos." | Uno, al final del tramo de la calculadora, donde lo sostiene lo que pasó: "No daba." |
 | Destacada: "> La mercería era mi vida." después de un párrafo que ya dijo lo mismo. | Destacada en el robo, que el párrafo cuenta y no repite: "> A Raúl lo tuvieron en el piso." |
 
 **Lo destacado es textual.** Lo que va entre rayas, entre comillas o destacado es palabra por palabra suyo (sección 3).
@@ -314,6 +335,11 @@ Puede salir de cualquier momento del capítulo: del más fuerte, de un objeto qu
 ### La primera página
 
 **Regla.** El libro abre con **ella presentándose con su voz**: quién es para sí misma, con algo concreto suyo (un objeto, un lugar, un gesto, una frase). Sale de lo que dijo de sí: cómo se define, a qué se dedicó, de dónde es, lo que repite sin que se lo pregunten. Al terminarla, el lector sabe qué hace, de dónde es y cómo es, y tiene ganas de seguir.
+
+Lo que contó (inventado):
+
+> R01: Yo soy Nélida, la de la mercería de Echesortu, así me conocen todavía, y eso que cerré hace una pila de años.
+> R03: Veinte años levanté esa persiana, de madera, con una manija que se trababa siempre en el mismo lugar.
 
 | Mal (ficha) | Bien (se presenta) |
 |---|---|
@@ -329,7 +355,7 @@ Puede salir de cualquier momento del capítulo: del más fuerte, de un objeto qu
 
 | Mal | Bien |
 |---|---|
-| Termina con "Y hoy, mirando para atrás, creo que hice lo que pude." | Termina con la llave de la casa nueva colgada al lado de la puerta, donde Marcela le dijo que la colgara. |
+| Termina con "Y hoy, mirando para atrás, creo que hice lo que pude." | Termina con la llave de la casa nueva colgada al lado de la puerta, donde Marcela le dijo que la colgara (R70, inventada: "la llave la colgué al lado de la puerta, que Marcela me dijo que la colgara ahí, y ahí está"). |
 
 ---
 
@@ -339,7 +365,7 @@ Puede salir de cualquier momento del capítulo: del más fuerte, de un objeto qu
 
 **Lo confirmado se usa.** Si en el tablero confirmó que la Negra y Susana son la misma persona, el libro lo dice una vez y usa un nombre.
 
-**Motivos y sentimientos.** "Cerré porque Raúl se cansó" solo si lo dijo así. Si contó que cerró y que Raúl estaba cansado, son dos hechos, no una causa. Un sentimiento, solo si lo nombró, con sus palabras.
+**Motivos y sentimientos.** Los conectores ("porque", "entonces", "por eso", "un día") son relato y los elige el escritor. Lo prohibido es un motivo o una causa que ella no dio. Si contó "Dejé el taller de costura. Quería tener algo mío.", el motivo lo dio: "Dejé el taller porque quería tener algo mío" vale. Si contó "Me vine a Funes." y nada más, "porque en Echesortu ya no me quedaba nadie" es un motivo agregado. Un sentimiento con nombre, solo si lo nombró, con sus palabras.
 
 **Diálogos.** Solo los que citó. Nunca reconstruidos ni "mejorados": se pueden sacar muletillas, no cambiar palabras.
 
@@ -348,6 +374,10 @@ Puede salir de cualquier momento del capítulo: del más fuerte, de un objeto qu
 **Frases cortadas.** Una frase que el audio cortó nunca queda cortada: se cierra con lo que dijo entero en otra respuesta, o se corta antes y queda una oración entera.
 
 **Lo delicado, sin maquillaje.** Muertes, enfermedades, separaciones, deudas, cárcel, violencia, peleas familiares: **va como lo contó**, con el detalle que dio, en su lugar en la historia y con el peso que tiene (sección 6). No se suaviza, no se esconde al final, no se agranda. No se le agrega adjetivo, moraleja, morbo ni detalle. Lo que pidió que no esté, no está.
+
+Lo que contó (inventado):
+
+> R40: Estuvo ocho meses en el Centenario, Raúl. Yo iba todos los días, con el termo y la bolsa de las medias, que se le enfriaban los pies. Murió en septiembre del 2014.
 
 | Mal | Bien |
 |---|---|
@@ -363,7 +393,7 @@ La revisión la hacen otros, no quien escribió. Dos partes.
 - **Tiempo verbal**: cada presente se busca en el material (¿sigue hoy?); cada pasado sobre alguien vivo, también (¿dejó de ser así?). Es el control más importante.
 - **Nombres, fechas, plazos, lugares, cantidades**: cada uno está en el material o en la ficha, como lo dijo.
 - **Citas**: lo que va entre rayas, comillas o destacado es textual.
-- **Motivos y sentimientos**: cada "porque" y cada sentimiento con nombre tiene su frase.
+- **Motivos y sentimientos**: cada motivo o causa que el libro afirma, y cada sentimiento con nombre, lo dio quien narra. Un conector ("porque", "entonces") que une dos cosas que ella dijo no es problema; un motivo que no dio, sí.
 - **Lo confirmado** está usado. **Frases cortadas**: ninguna. **Lo delicado**: como lo contó.
 - **Lo que no es problema de hechos**: que una oración esté narrada con otras palabras que la respuesta. Narrar es el trabajo; el verificador mira hechos, no si se parece a la transcripción.
 
@@ -430,6 +460,10 @@ Ninguna aparece en el libro salvo que sea una frase textual de ella.
 
 **Por qué.** La deriva es el defecto más común: el capítulo 1 suena a ella y el 8 suena a libro.
 
+Lo que contó (inventado):
+
+> R33: La nena fue la que me bancó, con los años. Marcela, digo. Para mí sigue siendo la nena.
+
 | Mal (capítulo 8, deriva) | Bien (misma ficha que el 1) |
 |---|---|
 | Con el transcurrir de los años, mi hija Marcela se convirtió en mi principal sostén. | La nena, con los años, fue la que me bancó. Marcela, digo; para mí sigue siendo la nena. |
@@ -476,11 +510,13 @@ Cómo se pasa una respuesta oral a un párrafo de libro, paso por paso. La respu
 4. **Lo que queda suyo**: "una locura", "la abríamos igual", "el Renault 4", el voseo.
 5. **El párrafo**:
 
-> Vendimos el Renault 4 para abrirla. Raúl decía que era una locura, una mercería, y yo le daba la razón: era una locura, pero la abríamos igual. En el 78 alquilamos el local de la calle Mendoza, que había sido una zapatería. [[R22]]
+> Vendimos el Renault 4 para abrirla. Raúl decía que era una locura, una mercería, y yo le daba la razón: era una locura, pero la abríamos igual. Y la abrimos, en el 78, en el local de la calle Mendoza que había sido una zapatería. [[R22]]
 
-**Qué no se hizo.** No se agregó cuánto dieron por el auto, ni que Raúl estaba preocupado, ni "nuestro sueño". Tampoco se dejó como estaba: eso es transcribir.
+**Qué no se hizo.** No se agregó cuánto dieron por el auto, ni que Raúl estaba preocupado, ni "nuestro sueño". Tampoco se dejó como estaba: eso es transcribir. Lo que sí se hizo es relato: "para abrirla" une dos cosas que ella dijo juntas (la plata salió del Renault, y era para la mercería).
 
-(Ojo con "alquilamos": vale solo si en algún lado dijo que el local era alquilado. Si no, es "abrimos en el local de la calle Mendoza". Así de fina es la línea entre narrar y agregar.)
+(Ojo: con R22 sola, "alquilamos el local" sería un hecho agregado, porque ahí no dice que fuera alquilado; vale solo si lo dijo en otra respuesta, como R24, "la plata del primer alquiler", y entonces la marca lleva las dos. Así de fina es la línea entre narrar y agregar.)
+
+**La marca va por tramo, no por párrafo.** Al final de cada tramo (una escena o un resumen, uno o varios párrafos) va la marca `[[R..]]` con las respuestas que usó. Un párrafo puede juntar varias respuestas y una respuesta puede repartirse en varios párrafos: la marca no manda dónde se corta el párrafo. La última línea de la pieza siempre lleva marca.
 
 ---
 

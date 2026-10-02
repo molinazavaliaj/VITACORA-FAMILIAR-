@@ -573,7 +573,8 @@ export function c24(ps, cotejo, plan, reg, psCrudas = [], rs = null) {
     const ws = palabras(f.frase || '').filter((w) => w.length > 3);
     if (!ws.length) continue;
     const estan = ws.filter((w) => txt.includes(` ${w} `)).length;
-    if (estan < Math.ceil(ws.length / 2)) out.push({ pieza, control: 'C24', tipo: 'falta_frase', frase: '', que: `falta frase de ${f.id}: «${f.frase}»${f.por_que ? ` (${f.por_que})` : ''}` });
+    // v4: la frase puede entrar narrada (no textual): alcanza con un tercio de sus palabras de contenido.
+    if (estan < Math.ceil(ws.length / 3)) out.push({ pieza, control: 'C24', tipo: 'falta_frase', frase: '', que: `falta frase de ${f.id}: «${f.frase}»${f.por_que ? ` (${f.por_que})` : ''}` });
   }
   return out;
 }

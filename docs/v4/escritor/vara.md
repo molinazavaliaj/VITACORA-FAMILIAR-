@@ -2,7 +2,9 @@
 
 **Estado: v4, escrita de cero el 02/10/2026** desde las 15 respuestas de Naza ([diseño](../../superpowers/specs/2026-10-02-escritor-v4-design.md)). La vara anterior ([`docs/v3/escritor/vara-del-10.md`](../../v3/escritor/vara-del-10.md)) midió mal: le dio 9 a un capítulo casi transcripto y 7,5 al que Naza prefirió, porque premiaba la fidelidad y no preguntaba si el capítulo se dejaba leer.
 
-**La regla que manda sobre todo lo demás:** **si la vara le da más nota a lo que el narrador lee peor, la vara está mal.** No el narrador. El juez filtra lo que empeora; quien decide es Naza, leyendo.
+**La regla que manda sobre todo lo demás:** **si la vara le da más nota a lo que el narrador lee peor, la vara está mal.** No el narrador. El juez filtra lo que empeora; quien decide es Naza, leyendo. No hay regla del tipo "si la versión nueva pierde con la anterior, no pasa": la nota no aprueba ni descarta versiones.
+
+**Qué es un error de verdad.** El escritor usa las palabras, el orden, los conectores y el ritmo que quiera; lo único prohibido es afirmar algo que no pasó o un motivo que no dio. Si contó "Dejé el taller de costura. Quería tener algo mío.", "Dejé el taller porque quería tener algo mío" no es error. Si contó "Me vine a Funes." sin decir por qué, "Un día cerré la casa de Echesortu y me vine a Funes" no es error; "Me vine a Funes porque en Echesortu ya no me quedaba nadie" sí.
 
 **Para qué.** Juzgar UN capítulo de una biografía contra su material (la entrevista), de 1 a 10. Cada criterio dice qué es un 10, un 7 y un 4, y cómo se cuenta, para que la nota salga igual con cualquier juez. Los ejemplos son de una narradora inventada: **Nélida, mercera de Echesortu, Rosario**; marido Raúl, hija Marcela, amiga la Negra. Nada de eso existe. El capítulo que Naza eligió como bueno sirve para calibrar al juez: se le pasa en el momento, desde la carpeta de Naza, fuera de git; nunca va dentro de esta vara ni de un prompt.
 
@@ -29,7 +31,7 @@ Se lee de corrido; se quiere saber qué pasa después.
 - **7:** atrapa casi todo, pero hay dos o tres caídas: un tramo que es una lista de hechos sin conexión, un párrafo que suena a respuesta copiada, una oración que hay que releer, un final que no cierra.
 - **4:** se lee como una transcripción ordenada o como un informe: frases sueltas en el orden del habla, todos los párrafos iguales, nada lleva a nada. *"Y bueno, la mercería la abrimos en el 78 con Raúl. Era en la calle Mendoza. Antes era una zapatería. La plata la sacamos del Renault."*
 
-**Cómo se cuenta.** Los trazos de la primera lectura: 0–1 es 10; 2–3 es 7; 4 o más, o un capítulo que en conjunto se lee como transcripción, es 4. **Un capítulo casi transcripto no pasa de 5 en este criterio, por fiel que sea.**
+**Cómo se cuenta.** Primero, la pregunta obligatoria: **¿hubo por lo menos un lugar donde quisiste saber qué pasaba?** Se contesta citando ese lugar. Si no hubo ninguno, Atrapa no pasa de 6 aunque no haya caídas: un capítulo sin caídas y sin ganas es prolijo, no novela. Después, los trazos de la primera lectura: 0–1 es 10; 2–3 es 7; 4 o más, o un capítulo que en conjunto se lee como transcripción, es 4. **Un capítulo casi transcripto no pasa de 5 en este criterio, por fiel que sea.**
 
 ### 2. Es él — dueño: escritor (peso doble)
 
@@ -43,9 +45,9 @@ La familia lo reconoce: suena a quien narra contándolo en su mejor día.
 
 ### 3. Peso a lo importante — dueño: escritor
 
-Lo que más pesa en su vida tiene un lugar fuerte, con ritmo y pausa, aunque esté contado en dos líneas; lo menor va en una línea.
+Lo que más pesa en su vida tiene un lugar fuerte y tiempo de relato, aunque esté contado en dos líneas; lo menor va de paso, en una línea.
 
-- **10:** cada momento clave de la etapa abre o cierra el capítulo, o tiene su propio tramo: su párrafo, nada menor pegado, oraciones más cortas, una pausa después, y una frase suya si la hay. Lo menor está, en una línea. *(Al cierre, en su párrafo:) "Una vez entraron a robar. Tenían un revólver. A Raúl lo tuvieron en el piso, y yo atrás del mostrador."*
+- **10:** cada momento clave de la etapa abre o cierra el capítulo, o tiene su propio tramo: nada menor pegado, contado más despacio que lo de alrededor, y una frase suya si la hay. Lo menor está, en una línea. (No se mide con fórmula: ni el largo de las oraciones ni dónde se corta el párrafo; se mide si el lector se queda ahí.) *(Al cierre, en su párrafo:) "Una vez entraron a robar. Tenían un revólver. A Raúl lo tuvieron en el piso, y yo atrás del mostrador."*
 - **7:** el momento clave está, pero en un lugar flojo (en el medio, sin pausa), o lo menor ocupa tanto como lo importante.
 - **4:** el momento clave quedó enterrado en una enumeración (*"Ese año cambiamos la vidriera, entraron a robar y a Raúl lo tuvieron en el piso, y Marcela empezó la secundaria."*), o un lector que no la conoce no se da cuenta de que eso fue lo importante.
 
@@ -63,13 +65,13 @@ El lector siempre sabe quién es quién y cuándo pasa cada cosa.
 
 ### 5. Verdad de hechos — dueño: escritor
 
-No agrega hechos: quién, qué, cuándo, dónde, cuánto, qué se dijo, por qué y qué sintió.
+No afirma nada que no pasó: quién, qué, cuándo, dónde, cuánto, qué se dijo; y ningún motivo que no dio.
 
 - **10:** cada hecho se puede señalar en la entrevista o en la ficha; lo dudoso está vago ("por el 89"); lo que terminó está en pasado y lo que sigue, en presente; lo que va entre rayas, comillas o destacado es textual; lo delicado está como lo contó.
-- **7:** una afirmación sin respaldo que no cambia la historia: un "porque" que ella no dijo, un año calculado, un detalle chico agregado (*"una tarde"* donde dijo *"una vez"*).
-- **4:** un hecho inventado o cambiado (persona confundida, dos episodios fundidos, un presente de algo que terminó, un diálogo armado, un sentimiento que no nombró, un detalle delicado que no dio), o una frase cortada del audio.
+- **7:** un agregado chico que no cambia la historia: un gesto chico (*"me la empujó"*), un sentimiento con nombre que no dijo (*"me dio bronca"*), un detalle chico (*"una tarde"* donde dijo *"una vez"*), un año calculado. **No pone tope** a la nota del escritor.
+- **4:** un hecho cambiado: una persona confundida, dos episodios fundidos, un presente de algo que terminó, un diálogo armado, un detalle delicado que no dio, un motivo que no dio (*"cerramos porque Raúl se cansó"*, sin que ella lo diga); o una frase cortada del audio.
 
-**Cómo se cuenta.** Listar lo afirmado y buscarlo. **Narrar con otras palabras no es un error de verdad**: "Vendimos el Renault 4 para abrirla" por "la plata la sacamos del Renault, que lo vendimos" es el mismo hecho. Un solo error grave (persona, tiempo verbal, delicado, diálogo inventado) es 4, y además **la nota del escritor no pasa de 6** aunque el resto sea perfecto: la familia lo ve en la primera lectura.
+**Cómo se cuenta.** Listar lo afirmado y buscarlo. **Narrar con otras palabras no es un error de verdad**: "Vendimos el Renault 4 para abrirla" por "la plata la sacamos del Renault, que lo vendimos" es el mismo hecho. Tampoco lo es un conector ("porque", "entonces", "un día") que une dos cosas que ella dijo. Agregados chicos: 0 es 10; 1–2 es 7; 3 o más es 5, sin tope. Un hecho cambiado es 4, y además **la nota del escritor no pasa de 6** aunque el resto sea perfecto: la familia lo ve en la primera lectura.
 
 ### 6. Todo entra — dueño: escritor
 
@@ -86,16 +88,18 @@ Lo que contó de esa etapa está, aunque sea en una línea.
 Usa los recursos de un escritor sin que se note el truco.
 
 - **10:** si hay frase corta de cierre, frase suya destacada o diálogo con raya, cada uno está donde sostiene algo y no repite lo que el párrafo ya dijo; el capítulo cierra en algo que pasa, un gesto o una frase suya. *Cierra: "Raúl guardó la calculadora en el cajón y nunca más la sacó."* Un capítulo sin ningún recurso, bien contado, también es 10.
-- **7:** un recurso de más o mal puesto: un tercer golpe, una destacada que repite el párrafo, el mismo cierre-golpe que el capítulo anterior.
-- **4:** el truco se ve en toda la página (tres o más párrafos de una línea "para impactar"), o cierra explicando (*"y así aprendí que la familia es lo más importante"*), o una moraleja que ella no dijo.
+- **7:** un recurso de más o mal puesto: un cuarto golpe, un golpe sin nada detrás que lo sostenga, una destacada que repite el párrafo, el mismo cierre-golpe que el capítulo anterior.
+- **4:** el truco se ve en toda la página (párrafos de una línea "para impactar" uno atrás de otro), o cierra explicando (*"y así aprendí que la familia es lo más importante"*), o una moraleja que ella no dijo.
 
-**Cómo se cuenta.** Contar golpes (párrafo de una sola oración corta, frase destacada): hasta 2 bien puestos no restan. Leer la última oración. Leer los cierres de los capítulos vecinos, si los hay.
+**Cómo se cuenta.** Contar golpes (párrafo de una sola oración corta que cierra un tramo): hasta 3 bien puestos no restan. Mirar las frases destacadas: cada una en un momento clave, sin repetir el párrafo. Leer la última oración. Leer los cierres de los capítulos vecinos, si los hay.
 
 ---
 
 ## La nota del escritor y el techo de la entrevista
 
-**Nota del escritor** = (Atrapa × 2 + Es él × 2 + Peso + Orden y claridad + Verdad + Todo entra + Recursos) ÷ 9, redondeada a medio punto. Con un error grave de Verdad, como máximo 6.
+**Nota del escritor** = (Atrapa × 2 + Es él × 2 + Peso + Orden y claridad + Verdad + Todo entra + Recursos) ÷ 9, redondeada a medio punto. Dos topes, y solo estos dos:
+- Con un hecho cambiado (Verdad 4), como máximo 6.
+- Un capítulo que en la primera lectura se lee como transcripción (Atrapa 5 o menos por eso), también como máximo 6. Sin este tope, uno casi transcripto, con Orden, Verdad, Todo entra y Recursos fáciles en 10, sacaría cerca de 8 y le ganaría a uno vivo con un agregado chico (Verdad 7, sin tope, cerca de 9 con el resto bien). Un agregado chico nunca pone tope.
 
 **Lo que el material no trae no le resta al escritor.** Si la entrevista cuenta un momento clave en dos líneas, sin escena, el escritor no pierde por no agrandarlo: se lo juzga por dónde lo puso y cómo sonó. Si la etapa no trae ninguna escena, Atrapa y Peso se juzgan contra lo que se podía hacer con ese material. Un escritor que no inventa lo que falta está haciendo lo correcto.
 
@@ -107,10 +111,10 @@ Son dos listas distintas y no se mezclan: lo que separa la nota del techo lo cor
 
 ## Si hay varias versiones del mismo capítulo
 
-1. Cada versión se juzga **sola**, con esta vara, en orden mezclado y sin saber cuál es cuál.
-2. Después, una pregunta aparte: **¿cuál se leería la familia de un tirón y diría "es él"?** Se contesta en una línea, con la razón.
-3. Si la que gana por nota no es la que se lee mejor, se dice explícitamente: **es una señal de que la vara está mal**, y va primera en "Tres cosas a corregir".
-4. El juez y el escritor pueden ser el mismo modelo: el juicio filtra, no decide. Decide Naza.
+1. Primero se leen todas de corrido, en orden mezclado y sin saber cuál es cuál, y se contesta la pregunta que **manda: ¿cuál se leería la familia de un tirón y diría "es él"?** En una línea, con la razón. Va arriba de la tabla.
+2. Después cada versión se juzga **sola**, con esta vara.
+3. Si la que se lee mejor pierde por nota, **pasa la que se lee mejor**, y la vara va primera en "Tres cosas a corregir": es una señal de que la vara está mal.
+4. No hay regla de "si la versión nueva pierde con la anterior, no pasa". El juez y el escritor pueden ser el mismo modelo: el juicio filtra, no decide. Decide Naza, leyendo.
 
 ---
 
@@ -121,23 +125,26 @@ CAPÍTULO: [título] — etapa: [años] — material: [Rxx a Ryy]
 LO QUE CAMBIA EN ESTA ETAPA (en una oración, como lo entiende el juez): …
 MOMENTOS CLAVE según la entrevista: … (R__, en escena / en dos líneas)
 CAÍDAS DE ATENCIÓN en la primera lectura: n — "…", "…"
+DÓNDE QUISE SABER QUÉ PASABA: "…" (o "en ningún lado": Atrapa como máximo 6)
+
+(si hay varias versiones) SE LEE MEJOR — MANDA: [A/B/C] — en una línea, por qué.
 
 | Criterio              | Nota | Evidencia citada (del capítulo y de la entrevista)              | Dueño      |
 |-----------------------|------|-----------------------------------------------------------------|------------|
-| 1. Atrapa (×2)        |  _   | caídas: "…" (transcripto / se cae / hay que releer)              | escritor   |
+| 1. Atrapa (×2)        |  _   | quise saber en: "…"; caídas: "…" (transcripto / se cae / hay que releer) | escritor   |
 | 2. Es él (×2)         |  _   | frases que no diría: "…"; frase suya en el momento clave: "…"; R__ para comparar | escritor |
 | 3. Peso               |  _   | momento clave R__: dónde cayó, con tramo propio o enterrado      | escritor / entrevista |
 | 4. Orden y claridad   |  _   | saltos, presentaciones, referencias, nombre repetido: "…"        | escritor   |
-| 5. Verdad de hechos   |  _   | "…" (no está en R__); presente de algo que terminó: "…"          | escritor   |
+| 5. Verdad de hechos   |  _   | hecho cambiado: "…" (no está en R__); agregados chicos: "…"     | escritor   |
 | 6. Todo entra         |  _   | se cayó: R__ "…"                                                 | escritor   |
 | 7. Recursos           |  _   | golpes: n; última oración: "…"                                   | escritor   |
 
-NOTA DEL ESCRITOR: _ ((A×2 + E×2 + P + O + V + T + R) ÷ 9; tope 6 si hay error grave de verdad)
+NOTA DEL ESCRITOR: _ ((A×2 + E×2 + P + O + V + T + R) ÷ 9; tope 6 si hay un hecho cambiado o si se lee como transcripción; un agregado chico no pone tope)
 
 TECHO DE LA ENTREVISTA: _
   - [criterio]: techo _ — falta: … Repreguntar: "…"
 
-(si hay varias versiones) SE LEE MEJOR: [A/B/C] — en una línea, por qué. ¿Coincide con la nota más alta? sí / NO (si no: la vara está mal, ver arriba)
+(si hay varias versiones) PASA: la que se lee mejor. ¿Coincide con la nota más alta? sí / NO (si no: pasa igual la que se lee mejor, y la vara va primera en las cosas a corregir)
 
 TRES COSAS A CORREGIR EN EL PROCESO (la receta, la vara o la entrevista; no este libro):
   1. …
