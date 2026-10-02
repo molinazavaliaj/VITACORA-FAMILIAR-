@@ -31,3 +31,17 @@ Receta v4.1: un hilo por capítulo, entrar en un momento, imagen que vuelve, gol
 
 - La v4.1 sube en Naza (el capítulo fuerte pasa de 6 a 7,5 y empata con el anterior) pero no llega al novelista: deja lo más grave en una línea.
 - En Joaquín baja el capítulo de la separación por un hecho cambiado (atribuye a Agustín lo que la entrevista da a Naza; el juez marca que R04 y R07 se contradicen).
+
+## Banco 3 — v5, novelista con red (02/10/2026)
+Mismo registro y plan que la v4.1 (solo cambia el escritor). Juez Opus a ciegas.
+
+| Narrador | Capítulo | Anterior | v4 | v4.1 | v5 | Novelista |
+|---|---|---|---|---|---|---|
+| Naza | Hecho fuerte | 6 | — | 7 | 7 | **8** |
+| Naza | Último | 5,5 | — | **8** | 7 | — |
+| Joaquín | Separación | 6 | **8** | 6 | 5,5 | — |
+| Joaquín | Último | 5,5 | 7 | 6,5 | **7** (se lee mejor) | — |
+
+- La v5 no supera a la v4.1; el novelista del ejercicio sigue arriba en el capítulo fuerte de Naza.
+- **Ruido del juez:** el mismo texto (el capítulo fuerte del libro anterior de Naza) sacó 8, 7,5 y 6 en tres corridas. Diferencias de menos de 1,5 puntos entre versiones no dicen nada; decide la lectura de Naza.
+- Diferencia de proceso que queda por probar: el capítulo del novelista no pasó por revisión ni arreglo; los de v4.1 y v5 sí.
