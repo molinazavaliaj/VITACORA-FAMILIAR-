@@ -2,7 +2,7 @@
 // Correr: node --test fabrica/scripts/escritor/
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { c1, c10, c12, c13, c28, c29, c20, c20Texto, c23, c24, c26, referencias, pasados } from './controles.mjs';
+import { c1, c7, c10, c12, c13, c18, c28, c29, c20, c20Texto, c23, c24, c26, referencias, pasados } from './controles.mjs';
 import { piezaDeR, planConR, armarCambios, sinMarcas } from './lib.mjs';
 
 const reg = () => ({
@@ -248,10 +248,11 @@ test('C12 v4: el título puede salir de cualquier id del capítulo', () => {
   assert.ok(!c12(p, [{ id: 'R01', texto: 'el viaje a Córdoba en tren' }, { id: 'R02', texto: 'y no daba la cuenta, Raúl' }], reg()).some((x) => x.includes('hecho más fuerte')));
 });
 
-test('C1 v4: hasta dos recursos por pieza no son problema; el tercero sí', () => {
+test('C1 v4: hasta tres recursos por pieza no son problema; el cuarto sí', () => {
   const dos = 'Raúl contaba la plata de la caja todas las noches con la calculadora.\n\nNo daba.\n\nLa Negra venía a la siesta y se quedaba hasta el cierre.\n\nY no volvió.';
   assert.deepEqual(c1({ pieza: 'cap_1', texto: dos }, []).filter((x) => /recursos/.test(x.que)), []);
-  assert.equal(c1({ pieza: 'cap_1', texto: `${dos}\n\nNunca más.` }, []).filter((x) => /recursos/.test(x.que)).length, 1);
+  assert.deepEqual(c1({ pieza: 'cap_1', texto: `${dos}\n\nNunca más.` }, []).filter((x) => /recursos/.test(x.que)), []);
+  assert.equal(c1({ pieza: 'cap_1', texto: `${dos}\n\nNunca más.\n\nY se fue.` }, []).filter((x) => /recursos/.test(x.que)).length, 1);
 });
 
 test('C28 v4: una línea de hoy al final de su párrafo pasa; en el medio o dos en el párrafo, no', () => {
@@ -264,4 +265,19 @@ test('C29: el mismo nombre del registro tres veces en tres oraciones seguidas', 
   const t = 'Con Raúl fuimos a Córdoba. Raúl manejaba. Después Raúl se durmió.\n\nMarcela vino. Gustavo también.';
   assert.equal(c29({ pieza: 'cap_1', texto: t }, reg()).length, 1);
   assert.deepEqual(c29({ pieza: 'cap_1', texto: 'Raúl abrió. Marcela vino. Gustavo cerró.' }, reg()), []);
+});
+
+test('C18 v4: marcas por tramo; solo la última línea de la pieza tiene que tener marca', () => {
+  const rs = [{ id: 'R01', texto: 'uno' }, { id: 'R02', texto: 'dos' }];
+  const r = reg(); const p = plan();
+  const bien = [{ pieza: 'cap_1', texto: 'Párrafo uno.\n\nPárrafo dos. [[R01,R02]]' }];
+  assert.deepEqual(c18(bien, rs, r, p).filter((x) => x.tipo === 'sin_marca'), []);
+  const mal = [{ pieza: 'cap_1', texto: 'Párrafo uno. [[R01,R02]]\n\nY termina sin marca.' }];
+  assert.equal(c18(mal, rs, r, p).filter((x) => x.tipo === 'sin_marca').length, 1);
+});
+
+test('C7 v4: el estribillo de quien narra puede volver en otra pieza', () => {
+  const ps = [{ pieza: 'cap_1', texto: 'En esa casa no se tiraba ni un botón, decía mi madre.' }, { pieza: 'cap_4', texto: 'Y en la mercería, igual: en esa casa no se tiraba ni un botón.' }];
+  assert.ok(c7(ps).length > 0);
+  assert.deepEqual(c7(ps, ['en esa casa no se tiraba ni un botón']), []);
 });

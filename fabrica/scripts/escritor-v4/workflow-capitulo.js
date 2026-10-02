@@ -110,6 +110,8 @@ Guardá ese JSON con Write en ${DIR}/arreglos/disputa-${d.clave}.json y devolvé
 
 // libro con solo estos capítulos; cada uno a su archivo (el k-ésimo capítulo del libro es el k-ésimo de ns)
 const J = `${DIR}/juicio-ciego`
+// v4: lectura final sobre lo arreglado (solo informe; no hay segunda ronda)
+await rol('lectura', '5-lectura', 'salidas/lectura-final.json', { label: 'lectura final', phase: 'Revisión y arreglo' })
 const fin = await codigo([
   `${node('controles.mjs')}" "${DIR}" piezas`,
   LL('libro'),

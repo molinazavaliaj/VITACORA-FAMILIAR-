@@ -55,15 +55,15 @@ export function c1(p, rs) {
   }
   if (/\*\*[^*]+\*\*|^\s*[-*] /m.test(t.replace(/^#.*$/m, ''))) out.push({ control: 'C1', tipo: 'ia', frase: '', que: 'negritas o viñetas dentro de la pieza' });
   if ((t.match(/^#/gm) || []).length > 1) out.push({ control: 'C1', tipo: 'ia', frase: '', que: 'subtítulos dentro de la pieza' });
-  // v4: recursos con medida (Naza). Frase corta sola o cita destacada (">") están bien; se marca a partir del tercero por pieza.
+  // v4: recursos con medida (Naza). Frase corta sola o cita destacada (">") están bien; se marca a partir del cuarto por pieza.
   if (p.pieza !== 'sus_frases') {
     const recursos = [];
     for (const par of parrafos(p.texto)) {
-      if (par.startsWith('>')) { recursos.push({ control: 'C1', tipo: 'ia', frase: par.slice(1, 120).trim(), que: 'demasiados recursos: tercera cita destacada (">") en la pieza; integrala o pasala a raya' }); continue; }
+      if (par.startsWith('>')) { recursos.push({ control: 'C1', tipo: 'ia', frase: par.slice(1, 120).trim(), que: 'demasiados recursos: cuarta cita destacada (">") en la pieza; integrala o pasala a raya' }); continue; }
       const os = oraciones(par);
-      if (p.pieza !== 'carta' && os.length === 1 && !/^—/.test(par) && palabras(par).length < 12) recursos.push({ control: 'C1', tipo: 'ia', frase: par, que: 'demasiados recursos: tercer párrafo de golpe en la pieza; unilo al párrafo de al lado' });
+      if (p.pieza !== 'carta' && os.length === 1 && !/^—/.test(par) && palabras(par).length < 12) recursos.push({ control: 'C1', tipo: 'ia', frase: par, que: 'demasiados recursos: cuarto párrafo de golpe en la pieza; unilo al párrafo de al lado' });
     }
-    if (recursos.length > 2) out.push(...recursos.slice(2));
+    if (recursos.length > 3) out.push(...recursos.slice(3)); // v4 revisado: hasta tres está bien
   }
   return out;
 }
@@ -140,11 +140,13 @@ function c6(p, rs) {
 }
 
 // ---------- C7: 6+ palabras repetidas entre piezas ----------
-function c7(ps) {
+export function c7(ps, estribillos = []) {
   const out = [];
   const visto = new Map();
+  // v4: una frase que quien narra repite como estribillo (voz.frases que está en 2+ respuestas) puede volver en el libro.
+  const quitar = (t) => estribillos.reduce((s, e) => s.split(norm(e)).join(' '), ` ${norm(t)} `);
   for (const p of ps) {
-    const ws = palabras(sinCitas(p.texto).replace(/^#.*$/gm, ''));
+    const ws = palabras(quitar(sinCitas(p.texto).replace(/^#.*$/gm, '')));
     const propias = new Set();
     for (let i = 0; i + 6 <= ws.length; i++) {
       const g = ws.slice(i, i + 6).join(' ');
@@ -459,6 +461,13 @@ export function c18(psCrudas, rs, reg, plan) {
     if (usadas.has(r.id) || fuera.has(r.id)) continue;
     out.push({ pieza: capituloDe(plan, reg, r.id), control: 'C18', tipo: 'falta', frase: '', que: `falta ${r.id}: "${r.texto.slice(0, 160)}…" no aparece en ninguna marca del libro` });
   }
+  // v4: marcas por tramo (no por párrafo); la última línea de la pieza siempre lleva marca, así nada queda sin rastrear.
+  for (const p of psCrudas) {
+    if (p.pieza === 'sus_frases') continue;
+    const pars = p.texto.split(/\n\s*\n/).map((s) => s.trim()).filter((s) => s && !s.startsWith('#'));
+    const ult = pars[pars.length - 1] || '';
+    if (ult && !/\[\[[^\]]*\]\]\s*$/.test(ult)) out.push({ pieza: p.pieza, control: 'C18', tipo: 'sin_marca', frase: ult.slice(0, 120), que: 'la pieza termina sin marca [[R..]]: el último tramo tiene que decir qué respuestas usó' });
+  }
   return out;
 }
 // C19: lo que le habla a la familia está en la carta.
@@ -653,7 +662,8 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
       problemas.push(...deEsta.map((x) => ({ pieza: p.pieza, ...x })));
       if (p.pieza === 'sus_frases') for (const l of p.texto.split('\n').filter((l) => l.startsWith('>'))) if (!enAlgunaRespuesta(l.slice(1), rs)) problemas.push({ pieza: 'sus_frases', control: 'C6', tipo: 'cita', frase: l.slice(1).trim(), que: 'frase de Sus frases que no es textual' });
     }
-    problemas.push(...c7(ps), ...c17(ps));
+    const estribillos = (reg?.voz?.frases || []).map((f) => f.texto || '').filter((t) => palabras(t).length >= 3 && rs.filter((r) => esSubsecuencia(t, r.texto)).length >= 2);
+    problemas.push(...c7(ps, estribillos), ...c17(ps));
   } else if (que === 'arreglo') {
     const probs = leerJSON(path.join(dir, 'arreglos', `problemas-${arg}.json`));
     const nueva = leer(path.join(dir, 'arreglos', `respuesta-${arg}.txt`));

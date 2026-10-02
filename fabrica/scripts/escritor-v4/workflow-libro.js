@@ -111,6 +111,8 @@ if (aArreglar.length) {
   log(rp[0].salida.trim())
   await parallel(json(rp[1]).disputas.map((d) => () => disputa(d)))
 }
+// v4: lectura final sobre lo arreglado (solo informe; no hay segunda ronda)
+await rol('lectura', '5-lectura', 'salidas/lectura-final.json', { label: 'lectura final', phase: 'Repaso y cierre' })
 const fin = await codigo([
   `${node('controles.mjs')}" "${DIR}" piezas`,
   LL('libro'),

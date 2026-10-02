@@ -68,6 +68,10 @@ export function informe(dir) {
   const sf = leerSi(arr('problemas-sus_frases.json'), []);
   if (sf.length) { L.push('', `## Sus frases (no se arreglan: van acá): ${sf.length}`, ''); for (const x of sf) L.push(`- ${x.origen} (${x.tipo}): ${recorte(x.que)} «${recorte(x.frase)}»`); }
 
+  // v4: la lectura final (después del arreglo) no tiene segunda ronda: va acá, para ajustar la receta.
+  const lf = existe(salida(dir, 'lectura-final.json')) ? (leerJSON(salida(dir, 'lectura-final.json')).problemas || []) : null;
+  if (lf) { L.push('', `## Lectura final, sobre el libro arreglado: ${lf.length}`, ''); for (const x of lf) L.push(`- ${x.pieza} (${x.tipo}): «${recorte(x.frase)}» — ${recorte(x.que)}`); }
+
   const tit = leerSi(ctl('titulos.json'), []);
   if (tit.length) { L.push('', `## Títulos que el lector marcó (el título es del plan: se arregla la receta o el plan, no el libro): ${tit.length}`, ''); for (const x of tit) L.push(`- ${x.pieza} (${x.tipo}): «${recorte(x.frase)}» — ${recorte(x.que)}`); }
 
