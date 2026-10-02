@@ -2,7 +2,7 @@
 // Correr: node --test fabrica/scripts/escritor/
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { c1, c10, c12, c13, c20, c20Texto, c23, c24, c26, referencias, pasados } from './controles.mjs';
+import { c1, c10, c12, c13, c28, c20, c20Texto, c23, c24, c26, referencias, pasados } from './controles.mjs';
 import { piezaDeR, planConR, armarCambios, sinMarcas } from './lib.mjs';
 
 const reg = () => ({
@@ -272,4 +272,9 @@ test('C13 v3.2: lo de hoy no va a un capítulo del pasado sin por_que_aca', () =
   assert.ok(!c13(p, r).some((x) => x.includes('es de hoy')));
   const q = plan(); q.capitulos[1].piezas.push({ episodio: 'E09', forma: 'media_linea' }); // el último capítulo sí
   assert.ok(!c13(q, r).some((x) => x.includes('es de hoy')));
+});
+
+test('C28: "hoy" en un capítulo del pasado se marca; en un diálogo con raya, no', () => {
+  const xs = c28({ pieza: 'cap_2', texto: 'Raúl abrió la mercería en el 74. Hoy Marcela tiene la llave.\n\n—Hoy no abrimos, Nélida.' });
+  assert.deepEqual(xs.map((x) => x.frase), ['Hoy Marcela tiene la llave.']);
 });

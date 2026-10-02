@@ -241,6 +241,17 @@ export function pasados(ps, reg) {
   return out;
 }
 
+// C28 (receta v3.2, prueba corta 02/10): el escritor mete "hoy" en un capítulo del pasado ("Hoy con Ariel no tengo la mejor relación").
+const HOY = /(?<!\p{L})(hoy|hoy en dia|actualmente|a dia de hoy|al dia de hoy|en la actualidad)(?!\p{L})/u;
+export function c28(p) {
+  const out = [];
+  for (const par of parrafos(sinCitas(p.texto))) for (const o of oraciones(par)) {
+    if (/^—/.test(o)) continue;
+    if (HOY.test(norm(o))) out.push({ control: 'C28', tipo: 'hoy_en_pasado', frase: o, que: 'lo de hoy en un capítulo del pasado: sale de acá (lo cuenta el último capítulo); solo si es la consecuencia directa del hecho de este capítulo queda, en una oración al final' });
+  }
+  return out;
+}
+
 // ---------- C17: presentaciones dobles ----------
 const REL = 'marido|mujer|esposa|esposo|novia|novio|hermana|hermano|hijo|hija|madre|padre|mama|papa|vieja|viejo|amiga|amigo|tia|tio|abuela|abuelo|nieta|nieto|primo|prima|sobrino|sobrina|perro|perra';
 function c17(ps) {
@@ -637,9 +648,10 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     const arreglado = existe(path.join(dir, 'arreglos')) && fsList(path.join(dir, 'arreglos')).some((f) => f.startsWith('respuesta-'));
     if (arreglado && existe(salida(dir, 'cotejo.json'))) problemas.push(...c24(ps, leerJSON(salida(dir, 'cotejo.json')), plan, reg, crudas, rs));
     const regTxt = JSON.stringify(reg || {});
-    const ultimo = ps.filter((p) => p.pieza.startsWith('cap_')).pop()?.pieza;
+    // El último capítulo es el del plan (en la prueba corta hay un solo capítulo escrito y no es el último).
+    const ultimo = `cap_${plan.capitulos[plan.capitulos.length - 1].n}`;
     for (const p of ps) {
-      const deEsta = [...c1(p, rs), ...c2(p), ...c3(p), ...c4(p, rs, fichaTxt, regTxt), ...c5(p, rs, fichaTxt), ...(p.pieza === 'sus_frases' ? [] : c6(p, rs)), ...c8(p, rs), ...c10(p, rs, reg?.voz?.trato), ...(p.pieza === ultimo ? c15(p) : [])];
+      const deEsta = [...c1(p, rs), ...c2(p), ...c3(p), ...c4(p, rs, fichaTxt, regTxt), ...c5(p, rs, fichaTxt), ...(p.pieza === 'sus_frases' ? [] : c6(p, rs)), ...c8(p, rs), ...c10(p, rs, reg?.voz?.trato), ...(p.pieza === ultimo ? c15(p) : []), ...(p.pieza.startsWith('cap_') && p.pieza !== ultimo ? c28(p) : [])];
       problemas.push(...deEsta.map((x) => ({ pieza: p.pieza, ...x })));
       if (p.pieza === 'sus_frases') for (const l of p.texto.split('\n').filter((l) => l.startsWith('>'))) if (!enAlgunaRespuesta(l.slice(1), rs)) problemas.push({ pieza: 'sus_frases', control: 'C6', tipo: 'cita', frase: l.slice(1).trim(), que: 'frase de Sus frases que no es textual' });
     }
