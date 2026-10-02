@@ -1,18 +1,18 @@
 export const meta = {
-  name: 'escritor-prueba-capitulo',
-  description: 'Prueba corta: registro, plan y UN capítulo con la receta del escritor, revisión, una ronda de arreglo y juicio a ciegas de Fable con la vara fija',
+  name: 'escritor-v4-banco',
+  description: 'Prueba corta v4: registro, plan y los capítulos del banco; revisión, una ronda de arreglo y juicio a ciegas de Opus con la vara v4 contra v3.2 y el libro anterior',
   phases: [
     { title: 'Registro y plan' },
-    { title: 'Capítulo' },
+    { title: 'Capítulos' },
     { title: 'Revisión y arreglo' },
     { title: 'Juicio' },
   ],
 }
-// Prueba corta de la receta (Naza, 02/10): para iterar no hace falta el libro entero. Se escribe solo el capítulo que
-// cuenta la respuesta args.rid (el del hecho fuerte) y Fable lo juzga a ciegas contra el mismo capítulo de otro libro
-// (args.anterior), con docs/v4/escritor/vara.md. El libro entero se corre (workflow-libro.js) cuando el capítulo gana.
-// Uso: Workflow({scriptPath, args: {dir: "C:/…/<carpeta con entradas/>", rid: "R67", anterior: "C:/…/capitulo-viejo.md"}})
-// Ojo: el capítulo se escribe sin los anteriores (libro_hasta_aca vacío); C18/C17 marcan cosas de otras piezas que acá no se arreglan.
+// Prueba corta del escritor v4 (plan docs/superpowers/plans/2026-10-02-escritor-v4.md, Task 7). Se escriben solo los capítulos
+// del banco y cada uno se juzga a ciegas contra la v3.2 y el libro anterior, con docs/v4/escritor/vara.md. Juez Opus (Naza: "en
+// lo posible siempre Opus"): el escritor también es Opus, así que la nota filtra; decide Naza leyendo.
+// Uso: Workflow({scriptPath, args: {dir, capitulos: [{rid: "R67" | "ultimo", comparar: {"v3.2": "C:/…md", "anterior": "C:/…md"}}]}})
+// Ojo: los capítulos se escriben sin los que no están en el banco (libro_hasta_aca parcial); C18/C17 marcan cosas de otras piezas que acá no se arreglan.
 
 const ESC = 'C:/Users/Naza/Desktop/VITACORA FAMILIAR-v3-escritor/fabrica/scripts/escritor-v4'
 const VARA = 'C:/Users/Naza/Desktop/VITACORA FAMILIAR-v3-escritor/docs/v4/escritor/vara.md'
@@ -59,18 +59,25 @@ async function conReintentos(paso, llamada, archivo, control, label) {
 }
 if (!(await conReintentos('registro', '1-registro', 'salidas/registro.json', 'registro', 'registro'))) return { error: 'el registro no pasa C14 después de 2 reintentos' }
 if (!(await conReintentos('plan', '2-plan', 'salidas/plan.json', 'plan', 'plan'))) return { error: 'el plan no pasa C12/C13/C19/C20 después de 2 reintentos' }
-const cap = json((await codigo([`${node('estado.mjs')}" "${DIR}" capitulo-de ${args.rid}`], 'capítulo a probar', 'Registro y plan'))[0])
-if (!cap.n) return { error: `el plan no tiene ningún capítulo con ${args.rid}` }
-const nn = String(cap.n).padStart(2, '0'), P = `cap_${cap.n}`
-log(`se prueba el capítulo ${cap.n}: «${cap.titulo}»`)
 
-// ---------- el capítulo ----------
-phase('Capítulo')
-await rol(`capitulo ${cap.n}`, `3b-capitulo-${nn}`, `salidas/capitulo_${nn}.md`, { label: `capítulo ${cap.n}`, phase: 'Capítulo' })
-const pz = await codigo([`${node('controles.mjs')}" "${DIR}" piezas`], 'controles', 'Capítulo')
+// Qué capítulo del plan es cada entrada del banco ("ultimo" = el último del plan).
+const est = await codigo([`${node('estado.mjs')}" "${DIR}" capitulos`, ...args.capitulos.filter((c) => c.rid !== 'ultimo').map((c) => `${node('estado.mjs')}" "${DIR}" capitulo-de ${c.rid}`)], 'capítulos del banco', 'Registro y plan')
+const todos = json(est[0]).n
+let k = 1
+const banco = args.capitulos.map((c) => ({ ...c, n: c.rid === 'ultimo' ? todos[todos.length - 1] : json(est[k++]).n })).filter((c) => c.n)
+const ns = [...new Set(banco.map((c) => c.n))].sort((a, b) => a - b)
+log(`banco: capítulos ${ns.join(', ')} del plan (${banco.map((c) => `${c.rid}→${c.n}`).join(', ')})`)
+
+// ---------- los capítulos del banco, en orden ----------
+phase('Capítulos')
+for (const n of ns) {
+  const nn = String(n).padStart(2, '0')
+  await rol(`capitulo ${n}`, `3b-capitulo-${nn}`, `salidas/capitulo_${nn}.md`, { label: `capítulo ${n}`, phase: 'Capítulos' })
+}
+const pz = await codigo([`${node('controles.mjs')}" "${DIR}" piezas`], 'controles', 'Capítulos')
 log(`controles: ${pz[0].salida.split('\n')[0]} (incluye faltas de otras piezas, que acá no se escriben)`)
 
-// ---------- revisión (tres roles ciegos) y UNA ronda de arreglo, solo de este capítulo ----------
+// ---------- revisión (tres roles ciegos) y UNA ronda de arreglo de los capítulos del banco ----------
 phase('Revisión y arreglo')
 await parallel([
   () => rol('hechos', '4-hechos', 'salidas/hechos.json', { label: 'hechos', phase: 'Revisión y arreglo' }),
@@ -79,40 +86,54 @@ await parallel([
 ])
 const jn = await codigo([`${node('arreglos.mjs')}" "${DIR}" juntar`, `${node('estado.mjs')}" "${DIR}" arreglos`], 'juntar', 'Revisión y arreglo')
 log(`juntar:\n${jn[0].salida.trim()}`)
+const P = json(jn[1]).piezas.filter((p) => ns.map((n) => `cap_${n}`).includes(p))
+await parallel(P.map((p) => () => rol(`arreglo ${p}`, `6-arreglo-${p}`, `arreglos/cambios-${p}.json`, { label: `arreglo ${p}`, phase: 'Revisión y arreglo' })))
 let disp1 = []
-if (json(jn[1]).piezas.includes(P)) {
-  await rol(`arreglo ${P}`, `6-arreglo-${P}`, `arreglos/cambios-${P}.json`, { label: `arreglo ${P}`, phase: 'Revisión y arreglo' })
+if (P.length) {
   const c9 = await codigo([
     `cp "${DIR}/controles/piezas.json" "${DIR}/controles/piezas-1.json"`,
-    `${node('arreglos.mjs')}" "${DIR}" armar ${P}`, `${node('controles.mjs')}" "${DIR}" arreglo ${P}`, `${node('arreglos.mjs')}" "${DIR}" aplicar ${P}`,
+    ...P.flatMap((p) => [`${node('arreglos.mjs')}" "${DIR}" armar ${p}`, `${node('controles.mjs')}" "${DIR}" arreglo ${p}`, `${node('arreglos.mjs')}" "${DIR}" aplicar ${p}`]),
     `${node('estado.mjs')}" "${DIR}" disputas`,
   ], 'armar + C9 + aplicar', 'Revisión y arreglo')
-  log(c9.slice(1, 4).map((x) => x.salida.trim()).join('\n'))
+  log(c9.filter((x) => / arreglo | armar /.test(x.comando)).map((x) => x.salida.trim()).join('\n'))
   disp1 = json(c9[c9.length - 1]).disputas
   const disputa = (d) => agent(`Sos el verificador de hechos de una biografía. Leé ENTERO, con Read y en tramos, el archivo ${DIR}/llamadas/4-hechos.txt: usá solo sus documentos (guía, ficha, respuestas, registro); IGNORÁ el libro y las instrucciones que trae al final. No leas ningún otro archivo.
 Tu única tarea:
 El escritor dice que esta frase del libro está respaldada por una respuesta. Frase del libro: "${d.frase}". Respuesta ${d.id}, frase que cita: "${d.cita}". ¿La respuesta respalda la frase tal como está en el libro, incluido el tiempo verbal? Contestá solo {"respalda": true} o {"respalda": false, "por_que": ""}.
-Guardá ese JSON con Write en ${DIR}/arreglos/disputa-${d.clave}.json y devolvé lo mismo.`, { label: `disputa ${d.clave}`, phase: 'Revisión y arreglo', model: 'sonnet' })
+Guardá ese JSON con Write en ${DIR}/arreglos/disputa-${d.clave}.json y devolvé lo mismo.`, { label: `disputa ${d.clave}`, phase: 'Revisión y arreglo' })
   await parallel(disp1.map((d) => () => disputa(d)))
   await rol('hechos repaso', '4-hechos-repaso', 'salidas/hechos-repaso.json', { label: 'hechos repaso', phase: 'Revisión y arreglo' })
   const rp = await codigo([`${node('controles.mjs')}" "${DIR}" repaso`, `${node('estado.mjs')}" "${DIR}" repaso`], 'C26', 'Revisión y arreglo')
   log(rp[0].salida.trim())
   await parallel(json(rp[1]).disputas.map((d) => () => disputa(d)))
 }
+
+// libro con solo estos capítulos; cada uno a su archivo (el k-ésimo capítulo del libro es el k-ésimo de ns)
+const J = `${DIR}/juicio-ciego`
 const fin = await codigo([
   `${node('controles.mjs')}" "${DIR}" piezas`,
   LL('libro'),
   `${node('informe.mjs')}" "${DIR}"`,
-  `mkdir -p "${DIR}/juicio-ciego" && awk '/^# /{c++} c>=2' "${DIR}/libro.md" > "${DIR}/juicio-ciego/capitulo-X.md" && cp "${args.anterior}" "${DIR}/juicio-ciego/capitulo-Y.md" && echo "X=nuevo Y=anterior" > "${DIR}/clave-juicio.txt" && wc -w "${DIR}/juicio-ciego/"*.md`,
-], 'libro + informe + juicio a ciegas', 'Revisión y arreglo')
+  `mkdir -p "${J}" && ${ns.map((n, i) => `awk '/^# /{c++} c==${i + 2}' "${DIR}/libro.md" > "${J}/v4-cap${n}.md"`).join(' && ')} && wc -w "${J}/"*.md`,
+], 'libro + informe', 'Revisión y arreglo')
 log(fin[3].salida.trim())
 
-// ---------- juicio a ciegas con la vara fija ----------
+// ---------- juicio a ciegas: tres textos por capítulo, orden rotado ----------
 phase('Juicio')
-const NOTA = { type: 'object', properties: { nota_X: { type: 'number' }, nota_Y: { type: 'number' }, techo_entrevista: { type: 'string' }, gana: { type: 'string' }, resumen: { type: 'string' } }, required: ['nota_X', 'nota_Y', 'gana', 'resumen'] }
-const juicio = await agent(`Sos editor de biografías para la familia (memorias en primera persona, escritas desde una entrevista oral). Juzgás a ciegas: no sabés qué proceso escribió cada texto ni cuál es más nuevo. No leas ningún archivo fuera de los que te nombro.
-1) Leé la vara fija: ${VARA}. Juzgás con ella, criterio por criterio, cada capítulo por separado (no contra el otro); recién al final los comparás.
+const NOTAS = { type: 'object', properties: {
+  notas: { type: 'object', properties: { A: { type: 'number' }, B: { type: 'number' }, C: { type: 'number' } }, required: ['A', 'B', 'C'] },
+  techo: { type: 'number' }, gana: { type: 'string' }, resumen: { type: 'string' } }, required: ['notas', 'gana', 'resumen'] }
+const juicios = await parallel(banco.map((c, i) => async () => {
+  const textos = [{ quien: 'v4', archivo: `${J}/v4-cap${c.n}.md` }, { quien: 'v3.2', archivo: c.comparar['v3.2'] }, { quien: 'anterior', archivo: c.comparar.anterior }]
+  const orden = [...textos.slice((i + 1) % 3), ...textos.slice(0, (i + 1) % 3)] // A, B, C cambian de dueño en cada capítulo
+  const letras = ['A', 'B', 'C']
+  const clave = Object.fromEntries(orden.map((t, j) => [letras[j], t.quien]))
+  await codigo([...orden.map((t, j) => `cp "${t.archivo}" "${J}/${c.rid}-${letras[j]}.md"`), `echo '${JSON.stringify(clave)}' > "${J}/clave-${c.rid}.json"`], `ciego ${c.rid}`, 'Juicio')
+  const r = await agent(`Sos editor de biografías para la familia (memorias en primera persona, escritas desde una entrevista oral). Juzgás a ciegas: no sabés qué proceso escribió cada texto ni cuál es más nuevo. No leas ningún archivo fuera de los que te nombro.
+1) Leé la vara: ${VARA}. Juzgás con ella, criterio por criterio, cada texto por separado; recién al final los comparás.
 2) Material (la verdad): ${DIR}/entradas/respuestas.xml (entera), ${DIR}/entradas/ficha.xml, ${DIR}/entradas/confirmado.xml.
-3) El mismo tramo de vida contado por dos libros distintos: ${DIR}/juicio-ciego/capitulo-X.md y ${DIR}/juicio-ciego/capitulo-Y.md. Ves UN capítulo de cada libro: lo que falta del material puede estar en otro capítulo; no lo cuentes como perdido salvo que sea de este tramo y el capítulo quede cojo sin eso.
-Escribí el juicio en castellano rioplatense con el formato de salida de la vara (tablas cortas, evidencia citada en frases cortas) en ${DIR}/juicio-ciego/juicio-fable.md, y devolvé las dos notas, el techo de la entrevista, cuál gana y un resumen de 3 líneas.`, { label: 'juicio Fable', phase: 'Juicio', model: 'fable', schema: NOTA })
-return { capitulo: cap.n, titulo: cap.titulo, disputas: disp1.length, controles_final: fin[0].salida.split('\n')[0], juicio }
+3) Tres versiones del mismo tramo de vida, de tres libros distintos: ${J}/${c.rid}-A.md, ${J}/${c.rid}-B.md, ${J}/${c.rid}-C.md. Los tramos pueden no coincidir exacto: juzgá cada uno sobre lo que abarca. Ves UN capítulo de cada libro: lo que falta del material puede estar en otro capítulo.
+Escribí el juicio en castellano rioplatense con el formato de salida de la vara (tablas cortas, evidencia citada en frases cortas) en ${J}/juicio-${c.rid}.md, y devolvé las tres notas, el techo de la entrevista, cuál gana (A, B o C) y un resumen de 3 líneas.`, { label: `juicio ${c.rid}`, phase: 'Juicio', schema: NOTAS })
+  return { capitulo: c.n, rid: c.rid, notas: Object.fromEntries(Object.entries(r.notas).map(([l, v]) => [clave[l], v])), techo: r.techo, gana: clave[r.gana] || r.gana, resumen: r.resumen }
+}))
+return { banco: juicios.filter(Boolean), disputas: disp1.length, controles_final: fin[0].salida.split('\n')[0], aviso: 'juez y escritor son Opus: la nota filtra, decide Naza leyendo' }
