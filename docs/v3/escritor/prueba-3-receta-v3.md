@@ -71,3 +71,17 @@ Cambios (Fable redactó, código con 36 tests): plan por época (C13 `por_que_ac
 Techo de la entrevista para ese tramo: 8,5 (el hecho fuerte está en tres líneas sin dónde ni cómo terminó); para el último: 9.
 
 Lo que queda (del juez, para el proceso): el último capítulo tiene columna y cierra en imagen de hoy, pero se le cuelan párrafos barajables y uno que junta seis respuestas; el hecho fuerte de hoy tiene que tener lugar (abrir o cerrar) y el título salir de ahí; saltos de tiempo sin anunciar y listas copiadas del material. Bug arreglado: el arreglo que borraba un párrafo dejaba un hueco.
+
+## Joaquín con la v3.2 (libro entero, 02/10)
+Entrevista V6 corregida (34 respuestas). 6 capítulos, 6.399 palabras; salida fuera de git (`fabrica/prueba-v3-joaquin/escritor-v3-2/`). Juicio a ciegas de Fable con la vara, contra `libro-v6.md`:
+
+| Par | v3.2 | Anterior | Techo de la entrevista |
+|---|---|---|---|
+| Capítulo del hecho más fuerte | **7,5** | 6,5 | 9,5 |
+| Último capítulo | **7,5** | 5,5 | 9,5 |
+
+Lo que el juez pide corregir en el proceso (próxima vuelta, v3.3):
+1. **Orden cronológico dentro del capítulo**: contó los 18 antes que los 17 y la consecuencia antes que la causa.
+2. **Lo de hoy sin la palabra "hoy"**: frases en presente sobre sí mismo ("si tengo hijos…", "lo que me hace feliz es…") entran por tema en un capítulo de época; C28 solo ve "hoy/actualmente".
+3. **Título siempre con una cosa que se vea**: cuando el plan deja el título vacío, el código imprime la etapa ("Los 17 y los 18"); C12 tendría que exigir título.
+4. Último capítulo: no abrir con tesis ("Yo fracasé mucho de chico").
