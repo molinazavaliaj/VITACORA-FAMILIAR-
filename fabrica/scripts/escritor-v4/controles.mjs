@@ -362,7 +362,10 @@ export function c13(plan, reg) {
   for (const [p, cs] of pres) if (cs.length > 1) out.push(`C13: ${p} se presenta en los capítulos ${cs.join(' y ')}`);
   const ult = plan.capitulos[plan.capitulos.length - 1];
   const idsHoy = new Set([...(reg.hoy || []).flatMap((h) => h.ids), ...(reg.episodios || []).filter((e) => e.estado === 'sigue_hoy').flatMap((e) => e.ids)]);
-  if (!(ult?.hilo_de_hoy_ids || []).some((i) => idsHoy.has(i))) out.push('C13: el último capítulo no tiene un hilo de hoy respaldado (hilo_de_hoy_ids sin nada de "hoy" ni episodios sigue_hoy)');
+  // v4 (prueba del banco): el plan puede poner episodios (E..) en hilo_de_hoy_ids: valen sus R.
+  const epsHoy = Object.fromEntries((reg.episodios || []).map((e) => [e.id, e.ids]));
+  const hiloHoy = (ult?.hilo_de_hoy_ids || []).flatMap((i) => (/^E\d+$/.test(i) ? epsHoy[i] || [] : [i]));
+  if (!hiloHoy.some((i) => idsHoy.has(i))) out.push('C13: el último capítulo no tiene un hilo de hoy respaldado (hilo_de_hoy_ids sin nada de "hoy" ni episodios sigue_hoy)');
   // receta v3: el último capítulo tiene columna y cierra en una imagen de hoy.
   const imf = ult?.imagen_final || {};
   const epImf = eps[imf.episodio];
@@ -496,7 +499,10 @@ export function c20(plan, reg) {
   for (const pid of plan.carta?.para_personas || []) {
     const per = (reg.personas || []).find((p) => p.id === pid);
     if (!per) { otros.push(`C19: carta.para_personas tiene ${pid}, que no está en el registro`); continue; }
-    const suyos = [per.id, per.nombre, ...(per.apodos || [])].filter(Boolean).map(norm);
+    // v4 (prueba del banco): "mamá" tiene que encontrar a "su mamá" (relación madre): se comparan también sin "su/mi" y por relación.
+    const PAR = { madre: ['mama', 'vieja'], padre: ['papa', 'viejo'] };
+    const rel = norm(per.relacion || '').split(' ')[0];
+    const suyos = [per.id, per.nombre, ...(per.apodos || []), rel, ...(PAR[rel] || [])].filter(Boolean).map(norm).flatMap((n) => [n, n.replace(/^(su|mi) /, '')]);
     const leHabla = (reg.episodios || []).some((e) => e.a_quien === 'familia' && !e.no_poner && (e.a_quien_nombres || []).some((n) => suyos.includes(norm(n))));
     if (!leHabla && !suyos.some((n) => n.length > 1 && faltan.includes(` ${n} `))) otros.push(`C19: el libro está dedicado a ${per.nombre} y no hay mensaje para ${per.nombre} ni faltante que lo diga`);
   }

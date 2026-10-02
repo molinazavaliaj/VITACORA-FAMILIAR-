@@ -281,3 +281,11 @@ test('C7 v4: el estribillo de quien narra puede volver en otra pieza', () => {
   assert.ok(c7(ps).length > 0);
   assert.deepEqual(c7(ps, ['en esa casa no se tiraba ni un botón']), []);
 });
+
+test('C13/C19 v4: hilo de hoy con episodios; "mamá" encuentra a "su mamá" (madre)', () => {
+  const r = reg(); r.personas.push({ id: 'P04', nombre: 'su mamá', apodos: [], relacion: 'madre', estado: 'sigue_hoy', hechos: [], rasgos_hoy: [] });
+  r.episodios[4].a_quien_nombres = ['Gustavo', 'mamá'];
+  const p = plan(); p.capitulos[1].hilo_de_hoy_ids = ['E03']; p.carta.para_personas = ['P03', 'P04']; p.faltantes = [];
+  assert.ok(!c13(p, r).some((x) => x.includes('hilo de hoy')));
+  assert.ok(!c20(p, r).some((x) => x.includes('su mamá')));
+});
