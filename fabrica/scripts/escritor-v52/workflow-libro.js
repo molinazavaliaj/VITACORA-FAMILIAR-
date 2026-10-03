@@ -12,7 +12,7 @@ export const meta = {
 // Workflow de Claude Code que corre un libro entero con la receta v3 (agentes en la sesión, USD 0 de API).
 // args.puro: el capítulo lo escribe el novelista puro (Paso 3b puro). args.soloHechos: la revisión solo corrige hechos.
 // Uso (desde un chat de Claude Code): Workflow({scriptPath: "fabrica/scripts/escritor/workflow-libro.js", args: {dir: "C:/…/<carpeta con entradas/>"}})
-// El escritor y los roles heredan el modelo de la sesión (Opus); el código lo corre un agente chico; disputas con Sonnet.
+// Todo con Opus (Naza 02/10): escritor, roles, disputas y el que corre comandos (este con effort bajo).
 
 const ESC = 'C:/Users/Naza/Desktop/VITACORA FAMILIAR-v3-escritor/fabrica/scripts/escritor-v52'
 const DIR = args.dir
@@ -25,7 +25,7 @@ const CODIGO = { type: 'object', properties: { salidas: { type: 'array', items: 
 async function codigo(cmds, label, phase) {
   const r = await agent(`Corré en Bash, uno por uno y en este orden, estos comandos (las rutas tienen espacios: van entre comillas tal como están). Un exit distinto de 0 NO es un error tuyo: es el resultado; seguí con el siguiente. No arregles nada, no leas otros archivos, no opines.
 ${cmds.map((c, i) => `${i + 1}. ${c}`).join('\n')}
-Devolvé para cada comando el comando, su código de salida y su stdout+stderr completo (si pasa de 4000 caracteres, los primeros 4000).`, { label, phase, schema: CODIGO, model: 'sonnet', effort: 'low' })
+Devolvé para cada comando el comando, su código de salida y su stdout+stderr completo (si pasa de 4000 caracteres, los primeros 4000).`, { label, phase, schema: CODIGO, effort: 'low' })
   return r.salidas
 }
 const json = (s) => JSON.parse(s.salida.trim().split('\n').filter((l) => l.startsWith('{')).pop())
@@ -123,7 +123,7 @@ const HECHOS_DOCS = `${DIR}/llamadas/4-hechos.txt`
 const disputa = (d) => agent(`Sos el verificador de hechos de una biografía. Leé ENTERO, con Read y en tramos, el archivo ${HECHOS_DOCS}: usá solo sus documentos (guía, ficha, respuestas, registro); IGNORÁ el libro y las instrucciones que trae al final. No leas ningún otro archivo.
 Tu única tarea:
 El escritor dice que esta frase del libro está respaldada por una respuesta. Frase del libro: "${d.frase}". Respuesta ${d.id}, frase que cita: "${d.cita}". ¿La respuesta respalda la frase tal como está en el libro, incluido el tiempo verbal? Contestá solo {"respalda": true} o {"respalda": false, "por_que": ""}.
-Guardá ese JSON con Write en ${DIR}/arreglos/disputa-${d.clave}.json y devolvé lo mismo.`, { label: `disputa ${d.clave}`, phase: 'Arreglo', model: 'sonnet' })
+Guardá ese JSON con Write en ${DIR}/arreglos/disputa-${d.clave}.json y devolvé lo mismo.`, { label: `disputa ${d.clave}`, phase: 'Arreglo' })
 const disp1 = json(c9[c9.length - 1]).disputas
 await parallel(disp1.map((d) => () => disputa(d)))
 
