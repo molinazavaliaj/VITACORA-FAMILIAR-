@@ -69,3 +69,15 @@ Lectura: la revisión completa no fue lo que separaba al novelista (las dos v5 e
 | Último | — | 7 (se lee mejor) | **8** |
 
 **Hallazgo:** lo que hacía bueno al ejercicio no era el pedido sino el material. El ejercicio recibió las respuestas que el capítulo de la v4 ya había juntado, entre ellas tres de OTRAS etapas que arman el arco del hermano (la Navidad en que supo que estaban presos, la detención en la época de Chiara, la última caída). El puro recibió solo las de su etapa: sin eso no puede preparar el golpe y la cárcel queda como "su último problema". Próximo paso: que el plan elija el hilo de cada capítulo y le pase al escritor, además de sus respuestas, las de otras etapas que lo preparan (para recordarlas en una línea, no para volver a contarlas).
+
+## Libro entero v5.1 de Naza (03/10/2026)
+Novelista en todo el libro + armador de historias (2h) + respuestas en el orden del tiempo + fichas de lo escrito + lo que prepara de otras etapas + veedor final + C31 (puntos) + capítulos numerados + Sus frases literales (3e). Plan nuevo con "una historia, un capítulo". 8 capítulos, 7.973 palabras.
+
+| Medida (libro entero) | Novelista puro | v5.1 |
+|---|---|---|
+| Oraciones que arrancan con "Y" | 36 | 0 |
+| Oraciones de menos de 6 palabras | 77 | 7 |
+| C31 (concierto de puntos) | 36 | 0 |
+| Palabras por oración (promedio) | 13,6 | 28,8 (ojo: puede haberse ido al otro extremo) |
+
+Pendiente: la lectura de Naza.
