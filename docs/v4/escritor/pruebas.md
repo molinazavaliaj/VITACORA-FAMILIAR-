@@ -59,3 +59,13 @@ Juicio a ciegas (Opus) del capítulo fuerte:
 | Libro anterior | 6 |
 
 Lectura: la revisión completa no fue lo que separaba al novelista (las dos v5 empatan; son corridas distintas, no el mismo texto antes y después). Lo que sigue separando al ejercicio: recibió solo sus respuestas y el pedido corto, sin plan ni guía. Pendientes que marca el juez: que entre la frase central del tramo; no mover un motivo de una persona a otra; no poner al narrador entre comillas dentro de su propia voz; pasarle al juez el índice del libro.
+
+## Libro entero "novelista puro" (03/10/2026)
+`Paso 3b puro` (pedido corto del ejercicio, sin guía ni plan) + revisión solo de hechos; mismo registro y plan. Naza: 7 capítulos, 7.342 palabras; Joaquín: 6 capítulos, 7.251 palabras. Juicio a ciegas (Opus):
+
+| Capítulo de Naza | Ejercicio | Puro (libro) | v5 (libro) |
+|---|---|---|---|
+| Hecho fuerte | **7,5** (se lee mejor) | 5,5 | 7 |
+| Último | — | 7 (se lee mejor) | **8** |
+
+**Hallazgo:** lo que hacía bueno al ejercicio no era el pedido sino el material. El ejercicio recibió las respuestas que el capítulo de la v4 ya había juntado, entre ellas tres de OTRAS etapas que arman el arco del hermano (la Navidad en que supo que estaban presos, la detención en la época de Chiara, la última caída). El puro recibió solo las de su etapa: sin eso no puede preparar el golpe y la cárcel queda como "su último problema". Próximo paso: que el plan elija el hilo de cada capítulo y le pase al escritor, además de sus respuestas, las de otras etapas que lo preparan (para recordarlas en una línea, no para volver a contarlas).
