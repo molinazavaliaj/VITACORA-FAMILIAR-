@@ -10,6 +10,7 @@ export const meta = {
   ],
 }
 // Workflow de Claude Code que corre un libro entero con la receta v3 (agentes en la sesión, USD 0 de API).
+// args.puro: el capítulo lo escribe el novelista puro (Paso 3b puro). args.soloHechos: la revisión solo corrige hechos.
 // Uso (desde un chat de Claude Code): Workflow({scriptPath: "fabrica/scripts/escritor/workflow-libro.js", args: {dir: "C:/…/<carpeta con entradas/>"}})
 // El escritor y los roles heredan el modelo de la sesión (Opus); el código lo corre un agente chico; disputas con Sonnet.
 
@@ -66,12 +67,12 @@ phase('Escritura')
 await rol('primera', '3a-primera', 'salidas/primera_pagina.md', { label: 'primera página', phase: 'Escritura' })
 for (const n of caps.n) {
   const nn = String(n).padStart(2, '0')
-  await rol(`capitulo ${n}`, `3b-capitulo-${nn}`, `salidas/capitulo_${nn}.md`, { label: `capítulo ${n}`, phase: 'Escritura' })
+  await rol(`capitulo ${n}`, `3b-capitulo-${nn}`, `salidas/capitulo_${nn}.md`, { label: `capítulo ${n}`, phase: 'Escritura', env: args.puro ? 'PURO=1' : '' })
   // v5, C30: separa lo que dejó afuera y lo manda a su destino; si dejó más de un tercio, se reescribe una vez.
   let [af] = await codigo([`${node('afuera.mjs')}" "${DIR}" ${n}`], `afuera ${n}`, 'Escritura')
   log(af.salida.trim())
   if (af.exit === 3) {
-    await rol(`capitulo ${n}`, `3b-capitulo-${nn}`, `salidas/capitulo_${nn}.md`, { label: `capítulo ${n} (de nuevo)`, phase: 'Escritura', env: `ERROR="${DIR}/controles/afuera-cap_${n}.json"` })
+    await rol(`capitulo ${n}`, `3b-capitulo-${nn}`, `salidas/capitulo_${nn}.md`, { label: `capítulo ${n} (de nuevo)`, phase: 'Escritura', env: `${args.puro ? 'PURO=1 ' : ''}ERROR="${DIR}/controles/afuera-cap_${n}.json"` })
     ;[af] = await codigo([`${node('afuera.mjs')}" "${DIR}" ${n}`], `afuera ${n} (2)`, 'Escritura')
     log(af.salida.trim())
   }

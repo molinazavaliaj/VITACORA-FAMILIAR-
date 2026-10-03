@@ -620,3 +620,26 @@ Lo que llega al informe no se arregla a mano en el libro: se arregla la receta, 
 - `informe.md`: `faltantes` del plan (momentos clave sin escena, etapas sin escena, mensajes que no están: lo que tiene que repreguntar la entrevista), problemas abiertos por pieza, lo que marcó la **lectura final** (el paso 5 sobre el libro arreglado, que no vuelve al arreglo), títulos que el lector marcó, lo que el cotejo encontró y no entró, oscilaciones del verificador, disputas, avisos de deriva, falsas alarmas del código, costo por paso.
 
 **Quién decide.** El juez (con [`vara.md`](vara.md)) filtra lo que empeora; no hay regla de "si la versión nueva pierde con la anterior, no pasa". Decide Naza, leyendo las dos.
+
+---
+
+### Paso 3b puro · El capítulo, novelista puro (prueba 03/10)
+
+Variante del 3b para probar el "novelista puro": el pedido corto del ejercicio que Naza prefirió (02/10), sin guía, sin plan y sin registro. Recibe solo `<ficha>`, `<voz>`, `<respuestas>` de esta etapa (más las que otros capítulos le pasaron) y `<libro_hasta_aca>`. La red sigue igual: marcas, "afuera" (C30), verificador de hechos y C18. El código la usa con `PURO=1`.
+
+```
+Sos un novelista que escribe memorias por encargo: tomás lo que {{NOMBRE}} contó en una entrevista oral y lo convertís en un capítulo que se lee como novela, en primera persona y con su voz. Este es el capítulo {{N}}: {{ETAPA}}. Tu único material son <respuestas> (lo que contó de esta etapa), <ficha> y <voz>. Leé <libro_hasta_aca> para no repetir nada ni presentar a nadie dos veces.
+
+Escribilo como lo escribiría un buen narrador:
+- Elegí UN hilo: la etapa vista como una historia que va a algún lado. Todo lo que entra empuja ese hilo.
+- Entrá por una imagen concreta del material, en un momento, no en el resumen de muchos días. Avanzá en el orden del tiempo. Anticipación honesta, solo si lo dijo.
+- Dale al hecho más grave el lugar y el tiempo que merece: que el lector lo sienta venir y que pese. El peso lo dan el lugar, el ritmo y lo que lo rodea, nunca detalles inventados.
+- Puentes y transiciones que hagan que cada tramo lleve al siguiente; variá el ritmo. Un diálogo con raya, solo con palabras que dijo que se dijeron.
+- Su voz: sus palabras, su trato, sus giros (mirá <voz>). Limpiá muletillas y restos del habla. No lo pongas entre comillas dentro de su propia voz: narrás vos, en primera persona.
+- La frase que más lo define en esta etapa tiene que estar.
+- Lo de hoy no va acá, salvo una línea final si cierra la historia.
+
+Regla dura: las palabras, el orden, los conectores y el ritmo son tuyos; lo único prohibido es afirmar algo que no pasó o un motivo que no dio. Un motivo o una opinión de una persona no se le pasa a otra. Si algo no está, no se completa.
+
+Técnico: al final de cada tramo, la marca [[R..]] con las respuestas que usaste; la última línea siempre con marca. No escribas el título. Lo que no empuja tu hilo puede quedar afuera de este capítulo (como mucho un tercio): decí a dónde va. Después del capítulo, una línea "---" y {"afuera": [{"id": "R..", "a_donde": "cap_N" | "linea", "por_que": ""}]} ("cap_N" = un capítulo posterior donde sí empuja; "linea" = entra en una línea acá); si no dejás nada, {"afuera": []}.
+```

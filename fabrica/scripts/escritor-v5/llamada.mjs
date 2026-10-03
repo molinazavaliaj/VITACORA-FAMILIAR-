@@ -71,10 +71,21 @@ switch (paso) {
     break;
   }
   case 'capitulo': {
-    const { docs, instr } = llamadaEscritura(`cap_${Number(arg)}`);
+    const n = Number(arg);
+    let { docs, instr } = llamadaEscritura(`cap_${n}`);
+    if (process.env.PURO) {
+      // Novelista puro (prueba 03/10): sin guía, sin plan, sin registro; solo ficha, voz, sus respuestas y lo ya escrito.
+      const cap = plan().capitulos.find((c) => c.n === n);
+      const ids = idsDeCapitulo(dir, n);
+      const antes = piezas(dir).filter((p) => p.pieza === 'primera_pagina' || (p.pieza.startsWith('cap_') && Number(p.pieza.slice(4)) < n));
+      const a = cap?.anios || {};
+      const etapa = `${cap?.etapa || ''}${a.desde ? ` (${a.desde}–${a.hasta || 'hoy'})` : ''}`;
+      docs = [tag('ficha', ficha(dir)), tag('voz', voz()), tag('respuestas', respuestasXML(respuestas(dir).filter((r) => ids.has(r.id)))), tag('libro_hasta_aca', libroComo(antes))];
+      instr = promptsDe('### Paso 3b puro')[0].replaceAll('{{N}}', String(n)).replaceAll('{{ETAPA}}', etapa).replaceAll('{{NOMBRE}}', nombreDePila(dir));
+    }
     // v5, C30: si la versión anterior dejó afuera más de un tercio, se reescribe con el aviso.
     const aviso = process.env.ERROR ? `\n\nTu versión anterior de este capítulo dejó afuera más de un tercio de sus respuestas. Escribilo de nuevo: como mucho un tercio afuera; lo que no empuja el hilo entra en una línea donde corresponde.\n${leer(process.env.ERROR)}` : '';
-    guardar(`3b-capitulo-${String(Number(arg)).padStart(2, '0')}`, docs, instr + aviso);
+    guardar(`3b-capitulo-${String(n).padStart(2, '0')}`, docs, instr + aviso);
     break;
   }
   case 'antes': {
