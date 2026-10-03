@@ -26,3 +26,23 @@ Lo que marcan los jueces de la v5.2 (para la próxima vuelta):
 - Ningún "no" de la entrevista quedó en los tres capítulos (el novelista no usó `no_entra`: los "no" estaban dentro de respuestas mixtas).
 
 Decisión (pedido de Naza: "si gana, libro entero"): gana en 2 de 3 y en el promedio → libro entero de Naza con la v5.2.
+
+## Libro entero v5.2 de Naza (03/10/2026)
+`workflow-libro.js` v5.2 (`puro`, `soloHechos`), todo con Opus; plan de la prueba de 3 capítulos. 8 capítulos, 7.270 palabras, sin marcas impresas, títulos con números romanos. PDF enviado a Naza: falta su lectura.
+
+| Medida (libro entero) | Puro | v5.1 | v5.2 |
+|---|---|---|---|
+| Palabras por oración | 13,5 | 29,0 | 23,4 |
+| Oraciones de 10 a 30 palabras | 62 % | 45 % | 75 % |
+| Más de 40 palabras | 4 | 63 | 8 |
+| Menos de 6 palabras | 79 | 7 | 5 |
+| Arrancan con "Y" | 36 | 0 | 0 |
+| "No" de la entrevista (C32) | 3 | 0 | 0 |
+
+Lo que quedó abierto (controles finales, una sola ronda de arreglo):
+- **La primera página repite el capítulo I** (32 avisos de C7: los hermanos, el motor del auto a la madrugada, la guerra de almohadas) y algo del VIII (la casa de Berga y el estudio). El plan le pasó a la primera página respuestas que también son de capítulos.
+- Una frase suya ("que te pase varias veces es peor…") está en el IV y en el VI.
+- 8 oraciones de más de 40 palabras (primera página, III, VII, VIII y Antes de cerrar).
+- El VII no marca lo que prepara su golpe (C33, el secuestro y la deuda con Ivo, que están en el VI).
+- Lo de hoy en capítulos del pasado (C28: II, III, VI) y la lista de invitados a la cena (R62) que no entró.
+- Los 6 "falta" restantes de C18 son respuestas que enteras son un "no" ("No tengo foto", "Paso esta", "No, está todo"): bien afuera. El novelista no usó `no_entra`; C18 debería aceptarlas solas (pendiente).
