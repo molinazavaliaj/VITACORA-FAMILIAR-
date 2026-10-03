@@ -50,6 +50,58 @@ function llamadaEscritura(pieza) {
   return { docs, instr: instr.replaceAll('{{NOMBRE}}', nombreDePila(dir)) };
 }
 
+// ---------- v5.1, novelista puro en todo el libro (Naza 03/10) ----------
+const aR = (ids) => { const eps = Object.fromEntries((registro().episodios || []).map((e) => [e.id, e.ids])); return [...new Set((ids || []).flatMap((i) => (/^E\d+$/.test(i) ? eps[i] || [] : [i])).filter((i) => /^R\d+$/.test(i)))]; };
+/** Respuestas en el orden del tiempo (el del plan, que es cronológico) y con su "cuándo" del registro. */
+function respuestasEnElTiempo(ids) {
+  const reg = registro(), p = plan(), orden = new Map(), cuando = new Map();
+  const ep = Object.fromEntries((reg.episodios || []).map((e) => [e.id, e]));
+  // "cuándo": primero el del registro (el de un episodio que lo tenga); si ninguno lo tiene, la etapa del capítulo donde aparece.
+  for (const e of reg.episodios || []) if (e.cuando) for (const r of e.ids) if (!cuando.has(r)) cuando.set(r, e.cuando);
+  for (const c of p.capitulos) for (const pz of c.piezas || []) for (const r of ep[pz.episodio]?.ids || []) if (!orden.has(r)) { orden.set(r, orden.size); if (!cuando.has(r)) cuando.set(r, c.etapa || ''); }
+  const rs = respuestas(dir).filter((r) => ids.has(r.id)).sort((a, b) => (orden.get(a.id) ?? 1e9) - (orden.get(b.id) ?? 1e9) || Number(a.id.slice(1)) - Number(b.id.slice(1)));
+  return rs.map((r) => `<respuesta id="${r.id}" cuando="${(cuando.get(r.id) || '').replace(/"/g, "'")}">\n<pregunta>${r.pregunta}</pregunta>\n<texto>${r.texto}</texto>\n</respuesta>`).join('\n\n');
+}
+/** Fichas cortas de lo ya escrito (salidas/resumenes/<pieza>.md), en orden. */
+function resumenHastaAca(antesDe) {
+  const ps = piezas(dir).filter((x) => x.pieza !== 'sus_frases' && antesDe(x.pieza));
+  return ps.map((x) => { const f = salida(dir, path.join('resumenes', `${x.pieza}.md`)); return existe(f) ? `=== ${x.pieza} ===\n${leer(f).trim()}` : ''; }).filter(Boolean).join('\n\n') || '(todavía nada)';
+}
+const idsDePieza = (pieza) => {
+  const p = plan();
+  if (pieza === 'primera_pagina') return new Set(aR([...(p.primera_pagina?.que_dice_de_si_ids || []), ...(p.primera_pagina?.cosa_concreta?.ids || [])]));
+  if (pieza === 'carta') return new Set(aR(p.carta?.ids));
+  if (pieza === 'antes_de_cerrar') return new Set(aR(p.antes_de_cerrar?.ids));
+  return idsDeCapitulo(dir, Number(pieza.slice(4)));
+};
+function llamadaPura(pieza) {
+  const p = plan(), nombre = nombreDePila(dir);
+  const docs = [tag('ficha', ficha(dir)), tag('voz', voz()), tag('respuestas', respuestasEnElTiempo(idsDePieza(pieza)))];
+  if (pieza === 'primera_pagina') return { docs, instr: promptsDe('### Paso 3a puro')[0].replaceAll('{{NOMBRE}}', nombre) };
+  if (pieza === 'carta' || pieza === 'antes_de_cerrar') {
+    docs.push(tag('resumen_hasta_aca', resumenHastaAca((x) => !['carta', 'antes_de_cerrar'].includes(x))));
+    return { docs, instr: promptsDe(pieza === 'carta' ? '### Paso 3c puro' : '### Paso 3d puro')[0].replaceAll('{{NOMBRE}}', nombre) };
+  }
+  const n = Number(pieza.slice(4)), cap = p.capitulos.find((c) => c.n === n), a = cap?.anios || {};
+  const propias = idsDePieza(pieza);
+  // Lo que prepara la historia de este capítulo, de OTRAS etapas (plan.preparacion e imagen): se recuerda, no se vuelve a contar.
+  const prep = new Set(aR([...(cap?.preparacion || []), ...(cap?.imagen?.ids || []), cap?.imagen?.episodio].filter(Boolean)).filter((i) => !propias.has(i)));
+  docs.push(tag('para_preparar', prep.size ? respuestasEnElTiempo(prep) : '(nada)'));
+  docs.push(tag('resumen_hasta_aca', resumenHastaAca((x) => x === 'primera_pagina' || (x.startsWith('cap_') && Number(x.slice(4)) < n))));
+  const etapa = `${cap?.etapa || ''}${a.desde ? ` (${a.desde}–${a.hasta || 'hoy'})` : ''}`;
+  // v5.1: el mapa del armador (paso 2h), si ya está.
+  const hist = salida(dir, path.join('historias', `cap_${n}.md`));
+  if (existe(hist)) docs.push(tag('historias', leer(hist)));
+  if (process.env.ARMADOR) {
+    // Paso 2h: el armador recibe lo mismo que el escritor (sin voz ni ficha) más los episodios del registro de este capítulo.
+    const eps = (registro().episodios || []).filter((e) => e.ids.some((i) => propias.has(i) || prep.has(i))).map(({ id, que, cuando, tipo, es_escena, momento_clave, detalles, ids }) => ({ id, que, cuando, tipo, es_escena, momento_clave, detalles, ids }));
+    const d = docs.filter((x) => /^<(respuestas|para_preparar|resumen_hasta_aca)>/.test(x));
+    d.push(tag('episodios', JSON.stringify(eps, null, 1)));
+    return { docs: d, instr: promptsDe('### Paso 2h')[0].replaceAll('{{N}}', String(n)).replaceAll('{{ETAPA}}', etapa) };
+  }
+  return { docs, instr: promptsDe('### Paso 3b puro')[0].replaceAll('{{N}}', String(n)).replaceAll('{{ETAPA}}', etapa).replaceAll('{{NOMBRE}}', nombre) };
+}
+
 function guardar(nombre, docs, instr) {
   const p = path.join(dir, 'llamadas', `${nombre}.txt`);
   // Las líneas largas se parten (en un espacio) para que el lector de archivos no las corte.
@@ -66,23 +118,15 @@ switch (paso) {
     guardar('2-plan', [...base('plan'), tag('registro', JSON.stringify(registro(), null, 1))], conError(promptsDe('### Paso 2 ·')[0] + esquemaDe('### Paso 2 ·')));
     break;
   case 'primera': {
-    const { docs, instr } = llamadaEscritura('primera_pagina');
+    const { docs, instr } = process.env.PURO ? llamadaPura('primera_pagina') : llamadaEscritura('primera_pagina');
     guardar('3a-primera', docs, instr);
     break;
   }
   case 'capitulo': {
     const n = Number(arg);
     let { docs, instr } = llamadaEscritura(`cap_${n}`);
-    if (process.env.PURO) {
-      // Novelista puro (prueba 03/10): sin guía, sin plan, sin registro; solo ficha, voz, sus respuestas y lo ya escrito.
-      const cap = plan().capitulos.find((c) => c.n === n);
-      const ids = idsDeCapitulo(dir, n);
-      const antes = piezas(dir).filter((p) => p.pieza === 'primera_pagina' || (p.pieza.startsWith('cap_') && Number(p.pieza.slice(4)) < n));
-      const a = cap?.anios || {};
-      const etapa = `${cap?.etapa || ''}${a.desde ? ` (${a.desde}–${a.hasta || 'hoy'})` : ''}`;
-      docs = [tag('ficha', ficha(dir)), tag('voz', voz()), tag('respuestas', respuestasXML(respuestas(dir).filter((r) => ids.has(r.id)))), tag('libro_hasta_aca', libroComo(antes))];
-      instr = promptsDe('### Paso 3b puro')[0].replaceAll('{{N}}', String(n)).replaceAll('{{ETAPA}}', etapa).replaceAll('{{NOMBRE}}', nombreDePila(dir));
-    }
+    // Novelista puro (v5.1): ficha, voz, sus respuestas en el orden del tiempo, lo que prepara su historia y fichas de lo ya escrito.
+    if (process.env.PURO) ({ docs, instr } = llamadaPura(`cap_${n}`));
     // v5, C30: si la versión anterior dejó afuera más de un tercio, se reescribe con el aviso.
     const aviso = process.env.ERROR ? `\n\nTu versión anterior de este capítulo dejó afuera más de un tercio de sus respuestas. Escribilo de nuevo: como mucho un tercio afuera; lo que no empuja el hilo entra en una línea donde corresponde.\n${leer(process.env.ERROR)}` : '';
     guardar(`3b-capitulo-${String(n).padStart(2, '0')}`, docs, instr + aviso);
@@ -90,19 +134,51 @@ switch (paso) {
   }
   case 'antes': {
     if (!(plan().antes_de_cerrar?.ids || []).length) { console.log('el plan no tiene antes_de_cerrar: no hay pieza'); break; }
-    const { docs, instr } = llamadaEscritura('antes_de_cerrar');
+    const { docs, instr } = process.env.PURO ? llamadaPura('antes_de_cerrar') : llamadaEscritura('antes_de_cerrar');
     guardar('3d-antes-de-cerrar', docs, instr);
     break;
   }
   case 'carta': {
-    const { docs, instr } = llamadaEscritura('carta');
+    const { docs, instr } = process.env.PURO ? llamadaPura('carta') : llamadaEscritura('carta');
     guardar('3c-carta', docs, instr);
     break;
   }
+  case 'sus_frases_llamada': {
+    // v5.1: Sus frases las elige un paso propio, literales (Naza: "las frases de él, no lo que escribe el escritor").
+    guardar('3e-sus-frases', [tag('voz', voz()), tag('respuestas', respuestasXML(respuestas(dir)))], promptsDe('### Paso 3e puro')[0]);
+    break;
+  }
   case 'sus_frases': {
+    // v5.1: si hay salidas/sus_frases.json (paso 3e), solo las frases, sin texto del escritor alrededor.
+    if (existe(salida(dir, 'sus_frases.json'))) {
+      const fr = leerJSON(salida(dir, 'sus_frases.json')).frases || [];
+      escribir(salida(dir, 'sus_frases.md'), fr.map((f) => `> ${String(f.texto).trim()}`).join('\n\n') + '\n');
+      console.log(`sus_frases.md: ${fr.length} frases (literales, del paso 3e)`);
+      break;
+    }
     const sf = plan().sus_frases || [];
     escribir(salida(dir, 'sus_frases.md'), sf.map((f) => `> ${f.texto}\n\n${f.contexto}`).join('\n\n') + '\n');
     console.log(`sus_frases.md: ${sf.length} frases`);
+    break;
+  }
+  case 'armador': {
+    // v5.1, Paso 2h: el armador ordena las historias del capítulo N antes de escribirlo (salidas/historias/cap_N.md).
+    process.env.ARMADOR = '1';
+    const { docs, instr } = llamadaPura(`cap_${Number(arg)}`);
+    guardar(`2h-armador-${String(Number(arg)).padStart(2, '0')}`, docs, instr);
+    break;
+  }
+  case 'resumen': {
+    // v5.1, Paso 3r: ficha corta de una pieza recién escrita, para que las siguientes no repitan (salidas/resumenes/<pieza>.md).
+    const x = piezas(dir).find((q) => q.pieza === arg);
+    if (!x) throw new Error(`no existe la pieza ${arg}`);
+    guardar(`3r-resumen-${arg}`, [tag('pieza', sinMarcas(x.texto))], promptsDe('### Paso 3r')[0]);
+    break;
+  }
+  case 'veedor': {
+    // v5.1, Paso 5c: el veedor final lee el libro entero de corrido (sin marcas) y marca lo que hay que corregir.
+    const ps = piezas(dir).filter((q) => q.pieza !== 'sus_frases').map((q) => ({ ...q, texto: sinMarcas(q.texto) }));
+    guardar('5c-veedor', [tag('libro', libroComo(ps))], promptsDe('### Paso 5c')[0]);
     break;
   }
   case 'hechos': {
@@ -134,6 +210,13 @@ switch (paso) {
   }
   case 'arreglo': {
     const pieza = arg; // primera_pagina | cap_N | antes_de_cerrar | carta
+    if (process.env.PURO) {
+      // v5.1: el arreglo también con el oficio del novelista (pedido corto), no con la instrucción larga.
+      const probs = leerJSON(path.join(dir, 'arreglos', `problemas-${pieza}.json`));
+      const actual = piezas(dir).find((p) => p.pieza === pieza);
+      guardar(`6-arreglo-${pieza}`, [tag('ficha', ficha(dir)), tag('voz', voz()), tag('respuestas', respuestasEnElTiempo(idsDePieza(pieza))), tag('pieza_actual', actual ? actual.texto : ''), tag('problemas', JSON.stringify(probs, null, 1))], promptsDe('### Paso 6 puro')[0]);
+      break;
+    }
     const { docs, instr } = llamadaEscritura(pieza);
     const probs = leerJSON(path.join(dir, 'arreglos', `problemas-${pieza}.json`));
     const evitar = existe(path.join(dir, 'arreglos', `evitar-${pieza}.txt`)) ? [tag('evitar', leer(path.join(dir, 'arreglos', `evitar-${pieza}.txt`)))] : [];
@@ -156,7 +239,9 @@ switch (paso) {
         // receta v3.2: el título es el del plan y lo imprime el código (en la prueba 3.1 el arreglo lo cambió por otro).
         const cap = p.capitulos.find((c) => c.n === Number(x.pieza.slice(4)));
         const cuerpo = limpio(x.texto.trim()).replace(/^(#[^\n]*\n+)+/, '');
-        partes.push(cap ? `# ${tituloImpreso(cap)}\n\n${cuerpo}` : limpio(x.texto.trim()));
+        // v5.1 (Naza 03/10): los capítulos van numerados (I, II, III…); el título lo pone el cliente en el dashboard si quiere.
+        const romano = (k) => [['M', 1000], ['CM', 900], ['D', 500], ['CD', 400], ['C', 100], ['XC', 90], ['L', 50], ['XL', 40], ['X', 10], ['IX', 9], ['V', 5], ['IV', 4], ['I', 1]].reduce((s, [l, v]) => { while (k >= v) { s += l; k -= v; } return s; }, '');
+        partes.push(cap ? `# ${process.env.TITULOS ? tituloImpreso(cap) : romano(cap.n)}\n\n${cuerpo}` : limpio(x.texto.trim()));
       } else partes.push(limpio(x.texto.trim()));
     }
     escribir(path.join(dir, 'libro.md'), partes.join('\n\n') + '\n');

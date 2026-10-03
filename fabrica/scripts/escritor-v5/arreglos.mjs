@@ -14,9 +14,11 @@ if (que === 'juntar') {
   const sumar = (p, x) => porPieza.set(p, [...(porPieza.get(p) || []), x]);
   const cod = existe(path.join(dir, 'controles', 'piezas.json')) ? leerJSON(path.join(dir, 'controles', 'piezas.json')) : [];
   // v5, revisión solo de hechos (SOLO_HECHOS=1): del código entran solo hechos y que todo entre; no entran el lector ni el cotejo (no se toca el relato).
-  const SOLO = !!process.env.SOLO_HECHOS, DE_HECHOS = ['C2', 'C4', 'C5', 'C6', 'C18', 'C19', 'C23'];
+  const SOLO = !!process.env.SOLO_HECHOS, DE_HECHOS = ['C2', 'C4', 'C5', 'C6', 'C18', 'C19', 'C23', 'C31'];
   for (const c of cod) if (!SOLO || DE_HECHOS.includes(c.control)) sumar(c.pieza, { origen: `código ${c.control}`, tipo: c.tipo, frase: c.frase, que: c.que });
   if (existe(salida(dir, 'hechos.json'))) for (const h of leerJSON(salida(dir, 'hechos.json')).problemas) sumar(h.pieza, { origen: 'verificador', tipo: h.tipo, frase: h.frase, que: h.material, ids: h.ids, correccion: h.correccion });
+  // v5.1: el veedor final (paso 5c) siempre entra al arreglo.
+  if (existe(salida(dir, 'veedor.json'))) for (const v of leerJSON(salida(dir, 'veedor.json')).problemas || []) sumar(v.pieza, { origen: 'veedor', tipo: v.tipo, frase: v.frase, que: v.que });
   if (!SOLO && existe(salida(dir, 'lectura.json'))) {
     // receta v3.2: el título es del plan; lo que el lector diga de un título no va al arreglo, va al informe.
     const lectura = leerJSON(salida(dir, 'lectura.json')).problemas;

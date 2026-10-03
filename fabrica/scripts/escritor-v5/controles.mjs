@@ -274,6 +274,23 @@ export function c29(p, reg) {
   return out;
 }
 
+// C31 (v5.1, Naza 03/10: "concierto de puntos"): oraciones que arrancan con "Y" y tiras de 3+ oraciones cortas seguidas → arreglo (conectar).
+export function c31(p) {
+  const out = [];
+  for (const par of parrafos(sinCitas(p.texto))) {
+    if (/^—/.test(par)) continue;
+    const os = oraciones(par);
+    for (const o of os) if (/^Y\s/.test(o)) out.push({ control: 'C31', tipo: 'puntos', frase: o, que: 'oración que arranca con "Y": conectala con la anterior (o reescribí el tramo para que fluya)' });
+    let tira = [];
+    for (const o of [...os, '']) {
+      if (o && palabras(o).length < 7) { tira.push(o); continue; }
+      if (tira.length >= 3) out.push({ control: 'C31', tipo: 'puntos', frase: tira.join(' '), que: 'tres o más oraciones cortas seguidas: es un concierto de puntos; contalo como un fluir, con conectores' });
+      tira = [];
+    }
+  }
+  return out.slice(0, 12);
+}
+
 // ---------- C17: presentaciones dobles ----------
 const REL = 'marido|mujer|esposa|esposo|novia|novio|hermana|hermano|hijo|hija|madre|padre|mama|papa|vieja|viejo|amiga|amigo|tia|tio|abuela|abuelo|nieta|nieto|primo|prima|sobrino|sobrina|perro|perra';
 function c17(ps) {
@@ -668,7 +685,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     // El último capítulo es el del plan (en la prueba corta hay un solo capítulo escrito y no es el último).
     const ultimo = `cap_${plan.capitulos[plan.capitulos.length - 1].n}`;
     for (const p of ps) {
-      const deEsta = [...c1(p, rs), ...c2(p), ...c3(p), ...c4(p, rs, fichaTxt, regTxt), ...c5(p, rs, fichaTxt), ...(p.pieza === 'sus_frases' ? [] : c6(p, rs)), ...c8(p, rs), ...c10(p, rs, reg?.voz?.trato), ...(p.pieza === ultimo ? c15(p) : []), ...(p.pieza.startsWith('cap_') && p.pieza !== ultimo ? c28(p) : []), ...(p.pieza !== 'sus_frases' ? c29(p, reg) : [])];
+      const deEsta = [...c1(p, rs), ...c2(p), ...c3(p), ...c4(p, rs, fichaTxt, regTxt), ...c5(p, rs, fichaTxt), ...(p.pieza === 'sus_frases' ? [] : c6(p, rs)), ...c8(p, rs), ...c10(p, rs, reg?.voz?.trato), ...(p.pieza === ultimo ? c15(p) : []), ...(p.pieza.startsWith('cap_') && p.pieza !== ultimo ? c28(p) : []), ...(p.pieza !== 'sus_frases' ? c29(p, reg) : []), ...(p.pieza !== 'sus_frases' ? c31(p) : [])];
       problemas.push(...deEsta.map((x) => ({ pieza: p.pieza, ...x })));
       if (p.pieza === 'sus_frases') for (const l of p.texto.split('\n').filter((l) => l.startsWith('>'))) if (!enAlgunaRespuesta(l.slice(1), rs)) problemas.push({ pieza: 'sus_frases', control: 'C6', tipo: 'cita', frase: l.slice(1).trim(), que: 'frase de Sus frases que no es textual' });
     }

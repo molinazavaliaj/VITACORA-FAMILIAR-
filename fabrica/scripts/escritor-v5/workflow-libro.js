@@ -64,9 +64,14 @@ log(`plan: ${caps.n.length} capítulos${caps.antes ? ' + Antes de cerrar' : ''}`
 
 // ---------- 3: escritura, en orden ----------
 phase('Escritura')
-await rol('primera', '3a-primera', 'salidas/primera_pagina.md', { label: 'primera página', phase: 'Escritura' })
+// v5.1: en puro, después de cada pieza, una ficha corta (paso 3r) para que las siguientes no repitan.
+const ficha = (pieza) => args.puro ? rol(`resumen ${pieza}`, `3r-resumen-${pieza}`, `salidas/resumenes/${pieza}.md`, { label: `ficha ${pieza}`, phase: 'Escritura' }) : null
+await rol('primera', '3a-primera', 'salidas/primera_pagina.md', { label: 'primera página', phase: 'Escritura', env: args.puro ? 'PURO=1' : '' })
+await ficha('primera_pagina')
 for (const n of caps.n) {
   const nn = String(n).padStart(2, '0')
+  // v5.1: el armador (paso 2h) ordena las historias del capítulo antes de escribirlo
+  if (args.puro) await rol(`armador ${n}`, `2h-armador-${nn}`, `salidas/historias/cap_${n}.md`, { label: `armador ${n}`, phase: 'Escritura', env: 'PURO=1' })
   await rol(`capitulo ${n}`, `3b-capitulo-${nn}`, `salidas/capitulo_${nn}.md`, { label: `capítulo ${n}`, phase: 'Escritura', env: args.puro ? 'PURO=1' : '' })
   // v5, C30: separa lo que dejó afuera y lo manda a su destino; si dejó más de un tercio, se reescribe una vez.
   let [af] = await codigo([`${node('afuera.mjs')}" "${DIR}" ${n}`], `afuera ${n}`, 'Escritura')
@@ -76,9 +81,12 @@ for (const n of caps.n) {
     ;[af] = await codigo([`${node('afuera.mjs')}" "${DIR}" ${n}`], `afuera ${n} (2)`, 'Escritura')
     log(af.salida.trim())
   }
+  await ficha(`cap_${n}`)
 }
-if (caps.antes) await rol('antes', '3d-antes-de-cerrar', 'salidas/antes_de_cerrar.md', { label: 'antes de cerrar', phase: 'Escritura' })
-await rol('carta', '3c-carta', 'salidas/carta.md', { label: 'carta', phase: 'Escritura' })
+if (caps.antes) await rol('antes', '3d-antes-de-cerrar', 'salidas/antes_de_cerrar.md', { label: 'antes de cerrar', phase: 'Escritura', env: args.puro ? 'PURO=1' : '' })
+await rol('carta', '3c-carta', 'salidas/carta.md', { label: 'carta', phase: 'Escritura', env: args.puro ? 'PURO=1' : '' })
+// v5.1: en puro, Sus frases las elige un paso propio (3e), literales.
+if (args.puro) await rol('sus_frases_llamada', '3e-sus-frases', 'salidas/sus_frases.json', { label: 'sus frases', phase: 'Escritura' })
 const pz = await codigo([LL('sus_frases'), `${node('controles.mjs')}" "${DIR}" piezas`], 'sus frases + controles', 'Escritura')
 log(`controles de piezas: ${pz[1].salida.split('\n')[0]}`)
 
@@ -89,6 +97,8 @@ const SOLO = !!args.soloHechos
 await codigo([`mkdir -p "${DIR}/sin-revision" && cp "${DIR}/salidas/"*.md "${DIR}/sin-revision/"`], 'guardar sin revisión', 'Revisión')
 await parallel([
   () => rol('hechos', '4-hechos', 'salidas/hechos.json', { label: 'hechos', phase: 'Revisión' }),
+  // v5.1: el veedor final lee el libro entero de corrido (paso 5c)
+  ...(args.puro ? [() => rol('veedor', '5c-veedor', 'salidas/veedor.json', { label: 'veedor final', phase: 'Revisión' })] : []),
   ...(SOLO ? [] : [
     () => rol('lectura', '5-lectura', 'salidas/lectura.json', { label: 'lectura', phase: 'Revisión' }),
     () => rol('cotejo', '5b-cotejo', 'salidas/cotejo.json', { label: 'cotejo', phase: 'Revisión' }),
@@ -100,7 +110,7 @@ phase('Arreglo')
 const jn = await codigo([`${node('arreglos.mjs').replace('node ', SOLO ? 'SOLO_HECHOS=1 node ' : 'node ')}" "${DIR}" juntar`, `${node('estado.mjs')}" "${DIR}" arreglos`], 'juntar', 'Arreglo')
 log(`juntar:\n${jn[0].salida.trim()}`)
 const aArreglar = json(jn[1]).piezas
-await parallel(aArreglar.map((p) => () => rol(`arreglo ${p}`, `6-arreglo-${p}`, `arreglos/cambios-${p}.json`, { label: `arreglo ${p}`, phase: 'Arreglo' })))
+await parallel(aArreglar.map((p) => () => rol(`arreglo ${p}`, `6-arreglo-${p}`, `arreglos/cambios-${p}.json`, { label: `arreglo ${p}`, phase: 'Arreglo', env: args.puro ? 'PURO=1' : '' })))
 // receta v3.1: el código arma la pieza con los cambios (armar), C9 contra la pieza vieja, después se aplica (en serie: el código compara con salidas/)
 const c9 = await codigo([
   `cp "${DIR}/controles/piezas.json" "${DIR}/controles/piezas-1.json"`,

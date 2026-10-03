@@ -2,7 +2,7 @@
 // Correr: node --test fabrica/scripts/escritor/
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { c1, c7, c10, c12, c13, c18, c28, c29, c20, c20Texto, c23, c24, c26, referencias, pasados } from './controles.mjs';
+import { c1, c7, c10, c12, c13, c18, c28, c29, c31, c20, c20Texto, c23, c24, c26, referencias, pasados } from './controles.mjs';
 import { piezaDeR, planConR, armarCambios, sinMarcas } from './lib.mjs';
 
 const reg = () => ({
@@ -305,4 +305,11 @@ test('v5: separarAfuera y destinosAfuera (lo de afuera va a un capítulo posteri
   assert.deepEqual(destinosAfuera(afuera, 2), { pendientes: { cap_4: ['R31'] }, alArreglo: ['R40'] });
   assert.deepEqual(destinosAfuera([{ id: 'R50', a_donde: 'cap_1' }], 2), { pendientes: {}, alArreglo: ['R50'] }); // un capítulo ya escrito: al arreglo
   assert.deepEqual(separarAfuera('Sin JSON. [[R01]]').afuera, []);
+});
+
+test('C31 (v5.1): arranques con "Y" y tiras de oraciones cortas', () => {
+  const xs = c31({ pieza: 'cap_1', texto: 'Abrimos la mercería en el 78 con la plata del Renault. Y la gente venía. Sumé. No daba. Me fui. Después vino la Negra a la siesta, como siempre.\n\n—Y bueno, Nélida.' });
+  assert.equal(xs.filter((x) => x.que.includes('"Y"')).length, 1);
+  assert.equal(xs.filter((x) => x.que.includes('cortas')).length, 1);
+  assert.deepEqual(c31({ pieza: 'cap_1', texto: 'Abrimos en el 78, y aunque los primeros años no daba, Raúl decía que había que esperar.' }), []);
 });
