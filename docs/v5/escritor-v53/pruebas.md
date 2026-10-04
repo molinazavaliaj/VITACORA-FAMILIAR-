@@ -51,3 +51,17 @@ Decisión (pedido de Naza: "si gana, libro entero"): libro entero con la v5.3.1.
 | Cambios del corrector (2 pasadas) | — | 148 aplicados, 11 frenados por la baranda |
 
 Abierto: C33 en cuatro capítulos (lo que prepara el golpe es de otro capítulo y no quedó marcado como recuerdo); cuatro personas nombradas una vez en la entrevista que no entraron (C21); 4 oraciones de más de 40 palabras. Los casos que marcó Naza no quedan en el cuerpo del libro (uno sigue en "Sus frases", que es literal a propósito).
+
+## Libro entero v5.3.1 de Joaquín, con su entrevista nueva (04–05/10/2026)
+Primera prueba con otro narrador (para ver si la v5.3.1 quedó ajustada solo a Naza). Entrevista V3 nueva con el cazador: 110 respuestas, unas 20.000 palabras (la vieja tenía 34). Ficha y "confirmado" de la prueba anterior. Registro y plan nuevos; todo con Opus. 9 capítulos, 11.665 palabras. PDF enviado: falta la lectura de Joaquín.
+
+| Medida | Joaquín puro (viejo) | Joaquín v5.3.1 | Naza v5.3.1 |
+|---|---|---|---|
+| Palabras por oración | 13,2 | 22,4 | 21,3 |
+| De 10 a 30 palabras | 57 % | 76 % | 76 % |
+| Menos de 6 / arrancan con "Y" | 93 / 39 | 11 / 1 | 11 / 0 |
+| "No" de la entrevista (C32) | 1 | 0 | 0 |
+| Correcciones de estilo | — | 194 (9 frenadas) | 148 (11 frenadas) |
+
+- Lo que pidió el narrador en "confirmado" se respeta (una persona que no va en el libro no aparece).
+- Abierto: una misma persona presentada en varios capítulos (C17, 6 avisos); 9 oraciones de más de 40 palabras; C33 en un capítulo; 22 de los 24 "falta" de C18 son respuestas que enteras son un "no" (bien afuera; C18 tendría que aceptarlas solo) y 2 son datos chicos.
