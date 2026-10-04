@@ -6,6 +6,7 @@
 // transcripción. Puro: no lee nada de afuera.
 
 import type { Boton, PreguntaEntrevista, ValeBoton } from './banco-md.js';
+import { IDIOMA_POR_DEFECTO, type Idioma } from './idioma.js';
 
 /**
  * Qué dijo. Desde la ronda 2 de simulaciones (Naza, 30/09) hay dos formas de
@@ -97,9 +98,23 @@ function esCorte(w: string | undefined): boolean {
  */
 const PASO_CON_TILDE = 'pasó';
 
-/** Las palabras en minúscula, sin tildes (salvo "pasó") y con las letras estiradas achicadas ("Nooo" → "no"); cada signo deja un CORTE. */
-function fichas(texto: string): string[] {
-  const crudas = texto.toLowerCase().normalize('NFC').match(/[\p{L}\p{M}\p{N}]+|[^\p{L}\p{M}\p{N}\s]+/gu) ?? [];
+/**
+ * Una palabra catalana con apóstrofo, guion o punto volado adentro
+ * ("me'n", "parlar-ne", "col·legi") es una sola ficha: si no, "no me'n
+ * recordo" quedaba cortada en "me" | "n" (Naza, 04/10, entrevista en catalán).
+ */
+const PALABRA_CATALANA = /[\p{L}\p{M}\p{N}]+(?:['’·-][\p{L}\p{M}\p{N}]+)*|[^\p{L}\p{M}\p{N}\s]+/gu;
+const PALABRA = /[\p{L}\p{M}\p{N}]+|[^\p{L}\p{M}\p{N}\s]+/gu;
+
+/**
+ * Las palabras en minúscula, sin tildes (salvo "pasó") y con las letras
+ * estiradas achicadas ("Nooo" → "no"); cada signo deja un CORTE. Con
+ * `unirApostrofos` (catalán), el apóstrofo curvo pasa a recto y el punto
+ * volado se borra ("col·legi" → "collegi").
+ */
+function fichas(texto: string, unirApostrofos = false): string[] {
+  const t = texto.toLowerCase().normalize('NFC');
+  const crudas = (unirApostrofos ? t.match(PALABRA_CATALANA)?.map((c) => c.replace(/’/g, "'").replace(/·/g, '')) : t.match(PALABRA)) ?? [];
   const out: string[] = [];
   for (const c of crudas) {
     const esPalabra = /^[\p{L}\p{M}\p{N}]/u.test(c);
@@ -122,11 +137,11 @@ const MULETILLAS = new Set(['eh', 'em', 'm', 'mm', 'este', 'bueno', 'mira', 'mir
 const MULETILLAS_DOBLES = [['a', 'ver'], ['o', 'sea']];
 
 /** Las fichas sin las muletillas (ni los signos) del principio. */
-function sinMuletillas(f: string[]): string[] {
+function sinMuletillas(f: string[], fr: Frases): string[] {
   let i = 0;
   for (;;) {
-    if (esCorte(f[i]) || MULETILLAS.has(f[i])) { i++; continue; }
-    if (MULETILLAS_DOBLES.some(([a, b]) => f[i] === a && f[i + 1] === b)) { i += 2; continue; }
+    if (esCorte(f[i]) || fr.muletillas.has(f[i])) { i++; continue; }
+    if (fr.muletillasDobles.some(([a, b]) => f[i] === a && f[i + 1] === b)) { i += 2; continue; }
     return f.slice(i);
   }
 }
@@ -180,11 +195,11 @@ const FRASES_PASO_COMPLETAS = frases([
 const ANTES_DE_FRASE = frases(['de eso', 'eso', 'esa', 'ahi', 'mejor']);
 
 /** Los lugares donde puede empezar la frase: el principio y después de cada cosa admitida adelante. */
-function comienzos(f: readonly string[]): number[] {
+function comienzos(f: readonly string[], fr: Frases): number[] {
   const out = [0];
   let i = 0;
   for (;;) {
-    const antes = ANTES_DE_FRASE.find((a) => hayFraseEn(f, i, a));
+    const antes = fr.antesDeFrase.find((a) => hayFraseEn(f, i, a));
     if (!antes) return out;
     i += antes.length;
     if (esCorte(f[i])) i++;
@@ -193,28 +208,28 @@ function comienzos(f: readonly string[]): number[] {
 }
 
 /** "Otra, dijo mi mamá…", "Me lo guardo, dijo mi papá…": la frase es de otro, está contando (revisión de la ronda 2). */
-function sigueDijo(f: readonly string[], k: number): boolean {
+function sigueDijo(f: readonly string[], k: number, fr: Frases): boolean {
   const j = esCorte(f[k]) ? k + 1 : k;
-  return f[j] === 'dijo' || f[j] === 'decia' || (f[j] === 'me' && (f[j + 1] === 'dijo' || f[j + 1] === 'decia'));
+  return fr.dijo.some((d) => hayFraseEn(f, j, d));
 }
 
-function esPasoDicho(f: string[], pal: string[]): boolean {
-  if (f[0] === 'paso' && !DESPUES_DE_PASO.has(f[1])) return true; // f[1] puede ser un signo: "Paso. A mí…" es paso
+function esPasoDicho(f: string[], pal: string[], fr: Frases): boolean {
+  if (fr.paso.has(f[0]) && !fr.despuesDePaso.has(f[1])) return true; // f[1] puede ser un signo: "Paso. A mí…" es paso
   if (pal.length > PALABRAS_PASO) return false;
-  if (pal.at(-1) === 'paso') return true;
-  return comienzos(f).some(
+  if (fr.paso.has(pal[pal.length - 1])) return true;
+  return comienzos(f, fr).some(
     (i) =>
-      FRASES_PASO_COMPLETAS.some((frase) => hayFraseEn(f, i, frase) && !sigueDijo(f, i + frase.length)) ||
-      FRASES_PASO_SOLAS.some((frase) => hayFraseEn(f, i, frase) && (f[i + frase.length] === undefined || esCorte(f[i + frase.length])) && !sigueDijo(f, i + frase.length)),
+      fr.pasoCompletas.some((frase) => hayFraseEn(f, i, frase) && !sigueDijo(f, i + frase.length, fr)) ||
+      fr.pasoSolas.some((frase) => hayFraseEn(f, i, frase) && (f[i + frase.length] === undefined || esCorte(f[i + frase.length])) && !sigueDijo(f, i + frase.length, fr)),
   );
 }
 
 /** "Ya te lo conté" corto (regla 18). */
 const FRASES_YA_CONTO = ['ya te lo conte', 'ya te conte', 'ya lo conte', 'ya te lo dije'];
 
-function esYaConto(pal: string[]): boolean {
+function esYaConto(pal: string[], fr: Frases): boolean {
   const t = ` ${pal.join(' ')} `;
-  return pal.length <= PALABRAS_NO_CORTO && FRASES_YA_CONTO.some((x) => t.includes(` ${x} `));
+  return pal.length <= PALABRAS_NO_CORTO && fr.yaConto.some((x) => t.includes(` ${x} `));
 }
 
 /**
@@ -238,19 +253,19 @@ const CONTRASTES = new Set(['pero', 'aunque']);
 
 /** ¿Arranca con una frase de olvido? ("No, no me acuerdo" también; "no sé si/por/cómo…" no). */
 /** Dónde termina la frase de olvido con la que arranca (índice en las fichas), o -1. */
-function finDelArranqueDeOlvido(f: string[]): number {
+function finDelArranqueDeOlvido(f: string[], fr: Frases): number {
   // "No, no me acuerdo" también arranca con "no me acuerdo": el primer "no," es el mismo olvido dicho dos veces.
   const desde = f[0] === 'no' && esCorte(f[1]) ? [0, 2] : [0];
   for (const i of desde) {
-    const a = ARRANQUES_OLVIDO.find((x) => hayFraseEn(f, i, x) && !(x.join(' ') === 'no se' && DESPUES_DE_NO_SE.has(f[i + 2])));
+    const a = fr.arranquesOlvido.find((x) => hayFraseEn(f, i, x) && !(fr.noSe.includes(x.join(' ')) && fr.despuesDeNoSe.has(f[i + x.length])));
     if (a) return i + a.length;
   }
   return -1;
 }
 
 /** ¿Arranca con una frase de olvido? ("No, no me acuerdo" también; "no sé si/por/cómo…" no). */
-function arrancaConOlvido(f: string[]): boolean {
-  return finDelArranqueDeOlvido(f) >= 0;
+function arrancaConOlvido(f: string[], fr: Frases): boolean {
+  return finDelArranqueDeOlvido(f, fr) >= 0;
 }
 
 /**
@@ -265,24 +280,25 @@ const SIN_CONTENIDO = new Set(
 const PEDACITO = 3;
 
 /** Las palabras con contenido de la pregunta, completas y sin tildes. */
-function palabrasDeLaPregunta(texto: string): Set<string> {
-  return new Set(fichas(texto).filter((w) => !esCorte(w) && !SIN_CONTENIDO.has(w)));
+function palabrasDeLaPregunta(texto: string, fr: Frases): Set<string> {
+  return new Set(fichas(texto, fr.unirApostrofos).filter((w) => !esCorte(w) && !fr.sinContenido.has(w)));
 }
 
-function esOlvido(f: string[], pal: string[], pregunta?: PreguntaParaInterpretar): boolean {
-  if (pal.length > PALABRAS_OLVIDO || pal.some((w) => CONTRASTES.has(w))) return false;
-  const fin = finDelArranqueDeOlvido(f);
+function esOlvido(f: string[], pal: string[], fr: Frases, pregunta?: PreguntaParaInterpretar): boolean {
+  if (pal.length > PALABRAS_OLVIDO || pal.some((w) => fr.contrastes.has(w))) return false;
+  const fin = finDelArranqueDeOlvido(f, fr);
   if (fin >= 0) {
     const despues = f.slice(fin).filter((w) => !esCorte(w));
     if (!pregunta?.texto) return despues.length <= DESPUES_DEL_OLVIDO;
     // Prueba de Naza (30/09): lo que repite la pregunta no es un pedacito ("No recuerdo, la verdad, algún maestro o maestra que me haya
     // marcado en la primaria"). Revisión: palabras completas y solo las que tienen contenido.
-    const deLaPregunta = palabrasDeLaPregunta(pregunta.texto);
-    return despues.filter((w) => !SIN_CONTENIDO.has(w) && !deLaPregunta.has(w)).length <= PEDACITO;
+    const deLaPregunta = palabrasDeLaPregunta(pregunta.texto, fr);
+    return despues.filter((w) => !fr.sinContenido.has(w) && !deLaPregunta.has(w)).length <= PEDACITO;
   }
   const todo = ` ${pal.join(' ')} `;
-  if (` ${pal.slice(0, PRIMERAS_OLVIDO).join(' ')} `.includes(` ${SE_ME_BORRO} `)) return true;
-  return MEMORIA.some((m) => todo.includes(` ${m} `)) && FALLA.some((x) => todo.includes(` ${x} `));
+  const primeras = ` ${pal.slice(0, PRIMERAS_OLVIDO).join(' ')} `;
+  if (fr.seMeBorro.some((x) => primeras.includes(` ${x} `))) return true;
+  return fr.memoria.some((m) => todo.includes(` ${m} `)) && fr.falla.some((x) => todo.includes(` ${x} `));
 }
 
 /**
@@ -290,8 +306,8 @@ function esOlvido(f: string[], pal: string[], pregunta?: PreguntaParaInterpretar
  * pero no es olvido (más de 20 palabras o con "pero/aunque"): "No me acuerdo
  * bien, pero sé que había un patio…". Contó algo; lleva M28.4.
  */
-function esOlvidoAMedias(f: string[], pal: string[], pregunta?: PreguntaParaInterpretar): boolean {
-  return arrancaConOlvido(f) && !esOlvido(f, pal, pregunta);
+function esOlvidoAMedias(f: string[], pal: string[], fr: Frases, pregunta?: PreguntaParaInterpretar): boolean {
+  return arrancaConOlvido(f, fr) && !esOlvido(f, pal, fr, pregunta);
 }
 
 /**
@@ -304,17 +320,17 @@ function esOlvidoAMedias(f: string[], pal: string[], pregunta?: PreguntaParaInte
  */
 const VERBOS_DE_NEGARSE = new Set(['hablemos', 'hablar', 'hablo', 'contar', 'contarlo', 'contarte', 'entrar', 'meterme']);
 
-function esNoAhondar(f: string[]): boolean {
-  return comienzos(f).some(
+function esNoAhondar(f: string[], fr: Frases): boolean {
+  return comienzos(f, fr).some(
     (i) =>
-      FRASES_PASO_COMPLETAS.some((frase) => hayFraseEn(f, i, frase) && !sigueDijo(f, i + frase.length)) ||
-      FRASES_PASO_SOLAS.some((frase) => {
+      fr.pasoCompletas.some((frase) => hayFraseEn(f, i, frase) && !sigueDijo(f, i + frase.length, fr)) ||
+      fr.pasoSolas.some((frase) => {
         if (!hayFraseEn(f, i, frase)) return false;
         const j = i + frase.length;
         // Revisión de la ronda 2: la frase sola se niega solo con un signo fuerte ("Esa no." sí, "Esa no, la otra casa…" no).
-        const cierra = (k: number) => f[k] === undefined || f[k] === PUNTO || (f[k] === 'de' && f[k + 1] === 'eso');
+        const cierra = (k: number) => f[k] === undefined || f[k] === PUNTO || fr.deEso.some((d) => hayFraseEn(f, k, d));
         // "Mejor no hablemos." o "prefiero no hablar de eso": se niega. "Prefiero no hablar mal de él…": cuenta.
-        return cierra(j) || (VERBOS_DE_NEGARSE.has(f[j]) && cierra(j + 1));
+        return cierra(j) || (fr.verbosDeNegarse.has(f[j]) && cierra(j + 1));
       }),
   );
 }
@@ -337,9 +353,9 @@ const HI0 = 'HI0';
 const CRIAR = /^cri(e|o|amos|aron|aste|ar|ado|ada|ados|adas|aba|abamos|aban)$/;
 const COMO_HIJO = ['como un hijo', 'como mi hijo', 'como una hija', 'como mi hija'];
 
-function crioAAlguien(pal: string[]): boolean {
+function crioAAlguien(pal: string[], fr: Frases): boolean {
   const t = ` ${pal.join(' ')} `;
-  return pal.some((w) => w === 'propios' || w === 'propias' || CRIAR.test(w)) || COMO_HIJO.some((x) => t.includes(` ${x} `));
+  return pal.some((w) => fr.propios.has(w) || fr.criar.some((c) => c.test(w))) || fr.comoHijo.some((x) => t.includes(` ${x} `));
 }
 
 /**
@@ -361,30 +377,35 @@ const PALABRAS_FORMULA_LO_QUE = 12;
 /** Señales de que agrega algo: con cualquiera, en un cierre o LE9 no es "no" ("Nada más, que me acordé de algo: mi tío…"). */
 const SENIALES_DE_AGREGAR = ['agregar', 'sumar', 'me acorde', 'me acuerdo de', 'quiero contar', 'ah y'];
 
-function agregaAlgo(pal: string[]): boolean {
+function agregaAlgo(pal: string[], fr: Frases): boolean {
   const t = ` ${pal.join(' ')} `;
-  return SENIALES_DE_AGREGAR.some((x) => t.includes(` ${x} `));
+  return fr.senialesDeAgregar.some((x) => t.includes(` ${x} `));
+}
+
+/** "lo que…" ("Es todo lo que tengo para contar"); en catalán, "el que…". */
+function sigueLoQue(f: readonly string[], k: number, fr: Frases): boolean {
+  return fr.loQue.some((x) => hayFraseEn(f, k, x));
 }
 
 /** Después de la fórmula: un signo, el final, "por ahora" o "lo que…" ("Es todo lo que tengo para contar"). */
-function cierraFormula(f: readonly string[], k: number): boolean {
-  return f[k] === undefined || esCorte(f[k]) || (f[k] === 'por' && f[k + 1] === 'ahora') || (f[k] === 'lo' && f[k + 1] === 'que');
+function cierraFormula(f: readonly string[], k: number, fr: Frases): boolean {
+  return f[k] === undefined || esCorte(f[k]) || fr.porAhora.some((x) => hayFraseEn(f, k, x)) || sigueLoQue(f, k, fr);
 }
 
-function esFormulaDeCierre(p: PreguntaParaInterpretar, f: string[], pal: string[]): boolean {
+function esFormulaDeCierre(p: PreguntaParaInterpretar, f: string[], pal: string[], fr: Frases): boolean {
   if (p.clase !== 'cierre' && p.id !== LE9) return false;
   // El tope de 40 no corre si arranca con "no" ("No, creo que está todo. Las historias que tengo son esas…").
-  if ((pal[0] !== 'no' && pal.length > topeNoCorto(p)) || pal.slice(0, PRIMERAS_CONTRASTE).some((w) => CONTRASTES.has(w))) return false;
+  if ((pal[0] !== 'no' && pal.length > topeNoCorto(p)) || pal.slice(0, PRIMERAS_CONTRASTE).some((w) => fr.contrastes.has(w))) return false;
   let palabras = 0;
   for (let i = 0; i < f.length && palabras < PRIMERAS_FORMULA; i++) {
     if (esCorte(f[i])) continue;
-    const x = FORMULAS_DE_CIERRE.find((fr) => hayFraseEn(f, i, fr) && cierraFormula(f, i + fr.length));
+    const x = fr.formulasDeCierre.find((fo) => hayFraseEn(f, i, fo) && cierraFormula(f, i + fo.length, fr));
     if (x) {
       if (pal[0] === 'no') return true;
       const k = i + x.length;
       const despues = f.slice(k).filter((w) => !esCorte(w)).length;
       // "Ya está, mi hermano se fue a vivir a Rosario…" sigue contando; "Ya está, eso es todo lo que me acuerdo." no (vale la segunda fórmula).
-      const cierraCorto = f[k] === 'lo' && f[k + 1] === 'que' ? pal.length <= PALABRAS_FORMULA_LO_QUE : despues <= DESPUES_DE_FORMULA;
+      const cierraCorto = sigueLoQue(f, k, fr) ? pal.length <= PALABRAS_FORMULA_LO_QUE : despues <= DESPUES_DE_FORMULA;
       if (cierraCorto) return true;
     }
     palabras++;
@@ -392,11 +413,11 @@ function esFormulaDeCierre(p: PreguntaParaInterpretar, f: string[], pal: string[
   return false;
 }
 
-function esNoDicho(p: PreguntaParaInterpretar, f: string[], pal: string[]): boolean {
+function esNoDicho(p: PreguntaParaInterpretar, f: string[], pal: string[], fr: Frases): boolean {
   // En un cierre o LE9, si agrega algo no es "no", aunque empiece con "no" o con la fórmula (segunda revisión de la ronda 2).
-  if ((p.clase === 'cierre' || p.id === LE9) && agregaAlgo(pal)) return false;
-  if (esNoCortoDicho(p, f, pal)) return true;
-  return esFormulaDeCierre(p, f, pal);
+  if ((p.clase === 'cierre' || p.id === LE9) && agregaAlgo(pal, fr)) return false;
+  if (esNoCortoDicho(p, f, pal, fr)) return true;
+  return esFormulaDeCierre(p, f, pal, fr);
 }
 
 /**
@@ -429,26 +450,227 @@ const PRIMERAS_FINAL = 10;
 
 const hayFraseEnPalabras = (pal: readonly string[], frase: readonly string[]) => pal.some((_, i) => hayFraseEn(pal, i, frase));
 
-function interpretarAMH(p: PreguntaParaInterpretar, f: string[], pal: string[]): Interpretacion {
+function interpretarAMH(p: PreguntaParaInterpretar, f: string[], pal: string[], fr: Frases): Interpretacion {
   if (pal[0] === 'si') return 'conto';
-  if (HOY_NO_HAY_NADIE.some((x) => hayFraseEnPalabras(pal.slice(0, PRIMERAS_NADIE), x))) return 'no';
-  if (HOY_HAY_ALGUIEN.some((x) => hayFraseEnPalabras(pal, x))) return 'conto';
+  if (fr.hoyNoHayNadie.some((x) => hayFraseEnPalabras(pal.slice(0, PRIMERAS_NADIE), x))) return 'no';
+  if (fr.hoyHayAlguien.some((x) => hayFraseEnPalabras(pal, x))) return 'conto';
   const primeras = pal.slice(0, PRIMERAS_FINAL);
-  if (FINALES.some((x) => hayFraseEnPalabras(primeras, x))) return 'no';
-  if (pal.join(' ') === 'ya no') return 'no';
-  if (esNoCortoDicho(p, f, pal)) return 'no';
+  if (fr.finales.some((x) => hayFraseEnPalabras(primeras, x))) return 'no';
+  if (fr.yaNo.includes(pal.join(' '))) return 'no';
+  if (esNoCortoDicho(p, f, pal, fr)) return 'no';
   return 'conto';
 }
 
-function esNoCortoDicho(p: PreguntaParaInterpretar, f: string[], pal: string[]): boolean {
-  if (!ARRANQUES_NO.has(pal[0]) || pal.length > topeNoCorto(p)) return false;
-  if (ARRANQUES_QUE_CUENTAN.some((a) => hayFraseEn(f, 0, a))) return false;
+function esNoCortoDicho(p: PreguntaParaInterpretar, f: string[], pal: string[], fr: Frases): boolean {
+  if (!fr.arranquesNo.has(pal[0]) || pal.length > topeNoCorto(p)) return false;
+  if (fr.arranquesQueCuentan.some((a) => hayFraseEn(f, 0, a))) return false;
   // "Nada más lindo que esos veranos…" cuenta algo; "Nada más." o "Nada más, gracias." no.
-  if (f[0] === 'nada' && f[1] === 'mas' && f[2] !== undefined && !esCorte(f[2])) return false;
-  if (p.id === HI0 && crioAAlguien(pal)) return false;
+  if (fr.nadaMas.some((x) => hayFraseEn(f, 0, x) && f[x.length] !== undefined && !esCorte(f[x.length]))) return false;
+  if (p.id === HI0 && crioAAlguien(pal, fr)) return false;
   // En los cierres "pero" no lo da vuelta: "No, pero ya está todo" sigue siendo que no.
-  return p.clase === 'cierre' || !pal.slice(0, PRIMERAS_CONTRASTE).some((w) => CONTRASTES.has(w));
+  return p.clase === 'cierre' || !pal.slice(0, PRIMERAS_CONTRASTE).some((w) => fr.contrastes.has(w));
 }
+
+// ---------------------------------------------------------------- frases por idioma
+
+/**
+ * Las frases que busca el detector, por idioma (Naza, 04/10: la entrevista en
+ * catalán). Las reglas (topes, "pero", signos) son las mismas en todos; acá
+ * solo cambian las palabras. Todo en minúscula y sin tildes, como lo deja
+ * `fichas`.
+ */
+export type Frases = {
+  /** Catalán: "me'n", "parlar-ne" y "col·legi" son una sola palabra. */
+  unirApostrofos: boolean;
+  muletillas: ReadonlySet<string>;
+  muletillasDobles: readonly string[][];
+  /** "Paso" (y en catalán, "passo"). */
+  paso: ReadonlySet<string>;
+  despuesDePaso: ReadonlySet<string>;
+  pasoSolas: readonly string[][];
+  pasoCompletas: readonly string[][];
+  antesDeFrase: readonly string[][];
+  /** "dijo / decía / me dijo": la frase es de otro. */
+  dijo: readonly string[][];
+  yaConto: readonly string[];
+  arranquesOlvido: readonly string[][];
+  /** Los arranques de olvido que no valen si siguen con "si / por / cómo…" ("no sé"). */
+  noSe: readonly string[];
+  despuesDeNoSe: ReadonlySet<string>;
+  seMeBorro: readonly string[];
+  memoria: readonly string[];
+  falla: readonly string[];
+  contrastes: ReadonlySet<string>;
+  sinContenido: ReadonlySet<string>;
+  verbosDeNegarse: ReadonlySet<string>;
+  /** "de eso" después de una frase de negarse ("prefiero no hablar de eso"). */
+  deEso: readonly string[][];
+  arranquesNo: ReadonlySet<string>;
+  arranquesQueCuentan: readonly string[][];
+  /** "Nada más": solo es "no" si cierra la frase. */
+  nadaMas: readonly string[][];
+  propios: ReadonlySet<string>;
+  criar: readonly RegExp[];
+  comoHijo: readonly string[];
+  formulasDeCierre: readonly string[][];
+  porAhora: readonly string[][];
+  loQue: readonly string[][];
+  senialesDeAgregar: readonly string[];
+  hoyHayAlguien: readonly string[][];
+  hoyNoHayNadie: readonly string[][];
+  finales: readonly string[][];
+  yaNo: readonly string[];
+};
+
+/** El castellano rioplatense: las listas de siempre, sin cambiar nada. */
+const FRASES_ES: Frases = {
+  unirApostrofos: false,
+  muletillas: MULETILLAS,
+  muletillasDobles: MULETILLAS_DOBLES,
+  paso: new Set(['paso']),
+  despuesDePaso: DESPUES_DE_PASO,
+  pasoSolas: FRASES_PASO_SOLAS,
+  pasoCompletas: FRASES_PASO_COMPLETAS,
+  antesDeFrase: ANTES_DE_FRASE,
+  dijo: frases(['dijo', 'decia', 'me dijo', 'me decia']),
+  yaConto: FRASES_YA_CONTO,
+  arranquesOlvido: ARRANQUES_OLVIDO,
+  noSe: ['no se'],
+  despuesDeNoSe: DESPUES_DE_NO_SE,
+  seMeBorro: [SE_ME_BORRO],
+  memoria: MEMORIA,
+  falla: FALLA,
+  contrastes: CONTRASTES,
+  sinContenido: SIN_CONTENIDO,
+  verbosDeNegarse: VERBOS_DE_NEGARSE,
+  deEso: frases(['de eso']),
+  arranquesNo: ARRANQUES_NO,
+  arranquesQueCuentan: ARRANQUES_QUE_CUENTAN,
+  nadaMas: frases(['nada mas']),
+  propios: new Set(['propios', 'propias']),
+  criar: [CRIAR],
+  comoHijo: COMO_HIJO,
+  formulasDeCierre: FORMULAS_DE_CIERRE,
+  porAhora: frases(['por ahora']),
+  loQue: frases(['lo que']),
+  senialesDeAgregar: SENIALES_DE_AGREGAR,
+  hoyHayAlguien: HOY_HAY_ALGUIEN,
+  hoyNoHayNadie: HOY_NO_HAY_NADIE,
+  finales: FINALES,
+  yaNo: ['ya no'],
+};
+
+/**
+ * Lo que el catalán suma (Naza, 04/10). Los casos, en
+ * test/v3-catala-respuesta.test.ts.
+ */
+const SOLO_CATALAN = {
+  muletillas: ['doncs', 'be', 'home', 'dona', 'ostres', 'vaja', 'ai', 'escolta', 'miri'],
+  muletillasDobles: [['a', 'veure'], ['o', 'sigui']],
+  paso: ['passo'],
+  // "Passo per davant de casa…", "passo la tarda…": es el verbo.
+  despuesDePaso: ['per', 'pel', 'pels', 'al', 'als', 'els', 'les', 'molt', 'temps', 'tot', 'tota', 'gana', 'fred', 'calor', 'pena'],
+  pasoSolas: ['la seguent', 'seguent', 'una altra', 'aquesta no', 'aixo no', "d'aixo no", 'prefereixo que no', 'millor no', 'no en parlem'],
+  pasoCompletas: [
+    'no en vull parlar', "no vull parlar d'aixo", 'no vull parlar-ne', 'prefereixo no parlar-ne', "prefereixo no parlar d'aixo", 'prefereixo no explicar-ho',
+    'prefereixo no dir-ho', "aixo m'ho guardo", "m'ho guardo", "m'ho reservo", "deixem-ho aqui", "deixem-ho correr", 'millor una altra', "d'aixo no en vull parlar",
+    "no t'ho vull explicar",
+  ],
+  antesDeFrase: ["d'aixo", 'aixo', 'aquesta', 'aqui', 'millor'],
+  dijo: ['va dir', 'deia', 'em va dir', 'em deia'],
+  yaConto: [
+    "ja t'ho he explicat", "ja t'ho vaig explicar", "ja t'ho he dit", "ja t'ho vaig dir", 'ja ho he explicat', "ja te l'he explicat", "ja te l'he dit",
+    "ja t'ho he comptat", "ja t'ho he contat",
+  ],
+  arranquesOlvido: [
+    "no me'n recordo", 'no ho recordo', 'no recordo', "no me'n enrecordo", "no m'enrecordo", "no me n'enrecordo", "no me'n acordo", "no me n'acordo",
+    'no ho se', 'no en tinc ni idea', 'no tinc ni idea', 'ni idea',
+  ],
+  noSe: ['no ho se'],
+  despuesDeNoSe: ['per', 'com', 'quin', 'quina', 'on', 'quan', 'qui'],
+  seMeBorro: ["se m'ha esborrat", "se m'ha oblidat", 'ho he oblidat', "m'ho he oblidat", "se m'ha anat del cap"],
+  memoria: ['la memoria', 'el cap'],
+  falla: ['em falla', 'em comenca a fallar', 'ja no em dona', "se m'ha esborrat", 'no em funciona'],
+  contrastes: [] as string[],
+  sinContenido: (
+    'a al als amb aquell aquella aquest aquesta aixo cada com de del dels el els em en era eren es et fa fins fou ha havia hi ho i jo ja la les li '
+    + 'm me meu meva meus meves mi molt n ne no o on per pero perque poc qual quan que qui s se sense si som son sou t te teu teva tu un una uns unes '
+    + 'va vaig vam van vas vos ni res mai'
+  ).split(' '),
+  verbosDeNegarse: ['parlem', 'parlar', 'parlar-ne', 'parlo', 'explicar', 'explicar-ho', 'explicar-te', "explicar-t'ho", 'entrar', 'entrar-hi', 'ficar-me', "ficar-m'hi"],
+  deEso: ["d'aixo"],
+  arranquesNo: ['mai', 'tampoc', 'gens', 'cap', 'res'],
+  arranquesQueCuentan: [
+    "mai m'oblidare", 'mai ho oblidare', 'no ho oblidare mai', 'no saps', 'no et pots imaginar', "no t'ho creuras", "no t'ho creuries", 'no ho se', 'res a veure',
+    // "Cap als vint anys…": "cap a" es "hacia", cuenta algo.
+    'cap a', 'cap al', 'cap als',
+  ],
+  nadaMas: ['res mes'],
+  propis: ['propis', 'propies'],
+  // "Vaig criar", "el vam criar", "criar-lo", "els criàvem".
+  criar: [/^cri(o|es|a|em|eu|en|ar|at|ada|ats|ades|ava|aves|avem|aveu|aven|i)$/, /^criar-(lo|la|los|les|ne)$/],
+  comoHijo: ['com un fill', 'com el meu fill', 'com una filla', 'com la meva filla', 'com si fos meu', 'com si fos meva', 'com a fill', 'com a filla'],
+  formulasDeCierre: ['esta tot', 'es tot', 'ja esta', 'res mes'],
+  porAhora: ['per ara', 'de moment'],
+  loQue: ['el que'],
+  senialesDeAgregar: ['afegir', 'sumar', "m'he recordat", "me n'he recordat", 'ara recordo', "m'he enrecordat", 'vull explicar', 'ah i'],
+  hoyHayAlguien: ['estic en parella', 'tinc parella', 'hem tornat', 'seguim junts', 'seguim casats', 'encara estem junts', 'continua amb mi', 'estic amb', 'visc amb'],
+  hoyNoHayNadie: [
+    'no estic en parella', 'no estic amb ningu', 'no tinc parella', 'estic sola', 'estic sol', 'em vaig quedar sola', 'em vaig quedar sol', 'sense parella', 'soltera',
+    'solter', 'vidua', 'vidu',
+  ],
+  finales: [
+    'va morir', 'es va morir', 'va faltar', 'em vaig quedar vidua', 'em vaig quedar vidu', 'ja no hi es', 'ens vam separar', 'em vaig separar', 'ens vam divorciar',
+    'em vaig divorciar', 'ho vam deixar', 'vam trencar', 'ens vam deixar',
+  ],
+  yaNo: ['ja no'],
+};
+
+const unirConjunto = (a: ReadonlySet<string>, b: readonly string[]) => new Set([...a, ...b]);
+
+/**
+ * El catalán: sus frases más las del castellano (quien habla catalán mezcla:
+ * "no me acuerdo" también es olvido). Lo que choca se resuelve a favor del
+ * catalán ("passo per…" es el verbo; "cap a…" es "hacia").
+ */
+const FRASES_CA: Frases = {
+  unirApostrofos: true,
+  muletillas: unirConjunto(FRASES_ES.muletillas, SOLO_CATALAN.muletillas),
+  muletillasDobles: [...FRASES_ES.muletillasDobles, ...SOLO_CATALAN.muletillasDobles],
+  paso: unirConjunto(FRASES_ES.paso, SOLO_CATALAN.paso),
+  despuesDePaso: unirConjunto(FRASES_ES.despuesDePaso, SOLO_CATALAN.despuesDePaso),
+  pasoSolas: [...FRASES_ES.pasoSolas, ...frases(SOLO_CATALAN.pasoSolas)],
+  pasoCompletas: [...FRASES_ES.pasoCompletas, ...frases(SOLO_CATALAN.pasoCompletas)],
+  antesDeFrase: [...FRASES_ES.antesDeFrase, ...frases(SOLO_CATALAN.antesDeFrase)],
+  dijo: [...FRASES_ES.dijo, ...frases(SOLO_CATALAN.dijo)],
+  yaConto: [...FRASES_ES.yaConto, ...SOLO_CATALAN.yaConto],
+  arranquesOlvido: [...FRASES_ES.arranquesOlvido, ...frases(SOLO_CATALAN.arranquesOlvido)],
+  noSe: [...FRASES_ES.noSe, ...SOLO_CATALAN.noSe],
+  despuesDeNoSe: unirConjunto(FRASES_ES.despuesDeNoSe, SOLO_CATALAN.despuesDeNoSe),
+  seMeBorro: [...FRASES_ES.seMeBorro, ...SOLO_CATALAN.seMeBorro],
+  memoria: [...FRASES_ES.memoria, ...SOLO_CATALAN.memoria],
+  falla: [...FRASES_ES.falla, ...SOLO_CATALAN.falla],
+  contrastes: unirConjunto(FRASES_ES.contrastes, SOLO_CATALAN.contrastes),
+  sinContenido: unirConjunto(FRASES_ES.sinContenido, SOLO_CATALAN.sinContenido),
+  verbosDeNegarse: unirConjunto(FRASES_ES.verbosDeNegarse, SOLO_CATALAN.verbosDeNegarse),
+  deEso: [...FRASES_ES.deEso, ...frases(SOLO_CATALAN.deEso)],
+  arranquesNo: unirConjunto(FRASES_ES.arranquesNo, SOLO_CATALAN.arranquesNo),
+  arranquesQueCuentan: [...FRASES_ES.arranquesQueCuentan, ...frases(SOLO_CATALAN.arranquesQueCuentan)],
+  nadaMas: [...FRASES_ES.nadaMas, ...frases(SOLO_CATALAN.nadaMas)],
+  propios: unirConjunto(FRASES_ES.propios, SOLO_CATALAN.propis),
+  criar: [...FRASES_ES.criar, ...SOLO_CATALAN.criar],
+  comoHijo: [...FRASES_ES.comoHijo, ...SOLO_CATALAN.comoHijo],
+  formulasDeCierre: [...FRASES_ES.formulasDeCierre, ...frases(SOLO_CATALAN.formulasDeCierre)],
+  porAhora: [...FRASES_ES.porAhora, ...frases(SOLO_CATALAN.porAhora)],
+  loQue: [...FRASES_ES.loQue, ...frases(SOLO_CATALAN.loQue)],
+  senialesDeAgregar: [...FRASES_ES.senialesDeAgregar, ...SOLO_CATALAN.senialesDeAgregar],
+  hoyHayAlguien: [...FRASES_ES.hoyHayAlguien, ...frases(SOLO_CATALAN.hoyHayAlguien)],
+  hoyNoHayNadie: [...FRASES_ES.hoyNoHayNadie, ...frases(SOLO_CATALAN.hoyNoHayNadie)],
+  finales: [...FRASES_ES.finales, ...frases(SOLO_CATALAN.finales)],
+  yaNo: [...FRASES_ES.yaNo, ...SOLO_CATALAN.yaNo],
+};
+
+export const FRASES: Readonly<Record<Idioma, Frases>> = { 'es-AR': FRASES_ES, ca: FRASES_CA };
 
 /**
  * Qué dijo, según la pregunta (Naza, 30/09, simulaciones):
@@ -462,22 +684,23 @@ function esNoCortoDicho(p: PreguntaParaInterpretar, f: string[], pal: string[]):
  *     conté" es un "no" (revisión del 30/09: el "no" le gana);
  *   - si no, contó algo.
  */
-export function interpretar(pregunta: PreguntaParaInterpretar, respuesta: string): Interpretacion {
+export function interpretar(pregunta: PreguntaParaInterpretar, respuesta: string, idioma: Idioma = IDIOMA_POR_DEFECTO): Interpretacion {
   const { boton, resto } = leerBoton(respuesta);
   if (boton !== undefined) {
     const vale = valeBoton(pregunta, boton);
     return vale === 'si' ? 'conto' : vale;
   }
-  const f = sinMuletillas(fichas(resto));
+  const fr = FRASES[idioma];
+  const f = sinMuletillas(fichas(resto, fr.unirApostrofos), fr);
   const pal = f.filter((w) => !esCorte(w));
   if (pal.length === 0) return 'vacio';
-  if (esPasoDicho(f, pal)) return 'paso';
-  if (pregunta.id === AMH) return interpretarAMH(pregunta, f, pal);
-  if (esOlvido(f, pal, pregunta)) return 'olvido';
-  if (esOlvidoAMedias(f, pal, pregunta)) return 'olvido-a-medias';
-  if (esNoAhondar(f)) return 'no-ahondar';
-  if (esNoDicho(pregunta, f, pal)) return 'no';
-  if (esYaConto(pal)) return 'ya-conto';
+  if (esPasoDicho(f, pal, fr)) return 'paso';
+  if (pregunta.id === AMH) return interpretarAMH(pregunta, f, pal, fr);
+  if (esOlvido(f, pal, fr, pregunta)) return 'olvido';
+  if (esOlvidoAMedias(f, pal, fr, pregunta)) return 'olvido-a-medias';
+  if (esNoAhondar(f, fr)) return 'no-ahondar';
+  if (esNoDicho(pregunta, f, pal, fr)) return 'no';
+  if (esYaConto(pal, fr)) return 'ya-conto';
   return 'conto';
 }
 
