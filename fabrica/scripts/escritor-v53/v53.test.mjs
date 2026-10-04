@@ -47,3 +47,10 @@ test('C7 (v5.3): repite marca lo que una pieza comparte con las demás', () => {
   assert.equal(xs[0].pieza, 'primera_pagina');
   assert.deepEqual(repite(ps.slice(0, 1).concat({ pieza: 'primera_pagina', texto: 'Soy la de la mercería de Echesortu. [[R02]]' }), 'primera_pagina'), []);
 });
+
+test('Paso 7 (v5.3.1): la baranda lee números en letras ("fútbol once" → "fútbol 11", "piso tres" → "tercer piso")', () => {
+  const t = 'Volví al fútbol once en un club de acá. [[R07]] Vivo en un piso tres. [[R08]]';
+  assert.equal(barandaEstilo({ antes: 'Volví al fútbol once en un club de acá. [[R07]]', despues: 'Volví a jugar al fútbol 11 en un club de acá. [[R07]]' }, t), '');
+  assert.equal(barandaEstilo({ antes: 'Vivo en un piso tres. [[R08]]', despues: 'Vivo en un tercer piso. [[R08]]' }, t), '');
+  assert.match(barandaEstilo({ antes: 'Vivo en un piso tres. [[R08]]', despues: 'Vivo en un cuarto piso. [[R08]]' }, t), /números/);
+});

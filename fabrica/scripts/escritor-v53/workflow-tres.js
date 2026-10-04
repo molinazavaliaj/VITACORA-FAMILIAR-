@@ -92,8 +92,12 @@ Guardá ese JSON con Write en ${DIR}/arreglos/disputa-${d.clave}.json y devolvé
 phase('Estilo')
 await codigo([`mkdir -p "${DIR}/sin-estilo" && cp "${DIR}/salidas/"*.md "${DIR}/sin-estilo/"`], 'guardar sin estilo', 'Estilo')
 await parallel(PRUEBA.map((p) => () => rol(`estilo ${p}`, `7-estilo-${p}`, `estilo/cambios-${p}.json`, { label: `estilo ${p}`, phase: 'Estilo' })))
-const es = await codigo([...PRUEBA.map((p) => `${node('estilo.mjs')}" "${DIR}" ${p}`), `${node('controles.mjs')}" "${DIR}" piezas`, `${node('controles.mjs')}" "${DIR}" repite primera_pagina`], 'aplicar estilo + controles', 'Estilo')
-log(es.map((x) => x.salida.split('\n').slice(0, 12).join('\n')).join('\n'))
+const es = await codigo(PRUEBA.map((p) => `${node('estilo.mjs')}" "${DIR}" ${p}`), 'aplicar estilo', 'Estilo')
+log(es.map((x) => x.salida.trim()).join('\n'))
+// v5.3.1: segunda pasada sobre lo ya corregido
+await parallel(PRUEBA.map((p) => () => rol(`estilo ${p}`, `7-estilo-${p}-2`, `estilo/cambios-${p}-2.json`, { label: `estilo ${p} (2)`, phase: 'Estilo', env: 'RONDA=2' })))
+const es2 = await codigo([...PRUEBA.map((p) => `${node('estilo.mjs')}" "${DIR}" ${p} 2`), `${node('controles.mjs')}" "${DIR}" piezas`, `${node('controles.mjs')}" "${DIR}" repite primera_pagina`], 'aplicar estilo (2) + controles', 'Estilo')
+log(es2.map((x) => x.salida.split('\n').slice(0, 12).join('\n')).join('\n'))
 
 // ---------- piezas limpias (sin marcas) de la v5.3 y de la v5.2, y juicio a ciegas con dos jueces ----------
 phase('Juicio')

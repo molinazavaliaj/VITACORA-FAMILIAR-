@@ -7,6 +7,8 @@
 4. **Cierres y escenas** (Paso 3b puro): el capítulo no cierra con una conclusión del escritor; en una escena alguien hace las cosas (nada de "se hacía").
 5. **Nombres unidos:** quien tiene nombre y apodo, la primera vez con los dos.
 
+**v5.3.1, 04/10/2026.** La prueba de la v5.3 (primera página, I y VI contra la v5.2) ganó 7 a 6,4, pero el corrector hizo 1 cambio en la primera página y dejó "en un piso tres", "volví al fútbol once" y "se cantaba"; y el capítulo I se achicó (perdió escenas). Cambian: el Paso 7 revisa oración por oración contra una lista fija y corre **dos pasadas**; la baranda lee los números en letras ("once" = 11, "tercer" = 3) para que "fútbol once" → "fútbol 11" pase; el 3b y el 3a suman "las escenas van enteras" y el sujeto en las escenas. (El texto de la v5.3 está en el historial de git, commit efd6c16.)
+
 **Estado: v5.2, 03/10/2026.** Copia de la receta v5/v5.1 ([`../escritor/receta.md`](../escritor/receta.md), que queda como historial) con los cuatro cambios que Naza diagnosticó después de leer el libro "novelista puro" y de ver la v5.1 (que arregló el concierto de puntos pero se fue al otro extremo: oraciones de 60–90 palabras e inventario):
 1. **Prosa en el punto medio:** oraciones de 10 a 30 palabras, alguna corta cuando pesa, ninguna de más de 40 (Pasos 3a, 3b, 3c, 3d y 6 puros; C31 marca también las de más de 40).
 2. **Los "no" de la entrevista no entran** ("de la salud, paso", "ningún maestro", "no tengo foto", "no hay mucho más que contar"): regla dura en 3a/3b/3c/3d/6 puros y el armador; una respuesta que entera es un "no" va en "afuera" como `no_entra`; control de código C32.
@@ -680,6 +682,7 @@ La prosa (lo que más importa):
 - Los restos del habla que no son relato no entran: lo que le dice al entrevistador, las muletillas, "no sé si se entiende", las autocorrecciones ("no es que la cerré, es que la dejé").
 - Su voz son sus palabras, no la sintaxis del audio: lo que dijo mal armado se escribe en castellano escrito correcto ("siempre donde llego a un lugar" → "cada vez que llego a un lugar"; "un local 3 de Echesortu" → "un local en Echesortu"). Quien narra es "yo": el "nosotros" solo cuando la acción fue de varios y queda claro quiénes, sin saltar de uno a otro en la misma oración.
 - En una escena alguien hace las cosas: nada de sujeto borrado ("se hacían las compras", "se cantaba", "la tarde era de"). Si es un recuerdo, alguien lo hizo.
+- Las escenas van enteras: lo que contó con detalle (un lugar, un gesto, una costumbre, lo que se dijo) se cuenta con ese detalle; no lo achicás a un resumen de una línea ni lo dejás en "jugábamos mucho". El capítulo puede ser largo: lo corto es la oración, no la escena.
 - El cierre: el capítulo termina en un hecho, una imagen o una frase suya, nunca en una conclusión, balance o moraleja tuya ("Así terminé mi etapa de…", "Con eso a cuestas…", "De aquello quedó…").
 - Nombres: si una persona tiene nombre y apodo (en <ficha> o en lo confirmado), la primera vez que aparece van los dos ("la Negra, Ofelia Sánchez"); después, uno solo. Mirá en <resumen_hasta_aca> si ya se presentó.
 - Una frase suya textual va en un solo lugar del libro: si <resumen_hasta_aca> dice que ya se usó, contá eso con otras palabras o no lo repitas.
@@ -740,7 +743,7 @@ Cómo se cuenta:
 - Los "no" de la entrevista no entran ("no me acuerdo", "no tengo foto", "de eso paso", "ningún…", "no hay mucho más que contar"): la página cuenta lo que es, no lo que no hay.
 - Si nombra a alguien, nombre y relación; solo se presenta quien narra. Sin hablar del libro, sin valorar la vida, sin adelantar lo que viene.
 - Una página: lo que dijo, bien contado.
-- Castellano escrito correcto: su voz son sus palabras, no la sintaxis del audio. Quien narra es "yo"; el "nosotros" solo cuando queda claro quiénes, sin saltar de uno a otro.
+- Castellano escrito correcto: su voz son sus palabras, no la sintaxis del audio. Quien narra es "yo"; el "nosotros" solo cuando queda claro quiénes, sin saltar de uno a otro. Nada de sujeto borrado ("se cantaba": quién cantaba). Los números como se escriben, no como se dicen ("un piso tres" → "un tercer piso").
 
 Regla dura: las palabras, el orden y los conectores son tuyos; lo único prohibido es afirmar algo que no pasó o un motivo que no dio. Lo que terminó, en pasado; lo que sigue hoy, en presente.
 
@@ -938,18 +941,22 @@ Formato: markdown, una sección "## Historia N · <título>" por historia (o "##
 
 ### Paso 7 · Corrector de estilo (v5.3, Naza 04/10: "mal redactado")
 
-Después del arreglo y del repaso de hechos, una llamada por pieza (primera página, capítulos, Antes de cerrar, carta). Recibe `<ficha>`, `<voz>` y `<pieza>` (con marcas). No recibe las respuestas: no puede agregar ni corregir hechos, solo la forma. Devuelve cambios chicos; el código (`estilo.mjs`) los aplica con barandas: el "antes" tiene que estar tal cual, el "despues" conserva las marcas [[R..]], los números y los nombres propios del "antes", y no puede cambiar el largo más de un 40 %. El cambio que no pasa no se aplica y va al informe.
+Después del arreglo y del repaso de hechos, una llamada por pieza (primera página, capítulos, Antes de cerrar, carta). **v5.3.1: dos pasadas**: la segunda recibe la pieza ya corregida por la primera y busca lo que quedó. Recibe `<ficha>`, `<voz>` y `<pieza>` (con marcas). No recibe las respuestas: no puede agregar ni corregir hechos, solo la forma. Devuelve cambios chicos; el código (`estilo.mjs`) los aplica con barandas: el "antes" tiene que estar tal cual, el "despues" conserva las marcas [[R..]], los números y los nombres propios del "antes", y no puede cambiar el largo más de un 40 %. El cambio que no pasa no se aplica y va al informe.
 
 ```
 Sos el corrector de estilo de un libro de memorias en primera persona, escrito desde una entrevista oral. Los hechos ya están verificados y el relato ya está armado: tu trabajo es que cada oración esté en castellano escrito correcto y natural (rioplatense, como habla quien narra), sin perder su voz. Tenés <pieza> (con marcas [[R..]]), <ficha> (quién es quién) y <voz> (cómo habla).
 
-Leé la pieza entera, oración por oración, y corregí:
+Leé la pieza entera y pasá por CADA oración, una por una, preguntándote los ocho puntos de abajo. Un buen corrector encuentra varias cosas por página: si una pieza de cientos de palabras te sale con uno o dos cambios, volvé a leerla.
+
+Corregí:
 - Sintaxis del habla pasada tal cual al papel: "siempre donde llego a un lugar" → "cada vez que llego a un lugar".
+- Números y medidas como se dicen y no como se escriben: "un piso tres" → "un tercer piso"; "jugar al fútbol once" → "jugar al fútbol 11" o "jugar en cancha grande".
 - Concordancia y persona: quien narra es "yo". Si salta de "conseguimos" a "armé" en la misma oración, o de "me vine con Raúl" a "llegamos" sin decir quiénes, dejalo en una sola persona y que se entienda quién hizo qué.
 - Preposiciones, artículos y giros mal puestos: "un local 3 de Echesortu" → "un local en Echesortu"; "jugar al vóley seis" → "jugar al vóley".
 - Autocorrecciones y vueltas del audio: "la cerré, no es que la cerré, es que la dejé" → "la dejé".
 - La misma palabra repetida en oraciones seguidas.
-- Sujeto borrado en una escena: "se hacían las compras" → quién las hacía, si la pieza lo dice; si no lo dice, "hacíamos las compras" solo si la pieza dice que estaba.
+- Sujeto borrado: "se hacían las compras", "se cantaba", "la tarde era de" → quién lo hacía, si la pieza lo dice ("mi padre cantaba"); si no lo dice, "hacíamos" solo si la pieza dice que estaba.
+- Frases dichas a medias que el papel no sostiene: un "y eso" sin qué, "mi hermano" sin cuál cuando tiene dos, un "ahí" sin dónde: completalo con lo que la pieza ya dice.
 - Un cierre de capítulo que es una conclusión o moraleja del escritor ("Así terminé mi etapa de…", "Con eso a cuestas…"): sacá esa oración si lo anterior ya cierra, o dejá la última imagen o frase suya como cierre.
 
 No toques:
@@ -962,7 +969,7 @@ Mal (cambia un hecho): antes "Abrimos la mercería en el 78. [[R22]]" → despue
 Mal (borra la voz): antes "Era un quilombo, la mercería a la siesta. [[R30]]" → despues "La mercería a la siesta era un caos. [[R30]]".
 Bien: antes "Cuando por fin conseguimos el local no había nada, y lo primero que puse fue el mostrador, porque siempre donde llego a un lugar lo primero que hago es el mostrador. [[R05]]" → despues "Cuando por fin conseguimos el local no había nada, y lo primero que pusimos fue el mostrador, porque cada vez que llego a un lugar nuevo lo primero que armo es el mostrador. [[R05]]"
 
-Cada cambio: "antes" es un tramo COPIADO EXACTO de <pieza> (una o dos oraciones, con su marca si la tiene); "despues" es cómo queda, con la misma marca. "por_que": sintaxis | concordancia | preposicion | palabra | autocorreccion | repeticion | sujeto | cierre. Lo que no cambia no va. Si la pieza está bien, {"cambios": []}.
+Cada cambio: "antes" es un tramo COPIADO EXACTO de <pieza> (una o dos oraciones, con su marca si la tiene; copialo carácter por carácter, con sus comas y tildes); "despues" es cómo queda, con la misma marca. "por_que": sintaxis | numero | concordancia | preposicion | palabra | autocorreccion | repeticion | sujeto | a_medias | cierre. Lo que no cambia no va. Si la pieza está bien, {"cambios": []}.
 
 Devolvé solo el JSON: {"cambios": [{"antes": "", "despues": "", "por_que": ""}]}
 ```

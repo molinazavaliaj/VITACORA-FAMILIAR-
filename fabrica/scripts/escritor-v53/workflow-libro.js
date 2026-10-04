@@ -152,6 +152,10 @@ await codigo([`mkdir -p "${DIR}/sin-estilo" && cp "${DIR}/salidas/"*.md "${DIR}/
 await parallel(PIEZAS.map((p) => () => rol(`estilo ${p}`, `7-estilo-${p}`, `estilo/cambios-${p}.json`, { label: `estilo ${p}`, phase: 'Estilo' })))
 const es = await codigo(PIEZAS.map((p) => `${node('estilo.mjs')}" "${DIR}" ${p}`), 'aplicar estilo', 'Estilo')
 log(es.map((x) => x.salida.trim()).join('\n'))
+// v5.3.1: segunda pasada sobre lo ya corregido
+await parallel(PIEZAS.map((p) => () => rol(`estilo ${p}`, `7-estilo-${p}-2`, `estilo/cambios-${p}-2.json`, { label: `estilo ${p} (2)`, phase: 'Estilo', env: 'RONDA=2' })))
+const es2 = await codigo(PIEZAS.map((p) => `${node('estilo.mjs')}" "${DIR}" ${p} 2`), 'aplicar estilo (2)', 'Estilo')
+log(es2.map((x) => x.salida.trim()).join('\n'))
 
 phase('Repaso y cierre')
 // v4: lectura final sobre lo arreglado (solo informe; no hay segunda ronda)

@@ -191,7 +191,9 @@ switch (paso) {
     // v5.3, Paso 7: el corrector de estilo de una pieza (devuelve estilo/cambios-<pieza>.json; lo aplica estilo.mjs).
     const x = piezas(dir).find((q) => q.pieza === arg);
     if (!x) throw new Error(`no existe la pieza ${arg}`);
-    guardar(`7-estilo-${arg}`, [tag('ficha', ficha(dir)), tag('voz', voz()), tag('pieza', x.texto)], promptsDe('### Paso 7')[0]);
+    // v5.3.1: RONDA=2, segunda pasada sobre la pieza ya corregida.
+    const dos = process.env.RONDA === '2';
+    guardar(`7-estilo-${arg}${dos ? '-2' : ''}`, [tag('ficha', ficha(dir)), tag('voz', voz()), tag('pieza', x.texto)], promptsDe('### Paso 7')[0] + (dos ? '\n\nEsta es la SEGUNDA pasada: la pieza ya pasó por un corrector. Buscá lo que quedó; lo que ya está bien no se toca.' : ''));
     break;
   }
   case 'armador': {
