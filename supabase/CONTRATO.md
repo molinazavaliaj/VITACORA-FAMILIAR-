@@ -96,6 +96,19 @@ mira.** Sin migración: son claves del jsonb `narradores.contexto`.
 **No cambian QUÉ preguntas existen** — eso son las plantillas de guion (`preguntas.plantilla`, que
 todavía no existe): cambian cómo el biógrafo escribe cada una.
 
+### `contexto.idioma` — en qué idioma se hace la entrevista V3 (04/10, Naza)
+
+`"ca"` = la entrevista en catalán; ausente (o `"es-AR"`) = la de siempre, en castellano
+rioplatense. **La web lo escribe** en la compra, cuando quien regala lo elige en la ficha
+("¿En qué idioma hacemos la entrevista? Castellano / Català"). **El entrevistador lo lee** y
+se lo pasa a todo lo de `fabrica/src/v3/entrevista/`: `EstadoEntrevista.idioma`, la ficha de
+`renderizar` (`idioma`), `mensajesDespues(…, idioma)`, `preguntaPorId`/`mensajePorId(id, idioma)`,
+`cazarBloque({ …, idioma })` y la transcripción (`idioma` → `language: 'ca'`). Sin migración:
+es una clave del jsonb `narradores.contexto`. Un valor que no se conoce es un error
+(`idiomaDe` en `idioma.ts`): mejor frenar que entrevistar en el idioma equivocado. No se
+mezcla con `contexto.trato` (usted/vos del entrevistador viejo). El libro en catalán es otro
+tema (todavía no). Detalle: [`docs/v3/entrevista/catala/diseno.md`](../docs/v3/entrevista/catala/diseno.md).
+
 **Para la fábrica (13/09):** `audiolibro: "clonada"` = narración en primera persona
 con la voz clonada de sus audios; `"narrador"` = TTS con una voz fija; `"real"` = como
 hasta ahora (sus audios). Nada se descarga: el PDF se lee y el audiolibro se escucha en

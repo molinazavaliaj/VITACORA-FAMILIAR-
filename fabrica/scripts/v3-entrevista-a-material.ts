@@ -31,6 +31,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { preguntaPorId } from '../src/v3/entrevista/banco.js';
+import { idiomaDe, type Idioma } from '../src/v3/entrevista/idioma.js';
 import { deRepregunta, deSegunda, preguntaDeClave } from '../src/v3/entrevista/flujo.js';
 import { interpretar, leerBoton, valeBoton, PREGUNTA_COMUN, type Interpretacion, type PreguntaParaInterpretar } from '../src/v3/entrevista/respuesta.js';
 import { renderizar, type FichaTexto } from '../src/v3/entrevista/texto.js';
@@ -83,19 +84,21 @@ export function aMaterial(e: Estado): Fila[] {
   const familia = new Map((e.familia ?? []).map((f) => [f.id, f.texto]));
   const antes = new Map<string, string>();
   const filas: Fila[] = [];
+  // La entrevista en catalán (Naza, 04/10): el banco y el detector del idioma de la ficha.
+  const idioma = idiomaDe(e.ficha);
   for (const [pid, crudo] of e.respuestas) {
     const deX = deSegunda(pid) ?? deRepregunta(pid);
     if (deX !== undefined) {
-      pegarA([...filas].reverse().find((f) => f.preguntaId === deX), pid, crudo);
+      pegarA([...filas].reverse().find((f) => f.preguntaId === deX), pid, crudo, idioma);
       antes.set(pid, crudo);
       continue;
     }
-    const delBanco = preguntaPorId(pid);
+    const delBanco = preguntaPorId(pid, idioma);
     const esFamilia = !delBanco && familia.has(pid);
     const pregunta = enviados.get(pid)?.texto ?? (delBanco ? renderizar(delBanco.texto, e.ficha, antes) : familia.get(pid) ?? '(pregunta sin texto guardado)');
     const bloque = esFamilia ? LEGADO : delBanco?.bloque ?? enviados.get(pid)?.bloque ?? 0;
     const paraInterpretar: PreguntaParaInterpretar = delBanco ? { id: pid, clase: delBanco.clase, sensible: delBanco.sensible, botones: delBanco.botones, texto: pregunta } : { ...PREGUNTA_COMUN, texto: pregunta };
-    const interp = interpretar(paraInterpretar, crudo);
+    const interp = interpretar(paraInterpretar, crudo, idioma);
     const { boton, resto } = leerBoton(crudo);
     let texto = resto.trim();
     if (boton !== undefined) {
@@ -114,9 +117,9 @@ export function aMaterial(e: Estado): Fila[] {
 }
 
 /** Suma lo que contó en X~2 o RP~X a la fila de X (si contó algo y la fila existe). */
-function pegarA(fila: Fila | undefined, clave: string, crudo: string): void {
+function pegarA(fila: Fila | undefined, clave: string, crudo: string, idioma: Idioma): void {
   if (!fila) return;
-  const interp = interpretar(preguntaDeClave(clave)!, crudo);
+  const interp = interpretar(preguntaDeClave(clave, idioma)!, crudo, idioma);
   const texto = leerBoton(crudo).resto.trim();
   if (!texto || PASO.includes(interp) || interp === 'no') return;
   // Revisión del 01/10: si X fue un olvido puro, su "no me acuerdo" no llega al escritor: queda lo que contó después.

@@ -72,7 +72,7 @@ export type EstadoWeb = EstadoSimulacion & { pendientes?: Pendiente[] };
 export function botonesAbiertos(e: EstadoWeb): string[] {
   if (e.terminada || !e.esperando || e.tocoSi || (e.pendientes ?? []).length > 0) return [];
   // En una repregunta del cazador, [Ya lo conté todo] (Naza, 01/10).
-  return (botonesDeClave(e.esperando) ?? []).map((b) => b.texto);
+  return (botonesDeClave(e.esperando, idiomaDe(e.ficha)) ?? []).map((b) => b.texto);
 }
 
 export function globosParaNarrador(e: EstadoSimulacion): GloboVista[] {

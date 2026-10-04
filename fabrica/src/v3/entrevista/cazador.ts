@@ -203,7 +203,7 @@ function esElegida(x: unknown): x is Elegida {
 
 const TIEMPO_RELATIVO = /\b(ayer|anoche|hace un rato|recién|recien|la otra vez|esta semana)\b/i;
 /** En catalán (prompt-v3-1-ca.md): "ahir", "ahir a la nit", "fa una estona", "ara mateix", "fa un moment", "l'altre dia", "l'altra vegada", "aquesta setmana". */
-const TIEMPO_RELATIVO_CA = /(?<![\p{L}'])(ahir|fa una estona|ara mateix|fa un moment|l'altre dia|l'altra vegada|aquesta setmana)(?![\p{L}])/iu;
+const TIEMPO_RELATIVO_CA = /(?<![\p{L}])(ahir|fa una estona|ara mateix|fa un moment|l'altre dia|l'altra vegada|aquesta setmana)(?![\p{L}])/iu;
 const HOY_DE: Readonly<Record<Idioma, RegExp>> = { 'es-AR': /\bhoy\b/i, ca: /(?<![\p{L}])(avui|hoy)(?![\p{L}])/iu };
 const sinMarcas = (s: string) =>
   s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-zñ0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
@@ -221,8 +221,10 @@ export function controlarElegida(e: Pick<Elegida, 'cita' | 'pregunta'>, respuest
   const pregunta = e.pregunta ?? '';
   if ((pregunta.match(/\?/g) ?? []).length !== 1) fallas.push('la pregunta no tiene un solo "?"');
   if (pregunta.split(/\s+/).filter(Boolean).length > MAX_PALABRAS_PREGUNTA) fallas.push(`pregunta de más de ${MAX_PALABRAS_PREGUNTA} palabras`);
-  const relativo = TIEMPO_RELATIVO.test(pregunta) || (idioma === 'ca' && TIEMPO_RELATIVO_CA.test(pregunta));
-  if (relativo || (!bloqueHoy && HOY_DE[idioma].test(pregunta))) fallas.push('tiempo relativo');
+  // En catalán, el apóstrofo curvo (’) cuenta como el recto, y "d'ahir" es "de ayer" (revisión del 04/10).
+  const recta = pregunta.replace(/’/g, "'");
+  const relativo = TIEMPO_RELATIVO.test(pregunta) || (idioma === 'ca' && TIEMPO_RELATIVO_CA.test(recta));
+  if (relativo || (!bloqueHoy && HOY_DE[idioma].test(recta))) fallas.push('tiempo relativo');
   return fallas;
 }
 
@@ -264,7 +266,8 @@ export function revisarElegidas(
  * en flujo.ts).
  */
 export function mensajeRepregunta(e: Pick<Repregunta, 'cita' | 'pregunta'>, idioma: Idioma = IDIOMA_POR_DEFECTO): string {
-  if (idioma !== 'es-AR') return TEXTOS_IDIOMA[idioma].repregunta.mensaje.replace('{cita}', () => e.cita).replace('{pregunta}', () => e.pregunta);
+  // Las dos marcas en una sola pasada: si la cita dice "{pregunta}", no se pisa.
+  if (idioma !== 'es-AR') return TEXTOS_IDIOMA[idioma].repregunta.mensaje.replace(/\{(cita|pregunta)\}/g, (_m, k: string) => (k === 'cita' ? e.cita : e.pregunta));
   return `Me quedé pensando en algo que me contaste: «${e.cita}». ${e.pregunta} Y si no te vuelve, o ya me lo contaste todo, decímelo nomás y seguimos con otra.`;
 }
 

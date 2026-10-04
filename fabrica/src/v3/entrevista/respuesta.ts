@@ -153,6 +153,13 @@ function hayFraseEn(f: readonly string[], i: number, frase: readonly string[]): 
 
 const frases = (lista: string[]) => lista.map((x) => x.split(' '));
 
+/** ¿Hay un "pero" (o "aunque", "encara que"…) en estas palabras? */
+function hayContraste(pal: readonly string[], fr: Frases): boolean {
+  if (pal.some((w) => fr.contrastes.has(w))) return true;
+  const t = ` ${pal.join(' ')} `;
+  return fr.contrastesFrases.some((x) => t.includes(` ${x} `));
+}
+
 // ---------------------------------------------------------------- reglas
 
 /** Tope del "no" corto en una pregunta común: hasta 15 palabras (regla 13; antes era "menos de 15"). */
@@ -285,7 +292,7 @@ function palabrasDeLaPregunta(texto: string, fr: Frases): Set<string> {
 }
 
 function esOlvido(f: string[], pal: string[], fr: Frases, pregunta?: PreguntaParaInterpretar): boolean {
-  if (pal.length > PALABRAS_OLVIDO || pal.some((w) => fr.contrastes.has(w))) return false;
+  if (pal.length > PALABRAS_OLVIDO || hayContraste(pal, fr)) return false;
   const fin = finDelArranqueDeOlvido(f, fr);
   if (fin >= 0) {
     const despues = f.slice(fin).filter((w) => !esCorte(w));
@@ -395,7 +402,7 @@ function cierraFormula(f: readonly string[], k: number, fr: Frases): boolean {
 function esFormulaDeCierre(p: PreguntaParaInterpretar, f: string[], pal: string[], fr: Frases): boolean {
   if (p.clase !== 'cierre' && p.id !== LE9) return false;
   // El tope de 40 no corre si arranca con "no" ("No, creo que está todo. Las historias que tengo son esas…").
-  if ((pal[0] !== 'no' && pal.length > topeNoCorto(p)) || pal.slice(0, PRIMERAS_CONTRASTE).some((w) => fr.contrastes.has(w))) return false;
+  if ((pal[0] !== 'no' && pal.length > topeNoCorto(p)) || hayContraste(pal.slice(0, PRIMERAS_CONTRASTE), fr)) return false;
   let palabras = 0;
   for (let i = 0; i < f.length && palabras < PRIMERAS_FORMULA; i++) {
     if (esCorte(f[i])) continue;
@@ -468,7 +475,7 @@ function esNoCortoDicho(p: PreguntaParaInterpretar, f: string[], pal: string[], 
   if (fr.nadaMas.some((x) => hayFraseEn(f, 0, x) && f[x.length] !== undefined && !esCorte(f[x.length]))) return false;
   if (p.id === HI0 && crioAAlguien(pal, fr)) return false;
   // En los cierres "pero" no lo da vuelta: "No, pero ya está todo" sigue siendo que no.
-  return p.clase === 'cierre' || !pal.slice(0, PRIMERAS_CONTRASTE).some((w) => fr.contrastes.has(w));
+  return p.clase === 'cierre' || !hayContraste(pal.slice(0, PRIMERAS_CONTRASTE), fr);
 }
 
 // ---------------------------------------------------------------- frases por idioma
@@ -501,6 +508,8 @@ export type Frases = {
   memoria: readonly string[];
   falla: readonly string[];
   contrastes: ReadonlySet<string>;
+  /** Contrastes de más de una palabra ("encara que", "tot i que"): valen igual que "pero". */
+  contrastesFrases: readonly string[];
   sinContenido: ReadonlySet<string>;
   verbosDeNegarse: ReadonlySet<string>;
   /** "de eso" después de una frase de negarse ("prefiero no hablar de eso"). */
@@ -541,6 +550,7 @@ const FRASES_ES: Frases = {
   memoria: MEMORIA,
   falla: FALLA,
   contrastes: CONTRASTES,
+  contrastesFrases: [],
   sinContenido: SIN_CONTENIDO,
   verbosDeNegarse: VERBOS_DE_NEGARSE,
   deEso: frases(['de eso']),
@@ -585,13 +595,17 @@ const SOLO_CATALAN = {
   arranquesOlvido: [
     "no me'n recordo", 'no ho recordo', 'no recordo', "no me'n enrecordo", "no m'enrecordo", "no me n'enrecordo", "no me'n acordo", "no me n'acordo",
     'no ho se', 'no en tinc ni idea', 'no tinc ni idea', 'ni idea',
+    // Revisión del 04/10: "no em recordo" (se dice, aunque no sea normativo) y las formas valencianas.
+    'no em recordo', "no me'n record", "no m'enrecord", "no me'n recorde", "no me'n enrecorde",
   ],
   noSe: ['no ho se'],
   despuesDeNoSe: ['per', 'com', 'quin', 'quina', 'on', 'quan', 'qui'],
   seMeBorro: ["se m'ha esborrat", "se m'ha oblidat", 'ho he oblidat', "m'ho he oblidat", "se m'ha anat del cap"],
   memoria: ['la memoria', 'el cap'],
   falla: ['em falla', 'em comenca a fallar', 'ja no em dona', "se m'ha esborrat", 'no em funciona'],
-  contrastes: [] as string[],
+  // "Sinó" es una palabra; "encara que" y "tot i que", frases ("encara" solo es "todavía": "No, encara no" es un no).
+  contrastes: ['sino'],
+  contrastesFrases: ['encara que', 'tot i que'],
   sinContenido: (
     'a al als amb aquell aquella aquest aquesta aixo cada com de del dels el els em en era eren es et fa fins fou ha havia hi ho i jo ja la les li '
     + 'm me meu meva meus meves mi molt n ne no o on per pero perque poc qual quan que qui s se sense si som son sou t te teu teva tu un una uns unes '
@@ -651,6 +665,7 @@ const FRASES_CA: Frases = {
   memoria: [...FRASES_ES.memoria, ...SOLO_CATALAN.memoria],
   falla: [...FRASES_ES.falla, ...SOLO_CATALAN.falla],
   contrastes: unirConjunto(FRASES_ES.contrastes, SOLO_CATALAN.contrastes),
+  contrastesFrases: [...FRASES_ES.contrastesFrases, ...SOLO_CATALAN.contrastesFrases],
   sinContenido: unirConjunto(FRASES_ES.sinContenido, SOLO_CATALAN.sinContenido),
   verbosDeNegarse: unirConjunto(FRASES_ES.verbosDeNegarse, SOLO_CATALAN.verbosDeNegarse),
   deEso: [...FRASES_ES.deEso, ...frases(SOLO_CATALAN.deEso)],

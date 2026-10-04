@@ -9,6 +9,7 @@ Cómo funciona la entrevista de punta a punta. **Este es el documento vigente** 
 
 ## 1. Antes de empezar
 - **Compra.** Quien regala carga una ficha corta: nombre, cómo le dicen, género (para "chico/chica", "padre/madre"), si habla de vos o de tú (**todavía no programado**: hoy todos los textos están en vos; Naza decidió hacerlo cuando esté todo cerrado; ver "Pendiente grande" en correcciones-lectura.md), y su propio contacto (para el aviso M9). Si quiere, sube un **álbum de fotos**, que se puede completar hasta que se escribe el libro.
+- **Idioma (04/10, Naza):** quien regala elige si la entrevista es en castellano o en **catalán** (`contexto.idioma = "ca"`). En catalán es la misma entrevista (mismo orden, reglas y botones) con los textos de [`banco-ca.md`](banco-ca.md), el detector entiende catalán y castellano, el cazador usa [`cazador/prompt-v3-1-ca.md`](cazador/prompt-v3-1-ca.md) y la transcripción va en catalán. Diseño y estado: [`catala/diseno.md`](catala/diseno.md).
 - La ficha **no decide qué preguntas llegan**. Queda para el escritor y para comparar con lo que la persona cuenta (dudas del dashboard, sección 8).
 
 ## 2. El arranque
