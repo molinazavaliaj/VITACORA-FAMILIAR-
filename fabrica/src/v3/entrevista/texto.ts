@@ -5,15 +5,20 @@
 
 import type { FichaV3 } from '../ficha.js';
 import { respondioNo, type Respuestas } from './flujo.js';
+import type { Idioma } from './idioma.js';
 
 /**
  * Lo que la entrevista necesita de la ficha, además de FichaV3 (que no se
  * toca): quién regaló, para el aviso M9 ({{quien_regala}}).
  */
-export type FichaEntrevista = FichaV3 & { quienRegala?: string };
+export type FichaEntrevista = FichaV3 & {
+  quienRegala?: string;
+  /** El idioma de la entrevista (`contexto.idioma`; Naza, 04/10). Sin idioma, es-AR. */
+  idioma?: Idioma;
+};
 
 /** Los campos de la ficha que usan los textos (metodo-entrevista.md §21). */
-export type FichaTexto = Pick<FichaEntrevista, 'nombre' | 'genero' | 'formaTrato' | 'quienRegala'>;
+export type FichaTexto = Pick<FichaEntrevista, 'nombre' | 'genero' | 'formaTrato' | 'quienRegala' | 'idioma'>;
 
 export type OpcionesTexto = {
   /** Cómo se nombra la etapa en M10 y CI2 ("tu infancia"…). Sin texto aprobado todavía: si no llega, queda {{etapa}}. */
@@ -49,7 +54,7 @@ export function renderizar(texto: string, ficha: FichaTexto, respuestas?: Respue
   };
   let t = texto;
   // Variante según la respuesta a otra pregunta: si fue un "no" corto, la primera forma.
-  t = t.replace(VARIANTE, (_m, id: string, a: string, b: string) => (respondioNo(r, id) ? a : b));
+  t = t.replace(VARIANTE, (_m, id: string, a: string, b: string) => (respondioNo(r, id, ficha.idioma) ? a : b));
   // Género del narrador: {{o/a}}, {{padre/madre}}.
   t = t.replace(/\{\{([^{}/]+)\/([^{}/]+)\}\}/g, (_m, m: string, f: string) => (varon ? m : f));
   // Campos simples.

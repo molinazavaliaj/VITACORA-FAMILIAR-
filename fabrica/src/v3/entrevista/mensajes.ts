@@ -53,7 +53,8 @@ export function acuseNeutro(n: number, siguiente: string): string {
 }
 
 function arrancaConSeguimos(siguiente: string): boolean {
-  return /^(seguimos|pasamos)(?![a-záéíóúñ])/i.test(siguiente.trim());
+  // En catalán "Seguim", "Passem", "Continuem" (M25.1 es "Bé, seguim."; Naza, 04/10).
+  return /^(seguimos|pasamos|seguim|passem|continuem)(?![a-záéíóúñàèòïüç])/i.test(siguiente.trim());
 }
 
 /**
@@ -152,7 +153,8 @@ export function acuseAntesDe(id: string, familia: FamiliaAcuse, siguiente: Pick<
  */
 export function entradaSegunAcuse(entrada: string, acuse?: string): string {
   if (!acuse?.includes('{{nombre}}')) return entrada;
-  return entrada.replace(/, \{\{nombre\}\},(?= y )/, '').replace(/, \{\{nombre\}\}/, '');
+  // En catalán la "y" es "i" (Naza, 04/10).
+  return entrada.replace(/, \{\{nombre\}\},(?= [yi] )/, '').replace(/, \{\{nombre\}\}/, '');
 }
 
 /** Las preguntas que van sin el nombre si el acuse pegado ya lo dice: FO1 ("Otra cosa, {{nombre}}."; prueba de Naza en la página, 30/09). */
