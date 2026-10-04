@@ -136,10 +136,15 @@ describe('la salida del modelo', () => {
       escenasContadas: ['e'],
     });
   });
-  it('sin listas, vacías; ilegible, undefined', () => {
-    expect(leerSalida('{}')).toEqual({ elegidas: [], escenasContadas: [] });
+  it('"elegidas" vacía vale (cero está bien); sin "elegidas", ilegible (04/10: antes daba cero repreguntas en silencio)', () => {
+    expect(leerSalida('{"elegidas": []}')).toEqual({ elegidas: [], escenasContadas: [] });
+    expect(leerSalida('{}')).toBeUndefined();
+    expect(leerSalida('{"elegida": [{"id": "CA2", "cita": "c", "pregunta": "¿p?"}]}')).toBeUndefined();
     expect(leerSalida('no hay json')).toBeUndefined();
     expect(leerSalida('{"elegidas": [')).toBeUndefined();
+  });
+  it('el prompt trae el formulario exacto que lee el código (04/10: estaba solo en "Esquema de salida", que no se manda)', () => {
+    expect(PROMPT_CAZADOR).toContain('{"elegidas": [{"id": "R..", "cita": "", "pregunta": "", "tema": "", "por_que": "", "ya_contado_chequeo": ""}], "escenas_contadas_bloque": [""]}');
   });
   it('descarta las elegidas con forma rota en lugar de romper la entrevista (revisión del 01/10)', () => {
     expect(leerSalida('{"elegidas": [null, 3, {"id": "CA2"}, {"id": "CA3", "cita": 5, "pregunta": "¿p?"}, {"id": "CA4", "cita": "c", "pregunta": "¿p?", "tema": "t"}]}')).toEqual({

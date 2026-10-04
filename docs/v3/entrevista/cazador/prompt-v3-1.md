@@ -11,6 +11,8 @@
 8. **Cita limpia** (Naza, 01/10): la cita no toma pedazos mal transcriptos (falló: «…el chico que me dejó el colegio militar…»).
 7. **Sin fórmula "Ya me dijiste…"** (Naza, 01/10): en la simulación las tres preguntas arrancaban igual y repetían la cita; ahora la pregunta no repite lo que ya muestra la cita y nunca arranca dos repreguntas igual.
 
+**04/10 (Naza, "errores claros, arreglalos"):** el esquema JSON pasó a estar adentro del prompt (antes estaba solo en "Esquema de salida", que no se le manda al modelo: la clave `elegidas` la deducía de "Campos de cada elegida"). Y si la salida no trae `elegidas`, el código la marca "salida ilegible" en vez de seguir sin repreguntas en silencio. Nada más cambió.
+
 ## Prompt
 
 ```
@@ -68,7 +70,9 @@ Ejemplos (no): "¡Qué lindo lo del galpón! ¿Qué pasó ahí y por qué te gus
 
 Además devolvé en escenas_contadas_bloque los momentos que SÍ contó bien en este bloque (dónde, quién, qué pasó), de tres a seis palabras cada uno, sin nombres fuera de la ficha, sin fechas: "la mudanza a la casa nueva", "el día del casamiento de su hermana". Solo escenas contadas, no temas mencionados al pasar. Si no contó ninguna, lista vacía.
 
-Devolvé solo el JSON del esquema, sin texto afuera.
+Devolvé solo el JSON de este esquema, sin texto afuera, con los nombres de los campos tal cual:
+{"elegidas": [{"id": "R..", "cita": "", "pregunta": "", "tema": "", "por_que": "", "ya_contado_chequeo": ""}], "escenas_contadas_bloque": [""]}
+Si no elegís ninguna, "elegidas" va vacía: [].
 
 Campos de cada elegida:
 - id: el id de la respuesta.

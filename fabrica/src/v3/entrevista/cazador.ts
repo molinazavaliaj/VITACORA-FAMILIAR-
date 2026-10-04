@@ -187,7 +187,9 @@ export function leerSalida(texto: string): { elegidas: Elegida[]; escenasContada
   try {
     const json = JSON.parse(texto.slice(desde, hasta + 1)) as { elegidas?: unknown; escenas_contadas_bloque?: unknown };
     // Revisión del 01/10: una elegida con forma rota (null, sin cita o pregunta de texto) se descarta acá; si no, rompía los controles.
-    const elegidas = Array.isArray(json.elegidas) ? (json.elegidas as unknown[]).filter(esElegida) : [];
+    // 04/10: sin "elegidas" (o con otro nombre) no es "cero elegidas": es una salida que no se entiende, y se anota.
+    if (!Array.isArray(json.elegidas)) return undefined;
+    const elegidas = (json.elegidas as unknown[]).filter(esElegida);
     const escenas = Array.isArray(json.escenas_contadas_bloque) ? (json.escenas_contadas_bloque as unknown[]).filter((x): x is string => typeof x === 'string') : [];
     return { elegidas, escenasContadas: escenas };
   } catch {
