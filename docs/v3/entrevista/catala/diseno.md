@@ -45,10 +45,7 @@ transcripción y cazador. Nada de `if (catalan)` desparramado.
 
 ## 3. Transcripción
 - `language: 'ca'` y un prompt de vocabulario en catalán (sale del paquete), con el
-  nombre del narrador.
-- Riesgo a mirar: mucha gente mezcla castellano. Con `ca` fijo el modelo puede
-  "pasar al catalán" una frase dicha en castellano. Para la prueba real lo dejo fijo en
-  `ca`; si se ve que traduce, la alternativa es no mandar idioma (detección sola).
+  nombre del narrador. Quien eligió catalán contesta en catalán (Naza, 04/10).
 
 ## 4. Detector de respuestas (`respuesta.ts`)
 - Las listas de frases ("no me acuerdo", "paso", "ya te lo conté", "está todo", AMH,
@@ -72,10 +69,9 @@ transcripción y cazador. Nada de `if (catalan)` desparramado.
   quedan dentro de la palabra. Con test.
 
 ## 5. Cazador de escenas
-- El prompt (`prompt-v3-1.md`) **no se reescribe**: se le suma, solo para catalán, una
-  instrucción corta al final: "Escribí la pregunta en catalán, cálido y natural, como
-  lo hablaría alguien de Barcelona; la cita va tal cual la dijo el narrador". Va en un
-  archivo nuevo `cazador/instruccion-ca.md` (la aprobás vos).
+- El prompt original (`prompt-v3-1.md`) **no se toca**. Se arma una copia entera en
+  catalán, `cazador/prompt-v3-1-ca.md` (Naza, 04/10: todo en catalán, sin tocar lo
+  original), con sus ejemplos inventados también en catalán.
 - La cita sigue textual (el control de "cita contigua" no depende del idioma).
 - Los controles de tiempo pasan al paquete: en catalán, sin "ahir / ahir a la nit / fa
   una estona / l'altre dia / aquesta setmana", y "avui" solo en el bloque Hoy.
@@ -83,29 +79,26 @@ transcripción y cazador. Nada de `if (catalan)` desparramado.
 - Mismo modelo (Opus 5), mismo tope USD 3 por entrevista.
 
 ## 6. Cómo se prueba (sin que nadie cuente su vida)
-- **Gratis:** tests de todo; una vida inventada en catalán (la escribe Fable) corrida
+- **Gratis:** tests de todo; una vida inventada en catalán (la escribe Opus) corrida
   por la simulación por turnos y la lectura corrida (`v3-entrevista-lectura.ts`, con
   `--idioma ca`); la página de prueba con `--idioma ca` para que la veas.
-- **Pago, te aviso antes de cada una:**
-
-| Prueba | Para qué | Costo |
-|---|---|---|
-| Transcribir 2 audios cortos en catalán (los grabás vos leyendo un texto inventado, o los genero con voz sintética) | ver que `ca` transcribe bien y no traduce lo dicho en castellano | ~USD 0,02 (+ 0,01 si es voz sintética) |
-| Cazador en 3 bloques de la vida inventada en catalán | ver que la pregunta sale en buen catalán y la cita textual | ~USD 0,30 |
-| **Total** | | **~USD 0,35** |
+- **Sin pruebas pagas** (Naza, 04/10): el cazador en catalán lo prueba Opus dentro de
+  la sesión (USD 0) con el prompt nuevo sobre la vida inventada, y los controles del
+  código se prueban con tests. La transcripción en catalán se prueba de verdad con Ima,
+  la primera narradora en catalán.
 
 ## 7. Orden de trabajo
 1. OK de este diseño.
-2. Fable traduce (USD 0) → te muestro tablas cortas por tanda (arranque y mensajes;
+2. Opus traduce en la sesión (USD 0; Naza, 04/10: no Fable, gasta mucho contexto) → te muestro tablas cortas por tanda (arranque y mensajes;
    botones; bloques 1–5; 6–10; 11–15; cazador) → apruebas.
 3. Código con test primero (paquete, banco-ca, detector, transcripción, cazador,
    `--idioma` en simulación y página).
 4. Vida inventada + lectura corrida + página para que la veas.
-5. Las dos pruebas pagas (con tu OK).
+5. El cazador en catalán probado por Opus en la sesión (USD 0).
 6. Revisión de otro agente → arreglos → merge a `v3` (con tu OK) → mensaje a Joaquín.
 
 ## Fuera de alcance (anotado)
-- El libro en catalán (lo que conteste el narrador le llega al escritor en catalán).
+- El libro en catalán (otro chat; Ima lo va a necesitar: lo que conteste le llega al escritor en catalán).
 - La ronda extra (75 preguntas que hoy no se ofrecen): se traduce cuando se active.
 - M9 (aviso a quien regaló): va en el idioma de la entrevista; si quien regala no habla
   catalán, habría que pensarlo aparte.
