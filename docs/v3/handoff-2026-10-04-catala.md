@@ -1,6 +1,6 @@
 # Pase de manos — 04/10/2026: la entrevista V3 en catalán
 
-Rama **`v3-catala`** (worktree `C:\Users\Naza\Desktop\VITACORA FAMILIAR-catala`, sale de `v3` en `feeda45`), pusheada a `origin`. **Sin mergear a `v3`** (espera el OK de Naza). 1456 tests verdes, `tsc` limpio. `entrevistador/` sin tocar. Diseño: [`entrevista/catala/diseno.md`](entrevista/catala/diseno.md).
+Rama **`v3-catala`** (worktree `C:\Users\Naza\Desktop\VITACORA FAMILIAR-catala`, sale de `v3` en `feeda45`), pusheada a `origin`. **Mergeada a `v3` el 04/10 con el OK de Naza** (fast-forward a `6912180`). 1456 tests verdes, `tsc` limpio. `entrevistador/` sin tocar. Diseño: [`entrevista/catala/diseno.md`](entrevista/catala/diseno.md).
 
 ## Qué quedó hecho (verificado)
 | Tema | Dónde |
@@ -37,7 +37,6 @@ Plata: **USD 0** (todo con agentes en la sesión; Softcatalà es gratis).
 Quedan sin tocar (no son errores claros): los acuses rotan sin mirar el peso de lo contado; la coletilla "Si ya me lo contaste, decímelo…" en muchas seguidas.
 
 ## Pendiente
-- **Naza:** OK para mergear `v3-catala` a `v3`.
 - **Joaquín:** la web escribe `contexto.idioma = "ca"` cuando quien regala elige catalán; el entrevistador lo lee y lo pasa (ver el mensaje abajo y el CONTRATO). Para Imma: poner `contexto.idioma = "ca"` en su narrador **antes** de que reciba la próxima pregunta.
 - El libro en catalán (otro chat): lo que conteste Imma le llega al escritor en catalán.
 - Variantes `es-ES` (tú de España): mismo molde (`banco-es-ES.md` + su entrada en cada paquete).
