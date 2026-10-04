@@ -20,3 +20,19 @@ Naza leyó la primera página del libro v5.2: "mal redactado" (sintaxis del audi
 - El capítulo I se achicó (de 1.294 a 1.091 palabras) y perdió escenas: por eso gana la v5.2 ahí.
 
 Siguiente: v5.3.1 (corrector con lista fija y dos pasadas, la baranda lee números en letras, escenas enteras).
+
+## Prueba v5.3.1 sobre el libro v5.2 (04/10/2026)
+Mismo banco; corrector con lista fija y dos pasadas, la baranda lee números en letras, escenas enteras.
+
+| Pieza | v5.2 | v5.3.1 | Se lee mejor |
+|---|---|---|---|
+| Primera página | 5,75 | **7** | v5.3.1 / v5.3.1 |
+| Capítulo I | **7** | 6,75 | v5.2 / v5.2 |
+| Capítulo VI | 6 | **6,5** | v5.2 / v5.3.1 |
+| Promedio | 6,25 | **6,75** | |
+
+- El corrector ahora corrige: 6 cambios en la primera página, 20 en el I, 9 en el VI (dos pasadas), ninguno frenado. Los casos que marcó Naza quedaron arreglados (número del piso, "fútbol 11", sujeto borrado, "siempre donde llego").
+- La primera página comparte un solo tramo con otra pieza (antes 12).
+- El capítulo I sigue perdiendo con la v5.2: achica una escena de los hermanos y los presenta dos veces; queda para la lectura de Naza.
+
+Decisión (pedido de Naza: "si gana, libro entero"): libro entero con la v5.3.1.
