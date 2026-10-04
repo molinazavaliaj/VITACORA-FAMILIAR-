@@ -36,3 +36,18 @@ Mismo banco; corrector con lista fija y dos pasadas, la baranda lee números en 
 - El capítulo I sigue perdiendo con la v5.2: achica una escena de los hermanos y los presenta dos veces; queda para la lectura de Naza.
 
 Decisión (pedido de Naza: "si gana, libro entero"): libro entero con la v5.3.1.
+
+## Libro entero v5.3.1 de Naza (04/10/2026)
+`workflow-libro.js` v5.3.1 (`puro`, `soloHechos`), todo con Opus; plan y registro de la v5.2. 8 capítulos, 6.529 palabras, sin marcas impresas. PDF enviado a Naza: falta su lectura.
+
+| Medida (libro entero) | v5.2 | v5.3.1 |
+|---|---|---|
+| Palabras por oración | 23,4 | 21,3 |
+| Oraciones de 10 a 30 palabras | 75 % | 76 % |
+| Más de 40 palabras | 8 | 4 |
+| Arrancan con "Y" / "no" de la entrevista | 0 / 0 | 0 / 0 |
+| Avisos de los controles al final | 60 | 26 |
+| Tramos repetidos entre piezas (C7) | 32 | 3 |
+| Cambios del corrector (2 pasadas) | — | 148 aplicados, 11 frenados por la baranda |
+
+Abierto: C33 en cuatro capítulos (lo que prepara el golpe es de otro capítulo y no quedó marcado como recuerdo); cuatro personas nombradas una vez en la entrevista que no entraron (C21); 4 oraciones de más de 40 palabras. Los casos que marcó Naza no quedan en el cuerpo del libro (uno sigue en "Sus frases", que es literal a propósito).
