@@ -184,7 +184,6 @@ Una frase al empezar cada bloque, antes de su primera pregunta; no espera respue
 | JU2 | ¿Qué hiciste después del colegio? Si seguiste estudiando, contame qué y cómo eran esos años; si la vida te llevó para otro lado, contame en qué andabas. Y un día de esa época que te haya quedado. |  | núcleo | historia |  |
 | JU2b | ¿Te pasó de empezar a estudiar algo y dejarlo? Si te pasó, contame cómo fue ese momento: qué pasaba en tu vida, si lo hablaste con alguien. |  | extra | historia |  |
 | JU4 | ¿Cómo aprendiste a hacer eso que es tuyo, lo que más te ocupa o más te gusta, sea tu trabajo o algo que hacés por gusto? Contame cómo fue arrancar: un día de cuando recién empezabas. |  | núcleo | historia |  |
-| JU5 | ¿Tuviste alguna experiencia con lo militar: la colimba, la mili, un colegio militar? ¿O alguna época de disciplina dura, en tu casa, en un colegio, en un trabajo? Contame cómo era y alguna vez que todavía te acordás. |  | núcleo | historia |  |
 | JU8 | ¿Alguna vez te fuiste a vivir a otra ciudad o a otro país? Capaz ya me contaste algo de esa mudanza; ahora contame la llegada: el primer día, dónde dormiste esa noche, quién te esperaba y qué fue lo que más te costó. |  | núcleo | historia |  |
 | JU10 | Cuando llegaste a vivir a ese lugar nuevo, ¿hubo alguien que te dio una mano? Alguien que te abrió la puerta, te explicó cómo eran las cosas. Contame una vez que te ayudó. | si:JU8 | extra | historia |  |
 | JU11 | Un día uno se da cuenta de que ya es de ahí: conoce las calles, lo saludan, se siente en casa. ¿Te pasó con ese lugar nuevo? Contame ese momento. | si:JU8 | extra | historia |  |
@@ -197,15 +196,15 @@ Una frase al empezar cada bloque, antes de su primera pregunta; no espera respue
 | JU17 | ¿Hubo algún momento duro en esos años de empezar tu vida que creas que no puede quedar afuera de tu historia? ¿Algo que te marcó? Si querés, contame qué pasó y cómo lo viviste. Si ya me lo contaste, decímelo, y si querés reforzar algo, es el momento. |  | núcleo | historia | sí |
 | JU18 | ¿Cómo eran las fiestas y las salidas en tu juventud? Los bailes, los cumpleaños, las noches largas. Contame una que no te olvidás. Y si se te vienen más, contalas también. |  | extra | historia |  |
 | JU19 | ¿Tuviste algún flechazo en esos años, alguien que te movió el piso? Contame cómo fue: dónde se cruzaron, qué pasó. |  | extra | historia |  |
-| JU20 | ¿Te mudaste muchas veces en tu vida? Contame por qué casas o lugares fuiste pasando, más o menos en qué años, y cuál de esas mudanzas te quedó más grabada. |  | núcleo | historia |  |
+| JU20 | ¿Te mudaste muchas veces en tu vida, aunque sea de casa dentro del mismo lugar? Contame por qué casas o lugares fuiste pasando, más o menos en qué años, y cuál de esas mudanzas te quedó más grabada. |  | núcleo | historia |  |
 | CI5 | Y así llegamos al final de tu juventud, los años en que empezaste a hacer tu vida. Antes de seguir, ¿te quedó algo de esa época sin contar? Un lugar, una persona, una tarde que se te aparece de vez en cuando. Contámelo ahora, con calma. |  | núcleo | cierre |  |
 
 ## Bloque 6 · Amor y pareja
 
 | ID | Pregunta | Depende de | Parte | Clase | Sensible |
 |---|---|---|---|---|---|
-| AM0 | Ahora vamos al amor. ¿Hubo alguien con quien tuviste una historia en serio? Si hubo, haceme un repaso corto: cuántas veces te enamoraste, cuáles llegaron a algo serio, más o menos en qué años, y si hoy hay alguien a tu lado. Después te pregunto más de la pareja de ahora, o de la última, y de las de antes también va a haber lugar. Y si no hubo, también vale. |  | núcleo | historia |  |
-| AMH | Vamos a la pareja de ahora, o a la última si hoy no hay nadie. ¿Hoy estás en pareja? | si:AM0 | núcleo | historia |  |
+| AM0 | Ahora vamos al amor. ¿Hubo alguien con quien tuviste una historia en serio? Si hubo, haceme un repaso corto: cuántas veces te enamoraste, cuáles llegaron a algo serio y más o menos en qué años. Después te pregunto más de la pareja de ahora, o de la última, y de las de antes también va a haber lugar. Y si no hubo, también vale. |  | núcleo | historia |  |
+| AMH | Vamos a la pareja de ahora, o a la última si hoy no hay nadie. ¿Hoy estás en pareja? Si ya me lo contaste, con el botón alcanza. | si:AM0 | núcleo | historia |  |
 | AM1 | Empecemos por su nombre. Y contame el día que se conocieron: dónde fue, quién los presentó o cómo se cruzaron, y qué fue lo primero que te llamó la atención de esa persona. Si ya me lo contaste, decímelo, y si querés reforzar algo, es el momento. | si:AM0 | núcleo | historia |  |
 | AM2 | ¿Cómo fue el noviazgo, o esos primeros tiempos? Pensá en un momento: una cita, un paseo, una tarde que todavía tenés fresca. Contámela como si la vieras de vuelta. Si se te vienen más, contalas también. | si:AM0 | extra | historia |  |
 | AM3 | Y después, ¿llegaron a armar la vida juntos: casarse, irse a vivir, lo que haya sido? Si llegaron, contame ese momento: quién lo dijo primero, o si se fue dando solo, dónde estaban, qué se dijeron. Si ya me lo contaste, decímelo, y si querés reforzar algo, es el momento. | si:AM0 | núcleo | historia |  |
@@ -214,7 +213,7 @@ Una frase al empezar cada bloque, antes de su primera pregunta; no espera respue
 | AM6 | ¿Tuvieron una época difícil entre ustedes? Si la hubo, contame qué pasaba y cómo la fueron llevando: qué hizo cada uno, si hubo un día que lo cambió. Si preferís no entrar, también está bien. | si:AM0 | extra | historia |  |
 | AM13 | Contame una pelea que tuvieron, de esas que después dan risa: por qué fue, quién aflojó primero y cómo hicieron las paces. Si no hubo ninguna que hoy dé risa, con decírmelo alcanza. | si:AM3 | núcleo | historia |  |
 | AM8 | Imaginate que podés guardar un solo momento con esa persona, ¿cuál sería? Contámelo entero: el lugar, el día, qué hacían. Si se te vienen otros, contalos también. | si:AM0 | núcleo | historia |  |
-| AM9 | Si querés, contame cómo fue el final de esa historia: una separación, una despedida, lo que haya sido. Solo lo que vos quieras, y hasta donde quieras. Si preferís no entrar ahí, con el botón alcanza; lo demás de tu historia sigue igual. | sino:AMH | núcleo | historia | sí |
+| AM9 | Si querés, contame cómo fue el final de esa historia: una despedida, como haya sido. Solo lo que vos quieras, y hasta donde quieras. Si preferís no entrar ahí, con el botón alcanza; lo demás de tu historia sigue igual. | sino:AMH | núcleo | historia | sí |
 | AM7 | Contame algo muy de esa persona: una frase que «sino:AMH: repetía ‖ repite», una costumbre, una manía. Y una vez puntual en que salió eso, para que quien lea la tenga enfrente. | si:AM0 | extra | historia |  |
 | AM19 | Y después, cuando quedaste por tu cuenta, ¿cómo fueron esos primeros tiempos? Qué cambió en la casa y en los días, quién anduvo cerca. Si ese tiempo es el de ahora, contame igual cómo lo estás llevando. Y si no hubo un tiempo así, con decírmelo alcanza. | sino:AMH y si:AM3 | núcleo | historia |  |
 | AM21 | Ahora las de antes. Si en el repaso me nombraste otras historias que fueron en serio, este es su lugar, pero sin tanto detalle: de cada una, contame un momento que quieras que quede en el libro, el que se te venga primero, y si querés, cómo terminó. Y si hubo alguien que te marcó aunque no haya llegado a nada, también entra acá. Si esa fue la única, con el botón alcanza. | si:AM0 | núcleo | historia |  |
@@ -288,7 +287,7 @@ Una frase al empezar cada bloque, antes de su primera pregunta; no espera respue
 | ID | Pregunta | Depende de | Parte | Clase | Sensible |
 |---|---|---|---|---|---|
 | AS1 | Ya de grande, ¿hubo alguien que conociste y se volvió muy importante en tu vida, un amigo o una amiga? Contame de quién hablás, con su nombre, cómo se conocieron, y una vez que muestre bien cómo es esa amistad. |  | núcleo | historia |  |
-| HE2 | Ya de grandes, ¿tus hermanos también se volvieron amigos? Contame algún momento de adultos en que estuvieron bien cerca: un viaje, una charla, una mano que se dieron. | si:CA6 | núcleo | historia |  |
+| HE2 | Ya de grandes, ¿con tus hermanos (o con tu hermano o hermana, si tuviste uno solo) también se hicieron amigos? Contame algún momento de adultos en que estuvieron bien cerca: un viaje, una charla, una mano que se dieron. | si:CA6 | núcleo | historia |  |
 | AS1b | Volviendo a esa amistad: contame algo que hicieron juntos hace poco. Aunque sea una charla por teléfono. | si:AS1 | extra | historia |  |
 | AY1 | ¿Alguna vez necesitaste ayuda de verdad y alguien te la dio, sea quien sea? Contame qué hizo esa persona ese día, y si después se lo pudiste devolver. |  | núcleo | historia |  |
 | AS4 | A veces una amistad se enfría sin que nadie lo decida. ¿Te pasó con alguna? Contame cómo era esa amistad y qué fue pasando, hasta donde tengas ganas. |  | extra | historia |  |
@@ -389,7 +388,7 @@ Los botones de respuesta de WhatsApp que van debajo de la pregunta (Naza, 30/09,
 | CA6 | Sí, tuve | sí |
 | CA6 | No tuve hermanos | no |
 | JU8 | Sí, me mudé | sí |
-| JU8 | No, nunca me mudé | no |
+| JU8 | No, nunca me fui | no |
 | AM0 | Sí, hubo | sí |
 | AM0 | No hubo | no |
 | AMH | Sí, estoy en pareja | sí |
@@ -606,3 +605,13 @@ Registro con los ANTES y DESPUÉS y lo descartado en [`simulaciones/textos-fable
 Chat "La entrevista trae escenas"; plan en [`cazador/plan-codigo.md`](cazador/plan-codigo.md), parte A. Textos de Fable, OK de Naza.
 - Las 8 preguntas que piden un día (CA16, AD5, JU12, TR5, HG4, GI2, GI9, HO2) ya no traen la salida en el mismo mensaje. Antes decían, por ejemplo, "Y si no te vuelve un día en particular, contame qué cosas esperabas con ganas en esa época, que con eso me arreglo." (CA16): con la salida a la vista, el narrador la tomaba y el día no llegaba. En GI2 queda "Si ya me lo contaste…"; en JU12, "Si nunca te fuiste…" (sin la "Y" de adelante).
 - Si contesta con un olvido puro ("no me acuerdo", "no sé"…), llega la segunda oportunidad (M33.1 a M33.8), una sola vez, sin acuse delante. Lo que contesta se guarda como `X~2`. Después: si contó, M28.4/M28.5; si fue otro olvido o un "no" corto, M28.1; si dijo "paso", M21. Para M29 la pregunta entera cuenta como un olvido (cuenta el de `X~2`).
+
+## Cambios del 04/10 (Naza, después de la simulación en catalán: "errores claros, arreglalos")
+La simulación de una narradora inventada (`simulaciones/catala/roser.md`) mostró cosas que pasan igual en castellano:
+- **JU5 (la mili) sale del banco** ("saquémosla; si es importante para alguien lo contará en otras preguntas"): se le mandaba también a mujeres. Queda en `../banco-descartadas.md`; el cazador ya no la nombra entre lo que viene.
+- **JU8:** el botón [No, nunca me mudé] pasa a [No, nunca me fui] (la pregunta es irse a otra ciudad o país; con "nunca me mudé", JU20 sonaba a contradicción). **JU20** suma "aunque sea de casa dentro del mismo lugar".
+- **AM0** ya no pregunta "si hoy hay alguien a tu lado" (lo pregunta AMH, que llegaba repetido); **AMH** suma "Si ya me lo contaste, con el botón alcanza."
+- **AM9** ya no nombra "una separación, una despedida" (a una viuda le hablaba de separación): "contame cómo fue el final de esa historia: una despedida, como haya sido" (la palabra "despedida" se queda: decisión de Naza del 30/09).
+- **HE2** ya no da por hecho varios hermanos: "¿con tus hermanos (o con tu hermano o hermana, si tuviste uno solo) también se hicieron amigos?".
+Lo mismo en catalán, en `banco-ca.md`.
+

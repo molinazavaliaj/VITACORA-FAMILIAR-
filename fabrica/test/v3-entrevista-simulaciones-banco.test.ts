@@ -126,7 +126,7 @@ describe('botones (textos-finales.md, sección 1 y regla 1; PLAN-codigo.md)', ()
 
   it('las que abren tema llevan Sí y No (desde la prueba de Naza: AMH y AM21; AM9 solo [Prefiero no contarla])', () => {
     expect(botones('CA6')).toEqual(['Sí, tuve=si', 'No tuve hermanos=no']);
-    expect(botones('JU8')).toEqual(['Sí, me mudé=si', 'No, nunca me mudé=no']);
+    expect(botones('JU8')).toEqual(['Sí, me mudé=si', 'No, nunca me fui=no']); // Naza, 04/10 (antes [No, nunca me mudé], y JU20 sonaba a contradicción)
     expect(botones('AM0')).toEqual(['Sí, hubo=si', 'No hubo=no']);
     expect(botones('AM3')).toEqual(['Sí=si', 'No llegamos a eso=no']);
     expect(botones('AMH')).toEqual(['Sí, estoy en pareja=si', 'No estoy en pareja=no']);

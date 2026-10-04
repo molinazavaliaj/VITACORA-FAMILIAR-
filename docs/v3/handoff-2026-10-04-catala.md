@@ -1,6 +1,6 @@
 # Pase de manos — 04/10/2026: la entrevista V3 en catalán
 
-Rama **`v3-catala`** (worktree `C:\Users\Naza\Desktop\VITACORA FAMILIAR-catala`, sale de `v3` en `feeda45`), pusheada a `origin`. **Sin mergear a `v3`** (espera el OK de Naza). 1455 tests verdes, `tsc` limpio. `entrevistador/` sin tocar. Diseño: [`entrevista/catala/diseno.md`](entrevista/catala/diseno.md).
+Rama **`v3-catala`** (worktree `C:\Users\Naza\Desktop\VITACORA FAMILIAR-catala`, sale de `v3` en `feeda45`), pusheada a `origin`. **Sin mergear a `v3`** (espera el OK de Naza). 1456 tests verdes, `tsc` limpio. `entrevistador/` sin tocar. Diseño: [`entrevista/catala/diseno.md`](entrevista/catala/diseno.md).
 
 ## Qué quedó hecho (verificado)
 | Tema | Dónde |
@@ -24,15 +24,17 @@ Rama **`v3-catala`** (worktree `C:\Users\Naza\Desktop\VITACORA FAMILIAR-catala`,
 
 Plata: **USD 0** (todo con agentes en la sesión; Softcatalà es gratis).
 
-## Lo que la simulación marcó y NO se tocó (pasa igual en castellano: es del banco, no del idioma)
-- JU20 ("¿te mudaste muchas veces?") llega aunque haya tocado [No, nunca me mudé] en JU8.
-- La mili (JU5) también se le pregunta a una mujer (en castellano igual: "la colimba, la mili, un colegio militar…").
-- AMH ("¿hoy estás en pareja?") llega aunque ya haya dicho que el marido murió; AM9 habla de "una separación" a una viuda; HE2 en plural con un solo hermano.
-- Los acuses rotan sin mirar el peso de lo contado.
-- La coletilla "Si ya me lo contaste, decímelo…" en muchas seguidas.
+## Lo que la simulación marcó en el banco (pasa igual en castellano) — ARREGLADO el 04/10 (Naza: "errores claros, arreglalos")
+| # | Qué pasaba | Arreglo (castellano y catalán) |
+|---|---|---|
+| 1 | El esquema JSON del cazador no estaba dentro del prompt (el modelo adivinaba la clave `elegidas`; si fallaba, el bloque quedaba sin repreguntas en silencio) | Esquema adentro de `prompt-v3-1.md`; sin `elegidas` es "salida ilegible" (`a3fe12a`) |
+| 2 | La mili (JU5) se le preguntaba también a mujeres | JU5 sale del banco (a `banco-descartadas.md`); el cazador ya no la nombra |
+| 3 | JU20 ("¿te mudaste muchas veces?") después de tocar [No, nunca me mudé] | Botón [No, nunca me fui]; JU20 suma "aunque sea de casa dentro del mismo lugar" |
+| 4 | AMH ("¿hoy estás en pareja?") repetía lo que ya pedía AM0 | AM0 ya no pregunta "si hoy hay alguien"; AMH suma "Si ya me lo contaste, con el botón alcanza" |
+| 5 | AM9 le hablaba de "una separación" a una viuda | "contame cómo fue el final de esa historia: una despedida, como haya sido" |
+| 6 | HE2 daba por hecho varios hermanos | "¿con tus hermanos (o con tu hermano o hermana, si tuviste uno solo) también se hicieron amigos?" |
 
-## Hallazgo para el castellano (sin tocar)
-El esquema JSON del cazador (`{"elegidas": …}`) está en la sección "Esquema de salida" de `prompt-v3-1.md`, que **no** se le manda al modelo: en castellano funciona porque el modelo deduce la clave de "Campos de cada elegida". En el catalán se puso adentro del prompt. Conviene hacer lo mismo en castellano (decisión de Naza).
+Quedan sin tocar (no son errores claros): los acuses rotan sin mirar el peso de lo contado; la coletilla "Si ya me lo contaste, decímelo…" en muchas seguidas.
 
 ## Pendiente
 - **Naza:** OK para mergear `v3-catala` a `v3`.

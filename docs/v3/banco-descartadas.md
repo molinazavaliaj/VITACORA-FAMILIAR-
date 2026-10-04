@@ -46,6 +46,7 @@ Convenciones:
 
 | ID | Texto viejo | Por qué salió | Dónde queda cubierto hoy | Quién y cuándo |
 |---|---|---|---|---|
+| JU5 (la del 30/09) | ¿Tuviste alguna experiencia con lo militar: la colimba, la mili, un colegio militar? ¿O alguna época de disciplina dura, en tu casa, en un colegio, en un trabajo? Contame cómo era y alguna vez que todavía te acordás. | Naza, 04/10: "saquémosla; si es importante para alguien lo contará en otras preguntas". En la simulación en catalán se la mandó a una mujer nacida en 1948. | En parte: JU2 (después del colegio), JU17 (un momento duro de esos años) y el cierre CI5 | Naza, 04/10 |
 | JU3 | Contame de un amigo o una amiga que hiciste en esa época de estudio y que fue importante: su nombre, cómo se conocieron. | "JU3 y JU3b (amigo de estudio y qué fue de él: los amigos van en JU15)" | JU15 | Claude/Fable proponen; Naza cierra el bloque 5, 29/09 |
 | JU3b | Contame qué fue de ese amigo o esa amiga de la época de estudio: si siguen en contacto, la última vez que se vieron. | Igual que JU3: "los amigos van en JU15" | JU15 en parte (los amigos de esos años); el "qué fue de ese amigo": en ningún lado | Claude/Fable proponen; Naza cierra el bloque 5, 29/09 |
 | JU6 | Contame de alguien que conociste en esa experiencia: su nombre, qué es o qué era tuyo y una vez concreta con esa persona. | "**JU6:** afuera (ya está en JU5)" | JU5 | Fable la había reescrito ("En esa época militar se conoce gente de todos lados…"); Naza la saca en la vuelta 2 del bloque 5, 29/09 |

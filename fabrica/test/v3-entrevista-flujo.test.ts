@@ -256,18 +256,19 @@ describe('entrevista: conteos', () => {
   // Prueba de Naza en la página (30/09): entran al núcleo G1, HE2 (si tuvo hermanos) y HO11 (nueva), sale FI6;
   // el bloque 6 de quien sigue en pareja queda en 8 (AMH y AM21 en lugar de AM9 y AM14).
   // Naza, 30/09 (después de su prueba): OR6, OR6.2, CA10, CA14, ES8, JU13, HI7, HI12, PA3, AS7, HO4, HO10 y G3 pasan de extra al núcleo.
-  it('vida completa (sigue con su primera pareja, hermanos, se mudó, hijos y nietos): 104 de historia en el núcleo', () => {
-    expect(contar(vida('sigue-con-la-primera'), false)).toEqual({ historia: 104, turnos: 120 }); // antes 103 y 119 (JU20 pasó al núcleo, Naza 01/10); antes 90 y 106
-    expect(contar(vida('sigue-con-la-primera'), true)).toEqual({ historia: 178, turnos: 194 });
+  it('vida completa (sigue con su primera pareja, hermanos, se mudó, hijos y nietos): 103 de historia en el núcleo', () => {
+    expect(contar(vida('sigue-con-la-primera'), false)).toEqual({ historia: 103, turnos: 119 }); // Naza, 04/10: sale JU5 (la mili). // antes 103 y 119 (JU20 pasó al núcleo, Naza 01/10); antes 90 y 106
+    expect(contar(vida('sigue-con-la-primera'), true)).toEqual({ historia: 177, turnos: 193 }); // sin JU5 (Naza, 04/10)
   });
 
-  it('sin pareja ni hijos (sin hermanos, no se mudó): 91 de historia en el núcleo', () => {
-    expect(contar(vida('nunca-pareja-sin-hijos'), false)).toEqual({ historia: 91, turnos: 107 }); // antes 90 y 106 (JU20 al núcleo: le llega a todos); antes 79 y 95 (+11 del pase al núcleo; HI7 e HI12 no, sin hijos). // antes 78 y 94 (sin HE2: no tuvo hermanos)
+  it('sin pareja ni hijos (sin hermanos, no se mudó): 90 de historia en el núcleo', () => {
+    expect(contar(vida('nunca-pareja-sin-hijos'), false)).toEqual({ historia: 90, turnos: 106 }); // Naza, 04/10: sale JU5 (la mili). // antes 90 y 106 (JU20 al núcleo: le llega a todos); antes 79 y 95 (+11 del pase al núcleo; HI7 e HI12 no, sin hijos). // antes 78 y 94 (sin HE2: no tuvo hermanos)
   });
 
-  it('el banco tiene 125 filas en el núcleo y 74 en la extra (todas de historia: los cierres pasaron al núcleo el 30/09)', () => {
+  it('el banco tiene 124 filas en el núcleo y 74 en la extra (todas de historia: los cierres pasaron al núcleo el 30/09)', () => {
+    // Naza, 04/10: sale JU5 (la mili).
     // Naza, 30/09 (después de su prueba): OR6, OR6.2, CA10, CA14, ES8, JU13, HI7, HI12, PA3, AS7, HO4, HO10 y G3 pasan de extra al núcleo.
-    expect(BANCO.filter((p) => p.parte === 'nucleo')).toHaveLength(125);
+    expect(BANCO.filter((p) => p.parte === 'nucleo')).toHaveLength(124);
     const extra = BANCO.filter((p) => p.parte === 'extra');
     expect(extra).toHaveLength(74);
     expect(extra.filter(cuentaComoPregunta)).toHaveLength(74);
@@ -276,9 +277,9 @@ describe('entrevista: conteos', () => {
   it('preguntasDelNucleo y preguntasCompletas dan todo lo que podría llegar, renderizado', () => {
     const ficha = { nombre: 'Rogelio', genero: 'varon' as const };
     const nucleo = preguntasDelNucleo(ficha);
-    expect(nucleo).toHaveLength(125); // 111 + las 13 que pasaron al núcleo (Naza, 30/09) + JU20 (Naza, 01/10)
+    expect(nucleo).toHaveLength(124); // sin JU5 (Naza, 04/10); antes 125: 111 + las 13 que pasaron al núcleo (Naza, 30/09) + JU20 (Naza, 01/10)
     expect(nucleo.map((p) => p.id)).toEqual(expect.arrayContaining(['AM13', 'AM15', 'AMH', 'AM19', 'AM21', 'HI10']));
-    expect(preguntasCompletas(ficha)).toHaveLength(199);
+    expect(preguntasCompletas(ficha)).toHaveLength(198);
     expect(nucleo.find((p) => p.id === 'CA2')!.texto).toContain('cuando eras chico.');
     expect(nucleo.every((p) => !/\{\{(o\/a|padre\/madre|nombre)\}\}/.test(p.texto))).toBe(true);
   });

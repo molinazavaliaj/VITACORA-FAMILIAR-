@@ -80,7 +80,7 @@ Las 8 llevan botones de "Sí" y "No" (sección 4). Un "no" es tocar el botón de
 | Abre | Botones | Si contesta que no | Si contesta "paso" |
 |---|---|---|---|
 | Hermanos (CA6) | [Sí, tuve] [No tuve hermanos] | no va "tus otros hermanos" (extra) | igual |
-| Irse a vivir a otro lado (JU8) | [Sí, me mudé] [No, nunca me mudé] | no van "quién te dio una mano" ni "sentirte de ahí" (extra) | ídem |
+| Irse a vivir a otro lado (JU8) | [Sí, me mudé] [No, nunca me fui] (04/10; antes [No, nunca me mudé]) | no van "quién te dio una mano" ni "sentirte de ahí" (extra) | ídem |
 | El amor: ¿hubo alguien en serio? (AM0) | [Sí, hubo] [No hubo] | no van las de pareja; va "las personas con las que compartís la vida" (AM15) | no van las de pareja |
 | ¿Hoy estás en pareja? (AMH, nueva) | [Sí, estoy en pareja] [No estoy en pareja] | ya no está: van "cómo fue el final" (AM9) y, si armaron la vida juntos, "por tu cuenta" (AM19: `sino:AMH y si:AM3`); AM7 dice "repetía" | sigue: no van AM9 ni AM19 |
 | ¿Llegaron a armar la vida juntos? (AM3) | [Sí] [No llegamos a eso] | no van "el día del casamiento" (AM4), "la pelea que da risa" (AM13) ni "por tu cuenta" (AM19) | ídem |
@@ -104,7 +104,7 @@ En todos los casos el cierre del bloque llega igual (sección 3), así que siemp
 | 2 La casa de chico | EN2 | primer recuerdo de la casa, mamá, papá, hermanos, un día esperado, momento difícil | CI2 + M24 |
 | 3 Escuela | EN3 | primer día, maestra, mejor amigo, travesura, qué querías ser, la religión en tu casa | CI3 + M24 |
 | 4 Adolescencia | EN4 | dónde pasabas los días, la barra, primera salida, primer amor, ya no eras chico, momento duro | CI4 + M24 |
-| 5 Juventud | EN5 | irse de casa, después del colegio, aprender lo tuyo, lo militar, irse a vivir a otro lado, primer lugar propio, las mudanzas (JU20, al núcleo el 01/10 por Naza), amigos, momento duro | CI5 + M24 |
+| 5 Juventud | EN5 | irse de casa, después del colegio, aprender lo tuyo, irse a vivir a otro lado, primer lugar propio, las mudanzas (JU20, al núcleo el 01/10 por Naza), amigos, momento duro | CI5 + M24 |
 | 6 Amor | — (AM0) | ¿hubo alguien en serio?, y lo que corresponda según la vida (sección 5) | CI6 + M24 |
 | 7 Trabajo | EN7 | primer trabajo, el repaso de trabajos, un día común, quien te dio una mano, día de orgullo, sin trabajo o plata ajustada, negocio propio, lo que hacés bien y nadie te paga, el campo, el último día | CI7 + M24 |
 | 8 Hijos y nietos | EN8 | tus viejos de grande (y si te tocó cuidarlos), ¿tuviste hijos?, el primero, cómo era cada uno, la crianza, orgullo, nietos (si tuvo hijos), algo con los nietos | CI8 + M24 |
@@ -122,7 +122,7 @@ En todos los casos el cierre del bloque llega igual (sección 3), así que siemp
 
 | Vida | Preguntas de historia (con la foto) | Turnos (preguntas, cierres, aviso y final) | Mensajes de WhatsApp del biógrafo |
 |---|---|---|---|
-| Completa (pareja, hijos, nietos, hermanos, se mudó) | 103 | 119 | 141 (incluye una pregunta de la familia de ejemplo; antes de pasar las 13 ⭐ al núcleo, 90 · 106 · 128; antes de la prueba de Naza, 88 · 104 · 126) |
+| Completa (pareja, hijos, nietos, hermanos, se mudó) | 103 (04/10: entró JU20 el 01/10 y salió JU5, la mili) | 119 | 141 (incluye una pregunta de la familia de ejemplo; antes de pasar las 13 ⭐ al núcleo, 90 · 106 · 128; antes de la prueba de Naza, 88 · 104 · 126) |
 | Completa, pero esa persona ya no está (separación o viudez, convivieron) | 92 | 108 | — |
 | Sin pareja ni hijos (sin hermanos, no se mudó) | 90 | 106 | — (antes 79 · 95, y antes 78 · 94) |
 

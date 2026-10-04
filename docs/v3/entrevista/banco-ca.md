@@ -6,6 +6,8 @@
 
 **Después de la simulación en catalán (04/10)**, con una narradora inventada ([`simulaciones/catala/roser.md`](simulaciones/catala/roser.md)), se ajustaron solo en catalán: PE4 (el género), AS7, TR6, JU12, ES2, OR2 (frases poco naturales) y M28.4/M28.5 ("en tinc prou" sonaba a "basta").
 
+**04/10, después:** los cambios de banco.md del 04/10 (sale JU5; JU8, JU20, AM0, AMH, AM9, HE2) también acá.
+
 **Si cambia banco.md** (una pregunta nueva, un mensaje, un botón), los tests fallan hasta que esa fila tenga su texto acá: nunca se manda castellano en una entrevista en catalán.
 
 **Marcas:** las mismas de banco.md. `{{nombre}}`, `{{quien_regala}}`, `{{tema}}`; el género va con la palabra entera, `{{nen/nena}}`, `{{orgullós/orgullosa}}` (el catalán marca género donde el castellano a veces no); `«sino:X: A ‖ B»`; `<br>` = salto de línea.
@@ -89,7 +91,6 @@
 | JU2 | Què vas fer quan vas deixar l'escola o l'institut? Si vas continuar estudiant, explica'm què i com van ser aquells anys; si la vida et va portar cap a un altre lloc, explica'm què feies. I explica'm un dia d'aquella època que se t'hagi quedat gravat. |
 | JU2b | Et va passar mai de començar a estudiar alguna cosa i deixar-ho? Si et va passar, explica'm com va ser aquell moment: què passava a la teva vida, si ho vas parlar amb algú. |
 | JU4 | Com vas aprendre allò que saps fer millor, el que més t'ocupa o més t'agrada, sigui la teva feina o alguna cosa que fas per gust? Explica'm com van ser els inicis: un dia dels primers temps. |
-| JU5 | Vas tenir alguna experiència amb el món militar: la mili, una escola militar? O alguna època de disciplina dura, a casa, en una escola, en una feina? Explica'm com era i alguna vegada que encara recordis. |
 | JU8 | Te'n vas anar mai a viure a una altra ciutat o a un altre país? Potser ja m'has explicat alguna cosa d'aquella mudança; ara explica'm l'arribada: el primer dia, on vas dormir aquella nit, qui t'esperava i què et va costar més. |
 | JU10 | Quan vas arribar a viure a aquell lloc nou, hi va haver algú que et va donar un cop de mà? Algú que et va obrir la porta, que et va explicar com anaven les coses. Explica'm una vegada que et va ajudar. |
 | JU11 | Un dia t'adones que ja ets d'allà: coneixes els carrers, et saluden, et sents a casa. Et va passar amb aquell lloc nou? Explica'm aquell moment. |
@@ -102,10 +103,10 @@
 | JU17 | Hi va haver algun moment dur en aquells anys de començar la teva vida que creguis que no pot quedar fora de la teva història? Alguna cosa que et va marcar? Si vols, explica'm què va passar i com ho vas viure. Si ja me l'has explicat, digues-m'ho, i si vols remarcar alguna cosa, és el moment. |
 | JU18 | Com eren les festes i les sortides de la teva joventut? Els balls, els aniversaris, les nits llargues. Explica'm una que no oblides. I si te'n venen més, explica-les també. |
 | JU19 | Vas tenir algun amor a primera vista en aquells anys, algú que et va fer perdre el cap? Explica'm com va ser: on us vau trobar, què va passar. |
-| JU20 | T'has mudat moltes vegades a la teva vida? Explica'm per quines cases o llocs has anat passant, més o menys en quins anys, i quina d'aquestes mudances se t'ha quedat més gravada. |
+| JU20 | T'has mudat moltes vegades a la teva vida, encara que fos de casa dins del mateix lloc? Explica'm per quines cases o llocs has anat passant, més o menys en quins anys, i quina d'aquestes mudances se t'ha quedat més gravada. |
 | CI5 | I així arribem al final de la teva joventut, els anys en què vas començar a fer la teva vida. Abans de continuar, t'ha quedat alguna cosa d'aquella època per explicar? Un lloc, una persona, una tarda que de tant en tant et torna. Explica-m'ho ara, amb calma. |
-| AM0 | Ara parlem de l'amor. Hi ha hagut algú amb qui hagis tingut una història de debò? Si n'hi ha hagut, fes-me un repàs curt: quantes vegades t'has enamorat, quines van arribar a ser una cosa seriosa, més o menys en quins anys, i si avui hi ha algú al teu costat. Després et preguntaré més coses de la parella d'ara, o de l'última, i també hi haurà lloc per a les d'abans. I si no n'hi ha hagut, també està bé. |
-| AMH | Parlem de la parella d'ara, o de l'última si avui no hi ha ningú. Ara mateix tens parella? |
+| AM0 | Ara parlem de l'amor. Hi ha hagut algú amb qui hagis tingut una història de debò? Si n'hi ha hagut, fes-me un repàs curt: quantes vegades t'has enamorat, quines van arribar a ser una cosa seriosa i més o menys en quins anys. Després et preguntaré més coses de la parella d'ara, o de l'última, i també hi haurà lloc per a les d'abans. I si no n'hi ha hagut, també està bé. |
+| AMH | Parlem de la parella d'ara, o de l'última si avui no hi ha ningú. Ara mateix tens parella? Si ja m'ho has dit, n'hi ha prou amb el botó. |
 | AM1 | Comencem pel seu nom. I explica'm el dia que us vau conèixer: on va ser, qui us va presentar o com us vau trobar, i què va ser el primer que et va cridar l'atenció d'aquella persona. Si ja m'ho has explicat, digues-m'ho, i si vols remarcar alguna cosa, és el moment. |
 | AM2 | Com va ser el festeig, o aquells primers temps? Pensa en un moment: una cita, un passeig, una tarda que encara tens fresca. Explica-me'l com si el tornessis a veure. Si te'n venen més al cap, explica-me'ls també. |
 | AM3 | I després, vau arribar a fer vida plegats: casar-vos, anar a viure junts, el que fos? Si hi vau arribar, explica'm aquell moment: qui ho va dir primer, o si va anar sortint sol, on éreu, què us vau dir. Si ja m'ho has explicat, digues-m'ho, i si vols remarcar alguna cosa, és el moment. |
@@ -114,7 +115,7 @@
 | AM6 | Vau passar una època difícil entre vosaltres? Si n'hi va haver, explica'm què passava i com la vau anar portant: què va fer cadascú, si hi va haver un dia que ho va canviar. Si prefereixes no entrar-hi, també està bé. |
 | AM13 | Explica'm una baralla que vau tenir, d'aquelles que després fan riure: per què va ser, qui va cedir primer i com vau fer les paus. Si no n'hi va haver cap que avui faci riure, n'hi ha prou que m'ho diguis. |
 | AM8 | Imagina't que només pots guardar un moment amb aquella persona: quin seria? Explica-me'l sencer: el lloc, el dia, què fèieu. Si te'n venen d'altres al cap, explica'ls també. |
-| AM9 | Si vols, explica'm com va arribar el final d'aquella història: una separació, un comiat, el que fos. Només el que tu vulguis, i fins on vulguis. Si prefereixes no entrar-hi, n'hi ha prou amb el botó; la resta de la teva història continua igual. |
+| AM9 | Si vols, explica'm com va ser el final d'aquella història: un comiat, fos com fos. Només el que tu vulguis, i fins on vulguis. Si prefereixes no entrar-hi, n'hi ha prou amb el botó; la resta de la teva història continua igual. |
 | AM7 | Explica'm alguna cosa molt pròpia d'aquella persona: una frase que «sino:AMH: repetia ‖ repeteix», un costum, una mania. I una vegada concreta en què va sortir, perquè qui ho llegeixi la tingui al davant. |
 | AM19 | I després, quan et vas quedar pel teu compte, com van ser aquells primers temps? Què va canviar a casa i en el dia a dia, qui tenies a prop. Si aquest temps és el d'ara, explica'm igualment com ho estàs portant. I si no hi va haver un temps així, n'hi ha prou que m'ho diguis. |
 | AM21 | Ara, les d'abans. Si en el repàs m'has anomenat altres històries que van anar de debò, aquest és el seu lloc, però sense tant de detall: de cadascuna, explica'm un moment que vulguis que quedi al llibre, el primer que et vingui al cap, i si vols, com va acabar. I si hi va haver algú que et va marcar encara que no arribés a res, també hi té lloc aquí. Si aquella va ser l'única, n'hi ha prou amb el botó. |
@@ -168,7 +169,7 @@
 | LU8 | Hi ha un lloc on t'agradaria tornar, encara que fos una estona? Explica'm quin lloc és, i l'última vegada que hi vas ser. |
 | CI9 | Fins aquí els llocs i les passions. Ha quedat algun lloc o alguna cosa que t'agradés molt i que no hagi tingut la seva pregunta? Una cantonada, una afició que va durar poc, un racó de casa teva. Explica-ho ara, {{tranquil/tranquil·la}}. |
 | AS1 | Ja de gran, vas conèixer algú que es va tornar molt important a la teva vida, un amic o una amiga? Explica'm de qui parles, amb el seu nom, com us vau conèixer, i una vegada que mostri bé com és aquesta amistat. |
-| HE2 | Ja de grans, els teus germans també es van tornar amics teus? Explica'm algun moment, ja adults, en què vau estar ben a prop: un viatge, una conversa, un cop de mà que us vau donar. |
+| HE2 | Ja de grans, amb els teus germans (o amb el teu germà o la teva germana, si només en vas tenir un) també us vau fer amics? Explica'm algun moment, ja adults, en què vau estar ben a prop: un viatge, una conversa, un cop de mà que us vau donar. |
 | AS1b | Tornant a aquesta amistat: explica'm alguna cosa que hàgiu fet plegats fa poc. Encara que sigui una conversa per telèfon. |
 | AY1 | Alguna vegada vas necessitar ajuda de debò i algú te la va donar, fos qui fos? Explica'm què va fer aquella persona aquell dia, i si després li vas poder tornar el favor. |
 | AS4 | De vegades una amistat es refreda sense que ningú ho decideixi. T'ha passat amb alguna? Explica'm com era aquesta amistat i què va anar passant, fins on et vingui de gust. |
@@ -250,8 +251,8 @@ Mismo orden que en banco.md (el botón 1 de acá vale lo mismo que el botón 1 d
 | AD15 | 1 | Prefereixo no dir-ho |
 | AD15 | 2 | No, res d'això |
 | CI4 | 1 | No, ja està tot |
-| JU8 | 1 | Sí, em vaig mudar |
-| JU8 | 2 | No, mai m'he mudat |
+| JU8 | 1 | Sí, me'n vaig anar |
+| JU8 | 2 | No, no vaig marxar |
 | JU17 | 1 | Prefereixo no dir-ho |
 | JU17 | 2 | No, res d'això |
 | CI5 | 1 | No, ja està tot |

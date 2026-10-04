@@ -56,7 +56,8 @@ describe('textos sueltos', () => {
 
   it('HE2: sin "Si no tuviste hermanos" (solo le llega a quien tuvo)', () => {
     expect(texto('HE2')).toBe(
-      'Ya de grandes, ¿tus hermanos también se volvieron amigos? Contame algún momento de adultos en que estuvieron bien cerca: un viaje, una charla, una mano que se dieron.',
+      // Naza, 04/10: sin dar por hecho varios hermanos (antes "¿tus hermanos también se volvieron amigos?").
+      'Ya de grandes, ¿con tus hermanos (o con tu hermano o hermana, si tuviste uno solo) también se hicieron amigos? Contame algún momento de adultos en que estuvieron bien cerca: un viaje, una charla, una mano que se dieron.',
     );
     expect(p('HE2').depende).toEqual([{ tipo: 'si', de: 'CA6' }]);
   });
@@ -81,7 +82,8 @@ describe('la salida "si ya me lo contaste", con las palabras de Naza', () => {
     const conSalida = BANCO.filter((q) => q.texto.includes(SALIDA)).map((q) => q.id);
     expect(conSalida.sort()).toEqual(['AD15', 'AM1', 'AM3', 'AM4', 'GI1', 'GI2', 'JU17', 'PA1', 'PE4', 'TR8']);
     const sinSalida = BANCO.filter((q) => /ya me (lo |la )?contaste/.test(q.texto) && !q.texto.includes(SALIDA)).map((q) => q.id);
-    expect(sinSalida).toEqual(['JU8']);
+    // AMH (Naza, 04/10): "Si ya me lo contaste, con el botón alcanza" (tiene botones: no lleva la salida larga).
+    expect(sinSalida).toEqual(['JU8', 'AMH']);
     expect(BANCO.filter((q) => q.texto.includes('decime "ya te lo conté"')).map((q) => q.id)).toEqual([]);
   });
 
@@ -97,7 +99,8 @@ describe('la salida "si ya me lo contaste", con las palabras de Naza', () => {
 
 describe('AMH: "¿Hoy estás en pareja?" (Naza, 30/09)', () => {
   it('texto y botones', () => {
-    expect(texto('AMH')).toBe('Vamos a la pareja de ahora, o a la última si hoy no hay nadie. ¿Hoy estás en pareja?');
+    // Naza, 04/10: suma "Si ya me lo contaste, con el botón alcanza." (AM0 ya no pregunta si hoy hay alguien).
+    expect(texto('AMH')).toBe('Vamos a la pareja de ahora, o a la última si hoy no hay nadie. ¿Hoy estás en pareja? Si ya me lo contaste, con el botón alcanza.');
     expect(botones('AMH')).toEqual(['Sí, estoy en pareja=si', 'No estoy en pareja=no']);
     for (const b of p('AMH').botones!) expect(b.texto.length).toBeLessThanOrEqual(20);
   });

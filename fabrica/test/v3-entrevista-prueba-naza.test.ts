@@ -149,12 +149,12 @@ describe('7. bloque 6 nuevo', () => {
 
   it('AM0, AMH, AM9 y AM21: textos', () => {
     expect(texto('AM0')).toBe(
-      'Ahora vamos al amor. ¿Hubo alguien con quien tuviste una historia en serio? Si hubo, haceme un repaso corto: cuántas veces te enamoraste, cuáles llegaron a algo serio, más o menos en qué años, y si hoy hay alguien a tu lado. Después te pregunto más de la pareja de ahora, o de la última, y de las de antes también va a haber lugar. Y si no hubo, también vale.',
+      'Ahora vamos al amor. ¿Hubo alguien con quien tuviste una historia en serio? Si hubo, haceme un repaso corto: cuántas veces te enamoraste, cuáles llegaron a algo serio y más o menos en qué años. Después te pregunto más de la pareja de ahora, o de la última, y de las de antes también va a haber lugar. Y si no hubo, también vale.',
     );
     // AMH cambió otra vez (Naza, 30/09: "¿Hoy estás en pareja?"): v3-entrevista-fable-extras.test.ts.
-    expect(texto('AMH')).toMatch(/¿Hoy estás en pareja\?$/);
+    expect(texto('AMH')).toMatch(/¿Hoy estás en pareja\? Si ya me lo contaste, con el botón alcanza\.$/); // Naza, 04/10
     expect(texto('AM9')).toBe(
-      'Si querés, contame cómo fue el final de esa historia: una separación, una despedida, lo que haya sido. Solo lo que vos quieras, y hasta donde quieras. Si preferís no entrar ahí, con el botón alcanza; lo demás de tu historia sigue igual.',
+      'Si querés, contame cómo fue el final de esa historia: una despedida, como haya sido. Solo lo que vos quieras, y hasta donde quieras. Si preferís no entrar ahí, con el botón alcanza; lo demás de tu historia sigue igual.',
     );
     expect(texto('AM21')).toBe(
       'Ahora las de antes. Si en el repaso me nombraste otras historias que fueron en serio, este es su lugar, pero sin tanto detalle: de cada una, contame un momento que quieras que quede en el libro, el que se te venga primero, y si querés, cómo terminó. Y si hubo alguien que te marcó aunque no haya llegado a nada, también entra acá. Si esa fue la única, con el botón alcanza.',

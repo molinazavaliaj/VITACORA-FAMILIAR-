@@ -54,7 +54,7 @@ function equivalencias(): Map<string, string> {
 const MISMO_SENTIDO = [
   'OR1', 'OR2', 'OR5', 'OR6', 'OR6.2', 'CA1', 'CA2', 'CA3', 'CA4', 'CA5', 'CA6', 'CA7', 'CA8', 'CA9', 'CA10', 'CA12', 'CA13',
   'CA14', 'CA15', 'CA16', 'CA17', 'ES1', 'ES2', 'ES3', 'ES5', 'ES6', 'ES7', 'ES8', 'ES9', 'ES10', 'AD2', 'AD1', 'AD2b', 'AD3',
-  'AD5', 'AD6', 'AD8', 'AD9', 'AD10', 'AD11', 'JU1', 'JU2', 'JU2b', 'JU4', 'JU5', 'JU8', 'JU10', 'JU11', 'JU12', 'JU13', 'JU15',
+  'AD5', 'AD6', 'AD8', 'AD9', 'AD10', 'AD11', 'JU1', 'JU2', 'JU2b', 'JU4', 'JU8', 'JU10', 'JU11', 'JU12', 'JU13', 'JU15',
   'JU16', 'JU17', 'AM1', 'AM2', 'AM3', 'AM4', 'AM5', 'AM6', 'AM8', 'AM9', 'AM7', 'AM14', 'AM15', 'TR1', 'TR6', 'OF1', 'MA1',
   'TR2', 'TR3', 'OF2', 'TR5', 'TR4', 'OF4', 'OB1', 'OB2', 'TR8', 'CS1', 'CP1', 'PR1', 'TR9', 'HI1', 'HI2', 'HI3', 'HI4', 'HI5',
   'HI6', 'HI7', 'HI10', 'HI8', 'HI9', 'NC1', 'LU3', 'LU4', 'PA1', 'LU5', 'AS1', 'AS1b', 'AY1', 'AS4', 'AS5', 'RE1', 'PE1',
@@ -73,9 +73,9 @@ describe('entrevista: el banco (md ↔ json)', () => {
     expect(bancoJson).toEqual(parseado);
   });
 
-  it('tiene 199 filas en 15 bloques, 65 mensajes, y las clases esperadas', () => {
-    // Prueba de Naza en la página (30/09): salen AM16 y AM20, entran AMH, AM21 y HO11.
-    expect(BANCO).toHaveLength(199);
+  it('tiene 198 filas en 15 bloques, 65 mensajes, y las clases esperadas', () => {
+    // Prueba de Naza en la página (30/09): salen AM16 y AM20, entran AMH, AM21 y HO11. Naza, 04/10: sale JU5 (la mili).
+    expect(BANCO).toHaveLength(198);
     expect(new Set(BANCO.map((p) => p.bloque))).toEqual(new Set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]));
     // 22 + M24.1-M24.4, M25.1-M25.3, M26, DD1 y DD2 + 12 entradas de bloque (30/09) + M27.1-3, M28.1-3, M29, M30 y M31 (simulaciones, 30/09)
     // + M28.4, M32.1 y M32.2 (ronda 2, 30/09) + M28.5 (prueba de Naza en la página) + M33.1-M33.8 (la segunda oportunidad, Naza 01/10)
@@ -150,9 +150,11 @@ describe('entrevista: el banco contra el borrador aprobado', () => {
   // Y después, los pedidos de nombre (propuesta-nombres.md, OK de Naza 01/10): v3-entrevista-nombres.test.ts.
   const CAMBIADAS_NOMBRES = new Set(['OR2', 'CA2', 'CA3', 'CA6', 'ES2', 'ES5', 'AD6', 'AM1', 'HI8', 'AS1', 'TR3']);
   const NUEVAS = ['AM20', 'AMH', 'AM21', 'HO11'];
+  // Naza, 04/10 (después de la simulación en catalán): cambiaron estos textos y salió JU5 (la mili).
+  const CAMBIADAS_0410 = new Set(['JU20', 'AM0', 'AMH', 'AM9', 'HE2']);
 
   it('toda fila viva del borrador está, con el mismo texto (salvo lo que cambió en las simulaciones)', () => {
-    const vivas = borrador.filter((f) => !f.sale && idNuevo(f.clave) !== 'HI2b' && idNuevo(f.clave) !== 'AM16');
+    const vivas = borrador.filter((f) => !f.sale && idNuevo(f.clave) !== 'HI2b' && idNuevo(f.clave) !== 'AM16' && idNuevo(f.clave) !== 'JU5');
     expect(vivas).toHaveLength(BANCO.filter((p) => !NUEVAS.includes(p.id)).length);
     for (const f of vivas) {
       const p = preguntaPorId(idNuevo(f.clave));
@@ -162,7 +164,7 @@ describe('entrevista: el banco contra el borrador aprobado', () => {
       // CI14 se reescribió el 30/09 después de la lectura corrida (correcciones-lectura.md): ahora pregunta.
       // CI11 perdió su primera frase en la ronda 2.
       if (p!.id === 'CI14' || p!.id === 'CI11' || p!.id === 'FO1') continue; // FO1: "Otra cosa" desde la ronda 3
-      if (CAMBIADAS_SIMULACIONES.has(p!.id) || CAMBIADAS_PRUEBA_NAZA.has(p!.id) || CAMBIADAS_FABLE_EXTRAS.has(p!.id) || CAMBIADAS_NOMBRES.has(p!.id)) continue;
+      if (CAMBIADAS_SIMULACIONES.has(p!.id) || CAMBIADAS_PRUEBA_NAZA.has(p!.id) || CAMBIADAS_FABLE_EXTRAS.has(p!.id) || CAMBIADAS_NOMBRES.has(p!.id) || CAMBIADAS_0410.has(p!.id)) continue;
       expect(normalizar(p!.texto), f.clave).toBe(normalizar(f.texto));
     }
   });
