@@ -8,15 +8,22 @@
 // OpenAI, y cualquier cosa con forma de key se tapa antes de salir.
 
 import { readFileSync } from 'node:fs';
+import { IDIOMA_POR_DEFECTO, type Idioma } from './idioma.js';
 
 export type Transcripcion = { texto: string; duracionSegundos: number | null };
 
 export const URL_TRANSCRIPCION = 'https://api.openai.com/v1/audio/transcriptions';
 
-/** Prompt de vocabulario: corto, porque el modelo lo corta a ~224 tokens. */
-export function promptDeTranscripcion(nombre: string): string {
+/** Prompt de vocabulario: corto, porque el modelo lo corta a ~224 tokens. En catalán, vocabulario de Cataluña (Naza, 04/10). */
+export function promptDeTranscripcion(nombre: string, idioma: Idioma = IDIOMA_POR_DEFECTO): string {
+  if (idioma === 'ca') {
+    return `${nombre} explica la seva vida en català. Vocabulari: feina, colla, la mili, l'avi, l'àvia, el poble, el barri, la masia, la plaça, la festa major, l'institut, l'escola, la parella, els nets, la sardana, la mona, la castanyada, pa amb tomàquet.`;
+  }
   return `${nombre} cuenta su vida en castellano rioplatense. Vocabulario: laburo, laburar, pibe, piba, gurí, botija, mina, colectivo, bondi, guita, quilombo, che, viejo, vieja, barrio, liceo, facultad, cancha, asado, mate.`;
 }
+
+/** El código de idioma que se le pasa a OpenAI. */
+export const IDIOMA_OPENAI: Readonly<Record<Idioma, string>> = { 'es-AR': 'es', ca: 'ca' };
 
 /** Tapa la key y cualquier cosa con forma de key (sk-…) en un texto que va a salir por pantalla. */
 export function taparKey(texto: string, key?: string): string {
@@ -32,6 +39,8 @@ export type OpcionesTranscribir = {
   /** Nombre con la extensión correcta: OpenAI mira la extensión. */
   nombreArchivo: string;
   prompt?: string;
+  /** El idioma del audio (Naza, 04/10: la entrevista en catalán). Sin idioma, castellano. */
+  idioma?: Idioma;
   fetch?: typeof fetch;
   /** Cuánto se espera a OpenAI antes de cortar (por defecto 60 s); cortar cuenta como error de red. */
   timeoutMs?: number;
@@ -68,7 +77,7 @@ export async function transcribirAudio(audio: Buffer, o: OpcionesTranscribir): P
   const form = new FormData();
   form.append('file', new Blob([new Uint8Array(audio)], { type: o.tipo }), o.nombreArchivo);
   form.append('model', 'gpt-transcribe');
-  form.append('language', 'es');
+  form.append('language', IDIOMA_OPENAI[o.idioma ?? IDIOMA_POR_DEFECTO]);
   form.append('response_format', 'json');
   if (o.prompt) form.append('prompt', o.prompt);
   const timeoutMs = o.timeoutMs ?? TIMEOUT_TRANSCRIPCION_MS;
@@ -125,7 +134,7 @@ export function leerKeyOpenAI(rutaEnv: string, env: NodeJS.ProcessEnv = process.
   throw new Error(`No encontré OPENAI_API_KEY en el entorno ni en ${rutaEnv}.`);
 }
 
-export type Transcribir = (audio: Buffer, info: { tipo: string; nombreArchivo: string; narrador: string }) => Promise<Transcripcion>;
+export type Transcribir = (audio: Buffer, info: { tipo: string; nombreArchivo: string; narrador: string; idioma?: Idioma }) => Promise<Transcripcion>;
 
 /** El `transcribir` de verdad para el servidor web: la key se busca recién cuando llega un audio. */
 export function transcribirConOpenAI(o: { key: () => string; fetch?: typeof fetch }): Transcribir {
@@ -133,7 +142,7 @@ export function transcribirConOpenAI(o: { key: () => string; fetch?: typeof fetc
     let key: string | undefined;
     try {
       key = o.key();
-      return await transcribirAudio(audio, { key, tipo: info.tipo, nombreArchivo: info.nombreArchivo, prompt: promptDeTranscripcion(info.narrador), fetch: o.fetch });
+      return await transcribirAudio(audio, { key, tipo: info.tipo, nombreArchivo: info.nombreArchivo, prompt: promptDeTranscripcion(info.narrador, info.idioma), idioma: info.idioma, fetch: o.fetch });
     } catch (err) {
       throw new ErrorTranscripcion(taparKey((err as Error).message, key), esReintentable(err));
     }

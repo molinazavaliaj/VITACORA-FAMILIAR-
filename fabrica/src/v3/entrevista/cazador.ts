@@ -12,7 +12,9 @@
 // `scripts/v3-cazador-json.ts` genera cazador-prompt.json y un test compara.
 
 import promptJson from './cazador-prompt.json' with { type: 'json' };
-import { preguntaPorId } from './banco.js';
+import promptCaJson from './cazador-prompt-ca.json' with { type: 'json' };
+import { preguntaPorId, TEXTOS_IDIOMA } from './banco.js';
+import { IDIOMA_POR_DEFECTO, type Idioma } from './idioma.js';
 import { BLOQUE_FINAL, claveRepregunta, deSegunda, PIDEN_DIA, type Repregunta, type Respuestas } from './flujo.js';
 import type { FichaTexto } from './texto.js';
 import { interpretar, leerBoton } from './respuesta.js';
@@ -32,6 +34,9 @@ export const MAX_PALABRAS_PREGUNTA = 45;
 
 /** El prompt v3.1 (Fable, 01/10), tal cual la sección "## Prompt" del md. */
 export const PROMPT_CAZADOR: string = (promptJson as { prompt: string }).prompt;
+
+/** El prompt según el idioma de la entrevista: en catalán, docs/v3/entrevista/cazador/prompt-v3-1-ca.md (Naza, 04/10; el original no se toca). */
+export const PROMPT_CAZADOR_DE: Readonly<Record<Idioma, string>> = { 'es-AR': PROMPT_CAZADOR, ca: (promptCaJson as { prompt: string }).prompt };
 
 /** La sección "## Prompt" del md: lo que va entre el primer par de ``` después del título. */
 export function extraerPrompt(md: string): string {
@@ -65,12 +70,36 @@ export const BLOQUES_CAZADOR: readonly { nombre: string; momentos: readonly stri
   { nombre: 'Legado', momentos: ['de qué estás orgulloso', 'tu consejo', 'lo que todavía querés hacer'] },
 ];
 
+/**
+ * Lo mismo para la entrevista en catalán (Naza, 04/10): el modelo lee en
+ * catalán lo que viene. El bloque 14 se llama "Avui", como dice el prompt.
+ */
+export const BLOQUES_CAZADOR_CA: readonly { nombre: string; momentos: readonly string[] }[] = [
+  { nombre: 'Origen', momentos: ["l'època en què vas néixer", "la història de la família, dels d'abans", 'com es van conèixer els teus pares'] },
+  { nombre: 'La casa de petit', momentos: ['el primer record de la casa de quan eres petit', 'una anècdota amb la teva mare de petit', 'una vegada amb el teu pare treballant', 'una aventura amb els teus germans', 'un dia de petit que esperaves amb ganes', 'un moment difícil de petit'] },
+  { nombre: 'Escola', momentos: ["el primer dia d'escola", 'una vegada amb una mestra que et va marcar', 'una tarda amb el teu millor amic de petit', 'una entremaliadura', 'què volies ser de gran', 'la religió a casa teva'] },
+  { nombre: 'Adolescència', momentos: ['on passaves els dies als tretze anys', 'una nit amb la colla', 'la primera sortida de nit', 'el primer amor', 'quan vas deixar de ser un nen', "un moment dur de l'adolescència"] },
+  { nombre: 'Joventut', momentos: ['el dia que vas marxar de casa dels teus pares', "què vas fer després de l'escola", 'aprendre el teu ofici', 'el teu pas per la mili', "l'arribada a viure a una altra ciutat o país", 'el primer lloc propi i la primera nit', 'les mudances de la teva vida', 'un moment dur de la joventut'] },
+  { nombre: 'Amor', momentos: ['el dia que vas conèixer la teva parella', 'la vida junts', 'un moment de tots dos'] },
+  { nombre: 'Feina', momentos: ['la primera feina', 'un dia normal de feina', 'qui et va donar un cop de mà a la feina', 'el dia de feina del qual estàs orgullós', 'una època sense feina o amb els diners justos', 'el negoci propi', "l'últim dia de feina"] },
+  { nombre: 'Fills i nets', momentos: ['els teus pares de grans', 'el naixement del primer fill', 'com era cada fill de petit', 'el dia que vas conèixer el primer net'] },
+  { nombre: 'Llocs', momentos: ['el viatge més important', 'la teva passió'] },
+  { nombre: 'Amistats', momentos: ["com vas conèixer l'amic de gran", 'els teus germans de grans', "algú que et va ajudar", 'el sopar amb qui voldries'] },
+  { nombre: 'Moments difícils', momentos: ['una pèrdua', 'la salut', 'una època dura de gran'] },
+  { nombre: 'Història gran', momentos: ['alguna cosa gran del país que et va tocar', 'un dia de la pandèmia', 'el que abans no es podia fer', 'la política'] },
+  { nombre: 'Girs', momentos: ['el dia que tornaries a viure', 'el dia que et va canviar alguna cosa', 'alguna cosa que no va sortir', "sentir-te petit davant d'una cosa enorme", 'la soledat', 'el pas del temps', 'el que has heretat'] },
+  { nombre: 'Avui', momentos: ["un dia qualsevol d'ara", "l'última vegada que vas riure de debò", 'una marca al cos amb història', 'el teu plat', "la música d'ara", 'el lloc on vius'] },
+  { nombre: 'Llegat', momentos: ['de què estàs orgullós', 'el teu consell', 'el que encara vols fer'] },
+];
+
+const BLOQUES_CAZADOR_DE: Readonly<Record<Idioma, typeof BLOQUES_CAZADOR>> = { 'es-AR': BLOQUES_CAZADOR, ca: BLOQUES_CAZADOR_CA };
+
 /** El bloque Hoy: ahí "hoy" sí vale en la pregunta. */
 export const BLOQUE_HOY = 14;
 
 /** Los momentos que el banco va a pedir en los bloques que faltan (después de `bloque`): lo que llega solo, no se repregunta. */
-export function loQueViene(bloque: number): string[] {
-  return BLOQUES_CAZADOR.slice(bloque).flatMap((b) => b.momentos);
+export function loQueViene(bloque: number, idioma: Idioma = IDIOMA_POR_DEFECTO): string[] {
+  return BLOQUES_CAZADOR_DE[idioma].slice(bloque).flatMap((b) => b.momentos);
 }
 
 // ---------------------------------------------------------------- entrada
@@ -85,7 +114,7 @@ export type RespuestaParaCazar = { id: string; pregunta: string; texto: string; 
  * audio. La segunda oportunidad ("X~2") va pegada a su X, en otra línea
  * (plan, B1). `textoPregunta` da la pregunta como se mandó.
  */
-export function respuestasParaCazar(respuestas: Respuestas, bloque: number, textoPregunta: (id: string) => string): RespuestaParaCazar[] {
+export function respuestasParaCazar(respuestas: Respuestas, bloque: number, textoPregunta: (id: string) => string, idioma: Idioma = IDIOMA_POR_DEFECTO): RespuestaParaCazar[] {
   if (bloque === BLOQUE_FINAL) return [];
   const out: RespuestaParaCazar[] = [];
   for (const [clave, crudo] of respuestas) {
@@ -97,11 +126,11 @@ export function respuestasParaCazar(respuestas: Respuestas, bloque: number, text
       continue;
     }
     // Solo las del banco (las repreguntas y las de la familia no tienen fila en el banco).
-    const p = preguntaPorId(clave);
+    const p = preguntaPorId(clave, idioma);
     if (!p || p.bloque !== bloque) continue;
     const texto = leerBoton(crudo).resto.trim();
     if (!texto) continue;
-    out.push({ id: clave, pregunta: textoPregunta(clave), texto, pedidoDia: PIDEN_DIA[clave] !== undefined, paso: interpretar(p, crudo) === 'paso' });
+    out.push({ id: clave, pregunta: textoPregunta(clave), texto, pedidoDia: PIDEN_DIA[clave] !== undefined, paso: interpretar(p, crudo, idioma) === 'paso' });
   }
   return out;
 }
@@ -119,6 +148,8 @@ export type EntradaCazador = {
   respuestas: readonly RespuestaParaCazar[];
   yaRepreguntado: readonly Repregunta[];
   escenasContadas: readonly string[];
+  /** El idioma de la entrevista (nombres de bloque y lo que viene). Sin idioma, es-AR. */
+  idioma?: Idioma;
 };
 
 /**
@@ -135,10 +166,10 @@ export function armarEntrada(e: EntradaCazador): string {
     .join('\n');
   return [
     e.ficha,
-    `<bloque>${BLOQUES_CAZADOR[e.bloque - 1]?.nombre ?? `Bloque ${e.bloque}`}</bloque>`,
+    `<bloque>${BLOQUES_CAZADOR_DE[e.idioma ?? IDIOMA_POR_DEFECTO][e.bloque - 1]?.nombre ?? `Bloque ${e.bloque}`}</bloque>`,
     `<ya_repreguntado>\n${e.yaRepreguntado.map((r) => `${r.origen}: ${r.tema}`).join('\n')}\n</ya_repreguntado>`,
     `<escenas_contadas>\n${e.escenasContadas.join('\n')}\n</escenas_contadas>`,
-    `<lo_que_viene>\n${loQueViene(e.bloque).join('\n')}\n</lo_que_viene>`,
+    `<lo_que_viene>\n${loQueViene(e.bloque, e.idioma).join('\n')}\n</lo_que_viene>`,
     `<respuestas_del_bloque>\n${respuestas}\n</respuestas_del_bloque>`,
   ].join('\n\n');
 }
@@ -171,6 +202,9 @@ function esElegida(x: unknown): x is Elegida {
 }
 
 const TIEMPO_RELATIVO = /\b(ayer|anoche|hace un rato|recién|recien|la otra vez|esta semana)\b/i;
+/** En catalán (prompt-v3-1-ca.md): "ahir", "ahir a la nit", "fa una estona", "ara mateix", "fa un moment", "l'altre dia", "l'altra vegada", "aquesta setmana". */
+const TIEMPO_RELATIVO_CA = /(?<![\p{L}'])(ahir|fa una estona|ara mateix|fa un moment|l'altre dia|l'altra vegada|aquesta setmana)(?![\p{L}])/iu;
+const HOY_DE: Readonly<Record<Idioma, RegExp>> = { 'es-AR': /\bhoy\b/i, ca: /(?<![\p{L}])(avui|hoy)(?![\p{L}])/iu };
 const sinMarcas = (s: string) =>
   s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-zñ0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
 
@@ -180,14 +214,15 @@ const sinMarcas = (s: string) =>
  * pregunta lleva un solo "?", hasta 45 palabras, sin "ayer/anoche/hace un
  * rato/recién/la otra vez/esta semana" ni "hoy" fuera del bloque Hoy.
  */
-export function controlarElegida(e: Pick<Elegida, 'cita' | 'pregunta'>, respuesta: string, bloqueHoy: boolean): string[] {
+export function controlarElegida(e: Pick<Elegida, 'cita' | 'pregunta'>, respuesta: string, bloqueHoy: boolean, idioma: Idioma = IDIOMA_POR_DEFECTO): string[] {
   const fallas: string[] = [];
   const cita = sinMarcas(e.cita ?? '');
   if (!cita || !` ${sinMarcas(respuesta)} `.includes(` ${cita} `)) fallas.push('la cita no es textual');
   const pregunta = e.pregunta ?? '';
   if ((pregunta.match(/\?/g) ?? []).length !== 1) fallas.push('la pregunta no tiene un solo "?"');
   if (pregunta.split(/\s+/).filter(Boolean).length > MAX_PALABRAS_PREGUNTA) fallas.push(`pregunta de más de ${MAX_PALABRAS_PREGUNTA} palabras`);
-  if (TIEMPO_RELATIVO.test(pregunta) || (!bloqueHoy && /\bhoy\b/i.test(pregunta))) fallas.push('tiempo relativo');
+  const relativo = TIEMPO_RELATIVO.test(pregunta) || (idioma === 'ca' && TIEMPO_RELATIVO_CA.test(pregunta));
+  if (relativo || (!bloqueHoy && HOY_DE[idioma].test(pregunta))) fallas.push('tiempo relativo');
   return fallas;
 }
 
@@ -205,13 +240,14 @@ export function revisarElegidas(
   delBloque: readonly RespuestaParaCazar[],
   bloque: number,
   yaRepreguntado: readonly Repregunta[],
+  idioma: Idioma = IDIOMA_POR_DEFECTO,
 ): { repreguntas: Repregunta[]; descartadas: Descartada[] } {
   const repreguntas: Repregunta[] = [];
   const descartadas: Descartada[] = [];
   const vistas = new Set<string>();
   for (const e of elegidas.slice(0, MAX_ELEGIDAS)) {
     const suya = delBloque.find((r) => r.id === e.id);
-    const fallas = controlarElegida(e, suya?.texto ?? '', bloque === BLOQUE_HOY);
+    const fallas = controlarElegida(e, suya?.texto ?? '', bloque === BLOQUE_HOY, idioma);
     if (!suya) fallas.push('la respuesta no es de este bloque');
     if (vistas.has(e.id)) fallas.push('dos de la misma respuesta');
     else if (yaRepreguntado.some((r) => r.origen === e.id)) fallas.push('ya repreguntado');
@@ -227,7 +263,8 @@ export function revisarElegidas(
  * modelo (Naza, 01/10). Va con el botón [Ya lo conté todo] (BOTON_YA_LO_CONTE
  * en flujo.ts).
  */
-export function mensajeRepregunta(e: Pick<Repregunta, 'cita' | 'pregunta'>): string {
+export function mensajeRepregunta(e: Pick<Repregunta, 'cita' | 'pregunta'>, idioma: Idioma = IDIOMA_POR_DEFECTO): string {
+  if (idioma !== 'es-AR') return TEXTOS_IDIOMA[idioma].repregunta.mensaje.replace('{cita}', () => e.cita).replace('{pregunta}', () => e.pregunta);
   return `Me quedé pensando en algo que me contaste: «${e.cita}». ${e.pregunta} Y si no te vuelve, o ya me lo contaste todo, decímelo nomás y seguimos con otra.`;
 }
 
@@ -268,8 +305,10 @@ export type PedidoCaza = {
   escenasContadas: readonly string[];
   /** Lo gastado en el cazador en esta entrevista, antes de esta llamada. */
   gastoUsd: number;
-  /** Para probar otra versión del prompt; si no, PROMPT_CAZADOR. */
+  /** Para probar otra versión del prompt; si no, el del idioma (PROMPT_CAZADOR_DE). */
   prompt?: string;
+  /** El idioma de la entrevista (Naza, 04/10): elige el prompt, los nombres de bloque y los controles. Sin idioma, es-AR. */
+  idioma?: Idioma;
 };
 
 export type ResultadoCaza = {
@@ -300,15 +339,16 @@ export type ResultadoCaza = {
 export async function cazarBloque(p: PedidoCaza): Promise<ResultadoCaza> {
   const vacio = { bloque: p.bloque, repreguntas: [], descartadas: [], escenasContadas: [], costoUsd: 0, gastoUsd: p.gastoUsd };
   if (p.bloque === BLOQUE_FINAL) return { ...vacio, llamo: false, motivo: 'legado' };
-  const delBloque = respuestasParaCazar(p.respuestas, p.bloque, p.textoPregunta);
+  const idioma = p.idioma ?? IDIOMA_POR_DEFECTO;
+  const delBloque = respuestasParaCazar(p.respuestas, p.bloque, p.textoPregunta, idioma);
   if (delBloque.length === 0) return { ...vacio, llamo: false, motivo: 'sin-respuestas' };
   if (p.gastoUsd >= TOPE_GASTO_USD) return { ...vacio, llamo: false, motivo: 'tope' };
 
   const pedido: PedidoModelo = {
     model: MODELO_CAZADOR,
     max_tokens: MAX_TOKENS_CAZADOR,
-    system: p.prompt ?? PROMPT_CAZADOR,
-    messages: [{ role: 'user', content: armarEntrada({ ficha: p.ficha, bloque: p.bloque, respuestas: delBloque, yaRepreguntado: p.yaRepreguntado, escenasContadas: p.escenasContadas }) }],
+    system: p.prompt ?? PROMPT_CAZADOR_DE[idioma],
+    messages: [{ role: 'user', content: armarEntrada({ ficha: p.ficha, bloque: p.bloque, respuestas: delBloque, yaRepreguntado: p.yaRepreguntado, escenasContadas: p.escenasContadas, idioma }) }],
   };
   let msg: Awaited<ReturnType<ClienteModelo['messages']['create']>> | undefined;
   let error: unknown;
@@ -325,6 +365,6 @@ export async function cazarBloque(p: PedidoCaza): Promise<ResultadoCaza> {
   const conGasto = { ...vacio, llamo: true, tokens: { entrada: msg.usage.input_tokens, salida: msg.usage.output_tokens }, costoUsd: costo, gastoUsd: p.gastoUsd + costo };
   const salida = leerSalida(msg.content.flatMap((b) => (b.type === 'text' && b.text ? [b.text] : [])).join(''));
   if (!salida) return { ...conGasto, motivo: 'salida-ilegible' };
-  const { repreguntas, descartadas } = revisarElegidas(salida.elegidas, delBloque, p.bloque, p.yaRepreguntado);
+  const { repreguntas, descartadas } = revisarElegidas(salida.elegidas, delBloque, p.bloque, p.yaRepreguntado, idioma);
   return { ...conGasto, repreguntas, descartadas, escenasContadas: salida.escenasContadas };
 }

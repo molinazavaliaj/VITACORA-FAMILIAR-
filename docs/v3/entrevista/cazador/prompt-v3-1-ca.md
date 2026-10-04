@@ -2,6 +2,11 @@
 
 Traducción adaptada (no literal) de `prompt-v3-1.md` para entrevistas en catalán; el original no se toca.
 
+Diferencias con el original, a propósito:
+- **El esquema JSON va adentro del prompt** (al final). En el original está en la sección "Esquema de salida", que no se le manda al modelo: en castellano el modelo deduce la clave `elegidas` de "Campos de cada elegida", pero en catalán diría "triades" y el código no leería nada.
+- El bloque Hoy se llama "Avui" (así lo manda el código en `<bloque>`), y ahí sí vale "avui".
+- Tradujo Opus; lo revisó otro agente a ciegas (cambios en [`../catala/revision/revision-prompt.md`](../catala/revision/revision-prompt.md)). "M'he quedat pensant" pasó a "He estat pensant" (calco).
+
 ## Prompt
 
 ```
@@ -59,7 +64,9 @@ Exemples (no): "Que bonic, això del cobert! Què hi va passar i per què t'agra
 
 A més, torna a escenas_contadas_bloque els moments que SÍ que ha explicat bé en aquest bloc (on, qui, què va passar), de tres a sis paraules cadascun, sense noms de fora de la fitxa, sense dates: "la mudança a la casa nova", "el dia del casament de la seva germana". Només escenes explicades, no temes esmentats de passada. Si no n'ha explicat cap, llista buida.
 
-Torna només el JSON de l'esquema, sense cap text a fora. Els noms dels camps van exactament així; el contingut, en català.
+Torna només el JSON d'aquest esquema, sense cap text a fora. Els noms dels camps van exactament així, sense traduir; el contingut, en català:
+{"elegidas": [{"id": "R..", "cita": "", "pregunta": "", "tema": "", "por_que": "", "ya_contado_chequeo": ""}], "escenas_contadas_bloque": [""]}
+Si no en tries cap, "elegidas" va buit: [].
 
 Camps de cada resposta triada:
 - id: l'id de la resposta.
