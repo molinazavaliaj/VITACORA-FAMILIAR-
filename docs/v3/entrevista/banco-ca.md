@@ -4,6 +4,8 @@
 
 **Cómo se hizo** (método aprobado por Naza, que no habla catalán): tradujo Opus en la sesión (adaptado, no literal; las palabras rioplatenses a su equivalente en Cataluña); otro agente, sin ver el castellano, lo volvió al castellano y marcó calcos, errores y tono (tablas en [`catala/revision/`](catala/revision/)); y pasó por el corrector de Softcatalà (LanguageTool, normativa IEC). Los textos en castellano **no cambiaron**: si algo no tenía sentido en catalán, se adaptó solo acá.
 
+**Después de la simulación en catalán (04/10)**, con una narradora inventada ([`simulaciones/catala/roser.md`](simulaciones/catala/roser.md)), se ajustaron solo en catalán: PE4 (el género), AS7, TR6, JU12, ES2, OR2 (frases poco naturales) y M28.4/M28.5 ("en tinc prou" sonaba a "basta").
+
 **Si cambia banco.md** (una pregunta nueva, un mensaje, un botón), los tests fallan hasta que esa fila tenga su texto acá: nunca se manda castellano en una entrevista en catalán.
 
 **Marcas:** las mismas de banco.md. `{{nombre}}`, `{{quien_regala}}`, `{{tema}}`; el género va con la palabra entera, `{{nen/nena}}`, `{{orgullós/orgullosa}}` (el catalán marca género donde el castellano a veces no); `«sino:X: A ‖ B»`; `<br>` = salto de línea.
@@ -33,7 +35,7 @@
 | ID | Texto |
 |---|---|
 | OR1 | Comencem per quan vas arribar al món, segons t'han explicat. No el dia en si, sinó l'època: on vivien, a què es dedicaven la teva mare i el teu pare, com t'esperaven. Què saps de com era la seva vida aleshores? Explica-m'ho. |
-| OR2 | A totes les famílies hi ha una història dels d'abans, dels avis o de més enrere, que s'explicava a les sobretaules: un viatge, una arribada, alguna proesa. Quina en saps, de la teva família? Explica-me-la tal com la vas sentir, amb el nom de qui la va viure. |
+| OR2 | A totes les famílies hi ha una història d'abans, dels avis o de més enrere, que s'explicava a les sobretaules: un viatge, una arribada, alguna proesa. Quina en saps, de la teva família? Explica-me-la tal com la vas sentir, amb el nom de qui la va viure. |
 | OR5 | Com es van conèixer la teva mare i el teu pare? Segur que a casa ho van contar més d'una vegada: un ball, una casualitat, algú que els va presentar. Explica'm aquell dia tal com te'l van contar. |
 | OR6 | Per què et van posar {{nombre}}? A les cases sempre hi ha una història darrere d'un nom: una discussió, un sant, algú que estimaven molt. Explica'm la que et van contar a tu, encara que sigui curteta. |
 | OR6.2 | Tens o has tingut algun sobrenom? Si és així, explica'm com va néixer: qui te'l va posar, per què justament aquest, i si t'agrada. Gairebé sempre hi ha una anècdota al darrere. |
@@ -56,7 +58,7 @@
 | CA17 | Hi va haver algun moment difícil de la teva infància que creguis que no pot quedar fora de la teva història? Alguna cosa que et va marcar? Si vols, explica'm què va passar i com ho vas viure. |
 | CI2 | Abans de deixar enrere la teva infància, em pregunto si m'he deixat alguna cosa. Hi ha alguna història que t'ha vingut al cap mentre m'explicaves i que no ha tingut on encaixar? Explica-me-la ara, {{tranquil/tranquil·la}}, que tenim temps. |
 | ES1 | Com va ser el teu primer dia d'escola? Qui et va acompanyar fins a la porta, i què vas sentir quan se'n va anar? Si aquell dia no el recordes, explica'm el primer que recordis de l'escola. |
-| ES2 | Vas tenir una mestra o un mestre que et va marcar a l'escola? Com es deia? Com era amb vosaltres? Explica'm una vegada amb aquella persona que no oblides: què va passar a classe aquell dia. |
+| ES2 | Vas tenir una mestra o un mestre que et va marcar a l'escola? Com es deia? Com era amb vosaltres? Explica'm algun moment amb aquella persona que no hagis oblidat: què va passar a classe aquell dia. |
 | ES3 | Com eres a l'escola? T'agradava anar-hi? Hi havia alguna assignatura que t'agradés especialment? Explica'm un dia d'aquella època que se t'hagi quedat gravat: una festa de l'escola, un examen, unes notes que vas portar a casa. |
 | ES5 | De {{petit/petita}}, tenies un millor amic o una millor amiga, de l'escola o del barri? Digues-me qui era, amb el seu nom, i què fèieu quan anàveu junts. I explica'm una tarda amb aquella persona que encara et fa somriure. |
 | ES6 | Quina va ser la malifeta més grossa que vas fer de {{petit/petita}}, a l'escola o al barri? Aquella que encara et fa riure, o una mica de vergonya. Explica'm com va ser i si et van enxampar. I si te'n venen més, explica-les també. |
@@ -93,7 +95,7 @@
 | JU11 | Un dia t'adones que ja ets d'allà: coneixes els carrers, et saluden, et sents a casa. Et va passar amb aquell lloc nou? Explica'm aquell moment. |
 | JU9 | De jove, quins llocs vas conèixer? Vacances, viatges, escapades. Explica'm un viatge d'aquells anys que se t'hagi quedat. |
 | JU22 | Com van ser els teus primers anys pel teu compte? Com t'espavilaves, què feies per tirar endavant? Explica'm algun moment d'aquella època que recordis. |
-| JU12 | Parla'm del primer lloc que va ser teu, on ja vivies pel teu compte. Potser ja me l'has anomenat; ara explica-me'l per dins: com era, amb què el vas anar arreglant, què es veia per la finestra. I aquella primera nit allà, com va ser? Si no vas marxar mai de casa dels teus pares, explica'm el dia que aquella casa va passar a ser teva, o el racó que sempre va ser teu. |
+| JU12 | Parla'm del primer lloc que va ser teu, on ja vivies pel teu compte. Potser ja me l'has anomenat; ara fes-me'l veure per dins: com era, amb què el vas anar arreglant, què es veia per la finestra. I aquella primera nit allà, com va ser? Si no vas marxar mai de casa dels teus pares, explica'm el dia que aquella casa va passar a ser teva, o el racó que sempre va ser teu. |
 | JU13 | Vas fer alguna bogeria de jove? Un viatge en autoestop, una aposta, alguna cosa que avui no faries. Explica'm aquella vegada des del principi, amb tot el que va passar. |
 | JU15 | I els amics d'aquells anys, de quan començaves a fer la teva vida? Com eren, on us trobàveu, què fèieu. Explica'm una vegada amb ells que se t'hagi quedat. I si te'n venen més, explica-les també. |
 | JU16 | Pensa en un moment molt feliç de la teva joventut. No cal que sigui res de gros: una tarda, una notícia, un lloc. On eres, què va passar? Explica-m'ho com si hi tornessis a ser. |
@@ -121,7 +123,7 @@
 | AM15 | Qui són avui les persones amb qui comparteixes la vida: un germà, una amiga, un veí, qui sigui? Pensa en una i explica'm un dia vostre que tinguis ben guardat. |
 | CI6 | Fins aquí la part de l'amor. Ha quedat alguna persona o alguna cosa d'això que no t'hagi preguntat? Una persona, una carta, un ball, una conversa que no ha encaixat enlloc. És el moment d'explicar-ho, sense pressa. |
 | TR1 | Recordes la primera vegada que vas guanyar uns diners, o que vas treballar sense cobrar? Què feies, quants anys tenies? Explica'm aquell primer dia, i en què et vas gastar aquells primers diners, si n'hi va haver. |
-| TR6 | Fem un repàs: a què has dedicat els teus anys, per ordre i més o menys en quines dates? Quina d'aquestes coses se t'ha quedat més gravada, i si va ser una sola cosa tota la vida, com va ser quedar-t'hi. |
+| TR6 | Fem un repàs: a què has dedicat els teus anys, per ordre i més o menys en quines dates? Quina d'aquestes coses se t'ha quedat més gravada, i si va ser una sola feina tota la vida, com és que t'hi vas quedar. |
 | OF1 | Arriba un moment en què deixes de sentir-te {{nou/nova}} en allò que fas i t'adones que ja en saps. T'ha passat? Explica'm aquell dia: què estaves fent, qui hi havia, què vas sentir. |
 | MA1 | Hi ha alguna cosa que sàpigues fer bé amb les mans? Cuinar, arreglar coses, cosir, sembrar, curar, el que sigui. Explica'm com ho fas, i l'última vegada que ho vas fer: per a qui va ser, com va sortir. |
 | TR2 | Pensa en allò a què vas dedicar més anys. Com era un dia normal? Des que començaves fins que acabaves, què feies, amb qui. I explica'm un d'aquells dies que encara tinguis fresc. |
@@ -174,14 +176,14 @@
 | RE1 | Hi va haver alguna vegada en què res no t'ajudava i et va sostenir alguna cosa en què creies? La fe, o el que sigui per a tu. Explica'm aquell moment i com t'hi vas aferrar. |
 | AS9 | Imagina't que organitzes un sopar i pots convidar la teva gent més propera. Qui seu a aquesta taula? Explica'm qui hi va, i per què cadascú s'ha guanyat el seu lloc. |
 | AY2 | I a l'inrevés: alguna vegada et va tocar ser tu qui donava un cop de mà a algú que el necessitava? Explica'm què va passar i què vas fer aquell dia. |
-| AS7 | Avui, quan et passa alguna cosa important, a qui ho expliques primer? Explica'm una vegada que li hagis explicat una cosa així. |
+| AS7 | Avui, quan et passa alguna cosa important, a qui li ho dius primer? Explica'm una vegada que li hagis anat a dir una cosa així. |
 | CI10 | Fins aquí els amics i la gent que t'ha ajudat. Ha quedat algú que t'hagi acompanyat i que no hagi tingut la seva pregunta? Un veí, algú de la feina, una persona que va aparèixer una sola vegada. I si vols parlar d'altres amics importants, de qui sigui, és el moment. Explica-ho {{tranquil/tranquil·la}}. |
 | AV11 | Ara venen unes preguntes sobre moments difícils. Si alguna no té res a veure amb la teva vida o no hi vols entrar, amb un *passo* n'hi ha prou i seguim. Tu manes. |
 | PE1 | Potser ja m'has parlat d'alguna pèrdua; aquí hi ha lloc per al que no hi va cabre. Si has perdut persones importants, explica'm el que vulguis de cadascuna: què era per a tu, com van ser els dies de després i com ho has anat portant. I si hi ha un moment amb alguna d'aquestes persones que t'agradi recordar, explica-m'ho també. |
 | PE5 | Si alguna vegada la salut t'ha aturat de debò, m'ho vols explicar? Com van ser aquells dies, qui tenies a prop i com ho vas anar portant. I si és una cosa que encara portes a sobre, també val. |
 | PE6 | Hi ha errors que arrosseguem durant anys. Si en tens un d'aquests i el vols explicar, digues-me què va passar, qui ho va pagar i com va quedar tot després. |
 | ID1 | Molta gent, durant anys, s'ha hagut de guardar una part del que era, o del que sentia. Si a tu t'ha passat, i vols que quedi a la teva història, explica-m'ho com tu vulguis. |
-| PE4 | Hi va haver alguna època dura en la teva vida d'adult que creguis que no pot quedar fora de la teva història? Alguna cosa que et marqués? Si vols, explica'm què va passar i com ho vas viure. Si ja m'ho has explicat, digues-m'ho, i si vols remarcar alguna cosa, és el moment. |
+| PE4 | Hi va haver alguna època dura quan ja eres {{adult/adulta}} que creguis que no pot quedar fora de la teva història? Alguna cosa que et marqués? Si vols, explica'm què va passar i com ho vas viure. Si ja m'ho has explicat, digues-m'ho, i si vols remarcar alguna cosa, és el moment. |
 | CI11 | Si hi ha un altre moment difícil que sents que ha de ser a la teva història i no te l'he preguntat, explica-me'l aquí. |
 | HG1 | Recordes alguna cosa grossa que passés al país o al món, un Mundial, una guerra? Com la vas viure tu? Explica'm el que recordis: on eres, si ho vas viure de prop o t'ho van explicar, i què va passar aquell dia. |
 | HG2 | Amb els anys passen moltes coses en un país. N'hi ha alguna altra que t'hagi tocat de ple? Explica'm com te'n vas assabentar i què va passar a casa teva aquell dia. |
@@ -323,8 +325,8 @@ Mismo orden que en banco.md (el botón 1 de acá vale lo mismo que el botón 1 d
 | M28.1 | No passa res, {{nombre}}. Passem a una altra. |
 | M28.2 | Està bé, cap problema. Et pregunto una altra cosa. |
 | M28.3 | {{Tranquil/Tranquil·la}}, no importa. Seguim amb la següent. |
-| M28.4 | Amb aquest trosset ja en tinc prou, {{nombre}}. Gràcies. |
-| M28.5 | Amb això ja en tinc prou, gràcies. Passem a una altra. |
+| M28.4 | Amb aquest trosset ja m'ajudes molt, {{nombre}}. Gràcies. |
+| M28.5 | Això ja m'ajuda molt, gràcies. Passem a una altra. |
 | M29 | Una cosa, {{nombre}}: no et preocupis si d'alguna cosa no te'n recordes. Per al llibre n'hi ha prou amb el que sí que recordes. I si d'alguna te'n recordes a mitges, explica'm només aquest trosset: una olor, una cara, com era en general. Això també és la teva història. |
 | M30 | Explica-m'ho, t'escolto. |
 | M31 | _Pots tocar el botó d'aquí sota, o contestar-me amb un àudio com sempre._ |
