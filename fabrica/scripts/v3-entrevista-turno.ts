@@ -6,7 +6,7 @@
 // `acuseDeTurno`, `entradaSegunAcuse`, `armarTurno`, `renderizar`) y arma cada turno igual que `v3-entrevista-lectura.ts` (un
 // test lo compara mensaje por mensaje). Sin modelos ni API: nada pago.
 //
-//   npx tsx scripts/v3-entrevista-turno.ts nueva <estado.json> --nombre <Nombre> --genero <varon|mujer> [--familia "<pregunta>"]…
+//   npx tsx scripts/v3-entrevista-turno.ts nueva <estado.json> --nombre <Nombre> --genero <varon|mujer> [--idioma ca] [--familia "<pregunta>"]…
 //   npx tsx scripts/v3-entrevista-turno.ts responder <estado.json> [--respuesta "<texto>"]   (sin --respuesta, la lee de stdin)
 //   npx tsx scripts/v3-entrevista-turno.ts responder <estado.json> --boton "<texto del botón>"
 //   … responder … --cazador [--env <ruta .env>]   (GASTA PLATA: al cerrar un bloque llama al cazador de escenas; tope USD 3 por entrevista)
@@ -19,7 +19,8 @@
 
 import { readFileSync, writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
-import { mensajePorId, NOMBRES_BLOQUE, preguntaPorId } from '../src/v3/entrevista/banco.js';
+import { mensajePorId, nombresBloqueDe, preguntaPorId } from '../src/v3/entrevista/banco.js';
+import { idiomaDe } from '../src/v3/entrevista/idioma.js';
 import { cazarBloque, fichaCorta, mensajeRepregunta, type ClienteModelo, type Descartada, type ResultadoCaza } from '../src/v3/entrevista/cazador.js';
 import { alTocarBoton, botonesDeClave, mensajesDespues, preguntaDeClave, siguientePregunta, type PreguntaFamilia, type Repregunta } from '../src/v3/entrevista/flujo.js';
 import { acuseDeTurno, anotarAcuse, armarTurno, entradaSegunAcuse, preguntaSegunAcuse, vueltasEnCero, type AcusePendiente, type Vueltas } from '../src/v3/entrevista/mensajes.js';
@@ -103,7 +104,7 @@ export function nuevaEntrevista(ficha: FichaTexto, familia: PreguntaFamilia[] = 
   };
   const desde = estado.charla.length;
   // La bienvenida es un solo mensaje con párrafos (M6 ya no se manda).
-  estado.charla.push({ de: 'bio', partes: renderizar(mensajePorId('BIEN')!.texto, ficha).split('\n\n').map((t) => ({ id: 'BIEN', texto: t })) });
+  estado.charla.push({ de: 'bio', partes: renderizar(mensajePorId('BIEN', idiomaDe(ficha))!.texto, ficha).split('\n\n').map((t) => ({ id: 'BIEN', texto: t })) });
   avanzar(estado);
   return { estado, mensajes: mensajesDesde(estado, desde) };
 }
@@ -146,7 +147,7 @@ export function tocarBoton(anterior: EstadoSimulacion, texto: string): Resultado
   if (anterior.tocoSi) throw new Error('Ya tocó "Sí" en esta pregunta: ahora va el audio (--respuesta).');
   const id = anterior.esperando;
   // En una repregunta del cazador, el botón es [Ya lo conté todo] (Naza, 01/10).
-  const botones = botonesDeClave(id) ?? [];
+  const botones = botonesDeClave(id, idiomaDe(anterior.ficha)) ?? [];
   if (!botones.some((b) => b.texto === texto)) {
     const hay = botones.length > 0 ? botones.map((b) => `(${b.texto})`).join(' ') : 'ninguno';
     throw new Error(`${id} no tiene el botón "${texto}". Botones: ${hay}`);
@@ -159,7 +160,7 @@ export function tocarBoton(anterior: EstadoSimulacion, texto: string): Resultado
   if (toque.esperaAudio) {
     // M30 va solo, sin acuse; la pregunta sigue abierta (regla 30).
     estado.tocoSi = true;
-    estado.charla.push({ de: 'bio', partes: [{ id: toque.mandar, texto: renderizar(mensajePorId(toque.mandar)!.texto, estado.ficha) }] });
+    estado.charla.push({ de: 'bio', partes: [{ id: toque.mandar, texto: renderizar(mensajePorId(toque.mandar, idiomaDe(estado.ficha))!.texto, estado.ficha) }] });
     return { estado, mensajes: mensajesDesde(estado, desde) };
   }
   cerrarRespuesta(estado);
@@ -174,7 +175,8 @@ function cerrarRespuesta(estado: EstadoSimulacion): void {
   estado.tocoSi = undefined;
   estado.acuse = undefined;
   // Las claves CA16~2 (segunda oportunidad) y RP~X (repregunta) también tienen su pregunta (Naza, 01/10).
-  const p = preguntaDeClave(id);
+  const idioma = idiomaDe(estado.ficha);
+  const p = preguntaDeClave(id, idioma);
   if (!p) {
     // Pregunta de la familia: acuse común, como en la lectura corrida.
     estado.acuse = anotarAcuse('M3', estado.vueltas);
@@ -182,7 +184,7 @@ function cerrarRespuesta(estado: EstadoSimulacion): void {
     estado.vueltas.M27 ??= 0; // estados de antes de las simulaciones
     estado.vueltas.M32 ??= 0; // y de antes de la ronda 2
     estado.vueltas['M28.4'] ??= 0; // y de antes de la prueba de Naza en la página
-    for (const fam of mensajesDespues(p, r, anteriores)) estado.acuse = anotarAcuse(fam, estado.vueltas);
+    for (const fam of mensajesDespues(p, r, anteriores, idioma)) estado.acuse = anotarAcuse(fam, estado.vueltas);
   }
   avanzar(estado);
 }
@@ -200,30 +202,31 @@ function mensajesDesde(e: EstadoSimulacion, desde: number): string[] {
 function avanzar(e: EstadoSimulacion): void {
   const respuestas = new Map(e.respuestas);
   const enviados = new Set(e.enviados);
-  const texto = (id: string) => renderizar(mensajePorId(id)!.texto, e.ficha);
+  const idioma = idiomaDe(e.ficha);
+  const texto = (id: string) => renderizar(mensajePorId(id, idioma)!.texto, e.ficha);
 
   /** Igual que `mandar` en v3-entrevista-lectura.ts. */
   const mandar = (t: { entrada?: string; pregunta: string; conM1?: boolean; ayuda?: boolean; botones?: string[] }, textos: Record<string, string>): void => {
     const siguiente = t.entrada ? texto(t.entrada) : (textos[t.pregunta] ?? texto(t.pregunta));
-    const quePregunta = preguntaPorId(t.pregunta) ?? { id: t.pregunta, clase: 'historia' as const };
+    const quePregunta = preguntaPorId(t.pregunta, idioma) ?? { id: t.pregunta, clase: 'historia' as const };
     const a = e.acuse;
     const idAcuse = a && acuseDeTurno(a.familia, a.n, siguiente, quePregunta);
-    const textoAcuse = idAcuse ? mensajePorId(idAcuse)?.texto : undefined;
-    if (t.entrada) textos[t.entrada] = renderizar(entradaSegunAcuse(mensajePorId(t.entrada)!.texto, textoAcuse), e.ficha);
+    const textoAcuse = idAcuse ? mensajePorId(idAcuse, idioma)?.texto : undefined;
+    if (t.entrada) textos[t.entrada] = renderizar(entradaSegunAcuse(mensajePorId(t.entrada, idioma)!.texto, textoAcuse), e.ficha);
     // FO1 va sin el nombre si el acuse pegado ya lo dice (prueba de Naza en la página, 30/09).
-    const delBanco = preguntaPorId(t.pregunta);
+    const delBanco = preguntaPorId(t.pregunta, idioma);
     if (!t.entrada && delBanco) textos[t.pregunta] = renderizar(preguntaSegunAcuse(t.pregunta, delBanco.texto, textoAcuse), e.ficha, respuestas);
     const porId = armarTurno({ acuse: idAcuse, familia: a?.familia, entrada: t.entrada, pregunta: t.pregunta, m1: t.conM1 ? 'M1' : undefined, ayuda: t.ayuda ? 'M31' : undefined });
     for (const m of porId) e.charla.push({ de: 'bio', partes: m.split('\n').map((id) => ({ id, texto: textos[id] ?? texto(id) })) });
     // Los botones van debajo del mensaje de la pregunta (el último del turno).
-    const botones = t.botones ?? preguntaPorId(t.pregunta)?.botones?.map((b) => b.texto);
+    const botones = t.botones ?? preguntaPorId(t.pregunta, idioma)?.botones?.map((b) => b.texto);
     const ultimo = e.charla.at(-1)!;
     if (botones && ultimo.de === 'bio') ultimo.botones = botones;
     e.acuse = undefined;
   };
 
   for (let vuelta = 0; vuelta < 50; vuelta++) {
-    const s = siguientePregunta({ respuestas, enviados, rondaExtra: 'rechazada', familia: e.familia, repreguntas: e.repreguntas });
+    const s = siguientePregunta({ respuestas, enviados, rondaExtra: 'rechazada', familia: e.familia, repreguntas: e.repreguntas, idioma });
     if (s.tipo === 'terminada' || s.tipo === 'ofrecer-extra') {
       // La ronda extra por ahora no se ofrece: no puede llegar 'ofrecer-extra'.
       e.terminada = true;
@@ -243,14 +246,14 @@ function avanzar(e: EstadoSimulacion): void {
     if (s.tipo === 'repregunta') {
       // La repregunta del cazador (Naza, 01/10): mitad fijo, mitad escrito, con [Ya lo conté todo]; se guarda como RP~X.
       const rp = s.repregunta;
-      mandar({ pregunta: rp.clave, botones: s.botones.map((b) => b.texto) }, { [rp.clave]: mensajeRepregunta(rp) });
+      mandar({ pregunta: rp.clave, botones: s.botones.map((b) => b.texto) }, { [rp.clave]: mensajeRepregunta(rp, idioma) });
       e.esperando = rp.clave;
       return;
     }
     const p = s.pregunta;
     if (p.bloque !== e.bloqueActual) {
       e.bloqueActual = p.bloque;
-      e.charla.push({ de: 'bloque', bloque: p.bloque, nombre: NOMBRES_BLOQUE[p.bloque] });
+      e.charla.push({ de: 'bloque', bloque: p.bloque, nombre: nombresBloqueDe(idioma)[p.bloque] });
     }
     mandar({ entrada: s.entrada, pregunta: p.id, conM1: s.conM1, ayuda: s.ayudaBotones }, { [p.id]: renderizar(p.texto, e.ficha, respuestas) });
     if (s.esperaRespuesta) {
@@ -274,7 +277,7 @@ export function textoMandado(e: EstadoSimulacion, id: string): string {
     const partes = g.partes.filter((p) => p.id === id).map((p) => p.texto);
     if (partes.length > 0) texto = partes.join('\n\n'); // si se mandó dos veces, vale la última
   }
-  const delBanco = preguntaPorId(id);
+  const delBanco = preguntaPorId(id, idiomaDe(e.ficha));
   return texto ?? (delBanco ? renderizar(delBanco.texto, e.ficha) : '');
 }
 
@@ -293,6 +296,7 @@ export function cazarAlCerrar(e: EstadoSimulacion, bloque: number, cliente: Clie
     yaRepreguntado: e.repreguntas ?? [],
     escenasContadas: e.cazador?.escenasContadas ?? [],
     gastoUsd: e.cazador?.gastoUsd ?? 0,
+    idioma: idiomaDe(e.ficha),
   });
 }
 
@@ -390,7 +394,9 @@ export function main(args: string[]): string {
     const genero = opcion(args, '--genero');
     if (!nombre || (genero !== 'varon' && genero !== 'mujer')) throw new Error('nueva: faltan --nombre y --genero varon|mujer');
     const familia = opciones(args, '--familia').map((texto, i) => ({ id: `FAM${i + 1}`, texto }));
-    const r = nuevaEntrevista({ nombre, genero }, familia);
+    // --idioma ca: la entrevista en catalán (Naza, 04/10). Sin --idioma, la de siempre.
+    const idioma = idiomaDe({ idioma: opcion(args, '--idioma') });
+    const r = nuevaEntrevista(idioma === 'es-AR' ? { nombre, genero } : { nombre, genero, idioma }, familia);
     guardar(ruta, r.estado);
     return salidaParaNarrador(r);
   }
