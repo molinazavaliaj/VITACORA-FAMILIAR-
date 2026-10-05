@@ -61,4 +61,70 @@ Ejemplo: {{1}} `Lucía`
 ## Para Joaquín
 - Con el botón [SÍ], tocarlo vale como contestar SÍ (abre la ventana y dispara BIEN-2 y AS1).
 - Si alguna queda en revisión, la persona puede escribir primero y todo va como texto libre.
-- Catalán (`ca`) y castellano de España con tú (`es_ES`): estas mismas cinco salen del banco de Viaje traducido (`banco-ca.md`, `banco-es-ES.md`), con el proceso de V3 catalán. En curso desde el 05/10.
+- Catalán (`ca`) y castellano de España con tú (`es_ES`): más abajo, del banco traducido y revisado (05/10). Se cargan con el sufijo `_ca` / `_es_es` en el nombre (o con el mismo nombre y otro idioma, si Joaquín prefiere: Meta permite varias traducciones por plantilla).
+
+---
+
+# Plantillas en Catalan (`ca`)
+
+Mismo uso, variables y botón que las de castellano rioplatense. Textos del banco revisado (`idiomas/banco-ca.md`). Idioma en WhatsApp Manager: **Catalan (`ca`)**. Ejemplos inventados: {{1}} `Laia`, quien regala `Jordi`, formato `un llibre imprès` (el otro valor: `un llibre en PDF`).
+
+## 1. `bienvenida_viaje_v2_ca` — {{1}} cómo le dicen, {{2}} el formato · botón [SÍ]
+```
+Hola, {{1}}. Soc qui escriurà el llibre del teu viatge. Jo et pregunto per aquí, tu m'ho expliques en àudio quan puguis, i quan tornis tindràs {{2}} amb el teu viatge explicat amb la teva veu, les teves fotos i un codi QR per escoltar alguns dels teus àudios. Comencem? Contesta'm SÍ i així em dones permís per guardar el que m'enviïs.
+```
+
+## 2. `bienvenida_viaje_regalo_v2_ca` — {{1}} cómo le dicen, {{2}} quién regala, {{3}} el formato · botón [SÍ]
+```
+Hola, {{1}}. {{2}} t'ha regalat {{3}} amb el teu viatge, explicat per tu, i jo soc qui l'escriurà. Et pregunto per aquí, tu m'ho expliques en àudio quan puguis, i quan tornis el tindràs escrit amb la teva veu, amb les teves fotos i amb un codi QR per escoltar alguns dels teus àudios. Comencem? Contesta'm SÍ i així em dones permís per guardar el que m'enviïs.
+```
+
+## 3. `mensaje_viaje_v2_ca` — {{1}} cómo le dicen, {{2}} el mensaje (una sola línea)
+```
+Hola, {{1}}. T'escric per la teva Vitácora de Viaje.
+
+{{2}}
+
+Quan puguis, em contestes amb un àudio. Sense pressa.
+```
+
+## 4. `recordatorio_viaje_v2_ca` — {{1}} cómo le dicen
+```
+Hola, {{1}}. Tens una pregunta pendent, sense pressa. Quan tinguis una estona, contesta-me-la en àudio, o escriu "passo" i seguim amb la següent.
+```
+
+## 5. `recordatorio_viaje_ultima_v2_ca` — {{1}} cómo le dicen
+```
+Hola, {{1}}. Tens una pregunta pendent, sense pressa. Quan tinguis una estona, contesta-me-la en àudio, o escriu "passo". I ens retrobem el dia que marxis.
+```
+
+---
+
+# Plantillas en Spanish (Spain) `es_ES`
+
+Mismo uso, variables y botón que las de castellano rioplatense. Textos del banco revisado (`idiomas/banco-es-ES.md`). Idioma en WhatsApp Manager: **Spanish (Spain) `es_ES`**. Ejemplos inventados: {{1}} `Marta`, quien regala `Pablo`, formato `un libro impreso` (el otro valor: `un libro en PDF`).
+
+## 1. `bienvenida_viaje_v2_es_es` — {{1}} cómo le dicen, {{2}} el formato · botón [SÍ]
+```
+Hola, {{1}}. Soy quien va a escribir el libro de tu viaje. Funciona así: yo te pregunto por aquí, tú me cuentas en audio cuando puedas, y al volver tienes {{2}} con tu viaje contado con tu voz, tus fotos y un código QR para escuchar algunos de tus audios. ¿Empezamos? Contéstame SÍ: con eso me das permiso para guardar lo que me mandes.
+```
+
+## 2. `bienvenida_viaje_regalo_v2_es_es` — {{1}} cómo le dicen, {{2}} quién regala, {{3}} el formato · botón [SÍ]
+```
+Hola, {{1}}. Te escribo porque {{2}} te ha hecho un regalo: {{3}} con tu viaje, contado por ti. Funciona así: yo te pregunto por aquí, tú me cuentas en audio cuando puedas, y al volver lo tienes escrito con tu voz, con tus fotos y con un código QR para escuchar algunos de tus audios. ¿Empezamos? Contéstame SÍ: con eso me das permiso para guardar lo que me mandes.
+```
+
+## 3. `mensaje_viaje_v2_es_es` — {{1}} cómo le dicen, {{2}} el mensaje (una sola línea)
+```
+Hola, {{1}}. Te escribo por tu Vitácora de Viaje.\n\n{{2}}\n\nCuando puedas, me contestas con un audio. Sin prisa.
+```
+
+## 4. `recordatorio_viaje_v2_es_es` — {{1}} cómo le dicen
+```
+Hola, {{1}}. Se te ha quedado una pregunta esperando, sin prisa. Cuando tengas un rato, contéstamela en audio, o "paso" y seguimos con la siguiente.
+```
+
+## 5. `recordatorio_viaje_ultima_v2_es_es` — {{1}} cómo le dicen
+```
+Hola, {{1}}. Se te ha quedado una pregunta esperando, sin prisa. Cuando tengas un rato, contéstamela en audio, o "paso", y hablamos el día que te vayas.
+```
