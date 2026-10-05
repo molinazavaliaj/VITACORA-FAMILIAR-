@@ -70,3 +70,5 @@ Naza: que el bot diga que le gusta algo, o que guarda algo "con cariño", es "me
 1. Llegó la foto, ya está guardada. (palabras de Naza)
 2. Esa foto la guardo para el libro.
 3. Ya la tengo, gracias por mandarla.
+
+**Aprobada por Naza (05/10): la tanda 3.**
