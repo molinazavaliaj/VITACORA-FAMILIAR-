@@ -85,7 +85,7 @@ export type Estado = {
   inicio: string | null;
   /** ISO: el último mensaje o botón del número de las preguntas (ventana de 24 h, recordatorios). */
   ultimaEntrada: string | null;
-  /** Fecha local del último día que ya tuvo su principal (o dijo "mañana"). */
+  /** Fecha local del último día que ya tuvo su principal (o dijo "mañana", o le llegó algo que espera un botón: decisiones 6 y 10). */
   diaHecho: string | null;
   /** Fecha local del último día en que corrió "la hora". */
   horaHecha: string | null;

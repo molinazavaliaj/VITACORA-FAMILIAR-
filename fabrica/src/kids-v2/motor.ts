@@ -13,12 +13,12 @@
 
 import { armarGuion, PREGUNTA_DEL_TEMA, TEMAS, validarFicha, type Tema } from './compra.js';
 import { esDeNoche } from './horas.js';
-import { emitir, type Ctx } from './motor/flujo.js';
+import { emitir, hoy, type Ctx } from './motor/flujo.js';
 import { alBoton } from './motor/botones.js';
 import { fijoA, variables } from './motor/mensajes.js';
 import { procesarRafaga, sumarARafaga } from './motor/rafaga.js';
 import { alReloj } from './motor/reloj.js';
-import type { Estado, Evento, Salida } from './motor/tipos.js';
+import type { Estado, Evento, Fase, Salida } from './motor/tipos.js';
 import { esPlural } from './texto.js';
 
 export { nuevoEstado } from './motor/estado.js';
@@ -28,7 +28,25 @@ export type { Contenido, Estado, Evento, Fase, Mensaje, Salida } from './motor/t
 export function paso(estado: Estado, evento: Evento, ahora: string): { estado: Estado; salidas: Salida[] } {
   const c: Ctx = { e: structuredClone(estado), ahora: new Date(ahora), salidas: [], replay: false };
   aplicar(c, evento);
+  llegoAlgoQueEspera(c);
   return { estado: c.e, salidas: c.salidas };
+}
+
+/** Fases que esperan al chico (un botón o lo que cuente). */
+const ESPERAN: ReadonlySet<Fase['tipo']> = new Set(['pregunta', 'op', 'foto', 'foto-audio', 'seguir', 'aviso-seria', 'tranquila', 'una-mas', 'cierre', 'cierre-cuenta']);
+
+/**
+ * Le llegó algo que espera un botón (una pregunta, su foto, B-SEGUIR…): ese día
+ * queda hecho. Decisión 6: lo que espera un botón vence a la hora del día
+ * SIGUIENTE al que le llegó (también si le llegó a las 9, después de lo de la
+ * noche). Decisión 10: si ese día ya le llegó una principal (también la que
+ * suelta a la mañana un botón tocado de noche), la hora no manda otra.
+ * Los avisos al padre (recordatorios, TERMINO-PADRE) no cuentan.
+ */
+function llegoAlgoQueEspera(c: Ctx): void {
+  if (!ESPERAN.has(c.e.fase.tipo)) return;
+  const llego = c.salidas.some((s) => s.tipo === 'mensaje' && s.botones.length > 0 && !/^RECORD-/.test(s.id));
+  if (llego) c.e.diaHecho = hoy(c);
 }
 
 function aplicar(c: Ctx, ev: Evento): void {

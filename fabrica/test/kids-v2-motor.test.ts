@@ -336,3 +336,46 @@ describe('kids v2: el final retenido (cerró solo a los 2 días) y lo que escrib
     expect(r.e.fase).toEqual({ tipo: 'terminado' });
   });
 });
+
+describe('kids v2: lo que llega a la mañana (decisiones 6 y 10, fix de la simulación)', () => {
+  it('contesta de noche: a las 9 le llega la foto, y esa foto NO vence a la hora de ese día; vence a la hora del día siguiente', () => {
+    // K1 salió el 10/10 a las 18:00; cuenta a las 23:00 (de noche) → a las 9 del 11/10 acuse y K1-FOTO.
+    const e0 = estadoEn('K1', { tipo: 'pregunta', clave: 'K1', rama: null, pasoRama: 0 }, {}, { diaHecho: '2026-10-10', horaHecha: '2026-10-10', ultimaEntrada: iso('2026-10-10', '18:10') });
+    const maniana = correr(e0, [
+      ['2026-10-10', '23:00', audio(60)],
+      ['2026-10-11', '09:00', RELOJ],
+      ['2026-10-11', '09:02', RELOJ],
+    ]);
+    expect(ids(maniana.s)).toContain('K1-FOTO');
+    expect(maniana.e.fase).toEqual({ tipo: 'foto', clave: 'K1' });
+    expect(maniana.e.diaHecho).toBe('2026-10-11');
+    const hora = correr(maniana.e, [['2026-10-11', '18:00', RELOJ]]);
+    expect(ids(hora.s)).toEqual([]);
+    expect(hora.e.fase).toEqual({ tipo: 'foto', clave: 'K1' });
+    const otroDia = correr(hora.e, [['2026-10-12', '18:00', RELOJ]]);
+    expect(ids(otroDia.s)).toEqual(['PREG-NUEVA-CHICO']);
+    expect(otroDia.e.fotosVencidas).toEqual(['K1']);
+  });
+
+  it('canal B: la principal que suelta a las 9 un [Estamos listos] de la noche cuenta para ese día: a la hora no sale otra', () => {
+    const e0 = estadoEn(
+      'K2',
+      { tipo: 'retenido', mensajes: [], luego: { tipo: 'pregunta', clave: 'K2', rama: null, pasoRama: 0 } },
+      { canal: 'B' },
+      { diaHecho: '2026-10-10', horaHecha: '2026-10-10', ultimaEntrada: iso('2026-10-09', '18:10') },
+    );
+    e0.fase = { tipo: 'retenido', mensajes: [{ a: 'padre', id: 'K2', texto: 'K2', botones: ['Paso'], plantilla: null }], luego: { tipo: 'pregunta', clave: 'K2', rama: null, pasoRama: 0 } };
+    const r = correr(e0, [
+      ['2026-10-10', '23:00', toca('Estamos listos')],
+      ['2026-10-11', '09:00', RELOJ],
+      ['2026-10-11', '09:30', toca('Paso')],
+      ['2026-10-11', '09:31', RELOJ],
+    ]);
+    expect(ids(r.s)).toEqual(['K2', 'B-PASO', 'K2-FOTO']);
+    expect(r.e.diaHecho).toBe('2026-10-11');
+    const hora = correr(r.e, [['2026-10-11', '18:00', RELOJ]]);
+    expect(ids(hora.s)).toEqual([]);
+    const otroDia = correr(hora.e, [['2026-10-12', '18:00', RELOJ]]);
+    expect(ids(otroDia.s)).toEqual(['PREG-NUEVA-PADRE']);
+  });
+});
