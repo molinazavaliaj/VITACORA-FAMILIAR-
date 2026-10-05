@@ -1,6 +1,8 @@
 // Chicos inventados para la simulación: cómo contestan (corto, largo,
 // escrito, pasando todo, callándose días, de noche, tocando cualquier botón,
-// contando algo preocupante). Azar con semilla: todo se repite.
+// tocando botones viejos o dos veces, contando algo preocupante). Azar con
+// semilla: todo se repite. Cada botón que tocan lleva el `envio` del mensaje
+// (como lo va a mandar WhatsApp).
 //
 // Chicos INVENTADOS. Nunca usar acá la vida de un narrador real.
 
@@ -8,7 +10,7 @@ import type { Canal, Ficha, Tema } from './compra.js';
 import { TEMAS } from './compra.js';
 import type { Accion, Conducta } from './corrida.js';
 import { aLocal, aInstante, sumarDias } from './horas.js';
-import type { Contenido, Mensaje } from './motor.js';
+import type { Contenido, Enviado, Mensaje } from './motor.js';
 
 export type Azar = { (): number; entre(a: number, b: number): number; uno<T>(xs: readonly T[]): T; si(p: number): boolean };
 
@@ -28,7 +30,7 @@ export function azar(semilla: number): Azar {
   return f;
 }
 
-export const TIPOS_DE_CONDUCTA = ['cuenta-mucho', 'contesta-corto', 'pasa-todo', 'escribe', 'se-calla', 'de-noche', 'toca-cualquier-cosa', 'algo-preocupante'] as const;
+export const TIPOS_DE_CONDUCTA = ['cuenta-mucho', 'contesta-corto', 'pasa-todo', 'escribe', 'se-calla', 'de-noche', 'toca-cualquier-cosa', 'algo-preocupante', 'toca-viejos'] as const;
 export type TipoConducta = (typeof TIPOS_DE_CONDUCTA)[number];
 
 const MIN = 60_000;
@@ -66,8 +68,17 @@ export function fichaAlAzar(r: Azar, canal?: Canal): Ficha {
  * padre (es el mismo celular), así que mira todo.
  */
 export function chico(tipo: TipoConducta, r: Azar, ficha: Ficha): Conducta {
-  const mios = (ms: Mensaje[]) => (ficha.canal === 'B' ? ms : ms.filter((m) => m.a === 'chico'));
+  const mios = <M extends Mensaje>(ms: M[]) => (ficha.canal === 'B' ? ms : ms.filter((m) => m.a === 'chico'));
   let preocupanteDicho = false;
+  /** En qué tanda (paso del motor) le llegó cada mensaje. */
+  const tanda = new Map<string, number>();
+  let tandas = 0;
+  /**
+   * Un mensaje quedó atrás si en una tanda posterior le llegó otro con botones (que no
+   * sea un recordatorio ni el mismo mensaje vuelto a mandar): ya se espera otra cosa.
+   */
+  const quedoAtras = (m: Enviado, todo: Enviado[]) =>
+    todo.some((n) => (tanda.get(n.envio) ?? 0) > (tanda.get(m.envio) ?? 0) && n.botones.length > 0 && !/^RECORD-/.test(n.id) && n.id !== m.id);
 
   const tarda = (ahora: Date): number => {
     if (tipo === 'se-calla' && r.si(0.08)) return r.entre(3, 12) * DIA + r.entre(0, 600) * MIN;
@@ -102,9 +113,14 @@ export function chico(tipo: TipoConducta, r: Azar, ficha: Ficha): Conducta {
 
   const contestar = (t: number): Accion[] =>
     contar().map((x, i) => ({ trasMs: t + i * 20_000, evento: { tipo: 'respuesta', contenido: x.contenido }, dice: x.dice }));
-  const tocar = (t: number, boton: string): Accion[] => [{ trasMs: t, evento: { tipo: 'boton', boton }, dice: `[${boton}]` }];
-
   return (llegaron, { ahora, todo, estado }) => {
+    tandas++;
+    for (const m of llegaron) tanda.set(m.envio, tandas);
+    /** Toca un botón del mensaje `m` (con su envio). `viejo`: el mensaje ya quedó atrás. */
+    const tocar = (t: number, boton: string, m: Enviado = u): Accion[] => {
+      const viejo = quedoAtras(m, todo);
+      return [{ trasMs: t, evento: { tipo: 'boton', boton, aMensaje: m.envio }, dice: `[${boton}]${viejo ? ` (de ${m.id}, viejo)` : ''}`, viejo }];
+    };
     const ms = mios(llegaron);
     if (!ms.length) return [];
     const u = ms[ms.length - 1];
@@ -112,12 +128,21 @@ export function chico(tipo: TipoConducta, r: Azar, ficha: Ficha): Conducta {
     const acciones: Accion[] = [];
     if (tipo === 'toca-cualquier-cosa' && r.si(0.3)) {
       const viejo = r.uno(mios(todo).filter((m) => m.botones.length));
-      if (viejo) acciones.push(...tocar(r.entre(1, 5) * MIN, r.uno(viejo.botones)));
+      if (viejo) acciones.push(...tocar(r.entre(1, 5) * MIN, r.uno(viejo.botones), viejo));
+    }
+    // Toca botones de mensajes que ya quedaron atrás (el de ayer, el que ya tocó) y a veces toca dos veces el de ahora.
+    if (tipo === 'toca-viejos') {
+      const viejos = mios(todo).filter((m) => m.botones.length > 0 && quedoAtras(m, todo));
+      if (viejos.length && r.si(0.4)) {
+        const v = r.uno(viejos);
+        acciones.push(...tocar(r.entre(1, 5) * MIN, r.uno(v.botones), v));
+      }
+      if (u.botones.length && r.si(0.15)) acciones.push(...tocar(r.entre(55, 70) * MIN, r.uno(u.botones), u));
     }
     // Algo preocupante: a veces, el mismo día, toca botones viejos (el motor no tiene que hacer nada con ellos).
     if (tipo === 'algo-preocupante' && /^B-DIAFEO-ACUSE-/.test(u.id) && r.si(0.5)) {
       const viejo = r.uno(mios(todo).filter((m) => m.botones.length));
-      if (viejo) return [...acciones, ...tocar(r.entre(1, 30) * MIN, r.uno(viejo.botones)), ...tocar(r.entre(31, 90) * MIN, r.uno(viejo.botones))];
+      if (viejo) return [...acciones, ...tocar(r.entre(1, 30) * MIN, r.uno(viejo.botones), viejo), ...tocar(r.entre(31, 90) * MIN, r.uno(viejo.botones), viejo)];
     }
     if (u.plantilla && u.botones.length) {
       // Se calla con el PREG-NUEVA de las extras: a los 2 días el libro cierra solo (cerro-sin-respuesta); días después lo toca.
@@ -157,6 +182,11 @@ export function chico(tipo: TipoConducta, r: Azar, ficha: Ficha): Conducta {
         return [...acciones, ...tocar(t, r.si(0.6) ? 'Dale, otra' : 'Lo dejamos acá')];
       case 'B-FOTO-NOTENGO':
       case 'B-FOTO-PLATA':
+        // En las extras del final, a veces cuenta algo preocupante después de [No tengo]: ese día la espera
+        // del audio no vence y al otro día la ventana de 24 h puede estar cerrada.
+        if (tipo === 'algo-preocupante' && estado.guion[estado.cursor]?.tipo === 'extras' && r.si(0.5)) {
+          return [...acciones, { trasMs: r.entre(1, 8) * MIN, evento: { tipo: 'respuesta', contenido: { tipo: 'audio', seg: 40, transcripcion: FRASE_PREOCUPANTE } }, dice: `audio de 40 s: "${FRASE_PREOCUPANTE}"` }];
+        }
         return r.si(0.5) ? [...acciones, ...contestar(r.entre(1, 8) * MIN)] : acciones;
     }
     if (/^CIERRE-/.test(u.id)) {

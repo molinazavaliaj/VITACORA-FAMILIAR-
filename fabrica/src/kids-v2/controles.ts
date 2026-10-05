@@ -9,7 +9,7 @@ import type { Corrida, Linea } from './corrida.js';
 import { aInstante, aLocal, esDeNoche, finDeLaNoche, sumarDias } from './horas.js';
 import type { Mensaje } from './motor.js';
 import type { Estado } from './motor.js';
-import { ACTIVO_MS, CORTO_AUDIO_SEG, CORTO_PALABRAS, SILENCIO_MS } from './reglas.js';
+import { ACTIVO_MS, CORTO_AUDIO_SEG, CORTO_PALABRAS, SILENCIO_MS, VENTANA_MS } from './reglas.js';
 
 export type Violacion = { control: string; detalle: string };
 
@@ -35,6 +35,8 @@ export const CONTROLES: Record<string, string> = {
   retenido: 'si cuenta algo (no corto) en vez de tocar el botón de la bienvenida o de un PREG-NUEVA, primero va el acuse',
   vence: 'lo que espera un botón no vence antes de la hora del día siguiente al que le llegó (decisión 6)',
   unaPorDia: 'la hora no empieza nada el día que ya le llegó una principal, ni dos veces el mismo día (decisión 10)',
+  ventana: 'nada de texto libre a un número más de 24 h después de lo último que mandó ese número (las plantillas sí)',
+  botonViejo: 'un botón de un mensaje que ya quedó atrás (o ya tocado) no hace nada (decisión 22)',
 };
 
 /** Lo que empieza un item (o lo anuncia): lo que manda "la hora" cuando sale sola. */
@@ -71,6 +73,8 @@ export function revisar(ficha: Ficha, c: Corrida, o: { sigueContestando: boolean
   let pendiente: { tipo: string | null; en: number; noche: boolean }[] = [];
   let contenidos = new Set<string>();
   let previo: Linea | null = null;
+  /** Desde el último mensaje del bot, tocó [Estamos listos] (de noche se procesa a las 9, con lo que contó después). */
+  let tocoListos = false;
   let plantillasSinRespuesta: string[] = [];
   let sobrioHasta: Date | null = null;
   let recordatorios = 0;
@@ -93,8 +97,15 @@ export function revisar(ficha: Ficha, c: Corrida, o: { sigueContestando: boolean
   /** Lo que contó desde que le llegó una otra puerta (K2-OP): si fue corto, la foto va sin acuse. */
   let desdeOp: { seg: number; palabras: number; fotos: number } | null = null;
 
+  /** Lo último que mandó el número de las preguntas (el del chico; en canal B, el del padre). */
+  const numeroPreguntas = ficha.canal === 'B' ? 'padre' : 'chico';
+  let ultimaDelNumero: Date | null = null;
+
   for (const l of c.lineas) {
     if (l.de === 'chico') {
+      ultimaDelNumero = l.en;
+      if (l.evento.tipo === 'boton' && l.evento.boton === 'Estamos listos') tocoListos = true;
+      if (l.viejo && l.efecto && !l.conRafaga) mal('botonViejo', `${l.dice} a las ${cuando(l.en)} hizo algo`);
       plantillasSinRespuesta = [];
       recordatorios = 0;
       if (esperaBoton && !esperaBoton.primero) esperaBoton.primero = l;
@@ -119,6 +130,11 @@ export function revisar(ficha: Ficha, c: Corrida, o: { sigueContestando: boolean
     const m: Mensaje = l.mensaje;
     const id = m.id;
     const botPrevio = botAnterior;
+    // Texto libre (sin plantilla) solo dentro de las 24 h de lo último que mandó ese número.
+    if (!m.plantilla) {
+      const desde = m.a === numeroPreguntas ? ultimaDelNumero : null;
+      if (!desde || l.en.getTime() - desde.getTime() >= VENTANA_MS) mal('ventana', `${id} a ${m.a} a las ${cuando(l.en)}, ${desde ? `${Math.round((l.en.getTime() - desde.getTime()) / 3_600_000)} h después de lo último que mandó` : 'sin que ese número haya mandado nada'}`);
+    }
     // La ráfaga que procesa este mensaje: hasta el primer botón de la noche que vino después de algo contado.
     // B-FOTO-NOTENGO, B-NO-PASA-NADA, la primera pregunta de una rama (K25-R2)… contestan a un botón:
     // se llevan hasta ese botón, no lo que vino contado después. La otra puerta y el segundo paso de una rama (K12-R2-2), a lo contado.
@@ -186,7 +202,7 @@ export function revisar(ficha: Ficha, c: Corrida, o: { sigueContestando: boolean
     if (/^K\d+$/.test(id)) {
       const n = (enviadas.get(id) ?? 0) + 1;
       enviadas.set(id, n);
-      const reenvio = previo?.de === 'chico' && previo.evento.tipo === 'boton' && previo.evento.boton === 'Estamos listos';
+      const reenvio = tocoListos;
       if (n > 1 && !reenvio) mal('unaVez', `${id} salió ${n} veces`);
       if (id === 'K39' && !avisoAntesDeK39 && !reenvio) mal('aviso', `K39 sin B-AVISO-SERIA antes (${cuando(l.en)})`);
       if (id === 'K39') avisoAntesDeK39 = false;
@@ -240,6 +256,7 @@ export function revisar(ficha: Ficha, c: Corrida, o: { sigueContestando: boolean
     else if (corte < pendiente.length) pendiente = pendiente.slice(corte + 1);
     else if (l.en.getTime() >= ultimo + SILENCIO_MS) pendiente = [];
     desdeOp = /^K\d+-OP$/.test(id) ? { seg: 0, palabras: 0, fotos: 0 } : null;
+    tocoListos = false;
     previo = l;
   }
 

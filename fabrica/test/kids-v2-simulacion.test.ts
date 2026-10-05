@@ -18,7 +18,7 @@ describe('kids v2: simulación de 240 chicos', () => {
     expect(ids(correrUno(17))).toEqual(ids(correrUno(17)));
   });
 
-  it('cubre lo pedido: las 8 conductas, los dos canales, todos los temas sacados, preguntas del padre, algo preocupante, silencios', () => {
+  it('cubre lo pedido: las 9 conductas, los dos canales, todos los temas sacados, preguntas del padre, algo preocupante, silencios', () => {
     expect(new Set(CORRIDAS.map((c) => c.conducta))).toEqual(new Set(TIPOS_DE_CONDUCTA));
     expect(new Set(CORRIDAS.map((c) => c.ficha.canal))).toEqual(new Set(['A', 'B']));
     expect(CORRIDAS.some((c) => c.ficha.temasSacados.length === 6)).toBe(true);
@@ -39,6 +39,9 @@ describe('kids v2: simulación de 240 chicos', () => {
       return ls.slice(i).some((l) => l.de === 'chico' && l.evento.tipo === 'boton' && l.en < hasta);
     });
     expect(tocoSobrio).toBe(true);
+    // Botones de mensajes que ya quedaron atrás, con su envio (decisión 22), sin nada contado pendiente.
+    expect(CORRIDAS.some((c) => c.corrida.lineas.some((l) => l.de === 'chico' && l.viejo && !l.conRafaga))).toBe(true);
+    expect(CORRIDAS.every((c) => c.corrida.lineas.every((l) => l.de !== 'chico' || l.evento.tipo !== 'boton' || l.evento.aMensaje !== undefined))).toBe(true);
   });
 
   for (const [control, nombre] of Object.entries(CONTROLES)) {
@@ -96,5 +99,19 @@ describe('kids v2: simulación de 240 chicos', () => {
     expect(j).toBeGreaterThan(0);
     const doble: Corrida = { ...base.corrida, lineas: [...base.corrida.lineas.slice(0, j + 1), base.corrida.lineas[j], ...base.corrida.lineas.slice(j + 1)] };
     expect(revisar(base.ficha, doble, { sigueContestando: true }).map((x) => x.control)).toContain('plantillas');
+  });
+
+  it('los controles de la revisión final detectan: texto libre fuera de las 24 h y un botón viejo que hizo algo', () => {
+    const base = correrUno(3);
+    const ls = base.corrida.lineas;
+    const ultimaDelChico = [...ls].reverse().find((l) => l.de === 'chico')!;
+    const tarde: Corrida = {
+      ...base.corrida,
+      lineas: [...ls, { en: new Date(ultimaDelChico.en.getTime() + 25 * 3_600_000), de: 'bot', mensaje: { a: base.ficha.canal === 'B' ? 'padre' : 'chico', id: 'B-SEGUIR', texto: 'Esa ya está.', botones: [], plantilla: null, envio: '999999' } }],
+    };
+    expect(revisar(base.ficha, tarde, { sigueContestando: true }).map((x) => x.control)).toContain('ventana');
+    const i = ls.findIndex((l) => l.de === 'chico' && l.evento.tipo === 'boton');
+    const viejo: Corrida = { ...base.corrida, lineas: ls.map((l, k) => (k === i && l.de === 'chico' ? { ...l, viejo: true, efecto: true, conRafaga: false } : l)) };
+    expect(revisar(base.ficha, viejo, { sigueContestando: true }).map((x) => x.control)).toContain('botonViejo');
   });
 });
