@@ -171,7 +171,7 @@ Después de K39 (el día feo), "una más antes de cerrar" solo con extras livian
 - Eso fue todo por hoy. Si tenés ganas, podemos continuar hoy mismo. — [Dale, otra] [Mañana sigo]  *(texto de Naza, 05/10)*
 - [Dale, otra] → sale la siguiente principal en el momento; si cambia de capítulo, antes va la entrada del capítulo.
 - [Mañana sigo] → Ya está por hoy, mañana hay más.  *(Naza, 05/10)*
-- Tope: 3 principales por sentada. Después: Ya está por hoy, mañana hay más. *(con coma, como el de [Mañana sigo]; 05/10)*
+- ~~Tope: 3 principales por sentada.~~ **Sin tope (Naza, 05/10)**: si quiere más de 3 por día, puede. Ver `paso-4-huecos-decisiones.md`.
 
 **Aviso antes de las serias** (pegado a la pregunta, no al día: antes de K31 y de K39, cuando le toquen)
 - Hay otra, pero es de las que se piensan con calma. ¿Vas ahora o mañana? — [Voy ahora] [Mañana mejor]
@@ -197,7 +197,8 @@ Después de K39 (el día feo), "una más antes de cerrar" solo con extras livian
 
 ## Reglas del flujo
 
-- **Ritmo:** mínimo una principal por día. Si tiene ganas, sigue en el momento (tope de 3 por sentada). No prometemos tiempo.
+- **Ritmo:** mínimo una principal por día. Si tiene ganas, sigue en el momento, sin tope (05/10). No prometemos tiempo.
+- **Pasar:** todas las principales tienen [Paso] → Dale, esa la salteamos. (05/10)
 - **Nunca se traba:** cada botón, cada [No tengo] y cada "paso" lleva a lo siguiente.
 - **Otra puerta:** sale solo si contesta muy corto (lo cuenta el código, sin modelo), una sola vez. Una OP usada no vuelve como extra.
 - **Extras:** uno antes de cerrar cada capítulo y el resto al terminar el libro, si quiere más. "Cómo se arreglaron" solo si la pelea de K36 se contó.
