@@ -8,7 +8,8 @@ import { armarGuion, type Ficha } from './compra.js';
 import type { Corrida, Linea } from './corrida.js';
 import { aInstante, aLocal, esDeNoche, finDeLaNoche, sumarDias } from './horas.js';
 import type { Mensaje } from './motor.js';
-import { CORTO_AUDIO_SEG, CORTO_PALABRAS, SILENCIO_MS } from './reglas.js';
+import type { Estado } from './motor.js';
+import { ACTIVO_MS, CORTO_AUDIO_SEG, CORTO_PALABRAS, SILENCIO_MS } from './reglas.js';
 
 export type Violacion = { control: string; detalle: string };
 
@@ -27,12 +28,17 @@ export const CONTROLES: Record<string, string> = {
   recordatorios: 'como mucho 2 recordatorios por silencio, y nunca al chico',
   seguirFinDeCap: 'no sale B-SEGUIR después de la última principal de un capítulo ni después de K47',
   aviso: 'K39 siempre después de B-AVISO-SERIA',
-  termino: 'TERMINO-PADRE una sola vez al terminar; en canal B, otro día que FINAL-CHICO',
+  termino: 'TERMINO-PADRE una sola vez al terminar; en canal B, un día después de que llegó FINAL-CHICO (decisión 15)',
   botones: 'como mucho 3 botones por mensaje',
   canalB: 'en canal B todo va al número del padre',
   fotoPegada: 'ninguna foto pegada desaparece: se contestó, se tocó un botón suyo, vuelve al final, o el chico cerró con [No, ya está]/[Lo dejamos acá] (o el libro cerró solo con fotos pendientes)',
   retenido: 'si cuenta algo (no corto) en vez de tocar el botón de la bienvenida o de un PREG-NUEVA, primero va el acuse',
+  vence: 'lo que espera un botón no vence antes de la hora del día siguiente al que le llegó (decisión 6)',
+  unaPorDia: 'la hora no empieza nada el día que ya le llegó una principal, ni dos veces el mismo día (decisión 10)',
 };
+
+/** Lo que empieza un item (o lo anuncia): lo que manda "la hora" cuando sale sola. */
+const EMPIEZA = /^(PREG-NUEVA-(CHICO|PADRE)|ENTRADA-\d|K\d+|B-AVISO-SERIA|B-UNA-MAS|CIERRE-.+|PADRE-PREG-LINEA(-PL)?|PADRE-\d|EXTRAS-OFERTA|FINAL-CHICO(-PL)?)$/;
 
 const bot = (ls: Linea[]) => ls.filter((l): l is Extract<Linea, { de: 'bot' }> => l.de === 'bot');
 const ACUSE = /^ACUSE-\d$/;
@@ -76,6 +82,14 @@ export function revisar(ficha: Ficha, c: Corrida, o: { sigueContestando: boolean
   /** Esperando el botón de una bienvenida o un PREG-NUEVA; `primero`: lo primero que hizo el chico después. */
   let esperaBoton: { id: string; primero: Extract<Linea, { de: 'chico' }> | null } | null = null;
   const enviadas = new Map<string, number>();
+  /** Cuándo procesó el motor cada cosa del chico (lo de la noche, a las 9). */
+  const delChico = c.lineas.flatMap((l) => (l.de === 'chico' ? [finDeLaNoche(l.en, ficha.zona).getTime()] : []));
+  /** El último mensaje con botones que le llegó (lo que se está esperando), sin los recordatorios al padre. */
+  let esperando: Extract<Linea, { de: 'bot' }> | null = null;
+  let botAnterior: Extract<Linea, { de: 'bot' }> | null = null;
+  /** Días (fecha local) en que le llegó una principal o la hora ya empezó algo. */
+  const diasConPrincipal = new Set<string>();
+  const diasConHora = new Set<string>();
 
   for (const l of c.lineas) {
     if (l.de === 'chico') {
@@ -111,6 +125,20 @@ export function revisar(ficha: Ficha, c: Corrida, o: { sigueContestando: boolean
     }
     contenidos = new Set(pendiente.slice(0, corte).flatMap((x) => (x.tipo ? [x.tipo] : [])));
     if (esDeNoche(l.en, ficha.zona)) mal('noche', `${id} a las ${cuando(l.en)}`);
+
+    // "La hora": empieza algo sola, sin que el chico haya hecho nada en la última media hora (ni en el mismo instante otro mensaje).
+    const t = l.en.getTime();
+    const sola = EMPIEZA.test(id) && !(botAnterior && botAnterior.en.getTime() === t) && !delChico.some((x) => x <= t && t - x < ACTIVO_MS);
+    if (sola) {
+      const dia = hora(l.en).fecha;
+      if (esperando && hora(esperando.en).fecha === dia) mal('vence', `${id} a las ${cuando(l.en)}: venció ${esperando.mensaje.id}, que le llegó ese mismo día (${cuando(esperando.en)})`);
+      if (diasConHora.has(dia)) mal('unaPorDia', `${id} a las ${cuando(l.en)}: la hora ya había empezado algo ese día`);
+      else if (diasConPrincipal.has(dia)) mal('unaPorDia', `${id} a las ${cuando(l.en)}: ese día ya le había llegado una principal`);
+      diasConHora.add(dia);
+    }
+    if (/^(K\d+|PADRE-\d)$/.test(id)) diasConPrincipal.add(hora(l.en).fecha);
+    if (m.botones.length > 0 && !/^RECORD-/.test(id)) esperando = l;
+    botAnterior = l;
     if (m.texto.includes('{{')) mal('marcas', `${id}: ${m.texto.slice(0, 50)}`);
     const sinLink = m.texto.split(ficha.linkPanel).join('');
     if (!/^PADRE-\d$/.test(id) && sinLink.includes(':')) mal('dosPuntos', `${id}: ${m.texto.slice(0, 60)}`);
@@ -197,13 +225,13 @@ export function revisar(ficha: Ficha, c: Corrida, o: { sigueContestando: boolean
     previo = l;
   }
 
-  if (terminado) for (const x of fotosPerdidas(ficha, c.lineas)) mal('fotoPegada', x);
+  if (terminado) for (const x of fotosPerdidas(ficha, c.lineas, c.estado)) mal('fotoPegada', x);
 
   const terminados = mensajes.filter((x) => x.mensaje.id === 'TERMINO-PADRE');
   const final = mensajes.find((x) => /^FINAL-CHICO/.test(x.mensaje.id));
   if (terminado) {
     if (terminados.length !== 1 && !(ficha.canal === 'B' && c.estado.terminoPadre)) mal('termino', `TERMINO-PADRE salió ${terminados.length} veces`);
-    if (ficha.canal === 'B' && final && terminados[0] && hora(terminados[0].en).fecha === hora(final.en).fecha) mal('termino', 'canal B: TERMINO-PADRE el mismo día que FINAL-CHICO');
+    if (ficha.canal === 'B' && final && terminados[0] && hora(terminados[0].en).fecha <= hora(final.en).fecha) mal('termino', `canal B: TERMINO-PADRE (${cuando(terminados[0].en)}) no es otro día después de FINAL-CHICO (${cuando(final.en)})`);
     for (const k of principales) if (!enviadas.has(k)) mal('unaVez', `${k} nunca salió`);
   } else if (terminados.length > 0 && c.estado?.fase.tipo !== 'retenido') mal('termino', 'TERMINO-PADRE sin haber terminado');
   return v;
@@ -218,7 +246,7 @@ export function revisar(ficha: Ficha, c: Corrida, o: { sigueContestando: boolean
  * cerro-sin-respuesta). Una foto vencida que vuelve y tampoco se contesta solo
  * se acepta si el libro cerró solo o el chico cerró.
  */
-function fotosPerdidas(ficha: Ficha, lineas: Linea[]): string[] {
+function fotosPerdidas(ficha: Ficha, lineas: Linea[], estado: Estado): string[] {
   const guion = armarGuion(ficha);
   const conFoto = guion.filter((x): x is Extract<typeof x, { tipo: 'principal' }> => x.tipo === 'principal' && x.fotoDe !== null);
   const iOferta = lineas.findIndex((l) => l.de === 'bot' && l.mensaje.id === 'EXTRAS-OFERTA');
@@ -270,7 +298,11 @@ function fotosPerdidas(ficha: Ficha, lineas: Linea[]): string[] {
         break;
       }
     }
-    if (resuelta || chicoCerro || cerroSolo) continue;
+    if (resuelta) continue;
+    // El cierre (del chico o solo) solo excusa una foto que existió para el motor: salió, quedó guardada como
+    // vencida, o su principal se cortó por algo preocupante (decisión 16). Una que nunca salió ni se guardó, se perdió.
+    const preocupante = lineas.some((l) => l.de === 'marca' && l.motivo === 'preocupante' && l.detalle.endsWith(` en ${item.clave}`));
+    if ((chicoCerro || cerroSolo) && (salio || estado.fotosVencidas.includes(item.clave) || preocupante)) continue;
     perdidas.push(`la foto de ${item.clave} (${idNormal}) ${salio ? 'salió y venció' : 'nunca salió'} y no volvió al final`);
   }
   return perdidas;

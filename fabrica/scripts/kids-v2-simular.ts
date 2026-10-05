@@ -40,7 +40,7 @@ if (arg[0] === '--semilla') {
     '',
     `Generado por \`fabrica/scripts/kids-v2-simular.ts\`: ${n} chicos inventados, semillas 1 a ${n}. No editar a mano.`,
     '',
-    `- Terminaron: ${rs.filter((r) => r.corrida.estado.fase.tipo === 'terminado').length} de ${n}.`,
+    `- Terminaron: ${rs.filter((r) => r.corrida.estado?.fase.tipo === 'terminado').length} de ${n}.`,
     `- Días de punta a punta: mediana ${dias[Math.floor(n / 2)]}, máximo ${dias[n - 1]}.`,
     `- Mensajes del bot: ${rs.reduce((a, r) => a + r.mensajes, 0)}.`,
     '',

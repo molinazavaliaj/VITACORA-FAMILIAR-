@@ -104,7 +104,7 @@ export function chico(tipo: TipoConducta, r: Azar, ficha: Ficha): Conducta {
     contar().map((x, i) => ({ trasMs: t + i * 20_000, evento: { tipo: 'respuesta', contenido: x.contenido }, dice: x.dice }));
   const tocar = (t: number, boton: string): Accion[] => [{ trasMs: t, evento: { tipo: 'boton', boton }, dice: `[${boton}]` }];
 
-  return (llegaron, { ahora, todo }) => {
+  return (llegaron, { ahora, todo, estado }) => {
     const ms = mios(llegaron);
     if (!ms.length) return [];
     const u = ms[ms.length - 1];
@@ -114,7 +114,16 @@ export function chico(tipo: TipoConducta, r: Azar, ficha: Ficha): Conducta {
       const viejo = r.uno(mios(todo).filter((m) => m.botones.length));
       if (viejo) acciones.push(...tocar(r.entre(1, 5) * MIN, r.uno(viejo.botones)));
     }
+    // Algo preocupante: a veces, el mismo día, toca botones viejos (el motor no tiene que hacer nada con ellos).
+    if (tipo === 'algo-preocupante' && /^B-DIAFEO-ACUSE-/.test(u.id) && r.si(0.5)) {
+      const viejo = r.uno(mios(todo).filter((m) => m.botones.length));
+      if (viejo) return [...acciones, ...tocar(r.entre(1, 30) * MIN, r.uno(viejo.botones)), ...tocar(r.entre(31, 90) * MIN, r.uno(viejo.botones))];
+    }
     if (u.plantilla && u.botones.length) {
+      // Se calla con el PREG-NUEVA de las extras: a los 2 días el libro cierra solo (cerro-sin-respuesta); días después lo toca.
+      if (tipo === 'se-calla' && estado.fase.tipo === 'retenido' && estado.guion[estado.cursor]?.tipo === 'extras' && r.si(0.6)) {
+        return [...acciones, ...tocar(r.entre(3, 6) * DIA + r.entre(0, 300) * MIN, u.botones[0])];
+      }
       // A veces, en vez de tocar el botón de la bienvenida o del PREG-NUEVA, cuenta algo (decisión 21: suelta igual; si no es corto, antes el acuse).
       if ((tipo === 'escribe' || tipo === 'cuenta-mucho' || tipo === 'contesta-corto') && r.si(0.2)) return [...acciones, ...contestar(t)];
       return [...acciones, ...tocar(t, u.botones[0])];
@@ -151,6 +160,8 @@ export function chico(tipo: TipoConducta, r: Azar, ficha: Ficha): Conducta {
         return r.si(0.5) ? [...acciones, ...contestar(r.entre(1, 8) * MIN)] : acciones;
     }
     if (/^CIERRE-/.test(u.id)) {
+      // Se calla en el cierre final: a la hora del día siguiente vence y la oferta de extras sale sola (en canal B, detrás de un PREG-NUEVA).
+      if (tipo === 'se-calla' && u.id === 'CIERRE-FINAL' && r.si(0.5)) return acciones;
       if (r.si(0.25)) return [...acciones, ...tocar(t, 'Sí, hay algo'), ...contestar(t + 3 * MIN)];
       return [...acciones, ...tocar(t, 'No, eso fue todo')];
     }

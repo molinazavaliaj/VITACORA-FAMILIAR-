@@ -3,8 +3,8 @@
 Generado por `fabrica/scripts/kids-v2-simular.ts`: 800 chicos inventados, semillas 1 a 800. No editar a mano.
 
 - Terminaron: 800 de 800.
-- Días de punta a punta: mediana 31, máximo 124.
-- Mensajes del bot: 199870.
+- Días de punta a punta: mediana 31, máximo 169.
+- Mensajes del bot: 202724.
 
 | Control | Qué revisa | Violaciones |
 |---|---|---|
@@ -22,8 +22,10 @@ Generado por `fabrica/scripts/kids-v2-simular.ts`: 800 chicos inventados, semill
 | recordatorios | como mucho 2 recordatorios por silencio, y nunca al chico | 0 |
 | seguirFinDeCap | no sale B-SEGUIR después de la última principal de un capítulo ni después de K47 | 0 |
 | aviso | K39 siempre después de B-AVISO-SERIA | 0 |
-| termino | TERMINO-PADRE una sola vez al terminar; en canal B, otro día que FINAL-CHICO | 0 |
+| termino | TERMINO-PADRE una sola vez al terminar; en canal B, un día después de que llegó FINAL-CHICO (decisión 15) | 0 |
 | botones | como mucho 3 botones por mensaje | 0 |
 | canalB | en canal B todo va al número del padre | 0 |
 | fotoPegada | ninguna foto pegada desaparece: se contestó, se tocó un botón suyo, vuelve al final, o el chico cerró con [No, ya está]/[Lo dejamos acá] (o el libro cerró solo con fotos pendientes) | 0 |
 | retenido | si cuenta algo (no corto) en vez de tocar el botón de la bienvenida o de un PREG-NUEVA, primero va el acuse | 0 |
+| vence | lo que espera un botón no vence antes de la hora del día siguiente al que le llegó (decisión 6) | 0 |
+| unaPorDia | la hora no empieza nada el día que ya le llegó una principal, ni dos veces el mismo día (decisión 10) | 0 |

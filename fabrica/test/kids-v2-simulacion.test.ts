@@ -7,7 +7,7 @@ import { CONTROLES, revisar } from '../src/kids-v2/controles.js';
 import { correrMuchos, correrUno } from '../src/kids-v2/simulacion.js';
 import { FICHA } from './kids-v2-ayuda.js';
 import type { Corrida } from '../src/kids-v2/corrida.js';
-import { aInstante } from '../src/kids-v2/horas.js';
+import { aInstante, aLocal, sumarDias } from '../src/kids-v2/horas.js';
 import { corridaDeLaLectura, FICHA_LECTURA } from '../src/kids-v2/lectura.js';
 
 const CORRIDAS = correrMuchos(240);
@@ -24,9 +24,21 @@ describe('kids v2: simulación de 240 chicos', () => {
     expect(CORRIDAS.some((c) => c.ficha.temasSacados.length === 6)).toBe(true);
     expect(CORRIDAS.some((c) => c.ficha.preguntasPadre.length === 3)).toBe(true);
     const todos = CORRIDAS.flatMap(ids);
-    for (const id of ['marca:preocupante', 'marca:silencio-8-dias', 'RECORD-A-4', 'RECORD-B', 'PREG-NUEVA-CHICO', 'PREG-NUEVA-PADRE', 'K12-R2-2', 'B-FOTO-PLATA', 'B-TRANQUILA', 'EXTRAS-OTRA', 'FINAL-CHICO-PL', 'marca:escribio-despues-del-final']) {
+    for (const id of ['marca:cerro-sin-respuesta', 'PADRE-1', 'marca:preocupante', 'marca:silencio-8-dias', 'RECORD-A-4', 'RECORD-B', 'PREG-NUEVA-CHICO', 'PREG-NUEVA-PADRE', 'K12-R2-2', 'B-FOTO-PLATA', 'B-TRANQUILA', 'EXTRAS-OTRA', 'FINAL-CHICO-PL', 'marca:escribio-despues-del-final']) {
       expect(todos, id).toContain(id);
     }
+    // El final por plantilla propia (cambio B) y una foto vencida que vuelve al final (cambio A).
+    expect(CORRIDAS.some((c) => c.corrida.lineas.some((l) => l.de === 'bot' && /^kids_final/.test(l.mensaje.plantilla?.nombre ?? '')))).toBe(true);
+    expect(CORRIDAS.some((c) => c.corrida.lineas.some((l, i, ls) => l.de === 'bot' && /^K\d+-FOTO$/.test(l.mensaje.id) && ls.slice(0, i).some((x) => x.de === 'bot' && x.mensaje.id === 'EXTRAS-OFERTA')))).toBe(true);
+    // Botones tocados en el día sobrio (después de algo preocupante, antes de la hora del día siguiente).
+    const tocoSobrio = CORRIDAS.some((c) => {
+      const ls = c.corrida.lineas;
+      const i = ls.findIndex((l) => l.de === 'marca' && l.motivo === 'preocupante');
+      if (i < 0) return false;
+      const hasta = aInstante(sumarDias(aLocal(ls[i].en, c.ficha.zona).fecha, 1), c.ficha.hora, c.ficha.zona);
+      return ls.slice(i).some((l) => l.de === 'chico' && l.evento.tipo === 'boton' && l.en < hasta);
+    });
+    expect(tocoSobrio).toBe(true);
   });
 
   for (const [control, nombre] of Object.entries(CONTROLES)) {
@@ -72,6 +84,12 @@ describe('kids v2: simulación de 240 chicos', () => {
     const i = vuelve(r);
     const sinVolver: Corrida = { ...r.corrida, lineas: r.corrida.lineas.filter((_, k) => k !== i) };
     expect(revisar(r.ficha, sinVolver, { sigueContestando: true }).map((x) => x.control)).toContain('fotoPegada');
+
+    // Una foto que nunca salió ni quedó guardada como vencida se perdió, aunque el libro haya cerrado (solo o por el chico).
+    const cerrada = CORRIDAS.find((c) => c.violaciones.length === 0 && c.corrida.lineas.some((l) => (l.de === 'chico' && l.evento.tipo === 'boton' && l.evento.boton === 'No, ya está') || (l.de === 'bot' && l.mensaje.plantilla?.nombre.startsWith('kids_final'))) && c.corrida.lineas.some((l) => l.de === 'bot' && l.mensaje.id === 'K1-FOTO'));
+    if (!cerrada) throw new Error('ninguna corrida cerrada con K1-FOTO');
+    const sinFoto: Corrida = { ...cerrada.corrida, lineas: cerrada.corrida.lineas.filter((l) => !(l.de === 'bot' && l.mensaje.id === 'K1-FOTO')) };
+    expect(revisar(cerrada.ficha, sinFoto, { sigueContestando: true }).map((x) => x.detalle)).toContain('la foto de K1 (K1-FOTO) nunca salió y no volvió al final');
 
     const base = correrUno(3);
     const j = base.corrida.lineas.findIndex((l) => l.de === 'bot' && /^PREG-NUEVA-/.test(l.mensaje.id));
