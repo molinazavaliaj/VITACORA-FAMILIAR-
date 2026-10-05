@@ -66,3 +66,15 @@ Por qué (Fable): reparte el juego en dos (preguntar / contar) y deja al chico c
 
 **Texto 2, primer párrafo:**
 > Hola {{1}}. Qué bueno que hayas elegido hacer vos el libro de {{2}}: las preguntas van a llegar a este número. Te cuento cómo es para que salga todo bien.
+
+## Ronda 3 (05/10)
+
+Naza: "y acá entro yo" está mal redactado; el texto 1 vuelve al original, solo con el cariño agregado. Para el texto 2 pidió otra opción.
+
+**Texto 1, primer párrafo (vuelve al original + cariño):**
+> Hola {{1}}. Te escribo porque {{2}} te hizo un regalo con mucho cariño: un libro con tu vida, contado por vos. Yo soy quien te va a ir haciendo las preguntas por acá.
+
+Nota técnica: si regalan los dos ("tus papás"), "te hizo" no concuerda; ahí va una segunda plantilla igual con "te hicieron".
+
+**Texto 2, primer párrafo (Fable, ✎ "para ayudar a contarlo" → "mientras lo cuenta", porque el mensaje después le pide al padre que no conteste ni corrija):**
+> Hola {{1}}. Qué lindo regalo le estás haciendo a {{2}}: su propio libro, con vos al lado mientras lo cuenta. Las preguntas van a llegar a este número. Te cuento cómo es para que salga todo bien.
