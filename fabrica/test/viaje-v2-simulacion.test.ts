@@ -8,7 +8,8 @@
 // entre 19:00 y 22:30 y mínimo 3 días en la compra, AS1 "ya de viaje" con un
 // SÍ tardío, e ID1 nunca el día de salida en casa. Ya no hay `it.fails`.
 import { describe, it, expect } from 'vitest';
-import { correr, correrMuchos, INVARIANTES, HALLAZGOS, lecturaUnDia, lecturaDosDias, lecturaTreintaDias, revisar, escenario } from '../scripts/viaje-v2-simular.js';
+import { correr, correrMuchos, INVARIANTES, HALLAZGOS, lecturaUnDia, lecturaDosDias, lecturaTreintaDias, lecturaCa, lecturaEsES, revisar, escenario, simular, PersonaSimulada } from '../scripts/viaje-v2-simular.js';
+import { porId } from '../src/viaje-v2/banco.js';
 
 const CORRIDAS = correrMuchos(300);
 
@@ -165,11 +166,95 @@ describe('viaje v2: los controles del simulador detectan lo que tienen que detec
   });
 });
 
+describe('viaje v2: simulación en catalán y en castellano de España', () => {
+  const POR_IDIOMA = { ca: correrMuchos(150, 1, 'ca'), 'es-ES': correrMuchos(150, 1, 'es-ES') } as const;
+
+  for (const [idioma, corridas] of Object.entries(POR_IDIOMA)) {
+    it(`${idioma}: 150 viajes sin ninguna invariante rota (con las nuevas: otro idioma, marcas, detector)`, () => {
+      expect(corridas.every((c) => c.res.compra.idioma === idioma)).toBe(true);
+      expect(corridas.flatMap((c) => c.violaciones.map((v) => `semilla ${c.e.semilla} ${v.inv}: ${v.detalle}`))).toEqual([]);
+    });
+
+    it(`${idioma}: los mensajes salen en ${idioma} y el detector entiende lo que escriben`, () => {
+      const todos = corridas.flatMap((c) => c.res.enviados);
+      expect(todos.some((m) => m.texto === porId('PAS-V', idioma as 'ca').texto)).toBe(true);
+      const dichos = corridas.flatMap((c) => c.res.lineas.filter((l) => l.de === 'persona').map((l) => l.texto));
+      const tipicos = idioma === 'ca' ? ['texto: passo', 'texto: ja està', "texto: d'acord"] : ['texto: ya está', 'texto: vale', 'texto: me la salto'];
+      for (const t of tipicos) expect(dichos, t).toContain(t);
+    });
+  }
+
+  it('la misma semilla da el mismo viaje en los tres idiomas (cambian los textos, no el calendario)', () => {
+    const [a, b] = [correr(77), correr(77, 'ca')];
+    expect(b.res.enviados.map((m) => `${m.en.toISOString()} ${m.ids.join('+')}`)).toEqual(a.res.enviados.map((m) => `${m.en.toISOString()} ${m.ids.join('+')}`));
+  });
+
+  it('l1: un viaje en es-AR leído como catalán salta (texto de otro idioma)', () => {
+    const c = correr(5);
+    const res = { ...c.res, compra: { ...c.res.compra, idioma: 'ca' as const } };
+    expect(revisar(res).violaciones.map((v) => v.inv)).toContain('l1');
+  });
+
+  it('l2: un <br> o una marca que se cuela, salta', () => {
+    const c = correr(5);
+    const res = { ...c.res, enviados: c.res.enviados.map((m, i) => (i === 0 ? { ...m, texto: `${m.texto}<br>` } : m)) };
+    expect(revisar(res).violaciones.map((v) => v.inv)).toContain('l2');
+  });
+
+  it('l3: si la persona escribe "passo" en un viaje es-AR, el detector no lo entiende y salta', () => {
+    const e = escenario(9 * 3 + 0); // conducta "paso"
+    const persona = new PersonaSimulada(e);
+    const p = Object.assign(Object.create(Object.getPrototypeOf(persona)), persona, {
+      contestar: (q: Parameters<PersonaSimulada['contestar']>[0]) => persona.contestar(q).map((it) => (it.respuesta.tipo === 'paso' ? { ...it, dice: 'texto: passo' } : it)),
+    });
+    const res = simular(e.compra, e.compraEn, p);
+    expect(e.conducta).toBe('paso');
+    expect(revisar(res).violaciones.map((v) => v.inv)).toContain('l3');
+  });
+
+  it('f4: C3 con F4 en la misma noche salta', () => {
+    const c = CORRIDAS.find((x) => x.res.enviados.some((m) => m.programado?.tipo === 'noche'))!;
+    const res = {
+      ...c.res,
+      enviados: c.res.enviados.map((m) => (m.programado?.tipo === 'noche' ? { ...m, programado: { ...m.programado, ids: ['C3', m.programado.ids[1], 'F4'] } } : m)),
+    };
+    expect(revisar(res).violaciones.map((v) => v.inv)).toContain('f4');
+  });
+});
+
+describe('viaje v2: las dos lecturas nuevas (personas inventadas)', () => {
+  it('Laia, en catalán: regalo de Jordi, 8 días Barcelona → Lisboa, impreso, álbum de 20, 2 preguntas propias', () => {
+    const { res, md } = lecturaCa();
+    expect(revisar(res).violaciones).toEqual([]);
+    expect(res.compra).toMatchObject({ nombre: 'Laia', idioma: 'ca', formato: 'impreso', fotosAlbum: 20, regalo: { quienRegala: 'Jordi' } });
+    expect(res.compra.preguntasPropias).toHaveLength(2);
+    for (const id of ['BIEN-1R', 'PAS-A', 'PAS-V', 'ATR-PR', 'PR-R', 'PR-R2', 'AL3', 'DES+']) expect(md, id).toContain(`\`${id}\``);
+    expect(md).toContain('_[texto: passo]_');
+    expect(md).not.toContain('{{');
+  });
+
+  it('Marta, en castellano de España: para ella, 8 días Madrid → Roma, PDF, álbum de 20', () => {
+    const { res, md } = lecturaEsES();
+    expect(revisar(res).violaciones).toEqual([]);
+    expect(res.compra).toMatchObject({ nombre: 'Marta', idioma: 'es-ES', formato: 'pdf', fotosAlbum: 20 });
+    expect(res.compra.regalo).toBeUndefined();
+    for (const id of ['BIEN-1', 'PAS-V', 'ATR1', 'AL3', 'DES+']) expect(md, id).toContain(`\`${id}\``);
+    expect(md).toContain('un libro en PDF');
+    expect(md).not.toContain('{{');
+  });
+});
+
 // La corrida entera (2400 semillas, ~25 s). Se saltea con VIAJE_V2_SIN_2400=1.
 describe.skipIf(process.env.VIAJE_V2_SIN_2400 === '1')('viaje v2: simulación completa, 2400 viajes', () => {
   it('ninguna invariante se rompe en las 2400 semillas', () => {
     const todas = correrMuchos(2400);
     const rotas = todas.flatMap((c) => c.violaciones.map((v) => `semilla ${c.e.semilla} ${v.inv}: ${v.detalle}`));
+    expect(rotas).toEqual([]);
+  }, 180_000);
+
+  it('ninguna invariante se rompe en 800 semillas en catalán y 800 en castellano de España', () => {
+    const todas = [...correrMuchos(800, 1, 'ca'), ...correrMuchos(800, 1, 'es-ES')];
+    const rotas = todas.flatMap((c) => c.violaciones.map((v) => `${c.e.idioma} semilla ${c.e.semilla} ${v.inv}: ${v.detalle}`));
     expect(rotas).toEqual([]);
   }, 180_000);
 });

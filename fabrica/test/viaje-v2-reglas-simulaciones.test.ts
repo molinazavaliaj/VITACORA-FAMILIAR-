@@ -215,15 +215,25 @@ describe('la noche: 5 comienzos × 9 puertas × 5 cierres', () => {
     expect(CIERRES).toEqual(['F1', 'F2', 'F3', 'F4', 'F5']);
   });
 
-  it('225 noches: las 225 combinaciones, sin repetir comienzo, puerta ni cierre dos noches seguidas', () => {
+  it('225 noches: 216 combinaciones (las 225 menos las 9 de C3 con F4), sin repetir comienzo, puerta ni cierre dos noches seguidas', () => {
     const ns = Array.from({ length: 225 }, (_, i) => combinacionDeNoche(i));
-    expect(new Set(ns.map((x) => x.join('+'))).size).toBe(225);
+    expect(new Set(ns.map((x) => x.join('+'))).size).toBe(216);
     for (let i = 1; i < 300; i++) {
       const [a, b] = [combinacionDeNoche(i - 1), combinacionDeNoche(i)];
       for (let j = 0; j < 3; j++) expect(a[j], `noche ${i}`).not.toBe(b[j]);
     }
     expect(combinacionDeNoche(0)).toEqual(['C1', 'NO1', 'F1']);
     expect(ns.slice(0, 9).map((x) => x[1])).toEqual(ORDEN_PUERTAS);
+  });
+
+  it('C3 ("con lo que valga la pena") nunca va con F4 ("después contame lo demás"): se contradicen; va el cierre siguiente, F5', () => {
+    const ns = Array.from({ length: 500 }, (_, i) => combinacionDeNoche(i));
+    expect(ns.filter((x) => x[0] === 'C3' && x[2] === 'F4')).toEqual([]);
+    // La noche 22 (i % 5 = 2) daba C3 + F4 con la cuenta sola: ahora F5.
+    expect(combinacionDeNoche(22)[0]).toBe('C3');
+    expect(combinacionDeNoche(22)[2]).toBe('F5');
+    // Las otras con C3 no cambian.
+    expect(combinacionDeNoche(2)).toEqual(['C3', 'NO4', 'F5']);
   });
 
   it('en 45 noches, las 45 de comienzo+puerta; los 5 comienzos y los 5 cierres salen en las primeras 5', () => {

@@ -5,6 +5,12 @@
 //   npx tsx scripts/viaje-v2-simular.ts                 # 2400 viajes + resumen.md + las 3 lecturas
 //   npx tsx scripts/viaje-v2-simular.ts 500             # otra cantidad (no escribe nada)
 //   npx tsx scripts/viaje-v2-simular.ts --semilla 123   # un viaje, mensaje por mensaje, y sus violaciones
+//   npx tsx scripts/viaje-v2-simular.ts --semilla 123 --idioma ca
+//
+// Idiomas: las 2400 semillas en es-AR, y 800 en ca y 800 en es-ES (la misma
+// semilla da el mismo viaje; cambia el idioma de la compra y lo que escribe la
+// persona). Lo que la persona escribe ("paso", "ja està", "vale"…) pasa por el
+// detector de verdad (palabras.ts): si no lo entiende, invariante l3.
 //
 // El "planificador" de acá imita a lectura.ts (el que falta conectar a
 // WhatsApp lo va a hacer Joaquín), con estas decisiones propias, anotadas en
@@ -25,6 +31,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { iniciarAlbum, pasoAlbum, type EstadoAlbum, type EventoAlbum } from '../src/viaje-v2/album.js';
 import { porId } from '../src/viaje-v2/banco.js';
+import { idiomaDe, IDIOMAS, type Idioma } from '../src/viaje-v2/idioma.js';
+import { entender, type Entendido } from '../src/viaje-v2/palabras.js';
 import {
   armarCalendario,
   CADENA_ANTES,
@@ -44,7 +52,7 @@ import {
 } from '../src/viaje-v2/calendario.js';
 import { anotarEnvio, anotarRespuesta, contestadasAntes, nocheAnterior, nochesSinContestar, nuevoEstado, pendientesParaElViaje, type Estado } from '../src/viaje-v2/estado.js';
 import { aInstante, aLocal, diaDeSemana, diasEntre, nombreDeZona, respetarFranja, sumarDias } from '../src/viaje-v2/horas.js';
-import { alDecirSi, arranque, mensajeAlbum, preguntaProgramada, reaccion, recordatorioAntes, type ReaccionEmoji, type Respuesta } from '../src/viaje-v2/mensajes.js';
+import { alDecirSi, arranque, mensajeAlbum, partirDes, preguntaProgramada, reaccion, recordatorioAntes, type ReaccionEmoji, type Respuesta } from '../src/viaje-v2/mensajes.js';
 import { datosDeCompra, renderizar } from '../src/viaje-v2/texto.js';
 import type { Compra, Mensaje, Zona } from '../src/viaje-v2/tipos.js';
 
@@ -134,6 +142,8 @@ export type Resultado = {
   nazaDecide: Date | null;
   vencidos: Programado[];
   fotosTarde: number;
+  /** Lo que escribió la persona y el detector entendió mal (invariante l3). */
+  malEntendidos: string[];
   error?: string;
 };
 
@@ -178,6 +188,21 @@ export function simular(compra: Compra, compraEn: Date, persona: Persona): Resul
   let nazaDecide: Date | null = null;
   let fotosTarde = 0;
   const programados = () => (cal ?? calPrevio).programados;
+  const idioma = idiomaDe(compra);
+  const malEntendidos: string[] = [];
+  /** Lo que escribió (si `dice` es "texto: …"), por el detector del idioma. */
+  const escrito = (dice: string): string | null => (dice.startsWith('texto: ') ? dice.slice('texto: '.length) : null);
+  /** La respuesta como la entiende el sistema: "paso" solo si el detector lo entiende. */
+  const leer = (it: Intento): Intento => {
+    const t = escrito(it.dice);
+    if (t === null) return it;
+    const e = entender(t, idioma);
+    const quiso: Entendido | null = it.respuesta.tipo === 'paso' ? 'paso' : null;
+    if (e !== quiso && !(quiso === null && e !== 'paso')) malEntendidos.push(`"${t}" (${idioma}): quiso ${quiso ?? 'contar'} y entendió ${e ?? 'nada'}`);
+    if (quiso === 'paso' && e !== 'paso') return { ...it, respuesta: { ...it.respuesta, tipo: 'texto' } };
+    if (quiso === null && e === 'paso') return { ...it, respuesta: { ...it.respuesta, tipo: 'paso' } };
+    return it;
+  };
 
   const mandar = (en: Date, zona: Zona, m: Mensaje, origen: Origen, iniciativa: boolean, extra: Partial<Enviado> = {}) => {
     enviados.push({ en, zona, ids: m.ids, texto: m.texto, origen, iniciativa, ...extra });
@@ -210,6 +235,8 @@ export function simular(compra: Compra, compraEn: Date, persona: Persona): Resul
 
   cola.push(siEn, () => {
     decir(siEn, casa, si.dice);
+    const t = escrito(si.dice);
+    if (t !== null && entender(t, idioma) !== 'si') malEntendidos.push(`"${t}" (${idioma}): quiso SÍ y entendió ${entender(t, idioma) ?? 'nada'}`);
     const [b2, as1] = alDecirSi(compra, siEn);
     mandar(siEn, casa, b2, 'reaccion', false);
     mandar(siEn, casa, as1, 'arranque', false);
@@ -272,8 +299,9 @@ export function simular(compra: Compra, compraEn: Date, persona: Persona): Resul
     for (const it of persona.trasRecordatorio(q)) if (it.en > en && (!q.limite || it.en < q.limite)) cola.push(it.en, () => responderCadena(id, it));
   }
 
-  function responderCadena(id: IdAntes, it: Intento) {
+  function responderCadena(id: IdAntes, it0: Intento) {
     if (contestadasAntes(estado).has(id)) return;
+    const it = leer(it0);
     decir(it.en, casa, it.dice);
     estado = anotarRespuesta(estado, id, { ...it.respuesta, en: it.en.toISOString() });
     const reaccionA = { tipo: 'cadena', respuesta: it.respuesta };
@@ -321,7 +349,8 @@ export function simular(compra: Compra, compraEn: Date, persona: Persona): Resul
     }
   }
 
-  function responder(p: Programado, it: Intento) {
+  function responder(p: Programado, it0: Intento) {
+    const it = leer(it0);
     const envio = estado.envios.filter((x) => x.clave === p.clave).pop();
     if (envio?.respuestas.some((r) => !r.audioMal)) return;
     decir(it.en, p.zona, it.fotos ? `${it.dice} + ${it.fotos === 1 ? 'una foto' : `${it.fotos} fotos`}` : it.dice);
@@ -360,12 +389,21 @@ export function simular(compra: Compra, compraEn: Date, persona: Persona): Resul
   function gesto(g: GestoAlbum) {
     decir(g.en, casa, g.dice);
     if (!album) return;
+    // Lo escrito pasa por el detector: "listo", "sí", "no" o cualquier otra cosa.
+    let evento = g.evento;
+    const t = escrito(g.dice);
+    if (t !== null && evento !== 'foto' && evento !== 'reenvio') {
+      const e = entender(t, idioma);
+      const leido = e === 'listo' || e === 'si' || e === 'no' ? e : 'otra';
+      if (leido !== evento) malEntendidos.push(`"${t}" (${idioma}, álbum): quiso ${evento} y entendió ${leido}`);
+      evento = leido;
+    }
     const ev: EventoAlbum =
-      g.evento === 'foto'
+      evento === 'foto'
         ? { tipo: 'foto', en: g.en, cantidad: g.cantidad }
-        : g.evento === 'reenvio'
+        : evento === 'reenvio'
           ? { tipo: 'reenvio', en: g.en, ids: g.ids ?? [] }
-          : { tipo: g.evento, en: g.en };
+          : { tipo: evento, en: g.en };
     aplicar(ev, 'album-reaccion');
   }
 
@@ -416,7 +454,7 @@ export function simular(compra: Compra, compraEn: Date, persona: Persona): Resul
     error = e instanceof Error ? e.message : String(e);
   }
 
-  return { compra, enviados, corazones, sueltasIds, lineas, calPrevio, cal, estado, album, siEn, al1En, desEn, avisosAlbum, nazaDecide, vencidos, fotosTarde, error };
+  return { compra, enviados, corazones, sueltasIds, lineas, calPrevio, cal, estado, album, siEn, al1En, desEn, avisosAlbum, nazaDecide, vencidos, fotosTarde, malEntendidos, error };
 }
 
 // ── Los viajes inventados ────────────────────────────────────────────────────
@@ -437,17 +475,54 @@ export const ALBUMES = ['cero', 'pocas', 'justas', 'demas', 'tandas'] as const;
 export type Conducta = (typeof CONDUCTAS)[number];
 export type ConductaAlbum = (typeof ALBUMES)[number];
 
-const NOMBRES = ['Aurora', 'Benicio', 'Clara', 'Dante', 'Elena', 'Fermín', 'Greta', 'Hugo', 'Inés', 'Julián'];
-const REGALAN = ['su hija', 'Pilar', 'Matías', 'la abuela Rosa', 'Tere'];
-const PROPIAS = [
-  '¿Qué fue lo más rico que probaste?',
-  '¿A quién te acordaste de contarle algo?',
-  '¿Qué te dio miedo y lo hiciste igual?',
-  '¿Qué lugar volverías a visitar mañana mismo?',
-  '¿Qué te sorprendió de vos en este viaje?',
-  '¿Qué canción te acompañó?',
-  '¿Cómo te trató la gente de allá?',
-];
+// Por idioma, con el mismo largo en cada lista: así la misma semilla da el
+// mismo viaje en los tres (cambian el idioma, los nombres y las palabras).
+const NOMBRES_DE: Record<Idioma, string[]> = {
+  'es-AR': ['Aurora', 'Benicio', 'Clara', 'Dante', 'Elena', 'Fermín', 'Greta', 'Hugo', 'Inés', 'Julián'],
+  'es-ES': ['Alba', 'Bruno', 'Carmen', 'Diego', 'Elena', 'Fermín', 'Gloria', 'Hugo', 'Inés', 'Javier'],
+  ca: ['Aina', 'Biel', 'Clara', 'Dídac', 'Elna', 'Ferran', 'Gemma', 'Hug', 'Ivet', 'Jan'],
+};
+const REGALAN_DE: Record<Idioma, string[]> = {
+  'es-AR': ['su hija', 'Pilar', 'Matías', 'la abuela Rosa', 'Tere'],
+  'es-ES': ['su hija', 'Pilar', 'Matías', 'la abuela Rosa', 'Tere'],
+  ca: ['la seva filla', 'Pilar', 'Martí', "l'àvia Rosa", 'Tere'],
+};
+const PROPIAS_DE: Record<Idioma, string[]> = {
+  'es-AR': [
+    '¿Qué fue lo más rico que probaste?',
+    '¿A quién te acordaste de contarle algo?',
+    '¿Qué te dio miedo y lo hiciste igual?',
+    '¿Qué lugar volverías a visitar mañana mismo?',
+    '¿Qué te sorprendió de vos en este viaje?',
+    '¿Qué canción te acompañó?',
+    '¿Cómo te trató la gente de allá?',
+  ],
+  'es-ES': [
+    '¿Qué es lo más rico que has probado?',
+    '¿De quién te has acordado para contarle algo?',
+    '¿Qué te dio miedo y lo hiciste igualmente?',
+    '¿Qué sitio volverías a visitar mañana mismo?',
+    '¿Qué te ha sorprendido de ti en este viaje?',
+    '¿Qué canción te ha acompañado?',
+    '¿Cómo te ha tratado la gente de allí?',
+  ],
+  ca: [
+    'Què és el més bo que has tastat?',
+    "De qui t'has recordat per explicar-li alguna cosa?",
+    'Què et va fer por i ho vas fer igualment?',
+    'Quin lloc tornaries a visitar demà mateix?',
+    "Què t'ha sorprès de tu en aquest viatge?",
+    "Quina cançó t'ha acompanyat?",
+    "Com t'ha tractat la gent d'allà?",
+  ],
+};
+
+/** Cómo escribe la gente las palabras del sistema, en cada idioma (y en catalán, mezclando). */
+export const DICHOS: Record<Idioma, Record<Entendido | 'otra', string[]>> = {
+  'es-AR': { si: ['SÍ', 'sí', 'Sí!', 'dale', 'si'], paso: ['paso', 'Paso', 'paso!'], listo: ['listo', 'Listo!', 'listo, son esas', 'ya está'], no: ['no, me faltan', 'no', 'todavía no'], otra: ['dejá, elegí vos'] },
+  'es-ES': { si: ['SÍ', 'sí', 'vale', 'Vale!', 'venga', 'ok'], paso: ['paso', 'Paso de esta', 'me la salto'], listo: ['ya está', 'Ya está!', 'hecho', 'terminado', 'listo'], no: ['no, me faltan', 'todavía no', 'aún no'], otra: ['déjalo, elige tú'] },
+  ca: { si: ['SÍ', 'sí', "d'acord", 'D’acord!', 'vale', 'ok'], paso: ['passo', 'Passo!', 'paso', 'la següent'], listo: ['ja està', 'Ja està!', 'fet', 'listo', 'ya está'], no: ["no, me'n falten", 'encara no', 'no'], otra: ['tria-les tu mateix'] },
+};
 /** Días cerca de un cambio de horario (Europa: 25/10/2026 y 28/3/2027; Estados Unidos: 1/11/2026 y 14/3/2027). */
 const CAMBIOS_DE_HORA = ['2026-10-25', '2026-11-01', '2027-03-14', '2027-03-28'];
 /** La compra pide la noche entre 19:00 y 22:30 (banco.md, simulaciones). */
@@ -455,6 +530,7 @@ const NOCHES_POSIBLES = ['21:30', '20:00', '19:00', '22:30', undefined] as const
 
 export type Escenario = {
   semilla: number;
+  idioma: Idioma;
   compra: Compra;
   compraEn: Date;
   antelacion: number;
@@ -465,7 +541,10 @@ export type Escenario = {
 };
 
 /** El viaje número `semilla`: la duración y la conducta rotan con la semilla (cobertura pareja); lo demás, al azar. */
-export function escenario(semilla: number): Escenario {
+export function escenario(semilla: number, idioma: Idioma = 'es-AR'): Escenario {
+  const NOMBRES = NOMBRES_DE[idioma];
+  const REGALAN = REGALAN_DE[idioma];
+  const PROPIAS = PROPIAS_DE[idioma];
   const r = azar(semilla * 7919 + 17);
   const k = semilla % 9;
   const dias = k < 8 ? DURACIONES[k] : r.entre(3, 45);
@@ -501,9 +580,10 @@ export function escenario(semilla: number): Escenario {
     preguntasPropias: propias,
     formato: r.si(0.5) ? 'pdf' : 'impreso',
     fotosAlbum: r.si(0.5) ? 20 : 40,
+    ...(idioma !== 'es-AR' ? { idioma } : {}),
   };
   const cruzaCambioDeHora = CAMBIOS_DE_HORA.some((c) => diasEntre(sumarDias(compraEn.toISOString().slice(0, 10), -1), c) >= 0 && diasEntre(c, sumarDias(vuelta, 3)) >= 0);
-  return { semilla, compra, compraEn, antelacion, dias, conducta, conductaAlbum, cruzaCambioDeHora };
+  return { semilla, idioma, compra, compraEn, antelacion, dias, conducta, conductaAlbum, cruzaCambioDeHora };
 }
 
 const corta = (z: Zona) => ({ [ZONAS.ba]: 'Buenos Aires', [ZONAS.madrid]: 'Madrid', [ZONAS.cdmx]: 'CDMX', [ZONAS.tokio]: 'Tokio', [ZONAS.ny]: 'Nueva York', [ZONAS.montevideo]: 'Montevideo' })[z] ?? z;
@@ -512,7 +592,7 @@ export function describir(e: Escenario): string {
   const c = e.compra;
   const compraLocal = aLocal(e.compraEn, c.zonaCasa);
   return [
-    `semilla ${e.semilla}: ${e.dias} ${e.dias === 1 ? 'día' : 'días'} (${c.salida} → ${c.vuelta})`,
+    `semilla ${e.semilla}${e.idioma !== 'es-AR' ? ` (${e.idioma})` : ''}: ${e.dias} ${e.dias === 1 ? 'día' : 'días'} (${c.salida} → ${c.vuelta})`,
     `compra ${e.antelacion === 0 ? 'el mismo día' : `${e.antelacion} ${e.antelacion === 1 ? 'día' : 'días'} antes`} a las ${compraLocal.hora}`,
     `${corta(c.zonaCasa)} → ${corta(c.zonaViaje)}`,
     `noche ${c.horaNoche ?? '21:30 (por defecto)'}`,
@@ -529,12 +609,15 @@ export function describir(e: Escenario): string {
 /** La persona inventada: contesta según su conducta, con su propio azar. */
 export class PersonaSimulada implements Persona {
   private r: Azar;
+  /** Aparte, para que elegir palabras no cambie el resto del viaje (es-AR queda igual que antes). */
+  private rp: Azar;
   private salteadas = new Set<number>();
   constructor(
     private e: Escenario,
     semilla = e.semilla,
   ) {
     this.r = azar(semilla * 104729 + 3);
+    this.rp = azar(semilla * 7307 + 11);
     if (e.conducta === 'saltea') {
       // Tandas de 2 a 4 noches seguidas sin contestar.
       for (let d = 1; d < e.dias + 1; ) {
@@ -546,9 +629,14 @@ export class PersonaSimulada implements Persona {
     }
   }
 
+  /** Lo que escribe para decir eso, en su idioma. */
+  private escribe(que: Entendido | 'otra'): string {
+    return `texto: ${this.rp.uno(DICHOS[this.e.idioma][que])}`;
+  }
+
   si(bien1: Date) {
     const d = this.r.si(0.06) ? this.r.entre(8 * 60, 26 * 60) : this.r.entre(2, 180);
-    return { en: mas(bien1, d * MIN), dice: 'texto: SÍ' };
+    return { en: mas(bien1, d * MIN), dice: this.escribe('si') };
   }
 
   private demora(q: Pregunta): number {
@@ -561,7 +649,7 @@ export class PersonaSimulada implements Persona {
     const corta = q.tipo === 'MD' || q.tipo === 'VU0';
     const en = mas(q.enviada, this.demora(q) + extra);
     const fotos = !corta && NOCHES.has(q.tipo) && tipo !== 'paso' && this.r.si(0.4) ? this.r.entre(1, 4) : undefined;
-    const dice = tipo === 'paso' ? 'texto: paso' : tipo === 'texto' ? 'texto: lo cuenta por escrito' : tipo === 'foto' ? 'foto' : 'audio';
+    const dice = tipo === 'paso' ? this.escribe('paso') : tipo === 'texto' ? 'texto: lo cuenta por escrito' : tipo === 'foto' ? 'foto' : 'audio';
     return { en, respuesta: { tipo }, dice, ...(fotos ? { fotos } : {}) };
   }
 
@@ -599,7 +687,8 @@ export class PersonaSimulada implements Persona {
 
   trasRecordatorio(q: Pregunta): Intento[] {
     if (this.e.conducta === 'nunca' || !this.r.si(0.6)) return [];
-    return [{ en: mas(q.enviada, this.r.entre(30, 24 * 60) * MIN), respuesta: { tipo: this.e.conducta === 'paso' ? 'paso' : 'audio' }, dice: 'audio' }];
+    const pasa = this.e.conducta === 'paso';
+    return [{ en: mas(q.enviada, this.r.entre(30, 24 * 60) * MIN), respuesta: { tipo: pasa ? 'paso' : 'audio' }, dice: pasa ? this.escribe('paso') : 'audio' }];
   }
 
   sueltas(programados: readonly Programado[]) {
@@ -627,7 +716,7 @@ export class PersonaSimulada implements Persona {
       gestos.push({ en: t, evento: 'foto', cantidad, dice: `${cantidad} ${cantidad === 1 ? 'foto' : 'fotos'}` });
     };
     const listo = (p: number) => {
-      if (this.r.si(p)) gestos.push({ en: mas(t, this.r.entre(2, 30) * MIN), evento: 'listo', dice: 'texto: listo' });
+      if (this.r.si(p)) gestos.push({ en: mas(t, this.r.entre(2, 30) * MIN), evento: 'listo', dice: this.escribe('listo') });
     };
     const repartir = (total: number) => {
       const partes = this.r.entre(1, 3);
@@ -671,8 +760,8 @@ export class PersonaSimulada implements Persona {
   alAL2(al2: Date): GestoAlbum | null {
     const en = mas(al2, this.r.entre(5, 6 * 60) * MIN);
     const x = this.r();
-    if (x < 0.3) return { en, evento: 'si', dice: 'texto: sí' };
-    if (x < 0.5) return { en, evento: 'no', dice: 'texto: no, me faltan' };
+    if (x < 0.3) return { en, evento: 'si', dice: this.escribe('si') };
+    if (x < 0.5) return { en, evento: 'no', dice: this.escribe('no') };
     if (x < 0.65) {
       const c = this.r.entre(1, 5);
       return { en, evento: 'foto', cantidad: c, dice: `${c} fotos más` };
@@ -698,7 +787,7 @@ export class PersonaSimulada implements Persona {
       const saca = elegir(this.r.entre(1, sobran - 1));
       return { en, evento: 'reenvio', ids: saca, dice: `reenvía ${saca.length} fotos para sacar (le faltan)` };
     }
-    if (x < 0.7) return { en, evento: 'otra', dice: 'texto: dejá, elegí vos' };
+    if (x < 0.7) return { en, evento: 'otra', dice: this.escribe('otra') };
     return null;
   }
 
@@ -708,8 +797,8 @@ export class PersonaSimulada implements Persona {
   }
 }
 
-export function correr(semilla: number): { e: Escenario; res: Resultado; violaciones: Violacion[]; hallazgos: Violacion[] } {
-  const e = escenario(semilla);
+export function correr(semilla: number, idioma: Idioma = 'es-AR'): { e: Escenario; res: Resultado; violaciones: Violacion[]; hallazgos: Violacion[] } {
+  const e = escenario(semilla, idioma);
   const res = simular(e.compra, e.compraEn, new PersonaSimulada(e));
   const { violaciones, hallazgos } = revisar(res);
   return { e, res, violaciones, hallazgos };
@@ -745,6 +834,10 @@ export const INVARIANTES: Record<string, string> = {
   f1: 'f) Mediodía fuera de orden (las 12 en cada vuelta) o en un día que no va',
   f2: 'f) Choque MD2/NO1 o MD8/NO6 el mismo día',
   f3: 'f) Mismo comienzo, puerta o cierre dos noches comunes seguidas',
+  f4: 'f) C3 ("con lo que valga la pena") con F4 ("después contame lo demás") en la misma noche: se contradicen',
+  l1: 'l) Texto de otro idioma (un texto del banco de otro idioma, o una palabra típica de otro idioma)',
+  l2: 'l) Marca sin reemplazar o salto escrito ({{…}}, <br>, \\n)',
+  l3: 'l) El detector no entiende lo que escribió la persona ("paso", "ja està", "vale", el SÍ…)',
   g1: 'g) TXT más de 2 veces',
   g2: 'g) REC1/REC1-U más de 1 vez',
   g3: 'g) AL2 más de 2 veces',
@@ -778,6 +871,19 @@ export const HALLAZGOS: Record<string, string> = {
 
 export type Violacion = { inv: string; detalle: string };
 
+/**
+ * Palabras típicas de cada idioma que no tendrían que aparecer en un mensaje
+ * de otro (fuera de los datos de la persona). Una red gruesa: la fina es c2
+ * (cada mensaje tiene que salir del banco de SU idioma) y l1 con los textos.
+ */
+const RASGOS: Record<Idioma, string[]> = {
+  'es-AR': ['Contame', 'contame', 'contás', 'tenés', 'querés', 'podés', 'acá', 'valija', 'Arrancá', 'mandalas', 'Mandame', 'mandame', 'vos', 'Dale'],
+  'es-ES': ['Cuéntame', 'cuéntame', 'tienes', 'quieres', 'puedes', 'móvil', 'Empieza', 'Mándame', 'mándame', 'Vale'],
+  ca: ['Explica\'m', 'explica\'m', 'gràcies', 'Gràcies', 'teva', 'viatge', 'Avui', 'avui', 'Ahir', 'nit', 'quan'],
+};
+/** Las que comparte con su propio idioma (ninguna por ahora). */
+const RASGOS_PERMITIDOS: Record<Idioma, string[]> = { 'es-AR': [], 'es-ES': [], ca: [] };
+
 const PRIMERA_VUELTA_MD = ['MD1', 'MD5', 'MD3', 'MD4', 'MD9', 'MD2', 'MD10', 'MD6', 'MD7', 'MD12', 'MD8', 'MD11']; // banco.md, tabla del mediodía
 const SEGUNDA_VUELTA = PRIMERA_VUELTA_MD; // simulaciones: la segunda vuelta usa las 12
 const CHOQUES: Record<string, string> = { MD2: 'NO1', MD8: 'NO6' };
@@ -792,9 +898,9 @@ const PREGUNTAS_PROGRAMADAS = new Set(['UC1', 'ID1', 'MD', 'noche', 'antes-en-vi
 const esPregunta = (m: Enviado) => m.origen === 'programado' || m.ids.some(esCadena);
 const NOCHE_TIPOS = new Set(['noche', 'antes-en-viaje', 'propia', 'FN1', 'CA1']);
 
-/** Las formas posibles de cada ID, ya llenas (normal y "ya de viaje"; las propias, con cada pregunta). */
+/** Las formas posibles de cada ID, ya llenas (normal y "ya de viaje"; las propias, con cada pregunta), en el idioma de la compra. */
 function formas(id: string, compra: Compra): string[] {
-  const f = porId(id);
+  const f = porId(id, idiomaDe(compra));
   const datos = datosDeCompra(compra);
   const r = (t: string, pregunta?: string) => {
     try {
@@ -812,14 +918,14 @@ function formas(id: string, compra: Compra): string[] {
 
 /** ¿El mensaje se puede armar con los textos del banco de sus IDs, con las reglas de empalme? */
 function saleDelBanco(m: Enviado, compra: Compra): boolean {
+  const idioma = idiomaDe(compra);
   if (m.ids.includes('AL3')) {
-    const n = /^Mandaste (\d+) fotos/.exec(m.texto)?.[1];
-    return n !== undefined && m.texto === renderizar(porId('AL3').texto, { ...datosDeCompra(compra), fotos_mandadas: n });
+    const ns = [...m.texto.matchAll(/\d+/g)].map((x) => x[0]);
+    return ns.some((n) => m.texto === renderizar(porId('AL3', idioma).texto, { ...datosDeCompra(compra), fotos_mandadas: n }));
   }
   if (m.ids.includes('DES+')) {
-    const des = formas('DES', compra)[0];
-    const mas = formas('DES+', compra)[0];
-    return m.texto === des.replace('Fue lindo acompañarte', `${mas} Fue lindo acompañarte`);
+    const [antes, despues] = partirDes(porId('DES', idioma).texto);
+    return m.texto === renderizar(`${antes} ${porId('DES+', idioma).texto} ${despues}`, datosDeCompra(compra));
   }
   const c = m.ids.findIndex((id) => /^C\d$/.test(id));
   let partes: string[][];
@@ -885,6 +991,23 @@ export function revisar(res: Resultado): { violaciones: Violacion[]; hallazgos: 
     }
   }
 
+  // l) idiomas
+  const idioma = idiomaDe(c);
+  const datosPersona = [c.nombre, c.regalo?.quienRegala, ...c.preguntasPropias].filter((x): x is string => !!x);
+  for (const m of env) {
+    if (/\{\{|\}\}|<br|\\n/.test(m.texto)) mal('l2', `${m.ids.join('+')}: ${m.texto.slice(0, 80)}`);
+    let limpio = m.texto;
+    for (const d of datosPersona) limpio = limpio.split(d).join(' ');
+    const propias = new Set(m.ids.flatMap((id) => formas(id, c)));
+    for (const otro of IDIOMAS.filter((x) => x !== idioma)) {
+      const ajeno = m.ids.flatMap((id) => formas(id, { ...c, idioma: otro })).find((t) => t.length > 12 && !propias.has(t) && m.texto.includes(t));
+      if (ajeno) mal('l1', `${m.ids.join('+')} (${idioma}) trae el texto ${otro}: "${ajeno.slice(0, 50)}…"`);
+      const palabra = RASGOS[otro].find((w) => !RASGOS_PERMITIDOS[idioma].includes(w) && new RegExp(`(^|[^\\p{L}'])${w}([^\\p{L}']|$)`, 'u').test(limpio));
+      if (palabra) mal('l1', `${m.ids.join('+')} (${idioma}) dice "${palabra}", que es ${otro}`);
+    }
+  }
+  for (const x of res.malEntendidos) mal('l3', x);
+
   // c) marcas y banco
   for (const m of env) {
     if (/\{\{|\}\}/.test(m.texto)) mal('c1', `${m.ids.join('+')}: ${m.texto.slice(0, 80)}`);
@@ -914,7 +1037,7 @@ export function revisar(res: Resultado): { violaciones: Violacion[]; hallazgos: 
     if (m.ids.includes('TXT') && m.ids.length > 1) mal('g6', `${m.ids.join('+')} ${cuando(m)}`);
     if (m.ids.some((id) => id.startsWith('ATR')) && !m.ids.some((id) => /^C\d$/.test(id))) mal('d5', `${m.ids.join('+')} ${cuando(m)}`);
     for (const id of m.ids.filter(esCadena)) {
-      const f = porId(id);
+      const f = porId(id, idiomaDe(c));
       const yaDeViaje = f.yaDeViaje !== null && m.texto.includes(renderizar(f.yaDeViaje, datosDeCompra(c)));
       const fCasa = fecha(m.en, casa);
       if (yaDeViaje && (fCasa <= c.salida || fecha(m.en, m.zona) <= c.salida)) mal('d6', `${id} "ya de viaje" el ${cuando(m)}`);
@@ -969,7 +1092,7 @@ export function revisar(res: Resultado): { violaciones: Violacion[]; hallazgos: 
   const avisos = (res.cal?.avisosNaza ?? []).join(' ');
   for (const id of CADENA_ANTES) {
     const con = env.filter((m) => m.ids.includes(id));
-    const f = porId(id);
+    const f = porId(id, idiomaDe(c));
     const ydvTexto = f.yaDeViaje ? renderizar(f.yaDeViaje, datosDeCompra(c)) : null;
     const ydv = con.filter((m) => ydvTexto !== null && m.texto.includes(ydvTexto));
     const normal = con.filter((m) => !ydv.includes(m));
@@ -1019,6 +1142,7 @@ export function revisar(res: Resultado): { violaciones: Violacion[]; hallazgos: 
     if (CHOQUES[md] && CHOQUES[md] === puertaDe.get(p.dia)) mal('f2', `día ${p.dia}: ${md} con ${puertaDe.get(p.dia)}`);
   }
   const comunes = env.filter((m) => m.programado?.tipo === 'noche').map((m) => m.programado!);
+  for (const p of comunes) if (p.ids[0] === 'C3' && p.ids[2] === 'F4') mal('f4', `día ${p.dia}: ${p.ids.join('+')}`);
   for (let i = 1; i < comunes.length; i++) {
     const [a, b] = [comunes[i - 1].ids, comunes[i].ids];
     for (let j = 0; j < 3; j++) if (a[j] === b[j]) mal('f3', `días ${comunes[i - 1].dia} y ${comunes[i].dia}: ${a[j]} dos veces`);
@@ -1064,7 +1188,7 @@ type Corrida = ReturnType<typeof correr>;
 const prom = (xs: number[]) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 0);
 const f1 = (x: number) => x.toFixed(1).replace('.', ',');
 
-export function resumenMd(corridas: Corrida[]): string {
+export function resumenMd(corridas: Corrida[], otros: Corrida[] = []): string {
   const out: string[] = [];
   const total = corridas.length;
   out.push(
@@ -1174,6 +1298,25 @@ export function resumenMd(corridas: Corrida[]): string {
     `${sinAlbum} viajes no abren el álbum. Con CA1 sin respuesta, el álbum se abre igual al día siguiente con AL1-P.`,
     `AL3 (fotos de más): ${conAl3.length} viajes; en ${eligio} eligió cuáles sacar (DES sin DES+), en ${conAl3.length - eligio} quedaron las primeras (DES+).`,
   );
+
+  // Otros idiomas
+  if (otros.length) {
+    out.push(
+      '',
+      '## Otros idiomas (catalán y castellano de España)',
+      '',
+      'Las mismas semillas (1 a 800) con la compra en `ca` y en `es-ES`: el mismo viaje, con los textos del idioma, nombres y preguntas propias en ese idioma, y la persona escribiendo como se escribe ahí ("passo", "ja està", "d\'acord", "vale", "ya está", "me la salto"…). Todo lo que escribe pasa por el detector de verdad (`palabras.ts`). Además de todas las invariantes de arriba: l1 (texto de otro idioma), l2 (marca sin reemplazar) y l3 (el detector no entiende).',
+      '',
+      '| Idioma | Viajes | Invariantes rotas | Mensajes (prom.) |',
+      '|---|---|---|---|',
+    );
+    for (const idioma of ['ca', 'es-ES'] as const) {
+      const cs = otros.filter((c) => c.e.idioma === idioma);
+      if (!cs.length) continue;
+      const rotas = Object.keys(INVARIANTES).filter((inv) => cs.some((c) => c.violaciones.some((x) => x.inv === inv)));
+      out.push(`| ${idioma} | ${cs.length} | ${rotas.length ? rotas.map((inv) => `${inv} (${cs.filter((c) => c.violaciones.some((x) => x.inv === inv)).length})`).join(', ') : 'ninguna'} | ${f1(prom(cs.map((c) => c.res.enviados.length)))} |`);
+    }
+  }
   return out.join('\n') + '\n';
 }
 
@@ -1200,7 +1343,7 @@ export function lecturaMd(res: Resultado, titulo: string, encabezado: string[]):
   const out: string[] = [
     `# Vitácora de Viaje V2 · ${titulo}`,
     '',
-    'Un viaje **inventado**, mensaje por mensaje, como le llegaría por WhatsApp. Generado por `fabrica/scripts/viaje-v2-simular.ts` con el código de `fabrica/src/viaje-v2/` y los textos de `banco.md`: no editar a mano.',
+    `Un viaje **inventado**, mensaje por mensaje, como le llegaría por WhatsApp. Generado por \`fabrica/scripts/viaje-v2-simular.ts\` con el código de \`fabrica/src/viaje-v2/\` y los textos de ${res.compra.idioma && res.compra.idioma !== 'es-AR' ? `\`idiomas/banco-${res.compra.idioma}.md\` (la estructura, de \`banco.md\`)` : '`banco.md`'}: no editar a mano.`,
     '',
     ...encabezado.map((x) => `- ${x}`),
     '- Las respuestas van en cursiva y son inventadas. Al lado de cada mensaje, los IDs del banco de donde sale. Las notas entre paréntesis no las ve nadie: son para leer.',
@@ -1461,20 +1604,175 @@ export function lecturaTreintaDias(): { res: Resultado; md: string } {
   return { res, md };
 }
 
+/** Una respuesta escrita con una palabra del sistema ("passo", "paso"): pasa por el detector. */
+const pasoDicho = (hora: string, palabra: string, extra: Partial<Dicho> = {}): Dicho => ({ hora, respuesta: { tipo: 'paso' }, dice: `texto: ${palabra}`, ...extra });
+
+/**
+ * En catalán: Laia, regalo de Jordi; 8 días de Barcelona a Lisboa; impreso,
+ * álbum de 20, 2 preguntas de Jordi. Dice "passo" a una pregunta de antes de
+ * salir y a una noche, deja una noche sin contestar y manda fotos de más.
+ * Persona inventada.
+ */
+export function lecturaCa(): { res: Resultado; md: string } {
+  const compra: Compra = {
+    nombre: 'Laia',
+    salida: '2026-10-16',
+    vuelta: '2026-10-23',
+    zonaCasa: ZONAS.madrid, // Barcelona usa la hora de Madrid
+    zonaViaje: 'Europe/Lisbon',
+    horaNoche: '21:30',
+    regalo: { quienRegala: 'Jordi' },
+    preguntasPropias: ['Quin racó de Lisboa voldries ensenyar-me?', 'Què has menjat que no havies tastat mai?'],
+    formato: 'impreso',
+    fotosAlbum: 20,
+    idioma: 'ca',
+  };
+  const noches: Record<number, Dicho[]> = {
+    1: [audio('22:10', "vaig dinar sardines a la brasa en una terrassa petita; el cambrer em parlava en portuguès i jo li contestava en català, i ens enteníem", { fotos: 2 })],
+    2: [audio('22:30', 'el tramvia 28 ple a vessar; una senyora em va fer lloc i em va explicar on baixar')],
+    3: [pasoDicho('21:50', 'passo')],
+    4: [],
+    5: [audio('22:05', "a Belém, la cua dels pastissos; me'n vaig menjar tres asseguda al riu", { fotos: 1 })],
+  };
+  const g: Guion = {
+    si: { minutos: 25 },
+    contestar: (q) => {
+      const d = q.dia ?? 0;
+      switch (q.tipo) {
+        case 'cadena':
+          return (
+            {
+              AS1: [audio('20:30', "en Jordi em va dir: «fa deu anys que dius que vols veure Lisboa». I va comprar els bitllets aquella mateixa nit")],
+              AS2: [audio('19:15', 'ganes i una mica de por de viatjar sola; me n\'he adonat fent la llista de coses a la nevera', { masDias: 1 })],
+              IM1: [{ ...pasoDicho('09:40', 'passo'), masDias: 1 }],
+              VA1: [audio('22:00', "la llibreta de tapes vermelles on dibuixo; va a tots els viatges")],
+            } as Record<string, Dicho[]>
+          )[q.clave] ?? [];
+        case 'UC1':
+          return [audio('10:40', 'regant les plantes i deixant la clau a la veïna; el gat ja sabia que marxava')];
+        case 'ID1':
+          return [audio('11:20', "a l'avió, quan es va veure el mar i després el riu tan ample; vaig pensar que ja era lluny")];
+        case 'MD':
+          return d === 4 ? [] : [foto('13:30', ['una paret de rajoles blaves', 'les meves vambes a la pujada', 'un tramvia groc', 'el cel net sobre el riu'][d % 4])];
+        case 'FN1':
+          return [audio('22:15', 'el miradouro de la Graça al vespre, amb una noia cantant fado fluixet; aquesta no la vull oblidar')];
+        case 'VU0':
+          return [foto('13:40', 'una llauna de sardines i un tovalló brodat')];
+        case 'VU1':
+          return [audio('11:00', "quan vaig sentir l'avís en català a l'aeroport del Prat")];
+        case 'CA1':
+          return [audio('21:45', 'que el pis fa olor de casa, i que el rellotge de la cuina fa molt de soroll')];
+        default:
+          return noches[d] ?? [audio('22:00', 'un dia de caminar molt; pujades i baixades')];
+      }
+    },
+    album: [
+      // AL1 sale a las 10:00 del día siguiente de CA1: las fotos van después.
+      { masDias: 0, hora: '10:30', evento: 'foto', cantidad: 15, dice: '15 fotos' },
+      { masDias: 0, hora: '11:10', evento: 'foto', cantidad: 11, dice: '11 fotos més' },
+      { masDias: 0, hora: '11:15', evento: 'listo', dice: 'texto: ja està' },
+    ],
+    // A AL3 no contesta: a las 5 horas quedan las primeras 20 y va DES con DES+.
+  };
+  const res = simular(compra, aInstante('2026-10-08', '18:00', compra.zonaCasa), new PersonaGuion(compra, g));
+  const md = lecturaMd(res, 'Lectura en catalán', [
+    'Laia, regalo de Jordi; 8 días (sale el 2026-10-16, emprende la vuelta el 2026-10-23). Compra el 8/10. **Idioma: catalán** (textos de `idiomas/banco-ca.md`).',
+    'Casa: Barcelona (hora de Madrid). Viaje: Lisboa (una hora menos). Noche a las 21:30. Libro impreso, álbum de 20.',
+    `Preguntas de Jordi: ${compra.preguntasPropias.map((p) => `«${p}»`).join(' · ')}`,
+    'Dice "passo" a IM1 y a una noche, deja sin contestar un mediodía y la segunda pregunta de Jordi (la noche siguiente lleva ATR-PR), y al álbum le manda 26 fotos, escribe "ja està" y no contesta AL3.',
+  ]);
+  return { res, md };
+}
+
+/**
+ * En castellano de España: Marta, para ella; 8 días de Madrid a Roma; PDF,
+ * álbum de 20. Dice "paso" a un mediodía y a una noche, deja una noche sin
+ * contestar y manda fotos de más. Persona inventada.
+ */
+export function lecturaEsES(): { res: Resultado; md: string } {
+  const compra: Compra = {
+    nombre: 'Marta',
+    salida: '2026-11-06',
+    vuelta: '2026-11-13',
+    zonaCasa: ZONAS.madrid,
+    zonaViaje: 'Europe/Rome',
+    horaNoche: '21:00',
+    preguntasPropias: [],
+    formato: 'pdf',
+    fotosAlbum: 20,
+    idioma: 'es-ES',
+  };
+  const noches: Record<number, Dicho[]> = {
+    1: [audio('22:00', 'una carbonara en una trattoria del Trastevere; el dueño me sacó un limoncello sin pedirlo', { fotos: 1 })],
+    2: [audio('21:40', 'me senté una hora en la escalinata de una iglesia a ver pasar a la gente; nadie tenía prisa')],
+    3: [],
+    4: [pasoDicho('21:20', 'paso de esta')],
+    5: [audio('22:20', 'en el Panteón empezó a llover por el agujero del techo y todo el mundo se quedó mirando hacia arriba', { fotos: 2 })],
+  };
+  const g: Guion = {
+    si: { minutos: 10 },
+    contestar: (q) => {
+      const d = q.dia ?? 0;
+      switch (q.tipo) {
+        case 'cadena':
+          return (
+            {
+              AS1: [audio('21:00', 'llevaba años diciendo que quería ir sola a algún sitio; un domingo abrí el ordenador y lo reservé antes de pensarlo dos veces')],
+              AS2: [audio('20:10', 'con ganas y con algo de vértigo; me di cuenta cuando pedí los días en el trabajo', { masDias: 1 })],
+              IM1: [audio('09:15', 'una plaza con una fuente y yo sentada con un café', { masDias: 1 })],
+              VA1: [escrito('23:05', 'un libro de poemas que era de mi abuela; viaja siempre conmigo')],
+            } as Record<string, Dicho[]>
+          )[q.clave] ?? [];
+        case 'UC1':
+          return [audio('10:20', 'cerrando la maleta sentada encima y repasando que el gas estuviera cerrado')];
+        case 'ID1':
+          return [audio('12:00', 'en el tren del aeropuerto, viendo pinos y casas amarillas; ahí supe que ya estaba lejos')];
+        case 'MD':
+          return d === 3 ? [pasoDicho('13:20', 'paso')] : [foto('13:35', ['un cartel de una farmacia antigua', 'mis zapatillas en los adoquines', 'el cielo entre dos tejados', 'una taza de café vacía'][d % 4])];
+        case 'FN1':
+          return [audio('22:00', 'la luz naranja sobre los tejados desde el Gianicolo; esa quiero guardarla')];
+        case 'VU0':
+          return [foto('13:50', 'un paquete de pasta y una postal')];
+        case 'VU1':
+          return [audio('11:30', 'cuando el avión giró y vi la sierra; ya estaba volviendo')];
+        case 'CA1':
+          return [audio('21:10', 'que mi casa es más silenciosa de lo que pensaba')];
+        default:
+          return noches[d] ?? [audio('21:30', 'un día de caminar sin plan')];
+      }
+    },
+    album: [
+      { masDias: 0, hora: '10:45', evento: 'foto', cantidad: 18, dice: '18 fotos' },
+      { masDias: 0, hora: '12:30', evento: 'foto', cantidad: 6, dice: '6 fotos más' },
+      { masDias: 0, hora: '12:35', evento: 'listo', dice: 'texto: ya está' },
+    ],
+    alAL3: { minutos: 20, dice: 'texto: déjalo, elige tú' },
+  };
+  const res = simular(compra, aInstante('2026-10-28', '20:15', compra.zonaCasa), new PersonaGuion(compra, g));
+  const md = lecturaMd(res, 'Lectura en castellano de España', [
+    'Marta, para ella; 8 días (sale el 2026-11-06, emprende la vuelta el 2026-11-13). Compra el 28/10. **Idioma: castellano de España** (textos de `idiomas/banco-es-ES.md`).',
+    'Casa: Madrid. Viaje: Roma (misma hora). Noche a las 21:00. Libro en PDF, álbum de 20. Sin preguntas propias.',
+    'Escribe una vez en vez de audio, dice "paso" a un mediodía y "paso de esta" a una noche, deja una noche sin contestar, y al álbum le manda 24 fotos, escribe "ya está" y a AL3 le contesta "déjalo, elige tú".',
+  ]);
+  return { res, md };
+}
+
 // ── Correr ───────────────────────────────────────────────────────────────────
 
-export function correrMuchos(cantidad: number, desde = 1): Corrida[] {
+export function correrMuchos(cantidad: number, desde = 1, idioma: Idioma = 'es-AR'): Corrida[] {
   const out: Corrida[] = [];
-  for (let s = desde; s < desde + cantidad; s++) out.push(correr(s));
+  for (let s = desde; s < desde + cantidad; s++) out.push(correr(s, idioma));
   return out;
 }
 
 function main() {
   const args = process.argv.slice(2);
   const iSem = args.indexOf('--semilla');
+  const iIdi = args.indexOf('--idioma');
+  const idiomaArg = iIdi >= 0 ? idiomaDe({ idioma: args[iIdi + 1] }) : 'es-AR';
   if (iSem >= 0) {
     const s = Number(args[iSem + 1]);
-    const c = correr(s);
+    const c = correr(s, idiomaArg);
     console.log(lecturaMd(c.res, `Simulación, semilla ${s}`, [describir(c.e)]));
     for (const x of c.hallazgos) console.log(`hallazgo ${x.inv}: ${x.detalle}`);
     return;
@@ -1493,15 +1791,26 @@ function main() {
     const n = corridas.filter((c) => c.hallazgos.some((x) => x.inv === inv)).length;
     if (n) console.log(`  ${inv.padEnd(4)} ${String(n).padStart(5)}  ${nombre}`);
   }
+  // Los otros idiomas: 800 semillas cada uno.
+  const otros: Corrida[] = [];
+  for (const idioma of ['ca', 'es-ES'] as const) {
+    const n = args[0] ? Math.min(cantidad, 800) : 800;
+    const cs = correrMuchos(n, 1, idioma);
+    otros.push(...cs);
+    const rotas = Object.keys(INVARIANTES).filter((inv) => cs.some((c) => c.violaciones.some((x) => x.inv === inv)));
+    console.log(`${idioma}: ${n} viajes, ${rotas.length ? `invariantes rotas: ${rotas.map((inv) => `${inv} (${cs.filter((c) => c.violaciones.some((x) => x.inv === inv)).length})`).join(', ')}` : 'ninguna invariante rota'}`);
+  }
   if (args[0]) return;
   const FABRICA = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
   const dir = path.join(FABRICA, '..', 'docs', 'viajes-v2', 'simulaciones');
   mkdirSync(dir, { recursive: true });
-  writeFileSync(path.join(dir, 'resumen.md'), resumenMd(corridas), 'utf8');
+  writeFileSync(path.join(dir, 'resumen.md'), resumenMd(corridas, otros), 'utf8');
   writeFileSync(path.join(dir, 'lectura-1-dia.md'), lecturaUnDia().md, 'utf8');
   writeFileSync(path.join(dir, 'lectura-2-dias.md'), lecturaDosDias().md, 'utf8');
   writeFileSync(path.join(dir, 'lectura-30-dias.md'), lecturaTreintaDias().md, 'utf8');
-  console.log(`Escrito: ${path.relative(process.cwd(), dir)}/ (resumen.md y 3 lecturas)`);
+  writeFileSync(path.join(dir, 'lectura-ca.md'), lecturaCa().md, 'utf8');
+  writeFileSync(path.join(dir, 'lectura-es-ES.md'), lecturaEsES().md, 'utf8');
+  console.log(`Escrito: ${path.relative(process.cwd(), dir)}/ (resumen.md y 5 lecturas)`);
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) main();

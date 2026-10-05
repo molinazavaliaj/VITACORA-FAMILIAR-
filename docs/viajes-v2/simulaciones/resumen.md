@@ -50,6 +50,10 @@ Generado por `fabrica/scripts/viaje-v2-simular.ts` (no editar a mano): **2400 vi
 | f) Mediodía fuera de orden (las 12 en cada vuelta) o en un día que no va | 0 de 2400 | — |
 | f) Choque MD2/NO1 o MD8/NO6 el mismo día | 0 de 2400 | — |
 | f) Mismo comienzo, puerta o cierre dos noches comunes seguidas | 0 de 2400 | — |
+| f) C3 ("con lo que valga la pena") con F4 ("después contame lo demás") en la misma noche: se contradicen | 0 de 2400 | — |
+| l) Texto de otro idioma (un texto del banco de otro idioma, o una palabra típica de otro idioma) | 0 de 2400 | — |
+| l) Marca sin reemplazar o salto escrito ({{…}}, <br>, \n) | 0 de 2400 | — |
+| l) El detector no entiende lo que escribió la persona ("paso", "ja està", "vale", el SÍ…) | 0 de 2400 | — |
 | g) TXT más de 2 veces | 0 de 2400 | — |
 | g) REC1/REC1-U más de 1 vez | 0 de 2400 | — |
 | g) AL2 más de 2 veces | 0 de 2400 | — |
@@ -107,17 +111,17 @@ Mensajes de Vitácora (todo lo que sale, acuses incluidos). "Por día": total di
 | ACN1 | 6,1 | 10 |
 | ACN2 | 5,6 | 10 |
 | ACN4 | 5,2 | 9 |
+| F5 | 5,2 | 6 |
 | C1 | 4,9 | 6 |
-| F5 | 4,8 | 5 |
 | C2 | 4,7 | 6 |
 | F2 | 4,5 | 5 |
 | C3 | 4,4 | 5 |
-| F4 | 4,4 | 5 |
 | F1 | 4,4 | 6 |
 | C4 | 4,3 | 5 |
 | F3 | 4,2 | 6 |
 | C5 | 4,1 | 5 |
 | COR | 4,0 | 37 |
+| F4 | 4,0 | 4 |
 | ACN3 | 3,9 | 7 |
 | PAS-V2 | 3,6 | 36 |
 | MD1 | 3,0 | 3 |
@@ -168,6 +172,7 @@ Preguntas enteras idénticas (el mismo texto, letra por letra) en un viaje de 30
 
 | ID | Promedio por viaje | Máximo |
 |---|---|---|
+| F5 | 12,5 | 13 |
 | ACN1 | 11,8 | 20 |
 | ACN2 | 11,6 | 20 |
 | ACN4 | 10,9 | 19 |
@@ -176,12 +181,11 @@ Preguntas enteras idénticas (el mismo texto, letra por letra) en un viaje de 30
 | C2 | 10,7 | 12 |
 | F3 | 10,5 | 11 |
 | C3 | 10,5 | 11 |
-| F5 | 10,5 | 11 |
 | F2 | 10,3 | 12 |
 | C4 | 10,2 | 11 |
-| F4 | 10,2 | 12 |
 | C5 | 10,0 | 11 |
 | ACN3 | 8,2 | 15 |
+| F4 | 8,2 | 10 |
 | COR | 7,8 | 67 |
 | PAS-V2 | 7,4 | 70 |
 | NO1 | 6,1 | 7 |
@@ -241,3 +245,12 @@ Desde AL1 hasta DES, en horas.
 
 0 viajes no abren el álbum. Con CA1 sin respuesta, el álbum se abre igual al día siguiente con AL1-P.
 AL3 (fotos de más): 516 viajes; en 140 eligió cuáles sacar (DES sin DES+), en 376 quedaron las primeras (DES+).
+
+## Otros idiomas (catalán y castellano de España)
+
+Las mismas semillas (1 a 800) con la compra en `ca` y en `es-ES`: el mismo viaje, con los textos del idioma, nombres y preguntas propias en ese idioma, y la persona escribiendo como se escribe ahí ("passo", "ja està", "d'acord", "vale", "ya está", "me la salto"…). Todo lo que escribe pasa por el detector de verdad (`palabras.ts`). Además de todas las invariantes de arriba: l1 (texto de otro idioma), l2 (marca sin reemplazar) y l3 (el detector no entiende).
+
+| Idioma | Viajes | Invariantes rotas | Mensajes (prom.) |
+|---|---|---|---|
+| ca | 800 | ninguna | 59,6 |
+| es-ES | 800 | ninguna | 59,6 |

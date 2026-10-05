@@ -16,7 +16,7 @@ import { idiomaDe, IDIOMAS, type Idioma } from '../src/viaje-v2/idioma.js';
 import { paqueteDe } from '../src/viaje-v2/paquete.js';
 import { entender } from '../src/viaje-v2/palabras.js';
 import { renderizar, datosDeCompra, textoFormato } from '../src/viaje-v2/texto.js';
-import { arranque, alDecirSi, despedida, preguntaProgramada, reaccion, ROTACION_INICIAL } from '../src/viaje-v2/mensajes.js';
+import { arranque, alDecirSi, despedida, partirDes, preguntaProgramada, reaccion, ROTACION_INICIAL } from '../src/viaje-v2/mensajes.js';
 import { armarCalendario } from '../src/viaje-v2/calendario.js';
 import { iniciarAlbum, pasoAlbum } from '../src/viaje-v2/album.js';
 import bancoCaJson from '../src/viaje-v2/banco-ca.json' with { type: 'json' };
@@ -227,6 +227,20 @@ describe('viaje v2 idiomas: los mensajes salen en el idioma de la compra', () =>
       expect(m.ids).toEqual(['DES', 'DES+']);
       expect(m.texto, idioma).toContain(`${r('DES+', idioma)} ${frase[idioma]}`);
       expect(despedida(en(idioma), 20)).toEqual({ ids: ['DES'], texto: r('DES', idioma) });
+    }
+  });
+
+  it('el corte de DES cae en el mismo lugar en los tres idiomas: antes de "acompañarte" y del "Gracias" final', () => {
+    const esperado: Record<Idioma, [string, string]> = {
+      'es-AR': ['ahí cambiás lo que haga falta.', 'Fue lindo acompañarte. Gracias por dejarme entrar en tu viaje.'],
+      'es-ES': ['ahí cambias lo que haga falta.', 'Ha sido bonito acompañarte. Gracias por dejarme entrar en tu viaje.'],
+      ca: ['allà canvies el que calgui.', "M'ha agradat molt acompanyar-te. Gràcies per explicar-me el teu viatge."],
+    };
+    for (const idioma of IDIOMAS) {
+      const [antes, despues] = partirDes(porId('DES', idioma).texto);
+      expect(antes.endsWith(esperado[idioma][0]), `${idioma}: ${antes}`).toBe(true);
+      expect(despues, idioma).toBe(esperado[idioma][1]);
+      expect(despedida(en(idioma), 21).texto, idioma).toBe(`${renderizar(antes, datosDeCompra(en(idioma)))} ${r('DES+', idioma)} ${despues}`);
     }
   });
 

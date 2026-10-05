@@ -88,10 +88,11 @@ describe('3. comienzo, puerta y cierre rotan por separado', () => {
     expect(pares.size).toBe(27); // las 27 de comienzo+puerta, sin repetir
   });
 
-  it('en 81 noches salen las 81 combinaciones, sin repetir', () => {
+  it('en 81 noches salen 79 combinaciones: las primeras 47 sin repetir; C3 sin F4 (Naza, 05/10) hace que dos se repitan, a 45 noches de distancia', () => {
     const ns = armarCalendario({ ...COMPRA, salida: '2026-01-01', vuelta: '2026-03-25' }, []).programados.filter((p) => p.tipo === 'noche');
     expect(ns).toHaveLength(81);
-    expect(new Set(ns.map((p) => p.ids.join('+'))).size).toBe(81);
+    expect(new Set(ns.map((p) => p.ids.join('+'))).size).toBe(79);
+    expect(new Set(ns.slice(0, 47).map((p) => p.ids.join('+'))).size).toBe(47);
   });
 
   it('nunca el mismo comienzo, ni el mismo cierre, dos noches seguidas', () => {
