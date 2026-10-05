@@ -31,10 +31,14 @@
 //     SOLO en su mensaje: si sigue una pregunta, va en otro mensaje (simulaciones).
 //   · Si la respuesta fue solo texto o solo fotos, nunca ACA2 ni ACN3 ("Lo escuché") (A5 y simulaciones).
 //   · Audio que llegó mal (la señal viene de afuera): COR solo; la pregunta sigue abierta.
+//
+// El idioma sale de la compra (`compra.idioma`, vacío = es-AR): cada texto
+// viene del banco de ese idioma (bancoDe). Las reglas son las mismas.
 
 import { porId } from './banco.js';
 import type { IdAntes, Programado, TipoProgramado } from './calendario.js';
 import { aLocal } from './horas.js';
+import { idiomaDe } from './idioma.js';
 import { datosDeCompra, renderizar } from './texto.js';
 import type { Compra, Mensaje } from './tipos.js';
 
@@ -83,11 +87,11 @@ export function elegirRotando(grupo: Grupo, rot: Rotacion, permitidos?: readonly
 }
 
 function texto(id: string, compra: Compra, pregunta?: string): string {
-  return renderizar(porId(id).texto, { ...datosDeCompra(compra), pregunta });
+  return renderizar(porId(id, idiomaDe(compra)).texto, { ...datosDeCompra(compra), pregunta });
 }
 
 function textoYaDeViaje(id: string, compra: Compra): string {
-  const f = porId(id);
+  const f = porId(id, idiomaDe(compra));
   if (!f.yaDeViaje) throw new Error(`${id} no tiene variante "ya de viaje"`);
   return renderizar(f.yaDeViaje, datosDeCompra(compra));
 }
@@ -279,12 +283,28 @@ export function reaccion(de: QueSeContesta, respuesta: Respuesta, compra: Compra
 
 // ── Despedida ────────────────────────────────────────────────────────────────
 
-const ANTES_DE_DES_MAS = 'Fue lindo acompañarte';
+/** Cuántas oraciones de DES van después de DES+ ("Fue lindo acompañarte. Gracias por dejarme entrar en tu viaje."). */
+export const ORACIONES_DESPUES_DE_DES_MAS = 2;
 
-/** DES; con DES+ adentro, antes de "Fue lindo acompañarte", si mandó más fotos de las que entran. */
+/**
+ * DES partido en dos: lo que va antes de DES+ y lo que va después (las dos
+ * últimas oraciones). Sin buscar ninguna frase, así sirve igual en cada
+ * idioma ("Fue lindo acompañarte", "Ha sido bonito acompañarte", "Ha estat
+ * bonic acompanyar-te"). Se parte la plantilla, antes de llenar las marcas:
+ * un nombre con punto no la corre.
+ */
+export function partirDes(des: string): [string, string] {
+  const oraciones = des.split(/(?<=[.!?…])\s+/);
+  if (oraciones.length <= ORACIONES_DESPUES_DE_DES_MAS) throw new Error(`DES tiene ${oraciones.length} oraciones: no sé dónde meter DES+`);
+  const corte = oraciones.length - ORACIONES_DESPUES_DE_DES_MAS;
+  return [oraciones.slice(0, corte).join(' '), oraciones.slice(corte).join(' ')];
+}
+
+/** DES; con DES+ adentro, antes de sus dos últimas oraciones, si mandó más fotos de las que entran. */
 export function despedida(compra: Compra, fotosMandadas: number): Mensaje {
-  const des = texto('DES', compra);
-  if (fotosMandadas <= compra.fotosAlbum) return { ids: ['DES'], texto: des };
-  if (!des.includes(ANTES_DE_DES_MAS)) throw new Error(`DES ya no dice "${ANTES_DE_DES_MAS}": no sé dónde meter DES+`);
-  return { ids: ['DES', 'DES+'], texto: des.replace(ANTES_DE_DES_MAS, `${texto('DES+', compra)} ${ANTES_DE_DES_MAS}`) };
+  if (fotosMandadas <= compra.fotosAlbum) return { ids: ['DES'], texto: texto('DES', compra) };
+  const idioma = idiomaDe(compra);
+  const [antes, despues] = partirDes(porId('DES', idioma).texto);
+  const plantilla = `${antes} ${porId('DES+', idioma).texto} ${despues}`;
+  return { ids: ['DES', 'DES+'], texto: renderizar(plantilla, datosDeCompra(compra)) };
 }

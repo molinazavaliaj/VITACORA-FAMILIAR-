@@ -1,6 +1,8 @@
 // Los datos de la compra de Vitácora de Viaje V2 (flujo-vigente.md §1).
 // El código no sabe de ciudades: solo fechas y zonas horarias.
 
+import type { Idioma } from './idioma.js';
+
 /** Fecha local, 'YYYY-MM-DD'. */
 export type Fecha = string;
 /** Hora local, 'HH:MM' (24 h). */
@@ -29,6 +31,8 @@ export type Compra = {
   preguntasPropias: string[];
   formato: Formato;
   fotosAlbum: FotosAlbum;
+  /** En qué idioma va la entrevista. Vacío = es-AR (el de siempre). */
+  idioma?: Idioma;
 };
 
 export const HORA_NOCHE_POR_DEFECTO: Hora = '21:30';

@@ -23,6 +23,7 @@
 import { respetarFranja } from './horas.js';
 import { despedida } from './mensajes.js';
 import { porId } from './banco.js';
+import { idiomaDe } from './idioma.js';
 import { datosDeCompra, renderizar } from './texto.js';
 import type { Compra, Mensaje } from './tipos.js';
 
@@ -79,7 +80,7 @@ function en5Horas(desde: Date, compra: Compra): string {
 
 const mensaje = (id: string, compra: Compra, extra: Record<string, string> = {}): SalidaAlbum => ({
   tipo: 'mensaje',
-  mensaje: { ids: [id], texto: renderizar(porId(id).texto, { ...datosDeCompra(compra), ...extra }) },
+  mensaje: { ids: [id], texto: renderizar(porId(id, idiomaDe(compra)).texto, { ...datosDeCompra(compra), ...extra }) },
 });
 
 /** El álbum recién abierto: salió AL1 (o AL1-P) en `al1En`. */
