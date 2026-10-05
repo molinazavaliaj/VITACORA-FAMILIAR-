@@ -39,3 +39,5 @@ Por qué (Fable): la última línea del 6 repite el pedido porque es cuando el p
 5. > Bueno {{1}}, hasta acá llegamos. Ya tengo todo lo que contaste con tus audios y tus fotos, y ahora con eso se arma el libro, con tus palabras. Cuando esté listo te lo va a dar {{2}}, que fue quien te hizo este regalo. La última parte, la del sobre cerrado, va aparte, pegada al libro, para que la abras cuando seas grande. Gracias por contarme todo esto. Nos vemos pronto.
 
 2, 3, 4 y 6 quedan como en la ronda 1.
+
+**Aprobado por Naza (05/10): ronda 2 (1 y 5) + ronda 1 (2, 3, 4, 6).** "Tu mamá" es variable: quien regala (ver pendientes).
