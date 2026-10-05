@@ -7,6 +7,7 @@ import { ACTIVO_MS, CIERRE_SOLO_DIAS, ESPERA_AUDIO_FOTO_MS, RECORDATORIO_DIAS, S
 import { emitir, empezarItem, guardarFotoVencida, hoy, marcar, mensajeFinal, terminarItem, terminoPadre, type Ctx } from './flujo.js';
 import { fijoA, variables } from './mensajes.js';
 import { procesarRafaga } from './rafaga.js';
+import { enDiaSobrio } from './sobrio.js';
 import type { Estado } from './tipos.js';
 
 const ms = (iso: string) => new Date(iso).getTime();
@@ -26,7 +27,8 @@ export function alReloj(c: Ctx): void {
   const e = c.e;
   if (esDeNoche(c.ahora, e.ficha.zona)) return;
   if (e.rafaga && c.ahora.getTime() - ms(e.rafaga.ultima) >= SILENCIO_MS) procesarRafaga(c);
-  if (e.fase.tipo === 'foto-audio' && c.ahora.getTime() - ms(e.fase.desde) >= ESPERA_AUDIO_FOTO_MS) terminarItem(c);
+  // Algo preocupante: ese día ningún reloj hace avanzar el flujo; sigue donde estaba cuando termina.
+  if (e.fase.tipo === 'foto-audio' && !enDiaSobrio(c) && c.ahora.getTime() - ms(e.fase.desde) >= ESPERA_AUDIO_FOTO_MS) terminarItem(c);
   if (e.rafaga) return; // está contando: la hora espera
   const fecha = hoy(c);
   if (e.horaHecha === fecha || c.ahora < aInstante(fecha, e.ficha.hora, e.ficha.zona)) return;
@@ -82,6 +84,7 @@ function alaHora(c: Ctx): void {
     emitir(c, fijoA(e, 'TERMINO-PADRE', { variables: variables.padre(e.ficha), paraPadre: true }));
     e.terminoPadre = null;
   }
+  if (e.sobrioHasta) return; // día sobrio: ni cierre de las extras, ni recordatorios, ni la pregunta de la hora
   if (e.fase.tipo === 'terminado' || e.fase.tipo === 'sin-empezar') return;
   const item = e.guion[e.cursor];
   if (item?.tipo === 'final') return;
@@ -93,7 +96,7 @@ function alaHora(c: Ctx): void {
     return;
   }
   if (bloqueante(e)) return recordatorio(c);
-  if (e.sobrioHasta || e.diaHecho === fecha) return;
+  if (e.diaHecho === fecha) return;
   guardarFotoVencida(e);
   empezarItem(c, e.fase.tipo === 'libre' ? e.fase.siguiente : e.cursor + 1, true);
 }
@@ -104,7 +107,11 @@ export function proximoDespertar(e: Estado, ahora: Date): Date | null {
   const c: Date[] = [];
   if (e.nocturnos.length) c.push(ahora);
   if (e.rafaga) c.push(new Date(ms(e.rafaga.ultima) + SILENCIO_MS));
-  if (e.fase.tipo === 'foto-audio') c.push(new Date(ms(e.fase.desde) + ESPERA_AUDIO_FOTO_MS));
+  if (e.fase.tipo === 'foto-audio') {
+    // En el día sobrio la espera del audio no vence: se retoma cuando termina (si no, despertaría sin parar).
+    const sobrio = e.sobrioHasta !== null && ahora < new Date(e.sobrioHasta) ? ms(e.sobrioHasta) : 0;
+    c.push(new Date(Math.max(ms(e.fase.desde) + ESPERA_AUDIO_FOTO_MS, sobrio)));
+  }
   const sigueLaHora = !(e.fase.tipo === 'terminado' && !e.terminoPadre) && e.fase.tipo !== 'sin-empezar';
   if (sigueLaHora && !e.rafaga) {
     const fecha = aLocal(ahora, z).fecha;

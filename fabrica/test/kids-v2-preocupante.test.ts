@@ -3,7 +3,7 @@ import { FRASES_PREOCUPANTES, fraseQueSalta, normalizar } from '../src/kids-v2/p
 import { alBoton } from '../src/kids-v2/motor/botones.js';
 import { extrasDelFinal } from '../src/kids-v2/motor/flujo.js';
 import { procesarRafaga, sumarARafaga } from '../src/kids-v2/motor/rafaga.js';
-import { alReloj } from '../src/kids-v2/motor/reloj.js';
+import { alReloj, proximoDespertar } from '../src/kids-v2/motor/reloj.js';
 import { ctx, en, estadoEn, ids, iso } from './kids-v2-ayuda.js';
 
 const PREOCUPANTE = { tipo: 'audio' as const, seg: 70, transcripcion: 'y encima mi primo me pegó cuando nadie miraba' };
@@ -127,5 +127,43 @@ describe('kids v2: el día sobrio gana a los otros acuses', () => {
     alReloj(c);
     alBoton(c, 'Dale, otra');
     expect(ids(c.salidas).slice(2, 4)).toEqual(['EXTRAS-SI', 'X1-1']);
+  });
+});
+
+describe('kids v2: en el día sobrio ningún reloj hace avanzar el flujo (arreglo de la revisión)', () => {
+  it('esperando el audio de una foto en las extras: no vence ese día; al otro día, a la hora, sigue donde estaba', () => {
+    const c = ctx(estadoEn('EXTRAS', { tipo: 'extras-oferta' }, {}, { ultimaEntrada: iso('2026-10-10', '18:05') }));
+    alBoton(c, 'Dale, otra');
+    expect(ids(c.salidas)).toEqual(['EXTRAS-SI', 'X1-1']);
+    c.e.fase = { tipo: 'foto-audio', clave: 'X1-1', desde: c.ahora.toISOString() };
+    sumarARafaga(c, { tipo: 'audio', seg: 30, transcripcion: 'nadie me quiere' });
+    procesarRafaga(c);
+    c.ahora = en('2026-10-10', '18:30');
+    alReloj(c);
+    expect(ids(c.salidas)).toEqual(['EXTRAS-SI', 'X1-1', 'B-DIAFEO-ACUSE-1', 'marca:preocupante']);
+    expect(c.e.fase.tipo).toBe('foto-audio');
+    // No despierta sin parar por la espera vencida: la hora de hoy (que esperó por estar activo) y después mañana a la hora.
+    expect(proximoDespertar(c.e, c.ahora)).toEqual(en('2026-10-10', '18:35'));
+    c.ahora = en('2026-10-10', '18:35');
+    alReloj(c);
+    expect(ids(c.salidas)).toHaveLength(4);
+    expect(proximoDespertar(c.e, c.ahora)).toEqual(en('2026-10-11', '18:00'));
+    c.ahora = en('2026-10-11', '09:30');
+    alReloj(c);
+    expect(ids(c.salidas)).toHaveLength(4);
+    c.ahora = en('2026-10-11', '18:00');
+    alReloj(c);
+    expect(ids(c.salidas).slice(4)).toEqual(['EXTRAS-OTRA']);
+    expect(c.e.sobrioHasta).toBeNull();
+  });
+
+  it('a la hora del mismo día sobrio no sale nada (ni cierre de extras ni recordatorio ni pregunta)', () => {
+    const c = ctx(estadoEn('EXTRAS', { tipo: 'extras-oferta' }, {}, { extrasDesde: iso('2026-10-07', '18:00'), ultimaEntrada: iso('2026-10-07', '18:00') }), '2026-10-10', '10:00');
+    sumarARafaga(c, PREOCUPANTE);
+    procesarRafaga(c);
+    c.ahora = en('2026-10-10', '18:00');
+    alReloj(c);
+    expect(ids(c.salidas)).toEqual(['B-DIAFEO-ACUSE-1', 'marca:preocupante']);
+    expect(c.e.fase).toEqual({ tipo: 'extras-oferta' });
   });
 });
