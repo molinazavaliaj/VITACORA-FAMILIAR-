@@ -78,3 +78,18 @@ Nota técnica: si regalan los dos ("tus papás"), "te hizo" no concuerda; ahí v
 
 **Texto 2, primer párrafo (Fable, ✎ "para ayudar a contarlo" → "mientras lo cuenta", porque el mensaje después le pide al padre que no conteste ni corrija):**
 > Hola {{1}}. Qué lindo regalo le estás haciendo a {{2}}: su propio libro, con vos al lado mientras lo cuenta. Las preguntas van a llegar a este número. Te cuento cómo es para que salga todo bien.
+
+## Ronda 4 (05/10)
+
+Naza: el texto 2 con el arranque de la ronda 3 **le gusta (aprobado)**. El 1 "suena muy IA", no le gustan los dos puntos; su idea: "te hizo un regalo con mucho cariño. Vas a escribir el libro de tu vida, pero lo mejor es que lo vas a contar". Versión con sus palabras, sin dos puntos en todo el mensaje (el "Es fácil:" también pierde los suyos y deja de repetir "audio"):
+
+> Hola {{1}}. Te escribo porque {{2}} te hizo un regalo con mucho cariño. Vas a armar el libro de tu vida, y lo mejor es que no hace falta escribir nada, lo vas contando con audios. Yo soy quien te va a ir haciendo las preguntas por acá.
+>
+> Es fácil. Te mando una pregunta y vos me contestás como si se lo contaras a un amigo. No hay que contestar bien ni mal, contás como te salga.
+>
+> A veces te voy a pedir una foto de algo tuyo, y a veces vas a ver botones para elegir. Si una pregunta no te gusta o no se te ocurre nada, la pasás y seguimos.
+>
+> Cuando terminemos, todo lo que contaste se vuelve un libro de verdad, con tus palabras y tus fotos. Y la última parte va en un sobre cerrado, para que lo abras cuando seas grande.
+>
+> ¿Vamos con la primera?
+> [Dale, vamos]
