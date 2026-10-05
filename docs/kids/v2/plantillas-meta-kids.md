@@ -1,6 +1,8 @@
 # Kids · Plantillas de Meta para cargar (05/10/2026)
 
-Para cargar en WhatsApp Manager junto con las plantillas nuevas de hoy. Todos los cuerpos son los **aprobados por Naza** (ya sin dos puntos), las 7 y 8 aprobadas por Naza el 05/10 a la noche. Son 10 en total (con la 5b).
+Para cargar en WhatsApp Manager junto con las plantillas nuevas de hoy. Todos los cuerpos son los **aprobados por Naza** (ya sin dos puntos), las 7 y 8 aprobadas por Naza el 05/10 a la noche. Son 11 en total (con la 5b y la 6b).
+
+**(05/10)** Cambiadas por la revisión de Fable leída como el chico (`paso-4-revision-fable.md`, aprobada por Naza): el cuerpo de la 6 (cambio 17) y el de la 7 (cambio 10). Agregada la 6b (8 días en "lo hago yo", por defecto técnico, `paso-4-huecos-decisiones.md`). Los textos viejos están en `banco-descartadas.md`.
 
 Reglas de Meta que ya nos frenaron: variables posicionales `{{1}}`, nunca al principio ni al final del cuerpo (todas arrancan con "Hola" o texto). Botones = respuesta rápida. Idioma: el mismo que las plantillas que ya están (español). Categoría: pedir **Utilidad**; si la rechaza, Marketing (como `bienvenida`).
 
@@ -51,21 +53,30 @@ Mientras tanto, solo te escribimos si pasan cuatro días sin que conteste, para 
 
 Y una sola cosa te pedimos. Leé todo, pero no le digas nada hasta el libro.
 
-## 5. `kids_recordatorio_padre` (canal del chico; a los 4 y a los 8 días) — {{1}} padre · {{2}} chico
+## 5. `kids_recordatorio_padre` (canal del chico; a los 4 días; a los 8 va la 5b, 05/10) — {{1}} padre · {{2}} chico
 
 Hola {{1}}. Pasaron cuatro días sin respuesta de {{2}}, así que te avisamos como habíamos quedado. Si podés, dale un empujoncito en casa, sin apuro. Nosotros no le decimos nada por tardar.
 
 ## 5b. `kids_recordatorio_padre_8` (a los 8 días) — igual que la 5 con "Pasaron ocho días". Aprobada por Naza (05/10).
 
-## 6. `kids_recordatorio_lo_hago_yo` — {{1}} padre · {{2}} chico
+## 6. `kids_recordatorio_lo_hago_yo` (a los 4 días) — {{1}} padre · {{2}} chico
 Botón: **Estamos listos**
 
-Hola {{1}}. Pasaron cuatro días sin que respondan la pregunta pendiente, no hay problema. Esto es solamente un recordatorio para que puedan retomar el libro cuanto antes. Cuando tengan un momento, sentate con {{2}} al lado y tocá el botón para seguir.
+Hola {{1}}. Pasaron cuatro días sin que respondan la pregunta pendiente, no hay problema. Es solo un recordatorio, sin apuro. Cuando tengan un momento, sentate con {{2}} al lado y tocá el botón para seguir.
+
+*(05/10, cuerpo nuevo)*
+
+## 6b. `kids_recordatorio_lo_hago_yo_8` ("lo hago yo", a los 8 días) — {{1}} padre · {{2}} chico *(05/10)*
+Botón: **Estamos listos**. Igual que la 6 con "Pasaron ocho días". Aprobada por defecto técnico (`paso-4-huecos-decisiones.md`).
+
+Hola {{1}}. Pasaron ocho días sin que respondan la pregunta pendiente, no hay problema. Es solo un recordatorio, sin apuro. Cuando tengan un momento, sentate con {{2}} al lado y tocá el botón para seguir.
 
 ## 7. `kids_pregunta_nueva` (al chico, cuando pasaron más de 24 h) — {{1}} cómo le dicen
 Botón: **Dale, mandámela**
 
-Hola {{1}}, tengo una pregunta nueva para vos. Tocá el botón y te la mando.
+Hola {{1}}, hay una pregunta esperándote. Tocá el botón y te la mando.
+
+*(05/10, cuerpo nuevo. Sale una sola vez por pregunta: si no contesta, es la misma, no "nueva".)*
 
 ## 8. `kids_pregunta_nueva_padre` ("lo hago yo") — {{1}} padre · {{2}} chico
 Botón: **Estamos listos**

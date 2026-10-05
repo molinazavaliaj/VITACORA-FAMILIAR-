@@ -117,3 +117,42 @@ b = número en el borrador. K = número en el banco final.
 | Seguir ahora | Eso fue lo de hoy. Si tenés ganas, hay otra ahora mismo. | Naza lo reescribió | Eso fue todo por hoy. Si tenés ganas, podemos continuar hoy mismo. |
 | [Mañana sigo] | Dale. Mañana seguimos. | Naza: "si no tenés ganas, ya está por hoy, mañana hay más" | Ya está por hoy, mañana hay más. |
 | K16, K18, K20 botón de "No" | pasa a la siguiente | No había texto | Dale, no pasa nada. |
+
+## Cambios del 05/10 (revisión de Fable leída como el chico)
+
+Fable leyó banco, mensajes y flujo en el orden en que le llegan al chico ([`paso-4-revision-fable.md`](paso-4-revision-fable.md)). Naza aprobó todo salvo la 18 (queda "Nos vemos pronto"). El número entre paréntesis es el de esa revisión. También van los textos que cambiaron por los huecos ([`paso-4-huecos-decisiones.md`](paso-4-huecos-decisiones.md)).
+
+| Dónde | Antes | Por qué | Ahora |
+|---|---|---|---|
+| Seguir ahora (B-SEGUIR) | Eso fue todo por hoy. Si tenés ganas, podemos continuar hoy mismo. (texto de Naza, 05/10) | (1) Sin tope sale después de cada principal, y "eso fue todo por hoy" cinco veces en una tarde no se entiende | Esa ya está. ¿Seguimos con otra ahora o la dejamos para mañana? |
+| Fin de capítulo (regla) | Después de la última principal salían seguidos "¿seguimos?" y "¿querés una más de estas?", los dos con [Dale, otra]; después de K47 [Dale, otra] no tenía adónde ir | (2) Dos ofertas iguales seguidas | Una más de estas → cierre del capítulo → seguir (con la entrada del siguiente). Después de K47, directo al cierre final |
+| Aviso de las serias (B-AVISO-SERIA) | Antes de K31 y de K39 | (3) Decía "de las que se piensan con calma" y llegaba K31, la anécdota graciosa | Solo antes de K39 |
+| K31, marca | ★ · con aviso antes | (3) | ★ · sin aviso |
+| Cierres de capítulo y cierre final ("¿Quedó algo…?") | Sin botones; si contestaba "no", le caía "Lo escuché entero, de principio a fin." | (5) El acuse mentía | [No, eso fue todo] → sigue sin acuse · [Sí, hay algo] → espera y acusa normal |
+| TERMINO-PADRE en canal B | Salía pegado al final, en el celular que el chico está mirando | (7) "No le digas nada" lo leía el chico | Sale al día siguiente, a la hora de envío. Mismo texto |
+| Después de K39 (B-TRANQUILA) | Haya contado o pasado → Si querés, hay una más tranquila para no cerrar el día así… | (9) Si pasó, no contó nada: "así" ¿cómo? | Solo si contó. Si pasó, K40 directo |
+| K10 | Hoy, tu mamá. Contame cómo es, y una vez que te cuidó cuando estabas enferm{{o/a}}. | (4) "Hoy" ya no es cierto sin tope | Tu mamá. Contame cómo es, y una vez que te cuidó cuando estabas enferm{{o/a}}. |
+| K39 | Hoy una seria. A todos nos toca algún día feo. ¿Cuál fue el tuyo? Contá lo que quieras, y lo que no, no. | (4) Ídem | A todos nos toca algún día feo. ¿Cuál fue el tuyo? Contá lo que quieras, y lo que no, no. |
+| Cierre final | Eso fue todo. Contaste un montón, y ahora todo eso se vuelve tu libro. Antes de cerrar, ¿quedó algo que quieras decir, de lo que sea? | (6) Después vienen las extras, "eso fue todo" mentía | Esas eran todas las preguntas. Contaste un montón, y con todo eso se arma tu libro. ¿Quedó algo que quieras decir, de lo que sea? |
+| K16 | Si tenés primos o primas, contame la última vez que se juntaron, y decime cómo se llaman. Si casi no los ves, también vale. — [Tengo primos] [No tengo] | (8) Los botones respondían a una pregunta que no se hacía | ¿Tenés primos o primas? — [Tengo primos] → Contame la última vez que se juntaron, y decime cómo se llaman. Si casi no los ves, también vale. · [No tengo] → Dale, no pasa nada. |
+| PREG-NUEVA-CHICO (plantilla 7) | Hola {{1}}, tengo una pregunta nueva para vos. Tocá el botón y te la mando. | (10) Si no contestó, es la misma, no "nueva" | Hola {{1}}, hay una pregunta esperándote. Tocá el botón y te la mando. |
+| ACUSE-4 | Acá estoy escuchándote, ya lo tengo. | (11) | Ya lo escuché, lo tengo. |
+| ACUSE-5 | Ya quedó guardado. Seguí contándome así, como te salga. | (11) "Como te salga" se repetía | Ya quedó guardado, así como lo contaste. |
+| ACUSE-7 | Dale, lo tengo, gracias por mandarlo. | (11) | Listo, lo tengo. |
+| K1 | Arrancamos por lo más viejo que tengas. ¿Cuál es el primer recuerdo de tu vida? Puede ser borroso, contámelo como te venga. | (12) Tres arranques seguidos y "como te salga" cuatro veces en cinco mensajes | ¿Cuál es el primer recuerdo de tu vida? Lo más viejo que tengas, aunque sea borroso. |
+| Entrada cap. 2 | Ahora vamos con la gente de tu vida. Tu familia, tus amigos y los que querés. Contá como te salga. | (12b) Ídem | Ahora vamos con la gente de tu vida. Tu familia, tus amigos y los que querés. |
+| K13 | Abuelos. ¿Tenés cerca? — [Sí, tengo] [No tengo cerca] | (13) | Abuelos. ¿Ves seguido a alguno? — [Sí] [No mucho] (mismas ramas) |
+| K18 | ¿Alguien que ahora es de tu familia y antes no lo era? Contame el día que se conocieron. | (14) No se entendía a quién se refería | ¿Hay alguien que ahora es de tu familia pero antes no, como la pareja de tu mamá o de tu papá, o alguien que vino a vivir con ustedes? Contame el día que se conocieron. |
+| K22 | Una para adelante. ¿Qué querés hacer de grande? | (15) | Ahora una del futuro. ¿Qué querés hacer de grande? |
+| Foto de K24 | ¿Cuál es tu comida favorita? Si hoy la comés, foto; si no, contame la última vez que la comiste. [No tengo] | (16) | ¿Cuál es tu comida favorita? Si hoy la comés, sacale una foto. Y si no, contame la última vez que la comiste. [Hoy no la como] |
+| RECORD-B (plantilla 6) | …Esto es solamente un recordatorio para que puedan retomar el libro cuanto antes… | (17) | …Es solo un recordatorio, sin apuro… (el resto igual) |
+| K46 | Esta es para vos de grande, el día que abras el sobre. ¿Qué le querés decir a la persona que vas a ser? Tomate el tiempo que quieras. | (19) Era gemela de K43 | Esta no es una pregunta, es un mensaje. El día que abras el sobre, ¿qué querés que lea de vos de ahora? Tomate el tiempo que quieras. |
+| K4 | Pensá en el juego al que jugabas siempre cuando eras más chic{{o/a}}. Contame la última vez que jugaste a eso. | (20) | Pensá en el juego al que jugabas siempre. Contame la última vez que jugaste a eso. |
+| Extras cap. 4, "después de K39" | "Solo extras livianas", sin ninguna marcada | Revisión (menores) | Livianas, solo "tan raro que nadie te creyó" y "el día más largo" |
+| Extra "un hermano o hermana te cubrió" | *(sacable; solo si tiene hermanos)* | Huecos: ningún tema la saca | *(solo si tiene hermanos)* |
+| Tope (B-TOPE) | Tope de 3 principales por sentada | Huecos: Naza, sin tope | Ya no existe |
+| [Mañana mejor] | Sin respuesta | Huecos: por defecto técnico | Ya está por hoy, mañana hay más. |
+| RECORD-B a los 8 días | Faltaba (habría dicho "cuatro días") | Huecos: por defecto técnico | RECORD-B-8, plantilla 6b, "Pasaron ocho días…" |
+| FINAL-CHICO-PL | Faltaba | Huecos: por defecto técnico | Plural mecánico, "te lo van a dar {{2}}, que fueron quienes te hicieron este regalo" |
+
+No se aplicó la 18 de Fable ("Nos vemos pronto" → "Hasta acá llego yo"): Naza eligió "Nos vemos pronto" a propósito.
