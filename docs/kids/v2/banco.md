@@ -13,8 +13,8 @@ Sale de [`banco-borrador-47.md`](banco-borrador-47.md) con todos los cambios de 
 | `{{o/a}}` | Cambia según sea chico o chica (chic{{o/a}} → chico / chica). |
 | `[Botón]` | Botón que ve el chico junto a la pregunta. Al lado, qué pasa si lo toca. |
 | OP | Otra puerta: sale **solo** si contesta muy corto, una sola vez. Abre el mismo tema desde otro lado. |
-| Foto | La foto que va pegada a esa principal (sale después de la respuesta). Todas llevan [No tengo]. |
-| ★ | Núcleo: las 15 que no pueden faltar. Van primero en su capítulo (salvo donde se dice). |
+| Foto | La foto que va pegada a esa principal (sale después de la respuesta). Todas llevan [No tengo]. Las de deporte, club y youtuber llevan además su botón propio ([No hago] [De ninguno] [No miro]) = "no es lo mío" → Dale, no pasa nada. y sigue. [No tengo] = "es lo mío pero no lo tengo a mano" → se le ofrece contarlo en audio. Si es hincha, contesta mandando la foto (sin botón [Sí]). |
+| ★ | Núcleo: las 15 que no pueden faltar. Van primero en su capítulo, salvo dos excepciones aprobadas (01/10): en cap. 2, K14 va antes de K15 porque sigue a abuelos; el cap. 5 va en el orden del borrador (la 47 es "La última"). No prometemos tiempo, así que no corren peligro. |
 | sensible | Pregunta delicada: tiene botón para pasar, sin OP, con acuse propio. |
 | sacable | El padre puede sacar ese tema en la compra; si lo saca, no sale. |
 | K1…K47 | Orden de envío. Entre paréntesis, el número del borrador (b1…b47). |
@@ -33,7 +33,7 @@ Sale de [`banco-borrador-47.md`](banco-borrador-47.md) con todos los cambios de 
 | K6 (b6) | ¿Te perdiste alguna vez, aunque sea un ratito? Contame qué pasó. | — | ¿Y una vez que se te perdió algo que querías mucho? Contame. | — | |
 | K7 (b7) | ¿Cuál fue la primera cosa que te dejaron hacer sol{{o/a}}, ir a comprar por ejemplo? Contame cómo fue. | — | ¿Y la primera vez que te quedaste sol{{o/a}} en tu casa, aunque sea un rato? Contame. | — | |
 | K8 (b8) | Pensá en el lugar de tu casa donde más estás. Contame la última vez que te quedaste ahí un rato largo. | — | ¿Y afuera de tu casa, un lugar al que vas siempre? Contame la última vez que fuiste. | Sacale una foto a ese lugar, así como está ahora, sin ordenar. [No tengo] | |
-| K9 (b9) | ¿Qué te daba miedo de chic{{o/a}}? Contame una noche que no podías dormir por eso. | — | ¿Y algo que te daba miedo de chic{{o/a}} y ahora ya no? Contame. | — | |
+| K9 (b9) | ¿Qué te daba miedo de chic{{o/a}}? Contame una noche que no podías dormir por eso. | — | ¿Y una noche que te quedaste con la luz prendida o con alguien al lado para poder dormir? Contame esa. | — | |
 
 **Cierre:** Eso fue lo de chiquit{{o/a}}. ¿Quedó algo de esa época que no te pregunté y querés que esté en el libro?
 
@@ -47,13 +47,13 @@ Sale de [`banco-borrador-47.md`](banco-borrador-47.md) con todos los cambios de 
 | K11 (b11) | Ahora tu papá. Contame cómo es, y la última vez que hicieron algo los dos solos. | [Esta la paso] → Dale, esa la salteamos. | ¿Y algo que tu papá dice siempre y que vos ya sabés de memoria? | ¿Hacés algún deporte? Sacale una foto a la ropa o a lo que usás para jugar. [No hago] [No tengo] | ★ · sacable |
 | K12 (b12) | Vamos con hermanos. | [Tengo hermanos] → Contame la última vez que te reíste mucho con un hermano o una hermana. Y decime cómo se llaman tus hermanos, aunque sea uno solo.<br>[No tengo hermanos] → ¿Te hubiera gustado tener un hermano o una hermana? Y después, siempre: ¿Y alguien que sea casi como un hermano o hermana para vos? Contame una vez juntos, y decime cómo se llama. | Solo en la rama "Tengo": ¿Y algo tuyo que un hermano o hermana te saca sin pedir? Contame la última vez. | La ropa o las zapatillas que te ponés siempre, las que en tu casa ya quieren tirar. Mostrámelas. [No tengo] | ★ |
 | K13 (b13) | Abuelos. ¿Tenés cerca? | [Sí, tengo] → Contame la última vez que estuviste con alguno de tus abuelos o de tus abuelas, y decime cómo se llaman.<br>[No tengo cerca] → Contame una vez con alguien mayor que sea como un abuelo o una abuela para vos, y decime cómo se llama. | ¿Y algo que un abuelo o abuela te enseñó a hacer? Contame ese día. | Buscá la foto o la cosa más vieja que haya en tu casa y sacale una foto. ¿Qué sabés de eso? [No tengo] | ★ |
-| K14 (b14) | ¿Alguna vez te contaron cómo era la vida cuando tus abuelos eran chicos? Contame la historia que te quedó. | — | ¿Y un lugar al que te llevaron y te dijeron "acá venía yo de chic{{o/a}}"? Contame ese día. | ¿Sos hincha de algún club? Sacale una foto a algo que tengas de ese club y contame cómo te hiciste hincha. [Sí] [De ninguno] [No tengo] | |
+| K14 (b14) | ¿Alguna vez te contaron cómo era la vida cuando tus abuelos eran chicos? Contame la historia que te quedó. | — | ¿Y un lugar al que te llevaron y te dijeron "acá venía yo de chic{{o/a}}"? Contame ese día. | ¿Sos hincha de algún club? Sacale una foto a algo que tengas de ese club y contame cómo te hiciste hincha. [De ninguno] [No tengo] | |
 | K15 (b15) | Contame una tarde con un amigo o una amiga en la que no te querías ir a tu casa, y decime cómo se llama. | — | ¿Y cómo te hiciste amig{{o/a}} de la persona con la que mejor te llevás? Contame ese día, y decime cómo se llama. | ¿Tenés un ídolo, o varios, del deporte o de lo que sea? Mandame una foto y contame qué tienen. [No tengo] | ★ |
-| K16 (b17) | Si tenés primos o primas, contame la última vez que se juntaron, y decime cómo se llaman. Si casi no los ves, también vale. | [Tengo primos] → sigue la pregunta.<br>[No tengo] → pasa a la siguiente. | ¿Y qué hacen cuando se juntan? Contame la última. | — | |
+| K16 (b17) | Si tenés primos o primas, contame la última vez que se juntaron, y decime cómo se llaman. Si casi no los ves, también vale. | [Tengo primos] → sigue la pregunta.<br>[No tengo] → Dale, no pasa nada. | ¿Y qué hacen cuando se juntan? Contame la última. | — | |
 | K17 (b18) | ¿Hay un tío o una tía con quien te llevás mejor, si es que tenés? Contame algo que hace ese tío o esa tía que nadie más de la familia hace, y decime cómo se llama. | — | ¿Y qué te dice siempre cuando te ve? Contame la última vez. | — | |
-| K18 (b20) | ¿Alguien que ahora es de tu familia y antes no lo era? Contame el día que se conocieron. | [No hay nadie así] → pasa a la siguiente. | ¿Y la primera comida con alguien que ahora vive con vos y antes no? | — | sacable |
+| K18 (b20) | ¿Alguien que ahora es de tu familia y antes no lo era? Contame el día que se conocieron. | [No hay nadie así] → Dale, no pasa nada. | ¿Y la primera comida con alguien que ahora vive con vos y antes no? | — | sacable |
 | K19 (b16) | Pensá en un grande que no es de tu familia ni de la escuela pero es importante para vos. Contame una vez juntos, y decime cómo se llama. | — | ¿Y alguien que te cae bien y en tu casa casi no lo conocen? Contame de esa persona. | — | |
-| K20 (b19) | ¿Alguna vez necesitaste algo y te lo dio alguien del barrio o del edificio? | [Sí, una vez] → Contame esa vez. Y si sabés cómo se llama esa persona, decímelo.<br>[No me pasó] → pasa a la siguiente. | ¿Y alguien del barrio que te saluda siempre? Contame la última vez. | — | |
+| K20 (b19) | ¿Alguna vez necesitaste algo y te lo dio alguien del barrio o del edificio? | [Sí, una vez] → Contame esa vez. Y si sabés cómo se llama esa persona, decímelo.<br>[No me pasó] → Dale, no pasa nada. | ¿Y alguien del barrio que te saluda siempre? Contame la última vez. | — | |
 
 **Cierre:** Eso fue tu familia y tus amigos. ¿Quedó alguien que querés y no te pregunté? Contame de esa persona.
 
@@ -168,9 +168,9 @@ Después de K39 (el día feo), "una más antes de cerrar" solo con extras livian
 ## Mensajes ya aprobados
 
 **Seguir ahora o mañana** (al cerrar lo del día)
-- Eso fue lo de hoy. Si tenés ganas, hay otra ahora mismo. — [Dale, otra] [Mañana sigo]
+- Eso fue todo por hoy. Si tenés ganas, podemos continuar hoy mismo. — [Dale, otra] [Mañana sigo]  *(texto de Naza, 05/10)*
 - [Dale, otra] → sale la siguiente principal en el momento; si cambia de capítulo, antes va la entrada del capítulo.
-- [Mañana sigo] → Dale. Mañana seguimos.
+- [Mañana sigo] → Ya está por hoy, mañana hay más.  *(Naza, 05/10)*
 - Tope: 3 principales por sentada. Después: Ya está por hoy; mañana hay más.
 
 **Aviso antes de las serias** (pegado a la pregunta, no al día: antes de K31 y de K39, cuando le toquen)
@@ -186,6 +186,8 @@ Después de K39 (el día feo), "una más antes de cerrar" solo con extras livian
 **Pasar una pregunta**
 - [Esta la paso] (K10, K11, K39) y [Esta no, gracias] (K41) → Dale, esa la salteamos.
 - [No se me ocurre] (K38) → Dale, no pasa nada.
+- [No tengo] (K16), [No hay nadie así] (K18), [No me pasó] (K20) → Dale, no pasa nada. y sigue. *(Naza, 01/10)*
+- Foto con botón propio: [No hago] (deporte), [De ninguno] (club), [No miro] (youtuber) → Dale, no pasa nada. y sigue.
 
 **El día feo (K39)**
 - Acuses que rotan: Gracias por contarme eso. Lo guardamos con cuidado. · Gracias por confiarme eso. Ya está, ya lo contaste.
@@ -206,11 +208,13 @@ Después de K39 (el día feo), "una más antes de cerrar" solo con extras livian
 
 ## Dudas
 
-1. **Nombres al final, forzados donde la revisión los ponía antes:** K15 ("¿Cómo se llama?" → ", y decime cómo se llama."), K17 tíos, K23 maestro, K13 abuelos (escena primero, en palabras de Naza + "y decime cómo se llaman") y la foto de la mascota ("¿Cómo llegó a tu casa? Y decime cómo se llama."). K12 "Tengo" y K20 barrio quedan como estaban (ya tienen el nombre al final; el barrio con "si sabés"). Revisar.
-2. **K25 celular partida por botones:** las dos ramas salen del texto viejo ("el día que tuviste celular por primera vez" / "la última vez que lo pediste").
-3. **Qué responde el bot en [No tengo] (K16), [No hay nadie así] (K18) y [No me pasó] (K20):** no hay texto aprobado; puse "pasa a la siguiente". ¿Va "Dale, no pasa nada."?
-4. **K11 "Ahora tu papá."**: la revisión dice "Ahora tu papá…"; puse punto y el resto igual.
-5. **Orden:** cap. 2 sigue la lista de la revisión, aunque deja K14 (sin ★) antes de K15 (★). Cap. 5 queda en el orden del borrador (la 47 dice "La última" y la carta va al final), aunque no todas las ★ van primero.
-6. **Fotos con botón propio** (deporte, club, youtuber): llevan su botón y además [No tengo]. ¿Las dos o el propio reemplaza?
-7. **Texto del ofrecimiento "seguir ahora" y del tope** ("Eso fue lo de hoy…" y "Ya está por hoy; mañana hay más."): son las recomendadas de Fable (ronda 4); no encontré un OK explícito de Naza a esas dos frases. Tampoco hay texto aprobado para ofrecer los extras al terminar el libro.
-8. **K9 y su OP** quedaron cerca ("¿Qué te daba miedo…?" / "¿Y algo que te daba miedo… y ahora ya no?"); la revisión no la tocó.
+Resueltas todas con Naza (01/10 la 3; 05/10 el resto, "todas las recomendadas"):
+
+1. Nombres al final con "y decime cómo se llama" (K13, K15, K17, K23, mascota): aprobados como están.
+2. K25 partida en [Sí] / [Todavía no]: aprobada.
+3. [No tengo] / [No hay nadie así] / [No me pasó] en K16, K18, K20 → "Dale, no pasa nada." y sigue.
+4. K11 "Ahora tu papá." con punto.
+5. Orden: K14 antes de K15 y el cap. 5 en orden del borrador; anotado en la notación.
+6. Fotos con botón propio: llevan el suyo y [No tengo], cada uno con su respuesta; sale el [Sí] del club.
+7. Seguir ahora: Naza reescribió el texto (ver Mensajes). El tope queda "Ya está por hoy; mañana hay más." El ofrecimiento de extras al terminar el libro se redacta en el paso 3.
+8. OP de K9 nueva (Fable, 05/10); la vieja está en descartadas.

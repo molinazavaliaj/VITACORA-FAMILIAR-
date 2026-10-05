@@ -107,3 +107,13 @@ b = número en el borrador. K = número en el banco final.
 |---|---|---|
 | Imaginate que tenés un hijo. ¿Qué vas a hacer igual que tus viejos, y qué vas a hacer distinto? | Da por hecho los hijos; "tus viejos" | K42 |
 | Esta es para vos, dentro de 30 años. Vas a tener 40 y esto lo vas a leer. ¿Qué le querés decir a ese tipo? Tomate todo el tiempo del mundo. | "Ese tipo" (género); da por hecha la edad | K46 |
+
+## Cambios del 05/10 (dudas del banco)
+
+| Dónde | Antes | Por qué salió | Ahora |
+|---|---|---|---|
+| OP de K9 | ¿Y algo que te daba miedo de chic{{o/a}} y ahora ya no? Contame. | Era casi la misma pregunta: si dijo "nada" a K9, dice "nada" a esta | ¿Y una noche que te quedaste con la luz prendida o con alguien al lado para poder dormir? Contame esa. |
+| Foto del club (K14) | [Sí] [De ninguno] [No tengo] | El [Sí] sobra: si es hincha, manda la foto | [De ninguno] [No tengo] |
+| Seguir ahora | Eso fue lo de hoy. Si tenés ganas, hay otra ahora mismo. | Naza lo reescribió | Eso fue todo por hoy. Si tenés ganas, podemos continuar hoy mismo. |
+| [Mañana sigo] | Dale. Mañana seguimos. | Naza: "si no tenés ganas, ya está por hoy, mañana hay más" | Ya está por hoy, mañana hay más. |
+| K16, K18, K20 botón de "No" | pasa a la siguiente | No había texto | Dale, no pasa nada. |
