@@ -9,3 +9,4 @@ Cosas que no son del banco pero que el banco obliga a cambiar. No se tocan ahora
 | 3 | La línea al padre "leé todo, pero no le digas nada hasta el libro" | Bienvenida al padre (paso 3) | Aprobada por Naza (30/09): obligatoria. | Paso 3 |
 | 4 | Edad del chico | Compra | Ya no hace falta para "qué querés ser" (Naza, 30/09: sin edad). Sigue sirviendo para la tapa ("Capítulo Uno: 11 años"). | Paso 3 |
 | 5 | Campo "¿quién se lo regala?" (tu mamá / tu papá / tus papás / tu abuela…) y su forma plural | Compra (paso 3) | Lo usan la bienvenida al chico y el mensaje final ({{2}}); en plural cambian los verbos ("te hicieron", "te lo van a dar"). | Paso 3 |
+| 6 | Algo preocupante: el escritor lo marca en la revisión del final del libro; abogado antes de vender | Paso 4 + legal | Naza 05/10: sin modelo por respuesta. Ver `paso-3-algo-preocupante.md`. | Naza (abogado) |
