@@ -8,13 +8,20 @@ Carpeta del rediseño de la entrevista de Vitácora de Viaje (30/09/2026), hecho
 - [`lectura-corrida.md`](lectura-corrida.md): un viaje inventado, mensaje por mensaje (se genera, no editar a mano). Publicada para el celular: https://claude.ai/artifact/5TNoeiFpgsDVYMhWYsTYXh
 - [`banco-descartadas.md`](banco-descartadas.md): lo que salió y por qué.
 
+## Idiomas (05/10)
+Tres idiomas: castellano rioplatense (`es-AR`, el de `banco.md`), castellano de España con tú (`es-ES`) y catalán (`ca`). `Compra.idioma` vacío = es-AR.
+- Textos: [`idiomas/banco-es-ES.md`](idiomas/banco-es-ES.md) y [`idiomas/banco-ca.md`](idiomas/banco-ca.md) (solo `ID | texto`; la estructura sale de `banco.md`). Revisiones en [`idiomas/revision/`](idiomas/revision/): es-ES leído por "alguien de Madrid"; catalán con dos lecturas a ciegas y el corrector Softcatalà. Versiones viejas en `idiomas/historial/`.
+- Fijados letra por letra en los tests: si se cambia un texto, hay que regenerar el fijo (`--fijar`).
+- Lecturas: catalán https://claude.ai/artifact/MU6de6AWcm8x8sP76rSEt1 · España https://claude.ai/artifact/Bufnvv72huxzctWzYG7iCC
+- Plantillas de Meta de los tres idiomas: [`plantillas-meta.md`](plantillas-meta.md).
+
 ## Cómo se llegó
 `paso-1*.md` (diseño) → `paso-2-*` (el banco, parte por parte, rondas y aprobadas) → `paso-3-*` (mensajes fijos) → `paso-4-revision-fable.md` (revisión del banco entero). Versiones viejas en [`historial/`](historial/). `diseno-vigente.md` quedó superado por `flujo-vigente.md`.
 
 ## Código
-`fabrica/src/viaje-v2/` (puro, sin I/O): banco-md, banco (json generado), texto, horas, calendario, mensajes, estado, album, lectura. Tests en `fabrica/test/viaje-v2-*.test.ts` (237, en verde al 30/09, incluido uno que corre los 2400 viajes; se saltea con `VIAJE_V2_SIN_2400=1`).
+`fabrica/src/viaje-v2/` (puro, sin I/O): banco-md, banco (json generado), texto, horas, calendario, mensajes, estado, album, lectura. Tests en `fabrica/test/viaje-v2-*.test.ts` (318, en verde al 05/10, incluido uno que corre los 2400 viajes; se saltea con `VIAJE_V2_SIN_2400=1`).
 
-**Simulaciones** ([`simulaciones/`](simulaciones/)): `npx tsx scripts/viaje-v2-simular.ts` corre 2400 viajes inventados contra 40 controles (cero fallas al 30/09); `resumen.md` tiene las estadísticas, y hay lecturas de 1, 2 y 30 días más la lectura de Fable "como la persona". Viaje de 30 días publicado: https://claude.ai/artifact/XpFjHLKfNAhStEhT9hcXmd
+**Simulaciones** ([`simulaciones/`](simulaciones/)): `npx tsx scripts/viaje-v2-simular.ts` corre 2400 viajes en es-AR, 800 en ca y 800 en es-ES contra todos los controles (cero fallas al 05/10); `resumen.md` tiene las estadísticas, y hay lecturas de 1, 2 y 30 días más la lectura de Fable "como la persona". Viaje de 30 días publicado: https://claude.ai/artifact/XpFjHLKfNAhStEhT9hcXmd
 
 ```bash
 cd fabrica
