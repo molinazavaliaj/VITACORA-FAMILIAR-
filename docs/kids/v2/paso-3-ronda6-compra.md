@@ -56,3 +56,5 @@ Pasos arriba: 1. Vos · 2. Quién cuenta · 3. Temas y pago
 | Qué pasa después | Después de pagar te llega un correo para entrar a tu panel. Si elegiste su WhatsApp, le escribimos para presentarnos y a vos te avisamos. Si lo hacés vos, el primer mensaje llega a tu WhatsApp y la primera pregunta sale cuando estén juntos. |
 
 Notas de Fable: "Su mamá" sin explicación cubre todos los casos (no está, murió, no hay relación). La autorización no es casilla aparte: elegir el canal ES la autorización. Con "Otra persona", el plural ("te hicieron") lo decide el código si empieza con "tus".
+
+**Aprobado por Naza (05/10): los textos de arriba, con los tres ✎.**
