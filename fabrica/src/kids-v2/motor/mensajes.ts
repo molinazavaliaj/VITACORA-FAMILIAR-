@@ -2,7 +2,7 @@
 // número van, con qué botones y si son plantilla. Nunca escribe un texto.
 
 import { fijo, type IdMensaje } from '../banco.js';
-import type { Ficha, ItemGuion } from '../compra.js';
+import { textoSegunTemas, type Ficha, type ItemGuion } from '../compra.js';
 import { conGenero, esPlural, llenar, primerNombre, quedanMarcas } from '../texto.js';
 import type { Extra, Foto, Pregunta } from '../tipos.js';
 import type { Destino, Estado, Mensaje } from './tipos.js';
@@ -34,7 +34,7 @@ export function fijoA(e: Estado, id: IdMensaje, o: { variables?: string[]; paraP
 }
 
 export function preguntaMsg(e: Estado, p: Pregunta): Mensaje {
-  return { a: destino(e), id: p.id, texto: render(e, p.texto), botones: [...p.ramas.map((r) => r.boton), p.botonPaso], plantilla: null };
+  return { a: destino(e), id: p.id, texto: render(e, textoSegunTemas(p.id, p.texto, e.ficha.temasSacados)), botones: [...p.ramas.map((r) => r.boton), p.botonPaso], plantilla: null };
 }
 
 /** El mensaje de una rama (paso 0, 1…): K12-R2, K12-R2-2. Lleva el botón para pasar. */

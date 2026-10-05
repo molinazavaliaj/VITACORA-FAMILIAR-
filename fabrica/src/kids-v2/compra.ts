@@ -32,6 +32,33 @@ export function temaDeExtra(x: Extra): Tema | null {
   return null;
 }
 
+/**
+ * Una principal que nombra a mamá y papá y queda aunque se saque uno de los dos
+ * temas (K18, Naza 05/10). Cada variante sale SOLO borrando palabras de la frase
+ * aprobada en banco.md: nada de redacción nueva. Si la frase cambia en el banco,
+ * un test avisa y textoSegunTemas tira error.
+ */
+export const BORRADOS_POR_TEMA: readonly { pregunta: string; frase: string; borrar: { mama: string; papa: string; ambos: string } }[] = [
+  {
+    pregunta: 'K18',
+    frase: 'como la pareja de tu mamá o de tu papá, o alguien',
+    // Lo que se borra de la frase: sin papá → "la pareja de tu mamá, o alguien"; sin mamá → "la pareja de tu papá, o alguien"; sin los dos → "como alguien".
+    borrar: { papa: ' o de tu papá', mama: 'de tu mamá o ', ambos: 'la pareja de tu mamá o de tu papá, o ' },
+  },
+];
+
+/** El texto de una principal según los temas sacados (solo borra; ver BORRADOS_POR_TEMA). */
+export function textoSegunTemas(id: string, texto: string, temasSacados: readonly Tema[]): string {
+  const b = BORRADOS_POR_TEMA.find((x) => x.pregunta === id);
+  if (!b) return texto;
+  const sinMama = temasSacados.includes('mama');
+  const sinPapa = temasSacados.includes('papa');
+  if (!sinMama && !sinPapa) return texto;
+  if (!texto.includes(b.frase)) throw new Error(`${id}: en el banco ya no está la frase "${b.frase}" (revisar BORRADOS_POR_TEMA en compra.ts)`);
+  const borrar = sinMama && sinPapa ? b.borrar.ambos : sinMama ? b.borrar.mama : b.borrar.papa;
+  return texto.replace(b.frase, b.frase.replace(borrar, ''));
+}
+
 export type PreguntaPadre = { texto: string; conLinea: boolean };
 
 export type Ficha = {

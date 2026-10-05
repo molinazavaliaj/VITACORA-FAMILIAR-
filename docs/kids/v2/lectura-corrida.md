@@ -467,7 +467,7 @@ _[audio de 55 s: la tía Ana, que canta tangos cuando cocina]_
 _[toca «Dale, otra»]_
 
 **11:03 · Vitácora** `K18` · [No hay nadie así] [Paso]  
-> ¿Hay alguien que ahora es de tu familia pero antes no, como la pareja de tu mamá o de tu papá, o alguien que vino a vivir con ustedes? Contame el día que se conocieron.
+> ¿Hay alguien que ahora es de tu familia pero antes no, como la pareja de tu mamá, o alguien que vino a vivir con ustedes? Contame el día que se conocieron.
 
 **11:11 · Tini**  
 _[audio de 51 s: cuenta con detalle]_
