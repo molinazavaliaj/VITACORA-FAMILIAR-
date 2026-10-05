@@ -11,7 +11,7 @@ Carpeta del rediseño de Kids (30/09 al 05/10/2026), hecho con el método del ba
 | [`paso-4-huecos-decisiones.md`](paso-4-huecos-decisiones.md) | Lo que decidió Naza el 05/10 y los defaults técnicos (pisan a lo anterior). |
 | [`plantillas-meta-kids.md`](plantillas-meta-kids.md) | Las 13 plantillas para cargar en Meta (1 a 10, con 5b, 6b y 10b). |
 | [`lectura-corrida.md`](lectura-corrida.md) | Una chica inventada, mensaje por mensaje: 376 globos del 6/10 al 5/11 (se genera, no editar a mano). |
-| [`simulaciones/resumen.md`](simulaciones/resumen.md) | 800 chicos inventados contra 20 controles: 800 terminan, cero violaciones, mediana 31 días, máximo 169 (se genera). |
+| [`simulaciones/resumen.md`](simulaciones/resumen.md) | 800 chicos inventados contra 21 controles: 800 terminan, cero violaciones, mediana 31 días, máximo 169 (se genera). |
 | [`banco-descartadas.md`](banco-descartadas.md) | Lo que salió y por qué. |
 
 ## Cómo se llegó
