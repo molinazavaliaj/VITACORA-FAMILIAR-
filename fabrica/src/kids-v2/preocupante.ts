@@ -21,6 +21,15 @@ export const FRASES_PREOCUPANTES: readonly string[] = [
   'nadie me quiere',
 ];
 
+// BORRADOR (igual que la lista de arriba, para Naza y el abogado): frases que
+// contienen una de la lista pero no preocupan. Se borran del texto normalizado
+// antes de buscar: "me corto el pelo" no salta, "me corto" solo sí.
+export const FRASES_EXCLUIDAS: readonly string[] = [
+  'me corto el pelo', 'me corto las uñas', 'me corto el flequillo',
+  'matar de la risa', 'me muero de risa',
+  'abuso de confianza',
+];
+
 export function normalizar(s: string): string {
   const t = s
     .toLowerCase()
@@ -32,10 +41,13 @@ export function normalizar(s: string): string {
 }
 
 const FRASES = FRASES_PREOCUPANTES.map(normalizar);
+/** Por palabras enteras (también dos seguidas: "me corto el pelo me corto el pelo"). Normalizadas solo quedan letras, números y espacios. */
+const EXCLUIDAS = FRASES_EXCLUIDAS.map((x) => new RegExp(`(?<= )${normalizar(x).trim()}(?= )`, 'g'));
 
-/** La primera frase de la lista que aparece en el texto, o null. */
+/** La primera frase de la lista que aparece en el texto (sin las excluidas), o null. */
 export function fraseQueSalta(texto: string): string | null {
-  const t = normalizar(texto);
+  // Cada exclusión se cambia por un espacio: las palabras de alrededor siguen enteras.
+  const t = EXCLUIDAS.reduce((acc, x) => acc.replace(x, ' '), normalizar(texto));
   const i = FRASES.findIndex((f) => t.includes(f));
   return i < 0 ? null : FRASES_PREOCUPANTES[i];
 }
