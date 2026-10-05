@@ -339,20 +339,20 @@ describe('viaje v2 idiomas: el detector (SÍ, paso, listo, no)', () => {
 
 // ── Fijado letra por letra (preparado, SIN ACTIVAR) ─────────────────────────
 //
-// NOTA: va al final, cuando Naza cierre los textos de ca y es-ES (al 05/10 el
-// catalán todavía se está corrigiendo). Para activarlo:
+// ACTIVO desde el 05/10: Naza cerró los textos de es-AR, ca y es-ES. Cómo se activó:
 //   1. npx tsx scripts/viaje-v2-json.ts --fijar   (escribe test/viaje-v2-idiomas-fijados.json)
 //   2. poner FIJADOS_ACTIVOS = true acá.
 // Desde ahí, cambiar un texto aprobado obliga a cambiar también el fijado, a
 // propósito: nadie toca un texto aprobado sin darse cuenta.
-const FIJADOS_ACTIVOS = false;
+const FIJADOS_ACTIVOS = true;
 const FIJADOS = path.join(path.dirname(fileURLToPath(import.meta.url)), 'viaje-v2-idiomas-fijados.json');
 
 describe.skipIf(!FIJADOS_ACTIVOS)('viaje v2 idiomas: textos aprobados fijados letra por letra', () => {
-  it('cada texto de ca y es-ES es el aprobado', () => {
+  it('cada texto de es-AR, ca y es-ES es el aprobado', () => {
     expect(existsSync(FIJADOS), 'falta correr: npx tsx scripts/viaje-v2-json.ts --fijar').toBe(true);
     const fijados = JSON.parse(readFileSync(FIJADOS, 'utf8')) as Record<string, unknown>;
-    expect({ ca: bancoCaJson, 'es-ES': bancoEsEsJson }).toEqual(fijados);
+    const esAR = BANCO.map((f) => ({ id: f.id, texto: f.texto, yaDeViaje: f.yaDeViaje }));
+    expect({ 'es-AR': esAR, ca: bancoCaJson, 'es-ES': bancoEsEsJson }).toEqual(fijados);
   });
 });
 

@@ -8,7 +8,7 @@
 // (solo los textos). Correrlo cada vez que cambia un md (los tests
 // viaje-v2-banco y viaje-v2-idiomas avisan si quedó viejo).
 //
-// --fijar: copia los textos de ca y es-ES tal como están hoy para el test
+// --fijar: copia los textos de es-AR, ca y es-ES tal como están hoy para el test
 // "fijado letra por letra" (test/viaje-v2-idiomas.test.ts). Solo cuando Naza
 // cierra los textos.
 
@@ -39,6 +39,6 @@ for (const idioma of ['ca', 'es-ES']) {
 
 if (process.argv.includes('--fijar')) {
   const destino = path.join(FABRICA, 'test', 'viaje-v2-idiomas-fijados.json');
-  escribir(destino, idiomas);
+  escribir(destino, { 'es-AR': filas.map((f) => ({ id: f.id, texto: f.texto, yaDeViaje: f.yaDeViaje })), ...idiomas });
   console.log(`Fijados: ${path.relative(process.cwd(), destino)} (activar FIJADOS_ACTIVOS en test/viaje-v2-idiomas.test.ts)`);
 }
