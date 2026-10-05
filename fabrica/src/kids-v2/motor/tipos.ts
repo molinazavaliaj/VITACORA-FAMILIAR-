@@ -31,7 +31,7 @@ export type Mensaje = {
   plantilla: { nombre: string; variables: string[] } | null;
 };
 
-export type MotivoMarca = 'preocupante' | 'silencio-8-dias' | 'escribio-despues-del-final';
+export type MotivoMarca = 'preocupante' | 'silencio-8-dias' | 'escribio-despues-del-final' | 'cerro-sin-respuesta';
 
 export type Salida = ({ tipo: 'mensaje' } & Mensaje) | { tipo: 'marca'; motivo: MotivoMarca; detalle: string };
 

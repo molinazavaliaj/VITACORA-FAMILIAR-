@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { alReloj, bloqueante, proximoDespertar } from '../src/kids-v2/motor/reloj.js';
-import { sumarARafaga } from '../src/kids-v2/motor/rafaga.js';
+import { procesarRafaga, sumarARafaga } from '../src/kids-v2/motor/rafaga.js';
+import { alBoton } from '../src/kids-v2/motor/botones.js';
 import { extrasDelFinal } from '../src/kids-v2/motor/flujo.js';
 import { aInstante } from '../src/kids-v2/horas.js';
 import type { Fase, Mensaje } from '../src/kids-v2/motor/tipos.js';
@@ -155,6 +156,16 @@ describe('kids v2: recordatorios al padre (4 y 8 días)', () => {
     expect(c.e.reenviar).toBe(true);
   });
 
+  it('canal B a los 8 días: RECORD-B-8 y la marca a Naza', () => {
+    const d4 = ctx(estadoEn('K5', preg('K5'), { canal: 'B' }, { ultimaEntrada: iso('2026-10-06', '18:10') }), '2026-10-10', '18:00');
+    alReloj(d4);
+    const d8 = ctx(d4.e, '2026-10-14', '18:00');
+    alReloj(d8);
+    expect(ids(d8.salidas)).toEqual(['RECORD-B-8', 'marca:silencio-8-dias']);
+    expect(d8.salidas[0]).toMatchObject({ a: 'padre' });
+    expect(d8.e.reenviar).toBe(true);
+  });
+
   it('si nunca tocó [Dale, vamos], cuenta desde el arranque', () => {
     const c = ctx(estadoEn('K1', { tipo: 'bienvenida' }, {}, { cursor: -1, ultimaEntrada: null, inicio: iso('2026-10-06', '17:30') }), '2026-10-10', '18:00');
     alReloj(c);
@@ -175,17 +186,71 @@ describe('kids v2: el final por reloj', () => {
     expect(d2.e.fase).toEqual({ tipo: 'terminado' });
   });
 
-  it('con un PREG-NUEVA sin tocar en la etapa de extras, no cierra solo (nunca dos plantillas seguidas sin respuesta)', () => {
-    const oferta: Mensaje = { a: 'chico', id: 'EXTRAS-OFERTA', texto: 'x', botones: ['Dale, otra'], plantilla: null };
-    const e = estadoEn('EXTRAS', { tipo: 'retenido', mensajes: [oferta], luego: { tipo: 'extras-oferta' } }, {}, {
-      extrasDesde: iso('2026-10-07', '18:00'),
+  const retenidoEnExtras = (canal: 'A' | 'B' = 'A') => {
+    const oferta: Mensaje = { a: canal === 'A' ? 'chico' : 'padre', id: 'EXTRAS-OFERTA', texto: 'x', botones: ['Dale, otra'], plantilla: null };
+    return estadoEn('EXTRAS', { tipo: 'retenido', mensajes: [oferta], luego: { tipo: 'extras-oferta' } }, { canal }, {
+      extrasDesde: iso('2026-10-08', '18:00'),
       ultimaEntrada: iso('2026-10-06', '18:29'),
-      horaHecha: '2026-10-09',
     });
-    const c = ctx(e, '2026-10-10', '18:00');
+  };
+
+  it('con un PREG-NUEVA sin tocar en la etapa de extras: al día siguiente no pasa nada', () => {
+    const c = ctx(retenidoEnExtras(), '2026-10-09', '18:00');
     alReloj(c);
     expect(ids(c.salidas)).toEqual([]);
     expect(c.e.fase).toMatchObject({ tipo: 'retenido', luego: { tipo: 'extras-oferta' } });
+  });
+
+  it('con un PREG-NUEVA sin tocar, a los 2 días cierra igual: TERMINO-PADRE y marca a Naza, nada al chico (nunca dos plantillas seguidas); el final queda retenido', () => {
+    const d2 = ctx(retenidoEnExtras(), '2026-10-10', '18:00');
+    alReloj(d2);
+    expect(ids(d2.salidas)).toEqual(['TERMINO-PADRE', 'marca:cerro-sin-respuesta']);
+    expect(d2.salidas[0]).toMatchObject({ a: 'padre' });
+    expect(d2.e.guion[d2.e.cursor].tipo).toBe('final');
+    expect(d2.e.fase).toMatchObject({ tipo: 'retenido', luego: { tipo: 'terminado' }, mensajes: [{ id: 'FINAL-CHICO', plantilla: null }] });
+
+    // Un día después (y los que siguen) no sale nada más.
+    const d3 = ctx(d2.e, '2026-10-11', '18:00');
+    alReloj(d3);
+    expect(ids(d3.salidas)).toEqual([]);
+    const d9 = ctx(d3.e, '2026-10-17', '18:00');
+    alReloj(d9);
+    expect(ids(d9.salidas)).toEqual([]);
+
+    // Toca [Dale, mandámela]: le llega el final (la ventana la abre él) y termina; no vuelven las extras.
+    const t = ctx(structuredClone(d9.e), '2026-10-18', '10:00');
+    alBoton(t, 'Dale, mandámela');
+    expect(ids(t.salidas)).toEqual(['FINAL-CHICO']);
+    expect(t.salidas[0]).toMatchObject({ plantilla: null });
+    expect(t.e.fase).toEqual({ tipo: 'terminado' });
+
+    // O escribe algo corto: lo mismo.
+    const w = ctx(structuredClone(d9.e), '2026-10-18', '10:00');
+    sumarARafaga(w, { tipo: 'texto', texto: 'hola' });
+    procesarRafaga(w);
+    expect(ids(w.salidas)).toEqual(['FINAL-CHICO']);
+    expect(w.e.fase).toEqual({ tipo: 'terminado' });
+    const despues = ctx(w.e, '2026-10-19', '18:00');
+    alReloj(despues);
+    expect(ids(despues.salidas)).toEqual([]);
+  });
+
+  it('canal B: el mismo cierre deja TERMINO-PADRE para el día siguiente, a la hora', () => {
+    const d2 = ctx(retenidoEnExtras('B'), '2026-10-10', '18:00');
+    alReloj(d2);
+    expect(ids(d2.salidas)).toEqual(['marca:cerro-sin-respuesta']);
+    const d3 = ctx(d2.e, '2026-10-11', '18:00');
+    alReloj(d3);
+    expect(ids(d3.salidas)).toEqual(['TERMINO-PADRE']);
+    const d4 = ctx(d3.e, '2026-10-12', '18:00');
+    alReloj(d4);
+    expect(ids(d4.salidas)).toEqual([]);
+  });
+
+  it('de noche no cierra: espera a la hora', () => {
+    const c = ctx(retenidoEnExtras(), '2026-10-10', '22:30');
+    alReloj(c);
+    expect(ids(c.salidas)).toEqual([]);
   });
 
   it('canal B: TERMINO-PADRE sale al día siguiente, a la hora', () => {

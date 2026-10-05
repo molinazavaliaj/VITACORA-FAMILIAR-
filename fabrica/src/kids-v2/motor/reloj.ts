@@ -5,7 +5,7 @@
 import { fotoDelItem } from '../compra.js';
 import { aInstante, aLocal, diasEntre, esDeNoche, finDeLaNoche, sumarDias } from '../horas.js';
 import { ACTIVO_MS, CIERRE_SOLO_DIAS, ESPERA_AUDIO_FOTO_MS, RECORDATORIO_DIAS, SILENCIO_MS } from '../reglas.js';
-import { emitir, empezarItem, hoy, marcar, terminarItem, type Ctx } from './flujo.js';
+import { emitir, empezarItem, hoy, marcar, mensajeFinal, terminarItem, terminoPadre, type Ctx } from './flujo.js';
 import { fijoA, variables } from './mensajes.js';
 import { procesarRafaga } from './rafaga.js';
 import type { Estado } from './tipos.js';
@@ -70,6 +70,26 @@ function guardarFotoVencida(e: Estado): void {
   e.fotosVencidas.push(item.clave);
 }
 
+/**
+ * El cierre solo a los 2 días cuando la oferta de extras quedó detrás de un
+ * PREG-NUEVA que el chico nunca tocó. Al chico no le sale nada (sería una
+ * segunda plantilla sin respuesta): FINAL-CHICO queda retenido en lugar de la
+ * oferta y le llega cuando toque el botón o escriba. Al padre, TERMINO-PADRE
+ * (canal B: al día siguiente, a la hora); a Naza, una marca. El cursor pasa al
+ * final, así que no vuelve a correr ni se retoman las extras.
+ */
+function cerrarConFinalRetenido(c: Ctx): void {
+  const e = c.e;
+  const i = e.guion.findIndex((x) => x.tipo === 'final');
+  if (i < 0) throw new Error('El guion no tiene final');
+  e.cursor = i;
+  e.extra = null;
+  e.fase = { tipo: 'retenido', mensajes: [mensajeFinal(e).final], luego: { tipo: 'terminado' } };
+  if (e.ficha.canal === 'A') emitir(c, terminoPadre(e));
+  else e.terminoPadre = sumarDias(hoy(c), 1);
+  marcar(c, 'cerro-sin-respuesta', 'cerró solo a los 2 días con un PREG-NUEVA sin tocar en las extras; el final le llega cuando conteste');
+}
+
 function alaHora(c: Ctx): void {
   const e = c.e;
   const fecha = hoy(c);
@@ -81,10 +101,10 @@ function alaHora(c: Ctx): void {
   const item = e.guion[e.cursor];
   if (item?.tipo === 'final') return;
   if (item?.tipo === 'extras') {
-    // Con un PREG-NUEVA sin tocar, el cierre solo mandaría otra plantilla (kids_final) detrás: nunca dos seguidas sin respuesta.
-    if (e.fase.tipo === 'retenido') return;
     const desde = Math.max(...[e.extrasDesde, e.ultimaEntrada].filter((x): x is string => x !== null).map(ms));
-    if (diasEntre(aLocal(new Date(desde), e.ficha.zona).fecha, fecha) >= CIERRE_SOLO_DIAS) empezarItem(c, e.cursor + 1, true);
+    if (diasEntre(aLocal(new Date(desde), e.ficha.zona).fecha, fecha) < CIERRE_SOLO_DIAS) return;
+    if (e.fase.tipo === 'retenido') return cerrarConFinalRetenido(c);
+    empezarItem(c, e.cursor + 1, true);
     return;
   }
   if (bloqueante(e)) return recordatorio(c);

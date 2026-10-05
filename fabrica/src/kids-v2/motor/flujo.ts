@@ -110,7 +110,14 @@ export function mandarExtra(c: Ctx, x: FotoVencida | Extra): void {
 /** FINAL-CHICO y FINAL-CHICO-PL como plantillas de Meta propias (cambio B de Naza, 05/10; plantillas-meta-kids.md, 10 y 10b). */
 const PLANTILLA_FINAL = { 'FINAL-CHICO': 'kids_final', 'FINAL-CHICO-PL': 'kids_final_plural' } as const;
 
-const terminoPadre = (e: Estado): Mensaje => fijoA(e, 'TERMINO-PADRE', { variables: variables.padre(e.ficha), paraPadre: true });
+/** FINAL-CHICO (o -PL según quién se lo regala), como mensaje común; la plantilla se le pone solo si sale fuera de las 24 h. */
+export function mensajeFinal(e: Estado) {
+  const id = esPlural(e.ficha.quienRegala) ? 'FINAL-CHICO-PL' : 'FINAL-CHICO';
+  const vars = variables.chico(e.ficha);
+  return { id, vars, final: fijoA(e, id, { variables: vars }) } as const;
+}
+
+export const terminoPadre = (e: Estado): Mensaje => fijoA(e, 'TERMINO-PADRE', { variables: variables.padre(e.ficha), paraPadre: true });
 
 /** Empieza el item i del guion: lo que va antes (entrada, aviso, línea del padre) y la pregunta. */
 export function empezarItem(c: Ctx, i: number, proactivo: boolean): void {
@@ -142,9 +149,7 @@ export function empezarItem(c: Ctx, i: number, proactivo: boolean): void {
       if (extrasDelFinal(e).length === 0) return empezarItem(c, i + 1, proactivo);
       return entregar(c, [fijoA(e, 'EXTRAS-OFERTA')], { tipo: 'extras-oferta' }, proactivo);
     case 'final': {
-      const id = esPlural(e.ficha.quienRegala) ? 'FINAL-CHICO-PL' : 'FINAL-CHICO';
-      const vars = variables.chico(e.ficha);
-      const final = fijoA(e, id, { variables: vars });
+      const { id, vars, final } = mensajeFinal(e);
       if (proactivo && !ventanaAbierta(e, c.ahora)) {
         // Fuera de las 24 h (el cierre solo a los 2 días): el final sale como su
         // plantilla, sin PREG-NUEVA antes, y después TERMINO-PADRE (cambio B, 05/10).
