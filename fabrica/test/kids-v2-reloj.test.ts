@@ -235,16 +235,24 @@ describe('kids v2: el final por reloj', () => {
     expect(ids(despues.salidas)).toEqual([]);
   });
 
-  it('canal B: el mismo cierre deja TERMINO-PADRE para el día siguiente, a la hora', () => {
+  it('canal B: el mismo cierre deja TERMINO-PADRE para el día siguiente de que LLEGUE el final (decisión 15), no del cierre', () => {
     const d2 = ctx(retenidoEnExtras('B'), '2026-10-10', '18:00');
     alReloj(d2);
     expect(ids(d2.salidas)).toEqual(['marca:cerro-sin-respuesta']);
+    // Mientras el final sigue retenido, TERMINO-PADRE no sale.
     const d3 = ctx(d2.e, '2026-10-11', '18:00');
     alReloj(d3);
-    expect(ids(d3.salidas)).toEqual(['TERMINO-PADRE']);
-    const d4 = ctx(d3.e, '2026-10-12', '18:00');
-    alReloj(d4);
-    expect(ids(d4.salidas)).toEqual([]);
+    expect(ids(d3.salidas)).toEqual([]);
+    // Toca [Estamos listos] el 12: le llega el final; TERMINO-PADRE, el 13 a la hora.
+    const t = ctx(d3.e, '2026-10-12', '10:00');
+    alBoton(t, 'Estamos listos');
+    expect(ids(t.salidas)).toEqual(['FINAL-CHICO']);
+    const d12 = ctx(t.e, '2026-10-12', '18:00');
+    alReloj(d12);
+    expect(ids(d12.salidas)).toEqual([]);
+    const d13 = ctx(d12.e, '2026-10-13', '18:00');
+    alReloj(d13);
+    expect(ids(d13.salidas)).toEqual(['TERMINO-PADRE']);
   });
 
   it('de noche no cierra: espera a la hora', () => {

@@ -71,6 +71,7 @@ function cerrarConFinalRetenido(c: Ctx): void {
   e.cursor = i;
   e.extra = null;
   e.fase = { tipo: 'retenido', mensajes: [mensajeFinal(e).final], luego: { tipo: 'terminado' } };
+  // Canal B: TERMINO-PADRE va al día siguiente de que LLEGÓ el final (decisión 15): lo agenda soltarRetenido al soltarlo.
   if (e.ficha.canal === 'A') emitir(c, terminoPadre(e));
   else e.terminoPadre = sumarDias(hoy(c), 1);
   marcar(c, 'cerro-sin-respuesta', 'cerró solo a los 2 días con un PREG-NUEVA sin tocar en las extras; el final le llega cuando conteste');
@@ -80,7 +81,8 @@ function alaHora(c: Ctx): void {
   const e = c.e;
   const fecha = hoy(c);
   if (e.sobrioHasta && c.ahora >= new Date(e.sobrioHasta)) e.sobrioHasta = null;
-  if (e.terminoPadre && e.terminoPadre <= fecha) {
+  // Canal B: con el final todavía retenido (cerró solo detrás de un PREG-NUEVA) no sale; al soltarlo, va al día siguiente (decisión 15).
+  if (e.terminoPadre && e.terminoPadre <= fecha && e.fase.tipo !== 'retenido') {
     emitir(c, fijoA(e, 'TERMINO-PADRE', { variables: variables.padre(e.ficha), paraPadre: true }));
     e.terminoPadre = null;
   }
