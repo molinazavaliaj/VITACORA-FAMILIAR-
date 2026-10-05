@@ -4,6 +4,7 @@
 import type { Ficha } from '../src/kids-v2/compra.js';
 import { aInstante } from '../src/kids-v2/horas.js';
 import { nuevoEstado } from '../src/kids-v2/motor/estado.js';
+import type { Ctx } from '../src/kids-v2/motor/flujo.js';
 import type { Estado, Fase, Salida } from '../src/kids-v2/motor/tipos.js';
 
 export const ZONA = 'America/Argentina/Buenos_Aires';
@@ -34,6 +35,10 @@ export function estadoEn(clave: string, fase: Fase, cambios: Partial<Ficha> = {}
   const i = e.guion.findIndex((x) => x.clave === clave);
   if (i < 0) throw new Error(`No está ${clave} en el guion`);
   return { ...e, cursor: i, fase, inicio: iso('2026-10-06', '17:30'), ultimaEntrada: iso('2026-10-10', '12:00'), ...extra };
+}
+
+export function ctx(e: Estado, fecha = '2026-10-10', hora = '18:05'): Ctx {
+  return { e, ahora: en(fecha, hora), salidas: [], replay: false };
 }
 
 /** Los IDs de los mensajes que salieron, en orden. */
