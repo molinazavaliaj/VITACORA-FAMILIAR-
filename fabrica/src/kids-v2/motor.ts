@@ -5,9 +5,14 @@
 // Quien lo conecte a WhatsApp (Joaquín): guarda el estado, manda las salidas
 // (mensaje → texto o plantilla, al número del chico o del padre; marca → panel
 // de Naza) y llama `reloj` en proximoDespertar() (o cada minuto).
+//
+// Ojo: un evento `ficha` (el panel) con datos inválidos (hora mal escrita o
+// fuera de 09:00–21:59, un tema que no existe, más de 3 preguntas) TIRA ERROR.
+// El estado de quien llama queda intacto (paso trabaja sobre una copia), pero
+// hay que validar en el panel o atrapar el error.
 
-import { armarGuion, validarFicha } from './compra.js';
-import { esDeNoche, esHora } from './horas.js';
+import { armarGuion, PREGUNTA_DEL_TEMA, TEMAS, validarFicha, type Tema } from './compra.js';
+import { esDeNoche } from './horas.js';
 import { emitir, type Ctx } from './motor/flujo.js';
 import { alBoton } from './motor/botones.js';
 import { fijoA, variables } from './motor/mensajes.js';
@@ -86,28 +91,42 @@ function arrancar(c: Ctx): void {
 }
 
 /**
- * El padre cambia algo en el panel (#34). La hora, siempre. Los temas, solo
- * para lo que todavía no salió. Sus preguntas, hasta que empieza el cap. 4.
- * Lo que ya pasó no se toca.
+ * El padre cambia algo en el panel (#34, decisión 27). La hora, siempre. Sus
+ * preguntas, hasta que empieza el cap. 4. Los temas, solo para lo que todavía
+ * no salió: el tema de una principal que ya salió (o que se está preguntando
+ * ahora) queda como estaba, así lo hecho y lo actual no se tocan (y su foto no
+ * se muda a otra). Todo lo demás del mismo guardado se aplica igual.
+ * Datos inválidos (hora fuera de 09:00–21:59 o mal escrita, un tema que no
+ * existe) tiran error, sin aplicar nada.
  */
 function cambiarFicha(c: Ctx, cambios: Extract<Evento, { tipo: 'ficha' }>['cambios']): void {
   const e = c.e;
-  if (cambios.hora !== undefined && esHora(cambios.hora)) e.ficha = validarFicha({ ...e.ficha, hora: cambios.hora });
   const actual = e.guion[e.cursor];
   const empezoCap4 = actual !== undefined && actual.cap >= 4;
-  const nueva = validarFicha({
+  const pedida = validarFicha({
     ...e.ficha,
+    hora: cambios.hora ?? e.ficha.hora,
     temasSacados: cambios.temasSacados ?? e.ficha.temasSacados,
     preguntasPadre: cambios.preguntasPadre && !empezoCap4 ? cambios.preguntasPadre : e.ficha.preguntasPadre,
   });
-  const guion = armarGuion(nueva);
   if (!actual) {
-    e.ficha = nueva;
-    e.guion = guion;
+    e.ficha = pedida;
+    e.guion = armarGuion(pedida);
     return;
   }
+  // Hasta dónde llegó, en el orden del guion completo (sin temas sacados).
+  const completo = armarGuion({ ...pedida, temasSacados: [] });
+  const hasta = completo.findIndex((x) => x.clave === actual.clave);
+  const yaSalio = (tema: Tema) => {
+    if (tema === 'escuela') return false; // solo saca una extra, que todavía no salió
+    return completo.findIndex((x) => x.clave === PREGUNTA_DEL_TEMA[tema]) <= hasta;
+  };
+  // Un tema cuya principal ya salió (o se saltó) queda como estaba; los demás, como los pidió.
+  const temasSacados = TEMAS.filter((t) => (yaSalio(t) ? e.ficha.temasSacados : pedida.temasSacados).includes(t));
+  const nueva = { ...pedida, temasSacados };
+  const guion = armarGuion(nueva);
   const j = guion.findIndex((x) => x.clave === actual.clave);
-  if (j < 0) return; // sacó el tema de lo que se está preguntando ahora: ya salió, no se toca
+  if (j < 0) throw new Error(`Panel: ${actual.clave} no quedó en el guion nuevo`); // no pasa: lo que ya salió no se saca
   e.ficha = nueva;
   e.guion = [...e.guion.slice(0, e.cursor + 1), ...guion.slice(j + 1)];
 }

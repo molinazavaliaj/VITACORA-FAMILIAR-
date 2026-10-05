@@ -153,6 +153,65 @@ describe('kids v2: cambios desde el panel (#34)', () => {
   });
 });
 
+describe('kids v2: panel, arreglo de la revisión (decisión 27: lo actual queda, lo demás se aplica)', () => {
+  const empezado = (preguntasPadre = [{ texto: 'Una', conLinea: true }, { texto: 'Dos', conLinea: false }]) =>
+    correr(nuevoEstado({ ...FICHA, preguntasPadre }), [
+      ['2026-10-06', '17:30', { tipo: 'inicio' }],
+      ['2026-10-06', '17:50', toca('Dale, vamos')],
+    ]).e;
+  const en = (e: Estado, clave: string): Estado => ({ ...e, cursor: e.guion.findIndex((x) => x.clave === clave) });
+
+  it('en K10, sacar "mama" y "mudanza" en el mismo guardado: K10 sigue (con su foto), K38 ya no está, y la hora se aplica', () => {
+    const e = en(empezado(), 'K10');
+    const f = paso(e, { tipo: 'ficha', cambios: { hora: '19:00', temasSacados: ['mama', 'mudanza'] } }, iso('2026-10-10', '18:00')).estado;
+    expect(f.guion[f.cursor].clave).toBe('K10');
+    expect(f.guion.slice(0, f.cursor + 1)).toEqual(e.guion.slice(0, e.cursor + 1));
+    expect(f.guion.map((x) => x.clave)).not.toContain('K38');
+    expect(f.ficha.temasSacados).toEqual(['mudanza']);
+    expect(f.ficha.hora).toBe('19:00');
+    // La foto de K10 no se muda a K16: ya salió con K10.
+    expect(f.guion.find((x) => x.clave === 'K16')).toMatchObject({ fotoDe: null });
+    expect(f.guion.filter((x) => x.tipo === 'principal' && x.fotoDe === 'K10')).toHaveLength(1);
+  });
+
+  it('un tema ya sacado cuya principal ya pasó sigue sacado (y su foto mudada no se repite)', () => {
+    const e0 = correr(nuevoEstado({ ...FICHA, temasSacados: ['mama'] }), [
+      ['2026-10-06', '17:30', { tipo: 'inicio' }],
+      ['2026-10-06', '17:50', toca('Dale, vamos')],
+    ]).e;
+    const e = en(e0, 'K20');
+    const f = paso(e, { tipo: 'ficha', cambios: { temasSacados: ['mudanza'] } }, iso('2026-10-12', '18:00')).estado;
+    expect(f.ficha.temasSacados).toEqual(['mama', 'mudanza']);
+    expect(f.guion.map((x) => x.clave)).not.toContain('K10');
+    expect(f.guion.map((x) => x.clave)).not.toContain('K38');
+    expect(f.guion.filter((x) => x.tipo === 'principal' && x.fotoDe === 'K10')).toHaveLength(1);
+  });
+
+  it('en PADRE-1, un guardado con menos preguntas del padre: PADRE-1 sigue y, ya empezado el cap. 4, la lista no cambia; la hora sí', () => {
+    const e = en(empezado(), 'PADRE-1');
+    const f = paso(e, { tipo: 'ficha', cambios: { hora: '20:00', preguntasPadre: [{ texto: 'Una', conLinea: true }] } }, iso('2026-10-20', '18:00')).estado;
+    expect(f.guion[f.cursor].clave).toBe('PADRE-1');
+    expect(f.guion.map((x) => x.clave)).toContain('PADRE-2');
+    expect(f.ficha.preguntasPadre).toHaveLength(2);
+    expect(f.ficha.hora).toBe('20:00');
+  });
+
+  it('antes del cap. 4, menos preguntas del padre: las que siguen salen de la lista nueva', () => {
+    const e = en(empezado(), 'K20');
+    const f = paso(e, { tipo: 'ficha', cambios: { preguntasPadre: [{ texto: 'Otra', conLinea: false }] } }, iso('2026-10-12', '18:00')).estado;
+    expect(f.guion.filter((x) => x.tipo === 'padre').map((x) => x.clave)).toEqual(['PADRE-1']);
+    expect(f.guion.find((x) => x.clave === 'PADRE-1')).toMatchObject({ texto: 'Otra' });
+  });
+
+  it('una hora mal escrita tira error igual que una fuera de 09:00–21:59, y el estado de quien llama queda intacto', () => {
+    const e = empezado();
+    const copia = structuredClone(e);
+    expect(() => paso(e, { tipo: 'ficha', cambios: { hora: '7 de la tarde' } }, iso('2026-10-06', '18:00'))).toThrow(/hora/);
+    expect(() => paso(e, { tipo: 'ficha', cambios: { hora: '23:00' } }, iso('2026-10-06', '18:00'))).toThrow(/hora/);
+    expect(e).toEqual(copia);
+  });
+});
+
 describe('kids v2: canal B, [Estamos listos] después de que ya contestó', () => {
   it('sale RECORD-B, el chico contesta y después el padre toca [Estamos listos]: no se repite nada', () => {
     const base = correr(nuevoEstado({ ...FICHA, canal: 'B' }), [
