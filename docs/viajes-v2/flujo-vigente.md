@@ -40,7 +40,7 @@ AS1 → AS2 → IM1 → VA1. Cada una sale apenas contesta la anterior, a cualqu
 | Hora (del país principal) | Qué llega |
 |---|---|
 | **Mediodía** | Una extra de la lista MD, en orden (MD1, MD5, MD3, MD4, MD9…). Si choca con la puerta de esa noche, se saltea. Sin recordatorio. Acuse **ACM**. |
-| **Noche** | **Comienzo + puerta + cierre** (C1-C3, NO1-NO9, F1-F3, rotan por separado). Acuse **ACN**. |
+| **Noche** | **Comienzo + puerta + cierre** (C1-C5, NO1-NO9, F1-F5, rotan por separado; desde el 30/09 son 5 comienzos y 5 cierres, ver `banco.md`). Acuse **ACN**. |
 
 - **Las de antes de salir que faltaron:** van todas, en orden, una por noche en los primeros días, con su variante "ya de viaje", en lugar de la noche común.
 - **Preguntas propias:** reemplazan noches comunes, repartidas parejas. Nunca en la última noche ni en el día de vuelta.
