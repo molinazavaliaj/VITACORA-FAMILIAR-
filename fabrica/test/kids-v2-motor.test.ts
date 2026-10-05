@@ -2,6 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { nuevoEstado, paso, type Estado, type Evento, type Salida } from '../src/kids-v2/motor.js';
 import { FICHA, estadoEn, ids, iso } from './kids-v2-ayuda.js';
 import type { Mensaje } from '../src/kids-v2/motor.js';
+import { extrasDisponibles } from '../src/kids-v2/extras.js';
+import { extrasDeUnaMas, extrasDelFinal } from '../src/kids-v2/motor/flujo.js';
 
 /** Aplica eventos en orden; cada uno con su hora de Buenos Aires. Devuelve el estado y todas las salidas. */
 function correr(e: Estado, pasos: [fecha: string, hora: string, ev: Evento][]): { e: Estado; s: Salida[] } {
@@ -144,12 +146,13 @@ describe('kids v2: cambios desde el panel (#34)', () => {
     expect(f.guion.find((x) => x.clave === 'PADRE-1')).toMatchObject({ texto: 'Otra' });
   });
 
-  it('sacar el tema de lo que se está preguntando ahora no hace nada (ya salió)', () => {
+  it('sacar el tema de lo que se está preguntando ahora: la pregunta sigue (ya salió), pero el tema queda sacado para lo que falta', () => {
     const e = empezado();
     const enK10 = { ...e, cursor: e.guion.findIndex((x) => x.clave === 'K10') };
     const f = paso(enK10, { tipo: 'ficha', cambios: { temasSacados: ['mama'] } }, iso('2026-10-10', '18:00')).estado;
     expect(f.guion).toEqual(enK10.guion);
-    expect(f.ficha.temasSacados).toEqual([]);
+    // Arreglo ronda 2 (decisión 27): sus extras todavía no salieron, así que el tema queda sacado.
+    expect(f.ficha.temasSacados).toEqual(['mama']);
   });
 });
 
@@ -167,21 +170,54 @@ describe('kids v2: panel, arreglo de la revisión (decisión 27: lo actual queda
     expect(f.guion[f.cursor].clave).toBe('K10');
     expect(f.guion.slice(0, f.cursor + 1)).toEqual(e.guion.slice(0, e.cursor + 1));
     expect(f.guion.map((x) => x.clave)).not.toContain('K38');
-    expect(f.ficha.temasSacados).toEqual(['mudanza']);
+    expect(f.ficha.temasSacados).toEqual(['mama', 'mudanza']);
     expect(f.ficha.hora).toBe('19:00');
     // La foto de K10 no se muda a K16: ya salió con K10.
     expect(f.guion.find((x) => x.clave === 'K16')).toMatchObject({ fotoDe: null });
     expect(f.guion.filter((x) => x.tipo === 'principal' && x.fotoDe === 'K10')).toHaveLength(1);
   });
 
-  it('un tema ya sacado cuya principal ya pasó sigue sacado (y su foto mudada no se repite)', () => {
+  it('en K10, sacar "mama": K10 sigue con su foto, y las extras de mamá (X2-1 a X2-4) ya no salen ni en "una más" ni al final', () => {
+    const e = en(empezado(), 'K10');
+    const f = paso(e, { tipo: 'ficha', cambios: { temasSacados: ['mama'] } }, iso('2026-10-10', '18:00')).estado;
+    expect(f.guion[f.cursor]).toEqual(e.guion[e.cursor]);
+    expect(f.guion.filter((x) => x.tipo === 'principal' && x.fotoDe === 'K10').map((x) => x.clave)).toEqual(['K10']);
+    expect(f.guion).toEqual(e.guion);
+    const MAMA = ['X2-1', 'X2-2', 'X2-3', 'X2-4'];
+    const h = { opsUsadas: [], extrasUsadas: [], hermanos: true, peleaK36: false };
+    expect(extrasDisponibles(e.ficha, h, { cap: 2 }).map((x) => x.id)).toEqual(expect.arrayContaining(MAMA));
+    const unaMas = extrasDeUnaMas({ ...f, cursor: f.guion.findIndex((x) => x.clave === 'UNA-MAS-2') }).map((x) => x.id);
+    expect(unaMas.filter((id) => MAMA.includes(id))).toEqual([]);
+    expect(unaMas.length).toBeGreaterThan(0);
+    const alFinal = extrasDelFinal(f).map((x) => x.id);
+    expect(alFinal.filter((id) => MAMA.includes(id))).toEqual([]);
+    // Y un guardado posterior (otro tema) no le saca K10 ni le muda la foto.
+    const g = paso(f, { tipo: 'ficha', cambios: { temasSacados: ['mama', 'mudanza'] } }, iso('2026-10-10', '18:05')).estado;
+    expect(g.guion.slice(0, g.cursor + 1)).toEqual(e.guion.slice(0, e.cursor + 1));
+    expect(g.guion.filter((x) => x.tipo === 'principal' && x.fotoDe === 'K10').map((x) => x.clave)).toEqual(['K10']);
+    expect(g.guion.map((x) => x.clave)).not.toContain('K38');
+    expect(g.ficha.temasSacados).toEqual(['mama', 'mudanza']);
+  });
+
+  it('el "una más" del cap. 2, por paso(): después de sacar "mama" en K10 no sale una extra de mamá', () => {
+    const e = en(empezado(), 'K10');
+    const f = paso(e, { tipo: 'ficha', cambios: { temasSacados: ['mama'] } }, iso('2026-10-10', '18:00')).estado;
+    const i = f.guion.findIndex((x) => x.clave === 'UNA-MAS-2');
+    const g = paso({ ...f, cursor: i, fase: { tipo: 'una-mas' }, ultimaEntrada: iso('2026-10-12', '17:00') }, toca('Dale, otra'), iso('2026-10-12', '17:30'));
+    const [id] = ids(g.salidas);
+    expect(id).toMatch(/^X2-/);
+    expect(['X2-1', 'X2-2', 'X2-3', 'X2-4']).not.toContain(id);
+  });
+
+  it('un tema sacado de antes cuya principal ya pasó: en el guion sigue sacado (y su foto mudada no se repite); en la ficha, como lo pide el guardado', () => {
     const e0 = correr(nuevoEstado({ ...FICHA, temasSacados: ['mama'] }), [
       ['2026-10-06', '17:30', { tipo: 'inicio' }],
       ['2026-10-06', '17:50', toca('Dale, vamos')],
     ]).e;
     const e = en(e0, 'K20');
     const f = paso(e, { tipo: 'ficha', cambios: { temasSacados: ['mudanza'] } }, iso('2026-10-12', '18:00')).estado;
-    expect(f.ficha.temasSacados).toEqual(['mama', 'mudanza']);
+    // El guardado trae la lista entera: sin "mama", las extras de mamá (que no salieron) vuelven a poder salir.
+    expect(f.ficha.temasSacados).toEqual(['mudanza']);
     expect(f.guion.map((x) => x.clave)).not.toContain('K10');
     expect(f.guion.map((x) => x.clave)).not.toContain('K38');
     expect(f.guion.filter((x) => x.tipo === 'principal' && x.fotoDe === 'K10')).toHaveLength(1);

@@ -92,10 +92,11 @@ function arrancar(c: Ctx): void {
 
 /**
  * El padre cambia algo en el panel (#34, decisión 27). La hora, siempre. Sus
- * preguntas, hasta que empieza el cap. 4. Los temas, solo para lo que todavía
- * no salió: el tema de una principal que ya salió (o que se está preguntando
- * ahora) queda como estaba, así lo hecho y lo actual no se tocan (y su foto no
- * se muda a otra). Todo lo demás del mismo guardado se aplica igual.
+ * preguntas, hasta que empieza el cap. 4. Los temas, para todo lo que todavía
+ * no salió: en la ficha queda el tema sacado tal como lo pidió (así sus extras
+ * no salen ni en "una más" ni al final), pero la principal de un tema que ya
+ * salió (o que se está preguntando ahora) sigue en el guion como estaba, y su
+ * foto no se muda a otra. Todo lo demás del mismo guardado se aplica igual.
  * Datos inválidos (hora fuera de 09:00–21:59 o mal escrita, un tema que no
  * existe) tiran error, sin aplicar nada.
  */
@@ -121,12 +122,15 @@ function cambiarFicha(c: Ctx, cambios: Extract<Evento, { tipo: 'ficha' }>['cambi
     if (tema === 'escuela') return false; // solo saca una extra, que todavía no salió
     return completo.findIndex((x) => x.clave === PREGUNTA_DEL_TEMA[tema]) <= hasta;
   };
-  // Un tema cuya principal ya salió (o se saltó) queda como estaba; los demás, como los pidió.
-  const temasSacados = TEMAS.filter((t) => (yaSalio(t) ? e.ficha.temasSacados : pedida.temasSacados).includes(t));
-  const nueva = { ...pedida, temasSacados };
-  const guion = armarGuion(nueva);
+  // Para armar el guion: un tema cuya principal ya salió (o se saltó) queda como está en el
+  // guion de ahora (sacado si su pregunta no está); los demás, como los pidió. Así el guion
+  // nuevo coincide con el viejo hasta lo actual y ninguna foto se muda dos veces.
+  const enElGuion = (tema: Exclude<Tema, 'escuela'>) => e.guion.some((x) => x.clave === PREGUNTA_DEL_TEMA[tema]);
+  const temasDelGuion = TEMAS.filter((t) => (t !== 'escuela' && yaSalio(t) ? !enElGuion(t) : pedida.temasSacados.includes(t)));
+  const guion = armarGuion({ ...pedida, temasSacados: temasDelGuion });
   const j = guion.findIndex((x) => x.clave === actual.clave);
   if (j < 0) throw new Error(`Panel: ${actual.clave} no quedó en el guion nuevo`); // no pasa: lo que ya salió no se saca
-  e.ficha = nueva;
+  // En la ficha, los temas como los pidió: sus extras todavía no salieron.
+  e.ficha = pedida;
   e.guion = [...e.guion.slice(0, e.cursor + 1), ...guion.slice(j + 1)];
 }
