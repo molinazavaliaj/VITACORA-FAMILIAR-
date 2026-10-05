@@ -2,7 +2,7 @@
 // mensajes.md). Un botón que no corresponde a lo que se espera (uno viejo,
 // tocado dos veces) no hace nada: nunca rompe ni repite.
 
-import { extra as extraDelBanco, pregunta } from '../banco.js';
+import { extra as extraDelBanco, pregunta, type IdMensaje } from '../banco.js';
 import { fotoDelItem } from '../compra.js';
 import {
   emitir,
@@ -18,7 +18,7 @@ import {
   terminarItem,
   type Ctx,
 } from './flujo.js';
-import { extraMsg, fijoA, padreMsgs, preguntaMsg, ramaMsg } from './mensajes.js';
+import { extraMsg, fijoA, fotoMsg, opMsg, padreMsgs, preguntaMsg, ramaMsg } from './mensajes.js';
 import type { Foto } from '../tipos.js';
 
 const BOTONES_NO_ES_LO_MIO = ['No hago', 'De ninguno', 'No miro'];
@@ -41,6 +41,9 @@ function estamosListos(c: Ctx): void {
   const e = c.e;
   const f = e.fase;
   const item = e.guion[e.cursor];
+  // Solo después de RECORD-B se vuelve a mandar lo que se espera (ya está arriba; así queda a mano). Sirve una vez.
+  const reenviar = e.reenviar;
+  e.reenviar = false;
   switch (f.tipo) {
     case 'bienvenida':
       return empezarItem(c, 0, false);
@@ -49,13 +52,35 @@ function estamosListos(c: Ctx): void {
     case 'libre':
       return empezarItem(c, f.siguiente, false);
     case 'aviso-seria':
-      if (!e.reenviar) return;
-      e.reenviar = false;
+      if (!reenviar) return;
       return emitir(c, fijoA(e, 'B-AVISO-SERIA'));
+    case 'op':
+      if (!reenviar) return;
+      return emitir(c, opMsg(e, pregunta(f.clave)));
+    case 'foto': {
+      if (!reenviar) return;
+      const vencida = fotoVencidaEnCurso(e);
+      if (vencida) return emitir(c, { ...fotoMsg(e, vencida.foto), id: vencida.id });
+      if (e.extra) return emitir(c, extraMsg(e, extraDelBanco(e.extra)));
+      const foto = fotoDelItem(item);
+      if (foto) emitir(c, fotoMsg(e, foto));
+      return;
+    }
+    case 'seguir':
+    case 'tranquila':
+    case 'una-mas':
+    case 'extras-oferta':
+    case 'extras-otra': {
+      if (!reenviar) return;
+      const id = ({ seguir: 'B-SEGUIR', tranquila: 'B-TRANQUILA', 'una-mas': 'B-UNA-MAS', 'extras-oferta': 'EXTRAS-OFERTA', 'extras-otra': 'EXTRAS-OTRA' } as const)[f.tipo];
+      return emitir(c, fijoA(e, id));
+    }
+    case 'cierre':
+      if (!reenviar || item.tipo !== 'cierre') return;
+      return emitir(c, fijoA(e, item.clave as IdMensaje));
+    // 'foto-audio' (espera el audio después de [No tengo]) y 'cierre-cuenta' no tienen un mensaje propio que repetir.
     case 'pregunta': {
-      // Solo después de RECORD-B: la pregunta ya está arriba; se manda de nuevo para que quede a mano.
-      if (!e.reenviar) return;
-      e.reenviar = false;
+      if (!reenviar) return;
       if (e.extra) return emitir(c, extraMsg(e, extraDelBanco(e.extra)));
       if (item.tipo === 'padre') return emitir(c, ...padreMsgs(e, item, false));
       if (item.tipo !== 'principal') return;

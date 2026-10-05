@@ -1,0 +1,114 @@
+// El tiempo: los 90 s de silencio, la espera del audio de la foto, "la hora"
+// (mínimo una principal por día), los recordatorios al padre (4 y 8 días),
+// el cierre solo a los 2 días y TERMINO-PADRE en canal B. Nada de noche.
+
+import { fotoDelItem } from '../compra.js';
+import { aInstante, aLocal, diasEntre, esDeNoche, finDeLaNoche, sumarDias } from '../horas.js';
+import { ACTIVO_MS, CIERRE_SOLO_DIAS, ESPERA_AUDIO_FOTO_MS, RECORDATORIO_DIAS, SILENCIO_MS } from '../reglas.js';
+import { emitir, empezarItem, hoy, marcar, terminarItem, type Ctx } from './flujo.js';
+import { fijoA, variables } from './mensajes.js';
+import { procesarRafaga } from './rafaga.js';
+import type { Estado } from './tipos.js';
+
+const ms = (iso: string) => new Date(iso).getTime();
+
+/** Esperando algo que solo puede mandar el chico: a la hora no sale nada nuevo (no se acumulan). */
+export function bloqueante(e: Estado): boolean {
+  const f = e.fase;
+  if (f.tipo === 'bienvenida' || f.tipo === 'aviso-seria' || f.tipo === 'retenido') return true;
+  if (f.tipo === 'pregunta') {
+    const item = e.guion[e.cursor];
+    return !e.extra && (item.tipo === 'principal' || item.tipo === 'padre');
+  }
+  return false;
+}
+
+export function alReloj(c: Ctx): void {
+  const e = c.e;
+  if (esDeNoche(c.ahora, e.ficha.zona)) return;
+  if (e.rafaga && c.ahora.getTime() - ms(e.rafaga.ultima) >= SILENCIO_MS) procesarRafaga(c);
+  if (e.fase.tipo === 'foto-audio' && c.ahora.getTime() - ms(e.fase.desde) >= ESPERA_AUDIO_FOTO_MS) terminarItem(c);
+  if (e.rafaga) return; // está contando: la hora espera
+  const fecha = hoy(c);
+  if (e.horaHecha === fecha || c.ahora < aInstante(fecha, e.ficha.hora, e.ficha.zona)) return;
+  if (e.ultimaEntrada && c.ahora.getTime() - ms(e.ultimaEntrada) < ACTIVO_MS) return; // está en medio de algo: la hora espera
+  e.horaHecha = fecha;
+  alaHora(c);
+}
+
+function recordatorio(c: Ctx): void {
+  const e = c.e;
+  const desde = e.ultimaEntrada ?? e.inicio;
+  if (!desde) return;
+  const dias = diasEntre(aLocal(new Date(desde), e.ficha.zona).fecha, hoy(c));
+  const B = e.ficha.canal === 'B';
+  const vars = variables.padre(e.ficha);
+  if (e.recordatorios === 0 && dias >= RECORDATORIO_DIAS[0]) {
+    emitir(c, fijoA(e, B ? 'RECORD-B' : 'RECORD-A-4', { variables: vars, paraPadre: true }));
+    e.recordatorios = 1;
+    e.reenviar = B;
+  } else if (e.recordatorios === 1 && dias >= RECORDATORIO_DIAS[1]) {
+    emitir(c, fijoA(e, B ? 'RECORD-B-8' : 'RECORD-A-8', { variables: vars, paraPadre: true }));
+    e.reenviar = B;
+    marcar(c, 'silencio-8-dias', `${dias} días sin respuesta en ${e.guion[e.cursor]?.clave ?? 'la bienvenida'}`);
+    e.recordatorios = 2;
+  }
+}
+
+/**
+ * Lo que esperaba un botón vence a la hora (decisión 6). Si era la foto pegada de
+ * una principal (o su otra puerta, y la foto todavía no había salido), la foto no
+ * se pierde: la clave del item del guion va a `fotosVencidas` y vuelve al final
+ * (cambio A, 05/10). Es la clave que resuelve flujo (K16 si llevaba la de K10 mudada).
+ * La otra puerta vencida sí se pierde.
+ */
+function guardarFotoVencida(e: Estado): void {
+  const f = e.fase;
+  if (e.extra || (f.tipo !== 'foto' && f.tipo !== 'op')) return;
+  const item = e.guion[e.cursor];
+  if (item?.tipo !== 'principal' || !fotoDelItem(item) || e.fotosVencidas.includes(item.clave)) return;
+  e.fotosVencidas.push(item.clave);
+}
+
+function alaHora(c: Ctx): void {
+  const e = c.e;
+  const fecha = hoy(c);
+  if (e.terminoPadre && e.terminoPadre <= fecha) {
+    emitir(c, fijoA(e, 'TERMINO-PADRE', { variables: variables.padre(e.ficha), paraPadre: true }));
+    e.terminoPadre = null;
+  }
+  if (e.fase.tipo === 'terminado' || e.fase.tipo === 'sin-empezar') return;
+  const item = e.guion[e.cursor];
+  if (item?.tipo === 'final') return;
+  if (item?.tipo === 'extras') {
+    // Con un PREG-NUEVA sin tocar, el cierre solo mandaría otra plantilla (kids_final) detrás: nunca dos seguidas sin respuesta.
+    if (e.fase.tipo === 'retenido') return;
+    const desde = Math.max(...[e.extrasDesde, e.ultimaEntrada].filter((x): x is string => x !== null).map(ms));
+    if (diasEntre(aLocal(new Date(desde), e.ficha.zona).fecha, fecha) >= CIERRE_SOLO_DIAS) empezarItem(c, e.cursor + 1, true);
+    return;
+  }
+  if (bloqueante(e)) return recordatorio(c);
+  if (e.diaHecho === fecha) return;
+  guardarFotoVencida(e);
+  empezarItem(c, e.fase.tipo === 'libre' ? e.fase.siguiente : e.cursor + 1, true);
+}
+
+/** Cuándo hay que volver a llamar con `reloj` (null: nada pendiente). Nunca de noche. */
+export function proximoDespertar(e: Estado, ahora: Date): Date | null {
+  const z = e.ficha.zona;
+  const c: Date[] = [];
+  if (e.nocturnos.length) c.push(ahora);
+  if (e.rafaga) c.push(new Date(ms(e.rafaga.ultima) + SILENCIO_MS));
+  if (e.fase.tipo === 'foto-audio') c.push(new Date(ms(e.fase.desde) + ESPERA_AUDIO_FOTO_MS));
+  const sigueLaHora = !(e.fase.tipo === 'terminado' && !e.terminoPadre) && e.fase.tipo !== 'sin-empezar';
+  if (sigueLaHora && !e.rafaga) {
+    const fecha = aLocal(ahora, z).fecha;
+    const hoyHora = aInstante(fecha, e.ficha.hora, z);
+    const hora = e.horaHecha !== fecha ? hoyHora : aInstante(sumarDias(fecha, 1), e.ficha.hora, z);
+    const activo = e.ultimaEntrada ? ms(e.ultimaEntrada) + ACTIVO_MS : 0;
+    c.push(new Date(Math.max(hora.getTime(), activo, ahora.getTime())));
+  }
+  if (!c.length) return null;
+  const t = new Date(Math.min(...c.map((x) => finDeLaNoche(x, z).getTime())));
+  return t < ahora ? ahora : t;
+}

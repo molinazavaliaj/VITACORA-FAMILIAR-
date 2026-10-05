@@ -166,3 +166,44 @@ describe('kids v2: la foto vencida que vuelve al final lleva sus botones de siem
     expect(ids(toca(vuelta('K1'), 'No hago').salidas)).toEqual([]);
   });
 });
+
+describe('canal B: [Estamos listos] después de RECORD-B vuelve a mandar lo que se espera en cualquier fase (Task 9)', () => {
+  const B = { canal: 'B' as const };
+  const listo = (clave: string, fase: Fase, extra: Partial<Estado> = {}) => {
+    const c = toca(ctx(estadoEn(clave, fase, B, { reenviar: true, ...extra })), 'Estamos listos');
+    expect(c.e.reenviar).toBe(false);
+    expect(c.salidas.every((s) => s.tipo === 'mensaje' && s.a === 'padre')).toBe(true);
+    return ids(c.salidas);
+  };
+
+  it('la foto pegada, la foto vencida que volvió y la extra con foto', () => {
+    expect(listo('K1', { tipo: 'foto', clave: 'K1' })).toEqual(['K1-FOTO']);
+    expect(listo('UNA-MAS-1', { tipo: 'foto', clave: 'X1-7' }, { extra: 'X1-7' })).toEqual(['X1-7']);
+    expect(listo('EXTRAS', { tipo: 'foto', clave: 'K1-FOTO' }, { extra: 'K1-FOTO' })).toEqual(['K1-FOTO']);
+  });
+
+  it('seguir, la tranquila, "una más", el cierre y las ofertas de extras', () => {
+    expect(listo('K5', { tipo: 'seguir' })).toEqual(['B-SEGUIR']);
+    expect(listo('K39', { tipo: 'tranquila' })).toEqual(['B-TRANQUILA']);
+    expect(listo('UNA-MAS-2', { tipo: 'una-mas' })).toEqual(['B-UNA-MAS']);
+    expect(listo('CIERRE-2', { tipo: 'cierre' })).toEqual(['CIERRE-2']);
+    expect(listo('EXTRAS', { tipo: 'extras-oferta' })).toEqual(['EXTRAS-OFERTA']);
+    expect(listo('EXTRAS', { tipo: 'extras-otra' })).toEqual(['EXTRAS-OTRA']);
+  });
+
+  it('la otra puerta', () => {
+    expect(listo('K1', { tipo: 'op', clave: 'K1' })).toEqual(['K1-OP']);
+  });
+
+  it('esperando el audio de la foto no hay mensaje que repetir: solo se apaga el reenvío', () => {
+    expect(listo('K1', { tipo: 'foto-audio', clave: 'K1', desde: '2026-10-10T21:00:00.000Z' })).toEqual([]);
+  });
+
+  it('sin RECORD-B antes, en esas fases no manda nada; y soltar lo retenido también apaga el reenvío', () => {
+    expect(ids(toca(ctx(estadoEn('K5', { tipo: 'seguir' }, B)), 'Estamos listos').salidas)).toEqual([]);
+    const m = { a: 'padre' as const, id: 'K6', texto: 'x', botones: ['Paso'], plantilla: null };
+    const c = toca(ctx(estadoEn('K5', { tipo: 'retenido', mensajes: [m], luego: preg('K6') }, B, { reenviar: true })), 'Estamos listos', 'Estamos listos');
+    expect(ids(c.salidas)).toEqual(['K6']);
+    expect(c.e.reenviar).toBe(false);
+  });
+});
