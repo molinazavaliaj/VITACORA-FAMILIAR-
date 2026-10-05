@@ -84,7 +84,13 @@ export function procesarRafaga(c: Ctx): void {
       // audio, sin decir nada). Si no dice que no ("ya te la mando", "ahí va"), sin acuse y sigue esperando la foto.
       const foto = fotoEnCurso(c);
       if (corta) {
-        if (!diceQueNo(r.textos)) return;
+        // K24 es la excepción: ahí "contame la última vez que la comiste" se contesta con algo corto
+        // ("milanesas"); sin un "no" es la respuesta a la foto: acuse y sigue como después de una foto.
+        if (!diceQueNo(r.textos)) {
+          if (f.clave !== 'K24') return;
+          acuse();
+          return terminarItem(c);
+        }
         if (foto?.botones.includes('No tengo')) return noTengo(c, foto);
         if (foto?.botones.includes('Hoy no la como')) return hoyNoLaComo(c);
         return;

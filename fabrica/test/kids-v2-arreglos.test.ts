@@ -265,14 +265,44 @@ describe('kids v2, arreglo 3: en la foto de K24, un "no" corto vale como [Hoy no
     expect(ids(escrito.s)).toEqual(ids(tocado.s));
     expect(ids(escrito.s)).toEqual([expect.stringMatching(/^ACUSE-\d$/), 'B-SEGUIR']);
   });
+});
 
-  it('"ya te la mando" en K24: nada, sigue esperando la foto', () => {
+describe('kids v2, arreglo 3b: en K24, algo corto sin "no" es el "contame" (la respuesta a la foto)', () => {
+  const enK24 = () => estadoEn('K24', { tipo: 'foto', clave: 'K24' }, {}, { diaHecho: '2026-10-10' });
+
+  it('"milanesas": acuse y el día sigue (como después de una foto)', () => {
     const { s, e } = correr(enK24(), [
+      ['2026-10-10 18:05', texto('milanesas')],
+      ['2026-10-10 18:07', RELOJ],
+    ]);
+    expect(ids(s)).toEqual([expect.stringMatching(/^ACUSE-\d$/), 'B-SEGUIR']);
+    expect(e.fase.tipo).not.toBe('foto');
+  });
+
+  it('"la comí ayer en lo de mi abuela": también es la respuesta', () => {
+    const { s } = correr(enK24(), [
+      ['2026-10-10 18:05', texto('la comí ayer en lo de mi abuela')],
+      ['2026-10-10 18:07', RELOJ],
+    ]);
+    expect(ids(s)).toEqual([expect.stringMatching(/^ACUSE-\d$/), 'B-SEGUIR']);
+  });
+
+  it('"no" en K24 sigue como [Hoy no la como]', () => {
+    const { s, e } = correr(enK24(), [
+      ['2026-10-10 18:05', texto('no')],
+      ['2026-10-10 18:07', RELOJ],
+    ]);
+    expect(ids(s)).toEqual([]);
+    expect(e.fase).toMatchObject({ tipo: 'foto-audio', clave: 'K24' });
+  });
+
+  it('en K1 (otra foto), "ya te la mando" sigue esperando en silencio', () => {
+    const { s, e } = correr(estadoEn('K1', { tipo: 'foto', clave: 'K1' }, {}, { diaHecho: '2026-10-10' }), [
       ['2026-10-10 18:05', texto('ya te la mando')],
       ['2026-10-10 18:07', RELOJ],
     ]);
     expect(ids(s)).toEqual([]);
-    expect(e.fase).toEqual({ tipo: 'foto', clave: 'K24' });
+    expect(e.fase).toEqual({ tipo: 'foto', clave: 'K1' });
   });
 });
 

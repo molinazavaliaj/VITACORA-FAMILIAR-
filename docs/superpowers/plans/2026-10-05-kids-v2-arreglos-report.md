@@ -58,6 +58,8 @@ Rama `vitacora-kids`, worktree `VITACORA KIDS`. Sin push. Cada arreglo con TDD (
 - `kids-v2-revision-final.test.ts`: el audio corto en K1-FOTO lleva la transcripción "no tengo" (ver 3 y 4).
 - `kids-v2-lectura.test.ts`: la lectura ahora tiene `PADRE-PREG-LINEA` ("te la manda tu mamá") en vez de `PADRE-PREG-LINEA-PL` ("tus abuelos").
 
+- K24 (la foto con "contame la última vez que la comiste"): algo corto sin palabra negativa ("milanesas") es la respuesta y lleva acuse normal y sigue el día; con "no" sigue valiendo como [Hoy no la como]. Las otras fotos no cambian ("ya te la mando" espera en silencio). Reemplaza el viejo test "ya te la mando en K24".
+
 ## Para mirar
 - Un "no" corto en una foto que tiene solo botones "no es lo mío" ([No hago], [De ninguno], [No miro]) sin [No tengo]: hoy ninguna foto del banco es así (solo K24 no tiene [No tengo]); si apareciera, algo corto que dice que no no hace nada (espera la foto).
 - La lista `PALABRAS_NO` y las exclusiones son decisiones de código; la de exclusiones queda como borrador para Naza y el abogado.
