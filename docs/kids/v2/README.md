@@ -25,7 +25,7 @@ Carpeta del rediseño de Kids (30/09 al 05/10/2026), hecho con el método del ba
 - `motor.ts`: `paso(estado, evento, ahora) → { estado, salidas }`, partido en `motor/` (`flujo`, `rafaga`, `botones`, `reloj`, `sobrio`, `mensajes`, `estado`, `tipos`). `preocupante.ts`: la lista de palabras (borrador para Naza).
 - `corrida.ts`, `lectura.ts`, `conductas.ts`, `controles.ts`, `simulacion.ts`: la lectura corrida y la simulación.
 
-Tests en `fabrica/test/kids-v2-*.test.ts`: 236 en 14 archivos, todos en verde (incluye una simulación de 240 chicos).
+Tests en `fabrica/test/kids-v2-*.test.ts`: 283 en 15 archivos, todos en verde (incluye una simulación de 240 chicos).
 
 ```bash
 cd fabrica
@@ -43,7 +43,8 @@ npx tsx scripts/kids-v2-simular.ts --semilla 7   # un chico, mensaje por mensaje
 - Cada cosa que llega del número de las preguntas es un evento: `respuesta` (audio con sus segundos y la transcripción; texto; foto) o `boton` (el texto del botón, tal cual). `paso()` devuelve el estado nuevo y las salidas.
 - **Solo el número de las preguntas.** En canal A, solo lo que manda el número del chico entra como `respuesta` o `boton` (el evento no dice quién lo mandó). Lo que escriba el padre a su número **no** se pasa: se acusaría como si fuera del chico y cortaría los recordatorios. En canal B, el número de las preguntas es el del padre.
 - **Botones viejos (decisión 22).** Cada `mensaje` que sale trae `envio`, un ID único por chico ("1", "2", "3"…). Al mandarlo, guardar `envio` ↔ el ID que devuelve WhatsApp (wamid). Cuando tocan un botón, WhatsApp manda el `context.id` del mensaje tocado: pasarlo traducido como `aMensaje` en el evento `{ tipo: 'boton', boton, aMensaje }`. Así, un botón de un mensaje que ya quedó atrás (el [Paso] de la pregunta de ayer, el mismo botón tocado dos veces, un [Estamos listos] viejo) no hace nada. Siguen valiendo los botones de lo que se espera ahora, aunque haya llegado un recordatorio o un reenvío después. Sin `aMensaje`, el botón actúa sobre lo que se espera ahora (como antes).
-- **Un "no" escrito en una foto** (o un audio corto, sin foto) vale como tocar [No tengo]: sale su respuesta (B-FOTO-NOTENGO, o B-FOTO-PLATA en K29) y espera el audio, sin acuse. La foto de K24 no tiene [No tengo]: ahí sigue el acuse. A la otra puerta contestada corta tampoco le va acuse.
+- **Un "no" escrito en una foto** (o un audio corto, sin foto) vale como tocar [No tengo] solo si dice no, nada, ninguno/a, tampoco o nunca: sale su respuesta (B-FOTO-NOTENGO, o B-FOTO-PLATA en K29) y espera el audio, sin acuse. En la foto de K24 vale como [Hoy no la como] (espera el audio, sin decir nada). Algo corto que no dice que no ("ya te la mando", "ahí va"): sin acuse, sigue esperando la foto. Para los audios hace falta la transcripción. A la otra puerta contestada corta tampoco le va acuse.
+- **Preguntas del padre**: cada una puede llevar `quien` (cómo le dice el chico a quien la escribió: "tu mamá"). El panel pregunta "¿Quién se la manda?" con quién se lo regala de entrada; sin `quien`, la línea dice quién se lo regala.
 - **La foto que se mudó** (por ejemplo, la de K10 en K16 si se sacó "mamá") sale en el día con el ID de la original (`K10-FOTO`); si vence y vuelve al final, sale con el ID del item (`K16-FOTO`), que es también la clave en `fotosVencidas` y en `e.extra`.
 - Salidas: `mensaje` (a `chico` o `padre`; si trae `plantilla`, va como plantilla de Meta con esas variables; si no, texto libre, que el motor solo manda dentro de la ventana de 24 h de ese número (la simulación lo controla); los botones son respuestas rápidas) y `marca` (al panel de Naza: `preocupante`, `silencio-8-dias`, `escribio-despues-del-final`, `cerro-sin-respuesta`).
 - El tiempo: llamar `paso(estado, { tipo: 'reloj' }, ahora)` en `proximoDespertar(estado, ahora)` (o cada minuto). Sin eso, no se acusa la ráfaga (90 s), no sale la pregunta del día ni los recordatorios.
@@ -53,21 +54,24 @@ npx tsx scripts/kids-v2-simular.ts --semilla 7   # un chico, mensaje por mensaje
 ## Cosas del motor que decidimos al implementar
 - **Plantillas del final**: `kids_final` y `kids_final_plural` (10 y 10b de `plantillas-meta-kids.md`).
 - **Fotos vencidas**: las fotos pegadas que vencieron vuelven primero entre los extras del final (`Estado.fotosVencidas`).
-- **Cierre en extras con PREG-NUEVA sin contestar**: a los 2 días sale TERMINO-PADRE y una marca `cerro-sin-respuesta` a Naza; FINAL-CHICO se suelta cuando el chico vuelve. En canal B, TERMINO-PADRE espera a que el final le haya llegado al chico (un padre que nunca toca el botón nunca lo recibe).
+- **Cierre en extras con PREG-NUEVA sin contestar**: a los 2 días sale TERMINO-PADRE y una marca `cerro-sin-respuesta` a Naza; FINAL-CHICO se suelta cuando el chico vuelve. En canal B, TERMINO-PADRE va al día siguiente de que el final le llegó; si el final sigue retenido 2 días después del cierre (el padre nunca tocó el botón), sale igual, a la hora, una vez.
 - **La espera del audio después de [No tengo]** (10 minutos) no vence con algo contado sin acusar (primero el acuse) ni con la ventana de 24 h cerrada (lo retoma la hora con PREG-NUEVA o, en las extras, el cierre a los 2 días). Si en el día de algo preocupante cambian la hora en el panel, el día sobrio termina a la hora nueva.
 - **Lo que espera vence a la hora del día siguiente al que salió.** Una principal soltada a las 9:00 cuenta para ese día. Un chico que contesta de noche avanza un paso por día; la corrida simulada más larga tardó 152 días.
 
 ## Qué falta (no está hecho)
 1. **Conectarlo al entrevistador de WhatsApp** (Joaquín): guardar el estado, mandar las salidas, el reloj, la transcripción de los audios y el payload de los botones.
 2. **La compra** (`/comprar/kids`): las tres pantallas de `mensajes.md` §8 (COMPRA-1 a COMPRA-3), con la hora entre 09:00 y 21:59 y la zona del país del número.
-3. **El panel**: ver todo (también la cápsula), corregir nombres, escribir hasta 3 preguntas con la casilla "sin decir que es mía" hasta que empieza la cuarta parte, cambiar la hora y los temas; en el de Naza, las marcas.
+3. **El panel**: ver todo (también la cápsula), corregir nombres, escribir hasta 3 preguntas con la casilla "sin decir que es mía" y "¿Quién se la manda?" (de entrada, quién se lo regala) hasta que empieza la cuarta parte, cambiar la hora y los temas; en el de Naza, las marcas.
 4. **Meta**: cargar las 13 plantillas de `plantillas-meta-kids.md`.
 5. **El libro**: el escritor arma los capítulos desde los audios (las preguntas del padre al final del cap. 4), la cápsula en un sobre pegado al impreso y en un PDF aparte, la revisión de algo preocupante antes de armar, y Naza mira el álbum (fotos con otros chicos) antes de imprimir.
 6. `pendientes.md`: sacar "tres semanas" de la landing.
 
 ## Para Naza
-1. **Lista de palabras de "algo preocupante"** (`preocupante.ts`): es un borrador. Hay que aprobarla vos y un abogado (`paso-3-algo-preocupante.md`). Falsos positivos conocidos: "me corto el pelo", "me quiero matar de la risa", "abuso de confianza".
-2. **K18** menciona "la pareja de tu mamá o de tu papá" aunque se haya sacado uno de los dos temas. ¿Lo dejamos o lo hacemos depender del tema sacado?
-3. **La línea de la pregunta del padre** dice "te la mandan tus abuelos" (quién se lo regala) aunque la haya escrito la mamá. ¿Se cambia por quien la escribió?
-4. Las demás decisiones que tomó el plan sin que el diseño las definiera, para que las mires.
-5. **Un "no" escrito en la foto de K24** (que solo tiene [Hoy no la como], no [No tengo]): hoy recibe acuse y sigue. ¿Lo tomamos como [Hoy no la como] (sin acuse, espera el audio)?
+Resueltos el 05/10 (lo que pidió Naza; detalle en `docs/superpowers/plans/2026-10-05-kids-v2-arreglos-report.md`):
+1. **Lista de palabras de "algo preocupante"** (`preocupante.ts`): sigue siendo un borrador para vos y el abogado (`paso-3-algo-preocupante.md`). Los falsos avisos conocidos ya no saltan: una lista de exclusiones al lado ("me corto el pelo", "las uñas", "el flequillo", "matar de la risa", "me muero de risa", "abuso de confianza"); "me corto" solo y "me quiero matar" siguen saltando.
+2. **K18**: si se sacó "papá", dice "como la pareja de tu mamá, o alguien…"; si se sacó "mamá", "como la pareja de tu papá, o alguien…"; si los dos, "como alguien que vino a vivir con ustedes". Solo se borran palabras del texto aprobado. Ninguna otra pregunta nombra a mamá o papá sin que su tema la saque.
+3. **La línea de la pregunta del padre** dice quién la manda: el panel pregunta "¿Quién se la manda?" (de entrada, quién se lo regala).
+4. **Las decisiones que tomó el plan** sin que el diseño las definiera siguen para que las mires (`docs/superpowers/plans/2026-10-05-kids-v2-motor.md`).
+5. **Un "no" en la foto de K24** vale como [Hoy no la como]: sin acuse, espera el audio.
+6. **Un "no" corto en una foto** vale como [No tengo] solo si dice que no (no, nada, ninguno/a, tampoco, nunca); "ya te la mando" o "ahí va" esperan la foto, sin acuse.
+7. **Canal "lo hago yo"**: si el final quedó retenido y el padre nunca toca el botón, TERMINO-PADRE le llega igual a los 2 días del cierre, a la hora.
