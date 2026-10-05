@@ -19,3 +19,17 @@ Joaquín leyó su libro v5.3.1 (entrevista nueva, 110 respuestas): le gustó y e
 - La primera página sigue floja (autocorrecciones del audio que el corrector dejó, ideas sueltas). Queda para la lectura de Joaquín.
 
 Decisión: libro entero de Joaquín con la v5.5 y sus correcciones.
+
+## Libro entero v5.5 de Joaquín (06/10/2026)
+Con sus correcciones (ficha y "confirmado"); registro y plan de la v5.3.1. 9 capítulos con título (Paso 3t: los 9 pasaron el control), 11.018 palabras. PDF enviado: falta su lectura.
+
+| Medida | v5.3.1 | v5.5 |
+|---|---|---|
+| De 10 a 30 palabras | 76 % | 73 % |
+| Más de 40 palabras | 9 | 2 |
+| Avisos de los controles al final | 60 | 40 |
+| Presentaciones completas repetidas (C17) | — | 0 |
+| Nombres corregidos mal escritos | — | 0 |
+
+- El año de nacimiento sale 1999.
+- Abierto: una entrada arranca con "también" sin decir respecto de qué (cap. VII); 22 de los "falta" de C18 siguen siendo respuestas que enteras son un "no".
