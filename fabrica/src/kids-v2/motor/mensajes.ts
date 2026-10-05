@@ -30,7 +30,7 @@ export const variables = {
 export function fijoA(e: Estado, id: IdMensaje, o: { variables?: string[]; paraPadre?: boolean } = {}): Mensaje {
   const m = fijo(id);
   const vars = o.variables ?? [];
-  return { a: destino(e, o.paraPadre), id, texto: render(e, m.texto, vars), botones: m.botones, plantilla: m.plantilla ? { nombre: m.plantilla, variables: vars } : null };
+  return { a: destino(e, o.paraPadre), id, texto: render(e, m.texto, vars), botones: [...m.botones], plantilla: m.plantilla ? { nombre: m.plantilla, variables: vars } : null };
 }
 
 export function preguntaMsg(e: Estado, p: Pregunta): Mensaje {
@@ -51,7 +51,7 @@ export function opMsg(e: Estado, p: Pregunta): Mensaje {
 }
 
 export function fotoMsg(e: Estado, f: Foto): Mensaje {
-  return { a: destino(e), id: `${f.de}-FOTO`, texto: render(e, f.texto), botones: f.botones, plantilla: null };
+  return { a: destino(e), id: `${f.de}-FOTO`, texto: render(e, f.texto), botones: [...f.botones], plantilla: null };
 }
 
 export function extraMsg(e: Estado, x: Extra): Mensaje {

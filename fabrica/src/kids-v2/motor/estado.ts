@@ -29,5 +29,7 @@ export function nuevoEstado(ficha: Ficha): Estado {
     terminoPadre: null,
     extrasDesde: null,
     fotosVencidas: [],
+    envios: 0,
+    esperanBoton: [],
   };
 }

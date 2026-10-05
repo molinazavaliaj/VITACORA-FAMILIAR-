@@ -13,12 +13,28 @@ import type { Extra, Foto } from '../tipos.js';
 import { avisoPreguntaNueva, extraMsg, fijoA, fotoMsg, padreMsgs, preguntaMsg, variables } from './mensajes.js';
 import type { Estado, Fase, Mensaje, MotivoMarca, Salida } from './tipos.js';
 
-export type Ctx = { e: Estado; ahora: Date; salidas: Salida[]; /** Procesando lo que llegó de noche, a las 9. */ replay: boolean };
+export type Ctx = {
+  e: Estado;
+  ahora: Date;
+  salidas: Salida[];
+  /** Procesando lo que llegó de noche, a las 9. */
+  replay: boolean;
+  /** Hasta dónde se anotaron los botones que valen (motor.ts, decisión 22): la fase y cuántas salidas había. */
+  punto?: { fase: string; tipo: Fase['tipo']; salidas: number };
+};
 
 export const hoy = (c: Ctx) => aLocal(c.ahora, c.e.ficha.zona).fecha;
 
+/**
+ * Sale un mensaje: lleva su `envio` (único por chico) y botones y variables
+ * copiados, para que nada de lo que sale comparta un arreglo con el banco.
+ */
 export function emitir(c: Ctx, ...ms: Mensaje[]): void {
-  for (const m of ms) c.salidas.push({ tipo: 'mensaje', ...m });
+  for (const m of ms) {
+    c.e.envios += 1;
+    const plantilla = m.plantilla ? { nombre: m.plantilla.nombre, variables: [...m.plantilla.variables] } : null;
+    c.salidas.push({ tipo: 'mensaje', ...m, botones: [...m.botones], plantilla, envio: String(c.e.envios) });
+  }
 }
 
 export function marcar(c: Ctx, motivo: MotivoMarca, detalle: string): void {

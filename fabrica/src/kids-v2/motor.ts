@@ -12,7 +12,7 @@
 // hay que validar en el panel o atrapar el error.
 
 import { armarGuion, PREGUNTA_DEL_TEMA, TEMAS, validarFicha, type Tema } from './compra.js';
-import { esDeNoche } from './horas.js';
+import { aInstante, aLocal, esDeNoche } from './horas.js';
 import { emitir, hoy, type Ctx } from './motor/flujo.js';
 import { alBoton } from './motor/botones.js';
 import { fijoA, variables } from './motor/mensajes.js';
@@ -23,13 +23,36 @@ import { esPlural } from './texto.js';
 
 export { nuevoEstado } from './motor/estado.js';
 export { proximoDespertar } from './motor/reloj.js';
-export type { Contenido, Estado, Evento, Fase, Mensaje, Salida } from './motor/tipos.js';
+export type { Contenido, Enviado, Estado, Evento, Fase, Mensaje, Salida } from './motor/tipos.js';
 
 export function paso(estado: Estado, evento: Evento, ahora: string): { estado: Estado; salidas: Salida[] } {
   const c: Ctx = { e: structuredClone(estado), ahora: new Date(ahora), salidas: [], replay: false };
+  marcarPunto(c);
   aplicar(c, evento);
+  anotarBotones(c);
   llegoAlgoQueEspera(c);
   return { estado: c.e, salidas: c.salidas };
+}
+
+function marcarPunto(c: Ctx): void {
+  c.punto = { fase: JSON.stringify(c.e.fase), tipo: c.e.fase.tipo, salidas: c.salidas.length };
+}
+
+/**
+ * Decisión 22: qué botones valen. Si desde el último punto cambió lo que se
+ * espera (la fase), valen solo los de los mensajes que salieron desde ahí (los
+ * de antes son viejos); si no cambió (un recordatorio, la pregunta que se
+ * vuelve a mandar con [Estamos listos]), se suman. Un PREG-NUEVA sigue valiendo
+ * aunque cambie lo que tiene retenido (el cierre a los 2 días).
+ */
+function anotarBotones(c: Ctx): void {
+  const e = c.e;
+  const p = c.punto;
+  if (!p) return marcarPunto(c);
+  const nuevos = c.salidas.slice(p.salidas).flatMap((s) => (s.tipo === 'mensaje' && s.botones.length > 0 ? [s.envio] : []));
+  const cambio = JSON.stringify(e.fase) !== p.fase && !(p.tipo === 'retenido' && e.fase.tipo === 'retenido');
+  e.esperanBoton = cambio ? nuevos : [...e.esperanBoton, ...nuevos];
+  marcarPunto(c);
 }
 
 /** Fases que esperan al chico (un botón o lo que cuente). */
@@ -65,9 +88,14 @@ function aplicar(c: Ctx, ev: Evento): void {
     case 'boton':
       if (!c.replay) entro(c);
       if (noche) return void e.nocturnos.push(ev);
+      if (e.rafaga) {
+        procesarRafaga(c);
+        anotarBotones(c);
+      }
+      // Decisión 22: el botón de un mensaje viejo (o ya tocado) no hace nada. Sin `aMensaje`, vale.
+      if (ev.aMensaje !== undefined && !e.esperanBoton.includes(ev.aMensaje)) return;
       // Cualquier otro botón del número de las preguntas también es contestar; [Estamos listos] lo lee y lo apaga él.
       if (!esEstamosListos(e, ev.boton)) e.reenviar = false;
-      if (e.rafaga) procesarRafaga(c);
       return alBoton(c, ev.boton);
     case 'reloj':
       if (noche) return;
@@ -75,7 +103,10 @@ function aplicar(c: Ctx, ev: Evento): void {
         const guardados = e.nocturnos;
         e.nocturnos = [];
         c.replay = true;
-        for (const g of guardados) aplicar(c, g);
+        for (const g of guardados) {
+          aplicar(c, g);
+          anotarBotones(c);
+        }
         c.replay = false;
       }
       return alReloj(c);
@@ -128,6 +159,10 @@ function cambiarFicha(c: Ctx, cambios: Extract<Evento, { tipo: 'ficha' }>['cambi
     temasSacados: cambios.temasSacados ?? e.ficha.temasSacados,
     preguntasPadre: cambios.preguntasPadre && !empezoCap4 ? cambios.preguntasPadre : e.ficha.preguntasPadre,
   });
+  // Día sobrio: "ese día" dura hasta la hora del día siguiente; si la hora cambia, se corre con ella.
+  if (e.sobrioHasta && c.ahora < new Date(e.sobrioHasta) && pedida.hora !== e.ficha.hora) {
+    e.sobrioHasta = aInstante(aLocal(new Date(e.sobrioHasta), pedida.zona).fecha, pedida.hora, pedida.zona).toISOString();
+  }
   if (!actual) {
     e.ficha = pedida;
     e.guion = armarGuion(pedida);

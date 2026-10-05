@@ -46,12 +46,15 @@ describe('kids v2: un día típico (orden: otra puerta → acuse → foto → se
     expect(ids(c.salidas)).toEqual(['ACUSE-1', 'B-SEGUIR']);
   });
 
-  it('muy corta: la otra puerta, una sola vez; después acuse y foto', () => {
+  it('muy corta: la otra puerta, una sola vez; a la otra puerta contestada corta, sin acuse, la foto (revisión final, 05/10)', () => {
     const c = cuenta(ctx(estadoEn('K2', preg('K2'))), AUDIO(5));
     expect(ids(c.salidas)).toEqual(['K2-OP']);
     expect(c.e.opsUsadas).toEqual(['K2']);
     cuenta(c, AUDIO(4));
-    expect(ids(c.salidas)).toEqual(['K2-OP', 'ACUSE-1', 'K2-FOTO']);
+    expect(ids(c.salidas)).toEqual(['K2-OP', 'K2-FOTO']);
+    // Contestada largo: acuse y foto.
+    const d = cuenta(ctx(estadoEn('K2', { tipo: 'op', clave: 'K2' })), AUDIO(30));
+    expect(ids(d.salidas)).toEqual(['ACUSE-1', 'K2-FOTO']);
   });
 
   it('una OP que ya salió no vuelve; K39 (sensible) no tiene; la de K12 solo en la rama "Tengo hermanos"', () => {

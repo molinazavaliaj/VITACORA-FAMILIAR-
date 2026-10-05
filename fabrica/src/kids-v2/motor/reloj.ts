@@ -3,8 +3,8 @@
 // el cierre solo a los 2 días y TERMINO-PADRE en canal B. Nada de noche.
 
 import { aInstante, aLocal, diasEntre, esDeNoche, finDeLaNoche, sumarDias } from '../horas.js';
-import { ACTIVO_MS, CIERRE_SOLO_DIAS, ESPERA_AUDIO_FOTO_MS, RECORDATORIO_DIAS, SILENCIO_MS } from '../reglas.js';
-import { emitir, empezarItem, guardarFotoVencida, hoy, marcar, mensajeFinal, terminarItem, terminoPadre, type Ctx } from './flujo.js';
+import { ACTIVO_MS, CIERRE_SOLO_DIAS, ESPERA_AUDIO_FOTO_MS, RECORDATORIO_DIAS, SILENCIO_MS, VENTANA_MS } from '../reglas.js';
+import { emitir, empezarItem, guardarFotoVencida, hoy, marcar, mensajeFinal, terminarItem, terminoPadre, ventanaAbierta, type Ctx } from './flujo.js';
 import { fijoA, variables } from './mensajes.js';
 import { procesarRafaga } from './rafaga.js';
 import { enDiaSobrio } from './sobrio.js';
@@ -27,8 +27,11 @@ export function alReloj(c: Ctx): void {
   const e = c.e;
   if (esDeNoche(c.ahora, e.ficha.zona)) return;
   if (e.rafaga && c.ahora.getTime() - ms(e.rafaga.ultima) >= SILENCIO_MS) procesarRafaga(c);
-  // Algo preocupante: ese día ningún reloj hace avanzar el flujo; sigue donde estaba cuando termina.
-  if (e.fase.tipo === 'foto-audio' && !enDiaSobrio(c) && c.ahora.getTime() - ms(e.fase.desde) >= ESPERA_AUDIO_FOTO_MS) terminarItem(c);
+  // La espera del audio después de [No tengo] vence (B-SEGUIR, EXTRAS-OTRA…), salvo que: esté
+  // contando (primero va el acuse de lo que mandó); sea el día de algo preocupante (ningún reloj hace
+  // avanzar el flujo); o la ventana de 24 h esté cerrada (saldría texto libre: lo retoma la hora con
+  // PREG-NUEVA o, en las extras, el cierre a los 2 días).
+  if (e.fase.tipo === 'foto-audio' && !e.rafaga && !enDiaSobrio(c) && ventanaAbierta(e, c.ahora) && c.ahora.getTime() - ms(e.fase.desde) >= ESPERA_AUDIO_FOTO_MS) terminarItem(c);
   if (e.rafaga) return; // está contando: la hora espera
   const fecha = hoy(c);
   if (e.horaHecha === fecha || c.ahora < aInstante(fecha, e.ficha.hora, e.ficha.zona)) return;
@@ -109,10 +112,12 @@ export function proximoDespertar(e: Estado, ahora: Date): Date | null {
   const c: Date[] = [];
   if (e.nocturnos.length) c.push(ahora);
   if (e.rafaga) c.push(new Date(ms(e.rafaga.ultima) + SILENCIO_MS));
-  if (e.fase.tipo === 'foto-audio') {
+  if (e.fase.tipo === 'foto-audio' && !e.rafaga) {
     // En el día sobrio la espera del audio no vence: se retoma cuando termina (si no, despertaría sin parar).
+    // Con una ráfaga pendiente despierta la ráfaga; fuera de las 24 h no vence (alReloj): no se despierta para eso.
     const sobrio = e.sobrioHasta !== null && ahora < new Date(e.sobrioHasta) ? ms(e.sobrioHasta) : 0;
-    c.push(new Date(Math.max(ms(e.fase.desde) + ESPERA_AUDIO_FOTO_MS, sobrio)));
+    const vence = finDeLaNoche(new Date(Math.max(ms(e.fase.desde) + ESPERA_AUDIO_FOTO_MS, sobrio, ahora.getTime())), z);
+    if (e.ultimaEntrada && vence.getTime() - ms(e.ultimaEntrada) < VENTANA_MS) c.push(vence);
   }
   const sigueLaHora = !(e.fase.tipo === 'terminado' && !e.terminoPadre) && e.fase.tipo !== 'sin-empezar';
   if (sigueLaHora && !e.rafaga) {

@@ -6,6 +6,7 @@ import { pregunta } from '../banco.js';
 import { fraseQueSalta } from '../preocupante.js';
 import { CORTO_AUDIO_SEG, CORTO_PALABRAS } from '../reglas.js';
 import { acusar, acuseFoto, acuseSobrio, emitir, enCurso, empezarItem, fotoOTerminar, marcar, soltarRetenido, terminarItem, type Ctx } from './flujo.js';
+import { fotoEnCurso, noTengo } from './botones.js';
 import { opMsg, ramaMsg } from './mensajes.js';
 import { alPreocupante, enDiaSobrio } from './sobrio.js';
 import type { Contenido } from './tipos.js';
@@ -63,14 +64,23 @@ export function procesarRafaga(c: Ctx): void {
     case 'pregunta':
       return respuestaAPregunta(c, corta, acuse);
     case 'op':
-      acuse();
+      // La otra puerta contestada corta (un "no sé"): sin acuse ("va al libro" nunca después de un no); sigue igual.
+      if (!corta) acuse();
       return fotoOTerminar(c);
-    case 'foto':
+    case 'foto': {
       // También una foto vencida que vuelve al final (clave K1-FOTO, en e.extra):
       // acusar() la reconoce con fotoVencidaEnCurso() y terminarItem() sigue con las extras.
-      if (r.fotos > 0) acuseFoto(c);
-      else acuse();
+      if (r.fotos > 0) {
+        acuseFoto(c);
+        return terminarItem(c);
+      }
+      // Un "no" escrito o dicho corto, sin foto: vale como [No tengo] (su respuesta, y espera el audio).
+      // La foto de K24 no tiene [No tengo] (solo [Hoy no la como]): ahí sigue el acuse.
+      const foto = fotoEnCurso(c);
+      if (corta && foto?.botones.includes('No tengo')) return noTengo(c, foto);
+      acuse();
       return terminarItem(c);
+    }
     case 'foto-audio':
       acuse();
       return terminarItem(c);

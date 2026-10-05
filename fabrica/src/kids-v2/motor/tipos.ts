@@ -11,8 +11,13 @@ export type Evento =
   /** Pagó: arranca. */
   | { tipo: 'inicio' }
   | { tipo: 'respuesta'; contenido: Contenido }
-  /** Tocó un botón: el texto del botón, tal cual. */
-  | { tipo: 'boton'; boton: string }
+  /**
+   * Tocó un botón: el texto del botón, tal cual. `aMensaje`: el `envio` del mensaje
+   * del bot cuyo botón tocó (quien conecta lo saca del context.id de WhatsApp). Con
+   * él, un botón de un mensaje viejo o ya tocado no hace nada (decisión 22); sin él,
+   * el botón actúa sobre lo que se espera ahora.
+   */
+  | { tipo: 'boton'; boton: string; aMensaje?: string }
   /** Pasa el tiempo: quien conecta lo llama en `proximoDespertar` (o cada minuto). */
   | { tipo: 'reloj' }
   /** El padre cambió algo en el panel (#34): la hora, los temas, sus preguntas. */
@@ -33,7 +38,10 @@ export type Mensaje = {
 
 export type MotivoMarca = 'preocupante' | 'silencio-8-dias' | 'escribio-despues-del-final' | 'cerro-sin-respuesta';
 
-export type Salida = ({ tipo: 'mensaje' } & Mensaje) | { tipo: 'marca'; motivo: MotivoMarca; detalle: string };
+/** Un mensaje que salió: `envio` es único por chico (1, 2, 3…) y es lo que vuelve en `aMensaje` al tocar uno de sus botones. */
+export type Enviado = Mensaje & { envio: string };
+
+export type Salida = ({ tipo: 'mensaje' } & Enviado) | { tipo: 'marca'; motivo: MotivoMarca; detalle: string };
 
 /** Qué estamos esperando. */
 export type Fase =
@@ -101,4 +109,8 @@ export type Estado = {
   extrasDesde: string | null;
   /** IDs de las principales cuya foto pegada venció o se perdió: vuelven a ofrecerse al final. */
   fotosVencidas: string[];
+  /** Cuántos mensajes salieron: el último `envio`. */
+  envios: number;
+  /** Los `envio` de los mensajes cuyos botones valen ahora (decisión 22: los demás son viejos). */
+  esperanBoton: string[];
 };

@@ -28,13 +28,21 @@ const BOTONES_NO_ES_LO_MIO = ['No hago', 'De ninguno', 'No miro'];
  * La foto que se está esperando: una foto vencida que volvió al final (K1-FOTO)
  * lleva los botones de la original (cambio A, 05/10); una extra con foto, [No tengo].
  */
-function fotoEnCurso(c: Ctx): Foto | null {
+export function fotoEnCurso(c: Ctx): Foto | null {
   const e = c.e;
   const vencida = fotoVencidaEnCurso(e);
   if (vencida) return vencida.foto;
   if (e.extra) return { de: e.extra, texto: '', botones: ['No tengo'], noTengo: null };
   const item = e.guion[e.cursor];
   return fotoDelItem(item);
+}
+
+/** [No tengo] en una foto (tocado, o un "no" corto contado: rafaga.ts): su respuesta, y espera el audio. */
+export function noTengo(c: Ctx, foto: Foto): void {
+  const f = c.e.fase;
+  if (f.tipo !== 'foto') return;
+  emitir(c, fijoA(c.e, foto.noTengo ? 'B-FOTO-PLATA' : 'B-FOTO-NOTENGO'));
+  c.e.fase = { tipo: 'foto-audio', clave: f.clave, desde: c.ahora.toISOString() };
 }
 
 /** Canal B: [Estamos listos] (de BIEN-PADRE, PREG-NUEVA-PADRE o RECORD-B) manda lo que está pendiente. */
@@ -137,11 +145,7 @@ export function alBoton(c: Ctx, boton: string): void {
     case 'foto': {
       const foto = fotoEnCurso(c);
       if (!foto || !foto.botones.includes(boton)) return;
-      if (boton === 'No tengo') {
-        emitir(c, fijoA(e, foto.noTengo ? 'B-FOTO-PLATA' : 'B-FOTO-NOTENGO'));
-        e.fase = { tipo: 'foto-audio', clave: f.clave, desde: c.ahora.toISOString() };
-        return;
-      }
+      if (boton === 'No tengo') return noTengo(c, foto);
       if (boton === 'Hoy no la como') {
         // La foto ya le pide contar la última vez que la comió: se espera su audio (05/10).
         e.fase = { tipo: 'foto-audio', clave: f.clave, desde: c.ahora.toISOString() };

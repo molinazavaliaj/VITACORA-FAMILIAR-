@@ -23,7 +23,7 @@ export const CONTROLES: Record<string, string> = {
   capsula: 'la cápsula no recibe acuses "para el libro" (ACUSE-3, ACUSE-6)',
   escrito: 'si no mandó audio (escribió o mandó solo fotos), ningún acuse dice "escuché"; si mandó solo fotos, acuse de foto',
   despuesDeNo: 'después de [No, eso fue todo] no va ningún acuse',
-  orden: 'después de una respuesta: otra puerta → acuse → foto → seguir (al final, la foto vencida va después de [Dale, otra])',
+  orden: 'después de una respuesta: otra puerta → acuse → foto → seguir; a la otra puerta contestada corta, la foto sin acuse (al final, la foto vencida va después de [Dale, otra])',
   preocupante: 'después de algo preocupante, hasta la hora del día siguiente solo acuses sobrios',
   recordatorios: 'como mucho 2 recordatorios por silencio, y nunca al chico',
   seguirFinDeCap: 'no sale B-SEGUIR después de la última principal de un capítulo ni después de K47',
@@ -90,6 +90,8 @@ export function revisar(ficha: Ficha, c: Corrida, o: { sigueContestando: boolean
   /** Días (fecha local) en que le llegó una principal o la hora ya empezó algo. */
   const diasConPrincipal = new Set<string>();
   const diasConHora = new Set<string>();
+  /** Lo que contó desde que le llegó una otra puerta (K2-OP): si fue corto, la foto va sin acuse. */
+  let desdeOp: { seg: number; palabras: number; fotos: number } | null = null;
 
   for (const l of c.lineas) {
     if (l.de === 'chico') {
@@ -99,6 +101,12 @@ export function revisar(ficha: Ficha, c: Corrida, o: { sigueContestando: boolean
       const en = finDeLaNoche(l.en, ficha.zona).getTime();
       pendiente.push({ tipo: l.evento.tipo === 'respuesta' ? l.evento.contenido.tipo : null, en, noche: en !== l.en.getTime() });
       if (l.evento.tipo === 'respuesta') contoDesdeCierre = true;
+      if (desdeOp && l.evento.tipo === 'respuesta') {
+        const k = l.evento.contenido;
+        if (k.tipo === 'audio') desdeOp.seg += k.seg;
+        else if (k.tipo === 'texto') desdeOp.palabras += k.texto.trim().split(/\s+/).filter(Boolean).length;
+        else desdeOp.fotos += 1;
+      }
       if (enExtras && l.evento.tipo === 'boton' && l.evento.boton === 'Dale, otra') pidioOtra = true;
       previo = l;
       continue;
@@ -110,6 +118,7 @@ export function revisar(ficha: Ficha, c: Corrida, o: { sigueContestando: boolean
     }
     const m: Mensaje = l.mensaje;
     const id = m.id;
+    const botPrevio = botAnterior;
     // La ráfaga que procesa este mensaje: hasta el primer botón de la noche que vino después de algo contado.
     // B-FOTO-NOTENGO, B-NO-PASA-NADA, la primera pregunta de una rama (K25-R2)… contestan a un botón:
     // se llevan hasta ese botón, no lo que vino contado después. La otra puerta y el segundo paso de una rama (K12-R2-2), a lo contado.
@@ -206,7 +215,11 @@ export function revisar(ficha: Ficha, c: Corrida, o: { sigueContestando: boolean
         const pidio = (previo?.de === 'bot' && previo.mensaje.id === 'EXTRAS-SI') || pidioOtra;
         pidioOtra = false;
         if (!pidio) mal('orden', `${id} al final sin [Dale, otra] justo antes (después de ${previo?.de === 'bot' ? previo.mensaje.id : previo?.de})`);
-      } else if (ultimaPregunta && !(previo?.de === 'bot' && (ACUSE.test(previo.mensaje.id) || /^ACUSE-FOTO|^B-(PASO|NO-PASA-NADA)$/.test(previo.mensaje.id)))) {
+      } else if (
+        ultimaPregunta &&
+        !(previo?.de === 'bot' && (ACUSE.test(previo.mensaje.id) || /^ACUSE-FOTO|^B-(PASO|NO-PASA-NADA)$/.test(previo.mensaje.id))) &&
+        !(botPrevio?.mensaje.id === `${ultimaPregunta}-OP` && desdeOp && desdeOp.fotos === 0 && desdeOp.seg < CORTO_AUDIO_SEG && desdeOp.palabras < CORTO_PALABRAS)
+      ) {
         mal('orden', `${id} sin acuse o paso justo antes (después de ${previo?.de === 'bot' ? previo.mensaje.id : previo?.de})`);
       }
     }
@@ -217,11 +230,16 @@ export function revisar(ficha: Ficha, c: Corrida, o: { sigueContestando: boolean
     // La ráfaga ya se procesó: el bot reaccionó (acuse, otra puerta, rama) o pasaron los 90 s desde lo último.
     // Un mensaje antes de eso (lo que suelta un botón) no la cierra: lo que vino va al acuse que sigue.
     const ultimo = Math.max(0, ...pendiente.filter((x) => x.tipo).map((x) => x.en));
-    if (aBoton) pendiente = pendiente.slice(pendiente.findIndex((x) => !x.tipo) + 1);
+    // Sin botón en lo pendiente (un "no" corto contado en la foto vale como [No tengo]): se lleva lo contado.
+    if (aBoton) {
+      const k = pendiente.findIndex((x) => !x.tipo);
+      pendiente = k >= 0 ? pendiente.slice(k + 1) : pendiente.slice(corte);
+    }
     else if (reacciona) pendiente = pendiente.slice(corte);
     // Otro mensaje después de un botón de la noche: lo contado antes de ese botón ya se procesó (con acuse o, si era corto, sin nada).
     else if (corte < pendiente.length) pendiente = pendiente.slice(corte + 1);
     else if (l.en.getTime() >= ultimo + SILENCIO_MS) pendiente = [];
+    desdeOp = /^K\d+-OP$/.test(id) ? { seg: 0, palabras: 0, fotos: 0 } : null;
     previo = l;
   }
 
