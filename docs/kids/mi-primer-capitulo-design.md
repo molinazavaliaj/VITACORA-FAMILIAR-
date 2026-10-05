@@ -1,3 +1,5 @@
+> **⚠️ Viejo (05/10/2026).** Este spec es el punto de partida, no la verdad: varias cosas cambiaron (23 preguntas, "una por día", días fijos, "tres semanas", mamá apoyada en papá). **Lo que manda es `docs/kids/v2/`**: `banco.md` y los `paso-3-*.md`.
+
 # Mi Primer Capítulo — spec (22/09/2026, Naza)
 
 **Línea: Vitácora Kids.** Producto aparte de la Vitácora Familiar. Vive en su propia rama

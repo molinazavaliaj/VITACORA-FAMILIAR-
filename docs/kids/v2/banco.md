@@ -171,7 +171,7 @@ Después de K39 (el día feo), "una más antes de cerrar" solo con extras livian
 - Eso fue todo por hoy. Si tenés ganas, podemos continuar hoy mismo. — [Dale, otra] [Mañana sigo]  *(texto de Naza, 05/10)*
 - [Dale, otra] → sale la siguiente principal en el momento; si cambia de capítulo, antes va la entrada del capítulo.
 - [Mañana sigo] → Ya está por hoy, mañana hay más.  *(Naza, 05/10)*
-- Tope: 3 principales por sentada. Después: Ya está por hoy; mañana hay más.
+- Tope: 3 principales por sentada. Después: Ya está por hoy, mañana hay más. *(con coma, como el de [Mañana sigo]; 05/10)*
 
 **Aviso antes de las serias** (pegado a la pregunta, no al día: antes de K31 y de K39, cuando le toquen)
 - Hay otra, pero es de las que se piensan con calma. ¿Vas ahora o mañana? — [Voy ahora] [Mañana mejor]
@@ -216,5 +216,5 @@ Resueltas todas con Naza (01/10 la 3; 05/10 el resto, "todas las recomendadas"):
 4. K11 "Ahora tu papá." con punto.
 5. Orden: K14 antes de K15 y el cap. 5 en orden del borrador; anotado en la notación.
 6. Fotos con botón propio: llevan el suyo y [No tengo], cada uno con su respuesta; sale el [Sí] del club.
-7. Seguir ahora: Naza reescribió el texto (ver Mensajes). El tope queda "Ya está por hoy; mañana hay más." El ofrecimiento de extras al terminar el libro se redacta en el paso 3.
+7. Seguir ahora: Naza reescribió el texto (ver Mensajes). El tope queda "Ya está por hoy, mañana hay más." El ofrecimiento de extras al terminar el libro se redacta en el paso 3.
 8. OP de K9 nueva (Fable, 05/10); la vieja está en descartadas.

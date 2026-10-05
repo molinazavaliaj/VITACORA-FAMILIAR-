@@ -23,3 +23,6 @@ Recomendado: cortar la última oración de Fable ("…y lo que viste en el panel
 > [Estamos listos]
 
 **Aprobado por Naza (05/10): la ronda 2 (A y B).**
+
+## Cuántas veces (05/10, aprobado por Naza con "dale a todo")
+Uno a los 4 días de silencio y otro a los 8, mismo texto. Después no se le escribe más al padre: queda una marca para Naza en el panel y lo mira una persona.

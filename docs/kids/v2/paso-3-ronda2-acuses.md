@@ -72,3 +72,8 @@ Naza: que el bot diga que le gusta algo, o que guarda algo "con cariño", es "me
 3. Ya la tengo, gracias por mandarla.
 
 **Aprobada por Naza (05/10): la tanda 3.**
+
+## Reglas de uso (05/10, aprobadas por Naza con "dale a todo")
+- **Si el chico escribe en vez de mandar audio**, rotan solo los que no dicen "escuché": 2, 3, 5 y 7.
+- **En la cápsula (capítulo 5)** no salen el 3 ("Eso va al libro…") ni el 6 ("…a salvo para el libro"): esas respuestas van al sobre, no al libro.
+- Las dos reglas juntas (texto en el cap. 5): 2, 5 y 7.
