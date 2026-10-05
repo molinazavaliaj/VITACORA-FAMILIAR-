@@ -3,10 +3,10 @@
 // (05/10): otra puerta (si fue muy corta) → acuse → foto pegada → seguir.
 
 import { pregunta } from '../banco.js';
-import { fraseQueSalta } from '../preocupante.js';
-import { CORTO_AUDIO_SEG, CORTO_PALABRAS } from '../reglas.js';
+import { fraseQueSalta, normalizar } from '../preocupante.js';
+import { CORTO_AUDIO_SEG, CORTO_PALABRAS, PALABRAS_NO } from '../reglas.js';
 import { acusar, acuseFoto, acuseSobrio, emitir, enCurso, empezarItem, fotoOTerminar, marcar, soltarRetenido, terminarItem, type Ctx } from './flujo.js';
-import { fotoEnCurso, noTengo } from './botones.js';
+import { fotoEnCurso, hoyNoLaComo, noTengo } from './botones.js';
 import { opMsg, ramaMsg } from './mensajes.js';
 import { alPreocupante, enDiaSobrio } from './sobrio.js';
 import type { Contenido } from './tipos.js';
@@ -30,6 +30,11 @@ export function sumarARafaga(c: Ctx, contenido: Contenido): void {
 /** "Muy corto" (#20): sin foto, audio de menos de 15 s y texto de menos de 8 palabras. */
 export function esCorta(r: { seg: number; palabras: number; fotos: number }): boolean {
   return r.fotos === 0 && r.seg < CORTO_AUDIO_SEG && r.palabras < CORTO_PALABRAS;
+}
+
+/** ¿Lo que escribió (o la transcripción del audio) dice que no? Por palabras enteras (PALABRAS_NO). */
+export function diceQueNo(textos: readonly string[]): boolean {
+  return textos.some((t) => PALABRAS_NO.some((w) => normalizar(t).includes(` ${w} `)));
 }
 
 export function procesarRafaga(c: Ctx): void {
@@ -74,10 +79,16 @@ export function procesarRafaga(c: Ctx): void {
         acuseFoto(c);
         return terminarItem(c);
       }
-      // Un "no" escrito o dicho corto, sin foto: vale como [No tengo] (su respuesta, y espera el audio).
-      // La foto de K24 no tiene [No tengo] (solo [Hoy no la como]): ahí sigue el acuse.
+      // Algo corto sin foto (Naza 05/10): si dice que no ("no tengo", "nada"), vale como el botón negativo
+      // de la foto: [No tengo] (su respuesta, y espera el audio) o, en K24, [Hoy no la como] (espera el
+      // audio, sin decir nada). Si no dice que no ("ya te la mando", "ahí va"), sin acuse y sigue esperando la foto.
       const foto = fotoEnCurso(c);
-      if (corta && foto?.botones.includes('No tengo')) return noTengo(c, foto);
+      if (corta) {
+        if (!diceQueNo(r.textos)) return;
+        if (foto?.botones.includes('No tengo')) return noTengo(c, foto);
+        if (foto?.botones.includes('Hoy no la como')) return hoyNoLaComo(c);
+        return;
+      }
       acuse();
       return terminarItem(c);
     }

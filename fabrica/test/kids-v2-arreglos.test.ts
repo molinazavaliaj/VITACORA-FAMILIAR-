@@ -11,6 +11,23 @@ import { FICHA, ctx, estadoEn, ids, mensaje } from './kids-v2-ayuda.js';
 import { empezarItem } from '../src/kids-v2/motor/flujo.js';
 import { paso } from '../src/kids-v2/motor.js';
 import type { PreguntaPadre } from '../src/kids-v2/compra.js';
+import type { Estado, Evento, Salida } from '../src/kids-v2/motor.js';
+import { iso } from './kids-v2-ayuda.js';
+
+/** Aplica eventos en orden ("AAAA-MM-DD HH:MM" de Buenos Aires). */
+function correr(e: Estado, pasos: [string, Evento][]): { e: Estado; s: Salida[] } {
+  const s: Salida[] = [];
+  for (const [cuando, ev] of pasos) {
+    const r = paso(e, ev, iso(cuando.slice(0, 10), cuando.slice(11)));
+    e = r.estado;
+    s.push(...r.salidas);
+  }
+  return { e, s };
+}
+const RELOJ: Evento = { tipo: 'reloj' };
+const texto = (t: string): Evento => ({ tipo: 'respuesta', contenido: { tipo: 'texto', texto: t } });
+const audio = (seg: number, transcripcion?: string): Evento => ({ tipo: 'respuesta', contenido: { tipo: 'audio', seg, ...(transcripcion ? { transcripcion } : {}) } });
+const FOTO: Evento = { tipo: 'respuesta', contenido: { tipo: 'foto' } };
 
 describe('kids v2, arreglo 1: K18 sin la mamá o el papá sacados', () => {
   const k18 = (temasSacados: Tema[]) => preguntaMsg(nuevoEstado({ ...FICHA, temasSacados }), pregunta('K18')).texto;
@@ -136,5 +153,122 @@ describe('kids v2, arreglo 2: la línea de la pregunta del padre dice quién la 
     const r = paso(e0, { tipo: 'ficha', cambios: { preguntasPadre: [{ texto: 'Contame la bici.', conLinea: true, quien: 'Tu mamá' }] } }, new Date('2026-10-10T21:05:00Z').toISOString());
     expect(r.estado.ficha.preguntasPadre[0].quien).toBe('tu mamá');
     expect(r.estado.guion.find((x) => x.clave === 'PADRE-1')).toMatchObject({ quien: 'tu mamá' });
+  });
+});
+
+describe('kids v2, arreglo 4: en una foto, solo un "no" corto vale como [No tengo]', () => {
+  const enFoto = (clave = 'K1') => estadoEn(clave, { tipo: 'foto', clave }, {}, { diaHecho: '2026-10-10' });
+
+  it.each(['no tengo', 'nada', 'No.', 'NINGUNA así', 'ninguno', 'tampoco tengo', 'nunca saqué'])('"%s" → B-FOTO-NOTENGO, sin acuse, espera el audio', (t) => {
+    const { s, e } = correr(enFoto(), [
+      ['2026-10-10 18:05', texto(t)],
+      ['2026-10-10 18:07', RELOJ],
+    ]);
+    expect(ids(s)).toEqual(['B-FOTO-NOTENGO']);
+    expect(e.fase).toMatchObject({ tipo: 'foto-audio', clave: 'K1' });
+  });
+
+  it('un audio corto que dice que no (con su transcripción): igual', () => {
+    const { s } = correr(enFoto(), [
+      ['2026-10-10 18:05', audio(4, 'Nó, no tengo')],
+      ['2026-10-10 18:07', RELOJ],
+    ]);
+    expect(ids(s)).toEqual(['B-FOTO-NOTENGO']);
+  });
+
+  it.each(['ya te la mando', 'ahí va', 'nono', 'después la busco'])('"%s" → nada (sin acuse) y sigue esperando la foto; cuando llega, su acuse', (t) => {
+    const a = correr(enFoto(), [
+      ['2026-10-10 18:05', texto(t)],
+      ['2026-10-10 18:07', RELOJ],
+    ]);
+    expect(ids(a.s)).toEqual([]);
+    expect(a.e.fase).toEqual({ tipo: 'foto', clave: 'K1' });
+    const b = correr(a.e, [
+      ['2026-10-10 18:20', FOTO],
+      ['2026-10-10 18:22', RELOJ],
+    ]);
+    expect(ids(b.s)).toEqual([expect.stringMatching(/^ACUSE-FOTO-\d$/), 'B-SEGUIR']);
+  });
+
+  it('un audio corto sin transcripción no dice que no: sigue esperando la foto', () => {
+    const { s, e } = correr(enFoto(), [
+      ['2026-10-10 18:05', audio(4)],
+      ['2026-10-10 18:07', RELOJ],
+    ]);
+    expect(ids(s)).toEqual([]);
+    expect(e.fase).toEqual({ tipo: 'foto', clave: 'K1' });
+  });
+
+  it('después de B-FOTO-NOTENGO manda la foto igual: se toma como la foto, con su acuse', () => {
+    const { s, e } = correr(enFoto(), [
+      ['2026-10-10 18:05', texto('no tengo')],
+      ['2026-10-10 18:07', RELOJ],
+      ['2026-10-10 18:09', FOTO],
+      ['2026-10-10 18:11', RELOJ],
+    ]);
+    expect(ids(s)).toEqual(['B-FOTO-NOTENGO', expect.stringMatching(/^ACUSE-FOTO-\d$/), 'B-SEGUIR']);
+    expect(e.fase).toEqual({ tipo: 'seguir' });
+  });
+
+  it('lo mismo después de tocar [No tengo]', () => {
+    const { s } = correr(enFoto(), [
+      ['2026-10-10 18:05', { tipo: 'boton', boton: 'No tengo' }],
+      ['2026-10-10 18:09', FOTO],
+      ['2026-10-10 18:11', RELOJ],
+    ]);
+    expect(ids(s)).toEqual(['B-FOTO-NOTENGO', expect.stringMatching(/^ACUSE-FOTO-\d$/), 'B-SEGUIR']);
+  });
+
+  it('la foto de una extra (X1-7) y una foto vencida al final (K1-FOTO): "no tengo" vale, "ahí va" espera', () => {
+    const x = correr(estadoEn('UNA-MAS-1', { tipo: 'foto', clave: 'X1-7' }, {}, { extra: 'X1-7' }), [
+      ['2026-10-10 18:05', texto('no tengo nada así')],
+      ['2026-10-10 18:07', RELOJ],
+    ]);
+    expect(ids(x.s)).toEqual(['B-FOTO-NOTENGO']);
+    const v = correr(estadoEn('EXTRAS', { tipo: 'foto', clave: 'K1-FOTO' }, {}, { extra: 'K1-FOTO' }), [
+      ['2026-10-10 18:05', texto('ahí va')],
+      ['2026-10-10 18:07', RELOJ],
+    ]);
+    expect(ids(v.s)).toEqual([]);
+    expect(v.e.fase).toEqual({ tipo: 'foto', clave: 'K1-FOTO' });
+  });
+});
+
+describe('kids v2, arreglo 3: en la foto de K24, un "no" corto vale como [Hoy no la como]', () => {
+  const enK24 = () => estadoEn('K24', { tipo: 'foto', clave: 'K24' }, {}, { diaHecho: '2026-10-10' });
+
+  it('"no" escrito: sin acuse, espera el audio (como el botón)', () => {
+    const { s, e } = correr(enK24(), [
+      ['2026-10-10 18:05', texto('no')],
+      ['2026-10-10 18:07', RELOJ],
+    ]);
+    expect(ids(s)).toEqual([]);
+    expect(e.fase).toMatchObject({ tipo: 'foto-audio', clave: 'K24' });
+  });
+
+  it('igual que tocar [Hoy no la como]: después cuenta y va el acuse', () => {
+    const escrito = correr(enK24(), [
+      ['2026-10-10 18:05', audio(5, 'hoy no')],
+      ['2026-10-10 18:07', RELOJ],
+      ['2026-10-10 18:08', audio(40)],
+      ['2026-10-10 18:10', RELOJ],
+    ]);
+    const tocado = correr(enK24(), [
+      ['2026-10-10 18:05', { tipo: 'boton', boton: 'Hoy no la como' }],
+      ['2026-10-10 18:07', RELOJ],
+      ['2026-10-10 18:08', audio(40)],
+      ['2026-10-10 18:10', RELOJ],
+    ]);
+    expect(ids(escrito.s)).toEqual(ids(tocado.s));
+    expect(ids(escrito.s)).toEqual([expect.stringMatching(/^ACUSE-\d$/), 'B-SEGUIR']);
+  });
+
+  it('"ya te la mando" en K24: nada, sigue esperando la foto', () => {
+    const { s, e } = correr(enK24(), [
+      ['2026-10-10 18:05', texto('ya te la mando')],
+      ['2026-10-10 18:07', RELOJ],
+    ]);
+    expect(ids(s)).toEqual([]);
+    expect(e.fase).toEqual({ tipo: 'foto', clave: 'K24' });
   });
 });

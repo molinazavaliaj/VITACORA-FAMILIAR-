@@ -45,6 +45,13 @@ export function noTengo(c: Ctx, foto: Foto): void {
   c.e.fase = { tipo: 'foto-audio', clave: f.clave, desde: c.ahora.toISOString() };
 }
 
+/** [Hoy no la como] en la foto de K24 (tocado, o un "no" corto contado: rafaga.ts): la foto ya le pide contar la última vez que la comió; se espera su audio, sin decir nada (05/10). */
+export function hoyNoLaComo(c: Ctx): void {
+  const f = c.e.fase;
+  if (f.tipo !== 'foto') return;
+  c.e.fase = { tipo: 'foto-audio', clave: f.clave, desde: c.ahora.toISOString() };
+}
+
 /** Canal B: [Estamos listos] (de BIEN-PADRE, PREG-NUEVA-PADRE o RECORD-B) manda lo que está pendiente. */
 function estamosListos(c: Ctx): void {
   const e = c.e;
@@ -146,11 +153,7 @@ export function alBoton(c: Ctx, boton: string): void {
       const foto = fotoEnCurso(c);
       if (!foto || !foto.botones.includes(boton)) return;
       if (boton === 'No tengo') return noTengo(c, foto);
-      if (boton === 'Hoy no la como') {
-        // La foto ya le pide contar la última vez que la comió: se espera su audio (05/10).
-        e.fase = { tipo: 'foto-audio', clave: f.clave, desde: c.ahora.toISOString() };
-        return;
-      }
+      if (boton === 'Hoy no la como') return hoyNoLaComo(c);
       if (BOTONES_NO_ES_LO_MIO.includes(boton)) {
         emitir(c, fijoA(e, 'B-NO-PASA-NADA'));
         return terminarItem(c);

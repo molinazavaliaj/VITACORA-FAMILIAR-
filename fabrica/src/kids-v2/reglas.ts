@@ -22,3 +22,9 @@ export const ESPERA_AUDIO_FOTO_MS = 10 * MIN;
 export const ACTIVO_MS = 30 * MIN;
 export const HORA_POR_DEFECTO = '18:00';
 export const MAX_PREGUNTAS_PADRE = 3;
+/**
+ * En una foto, algo corto sin foto vale como su botón negativo ([No tengo] o
+ * [Hoy no la como]) solo si dice una de estas palabras (enteras, sin mayúsculas
+ * ni tildes; Naza 05/10). Si no ("ya te la mando", "ahí va"), sigue esperando la foto.
+ */
+export const PALABRAS_NO = ['no', 'nada', 'ninguno', 'ninguna', 'tampoco', 'nunca'] as const;

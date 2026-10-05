@@ -162,8 +162,9 @@ describe('kids v2, revisión final 2: un "no" escrito en una foto o en la otra p
       ['2026-10-10 18:07', RELOJ],
     ]);
     expect(ids(x.s)).toEqual(['B-FOTO-NOTENGO']);
+    // Arreglo 4 (05/10): un audio corto vale como [No tengo] solo si dice que no (con su transcripción).
     const v = correr(estadoEn('EXTRAS', { tipo: 'foto', clave: 'K1-FOTO' }, {}, { ...rot, extra: 'K1-FOTO' }), [
-      ['2026-10-10 18:05', audio(4)],
+      ['2026-10-10 18:05', audio(4, 'no tengo')],
       ['2026-10-10 18:07', RELOJ],
     ]);
     expect(ids(v.s)).toEqual(['B-FOTO-NOTENGO']);
