@@ -7,7 +7,7 @@ import { extra as extraDelBanco, pregunta, type IdMensaje } from '../banco.js';
 import { fotoDelItem } from '../compra.js';
 import { extrasDisponibles, type HistorialExtras } from '../extras.js';
 import { aLocal, sumarDias } from '../horas.js';
-import { VENTANA_MS } from '../reglas.js';
+import { CIERRE_SOLO_DIAS, VENTANA_MS } from '../reglas.js';
 import { esPlural } from '../texto.js';
 import type { Extra, Foto } from '../tipos.js';
 import { avisoPreguntaNueva, extraMsg, fijoA, fotoMsg, padreMsgs, preguntaMsg, variables } from './mensajes.js';
@@ -67,7 +67,8 @@ export function soltarRetenido(c: Ctx): void {
   if (f.tipo !== 'retenido') return;
   emitir(c, ...f.mensajes);
   c.e.fase = f.luego;
-  // Canal B: TERMINO-PADRE va al día siguiente de que le llegó FINAL-CHICO, no del cierre.
+  // Canal B: TERMINO-PADRE va al día siguiente de que le llegó FINAL-CHICO, no del cierre
+  // (si ya salió porque el final estuvo retenido 2 días, terminoPadre es null y no vuelve a salir).
   if (f.luego.tipo === 'terminado' && c.e.terminoPadre !== null) c.e.terminoPadre = sumarDias(hoy(c), 1);
 }
 
@@ -194,7 +195,10 @@ export function empezarItem(c: Ctx, i: number, proactivo: boolean): void {
       // TERMINO-PADRE: canal A, ya; canal B, al día siguiente a la hora (05/10, Fable 7).
       if (e.ficha.canal === 'A') emitir(c, terminoPadre(e));
       else e.terminoPadre = sumarDias(hoy(c), 1);
-      return entregar(c, [final], { tipo: 'terminado' }, proactivo);
+      entregar(c, [final], { tipo: 'terminado' }, proactivo);
+      // Canal B con el final retenido detrás de un PREG-NUEVA-PADRE: si el padre no lo toca, TERMINO-PADRE igual a los 2 días (Naza 05/10).
+      if (e.ficha.canal === 'B' && e.fase.tipo === 'retenido') e.terminoPadre = sumarDias(hoy(c), CIERRE_SOLO_DIAS);
+      return;
     }
   }
 }

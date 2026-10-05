@@ -64,7 +64,8 @@ function recordatorio(c: Ctx): void {
  * PREG-NUEVA que el chico nunca tocó. Al chico no le sale nada (sería una
  * segunda plantilla sin respuesta): FINAL-CHICO queda retenido en lugar de la
  * oferta y le llega cuando toque el botón o escriba. Al padre, TERMINO-PADRE
- * (canal B: al día siguiente, a la hora); a Naza, una marca. El cursor pasa al
+ * (canal B: al día siguiente de que le llegue el final o, si sigue retenido,
+ * a los 2 días del cierre, a la hora); a Naza, una marca. El cursor pasa al
  * final, así que no vuelve a correr ni se retoman las extras.
  */
 function cerrarConFinalRetenido(c: Ctx): void {
@@ -75,8 +76,9 @@ function cerrarConFinalRetenido(c: Ctx): void {
   e.extra = null;
   e.fase = { tipo: 'retenido', mensajes: [mensajeFinal(e).final], luego: { tipo: 'terminado' } };
   // Canal B: TERMINO-PADRE va al día siguiente de que LLEGÓ el final (decisión 15): lo agenda soltarRetenido al soltarlo.
+  // Si el padre nunca toca el botón, sale igual a los 2 días del cierre, a la hora (Naza 05/10).
   if (e.ficha.canal === 'A') emitir(c, terminoPadre(e));
-  else e.terminoPadre = sumarDias(hoy(c), 1);
+  else e.terminoPadre = sumarDias(hoy(c), CIERRE_SOLO_DIAS);
   marcar(c, 'cerro-sin-respuesta', 'cerró solo a los 2 días con un PREG-NUEVA sin tocar en las extras; el final le llega cuando conteste');
 }
 
@@ -84,8 +86,9 @@ function alaHora(c: Ctx): void {
   const e = c.e;
   const fecha = hoy(c);
   if (e.sobrioHasta && c.ahora >= new Date(e.sobrioHasta)) e.sobrioHasta = null;
-  // Canal B: con el final todavía retenido (cerró solo detrás de un PREG-NUEVA) no sale; al soltarlo, va al día siguiente (decisión 15).
-  if (e.terminoPadre && e.terminoPadre <= fecha && e.fase.tipo !== 'retenido') {
+  // Canal B: al día siguiente de que llegó el final (decisión 15); con el final todavía retenido detrás
+  // de un PREG-NUEVA, a los 2 días del cierre (Naza 05/10). Una sola vez: después queda en null.
+  if (e.terminoPadre && e.terminoPadre <= fecha) {
     emitir(c, fijoA(e, 'TERMINO-PADRE', { variables: variables.padre(e.ficha), paraPadre: true }));
     e.terminoPadre = null;
   }

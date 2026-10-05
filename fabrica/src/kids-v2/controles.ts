@@ -6,10 +6,10 @@
 
 import { armarGuion, type Ficha } from './compra.js';
 import type { Corrida, Linea } from './corrida.js';
-import { aInstante, aLocal, esDeNoche, finDeLaNoche, sumarDias } from './horas.js';
+import { aInstante, aLocal, diasEntre, esDeNoche, finDeLaNoche, sumarDias } from './horas.js';
 import type { Mensaje } from './motor.js';
 import type { Estado } from './motor.js';
-import { ACTIVO_MS, CORTO_AUDIO_SEG, CORTO_PALABRAS, SILENCIO_MS, VENTANA_MS } from './reglas.js';
+import { ACTIVO_MS, CIERRE_SOLO_DIAS, CORTO_AUDIO_SEG, CORTO_PALABRAS, SILENCIO_MS, VENTANA_MS } from './reglas.js';
 
 export type Violacion = { control: string; detalle: string };
 
@@ -28,7 +28,7 @@ export const CONTROLES: Record<string, string> = {
   recordatorios: 'como mucho 2 recordatorios por silencio, y nunca al chico',
   seguirFinDeCap: 'no sale B-SEGUIR después de la última principal de un capítulo ni después de K47',
   aviso: 'K39 siempre después de B-AVISO-SERIA',
-  termino: 'TERMINO-PADRE una sola vez al terminar; en canal B, un día después de que llegó FINAL-CHICO (decisión 15)',
+  termino: 'TERMINO-PADRE una sola vez al terminar; en canal B, un día después de que llegó FINAL-CHICO (decisión 15) o, si el final sigue retenido, a los 2 días del cierre (Naza 05/10)',
   botones: 'como mucho 3 botones por mensaje',
   canalB: 'en canal B todo va al número del padre',
   fotoPegada: 'ninguna foto pegada desaparece: se contestó, se tocó un botón suyo, vuelve al final, o el chico cerró con [No, ya está]/[Lo dejamos acá] (o el libro cerró solo con fotos pendientes)',
@@ -266,7 +266,23 @@ export function revisar(ficha: Ficha, c: Corrida, o: { sigueContestando: boolean
   const final = mensajes.find((x) => /^FINAL-CHICO/.test(x.mensaje.id));
   if (terminado) {
     if (terminados.length !== 1 && !(ficha.canal === 'B' && c.estado.terminoPadre)) mal('termino', `TERMINO-PADRE salió ${terminados.length} veces`);
-    if (ficha.canal === 'B' && final && terminados[0] && hora(terminados[0].en).fecha <= hora(final.en).fecha) mal('termino', `canal B: TERMINO-PADRE (${cuando(terminados[0].en)}) no es otro día después de FINAL-CHICO (${cuando(final.en)})`);
+    if (ficha.canal === 'B' && final && terminados[0]) {
+      const t = terminados[0];
+      if (t.en > final.en) {
+        if (hora(t.en).fecha <= hora(final.en).fecha) mal('termino', `canal B: TERMINO-PADRE (${cuando(t.en)}) no es otro día después de FINAL-CHICO (${cuando(final.en)})`);
+      } else {
+        // Salió antes que el final: el final estaba retenido detrás de un PREG-NUEVA-PADRE (o del cierre solo) y el padre no lo tocó.
+        // Tiene que ser a los 2 días (o más) de eso.
+        const cierre = [...c.lineas].reverse().find((l) => l.en <= t.en && ((l.de === 'marca' && l.motivo === 'cerro-sin-respuesta') || (l.de === 'bot' && l.mensaje.id === 'PREG-NUEVA-PADRE')));
+        if (!cierre) mal('termino', `canal B: TERMINO-PADRE (${cuando(t.en)}) antes de FINAL-CHICO (${cuando(final.en)}) sin un cierre con el final retenido`);
+        else if (diasEntre(hora(cierre.en).fecha, hora(t.en).fecha) < CIERRE_SOLO_DIAS) mal('termino', `canal B: TERMINO-PADRE (${cuando(t.en)}) antes de FINAL-CHICO y a menos de ${CIERRE_SOLO_DIAS} días del cierre (${cuando(cierre.en)})`);
+      }
+    }
+    // Canal B: si el libro cerró solo y el final llegó 3 días o más después, TERMINO-PADRE ya tenía que haber salido (a los 2 días).
+    const cerro = c.lineas.find((l) => l.de === 'marca' && l.motivo === 'cerro-sin-respuesta');
+    if (ficha.canal === 'B' && final && cerro && diasEntre(hora(cerro.en).fecha, hora(final.en).fecha) > CIERRE_SOLO_DIAS && !(terminados[0] && terminados[0].en <= final.en)) {
+      mal('termino', `canal B: el final quedó retenido desde ${cuando(cerro.en)} hasta ${cuando(final.en)} y TERMINO-PADRE no salió a los ${CIERRE_SOLO_DIAS} días`);
+    }
     for (const k of principales) if (!enviadas.has(k)) mal('unaVez', `${k} nunca salió`);
   } else if (terminados.length > 0 && c.estado?.fase.tipo !== 'retenido') mal('termino', 'TERMINO-PADRE sin haber terminado');
   return v;

@@ -4,7 +4,7 @@ Generado por `fabrica/scripts/kids-v2-simular.ts`: 800 chicos inventados, semill
 
 - Terminaron: 800 de 800.
 - Días de punta a punta: mediana 30, máximo 152.
-- Mensajes del bot: 198838.
+- Mensajes del bot: 198808.
 
 | Control | Qué revisa | Violaciones |
 |---|---|---|
@@ -22,7 +22,7 @@ Generado por `fabrica/scripts/kids-v2-simular.ts`: 800 chicos inventados, semill
 | recordatorios | como mucho 2 recordatorios por silencio, y nunca al chico | 0 |
 | seguirFinDeCap | no sale B-SEGUIR después de la última principal de un capítulo ni después de K47 | 0 |
 | aviso | K39 siempre después de B-AVISO-SERIA | 0 |
-| termino | TERMINO-PADRE una sola vez al terminar; en canal B, un día después de que llegó FINAL-CHICO (decisión 15) | 0 |
+| termino | TERMINO-PADRE una sola vez al terminar; en canal B, un día después de que llegó FINAL-CHICO (decisión 15) o, si el final sigue retenido, a los 2 días del cierre (Naza 05/10) | 0 |
 | botones | como mucho 3 botones por mensaje | 0 |
 | canalB | en canal B todo va al número del padre | 0 |
 | fotoPegada | ninguna foto pegada desaparece: se contestó, se tocó un botón suyo, vuelve al final, o el chico cerró con [No, ya está]/[Lo dejamos acá] (o el libro cerró solo con fotos pendientes) | 0 |

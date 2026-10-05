@@ -13,6 +13,9 @@ import { paso } from '../src/kids-v2/motor.js';
 import type { PreguntaPadre } from '../src/kids-v2/compra.js';
 import type { Estado, Evento, Salida } from '../src/kids-v2/motor.js';
 import { iso } from './kids-v2-ayuda.js';
+import { alReloj } from '../src/kids-v2/motor/reloj.js';
+import { alBoton } from '../src/kids-v2/motor/botones.js';
+import type { Mensaje } from '../src/kids-v2/motor/tipos.js';
 
 /** Aplica eventos en orden ("AAAA-MM-DD HH:MM" de Buenos Aires). */
 function correr(e: Estado, pasos: [string, Evento][]): { e: Estado; s: Salida[] } {
@@ -270,5 +273,74 @@ describe('kids v2, arreglo 3: en la foto de K24, un "no" corto vale como [Hoy no
     ]);
     expect(ids(s)).toEqual([]);
     expect(e.fase).toEqual({ tipo: 'foto', clave: 'K24' });
+  });
+});
+
+describe('kids v2, arreglo 5: canal B, TERMINO-PADRE aunque el padre nunca toque el botón del final', () => {
+  const retenidoEnExtras = (canal: 'A' | 'B' = 'B') => {
+    const oferta: Mensaje = { a: canal === 'A' ? 'chico' : 'padre', id: 'EXTRAS-OFERTA', texto: 'x', botones: ['Dale, otra'], plantilla: null };
+    return estadoEn('EXTRAS', { tipo: 'retenido', mensajes: [oferta], luego: { tipo: 'extras-oferta' } }, { canal }, {
+      extrasDesde: iso('2026-10-08', '18:00'),
+      ultimaEntrada: iso('2026-10-06', '18:29'),
+    });
+  };
+  const reloj = (e: Estado, fecha: string, hora: string) => {
+    const c = ctx(e, fecha, hora);
+    alReloj(c);
+    return c;
+  };
+
+  it('cierra solo el 10 con el final retenido; si sigue retenido 2 días después (el 12), sale TERMINO-PADRE a la hora, una sola vez', () => {
+    const d10 = reloj(retenidoEnExtras(), '2026-10-10', '18:00');
+    expect(ids(d10.salidas)).toEqual(['marca:cerro-sin-respuesta']);
+    expect(ids(reloj(d10.e, '2026-10-11', '18:00').salidas)).toEqual([]);
+    const d12a = reloj(d10.e, '2026-10-12', '17:59');
+    expect(ids(d12a.salidas)).toEqual([]);
+    const d12 = reloj(d12a.e, '2026-10-12', '18:00');
+    expect(ids(d12.salidas)).toEqual(['TERMINO-PADRE']);
+    const t = mensaje(d12.salidas, 'TERMINO-PADRE');
+    expect(t.a).toBe('padre');
+    expect(t.plantilla).not.toBeNull();
+    // El final sigue retenido: le llega cuando toque el botón.
+    expect(d12.e.fase).toMatchObject({ tipo: 'retenido', luego: { tipo: 'terminado' } });
+    expect(ids(reloj(d12.e, '2026-10-13', '18:00').salidas)).toEqual([]);
+    // Toca [Estamos listos] el 14: le llega el final; TERMINO-PADRE no vuelve a salir.
+    const toca = ctx(d12.e, '2026-10-14', '10:00');
+    alBoton(toca, 'Estamos listos');
+    expect(ids(toca.salidas)).toEqual(['FINAL-CHICO']);
+    expect(toca.e.fase).toEqual({ tipo: 'terminado' });
+    expect(ids(reloj(toca.e, '2026-10-15', '18:00').salidas)).toEqual([]);
+    expect(ids(reloj(toca.e, '2026-10-20', '18:00').salidas)).toEqual([]);
+  });
+
+  it('nunca de noche: el 12 a las 22:30 no sale', () => {
+    const d10 = reloj(retenidoEnExtras(), '2026-10-10', '18:00');
+    const noche = reloj(d10.e, '2026-10-12', '22:30');
+    expect(ids(noche.salidas)).toEqual([]);
+  });
+
+  it('si el final le llega antes (el 11), TERMINO-PADRE va al día siguiente de que llegó, como antes', () => {
+    const d10 = reloj(retenidoEnExtras(), '2026-10-10', '18:00');
+    const toca = ctx(d10.e, '2026-10-11', '10:00');
+    alBoton(toca, 'Estamos listos');
+    expect(ids(toca.salidas)).toEqual(['FINAL-CHICO']);
+    expect(ids(reloj(toca.e, '2026-10-11', '18:00').salidas)).toEqual([]);
+    expect(ids(reloj(toca.e, '2026-10-12', '18:00').salidas)).toEqual(['TERMINO-PADRE']);
+  });
+
+  it('el final que sale a la hora detrás de un PREG-NUEVA-PADRE (ventana abierta) y nunca se toca: igual, 2 días después', () => {
+    const e = estadoEn('EXTRAS', { tipo: 'libre', siguiente: 0 }, { canal: 'B' }, { ultimaEntrada: iso('2026-10-10', '12:00') });
+    const c = ctx(e, '2026-10-10', '18:00');
+    empezarItem(c, e.guion.findIndex((x) => x.tipo === 'final'), true);
+    expect(ids(c.salidas)).toEqual(['PREG-NUEVA-PADRE']);
+    expect(c.e.fase).toMatchObject({ tipo: 'retenido', luego: { tipo: 'terminado' } });
+    expect(ids(reloj(c.e, '2026-10-11', '18:00').salidas)).toEqual([]);
+    expect(ids(reloj(c.e, '2026-10-12', '18:00').salidas)).toEqual(['TERMINO-PADRE']);
+  });
+
+  it('canal A no cambia: TERMINO-PADRE al cerrar, y nada más después', () => {
+    const d10 = reloj(retenidoEnExtras('A'), '2026-10-10', '18:00');
+    expect(ids(d10.salidas)).toEqual(['TERMINO-PADRE', 'marca:cerro-sin-respuesta']);
+    expect(ids(reloj(d10.e, '2026-10-12', '18:00').salidas)).toEqual([]);
   });
 });
