@@ -120,6 +120,9 @@ export function corridaDeLaLectura(): Corrida {
   return correr(FICHA_LECTURA, chicaDeLaLectura(), { desde: DESDE_LECTURA, dias: 90 });
 }
 
+/** "Tus abuelos" → "sus abuelos": el encabezado lo lee Naza, no la chica. */
+const paraNaza = (quien: string) => quien.replace(/^tu(s?)(?=\s)/i, 'su$1');
+
 const fechaCorta = (fecha: string) => `${Number(fecha.slice(8, 10))}/${Number(fecha.slice(5, 7))}`;
 
 function lineaMd(l: Linea, f: Ficha): string[] {
@@ -140,7 +143,7 @@ export function lecturaCorrida(): string {
     '',
     'Una chica **inventada**, mensaje por mensaje, como le llegaría por WhatsApp. Generado por `fabrica/scripts/kids-v2-lectura.ts` con el motor de `fabrica/src/kids-v2/` y los textos de `banco.md` y `mensajes.md`: no editar a mano.',
     '',
-    `- ${f.nombre} ("${f.apodo}"), ${f.edad} años. Se lo regalan ${f.quienRegala.toLowerCase()}. Compra ${f.nombrePadre} (la mamá).`,
+    `- ${f.nombre} ("${f.apodo}"), ${f.edad} años. Se lo regalan ${paraNaza(f.quienRegala)}. Compra ${f.nombrePadre} (la mamá).`,
     `- Las preguntas van a su WhatsApp (canal A), a las ${f.hora}, hora de Buenos Aires.`,
     '- La mamá sacó el tema "Su papá": no sale K11, y su foto (el deporte) pasa a K16.',
     `- Preguntas de la mamá: «${f.preguntasPadre[0].texto}» (con la línea) · «${f.preguntasPadre[1].texto}» (sin decir que es de ella).`,

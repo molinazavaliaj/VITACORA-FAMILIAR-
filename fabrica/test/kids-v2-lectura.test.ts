@@ -1,5 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { corridaDeLaLectura, FICHA_LECTURA, lecturaCorrida } from '../src/kids-v2/lectura.js';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { correr } from '../src/kids-v2/corrida.js';
+import { chicaDeLaLectura, corridaDeLaLectura, DESDE_LECTURA, FICHA_LECTURA, lecturaCorrida } from '../src/kids-v2/lectura.js';
 
 const md = lecturaCorrida();
 const corrida = corridaDeLaLectura();
@@ -42,5 +45,22 @@ describe('kids v2: lectura corrida (una chica inventada)', () => {
     const dias = md.split('\n').filter((l) => l.startsWith('## '));
     expect(dias.length).toBeGreaterThan(25);
     expect(dias[0]).toBe('## martes 6/10');
+  });
+});
+
+describe('kids v2: lectura corrida, el doc y la corrida', () => {
+  it('el md commiteado es exactamente lo que genera el motor hoy', () => {
+    const ruta = fileURLToPath(new URL('../../docs/kids/v2/lectura-corrida.md', import.meta.url));
+    const enDisco = readFileSync(ruta, 'utf8').replace(/\r\n/g, '\n');
+    expect(enDisco === md, 'docs/kids/v2/lectura-corrida.md quedó viejo: correr `npx tsx scripts/kids-v2-lectura.ts` desde fabrica/').toBe(true);
+  });
+
+  it('el encabezado le habla a Naza: "Se lo regalan sus abuelos"', () => {
+    expect(md).toContain('Se lo regalan sus abuelos.');
+    expect(FICHA_LECTURA.quienRegala).toBe('Tus abuelos');
+  });
+
+  it('si llega al tope de pasos, tira error en vez de cortar callada', () => {
+    expect(() => correr(FICHA_LECTURA, chicaDeLaLectura(), { desde: DESDE_LECTURA, dias: 90, maxPasos: 5 })).toThrow(/tope de 5 pasos/);
   });
 });

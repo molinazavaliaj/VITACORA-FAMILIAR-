@@ -2,7 +2,7 @@
 
 Una chica **inventada**, mensaje por mensaje, como le llegaría por WhatsApp. Generado por `fabrica/scripts/kids-v2-lectura.ts` con el motor de `fabrica/src/kids-v2/` y los textos de `banco.md` y `mensajes.md`: no editar a mano.
 
-- Martina Sosa ("Tini"), 11 años. Se lo regalan tus abuelos. Compra Laura Sosa (la mamá).
+- Martina Sosa ("Tini"), 11 años. Se lo regalan sus abuelos. Compra Laura Sosa (la mamá).
 - Las preguntas van a su WhatsApp (canal A), a las 18:00, hora de Buenos Aires.
 - La mamá sacó el tema "Su papá": no sale K11, y su foto (el deporte) pasa a K16.
 - Preguntas de la mamá: «Contame el día que aprendiste a andar en bici sin rueditas.» (con la línea) · «Contame la primera noche que dormiste en lo de una amiga.» (sin decir que es de ella).

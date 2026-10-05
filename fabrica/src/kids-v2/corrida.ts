@@ -19,12 +19,16 @@ export type Linea =
 
 export type Corrida = { lineas: Linea[]; estado: Estado; pasos: number };
 
-export function correr(ficha: Ficha, conducta: Conducta, o: { desde: string; dias: number }): Corrida {
+/** Tope de pasos por corrida: si se llega, algo da vueltas sin terminar. */
+export const MAX_PASOS = 20_000;
+
+export function correr(ficha: Ficha, conducta: Conducta, o: { desde: string; dias: number; maxPasos?: number }): Corrida {
+  const maxPasos = o.maxPasos ?? MAX_PASOS;
   let estado = nuevoEstado(ficha);
   const lineas: Linea[] = [];
   const todo: Mensaje[] = [];
   const fin = new Date(o.desde).getTime() + o.dias * 86_400_000;
-  let cola: { en: number; accion: Accion }[] = [];
+  const cola: { en: number; accion: Accion }[] = [];
   let ahora = new Date(o.desde);
   let pasos = 0;
 
@@ -49,7 +53,8 @@ export function correr(ficha: Ficha, conducta: Conducta, o: { desde: string; dia
   };
 
   aplicar({ tipo: 'inicio' }, ahora);
-  while (pasos < 20_000) {
+  for (;;) {
+    if (pasos >= maxPasos) throw new Error(`La corrida llegó al tope de ${maxPasos} pasos a las ${ahora.toISOString()} sin terminar (¿da vueltas?)`);
     const despertar = proximoDespertar(estado, ahora)?.getTime() ?? Infinity;
     const siguiente = Math.min(cola[0]?.en ?? Infinity, despertar);
     if (!Number.isFinite(siguiente) || siguiente > fin) break;
@@ -61,8 +66,8 @@ export function correr(ficha: Ficha, conducta: Conducta, o: { desde: string; dia
     } else {
       const antes = JSON.stringify(estado);
       aplicar({ tipo: 'reloj' }, ahora);
-      if (JSON.stringify(estado) === antes && proximoDespertar(estado, ahora)?.getTime() === ahora.getTime()) {
-        throw new Error(`El motor pide reloj otra vez a las ${ahora.toISOString()} sin cambiar nada (se trabaría)`);
+      if (JSON.stringify(estado) === antes && (proximoDespertar(estado, ahora)?.getTime() ?? Infinity) <= ahora.getTime()) {
+        throw new Error(`El motor pide reloj otra vez a las ${ahora.toISOString()} (o antes) sin cambiar nada (se trabaría)`);
       }
     }
   }
