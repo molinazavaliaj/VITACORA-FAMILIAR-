@@ -50,3 +50,23 @@ Por qué los ✎:
 - 4: "tal cual" promete transcripción y el libro es relato (lo cuenta en primera persona, ordenado).
 - 6: "me alegra" queda mal después de un audio triste, y "a mí" suena a secreto entre los dos (Naza ya sacó "esto queda entre vos y yo").
 - Foto 2: no toda foto entra seguro (caras de otros chicos, solo con OK del padre).
+
+---
+
+## Tanda 3 (05/10): sin "me gusta" ni "con cariño"
+
+Naza: que el bot diga que le gusta algo, o que guarda algo "con cariño", es "medio turbio". "Me gusta" y "me alegra" además quedan mal después de un audio triste. Salen la 1, la 10 y la foto 4, y la foto 1 pierde el "con cariño". También sale la 7 ("como todo lo tuyo" tiene el mismo problema). **Regla nueva para todos los textos del bot al chico: no dice que le gusta, le alegra ni le encanta nada, y no guarda nada "con cariño".**
+
+**Después de una respuesta (7, rotan en orden)**
+1. Lo escuché entero, de principio a fin.
+2. Ya quedó guardado con todo lo demás, gracias por mandarlo.
+3. Eso va al libro, con tus palabras.
+4. Acá estoy escuchándote, ya lo tengo.
+5. Ya quedó guardado. Seguí contándome así, como te salga.
+6. Te escuché, y ya está a salvo para el libro.
+7. Dale, lo tengo, gracias por mandarlo.
+
+**Después de una foto (3, rotan en orden)**
+1. Llegó la foto, ya está guardada. (palabras de Naza)
+2. Esa foto la guardo para el libro.
+3. Ya la tengo, gracias por mandarla.
