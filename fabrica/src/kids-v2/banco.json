@@ -1,0 +1,1697 @@
+{
+  "capitulos": [
+    {
+      "n": 1,
+      "titulo": "De chiquito"
+    },
+    {
+      "n": 2,
+      "titulo": "Mi gente"
+    },
+    {
+      "n": 3,
+      "titulo": "Mi mundo ahora"
+    },
+    {
+      "n": 4,
+      "titulo": "Lo que me pasó"
+    },
+    {
+      "n": 5,
+      "titulo": "Para cuando seas grande (la cápsula)"
+    }
+  ],
+  "preguntas": [
+    {
+      "id": "K1",
+      "cap": 1,
+      "texto": "¿Cuál es el primer recuerdo de tu vida? Lo más viejo que tengas, aunque sea borroso.",
+      "ramas": [],
+      "botonPaso": "Paso",
+      "op": {
+        "texto": "¿Y algo que te contaron de cuando eras bebé, aunque vos no te acuerdes?",
+        "soloRama": null
+      },
+      "foto": {
+        "de": "K1",
+        "texto": "Mostrame tu juguete favorito. Si ya no tenés juguetes, la cosa tuya que más querés. ¿Por qué esa?",
+        "botones": [
+          "No tengo"
+        ],
+        "noTengo": null
+      },
+      "estrella": true,
+      "sacable": false,
+      "sensible": false,
+      "avisoAntes": false
+    },
+    {
+      "id": "K2",
+      "cap": 1,
+      "texto": "Ahora una travesura. Una que hiciste vos y que todavía te da risa cuando te acordás.",
+      "ramas": [],
+      "botonPaso": "Paso",
+      "op": {
+        "texto": "¿Y una travesura que hizo otro y vos la viste? Contame esa.",
+        "soloRama": null
+      },
+      "foto": {
+        "de": "K2",
+        "texto": "Sacale una foto a lo que hay adentro de tu mochila, así como está. ¿Qué es lo más raro que hay?",
+        "botones": [
+          "No tengo"
+        ],
+        "noTengo": null
+      },
+      "estrella": true,
+      "sacable": false,
+      "sensible": false,
+      "avisoAntes": false
+    },
+    {
+      "id": "K3",
+      "cap": 1,
+      "texto": "Contame la mejor fiesta que te acuerdes de cuando eras más chic{{o/a}}. Un cumpleaños, o la que sea.",
+      "ramas": [],
+      "botonPaso": "Paso",
+      "op": {
+        "texto": "¿Y un día común que terminó siendo buenísimo sin que nadie lo planeara? Contame ese.",
+        "soloRama": null
+      },
+      "foto": {
+        "de": "K3",
+        "texto": "Mostrame el regalo más raro que te hicieron. ¿Quién te lo dio?",
+        "botones": [
+          "No tengo"
+        ],
+        "noTengo": null
+      },
+      "estrella": true,
+      "sacable": false,
+      "sensible": false,
+      "avisoAntes": false
+    },
+    {
+      "id": "K4",
+      "cap": 1,
+      "texto": "Pensá en el juego al que jugabas siempre. Contame la última vez que jugaste a eso.",
+      "ramas": [],
+      "botonPaso": "Paso",
+      "op": {
+        "texto": "¿Alguna vez te aburriste tanto que inventaste un juego? Contame ese.",
+        "soloRama": null
+      },
+      "foto": {
+        "de": "K4",
+        "texto": "¿Tenés algo roto que igual no tirás? Mandame una foto y contame cómo se rompió.",
+        "botones": [
+          "No tengo"
+        ],
+        "noTengo": null
+      },
+      "estrella": false,
+      "sacable": false,
+      "sensible": false,
+      "avisoAntes": false
+    },
+    {
+      "id": "K5",
+      "cap": 1,
+      "texto": "¿Cuál fue el peor golpe que te diste de chic{{o/a}}? Contame ese día.",
+      "ramas": [],
+      "botonPaso": "Paso",
+      "op": {
+        "texto": "¿Te quedó alguna marca en el cuerpo de algo? Contame de dónde salió.",
+        "soloRama": null
+      },
+      "foto": null,
+      "estrella": false,
+      "sacable": false,
+      "sensible": false,
+      "avisoAntes": false
+    },
+    {
+      "id": "K6",
+      "cap": 1,
+      "texto": "¿Te perdiste alguna vez, aunque sea un ratito? Contame qué pasó.",
+      "ramas": [],
+      "botonPaso": "Paso",
+      "op": {
+        "texto": "¿Y una vez que se te perdió algo que querías mucho? Contame.",
+        "soloRama": null
+      },
+      "foto": null,
+      "estrella": false,
+      "sacable": false,
+      "sensible": false,
+      "avisoAntes": false
+    },
+    {
+      "id": "K7",
+      "cap": 1,
+      "texto": "¿Cuál fue la primera cosa que te dejaron hacer sol{{o/a}}, ir a comprar por ejemplo? Contame cómo fue.",
+      "ramas": [],
+      "botonPaso": "Paso",
+      "op": {
+        "texto": "¿Y la primera vez que te quedaste sol{{o/a}} en tu casa, aunque sea un rato? Contame.",
+        "soloRama": null
+      },
+      "foto": null,
+      "estrella": false,
+      "sacable": false,
+      "sensible": false,
+      "avisoAntes": false
+    },
+    {
+      "id": "K8",
+      "cap": 1,
+      "texto": "Pensá en el lugar de tu casa donde más estás. Contame la última vez que te quedaste ahí un rato largo.",
+      "ramas": [],
+      "botonPaso": "Paso",
+      "op": {
+        "texto": "¿Y afuera de tu casa, un lugar al que vas siempre? Contame la última vez que fuiste.",
+        "soloRama": null
+      },
+      "foto": {
+        "de": "K8",
+        "texto": "Sacale una foto a ese lugar, así como está ahora, sin ordenar.",
+        "botones": [
+          "No tengo"
+        ],
+        "noTengo": null
+      },
+      "estrella": false,
+      "sacable": false,
+      "sensible": false,
+      "avisoAntes": false
+    },
+    {
+      "id": "K9",
+      "cap": 1,
+      "texto": "¿Qué te daba miedo de chic{{o/a}}? Contame una noche que no podías dormir por eso.",
+      "ramas": [],
+      "botonPaso": "Paso",
+      "op": {
+        "texto": "¿Y una noche que te quedaste con la luz prendida o con alguien al lado para poder dormir? Contame esa.",
+        "soloRama": null
+      },
+      "foto": null,
+      "estrella": false,
+      "sacable": false,
+      "sensible": false,
+      "avisoAntes": false
+    },
+    {
+      "id": "K10",
+      "cap": 2,
+      "texto": "Tu mamá. Contame cómo es, y una vez que te cuidó cuando estabas enferm{{o/a}}.",
+      "ramas": [],
+      "botonPaso": "Esta la paso",
+      "op": {
+        "texto": "¿Y algo que tu mamá hace siempre y que nadie hace igual?",
+        "soloRama": null
+      },
+      "foto": {
+        "de": "K10",
+        "texto": "Si tenés mascota, sacale una foto y mandámela. ¿Cómo llegó a tu casa? Y decime cómo se llama.",
+        "botones": [
+          "No tengo"
+        ],
+        "noTengo": null
+      },
+      "estrella": true,
+      "sacable": true,
+      "sensible": false,
+      "avisoAntes": false
+    },
+    {
+      "id": "K11",
+      "cap": 2,
+      "texto": "Ahora tu papá. Contame cómo es, y la última vez que hicieron algo los dos solos.",
+      "ramas": [],
+      "botonPaso": "Esta la paso",
+      "op": {
+        "texto": "¿Y algo que tu papá dice siempre y que vos ya sabés de memoria?",
+        "soloRama": null
+      },
+      "foto": {
+        "de": "K11",
+        "texto": "¿Hacés algún deporte? Sacale una foto a la ropa o a lo que usás para jugar.",
+        "botones": [
+          "No hago",
+          "No tengo"
+        ],
+        "noTengo": null
+      },
+      "estrella": true,
+      "sacable": true,
+      "sensible": false,
+      "avisoAntes": false
+    },
+    {
+      "id": "K12",
+      "cap": 2,
+      "texto": "Vamos con hermanos.",
+      "ramas": [
+        {
+          "boton": "Tengo hermanos",
+          "accion": {
+            "tipo": "preguntar",
+            "pasos": [
+              "Contame la última vez que te reíste mucho con un hermano o una hermana. Y decime cómo se llaman tus hermanos, aunque sea uno solo."
+            ]
+          }
+        },
+        {
+          "boton": "No tengo hermanos",
+          "accion": {
+            "tipo": "preguntar",
+            "pasos": [
+              "¿Te hubiera gustado tener un hermano o una hermana?",
+              "¿Y alguien que sea casi como un hermano o hermana para vos? Contame una vez juntos, y decime cómo se llama."
+            ]
+          }
+        }
+      ],
+      "botonPaso": "Paso",
+      "op": {
+        "texto": "¿Y algo tuyo que un hermano o hermana te saca sin pedir? Contame la última vez.",
+        "soloRama": "Tengo hermanos"
+      },
+      "foto": {
+        "de": "K12",
+        "texto": "La ropa o las zapatillas que te ponés siempre, las que en tu casa ya quieren tirar. Mostrámelas.",
+        "botones": [
+          "No tengo"
+        ],
+        "noTengo": null
+      },
+      "estrella": true,
+      "sacable": false,
+      "sensible": false,
+      "avisoAntes": false
+    },
+    {
+      "id": "K13",
+      "cap": 2,
+      "texto": "Abuelos. ¿Ves seguido a alguno?",
+      "ramas": [
+        {
+          "boton": "Sí",
+          "accion": {
+            "tipo": "preguntar",
+            "pasos": [
+              "Contame la última vez que estuviste con alguno de tus abuelos o de tus abuelas, y decime cómo se llaman."
+            ]
+          }
+        },
+        {
+          "boton": "No mucho",
+          "accion": {
+            "tipo": "preguntar",
+            "pasos": [
+              "Contame una vez con alguien mayor que sea como un abuelo o una abuela para vos, y decime cómo se llama."
+            ]
+          }
+        }
+      ],
+      "botonPaso": "Paso",
+      "op": {
+        "texto": "¿Y algo que un abuelo o abuela te enseñó a hacer? Contame ese día.",
+        "soloRama": null
+      },
+      "foto": {
+        "de": "K13",
+        "texto": "Buscá la foto o la cosa más vieja que haya en tu casa y sacale una foto. ¿Qué sabés de eso?",
+        "botones": [
+          "No tengo"
+        ],
+        "noTengo": null
+      },
+      "estrella": true,
+      "sacable": false,
+      "sensible": false,
+      "avisoAntes": false
+    },
+    {
+      "id": "K14",
+      "cap": 2,
+      "texto": "¿Alguna vez te contaron cómo era la vida cuando tus abuelos eran chicos? Contame la historia que te quedó.",
+      "ramas": [],
+      "botonPaso": "Paso",
+      "op": {
+        "texto": "¿Y un lugar al que te llevaron y te dijeron \"acá venía yo de chic{{o/a}}\"? Contame ese día.",
+        "soloRama": null
+      },
+      "foto": {
+        "de": "K14",
+        "texto": "¿Sos hincha de algún club? Sacale una foto a algo que tengas de ese club y contame cómo te hiciste hincha.",
+        "botones": [
+          "De ninguno",
+          "No tengo"
+        ],
+        "noTengo": null
+      },
+      "estrella": false,
+      "sacable": false,
+      "sensible": false,
+      "avisoAntes": false
+    },
+    {
+      "id": "K15",
+      "cap": 2,
+      "texto": "Contame una tarde con un amigo o una amiga en la que no te querías ir a tu casa, y decime cómo se llama.",
+      "ramas": [],
+      "botonPaso": "Paso",
+      "op": {
+        "texto": "¿Y cómo te hiciste amig{{o/a}} de la persona con la que mejor te llevás? Contame ese día, y decime cómo se llama.",
+        "soloRama": null
+      },
+      "foto": {
+        "de": "K15",
+        "texto": "¿Tenés un ídolo, o varios, del deporte o de lo que sea? Mandame una foto y contame qué tienen.",
+        "botones": [
+          "No tengo"
+        ],
+        "noTengo": null
+      },
+      "estrella": true,
+      "sacable": false,
+      "sensible": false,
+      "avisoAntes": false
+    },
+    {
+      "id": "K16",
+      "cap": 2,
+      "texto": "¿Tenés primos o primas?",
+      "ramas": [
+        {
+          "boton": "Tengo primos",
+          "accion": {
+            "tipo": "preguntar",
+            "pasos": [
+              "Contame la última vez que se juntaron, y decime cómo se llaman. Si casi no los ves, también vale."
+            ]
+          }
+        },
+        {
+          "boton": "No tengo",
+          "accion": {
+            "tipo": "no-aplica"
+          }
+        }
+      ],
+      "botonPaso": "Paso",
+      "op": {
+        "texto": "¿Y qué hacen cuando se juntan? Contame la última.",
+        "soloRama": null
+      },
+      "foto": null,
+      "estrella": false,
+      "sacable": false,
+      "sensible": false,
+      "avisoAntes": false
+    },
+    {
+      "id": "K17",
+      "cap": 2,
+      "texto": "¿Hay un tío o una tía con quien te llevás mejor, si es que tenés? Contame algo que hace ese tío o esa tía que nadie más de la familia hace, y decime cómo se llama.",
+      "ramas": [],
+      "botonPaso": "Paso",
+      "op": {
+        "texto": "¿Y qué te dice siempre cuando te ve? Contame la última vez.",
+        "soloRama": null
+      },
+      "foto": null,
+      "estrella": false,
+      "sacable": false,
+      "sensible": false,
+      "avisoAntes": false
+    },
+    {
+      "id": "K18",
+      "cap": 2,
+      "texto": "¿Hay alguien que ahora es de tu familia pero antes no, como la pareja de tu mamá o de tu papá, o alguien que vino a vivir con ustedes? Contame el día que se conocieron.",
+      "ramas": [
+        {
+          "boton": "No hay nadie así",
+          "accion": {
+            "tipo": "no-aplica"
+          }
+        }
+      ],
+      "botonPaso": "Paso",
+      "op": {
+        "texto": "¿Y la primera comida con alguien que ahora vive con vos y antes no?",
+        "soloRama": null
+      },
+      "foto": null,
+      "estrella": false,
+      "sacable": true,
+      "sensible": false,
+      "avisoAntes": false
+    },
+    {
+      "id": "K19",
+      "cap": 2,
+      "texto": "Pensá en un grande que no es de tu familia ni de la escuela pero es importante para vos. Contame una vez juntos, y decime cómo se llama.",
+      "ramas": [],
+      "botonPaso": "Paso",
+      "op": {
+        "texto": "¿Y alguien que te cae bien y en tu casa casi no lo conocen? Contame de esa persona.",
+        "soloRama": null
+      },
+      "foto": null,
+      "estrella": false,
+      "sacable": false,
+      "sensible": false,
+      "avisoAntes": false
+    },
+    {
+      "id": "K20",
+      "cap": 2,
+      "texto": "¿Alguna vez necesitaste algo y te lo dio alguien del barrio o del edificio?",
+      "ramas": [
+        {
+          "boton": "Sí, una vez",
+          "accion": {
+            "tipo": "preguntar",
+            "pasos": [
+              "Contame esa vez. Y si sabés cómo se llama esa persona, decímelo."
+            ]
+          }
+        },
+        {
+          "boton": "No me pasó",
+          "accion": {
+            "tipo": "no-aplica"
+          }
+        }
+      ],
+      "botonPaso": "Paso",
+      "op": {
+        "texto": "¿Y alguien del barrio que te saluda siempre? Contame la última vez.",
+        "soloRama": null
+      },
+      "foto": null,
+      "estrella": false,
+      "sacable": false,
+      "sensible": false,
+      "avisoAntes": false
+    },
+    {
+      "id": "K21",
+      "cap": 3,
+      "texto": "Contame la última vez que algo te salió perfecto, de eso que sabés que hacés bien.",
+      "ramas": [],
+      "botonPaso": "Paso",
+      "op": {
+        "texto": "¿Y algo que hace poco te salió por primera vez? Contame ese día.",
+        "soloRama": null
+      },
+      "foto": {
+        "de": "K21",
+        "texto": "¿Mirás a algún youtuber o streamer? Mandame una captura y contame qué tiene que te gusta.",
+        "botones": [
+          "No miro",
+          "No tengo"
+        ],
+        "noTengo": null
+      },
+      "estrella": true,
+      "sacable": false,
+      "sensible": false,
+      "avisoAntes": false
+    },
+    {
+      "id": "K22",
+      "cap": 3,
+      "texto": "Ahora una del futuro. ¿Qué querés hacer de grande?",
+      "ramas": [],
+      "botonPaso": "Paso",
+      "op": {
+        "texto": "¿Y a quién de los grandes que conocés te gustaría parecerte? Contame por qué.",
+        "soloRama": null
+      },
+      "foto": {
+        "de": "K22",
+        "texto": "¿Cuál es la peli o serie que más veces viste? Ponela un segundo y sacale una foto a la pantalla.",
+        "botones": [
+          "No tengo"
+        ],
+        "noTengo": null
+      },
+      "estrella": true,
+      "sacable": false,
+      "sensible": false,
+      "avisoAntes": false
+    },
+    {
+      "id": "K23",
+      "cap": 3,
+      "texto": "¿Hay un maestro o una maestra que te caiga bien? Contame una vez que hizo algo por vos, y decime cómo se llama.",
+      "ramas": [],
+      "botonPaso": "Paso",
+      "op": {
+        "texto": "¿Y algo que un maestro o maestra dice siempre y toda la clase ya se sabe?",
+        "soloRama": null
+      },
+      "foto": {
+        "de": "K23",
+        "texto": "Sacale una foto a la carpeta de la materia que más te gusta. ¿Qué tiene esa materia?",
+        "botones": [
+          "No tengo"
+        ],
+        "noTengo": null
+      },
+      "estrella": false,
+      "sacable": false,
+      "sensible": false,
+      "avisoAntes": false
+    },
+    {
+      "id": "K24",
+      "cap": 3,
+      "texto": "¿Qué fue lo mejor que te pasó esta semana? Contame eso.",
+      "ramas": [],
+      "botonPaso": "Paso",
+      "op": {
+        "texto": "¿Y algo de esta semana que no esperabas? Contame qué pasó.",
+        "soloRama": null
+      },
+      "foto": {
+        "de": "K24",
+        "texto": "¿Cuál es tu comida favorita? Si hoy la comés, sacale una foto. Y si no, contame la última vez que la comiste.",
+        "botones": [
+          "Hoy no la como"
+        ],
+        "noTengo": null
+      },
+      "estrella": false,
+      "sacable": false,
+      "sensible": false,
+      "avisoAntes": false
+    },
+    {
+      "id": "K25",
+      "cap": 3,
+      "texto": "¿Ya tenés celular?",
+      "ramas": [
+        {
+          "boton": "Sí",
+          "accion": {
+            "tipo": "preguntar",
+            "pasos": [
+              "Contame el día que tuviste celular por primera vez."
+            ]
+          }
+        },
+        {
+          "boton": "Todavía no",
+          "accion": {
+            "tipo": "preguntar",
+            "pasos": [
+              "Contame la última vez que lo pediste."
+            ]
+          }
+        }
+      ],
+      "botonPaso": "Paso",
+      "op": {
+        "texto": "¿Y lo que más hacés en un celular, tuyo o de otro? Contame la última vez.",
+        "soloRama": null
+      },
+      "foto": null,
+      "estrella": false,
+      "sacable": false,
+      "sensible": false,
+      "avisoAntes": false
+    },
+    {
+      "id": "K26",
+      "cap": 3,
+      "texto": "¿Cuándo fue la última vez que te llamaron a comer y no fuiste porque no podías soltar lo que hacías?",
+      "ramas": [],
+      "botonPaso": "Paso",
+      "op": {
+        "texto": "¿Y a qué jugás cuando llegás a tu casa? Contame la última vez.",
+        "soloRama": null
+      },
+      "foto": null,
+      "estrella": false,
+      "sacable": false,
+      "sensible": false,
+      "avisoAntes": false
+    },
+    {
+      "id": "K27",
+      "cap": 3,
+      "texto": "¿Qué música te gusta? ¿Cuál es tu canción favorita del momento?",
+      "ramas": [],
+      "botonPaso": "Paso",
+      "op": {
+        "texto": "¿Y una canción que escuchaste tanto que ya te la sabés entera?",
+        "soloRama": null
+      },
+      "foto": null,
+      "estrella": false,
+      "sacable": false,
+      "sensible": false,
+      "avisoAntes": false
+    },
+    {
+      "id": "K28",
+      "cap": 3,
+      "texto": "¿En qué te molesta perder de verdad? Contame la última vez que perdiste en eso.",
+      "ramas": [],
+      "botonPaso": "Paso",
+      "op": {
+        "texto": "¿Y una vez que ganaste y no te lo esperabas? Contame ese día.",
+        "soloRama": null
+      },
+      "foto": null,
+      "estrella": false,
+      "sacable": false,
+      "sensible": false,
+      "avisoAntes": false
+    },
+    {
+      "id": "K29",
+      "cap": 3,
+      "texto": "¿Qué fue lo último que compraste con plata tuya? Contame ese día.",
+      "ramas": [],
+      "botonPaso": "Paso",
+      "op": {
+        "texto": "¿Y algo que te gustaría comprarte y todavía no podés? Contame.",
+        "soloRama": null
+      },
+      "foto": {
+        "de": "K29",
+        "texto": "Mostrame dónde guardás tu plata, aunque sea un cajón. ¿Desde cuándo?",
+        "botones": [
+          "No tengo"
+        ],
+        "noTengo": "Dale, no pasa nada. Si alguna vez juntaste plata para algo, contámelo en un audio."
+      },
+      "estrella": false,
+      "sacable": false,
+      "sensible": false,
+      "avisoAntes": false
+    },
+    {
+      "id": "K30",
+      "cap": 3,
+      "texto": "Decime algo que todavía no te dejan hacer sol{{o/a}} y vos ya te sentís list{{o/a}}.",
+      "ramas": [],
+      "botonPaso": "Paso",
+      "op": {
+        "texto": "¿Y qué pasó la última vez que lo pediste?",
+        "soloRama": null
+      },
+      "foto": null,
+      "estrella": false,
+      "sacable": false,
+      "sensible": false,
+      "avisoAntes": false
+    },
+    {
+      "id": "K31",
+      "cap": 4,
+      "texto": "Ahora quiero esa historia, la que ya contaste mil veces y todos se ríen igual. Todos tenemos una. ¿Cuál es la tuya?",
+      "ramas": [],
+      "botonPaso": "Paso",
+      "op": {
+        "texto": "¿Y una historia tuya que contás distinto cada vez? Contame la versión de hoy.",
+        "soloRama": null
+      },
+      "foto": null,
+      "estrella": true,
+      "sacable": false,
+      "sensible": false,
+      "avisoAntes": false
+    },
+    {
+      "id": "K32",
+      "cap": 4,
+      "texto": "¿Cuándo fue la última vez que te pusiste roj{{o/a}} delante de otros? Contame qué pasó.",
+      "ramas": [],
+      "botonPaso": "Paso",
+      "op": {
+        "texto": "¿Y algo que te daba vergüenza el año pasado y ahora ya no?",
+        "soloRama": null
+      },
+      "foto": null,
+      "estrella": false,
+      "sacable": false,
+      "sensible": false,
+      "avisoAntes": false
+    },
+    {
+      "id": "K33",
+      "cap": 4,
+      "texto": "Contame una vez que hiciste algo bien y nadie se enteró. Solo vos lo sabés.",
+      "ramas": [],
+      "botonPaso": "Paso",
+      "op": {
+        "texto": "¿Y algo que te costó mucho y al final salió? Contame.",
+        "soloRama": null
+      },
+      "foto": null,
+      "estrella": false,
+      "sacable": false,
+      "sensible": false,
+      "avisoAntes": false
+    },
+    {
+      "id": "K34",
+      "cap": 4,
+      "texto": "Contame una vez que tuviste miedo y lo hiciste igual.",
+      "ramas": [],
+      "botonPaso": "Paso",
+      "op": {
+        "texto": "¿Y una vez que dijiste que no cuando todos decían que sí?",
+        "soloRama": null
+      },
+      "foto": null,
+      "estrella": false,
+      "sacable": false,
+      "sensible": false,
+      "avisoAntes": false
+    },
+    {
+      "id": "K35",
+      "cap": 4,
+      "texto": "Pensá en alguien al que ayudaste sin que te lo pidiera. Contame qué pasó.",
+      "ramas": [],
+      "botonPaso": "Paso",
+      "op": {
+        "texto": "¿Y una vez que alguien te ayudó sin que se lo pidieras?",
+        "soloRama": null
+      },
+      "foto": null,
+      "estrella": false,
+      "sacable": false,
+      "sensible": false,
+      "avisoAntes": false
+    },
+    {
+      "id": "K36",
+      "cap": 4,
+      "texto": "¿Alguna vez te peleaste en serio con un amigo o una amiga? Contame el día que se pelearon.",
+      "ramas": [],
+      "botonPaso": "Paso",
+      "op": {
+        "texto": "¿Y una vez que te enojaste con alguien y se te pasó rápido? Contame.",
+        "soloRama": null
+      },
+      "foto": null,
+      "estrella": false,
+      "sacable": false,
+      "sensible": false,
+      "avisoAntes": false
+    },
+    {
+      "id": "K37",
+      "cap": 4,
+      "texto": "¿Te echaron la culpa alguna vez de algo que no hiciste? Contame ese día.",
+      "ramas": [],
+      "botonPaso": "Paso",
+      "op": {
+        "texto": "¿Y una vez que fuiste injust{{o/a}} con alguien? Contame.",
+        "soloRama": null
+      },
+      "foto": null,
+      "estrella": false,
+      "sacable": false,
+      "sensible": false,
+      "avisoAntes": false
+    },
+    {
+      "id": "K38",
+      "cap": 4,
+      "texto": "Contame el día que algo cambió en tu vida, una mudanza por ejemplo.",
+      "ramas": [
+        {
+          "boton": "No se me ocurre",
+          "accion": {
+            "tipo": "no-aplica"
+          }
+        }
+      ],
+      "botonPaso": "Paso",
+      "op": {
+        "texto": "¿Y algo que hacías todos los días y de repente dejaste de hacer? Contame el último día.",
+        "soloRama": null
+      },
+      "foto": null,
+      "estrella": false,
+      "sacable": true,
+      "sensible": false,
+      "avisoAntes": false
+    },
+    {
+      "id": "K39",
+      "cap": 4,
+      "texto": "A todos nos toca algún día feo. ¿Cuál fue el tuyo? Contá lo que quieras, y lo que no, no.",
+      "ramas": [],
+      "botonPaso": "Esta la paso",
+      "op": null,
+      "foto": null,
+      "estrella": false,
+      "sacable": false,
+      "sensible": true,
+      "avisoAntes": true
+    },
+    {
+      "id": "K40",
+      "cap": 4,
+      "texto": "Pensá en la última vez que estabas triste o enojad{{o/a}} y alguien te hizo sentir mejor. Contame, y decime quién.",
+      "ramas": [],
+      "botonPaso": "Paso",
+      "op": {
+        "texto": "¿Y qué hacés vos sol{{o/a}} cuando estás mal, para que se te pase? Contame la última vez.",
+        "soloRama": null
+      },
+      "foto": null,
+      "estrella": true,
+      "sacable": false,
+      "sensible": false,
+      "avisoAntes": false
+    },
+    {
+      "id": "K41",
+      "cap": 5,
+      "texto": "¿Ya te pasó que te guste alguien? Sin decirme quién, contame cómo te diste cuenta. Y si todavía no, cómo te lo imaginás.",
+      "ramas": [],
+      "botonPaso": "Esta no, gracias",
+      "op": {
+        "texto": "¿Y qué es lo que te pone nervios{{o/a}} de otra persona, aunque no sepas por qué?",
+        "soloRama": null
+      },
+      "foto": null,
+      "estrella": false,
+      "sacable": false,
+      "sensible": false,
+      "avisoAntes": false
+    },
+    {
+      "id": "K42",
+      "cap": 5,
+      "texto": "Si algún día tenés un hijo o una hija, ¿qué vas a hacer igual a como te criaron a vos, y qué cambiarías?",
+      "ramas": [],
+      "botonPaso": "Paso",
+      "op": {
+        "texto": "¿Y qué cosa de tu casa te gustaría que siga existiendo cuando seas grande?",
+        "soloRama": null
+      },
+      "foto": null,
+      "estrella": true,
+      "sacable": false,
+      "sensible": false,
+      "avisoAntes": false
+    },
+    {
+      "id": "K43",
+      "cap": 5,
+      "texto": "Hacele una pregunta a la persona que vas a ser cuando abras el sobre. La que quieras.",
+      "ramas": [],
+      "botonPaso": "Paso",
+      "op": {
+        "texto": "¿Y qué le preguntarías que hoy no te animás a preguntarle a nadie?",
+        "soloRama": null
+      },
+      "foto": null,
+      "estrella": false,
+      "sacable": false,
+      "sensible": false,
+      "avisoAntes": false
+    },
+    {
+      "id": "K44",
+      "cap": 5,
+      "texto": "¿Qué es lo que no querés olvidarte nunca de tu vida de ahora?",
+      "ramas": [],
+      "botonPaso": "Paso",
+      "op": {
+        "texto": "¿Y un lugar de ahora que querés que vuelva cuando lo leas?",
+        "soloRama": null
+      },
+      "foto": null,
+      "estrella": false,
+      "sacable": false,
+      "sensible": false,
+      "avisoAntes": false
+    },
+    {
+      "id": "K45",
+      "cap": 5,
+      "texto": "Cerrá los ojos un segundo. Un día cualquiera de tu vida de grande. Contámelo como te lo imaginás.",
+      "ramas": [],
+      "botonPaso": "Paso",
+      "op": {
+        "texto": "¿Y qué es lo primero que hacés a la mañana en esa vida?",
+        "soloRama": null
+      },
+      "foto": null,
+      "estrella": false,
+      "sacable": false,
+      "sensible": false,
+      "avisoAntes": false
+    },
+    {
+      "id": "K46",
+      "cap": 5,
+      "texto": "Esta no es una pregunta, es un mensaje. El día que abras el sobre, ¿qué querés que lea de vos de ahora? Tomate el tiempo que quieras.",
+      "ramas": [],
+      "botonPaso": "Paso",
+      "op": {
+        "texto": "¿Y qué creés que va a pensar cuando lea esto?",
+        "soloRama": null
+      },
+      "foto": null,
+      "estrella": true,
+      "sacable": false,
+      "sensible": false,
+      "avisoAntes": false
+    },
+    {
+      "id": "K47",
+      "cap": 5,
+      "texto": "La última. Imaginate que alguien no te conoce nada y tenés dos minutos para que sepa quién sos. Contame.",
+      "ramas": [],
+      "botonPaso": "Paso",
+      "op": {
+        "texto": "¿Y qué diría de vos un amigo o una amiga si le preguntan cómo sos?",
+        "soloRama": null
+      },
+      "foto": null,
+      "estrella": true,
+      "sacable": false,
+      "sensible": false,
+      "avisoAntes": false
+    }
+  ],
+  "extras": [
+    {
+      "id": "X1-1",
+      "cap": 1,
+      "texto": "¿Y algo que te contaron de cuando eras bebé, aunque vos no te acuerdes?",
+      "foto": false,
+      "deOp": "K1",
+      "soloSi": null,
+      "sacable": false,
+      "sensible": false,
+      "liviana": false
+    },
+    {
+      "id": "X1-2",
+      "cap": 1,
+      "texto": "¿Y una travesura que hizo otro y vos la viste? Contame esa.",
+      "foto": false,
+      "deOp": "K2",
+      "soloSi": null,
+      "sacable": false,
+      "sensible": false,
+      "liviana": false
+    },
+    {
+      "id": "X1-3",
+      "cap": 1,
+      "texto": "¿Y un día común que terminó siendo buenísimo sin que nadie lo planeara? Contame ese.",
+      "foto": false,
+      "deOp": "K3",
+      "soloSi": null,
+      "sacable": false,
+      "sensible": false,
+      "liviana": false
+    },
+    {
+      "id": "X1-4",
+      "cap": 1,
+      "texto": "¿Alguna vez te aburriste tanto que inventaste un juego? Contame ese.",
+      "foto": false,
+      "deOp": "K4",
+      "soloSi": null,
+      "sacable": false,
+      "sensible": false,
+      "liviana": false
+    },
+    {
+      "id": "X1-5",
+      "cap": 1,
+      "texto": "¿Y afuera de tu casa, un lugar al que vas siempre? Contame la última vez que fuiste.",
+      "foto": false,
+      "deOp": "K8",
+      "soloSi": null,
+      "sacable": false,
+      "sensible": false,
+      "liviana": false
+    },
+    {
+      "id": "X1-6",
+      "cap": 1,
+      "texto": "¿Y un lugar al que fuiste una sola vez y querés volver? Contame qué había ahí.",
+      "foto": false,
+      "deOp": null,
+      "soloSi": null,
+      "sacable": false,
+      "sensible": false,
+      "liviana": false
+    },
+    {
+      "id": "X1-7",
+      "cap": 1,
+      "texto": "Mostrame algo que guardás hace años aunque nadie entienda por qué. ¿De dónde salió?",
+      "foto": true,
+      "deOp": null,
+      "soloSi": null,
+      "sacable": false,
+      "sensible": false,
+      "liviana": false
+    },
+    {
+      "id": "X2-1",
+      "cap": 2,
+      "texto": "Contame la última vez que le pediste algo a tu mamá y te costó pedírselo.",
+      "foto": false,
+      "deOp": null,
+      "soloSi": null,
+      "sacable": false,
+      "sensible": false,
+      "liviana": false
+    },
+    {
+      "id": "X2-2",
+      "cap": 2,
+      "texto": "Contame la última vez que tu mamá te sorprendió con algo.",
+      "foto": false,
+      "deOp": null,
+      "soloSi": null,
+      "sacable": false,
+      "sensible": false,
+      "liviana": false
+    },
+    {
+      "id": "X2-3",
+      "cap": 2,
+      "texto": "Contame una vez que viste a tu mamá enojada de verdad.",
+      "foto": false,
+      "deOp": null,
+      "soloSi": null,
+      "sacable": true,
+      "sensible": false,
+      "liviana": false
+    },
+    {
+      "id": "X2-4",
+      "cap": 2,
+      "texto": "¿Cómo le decís vos a tu mamá? Contame de dónde salió eso.",
+      "foto": false,
+      "deOp": null,
+      "soloSi": null,
+      "sacable": false,
+      "sensible": false,
+      "liviana": false
+    },
+    {
+      "id": "X2-5",
+      "cap": 2,
+      "texto": "Contame una vez que tu papá te enseñó algo que hoy hacés sol{{o/a}}.",
+      "foto": false,
+      "deOp": null,
+      "soloSi": null,
+      "sacable": false,
+      "sensible": false,
+      "liviana": false
+    },
+    {
+      "id": "X2-6",
+      "cap": 2,
+      "texto": "Contame la última vez que hiciste reír a tu papá, en serio, a carcajadas.",
+      "foto": false,
+      "deOp": null,
+      "soloSi": null,
+      "sacable": false,
+      "sensible": false,
+      "liviana": false
+    },
+    {
+      "id": "X2-7",
+      "cap": 2,
+      "texto": "Contame una vez que viste a tu papá enojado de verdad.",
+      "foto": false,
+      "deOp": null,
+      "soloSi": null,
+      "sacable": true,
+      "sensible": false,
+      "liviana": false
+    },
+    {
+      "id": "X2-8",
+      "cap": 2,
+      "texto": "¿Cómo le decís vos a tu papá? Contame de dónde salió eso.",
+      "foto": false,
+      "deOp": null,
+      "soloSi": null,
+      "sacable": false,
+      "sensible": false,
+      "liviana": false
+    },
+    {
+      "id": "X2-9",
+      "cap": 2,
+      "texto": "Contame una vez que un hermano o hermana te cubrió para que no te retaran.",
+      "foto": false,
+      "deOp": null,
+      "soloSi": "hermanos",
+      "sacable": false,
+      "sensible": false,
+      "liviana": false
+    },
+    {
+      "id": "X2-10",
+      "cap": 2,
+      "texto": "Contame la última vez que tuviste que compartir algo con un hermano o hermana y no querías.",
+      "foto": false,
+      "deOp": null,
+      "soloSi": "hermanos",
+      "sacable": false,
+      "sensible": false,
+      "liviana": false
+    },
+    {
+      "id": "X2-11",
+      "cap": 2,
+      "texto": "Contame una vez que un amigo o una amiga te defendió delante de otros.",
+      "foto": false,
+      "deOp": null,
+      "soloSi": null,
+      "sacable": false,
+      "sensible": false,
+      "liviana": false
+    },
+    {
+      "id": "X3-1",
+      "cap": 3,
+      "texto": "Contame una vez con un compañero o compañera de este año que no te vas a olvidar.",
+      "foto": false,
+      "deOp": null,
+      "soloSi": null,
+      "sacable": false,
+      "sensible": false,
+      "liviana": false
+    },
+    {
+      "id": "X3-2",
+      "cap": 3,
+      "texto": "Contame una vez que alguien en la escuela te hizo pasar un mal momento. Contá lo que quieras, y lo que no, no.",
+      "foto": false,
+      "deOp": null,
+      "soloSi": null,
+      "sacable": true,
+      "sensible": true,
+      "liviana": false
+    },
+    {
+      "id": "X3-3",
+      "cap": 3,
+      "texto": "Contame el sábado pasado, desde que te levantaste hasta que te fuiste a dormir.",
+      "foto": false,
+      "deOp": null,
+      "soloSi": null,
+      "sacable": false,
+      "sensible": false,
+      "liviana": false
+    },
+    {
+      "id": "X3-4",
+      "cap": 3,
+      "texto": "Contame cómo fue ayer, desde que te levantaste.",
+      "foto": false,
+      "deOp": null,
+      "soloSi": null,
+      "sacable": false,
+      "sensible": false,
+      "liviana": false
+    },
+    {
+      "id": "X3-5",
+      "cap": 3,
+      "texto": "Contame la primera vez que ganaste plata por algo que hiciste.",
+      "foto": false,
+      "deOp": null,
+      "soloSi": null,
+      "sacable": false,
+      "sensible": false,
+      "liviana": false
+    },
+    {
+      "id": "X3-6",
+      "cap": 3,
+      "texto": "Contame una vez que gastaste plata en algo y después te arrepentiste.",
+      "foto": false,
+      "deOp": null,
+      "soloSi": null,
+      "sacable": false,
+      "sensible": false,
+      "liviana": false
+    },
+    {
+      "id": "X4-1",
+      "cap": 4,
+      "texto": "Contame una vez que te pasó algo tan raro que nadie te creyó.",
+      "foto": false,
+      "deOp": null,
+      "soloSi": null,
+      "sacable": false,
+      "sensible": false,
+      "liviana": true
+    },
+    {
+      "id": "X4-2",
+      "cap": 4,
+      "texto": "Contame el día más largo que tuviste, el que parecía que no terminaba nunca.",
+      "foto": false,
+      "deOp": null,
+      "soloSi": null,
+      "sacable": false,
+      "sensible": false,
+      "liviana": true
+    },
+    {
+      "id": "X4-3",
+      "cap": 4,
+      "texto": "Contame cómo se arreglaron después de esa pelea, si se arreglaron.",
+      "foto": false,
+      "deOp": null,
+      "soloSi": "pelea-k36",
+      "sacable": false,
+      "sensible": false,
+      "liviana": false
+    },
+    {
+      "id": "X4-4",
+      "cap": 4,
+      "texto": "Contame una vez que pediste perdón y te costó.",
+      "foto": false,
+      "deOp": null,
+      "soloSi": null,
+      "sacable": false,
+      "sensible": false,
+      "liviana": false
+    },
+    {
+      "id": "X4-5",
+      "cap": 4,
+      "texto": "Contame una frase que alguien te dijo una vez y te la acordás cuando estás mal.",
+      "foto": false,
+      "deOp": null,
+      "soloSi": null,
+      "sacable": false,
+      "sensible": false,
+      "liviana": false
+    },
+    {
+      "id": "X5-1",
+      "cap": 5,
+      "texto": "Contame cómo te imaginás a la persona con la que vas a estar de grande, si es que hay alguien.",
+      "foto": false,
+      "deOp": null,
+      "soloSi": null,
+      "sacable": false,
+      "sensible": false,
+      "liviana": false
+    },
+    {
+      "id": "X5-2",
+      "cap": 5,
+      "texto": "¿Qué nombre le pondrías a un hijo o una hija, hoy?",
+      "foto": false,
+      "deOp": null,
+      "soloSi": null,
+      "sacable": false,
+      "sensible": false,
+      "liviana": false
+    },
+    {
+      "id": "X5-3",
+      "cap": 5,
+      "texto": "¿Qué es lo que más te gusta de vos, hoy?",
+      "foto": false,
+      "deOp": null,
+      "soloSi": null,
+      "sacable": false,
+      "sensible": false,
+      "liviana": false
+    }
+  ],
+  "mensajes": [
+    {
+      "id": "ENTRADA-1",
+      "texto": "Empezamos por cuando eras más chic{{o/a}}. Vos contá como te salga.",
+      "botones": [],
+      "plantilla": null
+    },
+    {
+      "id": "CIERRE-1",
+      "texto": "Eso fue lo de chiquit{{o/a}}. ¿Quedó algo de esa época que no te pregunté y querés que esté en el libro?",
+      "botones": [
+        "No, eso fue todo",
+        "Sí, hay algo"
+      ],
+      "plantilla": null
+    },
+    {
+      "id": "ENTRADA-2",
+      "texto": "Ahora vamos con la gente de tu vida. Tu familia, tus amigos y los que querés.",
+      "botones": [],
+      "plantilla": null
+    },
+    {
+      "id": "CIERRE-2",
+      "texto": "Eso fue tu familia y tus amigos. ¿Quedó alguien que querés y no te pregunté? Contame de esa persona.",
+      "botones": [
+        "No, eso fue todo",
+        "Sí, hay algo"
+      ],
+      "plantilla": null
+    },
+    {
+      "id": "ENTRADA-3",
+      "texto": "Tercera parte. Tu vida hoy, tal cual es este año. La escuela, tus cosas, lo que te sale bien.",
+      "botones": [],
+      "plantilla": null
+    },
+    {
+      "id": "CIERRE-3",
+      "texto": "Eso fue tu vida de ahora. ¿Quedó algo de tu día a día que no te pregunté y va en el libro?",
+      "botones": [
+        "No, eso fue todo",
+        "Sí, hay algo"
+      ],
+      "plantilla": null
+    },
+    {
+      "id": "ENTRADA-4",
+      "texto": "Cuarta parte. Cosas que te pasaron. Acá no hay fotos, solo vos contando. Y siempre podés pasar.",
+      "botones": [],
+      "plantilla": null
+    },
+    {
+      "id": "CIERRE-4",
+      "texto": "Eso fue lo que te pasó. ¿Quedó alguna historia tuya que no te pregunté y querés en el libro?",
+      "botones": [
+        "No, eso fue todo",
+        "Sí, hay algo"
+      ],
+      "plantilla": null
+    },
+    {
+      "id": "ENTRADA-5",
+      "texto": "Última parte, y es distinta. Estas últimas van en un sobre cerrado, pegado al libro, para que lo abras cuando seas grande.",
+      "botones": [],
+      "plantilla": null
+    },
+    {
+      "id": "CIERRE-FINAL",
+      "texto": "Esas eran todas las preguntas. Contaste un montón, y con todo eso se arma tu libro. ¿Quedó algo que quieras decir, de lo que sea?",
+      "botones": [
+        "No, eso fue todo",
+        "Sí, hay algo"
+      ],
+      "plantilla": null
+    },
+    {
+      "id": "B-SEGUIR",
+      "texto": "Esa ya está. ¿Seguimos con otra ahora o la dejamos para mañana?",
+      "botones": [
+        "Dale, otra",
+        "Mañana sigo"
+      ],
+      "plantilla": null
+    },
+    {
+      "id": "B-MAÑANA",
+      "texto": "Ya está por hoy, mañana hay más.",
+      "botones": [],
+      "plantilla": null
+    },
+    {
+      "id": "B-AVISO-SERIA",
+      "texto": "Hay otra, pero es de las que se piensan con calma. ¿Vas ahora o mañana?",
+      "botones": [
+        "Voy ahora",
+        "Mañana mejor"
+      ],
+      "plantilla": null
+    },
+    {
+      "id": "B-UNA-MAS",
+      "texto": "Antes de cerrar esta parte, ¿querés una más de estas?",
+      "botones": [
+        "Dale, otra",
+        "No, cerramos"
+      ],
+      "plantilla": null
+    },
+    {
+      "id": "B-FOTO-NOTENGO",
+      "texto": "Dale. Si igual hay algo así pero no lo tenés a mano, contámelo en un audio y vale igual.",
+      "botones": [],
+      "plantilla": null
+    },
+    {
+      "id": "B-FOTO-PLATA",
+      "texto": "Dale, no pasa nada. Si alguna vez juntaste plata para algo, contámelo en un audio.",
+      "botones": [],
+      "plantilla": null
+    },
+    {
+      "id": "B-PASO",
+      "texto": "Dale, esa la salteamos.",
+      "botones": [],
+      "plantilla": null
+    },
+    {
+      "id": "B-NO-PASA-NADA",
+      "texto": "Dale, no pasa nada.",
+      "botones": [],
+      "plantilla": null
+    },
+    {
+      "id": "B-DIAFEO-ACUSE-1",
+      "texto": "Gracias por contarme eso. Lo guardamos con cuidado.",
+      "botones": [],
+      "plantilla": null
+    },
+    {
+      "id": "B-DIAFEO-ACUSE-2",
+      "texto": "Gracias por confiarme eso. Ya está, ya lo contaste.",
+      "botones": [],
+      "plantilla": null
+    },
+    {
+      "id": "B-TRANQUILA",
+      "texto": "Si querés, hay una más tranquila para no cerrar el día así. Vos elegís.",
+      "botones": [
+        "Dale, una tranquila",
+        "Mañana sigo"
+      ],
+      "plantilla": null
+    },
+    {
+      "id": "BIEN-CHICO",
+      "texto": "Hola {{1}}. Te escribo porque {{2}} te hizo un regalo con mucho cariño. Vas a armar el libro de tu vida, y lo mejor es que no hace falta escribir nada, lo vas contando con audios. Yo soy quien te va a ir haciendo las preguntas por acá.\n\nEs fácil. Te mando una pregunta y vos me contestás como si se lo contaras a un amigo. No hay que contestar bien ni mal, contás como te salga.\n\nA veces te voy a pedir una foto de algo tuyo, y a veces vas a ver botones para elegir. Si una pregunta no te gusta o no se te ocurre nada, la pasás y seguimos.\n\nCuando terminemos, todo lo que contaste se vuelve un libro de verdad, con tus palabras y tus fotos. Y la última parte va en un sobre cerrado, para que lo abras cuando seas grande.\n\n¿Vamos con la primera?",
+      "botones": [
+        "Dale, vamos"
+      ],
+      "plantilla": "kids_bienvenida"
+    },
+    {
+      "id": "BIEN-CHICO-PL",
+      "texto": "Hola {{1}}. Te escribo porque {{2}} te hicieron un regalo con mucho cariño. Vas a armar el libro de tu vida, y lo mejor es que no hace falta escribir nada, lo vas contando con audios. Yo soy quien te va a ir haciendo las preguntas por acá.\n\nEs fácil. Te mando una pregunta y vos me contestás como si se lo contaras a un amigo. No hay que contestar bien ni mal, contás como te salga.\n\nA veces te voy a pedir una foto de algo tuyo, y a veces vas a ver botones para elegir. Si una pregunta no te gusta o no se te ocurre nada, la pasás y seguimos.\n\nCuando terminemos, todo lo que contaste se vuelve un libro de verdad, con tus palabras y tus fotos. Y la última parte va en un sobre cerrado, para que lo abras cuando seas grande.\n\n¿Vamos con la primera?",
+      "botones": [
+        "Dale, vamos"
+      ],
+      "plantilla": "kids_bienvenida_plural"
+    },
+    {
+      "id": "BIEN-PADRE",
+      "texto": "Hola {{1}}. Qué lindo regalo le estás haciendo a {{2}}, su propio libro, con vos al lado mientras lo cuenta. Las preguntas van a llegar a este número. Te cuento cómo es para que salga todo bien.\n\nCuando llegue una, buscá un rato tranquilo y sentate con {{2}} al lado. Leésela, o pasale el celular para que la lea.\n\nLa respuesta es un audio, y lo graba {{2}} con sus palabras. No contestes vos ni le corrijas nada. Si se va por las ramas o dice algo que no es como vos lo recordás, eso también va al libro, y es lo que lo hace suyo.\n\nLos botones también los toca {{2}}, para pasar una pregunta, decir que no tiene algo o pedir otra. Son parte de lo que cuenta.\n\nY una sola cosa te pedimos. Leé todo, pero no le digas nada hasta el libro. Ni qué te pareció ni qué te hubiera gustado que dijera. Todo queda guardado en tu panel, también lo del sobre cerrado.\n\nCuando estén juntos, tocá el botón y llega la primera.",
+      "botones": [
+        "Estamos listos"
+      ],
+      "plantilla": "kids_bienvenida_padre"
+    },
+    {
+      "id": "AVISO-PADRE",
+      "texto": "Hola {{1}}. Ya le escribimos a {{2}}. Le contamos de parte de quién es el regalo, y cuando toque \"Dale, vamos\" le llega la primera pregunta. De ahí en adelante va a su ritmo, por lo menos una por día, y más si tiene ganas.\n\nTodo lo que cuente lo podés ver en tu panel, en {{3}} (audios, fotos y respuestas, también las del sobre cerrado).\n\nMientras tanto, solo te escribimos si pasan cuatro días sin que conteste, para que le des un empujoncito en casa. A {{2}} no le decimos nada por tardar. No hay retos ni apuros de nuestro lado.\n\nY una sola cosa te pedimos. Leé todo, pero no le digas nada hasta el libro.",
+      "botones": [],
+      "plantilla": "kids_aviso_padre"
+    },
+    {
+      "id": "PREG-NUEVA-CHICO",
+      "texto": "Hola {{1}}, hay una pregunta esperándote. Tocá el botón y te la mando.",
+      "botones": [
+        "Dale, mandámela"
+      ],
+      "plantilla": "kids_pregunta_nueva"
+    },
+    {
+      "id": "PREG-NUEVA-PADRE",
+      "texto": "Hola {{1}}, hay una pregunta nueva para {{2}}. Cuando estén juntos y con un rato tranquilo, tocá el botón y llega.",
+      "botones": [
+        "Estamos listos"
+      ],
+      "plantilla": "kids_pregunta_nueva_padre"
+    },
+    {
+      "id": "RECORD-A-4",
+      "texto": "Hola {{1}}. Pasaron cuatro días sin respuesta de {{2}}, así que te avisamos como habíamos quedado. Si podés, dale un empujoncito en casa, sin apuro. Nosotros no le decimos nada por tardar.",
+      "botones": [],
+      "plantilla": "kids_recordatorio_padre"
+    },
+    {
+      "id": "RECORD-A-8",
+      "texto": "Hola {{1}}. Pasaron ocho días sin respuesta de {{2}}, así que te avisamos como habíamos quedado. Si podés, dale un empujoncito en casa, sin apuro. Nosotros no le decimos nada por tardar.",
+      "botones": [],
+      "plantilla": "kids_recordatorio_padre_8"
+    },
+    {
+      "id": "RECORD-B",
+      "texto": "Hola {{1}}. Pasaron cuatro días sin que respondan la pregunta pendiente, no hay problema. Es solo un recordatorio, sin apuro. Cuando tengan un momento, sentate con {{2}} al lado y tocá el botón para seguir.",
+      "botones": [
+        "Estamos listos"
+      ],
+      "plantilla": "kids_recordatorio_lo_hago_yo"
+    },
+    {
+      "id": "RECORD-B-8",
+      "texto": "Hola {{1}}. Pasaron ocho días sin que respondan la pregunta pendiente, no hay problema. Es solo un recordatorio, sin apuro. Cuando tengan un momento, sentate con {{2}} al lado y tocá el botón para seguir.",
+      "botones": [
+        "Estamos listos"
+      ],
+      "plantilla": "kids_recordatorio_lo_hago_yo_8"
+    },
+    {
+      "id": "PADRE-PREG-LINEA",
+      "texto": "Esta pregunta te la manda {{1}}, con sus palabras.",
+      "botones": [],
+      "plantilla": null
+    },
+    {
+      "id": "PADRE-PREG-LINEA-PL",
+      "texto": "Esta pregunta te la mandan {{1}}, con sus palabras.",
+      "botones": [],
+      "plantilla": null
+    },
+    {
+      "id": "EXTRAS-OFERTA",
+      "texto": "Me quedaron algunas preguntas más de todo lo que fuimos hablando. Si tenés ganas las hacemos, y si no, ya está, el libro se arma igual con todo lo que contaste.",
+      "botones": [
+        "Dale, otra",
+        "No, ya está"
+      ],
+      "plantilla": null
+    },
+    {
+      "id": "EXTRAS-SI",
+      "texto": "Dale, va la primera.",
+      "botones": [],
+      "plantilla": null
+    },
+    {
+      "id": "EXTRAS-OTRA",
+      "texto": "¿Querés otra o lo dejamos acá?",
+      "botones": [
+        "Dale, otra",
+        "Lo dejamos acá"
+      ],
+      "plantilla": null
+    },
+    {
+      "id": "EXTRAS-FIN",
+      "texto": "Esa era la última que me quedaba.",
+      "botones": [],
+      "plantilla": null
+    },
+    {
+      "id": "FINAL-CHICO",
+      "texto": "Bueno {{1}}, hasta acá llegamos. Ya tengo todo lo que contaste con tus audios y tus fotos, y ahora con eso se arma el libro, con tus palabras. Cuando esté listo te lo va a dar {{2}}, que fue quien te hizo este regalo. La última parte, la del sobre cerrado, va aparte, pegada al libro, para que la abras cuando seas grande. Gracias por contarme todo esto. Nos vemos pronto.",
+      "botones": [],
+      "plantilla": null
+    },
+    {
+      "id": "FINAL-CHICO-PL",
+      "texto": "Bueno {{1}}, hasta acá llegamos. Ya tengo todo lo que contaste con tus audios y tus fotos, y ahora con eso se arma el libro, con tus palabras. Cuando esté listo te lo van a dar {{2}}, que fueron quienes te hicieron este regalo. La última parte, la del sobre cerrado, va aparte, pegada al libro, para que la abras cuando seas grande. Gracias por contarme todo esto. Nos vemos pronto.",
+      "botones": [],
+      "plantilla": null
+    },
+    {
+      "id": "TERMINO-PADRE",
+      "texto": "Hola {{1}}. {{2}} terminó de contar. Ya están todas sus respuestas en tu panel, también las del sobre cerrado. Ahora empieza el armado del libro, y te avisamos cuando esté listo. Y lo mismo que al principio, no le digas nada hasta el libro.",
+      "botones": [],
+      "plantilla": "kids_termino_padre"
+    },
+    {
+      "id": "ACUSE-1",
+      "texto": "Lo escuché entero, de principio a fin.",
+      "botones": [],
+      "plantilla": null
+    },
+    {
+      "id": "ACUSE-2",
+      "texto": "Ya quedó guardado con todo lo demás, gracias por mandarlo.",
+      "botones": [],
+      "plantilla": null
+    },
+    {
+      "id": "ACUSE-3",
+      "texto": "Eso va al libro, con tus palabras.",
+      "botones": [],
+      "plantilla": null
+    },
+    {
+      "id": "ACUSE-4",
+      "texto": "Ya lo escuché, lo tengo.",
+      "botones": [],
+      "plantilla": null
+    },
+    {
+      "id": "ACUSE-5",
+      "texto": "Ya quedó guardado, así como lo contaste.",
+      "botones": [],
+      "plantilla": null
+    },
+    {
+      "id": "ACUSE-6",
+      "texto": "Te escuché, y ya está a salvo para el libro.",
+      "botones": [],
+      "plantilla": null
+    },
+    {
+      "id": "ACUSE-7",
+      "texto": "Listo, lo tengo.",
+      "botones": [],
+      "plantilla": null
+    },
+    {
+      "id": "ACUSE-FOTO-1",
+      "texto": "Llegó la foto, ya está guardada.",
+      "botones": [],
+      "plantilla": null
+    },
+    {
+      "id": "ACUSE-FOTO-2",
+      "texto": "Esa foto la guardo para el libro.",
+      "botones": [],
+      "plantilla": null
+    },
+    {
+      "id": "ACUSE-FOTO-3",
+      "texto": "Ya la tengo, gracias por mandarla.",
+      "botones": [],
+      "plantilla": null
+    }
+  ]
+}
