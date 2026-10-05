@@ -163,3 +163,32 @@ describe('kids v2: una foto vencida que vuelve al final (cambio A de Naza, 05/10
     expect(ids(d.salidas)).toEqual(['ACUSE-1', 'EXTRAS-OTRA']);
   });
 });
+
+describe('kids v2: arreglos de la revisión (fotos, bienvenida y retenido, rama que no existe)', () => {
+  it('solo fotos, fuera de la fase de foto: acuse de foto, nunca uno con "escuché"', () => {
+    const c = cuenta(ctx(estadoEn('K5', preg('K5'))), FOTO);
+    expect(ids(c.salidas)).toEqual(['ACUSE-FOTO-1', 'B-SEGUIR']);
+    const d = cuenta(ctx(estadoEn('K5', { tipo: 'seguir' })), FOTO, FOTO);
+    expect(ids(d.salidas)).toEqual(['ACUSE-FOTO-1']);
+  });
+
+  it('texto y foto (sin audio): acuse de escrito, sin "escuché"', () => {
+    const c = cuenta(ctx(estadoEn('K5', preg('K5'))), TEXTO('mirá'), FOTO);
+    expect(ids(c.salidas)).toEqual(['ACUSE-2', 'B-SEGUIR']);
+  });
+
+  it('en la bienvenida o con PREG-NUEVA sin tocar, si cuenta algo: primero el acuse y después se suelta', () => {
+    const c = cuenta(ctx(estadoEn('K1', { tipo: 'bienvenida' })), AUDIO(40));
+    expect(ids(c.salidas)).toEqual(['ACUSE-1', 'ENTRADA-1', 'K1']);
+    const m = { a: 'chico' as const, id: 'K6', texto: 'x', botones: ['Paso'], plantilla: null };
+    const d = cuenta(ctx(estadoEn('K5', { tipo: 'retenido', mensajes: [m], luego: preg('K6') })), AUDIO(40));
+    expect(ids(d.salidas)).toEqual(['ACUSE-1', 'K6']);
+    expect(d.e.fase).toEqual(preg('K6'));
+  });
+
+  it('una rama que la pregunta no tiene: error claro', () => {
+    const c = ctx(estadoEn('K12', preg('K12', 'Tengo un perro')));
+    sumarARafaga(c, AUDIO(30));
+    expect(() => procesarRafaga(c)).toThrow('K12: no hay rama "Tengo un perro"');
+  });
+});

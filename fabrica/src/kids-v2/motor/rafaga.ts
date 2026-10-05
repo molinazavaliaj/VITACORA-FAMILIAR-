@@ -4,7 +4,7 @@
 
 import { pregunta } from '../banco.js';
 import { CORTO_AUDIO_SEG, CORTO_PALABRAS } from '../reglas.js';
-import { acusar, acuseFoto, emitir, empezarItem, fotoOTerminar, marcar, soltarRetenido, terminarItem, type Ctx } from './flujo.js';
+import { acusar, acuseFoto, emitir, enCurso, empezarItem, fotoOTerminar, marcar, soltarRetenido, terminarItem, type Ctx } from './flujo.js';
 import { opMsg, ramaMsg } from './mensajes.js';
 import type { Contenido } from './tipos.js';
 
@@ -35,45 +35,52 @@ export function procesarRafaga(c: Ctx): void {
   if (!r) return;
   e.rafaga = null;
   const corta = esCorta(r);
-  const escrito = r.seg === 0 && r.palabras > 0;
+  // Sin segundos de audio nunca va un acuse con "escuché"; si mandó solo fotos, el acuse de foto
+  // (salvo en lo sensible, que lleva los del día feo).
+  const escrito = r.seg === 0;
+  const soloFotos = r.fotos > 0 && r.seg === 0 && r.palabras === 0;
+  const acuse = () => (soloFotos && !enCurso(e).sensible ? acuseFoto(c) : acusar(c, escrito));
   const f = e.fase;
 
   if (f.tipo === 'sin-empezar') return;
   if (f.tipo === 'terminado') return marcar(c, 'escribio-despues-del-final', `${r.seg} s de audio, ${r.palabras} palabras, ${r.fotos} fotos`);
 
   switch (f.tipo) {
+    // Escribir suelta (decisión 21); si contó algo, antes el acuse.
     case 'bienvenida':
+      if (!corta) acuse();
       return empezarItem(c, 0, false);
     case 'retenido':
+      if (!corta) acuse();
       return soltarRetenido(c);
     case 'pregunta':
-      return respuestaAPregunta(c, corta, escrito);
+      return respuestaAPregunta(c, corta, acuse);
     case 'op':
-      acusar(c, escrito);
+      acuse();
       return fotoOTerminar(c);
     case 'foto':
       // También una foto vencida que vuelve al final (clave K1-FOTO, en e.extra):
       // acusar() la reconoce con fotoVencidaEnCurso() y terminarItem() sigue con las extras.
       if (r.fotos > 0) acuseFoto(c);
-      else acusar(c, escrito);
+      else acuse();
       return terminarItem(c);
     case 'foto-audio':
-      acusar(c, escrito);
+      acuse();
       return terminarItem(c);
     case 'cierre':
       // Un "no" contado en vez de tocado: como [No, eso fue todo], sin acuse ("va al libro" nunca después de un no).
-      if (!corta) acusar(c, escrito);
+      if (!corta) acuse();
       return terminarItem(c);
     case 'cierre-cuenta':
-      acusar(c, escrito);
+      acuse();
       return terminarItem(c);
     default:
       // Esperando un botón (seguir, una más, tranquila, aviso, extras) o nada: si contó algo, acuse y se queda donde está.
-      if (!corta) acusar(c, escrito);
+      if (!corta) acuse();
   }
 }
 
-function respuestaAPregunta(c: Ctx, corta: boolean, escrito: boolean): void {
+function respuestaAPregunta(c: Ctx, corta: boolean, acuse: () => void): void {
   const e = c.e;
   const f = e.fase;
   if (f.tipo !== 'pregunta') return;
@@ -82,6 +89,7 @@ function respuestaAPregunta(c: Ctx, corta: boolean, escrito: boolean): void {
     const p = pregunta(item.clave);
     if (f.rama !== null) {
       const ri = p.ramas.findIndex((x) => x.boton === f.rama);
+      if (ri < 0) throw new Error(`${p.id}: no hay rama "${f.rama}"`);
       const accion = p.ramas[ri].accion;
       if (accion.tipo === 'preguntar' && f.pasoRama < accion.pasos.length - 1) {
         emitir(c, ramaMsg(e, p, ri, f.pasoRama + 1));
@@ -99,6 +107,6 @@ function respuestaAPregunta(c: Ctx, corta: boolean, escrito: boolean): void {
     }
     if (p.id === 'K36') e.peleaK36 = true;
   } else e.conto = true;
-  acusar(c, escrito);
+  acuse();
   fotoOTerminar(c);
 }
