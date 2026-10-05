@@ -24,7 +24,6 @@ export const variables = {
   padre: (f: Ficha) => [primerNombre(f.nombrePadre), f.apodo],
   avisoPadre: (f: Ficha) => [primerNombre(f.nombrePadre), f.apodo, f.linkPanel],
   apodo: (f: Ficha) => [f.apodo],
-  quien: (f: Ficha) => [f.quienRegala],
 };
 
 export function fijoA(e: Estado, id: IdMensaje, o: { variables?: string[]; paraPadre?: boolean } = {}): Mensaje {
@@ -58,10 +57,14 @@ export function extraMsg(e: Estado, x: Extra): Mensaje {
   return { a: destino(e), id: x.id, texto: render(e, x.texto), botones: x.foto ? ['No tengo'] : ['Paso'], plantilla: null };
 }
 
-/** La pregunta del padre va tal cual la escribió (sin género ni variables); antes, la línea, salvo "sin decir que es mía". */
+/**
+ * La pregunta del padre va tal cual la escribió (sin género ni variables); antes, la línea, salvo "sin decir que es mía".
+ * En la línea, {{1}} es quién la manda (`quien` de la pregunta) o, si no lo dijo, quién se lo regala.
+ */
 export function padreMsgs(e: Estado, item: Extract<ItemGuion, { tipo: 'padre' }>, conLinea = item.conLinea): Mensaje[] {
   const ms: Mensaje[] = [];
-  if (conLinea) ms.push(fijoA(e, esPlural(e.ficha.quienRegala) ? 'PADRE-PREG-LINEA-PL' : 'PADRE-PREG-LINEA', { variables: variables.quien(e.ficha) }));
+  const quien = item.quien ?? e.ficha.quienRegala;
+  if (conLinea) ms.push(fijoA(e, esPlural(quien) ? 'PADRE-PREG-LINEA-PL' : 'PADRE-PREG-LINEA', { variables: [quien] }));
   ms.push({ a: destino(e), id: item.clave, texto: item.texto, botones: ['Esta la paso'], plantilla: null });
   return ms;
 }

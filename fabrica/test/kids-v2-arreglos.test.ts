@@ -7,7 +7,10 @@ import { BANCO, pregunta } from '../src/kids-v2/banco.js';
 import { BORRADOS_POR_TEMA, textoSegunTemas, type Tema } from '../src/kids-v2/compra.js';
 import { preguntaMsg } from '../src/kids-v2/motor/mensajes.js';
 import { nuevoEstado } from '../src/kids-v2/motor.js';
-import { FICHA } from './kids-v2-ayuda.js';
+import { FICHA, ctx, estadoEn, ids, mensaje } from './kids-v2-ayuda.js';
+import { empezarItem } from '../src/kids-v2/motor/flujo.js';
+import { paso } from '../src/kids-v2/motor.js';
+import type { PreguntaPadre } from '../src/kids-v2/compra.js';
 
 describe('kids v2, arreglo 1: K18 sin la mamá o el papá sacados', () => {
   const k18 = (temasSacados: Tema[]) => preguntaMsg(nuevoEstado({ ...FICHA, temasSacados }), pregunta('K18')).texto;
@@ -95,5 +98,43 @@ describe('kids v2, arreglo 6: falsos avisos de algo preocupante', () => {
     // Una exclusión en la misma ráfaga no tapa lo otro.
     expect(fraseQueSalta('me corto el pelo y a veces me corto')).toBe('me corto');
     expect(fraseQueSalta('jaja me muero de risa pero en serio me quiero matar')).toBe('me quiero matar');
+  });
+});
+
+describe('kids v2, arreglo 2: la línea de la pregunta del padre dice quién la manda', () => {
+  const linea = (quienRegala: string, p: PreguntaPadre) => {
+    const c = ctx(estadoEn('CIERRE-4', { tipo: 'seguir' }, { quienRegala, preguntasPadre: [p] }));
+    empezarItem(c, c.e.guion.findIndex((x) => x.clave === 'PADRE-1'), false);
+    return c.salidas;
+  };
+
+  it('con `quien`, la línea dice quién la escribió (normalizado: "Tu mamá" → "tu mamá")', () => {
+    const s = linea('Tus abuelos', { texto: 'Contame la bici.', conLinea: true, quien: 'Tu mamá' });
+    expect(ids(s)).toEqual(['PADRE-PREG-LINEA', 'PADRE-1']);
+    expect(mensaje(s, 'PADRE-PREG-LINEA').texto).toBe('Esta pregunta te la manda tu mamá, con sus palabras.');
+  });
+
+  it('con `quien` en plural, la línea en plural', () => {
+    const s = linea('Tu mamá', { texto: 'Contame la bici.', conLinea: true, quien: 'Tus papás' });
+    expect(ids(s)).toEqual(['PADRE-PREG-LINEA-PL', 'PADRE-1']);
+    expect(mensaje(s, 'PADRE-PREG-LINEA-PL').texto).toBe('Esta pregunta te la mandan tus papás, con sus palabras.');
+  });
+
+  it('sin `quien` (o vacío), quién se lo regala, como antes', () => {
+    const s = linea('Tus abuelos', { texto: 'Contame la bici.', conLinea: true });
+    expect(mensaje(s, 'PADRE-PREG-LINEA-PL').texto).toBe('Esta pregunta te la mandan tus abuelos, con sus palabras.');
+    const v = linea('Tu abuela', { texto: 'Contame la bici.', conLinea: true, quien: '  ' });
+    expect(mensaje(v, 'PADRE-PREG-LINEA').texto).toBe('Esta pregunta te la manda tu abuela, con sus palabras.');
+  });
+
+  it('"sin decir que es mía": no hay línea aunque tenga `quien`', () => {
+    expect(ids(linea('Tu mamá', { texto: 'Contame la bici.', conLinea: false, quien: 'tu papá' }))).toEqual(['PADRE-1']);
+  });
+
+  it('el panel lo puede poner o cambiar con el evento ficha (antes del cap. 4)', () => {
+    const e0 = estadoEn('K5', { tipo: 'seguir' }, { quienRegala: 'Tus abuelos', preguntasPadre: [{ texto: 'Contame la bici.', conLinea: true }] });
+    const r = paso(e0, { tipo: 'ficha', cambios: { preguntasPadre: [{ texto: 'Contame la bici.', conLinea: true, quien: 'Tu mamá' }] } }, new Date('2026-10-10T21:05:00Z').toISOString());
+    expect(r.estado.ficha.preguntasPadre[0].quien).toBe('tu mamá');
+    expect(r.estado.guion.find((x) => x.clave === 'PADRE-1')).toMatchObject({ quien: 'tu mamá' });
   });
 });

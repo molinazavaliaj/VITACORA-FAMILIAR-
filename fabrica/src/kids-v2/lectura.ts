@@ -25,7 +25,7 @@ export const FICHA_LECTURA: Ficha = {
   temasSacados: ['papa'],
   fotosConOtrosChicos: false,
   preguntasPadre: [
-    { texto: 'Contame el día que aprendiste a andar en bici sin rueditas.', conLinea: true },
+    { texto: 'Contame el día que aprendiste a andar en bici sin rueditas.', conLinea: true, quien: 'Tu mamá' },
     { texto: 'Contame la primera noche que dormiste en lo de una amiga.', conLinea: false },
   ],
 };
@@ -145,8 +145,8 @@ export function lecturaCorrida(): string {
     '',
     `- ${f.nombre} ("${f.apodo}"), ${f.edad} años. Se lo regalan ${paraNaza(f.quienRegala)}. Compra ${f.nombrePadre} (la mamá).`,
     `- Las preguntas van a su WhatsApp (canal A), a las ${f.hora}, hora de Buenos Aires.`,
-    '- La mamá sacó el tema "Su papá": no sale K11, y su foto (el deporte) pasa a K16.',
-    `- Preguntas de la mamá: «${f.preguntasPadre[0].texto}» (con la línea) · «${f.preguntasPadre[1].texto}» (sin decir que es de ella).`,
+    '- La mamá sacó el tema "Su papá": no sale K11, su foto (el deporte) pasa a K16 y K18 no nombra a "tu papá".',
+    `- Preguntas de la mamá: «${f.preguntasPadre[0].texto}» (con la línea, que dice que la manda ${f.preguntasPadre[0].quien ? paraNaza(f.preguntasPadre[0].quien) : 'quien se lo regala'}) · «${f.preguntasPadre[1].texto}» (sin decir que es de ella).`,
     '- Lo que contesta Tini va en cursiva y es inventado. Al lado de cada mensaje, el ID del banco de donde sale. Las notas entre paréntesis no las ve nadie: son para leer.',
     '',
   ];

@@ -59,7 +59,12 @@ export function textoSegunTemas(id: string, texto: string, temasSacados: readonl
   return texto.replace(b.frase, b.frase.replace(borrar, ''));
 }
 
-export type PreguntaPadre = { texto: string; conLinea: boolean };
+/**
+ * `quien`: cómo le dice el chico a quien la escribió ("tu mamá"), para la línea
+ * "Esta pregunta te la manda {{1}}" (Naza 05/10). El panel pregunta "¿Quién se la
+ * manda?" con quién se lo regala de entrada; sin `quien`, va quién se lo regala.
+ */
+export type PreguntaPadre = { texto: string; conLinea: boolean; quien?: string };
 
 export type Ficha = {
   /** Su nombre (tapa). */
@@ -94,7 +99,9 @@ export function validarFicha(f: Ficha): Ficha {
   if (!esHora(f.hora) || f.hora < NOCHE_HASTA || f.hora >= NOCHE_DESDE) throw new Error(`Ficha: hora ${f.hora} fuera de 09:00–21:59`);
   if (!zonaValida(f.zona)) throw new Error(`Ficha: zona desconocida ${f.zona}`);
   for (const t of f.temasSacados) if (!(TEMAS as readonly string[]).includes(t)) throw new Error(`Ficha: tema desconocido ${t}`);
-  const preguntasPadre = f.preguntasPadre.map((p) => ({ texto: p.texto.trim(), conLinea: p.conLinea })).filter((p) => p.texto !== '');
+  const preguntasPadre = f.preguntasPadre
+    .map((p): PreguntaPadre => ({ texto: p.texto.trim(), conLinea: p.conLinea, ...(p.quien?.trim() ? { quien: normalizarQuienRegala(p.quien) } : {}) }))
+    .filter((p) => p.texto !== '');
   if (preguntasPadre.length > MAX_PREGUNTAS_PADRE) throw new Error(`Ficha: hasta ${MAX_PREGUNTAS_PADRE} preguntas del padre`);
   return {
     ...f,
@@ -112,7 +119,8 @@ export type ItemGuion =
   | { tipo: 'principal'; clave: string; cap: Cap; fotoDe: string | null; primeraDelCap: boolean; ultimaDelCap: boolean }
   | { tipo: 'una-mas'; clave: string; cap: Cap }
   | { tipo: 'cierre'; clave: string; cap: Cap }
-  | { tipo: 'padre'; clave: string; cap: Cap; n: number; texto: string; conLinea: boolean }
+  /** `quien`: quién la manda, si el padre lo dijo (si no, en la línea va quién se lo regala). */
+  | { tipo: 'padre'; clave: string; cap: Cap; n: number; texto: string; conLinea: boolean; quien?: string }
   | { tipo: 'extras'; clave: 'EXTRAS'; cap: Cap }
   | { tipo: 'final'; clave: 'FINAL'; cap: Cap };
 
@@ -142,7 +150,7 @@ export function armarGuion(f: Ficha): ItemGuion[] {
       guion.push({ tipo: 'una-mas', clave: `UNA-MAS-${cap}`, cap });
       guion.push({ tipo: 'cierre', clave: `CIERRE-${cap}`, cap });
     }
-    if (cap === 4) f.preguntasPadre.forEach((p, i) => guion.push({ tipo: 'padre', clave: `PADRE-${i + 1}`, cap: 4, n: i + 1, texto: p.texto, conLinea: p.conLinea }));
+    if (cap === 4) f.preguntasPadre.forEach((p, i) => guion.push({ tipo: 'padre', clave: `PADRE-${i + 1}`, cap: 4, n: i + 1, texto: p.texto, conLinea: p.conLinea, ...(p.quien ? { quien: p.quien } : {}) }));
   }
   guion.push({ tipo: 'cierre', clave: 'CIERRE-FINAL', cap: 5 });
   guion.push({ tipo: 'extras', clave: 'EXTRAS', cap: 5 });

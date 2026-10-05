@@ -4,8 +4,8 @@ Una chica **inventada**, mensaje por mensaje, como le llegaría por WhatsApp. Ge
 
 - Martina Sosa ("Tini"), 11 años. Se lo regalan sus abuelos. Compra Laura Sosa (la mamá).
 - Las preguntas van a su WhatsApp (canal A), a las 18:00, hora de Buenos Aires.
-- La mamá sacó el tema "Su papá": no sale K11, y su foto (el deporte) pasa a K16.
-- Preguntas de la mamá: «Contame el día que aprendiste a andar en bici sin rueditas.» (con la línea) · «Contame la primera noche que dormiste en lo de una amiga.» (sin decir que es de ella).
+- La mamá sacó el tema "Su papá": no sale K11, su foto (el deporte) pasa a K16 y K18 no nombra a "tu papá".
+- Preguntas de la mamá: «Contame el día que aprendiste a andar en bici sin rueditas.» (con la línea, que dice que la manda su mamá) · «Contame la primera noche que dormiste en lo de una amiga.» (sin decir que es de ella).
 - Lo que contesta Tini va en cursiva y es inventado. Al lado de cada mensaje, el ID del banco de donde sale. Las notas entre paréntesis no las ve nadie: son para leer.
 
 ## martes 6/10
@@ -1004,8 +1004,8 @@ _[toca «No, eso fue todo»]_
 **18:05 · Tini**  
 _[toca «Dale, otra»]_
 
-**18:05 · Vitácora** `PADRE-PREG-LINEA-PL`  
-> Esta pregunta te la mandan tus abuelos, con sus palabras.
+**18:05 · Vitácora** `PADRE-PREG-LINEA`  
+> Esta pregunta te la manda tu mamá, con sus palabras.
 
 **18:05 · Vitácora** `PADRE-1` · [Esta la paso]  
 > Contame el día que aprendiste a andar en bici sin rueditas.

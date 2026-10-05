@@ -27,7 +27,7 @@ describe('kids v2: lectura corrida (una chica inventada)', () => {
       'BIEN-CHICO-PL', 'AVISO-PADRE', 'ENTRADA-1', 'ENTRADA-2', 'ENTRADA-3', 'ENTRADA-4', 'ENTRADA-5',
       'K2-OP', 'B-FOTO-NOTENGO', 'B-PASO', 'K12-R2', 'K12-R2-2', 'K13-R1', 'B-NO-PASA-NADA', 'K11-FOTO',
       'PREG-NUEVA-CHICO', 'RECORD-A-4', 'K20-R1', 'B-UNA-MAS', 'CIERRE-1', 'CIERRE-2', 'CIERRE-3', 'CIERRE-4',
-      'B-AVISO-SERIA', 'K39', 'B-DIAFEO-ACUSE-1', 'B-TRANQUILA', 'B-MAÑANA', 'PADRE-PREG-LINEA-PL', 'PADRE-1', 'PADRE-2',
+      'B-AVISO-SERIA', 'K39', 'B-DIAFEO-ACUSE-1', 'B-TRANQUILA', 'B-MAÑANA', 'PADRE-PREG-LINEA', 'PADRE-1', 'PADRE-2',
       'CIERRE-FINAL', 'EXTRAS-OFERTA', 'EXTRAS-SI', 'EXTRAS-OTRA', 'FINAL-CHICO-PL', 'TERMINO-PADRE',
     ]) {
       expect(md, id).toContain(`\`${id}\``);
@@ -37,7 +37,10 @@ describe('kids v2: lectura corrida (una chica inventada)', () => {
   });
 
   it('la pregunta del padre sin línea llega sola; el aviso de la seria sale dos veces (dijo "mañana mejor")', () => {
-    expect(md.match(/`PADRE-PREG-LINEA-PL`/g)).toHaveLength(1);
+    // La mamá dijo que la primera la manda ella (arreglo 2, 05/10): "te la manda tu mamá", no "tus abuelos".
+    expect(md.match(/`PADRE-PREG-LINEA`/g)).toHaveLength(1);
+    expect(md).not.toContain('`PADRE-PREG-LINEA-PL`');
+    expect(md).toContain('Esta pregunta te la manda tu mamá, con sus palabras.');
     expect(md.match(/`B-AVISO-SERIA`/g)).toHaveLength(2);
   });
 
