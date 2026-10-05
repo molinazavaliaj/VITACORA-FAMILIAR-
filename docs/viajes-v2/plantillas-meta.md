@@ -4,7 +4,7 @@ Para cargar en **WhatsApp Manager → Plantillas de mensajes**, en la WABA "Vit�
 
 **Nombres nuevos con `_v2`.** No editar `bienvenida_viaje`: la usa la entrevista vieja (main), con el viajero que está de viaje ahora.
 
-Los textos son los aprobados en [`banco.md`](banco.md), con `{{nombre}}` → `{{1}}`. La única frase nueva es la de la plantilla 3 (falta el OK de Naza). Ejemplos inventados.
+Los textos son los aprobados en [`banco.md`](banco.md), con `{{nombre}}` → `{{1}}`. La única frase nueva es la de la plantilla 3 (aprobada por Naza el 05/10). Ejemplos inventados.
 
 ## Cuándo se usa cada una
 Dentro de las 24 h desde el último mensaje de la persona, todo va como texto libre (incluida la reacción ❤️). Las plantillas son solo para **abrir** la charla cuando la ventana está cerrada:
@@ -31,7 +31,7 @@ Hola, {{1}}. Te escribo porque {{2}} te hizo un regalo: {{3}} con tu viaje, cont
 ```
 Botón: `SÍ` · Ejemplos: {{1}} `Lucía` · {{2}} `Tomás` · {{3}} `un libro impreso`
 
-## 3. `mensaje_viaje_v2` — {{1}} cómo le dicen, {{2}} el mensaje del banco (en una sola línea) · **TEXTO NUEVO, falta OK de Naza**
+## 3. `mensaje_viaje_v2` — {{1}} cómo le dicen, {{2}} el mensaje del banco (en una sola línea) · texto nuevo, **aprobado por Naza el 05/10**
 
 ```
 Hola, {{1}}. Te escribo por tu Vitácora de Viaje.
@@ -61,4 +61,4 @@ Ejemplo: {{1}} `Lucía`
 ## Para Joaquín
 - Con el botón [SÍ], tocarlo vale como contestar SÍ (abre la ventana y dispara BIEN-2 y AS1).
 - Si alguna queda en revisión, la persona puede escribir primero y todo va como texto libre.
-- Catalán: estas mismas cinco, en `ca`, salen del banco de Viaje traducido (`banco-ca.md`), con el proceso de V3 catalán. Pendiente.
+- Catalán (`ca`) y castellano de España con tú (`es_ES`): estas mismas cinco salen del banco de Viaje traducido (`banco-ca.md`, `banco-es-ES.md`), con el proceso de V3 catalán. En curso desde el 05/10.
