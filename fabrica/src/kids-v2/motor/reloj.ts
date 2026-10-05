@@ -2,10 +2,9 @@
 // (mínimo una principal por día), los recordatorios al padre (4 y 8 días),
 // el cierre solo a los 2 días y TERMINO-PADRE en canal B. Nada de noche.
 
-import { fotoDelItem } from '../compra.js';
 import { aInstante, aLocal, diasEntre, esDeNoche, finDeLaNoche, sumarDias } from '../horas.js';
 import { ACTIVO_MS, CIERRE_SOLO_DIAS, ESPERA_AUDIO_FOTO_MS, RECORDATORIO_DIAS, SILENCIO_MS } from '../reglas.js';
-import { emitir, empezarItem, hoy, marcar, mensajeFinal, terminarItem, terminoPadre, type Ctx } from './flujo.js';
+import { emitir, empezarItem, guardarFotoVencida, hoy, marcar, mensajeFinal, terminarItem, terminoPadre, type Ctx } from './flujo.js';
 import { fijoA, variables } from './mensajes.js';
 import { procesarRafaga } from './rafaga.js';
 import type { Estado } from './tipos.js';
@@ -56,21 +55,6 @@ function recordatorio(c: Ctx): void {
 }
 
 /**
- * Lo que esperaba un botón vence a la hora (decisión 6). Si era la foto pegada de
- * una principal (o su otra puerta, y la foto todavía no había salido), la foto no
- * se pierde: la clave del item del guion va a `fotosVencidas` y vuelve al final
- * (cambio A, 05/10). Es la clave que resuelve flujo (K16 si llevaba la de K10 mudada).
- * La otra puerta vencida sí se pierde.
- */
-function guardarFotoVencida(e: Estado): void {
-  const f = e.fase;
-  if (e.extra || (f.tipo !== 'foto' && f.tipo !== 'op')) return;
-  const item = e.guion[e.cursor];
-  if (item?.tipo !== 'principal' || !fotoDelItem(item) || e.fotosVencidas.includes(item.clave)) return;
-  e.fotosVencidas.push(item.clave);
-}
-
-/**
  * El cierre solo a los 2 días cuando la oferta de extras quedó detrás de un
  * PREG-NUEVA que el chico nunca tocó. Al chico no le sale nada (sería una
  * segunda plantilla sin respuesta): FINAL-CHICO queda retenido en lugar de la
@@ -93,6 +77,7 @@ function cerrarConFinalRetenido(c: Ctx): void {
 function alaHora(c: Ctx): void {
   const e = c.e;
   const fecha = hoy(c);
+  if (e.sobrioHasta && c.ahora >= new Date(e.sobrioHasta)) e.sobrioHasta = null;
   if (e.terminoPadre && e.terminoPadre <= fecha) {
     emitir(c, fijoA(e, 'TERMINO-PADRE', { variables: variables.padre(e.ficha), paraPadre: true }));
     e.terminoPadre = null;
@@ -108,7 +93,7 @@ function alaHora(c: Ctx): void {
     return;
   }
   if (bloqueante(e)) return recordatorio(c);
-  if (e.diaHecho === fecha) return;
+  if (e.sobrioHasta || e.diaHecho === fecha) return;
   guardarFotoVencida(e);
   empezarItem(c, e.fase.tipo === 'libre' ? e.fase.siguiente : e.cursor + 1, true);
 }

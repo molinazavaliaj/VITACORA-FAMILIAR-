@@ -3,9 +3,11 @@
 // (05/10): otra puerta (si fue muy corta) → acuse → foto pegada → seguir.
 
 import { pregunta } from '../banco.js';
+import { fraseQueSalta } from '../preocupante.js';
 import { CORTO_AUDIO_SEG, CORTO_PALABRAS } from '../reglas.js';
-import { acusar, acuseFoto, emitir, enCurso, empezarItem, fotoOTerminar, marcar, soltarRetenido, terminarItem, type Ctx } from './flujo.js';
+import { acusar, acuseFoto, acuseSobrio, emitir, enCurso, empezarItem, fotoOTerminar, marcar, soltarRetenido, terminarItem, type Ctx } from './flujo.js';
 import { opMsg, ramaMsg } from './mensajes.js';
+import { alPreocupante, enDiaSobrio } from './sobrio.js';
 import type { Contenido } from './tipos.js';
 
 const palabras = (t: string) => t.trim().split(/\s+/).filter(Boolean).length;
@@ -44,6 +46,11 @@ export function procesarRafaga(c: Ctx): void {
 
   if (f.tipo === 'sin-empezar') return;
   if (f.tipo === 'terminado') return marcar(c, 'escribio-despues-del-final', `${r.seg} s de audio, ${r.palabras} palabras, ${r.fotos} fotos`);
+
+  // Algo preocupante (Naza 05/10): ese día solo el acuse sobrio; gana a todos los otros acuses.
+  if (enDiaSobrio(c)) return acuseSobrio(c);
+  const frase = r.textos.map(fraseQueSalta).find((x) => x !== null);
+  if (frase) return alPreocupante(c, frase, r.fotos > 0);
 
   switch (f.tipo) {
     // Escribir suelta (decisión 21); si contó algo, antes el acuse.

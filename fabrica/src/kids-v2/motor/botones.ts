@@ -19,6 +19,7 @@ import {
   type Ctx,
 } from './flujo.js';
 import { extraMsg, fijoA, fotoMsg, opMsg, padreMsgs, preguntaMsg, ramaMsg } from './mensajes.js';
+import { enDiaSobrio } from './sobrio.js';
 import type { Foto } from '../tipos.js';
 
 const BOTONES_NO_ES_LO_MIO = ['No hago', 'De ninguno', 'No miro'];
@@ -94,6 +95,7 @@ function estamosListos(c: Ctx): void {
 export function alBoton(c: Ctx, boton: string): void {
   const e = c.e;
   const f = e.fase;
+  if (enDiaSobrio(c)) return; // algo preocupante: ese día los botones no hacen nada
   if (e.ficha.canal === 'B' && boton === 'Estamos listos') return estamosListos(c);
   const item = e.guion[e.cursor];
 

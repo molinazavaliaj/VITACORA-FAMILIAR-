@@ -107,6 +107,22 @@ export function mandarExtra(c: Ctx, x: FotoVencida | Extra): void {
   e.fase = x.foto ? { tipo: 'foto', clave: x.id } : { tipo: 'pregunta', clave: x.id, rama: null, pasoRama: 0 };
 }
 
+/**
+ * La foto pegada de la principal en curso se pierde (cambio A, 05/10): la clave
+ * del item del guion va a `fotosVencidas` y vuelve al final. Es la clave que
+ * resuelve `fotoVencida` (K16 si llevaba la de K10 mudada). Pasa cuando vence a
+ * la hora lo que esperaba un botón (la foto, o su otra puerta antes de la foto;
+ * reloj.ts) y cuando algo preocupante corta la pregunta, la otra puerta o la
+ * foto (sobrio.ts). La otra puerta vencida sí se pierde (era optativa).
+ */
+export function guardarFotoVencida(e: Estado): void {
+  const f = e.fase;
+  if (e.extra || (f.tipo !== 'foto' && f.tipo !== 'op' && f.tipo !== 'pregunta')) return;
+  const item = e.guion[e.cursor];
+  if (item?.tipo !== 'principal' || !fotoDelItem(item) || e.fotosVencidas.includes(item.clave)) return;
+  e.fotosVencidas.push(item.clave);
+}
+
 /** FINAL-CHICO y FINAL-CHICO-PL como plantillas de Meta propias (cambio B de Naza, 05/10; plantillas-meta-kids.md, 10 y 10b). */
 const PLANTILLA_FINAL = { 'FINAL-CHICO': 'kids_final', 'FINAL-CHICO-PL': 'kids_final_plural' } as const;
 
