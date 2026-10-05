@@ -4,7 +4,7 @@
 
 Sale de [`banco-borrador-47.md`](banco-borrador-47.md) con todos los cambios de la revisión de Fable ([`paso-2-revision-fable.md`](paso-2-revision-fable.md), aprobada entera) y las excepciones de Naza: la 42 en un solo mensaje; los nombres dentro de la pregunta, al final, con "y decime cómo se llama" (en abuelos, la escena primero); mamá y papá con "cómo es" + una vez; la música con sus palabras. Reglas y mensajes de las rondas anteriores (cap. 1 a 5, paso 1, recuento). Lo que salió o cambió está en [`banco-descartadas.md`](banco-descartadas.md): nada se borra.
 
-**47 principales · 16 fotos · 5 capítulos.**
+**47 principales · 16 fotos · 5 capítulos.** Sin dos puntos en lo que lee el chico (05/10, ver `paso-3-sin-dos-puntos.md`).
 
 ## Notación
 
@@ -25,7 +25,7 @@ Sale de [`banco-borrador-47.md`](banco-borrador-47.md) con todos los cambios de 
 
 | ID | Pregunta | Botones | Otra puerta | Foto pegada | Marcas |
 |---|---|---|---|---|---|
-| K1 (b1) | Arrancamos por lo más viejo que tengas: ¿cuál es el primer recuerdo de tu vida? Puede ser borroso, contámelo como te venga. | — | ¿Y algo que te contaron de cuando eras bebé, aunque vos no te acuerdes? | Mostrame tu juguete favorito. Si ya no tenés juguetes, la cosa tuya que más querés. ¿Por qué esa? [No tengo] | ★ |
+| K1 (b1) | Arrancamos por lo más viejo que tengas. ¿Cuál es el primer recuerdo de tu vida? Puede ser borroso, contámelo como te venga. | — | ¿Y algo que te contaron de cuando eras bebé, aunque vos no te acuerdes? | Mostrame tu juguete favorito. Si ya no tenés juguetes, la cosa tuya que más querés. ¿Por qué esa? [No tengo] | ★ |
 | K2 (b2) | Ahora una travesura. Una que hiciste vos y que todavía te da risa cuando te acordás. | — | ¿Y una travesura que hizo otro y vos la viste? Contame esa. | Sacale una foto a lo que hay adentro de tu mochila, así como está. ¿Qué es lo más raro que hay? [No tengo] | ★ |
 | K3 (b3) | Contame la mejor fiesta que te acuerdes de cuando eras más chic{{o/a}}. Un cumpleaños, o la que sea. | — | ¿Y un día común que terminó siendo buenísimo sin que nadie lo planeara? Contame ese. | Mostrame el regalo más raro que te hicieron. ¿Quién te lo dio? [No tengo] | ★ |
 | K4 (b4) | Pensá en el juego al que jugabas siempre cuando eras más chic{{o/a}}. Contame la última vez que jugaste a eso. | — | ¿Alguna vez te aburriste tanto que inventaste un juego? Contame ese. | ¿Tenés algo roto que igual no tirás? Mandame una foto y contame cómo se rompió. [No tengo] | |
@@ -39,7 +39,7 @@ Sale de [`banco-borrador-47.md`](banco-borrador-47.md) con todos los cambios de 
 
 ## Capítulo 2 · Mi gente
 
-**Entrada:** Ahora vamos con la gente de tu vida: tu familia, tus amigos y los que querés. Contá como te salga.
+**Entrada:** Ahora vamos con la gente de tu vida. Tu familia, tus amigos y los que querés. Contá como te salga.
 
 | ID | Pregunta | Botones | Otra puerta | Foto pegada | Marcas |
 |---|---|---|---|---|---|
@@ -59,12 +59,12 @@ Sale de [`banco-borrador-47.md`](banco-borrador-47.md) con todos los cambios de 
 
 ## Capítulo 3 · Mi mundo ahora
 
-**Entrada:** Tercera parte: tu vida hoy, tal cual es este año. La escuela, tus cosas, lo que te sale bien.
+**Entrada:** Tercera parte. Tu vida hoy, tal cual es este año. La escuela, tus cosas, lo que te sale bien.
 
 | ID | Pregunta | Botones | Otra puerta | Foto pegada | Marcas |
 |---|---|---|---|---|---|
 | K21 (b21) | Contame la última vez que algo te salió perfecto, de eso que sabés que hacés bien. | — | ¿Y algo que hace poco te salió por primera vez? Contame ese día. | ¿Mirás a algún youtuber o streamer? Mandame una captura y contame qué tiene que te gusta. [No miro] [No tengo] | ★ |
-| K22 (b22) | Una para adelante: ¿qué querés hacer de grande? | — | ¿Y a quién de los grandes que conocés te gustaría parecerte? Contame por qué. | ¿Cuál es la peli o serie que más veces viste? Ponela un segundo y sacale una foto a la pantalla. [No tengo] | ★ |
+| K22 (b22) | Una para adelante. ¿Qué querés hacer de grande? | — | ¿Y a quién de los grandes que conocés te gustaría parecerte? Contame por qué. | ¿Cuál es la peli o serie que más veces viste? Ponela un segundo y sacale una foto a la pantalla. [No tengo] | ★ |
 | K23 (b23) | ¿Hay un maestro o una maestra que te caiga bien? Contame una vez que hizo algo por vos, y decime cómo se llama. | — | ¿Y algo que un maestro o maestra dice siempre y toda la clase ya se sabe? | Sacale una foto a la carpeta de la materia que más te gusta. ¿Qué tiene esa materia? [No tengo] | |
 | K24 (b24) | ¿Qué fue lo mejor que te pasó esta semana? Contame eso. | — | ¿Y algo de esta semana que no esperabas? Contame qué pasó. | ¿Cuál es tu comida favorita? Si hoy la comés, foto; si no, contame la última vez que la comiste. [No tengo] | |
 | K25 (b25) | ¿Ya tenés celular? | [Sí] → Contame el día que tuviste celular por primera vez.<br>[Todavía no] → Contame la última vez que lo pediste. | ¿Y lo que más hacés en un celular, tuyo o de otro? Contame la última vez. | — | |
@@ -78,13 +78,13 @@ Sale de [`banco-borrador-47.md`](banco-borrador-47.md) con todos los cambios de 
 
 ## Capítulo 4 · Lo que me pasó
 
-**Entrada:** Cuarta parte: cosas que te pasaron. Acá no hay fotos, solo vos contando. Y siempre podés pasar.
+**Entrada:** Cuarta parte. Cosas que te pasaron. Acá no hay fotos, solo vos contando. Y siempre podés pasar.
 
 Antes de K31 y de K39 va el aviso de las serias (ver Mensajes). K40 va después del día feo: es la tranquila.
 
 | ID | Pregunta | Botones | Otra puerta | Foto pegada | Marcas |
 |---|---|---|---|---|---|
-| K31 (b32) | Ahora quiero esa historia: la que ya contaste mil veces y todos se ríen igual. Todos tenemos una. ¿Cuál es la tuya? | — | ¿Y una historia tuya que contás distinto cada vez? Contame la versión de hoy. | — | ★ · con aviso antes |
+| K31 (b32) | Ahora quiero esa historia, la que ya contaste mil veces y todos se ríen igual. Todos tenemos una. ¿Cuál es la tuya? | — | ¿Y una historia tuya que contás distinto cada vez? Contame la versión de hoy. | — | ★ · con aviso antes |
 | K32 (b28) | ¿Cuándo fue la última vez que te pusiste roj{{o/a}} delante de otros? Contame qué pasó. | — | ¿Y algo que te daba vergüenza el año pasado y ahora ya no? | — | |
 | K33 (b33) | Contame una vez que hiciste algo bien y nadie se enteró. Solo vos lo sabés. | — | ¿Y algo que te costó mucho y al final salió? Contame. | — | |
 | K34 (b34) | Contame una vez que tuviste miedo y lo hiciste igual. | — | ¿Y una vez que dijiste que no cuando todos decían que sí? | — | |
@@ -99,21 +99,21 @@ Antes de K31 y de K39 va el aviso de las serias (ver Mensajes). K40 va después 
 
 ## Capítulo 5 · Para cuando seas grande (la cápsula)
 
-**Entrada:** Última parte, y es distinta: estas últimas van en un sobre cerrado, pegado al libro, para que lo abras cuando seas grande.
+**Entrada:** Última parte, y es distinta. Estas últimas van en un sobre cerrado, pegado al libro, para que lo abras cuando seas grande.
 
 Van en un sobre pegado al impreso y en un PDF aparte, no en el cuerpo del libro. El padre las ve en el panel igual. Pueden ir seguidas.
 
 | ID | Pregunta | Botones | Otra puerta | Foto pegada | Marcas |
 |---|---|---|---|---|---|
-| K41 (b41) | ¿Ya te pasó que te guste alguien? Sin decirme quién: contame cómo te diste cuenta. Y si todavía no, cómo te lo imaginás. | [Esta no, gracias] → Dale, esa la salteamos. | ¿Y qué es lo que te pone nervios{{o/a}} de otra persona, aunque no sepas por qué? | — | con paso |
+| K41 (b41) | ¿Ya te pasó que te guste alguien? Sin decirme quién, contame cómo te diste cuenta. Y si todavía no, cómo te lo imaginás. | [Esta no, gracias] → Dale, esa la salteamos. | ¿Y qué es lo que te pone nervios{{o/a}} de otra persona, aunque no sepas por qué? | — | con paso |
 | K42 (b42) | Si algún día tenés un hijo o una hija, ¿qué vas a hacer igual a como te criaron a vos, y qué cambiarías? | — | ¿Y qué cosa de tu casa te gustaría que siga existiendo cuando seas grande? | — | ★ · un solo mensaje |
 | K43 (b43) | Hacele una pregunta a la persona que vas a ser cuando abras el sobre. La que quieras. | — | ¿Y qué le preguntarías que hoy no te animás a preguntarle a nadie? | — | |
 | K44 (b44) | ¿Qué es lo que no querés olvidarte nunca de tu vida de ahora? | — | ¿Y un lugar de ahora que querés que vuelva cuando lo leas? | — | |
-| K45 (b45) | Cerrá los ojos un segundo: un día cualquiera de tu vida de grande. Contámelo como te lo imaginás. | — | ¿Y qué es lo primero que hacés a la mañana en esa vida? | — | |
+| K45 (b45) | Cerrá los ojos un segundo. Un día cualquiera de tu vida de grande. Contámelo como te lo imaginás. | — | ¿Y qué es lo primero que hacés a la mañana en esa vida? | — | |
 | K46 (b46) | Esta es para vos de grande, el día que abras el sobre. ¿Qué le querés decir a la persona que vas a ser? Tomate el tiempo que quieras. | — | ¿Y qué creés que va a pensar cuando lea esto? | — | ★ |
 | K47 (b47) | La última. Imaginate que alguien no te conoce nada y tenés dos minutos para que sepa quién sos. Contame. | — | ¿Y qué diría de vos un amigo o una amiga si le preguntan cómo sos? | — | ★ |
 
-**Cierre (fin de las preguntas):** Eso fue todo. Contaste un montón, y ahora todo eso se vuelve tu libro. Antes de cerrar: ¿quedó algo que quieras decir, de lo que sea?
+**Cierre (fin de las preguntas):** Eso fue todo. Contaste un montón, y ahora todo eso se vuelve tu libro. Antes de cerrar, ¿quedó algo que quieras decir, de lo que sea?
 
 ## Extras
 

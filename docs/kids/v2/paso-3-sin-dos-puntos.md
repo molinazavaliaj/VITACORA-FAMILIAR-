@@ -24,3 +24,5 @@ Naza: los dos puntos suenan "muy IA". Fable cambió solo la puntuación de los t
 | Al padre (canal chico), párr. 3 | A {{2}} no le decimos nada por tardar: no hay retos… | A {{2}} no le decimos nada por tardar. No hay retos… |
 
 Sin dos puntos ya: bienvenida al chico, recordatorios, acuses, extras y mensaje final, fotos, otras puertas, extras del banco.
+
+**Aprobada por Naza (05/10). Aplicada en `banco.md`; en los textos del paso 3 vale la columna "Después" (el compilado del paso 4 los toma de acá).**

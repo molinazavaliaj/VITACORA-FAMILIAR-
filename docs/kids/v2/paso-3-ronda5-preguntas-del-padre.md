@@ -29,3 +29,10 @@ Ejemplos:
 > Las podés escribir o cambiar hasta que empiece la cuarta parte. Después ya no se agregan.
 
 ✎ Fable había puesto "Contame la vez que te perdiste en el súper…": repite K6 ("¿Te perdiste alguna vez?"), y un ejemplo no debería empujar al padre a repetir el banco.
+
+---
+
+**Aprobado por Naza (05/10)**, con un agregado suyo: **el padre puede elegir que el chico no sepa que la pregunta es suya.**
+- En el panel, al lado de cada pregunta: casilla "Que le llegue como una pregunta más, sin decir que es mía".
+- Si la marca, no sale la línea de antes; la pregunta llega sola, en el mismo lugar (entre el cap. 4 y la cápsula).
+- La línea de la guía cambia a: "Le llegan a {{nombre}} cerca del final, entre la cuarta parte y el sobre cerrado. Antes de cada una le decimos que viene de vos, salvo que prefieras que le llegue como una pregunta más."
