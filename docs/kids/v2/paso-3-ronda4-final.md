@@ -25,3 +25,17 @@ Si cortó por el tope y al otro día quedan extras, al retomar sale el 1 otra ve
 > Hola {{1}}. {{2}} terminó de contar. Ya están todas sus respuestas en tu panel, también las del sobre cerrado. Ahora empieza el armado del libro, y te avisamos cuando esté listo. Y lo mismo que al principio, no le digas nada hasta el libro.
 
 Por qué (Fable): la última línea del 6 repite el pedido porque es cuando el padre tiene todo a la vista; si sobra, se saca y el mensaje queda entero.
+
+---
+
+## Ronda 2 (05/10), cambios de Naza
+
+- 1: sin la coma después de "más" (estaba mal puesta).
+- 5: el nombre no va entre comas en el medio; va al saludo. Y no se despide con "Chau": puede volver a hacer una Vitácora de grande, así que cierra con "Nos vemos pronto."
+
+1. > Me quedaron algunas preguntas más de todo lo que fuimos hablando. Si tenés ganas las hacemos, y si no, ya está, el libro se arma igual con todo lo que contaste.
+   > [Dale, otra] [No, ya está]
+
+5. > Bueno {{1}}, hasta acá llegamos. Ya tengo todo lo que contaste con tus audios y tus fotos, y ahora con eso se arma el libro, con tus palabras. Cuando esté listo te lo va a dar {{2}}, que fue quien te hizo este regalo. La última parte, la del sobre cerrado, va aparte, pegada al libro, para que la abras cuando seas grande. Gracias por contarme todo esto. Nos vemos pronto.
+
+2, 3, 4 y 6 quedan como en la ronda 1.
