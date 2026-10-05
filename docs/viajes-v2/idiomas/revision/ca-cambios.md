@@ -78,3 +78,31 @@ Hubo **2 avisos, los dos falsos positivos**. Son los mismos que ya había en la 
 | DES | Reviseu la construcció de relatiu. | fer el llibre amb **el que** m'has donat | No. "El que" neutro (= "allò que") lo admite la gramática del IEC. |
 
 El aviso real de antes ("et arriba" → "t'arriba", BIEN-2) quedó corregido. NO8 ya no da aviso de punto final.
+
+## Segunda lectura
+
+Fuente: `ca-segunda-lectura.md`, una segunda lectura a ciegas que encontró 17 cosas. Se cambiaron **16 filas**. Siguen las mismas reglas: las mismas marcas y «», nada que marque género y ningún dos puntos nuevo.
+
+| ID | Qué cambió | Por qué |
+|---|---|---|
+| IM1, IM1~viaje | "No el que has llegit ni el que s'ha de veure, sinó la que…" → "No la de les guies ni la dels llocs que s'han de veure, sinó la que…". "un carrer" → "un carrer qualsevol". | Mezclaba neutro y femenino. "Un carrer" solo no decía "cualquier calle". Se mantienen las dos ideas del original: lo leído y lo que hay que ver. |
+| AS1, AS1~viaje | "abans de qualsevol maleta" → "molt abans de fer la maleta". | Calco. |
+| BIEN-2 | Se reescribió en frases cortas: "no et diré res fins al dia que marxis", "Al migdia, una de curteta… A la nit, una perquè m'expliquis el dia", "Te les envio a l'hora del país on vas. Si canvies de país i els missatges t'arriben a deshora, pots canviar l'hora des del teu panell". | Era telegráfico. "L'hora la prenc" sonaba forzado y no se sabía qué llegaba a deshora. |
+| AS2, AS2~viaje | "Com el portes, aquest viatge?" → "Com ho portes, això del viatge?". "va de debò" → "anava de debò". | La frase anterior quedaba forzada, y había que concordar los tiempos. AS2~viaje se cambió para que siga igual que AS2. |
+| UC1 | "Tant si encara ets a casa com si ja ets de camí" → "Quan ja siguis de camí". | Si todavía está en casa, la puerta no se cerró. Ahora contesta cuando ya salió. |
+| ID1 | Sale la coma antes de "i et vas adonar". | Cortaba la subordinada. |
+| MD1 | "una foto d'això" → "una foto del lloc". | "Això" no tenía a qué referirse. |
+| MD3 | "Vull sentir on ets… sense que parlis tu" → "Vull sentir com sona el lloc on ets… del que se sent, sense parlar". | Calco, y la frase pesaba. |
+| MD4 | "Com està el cel allà, avui?" → "Quin cel fa allà, avui?". | Los dos lectores nativos dicen que es lo natural en Barcelona. Se revierte lo que hice en la primera revisión. |
+| MD12 | "de la teva mà" → "de la mà". | Con partes del cuerpo va el artículo. |
+| ATR1 | "afegeix-ho avui amb el d'avui" → "avui explica'm també el dia d'ahir". | Repetía "avui" y "el d'avui" no se entendía. No usé "els dos dies" para no repetir ATR2, que rota con ATR1. |
+| ATR-PR | "contesta-la avui, juntament amb el d'avui" → "contesta-la avui i després explica'm el dia". | La repetición, y "juntament amb" sonaba a formulario. |
+| DES | "Gràcies per deixar-me entrar al teu viatge" → "Gràcies per explicar-me el teu viatge". | Sonaba a frase hecha. Siguen dos oraciones después de donde se mete DES+, porque el código parte DES por las dos últimas oraciones (`mensajes.ts`). |
+
+**Lo que no se tocó, por indicación del coordinador:**
+- PAS-V. El código lo manda solo cuando ese día no queda otra pregunta.
+- F4 junto con C3. El código no los va a juntar.
+
+**Lo que tampoco se tocó:** C4 con F3, que repite "fotos". La lectura lo da por aceptable.
+
+**Softcatalà** (las 16 filas, una por llamada, con 2,5 s entre llamadas y los mismos valores de ejemplo): hubo 1 aviso. Es el falso positivo de siempre en DES, "el que" neutro ("amb el que m'has donat"), que el IEC admite. Las otras 15 filas salieron sin avisos.

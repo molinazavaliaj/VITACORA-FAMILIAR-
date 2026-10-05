@@ -1,16 +1,16 @@
 BIEN-1 | Hola, {{nombre}}. Soc qui escriurà el llibre del teu viatge. Jo et pregunto per aquí, tu m'ho expliques en àudio quan puguis, i quan tornis tindràs {{formato}} amb el teu viatge explicat amb la teva veu, les teves fotos i un codi QR per escoltar alguns dels teus àudios. Comencem? Contesta'm SÍ i així em dones permís per guardar el que m'enviïs.
 BIEN-1R | Hola, {{nombre}}. {{quien_regala}} t'ha regalat {{formato}} amb el teu viatge, explicat per tu, i jo soc qui l'escriurà. Et pregunto per aquí, tu m'ho expliques en àudio quan puguis, i quan tornis el tindràs escrit amb la teva veu, amb les teves fotos i amb un codi QR per escoltar alguns dels teus àudios. Comencem? Contesta'm SÍ i així em dones permís per guardar el que m'enviïs.
-BIEN-2 | Som-hi. Abans de marxar t'enviaré unes quantes preguntes, d'una en una; quan les hagis contestades, silenci fins al dia que te'n vagis. Durant el viatge, dues al dia, una de curteta al migdia, que és una foto o deu segons d'àudio, i una a la nit perquè m'expliquis el dia. Si un dia no et ve de gust, escriu "passo" i continuem. L'hora la prenc del país on vas; si canvies de país i t'arriba a deshora, la pots corregir des del teu panell. Aquí tens la primera.
-AS1 | Comencem pel principi, abans de qualsevol maleta. D'on va sortir aquest viatge, {{nombre}}? Explica'm el moment en què va deixar de ser una idea i es va convertir en una cosa que passaria de debò. Potser va ser una conversa, o una tarda en què vas dir "ho faig".
-AS1~viaje | Ja ets de viatge, però vull començar per abans de qualsevol maleta. D'on va sortir aquest viatge, {{nombre}}? Explica'm el moment en què va deixar de ser una idea i es va convertir en una cosa que passaria de debò. Potser va ser una conversa, o una tarda en què vas dir "ho faig".
-AS2 | Ja falta poc, {{nombre}}. Com el portes, aquest viatge? Ganes, nervis, cansament, el que hi hagi, i què esperes trobar-hi. Explica'm el moment, aquests dies, en què et vas adonar que va de debò. Què feies i què et va passar pel cap.
-AS2~viaje | Ja has marxat, així que aquesta et troba allà. Com el portaves, aquest viatge, els últims dies? Ganes, nervis, cansament, el que hi hagués, i què esperaves trobar-hi. Explica'm el moment en què et vas adonar que anava de debò. Què feies i què et va passar pel cap.
-IM1 | Quan penses en aquest viatge, quina imatge et ve al cap? No el que has llegit ni el que s'ha de veure, sinó la que et surt sola, encara que sigui un carrer. Digues-me quina és i d'on et ve.
-IM1~viaje | Abans de marxar, quan pensaves en aquest viatge, quina imatge et venia al cap? No el que havies llegit ni el que calia veure, sinó la que et sortia sola, encara que fos un carrer. Digues-me quina era i d'on et venia.
+BIEN-2 | Som-hi. Abans de marxar t'enviaré unes quantes preguntes, d'una en una. Quan les hagis contestades, no et diré res fins al dia que marxis. Durant el viatge te n'enviaré dues al dia. Al migdia, una de curteta, una foto o deu segons d'àudio. A la nit, una perquè m'expliquis el dia. Si un dia no et ve de gust, escriu "passo" i continuem. Te les envio a l'hora del país on vas. Si canvies de país i els missatges t'arriben a deshora, pots canviar l'hora des del teu panell. Aquí tens la primera.
+AS1 | Comencem pel principi, molt abans de fer la maleta. D'on va sortir aquest viatge, {{nombre}}? Explica'm el moment en què va deixar de ser una idea i es va convertir en una cosa que passaria de debò. Potser va ser una conversa, o una tarda en què vas dir "ho faig".
+AS1~viaje | Ja ets de viatge, però vull començar per molt abans de fer la maleta. D'on va sortir aquest viatge, {{nombre}}? Explica'm el moment en què va deixar de ser una idea i es va convertir en una cosa que passaria de debò. Potser va ser una conversa, o una tarda en què vas dir "ho faig".
+AS2 | Ja falta poc, {{nombre}}. Com ho portes, això del viatge? Ganes, nervis, cansament, el que hi hagi, i què esperes trobar-hi. Explica'm el moment, aquests dies, en què et vas adonar que anava de debò. Què feies i què et va passar pel cap.
+AS2~viaje | Ja has marxat, així que aquesta et troba allà. Com ho portaves, això del viatge, els últims dies? Ganes, nervis, cansament, el que hi hagués, i què esperaves trobar-hi. Explica'm el moment en què et vas adonar que anava de debò. Què feies i què et va passar pel cap.
+IM1 | Quan penses en aquest viatge, quina imatge et ve al cap? No la de les guies ni la dels llocs que s'han de veure, sinó la que et surt sola, encara que sigui un carrer qualsevol. Digues-me quina és i d'on et ve.
+IM1~viaje | Abans de marxar, quan pensaves en aquest viatge, quina imatge et venia al cap? No la de les guies ni la dels llocs que calia veure, sinó la que et sortia sola, encara que fos un carrer qualsevol. Digues-me quina era i d'on et venia.
 VA1 | Què és allò que no pot faltar a la maleta, {{nombre}}? No el carregador ni els documents, sinó alguna cosa teva. I per què te l'emportes.
 VA1~viaje | Ja ets allà i la maleta ja ha viatjat. Explica'm una cosa que hi vas ficar i que no podia faltar, {{nombre}}. No el carregador ni els documents, sinó alguna cosa teva. Què és i per què te l'has emportada.
-UC1 | Avui és el dia, {{nombre}}. Tant si encara ets a casa com si ja ets de camí, explica'm com ha estat l'última estona abans de tancar la porta. Què feies, què t'ha quedat rondant pel cap.
-ID1 | Ahir va ser el dia del viatge, {{nombre}}. No m'expliquis horaris. Explica'm una estona del camí en què no feies res més que viatjar, i et vas adonar que ja eres lluny. Què hi havia a l'altra banda de la finestreta i què pensaves.
+UC1 | Avui és el dia, {{nombre}}. Quan ja siguis de camí, explica'm com ha estat l'última estona abans de tancar la porta. Què feies, què t'ha quedat rondant pel cap.
+ID1 | Ahir va ser el dia del viatge, {{nombre}}. No m'expliquis horaris. Explica'm una estona del camí en què no feies res més que viatjar i et vas adonar que ja eres lluny. Què hi havia a l'altra banda de la finestreta i què pensaves.
 C1 | Explica'm com ha anat avui, {{nombre}}, com ho explicaries a algú que t'estima i no hi era.
 C2 | El dia ja s'ha acabat. Explica-me'l com si algú de casa et truqués ara mateix per preguntar-te com t'ha anat.
 C3 | Com ha anat avui, {{nombre}}? Explica-m'ho com ho explicaràs a taula quan tornis, només el que valgui la pena.
@@ -30,16 +30,16 @@ F2 | , i després continua amb el que vingui. Si hi ha fotos, envia-les.
 F3 | , i a partir d'aquí ves per on et porti el dia. Les fotos que vulguis guardar, envia-me-les.
 F4 | , i després continua amb la resta, el que et vagi venint al cap. Envia'm aquí totes les fotos d'avui que vulguis.
 F5 | , i des d'aquí continua fins on arribis. Si hi ha fotos que vulguis guardar, envia-les.
-MD1 | On ets ara, {{nombre}}? Envia'm una foto d'això, tal com està, sense explicar-me res.
+MD1 | On ets ara, {{nombre}}? Envia'm una foto del lloc, tal com està, sense explicar-me res.
 MD5 | Avui et vull veure a tu, {{nombre}}. Una foto de com vas avui, de cos sencer o només les vambes, com et vagi millor.
-MD3 | Vull sentir on ets. Grava'm deu segons del que sona allà, sense que parlis tu, i així ho guardo.
-MD4 | Aixeca el cap un segon. Com està el cel allà, avui? Fes-li una foto, amb el que surti per sota.
+MD3 | Vull sentir com sona el lloc on ets. Grava'm deu segons del que se sent, sense parlar, i així ho guardo.
+MD4 | Aixeca el cap un segon. Quin cel fa allà, avui? Fes-li una foto, amb el que surti per sota.
 MD9 | Has après alguna paraula d'allà, encara que sigui una? Envia-me-la en un àudio, dita com l'has sentida.
 MD2 | T'enxampo enmig del dia. Què tens a la mà ara, a part del mòbil? Fes-li una foto, i si vols explica'm en un àudio què és.
 MD10 | Quina olor fa allà on ets ara, {{nombre}}? Digues-m'ho en un àudio d'una frase.
 MD6 | Envia'm una foto d'alguna cosa escrita que tinguis a prop ara, un cartell o el que sigui, tal com està.
 MD7 | Mira què tens a menys d'un metre. Fes una foto d'alguna cosa petita, la que sigui, i continua amb el que feies.
-MD12 | Fes una foto de la teva mà, allà on la tinguis recolzada ara, amb el que hi hagi.
+MD12 | Fes una foto de la mà, allà on la tinguis recolzada ara, amb el que hi hagi.
 MD8 | Explica'm en una frase què et toca fer ara, {{nombre}}, i envia'm una foto del lloc on ets. Després, continua amb el teu dia.
 MD11 | En una frase i tal com estàs ara, com et va avui? Un àudio i ja està.
 FN1 | Demà tornes. Abans de fer la maleta, explica'm una cosa d'aquest viatge que no vols oblidar, només una, i per què aquesta. Si en tens una foto, envia-la.
@@ -71,16 +71,16 @@ TXT | Ho he llegit, gràcies. Si pots, explica-m'ho també en àudio, perquè la
 COR | S'ha tallat l'àudio o no m'ha arribat bé, {{nombre}}. Me'l tornes a enviar quan puguis? Sense pressa.
 REC1 | Hola, {{nombre}}. Tens una pregunta pendent, sense pressa. Quan tinguis una estona, contesta-me-la en àudio, o escriu "passo" i seguim amb la següent.
 REC1-U | Hola, {{nombre}}. Tens una pregunta pendent, sense pressa. Quan tinguis una estona, contesta-me-la en àudio, o escriu "passo". I ens retrobem el dia que marxis.
-ATR1 | Ahir no m'ho vas explicar, i no passa res. Si vols, afegeix-ho avui amb el d'avui.
+ATR1 | Ahir no m'ho vas explicar, i no passa res. Si vols, avui explica'm també el dia d'ahir.
 ATR2 | Ahir a la nit no em vas explicar el dia, i no passa res. Avui explica'm els dos dies, si et ve de gust.
 ATR3 | No et preocupis per ahir. Si hi ha alguna cosa d'aquell dia que valgui la pena guardar, afegeix-la avui.
 ATR-V | Fa uns dies que no m'expliques com et va, i no passa res. Si vols, avui explica'm el que t'hagi quedat d'aquests dies. Si no, amb el d'avui ja està bé.
-ATR-PR | Ahir no vas contestar la pregunta que t'havia deixat {{quien_regala}}, i no passa res. Si vols, contesta-la avui, juntament amb el d'avui.
+ATR-PR | Ahir no vas contestar la pregunta que t'havia deixat {{quien_regala}}, i no passa res. Si vols, contesta-la avui i després explica'm el dia.
 PR-R | Avui la pregunta no és meva. L'ha escrita {{quien_regala}}: «{{pregunta}}». Explica-ho com si {{quien_regala}} t'escoltés, encara que m'ho enviïs a mi. Si hi ha foto, també.
 PR-R2 | Aquesta nit la pregunta ve d'una altra persona. {{quien_regala}} t'ha deixat aquesta: «{{pregunta}}». Contesta com si estiguéssiu cara a cara. Si hi ha foto, envia-la.
 PR-R3 | {{quien_regala}} ha volgut saber això del teu viatge: «{{pregunta}}». La resposta l'espera {{quien_regala}}, així que parla-li encara que arribi per aquí. Si tens una foto que hi vagi bé, envia-la.
 PR-P | Avui toca una pregunta que vas deixar escrita tu abans de marxar, {{nombre}}: «{{pregunta}}». A veure què hi dius ara. Si tens una foto, envia-la.
-DES | Ja està, {{nombre}}. El viatge ha quedat explicat, amb la teva veu. Ara em toca a mi fer el llibre amb el que m'has donat; el podràs llegir al teu panell abans que el tanquem, i allà canvies el que calgui. M'ha agradat molt acompanyar-te. Gràcies per deixar-me entrar al teu viatge.
+DES | Ja està, {{nombre}}. El viatge ha quedat explicat, amb la teva veu. Ara em toca a mi fer el llibre amb el que m'has donat; el podràs llegir al teu panell abans que el tanquem, i allà canvies el que calgui. M'ha agradat molt acompanyar-te. Gràcies per explicar-me el teu viatge.
 DES+ | De l'àlbum m'he quedat amb les primeres {{fotos_album}} que vas enviar, que són les que hi caben.
 FORMATO-impreso | un llibre imprès
 FORMATO-pdf | un llibre en PDF
@@ -97,4 +97,4 @@ PLANTILLA-mensaje | Hola, {{1}}. T'escric per la teva Vitácora de Viaje.<br><br
 9. ACM3 "Lo tengo" → "Rebut" (para no repetir "ja ho tinc" de ACM2). ACM1 "Ja està, gràcies" coincide con la palabra "ja està" del álbum; no molesta porque lo dice el bot, pero si se prefiere separar, el álbum puede usar "fet".
 10. Para un nativo: "Explica-m'ho com ho explicaràs a taula" (C3, futuro: "cuando vuelvas"), "Com està el cel allà, avui?" (MD4) y "T'enxampo enmig del dia" (MD2): revisar que suenen naturales.
 11. Marcas: {{nombre}}, {{quien_regala}}, {{formato}}, {{fotos_album}}, {{fotos_mandadas}}, {{pregunta}} con la misma cantidad que en banco.md; «» se mantienen.
-12. Revisión del 05/10 (nativo a ciegas + Softcatalà): se cambiaron 49 filas; el detalle está en `revision/ca-cambios.md` y la versión anterior en `historial/banco-ca-2026-10-05-antes-de-la-revision.md`. {{quien_regala}} va siempre como sujeto, sin artículo ni preposición delante (nunca "de {{quien_regala}}" ni "a {{quien_regala}}"), porque no sabemos si es "en Jordi", "la Marta" o "el teu pare". Si el valor empieza en minúscula ("el teu pare") y cae a principio de frase (BIEN-1R, PR-R2, PR-R3), el código tiene que poner la mayúscula.
+12. Revisión del 05/10 (nativo a ciegas + Softcatalà): se cambiaron 49 filas; el detalle está en `revision/ca-cambios.md` y la versión anterior en `historial/banco-ca-2026-10-05-antes-de-la-revision.md`. Segunda lectura del 05/10: 16 filas más (también en `revision/ca-cambios.md`). {{quien_regala}} va siempre como sujeto, sin artículo ni preposición delante (nunca "de {{quien_regala}}" ni "a {{quien_regala}}"), porque no sabemos si es "en Jordi", "la Marta" o "el teu pare". Si el valor empieza en minúscula ("el teu pare") y cae a principio de frase (BIEN-1R, PR-R2, PR-R3), el código tiene que poner la mayúscula.
