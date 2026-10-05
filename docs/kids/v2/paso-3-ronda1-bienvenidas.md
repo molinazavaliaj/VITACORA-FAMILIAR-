@@ -93,3 +93,7 @@ Naza: el texto 2 con el arranque de la ronda 3 **le gusta (aprobado)**. El 1 "su
 >
 > ¿Vamos con la primera?
 > [Dale, vamos]
+
+## Cierre (05/10)
+
+**Aprobados por Naza los tres:** texto 1 = ronda 4; texto 2 = ronda 1 con el primer párrafo de la ronda 3; texto 3 = ronda 1 (con los dos ✎).
