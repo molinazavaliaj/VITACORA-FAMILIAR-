@@ -10,6 +10,7 @@ import {
   reaccion,
   elegirRotando,
   despedida,
+  momentoDeLaReaccion,
   ROTACION_INICIAL,
   MAX_TXT,
   type Rotacion,
@@ -276,5 +277,19 @@ describe('viaje v2: despedida', () => {
     expect(m.ids).toEqual(['DES', 'DES+']);
     expect(m.texto).toContain(`${t('DES+')} Fue lindo acompañarte.`);
     expect(m.texto.startsWith('Ya está, Lucía: el viaje quedó contado')).toBe(true);
+  });
+});
+
+describe('viaje v2: cuándo sale lo que contesta a la cadena (la franja 23-8 es solo para lo que va por iniciativa)', () => {
+  const contesto = new Date('2026-10-03T02:05:00Z'); // 23:05 en Buenos Aires
+  const siguiente = new Date('2026-10-03T11:00:00Z'); // 08:00 en Buenos Aires
+  it('TXT, un acuse solo o PAS-A2 salen enseguida, aunque sea de noche', () => {
+    for (const ids of [['TXT'], ['ACM1'], ['PAS-A2']]) expect(momentoDeLaReaccion({ ids, texto: 'x' }, contesto, siguiente), ids.join()).toEqual(contesto);
+  });
+  it('lo que trae la siguiente pregunta de la cadena espera a las 8:00', () => {
+    for (const ids of [['ACA2', 'IM1'], ['PAS-A', 'VA1'], ['AS2']]) expect(momentoDeLaReaccion({ ids, texto: 'x' }, contesto, siguiente), ids.join()).toEqual(siguiente);
+  });
+  it('si la cadena se calló (siguiente null), todo sale enseguida', () => {
+    expect(momentoDeLaReaccion({ ids: ['ACM2'], texto: 'x' }, contesto, null)).toEqual(contesto);
   });
 });

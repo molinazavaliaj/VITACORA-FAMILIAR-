@@ -10,7 +10,7 @@ import { iniciarAlbum, pasoAlbum, type EventoAlbum } from './album.js';
 import { armarCalendario, momentoAL1, quedaAL1EseDia, quedaNocheEseDia, quedaOtraEseDia, momentoDeLaSiguiente, momentoRecordatorio, pendientesAntes, siguienteDeLaCadena, type IdAntes, type Programado } from './calendario.js';
 import { anotarEnvio, anotarRespuesta, contestadasAntes, nocheAnterior, nochesSinContestar, nuevoEstado, type Estado } from './estado.js';
 import { aInstante, aLocal, diaDeSemana, diasEntre, nombreDeZona } from './horas.js';
-import { alDecirSi, arranque, mensajeAlbum, preguntaProgramada, reaccion, recordatorioAntes, type QueSeContesta, type Respuesta } from './mensajes.js';
+import { alDecirSi, arranque, mensajeAlbum, momentoDeLaReaccion, preguntaProgramada, reaccion, recordatorioAntes, type QueSeContesta, type Respuesta } from './mensajes.js';
 import type { Compra, Mensaje, Zona } from './tipos.js';
 
 export const COMPRA_LECTURA: Compra = {
@@ -101,7 +101,7 @@ export function lecturaCorrida(compra: Compra = COMPRA_LECTURA): string {
     const cuando = momentoDeLaSiguiente(t, compra);
     const r = reaccion({ tipo: 'cadena', siguiente: !cuando ? 'callada' : (sig ?? 'fin') }, c.respuesta, compra, estado.rotacion);
     estado = { ...estado, rotacion: r.rot };
-    for (const m of r.mensajes) vita(cuando ?? t, casa, m);
+    for (const m of r.mensajes) vita(momentoDeLaReaccion(m, t, cuando), casa, m);
     if (sig && cuando) {
       estado = anotarEnvio(estado, { clave: sig, tipo: 'cadena', ids: [sig], en: cuando.toISOString() });
       ultimaEnviada = cuando;

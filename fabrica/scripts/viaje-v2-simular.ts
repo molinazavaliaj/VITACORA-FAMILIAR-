@@ -52,7 +52,7 @@ import {
 } from '../src/viaje-v2/calendario.js';
 import { anotarEnvio, anotarRespuesta, contestadasAntes, nocheAnterior, nochesSinContestar, nuevoEstado, pendientesParaElViaje, type Estado } from '../src/viaje-v2/estado.js';
 import { aInstante, aLocal, diaDeSemana, diasEntre, nombreDeZona, respetarFranja, sumarDias } from '../src/viaje-v2/horas.js';
-import { alDecirSi, arranque, mensajeAlbum, partirDes, preguntaProgramada, reaccion, recordatorioAntes, type ReaccionEmoji, type Respuesta } from '../src/viaje-v2/mensajes.js';
+import { alDecirSi, arranque, mensajeAlbum, momentoDeLaReaccion, partirDes, preguntaProgramada, reaccion, recordatorioAntes, type ReaccionEmoji, type Respuesta } from '../src/viaje-v2/mensajes.js';
 import { datosDeCompra, renderizar } from '../src/viaje-v2/texto.js';
 import type { Compra, Mensaje, Zona } from '../src/viaje-v2/tipos.js';
 
@@ -114,6 +114,8 @@ export type Enviado = {
   iniciativa: boolean;
   programado?: Programado;
   reaccionA?: { tipo: string; respuesta: Respuesta };
+  /** Si contesta a algo que escribió la persona: cuándo lo escribió. */
+  respondeEn?: Date;
 };
 
 export type Linea = { instante: Date; zona: Zona; de: 'vita' | 'persona' | 'nota' | 'corazon'; texto: string; ids?: string[] };
@@ -275,7 +277,7 @@ export function simular(compra: Compra, compraEn: Date, persona: Persona): Resul
         sueltasIds.push(idMensaje);
         const r = reaccion({ tipo: 'foto-suelta', quedaNoche: quedaNocheEseDia(programados(), s.en) }, { tipo: 'foto', idMensaje }, compra, estado.rotacion);
         estado = { ...estado, rotacion: r.rot, fotosSueltas: estado.fotosSueltas + 1 };
-        for (const m of r.mensajes) mandar(s.en, compra.zonaViaje, m, 'reaccion', false, { reaccionA: { tipo: 'foto-suelta', respuesta: { tipo: 'foto' } } });
+        for (const m of r.mensajes) mandar(s.en, compra.zonaViaje, m, 'reaccion', false, { reaccionA: { tipo: 'foto-suelta', respuesta: { tipo: 'foto' } }, respondeEn: s.en });
         for (const x of r.reacciones) corazon(s.en, compra.zonaViaje, x, 'foto-suelta', idMensaje);
       });
     }
@@ -308,23 +310,28 @@ export function simular(compra: Compra, compraEn: Date, persona: Persona): Resul
     if (it.respuesta.audioMal) {
       const r = reaccion({ tipo: 'cadena', siguiente: 'callada' }, it.respuesta, compra, estado.rotacion);
       estado = { ...estado, rotacion: r.rot };
-      for (const m of r.mensajes) mandar(it.en, casa, m, 'reaccion', false, { reaccionA });
+      for (const m of r.mensajes) mandar(it.en, casa, m, 'reaccion', false, { reaccionA, respondeEn: it.en });
       return;
     }
     const sig = siguienteDeLaCadena(id);
     const cuando = momentoDeLaSiguiente(it.en, compra);
     const r = reaccion({ tipo: 'cadena', siguiente: !cuando ? 'callada' : (sig ?? 'fin') }, it.respuesta, compra, estado.rotacion);
     estado = { ...estado, rotacion: r.rot };
-    const en = cuando ?? it.en;
-    const salir = () => {
-      for (const m of r.mensajes) mandar(en, casa, m, m.ids.some(esCadena) ? 'cadena' : 'reaccion', false, { reaccionA });
-      if (sig && cuando) {
+    // Lo que contesta sale enseguida (TXT, acuse solo); lo que trae la siguiente, a su hora (momentoDeLaReaccion).
+    for (const m of r.mensajes) {
+      const en = momentoDeLaReaccion(m, it.en, cuando);
+      const salir = () => mandar(en, casa, m, m.ids.some(esCadena) ? 'cadena' : 'reaccion', false, { reaccionA, respondeEn: it.en });
+      if (en > it.en) cola.push(en, salir);
+      else salir();
+    }
+    if (sig && cuando) {
+      const anotar = () => {
         estado = anotarEnvio(estado, { clave: sig, tipo: 'cadena', ids: [sig], en: cuando.toISOString() });
         preguntarCadena(sig, cuando);
-      }
-    };
-    if (en > it.en) cola.push(en, salir);
-    else salir();
+      };
+      if (cuando > it.en) cola.push(cuando, anotar);
+      else anotar();
+    }
   }
 
   // ── El viaje ──
@@ -367,7 +374,7 @@ export function simular(compra: Compra, compraEn: Date, persona: Persona): Resul
     );
     estado = { ...estado, rotacion: r.rot, fotosSueltas: estado.fotosSueltas + (it.fotos ?? 0) };
     estado = anotarRespuesta(estado, p.clave, { ...it.respuesta, en: it.en.toISOString() });
-    for (const m of r.mensajes) mandar(it.en, p.zona, m, 'reaccion', false, { reaccionA: { tipo: p.tipo, respuesta: it.respuesta } });
+    for (const m of r.mensajes) mandar(it.en, p.zona, m, 'reaccion', false, { reaccionA: { tipo: p.tipo, respuesta: it.respuesta }, respondeEn: it.en });
     for (const x of r.reacciones) corazon(it.en, p.zona, x, p.tipo, idMensaje);
   }
 
@@ -808,6 +815,7 @@ export function correr(semilla: number, idioma: Idioma = 'es-AR'): { e: Escenari
 
 export const INVARIANTES: Record<string, string> = {
   a: 'a) Mensaje por reloj (o de la cadena) entre las 23:00 y las 8:00 locales',
+  a2: 'a) Una respuesta a lo que escribió la persona (TXT, acuse solo, PAS) que no sale enseguida',
   b1: 'b) Más de 2 preguntas en un mismo día',
   b2: 'b) El día de salida llega algo más que UC1',
   b3: 'b) El día de vuelta llega algo más que VU0',
@@ -959,8 +967,9 @@ export function revisar(res: Resultado): { violaciones: Violacion[]; hallazgos: 
     mal('k', e instanceof Error ? e.message : String(e));
   }
 
-  // a) franja
+  // a) franja (solo lo que va por iniciativa); a2) lo que responde sale enseguida
   for (const m of env) {
+    if (m.origen === 'reaccion' && m.respondeEn && m.en.getTime() !== m.respondeEn.getTime()) mal('a2', `${m.ids.join('+')} ${cuando(m)}, ${Math.round((m.en.getTime() - m.respondeEn.getTime()) / 60_000)} min después de la respuesta`);
     const porReloj = m.iniciativa || m.origen === 'cadena';
     if (porReloj && enFranja(m.en, m.zona)) mal('a', `${m.ids.join('+')} a las ${cuando(m)}`);
     else if (!porReloj && m.ids.some((id) => esCadena(id)) && enFranja(m.en, m.zona)) ojo('i10', `${m.ids.join('+')} a las ${cuando(m)}`);

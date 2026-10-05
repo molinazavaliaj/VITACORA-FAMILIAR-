@@ -195,6 +195,12 @@ describe('viaje v2: simulación en catalán y en castellano de España', () => {
     expect(revisar(res).violaciones.map((v) => v.inv)).toContain('l1');
   });
 
+  it('a2: una respuesta (TXT) que sale horas después de lo que escribió, salta', () => {
+    const { res } = lecturaEsES();
+    const enviados = res.enviados.map((m) => (m.ids[0] === 'TXT' ? { ...m, en: new Date(m.en.getTime() + 9 * 3_600_000) } : m));
+    expect(revisar({ ...res, enviados }).violaciones.map((v) => v.inv)).toContain('a2');
+  });
+
   it('l2: un <br> o una marca que se cuela, salta', () => {
     const c = correr(5);
     const res = { ...c.res, enviados: c.res.enviados.map((m, i) => (i === 0 ? { ...m, texto: `${m.texto}<br>` } : m)) };
@@ -240,6 +246,10 @@ describe('viaje v2: las dos lecturas nuevas (personas inventadas)', () => {
     expect(res.compra.regalo).toBeUndefined();
     for (const id of ['BIEN-1', 'PAS-V', 'ATR1', 'AL3', 'DES+']) expect(md, id).toContain(`\`${id}\``);
     expect(md).toContain('un libro en PDF');
+    // Escribe VA1 a las 23:05: TXT le contesta enseguida, no a las 8:00 del otro día.
+    const txt = res.enviados.find((m) => m.ids[0] === 'TXT')!;
+    expect(txt.en).toEqual(txt.respondeEn);
+    expect(md).toMatch(/\*\*23:05 · Marta\*\* {2}\n_\[texto: un libro de poemas[^\n]*\n\n\*\*23:05 · Vitácora\*\* `TXT`/);
     expect(md).not.toContain('{{');
   });
 });

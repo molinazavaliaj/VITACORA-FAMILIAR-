@@ -52,9 +52,7 @@ _[audio: una plaza con una fuente y yo sentada con un café]_
 **23:05 · Marta**  
 _[texto: un libro de poemas que era de mi abuela; viaja siempre conmigo]_
 
-## Antes de salir · sábado 31/10 (hora de Madrid)
-
-**08:00 · Vitácora** `TXT`  
+**23:05 · Vitácora** `TXT`  
 > Lo he leído, gracias. Si puedes, cuéntamelo también en audio: tu voz es lo que va al libro. Y si te resulta más cómodo escribir, escribe sin más.
 
 ## Día 1 · salida · viernes 6/11 (hora de Madrid)

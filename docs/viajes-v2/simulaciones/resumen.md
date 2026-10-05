@@ -24,6 +24,7 @@ Generado por `fabrica/scripts/viaje-v2-simular.ts` (no editar a mano): **2400 vi
 | Invariante | Viajes que la rompen | Ejemplo más chico |
 |---|---|---|
 | a) Mensaje por reloj (o de la cadena) entre las 23:00 y las 8:00 locales | 0 de 2400 | — |
+| a) Una respuesta a lo que escribió la persona (TXT, acuse solo, PAS) que no sale enseguida | 0 de 2400 | — |
 | b) Más de 2 preguntas en un mismo día | 0 de 2400 | — |
 | b) El día de salida llega algo más que UC1 | 0 de 2400 | — |
 | b) El día de vuelta llega algo más que VU0 | 0 de 2400 | — |

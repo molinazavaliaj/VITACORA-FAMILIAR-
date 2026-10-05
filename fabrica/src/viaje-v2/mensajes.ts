@@ -36,7 +36,7 @@
 // viene del banco de ese idioma (bancoDe). Las reglas son las mismas.
 
 import { porId } from './banco.js';
-import type { IdAntes, Programado, TipoProgramado } from './calendario.js';
+import { CADENA_ANTES, type IdAntes, type Programado, type TipoProgramado } from './calendario.js';
 import { aLocal } from './horas.js';
 import { idiomaDe } from './idioma.js';
 import { datosDeCompra, renderizar } from './texto.js';
@@ -279,6 +279,22 @@ export function reaccion(de: QueSeContesta, respuesta: Respuesta, compra: Compra
     ? elegirRotando('ACN', rot, sinLoEscuche(GRUPOS.ACN, 'ACN3'))
     : elegirRotando('ACM', rot, de.quedaNoche ? undefined : ACM_SIN_NOCHE);
   return listo([juntar([parte(e.id, compra)])], e.rot);
+}
+
+/**
+ * Cuándo sale un mensaje que contesta a la cadena de antes de salir.
+ * `siguiente` es momentoDeLaSiguiente (ya corrido por la franja 23-8).
+ *   · Si trae la siguiente pregunta de la cadena (ACA + AS2, PAS-A + VA1, o
+ *     la pregunta sola después de TXT), es iniciativa nuestra: espera a
+ *     `siguiente`.
+ *   · Si no (TXT, un acuse solo, PAS-A2), es una respuesta a lo que acaba de
+ *     escribir: sale enseguida, aunque sea dentro de la franja. La franja vale
+ *     solo para lo que mandamos por iniciativa propia (Naza, 05/10: un TXT a
+ *     las 8:00 del otro día llega sin contexto).
+ */
+export function momentoDeLaReaccion(m: Mensaje, contesto: Date, siguiente: Date | null): Date {
+  const traePregunta = m.ids.some((id) => (CADENA_ANTES as readonly string[]).includes(id));
+  return traePregunta && siguiente ? siguiente : contesto;
 }
 
 // ── Despedida ────────────────────────────────────────────────────────────────
