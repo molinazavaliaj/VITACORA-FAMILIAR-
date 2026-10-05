@@ -86,3 +86,10 @@ Hola {{1}}, hay una pregunta nueva para {{2}}. Cuando estén juntos y con un rat
 ## 9. `kids_termino_padre` (el chico terminó de contar) — {{1}} padre · {{2}} chico
 
 Hola {{1}}. {{2}} terminó de contar. Ya están todas sus respuestas en tu panel, también las del sobre cerrado. Ahora empieza el armado del libro, y te avisamos cuando esté listo. Y lo mismo que al principio, no le digas nada hasta el libro.
+
+## 10. `kids_final` (mensaje final al chico, cuando se cierra solo a los 2 días y pasaron 24 h) — {{1}} cómo le dicen · {{2}} quién se lo regala
+Aprobada por Naza (05/10). Sin botón.
+
+Bueno {{1}}, hasta acá llegamos. Ya tengo todo lo que contaste con tus audios y tus fotos, y ahora con eso se arma el libro, con tus palabras. Cuando esté listo te lo va a dar {{2}}, que fue quien te hizo este regalo. La última parte, la del sobre cerrado, va aparte, pegada al libro, para que la abras cuando seas grande. Gracias por contarme todo esto. Nos vemos pronto.
+
+## 10b. `kids_final_plural` — igual, con "te lo van a dar {{2}}, que fueron quienes te hicieron este regalo".

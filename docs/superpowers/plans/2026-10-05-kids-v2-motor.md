@@ -91,7 +91,15 @@ Para mostrarle a Naza. Todas son una constante o unas pocas líneas: si quiere o
 28. **Escribe después del final**: no contesta; marca `escribio-despues-del-final` a Naza (sin texto, como dice el hueco 36).
 29. **Fotos con otros chicos**: el motor solo la guarda en la ficha (Naza mira el álbum).
 
+
+## Cambios aprobados por Naza sobre estas decisiones (05/10) — PISAN al código de las tareas
+
+**A. La foto que vence no se pierde (pisa la 6 y la 16).** Cuando una foto pegada vence sin respuesta (botón no tocado hasta la hora del día siguiente) o se pierde por algo preocupante, el ID de su principal se guarda en `estado.fotosVencidas: string[]`. Al final, las fotos vencidas se ofrecen **primero** como extras (mismo texto y botones de la foto original; acuse de foto; [No tengo] como siempre), y después las extras del banco en orden. Con alguna foto vencida siempre hay oferta de extras. La otra puerta vencida sí se pierde (era optativa). Implementar en la Task 9 (guardar al vencer) y en la Task 6 (ofrecer al final), cada una con su test: "foto de K1 vencida → aparece en la oferta de extras antes que X1-1"; "foto perdida por algo preocupante → también vuelve al final". Agregar a la simulación (Task 13) el control: "ninguna foto pegada desaparece: o se contestó, o se tocó [No tengo]/botón propio, o salió de nuevo al final, o el chico cerró con [No, ya está]/[Lo dejamos acá]".
+
+**B. El final llega por plantilla propia (pisa la 14).** FINAL-CHICO y FINAL-CHICO-PL se cargan en Meta como `kids_final` y `kids_final_plural` (ver `docs/kids/v2/plantillas-meta-kids.md`, plantillas 10 y 10b). En el cierre automático a los 2 días, si la ventana de 24 h está cerrada, sale la plantilla directa (sin PREG-NUEVA-CHICO antes) y después TERMINO-PADRE como siempre. Implementar en la Task 6, con test: "cierre a los 2 días con ventana cerrada → salida con plantilla kids_final y sin PREG-NUEVA". Ajustar el control de la simulación que corresponda.
+
 ---
+
 
 ### Task 1: El banco, de los md a `banco.json`
 
