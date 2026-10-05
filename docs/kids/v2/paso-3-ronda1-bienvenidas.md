@@ -52,3 +52,17 @@ Variables: {{1}} nombre del padre · {{2}} nombre del chico · {{3}} link del pa
 > Y una sola cosa te pedimos: leé todo, pero no le digas nada hasta el libro.
 
 Por qué (Fable): el link va en el medio porque en una plantilla la variable no puede cerrar el cuerpo. Supone que el que compra es el que recibe este mensaje.
+
+---
+
+## Ronda 2 (05/10): arranques con más cariño
+
+Naza: al chico, "tu mamá te hizo un regalo con mucho cariño… el libro de tu vida, contado por vos mismo"; "biógrafo" es raro para un chico; "la persona que se va a encargar de entrevistarte" no; **"esto queda entre vos y yo" NO** (los padres leen). Al padre: "Qué bueno que hayas elegido…", con emoción. El resto de los textos 1 y 2 queda igual. Texto 3 sin cambios. Fable redactó los primeros párrafos nuevos:
+
+**Texto 1, primer párrafo:**
+> Hola {{1}}. Te escribo porque hay un regalo para vos, hecho con mucho cariño. Es de {{2}}: el libro de tu vida, contado por vos mismo. Y acá entro yo: yo traigo las preguntas por este chat, y las historias las tenés vos.
+
+Por qué (Fable): reparte el juego en dos (preguntar / contar) y deja al chico con lo importante; no dice que es persona ni bot. "Es de {{2}}" funciona con "tu mamá", "tu papá" o "tus papás".
+
+**Texto 2, primer párrafo:**
+> Hola {{1}}. Qué bueno que hayas elegido hacer vos el libro de {{2}}: las preguntas van a llegar a este número. Te cuento cómo es para que salga todo bien.
