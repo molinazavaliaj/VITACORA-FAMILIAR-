@@ -21,3 +21,5 @@ Recomendado: cortar la última oración de Fable ("…y lo que viste en el panel
 **B)** dictado por Naza ("le pedís que continúe o algo así" → el botón, porque en este canal la pregunta sale cuando el padre lo toca):
 > Hola {{1}}. Pasaron cuatro días sin que respondan la pregunta pendiente, no hay problema. Esto es solamente un recordatorio para que puedan retomar el libro cuanto antes. Cuando tengan un momento, sentate con {{2}} al lado y tocá el botón para seguir.
 > [Estamos listos]
+
+**Aprobado por Naza (05/10): la ronda 2 (A y B).**
