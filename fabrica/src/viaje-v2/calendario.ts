@@ -151,14 +151,14 @@ export function validarCompra(compra: Compra, { minimoDias = MINIMO_DIAS }: { mi
  *   · cierre:   (2i + ⌊i/5⌋) % 5 (avanza de a dos, y uno más cada 5 noches).
  * Ninguno se repite dos noches seguidas (el cierre avanza 2 o 3, nunca 0 ni
  * 5). Comienzo+puerta recorren las 45 parejas cada 45 noches, y cada vuelta
- * de 45 el cierre queda corrido (99 ≡ 4 mod 5): las 225 combinaciones salen
- * sin repetir antes de la noche 226.
+ * de 45 el cierre queda corrido (99 ≡ 4 mod 5).
  *
  * Excepción (Naza, 05/10, todos los idiomas): C3 ("con lo que valga la pena")
  * nunca va con F4 ("después contame lo demás"): se contradicen. Si la cuenta
  * los junta, va el cierre siguiente (F5). Con C3 (i % 5 = 2) las noches
- * vecinas tienen F2 y F1, así que F5 no repite cierre. Quedan 216
- * combinaciones distintas en vez de 225.
+ * vecinas tienen F2 y F1, así que F5 no repite cierre. Por eso salen 216
+ * combinaciones distintas (no 225), y alguna se repite antes de agotarlas:
+ * la primera repetición es la noche 47 (i = 47, igual que i = 2: C3+NO4+F5).
  */
 export const NO_VAN_JUNTOS: readonly (readonly [string, string])[] = [['C3', 'F4']];
 

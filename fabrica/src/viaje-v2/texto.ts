@@ -40,13 +40,18 @@ export function marcasDe(texto: string): string[] {
   return [...new Set([...texto.matchAll(MARCA)].map((m) => m[1]))];
 }
 
+/** Abreviaturas que terminan en punto sin cerrar la oración ("Sr. {{nombre}}"). */
+const ABREVIATURAS = /(^|[^\p{L}])(sr|sra|srta|dr|dra)\.\s+$/iu;
+
 /**
- * ¿La marca que empieza en `i` abre una oración? Al principio del texto, o
- * después de . ! ? … y un espacio o salto (con ¿ o ¡ en el medio, si los hay).
+ * ¿La marca que empieza en `i` abre una oración? Al principio del texto,
+ * después de un salto de línea, o después de . ! ? … y un espacio (con ¿ o ¡
+ * en el medio, si los hay). Después de "Sr.", "Sra.", "Dr."…, no.
  */
 function abreOracion(texto: string, i: number): boolean {
   const antes = texto.slice(0, i).replace(/[¿¡]+$/, '');
-  return antes === '' || /[.!?…]\s+$/.test(antes);
+  if (antes === '' || /\n[ \t]*$/.test(antes)) return true;
+  return /[.!?…]\s+$/.test(antes) && !ABREVIATURAS.test(antes);
 }
 
 /**

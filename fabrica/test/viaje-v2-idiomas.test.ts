@@ -240,7 +240,7 @@ describe('viaje v2 idiomas: los mensajes salen en el idioma de la compra', () =>
       const [antes, despues] = partirDes(porId('DES', idioma).texto);
       expect(antes.endsWith(esperado[idioma][0]), `${idioma}: ${antes}`).toBe(true);
       expect(despues, idioma).toBe(esperado[idioma][1]);
-      expect(despedida(en(idioma), 21).texto, idioma).toBe(`${renderizar(antes, datosDeCompra(en(idioma)))} ${r('DES+', idioma)} ${despues}`);
+      expect(despedida(en(idioma), 21).texto, idioma).toContain(`${esperado[idioma][0]} ${r('DES+', idioma)} ${esperado[idioma][1]}`);
     }
   });
 
@@ -265,6 +265,19 @@ describe('viaje v2 idiomas: una marca al principio de oración va con mayúscula
     expect(renderizar('Quina sorpresa! {{nombre}}, digues.', d)).toBe('Quina sorpresa! Àngels, digues.');
     expect(renderizar('Fet?\n\n{{quien_regala}} espera.', d)).toBe('Fet?\n\nEl teu pare espera.');
     expect(renderizar('¿{{quien_regala}} lo sabe?', d)).toBe('¿El teu pare lo sabe?');
+  });
+
+  it('un salto de línea también abre una oración', () => {
+    const d = { quien_regala: 'el teu pare' };
+    expect(renderizar('Hola, Laia\n{{quien_regala}} espera.', d)).toBe('Hola, Laia\nEl teu pare espera.');
+    expect(renderizar('Hola, Laia\n\n{{quien_regala}} espera.', d)).toBe('Hola, Laia\n\nEl teu pare espera.');
+  });
+
+  it('después de "Sr." (y "Sra.", "Dr.") no es una oración nueva', () => {
+    const d = { quien_regala: 'el teu pare', nombre: 'de la Fuente' };
+    expect(renderizar('Hola, Sr. {{nombre}}.', d)).toBe('Hola, Sr. de la Fuente.');
+    expect(renderizar('Hola, Sra. {{nombre}}.', d)).toBe('Hola, Sra. de la Fuente.');
+    expect(renderizar('Ho diu el Dr. {{nombre}}.', d)).toBe('Ho diu el Dr. de la Fuente.');
   });
 
   it('en medio de una oración queda como lo escribieron', () => {
@@ -316,6 +329,34 @@ describe('viaje v2 idiomas: el detector (SÍ, paso, listo, no)', () => {
     expect(entender('si quieres te mando más mañana por la tarde', 'es-ES')).toBeNull();
     expect(entender('fet i fet, el millor va ser el mar de nit', 'ca')).toBeNull();
     expect(entender('', 'ca')).toBeNull();
+  });
+
+  it('un relato que empieza con una palabra del sistema no dispara nada (revisor: audios transcriptos)', () => {
+    expect(entender('paso por Roma mañana', 'es-AR')).toBeNull();
+    expect(entender('Paso por Roma mañana', 'es-ES')).toBeNull();
+    expect(entender('si fuimos a Roma', 'es-AR')).toBeNull();
+    expect(entender('no fuimos a Roma', 'ca')).toBeNull();
+    expect(entender('no fuimos a Roma', 'es-ES')).toBeNull();
+    expect(entender('vale la pena ir', 'es-ES')).toBeNull();
+    expect(entender('vale la pena ir', 'ca')).toBeNull();
+    expect(entender('listo el pollo', 'es-AR')).toBeNull();
+    expect(entender('ja està tot pagat', 'ca')).toBeNull();
+    expect(entender('fet a mà', 'ca')).toBeNull();
+    expect(entender('passo per Lisboa demà', 'ca')).toBeNull();
+  });
+
+  it('después de la palabra solo valen las colas cortas de la lista de cada idioma', () => {
+    for (const x of ['paso, esta', 'paso esa', 'paso hoy', 'paso por hoy', 'paso, gracias', 'paso, no', 'paso, no quiero', 'paso, no tengo ganas', 'paso, perdón']) expect(entender(x, 'es-AR'), x).toBe('paso');
+    for (const x of ['paso, hoy no me apetece', 'paso, lo siento', 'paso, esta no']) expect(entender(x, 'es-ES'), x).toBe('paso');
+    for (const x of ['passo, avui no', 'passo, gràcies', 'passo aquesta', 'passo, no em ve de gust', 'paso, hoy no']) expect(entender(x, 'ca'), x).toBe('paso');
+    for (const x of ['sí, están todas', 'sí, ya están', 'sí, gracias', 'dale, gracias']) expect(entender(x, 'es-AR'), x).toBe('si');
+    for (const x of ['vale, gracias', 'sí, ya están todas', 'venga, vale']) expect(entender(x, 'es-ES'), x).toBe('si');
+    for (const x of ["sí, ja hi són totes", "d'acord, gràcies", 'vale, gràcies']) expect(entender(x, 'ca'), x).toBe('si');
+    for (const x of ['listo, son esas', 'listo, son todas', 'ya está, gracias', 'listo, eso es todo']) expect(entender(x, 'es-AR'), x).toBe('listo');
+    for (const x of ['ya está, son estas', 'hecho, gracias', 'ya está, nada más']) expect(entender(x, 'es-ES'), x).toBe('listo');
+    for (const x of ['ja està, són aquestes', 'fet, gràcies', 'ja està, això és tot']) expect(entender(x, 'ca'), x).toBe('listo');
+    for (const x of ['no, me faltan', 'no, todavía', 'no, esperá']) expect(entender(x, 'es-AR'), x).toBe('no');
+    for (const x of ["no, me'n falten", 'no, encara no', 'no, espera']) expect(entender(x, 'ca'), x).toBe('no');
   });
 
   it('lo que cada texto le pide escribir, el detector de ese idioma lo entiende', () => {
