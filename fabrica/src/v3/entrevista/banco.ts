@@ -5,9 +5,14 @@
 // Otros idiomas (Naza, 04/10): `banco-ca.json` sale de banco-ca.md y trae
 // solo los textos; `bancoDe('ca')` es el mismo banco (mismo orden, mismas
 // reglas, mismos botones y lo que vale cada uno) con los textos en catalán.
+// Igual `banco-es-ES.json` (Naza, 05/10: España de tú) sale de
+// banco-es-ES.md. Mientras ese md no exista, el json va sin textos y una
+// entrevista en es-ES no arranca (error): nunca se le manda el castellano
+// rioplatense a alguien de España.
 
 import bancoJson from './banco.json' with { type: 'json' };
 import bancoCaJson from './banco-ca.json' with { type: 'json' };
+import bancoEsEsJson from './banco-es-ES.json' with { type: 'json' };
 import type { BancoEntrevista, MensajeEntrevista, PreguntaEntrevista } from './banco-md.js';
 import type { TextosIdioma } from './banco-idioma-md.js';
 import { IDIOMA_POR_DEFECTO, type Idioma } from './idioma.js';
@@ -30,10 +35,31 @@ export const NOMBRES_BLOQUE: Readonly<Record<number, string>> = DATOS.nombresBlo
 const POR_ID = new Map(BANCO.map((p) => [p.id, p]));
 const MENSAJE_POR_ID = new Map(MENSAJES.map((m) => [m.id, m]));
 
-/** Los textos de cada idioma que no es el de banco.md. */
-export const TEXTOS_IDIOMA: Readonly<Record<Exclude<Idioma, 'es-AR'>, TextosIdioma>> = { ca: bancoCaJson as TextosIdioma };
+/** Los idiomas cuyos textos no son los de banco.md. */
+export type OtroIdioma = Exclude<Idioma, 'es-AR'>;
 
-type Armado = {
+/** Los textos de cada idioma que no es el de banco.md. */
+export const TEXTOS_IDIOMA: Readonly<Record<OtroIdioma, TextosIdioma>> = { ca: bancoCaJson as TextosIdioma, 'es-ES': bancoEsEsJson as TextosIdioma };
+
+/**
+ * Los textos de ese idioma, si están completos en lo que el código usa
+ * suelto (la repregunta y su botón, los nombres de bloque). Si faltan (es-ES
+ * antes de que llegue banco-es-ES.md), error: mejor frenar que mandar
+ * castellano rioplatense.
+ */
+export function textosDe(idioma: OtroIdioma): TextosIdioma {
+  return comprobarTextos(idioma, TEXTOS_IDIOMA[idioma]);
+}
+
+/** El control de `textosDe`, con los textos que se le pasan (para los tests). */
+export function comprobarTextos(idioma: OtroIdioma, t: TextosIdioma | undefined): TextosIdioma {
+  if (!t ||!t.repregunta.mensaje || !t.repregunta.boton || Object.keys(t.nombresBloque).length === 0) {
+    throw new Error(`${idioma}: faltan los textos (docs/v3/entrevista/banco-${idioma}.md; después, cd fabrica && npx tsx scripts/v3-entrevista-json.ts).`);
+  }
+  return t;
+}
+
+export type Armado = {
   banco: readonly PreguntaEntrevista[];
   porId: ReadonlyMap<string, PreguntaEntrevista>;
   mensajes: readonly MensajeEntrevista[];
@@ -47,8 +73,12 @@ const ARMADOS = new Map<Idioma, Armado>([[IDIOMA_POR_DEFECTO, { banco: BANCO, po
  * mensaje le falta su texto, error: nunca se manda castellano en una
  * entrevista en catalán.
  */
-function armar(idioma: Exclude<Idioma, 'es-AR'>): Armado {
-  const t = TEXTOS_IDIOMA[idioma];
+function armar(idioma: OtroIdioma): Armado {
+  return armarConTextos(idioma, textosDe(idioma));
+}
+
+/** `armar` con los textos que se le pasan (los tests prueban que con textos incompletos frena). */
+export function armarConTextos(idioma: OtroIdioma, t: TextosIdioma): Armado {
   const banco = BANCO.map((p): PreguntaEntrevista => {
     const texto = t.preguntas[p.id];
     if (texto === undefined) throw new Error(`${idioma}: falta el texto de ${p.id}`);
@@ -68,7 +98,7 @@ function armar(idioma: Exclude<Idioma, 'es-AR'>): Armado {
 function armado(idioma: Idioma): Armado {
   let a = ARMADOS.get(idioma);
   if (!a) {
-    a = armar(idioma as Exclude<Idioma, 'es-AR'>);
+    a = armar(idioma as OtroIdioma);
     ARMADOS.set(idioma, a);
   }
   return a;
@@ -86,7 +116,7 @@ export function mensajesDe(idioma: Idioma = IDIOMA_POR_DEFECTO): readonly Mensaj
 
 /** El nombre de cada bloque en ese idioma. */
 export function nombresBloqueDe(idioma: Idioma = IDIOMA_POR_DEFECTO): Readonly<Record<number, string>> {
-  return idioma === 'es-AR' ? NOMBRES_BLOQUE : TEXTOS_IDIOMA[idioma].nombresBloque;
+  return idioma === 'es-AR' ? NOMBRES_BLOQUE : textosDe(idioma).nombresBloque;
 }
 
 export function preguntaPorId(id: string, idioma: Idioma = IDIOMA_POR_DEFECTO): PreguntaEntrevista | undefined {

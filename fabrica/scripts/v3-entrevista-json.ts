@@ -1,17 +1,21 @@
 // Genera fabrica/src/v3/entrevista/banco.json desde docs/v3/entrevista/banco.md,
-// y banco-ca.json desde docs/v3/entrevista/banco-ca.md (los textos en
-// catalán; Naza, 04/10):
+// banco-ca.json desde docs/v3/entrevista/banco-ca.md (los textos en
+// catalán; Naza, 04/10) y banco-es-ES.json desde banco-es-ES.md (castellano
+// de España, de tú; Naza, 05/10):
 //
 //   npx tsx scripts/v3-entrevista-json.ts
 //
-// Correrlo cada vez que cambia un md (los tests v3-entrevista-banco y
-// v3-catala-banco avisan si quedó viejo).
+// Correrlo cada vez que cambia un md (los tests v3-entrevista-banco,
+// v3-catala-banco y v3-banco-es-ES avisan si quedó viejo). Si banco-es-ES.md
+// todavía no existe, banco-es-ES.json queda como está (sin textos: una
+// entrevista en es-ES no arranca).
 
-import { readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parsearEntrevistaMd } from '../src/v3/entrevista/banco-md.js';
 import { parsearTextosIdiomaMd } from '../src/v3/entrevista/banco-idioma-md.js';
+import { IDIOMAS } from '../src/v3/entrevista/idioma.js';
 
 const FABRICA = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DOCS = path.join(FABRICA, '..', 'docs', 'v3', 'entrevista');
@@ -26,6 +30,15 @@ console.log(
     `${cuenta((p) => p.clase === 'historia' || p.clase === 'foto')} de historia con la foto) y ${banco.mensajes.length} mensajes`,
 );
 
-const ca = parsearTextosIdiomaMd(readFileSync(path.join(DOCS, 'banco-ca.md'), 'utf8'));
-writeFileSync(path.join(FABRICA, 'src', 'v3', 'entrevista', 'banco-ca.json'), JSON.stringify(ca, null, 2) + '\n', 'utf8');
-console.log(`banco-ca.json: ${Object.keys(ca.preguntas).length} preguntas, ${Object.keys(ca.mensajes).length} mensajes, ${Object.values(ca.botones).flat().length} botones`);
+for (const idioma of IDIOMAS) {
+  if (idioma === 'es-AR') continue; // banco.md, arriba
+  const md = path.join(DOCS, `banco-${idioma}.md`);
+  const json = `banco-${idioma}.json`;
+  if (!existsSync(md)) {
+    console.log(`${json}: falta docs/v3/entrevista/banco-${idioma}.md; queda como está (sin textos, la entrevista en ${idioma} no arranca).`);
+    continue;
+  }
+  const t = parsearTextosIdiomaMd(readFileSync(md, 'utf8'));
+  writeFileSync(path.join(FABRICA, 'src', 'v3', 'entrevista', json), JSON.stringify(t, null, 2) + '\n', 'utf8');
+  console.log(`${json}: ${Object.keys(t.preguntas).length} preguntas, ${Object.keys(t.mensajes).length} mensajes, ${Object.values(t.botones).flat().length} botones`);
+}

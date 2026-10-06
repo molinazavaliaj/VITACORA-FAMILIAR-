@@ -98,12 +98,15 @@ todavía no existe): cambian cómo el biógrafo escribe cada una.
 
 ### `contexto.idioma` — en qué idioma se hace la entrevista V3 (04/10, Naza)
 
-`"ca"` = la entrevista en catalán; ausente (o `"es-AR"`) = la de siempre, en castellano
-rioplatense. **La web lo escribe** en la compra, cuando quien regala lo elige en la ficha
-("¿En qué idioma hacemos la entrevista? Castellano / Català"). **El entrevistador lo lee** y
+`"ca"` = la entrevista en catalán; `"es-ES"` = en castellano de España, de tú (05/10, Naza:
+Argentina va de vos, España de tú, catalán en catalán); ausente (o `"es-AR"`) = la de siempre,
+en castellano rioplatense. **La web lo escribe** en la compra, cuando quien regala lo elige en la ficha
+("¿En qué idioma hacemos la entrevista? Castellano / Català"; para España, "Castellano de
+España" cuando sus textos estén aprobados: hasta que `docs/v3/entrevista/banco-es-ES.md` esté
+y su json generado, una entrevista `"es-ES"` frena con error en vez de mandar rioplatense). **El entrevistador lo lee** y
 se lo pasa a todo lo de `fabrica/src/v3/entrevista/`: `EstadoEntrevista.idioma`, la ficha de
 `renderizar` (`idioma`), `mensajesDespues(…, idioma)`, `preguntaPorId`/`mensajePorId(id, idioma)`,
-`cazarBloque({ …, idioma })` y la transcripción (`idioma` → `language: 'ca'`). Sin migración:
+`cazarBloque({ …, idioma })` y la transcripción (`idioma` → `language: 'ca'`; `es-ES` → `'es'` con vocabulario de España). Sin migración:
 es una clave del jsonb `narradores.contexto`. Un valor que no se conoce es un error
 (`idiomaDe` en `idioma.ts`): mejor frenar que entrevistar en el idioma equivocado. No se
 mezcla con `contexto.trato` (usted/vos del entrevistador viejo). El libro en catalán es otro

@@ -4,7 +4,7 @@
 // lo que PODRÍA llegar; `simularRecorrido` da lo que llega de verdad con unas
 // respuestas dadas. Puro.
 
-import { BANCO, type Boton, type PreguntaEntrevista } from './banco.js';
+import { bancoDe, type Boton, type PreguntaEntrevista } from './banco.js';
 import { siguientePregunta, type EstadoEntrevista, type PreguntaFamilia, type Respuesta } from './flujo.js';
 import { renderizar, type FichaTexto, type OpcionesTexto } from './texto.js';
 
@@ -19,12 +19,12 @@ function render(p: PreguntaEntrevista, ficha: FichaTexto, respuestas?: ReadonlyM
 
 /** Todo el núcleo, en orden de banco (con las alternativas: AM15 y HI10, AM13/AM16/AM19…). */
 export function preguntasDelNucleo(ficha: FichaTexto, opciones?: OpcionesTexto): PreguntaRenderizada[] {
-  return BANCO.filter((p) => p.parte === 'nucleo').map((p) => render(p, ficha, undefined, opciones));
+  return bancoDe(ficha.idioma).filter((p) => p.parte === 'nucleo').map((p) => render(p, ficha, undefined, opciones));
 }
 
 /** Todo el banco (núcleo y extra), en orden de banco. */
 export function preguntasCompletas(ficha: FichaTexto, opciones?: OpcionesTexto): PreguntaRenderizada[] {
-  return BANCO.map((p) => render(p, ficha, undefined, opciones));
+  return bancoDe(ficha.idioma).map((p) => render(p, ficha, undefined, opciones));
 }
 
 /** ¿Es una pregunta de historia a los fines del recuento? (la foto cuenta como pregunta; cierres, aviso y final no). */

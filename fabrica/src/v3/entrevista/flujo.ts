@@ -5,7 +5,7 @@
 // estado y llama a estas funciones.
 
 import { estado, type FichaV3 } from '../ficha.js';
-import { bancoDe, condicionesDe, mensajePorId, preguntaPorId, TEXTOS_IDIOMA, type Boton, type CondicionSimple, type PreguntaEntrevista, type ValeBoton } from './banco.js';
+import { bancoDe, condicionesDe, mensajePorId, preguntaPorId, textosDe, type Boton, type CondicionSimple, type PreguntaEntrevista, type ValeBoton } from './banco.js';
 import { IDIOMA_POR_DEFECTO, type Idioma } from './idioma.js';
 import { habilitaLasQueDependen, interpretar, PREGUNTA_COMUN, respuestaDeBoton, valeBoton, type Interpretacion, type PreguntaParaInterpretar } from './respuesta.js';
 
@@ -73,9 +73,9 @@ export function deRepregunta(clave: string): string | undefined {
  */
 export const BOTON_YA_LO_CONTE: Boton = { texto: 'Ya lo conté todo', vale: 'no' };
 
-/** [Ya lo conté todo] en el idioma de la entrevista (en catalán sale de banco-ca.md; Naza, 04/10). */
+/** [Ya lo conté todo] en el idioma de la entrevista (en catalán sale de banco-ca.md, Naza, 04/10; en es-ES, de banco-es-ES.md). */
 export function botonRepregunta(idioma: Idioma = IDIOMA_POR_DEFECTO): Boton {
-  return idioma === 'es-AR' ? BOTON_YA_LO_CONTE : { texto: TEXTOS_IDIOMA[idioma].repregunta.boton, vale: 'no' };
+  return idioma === 'es-AR' ? BOTON_YA_LO_CONTE : { texto: textosDe(idioma).repregunta.boton, vale: 'no' };
 }
 
 /**
@@ -597,7 +597,16 @@ export const TEMA_TEXTO_CA: Record<DudaFicha['tema'], string> = {
   mudarse: 'viure en un altre lloc',
 };
 
-const TEMA_TEXTO_DE: Record<Idioma, Record<DudaFicha['tema'], string>> = { 'es-AR': TEMA_TEXTO, ca: TEMA_TEXTO_CA };
+/** {{tema}} de DD1 y DD2 en castellano de España (Naza, 05/10; para que Naza lo apruebe). */
+export const TEMA_TEXTO_ES: Record<DudaFicha['tema'], string> = {
+  hermanos: 'tus hermanos',
+  pareja: 'el amor',
+  hijos: 'tus hijos',
+  nietos: 'tus nietos',
+  mudarse: 'vivir en otro sitio',
+};
+
+const TEMA_TEXTO_DE: Record<Idioma, Record<DudaFicha['tema'], string>> = { 'es-AR': TEMA_TEXTO, ca: TEMA_TEXTO_CA, 'es-ES': TEMA_TEXTO_ES };
 
 const TEMAS: readonly Tema[] = [
   { tema: 'hermanos', pregunta: 'CA6', campo: 'hermanos', si: 'tiene hermanos', no: 'no tiene hermanos' },
