@@ -82,31 +82,75 @@ describe('el detector: ¿AM0 dice claramente que hoy no hay nadie?', () => {
     expect(am0DiceQueHoyNoHayNadie(`${respuestaDeBoton(SI_HUBO[idioma])} ${VIUDA[idioma]}`, idioma)).toBe(false);
   });
 
-  it.each([
-    // Las frases de final y de "nadie" de la lista, en cualquier lugar del repaso.
-    ['es-AR', 'Con Raúl nos casamos en el setenta y nos separamos en el noventa. No tengo pareja.', true],
-    ['es-AR', 'Me divorcié de Raúl en el noventa y desde entonces nada.', true],
-    ['es-AR', 'Fue Hugo, toda la vida, y murió hace dos años. Me quedé viuda.', true],
-    ['ca', "Amb en Pere ens vam separar l'any noranta. No tinc parella.", true],
-    ['es-ES', 'Con Paco, hasta que ha fallecido. Estoy viuda.', true],
-    // Hoy hay alguien en algún lado: AMH.
-    ['es-AR', 'Mi primer marido murió joven. Ahora estoy con Raúl.', false],
-    ['es-AR', 'Mi primer marido murió joven y me volví a casar.', false],
-    ['es-AR', 'Con el primero nos separamos; Luis, que es mi marido, llegó en el ochenta.', false],
-    ['es-AR', 'Tuve un novio, cortamos. Con Héctor estamos hace cuarenta años.', false],
-    ['ca', "El meu primer marit va morir jove. Ara estic amb en Ramon.", false],
-    ['ca', "Amb en Pere ens vam separar, i amb la Rosa portem trenta anys.", false],
-    ['es-ES', 'Mi primer marido murió joven y llevamos veinte años con Andrés.', false],
-    // Algo que terminó y después empezó otra historia: AMH.
-    ['es-AR', 'Mi novio de la juventud murió en un accidente. Después me casé con Pedro.', false],
-    ['ca', "El meu xicot de jove va morir. Després em vaig casar amb en Pere.", false],
-    // Lo que antes fue: "de soltera", "cortamos" o "terminamos" en el repaso no dicen nada de hoy.
-    ['es-AR', 'De soltera tuve dos novios y después me casé con Alberto.', false],
-    ['es-AR', 'Tuve un novio a los quince, terminamos enseguida, y a Alberto lo conocí a los veinte.', false],
+  // Regla estricta (revisión del 06/10, "ante la duda, AMH"): hace falta una frase explícita de que hoy
+  // no hay nadie, y desde el primer final o "nadie" hasta el final nada que sugiera una persona nueva.
+  const SE_SALTEA: [Idioma, string][] = [
+    ['es-AR', 'Con Raúl nos casamos en el setenta y nos separamos en el noventa. No tengo pareja.'],
+    ['es-AR', 'Fue Hugo, toda la vida, y murió hace dos años. Me quedé viuda.'],
+    ['es-AR', 'Murió mi marido en el 2010. Me quedé sola.'],
+    ['es-AR', 'Murió Ernesto hace tres años y estoy viuda.'],
+    ['es-AR', 'Con Alberto, cincuenta años. Falleció en el veinte y desde entonces vivo sola.'],
+    ['ca', "Amb en Pere ens vam separar l'any noranta. No tinc parella."],
+    ['ca', 'El meu marit va morir fa cinc anys. Estic vídua.'],
+    ['ca', "Va morir el meu marit i em vaig quedar sola."],
+    ['es-ES', 'Con Paco, hasta que ha fallecido. Estoy viuda.'],
+    ['es-ES', 'Murió mi marido hace dos años y me he quedado sola.'],
+  ];
+  it.each(SE_SALTEA)('%s: se saltea AMH: %s', (idioma, texto) => {
+    expect(am0DiceQueHoyNoHayNadie(texto, idioma)).toBe(true);
+  });
+
+  /** Casos en castellano: valen en es-AR y es-ES, y también en ca (quien habla catalán mezcla). */
+  const NO_SE_SALTEA_ES = [
+    // Un final solo ya no alcanza.
+    'Me divorcié de Raúl en el noventa y desde entonces nada.',
+    'Nos separamos en el 80, después vino Rosa.',
+    'Se murió. Ahora tengo un compañero.',
+    'Se murió. Hoy mi pareja es Luis.',
+    'Se murió. Hoy salgo con Luis.',
+    'Se murió. Hoy comparto la vida con Luis.',
+    'Murió Pedro y me fui a vivir con Ana, mi nueva pareja.',
+    'Murió Ernesto hace tres años. Hace un año empecé a salir con Jorge.',
+    'Murió Ernesto hace tres años, y Jorge me acompaña desde entonces.',
+    'Mi marido murió en el 2010. Ahora salgo con un señor de mi barrio.',
+    'Murió. Salgo con Pedro.',
+    'Murió, y he empezado a salir con Pedro.',
+    // Con la frase explícita, pero después alguien nuevo, un "pero" o un nombre.
+    'Me quedé viuda, y ahora tengo a Mario.',
+    'Me quedé sola, pero ahora tengo a Mario.',
+    'Me quedé viuda en el noventa. Hoy estoy bien acompañada por Mario.',
+    'Me quedé sola un tiempo y después conocí a Juan.',
+    // Hoy hay alguien en algún lado.
+    'Mi primer marido murió joven. Ahora estoy con Raúl.',
+    'Mi primer marido murió joven y me volví a casar.',
+    'Con el primero nos separamos; Luis, que es mi marido, llegó en el ochenta.',
+    'Tuve un novio, cortamos. Con Héctor estamos hace cuarenta años.',
+    'Mi primer marido murió joven y llevamos veinte años con Andrés.',
+    'Mi novio de la juventud murió en un accidente. Después me casé con Pedro.',
+    'De soltera tuve dos novios y después me casé con Alberto.',
+    'Tuve un novio a los quince, terminamos enseguida, y a Alberto lo conocí a los veinte.',
+    'Vivo con Juan; me quedé viuda del primero en el ochenta.',
     // Una frase de "nadie" negada no es "nadie".
-    ['es-AR', 'Con Alberto toda la vida. No estoy sola para nada.', false],
-  ] as [Idioma, string, boolean][])('%s: %s → %s', (idioma, texto, esperado) => {
-    expect(am0DiceQueHoyNoHayNadie(texto, idioma)).toBe(esperado);
+    'Con Alberto toda la vida. No estoy sola para nada.',
+    'Con Alberto toda la vida, nunca me quedé sola.',
+  ];
+  const NO_SE_SALTEA_CA = [
+    'Ens vam separar i després va venir la Rosa.',
+    'Va morir. Ara tinc en Pere, el meu company.',
+    'Em vaig quedar vídua i ara tinc una parella.',
+    'Va morir, i ara surto amb en Pere.',
+    "Va morir i m'he quedat sola, però surto amb algú.",
+    'El meu primer marit va morir jove. Ara estic amb en Ramon.',
+    'Amb en Pere ens vam separar, i amb la Rosa portem trenta anys.',
+    'El meu xicot de jove va morir. Després em vaig casar amb en Pere.',
+    "Em vaig quedar sola un temps i després vaig conèixer en Joan.",
+  ];
+  const NO_SE_SALTEA: [Idioma, string][] = [
+    ...NO_SE_SALTEA_ES.flatMap((t) => (['es-AR', 'es-ES', 'ca'] as Idioma[]).map((i) => [i, t] as [Idioma, string])),
+    ...NO_SE_SALTEA_CA.map((t) => ['ca', t] as [Idioma, string]),
+  ];
+  it.each(NO_SE_SALTEA)('%s: AMH se manda: %s', (idioma, texto) => {
+    expect(am0DiceQueHoyNoHayNadie(texto, idioma)).toBe(false);
   });
 });
 

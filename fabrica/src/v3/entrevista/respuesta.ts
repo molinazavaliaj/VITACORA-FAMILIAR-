@@ -490,34 +490,79 @@ function interpretarAMH(p: PreguntaParaInterpretar, f: string[], pal: string[], 
 /**
  * ¿El repaso de AM0 dice claramente que hoy no hay nadie? (Naza, 06/10,
  * simulación es-ES: "…hasta que se me murió en el diecinueve. Me he quedado
- * sola." y le llegó igual "¿Tienes pareja ahora?"). Solo si AM0 se contestó
- * con texto o audio, sin botón (con botón, todo igual que antes):
- *   - hay en cualquier lugar una frase de "hoy no hay nadie" o de final (las
- *     listas de AMH, menos las que en un repaso suelen ser de antes: "de
- *     soltera", "sin pareja", "cortamos", "terminamos"), no negada ("No estoy
- *     sola" no cuenta);
- *   - y en TODA la respuesta no hay nada de que hoy hay alguien (las frases de
- *     AMH y además "conocí a", "ahora estoy con", "me volví a casar", "es mi
- *     marido", "estamos", "llevamos"…; negadas no cuentan: "no tengo pareja"),
- *     ni un empezar de nuevo después del primer final ("murió. Después me casé
- *     con Pedro").
- * Ante la duda, no: AMH se manda como siempre.
+ * sola." y le llegó igual "¿Tienes pareja ahora?"). Estricto a propósito:
+ * ante la duda, AMH se manda (revisión del 06/10). Sí solo si AM0 se contestó
+ * con texto o audio, sin botón, y:
+ *   1. hay una frase explícita de que HOY no hay nadie ("me quedé sola",
+ *      "estoy viuda", "vivo sola", "no tengo pareja"…; no negada). Un final
+ *      solo ("murió", "nos separamos") no alcanza;
+ *   2. desde el primer final o frase de "nadie" hasta el final de la
+ *      respuesta no aparece nada que sugiera una persona nueva: palabras de
+ *      pareja (pareja, compañero, novio, marido…), verbos de una pareja nueva
+ *      (vino, conocí, salgo con, tengo a, me acompaña, comparto, vivo con…),
+ *      "pero", "aunque", "hasta que", ni un nombre propio (una palabra con
+ *      mayúscula que no arranca una oración). La frase del final se lleva lo
+ *      que la sigue pegado ("murió mi marido", "murió Ernesto");
+ *   3. y en toda la respuesta no hay nada de que hoy hay alguien ("estoy con",
+ *      "vivo con", "me volví a casar", "estamos"…).
  */
 export function am0DiceQueHoyNoHayNadie(respuesta: string, idioma: Idioma = IDIOMA_POR_DEFECTO): boolean {
   const { boton, resto } = leerBoton(respuesta);
   if (boton !== undefined || leerInferida(respuesta) !== undefined) return false;
   const fr = FRASES[idioma];
   const pal = fichas(resto, fr.unirApostrofos).filter((w) => !esCorte(w));
-  const negada = (i: number) => i > 0 && fr.negaciones.has(pal[i - 1]);
-  const nadie = [...fr.hoyNoHayNadie, ...fr.finales].filter((x) => !fr.ambiguasEnElRepaso.has(x.join(' ')));
-  // Dónde está cada frase de "nadie" (y lo que ocupa), sin las negadas ("no me quedé sola").
-  const tramos = nadie.flatMap((x) => posicionesDe(pal, x).filter((i) => x[0] === 'no' || !negada(i)).map((i) => [i, i + x.length] as const));
-  if (tramos.length === 0) return false;
-  const adentroDeNadie = (i: number) => tramos.some(([a, b]) => i >= a && i < b);
+  const nombre = nombresPropios(resto, fr.unirApostrofos);
+  if (nombre.length !== pal.length) return false; // no debería pasar; ante la duda, AMH
+  // "nunca me quedé sola": la negación puede ir antes del pronombre ("quedé sola" está adentro de "me quedé sola").
+  const negada = (i: number) => fr.negaciones.has(pal[i - 1]) || (CLITICOS.has(pal[i - 1]) && fr.negaciones.has(pal[i - 2]));
+  const sinNegar = (x: readonly string[]) => posicionesDe(pal, x).filter((i) => x[0] === 'no' || !negada(i));
+  // 1. La frase explícita de hoy.
+  const explicitas = fr.hoySinNadie.flatMap((x) => sinNegar(x).map((i) => [i, i + x.length] as const));
+  if (explicitas.length === 0) return false;
+  // Los finales, con lo que llevan pegado: "murió mi marido", "va morir el meu marit", "murió Ernesto".
+  const finales = fr.finales.flatMap((x) => sinNegar(x).map((i) => [i, pegadoAlFinal(pal, nombre, i + x.length, fr)] as const));
+  const otrasNadie = fr.hoyNoHayNadie.flatMap((x) => sinNegar(x).map((i) => [i, i + x.length] as const));
+  const tramos = [...explicitas, ...finales, ...otrasNadie];
+  const adentro = (i: number) => tramos.some(([a, b]) => i >= a && i < b);
+  // 3. Nada de "hoy hay alguien" en toda la respuesta.
   const alguien = [...fr.hoyHayAlguien, ...fr.ahoraHayAlguien];
-  if (alguien.some((x) => posicionesDe(pal, x).some((i) => !negada(i) && !adentroDeNadie(i)))) return false;
-  const primerFinal = Math.min(...tramos.map(([a]) => a));
-  return !fr.despuesDelFinal.some((x) => posicionesDe(pal, x).some((i) => i > primerFinal && !negada(i)));
+  if (alguien.some((x) => posicionesDe(pal, x).some((i) => !negada(i) && !adentro(i)))) return false;
+  // 2. Desde el primer final o "nadie", nada que sugiera a alguien nuevo.
+  const desde = Math.min(...tramos.map(([a]) => a));
+  const despues = (i: number) => i >= desde && !adentro(i);
+  if (fr.nadaDespues.some((x) => posicionesDe(pal, x).some(despues))) return false;
+  return !nombre.some((esNombre, i) => esNombre && despues(i));
+}
+
+/** Pronombres que pueden ir entre la negación y la frase ("no me quedé sola", "no em vaig quedar sola"). */
+const CLITICOS = new Set(['me', 'se', 'te', 'nos', 'lo', 'la', 'le', 'em', 'et', 'es', 'ens', 'ho']);
+
+/** Hasta dónde llega un final que termina en `j`: suma "mi marido" / "el meu marit" y un nombre pegado ("murió Ernesto"). */
+function pegadoAlFinal(pal: readonly string[], nombre: readonly boolean[], j: number, fr: Frases): number {
+  const pos = fr.posesivos.find((x) => hayFraseEn(pal, j, x));
+  if (pos && fr.deLaPareja.has(pal[j + pos.length])) j += pos.length + 1;
+  if (nombre[j]) j++;
+  return j;
+}
+
+/**
+ * Para cada palabra (las mismas que deja `fichas`), si parece un nombre
+ * propio: arranca con mayúscula y no arranca una oración (no va primera ni
+ * después de un punto, "?", "!" o "…").
+ */
+function nombresPropios(texto: string, unirApostrofos: boolean): boolean[] {
+  const crudas = texto.normalize('NFC').match(unirApostrofos ? PALABRA_CATALANA : PALABRA) ?? [];
+  const out: boolean[] = [];
+  let inicio = true;
+  for (const c of crudas) {
+    if (!/^[\p{L}\p{M}\p{N}]/u.test(c)) {
+      if (/[.!?…]/.test(c)) inicio = true;
+      continue;
+    }
+    out.push(!inicio && /^\p{Lu}/u.test(c));
+    inicio = false;
+  }
+  return out;
 }
 
 /** Dónde empieza esa frase en las palabras (todas las veces). */
@@ -599,10 +644,14 @@ export type Frases = {
    * en cualquier lugar ("conocí a", "me volví a casar", "estamos"…).
    */
   ahoraHayAlguien: readonly string[][];
-  /** Señales de una historia nueva que cuentan solo después del primer final ("murió. Después me casé con Pedro"). */
-  despuesDelFinal: readonly string[][];
-  /** Frases de hoyNoHayNadie y finales que en un repaso suelen ser de antes ("de soltera", "cortamos"): no cuentan en AM0. */
-  ambiguasEnElRepaso: ReadonlySet<string>;
+  /** Las frases explícitas de que HOY no hay nadie ("me quedé sola", "estoy viuda", "vivo sola"): sin una, AMH se manda. */
+  hoySinNadie: readonly string[][];
+  /** Lo que, después del primer final o "nadie", sugiere a alguien nuevo: pareja, compañero, "vino", "salgo con", "pero"… */
+  nadaDespues: readonly string[][];
+  /** "mi" / "el meu" / "la meva": lo que va entre el final y la palabra de pareja ("murió mi marido"). */
+  posesivos: readonly string[][];
+  /** Las palabras de pareja que puede llevar pegadas un final ("murió mi marido"). */
+  deLaPareja: ReadonlySet<string>;
   /** Lo que niega la frase que sigue ("no estoy sola", "ya no estamos"). */
   negaciones: ReadonlySet<string>;
 };
@@ -617,10 +666,19 @@ const AHORA_HAY_ALGUIEN = frases([
   'volvi a formar pareja', 'rehice mi vida', 'vivo con', 'con quien vivo', 'tengo novio', 'tengo novia', 'es mi marido', 'es mi mujer', 'es mi esposo', 'es mi esposa', 'es mi pareja',
   'es mi novio', 'es mi novia', 'es mi companero', 'es mi companera', 'actual', 'estamos', 'seguimos', 'vivimos', 'llevamos', 'compartimos',
 ]);
-const DESPUES_DEL_FINAL = frases([
-  'me case', 'nos casamos', 'me junte', 'nos juntamos', 'me enamore', 'nos conocimos', 'lo conoci', 'la conoci', 'me puse de novia', 'me puse de novio', 'aparecio', 'llego',
+const HOY_SIN_NADIE = frases([
+  'me quede sola', 'me quede solo', 'quede sola', 'quede solo', 'estoy sola', 'estoy solo', 'sigo sola', 'sigo solo', 'vivo sola', 'vivo solo', 'estoy viuda', 'estoy viudo',
+  'soy viuda', 'soy viudo', 'me quede viuda', 'me quede viudo', 'quede viuda', 'quede viudo', 'enviude', 'no tengo pareja', 'no estoy con nadie', 'no estoy en pareja',
 ]);
-const AMBIGUAS_EN_EL_REPASO = ['soltera', 'soltero', 'sin pareja', 'terminamos', 'cortamos'];
+/** Palabras de pareja (después del primer final, sugieren a alguien nuevo). */
+const DE_LA_PAREJA = ['pareja', 'companero', 'companera', 'novio', 'novia', 'novios', 'marido', 'mujer', 'esposo', 'esposa', 'amante'];
+const NADA_DESPUES = frases([
+  ...DE_LA_PAREJA, 'amigo con derecho', 'amigo con derechos', 'amiga con derecho', 'amiga con derechos',
+  'vino', 'aparecio', 'llego', 'conoci', 'conocimos', 'conocido', 'salgo', 'salimos', 'sali con', 'salir con', 'saliendo con', 'tengo a', 'ahora tengo', 'hoy tengo',
+  'acompana', 'acompanada', 'acompanado', 'comparto', 'compartimos', 'vivo con', 'vivimos', 'me fui a vivir', 'nos fuimos a vivir', 'me enamore', 'enamorada', 'enamorado',
+  'me volvi a casar', 'me case', 'nos casamos', 'casada', 'casado', 'nos juntamos', 'me junte', 'rehice', 'estoy con', 'estamos', 'seguimos', 'llevamos',
+  'pero', 'aunque', 'hasta que', 'sino',
+]);
 const NEGACIONES = ['no', 'nunca', 'jamas', 'ni'];
 
 /** El castellano rioplatense: las listas de siempre, sin cambiar nada. */
@@ -662,8 +720,10 @@ const FRASES_ES: Frases = {
   finales: FINALES,
   yaNo: ['ya no'],
   ahoraHayAlguien: AHORA_HAY_ALGUIEN,
-  despuesDelFinal: DESPUES_DEL_FINAL,
-  ambiguasEnElRepaso: new Set(AMBIGUAS_EN_EL_REPASO),
+  hoySinNadie: HOY_SIN_NADIE,
+  nadaDespues: NADA_DESPUES,
+  posesivos: frases(['mi', 'su']),
+  deLaPareja: new Set([...DE_LA_PAREJA, 'viejo', 'vieja', 'hombre', 'senor', 'senora']),
   negaciones: new Set(NEGACIONES),
 };
 
@@ -744,11 +804,20 @@ const SOLO_CATALAN = {
     'vaig refer la meva vida', 'he refet la meva vida', 'amb qui visc', 'tinc xicot', 'tinc xicota', 'tinc nuvi', 'tinc nuvia', 'es el meu marit', 'es la meva dona', 'es el meu home',
     'es la meva parella', 'es el meu company', 'es la meva companya', 'actual', 'estem', 'seguim', 'continuem', 'vivim', 'portem', 'compartim',
   ],
-  despuesDelFinal: [
-    'em vaig casar', 'ens vam casar', "m'he casat", 'ens hem casat', 'em vaig ajuntar', 'ens vam ajuntar', 'em vaig enamorar', 'ens vam coneixer', 'el vaig coneixer', 'la vaig coneixer',
-    'va arribar', 'va apareixer',
+  hoySinNadie: [
+    "m'he quedat sola", "m'he quedat sol", "m'he quedat vidua", "m'he quedat vidu", 'em vaig quedar sola', 'em vaig quedar sol', 'em vaig quedar vidua', 'em vaig quedar vidu',
+    'estic sola', 'estic sol', 'segueixo sola', 'segueixo sol', 'visc sola', 'visc sol', 'soc vidua', 'soc vidu', 'estic vidua', 'estic vidu', 'vaig enviudar', 'he enviudat',
+    'no tinc parella', 'no estic amb ningu', 'no estic en parella',
   ],
-  ambiguasEnElRepaso: ['sense parella', 'solter', 'ho vam deixar', 'vam trencar', 'ens vam deixar'],
+  nadaDespues: [
+    'parella', 'company', 'companya', 'marit', 'dona', 'xicot', 'xicota', 'nuvi', 'nuvia', 'amant',
+    'va venir', 'va apareixer', 'va arribar', 'vaig coneixer', 'he conegut', 'ens vam coneixer', 'surto', 'sortim', 'sortir amb', 'sortint amb', 'ara tinc', 'avui tinc',
+    "m'acompanya", 'acompanya', 'acompanyada', 'acompanyat', 'comparteixo', 'compartim', 'visc amb', 'vivim', 'vaig anar a viure', "me'n vaig anar a viure",
+    "ens en vam anar a viure", 'em vaig enamorar', 'enamorada', 'enamorat', 'em vaig tornar a casar', 'em vaig casar', 'ens vam casar', 'casada', 'casat', 'ens vam ajuntar',
+    'estic amb', 'estem', 'seguim', 'portem', 'encara que', 'tot i que', 'fins que',
+  ],
+  posesivos: ['el meu', 'la meva', 'el seu', 'la seva'],
+  deLaPareja: ['parella', 'company', 'companya', 'marit', 'dona', 'home', 'xicot', 'xicota'],
   negaciones: ['mai'],
 };
 
@@ -797,8 +866,10 @@ const FRASES_CA: Frases = {
   finales: [...FRASES_ES.finales, ...frases(SOLO_CATALAN.finales)],
   yaNo: [...FRASES_ES.yaNo, ...SOLO_CATALAN.yaNo],
   ahoraHayAlguien: [...FRASES_ES.ahoraHayAlguien, ...frases(SOLO_CATALAN.ahoraHayAlguien)],
-  despuesDelFinal: [...FRASES_ES.despuesDelFinal, ...frases(SOLO_CATALAN.despuesDelFinal)],
-  ambiguasEnElRepaso: unirConjunto(FRASES_ES.ambiguasEnElRepaso, SOLO_CATALAN.ambiguasEnElRepaso),
+  hoySinNadie: [...FRASES_ES.hoySinNadie, ...frases(SOLO_CATALAN.hoySinNadie)],
+  nadaDespues: [...FRASES_ES.nadaDespues, ...frases(SOLO_CATALAN.nadaDespues)],
+  posesivos: [...FRASES_ES.posesivos, ...frases(SOLO_CATALAN.posesivos)],
+  deLaPareja: unirConjunto(FRASES_ES.deLaPareja, SOLO_CATALAN.deLaPareja),
   negaciones: unirConjunto(FRASES_ES.negaciones, SOLO_CATALAN.negaciones),
 };
 
@@ -845,8 +916,11 @@ const SOLO_ESPANA = {
   finales: ['ha muerto', 'ha fallecido', 'nos hemos separado', 'me he separado', 'me he divorciado', 'nos hemos divorciado', 'lo dejamos', 'nos dejamos'],
   // El repaso de AM0 (Naza, 06/10).
   ahoraHayAlguien: ['he conocido a', 'me he vuelto a casar', 'he vuelto a casarme', 'me he vuelto a enamorar', 'he rehecho mi vida', 'mi marido actual', 'mi mujer actual'],
-  despuesDelFinal: ['me he casado', 'nos hemos casado', 'nos hemos conocido', 'lo he conocido', 'la he conocido', 'me he enamorado', 'me eche novio', 'me eche novia'],
-  ambiguasEnElRepaso: ['lo dejamos', 'nos dejamos'],
+  hoySinNadie: [
+    'me he quedado sola', 'me he quedado solo', 'me he quedado viuda', 'me he quedado viudo', 'no tengo a nadie', 'estoy divorciada', 'estoy divorciado', 'estoy separada',
+    'estoy separado',
+  ],
+  nadaDespues: ['he empezado a', 'quedo con', 'quedamos', 'me he casado', 'nos hemos casado', 'me he enamorado', 'me eche novio', 'me eche novia', 'chico', 'chica'],
 };
 
 /**
@@ -880,8 +954,8 @@ const FRASES_ES_ES: Frases = {
   hoyNoHayNadie: [...FRASES_ES.hoyNoHayNadie, ...frases(SOLO_ESPANA.hoyNoHayNadie)],
   finales: [...FRASES_ES.finales, ...frases(SOLO_ESPANA.finales)],
   ahoraHayAlguien: [...FRASES_ES.ahoraHayAlguien, ...frases(SOLO_ESPANA.ahoraHayAlguien)],
-  despuesDelFinal: [...FRASES_ES.despuesDelFinal, ...frases(SOLO_ESPANA.despuesDelFinal)],
-  ambiguasEnElRepaso: unirConjunto(FRASES_ES.ambiguasEnElRepaso, SOLO_ESPANA.ambiguasEnElRepaso),
+  hoySinNadie: [...FRASES_ES.hoySinNadie, ...frases(SOLO_ESPANA.hoySinNadie)],
+  nadaDespues: [...FRASES_ES.nadaDespues, ...frases(SOLO_ESPANA.nadaDespues)],
 };
 
 export const FRASES: Readonly<Record<Idioma, Frases>> = { 'es-AR': FRASES_ES, ca: FRASES_CA, 'es-ES': FRASES_ES_ES };
