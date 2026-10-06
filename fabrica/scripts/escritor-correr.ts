@@ -10,9 +10,8 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import Anthropic from '@anthropic-ai/sdk';
 import { AlmacenDisco } from '../src/escritor/almacen/disco.js';
-import { cargarCarpeta, guardarCarpeta, leerArgs } from '../src/escritor/cli.js';
+import { cargarCarpeta, guardarCarpeta, leerArgs, sinClave, textoEstimacion } from '../src/escritor/cli.js';
 import { Ejecutor, OPCIONES_CLIENTE } from '../src/escritor/ejecutor.js';
-import { estimarUsd } from '../src/escritor/estimar.js';
 import { ModeloAnthropic, type ClienteMensajes } from '../src/escritor/modelo/anthropic.js';
 import { LoteAnthropic, type ClienteLotes } from '../src/escritor/modelo/lote-anthropic.js';
 import type { Contexto } from '../src/escritor/orquestador/contexto.js';
@@ -24,12 +23,7 @@ async function main(): Promise<void> {
   const a = leerArgs(process.argv.slice(2));
   const c = cargarCarpeta(a.carpeta);
   const destino = path.join(a.carpeta, 'fabrica-escritor');
-  if (a.soloCapitulo !== undefined) {
-    const e = estimarUsd(c, { soloCapitulo: a.soloCapitulo });
-    console.log(`Estimación (cota alta, sin caché ni Batch) del capítulo ${a.soloCapitulo}:`);
-    for (const f of e.filas) console.log(`  ${f.paso.padEnd(16)} entrada ~${f.entradaTokens} tok, salida ~${f.salidaTokens} tok  USD ${f.usd.toFixed(4)}`);
-    console.log(`  TOTAL estimado: USD ${e.total.toFixed(2)} (tope: USD ${a.topeUsd})`);
-  }
+  for (const l of textoEstimacion(c, a)) console.log(l);
   if (!a.si) {
     console.log('No se llamó a la API. Para correr de verdad, agregar --si.');
     return;
@@ -63,6 +57,6 @@ async function main(): Promise<void> {
 }
 
 main().catch((err) => {
-  console.error(`ERROR: ${(err as Error).message}`);
+  console.error(`ERROR: ${sinClave((err as Error).message)}`);
   process.exit(1);
 });

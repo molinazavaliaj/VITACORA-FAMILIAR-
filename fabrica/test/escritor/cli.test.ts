@@ -3,7 +3,7 @@ import { mkdtempSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { cargarCarpeta, guardarCarpeta, leerArgs } from '../../src/escritor/cli.js';
+import { cargarCarpeta, guardarCarpeta, leerArgs, sinClave, textoEstimacion } from '../../src/escritor/cli.js';
 import { estimarUsd } from '../../src/escritor/estimar.js';
 import { aDisco, carpetaNelida } from './ayuda.js';
 
@@ -43,5 +43,37 @@ describe('estimación', () => {
     expect(e.filas.map((f) => f.paso)).toEqual(['2h-armador', '3b-capitulo', '3r-resumen', '4-hechos', '5c-veedor', '6-arreglo', '4-hechos-repaso', '7-estilo', '7-estilo', '3t-titulo']);
     expect(e.total).toBe(Math.round(e.filas.reduce((s, f) => s + f.usd, 0) * 1e4) / 1e4);
     expect(e.total).toBeGreaterThan(0);
+  });
+});
+
+describe('estimación honesta', () => {
+  const sinCap1 = () => { const c = carpetaNelida(); c.borrar('salidas/capitulo_01.md'); return c; };
+  it('capítulo sin escribir: usa un capítulo de relleno en las filas que lo incluyen', () => {
+    const sin = sinCap1();
+    const e = estimarUsd(sin, { soloCapitulo: 1 });
+    expect(e.conRelleno).toBe(true);
+    for (const paso of ['3r-resumen', '7-estilo', '3t-titulo', '4-hechos', '5c-veedor']) expect(e.filas.find((f) => f.paso === paso)!.entradaTokens).toBeGreaterThan(100);
+    const sinRelleno = (() => { const c = sinCap1(); c.borrar('salidas/capitulo_02.md'); return estimarUsd(c, { soloCapitulo: 1 }); })();
+    expect(sinRelleno.conRelleno).toBe(true); // sin otros capítulos: 0,8 × las respuestas del plan
+    expect(sinRelleno.filas.find((f) => f.paso === '3r-resumen')!.entradaTokens).toBeGreaterThan(100);
+    expect(estimarUsd(carpetaNelida(), { soloCapitulo: 1 }).conRelleno).toBe(false);
+  });
+  it('peor caso: más que la típica', () => {
+    const e = estimarUsd(sinCap1(), { soloCapitulo: 1 });
+    expect(e.peorCaso).toBeGreaterThan(e.total);
+    expect(e.filasPeor.length).toBeGreaterThan(e.filas.length);
+  });
+  it('sin --solo-capitulo dice "sin estimación"; con tope justo avisa y recomienda uno', () => {
+    expect(textoEstimacion(carpetaNelida(), { topeUsd: 15 }).join(' ')).toMatch(/Sin estimación/);
+    const peor = estimarUsd(carpetaNelida(), { soloCapitulo: 1 }).peorCaso;
+    const justo = textoEstimacion(carpetaNelida(), { soloCapitulo: 1, topeUsd: Math.ceil(peor) }).join(' ');
+    expect(justo).toMatch(/AVISO.*--tope \d+/);
+    expect(justo).toMatch(/estimación típica/);
+    expect(justo).toMatch(/peor caso/);
+    expect(justo).not.toMatch(/cota alta/);
+    expect(textoEstimacion(carpetaNelida(), { soloCapitulo: 1, topeUsd: 1000 }).join(' ')).not.toMatch(/AVISO/);
+  });
+  it('saca la clave de los mensajes', () => {
+    expect(sinClave('falló con sk-ant-secreto-123 en la llamada', { ANTHROPIC_API_KEY: 'sk-ant-secreto-123' })).toBe('falló con [clave] en la llamada');
   });
 });

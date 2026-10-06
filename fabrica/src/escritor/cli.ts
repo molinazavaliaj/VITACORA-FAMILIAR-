@@ -2,6 +2,7 @@
 import { mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { Carpeta } from './carpeta.js';
+import { estimarUsd } from './estimar.js';
 
 export type ArgsCli = { carpeta: string; etapa: 'A' | 'B' | 'C'; soloCapitulo?: number; topeUsd: number; lote: boolean; si: boolean; correcciones?: string };
 
@@ -50,4 +51,25 @@ export function guardarCarpeta(c: Carpeta, dir: string): void {
     mkdirSync(path.dirname(path.join(dir, rel)), { recursive: true });
     writeFileSync(path.join(dir, rel), texto, 'utf8');
   }
+}
+
+/** El texto de la estimación que se muestra ANTES de llamar (nada de esto llama a la API). */
+export function textoEstimacion(c: Carpeta, a: Pick<ArgsCli, 'soloCapitulo' | 'topeUsd'>): string[] {
+  if (a.soloCapitulo === undefined) return ['Sin estimación: solo se estima con --solo-capitulo N (el libro entero no se estima).'];
+  const e = estimarUsd(c, { soloCapitulo: a.soloCapitulo });
+  const l = [`Estimación del capítulo ${a.soloCapitulo} (entrada a precio lleno, salida supuesta; no es un tope ni una promesa):`];
+  if (e.conRelleno) l.push('  (el capítulo todavía no está escrito: las filas que lo incluyen usan un capítulo de relleno)');
+  for (const f of e.filasPeor) l.push(`  ${f.paso.padEnd(28)} entrada ~${f.entradaTokens} tok, salida ~${f.salidaTokens} tok  USD ${f.usd.toFixed(4)}`);
+  l.push(`  estimación típica: USD ${e.total.toFixed(2)}`);
+  l.push(`  peor caso: USD ${e.peorCaso.toFixed(2)} (con reescritura C30, reintento de JSON y una segunda vuelta de revisión)`);
+  l.push(`  tope actual: USD ${a.topeUsd}`);
+  if (e.peorCaso >= 0.7 * a.topeUsd) l.push(`  AVISO: el peor caso llega al ${Math.round((e.peorCaso / a.topeUsd) * 100)}% del tope. Para cubrirlo, usar --tope ${Math.ceil(e.peorCaso * 1.1)}.`);
+  l.push('  El Batch (--sin-lote lo apaga) puede bajar el costo real; no se promete ningún número.');
+  return l;
+}
+
+/** Saca la clave de cualquier mensaje que se imprima. */
+export function sinClave(msg: string, env: NodeJS.ProcessEnv = process.env): string {
+  const k = env.ANTHROPIC_API_KEY;
+  return k && k.length >= 8 ? msg.split(k).join('[clave]') : msg;
 }
