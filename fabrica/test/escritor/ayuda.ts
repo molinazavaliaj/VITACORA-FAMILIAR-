@@ -5,6 +5,7 @@ import { mkdirSync, mkdtempSync, readdirSync, readFileSync, statSync, writeFileS
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { expect } from 'vitest';
 import { Carpeta } from '../../src/escritor/carpeta.js';
 
 export const FABRICA = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
@@ -43,4 +44,9 @@ export function correrMjs(script: string, args: string[], env: Record<string, st
   if (r.error) throw r.error;
   if (r.status !== 0 && r.status !== 2 && r.status !== 3) throw new Error(`${script} ${args.join(' ')} salió con ${r.status}: ${r.stderr}`);
   return { codigo: r.status ?? 0, salida: r.stdout };
+}
+
+/** El archivo `ruta` es igual en la Carpeta y en el disco (donde lo dejó el .mjs). */
+export function mismoArchivo(c: Carpeta, dir: string, ruta: string): void {
+  expect(c.leer(ruta), ruta).toBe(readFileSync(path.join(dir, ruta), 'utf8').replace(/\r\n/g, '\n'));
 }
