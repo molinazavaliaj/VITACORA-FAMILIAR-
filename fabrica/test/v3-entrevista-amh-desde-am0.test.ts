@@ -95,6 +95,13 @@ describe('el detector: ¿AM0 dice claramente que hoy no hay nadie?', () => {
     ['ca', "Va morir el meu marit i em vaig quedar sola."],
     ['es-ES', 'Con Paco, hasta que ha fallecido. Estoy viuda.'],
     ['es-ES', 'Murió mi marido hace dos años y me he quedado sola.'],
+    // Con lista blanca: tiempo, conectores y cierres cortos sí.
+    ['es-AR', 'Se me murió en el ochenta y cinco y desde entonces estoy sola, nada más.'],
+    ['es-AR', 'Nos separamos hace muchos años. Hoy estoy sola y así sigo.'],
+    ['es-ES', 'Me divorcié en los ochenta y ahora estoy sola, eso es todo.'],
+    ['ca', "Ens vam separar fa molts anys i des de llavors visc sola, res més."],
+    ['ca', "Va morir l'any noranta. Avui estic sola."],
+    ['ca', 'Va morir fa vint-i-cinc anys i em vaig quedar vídua.'],
   ];
   it.each(SE_SALTEA)('%s: se saltea AMH: %s', (idioma, texto) => {
     expect(am0DiceQueHoyNoHayNadie(texto, idioma)).toBe(true);
@@ -130,6 +137,15 @@ describe('el detector: ¿AM0 dice claramente que hoy no hay nadie?', () => {
     'De soltera tuve dos novios y después me casé con Alberto.',
     'Tuve un novio a los quince, terminamos enseguida, y a Alberto lo conocí a los veinte.',
     'Vivo con Juan; me quedé viuda del primero en el ochenta.',
+    // Segunda ronda del revisor: con lista blanca, cualquier otra cosa después del final o del "nadie" pregunta AMH.
+    'Me quedé sola. Tengo un amigo.',
+    'Me quedé viuda. Mi señor es muy bueno.',
+    'Me quedé viuda hace años. Convivo con un caballero.',
+    'Me quedé sola, pero hay alguien en mi vida.',
+    'Me quedé sola, ya no estoy sola.',
+    'Me quedé viuda y después hubo otro hombre.',
+    'Me quedé sola con mis hijos.',
+    'Estoy viuda desde el 2010, y estoy muy bien acompañada.',
     // Una frase de "nadie" negada no es "nadie".
     'Con Alberto toda la vida. No estoy sola para nada.',
     'Con Alberto toda la vida, nunca me quedé sola.',
@@ -144,6 +160,10 @@ describe('el detector: ¿AM0 dice claramente que hoy no hay nadie?', () => {
     'Amb en Pere ens vam separar, i amb la Rosa portem trenta anys.',
     'El meu xicot de jove va morir. Després em vaig casar amb en Pere.',
     "Em vaig quedar sola un temps i després vaig conèixer en Joan.",
+    "M'he quedat sola. Tinc un amic.",
+    "M'he quedat vídua. Convisc amb un senyor.",
+    "M'he quedat sola, però hi ha algú que em cuida.",
+    "Em vaig quedar vídua i després hi va haver un altre home.",
   ];
   const NO_SE_SALTEA: [Idioma, string][] = [
     ...NO_SE_SALTEA_ES.flatMap((t) => (['es-AR', 'es-ES', 'ca'] as Idioma[]).map((i) => [i, t] as [Idioma, string])),
