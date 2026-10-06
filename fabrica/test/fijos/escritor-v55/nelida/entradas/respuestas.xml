@@ -1,0 +1,49 @@
+<respuesta id="R01" origen="pregunta OR1" segundos="">
+<pregunta>¿Dónde naciste y cómo era tu casa?</pregunta>
+<texto>Nací en Echesortu, en Rosario, en 1948. Mi papá era tornero y mi mamá cosía para afuera. Éramos cuatro en una pieza con patio de baldosas.</texto>
+</respuesta>
+
+<respuesta id="R02" origen="pregunta TR1" segundos="">
+<pregunta>¿Cómo empezó la mercería?</pregunta>
+<texto>En el 78 abrimos la mercería con Raúl en la calle Mendoza. La persiana de madera se trababa siempre en el mismo lugar. Raúl hacía las cuentas y yo atendía el mostrador.</texto>
+</respuesta>
+
+<respuesta id="R03" origen="pregunta TR2" segundos="">
+<pregunta>¿Hubo una noche difícil en el negocio?</pregunta>
+<texto>Una noche la cuenta no daba. Raúl me puso la calculadora en la mesa de la cocina y me dijo sumá vos. Sumé tres veces y no daba. Tito ladraba por el camión de la basura.</texto>
+</respuesta>
+
+<respuesta id="R04" origen="pregunta HI1" segundos="">
+<pregunta>Contame de tu hija.</pregunta>
+<texto>Marcela nació en el 80. La nena dormía en un cajón de botones atrás del mostrador.</texto>
+</respuesta>
+
+<respuesta id="R05" origen="pregunta PA3" segundos="">
+<pregunta>¿Qué pasó con Raúl?</pregunta>
+<texto>Raúl murió en 2014. Lo más difícil fue quedarme sola con el negocio.</texto>
+</respuesta>
+
+<respuesta id="R06" origen="pregunta HO1" segundos="">
+<pregunta>¿Qué hacés hoy a la tarde?</pregunta>
+<texto>Hoy bordo a la tarde en el patio. Tengo el bastidor en la falda y la radio prendida.</texto>
+</respuesta>
+
+<respuesta id="R07" origen="pregunta HO2" segundos="">
+<pregunta>¿Qué te gusta?</pregunta>
+<texto>Me gusta el mate amargo, bien caliente, a cualquier hora.</texto>
+</respuesta>
+
+<respuesta id="R08" origen="pregunta LE1" segundos="">
+<pregunta>¿Qué les dirías a los tuyos?</pregunta>
+<texto>A Marcela y a Gustavo les digo que no se peleen por la casa. La casa es de todos.</texto>
+</respuesta>
+
+<respuesta id="R09" origen="pregunta LE2" segundos="">
+<pregunta>Mirando para atrás, ¿qué ves?</pregunta>
+<texto>Mirando para atrás, la vida me dio más de lo que le pedí.</texto>
+</respuesta>
+
+<respuesta id="R10" origen="pregunta AM1" segundos="">
+<pregunta>¿Quién era tu amiga del barrio?</pregunta>
+<texto>La Negra era mi amiga del barrio. Nos sentábamos en la vereda a tomar mate.</texto>
+</respuesta>
