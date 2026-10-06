@@ -142,3 +142,15 @@ Se aprueban de a 10 en el chat (Naza, 06/10: "de a 10, me pierdo en el PDF"). La
 | M9 | entrevistador/src/mail/hitos.ts:50–51 | (el mail "va por la mitad") | Se saca: sin total, no hay mitad. |
 | M10 | entrevistador/src/mail/hitos.ts:56 | (el mail "lleva tres días sin contestar") | Se saca: la V3 ya avisa a quien regaló por WhatsApp a la semana sin audios (M9 del banco). |
 | — | fabrica/src/mail/frases.ts y fabrica/src/mail/hitos.ts | (tú) | Pasan a vos tal como están en propuesta.md (frases.ts 1–3, hitos.ts 1–8). |
+
+## Legales (términos, privacidad, arrepentimiento) — aprobados por Naza el 06/10, todo pasa por el abogado antes de publicar
+
+- **Términos**: todas las filas de `propuesta.md` (1–27) como están, salvo:
+  - T12: «…Al narrador lo anotás antes de pagar, con su nombre, su WhatsApp y unos pocos datos para hablarle por su nombre. Después del pago te llega un correo para entrar a tu cuenta con un código (sin contraseña).» (en la V3 las preguntas son iguales para todos: no "le suenan a él").
+  - T13: «…le escribimos por WhatsApp contándole quién nos pidió el libro y le pedimos permiso.»
+  - T5: «…y cuando termina de contar le llega la siguiente, hasta completar la historia de su vida…»
+  - T23: «Te prometemos que el libro se escribe con las palabras de tu narrador, que para quien cuenta va a ser fácil, con audios de WhatsApp a su ritmo, y que si algo sale mal lo arreglamos.» (sin "o te devolvemos el dinero"; el abogado confirma).
+  - T20 y arrepentimiento 4 (opción a, la recomendada): la devolución completa queda solo para cuando el narrador **no acepta** participar, sin número de preguntas. El abogado redacta.
+  - T18: «…menos la parte proporcional a lo ya hecho de la entrevista»; el abogado define cómo se mide.
+- **Privacidad**: todas las filas (1–17) como están, salvo PR6 «…para hablarle por su nombre» y PR8 «Manda los correos: el código para entrar y los avisos de cómo va el libro.». Se saca la frase «Si algún día ofreciéramos…» (voz sintética, producto descartado).
+- **Arrepentimiento**: filas 1–3 como están (vos); la 4 va con T20.
