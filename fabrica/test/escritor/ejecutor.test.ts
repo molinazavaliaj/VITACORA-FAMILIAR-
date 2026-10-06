@@ -1,7 +1,8 @@
 // fabrica/test/escritor/ejecutor.test.ts
 import { describe, expect, it } from 'vitest';
 import { AlmacenMemoria } from '../../src/escritor/almacen/memoria.js';
-import { Ejecutor, ErrorJSON, OPCIONES_CLIENTE, TopeDeGasto, type Encargo } from '../../src/escritor/ejecutor.js';
+import { Ejecutor, ErrorJSON, MAX_TOKENS_SALIDA, OPCIONES_CLIENTE, TopeDeGasto, type Encargo } from '../../src/escritor/ejecutor.js';
+import { hashDePedido } from '../../src/escritor/modelo/pedido.js';
 import type { Llamada } from '../../src/escritor/llamadas/armar.js';
 import { LoteFalso, ModeloFalso, claveBase } from '../../src/escritor/modelo/falso.js';
 import { ErrorDelModelo, type Lote, type Modelo, type PedidoModelo, type RespuestaModelo } from '../../src/escritor/modelo/tipos.js';
@@ -69,16 +70,33 @@ describe('Ejecutor.uno', () => {
 describe('Ejecutor.uno: cortes por max_tokens y lo que cuesta fallar (revisión de la Task 14)', () => {
   const corte = (): ErrorDelModelo => new ErrorDelModelo('la respuesta se cortó por max_tokens', true, { uso: { input_tokens: 1000, output_tokens: 64000 }, porMaxTokens: true });
 
-  it('un corte por max_tokens se repite una sola vez, sin esperar, con el mismo pedido', async () => {
+  it('un corte por max_tokens se repite una sola vez, sin esperar, con el máximo de salida (otro pedido)', async () => {
     const vistos: PedidoModelo[] = [];
     let cortes = 1;
     const m: Modelo = { llamar: async (p) => { vistos.push(p); if (cortes-- > 0) throw corte(); return { texto: 'entero', uso: { input_tokens: 1000, output_tokens: 100 }, motivoFin: 'end_turn' }; } };
     const esperas: number[] = [];
-    const e = new Ejecutor({ modelo: m, almacen: new AlmacenMemoria(), esperar: async (ms) => { esperas.push(ms); } });
+    const almacen = new AlmacenMemoria();
+    const e = new Ejecutor({ modelo: m, almacen, esperar: async (ms) => { esperas.push(ms); } });
     expect(await e.uno(enc('C/3b-capitulo-01'))).toBe('entero');
-    expect(vistos).toHaveLength(2);
-    expect(vistos[1]).toEqual(vistos[0]);
+    expect(vistos.map((p) => p.maxTokens)).toEqual([64000, MAX_TOKENS_SALIDA]);
+    expect(MAX_TOKENS_SALIDA).toBe(128000);
+    expect(hashDePedido(vistos[1])).not.toBe(hashDePedido(vistos[0]));
+    expect(vistos[1]).toEqual({ ...vistos[0], maxTokens: MAX_TOKENS_SALIDA });
     expect(esperas).toEqual([]);
+    // Al retomar, la respuesta (la del pedido con el máximo) sale de la memoria: no se paga otra vez.
+    const m2 = new ModeloFalso({});
+    expect(await new Ejecutor({ modelo: m2, almacen }).uno(enc('C/3b-capitulo-01'))).toBe('entero');
+    expect(m2.llamadas).toHaveLength(0);
+  });
+
+  it('si el pedido ya tenía el máximo de salida, un corte no se repite: falla', async () => {
+    let llamadas = 0;
+    const m: Modelo = { llamar: async () => { llamadas++; throw corte(); } };
+    const e = new Ejecutor({ modelo: m, almacen: new AlmacenMemoria(), esperar: async () => {} });
+    const err = await e.uno({ ...enc('A/1-registro'), maxTokens: 128000 }).catch((x: unknown) => x);
+    expect(err).toBeInstanceOf(ErrorDelModelo);
+    expect((err as ErrorDelModelo).reintentable).toBe(false);
+    expect(llamadas).toBe(1);
   });
 
   it('dos cortes por max_tokens: la llamada falla (no reintentable) y no se sigue pagando', async () => {
@@ -186,10 +204,13 @@ describe('Ejecutor.varios', () => {
   it('un corte por max_tokens en el lote cuenta: sin lote se intenta una sola vez más (dos cortes pagos como mucho)', async () => {
     const lote: Lote = { enviar: async (_g, ps) => ps.map((p) => ({ clave: p.clave, ok: false as const, error: 'la respuesta se cortó por max_tokens', porMaxTokens: true, uso: { input_tokens: 1000, output_tokens: 100 } })) };
     let directas = 0;
-    const m: Modelo = { llamar: async () => { directas++; throw new ErrorDelModelo('la respuesta se cortó por max_tokens', true, { uso: { input_tokens: 1000, output_tokens: 100 }, porMaxTokens: true }); } };
+    const maximos: number[] = [];
+    const m: Modelo = { llamar: async (p) => { directas++; maximos.push(p.maxTokens); throw new ErrorDelModelo('la respuesta se cortó por max_tokens', true, { uso: { input_tokens: 1000, output_tokens: 100 }, porMaxTokens: true }); } };
     const e = new Ejecutor({ modelo: m, lote, almacen: new AlmacenMemoria(), esperar: async () => {} });
     const r = await e.varios([enc('C/3b-capitulo-01')], { lote: true, grupo: 'G' });
     expect(directas).toBe(1);
+    // El corte del lote fue el primero: el intento sin lote ya sale con el máximo de salida.
+    expect(maximos).toEqual([MAX_TOKENS_SALIDA]);
     expect([...r.fallas.keys()]).toEqual(['C/3b-capitulo-01']);
     expect(e.filas.filter((f) => f.falla)).toHaveLength(2);
   });

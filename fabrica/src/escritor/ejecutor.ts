@@ -3,7 +3,9 @@
 // - checkpoint por llamada: cada respuesta queda en el almacén con el hash del pedido; si se corta,
 //   volver a correr la etapa saca de ahí lo ya pagado (y lo suma al gasto del libro);
 // - reintentos con espera para errores de API (red, 429, 529, 5xx);
-// - un corte por max_tokens se repite una sola vez, con el mismo pedido; si se corta de nuevo, la llamada falla;
+// - un corte por max_tokens se repite una sola vez, con el máximo de salida del modelo (MAX_TOKENS_SALIDA); si el
+//   pedido ya lo tenía no se repite, y si se corta de nuevo la llamada falla. La respuesta queda en la memoria
+//   con el hash del pedido original (al retomar se pide lo mismo y sale de ahí);
 // - un reintento si el JSON no parsea (receta, sección 5);
 // - tope de gasto por libro (USD 15 por defecto): con el tope alcanzado no sale ninguna llamada nueva;
 //   lo que la API cobró en un intento fallido (rechazo, corte) también suma, y queda en `fallas.json`
@@ -23,6 +25,9 @@ import { ErrorDelModelo, type Esfuerzo, type Lote, type Modelo, type PedidoModel
 
 /** Opciones para crear el cliente de Anthropic: sin reintentos del SDK (la política es la del ejecutor). */
 export const OPCIONES_CLIENTE = { maxRetries: 0 } as const;
+
+/** Máximo de salida de Opus 5.5 y Sonnet 5.5 (128K; skill claude-api, 06/10/2026): el reintento de un corte por max_tokens. */
+export const MAX_TOKENS_SALIDA = 128000;
 
 export type Rol = { modelo: string; maxTokens: number; esfuerzo: Esfuerzo };
 /** Opus en todo lo que escribe (Naza, 02/10); el barato solo corrige el registro (spec, decisión 4). Se ajusta después de la prueba paga. */
@@ -146,17 +151,24 @@ export class Ejecutor {
     const esperar = this.o.esperar ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
     let i = 0;
     let cortes = this.cortesPrevios.get(p.clave) ?? 0;
+    const conMaximo = (): PedidoModelo => {
+      if (p.maxTokens >= MAX_TOKENS_SALIDA) throw new ErrorDelModelo(`${p.clave}: la respuesta se cortó por max_tokens con el máximo de salida (${p.maxTokens})`, false, { porMaxTokens: true });
+      return { ...p, maxTokens: MAX_TOKENS_SALIDA };
+    };
+    // Si ya se cortó en el lote, el intento sin lote es el reintento: sale con el máximo.
+    let actual = cortes >= 1 ? conMaximo() : p;
     for (;;) {
       this.verificarTope();
       try {
-        return await this.o.modelo.llamar(p);
+        return await this.o.modelo.llamar(actual);
       } catch (err) {
         if (!(err instanceof ErrorDelModelo)) throw err;
-        if (err.uso) await this.anotarFalla(p, err.uso, false);
+        if (err.uso) await this.anotarFalla(actual, err.uso, false);
         if (err.porMaxTokens) {
-          // Un corte se repite una vez, sin esperar; el segundo corta la llamada (cada uno puede costar más de un dólar).
+          // Un corte se repite una vez, sin esperar y con más lugar; el segundo corta la llamada (cada uno puede costar más de un dólar).
           if (cortes++ >= 1) throw new ErrorDelModelo(`${p.clave}: la respuesta se cortó por max_tokens dos veces`, false, { porMaxTokens: true });
-          this.o.log?.(`${p.clave}: ${err.message}; se pide una vez más`);
+          actual = conMaximo();
+          this.o.log?.(`${p.clave}: ${err.message}; se pide una vez más con max_tokens ${MAX_TOKENS_SALIDA}`);
           continue;
         }
         if (!err.reintentable || i >= esperas.length) throw err;
