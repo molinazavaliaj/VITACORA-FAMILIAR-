@@ -1,5 +1,6 @@
 // Una llamada a la API de Anthropic, con streaming (las respuestas largas no cortan por tiempo).
-// En producción: new ModeloAnthropic(new Anthropic() as unknown as ClienteMensajes). Los tipos propios
+// En producción: new ModeloAnthropic(new Anthropic(OPCIONES_CLIENTE) as unknown as ClienteMensajes), con
+// OPCIONES_CLIENTE de ../ejecutor.ts (maxRetries: 0: los reintentos son solo los del ejecutor). Los tipos propios
 // existen porque el SDK 0.71.2 no tipa `output_config`; el cuerpo se manda igual.
 import { APIConnectionError } from '@anthropic-ai/sdk';
 import type { UsoApi } from '../costos.js';
@@ -11,8 +12,9 @@ export type MensajeApi = { content: Array<{ type: string; text?: string }>; usag
 export type ClienteMensajes = { messages: { stream(params: Record<string, unknown>): { finalMessage(): Promise<MensajeApi> } } };
 
 export function aRespuesta(m: MensajeApi): RespuestaModelo {
-  if (m.stop_reason === 'refusal') throw new ErrorDelModelo('el modelo rechazó el pedido (refusal)', false);
-  if (m.stop_reason === 'max_tokens') throw new ErrorDelModelo('la respuesta se cortó por max_tokens', true);
+  // Lo que falla igual se cobra: el uso viaja en el error para que el tope de gasto lo cuente.
+  if (m.stop_reason === 'refusal') throw new ErrorDelModelo('el modelo rechazó el pedido (refusal)', false, { uso: m.usage });
+  if (m.stop_reason === 'max_tokens') throw new ErrorDelModelo('la respuesta se cortó por max_tokens', true, { uso: m.usage, porMaxTokens: true });
   return { texto: extraerTexto(m.content), uso: m.usage, motivoFin: m.stop_reason ?? '' };
 }
 

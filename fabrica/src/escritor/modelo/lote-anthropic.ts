@@ -5,7 +5,7 @@
 import type { Almacen } from '../almacen/tipos.js';
 import { aRespuesta, type MensajeApi } from './anthropic.js';
 import { armarParams } from './pedido.js';
-import type { Lote, PedidoModelo, ResultadoLote } from './tipos.js';
+import { ErrorDelModelo, type Lote, type PedidoModelo, type ResultadoLote } from './tipos.js';
 
 export type ResultadoApi = { custom_id: string; result: { type: string; message?: MensajeApi; error?: { error?: { message?: string } } } };
 export type ClienteLotes = {
@@ -46,7 +46,9 @@ export class LoteAnthropic implements Lote {
         try {
           porClave.set(clave, { clave, ok: true, respuesta: aRespuesta(r.result.message) });
         } catch (err) {
-          porClave.set(clave, { clave, ok: false, error: (err as Error).message });
+          // Un rechazo o un corte dentro del lote también se cobran: el uso va con la falla.
+          const uso = err instanceof ErrorDelModelo ? err.uso : undefined;
+          porClave.set(clave, { clave, ok: false, error: (err as Error).message, ...(uso ? { uso } : {}) });
         }
       } else porClave.set(clave, { clave, ok: false, error: r.result.error?.error?.message ?? r.result.type });
     }

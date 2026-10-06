@@ -54,6 +54,12 @@ describe('ModeloAnthropic', () => {
     try { aRespuesta(mensaje({ stop_reason: 'max_tokens' })); } catch (e) { expect((e as ErrorDelModelo).reintentable).toBe(true); }
   });
 
+  it('un rechazo o un corte llevan el uso que la API cobró, y el corte se marca como corte', () => {
+    const fallo = (stop_reason: string): ErrorDelModelo => { try { aRespuesta(mensaje({ stop_reason })); } catch (e) { return e as ErrorDelModelo; } throw new Error('no tiró'); };
+    expect(fallo('refusal')).toMatchObject({ uso: { input_tokens: 10, output_tokens: 5 }, porMaxTokens: false });
+    expect(fallo('max_tokens')).toMatchObject({ uso: { input_tokens: 10, output_tokens: 5 }, porMaxTokens: true });
+  });
+
   it('red, 429, 529 y 5xx se reintentan; 400 no', async () => {
     expect(esReintentable(Object.assign(new Error('x'), { status: 529 }))).toBe(true);
     expect(esReintentable(Object.assign(new Error('x'), { status: 429 }))).toBe(true);

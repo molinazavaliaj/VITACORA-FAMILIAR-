@@ -53,6 +53,7 @@ describe('LoteAnthropic', () => {
   it('un resultado que falta o un rechazo cuentan como error (van sin lote)', async () => {
     const { cliente } = clienteFalso(['ended'], [{ custom_id: 'p0', result: { type: 'succeeded', message: { content: [], usage: {}, stop_reason: 'refusal' } } }]);
     const r = await new LoteAnthropic(cliente, new AlmacenMemoria()).enviar('G', [pedido('a'), pedido('b')]);
-    expect(r).toEqual([{ clave: 'a', ok: false, error: 'el modelo rechazó el pedido (refusal)' }, { clave: 'b', ok: false, error: 'sin resultado en el lote' }]);
+    // El rechazo vino con uso (la API lo cobra): el ejecutor lo suma al gasto.
+    expect(r).toEqual([{ clave: 'a', ok: false, error: 'el modelo rechazó el pedido (refusal)', uso: {} }, { clave: 'b', ok: false, error: 'sin resultado en el lote' }]);
   });
 });
