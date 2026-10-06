@@ -2,6 +2,8 @@
 import { describe, expect, it } from 'vitest';
 import { AlmacenMemoria } from '../../src/escritor/almacen/memoria.js';
 import { LoteAnthropic, type ClienteLotes, type ResultadoApi } from '../../src/escritor/modelo/lote-anthropic.js';
+import { Ejecutor } from '../../src/escritor/ejecutor.js';
+import { ModeloFalso } from '../../src/escritor/modelo/falso.js';
 import { armarParams, hashDePedido } from '../../src/escritor/modelo/pedido.js';
 import type { PedidoModelo } from '../../src/escritor/modelo/tipos.js';
 
@@ -78,5 +80,55 @@ describe('LoteAnthropic', () => {
     const { cliente } = clienteFalso(['ended'], [{ custom_id: 'p0', result: { type: 'succeeded', message: { content: [], usage: { output_tokens: 9 }, stop_reason: 'max_tokens' } } }]);
     const [r] = await new LoteAnthropic(cliente, new AlmacenMemoria()).enviar('G', [pedido('a')]);
     expect(r).toEqual({ clave: 'a', ok: false, error: 'la respuesta se cortó por max_tokens', uso: { output_tokens: 9 }, porMaxTokens: true });
+  });
+});
+
+describe('LoteAnthropic: cuando falla el lote entero (revisión final, punto 5)', () => {
+  const errorApi = (status: number): Error => Object.assign(new Error(`${status} overloaded`), { status });
+
+  it('un error pasajero al consultar el lote se reintenta con espera creciente', async () => {
+    const { cliente } = clienteFalso(['ended'], [ok('p0', '{"x": 1}')]);
+    let fallas = 2;
+    const retrieve = cliente.messages.batches.retrieve;
+    cliente.messages.batches.retrieve = async (id) => { if (fallas-- > 0) throw errorApi(529); return retrieve(id); };
+    const esperas: number[] = [];
+    const [r] = await new LoteAnthropic(cliente, new AlmacenMemoria(), { esperar: async (ms) => { esperas.push(ms); }, esperasErrorMs: [5, 50, 500] }).enviar('G', [pedido('a')]);
+    expect(r).toMatchObject({ clave: 'a', ok: true });
+    expect(esperas).toEqual([5, 50]);
+  });
+
+  it('si el error de la consulta sigue después de los reintentos (o no es pasajero), tira', async () => {
+    const { cliente } = clienteFalso(['ended'], []);
+    let consultas = 0;
+    cliente.messages.batches.retrieve = async () => { consultas++; throw errorApi(529); };
+    await expect(new LoteAnthropic(cliente, new AlmacenMemoria(), { esperar: async () => {}, esperasErrorMs: [1, 1] }).enviar('G', [pedido('a')])).rejects.toThrow('529');
+    expect(consultas).toBe(3);
+    const otro = clienteFalso(['ended'], []);
+    let consultas400 = 0;
+    otro.cliente.messages.batches.retrieve = async () => { consultas400++; throw errorApi(400); };
+    await expect(new LoteAnthropic(otro.cliente, new AlmacenMemoria(), { esperar: async () => {}, esperasErrorMs: [1, 1] }).enviar('G', [pedido('a')])).rejects.toThrow('400');
+    expect(consultas400).toBe(1);
+  });
+
+  it('si no se puede crear el lote, todo vuelve con error (el ejecutor lo hace sin lote) y no queda lote guardado', async () => {
+    const almacen = new AlmacenMemoria();
+    const { cliente } = clienteFalso(['ended'], []);
+    cliente.messages.batches.create = async () => { throw errorApi(500); };
+    const r = await new LoteAnthropic(cliente, almacen).enviar('G', [pedido('a'), pedido('b')]);
+    expect(r).toEqual([{ clave: 'a', ok: false, error: 'no se pudo crear el lote: 500 overloaded' }, { clave: 'b', ok: false, error: 'no se pudo crear el lote: 500 overloaded' }]);
+    expect(await almacen.leer('lotes/G.json')).toBeNull();
+  });
+
+  it('con el ejecutor: si el lote no se crea, la fase sale igual con llamadas directas', async () => {
+    const almacen = new AlmacenMemoria();
+    const { cliente } = clienteFalso(['ended'], []);
+    cliente.messages.batches.create = async () => { throw errorApi(500); };
+    const modelo = new ModeloFalso({ '7-estilo-cap_1': '{"cambios": []}', '7-estilo-cap_2': '{"cambios": []}' });
+    const e = new Ejecutor({ modelo, lote: new LoteAnthropic(cliente, almacen), almacen });
+    const llamada = (nombre: string) => ({ nombre, docs: ['<ficha>\nf\n</ficha>'], instr: 'x' });
+    const r = await e.varios(['cap_1', 'cap_2'].map((p) => ({ clave: `C/7-estilo-${p}`, llamada: llamada(`7-estilo-${p}`), json: true })), { lote: true, grupo: 'C-estilo-1' });
+    expect([...r.textos.keys()].sort()).toEqual(['C/7-estilo-cap_1', 'C/7-estilo-cap_2']);
+    expect(modelo.llamadas.map((p) => p.clave).sort()).toEqual(['C/7-estilo-cap_1', 'C/7-estilo-cap_2']);
+    expect(e.filas.every((f) => !f.lote)).toBe(true);
   });
 });

@@ -32,7 +32,7 @@ async function main(): Promise<void> {
   const almacen = new AlmacenDisco(destino);
   const ej = new Ejecutor({
     modelo: new ModeloAnthropic(cliente as unknown as ClienteMensajes),
-    lote: a.lote ? new LoteAnthropic(cliente as unknown as ClienteLotes, almacen) : undefined,
+    lote: a.lote ? new LoteAnthropic(cliente as unknown as ClienteLotes, almacen, { log: (s) => console.log(s) }) : undefined,
     almacen,
     topeUsd: a.topeUsd,
     log: (s) => console.log(s),
