@@ -1,6 +1,7 @@
 // Cómo se le manda una llamada a la API. Los documentos van en el orden de la receta (sección 2:
 // "lo que se repite queda en caché") y la caché se marca al final de lo que comparten varias llamadas.
 // El texto que lee el modelo es el de textoParaElModelo(llamada): cada documento seguido de "\n\n".
+import { createHash } from 'node:crypto';
 import type { Llamada } from '../llamadas/armar.js';
 import type { PedidoModelo } from './tipos.js';
 
@@ -29,3 +30,6 @@ export function armarParams(p: PedidoModelo): Record<string, unknown> {
   }));
   return { model: p.modelo, max_tokens: p.maxTokens, thinking: { type: 'adaptive' }, output_config: { effort: p.esfuerzo }, messages: [{ role: 'user', content }] };
 }
+
+/** El hash del pedido tal como sale a la API: lo usan la memoria del ejecutor y el lote para no reusar algo viejo. */
+export const hashDePedido = (p: PedidoModelo): string => createHash('sha256').update(JSON.stringify(armarParams(p))).digest('hex');

@@ -14,12 +14,11 @@
 //   si la fase falla, ningún trabajador arranca otra llamada.
 // Los reintentos son SOLO los de acá: el cliente del SDK reintenta solo (maxRetries 2 por defecto) y los
 // reintentos se apilarían. Por eso el cliente real se crea con OPCIONES_CLIENTE: new Anthropic(OPCIONES_CLIENTE).
-import { createHash } from 'node:crypto';
 import type { Almacen } from './almacen/tipos.js';
 import { parseJSONTolerante } from './carpeta.js';
 import { usdDeLlamada, type UsoApi } from './costos.js';
 import type { Llamada } from './llamadas/armar.js';
-import { armarParams, bloquesDeLlamada, puntosDeCache } from './modelo/pedido.js';
+import { bloquesDeLlamada, hashDePedido, puntosDeCache } from './modelo/pedido.js';
 import { ErrorDelModelo, type Esfuerzo, type Lote, type Modelo, type PedidoModelo, type RespuestaModelo } from './modelo/tipos.js';
 
 /** Opciones para crear el cliente de Anthropic: sin reintentos del SDK (la política es la del ejecutor). */
@@ -94,7 +93,7 @@ export class Ejecutor {
   }
 
   private hash(p: PedidoModelo): string {
-    return createHash('sha256').update(JSON.stringify(armarParams(p))).digest('hex');
+    return hashDePedido(p);
   }
 
   private async memoria(p: PedidoModelo): Promise<Memoria | null> {

@@ -2,7 +2,7 @@
 import { describe, expect, it } from 'vitest';
 import { AlmacenMemoria } from '../../src/escritor/almacen/memoria.js';
 import { LoteAnthropic, type ClienteLotes, type ResultadoApi } from '../../src/escritor/modelo/lote-anthropic.js';
-import { armarParams } from '../../src/escritor/modelo/pedido.js';
+import { armarParams, hashDePedido } from '../../src/escritor/modelo/pedido.js';
 import type { PedidoModelo } from '../../src/escritor/modelo/tipos.js';
 
 const pedido = (clave: string): PedidoModelo => ({ clave, modelo: 'claude-opus-5-5', bloques: ['<ficha>\nf\n</ficha>', 'Corregí.'], cacheEn: [], maxTokens: 64000, esfuerzo: 'xhigh' });
@@ -38,16 +38,33 @@ describe('LoteAnthropic', () => {
       { clave: 'C/7-estilo-cap_1', ok: true, respuesta: { texto: '{"cambios": []}', uso: { input_tokens: 10, output_tokens: 2 }, motivoFin: 'end_turn' } },
       { clave: 'C/7-estilo-cap_2', ok: false, error: 'overloaded' },
     ]);
-    expect(JSON.parse((await almacen.leer('lotes/C-estilo-1.json')) as string)).toEqual({ id: 'msgbatch_1', claves: ['C/7-estilo-cap_1', 'C/7-estilo-cap_2'] });
+    expect(JSON.parse((await almacen.leer('lotes/C-estilo-1.json')) as string)).toEqual({ id: 'msgbatch_1', claves: ['C/7-estilo-cap_1', 'C/7-estilo-cap_2'], hashes: [pedido('C/7-estilo-cap_1'), pedido('C/7-estilo-cap_2')].map(hashDePedido) });
   });
 
   it('si se cortó con el lote ya mandado, no lo manda de nuevo: retoma el mismo', async () => {
     const almacen = new AlmacenMemoria();
-    await almacen.escribir('lotes/C-titulos.json', JSON.stringify({ id: 'msgbatch_viejo', claves: ['C/3t-titulo-01'] }));
+    await almacen.escribir('lotes/C-titulos.json', JSON.stringify({ id: 'msgbatch_viejo', claves: ['C/3t-titulo-01'], hashes: [hashDePedido(pedido('C/3t-titulo-01'))] }));
     const { cliente, vistos } = clienteFalso(['ended'], [ok('p0', '{"titulo": "x"}')]);
     const r = await new LoteAnthropic(cliente, almacen).enviar('C-titulos', [pedido('C/3t-titulo-01')]);
     expect(vistos.creados).toHaveLength(0);
     expect(r[0]).toMatchObject({ clave: 'C/3t-titulo-01', ok: true });
+  });
+
+  it('mismas claves con otro contenido: no reusa el lote viejo, manda uno nuevo y usa sus respuestas', async () => {
+    const almacen = new AlmacenMemoria();
+    const viejo = clienteFalso(['ended'], [ok('p0', '{"titulo": "viejo"}')]);
+    await new LoteAnthropic(viejo.cliente, almacen).enviar('C-titulos', [pedido('C/3t-titulo-01')]);
+    const cambiado: PedidoModelo = { ...pedido('C/3t-titulo-01'), bloques: ['<ficha>\nf corregida\n</ficha>', 'Corregí.'] };
+    const nuevo = clienteFalso(['ended'], [ok('p0', '{"titulo": "nuevo"}')]);
+    nuevo.cliente.messages.batches.create = async (b) => { nuevo.vistos.creados.push(b.requests); return { id: 'msgbatch_2' }; };
+    const pedidosRetrieve: string[] = [];
+    const retrieve = nuevo.cliente.messages.batches.retrieve;
+    nuevo.cliente.messages.batches.retrieve = async (id) => { pedidosRetrieve.push(id); return retrieve(id); };
+    const [r] = await new LoteAnthropic(nuevo.cliente, almacen).enviar('C-titulos', [cambiado]);
+    expect(nuevo.vistos.creados).toEqual([[{ custom_id: 'p0', params: armarParams(cambiado) }]]);
+    expect(pedidosRetrieve).toEqual(['msgbatch_2']);
+    expect(r).toMatchObject({ clave: 'C/3t-titulo-01', ok: true, respuesta: { texto: '{"titulo": "nuevo"}' } });
+    expect(JSON.parse((await almacen.leer('lotes/C-titulos.json')) as string)).toMatchObject({ id: 'msgbatch_2', claves: ['C/3t-titulo-01'], hashes: [hashDePedido(cambiado)] });
   });
 
   it('un resultado que falta o un rechazo cuentan como error (van sin lote)', async () => {

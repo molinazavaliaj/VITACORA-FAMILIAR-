@@ -1,10 +1,12 @@
 // fabrica/src/escritor/modelo/lote-anthropic.ts
 // Ahorro (3) del spec: las fases paralelas van por Message Batches (mitad de precio). El id del lote
 // queda en el almacén apenas se crea: si el proceso se corta, al retomar se esperan los resultados de
-// ese mismo lote en vez de pagar otro. Lo que vuelve con error lo repite el ejecutor sin lote.
+// ese mismo lote en vez de pagar otro, pero solo si cada pedido es el mismo (mismo hash, no solo la misma
+// clave): si algo cambió, el lote viejo tiene respuestas a otra cosa y se manda uno nuevo (el id viejo queda
+// anotado en `anteriores`). Lo que vuelve con error lo repite el ejecutor sin lote.
 import type { Almacen } from '../almacen/tipos.js';
 import { aRespuesta, type MensajeApi } from './anthropic.js';
-import { armarParams } from './pedido.js';
+import { armarParams, hashDePedido } from './pedido.js';
 import { ErrorDelModelo, type Lote, type PedidoModelo, type ResultadoLote } from './tipos.js';
 
 export type ResultadoApi = { custom_id: string; result: { type: string; message?: MensajeApi; error?: { error?: { message?: string } } } };
@@ -17,23 +19,27 @@ export type ClienteLotes = {
     };
   };
 };
-type EstadoLote = { id: string; claves: string[] };
+type EstadoLote = { id: string; claves: string[]; hashes: string[]; anteriores?: string[] };
 
 export class LoteAnthropic implements Lote {
   constructor(
     private readonly cliente: ClienteLotes,
     private readonly almacen: Almacen,
-    private readonly o: { esperar?: (ms: number) => Promise<void>; cadaMs?: number } = {},
+    private readonly o: { esperar?: (ms: number) => Promise<void>; cadaMs?: number; log?: (s: string) => void } = {},
   ) {}
 
   async enviar(grupo: string, pedidos: PedidoModelo[]): Promise<ResultadoLote[]> {
     const ruta = `lotes/${grupo}.json`;
     const claves = pedidos.map((p) => p.clave);
+    const hashes = pedidos.map(hashDePedido);
     const previo = await this.almacen.leer(ruta);
     let estado = previo ? (JSON.parse(previo) as EstadoLote) : null;
-    if (!estado || estado.claves.join('\n') !== claves.join('\n')) {
+    const mismo = estado !== null && estado.claves.join('\n') === claves.join('\n') && (estado.hashes ?? []).join('\n') === hashes.join('\n');
+    if (!estado || !mismo) {
+      if (estado) this.o.log?.(`lote ${grupo}: los pedidos cambiaron desde el lote ${estado.id}; se manda uno nuevo`);
       const b = await this.cliente.messages.batches.create({ requests: pedidos.map((p, i) => ({ custom_id: `p${i}`, params: armarParams(p) })) });
-      estado = { id: b.id, claves };
+      const anteriores = estado ? [...(estado.anteriores ?? []), estado.id] : [];
+      estado = { id: b.id, claves, hashes, ...(anteriores.length ? { anteriores } : {}) };
       await this.almacen.escribir(ruta, JSON.stringify(estado));
     }
     const esperar = this.o.esperar ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
