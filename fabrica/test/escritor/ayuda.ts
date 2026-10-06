@@ -1,7 +1,7 @@
 // Ayudas de los tests del escritor: la carpeta de Nélida (inventada), pasar una Carpeta a disco
 // y correr los .mjs originales sobre ella (para comparar el port con el original).
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -85,4 +85,35 @@ export function carpetaParaC(): Carpeta {
   c.escribir('salidas/registro.json', s.leer('salidas/registro.json'));
   c.escribir('salidas/plan.json', s.leer('salidas/plan.json'));
   return c;
+}
+
+/**
+ * Las respuestas del modelo en la corrida real del v5.5 (la carpeta escritor-v5-5 del libro de Joaquín),
+ * por clave. Los capítulos: el texto que dejó afuera.mjs (sin-revision/) más el JSON "afuera" que guardó
+ * controles/afuera-cap_N.json, que es lo que había devuelto el novelista.
+ */
+export function salidasDeCorrida(dir: string): Record<string, string> {
+  const leer = (r: string) => readFileSync(path.join(dir, r), 'utf8');
+  const hay = (r: string) => existsSync(path.join(dir, r));
+  const out: Record<string, string> = { '1-registro': leer('salidas/registro.json'), '2-plan': leer('salidas/plan.json') };
+  for (const { n } of JSON.parse(out['2-plan']).capitulos as { n: number }[]) {
+    const nn = String(n).padStart(2, '0');
+    out[`2h-armador-${nn}`] = leer(`salidas/historias/cap_${n}.md`);
+    out[`3b-capitulo-${nn}`] = `${leer(`sin-revision/capitulo_${nn}.md`).trimEnd()}\n---\n${JSON.stringify({ afuera: JSON.parse(leer(`controles/afuera-cap_${n}.json`)).afuera })}`;
+    out[`3r-resumen-cap_${n}`] = leer(`salidas/resumenes/cap_${n}.md`);
+    out[`3t-titulo-${nn}`] = leer(`salidas/titulos/cap_${n}.json`);
+  }
+  const sueltas: [string, string][] = [['3d-antes-de-cerrar', 'sin-revision/antes_de_cerrar.md'], ['3c-carta', 'sin-revision/carta.md'], ['3a-primera', 'sin-revision/primera_pagina.md'], ['3e-sus-frases', 'salidas/sus_frases.json'], ['4-hechos', 'salidas/hechos.json'], ['5c-veedor', 'salidas/veedor.json'], ['4-hechos-repaso', 'salidas/hechos-repaso.json']];
+  for (const [clave, r] of sueltas) if (hay(r)) out[clave] = leer(r);
+  for (const f of readdirSync(path.join(dir, 'arreglos'))) {
+    const cambio = f.match(/^cambios-(.+)\.json$/);
+    if (cambio) out[`6-arreglo-${cambio[1]}`] = leer(`arreglos/${f}`);
+    const disputa = f.match(/^disputa-(.+)\.json$/);
+    if (disputa) out[`disputa-${disputa[1]}`] = leer(`arreglos/${f}`);
+  }
+  for (const f of readdirSync(path.join(dir, 'estilo'))) {
+    const m = f.match(/^cambios-(.+)\.json$/);
+    if (m) out[`7-estilo-${m[1]}`] = leer(`estilo/${f}`);
+  }
+  return out;
 }
