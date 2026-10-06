@@ -10,6 +10,11 @@ import type { IdiomaLibro, Json } from '../tipos.js';
 import { FRASES_POR_CAPITULO, type FraseCandidata, type FrasesJson } from '../../libro/frases.js';
 
 export type ParaPlantilla = { titulo: string; indice: string[]; libroMarkdown: string };
+
+// Como el romano de llamadas/codigo.ts (armarLibro): el encabezado del capítulo n es "# <romano(n)> · Título".
+const romano = (k: number): string => ([['M', 1000], ['CM', 900], ['D', 500], ['CD', 400], ['C', 100], ['XC', 90], ['L', 50], ['XL', 40], ['X', 10], ['IX', 9], ['V', 5], ['IV', 4], ['I', 1]] as [string, number][]).reduce((s, [l, v]) => { while (k >= v) { s += l; k -= v; } return s; }, '');
+/** La línea del índice del capítulo n (por su número romano, no por su posición: si falta uno, los demás no se corren). */
+const etiquetaDe = (indice: string[], n: number): string | undefined => indice.find((l) => l === romano(n) || l.startsWith(`${romano(n)} · `));
 export type FuenteDeFrase = { respuestaId: string | null; preguntaOrden: number };
 
 export function libroParaPlantilla(libroMd: string): ParaPlantilla {
@@ -56,6 +61,6 @@ export function frasesParaSuVoz(c: Carpeta, a: { narradorId: string; pedidoId: s
   }
   return {
     version: 1, narrador_id: a.narradorId, pedido_id: a.pedidoId, confirmado_at: null,
-    capitulos: capitulos.filter((x) => porCap.has(x.n as number)).map((x) => ({ numero: x.n as number, capitulo: indice[capitulos.indexOf(x)] ?? `Capítulo ${x.n}`, candidatas: porCap.get(x.n as number) as FraseCandidata[] })),
+    capitulos: capitulos.filter((x) => porCap.has(x.n as number)).map((x) => ({ numero: x.n as number, capitulo: etiquetaDe(indice, x.n as number) ?? `Capítulo ${x.n}`, candidatas: porCap.get(x.n as number) as FraseCandidata[] })),
   };
 }

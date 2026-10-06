@@ -60,3 +60,20 @@ describe('«Su voz» desde sus_frases.json', () => {
     expect(f.capitulos[0].candidatas[0]).toMatchObject({ texto: 'Me gusta el mate amargo, bien caliente', origen: 'sus-frases', grupo: 'suyas', estado: 'pendiente', audio_path: null, elegida_por: 'modelo' });
   });
 });
+
+describe('«Su voz»: la etiqueta del capítulo sale por su número (revisión final, punto 9)', () => {
+  it('si falta un capítulo en el índice, los demás no se corren de etiqueta', () => {
+    const c = conLibro();
+    c.escribir('libro.md', c.leer('libro.md').replace('# I · La persiana de madera\n', ''));
+    expect(libroParaPlantilla(c.leer('libro.md')).indice).toEqual(['II · El bastidor en la falda']);
+    const f = frasesParaSuVoz(c, { narradorId: 'nar-1', pedidoId: 'ped-1', fuentes: {} });
+    expect(f.capitulos.map((x) => [x.numero, x.capitulo])).toEqual([[2, 'II · El bastidor en la falda']]);
+  });
+
+  it('el número romano tiene que coincidir entero (I no es II, ni V es IV)', () => {
+    const c = conLibro();
+    c.escribir('libro.md', c.leer('libro.md').replace('# II · El bastidor en la falda', '# III · Otro'));
+    const f = frasesParaSuVoz(c, { narradorId: 'nar-1', pedidoId: 'ped-1', fuentes: {} });
+    expect(f.capitulos.map((x) => [x.numero, x.capitulo])).toEqual([[2, 'Capítulo 2']]);
+  });
+});
