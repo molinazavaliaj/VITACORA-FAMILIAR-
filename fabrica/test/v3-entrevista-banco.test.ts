@@ -152,6 +152,13 @@ describe('entrevista: el banco contra el borrador aprobado', () => {
   const NUEVAS = ['AM20', 'AMH', 'AM21', 'HO11'];
   // Naza, 04/10 (después de la simulación en catalán): cambiaron estos textos y salió JU5 (la mili).
   const CAMBIADAS_0410 = new Set(['JU20', 'AM0', 'AMH', 'AM9', 'HE2']);
+  // Naza, 06/10 (después de la simulación en castellano de España): JU2 y CI3 ya no dan por hecho que siguió estudiando.
+  const CAMBIADAS_0610 = new Set(['JU2', 'CI3']);
+
+  it('06/10: JU2 y CI3 no dan por hecho que siguió estudiando (Naza)', () => {
+    expect(preguntaPorId('JU2')!.texto).toBe('¿Qué hiciste cuando terminaste la escuela, o cuando la dejaste? Si seguiste estudiando, contame qué y cómo eran esos años; si la vida te llevó para otro lado, contame en qué andabas. Y un día de esa época que te haya quedado.');
+    expect(preguntaPorId('CI3')!.texto).toContain('Puede ser de cualquiera de esos años, del primero al último.');
+  });
 
   it('toda fila viva del borrador está, con el mismo texto (salvo lo que cambió en las simulaciones)', () => {
     const vivas = borrador.filter((f) => !f.sale && idNuevo(f.clave) !== 'HI2b' && idNuevo(f.clave) !== 'AM16' && idNuevo(f.clave) !== 'JU5');
@@ -164,7 +171,7 @@ describe('entrevista: el banco contra el borrador aprobado', () => {
       // CI14 se reescribió el 30/09 después de la lectura corrida (correcciones-lectura.md): ahora pregunta.
       // CI11 perdió su primera frase en la ronda 2.
       if (p!.id === 'CI14' || p!.id === 'CI11' || p!.id === 'FO1') continue; // FO1: "Otra cosa" desde la ronda 3
-      if (CAMBIADAS_SIMULACIONES.has(p!.id) || CAMBIADAS_PRUEBA_NAZA.has(p!.id) || CAMBIADAS_FABLE_EXTRAS.has(p!.id) || CAMBIADAS_NOMBRES.has(p!.id) || CAMBIADAS_0410.has(p!.id)) continue;
+      if (CAMBIADAS_SIMULACIONES.has(p!.id) || CAMBIADAS_PRUEBA_NAZA.has(p!.id) || CAMBIADAS_FABLE_EXTRAS.has(p!.id) || CAMBIADAS_NOMBRES.has(p!.id) || CAMBIADAS_0410.has(p!.id) || CAMBIADAS_0610.has(p!.id)) continue;
       expect(normalizar(p!.texto), f.clave).toBe(normalizar(f.texto));
     }
   });

@@ -154,7 +154,7 @@ Una frase al empezar cada bloque, antes de su primera pregunta; no espera respue
 | ES13 | ¿Fuiste siempre a la misma escuela, o te tocó cambiarte? Si te cambiaste, contame cómo fue el primer día en la nueva: cómo llegaste, qué te encontraste. |  | extra | historia |  |
 | ES14 | ¿Cómo eran los recreos en tu escuela? ¿A qué se jugaba, dónde te metías vos? Contame algún recreo que se te haya quedado grabado. |  | extra | historia |  |
 | ES15 | ¿Había algún compañero o compañera que no te caía bien? ¿Por qué? Contame alguna vez que se cruzaron. |  | extra | historia |  |
-| CI3 | Hasta acá lo de la escuela. ¿Te quedó alguna historia de esos años que no te pregunté? Puede ser de la primaria o del colegio de después. Si hay una, contámela ahora, con calma. Si no, tocá el botón. |  | núcleo | cierre |  |
+| CI3 | Hasta acá lo de la escuela. ¿Te quedó alguna historia de esos años que no te pregunté? Puede ser de cualquiera de esos años, del primero al último. Si hay una, contámela ahora, con calma. Si no, tocá el botón. |  | núcleo | cierre |  |
 
 ## Bloque 4 · Adolescencia
 
@@ -181,7 +181,7 @@ Una frase al empezar cada bloque, antes de su primera pregunta; no espera respue
 | ID | Pregunta | Depende de | Parte | Clase | Sensible |
 |---|---|---|---|---|---|
 | JU1 | ¿Te acordás del día que te fuiste de la casa de tus viejos? A dónde te fuiste, con quién, cómo fue esa despedida. Y si te quedaste ahí muchos años, contame cómo era esa casa con vos ya de grande. |  | núcleo | historia |  |
-| JU2 | ¿Qué hiciste después del colegio? Si seguiste estudiando, contame qué y cómo eran esos años; si la vida te llevó para otro lado, contame en qué andabas. Y un día de esa época que te haya quedado. |  | núcleo | historia |  |
+| JU2 | ¿Qué hiciste cuando terminaste la escuela, o cuando la dejaste? Si seguiste estudiando, contame qué y cómo eran esos años; si la vida te llevó para otro lado, contame en qué andabas. Y un día de esa época que te haya quedado. |  | núcleo | historia |  |
 | JU2b | ¿Te pasó de empezar a estudiar algo y dejarlo? Si te pasó, contame cómo fue ese momento: qué pasaba en tu vida, si lo hablaste con alguien. |  | extra | historia |  |
 | JU4 | ¿Cómo aprendiste a hacer eso que es tuyo, lo que más te ocupa o más te gusta, sea tu trabajo o algo que hacés por gusto? Contame cómo fue arrancar: un día de cuando recién empezabas. |  | núcleo | historia |  |
 | JU8 | ¿Alguna vez te fuiste a vivir a otra ciudad o a otro país? Capaz ya me contaste algo de esa mudanza; ahora contame la llegada: el primer día, dónde dormiste esa noche, quién te esperaba y qué fue lo que más te costó. |  | núcleo | historia |  |
@@ -615,3 +615,9 @@ La simulación de una narradora inventada (`simulaciones/catala/roser.md`) mostr
 - **HE2** ya no da por hecho varios hermanos: "¿con tus hermanos (o con tu hermano o hermana, si tuviste uno solo) también se hicieron amigos?".
 Lo mismo en catalán, en `banco-ca.md`.
 
+
+## Cambios del 06/10 (Naza, después de la simulación en castellano de España)
+- **JU2** ya no da por hecho que terminó el colegio (a quien dejó la escuela a los 12 le hablaba del colegio de después): "¿Qué hiciste cuando terminaste la escuela, o cuando la dejaste?". Antes: "¿Qué hiciste después del colegio?".
+- **CI3**: "Puede ser de cualquiera de esos años, del primero al último." Antes: "Puede ser de la primaria o del colegio de después."
+- **AMH no se manda** si en AM0 (contestada con audio, no con botón) dijo claramente que hoy no hay nadie (me quedé sola, estoy viuda, murió mi marido…) y nada de que hoy hay alguien: cuenta como "no" (regla en `flujo-vigente.md`). Ante la duda, se manda como siempre.
+Lo mismo en `banco-ca.md` (CI3; JU2 ya decía "quan vas deixar l'escola o l'institut") y en `banco-es-ES.md`.

@@ -6,6 +6,8 @@
 
 **Lo que cambia en todo el archivo, sin anotarlo fila por fila:** la conjugación (contame → cuéntame, tenés → tienes, vos → tú, ustedes → vosotros cuando habla al narrador con otros); el pasado reciente en pretérito perfecto, como se dice en España ("te ha regalado", "han pasado unos días", "se me ha cortado"); y el vocabulario obvio: acá → aquí, apuro → prisa, plata → dinero, celular → móvil, chico/a → pequeño/a o niño/a, viejos → padres, mamá/papá → madre/padre, lindo → bonito, nomás → (sin nada o "solo"), dale → vale, de a uno → de uno en uno, agarrar → pillar/coger, arrancar → empezar, armar → hacer/montar/organizar, alcanza → basta/me vale, juntarse → quedar, lugar → sitio donde suena más natural, de grande → de mayor, manejar → conducir, retar → regañar, enojar → enfadar, diario → periódico, patrón → jefe, primaria → colegio, colegio (secundario) → instituto.
 
+**Aprobado por Naza el 06/10/2026**, con todas las propuestas recomendadas (abajo) y además: LU3 "El bar de siempre, una peña, el sitio donde quedabas con los amigos" (Naza: el casino del pueblo suena raro), LU7 "al que ibas a veranear un año tras otro", OB1 "compañeros de trabajo", EN3, y los 14 botones de cierre [No, ya está todo]. Se quedan como estaban TR9, AD17, JU4, AD2 y FO1. JU2 y CI3 cambiaron en los tres idiomas (ver banco.md, cambios del 06/10).
+
 **Marcas:** las mismas de banco.md, con los mismos pares: `{{nombre}}`, `{{quien_regala}}`, `{{tema}}`, `{{o/a}}`, `{{padre/madre}}`; `«sino:X: A ‖ B»`; `<br>` = salto de línea.
 
 ## Bloques
@@ -67,7 +69,7 @@
 | ES13 | ¿Fuiste siempre a la misma escuela, o te tocó cambiar? Si cambiaste, cuéntame cómo fue el primer día en la nueva: cómo llegaste, qué te encontraste. |
 | ES14 | ¿Cómo eran los recreos en tu escuela? ¿A qué se jugaba, dónde te metías tú? Cuéntame algún recreo que se te haya quedado grabado. |
 | ES15 | ¿Había algún compañero o compañera que no te caía bien? ¿Por qué? Cuéntame alguna vez que tuvisteis un roce. |
-| CI3 | Hasta aquí lo de la escuela. ¿Te ha quedado alguna historia de esos años que no te he preguntado? Puede ser del colegio o del instituto de después. Si hay una, cuéntamela ahora, con calma. Si no, pulsa el botón. |
+| CI3 | Hasta aquí lo de la escuela. ¿Te ha quedado alguna historia de esos años que no te he preguntado? Puede ser de cualquiera de esos años, del primero al último. Si hay una, cuéntamela ahora, con calma. Si no, pulsa el botón. |
 | AD2 | Después del colegio, cuando tenías trece o catorce años, ¿dónde pasabas los días? ¿Cómo llegaste allí? Cuéntame una vez de esos años que se te quedó grabada. |
 | AD1 | ¿Cómo eras a los quince? Cómo vestías, qué te gustaba hacer, qué te daba vergüenza. Y cuéntame un día de esa edad que recuerdes bien, como si lo estuvieras viviendo de nuevo. |
 | AD2b | ¿Qué recuerdas de tu último año en el instituto, o del último año que fuiste? Es un año que marca. Cuéntame lo que te quedó de esos meses: algún momento, algo que pasó, cómo fue la despedida. |
@@ -84,7 +86,7 @@
 | AD17 | ¿Aprendiste a conducir? Cuéntame la primera vez que te pusiste al volante: quién te enseñó, dónde fue, cómo te fue. |
 | CI4 | Hasta aquí tu adolescencia. Antes de pasar a tu juventud, ¿se ha quedado algo de esa época sin su pregunta? Un recuerdo suelto, una cara, una noche. Cuéntamelo ahora, tranquil{{o/a}}, que hay tiempo. |
 | JU1 | ¿Te acuerdas del día que te fuiste de casa de tus padres? Adónde te fuiste, con quién, cómo fue esa despedida. Y si te quedaste allí muchos años, cuéntame cómo era vivir allí ya de mayor. |
-| JU2 | ¿Qué hiciste después del instituto? Si seguiste estudiando, cuéntame qué y cómo eran esos años; si la vida te llevó por otro lado, cuéntame en qué andabas. Y un día de esa época que se te haya quedado. |
+| JU2 | ¿Qué hiciste cuando dejaste el colegio o el instituto? Si seguiste estudiando, cuéntame qué y cómo eran esos años; si la vida te llevó por otro lado, cuéntame en qué andabas. Y un día de esa época que se te haya quedado. |
 | JU2b | ¿Te pasó alguna vez que empezaste a estudiar algo y lo dejaste? Si te pasó, cuéntame cómo fue ese momento: qué pasaba en tu vida, si lo hablaste con alguien. |
 | JU4 | ¿Cómo aprendiste a hacer eso que es tuyo, lo que más te ocupa o más te gusta, sea tu trabajo o algo que haces por gusto? Cuéntame cómo fue empezar: un día de cuando estabas empezando. |
 | JU8 | ¿Alguna vez te fuiste a vivir a otra ciudad o a otro país? Puede que ya me hayas contado algo de esa mudanza; ahora cuéntame la llegada: el primer día, dónde dormiste esa noche, quién te esperaba y qué fue lo que más te costó. |
@@ -129,7 +131,7 @@
 | TR5 | ¿Cuál fue el día de trabajo del que estás más orgullos{{o/a}}? No hace falta que fuera grande: algo que salió bien, que alguien reconoció, o que solo tú sabes lo que costó. Cuéntamelo. |
 | TR4 | ¿Pasaste por un día, o una época, en que lo tuyo se te hizo cuesta arriba? Cuéntame cómo era levantarse entonces, qué te sostenía, y el momento en que sentiste que empezaba a pasar. |
 | OF4 | Todos metemos la pata alguna vez trabajando. ¿Cuál fue tu error más grande? Cuéntame ese día: qué pasó, quién se enteró, qué hiciste después. |
-| OB1 | ¿Tuviste compañeros? Si los tuviste, cuéntame cómo eran, y una vez que uno te cubrió las espaldas, o tú a él, cuando hacía falta. |
+| OB1 | ¿Tuviste compañeros de trabajo? Si los tuviste, cuéntame cómo eran, y una vez que uno te cubrió las espaldas, o tú a él, cuando hacía falta. |
 | OB2 | ¿Alguna vez tuviste un choque fuerte en tu oficio, o alguien que te decepcionó: un jefe, un socio, un compañero? Si te pasó, cuéntame ese día: qué pasó, de qué lado estabas, cómo terminó. |
 | TR11 | ¿Te quedaste alguna vez sin trabajo sin haberlo elegido, o te tocó una época de dinero muy justo? Si te pasó, cuéntame un día de ese tiempo que tengas bien presente, y cómo lo fuiste llevando. |
 | TR8 | Si tuviste un negocio o algo propio, aunque fuera pequeño, este es su sitio. Si ya me lo has contado, dímelo, y si quieres añadir algo, es el momento. Si quedó algo fuera, cuéntamelo ahora: cómo empezó, de dónde salió la idea, con qué dinero, un día de esos. |
@@ -155,12 +157,12 @@
 | HI9 | ¿Hay algo que haces con tus nietos que es solo vuestro, que no hacéis con nadie más? Un juego, por ejemplo. Cuéntame qué es y una vez que tengas bien grabada. |
 | NC1 | A veces a los abuelos les toca criar a un nieto, o tenerlo a su cargo un tiempo. Si te pasó, cuéntame cómo surgió y cómo fue el primer día. Y si no te tocó, dímelo y seguimos. |
 | CI8 | Hasta aquí lo de la familia que formaste. ¿Ha quedado alguien o algo que no te he preguntado? Un cumpleaños, una charla en la cocina, alguien que no entró en ningún sitio. Es el momento de contarlo, sin prisa. |
-| LU3 | Fuera de tu casa, ¿hubo un sitio al que volvías siempre? Un bar o un club, por ejemplo, o cualquier sitio que fuera un poco tuyo. Cuéntame cómo era y una vez allí que todavía recuerdes. |
+| LU3 | Fuera de tu casa, ¿hubo un sitio al que volvías siempre? El bar de siempre, una peña, el sitio donde quedabas con los amigos, cualquier sitio que fuera un poco tuyo. Cuéntame cómo era y una vez allí que todavía recuerdes. |
 | LU4 | Ya de mayor, ¿cuál fue el viaje más importante de tu vida, o uno que recuerdes con mucha fuerza? Cuéntame si fuiste con alguien, y un día de ese viaje que se te haya quedado como una foto. |
 | PA1 | Fuera del trabajo y de la familia, ¿hubo algo que te apasionara de mayor? Cuéntame cómo empezó eso, y un día entero que le hayas dedicado, de la mañana a la noche. Si ya me lo has contado, dímelo, y si quieres añadir algo, es el momento. |
 | LU5 | Hay coches que acaban siendo casi de la familia. ¿Tuviste uno así? Cuéntame cómo llegó a ti y un día con él que todavía recuerdes. |
 | LU6 | ¿Cuál es tu barrio preferido, o el sitio donde te sientes más cómod{{o/a}}? Si pudieras estar allí ahora mismo, cuéntame cómo sería ese momento: qué ves, quién está, qué haces. |
-| LU7 | De mayor, ¿hubo un sitio adonde ibas de vacaciones una y otra vez? Cuéntame cómo era eso, cómo llegabais, y un día de esas vacaciones que tengas guardado. |
+| LU7 | De mayor, ¿hubo un sitio al que ibas a veranear un año tras otro? Cuéntame cómo era eso, cómo llegabais, y un día de esas vacaciones que tengas guardado. |
 | PA3 | ¿Eres de algún equipo? Cuéntame cómo empezó eso, si alguien te llevó, y un partido que no se te olvida. |
 | LU8 | ¿Hay un sitio al que te gustaría volver, aunque sea por un rato? Cuéntame qué sitio es, y la última vez que estuviste allí. |
 | CI9 | Hasta aquí los lugares y las pasiones. ¿Se ha quedado algún sitio o algo que te gustó mucho sin su pregunta? Una esquina, una afición que duró poco, un rincón de tu casa. Cuéntalo ahora, tranquil{{o/a}}. |
@@ -237,21 +239,21 @@ Mismo orden que en banco.md (el botón 1 de aquí vale lo mismo que el botón 1 
 
 | ID | N | Botón |
 |---|---|---|
-| CI1 | 1 | No, está todo |
+| CI1 | 1 | No, ya está todo |
 | CA6 | 1 | Sí, tuve hermanos |
 | CA6 | 2 | No tuve hermanos |
 | CA17 | 1 | Prefiero no contarla |
 | CA17 | 2 | No, nada así |
-| CI2 | 1 | No, está todo |
-| CI3 | 1 | No, está todo |
+| CI2 | 1 | No, ya está todo |
+| CI3 | 1 | No, ya está todo |
 | AD15 | 1 | Prefiero no contarla |
 | AD15 | 2 | No, nada así |
-| CI4 | 1 | No, está todo |
+| CI4 | 1 | No, ya está todo |
 | JU8 | 1 | Sí, me mudé |
 | JU8 | 2 | No, nunca me fui |
 | JU17 | 1 | Prefiero no contarla |
 | JU17 | 2 | No, nada así |
-| CI5 | 1 | No, está todo |
+| CI5 | 1 | No, ya está todo |
 | AM0 | 1 | Sí, la hubo |
 | AM0 | 2 | No, no la hubo |
 | AMH | 1 | Sí, tengo pareja |
@@ -261,25 +263,25 @@ Mismo orden que en banco.md (el botón 1 de aquí vale lo mismo que el botón 1 
 | AM9 | 1 | Prefiero no contarla |
 | AM21 | 1 | Sí, hubo otras |
 | AM21 | 2 | Fue la única |
-| CI6 | 1 | No, está todo |
+| CI6 | 1 | No, ya está todo |
 | TR11 | 1 | Prefiero no contarla |
 | TR11 | 2 | No, nada así |
-| CI7 | 1 | No, está todo |
+| CI7 | 1 | No, ya está todo |
 | HI0 | 1 | Sí, tengo hijos |
 | HI0 | 2 | No tuve hijos |
 | HI8 | 1 | Sí, tengo nietos |
 | HI8 | 2 | No tengo nietos |
-| CI8 | 1 | No, está todo |
-| CI9 | 1 | No, está todo |
-| CI10 | 1 | No, está todo |
+| CI8 | 1 | No, ya está todo |
+| CI9 | 1 | No, ya está todo |
+| CI10 | 1 | No, ya está todo |
 | PE1 | 1 | Prefiero no contarla |
 | PE5 | 1 | Prefiero no contarla |
 | PE4 | 1 | Prefiero no contarla |
 | PE4 | 2 | No, nada así |
-| CI11 | 1 | No, está todo |
-| CI12 | 1 | No, está todo |
-| CI13 | 1 | No, está todo |
-| CI14 | 1 | No, está todo |
+| CI11 | 1 | No, ya está todo |
+| CI12 | 1 | No, ya está todo |
+| CI13 | 1 | No, ya está todo |
+| CI14 | 1 | No, ya está todo |
 | FO1 | 1 | No tengo foto |
 
 ## Mensajes
@@ -340,7 +342,7 @@ Mismo orden que en banco.md (el botón 1 de aquí vale lo mismo que el botón 1 
 | DD1 | Una pequeña duda sobre {{tema}}, {{nombre}}. En la ficha aparece y en la entrevista no ha salido. No hay nada que corregir si no quieres: el libro se escribe con lo que tú has contado. Pero si hay algo que quieras añadir, o si la ficha está mal, aquí puedes decírmelo. |
 | DD2 | {{nombre}}, sobre {{tema}}: en la ficha no figuraba, pero en la entrevista lo has nombrado. Quiero asegurarme de que en el libro quede como tú quieres. Podemos dejarlo tal cual lo contaste, puedes añadir algo, o si se coló por error, lo quito. |
 | EN2 | Ahora vamos a tu infancia, {{nombre}}: la casa donde creciste y la gente que vivía contigo. |
-| EN3 | Seguimos con la escuela: el colegio, los maestros y los juegos de esa edad. |
+| EN3 | Seguimos con el colegio: los maestros y los juegos de esa edad. |
 | EN4 | Ahora vamos a tu adolescencia: esos años en que uno deja de ser niñ{{o/a}} y todavía no es mayor. |
 | EN5 | Pasamos a tu juventud, {{nombre}}: cuando empezaste a hacer tu propia vida. |
 | EN7 | Ahora vamos al trabajo y a tu oficio, {{nombre}}: lo que hiciste con tus días. |

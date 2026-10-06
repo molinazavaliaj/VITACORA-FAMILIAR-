@@ -8,6 +8,8 @@
 
 **04/10, después:** los cambios de banco.md del 04/10 (sale JU5; JU8, JU20, AM0, AMH, AM9, HE2) también acá.
 
+**06/10:** CI3 "Pot ser de qualsevol d'aquells anys, del primer a l'últim" (no dona per fet que va estudiar després; Naza, amb la simulació en castellà d'Espanya).
+
 **Si cambia banco.md** (una pregunta nueva, un mensaje, un botón), los tests fallan hasta que esa fila tenga su texto acá: nunca se manda castellano en una entrevista en catalán.
 
 **Marcas:** las mismas de banco.md. `{{nombre}}`, `{{quien_regala}}`, `{{tema}}`; el género va con la palabra entera, `{{nen/nena}}`, `{{orgullós/orgullosa}}` (el catalán marca género donde el castellano a veces no); `«sino:X: A ‖ B»`; `<br>` = salto de línea.
@@ -71,7 +73,7 @@
 | ES13 | Vas anar sempre a la mateixa escola, o et va tocar canviar? Si vas canviar, explica'm com va ser el primer dia a la nova: com hi vas arribar, què t'hi vas trobar. |
 | ES14 | Com era l'hora del pati a la teva escola? A què s'hi jugava, on et ficaves tu? Explica'm algun dia al pati que se t'hagi quedat gravat. |
 | ES15 | Hi havia algun company o companya que no et queia bé? Per què? Explica'm alguna vegada que vau topar. |
-| CI3 | Fins aquí, l'escola. T'ha quedat alguna història d'aquells anys que no t'he preguntat? Pot ser de l'escola o dels estudis que vas fer després. Si n'hi ha alguna, explica-me-la ara, amb calma. Si no, toca el botó. |
+| CI3 | Fins aquí, l'escola. T'ha quedat alguna història d'aquells anys que no t'he preguntat? Pot ser de qualsevol d'aquells anys, del primer a l'últim. Si n'hi ha alguna, explica-me-la ara, amb calma. Si no, toca el botó. |
 | AD2 | Després de l'escola primària, on passaves els dies als tretze o catorze anys? Com hi vas arribar? Explica'm una vegada d'aquells anys que se t'hagi quedat gravada. |
 | AD1 | Com eres als quinze anys? Com vesties, què t'agradava fer, què et feia vergonya. I explica'm un dia d'aquella edat que recordis bé, com si l'estiguessis tornant a viure. |
 | AD2b | Què recordes de l'últim any que vas estudiar, fos a l'institut, al col·legi o on fos? És un any que marca. Explica'm el que t'ha quedat d'aquells mesos: algun moment, alguna cosa que va passar, com va ser el comiat. |
