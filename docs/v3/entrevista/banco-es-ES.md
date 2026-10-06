@@ -92,7 +92,7 @@
 | JU11 | Un día uno se da cuenta de que ya es de allí: conoce las calles, lo saludan, se siente en casa. ¿Te pasó con ese sitio nuevo? Cuéntame ese momento. |
 | JU9 | De joven, ¿qué lugares recorriste? Vacaciones, viajes, escapadas. Cuéntame un viaje de esos años que se te haya quedado. |
 | JU22 | ¿Cómo fueron tus primeros años por tu cuenta? ¿Cómo te las arreglabas, qué hacías para salir adelante? Cuéntame algún momento de esa época que recuerdes. |
-| JU12 | Háblame de tu primera casa propia, donde ya vivías por tu cuenta. Puede que ya me la hayas nombrado; ahora cuéntamela por dentro: cómo era, con qué lo fuiste arreglando, qué se veía por la ventana. Y esa primera noche allí, ¿cómo fue? Si nunca te fuiste de casa de tus padres, cuéntame el día en que esa casa pasó a ser tuya, o el rincón que siempre fue tuyo. |
+| JU12 | Háblame de tu primera casa propia, donde ya vivías por tu cuenta. Puede que ya me la hayas nombrado; ahora cuéntamela por dentro: cómo era, con qué la fuiste arreglando, qué se veía por la ventana. Y esa primera noche allí, ¿cómo fue? Si nunca te fuiste de casa de tus padres, cuéntame el día en que esa casa pasó a ser tuya, o el rincón que siempre fue tuyo. |
 | JU13 | ¿Hiciste alguna locura de joven? Un viaje haciendo autoestop, una apuesta, algo que hoy no harías. Cuéntame esa vez desde que empezó, con todo lo que pasó. |
 | JU15 | ¿Y los amigos de esos años, de cuando empezabas a hacer tu vida? Cómo eran, dónde quedabais, qué hacíais. Cuéntame una vez con ellos que se te quedó grabada. Y si te vienen más, cuéntalas también. |
 | JU16 | Piensa en un momento muy feliz de tu juventud. No hace falta que sea algo grande: una tarde, una noticia, un lugar. ¿Dónde estabas, qué pasó? Cuéntamelo como si estuvieras allí de nuevo. |
@@ -138,7 +138,7 @@
 | PR1 | ¿Terminaste algún estudio, un curso, un oficio, una carrera? Si fue así, cuéntame el día que te dieron el título o que terminaste: dónde estabas, si había alguno de los tuyos mirando, qué hiciste esa noche. |
 | TR9 | ¿Ya has dejado eso a lo que te dedicaste? Si sigues, con decírmelo basta. Si ya lo has dejado, cuéntame el último día: cómo fue, si lo sabías de antes, qué hiciste al salir. Y el día siguiente, el primero sin ir. |
 | CI7 | Hasta aquí lo de tu trabajo y tu oficio. ¿Ha quedado algo de eso que no te he preguntado? Un lugar, una herramienta, un olor, una persona, un trabajo de unos días que nadie recuerda. Es el momento de contarlo, sin prisa. |
-| PG1 | Háblame de tus padres cuando tú ya eras mayor, con tu propia vida. Una vez que los notaste más mayores, un gesto, algo pequeño, y qué te pasó a ti. Y si te tocó cuidarlos, cuéntame cómo era un día de esos: qué hacías por ellos, qué te decían. Si no los tuviste cerca, cuéntame cómo fue eso. |
+| PG1 | Háblame de tus padres cuando tú ya tenías tu propia vida. Una vez que los notaste más viejos, un gesto, algo pequeño, y qué te pasó a ti. Y si te tocó cuidarlos, cuéntame cómo era un día de esos: qué hacías por ellos, qué te decían. Si no los tuviste cerca, cuéntame cómo fue eso. |
 | HI0 | Ahora vamos a los hijos. ¿Tuviste hijos, o criaste a alguno como si lo fuera? Preséntamelos de uno en uno, incluso si alguno ya ha aparecido en lo que me vienes contando: cómo se llama cada uno y cuándo llegó. Y si no tuviste, seguimos por otro lado. |
 | HI1 | Hay noticias que te cambian la vida. ¿Cómo fue el día que te enteraste de que ibas a ser {{padre/madre}} por primera vez? Dónde estabas, quién estaba contigo, y lo primero que pensaste. |
 | HI2 | ¿Y el día que llegó tu primer hijo? Cuéntame ese día como si lo estuvieras viendo: dónde fue, quién estaba, y el momento en que lo tuviste en brazos por primera vez. |
@@ -154,7 +154,7 @@
 | HI8 | Ahora, los nietos. ¿Han llegado nietos a tu vida? Puede que ya los hayas mencionado; nómbramelos de uno en uno, y cuéntame el día que conociste al primero, como si lo estuvieras viendo. Si no hay nietos, pasamos a otra cosa. |
 | HI9 | ¿Hay algo que haces con tus nietos que es solo vuestro, que no hacéis con nadie más? Un juego, por ejemplo. Cuéntame qué es y una vez que tengas bien grabada. |
 | NC1 | A veces a los abuelos les toca criar a un nieto, o tenerlo a su cargo un tiempo. Si te pasó, cuéntame cómo surgió y cómo fue el primer día. Y si no te tocó, dímelo y seguimos. |
-| CI8 | Hasta aquí lo de la familia de mayor. ¿Ha quedado alguien o algo que no te he preguntado? Un cumpleaños, una charla en la cocina, alguien que no entró en ningún sitio. Es el momento de contarlo, sin prisa. |
+| CI8 | Hasta aquí lo de la familia que formaste. ¿Ha quedado alguien o algo que no te he preguntado? Un cumpleaños, una charla en la cocina, alguien que no entró en ningún sitio. Es el momento de contarlo, sin prisa. |
 | LU3 | Fuera de tu casa, ¿hubo un sitio al que volvías siempre? Un bar o un club, por ejemplo, o cualquier sitio que fuera un poco tuyo. Cuéntame cómo era y una vez allí que todavía recuerdes. |
 | LU4 | Ya de mayor, ¿cuál fue el viaje más importante de tu vida, o uno que recuerdes con mucha fuerza? Cuéntame si fuiste con alguien, y un día de ese viaje que se te haya quedado como una foto. |
 | PA1 | Fuera del trabajo y de la familia, ¿hubo algo que te apasionara de mayor? Cuéntame cómo empezó eso, y un día entero que le hayas dedicado, de la mañana a la noche. Si ya me lo has contado, dímelo, y si quieres añadir algo, es el momento. |
@@ -296,7 +296,7 @@ Mismo orden que en banco.md (el botón 1 de aquí vale lo mismo que el botón 1 
 | M3.5 | Guardado, {{nombre}}. Te mando la siguiente. |
 | M3.6 | Lo tengo, gracias. Vamos con otra. |
 | M3.7 | Ha quedado guardado, {{nombre}}. Sigo con la que viene. |
-| M3.8 | Te he escuchado bien. Vamos a por la siguiente. |
+| M3.8 | Te he escuchado con atención. Vamos a por la siguiente. |
 | M4.1 | Gracias por contarme esto, {{nombre}}. Queda guardado con cuidado. |
 | M4.2 | Te he escuchado. Gracias por confiármelo. |
 | M4.3 | Lo guardo tal como lo has contado. Gracias. |
