@@ -4,7 +4,7 @@
 // que las simulaciones (`v3-entrevista-turno.ts`: nuevaEntrevista, responder,
 // tocarBoton, charlaMd); acá solo hay HTTP, disco y transcripción.
 //
-//   npx tsx scripts/v3-entrevista-web.ts [--puerto 5178] [--nombre Naza --genero varon] [--idioma ca] [--env <ruta .env>] [--datos <carpeta>] [--cazador]
+//   npx tsx scripts/v3-entrevista-web.ts [--puerto 5178] [--nombre Naza --genero varon] [--idioma ca|es-ES] [--env <ruta .env>] [--datos <carpeta>] [--cazador]
 //
 // Guarda todo en audios-crudos/v3-web/<nombre>/ (en .gitignore: voces reales):
 // estado.json, audios/<NN>-<ID>.webm, transcripciones.jsonl y charla.md.
@@ -25,7 +25,7 @@ import { createServer, type IncomingMessage, type RequestListener, type ServerRe
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { preguntaPorId } from '../src/v3/entrevista/banco.js';
-import { idiomaDe, type Idioma } from '../src/v3/entrevista/idioma.js';
+import { idiomaDe, NOMBRE_IDIOMA, type Idioma } from '../src/v3/entrevista/idioma.js';
 import type { ClienteModelo } from '../src/v3/entrevista/cazador.js';
 import { botonesDeClave } from '../src/v3/entrevista/flujo.js';
 import { sumarAudio } from '../src/v3/entrevista/respuesta.js';
@@ -160,7 +160,7 @@ export type OpcionesWeb = {
   dormir?: (ms: number) => Promise<void>;
   /** Con el cazador de escenas: el cliente del modelo (el SDK de Anthropic; los tests pasan uno falso). Sin él, no se caza. */
   cazador?: ClienteModelo;
-  /** El idioma de las entrevistas nuevas (--idioma ca: en catalán; Naza, 04/10). Sin idioma, la de siempre. */
+  /** El idioma de las entrevistas nuevas (--idioma ca: en catalán, Naza, 04/10; --idioma es-ES: castellano de España, de tú, Naza, 05/10). Sin idioma, la de siempre. */
   idioma?: Idioma;
 };
 
@@ -517,7 +517,7 @@ function main(args: string[]): void {
   createServer(manejador).listen(puerto, '127.0.0.1', () => {
     console.log(`Entrevista V3 en http://localhost:${puerto}`);
     console.log(`Datos en ${datos}`);
-    if (idioma !== 'es-AR') console.log(`Entrevistas nuevas en ${idioma === 'ca' ? 'catalán' : idioma}.`);
+    if (idioma !== 'es-AR') console.log(`Entrevistas nuevas en ${NOMBRE_IDIOMA[idioma]}.`);
     console.log('Ojo: cada audio se transcribe con OpenAI (pago). Ctrl+C para apagar.');
     if (cazador) console.log('Cazador de escenas PRENDIDO: al cerrar cada bloque llama a Opus 5 (pago, tope USD 3 por entrevista).');
   });

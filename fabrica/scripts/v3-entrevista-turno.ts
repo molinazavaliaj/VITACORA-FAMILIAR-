@@ -6,7 +6,7 @@
 // `acuseDeTurno`, `entradaSegunAcuse`, `armarTurno`, `renderizar`) y arma cada turno igual que `v3-entrevista-lectura.ts` (un
 // test lo compara mensaje por mensaje). Sin modelos ni API: nada pago.
 //
-//   npx tsx scripts/v3-entrevista-turno.ts nueva <estado.json> --nombre <Nombre> --genero <varon|mujer> [--idioma ca] [--familia "<pregunta>"]…
+//   npx tsx scripts/v3-entrevista-turno.ts nueva <estado.json> --nombre <Nombre> --genero <varon|mujer> [--idioma ca|es-ES] [--familia "<pregunta>"]…
 //   npx tsx scripts/v3-entrevista-turno.ts responder <estado.json> [--respuesta "<texto>"]   (sin --respuesta, la lee de stdin)
 //   npx tsx scripts/v3-entrevista-turno.ts responder <estado.json> --boton "<texto del botón>"
 //   … responder … --cazador [--env <ruta .env>]   (GASTA PLATA: al cerrar un bloque llama al cazador de escenas; tope USD 3 por entrevista)
@@ -394,7 +394,7 @@ export function main(args: string[]): string {
     const genero = opcion(args, '--genero');
     if (!nombre || (genero !== 'varon' && genero !== 'mujer')) throw new Error('nueva: faltan --nombre y --genero varon|mujer');
     const familia = opciones(args, '--familia').map((texto, i) => ({ id: `FAM${i + 1}`, texto }));
-    // --idioma ca: la entrevista en catalán (Naza, 04/10). Sin --idioma, la de siempre.
+    // --idioma ca: la entrevista en catalán (Naza, 04/10); --idioma es-ES: en castellano de España, de tú (Naza, 05/10). Sin --idioma, la de siempre.
     const idioma = idiomaDe({ idioma: opcion(args, '--idioma') });
     const r = nuevaEntrevista(idioma === 'es-AR' ? { nombre, genero } : { nombre, genero, idioma }, familia);
     guardar(ruta, r.estado);
