@@ -14,16 +14,19 @@ export type Transcripcion = { texto: string; duracionSegundos: number | null };
 
 export const URL_TRANSCRIPCION = 'https://api.openai.com/v1/audio/transcriptions';
 
-/** Prompt de vocabulario: corto, porque el modelo lo corta a ~224 tokens. En catalán, vocabulario de Cataluña (Naza, 04/10). */
+/** Prompt de vocabulario: corto, porque el modelo lo corta a ~224 tokens. En catalán, vocabulario de Cataluña (Naza, 04/10); en es-ES, de España (Naza, 05/10). */
 export function promptDeTranscripcion(nombre: string, idioma: Idioma = IDIOMA_POR_DEFECTO): string {
   if (idioma === 'ca') {
     return `${nombre} explica la seva vida en català. Vocabulari: feina, colla, la mili, l'avi, l'àvia, el poble, el barri, la masia, la plaça, la festa major, l'institut, l'escola, la parella, els nets, la sardana, la mona, la castanyada, pa amb tomàquet.`;
+  }
+  if (idioma === 'es-ES') {
+    return `${nombre} cuenta su vida en castellano de España. Vocabulario: curro, currar, chaval, chavala, crío, cría, piso, el pueblo, la mili, el instituto, el bachillerato, la carrera, las fiestas del pueblo, la verbena, los abuelos, la cuadrilla, vale, tío, majo.`;
   }
   return `${nombre} cuenta su vida en castellano rioplatense. Vocabulario: laburo, laburar, pibe, piba, gurí, botija, mina, colectivo, bondi, guita, quilombo, che, viejo, vieja, barrio, liceo, facultad, cancha, asado, mate.`;
 }
 
 /** El código de idioma que se le pasa a OpenAI. */
-export const IDIOMA_OPENAI: Readonly<Record<Idioma, string>> = { 'es-AR': 'es', ca: 'ca' };
+export const IDIOMA_OPENAI: Readonly<Record<Idioma, string>> = { 'es-AR': 'es', ca: 'ca', 'es-ES': 'es' };
 
 /** Tapa la key y cualquier cosa con forma de key (sk-…) en un texto que va a salir por pantalla. */
 export function taparKey(texto: string, key?: string): string {

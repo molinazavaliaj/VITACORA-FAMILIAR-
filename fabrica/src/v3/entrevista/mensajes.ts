@@ -53,8 +53,8 @@ export function acuseNeutro(n: number, siguiente: string): string {
 }
 
 function arrancaConSeguimos(siguiente: string): boolean {
-  // En catalán "Seguim", "Passem", "Continuem" (M25.1 es "Bé, seguim."; Naza, 04/10).
-  return /^(seguimos|pasamos|seguim|passem|continuem)(?![a-záéíóúñàèòïüç])/i.test(siguiente.trim());
+  // En catalán "Seguim", "Passem", "Continuem" (M25.1 es "Bé, seguim."; Naza, 04/10). En España también "Continuamos" (05/10).
+  return /^(seguimos|pasamos|continuamos|seguim|passem|continuem)(?![a-záéíóúñàèòïüç])/i.test(siguiente.trim());
 }
 
 /**

@@ -491,6 +491,12 @@ export type Frases = {
   unirApostrofos: boolean;
   muletillas: ReadonlySet<string>;
   muletillasDobles: readonly string[][];
+  /**
+   * Muletillas que, solas, son un "sí" (en España, "Vale."): al principio se
+   * saltean ("Vale, no me acuerdo" es olvido), pero si son toda la respuesta
+   * valen como "Sí." (contó algo), no como nada.
+   */
+  siSueltos: ReadonlySet<string>;
   /** "Paso" (y en catalán, "passo"). */
   paso: ReadonlySet<string>;
   despuesDePaso: ReadonlySet<string>;
@@ -536,6 +542,7 @@ const FRASES_ES: Frases = {
   unirApostrofos: false,
   muletillas: MULETILLAS,
   muletillasDobles: MULETILLAS_DOBLES,
+  siSueltos: new Set(),
   paso: new Set(['paso']),
   despuesDePaso: DESPUES_DE_PASO,
   pasoSolas: FRASES_PASO_SOLAS,
@@ -651,6 +658,7 @@ const FRASES_CA: Frases = {
   unirApostrofos: true,
   muletillas: unirConjunto(FRASES_ES.muletillas, SOLO_CATALAN.muletillas),
   muletillasDobles: [...FRASES_ES.muletillasDobles, ...SOLO_CATALAN.muletillasDobles],
+  siSueltos: FRASES_ES.siSueltos,
   paso: unirConjunto(FRASES_ES.paso, SOLO_CATALAN.paso),
   despuesDePaso: unirConjunto(FRASES_ES.despuesDePaso, SOLO_CATALAN.despuesDePaso),
   pasoSolas: [...FRASES_ES.pasoSolas, ...frases(SOLO_CATALAN.pasoSolas)],
@@ -685,7 +693,80 @@ const FRASES_CA: Frases = {
   yaNo: [...FRASES_ES.yaNo, ...SOLO_CATALAN.yaNo],
 };
 
-export const FRASES: Readonly<Record<Idioma, Frases>> = { 'es-AR': FRASES_ES, ca: FRASES_CA };
+/**
+ * Lo que suma el castellano de España, de tú (Naza, 05/10). Los casos, en
+ * test/v3-es-ES.test.ts.
+ */
+const SOLO_ESPANA = {
+  muletillas: ['vale', 'hombre', 'oye', 'venga', 'vaya', 'bah', 'buah', 'jo'],
+  // "Vale." solo es un sí.
+  siSueltos: ['vale'],
+  // "Paso muchas horas en el huerto…": es el verbo.
+  despuesDePaso: ['muchas', 'muchos', 'horas', 'ratos', 'en'],
+  pasoSolas: ['la siguiente', 'esta no', 'esto no', 'de esto no', 'dejalo', 'no me apetece'],
+  pasoCompletas: [
+    'paso de esta', 'paso de esa', 'paso de eso', 'paso de esto', 'paso de contarlo', 'paso de hablar de eso', 'no quiero hablar de ello', 'prefiero no hablar de ello',
+    'prefiero no hablarlo', 'prefiero no decirlo', 'eso me lo reservo', 'me lo reservo', 'dejalo estar', 'dejemoslo aqui', 'dejemoslo ahi', 'mejor lo dejamos', 'lo dejamos aqui',
+    'no me apetece hablar de eso', 'no me apetece contarlo', 'de eso no quiero hablar', 'de esto no quiero hablar',
+  ],
+  antesDeFrase: ['esta', 'esto', 'de esto', 'aqui'],
+  dijo: ['ha dicho', 'me ha dicho'],
+  yaConto: ['ya te lo he contado', 'ya te he contado', 'ya lo he contado', 'ya te lo he dicho', 'ya te lo habia contado', 'ya te lo habia dicho'],
+  arranquesOlvido: ['no lo recuerdo', 'no lo se', 'no tengo ni idea', 'no sabria decirte', 'no te sabria decir'],
+  noSe: ['no lo se'],
+  seMeBorro: ['se me ha olvidado', 'se me olvido', 'se me ha ido', 'se me ha borrado', 'lo he olvidado', 'me he olvidado', 'no me viene a la cabeza'],
+  falla: ['me empieza a fallar', 'ya no me da', 'me juega malas pasadas'],
+  sinContenido: ['aqui', 'alli', 'ahi', 'os', 'vuestro', 'vuestra', 'ello', 'he', 'has', 'hemos', 'habia', 'tu', 'ti'],
+  verbosDeNegarse: ['hablarlo', 'contartelo', 'contarla', 'decirlo'],
+  deEso: ['de ello', 'de esto'],
+  arranquesQueCuentan: ['no te puedes imaginar', 'no te lo vas a creer', 'no te lo creeras', 'nunca lo olvidare', 'nunca olvidare', 'jamas lo olvidare', 'no lo olvidare nunca', 'nunca se me olvidara'],
+  // "Lo crié", "la criamos", "criarla", "los criasteis".
+  criar: [/^cri(asteis|abais)$/, /^criar(lo|la|los|las|le)$/],
+  comoHijo: ['como si fuera mio', 'como si fuera mia', 'como si fuera mi hijo', 'como si fuera mi hija', 'como a un hijo', 'como a una hija', 'como a mi hijo', 'como a mi hija'],
+  formulasDeCierre: ['eso es todo', 'esta todo dicho', 'ya lo he dicho todo', 'ya lo he contado todo'],
+  porAhora: ['de momento', 'por el momento'],
+  senialesDeAgregar: ['anadir', 'me he acordado', 'me acabo de acordar', 'quiero contarte'],
+  hoyHayAlguien: ['estoy casado', 'estoy casada', 'sigo casado', 'sigo casada', 'tengo novio', 'tengo novia', 'vivo con mi marido', 'vivo con mi mujer', 'vivo con mi pareja', 'sigue a mi lado'],
+  hoyNoHayNadie: [
+    'me he quedado sola', 'me he quedado solo', 'estoy viuda', 'estoy viudo', 'soy viuda', 'soy viudo', 'estoy divorciada', 'estoy divorciado', 'estoy separada', 'estoy separado',
+    'no tengo a nadie',
+  ],
+  finales: ['ha muerto', 'ha fallecido', 'nos hemos separado', 'me he separado', 'me he divorciado', 'nos hemos divorciado', 'lo dejamos', 'nos dejamos'],
+};
+
+/**
+ * El castellano de España: sus frases más las rioplatenses (no molestan, y
+ * "no me acuerdo", "ya te lo conté" o "paso" se dicen igual).
+ */
+const FRASES_ES_ES: Frases = {
+  ...FRASES_ES,
+  muletillas: unirConjunto(FRASES_ES.muletillas, SOLO_ESPANA.muletillas),
+  siSueltos: unirConjunto(FRASES_ES.siSueltos, SOLO_ESPANA.siSueltos),
+  despuesDePaso: unirConjunto(FRASES_ES.despuesDePaso, SOLO_ESPANA.despuesDePaso),
+  pasoSolas: [...FRASES_ES.pasoSolas, ...frases(SOLO_ESPANA.pasoSolas)],
+  pasoCompletas: [...FRASES_ES.pasoCompletas, ...frases(SOLO_ESPANA.pasoCompletas)],
+  antesDeFrase: [...FRASES_ES.antesDeFrase, ...frases(SOLO_ESPANA.antesDeFrase)],
+  dijo: [...FRASES_ES.dijo, ...frases(SOLO_ESPANA.dijo)],
+  yaConto: [...FRASES_ES.yaConto, ...SOLO_ESPANA.yaConto],
+  arranquesOlvido: [...FRASES_ES.arranquesOlvido, ...frases(SOLO_ESPANA.arranquesOlvido)],
+  noSe: [...FRASES_ES.noSe, ...SOLO_ESPANA.noSe],
+  seMeBorro: [...FRASES_ES.seMeBorro, ...SOLO_ESPANA.seMeBorro],
+  falla: [...FRASES_ES.falla, ...SOLO_ESPANA.falla],
+  sinContenido: unirConjunto(FRASES_ES.sinContenido, SOLO_ESPANA.sinContenido),
+  verbosDeNegarse: unirConjunto(FRASES_ES.verbosDeNegarse, SOLO_ESPANA.verbosDeNegarse),
+  deEso: [...FRASES_ES.deEso, ...frases(SOLO_ESPANA.deEso)],
+  arranquesQueCuentan: [...FRASES_ES.arranquesQueCuentan, ...frases(SOLO_ESPANA.arranquesQueCuentan)],
+  criar: [...FRASES_ES.criar, ...SOLO_ESPANA.criar],
+  comoHijo: [...FRASES_ES.comoHijo, ...SOLO_ESPANA.comoHijo],
+  formulasDeCierre: [...FRASES_ES.formulasDeCierre, ...frases(SOLO_ESPANA.formulasDeCierre)],
+  porAhora: [...FRASES_ES.porAhora, ...frases(SOLO_ESPANA.porAhora)],
+  senialesDeAgregar: [...FRASES_ES.senialesDeAgregar, ...SOLO_ESPANA.senialesDeAgregar],
+  hoyHayAlguien: [...FRASES_ES.hoyHayAlguien, ...frases(SOLO_ESPANA.hoyHayAlguien)],
+  hoyNoHayNadie: [...FRASES_ES.hoyNoHayNadie, ...frases(SOLO_ESPANA.hoyNoHayNadie)],
+  finales: [...FRASES_ES.finales, ...frases(SOLO_ESPANA.finales)],
+};
+
+export const FRASES: Readonly<Record<Idioma, Frases>> = { 'es-AR': FRASES_ES, ca: FRASES_CA, 'es-ES': FRASES_ES_ES };
 
 /**
  * Qué dijo, según la pregunta (Naza, 30/09, simulaciones):
@@ -706,9 +787,11 @@ export function interpretar(pregunta: PreguntaParaInterpretar, respuesta: string
     return vale === 'si' ? 'conto' : vale;
   }
   const fr = FRASES[idioma];
-  const f = sinMuletillas(fichas(resto, fr.unirApostrofos), fr);
+  const crudas = fichas(resto, fr.unirApostrofos);
+  const f = sinMuletillas(crudas, fr);
   const pal = f.filter((w) => !esCorte(w));
-  if (pal.length === 0) return 'vacio';
+  // "Vale." solo (España) es un "Sí.", no nada.
+  if (pal.length === 0) return crudas.some((w) => fr.siSueltos.has(w)) ? 'conto' : 'vacio';
   if (esPasoDicho(f, pal, fr)) return 'paso';
   if (pregunta.id === AMH) return interpretarAMH(pregunta, f, pal, fr);
   if (esOlvido(f, pal, fr, pregunta)) return 'olvido';

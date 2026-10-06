@@ -13,7 +13,8 @@
 
 import promptJson from './cazador-prompt.json' with { type: 'json' };
 import promptCaJson from './cazador-prompt-ca.json' with { type: 'json' };
-import { preguntaPorId, TEXTOS_IDIOMA } from './banco.js';
+import promptEsEsJson from './cazador-prompt-es-ES.json' with { type: 'json' };
+import { preguntaPorId, textosDe } from './banco.js';
 import { IDIOMA_POR_DEFECTO, type Idioma } from './idioma.js';
 import { BLOQUE_FINAL, claveRepregunta, deSegunda, PIDEN_DIA, type Repregunta, type Respuestas } from './flujo.js';
 import type { FichaTexto } from './texto.js';
@@ -35,8 +36,16 @@ export const MAX_PALABRAS_PREGUNTA = 45;
 /** El prompt v3.1 (Fable, 01/10), tal cual la sección "## Prompt" del md. */
 export const PROMPT_CAZADOR: string = (promptJson as { prompt: string }).prompt;
 
-/** El prompt según el idioma de la entrevista: en catalán, docs/v3/entrevista/cazador/prompt-v3-1-ca.md (Naza, 04/10; el original no se toca). */
-export const PROMPT_CAZADOR_DE: Readonly<Record<Idioma, string>> = { 'es-AR': PROMPT_CAZADOR, ca: (promptCaJson as { prompt: string }).prompt };
+/**
+ * El prompt según el idioma de la entrevista: en catalán,
+ * docs/v3/entrevista/cazador/prompt-v3-1-ca.md (Naza, 04/10); en castellano de
+ * España, prompt-v3-1-es-ES.md (Naza, 05/10). El original no se toca.
+ */
+export const PROMPT_CAZADOR_DE: Readonly<Record<Idioma, string>> = {
+  'es-AR': PROMPT_CAZADOR,
+  ca: (promptCaJson as { prompt: string }).prompt,
+  'es-ES': (promptEsEsJson as { prompt: string }).prompt,
+};
 
 /** La sección "## Prompt" del md: lo que va entre el primer par de ``` después del título. */
 export function extraerPrompt(md: string): string {
@@ -92,7 +101,26 @@ export const BLOQUES_CAZADOR_CA: readonly { nombre: string; momentos: readonly s
   { nombre: 'Llegat', momentos: ['de què estàs orgullós', 'el teu consell', 'el que encara vols fer'] },
 ];
 
-const BLOQUES_CAZADOR_DE: Readonly<Record<Idioma, typeof BLOQUES_CAZADOR>> = { 'es-AR': BLOQUES_CAZADOR, ca: BLOQUES_CAZADOR_CA };
+/** Lo mismo para la entrevista en castellano de España, de tú (Naza, 05/10): pequeño, madre, instituto, dinero, sitio. */
+export const BLOQUES_CAZADOR_ES: readonly { nombre: string; momentos: readonly string[] }[] = [
+  { nombre: 'Origen', momentos: ['la época en que naciste', 'la historia de la familia de los de antes', 'cómo se conocieron tus padres'] },
+  { nombre: 'La casa de pequeño', momentos: ['el primer recuerdo de la casa de pequeño', 'una anécdota con tu madre de pequeño', 'una vez con tu padre trabajando', 'una aventura con tus hermanos', 'un día de pequeño que esperabas con ganas', 'un momento difícil de pequeño'] },
+  { nombre: 'Escuela', momentos: ['el primer día de colegio', 'una vez con una maestra que te marcó', 'una tarde con tu mejor amigo de pequeño', 'una travesura', 'qué querías ser de mayor', 'la religión en tu casa'] },
+  { nombre: 'Adolescencia', momentos: ['dónde pasabas los días a los trece', 'una noche con la pandilla', 'la primera salida de noche', 'el primer amor', 'cuándo dejaste de ser un niño', 'un momento duro de la adolescencia'] },
+  { nombre: 'Juventud', momentos: ['el día que te fuiste de casa de tus padres', 'qué hiciste después del instituto', 'aprender tu oficio', 'la llegada a vivir a otra ciudad o país', 'el primer sitio propio y su primera noche', 'las mudanzas de tu vida', 'un momento duro de la juventud'] },
+  { nombre: 'Amor', momentos: ['el día que conociste a tu pareja', 'la vida juntos', 'un momento de los dos'] },
+  { nombre: 'Trabajo', momentos: ['el primer trabajo', 'un día normal de trabajo', 'quién te echó una mano en el trabajo', 'el día de trabajo del que estás orgulloso', 'una época sin trabajo o con el dinero justo', 'el negocio propio', 'el último día de trabajo'] },
+  { nombre: 'Hijos y nietos', momentos: ['tus padres de mayores', 'el nacimiento del primer hijo', 'cómo era cada hijo de pequeño', 'el día que conociste al primer nieto'] },
+  { nombre: 'Lugares', momentos: ['el viaje más importante', 'tu pasión'] },
+  { nombre: 'Amistades', momentos: ['cómo conociste al amigo de mayor', 'tus hermanos de mayores', 'alguien que te ayudó', 'la cena con quien quisieras'] },
+  { nombre: 'Momentos difíciles', momentos: ['una pérdida', 'la salud', 'una época dura de mayor'] },
+  { nombre: 'Historia grande', momentos: ['algo grande del país que te tocó', 'un día de la pandemia', 'lo que antes no se podía', 'la política'] },
+  { nombre: 'Giros', momentos: ['el día que volverías a vivir', 'el día que te cambió algo', 'algo que no salió', 'sentirte pequeño frente a algo enorme', 'la soledad', 'el paso del tiempo', 'lo heredado'] },
+  { nombre: 'Hoy', momentos: ['un día cualquiera de ahora', 'la última vez que te reíste con ganas', 'una marca en el cuerpo con historia', 'tu plato', 'la música de ahora', 'el sitio donde vives'] },
+  { nombre: 'Legado', momentos: ['de qué estás orgulloso', 'tu consejo', 'lo que todavía quieres hacer'] },
+];
+
+const BLOQUES_CAZADOR_DE: Readonly<Record<Idioma, typeof BLOQUES_CAZADOR>> = { 'es-AR': BLOQUES_CAZADOR, ca: BLOQUES_CAZADOR_CA, 'es-ES': BLOQUES_CAZADOR_ES };
 
 /** El bloque Hoy: ahí "hoy" sí vale en la pregunta. */
 export const BLOQUE_HOY = 14;
@@ -206,7 +234,11 @@ function esElegida(x: unknown): x is Elegida {
 const TIEMPO_RELATIVO = /\b(ayer|anoche|hace un rato|recién|recien|la otra vez|esta semana)\b/i;
 /** En catalán (prompt-v3-1-ca.md): "ahir", "ahir a la nit", "fa una estona", "ara mateix", "fa un moment", "l'altre dia", "l'altra vegada", "aquesta setmana". */
 const TIEMPO_RELATIVO_CA = /(?<![\p{L}])(ahir|fa una estona|ara mateix|fa un moment|l'altre dia|l'altra vegada|aquesta setmana)(?![\p{L}])/iu;
-const HOY_DE: Readonly<Record<Idioma, RegExp>> = { 'es-AR': /\bhoy\b/i, ca: /(?<![\p{L}])(avui|hoy)(?![\p{L}])/iu };
+/** En castellano de España (prompt-v3-1-es-ES.md), además de los de siempre: "el otro día", "hace un momento", "ahora mismo", "anteayer". */
+const TIEMPO_RELATIVO_ES = /(?<![\p{L}])(el otro d[ií]a|hace un momento|ahora mismo|anteayer|antes de ayer)(?![\p{L}])/iu;
+/** Lo que cada idioma suma a TIEMPO_RELATIVO (que vale para todos). */
+const TIEMPO_RELATIVO_DE: Readonly<Record<Idioma, RegExp | undefined>> = { 'es-AR': undefined, ca: TIEMPO_RELATIVO_CA, 'es-ES': TIEMPO_RELATIVO_ES };
+const HOY_DE: Readonly<Record<Idioma, RegExp>> = { 'es-AR': /\bhoy\b/i, ca: /(?<![\p{L}])(avui|hoy)(?![\p{L}])/iu, 'es-ES': /\bhoy\b/i };
 const sinMarcas = (s: string) =>
   s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-zñ0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
 
@@ -225,7 +257,7 @@ export function controlarElegida(e: Pick<Elegida, 'cita' | 'pregunta'>, respuest
   if (pregunta.split(/\s+/).filter(Boolean).length > MAX_PALABRAS_PREGUNTA) fallas.push(`pregunta de más de ${MAX_PALABRAS_PREGUNTA} palabras`);
   // En catalán, el apóstrofo curvo (’) cuenta como el recto, y "d'ahir" es "de ayer" (revisión del 04/10).
   const recta = pregunta.replace(/’/g, "'");
-  const relativo = TIEMPO_RELATIVO.test(pregunta) || (idioma === 'ca' && TIEMPO_RELATIVO_CA.test(recta));
+  const relativo = TIEMPO_RELATIVO.test(pregunta) || (TIEMPO_RELATIVO_DE[idioma]?.test(recta) ?? false);
   if (relativo || (!bloqueHoy && HOY_DE[idioma].test(recta))) fallas.push('tiempo relativo');
   return fallas;
 }
@@ -269,7 +301,7 @@ export function revisarElegidas(
  */
 export function mensajeRepregunta(e: Pick<Repregunta, 'cita' | 'pregunta'>, idioma: Idioma = IDIOMA_POR_DEFECTO): string {
   // Las dos marcas en una sola pasada: si la cita dice "{pregunta}", no se pisa.
-  if (idioma !== 'es-AR') return TEXTOS_IDIOMA[idioma].repregunta.mensaje.replace(/\{(cita|pregunta)\}/g, (_m, k: string) => (k === 'cita' ? e.cita : e.pregunta));
+  if (idioma !== 'es-AR') return textosDe(idioma).repregunta.mensaje.replace(/\{(cita|pregunta)\}/g, (_m, k: string) => (k === 'cita' ? e.cita : e.pregunta));
   return `Me quedé pensando en algo que me contaste: «${e.cita}». ${e.pregunta} Y si no te vuelve, o ya me lo contaste todo, decímelo nomás y seguimos con otra.`;
 }
 
