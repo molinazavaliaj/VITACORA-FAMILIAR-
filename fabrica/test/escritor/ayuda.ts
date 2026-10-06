@@ -77,3 +77,12 @@ export function salidasModeloNelida(): Record<string, string> {
   };
 }
 export const DEFECTOS_NELIDA: [string, string][] = [['6-arreglo-', '{"cambios": []}'], ['7-estilo-', '{"cambios": []}'], ['disputa-', '{"respalda": true}']];
+
+/** Lo que deja la Etapa B para la C: entradas, registro y plan de Nélida. */
+export function carpetaParaC(): Carpeta {
+  const c = carpetaNelida(['entradas']);
+  const s = carpetaNelida();
+  c.escribir('salidas/registro.json', s.leer('salidas/registro.json'));
+  c.escribir('salidas/plan.json', s.leer('salidas/plan.json'));
+  return c;
+}
