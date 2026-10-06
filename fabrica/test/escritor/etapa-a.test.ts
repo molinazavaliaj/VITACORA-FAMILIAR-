@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { AlmacenMemoria } from '../../src/escritor/almacen/memoria.js';
 import type { Carpeta } from '../../src/escritor/carpeta.js';
-import { Ejecutor } from '../../src/escritor/ejecutor.js';
+import { Ejecutor, TopeDeGasto } from '../../src/escritor/ejecutor.js';
 import { ModeloFalso } from '../../src/escritor/modelo/falso.js';
 import { cargarSnapshot, type Contexto } from '../../src/escritor/orquestador/contexto.js';
 import { etapaA } from '../../src/escritor/orquestador/etapa-a.js';
@@ -44,6 +44,27 @@ describe('Etapa A', () => {
     expect(modelo.llamadas.map((p) => p.clave)).toEqual(['A/1-registro', 'A/1-registro#2', 'A/1-registro#3']);
     // Lo pagado queda en costos.json aunque la etapa corte.
     expect(JSON.parse((await almacen.leer('costos.json')) as string).filas).toHaveLength(3);
+  });
+
+  it('un registro que no es JSON (dos veces) cuenta como un intento fallido: sigue el reintento con el error', async () => {
+    const { x, modelo } = armar({ ...salidasModeloNelida(), '1-registro': 'no es json', '1-registro#2': salidasModeloNelida()['1-registro'] });
+    expect((await etapaA(x)).ok).toBe(true);
+    expect(modelo.llamadas.map((p) => p.clave)).toEqual(['A/1-registro', 'A/1-registro#json', 'A/1-registro#2', 'A/2-plan', 'A/dudas']);
+    const instr = modelo.llamadas[2].bloques[modelo.llamadas[2].bloques.length - 1];
+    expect(instr).toContain('JSON');
+  });
+
+  it('si el JSON no sale nunca, la etapa devuelve ok: false (no tira)', async () => {
+    const { x, modelo } = armar({ ...salidasModeloNelida(), '1-registro': 'no es json', '1-registro#2': 'tampoco', '1-registro#3': 'nada' });
+    expect(await etapaA(x)).toEqual({ ok: false, motivo: 'el registro no pasa C14 después de 2 reintentos' });
+    expect(modelo.llamadas).toHaveLength(6);
+  });
+
+  it('el tope de gasto sigue cortando la etapa aunque el JSON falle', async () => {
+    const modelo = new ModeloFalso({ ...salidasModeloNelida(), '1-registro': 'no es json' });
+    const almacen = new AlmacenMemoria();
+    const x: Contexto = { c: carpetaNelida(['entradas']), ej: new Ejecutor({ modelo, almacen, topeUsd: 0.007 }), almacen, log: () => {}, usarLote: false };
+    await expect(etapaA(x)).rejects.toBeInstanceOf(TopeDeGasto);
   });
 
   it('si el registro y el plan ya estaban y pasan, no se llaman', async () => {

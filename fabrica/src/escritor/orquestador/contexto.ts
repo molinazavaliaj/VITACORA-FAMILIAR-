@@ -1,9 +1,11 @@
 // Lo que comparten las tres etapas: la carpeta, el ejecutor, el almacén y los reintentos de registro y plan
 // (workflow-libro.js, `conReintentos`: si ya está y pasa, no se rehace; si no, hasta 2 reintentos con el error).
+// Una respuesta que no es JSON (ni en el pedido extra del ejecutor) cuenta como un intento fallido más: el
+// reintento lleva ese error. El tope de gasto y los errores de la API no se atajan acá.
 import { Carpeta } from '../carpeta.js';
 import type { Almacen } from '../almacen/tipos.js';
 import { controlar } from '../controles/correr.js';
-import type { Ejecutor } from '../ejecutor.js';
+import { ErrorJSON, type Ejecutor } from '../ejecutor.js';
 import { salida } from '../lectura.js';
 import { llamadaPlan, llamadaRegistro } from '../llamadas/armar.js';
 
@@ -29,7 +31,15 @@ export async function conReintentos(x: Contexto, paso: 'registro' | 'plan', pref
   for (let i = 0; i <= 2; i++) {
     const error = i ? x.c.leer(`controles/${paso}.json`) : undefined;
     const llamada = paso === 'registro' ? llamadaRegistro(x.c, { error }) : llamadaPlan(x.c, { error });
-    const texto = await x.ej.uno({ clave: `${prefijo}${llamada.nombre}${i ? `#${i + 1}` : ''}`, llamada, json: true, maxTokens: 128000 });
+    let texto: string;
+    try {
+      texto = await x.ej.uno({ clave: `${prefijo}${llamada.nombre}${i ? `#${i + 1}` : ''}`, llamada, json: true, maxTokens: 128000 });
+    } catch (err) {
+      if (!(err instanceof ErrorJSON)) throw err;
+      x.c.escribir(`controles/${paso}.json`, JSON.stringify([{ control: 'JSON', que: 'la respuesta no es un JSON válido (no parsea): devolvé solo el JSON pedido' }], null, 1));
+      x.log(`${paso}: ${err.message}`);
+      continue;
+    }
     x.c.escribir(archivo, texto);
     const r = controlar(x.c, paso);
     x.log(`${paso}: ${r.resumen.split('\n')[0]}`);
