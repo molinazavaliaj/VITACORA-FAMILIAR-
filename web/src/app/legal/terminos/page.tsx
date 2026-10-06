@@ -11,12 +11,12 @@ import { Correo, DatosTitular, Enlace, Lista, Pagina, Parrafo, Seccion } from ".
 // España 14 días naturales con descuento de lo ya prestado; Argentina 10 días
 // corridos sin costo y botón de arrepentimiento.
 //
-// Escrito llano y en "tú", como /legal/privacidad. Un texto legal que la
+// Escrito llano y de "vos", como /legal/privacidad (Naza, 06/10: de vos en todo). Un texto legal que la
 // clienta no entiende no la protege ni nos protege.
 
 export const metadata = {
   title: "Términos del servicio",
-  description: "Qué te damos, qué te cobramos, cuándo puedes arrepentirte y de quién es la historia.",
+  description: "Qué te damos, qué te cobramos, cuándo podés arrepentirte y de quién es la historia.",
 };
 
 export default function Terminos() {
@@ -28,45 +28,46 @@ export default function Terminos() {
       <Seccion id="quienes-somos" titulo="1. Quiénes somos">
         <Parrafo>
           Vitácora Familiar lo prestan dos personas, una en cada país donde vendemos. Con quién
-          contratas depende de la región que eliges al comprar (la misma que decide la moneda y
-          el medio de pago):
+          contratás depende del país desde el que comprás (el mismo que decide la moneda y el
+          medio de pago):
         </Parrafo>
         <Lista
           items={[
             <>
-              Si compras desde <strong className="font-medium">España</strong> (en euros): <DatosTitular titular={es} />.
+              Si comprás desde <strong className="font-medium">España</strong> (en euros): <DatosTitular titular={es} />.
             </>,
             <>
-              Si compras desde <strong className="font-medium">Argentina</strong> (en pesos): <DatosTitular titular={ar} />.
+              Si comprás desde <strong className="font-medium">Argentina</strong> (en pesos): <DatosTitular titular={ar} />.
             </>,
           ]}
         />
         <Parrafo>
           En estos términos, «nosotros» es el titular que te corresponde. Para cualquier cosa
-          escribe a <Correo cual="hola" /> (o a <Correo cual="soporte" /> si es un problema con
+          escribí a <Correo cual="hola" /> (o a <Correo cual="soporte" /> si es un problema con
           la web) y te contestamos.
         </Parrafo>
       </Seccion>
 
       <Seccion id="que-es" titulo="2. Qué es el servicio">
         <Parrafo>
-          Entrevistamos por WhatsApp a la persona que nos indicas (el «narrador»): una pregunta
-          por día durante unos treinta días, que responde con un audio, sin instalar nada. Con
-          sus respuestas escribimos el libro de su vida, en primera persona y con sus propias
-          palabras.
+          Entrevistamos por WhatsApp a la persona que nos indicás (el «narrador»). Le hacemos una
+          pregunta por vez, responde con audios cuando quiere y a su ritmo, y cuando termina de
+          contar le llega la siguiente, hasta completar la historia de su vida. No hay que
+          instalar nada. Con sus respuestas escribimos el libro de su vida, en primera persona y
+          con sus propias palabras.
         </Parrafo>
-        <Parrafo>Lo que puedes comprar:</Parrafo>
+        <Parrafo>Lo que podés comprar:</Parrafo>
         <Lista
           items={[
             <>
-              <strong className="font-medium">El libro en PDF</strong>: se lee en la web, capítulo por capítulo, con las fotos que
-              suba la familia. Incluye <strong className="font-medium">«Su voz»</strong>: sus mejores frases, recortadas de sus
+              <strong className="font-medium">El libro en PDF</strong>: es la base y va siempre en la compra. Se lee en la web,
+              capítulo por capítulo, con las fotos que suba la familia. Incluye <strong className="font-medium">«Su voz»</strong>: sus mejores frases, recortadas de sus
               audios originales tal como las dijo, para escuchar en la web y con un código impreso. Está siempre disponible
               en tu cuenta.
             </>,
             <>
-              <strong className="font-medium">El libro impreso</strong>, en blanco y negro o a color: tapa dura, con un código en
-              la contratapa que hace sonar su voz.
+              <strong className="font-medium">El libro impreso</strong>, a color: tapa dura, con un código en la contratapa que
+              hace sonar su voz.
             </>,
             <>
               <strong className="font-medium">Marcos con su voz</strong>: un marco con su foto y un chip; se acerca el teléfono y
@@ -75,19 +76,19 @@ export default function Terminos() {
           ]}
         />
         <Parrafo>
-          Hace falta comprar al menos uno de los dos primeros; los marcos se suman a
-          cualquiera. Solo se ofrece lo que tiene precio publicado en tu región.
+          El libro en PDF va siempre. El impreso se suma, y los marcos solo con el libro
+          impreso, porque viajan juntos. Solo se ofrece lo que tiene precio publicado en tu región.
         </Parrafo>
         <Parrafo>
-          Desde tu cuenta puedes invitar a familiares para que lean el libro y suban fotos, y
+          Desde tu cuenta podés invitar a familiares para que lean el libro y suban fotos, y
           compartir una muestra pública (portada, títulos de los capítulos, el primer párrafo y
-          un minuto de audio). La muestra solo existe si tú compartes el enlace.
+          un minuto de audio). La muestra solo existe si vos compartís el enlace.
         </Parrafo>
         <Parrafo>
           El libro impreso lleva dos códigos: uno al lado de cada frase de «Su voz», que la hace
           sonar, y otro en la contratapa, que abre en el teléfono el libro entero —el texto y
           todas sus frases— sin necesidad de cuenta ni contraseña. Quien tenga el libro en la
-          mano puede abrirlos y reenviar ese enlace: cuéntaselo a quien se lo regales.
+          mano puede abrirlos y reenviar ese enlace: contaselo a quien se lo regales.
         </Parrafo>
       </Seccion>
 
@@ -99,18 +100,18 @@ export default function Terminos() {
           pago.
         </Parrafo>
         <Parrafo>
-          El precio de cada producto aparece antes de pagar, en euros o en pesos según la región
-          que elijas, y es el precio final que pagas. Después del pago te llega un correo para entrar
-          a tu cuenta con un código (sin contraseña) y anotar a tu narrador: su nombre, su
-          WhatsApp y unos pocos datos para que las preguntas le suenen a él.
+          El precio de cada producto aparece antes de pagar, en euros o en pesos según tu país,
+          y es el precio final que pagás. Al narrador lo anotás antes de pagar, con su nombre, su
+          WhatsApp y unos pocos datos para hablarle por su nombre. Después del pago te llega un
+          correo para entrar a tu cuenta con un código (sin contraseña).
         </Parrafo>
       </Seccion>
 
       <Seccion id="permiso" titulo="4. Nada empieza sin su permiso">
         <Parrafo>
-          Al anotar a alguien nos confirmas que puedes hacerlo y que le va a parecer bien.
-          Antes de la primera pregunta le escribimos por WhatsApp contándole quién lo anotó y
-          le pedimos permiso. <strong className="font-medium">Si no acepta, no empieza nada y te
+          Al anotar a alguien nos confirmás que podés hacerlo y que le va a parecer bien.
+          Antes de la primera pregunta le escribimos por WhatsApp contándole quién nos pidió el
+          libro y le pedimos permiso. <strong className="font-medium">Si no acepta, no empieza nada y te
           devolvemos el dinero completo</strong> (ver la sección 7).
         </Parrafo>
         <Parrafo>
@@ -122,23 +123,24 @@ export default function Terminos() {
 
       <Seccion id="entrega" titulo="5. Qué te entregamos y cuándo">
         <Parrafo>
-          El ritmo lo pone el narrador: la entrevista dura lo que él tarde en responder, y
-          puedes seguirla desde tu cuenta mientras avanza. Cuando termina, producimos el libro
-          y te avisamos por correo. Antes de darlo por cerrado lo revisas tú: puedes cambiar el
+          El ritmo lo pone el narrador: la entrevista dura lo que tarde en responder, y podés
+          seguirla desde tu cuenta mientras avanza. Cuando termina, producimos el libro y te
+          avisamos por correo. Antes de darlo por cerrado lo revisás vos: podés cambiar el
           título, el orden y los nombres de los capítulos, las fotos de la portada y la
-          contratapa, dejar fuera alguna respuesta y pedir correcciones de lo que no suene a él.
+          contratapa, dejar fuera alguna respuesta y pedir correcciones de lo que no suene a su
+          manera de hablar.
         </Parrafo>
         <Parrafo>
           El libro en PDF y sus frases en su voz quedan disponibles en tu cuenta. El libro impreso y
-          los marcos se producen después de que apruebas el libro; antes de mandarlos a
+          los marcos se producen después de que aprobás el libro; antes de mandarlos a
           producir te escribimos para pedirte la dirección de envío y confirmarte el plazo.
         </Parrafo>
       </Seccion>
 
-      <Seccion id="arrepentimiento" titulo="6. Si te arrepientes">
+      <Seccion id="arrepentimiento" titulo="6. Si te arrepentís">
         <Parrafo>
-          Puedes arrepentirte de la compra sin dar explicaciones. Escríbenos a{" "}
-          <Correo cual="hola" /> o usa el{" "}
+          Podés arrepentirte de la compra sin dar explicaciones. Escribinos a{" "}
+          <Correo cual="hola" /> o usá el{" "}
           <Enlace href="/legal/arrepentimiento">botón de arrepentimiento</Enlace>; te
           confirmamos que lo recibimos dentro de las 24 horas y te devolvemos el dinero por el
           mismo medio con el que pagaste, en un plazo máximo de 14 días. El plazo para
@@ -147,6 +149,9 @@ export default function Terminos() {
         <Lista
           items={[
             <>
+              {/* TODO abogado (T18): sin cantidad fija de preguntas, "la parte proporcional" necesita otra base.
+                  Naza aprobó «…menos la parte proporcional a lo ya hecho de la entrevista» y que el abogado
+                  defina cómo se mide. Queda el texto actual hasta que lo redacte. */}
               <strong className="font-medium">España — 14 días naturales</strong> desde la compra
               (derecho de desistimiento, arts. 102 a 108 del RDL 1/2007). Al pagar nos pides que la
               entrevista empiece en cuanto el narrador acepte, sin esperar esos 14 días; si te
@@ -158,7 +163,7 @@ export default function Terminos() {
             </>,
             <>
               <strong className="font-medium">Argentina — 10 días corridos</strong> desde la
-              compra (art. 34 de la ley 24.240). Puedes revocar la compra sin costo alguno y te
+              compra (art. 34 de la ley 24.240). Podés revocar la compra sin costo alguno y te
               devolvemos el total. El botón de arrepentimiento está en la página de inicio, como
               exige la Resolución 424/2020.
             </>,
@@ -166,11 +171,14 @@ export default function Terminos() {
         />
         <Parrafo>
           Estos plazos son los que marca la ley de cada país; nunca te van a dar menos derechos
-          que los que te corresponden como consumidor donde vives.
+          que los que te corresponden como consumidor donde vivís.
         </Parrafo>
       </Seccion>
 
       <Seccion id="sin-libro" titulo="7. Si no hay libro">
+        {/* TODO abogado (T20, va con arrepentimiento 4): Naza aprobó la opción a, la devolución completa
+            solo cuando el narrador NO acepta participar, sin número de preguntas. Lo redacta el abogado;
+            hasta entonces queda el texto actual. */}
         <Parrafo>
           Si el narrador no acepta participar, o responde menos de diez preguntas y por eso no
           hay material para un libro, te devolvemos el importe completo, sin plazo y sin
@@ -191,21 +199,25 @@ export default function Terminos() {
         </Parrafo>
         <Parrafo>
           Sus frases en su voz son recortes de sus propios audios, sin ninguna voz sintética.
-          No se usan para ningún otro fin y se borran cuando el narrador o tú lo pidan.
+          No se usan para ningún otro fin y se borran cuando el narrador o vos lo pidan.
         </Parrafo>
       </Seccion>
 
-      <Seccion id="uso" titulo="9. Lo que te pedimos a ti">
+      <Seccion id="uso" titulo="9. Lo que te pedimos a vos">
         <Lista
           items={[
-            <>Anota solo a alguien a quien puedas anotar y que vaya a estar de acuerdo. El servicio no sirve para grabar, vigilar ni acosar a nadie.</>,
-            <>Las fotos y los nombres que subas tú o tus invitados son responsabilidad de quien los sube: no subas material de otras personas sin su permiso.</>,
-            <>Tu cuenta es tuya: el código de acceso que te mandamos por correo no lo compartas. Si crees que alguien entró sin permiso, avísanos.</>,
+            <>Anotá solo a alguien a quien puedas anotar y que vaya a estar de acuerdo. El servicio no sirve para grabar, vigilar ni acosar a nadie.</>,
+            <>Las fotos y los nombres que subas vos o tus invitados son responsabilidad de quien los sube: no subas material de otras personas sin su permiso.</>,
+            <>Tu cuenta es tuya: el código de acceso que te mandamos por correo no lo compartas. Si creés que alguien entró sin permiso, avisanos.</>,
           ]}
         />
       </Seccion>
 
       <Seccion id="promesas" titulo="10. Qué te prometemos y qué no">
+        {/* TODO abogado (T23): Naza aprobó «Te prometemos que el libro se escribe con las palabras de tu
+            narrador, que para quien cuenta va a ser fácil, con audios de WhatsApp a su ritmo, y que si algo
+            sale mal lo arreglamos.» (sin "o te devolvemos el dinero"). Lo confirma el abogado; hasta
+            entonces queda el texto actual. */}
         <Parrafo>
           Te prometemos que el libro se escribe con las palabras de tu narrador, que para él va
           a ser fácil —un audio de WhatsApp por día— y que si algo sale mal lo arreglamos o te
@@ -214,7 +226,7 @@ export default function Terminos() {
         <Parrafo>
           Para transcribir los audios y para redactar los capítulos usamos inteligencia
           artificial, y puede equivocarse: un nombre mal oído, una fecha, un giro que no le
-          pertenece. Por eso el libro no se cierra hasta que lo revisas tú, y por eso te
+          pertenece. Por eso el libro no se cierra hasta que lo revisás vos, y por eso te
           pedimos que lo leas antes de aprobarlo. Lo que se imprime es lo que aprobaste.
         </Parrafo>
         <Parrafo>
@@ -249,21 +261,21 @@ export default function Terminos() {
         <Lista
           items={[
             <>
-              Si compras desde <strong className="font-medium">España</strong>, el contrato se rige por {es.ley}. Cualquier
-              disputa se resuelve en los juzgados de tu domicilio. También puedes acudir a la
+              Si comprás desde <strong className="font-medium">España</strong>, el contrato se rige por {es.ley}. Cualquier
+              disputa se resuelve en los juzgados de tu domicilio. También podés acudir a la
               oficina de consumo de tu comunidad autónoma o a una Junta Arbitral de Consumo;
-              tienes hojas de reclamaciones a tu disposición pidiéndolas por correo.
+              tenés hojas de reclamaciones a tu disposición pidiéndolas por correo.
             </>,
             <>
-              Si compras desde <strong className="font-medium">Argentina</strong>, el contrato se rige por {ar.ley}. Puedes
+              Si comprás desde <strong className="font-medium">Argentina</strong>, el contrato se rige por {ar.ley}. Podés
               reclamar ante la autoridad de Defensa del Consumidor de tu jurisdicción o por la{" "}
               <Enlace href="https://www.argentina.gob.ar/produccion/defensadelconsumidor">ventanilla única federal</Enlace>.
             </>,
           ]}
         />
         <Parrafo>
-          En los dos casos conservas siempre los derechos que te da la ley del país donde vives.
-          Antes de cualquier reclamo formal, escríbenos: lo normal es que lo resolvamos en un
+          En los dos casos conservás siempre los derechos que te da la ley del país donde vivís.
+          Antes de cualquier reclamo formal, escribinos: lo normal es que lo resolvamos en un
           correo.
         </Parrafo>
       </Seccion>
