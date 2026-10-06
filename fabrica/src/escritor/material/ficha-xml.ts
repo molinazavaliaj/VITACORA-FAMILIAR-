@@ -6,7 +6,8 @@ import { idiomaDe, type Idioma } from '../../v3/entrevista/idioma.js';
 import type { FichaEntrevista } from '../../v3/entrevista/texto.js';
 
 const GENERO: Record<FichaEntrevista['genero'], string> = { varon: 'varón', mujer: 'mujer', otro: 'otro' };
-const TRATO: Record<Idioma, string> = { 'es-AR': 'vos', 'es-ES': 'tú', ca: 'tu' };
+// "tu" sin tilde también en castellano de España: C10 compara el trato del registro con 'tu' (ver controles/correr.ts).
+const TRATO: Record<Idioma, string> = { 'es-AR': 'vos', 'es-ES': 'tu', ca: 'tu' };
 const IDIOMA_LIBRO: Record<Idioma, string> = { 'es-AR': 'castellano', 'es-ES': 'castellano de España', ca: 'catalán' };
 
 function lista<T>(v: Opcional<T[]>, fmt: (x: T) => string): string {

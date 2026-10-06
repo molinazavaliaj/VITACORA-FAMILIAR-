@@ -36,7 +36,7 @@ describe('ficha.xml desde la ficha V3', () => {
     expect(fichaXml({ ...elvira, idioma: 'ca' })).toContain('Trato: tu\nIdioma del libro: catalán');
     const e = new Carpeta({ 'entradas/ficha.xml': fichaXml({ ...elvira, idioma: 'es-ES' }) });
     expect(idioma(e)).toBe('es');
-    expect(fichaXml({ ...elvira, idioma: 'es-ES' })).toContain('Trato: tú\nIdioma del libro: castellano de España');
+    expect(fichaXml({ ...elvira, idioma: 'es-ES' })).toContain('Trato: tu\nIdioma del libro: castellano de España');
   });
 });
 

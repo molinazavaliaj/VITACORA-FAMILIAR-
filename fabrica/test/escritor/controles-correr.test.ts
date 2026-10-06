@@ -82,3 +82,22 @@ describe('controlar: lo mismo que controles.mjs', () => {
     mismoArchivo(c, comparar(c, 'repaso').dir, 'controles/repaso.json');
   });
 });
+
+describe('C10 y el trato del registro (revisión final, punto 3)', () => {
+  const conTrato = (trato: string): Carpeta => {
+    const c = carpetaNelida();
+    const reg = JSON.parse(c.leer('salidas/registro.json'));
+    reg.voz.trato = trato;
+    c.escribir('salidas/registro.json', JSON.stringify(reg));
+    c.escribir('salidas/capitulo_01.md', `${c.leer('salidas/capitulo_01.md')}\nVos ya lo sabés, nena. [[R03]]\n`);
+    return c;
+  };
+  const voseo = (c: Carpeta) => controlar(c, 'piezas').problemas.filter((p) => p.control === 'C10' && p.que === 'voseo en un libro que tutea');
+
+  it('"tú" con tilde (castellano de España) también prende C10 ante el voseo', () => {
+    expect(voseo(conTrato('tú'))).toHaveLength(1);
+    expect(voseo(conTrato('Tú'))).toHaveLength(1);
+    expect(voseo(conTrato('tu'))).toHaveLength(1);
+    expect(voseo(conTrato('vos'))).toHaveLength(0);
+  });
+});

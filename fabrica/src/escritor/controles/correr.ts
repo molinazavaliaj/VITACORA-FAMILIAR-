@@ -32,8 +32,11 @@ export function controlar(c: Carpeta, que: QueControl, arg?: string): ResultadoC
     const regTxt = JSON.stringify(reg || {});
     // El último capítulo es el del plan (en la prueba corta hay un solo capítulo escrito y no es el último).
     const ultimo = `cap_${plan.capitulos[plan.capitulos.length - 1].n}`;
+    // Única excepción a "portar = copiar": c10 compara el trato con 'vos'/'tu' tal cual, y un registro en
+    // castellano de España puede traer "tú" (o "Tú"); sin tilde y en minúscula, C10 no se apaga. c10 queda igual.
+    const trato = typeof reg?.voz?.trato === 'string' ? reg.voz.trato.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase() : reg?.voz?.trato;
     for (const p of ps) {
-      const deEsta = [...c1(p, rs), ...c2(p), ...c3(p), ...c4(p, rs, fichaTxt, regTxt), ...c5(p, rs, fichaTxt), ...(p.pieza === 'sus_frases' ? [] : c6(p, rs)), ...c8(p, rs), ...c10(p, rs, reg?.voz?.trato), ...(p.pieza === ultimo ? c15(p) : []), ...(p.pieza.startsWith('cap_') && p.pieza !== ultimo ? c28(p) : []), ...(p.pieza !== 'sus_frases' ? c29(p, reg) : []), ...(p.pieza !== 'sus_frases' ? c31(p) : []), ...(p.pieza !== 'sus_frases' ? c32(p) : [])];
+      const deEsta = [...c1(p, rs), ...c2(p), ...c3(p), ...c4(p, rs, fichaTxt, regTxt), ...c5(p, rs, fichaTxt), ...(p.pieza === 'sus_frases' ? [] : c6(p, rs)), ...c8(p, rs), ...c10(p, rs, trato), ...(p.pieza === ultimo ? c15(p) : []), ...(p.pieza.startsWith('cap_') && p.pieza !== ultimo ? c28(p) : []), ...(p.pieza !== 'sus_frases' ? c29(p, reg) : []), ...(p.pieza !== 'sus_frases' ? c31(p) : []), ...(p.pieza !== 'sus_frases' ? c32(p) : [])];
       problemas.push(...deEsta.map((x) => ({ pieza: p.pieza, ...x })));
       if (p.pieza === 'sus_frases') for (const l of p.texto.split('\n').filter((l) => l.startsWith('>'))) if (!enAlgunaRespuesta(l.slice(1), rs)) problemas.push({ pieza: 'sus_frases', control: 'C6', tipo: 'cita', frase: l.slice(1).trim(), que: 'frase de Sus frases que no es textual' });
     }
