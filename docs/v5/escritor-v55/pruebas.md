@@ -33,3 +33,29 @@ Con sus correcciones (ficha y "confirmado"); registro y plan de la v5.3.1. 9 cap
 
 - El año de nacimiento sale 1999.
 - Abierto: una entrada arranca con "también" sin decir respecto de qué (cap. VII); 22 de los "falta" de C18 siguen siendo respuestas que enteras son un "no".
+
+## Prueba paga de un capítulo en la fábrica (07/10/2026)
+
+Capítulo VI de Joaquín, escrito por API con el escritor de `fabrica/src/escritor/` (registro y plan de la corrida de la sesión), Opus 5.5, esfuerzo xhigh, con caché y Batch. Comando: `npx tsx scripts/escritor-correr.ts --carpeta prueba-v3-joaquin-fabrica --solo-capitulo 6 --tope 7 --si`. Terminó sin errores (la primera llamada no dio 400: `thinking: adaptive` + `output_config.effort` andan con el SDK 0.71.2).
+
+**Gasto real: USD 6,90** (estimación típica 3,28, peor caso 6,37). 11 llamadas, 6 por lote.
+
+| Llamada | Entrada | Salida (incl. pensamiento) | Escritura caché | USD |
+|---|---|---|---|---|
+| 2h armador | 28.747 | 27.049 | 0 | 0,66 |
+| 3b capítulo | 28.869 | 43.099 | 2.152 | 0,99 |
+| 3r resumen | 4.409 | 1.312 | 0 | 0,04 |
+| 4 hechos (lote, **cortado a 64.000**) | 1.820 | 64.000 | 177.658 | 1,09 (perdido) |
+| 4 hechos (directo, 128.000) | 1.820 | 61.306 | 177.658 | 2,12 |
+| 5c veedor (lote) | 25.618 | 38.388 | 0 | 0,44 |
+| 6 arreglo (lote) | 22.817 | 16.025 | 2.152 | 0,21 |
+| 4 hechos repaso | 11.877 | 15.834 | 139.439 | 1,06 |
+| 7 estilo ×2 (lote) | ~6.000 | ~12.700 | — | 0,28 |
+| 3t título (lote) | 4.276 | 647 | 0 | 0,02 |
+
+**Lo que se aprendió:**
+1. **El pensamiento es casi todo el costo.** El capítulo tiene ~1.750 palabras (~2.500 tokens) y la llamada sacó 43.099 tokens de salida: lo demás es pensamiento con esfuerzo xhigh. Lo mismo en armador (27.049) y veedor (38.388).
+2. **Los hechos sobre el libro entero son lo más caro** (entrada ~178k). Además el lote los cortó a 64.000 y se pagó dos veces: hay que pedirlos con 128.000 de entrada.
+3. **La caché casi no ahorró** (2.152 tokens leídos): el prefijo que se repite es chico y las escrituras de caché de los hechos (178k) no se reusaron (el directo fue después del lote y no pegó).
+4. **Proyección del libro entero con esta configuración: unos USD 25–30** (9 capítulos × ~1,7 de armador+capítulo+resumen, más hechos, repaso, ~11 arreglos, ~24 estilos, piezas fijas, registro y plan). Mucho más que lo estimado en el diseño (~9).
+5. Calidad: el capítulo nuevo se le pasó a Naza junto al de la sesión (`capitulo-VI-sesion-vs-fabrica.pdf`) para que decida leyendo.
