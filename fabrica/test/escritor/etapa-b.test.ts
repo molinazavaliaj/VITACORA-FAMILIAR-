@@ -89,3 +89,32 @@ describe('Etapa B', () => {
     expect(modelo2.llamadas).toHaveLength(0);
   });
 });
+
+describe('Etapa B arranca de la carpeta de la Etapa A (revisión final, punto 10)', () => {
+  const OTRA = { texto: 'Raúl era de Rosario.', dudaId: 'D02' };
+  const salidasDos = () => {
+    const reg = JSON.parse(salidasModeloNelida()['1-registro']);
+    const negra = { ...reg.personas[3], nombre: 'Ofelia Sánchez', apodos: ['la Negra'] };
+    return { 'correccion-registro': JSON.stringify({ personas: [negra], confirmados: [CONFIRMADO, { texto: 'Raúl era de Rosario.', usado_en: ['P01'] }] }), 'correccion-plan': planConNegra() };
+  };
+
+  it('dos corridas desde el snapshot A dan el mismo confirmado.xml (aunque las correcciones se pisen)', async () => {
+    const { x, almacen } = armar(salidasDos());
+    await almacen.escribir('carpeta-A.json', JSON.stringify(carpetaNelida().aObjeto()));
+    // Primera vuelta con una corrección; después la familia agrega otra (la primera se repite).
+    expect((await etapaB(x, [CORRECCION])).ok).toBe(true);
+    expect((await etapaB(x, [CORRECCION, OTRA])).ok).toBe(true);
+    const limpio = armar(salidasDos());
+    await limpio.almacen.escribir('carpeta-A.json', JSON.stringify(carpetaNelida().aObjeto()));
+    expect((await etapaB(limpio.x, [CORRECCION, OTRA])).ok).toBe(true);
+    expect(x.c.leer('entradas/confirmado.xml')).toBe(limpio.x.c.leer('entradas/confirmado.xml'));
+    expect(x.c.leer('entradas/confirmado.xml').match(/^- La Negra/gm)).toHaveLength(1);
+  });
+
+  it('sin snapshot A (Etapa A corrida en otro lado), usa la carpeta que recibe', async () => {
+    const { x } = armar({});
+    x.c.escribir('entradas/extra.txt', 'queda');
+    expect(await etapaB(x, [])).toEqual({ ok: true, corregido: 'nada' });
+    expect(x.c.leer('entradas/extra.txt')).toBe('queda');
+  });
+});
