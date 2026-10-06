@@ -40,7 +40,7 @@ export function cuerpoAnticipo(opciones: {
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;font-family:Georgia,'Times New Roman',serif;color:#14140F;font-size:17px;line-height:1.65;">
 
         <tr><td style="padding-bottom:24px;">
-          <strong style="font-size:22px;font-weight:normal;">Tu ${quien} ya contó tres cosas.</strong>
+          <strong style="font-size:22px;font-weight:normal;">Tu ${quien} ya empezó a contar.</strong>
         </td></tr>
 
         <tr><td style="padding-bottom:24px;">
@@ -62,8 +62,8 @@ export function cuerpoAnticipo(opciones: {
         </td></tr>
 
         <tr><td style="padding-bottom:24px;">
-          Con lo que lleva contado ya empezamos su libro: tiene portada, tiene
-          índice, y tiene su primera página escrita con sus propias palabras.
+          Cuando termine de contarnos su historia, el biógrafo va a empezar a
+          escribir su libro.
         </td></tr>
 
         <tr><td style="padding-bottom:32px;">
@@ -71,7 +71,7 @@ export function cuerpoAnticipo(opciones: {
         </td></tr>
 
         <tr><td style="padding-bottom:32px;">
-          Él va a seguir contando. Tú decides si el libro se termina.
+          Va a seguir contando, a su ritmo. Vos lo vas escuchando desde tu panel.
         </td></tr>
 
         <tr><td style="border-top:1px solid #e7e5e4;padding-top:20px;font-size:14px;color:#78716c;font-style:italic;">

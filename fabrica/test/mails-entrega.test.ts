@@ -54,8 +54,8 @@ describe('los mails de la entrega', () => {
 
     const cuerpo = cuerpoHito('entregado', { comoLeDicen: 'abuela', enlace: 'https://x/resena' });
     expect(cuerpo).toContain('en manos de tu familia');
-    expect(cuerpo).toContain('Acerca el teléfono a los códigos del libro');
-    expect(cuerpo).toContain('Si te emocionó, cuéntalo');
+    expect(cuerpo).toContain('Acercá el teléfono a los códigos del libro');
+    expect(cuerpo).toContain('Si te emocionó, contalo');
     expect(cuerpo).toContain('Contar cómo fue');
 
     // El pedido de reseña va después de la emoción, no antes.
@@ -68,10 +68,10 @@ describe('los mails de la entrega', () => {
     expect(cuerpo).toContain('sus mejores frases con su voz real');
   });
 
-  it('los cuatro hablan de «tú», como el resto de los mails de la casa', () => {
+  it('los cuatro hablan de «vos» (Naza, 06/10: al que compra, siempre de vos)', () => {
     for (const hito of [...HITOS_NUEVOS, 'libro_listo' as Hito]) {
       const cuerpo = cuerpoHito(hito, { comoLeDicen: 'abuela', enlace: 'https://x' });
-      expect(cuerpo).not.toMatch(/\b(podés|querés|tenés|entrá|dejanos|acercá|contalo|escuchá)\b/i);
+      expect(cuerpo).not.toMatch(/(puedes|quieres|tienes|déjanos|cuéntalo|ciérralo|Acerca el|Entra cuando)/);
     }
   });
 

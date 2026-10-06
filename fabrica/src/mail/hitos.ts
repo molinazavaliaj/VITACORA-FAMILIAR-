@@ -53,7 +53,7 @@ const TEXTOS: Record<Hito, { asunto: (quien: string) => string; parrafos: (quien
     asunto: (quien) => `Tu ${quien} terminó de contar`,
     parrafos: (quien) => [
       `Tu ${quien} respondió la última pregunta. Su historia está completa.`,
-      'Ahora te toca a ti: entra, revisa los nombres y lugares que anotamos, elige el orden de los capítulos y la foto de la tapa, y cierra el libro.',
+      'Ahora te toca a vos. Entrá, revisá los nombres y lugares que anotamos, elegí el orden de los capítulos y la foto de la tapa, y cerrá el libro.',
       'Cuando lo cierres, lo escribimos con sus palabras y te avisamos.',
     ],
     boton: 'Cerrar el libro',
@@ -70,7 +70,7 @@ const TEXTOS: Record<Hito, { asunto: (quien: string) => string; parrafos: (quien
     asunto: (quien) => `Una semana sin cerrar el libro de tu ${quien}`,
     parrafos: (quien) => [
       `Pasó una semana desde que tu ${quien} terminó. Su libro sigue esperándote.`,
-      'Si no tienes nada que cambiar, entra y ciérralo tal como te lo proponemos: queda perfecto igual.',
+      'Si no tenés nada que cambiar, entrá y cerralo tal como te lo proponemos. Queda perfecto igual.',
     ],
     boton: 'Cerrar el libro',
   },
@@ -78,12 +78,12 @@ const TEXTOS: Record<Hito, { asunto: (quien: string) => string; parrafos: (quien
     asunto: (quien) => `Todavía no cerraste el libro de tu ${quien}`,
     parrafos: (quien) => [
       `Hace dos semanas que la historia de tu ${quien} está completa y sin cerrar.`,
-      'Si en dos semanas más no lo cierras, lo cerramos nosotros con nuestra propuesta y lo escribimos igual — está en los términos, para que ningún libro quede sin hacer.',
+      'Si en dos semanas más no lo cerrás, lo cerramos nosotros con nuestra propuesta y lo escribimos igual. Está en los términos, para que ningún libro quede sin hacer.',
     ],
     boton: 'Cerrar el libro',
   },
   cierre_automatico: {
-    asunto: (quien) => `Cerramos el libro de tu ${quien} por ti`,
+    asunto: (quien) => `Cerramos el libro de tu ${quien} por vos`,
     parrafos: (quien) => [
       `Pasaron treinta días desde que tu ${quien} terminó de contar y el libro seguía abierto, así que lo cerramos nosotros con la propuesta que te habíamos hecho.`,
       'Ya lo estamos escribiendo con sus palabras. Cuando esté, te avisamos.',
@@ -96,7 +96,7 @@ const TEXTOS: Record<Hito, { asunto: (quien: string) => string; parrafos: (quien
     asunto: (quien) => `El libro de tu ${quien} está listo`,
     parrafos: (quien) => [
       `Ya está. El libro de tu ${quien}, escrito con sus palabras, y sus mejores frases con su voz real, para escuchar cuando quieras.`,
-      'Queda ahí para siempre. Entra cuando quieras a leerlo, escucharlo o descargarlo.',
+      'Queda ahí para siempre. Entrá cuando quieras a leerlo, escucharlo o descargarlo.',
     ],
     boton: 'Leer el libro',
   },
@@ -104,7 +104,7 @@ const TEXTOS: Record<Hito, { asunto: (quien: string) => string; parrafos: (quien
     asunto: (quien) => `¿A dónde mandamos el libro de tu ${quien}?`,
     parrafos: (quien) => [
       `El libro de tu ${quien} está listo para imprimirse, pero todavía no sabemos a dónde mandarlo.`,
-      'Son dos minutos: entra y déjanos la dirección de quien lo recibe. Hasta que no esté, no podemos empezar a imprimir.',
+      'Son dos minutos. Entrá y dejanos la dirección de quien lo recibe. Hasta que no esté, no podemos empezar a imprimir.',
     ],
     boton: 'Poner la dirección',
   },
@@ -123,8 +123,8 @@ const TEXTOS: Record<Hito, { asunto: (quien: string) => string; parrafos: (quien
       `Llegó. El libro de tu ${quien} está donde tiene que estar: en manos de tu familia.`,
       // Sin género a propósito: el narrador puede ser abuelo o abuela, y dar por
       // hecho cuál es el fallo C12 de la bitácora de Ciro.
-      'Acerca el teléfono a los códigos del libro y vas a escuchar su voz contándolo.',
-      'Si te emocionó, cuéntalo. A otra familia le puede pasar lo mismo.',
+      'Acercá el teléfono a los códigos del libro y vas a escuchar su voz contándolo.',
+      'Si te emocionó, contalo. A otra familia le puede pasar lo mismo.',
     ],
     boton: 'Contar cómo fue',
   },

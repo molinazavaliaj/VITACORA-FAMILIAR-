@@ -41,7 +41,7 @@ describe('el recordatorio de las frases', () => {
     });
 
     it('le deja la salida fácil: si están bien, confirmarlas tal cual', () => {
-      expect(cuerpo).toContain('confírmalas tal cual');
+      expect(cuerpo).toContain('confirmalas tal cual');
     });
 
     it('no le dice que no hay apuro, porque sí lo hay', () => {
@@ -69,10 +69,10 @@ describe('el recordatorio de las frases', () => {
     }
   });
 
-  it('los dos hablan de «tú», como el resto de los mails de la casa', () => {
+  it('los dos hablan de «vos» (Naza, 06/10: al que compra, siempre de vos)', () => {
     for (const conImpreso of [true, false]) {
       const cuerpo = cuerpoRecordatorioFrases({ comoLeDicen: 'abuela', enlace: 'https://x', conImpreso });
-      expect(cuerpo).not.toMatch(/\b(podés|querés|tenés|sacá|poné)\b/i);
+      expect(cuerpo).not.toMatch(/(puedes|quieres|tienes|confírmalas|Échales)/);
     }
   });
 });
