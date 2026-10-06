@@ -106,7 +106,7 @@ export function ChatWhatsApp({
           {/* La conversación */}
           <div className="flex min-h-[300px] flex-col gap-3 px-3 py-4">
             <p className="self-center rounded-full bg-[#2B2B24] px-3 py-1 text-[10px] uppercase text-[#AEAEA6] [font-family:var(--fuente-micro)] [letter-spacing:0.18em]">
-              Día {dia} · 9:30
+              Hoy · 9:30
             </p>
 
             <div className={`max-w-[88%] self-start rounded-2xl rounded-tl-sm bg-[#2B2B24] px-3.5 py-2.5 ${paso(1)}`}>
@@ -132,7 +132,7 @@ export function ChatWhatsApp({
 
             <div className={`max-w-[88%] self-start rounded-2xl rounded-tl-sm bg-[#2B2B24] px-3.5 py-2.5 ${paso(4)}`}>
               <p className="text-[13.5px] leading-[1.5] [font-family:var(--fuente-cuerpo)]">
-                Qué lindo eso del patio con la parra. Mañana le pregunto por sus padres.
+                Qué lindo eso del patio con el limonero. Cuando quiera, seguimos con sus padres.
               </p>
             </div>
           </div>
@@ -170,7 +170,7 @@ export function PaginaEscrita({ animado = false, className = "" }: { animado?: b
       <p className="mt-2 text-2xl [font-family:var(--fuente-titulo)] font-medium">La infancia</p>
       <p className="mt-5 text-[13.5px] leading-[1.75] text-[#2B2B24] [font-family:var(--fuente-cuerpo)] font-light">
         <span className="float-left mr-2 mt-[2px] text-[2.6rem] leading-[0.8] [font-family:var(--fuente-titulo)]">L</span>
-        a casa tenía un patio largo con una parra que mi padre había plantado el año que nací. En verano
+        a casa tenía un patio largo con un limonero que mi padre había plantado el año que nací. En verano
         almorzábamos debajo, y yo me acuerdo del olor a uva caliente y de mi madre gritando desde la cocina
         que nos laváramos las manos. Éramos cinco chicos y un perro que se llamaba Tango…
       </p>
@@ -286,8 +286,8 @@ export function Reproductor({
 export function PanelMini({ className = "" }: { className?: string }) {
   const respuestas = [
     { dia: 11, capitulo: "La juventud", dur: "3:40" },
-    { dia: 10, capitulo: "La juventud", dur: "2:05" },
-    { dia: 9, capitulo: "La juventud", dur: "4:51" },
+    { dia: 10, capitulo: "El amor", dur: "2:05" },
+    { dia: 9, capitulo: "El oficio", dur: "4:51" },
   ];
   return (
     <figure className={`rounded-2xl border border-[#D4D4CE] bg-white p-6 text-[#14140F] shadow-[0_24px_60px_-36px_rgba(20,20,15,0.45)] sm:p-7 ${className}`}>
@@ -296,7 +296,7 @@ export function PanelMini({ className = "" }: { className?: string }) {
 
       <div className="mt-5 flex items-end justify-between gap-4">
         <p className="text-[13px] text-[#45453C] [font-family:var(--fuente-micro)]">
-          <span className="text-[#14140F] tabular-nums">11</span> de 30 respuestas
+          <span className="text-[#14140F] tabular-nums">11</span> respuestas
         </p>
         <p className="text-right text-[13px] text-[#45453C] [font-family:var(--fuente-micro)]">
           <span className="text-[#14140F] tabular-nums">34 min</span> de su voz
@@ -313,20 +313,20 @@ export function PanelMini({ className = "" }: { className?: string }) {
               <IconoPlay className="h-3.5 w-3.5" />
             </span>
             <span className="min-w-0 flex-1">
-              <span className="block truncate text-[14px] [font-family:var(--fuente-cuerpo)]">Día {r.dia} · {r.capitulo}</span>
+              <span className="block truncate text-[14px] [font-family:var(--fuente-cuerpo)]">{r.capitulo}</span>
             </span>
             <span className="text-[11px] tabular-nums text-[#83837A] [font-family:var(--fuente-micro)]">{r.dur}</span>
           </li>
         ))}
       </ul>
-      <figcaption className="sr-only">El panel: 11 de 30 respuestas, 34 minutos de su voz.</figcaption>
+      <figcaption className="sr-only">El panel: 11 respuestas, 34 minutos de su voz.</figcaption>
     </figure>
   );
 }
 
 /* ───────────────────────── El anticipo ───────────────────────── */
 
-/** El mail que llega a la tercera respuesta. */
+/** El mail que avisa que empezó a contar. */
 export function MailAnticipo({ className = "" }: { className?: string }) {
   return (
     <figure className={`rounded-2xl border border-[#D4D4CE] bg-[#F7F7F5] p-5 text-[#14140F] ${className}`}>
@@ -335,19 +335,18 @@ export function MailAnticipo({ className = "" }: { className?: string }) {
         <div className="min-w-0">
           <p className="truncate text-[13px] [font-family:var(--fuente-micro)]">
             <span className="font-medium">Vitácora Familiar</span>
-            <span className="text-[#83837A]"> · día 3</span>
+            <span className="text-[#83837A]"> · hoy</span>
           </p>
         </div>
       </div>
-      <p className="mt-3 text-[15px] [font-family:var(--fuente-titulo)] font-medium">{NARRADOR} ya contó sus primeras tres historias</p>
+      <p className="mt-3 text-[15px] [font-family:var(--fuente-titulo)] font-medium">{NARRADOR} ya empezó a contar</p>
       <p className="mt-2 text-[13.5px] leading-[1.6] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">
-        Te dejamos la portada, el índice de su libro y la primera página escrita. Y un minuto de su voz, para
-        que lo escuches contarlo.
+        Sus primeros audios ya están en tu panel. Entrá cuando quieras a escucharlo.
       </p>
       <p className="mt-3 text-[13px] underline decoration-[#AEAEA6] underline-offset-4 [font-family:var(--fuente-micro)]">
-        Leer el anticipo →
+        Escuchar →
       </p>
-      <figcaption className="sr-only">El mail del anticipo, a la tercera respuesta.</figcaption>
+      <figcaption className="sr-only">El mail que avisa que empezó a contar.</figcaption>
     </figure>
   );
 }

@@ -73,29 +73,29 @@ const FORMATOS = [
 
 const PASOS = [
   {
-    titulo: "Lo anotas",
+    titulo: "Lo anotás",
     texto:
-      "Nos dices su nombre, su WhatsApp y a qué hora prefiere conversar. Le llega un mensaje nuestro contándole que lo anotaste — y no empieza nada hasta que él diga que sí. Si no acepta, te devolvemos el dinero.",
+      "Nos decís su nombre, su WhatsApp y a qué hora prefiere que le escribamos. Le llega un mensaje nuestro contándole de qué se trata, y arranca cuando quiera.",
   },
   {
-    titulo: "Él solo manda audios",
+    titulo: "Solo manda audios",
     texto:
-      "Cada mañana le llega una pregunta por WhatsApp. La contesta con un audio, como hace todos los días. Sin apps, sin nada que instalar ni aprender.",
+      "Le llega una pregunta por WhatsApp. La contesta con un audio cuando quiere, como hace todos los días, y cuando termina de contar le llega la siguiente. Sin apps, sin nada que instalar ni aprender.",
   },
   {
     titulo: "El biógrafo escribe",
     texto:
-      "Con sus respuestas, el biógrafo escribe el libro de su vida. Tú lo ves crecer desde el tercer día, mucho antes de que termine.",
+      "Con sus respuestas, el biógrafo escribe el libro de su vida. Mientras tanto, desde tu panel vas escuchando lo que cuenta.",
   },
 ] as const;
 
 // Las cuatro cosas que desarman la objeción, a la vista desde el primer
 // segundo. Cada una contesta un miedo de Martina.
 const GARANTIAS = [
-  { icono: "whatsapp", texto: "Él solo habla por WhatsApp. Nadie escribe nada." },
+  { icono: "whatsapp", texto: "Va respondiendo por WhatsApp, con audios. Nadie tiene que escribir nada." },
   { icono: "sin-app", texto: "Sin app ni nada que instalar." },
   { icono: "voz", texto: "Sus mejores frases, en su voz real. Se escuchan con un código." },
-  { icono: "ojo", texto: "Lo lees crecer mientras él responde." },
+  { icono: "ojo", texto: "Mientras responde, vos vas escuchando su historia desde tu panel." },
 ] as const;
 
 const PREGUNTAS = [
@@ -107,7 +107,7 @@ const PREGUNTAS = [
   {
     pregunta: "¿Y si no quiere, o le da vergüenza?",
     respuesta:
-      "Le pedimos permiso antes de empezar y él decide. Puede parar cuando quiera y retomar cuando quiera. Y a muchos les cambia el ánimo cuando entienden que es para sus nietos, no para lucirse.",
+      "Le pedimos permiso antes de empezar la entrevista. Puede parar cuando quiera y retomar cuando quiera.",
   },
   {
     pregunta: "¿Quién escucha sus audios?",
@@ -117,17 +117,17 @@ const PREGUNTAS = [
   {
     pregunta: "¿Y si empieza y no termina?",
     respuesta:
-      "Son 30 preguntas, no 30 días de calendario: si un día no contesta, la pregunta espera. Y con diez respuestas ya se puede hacer un libro.",
+      "No hay calendario ni apuro. Si un día no contesta, la pregunta lo espera, y cuando retoma, la entrevista sigue donde quedó.",
   },
   {
     pregunta: "¿Cuánto sale y cuándo se paga?",
     respuesta:
-      "Se paga una sola vez, al comprar, y los precios están a la vista antes de pagar: elegís el libro en PDF, el impreso, o los dos. Si él no acepta participar, nos escribes y te devolvemos el dinero completo.",
+      "Se paga una sola vez, al comprar, y los precios están a la vista antes de pagar. El libro en PDF con «Su voz» va siempre, y el impreso y los marcos se suman si querés.",
   },
   {
     pregunta: "¿Se puede tener el libro impreso?",
     respuesta:
-      "Sí: es uno de los dos formatos, y se puede elegir al comprar o sumar después desde tu panel, con el libro ya terminado.",
+      "Sí. Se suma al comprar o después, desde tu panel, con el libro ya terminado. Tapa dura, a color, con un código en la contratapa que hace sonar su voz.",
   },
 ] as const;
 
@@ -330,7 +330,7 @@ export default async function Home() {
               <span className="italic text-[#AEAEA6]">Los recuerdos se van.</span>
             </p>
             <Cuerpo clara className="mx-auto mt-8 max-w-lg">
-              Tienes el teléfono lleno de fotos suyas y ni una sola de sus historias. La cara la guarda el celular.
+              Tenés el teléfono lleno de fotos suyas y ni una sola de sus historias. La cara la guarda el celular.
               La voz, lo que vivió y cómo lo cuenta, no la guarda nadie.
             </Cuerpo>
           </Aparece>
@@ -346,7 +346,7 @@ export default async function Home() {
           <Aparece>
             <div className="max-w-2xl">
               <Capitulo numero="01">Cómo funciona</Capitulo>
-              <Titulo>Él no tiene que aprender nada.</Titulo>
+              <Titulo>No tiene nada que aprender.</Titulo>
               <Cuerpo className="mt-5">
                 Lo que frena a la mayoría no es el precio: es imaginarse explicándole una aplicación por teléfono.
                 No hay ninguna.
@@ -377,12 +377,12 @@ export default async function Home() {
           <Capitulo numero="02">La conversación</Capitulo>
           <Titulo>Solo tiene que mandar un audio.</Titulo>
           <Cuerpo className="mt-5 max-w-lg">
-            Una pregunta por la mañana, a la hora que él prefiera. Contesta hablando, apretando el micrófono como
-            hace con sus hijos. Si un día no puede, la pregunta espera.
+            Una pregunta por vez, por WhatsApp. Contesta hablando, apretando el micrófono como hace con sus hijos,
+            cuando quiere y a su ritmo. Si un día no puede, la pregunta lo espera.
           </Cuerpo>
           <Cuerpo className="mt-4 max-w-lg">
-            Las preguntas van de la infancia a la sabiduría, en ocho capítulos. Las primeras son fáciles; las
-            últimas, las que nadie se anima a hacer en la mesa.
+            Las preguntas van de la infancia a hoy, hasta completar la historia de su vida. Las primeras son
+            fáciles; las últimas, las que nadie se anima a hacer en la mesa.
           </Cuerpo>
         </Aparece>
         <Aparece>
@@ -404,16 +404,15 @@ export default async function Home() {
             </div>
           </Aparece>
           <Aparece>
-            <Capitulo numero="03">Desde el tercer día</Capitulo>
-            <Titulo>No te lo imaginas: lo vas leyendo.</Titulo>
+            <Capitulo numero="03">Mientras cuenta</Capitulo>
+            <Titulo>No hace falta imaginarlo. Lo vas escuchando.</Titulo>
             <Cuerpo className="mt-5 max-w-lg">
-              A la tercera respuesta te llega un correo con un minuto de su voz y las primeras páginas ya escritas:
-              la portada con su nombre, el índice de su libro y su primera página, con sus palabras y sus modos de
+              Desde la primera respuesta, en tu panel aparecen sus audios, uno por uno, con su voz y sus modos de
               decir.
             </Cuerpo>
             <Cuerpo className="mt-4 max-w-lg">
-              <strong className="font-normal text-[#14140F]">Y desde tu panel lo ves crecer día a día</strong>, mucho
-              antes de que esté terminado. No hay que esperar un mes a ciegas.
+              <strong className="font-normal text-[#14140F]">Y cuando termina de contar, el biógrafo escribe su libro.</strong>{" "}
+              No hay que esperar a ciegas: lo fuiste escuchando todo el camino.
             </Cuerpo>
           </Aparece>
         </div>
@@ -504,7 +503,7 @@ export default async function Home() {
         <div className="mx-auto grid w-full max-w-6xl items-center gap-14 px-6 lg:grid-cols-2 lg:gap-20">
           <Aparece>
             <Capitulo numero="05">Su voz</Capitulo>
-            <Titulo>De él vas a tener fotos. Con esto, lo que decía.</Titulo>
+            <Titulo>Con esto vas a tener la historia de su vida completa.</Titulo>
             <Cuerpo className="mt-5 max-w-lg">
               El libro viene con sus mejores frases en su voz real: sus dichos, su manera de arrancar las frases, la
               risa cuando se acuerda de algo. Se escuchan en la web, se reenvían por WhatsApp, y el libro impreso lleva
@@ -604,8 +603,8 @@ export default async function Home() {
                 {precio}
               </p>
               <Cuerpo className="mt-6 max-w-md">
-                Es lo que sale hoy un libro de preguntas que él tendría que llenar a mano. Aquí lo cuenta hablando,
-                y le queda su voz grabada.
+                Cuesta lo mismo que un libro de preguntas para completar a mano. Acá cuenta su vida hablando, como en
+                una charla con un amigo, y el biógrafo la convierte en un libro, con su voz grabada.
               </Cuerpo>
               <div className="mt-10 flex flex-col items-start gap-3">
                 <BotonComprar />
@@ -624,7 +623,7 @@ export default async function Home() {
               </ul>
               <ul className="mt-6 flex flex-col gap-3 text-[15px] leading-[1.6] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">
                 {[
-                  "Siempre: las 30 preguntas del biógrafo, el anticipo a la tercera respuesta y el panel para verlo crecer",
+                  "Siempre: la entrevista entera del biógrafo, hasta completar su historia, y el panel para escuchar lo que va contando.",
                   "Se lee y se escucha en la web, cuando quieras, para siempre",
                 ].map((item) => (
                   <li key={item} className="flex gap-3">
@@ -634,7 +633,7 @@ export default async function Home() {
                 ))}
               </ul>
               <p className="mt-8 border-t border-[#D4D4CE] pt-6 text-[14px] leading-[1.7] text-[#5F5F55] [font-family:var(--fuente-cuerpo)] font-light">
-                Si él no acepta participar, te devolvemos el dinero completo. Los marcos con su voz se suman a cualquiera.
+                Los marcos con su voz se suman al libro impreso.
               </p>
             </div>
           </div>
@@ -650,9 +649,9 @@ export default async function Home() {
               ¿Y si el libro es el tuyo?
             </h2>
             <Cuerpo className="mt-5 max-w-2xl">
-              Hay quien no lo hace por un padre ni por un abuelo, sino por sus propios hijos: quiere dejar contado de
-              dónde viene, antes de que empiece otra etapa. Funciona igual — las preguntas te llegan a ti, y el libro
-              es el de tu vida.
+              Hay quien no lo hace por un padre ni por un abuelo, sino por sus propios hijos. Quiere dejar guardada su
+              vida, de dónde viene, antes de que empiece otra etapa. Funciona igual: las preguntas te llegan a vos, y
+              el libro es el de tu vida.
             </Cuerpo>
           </Aparece>
         </div>
