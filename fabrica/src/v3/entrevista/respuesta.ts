@@ -141,6 +141,8 @@ function sinMuletillas(f: string[], fr: Frases): string[] {
   let i = 0;
   for (;;) {
     if (esCorte(f[i]) || fr.muletillas.has(f[i])) { i++; continue; }
+    // "Que no, hijo…", "Que sí": el "que" de insistir no tapa la respuesta (simulación es-ES, 06/10).
+    if (f[i] === 'que' && (f[i + 1] === 'no' || f[i + 1] === 'si')) { i++; continue; }
     if (fr.muletillasDobles.some(([a, b]) => f[i] === a && f[i + 1] === b)) { i += 2; continue; }
     return f.slice(i);
   }
@@ -445,7 +447,7 @@ function esNoDicho(p: PreguntaParaInterpretar, f: string[], pal: string[], fr: F
 const AMH = 'AMH';
 const HOY_HAY_ALGUIEN = frases(['estoy en pareja', 'tengo pareja', 'volvimos', 'seguimos juntos', 'seguimos casados', 'sigue conmigo', 'estoy con']);
 const HOY_NO_HAY_NADIE = frases([
-  'no estoy en pareja', 'no estoy con nadie', 'no tengo pareja', 'estoy sola', 'estoy solo', 'quede sola', 'quede solo', 'sin pareja', 'soltera', 'soltero',
+  'no estoy en pareja', 'no estoy con nadie', 'no tengo pareja', 'estoy sola', 'estoy solo', 'estoy viuda', 'estoy viudo', 'soy viuda', 'soy viudo', 'quede sola', 'quede solo', 'sin pareja', 'soltera', 'soltero',
 ]);
 /** "No hay nadie" cuenta en las primeras 5 palabras ("Estoy con Rubén, aunque a veces estoy sola" está en pareja). */
 const PRIMERAS_NADIE = 5;
@@ -711,7 +713,7 @@ const SOLO_ESPANA = {
   ],
   antesDeFrase: ['esta', 'esto', 'de esto', 'aqui'],
   dijo: ['ha dicho', 'me ha dicho'],
-  yaConto: ['ya te lo he contado', 'ya te he contado', 'ya lo he contado', 'ya te lo he dicho', 'ya te lo habia contado', 'ya te lo habia dicho'],
+  yaConto: ['te lo he contado ya', 'te lo he dicho ya', 'ya te lo he contado', 'ya te he contado', 'ya lo he contado', 'ya te lo he dicho', 'ya te lo habia contado', 'ya te lo habia dicho'],
   arranquesOlvido: ['no lo recuerdo', 'no lo se', 'no tengo ni idea', 'no sabria decirte', 'no te sabria decir'],
   noSe: ['no lo se'],
   seMeBorro: ['se me ha olvidado', 'se me olvido', 'se me ha ido', 'se me ha borrado', 'lo he olvidado', 'me he olvidado', 'no me viene a la cabeza'],

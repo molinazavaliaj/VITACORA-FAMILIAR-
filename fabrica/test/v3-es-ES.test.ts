@@ -127,6 +127,18 @@ describe('el detector entiende el castellano de España', () => {
       expect(es('AMH', r), r).toBe('no');
     }
   });
+  it('"Que no, hijo, que estoy viuda": el "que" del principio no tapa el no (simulación de Pilar)', () => {
+    for (const r of ['Que no, hijo, que estoy viuda.', 'Que no.']) {
+      expect(es('AMH', r), r).toBe('no');
+      expect(ar('AMH', r), r).toBe('no');
+    }
+    expect(es('AMH', 'Que sí, con Paco.')).toBe('conto');
+    expect(ar('AMH', 'Estoy viuda.')).toBe('no');
+    expect(es('CA2', 'Que yo sepa, mi madre se llamaba Rosa.')).toBe('conto');
+  });
+  it('"Te lo he contado ya" es ya-conto (simulación de Pilar)', () => {
+    expect(es('CA2', 'Te lo he contado ya.')).toBe('ya-conto');
+  });
   it('AMH: negar "estoy casada" o "tengo novio" no es estar en pareja (revisión)', () => {
     for (const r of ['No tengo novia.', 'No estoy casado.', 'No, ya no sigo casada.', 'Ya no estoy casada, me separé.']) expect(es('AMH', r), r).toBe('no');
   });
