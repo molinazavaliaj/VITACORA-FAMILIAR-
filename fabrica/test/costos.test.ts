@@ -58,6 +58,12 @@ afterEach(() => {
 // --- cálculo de USD ---------------------------------------------------------
 
 describe('calcularUsd', () => {
+  it('claude-opus-5-5: 4/20 (cache write 5, cache read 0,2); antes cobraba como opus-5 por prefijo', () => {
+    expect(calcularUsd('claude-opus-5-5', { input_tokens: 1_000_000, output_tokens: 1_000_000, cache_creation_input_tokens: 1_000_000, cache_read_input_tokens: 1_000_000 })).toBe(29.2);
+  });
+  it('claude-sonnet-5-5: 2/10 (cache write 2,5, cache read 0,2)', () => {
+    expect(calcularUsd('claude-sonnet-5-5', { input_tokens: 1_000_000, output_tokens: 1_000_000, cache_creation_input_tokens: 1_000_000, cache_read_input_tokens: 1_000_000 })).toBe(14.7);
+  });
   it('claude-fable-5: 10/50 USD por millón in/out, cache write 12,5, cache read 1', () => {
     // 1M in = 10, 100k out = 5, 200k cache write = 2,5, 500k cache read = 0,5
     expect(calcularUsd('claude-fable-5', USO_FABLE)).toBe(18);
