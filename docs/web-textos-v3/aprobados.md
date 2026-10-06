@@ -126,3 +126,19 @@ Se aprueban de a 10 en el chat (Naza, 06/10: "de a 10, me pierdo en el PDF"). La
 | P6 | Esa foto está en formato HEIC. Exporta la foto como JPG (…) y vuelve a subirla. | Esa foto está en formato HEIC. Exportá la foto como JPG (en el iPhone: Ajustes → Cámara → Formatos → Más compatible) y volvé a subirla. |
 | P7 | No pudimos completar la acción. Intenta de nuevo. | No pudimos completar la acción. Intentá de nuevo. |
 | P8 | El WhatsApp no parece un número válido. Revísalo e intenta de nuevo. | El WhatsApp no parece un número válido. Revisalo e intentá de nuevo. |
+
+## Mails
+
+| # | dónde | texto actual | aprobado |
+|---|---|---|---|
+| M1 | web/src/lib/mail.ts:78 | En un rato le llega un mensaje nuestro por WhatsApp a tu ${quien}, contándole que lo anotaste y pidiéndole permiso. No empieza nada hasta que diga que sí. Si no acepta, escríbenos y te devolvemos el dinero. | En un rato le llega un mensaje nuestro por WhatsApp a tu ${quien}, contándole de qué se trata. Arranca cuando quiera. |
+| M2 | mail.ts:84 | Cuando conteste su tercera pregunta te avisamos por acá: vas a poder leer sus primeras páginas y escuchar su voz. | Cuando empiece a contar su historia te avisamos por acá, y vas a poder escuchar su voz desde tu panel. |
+| M3 | mail.ts:88 | Para seguir el libro día a día, entra con este mismo correo: | Para ir escuchando lo que cuenta, entrá a la página con este mismo correo: |
+| M4 | mail.ts:124 | ${quien} te invitó a acompañarlo. Vas a poder escuchar lo que va contando, leer sus páginas a medida que se escriben, sumar preguntas que te gustaría que le hagan, y agregar fotos de cada época. | ${quien} te invitó a seguir su historia. Vas a poder escuchar lo que va contando, sumar preguntas que te gustaría que le hagan y agregar fotos de cada época. |
+| M5 | fabrica/src/mail/anticipo.ts:43 | Tu ${quien} ya contó tres cosas. | Tu ${quien} ya empezó a contar. |
+| M6 | anticipo.ts:74 | Él va a seguir contando. Tú decides si el libro se termina. | Va a seguir contando, a su ritmo. Vos lo vas escuchando desde tu panel. |
+| M7 | anticipo.ts:65 | Con lo que lleva contado ya empezamos su libro… | Cuando termine de contarnos su historia, el biógrafo va a empezar a escribir su libro. |
+| M8 | entrevistador/src/mail/hitos.ts:41 | ${quien} aceptó. Mañana le llega la primera pregunta por WhatsApp. Mientras tanto, podés repasar el guion y sumar fotos de cada época: | ${quien} aceptó. Enseguida le llega la primera pregunta por WhatsApp. Mientras tanto, podés sumar fotos de cada época o preguntas para su entrevista. |
+| M9 | entrevistador/src/mail/hitos.ts:50–51 | (el mail "va por la mitad") | Se saca: sin total, no hay mitad. |
+| M10 | entrevistador/src/mail/hitos.ts:56 | (el mail "lleva tres días sin contestar") | Se saca: la V3 ya avisa a quien regaló por WhatsApp a la semana sin audios (M9 del banco). |
+| — | fabrica/src/mail/frases.ts y fabrica/src/mail/hitos.ts | (tú) | Pasan a vos tal como están en propuesta.md (frases.ts 1–3, hitos.ts 1–8). |
