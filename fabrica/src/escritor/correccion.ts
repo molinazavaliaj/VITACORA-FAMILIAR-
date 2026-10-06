@@ -23,3 +23,11 @@ export function aplicarCorreccion(reg: Json, cambios: Json): Json {
   if (Array.isArray(cambios?.confirmados)) r.confirmados = cambios.confirmados;
   return r;
 }
+
+/** El plan corregido llega entero: tiene que ser un plan con los mismos capítulos (mismos números, mismo orden). Si no, tira y rehace Opus. */
+export function validarPlanCorregido(viejo: Json, nuevo: Json): Json {
+  if (!nuevo || typeof nuevo !== 'object' || !Array.isArray(nuevo.capitulos)) throw new Error('el plan corregido no trae capítulos');
+  const ns = (p: Json): string => (p.capitulos as Json[]).map((k) => k?.n).join(',');
+  if (ns(nuevo) !== ns(viejo)) throw new Error(`el plan corregido cambió los capítulos (${ns(viejo)} -> ${ns(nuevo)})`);
+  return nuevo;
+}

@@ -5,7 +5,7 @@
 La receta v5.5 ([`receta.md`](receta.md)) y la guía no cambian. Estos tres prompts existen porque en la sesión los hacía otra cosa (el workflow) o porque son pasos nuevos del diseño del 06/10 ([spec](../../superpowers/specs/2026-10-06-escritor-v55-fabrica-design.md)). Los compila `fabrica/scripts/escritor-prompts-json.ts` junto con la receta.
 
 - **Disputa**: el texto que `fabrica/scripts/escritor-v55/workflow-libro.js` (línea 133) le daba al agente, sin lo que era de la sesión (leer y escribir archivos). Recibe los mismos documentos que la llamada `4-hechos`.
-- **Dudas para la familia** y **Corrección del registro**: nuevos. **Borrador**: lo que sale de "Dudas para la familia" lo lee la familia en el dashboard, así que Naza aprueba este texto antes de la prueba paga.
+- **Dudas para la familia**, **Corrección del registro** y **Corrección del plan**: nuevos. **Borrador**: lo que sale de "Dudas para la familia" lo lee la familia en el dashboard, así que Naza aprueba este texto antes de la prueba paga.
 
 Huecos que llena el código: `{{FRASE}}`, `{{ID}}`, `{{CITA}}` (disputa), `{{NOMBRE}}` y `{{IDIOMA}}` (dudas).
 
@@ -51,4 +51,23 @@ Devolvé solo el JSON del esquema.
 
 ```json
 {"personas": [], "lugares": [], "episodios": [], "linea_de_tiempo": [], "borrar": [], "confirmados": [{"texto": "", "usado_en": []}]}
+```
+
+### Corrección del plan
+
+BORRADOR para que Naza lo apruebe. Va con el modelo barato, después de la corrección del registro y solo si C14 pasó. Recibe la ficha, el registro ya corregido y el plan actual.
+
+```
+Pasás al plan del libro las correcciones que hizo la familia. Es una tarea mecánica: no escribís nada nuevo y no reorganizás nada.
+En la ficha, dentro de <confirmado_por_el_narrador>, están las correcciones: cada línea que empieza con "- " es una. Mandan sobre todo lo demás. El registro de arriba ya las tiene hechas.
+1. Cambiá solo lo que una corrección toca: un nombre, un apodo, una fecha, una relación, un lugar, dos personas que son la misma. Cambialo en todos los lugares del plan donde aparezca (títulos, aperturas, cierres, piezas, frases, carta, faltantes).
+2. Los mismos capítulos, en el mismo orden, con los mismos números, los mismos hilo_ids, las mismas piezas y los mismos ids. No agregues, no saques, no muevas ni reescribas nada que ninguna corrección toque.
+3. Si dos personas son la misma, usá en el plan el id que quedó en el registro.
+4. No toques los ids de las respuestas (R01…).
+
+Devolvé el plan ENTERO, con el mismo esquema que tiene, y solo el JSON.
+```
+
+```json
+{"titulo_libro": {}, "primera_pagina": {}, "capitulos": [], "antes_de_cerrar": {}, "sus_frases": [], "carta": {}, "faltantes": []}
 ```

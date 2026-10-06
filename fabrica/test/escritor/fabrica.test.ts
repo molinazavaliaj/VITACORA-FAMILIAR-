@@ -1,10 +1,10 @@
 // fabrica/test/escritor/fabrica.test.ts
 import { describe, expect, it } from 'vitest';
 import { leerJSON } from '../../src/escritor/carpeta.js';
-import { aplicarCorreccion } from '../../src/escritor/correccion.js';
+import { aplicarCorreccion, validarPlanCorregido } from '../../src/escritor/correccion.js';
 import { dudasDelRegistro, validarDudas } from '../../src/escritor/dudas.js';
 import { respuestas } from '../../src/escritor/lectura.js';
-import { llamadaCorreccion, llamadaDisputa, llamadaDudas } from '../../src/escritor/llamadas/fabrica.js';
+import { llamadaCorreccion, llamadaCorreccionPlan, llamadaDisputa, llamadaDudas } from '../../src/escritor/llamadas/fabrica.js';
 import { carpetaNelida } from './ayuda.js';
 
 describe('dudas de datos para la familia', () => {
@@ -61,5 +61,17 @@ describe('disputa y corrección del registro', () => {
     expect(nuevo.confirmados).toEqual([{ texto: 'La Negra se llamaba Ofelia Sánchez.', usado_en: ['P04'] }]);
     expect(nuevo.episodios).toEqual(reg.episodios);
     expect(reg.personas[3].nombre).toBe('la Negra');
+  });
+
+  it('la corrección del plan lleva ficha, registro y plan; el plan corregido tiene que conservar los capítulos', () => {
+    const c = carpetaNelida();
+    const l = llamadaCorreccionPlan(c);
+    expect(l.nombre).toBe('correccion-plan');
+    expect(l.docs.map((d) => d.slice(0, 5))).toEqual(['<fich', '<regi', '<plan']);
+    expect(l.instr).toContain('Devolvé el plan ENTERO');
+    const plan = leerJSON(c, 'salidas/plan.json');
+    expect(validarPlanCorregido(plan, plan)).toBe(plan);
+    expect(() => validarPlanCorregido(plan, { ...plan, capitulos: plan.capitulos.slice(1) })).toThrow(/cambió los capítulos/);
+    expect(() => validarPlanCorregido(plan, {})).toThrow(/no trae capítulos/);
   });
 });

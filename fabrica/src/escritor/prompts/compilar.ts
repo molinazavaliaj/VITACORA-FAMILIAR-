@@ -7,7 +7,7 @@ export const CLAVES_RECETA = [
   '### Paso 1', '### Paso 2 ·', '### Paso 2h', '### Paso 3a puro', '### Paso 3b puro', '### Paso 3c puro', '### Paso 3d puro',
   '### Paso 3e puro', '### Paso 3r', '### Paso 3t', '### Paso 4', '### Paso 5c', '### Paso 6 puro', '### Paso 7', '### Idioma · catalán',
 ] as const;
-export const CLAVES_FABRICA = ['### Disputa', '### Dudas para la familia', '### Corrección del registro'] as const;
+export const CLAVES_FABRICA = ['### Disputa', '### Dudas para la familia', '### Corrección del registro', '### Corrección del plan'] as const;
 
 export type PromptsCompilados = { version: 'v5.5'; prompts: Record<string, string[]>; esquemas: Record<string, string>; guia: string };
 

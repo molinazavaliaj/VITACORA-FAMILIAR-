@@ -34,3 +34,10 @@ export const llamadaCorreccion = (c: Carpeta): Llamada => ({
   docs: [tag('ficha', ficha(c)), tag('registro', JSON.stringify(leerJSON(c, salida('registro.json')), null, 1))],
   instr: promptsDe('### Corrección del registro')[0] + esquemaDe('### Corrección del registro'),
 });
+
+/** La ficha (con lo confirmado), el registro ya corregido y el plan actual; devuelve el plan entero. */
+export const llamadaCorreccionPlan = (c: Carpeta): Llamada => ({
+  nombre: 'correccion-plan',
+  docs: [tag('ficha', ficha(c)), tag('registro', JSON.stringify(leerJSON(c, salida('registro.json')), null, 1)), tag('plan', JSON.stringify(leerJSON(c, salida('plan.json')), null, 1))],
+  instr: promptsDe('### Corrección del plan')[0] + esquemaDe('### Corrección del plan'),
+});
