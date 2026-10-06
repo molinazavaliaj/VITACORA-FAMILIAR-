@@ -171,7 +171,7 @@ export function PaginaEscrita({ animado = false, className = "" }: { animado?: b
       <p className="mt-5 text-[13.5px] leading-[1.75] text-[#2B2B24] [font-family:var(--fuente-cuerpo)] font-light">
         <span className="float-left mr-2 mt-[2px] text-[2.6rem] leading-[0.8] [font-family:var(--fuente-titulo)]">L</span>
         a casa tenía un patio largo con un limonero que mi padre había plantado el año que nací. En verano
-        almorzábamos debajo, y yo me acuerdo del olor a uva caliente y de mi madre gritando desde la cocina
+        almorzábamos debajo, y yo me acuerdo del olor a azahar y de mi madre gritando desde la cocina
         que nos laváramos las manos. Éramos cinco chicos y un perro que se llamaba Tango…
       </p>
       <p className="mt-6 text-center text-[10px] text-[#AEAEA6] [font-family:var(--fuente-micro)] [letter-spacing:0.2em]">

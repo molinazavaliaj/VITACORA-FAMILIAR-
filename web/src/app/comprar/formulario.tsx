@@ -432,7 +432,7 @@ export function Checkout({ catalogo, regionInicial = "AR", promo = null }: { cat
             </div>
 
             <div className="mt-4">
-              <Upsells cat={cat} region={region} carrito={carritoElegido} setCarrito={setCarrito} propia={paraQuien === "yo"} trato="tu" />
+              <Upsells cat={cat} region={region} carrito={carritoElegido} setCarrito={setCarrito} propia={paraQuien === "yo"} trato="vos" />
             </div>
 
             <Botones atras={() => avanzar(3)} siguiente={() => avanzar(5)} etiquetaSiguiente="Continuar" error={error} />
