@@ -71,7 +71,33 @@ describe('disputa y corrección del registro', () => {
     expect(l.instr).toContain('Devolvé el plan ENTERO');
     const plan = leerJSON(c, 'salidas/plan.json');
     expect(validarPlanCorregido(plan, plan)).toBe(plan);
-    expect(() => validarPlanCorregido(plan, { ...plan, capitulos: plan.capitulos.slice(1) })).toThrow(/cambió los capítulos/);
+    expect(() => validarPlanCorregido(plan, { ...plan, capitulos: plan.capitulos.slice(1) })).toThrow(/cambió la estructura/);
     expect(() => validarPlanCorregido(plan, {})).toThrow(/no trae capítulos/);
+  });
+
+  it('validarPlanCorregido: solo pueden cambiar los textos, no las respuestas, los episodios ni los hilos', () => {
+    const plan = leerJSON(carpetaNelida(), 'salidas/plan.json');
+    const copia = () => structuredClone(plan);
+    const conNombre = copia();
+    conNombre.capitulos[0].titulo.texto = 'La persiana de Ofelia Sánchez';
+    conNombre.capitulos[0].etapa = 'Echesortu con Ofelia';
+    conNombre.capitulos[0].presenta = ['P01', 'P02', 'P09'];
+    conNombre.carta.para = 'Marcela y Gustavo Sánchez';
+    expect(validarPlanCorregido(plan, conNombre)).toBe(conNombre);
+    const hilo = copia();
+    hilo.capitulos[0].hilo_ids = ['R02', 'R05'];
+    expect(() => validarPlanCorregido(plan, hilo)).toThrow(/capítulo 1/);
+    const cruzado = copia();
+    [cruzado.capitulos[0].piezas[0], cruzado.capitulos[1].piezas[0]] = [cruzado.capitulos[1].piezas[0], cruzado.capitulos[0].piezas[0]];
+    expect(() => validarPlanCorregido(plan, cruzado)).toThrow(/cambió la estructura/);
+    const resp = copia();
+    resp.capitulos[1].columna.ids = ['R05'];
+    expect(() => validarPlanCorregido(plan, resp)).toThrow(/capítulo 2/);
+    const piezaDeMas = copia();
+    piezaDeMas.capitulos[0].piezas.pop();
+    expect(() => validarPlanCorregido(plan, piezaDeMas)).toThrow();
+    const afuera = copia();
+    afuera.antes_de_cerrar.ids = ['R01'];
+    expect(() => validarPlanCorregido(plan, afuera)).toThrow(/fuera de los capítulos/);
   });
 });

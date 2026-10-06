@@ -11,11 +11,11 @@ import { carpetaNelida, salidasModeloNelida } from './ayuda.js';
 const CORRECCION = { texto: 'La Negra se llamaba Ofelia Sánchez.', dudaId: 'D01' };
 const CONFIRMADO = { texto: 'La Negra se llamaba Ofelia Sánchez.', usado_en: ['P04'] };
 
-/** El plan de Nélida con el nombre corregido en el título del primer capítulo. */
+/** El plan de Nélida con el nombre corregido en la etapa del primer capítulo. */
 function planConNegra(roto = false): string {
   const plan = JSON.parse(salidasModeloNelida()['2-plan']);
-  plan.capitulos[0].titulo = `${plan.capitulos[0].titulo} (Ofelia Sánchez)`;
-  if (roto) plan.capitulos.pop();
+  plan.capitulos[0].etapa = `${plan.capitulos[0].etapa} (con Ofelia Sánchez)`;
+  if (roto) [plan.capitulos[0].piezas[0], plan.capitulos[1].piezas[0]] = [plan.capitulos[1].piezas[0], plan.capitulos[0].piezas[0]];
   return JSON.stringify(plan);
 }
 
