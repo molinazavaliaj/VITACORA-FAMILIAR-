@@ -44,6 +44,9 @@ export function guiaDe(paso: string): string {
 /** Un prompt de docs/v5/escritor-v55/fabrica.md con sus huecos {{X}} llenos. */
 export function promptFabrica(encabezado: string, huecos: Record<string, string> = {}): string {
   let t = promptsDe(encabezado)[0];
+  // Los huecos que pide el prompt y nadie llenó (se mira antes de sustituir: el texto de la familia puede traer llaves).
+  const faltan = [...new Set(t.match(/\{\{[A-Z_]+\}\}/g) ?? [])].filter((h) => !(h.slice(2, -2) in huecos));
+  if (faltan.length) throw new Error(`Al prompt "${encabezado}" le quedaron huecos sin llenar: ${faltan.join(', ')}`);
   for (const [k, v] of Object.entries(huecos)) t = t.replaceAll(`{{${k}}}`, v);
   return t;
 }

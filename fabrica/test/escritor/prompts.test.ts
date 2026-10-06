@@ -37,4 +37,9 @@ describe('prompts compilados', () => {
     expect(d).not.toContain('{{');
     expect(esquemaDe('### Corrección del registro')).toContain('"borrar"');
   });
+
+  it('promptFabrica tira si queda un hueco sin llenar', () => {
+    expect(() => promptFabrica('### Dudas para la familia', { NOMBRE: 'Nélida' })).toThrow(/IDIOMA/);
+    expect(promptFabrica('### Dudas para la familia', { NOMBRE: 'Nélida', IDIOMA: 'catalán' })).not.toContain('{{');
+  });
 });
