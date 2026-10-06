@@ -115,6 +115,28 @@ describe('Ejecutor.uno: cortes por max_tokens y lo que cuesta fallar (revisión 
   it('el cliente real se crea sin reintentos propios: los reintentos son solo los del ejecutor', () => {
     expect(OPCIONES_CLIENTE).toEqual({ maxRetries: 0 });
   });
+
+  it('lo pagado en intentos fallidos queda en el almacén: al volver a correr cuenta para el gasto y el tope', async () => {
+    const almacen = new AlmacenMemoria();
+    const m: Modelo = { llamar: async () => { throw corte(); } };
+    const e1 = new Ejecutor({ modelo: m, almacen, esperar: async () => {}, topeUsd: 3 });
+    await expect(e1.uno(enc('C/a'))).rejects.toBeInstanceOf(ErrorDelModelo);
+    expect(e1.gastado).toBe(2.568);
+    // Se vuelve a correr con otra clave (C/a no se toca más): el gasto viejo cuenta igual.
+    const m2 = new ModeloFalso({}, [['', 'ok']], { input_tokens: 1000, output_tokens: 64000 });
+    const e2 = new Ejecutor({ modelo: m2, almacen, topeUsd: 3 });
+    expect(await e2.uno(enc('C/b'))).toBe('ok');
+    expect(e2.gastado).toBe(3.852);
+    expect(e2.filas.map((f) => [f.clave, f.falla, f.de_memoria])).toEqual([['C/a', true, true], ['C/a', true, true], ['C/b', undefined, false]]);
+    await expect(e2.uno(enc('C/c'))).rejects.toBeInstanceOf(TopeDeGasto);
+    expect(m2.llamadas).toHaveLength(1);
+    await e2.guardarCostos();
+    expect(JSON.parse((await almacen.leer('costos.json')) as string)).toMatchObject({ total_usd: 3.852 });
+    // Un tercer ejecutor no las cuenta dos veces.
+    const e3 = new Ejecutor({ modelo: new ModeloFalso({}), almacen });
+    await e3.guardarCostos();
+    expect(e3.gastado).toBe(2.568);
+  });
 });
 
 describe('Ejecutor.varios', () => {
@@ -159,5 +181,32 @@ describe('Ejecutor.varios', () => {
     await e.varios([enc('C/7-estilo-cap_1', true)], { lote: true, grupo: 'G' });
     expect(e.filas.map((f) => [f.clave, f.lote, f.falla, f.usd])).toEqual([['C/7-estilo-cap_1', true, true, 0.003], ['C/7-estilo-cap_1', false, undefined, 0.006]]);
     expect(e.gastado).toBe(0.009);
+  });
+
+  it('un corte por max_tokens en el lote cuenta: sin lote se intenta una sola vez más (dos cortes pagos como mucho)', async () => {
+    const lote: Lote = { enviar: async (_g, ps) => ps.map((p) => ({ clave: p.clave, ok: false as const, error: 'la respuesta se cortó por max_tokens', porMaxTokens: true, uso: { input_tokens: 1000, output_tokens: 100 } })) };
+    let directas = 0;
+    const m: Modelo = { llamar: async () => { directas++; throw new ErrorDelModelo('la respuesta se cortó por max_tokens', true, { uso: { input_tokens: 1000, output_tokens: 100 }, porMaxTokens: true }); } };
+    const e = new Ejecutor({ modelo: m, lote, almacen: new AlmacenMemoria(), esperar: async () => {} });
+    const r = await e.varios([enc('C/3b-capitulo-01')], { lote: true, grupo: 'G' });
+    expect(directas).toBe(1);
+    expect([...r.fallas.keys()]).toEqual(['C/3b-capitulo-01']);
+    expect(e.filas.filter((f) => f.falla)).toHaveLength(2);
+  });
+
+  it('si la fase falla, ningún trabajador arranca otra llamada paga', async () => {
+    const claves: string[] = [];
+    const m: Modelo = {
+      llamar: async (p) => {
+        claves.push(p.clave);
+        if (p.clave === 'C/p1') throw new Error('se rompió algo que no es del modelo');
+        await new Promise((r) => setTimeout(r, 20));
+        return { texto: 'ok', uso: { input_tokens: 1 }, motivoFin: 'end_turn' };
+      },
+    };
+    const e = new Ejecutor({ modelo: m, almacen: new AlmacenMemoria(), limite: 2 });
+    await expect(e.varios(['C/p1', 'C/p2', 'C/p3', 'C/p4', 'C/p5'].map((k) => enc(k)), { lote: false, grupo: 'G' })).rejects.toThrow('se rompió');
+    await new Promise((r) => setTimeout(r, 100));
+    expect(claves).toEqual(['C/p1', 'C/p2']);
   });
 });

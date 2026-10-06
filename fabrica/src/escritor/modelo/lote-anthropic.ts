@@ -48,7 +48,8 @@ export class LoteAnthropic implements Lote {
         } catch (err) {
           // Un rechazo o un corte dentro del lote también se cobran: el uso va con la falla.
           const uso = err instanceof ErrorDelModelo ? err.uso : undefined;
-          porClave.set(clave, { clave, ok: false, error: (err as Error).message, ...(uso ? { uso } : {}) });
+          const corte = err instanceof ErrorDelModelo && err.porMaxTokens;
+          porClave.set(clave, { clave, ok: false, error: (err as Error).message, ...(uso ? { uso } : {}), ...(corte ? { porMaxTokens: true } : {}) });
         }
       } else porClave.set(clave, { clave, ok: false, error: r.result.error?.error?.message ?? r.result.type });
     }

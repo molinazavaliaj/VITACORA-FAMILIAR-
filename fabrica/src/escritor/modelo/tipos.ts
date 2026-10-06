@@ -22,7 +22,7 @@ export interface Modelo {
   llamar(p: PedidoModelo): Promise<RespuestaModelo>;
 }
 
-export type ResultadoLote = { clave: string; ok: true; respuesta: RespuestaModelo } | { clave: string; ok: false; error: string; uso?: UsoApi };
+export type ResultadoLote = { clave: string; ok: true; respuesta: RespuestaModelo } | { clave: string; ok: false; error: string; uso?: UsoApi; porMaxTokens?: boolean };
 export interface Lote {
   enviar(grupo: string, pedidos: PedidoModelo[]): Promise<ResultadoLote[]>;
 }

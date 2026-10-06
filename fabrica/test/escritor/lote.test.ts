@@ -56,4 +56,10 @@ describe('LoteAnthropic', () => {
     // El rechazo vino con uso (la API lo cobra): el ejecutor lo suma al gasto.
     expect(r).toEqual([{ clave: 'a', ok: false, error: 'el modelo rechazó el pedido (refusal)', uso: {} }, { clave: 'b', ok: false, error: 'sin resultado en el lote' }]);
   });
+
+  it('un corte por max_tokens en el lote vuelve marcado como corte (el ejecutor lo cuenta)', async () => {
+    const { cliente } = clienteFalso(['ended'], [{ custom_id: 'p0', result: { type: 'succeeded', message: { content: [], usage: { output_tokens: 9 }, stop_reason: 'max_tokens' } } }]);
+    const [r] = await new LoteAnthropic(cliente, new AlmacenMemoria()).enviar('G', [pedido('a')]);
+    expect(r).toEqual({ clave: 'a', ok: false, error: 'la respuesta se cortó por max_tokens', uso: { output_tokens: 9 }, porMaxTokens: true });
+  });
 });

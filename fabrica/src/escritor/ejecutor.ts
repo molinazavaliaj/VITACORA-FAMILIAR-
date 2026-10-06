@@ -6,10 +6,12 @@
 // - un corte por max_tokens se repite una sola vez, con el mismo pedido; si se corta de nuevo, la llamada falla;
 // - un reintento si el JSON no parsea (receta, sección 5);
 // - tope de gasto por libro (USD 15 por defecto): con el tope alcanzado no sale ninguna llamada nueva;
-//   lo que la API cobró en un intento fallido (rechazo, corte) también suma;
+//   lo que la API cobró en un intento fallido (rechazo, corte) también suma, y queda en `fallas.json`
+//   para que una corrida nueva lo cuente (si no, volver a correr esquivaría el tope);
 // - una fila de uso por llamada (costos.json);
 // - fases paralelas: con lote (Batch, mitad de precio) o en paralelo con límite; lo que el lote
-//   devuelve con error se repite sin lote.
+//   devuelve con error se repite sin lote (un corte en el lote ya cuenta como el primer corte);
+//   si la fase falla, ningún trabajador arranca otra llamada.
 // Los reintentos son SOLO los de acá: el cliente del SDK reintenta solo (maxRetries 2 por defecto) y los
 // reintentos se apilarían. Por eso el cliente real se crea con OPCIONES_CLIENTE: new Anthropic(OPCIONES_CLIENTE).
 import { createHash } from 'node:crypto';
@@ -44,13 +46,25 @@ export class ErrorJSON extends Error {
 }
 
 type Memoria = { hash: string; texto: string; fila: FilaUso };
+const RUTA_FALLAS = 'fallas.json';
 const rutaPaso = (clave: string): string => `pasos/${clave.replace(/#/g, '~')}.json`;
 const n = (v: number | null | undefined): number => (typeof v === 'number' ? v : 0);
 const esJSON = (t: string): boolean => { try { parseJSONTolerante(t); return true; } catch { return false; } };
 
 async function enParalelo<T>(xs: T[], limite: number, f: (x: T) => Promise<void>): Promise<void> {
   let i = 0;
-  const trabajar = async (): Promise<void> => { while (i < xs.length) await f(xs[i++]); };
+  // Si un trabajador falla, los demás terminan lo que tienen en curso pero no toman nada nuevo (nada más que pagar).
+  let parado = false;
+  const trabajar = async (): Promise<void> => {
+    while (!parado && i < xs.length) {
+      try {
+        await f(xs[i++]);
+      } catch (err) {
+        parado = true;
+        throw err;
+      }
+    }
+  };
   await Promise.all(Array.from({ length: Math.min(limite, xs.length) }, trabajar));
 }
 
@@ -58,11 +72,16 @@ export class Ejecutor {
   readonly filas: FilaUso[] = [];
   private readonly anotadas = new Set<string>();
   private readonly tope: number;
+  /** Cortes por max_tokens que ya pasaron en el lote, por clave: el intento sin lote arranca con ese conteo. */
+  private readonly cortesPrevios = new Map<string, number>();
+  private fallasCargadas: Promise<void> | null = null;
+  private guardandoFallas: Promise<void> = Promise.resolve();
 
   constructor(private readonly o: OpcionesEjecutor) {
     this.tope = o.topeUsd ?? 15;
   }
 
+  /** Incluye las fallas pagas de corridas anteriores desde el primer `uno`/`varios`/`guardarCostos`. */
   get gastado(): number {
     return Math.round(this.filas.reduce((s, f) => s + f.usd, 0) * 1e6) / 1e6;
   }
@@ -95,9 +114,26 @@ export class Ejecutor {
     await this.o.almacen.escribir(rutaPaso(p.clave), JSON.stringify({ hash: this.hash(p), texto: r.texto, fila } satisfies Memoria));
   }
 
-  /** Un intento que la API cobró y no sirvió: suma al gasto (y al tope), pero no va a la memoria. */
-  private anotarFalla(p: PedidoModelo, uso: UsoApi, lote: boolean): void {
-    this.filas.push({ ...this.fila(p, uso, lote), falla: true });
+  /** Las fallas pagas de corridas anteriores (`fallas.json`), una sola vez por ejecutor, antes de cualquier llamada. */
+  private cargarFallas(): Promise<void> {
+    this.fallasCargadas ??= (async () => {
+      const t = await this.o.almacen.leer(RUTA_FALLAS);
+      if (t !== null) this.filas.unshift(...(JSON.parse(t) as FilaUso[]).map((f) => ({ ...f, de_memoria: true })));
+    })();
+    return this.fallasCargadas;
+  }
+
+  /** Un intento que la API cobró y no sirvió: suma al gasto (y al tope) y queda en `fallas.json`, pero no va a la memoria. */
+  private async anotarFalla(p: PedidoModelo, uso: UsoApi, lote: boolean): Promise<void> {
+    const fila: FilaUso = { ...this.fila(p, uso, lote), falla: true };
+    this.filas.push(fila);
+    // En fila: dos trabajadores en paralelo no se pisan el archivo.
+    this.guardandoFallas = this.guardandoFallas.then(async () => {
+      const t = await this.o.almacen.leer(RUTA_FALLAS);
+      const previas = t === null ? [] : (JSON.parse(t) as FilaUso[]);
+      await this.o.almacen.escribir(RUTA_FALLAS, JSON.stringify([...previas, fila]));
+    });
+    await this.guardandoFallas;
   }
 
   private verificarTope(): void {
@@ -108,14 +144,14 @@ export class Ejecutor {
     const esperas = this.o.esperasMs ?? [30_000, 120_000, 300_000];
     const esperar = this.o.esperar ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
     let i = 0;
-    let cortes = 0;
+    let cortes = this.cortesPrevios.get(p.clave) ?? 0;
     for (;;) {
       this.verificarTope();
       try {
         return await this.o.modelo.llamar(p);
       } catch (err) {
         if (!(err instanceof ErrorDelModelo)) throw err;
-        if (err.uso) this.anotarFalla(p, err.uso, false);
+        if (err.uso) await this.anotarFalla(p, err.uso, false);
         if (err.porMaxTokens) {
           // Un corte se repite una vez, sin esperar; el segundo corta la llamada (cada uno puede costar más de un dólar).
           if (cortes++ >= 1) throw new ErrorDelModelo(`${p.clave}: la respuesta se cortó por max_tokens dos veces`, false, { porMaxTokens: true });
@@ -147,6 +183,7 @@ export class Ejecutor {
 
   /** Una llamada: de la memoria si ya se pagó; si no, a la API. Con json, un pedido más si no parsea. */
   async uno(e: Encargo): Promise<string> {
+    await this.cargarFallas();
     const texto = await this.crudo(e);
     if (!e.json || esJSON(texto)) return texto;
     this.o.log?.(`${e.clave}: el JSON no parsea; se pide otra vez`);
@@ -159,6 +196,7 @@ export class Ejecutor {
   async varios(es: Encargo[], o: { lote: boolean; grupo: string }): Promise<ResultadoVarios> {
     const textos = new Map<string, string>();
     const fallas = new Map<string, string>();
+    await this.cargarFallas();
     if (o.lote && this.o.lote) {
       const pendientes: PedidoModelo[] = [];
       for (const e of es) { const p = this.pedido(e); if (!(await this.memoria(p))) pendientes.push(p); }
@@ -168,7 +206,8 @@ export class Ejecutor {
           const p = pendientes.find((x) => x.clave === r.clave) as PedidoModelo;
           if (r.ok) await this.anotar(p, r.respuesta, true);
           else {
-            if (r.uso) this.anotarFalla(p, r.uso, true);
+            if (r.uso) await this.anotarFalla(p, r.uso, true);
+            if (r.porMaxTokens) this.cortesPrevios.set(p.clave, 1);
             this.o.log?.(`${r.clave}: el lote volvió con error (${r.error}); va sin lote`);
           }
         }
@@ -186,6 +225,7 @@ export class Ejecutor {
   }
 
   async guardarCostos(): Promise<void> {
+    await this.cargarFallas();
     await this.o.almacen.escribir('costos.json', JSON.stringify({ total_usd: this.gastado, tope_usd: this.tope, filas: this.filas }, null, 1));
   }
 }
