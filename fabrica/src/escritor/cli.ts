@@ -1,0 +1,53 @@
+// Lo testeable del comando local (scripts/escritor-correr.ts): argumentos y carpeta de disco.
+import { mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
+import path from 'node:path';
+import { Carpeta } from './carpeta.js';
+
+export type ArgsCli = { carpeta: string; etapa: 'A' | 'B' | 'C'; soloCapitulo?: number; topeUsd: number; lote: boolean; si: boolean; correcciones?: string };
+
+export function leerArgs(argv: string[]): ArgsCli {
+  const a: { carpeta?: string; etapa: ArgsCli['etapa']; soloCapitulo?: number; topeUsd: number; lote: boolean; si: boolean; correcciones?: string } = { etapa: 'C', topeUsd: 15, lote: true, si: false };
+  for (let i = 0; i < argv.length; i++) {
+    const k = argv[i];
+    const valor = (): string => { const v = argv[++i]; if (v === undefined) throw new Error(`falta el valor de ${k}`); return v; };
+    if (k === '--carpeta') a.carpeta = valor();
+    else if (k === '--etapa') { const e = valor(); if (e !== 'A' && e !== 'B' && e !== 'C') throw new Error(`--etapa es A, B o C (no ${e})`); a.etapa = e; }
+    else if (k === '--solo-capitulo') { const n = Number(valor()); if (!Number.isInteger(n) || n < 1) throw new Error('--solo-capitulo es un número de capítulo'); a.soloCapitulo = n; }
+    else if (k === '--tope') { const n = Number(valor()); if (!(n > 0)) throw new Error('--tope es un monto en USD mayor que 0'); a.topeUsd = n; }
+    else if (k === '--correcciones') a.correcciones = valor();
+    else if (k === '--sin-lote') a.lote = false;
+    else if (k === '--si') a.si = true;
+    else throw new Error(`argumento desconocido: ${k}`);
+  }
+  if (!a.carpeta) throw new Error('falta --carpeta <dir> (la carpeta con entradas/)');
+  if (a.soloCapitulo !== undefined && a.etapa !== 'C') throw new Error('--solo-capitulo es de la etapa C');
+  if (a.etapa === 'B' && !a.correcciones) throw new Error('la etapa B necesita --correcciones <archivo> (una corrección por línea)');
+  const { carpeta, ...resto } = a;
+  return { carpeta: carpeta as string, ...resto };
+}
+
+/** Lo que dejó una revisión anterior no se carga: si no, el informe y los arreglos mezclarían dos corridas. */
+export const SALIDAS_DE_REVISION = new Set(['salidas/hechos.json', 'salidas/veedor.json', 'salidas/hechos-repaso.json', 'salidas/lectura.json', 'salidas/lectura-final.json', 'salidas/cotejo.json']);
+
+export function cargarCarpeta(dir: string): Carpeta {
+  const c = new Carpeta();
+  const recorrer = (sub: string): void => {
+    const abs = path.join(dir, sub);
+    let nombres: string[];
+    try { nombres = readdirSync(abs); } catch { return; }
+    for (const n of nombres) {
+      const rel = `${sub}/${n}`;
+      if (statSync(path.join(dir, rel)).isDirectory()) recorrer(rel);
+      else if (!SALIDAS_DE_REVISION.has(rel)) c.escribir(rel, readFileSync(path.join(dir, rel), 'utf8'));
+    }
+  };
+  for (const sub of ['entradas', 'salidas', 'pendientes']) recorrer(sub);
+  return c;
+}
+
+export function guardarCarpeta(c: Carpeta, dir: string): void {
+  for (const [rel, texto] of Object.entries(c.aObjeto())) {
+    mkdirSync(path.dirname(path.join(dir, rel)), { recursive: true });
+    writeFileSync(path.join(dir, rel), texto, 'utf8');
+  }
+}
