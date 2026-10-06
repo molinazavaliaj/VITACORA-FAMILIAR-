@@ -434,15 +434,17 @@ export const RUTA_CONECTORES_CAP = (narradorId: string, numeroCapitulo: number) 
   `${narradorId}/paquete/conectores_cap_${String(numeroCapitulo).padStart(2, '0')}.json`;
 
 /**
- * Todos los borradores de un narrador con `cantidadCapitulos` capítulos: lo
- * que se borra al entregar. Incluye los conectores de cada capítulo aunque
- * el pedido no haya sido de voz clonada (o el capítulo no fuera híbrido):
+ * Los borradores de un narrador con `cantidadCapitulos` capítulos que se
+ * borran al entregar. Incluye los conectores de cada capítulo aunque el
+ * pedido no haya sido de voz clonada (o el capítulo no fuera híbrido):
  * Storage no se queja de borrar lo que no está, y así no hay que recordar
- * qué se cacheó.
+ * qué se cacheó. El borrador del libro (`RUTA_BORRADOR_LIBRO`) NO va: la
+ * imprenta lo lee después para armar el libro de imprenta con «Su voz»
+ * (`imprenta.ts`); antes se borraba y el impreso no se podía armar
+ * (revisión del 06/10).
  */
 export const rutasDeBorradores = (narradorId: string, cantidadCapitulos: number): string[] => [
   ...Array.from({ length: cantidadCapitulos }, (_, i) => RUTA_BORRADOR_CAP(narradorId, i + 1)),
-  RUTA_BORRADOR_LIBRO(narradorId),
   ...Array.from({ length: cantidadCapitulos }, (_, i) => RUTA_CONECTORES_CAP(narradorId, i + 1)),
 ];
 

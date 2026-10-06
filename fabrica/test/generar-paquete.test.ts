@@ -299,18 +299,19 @@ describe('generarPaquete', () => {
     expect(indiceBorradorCap01).toBeGreaterThanOrEqual(0);
     expect(indicePdf).toBeGreaterThan(indiceBorradorCap01);
 
-    // Limpieza: entregado el pedido, los borradores ya no hacen falta y se
-    // borran.
+    // Limpieza: entregado el pedido, los borradores de capítulo ya no hacen
+    // falta y se borran. El del libro NO: la imprenta lo necesita después para
+    // armar libro-imprenta.pdf con «Su voz» (imprenta.ts; revisión del 06/10).
     expect(db.remove).toHaveBeenCalledTimes(1);
     expect(db.remove.mock.calls[0][0]).toEqual(
       expect.arrayContaining([
         'narrador-1/paquete/borrador_cap_01.md',
         'narrador-1/paquete/borrador_cap_02.md',
-        'narrador-1/paquete/borrador_libro.md',
         'narrador-1/paquete/conectores_cap_01.json',
         'narrador-1/paquete/conectores_cap_02.json',
       ])
     );
+    expect(db.remove.mock.calls[0][0]).not.toContain('narrador-1/paquete/borrador_libro.md');
   });
 
   it('si ya hay borradores cacheados de un reintento anterior, los reusa y no le vuelve a pagar al modelo', async () => {
