@@ -50,3 +50,30 @@ export function correrMjs(script: string, args: string[], env: Record<string, st
 export function mismoArchivo(c: Carpeta, dir: string, ruta: string): void {
   expect(c.leer(ruta), ruta).toBe(readFileSync(path.join(dir, ruta), 'utf8').replace(/\r\n/g, '\n'));
 }
+
+/** Lo que "contesta el modelo" en cada paso para Nélida: su propio material (los capítulos, con el JSON de afuera vacío). */
+export function salidasModeloNelida(): Record<string, string> {
+  const c = carpetaNelida();
+  const capitulo = (n: number) => `${c.leer(`salidas/capitulo_0${n}.md`).trim()}\n---\n{"afuera": []}`;
+  return {
+    '1-registro': c.leer('salidas/registro.json'),
+    '2-plan': c.leer('salidas/plan.json'),
+    dudas: '{"dudas": [{"id": "D01", "pregunta": "¿Cómo se llamaba la Negra, la amiga del barrio de Nélida?", "opciones": []}]}',
+    '2h-armador-01': 'Las historias: la casa de Echesortu, la mercería con Raúl y la noche de la calculadora.',
+    '2h-armador-02': 'Las historias: quedarse sola y la tarde del bastidor.',
+    '3b-capitulo-01': capitulo(1),
+    '3b-capitulo-02': capitulo(2),
+    '3r-resumen-cap_1': 'Echesortu, la mercería con Raúl, la noche de la calculadora, la nena en el cajón.',
+    '3r-resumen-cap_2': 'Muere Raúl, el mate amargo, el bastidor en el patio.',
+    '3d-antes-de-cerrar': c.leer('salidas/antes_de_cerrar.md'),
+    '3c-carta': c.leer('salidas/carta.md'),
+    '3a-primera': c.leer('salidas/primera_pagina.md'),
+    '3e-sus-frases': c.leer('salidas/sus_frases.json'),
+    '4-hechos': '{"problemas": []}',
+    '5c-veedor': '{"problemas": []}',
+    '4-hechos-repaso': '{"problemas": []}',
+    '3t-titulo-01': '{"titulo": "La persiana de madera", "por_que": "palabras del capítulo"}',
+    '3t-titulo-02': '{"titulo": "El bastidor en la falda", "por_que": "palabras del capítulo"}',
+  };
+}
+export const DEFECTOS_NELIDA: [string, string][] = [['6-arreglo-', '{"cambios": []}'], ['7-estilo-', '{"cambios": []}'], ['disputa-', '{"respalda": true}']];
