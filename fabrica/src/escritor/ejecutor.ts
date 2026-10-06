@@ -47,7 +47,9 @@ export class ErrorJSON extends Error {
 
 type Memoria = { hash: string; texto: string; fila: FilaUso };
 const RUTA_FALLAS = 'fallas.json';
-const rutaPaso = (clave: string): string => `pasos/${clave.replace(/#/g, '~')}.json`;
+// El reintento lleva '#' en la clave ("C/3b-capitulo-06#2"): ni '#' ni '~' son claves válidas de Supabase
+// Storage (isValidKey del servidor; ver test/escritor/claves-storage.test.ts). '__' sí, y ninguna clave lo trae.
+const rutaPaso = (clave: string): string => `pasos/${clave.replace(/#/g, '__')}.json`;
 const n = (v: number | null | undefined): number => (typeof v === 'number' ? v : 0);
 const esJSON = (t: string): boolean => { try { parseJSONTolerante(t); return true; } catch { return false; } };
 
