@@ -22,7 +22,9 @@ export function usdDeLlamada(modelo: string, uso: UsoApi, o: { lote: boolean }):
   const p = PRECIOS_ESCRITOR[modelo];
   if (!p) throw new Error(`costos del escritor: no hay precio para ${modelo}`);
   const unaHora = t(uso.cache_creation?.ephemeral_1h_input_tokens);
-  const cincoMin = uso.cache_creation ? t(uso.cache_creation.ephemeral_5m_input_tokens) : t(uso.cache_creation_input_tokens);
+  // Sin el desglose de 5 minutos (cache_creation ausente, vacío o con null), lo escrito que no es de 1 hora es de 5 minutos.
+  const cinco = uso.cache_creation?.ephemeral_5m_input_tokens;
+  const cincoMin = typeof cinco === 'number' ? t(cinco) : Math.max(0, t(uso.cache_creation_input_tokens) - unaHora);
   const porMillon = t(uso.input_tokens) * p.input + t(uso.output_tokens) * p.output + cincoMin * p.input * 1.25 + unaHora * p.input * 2 + t(uso.cache_read_input_tokens) * p.cacheRead;
   return Math.round((porMillon / 1_000_000) * (o.lote ? 0.5 : 1) * 1e6) / 1e6;
 }

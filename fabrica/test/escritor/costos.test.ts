@@ -16,6 +16,13 @@ describe('usdDeLlamada', () => {
   it('Batch cobra la mitad de todo', () => {
     expect(usdDeLlamada('claude-opus-5-5', { input_tokens: M, output_tokens: M, cache_read_input_tokens: M }, { lote: true })).toBe(12.1);
   });
+  it('cache_creation sin los campos ephemeral_*: cache_creation_input_tokens cuenta como escritura de 5 minutos', () => {
+    const M = 1_000_000;
+    expect(usdDeLlamada('claude-opus-5-5', { cache_creation_input_tokens: M, cache_creation: {} }, { lote: false })).toBe(5);
+    expect(usdDeLlamada('claude-opus-5-5', { cache_creation_input_tokens: M, cache_creation: { ephemeral_5m_input_tokens: null, ephemeral_1h_input_tokens: null } }, { lote: false })).toBe(5);
+    // Con el desglose, manda el desglose.
+    expect(usdDeLlamada('claude-opus-5-5', { cache_creation_input_tokens: 2 * M, cache_creation: { ephemeral_5m_input_tokens: M, ephemeral_1h_input_tokens: M } }, { lote: false })).toBe(13);
+  });
   it('un modelo sin precio no vale 0: corta (el tope de gasto depende de esto)', () => {
     expect(() => usdDeLlamada('claude-desconocido', { input_tokens: 1 }, { lote: false })).toThrow(/no hay precio/);
   });
