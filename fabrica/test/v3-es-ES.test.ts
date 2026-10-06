@@ -127,6 +127,9 @@ describe('el detector entiende el castellano de España', () => {
       expect(es('AMH', r), r).toBe('no');
     }
   });
+  it('AMH: negar "estoy casada" o "tengo novio" no es estar en pareja (revisión)', () => {
+    for (const r of ['No tengo novia.', 'No estoy casado.', 'No, ya no sigo casada.', 'Ya no estoy casada, me separé.']) expect(es('AMH', r), r).toBe('no');
+  });
   it('HI0: los criados son un sí', () => {
     for (const r of ['No, pero lo crié como un hijo.', 'No tuve hijos propios, la criamos nosotros.', 'No, aunque a mi sobrino lo quise como si fuera mío.', 'No, pero tuvimos que criarla nosotros.']) {
       expect(es('HI0', r), r).toBe('conto');

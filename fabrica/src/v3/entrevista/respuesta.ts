@@ -730,6 +730,8 @@ const SOLO_ESPANA = {
   hoyNoHayNadie: [
     'me he quedado sola', 'me he quedado solo', 'estoy viuda', 'estoy viudo', 'soy viuda', 'soy viudo', 'estoy divorciada', 'estoy divorciado', 'estoy separada', 'estoy separado',
     'no tengo a nadie',
+    // Negar lo de hoyHayAlguien ("No tengo novia", "Ya no sigo casada"): sin esto gana el sí (revisión).
+    'no estoy casado', 'no estoy casada', 'no sigo casado', 'no sigo casada', 'no tengo novio', 'no tengo novia',
   ],
   finales: ['ha muerto', 'ha fallecido', 'nos hemos separado', 'me he separado', 'me he divorciado', 'nos hemos divorciado', 'lo dejamos', 'nos dejamos'],
 };
