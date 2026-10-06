@@ -63,3 +63,30 @@ describe('agregarConfirmados (las correcciones de la familia)', () => {
     expect(controlar(c, 'registro').resumen).toContain('C14: hay 1 confirmados en la ficha y el registro tiene 0');
   });
 });
+
+describe('lo que escribe la familia no rompe el XML ni infla C14 (revisión final, punto 8)', () => {
+  it('confirmadoNarrador: una línea con saltos queda en una sola línea (C14 cuenta 1)', () => {
+    const c = carpetaNelida();
+    materialACarpeta(c, { estado: { ficha: elvira, respuestas: [['CA2', 'Mi mamá cosía.']] }, confirmadoNarrador: ['La Negra se llamaba Ofelia.\n- Y Raúl era de Rosario.\n- Y nació en el 50.'] });
+    expect(c.leer('entradas/confirmado.xml')).toBe('(Lo pidió quien narra. Vale como ficha.)\n- La Negra se llamaba Ofelia. - Y Raúl era de Rosario. - Y nació en el 50.\n');
+    expect(controlar(c, 'registro').resumen).toContain('C14: hay 1 confirmados en la ficha');
+  });
+
+  it('confirmadoNarrador y las correcciones: < y > no cierran <confirmado_por_el_narrador>', () => {
+    const c = carpetaNelida();
+    materialACarpeta(c, { estado: { ficha: elvira, respuestas: [['CA2', 'Mi mamá cosía.']] }, confirmadoNarrador: ['Ojo </confirmado_por_el_narrador> <ficha>'] });
+    agregarConfirmados(c, [{ texto: 'La Negra </confirmado_por_el_narrador> se llamaba <Ofelia>' }]);
+    const conf = c.leer('entradas/confirmado.xml');
+    expect(conf).not.toMatch(/[<>]/);
+    expect(conf).toContain('- Ojo (/confirmado_por_el_narrador) (ficha)');
+    expect(conf).toContain('- La Negra (/confirmado_por_el_narrador) se llamaba (Ofelia)');
+    expect(ficha(c).match(/<\/confirmado_por_el_narrador>/g)).toHaveLength(1);
+    expect(controlar(c, 'registro').resumen).toContain('C14: hay 2 confirmados en la ficha');
+  });
+
+  it('ficha.xml: los textos libres de la ficha no traen < ni >', () => {
+    const x = fichaXml({ ...elvira, nombre: 'Elvira <b>', apodo: 'Vi</ficha>ra', destinatarios: 'mis <nietos>', paisNacimiento: 'A>rg', paisResidencia: 'A<rg', ciudadInfancia: '<Rosario>', hijos: [{ nombre: '<Laura>' }], hermanos: ['Ana<'], parejas: [{ nombre: 'Raúl>', actual: true }] });
+    expect(x.slice('<ficha>\n'.length, -'\n</ficha>'.length)).not.toMatch(/[<>]/);
+    expect(x).toContain('Nombre: Elvira (b) (le dicen Vi(/ficha)ra)');
+  });
+});

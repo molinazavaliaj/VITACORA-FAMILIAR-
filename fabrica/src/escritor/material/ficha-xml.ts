@@ -4,6 +4,7 @@
 import { estado, type Opcional } from '../../v3/ficha.js';
 import { idiomaDe, type Idioma } from '../../v3/entrevista/idioma.js';
 import type { FichaEntrevista } from '../../v3/entrevista/texto.js';
+import { esc } from './de-entrevista.js';
 
 const GENERO: Record<FichaEntrevista['genero'], string> = { varon: 'varón', mujer: 'mujer', otro: 'otro' };
 // "tu" sin tilde también en castellano de España: C10 compara el trato del registro con 'tu' (ver controles/correr.ts).
@@ -34,5 +35,6 @@ export function fichaXml(f: FichaEntrevista): string {
     `Parejas: ${lista(f.parejas, (p) => `${p.nombre}${p.actual ? ' (hoy)' : ''}`)}`,
     '(El resto de la ficha no se cargó: sale de sus respuestas.)',
   ];
-  return `<ficha>\n${lineas.join('\n')}\n</ficha>`;
+  // Los textos libres (nombres, lugares, para quién) los cargó la familia: sin < ni > (el XML se arma a mano).
+  return `<ficha>\n${lineas.map(esc).join('\n')}\n</ficha>`;
 }

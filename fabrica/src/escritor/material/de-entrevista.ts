@@ -137,7 +137,7 @@ function pegarA(fila: Fila | undefined, clave: string, crudo: string, idioma: Id
 }
 
 /** Igual que armar-material.mjs de Joaquín: sin &, < ni > (el XML se arma a mano). */
-const esc = (s: string) => s.replace(/&/g, 'y').replace(/</g, '(').replace(/>/g, ')');
+export const esc = (s: string): string => s.replace(/&/g, 'y').replace(/</g, '(').replace(/>/g, ')');
 
 export function respuestasXml(filas: Fila[]): string {
   return filas.map((f) => `<respuesta id="${f.id}" origen="${esc(f.origen).replace(/"/g, "'")}" segundos="">\n<pregunta>${esc(f.pregunta)}</pregunta>\n<texto>${esc(f.texto)}</texto>\n</respuesta>`).join('\n\n') + '\n';
