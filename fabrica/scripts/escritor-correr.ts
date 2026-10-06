@@ -33,6 +33,8 @@ async function main(): Promise<void> {
   const ej = new Ejecutor({
     modelo: new ModeloAnthropic(cliente as unknown as ClienteMensajes),
     lote: a.lote ? new LoteAnthropic(cliente as unknown as ClienteLotes, almacen, { log: (s) => console.log(s) }) : undefined,
+    // Configuración económica: también las llamadas de a una van por Batch (un libro tarda horas).
+    todoPorLote: a.lote,
     almacen,
     topeUsd: a.topeUsd,
     log: (s) => console.log(s),

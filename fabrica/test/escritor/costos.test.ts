@@ -13,6 +13,10 @@ describe('usdDeLlamada', () => {
   it('claude-sonnet-5-5 (el barato): 2 y 10', () => {
     expect(usdDeLlamada('claude-sonnet-5-5', { input_tokens: M, output_tokens: M }, { lote: false })).toBe(12);
   });
+  it('claude-haiku-4-5 (lo mecánico): 1 entrada, 5 salida, 0,10 caché leída', () => {
+    expect(usdDeLlamada('claude-haiku-4-5', { input_tokens: M, output_tokens: M, cache_read_input_tokens: M }, { lote: false })).toBe(6.1);
+    expect(usdDeLlamada('claude-haiku-4-5', { input_tokens: M, output_tokens: M }, { lote: true })).toBe(3);
+  });
   it('Batch cobra la mitad de todo', () => {
     expect(usdDeLlamada('claude-opus-5-5', { input_tokens: M, output_tokens: M, cache_read_input_tokens: M }, { lote: true })).toBe(12.1);
   });

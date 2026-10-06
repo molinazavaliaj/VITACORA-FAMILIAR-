@@ -2,7 +2,8 @@ import type { UsoApi } from '../costos.js';
 
 export type Esfuerzo = 'low' | 'medium' | 'high' | 'xhigh' | 'max';
 /** Un pedido al modelo: `bloques` = los documentos de la llamada y, al final, las instrucciones. */
-export type PedidoModelo = { clave: string; modelo: string; bloques: string[]; cacheEn: number[]; maxTokens: number; esfuerzo: Esfuerzo };
+/** `esfuerzo`: pensamiento adaptativo (Opus); `pensamiento`: presupuesto fijo (Haiku 4.5); `cacheUnaHora`: las marcas de caché duran 1 hora. */
+export type PedidoModelo = { clave: string; modelo: string; bloques: string[]; cacheEn: number[]; maxTokens: number; esfuerzo?: Esfuerzo; pensamiento?: number; cacheUnaHora?: boolean };
 export type RespuestaModelo = { texto: string; uso: UsoApi; motivoFin: string };
 
 export class ErrorDelModelo extends Error {

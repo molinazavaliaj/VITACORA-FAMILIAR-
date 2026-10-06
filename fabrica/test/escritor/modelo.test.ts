@@ -98,3 +98,26 @@ describe('modelo falso', () => {
     expect(lote.grupos).toEqual(['C-estilo-1']);
   });
 });
+
+describe('pedido: configuración económica', () => {
+  it('Haiku 4.5: pensamiento con presupuesto fijo (budget_tokens) y sin output_config (no acepta effort)', () => {
+    const p: PedidoModelo = { clave: 'C/7-estilo-cap_1', modelo: 'claude-haiku-4-5', bloques: ['<pieza>\np\n</pieza>', 'Corregí.'], cacheEn: [], maxTokens: 64000, pensamiento: 8000 };
+    expect(armarParams(p)).toEqual({
+      model: 'claude-haiku-4-5', max_tokens: 64000, thinking: { type: 'enabled', budget_tokens: 8000 },
+      messages: [{ role: 'user', content: [{ type: 'text', text: '<pieza>\np\n</pieza>\n\n' }, { type: 'text', text: 'Corregí.' }] }],
+    });
+  });
+
+  it('sin esfuerzo ni presupuesto no va thinking', () => {
+    const p: PedidoModelo = { clave: 'x', modelo: 'claude-haiku-4-5', bloques: ['hola'], cacheEn: [], maxTokens: 1000 };
+    expect(armarParams(p)).not.toHaveProperty('thinking');
+    expect(armarParams(p)).not.toHaveProperty('output_config');
+  });
+
+  it('caché de 1 hora: las marcas llevan ttl "1h"', () => {
+    const p: PedidoModelo = { ...pedido('C/4-hechos'), cacheUnaHora: true };
+    const content = (armarParams(p).messages as { content: { cache_control?: unknown }[] }[])[0].content;
+    expect(content[1].cache_control).toEqual({ type: 'ephemeral', ttl: '1h' });
+    expect(content[0].cache_control).toBeUndefined();
+  });
+});

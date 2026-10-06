@@ -1,7 +1,8 @@
 // fabrica/test/escritor/ejecutor.test.ts
 import { describe, expect, it } from 'vitest';
 import { AlmacenMemoria } from '../../src/escritor/almacen/memoria.js';
-import { Ejecutor, ErrorJSON, MAX_TOKENS_SALIDA, OPCIONES_CLIENTE, TopeDeGasto, type Encargo } from '../../src/escritor/ejecutor.js';
+import { Ejecutor, ErrorJSON, OPCIONES_CLIENTE, TopeDeGasto, type Encargo } from '../../src/escritor/ejecutor.js';
+import { maxSalidaDe } from '../../src/escritor/modelo/configuracion.js';
 import { hashDePedido } from '../../src/escritor/modelo/pedido.js';
 import type { Llamada } from '../../src/escritor/llamadas/armar.js';
 import { LoteFalso, ModeloFalso, claveBase } from '../../src/escritor/modelo/falso.js';
@@ -59,11 +60,23 @@ describe('Ejecutor.uno', () => {
     expect(m.llamadas).toHaveLength(2);
   });
 
-  it('el pedido usa Opus 5.5 en xhigh, salvo el rol barato (Sonnet 5.5, low)', () => {
+  it('el pedido sale de la configuración económica: modelo y pensamiento por el nombre de la llamada', () => {
     const e = new Ejecutor({ modelo: new ModeloFalso({}), almacen: new AlmacenMemoria() });
     expect(e.pedido(enc('C/3b-capitulo-01'))).toMatchObject({ modelo: 'claude-opus-5-5', esfuerzo: 'xhigh', maxTokens: 64000, cacheEn: [1] });
-    expect(e.pedido({ ...enc('B/correccion-registro'), rol: 'barato' })).toMatchObject({ modelo: 'claude-sonnet-5-5', esfuerzo: 'low' });
+    expect(e.pedido(enc('C/6-arreglo-cap_1'))).toMatchObject({ modelo: 'claude-opus-5-5', esfuerzo: 'medium' });
+    const haiku = e.pedido(enc('B/correccion-registro'));
+    expect(haiku).toMatchObject({ modelo: 'claude-haiku-4-5', pensamiento: 8000, maxTokens: 64000 });
+    expect('esfuerzo' in haiku).toBe(false);
     expect(e.pedido({ ...enc('A/1-registro'), maxTokens: 128000 }).maxTokens).toBe(128000);
+  });
+
+  it('la caché de 1 hora va solo en los hechos, el repaso y las disputas, y solo si hay dónde marcarla', () => {
+    const e = new Ejecutor({ modelo: new ModeloFalso({}), almacen: new AlmacenMemoria() });
+    const docs = ['l', 'g', 'f', 'r', 'reg', 'lib', 'pres', 'pas'];
+    const de = (nombre: string): Encargo => ({ clave: `C/${nombre}`, llamada: { nombre, docs, instr: 'x' }, json: true });
+    expect(e.pedido(de('4-hechos'))).toMatchObject({ cacheEn: [4, 7], cacheUnaHora: true, maxTokens: 128000, esfuerzo: 'medium' });
+    expect(e.pedido(de('disputa-cap_1-1'))).toMatchObject({ cacheEn: [4, 7], cacheUnaHora: true });
+    expect('cacheUnaHora' in e.pedido(enc('C/3b-capitulo-01'))).toBe(false);
   });
 });
 
@@ -78,10 +91,9 @@ describe('Ejecutor.uno: cortes por max_tokens y lo que cuesta fallar (revisión 
     const almacen = new AlmacenMemoria();
     const e = new Ejecutor({ modelo: m, almacen, esperar: async (ms) => { esperas.push(ms); } });
     expect(await e.uno(enc('C/3b-capitulo-01'))).toBe('entero');
-    expect(vistos.map((p) => p.maxTokens)).toEqual([64000, MAX_TOKENS_SALIDA]);
-    expect(MAX_TOKENS_SALIDA).toBe(128000);
+    expect(vistos.map((p) => p.maxTokens)).toEqual([64000, 128000]);
     expect(hashDePedido(vistos[1])).not.toBe(hashDePedido(vistos[0]));
-    expect(vistos[1]).toEqual({ ...vistos[0], maxTokens: MAX_TOKENS_SALIDA });
+    expect(vistos[1]).toEqual({ ...vistos[0], maxTokens: 128000 });
     expect(esperas).toEqual([]);
     // Al retomar, la respuesta (la del pedido con el máximo) sale de la memoria: no se paga otra vez.
     const m2 = new ModeloFalso({});
@@ -188,17 +200,17 @@ describe('Ejecutor.varios', () => {
     // LoteFalso no le pasa al modelo lo que hace fallar: en el lote solo llega a responder cap_1.
     expect(enLote.llamadas.map((p) => p.clave)).toEqual(['C/7-estilo-cap_1']);
     expect(directo.llamadas.map((p) => p.clave)).toEqual(['C/7-estilo-cap_2']);
-    expect(e.filas.map((f) => [f.clave, f.lote, f.de_memoria, f.usd])).toEqual([['C/7-estilo-cap_1', true, false, 0.003], ['C/7-estilo-cap_2', false, false, 0.006]]);
+    expect(e.filas.map((f) => [f.clave, f.lote, f.de_memoria, f.usd])).toEqual([['C/7-estilo-cap_1', true, false, 0.00075], ['C/7-estilo-cap_2', false, false, 0.0015]]);
     await e.guardarCostos();
-    expect(JSON.parse((await almacen.leer('costos.json')) as string)).toMatchObject({ total_usd: 0.009, tope_usd: 15 });
+    expect(JSON.parse((await almacen.leer('costos.json')) as string)).toMatchObject({ total_usd: 0.00225, tope_usd: 15 });
   });
 
   it('con lote: lo que el lote devolvió fallado pero cobrado (rechazo, corte) suma al gasto a precio de lote', async () => {
     const lote: Lote = { enviar: async (_g, ps) => ps.map((p) => ({ clave: p.clave, ok: false as const, error: 'max_tokens', uso: { input_tokens: 1000, output_tokens: 100 } })) };
     const e = new Ejecutor({ modelo: new ModeloFalso({ '7-estilo-cap_1': '{}' }), lote, almacen: new AlmacenMemoria() });
     await e.varios([enc('C/7-estilo-cap_1', true)], { lote: true, grupo: 'G' });
-    expect(e.filas.map((f) => [f.clave, f.lote, f.falla, f.usd])).toEqual([['C/7-estilo-cap_1', true, true, 0.003], ['C/7-estilo-cap_1', false, undefined, 0.006]]);
-    expect(e.gastado).toBe(0.009);
+    expect(e.filas.map((f) => [f.clave, f.lote, f.falla, f.usd])).toEqual([['C/7-estilo-cap_1', true, true, 0.00075], ['C/7-estilo-cap_1', false, undefined, 0.0015]]);
+    expect(e.gastado).toBe(0.00225);
   });
 
   it('un corte por max_tokens en el lote cuenta: sin lote se intenta una sola vez más (dos cortes pagos como mucho)', async () => {
@@ -210,7 +222,7 @@ describe('Ejecutor.varios', () => {
     const r = await e.varios([enc('C/3b-capitulo-01')], { lote: true, grupo: 'G' });
     expect(directas).toBe(1);
     // El corte del lote fue el primero: el intento sin lote ya sale con el máximo de salida.
-    expect(maximos).toEqual([MAX_TOKENS_SALIDA]);
+    expect(maximos).toEqual([maxSalidaDe('claude-opus-5-5')]);
     expect([...r.fallas.keys()]).toEqual(['C/3b-capitulo-01']);
     expect(e.filas.filter((f) => f.falla)).toHaveLength(2);
   });
@@ -229,5 +241,105 @@ describe('Ejecutor.varios', () => {
     await expect(e.varios(['C/p1', 'C/p2', 'C/p3', 'C/p4', 'C/p5'].map((k) => enc(k)), { lote: false, grupo: 'G' })).rejects.toThrow('se rompió');
     await new Promise((r) => setTimeout(r, 100));
     expect(claves).toEqual(['C/p1', 'C/p2']);
+  });
+});
+
+describe('Ejecutor con todoPorLote (configuración económica: también las llamadas de a una van por Batch)', () => {
+  /** Un lote que anota cada grupo y cada pedido, y responde con `responder`. */
+  const loteQue = (responder: (p: PedidoModelo, i: number) => Awaited<ReturnType<Lote['enviar']>>[number]) => {
+    const grupos: string[] = [];
+    const pedidos: PedidoModelo[] = [];
+    const lote: Lote = { enviar: async (g, ps) => { grupos.push(g); return ps.map((p) => { pedidos.push(p); return responder(p, pedidos.length - 1); }); } };
+    return { lote, grupos, pedidos };
+  };
+  const bien = (texto: string) => (p: PedidoModelo) => ({ clave: p.clave, ok: true as const, respuesta: { texto, uso: { input_tokens: 1000, output_tokens: 100 }, motivoFin: 'end_turn' } });
+
+  it('una llamada sola va en un lote de una, a mitad de precio; el grupo no lleva "#"', async () => {
+    const { lote, grupos } = loteQue(bien('cap'));
+    const directo = new ModeloFalso({});
+    const almacen = new AlmacenMemoria();
+    const e = new Ejecutor({ modelo: directo, lote, todoPorLote: true, almacen });
+    expect(await e.uno(enc('C/3b-capitulo-01#2'))).toBe('cap');
+    expect(grupos).toEqual(['uno/C/3b-capitulo-01__2']);
+    expect(directo.llamadas).toHaveLength(0);
+    expect(e.filas.map((f) => [f.clave, f.lote, f.usd])).toEqual([['C/3b-capitulo-01#2', true, 0.003]]);
+    // Al retomar sale de la memoria: ni lote ni directa.
+    const otro = loteQue(bien('otro'));
+    expect(await new Ejecutor({ modelo: directo, lote: otro.lote, todoPorLote: true, almacen }).uno(enc('C/3b-capitulo-01#2'))).toBe('cap');
+    expect(otro.grupos).toEqual([]);
+  });
+
+  it('sin todoPorLote, una llamada sola sale directa aunque haya lote (como antes)', async () => {
+    const { lote, grupos } = loteQue(bien('x'));
+    const directo = new ModeloFalso({ '3b-capitulo-01': 'directo' });
+    expect(await new Ejecutor({ modelo: directo, lote, almacen: new AlmacenMemoria() }).uno(enc('C/3b-capitulo-01'))).toBe('directo');
+    expect(grupos).toEqual([]);
+  });
+
+  it('si el lote vuelve con error (no un corte), la llamada sale directa con sus reintentos; lo cobrado suma', async () => {
+    const { lote } = loteQue((p) => ({ clave: p.clave, ok: false, error: 'overloaded', uso: { input_tokens: 1000, output_tokens: 100 } }));
+    const directo = new ModeloFalso({ '3b-capitulo-01': 'directo' });
+    const e = new Ejecutor({ modelo: directo, lote, todoPorLote: true, almacen: new AlmacenMemoria() });
+    expect(await e.uno(enc('C/3b-capitulo-01'))).toBe('directo');
+    expect(directo.llamadas).toHaveLength(1);
+    expect(e.filas.map((f) => [f.lote, f.falla, f.usd])).toEqual([[true, true, 0.003], [false, undefined, 0.006]]);
+  });
+
+  it('Haiku ya pide su máximo (64.000): un corte en el lote no se repite, ni por lote ni directo', async () => {
+    const { lote, grupos } = loteQue((p) => ({ clave: p.clave, ok: false, error: 'max_tokens', porMaxTokens: true, uso: { input_tokens: 1000, output_tokens: 100 } }));
+    const directo = new ModeloFalso({ '7-estilo-cap_1': '{}' });
+    const err = await new Ejecutor({ modelo: directo, lote, todoPorLote: true, almacen: new AlmacenMemoria() }).uno(enc('C/7-estilo-cap_1', true)).catch((x: unknown) => x);
+    expect(err).toBeInstanceOf(ErrorDelModelo);
+    expect(grupos).toEqual(['uno/C/7-estilo-cap_1']);
+    expect(directo.llamadas).toHaveLength(0);
+  });
+
+  it('Opus: el corte del lote se repite por lote con 128.000 (grupo "-max"); la respuesta queda con el hash del pedido original', async () => {
+    const { lote, pedidos, grupos } = loteQue((p, i) => (i === 0
+      ? { clave: p.clave, ok: false, error: 'max_tokens', porMaxTokens: true, uso: { input_tokens: 1000, output_tokens: 100 } }
+      : bien('entero')(p)));
+    const almacen = new AlmacenMemoria();
+    const e = new Ejecutor({ modelo: new ModeloFalso({}), lote, todoPorLote: true, almacen });
+    expect(await e.uno(enc('C/3b-capitulo-01'))).toBe('entero');
+    expect(pedidos.map((p) => p.maxTokens)).toEqual([64000, 128000]);
+    expect(grupos).toEqual(['uno/C/3b-capitulo-01', 'uno/C/3b-capitulo-01-max']);
+    expect(e.filas.map((f) => [f.falla, f.lote])).toEqual([[true, true], [undefined, true]]);
+    const m2 = new ModeloFalso({});
+    expect(await new Ejecutor({ modelo: m2, almacen }).uno(enc('C/3b-capitulo-01'))).toBe('entero');
+    expect(m2.llamadas).toHaveLength(0);
+  });
+
+  it('dos cortes por lote, o un corte de un pedido que ya tenía el máximo: falla sin seguir pagando', async () => {
+    const corta = (p: PedidoModelo) => ({ clave: p.clave, ok: false as const, error: 'max_tokens', porMaxTokens: true, uso: { input_tokens: 1000, output_tokens: 100 } });
+    const a = loteQue(corta);
+    const directo = new ModeloFalso({ '3b-capitulo-01': 'no', '4-hechos': 'no' });
+    const err = await new Ejecutor({ modelo: directo, lote: a.lote, todoPorLote: true, almacen: new AlmacenMemoria() }).uno(enc('C/3b-capitulo-01')).catch((x: unknown) => x);
+    expect(err).toBeInstanceOf(ErrorDelModelo);
+    expect((err as ErrorDelModelo).reintentable).toBe(false);
+    expect(a.grupos).toHaveLength(2);
+    // Los hechos ya piden 128.000: un corte no se repite.
+    const b = loteQue(corta);
+    const err2 = await new Ejecutor({ modelo: directo, lote: b.lote, todoPorLote: true, almacen: new AlmacenMemoria() }).uno(enc('C/4-hechos', true)).catch((x: unknown) => x);
+    expect(err2).toBeInstanceOf(ErrorDelModelo);
+    expect(b.grupos).toHaveLength(1);
+    expect(directo.llamadas).toHaveLength(0);
+  });
+
+  it('el tope de gasto frena también el lote de una', async () => {
+    const { lote, grupos } = loteQue(bien('x'));
+    const e = new Ejecutor({ modelo: new ModeloFalso({}), lote, todoPorLote: true, almacen: new AlmacenMemoria(), topeUsd: 0.003 });
+    await e.uno(enc('C/3b-capitulo-01'));
+    await expect(e.uno(enc('C/3b-capitulo-02'))).rejects.toBeInstanceOf(TopeDeGasto);
+    expect(grupos).toHaveLength(1);
+  });
+
+  it('en una fase: lo que el lote grande devolvió con error se repite en un lote de una antes de ir directo', async () => {
+    const { lote, grupos } = loteQue((p, i) => (i === 0 ? { clave: p.clave, ok: false, error: 'errored' } : bien('{}')(p)));
+    const directo = new ModeloFalso({});
+    const e = new Ejecutor({ modelo: directo, lote, todoPorLote: true, almacen: new AlmacenMemoria() });
+    const r = await e.varios([enc('C/7-estilo-cap_1', true)], { lote: true, grupo: 'C-estilo-1' });
+    expect(r.textos.get('C/7-estilo-cap_1')).toBe('{}');
+    expect(grupos).toEqual(['C-estilo-1', 'uno/C/7-estilo-cap_1']);
+    expect(directo.llamadas).toHaveLength(0);
   });
 });

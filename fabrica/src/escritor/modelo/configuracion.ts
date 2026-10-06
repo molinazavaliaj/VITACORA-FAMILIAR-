@@ -1,0 +1,44 @@
+// fabrica/src/escritor/modelo/configuracion.ts
+// La configuración económica (Naza, 07/10/2026: "no podemos aceptar más de 9 el libro entero").
+// Qué modelo y cuánto pensamiento lleva cada llamada, por su nombre (Llamada.nombre):
+// - pensamiento al máximo (xhigh) solo en el capítulo y la primera página (Naza eligió la primera página;
+//   la carta y "Antes de cerrar" van con medio);
+// - Opus con pensamiento medio en lo demás que escribe o revisa;
+// - Haiku 4.5 en lo mecánico. Haiku 4.5 no acepta `effort` ni pensamiento adaptativo: piensa con
+//   `budget_tokens` (skill claude-api, 07/10/2026); su salida máxima es 64.000;
+// - los hechos y su repaso piden 128.000 de salida desde el primer pedido (el lote de la prueba del 07/10
+//   los cortó a 64.000 y se pagaron dos veces), y comparten con las disputas una caché de 1 hora.
+import type { Esfuerzo } from './tipos.js';
+
+export const OPUS = 'claude-opus-5-5';
+export const HAIKU = 'claude-haiku-4-5';
+
+/** `esfuerzo`: pensamiento adaptativo con ese nivel (Opus). `pensamiento`: presupuesto fijo (Haiku). */
+export type Rol = { modelo: string; maxTokens: number; esfuerzo?: Esfuerzo; pensamiento?: number };
+
+const MAX_SALIDA: Record<string, number> = { [OPUS]: 128000, 'claude-sonnet-5-5': 128000, [HAIKU]: 64000 };
+
+/** Máximo de salida del modelo: lo que pide el reintento de un corte por max_tokens. */
+export function maxSalidaDe(modelo: string): number {
+  const m = MAX_SALIDA[modelo];
+  if (!m) throw new Error(`configuración del escritor: no hay máximo de salida para ${modelo}`);
+  return m;
+}
+
+const opus = (esfuerzo: Esfuerzo, maxTokens = 64000): Rol => ({ modelo: OPUS, maxTokens, esfuerzo });
+const HAIKU_ROL: Rol = { modelo: HAIKU, maxTokens: 64000, pensamiento: 8000 };
+
+const MAXIMO = /^(3b-capitulo-|3a-primera)/;
+const HECHOS = /^4-hechos(-repaso)?$/;
+const MECANICO = /^(3r-resumen-|3t-titulo-|3e-sus-frases|7-estilo-|correccion-registro|correccion-plan|dudas$)/;
+
+export function rolDe(nombre: string): Rol {
+  if (MAXIMO.test(nombre)) return opus('xhigh');
+  if (HECHOS.test(nombre)) return opus('medium', 128000);
+  if (MECANICO.test(nombre)) return { ...HAIKU_ROL };
+  // Registro, plan, armador, carta, Antes de cerrar, veedor, arreglos, disputas y cualquier llamada nueva.
+  return opus('medium');
+}
+
+/** Las llamadas que leen el libro entero: su caché dura 1 hora (la reusan las disputas y el repaso, que llegan después de un lote). */
+export const cacheDeUnaHora = (nombre: string): boolean => HECHOS.test(nombre) || nombre.startsWith('disputa-');

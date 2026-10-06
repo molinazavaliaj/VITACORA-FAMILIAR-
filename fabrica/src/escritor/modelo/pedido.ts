@@ -22,13 +22,21 @@ export function puntosDeCache(nombre: string, docs: string[]): number[] {
   return [];
 }
 
+/**
+ * Con `esfuerzo` (Opus): pensamiento adaptativo y `output_config.effort`. Con `pensamiento` (Haiku 4.5, que no acepta
+ * `effort` ni el adaptativo): `budget_tokens`. Sin ninguno de los dos, no va `thinking`.
+ */
 export function armarParams(p: PedidoModelo): Record<string, unknown> {
+  const cache = p.cacheUnaHora ? { type: 'ephemeral', ttl: '1h' } : { type: 'ephemeral' };
   const content = p.bloques.map((texto, i) => ({
     type: 'text',
     text: i < p.bloques.length - 1 ? `${texto}\n\n` : texto,
-    ...(p.cacheEn.includes(i) ? { cache_control: { type: 'ephemeral' } } : {}),
+    ...(p.cacheEn.includes(i) ? { cache_control: cache } : {}),
   }));
-  return { model: p.modelo, max_tokens: p.maxTokens, thinking: { type: 'adaptive' }, output_config: { effort: p.esfuerzo }, messages: [{ role: 'user', content }] };
+  const pensar = p.esfuerzo
+    ? { thinking: { type: 'adaptive' }, output_config: { effort: p.esfuerzo } }
+    : p.pensamiento ? { thinking: { type: 'enabled', budget_tokens: p.pensamiento } } : {};
+  return { model: p.modelo, max_tokens: p.maxTokens, ...pensar, messages: [{ role: 'user', content }] };
 }
 
 /** El hash del pedido tal como sale a la API: lo usan la memoria del ejecutor y el lote para no reusar algo viejo. */

@@ -1,6 +1,7 @@
 // Cuánto puede costar escribir un capítulo, ANTES de llamar (decisión 7 del spec: la prueba paga se avisa).
-// Dos números, ninguno es una promesa: la entrada va a precio lleno (sin caché ni Batch) y la salida son
-// presupuestos supuestos (SALIDA_ESTIMADA), no medidos.
+// Dos números, ninguno es una promesa: la entrada va sin caché, cada fila con el precio del modelo de su
+// llamada (modelo/configuracion.ts) y a mitad de precio si va por Batch; la salida son presupuestos supuestos
+// (SALIDA_ESTIMADA), no medidos.
 //  - típica: el camino sin sobresaltos (un arreglo, una revisión).
 //  - peor caso: la típica más una reescritura del capítulo (C30), un reintento de JSON del capítulo y una
 //    segunda vuelta de revisión (hechos, veedor, arreglo y repaso). La reescritura de la primera página
@@ -11,14 +12,20 @@
 // respuestas del plan para ese capítulo (idsDeCapitulo).
 import type { Carpeta } from './carpeta.js';
 import { PRECIOS_ESCRITOR } from './costos.js';
+import { rolDe } from './modelo/configuracion.js';
 import { idsDeCapitulo, respuestas, salida } from './lectura.js';
 import { llamadaArmador, llamadaArreglo, llamadaCapitulo, llamadaEstilo, llamadaHechos, llamadaResumen, llamadaTitulo, llamadaVeedor, textoParaElModelo, type Llamada } from './llamadas/armar.js';
 import { archivoDe } from './texto.js';
 
-export type FilaEstimada = { paso: string; entradaTokens: number; salidaTokens: number; usd: number };
+export type FilaEstimada = { paso: string; modelo: string; entradaTokens: number; salidaTokens: number; usd: number };
+/**
+ * Salida con pensamiento, por paso. La prueba paga del 07/10 (todo xhigh) midió: capítulo 43.099, armador 27.049,
+ * hechos 61.306, veedor 38.388, arreglo 16.025, repaso 15.834. Con la configuración económica el capítulo sigue
+ * en xhigh; lo de pensamiento medio se supone en algo menos de la mitad; Haiku, con su presupuesto de 8.000.
+ */
 export const SALIDA_ESTIMADA: Record<string, number> = {
-  '2h-armador': 8000, '3b-capitulo': 24000, '3r-resumen': 3000, '4-hechos': 16000, '5c-veedor': 10000,
-  '6-arreglo': 10000, '4-hechos-repaso': 12000, '7-estilo': 8000, '3t-titulo': 3000,
+  '2h-armador': 12000, '3b-capitulo': 45000, '3r-resumen': 3000, '4-hechos': 30000, '5c-veedor': 16000,
+  '6-arreglo': 8000, '4-hechos-repaso': 8000, '7-estilo': 8000, '3t-titulo': 3000,
 };
 const tokens = (t: string): number => Math.ceil(t.length / 3.5);
 const redondear = (x: number): number => Math.round(x * 1e4) / 1e4;
@@ -33,13 +40,15 @@ export function largoDeRelleno(c: Carpeta, n: number): number {
 
 export type Estimacion = { filas: FilaEstimada[]; total: number; filasPeor: FilaEstimada[]; peorCaso: number; conRelleno: boolean };
 
-export function estimarUsd(c: Carpeta, o: { soloCapitulo: number }): Estimacion {
+export function estimarUsd(c: Carpeta, o: { soloCapitulo: number; lote?: boolean }): Estimacion {
   const n = o.soloCapitulo;
-  const p = PRECIOS_ESCRITOR['claude-opus-5-5'];
-  const fila = (paso: string, l: Llamada | string, salidaClave = paso): FilaEstimada => {
-    const entradaTokens = tokens(typeof l === 'string' ? l : textoParaElModelo(l));
+  const factor = o.lote ? 0.5 : 1;
+  const fila = (paso: string, l: Llamada, salidaClave = paso): FilaEstimada => {
+    const { modelo } = rolDe(l.nombre);
+    const p = PRECIOS_ESCRITOR[modelo];
+    const entradaTokens = tokens(textoParaElModelo(l));
     const salidaTokens = SALIDA_ESTIMADA[salidaClave];
-    return { paso, entradaTokens, salidaTokens, usd: redondear((entradaTokens * p.input + salidaTokens * p.output) / 1e6) };
+    return { paso, modelo, entradaTokens, salidaTokens, usd: redondear(((entradaTokens * p.input + salidaTokens * p.output) / 1e6) * factor) };
   };
   const conRelleno = !c.existe(salida(archivoDe(`cap_${n}`)));
   const armador = llamadaArmador(c, n);

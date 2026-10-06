@@ -1,6 +1,6 @@
 // fabrica/src/escritor/orquestador/etapa-b.ts
 // Etapa B (spec, decisión 4): las correcciones de la familia van a confirmado.xml (llegan a todos los
-// pasos) y al registro con el modelo barato (tarea mecánica). C14 lo verifica; si falla, Opus rehace
+// pasos) y al registro con el modelo barato (Haiku 4.5, modelo/configuracion.ts; tarea mecánica). C14 lo verifica; si falla, Opus rehace
 // registro y plan. Sin correcciones, no se llama a ningún modelo.
 //
 // La Etapa B arranca SIEMPRE de la carpeta que dejó la Etapa A (carpeta-A.json): agregarConfirmados no es
@@ -27,7 +27,7 @@ async function terminar(x: Contexto, r: ResultadoEtapaB): Promise<ResultadoEtapa
 /** El barato pasa las correcciones al plan (entero, mismos capítulos) y los controles del plan lo verifican. */
 async function corregirPlanBarato(x: Contexto): Promise<boolean> {
   try {
-    const texto = await x.ej.uno({ clave: 'B/correccion-plan', llamada: llamadaCorreccionPlan(x.c), json: true, rol: 'barato' });
+    const texto = await x.ej.uno({ clave: 'B/correccion-plan', llamada: llamadaCorreccionPlan(x.c), json: true });
     const plan = validarPlanCorregido(leerJSON(x.c, salida('plan.json')), parseJSONTolerante(texto));
     x.c.escribir(salida('plan.json'), JSON.stringify(plan, null, 1));
     const r = controlar(x.c, 'plan');
@@ -57,7 +57,7 @@ async function etapaBSinCostos(x: Contexto, correcciones: CorreccionFamilia[]): 
   }
   if (!agregarConfirmados(x.c, correcciones) && !correcciones.some((k) => k.texto.trim())) return terminar(x, { ok: true, corregido: 'nada' });
   try {
-    const texto = await x.ej.uno({ clave: 'B/correccion-registro', llamada: llamadaCorreccion(x.c), json: true, rol: 'barato' });
+    const texto = await x.ej.uno({ clave: 'B/correccion-registro', llamada: llamadaCorreccion(x.c), json: true });
     x.c.escribir(salida('registro.json'), JSON.stringify(aplicarCorreccion(leerJSON(x.c, salida('registro.json')), parseJSONTolerante(texto)), null, 1));
     const r = controlar(x.c, 'registro');
     x.log(`registro corregido (barato): ${r.resumen.split('\n')[0]}`);

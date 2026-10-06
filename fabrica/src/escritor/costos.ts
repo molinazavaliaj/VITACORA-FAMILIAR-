@@ -14,6 +14,8 @@ export type UsoApi = {
 export const PRECIOS_ESCRITOR: Record<string, { input: number; output: number; cacheRead: number }> = {
   'claude-opus-5-5': { input: 4, output: 20, cacheRead: 0.2 },
   'claude-sonnet-5-5': { input: 2, output: 10, cacheRead: 0.2 },
+  // 07/10/2026: lo mecánico de la configuración económica.
+  'claude-haiku-4-5': { input: 1, output: 5, cacheRead: 0.1 },
 };
 
 const t = (v: number | null | undefined): number => (typeof v === 'number' && Number.isFinite(v) ? v : 0);

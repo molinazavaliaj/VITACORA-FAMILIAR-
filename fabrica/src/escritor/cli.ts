@@ -54,17 +54,17 @@ export function guardarCarpeta(c: Carpeta, dir: string): void {
 }
 
 /** El texto de la estimación que se muestra ANTES de llamar (nada de esto llama a la API). */
-export function textoEstimacion(c: Carpeta, a: Pick<ArgsCli, 'soloCapitulo' | 'topeUsd'>): string[] {
+export function textoEstimacion(c: Carpeta, a: Pick<ArgsCli, 'soloCapitulo' | 'topeUsd'> & { lote?: boolean }): string[] {
   if (a.soloCapitulo === undefined) return ['Sin estimación: solo se estima con --solo-capitulo N (el libro entero no se estima).'];
-  const e = estimarUsd(c, { soloCapitulo: a.soloCapitulo });
-  const l = [`Estimación del capítulo ${a.soloCapitulo} (entrada a precio lleno, salida supuesta; no es un tope ni una promesa):`];
+  const e = estimarUsd(c, { soloCapitulo: a.soloCapitulo, lote: a.lote });
+  const l = [`Estimación del capítulo ${a.soloCapitulo} (entrada sin caché, ${a.lote ? 'todo por Batch (mitad de precio)' : 'sin Batch'}, salida supuesta; no es un tope ni una promesa):`];
   if (e.conRelleno) l.push('  (el capítulo todavía no está escrito: las filas que lo incluyen usan un capítulo de relleno)');
-  for (const f of e.filasPeor) l.push(`  ${f.paso.padEnd(28)} entrada ~${f.entradaTokens} tok, salida ~${f.salidaTokens} tok  USD ${f.usd.toFixed(4)}`);
+  for (const f of e.filasPeor) l.push(`  ${f.paso.padEnd(28)} ${f.modelo.padEnd(16)} entrada ~${f.entradaTokens} tok, salida ~${f.salidaTokens} tok  USD ${f.usd.toFixed(4)}`);
   l.push(`  estimación típica: USD ${e.total.toFixed(2)}`);
   l.push(`  peor caso: USD ${e.peorCaso.toFixed(2)} (con reescritura C30, reintento de JSON y una segunda vuelta de revisión; la reescritura de la primera página, C7, no corre con --solo-capitulo)`);
   l.push(`  tope actual: USD ${a.topeUsd}`);
   if (e.peorCaso >= 0.7 * a.topeUsd) l.push(`  AVISO: el peor caso llega al ${Math.round((e.peorCaso / a.topeUsd) * 100)}% del tope. Para cubrirlo, usar --tope ${Math.ceil(e.peorCaso * 1.1)}.`);
-  l.push('  El Batch (--sin-lote lo apaga) puede bajar el costo real; no se promete ningún número.');
+  l.push(a.lote ? '  Todo va por Batch (--sin-lote lo apaga): un libro puede tardar horas.' : '  Sin Batch: todo a precio lleno.');
   return l;
 }
 

@@ -38,7 +38,7 @@ describe('Etapa B', () => {
     const negra = { ...reg.personas[3], nombre: 'Ofelia Sánchez', apodos: ['la Negra'] };
     const { x, modelo, almacen } = armar({ 'correccion-registro': JSON.stringify({ personas: [negra], confirmados: [CONFIRMADO] }), 'correccion-plan': planConNegra() });
     expect(await etapaB(x, [CORRECCION])).toEqual({ ok: true, corregido: 'barato' });
-    expect(modelo.llamadas.map((p) => [p.clave, p.modelo, p.esfuerzo])).toEqual([['B/correccion-registro', 'claude-sonnet-5-5', 'low'], ['B/correccion-plan', 'claude-sonnet-5-5', 'low']]);
+    expect(modelo.llamadas.map((p) => [p.clave, p.modelo, p.pensamiento])).toEqual([['B/correccion-registro', 'claude-haiku-4-5', 8000], ['B/correccion-plan', 'claude-haiku-4-5', 8000]]);
     expect(x.c.leer('salidas/plan.json')).toContain('Ofelia Sánchez');
     expect(leerJSON(x.c, 'salidas/registro.json').personas[3].nombre).toBe('Ofelia Sánchez');
     expect(x.c.leer('entradas/confirmado.xml')).toContain('- La Negra se llamaba Ofelia Sánchez.');
@@ -53,7 +53,7 @@ describe('Etapa B', () => {
       '2-plan': salidasModeloNelida()['2-plan'],
     });
     expect(await etapaB(x, [CORRECCION])).toEqual({ ok: true, corregido: 'opus' });
-    expect(modelo.llamadas.map((p) => [p.clave, p.modelo])).toEqual([['B/correccion-registro', 'claude-sonnet-5-5'], ['B/1-registro', 'claude-opus-5-5'], ['B/2-plan', 'claude-opus-5-5']]);
+    expect(modelo.llamadas.map((p) => [p.clave, p.modelo])).toEqual([['B/correccion-registro', 'claude-haiku-4-5'], ['B/1-registro', 'claude-opus-5-5'], ['B/2-plan', 'claude-opus-5-5']]);
     expect(modelo.llamadas[1].bloques.join('\n')).toContain('<confirmado_por_el_narrador>');
   });
 
@@ -73,7 +73,7 @@ describe('Etapa B', () => {
       '2-plan': salidasModeloNelida()['2-plan'],
     });
     expect(await etapaB(x, [CORRECCION])).toEqual({ ok: true, corregido: 'opus' });
-    expect(modelo.llamadas.map((p) => [p.clave, p.modelo])).toEqual([['B/correccion-registro', 'claude-sonnet-5-5'], ['B/correccion-plan', 'claude-sonnet-5-5'], ['B/2-plan', 'claude-opus-5-5']]);
+    expect(modelo.llamadas.map((p) => [p.clave, p.modelo])).toEqual([['B/correccion-registro', 'claude-haiku-4-5'], ['B/correccion-plan', 'claude-haiku-4-5'], ['B/2-plan', 'claude-opus-5-5']]);
     expect(leerJSON(x.c, 'salidas/registro.json').personas[3].nombre).toBe('Ofelia Sánchez');
   });
 

@@ -3,7 +3,7 @@
 // - checkpoint por llamada: cada respuesta queda en el almacén con el hash del pedido; si se corta,
 //   volver a correr la etapa saca de ahí lo ya pagado (y lo suma al gasto del libro);
 // - reintentos con espera para errores de API (red, 429, 529, 5xx);
-// - un corte por max_tokens se repite una sola vez, con el máximo de salida del modelo (MAX_TOKENS_SALIDA); si el
+// - un corte por max_tokens se repite una sola vez, con el máximo de salida del modelo (maxSalidaDe); si el
 //   pedido ya lo tenía no se repite, y si se corta de nuevo la llamada falla. La respuesta queda en la memoria
 //   con el hash del pedido original (al retomar se pide lo mismo y sale de ahí);
 // - un reintento si el JSON no parsea (receta, sección 5);
@@ -13,33 +13,28 @@
 // - una fila de uso por llamada (costos.json);
 // - fases paralelas: con lote (Batch, mitad de precio) o en paralelo con límite; lo que el lote
 //   devuelve con error se repite sin lote (un corte en el lote ya cuenta como el primer corte);
-//   si la fase falla, ningún trabajador arranca otra llamada.
+//   si la fase falla, ningún trabajador arranca otra llamada;
+// - con `todoPorLote` (configuración económica, Naza 07/10: "aunque tarde horas"), también las llamadas de a una
+//   van por Batch, en un lote de una; si el lote se corta por max_tokens, se repite por lote con el máximo; si
+//   vuelve con otro error, sale directa con los reintentos de siempre.
+// El modelo y el pensamiento de cada llamada salen de su nombre (modelo/configuracion.ts).
 // Los reintentos son SOLO los de acá: el cliente del SDK reintenta solo (maxRetries 2 por defecto) y los
 // reintentos se apilarían. Por eso el cliente real se crea con OPCIONES_CLIENTE: new Anthropic(OPCIONES_CLIENTE).
 import type { Almacen } from './almacen/tipos.js';
 import { parseJSONTolerante } from './carpeta.js';
 import { usdDeLlamada, type UsoApi } from './costos.js';
 import type { Llamada } from './llamadas/armar.js';
+import { cacheDeUnaHora, maxSalidaDe, rolDe } from './modelo/configuracion.js';
 import { bloquesDeLlamada, hashDePedido, puntosDeCache } from './modelo/pedido.js';
-import { ErrorDelModelo, type Esfuerzo, type Lote, type Modelo, type PedidoModelo, type RespuestaModelo } from './modelo/tipos.js';
+import { ErrorDelModelo, type Lote, type Modelo, type PedidoModelo, type RespuestaModelo } from './modelo/tipos.js';
 
 /** Opciones para crear el cliente de Anthropic: sin reintentos del SDK (la política es la del ejecutor). */
 export const OPCIONES_CLIENTE = { maxRetries: 0 } as const;
 
-/** Máximo de salida de Opus 5.5 y Sonnet 5.5 (128K; skill claude-api, 06/10/2026): el reintento de un corte por max_tokens. */
-export const MAX_TOKENS_SALIDA = 128000;
-
-export type Rol = { modelo: string; maxTokens: number; esfuerzo: Esfuerzo };
-/** Opus en todo lo que escribe (Naza, 02/10); el barato solo corrige el registro (spec, decisión 4). Se ajusta después de la prueba paga. */
-export const ROLES: Record<'opus' | 'barato', Rol> = {
-  opus: { modelo: 'claude-opus-5-5', maxTokens: 64000, esfuerzo: 'xhigh' },
-  barato: { modelo: 'claude-sonnet-5-5', maxTokens: 64000, esfuerzo: 'low' },
-};
-
-export type Encargo = { clave: string; llamada: Llamada; json: boolean; rol?: 'opus' | 'barato'; maxTokens?: number };
+export type Encargo = { clave: string; llamada: Llamada; json: boolean; maxTokens?: number };
 /** `falla: true` = un intento que la API cobró pero no sirvió (rechazo, corte); no queda en la memoria. */
 export type FilaUso = { clave: string; modelo: string; lote: boolean; de_memoria: boolean; input: number; output: number; cache_write: number; cache_read: number; usd: number; falla?: boolean };
-export type OpcionesEjecutor = { modelo: Modelo; lote?: Lote; almacen: Almacen; topeUsd?: number; esperar?: (ms: number) => Promise<void>; esperasMs?: number[]; limite?: number; log?: (s: string) => void };
+export type OpcionesEjecutor = { modelo: Modelo; lote?: Lote; todoPorLote?: boolean; almacen: Almacen; topeUsd?: number; esperar?: (ms: number) => Promise<void>; esperasMs?: number[]; limite?: number; log?: (s: string) => void };
 export type ResultadoVarios = { textos: Map<string, string>; fallas: Map<string, string> };
 
 export class TopeDeGasto extends Error {
@@ -53,7 +48,8 @@ type Memoria = { hash: string; texto: string; fila: FilaUso };
 const RUTA_FALLAS = 'fallas.json';
 // El reintento lleva '#' en la clave ("C/3b-capitulo-06#2"): ni '#' ni '~' son claves válidas de Supabase
 // Storage (isValidKey del servidor; ver test/escritor/claves-storage.test.ts). '__' sí, y ninguna clave lo trae.
-const rutaPaso = (clave: string): string => `pasos/${clave.replace(/#/g, '__')}.json`;
+const sinNumeral = (clave: string): string => clave.replace(/#/g, '__');
+const rutaPaso = (clave: string): string => `pasos/${sinNumeral(clave)}.json`;
 const n = (v: number | null | undefined): number => (typeof v === 'number' ? v : 0);
 const esJSON = (t: string): boolean => { try { parseJSONTolerante(t); return true; } catch { return false; } };
 
@@ -93,8 +89,20 @@ export class Ejecutor {
   }
 
   pedido(e: Encargo): PedidoModelo {
-    const rol = ROLES[e.rol ?? 'opus'];
-    return { clave: e.clave, modelo: rol.modelo, bloques: bloquesDeLlamada(e.llamada), cacheEn: puntosDeCache(e.llamada.nombre, e.llamada.docs), maxTokens: e.maxTokens ?? rol.maxTokens, esfuerzo: rol.esfuerzo };
+    const { modelo, maxTokens, esfuerzo, pensamiento } = rolDe(e.llamada.nombre);
+    const cacheEn = puntosDeCache(e.llamada.nombre, e.llamada.docs);
+    return {
+      clave: e.clave, modelo, bloques: bloquesDeLlamada(e.llamada), cacheEn, maxTokens: e.maxTokens ?? maxTokens,
+      ...(esfuerzo ? { esfuerzo } : {}), ...(pensamiento ? { pensamiento } : {}),
+      ...(cacheEn.length && cacheDeUnaHora(e.llamada.nombre) ? { cacheUnaHora: true } : {}),
+    };
+  }
+
+  /** El mismo pedido con el máximo de salida de su modelo; si ya lo tenía, un corte no se repite. */
+  private conMaximo(p: PedidoModelo): PedidoModelo {
+    const max = maxSalidaDe(p.modelo);
+    if (p.maxTokens >= max) throw new ErrorDelModelo(`${p.clave}: la respuesta se cortó por max_tokens con el máximo de salida (${p.maxTokens})`, false, { porMaxTokens: true });
+    return { ...p, maxTokens: max };
   }
 
   private hash(p: PedidoModelo): string {
@@ -151,12 +159,8 @@ export class Ejecutor {
     const esperar = this.o.esperar ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
     let i = 0;
     let cortes = this.cortesPrevios.get(p.clave) ?? 0;
-    const conMaximo = (): PedidoModelo => {
-      if (p.maxTokens >= MAX_TOKENS_SALIDA) throw new ErrorDelModelo(`${p.clave}: la respuesta se cortó por max_tokens con el máximo de salida (${p.maxTokens})`, false, { porMaxTokens: true });
-      return { ...p, maxTokens: MAX_TOKENS_SALIDA };
-    };
     // Si ya se cortó en el lote, el intento sin lote es el reintento: sale con el máximo.
-    let actual = cortes >= 1 ? conMaximo() : p;
+    let actual = cortes >= 1 ? this.conMaximo(p) : p;
     for (;;) {
       this.verificarTope();
       try {
@@ -167,8 +171,8 @@ export class Ejecutor {
         if (err.porMaxTokens) {
           // Un corte se repite una vez, sin esperar y con más lugar; el segundo corta la llamada (cada uno puede costar más de un dólar).
           if (cortes++ >= 1) throw new ErrorDelModelo(`${p.clave}: la respuesta se cortó por max_tokens dos veces`, false, { porMaxTokens: true });
-          actual = conMaximo();
-          this.o.log?.(`${p.clave}: ${err.message}; se pide una vez más con max_tokens ${MAX_TOKENS_SALIDA}`);
+          actual = this.conMaximo(p);
+          this.o.log?.(`${p.clave}: ${err.message}; se pide una vez más con max_tokens ${actual.maxTokens}`);
           continue;
         }
         if (!err.reintentable || i >= esperas.length) throw err;
@@ -189,9 +193,43 @@ export class Ejecutor {
       }
       return m.texto;
     }
+    if (this.o.todoPorLote && this.o.lote) {
+      const t = await this.porLote(p);
+      if (t !== null) return t;
+    }
     const r = await this.llamarConReintentos(p);
     await this.anotar(p, r, false);
     return r.texto;
+  }
+
+  /**
+   * Una llamada sola por Batch (lote de una). Un corte por max_tokens se repite una vez por lote con el máximo
+   * de salida; otro error devuelve null y la llamada sale directa. La respuesta queda en la memoria con el hash
+   * del pedido original, como en `llamarConReintentos`.
+   */
+  private async porLote(p: PedidoModelo): Promise<string | null> {
+    const lote = this.o.lote as Lote;
+    let actual = (this.cortesPrevios.get(p.clave) ?? 0) >= 1 ? this.conMaximo(p) : p;
+    for (;;) {
+      this.verificarTope();
+      const grupo = `uno/${sinNumeral(p.clave)}${actual === p ? '' : '-max'}`;
+      const [r] = await lote.enviar(grupo, [actual]);
+      if (r?.ok) {
+        await this.anotar(p, r.respuesta, true);
+        return r.respuesta.texto;
+      }
+      if (r?.uso) await this.anotarFalla(actual, r.uso, true);
+      if (r && !r.ok && r.porMaxTokens) {
+        if (actual !== p) throw new ErrorDelModelo(`${p.clave}: la respuesta se cortó por max_tokens dos veces`, false, { porMaxTokens: true });
+        // Si el pedido ya tenía el máximo, conMaximo tira (no reintentable): no se sigue pagando.
+        this.cortesPrevios.set(p.clave, 1);
+        actual = this.conMaximo(p);
+        this.o.log?.(`${p.clave}: el lote se cortó por max_tokens; va otro lote con max_tokens ${actual.maxTokens}`);
+        continue;
+      }
+      this.o.log?.(`${p.clave}: el lote volvió con error (${r && !r.ok ? r.error : 'sin resultado'}); va sin lote`);
+      return null;
+    }
   }
 
   /** Una llamada: de la memoria si ya se pagó; si no, a la API. Con json, un pedido más si no parsea. */

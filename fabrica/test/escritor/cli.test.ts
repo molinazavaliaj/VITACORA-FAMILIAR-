@@ -46,6 +46,21 @@ describe('estimación', () => {
   });
 });
 
+describe('estimación con la configuración económica', () => {
+  it('cada fila con el modelo de su llamada: Haiku en resumen, estilo y título; Opus en lo demás', () => {
+    const e = estimarUsd(carpetaNelida(), { soloCapitulo: 1 });
+    const modelo = Object.fromEntries(e.filas.map((f) => [f.paso, f.modelo]));
+    for (const p of ['3r-resumen', '7-estilo', '3t-titulo']) expect(modelo[p], p).toBe('claude-haiku-4-5');
+    for (const p of ['2h-armador', '3b-capitulo', '4-hechos', '5c-veedor', '6-arreglo', '4-hechos-repaso']) expect(modelo[p], p).toBe('claude-opus-5-5');
+  });
+  it('con lote, todo a mitad de precio; el texto lo dice', () => {
+    const lleno = estimarUsd(carpetaNelida(), { soloCapitulo: 1 });
+    const lote = estimarUsd(carpetaNelida(), { soloCapitulo: 1, lote: true });
+    lote.filas.forEach((f, i) => expect(f.usd).toBeCloseTo(lleno.filas[i].usd / 2, 3));
+    expect(textoEstimacion(carpetaNelida(), { soloCapitulo: 1, topeUsd: 15, lote: true }).join(' ')).toMatch(/todo por Batch/);
+  });
+});
+
 describe('estimación honesta', () => {
   const sinCap1 = () => { const c = carpetaNelida(); c.borrar('salidas/capitulo_01.md'); return c; };
   it('capítulo sin escribir: usa un capítulo de relleno en las filas que lo incluyen', () => {

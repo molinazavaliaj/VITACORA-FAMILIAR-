@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { AlmacenMemoria } from '../../src/escritor/almacen/memoria.js';
 import type { Carpeta } from '../../src/escritor/carpeta.js';
+import { usdDeLlamada } from '../../src/escritor/costos.js';
 import { Ejecutor } from '../../src/escritor/ejecutor.js';
 import { ModeloFalso } from '../../src/escritor/modelo/falso.js';
 import type { Contexto } from '../../src/escritor/orquestador/contexto.js';
@@ -34,7 +35,14 @@ describe('Etapa C', () => {
     expect(r.libro).toContain('Una noche la cuenta no daba.');
     expect(r.libro).not.toContain('[[R');
     expect(r).toMatchObject({ capitulos: 2, arreglados: [], disputas: 0 });
-    expect(r.usd).toBe(Math.round(claves.length * 0.006 * 1e6) / 1e6);
+    const esperado = modelo.llamadas.reduce((s, p) => s + usdDeLlamada(p.modelo, { input_tokens: 1000, output_tokens: 100 }, { lote: false }), 0);
+    expect(r.usd).toBe(Math.round(esperado * 1e6) / 1e6);
+    // Configuración económica: xhigh solo en capítulos y primera página; Haiku en lo mecánico; Opus medio en lo demás.
+    const como = (p: { modelo: string; esfuerzo?: string }) => `${p.modelo}${p.esfuerzo ? ` ${p.esfuerzo}` : ''}`;
+    const por = Object.fromEntries(modelo.llamadas.map((p) => [p.clave, como(p)]));
+    for (const k of ['C/3b-capitulo-01', 'C/3b-capitulo-02', 'C/3a-primera']) expect(por[k], k).toBe('claude-opus-5-5 xhigh');
+    for (const k of ['C/2h-armador-01', 'C/3c-carta', 'C/3d-antes-de-cerrar', 'C/5c-veedor', 'C/4-hechos']) expect(por[k], k).toBe('claude-opus-5-5 medium');
+    for (const k of ['C/3r-resumen-cap_1', 'C/3e-sus-frases', 'C/7-estilo-cap_1', 'C/7-estilo-carta-2', 'C/3t-titulo-01']) expect(por[k], k).toBe('claude-haiku-4-5');
     for (const k of ['libro.md', 'informe.md', 'carpeta-C.json', 'costos.json']) expect(await almacen.leer(k), k).not.toBeNull();
     expect(x.c.existe('sin-revision/capitulo_01.md') && x.c.existe('sin-estilo/carta.md')).toBe(true);
   });
