@@ -15,11 +15,19 @@ export type ResultadoEtapaB = { ok: true; corregido: 'nada' | 'barato' | 'opus' 
 
 async function terminar(x: Contexto, r: ResultadoEtapaB): Promise<ResultadoEtapaB> {
   await guardarSnapshot(x, 'B');
-  await x.ej.guardarCostos();
   return r;
 }
 
 export async function etapaB(x: Contexto, correcciones: CorreccionFamilia[]): Promise<ResultadoEtapaB> {
+  // Lo pagado queda anotado aunque la etapa corte (tope, error de la API); el snapshot, solo si la etapa termina.
+  try {
+    return await etapaBSinCostos(x, correcciones);
+  } finally {
+    await x.ej.guardarCostos();
+  }
+}
+
+async function etapaBSinCostos(x: Contexto, correcciones: CorreccionFamilia[]): Promise<ResultadoEtapaB> {
   if (!agregarConfirmados(x.c, correcciones) && !correcciones.some((k) => k.texto.trim())) return terminar(x, { ok: true, corregido: 'nada' });
   try {
     const texto = await x.ej.uno({ clave: 'B/correccion-registro', llamada: llamadaCorreccion(x.c), json: true, rol: 'barato' });

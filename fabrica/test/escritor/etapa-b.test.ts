@@ -47,4 +47,11 @@ describe('Etapa B', () => {
     expect(modelo.llamadas.map((p) => [p.clave, p.modelo])).toEqual([['B/correccion-registro', 'claude-sonnet-5-5'], ['B/1-registro', 'claude-opus-5-5'], ['B/2-plan', 'claude-opus-5-5']]);
     expect(modelo.llamadas[1].bloques.join('\n')).toContain('<confirmado_por_el_narrador>');
   });
+
+  it('si algo se corta en medio (error de la API), lo pagado queda en costos.json', async () => {
+    const { x, almacen } = armar({ 'correccion-registro': JSON.stringify({ confirmados: [] }) });
+    await expect(etapaB(x, [CORRECCION])).rejects.toThrow();
+    expect(JSON.parse((await almacen.leer('costos.json')) as string).filas.length).toBeGreaterThanOrEqual(1);
+    expect(await almacen.leer('carpeta-B.json')).toBeNull();
+  });
 });
