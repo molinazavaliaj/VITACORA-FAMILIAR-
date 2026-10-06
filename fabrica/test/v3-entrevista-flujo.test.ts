@@ -119,6 +119,8 @@ describe('entrevista: los recorridos del amor (metodo-entrevista.md, "Bloque 6, 
     'separada-sola': YA_NO,
     'separada-de-nuevo-en-pareja': SIGUE,
     'viuda-sola': YA_NO,
+    // Naza, 06/10: lo dijo en el repaso de AM0, en audio: AMH no se manda y cuenta como "no".
+    'viuda-lo-dijo-en-el-repaso': YA_NO.filter((id) => id !== 'AMH'),
     'viuda-rehizo': SIGUE,
     'muchas-parejas': SIGUE,
     'madre-soltera': ['AM0', 'AMH', 'AM1', 'AM3', 'AM8', 'AM9', 'AM21'],

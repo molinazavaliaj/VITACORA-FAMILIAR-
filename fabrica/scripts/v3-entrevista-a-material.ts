@@ -26,14 +26,17 @@
 //     preguntó (Naza, 01/10, plan del cazador B3). Solo si contaron algo: un
 //     olvido, un "no", un "paso" o [Ya lo conté todo] no se suman. Si suman,
 //     la respuesta X ya no es "paso" (aunque X haya sido un "no me acuerdo").
+//   - AMH inferida de AM0 (Naza, 06/10): si en el repaso de AM0 dijo que hoy
+//     no hay nadie, AMH no se le preguntó (la marca ⟦inferida:AM0⟧, o nada si
+//     el estado no la guardó). No va como fila: el origen de AM0 lo avisa.
 
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { preguntaPorId } from '../src/v3/entrevista/banco.js';
 import { idiomaDe, type Idioma } from '../src/v3/entrevista/idioma.js';
-import { deRepregunta, deSegunda, preguntaDeClave } from '../src/v3/entrevista/flujo.js';
-import { interpretar, leerBoton, valeBoton, PREGUNTA_COMUN, type Interpretacion, type PreguntaParaInterpretar } from '../src/v3/entrevista/respuesta.js';
+import { amhInferidaDeAM0, deRepregunta, deSegunda, preguntaDeClave } from '../src/v3/entrevista/flujo.js';
+import { interpretar, leerBoton, leerInferida, valeBoton, PREGUNTA_COMUN, type Interpretacion, type PreguntaParaInterpretar } from '../src/v3/entrevista/respuesta.js';
 import { renderizar, type FichaTexto } from '../src/v3/entrevista/texto.js';
 
 type Parte = { id: string; texto: string };
@@ -86,7 +89,12 @@ export function aMaterial(e: Estado): Fila[] {
   const filas: Fila[] = [];
   // La entrevista en catalán (Naza, 04/10): el banco y el detector del idioma de la ficha.
   const idioma = idiomaDe(e.ficha);
+  const amhDeAM0 = amhInferidaDeAM0(new Map(e.respuestas), idioma);
   for (const [pid, crudo] of e.respuestas) {
+    if (leerInferida(crudo) !== undefined) {
+      antes.set(pid, crudo);
+      continue;
+    }
     const deX = deSegunda(pid) ?? deRepregunta(pid);
     if (deX !== undefined) {
       pegarA([...filas].reverse().find((f) => f.preguntaId === deX), pid, crudo, idioma);
@@ -107,7 +115,7 @@ export function aMaterial(e: Estado): Fila[] {
     }
     const clase = delBanco?.clase ?? 'historia';
     const paso = PASO.includes(interp) || (interp === 'no' && clase !== 'historia');
-    const origen = [`pregunta ${pid}`, esFamilia ? '(de la familia)' : '', clase === 'foto' && !paso ? '(describe una foto que mandó; la imagen no está en este material)' : '', boton !== undefined ? `(tocó el botón «${boton}»)` : '']
+    const origen = [`pregunta ${pid}`, esFamilia ? '(de la familia)' : '', clase === 'foto' && !paso ? '(describe una foto que mandó; la imagen no está en este material)' : '', pid === 'AM0' && amhDeAM0 ? '(no se le preguntó si hoy está en pareja (AMH): de este repaso se tomó que hoy no está en pareja)' : '', boton !== undefined ? `(tocó el botón «${boton}»)` : '']
       .filter(Boolean)
       .join(' ');
     filas.push({ id: `R${String(filas.length + 1).padStart(2, '0')}`, preguntaId: pid, bloque, pregunta, texto, palabras: contar(texto), paso, interpretacion: interp, ...(boton !== undefined ? { boton } : {}), origen });

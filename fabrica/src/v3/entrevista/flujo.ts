@@ -7,7 +7,7 @@
 import { estado, type FichaV3 } from '../ficha.js';
 import { bancoDe, condicionesDe, mensajePorId, preguntaPorId, textosDe, type Boton, type CondicionSimple, type PreguntaEntrevista, type ValeBoton } from './banco.js';
 import { IDIOMA_POR_DEFECTO, type Idioma } from './idioma.js';
-import { habilitaLasQueDependen, interpretar, PREGUNTA_COMUN, respuestaDeBoton, valeBoton, type Interpretacion, type PreguntaParaInterpretar } from './respuesta.js';
+import { am0DiceQueHoyNoHayNadie, habilitaLasQueDependen, interpretar, leerInferida, PREGUNTA_COMUN, respuestaDeBoton, respuestaInferida, valeBoton, type Interpretacion, type PreguntaParaInterpretar } from './respuesta.js';
 
 /** Respuesta a una pregunta: el texto (transcripción) o lo que dijo, incluido "paso". */
 export type Respuesta = string;
@@ -132,10 +132,56 @@ export function esNoCorto(respuesta: Respuesta, pregunta: PreguntaParaInterpreta
   return interpretar(pregunta, respuesta, idioma) === 'no';
 }
 
-/** Qué dijo en la pregunta X (undefined si X no se contestó). */
+/** Qué dijo en la pregunta X (undefined si X no se contestó). AMH sin respuesta vale "no" si AM0 ya lo dijo (Naza, 06/10). */
 export function interpretacionDe(respuestas: Respuestas, id: string, idioma: Idioma = IDIOMA_POR_DEFECTO): Interpretacion | undefined {
   const r = respuestas.get(id);
-  return r === undefined ? undefined : interpretar(preguntaDe(id, idioma), r, idioma);
+  if (r === undefined) return id === AMH && amhSeInfiereDeAM0(respuestas, idioma) ? 'no' : undefined;
+  return interpretar(preguntaDe(id, idioma), r, idioma);
+}
+
+// ---------------------------------------------------------------- AMH desde AM0
+
+const AMH = 'AMH';
+const AM0 = 'AM0';
+
+/**
+ * ¿AMH no hace falta, porque AM0 ya lo dijo? (Naza, 06/10, simulación es-ES:
+ * contestó el repaso con "…me he quedado sola" y le llegó igual "¿Tienes
+ * pareja ahora?"). Sí si AMH todavía no tiene respuesta, AM0 se contestó con
+ * texto o audio (sin botón) abriendo el tema, y dice claramente que hoy no
+ * hay nadie sin nada de que hoy hay alguien (`am0DiceQueHoyNoHayNadie`). Ante
+ * la duda, no: AMH se manda como siempre.
+ */
+function amhSeInfiereDeAM0(respuestas: Respuestas, idioma: Idioma): boolean {
+  if (respuestas.has(AMH)) return false;
+  const am0 = respuestas.get(AM0);
+  if (am0 === undefined || !habilitaLasQueDependen(interpretar(preguntaDe(AM0, idioma), am0, idioma))) return false;
+  return am0DiceQueHoyNoHayNadie(am0, idioma);
+}
+
+/**
+ * ¿AMH no se le preguntó y cuenta como "no" porque AM0 ya lo dijo? Con la
+ * marca guardada ("⟦inferida:AM0⟧") o, si el que guarda el estado todavía no
+ * la anota, porque se infiere ahora. Para el material del escritor y el
+ * dashboard: "no se le preguntó si hoy está en pareja; se tomó del repaso".
+ */
+export function amhInferidaDeAM0(respuestas: Respuestas, idioma: Idioma = IDIOMA_POR_DEFECTO): boolean {
+  const r = respuestas.get(AMH);
+  return r !== undefined ? leerInferida(r) === AM0 : amhSeInfiereDeAM0(respuestas, idioma);
+}
+
+/**
+ * Guarda en `respuestas` las preguntas que no se van a mandar porque otra ya
+ * las contestó: hoy, AMH con "⟦inferida:AM0⟧" (Naza, 06/10). El que guarda el
+ * estado la llama después de cerrar cada respuesta, antes de pedir la
+ * siguiente: así queda escrito qué se infirió y no cambia si después cambian
+ * las listas del detector. Devuelve los IDs que anotó (ninguno si no había
+ * nada). Sin llamarla el flujo anda igual: lo infiere cada vez.
+ */
+export function anotarInferidas(respuestas: Map<string, Respuesta>, idioma: Idioma = IDIOMA_POR_DEFECTO): string[] {
+  if (!amhSeInfiereDeAM0(respuestas, idioma)) return [];
+  respuestas.set(AMH, respuestaInferida(AM0));
+  return [AMH];
 }
 
 /** X se contestó con un "no" corto o un botón de "No". */
@@ -362,7 +408,8 @@ function repreguntaLista(e: EstadoEntrevista, delBanco: Siguiente): Repregunta |
   return pendientes.find((r) => {
     const desde = claves.indexOf(r.origen);
     if (desde < 0) return false;
-    return claves.slice(desde + 1).filter((k) => preguntaPorId(k) !== undefined).length >= RESPUESTAS_ANTES_DE_REPREGUNTAR;
+    // AMH inferida de AM0 no cuenta: no se le preguntó (Naza, 06/10).
+    return claves.slice(desde + 1).filter((k) => preguntaPorId(k) !== undefined && leerInferida(e.respuestas.get(k)!) === undefined).length >= RESPUESTAS_ANTES_DE_REPREGUNTAR;
   });
 }
 
@@ -386,7 +433,9 @@ function segundaOportunidad(respuestas: Respuestas, idioma: Idioma): Siguiente |
 function siguienteDelBanco(e: EstadoEntrevista, banco: readonly PreguntaEntrevista[]): Siguiente {
   const enviados = e.enviados ?? new Set<string>();
   const ronda = e.rondaExtra ?? (e.ofrecerExtra ? 'sin-ofrecer' : 'rechazada');
-  const hecha = (id: string) => e.respuestas.has(id) || enviados.has(id);
+  const idioma = e.idioma ?? IDIOMA_POR_DEFECTO;
+  // AMH tampoco se manda si AM0 ya dijo que hoy no hay nadie (Naza, 06/10).
+  const hecha = (id: string) => e.respuestas.has(id) || enviados.has(id) || (id === AMH && amhSeInfiereDeAM0(e.respuestas, idioma));
   const pendiente = (p: PreguntaEntrevista) => !hecha(p.id) && cumple(p, e.respuestas, e.idioma);
 
   // Desde el 30/09 todos los cierres son del núcleo (llegan siempre), así que
@@ -467,6 +516,8 @@ function esElOlvidoDeM29(pregunta: Pick<PreguntaEntrevista, 'id'>, anteriores: R
     if (id === pregunta.id) continue;
     // Lo que contesta a una repregunta no suma ni corta la cuenta (Naza, 01/10: "olvido → M28.1 sin sumar a M29").
     if (deRepregunta(id) !== undefined) continue;
+    // AMH inferida de AM0 no se le preguntó: no suma ni corta (Naza, 06/10).
+    if (leerInferida(r) !== undefined) continue;
     // La pregunta entera cuenta como UN olvido (Naza, 01/10): si X tuvo segunda oportunidad, cuenta la de X~2, no la de X.
     if (PIDEN_DIA[id] && (anteriores.has(claveSegunda(id)) || pregunta.id === claveSegunda(id))) continue;
     toca(id, r);

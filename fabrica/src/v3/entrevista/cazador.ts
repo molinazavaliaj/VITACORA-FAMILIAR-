@@ -18,7 +18,7 @@ import { preguntaPorId, textosDe } from './banco.js';
 import { IDIOMA_POR_DEFECTO, type Idioma } from './idioma.js';
 import { BLOQUE_FINAL, claveRepregunta, deSegunda, PIDEN_DIA, type Repregunta, type Respuestas } from './flujo.js';
 import type { FichaTexto } from './texto.js';
-import { interpretar, leerBoton } from './respuesta.js';
+import { interpretar, leerBoton, leerInferida } from './respuesta.js';
 
 // ---------------------------------------------------------------- constantes
 
@@ -156,6 +156,8 @@ export function respuestasParaCazar(respuestas: Respuestas, bloque: number, text
     // Solo las del banco (las repreguntas y las de la familia no tienen fila en el banco).
     const p = preguntaPorId(clave, idioma);
     if (!p || p.bloque !== bloque) continue;
+    // AMH inferida de AM0 (Naza, 06/10): no se le preguntó, no es algo que contó.
+    if (leerInferida(crudo) !== undefined) continue;
     const texto = leerBoton(crudo).resto.trim();
     if (!texto) continue;
     out.push({ id: clave, pregunta: textoPregunta(clave), texto, pedidoDia: PIDEN_DIA[clave] !== undefined, paso: interpretar(p, crudo, idioma) === 'paso' });

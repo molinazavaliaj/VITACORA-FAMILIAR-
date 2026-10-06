@@ -22,9 +22,9 @@ import { pathToFileURL } from 'node:url';
 import { mensajePorId, nombresBloqueDe, preguntaPorId } from '../src/v3/entrevista/banco.js';
 import { idiomaDe } from '../src/v3/entrevista/idioma.js';
 import { cazarBloque, fichaCorta, mensajeRepregunta, type ClienteModelo, type Descartada, type ResultadoCaza } from '../src/v3/entrevista/cazador.js';
-import { alTocarBoton, botonesDeClave, mensajesDespues, preguntaDeClave, siguientePregunta, type PreguntaFamilia, type Repregunta } from '../src/v3/entrevista/flujo.js';
+import { alTocarBoton, anotarInferidas, botonesDeClave, mensajesDespues, preguntaDeClave, siguientePregunta, type PreguntaFamilia, type Repregunta } from '../src/v3/entrevista/flujo.js';
 import { acuseDeTurno, anotarAcuse, armarTurno, entradaSegunAcuse, preguntaSegunAcuse, vueltasEnCero, type AcusePendiente, type Vueltas } from '../src/v3/entrevista/mensajes.js';
-import { sumarAudio } from '../src/v3/entrevista/respuesta.js';
+import { leerInferida, sumarAudio } from '../src/v3/entrevista/respuesta.js';
 import { taparKey } from '../src/v3/entrevista/transcribir.js';
 import { renderizar, type FichaTexto } from '../src/v3/entrevista/texto.js';
 
@@ -203,6 +203,8 @@ function avanzar(e: EstadoSimulacion): void {
   const respuestas = new Map(e.respuestas);
   const enviados = new Set(e.enviados);
   const idioma = idiomaDe(e.ficha);
+  // Lo que no se manda porque otra respuesta ya lo dijo queda guardado (AMH desde AM0; Naza, 06/10).
+  for (const id of anotarInferidas(respuestas, idioma)) e.respuestas.push([id, respuestas.get(id)!]);
   const texto = (id: string) => renderizar(mensajePorId(id, idioma)!.texto, e.ficha);
 
   /** Igual que `mandar` en v3-entrevista-lectura.ts. */
@@ -338,7 +340,8 @@ export function lineaCaza(r: ResultadoCaza): string {
 
 /** La charla entera para el equipo: mensajes del biógrafo con sus IDs, respuestas del narrador y títulos de bloque. */
 export function charlaMd(e: EstadoSimulacion, titulo = `Simulación: ${e.ficha.nombre}`): string {
-  const preguntas = new Set(e.respuestas.map(([id]) => id).filter((id) => preguntaPorId(id)?.clase === 'historia' || preguntaPorId(id)?.clase === 'foto'));
+  // Sin las que no se le preguntaron (AMH inferida de AM0; Naza, 06/10).
+  const preguntas = new Set(e.respuestas.filter(([, r]) => leerInferida(r) === undefined).map(([id]) => id).filter((id) => preguntaPorId(id)?.clase === 'historia' || preguntaPorId(id)?.clase === 'foto'));
   const mensajesBio = e.charla.filter((g) => g.de === 'bio').length;
   const lineas: string[] = [
     `# ${titulo}`,

@@ -14,6 +14,7 @@ export type VidaEjemplo = {
     | 'separada-sola'
     | 'separada-de-nuevo-en-pareja'
     | 'viuda-sola'
+    | 'viuda-lo-dijo-en-el-repaso'
     | 'viuda-rehizo'
     | 'muchas-parejas'
     | 'madre-soltera'
@@ -79,6 +80,19 @@ export const VIDAS_EJEMPLO: readonly VidaEjemplo[] = [
       AMH: YA_NO_ESTA,
       AM9: 'Él se enfermó hace cinco años y lo cuidé hasta el final, te lo cuento despacio.',
       AM19: 'Sí, ahora vivo sola, con la radio y las visitas de mis nietos los domingos.',
+      AM21: FUE_LA_UNICA,
+    },
+  },
+  {
+    // Naza, 06/10 (simulación es-ES): lo dice en el repaso de AM0, en audio, sin tocar el botón: AMH no se manda y cuenta como "no".
+    clave: 'viuda-lo-dijo-en-el-repaso',
+    nombre: 'Elsa, enviudó y lo cuenta en el repaso (no le llega "¿Hoy estás en pareja?")',
+    ficha: { nombre: 'Elsa', genero: 'mujer' },
+    respuestas: {
+      ...FAMILIA_COMPLETA,
+      AM0: 'Una sola vez, con Ernesto. Cuarenta años juntos, hasta que falleció hace tres años. Estoy viuda.',
+      AM9: 'Se enfermó del corazón y fue rápido; te cuento cómo fueron esos últimos días.',
+      AM19: 'Sí, al principio la casa se me venía encima, y mi hermana venía todas las tardes.',
       AM21: FUE_LA_UNICA,
     },
   },
