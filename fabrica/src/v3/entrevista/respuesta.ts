@@ -520,6 +520,8 @@ export function am0DiceQueHoyNoHayNadie(respuesta: string, idioma: Idioma = IDIO
   const sinNegar = (x: readonly string[]) => posicionesDe(pal, x).filter((i) => x[0] === 'no' || !negada(i));
   const explicitas = fr.hoySinNadie.flatMap(sinNegar);
   if (explicitas.length === 0) return false;
+  // "Ya no estoy sola, me quedé viuda…": una frase de nadie negada, en cualquier lugar, dice que hoy hay alguien.
+  if (fr.hoySinNadie.some((x) => x[0] !== 'no' && posicionesDe(pal, x).some((i) => negada(i)))) return false;
   // Lo de antes del tramo es libre, salvo que diga que hoy hay alguien.
   const alguien = [...fr.hoyHayAlguien, ...fr.ahoraHayAlguien];
   if (alguien.some((x) => posicionesDe(pal, x).some((i) => !negada(i)))) return false;

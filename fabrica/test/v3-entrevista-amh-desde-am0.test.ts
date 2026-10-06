@@ -336,3 +336,14 @@ describe('las vidas de ejemplo', () => {
     }
   });
 });
+
+describe('AMH desde AM0: un "ya no estoy sola" en cualquier lugar manda AMH (revisión de cierre, 06/10)', () => {
+  it.each([
+    ['Ya no estoy sola, me quedé viuda hace años.', 'es-AR'],
+    ['No estoy sola. Me quedé viuda en el noventa.', 'es-AR'],
+    ['Ya no estoy sola, me he quedado viuda hace años.', 'es-ES'],
+    ['Ja no estic sola, em vaig quedar vídua fa anys.', 'ca'],
+  ] as [string, Idioma][])('%s (%s)', (t, idioma) => {
+    expect(am0DiceQueHoyNoHayNadie(t, idioma)).toBe(false);
+  });
+});
