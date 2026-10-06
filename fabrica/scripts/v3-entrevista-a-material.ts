@@ -33,126 +33,18 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { preguntaPorId } from '../src/v3/entrevista/banco.js';
-import { idiomaDe, type Idioma } from '../src/v3/entrevista/idioma.js';
-import { amhInferidaDeAM0, deRepregunta, deSegunda, preguntaDeClave } from '../src/v3/entrevista/flujo.js';
-import { interpretar, leerBoton, leerInferida, valeBoton, PREGUNTA_COMUN, type Interpretacion, type PreguntaParaInterpretar } from '../src/v3/entrevista/respuesta.js';
-import { renderizar, type FichaTexto } from '../src/v3/entrevista/texto.js';
+import { aMaterial, etiquetas, respuestasXml, type EstadoEntrevista, type Fila } from '../src/escritor/material/de-entrevista.js';
 
-type Parte = { id: string; texto: string };
-type Globo =
-  | { de: 'bio'; partes: Parte[]; botones?: string[] }
-  | { de: 'persona'; pregunta: string; texto: string; boton?: string }
-  | { de: 'bloque'; bloque: number; nombre: string };
-type Estado = {
-  ficha: FichaTexto;
-  familia?: { id: string; texto: string }[];
-  respuestas: [string, string][];
-  charla?: Globo[];
-};
-
-export type Fila = {
-  id: string;
-  preguntaId: string;
-  bloque: number;
-  pregunta: string;
-  texto: string;
-  palabras: number;
-  paso: boolean;
-  interpretacion: Interpretacion;
-  boton?: string;
-  origen: string;
-};
+// La lógica vive en src/escritor/material/de-entrevista.ts (la usa el escritor de la fábrica); acá queda el comando.
+export { aMaterial, etiquetas, respuestasXml };
+export type { Fila };
 
 const LEGADO = 15;
-const PASO: readonly Interpretacion[] = ['paso', 'vacio', 'olvido', 'ya-conto'];
-const contar = (s: string) => s.split(/\s+/).filter(Boolean).length;
-
-/** Lo que se le mandó con ese ID, y en qué bloque estaba la charla en ese momento. */
-function mandado(charla: Globo[]): Map<string, { texto: string; bloque: number }> {
-  const out = new Map<string, { texto: string; bloque: number }>();
-  let bloque = 0;
-  for (const g of charla) {
-    if (g.de === 'bloque') bloque = g.bloque;
-    if (g.de !== 'bio') continue;
-    const porId = new Map<string, string[]>();
-    for (const p of g.partes) porId.set(p.id, [...(porId.get(p.id) ?? []), p.texto]);
-    for (const [id, textos] of porId) out.set(id, { texto: textos.join('\n\n'), bloque }); // si se mandó dos veces, vale la última
-  }
-  return out;
-}
-
-export function aMaterial(e: Estado): Fila[] {
-  const enviados = mandado(e.charla ?? []);
-  const familia = new Map((e.familia ?? []).map((f) => [f.id, f.texto]));
-  const antes = new Map<string, string>();
-  const filas: Fila[] = [];
-  // La entrevista en catalán (Naza, 04/10): el banco y el detector del idioma de la ficha.
-  const idioma = idiomaDe(e.ficha);
-  const amhDeAM0 = amhInferidaDeAM0(new Map(e.respuestas), idioma);
-  for (const [pid, crudo] of e.respuestas) {
-    if (leerInferida(crudo) !== undefined) {
-      antes.set(pid, crudo);
-      continue;
-    }
-    const deX = deSegunda(pid) ?? deRepregunta(pid);
-    if (deX !== undefined) {
-      pegarA([...filas].reverse().find((f) => f.preguntaId === deX), pid, crudo, idioma);
-      antes.set(pid, crudo);
-      continue;
-    }
-    const delBanco = preguntaPorId(pid, idioma);
-    const esFamilia = !delBanco && familia.has(pid);
-    const pregunta = enviados.get(pid)?.texto ?? (delBanco ? renderizar(delBanco.texto, e.ficha, antes) : familia.get(pid) ?? '(pregunta sin texto guardado)');
-    const bloque = esFamilia ? LEGADO : delBanco?.bloque ?? enviados.get(pid)?.bloque ?? 0;
-    const paraInterpretar: PreguntaParaInterpretar = delBanco ? { id: pid, clase: delBanco.clase, sensible: delBanco.sensible, botones: delBanco.botones, texto: pregunta } : { ...PREGUNTA_COMUN, texto: pregunta };
-    const interp = interpretar(paraInterpretar, crudo, idioma);
-    const { boton, resto } = leerBoton(crudo);
-    let texto = resto.trim();
-    if (boton !== undefined) {
-      const vale = valeBoton(paraInterpretar, boton);
-      texto = !texto ? boton : vale === 'si' ? texto : `${boton}. ${texto}`;
-    }
-    const clase = delBanco?.clase ?? 'historia';
-    const paso = PASO.includes(interp) || (interp === 'no' && clase !== 'historia');
-    const origen = [`pregunta ${pid}`, esFamilia ? '(de la familia)' : '', clase === 'foto' && !paso ? '(describe una foto que mandó; la imagen no está en este material)' : '', pid === 'AM0' && amhDeAM0 ? '(no se le preguntó si hoy está en pareja (AMH): de este repaso se tomó que hoy no está en pareja)' : '', boton !== undefined ? `(tocó el botón «${boton}»)` : '']
-      .filter(Boolean)
-      .join(' ');
-    filas.push({ id: `R${String(filas.length + 1).padStart(2, '0')}`, preguntaId: pid, bloque, pregunta, texto, palabras: contar(texto), paso, interpretacion: interp, ...(boton !== undefined ? { boton } : {}), origen });
-    antes.set(pid, crudo);
-  }
-  return filas;
-}
-
-/** Suma lo que contó en X~2 o RP~X a la fila de X (si contó algo y la fila existe). */
-function pegarA(fila: Fila | undefined, clave: string, crudo: string, idioma: Idioma): void {
-  if (!fila) return;
-  const interp = interpretar(preguntaDeClave(clave, idioma)!, crudo, idioma);
-  const texto = leerBoton(crudo).resto.trim();
-  if (!texto || PASO.includes(interp) || interp === 'no') return;
-  // Revisión del 01/10: si X fue un olvido puro, su "no me acuerdo" no llega al escritor: queda lo que contó después.
-  const reemplaza = fila.interpretacion === 'olvido';
-  fila.texto = fila.texto && !reemplaza ? `${fila.texto}\n\n${texto}` : texto;
-  if (reemplaza) fila.interpretacion = interp;
-  fila.palabras = contar(fila.texto);
-  fila.paso = false;
-}
-
-/** Igual que armar-material.mjs de Joaquín: sin &, < ni > (el XML se arma a mano). */
-const esc = (s: string) => s.replace(/&/g, 'y').replace(/</g, '(').replace(/>/g, ')');
-
-export function respuestasXml(filas: Fila[]): string {
-  return filas.map((f) => `<respuesta id="${f.id}" origen="${esc(f.origen).replace(/"/g, "'")}" segundos="">\n<pregunta>${esc(f.pregunta)}</pregunta>\n<texto>${esc(f.texto)}</texto>\n</respuesta>`).join('\n\n') + '\n';
-}
-
-export function etiquetas(filas: Fila[]) {
-  return filas.map((f) => ({ id: f.id, preguntaId: f.preguntaId, bloque: f.bloque, palabras: f.palabras, texto: f.texto, paso: f.paso, interpretacion: f.interpretacion, ...(f.boton !== undefined ? { boton: f.boton } : {}) }));
-}
 
 function main(args: string[]): void {
   const [rutaEstado, salida] = args;
   if (!rutaEstado || !salida) throw new Error('Uso: npx tsx scripts/v3-entrevista-a-material.ts <estado.json> <carpeta-salida>');
-  const filas = aMaterial(JSON.parse(readFileSync(rutaEstado, 'utf8')) as Estado);
+  const filas = aMaterial(JSON.parse(readFileSync(rutaEstado, 'utf8')) as EstadoEntrevista);
   mkdirSync(salida, { recursive: true });
   writeFileSync(join(salida, 'respuestas.xml'), respuestasXml(filas), 'utf8');
   writeFileSync(join(salida, 'etiquetas.json'), JSON.stringify(etiquetas(filas), null, 2), 'utf8');
