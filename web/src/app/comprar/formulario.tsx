@@ -101,10 +101,10 @@ export function Checkout({ catalogo, regionInicial = "AR", promo = null }: { cat
   }
 
   function validarNarrador(): string | null {
-    if (paraQuien === "otro" && !nombreComprador.trim()) return "Dinos tu nombre: es lo que él va a leer cuando le escribamos.";
-    if (paraQuien === "otro" && !vinculo.trim()) return "Cuéntanos qué eres de él o de ella (hija, nieto...).";
-    if (!nombre.trim()) return paraQuien === "yo" ? "Dinos tu nombre." : "Falta el nombre del narrador.";
-    if (!comoLeDicen.trim()) return "¿Cómo le dicen en casa? Es como lo vamos a saludar.";
+    if (paraQuien === "otro" && !nombreComprador.trim()) return "Decinos tu nombre. Es lo que va a leer cuando le escribamos.";
+    if (paraQuien === "otro" && !vinculo.trim()) return "Contanos qué sos de esa persona (hija, nieto...).";
+    if (!nombre.trim()) return paraQuien === "yo" ? "Decinos tu nombre." : "Falta el nombre del narrador.";
+    if (!comoLeDicen.trim()) return "¿Cómo le escribimos? Poné su nombre o su apodo.";
     if (anioNacimiento.trim() && (Number(anioNacimiento) < 1900 || Number(anioNacimiento) > 2015)) return "El año de nacimiento no parece bien (entre 1900 y 2015).";
     if (!telefono.trim()) return "Falta el WhatsApp.";
     return null;
@@ -175,7 +175,7 @@ export function Checkout({ catalogo, regionInicial = "AR", promo = null }: { cat
         });
         const datos = (await respuesta.json()) as { urlPago?: string; narradorId?: string; tokenFotos?: string; error?: string };
         if (!respuesta.ok || !datos.urlPago || !datos.narradorId || !datos.tokenFotos) {
-          setError(datos.error ?? "No pudimos iniciar el pago. Intenta de nuevo.");
+          setError(datos.error ?? "No pudimos iniciar el pago. Intentá de nuevo.");
           setEnviando(false);
           return;
         }
@@ -194,7 +194,7 @@ export function Checkout({ catalogo, regionInicial = "AR", promo = null }: { cat
           setFotos((x) => x.map((f) => (f.clave === foto.clave ? { ...f, subida: true } : f)));
         } catch (e) {
           setProgreso(null);
-          setError(`${e instanceof Error ? e.message : `No pudimos subir ${foto.archivo.name}.`} Sácala o intenta de nuevo.`);
+          setError(`${e instanceof Error ? e.message : `No pudimos subir ${foto.archivo.name}.`} Sacala o intentá de nuevo.`);
           setEnviando(false);
           return;
         }
@@ -203,7 +203,7 @@ export function Checkout({ catalogo, regionInicial = "AR", promo = null }: { cat
       window.location.assign(urlPago);
     } catch {
       setProgreso(null);
-      setError("No pudimos iniciar el pago. Revisa tu conexión e intenta de nuevo.");
+      setError("No pudimos iniciar el pago. Revisá tu conexión e intentá de nuevo.");
       setEnviando(false);
     }
   }
@@ -232,7 +232,7 @@ export function Checkout({ catalogo, regionInicial = "AR", promo = null }: { cat
             <div className="mt-8 flex flex-col gap-4">
               {(
                 [
-                  { v: "otro", t: "De un ser querido", d: "Mi papá, mi abuela, mi tío. Yo lo anoto y él cuenta." },
+                  { v: "otro", t: "De un ser querido", d: "Mi papá, mi abuela, mi tío. Yo lo anoto y la historia la cuenta quien la vivió." },
                   { v: "yo", t: "La mía", d: "Quiero dejar contado de dónde vengo. Las preguntas me llegan a mí." },
                 ] as { v: ParaQuien; t: string; d: string }[]
               ).map((o) => (
@@ -252,7 +252,7 @@ export function Checkout({ catalogo, regionInicial = "AR", promo = null }: { cat
             </div>
             <Botones
               siguiente={() => {
-                if (!paraQuien) return setError("Elige una de las dos.");
+                if (!paraQuien) return setError("Elegí una de las dos.");
                 avanzar(2);
               }}
               error={error}
@@ -264,10 +264,10 @@ export function Checkout({ catalogo, regionInicial = "AR", promo = null }: { cat
         {paso === 2 && (
           <section className="mt-12">
             <h1 className="text-3xl leading-tight [font-family:var(--fuente-titulo)] font-medium sm:text-4xl">
-              {paraQuien === "yo" ? "Cuéntanos quién eres." : "Cuéntanos de él, o de ella."}
+              {paraQuien === "yo" ? "Contanos quién sos." : "Contanos quién va a contar su historia."}
             </h1>
             <p className="mt-3 text-[16px] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">
-              Lo justo para presentarnos bien. El resto lo cuenta él.
+              Lo justo para presentarnos bien. El resto lo va a contar en la entrevista.
             </p>
 
             <div className="mt-8 flex flex-col gap-6">
@@ -284,7 +284,7 @@ export function Checkout({ catalogo, regionInicial = "AR", promo = null }: { cat
                     <input id="nombreComprador" className={`${campo} mt-2`} value={nombreComprador} onChange={(e) => setNombreComprador(e.target.value)} placeholder="Martina" autoComplete="given-name" />
                   </div>
                   <div>
-                    <label className={etiqueta} htmlFor="vinculo">Qué eres de él / ella</label>
+                    <label className={etiqueta} htmlFor="vinculo">Tu vínculo</label>
                     <input id="vinculo" className={`${campo} mt-2`} value={vinculo} onChange={(e) => setVinculo(e.target.value)} placeholder="hija, nieto, sobrina..." />
                   </div>
                 </div>
@@ -297,9 +297,11 @@ export function Checkout({ catalogo, regionInicial = "AR", promo = null }: { cat
                   <p className="mt-2 text-[13px] text-[#83837A] [font-family:var(--fuente-cuerpo)] font-light">Va en la portada del libro.</p>
                 </div>
                 <div>
-                  <label className={etiqueta} htmlFor="comoLeDicen">{paraQuien === "yo" ? "Cómo te dicen" : "Cómo le dicen en casa"}</label>
-                  <input id="comoLeDicen" className={`${campo} mt-2`} value={comoLeDicen} onChange={(e) => setComoLeDicen(e.target.value)} placeholder="Don Roberto, el Abuelo, Papá..." />
-                  <p className="mt-2 text-[13px] text-[#83837A] [font-family:var(--fuente-cuerpo)] font-light">Así lo vamos a saludar.</p>
+                  <label className={etiqueta} htmlFor="comoLeDicen">{paraQuien === "yo" ? "Cómo te dicen" : "¿Cómo le escribimos?"}</label>
+                  <input id="comoLeDicen" className={`${campo} mt-2`} value={comoLeDicen} onChange={(e) => setComoLeDicen(e.target.value)} placeholder="Roberto, Beto, Don Roberto" />
+                  <p className="mt-2 text-[13px] text-[#83837A] [font-family:var(--fuente-cuerpo)] font-light">
+                    {paraQuien === "yo" ? "Así lo vamos a saludar." : 'Así lo va a saludar el biógrafo por WhatsApp. Si tiene un apodo, ponelo. Nada de "papá" ni "abuela".'}
+                  </p>
                 </div>
               </div>
 
@@ -308,15 +310,15 @@ export function Checkout({ catalogo, regionInicial = "AR", promo = null }: { cat
                   <label className={etiqueta} htmlFor="telefono">{paraQuien === "yo" ? "Tu WhatsApp" : "Su WhatsApp"}</label>
                   <input id="telefono" className={`${campo} mt-2`} value={telefono} onChange={(e) => setTelefono(e.target.value)} placeholder={region === "AR" ? "11 5555 1234" : "612 345 678"} inputMode="tel" autoComplete="off" />
                   <p className="mt-2 text-[13px] text-[#83837A] [font-family:var(--fuente-cuerpo)] font-light">
-                    {paraQuien === "yo" ? "Ahí te van a llegar las preguntas." : "El número de él, no el tuyo: ahí le van a llegar las preguntas."}
+                    {paraQuien === "yo" ? "Ahí te van a llegar las preguntas." : "Su número, no el tuyo. Ahí le van a llegar las preguntas."}
                   </p>
                 </div>
                 <div>
-                  <label className={etiqueta} htmlFor="hora">A qué hora prefiere</label>
+                  <label className={etiqueta} htmlFor="hora">A qué hora le escribimos</label>
                   <select id="hora" className={`${campo} mt-2`} value={hora} onChange={(e) => setHora(e.target.value)}>
                     {HORAS.map((h) => <option key={h.valor} value={h.valor}>{h.nombre}</option>)}
                   </select>
-                  <p className="mt-2 text-[13px] text-[#83837A] [font-family:var(--fuente-cuerpo)] font-light">Una pregunta por día, siempre a esa hora.</p>
+                  <p className="mt-2 text-[13px] text-[#83837A] [font-family:var(--fuente-cuerpo)] font-light">A esa hora le llega el primer mensaje. Después, la siguiente le llega cuando termina de responder la anterior.</p>
                 </div>
               </div>
 
@@ -338,7 +340,7 @@ export function Checkout({ catalogo, regionInicial = "AR", promo = null }: { cat
                   </select>
                 </div>
                 <div>
-                  <label className={etiqueta} htmlFor="hijos">{paraQuien === "yo" ? "¿Tienes hijos?" : "¿Tiene hijos?"}</label>
+                  <label className={etiqueta} htmlFor="hijos">{paraQuien === "yo" ? "¿Tenés hijos?" : "¿Tiene hijos?"}</label>
                   <select id="hijos" className={`${campo} mt-2`} value={hijos} onChange={(e) => setHijos(e.target.value as "" | "si" | "no")}>
                     <option value="">Prefiero no decir</option>
                     <option value="si">Sí</option>
@@ -387,7 +389,7 @@ export function Checkout({ catalogo, regionInicial = "AR", promo = null }: { cat
               Tu correo.
             </h1>
             <p className="mt-3 text-[16px] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">
-              Ahí te avisamos cuando {paraQuien === "yo" ? "haya páginas para leer" : "él acepte, cuando haya páginas para leer"}, y cuando el libro esté listo. Con ese mismo correo entras a tu panel.
+              Ahí te avisamos cuando {paraQuien === "yo" ? "haya páginas para leer" : "acepte, cuando haya páginas para leer"}, y cuando el libro esté listo. Con ese mismo correo entrás a tu panel.
             </p>
             <div className="mt-8">
               <label className={etiqueta} htmlFor="email">Tu correo</label>
@@ -397,7 +399,7 @@ export function Checkout({ catalogo, regionInicial = "AR", promo = null }: { cat
               atras={() => avanzar(2)}
               siguiente={() => {
                 if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim())) {
-                  setError("Necesitamos un correo válido: ahí te avisamos de todo.");
+                  setError("Necesitamos un correo válido. Ahí te avisamos de todo.");
                   return;
                 }
                 avanzar(4);
@@ -425,7 +427,7 @@ export function Checkout({ catalogo, regionInicial = "AR", promo = null }: { cat
                 detalle={cat.base.detalle}
                 precio={formatear(cat.base.precio, cat.moneda, region)}
                 lista={promo ? listaDe(cat.base.precio, cat.moneda, region, promo) : null}
-                incluye={["30 preguntas por WhatsApp, un audio por día", "El libro para leer en la web, con sus fotos", "«Su voz»: sus mejores frases, en su voz real"]}
+                incluye={["La entrevista entera por WhatsApp, con audios, a su ritmo", "El libro para leer en la web, con sus fotos", "«Su voz»: sus mejores frases, en su voz real"]}
               />
             </div>
 
@@ -444,7 +446,7 @@ export function Checkout({ catalogo, regionInicial = "AR", promo = null }: { cat
               Cómo va a ser la entrevista.
             </h1>
             <p className="mt-3 text-[16px] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">
-              Todo esto es opcional y se puede cambiar después desde tu panel. Si prefieres, baja y paga.
+              Si tenés fotos suyas, subilas acá. También podés hacerlo después, desde tu panel.
             </p>
 
             <fieldset className="mt-10">
@@ -490,7 +492,7 @@ export function Checkout({ catalogo, regionInicial = "AR", promo = null }: { cat
             <div className="mt-10">
               <p className={etiqueta}>El álbum del libro</p>
               <p className="mt-2 text-[15px] leading-[1.7] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">
-                Las fotos que quieras que estén en el libro: de la infancia, de la boda, de los hijos. Después, desde tu panel, las pones en su capítulo, en la tapa o en un marco. Cuantos más píxeles, mejor se imprimen.
+                Las fotos que quieras que estén en su libro, de cualquier momento de su vida. Después, desde tu panel, elegís dónde va cada una: en un capítulo, en la tapa o en un marco. Cuantos más píxeles, mejor se imprimen.
               </p>
               <input ref={entradaFotos} type="file" accept="image/jpeg,image/png,image/webp" multiple hidden onChange={(e) => elegirFotos(e.target.files)} />
               {fotos.length > 0 && (
@@ -516,8 +518,7 @@ export function Checkout({ catalogo, regionInicial = "AR", promo = null }: { cat
             <div className="mt-10 rounded-lg border border-[#EBEBE7] bg-white p-5 text-[15px] leading-[1.7] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">
               <p>
                 <strong className="font-normal text-[#14140F]">Qué pasa después de pagar:</strong> le escribimos a{" "}
-                {paraQuien === "yo" ? "tu WhatsApp" : `${comoLeDicen || "él"} por WhatsApp`} contándole y pidiéndole permiso. No
-                empieza nada hasta que diga que sí. Si no acepta, nos escribes y te devolvemos el dinero.
+                {paraQuien === "yo" ? "tu WhatsApp" : `${comoLeDicen || "esa persona"} por WhatsApp`} contándole y pidiéndole permiso.
               </p>
             </div>
 
@@ -534,10 +535,10 @@ export function Checkout({ catalogo, regionInicial = "AR", promo = null }: { cat
               </button>
             </div>
             <p className="mt-4 text-[13px] text-[#83837A] [font-family:var(--fuente-cuerpo)] font-light">
-              Pago único y seguro con {region === "ES" ? "Stripe" : "Mercado Pago"}. Al pagar aceptas los{" "}
+              Pago único y seguro con {region === "ES" ? "Stripe" : "Mercado Pago"}. Al pagar aceptás los{" "}
               <a href="/legal/terminos" className="underline underline-offset-2" target="_blank" rel="noreferrer">términos</a>
               {region === "ES"
-                ? " y nos pides que la entrevista empiece en cuanto el narrador acepte, sin esperar los 14 días de desistimiento: si te arrepientes con la entrevista en marcha, se descuenta la parte ya hecha."
+                ? " y nos pedís que la entrevista empiece en cuanto el narrador acepte, sin esperar los 14 días de desistimiento. Si te arrepentís con la entrevista en marcha, se descuenta la parte ya hecha."
                 : "."}
             </p>
           </form>
@@ -550,9 +551,8 @@ export function Checkout({ catalogo, regionInicial = "AR", promo = null }: { cat
           <Ticket compra={carrito} region={region} />
           <ul className="mt-6 flex flex-col gap-2 text-[14px] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">
             <li>✓ Pago único, sin suscripción</li>
-            <li>✓ 30 preguntas, una por día, por WhatsApp</li>
-            <li>✓ Lo lees y lo escuchas en la web, cuando quieras</li>
-            <li>✓ Si él no acepta, te devolvemos el dinero</li>
+            <li>✓ La entrevista por WhatsApp, a su ritmo</li>
+            <li>✓ Lo leés y lo escuchás en la web, cuando quieras</li>
           </ul>
         </div>
       </aside>
