@@ -63,6 +63,19 @@ describe('estimación honesta', () => {
     expect(e.peorCaso).toBeGreaterThan(e.total);
     expect(e.filasPeor.length).toBeGreaterThan(e.filas.length);
   });
+  it('el peor caso trae las filas de reescritura, reintento y segunda vuelta (y no C7)', () => {
+    const pasos = estimarUsd(sinCap1(), { soloCapitulo: 1 }).filasPeor.map((f) => f.paso);
+    for (const p of ['3b-capitulo-reescritura-C30', '3b-capitulo-reintento-json', '4-hechos-2da-revision', '5c-veedor-2da-revision', '6-arreglo-2da-ronda', '4-hechos-repaso-2da']) expect(pasos).toContain(p);
+    expect(pasos.some((p) => /C7|primera/.test(p))).toBe(false);
+    expect(textoEstimacion(carpetaNelida(), { soloCapitulo: 1, topeUsd: 15 }).join(' ')).toMatch(/C7/);
+  });
+  it('el arreglo lleva el capítulo: su entrada crece cuando el capítulo está', () => {
+    const con = estimarUsd(carpetaNelida(), { soloCapitulo: 1 }).filas.find((f) => f.paso === '6-arreglo')!;
+    const c0 = carpetaNelida(); c0.borrar('salidas/capitulo_01.md'); c0.borrar('salidas/capitulo_02.md');
+    const sin = estimarUsd(c0, { soloCapitulo: 1 }).filas.find((f) => f.paso === '6-arreglo')!;
+    expect(con.entradaTokens).toBeGreaterThan(sin.entradaTokens);
+    expect(sin.entradaTokens).toBeGreaterThan(0);
+  });
   it('sin --solo-capitulo dice "sin estimación"; con tope justo avisa y recomienda uno', () => {
     expect(textoEstimacion(carpetaNelida(), { topeUsd: 15 }).join(' ')).toMatch(/Sin estimación/);
     const peor = estimarUsd(carpetaNelida(), { soloCapitulo: 1 }).peorCaso;
@@ -72,6 +85,10 @@ describe('estimación honesta', () => {
     expect(justo).toMatch(/peor caso/);
     expect(justo).not.toMatch(/cota alta/);
     expect(textoEstimacion(carpetaNelida(), { soloCapitulo: 1, topeUsd: 1000 }).join(' ')).not.toMatch(/AVISO/);
+  });
+  it('sin clave (vacía o ausente) el mensaje queda igual', () => {
+    expect(sinClave('falló', { ANTHROPIC_API_KEY: '' })).toBe('falló');
+    expect(sinClave('falló', {})).toBe('falló');
   });
   it('saca la clave de los mensajes', () => {
     expect(sinClave('falló con sk-ant-secreto-123 en la llamada', { ANTHROPIC_API_KEY: 'sk-ant-secreto-123' })).toBe('falló con [clave] en la llamada');

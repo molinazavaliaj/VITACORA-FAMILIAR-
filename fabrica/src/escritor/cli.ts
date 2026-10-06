@@ -61,7 +61,7 @@ export function textoEstimacion(c: Carpeta, a: Pick<ArgsCli, 'soloCapitulo' | 't
   if (e.conRelleno) l.push('  (el capítulo todavía no está escrito: las filas que lo incluyen usan un capítulo de relleno)');
   for (const f of e.filasPeor) l.push(`  ${f.paso.padEnd(28)} entrada ~${f.entradaTokens} tok, salida ~${f.salidaTokens} tok  USD ${f.usd.toFixed(4)}`);
   l.push(`  estimación típica: USD ${e.total.toFixed(2)}`);
-  l.push(`  peor caso: USD ${e.peorCaso.toFixed(2)} (con reescritura C30, reintento de JSON y una segunda vuelta de revisión)`);
+  l.push(`  peor caso: USD ${e.peorCaso.toFixed(2)} (con reescritura C30, reintento de JSON y una segunda vuelta de revisión; la reescritura de la primera página, C7, no corre con --solo-capitulo)`);
   l.push(`  tope actual: USD ${a.topeUsd}`);
   if (e.peorCaso >= 0.7 * a.topeUsd) l.push(`  AVISO: el peor caso llega al ${Math.round((e.peorCaso / a.topeUsd) * 100)}% del tope. Para cubrirlo, usar --tope ${Math.ceil(e.peorCaso * 1.1)}.`);
   l.push('  El Batch (--sin-lote lo apaga) puede bajar el costo real; no se promete ningún número.');
