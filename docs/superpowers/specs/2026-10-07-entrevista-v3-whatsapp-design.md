@@ -91,7 +91,7 @@ Tiene una fila por narrador, que es lo que **prende la V3**.
 - **Botón** (llega como texto con el título del botón). Se resuelve con `alTocarBoton`:
   - Sí → M30, y espera audio en la misma pregunta.
   - No o Paso → cierra la respuesta y avanza **en el momento**, sin esperar los 3 minutos.
-- **Texto suelto** → M22 (no avanza).
+- **Texto escrito** → **cuenta como respuesta** (Naza 07/10): se suma a la respuesta abierta igual que un audio y corre el mismo reloj de 3 minutos. M22 sale **solo la primera vez** que escribe en toda la entrevista (`estado.m22Enviado`).
   - Excepción: si el narrador está `pausado`, el texto lo reactiva (`pausado → activo`) y se le reenvía la pregunta abierta.
 - **Imagen.**
   - Si la abierta es FO1, la foto se guarda (como hoy en `fotos`, con `pregunta_orden` = número de llegada) y FO1 se da por contestada.
@@ -105,9 +105,9 @@ Tiene una fila por narrador, que es lo que **prende la V3**.
    3. **Si la tanda no llegó al tope**, `avanzar` y manda: acuse, entrada, pregunta y M1 donde corresponde; los botones al último.
    4. **Si llegó al tope**, guarda el acuse pendiente y no manda nada más. La siguiente sale en la tanda de mañana, con el acuse pegado arriba.
 2. **Tanda diaria.** A la `hora_preferida` del narrador, en su zona horaria, si no hay pregunta abierta en espera de audio y no terminó: arranca la tanda del día (`tanda_cuenta = 0`) y manda la siguiente.
-   - Si la pregunta del día anterior quedó sin contestar, se reenvía esa misma.
+   - Si la pregunta del día anterior quedó sin contestar, **no se reenvía** (Naza 07/10): se espera, y a los 2 días llega M8.
    - Fuera de la ventana de 24 h sale con plantilla.
-3. **Recordatorio M8.** Sale a las 6 h de la primera pregunta del día si no contestó nada, una sola vez por día. Fuera de la ventana sale con la plantilla `recordatorio` del idioma.
+3. **Recordatorio M8** (Naza 07/10). A los **2 días** sin respuesta a la pregunta abierta, una sola vez por pregunta. Fuera de la ventana sale con una plantilla de Meta con el texto de M8, una por idioma.
 4. **Alerta de silencio a la familia.** Se usa la que ya existe (3 días), sin cambios.
 
 **El cazador:**
@@ -115,7 +115,7 @@ Tiene una fila por narrador, que es lo que **prende la V3**.
   - con `claude-opus-5-5`;
   - con un tope de USD 3 por entrevista;
   - nunca tira error.
-- El resultado se suma a `estado.repreguntas` con compare-and-swap y el costo va a `costos`.
+- El resultado se suma a `estado.repreguntas` con compare-and-swap y el costo va a `consumo_ia`, que es la tabla que ya usa `costos.ts`.
 - Si llega tarde, la repregunta sale en el turno siguiente. Es lo mismo que hoy en la web, y ya estaba anotado como dudoso.
 
 **Ventana de 24 h y plantillas:**
@@ -125,7 +125,7 @@ Tiene una fila por narrador, que es lo que **prende la V3**.
   - `es-ES` y `ca`: **plantillas nuevas que carga Joaquín en Meta**.
 - Si la plantilla del idioma no existe, se le avisa a los socios y no se manda en otro idioma.
 
-**El final:** AV11 y FIN se mandan sin esperar respuesta. Después de FIN → `completado`, y se manda el mail de hito que ya existe.
+**El final:** AV11 y FIN se mandan sin esperar respuesta. Después de FIN → `completado`. No hay un mail de hito propio: el aviso de terminado lo sigue mandando la fábrica (`worker.ts`).
 
 **El alta:**
 - **Narradores nuevos:** al pasar de `acepto` a `activo`, si la V3 está prendida para nuevos (`V3_PARA_NUEVOS=1` en Railway; **apagada hasta que Naza diga**), se crea su fila y sale OR1 con M1. El idioma sale de `contexto.idioma`; si no hay, `es-AR`. El género sale de `contexto.genero` si la web lo manda; si no viene, el alta queda frenada (no sale nada) y se avisa a los socios para cargarlo con `npm run v3-pasar`.
