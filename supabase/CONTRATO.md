@@ -392,7 +392,7 @@ libro. Publicar lo que pidió reservar es la peor falla posible del producto.
 
 | Columna | Tipo | Escribe | Lee | Qué es |
 |---|---|---|---|---|
-| `respuestas.reservada` | boolean, `not null default false` | entrevistador (la evaluación de la respuesta) | fábrica y web | El narrador pidió reservar algo de esta respuesta. **Sin `reservado_tramo`, no se publica nada de ella.** |
+| `respuestas.reservada` | boolean, `not null default false` | entrevistador (la evaluación de la respuesta; en la V3, las frases fijas: ver "Entrevista V3 por WhatsApp") | fábrica y web | El narrador pidió reservar algo de esta respuesta. **Sin `reservado_tramo`, no se publica nada de ella.** |
 | `respuestas.reservado_tramo` | text, null | entrevistador | fábrica | Si el pedido es por una PARTE: el tramo textual que no se publica, tal como lo dijo. Con tramo, se publica **todo menos eso** (la reserva parcial es el caso `reservada = true` + `reservado_tramo = '…'`). |
 
 Reglas:
@@ -511,7 +511,7 @@ La escribe el entrevistador y la lee la fábrica.
 | `narrador_id` | Clave primaria y referencia a `narradores`. |
 | `idioma` | `es-AR`, `es-ES` o `ca`. |
 | `ficha` (jsonb) | `nombre` (= `como_le_dicen`), `genero` (`varon` / `mujer` / `otro`), `formaTrato?`, `quienRegala?`. |
-| `estado` (jsonb) | El motor de `entrevistador/src/v3/turno.ts`: `respuestas` (`[clave, texto][]` en orden de llegada: **es la verdad de la entrevista**), `enviados`, `vueltas`, `acuse`, `esperando`, `tocoSi`, `borrador` (los audios de la abierta, sin cerrar), `preguntaAbierta`, `bloqueActual`, `terminada`, `familia`, `repreguntas`, `cazador`, `charla` (los mensajes tal como salieron), `salientes` (la cola de WhatsApp), y contadores (`seq`, `fallosEnvio`, `ultimoEntranteAt`, `abiertaDesde`, `m8En`, `m22Enviado`). `wamidsVistos`: los últimos 50 `wa_message_id` ya aplicados al estado o dejados de lado (dedupe de lo que no deja fila en `respuestas` y candado de la reconciliación). `abiertaPorPlantilla`: la abierta salió por plantilla, sin botones (al volver a escribir se le reenvía con botones). |
+| `estado` (jsonb) | El motor de `entrevistador/src/v3/turno.ts`: `respuestas` (`[clave, texto][]` en orden de llegada: **es la verdad de la entrevista**), `enviados`, `vueltas`, `acuse`, `esperando`, `tocoSi`, `borrador` (los audios de la abierta, sin cerrar), `preguntaAbierta`, `bloqueActual`, `terminada`, `familia`, `repreguntas`, `cazador`, `charla` (los mensajes tal como salieron), `salientes` (la cola de WhatsApp), y contadores (`seq`, `fallosEnvio`, `ultimoEntranteAt`, `abiertaDesde`, `m8En`, `m22Enviado`). `wamidsVistos`: los últimos 50 `wa_message_id` ya aplicados al estado o dejados de lado (dedupe de lo que no deja fila en `respuestas` y candado de la reconciliación). `abiertaPorPlantilla`: la abierta salió por plantilla, sin botones (al volver a escribir se le reenvía con botones). `reservadas` (07/10): las claves que el narrador pidió que no vayan al libro (ver abajo). `familiaTarde` (07/10): ids de preguntas de la familia que llegaron después de FO1 y ya se avisaron a los socios. |
 | `version` | Cada escritura es `UPDATE … WHERE version = n`; si cambió, se relee y se reintenta. |
 | `ultimo_audio_at` | Cuando **llegó** el último audio de la pregunta abierta y, otra vez, cuando se **guardó** su transcripción (el reloj cierra a los 3'). |
 | `tanda_dia`, `tanda_cuenta` | La tanda del día (en la zona del narrador) y cuántas preguntas salieron. |
@@ -531,12 +531,43 @@ del botón (`⟦botón:Sí⟧`), el texto escrito o `⟦foto⟧` (la foto de FO1
   sumó. Si pasan 5 minutos, el reloj la **reconcilia**: la pasa por el mismo camino que un mensaje
   nuevo (un audio sin transcripción se transcribe desde Storage) y le pone la clave.
 - **`∅`** (`SIN_CLAVE_V3`): se guardó y **quedó afuera a propósito** (un botón que no es de la
-  abierta, un audio que no se pudo transcribir y se pidió de nuevo con M23, algo que llegó sin nada
-  abierto ni contestado). El reloj no la reintenta; **la fábrica (`de-base.ts`) y el pase la ignoran**.
+  abierta, un audio que no se pudo transcribir y se pidió de nuevo con M23, **un audio o texto que
+  llegó sin pregunta abierta** —después del tope del día, entre tandas—, y el mensaje que pidió
+  «quiero parar» o «que no vaya al libro»). El reloj no la reintenta; **la fábrica (`de-base.ts`) y
+  el pase la ignoran**.
 - cualquier otro valor: la pregunta V3 a la que se sumó.
 
+Sin pregunta abierta (Naza, 07/10): un audio o un texto no se suma a la respuesta anterior (antes
+sí: un «Gracias» podía terminar en el libro). Queda la fila con `∅` y no sale nada, tampoco M22.
+Después de tocar «Sí» la pregunta sigue abierta: eso se suma como siempre.
+
+**«Esto que no vaya al libro» y «quiero parar» por WhatsApp (Naza, 07/10).** El entrevistador V3
+los detecta con frases fijas del núcleo (`pideReserva` a cualquier largo, `pidePausa` solo en un
+mensaje de hasta 15 palabras; sin modelo), en el texto escrito o en la transcripción, antes de
+sumarlo. El mensaje que lo pide queda con `clave_v3 = '∅'`.
+- **Reserva:** se reserva la abierta si tiene borrador; si no, la última respuesta cerrada. El
+  entrevistador V3 **escribe `respuestas.reservada = true`** en todas las filas de ese narrador con
+  esa `clave_v3` (si la columna no existe —42703— o el update falla, avisa a los socios y sigue) y
+  la anota en `entrevistas_v3.estado.reservadas`. **La fábrica (`de-base.ts`) saca enteras las
+  claves de `estado.reservadas`** (y las de su pregunta madre: `RP~X` y `X~2` comparten la de `X`)
+  con sus audios, aunque las filas no estén marcadas. Tampoco van al cazador. Sale el texto fijo
+  `reserva`; la entrevista sigue igual.
+- **Pausa:** `narradores.estado` `activo → pausado` (con `.eq('estado','activo')`) y sale el texto
+  fijo `pausa`. Lo abierto queda abierto. El reloj no trabaja a los pausados (ni M8). Si dice las
+  dos cosas, se reserva y además se pausa. Un pedido no reactiva a un pausado.
+- **Vuelta de un pausado:** cualquier otro mensaje lo reactiva. Con pregunta abierta, se le reenvía
+  (como siempre). Sin pregunta abierta y con la entrevista sin terminar, **la siguiente sale en el
+  momento** (sin esperar `hora_preferida`) y cuenta en la tanda de hoy, aunque esté en el tope; lo
+  que mandó queda con `∅`.
+
+**Preguntas de la familia cargadas después del alta (Naza, 07/10).** Al abrir la tanda del día, el
+reloj lee `preguntas` del narrador con `tipo = 'familia'` (el mismo criterio del alta, id
+`F:<id>`) y suma a `estado.familia` las que no tiene. Solo agrega: si la familia borra o edita una,
+lo ya hecho no se toca. Si la entrevista ya llegó a FO1 (abierta, mandada o contestada), no se
+suman y se avisa a los socios una vez por pregunta (`estado.familiaTarde`).
+
 Lo que no cambia: las transiciones de `narradores.estado` (`activo` durante la V3, `completado`
-después de FIN, `pausado` igual que hoy); `dia_actual` queda congelado en el valor que tenía.
+después de FIN, `pausado` como arriba); `dia_actual` queda congelado en el valor que tenía.
 
 La fila nace con `npm run v3-pasar -- <narrador> --genero … [--idioma …] --aplicar` (narradores en
 curso, con la tabla de equivalencias aprobada por Naza) o al pasar `acepto → activo` con

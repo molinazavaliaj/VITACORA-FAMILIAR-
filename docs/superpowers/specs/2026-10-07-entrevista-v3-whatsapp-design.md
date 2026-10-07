@@ -97,6 +97,12 @@ Tiene una fila por narrador, que es lo que **prende la V3**.
   - Si la abierta es FO1, la foto se guarda (como hoy en `fotos`, con `pregunta_orden` = número de llegada) y FO1 se da por contestada.
   - Si no, se guarda como foto suelta de la familia, igual que hoy.
 
+**Decisiones de Naza del 07/10, después de este diseño** (el detalle, en `supabase/CONTRATO.md`, sección "Entrevista V3 por WhatsApp"):
+- **«Quiero parar» y «esto que no vaya al libro»** se detectan con frases fijas del núcleo (`pidePausa`, `pideReserva`; sin modelo) antes de sumar el mensaje, que queda aparte (`∅`). Reserva: la abierta con borrador o la última cerrada, en `estado.reservadas` y `respuestas.reservada`. Pausa: `activo → pausado`. Textos `pausa` y `reserva` en `textos-fijos.json`.
+- **Sin pregunta abierta** (después del tope, entre tandas) un audio o un texto ya **no** se suma a la respuesta anterior: queda aparte (`∅`) y no sale nada, tampoco M22.
+- **Pausado sin pregunta abierta** que vuelve a escribir: se reactiva y la siguiente sale en el momento, contando en la tanda de hoy. Con abierta, como arriba (se reenvía).
+- **Preguntas de la familia agregadas después del alta:** al abrir la tanda del día se suman a `estado.familia` si la entrevista no llegó a FO1; si ya llegó, se avisa a los socios una vez.
+
 **El reloj (cada 1 minuto, en `scheduler.ts`):**
 
 1. **Cierre por silencio.** Busca narradores V3 que esperan respuesta, con `ultimo_audio_at` de hace más de 3 minutos y sin toma vigente. Para cada uno:

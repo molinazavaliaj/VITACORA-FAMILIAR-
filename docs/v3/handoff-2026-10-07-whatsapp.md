@@ -22,6 +22,10 @@ Rama **`v3-produccion`** (worktree `C:\Users\Naza\Desktop\VITACORA FAMILIAR-v3-p
 | Texto escrito | Cuenta como respuesta. M22 sale una sola vez en toda la entrevista. |
 | Si deja de contestar | No se reenvía la pregunta. M8 a los 2 días, una vez por pregunta. |
 | Prueba real | Merge apagado. Primero el número de Naza, después Dora, Mariano e Imma, después los nuevos (`V3_PARA_NUEVOS`). |
+| «Quiero parar» y «esto que no vaya al libro» | Se detectan con frases fijas, sin modelo (`pidePausa` / `pideReserva` en el núcleo, en es-AR, es-ES y ca). La pausa solo en un mensaje de hasta 15 palabras. El mensaje no se suma a nada (`∅`). Reserva: la abierta si tiene borrador, si no la última cerrada (`estado.reservadas` + `respuestas.reservada`; la fábrica la saca entera y tampoco va al cazador). Pausa: `activo → pausado`, lo abierto queda abierto. Si dice las dos cosas, se reserva y además se pausa. |
+| Mensaje sin pregunta abierta | Se guarda aparte (`∅`): no se pega a ninguna respuesta y no sale nada, tampoco M22. Después de «Sí» sí hay pregunta abierta. |
+| Pausado que escribe sin pregunta abierta | Se reactiva y le sale la siguiente en el momento, contando en la tanda de hoy (aunque esté en el tope). Con abierta, se le reenvía como siempre. |
+| Preguntas de la familia agregadas después | Al abrir la tanda del día se suman a `estado.familia` (solo se agregan; editar o borrar no toca lo hecho). Si la entrevista ya llegó a FO1, no se suman y se avisa a los socios una vez. |
 
 ## Decisiones técnicas que tomó la sesión (el diseño manda sobre el plan)
 - **La toma del turno:** solo la suelta quien la tomó, y se comparan instantes.
@@ -46,7 +50,6 @@ Rama **`v3-produccion`** (worktree `C:\Users\Naza\Desktop\VITACORA FAMILIAR-v3-p
 1. Aprobar la tabla de equivalencias de Dora y Mariano (mensaje del 07/10 en el chat). Con el OK, se carga en `entrevistador/src/v3/equivalencias.json`.
 2. Aplicar en Supabase la migración `supabase/migrations/20261007000000_entrevista_v3.sql` (es idempotente).
 3. Aprobar los textos de abajo.
-4. Decidir lo que está en "Preguntas abiertas".
 
 **Joaquín**
 1. Revisar la rama `v3-produccion` antes del merge.
@@ -72,14 +75,14 @@ Rama **`v3-produccion`** (worktree `C:\Users\Naza\Desktop\VITACORA FAMILIAR-v3-p
 | 3 | Plantillas de M8 (es-AR, es-ES, ca) | El texto de M8 de cada banco (ya aprobado), con `{{1}}` en lugar del nombre. |
 | 4 | Foto suelta (no FO1) | Hoy, en es-AR: «📷 Guardada. Si querés, contame qué pasaba ahí.» La revisión marcó que esto invita a contar algo que después se pega a la respuesta abierta. Propuesta: «📷 Guardada.» (en ca: «📷 Desada.», en es-ES: «📷 Guardada.»). |
 | 5 | Bienvenida de narradores nuevos en ca/es-ES | Hoy es la vieja, en castellano y con usted o vos. Solo hace falta para prender `V3_PARA_NUEVOS`, no para el piloto. |
+| 6 | Pausa («quiero parar»), es-AR | «Listo, {{nombre}}, frenamos acá. Lo que contaste queda guardado. Cuando quieras seguir, mandame un mensaje y retomamos donde quedamos.» |
+| 7 | Pausa, es-ES | «Vale, {{nombre}}, paramos aquí. Lo que has contado queda guardado. Cuando quieras seguir, mándame un mensaje y seguimos donde lo dejamos.» |
+| 8 | Pausa, ca | «D'acord, {{nombre}}, parem aquí. El que has explicat queda guardat. Quan vulguis continuar, envia'm un missatge i seguim on ho vam deixar.» |
+| 9 | Reserva («que no vaya al libro»), es-AR / es-ES / ca | «Entendido. Eso no va a ir al libro.» / «Entendido. Eso no irá en el libro.» / «Entesos. Això no anirà al llibre.» |
 
-## Preguntas abiertas (Naza)
-1. **«Quiero parar» y «esto que no vaya al libro».** La entrevista vieja los detecta con un modelo. La V3 no, por diseño, así que hoy se guardan como respuesta y van al libro. Opciones:
-   - sumar la detección (con frases fijas, como el «paso»);
-   - que la reserva se haga solo a mano, como dice el CONTRATO.
-2. **Texto que llega cuando no hay pregunta abierta** (por ejemplo después del tope del día). Se suma a la respuesta anterior, así que un «Gracias» puede terminar en el libro.
-3. **Narrador pausado que escribe cuando no hay pregunta abierta.** Se reactiva y no recibe nada hasta su próxima tanda.
-4. **Preguntas de la familia agregadas en el panel después del alta.** No le llegan a la V3.
+Los textos 6 a 9 ya están en `entrevistador/src/v3/textos-fijos.json`: si Naza cambia algo, se edita solo ese archivo.
+
+Las frases que disparan la pausa y la reserva están en `fabrica/src/v3/entrevista/respuesta.ts` (sección "pedidos"); se cambian ahí y se copian con `npm run v3-copiar-nucleo`.
 
 ## A vigilar en el piloto (anotado, no bloquea)
 - **Audio en la pregunta equivocada.** Si Railway se reinicia entre dos audios de la misma respuesta, el segundo puede caer en la pregunta siguiente. Igual es mejor que perderlo.
