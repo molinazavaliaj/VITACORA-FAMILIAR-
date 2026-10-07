@@ -57,12 +57,12 @@ describe('audios, silencio y acuse', () => {
     expect(manana.estado.salientes[1].texto.startsWith(`${textoDelBanco('M3.1', FICHA)}\n`)).toBe(true);
   });
 
-  it('un audio sin pregunta abierta (después del tope) se suma a la última respuesta', () => {
+  it('un audio sin pregunta abierta (después del tope) no se suma a nada: queda aparte (Naza, 07/10)', () => {
     let e = avanzar(estadoInicial(), FICHA).estado;
     e = cerrarYSeguir(recibirAudio(e, 'Nací en un pueblo chico.').estado, FICHA, false).estado;
     const r = recibirAudio(e, 'Y me olvidaba del río.');
-    expect(r).toMatchObject({ clave: 'OR1', abierta: false });
-    expect(r.estado.respuestas).toEqual([['OR1', 'Nací en un pueblo chico. Y me olvidaba del río.']]);
+    expect(r).toMatchObject({ clave: null, abierta: false });
+    expect(r.estado.respuestas).toEqual([['OR1', 'Nací en un pueblo chico.']]);
   });
 
   it('un audio vacío no cambia nada', () => {

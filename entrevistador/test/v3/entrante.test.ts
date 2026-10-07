@@ -505,6 +505,40 @@ describe('«esto que no vaya al libro» (Naza, 07/10)', () => {
   });
 });
 
+describe('lo que llega sin pregunta abierta (Naza, 07/10): se guarda aparte', () => {
+  /** OR1 contestada y cerrada con la tanda en el tope: no hay nada abierto hasta mañana. */
+  const trasElTope = (): EstadoV3 => ({
+    ...enOR1(), esperando: undefined, preguntaAbierta: undefined, respuestas: [['OR1', 'Nací en un pueblo chico.']], acuse: { familia: 'M3', n: 0 },
+  });
+
+  it('un "Gracias" escrito: fila con ∅, no toca la respuesta anterior y no sale nada (ni M22)', async () => {
+    const { deps, n1, base, fila, enviados } = await preparar(trasElTope(), { tanda: { dia: '2026-10-08', cuenta: 4 } });
+    await procesarEntranteV3(deps, n1, texto('Gracias'));
+    const f = await fila();
+    expect(f?.estado.respuestas).toEqual([['OR1', 'Nací en un pueblo chico.']]);
+    expect(f?.estado.m22Enviado).toBeUndefined();
+    expect(enviados).toEqual([]);
+    expect(base.tablas.respuestas.map((r) => [r.texto_directo, r.clave_v3])).toEqual([['Gracias', SIN_CLAVE_V3]]);
+  });
+
+  it('un audio: fila con ∅ (con su transcripción), sin tocar la respuesta anterior', async () => {
+    const { deps, n1, base, fila, enviados } = await preparar(trasElTope(), { tanda: { dia: '2026-10-08', cuenta: 4 } });
+    await procesarEntranteV3(deps, n1, audio('Y me olvidaba del río.'));
+    expect((await fila())?.estado.respuestas).toEqual([['OR1', 'Nací en un pueblo chico.']]);
+    expect(enviados).toEqual([]);
+    expect(base.tablas.respuestas.map((r) => [r.transcripcion, r.clave_v3])).toEqual([['Y me olvidaba del río.', SIN_CLAVE_V3]]);
+  });
+
+  it('después de "Sí" sí hay pregunta abierta: el audio se suma', async () => {
+    const enCA6: EstadoV3 = { ...estadoInicial(), esperando: 'CA6', preguntaAbierta: { partes: [{ id: 'CA6', texto: '¿Hermanos?' }] }, ultimoEntranteAt: AHORA.toISOString() };
+    const { deps, n1, base, fila } = await preparar(enCA6);
+    await procesarEntranteV3(deps, n1, texto('Sí, tuve', true));
+    await procesarEntranteV3(deps, n1, audio('Éramos cuatro.'));
+    expect((await fila())?.estado.borrador).toBe('Éramos cuatro.');
+    expect(base.tablas.respuestas.map((r) => r.clave_v3)).toEqual(['CA6', 'CA6']);
+  });
+});
+
 /** El update de `respuestas.reservada` falla como si la columna no existiera (sin la migración de reservas). */
 function fallarUpdateDeReservada(base: BaseFalsa) {
   const cliente = base.cliente as unknown as { from: (t: string) => { update: (v: Record<string, unknown>) => unknown } };

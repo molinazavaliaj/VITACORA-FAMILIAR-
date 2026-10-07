@@ -78,20 +78,15 @@ export type AudioRecibido = { estado: EstadoV3; clave: string | null; abierta: b
 /**
  * Un audio (su transcripción). Con una pregunta abierta, se suma al borrador
  * (`abierta: true`: corre el reloj de silencio). Sin abierta (después del tope
- * de la tanda), se suma a la última respuesta.
+ * de la tanda, entre tandas) no se suma a nada (Naza, 07/10: un "Gracias" no
+ * puede terminar en el libro): `clave: null`, y la fila queda con SIN_CLAVE_V3.
  */
 export function recibirAudio(anterior: EstadoV3, texto: string): AudioRecibido {
   const t = texto.replace(/\r\n?/g, '\n').trim();
   const e = clonar(anterior);
-  if (t === '' || e.terminada) return { estado: e, clave: null, abierta: false };
-  if (e.esperando) {
-    e.borrador = sumarAudio(e.borrador ?? '', t);
-    return { estado: e, clave: e.esperando, abierta: true };
-  }
-  const ultima = e.respuestas.at(-1);
-  if (!ultima) return { estado: e, clave: null, abierta: false };
-  ultima[1] = sumarAudio(ultima[1], t);
-  return { estado: e, clave: ultima[0], abierta: false };
+  if (t === '' || e.terminada || !e.esperando) return { estado: e, clave: null, abierta: false };
+  e.borrador = sumarAudio(e.borrador ?? '', t);
+  return { estado: e, clave: e.esperando, abierta: true };
 }
 
 export type Toque = { estado: EstadoV3; clave: string; cerrar: boolean };

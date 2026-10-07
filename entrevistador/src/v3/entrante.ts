@@ -247,7 +247,8 @@ async function botonSuelto(deps: DepsV3, n: NarradorV3, m: MensajeEntrante): Pro
 /**
  * Texto escrito (Naza, 07/10): cuenta como respuesta. Se suma a la abierta
  * igual que un audio y corre el mismo reloj de 3 minutos. M22 sale solo la
- * primera vez en toda la entrevista.
+ * primera vez en toda la entrevista. Sin pregunta abierta no se suma a nada
+ * (fila con SIN_CLAVE_V3) y no sale nada, tampoco M22.
  */
 async function recibirTexto(deps: DepsV3, n: NarradorV3, m: MensajeEntrante, idioma: Idioma): Promise<Llegada> {
   const texto = (m.texto ?? '').trim();
@@ -268,7 +269,7 @@ async function aplicarTexto(deps: DepsV3, narradorId: string, idioma: Idioma, te
   const r = await conReintento(deps.db, narradorId, (f): Paso<string | null> => {
     if (yaVisto(f.estado, guardada.waMessageId)) return null;
     const a = recibirAudio(f.estado, texto);
-    const estado = f.estado.m22Enviado
+    const estado = f.estado.m22Enviado || !a.abierta
       ? a.estado
       : { ...encolar(a.estado, { texto: textoDelBanco('M22', fichaTexto(f)), tipo: 'suelto' }), m22Enviado: true };
     return { cambio: { estado: anotarVisto(estado, guardada.waMessageId), ...(a.abierta ? { ultimo_audio_at: guardadaAt } : {}) }, resultado: a.clave };
