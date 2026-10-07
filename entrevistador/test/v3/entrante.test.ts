@@ -394,3 +394,129 @@ describe('pausado con audio', () => {
     expect(enviados).toEqual([]);
   });
 });
+
+describe('«quiero parar» (Naza, 07/10: frases fijas, sin modelo)', () => {
+  const PAUSA = 'Listo, Prueba, frenamos acá. Lo que contaste queda guardado. Cuando quieras seguir, mandame un mensaje y retomamos donde quedamos.';
+
+  it('un texto corto: no se suma, queda pausado, sale el texto de pausa y lo abierto queda abierto', async () => {
+    const { deps, n1, base, fila, enviados } = await preparar({ ...enOR1(), borrador: 'Nací en un pueblo chico.' });
+    await procesarEntranteV3(deps, n1, texto('Quiero parar.'));
+    const f = await fila();
+    expect(f?.estado).toMatchObject({ esperando: 'OR1', borrador: 'Nací en un pueblo chico.' });
+    expect(f?.estado.m22Enviado).toBeUndefined();
+    expect(base.tablas.narradores[0].estado).toBe('pausado');
+    expect(enviados.map((e) => e.texto)).toEqual([PAUSA]);
+    expect(base.tablas.respuestas.map((r) => [r.texto_directo, r.clave_v3])).toEqual([['Quiero parar.', SIN_CLAVE_V3]]);
+  });
+
+  it('un audio corto también (después de transcribirlo)', async () => {
+    const { deps, n1, base, fila, enviados } = await preparar(enOR1());
+    await procesarEntranteV3(deps, n1, audio('Bueno, paremos por hoy.'));
+    expect((await fila())?.estado.borrador).toBeUndefined();
+    expect(base.tablas.narradores[0].estado).toBe('pausado');
+    expect(enviados.map((e) => e.texto)).toEqual([PAUSA]);
+    expect(base.tablas.respuestas[0].clave_v3).toBe(SIN_CLAVE_V3);
+  });
+
+  it('una historia larga que dice "parar" se suma como siempre', async () => {
+    const { deps, n1, base, fila } = await preparar(enOR1());
+    const historia = 'Quería parar el auto en la ruta pero mi papá no quería, decía que íbamos a llegar tarde a lo de la abuela.';
+    await procesarEntranteV3(deps, n1, audio(historia));
+    expect((await fila())?.estado.borrador).toBe(historia);
+    expect(base.tablas.narradores[0].estado).toBe('activo');
+  });
+
+  it('en catalán sale el texto en catalán', async () => {
+    const { deps, n1, base, enviados } = await preparar(enOR1(), { idioma: 'ca' });
+    await procesarEntranteV3(deps, n1, texto('Prou per avui.'));
+    expect(base.tablas.narradores[0].estado).toBe('pausado');
+    expect(enviados.map((e) => e.texto)).toEqual(["D'acord, Prueba, parem aquí. El que has explicat queda guardat. Quan vulguis continuar, envia'm un missatge i seguim on ho vam deixar."]);
+  });
+
+  it('un pausado que vuelve a pedir parar sigue pausado (no se reactiva ni se le reenvía la pregunta)', async () => {
+    const { deps, n1, base, enviados } = await preparar(enOR1(), { narrador: { estado: 'pausado' } });
+    await procesarEntranteV3(deps, n1, texto('No quiero seguir.'));
+    expect(base.tablas.narradores[0].estado).toBe('pausado');
+    expect(enviados.map((e) => e.texto)).toEqual([PAUSA]);
+  });
+
+  it('el reintento de Meta no repite el texto de pausa', async () => {
+    const { deps, n1, enviados } = await preparar(enOR1());
+    const m = texto('Paremos.');
+    await procesarEntranteV3(deps, n1, m);
+    await procesarEntranteV3(deps, n1, m);
+    expect(enviados).toHaveLength(1);
+  });
+});
+
+describe('«esto que no vaya al libro» (Naza, 07/10)', () => {
+  const RESERVA = 'Entendido. Eso no va a ir al libro.';
+
+  it('con un borrador abierto: no se suma, se reserva la abierta (estado y filas) y la entrevista sigue igual', async () => {
+    const { deps, n1, base, fila, enviados } = await preparar(enOR1());
+    await procesarEntranteV3(deps, n1, audio('Mi tío tenía un almacén.'));
+    await procesarEntranteV3(deps, n1, texto('Pero esto que no vaya al libro.'));
+    const f = await fila();
+    expect(f?.estado).toMatchObject({ esperando: 'OR1', borrador: 'Mi tío tenía un almacén.', reservadas: ['OR1'] });
+    expect(base.tablas.narradores[0].estado).toBe('activo');
+    expect(enviados.map((e) => e.texto)).toEqual([RESERVA]);
+    expect(base.tablas.respuestas.map((r) => [r.clave_v3, r.reservada ?? false])).toEqual([['OR1', true], [SIN_CLAVE_V3, false]]);
+  });
+
+  it('sin borrador abierto: se reserva la última respuesta cerrada', async () => {
+    const e: EstadoV3 = { ...enOR1(), esperando: 'OR2', respuestas: [['OR1', 'Nací en un pueblo chico.']] };
+    const { deps, n1, base, fila } = await preparar(e);
+    base.tablas.respuestas = [{ id: 'r-or1', narrador_id: 'n1', clave_v3: 'OR1', wa_message_id: 'wamid.viejo', transcripcion: 'Nací en un pueblo chico.' }];
+    await procesarEntranteV3(deps, n1, texto('No lo pongas en el libro.'));
+    expect((await fila())?.estado.reservadas).toEqual(['OR1']);
+    expect(base.tablas.respuestas.find((r) => r.id === 'r-or1')?.reservada).toBe(true);
+  });
+
+  it('por audio, en una historia larga', async () => {
+    const { deps, n1, fila, enviados } = await preparar({ ...enOR1(), borrador: 'Mi tío tenía un almacén.' });
+    await procesarEntranteV3(deps, n1, audio('Y bueno, lo de mi tío se terminó muy mal, con la policía y todo, pero eso no va en el libro.'));
+    const f = await fila();
+    expect(f?.estado.borrador).toBe('Mi tío tenía un almacén.');
+    expect(f?.estado.reservadas).toEqual(['OR1']);
+    expect(enviados.map((e) => e.texto)).toEqual([RESERVA]);
+  });
+
+  it('sin la columna `reservada` (42703): avisa a los socios, no falla y el estado la guarda igual', async () => {
+    const { deps, n1, fila, avisos, base } = await preparar({ ...enOR1(), borrador: 'Algo.' });
+    fallarUpdateDeReservada(base);
+    await procesarEntranteV3(deps, n1, texto('Que no salga en el libro.'));
+    expect((await fila())?.estado.reservadas).toEqual(['OR1']);
+    expect(avisos).toHaveLength(1);
+    expect(avisos[0].detalle).not.toContain('Algo.');
+  });
+
+  it('si dice las dos cosas: gana la reserva y además pausa', async () => {
+    const { deps, n1, base, fila, enviados } = await preparar({ ...enOR1(), borrador: 'Algo.' });
+    await procesarEntranteV3(deps, n1, texto('Eso no lo pongas. Paremos.'));
+    expect((await fila())?.estado.reservadas).toEqual(['OR1']);
+    expect(base.tablas.narradores[0].estado).toBe('pausado');
+    expect(enviados.map((e) => e.texto)).toEqual([RESERVA, 'Listo, Prueba, frenamos acá. Lo que contaste queda guardado. Cuando quieras seguir, mandame un mensaje y retomamos donde quedamos.']);
+  });
+
+  it('en es-ES sale el texto de es-ES', async () => {
+    const { deps, n1, enviados } = await preparar({ ...enOR1(), borrador: 'Algo.' }, { idioma: 'es-ES' });
+    await procesarEntranteV3(deps, n1, texto('Quítalo del libro.'));
+    expect(enviados.map((e) => e.texto)).toEqual(['Entendido. Eso no irá en el libro.']);
+  });
+});
+
+/** El update de `respuestas.reservada` falla como si la columna no existiera (sin la migración de reservas). */
+function fallarUpdateDeReservada(base: BaseFalsa) {
+  const cliente = base.cliente as unknown as { from: (t: string) => { update: (v: Record<string, unknown>) => unknown } };
+  const from = cliente.from.bind(cliente);
+  cliente.from = (t: string) => {
+    const q = from(t);
+    if (t !== 'respuestas') return q;
+    const update = q.update.bind(q);
+    q.update = (v: Record<string, unknown>) => {
+      if ('reservada' in v) base.fallarProxima.set('respuestas', { code: '42703', message: 'column "reservada" does not exist' });
+      return update(v);
+    };
+    return q;
+  };
+}

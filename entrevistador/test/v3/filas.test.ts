@@ -64,4 +64,14 @@ describe('las filas de un narrador V3', () => {
     expect(textoFijo('fotoSuelta', 'ca')).toBe('📷 Desada.');
     expect(textoFijo('fotoSuelta', 'es-ES')).toBe('📷 Guardada.');
   });
+
+  it('pausa y reserva (Naza, 07/10): {{nombre}} sale de la ficha, en los 3 idiomas', () => {
+    const ficha = { nombre: 'Prueba', genero: 'mujer' as const };
+    expect(textoFijo('pausa', 'es-AR', ficha)).toBe('Listo, Prueba, frenamos acá. Lo que contaste queda guardado. Cuando quieras seguir, mandame un mensaje y retomamos donde quedamos.');
+    expect(textoFijo('pausa', 'es-ES', { ...ficha, idioma: 'es-ES' })).toMatch(/^Vale, Prueba, paramos aquí\./);
+    expect(textoFijo('pausa', 'ca', { ...ficha, idioma: 'ca' })).toMatch(/^D'acord, Prueba, parem aquí\./);
+    expect(textoFijo('reserva', 'es-AR', ficha)).toBe('Entendido. Eso no va a ir al libro.');
+    expect(textoFijo('reserva', 'es-ES')).toBe('Entendido. Eso no irá en el libro.');
+    expect(textoFijo('reserva', 'ca')).toBe('Entesos. Això no anirà al llibre.');
+  });
 });

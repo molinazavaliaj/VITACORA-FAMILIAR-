@@ -3,5 +3,15 @@
     "es-AR": "📷 Guardada.",
     "es-ES": "📷 Guardada.",
     "ca": "📷 Desada."
+  },
+  "pausa": {
+    "es-AR": "Listo, {{nombre}}, frenamos acá. Lo que contaste queda guardado. Cuando quieras seguir, mandame un mensaje y retomamos donde quedamos.",
+    "es-ES": "Vale, {{nombre}}, paramos aquí. Lo que has contado queda guardado. Cuando quieras seguir, mándame un mensaje y seguimos donde lo dejamos.",
+    "ca": "D'acord, {{nombre}}, parem aquí. El que has explicat queda guardat. Quan vulguis continuar, envia'm un missatge i seguim on ho vam deixar."
+  },
+  "reserva": {
+    "es-AR": "Entendido. Eso no va a ir al libro.",
+    "es-ES": "Entendido. Eso no irá en el libro.",
+    "ca": "Entesos. Això no anirà al llibre."
   }
 }

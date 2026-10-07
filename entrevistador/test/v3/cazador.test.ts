@@ -60,6 +60,22 @@ describe('el cazador en segundo plano', () => {
     expect((await leerFila(base.cliente, 'n1'))?.estado.repreguntas ?? []).toEqual([]);
   });
 
+  it('lo que pidió que no vaya al libro (estado.reservadas) no le llega al cazador', async () => {
+    const cliente = clienteQueContesta();
+    const { deps, base } = await preparar(cliente);
+    base.tablas.entrevistas_v3[0].estado.reservadas = ['OR1'];
+    await cazarEnSegundoPlano(deps, 'n1', 1);
+    const pedidos = (cliente.messages.create as any).mock.calls.map((c: any[]) => JSON.stringify(c[0]));
+    expect(pedidos.some((p: string) => p.includes('mi mamá cosía'))).toBe(false);
+  });
+
+  it('el mismo pedido sin reserva sí lleva la respuesta (control del test de arriba)', async () => {
+    const cliente = clienteQueContesta();
+    const { deps } = await preparar(cliente);
+    await cazarEnSegundoPlano(deps, 'n1', 1);
+    expect(JSON.stringify((cliente.messages.create as any).mock.calls[0][0])).toContain('mi mamá cosía');
+  });
+
   it('lanzarCazador no espera; esperarCazas sí', async () => {
     const cliente = clienteQueContesta();
     const { deps, base } = await preparar(cliente);

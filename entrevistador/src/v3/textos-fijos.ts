@@ -4,12 +4,15 @@
 
 import textos from './textos-fijos.json' with { type: 'json' };
 import type { Idioma } from './nucleo/entrevista/idioma.js';
+import { renderizar, type FichaTexto } from './nucleo/entrevista/texto.js';
 
-export type ClaveTextoFijo = 'fotoSuelta';
+export type ClaveTextoFijo = 'fotoSuelta' | 'pausa' | 'reserva';
 
 const TEXTOS = textos as unknown as Record<ClaveTextoFijo, Partial<Record<Idioma, string>>>;
 
-export function textoFijo(clave: ClaveTextoFijo, idioma: Idioma): string | null {
+/** El texto aprobado; con la ficha, renderizado igual que los del banco ({{nombre}}, {{o/a}}…). */
+export function textoFijo(clave: ClaveTextoFijo, idioma: Idioma, ficha?: FichaTexto): string | null {
   const t = TEXTOS[clave]?.[idioma];
-  return typeof t === 'string' && t.trim() ? t : null;
+  if (typeof t !== 'string' || !t.trim()) return null;
+  return ficha ? renderizar(t, ficha) : t;
 }

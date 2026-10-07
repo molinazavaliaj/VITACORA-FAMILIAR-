@@ -93,6 +93,17 @@ export async function ponerClave(db: SupabaseClient, respuestaId: string, clave:
   if (error) console.warn(`V3: no pude anotar la clave ${clave} en la respuesta ${respuestaId}: ${error.message}`);
 }
 
+/**
+ * «Esto que no vaya al libro»: todas las filas de esa clave quedan reservadas
+ * (la fábrica saca la respuesta entera). Devuelve el error de la base, sin
+ * tirar: sin la migración de reservas la columna no existe (42703) y el
+ * estado (`reservadas`) igual alcanza.
+ */
+export async function marcarReservada(db: SupabaseClient, narradorId: string, clave: string): Promise<{ code?: string; message: string } | null> {
+  const { error } = await db.from('respuestas').update({ reservada: true }).eq('narrador_id', narradorId).eq('clave_v3', clave);
+  return error ? { code: error.code, message: error.message } : null;
+}
+
 /** Como ponerClave, pero solo si la fila sigue sin clave (no pisa la que puso el camino que la aplicó). */
 export async function ponerClaveSiFalta(db: SupabaseClient, respuestaId: string, clave: string): Promise<void> {
   const { error } = await db.from('respuestas').update({ clave_v3: clave }).eq('id', respuestaId).is('clave_v3', null);

@@ -14,6 +14,7 @@ import { ritmoDe } from '../flujo/ritmo.js';
 import { fechaLocal } from '../flujo/tiempo.js';
 import type { MensajeEntrante } from '../whatsapp/webhook.js';
 import { lanzarCazador } from './cazador.js';
+import type { Idioma } from './nucleo/entrevista/idioma.js';
 import type { DepsV3, Transcripcion } from './deps.js';
 import { drenar } from './enviar.js';
 import { conReintento, type Paso } from './estado.js';
@@ -22,6 +23,7 @@ import {
   ponerClaveSiFalta, yaLlego,
 } from './filas.js';
 import { leerBoton, respuestaDeBoton } from './nucleo/entrevista/respuesta.js';
+import { cumplirPedido, pedidoDe } from './pedidos.js';
 import { aplicarTanda, hitosDe, puedeAbrirHoy } from './tanda.js';
 import { textoFijo } from './textos-fijos.js';
 import { fichaTexto, MARCA_FOTO, SIN_CLAVE_V3, type FilaV3, type NarradorV3 } from './tipos.js';
@@ -48,24 +50,36 @@ export async function procesarEntranteV3(deps: DepsV3, n: NarradorV3, m: Mensaje
   // foto suelta, el audio que no se pudo bajar) se deduplica con los vistos.
   if (yaVisto(fila.estado, m.waMessageId)) return;
   await marcarRespondido(deps.db, n.id, ahora);
-  if (n.estado === 'pausado') {
-    await deps.db.from('narradores').update({ estado: 'activo' }).eq('id', n.id).eq('estado', 'pausado');
-    if (m.tipo === 'texto' && !m.esBoton) {
-      // Vuelve escribiendo: se le reenvía la pregunta abierta (sin M22).
-      await conReintento(deps.db, n.id, (f) =>
-        yaVisto(f.estado, m.waMessageId) ? null : { cambio: { estado: anotarVisto(reenviarAbierta(f.estado), m.waMessageId) }, resultado: true });
-      await drenar(deps, n.id);
-      return;
-    }
+  const pausado = n.estado === 'pausado';
+  const escrito = m.tipo === 'texto' && !m.esBoton;
+  // «Quiero parar» / «que no vaya al libro» escrito (pedidos.ts): no reactiva ni reenvía nada.
+  const pedidoEscrito = escrito && pedidoDe((m.texto ?? '').trim(), fila.idioma) !== null;
+  if (pausado && escrito && !pedidoEscrito) {
+    await reactivar(deps, n.id);
+    // Vuelve escribiendo: se le reenvía la pregunta abierta (sin M22).
+    await conReintento(deps.db, n.id, (f) =>
+      yaVisto(f.estado, m.waMessageId) ? null : { cambio: { estado: anotarVisto(reenviarAbierta(f.estado), m.waMessageId) }, resultado: true });
+    await drenar(deps, n.id);
+    return;
   }
-  await reenviarSiSalioPorPlantilla(deps, n.id, m);
+  if (!pedidoEscrito) await reenviarSiSalioPorPlantilla(deps, n.id, m);
+  let llegada: Llegada = 'mensaje';
   if (m.tipo === 'imagen') await recibirImagen(deps, n, m, fila);
-  else if (m.tipo === 'audio') await recibirAudioV3(deps, n, m, fila);
+  else if (m.tipo === 'audio') llegada = await recibirAudioV3(deps, n, m, fila);
   else if (m.esBoton) {
     if (!(await recibirBoton(deps, n, m, fila, ahora))) await botonSuelto(deps, n, m);
-  } else await recibirTexto(deps, n, m);
+  } else llegada = await recibirTexto(deps, n, m, fila.idioma);
+  // Un pausado vuelve con cualquier mensaje, salvo que lo que mandó sea un pedido (pausa o reserva).
+  if (pausado && llegada !== 'pedido') await reactivar(deps, n.id);
   // Lo que haya quedado en la cola (también lo que esperaba la ventana) sale ahora.
   await drenar(deps, n.id);
+}
+
+/** 'pedido': era «quiero parar» o «que no vaya al libro» (pedidos.ts) y no se sumó a nada. */
+type Llegada = 'mensaje' | 'pedido';
+
+async function reactivar(deps: DepsV3, narradorId: string): Promise<void> {
+  await deps.db.from('narradores').update({ estado: 'activo' }).eq('id', narradorId).eq('estado', 'pausado');
 }
 
 /**
@@ -123,8 +137,8 @@ type FilaGuardada = { id: string; waMessageId: string };
  * abierta y corre el reloj de silencio desde que se guardó la transcripción.
  * No se contesta nada.
  */
-async function recibirAudioV3(deps: DepsV3, n: NarradorV3, m: MensajeEntrante, fila: FilaV3): Promise<void> {
-  if (!m.mediaId) return;
+async function recibirAudioV3(deps: DepsV3, n: NarradorV3, m: MensajeEntrante, fila: FilaV3): Promise<Llegada> {
+  if (!m.mediaId) return 'mensaje';
   let audio: Buffer;
   let guardada: { id: string } | null;
   try {
@@ -133,16 +147,16 @@ async function recibirAudioV3(deps: DepsV3, n: NarradorV3, m: MensajeEntrante, f
   } catch (err) {
     console.error(`V3: no pude bajar o guardar el audio de ${n.id}:`, err instanceof Error ? err.message : err);
     await pedirDeNuevo(deps, n.id, m.waMessageId);
-    return;
+    return 'mensaje';
   }
-  if (!guardada) return; // duplicado
-  await aplicarAudio(deps, n.id, fila, { id: guardada.id, waMessageId: m.waMessageId }, null, async () => audio);
+  if (!guardada) return 'mensaje'; // duplicado
+  return aplicarAudio(deps, n.id, fila, { id: guardada.id, waMessageId: m.waMessageId }, null, async () => audio);
 }
 
 async function aplicarAudio(
   deps: DepsV3, narradorId: string, fila: Pick<FilaV3, 'ficha' | 'idioma'>, guardada: FilaGuardada,
   transcripcion: string | null, bajar: () => Promise<Buffer>,
-): Promise<void> {
+): Promise<Llegada> {
   let texto = transcripcion?.trim() ? transcripcion : null;
   if (texto === null) {
     let t: Transcripcion | null = null;
@@ -162,12 +176,17 @@ async function aplicarAudio(
       // Audio cortado, vacío o que no se pudo transcribir: M23 (se le pide de nuevo) y la fila queda afuera.
       await pedirDeNuevo(deps, narradorId, guardada.waMessageId);
       await ponerClave(deps.db, guardada.id, SIN_CLAVE_V3);
-      return;
+      return 'mensaje';
     }
     await anotarTranscripcion(deps.db, guardada.id, t);
     texto = t.texto;
   }
   const dicho = texto;
+  const pedido = pedidoDe(dicho, fila.idioma);
+  if (pedido) {
+    await cumplirPedido(deps, narradorId, pedido, guardada);
+    return 'pedido';
+  }
   const guardadaAt = deps.ahora().toISOString();
   const r = await conReintento(deps.db, narradorId, (f): Paso<string | null> => {
     if (yaVisto(f.estado, guardada.waMessageId)) return null;
@@ -175,6 +194,7 @@ async function aplicarAudio(
     return { cambio: { estado: anotarVisto(a.estado, guardada.waMessageId), ...(a.abierta ? { ultimo_audio_at: guardadaAt } : {}) }, resultado: a.clave };
   });
   await anotarClave(deps, guardada.id, r);
+  return 'mensaje';
 }
 
 /**
@@ -229,15 +249,21 @@ async function botonSuelto(deps: DepsV3, n: NarradorV3, m: MensajeEntrante): Pro
  * igual que un audio y corre el mismo reloj de 3 minutos. M22 sale solo la
  * primera vez en toda la entrevista.
  */
-async function recibirTexto(deps: DepsV3, n: NarradorV3, m: MensajeEntrante): Promise<void> {
+async function recibirTexto(deps: DepsV3, n: NarradorV3, m: MensajeEntrante, idioma: Idioma): Promise<Llegada> {
   const texto = (m.texto ?? '').trim();
-  if (!texto) return;
+  if (!texto) return 'mensaje';
   const guardada = await guardarTextoV3(deps.db, n.id, await numeroDeLlegada(deps.db, n.id), texto, { waMessageId: m.waMessageId, clave: null, esBoton: false });
-  if (!guardada) return; // duplicado
-  await aplicarTexto(deps, n.id, texto, { id: guardada.id, waMessageId: m.waMessageId });
+  // El duplicado de un pedido sigue siendo un pedido (no reactiva al pausado).
+  if (!guardada) return pedidoDe(texto, idioma) ? 'pedido' : 'mensaje';
+  return aplicarTexto(deps, n.id, idioma, texto, { id: guardada.id, waMessageId: m.waMessageId });
 }
 
-async function aplicarTexto(deps: DepsV3, narradorId: string, texto: string, guardada: FilaGuardada): Promise<void> {
+async function aplicarTexto(deps: DepsV3, narradorId: string, idioma: Idioma, texto: string, guardada: FilaGuardada): Promise<Llegada> {
+  const pedido = pedidoDe(texto, idioma);
+  if (pedido) {
+    await cumplirPedido(deps, narradorId, pedido, guardada);
+    return 'pedido';
+  }
   const guardadaAt = deps.ahora().toISOString();
   const r = await conReintento(deps.db, narradorId, (f): Paso<string | null> => {
     if (yaVisto(f.estado, guardada.waMessageId)) return null;
@@ -248,6 +274,7 @@ async function aplicarTexto(deps: DepsV3, narradorId: string, texto: string, gua
     return { cambio: { estado: anotarVisto(estado, guardada.waMessageId), ...(a.abierta ? { ultimo_audio_at: guardadaAt } : {}) }, resultado: a.clave };
   });
   await anotarClave(deps, guardada.id, r);
+  return 'mensaje';
 }
 
 /**
@@ -326,7 +353,7 @@ export async function reconciliarV3(deps: DepsV3, fila: FilaV3, n: NarradorV3): 
       await aplicarBoton(deps, n, boton, guardada, deps.ahora());
     } else {
       const texto = (r.transcripcion ?? directo).trim();
-      if (texto) await aplicarTexto(deps, n.id, texto, guardada);
+      if (texto) await aplicarTexto(deps, n.id, fila.idioma, texto, guardada);
       else await ponerClave(deps.db, r.id, SIN_CLAVE_V3);
     }
   }

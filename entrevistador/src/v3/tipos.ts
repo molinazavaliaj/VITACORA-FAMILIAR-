@@ -83,6 +83,12 @@ export type EstadoV3 = {
   wamidsVistos?: string[];
   /** La pregunta abierta salió por plantilla (fuera de la ventana): sin botones. Al volver a escribir, se le reenvía con botones. */
   abiertaPorPlantilla?: boolean;
+  /**
+   * Las claves que el narrador pidió que no vayan al libro («esto que no vaya
+   * al libro», Naza 07/10). La fábrica las saca enteras aunque no se haya
+   * podido marcar `respuestas.reservada` (ver supabase/CONTRATO.md).
+   */
+  reservadas?: string[];
 };
 
 export type Genero = 'varon' | 'mujer' | 'otro';

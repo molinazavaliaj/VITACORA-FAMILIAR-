@@ -12,6 +12,9 @@
 // CONTRATO) no llega al estado, que ya sumó el texto. Por eso leerEntrevistaV3
 // la aplica sobre estado.respuestas y el borrador, y sobre audios[], con las
 // reglas de comun.ts (esPublicable/textoRespuesta). Ante la duda, se reserva más.
+// Las reservas pedidas por WhatsApp («esto que no vaya al libro», Naza 07/10)
+// también quedan en `estado.reservadas`: esas claves salen enteras (y sus
+// audios), aunque no se haya podido marcar la fila.
 
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { esPublicable, textoRespuesta } from '../../libro/comun.js';
@@ -36,6 +39,8 @@ export type FilaEntrevistaV3 = {
     esperando?: string;
     tocoSi?: boolean;
     borrador?: string;
+    /** «Esto que no vaya al libro» pedido por WhatsApp (entrevistador V3, Naza 07/10): claves que salen enteras. */
+    reservadas?: string[];
   };
 };
 
@@ -135,7 +140,16 @@ export async function leerEntrevistaV3(db: SupabaseClient, narradorId: string): 
   if (res.error?.code === '42703') res = await consulta('clave_v3,audio_path,transcripcion,texto_directo,recibido_at');
   if (res.error) throw new Error(`No pude leer las respuestas de ${narradorId}: ${res.error.message}`);
 
-  const filasResp = ((res.data as unknown as FilaRespuesta[] | null) ?? []).filter((r) => r.clave_v3 !== SIN_CLAVE_V3);
+  const fila = data as unknown as FilaEntrevistaV3;
+  // Las reservas pedidas por WhatsApp quedan en el estado aunque no se haya podido marcar
+  // `respuestas.reservada` (falló el update o falta la columna): se tratan como filas reservadas enteras.
+  const delEstado = new Set(fila.estado.reservadas ?? []);
+  const reservadaEnEstado = (k: string) => delEstado.has(k) || delEstado.has(claveMadre(k));
+  const filasResp = ((res.data as unknown as FilaRespuesta[] | null) ?? [])
+    .filter((r) => r.clave_v3 !== SIN_CLAVE_V3)
+    .map((r) => (reservadaEnEstado(r.clave_v3) ? { ...r, reservada: true, reservado_tramo: null } : r));
+  const reservas = reservasPorClave(filasResp);
+  for (const k of delEstado) reservas.set(k, { total: true, tramos: [] });
   const audios: AudioV3[] = filasResp.map((r) => ({
     clave: r.clave_v3,
     // Un tramo reservado no se recorta de una grabación: el audio queda afuera.
@@ -143,5 +157,5 @@ export async function leerEntrevistaV3(db: SupabaseClient, narradorId: string): 
     transcripcion: textoRespuesta({ transcripcion: r.transcripcion, texto_directo: r.texto_directo ?? null, reservada: r.reservada, reservado_tramo: r.reservado_tramo }),
     recibidoAt: r.recibido_at,
   }));
-  return { ...aplicarReservas(entrevistaDeFila(data as unknown as FilaEntrevistaV3), reservasPorClave(filasResp)), audios };
+  return { ...aplicarReservas(entrevistaDeFila(fila), reservas), audios };
 }

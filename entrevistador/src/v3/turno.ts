@@ -296,12 +296,22 @@ export function textoMandado(e: EstadoV3, ficha: FichaTexto, id: string): string
   return texto ?? (delBanco ? renderizar(delBanco.texto, ficha) : '');
 }
 
+/** La clave "madre" de una repregunta (RP~X) o segunda oportunidad (X~2): comparten la reserva de X (como de-base.ts de la fábrica). */
+const claveMadre = (k: string) => (k.startsWith('RP~') ? k.slice(3) : k.replace(/~\d+$/, ''));
+
+/** ¿Pidió que esa respuesta no vaya al libro? (también la de su pregunta madre). */
+export function esReservada(e: Pick<EstadoV3, 'reservadas'>, clave: string): boolean {
+  const r = e.reservadas ?? [];
+  return r.includes(clave) || r.includes(claveMadre(clave));
+}
+
 export function cazarAlCerrar(e: EstadoV3, ficha: FichaTexto, bloque: number, cliente: ClienteModelo): Promise<ResultadoCaza> {
   return cazarBloque({
     cliente,
     ficha: fichaCorta(ficha),
     bloque,
-    respuestas: new Map(e.respuestas),
+    // Lo que pidió que no vaya al libro tampoco va al modelo (no se repregunta sobre eso).
+    respuestas: new Map(e.respuestas.filter(([k]) => !esReservada(e, k))),
     textoPregunta: (id) => textoMandado(e, ficha, id),
     yaRepreguntado: e.repreguntas ?? [],
     escenasContadas: e.cazador?.escenasContadas ?? [],

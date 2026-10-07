@@ -993,6 +993,80 @@ const FRASES_ES_ES: Frases = {
 
 export const FRASES: Readonly<Record<Idioma, Frases>> = { 'es-AR': FRASES_ES, ca: FRASES_CA, 'es-ES': FRASES_ES_ES };
 
+// ---------------------------------------------------------------- pedidos: pausa y reserva
+
+/**
+ * «Quiero parar» y «esto que no vaya al libro» (Naza, 07/10): se detectan con
+ * frases fijas, sin modelo, antes de sumar el mensaje a una respuesta. Se
+ * comparan con `normalizar` (minúsculas, sin tildes ni signos: "treu-ho" →
+ * "treu ho"). El catalán suma las dos listas del castellano (quien habla
+ * catalán mezcla), y es-ES la rioplatense.
+ */
+const RESERVA_ES = [
+  'que no vaya al libro', 'no vaya al libro', 'no lo pongas en el libro', 'no pongas eso en el libro', 'no pongas esto en el libro', 'esto no va en el libro',
+  'eso no va en el libro', 'esto no va al libro', 'eso no va al libro', 'eso no lo pongas', 'esto no lo pongas', 'no lo escribas', 'eso no lo escribas', 'que no salga en el libro',
+  'que no quede en el libro', 'que no aparezca en el libro', 'que no figure en el libro', 'sacalo del libro', 'saca eso del libro', 'saca esto del libro',
+  'no quiero que esto este en el libro', 'no quiero que eso este en el libro', 'no quiero que esto vaya al libro', 'no quiero que eso vaya al libro',
+  'no quiero que salga en el libro', 'esto no es para el libro', 'eso no es para el libro',
+];
+const RESERVA_SOLO_ESPANA = [
+  'no lo pongas', 'quitalo del libro', 'quita eso del libro', 'quita esto del libro', 'no quiero que aparezca en el libro', 'eso no lo pongas en el libro',
+];
+const RESERVA_SOLO_CATALAN = [
+  'que no surti al llibre', 'que no surti en el llibre', 'no ho posis al llibre', 'no ho posis', 'aixo no ho posis', 'treu-ho del llibre', 'treu aixo del llibre',
+  'aixo no va al llibre', 'aixo no va en el llibre', 'no ho escriguis', 'que no quedi al llibre', 'no vull que aixo surti al llibre', 'no vull que surti al llibre',
+  'aixo no es per al llibre',
+];
+
+/** La pausa solo vale en un mensaje corto: "quería parar el auto en la ruta…" es una historia. */
+export const PALABRAS_PEDIDO_PAUSA = 15;
+const PAUSA_ES = [
+  'quiero parar', 'paremos', 'frenemos', 'no quiero seguir', 'basta por hoy', 'dejemos aca', 'dejemos por hoy', 'dejemoslo por ahora', 'dejemoslo para otro dia', 'por ahora no',
+  'no tengo ganas de seguir', 'lo dejamos para otro dia', 'sigamos otro dia', 'seguimos otro dia', 'pausa',
+];
+const PAUSA_SOLO_ESPANA = ['paremos aqui', 'lo dejamos aqui', 'vamos a parar', 'lo dejamos por hoy'];
+const PAUSA_SOLO_CATALAN = [
+  'vull parar', 'parem', 'ho deixem aqui', 'ho deixem per avui', 'ho deixem per un altre dia', 'no vull continuar', 'no vull seguir', 'prou per avui', 'deixem-ho per avui',
+  'seguim un altre dia', 'continuem un altre dia',
+];
+/**
+ * Lo que sigue a la frase y la vuelve otra cosa: "no quiero seguir hablando
+ * de eso" es un paso de la pregunta, no una pausa.
+ */
+const NO_ES_PAUSA_DESPUES = new Set(['hablando', 'contando', 'con', 'parlant', 'explicant', 'amb']);
+
+type Pedidos = { reserva: readonly string[]; pausa: readonly string[] };
+const pedidos = (reserva: string[], pausa: string[]): Pedidos => ({ reserva: [...new Set(reserva.map(normalizar))], pausa: [...new Set(pausa.map(normalizar))] });
+
+const PEDIDOS: Readonly<Record<Idioma, Pedidos>> = {
+  'es-AR': pedidos(RESERVA_ES, PAUSA_ES),
+  'es-ES': pedidos([...RESERVA_ES, ...RESERVA_SOLO_ESPANA], [...PAUSA_ES, ...PAUSA_SOLO_ESPANA]),
+  ca: pedidos([...RESERVA_ES, ...RESERVA_SOLO_ESPANA, ...RESERVA_SOLO_CATALAN], [...PAUSA_ES, ...PAUSA_SOLO_ESPANA, ...PAUSA_SOLO_CATALAN]),
+};
+
+/** Dónde termina la frase cada vez que aparece entre las palabras. */
+function finesDeFrase(pal: readonly string[], frase: string): number[] {
+  const f = frase.split(' ');
+  const fines: number[] = [];
+  for (let i = 0; i + f.length <= pal.length; i++) if (hayFraseEn(pal, i, f)) fines.push(i + f.length);
+  return fines;
+}
+
+const palabrasDe = (texto: string) => normalizar(texto).split(' ').filter(Boolean);
+
+/** ¿Pide que esto no vaya al libro? A cualquier largo. */
+export function pideReserva(texto: string, idioma: Idioma = IDIOMA_POR_DEFECTO): boolean {
+  const pal = palabrasDe(texto);
+  return pal.length > 0 && PEDIDOS[idioma].reserva.some((fr) => finesDeFrase(pal, fr).length > 0);
+}
+
+/** ¿Pide parar la entrevista? Solo en un mensaje de hasta PALABRAS_PEDIDO_PAUSA palabras. */
+export function pidePausa(texto: string, idioma: Idioma = IDIOMA_POR_DEFECTO): boolean {
+  const pal = palabrasDe(texto);
+  if (pal.length === 0 || pal.length > PALABRAS_PEDIDO_PAUSA) return false;
+  return PEDIDOS[idioma].pausa.some((fr) => finesDeFrase(pal, fr).some((fin) => !NO_ES_PAUSA_DESPUES.has(pal[fin])));
+}
+
 /**
  * Qué dijo, según la pregunta (Naza, 30/09, simulaciones):
  *   - si tocó un botón, manda el botón, aunque después haya mandado audio

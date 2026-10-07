@@ -156,4 +156,28 @@ describe('el lector de la entrevista V3 desde la base', () => {
       expect((await leerEntrevistaV3(db, 'n1'))?.respuestas).toEqual([]);
     });
   });
+
+  describe('estado.reservadas («esto que no vaya al libro» por WhatsApp, Naza 07/10)', () => {
+    it('saca la clave entera aunque las filas no estén marcadas (falló el update o falta la columna), y sus audios', async () => {
+      const estado = { respuestas: [['OR1', 'Secreto de familia.'], ['RP~OR1', 'Más del secreto.'], ['OR2', 'Mi mamá cosía.']] as [string, string][], reservadas: ['OR1'] };
+      const db = dbFalsa({
+        entrevistas_v3: [fila(estado)],
+        respuestas: [
+          { narrador_id: 'n1', clave_v3: 'OR1', audio_path: 'n1/dia_01.ogg', transcripcion: 'Secreto de familia.', recibido_at: '2026-10-08T13:00:00Z' },
+          { narrador_id: 'n1', clave_v3: 'OR2', audio_path: 'n1/dia_02.ogg', transcripcion: 'Mi mamá cosía.', recibido_at: '2026-10-08T13:01:00Z' },
+        ],
+      });
+      const e = await leerEntrevistaV3(db, 'n1');
+      expect(e?.respuestas).toEqual([['OR2', 'Mi mamá cosía.']]);
+      expect(e?.audios).toEqual([
+        { clave: 'OR1', audioPath: null, transcripcion: null, recibidoAt: '2026-10-08T13:00:00Z' },
+        { clave: 'OR2', audioPath: 'n1/dia_02.ogg', transcripcion: 'Mi mamá cosía.', recibidoAt: '2026-10-08T13:01:00Z' },
+      ]);
+    });
+
+    it('también el borrador abierto reservado', async () => {
+      const db = dbFalsa({ entrevistas_v3: [fila({ respuestas: [], esperando: 'OR1', borrador: 'Secreto de familia.', reservadas: ['OR1'] })], respuestas: [] });
+      expect((await leerEntrevistaV3(db, 'n1'))?.respuestas).toEqual([]);
+    });
+  });
 });
