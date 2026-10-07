@@ -10,9 +10,11 @@ const m = vi.hoisted(() => ({
   generarPaquete: vi.fn(async () => undefined),
   generarEstructura: vi.fn(async () => undefined),
   obtenerClienteDb: vi.fn(),
+  idiomasV3: vi.fn(async () => new Map<string, string>()),
+  enviarMailHito: vi.fn(async () => false),
 }));
 
-vi.mock('../src/v3/candado.js', () => ({ narradoresConV3: m.narradoresConV3, avisarCandadoV3: vi.fn(), exigirSinV3: vi.fn() }));
+vi.mock('../src/v3/candado.js', () => ({ idiomasV3: m.idiomasV3, narradoresConV3: m.narradoresConV3, avisarCandadoV3: vi.fn(), exigirSinV3: vi.fn() }));
 vi.mock('../src/escritor/produccion/libro-v3.js', () => ({ revisarEtapaAV3: m.revisarEtapaAV3, hayLugarParaLibroV3: m.hayLugarParaLibroV3, lanzarLibroV3: m.lanzarLibroV3 }));
 vi.mock('../src/libro/generar-paquete.js', () => ({ generarPaquete: m.generarPaquete }));
 vi.mock('../src/libro/estructura.js', () => ({ generarEstructura: m.generarEstructura }));
@@ -20,7 +22,7 @@ vi.mock('../src/libro/previsualizar.js', () => ({ generarPrevisualizacion: vi.fn
 vi.mock('../src/libro/anticipo.js', () => ({ generarAnticipo: vi.fn() }));
 vi.mock('../src/entregas.js', () => ({ mandarEntregasAImprenta: vi.fn(), avisarHitosDeEntrega: vi.fn() }));
 vi.mock('../src/latido.js', () => ({ anotarLatido: vi.fn() }));
-vi.mock('../src/mail/hitos.js', async () => ({ ...(await vi.importActual<object>('../src/mail/hitos.js')), enviarMailHito: vi.fn(async () => false) }));
+vi.mock('../src/mail/hitos.js', async () => ({ ...(await vi.importActual<object>('../src/mail/hitos.js')), enviarMailHito: m.enviarMailHito }));
 vi.mock('../src/config.js', () => ({ cargarConfig: () => ({ urlBase: 'https://x', resendApiKey: '' }) }));
 vi.mock('../src/db.js', async () => ({ ...(await vi.importActual<object>('../src/db.js')), obtenerClienteDb: m.obtenerClienteDb }));
 
@@ -40,6 +42,7 @@ function base(t: { narradores: Fila[]; pedidos: Fila[] }) {
         in: (c: string, vs: unknown[]) => { filtros.push((f) => vs.includes(f[c])); return q; },
         is: (c: string, v: unknown) => { filtros.push((f) => (f[c] ?? null) === v); return q; },
         update: (c: Fila) => { cambios = c; return q; },
+        single: async () => ({ data: filas()[0] ?? null, error: filas()[0] ? null : { message: 'sin filas' } }),
         then: (ok: any, ko: any) => {
           const r = filas();
           if (cambios) {
@@ -140,5 +143,35 @@ describe('worker: narradores con entrevista V3', () => {
     await procesarPedidosPagados();
     expect(m.lanzarLibroV3).not.toHaveBeenCalled();
     expect(t.pedidos[1]).toMatchObject({ estado: 'entregado', libro_pdf_path: 'v3/paquete/libro.pdf' });
+  });
+});
+
+describe('worker: el mail "terminó de contar" de un narrador V3', () => {
+  const terminados = () => ({
+    narradores: [
+      { id: 'ar', estado: 'completado', como_le_dicen: 'Babu', familia_id: 'f', ultima_respuesta_at: new Date().toISOString(), libro_aprobado_at: null },
+      { id: 'ca', estado: 'completado', como_le_dicen: 'Imma', familia_id: 'f', ultima_respuesta_at: new Date().toISOString(), libro_aprobado_at: null },
+      { id: 'viejo', estado: 'completado', como_le_dicen: 'papá', familia_id: 'f', ultima_respuesta_at: new Date().toISOString(), libro_aprobado_at: null },
+    ],
+    pedidos: [],
+    familias: [{ id: 'f', email: 'familia@ejemplo.com' }],
+  });
+
+  it('V3 de Argentina con vos, V3 de España (o catalán) con tú, el viejo con el texto de siempre', async () => {
+    m.idiomasV3.mockResolvedValue(new Map([['ar', 'es-AR'], ['ca', 'ca']]));
+    const { db } = base(terminados() as never);
+    m.obtenerClienteDb.mockReturnValue(db);
+    await tick();
+    const terminado = m.enviarMailHito.mock.calls.map((c) => (c as unknown as [{ hito: string; comoLeDicen: string; variante?: string }])[0]).filter((o) => o.hito === 'terminado');
+    expect(terminado.map((o) => [o.comoLeDicen, o.variante])).toEqual([['Babu', 'vos'], ['Imma', 'tu'], ['papá', undefined]]);
+  });
+
+  it('sin poder leer entrevistas_v3 no sale ningún mail de cierre (no le llega el texto viejo a una familia V3)', async () => {
+    m.idiomasV3.mockRejectedValue(new Error('caída'));
+    const { db } = base(terminados() as never);
+    m.obtenerClienteDb.mockReturnValue(db);
+    await tick();
+    expect(m.enviarMailHito).not.toHaveBeenCalled();
+    m.idiomasV3.mockResolvedValue(new Map());
   });
 });

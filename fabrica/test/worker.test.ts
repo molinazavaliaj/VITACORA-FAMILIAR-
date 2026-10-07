@@ -21,6 +21,7 @@ const {
 }));
 
 vi.mock('../src/v3/candado.js', () => ({
+  idiomasV3: vi.fn(async () => new Map<string, string>()),
   narradoresConV3: vi.fn(async () => new Set<string>()),
   avisarCandadoV3: vi.fn(async () => undefined),
   exigirSinV3: vi.fn(async () => undefined),

@@ -5,7 +5,7 @@ import { generarAnticipo } from './libro/anticipo.js';
 import { firmarTokenAnticipo } from './libro/token-anticipo.js';
 import { subirTexto } from './libro/comun.js';
 import { enviarMailAnticipo } from './mail/anticipo.js';
-import { enviarMailHito, CANDADO_POR_HITO, type Hito } from './mail/hitos.js';
+import { enviarMailHito, CANDADO_POR_HITO, type Hito, type VarianteV3 } from './mail/hitos.js';
 import {
   CANDADO_RECORDATORIO_FRASES,
   DIAS_RECORDATORIO_FRASES,
@@ -19,7 +19,7 @@ import { leerFrases } from './libro/publicar-frases.js';
 import { anotarLatido } from './latido.js';
 import { mandarEntregasAImprenta, avisarHitosDeEntrega } from './entregas.js';
 import { productosDelPedido } from './libro/productos.js';
-import { narradoresConV3 } from './v3/candado.js';
+import { idiomasV3, narradoresConV3 } from './v3/candado.js';
 import { hayLugarParaLibroV3, lanzarLibroV3, revisarEtapaAV3 } from './escritor/produccion/libro-v3.js';
 
 const INTERVALO_MS = 60_000;
@@ -365,11 +365,23 @@ async function avisarHitosDeCierre(): Promise<void> {
     return;
   }
 
+  // El "terminó de contar" de un narrador V3 tiene su propio texto (y vos en Argentina). Sin poder leer
+  // entrevistas_v3 no se manda nada este tick: a una familia V3 le llegaría el texto viejo.
+  let idiomas: Map<string, string>;
+  try {
+    idiomas = await idiomasV3(db);
+  } catch (err) {
+    console.error('tick: no pude leer entrevistas_v3; los mails de cierre no salen este tick:', err);
+    return;
+  }
+
   for (const narrador of (narradores ?? []) as NarradorTerminado[]) {
     try {
       const archivos = await listarPaquete(db, narrador.id);
       const enlace = `${urlBase}/tablero/${narrador.id}`;
-      const mandar = (hito: Hito) => mandarHito(db, narrador, hito, enlace, archivos);
+      const idiomaV3 = idiomas.get(narrador.id);
+      const variante: VarianteV3 | undefined = idiomaV3 === undefined ? undefined : idiomaV3 === 'es-AR' ? 'vos' : 'tu';
+      const mandar = (hito: Hito) => mandarHito(db, narrador, hito, enlace, archivos, variante);
 
       if (!archivos.has(CANDADO_POR_HITO.terminado)) await mandar('terminado');
 
@@ -446,7 +458,8 @@ async function mandarHito(
   narrador: NarradorConFamilia,
   hito: Hito,
   enlace: string,
-  archivos: Set<string>
+  archivos: Set<string>,
+  variante?: VarianteV3
 ): Promise<boolean> {
   // El candado manda: si ya está, ese mail ya salió (o alguien lo sembró a
   // mano para que no salga, como los 7 de Osvaldo al preparar el redeploy).
@@ -471,6 +484,7 @@ async function mandarHito(
     para: (familia as { email: string }).email,
     comoLeDicen: narrador.como_le_dicen,
     enlace,
+    ...(variante ? { variante } : {}),
   });
 
   if (enviado) {
