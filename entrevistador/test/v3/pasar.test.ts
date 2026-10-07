@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { crearBaseFalsa } from './base-falsa.js';
 import { depsDePrueba } from './deps-prueba.js';
 import { leerFila } from '../../src/v3/estado.js';
-import { altaNuevo, aplicarPase, argumentosDePase, describirPase, leerEquivalencias, normalizarPregunta, planDePase } from '../../src/v3/pasar.js';
+import { altaNuevo, aplicarPase, bloqueosDePase, argumentosDePase, describirPase, leerEquivalencias, normalizarPregunta, planDePase } from '../../src/v3/pasar.js';
 import { tocaM8, tocaTanda, trabajarNarrador } from '../../src/v3/reloj.js';
 import { renderizar } from '../../src/v3/nucleo/entrevista/texto.js';
 import { preguntaPorId } from '../../src/v3/nucleo/entrevista/banco.js';
@@ -52,6 +52,11 @@ describe('la tabla de equivalencias', () => {
   it('rechaza una clave que no es del banco V3 y un formato roto', () => {
     expect(() => leerEquivalencias({ version: 1, porTexto: { 'Algo': 'ZZ9' } })).toThrow(/ZZ9/);
     expect(() => leerEquivalencias({ porTexto: {} })).toThrow(/formato/);
+  });
+
+  it('dos textos que se normalizan igual y van a claves distintas: error', () => {
+    expect(() => leerEquivalencias({ version: 1, porTexto: { '¿Cómo era tu casa?': 'CA1', 'como era tu casa': 'OR1' } })).toThrow(/normaliza igual/);
+    expect(leerEquivalencias({ version: 1, porTexto: { '¿Cómo era tu casa?': 'CA1', 'como era tu casa': 'CA1' } }).porTexto).toEqual({ 'como era tu casa': 'CA1' });
   });
 
   it('la del repo arranca vacía (la arma la sesión principal y la aprueba Naza)', () => {
@@ -157,6 +162,64 @@ describe('el pase de un narrador en curso', () => {
     const base = baseConNarrador();
     await aplicarPase(base.cliente, await planDePase(base.cliente, 'n1', { genero: 'mujer', equivalencias: EQUIVALENCIAS }), ANTES_DE_LA_HORA);
     await expect(planDePase(base.cliente, 'n1', { genero: 'mujer', equivalencias: EQUIVALENCIAS })).rejects.toThrow(/ya tiene/);
+  });
+
+  it('una respuesta reservada entera no se carga ni lleva clave_v3, y el dry-run la nombra sin contenido', async () => {
+    const base = baseConNarrador();
+    Object.assign(base.tablas.respuestas.find((r) => r.id === 'r3')!, { reservada: true, reservado_tramo: null });
+    const plan = await planDePase(base.cliente, 'n1', { genero: 'mujer', equivalencias: EQUIVALENCIAS });
+    expect(plan.reservadas).toEqual([2]);
+    expect(plan.cargadas.find((c) => c.clave === 'CA1')).toMatchObject({ ordenes: [5], texto: 'Empedrado.', respuestaIds: ['r6'] });
+    const texto = describirPase(plan);
+    expect(texto).toContain('Reservada, no se carga');
+    expect(texto).not.toContain('Una casa chorizo');
+    expect(bloqueosDePase(plan)).toEqual([]);
+    await aplicarPase(base.cliente, plan, ANTES_DE_LA_HORA);
+    expect(base.tablas.respuestas.find((r) => r.id === 'r3')?.clave_v3 ?? null).toBeNull();
+    expect(JSON.stringify((await leerFila(base.cliente, 'n1'))!.estado)).not.toContain('Una casa chorizo');
+  });
+
+  it('un tramo reservado: el dry-run dice que decide una persona y --aplicar no cambia nada', async () => {
+    const base = baseConNarrador();
+    Object.assign(base.tablas.respuestas.find((r) => r.id === 'r2')!, { reservada: true, reservado_tramo: 'Había un río.' });
+    const plan = await planDePase(base.cliente, 'n1', { genero: 'mujer', equivalencias: EQUIVALENCIAS });
+    expect(plan.tramosReservados).toEqual([1]);
+    const texto = describirPase(plan);
+    expect(texto).toContain('Tramo reservado: decide una persona');
+    expect(texto).not.toContain('Había un río');
+    await expect(aplicarPase(base.cliente, plan, ANTES_DE_LA_HORA)).rejects.toThrow(/tramo reservado/);
+    expect(base.tablas.entrevistas_v3 ?? []).toHaveLength(0);
+    expect(base.tablas.respuestas.every((r) => (r.clave_v3 ?? null) === null)).toBe(true);
+  });
+
+  it('con la pregunta vieja pendiente (dia_actual sin respuesta): el dry-run lo dice y --aplicar no cambia nada', async () => {
+    const base = baseConNarrador({ dia_actual: 7 });
+    const plan = await planDePase(base.cliente, 'n1', { genero: 'mujer', equivalencias: EQUIVALENCIAS });
+    expect(plan.pendiente).toBe(7);
+    expect(describirPase(plan)).toContain('Tiene la pregunta orden 7 pendiente: pasar después de que conteste');
+    await expect(aplicarPase(base.cliente, plan, ANTES_DE_LA_HORA)).rejects.toThrow(/pendiente/);
+    expect(base.tablas.entrevistas_v3 ?? []).toHaveLength(0);
+    expect(base.tablas.respuestas.every((r) => (r.clave_v3 ?? null) === null)).toBe(true);
+    // Contestada la 6 (dia_actual 6), no hay pendiente; un acepto sin preguntas (dia_actual 0), tampoco.
+    expect((await planDePase(baseConNarrador().cliente, 'n1', { genero: 'mujer', equivalencias: EQUIVALENCIAS })).pendiente).toBeNull();
+    expect((await planDePase(baseConNarrador({ estado: 'acepto', dia_actual: 0 }).cliente, 'n1', { genero: 'mujer', equivalencias: EQUIVALENCIAS })).pendiente).toBeNull();
+  });
+
+  it('si ya es V3, aplicar no toca clave_v3', async () => {
+    const base = baseConNarrador();
+    const plan = await planDePase(base.cliente, 'n1', { genero: 'mujer', equivalencias: EQUIVALENCIAS });
+    await aplicarPase(base.cliente, plan, ANTES_DE_LA_HORA);
+    base.tablas.respuestas.find((r) => r.id === 'r1')!.clave_v3 = 'OTRA';
+    await expect(aplicarPase(base.cliente, plan, ANTES_DE_LA_HORA)).rejects.toThrow(/ya tiene/);
+    expect(base.tablas.respuestas.find((r) => r.id === 'r1')?.clave_v3).toBe('OTRA');
+  });
+
+  it('una transcripción vacía no tapa el texto escrito', async () => {
+    const base = baseConNarrador();
+    Object.assign(base.tablas.respuestas.find((r) => r.id === 'r5')!, { transcripcion: '  ', texto_directo: 'Mi maestra.' });
+    const plan = await planDePase(base.cliente, 'n1', { genero: 'mujer', equivalencias: leerEquivalencias({ version: 1, porTexto: { '¿Quién te enseñó a leer?': 'OR1' } }) });
+    expect(plan.sinTexto).toEqual([]);
+    expect(plan.cargadas.find((c) => c.clave === 'OR1')?.texto).toBe('Mi maestra.');
   });
 
   it('los argumentos del script', () => {

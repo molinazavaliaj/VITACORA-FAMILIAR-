@@ -41,7 +41,12 @@ export function leerEquivalencias(crudo: unknown = equivalenciasJson): Equivalen
   const porTexto: Record<string, string> = {};
   for (const [texto, clave] of Object.entries(e.porTexto)) {
     if (typeof clave !== 'string' || !preguntaPorId(clave)) throw new Error(`equivalencias: «${String(clave)}» no es una pregunta del banco V3 (para «${texto}»).`);
-    porTexto[normalizarPregunta(texto)] = clave;
+    const normal = normalizarPregunta(texto);
+    // Dos textos que se normalizan igual y van a claves distintas: no se adivina cuál vale.
+    if (porTexto[normal] !== undefined && porTexto[normal] !== clave) {
+      throw new Error(`equivalencias: «${texto}» se normaliza igual que otra entrada y van a claves distintas (${porTexto[normal]} y ${clave}).`);
+    }
+    porTexto[normal] = clave;
   }
   return { version: 1, porTexto };
 }
@@ -49,7 +54,11 @@ export function leerEquivalencias(crudo: unknown = equivalenciasJson): Equivalen
 // ---------------------------------------------------------------- el plan (puro)
 
 export type FilaGuion = { id: string; orden: number; texto: string; tipo: string };
-export type RespuestaVieja = { id: string; pregunta_orden: number; transcripcion: string | null; texto_directo: string | null; recibido_at: string };
+export type RespuestaVieja = {
+  id: string; pregunta_orden: number; transcripcion: string | null; texto_directo: string | null; recibido_at: string;
+  /** "Esto que no vaya al libro" (migración 20260920000100). Ausentes = nada reservado. */
+  reservada?: boolean | null; reservado_tramo?: string | null;
+};
 export type Cargada = { clave: string; ordenes: number[]; respuestaIds: string[]; texto: string; palabras: number };
 export type PlanDePase = {
   narradorId: string;
@@ -62,6 +71,12 @@ export type PlanDePase = {
   cargadas: Cargada[];
   sinEquivalencia: { orden: number; pregunta: string; respuestas: number }[];
   sinTexto: number[];
+  /** Órdenes con alguna respuesta reservada entera: no se cargan ni llevan clave_v3. */
+  reservadas: number[];
+  /** Órdenes con un tramo reservado: decide una persona; mientras haya, no se aplica. */
+  tramosReservados: number[];
+  /** La pregunta vieja que le salió (orden = dia_actual) y no contestó; mientras haya, no se aplica. */
+  pendiente: number | null;
 };
 
 const palabras = (s: string) => s.split(/\s+/).filter(Boolean).length;
@@ -78,9 +93,17 @@ export function armarPase(e: {
   const cargadas: Cargada[] = [];
   const sinEquivalencia: PlanDePase['sinEquivalencia'] = [];
   const sinTexto: number[] = [];
+  const reservadas: number[] = [];
+  const tramosReservados: number[] = [];
   for (const orden of [...porOrden.keys()].sort((a, b) => a - b)) {
-    const filas = porOrden.get(orden)!;
-    const texto = filas.reduce((acc, r) => sumarAudio(acc, (r.transcripcion ?? r.texto_directo ?? '').trim()), '');
+    const todas = porOrden.get(orden)!;
+    // Lo reservado no entra nunca a la V3 (el escritor lee estado.respuestas).
+    // Con tramo: decide una persona qué queda; sin tramo: afuera entera.
+    if (todas.some((r) => !!r.reservado_tramo?.trim())) tramosReservados.push(orden);
+    else if (todas.some((r) => r.reservada)) reservadas.push(orden);
+    const filas = todas.filter((r) => !r.reservada && !r.reservado_tramo?.trim());
+    if (filas.length === 0) continue;
+    const texto = filas.reduce((acc, r) => sumarAudio(acc, r.transcripcion?.trim() || r.texto_directo?.trim() || ''), '');
     if (!texto) {
       sinTexto.push(orden);
       continue;
@@ -112,6 +135,9 @@ export function armarPase(e: {
     cargadas,
     sinEquivalencia,
     sinTexto,
+    reservadas,
+    tramosReservados,
+    pendiente: e.diaActual >= 1 && !porOrden.has(e.diaActual) ? e.diaActual : null,
   };
 }
 
@@ -143,13 +169,36 @@ async function leerNarrador(db: SupabaseClient, narradorId: string): Promise<Nar
   return data as NarradorV3;
 }
 
+const CAMPOS_RESPUESTA = 'id,pregunta_orden,transcripcion,texto_directo,recibido_at';
+
+/**
+ * Las respuestas viejas con su marca de reservada. Si la migración de las
+ * reservas no está aplicada (columna inexistente, 42703), nadie pudo marcar
+ * nada: se leen sin las columnas.
+ */
+async function respuestasViejas(db: SupabaseClient, narradorId: string): Promise<RespuestaVieja[]> {
+  const conReserva = await db.from('respuestas').select(`${CAMPOS_RESPUESTA},reservada,reservado_tramo`).eq('narrador_id', narradorId);
+  if (!conReserva.error) return (conReserva.data as RespuestaVieja[] | null) ?? [];
+  if (conReserva.error.code !== '42703') throw new Error(`No pude leer las respuestas de ${narradorId}: ${conReserva.error.message}`);
+  const { data, error } = await db.from('respuestas').select(CAMPOS_RESPUESTA).eq('narrador_id', narradorId);
+  if (error) throw new Error(`No pude leer las respuestas de ${narradorId}: ${error.message}`);
+  return (data as RespuestaVieja[] | null) ?? [];
+}
+
+/** Por qué no se puede aplicar todavía (vacío = se puede). */
+export function bloqueosDePase(plan: PlanDePase): string[] {
+  const b: string[] = [];
+  if (plan.pendiente !== null) b.push(`tiene la pregunta orden ${plan.pendiente} pendiente: pasar después de que conteste`);
+  if (plan.tramosReservados.length > 0) b.push(`tramo reservado en órdenes ${plan.tramosReservados.join(', ')}: decide una persona`);
+  return b;
+}
+
 export async function planDePase(db: SupabaseClient, narradorId: string, o: { genero: Genero; idioma?: Idioma; equivalencias: Equivalencias }): Promise<PlanDePase> {
   const n = await leerNarrador(db, narradorId);
   if (n.contexto?.modo === 'viaje') throw new Error(`${narradorId} es de la Vitácora de Viaje: sigue por su flujo.`);
   if (!['acepto', 'activo', 'pausado'].includes(n.estado)) throw new Error(`${narradorId} está '${n.estado}': solo se pasan acepto, activo o pausado.`);
   if (await esNarradorV3(db, narradorId)) throw new Error(`${narradorId} ya tiene entrevista V3.`);
-  const { data: respuestas, error: errorRespuestas } = await db.from('respuestas').select('id,pregunta_orden,transcripcion,texto_directo,recibido_at').eq('narrador_id', narradorId);
-  if (errorRespuestas) throw new Error(`No pude leer las respuestas de ${narradorId}: ${errorRespuestas.message}`);
+  const respuestas = await respuestasViejas(db, narradorId);
   const regala = await quienRegala(db, n.familia_id);
   return armarPase({
     narradorId,
@@ -159,7 +208,7 @@ export async function planDePase(db: SupabaseClient, narradorId: string, o: { ge
     idioma: o.idioma ?? idiomaDe(n.contexto),
     ficha: { nombre: n.como_le_dicen, genero: o.genero, ...(regala ? { quienRegala: regala } : {}) },
     guion: await guionDe(db, narradorId),
-    respuestas: (respuestas as RespuestaVieja[] | null) ?? [],
+    respuestas,
     equivalencias: o.equivalencias,
   });
 }
@@ -170,10 +219,15 @@ export async function planDePase(db: SupabaseClient, narradorId: string, o: { ge
  * pregunta abierta y el reloj le abre la tanda a su hora preferida. Si hoy su
  * hora ya pasó, la tanda de hoy se da por hecha (tanda_dia = hoy, cuenta 0):
  * la próxima sale mañana a su hora, no un minuto después del pase.
- * Un acepto pasa a activo (el reloj solo trabaja a los activos); un activo o un
- * pausado quedan como están.
+ * Un acepto pasa a activo (el reloj solo trabaja a los activos); un activo sigue
+ * activo. Un pausado SIGUE PAUSADO (spec): el reloj no le manda nada hasta que
+ * se reactive. No aplica nada si tiene la pregunta vieja pendiente o un tramo
+ * reservado (bloqueosDePase), ni si ya es V3.
  */
 export async function aplicarPase(db: SupabaseClient, plan: PlanDePase, ahora: Date = new Date()): Promise<void> {
+  const bloqueos = bloqueosDePase(plan);
+  if (bloqueos.length > 0) throw new Error(`No se aplica el pase de ${plan.narradorId}: ${bloqueos.join('; ')}. No se cambió nada.`);
+  if (await esNarradorV3(db, plan.narradorId)) throw new Error(`${plan.narradorId} ya tiene entrevista V3: no se toca.`);
   const n = await leerNarrador(db, plan.narradorId);
   const hoy = fechaLocal(ahora, n.zona_horaria);
   // clave_v3 primero: si algo se corta en el medio, repetir el pase vuelve a poner lo mismo.
@@ -212,6 +266,9 @@ export function describirPase(plan: PlanDePase): string {
     for (const s of plan.sinEquivalencia) l.push(`  orden ${s.orden}: «${s.pregunta}» (${s.respuestas} respuesta${s.respuestas > 1 ? 's' : ''})`);
   }
   if (plan.sinTexto.length > 0) l.push(`Sin texto (audio sin transcripción): órdenes ${plan.sinTexto.join(', ')}.`);
+  if (plan.reservadas.length > 0) l.push(`Reservada, no se carga (ni lleva clave_v3): órdenes ${plan.reservadas.join(', ')}.`);
+  if (plan.tramosReservados.length > 0) l.push(`Tramo reservado: decide una persona (órdenes ${plan.tramosReservados.join(', ')}). Mientras esté, --aplicar no aplica nada.`);
+  if (plan.pendiente !== null) l.push(`Tiene la pregunta orden ${plan.pendiente} pendiente: pasar después de que conteste. Mientras tanto, --aplicar no aplica nada.`);
   l.push('No se le manda nada en el momento: la próxima pregunta sale en su tanda, a su hora preferida.');
   return l.join('\n');
 }
