@@ -10,12 +10,13 @@ migración en `supabase/migrations/` + actualizar este archivo + avisar al otro 
 | `familias` | web | entrevistador | |
 | `narradores` | web (crea, edita datos, `edicion`, `libro_aprobado_at`) / entrevistador (solo `estado`, `dia_actual`, `ultima_respuesta_at`, `alerta_silencio`, `consentimiento_voz_at`) / fábrica (solo `libro_aprobado_at`, a los 30 días sin cierre) | ambos | Única tabla compartida. La web también apaga `alerta_silencio`. La fábrica lee `edicion` y **no produce nada sin `libro_aprobado_at`** (ni digital ni impreso). Desde el 13/09, si pasan 30 días desde `ultima_respuesta_at` sin cierre, la fábrica misma pone `libro_aprobado_at` (único caso en que alguien más que la web escribe esa columna). |
 | `preguntas` | **web** (copia las fijas al comprar; la familia edita, salta, reordena, agrega) / **entrevistador** (adaptativas y reemplazos) / seed (plantilla global) | ambos | Desde el 12/09 **cada narrador tiene su guion propio**. Las globales (`narrador_id = null`) son solo plantilla. Regla: `orden ≤ dia_actual` está **congelado**, nadie lo toca. |
-| `respuestas` | entrevistador | web, fábrica | La web NUNCA escribe acá. **20/09 (propuesta, sin aplicar):** `reservada` / `reservado_tramo` — "esto que no vaya al libro", ver la sección propia. **21/09 (propuesta, sin aplicar):** `tema_de_orden` / `tema_motivo` — "esto es de otra parte", ver la sección propia. |
+| `respuestas` | entrevistador | web, fábrica | La web NUNCA escribe acá. **20/09 (propuesta, sin aplicar):** `reservada` / `reservado_tramo` — "esto que no vaya al libro", ver la sección propia. **21/09 (propuesta, sin aplicar):** `tema_de_orden` / `tema_motivo` — "esto es de otra parte", ver la sección propia. **07/10 (propuesta, sin aplicar):** `clave_v3` / `wa_message_id` — entrevista V3, ver la sección propia. |
 | `saludos` | ~~web / entrevistador~~ | — | **Fuera de la fase 1 (10/09).** Nadie la escribe ni la lee — desde el 13/09 tampoco la fábrica (dejó de leerla en `generarPaquete`; el audiolibro, que se borró el 23/09, ya no tenía bonus de saludos). Se deja por si la fase 2 la revive. |
 | `fotos` | web (sube y ordena) | fábrica | Nueva 12/09. Por capítulo; `principal` abre, el resto cierra. Desde el 13/09 la fábrica las embebe como data URI en `libro.html`. **14/09: `capitulo` nullable** — NULL = foto del álbum del libro (candidata a tapa / contratapa / marco), no va en ningún capítulo; la fábrica la ignora al armar capítulos. |
 | `invitados` | web | web | Nueva 12/09. `rol` (13/09): `'invitado'` (hasta 3, con el libro abierto, ven todo) o `'visitante'` (abrió el link del libro cerrado y lo guardó: ve la muestra y compra su copia, sin tope). |
 | `pedidos` | web y fábrica | — | El entrevistador no la mira. Un pedido por comprador: los invitados y visitantes que compran su copia tienen su propia `familia` y su propio pedido sobre el mismo `narrador_id`. |
-| `envios` | entrevistador | — | Log de salientes; idempotencia del scheduler. |
+| `envios` | entrevistador | — | Log de salientes; idempotencia del scheduler. **07/10:** `tipo = 'v3'` para cada mensaje de la entrevista V3. |
+| `entrevistas_v3` | entrevistador | fábrica | Nueva 07/10 (propuesta). Una fila por narrador: **prende la V3**. Ver "Entrevista V3 por WhatsApp". |
 | `narraciones` | fábrica (crea la fila; y `estado = 'reemplazada'` cuando pide la voz de nuevo — migración 20260920) / worker de voz (`estado`, `motor`, `muestras`, `capitulos_paths`, `error`, `tomada_at`) | fábrica | Nueva 16/09. Buzón con el worker de voz (PC de Naza); ver "Narraciones (voz clonada)". |
 
 ## Transiciones de estado de `narradores.estado`
@@ -498,6 +499,44 @@ fábrica y lo borra el worker recién cuando no queda ninguna frase pendiente.
   segundo; si molesta, se separa en `seleccion.json` y la fábrica mezcla al imprimir.
 - La fábrica **no espera** a que haya audios: el libro se entrega igual y las frases se completan
   cuando la PC corta. Si nadie confirma la selección, a los 15 días va la del biógrafo.
+
+## Entrevista V3 por WhatsApp (migración 20261007000000 — PROPUESTA del 07/10, la aplica Naza)
+
+Spec: `docs/superpowers/specs/2026-10-07-entrevista-v3-whatsapp-design.md`. **Una fila en
+`entrevistas_v3` prende la V3 para ese narrador**; sin fila, el entrevistador sigue como siempre.
+La escribe el entrevistador y la lee la fábrica.
+
+| Columna | Qué guarda |
+|---|---|
+| `narrador_id` | Clave primaria y referencia a `narradores`. |
+| `idioma` | `es-AR`, `es-ES` o `ca`. |
+| `ficha` (jsonb) | `nombre` (= `como_le_dicen`), `genero` (`varon` / `mujer` / `otro`), `formaTrato?`, `quienRegala?`. |
+| `estado` (jsonb) | El motor de `entrevistador/src/v3/turno.ts`: `respuestas` (`[clave, texto][]` en orden de llegada: **es la verdad de la entrevista**), `enviados`, `vueltas`, `acuse`, `esperando`, `tocoSi`, `borrador` (los audios de la abierta, sin cerrar), `preguntaAbierta`, `bloqueActual`, `terminada`, `familia`, `repreguntas`, `cazador`, `charla` (los mensajes tal como salieron), `salientes` (la cola de WhatsApp), y contadores (`seq`, `fallosEnvio`, `ultimoEntranteAt`, `abiertaDesde`, `m8En`, `m22Enviado`). |
+| `version` | Cada escritura es `UPDATE … WHERE version = n`; si cambió, se relee y se reintenta. |
+| `ultimo_audio_at` | Cuando se **guardó** la última transcripción de la pregunta abierta (el reloj cierra a los 3'). |
+| `tanda_dia`, `tanda_cuenta` | La tanda del día (en la zona del narrador) y cuántas preguntas salieron. |
+| `enviando_hasta` | Toma corta del turno (2 minutos): un solo proceso manda la cola. |
+| `creada_at`, `migrada_de` | `migrada_de`: null, o `{"de": "v-vieja", "dia_actual": n}` (el `dia_actual` que tenía). |
+
+Columnas nuevas en `respuestas`: `clave_v3` (text, null en las filas viejas; varias filas pueden
+tener la misma clave) y `wa_message_id` (text, único cuando no es null). `envios.tipo` suma `'v3'`.
+
+Reglas de una fila de `respuestas` de un narrador V3: `pregunta_orden` = **número de llegada** (no es
+un orden del guion: el libro viejo no la lee nunca, lo frena el candado de la fábrica);
+`transcripcion` = el texto del audio (o el texto escrito, que cuenta como respuesta); `texto_directo` = la marca
+del botón (`⟦botón:Sí⟧`), el texto escrito o `⟦foto⟧` (la foto de FO1).
+
+Lo que no cambia: las transiciones de `narradores.estado` (`activo` durante la V3, `completado`
+después de FIN, `pausado` igual que hoy); `dia_actual` queda congelado en el valor que tenía.
+
+La fila nace con `npm run v3-pasar -- <narrador> --genero … [--idioma …] --aplicar` (narradores en
+curso, con la tabla de equivalencias aprobada por Naza) o al pasar `acepto → activo` con
+`V3_PARA_NUEVOS=1` (necesita `contexto.genero`; sin él, el alta se frena y se avisa a los socios).
+
+**La fábrica:** `fabrica/src/v3/candado.ts` saltea a todo narrador con fila (anticipo, estructura,
+previsualización y paquete viejos) y avisa una vez a los socios (candado
+`{narrador_id}/paquete/v3_candado_avisado.txt`); `fabrica/src/escritor/material/de-base.ts` lee la
+fila y devuelve el formato de `escritor/material/de-entrevista.ts`.
 
 ## Storage — bucket privado `audios`
 
