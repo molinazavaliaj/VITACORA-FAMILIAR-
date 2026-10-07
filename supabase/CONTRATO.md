@@ -8,7 +8,7 @@ migración en `supabase/migrations/` + actualizar este archivo + avisar al otro 
 | Tabla | Escribe | Lee | Nota |
 |---|---|---|---|
 | `familias` | web | entrevistador | |
-| `narradores` | web (crea, edita datos, `edicion`, `libro_aprobado_at`) / entrevistador (solo `estado`, `dia_actual`, `ultima_respuesta_at`, `alerta_silencio`, `consentimiento_voz_at`, y **una vez** `telefono_whatsapp` + `estado` al canjear un regalo (de null a su número; de `regalo_pendiente` a `invitado`)) / fábrica (solo `libro_aprobado_at`, a los 30 días sin cierre) | ambos | Única tabla compartida. La web también apaga `alerta_silencio`. La fábrica lee `edicion` y **no produce nada sin `libro_aprobado_at`** (ni digital ni impreso). Desde el 13/09, si pasan 30 días desde `ultima_respuesta_at` sin cierre, la fábrica misma pone `libro_aprobado_at` (único caso en que alguien más que la web escribe esa columna). |
+| `narradores` | web (crea, edita datos, `edicion`, `libro_aprobado_at`) / entrevistador (solo `estado`, `dia_actual`, `ultima_respuesta_at`, `alerta_silencio`, `consentimiento_voz_at`, y **una vez** `telefono_whatsapp` + `estado` + `zona_horaria` al canjear un regalo (de null a su número; de `regalo_pendiente` a `invitado`; la zona según el prefijo del teléfono, ver "Gift card")) / fábrica (solo `libro_aprobado_at`, a los 30 días sin cierre) | ambos | Única tabla compartida. La web también apaga `alerta_silencio`. La fábrica lee `edicion` y **no produce nada sin `libro_aprobado_at`** (ni digital ni impreso). Desde el 13/09, si pasan 30 días desde `ultima_respuesta_at` sin cierre, la fábrica misma pone `libro_aprobado_at` (único caso en que alguien más que la web escribe esa columna). |
 | `preguntas` | **web** (copia las fijas al comprar; la familia edita, salta, reordena, agrega) / **entrevistador** (adaptativas y reemplazos) / seed (plantilla global) | ambos | Desde el 12/09 **cada narrador tiene su guion propio**. Las globales (`narrador_id = null`) son solo plantilla. Regla: `orden ≤ dia_actual` está **congelado**, nadie lo toca. |
 | `respuestas` | entrevistador | web, fábrica | La web NUNCA escribe acá. **20/09 (propuesta, sin aplicar):** `reservada` / `reservado_tramo` — "esto que no vaya al libro", ver la sección propia. **21/09 (propuesta, sin aplicar):** `tema_de_orden` / `tema_motivo` — "esto es de otra parte", ver la sección propia. **07/10 (propuesta, sin aplicar):** `clave_v3` / `wa_message_id` — entrevista V3, ver la sección propia. |
 | `saludos` | ~~web / entrevistador~~ | — | **Fuera de la fase 1 (10/09).** Nadie la escribe ni la lee — desde el 13/09 tampoco la fábrica (dejó de leerla en `generarPaquete`; el audiolibro, que se borró el 23/09, ya no tenía bonus de saludos). Se deja por si la fase 2 la revive. |
@@ -740,9 +740,30 @@ Spec: `docs/superpowers/specs/2026-10-07-gift-card-design.md`.
 - Al pagar, la web pasa el narrador a `regalo_pendiente` (no a `invitado`).
 - El entrevistador, ante un número desconocido que escribe un código válido:
   1. marca el regalo (`usado_at`, `usado_por_telefono`) con compare-and-swap sobre `usado_at is null`;
-  2. pone `telefono_whatsapp` y `estado = 'invitado'` solo si estaba en `regalo_pendiente`;
-  3. manda la bienvenida como texto libre y la anota en `envios` (`tipo = 'bienvenida'`).
+  2. pone `telefono_whatsapp` y `estado = 'invitado'` solo si estaba en `regalo_pendiente`, y en el
+     mismo update `zona_horaria` según el prefijo del teléfono que canjea (`+54` →
+     `America/Argentina/Buenos_Aires`, `+34` → `Europe/Madrid`; otro prefijo deja la que había, que
+     la web puso por la región de quien compró). La zona es la del narrador, no la de quien regala;
+  3. manda la bienvenida como texto libre (con `contexto.trato`: `usted` si es `usted`, si no `vos`)
+     y la anota en `envios` (`tipo = 'bienvenida'`).
+- Si esa bienvenida falla (o no se pudo anotar en `envios`), el entrevistador la vuelve a mandar como
+  texto libre con el próximo mensaje del narrador (sigue en `invitado` sin bienvenida en `envios`).
+  Si tampoco sale, se procesa el mensaje como un SÍ de siempre: un SÍ no se pierde.
+- El SÍ de un narrador con `contexto.regalo = true` anota `consentimiento_voz_at` (la bienvenida del
+  regalo siempre pide el permiso de la voz), aunque `WA_BIENVENIDA_PIDE_VOZ` esté apagado. No lo
+  anota si la bienvenida del regalo nunca le llegó.
+- Un teléfono que el entrevistador ya conoce (narrador en `pendiente_pago`, `completado` o
+  `cerrado_anticipado`) que manda un código **no canjea** y no recibe respuesta (no hay texto
+  aprobado): se avisa a los socios (`avisarSocios`, con el teléfono, el narrador y el código) para
+  que lo resuelva una persona. Dos libros para una misma persona es el plan que sigue.
 - El scheduler nunca le manda la plantilla `bienvenida` a un narrador con `contexto.regalo = true`.
-- Audio de quien regala: `audios/{narrador_id}/regalo/mensaje.{ext}`.
+- La web trata `regalo_pendiente` como `invitado` para editar (trato y guion): mientras el regalo no
+  se abre, quien regaló puede cambiar las dos cosas.
+- Un reintento de compra del mismo regalo sin pagar (misma familia, narrador en `pendiente_pago` con
+  `contexto.regalo = true` y el mismo `nombre`, sin mayúsculas ni espacios de más) retoma ese
+  narrador y su fila de `regalos` (mismo código; se actualizan `mensaje`, `fecha_entrega`,
+  `quien_regala` y `pedido_id` al pedido nuevo). No nacen narradores ni regalos nuevos.
+- Audio de quien regala: `audios/{narrador_id}/regalo/mensaje`, sin extensión: el tipo lo guarda
+  Storage (`contentType`) y es el que sirve la URL firmada. Regrabar pisa el mismo objeto.
 - Recordatorio: si a los 15 días de `fecha_entrega` (o de `created_at` si no hay fecha) sigue
   sin usar, el entrevistador le escribe un mail a quien compró y anota `recordatorio_at`.
