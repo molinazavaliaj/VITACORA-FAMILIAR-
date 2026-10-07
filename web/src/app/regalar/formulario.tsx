@@ -219,8 +219,8 @@ export function FormularioRegalo({ catalogo, region, pasoInicial = 1 }: { catalo
               </button>
             </div>
             <p className="mt-4 text-[13px] text-[#83837A] [font-family:var(--fuente-cuerpo)] font-light">
-              Pago único y seguro con {region === "ES" ? "Stripe" : "Mercado Pago"}. Al pagar aceptás los{" "}
-              <a href="/legal/terminos" className="underline underline-offset-2" target="_blank" rel="noreferrer">términos</a>.
+              {T.pagoSeguro(region === "ES" ? "Stripe" : "Mercado Pago")}{" "}
+              <a href="/legal/terminos" className="underline underline-offset-2" target="_blank" rel="noreferrer">{T.terminos}</a>.
             </p>
           </form>
         )}

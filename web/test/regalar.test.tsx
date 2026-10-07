@@ -62,6 +62,19 @@ describe("/regalar", () => {
     expect(html).toContain(precioBase(region));
   });
 
+  it("el encabezado y la línea de pago salen de TEXTOS_REGALO, con las mismas palabras de antes", async () => {
+    expect(TEXTOS_REGALO.yaCompre).toBe("Ya compré · Entrar");
+    expect(TEXTOS_REGALO.pagoSeguro("Mercado Pago")).toBe("Pago único y seguro con Mercado Pago. Al pagar aceptás los");
+    expect(TEXTOS_REGALO.terminos).toBe("términos");
+    const html = await renderPagina("AR");
+    expect(html).toContain(escapar(TEXTOS_REGALO.yaCompre));
+    for (const region of ["AR", "ES"] as const) {
+      const pago = renderToStaticMarkup(<FormularioRegalo catalogo={catalogo(region)} region={region} pasoInicial={4} />);
+      expect(pago).toContain(escapar(TEXTOS_REGALO.pagoSeguro(region === "ES" ? "Stripe" : "Mercado Pago")));
+      expect(pago).toMatch(new RegExp(`<a href="/legal/terminos"[^>]*>${escapar(TEXTOS_REGALO.terminos)}</a>\\.`));
+    }
+  });
+
   it("el paso del mensaje tiene el contador sobre 600, el audio y la fecha desde hoy", () => {
     const html = renderToStaticMarkup(<FormularioRegalo catalogo={catalogo("AR")} region="AR" pasoInicial={2} />);
     expect(html).toContain(escapar(TEXTOS_REGALO.tuMensaje));

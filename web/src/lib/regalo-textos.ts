@@ -26,7 +26,7 @@ export const TEXTOS_REGALO = {
   estadoCorto: "esperando que abra el regalo",
   proximoPaso: "Descargá la tarjeta del regalo",
 
-  // PROPUESTA (Task 0, tanda 2), hasta que Naza apruebe.
+  // PROPUESTA (Task 0, tanda 3), hasta que Naza apruebe. Los botones de la tarjeta.
   botonImprimir: "Imprimir o guardar en PDF",
   botonImagen: "Descargar la imagen para WhatsApp",
 
@@ -66,4 +66,8 @@ export const TEXTOS_REGALO = {
   faltaQueEsTuyo: "Falta qué es tuyo.",
   correoMal: "Revisá el correo. Así no te llega la tarjeta.",
   errorPago: "No pudimos ir al pago. Probá de nuevo.",
+  // Los que la página ya tenía fijos, con las mismas palabras: el encabezado y la línea de pago.
+  yaCompre: "Ya compré · Entrar",
+  pagoSeguro: (pasarela: string) => `Pago único y seguro con ${pasarela}. Al pagar aceptás los`,
+  terminos: "términos",
 } as const;

@@ -33,7 +33,7 @@ export default async function PaginaRegalar() {
             <span className="text-[11px] uppercase [font-family:var(--fuente-micro)] [letter-spacing:0.3em]">Vitácora Familiar</span>
           </Link>
           <Link href="/entrar" className="text-sm text-[#5F5F55] underline decoration-[#D4D4CE] underline-offset-4 hover:text-[#14140F] [font-family:var(--fuente-micro)]">
-            Ya compré · Entrar
+            {TEXTOS_REGALO.yaCompre}
           </Link>
         </div>
       </header>
