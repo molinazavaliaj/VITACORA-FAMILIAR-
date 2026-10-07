@@ -28,9 +28,11 @@ const PEDIDO = "11111111-2222-3333-4444-555555555555";
 const auth = { createUser: vi.fn(), generateLink: vi.fn(), listUsers: vi.fn() };
 const verifyOtp = vi.fn();
 
+const tablasLeidas: string[] = [];
 function admin(pedido: Record<string, unknown> | null, codigoRegalo?: string) {
   return {
     from: (tabla: string) => {
+      tablasLeidas.push(tabla);
       const b: Record<string, unknown> = {};
       const enc = () => b;
       b.select = enc; b.eq = enc;
@@ -56,9 +58,10 @@ const destino = (r: Response) => new URL(r.headers.get("location")!).pathname + 
 beforeAll(() => { process.env.SUPABASE_SERVICE_ROLE_KEY = "clave-de-prueba"; process.env.MP_ACCESS_TOKEN = "TEST"; process.env.STRIPE_SECRET_KEY = "sk"; process.env.URL_BASE = "https://vitacorafamiliar.com"; });
 beforeEach(() => {
   vi.clearAllMocks();
+  tablasLeidas.length = 0;
   (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin({ id: PEDIDO, proveedor: "mercadopago", estado: "pendiente", familia_id: "f1", narrador_id: "n1" }));
   (crearClienteSesion as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({ auth: { verifyOtp } });
-  (confirmarPago as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({ ok: true, yaEstaba: false, email: "martina@test.com" });
+  (confirmarPago as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({ ok: true, yaEstaba: false, email: "martina@test.com", codigoRegalo: null });
   mp.get.mockResolvedValue({ id: 987, status: "approved", external_reference: PEDIDO });
   auth.listUsers.mockResolvedValue({ data: { users: [] }, error: null });
   auth.createUser.mockResolvedValue({ data: { user: { id: "u1" } }, error: null });
@@ -127,9 +130,17 @@ describe("GET /api/pago/vuelta", () => {
   });
 
   it("(h) regalo y el webhook ganó (yaEstaba): lee el código de regalos y va a la tarjeta", async () => {
-    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin({ id: PEDIDO, proveedor: "mercadopago", estado: "pendiente", familia_id: "f1", narrador_id: "n1" }, "VF-AAAAAA"));
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin({ id: PEDIDO, proveedor: "mercadopago", estado: "pendiente", familia_id: "f1", narrador_id: "n1", extras: { pdf: true, regalo: true } }, "VF-AAAAAA"));
     (confirmarPago as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({ ok: true, yaEstaba: true, email: null, codigoRegalo: null });
     const r = await GET(peticion({ pedido: PEDIDO, t: firmarToken("vuelta", PEDIDO), payment_id: "987" }));
     expect(destino(r)).toBe("/regalo/VF-AAAAAA/tarjeta");
+  });
+
+  it("(i) pedido de extras (sin regalo) de un narrador regalado, yaEstaba: va al tablero y no lee regalos", async () => {
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin({ id: PEDIDO, proveedor: "mercadopago", estado: "pendiente", familia_id: "f1", narrador_id: "n1", extras: { copias: 2 } }, "VF-AAAAAA"));
+    (confirmarPago as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({ ok: true, yaEstaba: true, email: null, codigoRegalo: null });
+    const r = await GET(peticion({ pedido: PEDIDO, t: firmarToken("vuelta", PEDIDO), payment_id: "987" }));
+    expect(destino(r)).toBe("/tablero/n1");
+    expect(tablasLeidas).not.toContain("regalos");
   });
 });

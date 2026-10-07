@@ -35,8 +35,8 @@ export async function GET(request: NextRequest) {
   if (!pedidoId || !verificarToken("vuelta", params.get("t"), pedidoId)) return gracias;
 
   const admin = crearClienteServidor();
-  const { data: fila } = await admin.from("pedidos").select("id, proveedor, estado, familia_id, narrador_id").eq("id", pedidoId).maybeSingle();
-  const pedido = fila as { id: string; proveedor: string; estado: string; familia_id: string; narrador_id: string } | null;
+  const { data: fila } = await admin.from("pedidos").select("id, proveedor, estado, familia_id, narrador_id, extras").eq("id", pedidoId).maybeSingle();
+  const pedido = fila as { id: string; proveedor: string; estado: string; familia_id: string; narrador_id: string; extras?: Record<string, unknown> | null } | null;
   if (!pedido) return gracias;
 
   // 1. Verificar el pago con el proveedor.
@@ -95,9 +95,10 @@ export async function GET(request: NextRequest) {
   }
 
   // Gift card (08/10): quien regala va directo a la tarjeta. Si el webhook
-  // confirmó antes (yaEstaba), el código se lee de regalos.
+  // confirmó antes (yaEstaba), el código se lee de regalos — solo si ESTE
+  // pedido es el regalo: un pedido de extras posterior va al tablero.
   let codigoRegalo = resultado.codigoRegalo;
-  if (!codigoRegalo && resultado.yaEstaba) {
+  if (!codigoRegalo && resultado.yaEstaba && pedido.extras?.regalo === true) {
     const { data: regalo } = await admin.from("regalos").select("codigo").eq("narrador_id", pedido.narrador_id).maybeSingle();
     codigoRegalo = (regalo as { codigo?: string } | null)?.codigo ?? null;
   }

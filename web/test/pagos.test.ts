@@ -240,10 +240,10 @@ describe('POST /api/webhooks/stripe', () => {
     const admin = crearAdminFake({
       // el update de pedidos devuelve la fila (pago por adelantado: el
       // pedido ya tiene narrador y familia desde la compra)
-      // 1) el update; 2) el select de `extras` para saber si hay algo que enviar (3t.26)
+      // 1) el select de `extras` antes de tocar nada (regalo 08/10; entrega 3t.26); 2) el update
       pedidos: [
+        { data: { extras: { pdf: true, impreso: null, copias: 0, marcos: 0 }, familia_id: 'familia-1' }, error: null },
         { data: [{ id: 'pedido-1', narrador_id: 'narrador-1', familia_id: 'familia-1' }], error: null },
-        { data: { extras: { pdf: true, impreso: null, copias: 0, marcos: 0 } }, error: null },
       ],
       narradores: [{ data: null, error: null }, { data: { como_le_dicen: 'papá' }, error: null }],
       // 1) la región (para el origen de la entrega); 2) el correo del mail de acceso
@@ -360,7 +360,7 @@ describe('POST /api/webhooks/mercadopago', () => {
     (Payment as unknown as ReturnType<typeof vi.fn>).mockImplementation(function () {
       return { get: mockPaymentGet };
     });
-    const admin = crearAdminFake({ pedidos: [{ data: null, error: null }] });
+    const admin = crearAdminFake({ pedidos: [{ data: null, error: null }, { data: null, error: null }] });
     (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
     try {
       const request = {
@@ -382,7 +382,7 @@ describe('POST /api/webhooks/mercadopago', () => {
     (Payment as unknown as ReturnType<typeof vi.fn>).mockImplementation(function () {
       return { get: mockPaymentGet };
     });
-    const admin = crearAdminFake({ pedidos: [{ data: null, error: null }] });
+    const admin = crearAdminFake({ pedidos: [{ data: null, error: null }, { data: null, error: null }] });
     (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
 
     const request = {

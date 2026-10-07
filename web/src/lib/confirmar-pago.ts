@@ -31,6 +31,32 @@ export async function confirmarPago(
 ): Promise<ResultadoConfirmacion> {
   const { pedidoId, referenciaExterna, enviarMailAcceso } = opciones;
 
+  // 0. Qué se compró, ANTES de tocar nada. Si es un regalo el narrador va a
+  //    otro estado y le llega otro mail; leerlo mal haría arrancar un regalo
+  //    sin teléfono. Si la lectura falla se devuelve error sin haber cambiado
+  //    nada, así el reintento del proveedor es seguro.
+  let extras: Record<string, unknown> | undefined;
+  let region: "ES" | "AR" | undefined;
+  try {
+    const { data: filaPedido, error: errorExtras } = await admin
+      .from("pedidos").select("extras, familia_id").eq("id", pedidoId).maybeSingle();
+    if (errorExtras) {
+      return { ok: false, error: `No se pudo leer el pedido: ${errorExtras.message}` };
+    }
+    const leido = filaPedido as { extras?: Record<string, unknown>; familia_id?: string } | null;
+    extras = leido?.extras;
+    // La región solo decide el origen de la entrega: si no se puede leer, AR.
+    if (leido?.familia_id) {
+      const { data: filaFamilia } = await admin.from("familias").select("region").eq("id", leido.familia_id).maybeSingle();
+      region = (filaFamilia as { region?: "ES" | "AR" } | null)?.region;
+    }
+  } catch (err) {
+    return { ok: false, error: `No se pudo leer el pedido: ${err instanceof Error ? err.message : String(err)}` };
+  }
+  // Gift card (08/10): el narrador todavía no tiene teléfono. Espera en
+  // regalo_pendiente hasta que escriba con su código (supabase/CONTRATO.md).
+  const esRegalo = extras?.regalo === true;
+
   // 1. El pedido. Solo si sigue pendiente: Stripe reintenta el webhook y una
   //    segunda llamada no debe volver a mandar el mail ni tocar nada.
   const { data: actualizados, error: errorPedido } = await admin
@@ -51,15 +77,6 @@ export async function confirmarPago(
     return { ok: true, yaEstaba: true, email: null, codigoRegalo: null };
   }
 
-  const [{ data: filaPedido }, { data: filaFamilia }] = await Promise.all([
-    admin.from("pedidos").select("extras").eq("id", pedidoId).maybeSingle(),
-    admin.from("familias").select("region").eq("id", pedido.familia_id).maybeSingle(),
-  ]);
-  const extras = (filaPedido as { extras?: Record<string, unknown> } | null)?.extras;
-  // Gift card (08/10): el narrador todavía no tiene teléfono. Espera en
-  // regalo_pendiente hasta que escriba con su código (supabase/CONTRATO.md).
-  const esRegalo = extras?.regalo === true;
-
   // 2. El narrador arranca. Solo desde pendiente_pago: si por alguna razón ya
   //    estaba más adelante, no se lo retrocede.
   const { data: arrancados, error: errorNarrador } = await admin
@@ -77,7 +94,7 @@ export async function confirmarPago(
     // reintente, y el reintento entra por "yaEstaba" sin arreglar esto. Se
     // loguea fuerte y se sigue: es preferible un narrador que hay que
     // destrabar a mano antes que un pago cobrado y marcado pendiente.
-    console.error(`confirmarPago: el pedido ${pedidoId} quedó pagado pero el narrador ${pedido.narrador_id} no pasó a invitado:`, errorNarrador.message);
+    console.error(`confirmarPago: el pedido ${pedidoId} quedó pagado pero el narrador ${pedido.narrador_id} no pasó a ${esRegalo ? "regalo_pendiente" : "invitado"}:`, errorNarrador.message);
   }
 
   // 3. La entrega de lo físico (3t.26): si el pedido lleva impreso o marcos,
@@ -92,7 +109,7 @@ export async function confirmarPago(
         narrador_id: pedido.narrador_id,
         familia_id: pedido.familia_id,
         estado: "sin_direccion",
-        origen: (filaFamilia as { region?: "ES" | "AR" } | null)?.region ?? "AR",
+        origen: region ?? "AR",
       });
       if (error) throw new Error(error.message);
     }
@@ -115,13 +132,17 @@ export async function confirmarPago(
   if (email && arranco) {
     try {
       const comoLeDicen = (narrador as { como_le_dicen?: string } | null)?.como_le_dicen ?? "tu familiar";
-      if (esRegalo && codigoRegalo && opciones.enviarMailRegalo) {
-        await opciones.enviarMailRegalo({ para: email, comoLeDicen, codigo: codigoRegalo });
-      } else if (!esRegalo) {
+      if (esRegalo) {
+        if (codigoRegalo && opciones.enviarMailRegalo) {
+          await opciones.enviarMailRegalo({ para: email, comoLeDicen, codigo: codigoRegalo });
+        } else {
+          console.error(`confirmarPago: el regalo del pedido ${pedidoId} (narrador ${pedido.narrador_id}) se pagó pero no salió el mail de la tarjeta: ${codigoRegalo ? "falta enviarMailRegalo" : "sin código en regalos"}.`);
+        }
+      } else {
         await enviarMailAcceso({ para: email, comoLeDicen });
       }
     } catch (err) {
-      console.error(`confirmarPago: el pago ${pedidoId} se confirmó pero el mail de acceso a ${email} falló:`, err);
+      console.error(`confirmarPago: el pago ${pedidoId} se confirmó pero el ${esRegalo ? "mail del regalo" : "mail de acceso"} a ${email} falló:`, err);
     }
   }
 
