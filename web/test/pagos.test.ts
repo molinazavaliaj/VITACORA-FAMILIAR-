@@ -240,9 +240,14 @@ describe('POST /api/webhooks/stripe', () => {
     const admin = crearAdminFake({
       // el update de pedidos devuelve la fila (pago por adelantado: el
       // pedido ya tiene narrador y familia desde la compra)
-      pedidos: [{ data: [{ id: 'pedido-1', narrador_id: 'narrador-1', familia_id: 'familia-1' }], error: null }],
+      // 1) el update; 2) el select de `extras` para saber si hay algo que enviar (3t.26)
+      pedidos: [
+        { data: [{ id: 'pedido-1', narrador_id: 'narrador-1', familia_id: 'familia-1' }], error: null },
+        { data: { extras: { pdf: true, impreso: null, copias: 0, marcos: 0 } }, error: null },
+      ],
       narradores: [{ data: null, error: null }, { data: { como_le_dicen: 'papá' }, error: null }],
-      familias: [{ data: { email: 'martina@test.com' }, error: null }],
+      // 1) la región (para el origen de la entrega); 2) el correo del mail de acceso
+      familias: [{ data: { region: 'ES' }, error: null }, { data: { email: 'martina@test.com' }, error: null }],
     });
     (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
 

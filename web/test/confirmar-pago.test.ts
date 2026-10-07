@@ -126,3 +126,53 @@ describe("confirmarPago", () => {
     expect(enviarMailAcceso).not.toHaveBeenCalled();
   });
 });
+// 3t.26 (22/09): un pedido con algo físico necesita una entrega, que nace acá
+// en `sin_direccion` — la familia la completa desde Encargar libro.
+function adminConEntrega(opciones: { extras: Record<string, unknown>; region: "ES" | "AR"; fallaEntrega?: boolean }) {
+  const inserts: { tabla: string; valores: Record<string, unknown> }[] = [];
+  const from = vi.fn((tabla: string) => {
+    const cadena: Record<string, unknown> = {};
+    cadena.update = () => cadena;
+    cadena.select = () => cadena;
+    cadena.eq = () => cadena;
+    cadena.insert = (valores: Record<string, unknown>) => {
+      inserts.push({ tabla, valores });
+      return Promise.resolve({ error: opciones.fallaEntrega ? { message: "boom" } : null });
+    };
+    cadena.maybeSingle = () => {
+      if (tabla === "pedidos") return Promise.resolve({ data: { extras: opciones.extras }, error: null });
+      if (tabla === "familias") return Promise.resolve({ data: { email: "martina@ejemplo.com", region: opciones.region }, error: null });
+      if (tabla === "narradores") return Promise.resolve({ data: { como_le_dicen: "papá" }, error: null });
+      return Promise.resolve({ data: null, error: null });
+    };
+    cadena.then = (resolve: (v: unknown) => unknown) => {
+      const resultado = tabla === "pedidos"
+        ? { data: [{ id: "ped-1", narrador_id: "nar-1", familia_id: "fam-1" }], error: null }
+        : tabla === "narradores" ? { data: [{ id: "nar-1" }], error: null } : { data: null, error: null };
+      return Promise.resolve(resultado).then(resolve);
+    };
+    return cadena;
+  });
+  return { admin: { from } as unknown as SupabaseClient, inserts };
+}
+
+describe("confirmarPago — la entrega de lo físico", () => {
+  it("con impreso o marcos crea la fila de entregas, con el origen de la región", async () => {
+    const { admin, inserts } = adminConEntrega({ extras: { pdf: true, impreso: "color", copias: 1, marcos: 2 }, region: "ES" });
+    await confirmarPago(admin, { pedidoId: "ped-1", referenciaExterna: "pay-1", enviarMailAcceso: async () => true });
+    const entrega = inserts.find((e) => e.tabla === "entregas");
+    expect(entrega?.valores).toMatchObject({ pedido_id: "ped-1", narrador_id: "nar-1", familia_id: "fam-1", estado: "sin_direccion", origen: "ES" });
+  });
+
+  it("un pedido de solo PDF no crea entrega: no hay nada que mandar", async () => {
+    const { admin, inserts } = adminConEntrega({ extras: { pdf: true, impreso: null, copias: 0, marcos: 0 }, region: "AR" });
+    await confirmarPago(admin, { pedidoId: "ped-1", referenciaExterna: "pay-1", enviarMailAcceso: async () => true });
+    expect(inserts.find((e) => e.tabla === "entregas")).toBeUndefined();
+  });
+
+  it("si la entrega no se puede crear, el pago igual queda confirmado", async () => {
+    const { admin } = adminConEntrega({ extras: { pdf: true, impreso: "color", copias: 1, marcos: 0 }, region: "AR", fallaEntrega: true });
+    const r = await confirmarPago(admin, { pedidoId: "ped-1", referenciaExterna: "pay-1", enviarMailAcceso: async () => true });
+    expect(r.ok).toBe(true);
+  });
+});

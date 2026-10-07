@@ -10,8 +10,7 @@
 //
 // Lo que NO hace: no corta audio (eso es del worker, sobre los audios reales) y no narra nada.
 import type Anthropic from '@anthropic-ai/sdk';
-import { extraerTexto, esPublicable, type ReservaDeRespuesta } from './comun.js';
-import { parsearJsonTolerante } from '../voz/conectores.js';
+import { extraerTexto, esPublicable, parsearJsonTolerante, type ReservaDeRespuesta } from './comun.js';
 
 /** Cuántas frases se imprimen por capítulo (decisión de Naza, 20/09). */
 export const FRASES_POR_CAPITULO = 3;
