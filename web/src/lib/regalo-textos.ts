@@ -25,4 +25,8 @@ export const TEXTOS_REGALO = {
   estadoPanel: "Esperando que abra su regalo",
   estadoCorto: "esperando que abra el regalo",
   proximoPaso: "Descargá la tarjeta del regalo",
+
+  // PROPUESTA (Task 0, tanda 2), hasta que Naza apruebe.
+  botonImprimir: "Imprimir o guardar en PDF",
+  botonImagen: "Descargar la imagen para WhatsApp",
 } as const;
