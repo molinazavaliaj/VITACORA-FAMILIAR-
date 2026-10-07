@@ -4,8 +4,9 @@ import { describe, expect, it } from 'vitest';
 import { cacheDeUnaHora, HAIKU, maxSalidaDe, OPUS, rolDe } from '../../src/escritor/modelo/configuracion.js';
 
 describe('rolDe: modelo y pensamiento por llamada', () => {
-  it('el capítulo y la primera página: Opus con pensamiento al máximo (xhigh)', () => {
-    for (const n of ['3b-capitulo-01', '3b-capitulo-12', '3a-primera']) expect(rolDe(n)).toEqual({ modelo: OPUS, maxTokens: 128000, esfuerzo: 'xhigh' });
+  it('el capítulo con pensamiento medio (Naza, 07/10, leyendo a ciegas); la primera página al máximo (xhigh)', () => {
+    for (const n of ['3b-capitulo-01', '3b-capitulo-12']) expect(rolDe(n)).toEqual({ modelo: OPUS, maxTokens: 128000, esfuerzo: 'medium' });
+    expect(rolDe('3a-primera')).toEqual({ modelo: OPUS, maxTokens: 128000, esfuerzo: 'xhigh' });
   });
 
   it('lo demás que escribe o revisa con Opus: pensamiento medio', () => {

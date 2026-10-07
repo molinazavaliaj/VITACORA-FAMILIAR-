@@ -67,6 +67,9 @@ export function rolDe(nombre: string, perfil: Perfil = 'eco'): Rol {
 
 function rolEco(nombre: string): Rol {
   // 128.000 de salida: en xhigh el capítulo sacó 52.800 y 44.400 de 64.000; un corte se pagaría dos veces (Fable, idea 3).
+  // Naza, 07/10: leyó a ciegas el capítulo VI de Joaquín en medio, máximo y alto y eligió el de medio ("me encantó";
+  // el de máximo le pareció con más errores). Cuesta 0,22 contra 0,59–1,10. La primera página sigue en máximo.
+  if (CAPITULO.test(nombre)) return opus('medium', 128000);
   if (MAXIMO.test(nombre)) return opus('xhigh', 128000);
   if (HECHOS.test(nombre)) return opus('medium', 128000);
   if (nombre.startsWith('7-estilo-')) return { ...ESTILO_ROL };

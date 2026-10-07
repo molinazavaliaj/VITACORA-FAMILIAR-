@@ -62,10 +62,11 @@ describe('Ejecutor.uno', () => {
 
   it('el pedido sale de la configuración económica: modelo y pensamiento por el nombre de la llamada', () => {
     const e = new Ejecutor({ modelo: new ModeloFalso({}), almacen: new AlmacenMemoria() });
-    expect(e.pedido({ clave: 'C/3b-capitulo-01', llamada: llamada('3b-capitulo-01'), json: false })).toMatchObject({ modelo: 'claude-opus-5-5', esfuerzo: 'xhigh', maxTokens: 128000, cacheEn: [1] });
+    expect(e.pedido({ clave: 'C/3b-capitulo-01', llamada: llamada('3b-capitulo-01'), json: false })).toMatchObject({ modelo: 'claude-opus-5-5', esfuerzo: 'medium', maxTokens: 128000, cacheEn: [1] });
     expect(e.pedido(enc('C/6-arreglo-cap_1'))).toMatchObject({ modelo: 'claude-opus-5-5', esfuerzo: 'medium', maxTokens: 64000 });
-    // La reescritura C30 baja a alto; un esfuerzo pedido nunca sube el del rol.
-    expect(e.pedido({ clave: 'C/3b-capitulo-01#2', llamada: llamada('3b-capitulo-01'), json: false, esfuerzo: 'high' }).esfuerzo).toBe('high');
+    // La reescritura C30 pide como mucho alto; un esfuerzo pedido nunca sube el del rol (el capítulo ya va en medio).
+    expect(e.pedido({ clave: 'C/3b-capitulo-01#2', llamada: llamada('3b-capitulo-01'), json: false, esfuerzo: 'high' }).esfuerzo).toBe('medium');
+    expect(e.pedido({ clave: 'C/3a-primera#2', llamada: llamada('3a-primera'), json: false, esfuerzo: 'high' }).esfuerzo).toBe('high');
     expect(e.pedido({ ...enc('C/6-arreglo-cap_1'), esfuerzo: 'xhigh' }).esfuerzo).toBe('medium');
     expect(e.pedido({ clave: 'C/7-estilo-cap_1', llamada: llamada('7-estilo-cap_1'), json: true, esfuerzo: 'low' })).not.toHaveProperty('esfuerzo');
     const haiku = e.pedido(enc('B/correccion-registro'));
