@@ -50,7 +50,9 @@ export function c12(plan: Json, rs: Respuesta[], reg: Json): string[] {
   const porId = Object.fromEntries(rs.map((r) => [r.id, r.texto]));
   const material = ` ${norm(rs.map((r) => r.texto).join(' '))} `;
   const nombres = new Set((reg.personas || []).flatMap((p: Json) => [p.nombre, ...(p.apodos || [])]).map(norm));
-  const titulos = [{ donde: 'libro', t: plan.titulo_libro }, ...plan.capitulos.map((c: Json) => ({ donde: `cap_${c.n}`, t: c.titulo }))];
+  // Los títulos de capítulo del plan no se imprimen desde la v5.5 (los pone el Paso 3t): C12 ya no los controla, así no
+  // hacen repetir el plan (07/10). Quedan el título del libro y el de la carta.
+  const titulos = [{ donde: 'libro', t: plan.titulo_libro }];
   if (plan.carta?.titulo && norm(plan.carta.titulo) !== 'para los mios') titulos.push({ donde: 'carta', t: { texto: plan.carta.titulo, id: plan.carta.titulo_id || '' } });
   const vistos = new Set();
   for (const { donde, t } of titulos) {

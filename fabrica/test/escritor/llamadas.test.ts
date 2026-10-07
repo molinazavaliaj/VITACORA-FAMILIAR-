@@ -59,7 +59,12 @@ for (const idiomaFicha of ['', 'Idioma del libro: catalán']) {
         const l = ts();
         if (!l) throw new Error(`${nombre}: no hubo llamada`);
         expect(l.nombre).toBe(archivo);
-        expect(A.textoDeLlamada(l)).toBe(delMjs(dir, args, archivo, env));
+        // 07/10: el verificador recibe el registro recortado (registroParaHechos); lo demás, igual que llamada.mjs.
+        const igual = archivo.startsWith('4-hechos')
+          ? { ...l, docs: l.docs.map((d) => (d.startsWith('<registro>') ? A.tag('registro', JSON.stringify(JSON.parse(c.leer('salidas/registro.json')), null, 1)) : d)) }
+          : l;
+        expect(A.textoDeLlamada(igual)).toBe(delMjs(dir, args, archivo, env));
+        if (archivo.startsWith('4-hechos')) expect(l.docs.find((d) => d.startsWith('<registro>'))).toBe(A.tag('registro', JSON.stringify(A.registroParaHechos(c), null, 1)));
       });
     }
   });
@@ -78,3 +83,19 @@ describe('lo que va al modelo', () => {
     expect(A.llamadaAntes(c)).toBeNull();
   });
 });
+
+describe('el registro del verificador (07/10)', () => {
+  it('sin dudas, voz ni sin_lugar; los episodios con lo que usa para verificar (estado incluido), sin detalles', () => {
+    const c = carpetaNelida();
+    const r = A.registroParaHechos(c);
+    const entero = JSON.parse(c.leer('salidas/registro.json'));
+    expect(Object.keys(r)).toEqual(Object.keys(entero).filter((k) => !['dudas', 'voz', 'sin_lugar'].includes(k)));
+    expect(r.personas).toEqual(entero.personas);
+    for (const [i, e] of r.episodios.entries()) {
+      expect(e.estado).toBe(entero.episodios[i].estado);
+      expect(e.ids).toEqual(entero.episodios[i].ids);
+      expect(e).not.toHaveProperty('detalles');
+    }
+  });
+});
+

@@ -60,11 +60,11 @@ describe('B4. la simulación por turnos (v3-entrevista-turno.ts)', () => {
     const e = sumarCaza(r.estado, caza);
     expect(e.repreguntas?.map((x) => x.clave)).toEqual(['RP~OR1']);
     expect(e.cazador).toMatchObject({ escenasContadas: ['la llegada al pueblo'] });
-    expect(e.cazador!.gastoUsd).toBeCloseTo(0.15, 10);
+    expect(e.cazador!.gastoUsd).toBeCloseTo(0.12, 10);
     expect(e.cazador!.registro).toHaveLength(1);
     // Lo gastado y lo ya repreguntado pasan a la llamada siguiente.
     const otra = await cazarAlCerrar(e, 1, falso().cliente);
-    expect(otra.gastoUsd).toBeCloseTo(0.3, 10);
+    expect(otra.gastoUsd).toBeCloseTo(0.24, 10);
     expect(otra.descartadas.map((d) => d.fallas)).toEqual([['ya repreguntado']]);
   });
 
@@ -117,7 +117,7 @@ describe('B4. la página de prueba con el cazador', () => {
     for (let i = 0; i < 50 && !leer().repreguntas?.length; i++) await new Promise((ok) => setTimeout(ok, 10));
     expect(pedidos).toHaveLength(1);
     expect(leer().repreguntas?.map((x) => x.clave)).toEqual(['RP~OR1']);
-    expect(logs.some((l) => /cazador, bloque 1: 1 repregunta.*USD 0\.15.*acumulado USD 0\.15/.test(l))).toBe(true);
+    expect(logs.some((l) => /cazador, bloque 1: 1 repregunta.*USD 0\.12.*acumulado USD 0\.12/.test(l))).toBe(true);
   });
 
   it('sin el cazador (por defecto) no llama a nada y la página no muestra el botón de la repregunta', async () => {

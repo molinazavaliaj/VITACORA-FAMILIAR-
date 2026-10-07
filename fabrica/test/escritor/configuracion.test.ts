@@ -51,9 +51,8 @@ describe('maxSalidaDe', () => {
 });
 
 describe('cacheDeUnaHora', () => {
-  it('los hechos, el repaso y las disputas comparten la caché de 1 hora; el resto, la de 5 minutos', () => {
-    for (const n of ['4-hechos', '4-hechos-repaso', 'disputa-cap_1-1']) expect(cacheDeUnaHora(n)).toBe(true);
-    for (const n of ['3b-capitulo-01', '1-registro', '7-estilo-cap_1', '5c-veedor']) expect(cacheDeUnaHora(n)).toBe(false);
+  it('apagada (07/10: perdía plata); todo va con la caché de 5 minutos', () => {
+    for (const n of ['4-hechos', '4-hechos-repaso', 'disputa-cap_1-1', '3b-capitulo-01', '5c-veedor']) expect(cacheDeUnaHora(n)).toBe(false);
   });
 });
 

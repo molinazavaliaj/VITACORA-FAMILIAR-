@@ -84,12 +84,12 @@ async function main() {
   const cliente = new Anthropic();
   mkdirSync(salida, { recursive: true });
   const proveedor = arg('proveedor') ?? 'opus5';
-  const modeloUsado = proveedor === 'opus55' ? 'claude-opus-5-5' : proveedor === 'deepseek' ? DEEPSEEK : proveedor === 'gemini' ? GEMINI_FLASH : MODELO;
+  const modeloUsado = proveedor === 'opus55' ? 'claude-opus-5-5' : proveedor === 'deepseek' ? DEEPSEEK : proveedor === 'gemini' ? GEMINI_FLASH : 'claude-opus-5';
   const llamar = async (sistema: string, usuario: string): Promise<{ texto: string; usage: { input_tokens: number; output_tokens: number }; costo: number }> => {
     if (proveedor === 'opus5' || proveedor === 'opus55') {
       const extra = proveedor === 'opus55' ? { thinking: { type: 'adaptive' }, output_config: { effort: 'medium' } } : {};
       const m = await cliente.messages.create({ model: modeloUsado, max_tokens: 16000, system: sistema, messages: [{ role: 'user', content: usuario }], ...extra } as Parameters<typeof cliente.messages.create>[0]) as Anthropic.Message;
-      const costo = proveedor === 'opus5' ? m.usage.input_tokens * PRECIO.entrada + m.usage.output_tokens * PRECIO.salida : usdDeLlamada(modeloUsado, m.usage, { lote: false });
+      const costo = proveedor === 'opus5' ? m.usage.input_tokens * 5e-6 + m.usage.output_tokens * 25e-6 : usdDeLlamada(modeloUsado, m.usage, { lote: false });
       return { texto: m.content.flatMap((b) => (b.type === 'text' ? [b.text] : [])).join(''), usage: m.usage, costo };
     }
     const key = (n: string) => (): string => { const k = process.env[n]; if (!k) throw new Error(`falta ${n}`); return k; };

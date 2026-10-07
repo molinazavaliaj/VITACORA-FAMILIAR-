@@ -74,12 +74,13 @@ describe('Ejecutor.uno', () => {
     expect(e.pedido({ ...enc('A/1-registro'), maxTokens: 128000 }).maxTokens).toBe(128000);
   });
 
-  it('la caché de 1 hora va solo en los hechos, el repaso y las disputas, y solo si hay dónde marcarla', () => {
+  it('la caché de 1 hora está apagada (07/10): los hechos y las disputas marcan la de 5 minutos', () => {
     const e = new Ejecutor({ modelo: new ModeloFalso({}), almacen: new AlmacenMemoria() });
     const docs = ['l', 'g', 'f', 'r', 'reg', 'lib', 'pres', 'pas'];
     const de = (nombre: string): Encargo => ({ clave: `C/${nombre}`, llamada: { nombre, docs, instr: 'x' }, json: true });
-    expect(e.pedido(de('4-hechos'))).toMatchObject({ cacheEn: [4, 7], cacheUnaHora: true, maxTokens: 128000, esfuerzo: 'medium' });
-    expect(e.pedido(de('disputa-cap_1-1'))).toMatchObject({ cacheEn: [4, 7], cacheUnaHora: true });
+    expect(e.pedido(de('4-hechos'))).toMatchObject({ cacheEn: [4, 7], maxTokens: 128000, esfuerzo: 'medium' });
+    expect('cacheUnaHora' in e.pedido(de('4-hechos'))).toBe(false);
+    expect('cacheUnaHora' in e.pedido(de('disputa-cap_1-1'))).toBe(false);
     expect('cacheUnaHora' in e.pedido(enc('C/6-arreglo-cap_1'))).toBe(false);
   });
 });

@@ -22,11 +22,12 @@ import { interpretar, leerBoton, leerInferida } from './respuesta.js';
 
 // ---------------------------------------------------------------- constantes
 
-/** HERMES: el entrevistador usa Opus 5. */
-export const MODELO_CAZADOR = 'claude-opus-5';
+/** Opus 5.5 con pensamiento medio (Naza, 07/10: ahorro; antes Opus 5, que es más caro y pensaba en alto por defecto). */
+export const MODELO_CAZADOR = 'claude-opus-5-5';
+export const ESFUERZO_CAZADOR = 'medium';
 export const MAX_TOKENS_CAZADOR = 16000;
-/** USD por token: 5 por millón de entrada, 25 por millón de salida. */
-export const PRECIO_CAZADOR = { entrada: 5 / 1e6, salida: 25 / 1e6 };
+/** USD por token: 4 por millón de entrada, 20 por millón de salida (Opus 5.5). */
+export const PRECIO_CAZADOR = { entrada: 4 / 1e6, salida: 20 / 1e6 };
 /** Tope de gasto del cazador por entrevista (Naza, 01/10): alcanzado, no se llama más y la entrevista sigue sin cazador. */
 export const TOPE_GASTO_USD = 3;
 /** Hasta cuántas elegidas por bloque se miran (el prompt dice "como mucho DOS"). */
@@ -313,6 +314,9 @@ export function mensajeRepregunta(e: Pick<Repregunta, 'cita' | 'pregunta'>, idio
 export type PedidoModelo = {
   model: string;
   max_tokens: number;
+  /** Opus 5.5 no deja apagar el pensamiento: se regula con el esfuerzo. */
+  thinking: { type: 'adaptive' };
+  output_config: { effort: typeof ESFUERZO_CAZADOR };
   system: string;
   messages: { role: 'user'; content: string }[];
 };
@@ -386,6 +390,8 @@ export async function cazarBloque(p: PedidoCaza): Promise<ResultadoCaza> {
   const pedido: PedidoModelo = {
     model: MODELO_CAZADOR,
     max_tokens: MAX_TOKENS_CAZADOR,
+    thinking: { type: 'adaptive' },
+    output_config: { effort: ESFUERZO_CAZADOR },
     system: p.prompt ?? PROMPT_CAZADOR_DE[idioma],
     messages: [{ role: 'user', content: armarEntrada({ ficha: p.ficha, bloque: p.bloque, respuestas: delBloque, yaRepreguntado: p.yaRepreguntado, escenasContadas: p.escenasContadas, idioma }) }],
   };

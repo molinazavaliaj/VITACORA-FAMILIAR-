@@ -22,7 +22,7 @@ describe('controles de estructura: lo mismo que controles.mjs sobre Nélida', ()
     expect(E.c33(plan, reg)).toEqual(M.c33(plan, reg));
     const roto = structuredClone(plan);
     roto.capitulos[1].apertura.tipo = 'escena';
-    roto.capitulos[0].titulo.texto = 'Una etapa linda';
+    roto.titulo_libro = { texto: 'Una etapa linda', id: '' };
     roto.capitulos[0].golpe = { episodio: 'E03', preparacion: ['E06'], frase_id: 'R06' };
     expect(E.c12(roto, rs, reg)).toEqual(M.c12(roto, rs, reg));
     expect(E.c13(roto, reg)).toEqual(M.c13(roto, reg));
@@ -341,3 +341,17 @@ test('v5.2: "no_entra" en afuera no va al arreglo ni a otro capítulo, y C18 no 
   assert.equal(E.c18(ps, rs, { episodios: [] }, pl).length, 1);
   assert.deepEqual(E.c18(ps, rs, { episodios: [] }, pl, new Set(['R43'])), []);
 });
+
+describe('C12 sin los títulos de capítulo del plan (07/10)', () => {
+  it('un título de capítulo armado ya no es problema (no se imprime); el del libro sí', () => {
+    const c = carpetaNelida();
+    const plan = JSON.parse(c.leer('salidas/plan.json'));
+    const reg = JSON.parse(c.leer('salidas/registro.json'));
+    const rs = respuestas(c);
+    plan.capitulos[0].titulo = { texto: 'Una etapa linda', id: '' };
+    expect(E.c12(plan, rs, reg).filter((x: string) => x.startsWith('C12 cap_'))).toEqual([]);
+    plan.titulo_libro = { texto: 'Una etapa linda', id: '' };
+    expect(E.c12(plan, rs, reg).some((x: string) => x.startsWith('C12 libro'))).toBe(true);
+  });
+});
+

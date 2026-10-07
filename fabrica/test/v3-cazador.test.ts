@@ -57,15 +57,15 @@ describe('el prompt sale del md (prompt-v3-1.md, sección "## Prompt")', () => {
   });
 });
 
-describe('la llamada: Opus 5, 16000 tokens, tope de USD 3 por entrevista (Naza, 01/10)', () => {
+describe('la llamada: Opus 5.5 con pensamiento medio (07/10), 16000 tokens, tope de USD 3 por entrevista (Naza, 01/10)', () => {
   it('constantes', () => {
-    expect(MODELO_CAZADOR).toBe('claude-opus-5');
+    expect(MODELO_CAZADOR).toBe('claude-opus-5-5');
     expect(MAX_TOKENS_CAZADOR).toBe(16000);
     expect(TOPE_GASTO_USD).toBe(3);
   });
-  it('el costo: USD 5 por millón de entrada y 25 por millón de salida', () => {
-    expect(costoUsd({ input_tokens: 1000, output_tokens: 200 })).toBeCloseTo(0.01, 10);
-    expect(costoUsd({ input_tokens: 1_000_000, output_tokens: 0 })).toBeCloseTo(5, 10);
+  it('el costo: USD 4 por millón de entrada y 20 por millón de salida', () => {
+    expect(costoUsd({ input_tokens: 1000, output_tokens: 200 })).toBeCloseTo(0.008, 10);
+    expect(costoUsd({ input_tokens: 1_000_000, output_tokens: 0 })).toBeCloseTo(4, 10);
   });
 });
 
@@ -248,15 +248,17 @@ describe('cazarBloque', () => {
     const r = await cazarBloque({ ...base, cliente, gastoUsd: 0.5 });
     expect(pedidos).toHaveLength(1);
     expect(pedidos[0]).toEqual({
-      model: 'claude-opus-5',
+      model: 'claude-opus-5-5',
       max_tokens: 16000,
+      thinking: { type: 'adaptive' },
+      output_config: { effort: 'medium' },
       system: PROMPT_CAZADOR,
       messages: [{ role: 'user', content: armarEntrada({ ...base, respuestas: respuestasParaCazar(RESPUESTAS, 2, textoPregunta) }) }],
     });
     expect(r).toMatchObject({ bloque: 2, llamo: true, escenasContadas: ['el sótano inundado'], tokens: { entrada: 10_000, salida: 2_000 }, descartadas: [] });
     expect(r.repreguntas.map((x) => x.clave)).toEqual(['RP~CA2']);
-    expect(r.costoUsd).toBeCloseTo(0.1, 10);
-    expect(r.gastoUsd).toBeCloseTo(0.6, 10);
+    expect(r.costoUsd).toBeCloseTo(0.08, 10);
+    expect(r.gastoUsd).toBeCloseTo(0.58, 10);
   });
 
   it('la elegida que falla se descarta y queda registrada', async () => {
@@ -305,6 +307,6 @@ describe('cazarBloque', () => {
     const { cliente } = falso([{ content: [{ type: 'text', text: 'perdón, no pude' }], usage: { input_tokens: 1000, output_tokens: 0 } }]);
     const r = await cazarBloque({ ...base, cliente });
     expect(r).toMatchObject({ llamo: true, motivo: 'salida-ilegible', repreguntas: [] });
-    expect(r.costoUsd).toBeCloseTo(0.005, 10);
+    expect(r.costoUsd).toBeCloseTo(0.004, 10);
   });
 });

@@ -75,5 +75,8 @@ function rolEco(nombre: string): Rol {
   return opus('medium');
 }
 
-/** Las llamadas que leen el libro entero: su caché dura 1 hora (la reusan las disputas y el repaso, que llegan después de un lote). */
-export const cacheDeUnaHora = (nombre: string): boolean => HECHOS.test(nombre) || nombre.startsWith('disputa-');
+/**
+ * Caché de 1 hora: apagada (07/10, Fable con los números del libro de Joaquín: escribirla costó 0,36 de más y el repaso
+ * ahorró 0,27; solo paga con dos o más disputas, y hubo cero). Los hechos quedan con la caché común de 5 minutos.
+ */
+export const cacheDeUnaHora = (_nombre: string): boolean => false;

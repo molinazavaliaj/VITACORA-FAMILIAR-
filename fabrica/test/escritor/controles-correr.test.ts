@@ -42,7 +42,7 @@ describe('controlar: lo mismo que controles.mjs', () => {
     mismoArchivo(c, comparar(c, 'plan').dir, 'controles/plan.json');
     const plan = JSON.parse(c.leer('salidas/plan.json'));
     plan.capitulos[1].apertura.tipo = 'escena';
-    plan.capitulos[0].titulo = { texto: 'Una etapa linda', id: '' };
+    plan.titulo_libro = { texto: 'Una etapa linda', id: '' };
     c.escribir('salidas/plan.json', JSON.stringify(plan));
     const r = comparar(c, 'plan');
     expect(r.codigo).toBe(2);
