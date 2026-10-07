@@ -125,6 +125,9 @@ async function enviarBienvenidas(): Promise<void> {
   for (const n of await narradoresEn(['invitado'])) {
     await aislado(n.id, async () => {
       if (await bienvenidaYaSalio(n.id)) return;
+      // Gift card: la bienvenida sale como texto cuando el narrador escribe con su
+      // código (flujo/regalo.ts). La plantilla nunca: no la esperaría nadie.
+      if (n.contexto?.regalo === true) return;
       // Vitácora de viaje: su plantilla es `bienvenida_viaje` (una variable). Hasta que Meta
       // la apruebe (WA_PLANTILLA_BIENVENIDA_VIAJE=1), el viajero escribe primero y procesar
       // le contesta la bienvenida como texto libre.

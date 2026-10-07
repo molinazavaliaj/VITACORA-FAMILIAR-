@@ -24,6 +24,8 @@ const mocks = vi.hoisted(() => ({
   recibirFotoFamiliar: vi.fn(),
   pedirObjeto: vi.fn(),
   pedidoAbierto: vi.fn(),
+  canjearRegalo: vi.fn(),
+  mandarBienvenidaDeRegalo: vi.fn(),
   estado: { narrador: null as any, enviosRepregunta: [] as any[], capturas: [] as any[], ultimoOrden: 30, tieneAdaptativas: true, ofertas: [] as any[], preguntasHoy: [] as any[], capituloVigente: 'La infancia' },
 }));
 
@@ -100,6 +102,8 @@ vi.mock('../src/flujo/viaje-db.js', () => ({
 }));
 vi.mock('../src/flujo/fotos.js', () => ({ recibirFotoFamiliar: mocks.recibirFotoFamiliar }));
 vi.mock('../src/flujo/objetos.js', () => ({ pedirObjeto: mocks.pedirObjeto, pedidoAbierto: mocks.pedidoAbierto }));
+// Gift card (08/10): el canje se prueba en regalo.test.ts; acá solo que procesar lo llama.
+vi.mock('../src/flujo/regalo.js', () => ({ canjearRegalo: mocks.canjearRegalo, mandarBienvenidaDeRegalo: mocks.mandarBienvenidaDeRegalo }));
 // La pregunta de cierre (18/09): por defecto no hay más vueltas → se despide.
 vi.mock('../src/flujo/cierre-abierto.js', () => ({
   faseDeCierre: mocks.faseDeCierre,
@@ -131,6 +135,10 @@ beforeEach(() => {
   mocks.pedirObjeto.mockResolvedValue(false);   // por defecto, la pregunta no cierra capítulo
   mocks.pedidoAbierto.mockReset();
   mocks.pedidoAbierto.mockResolvedValue(null);  // por defecto, no hay pedido esperando
+  mocks.canjearRegalo.mockReset();
+  mocks.canjearRegalo.mockResolvedValue('sin_codigo');
+  mocks.mandarBienvenidaDeRegalo.mockReset();
+  mocks.mandarBienvenidaDeRegalo.mockResolvedValue(true);
   mocks.guardarFotoEntrante.mockResolvedValue('Lisboa');
   for (const fn of [mocks.enviarTexto, mocks.descargarAudio, mocks.guardarRespuestaAudio, mocks.guardarReserva, mocks.transcribirYActualizar, mocks.evaluarRespuesta, mocks.detectarIntencion, mocks.generarPreguntasAdaptativas, mocks.cerrarBitacora, mocks.enviarPregunta]) fn.mockReset();
   mocks.guardarReserva.mockResolvedValue(true);
@@ -151,6 +159,35 @@ const narradorEn = (estado: string, dia_actual = 0, contexto: Record<string, any
 });
 
 describe('procesarEntrante', () => {
+  // Gift card (08/10). El doble responde `envios` (sin tipo oferta/pregunta) con
+  // `enviosRepregunta`: vacío = ultimaBienvenida da false.
+  it('un número desconocido con texto va al canje del regalo', async () => {
+    mocks.estado.narrador = null;
+    mocks.canjearRegalo.mockResolvedValue('canjeado');
+    await procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'VF-7K3M2Q', waMessageId: 'w' });
+    expect(mocks.canjearRegalo).toHaveBeenCalledWith(expect.anything(), { telefono: TEL, texto: 'VF-7K3M2Q' });
+  });
+  it('un número desconocido que manda audio no se canjea', async () => {
+    mocks.estado.narrador = null;
+    await procesarEntrante({ telefono: TEL, tipo: 'audio', mediaId: 'm', waMessageId: 'w' } as MensajeEntrante);
+    expect(mocks.canjearRegalo).not.toHaveBeenCalled();
+  });
+  it('un invitado de regalo sin bienvenida la recibe en vez de procesar el SÍ', async () => {
+    mocks.estado.narrador = narradorEn('invitado', 0, { regalo: true });
+    mocks.estado.enviosRepregunta = []; // ultimaBienvenida → false
+    await procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'SÍ', waMessageId: 'w' });
+    expect(mocks.mandarBienvenidaDeRegalo).toHaveBeenCalledWith(expect.anything(), 'n1', TEL);
+    expect(update('narradores')).toBeUndefined();
+    expect(mocks.enviarTexto).not.toHaveBeenCalled();
+  });
+  it('un invitado de regalo que ya tuvo su bienvenida sigue con el SÍ de siempre', async () => {
+    mocks.estado.narrador = narradorEn('invitado', 0, { regalo: true, trato: 'vos' });
+    mocks.estado.enviosRepregunta = [{ id: 'e-bienvenida' }];
+    await procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'SÍ', waMessageId: 'w' });
+    expect(mocks.mandarBienvenidaDeRegalo).not.toHaveBeenCalled();
+    expect(update('narradores')?.p).toMatchObject({ estado: 'acepto' });
+  });
+
   it('(a) un "SÍ" de un invitado lo pasa a acepto y envía la confirmación', async () => {
     mocks.estado.narrador = narradorEn('invitado');
     const m: MensajeEntrante = { telefono: TEL, tipo: 'texto', texto: 'SÍ', waMessageId: 'w' };

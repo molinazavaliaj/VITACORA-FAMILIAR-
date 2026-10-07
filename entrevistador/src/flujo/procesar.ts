@@ -24,6 +24,7 @@ import { bienvenidaViaje } from '../manual/puro.js';
 import { CLAVE_DEL_ARBOL, capituloNoAplica, enviarPregunta, ritmoDe, type Narrador } from './preguntar.js';
 import { bienvenidaPideVoz } from '../config.js';
 import { esNarradorV3 } from '../v3/estado.js';
+import { canjearRegalo, mandarBienvenidaDeRegalo } from './regalo.js';
 
 const MAXIMO_POR_DIA_DOS = 2; // ritmo 'dos_por_dia': la segunda se ofrece, no se impone
 
@@ -117,6 +118,11 @@ function estimarDuracion(texto: string): number {
 export async function procesarEntrante(m: MensajeEntrante): Promise<void> {
   const narrador = await buscarNarrador(m.telefono);
   if (!narrador) {
+    // Gift card (08/10): quien escribe puede ser un narrador con su tarjeta en la mano.
+    if (m.tipo === 'texto' && m.texto) {
+      const canje = await canjearRegalo({ db, enviarTexto }, { telefono: m.telefono, texto: m.texto });
+      if (canje !== 'sin_codigo') return;
+    }
     console.warn(`Mensaje de un número no registrado: ${m.telefono}`);
     return;
   }
@@ -167,6 +173,11 @@ export async function procesarEntrante(m: MensajeEntrante): Promise<void> {
 
 // Paso 2: el "SÍ" del consentimiento.
 async function manejarConsentimiento(narrador: Narrador, m: MensajeEntrante): Promise<void> {
+  // Gift card: si la bienvenida del canje falló, sale ahora (escribió: ventana abierta).
+  if (narrador.contexto?.regalo === true && !(await ultimaBienvenida(narrador.id))) {
+    await mandarBienvenidaDeRegalo({ db, enviarTexto }, narrador.id, narrador.telefono_whatsapp);
+    return;
+  }
   if (m.tipo !== 'texto' || !m.texto) return; // en 'invitado' solo cuenta el SÍ escrito
   // Hasta el 23/09 esto tenía su propio `/^si\b/`, más pobre que el `leerSiNo`
   // que ya vivía en este mismo archivo: "Sii", "Dale", "Ok", "Claro" y "Vamos"

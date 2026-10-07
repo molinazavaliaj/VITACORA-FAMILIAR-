@@ -332,6 +332,14 @@ describe('la bienvenida', () => {
     expect(anotado?.p.error_detalle).toContain('Template name does not exist');
   });
 
+  // Gift card (08/10): su bienvenida sale como texto cuando escribe con el código.
+  it('un invitado de regalo no recibe la plantilla de bienvenida', async () => {
+    mocks.filas.narradores = [{ ...invitado, contexto: { regalo: true } }];
+    mocks.filas.envios = [];
+    await tick(new Date('2026-09-23T12:00:00Z'));
+    expect(mocks.enviarPlantilla).not.toHaveBeenCalled();
+  });
+
   it('un intento fallido NO bloquea el reintento del próximo tick', async () => {
     mocks.filas.narradores = [invitado];
     mocks.filas.envios = [{ tipo: 'bienvenida', wa_message_id: null, entrega: 'fallido' }];
