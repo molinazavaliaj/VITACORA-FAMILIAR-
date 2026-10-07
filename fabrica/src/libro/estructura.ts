@@ -3,6 +3,7 @@ import { cargarConfig } from '../config.js';
 import { registrarUso } from '../costos.js';
 import { obtenerClienteDb, type Narrador, type Pregunta, type Respuesta } from '../db.js';
 import { esPublicable } from './comun.js';
+import { exigirSinV3 } from '../v3/candado.js';
 
 const MODELO = 'claude-fable-5';
 
@@ -163,6 +164,7 @@ ${transcripciones.join('\n\n---\n\n')}`;
  */
 export async function generarEstructura(narradorId: string): Promise<Estructura> {
   const db = obtenerClienteDb();
+  await exigirSinV3(db, narradorId, 'generarEstructura');
   const config = cargarConfig();
   const cliente = new Anthropic({ apiKey: config.anthropicApiKey });
 

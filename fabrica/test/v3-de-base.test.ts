@@ -85,4 +85,33 @@ describe('el lector de la entrevista V3 desde la base', () => {
       { clave: 'OR2', audioPath: null, transcripcion: 'uno tres', recibidoAt: '2026-10-08T14:00:00Z' },
     ]);
   });
+
+  describe('reservas hechas después de que el texto entró al estado', () => {
+    const filaRes = () => fila({ respuestas: [['OR1', 'Nací en Rosario. Lo del tío no lo cuento. Después nos mudamos.'], ['OR2', 'Mi mamá cosía.']] });
+    const con = (r: any) => dbFalsa({ entrevistas_v3: [filaRes()], respuestas: [{ narrador_id: 'n1', clave_v3: 'OR1', audio_path: null, transcripcion: 'x', recibido_at: '2026-10-08T13:00:00Z', ...r }] });
+
+    it('reservada entera: la clave sale de respuestas y del material', async () => {
+      const e = await leerEntrevistaV3(con({ reservada: true }), 'n1');
+      expect(e?.respuestas).toEqual([['OR2', 'Mi mamá cosía.']]);
+      expect(aMaterial(e!).map((f) => f.preguntaId)).toEqual(['OR2']);
+    });
+
+    it('tramo reservado: se saca del texto', async () => {
+      const e = await leerEntrevistaV3(con({ reservado_tramo: 'Lo del tío no lo cuento.' }), 'n1');
+      expect(e?.respuestas[0]).toEqual(['OR1', 'Nací en Rosario. Después nos mudamos.']);
+      const f = aMaterial(e!).find((x) => x.preguntaId === 'OR1')!;
+      expect(f.texto).not.toContain('tío');
+    });
+
+    it('tramo que no está textual: se reserva la clave entera', async () => {
+      const e = await leerEntrevistaV3(con({ reservado_tramo: 'algo que no está' }), 'n1');
+      expect(e?.respuestas).toEqual([['OR2', 'Mi mamá cosía.']]);
+      expect(aMaterial(e!).map((f) => f.preguntaId)).toEqual(['OR2']);
+    });
+
+    it('también alcanza al borrador abierto', async () => {
+      const db = dbFalsa({ entrevistas_v3: [fila({ respuestas: [], esperando: 'OR1', borrador: 'Secreto de familia.' })], respuestas: [{ narrador_id: 'n1', clave_v3: 'OR1', audio_path: null, transcripcion: 'x', recibido_at: '2026-10-08T13:00:00Z', reservada: true }] });
+      expect((await leerEntrevistaV3(db, 'n1'))?.respuestas).toEqual([]);
+    });
+  });
 });

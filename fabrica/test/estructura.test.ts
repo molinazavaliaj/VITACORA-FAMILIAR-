@@ -25,6 +25,9 @@ vi.mock('../src/db.js', async () => {
   };
 });
 
+const { exigirSinV3Mock } = vi.hoisted(() => ({ exigirSinV3Mock: vi.fn(async () => undefined) }));
+vi.mock('../src/v3/candado.js', () => ({ exigirSinV3: exigirSinV3Mock }));
+
 import { obtenerClienteDb } from '../src/db.js';
 import { agruparCapitulos, generarEstructura, parsearJsonEntidades } from '../src/libro/estructura.js';
 
@@ -372,5 +375,16 @@ describe('generarEstructura', () => {
 
     await expect(generarEstructura('narrador-1')).rejects.toThrow(/narrador-1/);
     expect(db.upload).not.toHaveBeenCalled();
+  });
+});
+
+describe('candado V3 en generarEstructura', () => {
+  it('se niega con un narrador V3 antes de tocar el modelo', async () => {
+    (obtenerClienteDb as unknown as ReturnType<typeof vi.fn>).mockReturnValue({});
+    exigirSinV3Mock.mockRejectedValueOnce(new Error('tiene entrevista V3'));
+    streamMock.mockClear();
+    await expect(generarEstructura('narrador-1')).rejects.toThrow(/V3/);
+    expect(exigirSinV3Mock).toHaveBeenCalledWith(expect.anything(), 'narrador-1', 'generarEstructura');
+    expect(streamMock).not.toHaveBeenCalled();
   });
 });

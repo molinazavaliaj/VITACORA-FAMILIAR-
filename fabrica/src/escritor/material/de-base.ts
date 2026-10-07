@@ -7,9 +7,11 @@
 // está en el material), suma lo que estaba contando y no se cerró (si la
 // familia cerró antes) y devuelve los audios con su clave V3 (para «Su voz»).
 //
-// Lo reservado ("esto que no vaya al libro"): el estado no lo contiene (el pase
-// no carga lo reservado), y los audios/transcripciones con reserva, entera o de
-// tramo, se tratan con las mismas reglas de comun.ts (esPublicable/textoRespuesta).
+// Lo reservado ("esto que no vaya al libro"): el pase no carga lo reservado
+// de antes, pero una reserva hecha DESPUÉS (a mano en `respuestas`, ver
+// CONTRATO) no llega al estado, que ya sumó el texto. Por eso leerEntrevistaV3
+// la aplica sobre estado.respuestas y el borrador, y sobre audios[], con las
+// reglas de comun.ts (esPublicable/textoRespuesta). Ante la duda, se reserva más.
 
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { esPublicable, textoRespuesta } from '../../libro/comun.js';
@@ -41,6 +43,48 @@ type FilaRespuesta = {
   clave_v3: string; audio_path: string | null; transcripcion: string | null; recibido_at: string;
   texto_directo?: string | null; reservada?: boolean | null; reservado_tramo?: string | null;
 };
+
+type Reserva = { total: boolean; tramos: string[] };
+
+/** La clave "madre" de una repregunta (RP~X) o segunda oportunidad (X~2): comparten la reserva de X. */
+const claveMadre = (k: string) => (k.startsWith('RP~') ? k.slice(3) : k.replace(/~\d+$/, ''));
+
+function reservasPorClave(filas: FilaRespuesta[]): Map<string, Reserva> {
+  const m = new Map<string, Reserva>();
+  for (const r of filas) {
+    const tramo = typeof r.reservado_tramo === 'string' ? r.reservado_tramo.trim() : '';
+    if (!tramo && r.reservada !== true) continue;
+    const e = m.get(r.clave_v3) ?? { total: false, tramos: [] };
+    if (tramo) e.tramos.push(tramo); else e.total = true;
+    m.set(r.clave_v3, e);
+  }
+  return m;
+}
+
+/** El texto sin lo reservado, o null si no queda nada publicable (tramo que no está textual: se reserva todo). */
+function sinReserva(texto: string, r: Reserva | undefined): string | null {
+  if (!r) return texto;
+  if (r.total) return null;
+  let t = texto;
+  for (const tramo of r.tramos) {
+    if (!t.includes(tramo)) return null;
+    t = t.split(tramo).join(' ');
+  }
+  t = t.replace(/\s+/g, ' ').trim();
+  return t === '' ? null : t;
+}
+
+/** Aplica las reservas al texto ya armado (incluye el borrador, que entrevistaDeFila suma bajo `esperando`). */
+function aplicarReservas(e: EstadoEntrevista, reservas: Map<string, Reserva>): EstadoEntrevista {
+  if (reservas.size === 0) return e;
+  const de = (k: string) => reservas.get(k) ?? reservas.get(claveMadre(k));
+  const respuestas: [string, string][] = [];
+  for (const [k, texto] of e.respuestas) {
+    const limpio = sinReserva(texto, de(k));
+    if (limpio !== null) respuestas.push([k, limpio]);
+  }
+  return { ...e, respuestas };
+}
 
 const sinMarcaFoto = (r: string) => r.replace(MARCA_FOTO, '').trim();
 
@@ -80,12 +124,13 @@ export async function leerEntrevistaV3(db: SupabaseClient, narradorId: string): 
   if (res.error?.code === '42703') res = await consulta('clave_v3,audio_path,transcripcion,texto_directo,recibido_at');
   if (res.error) throw new Error(`No pude leer las respuestas de ${narradorId}: ${res.error.message}`);
 
-  const audios: AudioV3[] = ((res.data as unknown as FilaRespuesta[] | null) ?? []).map((r) => ({
+  const filasResp = (res.data as unknown as FilaRespuesta[] | null) ?? [];
+  const audios: AudioV3[] = filasResp.map((r) => ({
     clave: r.clave_v3,
     // Un tramo reservado no se recorta de una grabación: el audio queda afuera.
     audioPath: esPublicable(r) ? r.audio_path : null,
     transcripcion: textoRespuesta({ transcripcion: r.transcripcion, texto_directo: r.texto_directo ?? null, reservada: r.reservada, reservado_tramo: r.reservado_tramo }),
     recibidoAt: r.recibido_at,
   }));
-  return { ...entrevistaDeFila(data as unknown as FilaEntrevistaV3), audios };
+  return { ...aplicarReservas(entrevistaDeFila(data as unknown as FilaEntrevistaV3), reservasPorClave(filasResp)), audios };
 }
