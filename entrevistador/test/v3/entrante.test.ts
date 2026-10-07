@@ -235,14 +235,14 @@ describe('una imagen', () => {
     const { deps, n1, base, enviados } = await preparar(enOR1());
     await procesarEntranteV3(deps, n1, { telefono: '+5491100000000', tipo: 'imagen', mediaId: 'img-2', waMessageId: 'wamid.suelta' });
     expect(base.tablas.fotos).toHaveLength(1);
-    expect(enviados.map((e) => e.texto)).toEqual(['📷 Guardada. Si querés, contame qué pasaba ahí.']);
+    expect(enviados.map((e) => e.texto)).toEqual(['📷 Guardada.']);
   });
 
-  it('foto suelta en catalán: se guarda y no se manda nada (falta el texto aprobado)', async () => {
+  it('foto suelta en catalán: se guarda y se acusa en catalán (aprobado 07/10)', async () => {
     const { deps, n1, base, enviados } = await preparar({ ...enOR1() }, { idioma: 'ca' });
     await procesarEntranteV3(deps, n1, { telefono: '+5491100000000', tipo: 'imagen', mediaId: 'img-3', waMessageId: 'wamid.ca' });
     expect(base.tablas.fotos).toHaveLength(1);
-    expect(enviados).toEqual([]);
+    expect(enviados.map((e) => e.texto)).toEqual(['📷 Desada.']);
   });
 });
 

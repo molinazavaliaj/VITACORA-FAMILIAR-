@@ -60,8 +60,8 @@ describe('las filas de un narrador V3', () => {
   });
 
   it('los textos fijos salen de un solo lugar; lo que no está aprobado no existe', () => {
-    expect(textoFijo('fotoSuelta', 'es-AR')).toBe('📷 Guardada. Si querés, contame qué pasaba ahí.');
-    expect(textoFijo('fotoSuelta', 'ca')).toBeNull();
-    expect(textoFijo('fotoSuelta', 'es-ES')).toBeNull();
+    expect(textoFijo('fotoSuelta', 'es-AR')).toBe('📷 Guardada.');
+    expect(textoFijo('fotoSuelta', 'ca')).toBe('📷 Desada.');
+    expect(textoFijo('fotoSuelta', 'es-ES')).toBe('📷 Guardada.');
   });
 });

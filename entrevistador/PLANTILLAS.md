@@ -102,3 +102,47 @@ cuando quieras. Al responder SÍ nos das permiso para guardar tus audios y usarl
 > "hola" al número y el bot le contesta esta misma bienvenida como texto libre. El código
 > en `src/manual/puro.ts` (`bienvenidaViaje`) es este cuerpo con "esta noche" / "ya" según el ritmo.
 
+---
+
+# Plantillas V3 (entrevista V3, 07/10)
+
+La entrevista V3 (`src/v3/`) usa una plantilla de pregunta y una de recordatorio (M8) por idioma.
+Los nombres y el idioma de Meta están en `src/config.ts` (`PLANTILLAS_V3`); fuera de la ventana de
+24 h solo salen las que figuran en `WA_PLANTILLAS_V3_LISTAS` (`es-ES:pregunta`, `ca:recordatorio`, …),
+salvo `pregunta_diaria_vos` (es-AR), que ya está aprobada. Sin la plantilla de su idioma no sale
+nada: nunca otro idioma. Lo que manda el código (`src/v3/enviar.ts`, `elegirEnvio`):
+
+- **pregunta**: una sola variable, {{1}} = la pregunta abierta (sin acuse, entrada, M1 ni M31), en una línea.
+- **recordatorio (M8)**: una sola variable, {{1}} = cómo le dicen (`ficha.nombre`).
+
+Los cuerpos de M8 son el texto de M8 de cada banco (`src/v3/nucleo/entrevista/banco.json`,
+`banco-es-ES.json`, `banco-ca.json`) con `{{nombre}}` cambiado por {{1}}. Si cambia M8 en el banco,
+hay que cambiar la plantilla en Meta (y re-aprobarla).
+
+## pregunta_diaria_vos (es) — variables: {{1}} la pregunta
+
+Ya cargada en Meta el 16/09 (ver `pregunta_diaria` arriba). No cambia.
+
+## pregunta_diaria_es_es (es_ES) — variables: {{1}} la pregunta
+
+La pregunta de hoy: {{1}}
+
+Cuando quieras, me respondes con un audio. Sin prisa. 🎙️
+
+## pregunta_diaria_ca (ca) — variables: {{1}} la pregunta
+
+La pregunta d'avui: {{1}}
+
+Quan vulguis, em respons amb un àudio. Sense pressa. 🎙️
+
+## m8_vos (es) — variables: {{1}} cómo le dicen
+
+Hola, {{1}}. Pasaron unos días y quería saber cómo andás. Tu historia está acá, guardada tal como la dejaste. Cuando tengas un rato me contestás la que quedó pendiente. Sin apuro.
+
+## m8_es_es (es_ES) — variables: {{1}} cómo le dicen
+
+Hola, {{1}}. Han pasado unos días y quería saber cómo estás. Tu historia está aquí, guardada tal como la dejaste. Cuando tengas un rato me contestas la que se ha quedado pendiente. Sin prisa.
+
+## m8_ca (ca) — variables: {{1}} cómo le dicen
+
+Hola, {{1}}. Han passat uns quants dies i volia saber com estàs. La teva història és aquí, guardada tal com la vas deixar. Quan tinguis una estona, em respons a la pregunta que va quedar pendent. Sense pressa.
