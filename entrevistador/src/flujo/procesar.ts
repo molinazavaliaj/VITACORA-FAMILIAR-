@@ -174,9 +174,10 @@ export async function procesarEntrante(m: MensajeEntrante): Promise<void> {
 // Paso 2: el "SÍ" del consentimiento.
 async function manejarConsentimiento(narrador: Narrador, m: MensajeEntrante): Promise<void> {
   // Gift card: si la bienvenida del canje falló, sale ahora (escribió: ventana abierta).
+  // Si tampoco sale ahora, se sigue como siempre: un SÍ nunca se pierde.
   if (narrador.contexto?.regalo === true && !(await ultimaBienvenida(narrador.id))) {
-    await mandarBienvenidaDeRegalo({ db, enviarTexto }, narrador.id, narrador.telefono_whatsapp);
-    return;
+    if (await mandarBienvenidaDeRegalo({ db, enviarTexto }, narrador.id, narrador.telefono_whatsapp)) return;
+    console.error(`regalo: la bienvenida de ${narrador.id} volvió a fallar; sigue el consentimiento de siempre`);
   }
   if (m.tipo !== 'texto' || !m.texto) return; // en 'invitado' solo cuenta el SÍ escrito
   // Hasta el 23/09 esto tenía su propio `/^si\b/`, más pobre que el `leerSiNo`

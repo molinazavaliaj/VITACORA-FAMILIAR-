@@ -1,11 +1,12 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { crearBaseFalsa } from './v3/base-falsa.js';
 vi.mock('../src/db/cliente.js', () => ({ db: {} }));
-import { canjearRegalo, mandarBienvenidaDeRegalo } from '../src/flujo/regalo.js';
+import { canjearRegalo, mandarBienvenidaDeRegalo, reiniciarLimiteDeCodigos } from '../src/flujo/regalo.js';
 import { TEXTOS_REGALO_BOT } from '../src/flujo/regalo-textos.js';
 import { bienvenida } from '../src/manual/puro.js';
 
 const TEL = '+5491155551234';
+beforeEach(() => reiniciarLimiteDeCodigos());
 function armar(o: { estado?: string; usado_at?: string | null; usado_por_telefono?: string | null; contexto?: Record<string, unknown> } = {}) {
   const base = crearBaseFalsa({
     narradores: [{ id: 'n1', familia_id: 'f1', nombre: 'Héctor', como_le_dicen: 'abuelo', telefono_whatsapp: null, estado: o.estado ?? 'regalo_pendiente', contexto: o.contexto ?? { regalo: true, trato: 'vos', genero: 'varon' } }],
@@ -69,6 +70,90 @@ describe('canjearRegalo', () => {
     base.ausentes.add('regalos');
     expect(await canjearRegalo(deps, { telefono: TEL, texto: 'VF-7K3M2Q' })).toBe('sin_codigo');
     expect(enviados).toEqual([]);
+  });
+});
+
+describe('canjearRegalo: arreglos de la revisión', () => {
+  it('sin la tabla regalos, con la forma de PostgREST (PGRST205), se queda callado', async () => {
+    const { base, deps, enviados } = armar();
+    const sinTabla = {
+      select: () => sinTabla, eq: () => sinTabla, maybeSingle: () => sinTabla,
+      then: (ok: any, ko: any) => Promise.resolve({ data: null, error: { code: 'PGRST205', message: "Could not find the table 'public.regalos' in the schema cache" } }).then(ok, ko),
+    };
+    const cliente = { from: (t: string) => (t === 'regalos' ? sinTabla : base.cliente.from(t)) } as unknown as typeof deps.db;
+    expect(await canjearRegalo({ ...deps, db: cliente }, { telefono: TEL, texto: 'VF-7K3M2Q' })).toBe('sin_codigo');
+    expect(enviados).toEqual([]);
+  });
+
+  it('el mismo teléfono que ya lo canjeó (con o sin el 9) no recibe "otro teléfono": silencio', async () => {
+    const { deps, enviados } = armar({ usado_at: '2026-10-08T10:00:00Z', usado_por_telefono: '+541155551234' });
+    expect(await canjearRegalo(deps, { telefono: TEL, texto: 'VF-7K3M2Q' })).toBe('ya_era_suyo');
+    expect(enviados).toEqual([]);
+  });
+
+  it('dos mensajes juntos con el mismo código desde el mismo teléfono: una sola bienvenida', async () => {
+    const { base, deps, enviados } = armar();
+    const resultados = await Promise.all([
+      canjearRegalo(deps, { telefono: TEL, texto: 'VF-7K3M2Q' }),
+      canjearRegalo(deps, { telefono: TEL, texto: 'VF-7K3M2Q' }),
+    ]);
+    expect([...resultados].sort()).toEqual(['canjeado', 'ya_era_suyo']);
+    expect(enviados).toHaveLength(1);
+    expect(enviados[0].texto).toContain('Lucía te hizo un regalo');
+    expect(enviados.some((e) => e.texto === TEXTOS_REGALO_BOT.usadoPorOtro)).toBe(false);
+    expect(base.tablas.narradores.filter((n) => n.telefono_whatsapp === TEL)).toHaveLength(1);
+    expect(base.tablas.envios).toHaveLength(1);
+  });
+
+  it('si la base falla al tomar el regalo, tira el error y no dice "otro teléfono"', async () => {
+    const { base, deps, enviados } = armar();
+    base.fallarProxima.set('regalos', { code: '08006', message: 'conexión caída' });
+    await expect(canjearRegalo(deps, { telefono: TEL, texto: 'VF-7K3M2Q' })).rejects.toMatchObject({ code: '08006' });
+    expect(enviados).toEqual([]);
+    expect(base.tablas.narradores[0].telefono_whatsapp).toBeNull();
+  });
+
+  it('la devolución solo borra la marca si sigue siendo de este teléfono', async () => {
+    const { base, deps } = armar({ estado: 'pendiente_pago' });
+    // Simula que otro canje pisó la marca entre la toma y la devolución.
+    const original = base.cliente.from.bind(base.cliente);
+    let updatesNarradores = 0;
+    const cliente = {
+      from: (t: string) => {
+        if (t === 'narradores') {
+          const q = original(t) as any;
+          const update = q.update.bind(q);
+          q.update = (v: any) => {
+            updatesNarradores++;
+            base.tablas.regalos[0].usado_por_telefono = '+5491100000000';
+            return update(v);
+          };
+          return q;
+        }
+        return original(t);
+      },
+    } as unknown as typeof deps.db;
+    expect(await canjearRegalo({ ...deps, db: cliente }, { telefono: TEL, texto: 'VF-7K3M2Q' })).toBe('no_listo');
+    expect(updatesNarradores).toBe(1);
+    expect(base.tablas.regalos[0].usado_por_telefono).toBe('+5491100000000');
+    expect(base.tablas.regalos[0].usado_at).toBeTruthy();
+  });
+
+  it('después de 5 "no encuentro ese código" al mismo teléfono en 24 hs, silencio; al día siguiente vuelve a contestar', async () => {
+    const { deps, enviados } = armar();
+    let reloj = Date.parse('2026-10-08T10:00:00Z');
+    const conReloj = { ...deps, ahora: () => reloj };
+    for (let i = 0; i < 6; i++) {
+      expect(await canjearRegalo(conReloj, { telefono: TEL, texto: 'VF-ZZZZZZ' })).toBe('no_existe');
+      reloj += 60_000;
+    }
+    expect(enviados).toHaveLength(5);
+    // Otro teléfono no paga por este.
+    expect(await canjearRegalo(conReloj, { telefono: '+5491199998888', texto: 'VF-ZZZZZZ' })).toBe('no_existe');
+    expect(enviados).toHaveLength(6);
+    reloj += 24 * 3600_000;
+    expect(await canjearRegalo(conReloj, { telefono: TEL, texto: 'VF-ZZZZZZ' })).toBe('no_existe');
+    expect(enviados).toHaveLength(7);
   });
 });
 

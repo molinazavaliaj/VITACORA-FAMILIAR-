@@ -180,6 +180,30 @@ describe('procesarEntrante', () => {
     expect(update('narradores')).toBeUndefined();
     expect(mocks.enviarTexto).not.toHaveBeenCalled();
   });
+  it('si la bienvenida de regalo vuelve a fallar, el SÍ no se pierde: sigue el consentimiento', async () => {
+    mocks.estado.narrador = narradorEn('invitado', 0, { regalo: true, trato: 'vos' });
+    mocks.estado.enviosRepregunta = [];
+    mocks.mandarBienvenidaDeRegalo.mockResolvedValue(false);
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      await procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'SÍ', waMessageId: 'w' });
+      expect(error).toHaveBeenCalledWith(expect.stringContaining('n1'));
+    } finally {
+      error.mockRestore();
+    }
+    expect(update('narradores')?.p).toMatchObject({ estado: 'acepto' });
+  });
+  it('un número desconocido que ya había canjeado su código (ya_era_suyo) no sigue de largo', async () => {
+    mocks.estado.narrador = null;
+    mocks.canjearRegalo.mockResolvedValue('ya_era_suyo');
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      await procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'VF-7K3M2Q', waMessageId: 'w' });
+      expect(warn).not.toHaveBeenCalledWith(expect.stringContaining('no registrado'));
+    } finally {
+      warn.mockRestore();
+    }
+  });
   it('un invitado de regalo que ya tuvo su bienvenida sigue con el SÍ de siempre', async () => {
     mocks.estado.narrador = narradorEn('invitado', 0, { regalo: true, trato: 'vos' });
     mocks.estado.enviosRepregunta = [{ id: 'e-bienvenida' }];
