@@ -8,6 +8,7 @@ import { capitulosDe, preguntaDeOrden as preguntaDelGuion, tieneAdaptativas, ult
 import { textoEvitar } from '../ia/evitar.js';
 import { tratoDe } from '../ia/trato.js';
 import { mensajeDePregunta } from '../manual/puro.js';
+import { v3ParaNuevos } from '../config.js';
 
 export type Narrador = {
   id: string;
@@ -130,6 +131,15 @@ async function enviarFotoDeLaPregunta(n: Narrador, fotoId: string): Promise<void
 export async function enviarPregunta(
   n: Narrador, orden: number, { plantilla }: { plantilla: boolean },
 ): Promise<boolean> {
+  // Entrevista V3 para los nuevos (spec 2026-10-07): apagada salvo
+  // V3_PARA_NUEVOS=1. Es el paso acepto → activo: en vez de la pregunta 1 vieja,
+  // se crea su fila V3 y sale OR1 con M1. Sin género, se frena y se avisa.
+  // La Vitácora de Viaje (contexto.modo = 'viaje') sigue por su flujo.
+  if (n.estado === 'acepto' && orden === 1 && n.contexto?.modo !== 'viaje' && v3ParaNuevos()) {
+    const { altaNuevo } = await import('../v3/pasar.js');
+    const { depsReales } = await import('../v3/deps-reales.js');
+    return (await altaNuevo(depsReales(), n, { ventanaAbierta: !plantilla })) === 'mandada';
+  }
   let pregunta = await preguntaDeOrden(n.id, orden);
   // Red de seguridad: las 4 finales se generan al responder la última del guion.
   // Si esa generación falló (el modelo devolvió algo raro, se cayó la API), el

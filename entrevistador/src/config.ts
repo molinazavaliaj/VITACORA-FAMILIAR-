@@ -47,3 +47,12 @@ export const PLANTILLAS_V3: Readonly<Record<'es-AR' | 'es-ES' | 'ca', { pregunta
   'es-ES': { pregunta: { nombre: 'pregunta_diaria_es_es', idiomaMeta: 'es_ES' }, recordatorio: { nombre: 'm8_es_es', idiomaMeta: 'es_ES' } },
   ca: { pregunta: { nombre: 'pregunta_diaria_ca', idiomaMeta: 'ca' }, recordatorio: { nombre: 'm8_ca', idiomaMeta: 'ca' } },
 };
+
+/**
+ * ¿Los narradores NUEVOS entran a la entrevista V3? (spec 2026-10-07). Se
+ * prende en Railway con V3_PARA_NUEVOS=1 cuando Naza lo diga; apagado, el alta
+ * es la de siempre. Se lee en el momento (no al arrancar), como bienvenidaPideVoz.
+ */
+export function v3ParaNuevos(): boolean {
+  return process.env.V3_PARA_NUEVOS === '1';
+}
