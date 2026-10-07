@@ -19,14 +19,25 @@ import { conReintento, crearFila, esNarradorV3 } from './estado.js';
 import { preguntaPorId } from './nucleo/entrevista/banco.js';
 import type { PreguntaFamilia } from './nucleo/entrevista/flujo.js';
 import { esIdioma, idiomaDe, type Idioma } from './nucleo/entrevista/idioma.js';
-import { sumarAudio } from './nucleo/entrevista/respuesta.js';
+import { respuestaInferida, sumarAudio } from './nucleo/entrevista/respuesta.js';
 import { yaEsLaHora } from './tanda.js';
 import { esGenero, estadoInicial, fichaTexto, SIN_CLAVE_V3, type EstadoV3, type FichaFila, type Genero, type MigradaDe, type NarradorV3 } from './tipos.js';
 import { avanzar } from './turno.js';
 
 // ---------------------------------------------------------------- equivalencias
 
-export type Equivalencias = { version: 1; porTexto: Record<string, string> };
+/**
+ * Texto viejo → clave V3, o varias claves (Naza, 07/10: "¿Cómo eran su mamá y
+ * su papá?" → CA2 y CA3). Con varias, la respuesta entera va a la primera y
+ * las demás quedan contestadas con la marca de inferida ("⟦inferida:CA2⟧"
+ * en CA3): el motor no las pregunta y el texto no se duplica.
+ */
+export type Equivalencias = { version: 1; porTexto: Record<string, string | string[]> };
+
+/** Las claves de una entrada, siempre como lista (la primera recibe el texto). */
+export function clavesDe(valor: string | string[]): string[] {
+  return typeof valor === 'string' ? [valor] : valor;
+}
 
 /** Minúsculas, sin acentos ni signos, espacios simples: "¿Cómo era tu casa?" → "como era tu casa". */
 export function normalizarPregunta(texto: string): string {
@@ -38,15 +49,22 @@ export function leerEquivalencias(crudo: unknown = equivalenciasJson): Equivalen
   if (!e || e.version !== 1 || typeof e.porTexto !== 'object' || e.porTexto === null) {
     throw new Error('equivalencias: formato inválido (se espera { "version": 1, "porTexto": { "<texto de la pregunta vieja>": "<clave V3>" } }).');
   }
-  const porTexto: Record<string, string> = {};
-  for (const [texto, clave] of Object.entries(e.porTexto)) {
-    if (typeof clave !== 'string' || !preguntaPorId(clave)) throw new Error(`equivalencias: «${String(clave)}» no es una pregunta del banco V3 (para «${texto}»).`);
+  const porTexto: Record<string, string | string[]> = {};
+  for (const [texto, valor] of Object.entries(e.porTexto as Record<string, unknown>)) {
+    const lista = typeof valor === 'string' ? [valor] : Array.isArray(valor) ? (valor as unknown[]) : [valor];
+    if (lista.length === 0) throw new Error(`equivalencias: «${texto}» no tiene ninguna clave V3.`);
+    for (const clave of lista) {
+      if (typeof clave !== 'string' || !preguntaPorId(clave)) throw new Error(`equivalencias: «${String(clave)}» no es una pregunta del banco V3 (para «${texto}»).`);
+    }
+    const claves = lista as string[];
+    if (new Set(claves).size !== claves.length) throw new Error(`equivalencias: «${texto}» repite una clave (${claves.join(', ')}).`);
     const normal = normalizarPregunta(texto);
     // Dos textos que se normalizan igual y van a claves distintas: no se adivina cuál vale.
-    if (porTexto[normal] !== undefined && porTexto[normal] !== clave) {
-      throw new Error(`equivalencias: «${texto}» se normaliza igual que otra entrada y van a claves distintas (${porTexto[normal]} y ${clave}).`);
+    const antes = porTexto[normal];
+    if (antes !== undefined && clavesDe(antes).join(',') !== claves.join(',')) {
+      throw new Error(`equivalencias: «${texto}» se normaliza igual que otra entrada y van a claves distintas (${clavesDe(antes).join('+')} y ${claves.join('+')}).`);
     }
-    porTexto[normal] = clave;
+    porTexto[normal] = typeof valor === 'string' ? valor : claves;
   }
   return { version: 1, porTexto };
 }
@@ -62,6 +80,8 @@ export type RespuestaVieja = {
   clave_v3?: string | null;
 };
 export type Cargada = { clave: string; ordenes: number[]; respuestaIds: string[]; texto: string; palabras: number };
+/** Una clave V3 que se da por contestada porque su texto ya está en `de` (marca ⟦inferida:de⟧). */
+export type Inferida = { clave: string; de: string; ordenes: number[] };
 export type PlanDePase = {
   narradorId: string;
   estadoNarrador: string;
@@ -71,6 +91,8 @@ export type PlanDePase = {
   familia: PreguntaFamilia[];
   ultimoEntranteAt: string | null;
   cargadas: Cargada[];
+  /** Claves cubiertas por la respuesta de otra (tabla con varias claves): van con la marca de inferida. */
+  inferidas: Inferida[];
   sinEquivalencia: { orden: number; pregunta: string; respuestas: number }[];
   sinTexto: number[];
   /** Órdenes con alguna respuesta reservada entera: no se cargan ni llevan clave_v3. */
@@ -98,6 +120,7 @@ export function armarPase(e: {
   }
   const guion = new Map(e.guion.map((p) => [p.orden, p]));
   const cargadas: Cargada[] = [];
+  const inferidas: Inferida[] = [];
   const sinEquivalencia: PlanDePase['sinEquivalencia'] = [];
   const sinTexto: number[] = [];
   const reservadas: number[] = [];
@@ -116,7 +139,8 @@ export function armarPase(e: {
       continue;
     }
     const pregunta = guion.get(orden);
-    const clave = pregunta?.tipo === 'familia' ? `F:${pregunta.id}` : pregunta ? e.equivalencias.porTexto[normalizarPregunta(pregunta.texto)] : undefined;
+    const enTabla = pregunta && pregunta.tipo !== 'familia' ? e.equivalencias.porTexto[normalizarPregunta(pregunta.texto)] : undefined;
+    const [clave, ...cubiertas] = pregunta?.tipo === 'familia' ? [`F:${pregunta.id}`] : enTabla !== undefined ? clavesDe(enTabla) : [];
     if (!clave) {
       sinEquivalencia.push({ orden, pregunta: pregunta?.texto ?? '(sin pregunta en el guion)', respuestas: filas.length });
       continue;
@@ -129,6 +153,11 @@ export function armarPase(e: {
     } else {
       cargadas.push({ clave, ordenes: [orden], respuestaIds: filas.map((r) => r.id), texto, palabras: 0 });
     }
+    for (const cubierta of cubiertas) {
+      const inf = inferidas.find((i) => i.clave === cubierta);
+      if (inf) inf.ordenes.push(orden);
+      else inferidas.push({ clave: cubierta, de: clave, ordenes: [orden] });
+    }
   }
   for (const c of cargadas) c.palabras = palabras(c.texto);
   return {
@@ -140,6 +169,8 @@ export function armarPase(e: {
     familia: e.guion.filter((p) => p.tipo === 'familia').map((p) => ({ id: `F:${p.id}`, texto: p.texto })),
     ultimoEntranteAt: e.ultimaRespuestaAt,
     cargadas,
+    // Si la clave tiene respuesta propia (otra pregunta vieja va directo ahí), gana la respuesta.
+    inferidas: inferidas.filter((i) => !cargadas.some((c) => c.clave === i.clave)),
     sinEquivalencia,
     sinTexto,
     reservadas,
@@ -193,6 +224,14 @@ async function respuestasViejas(db: SupabaseClient, narradorId: string): Promise
     if (error.code !== '42703') throw new Error(`No pude leer las respuestas de ${narradorId}: ${error.message}`);
   }
   throw new Error(`No pude leer las respuestas de ${narradorId}: falta una columna de respuestas.`);
+}
+
+/** Lo que entra a estado.respuestas: cada cargada y, pegadas detrás, las claves que se infieren de ella. */
+export function respuestasDelPase(plan: Pick<PlanDePase, 'cargadas' | 'inferidas'>): [string, string][] {
+  return plan.cargadas.flatMap((c) => [
+    [c.clave, c.texto] as [string, string],
+    ...plan.inferidas.filter((i) => i.de === c.clave).map((i) => [i.clave, respuestaInferida(i.de)] as [string, string]),
+  ]);
 }
 
 /** Por qué no se puede aplicar todavía (vacío = se puede). */
@@ -250,7 +289,7 @@ export async function aplicarPase(db: SupabaseClient, plan: PlanDePase, ahora: D
   }
   const estado: EstadoV3 = {
     ...estadoInicial(plan.familia),
-    respuestas: plan.cargadas.map((c) => [c.clave, c.texto] as [string, string]),
+    respuestas: respuestasDelPase(plan),
     ...(plan.ultimoEntranteAt ? { ultimoEntranteAt: plan.ultimoEntranteAt } : {}),
   };
   const creada = await crearFila(db, {
@@ -274,6 +313,10 @@ export function describirPase(plan: PlanDePase): string {
     `Se cargan ${plan.cargadas.length} respuestas viejas:`,
     ...plan.cargadas.map((c) => `  ${c.clave} ← orden${c.ordenes.length > 1 ? 'es' : ''} ${c.ordenes.join(', ')} (${c.palabras} palabras)`),
   ];
+  if (plan.inferidas.length > 0) {
+    l.push('Contestadas por otra (no se preguntan; van con la marca de inferida, sin repetir el texto):');
+    for (const i of plan.inferidas) l.push(`  ${i.clave} ← ya está en ${i.de} (orden${i.ordenes.length > 1 ? 'es' : ''} ${i.ordenes.join(', ')})`);
+  }
   if (plan.sinEquivalencia.length > 0) {
     l.push('Sin equivalencia (no entrarían a la V3; mientras haya, --aplicar no aplica nada):');
     for (const s of plan.sinEquivalencia) l.push(`  orden ${s.orden}: «${s.pregunta}» (${s.respuestas} respuesta${s.respuestas > 1 ? 's' : ''})`);

@@ -7,6 +7,8 @@ import { tocaM8, tocaTanda, trabajarNarrador } from '../../src/v3/reloj.js';
 import { procesarEntranteV3 } from '../../src/v3/entrante.js';
 import { renderizar } from '../../src/v3/nucleo/entrevista/texto.js';
 import { preguntaPorId } from '../../src/v3/nucleo/entrevista/banco.js';
+import { siguientePregunta } from '../../src/v3/nucleo/entrevista/flujo.js';
+import equivalenciasRepo from '../../src/v3/equivalencias.json' with { type: 'json' };
 import { SIN_CLAVE_V3, type NarradorV3 } from '../../src/v3/tipos.js';
 
 /** Una tabla parcial: '¿A qué jugabas?' (orden 3) queda sin equivalencia. */
@@ -66,8 +68,19 @@ describe('la tabla de equivalencias', () => {
     expect(leerEquivalencias({ version: 1, porTexto: { '¿Cómo era tu casa?': 'CA1', 'como era tu casa': 'CA1' } }).porTexto).toEqual({ 'como era tu casa': 'CA1' });
   });
 
-  it('la del repo arranca vacía (la arma la sesión principal y la aprueba Naza)', () => {
-    expect(leerEquivalencias()).toEqual({ version: 1, porTexto: {} });
+  it('la del repo carga: la aprobada por Naza (07/10), con todas sus claves en el banco V3 (es-AR)', () => {
+    const tabla = leerEquivalencias();
+    expect(Object.values(tabla.porTexto)).toEqual(['CA1', ['CA2', 'CA3'], 'ES6', 'ES2', 'OR2', 'CA6', 'CA10']);
+    for (const valor of Object.values(equivalenciasRepo.porTexto)) for (const clave of [valor].flat()) expect(preguntaPorId(clave, 'es-AR')).toBeDefined();
+  });
+
+  it('varias claves para un texto: valida cada una, no acepta lista vacía ni repetida, y el choque compara la lista entera', () => {
+    expect(leerEquivalencias({ version: 1, porTexto: { 'Algo': ['CA2', 'CA3'] } }).porTexto).toEqual({ algo: ['CA2', 'CA3'] });
+    expect(() => leerEquivalencias({ version: 1, porTexto: { 'Algo': ['CA2', 'ZZ9'] } })).toThrow(/ZZ9/);
+    expect(() => leerEquivalencias({ version: 1, porTexto: { 'Algo': [] } })).toThrow(/ninguna clave/);
+    expect(() => leerEquivalencias({ version: 1, porTexto: { 'Algo': ['CA2', 'CA2'] } })).toThrow(/repite/);
+    expect(() => leerEquivalencias({ version: 1, porTexto: { 'Algo': ['CA2', 'CA3'], 'algo': 'CA2' } })).toThrow(/normaliza igual/);
+    expect(leerEquivalencias({ version: 1, porTexto: { 'Algo': ['CA2', 'CA3'], 'algo': ['CA2', 'CA3'] } }).porTexto).toEqual({ algo: ['CA2', 'CA3'] });
   });
 });
 
@@ -107,7 +120,7 @@ describe('el pase de un narrador en curso', () => {
 
   it('con la tabla vacía, todo lo viejo sale "sin equivalencia" (no se pierde: queda en respuestas) y el dry-run no muestra lo que contó', async () => {
     const base = baseConNarrador();
-    const plan = await planDePase(base.cliente, 'n1', { genero: 'mujer', equivalencias: leerEquivalencias() });
+    const plan = await planDePase(base.cliente, 'n1', { genero: 'mujer', equivalencias: leerEquivalencias({ version: 1, porTexto: {} }) });
     expect(plan.cargadas.map((c) => c.clave)).toEqual(['F:pf1']);
     expect(plan.sinEquivalencia.map((s) => s.orden)).toEqual([1, 2, 3, 4, 5]);
     const texto = describirPase(plan);
@@ -345,5 +358,76 @@ describe('el alta de un narrador nuevo', () => {
     const { deps, avisos } = preparar(ctx);
     expect(await altaNuevo(deps, nuevo(ctx), { ventanaAbierta: true })).toBe('frenada');
     expect(avisos[0].clave).toBe('alta-idioma-n1');
+  });
+});
+
+/** Las 7 primeras del guion viejo (supabase/seed.sql), tal cual. */
+const GUION_VIEJO = [
+  'Cuénteme de la casa donde pasó su infancia. Si cierra los ojos y entra por la puerta, ¿qué ve, qué huele, quién está?',
+  '¿Cómo eran su mamá y su papá? ¿Qué hacían, cómo era vivir con ellos? Cuénteme cómo los recuerda a cada uno.',
+  '¿A qué jugaba de chico, y con quién? ¿Hermanos, amigos del barrio? Cuénteme alguna travesura que todavía lo haga reír.',
+  '¿Cómo era su escuela? ¿Tuvo algún maestro o compañero que nunca se olvidó?',
+  'Hábleme de sus abuelos y de dónde viene su familia. ¿Qué historias le contaban de antes de que usted naciera?',
+  'Hábleme de sus hermanos. ¿Cómo era cada uno, con quién se llevaba mejor? ¿O fue hijo único — cómo era eso?',
+  '¿Qué tradiciones había en su casa? Las comidas, las fiestas, los domingos... ¿qué olores y sabores lo devuelven a esa mesa?',
+];
+
+/** Un narrador del guion viejo que contestó las órdenes 1..hasta. */
+function narradorViejo(hasta: number) {
+  return crearBaseFalsa({
+    familias: [{ id: 'f1', nombre: 'Laura' }],
+    narradores: [{ id: 'n1', familia_id: 'f1', como_le_dicen: 'Prueba', telefono_whatsapp: '+5491100000000', hora_preferida: '10:00:00', zona_horaria: 'America/Argentina/Buenos_Aires', estado: 'activo', dia_actual: hasta, contexto: { trato: 'usted' }, ultima_respuesta_at: '2026-10-07T20:00:00Z' }],
+    preguntas: [...GUION_VIEJO, '¿Cuál fue su primer trabajo?'].map((texto, i) => ({ id: `g${i + 1}`, narrador_id: null, orden: i + 1, texto, tipo: 'fija' })),
+    respuestas: Array.from({ length: hasta }, (_, i) => ({ id: `r${i + 1}`, narrador_id: 'n1', pregunta_orden: i + 1, transcripcion: `Respuesta vieja ${i + 1}.`, texto_directo: null, recibido_at: `2026-10-0${i + 1}T10:00:00Z` })),
+  });
+}
+
+describe('el pase con la tabla aprobada (07/10)', () => {
+  it('como Dora (órdenes 1 a 3): CA1, CA2 con todo el texto y CA3 inferida de CA2, ES6; el motor no las vuelve a preguntar', async () => {
+    const base = narradorViejo(3);
+    const plan = await planDePase(base.cliente, 'n1', { genero: 'mujer', equivalencias: leerEquivalencias() });
+    expect(plan.cargadas.map((c) => [c.clave, c.ordenes])).toEqual([['CA1', [1]], ['CA2', [2]], ['ES6', [3]]]);
+    expect(plan.inferidas).toEqual([{ clave: 'CA3', de: 'CA2', ordenes: [2] }]);
+    expect(plan.sinEquivalencia).toEqual([]);
+    expect(bloqueosDePase(plan)).toEqual([]);
+    expect(describirPase(plan)).toContain('CA3 ← ya está en CA2 (orden 2)');
+    await aplicarPase(base.cliente, plan, ANTES_DE_LA_HORA);
+    const fila = await leerFila(base.cliente, 'n1');
+    expect(fila?.estado.respuestas).toEqual([
+      ['CA1', 'Respuesta vieja 1.'],
+      ['CA2', 'Respuesta vieja 2.'],
+      ['CA3', '⟦inferida:CA2⟧'],
+      ['ES6', 'Respuesta vieja 3.'],
+    ]);
+    // clave_v3 de las filas viejas: la primera clave (CA2), nunca CA3.
+    expect(Object.fromEntries(base.tablas.respuestas.map((r) => [r.id, r.clave_v3 ?? null]))).toEqual({ r1: 'CA1', r2: 'CA2', r3: 'ES6' });
+    // El motor, contestando todo lo que pregunta hasta salir del bloque 3, no manda ninguna de las cargadas.
+    const respuestas = new Map(fila!.estado.respuestas);
+    const preguntadas: string[] = [];
+    for (let i = 0; i < 200; i++) {
+      const s = siguientePregunta({ respuestas, enviados: new Set(), rondaExtra: 'rechazada', familia: [], idioma: 'es-AR' });
+      if (s.tipo !== 'pregunta' || s.pregunta.bloque > 3) break;
+      preguntadas.push(s.pregunta.id);
+      respuestas.set(s.pregunta.id, 'Me acuerdo bien: era una época linda y la cuento con gusto.');
+    }
+    expect(preguntadas[0]).toBe('OR1');
+    expect(preguntadas).toEqual(expect.arrayContaining(['CA6', 'CA10', 'ES5', 'ES7']));
+    for (const id of ['CA1', 'CA2', 'CA3', 'ES6']) expect(preguntadas).not.toContain(id);
+  });
+
+  it('como Mariano (órdenes 1 a 7): todo tiene equivalencia', async () => {
+    const base = narradorViejo(7);
+    const plan = await planDePase(base.cliente, 'n1', { genero: 'varon', equivalencias: leerEquivalencias() });
+    expect(plan.sinEquivalencia).toEqual([]);
+    expect(plan.cargadas.map((c) => c.clave)).toEqual(['CA1', 'CA2', 'ES6', 'ES2', 'OR2', 'CA6', 'CA10']);
+    expect(plan.inferidas.map((i) => i.clave)).toEqual(['CA3']);
+  });
+
+  it('si otra pregunta vieja va directo a la clave inferida, gana la respuesta', async () => {
+    const base = narradorViejo(3);
+    const tabla = leerEquivalencias({ version: 1, porTexto: { [GUION_VIEJO[0]]: 'CA1', [GUION_VIEJO[1]]: ['CA2', 'CA3'], [GUION_VIEJO[2]]: 'CA3' } });
+    const plan = await planDePase(base.cliente, 'n1', { genero: 'mujer', equivalencias: tabla });
+    expect(plan.inferidas).toEqual([]);
+    expect(plan.cargadas.map((c) => c.clave)).toEqual(['CA1', 'CA2', 'CA3']);
   });
 });
