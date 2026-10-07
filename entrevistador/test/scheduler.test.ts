@@ -27,7 +27,7 @@ vi.mock('../src/db/cliente.js', () => {
   function crearBuilder(tabla: string) {
     const b: any = { _op: 'select', _filtros: {} as Record<string, any> };
     const eq = (col: string, val: any) => { b._filtros[col] = val; return b; };
-    b.select = () => b; b.or = () => b; b.order = () => b; b.limit = () => b; b.in = eq;
+    b.select = () => b; b.or = () => b; b.order = () => b; b.limit = () => b; b.in = eq; b.lte = () => b;
     // `.is('wa_message_id', null)` y `.not('wa_message_id','is',null)`: la bienvenida
     // distingue un envío de verdad (con id de Meta) de un intento fallido anotado.
     b.is = (col: string, val: any) => { if (col === 'wa_message_id') b._filtros._conId = val === null ? false : undefined; return b; };

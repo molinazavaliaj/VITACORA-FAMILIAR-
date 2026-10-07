@@ -140,31 +140,54 @@ export type MandarMailFamilia = (familiaId: string, asunto: string, cuerpo: stri
 /**
  * Nunca al narrador: una sola vez a quien regaló, si a los 15 días de la fecha
  * de entrega (o de la compra, si no puso fecha) la tarjeta sigue sin usar.
- * Devuelve cuántos mandó. Si el mail falla no se marca: el próximo tick reintenta.
+ * Devuelve cuántos mandó.
+ *
+ * El regalo se toma ANTES de mandar (compare-and-swap sobre recordatorio_at):
+ * dos ticks o dos procesos a la vez no mandan dos veces. Si el mail falla se
+ * devuelve la marca, y el próximo tick reintenta.
  */
 export async function recordarRegalos(
   deps: DepsRegalo & { mandarMail: MandarMailFamilia },
   ahora: Date = new Date(deps.ahora?.() ?? Date.now()),
 ): Promise<number> {
+  const limite = ahora.getTime() - DIAS_RECORDATORIO * 24 * 3600_000;
+  // Corte grueso en la consulta: fecha_entrega nunca es anterior a la compra,
+  // así que un regalo comprado hace menos de 15 días no puede estar vencido.
+  // Sin esto, cada tick releería todos los regalos sin usar.
   const { data, error } = await deps.db.from('regalos')
     .select('id, narrador_id, fecha_entrega, created_at')
-    .is('usado_at', null).is('recordatorio_at', null);
+    .is('usado_at', null).is('recordatorio_at', null)
+    .lte('created_at', new Date(limite).toISOString());
   if (error) {
     if (esTablaAusente(error)) return 0;
     throw error;
   }
-  const limite = ahora.getTime() - DIAS_RECORDATORIO * 24 * 3600_000;
+  const marca = ahora.toISOString();
   let mandados = 0;
   for (const r of data ?? []) {
+    // La regla exacta: desde la fecha de entrega, o desde la compra.
     const desde = Date.parse(r.fecha_entrega ?? r.created_at);
     if (Number.isNaN(desde) || desde > limite) continue;
+    // Solo se lee el narrador de los regalos ya vencidos (pocos por tick).
     const { data: n } = await deps.db.from('narradores')
       .select('familia_id, como_le_dicen, estado').eq('id', r.narrador_id).maybeSingle();
     if (!n || n.estado !== 'regalo_pendiente') continue;
+
+    const { data: tomado, error: errorTomar } = await deps.db.from('regalos')
+      .update({ recordatorio_at: marca }).eq('id', r.id).is('recordatorio_at', null).select('id');
+    if (errorTomar) {
+      console.error(`regalo: no pude tomar el recordatorio de ${r.id}:`, errorTomar.message);
+      continue;
+    }
+    if (!tomado?.length) continue; // lo tomó otra corrida
+
     const ok = await deps.mandarMail(n.familia_id, TEXTOS_REGALO_BOT.recordatorioAsunto(n.como_le_dicen), TEXTOS_REGALO_BOT.recordatorioCuerpo, r.narrador_id);
-    if (!ok) continue;
-    const { error: errorMarca } = await deps.db.from('regalos').update({ recordatorio_at: ahora.toISOString() }).eq('id', r.id);
-    if (errorMarca) console.error(`regalo: mandé el recordatorio de ${r.id} pero no lo pude marcar:`, errorMarca.message);
+    if (!ok) {
+      const { error: errorDevolver } = await deps.db.from('regalos')
+        .update({ recordatorio_at: null }).eq('id', r.id).eq('recordatorio_at', marca);
+      if (errorDevolver) console.error(`regalo: falló el recordatorio de ${r.id} y no pude devolver la marca:`, errorDevolver.message);
+      continue;
+    }
     mandados++;
   }
   return mandados;

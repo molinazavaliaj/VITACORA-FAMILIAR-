@@ -206,9 +206,36 @@ describe('recordarRegalos', () => {
     expect(await recordarRegalos(deps, ahora)).toBe(0);
     expect(base.tablas.regalos[0].recordatorio_at).toBeNull();
   });
+  it('dos corridas a la vez no mandan dos veces', async () => {
+    const { base, deps } = armarRec({ fecha_entrega: '2026-12-05' });
+    const [a, b] = await Promise.all([recordarRegalos(deps, ahora), recordarRegalos(deps, ahora)]);
+    expect(a + b).toBe(1);
+    expect(deps.mandarMail).toHaveBeenCalledTimes(1);
+    expect(base.tablas.regalos[0].recordatorio_at).toBe(ahora.toISOString());
+  });
+  it('si no se puede tomar el regalo (falla el update), no manda nada', async () => {
+    const { base, deps } = armarRec({ fecha_entrega: '2026-11-01' });
+    base.fallarProxima.set('regalos', { code: 'XX000', message: 'caída' });
+    expect(await recordarRegalos(deps, ahora)).toBe(0);
+    expect(deps.mandarMail).not.toHaveBeenCalled();
+    expect(base.tablas.regalos[0].recordatorio_at).toBeNull();
+  });
+  it('un regalo comprado hace menos de 15 días ni se mira (el corte va en la consulta)', async () => {
+    // fecha_entrega vieja con compra reciente no pasa en la realidad: sirve para
+    // probar que el corte por created_at está en la consulta y no solo en JS.
+    const { base, deps } = armarRec({ fecha_entrega: '2026-11-01', created_at: '2026-12-15T00:00:00Z' });
+    const from = vi.spyOn(base.cliente, 'from');
+    expect(await recordarRegalos(deps, ahora)).toBe(0);
+    expect(from.mock.calls.map((c) => c[0])).not.toContain('narradores');
+  });
+  it('nunca le escribe al narrador por WhatsApp', async () => {
+    const { deps } = armarRec({ fecha_entrega: '2026-11-01' });
+    expect(await recordarRegalos(deps, ahora)).toBe(1);
+    expect(deps.enviarTexto).not.toHaveBeenCalled();
+  });
   it('sin la tabla regalos (migración sin aplicar) devuelve 0 y no tira', async () => {
     const { deps } = armarRec({ fecha_entrega: '2026-11-01' });
-    const db = { from: () => ({ select: () => ({ is: () => ({ is: async () => ({ data: null, error: { code: 'PGRST205', message: 'no table' } }) }) }) }) };
+    const db = { from: () => ({ select: () => ({ is: () => ({ is: () => ({ lte: async () => ({ data: null, error: { code: 'PGRST205', message: 'no table' } }) }) }) }) }) };
     expect(await recordarRegalos({ ...deps, db: db as never }, ahora)).toBe(0);
     expect(deps.mandarMail).not.toHaveBeenCalled();
   });
