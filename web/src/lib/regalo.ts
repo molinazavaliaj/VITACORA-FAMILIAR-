@@ -18,8 +18,12 @@ export function generarCodigo(azar: (max: number) => number = (max) => randomInt
 
 /** "vf 7k3-m2q", "7K3M2Q" → "VF-7K3M2Q". Lo que no puede ser un código → null. */
 export function normalizarCodigo(texto: string): string | null {
-  let limpio = texto.toUpperCase().replace(/[\s-]/g, "");
-  if (limpio.startsWith("VF")) limpio = limpio.slice(2);
+  const arriba = texto.trim().toUpperCase();
+  // El VF es prefijo si va separado ("VF-7K3M", "VF 7K3") o si sobra ("VFVF3K2M").
+  // Pegado y sin sobrar, es parte del código: "VF3K2M" es VF-VF3K2M escrito pelado.
+  const prefijoSeparado = /^VF[\s-]/.test(arriba);
+  let limpio = arriba.replace(/[\s-]/g, "");
+  if (prefijoSeparado || (limpio.length === LARGO + 2 && limpio.startsWith("VF"))) limpio = limpio.slice(2);
   if (limpio.length !== LARGO) return null;
   for (const ch of limpio) if (!ALFABETO_CODIGO.includes(ch)) return null;
   return `VF-${limpio}`;
@@ -32,6 +36,13 @@ export const MENSAJE_MAXIMO = 600;
 export type DatosRegalo = { mensaje: string; fechaEntrega: string | null; genero: Genero };
 
 const FECHA_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+/** "2026-02-31" no existe: la fecha tiene que volver igual después de pasar por el calendario. */
+function esFechaReal(texto: string): boolean {
+  if (!FECHA_RE.test(texto)) return false;
+  const d = new Date(`${texto}T00:00:00Z`);
+  return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === texto;
+}
 
 export function validarRegalo(
   crudo: unknown,
@@ -46,10 +57,13 @@ export function validarRegalo(
   }
   let fechaEntrega: string | null = null;
   if (r.fechaEntrega !== undefined && r.fechaEntrega !== null && r.fechaEntrega !== "") {
-    if (typeof r.fechaEntrega !== "string" || !FECHA_RE.test(r.fechaEntrega) || Number.isNaN(Date.parse(r.fechaEntrega))) {
+    if (typeof r.fechaEntrega !== "string" || !esFechaReal(r.fechaEntrega)) {
       return { ok: false, mensaje: "La fecha no es válida." };
     }
-    if (r.fechaEntrega < hoy.toISOString().slice(0, 10)) return { ok: false, mensaje: "La fecha ya pasó." };
+    // Quien regala puede estar en cualquier huso: su "hoy" puede ser el día UTC
+    // anterior (Argentina después de las 21). Se acepta desde ayer en UTC.
+    const ayerUtc = new Date(hoy.getTime() - 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+    if (r.fechaEntrega < ayerUtc) return { ok: false, mensaje: "La fecha ya pasó." };
     fechaEntrega = r.fechaEntrega;
   }
   return { ok: true, regalo: { mensaje, fechaEntrega, genero: r.genero as Genero } };

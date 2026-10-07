@@ -25,6 +25,11 @@ describe("normalizarCodigo", () => {
     expect(normalizarCodigo("VF-7K3M2O")).toBeNull(); // O no existe
     expect(normalizarCodigo("")).toBeNull();
   });
+  it("un código que empieza con VF se puede escribir pelado", () => {
+    expect(normalizarCodigo("VF3K2M")).toBe("VF-VF3K2M");
+    expect(normalizarCodigo("VFVF3K2M")).toBe("VF-VF3K2M");
+    expect(normalizarCodigo("vf-vf3k2m")).toBe("VF-VF3K2M");
+  });
 });
 
 describe("validarRegalo", () => {
@@ -45,6 +50,21 @@ describe("validarRegalo", () => {
       .toEqual({ ok: true, regalo: { mensaje: "Hola", genero: "mujer", fechaEntrega: "2026-12-24" } });
     expect(validarRegalo({ mensaje: "Hola", genero: "mujer", fechaEntrega: "2026-10-01" }, hoy).ok).toBe(false);
     expect(validarRegalo({ mensaje: "Hola", genero: "mujer", fechaEntrega: "mañana" }, hoy).ok).toBe(false);
+  });
+  it("acepta el hoy de quien regala aunque en UTC ya sea mañana", () => {
+    const tarde = new Date("2026-10-09T01:00:00Z"); // 22:00 del 08/10 en Argentina
+    expect(validarRegalo({ mensaje: "Hola", genero: "mujer", fechaEntrega: "2026-10-08" }, tarde).ok).toBe(true);
+    expect(validarRegalo({ mensaje: "Hola", genero: "mujer", fechaEntrega: "2026-10-07" }, tarde).ok).toBe(false);
+  });
+  it("rechaza fechas que no existen en el calendario", () => {
+    expect(validarRegalo({ mensaje: "Hola", genero: "mujer", fechaEntrega: "2026-02-31" }, hoy).ok).toBe(false);
+  });
+  it("acepta un mensaje de exactamente 600", () => {
+    expect(validarRegalo({ mensaje: "a".repeat(600), genero: "varon" }, hoy).ok).toBe(true);
+  });
+  it("rechaza lo que no es un objeto", () => {
+    expect(validarRegalo(null, hoy).ok).toBe(false);
+    expect(validarRegalo("hola", hoy).ok).toBe(false);
   });
 });
 
