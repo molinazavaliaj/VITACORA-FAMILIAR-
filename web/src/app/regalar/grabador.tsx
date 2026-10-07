@@ -33,24 +33,35 @@ function tipoAceptado(tipo: string): string | null {
   return TIPOS.includes(base) ? base : null;
 }
 
-/** `audio` vive en el formulario: si se va y vuelve al paso, el audio sigue ahí. */
-export function Grabador({ audio, onAudio }: { audio: Blob | null; onAudio: (audio: Blob | null) => void }) {
+/**
+ * `audio` vive en el formulario: si se va y vuelve al paso, el audio sigue ahí.
+ * `etiquetadoPor`: el id del texto que nombra al grupo (la etiqueta 15).
+ */
+export function Grabador({ audio, onAudio, etiquetadoPor }: { audio: Blob | null; onAudio: (audio: Blob | null) => void; etiquetadoPor?: string }) {
   const [puedeGrabar, setPuedeGrabar] = useState(true);
   const [grabando, setGrabando] = useState(false);
+  const [sonando, setSonando] = useState(false);
   const [segundos, setSegundos] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const grabador = useRef<MediaRecorder | null>(null);
   const reproductor = useRef<HTMLAudioElement>(null);
   const temporizador = useRef<ReturnType<typeof setInterval> | null>(null);
+  // Un segundo toque a Grabar mientras el navegador pide el micrófono no hace nada.
+  const iniciando = useRef(false);
+  const montado = useRef(true);
 
   useEffect(() => {
     if (typeof window.MediaRecorder === "undefined" || !navigator.mediaDevices?.getUserMedia) setPuedeGrabar(false);
   }, []);
 
-  // Al salir: se corta el micrófono y se libera el audio en memoria.
-  useEffect(() => () => {
-    if (temporizador.current) clearInterval(temporizador.current);
-    if (grabador.current?.state === "recording") grabador.current.stop();
+  // Al salir: se corta el micrófono. Si el permiso llega después, grabar() lo corta.
+  useEffect(() => {
+    montado.current = true;
+    return () => {
+      montado.current = false;
+      if (temporizador.current) clearInterval(temporizador.current);
+      if (grabador.current?.state === "recording") grabador.current.stop();
+    };
   }, []);
   // La dirección para escucharlo, mientras haya audio.
   const [url, setUrl] = useState<string | null>(null);
@@ -62,20 +73,37 @@ export function Grabador({ audio, onAudio }: { audio: Blob | null; onAudio: (aud
   }, [audio]);
 
   async function grabar() {
+    if (iniciando.current || grabando) return;
+    iniciando.current = true;
     setError(null);
     let flujo: MediaStream;
     try {
       flujo = await navigator.mediaDevices.getUserMedia({ audio: true });
     } catch {
-      setPuedeGrabar(false);
+      iniciando.current = false;
+      if (montado.current) setPuedeGrabar(false);
+      return;
+    }
+    const cortar = () => flujo.getTracks().forEach((t) => t.stop());
+    if (!montado.current) {
+      iniciando.current = false;
+      cortar();
       return;
     }
     const tipo = tipoParaGrabar();
-    const r = tipo ? new MediaRecorder(flujo, { mimeType: tipo }) : new MediaRecorder(flujo);
+    let r: MediaRecorder;
+    try {
+      r = tipo ? new MediaRecorder(flujo, { mimeType: tipo }) : new MediaRecorder(flujo);
+    } catch {
+      iniciando.current = false;
+      cortar();
+      setPuedeGrabar(false);
+      return;
+    }
     const partes: Blob[] = [];
     r.ondataavailable = (e) => { if (e.data.size > 0) partes.push(e.data); };
     r.onstop = () => {
-      flujo.getTracks().forEach((t) => t.stop());
+      cortar();
       if (temporizador.current) clearInterval(temporizador.current);
       temporizador.current = null;
       setGrabando(false);
@@ -87,7 +115,15 @@ export function Grabador({ audio, onAudio }: { audio: Blob | null; onAudio: (aud
       onAudio(new Blob(partes, { type: aceptado }));
     };
     grabador.current = r;
-    r.start();
+    try {
+      r.start();
+    } catch {
+      iniciando.current = false;
+      cortar();
+      setPuedeGrabar(false);
+      return;
+    }
+    iniciando.current = false;
     setGrabando(true);
     setSegundos(0);
     const inicio = Date.now();
@@ -102,7 +138,21 @@ export function Grabador({ audio, onAudio }: { audio: Blob | null; onAudio: (aud
     if (grabador.current?.state === "recording") grabador.current.stop();
   }
 
+  /** Escuchar y Parar en el mismo botón. */
+  function escuchar() {
+    const a = reproductor.current;
+    if (!a) return;
+    if (!a.paused) {
+      a.pause();
+      a.currentTime = 0;
+      return;
+    }
+    a.play().catch(() => setSonando(false));
+  }
+
   function borrar() {
+    reproductor.current?.pause();
+    setSonando(false);
     setSegundos(0);
     setError(null);
     onAudio(null);
@@ -112,7 +162,8 @@ export function Grabador({ audio, onAudio }: { audio: Blob | null; onAudio: (aud
     const archivo = evento.target.files?.[0];
     evento.target.value = "";
     if (!archivo) return;
-    if (!tipoAceptado(archivo.type) || archivo.size > MAXIMO_BYTES) {
+    // Sin tipo (pasa con algunos .m4a): decide el servidor. Si lo rechaza, el regalo vale sin audio.
+    if ((archivo.type !== "" && !tipoAceptado(archivo.type)) || archivo.size > MAXIMO_BYTES) {
       setError(TEXTOS_REGALO.audioNoSirve);
       return;
     }
@@ -121,11 +172,20 @@ export function Grabador({ audio, onAudio }: { audio: Blob | null; onAudio: (aud
   }
 
   return (
-    <div className="mt-3">
+    <div className="mt-3" role="group" aria-labelledby={etiquetadoPor}>
       {audio && url ? (
         <div className="flex flex-wrap items-center gap-3">
-          <audio ref={reproductor} src={url} preload="metadata" />
-          <button type="button" className={boton} onClick={() => reproductor.current?.play().catch(() => {})}>{TEXTOS_REGALO.escuchar}</button>
+          <audio
+            ref={reproductor}
+            src={url}
+            preload="metadata"
+            onPlay={() => setSonando(true)}
+            onPause={() => setSonando(false)}
+            onEnded={() => setSonando(false)}
+          />
+          <button type="button" className={boton} onClick={escuchar} aria-pressed={sonando}>
+            {sonando ? TEXTOS_REGALO.parar : TEXTOS_REGALO.escuchar}
+          </button>
           <button type="button" className={boton} onClick={borrar}>{TEXTOS_REGALO.borrar}</button>
         </div>
       ) : puedeGrabar ? (
@@ -136,7 +196,7 @@ export function Grabador({ audio, onAudio }: { audio: Blob | null; onAudio: (aud
             <button type="button" className={boton} onClick={grabar}>{TEXTOS_REGALO.grabar}</button>
           )}
           {grabando && (
-            <span className="flex items-center gap-2 text-[14px] tabular-nums text-[#5F5F55] [font-family:var(--fuente-micro)]" aria-live="polite">
+            <span className="flex items-center gap-2 text-[14px] tabular-nums text-[#5F5F55] [font-family:var(--fuente-micro)]">
               <span className="h-2 w-2 rounded-full bg-[#B42318]" aria-hidden />
               {reloj(segundos)} / {reloj(TOPE_SEGUNDOS)}
             </span>

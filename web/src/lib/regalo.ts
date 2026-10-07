@@ -5,7 +5,7 @@
 
 import { randomInt } from "node:crypto";
 import { TEXTOS_REGALO } from "./regalo-textos";
-import { GENEROS, MENSAJE_MAXIMO, type Genero } from "./regalo-reglas";
+import { GENEROS, MENSAJE_MAXIMO, MENSAJE_FECHA_INVALIDA, errorDeFechaEntrega, type Genero } from "./regalo-reglas";
 
 /** Sin 0/O, 1/I/L: se leen mal en papel y se dictan mal por teléfono. */
 export const ALFABETO_CODIGO = "23456789ABCDEFGHJKMNPQRSTUVWXYZ";
@@ -31,7 +31,8 @@ export function normalizarCodigo(texto: string): string | null {
 }
 
 // En regalo-reglas.ts porque el formulario de /regalar (cliente) también las usa.
-export { GENEROS, MENSAJE_MAXIMO, type Genero };
+export { GENEROS, MENSAJE_MAXIMO, MENSAJE_FECHA_INVALIDA, errorDeFechaEntrega, type Genero };
+export { MENSAJE_FECHA_PASADA } from "./regalo-reglas";
 
 /** Cuánto ocupa el mensaje en la tarjeta: cada salto de línea pesa como 40 letras (un renglón). */
 export function largoEnTarjeta(mensaje: string): number {
@@ -44,15 +45,6 @@ export function numeroSinCortes(legible: string): string {
 }
 
 export type DatosRegalo = { mensaje: string; fechaEntrega: string | null; genero: Genero };
-
-const FECHA_RE = /^\d{4}-\d{2}-\d{2}$/;
-
-/** "2026-02-31" no existe: la fecha tiene que volver igual después de pasar por el calendario. */
-function esFechaReal(texto: string): boolean {
-  if (!FECHA_RE.test(texto)) return false;
-  const d = new Date(`${texto}T00:00:00Z`);
-  return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === texto;
-}
 
 export function validarRegalo(
   crudo: unknown,
@@ -67,13 +59,9 @@ export function validarRegalo(
   }
   let fechaEntrega: string | null = null;
   if (r.fechaEntrega !== undefined && r.fechaEntrega !== null && r.fechaEntrega !== "") {
-    if (typeof r.fechaEntrega !== "string" || !esFechaReal(r.fechaEntrega)) {
-      return { ok: false, mensaje: "La fecha no es válida." };
-    }
-    // Quien regala puede estar en cualquier huso: su "hoy" puede ser el día UTC
-    // anterior (Argentina después de las 21). Se acepta desde ayer en UTC.
-    const ayerUtc = new Date(hoy.getTime() - 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
-    if (r.fechaEntrega < ayerUtc) return { ok: false, mensaje: "La fecha ya pasó." };
+    if (typeof r.fechaEntrega !== "string") return { ok: false, mensaje: MENSAJE_FECHA_INVALIDA };
+    const problema = errorDeFechaEntrega(r.fechaEntrega, hoy);
+    if (problema) return { ok: false, mensaje: problema };
     fechaEntrega = r.fechaEntrega;
   }
   return { ok: true, regalo: { mensaje, fechaEntrega, genero: r.genero as Genero } };

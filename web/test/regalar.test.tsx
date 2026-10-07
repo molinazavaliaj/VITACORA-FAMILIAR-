@@ -80,3 +80,29 @@ describe("/regalar", () => {
     expect(html).toContain(escapar(TEXTOS_REGALO.tuCorreo));
   });
 });
+
+describe("/regalar, lo que se ve sin tocar", () => {
+  it("los nombres de los pasos quedan para los lectores de pantalla en el celular", () => {
+    const html = renderToStaticMarkup(<FormularioRegalo catalogo={catalogo("AR")} region="AR" />);
+    for (const p of TEXTOS_REGALO.pasos) expect(html).toContain(escapar(p));
+    expect(html).toContain("sr-only sm:not-sr-only");
+    expect(html).not.toMatch(/class="hidden sm:inline"/);
+  });
+
+  it("el grabador se nombra con la etiqueta 15", () => {
+    const html = renderToStaticMarkup(<FormularioRegalo catalogo={catalogo("AR")} region="AR" pasoInicial={2} />);
+    expect(html).toMatch(/id="etiqueta-audio"/);
+    expect(html).toMatch(/role="group" aria-labelledby="etiqueta-audio"/);
+  });
+});
+
+describe("la fecha de entrega en el cliente (misma regla que el servidor)", () => {
+  const hoy = new Date("2026-10-08T12:00:00Z");
+  it("acepta desde ayer en UTC y rechaza lo pasado o inexistente", async () => {
+    const { errorDeFechaEntrega, MENSAJE_FECHA_INVALIDA, MENSAJE_FECHA_PASADA } = await import("../src/lib/regalo-reglas");
+    expect(errorDeFechaEntrega("2026-10-07", hoy)).toBeNull();
+    expect(errorDeFechaEntrega("2026-12-24", hoy)).toBeNull();
+    expect(errorDeFechaEntrega("2026-10-06", hoy)).toBe(MENSAJE_FECHA_PASADA);
+    expect(errorDeFechaEntrega("2026-02-31", hoy)).toBe(MENSAJE_FECHA_INVALIDA);
+  });
+});
