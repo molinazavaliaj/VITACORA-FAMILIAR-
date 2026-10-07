@@ -299,3 +299,54 @@ describe('narradores de la simulación', () => {
     expect(p.enviados.length).toBeGreaterThan(0);
   });
 });
+
+describe('preguntas de la familia agregadas después del alta (Naza, 07/10)', () => {
+  const sinAbierta = (): EstadoV3 => ({ ...cerrarYSeguir(recibirAudio(enOR1(), 'Nací en un pueblo chico.').estado, FICHA, false).estado, salientes: [] });
+  const deLaFamilia = (id: string, texto: string, orden = 1) => ({ id, narrador_id: 'n1', orden, texto, tipo: 'familia' });
+
+  it('al abrir la tanda del día se suman las nuevas (por id), sin repetir las que ya tenía', async () => {
+    const r = await preparar({ ...sinAbierta(), familia: [{ id: 'F:pf1', texto: '¿Qué te acordás de la abuela?' }] }, { tanda_dia: AYER });
+    r.base.tablas.preguntas = [
+      deLaFamilia('pf1', '¿Qué te acordás de la abuela?', 1),
+      deLaFamilia('pf2', '¿Cómo era el patio de la casa?', 2),
+      { id: 'g1', narrador_id: null, orden: 1, texto: 'Una de la plantilla', tipo: 'fija' },
+      { id: 'otro', narrador_id: 'n2', orden: 1, texto: 'De otro narrador', tipo: 'familia' },
+    ];
+    expect(await r.trabajar()).toBe('tanda');
+    expect((await r.leer()).estado.familia).toEqual([
+      { id: 'F:pf1', texto: '¿Qué te acordás de la abuela?' },
+      { id: 'F:pf2', texto: '¿Cómo era el patio de la casa?' },
+    ]);
+    expect(r.avisos).toEqual([]);
+  });
+
+  it('si la familia borra o edita una, no se toca lo que ya estaba', async () => {
+    const r = await preparar({ ...sinAbierta(), familia: [{ id: 'F:pf1', texto: 'Texto de cuando se cargó' }] }, { tanda_dia: AYER });
+    r.base.tablas.preguntas = [deLaFamilia('pf1', 'Texto editado después')];
+    await r.trabajar();
+    expect((await r.leer()).estado.familia).toEqual([{ id: 'F:pf1', texto: 'Texto de cuando se cargó' }]);
+  });
+
+  it('con FO1 ya mandada o contestada no se suman: se avisa a los socios una sola vez', async () => {
+    const pasoFO1: EstadoV3 = { ...sinAbierta(), respuestas: [...sinAbierta().respuestas, ['FO1', MARCA_FOTO]] };
+    const r = await preparar(pasoFO1, { tanda_dia: AYER });
+    r.base.tablas.preguntas = [deLaFamilia('pf9', '¿Y el perro?')];
+    await r.trabajar();
+    expect((await r.leer()).estado.familia).toEqual([]);
+    expect(r.avisos).toHaveLength(1);
+    expect(r.avisos[0].detalle).toContain('F:pf9');
+    // Al día siguiente, otra tanda: no se repite el aviso.
+    const f = await r.leer();
+    r.base.tablas.entrevistas_v3[0] = { ...f, tanda_dia: AYER, estado: { ...f.estado, esperando: undefined, preguntaAbierta: undefined } };
+    await r.trabajar();
+    expect(r.avisos).toHaveLength(1);
+  });
+
+  it('antes de su hora (sin tanda) no se lee nada', async () => {
+    const r = await preparar(sinAbierta(), { tanda_dia: AYER });
+    r.fijar(new Date('2026-10-08T12:30:00Z')); // 09:30
+    r.base.tablas.preguntas = [deLaFamilia('pf2', '¿Cómo era el patio?')];
+    expect(await r.trabajar()).toBe('nada');
+    expect((await r.leer()).estado.familia).toEqual([]);
+  });
+});

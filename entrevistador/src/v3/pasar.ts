@@ -16,6 +16,7 @@ import type { DepsV3 } from './deps.js';
 import { drenar } from './enviar.js';
 import equivalenciasJson from './equivalencias.json' with { type: 'json' };
 import { conReintento, crearFila, esNarradorV3 } from './estado.js';
+import { leerFamilia } from './filas.js';
 import { preguntaPorId } from './nucleo/entrevista/banco.js';
 import type { PreguntaFamilia } from './nucleo/entrevista/flujo.js';
 import { esIdioma, idiomaDe, type Idioma } from './nucleo/entrevista/idioma.js';
@@ -366,16 +367,11 @@ export function argumentosDePase(args: string[]): ArgsPase {
 
 // ---------------------------------------------------------------- nuevos
 
-async function familiaDe(db: SupabaseClient, narradorId: string): Promise<PreguntaFamilia[]> {
-  const { data } = await db.from('preguntas').select('id,orden,texto,tipo').eq('narrador_id', narradorId).eq('tipo', 'familia').order('orden');
-  return ((data as FilaGuion[] | null) ?? []).map((p) => ({ id: `F:${p.id}`, texto: p.texto }));
-}
-
 /** Crea la fila (si no está) y manda la primera tanda: OR1 con M1. Sin BIEN: ya recibió la bienvenida. */
 export async function arrancarV3(deps: DepsV3, n: NarradorV3, idioma: Idioma, ficha: FichaFila, o: { ventanaAbierta: boolean }): Promise<void> {
   const ahora = deps.ahora();
   const hoy = fechaLocal(ahora, n.zona_horaria);
-  const inicial: EstadoV3 = { ...estadoInicial(await familiaDe(deps.db, n.id)), ...(o.ventanaAbierta ? { ultimoEntranteAt: ahora.toISOString() } : {}) };
+  const inicial: EstadoV3 = { ...estadoInicial((await leerFamilia(deps.db, n.id)) ?? []), ...(o.ventanaAbierta ? { ultimoEntranteAt: ahora.toISOString() } : {}) };
   await crearFila(deps.db, { narrador_id: n.id, idioma, ficha, estado: inicial, ultimo_audio_at: null, tanda_dia: null, tanda_cuenta: 0, migrada_de: null });
   await conReintento(deps.db, n.id, (f) => {
     if (f.tanda_dia !== null || f.estado.esperando || f.estado.respuestas.length > 0) return null; // ya arrancó

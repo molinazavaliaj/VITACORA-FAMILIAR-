@@ -9,6 +9,21 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { epigrafeDe, extensionDe } from '../flujo/fotos-texto.js';
 import { pathDeAudio } from '../whatsapp/media.js';
 import type { DepsV3, Transcripcion } from './deps.js';
+import type { PreguntaFamilia } from './nucleo/entrevista/flujo.js';
+
+/**
+ * Las preguntas que cargó la familia para este narrador (tabla `preguntas`,
+ * tipo 'familia'), con el id V3 `F:<id>`. El mismo criterio del alta y del
+ * pase. Null si la base falla (quien llama sigue sin sumar nada).
+ */
+export async function leerFamilia(db: SupabaseClient, narradorId: string): Promise<PreguntaFamilia[] | null> {
+  const { data, error } = await db.from('preguntas').select('id,orden,texto,tipo').eq('narrador_id', narradorId).eq('tipo', 'familia').order('orden');
+  if (error) {
+    console.warn(`V3: no pude leer las preguntas de la familia de ${narradorId}: ${error.message}`);
+    return null;
+  }
+  return ((data as { id: string; texto: string }[] | null) ?? []).map((p) => ({ id: `F:${p.id}`, texto: p.texto }));
+}
 
 export async function yaLlego(db: SupabaseClient, waMessageId: string): Promise<boolean> {
   const { data, error } = await db.from('respuestas').select('id').eq('wa_message_id', waMessageId).limit(1);

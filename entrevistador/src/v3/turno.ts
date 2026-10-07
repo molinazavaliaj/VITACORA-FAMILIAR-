@@ -14,7 +14,9 @@
 
 import { mensajePorId, nombresBloqueDe, preguntaPorId } from './nucleo/entrevista/banco.js';
 import { cazarBloque, fichaCorta, mensajeRepregunta, type ClienteModelo, type ResultadoCaza } from './nucleo/entrevista/cazador.js';
-import { alTocarBoton, anotarInferidas, botonesDeClave, mensajesDespues, preguntaDeClave, siguientePregunta } from './nucleo/entrevista/flujo.js';
+import {
+  alTocarBoton, anotarInferidas, botonesDeClave, FAMILIA_ANTES_DE, mensajesDespues, preguntaDeClave, siguientePregunta, type PreguntaFamilia,
+} from './nucleo/entrevista/flujo.js';
 import { idiomaDe } from './nucleo/entrevista/idioma.js';
 import { acuseDeTurno, anotarAcuse, armarTurno, entradaSegunAcuse, preguntaSegunAcuse } from './nucleo/entrevista/mensajes.js';
 import { leerBoton, sumarAudio } from './nucleo/entrevista/respuesta.js';
@@ -264,6 +266,36 @@ export function cerrarYSeguir(anterior: EstadoV3, ficha: FichaTexto, puedeAbrir:
   if (!puedeAbrir) return { estado: c.estado, abrio: false, ...bloque };
   const a = avanzar(c.estado, ficha);
   return { estado: a.estado, abrio: a.abrio, ...bloque };
+}
+
+/** ¿La entrevista ya llegó a FO1 (abierta, mandada o contestada)? Las preguntas de la familia van justo antes. */
+export function pasoFO1(e: EstadoV3): boolean {
+  const fo1 = FAMILIA_ANTES_DE;
+  return e.terminada || e.esperando === fo1 || e.enviados.includes(fo1) || e.respuestas.some(([k]) => k === fo1)
+    || e.charla.some((g) => g.de === 'bio' && g.partes.some((p) => p.id === fo1));
+}
+
+export type FamiliaSumada = { estado: EstadoV3; agregadas: PreguntaFamilia[]; tarde: PreguntaFamilia[] };
+
+/**
+ * Las preguntas de la familia que se cargaron después del alta (Naza, 07/10):
+ * se suman las que no están (por id) mientras la entrevista no haya llegado a
+ * FO1. Solo se agrega: si la familia borró o editó una, lo que ya estaba no
+ * se toca. Si ya pasó FO1, no entran: `tarde` trae las que todavía no se
+ * avisaron (quedan anotadas en `familiaTarde`, así el aviso sale una vez).
+ */
+export function sumarFamilia(anterior: EstadoV3, leidas: readonly PreguntaFamilia[]): FamiliaSumada {
+  const nuevas = leidas.filter((p) => !anterior.familia.some((f) => f.id === p.id));
+  if (nuevas.length === 0) return { estado: anterior, agregadas: [], tarde: [] };
+  const e = clonar(anterior);
+  if (!pasoFO1(e)) {
+    e.familia.push(...nuevas.map((p) => ({ ...p })));
+    return { estado: e, agregadas: nuevas, tarde: [] };
+  }
+  const tarde = nuevas.filter((p) => !(e.familiaTarde ?? []).includes(p.id));
+  if (tarde.length === 0) return { estado: anterior, agregadas: [], tarde: [] };
+  e.familiaTarde = [...(e.familiaTarde ?? []), ...tarde.map((p) => p.id)];
+  return { estado: e, agregadas: [], tarde };
 }
 
 /** La pregunta abierta otra vez, sola (sin el acuse ni la entrada de ayer). */

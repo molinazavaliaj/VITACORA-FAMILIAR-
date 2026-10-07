@@ -1,7 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { mensajePorId, preguntaPorId } from '../../src/v3/nucleo/entrevista/banco.js';
 import { renderizar, type FichaTexto } from '../../src/v3/nucleo/entrevista/texto.js';
-import { avanzar, cerrarRespuesta, cerrarYSeguir, encolar, marcarFoto, quitarSalientes, recibirAudio, reenviarAbierta, textoDelBanco, tocarBoton } from '../../src/v3/turno.js';
+import {
+  avanzar, cerrarRespuesta, cerrarYSeguir, encolar, marcarFoto, pasoFO1, quitarSalientes, recibirAudio, reenviarAbierta, sumarFamilia, textoDelBanco, tocarBoton,
+} from '../../src/v3/turno.js';
 import { estadoInicial, MARCA_FOTO, type EstadoV3 } from '../../src/v3/tipos.js';
 
 const FICHA: FichaTexto = { nombre: 'Prueba', genero: 'mujer' };
@@ -151,5 +153,34 @@ describe('al cambiar la pregunta abierta', () => {
     const { estado } = cerrarRespuesta(conSuelto, FICHA);
     expect(estado.salientes.map((s) => s.texto)).toEqual(['M22']);
     expect(estado.abiertaPorPlantilla).toBeUndefined();
+  });
+});
+
+describe('las preguntas de la familia que llegan después (sumarFamilia)', () => {
+  const F1 = { id: 'F:pf1', texto: '¿Y la abuela?' };
+  const F2 = { id: 'F:pf2', texto: '¿Y el patio?' };
+
+  it('antes de FO1 se suman las que faltan, en orden y sin repetir', () => {
+    const r = sumarFamilia({ ...estadoInicial([F1]) }, [F1, F2]);
+    expect(r.estado.familia).toEqual([F1, F2]);
+    expect(r.agregadas).toEqual([F2]);
+    expect(r.tarde).toEqual([]);
+  });
+
+  it('FO1 abierta, mandada o contestada (o la entrevista terminada) ya es tarde', () => {
+    expect(pasoFO1(abierta('FO1'))).toBe(true);
+    expect(pasoFO1({ ...estadoInicial(), charla: [{ de: 'bio', partes: [{ id: 'FO1', texto: 'Mandame una foto.' }] }] })).toBe(true);
+    expect(pasoFO1({ ...estadoInicial(), respuestas: [['FO1', MARCA_FOTO]] })).toBe(true);
+    expect(pasoFO1({ ...estadoInicial(), terminada: true })).toBe(true);
+    expect(pasoFO1(abierta('LE7'))).toBe(false);
+    const r = sumarFamilia(abierta('FO1'), [F2]);
+    expect(r.estado.familia).toEqual([]);
+    expect(r.tarde).toEqual([F2]);
+    expect(r.estado.familiaTarde).toEqual(['F:pf2']);
+    expect(sumarFamilia(r.estado, [F2]).tarde).toEqual([]);
+  });
+
+  it('una que la familia ya no tiene (la borró) sigue en el estado', () => {
+    expect(sumarFamilia(estadoInicial([F1]), []).estado.familia).toEqual([F1]);
   });
 });

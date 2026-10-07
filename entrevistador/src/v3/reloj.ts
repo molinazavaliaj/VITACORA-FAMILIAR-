@@ -2,7 +2,9 @@
 // minuto. Todo sale de la base (ningún setTimeout en memoria): si Railway se
 // cae, el tick siguiente retoma. Por narrador activo, en orden: las filas de
 // respuestas que quedaron sin sumar (reconciliarV3), la cola que quedó, el cierre por 3' de silencio, la tanda del día a su hora (sin reenviar
-// la pendiente) y M8 a los 2 días sin respuesta.
+// la pendiente) y M8 a los 2 días sin respuesta. Al abrir la tanda se suman
+// las preguntas que la familia cargó después del alta (sumarFamilia): una
+// lectura de `preguntas` por narrador y por día, no una por tick.
 
 import { ritmoDe } from '../flujo/ritmo.js';
 import { fechaLocal } from '../flujo/tiempo.js';
@@ -11,9 +13,10 @@ import type { DepsV3 } from './deps.js';
 import { reconciliarV3 } from './entrante.js';
 import { drenar } from './enviar.js';
 import { conReintento, listarFilas, tomaVigente } from './estado.js';
+import { leerFamilia } from './filas.js';
 import { aplicarTanda, hitosDe, puedeAbrirHoy, yaEsLaHora } from './tanda.js';
 import { fichaTexto, type FilaV3, type NarradorV3 } from './tipos.js';
-import { avanzar, cerrarYSeguir, encolar, textoDelBanco } from './turno.js';
+import { avanzar, cerrarYSeguir, encolar, sumarFamilia, textoDelBanco } from './turno.js';
 
 /** Una respuesta se cierra a los 3' de silencio desde que se guardó su última transcripción. */
 export const SILENCIO_MS = 180_000;
@@ -80,20 +83,28 @@ export async function trabajarNarrador(deps: DepsV3, fila: FilaV3, n: NarradorV3
   }
 
   if (tocaTanda(fila, n, ahora, hoy)) {
+    const familia = (await leerFamilia(deps.db, n.id)) ?? [];
     const r = await conReintento(deps.db, n.id, (f) => {
       if (!tocaTanda(f, n, ahora, hoy) || tomaVigente(f, ahora)) return null;
+      // Las preguntas que la familia cargó después del alta, antes de elegir la próxima.
+      const conFamilia = sumarFamilia(f.estado, familia);
       // Sigue con la próxima (con el acuse pendiente pegado arriba).
-      const sigue = avanzar(f.estado, fichaTexto(f));
+      const sigue = avanzar(conFamilia.estado, fichaTexto(f));
       return {
         cambio: {
           estado: sigue.abrio ? { ...sigue.estado, abiertaDesde: ahora.toISOString() } : sigue.estado,
           tanda_dia: hoy,
           tanda_cuenta: sigue.abrio ? 1 : 0,
         },
-        resultado: true,
+        resultado: conFamilia.tarde,
       };
     });
     if (!r) return 'nada';
+    if (r.resultado.length > 0) {
+      await deps.avisar(`familia-tarde-${n.id}`, `Preguntas de la familia que ya no le llegan a ${n.como_le_dicen}`,
+        `La familia de ${n.id} cargó ${r.resultado.length} pregunta(s) (${r.resultado.map((p) => p.id).join(', ')}) cuando la entrevista V3 ya había llegado a FO1 `
+        + '(las de la familia van antes de la foto). No se suman: si hay que hacerlas, hay que verlo a mano.');
+    }
     await drenar(deps, n.id);
     return 'tanda';
   }
