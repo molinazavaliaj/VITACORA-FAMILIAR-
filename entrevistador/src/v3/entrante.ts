@@ -27,7 +27,7 @@ import { cumplirPedido, pedidoDe } from './pedidos.js';
 import { aplicarTanda, hitosDe, puedeAbrirHoy } from './tanda.js';
 import { textoFijo } from './textos-fijos.js';
 import { fichaTexto, MARCA_FOTO, SIN_CLAVE_V3, type FilaV3, type NarradorV3 } from './tipos.js';
-import { anotarVisto, cerrarYSeguir, encolar, marcarFoto, recibirAudio, reenviarAbierta, sinRecordatorios, textoDelBanco, tocarBoton, yaVisto } from './turno.js';
+import { anotarVisto, avanzar, cerrarYSeguir, encolar, marcarFoto, recibirAudio, reenviarAbierta, sinRecordatorios, textoDelBanco, tocarBoton, yaVisto } from './turno.js';
 
 /** Una fila sin clave_v3 más vieja que esto la retoma el reloj (el proceso que la guardó se cayó o falló). */
 export const RECONCILIAR_MS = 5 * 60_000;
@@ -54,9 +54,9 @@ export async function procesarEntranteV3(deps: DepsV3, n: NarradorV3, m: Mensaje
   const escrito = m.tipo === 'texto' && !m.esBoton;
   // «Quiero parar» / «que no vaya al libro» escrito (pedidos.ts): no reactiva ni reenvía nada.
   const pedidoEscrito = escrito && pedidoDe((m.texto ?? '').trim(), fila.idioma) !== null;
-  if (pausado && escrito && !pedidoEscrito) {
+  if (pausado && escrito && !pedidoEscrito && fila.estado.esperando) {
     await reactivar(deps, n.id);
-    // Vuelve escribiendo: se le reenvía la pregunta abierta (sin M22).
+    // Vuelve escribiendo con una pregunta abierta: se le reenvía (sin M22).
     await conReintento(deps.db, n.id, (f) =>
       yaVisto(f.estado, m.waMessageId) ? null : { cambio: { estado: anotarVisto(reenviarAbierta(f.estado), m.waMessageId) }, resultado: true });
     await drenar(deps, n.id);
@@ -70,7 +70,12 @@ export async function procesarEntranteV3(deps: DepsV3, n: NarradorV3, m: Mensaje
     if (!(await recibirBoton(deps, n, m, fila, ahora))) await botonSuelto(deps, n, m);
   } else llegada = await recibirTexto(deps, n, m, fila.idioma);
   // Un pausado vuelve con cualquier mensaje, salvo que lo que mandó sea un pedido (pausa o reserva).
-  if (pausado && llegada !== 'pedido') await reactivar(deps, n.id);
+  // Si no tenía pregunta abierta, le sale la siguiente en el momento (Naza, 07/10); lo que mandó
+  // ya quedó aparte (sin abierta, '∅').
+  if (pausado && llegada !== 'pedido') {
+    await reactivar(deps, n.id);
+    if (!fila.estado.esperando) await abrirAlVolver(deps, n, ahora);
+  }
   // Lo que haya quedado en la cola (también lo que esperaba la ventana) sale ahora.
   await drenar(deps, n.id);
 }
@@ -80,6 +85,21 @@ type Llegada = 'mensaje' | 'pedido';
 
 async function reactivar(deps: DepsV3, narradorId: string): Promise<void> {
   await deps.db.from('narradores').update({ estado: 'activo' }).eq('id', narradorId).eq('estado', 'pausado');
+}
+
+/**
+ * La vuelta de una pausa sin pregunta abierta: la siguiente sale ya, sin
+ * esperar su hora, y cuenta en la tanda de hoy. Si la tanda ya llegó al
+ * tope, igual sale esta una. Con la entrevista terminada, nada.
+ */
+async function abrirAlVolver(deps: DepsV3, n: NarradorV3, ahora: Date): Promise<void> {
+  const hoy = fechaLocal(ahora, n.zona_horaria);
+  await conReintento(deps.db, n.id, (f) => {
+    if (f.estado.esperando || f.estado.terminada) return null;
+    const a = avanzar(f.estado, fichaTexto(f));
+    const t = aplicarTanda(f, a.estado, hoy, a.abrio, ahora);
+    return { cambio: { estado: t.estado, tanda_dia: t.tanda_dia, tanda_cuenta: t.tanda_cuenta }, resultado: true };
+  });
 }
 
 /**

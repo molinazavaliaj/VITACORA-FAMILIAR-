@@ -8,6 +8,8 @@ import { estadoInicial, MARCA_FOTO, SIN_CLAVE_V3, type EstadoV3, type NarradorV3
 import type { BaseFalsa } from './base-falsa.js';
 import type { MensajeEntrante } from '../../src/whatsapp/webhook.js';
 import type { Idioma } from '../../src/v3/nucleo/entrevista/idioma.js';
+import { preguntaPorId } from '../../src/v3/nucleo/entrevista/banco.js';
+import { renderizar } from '../../src/v3/nucleo/entrevista/texto.js';
 
 const AHORA = new Date('2026-10-08T13:00:00Z');
 const FICHA = { nombre: 'Prueba', genero: 'mujer' as const };
@@ -536,6 +538,64 @@ describe('lo que llega sin pregunta abierta (Naza, 07/10): se guarda aparte', ()
     await procesarEntranteV3(deps, n1, audio('Éramos cuatro.'));
     expect((await fila())?.estado.borrador).toBe('Éramos cuatro.');
     expect(base.tablas.respuestas.map((r) => r.clave_v3)).toEqual(['CA6', 'CA6']);
+  });
+});
+
+describe('pausado que vuelve sin pregunta abierta (Naza, 07/10): le sale la siguiente en el momento', () => {
+  const sinAbierta = (): EstadoV3 => ({
+    ...enOR1(), esperando: undefined, preguntaAbierta: undefined, respuestas: [['OR1', 'Nací en un pueblo chico.']], acuse: { familia: 'M3', n: 0 },
+  });
+  const OR2 = () => renderizar(preguntaPorId('OR2')!.texto, FICHA);
+
+  it('un texto: se reactiva, el texto queda aparte (∅) y sale OR2, aunque la tanda de hoy esté en el tope', async () => {
+    const { deps, n1, base, fila, enviados } = await preparar(sinAbierta(), { narrador: { estado: 'pausado' }, tanda: { dia: '2026-10-08', cuenta: 4 } });
+    await procesarEntranteV3(deps, n1, texto('Hola, volví'));
+    expect(base.tablas.narradores[0].estado).toBe('activo');
+    const f = await fila();
+    expect(f?.estado.esperando).toBe('OR2');
+    expect(f?.estado.respuestas).toEqual([['OR1', 'Nací en un pueblo chico.']]);
+    expect(f).toMatchObject({ tanda_dia: '2026-10-08', tanda_cuenta: 5 });
+    expect(f?.estado.abiertaDesde).toBe(AHORA.toISOString());
+    expect(enviados).toHaveLength(1);
+    expect(enviados[0].texto).toContain(OR2());
+    expect(enviados[0].texto?.startsWith(`${textoDelBanco('M3.1', FICHA)}\n`)).toBe(true);
+    expect(base.tablas.respuestas.map((r) => [r.texto_directo, r.clave_v3])).toEqual([['Hola, volví', SIN_CLAVE_V3]]);
+  });
+
+  it('un audio: queda aparte (∅) y sale la siguiente; la tanda de ayer se renueva y cuenta esta', async () => {
+    const { deps, n1, base, fila, enviados } = await preparar(sinAbierta(), { narrador: { estado: 'pausado' }, tanda: { dia: '2026-10-07', cuenta: 4 } });
+    await procesarEntranteV3(deps, n1, audio('Ya estoy de vuelta.'));
+    expect(base.tablas.narradores[0].estado).toBe('activo');
+    const f = await fila();
+    expect(f?.estado.esperando).toBe('OR2');
+    expect(f?.estado.borrador).toBeUndefined();
+    expect(f).toMatchObject({ tanda_dia: '2026-10-08', tanda_cuenta: 1 });
+    expect(enviados.map((e) => e.texto).some((t) => t?.includes(OR2()))).toBe(true);
+    expect(base.tablas.respuestas[0].clave_v3).toBe(SIN_CLAVE_V3);
+  });
+
+  it('el reintento de Meta no abre dos preguntas', async () => {
+    const { deps, n1, enviados, fila } = await preparar(sinAbierta(), { narrador: { estado: 'pausado' } });
+    const m = texto('Hola, volví');
+    await procesarEntranteV3(deps, n1, m);
+    await procesarEntranteV3(deps, { ...n1, estado: 'pausado' }, m); // Meta lo reintenta antes de que se relea el narrador
+    expect(enviados).toHaveLength(1);
+    expect((await fila())?.estado.esperando).toBe('OR2');
+  });
+
+  it('si pide parar, no se reactiva ni sale nada más que el texto de pausa', async () => {
+    const { deps, n1, base, fila, enviados } = await preparar(sinAbierta(), { narrador: { estado: 'pausado' } });
+    await procesarEntranteV3(deps, n1, texto('Por ahora no.'));
+    expect(base.tablas.narradores[0].estado).toBe('pausado');
+    expect((await fila())?.estado.esperando).toBeUndefined();
+    expect(enviados).toHaveLength(1);
+  });
+
+  it('con la entrevista terminada no se abre nada', async () => {
+    const { deps, n1, fila, enviados } = await preparar({ ...sinAbierta(), terminada: true }, { narrador: { estado: 'pausado' } });
+    await procesarEntranteV3(deps, n1, texto('Hola, volví'));
+    expect((await fila())?.estado.esperando).toBeUndefined();
+    expect(enviados).toEqual([]);
   });
 });
 
