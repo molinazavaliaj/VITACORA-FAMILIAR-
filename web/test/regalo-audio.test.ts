@@ -27,14 +27,15 @@ function crearAdmin(tablas: Record<string, Fila[]>, opciones: { falloUpdate?: bo
     b.select = () => b;
     b.eq = (c: string, v: unknown) => { filtros[c] = v; return b; };
     b.update = (v: Fila) => { op = "update"; valores = v; return b; };
+    b.select = () => b; // también tras update: devuelve las filas que matchearon
     b.maybeSingle = () => { single = true; return b; };
     b.then = (res: (v: unknown) => unknown, rej?: (e: unknown) => unknown) => {
       let r: { data: unknown; error: unknown };
+      const filas = (tablas[tabla] ?? []).filter((f) => Object.entries(filtros).every(([k, v]) => f[k] === v));
       if (op !== "select") {
         escrituras.push({ tabla, op, valores, filtros });
-        r = opciones.falloUpdate ? { data: null, error: { message: "falló" } } : { data: null, error: null };
+        r = opciones.falloUpdate ? { data: null, error: { message: "falló" } } : { data: filas, error: null };
       } else {
-        const filas = (tablas[tabla] ?? []).filter((f) => Object.entries(filtros).every(([k, v]) => f[k] === v));
         r = { data: single ? (filas[0] ?? null) : filas, error: null };
       }
       return Promise.resolve(r).then(res, rej);
@@ -62,7 +63,7 @@ function crearAdmin(tablas: Record<string, Fila[]>, opciones: { falloUpdate?: bo
 function armarPendiente(opciones: { falloUpdate?: boolean; falloSubida?: boolean } = {}, estado = "pendiente_pago") {
   return crearAdmin({
     narradores: [{ id: "n-regalo", estado }],
-    regalos: [{ codigo: "VF-7K3M2Q", narrador_id: "n-regalo", audio_path: null }],
+    regalos: [{ id: "r1", codigo: "VF-7K3M2Q", narrador_id: "n-regalo", audio_path: null }],
   }, opciones);
 }
 
@@ -137,15 +138,24 @@ describe("POST /api/regalo/audio — el archivo", () => {
     expect(subidas).toEqual([]);
   });
 
-  it("audio/webm entra: se sube a <id>/regalo/mensaje.webm con upsert y se guarda el path en regalos", async () => {
-    const { subidas, escrituras } = armarPendiente();
+  it("audio/webm entra: se sube a <id>/regalo/mensaje (sin extensión) con contentType y upsert, y se guarda el path", async () => {
+    const { subidas, escrituras, borrados } = armarPendiente();
     const r = await POST(requestConAudio(firmarTokenFotos("n-regalo"), audioWebm()));
     expect(r.status).toBe(200);
     expect(await r.json()).toEqual({ ok: true });
-    expect(subidas).toEqual([{ path: "n-regalo/regalo/mensaje.webm", opciones: { contentType: "audio/webm", upsert: true } }]);
+    expect(subidas).toEqual([{ path: "n-regalo/regalo/mensaje", opciones: { contentType: "audio/webm", upsert: true } }]);
     expect(escrituras).toEqual([{
-      tabla: "regalos", op: "update", valores: { audio_path: "n-regalo/regalo/mensaje.webm" }, filtros: { narrador_id: "n-regalo" },
+      tabla: "regalos", op: "update", valores: { audio_path: "n-regalo/regalo/mensaje" }, filtros: { narrador_id: "n-regalo" },
     }]);
+    expect(borrados).toEqual([]);
+  });
+
+  it("audio/mp4 (m4a) va al MISMO path: regrabar en otro formato pisa el archivo, no deja huérfanos", async () => {
+    const { subidas } = armarPendiente();
+    const m4a = new File([new Uint8Array([1])], "mensaje.m4a", { type: "audio/mp4" });
+    const r = await POST(requestConAudio(firmarTokenFotos("n-regalo"), m4a));
+    expect(r.status).toBe(200);
+    expect(subidas).toEqual([{ path: "n-regalo/regalo/mensaje", opciones: { contentType: "audio/mp4", upsert: true } }]);
   });
 
   it("si falla la subida → 500 y no toca regalos", async () => {
@@ -156,12 +166,20 @@ describe("POST /api/regalo/audio — el archivo", () => {
     expect(escrituras).toEqual([]);
   });
 
-  it("si falla guardar el path → borra el archivo subido y 500", async () => {
+  it("si falla guardar el path → 500 y NO borra el archivo (está en el único path posible)", async () => {
     const { borrados } = armarPendiente({ falloUpdate: true });
     const r = await POST(requestConAudio(firmarTokenFotos("n-regalo"), audioWebm()));
     expect(r.status).toBe(500);
     expect(await r.json()).toEqual({ error: "No pudimos guardar el audio." });
-    expect(borrados).toEqual([["n-regalo/regalo/mensaje.webm"]]);
+    expect(borrados).toEqual([]);
+  });
+
+  it("si el narrador no tiene fila en regalos → borra lo subido y 404", async () => {
+    const { borrados } = crearAdmin({ narradores: [{ id: "n-regalo", estado: "pendiente_pago" }], regalos: [] });
+    const r = await POST(requestConAudio(firmarTokenFotos("n-regalo"), audioWebm()));
+    expect(r.status).toBe(404);
+    expect(await r.json()).toEqual({ error: "No autorizado." });
+    expect(borrados).toEqual([["n-regalo/regalo/mensaje"]]);
   });
 });
 
@@ -175,6 +193,13 @@ describe("GET /api/regalo/[codigo]/audio", () => {
     expect(r.status).toBe(404);
     expect(consultas).toEqual([]);
     expect(firmadas).toEqual([]);
+  });
+
+  it("un código con % mal formado → 404, no 500", async () => {
+    const { consultas } = armarPendiente();
+    const r = await GET(req, ctx("%E0%A4%A"));
+    expect(r.status).toBe(404);
+    expect(consultas).toEqual([]);
   });
 
   it("un regalo sin audio → 404", async () => {
@@ -192,11 +217,12 @@ describe("GET /api/regalo/[codigo]/audio", () => {
 
   it("con audio → 302 a la URL firmada por una hora; el código llega escrito como sea", async () => {
     const { firmadas } = crearAdmin({
-      regalos: [{ codigo: "VF-7K3M2Q", narrador_id: "n-regalo", audio_path: "n-regalo/regalo/mensaje.webm" }],
+      regalos: [{ codigo: "VF-7K3M2Q", narrador_id: "n-regalo", audio_path: "n-regalo/regalo/mensaje" }],
     });
     const r = await GET(req, ctx(encodeURIComponent("vf 7k3-m2q")));
     expect(r.status).toBe(302);
-    expect(r.headers.get("location")).toBe("https://storage.test/firmada/n-regalo/regalo/mensaje.webm");
-    expect(firmadas).toEqual([{ path: "n-regalo/regalo/mensaje.webm", segundos: 3600 }]);
+    expect(r.headers.get("location")).toBe("https://storage.test/firmada/n-regalo/regalo/mensaje");
+    expect(r.headers.get("cache-control")).toBe("no-store");
+    expect(firmadas).toEqual([{ path: "n-regalo/regalo/mensaje", segundos: 3600 }]);
   });
 });
