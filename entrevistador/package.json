@@ -17,7 +17,8 @@
     "prueba-consumo": "tsx scripts/prueba-consumo.ts",
     "tipos": "tsc --noEmit -p tsconfig.check.json",
     "v3-copiar-nucleo": "tsx scripts/v3-copiar-nucleo.ts",
-    "v3-pasar": "tsx scripts/v3-pasar.ts"
+    "v3-pasar": "tsx scripts/v3-pasar.ts",
+    "v3-simular": "tsx scripts/v3-simular.ts"
   },
   "keywords": [],
   "author": "",
