@@ -138,7 +138,7 @@ export function charlaMd(fila: FilaV3): string {
 // ---------------------------------------------------------------- contra la base real
 
 async function limpiar(db: SupabaseClient, narradorId: string, familiaId: string): Promise<void> {
-  for (const carpeta of [narradorId, `${narradorId}/fotos`]) {
+  for (const carpeta of [narradorId, `${narradorId}/fotos`, `${narradorId}/paquete`]) {
     const { data } = await db.storage.from('audios').list(carpeta);
     const rutas = ((data as { name: string }[] | null) ?? []).filter((a) => a.name.includes('.')).map((a) => `${carpeta}/${a.name}`);
     if (rutas.length > 0) {
@@ -212,6 +212,16 @@ async function main(args: string[]): Promise<void> {
       throw new Error(`No pude crear el narrador de prueba: ${errorNarrador.message}`);
     }
     const n = creado as NarradorV3;
+    // Candados de la fábrica publicada (que no sabe de la V3): con estos archivos en
+    // `paquete/` saltea al narrador inventado (anticipo, estructura, mails de cierre).
+    for (const candado of ['anticipo_enviado.txt', 'anticipo.pdf', 'estructura.json', 'terminado_enviado.txt', 'recordatorio_cierre_3.txt',
+      'recordatorio_cierre_7.txt', 'recordatorio_cierre_14.txt', 'cierre_automatico_enviado.txt', 'cierre_automatico.txt']) {
+      const { error } = await db.storage.from('audios').upload(`${n.id}/paquete/${candado}`, Buffer.from('simulacion'), { upsert: true });
+      if (error) {
+        await limpiar(db, n.id, familiaId);
+        throw new Error(`No pude dejar el candado ${candado}: ${error.message}`);
+      }
+    }
     try {
       const r = await simularEntrevista(deps, n, { idioma, foto: true, forzar: true, pasar: (ms) => { reloj = new Date(reloj.getTime() + ms); } });
       console.log(JSON.stringify(r));
