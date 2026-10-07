@@ -2,6 +2,7 @@
   "version": 1,
   "porTexto": {
     "Cuénteme de la casa donde pasó su infancia. Si cierra los ojos y entra por la puerta, ¿qué ve, qué huele, quién está?": "CA1",
+    "Cuénteme de la casa donde pasó su infancia en cordoba. Si cierra los ojos y entra por la puerta, ¿qué ve, qué huele, quién está?": "CA1",
     "¿Cómo eran su mamá y su papá? ¿Qué hacían, cómo era vivir con ellos? Cuénteme cómo los recuerda a cada uno.": ["CA2", "CA3"],
     "¿A qué jugaba de chico, y con quién? ¿Hermanos, amigos del barrio? Cuénteme alguna travesura que todavía lo haga reír.": "ES6",
     "¿Cómo era su escuela? ¿Tuvo algún maestro o compañero que nunca se olvidó?": "ES2",
