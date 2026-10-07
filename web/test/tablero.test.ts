@@ -286,3 +286,21 @@ describe('el regalo en el panel', () => {
     expect(proximoPaso(historia('invitado'), resumen)).toBeNull();
   });
 });
+
+import { tratoEditable } from '@/lib/panel';
+import { EN_CURSO } from '@/lib/admin/en-curso';
+
+describe('el regalo sin abrir se edita como invitado', () => {
+  it('el trato es editable con el regalo sin abrir, igual que invitado y acepto', () => {
+    expect(tratoEditable({ estado: 'regalo_pendiente', dia_actual: 0 })).toBe(true);
+    expect(tratoEditable({ estado: 'invitado', dia_actual: 0 })).toBe(true);
+    expect(tratoEditable({ estado: 'acepto', dia_actual: 0 })).toBe(true);
+    expect(tratoEditable({ estado: 'activo', dia_actual: 1 })).toBe(false);
+    expect(tratoEditable({ estado: 'acepto', dia_actual: 1 })).toBe(false);
+    expect(tratoEditable({ estado: 'pendiente_pago', dia_actual: 0 })).toBe(false);
+  });
+
+  it('en el admin, el regalo sin abrir va con las historias en curso', () => {
+    expect(EN_CURSO).toContain('regalo_pendiente');
+  });
+});

@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { EN_CURSO } from "./en-curso";
 
 // Las consultas del panel de la empresa: todo lo que se lee de la base, en un solo lugar y
 // del lado del servidor (service role). Las páginas no consultan: piden datos ya armados.
@@ -15,9 +16,6 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 /** Cuántos días de consumo y de gastos mira el panel. */
 export const CORTE_DIAS = 31;
-
-/** Los estados de un narrador que todavía está en juego (ni terminado ni sin pagar). */
-const EN_CURSO = ["invitado", "acepto", "activo", "pausado"];
 
 export type NarradorPanel = {
   id: string;
