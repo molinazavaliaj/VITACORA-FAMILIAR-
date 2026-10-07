@@ -15,8 +15,9 @@
 - `entrevistador/src/v3/nucleo/` es copia EXACTA de `fabrica/src/v3/entrevista/*` y `fabrica/src/v3/ficha.ts`. **Nunca se edita a mano**: se copia con `npm run v3-copiar-nucleo`.
 - Ningún texto que lee un narrador se escribe en el código: sale del banco del núcleo (`banco*.json`, por `mensajePorId` / `preguntaPorId`) o de `entrevistador/src/v3/textos-fijos.json` (lugar único para lo que el banco no tiene; lo aprueba Naza). Los avisos a los socios (mail interno) no son textos de narrador.
 - Idiomas: `es-AR` (vos), `es-ES` (tú), `ca` (catalán). Sin usted para nadie de la V3.
-- Ritmo: tope de preguntas por tanda diaria `diario` 4, `dos_por_dia` 8, `seguido` sin tope. Silencio para cerrar una respuesta: 3 minutos desde que se **guardó la transcripción**. Toma del turno: 2 minutos. M8: 6 h después de la primera pregunta del día, una vez por día. Reloj: cada 1 minuto. Aviso a los socios: a los 3 fallos seguidos de envío.
-- Cazador: `claude-opus-5-5` (la constante `MODELO_CAZADOR` del núcleo), tope USD 3 por entrevista, en segundo plano, nunca tira error. No se cambia ningún otro modelo.
+- Ritmo: tope de preguntas por tanda diaria `diario` 4, `dos_por_dia` 8, `seguido` sin tope. Silencio para cerrar una respuesta: 3 minutos desde que se **guardó la transcripción**. Toma del turno: 2 minutos. La tanda del día solo arranca si no hay pregunta abierta esperando respuesta: la pendiente **no se reenvía**. M8: a los 2 días sin respuesta a la pregunta abierta, una sola vez por pregunta. Texto escrito: cuenta como respuesta (se suma igual que un audio, mismo reloj de 3'); M22 sale solo la primera vez en toda la entrevista. Reloj: cada 1 minuto. Aviso a los socios: a los 3 fallos seguidos de envío.
+- Cazador: `claude-opus-5-5` (la constante `MODELO_CAZADOR` del núcleo), tope USD 3 por entrevista, en segundo plano, nunca tira error; su costo va a `consumo_ia` (la tabla de `costos.ts`). No se cambia ningún otro modelo.
+- Después de FIN: `activo → completado`, sin mail de hito propio (el "terminado" lo manda la fábrica).
 - `V3_PARA_NUEVOS` apagado por defecto (solo `=1` lo prende). Sin `contexto.genero`, el alta de un nuevo se frena y se avisa.
 - Migraciones: idempotentes, en `supabase/migrations/`; las escribe el plan, **las aplica Naza** en el SQL Editor. `supabase/CONTRATO.md` se actualiza en la misma tarea.
 - Nunca imprimir keys ni tokens (tampoco en errores ni en scripts).
@@ -48,7 +49,7 @@
 | `entrevistador/src/v3/textos-fijos.json`, `entrevistador/src/v3/textos-fijos.ts` | Lugar único de los textos que el banco no tiene (hoy: el acuse de la foto suelta). |
 | `entrevistador/src/v3/entrante.ts` | Audio / botón / texto / imagen / reactivación de un narrador V3. |
 | `entrevistador/src/v3/deps-reales.ts` | Las dependencias de verdad (base, WhatsApp, OpenAI, Resend, Anthropic). |
-| `entrevistador/src/v3/reloj.ts` | El tick de 1 minuto: cierre por silencio, tanda diaria, M8, cola pendiente. |
+| `entrevistador/src/v3/reloj.ts` | El tick de 1 minuto: cierre por silencio, tanda diaria (sin reenvío), M8 a los 2 días, cola pendiente. |
 | `entrevistador/src/v3/pasar.ts`, `entrevistador/src/v3/equivalencias.json` | Pase de narradores en curso (con la tabla de equivalencias) y alta de nuevos. |
 | `entrevistador/scripts/cargar-entorno.ts` | Lee `entrevistador/.env` antes de importar la config (scripts). |
 | `entrevistador/scripts/v3-pasar.ts` | `npm run v3-pasar`. |
@@ -63,8 +64,8 @@
 | `entrevistador/tsconfig.json` | `resolveJsonModule: true`. |
 | `entrevistador/package.json` | Scripts `v3-copiar-nucleo`, `v3-pasar`, `v3-simular`. |
 | `entrevistador/.env.example` | `MAIL_SOCIOS`, `V3_PARA_NUEVOS`, `V3_CAZADOR`, `WA_PLANTILLAS_V3_LISTAS`. |
-| `entrevistador/src/costos.ts` | Precio de `claude-opus-5-5`. |
-| `entrevistador/src/config.ts` | `v3ParaNuevos()`. |
+| `entrevistador/src/costos.ts` | Precio de `claude-opus-5-5` (tarea 15, aparte). |
+| `entrevistador/src/config.ts` | `PLANTILLAS_V3` (nombres de las plantillas de Meta por idioma) y `v3ParaNuevos()`. |
 | `entrevistador/src/whatsapp/enviar.ts` | `enviarBotones`; `enviarPlantilla` con idioma. |
 | `entrevistador/src/whatsapp/webhook.ts` | `MensajeEntrante.esBoton`. |
 | `entrevistador/src/ia/transcribir.ts` | `transcribir(…, idioma)`. |
@@ -325,7 +326,7 @@ La escribe el entrevistador y la lee la fábrica.
 | `narrador_id` | Clave primaria y referencia a `narradores`. |
 | `idioma` | `es-AR`, `es-ES` o `ca`. |
 | `ficha` (jsonb) | `nombre` (= `como_le_dicen`), `genero` (`varon` / `mujer` / `otro`), `formaTrato?`, `quienRegala?`. |
-| `estado` (jsonb) | El motor de `entrevistador/src/v3/turno.ts`: `respuestas` (`[clave, texto][]` en orden de llegada: **es la verdad de la entrevista**), `enviados`, `vueltas`, `acuse`, `esperando`, `tocoSi`, `borrador` (los audios de la abierta, sin cerrar), `preguntaAbierta`, `bloqueActual`, `terminada`, `familia`, `repreguntas`, `cazador`, `charla` (los mensajes tal como salieron), `salientes` (la cola de WhatsApp), y contadores (`seq`, `fallosEnvio`, `ultimoEntranteAt`, `tandaInicioAt`, `m8Dia`, `m22En`). |
+| `estado` (jsonb) | El motor de `entrevistador/src/v3/turno.ts`: `respuestas` (`[clave, texto][]` en orden de llegada: **es la verdad de la entrevista**), `enviados`, `vueltas`, `acuse`, `esperando`, `tocoSi`, `borrador` (los audios de la abierta, sin cerrar), `preguntaAbierta`, `bloqueActual`, `terminada`, `familia`, `repreguntas`, `cazador`, `charla` (los mensajes tal como salieron), `salientes` (la cola de WhatsApp), y contadores (`seq`, `fallosEnvio`, `ultimoEntranteAt`, `abiertaDesde`, `m8En`, `m22Enviado`). |
 | `version` | Cada escritura es `UPDATE … WHERE version = n`; si cambió, se relee y se reintenta. |
 | `ultimo_audio_at` | Cuando se **guardó** la última transcripción de la pregunta abierta (el reloj cierra a los 3'). |
 | `tanda_dia`, `tanda_cuenta` | La tanda del día (en la zona del narrador) y cuántas preguntas salieron. |
@@ -337,8 +338,8 @@ tener la misma clave) y `wa_message_id` (text, único cuando no es null). `envio
 
 Reglas de una fila de `respuestas` de un narrador V3: `pregunta_orden` = **número de llegada** (no es
 un orden del guion: el libro viejo no la lee nunca, lo frena el candado de la fábrica);
-`transcripcion` = el texto del audio; `texto_directo` = la marca del botón (`⟦botón:Sí⟧`), un texto
-escrito (que **no** entra a la entrevista: se le contesta M22) o `⟦foto⟧` (la foto de FO1).
+`transcripcion` = el texto del audio (o el texto escrito, que cuenta como respuesta); `texto_directo` = la marca
+del botón (`⟦botón:Sí⟧`), el texto escrito o `⟦foto⟧` (la foto de FO1).
 
 Lo que no cambia: las transiciones de `narradores.estado` (`activo` durante la V3, `completado`
 después de FIN, `pausado` igual que hoy); `dia_actual` queda congelado en el valor que tenía.
@@ -517,12 +518,12 @@ export type EstadoV3 = {
   seq: number;
   /** El último mensaje que mandó el narrador (ventana de 24 h de Meta). */
   ultimoEntranteAt?: string;
-  /** Cuándo salió la primera pregunta de la tanda de hoy (para M8). */
-  tandaInicioAt?: string;
-  /** El día (en su zona) en que salió M8. */
-  m8Dia?: string;
-  /** La clave en la que ya se le contestó M22 (una vez por pregunta). */
-  m22En?: string;
+  /** Cuándo se mandó la pregunta abierta (M8 sale a los 2 días sin respuesta). */
+  abiertaDesde?: string;
+  /** La clave en la que ya salió M8 (una sola vez por pregunta). */
+  m8En?: string;
+  /** M22 ya salió (una sola vez en toda la entrevista). */
+  m22Enviado?: boolean;
   fallosEnvio: number;
   avisoFallos?: boolean;
 };
@@ -1754,7 +1755,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 - Produces:
   - `flujo/ritmo.ts`: `type Ritmo = 'diario' | 'dos_por_dia' | 'seguido'`, `function ritmoDe(contexto: Record<string, any>): Ritmo`, `function esModoRapido(contexto: Record<string, any>): boolean` (re-exportados desde `preguntar.ts`, que los sigue exportando igual).
   - `flujo/tiempo.ts`: `function fechaLocal(fecha: Date, zona: string): string`, `function minutosLocales(fecha: Date, zona: string): number` (re-exportados desde `scheduler.ts`).
-  - `tanda.ts`: `const TOPE_POR_RITMO: Readonly<Record<Ritmo, number>>`, `const BLOQUE_DE_LA_MITAD = 8`, `function cuentaDeHoy(fila: Pick<FilaV3, 'tanda_dia' | 'tanda_cuenta'>, hoy: string): number`, `function puedeAbrirHoy(fila: Pick<FilaV3, 'tanda_dia' | 'tanda_cuenta'>, ritmo: Ritmo, hoy: string): boolean`, `type Tanda = { estado: EstadoV3; tanda_dia: string; tanda_cuenta: number }`, `function aplicarTanda(fila: Pick<FilaV3, 'tanda_dia' | 'tanda_cuenta'>, estado: EstadoV3, hoy: string, abrio: boolean, ahora: Date): Tanda`, `function minutosDeHora(hora: string): number`, `function yaEsLaHora(horaPreferida: string, zona: string, ahora: Date): boolean`, `function hitosDe(estado: EstadoV3): ('primera' | 'mitad')[]`.
+  - `tanda.ts`: `const TOPE_POR_RITMO: Readonly<Record<Ritmo, number>>`, `const BLOQUE_DE_LA_MITAD = 8`, `function cuentaDeHoy(fila: Pick<FilaV3, 'tanda_dia' | 'tanda_cuenta'>, hoy: string): number`, `function puedeAbrirHoy(fila: Pick<FilaV3, 'tanda_dia' | 'tanda_cuenta'>, ritmo: Ritmo, hoy: string): boolean`, `type Tanda = { estado: EstadoV3; tanda_dia: string; tanda_cuenta: number }`, `function aplicarTanda(fila: Pick<FilaV3, 'tanda_dia' | 'tanda_cuenta'>, estado: EstadoV3, hoy: string, abrio: boolean, ahora: Date): Tanda` (si abrió una pregunta, `estado.abiertaDesde = ahora`), `function minutosDeHora(hora: string): number`, `function yaEsLaHora(horaPreferida: string, zona: string, ahora: Date): boolean`, `function hitosDe(estado: EstadoV3): ('primera' | 'mitad')[]`.
   - `avisos.ts`: `function avisarSocios(clave: string, asunto: string, detalle: string, o?: { ahora?: Date; fetch?: typeof fetch }): Promise<boolean>` (true si avisó; false si ya había avisado esa clave ese día), `function olvidarAvisos(): void` (para los tests).
 
 - [ ] **Step 1: Escribir los tests que fallan**
@@ -1788,15 +1789,17 @@ describe('la tanda del día', () => {
     expect(puedeAbrirHoy({ tanda_dia: HOY, tanda_cuenta: 500 }, 'seguido', HOY)).toBe(true);
   });
 
-  it('aplicarTanda cuenta la pregunta que se abrió y marca el inicio si la tanda es nueva', () => {
+  it('aplicarTanda cuenta la pregunta que se abrió y anota desde cuándo está abierta (para M8)', () => {
     const ahora = new Date('2026-10-08T13:00:00Z');
     const nueva = aplicarTanda({ tanda_dia: '2026-10-07', tanda_cuenta: 4 }, estadoInicial(), HOY, true, ahora);
     expect(nueva).toMatchObject({ tanda_dia: HOY, tanda_cuenta: 1 });
-    expect(nueva.estado.tandaInicioAt).toBe(ahora.toISOString());
+    expect(nueva.estado.abiertaDesde).toBe(ahora.toISOString());
     const sigue = aplicarTanda({ tanda_dia: HOY, tanda_cuenta: 2 }, estadoInicial(), HOY, true, ahora);
     expect(sigue).toMatchObject({ tanda_cuenta: 3 });
-    expect(sigue.estado.tandaInicioAt).toBeUndefined();
-    expect(aplicarTanda({ tanda_dia: HOY, tanda_cuenta: 4 }, estadoInicial(), HOY, false, ahora).tanda_cuenta).toBe(4);
+    expect(sigue.estado.abiertaDesde).toBe(ahora.toISOString());
+    const tope = aplicarTanda({ tanda_dia: HOY, tanda_cuenta: 4 }, estadoInicial(), HOY, false, ahora);
+    expect(tope.tanda_cuenta).toBe(4);
+    expect(tope.estado.abiertaDesde).toBeUndefined();
   });
 
   it('la hora preferida en su zona', () => {
@@ -1973,11 +1976,10 @@ export function puedeAbrirHoy(fila: Pick<FilaV3, 'tanda_dia' | 'tanda_cuenta'>, 
 
 export type Tanda = { estado: EstadoV3; tanda_dia: string; tanda_cuenta: number };
 
-/** Después de cerrar (y quizá abrir otra): la cuenta del día; si es la primera de una tanda nueva, cuándo arrancó (para M8). */
+/** Después de cerrar (y quizá abrir otra): la cuenta del día y, si abrió una pregunta, desde cuándo está abierta (M8 a los 2 días). */
 export function aplicarTanda(fila: Pick<FilaV3, 'tanda_dia' | 'tanda_cuenta'>, estado: EstadoV3, hoy: string, abrio: boolean, ahora: Date): Tanda {
-  const tandaNueva = fila.tanda_dia !== hoy;
   return {
-    estado: tandaNueva && abrio ? { ...estado, tandaInicioAt: ahora.toISOString() } : estado,
+    estado: abrio ? { ...estado, abiertaDesde: ahora.toISOString() } : estado,
     tanda_dia: hoy,
     tanda_cuenta: cuentaDeHoy(fila, hoy) + (abrio ? 1 : 0),
   };
@@ -2063,7 +2065,8 @@ V3_PARA_NUEVOS=
 # 0 = apaga el cazador de escenas (Opus 5.5, tope USD 3 por entrevista). Vacío = prendido.
 V3_CAZADOR=
 # Plantillas de Meta aprobadas para la V3, como idioma:tipo separados por coma
-# (ej. "es-AR:recordatorio,ca:pregunta,ca:recordatorio"). es-AR:pregunta (pregunta_diaria_vos) va siempre.
+# (ej. "es-AR:recordatorio,ca:pregunta,ca:recordatorio"; "recordatorio" = la plantilla con el texto de M8).
+# es-AR:pregunta (pregunta_diaria_vos) va siempre. Los nombres están en PLANTILLAS_V3 (src/config.ts).
 WA_PLANTILLAS_V3_LISTAS=
 ```
 
@@ -2087,11 +2090,10 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 
 **Files:**
 - Create: `entrevistador/src/v3/cazador.ts`
-- Modify: `entrevistador/src/costos.ts:20-24` (`PRECIOS_USD_POR_MILLON`)
 - Test: `entrevistador/test/v3/cazador.test.ts`
 
 **Interfaces:**
-- Consumes: `leerFila`, `conReintento` (Task 3); `cazarAlCerrar`, `sumarCaza` (Task 4); `fichaTexto`, `RegistroCaza` (Task 2); `DepsV3` (Task 3); `registrarUso`, `cuentaDeEsteServicio` (`costos.ts`); núcleo `MODELO_CAZADOR`, `ClienteModelo`, `ResultadoCaza`.
+- Consumes: `leerFila`, `conReintento` (Task 3); `cazarAlCerrar`, `sumarCaza` (Task 4); `fichaTexto`, `RegistroCaza` (Task 2); `DepsV3` (Task 3); `registrarUso`, `cuentaDeEsteServicio` (`costos.ts`: hasta la tarea 15, `consumo_ia.usd` del cazador sale con el precio de Opus 5 por prefijo; los tokens quedan bien y `estado.cazador.gastoUsd` usa el precio del núcleo); núcleo `MODELO_CAZADOR`, `ClienteModelo`, `ResultadoCaza`.
 - Produces:
   - `function cazadorPrendido(): boolean` — `process.env.V3_CAZADOR !== '0'`.
   - `function clienteCazador(apiKey: string): ClienteModelo`
@@ -2109,7 +2111,6 @@ import { crearBaseFalsa } from './base-falsa.js';
 import { depsDePrueba } from './deps-prueba.js';
 import { crearFila, leerFila } from '../../src/v3/estado.js';
 import { cazarEnSegundoPlano, esperarCazas, lanzarCazador } from '../../src/v3/cazador.js';
-import { calcularUsd } from '../../src/costos.js';
 import { estadoInicial, type EstadoV3 } from '../../src/v3/tipos.js';
 import type { ClienteModelo } from '../../src/v3/nucleo/entrevista/cazador.js';
 
@@ -2148,7 +2149,7 @@ describe('el cazador en segundo plano', () => {
     expect(base.tablas.consumo_ia[0]).toMatchObject({ servicio: 'entrevistador', paso: 'cazador_v3', modelo: 'claude-opus-5-5', narrador_id: 'n1', input_tokens: 1000, output_tokens: 200 });
     const fila = await leerFila(base.cliente, 'n1');
     expect(fila?.estado.cazador?.registro.map((x) => x.bloque)).toEqual([1]);
-    expect(fila?.estado.cazador?.gastoUsd).toBeCloseTo(1000 * 4e-6 + 200 * 20e-6);
+    expect(fila?.estado.cazador?.gastoUsd).toBeCloseTo(1000 * 4e-6 + 200 * 20e-6); // PRECIO_CAZADOR del núcleo
   });
 
   it('el mismo bloque no se caza dos veces', async () => {
@@ -2174,11 +2175,6 @@ describe('el cazador en segundo plano', () => {
     await esperarCazas();
     expect((await leerFila(base.cliente, 'n1'))?.estado.cazador?.registro).toHaveLength(1);
   });
-
-  it('el precio de Opus 5.5 es el de la fábrica (no el de Opus 5 por prefijo)', () => {
-    expect(calcularUsd('claude-opus-5-5', { input_tokens: 1_000_000 })).toBe(4);
-    expect(calcularUsd('claude-opus-5-5', { output_tokens: 1_000_000 })).toBe(20);
-  });
 });
 ```
 
@@ -2187,15 +2183,7 @@ describe('el cazador en segundo plano', () => {
 Run: `cd entrevistador && npx vitest run test/v3/cazador.test.ts`
 Expected: FAIL (`Failed to load url ../../src/v3/cazador.js`).
 
-- [ ] **Step 3: El precio de Opus 5.5**
-
-En `entrevistador/src/costos.ts`, dentro de `PRECIOS_USD_POR_MILLON` (líneas 20-24), agregar después de `'claude-opus-5'` (mismo valor que `fabrica/src/costos.ts:53`; sin esto, `precioDe` lo cobra como `claude-opus-5` por prefijo, 5/25 en vez de 4/20):
-
-```ts
-  'claude-opus-5-5': { input: 4, output: 20, cache_write: 5, cache_read: 0.2 },
-```
-
-- [ ] **Step 4: Implementar `cazador.ts`**
+- [ ] **Step 3: Implementar `cazador.ts`**
 
 `entrevistador/src/v3/cazador.ts`:
 
@@ -2261,16 +2249,16 @@ export async function esperarCazas(): Promise<void> {
 }
 ```
 
-- [ ] **Step 5: Correr y ver que pasa; costos viejos; tipos**
+- [ ] **Step 4: Correr y ver que pasa; costos viejos; tipos**
 
 Run: `cd entrevistador && npx vitest run test/v3/cazador.test.ts test/costos.test.ts && npx tsc --noEmit -p tsconfig.check.json`
 Expected: PASS y sin errores.
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 5: Commit**
 
 ```bash
-git add entrevistador/src/v3/cazador.ts entrevistador/src/costos.ts entrevistador/test/v3/cazador.test.ts
-git commit -m "entrevistador V3: el cazador en segundo plano, con su costo en consumo_ia y el precio de Opus 5.5
+git add entrevistador/src/v3/cazador.ts entrevistador/test/v3/cazador.test.ts
+git commit -m "entrevistador V3: el cazador en segundo plano, con su costo en consumo_ia
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 ```
@@ -2281,6 +2269,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 
 **Files:**
 - Modify: `entrevistador/src/whatsapp/enviar.ts:24-33` (`enviarPlantilla`) y agregar `enviarBotones` después
+- Modify: `entrevistador/src/config.ts` (al final: `PLANTILLAS_V3`)
 - Create: `entrevistador/src/v3/enviar.ts`
 - Test: `entrevistador/test/enviar.test.ts` (agregar dos casos), `entrevistador/test/v3/enviar.test.ts`
 
@@ -2290,7 +2279,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
   - `whatsapp/enviar.ts`: `function enviarPlantilla(telefono: string, nombre: string, variables: string[], idioma?: string): Promise<string>` (default `'es'`: lo viejo no cambia); `function enviarBotones(telefono: string, texto: string, botones: string[]): Promise<string>`.
   - `v3/enviar.ts`:
     - `const VENTANA_MS = 24 * 3600_000 - 30 * 60_000`, `const LARGO_MAXIMO_BOTONES = 1024`, `const FALLOS_PARA_AVISAR = 3`
-    - `type PlantillaV3 = { nombre: string; idiomaMeta: string }`; `const PLANTILLAS_V3: Readonly<Record<Idioma, { pregunta: PlantillaV3; recordatorio: PlantillaV3 }>>`
+    - en `config.ts`: `type PlantillaV3 = { nombre: string; idiomaMeta: string }`; `const PLANTILLAS_V3: Readonly<Record<'es-AR' | 'es-ES' | 'ca', { pregunta: PlantillaV3; recordatorio: PlantillaV3 }>>` (`recordatorio` = la plantilla con el texto de M8; `v3/enviar.ts` la re-exporta)
     - `function plantillaLista(idioma: Idioma, cual: 'pregunta' | 'recordatorio', env?: NodeJS.ProcessEnv): boolean`
     - `function ventanaAbierta(e: Pick<EstadoV3, 'ultimoEntranteAt'>, ahora: Date): boolean`
     - `function enLineaParaPlantilla(textos: string[]): string`
@@ -2300,10 +2289,10 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 
 Reglas:
 - Dentro de la ventana de 24 h (desde `estado.ultimoEntranteAt`, con media hora de margen): sale el primer mensaje de la cola, con botones si tiene y si el texto entra en 1024 caracteres (límite del cuerpo de un mensaje interactivo de Meta; con el banco de hoy el más largo es de 863: si alguna vez se pasa, sale como texto sin botones y se puede contestar en audio); se saca de la cola y se sigue con el próximo.
-- Fuera de la ventana: **un solo** mensaje de plantilla del idioma: `pregunta` con todo lo pendiente en una línea (Meta no acepta saltos de línea en una variable; los botones no van), o `recordatorio` si lo único pendiente es M8. Si la plantilla del idioma no está aprobada (`WA_PLANTILLAS_V3_LISTAS`), se avisa a los socios y **no se manda en otro idioma**: la cola queda hasta que el narrador escriba.
+- Fuera de la ventana: **un solo** mensaje de plantilla del idioma: `pregunta` con todo lo pendiente en una línea (Meta no acepta saltos de línea en una variable; los botones no van), o `recordatorio` (la plantilla con el texto de M8 del idioma; variable: el nombre) si lo único pendiente es M8. Los nombres están en `PLANTILLAS_V3` (`config.ts`). Si la plantilla del idioma no está aprobada (`WA_PLANTILLAS_V3_LISTAS`), se avisa a los socios y **no se manda en otro idioma**: la cola queda hasta que el narrador escriba.
 - Un envío que falla queda en la cola; a los 3 fallos seguidos, aviso a los socios (una vez hasta que vuelva a salir algo).
 - Cada mensaje que sale queda en `envios` (`tipo = 'v3'`), para cruzarlo con los avisos de entrega.
-- Si la entrevista terminó (`terminada`) y la cola quedó vacía: `narradores.estado = 'completado'` (solo si estaba `activo`). El mail "terminado" a la familia lo manda la fábrica al ver el estado (`fabrica/src/worker.ts:319`, `avisarHitosDeCierre`).
+- Si la entrevista terminó (`terminada`) y la cola quedó vacía: `narradores.estado = 'completado'` (solo si estaba `activo`). No hay mail de hito propio: el "terminado" a la familia lo manda la fábrica al ver el estado (`fabrica/src/worker.ts:319`, `avisarHitosDeCierre`).
 
 - [ ] **Step 1: Escribir los tests que fallan**
 
@@ -2408,7 +2397,7 @@ describe('drenar la cola de WhatsApp', () => {
     expect(enviados[0]).toMatchObject({ tipo: 'plantilla', plantilla: 'pregunta_diaria_ca', idiomaMeta: 'ca' });
   });
 
-  it('M8 solo, fuera de las 24 h: la plantilla de recordatorio del idioma, si está aprobada', async () => {
+  it('M8 solo, fuera de las 24 h: la plantilla con el texto de M8 del idioma, si está aprobada', async () => {
     const m8 = conCola(HACE_25H, { texto: 'Hola, Prueba. Pasaron unos días…', tipo: 'recordatorio' });
     const sinAprobar = await preparar(m8);
     expect(await drenar(sinAprobar.deps, 'n1')).toBe('sin-plantilla');
@@ -2416,7 +2405,7 @@ describe('drenar la cola de WhatsApp', () => {
     process.env.WA_PLANTILLAS_V3_LISTAS = 'es-AR:recordatorio';
     const aprobada = await preparar(m8);
     await drenar(aprobada.deps, 'n1');
-    expect(aprobada.enviados[0]).toMatchObject({ tipo: 'plantilla', plantilla: 'recordatorio_vos', idiomaMeta: 'es', variables: ['Prueba'] });
+    expect(aprobada.enviados[0]).toMatchObject({ tipo: 'plantilla', plantilla: 'm8_vos', idiomaMeta: 'es', variables: ['Prueba'] });
   });
 
   it('un envío que falla queda en la cola; a los 3 seguidos, aviso a los socios (una vez)', async () => {
@@ -2495,7 +2484,29 @@ export function enviarBotones(telefono: string, texto: string, botones: string[]
 }
 ```
 
-- [ ] **Step 4: Implementar `v3/enviar.ts`**
+- [ ] **Step 4: Los nombres de las plantillas en `config.ts`**
+
+Al final de `entrevistador/src/config.ts`:
+
+```ts
+export type PlantillaV3 = { nombre: string; idiomaMeta: string };
+
+/**
+ * Las plantillas de Meta de la entrevista V3 (spec 2026-10-07), por idioma.
+ * `pregunta`: una variable con la pregunta (`pregunta_diaria_vos` ya está
+ * aprobada, PLANTILLAS.md). `recordatorio`: el texto de M8 del idioma, con una
+ * variable (el nombre). Las carga Joaquín en Meta (el cuerpo lo aprueba Naza)
+ * y se marcan como aprobadas en WA_PLANTILLAS_V3_LISTAS. Si cambia un nombre
+ * en Meta, se cambia acá.
+ */
+export const PLANTILLAS_V3: Readonly<Record<'es-AR' | 'es-ES' | 'ca', { pregunta: PlantillaV3; recordatorio: PlantillaV3 }>> = {
+  'es-AR': { pregunta: { nombre: 'pregunta_diaria_vos', idiomaMeta: 'es' }, recordatorio: { nombre: 'm8_vos', idiomaMeta: 'es' } },
+  'es-ES': { pregunta: { nombre: 'pregunta_diaria_es_es', idiomaMeta: 'es_ES' }, recordatorio: { nombre: 'm8_es_es', idiomaMeta: 'es_ES' } },
+  ca: { pregunta: { nombre: 'pregunta_diaria_ca', idiomaMeta: 'ca' }, recordatorio: { nombre: 'm8_ca', idiomaMeta: 'ca' } },
+};
+```
+
+- [ ] **Step 5: Implementar `v3/enviar.ts`**
 
 `entrevistador/src/v3/enviar.ts`:
 
@@ -2506,6 +2517,7 @@ export function enviarBotones(telefono: string, texto: string, botones: string[]
 // queda y el tick siguiente reintenta. Ningún texto se arma acá: salen de la
 // cola, que llenó turno.ts con textos del banco.
 
+import { PLANTILLAS_V3 } from '../config.js';
 import type { DepsV3 } from './deps.js';
 import { conReintento, soltarTurno, tomarTurno } from './estado.js';
 import type { Idioma } from './nucleo/entrevista/idioma.js';
@@ -2518,20 +2530,7 @@ export const VENTANA_MS = 24 * 3600_000 - 30 * 60_000;
 export const LARGO_MAXIMO_BOTONES = 1024;
 export const FALLOS_PARA_AVISAR = 3;
 
-export type PlantillaV3 = { nombre: string; idiomaMeta: string };
-
-/**
- * Las plantillas de la V3 por idioma. `pregunta_diaria_vos` ya está aprobada
- * (PLANTILLAS.md). Las demás las carga Joaquín en Meta y se marcan como
- * aprobadas en WA_PLANTILLAS_V3_LISTAS. `recordatorio_vos`: la `recordatorio`
- * de hoy está en usted ("Cuando tenga un ratito, me la manda") y la V3 no usa
- * usted con nadie.
- */
-export const PLANTILLAS_V3: Readonly<Record<Idioma, { pregunta: PlantillaV3; recordatorio: PlantillaV3 }>> = {
-  'es-AR': { pregunta: { nombre: 'pregunta_diaria_vos', idiomaMeta: 'es' }, recordatorio: { nombre: 'recordatorio_vos', idiomaMeta: 'es' } },
-  'es-ES': { pregunta: { nombre: 'pregunta_diaria_es_es', idiomaMeta: 'es_ES' }, recordatorio: { nombre: 'recordatorio_es_es', idiomaMeta: 'es_ES' } },
-  ca: { pregunta: { nombre: 'pregunta_diaria_ca', idiomaMeta: 'ca' }, recordatorio: { nombre: 'recordatorio_ca', idiomaMeta: 'ca' } },
-};
+export { PLANTILLAS_V3, type PlantillaV3 } from '../config.js';
 
 export function plantillaLista(idioma: Idioma, cual: 'pregunta' | 'recordatorio', env: NodeJS.ProcessEnv = process.env): boolean {
   if (idioma === 'es-AR' && cual === 'pregunta') return true;
@@ -2639,15 +2638,15 @@ async function completar(deps: DepsV3, narradorId: string): Promise<void> {
 }
 ```
 
-- [ ] **Step 5: Correr y ver que pasan; tipos**
+- [ ] **Step 6: Correr y ver que pasan; tipos**
 
-Run: `cd entrevistador && npx vitest run test/enviar.test.ts test/v3/enviar.test.ts && npx tsc --noEmit -p tsconfig.check.json`
+Run: `cd entrevistador && npx vitest run test/enviar.test.ts test/v3/enviar.test.ts test/config.test.ts && npx tsc --noEmit -p tsconfig.check.json`
 Expected: PASS y sin errores.
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 7: Commit**
 
 ```bash
-git add entrevistador/src/whatsapp/enviar.ts entrevistador/src/v3/enviar.ts entrevistador/test/enviar.test.ts entrevistador/test/v3/enviar.test.ts
+git add entrevistador/src/whatsapp/enviar.ts entrevistador/src/config.ts entrevistador/src/v3/enviar.ts entrevistador/test/enviar.test.ts entrevistador/test/v3/enviar.test.ts
 git commit -m "entrevistador V3: botones de WhatsApp y la cola de salida, con plantilla por idioma y aviso a los 3 fallos
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
@@ -2988,7 +2987,7 @@ Reglas (spec, "Al llegar un mensaje de un narrador V3"):
 - `pausado` + texto escrito: `pausado → activo` y se reenvía la pregunta abierta (sin M22). Con audio, botón o imagen: `pausado → activo` y se procesa como siempre.
 - Audio: fila en `respuestas` (llegada, `wa_message_id`) → transcribir en su idioma (un reintento) → si falla o sale vacío, M23 → si no, se suma a la abierta (`ultimo_audio_at` = cuando se guardó la transcripción). No se contesta nada.
 - Botón: se valida contra los de la abierta; "Sí" → M30; "No"/"Paso" → cierra y avanza en el momento, respetando el tope de la tanda; si cerró un CIn, cazador. Un botón que no es de la abierta se trata como texto.
-- Texto escrito: M22, una vez por pregunta; no avanza ni entra a la respuesta (queda en `respuestas.texto_directo` como registro).
+- Texto escrito (Naza, 07/10): **cuenta como respuesta**. Se suma a la abierta igual que un audio (`recibirAudio`), pone `ultimo_audio_at` (el mismo reloj de 3') y queda en `respuestas` con su `clave_v3`. M22 sale **solo la primera vez en toda la entrevista** (`estado.m22Enviado`).
 - Imagen: si la abierta es FO1 (clase `foto`), queda contestada con la marca `⟦foto⟧` y corre el reloj de silencio (para sumar el audio que la describe); si no, foto suelta: se guarda y, si hay texto aprobado para el idioma (`textos-fijos.json`), se le acusa.
 
 - [ ] **Step 1: Escribir los tests que fallan**
@@ -3090,19 +3089,31 @@ describe('un botón de un narrador V3', () => {
 });
 
 describe('un texto escrito', () => {
-  it('M22 una vez por pregunta; no entra a la respuesta', async () => {
+  it('cuenta como respuesta: se suma a la abierta, corre el reloj y M22 sale una sola vez', async () => {
     const { deps, n1, enviados, fila, base } = await preparar(enOR1());
-    await procesarEntranteV3(deps, n1, texto('Hola, ¿cómo es esto?'));
-    await procesarEntranteV3(deps, n1, texto('¿Hola?'));
+    await procesarEntranteV3(deps, n1, texto('Nací en un pueblo chico.'));
+    await procesarEntranteV3(deps, n1, audio('Mi mamá cosía.'));
+    await procesarEntranteV3(deps, n1, texto('Y había un río.'));
     expect(enviados.map((e) => e.texto)).toEqual([textoDelBanco('M22', FICHA)]);
-    expect((await fila())?.estado.borrador).toBeUndefined();
-    expect(base.tablas.respuestas.map((r) => r.texto_directo)).toEqual(['Hola, ¿cómo es esto?', '¿Hola?']);
+    const f = await fila();
+    expect(f?.estado.borrador).toBe('Nací en un pueblo chico. Mi mamá cosía. Y había un río.');
+    expect(f?.estado.m22Enviado).toBe(true);
+    expect(f?.ultimo_audio_at).toBe(AHORA.toISOString());
+    expect(base.tablas.respuestas.map((r) => [r.texto_directo, r.clave_v3])).toEqual([['Nací en un pueblo chico.', 'OR1'], [null, 'OR1'], ['Y había un río.', 'OR1']]);
   });
 
-  it('un botón que no es de la abierta es un texto escrito', async () => {
-    const { deps, n1, enviados } = await preparar(enOR1());
+  it('si M22 ya salió en otra pregunta, no vuelve a salir en toda la entrevista', async () => {
+    const { deps, n1, enviados, fila } = await preparar({ ...enOR1(), m22Enviado: true });
+    await procesarEntranteV3(deps, n1, texto('Nací en un pueblo chico.'));
+    expect(enviados).toEqual([]);
+    expect((await fila())?.estado.borrador).toBe('Nací en un pueblo chico.');
+  });
+
+  it('un botón que no es de la abierta es un texto escrito (cuenta como respuesta)', async () => {
+    const { deps, n1, enviados, fila } = await preparar(enOR1());
     await procesarEntranteV3(deps, n1, texto('Sí, tuve', true));
     expect(enviados.map((e) => e.texto)).toEqual([textoDelBanco('M22', FICHA)]);
+    expect((await fila())?.estado.borrador).toBe('Sí, tuve');
   });
 
   it('pausado: el texto lo reactiva y se le reenvía la pregunta abierta (sin M22)', async () => {
@@ -3341,20 +3352,27 @@ async function recibirBoton(deps: DepsV3, n: NarradorV3, m: MensajeEntrante, aho
   return true;
 }
 
-/** Texto escrito: M22 (una vez por pregunta). No avanza ni entra a la respuesta (spec: "Texto suelto → M22"). */
+/**
+ * Texto escrito (Naza, 07/10): cuenta como respuesta. Se suma a la abierta
+ * igual que un audio y corre el mismo reloj de 3 minutos. M22 ("si podés,
+ * contámelo también en audio…") sale solo la primera vez en toda la entrevista.
+ */
 async function recibirTexto(deps: DepsV3, n: NarradorV3, m: MensajeEntrante, ahora: Date): Promise<void> {
   const fila = await leerFila(deps.db, n.id);
-  if (!fila) return;
-  const guardada = await guardarTextoV3(deps.db, n.id, await numeroDeLlegada(deps.db, n.id), m.texto ?? '', { waMessageId: m.waMessageId, clave: fila.estado.esperando ?? null, esBoton: false });
-  if (!guardada) return;
+  const texto = (m.texto ?? '').trim();
+  if (!fila || !texto) return;
+  const guardada = await guardarTextoV3(deps.db, n.id, await numeroDeLlegada(deps.db, n.id), texto, { waMessageId: m.waMessageId, clave: fila.estado.esperando ?? null, esBoton: false });
+  if (!guardada) return; // duplicado
   const iso = ahora.toISOString();
-  await conReintento(deps.db, n.id, (f) => {
-    const donde = f.estado.esperando ?? '';
-    const conEntrante = { ...f.estado, ultimoEntranteAt: iso };
-    if (f.estado.m22En === donde) return { cambio: { estado: conEntrante }, resultado: false };
-    const conM22 = encolar(conEntrante, { texto: textoDelBanco('M22', fichaTexto(f)), tipo: 'suelto' });
-    return { cambio: { estado: { ...conM22, m22En: donde } }, resultado: true };
+  const r = await conReintento(deps.db, n.id, (f) => {
+    const a = recibirAudio(f.estado, texto);
+    const conEntrante = { ...a.estado, ultimoEntranteAt: iso };
+    const estado = f.estado.m22Enviado
+      ? conEntrante
+      : { ...encolar(conEntrante, { texto: textoDelBanco('M22', fichaTexto(f)), tipo: 'suelto' }), m22Enviado: true };
+    return { cambio: { estado, ...(a.abierta ? { ultimo_audio_at: deps.ahora().toISOString() } : {}) }, resultado: a.clave };
   });
+  await ponerClave(deps.db, guardada.id, r?.resultado ?? null);
   await marcarRespondido(deps.db, n.id, ahora);
   await drenar(deps, n.id);
 }
@@ -3477,12 +3495,12 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 - Test: `entrevistador/test/v3/reloj.test.ts`; `entrevistador/test/scheduler.test.ts` (base falsa: `entrevistas_v3`; un caso nuevo)
 
 **Interfaces:**
-- Consumes: `listarFilas`, `conReintento`, `tomaVigente`, `narradoresV3` (Task 3); `avanzar`, `cerrarYSeguir`, `reenviarAbierta`, `encolar`, `textoDelBanco` (Task 4); `puedeAbrirHoy`, `aplicarTanda`, `yaEsLaHora`, `hitosDe` (Task 5); `lanzarCazador` (Task 6); `drenar` (Task 7); `depsReales` (Task 9); `ritmoDe`, `fechaLocal`.
+- Consumes: `listarFilas`, `conReintento`, `tomaVigente`, `narradoresV3` (Task 3); `avanzar`, `cerrarYSeguir`, `encolar`, `textoDelBanco` (Task 4); `puedeAbrirHoy`, `aplicarTanda`, `yaEsLaHora`, `hitosDe` (Task 5); `lanzarCazador` (Task 6); `drenar` (Task 7); `depsReales` (Task 9); `ritmoDe`, `fechaLocal`.
 - Produces:
-  - `const SILENCIO_MS = 180_000`, `const HORAS_M8 = 6`
+  - `const SILENCIO_MS = 180_000`, `const DIAS_M8 = 2`
   - `function silencioCumplido(f: FilaV3, ahora: Date): boolean`
   - `function tocaTanda(f: FilaV3, n: NarradorV3, ahora: Date, hoy: string): boolean`
-  - `function tocaM8(f: FilaV3, ahora: Date, hoy: string): boolean`
+  - `function tocaM8(f: FilaV3, ahora: Date): boolean`
   - `type Trabajo = 'nada' | 'drenar' | 'cierre' | 'tanda' | 'm8'`
   - `function trabajarNarrador(deps: DepsV3, fila: FilaV3, n: NarradorV3): Promise<Trabajo>`
   - `function tickV3(deps: DepsV3): Promise<void>`
@@ -3491,8 +3509,8 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 Reglas (spec, "El reloj"), en este orden por narrador `activo` y sin toma vigente:
 1. Si hay cola pendiente, se drena (y nada más ese minuto).
 2. **Cierre por silencio:** hay borrador y `ultimo_audio_at` tiene 3' o más → `cerrarYSeguir` con `puedeAbrir = puedeAbrirHoy(…)`; si cerró un CIn, cazador; hitos de mail.
-3. **Tanda diaria:** no terminó, la tanda no es de hoy, ya es su `hora_preferida` en su zona, y no está mandando audios (sin borrador) → si hay pregunta abierta sin contestar, se reenvía esa; si no, `avanzar` (con el acuse pendiente pegado arriba). `tanda_cuenta = 1`, `tandaInicioAt = ahora`. Fuera de las 24 h, la cola sale con la plantilla del idioma (`drenar`).
-4. **M8:** la tanda es de hoy, salió una sola pregunta, sigue abierta sin nada contado, pasaron 6 h desde `tandaInicioAt` y hoy no salió M8 → M8 (tipo `recordatorio`).
+3. **Tanda diaria:** no terminó, la tanda no es de hoy, ya es su `hora_preferida` en su zona y **no hay pregunta abierta esperando respuesta** → `avanzar` (con el acuse pendiente pegado arriba). `tanda_cuenta = 1`, `abiertaDesde = ahora`. Fuera de las 24 h, la cola sale con la plantilla del idioma (`drenar`). Si la de ayer quedó sin contestar, **no se reenvía** (Naza, 07/10): se espera, y a los 2 días sale M8.
+4. **M8:** hay pregunta abierta, sin nada contado (ni borrador ni "Sí" tocado), pasaron 2 días desde `abiertaDesde` y M8 no salió para esa pregunta (`m8En`) → M8 (tipo `recordatorio`); fuera de las 24 h va por la plantilla con el texto de M8 del idioma (si no está aprobada, aviso a los socios y no se manda).
 La alerta de silencio a la familia (3 días) sigue en la fase vieja, sin cambios: usa `ultima_respuesta_at`, que la V3 también actualiza.
 
 - [ ] **Step 1: Escribir los tests que fallan**
@@ -3577,18 +3595,18 @@ describe('la tanda diaria', () => {
     const f = await r.leer();
     expect(f).toMatchObject({ tanda_dia: HOY, tanda_cuenta: 1 });
     expect(f.estado.esperando).toBe('OR2');
-    expect(f.estado.tandaInicioAt).toBe(AHORA.toISOString());
+    expect(f.estado.abiertaDesde).toBe(AHORA.toISOString());
   });
 
-  it('si la de ayer quedó sin contestar, se reenvía esa misma', async () => {
+  it('si la de ayer quedó sin contestar, NO se reenvía ni arranca otra (se espera; a los 2 días, M8)', async () => {
     const r = await preparar(enOR1(), { tanda_dia: AYER, tanda_cuenta: 1 });
-    expect(await r.trabajar()).toBe('tanda');
-    expect(r.enviados.map((e) => e.texto)).toEqual([avanzar(estadoInicial(), FICHA).estado.salientes[0].texto]);
-    expect((await r.leer()).estado.esperando).toBe('OR1');
+    expect(await r.trabajar()).toBe('nada');
+    expect(r.enviados).toEqual([]);
+    expect((await r.leer()).tanda_dia).toBe(AYER);
   });
 
   it('antes de su hora no arranca', async () => {
-    const r = await preparar(enOR1(), { tanda_dia: AYER });
+    const r = await preparar(conAcusePendiente(), { tanda_dia: AYER });
     r.fijar(new Date('2026-10-08T12:30:00Z')); // 09:30
     expect(await r.trabajar()).toBe('nada');
   });
@@ -3600,17 +3618,31 @@ describe('la tanda diaria', () => {
 });
 
 describe('M8', () => {
-  it('a las 6 h de la primera del día, si no contó nada; una sola vez por día', async () => {
-    const r = await preparar({ ...enOR1(), tandaInicioAt: hace(6 * HORA + MIN) }, { tanda_dia: HOY, tanda_cuenta: 1 });
+  it('a los 2 días sin respuesta a la pregunta abierta; una sola vez por pregunta', async () => {
+    const r = await preparar({ ...enOR1(), abiertaDesde: hace(48 * HORA + MIN) }, { tanda_dia: AYER });
     expect(await r.trabajar()).toBe('m8');
     expect(r.enviados.map((e) => e.texto)).toEqual([textoDelBanco('M8', FICHA)]);
+    expect((await r.leer()).estado.m8En).toBe('OR1');
+    r.pasar(24 * HORA);
     expect(await r.trabajar()).toBe('nada');
     expect(r.enviados).toHaveLength(1);
   });
 
-  it('a las 5 h, no', async () => {
-    const r = await preparar({ ...enOR1(), tandaInicioAt: hace(5 * HORA) }, { tanda_dia: HOY, tanda_cuenta: 1 });
-    expect(await r.trabajar()).toBe('nada');
+  it('a las 47 horas, no; si ya está contando algo, tampoco', async () => {
+    expect(await (await preparar({ ...enOR1(), abiertaDesde: hace(47 * HORA) })).trabajar()).toBe('nada');
+    const contando = await preparar({ ...enOR1(), abiertaDesde: hace(49 * HORA), borrador: 'Algo.' }, { ultimo_audio_at: hace(MIN) });
+    expect(await contando.trabajar()).toBe('nada');
+  });
+
+  it('fuera de las 24 h sale por la plantilla con el texto de M8, si está aprobada', async () => {
+    process.env.WA_PLANTILLAS_V3_LISTAS = 'es-AR:recordatorio';
+    try {
+      const r = await preparar({ ...enOR1(), ultimoEntranteAt: hace(49 * HORA), abiertaDesde: hace(49 * HORA) }, { tanda_dia: AYER });
+      expect(await r.trabajar()).toBe('m8');
+      expect(r.enviados).toEqual([{ a: '+5491100000000', tipo: 'plantilla', plantilla: 'm8_vos', idiomaMeta: 'es', variables: ['Prueba'] }]);
+    } finally {
+      delete process.env.WA_PLANTILLAS_V3_LISTAS;
+    }
   });
 });
 
@@ -3672,7 +3704,8 @@ Expected: FAIL (`Failed to load url ../../src/v3/reloj.js`; en el scheduler, el 
 // El reloj de la entrevista V3 (spec 2026-10-07, "El reloj"): un tick por
 // minuto. Todo sale de la base (ningún setTimeout en memoria): si Railway se
 // cae, el tick siguiente retoma. Por narrador activo, en orden: la cola que
-// quedó, el cierre por 3' de silencio, la tanda del día a su hora y M8.
+// quedó, el cierre por 3' de silencio, la tanda del día a su hora (sin reenviar
+// la pendiente) y M8 a los 2 días sin respuesta.
 
 import { ritmoDe } from '../flujo/ritmo.js';
 import { fechaLocal } from '../flujo/tiempo.js';
@@ -3682,10 +3715,11 @@ import { drenar } from './enviar.js';
 import { conReintento, listarFilas, tomaVigente } from './estado.js';
 import { aplicarTanda, hitosDe, puedeAbrirHoy, yaEsLaHora } from './tanda.js';
 import { fichaTexto, type FilaV3, type NarradorV3 } from './tipos.js';
-import { avanzar, cerrarYSeguir, encolar, reenviarAbierta, textoDelBanco } from './turno.js';
+import { avanzar, cerrarYSeguir, encolar, textoDelBanco } from './turno.js';
 
 export const SILENCIO_MS = 3 * 60_000;
-export const HORAS_M8 = 6;
+/** M8 sale a los 2 días sin respuesta a la pregunta abierta (Naza, 07/10). */
+export const DIAS_M8 = 2;
 
 const hayBorrador = (f: FilaV3) => !!f.estado.borrador?.trim();
 
@@ -3693,14 +3727,16 @@ export function silencioCumplido(f: FilaV3, ahora: Date): boolean {
   return hayBorrador(f) && !!f.ultimo_audio_at && ahora.getTime() - Date.parse(f.ultimo_audio_at) >= SILENCIO_MS;
 }
 
+/** La tanda del día arranca solo si no hay pregunta abierta: la pendiente no se reenvía (Naza, 07/10). */
 export function tocaTanda(f: FilaV3, n: NarradorV3, ahora: Date, hoy: string): boolean {
-  return !f.estado.terminada && f.tanda_dia !== hoy && yaEsLaHora(n.hora_preferida, n.zona_horaria, ahora) && !hayBorrador(f);
+  return !f.estado.terminada && !f.estado.esperando && f.tanda_dia !== hoy && yaEsLaHora(n.hora_preferida, n.zona_horaria, ahora) && !hayBorrador(f);
 }
 
-export function tocaM8(f: FilaV3, ahora: Date, hoy: string): boolean {
+/** M8: 2 días sin respuesta a la abierta (nada contado, ni "Sí" tocado), una sola vez por pregunta. */
+export function tocaM8(f: FilaV3, ahora: Date): boolean {
   const e = f.estado;
-  return f.tanda_dia === hoy && f.tanda_cuenta === 1 && !!e.esperando && !e.tocoSi && !hayBorrador(f) && e.m8Dia !== hoy
-    && !!e.tandaInicioAt && ahora.getTime() - Date.parse(e.tandaInicioAt) >= HORAS_M8 * 3600_000;
+  return !!e.esperando && !e.tocoSi && !hayBorrador(f) && e.m8En !== e.esperando
+    && !!e.abiertaDesde && ahora.getTime() - Date.parse(e.abiertaDesde) >= DIAS_M8 * 86_400_000;
 }
 
 export type Trabajo = 'nada' | 'drenar' | 'cierre' | 'tanda' | 'm8';
@@ -3734,10 +3770,14 @@ export async function trabajarNarrador(deps: DepsV3, fila: FilaV3, n: NarradorV3
   if (tocaTanda(fila, n, ahora, hoy)) {
     const r = await conReintento(deps.db, n.id, (f) => {
       if (!tocaTanda(f, n, ahora, hoy)) return null;
-      // La de ayer sin contestar se reenvía tal cual; si no, sigue (con el acuse pendiente pegado arriba).
-      const sigue = f.estado.esperando ? { estado: reenviarAbierta(f.estado), abrio: true } : avanzar(f.estado, fichaTexto(f));
+      // Sigue con la próxima (con el acuse pendiente pegado arriba).
+      const sigue = avanzar(f.estado, fichaTexto(f));
       return {
-        cambio: { estado: { ...sigue.estado, tandaInicioAt: ahora.toISOString() }, tanda_dia: hoy, tanda_cuenta: sigue.abrio ? 1 : 0 },
+        cambio: {
+          estado: sigue.abrio ? { ...sigue.estado, abiertaDesde: ahora.toISOString() } : sigue.estado,
+          tanda_dia: hoy,
+          tanda_cuenta: sigue.abrio ? 1 : 0,
+        },
         resultado: true,
       };
     });
@@ -3746,11 +3786,11 @@ export async function trabajarNarrador(deps: DepsV3, fila: FilaV3, n: NarradorV3
     return 'tanda';
   }
 
-  if (tocaM8(fila, ahora, hoy)) {
+  if (tocaM8(fila, ahora)) {
     const r = await conReintento(deps.db, n.id, (f) => {
-      if (!tocaM8(f, ahora, hoy)) return null;
+      if (!tocaM8(f, ahora)) return null;
       const conM8 = encolar(f.estado, { texto: textoDelBanco('M8', fichaTexto(f)), tipo: 'recordatorio' });
-      return { cambio: { estado: { ...conM8, m8Dia: hoy } }, resultado: true };
+      return { cambio: { estado: { ...conM8, m8En: f.estado.esperando } }, resultado: true };
     });
     if (!r) return 'nada';
     await drenar(deps, n.id);
@@ -4390,7 +4430,7 @@ export async function arrancarV3(deps: DepsV3, n: NarradorV3, idioma: Idioma, fi
   await conReintento(deps.db, n.id, (f) => {
     if (f.tanda_dia !== null || f.estado.esperando || f.estado.respuestas.length > 0) return null; // ya arrancó
     const a = avanzar(f.estado, fichaTexto(f));
-    return { cambio: { estado: { ...a.estado, tandaInicioAt: ahora.toISOString() }, tanda_dia: hoy, tanda_cuenta: a.abrio ? 1 : 0 }, resultado: true };
+    return { cambio: { estado: { ...a.estado, abiertaDesde: ahora.toISOString() }, tanda_dia: hoy, tanda_cuenta: a.abrio ? 1 : 0 }, resultado: true };
   });
   await deps.db.from('narradores').update({ estado: 'activo' }).eq('id', n.id).eq('estado', 'acepto');
   await drenar(deps, n.id);
@@ -5313,6 +5353,63 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 
 ---
 
+### Task 15: El precio de Opus 5.5 en `costos.ts` (chica, independiente)
+
+Confirmado con la skill `claude-api` (tabla de modelos, cache del 25/09/2026): `claude-opus-5-5` cuesta USD 4 por millón de tokens de entrada, USD 20 de salida y USD 0,20 de lectura de cache; `claude-opus-5`, 5 y 25. Hoy `entrevistador/src/costos.ts` no tiene Opus 5.5 y `precioDe` lo cobra como `claude-opus-5` por prefijo (5/25). La escritura de cache no figura en la tabla de la skill: se usa 5 (1,25 × la entrada, la misma regla de las demás filas y el mismo valor de `fabrica/src/costos.ts:53`). No toca el precio de ningún otro modelo ni del flujo viejo.
+
+**Files:**
+- Modify: `entrevistador/src/costos.ts:20-24` (`PRECIOS_USD_POR_MILLON`)
+- Test: `entrevistador/test/costos.test.ts` (un caso nuevo)
+
+**Interfaces:**
+- Consumes: `calcularUsd` (`costos.ts`).
+- Produces: la fila `'claude-opus-5-5'` en `PRECIOS_USD_POR_MILLON`.
+
+- [ ] **Step 1: Escribir el test que falla**
+
+Agregar al final de `entrevistador/test/costos.test.ts`:
+
+```ts
+describe('el precio de Opus 5.5 (cazador V3)', () => {
+  it('es el suyo, no el de Opus 5 por prefijo', async () => {
+    const { calcularUsd } = await import('../src/costos.js');
+    expect(calcularUsd('claude-opus-5-5', { input_tokens: 1_000_000 })).toBe(4);
+    expect(calcularUsd('claude-opus-5-5', { output_tokens: 1_000_000 })).toBe(20);
+    expect(calcularUsd('claude-opus-5-5', { cache_read_input_tokens: 1_000_000 })).toBe(0.2);
+    expect(calcularUsd('claude-opus-5', { input_tokens: 1_000_000 })).toBe(5); // el de Opus 5 no cambia
+  });
+});
+```
+
+- [ ] **Step 2: Correr y ver que falla**
+
+Run: `cd entrevistador && npx vitest run test/costos.test.ts`
+Expected: FAIL (`expected 5 to be 4`).
+
+- [ ] **Step 3: La fila del precio**
+
+En `entrevistador/src/costos.ts`, dentro de `PRECIOS_USD_POR_MILLON`, después de `'claude-opus-5'`:
+
+```ts
+  'claude-opus-5-5': { input: 4, output: 20, cache_write: 5, cache_read: 0.2 },
+```
+
+- [ ] **Step 4: Correr y ver que pasa; tipos**
+
+Run: `cd entrevistador && npx vitest run test/costos.test.ts test/costos-enganche.test.ts && npx tsc --noEmit -p tsconfig.check.json`
+Expected: PASS y sin errores.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add entrevistador/src/costos.ts entrevistador/test/costos.test.ts
+git commit -m "costos: el precio de Opus 5.5 (4/20), que el entrevistador cobraba como Opus 5 por prefijo
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
+```
+
+---
+
 ## Lo que queda fuera de este plan (para la sesión principal)
 
 - **Llenar `entrevistador/src/v3/equivalencias.json`** con la tabla (texto de cada pregunta de la plantilla vieja → clave V3) y traérsela a Naza para aprobar. Sin eso, `npm run v3-pasar -- … --aplicar` no pasa a nadie con respuestas viejas.
@@ -5327,10 +5424,9 @@ Todos se leen de un solo lugar; el código no tiene ninguno escrito.
 | # | Texto | Dónde vive | Estado |
 |---|---|---|---|
 | 1 | Acuse de la **foto suelta** (no es FO1) en `ca` y en `es-ES`. En `es-AR` se usa el que ya manda hoy el flujo viejo: "📷 Guardada. Si querés, contame qué pasaba ahí." (estaba marcado "a revisar por Naza"). | `entrevistador/src/v3/textos-fijos.json` (`fotoSuelta`) | Sin texto en `ca`/`es-ES`: la foto se guarda y no se contesta nada. |
-| 2 | **M8 a las 6 h**: el spec lo manda a las 6 h de la primera pregunta del día, pero el texto del banco dice "Pasaron unos días y quería saber cómo andás…" (y su "cuando" dice "a los pocos días sin respuesta"). O un texto nuevo para el recordatorio del mismo día, o M8 a los días. | `fabrica/src/v3/entrevista/banco*.json` (M8) — se cambia en el banco de la fábrica y se copia | Sale tal cual está hasta que Naza decida. |
-| 3 | **M22** dice "…Y si te resulta más cómodo escribir, escribí nomás", pero el spec dice que un texto escrito no avanza y el plan no lo suma a la respuesta (no llega al libro). O el texto escrito cuenta como respuesta, o M22 deja de prometerlo. | banco (M22) | Sale tal cual; el texto queda en `respuestas.texto_directo` sin entrar a la entrevista. |
-| 4 | Plantillas de Meta nuevas (las carga Joaquín, el cuerpo lo aprueba Naza): `pregunta_diaria_es_es` (es_ES) y `pregunta_diaria_ca` (ca), una variable con la pregunta; `recordatorio_es_es`, `recordatorio_ca` y **`recordatorio_vos`** (es), una variable con el nombre. `recordatorio_vos` hace falta porque la `recordatorio` aprobada está en usted ("Cuando tenga un ratito, me la manda") y la V3 no trata de usted a nadie. | Meta + `PLANTILLAS_V3` en `entrevistador/src/v3/enviar.ts` + `WA_PLANTILLAS_V3_LISTAS` | Sin aprobar: fuera de las 24 h no sale nada en ese idioma y se avisa a los socios. |
-| 5 | La **bienvenida y la aceptación** de un narrador nuevo siguen siendo las viejas (plantilla `bienvenida` y `bienvenidaAceptacion`, en usted o vos según `tratoDe`, y solo en castellano). La V3 no manda BIEN porque el narrador ya está saludado. Para `ca`/`es-ES` y para no tratar de usted, hace falta decidir qué bienvenida reciben antes de OR1. | `entrevistador/src/manual/puro.ts` y la plantilla `bienvenida` | Fuera de este plan. |
+| 2 | Plantillas de Meta con el **texto de M8**, una por idioma (spec: M8 a los 2 días; fuera de las 24 h va por plantilla): `m8_vos` (es, para es-AR), `m8_es_es` (es_ES) y `m8_ca` (ca). Cuerpo = el texto de M8 del banco de cada idioma, con `{{1}}` en lugar del nombre. Las carga Joaquín; el cuerpo lo aprueba Naza. | Meta + `PLANTILLAS_V3` en `entrevistador/src/config.ts` + `WA_PLANTILLAS_V3_LISTAS` (`es-AR:recordatorio`, `es-ES:recordatorio`, `ca:recordatorio`) | Sin aprobar: dentro de las 24 h M8 sale como texto; fuera, no sale y se avisa a los socios. |
+| 3 | Plantillas de la **pregunta del día** para `es-ES` y `ca` (una variable con la pregunta): `pregunta_diaria_es_es` (es_ES) y `pregunta_diaria_ca` (ca). `es-AR` usa `pregunta_diaria_vos`, ya aprobada. | Meta + `PLANTILLAS_V3` + `WA_PLANTILLAS_V3_LISTAS` (`es-ES:pregunta`, `ca:pregunta`) | Sin aprobar: fuera de las 24 h no sale nada en ese idioma y se avisa a los socios. |
+| 4 | La **bienvenida y la aceptación** de un narrador nuevo siguen siendo las viejas (plantilla `bienvenida` y `bienvenidaAceptacion`, en usted o vos según `tratoDe`, y solo en castellano). La V3 no manda BIEN porque el narrador ya está saludado. Para `ca`/`es-ES` y para no tratar de usted, hace falta decidir qué bienvenida reciben antes de OR1. | `entrevistador/src/manual/puro.ts` y la plantilla `bienvenida` | Fuera de este plan. |
 
 ## Cobertura del spec
 
@@ -5341,16 +5437,16 @@ Todos se leen de un solo lugar; el código no tiene ninguno escrito.
 | Compare-and-swap con `version`, toma `enviando_hasta` | 3 |
 | Motor de turno (responder, tocarBoton, cerrarRespuesta, avanzar, cazarAlCerrar) | 4 |
 | Ritmo por tandas (4 / 8 / sin tope), retoma al día siguiente | 5, 10 |
-| Cazador en segundo plano, Opus 5.5, tope USD 3, costo registrado, nunca tira | 6 |
+| Cazador en segundo plano, Opus 5.5, tope USD 3, costo a `consumo_ia`, nunca tira | 6 (precio en `costos.ts`: 15) |
 | Botones al último; ventana de 24 h; plantilla por idioma; sin plantilla → aviso y no se manda en otro idioma | 7 |
 | Falla de envío: no se da por mandado, reintento, aviso a los 3 | 7 |
-| AV11 y FIN sin esperar; `completado`; mail de hito existente | 4, 7 (el "terminado" lo manda la fábrica) |
+| AV11 y FIN sin esperar; `completado`, sin mail de hito propio (el "terminado" lo manda la fábrica) | 4, 7 |
 | Duplicados por `wa_message_id`; audio → transcripción en su idioma (`ca` con su vocabulario); M23 | 8, 9 |
 | Botón Sí → M30; No/Paso → cierra y avanza en el momento | 4, 9 |
-| Texto → M22 (no avanza); pausado → reactiva y reenvía la abierta | 9 |
+| Texto escrito cuenta como respuesta (mismo reloj de 3'); M22 una sola vez en la entrevista; pausado → reactiva y reenvía la abierta | 9 |
 | Imagen: FO1 contestada / foto suelta como hoy | 8, 9 |
 | Bifurcación antes de fotos, `manejarTexto` y Opus; sin fila, todo igual | 9, 10 |
-| Reloj de 1 minuto: cierre por 3' de silencio, tanda a su hora, M8 a las 6 h, alerta de 3 días sin cambios | 10 |
+| Reloj de 1 minuto: cierre por 3' de silencio, tanda a su hora solo sin pregunta abierta (sin reenvío), M8 a los 2 días una vez por pregunta (plantilla por idioma fuera de las 24 h), alerta de 3 días sin cambios | 7, 10 |
 | Pase con equivalencias aprobadas, dry-run, `--aplicar`, no manda nada | 11 |
 | Alta de nuevos con `V3_PARA_NUEVOS` (apagado), idioma de `contexto.idioma`, sin género → frenar y avisar | 11 |
 | Fábrica: candado (generar-paquete, anticipo, previsualizar, worker) + `de-base.ts` | 12 |
