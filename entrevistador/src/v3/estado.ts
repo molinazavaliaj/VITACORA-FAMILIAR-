@@ -17,7 +17,8 @@ type ErrorDeBase = { code?: string; message?: string } | null;
 /** ¿La tabla no existe? (la migración sin aplicar): Postgres 42P01 o PostgREST PGRST205. */
 export function esTablaAusente(error: ErrorDeBase): boolean {
   if (!error) return false;
-  return error.code === '42P01' || error.code === 'PGRST205' || /does not exist|could not find the table/i.test(error.message ?? '');
+  if (error.code === '42P01' || error.code === 'PGRST205') return true;
+  return /relation "(public\.)?entrevistas_v3" does not exist|could not find the table/i.test(error.message ?? '');
 }
 
 /** Los narradores con V3 prendida. Sin la tabla, ninguno; con cualquier otro error, tira (mejor frenar que mandarle la pregunta vieja). */
@@ -101,13 +102,25 @@ export function tomaVigente(fila: Pick<FilaV3, 'enviando_hasta'>, ahora: Date): 
   return !!fila.enviando_hasta && Date.parse(fila.enviando_hasta) > ahora.getTime();
 }
 
-/** Toma el turno por TOMA_MS. Null si otro lo tiene: ese manda, este no. */
+/**
+ * Toma el turno por TOMA_MS. Null si otro lo tiene: ese manda, este no. Puede
+ * tirar si pierde INTENTOS_CAS rondas seguidas de compare-and-swap (mucha
+ * contención): el tick siguiente reintenta.
+ */
 export async function tomarTurno(db: SupabaseClient, narradorId: string, ahora: Date): Promise<FilaV3 | null> {
   const r = await conReintento(db, narradorId, (f) =>
     tomaVigente(f, ahora) ? null : { cambio: { enviando_hasta: new Date(ahora.getTime() + TOMA_MS).toISOString() }, resultado: true });
   return r?.fila ?? null;
 }
 
-export async function soltarTurno(db: SupabaseClient, narradorId: string): Promise<void> {
-  await conReintento(db, narradorId, () => ({ cambio: { enviando_hasta: null }, resultado: true }));
+/**
+ * Suelta el turno solo si sigue siendo el que `tomada` tomó (mismo
+ * `enviando_hasta`). Si venció y otro lo retomó, no se toca: devuelve null.
+ * OJO: la toma no tiene fencing (un dueño vencido todavía puede escribir estado
+ * por CAS), así que quien envía tiene que terminar bien por debajo de TOMA_MS.
+ */
+export async function soltarTurno(db: SupabaseClient, narradorId: string, tomada: FilaV3): Promise<FilaV3 | null> {
+  const r = await conReintento(db, narradorId, (f) =>
+    f.enviando_hasta === tomada.enviando_hasta ? { cambio: { enviando_hasta: null }, resultado: true } : null);
+  return r?.fila ?? null;
 }

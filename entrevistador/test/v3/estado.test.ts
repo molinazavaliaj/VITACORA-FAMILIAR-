@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { crearBaseFalsa } from './base-falsa.js';
-import { conReintento, crearFila, esNarradorV3, guardarSiNoCambio, leerFila, narradoresV3, soltarTurno, tomarTurno, TOMA_MS } from '../../src/v3/estado.js';
+import { conReintento, esTablaAusente, INTENTOS_CAS, crearFila, esNarradorV3, guardarSiNoCambio, leerFila, narradoresV3, soltarTurno, tomarTurno, TOMA_MS } from '../../src/v3/estado.js';
 import { estadoInicial, type FilaV3 } from '../../src/v3/tipos.js';
 
 const nueva = (narrador_id = 'n1') => ({
@@ -68,8 +68,43 @@ describe('la fila de entrevistas_v3', () => {
     expect(await tomarTurno(base.cliente, 'n1', AHORA)).not.toBeNull();
     expect(await tomarTurno(base.cliente, 'n1', AHORA)).toBeNull();
     expect(await tomarTurno(base.cliente, 'n1', new Date(AHORA.getTime() + TOMA_MS + 1))).not.toBeNull();
-    await soltarTurno(base.cliente, 'n1');
+    const tomada = (await leerFila(base.cliente, 'n1')) as FilaV3;
+    await soltarTurno(base.cliente, 'n1', tomada);
     expect((await leerFila(base.cliente, 'n1'))?.enviando_hasta).toBeNull();
     expect(await tomarTurno(base.cliente, 'n1', AHORA)).not.toBeNull();
+  });
+
+  it('dos tomas a la vez: solo una manda', async () => {
+    const base = crearBaseFalsa();
+    await crearFila(base.cliente, nueva());
+    const r = await Promise.all([tomarTurno(base.cliente, 'n1', AHORA), tomarTurno(base.cliente, 'n1', AHORA)]);
+    expect(r.filter((x) => x !== null)).toHaveLength(1);
+  });
+
+  it('conReintento tira tras INTENTOS_CAS pérdidas', async () => {
+    const base = crearBaseFalsa();
+    await crearFila(base.cliente, nueva());
+    let vueltas = 0;
+    await expect(conReintento(base.cliente, 'n1', (f) => {
+      vueltas++;
+      base.tablas.entrevistas_v3[0].version = f.version + 5;
+      return { cambio: { tanda_cuenta: 1 }, resultado: 1 };
+    })).rejects.toThrow();
+    expect(vueltas).toBe(INTENTOS_CAS);
+  });
+
+  it('soltarTurno no suelta una toma que ya es de otro', async () => {
+    const base = crearBaseFalsa();
+    await crearFila(base.cliente, nueva());
+    const a = (await tomarTurno(base.cliente, 'n1', AHORA)) as FilaV3;
+    const b = (await tomarTurno(base.cliente, 'n1', new Date(AHORA.getTime() + TOMA_MS + 1))) as FilaV3;
+    expect(await soltarTurno(base.cliente, 'n1', a)).toBeNull();
+    expect((await leerFila(base.cliente, 'n1'))?.enviando_hasta).toBe(b.enviando_hasta);
+  });
+
+  it('esTablaAusente no se traga errores de columna', () => {
+    expect(esTablaAusente({ code: '42703', message: 'column "x" does not exist' })).toBe(false);
+    expect(esTablaAusente({ code: '42P01' })).toBe(true);
+    expect(esTablaAusente({ message: 'relation "entrevistas_v3" does not exist' })).toBe(true);
   });
 });
