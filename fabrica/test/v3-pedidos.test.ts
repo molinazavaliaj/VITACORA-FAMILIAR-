@@ -47,6 +47,12 @@ describe('pideReserva', () => {
     }
   });
 
+  it('la genérica seguida de un lugar o dicha por otro vale si el lugar es el libro (revisión 2 del 07/10)', () => {
+    for (const t of ['No lo escribas en el libro.', 'Eso no lo escribas en el libro.', 'No lo escribas en la biografía.']) expect(pideReserva(t, 'es-AR'), t).toBe(true);
+    for (const t of ['No ho escriguis al llibre.', 'No ho posis en el llibre.']) expect(pideReserva(t, 'ca'), t).toBe(true);
+    for (const t of ['No lo pongas aquí, que no vaya en el libro.', 'Esto no lo pongas a la vista de todos en el libro.']) expect(pideReserva(t, 'es-ES'), t).toBe(true);
+  });
+
   it('negativos: hablar del libro o de escribir no es pedir que no vaya', () => {
     for (const t of [
       'Me encanta la idea del libro.',
@@ -80,6 +86,13 @@ describe('pidePausa', () => {
       'Bueno, querida, paremos que estoy cansada.',
       'Mirá, la verdad es que hoy estoy muy cansada, paremos por hoy.',
     ]) expect(pidePausa(t, 'es-AR'), t).toBe(true);
+  });
+
+  it('pausas claras con algo después (revisión 2 del 07/10): un signo corta el vínculo', () => {
+    for (const t of ['Quiero parar la entrevista.', 'Quiero parar a descansar.', 'No quiero seguir en este momento.', 'No quiero seguir, en serio.', 'Quiero parar de una vez.', 'Quiero parar, ando cansada.']) {
+      expect(pidePausa(t, 'es-AR'), t).toBe(true);
+    }
+    expect(pidePausa('Vull parar, tant cansada estic.', 'ca')).toBe(true);
   });
 
   it('es-ES y ca', () => {

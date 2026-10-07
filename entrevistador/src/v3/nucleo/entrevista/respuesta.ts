@@ -1032,7 +1032,8 @@ export const PALABRAS_PEDIDO_PAUSA = 15;
 const PAUSA_ES = [
   'quiero parar', 'no quiero seguir', 'basta por hoy', 'dejemos aca', 'dejemos por hoy', 'dejemoslo por ahora', 'dejemoslo para otro dia', 'dejemoslo por hoy',
   'no tengo ganas de seguir', 'lo dejamos para otro dia', 'lo dejamos por hoy', 'sigamos otro dia', 'seguimos otro dia', 'hagamos una pausa', 'necesito una pausa',
-  'una pausa por favor',
+  'una pausa por favor', 'quiero parar la entrevista', 'quiero parar a descansar', 'quiero parar de una vez', 'no quiero seguir en este momento',
+  'no quiero seguir con la entrevista',
 ];
 const PAUSA_SOLO_ESPANA = ['paremos aqui', 'vamos a parar', 'lo dejamos aqui por hoy'];
 const PAUSA_SOLO_CATALAN = [
@@ -1056,7 +1057,7 @@ const NEGACIONES_ANTES = new Set(['no', 'mai', 'nunca']);
  */
 const NO_ES_PAUSA_DESPUES = new Set(['a', 'al', 'en', 'el', 'la', 'de', 'del', 'para', 'con', 'amb', 'hablando', 'contando', 'parlant', 'explicant']);
 const GERUNDIO = /(ando|iendo|endo|ant)$/;
-const NO_SON_GERUNDIO = new Set(['cuando', 'quan', 'mientras', 'grande']);
+const NO_SON_GERUNDIO = new Set(['cuando', 'quan', 'mientras', 'grande', 'ando', 'tant']);
 
 type Pedidos = { reserva: readonly string[][]; pausa: readonly string[][]; sueltas: readonly string[][] };
 const lista = (xs: string[]) => [...new Set(xs.map(normalizar))].map((x) => x.split(' '));
@@ -1080,6 +1081,29 @@ function apariciones(pal: readonly string[], frase: readonly string[]): { inicio
 
 const palabrasDe = (texto: string) => normalizar(texto).split(' ').filter(Boolean);
 
+/** Un signo entre palabras ("Quiero parar, ando cansada"): corta el vínculo con lo que sigue. */
+const SIGNO_QUE_CORTA = /[,.;:!?…¡¿()"«»\n]/;
+
+/**
+ * Las palabras (como `palabrasDe`) y, para cada una, si después viene un signo.
+ * Se parte el texto por los signos y cada tramo se normaliza igual.
+ */
+function palabrasConCortes(texto: string): { pal: string[]; corte: boolean[] } {
+  const pal: string[] = [];
+  const corte: boolean[] = [];
+  for (const tramo of texto.split(SIGNO_QUE_CORTA)) {
+    const ws = palabrasDe(tramo);
+    if (ws.length === 0) {
+      if (corte.length > 0) corte[corte.length - 1] = true;
+      continue;
+    }
+    if (corte.length > 0) corte[corte.length - 1] = true;
+    pal.push(...ws);
+    corte.push(...ws.map(() => false));
+  }
+  return { pal, corte };
+}
+
 /**
  * ¿Pide que esto no vaya al libro? La que nombra el libro, a cualquier largo.
  * La genérica ("eso no lo pongas", "no ho posis"), solo en un mensaje de hasta
@@ -1094,16 +1118,17 @@ export function pideReserva(texto: string, idioma: Idioma = IDIOMA_POR_DEFECTO):
   return PEDIDOS[idioma].reserva.some((fr) => {
     const ap = apariciones(pal, fr);
     if (ap.length === 0) return false;
-    if (fr.some((w) => EL_LIBRO.has(w))) return true;
-    if (dichoPorOtro || (pal.length > PALABRAS_RESERVA_GENERICA && !nombraElLibro)) return false;
+    // Si el mensaje nombra el libro, el "lugar" es el libro ("no lo escribas en el libro"): vale siempre.
+    if (fr.some((w) => EL_LIBRO.has(w)) || nombraElLibro) return true;
+    if (dichoPorOtro || pal.length > PALABRAS_RESERVA_GENERICA) return false;
     return ap.some(({ fin }) => !LUGAR_DESPUES_DE_RESERVA.has(pal[fin]));
   });
 }
 
-/** ¿Lo que sigue en `fin` cancela la pausa? */
-function cancelaDespues(pal: readonly string[], fin: number): boolean {
+/** ¿Lo que sigue en `fin` (pegado, sin un signo en el medio) cancela la pausa? */
+function cancelaDespues(pal: readonly string[], corte: readonly boolean[], fin: number): boolean {
   const w = pal[fin];
-  if (w === undefined) return false;
+  if (w === undefined || corte[fin - 1]) return false;
   return NO_ES_PAUSA_DESPUES.has(w) || (GERUNDIO.test(w) && !NO_SON_GERUNDIO.has(w));
 }
 
@@ -1118,14 +1143,14 @@ function negadaAntes(pal: readonly string[], frase: readonly string[], inicio: n
  * que la vuelve otra cosa ("paremos acá a comer", "no quiero seguir trabajando").
  */
 export function pidePausa(texto: string, idioma: Idioma = IDIOMA_POR_DEFECTO): boolean {
-  const pal = palabrasDe(texto);
+  const { pal, corte } = palabrasConCortes(texto);
   if (pal.length === 0 || pal.length > PALABRAS_PEDIDO_PAUSA) return false;
   const p = PEDIDOS[idioma];
-  const vale = (fr: readonly string[], inicio: number, fin: number) => !negadaAntes(pal, fr, inicio) && !cancelaDespues(pal, fin);
+  const vale = (fr: readonly string[], inicio: number, fin: number) => !negadaAntes(pal, fr, inicio) && !cancelaDespues(pal, corte, fin);
   if (p.pausa.some((fr) => apariciones(pal, fr).some(({ inicio, fin }) => vale(fr, inicio, fin)))) return true;
   if (pal.length <= PALABRAS_PAUSA_SOLA && apariciones(pal, [PAUSA_SOLA]).some(({ inicio, fin }) => vale([PAUSA_SOLA], inicio, fin))) return true;
   return p.sueltas.some((fr) => apariciones(pal, fr).some(({ inicio, fin }) => {
-    const sigue = DESPUES_DE_SUELTA.find((d) => hayFraseEn(pal, fin, d));
+    const sigue = corte[fin - 1] ? undefined : DESPUES_DE_SUELTA.find((d) => hayFraseEn(pal, fin, d));
     if (pal.length > PALABRAS_SUELTA && !sigue && fin < pal.length) return false;
     return vale(fr, inicio, fin + (sigue?.length ?? 0));
   }));
