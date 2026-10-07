@@ -14,6 +14,8 @@
 | 2026-10-01 | Prueba del cazador de escenas v2 (Opus 5, 14 bloques de la entrevista V3 de Naza; `fabrica/scripts/v3-cazador-prueba.ts`) | USD 0,91 | key de Naza | Consumible |
 | 2026-10-01 | Prueba del cazador v3 (Opus 5): entrevista V3 de Naza (14 bloques, USD 1,29) y entrevista de prueba de Joaquín (5 tramos, USD 0,63); `fabrica/scripts/v3-cazador-prueba-v3.ts` | USD 1,92 | key de Naza | Consumible |
 | 2026-10-01 | Prueba del cazador v3.1 (Opus 5), solo los bloques 1, 12 y 14 de la entrevista de Naza | USD 0,29 | key de Naza | Consumible |
+| 2026-10-07 | Escritor v5.5 en la fábrica, capítulo VI de Joaquín, Opus 5.5 xhigh en todo (`docs/v5/escritor-v55/pruebas.md`) | USD 6,90 | key de Naza | Consumible |
+| 2026-10-07 | Escritor en la fábrica, capítulo VI de Joaquín con la configuración económica (xhigh solo en el capítulo, Haiku en lo mecánico, todo por Batch) | USD 2,52 | key de Naza | Consumible |
 | — | Vercel, Supabase, Resend, GitHub | USD 0 | — | Gratis (planes free) |
 
 **Total puesto por Naza hasta el 18/09: USD 40 + 47€ ≈ USD 91** (USD 20 de crédito

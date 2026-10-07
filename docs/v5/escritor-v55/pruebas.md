@@ -59,3 +59,41 @@ Capítulo VI de Joaquín, escrito por API con el escritor de `fabrica/src/escrit
 3. **La caché casi no ahorró** (2.152 tokens leídos): el prefijo que se repite es chico y las escrituras de caché de los hechos (178k) no se reusaron (el directo fue después del lote y no pegó).
 4. **Proyección del libro entero con esta configuración: unos USD 25–30** (9 capítulos × ~1,7 de armador+capítulo+resumen, más hechos, repaso, ~11 arreglos, ~24 estilos, piezas fijas, registro y plan). Mucho más que lo estimado en el diseño (~9).
 5. Calidad: el capítulo nuevo se le pasó a Naza junto al de la sesión (`capitulo-VI-sesion-vs-fabrica.pdf`) para que decida leyendo.
+
+## Configuración económica, capítulo VI de Joaquín (07/10/2026)
+
+Mismo capítulo, en una copia limpia (`fabrica/prueba-v3-joaquin-fabrica-eco/`), con `modelo/configuracion.ts`: Opus xhigh solo en el capítulo (y en la primera página, que acá no corre); Opus medio en armador, hechos, veedor, arreglo y repaso; Haiku 4.5 (presupuesto de pensamiento de 8.000) en resumen, estilo y título; todo por Batch, también las llamadas de a una; hechos con 128.000 y caché de 1 hora. Tope USD 3; estimado 2,84.
+
+**Gasto real: USD 2,52**, 11 llamadas, todas por lote, sin fallas. Incluye una reescritura del capítulo por C30 (la primera versión dejó afuera 7 de 20 respuestas).
+
+| Llamada | Modelo | Entrada | Salida (incl. pensamiento) | Caché | USD | xhigh (antes) |
+|---|---|---|---|---|---|---|
+| 2h armador | Opus medio | 28.747 | 6.858 | — | 0,13 | 0,66 |
+| 3b capítulo | Opus xhigh | 27.057 | 52.771 | — | 0,59 | 0,99 |
+| 3b capítulo, reescritura C30 | Opus xhigh | 28.048 | 44.444 | — | 0,51 | — |
+| 3r resumen | Haiku | 3.425 | 1.129 | — | 0,005 | 0,04 |
+| 4 hechos | Opus medio | 1.820 | 19.041 | 178.225 escritos (1 h) | 0,91 | 3,21 (dos veces) |
+| 5c veedor | Opus medio | 25.612 | 10.694 | — | 0,16 | 0,44 |
+| 6 arreglo | Opus medio | 21.916 | 5.473 | — | 0,10 | 0,21 |
+| 4 hechos repaso | Opus medio | 10.559 | 3.636 | **139.439 leídos** | 0,07 | 1,06 |
+| 7 estilo ×2 | Haiku | 12.646 | 19.057 | — | 0,05 | 0,28 |
+| 3t título | Haiku | 3.211 | 1.974 | — | 0,007 | 0,02 |
+
+Lo que se aprendió:
+1. **El capítulo en xhigh es ahora casi todo el costo** (0,59 cada versión; con la reescritura, 1,10 de 2,52).
+2. **La caché de 1 hora sirvió**: el repaso leyó 139.439 tokens de la caché de los hechos (0,07 en vez de 1,06), aunque fueron en lotes distintos.
+3. Pensamiento medio bajó la salida a un cuarto en armador (6.858 vs 27.049), veedor (10.694 vs 38.388) y hechos (19.041 vs 61.306).
+4. Haiku devolvió el título con ```json alrededor; el libro lo lee bien (parseo tolerante).
+
+**Proyección del libro entero con esta configuración: unos USD 12 (entre 11 y 13,5)**, más que los 9:
+
+| Parte | USD |
+|---|---|
+| 9 capítulos × (armador 0,13 + capítulo 0,59 + resumen, estilo ×2 y título 0,06) | 7,00 |
+| Reescrituras C30 (0,51 cada una; supuestas 2 de 9) | 1,00 |
+| Primera página (xhigh), carta y Antes de cerrar (medio), Sus frases (Haiku), estilo de esas piezas | 1,05 |
+| Hechos, veedor, ~11 arreglos, repaso y disputas | 2,50 |
+| Registro y plan (Etapa A, Opus medio; no medido) y correcciones (Haiku) | 0,85 |
+
+Las palancas que quedan, de mayor a menor: el capítulo en `high` en vez de `xhigh` (si la salida baja a la mitad, unos 2,5 menos), evitar las reescrituras C30, el armador en `low`. Una sola pasada de estilo ya casi no ahorra (Haiku: 0,03 por pieza). Naza lee los tres capítulos VI (`capitulo-VI-tres-versiones.pdf`, carpeta principal) y decide.
+
