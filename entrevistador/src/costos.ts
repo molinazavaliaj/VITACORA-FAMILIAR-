@@ -24,6 +24,8 @@ export type Precio = { input: number; output: number; cache_write: number; cache
 /** USD por millón de tokens. Misma tabla que la fábrica (`fabrica/src/costos.ts`). */
 export const PRECIOS_USD_POR_MILLON: Record<string, Precio> = {
   'claude-fable-5': { input: 10, output: 50, cache_write: 12.5, cache_read: 1 },
+  // Va antes que 'claude-opus-5': el prefijo se resuelve por orden y 'claude-opus-5-5-…' empezaría con 'claude-opus-5-'.
+  'claude-opus-5-5': { input: 4, output: 20, cache_write: 5, cache_read: 0.2 },
   'claude-opus-5': { input: 5, output: 25, cache_write: 6.25, cache_read: 0.5 },
   'claude-haiku-4-5': { input: 1, output: 5, cache_write: 1.25, cache_read: 0.1 },
 };

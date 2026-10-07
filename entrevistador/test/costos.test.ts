@@ -84,3 +84,26 @@ describe('registrarUso', () => {
     expect(aviso).toHaveBeenCalledOnce();
   });
 });
+
+describe('el precio de Opus 5.5 (cazador V3)', () => {
+  it('es el suyo, no el de Opus 5 por prefijo', () => {
+    expect(calcularUsd('claude-opus-5-5', { input_tokens: 1_000_000 })).toBe(4);
+    expect(calcularUsd('claude-opus-5-5', { output_tokens: 1_000_000 })).toBe(20);
+    expect(calcularUsd('claude-opus-5-5', { cache_read_input_tokens: 1_000_000 })).toBe(0.2);
+    expect(calcularUsd('claude-opus-5-5', { cache_creation_input_tokens: 1_000_000 })).toBe(5);
+  });
+
+  it('una variante con fecha también se cobra como Opus 5.5', () => {
+    expect(calcularUsd('claude-opus-5-5-20260401', { input_tokens: 1_000_000 })).toBe(4);
+  });
+
+  it('los precios de los modelos del flujo viejo no cambian', () => {
+    expect(calcularUsd('claude-opus-5', { input_tokens: 1_000_000 })).toBe(5);
+    expect(calcularUsd('claude-opus-5', { output_tokens: 1_000_000 })).toBe(25);
+    expect(calcularUsd('claude-opus-5-20260101', { input_tokens: 1_000_000 })).toBe(5);
+    expect(calcularUsd('claude-fable-5', { input_tokens: 1_000_000 })).toBe(10);
+    expect(calcularUsd('claude-fable-5', { output_tokens: 1_000_000 })).toBe(50);
+    expect(calcularUsd('claude-haiku-4-5', { input_tokens: 1_000_000 })).toBe(1);
+    expect(calcularUsd('claude-haiku-4-5', { output_tokens: 1_000_000 })).toBe(5);
+  });
+});
