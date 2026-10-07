@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { entrevistaDeFila, leerEntrevistaV3, MARCA_FOTO, type FilaEntrevistaV3 } from '../src/escritor/material/de-base.js';
+import { entrevistaDeFila, leerEntrevistaV3, MARCA_FOTO, SIN_CLAVE_V3, type FilaEntrevistaV3 } from '../src/escritor/material/de-base.js';
 import { aMaterial } from '../src/escritor/material/de-entrevista.js';
 
 const fila = (extra: Partial<FilaEntrevistaV3['estado']> = {}, idioma = 'es-AR'): FilaEntrevistaV3 => ({
@@ -80,6 +80,20 @@ describe('el lector de la entrevista V3 desde la base', () => {
     const e = await leerEntrevistaV3(db, 'n1');
     expect(e?.audios).toEqual([{ clave: 'OR1', audioPath: 'n1/dia_01.ogg', transcripcion: 'Nací…', recibidoAt: '2026-10-08T13:00:00Z' }]);
     expect(await leerEntrevistaV3(db, 'n2')).toBeNull();
+  });
+
+  it('ignora las filas que la V3 dejó afuera a propósito (clave_v3 = ∅): ni audio ni reserva', async () => {
+    const db = dbFalsa({
+      entrevistas_v3: [fila()],
+      respuestas: [
+        { narrador_id: 'n1', clave_v3: '∅', audio_path: 'n1/dia_01.ogg', transcripcion: 'cortado', recibido_at: '2026-10-08T12:00:00Z', reservada: true },
+        { narrador_id: 'n1', clave_v3: 'OR1', audio_path: 'n1/dia_02.ogg', transcripcion: 'Nací…', recibido_at: '2026-10-08T13:00:00Z' },
+      ],
+    });
+    const e = await leerEntrevistaV3(db, 'n1');
+    expect(SIN_CLAVE_V3).toBe('∅'); // la misma marca que entrevistador/src/v3/tipos.ts
+    expect(e?.audios.map((a) => a.clave)).toEqual(['OR1']);
+    expect(e?.respuestas.map(([k]) => k)).toEqual(['OR1', 'FO1']);
   });
 
   it('un audio reservado no entra con su ruta ni su texto', async () => {

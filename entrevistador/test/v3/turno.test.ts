@@ -143,3 +143,13 @@ describe('foto y cola', () => {
     expect(quitarSalientes(e, [1]).salientes.map((s) => s.texto)).toEqual(['b']);
   });
 });
+
+describe('al cambiar la pregunta abierta', () => {
+  it('cerrarRespuesta saca de la cola el M8 que no salió y olvida que la abierta fue por plantilla', () => {
+    const conM8 = encolar({ ...abierta('OR1'), borrador: 'Nací en un pueblo.', abiertaPorPlantilla: true }, { texto: 'M8', tipo: 'recordatorio' });
+    const conSuelto = encolar(conM8, { texto: 'M22', tipo: 'suelto' });
+    const { estado } = cerrarRespuesta(conSuelto, FICHA);
+    expect(estado.salientes.map((s) => s.texto)).toEqual(['M22']);
+    expect(estado.abiertaPorPlantilla).toBeUndefined();
+  });
+});

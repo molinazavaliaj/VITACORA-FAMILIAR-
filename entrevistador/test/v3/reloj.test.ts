@@ -4,7 +4,10 @@ import { depsDePrueba } from './deps-prueba.js';
 import { crearFila, leerFila } from '../../src/v3/estado.js';
 import { tickV3, trabajarNarrador } from '../../src/v3/reloj.js';
 import { avanzar, cerrarYSeguir, encolar, recibirAudio, textoDelBanco } from '../../src/v3/turno.js';
-import { estadoInicial, type EstadoV3, type FilaV3, type NarradorV3 } from '../../src/v3/tipos.js';
+import { estadoInicial, MARCA_FOTO, SIN_CLAVE_V3, type EstadoV3, type FilaV3, type NarradorV3 } from '../../src/v3/tipos.js';
+import { procesarEntranteV3 } from '../../src/v3/entrante.js';
+import { preguntaPorId } from '../../src/v3/nucleo/entrevista/banco.js';
+import { renderizar } from '../../src/v3/nucleo/entrevista/texto.js';
 
 const FICHA = { nombre: 'Prueba', genero: 'mujer' as const };
 const AHORA = new Date('2026-10-08T13:05:00Z'); // 10:05 en Buenos Aires
@@ -71,11 +74,14 @@ describe('la tanda diaria', () => {
     expect(await r.trabajar()).toBe('tanda');
     expect(r.enviados).toHaveLength(1);
     expect(r.enviados[0]).toMatchObject({ tipo: 'plantilla', plantilla: 'pregunta_diaria_vos' });
-    expect(r.enviados[0].variables![0].startsWith(textoDelBanco('M3.1', FICHA))).toBe(true);
+    // Por plantilla va SOLO la pregunta: sin el acuse de ayer ni la entrada (spec: final-findings F3).
+    expect(r.enviados[0].variables).toEqual([renderizar(preguntaPorId('OR2')!.texto, FICHA).replace(/\s+/g, ' ').trim()]);
     const f = await r.leer();
     expect(f).toMatchObject({ tanda_dia: HOY, tanda_cuenta: 1 });
     expect(f.estado.esperando).toBe('OR2');
     expect(f.estado.abiertaDesde).toBe(AHORA.toISOString());
+    expect(f.estado.abiertaPorPlantilla).toBe(true);
+    expect(f.estado.salientes).toEqual([]);
   });
 
   it('si la de ayer quedó sin contestar, NO se reenvía ni arranca otra (se espera; a los 2 días, M8)', async () => {
@@ -179,6 +185,101 @@ describe('casos que el reloj no puede romper', () => {
     }
     expect(errores).toHaveLength(1);
     expect((await r.leer()).estado.respuestas).toHaveLength(1);
+  });
+});
+
+describe('reconciliación: filas de respuestas que quedaron sin clave_v3', () => {
+  const CREADA = '2026-10-01T00:00:00.000Z';
+  const fila = (extra: Record<string, unknown>) => ({
+    narrador_id: 'n1', wa_message_id: `wamid.${Math.random()}`, audio_path: null, transcripcion: null, texto_directo: null,
+    clave_v3: null, es_repregunta: false, pregunta_orden: 1, recibido_at: hace(6 * MIN), ...extra,
+  });
+  async function conFilas(estado: EstadoV3, filas: Record<string, unknown>[]) {
+    const r = await preparar(estado, { creada_at: CREADA });
+    r.base.tablas.respuestas = filas.map((f, i) => ({ id: `r${i + 1}`, ...fila(f) }));
+    return r;
+  }
+  const clave = (r: Awaited<ReturnType<typeof conFilas>>, id: string) => r.base.tablas.respuestas.find((x) => x.id === id)?.clave_v3;
+
+  it('un audio ya transcripto entra a la abierta, corre el reloj y queda con su clave (una sola vez)', async () => {
+    const r = await conFilas(enOR1(), [{ audio_path: 'n1/dia_01.ogg', transcripcion: 'Nací en un pueblo chico.' }]);
+    expect(await r.trabajar()).toBe('reconciliar');
+    const f = await r.leer();
+    expect(f.estado.borrador).toBe('Nací en un pueblo chico.');
+    expect(f.ultimo_audio_at).toBe(AHORA.toISOString());
+    expect(clave(r, 'r1')).toBe('OR1');
+    expect(await r.trabajar()).toBe('nada');
+    expect((await r.leer()).estado.borrador).toBe('Nací en un pueblo chico.');
+  });
+
+  it('un audio sin transcribir se transcribe desde Storage (en su idioma)', async () => {
+    const r = await conFilas(enOR1(), [{ audio_path: 'n1/dia_01.ogg' }]);
+    r.base.archivos.set('audios/n1/dia_01.ogg', 'Mi mamá cosía.');
+    await r.trabajar();
+    expect((await r.leer()).estado.borrador).toBe('Mi mamá cosía.');
+    expect(r.base.tablas.respuestas[0]).toMatchObject({ transcripcion: 'Mi mamá cosía.', clave_v3: 'OR1' });
+  });
+
+  it('si la transcripción vuelve a fallar: M23 y la fila queda afuera (no se reintenta para siempre)', async () => {
+    const r = await conFilas(enOR1(), [{ audio_path: 'n1/dia_01.ogg' }]);
+    r.base.archivos.set('audios/n1/dia_01.ogg', 'FALLA');
+    await r.trabajar();
+    expect(r.enviados.map((e) => e.texto)).toEqual([textoDelBanco('M23', FICHA)]);
+    expect(clave(r, 'r1')).toBe(SIN_CLAVE_V3);
+    expect(await r.trabajar()).toBe('nada');
+    expect(r.enviados).toHaveLength(1);
+  });
+
+  it('un texto, un botón y la foto de FO1 pasan por el mismo camino que un mensaje nuevo', async () => {
+    const enCA6: EstadoV3 = { ...estadoInicial(), esperando: 'CA6', preguntaAbierta: { partes: [{ id: 'CA6', texto: '¿Hermanos?' }] }, ultimoEntranteAt: hace(HORA) };
+    const boton = await conFilas(enCA6, [{ texto_directo: '⟦botón:Sí, tuve⟧' }]);
+    await boton.trabajar();
+    expect((await boton.leer()).estado).toMatchObject({ tocoSi: true, respuestas: [['CA6', '⟦botón:Sí, tuve⟧']] });
+    expect(boton.enviados.map((e) => e.texto)).toEqual([textoDelBanco('M30', FICHA)]);
+    expect(clave(boton, 'r1')).toBe('CA6');
+
+    const texto = await conFilas(enOR1(), [{ texto_directo: 'Nací en un pueblo.', transcripcion: 'Nací en un pueblo.' }]);
+    await texto.trabajar();
+    expect((await texto.leer()).estado.borrador).toBe('Nací en un pueblo.');
+    expect(texto.enviados.map((e) => e.texto)).toEqual([textoDelBanco('M22', FICHA)]);
+
+    const foto = await conFilas({ ...estadoInicial(), esperando: 'FO1', ultimoEntranteAt: hace(HORA) }, [{ texto_directo: MARCA_FOTO, transcripcion: MARCA_FOTO }]);
+    await foto.trabajar();
+    expect((await foto.leer()).estado.borrador).toBe(MARCA_FOTO);
+    expect(clave(foto, 'r1')).toBe('FO1');
+  });
+
+  it('no toca lo reciente (< 5 min), lo de antes de la V3, lo marcado como afuera ni lo que no vino de WhatsApp', async () => {
+    const r = await conFilas(enOR1(), [
+      { transcripcion: 'Reciente.', texto_directo: 'Reciente.', recibido_at: hace(2 * MIN) },
+      { transcripcion: 'Vieja.', texto_directo: 'Vieja.', recibido_at: '2026-09-20T10:00:00.000Z' },
+      { transcripcion: 'Afuera.', texto_directo: 'Afuera.', clave_v3: SIN_CLAVE_V3 },
+      { transcripcion: 'Sin wamid.', texto_directo: 'Sin wamid.', wa_message_id: null },
+    ]);
+    expect(await r.trabajar()).toBe('nada');
+    expect((await r.leer()).estado.borrador).toBeUndefined();
+  });
+
+  it('de punta a punta: se cae al guardar el estado, y a los 5 minutos el reloj lo recupera', async () => {
+    const r = await preparar(enOR1(), { creada_at: CREADA });
+    const cliente = r.base.cliente as unknown as { from: (t: string) => { update: (v: unknown) => unknown } };
+    const from = cliente.from.bind(cliente);
+    let k = 0;
+    cliente.from = (t: string) => {
+      const q = from(t);
+      if (t === 'entrevistas_v3') {
+        const update = q.update.bind(q);
+        q.update = (v: unknown) => { if (++k === 2) r.base.fallarProxima.set('entrevistas_v3', { code: 'XX000', message: 'se cayó: prueba' }); return update(v); };
+      }
+      return q;
+    };
+    await expect(procesarEntranteV3(r.deps, r.n1, { telefono: '+5491100000000', tipo: 'audio', mediaId: 'Nací en un pueblo chico.', waMessageId: 'wamid.caida' })).rejects.toThrow(/se cayó/);
+    expect((await r.leer()).estado.borrador).toBeUndefined();
+    r.base.tablas.respuestas[0].recibido_at = AHORA.toISOString(); // la base pone now()
+    r.pasar(6 * MIN);
+    expect(await r.trabajar()).toBe('reconciliar');
+    expect((await r.leer()).estado.borrador).toBe('Nací en un pueblo chico.');
+    expect(r.base.tablas.respuestas[0].clave_v3).toBe('OR1');
   });
 });
 

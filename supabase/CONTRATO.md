@@ -511,9 +511,9 @@ La escribe el entrevistador y la lee la fábrica.
 | `narrador_id` | Clave primaria y referencia a `narradores`. |
 | `idioma` | `es-AR`, `es-ES` o `ca`. |
 | `ficha` (jsonb) | `nombre` (= `como_le_dicen`), `genero` (`varon` / `mujer` / `otro`), `formaTrato?`, `quienRegala?`. |
-| `estado` (jsonb) | El motor de `entrevistador/src/v3/turno.ts`: `respuestas` (`[clave, texto][]` en orden de llegada: **es la verdad de la entrevista**), `enviados`, `vueltas`, `acuse`, `esperando`, `tocoSi`, `borrador` (los audios de la abierta, sin cerrar), `preguntaAbierta`, `bloqueActual`, `terminada`, `familia`, `repreguntas`, `cazador`, `charla` (los mensajes tal como salieron), `salientes` (la cola de WhatsApp), y contadores (`seq`, `fallosEnvio`, `ultimoEntranteAt`, `abiertaDesde`, `m8En`, `m22Enviado`). |
+| `estado` (jsonb) | El motor de `entrevistador/src/v3/turno.ts`: `respuestas` (`[clave, texto][]` en orden de llegada: **es la verdad de la entrevista**), `enviados`, `vueltas`, `acuse`, `esperando`, `tocoSi`, `borrador` (los audios de la abierta, sin cerrar), `preguntaAbierta`, `bloqueActual`, `terminada`, `familia`, `repreguntas`, `cazador`, `charla` (los mensajes tal como salieron), `salientes` (la cola de WhatsApp), y contadores (`seq`, `fallosEnvio`, `ultimoEntranteAt`, `abiertaDesde`, `m8En`, `m22Enviado`). `wamidsVistos`: los últimos 50 `wa_message_id` ya aplicados al estado o dejados de lado (dedupe de lo que no deja fila en `respuestas` y candado de la reconciliación). `abiertaPorPlantilla`: la abierta salió por plantilla, sin botones (al volver a escribir se le reenvía con botones). |
 | `version` | Cada escritura es `UPDATE … WHERE version = n`; si cambió, se relee y se reintenta. |
-| `ultimo_audio_at` | Cuando se **guardó** la última transcripción de la pregunta abierta (el reloj cierra a los 3'). |
+| `ultimo_audio_at` | Cuando **llegó** el último audio de la pregunta abierta y, otra vez, cuando se **guardó** su transcripción (el reloj cierra a los 3'). |
 | `tanda_dia`, `tanda_cuenta` | La tanda del día (en la zona del narrador) y cuántas preguntas salieron. |
 | `enviando_hasta` | Toma corta del turno (2 minutos): un solo proceso manda la cola. |
 | `creada_at`, `migrada_de` | `migrada_de`: null, o `{"de": "v-vieja", "dia_actual": n}` (el `dia_actual` que tenía). |
@@ -525,6 +525,15 @@ Reglas de una fila de `respuestas` de un narrador V3: `pregunta_orden` = **núme
 un orden del guion: el libro viejo no la lee nunca, lo frena el candado de la fábrica);
 `transcripcion` = el texto del audio (o el texto escrito, que cuenta como respuesta); `texto_directo` = la marca
 del botón (`⟦botón:Sí⟧`), el texto escrito o `⟦foto⟧` (la foto de FO1).
+
+`clave_v3` en una fila V3 (07/10, revisión final): se pone **después** de sumar la fila al estado.
+- **null** (y `wa_message_id` no null, llegada después de `entrevistas_v3.creada_at`): todavía no se
+  sumó. Si pasan 5 minutos, el reloj la **reconcilia**: la pasa por el mismo camino que un mensaje
+  nuevo (un audio sin transcripción se transcribe desde Storage) y le pone la clave.
+- **`∅`** (`SIN_CLAVE_V3`): se guardó y **quedó afuera a propósito** (un botón que no es de la
+  abierta, un audio que no se pudo transcribir y se pidió de nuevo con M23, algo que llegó sin nada
+  abierto ni contestado). El reloj no la reintenta; **la fábrica (`de-base.ts`) y el pase la ignoran**.
+- cualquier otro valor: la pregunta V3 a la que se sumó.
 
 Lo que no cambia: las transiciones de `narradores.estado` (`activo` durante la V3, `completado`
 después de FIN, `pausado` igual que hoy); `dia_actual` queda congelado en el valor que tenía.

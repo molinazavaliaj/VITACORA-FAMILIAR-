@@ -22,6 +22,9 @@ import type { EstadoEntrevista } from './de-entrevista.js';
 /** La misma marca que entrevistador/src/v3/tipos.ts. */
 export const MARCA_FOTO = '⟦foto⟧';
 
+/** `respuestas.clave_v3` de una fila que la V3 dejó afuera a propósito (entrevistador/src/v3/tipos.ts, CONTRATO): se ignora. */
+export const SIN_CLAVE_V3 = '∅';
+
 export type FilaEntrevistaV3 = {
   narrador_id: string;
   idioma: string;
@@ -132,7 +135,7 @@ export async function leerEntrevistaV3(db: SupabaseClient, narradorId: string): 
   if (res.error?.code === '42703') res = await consulta('clave_v3,audio_path,transcripcion,texto_directo,recibido_at');
   if (res.error) throw new Error(`No pude leer las respuestas de ${narradorId}: ${res.error.message}`);
 
-  const filasResp = (res.data as unknown as FilaRespuesta[] | null) ?? [];
+  const filasResp = ((res.data as unknown as FilaRespuesta[] | null) ?? []).filter((r) => r.clave_v3 !== SIN_CLAVE_V3);
   const audios: AudioV3[] = filasResp.map((r) => ({
     clave: r.clave_v3,
     // Un tramo reservado no se recorta de una grabación: el audio queda afuera.

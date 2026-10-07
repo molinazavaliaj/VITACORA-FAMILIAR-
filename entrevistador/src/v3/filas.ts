@@ -83,9 +83,27 @@ export async function anotarTranscripcion(db: SupabaseClient, respuestaId: strin
   if (error) throw new Error(`No pude guardar la transcripción de ${respuestaId}: ${error.message}`);
 }
 
-export async function ponerClave(db: SupabaseClient, respuestaId: string, clave: string | null): Promise<void> {
+/**
+ * La clave V3 de la fila: se pone DESPUÉS de guardar el estado (la fila sin
+ * clave es la que el reloj reconcilia). SIN_CLAVE_V3 = se guardó y queda
+ * afuera a propósito.
+ */
+export async function ponerClave(db: SupabaseClient, respuestaId: string, clave: string): Promise<void> {
   const { error } = await db.from('respuestas').update({ clave_v3: clave }).eq('id', respuestaId);
   if (error) console.warn(`V3: no pude anotar la clave ${clave} en la respuesta ${respuestaId}: ${error.message}`);
+}
+
+/** Como ponerClave, pero solo si la fila sigue sin clave (no pisa la que puso el camino que la aplicó). */
+export async function ponerClaveSiFalta(db: SupabaseClient, respuestaId: string, clave: string): Promise<void> {
+  const { error } = await db.from('respuestas').update({ clave_v3: clave }).eq('id', respuestaId).is('clave_v3', null);
+  if (error) console.warn(`V3: no pude anotar la clave ${clave} en la respuesta ${respuestaId}: ${error.message}`);
+}
+
+/** Un audio que ya está en Storage (la reconciliación lo transcribe de nuevo). */
+export async function bajarAudioGuardado(db: SupabaseClient, path: string): Promise<Buffer> {
+  const { data, error } = await db.storage.from('audios').download(path);
+  if (error || !data) throw new Error(`No pude bajar ${path} de Storage: ${error?.message ?? 'vacío'}`);
+  return Buffer.from(await data.arrayBuffer());
 }
 
 /** Lo mismo que hace el flujo viejo al recibir algo: la alerta de silencio se apaga. */

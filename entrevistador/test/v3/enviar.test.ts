@@ -2,7 +2,8 @@ import { describe, it, expect, afterEach } from 'vitest';
 import { crearBaseFalsa } from './base-falsa.js';
 import { depsDePrueba } from './deps-prueba.js';
 import { crearFila, leerFila, TOMA_MS } from '../../src/v3/estado.js';
-import { drenar, enLineaParaPlantilla, plantillaLista } from '../../src/v3/enviar.js';
+import { drenar, enLineaParaPlantilla, LARGO_MAXIMO_PLANTILLA, paraPlantilla, plantillaLista } from '../../src/v3/enviar.js';
+import { PLANTILLAS_V3 } from '../../src/config.js';
 import { encolar } from '../../src/v3/turno.js';
 import { estadoInicial, type EstadoV3 } from '../../src/v3/tipos.js';
 import type { Idioma } from '../../src/v3/nucleo/entrevista/idioma.js';
@@ -54,6 +55,50 @@ describe('drenar la cola de WhatsApp', () => {
     expect(await drenar(deps, 'n1')).toBe('enviado');
     expect(enviados).toEqual([{ a: '+5491100000000', tipo: 'plantilla', plantilla: 'pregunta_diaria_vos', idiomaMeta: 'es', variables: ['Gracias, Prueba. Entrada ¿Tuviste hermanos?'] }]);
     expect((await leerFila(base.cliente, 'n1'))?.estado.salientes).toEqual([]);
+  });
+
+  describe('fuera de las 24 h con una pregunta abierta', () => {
+    const BOTONES = ['Sí, tuve', 'No tuve hermanos'];
+    const conAbierta = (pregunta: string): EstadoV3 => ({
+      ...conCola(HACE_25H,
+        { texto: 'Gracias, Prueba.\nEntrada' },
+        { texto: `${pregunta}\n\nAyuda con los botones`, botones: BOTONES },
+        { texto: 'Hola, Prueba. Pasaron unos días…', tipo: 'recordatorio' }),
+      esperando: 'CA6',
+      preguntaAbierta: { partes: [{ id: 'CA6', texto: pregunta }, { id: 'M31', texto: 'Ayuda con los botones' }], botones: BOTONES },
+    });
+
+    it('la plantilla lleva SOLO la pregunta (sin acuse, entrada ni ayuda), en una línea; lo demás del turno se descarta', async () => {
+      const { deps, enviados, base } = await preparar(conAbierta('¿Tuviste\nhermanos?'));
+      expect(await drenar(deps, 'n1')).toBe('enviado');
+      expect(enviados).toEqual([{ a: '+5491100000000', tipo: 'plantilla', plantilla: 'pregunta_diaria_vos', idiomaMeta: 'es', variables: ['¿Tuviste hermanos?'] }]);
+      const fila = await leerFila(base.cliente, 'n1');
+      expect(fila?.estado.salientes).toEqual([]);
+      expect(fila?.estado.abiertaPorPlantilla).toBe(true);
+    });
+
+    it('una pregunta larga se corta en el final de una oración, sin pasarse del largo seguro', async () => {
+      const oracion = 'Contame cómo era la casa donde creciste, con sus olores y sus ruidos. ';
+      const larga = oracion.repeat(20).trim();
+      const { deps, enviados } = await preparar(conAbierta(larga));
+      await drenar(deps, 'n1');
+      const variable = enviados[0].variables![0];
+      expect(variable.length).toBeLessThanOrEqual(LARGO_MAXIMO_PLANTILLA);
+      expect(variable.endsWith('ruidos.')).toBe(true);
+      expect(larga.startsWith(variable)).toBe(true);
+    });
+
+    it('sin un punto donde cortar, corta en una palabra', () => {
+      const t = paraPlantilla(['palabra '.repeat(200)]);
+      expect(t.length).toBeLessThanOrEqual(LARGO_MAXIMO_PLANTILLA);
+      expect(t.endsWith('palabra…')).toBe(true);
+    });
+  });
+
+  it('el M8 del idioma está entre las plantillas que carga Joaquín (es-AR: m8_vos), y no se da por lista sin aprobar', () => {
+    expect(PLANTILLAS_V3['es-AR'].recordatorio.nombre).toBe('m8_vos');
+    expect(plantillaLista('es-AR', 'recordatorio', {})).toBe(false);
+    expect(plantillaLista('es-AR', 'recordatorio', { WA_PLANTILLAS_V3_LISTAS: 'es-AR:recordatorio' })).toBe(true);
   });
 
   it('fuera de las 24 h y sin la plantilla del idioma: avisa y no manda en otro idioma', async () => {

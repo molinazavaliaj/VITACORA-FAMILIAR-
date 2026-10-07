@@ -1,13 +1,14 @@
 // El reloj de la entrevista V3 (spec 2026-10-07, "El reloj"): un tick por
 // minuto. Todo sale de la base (ningún setTimeout en memoria): si Railway se
-// cae, el tick siguiente retoma. Por narrador activo, en orden: la cola que
-// quedó, el cierre por 3' de silencio, la tanda del día a su hora (sin reenviar
+// cae, el tick siguiente retoma. Por narrador activo, en orden: las filas de
+// respuestas que quedaron sin sumar (reconciliarV3), la cola que quedó, el cierre por 3' de silencio, la tanda del día a su hora (sin reenviar
 // la pendiente) y M8 a los 2 días sin respuesta.
 
 import { ritmoDe } from '../flujo/ritmo.js';
 import { fechaLocal } from '../flujo/tiempo.js';
 import { lanzarCazador } from './cazador.js';
 import type { DepsV3 } from './deps.js';
+import { reconciliarV3 } from './entrante.js';
 import { drenar } from './enviar.js';
 import { conReintento, listarFilas, tomaVigente } from './estado.js';
 import { aplicarTanda, hitosDe, puedeAbrirHoy, yaEsLaHora } from './tanda.js';
@@ -45,12 +46,17 @@ export function tocaM8(f: FilaV3, ahora: Date): boolean {
     && !!e.abiertaDesde && ahora.getTime() - Date.parse(e.abiertaDesde) >= DIAS_M8 * 86_400_000;
 }
 
-export type Trabajo = 'nada' | 'drenar' | 'cierre' | 'tanda' | 'm8';
+export type Trabajo = 'nada' | 'reconciliar' | 'drenar' | 'cierre' | 'tanda' | 'm8';
 
 export async function trabajarNarrador(deps: DepsV3, fila: FilaV3, n: NarradorV3): Promise<Trabajo> {
   if (n.estado !== 'activo') return 'nada';
   const ahora = deps.ahora();
   if (tomaVigente(fila, ahora)) return 'nada';
+  // Lo que llegó y no se sumó (el proceso se cayó después del 200 a Meta, que no reintenta).
+  if ((await reconciliarV3(deps, fila, n)) > 0) {
+    await drenar(deps, n.id);
+    return 'reconciliar';
+  }
   if (fila.estado.salientes.length > 0) {
     await drenar(deps, n.id);
     return 'drenar';

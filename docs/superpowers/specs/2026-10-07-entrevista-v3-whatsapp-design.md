@@ -123,6 +123,8 @@ Tiene una fila por narrador, que es lo que **prende la V3**.
 - Fuera de la ventana, la primera pregunta de la tanda sale con la plantilla del idioma:
   - `es-AR`: `pregunta_diaria_vos` (ya existe);
   - `es-ES` y `ca`: **plantillas nuevas que carga Joaquín en Meta**.
+  - La variable lleva **solo el texto de la pregunta abierta** (sin acuse, entrada, M1 ni M31; en una línea; hasta 900 letras, cortada en una oración). Lo demás de ese turno se descarta. Como la plantilla no lleva botones, cuando el narrador vuelve a escribir se le reenvía la pregunta con sus botones (salvo que lo que mandó sea justo uno de esos botones). Revisión final 07/10.
+- Un M8 que quedó en la cola (ventana cerrada y sin plantilla aprobada) se descarta cuando el narrador escribe o cambia la pregunta abierta.
 - Si la plantilla del idioma no existe, se le avisa a los socios y no se manda en otro idioma.
 
 **El final:** AV11 y FIN se mandan sin esperar respuesta. Después de FIN → `completado`. No hay un mail de hito propio: el aviso de terminado lo sigue mandando la fábrica (`worker.ts`).
@@ -152,6 +154,8 @@ Tiene una fila por narrador, que es lo que **prende la V3**.
 | Meta reintenta el webhook | `wa_message_id` único: el segundo se ignora. |
 | Dos ticks a la vez | Toma con `enviando_hasta` más `version`: uno solo manda. |
 | Se cae Railway en el medio | Todo está en la base; el tick siguiente retoma. No hay `setTimeout` en memoria. |
+| Se cae (o falla) después de guardar la fila en `respuestas` y antes de sumarla (Meta ya recibió el 200 y no reintenta) | La fila queda sin `clave_v3`; a los 5 minutos el reloj la reconcilia por el mismo camino que un mensaje nuevo. Lo que se deja afuera a propósito lleva `clave_v3 = ∅` (CONTRATO). |
+| No se puede bajar el audio de Meta o subirlo a Storage | M23 (se le pide de nuevo), una vez por mensaje. |
 | Falla un envío de WhatsApp | No se marca la pregunta como mandada; el tick siguiente reintenta. A los 3 fallos seguidos, aviso a los socios (le pasa hoy a Iñaki). |
 | Audio mientras se manda un turno | Cuenta para la pregunta nueva, como dice el plan del 30/09. |
 | El cazador falla o se pasa del tope | Ese bloque queda sin repreguntas; la entrevista sigue. |
@@ -174,7 +178,7 @@ Tiene una fila por narrador, que es lo que **prende la V3**.
 
 ## Lo que necesita Joaquín
 - Revisar la rama antes del merge.
-- Cargar en Meta las plantillas `es-ES` y `ca`: pregunta del día y recordatorio.
+- Cargar en Meta las plantillas `es-ES` y `ca`: pregunta del día y recordatorio. Y el recordatorio `es-AR`: **`m8_vos`** (el texto de M8; la pregunta `pregunta_diaria_vos` ya existe). Cada una se da por lista recién cuando figura en `WA_PLANTILLAS_V3_LISTAS` (ej. `es-AR:recordatorio`).
 - Que la web mande `contexto.idioma` y el género al comprar.
 - Estar el día del merge.
 

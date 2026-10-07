@@ -38,8 +38,9 @@ export type PlantillaV3 = { nombre: string; idiomaMeta: string };
  * Las plantillas de Meta de la entrevista V3 (spec 2026-10-07), por idioma.
  * `pregunta`: una variable con la pregunta (`pregunta_diaria_vos` ya está
  * aprobada, PLANTILLAS.md). `recordatorio`: el texto de M8 del idioma, con una
- * variable (el nombre). Las carga Joaquín en Meta (el cuerpo lo aprueba Naza)
- * y se marcan como aprobadas en WA_PLANTILLAS_V3_LISTAS. Si cambia un nombre
+ * variable (el nombre). Las carga Joaquín en Meta (el cuerpo lo aprueba Naza),
+ * también `m8_vos` (es-AR), y se marcan como aprobadas en
+ * WA_PLANTILLAS_V3_LISTAS (hasta entonces no salen). Si cambia un nombre
  * en Meta, se cambia acá.
  */
 export const PLANTILLAS_V3: Readonly<Record<'es-AR' | 'es-ES' | 'ca', { pregunta: PlantillaV3; recordatorio: PlantillaV3 }>> = {

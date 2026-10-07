@@ -3,8 +3,9 @@ import { crearBaseFalsa } from './base-falsa.js';
 import { depsDePrueba } from './deps-prueba.js';
 import { crearFila, leerFila } from '../../src/v3/estado.js';
 import { procesarEntranteV3 } from '../../src/v3/entrante.js';
-import { avanzar, textoDelBanco } from '../../src/v3/turno.js';
-import { estadoInicial, MARCA_FOTO, type EstadoV3, type NarradorV3 } from '../../src/v3/tipos.js';
+import { avanzar, encolar, textoDelBanco } from '../../src/v3/turno.js';
+import { estadoInicial, MARCA_FOTO, SIN_CLAVE_V3, type EstadoV3, type NarradorV3 } from '../../src/v3/tipos.js';
+import type { BaseFalsa } from './base-falsa.js';
 import type { MensajeEntrante } from '../../src/whatsapp/webhook.js';
 import type { Idioma } from '../../src/v3/nucleo/entrevista/idioma.js';
 
@@ -52,13 +53,74 @@ describe('un audio de un narrador V3', () => {
     expect(base.tablas.respuestas).toHaveLength(1);
   });
 
-  it('si la transcripción falla dos veces, o sale vacía: M23', async () => {
-    const { deps, n1, enviados } = await preparar(enOR1());
+  it('si la transcripción falla dos veces, o sale vacía: M23, y la fila queda marcada para que el reloj no la reintente', async () => {
+    const { deps, n1, enviados, base } = await preparar(enOR1());
     await procesarEntranteV3(deps, n1, audio('FALLA'));
     await procesarEntranteV3(deps, n1, audio('VACIO'));
     expect(enviados.map((e) => e.texto)).toEqual([textoDelBanco('M23', FICHA), textoDelBanco('M23', FICHA)]);
+    expect(base.tablas.respuestas.map((r) => r.clave_v3)).toEqual([SIN_CLAVE_V3, SIN_CLAVE_V3]);
+  });
+
+  it('si no se puede bajar el audio de Meta: M23 (no se pierde en silencio), y el mismo mensaje otra vez no repite M23', async () => {
+    const { deps, n1, enviados, base } = await preparar(enOR1());
+    deps.wa.descargar = async () => { throw new Error('Meta no devolvió el audio: prueba'); };
+    await procesarEntranteV3(deps, n1, audio('Nací en un pueblo chico.', 'wamid.sin-bajar'));
+    await procesarEntranteV3(deps, n1, audio('Nací en un pueblo chico.', 'wamid.sin-bajar'));
+    expect(enviados.map((e) => e.texto)).toEqual([textoDelBanco('M23', FICHA)]);
+    expect(base.tablas.respuestas ?? []).toHaveLength(0);
+  });
+
+  it('si Storage o la base rechazan el audio: M23', async () => {
+    const { deps, n1, enviados, base } = await preparar(enOR1());
+    base.fallarProxima.set('respuestas', { code: 'XX000', message: 'la base no anda: prueba' });
+    await procesarEntranteV3(deps, n1, audio('Nací en un pueblo chico.'));
+    expect(enviados.map((e) => e.texto)).toEqual([textoDelBanco('M23', FICHA)]);
+  });
+
+  it('la clave se pone recién después de guardar el estado: si eso falla, la fila queda sin clave (para el reloj)', async () => {
+    const { deps, n1, base, fila } = await preparar(enOR1());
+    fallarEscrituraDelEstado(base, 2); // la 1ª es anotarEntrante; la 2ª, sumar el audio
+    await expect(procesarEntranteV3(deps, n1, audio('Nací en un pueblo chico.'))).rejects.toThrow(/se cayó/);
+    expect(base.tablas.respuestas[0]).toMatchObject({ transcripcion: 'Nací en un pueblo chico.', clave_v3: null });
+    expect((await fila())?.estado.borrador).toBeUndefined();
+  });
+
+  it('un texto escrito también: la clave va después del estado', async () => {
+    const { deps, n1, base } = await preparar(enOR1());
+    fallarEscrituraDelEstado(base, 2);
+    await expect(procesarEntranteV3(deps, n1, texto('Nací en un pueblo chico.'))).rejects.toThrow(/se cayó/);
+    expect(base.tablas.respuestas[0]).toMatchObject({ texto_directo: 'Nací en un pueblo chico.', clave_v3: null });
+  });
+
+  it('el reloj de silencio arranca cuando LLEGA el audio, antes de transcribirlo (y otra vez al guardar la transcripción)', async () => {
+    const hace4 = new Date(AHORA.getTime() - 4 * 60_000).toISOString();
+    const { deps, n1, base, fila, pasar } = await preparar({ ...enOR1(), borrador: 'Nací en un pueblo chico.' });
+    base.tablas.entrevistas_v3[0].ultimo_audio_at = hace4;
+    let mientras: string | null | undefined;
+    const original = deps.transcribir;
+    deps.transcribir = async (a, o) => { mientras = (await fila())?.ultimo_audio_at; pasar(30_000); return original(a, o); };
+    await procesarEntranteV3(deps, n1, audio('Mi mamá cosía.'));
+    expect(mientras).toBe(AHORA.toISOString());
+    expect((await fila())?.ultimo_audio_at).toBe(new Date(AHORA.getTime() + 30_000).toISOString());
   });
 });
+
+/** La escritura número `cual` del estado (entrevistas_v3) falla, como si se cayera el proceso o la base. */
+function fallarEscrituraDelEstado(base: BaseFalsa, cual: number) {
+  const cliente = base.cliente as unknown as { from: (t: string) => { update: (v: unknown) => unknown } };
+  const from = cliente.from.bind(cliente);
+  let k = 0;
+  cliente.from = (t: string) => {
+    const q = from(t);
+    if (t !== 'entrevistas_v3') return q;
+    const update = q.update.bind(q);
+    q.update = (v: unknown) => {
+      if (++k === cual) base.fallarProxima.set('entrevistas_v3', { code: 'XX000', message: 'se cayó: prueba' });
+      return update(v);
+    };
+    return q;
+  };
+}
 
 describe('un botón de un narrador V3', () => {
   const enCA6 = (): EstadoV3 => ({ ...estadoInicial(), esperando: 'CA6', preguntaAbierta: { partes: [{ id: 'CA6', texto: '¿Hermanos?' }] }, ultimoEntranteAt: AHORA.toISOString() });
@@ -112,11 +174,33 @@ describe('un texto escrito', () => {
     expect((await fila())?.estado.borrador).toBe('Nací en un pueblo chico.');
   });
 
-  it('un botón que no es de la abierta es un texto escrito (cuenta como respuesta)', async () => {
-    const { deps, n1, enviados, fila } = await preparar(enOR1());
+  it('un botón que no es de la abierta se guarda, pero no toca la respuesta ni manda M22', async () => {
+    const { deps, n1, enviados, fila, base } = await preparar(enOR1());
     await procesarEntranteV3(deps, n1, texto('Sí, tuve', true));
-    expect(enviados.map((e) => e.texto)).toEqual([textoDelBanco('M22', FICHA)]);
-    expect((await fila())?.estado.borrador).toBe('Sí, tuve');
+    expect(enviados).toEqual([]);
+    const f = await fila();
+    expect(f?.estado.borrador).toBeUndefined();
+    expect(f?.estado.m22Enviado).toBeUndefined();
+    expect(base.tablas.respuestas[0]).toMatchObject({ texto_directo: '⟦botón:Sí, tuve⟧', clave_v3: SIN_CLAVE_V3 });
+  });
+
+  it('"No" después de "Sí" (botón viejo) no cierra ni se suma', async () => {
+    const enCA6: EstadoV3 = { ...estadoInicial(), esperando: 'CA6', preguntaAbierta: { partes: [{ id: 'CA6', texto: '¿Hermanos?' }] }, ultimoEntranteAt: AHORA.toISOString() };
+    const { deps, n1, enviados, fila, base } = await preparar(enCA6);
+    await procesarEntranteV3(deps, n1, texto('Sí, tuve', true));
+    await procesarEntranteV3(deps, n1, texto('No tuve hermanos', true));
+    expect(enviados.map((e) => e.texto)).toEqual([textoDelBanco('M30', FICHA)]);
+    const f = await fila();
+    expect(f?.estado).toMatchObject({ esperando: 'CA6', tocoSi: true, respuestas: [['CA6', '⟦botón:Sí, tuve⟧']] });
+    expect(f?.estado.borrador).toBeUndefined();
+    expect(base.tablas.respuestas.map((r) => r.clave_v3)).toEqual(['CA6', SIN_CLAVE_V3]);
+  });
+
+  it('el "SI" tardío de la plantilla de bienvenida no entra a la respuesta', async () => {
+    const { deps, n1, enviados, fila } = await preparar(enOR1());
+    await procesarEntranteV3(deps, n1, texto('SI', true));
+    expect(enviados).toEqual([]);
+    expect((await fila())?.estado.borrador).toBeUndefined();
   });
 
   it('pausado: el texto lo reactiva y se le reenvía la pregunta abierta (sin M22)', async () => {
@@ -220,6 +304,84 @@ describe('el idioma de la transcripción', () => {
     deps.transcribir = async (a, o) => { pedidos.push(o); return original(a, o); };
     await procesarEntranteV3(deps, n1, audio('Vaig néixer a un poble petit.'));
     expect(pedidos).toEqual([{ nombre: 'Prueba', idioma: 'ca', narradorId: 'n1' }]);
+  });
+});
+
+describe('dedupe de lo que no deja fila en respuestas (wamidsVistos)', () => {
+  it('pausado: el mismo texto dos veces reenvía la abierta una sola vez', async () => {
+    const { deps, n1, enviados } = await preparar(enOR1(), { narrador: { estado: 'pausado' } });
+    const m = texto('Hola, volví');
+    await procesarEntranteV3(deps, n1, m);
+    await procesarEntranteV3(deps, n1, m); // Meta lo reintenta antes de que se relea el narrador
+    expect(enviados).toHaveLength(1);
+  });
+
+  it('una foto suelta repetida se guarda y se acusa una sola vez', async () => {
+    const { deps, n1, base, enviados } = await preparar(enOR1());
+    const m: MensajeEntrante = { telefono: '+5491100000000', tipo: 'imagen', mediaId: 'img-r', waMessageId: 'wamid.suelta-repetida' };
+    await procesarEntranteV3(deps, n1, m);
+    await procesarEntranteV3(deps, n1, m);
+    expect(base.tablas.fotos).toHaveLength(1);
+    expect(enviados).toHaveLength(1);
+  });
+
+  it('FO1: el duplicado se detecta antes de subir la foto', async () => {
+    const { deps, n1, base } = await preparar({ ...estadoInicial(), esperando: 'FO1', ultimoEntranteAt: AHORA.toISOString() });
+    const m: MensajeEntrante = { telefono: '+5491100000000', tipo: 'imagen', mediaId: 'img-fo1', mimeType: 'image/jpeg', waMessageId: 'wamid.fo1-repetida' };
+    await procesarEntranteV3(deps, n1, m);
+    await procesarEntranteV3(deps, n1, m);
+    expect(base.tablas.fotos).toHaveLength(1);
+    expect([...base.archivos.keys()].filter((k) => k.includes('/fotos/'))).toHaveLength(1);
+  });
+
+  it('se recuerdan los últimos 50', async () => {
+    const { deps, n1, fila } = await preparar({ ...enOR1(), m22Enviado: true });
+    for (let i = 0; i < 55; i++) await procesarEntranteV3(deps, n1, texto(`Parte ${i}.`));
+    expect((await fila())?.estado.wamidsVistos).toHaveLength(50);
+  });
+});
+
+describe('M8 en la cola (no salió: ventana cerrada y sin plantilla)', () => {
+  const HACE_TRES_DIAS = new Date(AHORA.getTime() - 72 * 3600_000).toISOString();
+  it('se descarta cuando el narrador escribe: no le llega el recordatorio después de contestar', async () => {
+    const conM8 = encolar({ ...enOR1(), ultimoEntranteAt: HACE_TRES_DIAS, m8En: 'OR1' }, { texto: textoDelBanco('M8', FICHA), tipo: 'recordatorio' });
+    const { deps, n1, enviados, fila } = await preparar(conM8);
+    await procesarEntranteV3(deps, n1, audio('Nací en un pueblo chico.'));
+    expect(enviados.map((e) => e.texto)).not.toContain(textoDelBanco('M8', FICHA));
+    expect((await fila())?.estado.salientes).toEqual([]);
+  });
+});
+
+describe('la abierta salió por plantilla (sin botones)', () => {
+  const BOTONES = ['Sí, tuve', 'No tuve hermanos'];
+  const porPlantilla = (): EstadoV3 => ({
+    ...estadoInicial(), esperando: 'CA6', abiertaPorPlantilla: true,
+    preguntaAbierta: { partes: [{ id: 'CA6', texto: '¿Tuviste hermanos?' }], botones: BOTONES },
+    ultimoEntranteAt: new Date(AHORA.getTime() - 48 * 3600_000).toISOString(),
+  });
+
+  it('al volver a escribir, se le reenvía la pregunta con sus botones (una vez)', async () => {
+    const { deps, n1, enviados, fila } = await preparar(porPlantilla());
+    await procesarEntranteV3(deps, n1, audio('Éramos cuatro.'));
+    await procesarEntranteV3(deps, n1, audio('Yo era la más chica.'));
+    expect(enviados).toEqual([{ a: '+5491100000000', tipo: 'botones', texto: '¿Tuviste hermanos?', botones: BOTONES }]);
+    expect((await fila())?.estado.abiertaPorPlantilla).toBeUndefined();
+  });
+
+  it('si lo que manda es un botón que coincide, no se reenvía', async () => {
+    const { deps, n1, enviados, fila } = await preparar(porPlantilla());
+    await procesarEntranteV3(deps, n1, texto('Sí, tuve', true));
+    await procesarEntranteV3(deps, n1, audio('Éramos cuatro.'));
+    expect(enviados.map((e) => e.texto)).toEqual([textoDelBanco('M30', FICHA)]);
+    expect((await fila())?.estado.abiertaPorPlantilla).toBeUndefined();
+  });
+
+  it('sin botones no hace falta reenviarla', async () => {
+    const sinBotones: EstadoV3 = { ...porPlantilla(), esperando: 'OR1', preguntaAbierta: { partes: [{ id: 'OR1', texto: '¿Dónde naciste?' }] } };
+    const { deps, n1, enviados, fila } = await preparar(sinBotones);
+    await procesarEntranteV3(deps, n1, audio('En un pueblo.'));
+    expect(enviados).toEqual([]);
+    expect((await fila())?.estado.abiertaPorPlantilla).toBeUndefined();
   });
 });
 

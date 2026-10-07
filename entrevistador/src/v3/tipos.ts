@@ -74,6 +74,15 @@ export type EstadoV3 = {
   m22Enviado?: boolean;
   fallosEnvio: number;
   avisoFallos?: boolean;
+  /**
+   * Los últimos WAMIDS_VISTOS wa_message_id ya aplicados al estado (o dejados
+   * de lado a propósito). Dedupe de lo que no deja fila en `respuestas` (el
+   * texto que reactiva a un pausado, la foto suelta, el audio que no se pudo
+   * bajar) y candado para que la reconciliación del reloj no sume dos veces.
+   */
+  wamidsVistos?: string[];
+  /** La pregunta abierta salió por plantilla (fuera de la ventana): sin botones. Al volver a escribir, se le reenvía con botones. */
+  abiertaPorPlantilla?: boolean;
 };
 
 export type Genero = 'varon' | 'mujer' | 'otro';
@@ -110,6 +119,17 @@ export type NarradorV3 = {
 
 /** La respuesta de FO1 cuando llega la foto (la fábrica la saca al armar el material). */
 export const MARCA_FOTO = '⟦foto⟧';
+
+/**
+ * `respuestas.clave_v3` de una fila que se guardó y NO entra a la entrevista a
+ * propósito (botón que no es de la abierta, audio que no se pudo transcribir,
+ * algo que llegó sin nada abierto ni contestado). La reconciliación del reloj
+ * la saltea; la fábrica y el pase la ignoran. Ver supabase/CONTRATO.md.
+ */
+export const SIN_CLAVE_V3 = '∅';
+
+/** Cuántos wa_message_id recuerda el estado (`wamidsVistos`). */
+export const WAMIDS_VISTOS = 50;
 
 export function estadoInicial(familia: PreguntaFamilia[] = []): EstadoV3 {
   return {

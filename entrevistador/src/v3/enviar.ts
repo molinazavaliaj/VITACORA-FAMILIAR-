@@ -39,10 +39,28 @@ export function enLineaParaPlantilla(textos: string[]): string {
   return textos.join(' ').replace(/\s+/g, ' ').trim();
 }
 
+/**
+ * Largo seguro de la variable de la plantilla: Meta rechaza un cuerpo largo
+ * y un envío rechazado frenaría la cola para siempre.
+ */
+export const LARGO_MAXIMO_PLANTILLA = 900;
+
+/** En una línea y, si se pasa de LARGO_MAXIMO_PLANTILLA, cortado en el final de una oración (o, si no hay, de una palabra). */
+export function paraPlantilla(textos: string[]): string {
+  const linea = enLineaParaPlantilla(textos);
+  if (linea.length <= LARGO_MAXIMO_PLANTILLA) return linea;
+  const corte = linea.slice(0, LARGO_MAXIMO_PLANTILLA);
+  const finOracion = Math.max(...['. ', '? ', '! ', '… '].map((f) => corte.lastIndexOf(f)));
+  if (finOracion > 0) return corte.slice(0, finOracion + 1);
+  const palabra = corte.slice(0, LARGO_MAXIMO_PLANTILLA - 1).lastIndexOf(' ');
+  return `${corte.slice(0, palabra > 0 ? palabra : LARGO_MAXIMO_PLANTILLA - 1)}…`;
+}
+
 export type Envio =
   | { tipo: 'texto'; texto: string; ids: number[] }
   | { tipo: 'botones'; texto: string; botones: string[]; ids: number[] }
-  | { tipo: 'plantilla'; nombre: string; idiomaMeta: string; variables: string[]; ids: number[] }
+  /** `abierta`: llevó la pregunta abierta (sin botones: al volver a escribir, se le reenvía con ellos). */
+  | { tipo: 'plantilla'; nombre: string; idiomaMeta: string; variables: string[]; ids: number[]; abierta: boolean }
   | { tipo: 'sin-plantilla'; cual: 'pregunta' | 'recordatorio'; nombre: string };
 
 /** Qué sale ahora de la cola (no vacía). Puro, salvo que lee WA_PLANTILLAS_V3_LISTAS. */
@@ -57,10 +75,15 @@ export function elegirEnvio(fila: FilaV3, ahora: Date): Envio {
   const cual = soloRecordatorio ? 'recordatorio' : 'pregunta';
   const p = PLANTILLAS_V3[fila.idioma][cual];
   if (!plantillaLista(fila.idioma, cual)) return { tipo: 'sin-plantilla', cual, nombre: p.nombre };
-  const variables = soloRecordatorio
-    ? [fila.ficha.nombre]
-    : [enLineaParaPlantilla(pendientes.filter((s) => s.tipo !== 'recordatorio').map((s) => s.texto))];
-  return { tipo: 'plantilla', nombre: p.nombre, idiomaMeta: p.idiomaMeta, variables, ids: pendientes.map((s) => s.id) };
+  const ids = pendientes.map((s) => s.id); // lo que no va en la plantilla se descarta: no sale después
+  if (soloRecordatorio) return { tipo: 'plantilla', nombre: p.nombre, idiomaMeta: p.idiomaMeta, variables: [fila.ficha.nombre], ids, abierta: false };
+  // Con una pregunta abierta, la plantilla lleva SOLO esa pregunta: sin acuse, entrada, M1 ni M31
+  // (armarTurno la pone primera en preguntaAbierta.partes).
+  const abierta = fila.estado.esperando ? fila.estado.preguntaAbierta?.partes[0]?.texto : undefined;
+  const variable = abierta !== undefined
+    ? paraPlantilla([abierta])
+    : paraPlantilla(pendientes.filter((s) => s.tipo !== 'recordatorio').map((s) => s.texto));
+  return { tipo: 'plantilla', nombre: p.nombre, idiomaMeta: p.idiomaMeta, variables: [variable], ids, abierta: abierta !== undefined };
 }
 
 export type ResultadoDrenar = 'vacio' | 'enviado' | 'ocupado' | 'fallo' | 'sin-plantilla';
@@ -97,8 +120,14 @@ export async function drenar(deps: DepsV3, narradorId: string): Promise<Resultad
       }
       const { error: errorEnvio } = await deps.db.from('envios').insert({ narrador_id: narradorId, tipo: 'v3', pregunta_orden: null, wa_message_id: waId });
       if (errorEnvio) console.warn(`V3: no pude anotar el envío ${waId} de ${narradorId} en envios: ${errorEnvio.message}`);
+      const porPlantilla = envio.tipo === 'plantilla' && envio.abierta;
       const r = await conReintento(deps.db, narradorId, (f) => ({
-        cambio: { estado: { ...quitarSalientes(f.estado, envio.ids), fallosEnvio: 0, avisoFallos: false } },
+        cambio: {
+          estado: {
+            ...quitarSalientes(f.estado, envio.ids), fallosEnvio: 0, avisoFallos: false,
+            ...(porPlantilla && f.estado.esperando ? { abiertaPorPlantilla: true } : {}),
+          },
+        },
         resultado: true,
       }));
       if (!r) return 'enviado';

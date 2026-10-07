@@ -21,7 +21,7 @@ import type { PreguntaFamilia } from './nucleo/entrevista/flujo.js';
 import { esIdioma, idiomaDe, type Idioma } from './nucleo/entrevista/idioma.js';
 import { sumarAudio } from './nucleo/entrevista/respuesta.js';
 import { yaEsLaHora } from './tanda.js';
-import { esGenero, estadoInicial, fichaTexto, type EstadoV3, type FichaFila, type Genero, type MigradaDe, type NarradorV3 } from './tipos.js';
+import { esGenero, estadoInicial, fichaTexto, SIN_CLAVE_V3, type EstadoV3, type FichaFila, type Genero, type MigradaDe, type NarradorV3 } from './tipos.js';
 import { avanzar } from './turno.js';
 
 // ---------------------------------------------------------------- equivalencias
@@ -58,6 +58,8 @@ export type RespuestaVieja = {
   id: string; pregunta_orden: number; transcripcion: string | null; texto_directo: string | null; recibido_at: string;
   /** "Esto que no vaya al libro" (migración 20260920000100). Ausentes = nada reservado. */
   reservada?: boolean | null; reservado_tramo?: string | null;
+  /** SIN_CLAVE_V3 = una fila que la V3 dejó afuera a propósito: el pase no la carga. */
+  clave_v3?: string | null;
 };
 export type Cargada = { clave: string; ordenes: number[]; respuestaIds: string[]; texto: string; palabras: number };
 export type PlanDePase = {
@@ -91,6 +93,7 @@ export function armarPase(e: {
 }): PlanDePase {
   const porOrden = new Map<number, RespuestaVieja[]>();
   for (const r of [...e.respuestas].sort((a, b) => a.recibido_at.localeCompare(b.recibido_at))) {
+    if (r.clave_v3 === SIN_CLAVE_V3) continue;
     porOrden.set(r.pregunta_orden, [...(porOrden.get(r.pregunta_orden) ?? []), r]);
   }
   const guion = new Map(e.guion.map((p) => [p.orden, p]));
@@ -175,18 +178,21 @@ async function leerNarrador(db: SupabaseClient, narradorId: string): Promise<Nar
 
 const CAMPOS_RESPUESTA = 'id,pregunta_orden,transcripcion,texto_directo,recibido_at';
 
+/** Las columnas opcionales, de más a menos: sin una migración aplicada (42703) se prueba sin esas columnas. */
+const COLUMNAS_OPCIONALES = [',clave_v3,reservada,reservado_tramo', ',reservada,reservado_tramo', ',clave_v3', ''];
+
 /**
- * Las respuestas viejas con su marca de reservada. Si la migración de las
- * reservas no está aplicada (columna inexistente, 42703), nadie pudo marcar
- * nada: se leen sin las columnas.
+ * Las respuestas viejas con su marca de reservada y su clave_v3. Si la
+ * migración de las reservas (o la de la V3) no está aplicada (columna
+ * inexistente, 42703), nadie pudo marcar nada: se leen sin esas columnas.
  */
 async function respuestasViejas(db: SupabaseClient, narradorId: string): Promise<RespuestaVieja[]> {
-  const conReserva = await db.from('respuestas').select(`${CAMPOS_RESPUESTA},reservada,reservado_tramo`).eq('narrador_id', narradorId);
-  if (!conReserva.error) return (conReserva.data as RespuestaVieja[] | null) ?? [];
-  if (conReserva.error.code !== '42703') throw new Error(`No pude leer las respuestas de ${narradorId}: ${conReserva.error.message}`);
-  const { data, error } = await db.from('respuestas').select(CAMPOS_RESPUESTA).eq('narrador_id', narradorId);
-  if (error) throw new Error(`No pude leer las respuestas de ${narradorId}: ${error.message}`);
-  return (data as RespuestaVieja[] | null) ?? [];
+  for (const extra of COLUMNAS_OPCIONALES) {
+    const { data, error } = await db.from('respuestas').select(`${CAMPOS_RESPUESTA}${extra}`).eq('narrador_id', narradorId);
+    if (!error) return (data as unknown as RespuestaVieja[] | null) ?? [];
+    if (error.code !== '42703') throw new Error(`No pude leer las respuestas de ${narradorId}: ${error.message}`);
+  }
+  throw new Error(`No pude leer las respuestas de ${narradorId}: falta una columna de respuestas.`);
 }
 
 /** Por qué no se puede aplicar todavía (vacío = se puede). */
@@ -278,7 +284,7 @@ export function describirPase(plan: PlanDePase): string {
   if (plan.pendiente !== null && plan.cargadas.length > 0) {
     l.push(`Tiene la pregunta orden ${plan.pendiente} pendiente: pasar después de que conteste. Mientras tanto, --aplicar no aplica nada.`);
   } else if (plan.pendiente !== null) {
-    l.push(`Aviso: tenía la pregunta orden ${plan.pendiente} pendiente; si contesta esa antes de que salga la primera V3, lo que mande queda guardado en respuestas (sin clave_v3) pero no entra a la entrevista V3: revisarlo a mano.`);
+    l.push(`Aviso: tenía la pregunta orden ${plan.pendiente} pendiente; si contesta esa antes de que salga la primera V3, lo que mande queda guardado en respuestas (con clave_v3 = ${SIN_CLAVE_V3}: afuera) pero no entra a la entrevista V3: revisarlo a mano.`);
   }
   l.push('No se le manda nada en el momento: la próxima pregunta sale en su tanda, a su hora preferida.');
   return l.join('\n');

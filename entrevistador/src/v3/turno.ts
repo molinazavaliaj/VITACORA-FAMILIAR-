@@ -19,7 +19,7 @@ import { idiomaDe } from './nucleo/entrevista/idioma.js';
 import { acuseDeTurno, anotarAcuse, armarTurno, entradaSegunAcuse, preguntaSegunAcuse } from './nucleo/entrevista/mensajes.js';
 import { leerBoton, sumarAudio } from './nucleo/entrevista/respuesta.js';
 import { renderizar, type FichaTexto } from './nucleo/entrevista/texto.js';
-import { MARCA_FOTO, type EstadoV3, type Parte, type Saliente } from './tipos.js';
+import { MARCA_FOTO, WAMIDS_VISTOS, type EstadoV3, type Parte, type Saliente } from './tipos.js';
 
 function clonar(e: EstadoV3): EstadoV3 {
   return JSON.parse(JSON.stringify(e)) as EstadoV3;
@@ -51,6 +51,25 @@ export function encolar(anterior: EstadoV3, s: Omit<Saliente, 'id'>): EstadoV3 {
 export function quitarSalientes(anterior: EstadoV3, ids: readonly number[]): EstadoV3 {
   const e = clonar(anterior);
   e.salientes = e.salientes.filter((s) => !ids.includes(s.id));
+  return e;
+}
+
+/** ¿Ese wa_message_id ya se aplicó al estado (o se dejó de lado a propósito)? */
+export function yaVisto(e: Pick<EstadoV3, 'wamidsVistos'>, waMessageId: string): boolean {
+  return (e.wamidsVistos ?? []).includes(waMessageId);
+}
+
+/** Anota el wa_message_id entre los vistos (se guardan los últimos WAMIDS_VISTOS). */
+export function anotarVisto(anterior: EstadoV3, waMessageId: string): EstadoV3 {
+  const e = clonar(anterior);
+  if (!yaVisto(e, waMessageId)) e.wamidsVistos = [...(e.wamidsVistos ?? []), waMessageId].slice(-WAMIDS_VISTOS);
+  return e;
+}
+
+/** Saca de la cola los M8 que no salieron: el narrador escribió o la pregunta cambió, ya no corresponden. */
+export function sinRecordatorios(anterior: EstadoV3): EstadoV3 {
+  const e = clonar(anterior);
+  e.salientes = e.salientes.filter((s) => s.tipo !== 'recordatorio');
   return e;
 }
 
@@ -141,7 +160,10 @@ export function cerrarRespuesta(anterior: EstadoV3, ficha: FichaTexto): Cierre {
   e.tocoSi = undefined;
   e.borrador = undefined;
   e.preguntaAbierta = undefined;
+  e.abiertaPorPlantilla = undefined;
   e.acuse = undefined;
+  // Un M8 que no salió era de esta pregunta: ya no corresponde.
+  e.salientes = e.salientes.filter((s) => s.tipo !== 'recordatorio');
   const idioma = idiomaDe(ficha);
   const [, r] = e.respuestas.at(-1)!;
   const anteriores = new Map(e.respuestas.slice(0, -1)); // para M29 (tercer olvido seguido)
@@ -254,6 +276,7 @@ export function reenviarAbierta(anterior: EstadoV3): EstadoV3 {
   const e = clonar(anterior);
   const p = e.preguntaAbierta;
   if (!e.esperando || !p) return e;
+  e.abiertaPorPlantilla = undefined; // sale ahora, en la ventana, con sus botones
   e.charla.push({ de: 'bio', partes: p.partes, ...(p.botones ? { botones: p.botones } : {}) });
   encolarEn(e, { texto: textoDeGlobo(p.partes), tipo: 'turno', ...(p.botones ? { botones: p.botones } : {}) });
   return e;

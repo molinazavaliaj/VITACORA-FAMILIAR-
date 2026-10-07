@@ -7,7 +7,7 @@ import { tocaM8, tocaTanda, trabajarNarrador } from '../../src/v3/reloj.js';
 import { procesarEntranteV3 } from '../../src/v3/entrante.js';
 import { renderizar } from '../../src/v3/nucleo/entrevista/texto.js';
 import { preguntaPorId } from '../../src/v3/nucleo/entrevista/banco.js';
-import type { NarradorV3 } from '../../src/v3/tipos.js';
+import { SIN_CLAVE_V3, type NarradorV3 } from '../../src/v3/tipos.js';
 
 /** Una tabla parcial: '¿A qué jugabas?' (orden 3) queda sin equivalencia. */
 const PARCIAL = leerEquivalencias({
@@ -240,11 +240,12 @@ describe('el pase de un narrador en curso', () => {
     expect(await leerFila(base.cliente, 'n1')).toMatchObject({ idioma: 'ca', tanda_dia: null });
 
     // Hoy: si contesta tarde la vieja antes de la primera V3, no se rompe y el audio queda
-    // guardado (con su transcripción, sin clave_v3), pero no entra al estado V3 (ver el reporte).
+    // guardado (con su transcripción, marcado como afuera: clave_v3 = SIN_CLAVE_V3, así el reloj
+    // no lo reintenta), pero no entra al estado V3 (ver el reporte).
     const p = depsDePrueba(base, { ahora: ANTES_DE_LA_HORA });
     const n = base.tablas.narradores[0] as NarradorV3;
     await procesarEntranteV3(p.deps, n, { telefono: '+5491100000000', tipo: 'audio', mediaId: 'Nací en un pueblo.', waMessageId: 'wamid.tarde' });
-    expect(base.tablas.respuestas.map((r) => [r.transcripcion, r.clave_v3 ?? null])).toEqual([['Nací en un pueblo.', null]]);
+    expect(base.tablas.respuestas.map((r) => [r.transcripcion, r.clave_v3 ?? null])).toEqual([['Nací en un pueblo.', SIN_CLAVE_V3]]);
     const fila = (await leerFila(base.cliente, 'n1'))!;
     expect(fila.estado.respuestas).toEqual([]);
     expect(fila.estado.borrador).toBeUndefined();
@@ -258,6 +259,15 @@ describe('el pase de un narrador en curso', () => {
     base.tablas.respuestas.find((r) => r.id === 'r1')!.clave_v3 = 'OTRA';
     await expect(aplicarPase(base.cliente, plan, ANTES_DE_LA_HORA)).rejects.toThrow(/ya tiene/);
     expect(base.tablas.respuestas.find((r) => r.id === 'r1')?.clave_v3).toBe('OTRA');
+  });
+
+  it('una fila que la V3 dejó afuera (clave_v3 = SIN_CLAVE_V3) no se carga ni bloquea', async () => {
+    const base = baseConNarrador();
+    base.tablas.respuestas.push({ id: 'r8', narrador_id: 'n1', pregunta_orden: 9, transcripcion: 'Un botón suelto.', texto_directo: null, recibido_at: '2026-10-07T10:00:00Z', clave_v3: SIN_CLAVE_V3 });
+    const plan = await planDePase(base.cliente, 'n1', { genero: 'mujer', equivalencias: EQUIVALENCIAS });
+    expect(plan.sinEquivalencia).toEqual([]);
+    expect(bloqueosDePase(plan)).toEqual([]);
+    expect(plan.cargadas.flatMap((c) => c.respuestaIds)).not.toContain('r8');
   });
 
   it('una transcripción vacía no tapa el texto escrito', async () => {

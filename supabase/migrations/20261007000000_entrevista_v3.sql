@@ -30,7 +30,7 @@ create unique index if not exists respuestas_wa_message_id_unico
   on respuestas (wa_message_id) where wa_message_id is not null;
 
 comment on column respuestas.clave_v3 is
-  'Entrevista V3: la pregunta de esta fila (CA1, RP~AM9, CA4~2, F:<id>). Null en las filas de la entrevista vieja.';
+  'Entrevista V3: la pregunta de esta fila (CA1, RP~AM9, CA4~2, F:<id>). ∅ = se guardó y quedó afuera a propósito. Null en las filas de la entrevista vieja (y, en una V3, la que todavía no se sumó: la retoma el reloj).';
 comment on column respuestas.wa_message_id is
   'El id del mensaje de Meta que trajo esta respuesta. Único: el reintento del webhook no la suma dos veces.';
 
