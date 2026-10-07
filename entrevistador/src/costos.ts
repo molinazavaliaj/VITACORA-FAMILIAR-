@@ -66,7 +66,8 @@ function tokens(valor: number | null | undefined): number {
 
 function precioDe(modelo: string): Precio | null {
   if (PRECIOS_USD_POR_MILLON[modelo]) return PRECIOS_USD_POR_MILLON[modelo];
-  const base = Object.keys(PRECIOS_USD_POR_MILLON).find((clave) => modelo.startsWith(`${clave}-`));
+  // El prefijo más largo: "claude-opus-5-5-2026…" es Opus 5.5, no Opus 5 (08/10).
+  const base = Object.keys(PRECIOS_USD_POR_MILLON).filter((clave) => modelo.startsWith(`${clave}-`)).sort((a, b) => b.length - a.length)[0];
   return base ? PRECIOS_USD_POR_MILLON[base] : null;
 }
 

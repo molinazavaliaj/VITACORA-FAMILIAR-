@@ -89,6 +89,8 @@ describe('Opus 5.5 (el cazador, 08/10)', () => {
   it('tiene su precio propio y no cae por prefijo en el de Opus 5', () => {
     expect(calcularUsd('claude-opus-5-5', { input_tokens: 1_000_000, output_tokens: 1_000_000 })).toBe(24);
     expect(calcularUsd('claude-opus-5', { input_tokens: 1_000_000, output_tokens: 1_000_000 })).toBe(30);
+    // Con fecha en el nombre gana el prefijo más largo.
+    expect(calcularUsd('claude-opus-5-5-20261001', { input_tokens: 1_000_000, output_tokens: 1_000_000 })).toBe(24);
   });
 });
 
