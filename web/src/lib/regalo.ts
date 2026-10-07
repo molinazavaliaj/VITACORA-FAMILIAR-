@@ -5,6 +5,7 @@
 
 import { randomInt } from "node:crypto";
 import { TEXTOS_REGALO } from "./regalo-textos";
+import { GENEROS, MENSAJE_MAXIMO, type Genero } from "./regalo-reglas";
 
 /** Sin 0/O, 1/I/L: se leen mal en papel y se dictan mal por teléfono. */
 export const ALFABETO_CODIGO = "23456789ABCDEFGHJKMNPQRSTUVWXYZ";
@@ -29,9 +30,8 @@ export function normalizarCodigo(texto: string): string | null {
   return `VF-${limpio}`;
 }
 
-export const GENEROS = ["varon", "mujer", "otro"] as const;
-export type Genero = (typeof GENEROS)[number];
-export const MENSAJE_MAXIMO = 600;
+// En regalo-reglas.ts porque el formulario de /regalar (cliente) también las usa.
+export { GENEROS, MENSAJE_MAXIMO, type Genero };
 
 /** Cuánto ocupa el mensaje en la tarjeta: cada salto de línea pesa como 40 letras (un renglón). */
 export function largoEnTarjeta(mensaje: string): number {
