@@ -132,3 +132,13 @@ describe("los frenos", () => {
     expect(horasEntre(hace(5), AHORA)).toBeCloseTo(5, 3);
   });
 });
+
+describe("el regalo sin abrir", () => {
+  it("un pedido pagado de un regalo que todavía no se abrió NO es un freno", () => {
+    const f = frenosDe(datos({
+      pedidos: [{ id: "p9", estado: "pagado", created_at: hace(200), narrador_id: "n9", monto: 49, moneda: "EUR" }] as never,
+      narradores: [{ id: "n9", nombre: "Elsa", estado: "regalo_pendiente", dia_actual: 0, ultima_respuesta_at: null, alerta_silencio: false }],
+    }), AHORA);
+    expect(f).toEqual([]);
+  });
+});

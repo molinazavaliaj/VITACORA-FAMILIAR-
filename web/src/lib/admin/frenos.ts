@@ -165,6 +165,9 @@ function frenoDePago(p: FilaPedido, datos: DatosDelPanel, ahora: Date): Freno | 
 
 function frenoDeLibroEnCola(p: FilaPedido, datos: DatosDelPanel, ahora: Date): Freno | null {
   if (p.estado !== "pagado") return null;
+  // Un regalo pagado espera que el narrador escanee la tarjeta: eso puede tardar
+  // semanas y no es la fábrica trabada. El admin lo muestra como «regalo sin abrir».
+  if (datos.narradores.some((n) => n.id === p.narrador_id && n.estado === "regalo_pendiente")) return null;
   const horas = horasEntre(p.created_at, ahora);
   if (horas === null || horas <= UMBRALES.libroSinArrancarHoras) return null;
 

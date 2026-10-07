@@ -43,6 +43,9 @@ export default async function PantallaFamilias() {
     if (n.estado === "completado" || n.estado === "cerrado_anticipado") {
       return { color: "neutro", texto: "terminado", detalle: n.libro_aprobado_at ? `libro listo el ${fechaCorta(n.libro_aprobado_at)}` : "entrevista cerrada" };
     }
+    if (n.estado === "regalo_pendiente") {
+      return { color: "neutro", texto: "regalo sin abrir", detalle: "pagado, falta que escanee la tarjeta" };
+    }
     if (n.estado === "pendiente_pago") {
       return { color: "ambar", texto: "sin pagar", detalle: "la compra existe pero el cobro no se confirmó" };
     }

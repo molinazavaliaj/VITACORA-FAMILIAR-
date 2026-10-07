@@ -257,3 +257,32 @@ describe('PATCH /api/narrador/[narradorId]', () => {
     expect(respuesta.status).toBe(401);
   });
 });
+
+// --- el regalo en el panel (gift card, Task 9) -------------------------
+
+import { estadoEnHumano } from '../src/app/tablero/ui';
+import { proximoPaso } from '../src/app/tablero/proximo-paso';
+import { TEXTOS_REGALO } from '@/lib/regalo-textos';
+import type { Historia } from '@/lib/panel';
+
+describe('el regalo en el panel', () => {
+  const historia = (rol: Historia['rol']): Historia =>
+    ({ narrador: { id: 'n-regalo', estado: 'regalo_pendiente', contexto: {} }, rol }) as unknown as Historia;
+  const resumen = { respondidas: 0, total: 30, segundos: 0, tieneAnticipo: false };
+
+  it('regalo_pendiente se lee como el texto aprobado, en los dos mapas', () => {
+    expect(estadoEnHumano('regalo_pendiente', false)).toBe(TEXTOS_REGALO.estadoPanel);
+    expect(estadoEnHumano('regalo_pendiente', true)).toBe(TEXTOS_REGALO.estadoPanel);
+  });
+
+  it('la dueña tiene como próximo paso descargar la tarjeta', () => {
+    expect(proximoPaso(historia('duena'), resumen)).toEqual({
+      href: '/tablero/n-regalo/regalo',
+      texto: TEXTOS_REGALO.proximoPaso,
+    });
+  });
+
+  it('un invitado no tiene próximo paso con el regalo sin abrir', () => {
+    expect(proximoPaso(historia('invitado'), resumen)).toBeNull();
+  });
+});

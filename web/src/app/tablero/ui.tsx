@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { ReproductorRespuesta } from "./reproductor";
+import { TEXTOS_REGALO } from "@/lib/regalo-textos";
 
 // Piezas compartidas del panel. Todas usan los roles de color de globals.css
 // (--texto, --linea, --acento…), nunca colores crudos, así una pieza sirve en
@@ -8,6 +9,7 @@ import { ReproductorRespuesta } from "./reproductor";
 
 export const ESTADO_EN_HUMANO: Record<string, string> = {
   pendiente_pago: "Estamos confirmando el pago — apenas entre, le escribimos",
+  regalo_pendiente: TEXTOS_REGALO.estadoPanel,
   invitado: "Le mandamos la invitación, falta que acepte",
   acepto: "Aceptó — pronto le llega la primera pregunta",
   activo: "Está respondiendo, día a día",
@@ -19,6 +21,7 @@ export const ESTADO_EN_HUMANO: Record<string, string> = {
 /** Cuando el libro es del que compra ("para mí"): el panel le habla de vos. */
 export const ESTADO_EN_HUMANO_PROPIO: Record<string, string> = {
   pendiente_pago: "Estamos confirmando el pago — apenas entre, te escribimos",
+  regalo_pendiente: TEXTOS_REGALO.estadoPanel,
   invitado: "Te mandamos el primer mensaje por WhatsApp, falta que aceptes",
   acepto: "Aceptaste — pronto te llega la primera pregunta",
   activo: "Estás respondiendo, día a día",
