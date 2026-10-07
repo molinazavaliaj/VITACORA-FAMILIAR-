@@ -2,10 +2,18 @@ import { cargarConfig } from '../config.js';
 
 const GRAPH = 'https://graph.facebook.com/v21.0';
 
-async function postMensaje(payload: Record<string, unknown>): Promise<string> {
+/**
+ * `timeoutMs` (opcional, lo usa la V3): corta el pedido a Meta si no contesta
+ * a tiempo, para que un envío colgado no dure más que la toma del turno. Sin
+ * él, todo sigue como siempre (el flujo viejo no lo pasa).
+ */
+export type OpcionesEnvio = { timeoutMs?: number };
+
+async function postMensaje(payload: Record<string, unknown>, o: OpcionesEnvio = {}): Promise<string> {
   const config = cargarConfig();
   const res = await fetch(`${GRAPH}/${config.waPhoneNumberId}/messages`, {
     method: 'POST',
+    ...(o.timeoutMs !== undefined ? { signal: AbortSignal.timeout(o.timeoutMs) } : {}),
     headers: {
       Authorization: `Bearer ${config.waToken}`,
       'Content-Type': 'application/json',
@@ -17,12 +25,12 @@ async function postMensaje(payload: Record<string, unknown>): Promise<string> {
   return json.messages[0].id;
 }
 
-export function enviarTexto(telefono: string, texto: string) {
-  return postMensaje({ to: telefono, type: 'text', text: { body: texto } });
+export function enviarTexto(telefono: string, texto: string, o: OpcionesEnvio = {}) {
+  return postMensaje({ to: telefono, type: 'text', text: { body: texto } }, o);
 }
 
 /** `idioma`: el código de Meta de la plantilla aprobada ('es', 'es_ES', 'ca'). Lo viejo sigue en 'es'. */
-export function enviarPlantilla(telefono: string, nombre: string, variables: string[], idioma = 'es') {
+export function enviarPlantilla(telefono: string, nombre: string, variables: string[], idioma = 'es', o: OpcionesEnvio = {}) {
   return postMensaje({
     to: telefono,
     type: 'template',
@@ -31,7 +39,7 @@ export function enviarPlantilla(telefono: string, nombre: string, variables: str
       language: { code: idioma },
       components: [{ type: 'body', parameters: variables.map((v) => ({ type: 'text', text: v })) }],
     },
-  });
+  }, o);
 }
 
 /**
@@ -39,7 +47,7 @@ export function enviarPlantilla(telefono: string, nombre: string, variables: str
  * botones, título de hasta 20 letras, cuerpo de hasta 1024. Lo que la persona
  * toca vuelve por el webhook como `interactive.button_reply` con el título.
  */
-export function enviarBotones(telefono: string, texto: string, botones: string[]) {
+export function enviarBotones(telefono: string, texto: string, botones: string[], o: OpcionesEnvio = {}) {
   return postMensaje({
     to: telefono,
     type: 'interactive',
@@ -48,7 +56,7 @@ export function enviarBotones(telefono: string, texto: string, botones: string[]
       body: { text: texto },
       action: { buttons: botones.map((title, i) => ({ type: 'reply', reply: { id: `b${i + 1}`, title } })) },
     },
-  });
+  }, o);
 }
 
 export function enviarAudioPorLink(telefono: string, url: string) {

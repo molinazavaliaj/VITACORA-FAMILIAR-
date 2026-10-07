@@ -22,13 +22,35 @@ export async function numeroDeLlegada(db: SupabaseClient, narradorId: string): P
   return (count ?? 0) + 1;
 }
 
+/** Cuántas veces se prueba otro nombre si otro audio ganó el mismo en el medio. */
+export const INTENTOS_PATH_AUDIO = 5;
+
+/** Los audios `dia_NN…` que ya están. Con `search`: la lista de Storage corta en 100 y una entrevista V3 pasa de 100 mensajes. */
+async function audiosDelDia(db: SupabaseClient, narradorId: string, llegada: number): Promise<string[]> {
+  const { data } = await db.storage.from('audios').list(narradorId, { limit: 1000, search: `dia_${String(llegada).padStart(2, '0')}` });
+  return ((data as { name: string }[] | null) ?? []).map((a) => `${narradorId}/${a.name}`);
+}
+
+/**
+ * Sube el audio con el nombre canónico (`dia_NN.ogg`, `dia_NN_2.ogg`…, el que
+ * leen la puerta manual y el audiolibro). Dos audios casi juntos pueden sacar
+ * el mismo número de llegada y el mismo nombre: el segundo choca al subir, se
+ * relista y toma el sufijo siguiente. Si el error no es ese choque, tira.
+ */
+async function subirAudio(db: SupabaseClient, narradorId: string, llegada: number, audio: Buffer): Promise<string> {
+  for (let intento = 0; intento < INTENTOS_PATH_AUDIO; intento++) {
+    const audioPath = pathDeAudio(narradorId, llegada, await audiosDelDia(db, narradorId, llegada));
+    const subida = await db.storage.from('audios').upload(audioPath, audio, { contentType: 'audio/ogg' });
+    if (!subida.error) return audioPath;
+    const choco = (await audiosDelDia(db, narradorId, llegada)).includes(audioPath);
+    if (!choco) throw new Error(`Storage rechazó ${audioPath}: ${subida.error.message}`);
+  }
+  throw new Error(`Storage: ${INTENTOS_PATH_AUDIO} nombres seguidos para el audio ${llegada} de ${narradorId} ya estaban tomados.`);
+}
+
 /** Sube el audio y anota la fila. Null si ese wa_message_id ya estaba (y se borra el archivo recién subido). */
 export async function guardarAudioV3(db: SupabaseClient, narradorId: string, llegada: number, audio: Buffer, waMessageId: string): Promise<{ id: string } | null> {
-  const { data: archivos } = await db.storage.from('audios').list(narradorId);
-  const existentes = ((archivos as { name: string }[] | null) ?? []).map((a) => `${narradorId}/${a.name}`);
-  const audioPath = pathDeAudio(narradorId, llegada, existentes);
-  const subida = await db.storage.from('audios').upload(audioPath, audio, { contentType: 'audio/ogg' });
-  if (subida.error) throw new Error(`Storage rechazó ${audioPath}: ${subida.error.message}`);
+  const audioPath = await subirAudio(db, narradorId, llegada, audio);
   const { data, error } = await db.from('respuestas')
     .insert({ narrador_id: narradorId, pregunta_orden: llegada, audio_path: audioPath, es_repregunta: false, wa_message_id: waMessageId })
     .select('id').single();

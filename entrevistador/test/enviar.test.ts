@@ -27,6 +27,16 @@ describe('enviar', () => {
     expect(body.to).toBe('+5491155551234');
   });
 
+  it('sin timeoutMs no cambia nada (el flujo viejo); con timeoutMs, el pedido lleva un AbortSignal', async () => {
+    const { enviarTexto, enviarBotones, enviarPlantilla } = await import('../src/whatsapp/enviar.js');
+    await enviarTexto('+5491155551234', 'Hola');
+    expect((fetch as any).mock.calls[0][1].signal).toBeUndefined();
+    await enviarTexto('+5491155551234', 'Hola', { timeoutMs: 20_000 });
+    await enviarBotones('+5491155551234', '¿Sí?', ['Sí'], { timeoutMs: 20_000 });
+    await enviarPlantilla('+5491155551234', 'pregunta_diaria_vos', ['x'], 'es', { timeoutMs: 20_000 });
+    for (const llamada of (fetch as any).mock.calls.slice(1)) expect(llamada[1].signal).toBeInstanceOf(AbortSignal);
+  });
+
   it('envía plantilla con variables de cuerpo', async () => {
     const { enviarPlantilla } = await import('../src/whatsapp/enviar.js');
     await enviarPlantilla('+5491155551234', 'pregunta_diaria', ['Don Roberto', '¿Cómo era su casa?']);

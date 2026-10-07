@@ -18,6 +18,18 @@ describe('las filas de un narrador V3', () => {
     expect(await numeroDeLlegada(base.cliente, 'n1')).toBe(2);
   });
 
+  it('dos audios casi juntos con el mismo número de llegada: los dos se guardan, en archivos distintos', async () => {
+    const base = crearBaseFalsa();
+    const [a, b] = await Promise.all([
+      guardarAudioV3(base.cliente, 'n1', 1, Buffer.from('uno'), 'wamid.X'),
+      guardarAudioV3(base.cliente, 'n1', 1, Buffer.from('dos'), 'wamid.Y'),
+    ]);
+    expect(a).not.toBeNull();
+    expect(b).not.toBeNull();
+    expect(base.tablas.respuestas.map((r) => r.audio_path).sort()).toEqual(['n1/dia_01.ogg', 'n1/dia_01_2.ogg']);
+    expect([...base.archivos.values()].sort()).toEqual(['dos', 'uno']);
+  });
+
   it('transcripción y clave V3 se anotan en la fila', async () => {
     const base = crearBaseFalsa();
     const { id } = (await guardarAudioV3(base.cliente, 'n1', 1, Buffer.from('audio'), 'wamid.B'))!;

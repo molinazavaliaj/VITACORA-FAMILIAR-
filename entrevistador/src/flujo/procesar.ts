@@ -23,6 +23,7 @@ import { pedidoAbierto, pedirObjeto } from './objetos.js';
 import { bienvenidaViaje } from '../manual/puro.js';
 import { CLAVE_DEL_ARBOL, capituloNoAplica, enviarPregunta, ritmoDe, type Narrador } from './preguntar.js';
 import { bienvenidaPideVoz } from '../config.js';
+import { esNarradorV3 } from '../v3/estado.js';
 
 const MAXIMO_POR_DIA_DOS = 2; // ritmo 'dos_por_dia': la segunda se ofrece, no se impone
 
@@ -117,6 +118,18 @@ export async function procesarEntrante(m: MensajeEntrante): Promise<void> {
   const narrador = await buscarNarrador(m.telefono);
   if (!narrador) {
     console.warn(`Mensaje de un número no registrado: ${m.telefono}`);
+    return;
+  }
+
+  // Entrevista V3 (spec 2026-10-07): un narrador con fila en entrevistas_v3 va
+  // entero por la V3, antes de las fotos de la familia, de manejarTexto (que
+  // llama a un modelo) y de la evaluación con Opus. Sin fila —o sin la
+  // migración aplicada— sigue exactamente como hoy. Los imports son dinámicos
+  // para no cargar nada de la V3 si nadie la usa.
+  if ((narrador.estado === 'activo' || narrador.estado === 'pausado') && (await esNarradorV3(db, narrador.id))) {
+    const { procesarEntranteV3 } = await import('../v3/entrante.js');
+    const { depsReales } = await import('../v3/deps-reales.js');
+    await procesarEntranteV3(depsReales(), narrador, m);
     return;
   }
 
