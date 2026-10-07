@@ -324,7 +324,7 @@ export function textoMandado(e: EstadoV3, ficha: FichaTexto, id: string): string
 }
 
 /** La clave "madre" de una repregunta (RP~X) o segunda oportunidad (X~2): comparten la reserva de X (como de-base.ts de la fábrica). */
-const claveMadre = (k: string) => (k.startsWith('RP~') ? k.slice(3) : k.replace(/~\d+$/, ''));
+export const claveMadre = (k: string) => (k.startsWith('RP~') ? k.slice(3) : k.replace(/~\d+$/, ''));
 
 /** ¿Pidió que esa respuesta no vaya al libro? (también la de su pregunta madre). */
 export function esReservada(e: Pick<EstadoV3, 'reservadas'>, clave: string): boolean {

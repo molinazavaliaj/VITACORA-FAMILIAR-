@@ -10,6 +10,7 @@ import { epigrafeDe, extensionDe } from '../flujo/fotos-texto.js';
 import { pathDeAudio } from '../whatsapp/media.js';
 import type { DepsV3, Transcripcion } from './deps.js';
 import type { PreguntaFamilia } from './nucleo/entrevista/flujo.js';
+import { claveMadre } from './turno.js';
 
 /**
  * Las preguntas que cargó la familia para este narrador (tabla `preguntas`,
@@ -23,6 +24,14 @@ export async function leerFamilia(db: SupabaseClient, narradorId: string): Promi
     return null;
   }
   return ((data as { id: string; texto: string }[] | null) ?? []).map((p) => ({ id: `F:${p.id}`, texto: p.texto }));
+}
+
+/** Las preguntas de la familia que llegaron después de FO1 (sumarFamilia): un aviso a los socios, sin textos del narrador. */
+export async function avisarFamiliaTarde(deps: DepsV3, n: { id: string; como_le_dicen: string }, tarde: readonly PreguntaFamilia[]): Promise<void> {
+  if (tarde.length === 0) return;
+  await deps.avisar(`familia-tarde-${n.id}`, `Preguntas de la familia que ya no le llegan a ${n.como_le_dicen}`,
+    `La familia de ${n.id} cargó ${tarde.length} pregunta(s) (${tarde.map((p) => p.id).join(', ')}) cuando la entrevista V3 ya había llegado a FO1 `
+    + '(las de la familia van antes de la foto). No se suman: si hay que hacerlas, hay que verlo a mano.');
 }
 
 export async function yaLlego(db: SupabaseClient, waMessageId: string): Promise<boolean> {
@@ -109,13 +118,18 @@ export async function ponerClave(db: SupabaseClient, respuestaId: string, clave:
 }
 
 /**
- * «Esto que no vaya al libro»: todas las filas de esa clave quedan reservadas
- * (la fábrica saca la respuesta entera). Devuelve el error de la base, sin
- * tirar: sin la migración de reservas la columna no existe (42703) y el
- * estado (`reservadas`) igual alcanza.
+ * «Esto que no vaya al libro»: todas las filas de esa clave y de sus
+ * derivadas (RP~X, X~2, que comparten la reserva de X) quedan reservadas (la
+ * fábrica saca la respuesta entera). Devuelve el error de la base, sin tirar:
+ * sin la migración de reservas la columna no existe (42703) y el estado
+ * (`reservadas`) igual alcanza.
  */
 export async function marcarReservada(db: SupabaseClient, narradorId: string, clave: string): Promise<{ code?: string; message: string } | null> {
-  const { error } = await db.from('respuestas').update({ reservada: true }).eq('narrador_id', narradorId).eq('clave_v3', clave);
+  const { data, error: errorLeer } = await db.from('respuestas').select('id,clave_v3').eq('narrador_id', narradorId).not('clave_v3', 'is', null);
+  if (errorLeer) return { code: errorLeer.code, message: errorLeer.message };
+  const ids = ((data as { id: string; clave_v3: string }[] | null) ?? []).filter((r) => r.clave_v3 === clave || claveMadre(r.clave_v3) === clave).map((r) => r.id);
+  if (ids.length === 0) return null;
+  const { error } = await db.from('respuestas').update({ reservada: true }).in('id', ids);
   return error ? { code: error.code, message: error.message } : null;
 }
 

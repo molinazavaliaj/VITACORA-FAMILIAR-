@@ -485,6 +485,7 @@ describe('«esto que no vaya al libro» (Naza, 07/10)', () => {
 
   it('sin la columna `reservada` (42703): avisa a los socios, no falla y el estado la guarda igual', async () => {
     const { deps, n1, fila, avisos, base } = await preparar({ ...enOR1(), borrador: 'Algo.' });
+    base.tablas.respuestas = [{ id: 'r-or1', narrador_id: 'n1', clave_v3: 'OR1', wa_message_id: 'wamid.algo', transcripcion: 'Algo.' }];
     fallarUpdateDeReservada(base);
     await procesarEntranteV3(deps, n1, texto('Que no salga en el libro.'));
     expect((await fila())?.estado.reservadas).toEqual(['OR1']);
@@ -585,7 +586,7 @@ describe('pausado que vuelve sin pregunta abierta (Naza, 07/10): le sale la sigu
 
   it('si pide parar, no se reactiva ni sale nada más que el texto de pausa', async () => {
     const { deps, n1, base, fila, enviados } = await preparar(sinAbierta(), { narrador: { estado: 'pausado' } });
-    await procesarEntranteV3(deps, n1, texto('Por ahora no.'));
+    await procesarEntranteV3(deps, n1, texto('Basta por hoy.'));
     expect(base.tablas.narradores[0].estado).toBe('pausado');
     expect((await fila())?.estado.esperando).toBeUndefined();
     expect(enviados).toHaveLength(1);
@@ -596,6 +597,90 @@ describe('pausado que vuelve sin pregunta abierta (Naza, 07/10): le sale la sigu
     await procesarEntranteV3(deps, n1, texto('Hola, volví'));
     expect((await fila())?.estado.esperando).toBeUndefined();
     expect(enviados).toEqual([]);
+  });
+
+  it('antes de abrir la siguiente se suman las preguntas que la familia cargó después', async () => {
+    const { deps, n1, base, fila } = await preparar(sinAbierta(), { narrador: { estado: 'pausado' } });
+    base.tablas.preguntas = [{ id: 'pf7', narrador_id: 'n1', orden: 1, texto: '¿Y el patio?', tipo: 'familia' }];
+    await procesarEntranteV3(deps, n1, texto('Hola, volví'));
+    expect((await fila())?.estado.familia).toEqual([{ id: 'F:pf7', texto: '¿Y el patio?' }]);
+  });
+});
+
+describe('revisión del 07/10: red de seguridad de la pausa y la reserva', () => {
+  it('al pausar: alerta_silencio = true (como el flujo viejo) y aviso a los socios sin lo que dijo; al volver, se apaga', async () => {
+    const { deps, n1, base, avisos } = await preparar({ ...enOR1(), borrador: 'Algo íntimo.' });
+    await procesarEntranteV3(deps, n1, texto('Quiero parar.'));
+    expect(base.tablas.narradores[0]).toMatchObject({ estado: 'pausado', alerta_silencio: true });
+    expect(avisos.map((a) => a.clave)).toEqual(['pausa-n1']);
+    expect(JSON.stringify(avisos)).not.toContain('Algo íntimo');
+    expect(JSON.stringify(avisos)).not.toContain('Quiero parar');
+    await procesarEntranteV3(deps, { ...n1, estado: 'pausado' }, texto('Hola, volví'));
+    expect(base.tablas.narradores[0]).toMatchObject({ estado: 'activo', alerta_silencio: false });
+  });
+
+  it('pausado que vuelve con la pregunta abierta: se reenvía, M8 cuenta de nuevo desde ahora y el silencio no la cierra enseguida', async () => {
+    const HACE_3_DIAS = new Date(AHORA.getTime() - 72 * 3600_000).toISOString();
+    const { deps, n1, fila, base } = await preparar({ ...enOR1(), abiertaDesde: HACE_3_DIAS, m8En: 'OR1', borrador: 'Nací en un pueblo chico.' }, { narrador: { estado: 'pausado' } });
+    base.tablas.entrevistas_v3[0].ultimo_audio_at = HACE_3_DIAS;
+    await procesarEntranteV3(deps, n1, texto('Hola, volví'));
+    const f = await fila();
+    expect(f?.estado.abiertaDesde).toBe(AHORA.toISOString());
+    expect(f?.estado.m8En).toBeUndefined();
+    expect(f?.ultimo_audio_at).toBe(AHORA.toISOString());
+  });
+
+  it('sin borrador, al volver no se toca el reloj de silencio', async () => {
+    const { deps, n1, fila } = await preparar({ ...enOR1(), abiertaDesde: '2026-10-01T00:00:00.000Z', m8En: 'OR1' }, { narrador: { estado: 'pausado' } });
+    await procesarEntranteV3(deps, n1, texto('Hola, volví'));
+    const f = await fila();
+    expect(f?.estado.abiertaDesde).toBe(AHORA.toISOString());
+    expect(f?.ultimo_audio_at).toBeNull();
+  });
+
+  it('una reserva en un mensaje largo sin borrador abierto: el mensaje queda aparte, NO se reserva la anterior y se avisa', async () => {
+    const e: EstadoV3 = { ...enOR1(), esperando: 'OR2', respuestas: [['OR1', 'Nací en un pueblo chico.']] };
+    const { deps, n1, fila, avisos, base } = await preparar(e);
+    const largo = 'Lo de mi tío con la policía fue un desastre y lo sabe todo el barrio desde hace años, pero eso que no vaya al libro.';
+    await procesarEntranteV3(deps, n1, audio(largo));
+    const f = await fila();
+    expect(f?.estado.reservadas ?? []).toEqual([]);
+    expect(f?.estado.borrador).toBeUndefined();
+    expect(base.tablas.respuestas[0].clave_v3).toBe(SIN_CLAVE_V3);
+    expect(avisos.map((a) => a.clave)).toEqual(['reserva-larga-n1']);
+    expect(JSON.stringify(avisos)).not.toContain('policía');
+  });
+
+  it('una reserva justo después de "Sí" (sin nada contado todavía): se reserva la abierta, no la anterior', async () => {
+    const enCA6: EstadoV3 = { ...estadoInicial(), respuestas: [['OR1', 'Nací en un pueblo chico.']], esperando: 'CA6', preguntaAbierta: { partes: [{ id: 'CA6', texto: '¿Hermanos?' }] }, ultimoEntranteAt: AHORA.toISOString() };
+    const { deps, n1, fila } = await preparar(enCA6);
+    await procesarEntranteV3(deps, n1, texto('Sí, tuve', true));
+    await procesarEntranteV3(deps, n1, texto('Pero esto que no vaya al libro.'));
+    expect((await fila())?.estado.reservadas).toEqual(['CA6']);
+  });
+
+  it('la abierta salió por plantilla y manda un audio que pide parar: no se le reenvía la pregunta', async () => {
+    const porPlantilla: EstadoV3 = {
+      ...estadoInicial(), esperando: 'CA6', abiertaPorPlantilla: true,
+      preguntaAbierta: { partes: [{ id: 'CA6', texto: '¿Tuviste hermanos?' }], botones: ['Sí, tuve', 'No tuve hermanos'] },
+      ultimoEntranteAt: new Date(AHORA.getTime() - 48 * 3600_000).toISOString(),
+    };
+    const { deps, n1, enviados } = await preparar(porPlantilla);
+    await procesarEntranteV3(deps, n1, audio('Paremos por hoy.'));
+    expect(enviados.map((e) => e.texto)).toEqual(['Listo, Prueba, frenamos acá. Lo que contaste queda guardado. Cuando quieras seguir, mandame un mensaje y retomamos donde quedamos.']);
+  });
+
+  it('reservar X marca también las filas de su repregunta (RP~X) y su segunda oportunidad (X~2)', async () => {
+    const { deps, n1, base } = await preparar({ ...enOR1(), esperando: 'OR2', respuestas: [['RP~OR1', 'b'], ['OR1~2', 'c'], ['OR1', 'a']] });
+    base.tablas.respuestas = [
+      { id: 'r1', narrador_id: 'n1', clave_v3: 'OR1', wa_message_id: 'w1' },
+      { id: 'r2', narrador_id: 'n1', clave_v3: 'RP~OR1', wa_message_id: 'w2' },
+      { id: 'r3', narrador_id: 'n1', clave_v3: 'OR1~2', wa_message_id: 'w3' },
+      { id: 'r4', narrador_id: 'n1', clave_v3: 'OR10', wa_message_id: 'w4' },
+    ];
+    // La última cerrada es OR1: se marcan también las de sus derivadas.
+    await procesarEntranteV3(deps, n1, texto('No lo pongas en el libro.'));
+    expect(base.tablas.respuestas.filter((r) => r.reservada).map((r) => r.id)).toEqual(['r1', 'r2', 'r3']);
   });
 });
 

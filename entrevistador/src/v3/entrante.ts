@@ -19,7 +19,7 @@ import type { DepsV3, Transcripcion } from './deps.js';
 import { drenar } from './enviar.js';
 import { conReintento, type Paso } from './estado.js';
 import {
-  anotarTranscripcion, bajarAudioGuardado, guardarAudioV3, guardarFotoV3, guardarTextoV3, marcarRespondido, numeroDeLlegada, ponerClave,
+  anotarTranscripcion, avisarFamiliaTarde, bajarAudioGuardado, leerFamilia, guardarAudioV3, guardarFotoV3, guardarTextoV3, marcarRespondido, numeroDeLlegada, ponerClave,
   ponerClaveSiFalta, yaLlego,
 } from './filas.js';
 import { leerBoton, respuestaDeBoton } from './nucleo/entrevista/respuesta.js';
@@ -27,7 +27,7 @@ import { cumplirPedido, pedidoDe } from './pedidos.js';
 import { aplicarTanda, hitosDe, puedeAbrirHoy } from './tanda.js';
 import { textoFijo } from './textos-fijos.js';
 import { fichaTexto, MARCA_FOTO, SIN_CLAVE_V3, type FilaV3, type NarradorV3 } from './tipos.js';
-import { anotarVisto, avanzar, cerrarYSeguir, encolar, marcarFoto, recibirAudio, reenviarAbierta, sinRecordatorios, textoDelBanco, tocarBoton, yaVisto } from './turno.js';
+import { anotarVisto, avanzar, cerrarYSeguir, encolar, sumarFamilia, marcarFoto, recibirAudio, reenviarAbierta, sinRecordatorios, textoDelBanco, tocarBoton, yaVisto } from './turno.js';
 
 /** Una fila sin clave_v3 más vieja que esto la retoma el reloj (el proceso que la guardó se cayó o falló). */
 export const RECONCILIAR_MS = 5 * 60_000;
@@ -56,17 +56,26 @@ export async function procesarEntranteV3(deps: DepsV3, n: NarradorV3, m: Mensaje
   const pedidoEscrito = escrito && pedidoDe((m.texto ?? '').trim(), fila.idioma) !== null;
   if (pausado && escrito && !pedidoEscrito && fila.estado.esperando) {
     await reactivar(deps, n.id);
-    // Vuelve escribiendo con una pregunta abierta: se le reenvía (sin M22).
-    await conReintento(deps.db, n.id, (f) =>
-      yaVisto(f.estado, m.waMessageId) ? null : { cambio: { estado: anotarVisto(reenviarAbierta(f.estado), m.waMessageId) }, resultado: true });
+    // Vuelve escribiendo con una pregunta abierta: se le reenvía (sin M22). M8 cuenta de
+    // nuevo desde ahora y, si había algo contado, el silencio de 3' también (que no la
+    // cierre apenas se reenvía).
+    const ahoraIso = ahora.toISOString();
+    await conReintento(deps.db, n.id, (f) => {
+      if (yaVisto(f.estado, m.waMessageId)) return null;
+      const estado = { ...anotarVisto(reenviarAbierta(f.estado), m.waMessageId), m8En: undefined, ...(f.estado.esperando ? { abiertaDesde: ahoraIso } : {}) };
+      return { cambio: { estado, ...(f.estado.borrador?.trim() ? { ultimo_audio_at: ahoraIso } : {}) }, resultado: true };
+    });
     await drenar(deps, n.id);
     return;
   }
-  if (!pedidoEscrito) await reenviarSiSalioPorPlantilla(deps, n.id, m);
+  // Un pedido (pausa o reserva) no dispara el reenvío por plantilla: el audio se sabe recién transcripto.
+  if (!pedidoEscrito && m.tipo !== 'audio') await reenviarSiSalioPorPlantilla(deps, n.id, m);
   let llegada: Llegada = 'mensaje';
   if (m.tipo === 'imagen') await recibirImagen(deps, n, m, fila);
-  else if (m.tipo === 'audio') llegada = await recibirAudioV3(deps, n, m, fila);
-  else if (m.esBoton) {
+  else if (m.tipo === 'audio') {
+    llegada = await recibirAudioV3(deps, n, m, fila);
+    if (llegada !== 'pedido') await reenviarSiSalioPorPlantilla(deps, n.id, m);
+  } else if (m.esBoton) {
     if (!(await recibirBoton(deps, n, m, fila, ahora))) await botonSuelto(deps, n, m);
   } else llegada = await recibirTexto(deps, n, m, fila.idioma);
   // Un pausado vuelve con cualquier mensaje, salvo que lo que mandó sea un pedido (pausa o reserva).
@@ -83,23 +92,28 @@ export async function procesarEntranteV3(deps: DepsV3, n: NarradorV3, m: Mensaje
 /** 'pedido': era «quiero parar» o «que no vaya al libro» (pedidos.ts) y no se sumó a nada. */
 type Llegada = 'mensaje' | 'pedido';
 
+/** pausado → activo; la alerta de silencio se apaga (como marcarRespondido y el flujo viejo). */
 async function reactivar(deps: DepsV3, narradorId: string): Promise<void> {
-  await deps.db.from('narradores').update({ estado: 'activo' }).eq('id', narradorId).eq('estado', 'pausado');
+  await deps.db.from('narradores').update({ estado: 'activo', alerta_silencio: false }).eq('id', narradorId).eq('estado', 'pausado');
 }
 
 /**
  * La vuelta de una pausa sin pregunta abierta: la siguiente sale ya, sin
  * esperar su hora, y cuenta en la tanda de hoy. Si la tanda ya llegó al
- * tope, igual sale esta una. Con la entrevista terminada, nada.
+ * tope, igual sale esta una. Con la entrevista terminada, nada. Antes se
+ * suman las preguntas que la familia cargó después (como al abrir la tanda).
  */
 async function abrirAlVolver(deps: DepsV3, n: NarradorV3, ahora: Date): Promise<void> {
   const hoy = fechaLocal(ahora, n.zona_horaria);
-  await conReintento(deps.db, n.id, (f) => {
+  const familia = (await leerFamilia(deps.db, n.id)) ?? [];
+  const r = await conReintento(deps.db, n.id, (f) => {
     if (f.estado.esperando || f.estado.terminada) return null;
-    const a = avanzar(f.estado, fichaTexto(f));
+    const conFamilia = sumarFamilia(f.estado, familia);
+    const a = avanzar(conFamilia.estado, fichaTexto(f));
     const t = aplicarTanda(f, a.estado, hoy, a.abrio, ahora);
-    return { cambio: { estado: t.estado, tanda_dia: t.tanda_dia, tanda_cuenta: t.tanda_cuenta }, resultado: true };
+    return { cambio: { estado: t.estado, tanda_dia: t.tanda_dia, tanda_cuenta: t.tanda_cuenta }, resultado: conFamilia.tarde };
   });
+  if (r) await avisarFamiliaTarde(deps, n, r.resultado);
 }
 
 /**

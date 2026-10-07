@@ -542,23 +542,37 @@ sí: un «Gracias» podía terminar en el libro). Queda la fila con `∅` y no s
 Después de tocar «Sí» la pregunta sigue abierta: eso se suma como siempre.
 
 **«Esto que no vaya al libro» y «quiero parar» por WhatsApp (Naza, 07/10).** El entrevistador V3
-los detecta con frases fijas del núcleo (`pideReserva` a cualquier largo, `pidePausa` solo en un
-mensaje de hasta 15 palabras; sin modelo), en el texto escrito o en la transcripción, antes de
-sumarlo. El mensaje que lo pide queda con `clave_v3 = '∅'`.
-- **Reserva:** se reserva la abierta si tiene borrador; si no, la última respuesta cerrada. El
-  entrevistador V3 **escribe `respuestas.reservada = true`** en todas las filas de ese narrador con
-  esa `clave_v3` (si la columna no existe —42703— o el update falla, avisa a los socios y sigue) y
+los detecta con frases fijas del núcleo (`pideReserva`, `pidePausa`; sin modelo), en el texto
+escrito o en la transcripción, antes de sumarlo. Ante la duda, no es un pedido (revisión del 07/10).
+El mensaje que lo pide queda con `clave_v3 = '∅'`.
+- Frases de reserva: las que nombran el libro (libro, llibre, biografía) valen a cualquier largo; las
+  genéricas («no lo escribas», «eso no lo pongas», «no ho posis»…) solo en un mensaje de hasta 15
+  palabras o que nombre el libro en otro lado, y nunca dichas por otro («decía…») ni seguidas de un
+  lugar («…en la pared»).
+- Frases de pausa: solo en un mensaje de hasta 15 palabras; no valen negadas («no quiero parar
+  nunca») ni seguidas de algo que las vuelve otra cosa («paremos acá a comer», «no quiero seguir
+  trabajando»). «Paremos» / «Frenemos» / «Parem» solos, en hasta 8 palabras o seguidos de acá /
+  por hoy / un rato / ya; «Pausa» sola, en hasta 4. «Lo dejamos aquí» (es-ES) y «Ho deixem aquí»
+  (ca) no son pausa: hace falta «por hoy» / «per avui».
+- **Reserva:** se reserva la abierta si tiene borrador o si tocó «Sí» (lo que va a contar); si no,
+  la última respuesta cerrada. En un mensaje de más de 15 palabras sin nada abierto, no se reserva
+  ninguna anterior (queda afuera el mensaje mismo) y se avisa a los socios. El entrevistador V3
+  **escribe `respuestas.reservada = true`** en todas las filas de ese narrador con esa `clave_v3` y
+  sus derivadas (`RP~X`, `X~2`) (si la columna no existe —42703— o el update falla, avisa a los
+  socios y sigue) y
   la anota en `entrevistas_v3.estado.reservadas`. **La fábrica (`de-base.ts`) saca enteras las
   claves de `estado.reservadas`** (y las de su pregunta madre: `RP~X` y `X~2` comparten la de `X`)
   con sus audios, aunque las filas no estén marcadas. Tampoco van al cazador. Sale el texto fijo
   `reserva`; la entrevista sigue igual.
-- **Pausa:** `narradores.estado` `activo → pausado` (con `.eq('estado','activo')`) y sale el texto
-  fijo `pausa`. Lo abierto queda abierto. El reloj no trabaja a los pausados (ni M8). Si dice las
+- **Pausa:** `narradores.estado` `activo → pausado` (con `.eq('estado','activo')`) y
+  `alerta_silencio = true` (como el flujo viejo), sale el texto fijo `pausa` y se avisa a los socios
+  (red de seguridad: una pausa por error se arregla con que escriba). Lo abierto queda abierto. El reloj no trabaja a los pausados (ni M8). Si dice las
   dos cosas, se reserva y además se pausa. Un pedido no reactiva a un pausado.
-- **Vuelta de un pausado:** cualquier otro mensaje lo reactiva. Con pregunta abierta, se le reenvía
-  (como siempre). Sin pregunta abierta y con la entrevista sin terminar, **la siguiente sale en el
+- **Vuelta de un pausado:** cualquier otro mensaje lo reactiva (`alerta_silencio = false`). Con
+  pregunta abierta, se le reenvía, M8 cuenta de nuevo desde ahora (`abiertaDesde`, `m8En`) y, si
+  había algo contado, el silencio de 3' también. Sin pregunta abierta y con la entrevista sin terminar, **la siguiente sale en el
   momento** (sin esperar `hora_preferida`) y cuenta en la tanda de hoy, aunque esté en el tope; lo
-  que mandó queda con `∅`.
+  que mandó queda con `∅`. Antes se suman las preguntas de la familia (como al abrir la tanda).
 
 **Preguntas de la familia cargadas después del alta (Naza, 07/10).** Al abrir la tanda del día, el
 reloj lee `preguntas` del narrador con `tipo = 'familia'` (el mismo criterio del alta, id

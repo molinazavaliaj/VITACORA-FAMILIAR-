@@ -13,7 +13,7 @@ import type { DepsV3 } from './deps.js';
 import { reconciliarV3 } from './entrante.js';
 import { drenar } from './enviar.js';
 import { conReintento, listarFilas, tomaVigente } from './estado.js';
-import { leerFamilia } from './filas.js';
+import { avisarFamiliaTarde, leerFamilia } from './filas.js';
 import { aplicarTanda, hitosDe, puedeAbrirHoy, yaEsLaHora } from './tanda.js';
 import { fichaTexto, type FilaV3, type NarradorV3 } from './tipos.js';
 import { avanzar, cerrarYSeguir, encolar, sumarFamilia, textoDelBanco } from './turno.js';
@@ -100,11 +100,7 @@ export async function trabajarNarrador(deps: DepsV3, fila: FilaV3, n: NarradorV3
       };
     });
     if (!r) return 'nada';
-    if (r.resultado.length > 0) {
-      await deps.avisar(`familia-tarde-${n.id}`, `Preguntas de la familia que ya no le llegan a ${n.como_le_dicen}`,
-        `La familia de ${n.id} cargó ${r.resultado.length} pregunta(s) (${r.resultado.map((p) => p.id).join(', ')}) cuando la entrevista V3 ya había llegado a FO1 `
-        + '(las de la familia van antes de la foto). No se suman: si hay que hacerlas, hay que verlo a mano.');
-    }
+    await avisarFamiliaTarde(deps, n, r.resultado);
     await drenar(deps, n.id);
     return 'tanda';
   }
