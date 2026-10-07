@@ -333,13 +333,41 @@ describe('Ejecutor con todoPorLote (configuración económica: también las llam
     expect(grupos).toHaveLength(1);
   });
 
-  it('en una fase: lo que el lote grande devolvió con error se repite en un lote de una antes de ir directo', async () => {
-    const { lote, grupos } = loteQue((p, i) => (i === 0 ? { clave: p.clave, ok: false, error: 'errored' } : bien('{}')(p)));
-    const directo = new ModeloFalso({});
+  it('en una fase: lo que el lote grande devolvió con error sale directo, sin esperar otro lote', async () => {
+    const { lote, grupos } = loteQue((p) => ({ clave: p.clave, ok: false, error: 'errored' }));
+    const directo = new ModeloFalso({ '7-estilo-cap_1': '{}' });
     const e = new Ejecutor({ modelo: directo, lote, todoPorLote: true, almacen: new AlmacenMemoria() });
     const r = await e.varios([enc('C/7-estilo-cap_1', true)], { lote: true, grupo: 'C-estilo-1' });
     expect(r.textos.get('C/7-estilo-cap_1')).toBe('{}');
-    expect(grupos).toEqual(['C-estilo-1', 'uno/C/7-estilo-cap_1']);
-    expect(directo.llamadas).toHaveLength(0);
+    expect(grupos).toEqual(['C-estilo-1']);
+    expect(directo.llamadas).toHaveLength(1);
+  });
+
+  it('en una fase: un corte en el lote grande se repite en un lote de una con el máximo', async () => {
+    const { lote, grupos, pedidos } = loteQue((p, i) => (i === 0
+      ? { clave: p.clave, ok: false, error: 'max_tokens', porMaxTokens: true, uso: { input_tokens: 1000, output_tokens: 100 } }
+      : bien('{}')(p)));
+    const e = new Ejecutor({ modelo: new ModeloFalso({}), lote, todoPorLote: true, almacen: new AlmacenMemoria() });
+    const r = await e.varios([enc('C/6-arreglo-cap_1', true)], { lote: true, grupo: 'C-arreglos' });
+    expect(r.textos.get('C/6-arreglo-cap_1')).toBe('{}');
+    expect(grupos).toEqual(['C-arreglos', 'uno/C/6-arreglo-cap_1-max']);
+    expect(pedidos.map((p) => p.maxTokens)).toEqual([64000, 128000]);
+  });
+
+  it('al retomar, un lote ya terminado que vuelve con el mismo corte no se cuenta dos veces', async () => {
+    let cortes = 0;
+    const loteFijo: Lote = { enviar: async (_g, ps) => ps.map((p) => (p.maxTokens < 128000
+      ? (cortes++, { clave: p.clave, ok: false as const, error: 'max_tokens', porMaxTokens: true, uso: { input_tokens: 1000, output_tokens: 64000 } })
+      : { clave: p.clave, ok: false as const, error: 'expired' })) };
+    const almacen = new AlmacenMemoria();
+    const directo: Modelo = { llamar: async () => { throw new ErrorDelModelo('red', false); } };
+    const e1 = new Ejecutor({ modelo: directo, lote: loteFijo, todoPorLote: true, almacen });
+    await expect(e1.uno(enc('C/3b-capitulo-01'))).rejects.toThrow();
+    const antes = e1.gastado;
+    const e2 = new Ejecutor({ modelo: directo, lote: loteFijo, todoPorLote: true, almacen });
+    await expect(e2.uno(enc('C/3b-capitulo-01'))).rejects.toThrow();
+    expect(cortes).toBe(2);
+    expect(e2.gastado).toBe(antes);
+    expect(e2.filas.filter((f) => f.falla)).toHaveLength(1);
   });
 });

@@ -53,6 +53,12 @@ describe('estimación con la configuración económica', () => {
     for (const p of ['3r-resumen', '7-estilo', '3t-titulo']) expect(modelo[p], p).toBe('claude-haiku-4-5');
     for (const p of ['2h-armador', '3b-capitulo', '4-hechos', '5c-veedor', '6-arreglo', '4-hechos-repaso']) expect(modelo[p], p).toBe('claude-opus-5-5');
   });
+  it('la entrada se cuenta con los caracteres por token medidos (Opus 2,3) y los hechos pagan la caché de 1 hora al doble', () => {
+    const f = estimarUsd(carpetaNelida(), { soloCapitulo: 1 }).filas.find((x) => x.paso === '4-hechos')!;
+    expect(f.usd).toBeCloseTo((f.entradaTokens * 8 + f.salidaTokens * 20) / 1e6, 4);
+    const v = estimarUsd(carpetaNelida(), { soloCapitulo: 1 }).filas.find((x) => x.paso === '5c-veedor')!;
+    expect(v.usd).toBeCloseTo((v.entradaTokens * 4 + v.salidaTokens * 20) / 1e6, 4);
+  });
   it('con lote, todo a mitad de precio; el texto lo dice', () => {
     const lleno = estimarUsd(carpetaNelida(), { soloCapitulo: 1 });
     const lote = estimarUsd(carpetaNelida(), { soloCapitulo: 1, lote: true });

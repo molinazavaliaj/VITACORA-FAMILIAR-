@@ -12,7 +12,7 @@
 // respuestas del plan para ese capítulo (idsDeCapitulo).
 import type { Carpeta } from './carpeta.js';
 import { PRECIOS_ESCRITOR } from './costos.js';
-import { rolDe } from './modelo/configuracion.js';
+import { cacheDeUnaHora, HAIKU, rolDe } from './modelo/configuracion.js';
 import { idsDeCapitulo, respuestas, salida } from './lectura.js';
 import { llamadaArmador, llamadaArreglo, llamadaCapitulo, llamadaEstilo, llamadaHechos, llamadaResumen, llamadaTitulo, llamadaVeedor, textoParaElModelo, type Llamada } from './llamadas/armar.js';
 import { archivoDe } from './texto.js';
@@ -27,7 +27,11 @@ export const SALIDA_ESTIMADA: Record<string, number> = {
   '2h-armador': 12000, '3b-capitulo': 45000, '3r-resumen': 3000, '4-hechos': 30000, '5c-veedor': 16000,
   '6-arreglo': 8000, '4-hechos-repaso': 8000, '7-estilo': 8000, '3t-titulo': 3000,
 };
-const tokens = (t: string): number => Math.ceil(t.length / 3.5);
+/**
+ * Caracteres por token: medido con Opus 5.5 en la prueba del 07/10 (4-hechos: 408.890 caracteres, ~178.000 tokens).
+ * Haiku 4.5 tiene el tokenizador anterior, que cuenta hasta 1,35× menos tokens.
+ */
+const tokens = (t: string, modelo: string): number => Math.ceil(t.length / (modelo === HAIKU ? 3.1 : 2.3));
 const redondear = (x: number): number => Math.round(x * 1e4) / 1e4;
 
 /** Cuántos caracteres tendría el capítulo n si todavía no está escrito (regla en el encabezado). */
@@ -46,9 +50,11 @@ export function estimarUsd(c: Carpeta, o: { soloCapitulo: number; lote?: boolean
   const fila = (paso: string, l: Llamada, salidaClave = paso): FilaEstimada => {
     const { modelo } = rolDe(l.nombre);
     const p = PRECIOS_ESCRITOR[modelo];
-    const entradaTokens = tokens(textoParaElModelo(l));
+    const entradaTokens = tokens(textoParaElModelo(l), modelo);
     const salidaTokens = SALIDA_ESTIMADA[salidaClave];
-    return { paso, modelo, entradaTokens, salidaTokens, usd: redondear(((entradaTokens * p.input + salidaTokens * p.output) / 1e6) * factor) };
+    // La caché de 1 hora se escribe al doble de la entrada; se supone que no pega (en un lote, la caché es de mejor esfuerzo).
+    const entrada = cacheDeUnaHora(l.nombre) ? 2 * p.input : p.input;
+    return { paso, modelo, entradaTokens, salidaTokens, usd: redondear(((entradaTokens * entrada + salidaTokens * p.output) / 1e6) * factor) };
   };
   const conRelleno = !c.existe(salida(archivoDe(`cap_${n}`)));
   const armador = llamadaArmador(c, n);

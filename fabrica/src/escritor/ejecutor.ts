@@ -76,6 +76,8 @@ export class Ejecutor {
   private readonly tope: number;
   /** Cortes por max_tokens que ya pasaron en el lote, por clave: el intento sin lote arranca con ese conteo. */
   private readonly cortesPrevios = new Map<string, number>();
+  /** Claves que ya volvieron con error de un lote de `varios` (no por corte): salen directas, sin esperar otro lote. */
+  private readonly fallaronEnLote = new Set<string>();
   private fallasCargadas: Promise<void> | null = null;
   private guardandoFallas: Promise<void> = Promise.resolve();
 
@@ -140,6 +142,9 @@ export class Ejecutor {
   /** Un intento que la API cobró y no sirvió: suma al gasto (y al tope) y queda en `fallas.json`, pero no va a la memoria. */
   private async anotarFalla(p: PedidoModelo, uso: UsoApi, lote: boolean): Promise<void> {
     const fila: FilaUso = { ...this.fila(p, uso, lote), falla: true };
+    // Al retomar, un lote ya terminado devuelve otra vez el mismo resultado fallado: si ya está en `fallas.json`, no se cuenta dos veces.
+    const igual = (f: FilaUso): boolean => !!f.falla && f.de_memoria && f.lote && f.clave === fila.clave && f.input === fila.input && f.output === fila.output && f.cache_write === fila.cache_write && f.cache_read === fila.cache_read;
+    if (lote && this.filas.some(igual)) return;
     this.filas.push(fila);
     // En fila: dos trabajadores en paralelo no se pisan el archivo.
     this.guardandoFallas = this.guardandoFallas.then(async () => {
@@ -193,7 +198,7 @@ export class Ejecutor {
       }
       return m.texto;
     }
-    if (this.o.todoPorLote && this.o.lote) {
+    if (this.o.todoPorLote && this.o.lote && !this.fallaronEnLote.has(p.clave)) {
       const t = await this.porLote(p);
       if (t !== null) return t;
     }
@@ -259,6 +264,7 @@ export class Ejecutor {
           else {
             if (r.uso) await this.anotarFalla(p, r.uso, true);
             if (r.porMaxTokens) this.cortesPrevios.set(p.clave, 1);
+            else this.fallaronEnLote.add(p.clave);
             this.o.log?.(`${r.clave}: el lote volvió con error (${r.error}); va sin lote`);
           }
         }
