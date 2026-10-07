@@ -102,6 +102,26 @@ describe('la fila de entrevistas_v3', () => {
     expect((await leerFila(base.cliente, 'n1'))?.enviando_hasta).toBe(b.enviando_hasta);
   });
 
+  it('soltarTurno compara instantes: la base puede devolver +00:00 donde JS escribió Z', async () => {
+    const base = crearBaseFalsa();
+    await crearFila(base.cliente, nueva());
+    const tomada = (await tomarTurno(base.cliente, 'n1', AHORA)) as FilaV3;
+    expect(tomada.enviando_hasta).toBe('2026-10-08T13:02:00.000Z');
+    // Como serializa PostgREST un timestamptz: el mismo instante, otra forma.
+    base.tablas.entrevistas_v3[0].enviando_hasta = '2026-10-08T13:02:00+00:00';
+    expect(await soltarTurno(base.cliente, 'n1', tomada)).not.toBeNull();
+    expect((await leerFila(base.cliente, 'n1'))?.enviando_hasta).toBeNull();
+  });
+
+  it('soltarTurno con otro instante (aunque sea por un milisegundo) no suelta', async () => {
+    const base = crearBaseFalsa();
+    await crearFila(base.cliente, nueva());
+    const tomada = (await tomarTurno(base.cliente, 'n1', AHORA)) as FilaV3;
+    expect(await soltarTurno(base.cliente, 'n1', { ...tomada, enviando_hasta: '2026-10-08T13:02:00.001+00:00' })).toBeNull();
+    expect(await soltarTurno(base.cliente, 'n1', { ...tomada, enviando_hasta: null })).toBeNull();
+    expect((await leerFila(base.cliente, 'n1'))?.enviando_hasta).toBe('2026-10-08T13:02:00.000Z');
+  });
+
   it('esTablaAusente no se traga errores de columna', () => {
     expect(esTablaAusente({ code: '42703', message: 'column "x" does not exist' })).toBe(false);
     expect(esTablaAusente({ code: '42P01' })).toBe(true);

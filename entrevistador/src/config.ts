@@ -31,3 +31,19 @@ export type Config = ReturnType<typeof cargarConfig>;
 export function bienvenidaPideVoz(): boolean {
   return process.env.WA_BIENVENIDA_PIDE_VOZ === '1';
 }
+
+export type PlantillaV3 = { nombre: string; idiomaMeta: string };
+
+/**
+ * Las plantillas de Meta de la entrevista V3 (spec 2026-10-07), por idioma.
+ * `pregunta`: una variable con la pregunta (`pregunta_diaria_vos` ya está
+ * aprobada, PLANTILLAS.md). `recordatorio`: el texto de M8 del idioma, con una
+ * variable (el nombre). Las carga Joaquín en Meta (el cuerpo lo aprueba Naza)
+ * y se marcan como aprobadas en WA_PLANTILLAS_V3_LISTAS. Si cambia un nombre
+ * en Meta, se cambia acá.
+ */
+export const PLANTILLAS_V3: Readonly<Record<'es-AR' | 'es-ES' | 'ca', { pregunta: PlantillaV3; recordatorio: PlantillaV3 }>> = {
+  'es-AR': { pregunta: { nombre: 'pregunta_diaria_vos', idiomaMeta: 'es' }, recordatorio: { nombre: 'm8_vos', idiomaMeta: 'es' } },
+  'es-ES': { pregunta: { nombre: 'pregunta_diaria_es_es', idiomaMeta: 'es_ES' }, recordatorio: { nombre: 'm8_es_es', idiomaMeta: 'es_ES' } },
+  ca: { pregunta: { nombre: 'pregunta_diaria_ca', idiomaMeta: 'ca' }, recordatorio: { nombre: 'm8_ca', idiomaMeta: 'ca' } },
+};

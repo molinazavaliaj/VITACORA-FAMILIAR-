@@ -113,6 +113,13 @@ export async function tomarTurno(db: SupabaseClient, narradorId: string, ahora: 
   return r?.fila ?? null;
 }
 
+/** Compara instantes, no textos: PostgREST devuelve un timestamptz como `+00:00` donde JS escribió `Z`. */
+function mismoInstante(a: string | null, b: string | null): boolean {
+  if (!a || !b) return false;
+  const ta = Date.parse(a);
+  return !Number.isNaN(ta) && ta === Date.parse(b);
+}
+
 /**
  * Suelta el turno solo si sigue siendo el que `tomada` tomó (mismo
  * `enviando_hasta`). Si venció y otro lo retomó, no se toca: devuelve null.
@@ -121,6 +128,6 @@ export async function tomarTurno(db: SupabaseClient, narradorId: string, ahora: 
  */
 export async function soltarTurno(db: SupabaseClient, narradorId: string, tomada: FilaV3): Promise<FilaV3 | null> {
   const r = await conReintento(db, narradorId, (f) =>
-    f.enviando_hasta === tomada.enviando_hasta ? { cambio: { enviando_hasta: null }, resultado: true } : null);
+    mismoInstante(f.enviando_hasta, tomada.enviando_hasta) ? { cambio: { enviando_hasta: null }, resultado: true } : null);
   return r?.fila ?? null;
 }

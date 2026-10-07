@@ -35,4 +35,24 @@ describe('enviar', () => {
     expect(body.template.name).toBe('pregunta_diaria');
     expect(body.template.components[0].parameters).toHaveLength(2);
   });
+  it('manda botones de respuesta rápida (interactive/button)', async () => {
+    const { enviarBotones } = await import('../src/whatsapp/enviar.js');
+    await enviarBotones('+5491155551234', '¿Tuviste hermanos?', ['Sí, tuve', 'No tuve hermanos']);
+    const body = JSON.parse((fetch as any).mock.calls[0][1].body);
+    expect(body.type).toBe('interactive');
+    expect(body.interactive.type).toBe('button');
+    expect(body.interactive.body.text).toBe('¿Tuviste hermanos?');
+    expect(body.interactive.action.buttons).toEqual([
+      { type: 'reply', reply: { id: 'b1', title: 'Sí, tuve' } },
+      { type: 'reply', reply: { id: 'b2', title: 'No tuve hermanos' } },
+    ]);
+  });
+
+  it('la plantilla va en el idioma que se le pide (por defecto, es)', async () => {
+    const { enviarPlantilla } = await import('../src/whatsapp/enviar.js');
+    await enviarPlantilla('+34600000000', 'pregunta_diaria_ca', ['Com era casa teva?'], 'ca');
+    await enviarPlantilla('+5491155551234', 'recordatorio', ['Prueba']);
+    expect(JSON.parse((fetch as any).mock.calls[0][1].body).template.language.code).toBe('ca');
+    expect(JSON.parse((fetch as any).mock.calls[1][1].body).template.language.code).toBe('es');
+  });
 });

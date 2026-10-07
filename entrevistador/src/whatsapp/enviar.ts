@@ -21,14 +21,32 @@ export function enviarTexto(telefono: string, texto: string) {
   return postMensaje({ to: telefono, type: 'text', text: { body: texto } });
 }
 
-export function enviarPlantilla(telefono: string, nombre: string, variables: string[]) {
+/** `idioma`: el código de Meta de la plantilla aprobada ('es', 'es_ES', 'ca'). Lo viejo sigue en 'es'. */
+export function enviarPlantilla(telefono: string, nombre: string, variables: string[], idioma = 'es') {
   return postMensaje({
     to: telefono,
     type: 'template',
     template: {
       name: nombre,
-      language: { code: 'es' },
+      language: { code: idioma },
       components: [{ type: 'body', parameters: variables.map((v) => ({ type: 'text', text: v })) }],
+    },
+  });
+}
+
+/**
+ * Texto con botones de respuesta rápida (entrevista V3). Meta: hasta 3
+ * botones, título de hasta 20 letras, cuerpo de hasta 1024. Lo que la persona
+ * toca vuelve por el webhook como `interactive.button_reply` con el título.
+ */
+export function enviarBotones(telefono: string, texto: string, botones: string[]) {
+  return postMensaje({
+    to: telefono,
+    type: 'interactive',
+    interactive: {
+      type: 'button',
+      body: { text: texto },
+      action: { buttons: botones.map((title, i) => ({ type: 'reply', reply: { id: `b${i + 1}`, title } })) },
     },
   });
 }
