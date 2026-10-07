@@ -194,6 +194,9 @@ export function bloqueosDePase(plan: PlanDePase): string[] {
   const b: string[] = [];
   if (plan.pendiente !== null && plan.cargadas.length > 0) b.push(`tiene la pregunta orden ${plan.pendiente} pendiente: pasar después de que conteste`);
   if (plan.tramosReservados.length > 0) b.push(`tramo reservado en órdenes ${plan.tramosReservados.join(', ')}: decide una persona`);
+  // Lo que no entra a la V3 no llega nunca al libro: sin override, se completa la tabla o se revisa a mano.
+  if (plan.sinEquivalencia.length > 0) b.push(`sin equivalencia en órdenes ${plan.sinEquivalencia.map((s) => s.orden).join(', ')}: completar la tabla (la aprueba Naza)`);
+  if (plan.sinTexto.length > 0) b.push(`sin texto en órdenes ${plan.sinTexto.join(', ')}: transcribir o revisar a mano`);
   return b;
 }
 
@@ -225,8 +228,8 @@ export async function planDePase(db: SupabaseClient, narradorId: string, o: { ge
  * la próxima sale mañana a su hora, no un minuto después del pase.
  * Un acepto pasa a activo (el reloj solo trabaja a los activos); un activo sigue
  * activo. Un pausado SIGUE PAUSADO (spec): el reloj no le manda nada hasta que
- * se reactive. No aplica nada si tiene la pregunta vieja pendiente (con algo cargado) o un tramo
- * reservado (bloqueosDePase), ni si ya es V3.
+ * se reactive. No aplica nada si tiene la pregunta vieja pendiente (con algo cargado), un tramo
+ * reservado, respuestas sin equivalencia o sin texto (bloqueosDePase), ni si ya es V3.
  */
 export async function aplicarPase(db: SupabaseClient, plan: PlanDePase, ahora: Date = new Date()): Promise<void> {
   const bloqueos = bloqueosDePase(plan);
@@ -266,10 +269,10 @@ export function describirPase(plan: PlanDePase): string {
     ...plan.cargadas.map((c) => `  ${c.clave} ← orden${c.ordenes.length > 1 ? 'es' : ''} ${c.ordenes.join(', ')} (${c.palabras} palabras)`),
   ];
   if (plan.sinEquivalencia.length > 0) {
-    l.push('Sin equivalencia (NO se cargan; quedan en respuestas sin clave_v3):');
+    l.push('Sin equivalencia (no entrarían a la V3; mientras haya, --aplicar no aplica nada):');
     for (const s of plan.sinEquivalencia) l.push(`  orden ${s.orden}: «${s.pregunta}» (${s.respuestas} respuesta${s.respuestas > 1 ? 's' : ''})`);
   }
-  if (plan.sinTexto.length > 0) l.push(`Sin texto (audio sin transcripción): órdenes ${plan.sinTexto.join(', ')}.`);
+  if (plan.sinTexto.length > 0) l.push(`Sin texto (audio sin transcripción): órdenes ${plan.sinTexto.join(', ')}. Mientras haya, --aplicar no aplica nada.`);
   if (plan.reservadas.length > 0) l.push(`Reservada, no se carga (ni lleva clave_v3): órdenes ${plan.reservadas.join(', ')}.`);
   if (plan.tramosReservados.length > 0) l.push(`Tramo reservado: decide una persona (órdenes ${plan.tramosReservados.join(', ')}). Mientras esté, --aplicar no aplica nada.`);
   if (plan.pendiente !== null && plan.cargadas.length > 0) {

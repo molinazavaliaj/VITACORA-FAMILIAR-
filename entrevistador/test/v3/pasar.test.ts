@@ -9,9 +9,15 @@ import { renderizar } from '../../src/v3/nucleo/entrevista/texto.js';
 import { preguntaPorId } from '../../src/v3/nucleo/entrevista/banco.js';
 import type { NarradorV3 } from '../../src/v3/tipos.js';
 
-const EQUIVALENCIAS = leerEquivalencias({
+/** Una tabla parcial: '¿A qué jugabas?' (orden 3) queda sin equivalencia. */
+const PARCIAL = leerEquivalencias({
   version: 1,
   porTexto: { 'Contame dónde naciste.': 'OR1', '¿Cómo era tu casa?': 'CA1', '¿Y tu barrio?': 'CA1' },
+});
+/** La tabla completa para el guion de prueba: todo lo viejo tiene clave V3. */
+const EQUIVALENCIAS = leerEquivalencias({
+  version: 1,
+  porTexto: { 'Contame dónde naciste.': 'OR1', '¿Cómo era tu casa?': 'CA1', '¿Y tu barrio?': 'CA1', '¿A qué jugabas?': 'CA2', '¿Quién te enseñó a leer?': 'ES1' },
 });
 
 /** 09:00 en Buenos Aires: todavía no es su hora (10:00). */
@@ -37,7 +43,7 @@ function baseConNarrador(narrador: Record<string, unknown> = {}) {
       { id: 'r2', narrador_id: 'n1', pregunta_orden: 1, transcripcion: 'Había un río.', texto_directo: null, recibido_at: '2026-10-01T10:05:00Z' },
       { id: 'r3', narrador_id: 'n1', pregunta_orden: 2, transcripcion: 'Una casa chorizo.', texto_directo: null, recibido_at: '2026-10-02T10:00:00Z' },
       { id: 'r4', narrador_id: 'n1', pregunta_orden: 3, transcripcion: 'A la bolita.', texto_directo: null, recibido_at: '2026-10-03T10:00:00Z' },
-      { id: 'r5', narrador_id: 'n1', pregunta_orden: 4, transcripcion: null, texto_directo: null, recibido_at: '2026-10-04T10:00:00Z' },
+      { id: 'r5', narrador_id: 'n1', pregunta_orden: 4, transcripcion: 'Mi maestra.', texto_directo: null, recibido_at: '2026-10-04T10:00:00Z' },
       { id: 'r6', narrador_id: 'n1', pregunta_orden: 5, transcripcion: 'Empedrado.', texto_directo: null, recibido_at: '2026-10-05T10:00:00Z' },
       { id: 'r7', narrador_id: 'n1', pregunta_orden: 6, transcripcion: 'Hacía pan.', texto_directo: null, recibido_at: '2026-10-06T10:00:00Z' },
     ],
@@ -68,7 +74,8 @@ describe('la tabla de equivalencias', () => {
 describe('el pase de un narrador en curso', () => {
   it('arma el plan: cada respuesta vieja en su clave V3; lo que no tiene tabla queda afuera', async () => {
     const base = baseConNarrador();
-    const plan = await planDePase(base.cliente, 'n1', { genero: 'mujer', equivalencias: EQUIVALENCIAS });
+    base.tablas.respuestas.find((r) => r.id === 'r5')!.transcripcion = null; // un audio sin transcripción
+    const plan = await planDePase(base.cliente, 'n1', { genero: 'mujer', equivalencias: PARCIAL });
     expect(plan.cargadas.map((c) => [c.clave, c.ordenes, c.texto])).toEqual([
       ['OR1', [1], 'Nací en un pueblo. Había un río.'],
       ['CA1', [2, 5], 'Una casa chorizo. Empedrado.'],
@@ -84,11 +91,25 @@ describe('el pase de un narrador en curso', () => {
     expect(texto).not.toContain('Nací en un pueblo'); // el dry-run no imprime lo que contó
   });
 
+  it('sin equivalencia o sin texto: --aplicar no aplica nada (se perdería material en silencio)', async () => {
+    const base = baseConNarrador();
+    base.tablas.respuestas.find((r) => r.id === 'r5')!.transcripcion = null;
+    const plan = await planDePase(base.cliente, 'n1', { genero: 'mujer', equivalencias: PARCIAL });
+    expect(bloqueosDePase(plan)).toEqual([
+      'sin equivalencia en órdenes 3: completar la tabla (la aprueba Naza)',
+      'sin texto en órdenes 4: transcribir o revisar a mano',
+    ]);
+    expect(describirPase(plan)).toContain('--aplicar no aplica nada');
+    await expect(aplicarPase(base.cliente, plan, ANTES_DE_LA_HORA)).rejects.toThrow(/sin equivalencia en órdenes 3.*sin texto en órdenes 4/);
+    expect(base.tablas.entrevistas_v3 ?? []).toHaveLength(0);
+    expect(base.tablas.respuestas.every((r) => (r.clave_v3 ?? null) === null)).toBe(true);
+  });
+
   it('con la tabla vacía, todo lo viejo sale "sin equivalencia" (no se pierde: queda en respuestas) y el dry-run no muestra lo que contó', async () => {
     const base = baseConNarrador();
     const plan = await planDePase(base.cliente, 'n1', { genero: 'mujer', equivalencias: leerEquivalencias() });
     expect(plan.cargadas.map((c) => c.clave)).toEqual(['F:pf1']);
-    expect(plan.sinEquivalencia.map((s) => s.orden)).toEqual([1, 2, 3, 5]);
+    expect(plan.sinEquivalencia.map((s) => s.orden)).toEqual([1, 2, 3, 4, 5]);
     const texto = describirPase(plan);
     expect(texto).toContain('Sin equivalencia');
     expect(texto).toContain('Contame dónde naciste.');
@@ -100,12 +121,12 @@ describe('el pase de un narrador en curso', () => {
     const plan = await planDePase(base.cliente, 'n1', { genero: 'mujer', equivalencias: EQUIVALENCIAS });
     await aplicarPase(base.cliente, plan, ANTES_DE_LA_HORA);
     const fila = await leerFila(base.cliente, 'n1');
-    expect(fila?.estado.respuestas).toEqual([['OR1', 'Nací en un pueblo. Había un río.'], ['CA1', 'Una casa chorizo. Empedrado.'], ['F:pf1', 'Hacía pan.']]);
+    expect(fila?.estado.respuestas).toEqual([['OR1', 'Nací en un pueblo. Había un río.'], ['CA1', 'Una casa chorizo. Empedrado.'], ['CA2', 'A la bolita.'], ['ES1', 'Mi maestra.'], ['F:pf1', 'Hacía pan.']]);
     expect(fila?.estado.salientes).toEqual([]);
     expect(fila?.estado.ultimoEntranteAt).toBe('2026-10-07T20:00:00Z');
     expect(fila).toMatchObject({ tanda_dia: null, migrada_de: { de: 'v-vieja', dia_actual: 6 } });
-    expect(Object.fromEntries(base.tablas.respuestas.map((r) => [r.id, r.clave_v3 ?? null]))).toEqual({ r1: 'OR1', r2: 'OR1', r3: 'CA1', r4: null, r5: null, r6: 'CA1', r7: 'F:pf1' });
-    // Las respuestas viejas no se tocan (ni las que quedaron sin equivalencia).
+    expect(Object.fromEntries(base.tablas.respuestas.map((r) => [r.id, r.clave_v3 ?? null]))).toEqual({ r1: 'OR1', r2: 'OR1', r3: 'CA1', r4: 'CA2', r5: 'ES1', r6: 'CA1', r7: 'F:pf1' });
+    // Las respuestas viejas no se tocan (solo se les pone clave_v3).
     expect(base.tablas.respuestas.find((r) => r.id === 'r4')?.transcripcion).toBe('A la bolita.');
     await expect(aplicarPase(base.cliente, plan, ANTES_DE_LA_HORA)).rejects.toThrow(/ya tiene/);
   });
