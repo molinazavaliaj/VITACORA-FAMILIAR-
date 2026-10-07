@@ -16,7 +16,12 @@ export const HAIKU = 'claude-haiku-4-5';
 /** `esfuerzo`: pensamiento adaptativo con ese nivel (Opus). `pensamiento`: presupuesto fijo (Haiku). */
 export type Rol = { modelo: string; maxTokens: number; esfuerzo?: Esfuerzo; pensamiento?: number };
 
-const MAX_SALIDA: Record<string, number> = { [OPUS]: 128000, 'claude-sonnet-5-5': 128000, [HAIKU]: 64000 };
+// PRUEBA del 07/10 (perfiles de otros proveedores, solo con el material de Naza).
+export const DEEPSEEK = 'deepseek-v4-pro';
+export const GEMINI_PRO = 'gemini-3.1-pro-preview';
+export const GEMINI_FLASH = 'gemini-3.8-flash';
+
+const MAX_SALIDA: Record<string, number> = { [OPUS]: 128000, 'claude-sonnet-5-5': 128000, [HAIKU]: 64000, [DEEPSEEK]: 384000, [GEMINI_PRO]: 65536, [GEMINI_FLASH]: 65536 };
 
 /** Máximo de salida del modelo: lo que pide el reintento de un corte por max_tokens. */
 export function maxSalidaDe(modelo: string): number {
@@ -32,7 +37,29 @@ const MAXIMO = /^(3b-capitulo-|3a-primera)/;
 const HECHOS = /^4-hechos(-repaso)?$/;
 const MECANICO = /^(3r-resumen-|3t-titulo-|3e-sus-frases|7-estilo-|correccion-registro|correccion-plan|dudas$)/;
 
-export function rolDe(nombre: string): Rol {
+/**
+ * Perfiles de la PRUEBA del 07/10 (Naza: "que tareas podemos delegar en deepseek"; después sumó Gemini):
+ * - eco: la configuración económica (la de producción);
+ * - deepseek / gemini: el capítulo y la primera página siguen con Opus xhigh; lo demás, al otro proveedor
+ *   (lo de Opus medio con pensamiento alto; lo de Haiku con pensamiento bajo). En Google todo va con Flash:
+ *   la key de Naza es gratis y la capa gratis no deja usar Gemini 3.1 Pro (429 "exceeded your current quota", 07/10);
+ * - deepseek-todo / gemini-todo: también el capítulo y la primera página (pensamiento al máximo que tengan).
+ */
+export type Perfil = 'eco' | 'deepseek' | 'gemini' | 'deepseek-todo' | 'gemini-todo';
+export const PERFILES: Perfil[] = ['eco', 'deepseek', 'gemini', 'deepseek-todo', 'gemini-todo'];
+
+export function rolDe(nombre: string, perfil: Perfil = 'eco'): Rol {
+  if (perfil === 'eco') return rolEco(nombre);
+  const fuera = perfil.startsWith('deepseek') ? 'deepseek' : 'gemini';
+  const todo = perfil.endsWith('-todo');
+  if (MAXIMO.test(nombre) && !todo) return opus('xhigh');
+  const max = fuera === 'deepseek' ? 128000 : 65536;
+  if (MAXIMO.test(nombre)) return { modelo: fuera === 'deepseek' ? DEEPSEEK : GEMINI_FLASH, maxTokens: max, esfuerzo: 'xhigh' };
+  if (MECANICO.test(nombre)) return { modelo: fuera === 'deepseek' ? DEEPSEEK : GEMINI_FLASH, maxTokens: max, esfuerzo: 'low' };
+  return { modelo: fuera === 'deepseek' ? DEEPSEEK : GEMINI_FLASH, maxTokens: max, esfuerzo: 'high' };
+}
+
+function rolEco(nombre: string): Rol {
   if (MAXIMO.test(nombre)) return opus('xhigh');
   if (HECHOS.test(nombre)) return opus('medium', 128000);
   if (MECANICO.test(nombre)) return { ...HAIKU_ROL };

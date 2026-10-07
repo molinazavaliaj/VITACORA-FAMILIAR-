@@ -9,8 +9,10 @@ import { aDisco, carpetaNelida } from './ayuda.js';
 
 describe('argumentos', () => {
   it('por defecto: etapa C, lote, tope 15 y sin llamar (falta --si)', () => {
-    expect(leerArgs(['--carpeta', 'x'])).toEqual({ carpeta: 'x', etapa: 'C', topeUsd: 15, lote: true, si: false });
-    expect(leerArgs(['--carpeta', 'x', '--solo-capitulo', '6', '--tope', '4', '--sin-lote', '--si'])).toEqual({ carpeta: 'x', etapa: 'C', soloCapitulo: 6, topeUsd: 4, lote: false, si: true });
+    expect(leerArgs(['--carpeta', 'x'])).toEqual({ carpeta: 'x', etapa: 'C', topeUsd: 15, lote: true, si: false, perfil: 'eco' });
+    expect(leerArgs(['--carpeta', 'x', '--solo-capitulo', '6', '--tope', '4', '--sin-lote', '--si'])).toEqual({ carpeta: 'x', etapa: 'C', soloCapitulo: 6, topeUsd: 4, lote: false, si: true, perfil: 'eco' });
+    expect(leerArgs(['--carpeta', 'x', '--perfil', 'gemini', '--salida', 'otra'])).toMatchObject({ perfil: 'gemini', salida: 'otra' });
+    expect(() => leerArgs(['--carpeta', 'x', '--perfil', 'gpt'])).toThrow(/--perfil/);
   });
   it('rechaza lo que no entiende', () => {
     expect(() => leerArgs([])).toThrow(/--carpeta/);

@@ -5,6 +5,8 @@
 //
 //   npx tsx scripts/v3-cazador-prueba-v3.ts --respuestas <respuestas.xml> --ficha <ficha.xml> \
 //     --salida <carpeta> [--bloques ci | --bloques 7] [--tope 1.5] [--prompt <prompt-vX.md>] [--solo 1,12,14 --previo <cazador-v3.json>] [--nombre v3-1]
+//     [--proveedor opus5 | opus55 | deepseek | gemini]   (07/10: prueba de proveedores, solo con el material de Naza;
+//      opus55 = Opus 5.5 con pensamiento medio; deepseek y gemini juntan el prompt de sistema con el pedido)
 //
 // La salida va a una carpeta fuera de git: tiene la vida real del narrador.
 
@@ -14,6 +16,10 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { BLOQUES_CAZADOR, controlarElegida, mensajeRepregunta, MODELO_CAZADOR, PRECIO_CAZADOR } from '../src/v3/entrevista/cazador.js';
 import { PIDEN_DIA as PIDEN_DIA_FLUJO } from '../src/v3/entrevista/flujo.js';
+import { usdDeLlamada } from '../src/escritor/costos.js';
+import { DEEPSEEK, GEMINI_FLASH } from '../src/escritor/modelo/configuracion.js';
+import { ModeloDeepSeek } from '../src/escritor/modelo/deepseek.js';
+import { ModeloGemini } from '../src/escritor/modelo/gemini.js';
 
 // Las constantes, los bloques y los controles viven en src/v3/entrevista/cazador.ts desde el 01/10 (plan del cazador, B1): acá se importan.
 const MODELO = MODELO_CAZADOR;
@@ -77,6 +83,20 @@ async function main() {
   const bloques = armarBloques(leerRespuestas(readFileSync(respuestasXml, 'utf8')), modo);
   const cliente = new Anthropic();
   mkdirSync(salida, { recursive: true });
+  const proveedor = arg('proveedor') ?? 'opus5';
+  const modeloUsado = proveedor === 'opus55' ? 'claude-opus-5-5' : proveedor === 'deepseek' ? DEEPSEEK : proveedor === 'gemini' ? GEMINI_FLASH : MODELO;
+  const llamar = async (sistema: string, usuario: string): Promise<{ texto: string; usage: { input_tokens: number; output_tokens: number }; costo: number }> => {
+    if (proveedor === 'opus5' || proveedor === 'opus55') {
+      const extra = proveedor === 'opus55' ? { thinking: { type: 'adaptive' }, output_config: { effort: 'medium' } } : {};
+      const m = await cliente.messages.create({ model: modeloUsado, max_tokens: 16000, system: sistema, messages: [{ role: 'user', content: usuario }], ...extra } as Parameters<typeof cliente.messages.create>[0]) as Anthropic.Message;
+      const costo = proveedor === 'opus5' ? m.usage.input_tokens * PRECIO.entrada + m.usage.output_tokens * PRECIO.salida : usdDeLlamada(modeloUsado, m.usage, { lote: false });
+      return { texto: m.content.flatMap((b) => (b.type === 'text' ? [b.text] : [])).join(''), usage: m.usage, costo };
+    }
+    const key = (n: string) => (): string => { const k = process.env[n]; if (!k) throw new Error(`falta ${n}`); return k; };
+    const m = proveedor === 'deepseek' ? new ModeloDeepSeek({ key: key('DEEPSEEK_API_KEY') }) : new ModeloGemini({ key: key('GOOGLE_API_KEY') });
+    const r = await m.llamar({ clave: 'cazador', modelo: modeloUsado, bloques: [sistema, usuario], cacheEn: [], maxTokens: 16000, esfuerzo: 'medium' });
+    return { texto: r.texto, usage: { input_tokens: (r.uso.input_tokens ?? 0) + (r.uso.cache_read_input_tokens ?? 0), output_tokens: r.uso.output_tokens ?? 0 }, costo: usdDeLlamada(modeloUsado, r.uso, { lote: false }) };
+  };
 
   const rutaPrevio = arg('previo');
   const previo = rutaPrevio
@@ -115,10 +135,9 @@ async function main() {
       `<respuestas_del_bloque>\n${respuestas}\n</respuestas_del_bloque>`,
     ].join('\n\n');
 
-    const msg = await cliente.messages.create({ model: MODELO, max_tokens: 16000, system: prompt, messages: [{ role: 'user', content: usuario }] });
-    const costo = msg.usage.input_tokens * PRECIO.entrada + msg.usage.output_tokens * PRECIO.salida;
+    const { texto, usage, costo } = await llamar(prompt, usuario);
+    const msg = { usage };
     gasto += costo;
-    const texto = msg.content.flatMap((b) => (b.type === 'text' ? [b.text] : [])).join('');
     const json = JSON.parse(texto.slice(texto.indexOf('{'), texto.lastIndexOf('}') + 1)) as {
       elegidas?: Elegida[];
       escenas_contadas_bloque?: string[];
@@ -134,8 +153,8 @@ async function main() {
     filas.push({ bloque: i + 1, nombre, respuestas: bloque.map((r) => r.id), elegidas: revisadas, escenas_contadas_bloque: json.escenas_contadas_bloque, tokens: msg.usage, costo_usd: Number(costo.toFixed(4)) });
     mensajes.push(`## ${i + 1} · ${nombre}`, ...(revisadas.length ? revisadas.map((e) => `- **${e.id}** (${e.tema})${e.fallas.length ? ` ⚠ ${e.fallas.join('; ')}` : ''}\n  > ${e.mensaje}`) : ['- (no pregunta nada)']), '');
     console.log(`bloque ${i + 1} ${nombre}: ${revisadas.map((e) => e.id + (e.fallas.length ? '⚠' : '')).join(', ') || '—'} · USD ${costo.toFixed(3)} · acumulado ${gasto.toFixed(3)}`);
-    writeFileSync(path.join(salida, `cazador-${arg('nombre') ?? 'v3'}.json`), JSON.stringify({ modelo: MODELO, gasto_usd: gasto, filas }, null, 2));
-    writeFileSync(path.join(salida, `cazador-${arg('nombre') ?? 'v3'}.md`), `# Cazador v3 (${MODELO}) · USD ${gasto.toFixed(2)}\n\n${mensajes.join('\n')}`);
+    writeFileSync(path.join(salida, `cazador-${arg('nombre') ?? 'v3'}.json`), JSON.stringify({ modelo: modeloUsado, gasto_usd: gasto, filas }, null, 2));
+    writeFileSync(path.join(salida, `cazador-${arg('nombre') ?? 'v3'}.md`), `# Cazador v3 (${modeloUsado}) · USD ${gasto.toFixed(2)}\n\n${mensajes.join('\n')}`);
     if (gasto > tope) {
       console.log(`Corto: pasé el tope de USD ${tope}.`);
       break;
