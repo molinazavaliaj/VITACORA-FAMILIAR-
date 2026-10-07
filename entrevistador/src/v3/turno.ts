@@ -105,10 +105,14 @@ export function tocarBoton(anterior: EstadoV3, ficha: FichaTexto, texto: string)
   return { estado: e, clave: id, cerrar: true };
 }
 
-/** Llegó una foto: si la abierta es la de la foto (FO1), queda marcada en el borrador. */
-export function marcarFoto(anterior: EstadoV3): { estado: EstadoV3; clave: string } | null {
+/**
+ * Llegó una foto: si la abierta es la de la foto (FO1), queda marcada en el
+ * borrador. La ficha da el idioma del banco (sin ficha, es-AR, como el resto
+ * del núcleo).
+ */
+export function marcarFoto(anterior: EstadoV3, ficha?: FichaTexto): { estado: EstadoV3; clave: string } | null {
   const id = anterior.esperando;
-  if (!id || preguntaPorId(id)?.clase !== 'foto') return null;
+  if (!id || preguntaPorId(id, idiomaDe(ficha))?.clase !== 'foto') return null;
   const e = clonar(anterior);
   if (!(e.borrador ?? '').includes(MARCA_FOTO)) e.borrador = sumarAudio(MARCA_FOTO, e.borrador ?? '');
   return { estado: e, clave: id };
@@ -122,6 +126,8 @@ export function cerrarRespuesta(anterior: EstadoV3, ficha: FichaTexto): Cierre {
   if (!id) throw new Error('cerrarRespuesta: no hay ninguna pregunta esperando respuesta.');
   const borrador = (anterior.borrador ?? '').trim();
   if (!anterior.tocoSi && borrador === '') throw new Error(`cerrarRespuesta: ${id} no tiene nada para cerrar.`);
+  // Como el script: después de "Sí" la respuesta se cierra recién con lo que cuente (la marca sola no alcanza).
+  if (anterior.tocoSi && borrador === '') throw new Error(`cerrarRespuesta: en ${id} tocó "Sí" y todavía no contó nada.`);
   const e = clonar(anterior);
   if (e.tocoSi) {
     const ultima = e.respuestas.at(-1)!;

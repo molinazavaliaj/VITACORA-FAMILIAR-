@@ -1,13 +1,14 @@
 import { describe, it, expect } from 'vitest';
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { botonesDeClave } from '../../src/v3/nucleo/entrevista/flujo.js';
+import { botonesDeClave, claveRepregunta, claveSegunda, PIDEN_DIA } from '../../src/v3/nucleo/entrevista/flujo.js';
+import type { ResultadoCaza } from '../../src/v3/nucleo/entrevista/cazador.js';
 import { preguntaPorId } from '../../src/v3/nucleo/entrevista/banco.js';
 import type { Idioma } from '../../src/v3/nucleo/entrevista/idioma.js';
 import { leerBoton } from '../../src/v3/nucleo/entrevista/respuesta.js';
 import type { FichaTexto } from '../../src/v3/nucleo/entrevista/texto.js';
 import { VIDAS_EJEMPLO } from '../../src/v3/nucleo/entrevista/vidas-ejemplo.js';
-import { avanzar, cerrarYSeguir, recibirAudio, tocarBoton } from '../../src/v3/turno.js';
+import { avanzar, cerrarYSeguir, recibirAudio, sumarCaza, tocarBoton } from '../../src/v3/turno.js';
 import { estadoInicial, type EstadoV3 } from '../../src/v3/tipos.js';
 
 const SCRIPT = new URL('../../../fabrica/scripts/v3-entrevista-turno.ts', import.meta.url);
@@ -94,5 +95,56 @@ describe.skipIf(!hayFabrica)('turno.ts y el script, tocando "Sí" donde hay', ()
     expect(tocoSi).toBeGreaterThan(3);
     expect(nuestro.terminada).toBe(true);
     expect(nuestro.respuestas).toEqual(script.estado.respuestas);
+  });
+});
+
+// Las ramas que la vida de ejemplo no pisa: la pregunta de la familia (M15),
+// la segunda oportunidad (M33.n, "X~2") y la repregunta del cazador ("RP~X",
+// con un resultado del cazador inventado: sin modelo, sin gasto).
+const OLVIDO: Record<Idioma, string> = { 'es-AR': 'No me acuerdo.', 'es-ES': 'No me acuerdo.', ca: 'No me’n recordo.' };
+
+describe.skipIf(!hayFabrica)('turno.ts y el script: familia, segunda oportunidad y repregunta', () => {
+  it.each(['es-AR', 'es-ES', 'ca'] as const)('una entrevista entera en %s', async (idioma) => {
+    const motor = (await import(/* @vite-ignore */ SCRIPT.href)) as any;
+    const ficha: FichaTexto = idioma === 'es-AR' ? { nombre: 'Prueba', genero: 'varon' } : { nombre: 'Prueba', genero: 'varon', idioma };
+    const familia = [{ id: 'FAM1', texto: '¿Cuál era la comida de los domingos?' }];
+    let script = motor.nuevaEntrevista(ficha, familia);
+    let nuestro = avanzar(estadoInicial(familia), ficha).estado;
+    expect(comoScript(nuestro, 0)).toEqual(script.mensajes.slice(1));
+    const olvidada = Object.keys(PIDEN_DIA)[0];
+    let cazado = false;
+    for (let paso = 0; paso < 400 && !script.estado.terminada; paso++) {
+      const id = nuestro.esperando!;
+      expect(id).toBe(script.estado.esperando);
+      const desde = nuestro.salientes.length;
+      const texto = id === olvidada ? OLVIDO[idioma] : GENERICA[idioma];
+      script = motor.responder(script.estado, texto);
+      const s = cerrarYSeguir(recibirAudio(nuestro, texto).estado, ficha, true);
+      nuestro = s.estado;
+      expect(s.bloqueCerrado).toBe(script.bloqueCerrado);
+      expect(comoScript(nuestro, desde)).toEqual(script.mensajes);
+      if (s.bloqueCerrado !== undefined && !cazado) {
+        const origen = nuestro.respuestas.find(([k]) => preguntaPorId(k, idioma)?.bloque === s.bloqueCerrado && preguntaPorId(k, idioma)?.clase === 'historia')![0];
+        const r: ResultadoCaza = {
+          bloque: s.bloqueCerrado,
+          llamo: true,
+          repreguntas: [{ clave: claveRepregunta(origen), origen, bloque: s.bloqueCerrado, cita: 'una historia larga', pregunta: '¿Y qué pasó después?', tema: 'después' }],
+          descartadas: [],
+          escenasContadas: [],
+          costoUsd: 0,
+          gastoUsd: 0,
+        };
+        script = { ...script, estado: motor.sumarCaza(script.estado, r) };
+        nuestro = sumarCaza(nuestro, r);
+        cazado = true;
+      }
+    }
+    expect(nuestro.terminada).toBe(true);
+    expect(nuestro.respuestas).toEqual(script.estado.respuestas);
+    const claves = nuestro.respuestas.map(([k]) => k);
+    expect(claves).toContain('FAM1');
+    expect(claves).toContain(claveSegunda(olvidada));
+    expect(claves.some((k) => k.startsWith('RP~'))).toBe(true);
+    expect(nuestro.cazador?.registro).toEqual(script.estado.cazador.registro);
   });
 });

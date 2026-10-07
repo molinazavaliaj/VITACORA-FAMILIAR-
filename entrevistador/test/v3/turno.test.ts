@@ -74,6 +74,11 @@ describe('audios, silencio y acuse', () => {
     expect(() => cerrarRespuesta(abierta('OR1'), FICHA)).toThrow(/nada para cerrar/);
   });
 
+  it('después de "Sí" no se cierra sin audio: la marca sola no es respuesta', () => {
+    const t = tocarBoton(abierta('CA6'), FICHA, 'Sí, tuve')!;
+    expect(() => cerrarRespuesta(t.estado, FICHA)).toThrow(/tocó "Sí" y todavía no contó nada/);
+  });
+
   it('reenviarAbierta manda la pregunta sola, sin el acuse de ayer', () => {
     let e = avanzar(estadoInicial(), FICHA).estado;
     e = cerrarYSeguir(recibirAudio(e, 'Nací en un pueblo chico.').estado, FICHA, true).estado;
@@ -126,6 +131,9 @@ describe('foto y cola', () => {
     expect(marcarFoto(r.estado)!.estado.borrador).toBe(MARCA_FOTO);
     expect(marcarFoto(abierta('OR1'))).toBeNull();
     expect(marcarFoto(estadoInicial())).toBeNull();
+    const ca: FichaTexto = { ...FICHA, idioma: 'ca' };
+    expect(marcarFoto(abierta('FO1'), ca)).toMatchObject({ clave: 'FO1' });
+    expect(marcarFoto(abierta('OR1'), ca)).toBeNull();
   });
 
   it('encolar numera y quitarSalientes saca por id', () => {
