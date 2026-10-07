@@ -26,12 +26,13 @@ import { usdDeLlamada, type UsoApi } from './costos.js';
 import type { Llamada } from './llamadas/armar.js';
 import { cacheDeUnaHora, maxSalidaDe, rolDe, type Perfil } from './modelo/configuracion.js';
 import { bloquesDeLlamada, hashDePedido, puntosDeCache } from './modelo/pedido.js';
-import { ErrorDelModelo, type Lote, type Modelo, type PedidoModelo, type RespuestaModelo } from './modelo/tipos.js';
+import { ErrorDelModelo, type Esfuerzo, type Lote, type Modelo, type PedidoModelo, type RespuestaModelo } from './modelo/tipos.js';
 
 /** Opciones para crear el cliente de Anthropic: sin reintentos del SDK (la política es la del ejecutor). */
 export const OPCIONES_CLIENTE = { maxRetries: 0 } as const;
 
-export type Encargo = { clave: string; llamada: Llamada; json: boolean; maxTokens?: number };
+/** `esfuerzo`: baja el pensamiento de esta llamada (nunca lo sube): la reescritura C30 del capítulo va como mucho en alto. */
+export type Encargo = { clave: string; llamada: Llamada; json: boolean; maxTokens?: number; esfuerzo?: Esfuerzo };
 /** `falla: true` = un intento que la API cobró pero no sirvió (rechazo, corte); no queda en la memoria. */
 export type FilaUso = { clave: string; modelo: string; lote: boolean; de_memoria: boolean; input: number; output: number; cache_write: number; cache_read: number; usd: number; falla?: boolean };
 export type OpcionesEjecutor = { modelo: Modelo; lote?: Lote; todoPorLote?: boolean; perfil?: Perfil; almacen: Almacen; topeUsd?: number; esperar?: (ms: number) => Promise<void>; esperasMs?: number[]; limite?: number; log?: (s: string) => void };
@@ -48,6 +49,7 @@ type Memoria = { hash: string; texto: string; fila: FilaUso };
 const RUTA_FALLAS = 'fallas.json';
 // El reintento lleva '#' en la clave ("C/3b-capitulo-06#2"): ni '#' ni '~' son claves válidas de Supabase
 // Storage (isValidKey del servidor; ver test/escritor/claves-storage.test.ts). '__' sí, y ninguna clave lo trae.
+const ORDEN_ESFUERZO: Esfuerzo[] = ['low', 'medium', 'high', 'xhigh', 'max'];
 const sinNumeral = (clave: string): string => clave.replace(/#/g, '__');
 const rutaPaso = (clave: string): string => `pasos/${sinNumeral(clave)}.json`;
 const n = (v: number | null | undefined): number => (typeof v === 'number' ? v : 0);
@@ -91,7 +93,9 @@ export class Ejecutor {
   }
 
   pedido(e: Encargo): PedidoModelo {
-    const { modelo, maxTokens, esfuerzo, pensamiento } = rolDe(e.llamada.nombre, this.o.perfil);
+    const rol = rolDe(e.llamada.nombre, this.o.perfil);
+    const { modelo, maxTokens, pensamiento } = rol;
+    const esfuerzo = rol.esfuerzo && e.esfuerzo && ORDEN_ESFUERZO.indexOf(e.esfuerzo) < ORDEN_ESFUERZO.indexOf(rol.esfuerzo) ? e.esfuerzo : rol.esfuerzo;
     const cacheEn = puntosDeCache(e.llamada.nombre, e.llamada.docs);
     return {
       clave: e.clave, modelo, bloques: bloquesDeLlamada(e.llamada), cacheEn, maxTokens: e.maxTokens ?? maxTokens,

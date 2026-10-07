@@ -18,11 +18,14 @@ import { llamadaDisputa } from '../llamadas/fabrica.js';
 import { archivoDe } from '../texto.js';
 import { guardarSnapshot, type Contexto } from './contexto.js';
 
-export type OpcionesEtapaC = { soloCapitulo?: number };
+/** `soloEscritura` (prueba): con soloCapitulo, termina después de escribir el capítulo y su resumen (sin revisión ni estilo). */
+export type OpcionesEtapaC = { soloCapitulo?: number; soloEscritura?: boolean };
 export type ResultadoEtapaC = { libro: string; informe: string; capitulos: number; arreglados: string[]; disputas: number; controlesFinal: string; usd: number };
 
 const nn = (n: number): string => String(n).padStart(2, '0');
 const encargo = (l: Llamada, json: boolean, sufijo = ''): Encargo => ({ clave: `C/${l.nombre}${sufijo}`, llamada: l, json });
+/** La reescritura C30 ya trae la lista de lo que faltó: va como mucho con pensamiento alto (Fable, idea 2b). */
+const reescritura = (l: Llamada): Encargo => ({ ...encargo(l, false, '#2'), esfuerzo: 'high' });
 const copiarMd = (x: Contexto, a: string): void => { for (const f of x.c.listar('salidas').filter((f) => f.endsWith('.md'))) x.c.copiar(salida(f), `${a}/${f}`); };
 
 async function disputas(x: Contexto, ds: Disputa[], grupo: string): Promise<void> {
@@ -61,11 +64,15 @@ async function etapaCSinCostos(x: Contexto, o: OpcionesEtapaC): Promise<Resultad
     let af = controlarAfuera(c, n);
     log(af.resumen);
     if (af.codigo === 3) {
-      c.escribir(salida(archivoDe(`cap_${n}`)), await ej.uno(encargo(llamadaCapitulo(c, n, { error: c.leer(`controles/afuera-cap_${n}.json`) }), false, '#2')));
+      c.escribir(salida(archivoDe(`cap_${n}`)), await ej.uno(reescritura(llamadaCapitulo(c, n, { error: c.leer(`controles/afuera-cap_${n}.json`) }))));
       af = controlarAfuera(c, n);
       log(af.resumen);
     }
     c.escribir(salida(`resumenes/cap_${n}.md`), await ej.uno(encargo(llamadaResumen(c, `cap_${n}`), false)));
+  }
+  if (o.soloEscritura && solo !== undefined) {
+    await guardarSnapshot(x, 'C');
+    return { libro: '', informe: '', capitulos: caps.n.length, arreglados: [], disputas: 0, controlesFinal: 'solo escritura', usd: ej.gastado };
   }
   if (solo === undefined) {
     const antes = caps.antes ? llamadaAntes(c) : null;

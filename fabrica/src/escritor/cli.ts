@@ -5,10 +5,10 @@ import { Carpeta } from './carpeta.js';
 import { estimarUsd } from './estimar.js';
 import { PERFILES, type Perfil } from './modelo/configuracion.js';
 
-export type ArgsCli = { carpeta: string; etapa: 'A' | 'B' | 'C'; soloCapitulo?: number; topeUsd: number; lote: boolean; si: boolean; correcciones?: string; perfil: Perfil; salida?: string };
+export type ArgsCli = { carpeta: string; etapa: 'A' | 'B' | 'C'; soloCapitulo?: number; topeUsd: number; lote: boolean; si: boolean; correcciones?: string; perfil: Perfil; salida?: string; soloEscritura?: boolean };
 
 export function leerArgs(argv: string[]): ArgsCli {
-  const a: { carpeta?: string; etapa: ArgsCli['etapa']; soloCapitulo?: number; topeUsd: number; lote: boolean; si: boolean; correcciones?: string; perfil: Perfil; salida?: string } = { etapa: 'C', topeUsd: 15, lote: true, si: false, perfil: 'eco' };
+  const a: { carpeta?: string; etapa: ArgsCli['etapa']; soloCapitulo?: number; topeUsd: number; lote: boolean; si: boolean; correcciones?: string; perfil: Perfil; salida?: string; soloEscritura?: boolean } = { etapa: 'C', topeUsd: 15, lote: true, si: false, perfil: 'eco' };
   for (let i = 0; i < argv.length; i++) {
     const k = argv[i];
     const valor = (): string => { const v = argv[++i]; if (v === undefined) throw new Error(`falta el valor de ${k}`); return v; };
@@ -20,6 +20,7 @@ export function leerArgs(argv: string[]): ArgsCli {
     else if (k === '--sin-lote') a.lote = false;
     else if (k === '--perfil') { const p = valor(); if (!PERFILES.includes(p as Perfil)) throw new Error(`--perfil es ${PERFILES.join(', ')} (no ${p})`); a.perfil = p as Perfil; }
     else if (k === '--salida') a.salida = valor();
+    else if (k === '--solo-escritura') a.soloEscritura = true;
     else if (k === '--si') a.si = true;
     else throw new Error(`argumento desconocido: ${k}`);
   }

@@ -32,6 +32,8 @@ export function maxSalidaDe(modelo: string): number {
 
 const opus = (esfuerzo: Esfuerzo, maxTokens = 64000): Rol => ({ modelo: OPUS, maxTokens, esfuerzo });
 const HAIKU_ROL: Rol = { modelo: HAIKU, maxTokens: 64000, pensamiento: 8000 };
+/** El corrector de estilo con Haiku piensa menos (Fable, 07/10: sacaba ~7.000 de pensamiento para ~1.000 de cambios). */
+const ESTILO_ROL: Rol = { modelo: HAIKU, maxTokens: 64000, pensamiento: 3000 };
 
 const MAXIMO = /^(3b-capitulo-|3a-primera)/;
 const HECHOS = /^4-hechos(-repaso)?$/;
@@ -43,13 +45,17 @@ const MECANICO = /^(3r-resumen-|3t-titulo-|3e-sus-frases|7-estilo-|correccion-re
  * - deepseek / gemini: el capítulo y la primera página siguen con Opus xhigh; lo demás, al otro proveedor
  *   (lo de Opus medio con pensamiento alto; lo de Haiku con pensamiento bajo). En Google todo va con Flash:
  *   la key de Naza es gratis y la capa gratis no deja usar Gemini 3.1 Pro (429 "exceeded your current quota", 07/10);
- * - deepseek-todo / gemini-todo: también el capítulo y la primera página (pensamiento al máximo que tengan).
+ * - deepseek-todo / gemini-todo: también el capítulo y la primera página (pensamiento al máximo que tengan);
+ * - eco-alto / eco-medio: la económica con el capítulo (no la primera página) en pensamiento alto o medio
+ *   (Fable, idea 1; la prueba la lee Naza).
  */
-export type Perfil = 'eco' | 'deepseek' | 'gemini' | 'deepseek-todo' | 'gemini-todo';
-export const PERFILES: Perfil[] = ['eco', 'deepseek', 'gemini', 'deepseek-todo', 'gemini-todo'];
+export type Perfil = 'eco' | 'eco-alto' | 'eco-medio' | 'deepseek' | 'gemini' | 'deepseek-todo' | 'gemini-todo';
+export const PERFILES: Perfil[] = ['eco', 'eco-alto', 'eco-medio', 'deepseek', 'gemini', 'deepseek-todo', 'gemini-todo'];
+const CAPITULO = /^3b-capitulo-/;
 
 export function rolDe(nombre: string, perfil: Perfil = 'eco'): Rol {
   if (perfil === 'eco') return rolEco(nombre);
+  if (perfil === 'eco-alto' || perfil === 'eco-medio') return CAPITULO.test(nombre) ? opus(perfil === 'eco-alto' ? 'high' : 'medium', 128000) : rolEco(nombre);
   const fuera = perfil.startsWith('deepseek') ? 'deepseek' : 'gemini';
   const todo = perfil.endsWith('-todo');
   if (MAXIMO.test(nombre) && !todo) return opus('xhigh');
@@ -60,8 +66,10 @@ export function rolDe(nombre: string, perfil: Perfil = 'eco'): Rol {
 }
 
 function rolEco(nombre: string): Rol {
-  if (MAXIMO.test(nombre)) return opus('xhigh');
+  // 128.000 de salida: en xhigh el capítulo sacó 52.800 y 44.400 de 64.000; un corte se pagaría dos veces (Fable, idea 3).
+  if (MAXIMO.test(nombre)) return opus('xhigh', 128000);
   if (HECHOS.test(nombre)) return opus('medium', 128000);
+  if (nombre.startsWith('7-estilo-')) return { ...ESTILO_ROL };
   if (MECANICO.test(nombre)) return { ...HAIKU_ROL };
   // Registro, plan, armador, carta, Antes de cerrar, veedor, arreglos, disputas y cualquier llamada nueva.
   return opus('medium');

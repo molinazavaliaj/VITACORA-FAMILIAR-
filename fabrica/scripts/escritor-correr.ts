@@ -56,7 +56,7 @@ async function main(): Promise<void> {
       const correcciones = readFileSync(a.correcciones as string, 'utf8').split('\n').map((t) => ({ texto: t })).filter((k) => k.texto.trim());
       console.log(JSON.stringify(await etapaB(x, correcciones), null, 1));
     } else {
-      const r = await etapaC(x, { soloCapitulo: a.soloCapitulo });
+      const r = await etapaC(x, { soloCapitulo: a.soloCapitulo, soloEscritura: a.soloEscritura });
       console.log(`libro: ${destino}/libro.md · ${r.controlesFinal} · arreglados: ${r.arreglados.join(', ') || 'ninguno'}`);
     }
   } finally {

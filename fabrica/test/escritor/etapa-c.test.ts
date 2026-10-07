@@ -20,6 +20,13 @@ const ESCRITURA = ['C/2h-armador-01', 'C/3b-capitulo-01', 'C/3r-resumen-cap_1', 
 const PIEZAS = ['primera_pagina', 'cap_1', 'cap_2', 'antes_de_cerrar', 'carta'];
 
 describe('Etapa C', () => {
+  it('soloEscritura (prueba): con un capítulo, escribe armador, capítulo y resumen y termina, sin revisión ni estilo', async () => {
+    const { x, modelo } = armarC();
+    const r = await etapaC(x, { soloCapitulo: 1, soloEscritura: true });
+    expect(modelo.llamadas.map((p) => p.clave)).toEqual(['C/2h-armador-01', 'C/3b-capitulo-01', 'C/3r-resumen-cap_1']);
+    expect(r.controlesFinal).toBe('solo escritura');
+  });
+
   it('escribe el libro entero en el orden del v5.5 (sin lectura final) y lo deja en el almacén', async () => {
     const { x, modelo, almacen } = armarC();
     const r = await etapaC(x);
