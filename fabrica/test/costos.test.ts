@@ -86,6 +86,10 @@ describe('calcularUsd', () => {
     expect(calcularUsd('claude-haiku-4-5-20251001', { input_tokens: 1_000_000 })).toBe(1);
   });
 
+  it('claude-opus-5-5 con sufijo de fecha cobra como opus-5-5, no como opus-5 (el prefijo más largo gana)', () => {
+    expect(calcularUsd('claude-opus-5-5-20261001', { input_tokens: 1_000_000, output_tokens: 1_000_000 })).toBe(24);
+  });
+
   it('un modelo desconocido vale 0 y avisa (los tokens igual se anotan)', () => {
     expect(calcularUsd('modelo-inventado', USO_FABLE)).toBe(0);
     expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('modelo-inventado'));
