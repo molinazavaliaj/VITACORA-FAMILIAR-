@@ -89,6 +89,20 @@ describe("leerRegalo", () => {
     warn.mockRestore();
   });
 
+  it("si la tabla todavía no existe con la forma de PostgREST (PGRST205) también es warn, no error", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const err = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      const { admin } = crearAdmin([], { code: "PGRST205", message: "Could not find the table 'public.regalos' in the schema cache" });
+      expect(await leerRegalo(admin, "VF-7K3M2Q")).toBeNull();
+      expect(warn).toHaveBeenCalled();
+      expect(err).not.toHaveBeenCalled();
+    } finally {
+      warn.mockRestore();
+      err.mockRestore();
+    }
+  });
+
   it("otro error de la base devuelve null y queda en console.error", async () => {
     const err = vi.spyOn(console, "error").mockImplementation(() => {});
     const { admin } = crearAdmin([], { code: "XX000", message: "se cayó" });

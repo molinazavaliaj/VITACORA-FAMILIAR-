@@ -158,6 +158,34 @@ describe("POST /api/regalo/audio — el archivo", () => {
     expect(subidas).toEqual([{ path: "n-regalo/regalo/mensaje", opciones: { contentType: "audio/mp4", upsert: true } }]);
   });
 
+  it("sin tipo (el navegador no lo dio) se deduce del nombre: .m4a → audio/mp4", async () => {
+    const { subidas } = armarPendiente();
+    const archivo = new File([new Uint8Array([1, 2, 3])], "Grabación.m4a", { type: "" });
+    const r = await POST(requestConAudio(firmarTokenFotos("n-regalo"), archivo));
+    expect(r.status).toBe(200);
+    expect(subidas).toEqual([{ path: "n-regalo/regalo/mensaje", opciones: { contentType: "audio/mp4", upsert: true } }]);
+  });
+
+  it.each([
+    ["nota.mp4", "audio/mp4"],
+    ["nota.MP3", "audio/mpeg"],
+    ["nota.ogg", "audio/ogg"],
+    ["nota.opus", "audio/ogg"],
+    ["nota.webm", "audio/webm"],
+  ])("sin tipo, %s → %s", async (nombre, tipo) => {
+    const { subidas } = armarPendiente();
+    const r = await POST(requestConAudio(firmarTokenFotos("n-regalo"), new File([new Uint8Array([1])], nombre, { type: "" })));
+    expect(r.status).toBe(200);
+    expect(subidas[0].opciones).toMatchObject({ contentType: tipo });
+  });
+
+  it("sin tipo y con un nombre que no es de audio → 400, como siempre", async () => {
+    const { subidas } = armarPendiente();
+    const r = await POST(requestConAudio(firmarTokenFotos("n-regalo"), new File([new Uint8Array([1])], "nota.txt", { type: "" })));
+    expect(r.status).toBe(400);
+    expect(subidas).toEqual([]);
+  });
+
   it("si falla la subida → 500 y no toca regalos", async () => {
     const { escrituras } = armarPendiente({ falloSubida: true });
     const r = await POST(requestConAudio(firmarTokenFotos("n-regalo"), audioWebm()));
@@ -215,9 +243,27 @@ describe("GET /api/regalo/[codigo]/audio", () => {
     expect(r.status).toBe(404);
   });
 
+  it("con audio pero el narrador sigue en pendiente_pago (no se pagó) → 404, como la página", async () => {
+    const { firmadas } = crearAdmin({
+      regalos: [{ codigo: "VF-7K3M2Q", narrador_id: "n-regalo", audio_path: "n-regalo/regalo/mensaje", narradores: { estado: "pendiente_pago" } }],
+    });
+    const r = await GET(req, ctx("VF-7K3M2Q"));
+    expect(r.status).toBe(404);
+    expect(firmadas).toEqual([]);
+  });
+
+  it("con audio pero sin narrador → 404", async () => {
+    const { firmadas } = crearAdmin({
+      regalos: [{ codigo: "VF-7K3M2Q", narrador_id: "n-regalo", audio_path: "n-regalo/regalo/mensaje", narradores: null }],
+    });
+    const r = await GET(req, ctx("VF-7K3M2Q"));
+    expect(r.status).toBe(404);
+    expect(firmadas).toEqual([]);
+  });
+
   it("con audio → 302 a la URL firmada por una hora; el código llega escrito como sea", async () => {
     const { firmadas } = crearAdmin({
-      regalos: [{ codigo: "VF-7K3M2Q", narrador_id: "n-regalo", audio_path: "n-regalo/regalo/mensaje" }],
+      regalos: [{ codigo: "VF-7K3M2Q", narrador_id: "n-regalo", audio_path: "n-regalo/regalo/mensaje", narradores: { estado: "regalo_pendiente" } }],
     });
     const r = await GET(req, ctx(encodeURIComponent("vf 7k3-m2q")));
     expect(r.status).toBe(302);

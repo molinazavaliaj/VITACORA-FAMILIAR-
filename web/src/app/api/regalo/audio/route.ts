@@ -10,6 +10,17 @@ import { verificarTokenFotos } from "@/lib/token-fotos";
 
 const MAXIMO = 10 * 1024 * 1024;
 const TIPOS = ["audio/webm", "audio/ogg", "audio/mp4", "audio/mpeg", "audio/x-m4a"];
+// Algunos navegadores mandan el archivo sin tipo: se deduce de la extensión.
+const POR_EXTENSION: Record<string, string> = {
+  m4a: "audio/mp4", mp4: "audio/mp4", mp3: "audio/mpeg", ogg: "audio/ogg", opus: "audio/ogg", webm: "audio/webm",
+};
+
+function tipoDe(archivo: File): string {
+  const dado = archivo.type.split(";")[0].trim();
+  if (dado) return dado;
+  const extension = /\.([a-z0-9]+)$/i.exec(archivo.name ?? "")?.[1]?.toLowerCase() ?? "";
+  return POR_EXTENSION[extension] ?? "";
+}
 
 export async function POST(request: NextRequest) {
   const narradorId = request.nextUrl.searchParams.get("narrador") ?? "";
@@ -23,7 +34,7 @@ export async function POST(request: NextRequest) {
   const form = await request.formData().catch(() => null);
   const archivo = form?.get("audio");
   if (!(archivo instanceof File)) return NextResponse.json({ error: "Falta el audio." }, { status: 400 });
-  const tipo = archivo.type.split(";")[0];
+  const tipo = tipoDe(archivo);
   if (!TIPOS.includes(tipo)) return NextResponse.json({ error: "Ese archivo no es un audio." }, { status: 400 });
   if (archivo.size > MAXIMO) return NextResponse.json({ error: "El audio es muy largo." }, { status: 400 });
 

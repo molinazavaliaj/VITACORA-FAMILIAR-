@@ -3,6 +3,7 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { normalizarCodigo } from "./regalo";
+import { esTablaAusente } from "./tabla-ausente";
 
 export type RegaloPublico = {
   codigo: string; nombre: string; comoLeDicen: string; quienRegala: string;
@@ -18,7 +19,7 @@ export async function leerRegalo(admin: SupabaseClient, codigoCrudo: string): Pr
     .eq("codigo", codigo)
     .maybeSingle();
   if (error) {
-    if ((error as { code?: string }).code === "42P01") console.warn("regalo: la tabla regalos todavía no existe");
+    if (esTablaAusente(error)) console.warn("regalo: la tabla regalos todavía no existe");
     else console.error("regalo: falló leer el regalo", error);
     return null;
   }
