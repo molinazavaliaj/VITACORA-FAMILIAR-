@@ -773,6 +773,12 @@ misma causa) y **C3** pregunta por una infancia dura como si hubiera sido un luj
     nosotros verificamos contra la base —que estaba mal— y **le dijimos que se equivocaba**.
     La lección: cuando un narrador dice "esto no lo dije yo", **se va al audio**, no a la
     transcripción.
+    *23/09, el mismo audio en el audiolibro*: la fábrica armaba el audiolibro tomando todo
+    `dia_NN*.ogg` de la carpeta del narrador, sin mirar la base; el audio de Ciro sonaba en
+    el capítulo 7 del de Joaquín. **Se borró el audiolibro de la fábrica** (ya no era
+    producto desde el 20/09) y con él todo el camino de voz clonada (`fabrica/src/voz/`,
+    `fabrica/src/audio/`). Un pedido entregado desde ahora queda con `audiolibro_paths =
+    null`; los ya entregados no se tocan (CONTRATO, nota del 23/09).
 
 ## Producción / infra (no es del entrevistador, pero salió en el camino)
 

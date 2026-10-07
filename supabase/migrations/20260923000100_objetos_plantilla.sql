@@ -13,6 +13,12 @@
 -- vos cuando el narrador se trata de vos.
 --
 -- ⚠️ Textos nuevos de cara al narrador → los aprueba Naza antes de aplicar esto.
+--
+-- La de «El amor» (104) decía "esos primeros años juntos": daba por hecho que
+-- hubo pareja, que es exactamente el hallazgo C13 de la bitácora de Ciro — el
+-- capítulo está escrito como si fuera «el matrimonio». Habría entrado una
+-- pregunta nueva con el error que estamos sacando de las viejas. Corregida con
+-- el texto de Naza (23/09): funciona con o sin pareja.
 
 insert into preguntas (narrador_id, orden, texto, capitulo, tipo)
 select null::uuid, v.orden, v.texto, v.capitulo, 'objeto'
@@ -20,7 +26,7 @@ from (values
   (101, 'De todo lo que tiene en su casa, ¿guardó algo de cuando era chico? Un juguete, un cuaderno de la escuela, una medalla. Si lo tiene a mano, sáquele una foto y cuénteme de dónde salió.', 'La infancia'),
   (102, '¿Quedó en su casa alguna cosa que haya sido de sus padres o de sus abuelos? Mándeme una foto y cuénteme cómo llegó a sus manos.', 'Las raíces'),
   (103, '¿Le quedó algo de aquella época? Un disco, una carta, una entrada guardada, su primer reloj. Sáquele una foto y cuénteme la historia.', 'La juventud'),
-  (104, '¿Hay algo en su casa que le recuerde a esos primeros años juntos? No hace falta que sea importante, a veces es una cosa cualquiera. Mándeme una foto y cuénteme por qué ésa y no otra.', 'El amor'),
+  (104, '¿Hay algo en su casa que le recuerde a alguien que quiso? No hace falta que sea importante, a veces es una cosa cualquiera. Mándeme una foto y cuénteme por qué ésa y no otra.', 'El amor'),
   (105, '¿Quedó alguna herramienta, algún papel, algo de su trabajo que no haya querido tirar? Mándeme una foto y cuénteme de dónde salió.', 'El oficio'),
   (106, '¿Guardó algo de cuando ellos eran chicos? Mándeme una foto y cuénteme qué le pasa cuando lo mira.', 'Los hijos'),
   (107, '¿Hubo algo que lo acompañó en esa época? Un objeto, una cábala, una foto. Si quiere, mándemela y cuénteme qué significaba para usted.', 'Las pruebas'),
