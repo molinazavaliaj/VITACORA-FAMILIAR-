@@ -4,6 +4,7 @@ import { depsDePrueba } from './deps-prueba.js';
 import { leerFila } from '../../src/v3/estado.js';
 import { altaNuevo, aplicarPase, bloqueosDePase, argumentosDePase, describirPase, leerEquivalencias, normalizarPregunta, planDePase } from '../../src/v3/pasar.js';
 import { tocaM8, tocaTanda, trabajarNarrador } from '../../src/v3/reloj.js';
+import { procesarEntranteV3 } from '../../src/v3/entrante.js';
 import { renderizar } from '../../src/v3/nucleo/entrevista/texto.js';
 import { preguntaPorId } from '../../src/v3/nucleo/entrevista/banco.js';
 import type { NarradorV3 } from '../../src/v3/tipos.js';
@@ -203,6 +204,30 @@ describe('el pase de un narrador en curso', () => {
     // Contestada la 6 (dia_actual 6), no hay pendiente; un acepto sin preguntas (dia_actual 0), tampoco.
     expect((await planDePase(baseConNarrador().cliente, 'n1', { genero: 'mujer', equivalencias: EQUIVALENCIAS })).pendiente).toBeNull();
     expect((await planDePase(baseConNarrador({ estado: 'acepto', dia_actual: 0 }).cliente, 'n1', { genero: 'mujer', equivalencias: EQUIVALENCIAS })).pendiente).toBeNull();
+  });
+
+  it('sin nada cargado, la pregunta vieja pendiente solo avisa y se aplica (el que nunca contestó, en catalán)', async () => {
+    const base = baseConNarrador({ dia_actual: 1, contexto: {} });
+    base.tablas.respuestas = [];
+    const plan = await planDePase(base.cliente, 'n1', { genero: 'mujer', idioma: 'ca', equivalencias: EQUIVALENCIAS });
+    expect(plan).toMatchObject({ pendiente: 1, cargadas: [] });
+    expect(bloqueosDePase(plan)).toEqual([]);
+    const texto = describirPase(plan);
+    expect(texto).toContain('tenía la pregunta orden 1 pendiente; si contesta esa antes de que salga la primera V3');
+    expect(texto).not.toContain('--aplicar no aplica nada');
+    await aplicarPase(base.cliente, plan, ANTES_DE_LA_HORA);
+    expect(await leerFila(base.cliente, 'n1')).toMatchObject({ idioma: 'ca', tanda_dia: null });
+
+    // Hoy: si contesta tarde la vieja antes de la primera V3, no se rompe y el audio queda
+    // guardado (con su transcripción, sin clave_v3), pero no entra al estado V3 (ver el reporte).
+    const p = depsDePrueba(base, { ahora: ANTES_DE_LA_HORA });
+    const n = base.tablas.narradores[0] as NarradorV3;
+    await procesarEntranteV3(p.deps, n, { telefono: '+5491100000000', tipo: 'audio', mediaId: 'Nací en un pueblo.', waMessageId: 'wamid.tarde' });
+    expect(base.tablas.respuestas.map((r) => [r.transcripcion, r.clave_v3 ?? null])).toEqual([['Nací en un pueblo.', null]]);
+    const fila = (await leerFila(base.cliente, 'n1'))!;
+    expect(fila.estado.respuestas).toEqual([]);
+    expect(fila.estado.borrador).toBeUndefined();
+    expect(tocaTanda(fila, n, new Date('2026-10-08T13:00:00Z'), '2026-10-08')).toBe(true); // la primera V3 sale igual a su hora
   });
 
   it('si ya es V3, aplicar no toca clave_v3', async () => {

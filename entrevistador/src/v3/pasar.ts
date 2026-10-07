@@ -75,7 +75,11 @@ export type PlanDePase = {
   reservadas: number[];
   /** Órdenes con un tramo reservado: decide una persona; mientras haya, no se aplica. */
   tramosReservados: number[];
-  /** La pregunta vieja que le salió (orden = dia_actual) y no contestó; mientras haya, no se aplica. */
+  /**
+   * La pregunta vieja que le salió (orden = dia_actual) y no contestó. Con
+   * respuestas cargadas, no se aplica (lo que conteste tarde se pegaría a la
+   * última cargada, con la clave equivocada). Sin nada cargado, solo se avisa.
+   */
   pendiente: number | null;
 };
 
@@ -188,7 +192,7 @@ async function respuestasViejas(db: SupabaseClient, narradorId: string): Promise
 /** Por qué no se puede aplicar todavía (vacío = se puede). */
 export function bloqueosDePase(plan: PlanDePase): string[] {
   const b: string[] = [];
-  if (plan.pendiente !== null) b.push(`tiene la pregunta orden ${plan.pendiente} pendiente: pasar después de que conteste`);
+  if (plan.pendiente !== null && plan.cargadas.length > 0) b.push(`tiene la pregunta orden ${plan.pendiente} pendiente: pasar después de que conteste`);
   if (plan.tramosReservados.length > 0) b.push(`tramo reservado en órdenes ${plan.tramosReservados.join(', ')}: decide una persona`);
   return b;
 }
@@ -221,7 +225,7 @@ export async function planDePase(db: SupabaseClient, narradorId: string, o: { ge
  * la próxima sale mañana a su hora, no un minuto después del pase.
  * Un acepto pasa a activo (el reloj solo trabaja a los activos); un activo sigue
  * activo. Un pausado SIGUE PAUSADO (spec): el reloj no le manda nada hasta que
- * se reactive. No aplica nada si tiene la pregunta vieja pendiente o un tramo
+ * se reactive. No aplica nada si tiene la pregunta vieja pendiente (con algo cargado) o un tramo
  * reservado (bloqueosDePase), ni si ya es V3.
  */
 export async function aplicarPase(db: SupabaseClient, plan: PlanDePase, ahora: Date = new Date()): Promise<void> {
@@ -268,7 +272,11 @@ export function describirPase(plan: PlanDePase): string {
   if (plan.sinTexto.length > 0) l.push(`Sin texto (audio sin transcripción): órdenes ${plan.sinTexto.join(', ')}.`);
   if (plan.reservadas.length > 0) l.push(`Reservada, no se carga (ni lleva clave_v3): órdenes ${plan.reservadas.join(', ')}.`);
   if (plan.tramosReservados.length > 0) l.push(`Tramo reservado: decide una persona (órdenes ${plan.tramosReservados.join(', ')}). Mientras esté, --aplicar no aplica nada.`);
-  if (plan.pendiente !== null) l.push(`Tiene la pregunta orden ${plan.pendiente} pendiente: pasar después de que conteste. Mientras tanto, --aplicar no aplica nada.`);
+  if (plan.pendiente !== null && plan.cargadas.length > 0) {
+    l.push(`Tiene la pregunta orden ${plan.pendiente} pendiente: pasar después de que conteste. Mientras tanto, --aplicar no aplica nada.`);
+  } else if (plan.pendiente !== null) {
+    l.push(`Aviso: tenía la pregunta orden ${plan.pendiente} pendiente; si contesta esa antes de que salga la primera V3, lo que mande queda guardado en respuestas (sin clave_v3) pero no entra a la entrevista V3: revisarlo a mano.`);
+  }
   l.push('No se le manda nada en el momento: la próxima pregunta sale en su tanda, a su hora preferida.');
   return l.join('\n');
 }
