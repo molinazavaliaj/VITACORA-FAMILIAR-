@@ -184,24 +184,13 @@ export function llamadaVeedor(c: Carpeta): Llamada {
   return cerrar(c, '5c-veedor', [tag('libro', libroComo(ps))], promptsDe('### Paso 5c')[0]);
 }
 
-/**
- * El registro que lee el verificador (07/10, ahorro sin tocar la receta): sin las dudas, la voz ni sin_lugar, y de cada
- * episodio solo lo que usa para verificar (qué, cuándo, si es seguro, si sigue hoy o terminó, personas e ids), sin los
- * detalles ni las variantes. Las respuestas (la fuente) las recibe enteras.
- */
-export function registroParaHechos(c: Carpeta): Json {
-  const { dudas: _d, voz: _v, sin_lugar: _s, ...resto } = registro(c);
-  const eps = (resto.episodios || []).map((e: Json) => Object.fromEntries(['id', 'que', 'cuando', 'segura', 'estado', 'personas', 'ids'].filter((k) => k in e).map((k) => [k, e[k]])));
-  return { ...resto, episodios: eps };
-}
-
 export function llamadaHechos(c: Carpeta, o: { repaso: boolean }): Llamada {
   // "hechos repaso": después del arreglo, con las decisiones de la ronda anterior (receta v3, C26).
   const repaso = o.repaso;
   const arregladas = (p: { pieza: string }) => c.existe(`arreglos/respuesta-${p.pieza}.txt`);
   const ps = piezas(c).filter((p) => !repaso || arregladas(p));
   if (repaso && !ps.length) throw new Error('No hay piezas arregladas (arreglos/respuesta-<pieza>.txt): no hay repaso que hacer');
-  const docs = [...base(c, 'hechos'), tag('registro', JSON.stringify(registroParaHechos(c), null, 1)), tag('libro', libroComo(ps)),
+  const docs = [...base(c, 'hechos'), tag('registro', JSON.stringify(registro(c), null, 1)), tag('libro', libroComo(ps)),
     tag('presentes', presentes(ps.map((p) => ({ ...p, texto: sinMarcas(p.texto) }))).map((x) => `${x.pieza} §${x.parrafo}: ${x.oracion}`).join('\n')),
     // receta v3.1, C27: pasados que nombran a alguien que sigue hoy
     tag('pasados', pasados(ps.map((p) => ({ ...p, texto: sinMarcas(p.texto) })), registro(c)).map((x) => `${x.pieza} §${x.parrafo} (${x.personas.join(', ')}): ${x.oracion}`).join('\n') || '(ninguna)')];
