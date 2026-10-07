@@ -20,6 +20,7 @@
 | 2026-10-07 | Prueba de proveedores: DeepSeek (saldo 3,94 → 2,78) | USD 1,16 | DeepSeek de Naza (Hermes) | Consumible |
 | 2026-10-07 | Capítulo VI de Joaquín en pensamiento alto y medio (Naza eligió medio) | USD 0,53 | key de Naza | Consumible |
 | 2026-10-07 | Verificador con registro recortado (descartado) y cazador Opus 5.5 medio y alto (3 bloques de Naza) | USD 0,89 | key de Naza | Consumible |
+| 2026-10-07 | Libro entero de Joaquín con la configuración de producción (Etapa A 2,32 + C 6,14; incluye 0,90 de planes repetidos, ya arreglado, y 0,60 por apurar un repaso sin Batch) | USD 8,46 | key de Naza | Consumible |
 | — | Vercel, Supabase, Resend, GitHub | USD 0 | — | Gratis (planes free) |
 
 **Total puesto por Naza hasta el 18/09: USD 40 + 47€ ≈ USD 91** (USD 20 de crédito
