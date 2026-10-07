@@ -15,7 +15,7 @@ import type { AudioV3 } from '../../src/escritor/material/de-base.js';
 import { ModeloFalso } from '../../src/escritor/modelo/falso.js';
 import { Cola } from '../../src/escritor/produccion/cola.js';
 import {
-  colaDelEscritor, escribirLibroV3, fichaParaLibro, fuentesDeFrases, lanzarLibroV3, leerCorrecciones, revisarEtapaAV3, type Motor,
+  colaDelEscritor, escribirLibroV3, fichaParaLibro, fuentesDeFrases, hayLugarParaLibroV3, lanzarLibroV3, leerCorrecciones, revisarEtapaAV3, soloConAudio, type Motor,
 } from '../../src/escritor/produccion/libro-v3.js';
 import { carpetaNelida, DEFECTOS_NELIDA, salidasModeloNelida } from './ayuda.js';
 
@@ -345,5 +345,50 @@ describe('cada llamada del escritor, afuera en el momento (alAnotar → consumo_
     const { db, tablas } = baseFalsa();
     await anotarUsoEscritor(db, 'n1', { clave: 'C/3b-capitulo-02#2', modelo: 'claude-opus-5-5', input: 1000, output: 200, cache_write: 0, cache_read: 50, usd: 0.0042 });
     expect(tablas.consumo_ia).toEqual([expect.objectContaining({ servicio: 'fabrica', paso: 'escritor-C', modelo: 'claude-opus-5-5', proveedor: 'anthropic', narrador_id: 'n1', input_tokens: 1000, output_tokens: 200, cache_read: 50, usd: 0.0042 })]);
+  });
+});
+
+// ---------------------------------------------------------------- revisión del 08/10
+
+describe('arreglos de la revisión', () => {
+  it('si el material cambió desde la Etapa A (una reserva posterior), la A se rehace con el de hoy', async () => {
+    const { db, archivos, tablas } = baseFalsa({ tablas: { narradores: [{ ...NARRADOR }], pedidos: [{ id: 'p1', narrador_id: 'n1', estado: 'generando' }] } });
+    const { motor, modelo } = motorFalso();
+    await revisarEtapaAV3(db, 'n1', { motor });
+    await colaDelEscritor.esperarTodo();
+    const sinReserva = materialNelida();
+    sinReserva.escribir('entradas/respuestas.xml', sinReserva.leer('entradas/respuestas.xml').replace('a cualquier hora', ''));
+    const antes = modelo.llamadas.length;
+    await escribirLibroV3(db, { id: 'p1', narrador_id: 'n1' }, { ...motor, material: async () => ({ c: sinReserva.clonar(), audios: AUDIOS }) });
+    expect(modelo.llamadas.slice(antes).map((p) => p.clave).slice(0, 2)).toEqual(['A/1-registro', 'A/2-plan']);
+    expect(JSON.parse(String(archivos.get('n1/escritor/carpeta-A.json')))['entradas/respuestas.xml']).not.toContain('a cualquier hora');
+    expect(tablas.pedidos[0].estado).toBe('entregado');
+  });
+
+  it('un error pasajero devuelve el pedido a pagado y el libro espera 15 minutos; al cuarto, fallido', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('{}', { status: 200 })));
+    const { db, tablas } = baseFalsa({ tablas: { narradores: [{ ...NARRADOR }], pedidos: [{ id: 'p7', narrador_id: 'n7', estado: 'generando' }] } });
+    const { motor } = motorFalso();
+    const caido: Motor = { ...motor, material: async () => { throw new Error('fetch failed (Supabase)'); } };
+    for (let i = 1; i <= 3; i++) {
+      tablas.pedidos[0].estado = 'generando';
+      await escribirLibroV3(db, { id: 'p7', narrador_id: 'n7' }, caido);
+      expect(tablas.pedidos[0].estado).toBe('pagado');
+    }
+    expect(hayLugarParaLibroV3('n7')).toBe(false);
+    expect(hayLugarParaLibroV3('n7', Date.now() + 16 * 60_000)).toBe(true);
+    tablas.pedidos[0].estado = 'generando';
+    await escribirLibroV3(db, { id: 'p7', narrador_id: 'n7' }, caido);
+    expect(tablas.pedidos[0].estado).toBe('fallido');
+    vi.unstubAllGlobals();
+  });
+
+  it('«Su voz» deja afuera las frases sin audio y elige entre las que suenan', () => {
+    const k = (id: string, r: string | null) => ({ id, respuesta_id: r, elegida: true }) as never;
+    const f = soloConAudio({ version: 1, narrador_id: 'n', pedido_id: 'p', confirmado_at: null, capitulos: [
+      { numero: 1, capitulo: 'I', candidatas: [k('a', null), k('b', 'r1'), k('c', 'r2'), k('d', 'r3'), k('e', 'r4')] },
+      { numero: 2, capitulo: 'II', candidatas: [k('f', null)] },
+    ] });
+    expect(f.capitulos.map((c) => c.candidatas.map((x) => [x.id, x.elegida]))).toEqual([[['b', true], ['c', true], ['d', true], ['e', false]]]);
   });
 });

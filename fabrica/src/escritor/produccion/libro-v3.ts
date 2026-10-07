@@ -19,18 +19,19 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { cargarConfig } from '../../config.js';
 import { anotarUsoEscritor } from '../../costos.js';
 import { htmlAPdf } from '../../libro/pdf.js';
-import { esTextual } from '../../libro/frases.js';
+import { esTextual, FRASES_POR_CAPITULO, type FrasesJson } from '../../libro/frases.js';
 import { publicarFrases } from '../../libro/publicar-frases.js';
 import { AlmacenSupabase } from '../almacen/supabase.js';
 import type { Almacen } from '../almacen/tipos.js';
 import { Carpeta, leerJSON, parseJSONTolerante } from '../carpeta.js';
-import { Ejecutor, OPCIONES_CLIENTE, TopeDeGasto } from '../ejecutor.js';
+import { Ejecutor, ErrorJSON, OPCIONES_CLIENTE, TopeDeGasto } from '../ejecutor.js';
 import { salida } from '../lectura.js';
 import { materialACarpeta, type CorreccionFamilia } from '../material/a-carpeta.js';
 import { leerEntrevistaV3, type AudioV3 } from '../material/de-base.js';
 import type { FichaParaXml } from '../material/ficha-xml.js';
 import { ModeloAnthropic, type ClienteMensajes } from '../modelo/anthropic.js';
 import { LoteAnthropic, type ClienteLotes } from '../modelo/lote-anthropic.js';
+import { ErrorDelModelo } from '../modelo/tipos.js';
 import { cargarSnapshot, type Contexto } from '../orquestador/contexto.js';
 import { etapaA, type ResultadoEtapaA } from '../orquestador/etapa-a.js';
 import { etapaB } from '../orquestador/etapa-b.js';
@@ -55,6 +56,10 @@ const RUTA_LIBRO_HTML = (narradorId: string): string => `${narradorId}/paquete/l
 
 /** Tras un error (no un control que no pasa: eso es fallo-A.json), la Etapa A espera esto antes de reintentar. */
 const ESPERA_TRAS_ERROR_MS = 30 * 60 * 1000;
+/** Un libro que se corta por un error pasajero (API, red, Storage) vuelve a 'pagado' y se reintenta tras esta espera… */
+const ESPERA_LIBRO_MS = 15 * 60 * 1000;
+/** …hasta esta cantidad de veces por pedido (en este proceso); después, 'fallido' y aviso. */
+const REINTENTOS_LIBRO = 3;
 
 // ---------------------------------------------------------------- el motor (los tests ponen el modelo falso)
 
@@ -159,8 +164,19 @@ export async function correrEtapaAV3(db: Db, narradorId: string, motor: Motor = 
 }
 
 /** Lo que el worker comparte entre ticks: la cola y cuándo falló por última vez cada Etapa A. */
-const cola = new Cola(() => Number(process.env.ESCRITOR_LIBROS_EN_PARALELO ?? 3));
+const maximoEnParalelo = (): number => Math.max(1, Number(process.env.ESCRITOR_LIBROS_EN_PARALELO ?? 3) || 3);
+const cola = new Cola(maximoEnParalelo);
 const ultimoErrorA = new Map<string, number>();
+/** Narrador → hasta cuándo espera su libro tras un error pasajero; pedido → cuántos errores pasajeros lleva. */
+const esperaLibro = new Map<string, number>();
+const erroresLibro = new Map<string, number>();
+
+/**
+ * Una Etapa A (que se paga antes de que haya pedido) nunca ocupa el último lugar de la cola: queda para un
+ * libro pagado. Con un solo lugar no se reserva nada.
+ */
+const hayLugarParaEtapaA = (narradorId: string): boolean =>
+  cola.hayLugar(narradorId) && (maximoEnParalelo() <= 1 || cola.cuantos < maximoEnParalelo() - 1);
 
 export const colaDelEscritor = cola;
 
@@ -183,7 +199,7 @@ export async function revisarEtapaAV3(db: Db, narradorId: string, o: { motor?: M
       if (!archivos.has(DUDAS_AVISADAS)) await avisarDudas(db, narradorId, archivos);
       return;
     }
-    if (archivos.has(FALLO_A) || cola.ocupada(narradorId)) return;
+    if (archivos.has(FALLO_A) || !hayLugarParaEtapaA(narradorId)) return;
     const ahora = o.ahora ?? Date.now();
     if (ahora - (ultimoErrorA.get(narradorId) ?? -Infinity) < ESPERA_TRAS_ERROR_MS) return;
     cola.lanzar(narradorId, async () => {
@@ -228,12 +244,17 @@ async function avisarDudas(db: Db, narradorId: string, archivos: Set<string>): P
 export async function leerCorrecciones(almacen: Almacen): Promise<CorreccionFamilia[]> {
   const t = await almacen.leer(CORRECCIONES);
   if (t === null) return [];
-  const j = parseJSONTolerante(t) as { correcciones?: unknown } | unknown[];
+  let j: { correcciones?: unknown } | unknown[];
+  try {
+    j = parseJSONTolerante(t) as { correcciones?: unknown } | unknown[];
+  } catch (err) {
+    throw new FalloDelEscritor(`${CORRECCIONES} no es un JSON válido: ${(err as Error).message}`);
+  }
   const lista = Array.isArray(j) ? j : (j as { correcciones?: unknown }).correcciones;
-  if (!Array.isArray(lista)) throw new Error(`${CORRECCIONES} no tiene la lista "correcciones"`);
+  if (!Array.isArray(lista)) throw new FalloDelEscritor(`${CORRECCIONES} no tiene la lista "correcciones"`);
   return lista.map((x, i) => {
     const k = x as { texto?: unknown; dudaId?: unknown };
-    if (typeof k?.texto !== 'string') throw new Error(`${CORRECCIONES}: la corrección ${i + 1} no tiene "texto"`);
+    if (typeof k?.texto !== 'string') throw new FalloDelEscritor(`${CORRECCIONES}: la corrección ${i + 1} no tiene "texto"`);
     return { texto: k.texto, ...(typeof k.dudaId === 'string' ? { dudaId: k.dudaId } : {}) };
   });
 }
@@ -266,16 +287,23 @@ export class FalloDelEscritor extends Error {
 }
 
 /**
- * El libro entero de un pedido ya reclamado ('generando'). Deja el pedido en 'entregado' o en 'fallido'
- * (con aviso a los socios); nunca tira. Un pedido 'fallido' se reintenta volviéndolo a 'pagado' a mano:
- * retoma de los checkpoints.
+ * El libro entero de un pedido ya reclamado ('generando'). Deja el pedido en 'entregado'. Ante un error pasajero
+ * lo devuelve a 'pagado' (se reintenta a los 15 minutos, hasta 3 veces por proceso); ante uno definitivo, o pasados
+ * esos reintentos, 'fallido' con aviso a los socios. Nunca tira. Un 'fallido' se reintenta volviéndolo a 'pagado'
+ * a mano: retoma de los checkpoints.
  */
 export async function escribirLibroV3(db: Db, pedido: { id: string; narrador_id: string }, motor: Motor = motorReal(db)): Promise<void> {
   const narradorId = pedido.narrador_id;
   try {
     const desdeBase = await (motor.material ?? carpetaDeLaBase)(db, narradorId);
     const almacen = new AlmacenSupabase(db, PREFIJO_ESCRITOR(narradorId));
-    const snapA = await cargarSnapshot(almacen, 'A');
+    let snapA = await cargarSnapshot(almacen, 'A');
+    // Si el material cambió desde la Etapa A (una reserva pedida después, una respuesta transcripta tarde, la ficha
+    // que la familia corrigió), la A se rehace con el de hoy: lo reservado no puede salir impreso.
+    if (snapA && !mismasEntradas(snapA, desdeBase.c)) {
+      console.log(`escritor ${narradorId}: el material cambió desde la Etapa A; se rehace con el de hoy`);
+      snapA = null;
+    }
     const x = armarContexto(db, narradorId, motor, snapA ?? desdeBase.c);
     if (!snapA) {
       const a = await etapaA(x);
@@ -295,7 +323,7 @@ export async function escribirLibroV3(db: Db, pedido: { id: string; narrador_id:
 
     // «Su voz»: no frena la entrega (como en el libro viejo). Sin frases, el panel no muestra nada que cortar.
     try {
-      const frases = frasesParaSuVoz(x.c, { narradorId, pedidoId: pedido.id, fuentes: fuentesDeFrases(x.c, desdeBase.audios) });
+      const frases = soloConAudio(frasesParaSuVoz(x.c, { narradorId, pedidoId: pedido.id, fuentes: fuentesDeFrases(x.c, desdeBase.audios) }));
       await publicarFrases(db, frases);
     } catch (err) {
       x.log(`«Su voz» no salió (el libro se entrega igual): ${err instanceof Error ? err.message : err}`);
@@ -306,9 +334,21 @@ export async function escribirLibroV3(db: Db, pedido: { id: string; narrador_id:
       .update({ estado: 'entregado', libro_pdf_path: RUTA_LIBRO_PDF(narradorId), audiolibro_paths: null })
       .eq('id', pedido.id);
     if (errorUpdate) throw new Error(`No se pudo dejar entregado el pedido ${pedido.id}: ${errorUpdate.message}`);
+    erroresLibro.delete(pedido.id);
   } catch (err) {
     const motivo = err instanceof Error ? err.message : String(err);
     console.error(`escritor ${narradorId}: el libro del pedido ${pedido.id} falló:`, motivo);
+    const veces = (erroresLibro.get(pedido.id) ?? 0) + 1;
+    if (!esDefinitivo(err) && veces <= REINTENTOS_LIBRO) {
+      // Pasajero (API, red, Storage): vuelve a 'pagado' y se reintenta en un rato; retoma sin repagar.
+      erroresLibro.set(pedido.id, veces);
+      esperaLibro.set(narradorId, Date.now() + ESPERA_LIBRO_MS);
+      const { error: errorVuelta } = await db.from('pedidos').update({ estado: 'pagado' }).eq('id', pedido.id).eq('estado', 'generando');
+      if (errorVuelta) console.error(`escritor ${narradorId}: no se pudo devolver a 'pagado' el pedido ${pedido.id}:`, errorVuelta.message);
+      console.warn(`escritor ${narradorId}: error pasajero ${veces} de ${REINTENTOS_LIBRO}; se reintenta en ${ESPERA_LIBRO_MS / 60_000} minutos`);
+      return;
+    }
+    erroresLibro.delete(pedido.id);
     const { error } = await db.from('pedidos').update({ estado: 'fallido' }).eq('id', pedido.id);
     if (error) console.error(`escritor ${narradorId}: no se pudo marcar 'fallido' el pedido ${pedido.id}:`, error.message);
     await avisarSocios(
@@ -316,6 +356,31 @@ export async function escribirLibroV3(db: Db, pedido: { id: string; narrador_id:
       `${motivo}\n\nEl pedido quedó 'fallido'. Lo pagado al modelo quedó en ${PREFIJO_ESCRITOR(narradorId)}/: para reintentar, volver el pedido a 'pagado' (retoma sin repagar).`,
     );
   }
+}
+
+/** Un error que reintentar no arregla: un control que no pasa, el tope, sin material, un JSON roto, un rechazo del modelo. */
+function esDefinitivo(err: unknown): boolean {
+  return err instanceof FalloDelEscritor || err instanceof TopeDeGasto || err instanceof SinMaterial || err instanceof ErrorJSON || (err instanceof ErrorDelModelo && !err.reintentable);
+}
+
+/** Las entradas de dos carpetas (respuestas, etiquetas, ficha), iguales. */
+function mismasEntradas(a: Carpeta, b: Carpeta): boolean {
+  const de = (c: Carpeta): string => JSON.stringify(Object.entries(c.aObjeto()).filter(([k]) => k.startsWith('entradas/')));
+  return de(a) === de(b);
+}
+
+/**
+ * «Su voz» solo con frases que tienen de dónde cortarse: una frase sin respuesta no suena nunca, y elegida dejaría
+ * el panel "preparando" para siempre. En cada capítulo se eligen las primeras con audio.
+ */
+export function soloConAudio(f: FrasesJson): FrasesJson {
+  const capitulos = f.capitulos
+    .map((c) => {
+      const conAudio = c.candidatas.filter((k) => k.respuesta_id);
+      return { ...c, candidatas: conAudio.map((k, i) => ({ ...k, elegida: i < FRASES_POR_CAPITULO })) };
+    })
+    .filter((c) => c.candidatas.length > 0);
+  return { ...f, capitulos };
 }
 
 async function subir(db: Db, ruta: string, cuerpo: string | Uint8Array | Buffer, tipo: string): Promise<void> {
@@ -327,7 +392,8 @@ async function subir(db: Db, ruta: string, cuerpo: string | Uint8Array | Buffer,
  * Del tick: ¿hay lugar para un libro de este narrador? (Se pregunta ANTES de reclamar el pedido: un pedido
  * reclamado sin trabajo en marcha quedaría huérfano.)
  */
-export const hayLugarParaLibroV3 = (narradorId: string): boolean => cola.hayLugar(narradorId);
+export const hayLugarParaLibroV3 = (narradorId: string, ahora: number = Date.now()): boolean =>
+  cola.hayLugar(narradorId) && ahora >= (esperaLibro.get(narradorId) ?? 0);
 
 /**
  * Del tick, con el pedido ya reclamado: lanza el libro en segundo plano. `alTerminar` corre siempre al final

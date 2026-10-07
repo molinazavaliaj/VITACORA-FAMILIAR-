@@ -131,9 +131,10 @@ export class Ejecutor {
     const fila = this.fila(p, r.uso, lote);
     this.filas.push(fila);
     this.anotadas.add(p.clave);
-    await this.avisar(fila);
     // Se guarda aunque el JSON no sirva: el gasto queda anotado y el reintento usa otra clave.
+    // Primero el checkpoint, después el aviso: si el proceso muere en el medio, al retomar no se avisa dos veces.
     await this.o.almacen.escribir(rutaPaso(p.clave), JSON.stringify({ hash: this.hash(p), texto: r.texto, fila } satisfies Memoria));
+    await this.avisar(fila);
   }
 
   /** Las fallas pagas de corridas anteriores (`fallas.json`), una sola vez por ejecutor, antes de cualquier llamada. */
