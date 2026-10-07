@@ -3,9 +3,9 @@
 // "audios" que son texto: no gasta transcripción. Narrador INVENTADO
 // ("Prueba V3"); nunca la vida de un narrador real.
 //
-//   npm run v3-simular -- [--idioma es-AR|es-ES|ca|todos] [--cazador] [--dejar]
+//   npm run v3-simular -- --real [--idioma es-AR|es-ES|ca|todos] [--cazador] [--dejar]
 //
-// Va contra la BASE REAL: crea una familia y un narrador "Prueba V3" por
+// Sin --real no toca ninguna base: muestra el uso y sale. Va contra la BASE REAL: crea una familia y un narrador "Prueba V3" por
 // idioma y los borra al terminar (salvo --dejar). --cazador GASTA PLATA
 // (Opus 5.5, tope USD 3) y corre solo en es-AR. La charla de cada idioma
 // queda en audios-crudos/v3-simulacion/<idioma>.md (fuera de git).
@@ -18,7 +18,7 @@ import type { DepsV3 } from '../src/v3/deps.js';
 import { procesarEntranteV3 } from '../src/v3/entrante.js';
 import { leerFila } from '../src/v3/estado.js';
 import { preguntaPorId } from '../src/v3/nucleo/entrevista/banco.js';
-import { botonesDeClave } from '../src/v3/nucleo/entrevista/flujo.js';
+import { SI_SIN_AUDIO, botonesDeClave } from '../src/v3/nucleo/entrevista/flujo.js';
 import { IDIOMAS, esIdioma, type Idioma } from '../src/v3/nucleo/entrevista/idioma.js';
 import { leerBoton } from '../src/v3/nucleo/entrevista/respuesta.js';
 import { VIDAS_EJEMPLO } from '../src/v3/nucleo/entrevista/vidas-ejemplo.js';
@@ -53,6 +53,8 @@ export function respuestaSimulada(id: string, idioma: Idioma, tocoSi: boolean): 
 export type ResultadoSimulacion = {
   idioma: Idioma; terminada: boolean; completado: boolean; pasos: number;
   mensajes: number; botones: number; audios: number; repreguntas: number; gastoCazadorUsd: number;
+  /** Botones tocados según lo que valen, fotos mandadas en FO1 y, si cortó por maxPasos, la pregunta en que quedó. */
+  si: number; no: number; paso: number; fotos: number; esperandoAlCortar: string | null;
 };
 
 async function leerNarrador(db: SupabaseClient, id: string): Promise<NarradorV3> {
@@ -61,23 +63,39 @@ async function leerNarrador(db: SupabaseClient, id: string): Promise<NarradorV3>
   return data as NarradorV3;
 }
 
-export async function simularEntrevista(deps: DepsV3, n: NarradorV3, o: { idioma: Idioma; pasar: (ms: number) => void; maxPasos?: number }): Promise<ResultadoSimulacion> {
+export async function simularEntrevista(deps: DepsV3, n: NarradorV3, o: { idioma: Idioma; pasar: (ms: number) => void; maxPasos?: number; foto?: boolean; forzar?: boolean }): Promise<ResultadoSimulacion> {
   await arrancarV3(deps, n, o.idioma, { nombre: 'Prueba V3', genero: 'varon' }, { ventanaAbierta: true });
   let k = 0;
   let botones = 0;
   let audios = 0;
   let pasos = 0;
+  const vale = { si: 0, no: 0, paso: 0 };
+  let fotos = 0;
+  const forzados = new Set<string>();
+  let esperandoAlCortar: string | null = null;
   for (; pasos < (o.maxPasos ?? 600); pasos++) {
     const fila = await leerFila(deps.db, n.id);
     if (!fila) throw new Error('simulación: no hay fila V3');
     if (fila.estado.terminada && fila.estado.salientes.length === 0) break;
     const id = fila.estado.esperando;
-    if (id) {
-      const r = respuestaSimulada(id, o.idioma, fila.estado.tocoSi === true);
+    esperandoAlCortar = id ?? null;
+    if (id === 'FO1' && o.foto && fotos === 0) {
+      fotos++;
+      await procesarEntranteV3(deps, await leerNarrador(deps.db, n.id), { telefono: n.telefono_whatsapp, tipo: 'imagen', mediaId: 'foto-simulada', mimeType: 'image/jpeg', waMessageId: `sim-${n.id}-${++k}` });
+    } else if (id) {
+      // Con `forzar`, la primera vez que aparece un botón de cada clase (Sí que pide relato, No, Paso) lo toca, para ejercitar los tres caminos.
+      const botonForzado = o.forzar && fila.estado.tocoSi !== true && id !== 'FO1'
+        ? (['si', 'no', 'paso'] as const).filter((v) => !forzados.has(v) && !(v === 'si' && SI_SIN_AUDIO.includes(id)))
+          .map((v) => ({ v, b: botonesDeClave(id, o.idioma)?.find((x) => x.vale === v) })).find((x) => x.b)
+        : undefined;
+      if (botonForzado) forzados.add(botonForzado.v);
+      const r = botonForzado ? { boton: botonForzado.b!.texto } : respuestaSimulada(id, o.idioma, fila.estado.tocoSi === true);
       const waMessageId = `sim-${n.id}-${++k}`;
       const narrador = await leerNarrador(deps.db, n.id);
       if ('boton' in r) {
         botones++;
+        const tocado = botonesDeClave(id, o.idioma)?.find((b) => b.texto === r.boton)?.vale;
+        if (tocado) vale[tocado]++;
         await procesarEntranteV3(deps, narrador, { telefono: n.telefono_whatsapp, tipo: 'texto', texto: r.boton, esBoton: true, waMessageId });
       } else {
         audios++;
@@ -100,6 +118,9 @@ export async function simularEntrevista(deps: DepsV3, n: NarradorV3, o: { idioma
     audios,
     repreguntas: final.estado.repreguntas?.length ?? 0,
     gastoCazadorUsd: final.estado.cazador?.gastoUsd ?? 0,
+    ...vale,
+    fotos,
+    esperandoAlCortar: final.estado.terminada ? null : esperandoAlCortar,
   };
 }
 
@@ -120,15 +141,37 @@ async function limpiar(db: SupabaseClient, narradorId: string, familiaId: string
   for (const carpeta of [narradorId, `${narradorId}/fotos`]) {
     const { data } = await db.storage.from('audios').list(carpeta);
     const rutas = ((data as { name: string }[] | null) ?? []).filter((a) => a.name.includes('.')).map((a) => `${carpeta}/${a.name}`);
-    if (rutas.length > 0) await db.storage.from('audios').remove(rutas);
+    if (rutas.length > 0) {
+      const { error } = await db.storage.from('audios').remove(rutas);
+      if (error) console.error(`limpiar: no pude borrar archivos de ${carpeta}: ${error.message}`);
+    }
   }
-  for (const tabla of ['respuestas', 'envios', 'fotos', 'entrevistas_v3']) await db.from(tabla).delete().eq('narrador_id', narradorId);
-  await db.from('narradores').delete().eq('id', narradorId);
-  await db.from('familias').delete().eq('id', familiaId);
+  const borrar = async (tabla: string, columna: string, valor: string) => {
+    const { error } = await db.from(tabla).delete().eq(columna, valor);
+    if (error) console.error(`limpiar: no pude borrar de ${tabla}: ${error.message}`);
+  };
+  for (const tabla of ['respuestas', 'envios', 'fotos', 'entrevistas_v3']) await borrar(tabla, 'narrador_id', narradorId);
+  await borrar('narradores', 'id', narradorId);
+  await borrar('familias', 'id', familiaId);
 }
 
+const USO = [
+  'Uso: npm run v3-simular -- --real [--idioma es-AR|es-ES|ca|todos] [--cazador] [--dejar]',
+  '  --real     obligatorio: la simulación escribe en la base REAL (crea y borra un narrador "Prueba V3").',
+  '  --cazador  GASTA PLATA (Opus 5.5, hasta USD 3), solo en es-AR.',
+  '  --dejar    NO borra lo creado: el reloj de producción lo saltea (contexto.simulacion), pero hay que borrarlo a mano.',
+].join(String.fromCharCode(10));
+
 async function main(args: string[]): Promise<void> {
+  if (!args.includes('--real')) {
+    console.log(USO);
+    return;
+  }
   cargarEntorno();
+  let host = '(desconocido)';
+  try { host = new URL(process.env.SUPABASE_URL ?? '').host; } catch { /* sin URL válida */ }
+  console.log(`>>> BASE REAL: ${host} — se van a crear y borrar una familia y un narrador "Prueba V3".`);
+  if (args.includes('--dejar')) console.warn('!!! --dejar: lo creado QUEDA en la base real. Borralo a mano cuando termines.');
   const { db } = await import('../src/db/cliente.js');
   const { cargarConfig } = await import('../src/config.js');
   const pedido = args.includes('--idioma') ? args[args.indexOf('--idioma') + 1] : 'todos';
@@ -162,7 +205,7 @@ async function main(args: string[]): Promise<void> {
     const { data: creado, error: errorNarrador } = await db.from('narradores').insert({
       familia_id: familiaId, nombre: 'Prueba V3', como_le_dicen: 'Prueba V3', telefono_whatsapp: `+0${Date.now()}`,
       hora_preferida: '03:00', zona_horaria: 'America/Argentina/Buenos_Aires', estado: 'acepto',
-      contexto: { ritmo: 'seguido', genero: 'varon', prueba: 'v3-simulacion', ...(idioma === 'es-AR' ? {} : { idioma }) },
+      contexto: { ritmo: 'seguido', genero: 'varon', prueba: 'v3-simulacion', simulacion: true, ...(idioma === 'es-AR' ? {} : { idioma }) },
     }).select('*').single();
     if (errorNarrador) {
       await db.from('familias').delete().eq('id', familiaId);
@@ -170,7 +213,7 @@ async function main(args: string[]): Promise<void> {
     }
     const n = creado as NarradorV3;
     try {
-      const r = await simularEntrevista(deps, n, { idioma, pasar: (ms) => { reloj = new Date(reloj.getTime() + ms); } });
+      const r = await simularEntrevista(deps, n, { idioma, foto: true, forzar: true, pasar: (ms) => { reloj = new Date(reloj.getTime() + ms); } });
       console.log(JSON.stringify(r));
       const fila = await leerFila(db, n.id);
       if (fila) writeFileSync(`${salida}${idioma}.md`, charlaMd(fila), 'utf8');

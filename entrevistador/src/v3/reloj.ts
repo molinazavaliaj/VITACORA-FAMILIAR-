@@ -114,6 +114,8 @@ export async function tickV3(deps: DepsV3): Promise<void> {
   for (const fila of filas) {
     const n = porId.get(fila.narrador_id);
     if (!n) continue;
+    // Los narradores de la simulación (`npm run v3-simular -- --real`) los maneja el script, no el reloj de producción.
+    if (n.contexto?.simulacion === true) continue;
     try {
       await trabajarNarrador(deps, fila, n);
     } catch (err) {

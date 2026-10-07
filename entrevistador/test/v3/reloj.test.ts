@@ -181,3 +181,20 @@ describe('casos que el reloj no puede romper', () => {
     expect((await r.leer()).estado.respuestas).toHaveLength(1);
   });
 });
+
+describe('narradores de la simulación', () => {
+  it('el tick de producción los saltea (contexto.simulacion) y sigue con los demás', async () => {
+    const sim = narrador({ id: 'sim', contexto: { ritmo: 'diario', simulacion: true } });
+    const real = narrador({ id: 'real' });
+    const base = crearBaseFalsa({ narradores: [{ ...sim }, { ...real }] });
+    const viejo = { ...enOR1(), borrador: 'Nací en un pueblo chico.' };
+    for (const id of ['sim', 'real']) {
+      await crearFila(base.cliente, { narrador_id: id, idioma: 'es-AR', ficha: FICHA, estado: viejo, ultimo_audio_at: hace(4 * MIN), tanda_dia: HOY, tanda_cuenta: 1, migrada_de: null });
+    }
+    const p = depsDePrueba(base, { ahora: AHORA });
+    await tickV3(p.deps);
+    expect((await leerFila(base.cliente, 'sim'))?.estado.borrador).toBe('Nací en un pueblo chico.');
+    expect((await leerFila(base.cliente, 'real'))?.estado.borrador).not.toBe('Nací en un pueblo chico.');
+    expect(p.enviados.length).toBeGreaterThan(0);
+  });
+});
