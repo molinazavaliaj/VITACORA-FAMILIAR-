@@ -7,9 +7,9 @@ import { bienvenida } from '../src/manual/puro.js';
 
 const TEL = '+5491155551234';
 beforeEach(() => reiniciarLimiteDeCodigos());
-function armar(o: { estado?: string; usado_at?: string | null; usado_por_telefono?: string | null; contexto?: Record<string, unknown> } = {}) {
+function armar(o: { estado?: string; usado_at?: string | null; usado_por_telefono?: string | null; contexto?: Record<string, unknown>; zona_horaria?: string } = {}) {
   const base = crearBaseFalsa({
-    narradores: [{ id: 'n1', familia_id: 'f1', nombre: 'Héctor', como_le_dicen: 'abuelo', telefono_whatsapp: null, estado: o.estado ?? 'regalo_pendiente', contexto: o.contexto ?? { regalo: true, trato: 'vos', genero: 'varon' } }],
+    narradores: [{ id: 'n1', familia_id: 'f1', nombre: 'Héctor', como_le_dicen: 'abuelo', telefono_whatsapp: null, estado: o.estado ?? 'regalo_pendiente', contexto: o.contexto ?? { regalo: true, trato: 'vos', genero: 'varon' }, zona_horaria: o.zona_horaria ?? 'Europe/Madrid' }],
     regalos: [{ id: 'r1', codigo: 'VF-7K3M2Q', narrador_id: 'n1', pedido_id: 'p1', quien_regala: 'Lucía', mensaje: 'Te quiero', usado_at: o.usado_at ?? null, usado_por_telefono: o.usado_por_telefono ?? null }],
     envios: [],
   });
@@ -157,7 +157,54 @@ describe('canjearRegalo: arreglos de la revisión', () => {
   });
 });
 
+describe('canjearRegalo: la zona horaria sale del teléfono que canjea', () => {
+  it('quien regala está en España, el narrador canjea con +54: Buenos Aires', async () => {
+    const { base, deps } = armar({ zona_horaria: 'Europe/Madrid' });
+    expect(await canjearRegalo(deps, { telefono: TEL, texto: 'VF-7K3M2Q' })).toBe('canjeado');
+    expect(base.tablas.narradores[0]).toMatchObject({ telefono_whatsapp: TEL, estado: 'invitado', zona_horaria: 'America/Argentina/Buenos_Aires' });
+  });
+  it('quien regala está en Argentina, el narrador canjea con +34: Madrid', async () => {
+    const { base, deps } = armar({ zona_horaria: 'America/Argentina/Buenos_Aires' });
+    expect(await canjearRegalo(deps, { telefono: '+34612345678', texto: 'VF-7K3M2Q' })).toBe('canjeado');
+    expect(base.tablas.narradores[0]).toMatchObject({ estado: 'invitado', zona_horaria: 'Europe/Madrid' });
+  });
+  it('otro prefijo: la zona queda como estaba', async () => {
+    const { base, deps } = armar({ zona_horaria: 'Europe/Madrid' });
+    expect(await canjearRegalo(deps, { telefono: '+59899123456', texto: 'VF-7K3M2Q' })).toBe('canjeado');
+    expect(base.tablas.narradores[0]).toMatchObject({ estado: 'invitado', zona_horaria: 'Europe/Madrid' });
+  });
+  it('si el canje no pasa (no se pagó), la zona no se toca', async () => {
+    const { base, deps } = armar({ estado: 'pendiente_pago', zona_horaria: 'Europe/Madrid' });
+    expect(await canjearRegalo(deps, { telefono: TEL, texto: 'VF-7K3M2Q' })).toBe('no_listo');
+    expect(base.tablas.narradores[0].zona_horaria).toBe('Europe/Madrid');
+  });
+});
+
 describe('mandarBienvenidaDeRegalo', () => {
+  it('con trato usted, la bienvenida sale de usted', async () => {
+    const { deps, enviados } = armar({ contexto: { regalo: true, trato: 'usted' } });
+    expect(await mandarBienvenidaDeRegalo(deps, 'n1', TEL)).toBe(true);
+    expect(enviados[0].texto).toBe(bienvenida('abuelo', 'Lucía', 'usted', { enseguida: false }));
+    expect(enviados[0].texto).toContain('Responda SÍ');
+  });
+  it('sin trato, de vos', async () => {
+    const { deps, enviados } = armar({ contexto: { regalo: true } });
+    expect(await mandarBienvenidaDeRegalo(deps, 'n1', TEL)).toBe(true);
+    expect(enviados[0].texto).toBe(bienvenida('abuelo', 'Lucía', 'vos', { enseguida: false }));
+  });
+  it('si no se puede anotar el envío, lo dice y devuelve false', async () => {
+    const { base, deps, enviados } = armar();
+    base.fallarProxima.set('envios', { code: 'XX000', message: 'caída' });
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      expect(await mandarBienvenidaDeRegalo(deps, 'n1', TEL)).toBe(false);
+      expect(error).toHaveBeenCalledWith(expect.stringContaining('n1'), expect.anything());
+    } finally {
+      error.mockRestore();
+    }
+    expect(enviados).toHaveLength(1);
+    expect(base.tablas.envios).toEqual([]);
+  });
   it('si WhatsApp falla, devuelve false y no anota el envío', async () => {
     const { base } = armar();
     const deps = { db: base.cliente, enviarTexto: async (): Promise<string> => { throw new Error('Meta caído'); } };

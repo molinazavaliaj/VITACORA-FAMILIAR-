@@ -25,6 +25,8 @@ import { CLAVE_DEL_ARBOL, capituloNoAplica, enviarPregunta, ritmoDe, type Narrad
 import { bienvenidaPideVoz } from '../config.js';
 import { esNarradorV3 } from '../v3/estado.js';
 import { canjearRegalo, mandarBienvenidaDeRegalo } from './regalo.js';
+import { extraerCodigo } from './regalo-codigo.js';
+import { avisarSocios } from '../v3/avisos.js';
 
 const MAXIMO_POR_DIA_DOS = 2; // ritmo 'dos_por_dia': la segunda se ofrece, no se impone
 
@@ -127,6 +129,24 @@ export async function procesarEntrante(m: MensajeEntrante): Promise<void> {
     return;
   }
 
+  // Gift card: un teléfono que ya conocemos (libro terminado, cerrado o sin
+  // pagar) manda un código. Hoy no puede canjear: dos libros para una persona
+  // es el plan que sigue. No hay texto aprobado para contestarle, así que no
+  // se le escribe nada; se avisa a los socios para que lo resuelva una persona.
+  if (['pendiente_pago', 'completado', 'cerrado_anticipado'].includes(narrador.estado) && m.tipo === 'texto' && m.texto) {
+    const codigo = extraerCodigo(m.texto);
+    if (codigo) {
+      console.warn(`regalo: ${m.telefono} (narrador ${narrador.id}, '${narrador.estado}') mandó el código ${codigo}; no se canjea, aviso a los socios`);
+      await avisarSocios(
+        `regalo-telefono-conocido:${narrador.id}:${codigo}`,
+        'Un teléfono que ya conocemos mandó un código de regalo',
+        `El teléfono ${m.telefono} ya es del narrador ${narrador.id} (estado '${narrador.estado}') y mandó el código ${codigo}. `
+          + 'El bot no lo canjea ni le contesta: hay que resolverlo a mano.',
+      );
+      return;
+    }
+  }
+
   // Entrevista V3 (spec 2026-10-07): un narrador con fila en entrevistas_v3 va
   // entero por la V3, antes de las fotos de la familia, de manejarTexto (que
   // llama a un modelo) y de la evaluación con Opus. Sin fila —o sin la
@@ -175,8 +195,10 @@ export async function procesarEntrante(m: MensajeEntrante): Promise<void> {
 async function manejarConsentimiento(narrador: Narrador, m: MensajeEntrante): Promise<void> {
   // Gift card: si la bienvenida del canje falló, sale ahora (escribió: ventana abierta).
   // Si tampoco sale ahora, se sigue como siempre: un SÍ nunca se pierde.
+  let regaloSinBienvenida = false;
   if (narrador.contexto?.regalo === true && !(await ultimaBienvenida(narrador.id))) {
     if (await mandarBienvenidaDeRegalo({ db, enviarTexto }, narrador.id, narrador.telefono_whatsapp)) return;
+    regaloSinBienvenida = true;
     console.error(`regalo: la bienvenida de ${narrador.id} volvió a fallar; sigue el consentimiento de siempre`);
   }
   if (m.tipo !== 'texto' || !m.texto) return; // en 'invitado' solo cuenta el SÍ escrito
@@ -213,7 +235,10 @@ async function manejarConsentimiento(narrador: Narrador, m: MensajeEntrante): Pr
   // pero solo si la bienvenida que recibió ya se lo pedía. Sin fecha, la
   // fábrica no clona nunca (supabase/CONTRATO.md).
   const cambios: Record<string, unknown> = { estado: 'acepto' };
-  if (bienvenidaPideVoz()) cambios.consentimiento_voz_at = new Date().toISOString();
+  // La bienvenida del regalo (mandarBienvenidaDeRegalo) siempre pide la voz:
+  // su SÍ vale como permiso, salvo que esa bienvenida nunca le haya llegado.
+  const regaloPidioVoz = narrador.contexto?.regalo === true && !regaloSinBienvenida;
+  if (bienvenidaPideVoz() || regaloPidioVoz) cambios.consentimiento_voz_at = new Date().toISOString();
   await db.from('narradores').update(cambios).eq('id', narrador.id);
   const enseguida = !esViaje(narrador.contexto) && ritmoDe(narrador.contexto) === 'seguido';
   await enviarTexto(

@@ -26,6 +26,7 @@ const mocks = vi.hoisted(() => ({
   pedidoAbierto: vi.fn(),
   canjearRegalo: vi.fn(),
   mandarBienvenidaDeRegalo: vi.fn(),
+  avisarSocios: vi.fn(),
   estado: { narrador: null as any, enviosRepregunta: [] as any[], capturas: [] as any[], ultimoOrden: 30, tieneAdaptativas: true, ofertas: [] as any[], preguntasHoy: [] as any[], capituloVigente: 'La infancia' },
 }));
 
@@ -104,6 +105,7 @@ vi.mock('../src/flujo/fotos.js', () => ({ recibirFotoFamiliar: mocks.recibirFoto
 vi.mock('../src/flujo/objetos.js', () => ({ pedirObjeto: mocks.pedirObjeto, pedidoAbierto: mocks.pedidoAbierto }));
 // Gift card (08/10): el canje se prueba en regalo.test.ts; acá solo que procesar lo llama.
 vi.mock('../src/flujo/regalo.js', () => ({ canjearRegalo: mocks.canjearRegalo, mandarBienvenidaDeRegalo: mocks.mandarBienvenidaDeRegalo }));
+vi.mock('../src/v3/avisos.js', () => ({ avisarSocios: mocks.avisarSocios }));
 // La pregunta de cierre (18/09): por defecto no hay más vueltas → se despide.
 vi.mock('../src/flujo/cierre-abierto.js', () => ({
   faseDeCierre: mocks.faseDeCierre,
@@ -139,6 +141,8 @@ beforeEach(() => {
   mocks.canjearRegalo.mockResolvedValue('sin_codigo');
   mocks.mandarBienvenidaDeRegalo.mockReset();
   mocks.mandarBienvenidaDeRegalo.mockResolvedValue(true);
+  mocks.avisarSocios.mockReset();
+  mocks.avisarSocios.mockResolvedValue(true);
   mocks.guardarFotoEntrante.mockResolvedValue('Lisboa');
   for (const fn of [mocks.enviarTexto, mocks.descargarAudio, mocks.guardarRespuestaAudio, mocks.guardarReserva, mocks.transcribirYActualizar, mocks.evaluarRespuesta, mocks.detectarIntencion, mocks.generarPreguntasAdaptativas, mocks.cerrarBitacora, mocks.enviarPregunta]) fn.mockReset();
   mocks.guardarReserva.mockResolvedValue(true);
@@ -192,6 +196,8 @@ describe('procesarEntrante', () => {
       error.mockRestore();
     }
     expect(update('narradores')?.p).toMatchObject({ estado: 'acepto' });
+    // No le llegó la bienvenida que pide la voz: su SÍ no vale como ese permiso.
+    expect('consentimiento_voz_at' in (update('narradores')?.p as Record<string, unknown>)).toBe(false);
   });
   it('un número desconocido que ya había canjeado su código (ya_era_suyo) no sigue de largo', async () => {
     mocks.estado.narrador = null;
@@ -203,6 +209,52 @@ describe('procesarEntrante', () => {
     } finally {
       warn.mockRestore();
     }
+  });
+  // Un teléfono que el bot ya conoce (un libro terminado, uno sin pagar) manda
+  // un código: hoy no puede canjear (dos libros para una persona es el plan que
+  // sigue). No se le escribe nada (no hay texto aprobado): se avisa a los socios.
+  for (const estado of ['pendiente_pago', 'completado', 'cerrado_anticipado']) {
+    it(`un teléfono conocido en '${estado}' que manda un código: aviso a los socios, nada al narrador`, async () => {
+      mocks.estado.narrador = narradorEn(estado);
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      try {
+        await procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'Me regalaron esto: VF-7K3M2Q', waMessageId: 'w' });
+        expect(warn).toHaveBeenCalledWith(expect.stringContaining('VF-7K3M2Q'));
+      } finally {
+        warn.mockRestore();
+      }
+      expect(mocks.canjearRegalo).not.toHaveBeenCalled();
+      expect(mocks.enviarTexto).not.toHaveBeenCalled();
+      expect(mocks.avisarSocios).toHaveBeenCalledTimes(1);
+      const [clave, asunto, detalle] = mocks.avisarSocios.mock.calls[0];
+      expect(clave).toContain('n1');
+      expect(clave).toContain('VF-7K3M2Q');
+      expect(asunto).toMatch(/regalo/i);
+      expect(detalle).toContain(TEL);
+      expect(detalle).toContain('n1');
+      expect(detalle).toContain('VF-7K3M2Q');
+    });
+  }
+  it('un teléfono conocido en completado que escribe sin código: no se avisa', async () => {
+    mocks.estado.narrador = narradorEn('completado');
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      await procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'gracias por todo', waMessageId: 'w' });
+    } finally {
+      warn.mockRestore();
+    }
+    expect(mocks.avisarSocios).not.toHaveBeenCalled();
+    expect(mocks.enviarTexto).not.toHaveBeenCalled();
+  });
+  it('el SÍ de un invitado de regalo también anota el permiso de voz (la bienvenida del regalo siempre lo pide)', async () => {
+    delete process.env.WA_BIENVENIDA_PIDE_VOZ;
+    mocks.estado.narrador = narradorEn('invitado', 0, { regalo: true, trato: 'vos' });
+    mocks.estado.enviosRepregunta = [{ id: 'e-bienvenida' }];
+    await procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'SÍ', waMessageId: 'w' });
+    const p = update('narradores')?.p as Record<string, unknown>;
+    expect(p.estado).toBe('acepto');
+    expect(typeof p.consentimiento_voz_at).toBe('string');
+    expect(Number.isNaN(Date.parse(p.consentimiento_voz_at as string))).toBe(false);
   });
   it('un invitado de regalo que ya tuvo su bienvenida sigue con el SÍ de siempre', async () => {
     mocks.estado.narrador = narradorEn('invitado', 0, { regalo: true, trato: 'vos' });

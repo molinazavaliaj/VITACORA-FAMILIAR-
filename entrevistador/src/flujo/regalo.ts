@@ -11,6 +11,7 @@ import { variantesDeTelefono } from '../whatsapp/telefonos.js';
 import { ritmoDe } from './ritmo.js';
 import { extraerCodigo } from './regalo-codigo.js';
 import { TEXTOS_REGALO_BOT } from './regalo-textos.js';
+import { zonaPorTelefono } from './regalo-zona.js';
 
 export type DepsRegalo = {
   db: SupabaseClient;
@@ -86,8 +87,13 @@ export async function canjearRegalo(deps: DepsRegalo, m: { telefono: string; tex
   }
 
   // 2. El narrador: teléfono e invitado, solo si estaba esperando el regalo.
+  // La zona horaria sale de SU teléfono, no de la región de quien regala
+  // (+54 o +34; otro prefijo deja la que había).
+  const cambios: Record<string, string> = { telefono_whatsapp: m.telefono, estado: 'invitado' };
+  const zona = zonaPorTelefono(m.telefono);
+  if (zona) cambios.zona_horaria = zona;
   const { data: narrador, error: errorNarrador } = await db.from('narradores')
-    .update({ telefono_whatsapp: m.telefono, estado: 'invitado' })
+    .update(cambios)
     .eq('id', regalo.narrador_id).eq('estado', 'regalo_pendiente').select('id');
   if (errorNarrador || !narrador?.length) {
     // No se pagó todavía, o ese teléfono ya es de otro narrador (23505). Se
@@ -113,7 +119,7 @@ async function yaUsado(deps: DepsRegalo, m: { telefono: string }, codigo: string
   return 'usado_por_otro';
 }
 
-/** La bienvenida de siempre (vos), firmada por quien regala, como texto libre. */
+/** La bienvenida de siempre (con el trato que eligió quien regala), firmada por quien regala, como texto libre. */
 export async function mandarBienvenidaDeRegalo(deps: DepsRegalo, narradorId: string, telefono: string): Promise<boolean> {
   try {
     const [{ data: n }, { data: r }] = await Promise.all([
@@ -122,8 +128,14 @@ export async function mandarBienvenidaDeRegalo(deps: DepsRegalo, narradorId: str
     ]);
     if (!n || !r) return false;
     const enseguida = ritmoDe(n.contexto) === 'seguido';
-    const waId = await deps.enviarTexto(telefono, bienvenida(n.como_le_dicen, r.quien_regala, 'vos', { enseguida }));
-    await deps.db.from('envios').insert({ narrador_id: narradorId, tipo: 'bienvenida', pregunta_orden: null, wa_message_id: waId });
+    const trato = n.contexto?.trato === 'usted' ? 'usted' : 'vos';
+    const waId = await deps.enviarTexto(telefono, bienvenida(n.como_le_dicen, r.quien_regala, trato, { enseguida }));
+    const { error } = await deps.db.from('envios').insert({ narrador_id: narradorId, tipo: 'bienvenida', pregunta_orden: null, wa_message_id: waId });
+    if (error) {
+      // Salió, pero sin el envío anotado el próximo mensaje la repetiría: se avisa.
+      console.error(`regalo: la bienvenida de ${narradorId} salió pero no pude anotar el envío:`, error.message);
+      return false;
+    }
     return true;
   } catch (err) {
     console.error(`regalo: falló la bienvenida de ${narradorId}:`, err);
