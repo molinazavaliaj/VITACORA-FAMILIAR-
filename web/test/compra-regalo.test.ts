@@ -259,3 +259,121 @@ describe("POST /api/compra con regalo", () => {
     expect((admin.inserts.pedidos[0] as { extras: object }).extras).not.toHaveProperty("regalo");
   });
 });
+
+describe("POST /api/compra con regalo: reintento sin pagar", () => {
+  // La misma familia vuelve a intentar el regalo para la misma persona (falló
+  // el pago, cerró la pestaña): se retoma el narrador y el regalo que quedaron
+  // en pendiente_pago, con el mismo código, en vez de dejar historias fantasma.
+  function secuenciaReintento(o: { pendientes?: unknown[]; regalo?: unknown } = {}) {
+    return {
+      familias: [{ data: { id: "fam-1" }, error: null }],
+      narradores: [
+        { data: o.pendientes ?? [{ id: "nar-viejo", familia_id: "fam-1", nombre: "  héctor ", contexto: { regalo: true, trato: "vos" } }], error: null },
+        { data: { id: "nar-viejo" }, error: null },
+      ],
+      pedidos: [{ data: { id: "ped-2" }, error: null }],
+      regalos: [
+        { data: o.regalo === undefined ? { id: "reg-1", codigo: "VF-ABCDEF" } : o.regalo, error: null },
+        { data: null, error: null },
+      ],
+    };
+  }
+
+  it("retoma el narrador y el regalo pendientes: no inserta otros, pedido nuevo, mismo código", async () => {
+    const admin = crearAdmin(secuenciaReintento());
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+
+    const r = await POST(peticion(CUERPO_REGALO));
+    const json = (await r.json()) as { codigo: string; narradorId: string };
+
+    expect(r.status).toBe(200);
+    expect(admin.inserts.narradores).toBeUndefined();
+    expect(admin.inserts.regalos).toBeUndefined();
+    expect(admin.updates.narradores).toHaveLength(1);
+    expect(admin.updates.narradores[0]).toMatchObject({
+      familia_id: "fam-1",
+      estado: "pendiente_pago",
+      nombre: "Héctor",
+      contexto: { regalo: true, trato: "vos", genero: "varon" },
+    });
+    expect(admin.eqs.narradores).toEqual(
+      expect.arrayContaining([["familia_id", "fam-1"], ["estado", "pendiente_pago"], ["id", "nar-viejo"]]),
+    );
+    expect(admin.inserts.pedidos[0]).toMatchObject({ narrador_id: "nar-viejo", extras: { regalo: true } });
+    expect(admin.updates.regalos).toEqual([
+      {
+        mensaje: "Abuelo, quiero que cuentes tu vida.",
+        fecha_entrega: "2099-12-24",
+        quien_regala: "Lucía",
+        pedido_id: "ped-2",
+      },
+    ]);
+    expect(admin.eqs.regalos).toEqual(expect.arrayContaining([["narrador_id", "nar-viejo"], ["id", "reg-1"]]));
+    expect(json.codigo).toBe("VF-ABCDEF");
+    expect(json.narradorId).toBe("nar-viejo");
+    expect(crearCheckout).toHaveBeenCalledWith({ id: "ped-2", email: "lucia@ejemplo.com" }, expect.anything());
+  });
+
+  it("dos intentos seguidos dan el mismo código", async () => {
+    const primero = crearAdmin(secuenciaFeliz());
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(primero);
+    const r1 = (await (await POST(peticion(CUERPO_REGALO))).json()) as { codigo: string };
+
+    const segundo = crearAdmin(secuenciaReintento({ regalo: { id: "reg-1", codigo: r1.codigo } }));
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(segundo);
+    const r2 = (await (await POST(peticion(CUERPO_REGALO))).json()) as { codigo: string };
+
+    expect(r2.codigo).toBe(r1.codigo);
+    expect(segundo.inserts.regalos).toBeUndefined();
+  });
+
+  it("un pendiente de la familia con otro nombre no se retoma: nace otro", async () => {
+    const admin = crearAdmin({
+      ...secuenciaReintento({ pendientes: [{ id: "nar-otro", familia_id: "fam-1", nombre: "Marta", contexto: { regalo: true } }] }),
+      narradores: [
+        { data: [{ id: "nar-otro", familia_id: "fam-1", nombre: "Marta", contexto: { regalo: true } }], error: null },
+        { data: { id: "nar-nuevo" }, error: null },
+      ],
+      regalos: [{ data: null, error: null }],
+    });
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+
+    const r = await POST(peticion(CUERPO_REGALO));
+
+    expect(r.status).toBe(200);
+    expect(admin.inserts.narradores).toHaveLength(1);
+    expect(admin.updates.narradores).toBeUndefined();
+    expect(admin.inserts.regalos).toHaveLength(1);
+  });
+
+  it("un pendiente con el mismo nombre que no es regalo no se retoma", async () => {
+    const admin = crearAdmin({
+      ...secuenciaReintento(),
+      narradores: [
+        { data: [{ id: "nar-compra", familia_id: "fam-1", nombre: "Héctor", contexto: {} }], error: null },
+        { data: { id: "nar-nuevo" }, error: null },
+      ],
+      regalos: [{ data: null, error: null }],
+    });
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+
+    await POST(peticion(CUERPO_REGALO));
+
+    expect(admin.inserts.narradores).toHaveLength(1);
+    expect(admin.updates.narradores).toBeUndefined();
+  });
+
+  it("si el narrador retomado no tenía fila de regalo (quedó a medias), se crea con código nuevo", async () => {
+    const admin = crearAdmin(secuenciaReintento({ regalo: null }));
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+
+    const r = await POST(peticion(CUERPO_REGALO));
+    const json = (await r.json()) as { codigo: string };
+
+    expect(r.status).toBe(200);
+    expect(admin.inserts.narradores).toBeUndefined();
+    expect(admin.inserts.regalos).toHaveLength(1);
+    expect(admin.inserts.regalos[0]).toMatchObject({ narrador_id: "nar-viejo", pedido_id: "ped-2" });
+    expect(json.codigo).toBe((admin.inserts.regalos[0] as { codigo: string }).codigo);
+  });
+});

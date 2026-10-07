@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
   // Si un intento anterior con este WhatsApp quedó sin pagar (falló MP, cerró
   // la pestaña), se retoma ese narrador en vez de chocar con el teléfono
   // repetido. Solo si es la misma familia: un pendiente ajeno sigue dando 409.
-  // Un regalo no tiene teléfono: no hay nada que retomar.
+  // Un regalo no tiene teléfono: se busca por familia y nombre (más abajo).
   const { data: pendiente } = narradorAInsertar.telefono_whatsapp
     ? await admin
         .from("narradores")
@@ -113,7 +113,28 @@ export async function POST(request: NextRequest) {
         .eq("estado", "pendiente_pago")
         .maybeSingle()
     : { data: null };
-  const retomable = pendiente as { id: string; familia_id: string } | null;
+  let retomable = pendiente as { id: string; familia_id: string } | null;
+
+  // Un regalo se reintenta sin teléfono: se retoma el de la misma familia que
+  // quedó sin pagar, marcado como regalo y para la misma persona (mismo nombre).
+  // Así un pago fallido no deja historias fantasma y el código no cambia.
+  // Solo si la familia ya existía: una recién creada no tiene nada pendiente.
+  if (datosRegalo && existente) {
+    const { data: pendientesRegalo, error: errorPendientes } = await admin
+      .from("narradores")
+      .select("id, familia_id, nombre, contexto")
+      .eq("familia_id", familiaId)
+      .eq("estado", "pendiente_pago");
+    if (errorPendientes) {
+      console.error("compra: fallo la busqueda de un regalo sin pagar", errorPendientes);
+      return NextResponse.json({ error: MENSAJE_ERROR_GENERICO }, { status: 500 });
+    }
+    const mismoNombre = (n: string | null | undefined) =>
+      (n ?? "").trim().toLowerCase() === narradorAInsertar.nombre.trim().toLowerCase();
+    retomable =
+      ((pendientesRegalo ?? []) as { id: string; familia_id: string; nombre: string | null; contexto: { regalo?: unknown } | null }[])
+        .find((n) => n.contexto?.regalo === true && mismoNombre(n.nombre)) ?? null;
+  }
 
   const { data: narrador, error: errorNarrador } =
     retomable && retomable.familia_id === familiaId
@@ -161,7 +182,36 @@ export async function POST(request: NextRequest) {
   }
 
   let codigo: string | null = null;
-  if (datosRegalo) {
+  if (datosRegalo && retomable) {
+    // Reintento del mismo regalo: se actualiza su fila y se queda con su código.
+    const { data: previo, error: errorPrevio } = await admin
+      .from("regalos")
+      .select("id, codigo")
+      .eq("narrador_id", narradorId)
+      .maybeSingle();
+    if (errorPrevio) {
+      console.error("compra: fallo la busqueda del regalo a retomar", errorPrevio);
+      return NextResponse.json({ error: MENSAJE_ERROR_GENERICO }, { status: 500 });
+    }
+    if (previo) {
+      const { id: regaloId, codigo: codigoPrevio } = previo as { id: string; codigo: string };
+      const { error: errorRetomar } = await admin
+        .from("regalos")
+        .update({
+          mensaje: datosRegalo.mensaje,
+          fecha_entrega: datosRegalo.fechaEntrega,
+          quien_regala: familiaAInsertar.nombre,
+          pedido_id: (pedido as { id: string }).id,
+        })
+        .eq("id", regaloId);
+      if (errorRetomar) {
+        console.error("compra: fallo retomar el regalo", errorRetomar);
+        return NextResponse.json({ error: MENSAJE_ERROR_GENERICO }, { status: 500 });
+      }
+      codigo = codigoPrevio;
+    }
+  }
+  if (datosRegalo && !codigo) {
     // El código es único en la base: si choca (casi imposible), se prueba otro.
     for (let intento = 0; intento < 5 && !codigo; intento++) {
       const candidato = generarCodigo();
