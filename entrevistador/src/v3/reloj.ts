@@ -35,10 +35,13 @@ export function tocaTanda(f: FilaV3, n: NarradorV3, ahora: Date, hoy: string): b
   return !f.estado.terminada && !f.estado.esperando && f.tanda_dia !== hoy && yaEsLaHora(n.hora_preferida, n.zona_horaria, ahora) && !hayBorrador(f);
 }
 
-/** M8: 2 días sin respuesta a la abierta (nada contado, ni "Sí" tocado), una sola vez por pregunta. */
+/**
+ * M8: 2 días sin respuesta a la abierta, una sola vez por pregunta. Un "Sí"
+ * tocado sin audio no es respuesta (cerrarRespuesta no lo cierra): también le sale.
+ */
 export function tocaM8(f: FilaV3, ahora: Date): boolean {
   const e = f.estado;
-  return !!e.esperando && !e.tocoSi && !hayBorrador(f) && e.m8En !== e.esperando
+  return !!e.esperando && !hayBorrador(f) && e.m8En !== e.esperando
     && !!e.abiertaDesde && ahora.getTime() - Date.parse(e.abiertaDesde) >= DIAS_M8 * 86_400_000;
 }
 
@@ -72,7 +75,7 @@ export async function trabajarNarrador(deps: DepsV3, fila: FilaV3, n: NarradorV3
 
   if (tocaTanda(fila, n, ahora, hoy)) {
     const r = await conReintento(deps.db, n.id, (f) => {
-      if (!tocaTanda(f, n, ahora, hoy)) return null;
+      if (!tocaTanda(f, n, ahora, hoy) || tomaVigente(f, ahora)) return null;
       // Sigue con la próxima (con el acuse pendiente pegado arriba).
       const sigue = avanzar(f.estado, fichaTexto(f));
       return {
@@ -91,7 +94,7 @@ export async function trabajarNarrador(deps: DepsV3, fila: FilaV3, n: NarradorV3
 
   if (tocaM8(fila, ahora)) {
     const r = await conReintento(deps.db, n.id, (f) => {
-      if (!tocaM8(f, ahora)) return null;
+      if (!tocaM8(f, ahora) || tomaVigente(f, ahora)) return null;
       const conM8 = encolar(f.estado, { texto: textoDelBanco('M8', fichaTexto(f)), tipo: 'recordatorio' });
       return { cambio: { estado: { ...conM8, m8En: f.estado.esperando } }, resultado: true };
     });

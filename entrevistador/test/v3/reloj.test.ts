@@ -147,12 +147,17 @@ describe('el tick', () => {
 });
 
 describe('casos que el reloj no puede romper', () => {
-  it('tocó "Sí" y todavía no mandó audio: no cierra ni tira, aunque haga rato', async () => {
-    const r = await preparar({ ...enOR1(), tocoSi: true, abiertaDesde: hace(10 * MIN) }, { ultimo_audio_at: hace(10 * MIN) });
-    expect(await r.trabajar()).toBe('nada');
-    r.pasar(3 * 86_400_000); // ni a los 3 días: con el "Sí" tocado tampoco sale M8
+  it('tocó "Sí", sin audio: no cierra ni tira; a las 48 h sale M8 una vez', async () => {
+    // Abierta hace casi 2 días; escribió hace una hora (la ventana de 24 h sigue abierta).
+    const r = await preparar({ ...enOR1(), tocoSi: true, abiertaDesde: hace(48 * HORA - MIN) }, { ultimo_audio_at: hace(10 * MIN), tanda_dia: AYER });
     expect(await r.trabajar()).toBe('nada');
     expect(r.enviados).toEqual([]);
+    r.pasar(2 * MIN);
+    expect(await r.trabajar()).toBe('m8');
+    expect(r.enviados.map((e) => e.texto)).toEqual([textoDelBanco('M8', FICHA)]);
+    r.pasar(24 * HORA);
+    expect(await r.trabajar()).toBe('nada');
+    expect(r.enviados).toHaveLength(1);
   });
 
   it('tickV3: un narrador cuya fila hace tirar no frena al siguiente', async () => {
