@@ -3,6 +3,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 // --- mocks de infraestructura pesada -------------------------------------
 
 const { escribirCapituloMock } = vi.hoisted(() => ({ escribirCapituloMock: vi.fn() }));
+vi.mock('../src/v3/candado.js', () => ({
+  narradoresConV3: vi.fn(async () => new Set<string>()),
+  avisarCandadoV3: vi.fn(async () => undefined),
+  exigirSinV3: vi.fn(async () => undefined),
+}));
+
 vi.mock('../src/libro/escribir-capitulo.js', () => ({
   escribirCapitulo: escribirCapituloMock,
 }));

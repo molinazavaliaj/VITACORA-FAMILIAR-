@@ -25,6 +25,7 @@ import {
   textoRespuesta,
   type Nombres,
 } from './comun.js';
+import { exigirSinV3 } from '../v3/candado.js';
 
 const RUTA_ESTRUCTURA = (narradorId: string) => `${narradorId}/paquete/estructura.json`;
 const RUTA_NOMBRES = (narradorId: string) => `${narradorId}/paquete/nombres.json`;
@@ -76,6 +77,7 @@ export async function generarPaquete(pedido: { id: string; narrador_id: string; 
 
   try {
     const narradorId = pedido.narrador_id;
+    await exigirSinV3(db, narradorId, 'generarPaquete');
 
     // La estructura la arma el tick al ver al narrador completado. Si la
     // dueña cerró el libro antes de ese tick (o el tick falló), no es motivo

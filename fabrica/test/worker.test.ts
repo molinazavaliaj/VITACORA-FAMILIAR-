@@ -20,6 +20,12 @@ const {
   avisarHitosDeEntregaMock: vi.fn().mockResolvedValue(undefined),
 }));
 
+vi.mock('../src/v3/candado.js', () => ({
+  narradoresConV3: vi.fn(async () => new Set<string>()),
+  avisarCandadoV3: vi.fn(async () => undefined),
+  exigirSinV3: vi.fn(async () => undefined),
+}));
+
 vi.mock('../src/mail/hitos.js', async () => {
   const actual = await vi.importActual<typeof import('../src/mail/hitos.js')>('../src/mail/hitos.js');
   return { ...actual, enviarMailHito: enviarMailHitoMock };

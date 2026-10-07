@@ -19,6 +19,7 @@ import { leerFrases } from './libro/publicar-frases.js';
 import { anotarLatido } from './latido.js';
 import { mandarEntregasAImprenta, avisarHitosDeEntrega } from './entregas.js';
 import { productosDelPedido } from './libro/productos.js';
+import { avisarCandadoV3, narradoresConV3 } from './v3/candado.js';
 
 const INTERVALO_MS = 60_000;
 
@@ -44,6 +45,19 @@ const MS_POR_DIA = 24 * 60 * 60 * 1000;
 const MARCA_CIERRE_AUTOMATICO = 'cierre_automatico.txt';
 
 type Db = ReturnType<typeof obtenerClienteDb>;
+
+/**
+ * Los narradores con entrevista V3 (spec 2026-10-07): la fábrica no les arma
+ * nada viejo. Null si no se pudo leer: la rama que llama no corre este tick.
+ */
+async function conV3OFrenar(db: Db, rama: string): Promise<Set<string> | null> {
+  try {
+    return await narradoresConV3(db);
+  } catch (err) {
+    console.error(`tick: no pude leer entrevistas_v3; la rama '${rama}' no corre este tick:`, err);
+    return null;
+  }
+}
 
 /** Lo que hace falta de un narrador para mandarle un mail de hito a su familia. */
 type NarradorConFamilia = Pick<Narrador, 'id' | 'como_le_dicen' | 'familia_id'>;
@@ -157,12 +171,19 @@ async function generarAnticiposFaltantes(): Promise<void> {
     return;
   }
 
+  const v3 = await conV3OFrenar(db, 'anticipo');
+  if (!v3) return;
+
   for (const narrador of (narradores ?? []) as {
     id: string;
     como_le_dicen: string;
     familia_id: string;
   }[]) {
     try {
+      if (v3.has(narrador.id)) {
+        await avisarCandadoV3(db, narrador.id, 'anticipo');
+        continue;
+      }
       const nombresArchivos = await listarPaquete(db, narrador.id);
       if (nombresArchivos.has('anticipo_enviado.txt')) continue;
 
@@ -254,8 +275,15 @@ async function generarEstructurasFaltantes(): Promise<void> {
     return;
   }
 
+  const v3 = await conV3OFrenar(db, 'estructura');
+  if (!v3) return;
+
   for (const narrador of (narradores ?? []) as { id: string }[]) {
     try {
+      if (v3.has(narrador.id)) {
+        await avisarCandadoV3(db, narrador.id, 'estructura');
+        continue;
+      }
       const archivos = await listarPaquete(db, narrador.id);
       if (archivos.has('estructura.json')) continue;
 
@@ -285,8 +313,15 @@ async function generarPrevisualizacionesFaltantes(): Promise<void> {
     return;
   }
 
+  const v3 = await conV3OFrenar(db, 'previsualizacion');
+  if (!v3) return;
+
   for (const narrador of (narradores ?? []) as { id: string }[]) {
     try {
+      if (v3.has(narrador.id)) {
+        await avisarCandadoV3(db, narrador.id, 'previsualizacion');
+        continue;
+      }
       const archivos = await listarPaquete(db, narrador.id);
       const tieneEstructura = archivos.has('estructura.json');
       const tieneNombres = archivos.has('nombres.json');
@@ -736,7 +771,14 @@ export async function procesarPedidosPagados(): Promise<void> {
 
   const narradoresEsperandoVoz = new Set(((esperandoVoz ?? []) as { narrador_id: string }[]).map((p) => p.narrador_id));
 
+  const v3 = await conV3OFrenar(db, 'pedidos');
+  if (!v3) return;
+
   for (const pedido of pedidosPagados) {
+    if (v3.has(pedido.narrador_id)) {
+      await avisarCandadoV3(db, pedido.narrador_id, 'paquete');
+      continue;
+    }
     if (!narradoresListos.has(pedido.narrador_id)) continue;
     if (narradoresEsperandoVoz.has(pedido.narrador_id)) continue;
     const { data: reclamado, error: errorClaim } = await db

@@ -9,14 +9,19 @@ const {
   subirTextoMock,
   firmarTokenMock,
   obtenerClienteDbMock,
+  narradoresConV3Mock,
+  avisarCandadoV3Mock,
 } = vi.hoisted(() => ({
   generarAnticipoMock: vi.fn().mockResolvedValue(undefined),
   enviarMailAnticipoMock: vi.fn().mockResolvedValue(true),
   subirTextoMock: vi.fn().mockResolvedValue(undefined),
   firmarTokenMock: vi.fn(() => 'token-firmado'),
   obtenerClienteDbMock: vi.fn(),
+  narradoresConV3Mock: vi.fn(),
+  avisarCandadoV3Mock: vi.fn(),
 }));
 
+vi.mock('../src/v3/candado.js', () => ({ narradoresConV3: narradoresConV3Mock, avisarCandadoV3: avisarCandadoV3Mock, exigirSinV3: vi.fn(async () => undefined) }));
 vi.mock('../src/libro/anticipo.js', () => ({ generarAnticipo: generarAnticipoMock }));
 vi.mock('../src/mail/anticipo.js', () => ({ enviarMailAnticipo: enviarMailAnticipoMock }));
 // Los mails de hitos (rama aparte del tick) no se mandan acá: sin esto el
@@ -102,6 +107,8 @@ function construirDb(opciones: { archivos: string[]; respuestas: number }) {
 beforeEach(() => {
   vi.clearAllMocks();
   enviarMailAnticipoMock.mockResolvedValue(true);
+  narradoresConV3Mock.mockResolvedValue(new Set());
+  avisarCandadoV3Mock.mockResolvedValue(undefined);
 });
 
 describe('rama del anticipo en el tick', () => {
@@ -165,5 +172,23 @@ describe('rama del anticipo en el tick', () => {
 
     expect(enviarMailAnticipoMock).toHaveBeenCalledOnce();
     expect(subirTextoMock).not.toHaveBeenCalled();
+  });
+});
+
+describe('candado V3 (spec 2026-10-07)', () => {
+  it('a un narrador con entrevista V3 no se le arma el anticipo viejo; se avisa a los socios', async () => {
+    narradoresConV3Mock.mockResolvedValue(new Set(['n1']));
+    obtenerClienteDbMock.mockReturnValue(construirDb({ archivos: [], respuestas: 12 }));
+    await tick();
+    expect(generarAnticipoMock).not.toHaveBeenCalled();
+    expect(enviarMailAnticipoMock).not.toHaveBeenCalled();
+    expect(avisarCandadoV3Mock).toHaveBeenCalledWith(expect.anything(), 'n1', 'anticipo');
+  });
+
+  it('si no se puede leer entrevistas_v3, ese tick no arma nada (no le paga al modelo a ciegas)', async () => {
+    narradoresConV3Mock.mockRejectedValue(new Error('No pude leer entrevistas_v3: caída'));
+    obtenerClienteDbMock.mockReturnValue(construirDb({ archivos: [], respuestas: 12 }));
+    await tick();
+    expect(generarAnticipoMock).not.toHaveBeenCalled();
   });
 });

@@ -8,6 +8,7 @@ import {
   recortarMuestraDeAudio,
   subirTexto,
 } from './comun.js';
+import { exigirSinV3 } from '../v3/candado.js';
 
 /**
  * El anticipo: lo que ve la familia a la tercera respuesta, antes de decidir
@@ -108,6 +109,7 @@ function construirHtmlAnticipo(opciones: {
  */
 export async function generarAnticipo(narradorId: string): Promise<void> {
   const db = obtenerClienteDb();
+  await exigirSinV3(db, narradorId, 'generarAnticipo');
 
   const { data: narradorData, error: errorNarrador } = await db
     .from('narradores')

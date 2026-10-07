@@ -6,6 +6,12 @@ import fs from 'node:fs';
 // factories tienen que declararse con vi.hoisted para no pisar el TDZ.
 
 const { escribirCapituloMock } = vi.hoisted(() => ({ escribirCapituloMock: vi.fn() }));
+vi.mock('../src/v3/candado.js', () => ({
+  narradoresConV3: vi.fn(async () => new Set<string>()),
+  avisarCandadoV3: vi.fn(async () => undefined),
+  exigirSinV3: vi.fn(async () => undefined),
+}));
+
 vi.mock('../src/libro/escribir-capitulo.js', () => ({
   escribirCapitulo: escribirCapituloMock,
 }));
