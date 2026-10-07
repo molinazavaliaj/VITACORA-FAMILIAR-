@@ -97,3 +97,19 @@ Lo que se aprendió:
 
 Las palancas que quedan, de mayor a menor: el capítulo en `high` en vez de `xhigh` (si la salida baja a la mitad, unos 2,5 menos), evitar las reescrituras C30, el armador en `low`. Una sola pasada de estilo ya casi no ahorra (Haiku: 0,03 por pieza). Naza lee los tres capítulos VI (`capitulo-VI-tres-versiones.pdf`, carpeta principal) y decide.
 
+## Capítulo VI de Joaquín con pensamiento alto y medio (07/10/2026)
+
+Perfiles `eco-alto` y `eco-medio` (solo cambia el capítulo), con `--solo-escritura` y el armador ya pagado; se comparan los capítulos recién escritos (antes de revisión y estilo) contra el xhigh de la configuración económica (`sin-revision/`). Gasto real USD 0,53.
+
+| Capítulo VI | Salida (incl. pensamiento) | USD | Reescritura C30 | Juez Opus | Juez Fable |
+|---|---|---|---|---|---|
+| xhigh | 52.771 + 44.444 | 1,10 | sí (7 de 20 afuera) | 7 | 7,5 |
+| alto | 24.545 | 0,30 | no | 6,5 | 6,5 |
+| medio | 16.189 | 0,22 | no | 7,5 | 6,5 |
+
+- Ninguna inventa nada de peso. Las tres dejan afuera por qué se terminó Whanau (R39).
+- Alto y medio ponen la pandemia después de la mudanza (R32/R79/R80: fue al revés); el xhigh es el único con ese orden bien. Es lo que la revisión de hechos tendría que marcar.
+- La diferencia entre la mejor y la segunda es "chica" para los dos jueces. Naza lee `capitulo-VI-esfuerzos-a-ciegas.pdf` (carpeta principal; la clave está en la última página) y decide.
+
+Proyección del libro entero con el capítulo en medio (más la reescritura en alto como mucho y el estilo de Haiku con 3.000): **~USD 8,5** (con alto, ~9,2). Sin contar la entrevista (~USD 2,5–3).
+
