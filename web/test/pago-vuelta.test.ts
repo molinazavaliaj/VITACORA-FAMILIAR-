@@ -8,7 +8,7 @@ import { describe, it, expect, vi, beforeEach, beforeAll } from "vitest";
 vi.mock("@/lib/supabase/servidor", () => ({ crearClienteServidor: vi.fn() }));
 vi.mock("@/lib/supabase/sesion", () => ({ crearClienteSesion: vi.fn() }));
 vi.mock("@/lib/confirmar-pago", () => ({ confirmarPago: vi.fn() }));
-vi.mock("@/lib/mail", () => ({ enviarMailAcceso: vi.fn() }));
+vi.mock("@/lib/mail", () => ({ enviarMailAcceso: vi.fn(), enviarMailRegalo: vi.fn() }));
 const mp = vi.hoisted(() => ({ get: vi.fn() }));
 vi.mock("mercadopago", () => ({
   MercadoPagoConfig: vi.fn(),
@@ -20,6 +20,7 @@ vi.mock("stripe", () => ({ default: vi.fn(function () { return { checkout: { ses
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { confirmarPago } from "@/lib/confirmar-pago";
+import { enviarMailRegalo } from "@/lib/mail";
 import { firmarToken } from "@/lib/token-firmado";
 import { GET } from "../src/app/api/pago/vuelta/route";
 
@@ -27,13 +28,19 @@ const PEDIDO = "11111111-2222-3333-4444-555555555555";
 const auth = { createUser: vi.fn(), generateLink: vi.fn(), listUsers: vi.fn() };
 const verifyOtp = vi.fn();
 
-function admin(pedido: Record<string, unknown> | null) {
+function admin(pedido: Record<string, unknown> | null, codigoRegalo?: string) {
   return {
     from: (tabla: string) => {
       const b: Record<string, unknown> = {};
       const enc = () => b;
       b.select = enc; b.eq = enc;
-      b.maybeSingle = async () => ({ data: tabla === "pedidos" ? pedido : tabla === "familias" ? { email: "martina@test.com" } : null, error: null });
+      b.maybeSingle = async () => ({
+        data: tabla === "pedidos" ? pedido
+          : tabla === "familias" ? { email: "martina@test.com" }
+          : tabla === "regalos" && codigoRegalo ? { codigo: codigoRegalo }
+          : null,
+        error: null,
+      });
       return b;
     },
     auth: { admin: auth },
@@ -109,5 +116,20 @@ describe("GET /api/pago/vuelta", () => {
     expect(destino(r)).toBe("/tablero/n1");
     stripeMock.retrieve.mockResolvedValue({ id: "cs_1", payment_status: "unpaid", metadata: { pedido_id: PEDIDO } });
     expect(destino(await GET(peticion({ pedido: PEDIDO, t: firmarToken("vuelta", PEDIDO), session_id: "cs_1", viaje: "1" })))).toBe("/comprar/gracias?viaje=1");
+  });
+
+  it("(g) regalo: confirma pasando enviarMailRegalo, abre sesión y va a la tarjeta del código", async () => {
+    (confirmarPago as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({ ok: true, yaEstaba: false, email: "martina@test.com", codigoRegalo: "VF-7K3M2Q" });
+    const r = await GET(peticion({ pedido: PEDIDO, t: firmarToken("vuelta", PEDIDO), payment_id: "987" }));
+    expect(confirmarPago).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ enviarMailRegalo }));
+    expect(verifyOtp).toHaveBeenCalledWith({ type: "magiclink", token_hash: "hash-1" });
+    expect(destino(r)).toBe("/regalo/VF-7K3M2Q/tarjeta");
+  });
+
+  it("(h) regalo y el webhook ganó (yaEstaba): lee el código de regalos y va a la tarjeta", async () => {
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin({ id: PEDIDO, proveedor: "mercadopago", estado: "pendiente", familia_id: "f1", narrador_id: "n1" }, "VF-AAAAAA"));
+    (confirmarPago as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({ ok: true, yaEstaba: true, email: null, codigoRegalo: null });
+    const r = await GET(peticion({ pedido: PEDIDO, t: firmarToken("vuelta", PEDIDO), payment_id: "987" }));
+    expect(destino(r)).toBe("/regalo/VF-AAAAAA/tarjeta");
   });
 });

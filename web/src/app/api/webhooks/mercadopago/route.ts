@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { MercadoPagoConfig, Payment } from "mercadopago";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { confirmarPago } from "@/lib/confirmar-pago";
-import { enviarMailAcceso } from "@/lib/mail";
+import { enviarMailAcceso, enviarMailRegalo } from "@/lib/mail";
 import { verificarFirmaMP } from "@/lib/firma-mp";
 
 // Dos candados. (1) La firma: MP manda `x-signature` (HMAC con la clave del
@@ -142,6 +142,7 @@ async function procesarNotificacion(request: NextRequest) {
       pedidoId: payment.external_reference,
       referenciaExterna: String(payment.id),
       enviarMailAcceso,
+      enviarMailRegalo,
     });
     if (!resultado.ok) {
       registrarSalida(rastro, "no se pudo actualizar el pedido", { error: resultado.error });

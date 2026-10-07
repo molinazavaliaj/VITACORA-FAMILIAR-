@@ -13,6 +13,8 @@ function construirAdmin(opciones: {
   narradorArranca?: boolean;
   email?: string | null;
   comoLeDicen?: string;
+  extras?: Record<string, unknown>;
+  codigoRegalo?: string;
 }) {
   const updates: { tabla: string; valores: Record<string, unknown>; filtros: [string, unknown][] }[] = [];
 
@@ -31,6 +33,8 @@ function construirAdmin(opciones: {
     cadena.maybeSingle = () => {
       if (tabla === "familias") return Promise.resolve({ data: opciones.email === null ? null : { email: opciones.email ?? "martina@ejemplo.com" }, error: null });
       if (tabla === "narradores") return Promise.resolve({ data: { como_le_dicen: opciones.comoLeDicen ?? "papá" }, error: null });
+      if (tabla === "pedidos") return Promise.resolve({ data: { extras: opciones.extras ?? {} }, error: null });
+      if (tabla === "regalos") return Promise.resolve({ data: opciones.codigoRegalo ? { codigo: opciones.codigoRegalo } : null, error: null });
       return Promise.resolve({ data: null, error: null });
     };
     cadena.then = (resolve: (v: unknown) => unknown, reject?: (e: unknown) => unknown) => {
@@ -63,7 +67,7 @@ describe("confirmarPago", () => {
 
     const r = await confirmarPago(admin, { pedidoId: "p1", referenciaExterna: "cs_123", enviarMailAcceso });
 
-    expect(r).toEqual({ ok: true, yaEstaba: false, email: "martina@ejemplo.com" });
+    expect(r).toEqual({ ok: true, yaEstaba: false, email: "martina@ejemplo.com", codigoRegalo: null });
     expect(updates[0]).toMatchObject({
       tabla: "pedidos",
       valores: { estado: "pagado", referencia_externa: "cs_123" },
@@ -83,7 +87,7 @@ describe("confirmarPago", () => {
 
     const r = await confirmarPago(admin, { pedidoId: "p1", referenciaExterna: "cs_123", enviarMailAcceso });
 
-    expect(r).toEqual({ ok: true, yaEstaba: true, email: null });
+    expect(r).toEqual({ ok: true, yaEstaba: true, email: null, codigoRegalo: null });
     expect(updates).toHaveLength(1); // solo el intento sobre pedidos
     expect(enviarMailAcceso).not.toHaveBeenCalled();
   });
@@ -111,7 +115,7 @@ describe("confirmarPago", () => {
 
     const r = await confirmarPago(admin, { pedidoId: "p1", referenciaExterna: "cs_123", enviarMailAcceso });
 
-    expect(r).toEqual({ ok: true, yaEstaba: false, email: null });
+    expect(r).toEqual({ ok: true, yaEstaba: false, email: null, codigoRegalo: null });
     expect(enviarMailAcceso).not.toHaveBeenCalled();
   });
 
@@ -121,9 +125,29 @@ describe("confirmarPago", () => {
 
     const r = await confirmarPago(admin, { pedidoId: "p1", referenciaExterna: "mp_9", enviarMailAcceso });
 
-    expect(r).toEqual({ ok: true, yaEstaba: false, email: "martina@ejemplo.com" });
+    expect(r).toEqual({ ok: true, yaEstaba: false, email: "martina@ejemplo.com", codigoRegalo: null });
     expect(updates.find((u) => u.tabla === "pedidos")?.valores).toMatchObject({ estado: "pagado" });
     expect(enviarMailAcceso).not.toHaveBeenCalled();
+  });
+
+  it("un regalo pasa a regalo_pendiente y manda el mail de la tarjeta, no el de acceso", async () => {
+    const { admin, updates } = construirAdmin({ pedidoActualizado: PEDIDO, extras: { pdf: true, regalo: true }, codigoRegalo: "VF-7K3M2Q", comoLeDicen: "abuelo" });
+    const enviarMailAcceso = vi.fn().mockResolvedValue(true);
+    const enviarMailRegalo = vi.fn().mockResolvedValue(true);
+    const r = await confirmarPago(admin, { pedidoId: "p1", referenciaExterna: "ref", enviarMailAcceso, enviarMailRegalo });
+    expect(r).toMatchObject({ ok: true, yaEstaba: false, codigoRegalo: "VF-7K3M2Q" });
+    const alNarrador = updates.find((u) => u.tabla === "narradores");
+    expect(alNarrador?.valores).toEqual({ estado: "regalo_pendiente" });
+    expect(alNarrador?.filtros).toContainEqual(["estado", "pendiente_pago"]);
+    expect(enviarMailAcceso).not.toHaveBeenCalled();
+    expect(enviarMailRegalo).toHaveBeenCalledWith({ para: "martina@ejemplo.com", comoLeDicen: "abuelo", codigo: "VF-7K3M2Q" });
+  });
+
+  it("un pedido normal sigue pasando a invitado y devuelve codigoRegalo null", async () => {
+    const { admin, updates } = construirAdmin({ pedidoActualizado: PEDIDO });
+    const r = await confirmarPago(admin, { pedidoId: "p1", referenciaExterna: "ref", enviarMailAcceso: vi.fn().mockResolvedValue(true) });
+    expect(r).toMatchObject({ ok: true, codigoRegalo: null });
+    expect(updates.find((u) => u.tabla === "narradores")?.valores).toEqual({ estado: "invitado" });
   });
 });
 // 3t.26 (22/09): un pedido con algo físico necesita una entrega, que nace acá

@@ -5,7 +5,8 @@
 // Pago por adelantado (11/09): el pedido y el narrador existen desde antes
 // del cobro (narrador en `pendiente_pago`). Confirmar es:
 //   1. pedido pendiente → pagado (compare-and-swap: idempotente ante reintentos)
-//   2. narrador pendiente_pago → invitado (recién ahí el entrevistador le escribe)
+//   2. narrador pendiente_pago → invitado (recién ahí el entrevistador le escribe),
+//      o → regalo_pendiente si el pedido es un regalo (espera su código)
 //   3. avisarle a la familia por mail cómo entrar al tablero
 //
 // La cuenta de auth NO se crea acá: la crea el propio login por código la
@@ -18,14 +19,15 @@ import { necesitaEntrega } from "./entregas";
 import { productosDelPedido } from "./productos";
 
 export type ResultadoConfirmacion =
-  | { ok: true; yaEstaba: boolean; email: string | null }
+  | { ok: true; yaEstaba: boolean; email: string | null; codigoRegalo: string | null }
   | { ok: false; error: string };
 
 type EnviarMailAcceso = (opciones: { para: string; comoLeDicen: string }) => Promise<boolean>;
+type EnviarMailRegalo = (opciones: { para: string; comoLeDicen: string; codigo: string }) => Promise<boolean>;
 
 export async function confirmarPago(
   admin: SupabaseClient,
-  opciones: { pedidoId: string; referenciaExterna: string; enviarMailAcceso: EnviarMailAcceso },
+  opciones: { pedidoId: string; referenciaExterna: string; enviarMailAcceso: EnviarMailAcceso; enviarMailRegalo?: EnviarMailRegalo },
 ): Promise<ResultadoConfirmacion> {
   const { pedidoId, referenciaExterna, enviarMailAcceso } = opciones;
 
@@ -46,14 +48,23 @@ export async function confirmarPago(
   if (!pedido) {
     // Ya estaba pagado (reintento) o no existe. En ambos casos no hay nada
     // que hacer y se responde 200 para que el proveedor deje de insistir.
-    return { ok: true, yaEstaba: true, email: null };
+    return { ok: true, yaEstaba: true, email: null, codigoRegalo: null };
   }
+
+  const [{ data: filaPedido }, { data: filaFamilia }] = await Promise.all([
+    admin.from("pedidos").select("extras").eq("id", pedidoId).maybeSingle(),
+    admin.from("familias").select("region").eq("id", pedido.familia_id).maybeSingle(),
+  ]);
+  const extras = (filaPedido as { extras?: Record<string, unknown> } | null)?.extras;
+  // Gift card (08/10): el narrador todavía no tiene teléfono. Espera en
+  // regalo_pendiente hasta que escriba con su código (supabase/CONTRATO.md).
+  const esRegalo = extras?.regalo === true;
 
   // 2. El narrador arranca. Solo desde pendiente_pago: si por alguna razón ya
   //    estaba más adelante, no se lo retrocede.
   const { data: arrancados, error: errorNarrador } = await admin
     .from("narradores")
-    .update({ estado: "invitado" })
+    .update({ estado: esRegalo ? "regalo_pendiente" : "invitado" })
     .eq("id", pedido.narrador_id)
     .eq("estado", "pendiente_pago")
     .select("id");
@@ -74,11 +85,7 @@ export async function confirmarPago(
   //    Encargar libro. Si algo falla acá NO se toca el resultado del pago: el
   //    cobro está hecho y una entrega se puede crear después a mano.
   try {
-    const [{ data: filaPedido }, { data: filaFamilia }] = await Promise.all([
-      admin.from("pedidos").select("extras").eq("id", pedidoId).maybeSingle(),
-      admin.from("familias").select("region").eq("id", pedido.familia_id).maybeSingle(),
-    ]);
-    const productos = productosDelPedido((filaPedido as { extras?: unknown } | null)?.extras);
+    const productos = productosDelPedido(extras);
     if (necesitaEntrega(productos)) {
       const { error } = await admin.from("entregas").insert({
         pedido_id: pedido.id,
@@ -93,23 +100,30 @@ export async function confirmarPago(
     console.error(`confirmarPago: el pedido ${pedidoId} quedó pagado pero no pude crear su entrega:`, err);
   }
 
-  // 4. El mail de acceso.
+  // 4. El mail: de acceso, o (regalo) el de la tarjeta.
   const [{ data: familia }, { data: narrador }] = await Promise.all([
     admin.from("familias").select("email").eq("id", pedido.familia_id).maybeSingle(),
     admin.from("narradores").select("como_le_dicen").eq("id", pedido.narrador_id).maybeSingle(),
   ]);
 
   const email = (familia as { email?: string } | null)?.email ?? null;
+  let codigoRegalo: string | null = null;
+  if (esRegalo) {
+    const { data: regalo } = await admin.from("regalos").select("codigo").eq("narrador_id", pedido.narrador_id).maybeSingle();
+    codigoRegalo = (regalo as { codigo?: string } | null)?.codigo ?? null;
+  }
   if (email && arranco) {
     try {
-      await enviarMailAcceso({
-        para: email,
-        comoLeDicen: (narrador as { como_le_dicen?: string } | null)?.como_le_dicen ?? "tu familiar",
-      });
+      const comoLeDicen = (narrador as { como_le_dicen?: string } | null)?.como_le_dicen ?? "tu familiar";
+      if (esRegalo && codigoRegalo && opciones.enviarMailRegalo) {
+        await opciones.enviarMailRegalo({ para: email, comoLeDicen, codigo: codigoRegalo });
+      } else if (!esRegalo) {
+        await enviarMailAcceso({ para: email, comoLeDicen });
+      }
     } catch (err) {
       console.error(`confirmarPago: el pago ${pedidoId} se confirmó pero el mail de acceso a ${email} falló:`, err);
     }
   }
 
-  return { ok: true, yaEstaba: false, email };
+  return { ok: true, yaEstaba: false, email, codigoRegalo };
 }

@@ -4,7 +4,7 @@ import { MercadoPagoConfig, Payment } from "mercadopago";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { confirmarPago } from "@/lib/confirmar-pago";
-import { enviarMailAcceso } from "@/lib/mail";
+import { enviarMailAcceso, enviarMailRegalo } from "@/lib/mail";
 import { verificarToken } from "@/lib/token-firmado";
 
 // Adonde vuelve el proveedor después de cobrar (3t.20, 21/09). Tres cosas, en
@@ -17,7 +17,8 @@ import { verificarToken } from "@/lib/token-firmado";
 //      confirma igual.
 //   3. La sesión de la compradora se abre sin mail ni código: un magic link
 //      generado en el servidor y verificado acá mismo (el token no sale del
-//      servidor). Con eso cae en /tablero/<narrador>.
+//      servidor). Con eso cae en /tablero/<narrador>, o, si es un regalo, en
+//      /regalo/<codigo>/tarjeta (gift card, 08/10).
 // La puerta es el token firmado de la URL (1 hora, atado al pedido): solo lo
 // tiene el navegador que pagó. Si algo falla, se cae a /comprar/gracias, la
 // pantalla de siempre — nunca un error crudo a quien acaba de pagar.
@@ -62,7 +63,7 @@ export async function GET(request: NextRequest) {
   }
 
   // 2. Confirmar el pedido (idempotente con el webhook).
-  const resultado = await confirmarPago(admin, { pedidoId: pedido.id, referenciaExterna: referencia, enviarMailAcceso });
+  const resultado = await confirmarPago(admin, { pedidoId: pedido.id, referenciaExterna: referencia, enviarMailAcceso, enviarMailRegalo });
   if (!resultado.ok) {
     console.error(`pago/vuelta: el pago ${referencia} está aprobado pero no pude confirmar el pedido ${pedido.id}:`, resultado.error);
     return gracias;
@@ -92,6 +93,15 @@ export async function GET(request: NextRequest) {
     console.error(`pago/vuelta: el pedido ${pedido.id} quedó confirmado pero no pude abrir la sesión:`, err);
     return gracias;
   }
+
+  // Gift card (08/10): quien regala va directo a la tarjeta. Si el webhook
+  // confirmó antes (yaEstaba), el código se lee de regalos.
+  let codigoRegalo = resultado.codigoRegalo;
+  if (!codigoRegalo && resultado.yaEstaba) {
+    const { data: regalo } = await admin.from("regalos").select("codigo").eq("narrador_id", pedido.narrador_id).maybeSingle();
+    codigoRegalo = (regalo as { codigo?: string } | null)?.codigo ?? null;
+  }
+  if (codigoRegalo) return NextResponse.redirect(`${urlBase}/regalo/${encodeURIComponent(codigoRegalo)}/tarjeta`);
 
   return NextResponse.redirect(`${urlBase}/tablero/${pedido.narrador_id}`);
 }
