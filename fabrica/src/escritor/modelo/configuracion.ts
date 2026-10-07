@@ -1,13 +1,13 @@
 // fabrica/src/escritor/modelo/configuracion.ts
 // La configuración económica (Naza, 07/10/2026: "no podemos aceptar más de 9 el libro entero").
 // Qué modelo y cuánto pensamiento lleva cada llamada, por su nombre (Llamada.nombre):
-// - pensamiento al máximo (xhigh) solo en el capítulo y la primera página (Naza eligió la primera página;
-//   la carta y "Antes de cerrar" van con medio);
+// - pensamiento al máximo (xhigh) solo en la primera página (Naza; la carta y "Antes de cerrar" van con medio);
+// - el capítulo con pensamiento medio (Naza lo eligió leyendo a ciegas, 07/10), con 128.000 de salida;
 // - Opus con pensamiento medio en lo demás que escribe o revisa;
 // - Haiku 4.5 en lo mecánico. Haiku 4.5 no acepta `effort` ni pensamiento adaptativo: piensa con
 //   `budget_tokens` (skill claude-api, 07/10/2026); su salida máxima es 64.000;
 // - los hechos y su repaso piden 128.000 de salida desde el primer pedido (el lote de la prueba del 07/10
-//   los cortó a 64.000 y se pagaron dos veces), y comparten con las disputas una caché de 1 hora.
+//   los cortó a 64.000 y se pagaron dos veces). Sin caché de 1 hora (ver cacheDeUnaHora).
 import type { Esfuerzo } from './tipos.js';
 
 export const OPUS = 'claude-opus-5-5';

@@ -438,7 +438,7 @@ export function bloqueSinCazar(e: EstadoSimulacion): number | undefined {
 export const ENV_POR_DEFECTO = 'C:\\Users\\Naza\\Desktop\\VITACORA FAMILIAR\\fabrica\\.env';
 
 /**
- * Con --cazador (apagado por defecto; GASTA PLATA, Opus 5, tope USD 3 por
+ * Con --cazador (apagado por defecto; GASTA PLATA, Opus 5.5, tope USD 3 por
  * entrevista): si la respuesta cerró un bloque, llama al cazador y mete lo
  * que devuelve en la cola. La key sale del .env (--env), nunca se imprime.
  */

@@ -24,6 +24,7 @@ export function leerArgs(argv: string[]): ArgsCli {
   }
   if (!a.carpeta) throw new Error('falta --carpeta <dir> (la carpeta con entradas/)');
   if (a.soloCapitulo !== undefined && a.etapa !== 'C') throw new Error('--solo-capitulo es de la etapa C');
+  if (a.soloEscritura && a.soloCapitulo === undefined) throw new Error('--solo-escritura va con --solo-capitulo N');
   if (a.etapa === 'B' && !a.correcciones) throw new Error('la etapa B necesita --correcciones <archivo> (una corrección por línea)');
   const { carpeta, ...resto } = a;
   return { carpeta: carpeta as string, ...resto };
@@ -59,7 +60,7 @@ export function guardarCarpeta(c: Carpeta, dir: string): void {
 export function textoEstimacion(c: Carpeta, a: Pick<ArgsCli, 'soloCapitulo' | 'topeUsd'> & { lote?: boolean }): string[] {
   if (a.soloCapitulo === undefined) return ['Sin estimación: solo se estima con --solo-capitulo N (el libro entero no se estima).'];
   const e = estimarUsd(c, { soloCapitulo: a.soloCapitulo, lote: a.lote });
-  const l = [`Estimación del capítulo ${a.soloCapitulo} (entrada sin lectura de caché, la de 1 hora se paga al doble, ${a.lote ? 'todo por Batch (mitad de precio)' : 'sin Batch'}, salida supuesta; no es un tope ni una promesa):`];
+  const l = [`Estimación del capítulo ${a.soloCapitulo} (entrada sin caché, ${a.lote ? 'todo por Batch (mitad de precio)' : 'sin Batch'}, salida supuesta; no es un tope ni una promesa):`];
   if (e.conRelleno) l.push('  (el capítulo todavía no está escrito: las filas que lo incluyen usan un capítulo de relleno)');
   for (const f of e.filasPeor) l.push(`  ${f.paso.padEnd(28)} ${f.modelo.padEnd(16)} entrada ~${f.entradaTokens} tok, salida ~${f.salidaTokens} tok  USD ${f.usd.toFixed(4)}`);
   l.push(`  estimación típica: USD ${e.total.toFixed(2)}`);

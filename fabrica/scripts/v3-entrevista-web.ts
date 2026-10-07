@@ -14,7 +14,7 @@
 // mayúscula y reintentos solos si se cae la red (2, 5 y 10 segundos).
 // La transcripción es PAGA (OpenAI, unos centavos por minuto).
 // Con --cazador (apagado por defecto; Naza, 01/10, plan del cazador B4): al
-// contestar el cierre de un bloque se llama al cazador de escenas (Opus 5,
+// contestar el cierre de un bloque se llama al cazador de escenas (Opus 5.5,
 // PAGO, tope USD 3 por entrevista) sin frenar la charla, y lo que devuelve
 // entra a la cola de repreguntas; la consola muestra el costo acumulado.
 // Guía: docs/v3/entrevista/prueba-web.md
@@ -519,7 +519,7 @@ function main(args: string[]): void {
     console.log(`Datos en ${datos}`);
     if (idioma !== 'es-AR') console.log(`Entrevistas nuevas en ${NOMBRE_IDIOMA[idioma]}.`);
     console.log('Ojo: cada audio se transcribe con OpenAI (pago). Ctrl+C para apagar.');
-    if (cazador) console.log('Cazador de escenas PRENDIDO: al cerrar cada bloque llama a Opus 5 (pago, tope USD 3 por entrevista).');
+    if (cazador) console.log('Cazador de escenas PRENDIDO: al cerrar cada bloque llama a Opus 5.5 (pago, tope USD 3 por entrevista).');
   });
 }
 

@@ -5,7 +5,7 @@
 //
 //   npx tsx scripts/v3-cazador-prueba-v3.ts --respuestas <respuestas.xml> --ficha <ficha.xml> \
 //     --salida <carpeta> [--bloques ci | --bloques 7] [--tope 1.5] [--prompt <prompt-vX.md>] [--solo 1,12,14 --previo <cazador-v3.json>] [--nombre v3-1]
-//     [--proveedor opus5 | opus55] [--esfuerzo medium | high]   (07/10: opus55 = Opus 5.5; --esfuerzo solo para opus55, medio por defecto)
+//     [--proveedor opus5 | opus55] [--esfuerzo medium | high]   (07/10: por defecto opus55 = Opus 5.5, el del cazador; --esfuerzo solo para opus55, medio por defecto)
 //
 // La salida va a una carpeta fuera de git: tiene la vida real del narrador.
 
@@ -79,7 +79,7 @@ async function main() {
   const bloques = armarBloques(leerRespuestas(readFileSync(respuestasXml, 'utf8')), modo);
   const cliente = new Anthropic();
   mkdirSync(salida, { recursive: true });
-  const proveedor = arg('proveedor') ?? 'opus5';
+  const proveedor = arg('proveedor') ?? 'opus55';
   if (proveedor !== 'opus5' && proveedor !== 'opus55') throw new Error('--proveedor es opus5 u opus55');
   const modeloUsado = proveedor === 'opus55' ? 'claude-opus-5-5' : 'claude-opus-5';
   const llamar = async (sistema: string, usuario: string): Promise<{ texto: string; usage: { input_tokens: number; output_tokens: number }; costo: number }> => {

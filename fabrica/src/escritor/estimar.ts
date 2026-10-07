@@ -12,7 +12,7 @@
 // respuestas del plan para ese capítulo (idsDeCapitulo).
 import type { Carpeta } from './carpeta.js';
 import { PRECIOS_ESCRITOR } from './costos.js';
-import { cacheDeUnaHora, HAIKU, rolDe } from './modelo/configuracion.js';
+import { HAIKU, rolDe } from './modelo/configuracion.js';
 import { idsDeCapitulo, respuestas, salida } from './lectura.js';
 import { llamadaArmador, llamadaArreglo, llamadaCapitulo, llamadaEstilo, llamadaHechos, llamadaResumen, llamadaTitulo, llamadaVeedor, textoParaElModelo, type Llamada } from './llamadas/armar.js';
 import { archivoDe } from './texto.js';
@@ -52,9 +52,7 @@ export function estimarUsd(c: Carpeta, o: { soloCapitulo: number; lote?: boolean
     const factor = o.lote ? 0.5 : 1;
     const entradaTokens = tokens(textoParaElModelo(l), modelo);
     const salidaTokens = SALIDA_ESTIMADA[salidaClave];
-    // La caché de 1 hora se escribe al doble de la entrada; se supone que no pega (en un lote, la caché es de mejor esfuerzo).
-    const entrada = cacheDeUnaHora(l.nombre) ? 2 * p.input : p.input;
-    return { paso, modelo, entradaTokens, salidaTokens, usd: redondear(((entradaTokens * entrada + salidaTokens * p.output) / 1e6) * factor) };
+    return { paso, modelo, entradaTokens, salidaTokens, usd: redondear(((entradaTokens * p.input + salidaTokens * p.output) / 1e6) * factor) };
   };
   const conRelleno = !c.existe(salida(archivoDe(`cap_${n}`)));
   const armador = llamadaArmador(c, n);
