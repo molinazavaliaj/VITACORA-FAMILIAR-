@@ -5,6 +5,9 @@ import { enviarPlantilla } from '../whatsapp/enviar.js';
 import { enviarPregunta, type Narrador } from './preguntar.js';
 import { mandarHito } from '../mail/hitos.js';
 import { esViaje } from './viaje.js';
+import { fechaLocal, minutosLocales } from './tiempo.js';
+
+export { fechaLocal, minutosLocales };
 
 export { capituloNoAplica } from './preguntar.js';
 
@@ -13,20 +16,6 @@ const HORAS_RECORDATORIO = 6; // recién después de 6 hs sin responder
 const DIAS_SILENCIO = 3;      // 3 días sin señales → avisamos a la familia
 
 // ── Helpers de tiempo (puros, testeables) ──────────────────────────────
-
-/** 'YYYY-MM-DD' en la zona del narrador. */
-export function fechaLocal(fecha: Date, zona: string): string {
-  return new Intl.DateTimeFormat('sv-SE', { timeZone: zona }).format(fecha);
-}
-
-/** Minutos transcurridos del día en la zona del narrador. */
-export function minutosLocales(fecha: Date, zona: string): number {
-  const hhmm = new Intl.DateTimeFormat('es', {
-    timeZone: zona, hour: '2-digit', minute: '2-digit', hour12: false,
-  }).format(fecha);
-  const [h, m] = hhmm.split(':').map(Number);
-  return h * 60 + m;
-}
 
 /** ¿Estamos en la ventana de 15 min que arranca en su hora preferida? */
 export function esHoraDeEnviar(horaPreferida: string, zona: string, ahora: Date): boolean {

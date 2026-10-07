@@ -65,22 +65,7 @@ export function capituloNoAplica(contexto: Record<string, any>, capitulo: string
   return clave === 'hijos' ? edad < EDAD_SIN_HIJOS : edad < EDAD_SIN_PAREJA;
 }
 
-export type Ritmo = 'diario' | 'dos_por_dia' | 'seguido';
-
-/**
- * El ritmo de la entrevista (docs/panel-usuario.md §6.4): lo elige la familia
- * en el panel. `modoRapido` es el nombre viejo de 'seguido' (los pilotos).
- */
-export function ritmoDe(contexto: Record<string, any>): Ritmo {
-  const r = contexto?.ritmo;
-  if (r === 'diario' || r === 'dos_por_dia' || r === 'seguido') return r;
-  return contexto?.modoRapido === true ? 'seguido' : 'diario';
-}
-
-/** ¿Este narrador está en modo rápido (la siguiente pregunta sale al instante)? */
-export function esModoRapido(contexto: Record<string, any>): boolean {
-  return ritmoDe(contexto) === 'seguido';
-}
+export { ritmoDe, esModoRapido, type Ritmo } from './ritmo.js';
 
 /** La pregunta de ese orden, del guion propio del narrador (o la plantilla si aún no tiene). */
 export async function preguntaDeOrden(narradorId: string, orden: number): Promise<PreguntaDelGuion | null> {
