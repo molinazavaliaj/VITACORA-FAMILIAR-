@@ -16,6 +16,10 @@
 | 2026-10-01 | Prueba del cazador v3.1 (Opus 5), solo los bloques 1, 12 y 14 de la entrevista de Naza | USD 0,29 | key de Naza | Consumible |
 | 2026-10-07 | Escritor v5.5 en la fábrica, capítulo VI de Joaquín, Opus 5.5 xhigh en todo (`docs/v5/escritor-v55/pruebas.md`) | USD 6,90 | key de Naza | Consumible |
 | 2026-10-07 | Escritor en la fábrica, capítulo VI de Joaquín con la configuración económica (xhigh solo en el capítulo, Haiku en lo mecánico, todo por Batch) | USD 2,52 | key de Naza | Consumible |
+| 2026-10-07 | Prueba de proveedores con el libro de Naza: capítulos Opus de los perfiles mixtos (`docs/v5/escritor-fabrica/prueba-proveedores-2026-10-07.md`) | USD 0,74 | key de Naza | Consumible |
+| 2026-10-07 | Prueba de proveedores: DeepSeek (saldo 3,94 → 2,78) | USD 1,16 | DeepSeek de Naza (Hermes) | Consumible |
+| 2026-10-07 | Capítulo VI de Joaquín en pensamiento alto y medio (Naza eligió medio) | USD 0,53 | key de Naza | Consumible |
+| 2026-10-07 | Verificador con registro recortado (descartado) y cazador Opus 5.5 medio y alto (3 bloques de Naza) | USD 0,89 | key de Naza | Consumible |
 | — | Vercel, Supabase, Resend, GitHub | USD 0 | — | Gratis (planes free) |
 
 **Total puesto por Naza hasta el 18/09: USD 40 + 47€ ≈ USD 91** (USD 20 de crédito
