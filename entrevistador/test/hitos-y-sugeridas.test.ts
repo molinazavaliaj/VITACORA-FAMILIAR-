@@ -34,7 +34,7 @@ vi.mock('../src/ia/personalizar.js', () => ({ personalizarPregunta: vi.fn() }));
 vi.mock('../src/ia/transcribir.js', () => ({ transcribirYActualizar: vi.fn() }));
 vi.mock('@anthropic-ai/sdk', () => ({ default: class { messages = { create: vi.fn() }; } }));
 
-import { mandarHito, redactarHito } from '../src/mail/hitos.js';
+import { mandarHito, mandarMailFamilia, redactarHito } from '../src/mail/hitos.js';
 import { leerSiNo } from '../src/flujo/procesar.js';
 import { parsearSugeridas, PROMPT_SUGERIDAS } from '../src/ia/sugeridas.js';
 import { textoEvitar, sumarTemaEvitado } from '../src/ia/evitar.js';
@@ -80,6 +80,28 @@ describe('mails de hitos', () => {
     estado.email = 'martina@mail.com';
     estado.fetch.mockRejectedValue(new Error('caída'));
     await expect(mandarHito({ ...n, contexto: {} }, 'acepto')).resolves.toBeUndefined();
+  });
+});
+
+describe('mandarMailFamilia (recordatorio del regalo)', () => {
+  it('manda al mail de la familia con el cuerpo escapado y el botón «Ver la tarjeta» a la página del regalo', async () => {
+    expect(await mandarMailFamilia('fam-1', 'abuelo todavía no abrió su regalo', 'Hola <b>vos</b>', 'n1')).toBe(true);
+    const cuerpo = JSON.parse(estado.fetch.mock.calls[0][1].body);
+    expect(cuerpo).toMatchObject({ to: ['martina@mail.com'], subject: 'abuelo todavía no abrió su regalo' });
+    expect(cuerpo.html).toContain('Hola &lt;b&gt;vos&lt;/b&gt;');
+    expect(cuerpo.html).toContain('Ver la tarjeta');
+    expect(cuerpo.html).toContain('/tablero/n1/regalo');
+  });
+  it('false sin mail de la familia, sin RESEND_API_KEY o si Resend falla; nunca tira', async () => {
+    estado.email = null;
+    expect(await mandarMailFamilia('fam-1', 'a', 'b', 'n1')).toBe(false);
+    estado.email = 'martina@mail.com';
+    delete process.env.RESEND_API_KEY;
+    expect(await mandarMailFamilia('fam-1', 'a', 'b', 'n1')).toBe(false);
+    process.env.RESEND_API_KEY = 'clave';
+    estado.fetch.mockRejectedValue(new Error('caída'));
+    expect(await mandarMailFamilia('fam-1', 'a', 'b', 'n1')).toBe(false);
+    expect(estado.fetch).toHaveBeenCalledTimes(1);
   });
 });
 

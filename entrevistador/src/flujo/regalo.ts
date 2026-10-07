@@ -130,3 +130,42 @@ export async function mandarBienvenidaDeRegalo(deps: DepsRegalo, narradorId: str
     return false;
   }
 }
+
+// ── El recordatorio de los 15 días (spec §7) ──────────────────────────
+
+const DIAS_RECORDATORIO = 15;
+
+export type MandarMailFamilia = (familiaId: string, asunto: string, cuerpo: string, narradorId: string) => Promise<boolean>;
+
+/**
+ * Nunca al narrador: una sola vez a quien regaló, si a los 15 días de la fecha
+ * de entrega (o de la compra, si no puso fecha) la tarjeta sigue sin usar.
+ * Devuelve cuántos mandó. Si el mail falla no se marca: el próximo tick reintenta.
+ */
+export async function recordarRegalos(
+  deps: DepsRegalo & { mandarMail: MandarMailFamilia },
+  ahora: Date = new Date(deps.ahora?.() ?? Date.now()),
+): Promise<number> {
+  const { data, error } = await deps.db.from('regalos')
+    .select('id, narrador_id, fecha_entrega, created_at')
+    .is('usado_at', null).is('recordatorio_at', null);
+  if (error) {
+    if (esTablaAusente(error)) return 0;
+    throw error;
+  }
+  const limite = ahora.getTime() - DIAS_RECORDATORIO * 24 * 3600_000;
+  let mandados = 0;
+  for (const r of data ?? []) {
+    const desde = Date.parse(r.fecha_entrega ?? r.created_at);
+    if (Number.isNaN(desde) || desde > limite) continue;
+    const { data: n } = await deps.db.from('narradores')
+      .select('familia_id, como_le_dicen, estado').eq('id', r.narrador_id).maybeSingle();
+    if (!n || n.estado !== 'regalo_pendiente') continue;
+    const ok = await deps.mandarMail(n.familia_id, TEXTOS_REGALO_BOT.recordatorioAsunto(n.como_le_dicen), TEXTOS_REGALO_BOT.recordatorioCuerpo, r.narrador_id);
+    if (!ok) continue;
+    const { error: errorMarca } = await deps.db.from('regalos').update({ recordatorio_at: ahora.toISOString() }).eq('id', r.id);
+    if (errorMarca) console.error(`regalo: mandé el recordatorio de ${r.id} pero no lo pude marcar:`, errorMarca.message);
+    mandados++;
+  }
+  return mandados;
+}

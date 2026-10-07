@@ -1,4 +1,5 @@
 import { db } from '../db/cliente.js';
+import { TEXTOS_REGALO_BOT } from '../flujo/regalo-textos.js';
 
 // Los mails de hitos que manda el entrevistador (docs/panel-usuario.md §9 y
 // §11.6): los momentos de la entrevista que la familia quiere saber. Los del
@@ -107,5 +108,24 @@ export async function mandarHito(n: NarradorParaMail, hito: Hito): Promise<void>
     await db.from('narradores').update({ contexto }).eq('id', n.id);
   } catch (err) {
     console.error(`mail: falló el hito '${hito}' de ${n.id}:`, err);
+  }
+}
+
+/**
+ * Un mail suelto a la familia (gift card: el recordatorio de los 15 días), con
+ * el cuerpo escapado y el botón «Ver la tarjeta» a la página del regalo en el
+ * tablero. Nunca tira: `false` si no hay mail, falta la key o Resend falla.
+ */
+export async function mandarMailFamilia(familiaId: string, asunto: string, cuerpo: string, narradorId: string): Promise<boolean> {
+  try {
+    const { data: familia } = await db.from('familias').select('email').eq('id', familiaId).maybeSingle();
+    const para = (familia as { email?: string } | null)?.email;
+    if (!para) return false;
+    const link = `${URL_BASE}/tablero/${encodeURIComponent(narradorId)}/regalo`;
+    const html = `<p>${escapar(cuerpo)}</p><p style="margin-top:28px;"><a href="${escapar(link)}" style="display:inline-block;background:#5D3FD3;color:#ffffff;text-decoration:none;padding:14px 28px;font-family:Arial,Helvetica,sans-serif;font-size:15px;">${escapar(TEXTOS_REGALO_BOT.botonTarjeta)}</a></p>`;
+    return await enviar(para, asunto, envoltorio(html));
+  } catch (err) {
+    console.error(`mail: falló el mail a la familia ${familiaId} ("${asunto}"):`, err);
+    return false;
   }
 }

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { crearBaseFalsa } from './v3/base-falsa.js';
 vi.mock('../src/db/cliente.js', () => ({ db: {} }));
-import { canjearRegalo, mandarBienvenidaDeRegalo, reiniciarLimiteDeCodigos } from '../src/flujo/regalo.js';
+import { canjearRegalo, mandarBienvenidaDeRegalo, recordarRegalos, reiniciarLimiteDeCodigos } from '../src/flujo/regalo.js';
 import { TEXTOS_REGALO_BOT } from '../src/flujo/regalo-textos.js';
 import { bienvenida } from '../src/manual/puro.js';
 
@@ -163,5 +163,53 @@ describe('mandarBienvenidaDeRegalo', () => {
     const deps = { db: base.cliente, enviarTexto: async (): Promise<string> => { throw new Error('Meta caído'); } };
     expect(await mandarBienvenidaDeRegalo(deps, 'n1', TEL)).toBe(false);
     expect(base.tablas.envios).toEqual([]);
+  });
+});
+
+describe('recordarRegalos', () => {
+  const ahora = new Date('2026-12-20T12:00:00Z');
+  function armarRec(regalo: Record<string, unknown>, estado = 'regalo_pendiente') {
+    const base = crearBaseFalsa({
+      narradores: [{ id: 'n1', familia_id: 'f1', nombre: 'Héctor', como_le_dicen: 'abuelo', telefono_whatsapp: null, estado, contexto: {} }],
+      regalos: [{ id: 'r1', codigo: 'VF-7K3M2Q', narrador_id: 'n1', pedido_id: 'p1', quien_regala: 'Lucía', mensaje: 'x', usado_at: null, recordatorio_at: null, fecha_entrega: null, created_at: '2026-10-01T00:00:00Z', ...regalo }],
+    });
+    const mandarMail = vi.fn().mockResolvedValue(true);
+    return { base, deps: { db: base.cliente, enviarTexto: vi.fn(), mandarMail } };
+  }
+  it('a los 15 días de la fecha de entrega, una vez', async () => {
+    const { base, deps } = armarRec({ fecha_entrega: '2026-12-05' });
+    expect(await recordarRegalos(deps, ahora)).toBe(1);
+    expect(deps.mandarMail).toHaveBeenCalledWith('f1', expect.stringContaining('abuelo'), expect.any(String), 'n1');
+    expect(base.tablas.regalos[0].recordatorio_at).toBeTruthy();
+    expect(await recordarRegalos(deps, ahora)).toBe(0);
+  });
+  it('manda los textos aprobados', async () => {
+    const { deps } = armarRec({ fecha_entrega: '2026-12-05' });
+    await recordarRegalos(deps, ahora);
+    expect(deps.mandarMail).toHaveBeenCalledWith('f1', 'abuelo todavía no abrió su regalo', TEXTOS_REGALO_BOT.recordatorioCuerpo, 'n1');
+  });
+  it('antes de los 15 días, no', async () => {
+    const { deps } = armarRec({ fecha_entrega: '2026-12-10' });
+    expect(await recordarRegalos(deps, ahora)).toBe(0);
+  });
+  it('sin fecha cuenta desde la compra', async () => {
+    const { deps } = armarRec({ fecha_entrega: null, created_at: '2026-12-01T00:00:00Z' });
+    expect(await recordarRegalos(deps, ahora)).toBe(1);
+  });
+  it('usado, o narrador sin pagar, no', async () => {
+    expect(await recordarRegalos(armarRec({ fecha_entrega: '2026-11-01', usado_at: '2026-11-02T00:00:00Z' }).deps, ahora)).toBe(0);
+    expect(await recordarRegalos(armarRec({ fecha_entrega: '2026-11-01' }, 'pendiente_pago').deps, ahora)).toBe(0);
+  });
+  it('si el mail falla no marca, así se reintenta', async () => {
+    const { base, deps } = armarRec({ fecha_entrega: '2026-11-01' });
+    deps.mandarMail.mockResolvedValue(false);
+    expect(await recordarRegalos(deps, ahora)).toBe(0);
+    expect(base.tablas.regalos[0].recordatorio_at).toBeNull();
+  });
+  it('sin la tabla regalos (migración sin aplicar) devuelve 0 y no tira', async () => {
+    const { deps } = armarRec({ fecha_entrega: '2026-11-01' });
+    const db = { from: () => ({ select: () => ({ is: () => ({ is: async () => ({ data: null, error: { code: 'PGRST205', message: 'no table' } }) }) }) }) };
+    expect(await recordarRegalos({ ...deps, db: db as never }, ahora)).toBe(0);
+    expect(deps.mandarMail).not.toHaveBeenCalled();
   });
 });

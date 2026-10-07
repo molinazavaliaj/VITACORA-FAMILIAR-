@@ -236,6 +236,17 @@ export async function tick(ahora: Date = new Date()): Promise<void> {
     }
   }
 
+  // Gift card: el recordatorio de los 15 días a quien regaló. Aislado: si
+  // falla (o la tabla regalos no existe todavía), el resto del tick no se entera.
+  try {
+    const { recordarRegalos } = await import('./regalo.js');
+    const { mandarMailFamilia } = await import('../mail/hitos.js');
+    const { enviarTexto } = await import('../whatsapp/enviar.js');
+    await recordarRegalos({ db, enviarTexto, mandarMail: mandarMailFamilia }, ahora);
+  } catch (err) {
+    console.error('scheduler: falló el recordatorio de regalos', err);
+  }
+
   // El latido, último y con su try adentro: si no se puede anotar que
   // estamos vivos, el tick no se cae por eso.
   await anotarLatido('entrevistador', { hora: ahora.toISOString() });
