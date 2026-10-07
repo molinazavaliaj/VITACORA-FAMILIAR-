@@ -42,6 +42,17 @@ describe('el lector de la entrevista V3 desde la base', () => {
     expect(filas.map((f) => [f.preguntaId, f.paso])).toEqual([['OR1', false], ['FO1', false]]);
   });
 
+  it('la charla sale sin lo que dijo el narrador (los globos persona): el escritor no los usa y ahí no llega la reserva', () => {
+    const charla = [
+      { de: 'bloque', bloque: 1, nombre: 'Origen' },
+      { de: 'bio', partes: [{ id: 'OR1', texto: '¿Dónde naciste?' }] },
+      { de: 'persona', pregunta: 'OR1', texto: 'Algo reservado.' },
+      { de: 'persona', pregunta: 'CA6', texto: '[toca: Sí, tuve]', boton: 'Sí, tuve' },
+    ];
+    const e = entrevistaDeFila(fila({ charla }));
+    expect(e.charla).toEqual([charla[0], charla[1]]);
+  });
+
   it('en catalán la ficha lleva el idioma', () => {
     expect(entrevistaDeFila(fila({}, 'ca')).ficha).toMatchObject({ idioma: 'ca' });
   });
@@ -107,6 +118,23 @@ describe('el lector de la entrevista V3 desde la base', () => {
       const e = await leerEntrevistaV3(con({ reservado_tramo: 'algo que no está' }), 'n1');
       expect(e?.respuestas).toEqual([['OR2', 'Mi mamá cosía.']]);
       expect(aMaterial(e!).map((f) => f.preguntaId)).toEqual(['OR2']);
+    });
+
+    it('la reserva de la clave se suma a la de su madre (entera si alguna lo es; los tramos de las dos)', async () => {
+      const estado = { respuestas: [['OR1', 'Nací en Rosario.'], ['RP~OR1', 'Lo del tío no. Lo de la tía tampoco. Después nos mudamos.'], ['OR2~2', 'Mi mamá cosía.']] as [string, string][] };
+      const db = dbFalsa({
+        entrevistas_v3: [fila(estado)],
+        respuestas: [
+          { narrador_id: 'n1', clave_v3: 'OR1', audio_path: null, transcripcion: 'x', recibido_at: '2026-10-08T13:00:00Z', reservado_tramo: 'Lo del tío no.' },
+          { narrador_id: 'n1', clave_v3: 'RP~OR1', audio_path: null, transcripcion: 'y', recibido_at: '2026-10-08T13:01:00Z', reservado_tramo: 'Lo de la tía tampoco.' },
+          { narrador_id: 'n1', clave_v3: 'OR2', audio_path: null, transcripcion: 'z', recibido_at: '2026-10-08T13:02:00Z', reservada: true },
+          { narrador_id: 'n1', clave_v3: 'OR2~2', audio_path: null, transcripcion: 'w', recibido_at: '2026-10-08T13:03:00Z', reservado_tramo: 'cosía' },
+        ],
+      });
+      const e = await leerEntrevistaV3(db, 'n1');
+      // OR1: su tramo no está textual en "Nací en Rosario." → afuera entera (ante la duda, se reserva más).
+      // RP~OR1: los dos tramos (el suyo y el de la madre). OR2~2: la madre está reservada entera.
+      expect(e?.respuestas).toEqual([['RP~OR1', 'Después nos mudamos.']]);
     });
 
     it('también alcanza al borrador abierto', async () => {

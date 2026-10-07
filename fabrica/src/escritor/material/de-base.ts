@@ -61,6 +61,12 @@ function reservasPorClave(filas: FilaRespuesta[]): Map<string, Reserva> {
   return m;
 }
 
+/** La reserva de la clave sumada a la de su madre: entera si alguna lo es; si no, los tramos de las dos. */
+function juntar(propia: Reserva | undefined, madre: Reserva | undefined): Reserva | undefined {
+  if (!propia || !madre) return propia ?? madre;
+  return { total: propia.total || madre.total, tramos: [...propia.tramos, ...madre.tramos] };
+}
+
 /** El texto sin lo reservado, o null si no queda nada publicable (tramo que no está textual: se reserva todo). */
 function sinReserva(texto: string, r: Reserva | undefined): string | null {
   if (!r) return texto;
@@ -77,7 +83,7 @@ function sinReserva(texto: string, r: Reserva | undefined): string | null {
 /** Aplica las reservas al texto ya armado (incluye el borrador, que entrevistaDeFila suma bajo `esperando`). */
 function aplicarReservas(e: EstadoEntrevista, reservas: Map<string, Reserva>): EstadoEntrevista {
   if (reservas.size === 0) return e;
-  const de = (k: string) => reservas.get(k) ?? reservas.get(claveMadre(k));
+  const de = (k: string) => juntar(reservas.get(k), k === claveMadre(k) ? undefined : reservas.get(claveMadre(k)));
   const respuestas: [string, string][] = [];
   for (const [k, texto] of e.respuestas) {
     const limpio = sinReserva(texto, de(k));
@@ -109,7 +115,9 @@ export function entrevistaDeFila(fila: FilaEntrevistaV3): EstadoEntrevista {
     ficha,
     familia: fila.estado.familia ?? [],
     respuestas,
-    charla: (fila.estado.charla ?? []) as NonNullable<EstadoEntrevista['charla']>,
+    // Sin los globos 'persona' (lo que dijo el narrador): de-entrevista.ts solo lee 'bio' y 'bloque',
+    // y la reserva se aplica sobre `respuestas`, no acá. Así lo reservado no viaja en la charla.
+    charla: ((fila.estado.charla ?? []) as NonNullable<EstadoEntrevista['charla']>).filter((g) => g.de !== 'persona'),
   };
 }
 
