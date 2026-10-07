@@ -113,3 +113,24 @@ Perfiles `eco-alto` y `eco-medio` (solo cambia el capítulo), con `--solo-escrit
 
 Proyección del libro entero con el capítulo en medio (más la reescritura en alto como mucho y el estilo de Haiku con 3.000): **~USD 8,5** (con alto, ~9,2). Sin contar la entrevista (~USD 2,5–3).
 
+## Libro entero de Joaquín con la configuración de producción (07/10/2026)
+
+Desde cero (Etapa A + C), capítulo en medio, todo por Batch. `fabrica/prueba-v3-joaquin-libro-eco/` (fuera de git). PDF: `Libro de Joaquin - configuracion economica.pdf` (carpeta principal). 9 capítulos, 11.893 palabras.
+
+**Gasto real: USD 8,46** (Etapa A 2,32 · Etapa C 6,14). Tardó de 13:25 a 22:35: un repaso quedó 1 h 40 en el Batch y se canceló para hacerlo directo.
+
+| Parte | Llamadas | USD |
+|---|---|---|
+| Registro | 1 | 0,79 |
+| Plan (3 intentos: C19/C13 se contradecían; ya arreglado) | 3 | 1,53 |
+| Capítulos (3 reescrituras C30) | 12 | 1,67 |
+| Repaso de hechos (directo, sin Batch ni caché) | 1 | 1,21 |
+| Armadores | 9 | 0,94 |
+| Arreglos | 11 | 0,79 |
+| Hechos | 1 | 0,61 |
+| Estilo ×2 (Haiku) | 24 | 0,25 |
+| Primera página (con reescritura C7) | 2 | 0,22 |
+| Veedor | 1 | 0,20 |
+| Resto (carta, Antes de cerrar, Sus frases, resúmenes, títulos) | 21 | 0,24 |
+
+Sin lo evitable (planes repetidos, ya arreglado: −0,90; repaso por Batch: −0,60) el libro sale **~USD 7**. La carta no le habla a Sol (no le dejó mensaje); nada inventado. Abiertos en `informe.md`: 12 problemas nuevos del repaso (no hay segunda ronda).

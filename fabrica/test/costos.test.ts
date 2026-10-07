@@ -266,3 +266,10 @@ describe('resumen', () => {
     expect(resumen(costos).totalUsd).toBe(0.0001);
   });
 });
+
+describe('precio por prefijo (08/10)', () => {
+  it('con fecha en el nombre gana el prefijo más largo: Opus 5.5 no se cobra como Opus 5', () => {
+    expect(calcularUsd('claude-opus-5-5-20261001', { input_tokens: 1_000_000, output_tokens: 1_000_000 })).toBe(24);
+  });
+});
+

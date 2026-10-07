@@ -83,6 +83,22 @@ describe('LoteAnthropic', () => {
   });
 });
 
+describe('LoteAnthropic: retomar con parte ya anotada (revisión del worker, 08/10)', () => {
+  it('si lo pedido es parte del lote guardado (mismas claves y hashes), espera ese lote y no paga otro', async () => {
+    const almacen = new AlmacenMemoria();
+    const { cliente, vistos } = clienteFalso(['ended'], [ok('p0', 'uno'), ok('p1', 'dos'), ok('p2', 'tres')]);
+    const lote = new LoteAnthropic(cliente, almacen, { esperar: async () => {} });
+    const todos = [pedido('C/7-estilo-a'), pedido('C/7-estilo-b'), pedido('C/7-estilo-c')];
+    await lote.enviar('C-estilo-1', todos);
+    const r = await lote.enviar('C-estilo-1', [todos[2], todos[0]]);
+    expect(vistos.creados).toHaveLength(1);
+    expect(r.map((x) => [x.clave, x.ok && x.respuesta.texto])).toEqual([['C/7-estilo-c', 'tres'], ['C/7-estilo-a', 'uno']]);
+    const otro = { ...todos[1], bloques: [todos[1].bloques[0], 'Otra cosa.'] };
+    await lote.enviar('C-estilo-1', [otro]);
+    expect(vistos.creados).toHaveLength(2);
+  });
+});
+
 describe('LoteAnthropic: cuando falla el lote entero (revisión final, punto 5)', () => {
   const errorApi = (status: number): Error => Object.assign(new Error(`${status} overloaded`), { status });
 

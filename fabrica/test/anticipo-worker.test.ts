@@ -22,6 +22,7 @@ const {
 }));
 
 vi.mock('../src/v3/candado.js', () => ({ narradoresConV3: narradoresConV3Mock, avisarCandadoV3: avisarCandadoV3Mock, exigirSinV3: vi.fn(async () => undefined) }));
+vi.mock('../src/escritor/produccion/libro-v3.js', () => ({ revisarEtapaAV3: vi.fn(), hayLugarParaLibroV3: vi.fn(() => true), lanzarLibroV3: vi.fn(() => true) }));
 vi.mock('../src/libro/anticipo.js', () => ({ generarAnticipo: generarAnticipoMock }));
 vi.mock('../src/mail/anticipo.js', () => ({ enviarMailAnticipo: enviarMailAnticipoMock }));
 // Los mails de hitos (rama aparte del tick) no se mandan acá: sin esto el
@@ -176,13 +177,13 @@ describe('rama del anticipo en el tick', () => {
 });
 
 describe('candado V3 (spec 2026-10-07)', () => {
-  it('a un narrador con entrevista V3 no se le arma el anticipo viejo; se avisa a los socios', async () => {
+  it('a un narrador con entrevista V3 no se le arma el anticipo viejo (la V3 no tiene anticipo; ya no se avisa)', async () => {
     narradoresConV3Mock.mockResolvedValue(new Set(['n1']));
     obtenerClienteDbMock.mockReturnValue(construirDb({ archivos: [], respuestas: 12 }));
     await tick();
     expect(generarAnticipoMock).not.toHaveBeenCalled();
     expect(enviarMailAnticipoMock).not.toHaveBeenCalled();
-    expect(avisarCandadoV3Mock).toHaveBeenCalledWith(expect.anything(), 'n1', 'anticipo');
+    expect(avisarCandadoV3Mock).not.toHaveBeenCalled();
   });
 
   it('si no se puede leer entrevistas_v3, ese tick no arma nada (no le paga al modelo a ciegas)', async () => {

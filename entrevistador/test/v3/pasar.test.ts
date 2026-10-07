@@ -72,7 +72,9 @@ describe('la tabla de equivalencias', () => {
 
   it('la del repo carga: la aprobada por Naza (07/10), con todas sus claves en el banco V3 (es-AR)', () => {
     const tabla = leerEquivalencias();
-    expect(Object.values(tabla.porTexto)).toEqual(['CA1', ['CA2', 'CA3'], 'ES6', 'ES2', 'OR2', 'CA6', 'CA10']);
+    // La segunda CA1 es la pregunta 1 editada ("…en cordoba") del narrador de prueba de Naza.
+    // Y de AD5 en adelante, las 8–14 del guion viejo (Naza, 07/10, para el pase de Mariano).
+    expect(Object.values(tabla.porTexto)).toEqual(['CA1', 'CA1', ['CA2', 'CA3'], 'ES6', 'ES2', 'OR2', 'CA6', 'CA10', 'AD5', 'AD3', 'JU2', 'TR1', 'JU13', 'AM1', ['AM3', 'AM4']]);
     for (const valor of Object.values(equivalenciasRepo.porTexto)) for (const clave of [valor].flat()) expect(preguntaPorId(clave, 'es-AR')).toBeDefined();
   });
 
