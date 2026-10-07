@@ -1,7 +1,8 @@
 // «Quiero parar» y «esto que no vaya al libro» (Naza, 07/10): se detectan con
-// frases fijas, sin modelo. La reserva vale a cualquier largo; la pausa, solo
-// en un mensaje corto (≤ 15 palabras), para no confundirla con una historia
-// ("quería parar el auto…"). Ejemplos inventados.
+// frases fijas, sin modelo. La reserva que nombra el libro vale a cualquier
+// largo; la genérica ("no lo escribas"), solo en un mensaje corto. La pausa,
+// solo en un mensaje corto (≤ 15 palabras) y con guardas para no confundirla
+// con una historia ("quería parar el auto…"). Ejemplos inventados.
 
 import { describe, expect, it } from 'vitest';
 import { PALABRAS_PEDIDO_PAUSA, pidePausa, pideReserva } from '../src/v3/entrevista/respuesta.js';
@@ -19,12 +20,19 @@ describe('pideReserva', () => {
       'Sacalo del libro.',
       'Sácalo del libro.',
       'No quiero que esto esté en el libro.',
+      'Que no vaya en la biografía.',
     ]) expect(pideReserva(t, 'es-AR'), t).toBe(true);
   });
 
-  it('a cualquier largo: una historia larga que termina pidiendo que no vaya', () => {
+  it('la que nombra el libro vale a cualquier largo: una historia larga que termina pidiendo que no vaya', () => {
     const larga = `${'Mi tío tenía un almacén en la esquina y vendía de todo, desde fideos hasta kerosene. '.repeat(5)}Pero esto que no vaya al libro.`;
     expect(pideReserva(larga, 'es-AR')).toBe(true);
+  });
+
+  it('la genérica en un mensaje largo vale solo si nombra el libro en otro lado', () => {
+    const historia = 'Mi tío tenía un almacén en la esquina y vendía de todo, desde fideos hasta kerosene, y un día se peleó con todos.';
+    expect(pideReserva(`${historia} Eso no lo pongas.`, 'es-AR')).toBe(false);
+    expect(pideReserva(`${historia} Eso no lo pongas, que es para el libro y no quiero.`, 'es-AR')).toBe(true);
   });
 
   it('es-ES: "no lo pongas", "quítalo del libro" (y las rioplatenses)', () => {
@@ -34,7 +42,7 @@ describe('pideReserva', () => {
   });
 
   it('ca: catalán y castellano (quien habla catalán mezcla)', () => {
-    for (const t of ['Que no surti al llibre.', 'No ho posis al llibre.', "Treu-ho del llibre.", 'Això no va al llibre.', 'Que no vaya al libro.', 'Quítalo del libro.']) {
+    for (const t of ['Que no surti al llibre.', 'No ho posis al llibre.', 'Treu-ho del llibre.', 'Això no va al llibre.', 'No ho posis.', 'Que no vaya al libro.', 'Quítalo del libro.']) {
       expect(pideReserva(t, 'ca'), t).toBe(true);
     }
   });
@@ -45,7 +53,10 @@ describe('pideReserva', () => {
       'Mi papá escribía cartas y yo las ponía en un libro.',
       'No lo podía creer cuando llegó.',
       'Ponelo así como te lo cuento.',
+      'Mi vieja siempre decía no lo escribas en la pared.',
     ]) expect(pideReserva(t, 'es-AR'), t).toBe(false);
+    expect(pideReserva('Mi madre me decía no lo pongas ahí que se cae.', 'es-ES')).toBe(false);
+    expect(pideReserva('No ho posis aquí, em deia la mare.', 'ca')).toBe(false);
     expect(pideReserva('El llibre de la meva mare era vermell.', 'ca')).toBe(false);
   });
 });
@@ -57,22 +68,26 @@ describe('pidePausa', () => {
       'Paremos.',
       'Frenemos acá.',
       'No quiero seguir.',
+      'No, no quiero seguir.',
       'Basta por hoy.',
       'Dejemos acá.',
       'Dejémoslo por ahora.',
-      'Por ahora no.',
       'No tengo ganas de seguir.',
       'Lo dejamos para otro día.',
       'Pausa.',
+      'Hagamos una pausa que me duele la cabeza.',
+      'Necesito una pausa.',
       'Bueno, querida, paremos que estoy cansada.',
+      'Mirá, la verdad es que hoy estoy muy cansada, paremos por hoy.',
     ]) expect(pidePausa(t, 'es-AR'), t).toBe(true);
   });
 
   it('es-ES y ca', () => {
     expect(pidePausa('Paremos aquí.', 'es-ES')).toBe(true);
-    expect(pidePausa('Lo dejamos aquí.', 'es-ES')).toBe(true);
+    expect(pidePausa('Lo dejamos aquí por hoy.', 'es-ES')).toBe(true);
+    expect(pidePausa('Dejémoslo por hoy.', 'es-ES')).toBe(true);
     expect(pidePausa('No quiero seguir.', 'es-ES')).toBe(true);
-    for (const t of ['Vull parar.', 'Parem.', 'Ho deixem aquí.', 'No vull continuar.', 'Prou per avui.', 'Paremos.']) expect(pidePausa(t, 'ca'), t).toBe(true);
+    for (const t of ['Vull parar.', 'Parem.', 'Ho deixem per avui.', 'No vull continuar.', 'Prou per avui.', 'Fem una pausa.', 'Paremos.']) expect(pidePausa(t, 'ca'), t).toBe(true);
   });
 
   it(`una historia larga (más de ${PALABRAS_PEDIDO_PAUSA} palabras) que dice "parar" no es pausa`, () => {
@@ -80,10 +95,26 @@ describe('pidePausa', () => {
     expect(pidePausa('Le dije paremos acá un rato y nos sentamos en el pasto a mirar el río hasta que se hizo de noche y volvimos.', 'es-AR')).toBe(false);
   });
 
-  it('negativos cortos: "parar" o "seguir" dentro de otra cosa', () => {
-    for (const t of ['El colectivo no paraba nunca.', 'Mi hermano quería seguir estudiando.', 'Sí, seguimos juntos.', 'No quiero seguir hablando de eso.']) {
-      expect(pidePausa(t, 'es-AR'), t).toBe(false);
-    }
+  it('negativos cortos: "parar", "seguir" o "pausa" dentro de otra cosa (revisión del 07/10)', () => {
+    for (const t of [
+      'El colectivo no paraba nunca.',
+      'Mi hermano quería seguir estudiando.',
+      'Sí, seguimos juntos.',
+      'No quiero seguir hablando de eso.',
+      'Por ahora no.',
+      'Por ahora no, sigo trabajando.',
+      'Nietos por ahora no.',
+      'No, sigo. No quiero parar nunca.',
+      'Hago una pausa y tomo unos mates en el patio.',
+      'Le dije a mi marido: paremos acá a comer.',
+      'No quiero seguir trabajando, ya estoy grande.',
+      'No, todavía no, no tengo ganas de seguir buscando.',
+    ]) expect(pidePausa(t, 'es-AR'), t).toBe(false);
+    expect(pidePausa('Parem a dinar a mig camí.', 'ca')).toBe(false);
+    expect(pidePausa('No vull seguir treballant.', 'ca')).toBe(false);
+    expect(pidePausa('Lo dejamos aquí, de eso no quiero hablar.', 'es-ES')).toBe(false);
+    expect(pidePausa('Lo dejamos aquí.', 'es-ES')).toBe(false);
+    expect(pidePausa('Ho deixem aquí.', 'ca')).toBe(false);
   });
 
   it('un texto vacío no es nada', () => {

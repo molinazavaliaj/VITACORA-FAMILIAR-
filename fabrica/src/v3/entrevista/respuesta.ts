@@ -1000,14 +1000,16 @@ export const FRASES: Readonly<Record<Idioma, Frases>> = { 'es-AR': FRASES_ES, ca
  * frases fijas, sin modelo, antes de sumar el mensaje a una respuesta. Se
  * comparan con `normalizar` (minúsculas, sin tildes ni signos: "treu-ho" →
  * "treu ho"). El catalán suma las dos listas del castellano (quien habla
- * catalán mezcla), y es-ES la rioplatense.
+ * catalán mezcla), y es-ES la rioplatense. Ante la duda, NO es un pedido
+ * (revisión del 07/10): una pausa de más corta la entrevista.
  */
 const RESERVA_ES = [
   'que no vaya al libro', 'no vaya al libro', 'no lo pongas en el libro', 'no pongas eso en el libro', 'no pongas esto en el libro', 'esto no va en el libro',
   'eso no va en el libro', 'esto no va al libro', 'eso no va al libro', 'eso no lo pongas', 'esto no lo pongas', 'no lo escribas', 'eso no lo escribas', 'que no salga en el libro',
   'que no quede en el libro', 'que no aparezca en el libro', 'que no figure en el libro', 'sacalo del libro', 'saca eso del libro', 'saca esto del libro',
   'no quiero que esto este en el libro', 'no quiero que eso este en el libro', 'no quiero que esto vaya al libro', 'no quiero que eso vaya al libro',
-  'no quiero que salga en el libro', 'esto no es para el libro', 'eso no es para el libro',
+  'no quiero que salga en el libro', 'esto no es para el libro', 'eso no es para el libro', 'que no vaya en la biografia', 'que no salga en la biografia',
+  'no lo pongas en la biografia',
 ];
 const RESERVA_SOLO_ESPANA = [
   'no lo pongas', 'quitalo del libro', 'quita eso del libro', 'quita esto del libro', 'no quiero que aparezca en el libro', 'eso no lo pongas en el libro',
@@ -1017,54 +1019,116 @@ const RESERVA_SOLO_CATALAN = [
   'aixo no va al llibre', 'aixo no va en el llibre', 'no ho escriguis', 'que no quedi al llibre', 'no vull que aixo surti al llibre', 'no vull que surti al llibre',
   'aixo no es per al llibre',
 ];
+/** Una reserva que nombra el libro vale a cualquier largo; la genérica ("no lo escribas") solo en un mensaje corto o si el libro aparece en otro lado. */
+const EL_LIBRO = new Set(['libro', 'llibre', 'biografia']);
+export const PALABRAS_RESERVA_GENERICA = 15;
+/** "No lo escribas en la pared", "no ho posis aquí": la frase genérica sigue con un lugar, no habla del libro. */
+const LUGAR_DESPUES_DE_RESERVA = new Set(['en', 'a', 'al', 'ahi', 'aqui', 'alli', 'aca', 'alla', 'sobre', 'encima', 'dentro', 'damunt', 'alla']);
+/** "Mi vieja decía no lo escribas…": la frase genérica es de otro. */
+const DICHO_POR_OTRO = new Set(['decia', 'decian', 'dijo', 'dijeron', 'deia', 'deien', 'dir']);
 
 /** La pausa solo vale en un mensaje corto: "quería parar el auto en la ruta…" es una historia. */
 export const PALABRAS_PEDIDO_PAUSA = 15;
 const PAUSA_ES = [
-  'quiero parar', 'paremos', 'frenemos', 'no quiero seguir', 'basta por hoy', 'dejemos aca', 'dejemos por hoy', 'dejemoslo por ahora', 'dejemoslo para otro dia', 'por ahora no',
-  'no tengo ganas de seguir', 'lo dejamos para otro dia', 'sigamos otro dia', 'seguimos otro dia', 'pausa',
+  'quiero parar', 'no quiero seguir', 'basta por hoy', 'dejemos aca', 'dejemos por hoy', 'dejemoslo por ahora', 'dejemoslo para otro dia', 'dejemoslo por hoy',
+  'no tengo ganas de seguir', 'lo dejamos para otro dia', 'lo dejamos por hoy', 'sigamos otro dia', 'seguimos otro dia', 'hagamos una pausa', 'necesito una pausa',
+  'una pausa por favor',
 ];
-const PAUSA_SOLO_ESPANA = ['paremos aqui', 'lo dejamos aqui', 'vamos a parar', 'lo dejamos por hoy'];
+const PAUSA_SOLO_ESPANA = ['paremos aqui', 'vamos a parar', 'lo dejamos aqui por hoy'];
 const PAUSA_SOLO_CATALAN = [
-  'vull parar', 'parem', 'ho deixem aqui', 'ho deixem per avui', 'ho deixem per un altre dia', 'no vull continuar', 'no vull seguir', 'prou per avui', 'deixem-ho per avui',
-  'seguim un altre dia', 'continuem un altre dia',
+  'vull parar', 'ho deixem per avui', 'ho deixem per un altre dia', 'no vull continuar', 'no vull seguir', 'prou per avui', 'deixem-ho per avui',
+  'seguim un altre dia', 'continuem un altre dia', 'fem una pausa',
 ];
+/** Sueltas ("Paremos."): solo en un mensaje de hasta PALABRAS_SUELTA palabras, o seguidas de acá / por hoy / un rato / ya / nada. */
+const PAUSA_SUELTAS_ES = ['paremos', 'frenemos'];
+const PAUSA_SUELTAS_CATALAN = ['parem'];
+const PALABRAS_SUELTA = 8;
+const DESPUES_DE_SUELTA = [['aca'], ['aqui'], ['ya'], ['por', 'hoy'], ['un', 'rato'], ['per', 'avui']];
+/** "Pausa." sola: solo en un mensaje de hasta PALABRAS_PAUSA_SOLA palabras ("Hago una pausa y tomo mates…" es una historia). */
+const PAUSA_SOLA = 'pausa';
+const PALABRAS_PAUSA_SOLA = 4;
+/** "No quiero parar nunca": negada no es pausa (salvo que la frase misma arranque negando: "no quiero seguir"). */
+const NEGACIONES_ANTES = new Set(['no', 'mai', 'nunca']);
 /**
  * Lo que sigue a la frase y la vuelve otra cosa: "no quiero seguir hablando
- * de eso" es un paso de la pregunta, no una pausa.
+ * de eso" es un paso; "paremos acá a comer", una historia; "no quiero seguir
+ * trabajando", otra cosa. También cualquier gerundio (-ando, -iendo, -ant).
  */
-const NO_ES_PAUSA_DESPUES = new Set(['hablando', 'contando', 'con', 'parlant', 'explicant', 'amb']);
+const NO_ES_PAUSA_DESPUES = new Set(['a', 'al', 'en', 'el', 'la', 'de', 'del', 'para', 'con', 'amb', 'hablando', 'contando', 'parlant', 'explicant']);
+const GERUNDIO = /(ando|iendo|endo|ant)$/;
+const NO_SON_GERUNDIO = new Set(['cuando', 'quan', 'mientras', 'grande']);
 
-type Pedidos = { reserva: readonly string[]; pausa: readonly string[] };
-const pedidos = (reserva: string[], pausa: string[]): Pedidos => ({ reserva: [...new Set(reserva.map(normalizar))], pausa: [...new Set(pausa.map(normalizar))] });
+type Pedidos = { reserva: readonly string[][]; pausa: readonly string[][]; sueltas: readonly string[][] };
+const lista = (xs: string[]) => [...new Set(xs.map(normalizar))].map((x) => x.split(' '));
 
 const PEDIDOS: Readonly<Record<Idioma, Pedidos>> = {
-  'es-AR': pedidos(RESERVA_ES, PAUSA_ES),
-  'es-ES': pedidos([...RESERVA_ES, ...RESERVA_SOLO_ESPANA], [...PAUSA_ES, ...PAUSA_SOLO_ESPANA]),
-  ca: pedidos([...RESERVA_ES, ...RESERVA_SOLO_ESPANA, ...RESERVA_SOLO_CATALAN], [...PAUSA_ES, ...PAUSA_SOLO_ESPANA, ...PAUSA_SOLO_CATALAN]),
+  'es-AR': { reserva: lista(RESERVA_ES), pausa: lista(PAUSA_ES), sueltas: lista(PAUSA_SUELTAS_ES) },
+  'es-ES': { reserva: lista([...RESERVA_ES, ...RESERVA_SOLO_ESPANA]), pausa: lista([...PAUSA_ES, ...PAUSA_SOLO_ESPANA]), sueltas: lista(PAUSA_SUELTAS_ES) },
+  ca: {
+    reserva: lista([...RESERVA_ES, ...RESERVA_SOLO_ESPANA, ...RESERVA_SOLO_CATALAN]),
+    pausa: lista([...PAUSA_ES, ...PAUSA_SOLO_ESPANA, ...PAUSA_SOLO_CATALAN]),
+    sueltas: lista([...PAUSA_SUELTAS_ES, ...PAUSA_SUELTAS_CATALAN]),
+  },
 };
 
-/** Dónde termina la frase cada vez que aparece entre las palabras. */
-function finesDeFrase(pal: readonly string[], frase: string): number[] {
-  const f = frase.split(' ');
-  const fines: number[] = [];
-  for (let i = 0; i + f.length <= pal.length; i++) if (hayFraseEn(pal, i, f)) fines.push(i + f.length);
-  return fines;
+/** Cada vez que aparece la frase entre las palabras: dónde empieza y dónde termina. */
+function apariciones(pal: readonly string[], frase: readonly string[]): { inicio: number; fin: number }[] {
+  const out: { inicio: number; fin: number }[] = [];
+  for (let i = 0; i + frase.length <= pal.length; i++) if (hayFraseEn(pal, i, frase)) out.push({ inicio: i, fin: i + frase.length });
+  return out;
 }
 
 const palabrasDe = (texto: string) => normalizar(texto).split(' ').filter(Boolean);
 
-/** ¿Pide que esto no vaya al libro? A cualquier largo. */
+/**
+ * ¿Pide que esto no vaya al libro? La que nombra el libro, a cualquier largo.
+ * La genérica ("eso no lo pongas", "no ho posis"), solo en un mensaje de hasta
+ * PALABRAS_RESERVA_GENERICA palabras o que nombre el libro en otro lado, y
+ * nunca dicha por otro ("decía") ni seguida de un lugar ("en la pared").
+ */
 export function pideReserva(texto: string, idioma: Idioma = IDIOMA_POR_DEFECTO): boolean {
   const pal = palabrasDe(texto);
-  return pal.length > 0 && PEDIDOS[idioma].reserva.some((fr) => finesDeFrase(pal, fr).length > 0);
+  if (pal.length === 0) return false;
+  const nombraElLibro = pal.some((w) => EL_LIBRO.has(w));
+  const dichoPorOtro = pal.some((w) => DICHO_POR_OTRO.has(w));
+  return PEDIDOS[idioma].reserva.some((fr) => {
+    const ap = apariciones(pal, fr);
+    if (ap.length === 0) return false;
+    if (fr.some((w) => EL_LIBRO.has(w))) return true;
+    if (dichoPorOtro || (pal.length > PALABRAS_RESERVA_GENERICA && !nombraElLibro)) return false;
+    return ap.some(({ fin }) => !LUGAR_DESPUES_DE_RESERVA.has(pal[fin]));
+  });
 }
 
-/** ¿Pide parar la entrevista? Solo en un mensaje de hasta PALABRAS_PEDIDO_PAUSA palabras. */
+/** ¿Lo que sigue en `fin` cancela la pausa? */
+function cancelaDespues(pal: readonly string[], fin: number): boolean {
+  const w = pal[fin];
+  if (w === undefined) return false;
+  return NO_ES_PAUSA_DESPUES.has(w) || (GERUNDIO.test(w) && !NO_SON_GERUNDIO.has(w));
+}
+
+/** ¿Negada? "no quiero parar", "mai vull parar" (no cuenta si la frase ya arranca negando). */
+function negadaAntes(pal: readonly string[], frase: readonly string[], inicio: number): boolean {
+  return !NEGACIONES_ANTES.has(frase[0]) && inicio > 0 && NEGACIONES_ANTES.has(pal[inicio - 1]);
+}
+
+/**
+ * ¿Pide parar la entrevista? Solo en un mensaje de hasta PALABRAS_PEDIDO_PAUSA
+ * palabras, sin negar la frase ("no quiero parar nunca") ni seguirla con algo
+ * que la vuelve otra cosa ("paremos acá a comer", "no quiero seguir trabajando").
+ */
 export function pidePausa(texto: string, idioma: Idioma = IDIOMA_POR_DEFECTO): boolean {
   const pal = palabrasDe(texto);
   if (pal.length === 0 || pal.length > PALABRAS_PEDIDO_PAUSA) return false;
-  return PEDIDOS[idioma].pausa.some((fr) => finesDeFrase(pal, fr).some((fin) => !NO_ES_PAUSA_DESPUES.has(pal[fin])));
+  const p = PEDIDOS[idioma];
+  const vale = (fr: readonly string[], inicio: number, fin: number) => !negadaAntes(pal, fr, inicio) && !cancelaDespues(pal, fin);
+  if (p.pausa.some((fr) => apariciones(pal, fr).some(({ inicio, fin }) => vale(fr, inicio, fin)))) return true;
+  if (pal.length <= PALABRAS_PAUSA_SOLA && apariciones(pal, [PAUSA_SOLA]).some(({ inicio, fin }) => vale([PAUSA_SOLA], inicio, fin))) return true;
+  return p.sueltas.some((fr) => apariciones(pal, fr).some(({ inicio, fin }) => {
+    const sigue = DESPUES_DE_SUELTA.find((d) => hayFraseEn(pal, fin, d));
+    if (pal.length > PALABRAS_SUELTA && !sigue && fin < pal.length) return false;
+    return vale(fr, inicio, fin + (sigue?.length ?? 0));
+  }));
 }
 
 /**
