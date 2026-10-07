@@ -1,0 +1,261 @@
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { verificarTokenFotos } from "../src/lib/token-fotos";
+
+process.env.SUPABASE_SERVICE_ROLE_KEY ??= "clave-de-prueba"; // firma el token de fotos
+
+vi.mock("@/lib/supabase/servidor", () => ({ crearClienteServidor: vi.fn() }));
+vi.mock("@/lib/pagos", () => ({ crearCheckout: vi.fn() }));
+
+import { crearClienteServidor } from "@/lib/supabase/servidor";
+import { crearCheckout } from "@/lib/pagos";
+import { POST } from "../src/app/api/compra/route";
+
+// El mismo doble que compra.test.ts (una cola de resultados por tabla, y se
+// guarda qué se insertó), más el registro de los eq() por tabla para asegurar
+// que el regalo nunca busca un narrador "retomable" por teléfono.
+function crearAdmin(secuencia: Record<string, unknown[]>) {
+  const contadores: Record<string, number> = {};
+  const inserts: Record<string, unknown[]> = {};
+  const updates: Record<string, unknown[]> = {};
+  const eqs: Record<string, [string, unknown][]> = {};
+  const from = vi.fn((tabla: string) => {
+    const idx = contadores[tabla] ?? 0;
+    contadores[tabla] = idx + 1;
+    const resultado = secuencia[tabla]?.[idx] ?? { data: null, error: null };
+    const b: Record<string, unknown> = {};
+    for (const m of ["select", "ilike", "is", "single", "maybeSingle"]) b[m] = () => b;
+    b.eq = (columna: string, valor: unknown) => {
+      (eqs[tabla] ??= []).push([columna, valor]);
+      return b;
+    };
+    b.insert = (valores: unknown) => {
+      (inserts[tabla] ??= []).push(valores);
+      return b;
+    };
+    b.update = (valores: unknown) => {
+      (updates[tabla] ??= []).push(valores);
+      return b;
+    };
+    b.then = (res: (v: unknown) => unknown, rej?: (e: unknown) => unknown) => Promise.resolve(resultado).then(res, rej);
+    return b;
+  });
+  return { from, inserts, updates, eqs };
+}
+
+function peticion(body: unknown) {
+  return { json: async () => body } as never;
+}
+
+const CUERPO_REGALO = {
+  nombreComprador: "Lucía",
+  vinculoComprador: "nieta",
+  region: "AR",
+  email: "lucia@ejemplo.com",
+  narrador: { nombre: "Héctor", comoLeDicen: "abuelo" },
+  productos: {},
+  regalo: { mensaje: "  Abuelo, quiero que cuentes tu vida.  ", fechaEntrega: "2099-12-24", genero: "varon" },
+};
+
+function secuenciaFeliz(regalos: unknown[] = [{ data: null, error: null }]) {
+  return {
+    familias: [{ data: null, error: null }, { data: { id: "fam-1" }, error: null }],
+    narradores: [{ data: { id: "nar-1" }, error: null }],
+    pedidos: [{ data: { id: "ped-1" }, error: null }],
+    regalos,
+  };
+}
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  process.env.PRECIO_ARS = "65000";
+  (crearCheckout as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({ urlPago: "https://pago.example/x" });
+});
+
+describe("POST /api/compra con regalo", () => {
+  it("sin mensaje responde 400 y no toca la base", async () => {
+    const admin = crearAdmin({});
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+
+    const r = await POST(peticion({ ...CUERPO_REGALO, regalo: { ...CUERPO_REGALO.regalo, mensaje: "   " } }));
+
+    expect(r.status).toBe(400);
+    expect(((await r.json()) as { error: string }).error).toBe("Falta tu mensaje para la tarjeta.");
+    expect(admin.from).not.toHaveBeenCalled();
+  });
+
+  it("sin género responde 400", async () => {
+    const admin = crearAdmin({});
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+
+    const r = await POST(peticion({ ...CUERPO_REGALO, regalo: { mensaje: "Hola" } }));
+
+    expect(r.status).toBe(400);
+    expect(admin.from).not.toHaveBeenCalled();
+  });
+
+  it("el narrador nace sin teléfono, en pendiente_pago, de vos y marcado como regalo", async () => {
+    const admin = crearAdmin(secuenciaFeliz());
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+
+    const r = await POST(peticion(CUERPO_REGALO));
+
+    expect(r.status).toBe(200);
+    expect(admin.inserts.narradores).toHaveLength(1);
+    const narrador = admin.inserts.narradores[0] as Record<string, unknown>;
+    expect(narrador).toMatchObject({
+      telefono_whatsapp: null,
+      estado: "pendiente_pago",
+      familia_id: "fam-1",
+      nombre: "Héctor",
+      como_le_dicen: "abuelo",
+      contexto: { regalo: true, trato: "vos", genero: "varon", vinculoComprador: "nieta" },
+    });
+    expect(narrador.contexto).not.toHaveProperty("idioma");
+  });
+
+  it("el trato es vos aunque el cuerpo pida usted", async () => {
+    const admin = crearAdmin(secuenciaFeliz());
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+
+    await POST(peticion({ ...CUERPO_REGALO, narrador: { ...CUERPO_REGALO.narrador, contexto: { trato: "usted" } } }));
+
+    expect(admin.inserts.narradores[0]).toMatchObject({ contexto: { trato: "vos" } });
+  });
+
+  it("cualquier región puede regalar (no hay bloqueo por país)", async () => {
+    process.env.PRECIO_EUR = "59";
+    const admin = crearAdmin(secuenciaFeliz());
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+
+    const r = await POST(peticion({ ...CUERPO_REGALO, region: "ES" }));
+
+    expect(r.status).toBe(200);
+    expect(admin.inserts.narradores[0]).toMatchObject({ telefono_whatsapp: null, contexto: { trato: "vos" } });
+  });
+
+  it("el pedido lleva extras.regalo === true", async () => {
+    const admin = crearAdmin(secuenciaFeliz());
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+
+    await POST(peticion(CUERPO_REGALO));
+
+    expect(admin.inserts.pedidos[0]).toMatchObject({
+      narrador_id: "nar-1",
+      estado: "pendiente",
+      monto: 65000,
+      extras: { pdf: true, regalo: true },
+    });
+  });
+
+  it("inserta el regalo con el código, el narrador, el pedido, quién regala, el mensaje y la fecha", async () => {
+    const admin = crearAdmin(secuenciaFeliz());
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+
+    await POST(peticion(CUERPO_REGALO));
+
+    expect(admin.inserts.regalos).toHaveLength(1);
+    expect(admin.inserts.regalos[0]).toEqual({
+      codigo: expect.stringMatching(/^VF-[23456789ABCDEFGHJKMNPQRSTUVWXYZ]{6}$/),
+      narrador_id: "nar-1",
+      pedido_id: "ped-1",
+      quien_regala: "Lucía",
+      mensaje: "Abuelo, quiero que cuentes tu vida.",
+      fecha_entrega: "2099-12-24",
+    });
+  });
+
+  it("sin fecha de entrega, el regalo va con fecha_entrega null", async () => {
+    const admin = crearAdmin(secuenciaFeliz());
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+
+    const r = await POST(peticion({ ...CUERPO_REGALO, regalo: { mensaje: "Hola", genero: "mujer" } }));
+
+    expect(r.status).toBe(200);
+    expect(admin.inserts.regalos[0]).toMatchObject({ fecha_entrega: null });
+    expect(admin.inserts.narradores[0]).toMatchObject({ contexto: { genero: "mujer" } });
+  });
+
+  it("responde el código además de urlPago, narradorId y tokenFotos", async () => {
+    const admin = crearAdmin(secuenciaFeliz());
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+
+    const r = await POST(peticion(CUERPO_REGALO));
+    const json = (await r.json()) as Record<string, string>;
+
+    expect(json).toMatchObject({ urlPago: "https://pago.example/x", narradorId: "nar-1" });
+    expect(verificarTokenFotos(json.tokenFotos, "nar-1")).toBe(true);
+    expect(json.codigo).toBe((admin.inserts.regalos[0] as { codigo: string }).codigo);
+    expect(crearCheckout).toHaveBeenCalledWith({ id: "ped-1", email: "lucia@ejemplo.com" }, expect.objectContaining({ region: "AR" }));
+  });
+
+  it("si el código choca (23505) la primera vez, reintenta con otro y sale bien", async () => {
+    const admin = crearAdmin(
+      secuenciaFeliz([
+        { data: null, error: { code: "23505", message: "duplicate key" } },
+        { data: null, error: null },
+      ]),
+    );
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+
+    const r = await POST(peticion(CUERPO_REGALO));
+    const json = (await r.json()) as { codigo: string };
+
+    expect(r.status).toBe(200);
+    expect(admin.inserts.regalos).toHaveLength(2);
+    expect(json.codigo).toBe((admin.inserts.regalos[1] as { codigo: string }).codigo);
+  });
+
+  it("cinco choques seguidos responden 500 y no se va a pagar", async () => {
+    const choque = { data: null, error: { code: "23505", message: "duplicate key" } };
+    const admin = crearAdmin(secuenciaFeliz([choque, choque, choque, choque, choque]));
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+
+    const r = await POST(peticion(CUERPO_REGALO));
+
+    expect(r.status).toBe(500);
+    expect(admin.inserts.regalos).toHaveLength(5);
+    expect(crearCheckout).not.toHaveBeenCalled();
+  });
+
+  it("otro error al crear el regalo responde 500 sin reintentar y no se va a pagar", async () => {
+    const admin = crearAdmin(secuenciaFeliz([{ data: null, error: { code: "42P01", message: "no existe" } }]));
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+
+    const r = await POST(peticion(CUERPO_REGALO));
+
+    expect(r.status).toBe(500);
+    expect(admin.inserts.regalos).toHaveLength(1);
+    expect(crearCheckout).not.toHaveBeenCalled();
+  });
+
+  it("nunca busca un narrador retomable por teléfono", async () => {
+    const admin = crearAdmin(secuenciaFeliz());
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+
+    await POST(peticion(CUERPO_REGALO));
+
+    const columnas = (admin.eqs.narradores ?? []).map(([c]) => c);
+    expect(columnas).not.toContain("telefono_whatsapp");
+    expect(admin.updates.narradores).toBeUndefined();
+    // una sola llamada a narradores: el insert
+    expect(admin.from.mock.calls.filter(([t]) => t === "narradores")).toHaveLength(1);
+  });
+
+  it("sin regalo, la compra no inserta en regalos ni responde código", async () => {
+    const admin = crearAdmin({
+      familias: [{ data: { id: "fam-1" }, error: null }],
+      narradores: [{ data: null, error: null }, { data: { id: "nar-1" }, error: null }],
+      pedidos: [{ data: { id: "ped-1" }, error: null }],
+    });
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+
+    const { regalo: _regalo, ...sinRegalo } = CUERPO_REGALO;
+    const r = await POST(peticion({ ...sinRegalo, narrador: { ...sinRegalo.narrador, telefonoWhatsapp: "11 5555 1234" } }));
+    const json = await r.json();
+
+    expect(r.status).toBe(200);
+    expect(admin.inserts.regalos).toBeUndefined();
+    expect(json).not.toHaveProperty("codigo");
+    expect((admin.inserts.pedidos[0] as { extras: object }).extras).not.toHaveProperty("regalo");
+  });
+});

@@ -4,6 +4,7 @@ import { validarYConstruir, type RegistroBody } from "@/lib/registro";
 import { calcularCompra, productosParaPedido, validarCarrito, type Carrito } from "@/lib/productos";
 import { crearCheckout } from "@/lib/pagos";
 import { firmarTokenFotos } from "@/lib/token-fotos";
+import { generarCodigo, validarRegalo, type DatosRegalo } from "@/lib/regalo";
 
 // La compra, sin cuenta previa (pago por adelantado, 11/09). Es la única
 // entrada al producto: aquí nacen la familia, el narrador y el pedido, y de
@@ -21,6 +22,8 @@ export type CompraBody = RegistroBody & {
   email?: string;
   /** El carrito (21/09, catálogo base + upsells): la base va siempre; se suman impresos y marcos. */
   productos?: { viaje?: boolean; impresos?: number; marcos?: number };
+  /** Gift card (08/10): sin teléfono del narrador; nace un código. */
+  regalo?: { mensaje?: string; fechaEntrega?: string; genero?: string };
 };
 
 function leerCarrito(crudo: CompraBody["productos"]): Carrito {
@@ -44,11 +47,26 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Necesitamos un correo válido para avisarte." }, { status: 400 });
   }
 
-  const validacion = validarYConstruir(body);
+  const esRegalo = body.regalo !== undefined;
+  let datosRegalo: DatosRegalo | null = null;
+  if (esRegalo) {
+    const v = validarRegalo(body.regalo, new Date());
+    if (!v.ok) return NextResponse.json({ error: v.mensaje }, { status: 400 });
+    datosRegalo = v.regalo;
+  }
+
+  const validacion = validarYConstruir(body, { sinTelefono: esRegalo });
   if (!validacion.ok) {
     return NextResponse.json({ error: validacion.mensaje }, { status: validacion.status });
   }
-  const { familia: familiaAInsertar, narrador: narradorAInsertar } = validacion;
+  const { familia: familiaAInsertar } = validacion;
+  const narradorAInsertar = datosRegalo
+    ? {
+        ...validacion.narrador,
+        // De vos y sin idioma (es-AR) hasta el plan de España y catalán (Global Constraints).
+        contexto: { ...validacion.narrador.contexto, regalo: true, trato: "vos", genero: datosRegalo.genero },
+      }
+    : validacion.narrador;
 
   const carrito = leerCarrito(body.productos);
   const carritoOk = validarCarrito(familiaAInsertar.region, carrito);
@@ -86,12 +104,15 @@ export async function POST(request: NextRequest) {
   // Si un intento anterior con este WhatsApp quedó sin pagar (falló MP, cerró
   // la pestaña), se retoma ese narrador en vez de chocar con el teléfono
   // repetido. Solo si es la misma familia: un pendiente ajeno sigue dando 409.
-  const { data: pendiente } = await admin
-    .from("narradores")
-    .select("id, familia_id, estado")
-    .eq("telefono_whatsapp", narradorAInsertar.telefono_whatsapp)
-    .eq("estado", "pendiente_pago")
-    .maybeSingle();
+  // Un regalo no tiene teléfono: no hay nada que retomar.
+  const { data: pendiente } = narradorAInsertar.telefono_whatsapp
+    ? await admin
+        .from("narradores")
+        .select("id, familia_id, estado")
+        .eq("telefono_whatsapp", narradorAInsertar.telefono_whatsapp)
+        .eq("estado", "pendiente_pago")
+        .maybeSingle()
+    : { data: null };
   const retomable = pendiente as { id: string; familia_id: string } | null;
 
   const { data: narrador, error: errorNarrador } =
@@ -130,7 +151,7 @@ export async function POST(request: NextRequest) {
       estado: "pendiente",
       monto: compra.total,
       moneda: compra.moneda,
-      extras: productosParaPedido(compra),
+      extras: datosRegalo ? { ...productosParaPedido(compra), regalo: true } : productosParaPedido(compra),
     })
     .select("id")
     .single();
@@ -139,11 +160,39 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: MENSAJE_ERROR_GENERICO }, { status: 500 });
   }
 
+  let codigo: string | null = null;
+  if (datosRegalo) {
+    // El código es único en la base: si choca (casi imposible), se prueba otro.
+    for (let intento = 0; intento < 5 && !codigo; intento++) {
+      const candidato = generarCodigo();
+      const { error } = await admin.from("regalos").insert({
+        codigo: candidato,
+        narrador_id: narradorId,
+        pedido_id: (pedido as { id: string }).id,
+        quien_regala: familiaAInsertar.nombre,
+        mensaje: datosRegalo.mensaje,
+        fecha_entrega: datosRegalo.fechaEntrega,
+      });
+      if (!error) codigo = candidato;
+      else if ((error as { code?: string }).code !== "23505") {
+        console.error("compra: fallo crear el regalo", error);
+        return NextResponse.json({ error: MENSAJE_ERROR_GENERICO }, { status: 500 });
+      }
+    }
+    if (!codigo) {
+      console.error("compra: cinco códigos de regalo repetidos seguidos");
+      return NextResponse.json({ error: MENSAJE_ERROR_GENERICO }, { status: 500 });
+    }
+  }
+
   try {
     const { urlPago } = await crearCheckout({ id: (pedido as { id: string }).id, email }, compra);
     // Paso 5 (17/09): las fotos del álbum se suben antes de ir a pagar, sin
     // sesión, con un token atado a este narrador y de una hora (lib/token-fotos).
-    return NextResponse.json({ urlPago, narradorId, tokenFotos: firmarTokenFotos(narradorId) }, { status: 200 });
+    return NextResponse.json(
+      { urlPago, narradorId, tokenFotos: firmarTokenFotos(narradorId), ...(codigo ? { codigo } : {}) },
+      { status: 200 },
+    );
   } catch (err) {
     console.error("compra: fallo crear el checkout", err);
     return NextResponse.json({ error: MENSAJE_ERROR_GENERICO }, { status: 500 });

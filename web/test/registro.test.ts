@@ -125,6 +125,30 @@ describe('normalizarTelefono', () => {
 });
 
 describe('validarYConstruir', () => {
+  // Gift card (08/10): quien regala no carga el teléfono del narrador.
+  const baseRegalo = {
+    nombreComprador: 'Lucía', vinculoComprador: 'nieta', region: 'AR' as const,
+    narrador: { nombre: 'Héctor', comoLeDicen: 'abuelo' },
+  };
+
+  it('con sinTelefono no pide el WhatsApp y lo deja en null', () => {
+    const r = validarYConstruir(baseRegalo, { sinTelefono: true });
+    expect(r.ok).toBe(true);
+    if (r.ok) expect(r.narrador.telefono_whatsapp).toBeNull();
+  });
+
+  it('con sinTelefono ignora un WhatsApp que venga igual (no lo valida ni lo guarda)', () => {
+    const r = validarYConstruir({ ...baseRegalo, narrador: { ...baseRegalo.narrador, telefonoWhatsapp: 'cualquier cosa' } }, { sinTelefono: true });
+    expect(r.ok).toBe(true);
+    if (r.ok) expect(r.narrador.telefono_whatsapp).toBeNull();
+  });
+
+  it('sin la opción, sigue pidiendo el WhatsApp', () => {
+    const r = validarYConstruir(baseRegalo);
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.mensaje).toBe('Falta el WhatsApp del narrador.');
+  });
+
   it('paso 5 de la compra: ritmo y temas a evitar van al contexto como los deja el panel', () => {
     const resultado = validarYConstruir(cuerpoValido({ contexto: { ritmo: 'seguido', evitar: '  No preguntar por Rubén.  ' } }) as never);
     expect(resultado.ok).toBe(true);
