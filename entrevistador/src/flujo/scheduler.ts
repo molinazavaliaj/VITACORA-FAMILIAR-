@@ -6,6 +6,7 @@ import { enviarPregunta, type Narrador } from './preguntar.js';
 import { mandarHito } from '../mail/hitos.js';
 import { esViaje } from './viaje.js';
 import { fechaLocal, minutosLocales } from './tiempo.js';
+import { narradoresV3 } from '../v3/estado.js';
 
 export { fechaLocal, minutosLocales };
 
@@ -153,7 +154,10 @@ async function enviarBienvenidas(): Promise<void> {
 
 /** 2. La pregunta del día, a la hora de cada uno. */
 async function enviarPreguntasDelDia(ahora: Date): Promise<void> {
+  // Los narradores V3 tienen su propio reloj (v3/reloj.ts): la pregunta vieja no les sale.
+  const v3 = await narradoresV3(db);
   for (const n of await narradoresEn(['acepto', 'activo'])) {
+    if (v3.has(n.id)) continue;
     await aislado(n.id, async () => {
       if (!esHoraDeEnviar(n.hora_preferida, n.zona_horaria, ahora)) return;
 
@@ -172,7 +176,10 @@ async function enviarPreguntasDelDia(ahora: Date): Promise<void> {
 
 /** 3. Recordatorio suave: 6 hs después de la pregunta, si todavía no respondió. */
 async function enviarRecordatorios(ahora: Date): Promise<void> {
+  // Los V3 tienen su propio recordatorio (M8, en v3/reloj.ts).
+  const v3 = await narradoresV3(db);
   for (const n of await narradoresEn(['activo'])) {
+    if (v3.has(n.id)) continue;
     await aislado(n.id, async () => {
       if (n.dia_actual < 1) return;
       const envio = await ultimoEnvio(n.id, 'pregunta', n.dia_actual);
@@ -232,8 +239,31 @@ export async function tick(ahora: Date = new Date()): Promise<void> {
 }
 
 let corriendo = false;
+let corriendoV3 = false;
+
+/**
+ * El reloj de la entrevista V3 (spec 2026-10-07): cada 1 minuto, aparte del
+ * tick viejo de 15. Los imports son dinámicos: si algo de la V3 no carga, el
+ * error queda en el log de este tick y el scheduler viejo sigue igual.
+ */
+export function iniciarRelojV3() {
+  return cron.schedule('* * * * *', async () => {
+    if (corriendoV3) return; // que dos ticks no se pisen
+    corriendoV3 = true;
+    try {
+      const { tickV3 } = await import('../v3/reloj.js');
+      const { depsReales } = await import('../v3/deps-reales.js');
+      await tickV3(depsReales());
+    } catch (err) {
+      console.error('Falló el tick del reloj V3:', err);
+    } finally {
+      corriendoV3 = false;
+    }
+  });
+}
 
 export function iniciarScheduler() {
+  iniciarRelojV3();
   return cron.schedule('*/15 * * * *', async () => {
     if (corriendo) return; // que dos ticks no se pisen
     corriendo = true;

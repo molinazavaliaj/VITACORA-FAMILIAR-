@@ -16,6 +16,7 @@ const mocks = vi.hoisted(() => ({
     respuestas: [] as any[],
     preguntas: [{ texto: 'PREGUNTA_1', capitulo: 'La infancia', narrador_id: null }] as any[],
     familias: { nombre: 'Martina' } as any,
+    v3: [] as any[],
   },
   capturas: [] as any[],
   ultimoOrden: 26,
@@ -37,6 +38,7 @@ vi.mock('../src/db/cliente.js', () => {
     b.update = (p: any) => { b._op = 'update'; mocks.capturas.push({ op: 'update', tabla, p }); return b; };
     const resolver = () => {
       if (b._op !== 'select') return { data: null, error: null };
+      if (tabla === 'entrevistas_v3') return { data: mocks.filas.v3 };
       if (tabla === 'narradores') {
         const estados = b._filtros.estado;
         return { data: estados ? mocks.filas.narradores.filter((n) => estados.includes(n.estado)) : mocks.filas.narradores };
@@ -117,6 +119,7 @@ const inserts = (tabla: string) => mocks.capturas.filter((c) => c.op === 'insert
 
 beforeEach(() => {
   mocks.filas.narradores = [];
+  mocks.filas.v3 = [];
   mocks.filas.envios = [];
   mocks.filas.respuestas = [];
   mocks.filas.preguntas = [{ texto: 'PREGUNTA_1', capitulo: 'La infancia', narrador_id: null }];
@@ -334,5 +337,41 @@ describe('la bienvenida', () => {
     mocks.filas.envios = [{ tipo: 'bienvenida', wa_message_id: null, entrega: 'fallido' }];
     await tick(new Date('2026-09-23T12:00:00Z'));
     expect(mocks.enviarPlantilla).toHaveBeenCalled();
+  });
+});
+
+describe('narradores V3 (spec 2026-10-07)', () => {
+  it('un narrador con fila en entrevistas_v3 no recibe la pregunta ni el recordatorio viejos', async () => {
+    mocks.filas.narradores = [narrador({ estado: 'activo', dia_actual: 0 })];
+    mocks.filas.v3 = [{ narrador_id: 'n1' }];
+    await tick(A_LAS_10_05);
+    expect(mocks.enviarPlantilla).not.toHaveBeenCalled();
+    expect(mocks.enviarTexto).not.toHaveBeenCalled();
+  });
+
+  it('sin fila V3, el mismo narrador recibe su pregunta como siempre', async () => {
+    mocks.filas.narradores = [narrador({ estado: 'activo', dia_actual: 0 })];
+    await tick(A_LAS_10_05);
+    expect(mocks.enviarPlantilla.mock.calls.length + mocks.enviarTexto.mock.calls.length).toBeGreaterThan(0);
+  });
+
+  // 7 h después de la pregunta de las 10:00, sin respuesta: le toca el recordatorio viejo.
+  const A_LAS_17_05 = new Date('2026-09-01T20:05:00Z');
+  const conPreguntaSinResponder = () => {
+    mocks.filas.narradores = [narrador({ estado: 'activo', dia_actual: 1 })];
+    mocks.filas.envios = [{ tipo: 'pregunta', pregunta_orden: 1, enviado_at: '2026-09-01T13:00:00Z', wa_message_id: 'wamid.x' }];
+  };
+
+  it('el recordatorio viejo no le sale a un narrador V3', async () => {
+    conPreguntaSinResponder();
+    mocks.filas.v3 = [{ narrador_id: 'n1' }];
+    await tick(A_LAS_17_05);
+    expect(mocks.enviarPlantilla).not.toHaveBeenCalled();
+  });
+
+  it('sin fila V3, el recordatorio sale como siempre', async () => {
+    conPreguntaSinResponder();
+    await tick(A_LAS_17_05);
+    expect(mocks.enviarPlantilla).toHaveBeenCalledWith('+5491155551234', 'recordatorio', ['Don Osvaldo']);
   });
 });
