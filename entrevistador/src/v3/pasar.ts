@@ -79,7 +79,8 @@ export type RespuestaVieja = {
   /** SIN_CLAVE_V3 = una fila que la V3 dejó afuera a propósito: el pase no la carga. */
   clave_v3?: string | null;
 };
-export type Cargada = { clave: string; ordenes: number[]; respuestaIds: string[]; texto: string; palabras: number };
+/** `preguntas`: lo que se le preguntó de verdad (el texto viejo de cada orden), para la charla. */
+export type Cargada = { clave: string; ordenes: number[]; respuestaIds: string[]; texto: string; palabras: number; preguntas: string[] };
 /** Una clave V3 que se da por contestada porque su texto ya está en `de` (marca ⟦inferida:de⟧). */
 export type Inferida = { clave: string; de: string; ordenes: number[] };
 export type PlanDePase = {
@@ -150,8 +151,9 @@ export function armarPase(e: {
       ya.texto = sumarAudio(ya.texto, texto);
       ya.ordenes.push(orden);
       ya.respuestaIds.push(...filas.map((r) => r.id));
+      ya.preguntas.push(pregunta!.texto);
     } else {
-      cargadas.push({ clave, ordenes: [orden], respuestaIds: filas.map((r) => r.id), texto, palabras: 0 });
+      cargadas.push({ clave, ordenes: [orden], respuestaIds: filas.map((r) => r.id), texto, palabras: 0, preguntas: [pregunta!.texto] });
     }
     for (const cubierta of cubiertas) {
       const inf = inferidas.find((i) => i.clave === cubierta);
@@ -234,6 +236,17 @@ export function respuestasDelPase(plan: Pick<PlanDePase, 'cargadas' | 'inferidas
   ]);
 }
 
+/**
+ * Lo que se le preguntó de verdad, como globo 'bio' con la clave V3: el
+ * escritor (de-entrevista.ts, `mandado`) y el cazador (`textoMandado`) toman
+ * la pregunta de acá y no del banco V3 (CA2 dice "mamá"; la vieja, "mamá y
+ * papá"). Va en el orden en que llegaron; si varias viejas van a la misma
+ * clave, un globo con una parte por pregunta. No es la cola: no sale nada.
+ */
+export function charlaDelPase(plan: Pick<PlanDePase, 'cargadas'>): EstadoV3['charla'] {
+  return plan.cargadas.map((c) => ({ de: 'bio' as const, partes: c.preguntas.map((texto) => ({ id: c.clave, texto })) }));
+}
+
 /** Por qué no se puede aplicar todavía (vacío = se puede). */
 export function bloqueosDePase(plan: PlanDePase): string[] {
   const b: string[] = [];
@@ -290,6 +303,7 @@ export async function aplicarPase(db: SupabaseClient, plan: PlanDePase, ahora: D
   const estado: EstadoV3 = {
     ...estadoInicial(plan.familia),
     respuestas: respuestasDelPase(plan),
+    charla: charlaDelPase(plan),
     ...(plan.ultimoEntranteAt ? { ultimoEntranteAt: plan.ultimoEntranteAt } : {}),
   };
   const creada = await crearFila(db, {

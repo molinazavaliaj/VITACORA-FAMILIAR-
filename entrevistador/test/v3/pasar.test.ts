@@ -8,6 +8,8 @@ import { procesarEntranteV3 } from '../../src/v3/entrante.js';
 import { renderizar } from '../../src/v3/nucleo/entrevista/texto.js';
 import { preguntaPorId } from '../../src/v3/nucleo/entrevista/banco.js';
 import { siguientePregunta } from '../../src/v3/nucleo/entrevista/flujo.js';
+import { avanzar, textoMandado } from '../../src/v3/turno.js';
+import { fichaTexto } from '../../src/v3/tipos.js';
 import equivalenciasRepo from '../../src/v3/equivalencias.json' with { type: 'json' };
 import { SIN_CLAVE_V3, type NarradorV3 } from '../../src/v3/tipos.js';
 
@@ -136,6 +138,8 @@ describe('el pase de un narrador en curso', () => {
     const fila = await leerFila(base.cliente, 'n1');
     expect(fila?.estado.respuestas).toEqual([['OR1', 'Nací en un pueblo. Había un río.'], ['CA1', 'Una casa chorizo. Empedrado.'], ['CA2', 'A la bolita.'], ['ES1', 'Mi maestra.'], ['F:pf1', 'Hacía pan.']]);
     expect(fila?.estado.salientes).toEqual([]);
+    // Dos preguntas viejas en CA1: un globo con las dos.
+    expect(fila?.estado.charla[1]).toEqual({ de: 'bio', partes: [{ id: 'CA1', texto: '¿Cómo era tu casa?' }, { id: 'CA1', texto: '¿Y tu barrio?' }] });
     expect(fila?.estado.ultimoEntranteAt).toBe('2026-10-07T20:00:00Z');
     expect(fila).toMatchObject({ tanda_dia: null, migrada_de: { de: 'v-vieja', dia_actual: 6 } });
     expect(Object.fromEntries(base.tablas.respuestas.map((r) => [r.id, r.clave_v3 ?? null]))).toEqual({ r1: 'OR1', r2: 'OR1', r3: 'CA1', r4: 'CA2', r5: 'ES1', r6: 'CA1', r7: 'F:pf1' });
@@ -399,6 +403,21 @@ describe('el pase con la tabla aprobada (07/10)', () => {
       ['CA3', '⟦inferida:CA2⟧'],
       ['ES6', 'Respuesta vieja 3.'],
     ]);
+    // La charla lleva lo que se le preguntó de verdad (lo que lee el escritor como «lo que se mandó»), en orden.
+    expect(fila?.estado.charla).toEqual([
+      { de: 'bio', partes: [{ id: 'CA1', texto: GUION_VIEJO[0] }] },
+      { de: 'bio', partes: [{ id: 'CA2', texto: GUION_VIEJO[1] }] },
+      { de: 'bio', partes: [{ id: 'ES6', texto: GUION_VIEJO[2] }] },
+    ]);
+    const ficha = fichaTexto(fila!);
+    expect(textoMandado(fila!.estado, ficha, 'CA2')).toBe(GUION_VIEJO[1]); // «mamá y papá», no la CA2 del banco
+    expect(textoMandado(fila!.estado, ficha, 'CA1')).toBe(GUION_VIEJO[0]);
+    expect(textoMandado(fila!.estado, ficha, 'ES6')).toBe(GUION_VIEJO[2]);
+    // No es la cola: no sale nada, y el turno siguiente abre OR1 como siempre.
+    expect(fila?.estado.salientes).toEqual([]);
+    const a = avanzar(fila!.estado, ficha);
+    expect(a.estado.esperando).toBe('OR1');
+    expect(a.estado.salientes).toHaveLength(1);
     // clave_v3 de las filas viejas: la primera clave (CA2), nunca CA3.
     expect(Object.fromEntries(base.tablas.respuestas.map((r) => [r.id, r.clave_v3 ?? null]))).toEqual({ r1: 'CA1', r2: 'CA2', r3: 'ES6' });
     // El motor, contestando todo lo que pregunta hasta salir del bloque 3, no manda ninguna de las cargadas.
