@@ -5,8 +5,7 @@
 //
 //   npx tsx scripts/v3-cazador-prueba-v3.ts --respuestas <respuestas.xml> --ficha <ficha.xml> \
 //     --salida <carpeta> [--bloques ci | --bloques 7] [--tope 1.5] [--prompt <prompt-vX.md>] [--solo 1,12,14 --previo <cazador-v3.json>] [--nombre v3-1]
-//     [--proveedor opus5 | opus55 | deepseek | gemini]   (07/10: prueba de proveedores, solo con el material de Naza;
-//      opus55 = Opus 5.5 con pensamiento medio; deepseek y gemini juntan el prompt de sistema con el pedido)
+//     [--proveedor opus5 | opus55] [--esfuerzo medium | high]   (07/10: opus55 = Opus 5.5; --esfuerzo solo para opus55, medio por defecto)
 //
 // La salida va a una carpeta fuera de git: tiene la vida real del narrador.
 
@@ -17,9 +16,6 @@ import { fileURLToPath } from 'node:url';
 import { BLOQUES_CAZADOR, controlarElegida, mensajeRepregunta, MODELO_CAZADOR, PRECIO_CAZADOR } from '../src/v3/entrevista/cazador.js';
 import { PIDEN_DIA as PIDEN_DIA_FLUJO } from '../src/v3/entrevista/flujo.js';
 import { usdDeLlamada } from '../src/escritor/costos.js';
-import { DEEPSEEK, GEMINI_FLASH } from '../src/escritor/modelo/configuracion.js';
-import { ModeloDeepSeek } from '../src/escritor/modelo/deepseek.js';
-import { ModeloGemini } from '../src/escritor/modelo/gemini.js';
 
 // Las constantes, los bloques y los controles viven en src/v3/entrevista/cazador.ts desde el 01/10 (plan del cazador, B1): acá se importan.
 const MODELO = MODELO_CAZADOR;
@@ -84,18 +80,13 @@ async function main() {
   const cliente = new Anthropic();
   mkdirSync(salida, { recursive: true });
   const proveedor = arg('proveedor') ?? 'opus5';
-  const modeloUsado = proveedor === 'opus55' ? 'claude-opus-5-5' : proveedor === 'deepseek' ? DEEPSEEK : proveedor === 'gemini' ? GEMINI_FLASH : 'claude-opus-5';
+  if (proveedor !== 'opus5' && proveedor !== 'opus55') throw new Error('--proveedor es opus5 u opus55');
+  const modeloUsado = proveedor === 'opus55' ? 'claude-opus-5-5' : 'claude-opus-5';
   const llamar = async (sistema: string, usuario: string): Promise<{ texto: string; usage: { input_tokens: number; output_tokens: number }; costo: number }> => {
-    if (proveedor === 'opus5' || proveedor === 'opus55') {
-      const extra = proveedor === 'opus55' ? { thinking: { type: 'adaptive' }, output_config: { effort: 'medium' } } : {};
-      const m = await cliente.messages.create({ model: modeloUsado, max_tokens: 16000, system: sistema, messages: [{ role: 'user', content: usuario }], ...extra } as Parameters<typeof cliente.messages.create>[0]) as Anthropic.Message;
-      const costo = proveedor === 'opus5' ? m.usage.input_tokens * 5e-6 + m.usage.output_tokens * 25e-6 : usdDeLlamada(modeloUsado, m.usage, { lote: false });
-      return { texto: m.content.flatMap((b) => (b.type === 'text' ? [b.text] : [])).join(''), usage: m.usage, costo };
-    }
-    const key = (n: string) => (): string => { const k = process.env[n]; if (!k) throw new Error(`falta ${n}`); return k; };
-    const m = proveedor === 'deepseek' ? new ModeloDeepSeek({ key: key('DEEPSEEK_API_KEY') }) : new ModeloGemini({ key: key('GOOGLE_API_KEY') });
-    const r = await m.llamar({ clave: 'cazador', modelo: modeloUsado, bloques: [sistema, usuario], cacheEn: [], maxTokens: 16000, esfuerzo: 'medium' });
-    return { texto: r.texto, usage: { input_tokens: (r.uso.input_tokens ?? 0) + (r.uso.cache_read_input_tokens ?? 0), output_tokens: r.uso.output_tokens ?? 0 }, costo: usdDeLlamada(modeloUsado, r.uso, { lote: false }) };
+    const extra = proveedor === 'opus55' ? { thinking: { type: 'adaptive' }, output_config: { effort: arg('esfuerzo') ?? 'medium' } } : {};
+    const m = await cliente.messages.create({ model: modeloUsado, max_tokens: 16000, system: sistema, messages: [{ role: 'user', content: usuario }], ...extra } as Parameters<typeof cliente.messages.create>[0]) as Anthropic.Message;
+    const costo = proveedor === 'opus5' ? m.usage.input_tokens * 5e-6 + m.usage.output_tokens * 25e-6 : usdDeLlamada(modeloUsado, m.usage, { lote: false });
+    return { texto: m.content.flatMap((b) => (b.type === 'text' ? [b.text] : [])).join(''), usage: m.usage, costo };
   };
 
   const rutaPrevio = arg('previo');

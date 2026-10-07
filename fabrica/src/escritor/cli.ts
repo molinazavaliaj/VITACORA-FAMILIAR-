@@ -3,12 +3,11 @@ import { mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'n
 import path from 'node:path';
 import { Carpeta } from './carpeta.js';
 import { estimarUsd } from './estimar.js';
-import { PERFILES, type Perfil } from './modelo/configuracion.js';
 
-export type ArgsCli = { carpeta: string; etapa: 'A' | 'B' | 'C'; soloCapitulo?: number; topeUsd: number; lote: boolean; si: boolean; correcciones?: string; perfil: Perfil; salida?: string; soloEscritura?: boolean };
+export type ArgsCli = { carpeta: string; etapa: 'A' | 'B' | 'C'; soloCapitulo?: number; topeUsd: number; lote: boolean; si: boolean; correcciones?: string; salida?: string; soloEscritura?: boolean };
 
 export function leerArgs(argv: string[]): ArgsCli {
-  const a: { carpeta?: string; etapa: ArgsCli['etapa']; soloCapitulo?: number; topeUsd: number; lote: boolean; si: boolean; correcciones?: string; perfil: Perfil; salida?: string; soloEscritura?: boolean } = { etapa: 'C', topeUsd: 15, lote: true, si: false, perfil: 'eco' };
+  const a: { carpeta?: string; etapa: ArgsCli['etapa']; soloCapitulo?: number; topeUsd: number; lote: boolean; si: boolean; correcciones?: string; salida?: string; soloEscritura?: boolean } = { etapa: 'C', topeUsd: 15, lote: true, si: false };
   for (let i = 0; i < argv.length; i++) {
     const k = argv[i];
     const valor = (): string => { const v = argv[++i]; if (v === undefined) throw new Error(`falta el valor de ${k}`); return v; };
@@ -18,7 +17,6 @@ export function leerArgs(argv: string[]): ArgsCli {
     else if (k === '--tope') { const n = Number(valor()); if (!(n > 0)) throw new Error('--tope es un monto en USD mayor que 0'); a.topeUsd = n; }
     else if (k === '--correcciones') a.correcciones = valor();
     else if (k === '--sin-lote') a.lote = false;
-    else if (k === '--perfil') { const p = valor(); if (!PERFILES.includes(p as Perfil)) throw new Error(`--perfil es ${PERFILES.join(', ')} (no ${p})`); a.perfil = p as Perfil; }
     else if (k === '--salida') a.salida = valor();
     else if (k === '--solo-escritura') a.soloEscritura = true;
     else if (k === '--si') a.si = true;
@@ -58,9 +56,9 @@ export function guardarCarpeta(c: Carpeta, dir: string): void {
 }
 
 /** El texto de la estimación que se muestra ANTES de llamar (nada de esto llama a la API). */
-export function textoEstimacion(c: Carpeta, a: Pick<ArgsCli, 'soloCapitulo' | 'topeUsd'> & { lote?: boolean; perfil?: Perfil }): string[] {
+export function textoEstimacion(c: Carpeta, a: Pick<ArgsCli, 'soloCapitulo' | 'topeUsd'> & { lote?: boolean }): string[] {
   if (a.soloCapitulo === undefined) return ['Sin estimación: solo se estima con --solo-capitulo N (el libro entero no se estima).'];
-  const e = estimarUsd(c, { soloCapitulo: a.soloCapitulo, lote: a.lote, perfil: a.perfil });
+  const e = estimarUsd(c, { soloCapitulo: a.soloCapitulo, lote: a.lote });
   const l = [`Estimación del capítulo ${a.soloCapitulo} (entrada sin lectura de caché, la de 1 hora se paga al doble, ${a.lote ? 'todo por Batch (mitad de precio)' : 'sin Batch'}, salida supuesta; no es un tope ni una promesa):`];
   if (e.conRelleno) l.push('  (el capítulo todavía no está escrito: las filas que lo incluyen usan un capítulo de relleno)');
   for (const f of e.filasPeor) l.push(`  ${f.paso.padEnd(28)} ${f.modelo.padEnd(16)} entrada ~${f.entradaTokens} tok, salida ~${f.salidaTokens} tok  USD ${f.usd.toFixed(4)}`);

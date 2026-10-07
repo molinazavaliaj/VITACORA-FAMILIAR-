@@ -12,7 +12,7 @@
 // respuestas del plan para ese capítulo (idsDeCapitulo).
 import type { Carpeta } from './carpeta.js';
 import { PRECIOS_ESCRITOR } from './costos.js';
-import { cacheDeUnaHora, HAIKU, rolDe, type Perfil } from './modelo/configuracion.js';
+import { cacheDeUnaHora, HAIKU, rolDe } from './modelo/configuracion.js';
 import { idsDeCapitulo, respuestas, salida } from './lectura.js';
 import { llamadaArmador, llamadaArreglo, llamadaCapitulo, llamadaEstilo, llamadaHechos, llamadaResumen, llamadaTitulo, llamadaVeedor, textoParaElModelo, type Llamada } from './llamadas/armar.js';
 import { archivoDe } from './texto.js';
@@ -20,11 +20,11 @@ import { archivoDe } from './texto.js';
 export type FilaEstimada = { paso: string; modelo: string; entradaTokens: number; salidaTokens: number; usd: number };
 /**
  * Salida con pensamiento, por paso. La prueba paga del 07/10 (todo xhigh) midió: capítulo 43.099, armador 27.049,
- * hechos 61.306, veedor 38.388, arreglo 16.025, repaso 15.834. Con la configuración económica el capítulo sigue
- * en xhigh; lo de pensamiento medio se supone en algo menos de la mitad; Haiku, con su presupuesto de 8.000.
+ * hechos 61.306, veedor 38.388, arreglo 16.025, repaso 15.834. Con la configuración económica (todo medio salvo la
+ * primera página; Haiku con su presupuesto) se midió el 07/10: capítulo 16.189, armador 6.858, hechos 19.041.
  */
 export const SALIDA_ESTIMADA: Record<string, number> = {
-  '2h-armador': 12000, '3b-capitulo': 45000, '3r-resumen': 3000, '4-hechos': 30000, '5c-veedor': 16000,
+  '2h-armador': 12000, '3b-capitulo': 20000, '3r-resumen': 3000, '4-hechos': 30000, '5c-veedor': 16000,
   '6-arreglo': 8000, '4-hechos-repaso': 8000, '7-estilo': 8000, '3t-titulo': 3000,
 };
 /**
@@ -44,12 +44,12 @@ export function largoDeRelleno(c: Carpeta, n: number): number {
 
 export type Estimacion = { filas: FilaEstimada[]; total: number; filasPeor: FilaEstimada[]; peorCaso: number; conRelleno: boolean };
 
-export function estimarUsd(c: Carpeta, o: { soloCapitulo: number; lote?: boolean; perfil?: Perfil }): Estimacion {
+export function estimarUsd(c: Carpeta, o: { soloCapitulo: number; lote?: boolean }): Estimacion {
   const n = o.soloCapitulo;
   const fila = (paso: string, l: Llamada, salidaClave = paso): FilaEstimada => {
-    const { modelo } = rolDe(l.nombre, o.perfil);
+    const { modelo } = rolDe(l.nombre);
     const p = PRECIOS_ESCRITOR[modelo];
-    const factor = o.lote && !p.sinLote ? 0.5 : 1;
+    const factor = o.lote ? 0.5 : 1;
     const entradaTokens = tokens(textoParaElModelo(l), modelo);
     const salidaTokens = SALIDA_ESTIMADA[salidaClave];
     // La caché de 1 hora se escribe al doble de la entrada; se supone que no pega (en un lote, la caché es de mejor esfuerzo).

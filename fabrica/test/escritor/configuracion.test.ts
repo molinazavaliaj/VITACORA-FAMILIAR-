@@ -56,11 +56,3 @@ describe('cacheDeUnaHora', () => {
     for (const n of ['4-hechos', '4-hechos-repaso', 'disputa-cap_1-1', '3b-capitulo-01', '5c-veedor']) expect(cacheDeUnaHora(n)).toBe(false);
   });
 });
-
-describe('perfiles eco-alto y eco-medio (prueba del 07/10)', () => {
-  it('solo cambian el capítulo; la primera página y lo demás quedan como en eco', () => {
-    expect(rolDe('3b-capitulo-06', 'eco-alto')).toEqual({ modelo: OPUS, maxTokens: 128000, esfuerzo: 'high' });
-    expect(rolDe('3b-capitulo-06', 'eco-medio')).toEqual({ modelo: OPUS, maxTokens: 128000, esfuerzo: 'medium' });
-    for (const n of ['3a-primera', '2h-armador-06', '4-hechos', '7-estilo-cap_6']) for (const p of ['eco-alto', 'eco-medio'] as const) expect(rolDe(n, p)).toEqual(rolDe(n));
-  });
-});

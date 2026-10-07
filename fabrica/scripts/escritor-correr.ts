@@ -14,9 +14,6 @@ import { cargarCarpeta, guardarCarpeta, leerArgs, sinClave, textoEstimacion } fr
 import { Ejecutor, OPCIONES_CLIENTE } from '../src/escritor/ejecutor.js';
 import { ModeloAnthropic, type ClienteMensajes } from '../src/escritor/modelo/anthropic.js';
 import { LoteAnthropic, type ClienteLotes } from '../src/escritor/modelo/lote-anthropic.js';
-import { ModeloDeepSeek } from '../src/escritor/modelo/deepseek.js';
-import { ModeloGemini } from '../src/escritor/modelo/gemini.js';
-import { LoteMixto, ModeloMixto } from '../src/escritor/modelo/mixto.js';
 import type { Contexto } from '../src/escritor/orquestador/contexto.js';
 import { etapaA } from '../src/escritor/orquestador/etapa-a.js';
 import { etapaB } from '../src/escritor/orquestador/etapa-b.js';
@@ -35,14 +32,9 @@ async function main(): Promise<void> {
   const almacen = new AlmacenDisco(destino);
   const anthropic = new ModeloAnthropic(cliente as unknown as ClienteMensajes);
   const loteAnthropic = a.lote ? new LoteAnthropic(cliente as unknown as ClienteLotes, almacen, { log: (s) => console.log(s) }) : undefined;
-  // PRUEBA del 07/10: los perfiles de otros proveedores (solo con el material de Naza). Las keys salen de
-  // DEEPSEEK_API_KEY y GOOGLE_API_KEY (las de Hermes, con --env-file); nunca se imprimen.
-  const key = (n: string) => (): string => { const k = process.env[n]; if (!k) throw new Error(`falta ${n}`); return k; };
-  const mixto = a.perfil === 'eco' ? null : new ModeloMixto({ anthropic, deepseek: new ModeloDeepSeek({ key: key('DEEPSEEK_API_KEY') }), google: new ModeloGemini({ key: key('GOOGLE_API_KEY') }) });
   const ej = new Ejecutor({
-    modelo: mixto ?? anthropic,
-    lote: mixto ? new LoteMixto(loteAnthropic, mixto) : loteAnthropic,
-    perfil: a.perfil,
+    modelo: anthropic,
+    lote: loteAnthropic,
     // Configuración económica: también las llamadas de a una van por Batch (un libro tarda horas).
     todoPorLote: a.lote,
     almacen,

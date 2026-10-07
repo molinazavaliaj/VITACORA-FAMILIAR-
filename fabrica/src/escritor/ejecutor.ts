@@ -24,7 +24,7 @@ import type { Almacen } from './almacen/tipos.js';
 import { parseJSONTolerante } from './carpeta.js';
 import { usdDeLlamada, type UsoApi } from './costos.js';
 import type { Llamada } from './llamadas/armar.js';
-import { cacheDeUnaHora, maxSalidaDe, rolDe, type Perfil } from './modelo/configuracion.js';
+import { cacheDeUnaHora, maxSalidaDe, rolDe } from './modelo/configuracion.js';
 import { bloquesDeLlamada, hashDePedido, puntosDeCache } from './modelo/pedido.js';
 import { ErrorDelModelo, type Esfuerzo, type Lote, type Modelo, type PedidoModelo, type RespuestaModelo } from './modelo/tipos.js';
 
@@ -35,7 +35,7 @@ export const OPCIONES_CLIENTE = { maxRetries: 0 } as const;
 export type Encargo = { clave: string; llamada: Llamada; json: boolean; maxTokens?: number; esfuerzo?: Esfuerzo };
 /** `falla: true` = un intento que la API cobró pero no sirvió (rechazo, corte); no queda en la memoria. */
 export type FilaUso = { clave: string; modelo: string; lote: boolean; de_memoria: boolean; input: number; output: number; cache_write: number; cache_read: number; usd: number; falla?: boolean };
-export type OpcionesEjecutor = { modelo: Modelo; lote?: Lote; todoPorLote?: boolean; perfil?: Perfil; almacen: Almacen; topeUsd?: number; esperar?: (ms: number) => Promise<void>; esperasMs?: number[]; limite?: number; log?: (s: string) => void };
+export type OpcionesEjecutor = { modelo: Modelo; lote?: Lote; todoPorLote?: boolean; almacen: Almacen; topeUsd?: number; esperar?: (ms: number) => Promise<void>; esperasMs?: number[]; limite?: number; log?: (s: string) => void };
 export type ResultadoVarios = { textos: Map<string, string>; fallas: Map<string, string> };
 
 export class TopeDeGasto extends Error {
@@ -93,7 +93,7 @@ export class Ejecutor {
   }
 
   pedido(e: Encargo): PedidoModelo {
-    const rol = rolDe(e.llamada.nombre, this.o.perfil);
+    const rol = rolDe(e.llamada.nombre);
     const { modelo, maxTokens, pensamiento } = rol;
     const esfuerzo = rol.esfuerzo && e.esfuerzo && ORDEN_ESFUERZO.indexOf(e.esfuerzo) < ORDEN_ESFUERZO.indexOf(rol.esfuerzo) ? e.esfuerzo : rol.esfuerzo;
     const cacheEn = puntosDeCache(e.llamada.nombre, e.llamada.docs);
