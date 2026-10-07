@@ -20,7 +20,8 @@ export function tituloValido(titulo: string, texto: string): boolean {
   const ws = palabras(titulo || '');
   if (ws.length < 2 || ws.length > 7) return false;
   const cap = palabras(texto), raiz = (w: string) => w.slice(0, Math.max(4, w.length - 2));
-  return ws.filter((w) => !VACIAS_T.has(w) && w.length > 2).every((w) => cap.some((c) => c === w || (w.length > 4 && c.startsWith(raiz(w)))));
+  // 07/10: también las palabras de 4 letras aceptan otra conjugación ("saca" en un capítulo que dice "sacaba").
+  return ws.filter((w) => !VACIAS_T.has(w) && w.length > 2).every((w) => cap.some((c) => c === w || (w.length >= 4 && c.startsWith(raiz(w)))));
 }
 
 export function tituloImpreso(cap: Json): string {

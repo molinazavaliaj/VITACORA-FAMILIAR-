@@ -22,7 +22,8 @@ describe.skipIf(!CORRIDA)('la corrida v5.5 de Joaquín, con el modelo falso', ()
     c.escribir('salidas/plan.json', leer('salidas/plan.json'));
     const almacen = new AlmacenMemoria();
     const modelo = new ModeloFalso(salidasDeCorrida(dir));
-    await etapaC({ c, ej: new Ejecutor({ modelo, almacen, topeUsd: 1e9 }), almacen, log: () => {}, usarLote: false });
+    // La sesión no aplicaba las correcciones del repaso (Naza las sumó el 07/10): se reproduce sin eso.
+    await etapaC({ c, ej: new Ejecutor({ modelo, almacen, topeUsd: 1e9 }), almacen, log: () => {}, usarLote: false }, { sinAplicarRepaso: true });
 
     const de = (sub: string, re: RegExp) => readdirSync(path.join(dir, sub)).filter((f) => re.test(f)).map((f) => `${sub}/${f}`);
     const rutas = [

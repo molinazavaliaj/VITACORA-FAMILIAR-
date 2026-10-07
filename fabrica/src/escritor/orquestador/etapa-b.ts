@@ -15,7 +15,7 @@ import { TopeDeGasto } from '../ejecutor.js';
 import { salida } from '../lectura.js';
 import { llamadaCorreccion, llamadaCorreccionPlan } from '../llamadas/fabrica.js';
 import { agregarConfirmados, type CorreccionFamilia } from '../material/a-carpeta.js';
-import { cargarSnapshot, conReintentos, guardarSnapshot, type Contexto } from './contexto.js';
+import { cargarSnapshot, conReintentos, guardarSnapshot, repararPlanEnCarpeta, type Contexto } from './contexto.js';
 
 export type ResultadoEtapaB = { ok: true; corregido: 'nada' | 'barato' | 'opus' } | { ok: false; motivo: string };
 
@@ -30,6 +30,7 @@ async function corregirPlanBarato(x: Contexto): Promise<boolean> {
     const texto = await x.ej.uno({ clave: 'B/correccion-plan', llamada: llamadaCorreccionPlan(x.c), json: true });
     const plan = validarPlanCorregido(leerJSON(x.c, salida('plan.json')), parseJSONTolerante(texto));
     x.c.escribir(salida('plan.json'), JSON.stringify(plan, null, 1));
+    repararPlanEnCarpeta(x);
     const r = controlar(x.c, 'plan');
     x.log(`plan corregido (barato): ${r.resumen.split('\n')[0]}`);
     return r.codigo === 0;

@@ -128,7 +128,10 @@ export function c13(plan: Json, reg: Json): string[] {
   if (norm(plan.carta?.titulo || '') === 'antes de cerrar') out.push('C13: la carta no puede llamarse "Antes de cerrar" (es otra pieza)');
   const tipoDeId = new Map();
   for (const e of reg.episodios || []) for (const i of e.ids) tipoDeId.set(i, [...(tipoDeId.get(i) || []), e.tipo]);
-  for (const i of idsCarta) if (!(tipoDeId.get(i) || []).includes('mensaje')) out.push(`C13 carta: ${i} no tiene ningún episodio tipo "mensaje"`);
+  // 07/10: una respuesta que le habla a la familia (a_quien "familia") puede ir en la carta aunque su episodio sea otro
+  // tipo (por ejemplo, un balance): C19 la exige en la carta, y sin esto los dos controles se contradecían (libro de Joaquín).
+  const aFamilia = new Set((reg.episodios || []).filter((e: Json) => e.a_quien === 'familia' && !e.no_poner).flatMap((e: Json) => e.ids));
+  for (const i of idsCarta) if (!(tipoDeId.get(i) || []).includes('mensaje') && !aFamilia.has(i)) out.push(`C13 carta: ${i} no tiene ningún episodio tipo "mensaje"`);
   const presentaIds = new Set([...(reg.narrador?.como_se_presenta || []), ...(reg.narrador?.cosas_concretas_suyas || [])].flatMap((x) => x.ids));
   for (const i of [...(plan.primera_pagina?.que_dice_de_si_ids || []), ...(plan.primera_pagina?.cosa_concreta?.ids || [])]) if (!presentaIds.has(i)) out.push(`C13 primera página: ${i} no está en como_se_presenta ni en cosas_concretas_suyas`);
   for (const f of plan.sus_frases || []) if (palabras(f.contexto || '').length > 20) out.push(`C13 sus_frases ${f.id}: contexto de más de 20 palabras`);
@@ -233,6 +236,23 @@ export function c19(psCrudas: PiezaTexto[], reg: Json): Problema[] {
   }
   return out;
 }
+/** C19: las personas de carta.para_personas sin mensaje en el registro ni faltante que lo diga (per null: no está en el registro). */
+export function dedicadosSinMensaje(plan: Json, reg: Json): { pid: string; per: Json | null }[] {
+  const out: { pid: string; per: Json | null }[] = [];
+  const faltan = ` ${norm((plan.faltantes || []).map((f: Json) => `${f.que} ${f.donde || ''}`).join(' '))} `;
+  for (const pid of plan.carta?.para_personas || []) {
+    const per = (reg.personas || []).find((p: Json) => p.id === pid);
+    if (!per) { out.push({ pid, per: null }); continue; }
+    // v4 (prueba del banco): "mamá" tiene que encontrar a "su mamá" (relación madre): se comparan también sin "su/mi" y por relación.
+    const PAR: Record<string, string[]> = { madre: ['mama', 'vieja'], padre: ['papa', 'viejo'] };
+    const rel = norm(per.relacion || '').split(' ')[0];
+    const suyos = [per.id, per.nombre, ...(per.apodos || []), rel, ...(PAR[rel] || [])].filter(Boolean).map(norm).flatMap((n) => [n, n.replace(/^(su|mi) /, '')]);
+    const leHabla = (reg.episodios || []).some((e: Json) => e.a_quien === 'familia' && !e.no_poner && (e.a_quien_nombres || []).some((n: Json) => suyos.includes(norm(n))));
+    if (!leHabla && !suyos.some((n) => n.length > 1 && faltan.includes(` ${n} `))) out.push({ pid, per });
+  }
+  return out;
+}
+
 // C20 (plan): el último capítulo no junta más de 2 reflexiones o gustos que no sean media línea.
 export function c20(plan: Json, reg: Json): string[] {
   const eps = Object.fromEntries((reg.episodios || []).map((e: Json) => [e.id, e]));
@@ -244,17 +264,7 @@ export function c20(plan: Json, reg: Json): string[] {
   for (const e of reg.episodios || []) if (e.a_quien === 'familia' && !e.no_poner && !e.ids.some((i: Json) => carta.has(i))) otros.push(`C19: el episodio ${e.id} le habla a la familia y no está en carta.ids`);
   if (!plan.carta?.titulo) otros.push('C13: la carta no tiene título');
   // receta v3: a quien está dedicado el libro y no le dejó mensaje, se dice en faltantes (nunca se inventa).
-  const faltan = ` ${norm((plan.faltantes || []).map((f: Json) => `${f.que} ${f.donde || ''}`).join(' '))} `;
-  for (const pid of plan.carta?.para_personas || []) {
-    const per = (reg.personas || []).find((p: Json) => p.id === pid);
-    if (!per) { otros.push(`C19: carta.para_personas tiene ${pid}, que no está en el registro`); continue; }
-    // v4 (prueba del banco): "mamá" tiene que encontrar a "su mamá" (relación madre): se comparan también sin "su/mi" y por relación.
-    const PAR: Record<string, string[]> = { madre: ['mama', 'vieja'], padre: ['papa', 'viejo'] };
-    const rel = norm(per.relacion || '').split(' ')[0];
-    const suyos = [per.id, per.nombre, ...(per.apodos || []), rel, ...(PAR[rel] || [])].filter(Boolean).map(norm).flatMap((n) => [n, n.replace(/^(su|mi) /, '')]);
-    const leHabla = (reg.episodios || []).some((e: Json) => e.a_quien === 'familia' && !e.no_poner && (e.a_quien_nombres || []).some((n: Json) => suyos.includes(norm(n))));
-    if (!leHabla && !suyos.some((n) => n.length > 1 && faltan.includes(` ${n} `))) otros.push(`C19: el libro está dedicado a ${per.nombre} y no hay mensaje para ${per.nombre} ni faltante que lo diga`);
-  }
+  for (const x of dedicadosSinMensaje(plan, reg)) otros.push(x.per ? `C19: el libro está dedicado a ${x.per.nombre} y no hay mensaje para ${x.per.nombre} ni faltante que lo diga` : `C19: carta.para_personas tiene ${x.pid}, que no está en el registro`);
   return [...otros, ...(sueltas.length > 2 ? [`C20: el último capítulo junta ${sueltas.length} reflexiones o gustos (${sueltas.map((p: Json) => p.episodio).join(', ')}); máximo 2: el resto vuelve a su capítulo o es remate de su escena`] : [])];
 }
 // C21: cada persona con algún hecho aparece en el libro.
