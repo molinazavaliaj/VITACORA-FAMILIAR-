@@ -8,6 +8,13 @@
     "¿Cómo era su escuela? ¿Tuvo algún maestro o compañero que nunca se olvidó?": "ES2",
     "Hábleme de sus abuelos y de dónde viene su familia. ¿Qué historias le contaban de antes de que usted naciera?": "OR2",
     "Hábleme de sus hermanos. ¿Cómo era cada uno, con quién se llevaba mejor? ¿O fue hijo único — cómo era eso?": "CA6",
-    "¿Qué tradiciones había en su casa? Las comidas, las fiestas, los domingos... ¿qué olores y sabores lo devuelven a esa mesa?": "CA10"
+    "¿Qué tradiciones había en su casa? Las comidas, las fiestas, los domingos... ¿qué olores y sabores lo devuelven a esa mesa?": "CA10",
+    "Vamos a sus quince, dieciséis años. ¿Cómo era un sábado a la noche? ¿Qué música sonaba, qué se bailaba, cómo se vestían para salir, a dónde iban?": "AD5",
+    "Hábleme de la banda de amigos de esa época. ¿Quiénes eran, cómo se conocieron? ¿Qué hacían juntos — la pelota, el club, el café? ¿Queda alguno con quien todavía se hable?": "AD3",
+    "En su época no todos podían seguir estudiando. ¿Hasta dónde llegó usted con los estudios, y cómo fue esa decisión? ¿La eligió, o la vida la eligió por usted?": "JU2",
+    "Cuénteme de su primer trabajo y su primer sueldo. ¿Cómo lo consiguió, qué hizo con esa primera plata?": "TR1",
+    "Ahora cuénteme ESA historia: la que se cuenta en las sobremesas cuando todos ya se rieron dos veces. El lío del que se salvó raspando, la locura que hizo por una apuesta o por amor. Todos tenemos una. ¿Cuál es la suya?": "JU13",
+    "¿Cómo conoció al amor de su vida? Lléveme a ese día: dónde fue, qué pensó cuando la vio, quién dio el primer paso.": "AM1",
+    "¿Cómo era el noviazgo en esa época? Cuénteme el día que la presentó en su casa — ¿qué dijeron sus padres, cómo lo recibieron sus suegros? ¿Y cómo fue la propuesta de casamiento y el día de la boda?": ["AM3", "AM4"]
   }
 }
