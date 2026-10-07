@@ -22,17 +22,19 @@ import { registrarUso, cuentaDeEsteServicio } from '../costos.js';
  * viejo llegando de la URA a las 8 de la noche"; con el prompt de contexto
  * —vocabulario rioplatense + los nombres y lugares del narrador, que arma
  * `src/manual/puro.ts:promptDeTranscripcion`— se oyó "llegando de laburar".
+ * `idioma`: el código de OpenAI; la V3 pasa `IDIOMA_OPENAI` del núcleo (`ca` para
+ * catalán). Sin él, castellano, como siempre.
  * El prompt se corta ~224 tokens, así que tiene que venir corto (por eso
  * `promptDeTranscripcion` recorta).
  */
 export async function transcribir(
-  audio: Buffer, prompt?: string, narradorId?: string,
+  audio: Buffer, prompt?: string, narradorId?: string, idioma = 'es',
 ): Promise<{ texto: string; duracionSegundos: number }> {
   const config = cargarConfig();
   const form = new FormData();
   form.append('file', new Blob([new Uint8Array(audio)], { type: 'audio/ogg' }), 'audio.ogg');
   form.append('model', 'gpt-transcribe');
-  form.append('language', 'es');
+  form.append('language', idioma);
   form.append('response_format', 'json');
   if (prompt) form.append('prompt', prompt);
 

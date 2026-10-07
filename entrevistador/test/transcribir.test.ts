@@ -44,6 +44,18 @@ describe('transcribir', () => {
     expect(cuerpo.get('prompt')).toBeNull();
   });
 
+  it('transcribe en el idioma que se le pide (V3: catalán); sin idioma, castellano como siempre', async () => {
+    const fetchFalso = vi.fn(async () => respuestaGptTranscribe('Bon dia', 3));
+    vi.stubGlobal('fetch', fetchFalso);
+    const { transcribir } = await import('../src/ia/transcribir.js');
+    await transcribir(Buffer.from('audio-falso'), 'vocabulari', 'n1', 'ca');
+    await transcribir(Buffer.from('audio-falso'));
+    const idiomas = (fetchFalso as any).mock.calls
+      .filter((c: any[]) => String(c[0]).includes('/audio/transcriptions'))
+      .map((c: any[]) => (c[1].body as FormData).get('language'));
+    expect(idiomas).toEqual(['ca', 'es']);
+  });
+
   it('si la respuesta no trae duración, falla fuerte en vez de devolver 0', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => new Response(
       JSON.stringify({ text: 'algo' }), { status: 200 },

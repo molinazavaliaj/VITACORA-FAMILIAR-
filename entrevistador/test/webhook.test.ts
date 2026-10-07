@@ -53,6 +53,12 @@ describe('el botón de la plantilla', () => {
       .toMatchObject({ tipo: 'texto', texto: 'Más tarde' });
   });
 
+  it('marca que fue un botón (la V3 distingue un toque de un texto escrito)', () => {
+    expect(parsearEntrante(entrante({ type: 'interactive', interactive: { type: 'button_reply', button_reply: { id: 'b1', title: 'Sí, tuve' } } })))
+      .toMatchObject({ tipo: 'texto', texto: 'Sí, tuve', esBoton: true });
+    expect(parsearEntrante(entrante({ type: 'text', text: { body: 'Sí, tuve' } }))?.esBoton).toBeUndefined();
+  });
+
   it('un botón vacío no inventa un mensaje', () => {
     expect(parsearEntrante(entrante({ type: 'button', button: { text: '   ' } }))).toBeNull();
     expect(parsearEntrante(entrante({ type: 'sticker', sticker: { id: 's1' } }))).toBeNull();

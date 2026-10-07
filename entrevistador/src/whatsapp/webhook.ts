@@ -9,6 +9,8 @@ export type MensajeEntrante = {
   mediaId?: string;
   mimeType?: string;  // imagen: image/jpeg, image/png, image/webp
   waMessageId: string;
+  /** Vino de un botón (plantilla o interactivo). La V3 lo distingue de un texto escrito. */
+  esBoton?: true;
 };
 
 /**
@@ -46,7 +48,7 @@ export function parsearEntrante(body: any): MensajeEntrante | null {
   // para contestar y era el único que no escuchábamos: leyeron la bienvenida,
   // apretaron SI, y del otro lado no pasó nada.
   const apretado = textoDelBoton(mensaje);
-  if (apretado) return { ...base, tipo: 'texto', texto: apretado };
+  if (apretado) return { ...base, tipo: 'texto', texto: apretado, esBoton: true };
   return null; // stickers, reacciones, documentos, ubicaciones: se ignoran
 }
 
