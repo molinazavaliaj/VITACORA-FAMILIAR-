@@ -3,6 +3,7 @@ import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { leerRegalo, numeroPublico } from "@/lib/regalo-datos";
 import { qrDataUri, urlRegalo } from "@/lib/qr";
 import { TEXTOS_REGALO } from "@/lib/regalo-textos";
+import { largoEnTarjeta, numeroSinCortes } from "@/lib/regalo";
 
 // La tarjeta del regalo como imagen vertical (1080 × 1920) para mandar por
 // WhatsApp: el interior de la tarjeta en una columna. Negro sobre blanco.
@@ -14,7 +15,8 @@ type Fuente = { name: string; data: ArrayBuffer; weight: 300 | 400 | 500 | 600; 
 
 // Las fuentes de la marca, en TTF desde Google Fonts (Satori no lee woff2). Se
 // bajan una vez por proceso, recién cuando hace falta la primera imagen. Si
-// Google no responde, la imagen sale igual con la fuente que trae next/og.
+// Google no responde en 3 s, la imagen sale igual con la fuente que trae
+// next/og, y la próxima imagen lo vuelve a intentar.
 const PEDIDOS: ReadonlyArray<{ familia: string; css: string; weight: Fuente["weight"]; style: Fuente["style"] }> = [
   { familia: "Playfair Display", css: "Playfair+Display:wght@500", weight: 500, style: "normal" },
   { familia: "Playfair Display", css: "Playfair+Display:ital,wght@1,400", weight: 400, style: "italic" },
@@ -27,10 +29,10 @@ let fuentes: Promise<Fuente[]> | null = null;
 
 async function bajarFuente(p: (typeof PEDIDOS)[number]): Promise<Fuente | null> {
   try {
-    const css = await (await fetch(`https://fonts.googleapis.com/css2?family=${p.css}`)).text();
+    const css = await (await fetch(`https://fonts.googleapis.com/css2?family=${p.css}`, { signal: AbortSignal.timeout(3000) })).text();
     const url = css.match(/src: url\((.+?)\) format\('(?:truetype|opentype)'\)/)?.[1];
     if (!url) return null;
-    const r = await fetch(url);
+    const r = await fetch(url, { signal: AbortSignal.timeout(3000) });
     if (!r.ok) return null;
     return { name: p.familia, data: await r.arrayBuffer(), weight: p.weight, style: p.style };
   } catch {
@@ -68,7 +70,8 @@ export async function GET(_request: Request, { params }: { params: Promise<{ cod
   const titulo = "Playfair Display";
   const cuerpo = "Source Serif 4";
   const micro = "Archivo";
-  const tamanoMensaje = regalo.mensaje.length > 400 ? 32 : regalo.mensaje.length > 250 ? 38 : 46;
+  const largo = largoEnTarjeta(regalo.mensaje);
+  const tamanoMensaje = largo > 400 ? 32 : largo > 250 ? 38 : 46;
 
   return new ImageResponse(
     (
@@ -112,7 +115,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ cod
         <img src={qr} alt="" width={420} height={420} style={{ alignSelf: "center", marginTop: 24 }} />
         {numero && (
           <div style={{ display: "flex", justifyContent: "center", textAlign: "center", marginTop: 20, fontSize: 28, lineHeight: 1.4 }}>
-            {TEXTOS_REGALO.respaldo(numero.legible)}
+            {TEXTOS_REGALO.respaldo(numeroSinCortes(numero.legible))}
           </div>
         )}
         <div

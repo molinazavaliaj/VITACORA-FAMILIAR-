@@ -7,6 +7,6 @@ export function qrDataUri(texto: string): Promise<string> {
 
 /** La URL que lleva el QR de la gift card: la página que abre el regalo. */
 export function urlRegalo(codigo: string): string {
-  const urlBase = process.env.URL_BASE ?? "https://www.vitacorafamiliar.com";
+  const urlBase = process.env.URL_BASE || "https://www.vitacorafamiliar.com";
   return `${urlBase}/regalo/${codigo}`;
 }

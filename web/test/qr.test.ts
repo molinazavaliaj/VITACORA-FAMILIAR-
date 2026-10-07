@@ -18,9 +18,11 @@ describe("qrDataUri", () => {
 });
 
 describe("urlRegalo", () => {
-  it("usa URL_BASE si está, y si no la web de producción", () => {
+  it("usa URL_BASE si está, y si no (o está vacía) la web de producción", () => {
     const antes = process.env.URL_BASE;
     delete process.env.URL_BASE;
+    expect(urlRegalo("VF-7K3M2Q")).toBe("https://www.vitacorafamiliar.com/regalo/VF-7K3M2Q");
+    process.env.URL_BASE = "";
     expect(urlRegalo("VF-7K3M2Q")).toBe("https://www.vitacorafamiliar.com/regalo/VF-7K3M2Q");
     process.env.URL_BASE = "http://localhost:3000";
     expect(urlRegalo("VF-7K3M2Q")).toBe("http://localhost:3000/regalo/VF-7K3M2Q");

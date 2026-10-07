@@ -3,6 +3,7 @@ import type { ReactElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { TEXTOS_REGALO } from "../src/lib/regalo-textos";
 import type { RegaloPublico } from "../src/lib/regalo-datos";
+import { largoEnTarjeta } from "../src/lib/regalo";
 
 // Gift card: la tarjeta imprimible y la imagen para WhatsApp, sin base
 // (leerRegalo mockeado) y con un QR de mentira.
@@ -68,10 +69,21 @@ describe("la tarjeta imprimible", () => {
     expect(html).toContain(TEXTOS_REGALO.esUnRegalo);
     for (const linea of TEXTOS_REGALO.explica) expect(html).toContain(linea);
     expect(html).toContain(TEXTOS_REGALO.apunta);
-    expect(html).toContain(TEXTOS_REGALO.respaldo("+54 9 11 0000 0000"));
+    expect(html).toContain(TEXTOS_REGALO.respaldo("+54\u00A09\u00A011\u00A00000\u00A00000"));
     expect(html).toContain(">VF-7K3M2Q<");
     expect(html).toContain('src="data:image/png;base64,QRFALSO"');
     expect(estado.qrs).toEqual(["https://www.vitacorafamiliar.com/regalo/VF-7K3M2Q"]);
+  });
+
+  it("el número no se corta en dos renglones", async () => {
+    const html = await render();
+    expect(html).not.toContain("+54 9 11 0000 0000");
+  });
+
+  it("la hoja de adentro va girada 180° solo al imprimir (doble faz por el borde largo)", async () => {
+    const html = await render();
+    expect(html).toMatch(/class="hoja hoja-interior"/);
+    expect(html).toMatch(/@media print \{[^@]*\.hoja-interior \.tarjeta \{ transform: rotate\(180deg\); \}/);
   });
 
   it("trae los dos botones de pantalla, el de la imagen apunta a ./imagen", async () => {
@@ -99,6 +111,13 @@ describe("la tarjeta imprimible", () => {
     await expect(render("VF%2D7K3M2Q")).rejects.toThrow("NEXT_NOT_FOUND");
     expect(estado.codigos).toEqual(["VF-7K3M2Q"]);
     await expect(render("%E0%A4%A")).rejects.toThrow("NEXT_NOT_FOUND");
+  });
+});
+
+describe("largoEnTarjeta", () => {
+  it("cada salto de línea cuenta como 40 letras", () => {
+    expect(largoEnTarjeta("hola")).toBe(4);
+    expect(largoEnTarjeta("a\nb\nc")).toBe(5 + 80);
   });
 });
 

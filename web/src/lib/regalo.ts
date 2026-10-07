@@ -33,6 +33,16 @@ export const GENEROS = ["varon", "mujer", "otro"] as const;
 export type Genero = (typeof GENEROS)[number];
 export const MENSAJE_MAXIMO = 600;
 
+/** Cuánto ocupa el mensaje en la tarjeta: cada salto de línea pesa como 40 letras (un renglón). */
+export function largoEnTarjeta(mensaje: string): number {
+  return mensaje.length + 40 * (mensaje.match(/\n/g)?.length ?? 0);
+}
+
+/** El número de WhatsApp con espacios duros: impreso no se corta en dos renglones. */
+export function numeroSinCortes(legible: string): string {
+  return legible.replace(/ /g, "\u00A0");
+}
+
 export type DatosRegalo = { mensaje: string; fechaEntrega: string | null; genero: Genero };
 
 const FECHA_RE = /^\d{4}-\d{2}-\d{2}$/;
