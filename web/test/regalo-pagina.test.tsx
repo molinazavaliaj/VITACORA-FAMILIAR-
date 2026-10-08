@@ -81,6 +81,7 @@ describe("la página del regalo", () => {
     expect(html).toContain('src="/api/regalo/VF-7K3M2Q/audio"');
     expect(html).toContain('preload="none"');
     expect(html).not.toMatch(/autoplay/i);
+    expect(html).toContain('aria-label="Escuchar el audio de Lucía"');
   });
 
   it("sin audio: no hay reproductor", async () => {

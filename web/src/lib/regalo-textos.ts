@@ -26,7 +26,7 @@ export const TEXTOS_REGALO = {
   estadoCorto: "esperando que abra el regalo",
   proximoPaso: "Descargá la tarjeta del regalo",
 
-  // PROPUESTA (Task 0, tanda 3), hasta que Naza apruebe. Los botones de la tarjeta.
+  // Aprobados por Naza el 08/10 (Task 0, tanda 3). Los botones de la tarjeta.
   botonImprimir: "Imprimir o guardar en PDF",
   botonImagen: "Descargar la imagen para WhatsApp",
 
@@ -45,7 +45,7 @@ export const TEXTOS_REGALO = {
   tuCorreo: "Tu correo. Ahí te llega la tarjeta.",
   botonPagar: "Pagar y descargar la tarjeta",
 
-  // PROPUESTA (tanda 3), hasta que Naza apruebe. Lo demás que pide el formulario de /regalar.
+  // Aprobados por Naza el 08/10 (Task 0, tanda 3). Lo demás que pide el formulario de /regalar.
   tituloPagina: "Regalar el libro",
   pasos: ["A quién", "Tu mensaje", "Tus datos", "Pagar"],
   contador: (n: number, maximo: number) => `${n}/${maximo}`,
@@ -54,7 +54,7 @@ export const TEXTOS_REGALO = {
   escuchar: "Escuchar",
   borrar: "Borrar",
   elegirAudio: "Elegí un audio",
-  audioNoSirve: "Ese audio no sirve. Probá con otro.",
+  audioNoSirve: "No pudimos usar ese audio. Probá grabarlo de nuevo.",
   atras: "Atrás",
   seguir: "Seguir",
   unMomento: "Un momento…",
@@ -64,10 +64,12 @@ export const TEXTOS_REGALO = {
   faltaMensaje: "Falta tu mensaje para la tarjeta.",
   faltaTuNombre: "Falta tu nombre.",
   faltaQueEsTuyo: "Falta qué es tuyo.",
-  correoMal: "Revisá el correo. Así no te llega la tarjeta.",
+  correoMal: "Ese correo parece mal escrito. Revisalo, ahí te llega la tarjeta.",
   errorPago: "No pudimos ir al pago. Probá de nuevo.",
   // Los que la página ya tenía fijos, con las mismas palabras: el encabezado y la línea de pago.
   yaCompre: "Ya compré · Entrar",
   pagoSeguro: (pasarela: string) => `Pago único y seguro con ${pasarela}. Al pagar aceptás los`,
   terminos: "términos",
+  // El nombre accesible del botón de play en la página del regalo.
+  escucharAudioDe: (quien: string) => `Escuchar el audio de ${quien}`,
 } as const;

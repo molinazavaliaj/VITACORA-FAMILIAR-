@@ -40,7 +40,7 @@ export default async function PaginaRegalo({ params }: { params: Promise<{ codig
           {TEXTOS_REGALO.titulo(regalo.comoLeDicen, regalo.quienRegala)}
         </h1>
 
-        {regalo.tieneAudio && <AudioRegalo src={`/api/regalo/${regalo.codigo}/audio`} etiquetadoPor="titulo-regalo" />}
+        {regalo.tieneAudio && <AudioRegalo src={`/api/regalo/${regalo.codigo}/audio`} quienRegala={regalo.quienRegala} />}
 
         <blockquote className="mt-8 whitespace-pre-line border-l border-[#14140F] pl-4 text-[20px] italic leading-snug [font-family:var(--fuente-titulo)]">
           {regalo.mensaje}
