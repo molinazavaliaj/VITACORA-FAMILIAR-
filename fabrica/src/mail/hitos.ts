@@ -10,10 +10,11 @@
 // de "tú". Cualquier cambio de estas palabras lo aprueba ella antes de
 // commitear (regla de la casa).
 //
-// Excepción (Naza, 08/10): el "terminó de contar" de un narrador con
-// entrevista V3 tiene su propio texto (en la V3 no hay nombres que revisar ni
-// orden de capítulos que elegir) y va con "vos" si la entrevista es de
-// Argentina (es-AR) y con "tú" si es de España (es-ES o catalán).
+// Excepción (Naza, 08/10): los mails de cierre de un narrador con entrevista
+// V3 ("terminó de contar", recordatorios y cierre automático) tienen su propio
+// texto (en la V3 no hay nombres que revisar, ni orden de capítulos, ni una
+// propuesta antes de cerrar) y van con "vos" si la entrevista es de Argentina
+// (es-AR) y con "tú" si es de España (es-ES o catalán).
 
 import { cargarConfig } from '../config.js';
 import { escaparHtml } from '../libro/comun.js';
@@ -135,34 +136,109 @@ const TEXTOS: Record<Hito, { asunto: (quien: string) => string; parrafos: (quien
   },
 };
 
-/** El trato del "terminó de contar" de un narrador V3: vos (Argentina) o tú (España). */
+/** El trato de los mails de cierre de un narrador V3: vos (Argentina) o tú (España). */
 export type VarianteV3 = 'vos' | 'tu';
 
-/** Aprobado por Naza el 08/10/2026 (con vos para Argentina). */
-const TERMINADO_V3: Record<VarianteV3, (typeof TEXTOS)['terminado']> = {
+type TextoHito = (typeof TEXTOS)[Hito];
+
+/**
+ * Los mails de cierre de un narrador V3: en la V3 no hay nombres que revisar, ni orden de capítulos, ni una
+ * propuesta que se le muestre antes de cerrar. "Terminó de contar" aprobado por Naza el 08/10/2026 (con vos para
+ * Argentina); los recordatorios y el cierre automático, el mismo 08/10. Los hitos que no están acá van con el
+ * texto de siempre.
+ */
+const TEXTOS_V3: Record<VarianteV3, Partial<Record<Hito, TextoHito>>> = {
   tu: {
-    asunto: (quien) => `Tu ${quien} terminó de contar`,
-    parrafos: (quien) => [
-      `Tu ${quien} respondió la última pregunta. Su historia está completa.`,
-      'Ahora te toca a ti. Entra, elige la foto y el título de la tapa, y cierra el libro.',
-      'Cuando lo cierres, lo escribimos con sus palabras y te avisamos.',
-    ],
-    boton: 'Cerrar el libro',
+    terminado: {
+      asunto: (quien) => `Tu ${quien} terminó de contar`,
+      parrafos: (quien) => [
+        `Tu ${quien} respondió la última pregunta. Su historia está completa.`,
+        'Ahora te toca a ti. Entra, elige la foto y el título de la tapa, y cierra el libro.',
+        'Cuando lo cierres, lo escribimos con sus palabras y te avisamos.',
+      ],
+      boton: 'Cerrar el libro',
+    },
+    recordatorio_3: {
+      asunto: (quien) => `El libro de tu ${quien} espera que lo cierres`,
+      parrafos: (quien) => [
+        `Hace tres días que tu ${quien} terminó de contar. El libro no se escribe hasta que lo cierres.`,
+        'Son cinco minutos. Elige la foto y el título de la tapa, y ciérralo.',
+      ],
+      boton: 'Cerrar el libro',
+    },
+    recordatorio_7: {
+      asunto: (quien) => `Una semana sin cerrar el libro de tu ${quien}`,
+      parrafos: (quien) => [
+        `Pasó una semana desde que tu ${quien} terminó. Su libro sigue esperándote.`,
+        'Si no quieres cambiar nada de la tapa, entra y ciérralo así. Queda perfecto igual.',
+      ],
+      boton: 'Cerrar el libro',
+    },
+    recordatorio_14: {
+      asunto: (quien) => `Todavía no cerraste el libro de tu ${quien}`,
+      parrafos: (quien) => [
+        `Hace dos semanas que la historia de tu ${quien} está completa y sin cerrar.`,
+        'Si en dos semanas más no lo cierras, lo cerramos nosotros y lo escribimos igual. Está en los términos, para que ningún libro quede sin hacer.',
+      ],
+      boton: 'Cerrar el libro',
+    },
+    cierre_automatico: {
+      asunto: (quien) => `Cerramos el libro de tu ${quien} por ti`,
+      parrafos: (quien) => [
+        `Pasaron treinta días desde que tu ${quien} terminó de contar y el libro seguía abierto, así que lo cerramos nosotros.`,
+        'Ya lo estamos escribiendo con sus palabras. Cuando esté, te avisamos.',
+      ],
+      boton: 'Ver el libro',
+    },
   },
   vos: {
-    asunto: (quien) => `Tu ${quien} terminó de contar`,
-    parrafos: (quien) => [
-      `Tu ${quien} respondió la última pregunta. Su historia está completa.`,
-      'Ahora te toca a vos. Entrá, elegí la foto y el título de la tapa, y cerrá el libro.',
-      'Cuando lo cierres, lo escribimos con sus palabras y te avisamos.',
-    ],
-    boton: 'Cerrar el libro',
+    terminado: {
+      asunto: (quien) => `Tu ${quien} terminó de contar`,
+      parrafos: (quien) => [
+        `Tu ${quien} respondió la última pregunta. Su historia está completa.`,
+        'Ahora te toca a vos. Entrá, elegí la foto y el título de la tapa, y cerrá el libro.',
+        'Cuando lo cierres, lo escribimos con sus palabras y te avisamos.',
+      ],
+      boton: 'Cerrar el libro',
+    },
+    recordatorio_3: {
+      asunto: (quien) => `El libro de tu ${quien} espera que lo cierres`,
+      parrafos: (quien) => [
+        `Hace tres días que tu ${quien} terminó de contar. El libro no se escribe hasta que lo cierres.`,
+        'Son cinco minutos. Elegí la foto y el título de la tapa, y cerralo.',
+      ],
+      boton: 'Cerrar el libro',
+    },
+    recordatorio_7: {
+      asunto: (quien) => `Una semana sin cerrar el libro de tu ${quien}`,
+      parrafos: (quien) => [
+        `Pasó una semana desde que tu ${quien} terminó. Su libro sigue esperándote.`,
+        'Si no querés cambiar nada de la tapa, entrá y cerralo así. Queda perfecto igual.',
+      ],
+      boton: 'Cerrar el libro',
+    },
+    recordatorio_14: {
+      asunto: (quien) => `Todavía no cerraste el libro de tu ${quien}`,
+      parrafos: (quien) => [
+        `Hace dos semanas que la historia de tu ${quien} está completa y sin cerrar.`,
+        'Si en dos semanas más no lo cerrás, lo cerramos nosotros y lo escribimos igual. Está en los términos, para que ningún libro quede sin hacer.',
+      ],
+      boton: 'Cerrar el libro',
+    },
+    cierre_automatico: {
+      asunto: (quien) => `Cerramos el libro de tu ${quien} por vos`,
+      parrafos: (quien) => [
+        `Pasaron treinta días desde que tu ${quien} terminó de contar y el libro seguía abierto, así que lo cerramos nosotros.`,
+        'Ya lo estamos escribiendo con sus palabras. Cuando esté, te avisamos.',
+      ],
+      boton: 'Ver el libro',
+    },
   },
 };
 
-/** Los textos de un hito: los de siempre, salvo el "terminó de contar" de un narrador V3. */
-function textosDe(hito: Hito, variante?: VarianteV3): (typeof TEXTOS)[Hito] {
-  return hito === 'terminado' && variante ? TERMINADO_V3[variante] : TEXTOS[hito];
+/** Los textos de un hito: los de siempre, salvo los de cierre de un narrador V3. */
+function textosDe(hito: Hito, variante?: VarianteV3): TextoHito {
+  return (variante ? TEXTOS_V3[variante][hito] : undefined) ?? TEXTOS[hito];
 }
 
 export function asuntoHito(hito: Hito, comoLeDicen: string, variante?: VarianteV3): string {
