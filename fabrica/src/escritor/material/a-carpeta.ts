@@ -4,16 +4,15 @@
 // <confirmado_por_el_narrador>, que es lo que leen la receta y C14). Cada línea de la familia va en una sola
 // línea (C14 cuenta las líneas "- ") y sin < ni > (no puede cerrar la etiqueta).
 import type { Carpeta } from '../carpeta.js';
-import type { FichaEntrevista } from '../../v3/entrevista/texto.js';
 import { aMaterial, esc, etiquetas, respuestasXml, type EstadoEntrevista, type Fila } from './de-entrevista.js';
-import { fichaXml } from './ficha-xml.js';
+import { fichaXml, type FichaParaXml } from './ficha-xml.js';
 
 export type CorreccionFamilia = { texto: string; dudaId?: string };
 
 /** Una línea de la familia para confirmado.xml: sin saltos de línea y sin < ni >. */
 const lineaFamilia = (t: string): string => esc(t.trim().replace(/\s*\n\s*/g, ' '));
 
-export function materialACarpeta(c: Carpeta, m: { estado: EstadoEntrevista & { ficha: FichaEntrevista }; confirmadoNarrador?: string[] }): { filas: Fila[]; descartadas: string[] } {
+export function materialACarpeta(c: Carpeta, m: { estado: EstadoEntrevista & { ficha: FichaParaXml }; confirmadoNarrador?: string[] }): { filas: Fila[]; descartadas: string[] } {
   const filas = aMaterial(m.estado);
   c.escribir('entradas/respuestas.xml', respuestasXml(filas.filter((f) => !f.paso)));
   c.escribir('entradas/etiquetas.json', JSON.stringify(etiquetas(filas), null, 2));

@@ -7,8 +7,13 @@
 // (`CANDADO_POR_HITO`) que el worker deja SOLO si Resend confirmó el envío.
 //
 // Textos aprobados por Naza el 2026-09-13. Voz de marca: castellano neutro
-// de "tú" — el voseo vive solo en los ads argentinos. Cualquier cambio de
-// estas palabras lo aprueba ella antes de commitear (regla de la casa).
+// de "tú". Cualquier cambio de estas palabras lo aprueba ella antes de
+// commitear (regla de la casa).
+//
+// Excepción (Naza, 08/10): el "terminó de contar" de un narrador con
+// entrevista V3 tiene su propio texto (en la V3 no hay nombres que revisar ni
+// orden de capítulos que elegir) y va con "vos" si la entrevista es de
+// Argentina (es-AR) y con "tú" si es de España (es-ES o catalán).
 
 import { cargarConfig } from '../config.js';
 import { escaparHtml } from '../libro/comun.js';
@@ -130,8 +135,38 @@ const TEXTOS: Record<Hito, { asunto: (quien: string) => string; parrafos: (quien
   },
 };
 
-export function asuntoHito(hito: Hito, comoLeDicen: string): string {
-  return TEXTOS[hito].asunto(comoLeDicen);
+/** El trato del "terminó de contar" de un narrador V3: vos (Argentina) o tú (España). */
+export type VarianteV3 = 'vos' | 'tu';
+
+/** Aprobado por Naza el 08/10/2026 (con vos para Argentina). */
+const TERMINADO_V3: Record<VarianteV3, (typeof TEXTOS)['terminado']> = {
+  tu: {
+    asunto: (quien) => `Tu ${quien} terminó de contar`,
+    parrafos: (quien) => [
+      `Tu ${quien} respondió la última pregunta. Su historia está completa.`,
+      'Ahora te toca a ti. Entra, elige la foto y el título de la tapa, y cierra el libro.',
+      'Cuando lo cierres, lo escribimos con sus palabras y te avisamos.',
+    ],
+    boton: 'Cerrar el libro',
+  },
+  vos: {
+    asunto: (quien) => `Tu ${quien} terminó de contar`,
+    parrafos: (quien) => [
+      `Tu ${quien} respondió la última pregunta. Su historia está completa.`,
+      'Ahora te toca a vos. Entrá, elegí la foto y el título de la tapa, y cerrá el libro.',
+      'Cuando lo cierres, lo escribimos con sus palabras y te avisamos.',
+    ],
+    boton: 'Cerrar el libro',
+  },
+};
+
+/** Los textos de un hito: los de siempre, salvo el "terminó de contar" de un narrador V3. */
+function textosDe(hito: Hito, variante?: VarianteV3): (typeof TEXTOS)[Hito] {
+  return hito === 'terminado' && variante ? TERMINADO_V3[variante] : TEXTOS[hito];
+}
+
+export function asuntoHito(hito: Hito, comoLeDicen: string, variante?: VarianteV3): string {
+  return textosDe(hito, variante).asunto(comoLeDicen);
 }
 
 /**
@@ -141,11 +176,11 @@ export function asuntoHito(hito: Hito, comoLeDicen: string): string {
  */
 export function cuerpoHito(
   hito: Hito,
-  opciones: { comoLeDicen: string; enlace: string; seguimiento?: string | null }
+  opciones: { comoLeDicen: string; enlace: string; seguimiento?: string | null; variante?: VarianteV3 }
 ): string {
   const quien = escaparHtml(opciones.comoLeDicen);
   const url = escaparHtml(opciones.enlace);
-  const texto = TEXTOS[hito];
+  const texto = textosDe(hito, opciones.variante);
 
   // El número de seguimiento llega tarde —lo da el correo, no nosotros— y puede no
   // llegar nunca. Con él, el mail dice cómo seguir el paquete; sin él, la noticia
@@ -209,6 +244,8 @@ export async function enviarMailHito(opciones: {
   enlace: string;
   /** Solo el de "va en camino": el número del correo, cuando ya existe. */
   seguimiento?: string | null;
+  /** Solo el "terminó de contar" de un narrador V3 (ver `VarianteV3`). */
+  variante?: VarianteV3;
 }): Promise<boolean> {
   const { resendApiKey } = cargarConfig();
   if (!resendApiKey) {
@@ -225,11 +262,12 @@ export async function enviarMailHito(opciones: {
     body: JSON.stringify({
       from: REMITENTE,
       to: [opciones.para],
-      subject: asuntoHito(opciones.hito, opciones.comoLeDicen),
+      subject: asuntoHito(opciones.hito, opciones.comoLeDicen, opciones.variante),
       html: cuerpoHito(opciones.hito, {
         comoLeDicen: opciones.comoLeDicen,
         enlace: opciones.enlace,
         seguimiento: opciones.seguimiento,
+        variante: opciones.variante,
       }),
     }),
   });

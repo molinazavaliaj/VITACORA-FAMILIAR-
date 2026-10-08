@@ -587,10 +587,48 @@ La fila nace con `npm run v3-pasar -- <narrador> --genero … [--idioma …] --a
 curso, con la tabla de equivalencias aprobada por Naza) o al pasar `acepto → activo` con
 `V3_PARA_NUEVOS=1` (necesita `contexto.genero`; sin él, el alta se frena y se avisa a los socios).
 
-**La fábrica:** `fabrica/src/v3/candado.ts` saltea a todo narrador con fila (anticipo, estructura,
-previsualización y paquete viejos) y avisa una vez a los socios (candado
+**La fábrica:** `fabrica/src/v3/candado.ts` cuida que el camino viejo no toque a ningún narrador con
+fila (anticipo, estructura, previsualización y paquete viejos; desde el 08/10 el worker ya no avisa por
+cada uno, porque el libro lo escribe el escritor V3, abajo) (candado
 `{narrador_id}/paquete/v3_candado_avisado.txt`); `fabrica/src/escritor/material/de-base.ts` lee la
 fila y devuelve el formato de `escritor/material/de-entrevista.ts`.
+
+### Escritor V3 en la fábrica (08/10 — rama `escritor-worker`)
+
+El libro de un narrador V3 lo escribe el escritor nuevo (`fabrica/src/escritor/produccion/libro-v3.ts`,
+etapas A/B/C); el camino viejo (anticipo, estructura, previsualización, generarPaquete) no lo toca.
+**No cambia ninguna tabla.** Cambian los archivos de Storage de abajo y dos lecturas:
+
+- **Cuándo.** Entrevista terminada (`narradores.estado` `completado` o `cerrado_anticipado`) → Etapa A
+  en segundo plano. Pedido `pagado` + `libro_aprobado_at` → el libro entero en segundo plano: el pedido
+  pasa por `generando` (mismo CAS que siempre) y termina `entregado` o `fallido`, como el libro viejo.
+  Un segundo pedido del mismo narrador se entrega con los mismos archivos, como siempre.
+- **La edición de la dueña** (`narradores.edicion`): valen `titulo`, `subtitulo` y `portadaFotoId`.
+  `ordenCapitulos` y `titulosCapitulos` **no** (son nombres del guion viejo; el plan y los títulos los
+  arma el escritor), y no van fotos por capítulo (solo la de tapa).
+- **La ficha del libro**: la de `entrevistas_v3.ficha` más `narradores.contexto` (`anioNacimiento`,
+  `lugarNacimiento`, `dondeVive`, `arbol` como texto libre). `contexto.datosExtra` **no** llega al escritor.
+- **`frases.json`** (el de siempre, en `paquete/`): `respuesta_id` = la fila de `respuestas` de esa
+  pregunta (o su `RP~X` / `X~2`) que dice la frase tal cual, o null si ninguna; `pregunta_orden` = 0
+  (en la V3 no hay orden de guion). El worker de audio corta igual que siempre.
+- **`consumo_ia`**: una fila por llamada del escritor, `servicio = 'fabrica'`, `paso` = `escritor-A`,
+  `escritor-B` o `escritor-C`, con el `usd` que calcula el escritor (Batch a mitad de precio).
+
+`{narrador_id}/escritor/…` (bucket `audios`):
+
+| Archivo | Escribe | Lee | Qué es |
+|---|---|---|---|
+| `pasos/`, `lotes/`, `fallas.json`, `costos.json` | fábrica | fábrica | Cada respuesta del modelo (para retomar sin repagar), los lotes de Batch y el gasto. No se borran. |
+| `carpeta-A.json`, `carpeta-B.json`, `carpeta-C.json` | fábrica | fábrica | La carpeta al terminar cada etapa. `carpeta-A.json` = **Etapa A hecha** (candado). |
+| `fallo-A.json` | fábrica | fábrica / socios | La Etapa A no pasó sus controles (`{motivo, fecha}`). No se reintenta sola: se borra a mano para reintentar. |
+| `dudas-familia.json` | fábrica | socios (y la web, el día que haya pantalla) | `{dudas: [{id: "D01", tipo, que, ids, citas, pregunta, opciones}]}`: las dudas de datos de la Etapa A. |
+| `dudas-avisadas.txt` | fábrica | fábrica | Candado del mail de dudas a los socios. |
+| `correcciones.json` | **socios a mano** (y la web, el día que haya pantalla) | fábrica (Etapa B) | `{"correcciones": [{"dudaId": "D01", "texto": "La Negra se llamaba Ofelia."}]}`. Se escribe **antes** de que la dueña cierre el libro; sin archivo, el libro va sin correcciones. Roto → el pedido queda `fallido`. |
+| `libro.md` | fábrica | fábrica, imprenta | El libro final. La imprenta lo prefiere a `paquete/borrador_libro.md` si existe. |
+| `informe.md` | fábrica | socios | El informe interno de la revisión (no lo ve la familia). |
+
+Variables de la fábrica: `ESCRITOR_LIBROS_EN_PARALELO` (3 por defecto: trabajos del escritor a la vez),
+`ESCRITOR_TOPE_USD` (15 por defecto: tope de gasto por trabajo), `MAIL_SOCIOS` (avisos).
 
 ## Storage — bucket privado `audios`
 
@@ -598,6 +636,7 @@ fila y devuelve el formato de `escritor/material/de-entrevista.ts`.
     {narrador_id}/fotos/{id}.{ext}    fotos por capítulo, ORIGINAL sin recomprimir (web sube)
     {narrador_id}/sistema/…           audios TTS del entrevistador (entrevistador sube)
     {narrador_id}/paquete/…           estructura, PDF, audiolibro, libro.html y candados de mails (web/fábrica — socio 2 — sube)
+    {narrador_id}/escritor/…          el escritor V3: checkpoints, dudas, correcciones, libro.md (fábrica; ver "Escritor V3 en la fábrica")
 
 El navegador jamás recibe paths directos: solo URLs firmadas que genera la web.
 

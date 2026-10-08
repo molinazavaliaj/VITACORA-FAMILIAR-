@@ -5,7 +5,7 @@ import { generarAnticipo } from './libro/anticipo.js';
 import { firmarTokenAnticipo } from './libro/token-anticipo.js';
 import { subirTexto } from './libro/comun.js';
 import { enviarMailAnticipo } from './mail/anticipo.js';
-import { enviarMailHito, CANDADO_POR_HITO, type Hito } from './mail/hitos.js';
+import { enviarMailHito, CANDADO_POR_HITO, type Hito, type VarianteV3 } from './mail/hitos.js';
 import {
   CANDADO_RECORDATORIO_FRASES,
   DIAS_RECORDATORIO_FRASES,
@@ -19,7 +19,8 @@ import { leerFrases } from './libro/publicar-frases.js';
 import { anotarLatido } from './latido.js';
 import { mandarEntregasAImprenta, avisarHitosDeEntrega } from './entregas.js';
 import { productosDelPedido } from './libro/productos.js';
-import { avisarCandadoV3, narradoresConV3 } from './v3/candado.js';
+import { idiomasV3, narradoresConV3 } from './v3/candado.js';
+import { hayLugarParaLibroV3, lanzarLibroV3, revisarEtapaAV3 } from './escritor/produccion/libro-v3.js';
 
 const INTERVALO_MS = 60_000;
 
@@ -48,7 +49,9 @@ type Db = ReturnType<typeof obtenerClienteDb>;
 
 /**
  * Los narradores con entrevista V3 (spec 2026-10-07): la fábrica no les arma
- * nada viejo. Null si no se pudo leer: la rama que llama no corre este tick.
+ * nada viejo (anticipo, estructura, previsualización ni paquete); su libro lo
+ * escribe el escritor nuevo (escritor/produccion/libro-v3.ts). Null si no se
+ * pudo leer: la rama que llama no corre este tick.
  */
 async function conV3OFrenar(db: Db, rama: string): Promise<Set<string> | null> {
   try {
@@ -180,10 +183,8 @@ async function generarAnticiposFaltantes(): Promise<void> {
     familia_id: string;
   }[]) {
     try {
-      if (v3.has(narrador.id)) {
-        await avisarCandadoV3(db, narrador.id, 'anticipo');
-        continue;
-      }
+      // La V3 no tiene anticipo.
+      if (v3.has(narrador.id)) continue;
       const nombresArchivos = await listarPaquete(db, narrador.id);
       if (nombresArchivos.has('anticipo_enviado.txt')) continue;
 
@@ -280,8 +281,9 @@ async function generarEstructurasFaltantes(): Promise<void> {
 
   for (const narrador of (narradores ?? []) as { id: string }[]) {
     try {
+      // V3: en vez de la estructura vieja, la Etapa A del escritor nuevo (en segundo plano; no frena el tick).
       if (v3.has(narrador.id)) {
-        await avisarCandadoV3(db, narrador.id, 'estructura');
+        await revisarEtapaAV3(db, narrador.id);
         continue;
       }
       const archivos = await listarPaquete(db, narrador.id);
@@ -318,10 +320,8 @@ async function generarPrevisualizacionesFaltantes(): Promise<void> {
 
   for (const narrador of (narradores ?? []) as { id: string }[]) {
     try {
-      if (v3.has(narrador.id)) {
-        await avisarCandadoV3(db, narrador.id, 'previsualizacion');
-        continue;
-      }
+      // La V3 no tiene previsualización.
+      if (v3.has(narrador.id)) continue;
       const archivos = await listarPaquete(db, narrador.id);
       const tieneEstructura = archivos.has('estructura.json');
       const tieneNombres = archivos.has('nombres.json');
@@ -365,11 +365,23 @@ async function avisarHitosDeCierre(): Promise<void> {
     return;
   }
 
+  // El "terminó de contar" de un narrador V3 tiene su propio texto (y vos en Argentina). Sin poder leer
+  // entrevistas_v3 no se manda nada este tick: a una familia V3 le llegaría el texto viejo.
+  let idiomas: Map<string, string>;
+  try {
+    idiomas = await idiomasV3(db);
+  } catch (err) {
+    console.error('tick: no pude leer entrevistas_v3; los mails de cierre no salen este tick:', err);
+    return;
+  }
+
   for (const narrador of (narradores ?? []) as NarradorTerminado[]) {
     try {
       const archivos = await listarPaquete(db, narrador.id);
       const enlace = `${urlBase}/tablero/${narrador.id}`;
-      const mandar = (hito: Hito) => mandarHito(db, narrador, hito, enlace, archivos);
+      const idiomaV3 = idiomas.get(narrador.id);
+      const variante: VarianteV3 | undefined = idiomaV3 === undefined ? undefined : idiomaV3 === 'es-AR' ? 'vos' : 'tu';
+      const mandar = (hito: Hito) => mandarHito(db, narrador, hito, enlace, archivos, variante);
 
       if (!archivos.has(CANDADO_POR_HITO.terminado)) await mandar('terminado');
 
@@ -446,7 +458,8 @@ async function mandarHito(
   narrador: NarradorConFamilia,
   hito: Hito,
   enlace: string,
-  archivos: Set<string>
+  archivos: Set<string>,
+  variante?: VarianteV3
 ): Promise<boolean> {
   // El candado manda: si ya está, ese mail ya salió (o alguien lo sembró a
   // mano para que no salga, como los 7 de Osvaldo al preparar el redeploy).
@@ -471,6 +484,7 @@ async function mandarHito(
     para: (familia as { email: string }).email,
     comoLeDicen: narrador.como_le_dicen,
     enlace,
+    ...(variante ? { variante } : {}),
   });
 
   if (enviado) {
@@ -775,12 +789,13 @@ export async function procesarPedidosPagados(): Promise<void> {
   if (!v3) return;
 
   for (const pedido of pedidosPagados) {
-    if (v3.has(pedido.narrador_id)) {
-      await avisarCandadoV3(db, pedido.narrador_id, 'paquete');
-      continue;
-    }
     if (!narradoresListos.has(pedido.narrador_id)) continue;
     if (narradoresEsperandoVoz.has(pedido.narrador_id)) continue;
+    const yaEntregado = entregadoPorNarrador.get(pedido.narrador_id);
+    // V3: el libro corre en segundo plano (horas, por Batch). Sin lugar en la cola —o con un libro de este
+    // narrador ya en marcha— no se reclama: un pedido reclamado sin trabajo quedaría huérfano.
+    const esV3 = v3.has(pedido.narrador_id) && !yaEntregado;
+    if (esV3 && !hayLugarParaLibroV3(pedido.narrador_id)) continue;
     const { data: reclamado, error: errorClaim } = await db
       .from('pedidos')
       .update({ estado: 'generando' })
@@ -800,8 +815,14 @@ export async function procesarPedidosPagados(): Promise<void> {
     }
 
     pedidosGenerandoClaimados.add(pedido.id);
+    if (esV3) {
+      // El trabajo saca el pedido de los reclamados al terminar (entregado o fallido). Si no arrancó,
+      // sale ya: queda en 'generando' y el próximo tick lo ve huérfano y lo devuelve a 'pagado'.
+      const lanzado = lanzarLibroV3(db, pedido, () => pedidosGenerandoClaimados.delete(pedido.id));
+      if (!lanzado) pedidosGenerandoClaimados.delete(pedido.id);
+      continue;
+    }
     try {
-      const yaEntregado = entregadoPorNarrador.get(pedido.narrador_id);
       if (yaEntregado) {
         await entregarConLosMismosArchivos(db, pedido, yaEntregado);
       } else {

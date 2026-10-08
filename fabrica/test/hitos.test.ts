@@ -74,3 +74,24 @@ describe('enviarMailHito', () => {
     await expect(enviarMailHito({ hito: 'terminado', para: 'a@b.c', comoLeDicen: 'papá', enlace: 'https://x' })).rejects.toThrow('422');
   });
 });
+
+describe('"terminó de contar" de un narrador V3 (Naza, 08/10)', () => {
+  it('con vos (Argentina) y con tú (España): sin nombres ni orden de capítulos', async () => {
+    const { cuerpoHito, asuntoHito } = await import('../src/mail/hitos.js');
+    const vos = cuerpoHito('terminado', { comoLeDicen: 'Babu', enlace: 'https://x', variante: 'vos' });
+    expect(vos).toContain('Tu Babu respondió la última pregunta. Su historia está completa.');
+    expect(vos).toContain('Ahora te toca a vos. Entrá, elegí la foto y el título de la tapa, y cerrá el libro.');
+    expect(vos).toContain('Cuando lo cierres, lo escribimos con sus palabras y te avisamos.');
+    const tu = cuerpoHito('terminado', { comoLeDicen: 'Imma', enlace: 'https://x', variante: 'tu' });
+    expect(tu).toContain('Ahora te toca a ti. Entra, elige la foto y el título de la tapa, y cierra el libro.');
+    for (const t of [vos, tu]) {
+      expect(t).not.toContain('nombres');
+      expect(t).not.toContain('orden de los capítulos');
+      expect(t).toContain('Cerrar el libro');
+    }
+    expect(asuntoHito('terminado', 'Babu', 'vos')).toBe('Tu Babu terminó de contar');
+    // Sin variante, el de siempre; y la variante no toca los demás hitos.
+    expect(cuerpoHito('terminado', { comoLeDicen: 'papá', enlace: 'https://x' })).toContain('revisa los nombres');
+    expect(cuerpoHito('recordatorio_3', { comoLeDicen: 'papá', enlace: 'https://x', variante: 'vos' })).toContain('Hace tres días');
+  });
+});
