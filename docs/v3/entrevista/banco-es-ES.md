@@ -37,7 +37,7 @@
 | OR1 | Empecemos por cuando llegaste al mundo, según te contaron. No el día en sí, sino la época: dónde vivían, a qué se dedicaban tu madre y tu padre, cómo te esperaban. ¿Qué sabes de cómo era la vida de ellos por entonces? Cuéntame. |
 | OR2 | En todas las familias hay una historia de los de antes, de los abuelos o de más atrás, que se contaba en las sobremesas: un viaje, una llegada, alguna hazaña. ¿Cuál sabes de tu familia? Cuéntamela como la oíste, con el nombre de quien la vivió. |
 | OR5 | ¿Cómo se conocieron tu madre y tu padre? Seguro que en casa lo contaron más de una vez: un baile, una casualidad, alguien que los presentó. Cuéntame ese día como te lo contaron. |
-| OR6 | ¿Por qué te pusieron {{nombre}}? En todas las familias hay una historia detrás de un nombre: una discusión, un santo, alguien a quien querían mucho. Cuéntame la que te contaron a ti, aunque sea corta. |
+| OR6 | ¿Por qué te pusieron {{nombre_pila}}? En todas las familias hay una historia detrás de un nombre: una discusión, un santo, alguien a quien querían mucho. Cuéntame la que te contaron a ti, aunque sea corta. |
 | OR6.2 | ¿Tienes o has tenido algún mote? Si es así, cuéntame cómo nació: quién te lo puso, por qué justo ese, y si te gusta. Casi siempre hay una anécdota detrás. |
 | CI1 | Hasta aquí lo de tu familia de antes de que llegaras tú. Y me pregunto si se me ha escapado algo: una historia de tus abuelos, de tus padres de jóvenes, de esa casa. Si hay alguna rondándote por la cabeza, cuéntamela ahora. Y si algo te viene más tarde, a cualquier hora, mándamelo cuando quieras: también va al libro. |
 | CA1 | Cuéntame el primer recuerdo que tengas de la casa donde creciste: un día, qué estabas haciendo, quién andaba por allí. |

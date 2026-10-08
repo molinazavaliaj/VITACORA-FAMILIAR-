@@ -27,7 +27,7 @@ const MD = readFileSync(path.join(RAIZ, 'docs', 'v3', 'entrevista', 'banco-es-ES
 const FIJO = path.join(RAIZ, 'fabrica', 'test', 'fijos', 'banco-es-ES-aprobado.json');
 const ES = TEXTOS_IDIOMA['es-ES'];
 
-const campos = (t: string) => (t.match(/\{\{(nombre|quien_regala|tema|etapa)\}\}/g) ?? []).sort();
+const campos = (t: string) => (t.match(/\{\{(nombre|nombre_pila|quien_regala|tema|etapa)\}\}/g) ?? []).sort();
 const variantes = (t: string) => [...t.matchAll(/«sino:([A-Z0-9.]+):/g)].map((m) => m[1]).sort();
 const saltos = (t: string) => (t.match(/\n|<br>/g) ?? []).length;
 
@@ -75,7 +75,7 @@ describe('banco-es-ES.md', () => {
 
   it('las marcas de género bien formadas, sin llaves sueltas', () => {
     for (const t of [...Object.values(ES.preguntas), ...Object.values(ES.mensajes)]) {
-      const sinMarcas = t.replace(/\{\{(nombre|quien_regala|tema|etapa)\}\}/g, '').replace(/\{\{[^{}/]+\/[^{}/]+\}\}/g, '');
+      const sinMarcas = t.replace(/\{\{(nombre|nombre_pila|quien_regala|tema|etapa)\}\}/g, '').replace(/\{\{[^{}/]+\/[^{}/]+\}\}/g, '');
       expect(sinMarcas, t).not.toMatch(/[{}]/);
     }
   });
