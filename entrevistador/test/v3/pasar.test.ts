@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { crearBaseFalsa } from './base-falsa.js';
 import { depsDePrueba } from './deps-prueba.js';
 import { leerFila } from '../../src/v3/estado.js';
-import { altaNuevo, aplicarPase, bloqueosDePase, argumentosDePase, describirPase, leerEquivalencias, normalizarPregunta, planDePase } from '../../src/v3/pasar.js';
+import { altaNuevo, aplicarPase, fichaDeNarrador, bloqueosDePase, argumentosDePase, describirPase, leerEquivalencias, normalizarPregunta, planDePase } from '../../src/v3/pasar.js';
 import { tocaM8, tocaTanda, trabajarNarrador } from '../../src/v3/reloj.js';
 import { procesarEntranteV3 } from '../../src/v3/entrante.js';
 import { renderizar } from '../../src/v3/nucleo/entrevista/texto.js';
@@ -297,6 +297,18 @@ describe('el pase de un narrador en curso', () => {
     expect(plan.cargadas.find((c) => c.clave === 'OR1')?.texto).toBe('Mi maestra.');
   });
 
+  // Producción 08/10: a Dora le dicen Babu; OR6 tiene que preguntar por "Dora".
+  it('la ficha lleva el nombre de pila de narradores.nombre (solo para OR6)', async () => {
+    const plan = await planDePase(baseConNarrador({ nombre: 'DORA PEREZ', como_le_dicen: 'Babu' }).cliente, 'n1', { genero: 'mujer', equivalencias: PARCIAL });
+    expect(plan.ficha).toEqual({ nombre: 'Babu', nombrePila: 'Dora', genero: 'mujer', quienRegala: 'Laura' });
+    const ficha = fichaTexto({ ficha: plan.ficha, idioma: plan.idioma });
+    expect(renderizar(preguntaPorId('OR6')!.texto, ficha)).toMatch(/^¿Por qué te pusieron Dora\? /);
+    expect(renderizar(preguntaPorId('OR1')!.texto, ficha)).not.toContain('Dora');
+    // Sin nombre (o igual a como le dicen): como antes.
+    expect((await planDePase(baseConNarrador().cliente, 'n1', { genero: 'mujer', equivalencias: PARCIAL })).ficha).toEqual({ nombre: 'Prueba', genero: 'mujer', quienRegala: 'Laura' });
+    expect(fichaDeNarrador({ como_le_dicen: 'Mariano', nombre: 'MARIANO' }, 'varon')).toEqual({ nombre: 'Mariano', genero: 'varon' });
+  });
+
   it('los argumentos del script', () => {
     expect(argumentosDePase(['n1', '--genero', 'mujer'])).toEqual({ narradorId: 'n1', genero: 'mujer', aplicar: false });
     expect(argumentosDePase(['n1', '--idioma', 'ca', '--genero', 'varon', '--aplicar', '--equivalencias', 'otra.json'])).toEqual({ narradorId: 'n1', genero: 'varon', idioma: 'ca', aplicar: true, equivalencias: 'otra.json' });
@@ -331,6 +343,14 @@ describe('el alta de un narrador nuevo', () => {
     expect(enviados[0].texto?.startsWith(renderizar(preguntaPorId('OR1')!.texto, { nombre: 'Prueba', genero: 'varon' }))).toBe(true);
     expect(base.tablas.narradores[0].estado).toBe('activo');
     expect(await leerFila(base.cliente, 'n1')).toMatchObject({ idioma: 'es-AR', tanda_cuenta: 1, ficha: { nombre: 'Prueba', genero: 'varon', quienRegala: 'Laura' } });
+  });
+
+  it('con nombre en narradores: la fila guarda el nombre de pila, pero los mensajes usan como le dicen', async () => {
+    const n = { ...nuevo({ genero: 'mujer' }), nombre: 'DORA PEREZ', como_le_dicen: 'Babu' };
+    const { deps, base, enviados } = preparar({ genero: 'mujer' });
+    expect(await altaNuevo(deps, n, { ventanaAbierta: true })).toBe('mandada');
+    expect((await leerFila(base.cliente, 'n1'))!.ficha).toEqual({ nombre: 'Babu', nombrePila: 'Dora', genero: 'mujer', quienRegala: 'Laura' });
+    expect(enviados[0].texto).not.toContain('Dora');
   });
 
   it('deja OR1 abierta con abiertaDesde: el reloj no le repite la tanda hoy y M8 sale a los 2 días', async () => {

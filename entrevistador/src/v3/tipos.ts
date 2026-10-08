@@ -97,7 +97,12 @@ export type EstadoV3 = {
 };
 
 export type Genero = 'varon' | 'mujer' | 'otro';
-export type FichaFila = { nombre: string; genero: Genero; formaTrato?: 'masculino' | 'femenino'; quienRegala?: string };
+/**
+ * `nombre` es como le dicen (`narradores.como_le_dicen`, "Babu"): lo usan todos
+ * los textos. `nombrePila` (de `narradores.nombre`, "Dora") lo usa solo OR6,
+ * "¿Por qué te pusieron…?" (Naza, 08/10). Sin él, OR6 usa `nombre`.
+ */
+export type FichaFila = { nombre: string; nombrePila?: string; genero: Genero; formaTrato?: 'masculino' | 'femenino'; quienRegala?: string };
 export type MigradaDe = { de: 'v-vieja'; dia_actual: number };
 
 export type FilaV3 = {
@@ -119,6 +124,8 @@ export type NarradorV3 = {
   id: string;
   familia_id: string;
   como_le_dicen: string;
+  /** El nombre como lo cargó la familia ("IMMACULADA COLELL", "Dora"); solo para el nombre de pila de OR6. */
+  nombre?: string | null;
   telefono_whatsapp: string;
   hora_preferida: string;
   zona_horaria: string;
@@ -163,11 +170,25 @@ export function fichaTexto(fila: Pick<FilaV3, 'ficha' | 'idioma'>): FichaTexto {
   const f = fila.ficha;
   return {
     nombre: f.nombre,
+    ...(f.nombrePila ? { nombrePila: f.nombrePila } : {}),
     genero: f.genero,
     ...(f.formaTrato ? { formaTrato: f.formaTrato } : {}),
     ...(f.quienRegala ? { quienRegala: f.quienRegala } : {}),
     ...(fila.idioma !== 'es-AR' ? { idioma: fila.idioma } : {}),
   };
+}
+
+/**
+ * El nombre de pila para OR6, de `narradores.nombre`: la primera palabra, con
+ * mayúscula inicial ("IMMACULADA COLELL" → "Immaculada", "dora" → "Dora",
+ * "JEAN-PIERRE" → "Jean-Pierre"). Sin nombre, o si da lo mismo que como le
+ * dicen, no hay: OR6 usa como le dicen, igual que antes.
+ */
+export function nombreDePila(nombre: string | null | undefined, comoLeDicen: string): string | undefined {
+  const primera = (nombre ?? '').trim().split(/\s+/)[0];
+  if (!primera) return undefined;
+  const pila = primera.toLocaleLowerCase('es').replace(/(^|[-'’])(\p{L})/gu, (_m, sep: string, l: string) => sep + l.toLocaleUpperCase('es'));
+  return pila.toLocaleLowerCase('es') === comoLeDicen.trim().toLocaleLowerCase('es') ? undefined : pila;
 }
 
 export function esGenero(x: unknown): x is Genero {

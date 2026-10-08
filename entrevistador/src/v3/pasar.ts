@@ -22,7 +22,7 @@ import type { PreguntaFamilia } from './nucleo/entrevista/flujo.js';
 import { esIdioma, idiomaDe, type Idioma } from './nucleo/entrevista/idioma.js';
 import { respuestaInferida, sumarAudio } from './nucleo/entrevista/respuesta.js';
 import { yaEsLaHora } from './tanda.js';
-import { esGenero, estadoInicial, fichaTexto, SIN_CLAVE_V3, type EstadoV3, type FichaFila, type Genero, type MigradaDe, type NarradorV3 } from './tipos.js';
+import { esGenero, estadoInicial, fichaTexto, nombreDePila, SIN_CLAVE_V3, type EstadoV3, type FichaFila, type Genero, type MigradaDe, type NarradorV3 } from './tipos.js';
 import { avanzar } from './turno.js';
 
 // ---------------------------------------------------------------- equivalencias
@@ -203,6 +203,12 @@ async function quienRegala(db: SupabaseClient, familiaId: string): Promise<strin
   return (data as { nombre?: string } | null)?.nombre || undefined;
 }
 
+/** La ficha de la fila V3: como le dicen para todo, el nombre de pila solo para OR6. */
+export function fichaDeNarrador(n: Pick<NarradorV3, 'como_le_dicen' | 'nombre'>, genero: Genero, regala?: string): FichaFila {
+  const pila = nombreDePila(n.nombre, n.como_le_dicen);
+  return { nombre: n.como_le_dicen, ...(pila ? { nombrePila: pila } : {}), genero, ...(regala ? { quienRegala: regala } : {}) };
+}
+
 async function leerNarrador(db: SupabaseClient, narradorId: string): Promise<NarradorV3> {
   const { data, error } = await db.from('narradores').select('*').eq('id', narradorId).maybeSingle();
   if (error) throw new Error(`No pude leer el narrador ${narradorId}: ${error.message}`);
@@ -272,7 +278,7 @@ export async function planDePase(db: SupabaseClient, narradorId: string, o: { ge
     diaActual: n.dia_actual,
     ultimaRespuestaAt: n.ultima_respuesta_at,
     idioma: o.idioma ?? idiomaDe(n.contexto),
-    ficha: { nombre: n.como_le_dicen, genero: o.genero, ...(regala ? { quienRegala: regala } : {}) },
+    ficha: fichaDeNarrador(n, o.genero, regala),
     guion: await guionDe(db, narradorId),
     respuestas,
     equivalencias: o.equivalencias,
@@ -399,6 +405,6 @@ export async function altaNuevo(deps: DepsV3, n: NarradorV3, o: { ventanaAbierta
     return 'frenada';
   }
   const regala = await quienRegala(deps.db, n.familia_id);
-  await arrancarV3(deps, n, idioma, { nombre: n.como_le_dicen, genero, ...(regala ? { quienRegala: regala } : {}) }, o);
+  await arrancarV3(deps, n, idioma, fichaDeNarrador(n, genero, regala), o);
   return 'mandada';
 }

@@ -34,7 +34,7 @@
       "id": "OR6",
       "bloque": 1,
       "orden": 4,
-      "texto": "¿Por qué te pusieron {{nombre}}? En las casas siempre hay una historia atrás de un nombre: una discusión, un santo, alguien a quien querían mucho. Contame la que te contaron a vos, aunque sea cortita.",
+      "texto": "¿Por qué te pusieron {{nombre_pila}}? En las casas siempre hay una historia atrás de un nombre: una discusión, un santo, alguien a quien querían mucho. Contame la que te contaron a vos, aunque sea cortita.",
       "depende": [],
       "parte": "nucleo",
       "clase": "historia",
