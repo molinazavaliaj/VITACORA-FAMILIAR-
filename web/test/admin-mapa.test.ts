@@ -72,16 +72,24 @@ describe("la vida de la computadora que narra (Review Focus 4)", () => {
 });
 
 describe("el mapa de cerebros", () => {
-  it("están los 14, cada uno con su modelo y su nombre de pantalla", () => {
+  it("están los 16 (14 del mockup + 2 del escritor V3), cada uno con su modelo y su nombre de pantalla", () => {
     const nodos = mapaDeCerebros(datos({}), AHORA);
-    expect(nodos).toHaveLength(14);
+    expect(nodos).toHaveLength(16);
     expect(nodos.find((n) => n.nombre === "Escribe los capítulos")?.modelo).toBe("claude-fable-5");
     expect(nodos.find((n) => n.nombre === "Lo pasa a texto")?.modelo).toBe("gpt-transcribe");
     expect(nodos.filter((n) => n.carril === "voz")).toHaveLength(4);
   });
 
-  it("sin ningún dato, los 14 quedan sin uso: gris punteado, NO rojo", () => {
+  it("sin ningún dato, los 16 quedan sin uso: gris punteado, NO rojo", () => {
     expect(mapaDeCerebros(datos({}), AHORA).every((n) => n.estado === "sin_uso")).toBe(true);
+  });
+
+  it("el escritor V3: escritor-A prende «Lee la entrevista V3»; escritor-B o C, «Escribe el libro V3»", () => {
+    const nodos = mapaDeCerebros(datos({ consumo: [consumo({ paso: "escritor-A", fecha: hace(1) }), consumo({ paso: "escritor-C", fecha: hace(2) })] }), AHORA);
+    expect(estadoDe(nodos, "Lee la entrevista V3")).toBe("trabajando");
+    expect(estadoDe(nodos, "Escribe el libro V3")).toBe("trabajando");
+    expect(estadoDe(nodos, "Escribe los capítulos")).toBe("sin_uso");
+    expect(nodos.find((n) => n.nombre === "Escribe el libro V3")?.carril).toBe("libro");
   });
 
   it("un uso reciente deja el nodo trabajando", () => {

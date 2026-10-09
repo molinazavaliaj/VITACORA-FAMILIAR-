@@ -195,6 +195,14 @@ describe("PATCH /api/guion", () => {
     expect(escrituras).toContainEqual(expect.objectContaining({ tabla: "narradores", op: "update", valores: { contexto: expect.objectContaining({ trato: "vos" }) } }));
   });
 
+  it("trato: con el regalo sin abrir también se puede fijar (gift card)", async () => {
+    sesion(martina);
+    const escrituras = armar({ narrador: narrador({ estado: "regalo_pendiente", dia_actual: 0 }) });
+    const r = await PATCH(request({ accion: "trato", trato: "vos" }));
+    expect(r.status).toBe(200);
+    expect(escrituras).toContainEqual(expect.objectContaining({ tabla: "narradores", op: "update", valores: { contexto: expect.objectContaining({ trato: "vos" }) } }));
+  });
+
   it("trato: con la primera pregunta ya mandada, o un trato inventado → 400 y no escribe", async () => {
     sesion(martina);
     const e1 = armar({ narrador: narrador({ estado: "activo", dia_actual: 1 }) });

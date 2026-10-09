@@ -4,8 +4,14 @@
 // Sin RESEND_API_KEY no se tira: se avisa por consola y se devuelve false.
 // Un mail que no sale no puede tumbar un pago que ya se cobró.
 //
-// ⚠️ Textos a aprobar por Naza (regla de la casa). Voz de marca: castellano
-// neutro de "tú".
+// ⚠️ Textos a aprobar por Naza (regla de la casa). Trato por país (Naza, 09/10):
+// vos para Argentina y tú para España (`familias.region`); sin región, vos.
+// El de acceso y la invitación son los aprobados el 06/10 (rama web-textos-v3).
+
+/** `familias.region` → ¿de tú? Solo España. */
+const deTu = (region: string | null | undefined): boolean => region === "ES";
+
+import { TEXTOS_REGALO } from "./regalo-textos";
 
 const REMITENTE = "Vitácora Familiar <hola@vitacorafamiliar.com>";
 
@@ -63,7 +69,7 @@ function envoltorio(cuerpo: string): string {
  * entrar al tablero. No lleva link firmado: entra con su correo y el código
  * de 6 dígitos, que es el login que ya existe.
  */
-export async function enviarMailAcceso(opciones: { para: string; comoLeDicen: string }): Promise<boolean> {
+export async function enviarMailAcceso(opciones: { para: string; comoLeDicen: string; region?: string | null }): Promise<boolean> {
   const quien = escapar(opciones.comoLeDicen);
   const urlBase = process.env.URL_BASE ?? "https://www.vitacorafamiliar.com";
 
@@ -84,7 +90,7 @@ export async function enviarMailAcceso(opciones: { para: string; comoLeDicen: st
           escuchar su voz desde tu panel.
         </td></tr>
         <tr><td style="padding-bottom:12px;">
-          Para ir escuchando lo que cuenta, entrá a la página con este mismo correo:
+          Para ir escuchando lo que cuenta, ${deTu(opciones.region) ? "entra" : "entrá"} a la página con este mismo correo:
         </td></tr>
         <tr><td style="padding-bottom:32px;">
           <a href="${escapar(urlBase)}/entrar" style="display:inline-block;background:#5D3FD3;color:#ffffff;text-decoration:none;padding:14px 28px;font-family:Arial,Helvetica,sans-serif;font-size:15px;">
@@ -93,6 +99,24 @@ export async function enviarMailAcceso(opciones: { para: string; comoLeDicen: st
           <div style="margin-top:10px;font-size:14px;color:#78716c;">
             Te pedimos un código de 6 números que llega a este correo. Sin contraseñas.
           </div>
+        </td></tr>
+    `),
+  });
+}
+
+/** Gift card (08/10): llega al confirmar el pago. Lleva al link de la tarjeta. */
+export async function enviarMailRegalo(opciones: { para: string; comoLeDicen: string; codigo: string }): Promise<boolean> {
+  const urlBase = process.env.URL_BASE ?? "https://www.vitacorafamiliar.com";
+  const url = `${urlBase}/regalo/${encodeURIComponent(opciones.codigo)}/tarjeta`;
+  return enviar({
+    para: opciones.para,
+    asunto: TEXTOS_REGALO.mailAsunto(opciones.comoLeDicen),
+    html: envoltorio(`
+        <tr><td style="padding-bottom:24px;">${escapar(TEXTOS_REGALO.mailCuerpo(opciones.comoLeDicen))}</td></tr>
+        <tr><td style="padding-bottom:32px;">
+          <a href="${escapar(url)}" style="display:inline-block;background:#5D3FD3;color:#ffffff;text-decoration:none;padding:14px 28px;font-family:Arial,Helvetica,sans-serif;font-size:15px;">
+            ${escapar(TEXTOS_REGALO.mailBoton)}
+          </a>
         </td></tr>
     `),
   });
@@ -107,6 +131,7 @@ export async function enviarMailInvitacion(opciones: {
   para: string;
   nombreNarrador: string;
   quienInvita: string;
+  region?: string | null;
 }): Promise<boolean> {
   const narrador = escapar(opciones.nombreNarrador);
   const quien = escapar(opciones.quienInvita);
@@ -125,7 +150,7 @@ export async function enviarMailInvitacion(opciones: {
           cada época.
         </td></tr>
         <tr><td style="padding-bottom:12px;">
-          Entrá con este mismo correo:
+          ${deTu(opciones.region) ? "Entra" : "Entrá"} con este mismo correo:
         </td></tr>
         <tr><td style="padding-bottom:32px;">
           <a href="${escapar(urlBase)}/entrar" style="display:inline-block;background:#5D3FD3;color:#ffffff;text-decoration:none;padding:14px 28px;font-family:Arial,Helvetica,sans-serif;font-size:15px;">

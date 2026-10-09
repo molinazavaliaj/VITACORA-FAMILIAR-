@@ -1,5 +1,6 @@
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { datosDelPanel } from "@/lib/admin/datos";
+import { EN_CURSO } from "@/lib/admin/en-curso";
 import { frenosDe, horasEntre, UMBRALES } from "@/lib/admin/frenos";
 import { Barra, Chip, Nota, SinDatos, Tarjeta, Titulo, cuando, fechaCorta, horasEnPalabras } from "../ui";
 
@@ -16,8 +17,8 @@ export default async function PantallaFamilias() {
   const frenos = frenosDe(datos, ahora);
   const familiaDe = new Map(datos.familias.map((f) => [f.id, f]));
 
-  const enCurso = datos.narradores.filter((n) => ["invitado", "acepto", "activo", "pausado"].includes(n.estado));
-  const terminadas = datos.narradores.filter((n) => !["invitado", "acepto", "activo", "pausado"].includes(n.estado));
+  const enCurso = datos.narradores.filter((n) => EN_CURSO.includes(n.estado));
+  const terminadas = datos.narradores.filter((n) => !EN_CURSO.includes(n.estado));
   const historias = [...enCurso, ...terminadas];
 
   const frenosDeNarrador = (nombre: string | null) => frenos.filter((f) => f.quien === nombre);
@@ -42,6 +43,9 @@ export default async function PantallaFamilias() {
     }
     if (n.estado === "completado" || n.estado === "cerrado_anticipado") {
       return { color: "neutro", texto: "terminado", detalle: n.libro_aprobado_at ? `libro listo el ${fechaCorta(n.libro_aprobado_at)}` : "entrevista cerrada" };
+    }
+    if (n.estado === "regalo_pendiente") {
+      return { color: "neutro", texto: "regalo sin abrir", detalle: "pagado, falta que escanee la tarjeta" };
     }
     if (n.estado === "pendiente_pago") {
       return { color: "ambar", texto: "sin pagar", detalle: "la compra existe pero el cobro no se confirmó" };

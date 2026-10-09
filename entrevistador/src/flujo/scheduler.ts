@@ -125,6 +125,9 @@ async function enviarBienvenidas(): Promise<void> {
   for (const n of await narradoresEn(['invitado'])) {
     await aislado(n.id, async () => {
       if (await bienvenidaYaSalio(n.id)) return;
+      // Gift card: la bienvenida sale como texto cuando el narrador escribe con su
+      // código (flujo/regalo.ts). La plantilla nunca: no la esperaría nadie.
+      if (n.contexto?.regalo === true) return;
       // Vitácora de viaje: su plantilla es `bienvenida_viaje` (una variable). Hasta que Meta
       // la apruebe (WA_PLANTILLA_BIENVENIDA_VIAJE=1), el viajero escribe primero y procesar
       // le contesta la bienvenida como texto libre.
@@ -231,6 +234,17 @@ export async function tick(ahora: Date = new Date()): Promise<void> {
     } catch (err) {
       console.error(`Falló la fase '${nombre}' del tick:`, err);
     }
+  }
+
+  // Gift card: el recordatorio de los 15 días a quien regaló. Aislado: si
+  // falla (o la tabla regalos no existe todavía), el resto del tick no se entera.
+  try {
+    const { recordarRegalos } = await import('./regalo.js');
+    const { mandarMailFamilia } = await import('../mail/hitos.js');
+    const { enviarTexto } = await import('../whatsapp/enviar.js');
+    await recordarRegalos({ db, enviarTexto, mandarMail: mandarMailFamilia }, ahora);
+  } catch (err) {
+    console.error('scheduler: falló el recordatorio de regalos', err);
   }
 
   // El latido, último y con su try adentro: si no se puede anotar que

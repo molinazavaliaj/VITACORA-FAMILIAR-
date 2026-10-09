@@ -3,9 +3,10 @@ import { redirect } from "next/navigation";
 import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { esPropia, historiasDelUsuario, type Historia } from "@/lib/panel";
+import { proximoPaso, viajeDe, type Resumen } from "./proximo-paso";
 import { BannerAlertaSilencio } from "./acciones";
 import { totalDelGuion } from "@/lib/guion";
-import { diasDelViaje, type Viaje } from "@/lib/viaje";
+import { diasDelViaje } from "@/lib/viaje";
 import {
   BarraProgreso,
   Contenedor,
@@ -23,18 +24,6 @@ import {
 // Inicio (docs/panel-usuario.md §4): una tarjeta por historia con su estado,
 // su progreso, UN solo próximo paso, y el dato emocional de cuánta voz hay
 // guardada. Las historias donde es invitada van después, marcadas.
-
-type Resumen = {
-  respondidas: number;
-  total: number;
-  segundos: number;
-  tieneAnticipo: boolean;
-};
-
-function viajeDe(h: Historia): Viaje | null {
-  const c = h.narrador.contexto as { modo?: unknown; viaje?: Viaje } | null | undefined;
-  return c?.modo === "viaje" && c.viaje?.salida && c.viaje?.vuelta ? c.viaje : null;
-}
 
 async function resumirHistoria(
   admin: ReturnType<typeof crearClienteServidor>,
@@ -68,33 +57,6 @@ async function resumirHistoria(
   const tieneAnticipo = (paquete ?? []).some((a) => a.name.startsWith("anticipo"));
 
   return { respondidas: ordenes.size, total, segundos, tieneAnticipo };
-}
-
-/** El único próximo paso de una historia, según dónde está. */
-function proximoPaso(h: Historia, r: Resumen): { href: string; texto: string } | null {
-  const id = h.narrador.id;
-  const esDuena = h.rol === "duena";
-  const propia = esPropia(h.narrador);
-  switch (h.narrador.estado) {
-    case "completado":
-    case "cerrado_anticipado":
-      if (h.rol === "visitante") return { href: `/tablero/${id}/libro`, texto: "Pedí tu copia impresa" };
-      return esDuena
-        ? { href: `/tablero/${id}/libro`, texto: propia ? "Ya terminaste de contar — dale los últimos retoques y encargá tu libro" : "Ya terminó de contar — dale los últimos retoques y encargá su libro" }
-        : { href: `/tablero/${id}`, texto: "Ya terminó de contar — leé su historia" };
-    case "pausado":
-      return { href: `/tablero/${id}`, texto: propia ? "Pediste una pausa — retomá cuando quieras" : "Pidió una pausa — mirá qué pasó" };
-    case "activo":
-      if (r.tieneAnticipo && r.respondidas < 6) return { href: `/tablero/${id}`, texto: "Ya podés leer el capítulo 1" };
-      if (r.respondidas > 0) return { href: `/tablero/${id}`, texto: propia ? "Escuchá lo último que contaste" : "Escuchá lo último que contó" };
-      return null;
-    case "acepto":
-    case "invitado":
-      if (viajeDe(h)) return { href: `/tablero/${id}`, texto: "Mientras esperás, revisá las etapas y sobre qué te preguntamos" };
-      return { href: `/tablero/${id}?editar=1`, texto: "Mientras esperás, repasá las preguntas y sumá fotos" };
-    default:
-      return null;
-  }
 }
 
 export default async function Inicio() {

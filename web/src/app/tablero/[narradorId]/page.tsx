@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
-import { esPropia, historiaAccesible, historiasDelUsuario, PUEDE } from "@/lib/panel";
+import { esPropia, historiaAccesible, historiasDelUsuario, PUEDE, tratoEditable } from "@/lib/panel";
 import { ADAPTATIVAS, armarGuion, lugarLibre, puedeSaltar, totalDelGuion, validarRitmo, type PreguntaGuion, type Ritmo, objetosDelGuion } from "@/lib/guion";
 import { BannerAlertaSilencio, CierreAnticipado } from "../acciones";
 import { AgregarPregunta, Ajustes, EditorGuion, SubirFoto, SugerirPreguntas } from "./preguntas/acciones";
@@ -159,7 +159,7 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
   // El trato (3t.22): se ve siempre; se cambia solo hasta la primera pregunta.
   const trato = {
     valor: (contexto.trato === "usted" || contexto.trato === "vos" ? contexto.trato : null) as "usted" | "vos" | null,
-    editable: n.dia_actual === 0 && ["invitado", "acepto"].includes(n.estado),
+    editable: tratoEditable(n),
   };
   const historiasRiel = panel.historias.map((h) => ({ id: h.narrador.id, nombre: h.narrador.nombre, rol: h.rol, estado: h.narrador.estado, propia: esPropia(h.narrador) }));
 

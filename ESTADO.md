@@ -1,4 +1,16 @@
-# Estado del proyecto — actualizado 2026-09-20
+# Estado del proyecto — actualizado 2026-10-09 (arriba lo nuevo; lo de abajo es del 20/09 y puede estar viejo)
+
+## 09/10: el libro V3 ya se escribe solo en producción
+
+- **Entrevista V3 por WhatsApp** en producción desde el 07/10. Narradores en V3: Naza (prueba), Dora, Imma
+  (catalán); los tres con la entrevista en curso y su pedido piloto en `pagado`.
+- **Escritor V3 enchufado al worker** (08–09/10): al terminar la entrevista, Etapa A; con el libro cerrado y
+  pagado, el libro entero en segundo plano por Batch → PDF → «Su voz» → entregado. Dudas de datos por mail a
+  los socios con 24 h para corregir; alerta si a las 48 h no salió. Detalle: `docs/handoff-2026-10-09.md`.
+- **Mails por país**: vos para Argentina, tú para España (`familias.region`), en la fábrica y el entrevistador.
+- **Gift card** (#2) en producción, sin link a `/regalar` hasta el #5.
+- Pendiente: OK de Joaquín al CONTRATO del escritor V3; resultado del ensayo pago con la historia de Naza.
+
 
 ## 🎉 ÚLTIMA HORA: el primer libro completo ya existe
 
@@ -836,3 +848,23 @@ se lee sin caché (`cacheControl: 0` + `cacheNonce` + `no-store`) y los dos ifra
 Cuando exista el mail de los 15 días (Task 6) vuelve al panel de frases el texto que se sacó, con la
 verdad del mecanismo. Y el "32 de 36" del panel queda aceptado hasta que la PC rehaga los 3 tramos
 (`cita-6`, `cita-16`, `cita-17`): es `git pull` + arrancar el worker en la PC de audio.
+
+## Gift card (branch `regalo`, PR #2, 07-08/10) (Naza)
+
+Quien regala compra en `/regalar` sin el teléfono del narrador y recibe por mail una tarjeta
+(A4 para imprimir en doble faz y una imagen para WhatsApp) con un QR y un código `VF-XXXXXX`.
+El narrador escanea, oye el audio de quien regala, toca Empezar y le escribe al bot con el
+código. El bot le engancha el teléfono y la zona horaria, lo pasa a `invitado` y le manda la
+bienvenida de siempre. Desde el SÍ todo sigue igual que hoy, V3 incluida.
+
+- **Hecho y revisado:** 11 tareas, cada una con revisión, más una revisión de toda la rama.
+  Web 694 pruebas OK (falla solo `admin-pantallas` «Plata», que ya fallaba), `tsc` y build OK.
+  Entrevistador 726 de 726.
+- **Textos:** todos aprobados por Naza (tandas 1 a 3).
+- **Migración aplicada por Naza el 09/10:** `20261008000000_regalos.sql` (tabla `regalos`, estado
+  `regalo_pendiente`, teléfono nullable).
+- **Para Joaquín:** revisar la migración y la sección «Gift card» de `supabase/CONTRATO.md`.
+  El entrevistador ahora escribe `telefono_whatsapp`, `estado` y `zona_horaria` una vez, al
+  canjear.
+- Pendientes y decisiones: `docs/regalo/handoff-2026-10-08.md` y ROADMAP («Gift card»).
+

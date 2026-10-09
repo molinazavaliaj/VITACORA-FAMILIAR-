@@ -34,7 +34,7 @@ vi.mock('../src/ia/personalizar.js', () => ({ personalizarPregunta: vi.fn() }));
 vi.mock('../src/ia/transcribir.js', () => ({ transcribirYActualizar: vi.fn() }));
 vi.mock('@anthropic-ai/sdk', () => ({ default: class { messages = { create: vi.fn() }; } }));
 
-import { mandarHito, redactarHito } from '../src/mail/hitos.js';
+import { mandarHito, mandarMailFamilia, redactarHito } from '../src/mail/hitos.js';
 import { leerSiNo } from '../src/flujo/procesar.js';
 import { parsearSugeridas, PROMPT_SUGERIDAS } from '../src/ia/sugeridas.js';
 import { textoEvitar, sumarTemaEvitado } from '../src/ia/evitar.js';
@@ -80,6 +80,28 @@ describe('mails de hitos', () => {
     estado.email = 'martina@mail.com';
     estado.fetch.mockRejectedValue(new Error('caída'));
     await expect(mandarHito({ ...n, contexto: {} }, 'acepto')).resolves.toBeUndefined();
+  });
+});
+
+describe('mandarMailFamilia (recordatorio del regalo)', () => {
+  it('manda al mail de la familia con el cuerpo escapado y el botón «Ver la tarjeta» a la página del regalo', async () => {
+    expect(await mandarMailFamilia('fam-1', 'abuelo todavía no abrió su regalo', 'Hola <b>vos</b>', 'n1')).toBe(true);
+    const cuerpo = JSON.parse(estado.fetch.mock.calls[0][1].body);
+    expect(cuerpo).toMatchObject({ to: ['martina@mail.com'], subject: 'abuelo todavía no abrió su regalo' });
+    expect(cuerpo.html).toContain('Hola &lt;b&gt;vos&lt;/b&gt;');
+    expect(cuerpo.html).toContain('Ver la tarjeta');
+    expect(cuerpo.html).toContain('/tablero/n1/regalo');
+  });
+  it('false sin mail de la familia, sin RESEND_API_KEY o si Resend falla; nunca tira', async () => {
+    estado.email = null;
+    expect(await mandarMailFamilia('fam-1', 'a', 'b', 'n1')).toBe(false);
+    estado.email = 'martina@mail.com';
+    delete process.env.RESEND_API_KEY;
+    expect(await mandarMailFamilia('fam-1', 'a', 'b', 'n1')).toBe(false);
+    process.env.RESEND_API_KEY = 'clave';
+    estado.fetch.mockRejectedValue(new Error('caída'));
+    expect(await mandarMailFamilia('fam-1', 'a', 'b', 'n1')).toBe(false);
+    expect(estado.fetch).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -155,5 +177,20 @@ describe('el trato en las sugeridas', () => {
 
   it('el default sigue siendo usted', () => {
     expect(PROMPT_SUGERIDAS('Don Osvaldo', '', [], ['La infancia'])).toContain('Cada pregunta: tratarlo de usted');
+  });
+});
+
+describe('mails de hitos con tú para España (Naza, 09/10)', () => {
+  it('con tú cambian puedes y quieres; con vos (o sin decir), los de siempre; el silencio no cambia', async () => {
+    const { redactarHito } = await import('../src/mail/hitos.js');
+    const n = { nombre: 'Imma', como_le_dicen: 'Imma', id: 'n1' };
+    expect(redactarHito('acepto', n, 'tu').cuerpo).toContain('Mientras tanto, puedes sumar fotos de cada época o preguntas para su entrevista.');
+    expect(redactarHito('acepto', n).cuerpo).toContain('Enseguida le llega la primera pregunta por WhatsApp.</p><p>Mientras tanto, podés sumar fotos');
+    expect(redactarHito('acepto', n).cuerpo).not.toContain('guion');
+    expect(redactarHito('primera', n, 'tu').asunto).toBe('Ya puedes escuchar a Imma');
+    expect(redactarHito('mitad', n, 'tu').cuerpo).toContain('si quieres, pedirle que cuente más');
+    expect(redactarHito('silencio', n, 'tu')).toEqual(redactarHito('silencio', n, 'vos'));
+    expect(redactarHito('primera', n).asunto).toBe('Ya podés escuchar a Imma');
+    for (const h of ['acepto', 'primera', 'mitad'] as const) expect(redactarHito(h, n, 'tu').cuerpo + redactarHito(h, n, 'tu').asunto).not.toMatch(/podés|querés/);
   });
 });

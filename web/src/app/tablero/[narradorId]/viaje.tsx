@@ -127,7 +127,7 @@ export function HistoriaViaje({
   }));
   // Antes de que el bot arranque (pago sin confirmar, invitación sin aceptar) y
   // después de cerrar, no hay "hoy" que marcar.
-  const arranco = !["pendiente_pago", "invitado"].includes(n.estado);
+  const arranco = !["pendiente_pago", "regalo_pendiente", "invitado"].includes(n.estado);
   const capituloDeHoy = hoy && arranco && !cerrado ? secciones.find((c) => c.dias.includes(hoy))?.nombre : null;
 
   const puedeAgregarFotos = !aprobado && !historiaCerrada && PUEDE.agregarPreguntasYFotos(rol);

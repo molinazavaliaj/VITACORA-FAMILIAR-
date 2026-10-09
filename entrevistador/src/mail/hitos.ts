@@ -1,4 +1,5 @@
 import { db } from '../db/cliente.js';
+import { TEXTOS_REGALO_BOT } from '../flujo/regalo-textos.js';
 
 // Los mails de hitos que manda el entrevistador (docs/panel-usuario.md §9 y
 // §11.6): los momentos de la entrevista que la familia quiere saber. Los del
@@ -12,6 +13,9 @@ import { db } from '../db/cliente.js';
 // Resend por su API HTTP, igual que la web (web/src/lib/mail.ts): sin SDK.
 // Sin RESEND_API_KEY no se tira: avisa por consola y sigue. Cada hito se
 // manda UNA vez por narrador: queda anotado en `contexto.mailsEnviados`.
+//
+// Trato por país (Naza, 09/10): con vos a las familias de Argentina y con tú a las
+// de España (`familias.region`). Sin región, vos, como siempre.
 
 export type Hito = 'acepto' | 'primera' | 'mitad' | 'silencio';
 
@@ -30,25 +34,30 @@ function escapar(texto: string): string {
   return texto.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
+/** El trato del mail: vos (Argentina) o tú (España). */
+export type Trato = 'vos' | 'tu';
+
 /** Asunto y cuerpo de cada hito. Puro, para probarlo sin red. */
-export function redactarHito(hito: Hito, n: { nombre?: string; como_le_dicen: string; id: string }): { asunto: string; cuerpo: string } {
+export function redactarHito(hito: Hito, n: { nombre?: string; como_le_dicen: string; id: string }, trato: Trato = 'vos'): { asunto: string; cuerpo: string } {
   const quien = n.nombre ?? n.como_le_dicen;
   const panel = `${URL_BASE}/tablero/${n.id}`;
+  const tu = trato === 'tu';
   switch (hito) {
     case 'acepto':
       return {
         asunto: `${quien} dijo que sí`,
-        cuerpo: `<p>${escapar(quien)} aceptó. Mañana le llega la primera pregunta por WhatsApp.</p><p>Mientras tanto, podés repasar el guion y sumar fotos de cada época: <a href="${panel}?editar=1">${panel}</a></p>`,
+        // Texto aprobado por Naza el 06/10 (rama web-textos-v3): sin "repasar el guion", que en la V3 no existe.
+        cuerpo: `<p>${escapar(quien)} aceptó. Enseguida le llega la primera pregunta por WhatsApp.</p><p>Mientras tanto, ${tu ? 'puedes' : 'podés'} sumar fotos de cada época o preguntas para su entrevista.</p><p><a href="${panel}?editar=1">${panel}</a></p>`,
       };
     case 'primera':
       return {
-        asunto: `Ya podés escuchar a ${quien}`,
+        asunto: `Ya ${tu ? 'puedes' : 'podés'} escuchar a ${quien}`,
         cuerpo: `<p>${escapar(quien)} contestó la primera pregunta. Ya hay un audio y su transcripción en el panel.</p><p><a href="${panel}">${panel}</a></p>`,
       };
     case 'mitad':
       return {
         asunto: `${quien} va por la mitad`,
-        cuerpo: `<p>${escapar(quien)} ya contó la mitad de su historia. Es un buen momento para leer lo que hay y, si querés, pedirle que cuente más sobre algo.</p><p><a href="${panel}">${panel}</a></p>`,
+        cuerpo: `<p>${escapar(quien)} ya contó la mitad de su historia. Es un buen momento para leer lo que hay y, si ${tu ? 'quieres' : 'querés'}, pedirle que cuente más sobre algo.</p><p><a href="${panel}">${panel}</a></p>`,
       };
     case 'silencio':
       return {
@@ -94,11 +103,11 @@ export async function mandarHito(n: NarradorParaMail, hito: Hito): Promise<void>
     const enviados: string[] = Array.isArray(contexto.mailsEnviados) ? contexto.mailsEnviados : [];
     if (enviados.includes(hito)) return;
 
-    const { data: familia } = await db.from('familias').select('email').eq('id', n.familia_id).maybeSingle();
+    const { data: familia } = await db.from('familias').select('email, region').eq('id', n.familia_id).maybeSingle();
     const para = (familia as { email?: string } | null)?.email;
     if (!para) return;
 
-    const { asunto, cuerpo } = redactarHito(hito, n);
+    const { asunto, cuerpo } = redactarHito(hito, n, (familia as { region?: string } | null)?.region === 'ES' ? 'tu' : 'vos');
     const mandado = await enviar(para, asunto, envoltorio(cuerpo));
     if (!mandado) return;
 
@@ -107,5 +116,24 @@ export async function mandarHito(n: NarradorParaMail, hito: Hito): Promise<void>
     await db.from('narradores').update({ contexto }).eq('id', n.id);
   } catch (err) {
     console.error(`mail: falló el hito '${hito}' de ${n.id}:`, err);
+  }
+}
+
+/**
+ * Un mail suelto a la familia (gift card: el recordatorio de los 15 días), con
+ * el cuerpo escapado y el botón «Ver la tarjeta» a la página del regalo en el
+ * tablero. Nunca tira: `false` si no hay mail, falta la key o Resend falla.
+ */
+export async function mandarMailFamilia(familiaId: string, asunto: string, cuerpo: string, narradorId: string): Promise<boolean> {
+  try {
+    const { data: familia } = await db.from('familias').select('email').eq('id', familiaId).maybeSingle();
+    const para = (familia as { email?: string } | null)?.email;
+    if (!para) return false;
+    const link = `${URL_BASE}/tablero/${encodeURIComponent(narradorId)}/regalo`;
+    const html = `<p>${escapar(cuerpo)}</p><p style="margin-top:28px;"><a href="${escapar(link)}" style="display:inline-block;background:#5D3FD3;color:#ffffff;text-decoration:none;padding:14px 28px;font-family:Arial,Helvetica,sans-serif;font-size:15px;">${escapar(TEXTOS_REGALO_BOT.botonTarjeta)}</a></p>`;
+    return await enviar(para, asunto, envoltorio(html));
+  } catch (err) {
+    console.error(`mail: falló el mail a la familia ${familiaId} ("${asunto}"):`, err);
+    return false;
   }
 }

@@ -71,7 +71,8 @@ export interface FamiliaAInsertar {
 export interface NarradorAInsertar {
   nombre: string;
   como_le_dicen: string;
-  telefono_whatsapp: string;
+  /** null en la gift card: lo pone el entrevistador cuando el narrador escribe con su código. */
+  telefono_whatsapp: string | null;
   hora_preferida: string;
   zona_horaria: string;
   contexto: Record<string, unknown> & { arbol?: Record<string, string> };
@@ -143,7 +144,7 @@ function esNoVacio(valor: unknown): valor is string {
   return typeof valor === 'string' && valor.trim().length > 0;
 }
 
-export function validarYConstruir(body: RegistroBody): ResultadoValidacion {
+export function validarYConstruir(body: RegistroBody, opciones: { sinTelefono?: boolean } = {}): ResultadoValidacion {
   if (!esNoVacio(body?.nombreComprador)) {
     return { ok: false, status: 400, mensaje: 'Falta el nombre de quien regala la bitácora.' };
   }
@@ -162,7 +163,9 @@ export function validarYConstruir(body: RegistroBody): ResultadoValidacion {
   if (!esNoVacio(narrador.comoLeDicen)) {
     return { ok: false, status: 400, mensaje: 'Falta contar cómo le dicen al narrador.' };
   }
-  if (!esNoVacio(narrador.telefonoWhatsapp)) {
+  // Gift card (08/10): quien regala no sabe ni carga el teléfono; lo pone el
+  // entrevistador cuando el narrador escribe con su código.
+  if (!opciones.sinTelefono && !esNoVacio(narrador.telefonoWhatsapp)) {
     return { ok: false, status: 400, mensaje: 'Falta el WhatsApp del narrador.' };
   }
 
@@ -196,13 +199,16 @@ export function validarYConstruir(body: RegistroBody): ResultadoValidacion {
   const imprescindibleOk = validarImprescindible(contexto.imprescindible);
   if (!imprescindibleOk.ok) return { ok: false, status: 400, mensaje: imprescindibleOk.mensaje };
 
-  const telefono = normalizarTelefono(narrador.telefonoWhatsapp, region);
-  if (!TELEFONO_E164.test(telefono)) {
-    return {
-      ok: false,
-      status: 400,
-      mensaje: 'El WhatsApp no parece un número válido. Revisalo e intentá de nuevo.',
-    };
+  let telefono: string | null = null;
+  if (!opciones.sinTelefono) {
+    telefono = normalizarTelefono(narrador.telefonoWhatsapp as string, region);
+    if (!TELEFONO_E164.test(telefono)) {
+      return {
+        ok: false,
+        status: 400,
+        mensaje: 'El WhatsApp no parece un número válido. Revisalo e intentá de nuevo.',
+      };
+    }
   }
 
   if (esNoVacio(narrador.zonaHoraria) && !esZonaHorariaValida(narrador.zonaHoraria)) {

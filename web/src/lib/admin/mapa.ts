@@ -1,6 +1,6 @@
 // El mapa de cerebros: qué robot trabaja, qué hace y dónde se cortó la cadena.
 //
-// Los 14 nodos son los del mockup (docs/panel-interno.html), y salen SIEMPRE los 14: un
+// Los 14 nodos del mockup (docs/panel-interno.html) más los 2 del escritor V3 (09/10) salen SIEMPRE: un
 // robot que nunca se usó aparece gris punteado ("sin_uso"), y eso NO es un freno — una caja
 // gris no es una caja roja. Rojo ("frenado") es sólo cuando hay trabajo esperando a ese
 // robot y el robot no dio señales.
@@ -66,7 +66,7 @@ const hayVozTrabada = (datos: DatosDelPanel, ahora: Date): boolean =>
     return horas !== null && horas > UMBRALES.vozSinAvanceHoras;
   });
 
-// Los 14 del mockup, en el orden en que se leen (los tres carriles, de arriba abajo).
+// Los 14 del mockup y los 2 del escritor V3, en el orden en que se leen (los tres carriles, de arriba abajo).
 const DEFINICIONES: Definicion[] = [
   {
     carril: "entrevista", nombre: "Llega el audio del abuelo", modelo: "", deRespuestas: true,
@@ -107,6 +107,16 @@ const DEFINICIONES: Definicion[] = [
   {
     carril: "libro", nombre: "Pasa el editor", modelo: "claude-fable-5", pasos: ["editor"],
     queHace: "Relee y corrige lo escrito antes de armarlo",
+  },
+  // El escritor V3 (fabrica/src/escritor/produccion): los libros de las entrevistas V3. Anota en
+  // consumo_ia un paso por etapa (escritor-A, escritor-B, escritor-C). Los 4 de arriba son del libro viejo.
+  {
+    carril: "libro", nombre: "Lee la entrevista V3", modelo: "claude-opus-5-5", pasos: ["escritor-A"],
+    queHace: "Ordena lo que contó, arma el plan del libro y anota las dudas de datos",
+  },
+  {
+    carril: "libro", nombre: "Escribe el libro V3", modelo: "claude-opus-5-5", pasos: ["escritor-B", "escritor-C"],
+    queHace: "Suma las correcciones de la familia y escribe el libro entero, revisado",
   },
   {
     carril: "libro", nombre: "Arma el PDF", modelo: "", dePdf: true,

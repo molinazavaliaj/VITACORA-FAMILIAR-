@@ -27,7 +27,7 @@ vi.mock('../src/db/cliente.js', () => {
   function crearBuilder(tabla: string) {
     const b: any = { _op: 'select', _filtros: {} as Record<string, any> };
     const eq = (col: string, val: any) => { b._filtros[col] = val; return b; };
-    b.select = () => b; b.or = () => b; b.order = () => b; b.limit = () => b; b.in = eq;
+    b.select = () => b; b.or = () => b; b.order = () => b; b.limit = () => b; b.in = eq; b.lte = () => b;
     // `.is('wa_message_id', null)` y `.not('wa_message_id','is',null)`: la bienvenida
     // distingue un envío de verdad (con id de Meta) de un intento fallido anotado.
     b.is = (col: string, val: any) => { if (col === 'wa_message_id') b._filtros._conId = val === null ? false : undefined; return b; };
@@ -330,6 +330,14 @@ describe('la bienvenida', () => {
     const anotado = mocks.capturas.find((c: any) => c.tabla === 'envios' && c.p?.tipo === 'bienvenida');
     expect(anotado?.p).toMatchObject({ entrega: 'fallido', wa_message_id: null });
     expect(anotado?.p.error_detalle).toContain('Template name does not exist');
+  });
+
+  // Gift card (08/10): su bienvenida sale como texto cuando escribe con el código.
+  it('un invitado de regalo no recibe la plantilla de bienvenida', async () => {
+    mocks.filas.narradores = [{ ...invitado, contexto: { regalo: true } }];
+    mocks.filas.envios = [];
+    await tick(new Date('2026-09-23T12:00:00Z'));
+    expect(mocks.enviarPlantilla).not.toHaveBeenCalled();
   });
 
   it('un intento fallido NO bloquea el reintento del próximo tick', async () => {
