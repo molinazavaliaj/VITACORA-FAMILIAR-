@@ -58,9 +58,12 @@ Bucket privado `audios` de Supabase (service key en `fabrica/.env`):
 - **DDL no**: las migraciones (`supabase/migrations/*.sql`, idempotentes) las escribís
   vos, pero las aplica Naza en el SQL Editor. Datos (UPDATE/INSERT vía PostgREST) sí,
   con cuidado y solo si la tarea lo pide.
-- **No marques pedidos `pagado` a mano** si el libro no está cerrado
-  (`narradores.libro_aprobado_at`). No borres `borrador_*`, `conectores_cap_NN.json`
-  ni `narracion.json` del paquete.
+- **Un pedido `pagado` no dispara nada solo**: el pago es por adelantado (11/09) y el
+  libro se escribe recién cuando la familia lo cierra (`narradores.libro_aprobado_at`);
+  esa es la traba, no el estado del pedido. Un piloto sin checkout puede pasarse a
+  `pagado` a mano en cualquier momento (Naza, 09/10). Lo que **no** se pone a mano es
+  `libro_aprobado_at`: eso lo decide la familia. No borres `borrador_*`,
+  `conectores_cap_NN.json`, `narracion.json` del paquete ni la carpeta `{id}/escritor/`.
 - **No corras narraciones contra la PC de música "para probar"**: son horas de GPU.
 - Modelos: el escritor v5.5 de la fábrica usa `claude-opus-5-5` y `claude-haiku-4-5` según el paso
   (`fabrica/src/escritor/modelo/configuracion.ts`, decidido por Naza el 07/10); el cazador de escenas,

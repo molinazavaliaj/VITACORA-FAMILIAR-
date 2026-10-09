@@ -73,12 +73,12 @@ describe('el lector de la entrevista V3 desde la base', () => {
     const db = dbFalsa({
       entrevistas_v3: [fila()],
       respuestas: [
-        { narrador_id: 'n1', clave_v3: 'OR1', audio_path: 'n1/dia_01.ogg', transcripcion: 'Nací…', recibido_at: '2026-10-08T13:00:00Z' },
-        { narrador_id: 'n1', clave_v3: null, audio_path: 'n1/dia_02.ogg', transcripcion: 'vieja', recibido_at: '2026-10-01T13:00:00Z' },
+        { id: 'r-or1', narrador_id: 'n1', clave_v3: 'OR1', audio_path: 'n1/dia_01.ogg', transcripcion: 'Nací…', recibido_at: '2026-10-08T13:00:00Z' },
+        { id: 'r-vieja', narrador_id: 'n1', clave_v3: null, audio_path: 'n1/dia_02.ogg', transcripcion: 'vieja', recibido_at: '2026-10-01T13:00:00Z' },
       ],
     });
     const e = await leerEntrevistaV3(db, 'n1');
-    expect(e?.audios).toEqual([{ clave: 'OR1', audioPath: 'n1/dia_01.ogg', transcripcion: 'Nací…', recibidoAt: '2026-10-08T13:00:00Z' }]);
+    expect(e?.audios).toEqual([{ respuestaId: 'r-or1', clave: 'OR1', audioPath: 'n1/dia_01.ogg', transcripcion: 'Nací…', recibidoAt: '2026-10-08T13:00:00Z' }]);
     expect(await leerEntrevistaV3(db, 'n2')).toBeNull();
   });
 

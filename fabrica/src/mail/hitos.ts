@@ -7,8 +7,14 @@
 // (`CANDADO_POR_HITO`) que el worker deja SOLO si Resend confirmó el envío.
 //
 // Textos aprobados por Naza el 2026-09-13. Voz de marca: castellano neutro
-// de "tú" — el voseo vive solo en los ads argentinos. Cualquier cambio de
-// estas palabras lo aprueba ella antes de commitear (regla de la casa).
+// de "tú". Cualquier cambio de estas palabras lo aprueba ella antes de
+// commitear (regla de la casa).
+//
+// Excepción (Naza, 08/10): los mails de cierre de un narrador con entrevista
+// V3 ("terminó de contar", recordatorios y cierre automático) tienen su propio
+// texto (en la V3 no hay nombres que revisar, ni orden de capítulos, ni una
+// propuesta antes de cerrar) y van con "vos" si la entrevista es de Argentina
+// (es-AR) y con "tú" si es de España (es-ES o catalán).
 
 import { cargarConfig } from '../config.js';
 import { escaparHtml } from '../libro/comun.js';
@@ -130,8 +136,141 @@ const TEXTOS: Record<Hito, { asunto: (quien: string) => string; parrafos: (quien
   },
 };
 
-export function asuntoHito(hito: Hito, comoLeDicen: string): string {
-  return TEXTOS[hito].asunto(comoLeDicen);
+/** El trato de los mails de cierre de un narrador V3: vos (Argentina) o tú (España). */
+export type VarianteV3 = 'vos' | 'tu';
+
+type TextoHito = (typeof TEXTOS)[Hito];
+
+/**
+ * Los mails de cierre de un narrador V3: en la V3 no hay nombres que revisar, ni orden de capítulos, ni una
+ * propuesta que se le muestre antes de cerrar. "Terminó de contar" aprobado por Naza el 08/10/2026 (con vos para
+ * Argentina); los recordatorios y el cierre automático, el mismo 08/10. Los hitos que no están acá van con el
+ * texto de siempre.
+ */
+const TEXTOS_V3: Record<VarianteV3, Partial<Record<Hito, TextoHito>>> = {
+  tu: {
+    terminado: {
+      asunto: (quien) => `Tu ${quien} terminó de contar`,
+      parrafos: (quien) => [
+        `Tu ${quien} respondió la última pregunta. Su historia está completa.`,
+        'Ahora te toca a ti. Entra, elige la foto y el título de la tapa, y cierra el libro.',
+        'Cuando lo cierres, lo escribimos con sus palabras y te avisamos.',
+      ],
+      boton: 'Cerrar el libro',
+    },
+    recordatorio_3: {
+      asunto: (quien) => `El libro de tu ${quien} espera que lo cierres`,
+      parrafos: (quien) => [
+        `Hace tres días que tu ${quien} terminó de contar. El libro no se escribe hasta que lo cierres.`,
+        'Son cinco minutos. Elige la foto y el título de la tapa, y ciérralo.',
+      ],
+      boton: 'Cerrar el libro',
+    },
+    recordatorio_7: {
+      asunto: (quien) => `Una semana sin cerrar el libro de tu ${quien}`,
+      parrafos: (quien) => [
+        `Pasó una semana desde que tu ${quien} terminó. Su libro sigue esperándote.`,
+        'Si no quieres cambiar nada de la tapa, entra y ciérralo así. Queda perfecto igual.',
+      ],
+      boton: 'Cerrar el libro',
+    },
+    recordatorio_14: {
+      asunto: (quien) => `Todavía no cerraste el libro de tu ${quien}`,
+      parrafos: (quien) => [
+        `Hace dos semanas que la historia de tu ${quien} está completa y sin cerrar.`,
+        'Si en dos semanas más no lo cierras, lo cerramos nosotros y lo escribimos igual. Está en los términos, para que ningún libro quede sin hacer.',
+      ],
+      boton: 'Cerrar el libro',
+    },
+    cierre_automatico: {
+      asunto: (quien) => `Cerramos el libro de tu ${quien} por ti`,
+      parrafos: (quien) => [
+        `Pasaron treinta días desde que tu ${quien} terminó de contar y el libro seguía abierto, así que lo cerramos nosotros.`,
+        'Ya lo estamos escribiendo con sus palabras. Cuando esté, te avisamos.',
+      ],
+      boton: 'Ver el libro',
+    },
+  },
+  vos: {
+    terminado: {
+      asunto: (quien) => `Tu ${quien} terminó de contar`,
+      parrafos: (quien) => [
+        `Tu ${quien} respondió la última pregunta. Su historia está completa.`,
+        'Ahora te toca a vos. Entrá, elegí la foto y el título de la tapa, y cerrá el libro.',
+        'Cuando lo cierres, lo escribimos con sus palabras y te avisamos.',
+      ],
+      boton: 'Cerrar el libro',
+    },
+    recordatorio_3: {
+      asunto: (quien) => `El libro de tu ${quien} espera que lo cierres`,
+      parrafos: (quien) => [
+        `Hace tres días que tu ${quien} terminó de contar. El libro no se escribe hasta que lo cierres.`,
+        'Son cinco minutos. Elegí la foto y el título de la tapa, y cerralo.',
+      ],
+      boton: 'Cerrar el libro',
+    },
+    recordatorio_7: {
+      asunto: (quien) => `Una semana sin cerrar el libro de tu ${quien}`,
+      parrafos: (quien) => [
+        `Pasó una semana desde que tu ${quien} terminó. Su libro sigue esperándote.`,
+        'Si no querés cambiar nada de la tapa, entrá y cerralo así. Queda perfecto igual.',
+      ],
+      boton: 'Cerrar el libro',
+    },
+    recordatorio_14: {
+      asunto: (quien) => `Todavía no cerraste el libro de tu ${quien}`,
+      parrafos: (quien) => [
+        `Hace dos semanas que la historia de tu ${quien} está completa y sin cerrar.`,
+        'Si en dos semanas más no lo cerrás, lo cerramos nosotros y lo escribimos igual. Está en los términos, para que ningún libro quede sin hacer.',
+      ],
+      boton: 'Cerrar el libro',
+    },
+    // Estos tres no son solo V3: van con vos a toda familia de Argentina (familias.region = 'AR'). Textos con
+    // vos aprobados por Naza el 06/10 (rama web-textos-v3); por país, el 09/10.
+    falta_direccion: {
+      asunto: (quien) => `¿A dónde mandamos el libro de tu ${quien}?`,
+      parrafos: (quien) => [
+        `El libro de tu ${quien} está listo para imprimirse, pero todavía no sabemos a dónde mandarlo.`,
+        'Son dos minutos. Entrá y dejanos la dirección de quien lo recibe. Hasta que no esté, no podemos empezar a imprimir.',
+      ],
+      boton: 'Poner la dirección',
+    },
+    entregado: {
+      asunto: (quien) => `El libro de tu ${quien} ya está en casa`,
+      parrafos: (quien) => [
+        `Llegó. El libro de tu ${quien} está donde tiene que estar: en manos de tu familia.`,
+        // Sin género a propósito, como el de tú.
+        'Acercá el teléfono a los códigos del libro y vas a escuchar su voz contándolo.',
+        'Si te emocionó, contalo. A otra familia le puede pasar lo mismo.',
+      ],
+      boton: 'Contar cómo fue',
+    },
+    libro_listo: {
+      asunto: (quien) => `El libro de tu ${quien} está listo`,
+      parrafos: (quien) => [
+        `Ya está. El libro de tu ${quien}, escrito con sus palabras, y sus mejores frases con su voz real, para escuchar cuando quieras.`,
+        'Queda ahí para siempre. Entrá cuando quieras a leerlo, escucharlo o descargarlo.',
+      ],
+      boton: 'Leer el libro',
+    },
+    cierre_automatico: {
+      asunto: (quien) => `Cerramos el libro de tu ${quien} por vos`,
+      parrafos: (quien) => [
+        `Pasaron treinta días desde que tu ${quien} terminó de contar y el libro seguía abierto, así que lo cerramos nosotros.`,
+        'Ya lo estamos escribiendo con sus palabras. Cuando esté, te avisamos.',
+      ],
+      boton: 'Ver el libro',
+    },
+  },
+};
+
+/** Los textos de un hito: los de siempre, salvo los de cierre de un narrador V3. */
+function textosDe(hito: Hito, variante?: VarianteV3): TextoHito {
+  return (variante ? TEXTOS_V3[variante][hito] : undefined) ?? TEXTOS[hito];
+}
+
+export function asuntoHito(hito: Hito, comoLeDicen: string, variante?: VarianteV3): string {
+  return textosDe(hito, variante).asunto(comoLeDicen);
 }
 
 /**
@@ -141,11 +280,11 @@ export function asuntoHito(hito: Hito, comoLeDicen: string): string {
  */
 export function cuerpoHito(
   hito: Hito,
-  opciones: { comoLeDicen: string; enlace: string; seguimiento?: string | null }
+  opciones: { comoLeDicen: string; enlace: string; seguimiento?: string | null; variante?: VarianteV3 }
 ): string {
   const quien = escaparHtml(opciones.comoLeDicen);
   const url = escaparHtml(opciones.enlace);
-  const texto = TEXTOS[hito];
+  const texto = textosDe(hito, opciones.variante);
 
   // El número de seguimiento llega tarde —lo da el correo, no nosotros— y puede no
   // llegar nunca. Con él, el mail dice cómo seguir el paquete; sin él, la noticia
@@ -209,6 +348,8 @@ export async function enviarMailHito(opciones: {
   enlace: string;
   /** Solo el de "va en camino": el número del correo, cuando ya existe. */
   seguimiento?: string | null;
+  /** Solo el "terminó de contar" de un narrador V3 (ver `VarianteV3`). */
+  variante?: VarianteV3;
 }): Promise<boolean> {
   const { resendApiKey } = cargarConfig();
   if (!resendApiKey) {
@@ -225,11 +366,12 @@ export async function enviarMailHito(opciones: {
     body: JSON.stringify({
       from: REMITENTE,
       to: [opciones.para],
-      subject: asuntoHito(opciones.hito, opciones.comoLeDicen),
+      subject: asuntoHito(opciones.hito, opciones.comoLeDicen, opciones.variante),
       html: cuerpoHito(opciones.hito, {
         comoLeDicen: opciones.comoLeDicen,
         enlace: opciones.enlace,
         seguimiento: opciones.seguimiento,
+        variante: opciones.variante,
       }),
     }),
   });

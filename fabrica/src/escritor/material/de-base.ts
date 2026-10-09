@@ -44,11 +44,12 @@ export type FilaEntrevistaV3 = {
   };
 };
 
-export type AudioV3 = { clave: string; audioPath: string | null; transcripcion: string | null; recibidoAt: string };
+/** `respuestaId`: la fila de `respuestas` (la usa «Su voz»: el worker de audio corta de esa fila). */
+export type AudioV3 = { respuestaId: string; clave: string; audioPath: string | null; transcripcion: string | null; recibidoAt: string };
 export type EntrevistaDeBase = EstadoEntrevista & { audios: AudioV3[] };
 
 type FilaRespuesta = {
-  clave_v3: string; audio_path: string | null; transcripcion: string | null; recibido_at: string;
+  id: string; clave_v3: string; audio_path: string | null; transcripcion: string | null; recibido_at: string;
   texto_directo?: string | null; reservada?: boolean | null; reservado_tramo?: string | null;
 };
 
@@ -135,9 +136,9 @@ export async function leerEntrevistaV3(db: SupabaseClient, narradorId: string): 
   if (!data) return null;
 
   const consulta = (campos: string) => db.from('respuestas').select(campos).eq('narrador_id', narradorId).not('clave_v3', 'is', null).order('recibido_at', { ascending: true });
-  let res = await consulta('clave_v3,audio_path,transcripcion,texto_directo,recibido_at,reservada,reservado_tramo');
+  let res = await consulta('id,clave_v3,audio_path,transcripcion,texto_directo,recibido_at,reservada,reservado_tramo');
   // Sin la migración de las reservas (columna inexistente) nadie pudo reservar nada.
-  if (res.error?.code === '42703') res = await consulta('clave_v3,audio_path,transcripcion,texto_directo,recibido_at');
+  if (res.error?.code === '42703') res = await consulta('id,clave_v3,audio_path,transcripcion,texto_directo,recibido_at');
   if (res.error) throw new Error(`No pude leer las respuestas de ${narradorId}: ${res.error.message}`);
 
   const fila = data as unknown as FilaEntrevistaV3;
@@ -151,6 +152,7 @@ export async function leerEntrevistaV3(db: SupabaseClient, narradorId: string): 
   const reservas = reservasPorClave(filasResp);
   for (const k of delEstado) reservas.set(k, { total: true, tramos: [] });
   const audios: AudioV3[] = filasResp.map((r) => ({
+    respuestaId: r.id,
     clave: r.clave_v3,
     // Un tramo reservado no se recorta de una grabación: el audio queda afuera.
     audioPath: esPublicable(r) ? r.audio_path : null,

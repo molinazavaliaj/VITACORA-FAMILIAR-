@@ -5,6 +5,7 @@
 // Con `soloCapitulo`: lo que workflow-tres.js hacía para la prueba corta, para un capítulo.
 // El tope de gasto (TopeDeGasto) no se ataja en ningún lado de la etapa: corta el libro.
 import { controlarAfuera } from '../controles/afuera.js';
+import { aplicarRepaso } from '../controles/aplicar-repaso.js';
 import { aplicar, armar, juntar } from '../controles/arreglos.js';
 import { controlar } from '../controles/correr.js';
 import { estado, type Disputa } from '../controles/estado.js';
@@ -19,7 +20,8 @@ import { archivoDe } from '../texto.js';
 import { guardarSnapshot, type Contexto } from './contexto.js';
 
 /** `soloEscritura` (prueba): con soloCapitulo, termina después de escribir el capítulo y su resumen (sin revisión ni estilo). */
-export type OpcionesEtapaC = { soloCapitulo?: number; soloEscritura?: boolean };
+/** `sinAplicarRepaso`: como la receta original (las correcciones del repaso solo van al informe); lo usa la reproducción de la corrida de Joaquín. */
+export type OpcionesEtapaC = { soloCapitulo?: number; soloEscritura?: boolean; sinAplicarRepaso?: boolean };
 export type ResultadoEtapaC = { libro: string; informe: string; capitulos: number; arreglados: string[]; disputas: number; controlesFinal: string; usd: number };
 
 const nn = (n: number): string => String(n).padStart(2, '0');
@@ -131,6 +133,11 @@ async function etapaCSinCostos(x: Contexto, o: OpcionesEtapaC): Promise<Resultad
       c.escribir(salida('hechos-repaso.json'), await ej.uno(encargo(llamadaHechos(c, { repaso: true }), true)));
       log(controlar(c, 'repaso').resumen);
       await disputas(x, (estado(c, 'repaso') as { disputas: Disputa[] }).disputas, 'C-disputas-repaso');
+      // Naza, 07/10 (opción B): las correcciones del repaso se aplican por código; el estilo, que viene después, las pule.
+      if (!o.sinAplicarRepaso) {
+        const ap = aplicarRepaso(c);
+        log(`repaso aplicado: ${ap.aplicados.length} corregidos, ${ap.salteados.length} quedan abiertos en el informe`);
+      }
     } catch (err) {
       if (!(err instanceof ErrorJSON)) throw err;
       log(`repaso de hechos: ${err.message}; se sigue sin repaso`);

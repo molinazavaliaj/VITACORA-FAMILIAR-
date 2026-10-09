@@ -37,7 +37,7 @@
 | OR1 | Empecemos por cuando llegaste al mundo, según te contaron. No el día en sí, sino la época: dónde vivían, a qué se dedicaban tu madre y tu padre, cómo te esperaban. ¿Qué sabes de cómo era la vida de ellos por entonces? Cuéntame. |
 | OR2 | En todas las familias hay una historia de los de antes, de los abuelos o de más atrás, que se contaba en las sobremesas: un viaje, una llegada, alguna hazaña. ¿Cuál sabes de tu familia? Cuéntamela como la oíste, con el nombre de quien la vivió. |
 | OR5 | ¿Cómo se conocieron tu madre y tu padre? Seguro que en casa lo contaron más de una vez: un baile, una casualidad, alguien que los presentó. Cuéntame ese día como te lo contaron. |
-| OR6 | ¿Por qué te pusieron {{nombre}}? En todas las familias hay una historia detrás de un nombre: una discusión, un santo, alguien a quien querían mucho. Cuéntame la que te contaron a ti, aunque sea corta. |
+| OR6 | ¿Por qué te pusieron {{nombre_pila}}? En todas las familias hay una historia detrás de un nombre: una discusión, un santo, alguien a quien querían mucho. Cuéntame la que te contaron a ti, aunque sea corta. |
 | OR6.2 | ¿Tienes o has tenido algún mote? Si es así, cuéntame cómo nació: quién te lo puso, por qué justo ese, y si te gusta. Casi siempre hay una anécdota detrás. |
 | CI1 | Hasta aquí lo de tu familia de antes de que llegaras tú. Y me pregunto si se me ha escapado algo: una historia de tus abuelos, de tus padres de jóvenes, de esa casa. Si hay alguna rondándote por la cabeza, cuéntamela ahora. Y si algo te viene más tarde, a cualquier hora, mándamelo cuando quieras: también va al libro. |
 | CA1 | Cuéntame el primer recuerdo que tengas de la casa donde creciste: un día, qué estabas haciendo, quién andaba por allí. |
@@ -288,7 +288,7 @@ Mismo orden que en banco.md (el botón 1 de aquí vale lo mismo que el botón 1 
 
 | ID | Texto |
 |---|---|
-| BIEN | Hola, {{nombre}}, ¿cómo estás? Una persona que te quiere mucho te ha regalado un libro con la historia de tu vida, y yo soy quien te va a entrevistar para hacerlo. Lo hacemos aquí, por WhatsApp, con calma.<br><br>Funciona así: te mando una pregunta y tú me contestas en un audio, como si me lo estuvieras contando en persona. Mándame todos los audios que quieras. Cuando termines no hace falta que me avises: si pasan unos minutos sin audios nuevos, te mando la pregunta siguiente.<br><br>Si alguna pregunta no tiene que ver con tu vida, me dices que no, o me cuentas lo que sí te pasó a ti. Y sin prisa: esto lo hacemos al ritmo que tú quieras. |
+| BIEN | Hola, {{nombre}}, ¿cómo estás? Una persona que te quiere mucho te ha regalado un libro con la historia de tu vida, y yo soy quien te va a entrevistar para hacerlo. Lo hacemos aquí, por WhatsApp, con calma.<br><br>Funciona así. Te mando una pregunta y tú me contestas en un audio, como si me lo estuvieras contando en persona. Mándame todos los audios que quieras. Cuando termines no hace falta que me avises. Si pasan unos minutos sin audios nuevos, te mando la pregunta siguiente.<br><br>Si alguna pregunta no tiene que ver con tu vida, me dices que no, o me cuentas lo que sí te pasó a ti. Y sin prisa, esto lo hacemos al ritmo que tú quieras. |
 | M6 | Ahora te explico cómo va la entrevista, {{nombre}}. Te mando una pregunta y tú me contestas en un audio. Si te salen dos o tres audios, mejor. Cuando te quedas en silencio un ratito, entiendo que has terminado y te mando la siguiente. No hay prisa: vamos a tu ritmo. |
 | M1 | _Si no va contigo, di paso y vamos a otra._ |
 | M3.1 | Gracias, {{nombre}}. Ya lo tengo guardado. |

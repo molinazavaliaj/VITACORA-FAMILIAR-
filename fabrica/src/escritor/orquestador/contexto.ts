@@ -2,9 +2,10 @@
 // (workflow-libro.js, `conReintentos`: si ya está y pasa, no se rehace; si no, hasta 2 reintentos con el error).
 // Una respuesta que no es JSON (ni en el pedido extra del ejecutor) cuenta como un intento fallido más: el
 // reintento lleva ese error. El tope de gasto y los errores de la API no se atajan acá.
-import { Carpeta } from '../carpeta.js';
+import { Carpeta, leerJSON } from '../carpeta.js';
 import type { Almacen } from '../almacen/tipos.js';
 import { controlar } from '../controles/correr.js';
+import { repararPlan } from '../controles/reparar-plan.js';
 import { ErrorJSON, type Ejecutor } from '../ejecutor.js';
 import { salida } from '../lectura.js';
 import { llamadaPlan, llamadaRegistro } from '../llamadas/armar.js';
@@ -22,8 +23,21 @@ export async function cargarSnapshot(almacen: Almacen, etapa: Etapa): Promise<Ca
   return t === null ? null : new Carpeta(JSON.parse(t) as Record<string, string>);
 }
 
+/** Antes de controlar el plan, el código arregla lo que puede sin inventar (controles/reparar-plan.ts). */
+export function repararPlanEnCarpeta(x: Pick<Contexto, 'c' | 'log'>): void {
+  const archivo = salida('plan.json');
+  if (!x.c.existe(archivo) || !x.c.existe(salida('registro.json'))) return;
+  let plan;
+  try { plan = leerJSON(x.c, archivo); } catch { return; }
+  const r = repararPlan(plan, leerJSON(x.c, salida('registro.json')));
+  if (!r.cambios.length) return;
+  x.c.escribir(archivo, JSON.stringify(r.plan, null, 1));
+  x.log(`plan reparado por código: ${r.cambios.join('; ')}`);
+}
+
 export async function conReintentos(x: Contexto, paso: 'registro' | 'plan', prefijo: 'A/' | 'B/'): Promise<boolean> {
   const archivo = salida(paso === 'registro' ? 'registro.json' : 'plan.json');
+  if (paso === 'plan') repararPlanEnCarpeta(x);
   if (x.c.existe(archivo) && controlar(x.c, paso).codigo === 0) {
     x.log(`${paso}: ya estaba y pasa`);
     return true;
@@ -41,6 +55,7 @@ export async function conReintentos(x: Contexto, paso: 'registro' | 'plan', pref
       continue;
     }
     x.c.escribir(archivo, texto);
+    if (paso === 'plan') repararPlanEnCarpeta(x);
     const r = controlar(x.c, paso);
     x.log(`${paso}: ${r.resumen.split('\n')[0]}`);
     if (r.codigo === 0) return true;

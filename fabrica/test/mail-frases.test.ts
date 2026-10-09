@@ -91,3 +91,27 @@ describe('enviarMailRecordatorioFrases', () => {
     ).rejects.toThrow('422');
   });
 });
+
+describe('recordatorio de frases con vos para Argentina (Naza, 09/10)', () => {
+  it('asunto y cuerpo con vos; sin vos, los de siempre', async () => {
+    const { asuntoRecordatorioFrases, cuerpoRecordatorioFrases } = await import('../src/mail/frases.js');
+    expect(asuntoRecordatorioFrases('abuela', true)).toBe('Las frases de tu abuela: ¿querés elegir vos las que se imprimen?');
+    expect(asuntoRecordatorioFrases('abuela')).toBe('Las frases de tu abuela: ¿quieres elegir tú las que se imprimen?');
+    const conImpreso = cuerpoRecordatorioFrases({ comoLeDicen: 'abuela', enlace: 'https://x', conImpreso: true, vos: true });
+    expect(conImpreso).toContain('Miralas desde tu panel, cambiá lo que quieras, y si están bien así, confirmalas tal cual.');
+    const soloPdf = cuerpoRecordatorioFrases({ comoLeDicen: 'abuela', enlace: 'https://x', vos: true });
+    expect(soloPdf).toContain('Si querés sacar alguna, poner otra en su lugar o cambiar el orden, podés hacerlo desde tu panel.');
+    expect(cuerpoRecordatorioFrases({ comoLeDicen: 'abuela', enlace: 'https://x' })).toContain('Si quieres sacar alguna');
+  });
+});
+
+describe('anticipo con vos para Argentina (Naza, 09/10)', () => {
+  it('solo cambia el trato de la última línea', async () => {
+    const { cuerpoAnticipo } = await import('../src/mail/anticipo.js');
+    const o = { comoLeDicen: 'abuela', primeraPregunta: '¿Dónde naciste?', enlace: 'https://x' };
+    const vos = cuerpoAnticipo({ ...o, vos: true });
+    expect(vos).toContain('Él va a seguir contando. Vos decidís si el libro se termina.');
+    expect(cuerpoAnticipo(o)).toContain('Él va a seguir contando. Tú decides si el libro se termina.');
+    expect(vos.replace('Vos decidís', 'Tú decides')).toBe(cuerpoAnticipo(o));
+  });
+});

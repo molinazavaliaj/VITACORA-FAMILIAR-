@@ -36,7 +36,11 @@ export class LoteAnthropic implements Lote {
     const hashes = pedidos.map(hashDePedido);
     const previo = await this.almacen.leer(ruta);
     let estado = previo ? (JSON.parse(previo) as EstadoLote) : null;
-    const mismo = estado !== null && estado.claves.join('\n') === claves.join('\n') && (estado.hashes ?? []).join('\n') === hashes.join('\n');
+    // El mismo lote, o uno guardado que ya contiene todo lo pedido (misma clave y mismo hash): pasa al retomar si el
+    // proceso se cortó mientras se anotaban las respuestas (parte quedó en la memoria y se pide solo el resto). Mandar
+    // un lote nuevo ahí sería pagar dos veces lo que el viejo ya terminó.
+    const guardado = estado;
+    const mismo = guardado !== null && claves.every((k, i) => { const j = guardado.claves.indexOf(k); return j >= 0 && (guardado.hashes ?? [])[j] === hashes[i]; });
     if (!estado || !mismo) {
       if (estado) this.o.log?.(`lote ${grupo}: los pedidos cambiaron desde el lote ${estado.id}; se manda uno nuevo`);
       let b: { id: string };

@@ -25,7 +25,7 @@ const MD = readFileSync(path.join(RAIZ, 'docs', 'v3', 'entrevista', 'banco-ca.md
 const CA = TEXTOS_IDIOMA.ca;
 
 /** Las marcas que el código reemplaza por datos: tienen que estar las mismas, la misma cantidad de veces. */
-const campos = (t: string) => (t.match(/\{\{(nombre|quien_regala|tema|etapa)\}\}/g) ?? []).sort();
+const campos = (t: string) => (t.match(/\{\{(nombre|nombre_pila|quien_regala|tema|etapa)\}\}/g) ?? []).sort();
 const variantes = (t: string) => [...t.matchAll(/«sino:([A-Z0-9.]+):/g)].map((m) => m[1]).sort();
 const saltos = (t: string) => (t.match(/\n|<br>/g) ?? []).length;
 
@@ -69,7 +69,7 @@ describe('banco-ca.md', () => {
   it('las marcas de género están bien formadas: {{masculino/femenino}}, sin llaves sueltas', () => {
     const todos = [...Object.values(CA.preguntas), ...Object.values(CA.mensajes)];
     for (const t of todos) {
-      const sinMarcas = t.replace(/\{\{(nombre|quien_regala|tema|etapa)\}\}/g, '').replace(/\{\{[^{}/]+\/[^{}/]+\}\}/g, '');
+      const sinMarcas = t.replace(/\{\{(nombre|nombre_pila|quien_regala|tema|etapa)\}\}/g, '').replace(/\{\{[^{}/]+\/[^{}/]+\}\}/g, '');
       expect(sinMarcas, t).not.toMatch(/[{}]/);
     }
   });

@@ -27,6 +27,19 @@ export async function narradoresConV3(db: SupabaseClient): Promise<Set<string>> 
   return new Set(((data as { narrador_id: string }[] | null) ?? []).map((f) => f.narrador_id));
 }
 
+/**
+ * El idioma de la entrevista de cada narrador V3 (es-AR, es-ES, ca). Sin la tabla, vacío; con otro error,
+ * tira: quien llama no puede tratar a un narrador V3 como viejo por no haber podido leer.
+ */
+export async function idiomasV3(db: SupabaseClient): Promise<Map<string, string>> {
+  const { data, error } = await db.from('entrevistas_v3').select('narrador_id, idioma');
+  if (error) {
+    if (esTablaAusente(error)) return new Map();
+    throw new Error(`No pude leer entrevistas_v3: ${error.message}`);
+  }
+  return new Map(((data as { narrador_id: string; idioma: string | null }[] | null) ?? []).map((f) => [f.narrador_id, f.idioma ?? 'es-AR']));
+}
+
 export class NarradorV3Error extends Error {
   constructor(readonly narradorId: string, donde: string) {
     super(`${donde}: ${narradorId} tiene entrevista V3; el libro viejo no se arma (spec 2026-10-07).`);

@@ -103,3 +103,12 @@ test('Paso 3t (v5.5): el título usa palabras del capítulo', () => {
   assert.equal(T.tituloValido('', cap), false);
   assert.equal(T.tituloValido('Una persiana que no se abría nunca más en la vida de nadie', cap), false); // más de 7 palabras
 });
+
+describe('tituloValido (07/10)', () => {
+  it('una palabra de 4 letras acepta otra conjugación del capítulo', () => {
+    const cap = 'Cuando me veía caído, Iñaki se sacaba la comida de la boca para dármela.';
+    expect(T.tituloValido('Se saca la comida de la boca', cap)).toBe(true);
+    expect(T.tituloValido('Se pone la ropa de la boca', cap)).toBe(false);
+  });
+});
+

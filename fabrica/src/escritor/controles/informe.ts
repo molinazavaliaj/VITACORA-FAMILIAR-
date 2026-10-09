@@ -59,8 +59,15 @@ export function informe(c: Carpeta): string {
 
   const rep = leerSi(ctl('repaso.json'), null);
   if (rep) {
-    L.push('', `## Repaso de hechos sobre las piezas arregladas: ${rep.nuevos.length} nuevos (abiertos)`, '');
-    for (const x of rep.nuevos) L.push(`- ${x.pieza} (${x.tipo}): «${recorte(x.frase)}» → ${recorte(x.correccion)}`);
+    const ap = leerSi(ctl('repaso-aplicado.json'), null) as { aplicados: Json[]; salteados: (Json & { motivo: string })[] } | null;
+    if (ap) {
+      L.push('', `## Repaso de hechos sobre las piezas arregladas: ${rep.nuevos.length} nuevos (${ap.aplicados.length} corregidos por código, ${ap.salteados.length} abiertos)`, '');
+      for (const x of ap.aplicados) L.push(`- corregido · ${x.pieza} (${x.tipo}): «${recorte(x.frase)}» → ${recorte(x.correccion)}`);
+      for (const x of ap.salteados) L.push(`- abierto · ${x.pieza} (${x.tipo}, ${x.motivo}): «${recorte(x.frase)}» → ${recorte(x.correccion)}`);
+    } else {
+      L.push('', `## Repaso de hechos sobre las piezas arregladas: ${rep.nuevos.length} nuevos (abiertos)`, '');
+      for (const x of rep.nuevos) L.push(`- ${x.pieza} (${x.tipo}): «${recorte(x.frase)}» → ${recorte(x.correccion)}`);
+    }
   }
 
   const sf = leerSi(arr('problemas-sus_frases.json'), []);
