@@ -292,7 +292,7 @@ Mismo orden que en banco.md (el botón 1 de acá vale lo mismo que el botón 1 d
 
 | ID | Texto |
 |---|---|
-| BIEN | Hola, {{nombre}}, com estàs? Una persona que t'estima molt t'ha regalat un llibre amb la història de la teva vida, i jo soc qui t'entrevistarà per fer-lo. Ho farem aquí, per WhatsApp, amb calma.<br><br>Funciona així: t'envio una pregunta i tu em respons amb un àudio, com si parléssim en persona. Envia'm tots els àudios que vulguis. Quan acabis no cal que m'avisis: si passen uns minuts sense àudios nous, t'envio la pregunta següent.<br><br>Si alguna pregunta no té res a veure amb la teva vida, m'ho dius, o m'expliques el que sí que et va passar a tu. I sense pressa: ho anirem fent al teu ritme. |
+| BIEN | Hola, {{nombre}}, com estàs? Una persona que t'estima molt t'ha regalat un llibre amb la història de la teva vida, i jo soc qui t'entrevistarà per fer-lo. Ho farem aquí, per WhatsApp, amb calma.<br><br>Funciona així. T'envio una pregunta i tu em respons amb un àudio, com si parléssim en persona. Envia'm tots els àudios que vulguis. Quan acabis no cal que m'avisis. Si passen uns minuts sense àudios nous, t'envio la pregunta següent.<br><br>Si alguna pregunta no té res a veure amb la teva vida, m'ho dius, o m'expliques el que sí que et va passar a tu. I sense pressa, ho anirem fent al teu ritme. |
 | M6 | Ara t'explico com funciona l'entrevista, {{nombre}}. T'envio una pregunta i tu m'ho expliques amb un àudio. Si te'n surten dos o tres, millor. Quan passi una estona sense que m'enviïs res, entendré que has acabat i t'enviaré la següent. No hi ha pressa: anirem al ritme que tu marquis. |
 | M1 | _Si no va amb tu, digues «passo» i en fem una altra._ |
 | M3.1 | Gràcies, {{nombre}}. Ja ho tinc guardat. |
