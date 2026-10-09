@@ -8,7 +8,7 @@ vi.hoisted(() => {
   });
 });
 
-const estado = vi.hoisted(() => ({ contexto: {} as Record<string, any>, email: 'martina@mail.com' as string | null, updates: [] as any[], fetch: vi.fn() }));
+const estado = vi.hoisted(() => ({ contexto: {} as Record<string, any>, email: 'martina@mail.com' as string | null, region: null as string | null, updates: [] as any[], fetch: vi.fn() }));
 
 vi.mock('../src/db/cliente.js', () => {
   function builder(tabla: string) {
@@ -18,7 +18,7 @@ vi.mock('../src/db/cliente.js', () => {
     const resolver = () => {
       if (b._op === 'update') return { data: null, error: null };
       if (tabla === 'narradores') return { data: { contexto: estado.contexto } };
-      if (tabla === 'familias') return { data: estado.email ? { email: estado.email } : null };
+      if (tabla === 'familias') return { data: estado.email ? { email: estado.email, region: estado.region } : null };
       return { data: null };
     };
     b.maybeSingle = () => Promise.resolve(resolver());
@@ -42,6 +42,7 @@ import { textoEvitar, sumarTemaEvitado } from '../src/ia/evitar.js';
 beforeEach(() => {
   estado.contexto = {};
   estado.email = 'martina@mail.com';
+  estado.region = null;
   estado.updates = [];
   estado.fetch.mockReset().mockResolvedValue({ ok: true, text: async () => '' });
   vi.stubGlobal('fetch', estado.fetch);
@@ -55,6 +56,43 @@ describe('mails de hitos', () => {
     expect(redactarHito('acepto', n).asunto).toBe('Roberto dijo que sí');
     expect(redactarHito('silencio', n).cuerpo).toContain('/tablero/n1');
     expect(redactarHito('mitad', { id: 'n2', como_le_dicen: 'Abuela' }).asunto).toBe('Abuela va por la mitad');
+  });
+
+  it('«dijo que sí» de lo que no es regalo: el mail de siempre, sin cambios', () => {
+    const r = redactarHito('acepto', n);
+    expect(r.asunto).toBe('Roberto dijo que sí');
+    expect(r.cuerpo).toBe('<p>Roberto aceptó. Mañana le llega la primera pregunta por WhatsApp.</p><p>Mientras tanto, podés repasar el guion y sumar fotos de cada época: <a href="https://www.vitacorafamiliar.com/tablero/n1?editar=1">https://www.vitacorafamiliar.com/tablero/n1</a></p>');
+    expect(redactarHito('acepto', n, { regalo: false, trato: 'tu' })).toEqual(r);
+  });
+
+  it('«dijo que sí» de un regalo, de vos: ya le mandamos la primera pregunta, sin guion ni «mañana»', () => {
+    const r = redactarHito('acepto', n, { regalo: true, trato: 'vos' });
+    expect(r.asunto).toBe('Roberto dijo que sí');
+    expect(r.cuerpo).toContain('Roberto dijo que sí y ya le mandamos la primera pregunta por WhatsApp. Lo que vaya contando lo vas a poder escuchar en tu tablero.');
+    expect(r.cuerpo).toContain('href="https://www.vitacorafamiliar.com/tablero/n1"');
+    expect(r.cuerpo).not.toMatch(/Mañana|guion/);
+  });
+
+  it('«dijo que sí» de un regalo, de tú', () => {
+    const r = redactarHito('acepto', n, { regalo: true, trato: 'tu' });
+    expect(r.asunto).toBe('Roberto ha dicho que sí');
+    expect(r.cuerpo).toContain('Roberto ha dicho que sí y ya le hemos mandado la primera pregunta por WhatsApp. Lo que vaya contando lo podrás escuchar en tu tablero.');
+    expect(r.cuerpo).toContain('/tablero/n1');
+  });
+
+  it('mandarHito elige el trato del regalo por familias.region', async () => {
+    // mandarHito relee el contexto de la base: ahí está la marca del regalo.
+    estado.contexto = { regalo: true };
+    estado.region = 'ES';
+    await mandarHito({ ...n, contexto: { regalo: true } }, 'acepto');
+    expect(JSON.parse(estado.fetch.mock.calls[0][1].body).subject).toBe('Roberto ha dicho que sí');
+    estado.region = 'AR';
+    await mandarHito({ ...n, contexto: { regalo: true } }, 'acepto');
+    expect(JSON.parse(estado.fetch.mock.calls[1][1].body).html).toContain('ya le mandamos la primera pregunta');
+    estado.contexto = {};
+    estado.region = 'ES';
+    await mandarHito({ ...n, contexto: {} }, 'acepto');
+    expect(JSON.parse(estado.fetch.mock.calls[2][1].body).html).toContain('Mañana le llega la primera pregunta');
   });
 
   it('manda una sola vez por narrador y lo anota en contexto.mailsEnviados', async () => {

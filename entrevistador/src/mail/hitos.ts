@@ -1,5 +1,5 @@
 import { db } from '../db/cliente.js';
-import { TEXTOS_REGALO_BOT } from '../flujo/regalo-textos.js';
+import { HITO_ACEPTO_REGALO, TEXTOS_REGALO_BOT, tratoDeComprador, type TratoComprador } from '../flujo/regalo-textos.js';
 
 // Los mails de hitos que manda el entrevistador (docs/panel-usuario.md §9 y
 // §11.6): los momentos de la entrevista que la familia quiere saber. Los del
@@ -31,12 +31,24 @@ function escapar(texto: string): string {
   return texto.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
-/** Asunto y cuerpo de cada hito. Puro, para probarlo sin red. */
-export function redactarHito(hito: Hito, n: { nombre?: string; como_le_dicen: string; id: string }): { asunto: string; cuerpo: string } {
+/**
+ * Asunto y cuerpo de cada hito. Puro, para probarlo sin red. Un regalo tiene su
+ * propio «dijo que sí» (la primera pregunta ya salió con el SÍ), de vos o de tú
+ * según el trato de quien compró; lo demás no cambia.
+ */
+export function redactarHito(
+  hito: Hito,
+  n: { nombre?: string; como_le_dicen: string; id: string },
+  o: { regalo?: boolean; trato?: TratoComprador } = {},
+): { asunto: string; cuerpo: string } {
   const quien = n.nombre ?? n.como_le_dicen;
   const panel = `${URL_BASE}/tablero/${n.id}`;
   switch (hito) {
     case 'acepto':
+      if (o.regalo === true) {
+        const t = HITO_ACEPTO_REGALO[o.trato ?? 'vos'];
+        return { asunto: t.asunto(quien), cuerpo: `<p>${escapar(t.cuerpo(quien))}</p><p><a href="${panel}">${panel}</a></p>` };
+      }
       return {
         asunto: `${quien} dijo que sí`,
         cuerpo: `<p>${escapar(quien)} aceptó. Mañana le llega la primera pregunta por WhatsApp.</p><p>Mientras tanto, podés repasar el guion y sumar fotos de cada época: <a href="${panel}?editar=1">${panel}</a></p>`,
@@ -95,11 +107,14 @@ export async function mandarHito(n: NarradorParaMail, hito: Hito): Promise<void>
     const enviados: string[] = Array.isArray(contexto.mailsEnviados) ? contexto.mailsEnviados : [];
     if (enviados.includes(hito)) return;
 
-    const { data: familia } = await db.from('familias').select('email').eq('id', n.familia_id).maybeSingle();
+    const { data: familia } = await db.from('familias').select('email, region').eq('id', n.familia_id).maybeSingle();
     const para = (familia as { email?: string } | null)?.email;
     if (!para) return;
 
-    const { asunto, cuerpo } = redactarHito(hito, n);
+    const { asunto, cuerpo } = redactarHito(hito, n, {
+      regalo: contexto.regalo === true,
+      trato: tratoDeComprador((familia as { region?: unknown } | null)?.region),
+    });
     const mandado = await enviar(para, asunto, envoltorio(cuerpo));
     if (!mandado) return;
 
