@@ -45,7 +45,8 @@ export function redactarHito(hito: Hito, n: { nombre?: string; como_le_dicen: st
     case 'acepto':
       return {
         asunto: `${quien} dijo que sí`,
-        cuerpo: `<p>${escapar(quien)} aceptó. Mañana le llega la primera pregunta por WhatsApp.</p><p>Mientras tanto, ${tu ? 'puedes' : 'podés'} repasar el guion y sumar fotos de cada época: <a href="${panel}?editar=1">${panel}</a></p>`,
+        // Texto aprobado por Naza el 06/10 (rama web-textos-v3): sin "repasar el guion", que en la V3 no existe.
+        cuerpo: `<p>${escapar(quien)} aceptó. Enseguida le llega la primera pregunta por WhatsApp.</p><p>Mientras tanto, ${tu ? 'puedes' : 'podés'} sumar fotos de cada época o preguntas para su entrevista.</p><p><a href="${panel}?editar=1">${panel}</a></p>`,
       };
     case 'primera':
       return {

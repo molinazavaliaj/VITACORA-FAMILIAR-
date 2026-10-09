@@ -162,7 +162,9 @@ describe('mails de hitos con tú para España (Naza, 09/10)', () => {
   it('con tú cambian puedes y quieres; con vos (o sin decir), los de siempre; el silencio no cambia', async () => {
     const { redactarHito } = await import('../src/mail/hitos.js');
     const n = { nombre: 'Imma', como_le_dicen: 'Imma', id: 'n1' };
-    expect(redactarHito('acepto', n, 'tu').cuerpo).toContain('Mientras tanto, puedes repasar el guion');
+    expect(redactarHito('acepto', n, 'tu').cuerpo).toContain('Mientras tanto, puedes sumar fotos de cada época o preguntas para su entrevista.');
+    expect(redactarHito('acepto', n).cuerpo).toContain('Enseguida le llega la primera pregunta por WhatsApp.</p><p>Mientras tanto, podés sumar fotos');
+    expect(redactarHito('acepto', n).cuerpo).not.toContain('guion');
     expect(redactarHito('primera', n, 'tu').asunto).toBe('Ya puedes escuchar a Imma');
     expect(redactarHito('mitad', n, 'tu').cuerpo).toContain('si quieres, pedirle que cuente más');
     expect(redactarHito('silencio', n, 'tu')).toEqual(redactarHito('silencio', n, 'vos'));
