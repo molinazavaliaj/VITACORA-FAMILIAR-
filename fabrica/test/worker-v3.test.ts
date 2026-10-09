@@ -213,3 +213,16 @@ describe('worker: un pedido en curso de OTRA copia de la fábrica no es huérfan
     expect(m.lanzarLibroV3).toHaveBeenCalled();
   });
 });
+
+describe('worker: no reclama el pedido de un narrador con el que trabaja OTRA copia', () => {
+  it('con la marca fresca de otra copia, el pedido pagado queda pagado', async () => {
+    const libro = await import('../src/escritor/produccion/libro-v3.js');
+    (libro.trabajaOtraCopia as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(true);
+    m.narradoresConV3.mockResolvedValue(new Set(['v3']));
+    const { db, claims } = base({ narradores: [{ id: 'v3', libro_aprobado_at: '2026-10-08' }], pedidos: [{ id: 'p6', narrador_id: 'v3', estado: 'pagado' }] });
+    m.obtenerClienteDb.mockReturnValue(db);
+    await procesarPedidosPagados();
+    expect(claims).toEqual([]);
+    (libro.trabajaOtraCopia as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(false);
+  });
+});

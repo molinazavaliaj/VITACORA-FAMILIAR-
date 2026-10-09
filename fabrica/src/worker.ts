@@ -808,6 +808,8 @@ export async function procesarPedidosPagados(): Promise<void> {
     // narrador ya en marcha— no se reclama: un pedido reclamado sin trabajo quedaría huérfano.
     const esV3 = v3.has(pedido.narrador_id) && !yaEntregado;
     if (esV3 && !hayLugarParaLibroV3(pedido.narrador_id)) continue;
+    // Otra copia de la fábrica (deploy con las dos prendidas) está trabajando con este narrador: no se reclama.
+    if (esV3 && (await trabajaOtraCopia(db, pedido.narrador_id))) continue;
     const { data: reclamado, error: errorClaim } = await db
       .from('pedidos')
       .update({ estado: 'generando' })

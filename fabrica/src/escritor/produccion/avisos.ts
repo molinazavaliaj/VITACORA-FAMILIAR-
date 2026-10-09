@@ -10,6 +10,16 @@ const REMITENTE = process.env.MAIL_FROM ?? 'Vitácora Familiar <hola@vitacorafam
  * se loguea y no se insiste). Devuelve false si Resend lo rechazó o la red falló: quien llama decide si
  * reintenta. Nunca tira.
  */
+/** ¿Hay a quién mandarle los avisos? (MAIL_SOCIOS y la clave de Resend). */
+export function hayAQuienAvisar(): boolean {
+  try {
+    const para = (process.env.MAIL_SOCIOS ?? '').split(',').map((s) => s.trim()).filter(Boolean);
+    return Boolean(cargarConfig().resendApiKey) && para.length > 0;
+  } catch {
+    return false;
+  }
+}
+
 export async function avisarSocios(asunto: string, texto: string, o: { fetch?: typeof fetch } = {}): Promise<boolean> {
   try {
     console.warn(`aviso a socios: ${asunto}`);

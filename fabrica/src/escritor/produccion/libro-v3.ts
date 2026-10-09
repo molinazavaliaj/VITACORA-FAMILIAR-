@@ -38,7 +38,7 @@ import { etapaA, type ResultadoEtapaA } from '../orquestador/etapa-a.js';
 import { etapaB } from '../orquestador/etapa-b.js';
 import { etapaC } from '../orquestador/etapa-c.js';
 import { frasesParaSuVoz, paraPlantilla, type FuenteDeFrase } from '../salida/plantilla.js';
-import { avisarSocios } from './avisos.js';
+import { avisarSocios, hayAQuienAvisar } from './avisos.js';
 import { Cola } from './cola.js';
 import { htmlLibroV3, type NarradorParaLibro } from './html.js';
 
@@ -184,12 +184,16 @@ async function conMarca<T>(db: Db, narradorId: string, que: string, f: () => Pro
       console.error(`escritor ${narradorId}: no pude dejar la marca de trabajo:`, err instanceof Error ? err.message : err);
     });
   await marcar(new Date().toISOString());
-  const reloj = setInterval(() => void marcar(new Date().toISOString()), 60_000);
+  // La escritura del reloj que esté en vuelo se espera antes de la última: si no, podría llegar después y dejar
+  // la marca fresca 10 minutos más.
+  let enVuelo: Promise<void> = Promise.resolve();
+  const reloj = setInterval(() => { enVuelo = marcar(new Date().toISOString()); }, 60_000);
   reloj.unref?.();
   try {
     return await f();
   } finally {
     clearInterval(reloj);
+    await enVuelo;
     // Al terminar, la marca queda vieja: nadie tiene que esperar 10 minutos para tocar este narrador.
     await marcar(new Date(0).toISOString());
   }
@@ -240,7 +244,8 @@ export async function revisarEtapaAV3(db: Db, narradorId: string, o: { motor?: M
   try {
     const archivos = await listarEscritor(db, narradorId);
     if (archivos.has(CARPETA_A)) {
-      if (!archivos.has(DUDAS_AVISADAS)) await avisarDudas(db, narradorId, archivos);
+      const avisadas = archivos.has(DUDAS_AVISADAS) ? await new AlmacenSupabase(db, PREFIJO_ESCRITOR(narradorId)).leer(DUDAS_AVISADAS) : null;
+      if (!avisadas?.trim() && !cola.ocupada(narradorId)) await avisarDudas(db, narradorId, archivos);
       return;
     }
     if (archivos.has(FALLO_A) || !hayLugarParaEtapaA(narradorId)) return;
@@ -297,16 +302,20 @@ const REINTENTO_AVISO_DUDAS_MS = 60 * 60 * 1000;
 
 /**
  * Naza, 09/10: si la Etapa A encontró dudas, el libro no se escribe hasta 24 horas después del mail a los socios,
- * así hay tiempo de escribir correcciones.json. Sin dudas, 0 (arranca ya). Si el mail todavía no salió, lo manda
- * acá (con `avisarDeNuevo`, también si ya había salido uno: la Etapa A se rehízo y las dudas pueden ser otras).
- * Devuelve cuántos ms faltan.
+ * así hay tiempo de escribir correcciones.json. Sin dudas, 0 (arranca ya). Si el mail todavía no salió (no hay
+ * `dudas-avisadas.txt`, o quedó vacío porque la Etapa A se rehízo), lo manda acá. Sin a quién avisar (falta
+ * MAIL_SOCIOS o la clave de Resend), no se espera: nadie iba a ver las dudas. Devuelve cuántos ms faltan.
  */
-async function esperaPorDudas(db: Db, narradorId: string, almacen: Almacen, o: { avisarDeNuevo: boolean }, ahora: number = Date.now()): Promise<number> {
+async function esperaPorDudas(db: Db, narradorId: string, almacen: Almacen, ahora: number = Date.now()): Promise<number> {
   const t = await almacen.leer(DUDAS);
   const dudas = (t ? (JSON.parse(t) as { dudas?: unknown[] }).dudas : []) ?? [];
   if (!dudas.length || esperaPorDudasMs() === 0) return 0;
-  let avisadas = o.avisarDeNuevo ? null : await almacen.leer(DUDAS_AVISADAS);
-  if (avisadas === null) {
+  if (!hayAQuienAvisar()) {
+    console.warn(`escritor ${narradorId}: hay ${dudas.length} dudas pero no hay a quién avisarlas (MAIL_SOCIOS); el libro no espera`);
+    return 0;
+  }
+  let avisadas = await almacen.leer(DUDAS_AVISADAS);
+  if (!avisadas?.trim()) {
     if (!(await avisarDudas(db, narradorId, new Set([DUDAS])))) return REINTENTO_AVISO_DUDAS_MS;
     avisadas = await almacen.leer(DUDAS_AVISADAS);
   }
@@ -382,10 +391,13 @@ export async function escribirLibroV3(db: Db, pedido: { id: string; narrador_id:
     }
     const x = armarContexto(db, narradorId, motor, snapA ?? desdeBase.c);
     if (!snapA) {
+      // Las dudas de una A nueva pueden ser otras: el aviso viejo deja de valer ANTES de pagar la A (si el
+      // mail nuevo falla y el trabajo se reintenta, no se toma por avisado lo que nadie vio).
+      if ((await almacen.leer(DUDAS_AVISADAS)) !== null) await almacen.escribir(DUDAS_AVISADAS, '');
       const a = await etapaA(x);
       if (!a.ok) throw new FalloDelEscritor(`Etapa A: ${a.motivo}`);
     }
-    const espera = await esperaPorDudas(db, narradorId, almacen, { avisarDeNuevo: !snapA });
+    const espera = await esperaPorDudas(db, narradorId, almacen);
     if (espera > 0) {
       // No es un error: el pedido vuelve a 'pagado' y el libro se retoma cuando pase la espera (sin repagar la A).
       esperaLibro.set(narradorId, Date.now() + espera);
@@ -510,12 +522,15 @@ export const ALERTA_DEMORADO = 'alerta-libro-demorado.txt';
  */
 export async function alertarLibrosDemorados(db: Db, v3: Set<string>, ahora: number = Date.now()): Promise<void> {
   try {
-    const { data: pedidos, error } = await db.from('pedidos').select('id, narrador_id, estado').in('estado', ['pagado', 'generando', 'fallido', 'entregado']);
+    const { data: pedidos, error } = await db.from('pedidos').select('id, narrador_id, estado').in('estado', ['pagado', 'generando', 'fallido']);
     if (error) throw new Error(`no pude leer los pedidos: ${error.message}`);
-    const lista = (pedidos ?? []) as { id: string; narrador_id: string; estado: string }[];
-    const entregados = new Set(lista.filter((p) => p.estado === 'entregado').map((p) => p.narrador_id));
     const pendientes = new Map<string, { id: string; estado: string }>();
-    for (const p of lista) if (p.estado !== 'entregado' && v3.has(p.narrador_id) && !entregados.has(p.narrador_id)) pendientes.set(p.narrador_id, p);
+    for (const p of (pedidos ?? []) as { id: string; narrador_id: string; estado: string }[]) if (v3.has(p.narrador_id)) pendientes.set(p.narrador_id, p);
+    if (!pendientes.size) return;
+    // Los entregados, solo de estos narradores (un extra pagado de un libro ya entregado no es un libro demorado).
+    const { data: entregados, error: errorE } = await db.from('pedidos').select('narrador_id').eq('estado', 'entregado').in('narrador_id', [...pendientes.keys()]);
+    if (errorE) throw new Error(`no pude leer los pedidos entregados: ${errorE.message}`);
+    for (const e of (entregados ?? []) as { narrador_id: string }[]) pendientes.delete(e.narrador_id);
     if (!pendientes.size) return;
     const { data: narradores, error: errorN } = await db.from('narradores').select('id, libro_aprobado_at').in('id', [...pendientes.keys()]);
     if (errorN) throw new Error(`no pude leer los narradores: ${errorN.message}`);

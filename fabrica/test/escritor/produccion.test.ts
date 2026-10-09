@@ -92,6 +92,7 @@ function motorFalso(salidas: Record<string, string> = salidasModeloNelida()) {
 beforeEach(() => {
   // La espera por dudas (24 horas) tiene su test propio: en los demás, el libro sigue de largo.
   vi.stubEnv('ESCRITOR_ESPERA_DUDAS_HORAS', '0');
+  vi.stubEnv('MAIL_SOCIOS', '');
   vi.spyOn(console, 'log').mockImplementation(() => {});
   vi.spyOn(console, 'warn').mockImplementation(() => {});
   vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -493,5 +494,32 @@ describe('dos copias de la fábrica a la vez (deploy)', () => {
     expect(marca.que).toBe('libro p1');
     expect(Date.parse(marca.latido)).toBe(0);
     expect(await trabajaOtraCopia(db, 'n1')).toBe(false);
+  });
+});
+
+describe('arreglos de la segunda revisión (09/10)', () => {
+  it('si la A se rehízo y el mail de dudas falla, el reintento no toma por avisado el aviso viejo', async () => {
+    vi.stubEnv('ESCRITOR_ESPERA_DUDAS_HORAS', '24');
+    vi.stubEnv('MAIL_SOCIOS', 'socios@ejemplo.com');
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('caído', { status: 500 })));
+    const { db, archivos, tablas } = baseFalsa({ tablas: { narradores: [{ ...NARRADOR, id: 'n10' }], pedidos: [{ id: 'p10', narrador_id: 'n10', estado: 'generando' }] } });
+    archivos.set('n10/escritor/dudas-avisadas.txt', new Date(Date.now() - 48 * 3_600_000).toISOString()); // de una A anterior
+    const { motor, modelo } = motorFalso();
+    await escribirLibroV3(db, { id: 'p10', narrador_id: 'n10' }, motor);
+    expect(tablas.pedidos[0].estado).toBe('pagado');
+    tablas.pedidos[0].estado = 'generando';
+    await escribirLibroV3(db, { id: 'p10', narrador_id: 'n10' }, motor); // el mail sigue caído: sigue esperando
+    expect(tablas.pedidos[0].estado).toBe('pagado');
+    expect(modelo.llamadas.some((p) => p.clave.startsWith('C/'))).toBe(false);
+    vi.unstubAllGlobals();
+  });
+
+  it('sin a quién avisar (falta MAIL_SOCIOS), no espera por las dudas', async () => {
+    vi.stubEnv('ESCRITOR_ESPERA_DUDAS_HORAS', '24');
+    vi.stubEnv('MAIL_SOCIOS', '');
+    const { db, tablas } = baseFalsa({ tablas: { narradores: [{ ...NARRADOR, id: 'n11' }], pedidos: [{ id: 'p11', narrador_id: 'n11', estado: 'generando' }] } });
+    const { motor } = motorFalso();
+    await escribirLibroV3(db, { id: 'p11', narrador_id: 'n11' }, motor);
+    expect(tablas.pedidos[0].estado).toBe('entregado');
   });
 });
