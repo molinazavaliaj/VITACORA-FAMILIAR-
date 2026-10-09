@@ -623,11 +623,13 @@ etapas A/B/C); el camino viejo (anticipo, estructura, previsualización, generar
 | `fallo-A.json` | fábrica | fábrica / socios | La Etapa A no pasó sus controles (`{motivo, fecha}`). No se reintenta sola: se borra a mano para reintentar. |
 | `dudas-familia.json` | fábrica | socios (y la web, el día que haya pantalla) | `{dudas: [{id: "D01", tipo, que, ids, citas, pregunta, opciones}]}`: las dudas de datos de la Etapa A. |
 | `dudas-avisadas.txt` | fábrica | fábrica | Candado del mail de dudas a los socios. |
-| `correcciones.json` | **socios a mano** (y la web, el día que haya pantalla) | fábrica (Etapa B) | `{"correcciones": [{"dudaId": "D01", "texto": "La Negra se llamaba Ofelia."}]}`. Se escribe **antes** de que la dueña cierre el libro; sin archivo, el libro va sin correcciones. Roto → el pedido queda `fallido`. |
+| `correcciones.json` | **socios a mano** (y la web, el día que haya pantalla) | fábrica (Etapa B) | `{"correcciones": [{"dudaId": "D01", "texto": "La Negra se llamaba Ofelia."}]}`. Si la Etapa A encontró dudas, el libro no se escribe hasta 24 horas después del mail de dudas (`ESCRITOR_ESPERA_DUDAS_HORAS`): ese es el rato para escribirlo. Sin archivo, el libro va sin correcciones. Roto → el pedido queda `fallido`. |
 | `libro.md` | fábrica | fábrica, imprenta | El libro final. La imprenta lo prefiere a `paquete/borrador_libro.md` si existe. |
+| `trabajando.json` | fábrica | fábrica | `{proceso, que, latido}`: la copia de la fábrica que está trabajando con ese narrador lo renueva cada minuto. Otra copia (un deploy con las dos prendidas) no toca el narrador ni toma su pedido como huérfano mientras tenga menos de 10 minutos. |
+| `alerta-libro-demorado.txt` | fábrica | fábrica | Candado del mail a los socios cuando el libro no salió a las 48 horas del cierre. |
 | `informe.md` | fábrica | socios | El informe interno de la revisión (no lo ve la familia). |
 
-Variables de la fábrica: `ESCRITOR_LIBROS_EN_PARALELO` (3 por defecto: trabajos del escritor a la vez),
+Variables de la fábrica: `ESCRITOR_ESPERA_DUDAS_HORAS` (24 por defecto: espera tras el mail de dudas), `ESCRITOR_LIBROS_EN_PARALELO` (3 por defecto: trabajos del escritor a la vez),
 `ESCRITOR_TOPE_USD` (15 por defecto: tope de gasto por trabajo), `MAIL_SOCIOS` (avisos).
 
 ## Storage — bucket privado `audios`

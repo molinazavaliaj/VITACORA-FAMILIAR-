@@ -14,6 +14,7 @@
 //
 // Todo lo que se le paga al modelo queda en el almacén del narrador (`{id}/escritor/pasos`, `lotes`):
 // si el proceso se corta (Railway reinicia), volver a correr retoma sin pagar de nuevo.
+import { randomUUID } from 'node:crypto';
 import Anthropic from '@anthropic-ai/sdk';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { cargarConfig } from '../../config.js';
@@ -163,6 +164,49 @@ export async function correrEtapaAV3(db: Db, narradorId: string, motor: Motor = 
   return r;
 }
 
+// ---------------------------------------------------------------- dos copias de la fábrica a la vez
+
+/**
+ * En un deploy, Railway puede tener un rato la copia vieja y la nueva prendidas. La nueva no sabe que la vieja
+ * está escribiendo un libro (eso vive en la memoria de la vieja) y lo tomaría como abandonado: dos copias
+ * escribiendo y pagando el mismo libro. Por eso el trabajo deja cada minuto `{id}/escritor/trabajando.json`
+ * ("sigo acá", con qué copia y cuándo) y ninguna otra copia toca ese narrador mientras la marca tenga menos de
+ * 10 minutos. Si la copia muere, la marca envejece y a los 10 minutos otra lo retoma (desde los checkpoints).
+ */
+export const TRABAJANDO = 'trabajando.json';
+const PROCESO = randomUUID();
+const MARCA_VIGENTE_MS = 10 * 60 * 1000;
+
+async function conMarca<T>(db: Db, narradorId: string, que: string, f: () => Promise<T>): Promise<T> {
+  const almacen = new AlmacenSupabase(db, PREFIJO_ESCRITOR(narradorId));
+  const marcar = (latido: string): Promise<void> =>
+    almacen.escribir(TRABAJANDO, JSON.stringify({ proceso: PROCESO, que, latido })).catch((err) => {
+      console.error(`escritor ${narradorId}: no pude dejar la marca de trabajo:`, err instanceof Error ? err.message : err);
+    });
+  await marcar(new Date().toISOString());
+  const reloj = setInterval(() => void marcar(new Date().toISOString()), 60_000);
+  reloj.unref?.();
+  try {
+    return await f();
+  } finally {
+    clearInterval(reloj);
+    // Al terminar, la marca queda vieja: nadie tiene que esperar 10 minutos para tocar este narrador.
+    await marcar(new Date(0).toISOString());
+  }
+}
+
+/** ¿Otra copia de la fábrica está trabajando ahora con este narrador? Si no se puede leer la marca, no (como antes). */
+export async function trabajaOtraCopia(db: Db, narradorId: string, ahora: number = Date.now()): Promise<boolean> {
+  try {
+    const t = await new AlmacenSupabase(db, PREFIJO_ESCRITOR(narradorId)).leer(TRABAJANDO);
+    if (t === null) return false;
+    const m = JSON.parse(t) as { proceso?: string; latido?: string };
+    return m.proceso !== PROCESO && ahora - Date.parse(m.latido ?? '') < MARCA_VIGENTE_MS;
+  } catch {
+    return false;
+  }
+}
+
 /** Lo que el worker comparte entre ticks: la cola y cuándo falló por última vez cada Etapa A. */
 const maximoEnParalelo = (): number => Math.max(1, Number(process.env.ESCRITOR_LIBROS_EN_PARALELO ?? 3) || 3);
 const cola = new Cola(maximoEnParalelo);
@@ -202,9 +246,10 @@ export async function revisarEtapaAV3(db: Db, narradorId: string, o: { motor?: M
     if (archivos.has(FALLO_A) || !hayLugarParaEtapaA(narradorId)) return;
     const ahora = o.ahora ?? Date.now();
     if (ahora - (ultimoErrorA.get(narradorId) ?? -Infinity) < ESPERA_TRAS_ERROR_MS) return;
+    if (await trabajaOtraCopia(db, narradorId)) return;
     cola.lanzar(narradorId, async () => {
       try {
-        const r = await correrEtapaAV3(db, narradorId, o.motor ?? motorReal(db));
+        const r = await conMarca(db, narradorId, 'etapa A', () => correrEtapaAV3(db, narradorId, o.motor ?? motorReal(db)));
         ultimoErrorA.delete(narradorId);
         console.log(`escritor ${narradorId}: Etapa A ${r.ok ? `lista (${r.capitulos} capítulos, ${r.dudas.length} dudas)` : `no salió: ${r.motivo}`}`);
       } catch (err) {
@@ -219,7 +264,7 @@ export async function revisarEtapaAV3(db: Db, narradorId: string, o: { motor?: M
 
 type DudaGuardada = { id: string; pregunta: string; opciones: string[]; que: string; citas: { id: string; texto: string }[] };
 
-async function avisarDudas(db: Db, narradorId: string, archivos: Set<string>): Promise<void> {
+async function avisarDudas(db: Db, narradorId: string, archivos: Set<string>): Promise<boolean> {
   const almacen = new AlmacenSupabase(db, PREFIJO_ESCRITOR(narradorId));
   const t = archivos.has(DUDAS) ? await almacen.leer(DUDAS) : null;
   const dudas = (t ? (JSON.parse(t) as { dudas?: DudaGuardada[] }).dudas : []) ?? [];
@@ -231,11 +276,42 @@ async function avisarDudas(db: Db, narradorId: string, archivos: Set<string>): P
     ].join('\n'));
     const salio = await avisarSocios(
       `Dudas de datos del libro de ${narradorId} (${dudas.length})`,
-      `La Etapa A terminó y encontró estas dudas de datos. La familia no las ve (la pantalla no existe todavía).\n\n${lineas.join('\n\n')}\n\nSi hay que corregir algo, se escribe en ${PREFIJO_ESCRITOR(narradorId)}/${CORRECCIONES} ANTES de que la dueña cierre el libro:\n{"correcciones": [{"dudaId": "D01", "texto": "La Negra se llamaba Ofelia."}]}\nSin ese archivo, el libro se escribe sin correcciones.`,
+      `La Etapa A terminó y encontró estas dudas de datos. La familia no las ve (la pantalla no existe todavía).\n\n${lineas.join('\n\n')}\n\nEl libro no se escribe hasta ${Math.round(esperaPorDudasMs() / 3_600_000)} horas después de este mail (aunque la dueña ya lo haya cerrado). Si hay que corregir algo, se escribe en ese rato en ${PREFIJO_ESCRITOR(narradorId)}/${CORRECCIONES}:\n{"correcciones": [{"dudaId": "D01", "texto": "La Negra se llamaba Ofelia."}]}\nSin ese archivo, el libro se escribe sin correcciones.`,
     );
-    if (!salio) return;
+    if (!salio) return false;
   }
   await almacen.escribir(DUDAS_AVISADAS, new Date().toISOString());
+  return true;
+}
+
+/**
+ * Desde que salió el mail de dudas, el libro espera esto antes de escribirse (para que lleguen las correcciones).
+ * `ESCRITOR_ESPERA_DUDAS_HORAS` (24 por defecto; 0 = no espera).
+ */
+export const esperaPorDudasMs = (): number => {
+  const h = Number(process.env.ESCRITOR_ESPERA_DUDAS_HORAS ?? 24);
+  return (Number.isFinite(h) && h >= 0 ? h : 24) * 60 * 60 * 1000;
+};
+/** Si el mail de dudas no salió, el libro reintenta mandarlo en este rato (no se escribe sin que las veamos). */
+const REINTENTO_AVISO_DUDAS_MS = 60 * 60 * 1000;
+
+/**
+ * Naza, 09/10: si la Etapa A encontró dudas, el libro no se escribe hasta 24 horas después del mail a los socios,
+ * así hay tiempo de escribir correcciones.json. Sin dudas, 0 (arranca ya). Si el mail todavía no salió, lo manda
+ * acá (con `avisarDeNuevo`, también si ya había salido uno: la Etapa A se rehízo y las dudas pueden ser otras).
+ * Devuelve cuántos ms faltan.
+ */
+async function esperaPorDudas(db: Db, narradorId: string, almacen: Almacen, o: { avisarDeNuevo: boolean }, ahora: number = Date.now()): Promise<number> {
+  const t = await almacen.leer(DUDAS);
+  const dudas = (t ? (JSON.parse(t) as { dudas?: unknown[] }).dudas : []) ?? [];
+  if (!dudas.length || esperaPorDudasMs() === 0) return 0;
+  let avisadas = o.avisarDeNuevo ? null : await almacen.leer(DUDAS_AVISADAS);
+  if (avisadas === null) {
+    if (!(await avisarDudas(db, narradorId, new Set([DUDAS])))) return REINTENTO_AVISO_DUDAS_MS;
+    avisadas = await almacen.leer(DUDAS_AVISADAS);
+  }
+  const desde = Date.parse(avisadas ?? '');
+  return Number.isFinite(desde) ? Math.max(0, desde + esperaPorDudasMs() - ahora) : 0;
 }
 
 // ---------------------------------------------------------------- el libro (pedido pagado y libro cerrado)
@@ -308,6 +384,15 @@ export async function escribirLibroV3(db: Db, pedido: { id: string; narrador_id:
     if (!snapA) {
       const a = await etapaA(x);
       if (!a.ok) throw new FalloDelEscritor(`Etapa A: ${a.motivo}`);
+    }
+    const espera = await esperaPorDudas(db, narradorId, almacen, { avisarDeNuevo: !snapA });
+    if (espera > 0) {
+      // No es un error: el pedido vuelve a 'pagado' y el libro se retoma cuando pase la espera (sin repagar la A).
+      esperaLibro.set(narradorId, Date.now() + espera);
+      const { error: errorVuelta } = await db.from('pedidos').update({ estado: 'pagado' }).eq('id', pedido.id).eq('estado', 'generando');
+      if (errorVuelta) console.error(`escritor ${narradorId}: no se pudo devolver a 'pagado' el pedido ${pedido.id}:`, errorVuelta.message);
+      x.log(`hay dudas de datos: el libro espera ${Math.ceil(espera / 3_600_000)} horas más por las correcciones`);
+      return;
     }
     const b = await etapaB(x, await leerCorrecciones(almacen));
     if (!b.ok) throw new FalloDelEscritor(`Etapa B: ${b.motivo}`);
@@ -402,7 +487,7 @@ export const hayLugarParaLibroV3 = (narradorId: string, ahora: number = Date.now
 export function lanzarLibroV3(db: Db, pedido: { id: string; narrador_id: string }, alTerminar: () => void, motor?: Motor): boolean {
   return cola.lanzar(pedido.narrador_id, async () => {
     try {
-      await escribirLibroV3(db, pedido, motor ?? motorReal(db));
+      await conMarca(db, pedido.narrador_id, `libro ${pedido.id}`, () => escribirLibroV3(db, pedido, motor ?? motorReal(db)));
     } finally {
       alTerminar();
     }
@@ -411,12 +496,15 @@ export function lanzarLibroV3(db: Db, pedido: { id: string; narrador_id: string 
 
 // ---------------------------------------------------------------- alerta: un libro que no sale
 
-/** Un libro tarda de 4 a 9 horas por Batch: a las 24 horas del cierre sin entregar, algo se trabó. */
-export const DEMORA_ALERTA_MS = 24 * 60 * 60 * 1000;
+/**
+ * Un libro tarda de 4 a 9 horas por Batch, más las 24 de espera si hubo dudas: a las 48 horas del cierre sin
+ * entregar, algo se trabó.
+ */
+export const DEMORA_ALERTA_MS = 48 * 60 * 60 * 1000;
 export const ALERTA_DEMORADO = 'alerta-libro-demorado.txt';
 
 /**
- * Del tick: un narrador V3 con el libro cerrado hace más de 24 horas y sin ningún pedido entregado (el suyo en
+ * Del tick: un narrador V3 con el libro cerrado hace más de 48 horas y sin ningún pedido entregado (el suyo en
  * 'pagado', 'generando' o 'fallido') → un mail a los socios, una sola vez por narrador. Cubre lo que no avisa
  * solo: un trabajo colgado, un proceso que murió y no volvió, una cola que no se libera. Nunca tira.
  */
@@ -440,7 +528,7 @@ export async function alertarLibrosDemorados(db: Db, v3: Set<string>, ahora: num
       const horas = Math.floor((ahora - cerrado) / 3_600_000);
       const salio = await avisarSocios(
         `El libro de ${n.id} lleva ${horas} horas sin salir`,
-        `La familia cerró el libro hace ${horas} horas y todavía no se entregó (un libro tarda de 4 a 9 horas). Pedido ${p.id}, estado '${p.estado}'.\n\n` +
+        `La familia cerró el libro hace ${horas} horas y todavía no se entregó (un libro tarda de 4 a 9 horas, más 24 si hubo dudas). Pedido ${p.id}, estado '${p.estado}'.\n\n` +
           `Qué mirar: los logs de la fábrica en Railway (buscar "escritor ${n.id}"), ${PREFIJO_ESCRITOR(n.id)}/costos.json (si sigue sumando, está trabajando) y ${PREFIJO_ESCRITOR(n.id)}/lotes/ (los lotes de Batch que espera). ` +
           `Si quedó 'fallido', volverlo a 'pagado' retoma sin repagar. Este aviso sale una sola vez.`,
       );

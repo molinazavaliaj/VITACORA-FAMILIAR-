@@ -90,6 +90,8 @@ function motorFalso(salidas: Record<string, string> = salidasModeloNelida()) {
 }
 
 beforeEach(() => {
+  // La espera por dudas (24 horas) tiene su test propio: en los demás, el libro sigue de largo.
+  vi.stubEnv('ESCRITOR_ESPERA_DUDAS_HORAS', '0');
   vi.spyOn(console, 'log').mockImplementation(() => {});
   vi.spyOn(console, 'warn').mockImplementation(() => {});
   vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -396,8 +398,8 @@ describe('arreglos de la revisión', () => {
 
 // ---------------------------------------------------------------- alerta de libro demorado
 
-describe('alerta: un libro V3 que a las 24 horas del cierre no salió', () => {
-  it('avisa una sola vez; no avisa antes de las 24 horas, ni con el libro entregado, ni a un narrador viejo', async () => {
+describe('alerta: un libro V3 que a las 48 horas del cierre no salió', () => {
+  it('avisa una sola vez; no avisa antes de las 48 horas, ni con el libro entregado, ni a un narrador viejo', async () => {
     vi.stubEnv('MAIL_SOCIOS', 'socios@ejemplo.com');
     const fetch = vi.fn(async () => new Response('{}', { status: 200 }));
     vi.stubGlobal('fetch', fetch);
@@ -407,10 +409,10 @@ describe('alerta: un libro V3 que a las 24 horas del cierre no salió', () => {
     const { db, archivos } = baseFalsa({
       tablas: {
         narradores: [
-          { id: 'trabado', libro_aprobado_at: haceHoras(30) },
-          { id: 'reciente', libro_aprobado_at: haceHoras(5) },
-          { id: 'listo', libro_aprobado_at: haceHoras(40) },
-          { id: 'viejo', libro_aprobado_at: haceHoras(40) },
+          { id: 'trabado', libro_aprobado_at: haceHoras(50) },
+          { id: 'reciente', libro_aprobado_at: haceHoras(30) },
+          { id: 'listo', libro_aprobado_at: haceHoras(60) },
+          { id: 'viejo', libro_aprobado_at: haceHoras(60) },
         ],
         pedidos: [
           { id: 'p1', narrador_id: 'trabado', estado: 'generando' },
@@ -426,9 +428,70 @@ describe('alerta: un libro V3 que a las 24 horas del cierre no salió', () => {
     await alertarLibrosDemorados(db, v3, ahora);
     expect(fetch).toHaveBeenCalledTimes(1);
     const cuerpo = JSON.parse((fetch.mock.calls[0] as unknown as [string, { body: string }])[1].body);
-    expect(cuerpo.subject).toContain('El libro de trabado lleva 30 horas sin salir');
+    expect(cuerpo.subject).toContain('El libro de trabado lleva 50 horas sin salir');
     expect(cuerpo.text).toContain("Pedido p1, estado 'generando'");
     expect(archivos.has('trabado/escritor/alerta-libro-demorado.txt')).toBe(true);
     vi.unstubAllGlobals();
+  });
+});
+
+// ---------------------------------------------------------------- espera por dudas y dos copias a la vez
+
+describe('el libro espera 24 horas si la Etapa A encontró dudas (Naza, 09/10)', () => {
+  it('avisa las dudas, devuelve el pedido a pagado y no escribe; pasada la espera, escribe con las correcciones', async () => {
+    vi.stubEnv('ESCRITOR_ESPERA_DUDAS_HORAS', '24');
+    vi.stubEnv('MAIL_SOCIOS', 'socios@ejemplo.com');
+    const fetch = vi.fn(async () => new Response('{}', { status: 200 }));
+    vi.stubGlobal('fetch', fetch);
+    const { db, archivos, tablas } = baseFalsa({ tablas: { narradores: [{ ...NARRADOR, id: 'n8' }], pedidos: [{ id: 'p8', narrador_id: 'n8', estado: 'generando' }] } });
+    const { motor, modelo } = motorFalso();
+    await escribirLibroV3(db, { id: 'p8', narrador_id: 'n8' }, motor);
+    expect(tablas.pedidos[0].estado).toBe('pagado');
+    expect(modelo.llamadas.map((p) => p.clave)).toEqual(['A/1-registro', 'A/2-plan', 'A/dudas']);
+    expect(JSON.parse((fetch.mock.calls[0] as unknown as [string, { body: string }])[1].body).subject).toContain('Dudas de datos');
+    expect(hayLugarParaLibroV3('n8')).toBe(false);
+    expect(hayLugarParaLibroV3('n8', Date.now() + 25 * 3_600_000)).toBe(true);
+    // Pasaron las 24 horas (el aviso quedó con fecha vieja): ahora sí se escribe, sin repagar la A.
+    archivos.set('n8/escritor/dudas-avisadas.txt', new Date(Date.now() - 25 * 3_600_000).toISOString());
+    tablas.pedidos[0].estado = 'generando';
+    await escribirLibroV3(db, { id: 'p8', narrador_id: 'n8' }, motor);
+    expect(tablas.pedidos[0].estado).toBe('entregado');
+    expect(modelo.llamadas.filter((p) => p.clave.startsWith('A/'))).toHaveLength(3);
+    expect(fetch).toHaveBeenCalledTimes(1);
+    vi.unstubAllGlobals();
+  });
+
+  it('sin dudas, no espera', async () => {
+    vi.stubEnv('ESCRITOR_ESPERA_DUDAS_HORAS', '24');
+    const { db, tablas } = baseFalsa({ tablas: { narradores: [{ ...NARRADOR, id: 'n9' }], pedidos: [{ id: 'p9', narrador_id: 'n9', estado: 'generando' }] } });
+    const reg = JSON.parse(salidasModeloNelida()['1-registro']);
+    reg.dudas = [];
+    const { motor } = motorFalso({ ...salidasModeloNelida(), '1-registro': JSON.stringify(reg) });
+    await escribirLibroV3(db, { id: 'p9', narrador_id: 'n9' }, motor);
+    expect(tablas.pedidos[0].estado).toBe('entregado');
+  });
+});
+
+describe('dos copias de la fábrica a la vez (deploy)', () => {
+  it('mientras una copia trabaja deja la marca; otra copia la respeta 10 minutos; al terminar la suelta', async () => {
+    const { trabajaOtraCopia } = await import('../../src/escritor/produccion/libro-v3.js');
+    const { db, archivos } = baseFalsa({ tablas: { narradores: [{ ...NARRADOR }], pedidos: [{ id: 'p1', narrador_id: 'n1', estado: 'generando' }] } });
+    // Una marca fresca de OTRA copia: no se toca.
+    archivos.set('n1/escritor/trabajando.json', JSON.stringify({ proceso: 'otra-copia', que: 'libro p1', latido: new Date().toISOString() }));
+    expect(await trabajaOtraCopia(db, 'n1')).toBe(true);
+    expect(await trabajaOtraCopia(db, 'n1', Date.now() + 11 * 60_000)).toBe(false); // vieja: esa copia murió
+    // Una Etapa A no se lanza mientras la otra copia trabaja.
+    const { motor, modelo } = motorFalso();
+    await revisarEtapaAV3(db, 'n1', { motor });
+    await colaDelEscritor.esperarTodo();
+    expect(modelo.llamadas).toHaveLength(0);
+    // Cuando trabaja ESTA copia, la marca es suya (no se frena a sí misma) y al terminar queda vieja.
+    archivos.delete('n1/escritor/trabajando.json');
+    lanzarLibroV3(db, { id: 'p1', narrador_id: 'n1' }, () => {}, motor);
+    await colaDelEscritor.esperarTodo();
+    const marca = JSON.parse(String(archivos.get('n1/escritor/trabajando.json')));
+    expect(marca.que).toBe('libro p1');
+    expect(Date.parse(marca.latido)).toBe(0);
+    expect(await trabajaOtraCopia(db, 'n1')).toBe(false);
   });
 });

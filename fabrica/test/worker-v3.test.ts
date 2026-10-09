@@ -15,7 +15,7 @@ const m = vi.hoisted(() => ({
 }));
 
 vi.mock('../src/v3/candado.js', () => ({ idiomasV3: m.idiomasV3, narradoresConV3: m.narradoresConV3, avisarCandadoV3: vi.fn(), exigirSinV3: vi.fn() }));
-vi.mock('../src/escritor/produccion/libro-v3.js', () => ({ alertarLibrosDemorados: vi.fn(), revisarEtapaAV3: m.revisarEtapaAV3, hayLugarParaLibroV3: m.hayLugarParaLibroV3, lanzarLibroV3: m.lanzarLibroV3 }));
+vi.mock('../src/escritor/produccion/libro-v3.js', () => ({ trabajaOtraCopia: vi.fn(async () => false), alertarLibrosDemorados: vi.fn(), revisarEtapaAV3: m.revisarEtapaAV3, hayLugarParaLibroV3: m.hayLugarParaLibroV3, lanzarLibroV3: m.lanzarLibroV3 }));
 vi.mock('../src/libro/generar-paquete.js', () => ({ generarPaquete: m.generarPaquete }));
 vi.mock('../src/libro/estructura.js', () => ({ generarEstructura: m.generarEstructura }));
 vi.mock('../src/libro/previsualizar.js', () => ({ generarPrevisualizacion: vi.fn() }));
@@ -196,5 +196,20 @@ describe('worker: "el libro está listo" con vos para Argentina (V3 o no)', () =
     await tick();
     const listos = m.enviarMailHito.mock.calls.map((c) => (c as unknown as [{ hito: string; para: string; variante?: string }])[0]).filter((o) => o.hito === 'libro_listo');
     expect(listos.map((o) => [o.para, o.variante])).toEqual([['a@ejemplo.com', 'vos'], ['e@ejemplo.com', undefined]]);
+  });
+});
+
+describe('worker: un pedido en curso de OTRA copia de la fábrica no es huérfano', () => {
+  it('con la marca fresca de otra copia, no se devuelve a pagado', async () => {
+    const libro = await import('../src/escritor/produccion/libro-v3.js');
+    (libro.trabajaOtraCopia as unknown as ReturnType<typeof vi.fn>).mockResolvedValueOnce(true);
+    m.narradoresConV3.mockResolvedValue(new Set(['v3']));
+    const t = { narradores: [{ id: 'v3', libro_aprobado_at: '2026-10-08' }], pedidos: [{ id: 'p5', narrador_id: 'v3', estado: 'generando' }] };
+    const { db } = base(t);
+    m.obtenerClienteDb.mockReturnValue(db);
+    await procesarPedidosPagados();
+    expect(t.pedidos[0].estado).toBe('generando');
+    await procesarPedidosPagados(); // sin marca: huérfano, vuelve a pagado (y se relanza)
+    expect(m.lanzarLibroV3).toHaveBeenCalled();
   });
 });

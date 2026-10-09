@@ -20,7 +20,7 @@ import { anotarLatido } from './latido.js';
 import { mandarEntregasAImprenta, avisarHitosDeEntrega } from './entregas.js';
 import { productosDelPedido } from './libro/productos.js';
 import { idiomasV3, narradoresConV3 } from './v3/candado.js';
-import { alertarLibrosDemorados, hayLugarParaLibroV3, lanzarLibroV3, revisarEtapaAV3 } from './escritor/produccion/libro-v3.js';
+import { alertarLibrosDemorados, hayLugarParaLibroV3, lanzarLibroV3, revisarEtapaAV3, trabajaOtraCopia } from './escritor/produccion/libro-v3.js';
 
 const INTERVALO_MS = 60_000;
 
@@ -62,7 +62,7 @@ async function conV3OFrenar(db: Db, rama: string): Promise<Set<string> | null> {
   }
 }
 
-/** Un libro V3 que a las 24 horas del cierre no se entregó: mail a los socios (escritor/produccion/libro-v3.ts). */
+/** Un libro V3 que a las 48 horas del cierre no se entregó: mail a los socios (escritor/produccion/libro-v3.ts). */
 async function alertarDemorados(): Promise<void> {
   const db = obtenerClienteDb();
   const v3 = await conV3OFrenar(db, 'alerta de libros demorados');
@@ -666,15 +666,17 @@ export async function recordarFrasesPendientes(ahora: Date = new Date()): Promis
  * UPDATE, no lo pisamos.
  */
 async function liberarPedidosGenerandoHuerfanos(db: ReturnType<typeof obtenerClienteDb>): Promise<void> {
-  const { data: pedidosGenerando, error } = await db.from('pedidos').select('id').eq('estado', 'generando');
+  const { data: pedidosGenerando, error } = await db.from('pedidos').select('id, narrador_id').eq('estado', 'generando');
 
   if (error) {
     console.error('tick: no se pudieron leer los pedidos en generando:', error.message);
     return;
   }
 
-  for (const pedido of (pedidosGenerando ?? []) as { id: string }[]) {
+  for (const pedido of (pedidosGenerando ?? []) as { id: string; narrador_id?: string }[]) {
     if (pedidosGenerandoClaimados.has(pedido.id)) continue;
+    // Otra copia de la fábrica (un deploy con las dos prendidas) lo está escribiendo: no es huérfano.
+    if (pedido.narrador_id && (await trabajaOtraCopia(db, pedido.narrador_id))) continue;
 
     console.warn(
       `tick: el pedido ${pedido.id} quedó huérfano en 'generando' (el proceso que lo reclamó no lo terminó) — lo devolvemos a 'pagado'.`
