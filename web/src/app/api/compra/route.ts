@@ -181,19 +181,32 @@ export async function POST(request: NextRequest) {
         : null;
   }
 
-  const { data: narrador, error: errorNarrador } =
-    retomable && retomable.familia_id === familiaId
-      ? await admin
-          .from("narradores")
-          .update({ ...narradorAInsertar, familia_id: familiaId, estado: "pendiente_pago" })
-          .eq("id", retomable.id)
-          .select("id")
-          .single()
-      : await admin
-          .from("narradores")
-          .insert({ ...narradorAInsertar, familia_id: familiaId, estado: "pendiente_pago" })
-          .select("id")
-          .single();
+  let narrador: unknown = null;
+  let errorNarrador: unknown = null;
+  if (retomable && retomable.familia_id === familiaId) {
+    // Solo si sigue en pendiente_pago: si el pago viejo entró entre la búsqueda
+    // y este update, no se lo devuelve a pendiente_pago. Sin fila, se sigue
+    // como una primera compra (narrador y regalo nuevos).
+    const retomado = await admin
+      .from("narradores")
+      .update({ ...narradorAInsertar, familia_id: familiaId, estado: "pendiente_pago" })
+      .eq("id", retomable.id)
+      .eq("estado", "pendiente_pago")
+      .select("id")
+      .maybeSingle();
+    if (retomado.error) errorNarrador = retomado.error;
+    else if (retomado.data) narrador = retomado.data;
+    else retomable = null;
+  }
+  if (!narrador && !errorNarrador) {
+    const creado = await admin
+      .from("narradores")
+      .insert({ ...narradorAInsertar, familia_id: familiaId, estado: "pendiente_pago" })
+      .select("id")
+      .single();
+    narrador = creado.data;
+    errorNarrador = creado.error;
+  }
   if (errorNarrador || !narrador) {
     console.error("compra: fallo crear el narrador", errorNarrador);
     const esTelefonoRepetido = (errorNarrador as { code?: string } | null)?.code === "23505";

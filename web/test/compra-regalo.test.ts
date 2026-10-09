@@ -393,6 +393,34 @@ describe("POST /api/compra con regalo: reintento sin pagar", () => {
     expect(crearCheckout).toHaveBeenCalledWith({ id: "ped-2", email: "lucia@ejemplo.com" }, expect.anything());
   });
 
+  it("(a) si el viejo se pagó entre la búsqueda y el update (el update filtrado por pendiente_pago no devuelve fila), nace uno nuevo", async () => {
+    const admin = crearAdmin({
+      ...secuenciaReintento(),
+      narradores: [
+        { data: VIEJO, error: null },
+        { data: null, error: null },
+        { data: { id: "nar-nuevo" }, error: null },
+      ],
+      regalos: [{ data: null, error: null }],
+    });
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+
+    const r = await POST(peticion(conRetomar(RETOMAR())));
+    const json = (await r.json()) as Record<string, string>;
+
+    expect(r.status).toBe(200);
+    // Se intentó el update, pero solo sobre un narrador que siga en pendiente_pago.
+    expect(admin.updates.narradores).toHaveLength(1);
+    expect(admin.eqs.narradores).toEqual(expect.arrayContaining([["id", "nar-viejo"], ["estado", "pendiente_pago"]]));
+    // Como no volvió fila, nacen un narrador y un regalo nuevos; el regalo viejo no se toca.
+    expect(admin.inserts.narradores).toHaveLength(1);
+    expect(admin.updates.regalos).toBeUndefined();
+    expect(admin.inserts.regalos).toHaveLength(1);
+    expect(admin.inserts.regalos[0]).toMatchObject({ narrador_id: "nar-nuevo", pedido_id: "ped-2" });
+    expect(admin.inserts.pedidos[0]).toMatchObject({ narrador_id: "nar-nuevo" });
+    expect(json.narradorId).toBe("nar-nuevo");
+  });
+
   it("(a) un reintento retomado con otro idioma actualiza el contexto: idioma nuevo y sin trato", async () => {
     const admin = crearAdmin(secuenciaReintento());
     (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
