@@ -22,7 +22,7 @@ export type ResultadoConfirmacion =
   | { ok: true; yaEstaba: boolean; email: string | null; codigoRegalo: string | null }
   | { ok: false; error: string };
 
-type EnviarMailAcceso = (opciones: { para: string; comoLeDicen: string }) => Promise<boolean>;
+type EnviarMailAcceso = (opciones: { para: string; comoLeDicen: string; region?: string | null }) => Promise<boolean>;
 type EnviarMailRegalo = (opciones: { para: string; comoLeDicen: string; codigo: string }) => Promise<boolean>;
 
 export async function confirmarPago(
@@ -139,7 +139,8 @@ export async function confirmarPago(
           console.error(`confirmarPago: el regalo del pedido ${pedidoId} (narrador ${pedido.narrador_id}) se pagó pero no salió el mail de la tarjeta: ${codigoRegalo ? "falta enviarMailRegalo" : "sin código en regalos"}.`);
         }
       } else {
-        await enviarMailAcceso({ para: email, comoLeDicen });
+        // De vos para Argentina y de tú para España (Naza, 09/10).
+        await enviarMailAcceso({ para: email, comoLeDicen, ...(region ? { region } : {}) });
       }
     } catch (err) {
       console.error(`confirmarPago: el pago ${pedidoId} se confirmó pero el ${esRegalo ? "mail del regalo" : "mail de acceso"} a ${email} falló:`, err);
