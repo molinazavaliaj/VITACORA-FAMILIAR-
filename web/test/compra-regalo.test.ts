@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { verificarTokenFotos } from "../src/lib/token-fotos";
+import { firmarTokenFotos, verificarTokenFotos } from "../src/lib/token-fotos";
 
 process.env.SUPABASE_SERVICE_ROLE_KEY ??= "clave-de-prueba"; // firma el token de fotos
 
@@ -228,7 +228,7 @@ describe("POST /api/compra con regalo", () => {
     expect(admin.inserts.narradores[0]).toMatchObject({ contexto: { genero: "mujer" } });
   });
 
-  it("responde el código además de urlPago, narradorId y tokenFotos", async () => {
+  it("responde urlPago, narradorId y tokenFotos, y NO el código (09/10: la tarjeta sale de la base tras el pago)", async () => {
     const admin = crearAdmin(secuenciaFeliz());
     (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
 
@@ -237,7 +237,8 @@ describe("POST /api/compra con regalo", () => {
 
     expect(json).toMatchObject({ urlPago: "https://pago.example/x", narradorId: "nar-1" });
     expect(verificarTokenFotos(json.tokenFotos, "nar-1")).toBe(true);
-    expect(json.codigo).toBe((admin.inserts.regalos[0] as { codigo: string }).codigo);
+    expect(json).not.toHaveProperty("codigo");
+    expect(admin.inserts.regalos).toHaveLength(1);
     expect(crearCheckout).toHaveBeenCalledWith({ id: "ped-1", email: "lucia@ejemplo.com" }, expect.objectContaining({ region: "AR" }));
   });
 
@@ -251,11 +252,12 @@ describe("POST /api/compra con regalo", () => {
     (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
 
     const r = await POST(peticion(CUERPO_REGALO));
-    const json = (await r.json()) as { codigo: string };
 
     expect(r.status).toBe(200);
     expect(admin.inserts.regalos).toHaveLength(2);
-    expect(json.codigo).toBe((admin.inserts.regalos[1] as { codigo: string }).codigo);
+    const [c1, c2] = (admin.inserts.regalos as { codigo: string }[]).map((x) => x.codigo);
+    expect(c2).not.toBe(c1);
+    expect(crearCheckout).toHaveBeenCalled();
   });
 
   it("cinco choques seguidos responden 500 y no se va a pagar", async () => {
@@ -314,14 +316,23 @@ describe("POST /api/compra con regalo", () => {
 });
 
 describe("POST /api/compra con regalo: reintento sin pagar", () => {
-  // La misma familia vuelve a intentar el regalo para la misma persona (falló
-  // el pago, cerró la pestaña): se retoma el narrador y el regalo que quedaron
-  // en pendiente_pago, con el mismo código, en vez de dejar historias fantasma.
-  function secuenciaReintento(o: { pendientes?: unknown[]; regalo?: unknown } = {}) {
+  // 09/10 (antes de vender): un regalo sin pagar se retoma SOLO con la prueba
+  // de la compra anterior, `regalo.retomar = { narradorId, token }`, donde el
+  // token es el tokenFotos que devolvió /api/compra (una hora). Saber el correo
+  // y el nombre del abuelo ya no alcanza: sin prueba válida nace otro regalo.
+  const RETOMAR = () => ({ narradorId: "nar-viejo", token: firmarTokenFotos("nar-viejo") });
+  const conRetomar = (retomar: unknown, extraRegalo: Record<string, unknown> = {}) => ({
+    ...CUERPO_REGALO,
+    regalo: { ...CUERPO_REGALO.regalo, ...extraRegalo, retomar },
+  });
+  const VIEJO = { id: "nar-viejo", familia_id: "fam-1", estado: "pendiente_pago", contexto: { regalo: true, trato: "vos" } };
+
+  // Con prueba válida: familia; narradores: 1) buscar el de la prueba, 2) update.
+  function secuenciaReintento(o: { viejo?: unknown; regalo?: unknown } = {}) {
     return {
       familias: [{ data: { id: "fam-1" }, error: null }],
       narradores: [
-        { data: o.pendientes ?? [{ id: "nar-viejo", familia_id: "fam-1", nombre: "  héctor ", contexto: { regalo: true, trato: "vos" } }], error: null },
+        { data: o.viejo === undefined ? VIEJO : o.viejo, error: null },
         { data: { id: "nar-viejo" }, error: null },
       ],
       pedidos: [{ data: { id: "ped-2" }, error: null }],
@@ -332,12 +343,31 @@ describe("POST /api/compra con regalo: reintento sin pagar", () => {
     };
   }
 
-  it("retoma el narrador y el regalo pendientes: no inserta otros, pedido nuevo, mismo código", async () => {
+  // Sin retomar: la familia existe, nacen un narrador y un regalo nuevos.
+  function secuenciaNueva() {
+    return {
+      familias: [{ data: { id: "fam-1" }, error: null }],
+      narradores: [{ data: { id: "nar-nuevo" }, error: null }],
+      pedidos: [{ data: { id: "ped-2" }, error: null }],
+      regalos: [{ data: null, error: null }],
+    };
+  }
+
+  function esperarNuevo(admin: ReturnType<typeof crearAdmin>) {
+    expect(admin.updates.narradores).toBeUndefined();
+    expect(admin.updates.regalos).toBeUndefined();
+    expect(admin.inserts.narradores).toHaveLength(1);
+    expect(admin.inserts.regalos).toHaveLength(1);
+    expect(admin.inserts.regalos[0]).toMatchObject({ narrador_id: "nar-nuevo", pedido_id: "ped-2" });
+    expect((admin.eqs.narradores ?? []).map(([, v]) => v)).not.toContain("nar-viejo");
+  }
+
+  it("(a) con el token de ese narrador lo retoma: mismo código en la base, mensaje nuevo, pedido nuevo", async () => {
     const admin = crearAdmin(secuenciaReintento());
     (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
 
-    const r = await POST(peticion(CUERPO_REGALO));
-    const json = (await r.json()) as { codigo: string; narradorId: string };
+    const r = await POST(peticion(conRetomar(RETOMAR(), { mensaje: "Otro mensaje, abuelo." })));
+    const json = (await r.json()) as Record<string, string>;
 
     expect(r.status).toBe(200);
     expect(admin.inserts.narradores).toBeUndefined();
@@ -349,29 +379,24 @@ describe("POST /api/compra con regalo: reintento sin pagar", () => {
       nombre: "Héctor",
       contexto: { regalo: true, trato: "vos", genero: "varon" },
     });
-    expect(admin.eqs.narradores).toEqual(
-      expect.arrayContaining([["familia_id", "fam-1"], ["estado", "pendiente_pago"], ["id", "nar-viejo"]]),
-    );
+    expect(admin.eqs.narradores).toEqual(expect.arrayContaining([["id", "nar-viejo"]]));
     expect(admin.inserts.pedidos[0]).toMatchObject({ narrador_id: "nar-viejo", extras: { regalo: true } });
+    // El código no se toca: la fila se actualiza sin `codigo`.
     expect(admin.updates.regalos).toEqual([
-      {
-        mensaje: "Abuelo, quiero que cuentes tu vida.",
-        fecha_entrega: "2099-12-24",
-        quien_regala: "Lucía",
-        pedido_id: "ped-2",
-      },
+      { mensaje: "Otro mensaje, abuelo.", fecha_entrega: "2099-12-24", quien_regala: "Lucía", pedido_id: "ped-2" },
     ]);
     expect(admin.eqs.regalos).toEqual(expect.arrayContaining([["narrador_id", "nar-viejo"], ["id", "reg-1"]]));
-    expect(json.codigo).toBe("VF-ABCDEF");
     expect(json.narradorId).toBe("nar-viejo");
+    expect(verificarTokenFotos(json.tokenFotos, "nar-viejo")).toBe(true);
+    expect(json).not.toHaveProperty("codigo");
     expect(crearCheckout).toHaveBeenCalledWith({ id: "ped-2", email: "lucia@ejemplo.com" }, expect.anything());
   });
 
-  it("un reintento con otro idioma actualiza el contexto: idioma nuevo y sin trato", async () => {
+  it("(a) un reintento retomado con otro idioma actualiza el contexto: idioma nuevo y sin trato", async () => {
     const admin = crearAdmin(secuenciaReintento());
     (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
 
-    const r = await POST(peticion({ ...CUERPO_REGALO, regalo: { ...CUERPO_REGALO.regalo, idioma: "ca" } }));
+    const r = await POST(peticion(conRetomar(RETOMAR(), { idioma: "ca" })));
 
     expect(r.status).toBe(200);
     expect(admin.updates.narradores).toHaveLength(1);
@@ -380,66 +405,127 @@ describe("POST /api/compra con regalo: reintento sin pagar", () => {
     expect(contexto).not.toHaveProperty("trato");
   });
 
-  it("dos intentos seguidos dan el mismo código", async () => {
-    const primero = crearAdmin(secuenciaFeliz());
-    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(primero);
-    const r1 = (await (await POST(peticion(CUERPO_REGALO))).json()) as { codigo: string };
-
-    const segundo = crearAdmin(secuenciaReintento({ regalo: { id: "reg-1", codigo: r1.codigo } }));
-    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(segundo);
-    const r2 = (await (await POST(peticion(CUERPO_REGALO))).json()) as { codigo: string };
-
-    expect(r2.codigo).toBe(r1.codigo);
-    expect(segundo.inserts.regalos).toBeUndefined();
-  });
-
-  it("un pendiente de la familia con otro nombre no se retoma: nace otro", async () => {
-    const admin = crearAdmin({
-      ...secuenciaReintento({ pendientes: [{ id: "nar-otro", familia_id: "fam-1", nombre: "Marta", contexto: { regalo: true } }] }),
-      narradores: [
-        { data: [{ id: "nar-otro", familia_id: "fam-1", nombre: "Marta", contexto: { regalo: true } }], error: null },
-        { data: { id: "nar-nuevo" }, error: null },
-      ],
-      regalos: [{ data: null, error: null }],
-    });
-    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
-
-    const r = await POST(peticion(CUERPO_REGALO));
-
-    expect(r.status).toBe(200);
-    expect(admin.inserts.narradores).toHaveLength(1);
-    expect(admin.updates.narradores).toBeUndefined();
-    expect(admin.inserts.regalos).toHaveLength(1);
-  });
-
-  it("un pendiente con el mismo nombre que no es regalo no se retoma", async () => {
-    const admin = crearAdmin({
-      ...secuenciaReintento(),
-      narradores: [
-        { data: [{ id: "nar-compra", familia_id: "fam-1", nombre: "Héctor", contexto: {} }], error: null },
-        { data: { id: "nar-nuevo" }, error: null },
-      ],
-      regalos: [{ data: null, error: null }],
-    });
-    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
-
-    await POST(peticion(CUERPO_REGALO));
-
-    expect(admin.inserts.narradores).toHaveLength(1);
-    expect(admin.updates.narradores).toBeUndefined();
-  });
-
-  it("si el narrador retomado no tenía fila de regalo (quedó a medias), se crea con código nuevo", async () => {
+  it("(a) si el narrador retomado no tenía fila de regalo (quedó a medias), se crea con código nuevo", async () => {
     const admin = crearAdmin(secuenciaReintento({ regalo: null }));
     (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
 
-    const r = await POST(peticion(CUERPO_REGALO));
-    const json = (await r.json()) as { codigo: string };
+    const r = await POST(peticion(conRetomar(RETOMAR())));
 
     expect(r.status).toBe(200);
     expect(admin.inserts.narradores).toBeUndefined();
     expect(admin.inserts.regalos).toHaveLength(1);
     expect(admin.inserts.regalos[0]).toMatchObject({ narrador_id: "nar-viejo", pedido_id: "ped-2" });
-    expect(json.codigo).toBe((admin.inserts.regalos[0] as { codigo: string }).codigo);
+  });
+
+  it("(b) sin token, la misma familia y el mismo nombre NO retoman: nace otro narrador y otro regalo", async () => {
+    const admin = crearAdmin(secuenciaNueva());
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+
+    const r = await POST(peticion(CUERPO_REGALO));
+
+    expect(r.status).toBe(200);
+    esperarNuevo(admin);
+    // Ni siquiera se busca un pendiente: una sola llamada a narradores, el insert.
+    expect(admin.from.mock.calls.filter(([t]) => t === "narradores")).toHaveLength(1);
+  });
+
+  it("(c) un token válido de un narrador de OTRA familia no retoma: nace uno nuevo", async () => {
+    const admin = crearAdmin({
+      ...secuenciaNueva(),
+      narradores: [
+        { data: { ...VIEJO, familia_id: "fam-ajena" }, error: null },
+        { data: { id: "nar-nuevo" }, error: null },
+      ],
+    });
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+
+    const r = await POST(peticion(conRetomar(RETOMAR())));
+
+    expect(r.status).toBe(200);
+    expect(admin.inserts.narradores).toHaveLength(1);
+    expect(admin.updates.narradores).toBeUndefined();
+    expect(admin.updates.regalos).toBeUndefined();
+    expect(admin.inserts.regalos).toHaveLength(1);
+  });
+
+  it("(c) si la familia es nueva (otro correo), un token válido tampoco retoma", async () => {
+    const admin = crearAdmin({
+      familias: [{ data: null, error: null }, { data: { id: "fam-nueva" }, error: null }],
+      narradores: [{ data: { id: "nar-nuevo" }, error: null }],
+      pedidos: [{ data: { id: "ped-2" }, error: null }],
+      regalos: [{ data: null, error: null }],
+    });
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+
+    const r = await POST(peticion(conRetomar(RETOMAR())));
+
+    expect(r.status).toBe(200);
+    esperarNuevo(admin);
+  });
+
+  it.each([
+    ["vencido", () => ({ narradorId: "nar-viejo", token: firmarTokenFotos("nar-viejo", Date.now() - 2 * 60 * 60 * 1000) })],
+    ["inventado", () => ({ narradorId: "nar-viejo", token: "basura.basura" })],
+    ["de otro narrador", () => ({ narradorId: "nar-viejo", token: firmarTokenFotos("nar-otro") })],
+    ["vacío", () => ({ narradorId: "nar-viejo", token: "" })],
+    ["sin narradorId", () => ({ token: firmarTokenFotos("nar-viejo") })],
+    ["con forma rara", () => "nar-viejo"],
+  ])("(d) un token %s no retoma: nace uno nuevo sin mirar el viejo", async (_nombre, retomar) => {
+    const admin = crearAdmin(secuenciaNueva());
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+
+    const r = await POST(peticion(conRetomar(retomar())));
+
+    expect(r.status).toBe(200);
+    esperarNuevo(admin);
+    expect(admin.from.mock.calls.filter(([t]) => t === "narradores")).toHaveLength(1);
+  });
+
+  it.each([
+    ["que no es regalo", { ...VIEJO, contexto: {} }],
+    ["con contexto null", { ...VIEJO, contexto: null }],
+    ["ya pagado (invitado)", { ...VIEJO, estado: "invitado" }],
+    ["que no existe", null],
+  ])("(e) un token válido de un narrador %s no retoma", async (_nombre, viejo) => {
+    const admin = crearAdmin({
+      ...secuenciaNueva(),
+      narradores: [
+        { data: viejo, error: null },
+        { data: { id: "nar-nuevo" }, error: null },
+      ],
+    });
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+
+    const r = await POST(peticion(conRetomar(RETOMAR())));
+
+    expect(r.status).toBe(200);
+    expect(admin.inserts.narradores).toHaveLength(1);
+    expect(admin.updates.narradores).toBeUndefined();
+    expect(admin.updates.regalos).toBeUndefined();
+    expect(admin.inserts.regalos).toHaveLength(1);
+  });
+
+  it("si falla la búsqueda del narrador a retomar, responde 500 y no se va a pagar", async () => {
+    const admin = crearAdmin({
+      ...secuenciaNueva(),
+      narradores: [{ data: null, error: { message: "caída" } }],
+    });
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+
+    const r = await POST(peticion(conRetomar(RETOMAR())));
+
+    expect(r.status).toBe(500);
+    expect(admin.inserts.narradores).toBeUndefined();
+    expect(crearCheckout).not.toHaveBeenCalled();
+  });
+
+  it("(f) un reintento retomado tampoco responde el código", async () => {
+    const admin = crearAdmin(secuenciaReintento());
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+
+    const json = await (await POST(peticion(conRetomar(RETOMAR())))).json();
+
+    expect(json).not.toHaveProperty("codigo");
+    expect(JSON.stringify(json)).not.toContain("VF-ABCDEF");
   });
 });
