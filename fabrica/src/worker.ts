@@ -232,7 +232,7 @@ async function avisarDelAnticipo(narrador: {
 
   const { data: familia, error: errorFamilia } = await db
     .from('familias')
-    .select('email')
+    .select('email, region')
     .eq('id', narrador.familia_id)
     .single();
   if (errorFamilia || !familia) {
@@ -260,6 +260,7 @@ async function avisarDelAnticipo(narrador: {
     comoLeDicen: narrador.como_le_dicen,
     primeraPregunta: (pregunta as { texto: string } | null)?.texto ?? '',
     enlace: `${cargarConfig().urlBase}/anticipo/${firmarTokenAnticipo(narrador.id)}`,
+    vos: (familia as { region?: string }).region === 'AR',
   });
 
   if (enviado) {
@@ -625,7 +626,7 @@ export async function recordarFrasesPendientes(ahora: Date = new Date()): Promis
 
       const { data: familia, error: errorFamilia } = await db
         .from('familias')
-        .select('email')
+        .select('email, region')
         .eq('id', quien.familia_id)
         .single();
       if (errorFamilia || !familia) {
@@ -640,6 +641,7 @@ export async function recordarFrasesPendientes(ahora: Date = new Date()): Promis
         // desde ahí. Es una línea, el día que la web la publique.
         enlace: `${urlBase}/tablero/${narradorId}`,
         conImpreso: impresoPorNarrador.get(narradorId) === true,
+        vos: (familia as { region?: string }).region === 'AR',
       });
 
       if (enviado) {

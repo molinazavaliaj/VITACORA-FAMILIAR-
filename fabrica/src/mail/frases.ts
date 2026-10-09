@@ -35,8 +35,12 @@ export const CANDADO_RECORDATORIO_FRASES = 'recordatorio_frases_enviado.txt';
 export const RUTA_RECORDATORIO_FRASES = (narradorId: string) =>
   `${narradorId}/paquete/${CANDADO_RECORDATORIO_FRASES}`;
 
-export function asuntoRecordatorioFrases(comoLeDicen: string): string {
-  return `Las frases de tu ${comoLeDicen}: ¿quieres elegir tú las que se imprimen?`;
+// Con vos para las familias de Argentina (familias.region = 'AR'): textos aprobados por Naza el 06/10 (rama
+// web-textos-v3), por país el 09/10. España sigue con tú.
+export function asuntoRecordatorioFrases(comoLeDicen: string, vos = false): string {
+  return vos
+    ? `Las frases de tu ${comoLeDicen}: ¿querés elegir vos las que se imprimen?`
+    : `Las frases de tu ${comoLeDicen}: ¿quieres elegir tú las que se imprimen?`;
 }
 
 /**
@@ -56,6 +60,19 @@ export function asuntoRecordatorioFrases(comoLeDicen: string): string {
  * - **Con impreso encargado**: hay una acción concreta, y el mail la dice sin
  *   vueltas, con la salida fácil a mano (si están bien, confirmarlas tal cual).
  */
+const PARRAFOS_VOS = (quien: string, conImpreso: boolean): string[] =>
+  conImpreso
+    ? [
+        `El libro de tu ${quien} ya está terminado, y las mejores historias con su voz ya se pueden escuchar.`,
+        `Encargaste el libro impreso, y sale con estas frases: cada una lleva su código para escucharla.`,
+        `<strong>Se manda a imprimir cuando confirmes esta selección.</strong> Miralas desde tu panel, cambiá lo que quieras, y si están bien así, confirmalas tal cual.`,
+      ]
+    : [
+        `El libro de tu ${quien} ya está terminado, y las mejores historias con su voz ya se pueden escuchar.`,
+        `Las eligió el biógrafo entre las cosas que dijo ${quien}. Si querés sacar alguna, poner otra en su lugar o cambiar el orden, podés hacerlo desde tu panel.`,
+        `No hay apuro: quedan guardadas así hasta que decidas.`,
+      ];
+
 const PARRAFOS = (quien: string, conImpreso: boolean): string[] =>
   conImpreso
     ? [
@@ -76,11 +93,13 @@ export function cuerpoRecordatorioFrases(opciones: {
    *  se imprime" a quien compró solo el PDF lo dejaría esperando una acción que no
    *  le corresponde. */
   conImpreso?: boolean;
+  /** Familia de Argentina: con vos. */
+  vos?: boolean;
 }): string {
   const quien = escaparHtml(opciones.comoLeDicen);
   const url = escaparHtml(opciones.enlace);
 
-  const parrafos = PARRAFOS(quien, opciones.conImpreso === true)
+  const parrafos = (opciones.vos ? PARRAFOS_VOS : PARRAFOS)(quien, opciones.conImpreso === true)
     .map(
       (parrafo) => `        <tr><td style="padding-bottom:24px;">
           ${parrafo}
@@ -127,6 +146,8 @@ export async function enviarMailRecordatorioFrases(opciones: {
   enlace: string;
   /** ¿Encargó algo impreso? Cambia el texto entero (ver `PARRAFOS`). */
   conImpreso?: boolean;
+  /** Familia de Argentina: con vos. */
+  vos?: boolean;
 }): Promise<boolean> {
   const { resendApiKey } = cargarConfig();
   if (!resendApiKey) {
@@ -143,11 +164,12 @@ export async function enviarMailRecordatorioFrases(opciones: {
     body: JSON.stringify({
       from: REMITENTE,
       to: [opciones.para],
-      subject: asuntoRecordatorioFrases(opciones.comoLeDicen),
+      subject: asuntoRecordatorioFrases(opciones.comoLeDicen, opciones.vos === true),
       html: cuerpoRecordatorioFrases({
         comoLeDicen: opciones.comoLeDicen,
         enlace: opciones.enlace,
         conImpreso: opciones.conImpreso,
+        vos: opciones.vos === true,
       }),
     }),
   });

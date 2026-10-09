@@ -54,6 +54,9 @@ import { tick } from '../src/worker.js';
 
 const NARRADOR = { id: 'n1', como_le_dicen: 'papá', familia_id: 'f1' };
 
+/** La región de la familia en la base falsa (ES = el texto de siempre). */
+let regionFamilia = 'ES';
+
 function construirDb(opciones: { archivos: string[]; respuestas: number }) {
   const list = vi.fn().mockResolvedValue({
     data: opciones.archivos.map((name) => ({ name })),
@@ -84,7 +87,7 @@ function construirDb(opciones: { archivos: string[]; respuestas: number }) {
     if (tabla === 'familias') {
       return {
         select: () => ({
-          eq: () => ({ single: () => Promise.resolve({ data: { email: 'martina@ejemplo.com' }, error: null }) }),
+          eq: () => ({ single: () => Promise.resolve({ data: { email: 'martina@ejemplo.com', region: regionFamilia }, error: null }) }),
         }),
       };
     }
@@ -114,6 +117,14 @@ beforeEach(() => {
 });
 
 describe('rama del anticipo en el tick', () => {
+  it('a una familia de Argentina el anticipo le llega con vos (Naza, 09/10)', async () => {
+    regionFamilia = 'AR';
+    obtenerClienteDbMock.mockReturnValue(construirDb({ archivos: [], respuestas: 3 }));
+    await tick();
+    expect(enviarMailAnticipoMock.mock.calls[0][0]).toMatchObject({ vos: true });
+    regionFamilia = 'ES';
+  });
+
   it('con 3 respuestas y sin anticipo: lo genera y manda el mail', async () => {
     obtenerClienteDbMock.mockReturnValue(construirDb({ archivos: [], respuestas: 3 }));
 
