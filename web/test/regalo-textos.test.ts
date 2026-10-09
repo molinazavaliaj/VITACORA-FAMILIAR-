@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
+import * as modulo from "@/lib/regalo-textos";
 import {
-  TEXTOS_REGALO,
   idiomaPorDefecto,
   textosAbuelo,
   textosComprador,
+  tratoDeIdioma,
   tratoDeRegion,
   type IdiomaRegalo,
   type TratoComprador,
@@ -156,13 +157,14 @@ describe("textos del regalo: es-AR y vos quedan como los aprobó Naza", () => {
     });
   });
 
-  it("TEXTOS_REGALO sigue siendo abuelo es-AR más comprador vos", () => {
-    expect(aplanar(TEXTOS_REGALO)).toEqual({
-      ...ABUELO_AR,
-      ...COMPRADOR_VOS,
-      idioma: "¿En qué idioma le hablamos?",
-      idiomas: { "es-AR": "Castellano de Argentina", "es-ES": "Castellano de España", ca: "Català" },
-    });
+  it("el export de compatibilidad TEXTOS_REGALO ya no existe (Task 3 migró todos los usos)", () => {
+    expect("TEXTOS_REGALO" in modulo).toBe(false);
+  });
+
+  it("tratoDeIdioma: es-AR habla de vos; es-ES y ca, de tú", () => {
+    expect(tratoDeIdioma("es-AR")).toBe("vos");
+    expect(tratoDeIdioma("es-ES")).toBe("tu");
+    expect(tratoDeIdioma("ca")).toBe("tu");
   });
 });
 

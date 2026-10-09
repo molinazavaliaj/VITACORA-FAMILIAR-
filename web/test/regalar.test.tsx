@@ -1,8 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { ReactElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { TEXTOS_REGALO, textosComprador } from "../src/lib/regalo-textos";
+import { textosComprador } from "../src/lib/regalo-textos";
 import { catalogo } from "../src/lib/productos";
+
+const VOS = textosComprador("vos");
 
 // Gift card: la compra del regalo en /regalar (Task 8). Render estático: la
 // página con la región del visitante y el paso de pagar con el botón final.
@@ -38,10 +40,10 @@ describe("/regalar", () => {
 
   it("desde Argentina arranca en el paso 1, con la etiqueta 11 y en pesos", async () => {
     const html = await renderPagina("AR");
-    expect(html).toContain(escapar(TEXTOS_REGALO.aQuien));
-    expect(html).toContain(escapar(TEXTOS_REGALO.comoLeDecis));
-    expect(html).toContain(escapar(TEXTOS_REGALO.genero));
-    for (const g of Object.values(TEXTOS_REGALO.generos)) expect(html).toContain(escapar(g));
+    expect(html).toContain(escapar(VOS.aQuien));
+    expect(html).toContain(escapar(VOS.comoLeDecis));
+    expect(html).toContain(escapar(VOS.genero));
+    for (const g of Object.values(VOS.generos)) expect(html).toContain(escapar(g));
     expect(html).toMatch(/value="varon"/);
     expect(html).toMatch(/value="mujer"/);
     expect(html).toMatch(/value="otro"/);
@@ -57,17 +59,17 @@ describe("/regalar", () => {
   it.each(["AR", "ES"] as const)("el paso de pagar muestra la tarjeta en chico, el precio y el botón 20 (%s)", (region) => {
     const cat = catalogo(region);
     const html = renderToStaticMarkup(<FormularioRegalo catalogo={cat} region={region} pasoInicial={4} />);
-    expect(html).toContain(escapar(TEXTOS_REGALO.botonPagar));
+    expect(html).toContain(escapar(VOS.botonPagar));
     expect(html).toContain(escapar(cat.base.nombre));
     expect(html).toContain(precioBase(region));
   });
 
-  it("el encabezado y la línea de pago salen de TEXTOS_REGALO, con las mismas palabras de antes", async () => {
-    expect(TEXTOS_REGALO.yaCompre).toBe("Ya compré · Entrar");
-    expect(TEXTOS_REGALO.pagoSeguro("Mercado Pago")).toBe("Pago único y seguro con Mercado Pago. Al pagar aceptás los");
-    expect(TEXTOS_REGALO.terminos).toBe("términos");
+  it("el encabezado y la línea de pago salen de los textos de vos, con las mismas palabras de antes", async () => {
+    expect(VOS.yaCompre).toBe("Ya compré · Entrar");
+    expect(VOS.pagoSeguro("Mercado Pago")).toBe("Pago único y seguro con Mercado Pago. Al pagar aceptás los");
+    expect(VOS.terminos).toBe("términos");
     const html = await renderPagina("AR");
-    expect(html).toContain(escapar(TEXTOS_REGALO.yaCompre));
+    expect(html).toContain(escapar(VOS.yaCompre));
     for (const region of ["AR", "ES"] as const) {
       const t = textosComprador(region === "ES" ? "tu" : "vos");
       const pago = renderToStaticMarkup(<FormularioRegalo catalogo={catalogo(region)} region={region} pasoInicial={4} />);
@@ -78,20 +80,20 @@ describe("/regalar", () => {
 
   it("el paso del mensaje tiene el contador sobre 600, el audio y la fecha desde hoy", () => {
     const html = renderToStaticMarkup(<FormularioRegalo catalogo={catalogo("AR")} region="AR" pasoInicial={2} />);
-    expect(html).toContain(escapar(TEXTOS_REGALO.tuMensaje));
+    expect(html).toContain(escapar(VOS.tuMensaje));
     expect(html).toContain("0/600");
     expect(html).toContain('maxLength="600"');
-    expect(html).toContain(escapar(TEXTOS_REGALO.audio));
-    expect(html).toContain(escapar(TEXTOS_REGALO.grabar));
-    expect(html).toContain(escapar(TEXTOS_REGALO.cuando));
+    expect(html).toContain(escapar(VOS.audio));
+    expect(html).toContain(escapar(VOS.grabar));
+    expect(html).toContain(escapar(VOS.cuando));
     expect(html).toMatch(/type="date"[^>]*min="\d{4}-\d{2}-\d{2}"/);
   });
 
   it("el paso de tus datos pide nombre, qué es tuyo y correo", () => {
     const html = renderToStaticMarkup(<FormularioRegalo catalogo={catalogo("AR")} region="AR" pasoInicial={3} />);
-    expect(html).toContain(escapar(TEXTOS_REGALO.tuNombre));
-    expect(html).toContain(escapar(TEXTOS_REGALO.queEsTuyo));
-    expect(html).toContain(escapar(TEXTOS_REGALO.tuCorreo));
+    expect(html).toContain(escapar(VOS.tuNombre));
+    expect(html).toContain(escapar(VOS.queEsTuyo));
+    expect(html).toContain(escapar(VOS.tuCorreo));
   });
 });
 
@@ -143,7 +145,7 @@ describe("/regalar por región: trato de quien compra e idioma del regalo", () =
 describe("/regalar, lo que se ve sin tocar", () => {
   it("los nombres de los pasos quedan para los lectores de pantalla en el celular", () => {
     const html = renderToStaticMarkup(<FormularioRegalo catalogo={catalogo("AR")} region="AR" />);
-    for (const p of TEXTOS_REGALO.pasos) expect(html).toContain(escapar(p));
+    for (const p of VOS.pasos) expect(html).toContain(escapar(p));
     expect(html).toContain("sr-only sm:not-sr-only");
     expect(html).not.toMatch(/class="hidden sm:inline"/);
   });

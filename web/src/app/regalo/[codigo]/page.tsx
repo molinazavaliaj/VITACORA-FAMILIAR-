@@ -3,7 +3,7 @@ import { Playfair_Display, Archivo, Source_Serif_4 } from "next/font/google";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { leerRegalo, numeroPublico } from "@/lib/regalo-datos";
 import { linkWhatsApp } from "@/lib/regalo";
-import { TEXTOS_REGALO } from "@/lib/regalo-textos";
+import { textosAbuelo } from "@/lib/regalo-textos";
 import { Toroide } from "../../marca";
 import { AudioRegalo } from "./audio";
 
@@ -27,9 +27,10 @@ export default async function PaginaRegalo({ params }: { params: Promise<{ codig
   const regalo = await leerRegalo(crearClienteServidor(), crudo);
   if (!regalo) notFound();
   const numero = numeroPublico();
+  const textos = textosAbuelo(regalo.idioma);
 
   return (
-    <div className={`${playfair.variable} ${archivo.variable} ${sourceSerif.variable} min-h-full bg-white text-[#14140F] [font-family:var(--fuente-cuerpo)]`}>
+    <div lang={regalo.idioma === "ca" ? "ca" : "es"} className={`${playfair.variable} ${archivo.variable} ${sourceSerif.variable} min-h-full bg-white text-[#14140F] [font-family:var(--fuente-cuerpo)]`}>
       <main className="mx-auto w-full max-w-[28rem] p-6 pb-12">
         <header className="flex items-center gap-3">
           <Toroide className="h-7 w-7" />
@@ -37,25 +38,25 @@ export default async function PaginaRegalo({ params }: { params: Promise<{ codig
         </header>
 
         <h1 id="titulo-regalo" className="mt-12 text-[28px] font-medium leading-tight [font-family:var(--fuente-titulo)] [text-wrap:balance]">
-          {TEXTOS_REGALO.titulo(regalo.comoLeDicen, regalo.quienRegala)}
+          {textos.titulo(regalo.comoLeDicen, regalo.quienRegala)}
         </h1>
 
-        {regalo.tieneAudio && <AudioRegalo src={`/api/regalo/${regalo.codigo}/audio`} quienRegala={regalo.quienRegala} />}
+        {regalo.tieneAudio && <AudioRegalo src={`/api/regalo/${regalo.codigo}/audio`} etiqueta={textos.escucharAudioDe(regalo.quienRegala)} />}
 
         <blockquote className="mt-8 whitespace-pre-line border-l border-[#14140F] pl-4 text-[20px] italic leading-snug [font-family:var(--fuente-titulo)]">
           {regalo.mensaje}
         </blockquote>
 
         <p className="mt-8 text-[17px] font-light leading-relaxed">
-          {regalo.usado ? TEXTOS_REGALO.yaEmpezo : TEXTOS_REGALO.explica.join(" ")}
+          {regalo.usado ? textos.yaEmpezo : textos.explica.join(" ")}
         </p>
 
         {numero && (
           <a
-            href={linkWhatsApp(numero.digitos, regalo.codigo)}
+            href={linkWhatsApp(numero.digitos, regalo.codigo, regalo.idioma)}
             className="mt-10 flex h-14 w-full items-center justify-center rounded-full bg-[#5D3FD3] text-[17px] font-medium text-white transition-colors hover:bg-[#4F35BC] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5D3FD3] [font-family:var(--fuente-micro)] [touch-action:manipulation]"
           >
-            {TEXTOS_REGALO.empezar}
+            {textos.empezar}
           </a>
         )}
         {!numero && (

@@ -1,5 +1,5 @@
 import { esPropia, type Historia } from "@/lib/panel";
-import { TEXTOS_REGALO } from "@/lib/regalo-textos";
+import { textosComprador, tratoDeRegion, type RegionComprador } from "@/lib/regalo-textos";
 import type { Viaje } from "@/lib/viaje";
 
 // El próximo paso de cada tarjeta del Inicio. Vive aparte de page.tsx porque una
@@ -17,8 +17,12 @@ export function viajeDe(h: Historia): Viaje | null {
   return c?.modo === "viaje" && c.viaje?.salida && c.viaje?.vuelta ? c.viaje : null;
 }
 
-/** El único próximo paso de una historia, según dónde está. */
-export function proximoPaso(h: Historia, r: Resumen): { href: string; texto: string } | null {
+/**
+ * El único próximo paso de una historia, según dónde está. `region` es la de la
+ * familia de la historia: decide el trato (vos/tú) del paso del regalo, que solo
+ * ve la dueña. Sin región, AR.
+ */
+export function proximoPaso(h: Historia, r: Resumen, region: RegionComprador = "AR"): { href: string; texto: string } | null {
   const id = h.narrador.id;
   const esDuena = h.rol === "duena";
   const propia = esPropia(h.narrador);
@@ -40,7 +44,7 @@ export function proximoPaso(h: Historia, r: Resumen): { href: string; texto: str
       if (viajeDe(h)) return { href: `/tablero/${id}`, texto: "Mientras esperás, revisá las etapas y sobre qué te preguntamos" };
       return { href: `/tablero/${id}?editar=1`, texto: "Mientras esperás, repasá las preguntas y sumá fotos" };
     case "regalo_pendiente":
-      return esDuena ? { href: `/tablero/${id}/regalo`, texto: TEXTOS_REGALO.proximoPaso } : null;
+      return esDuena ? { href: `/tablero/${id}/regalo`, texto: textosComprador(tratoDeRegion(region)).proximoPaso } : null;
     default:
       return null;
   }

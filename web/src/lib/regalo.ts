@@ -4,7 +4,7 @@
 // (son dos servicios aparte): si cambia uno, cambia el otro.
 
 import { randomInt } from "node:crypto";
-import { TEXTOS_REGALO, type IdiomaRegalo } from "./regalo-textos";
+import { textosAbuelo, type IdiomaRegalo } from "./regalo-textos";
 import {
   GENEROS, MENSAJE_MAXIMO, MENSAJE_FECHA_INVALIDA, MENSAJE_IDIOMA_INVALIDO, errorDeFechaEntrega, esIdiomaRegalo, type Genero,
 } from "./regalo-reglas";
@@ -75,6 +75,7 @@ export function validarRegalo(
   return { ok: true, regalo: { mensaje, fechaEntrega, genero: r.genero as Genero, idioma } };
 }
 
-export function linkWhatsApp(numero: string, codigo: string): string {
-  return `https://wa.me/${numero}?text=${encodeURIComponent(TEXTOS_REGALO.mensajeWhatsApp(codigo))}`;
+/** El link a WhatsApp con el mensaje ya escrito, en el idioma del regalo. */
+export function linkWhatsApp(numero: string, codigo: string, idioma: IdiomaRegalo): string {
+  return `https://wa.me/${numero}?text=${encodeURIComponent(textosAbuelo(idioma).mensajeWhatsApp(codigo))}`;
 }

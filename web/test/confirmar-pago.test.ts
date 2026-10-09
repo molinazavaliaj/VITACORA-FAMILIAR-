@@ -17,6 +17,8 @@ function construirAdmin(opciones: {
   codigoRegalo?: string;
   /** La lectura previa de extras del pedido falla. */
   errorExtras?: string;
+  /** La región de la familia que compra. */
+  region?: "ES" | "AR";
 }) {
   const updates: { tabla: string; valores: Record<string, unknown>; filtros: [string, unknown][] }[] = [];
 
@@ -33,7 +35,7 @@ function construirAdmin(opciones: {
       return cadena;
     };
     cadena.maybeSingle = () => {
-      if (tabla === "familias") return Promise.resolve({ data: opciones.email === null ? null : { email: opciones.email ?? "martina@ejemplo.com" }, error: null });
+      if (tabla === "familias") return Promise.resolve({ data: opciones.email === null ? null : { email: opciones.email ?? "martina@ejemplo.com", region: opciones.region }, error: null });
       if (tabla === "narradores") return Promise.resolve({ data: { como_le_dicen: opciones.comoLeDicen ?? "papá" }, error: null });
       if (tabla === "pedidos") {
         return Promise.resolve(opciones.errorExtras
@@ -146,7 +148,14 @@ describe("confirmarPago", () => {
     expect(alNarrador?.valores).toEqual({ estado: "regalo_pendiente" });
     expect(alNarrador?.filtros).toContainEqual(["estado", "pendiente_pago"]);
     expect(enviarMailAcceso).not.toHaveBeenCalled();
-    expect(enviarMailRegalo).toHaveBeenCalledWith({ para: "martina@ejemplo.com", comoLeDicen: "abuelo", codigo: "VF-7K3M2Q" });
+    expect(enviarMailRegalo).toHaveBeenCalledWith({ para: "martina@ejemplo.com", comoLeDicen: "abuelo", codigo: "VF-7K3M2Q", trato: "vos" });
+  });
+
+  it("un regalo de una familia de España manda el mail de la tarjeta de tú", async () => {
+    const { admin } = construirAdmin({ pedidoActualizado: PEDIDO, extras: { regalo: true }, codigoRegalo: "VF-7K3M2Q", comoLeDicen: "abuela", region: "ES" });
+    const enviarMailRegalo = vi.fn().mockResolvedValue(true);
+    await confirmarPago(admin, { pedidoId: "p1", referenciaExterna: "ref", enviarMailAcceso: vi.fn(), enviarMailRegalo });
+    expect(enviarMailRegalo).toHaveBeenCalledWith({ para: "martina@ejemplo.com", comoLeDicen: "abuela", codigo: "VF-7K3M2Q", trato: "tu" });
   });
 
   it("un pedido normal sigue pasando a invitado y devuelve codigoRegalo null", async () => {

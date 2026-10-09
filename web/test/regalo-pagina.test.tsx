@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { ReactElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { TEXTOS_REGALO } from "../src/lib/regalo-textos";
+import { textosAbuelo } from "../src/lib/regalo-textos";
 import type { RegaloPublico } from "../src/lib/regalo-datos";
 
 // Gift card: la página que abre el QR, renderizada sin base (leerRegalo mockeado).
@@ -25,6 +25,8 @@ vi.mock("@/lib/regalo-datos", () => ({
 }));
 
 import PaginaRegalo from "../src/app/regalo/[codigo]/page";
+
+const AR = textosAbuelo("es-AR");
 
 const regalo = (extra: Partial<RegaloPublico> = {}): RegaloPublico => ({
   codigo: "VF-7K3M2Q",
@@ -56,17 +58,47 @@ describe("la página del regalo", () => {
     const html = await render();
     expect(html).toContain("abuelo, Lucía te hizo un regalo.");
     expect(html).toContain("Quiero tu historia para siempre.");
-    for (const linea of TEXTOS_REGALO.explica) expect(html).toContain(linea);
+    for (const linea of AR.explica) expect(html).toContain(linea);
     expect(html).toMatch(/href="https:\/\/wa\.me\/5491100000000\?text=/);
-    expect(html).toContain(`>${TEXTOS_REGALO.empezar}<`);
-    expect(html).not.toContain(TEXTOS_REGALO.yaEmpezo);
+    expect(html).toContain(`>${AR.empezar}<`);
+    expect(html).not.toContain(AR.yaEmpezo);
+  });
+
+  it("en catalán: el título, lo que va a pasar, el botón y el mensaje de WhatsApp en catalán", async () => {
+    estado.regalo = regalo({ idioma: "ca" });
+    const html = await render();
+    expect(html).toContain("abuelo, Lucía t&#x27;ha fet un regal.");
+    expect(html).toContain("Tu li respons amb àudios, quan puguis.");
+    expect(html).toContain(">Començar<");
+    expect(html).toContain(`href="https://wa.me/5491100000000?text=${encodeURIComponent("Hola, vull començar el meu llibre. VF-7K3M2Q")}"`);
+    expect(html).not.toContain("Vos");
+  });
+
+  it("en catalán y usado: «ja està en marxa»", async () => {
+    estado.regalo = regalo({ idioma: "ca", usado: true });
+    const html = await render();
+    expect(html).toContain("Aquest regal ja està en marxa. Per continuar, escriu-li al biògraf per WhatsApp.");
+  });
+
+  it("en catalán con audio: el botón se llama en catalán", async () => {
+    estado.regalo = regalo({ idioma: "ca", tieneAudio: true });
+    const html = await render();
+    expect(html).toContain('aria-label="Escoltar l&#x27;àudio de Lucía"');
+  });
+
+  it("en castellano de España: el título y el mensaje de WhatsApp de tú", async () => {
+    estado.regalo = regalo({ idioma: "es-ES" });
+    const html = await render();
+    expect(html).toContain("abuelo, Lucía te ha hecho un regalo.");
+    expect(html).toContain("Tú le contestas con audios, cuando puedas.");
+    expect(html).toContain(`text=${encodeURIComponent("Hola, quiero empezar mi libro. VF-7K3M2Q")}"`);
   });
 
   it("usado: dice que ya está en marcha en lugar de explicar", async () => {
     estado.regalo = regalo({ usado: true });
     const html = await render();
-    expect(html).toContain(TEXTOS_REGALO.yaEmpezo);
-    expect(html).not.toContain(TEXTOS_REGALO.explica[0]);
+    expect(html).toContain(AR.yaEmpezo);
+    expect(html).not.toContain(AR.explica[0]);
   });
 
   it("sin número público: no hay link a wa.me y aparece el código", async () => {

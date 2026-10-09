@@ -266,5 +266,10 @@ export function idiomaPorDefecto(region: RegionComprador): IdiomaRegalo {
   return region === "ES" ? "es-ES" : "es-AR";
 }
 
-// Compatibilidad mientras se migran los usos (plan regalo-idiomas, Task 3 lo borra).
-export const TEXTOS_REGALO = { ...textosAbuelo("es-AR"), ...textosComprador("vos") };
+/**
+ * El trato de quien compra cuando solo se sabe el idioma del regalo (la página de
+ * la tarjeta no sabe quién la mira): es-AR → vos; es-ES y ca → tú.
+ */
+export function tratoDeIdioma(idioma: IdiomaRegalo): TratoComprador {
+  return idioma === "es-AR" ? "vos" : "tu";
+}

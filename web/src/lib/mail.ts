@@ -7,7 +7,7 @@
 // ⚠️ Textos a aprobar por Naza (regla de la casa). Voz de marca: castellano
 // neutro de "tú".
 
-import { TEXTOS_REGALO } from "./regalo-textos";
+import { textosComprador, type TratoComprador } from "./regalo-textos";
 
 const REMITENTE = "Vitácora Familiar <hola@vitacorafamiliar.com>";
 
@@ -101,18 +101,24 @@ export async function enviarMailAcceso(opciones: { para: string; comoLeDicen: st
   });
 }
 
-/** Gift card (08/10): llega al confirmar el pago. Lleva al link de la tarjeta. */
-export async function enviarMailRegalo(opciones: { para: string; comoLeDicen: string; codigo: string }): Promise<boolean> {
+/** Gift card (08/10): llega al confirmar el pago. Lleva al link de la tarjeta. Le habla con el trato de quien compra. */
+export async function enviarMailRegalo(opciones: {
+  para: string;
+  comoLeDicen: string;
+  codigo: string;
+  trato: TratoComprador;
+}): Promise<boolean> {
+  const textos = textosComprador(opciones.trato);
   const urlBase = process.env.URL_BASE ?? "https://www.vitacorafamiliar.com";
   const url = `${urlBase}/regalo/${encodeURIComponent(opciones.codigo)}/tarjeta`;
   return enviar({
     para: opciones.para,
-    asunto: TEXTOS_REGALO.mailAsunto(opciones.comoLeDicen),
+    asunto: textos.mailAsunto(opciones.comoLeDicen),
     html: envoltorio(`
-        <tr><td style="padding-bottom:24px;">${escapar(TEXTOS_REGALO.mailCuerpo(opciones.comoLeDicen))}</td></tr>
+        <tr><td style="padding-bottom:24px;">${escapar(textos.mailCuerpo(opciones.comoLeDicen))}</td></tr>
         <tr><td style="padding-bottom:32px;">
           <a href="${escapar(url)}" style="display:inline-block;background:#5D3FD3;color:#ffffff;text-decoration:none;padding:14px 28px;font-family:Arial,Helvetica,sans-serif;font-size:15px;">
-            ${escapar(TEXTOS_REGALO.mailBoton)}
+            ${escapar(textos.mailBoton)}
           </a>
         </td></tr>
     `),

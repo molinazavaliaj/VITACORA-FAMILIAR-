@@ -1,6 +1,8 @@
 import { describe, it, expect, vi } from "vitest";
 import { enviarRegalo, type PedidoRegalo } from "../src/app/regalar/enviar";
-import { TEXTOS_REGALO } from "../src/lib/regalo-textos";
+import { textosComprador } from "../src/lib/regalo-textos";
+
+const VOS = textosComprador("vos");
 
 // Gift card, Task 8: el camino de pagar de /regalar, con fetch y la
 // redirección falsos (no hay jsdom en el proyecto).
@@ -127,9 +129,9 @@ describe("enviarRegalo", () => {
   it("si la compra falla sin mensaje o por red, devuelve el error genérico", async () => {
     const asignar = vi.fn();
     const sinMensaje = (async () => respuesta({}, 500)) as unknown as typeof globalThis.fetch;
-    expect(await enviarRegalo(pedido(), { fetch: sinMensaje, asignar })).toEqual({ error: TEXTOS_REGALO.errorPago });
+    expect(await enviarRegalo(pedido(), { fetch: sinMensaje, asignar })).toEqual({ error: VOS.errorPago });
     const red = (async () => { throw new TypeError("red"); }) as unknown as typeof globalThis.fetch;
-    expect(await enviarRegalo(pedido(), { fetch: red, asignar })).toEqual({ error: TEXTOS_REGALO.errorPago });
+    expect(await enviarRegalo(pedido(), { fetch: red, asignar })).toEqual({ error: VOS.errorPago });
     expect(asignar).not.toHaveBeenCalled();
   });
 });

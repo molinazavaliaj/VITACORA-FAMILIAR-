@@ -81,7 +81,12 @@ describe("validarRegalo", () => {
 
 describe("linkWhatsApp", () => {
   it("arma wa.me con el mensaje ya escrito", () => {
-    expect(linkWhatsApp("5491100000000", "VF-7K3M2Q"))
+    expect(linkWhatsApp("5491100000000", "VF-7K3M2Q", "es-AR"))
       .toBe("https://wa.me/5491100000000?text=Hola%2C%20quiero%20empezar%20mi%20libro.%20VF-7K3M2Q");
+  });
+
+  it("en catalán, con el mensaje catalán", () => {
+    expect(linkWhatsApp("34600000000", "VF-7K3M2Q", "ca"))
+      .toBe(`https://wa.me/34600000000?text=${encodeURIComponent("Hola, vull començar el meu llibre. VF-7K3M2Q")}`);
   });
 });

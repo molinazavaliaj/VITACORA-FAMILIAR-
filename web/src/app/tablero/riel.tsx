@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import { esPropia, historiasDelUsuario, type Rol } from "@/lib/panel";
-import { TEXTOS_REGALO } from "@/lib/regalo-textos";
+import { textosComprador } from "@/lib/regalo-textos";
 
 // El riel de la izquierda de una historia (docs/panel-usuario.md §15.3):
 // primero las historias creadas con el botón violeta de empezar otra, y
@@ -15,7 +15,8 @@ export type CapituloRiel = { nombre: string; contestadas: number; total: number 
 
 const ESTADO_CORTO: Record<string, string> = {
   pendiente_pago: "confirmando el pago",
-  regalo_pendiente: TEXTOS_REGALO.estadoCorto,
+  // Se dice igual de vos y de tú.
+  regalo_pendiente: textosComprador("vos").estadoCorto,
   invitado: "esperando que acepte",
   acepto: "aceptó, arranca pronto",
   activo: "respondiendo",

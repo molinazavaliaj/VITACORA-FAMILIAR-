@@ -3,7 +3,7 @@ import { Playfair_Display, Archivo, Source_Serif_4 } from "next/font/google";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { leerRegalo, numeroPublico } from "@/lib/regalo-datos";
 import { qrDataUri, urlRegalo } from "@/lib/qr";
-import { TEXTOS_REGALO } from "@/lib/regalo-textos";
+import { textosAbuelo, textosComprador, tratoDeIdioma } from "@/lib/regalo-textos";
 import { largoEnTarjeta, numeroSinCortes } from "@/lib/regalo";
 import { Toroide } from "../../../marca";
 import { BotonImprimir } from "./imprimir";
@@ -106,14 +106,18 @@ export default async function PaginaTarjeta({ params }: { params: Promise<{ codi
   if (!regalo) notFound();
   const numero = numeroPublico();
   const qr = await qrDataUri(urlRegalo(regalo.codigo));
+  // Lo impreso va en el idioma del abuelo. Los botones de pantalla los lee quien
+  // compra, pero la página no sabe quién la mira: van con el trato del idioma.
+  const textos = textosAbuelo(regalo.idioma);
+  const botones = textosComprador(tratoDeIdioma(regalo.idioma));
 
   return (
-    <div className={`${playfair.variable} ${archivo.variable} ${sourceSerif.variable} tarjeta-pantalla`}>
+    <div lang={regalo.idioma === "ca" ? "ca" : "es"} className={`${playfair.variable} ${archivo.variable} ${sourceSerif.variable} tarjeta-pantalla`}>
       <style dangerouslySetInnerHTML={{ __html: ESTILOS }} />
       <div className="tarjeta-acciones no-imprimir">
-        <BotonImprimir className="tarjeta-boton" />
+        <BotonImprimir className="tarjeta-boton" texto={botones.botonImprimir} />
         <a className="tarjeta-boton" href={`/regalo/${regalo.codigo}/imagen`} download={`regalo-${regalo.codigo}.png`}>
-          {TEXTOS_REGALO.botonImagen}
+          {botones.botonImagen}
         </a>
       </div>
 
@@ -129,7 +133,7 @@ export default async function PaginaTarjeta({ params }: { params: Promise<{ codi
                 <Toroide />
                 <div className="tapa-nombre">VITÁCORA<br />FAMILIAR</div>
               </div>
-              <div className="tapa-slogan">{TEXTOS_REGALO.tapaSlogan}</div>
+              <div className="tapa-slogan">{textos.tapaSlogan}</div>
             </div>
           </div>
         </section>
@@ -144,13 +148,13 @@ export default async function PaginaTarjeta({ params }: { params: Promise<{ codi
             </div>
             <div className="cara der">
               <p className="explica">
-                <span className="es-un-regalo">{TEXTOS_REGALO.esUnRegalo}</span>
-                {TEXTOS_REGALO.explica.map((linea) => <span key={linea}>{linea}</span>)}
+                <span className="es-un-regalo">{textos.esUnRegalo}</span>
+                {textos.explica.map((linea) => <span key={linea}>{linea}</span>)}
               </p>
-              <p className="instruccion">{TEXTOS_REGALO.apunta}</p>
+              <p className="instruccion">{textos.apunta}</p>
               {/* eslint-disable-next-line @next/next/no-img-element -- data URI generado en el server, sin optimizar */}
               <img className="qr" src={qr} alt="" width={512} height={512} />
-              {numero && <p className="respaldo">{TEXTOS_REGALO.respaldo(numeroSinCortes(numero.legible))}</p>}
+              {numero && <p className="respaldo">{textos.respaldo(numeroSinCortes(numero.legible))}</p>}
               <div className="codigo">{regalo.codigo}</div>
             </div>
           </div>

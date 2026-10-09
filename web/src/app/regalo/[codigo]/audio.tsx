@@ -1,13 +1,13 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { TEXTOS_REGALO } from "@/lib/regalo-textos";
 
 // El audio de quien regala (spec §5): un botón de play grande, negro, y nada
 // más. El audio se baja recién con el toque (preload="none") y nunca suena
-// solo. El botón se llama «Escuchar el audio de …» (texto aprobado, tanda 3).
+// solo. El botón se llama «Escuchar el audio de …» (texto aprobado, tanda 3), en
+// el idioma del regalo: lo arma la página con textosAbuelo(idioma).escucharAudioDe.
 
-export function AudioRegalo({ src, quienRegala }: { src: string; quienRegala: string }) {
+export function AudioRegalo({ src, etiqueta }: { src: string; etiqueta: string }) {
   const audio = useRef<HTMLAudioElement>(null);
   const [sonando, setSonando] = useState(false);
 
@@ -38,7 +38,7 @@ export function AudioRegalo({ src, quienRegala }: { src: string; quienRegala: st
       <button
         type="button"
         onClick={alternar}
-        aria-label={TEXTOS_REGALO.escucharAudioDe(quienRegala)}
+        aria-label={etiqueta}
         aria-pressed={sonando}
         className="flex h-12 w-12 items-center justify-center rounded-full bg-[#14140F] text-white transition-opacity hover:opacity-85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#14140F] [touch-action:manipulation]"
       >

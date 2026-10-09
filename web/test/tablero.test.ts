@@ -262,7 +262,9 @@ describe('PATCH /api/narrador/[narradorId]', () => {
 
 import { estadoEnHumano } from '../src/app/tablero/ui';
 import { proximoPaso } from '../src/app/tablero/proximo-paso';
-import { TEXTOS_REGALO } from '@/lib/regalo-textos';
+import { textosComprador } from '@/lib/regalo-textos';
+
+const VOS = textosComprador('vos');
 import type { Historia } from '@/lib/panel';
 
 describe('el regalo en el panel', () => {
@@ -271,15 +273,27 @@ describe('el regalo en el panel', () => {
   const resumen = { respondidas: 0, total: 30, segundos: 0, tieneAnticipo: false };
 
   it('regalo_pendiente se lee como el texto aprobado, en los dos mapas', () => {
-    expect(estadoEnHumano('regalo_pendiente', false)).toBe(TEXTOS_REGALO.estadoPanel);
-    expect(estadoEnHumano('regalo_pendiente', true)).toBe(TEXTOS_REGALO.estadoPanel);
+    expect(estadoEnHumano('regalo_pendiente', false)).toBe(VOS.estadoPanel);
+    expect(estadoEnHumano('regalo_pendiente', true)).toBe(VOS.estadoPanel);
   });
 
   it('la dueña tiene como próximo paso descargar la tarjeta', () => {
     expect(proximoPaso(historia('duena'), resumen)).toEqual({
       href: '/tablero/n-regalo/regalo',
-      texto: TEXTOS_REGALO.proximoPaso,
+      texto: VOS.proximoPaso,
     });
+  });
+
+  it('para una familia de España, el próximo paso le habla de tú', () => {
+    expect(proximoPaso(historia('duena'), resumen, 'ES')).toEqual({
+      href: '/tablero/n-regalo/regalo',
+      texto: 'Descarga la tarjeta del regalo',
+    });
+  });
+
+  it('sin región, o en Argentina, sigue el texto aprobado de vos', () => {
+    expect(proximoPaso(historia('duena'), resumen, 'AR')?.texto).toBe('Descargá la tarjeta del regalo');
+    expect(proximoPaso(historia('duena'), resumen)?.texto).toBe('Descargá la tarjeta del regalo');
   });
 
   it('un invitado no tiene próximo paso con el regalo sin abrir', () => {

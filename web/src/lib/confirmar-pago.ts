@@ -17,13 +17,14 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { necesitaEntrega } from "./entregas";
 import { productosDelPedido } from "./productos";
+import { tratoDeRegion, type TratoComprador } from "./regalo-textos";
 
 export type ResultadoConfirmacion =
   | { ok: true; yaEstaba: boolean; email: string | null; codigoRegalo: string | null }
   | { ok: false; error: string };
 
 type EnviarMailAcceso = (opciones: { para: string; comoLeDicen: string }) => Promise<boolean>;
-type EnviarMailRegalo = (opciones: { para: string; comoLeDicen: string; codigo: string }) => Promise<boolean>;
+type EnviarMailRegalo = (opciones: { para: string; comoLeDicen: string; codigo: string; trato: TratoComprador }) => Promise<boolean>;
 
 export async function confirmarPago(
   admin: SupabaseClient,
@@ -45,7 +46,7 @@ export async function confirmarPago(
     }
     const leido = filaPedido as { extras?: Record<string, unknown>; familia_id?: string } | null;
     extras = leido?.extras;
-    // La región solo decide el origen de la entrega: si no se puede leer, AR.
+    // La región decide el origen de la entrega y el trato del mail del regalo: si no se puede leer, AR.
     if (leido?.familia_id) {
       const { data: filaFamilia } = await admin.from("familias").select("region").eq("id", leido.familia_id).maybeSingle();
       region = (filaFamilia as { region?: "ES" | "AR" } | null)?.region;
@@ -134,7 +135,7 @@ export async function confirmarPago(
       const comoLeDicen = (narrador as { como_le_dicen?: string } | null)?.como_le_dicen ?? "tu familiar";
       if (esRegalo) {
         if (codigoRegalo && opciones.enviarMailRegalo) {
-          await opciones.enviarMailRegalo({ para: email, comoLeDicen, codigo: codigoRegalo });
+          await opciones.enviarMailRegalo({ para: email, comoLeDicen, codigo: codigoRegalo, trato: tratoDeRegion(region ?? "AR") });
         } else {
           console.error(`confirmarPago: el regalo del pedido ${pedidoId} (narrador ${pedido.narrador_id}) se pagó pero no salió el mail de la tarjeta: ${codigoRegalo ? "falta enviarMailRegalo" : "sin código en regalos"}.`);
         }
