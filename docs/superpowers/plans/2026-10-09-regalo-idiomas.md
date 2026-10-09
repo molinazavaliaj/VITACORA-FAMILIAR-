@@ -63,7 +63,7 @@ No es código. Los textos se le pasan a Naza en el chat, de a 10, con contexto y
   - `type IdiomaRegalo = 'es-AR' | 'es-ES' | 'ca'`
   - `type TratoComprador = 'vos' | 'tu'`
   - `textosAbuelo(idioma: IdiomaRegalo)` con las claves de la tarjeta, la página y WhatsApp: `tapaSlogan, esUnRegalo, explica, apunta, respaldo, titulo, empezar, mensajeWhatsApp, yaEmpezo, escucharAudioDe`.
-  - `textosComprador(trato: TratoComprador)` con las claves del formulario, los mails y el panel: `mailAsunto, mailCuerpo, mailBoton, estadoPanel, estadoCorto, proximoPaso, botonImprimir, botonImagen, aQuien … escucharAudioDe? (no: es del abuelo), tituloPagina, pasos, contador, grabar, …, terminos`, más `idioma` y `idiomas` (la pregunta nueva y sus opciones).
+  - `textosComprador(trato: TratoComprador)` con las claves del formulario, los mails y el panel: todas las claves de hoy que no son del abuelo (`mailAsunto`, `mailCuerpo`, `mailBoton`, `estadoPanel`, `estadoCorto`, `proximoPaso`, `botonImprimir`, `botonImagen`, el bloque del formulario de `aQuien` a `botonPagar`, y de `tituloPagina` a `terminos`), más `idioma` y `idiomas` (la pregunta nueva y sus opciones).
   - `tratoDeRegion(region: 'AR' | 'ES'): TratoComprador` y `idiomaPorDefecto(region): IdiomaRegalo` (`'AR'` → `'es-AR'`, `'ES'` → `'es-ES'`).
   - **Compatibilidad:** `TEXTOS_REGALO` sigue exportado como `{ ...textosAbuelo('es-AR'), ...textosComprador('vos') }`, para que nada se rompa mientras se migran los usos. Al final de la Task 3 no lo usa nadie y se borra.
 
