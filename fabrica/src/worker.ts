@@ -20,7 +20,7 @@ import { anotarLatido } from './latido.js';
 import { mandarEntregasAImprenta, avisarHitosDeEntrega } from './entregas.js';
 import { productosDelPedido } from './libro/productos.js';
 import { idiomasV3, narradoresConV3 } from './v3/candado.js';
-import { hayLugarParaLibroV3, lanzarLibroV3, revisarEtapaAV3 } from './escritor/produccion/libro-v3.js';
+import { alertarLibrosDemorados, hayLugarParaLibroV3, lanzarLibroV3, revisarEtapaAV3 } from './escritor/produccion/libro-v3.js';
 
 const INTERVALO_MS = 60_000;
 
@@ -62,6 +62,13 @@ async function conV3OFrenar(db: Db, rama: string): Promise<Set<string> | null> {
   }
 }
 
+/** Un libro V3 que a las 24 horas del cierre no se entregó: mail a los socios (escritor/produccion/libro-v3.ts). */
+async function alertarDemorados(): Promise<void> {
+  const db = obtenerClienteDb();
+  const v3 = await conV3OFrenar(db, 'alerta de libros demorados');
+  if (v3) await alertarLibrosDemorados(db, v3);
+}
+
 /** Lo que hace falta de un narrador para mandarle un mail de hito a su familia. */
 type NarradorConFamilia = Pick<Narrador, 'id' | 'como_le_dicen' | 'familia_id'>;
 
@@ -98,6 +105,7 @@ export async function tick(): Promise<void> {
     await generarPrevisualizacionesFaltantes();
     await avisarHitosDeCierre();
     await procesarPedidosPagados();
+    await alertarDemorados();
     await avisarLibrosListos();
     await recordarFrasesPendientes();
     // El portón de impresión: con la dirección puesta y las frases confirmadas,

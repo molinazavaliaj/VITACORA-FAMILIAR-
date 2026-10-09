@@ -23,7 +23,7 @@ const {
 
 vi.mock('../src/v3/candado.js', () => ({
   idiomasV3: vi.fn(async () => new Map<string, string>()), narradoresConV3: narradoresConV3Mock, avisarCandadoV3: avisarCandadoV3Mock, exigirSinV3: vi.fn(async () => undefined) }));
-vi.mock('../src/escritor/produccion/libro-v3.js', () => ({ revisarEtapaAV3: vi.fn(), hayLugarParaLibroV3: vi.fn(() => true), lanzarLibroV3: vi.fn(() => true) }));
+vi.mock('../src/escritor/produccion/libro-v3.js', () => ({ alertarLibrosDemorados: vi.fn(), revisarEtapaAV3: vi.fn(), hayLugarParaLibroV3: vi.fn(() => true), lanzarLibroV3: vi.fn(() => true) }));
 vi.mock('../src/libro/anticipo.js', () => ({ generarAnticipo: generarAnticipoMock }));
 vi.mock('../src/mail/anticipo.js', () => ({ enviarMailAnticipo: enviarMailAnticipoMock }));
 // Los mails de hitos (rama aparte del tick) no se mandan acá: sin esto el

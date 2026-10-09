@@ -25,21 +25,22 @@ type Fila = Record<string, unknown>;
 function baseFalsa(o: { tablas?: Record<string, Fila[]>; archivos?: Record<string, string> } = {}) {
   const archivos = new Map<string, string | Buffer>(Object.entries(o.archivos ?? {}));
   const tablas: Record<string, Fila[]> = { narradores: [], pedidos: [], consumo_ia: [], entrevistas_v3: [], ...(o.tablas ?? {}) };
-  const updates: { tabla: string; cambios: Fila; donde: [string, unknown][] }[] = [];
+  const updates: { tabla: string; cambios: Fila }[] = [];
   const db = {
     from(tabla: string) {
-      const filtros: [string, unknown][] = [];
+      const filtros: ((f: Fila) => boolean)[] = [];
       let cambios: Fila | null = null;
-      const filas = () => (tablas[tabla] ?? []).filter((f) => filtros.every(([c, v]) => f[c] === v));
+      const filas = () => (tablas[tabla] ?? []).filter((f) => filtros.every((x) => x(f)));
       const q: any = {
         select: () => q,
-        eq: (c: string, v: unknown) => { filtros.push([c, v]); return q; },
+        eq: (c: string, v: unknown) => { filtros.push((f) => f[c] === v); return q; },
+        in: (c: string, vs: unknown[]) => { filtros.push((f) => vs.includes(f[c])); return q; },
         insert: async (fila: Fila) => { (tablas[tabla] ??= []).push(fila); return { error: null }; },
         update: (c: Fila) => { cambios = c; return q; },
         maybeSingle: async () => ({ data: filas()[0] ?? null, error: null }),
         then: (ok: any, ko: any) => {
           if (cambios) {
-            updates.push({ tabla, cambios, donde: [...filtros] });
+            updates.push({ tabla, cambios });
             for (const f of filas()) Object.assign(f, cambios);
             return Promise.resolve({ data: filas(), error: null }).then(ok, ko);
           }
@@ -390,5 +391,44 @@ describe('arreglos de la revisión', () => {
       { numero: 2, capitulo: 'II', candidatas: [k('f', null)] },
     ] });
     expect(f.capitulos.map((c) => c.candidatas.map((x) => [x.id, x.elegida]))).toEqual([[['b', true], ['c', true], ['d', true], ['e', false]]]);
+  });
+});
+
+// ---------------------------------------------------------------- alerta de libro demorado
+
+describe('alerta: un libro V3 que a las 24 horas del cierre no salió', () => {
+  it('avisa una sola vez; no avisa antes de las 24 horas, ni con el libro entregado, ni a un narrador viejo', async () => {
+    vi.stubEnv('MAIL_SOCIOS', 'socios@ejemplo.com');
+    const fetch = vi.fn(async () => new Response('{}', { status: 200 }));
+    vi.stubGlobal('fetch', fetch);
+    const { alertarLibrosDemorados } = await import('../../src/escritor/produccion/libro-v3.js');
+    const ahora = Date.parse('2026-10-10T12:00:00Z');
+    const haceHoras = (h: number) => new Date(ahora - h * 3_600_000).toISOString();
+    const { db, archivos } = baseFalsa({
+      tablas: {
+        narradores: [
+          { id: 'trabado', libro_aprobado_at: haceHoras(30) },
+          { id: 'reciente', libro_aprobado_at: haceHoras(5) },
+          { id: 'listo', libro_aprobado_at: haceHoras(40) },
+          { id: 'viejo', libro_aprobado_at: haceHoras(40) },
+        ],
+        pedidos: [
+          { id: 'p1', narrador_id: 'trabado', estado: 'generando' },
+          { id: 'p2', narrador_id: 'reciente', estado: 'generando' },
+          { id: 'p3', narrador_id: 'listo', estado: 'entregado' },
+          { id: 'p4', narrador_id: 'listo', estado: 'pagado' },
+          { id: 'p5', narrador_id: 'viejo', estado: 'generando' },
+        ],
+      },
+    });
+    const v3 = new Set(['trabado', 'reciente', 'listo']);
+    await alertarLibrosDemorados(db, v3, ahora);
+    await alertarLibrosDemorados(db, v3, ahora);
+    expect(fetch).toHaveBeenCalledTimes(1);
+    const cuerpo = JSON.parse((fetch.mock.calls[0] as unknown as [string, { body: string }])[1].body);
+    expect(cuerpo.subject).toContain('El libro de trabado lleva 30 horas sin salir');
+    expect(cuerpo.text).toContain("Pedido p1, estado 'generando'");
+    expect(archivos.has('trabado/escritor/alerta-libro-demorado.txt')).toBe(true);
+    vi.unstubAllGlobals();
   });
 });

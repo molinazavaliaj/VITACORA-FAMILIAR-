@@ -408,3 +408,45 @@ export function lanzarLibroV3(db: Db, pedido: { id: string; narrador_id: string 
     }
   });
 }
+
+// ---------------------------------------------------------------- alerta: un libro que no sale
+
+/** Un libro tarda de 4 a 9 horas por Batch: a las 24 horas del cierre sin entregar, algo se trabó. */
+export const DEMORA_ALERTA_MS = 24 * 60 * 60 * 1000;
+export const ALERTA_DEMORADO = 'alerta-libro-demorado.txt';
+
+/**
+ * Del tick: un narrador V3 con el libro cerrado hace más de 24 horas y sin ningún pedido entregado (el suyo en
+ * 'pagado', 'generando' o 'fallido') → un mail a los socios, una sola vez por narrador. Cubre lo que no avisa
+ * solo: un trabajo colgado, un proceso que murió y no volvió, una cola que no se libera. Nunca tira.
+ */
+export async function alertarLibrosDemorados(db: Db, v3: Set<string>, ahora: number = Date.now()): Promise<void> {
+  try {
+    const { data: pedidos, error } = await db.from('pedidos').select('id, narrador_id, estado').in('estado', ['pagado', 'generando', 'fallido', 'entregado']);
+    if (error) throw new Error(`no pude leer los pedidos: ${error.message}`);
+    const lista = (pedidos ?? []) as { id: string; narrador_id: string; estado: string }[];
+    const entregados = new Set(lista.filter((p) => p.estado === 'entregado').map((p) => p.narrador_id));
+    const pendientes = new Map<string, { id: string; estado: string }>();
+    for (const p of lista) if (p.estado !== 'entregado' && v3.has(p.narrador_id) && !entregados.has(p.narrador_id)) pendientes.set(p.narrador_id, p);
+    if (!pendientes.size) return;
+    const { data: narradores, error: errorN } = await db.from('narradores').select('id, libro_aprobado_at').in('id', [...pendientes.keys()]);
+    if (errorN) throw new Error(`no pude leer los narradores: ${errorN.message}`);
+    for (const n of (narradores ?? []) as { id: string; libro_aprobado_at: string | null }[]) {
+      const cerrado = n.libro_aprobado_at ? new Date(n.libro_aprobado_at).getTime() : NaN;
+      if (!Number.isFinite(cerrado) || ahora - cerrado < DEMORA_ALERTA_MS) continue;
+      const almacen = new AlmacenSupabase(db, PREFIJO_ESCRITOR(n.id));
+      if ((await almacen.leer(ALERTA_DEMORADO)) !== null) continue;
+      const p = pendientes.get(n.id)!;
+      const horas = Math.floor((ahora - cerrado) / 3_600_000);
+      const salio = await avisarSocios(
+        `El libro de ${n.id} lleva ${horas} horas sin salir`,
+        `La familia cerró el libro hace ${horas} horas y todavía no se entregó (un libro tarda de 4 a 9 horas). Pedido ${p.id}, estado '${p.estado}'.\n\n` +
+          `Qué mirar: los logs de la fábrica en Railway (buscar "escritor ${n.id}"), ${PREFIJO_ESCRITOR(n.id)}/costos.json (si sigue sumando, está trabajando) y ${PREFIJO_ESCRITOR(n.id)}/lotes/ (los lotes de Batch que espera). ` +
+          `Si quedó 'fallido', volverlo a 'pagado' retoma sin repagar. Este aviso sale una sola vez.`,
+      );
+      if (salio) await almacen.escribir(ALERTA_DEMORADO, new Date(ahora).toISOString());
+    }
+  } catch (err) {
+    console.error('escritor: no pude revisar los libros demorados:', err instanceof Error ? err.message : err);
+  }
+}

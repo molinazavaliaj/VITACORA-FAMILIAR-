@@ -15,7 +15,7 @@ const m = vi.hoisted(() => ({
 }));
 
 vi.mock('../src/v3/candado.js', () => ({ idiomasV3: m.idiomasV3, narradoresConV3: m.narradoresConV3, avisarCandadoV3: vi.fn(), exigirSinV3: vi.fn() }));
-vi.mock('../src/escritor/produccion/libro-v3.js', () => ({ revisarEtapaAV3: m.revisarEtapaAV3, hayLugarParaLibroV3: m.hayLugarParaLibroV3, lanzarLibroV3: m.lanzarLibroV3 }));
+vi.mock('../src/escritor/produccion/libro-v3.js', () => ({ alertarLibrosDemorados: vi.fn(), revisarEtapaAV3: m.revisarEtapaAV3, hayLugarParaLibroV3: m.hayLugarParaLibroV3, lanzarLibroV3: m.lanzarLibroV3 }));
 vi.mock('../src/libro/generar-paquete.js', () => ({ generarPaquete: m.generarPaquete }));
 vi.mock('../src/libro/estructura.js', () => ({ generarEstructura: m.generarEstructura }));
 vi.mock('../src/libro/previsualizar.js', () => ({ generarPrevisualizacion: vi.fn() }));
