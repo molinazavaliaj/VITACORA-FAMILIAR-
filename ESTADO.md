@@ -849,8 +849,8 @@ bienvenida de siempre. Desde el SÍ todo sigue igual que hoy, V3 incluida.
   Web 694 pruebas OK (falla solo `admin-pantallas` «Plata», que ya fallaba), `tsc` y build OK.
   Entrevistador 726 de 726.
 - **Textos:** todos aprobados por Naza (tandas 1 a 3).
-- **Sin aplicar:** migración `20261008000000_regalos.sql` (tabla `regalos`, estado
-  `regalo_pendiente`, teléfono nullable). El código anda sin ella.
+- **Migración aplicada por Naza el 09/10:** `20261008000000_regalos.sql` (tabla `regalos`, estado
+  `regalo_pendiente`, teléfono nullable).
 - **Para Joaquín:** revisar la migración y la sección «Gift card» de `supabase/CONTRATO.md`.
   El entrevistador ahora escribe `telefono_whatsapp`, `estado` y `zona_horaria` una vez, al
   canjear.
