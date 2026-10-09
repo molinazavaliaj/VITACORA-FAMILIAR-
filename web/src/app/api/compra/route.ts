@@ -151,22 +151,32 @@ export async function POST(request: NextRequest) {
   // SOLO con la prueba de la compra anterior, el tokenFotos que devolvió esta
   // misma ruta (una hora, atado al narrador). Saber el correo y el nombre del
   // abuelo no alcanza. Además el narrador tiene que ser de esta familia, seguir
-  // en pendiente_pago y ser un regalo. Si algo falla, nace un regalo nuevo.
+  // en pendiente_pago, ser un regalo y ser para la misma persona (mismo nombre,
+  // sin mayúsculas ni espacios de más): un regalo para otro abuelo en la misma
+  // pestaña no pisa el anterior sin pagar. Si algo falla, nace un regalo nuevo.
   // Solo si la familia ya existía: una recién creada no tiene nada pendiente.
   const prueba = datosRegalo && existente ? leerRetomar(body.regalo) : null;
   if (prueba) {
     const { data: candidato, error: errorCandidato } = await admin
       .from("narradores")
-      .select("id, familia_id, estado, contexto")
+      .select("id, familia_id, nombre, estado, contexto")
       .eq("id", prueba.narradorId)
       .maybeSingle();
     if (errorCandidato) {
       console.error("compra: fallo la busqueda del regalo a retomar", errorCandidato);
       return NextResponse.json({ error: MENSAJE_ERROR_GENERICO }, { status: 500 });
     }
-    const n = candidato as { id: string; familia_id: string; estado: string; contexto: { regalo?: unknown } | null } | null;
+    const n = candidato as
+      | { id: string; familia_id: string; nombre: string | null; estado: string; contexto: { regalo?: unknown } | null }
+      | null;
+    const mismoNombre = (nombre: string | null | undefined) =>
+      (nombre ?? "").trim().toLowerCase() === narradorAInsertar.nombre.trim().toLowerCase();
     retomable =
-      n && n.familia_id === familiaId && n.estado === "pendiente_pago" && n.contexto?.regalo === true
+      n &&
+      n.familia_id === familiaId &&
+      n.estado === "pendiente_pago" &&
+      n.contexto?.regalo === true &&
+      mismoNombre(n.nombre)
         ? { id: n.id, familia_id: n.familia_id }
         : null;
   }

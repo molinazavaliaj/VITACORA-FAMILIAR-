@@ -170,6 +170,14 @@ describe("enviarRegalo: retomar un regalo sin pagar", () => {
     expect(cuerpo.regalo.mensaje).toBe("Otro mensaje");
   });
 
+  it("si el servidor hizo un regalo nuevo (otro narrador), se guarda el par nuevo en lugar del viejo", async () => {
+    const almacen = almacenFalso({ [CLAVE]: JSON.stringify({ narradorId: "n-viejo", tokenFotos: "tok-viejo" }) });
+    const d = dobles();
+    await enviarRegalo(pedido({ nombre: "Marta" }), { ...d, almacen: () => almacen });
+    expect(JSON.parse(String(d.llamadas[0].init?.body)).regalo.retomar).toEqual({ narradorId: "n-viejo", token: "tok-viejo" });
+    expect(JSON.parse(almacen.datos.get(CLAVE)!)).toEqual({ narradorId: "n-1", tokenFotos: "tok+/=" });
+  });
+
   it("sin nada guardado no manda retomar", async () => {
     const d = dobles();
     await enviarRegalo(pedido(), { ...d, almacen: () => almacenFalso() });

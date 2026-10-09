@@ -325,7 +325,8 @@ describe("POST /api/compra con regalo: reintento sin pagar", () => {
     ...CUERPO_REGALO,
     regalo: { ...CUERPO_REGALO.regalo, ...extraRegalo, retomar },
   });
-  const VIEJO = { id: "nar-viejo", familia_id: "fam-1", estado: "pendiente_pago", contexto: { regalo: true, trato: "vos" } };
+  // El nombre guardado con mayúsculas y espacios distintos: igual es la misma persona.
+  const VIEJO = { id: "nar-viejo", familia_id: "fam-1", nombre: "  héctor ", estado: "pendiente_pago", contexto: { regalo: true, trato: "vos" } };
 
   // Con prueba válida: familia; narradores: 1) buscar el de la prueba, 2) update.
   function secuenciaReintento(o: { viejo?: unknown; regalo?: unknown } = {}) {
@@ -486,6 +487,8 @@ describe("POST /api/compra con regalo: reintento sin pagar", () => {
     ["con contexto null", { ...VIEJO, contexto: null }],
     ["ya pagado (invitado)", { ...VIEJO, estado: "invitado" }],
     ["que no existe", null],
+    ["para otra persona (otro nombre: un regalo nuevo en la misma pestaña)", { ...VIEJO, nombre: "Marta" }],
+    ["sin nombre", { ...VIEJO, nombre: null }],
   ])("(e) un token válido de un narrador %s no retoma", async (_nombre, viejo) => {
     const admin = crearAdmin({
       ...secuenciaNueva(),

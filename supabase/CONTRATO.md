@@ -811,7 +811,8 @@ Spec: `docs/superpowers/specs/2026-10-07-gift-card-design.md`.
   `tokenFotos` que devolvió aquel `/api/compra` (`lib/token-fotos`, una hora). La web lo guarda en
   `sessionStorage` (`vitacora-regalo-pendiente`) antes de ir al pago y lo manda en el envío
   siguiente. Se retoma ese narrador solo si el token verifica para él, es de la misma familia,
-  sigue en `pendiente_pago` y tiene `contexto.regalo = true`: se actualizan el narrador (también el
+  sigue en `pendiente_pago`, tiene `contexto.regalo = true` y es para la misma persona (mismo `nombre`, sin
+  mayúsculas ni espacios de más; un regalo para otra persona en la misma pestaña no pisa el anterior): se actualizan el narrador (también el
   idioma vía `contexto`), su fila de `regalos` (mismo código; `mensaje`, `fecha_entrega`,
   `quien_regala` y `pedido_id` al pedido nuevo) y nace un pedido nuevo. Si falta la prueba o algo
   no cierra, nacen un narrador y un regalo nuevos, como en una primera compra (un token malo no da
