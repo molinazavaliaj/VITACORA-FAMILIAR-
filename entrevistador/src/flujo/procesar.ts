@@ -25,6 +25,7 @@ import { CLAVE_DEL_ARBOL, capituloNoAplica, enviarPregunta, ritmoDe, type Narrad
 import { bienvenidaPideVoz } from '../config.js';
 import { esNarradorV3 } from '../v3/estado.js';
 import { canjearRegalo, mandarBienvenidaDeRegalo } from './regalo.js';
+import { idiomaDeRegalo, textoDeArranque } from './regalo-arranque.js';
 import { extraerCodigo } from './regalo-codigo.js';
 import { avisarSocios } from '../v3/avisos.js';
 
@@ -100,8 +101,10 @@ export function leerSiNo(texto: string): 'si' | 'no' | null {
   const limpio = texto.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z\s]/g, ' ').trim();
   if (!limpio || limpio.split(/\s+/).length > 6) return null;
   // `si+` porque "Sii" y "Siii" son de las formas más comunes y fallaban las dos.
-  if (/^(si+|dale|bueno|ok|okey|oka|claro|de acuerdo|va|vamos|vale|listo|perfecto|obvio|de una|empecemos|arranquemos|empezemos|si dale|si claro|si bueno|si vamos|bueno dale|dale si)\b/.test(limpio)) return 'si';
-  if (/^(no|ahora no|manana|mañana|despues|mas tarde|hoy no|no gracias)\b/.test(limpio)) return 'no';
+  // Catalán y castellano de España (regalo-idiomas, 09/10): «D'acord» y
+  // «Som-hi» llegan como «d acord» y «som hi» (el apóstrofo y el guion ya son espacios).
+  if (/^(si+|dale|bueno|ok|okey|oka|claro|de acuerdo|va|vamos|vale|listo|perfecto|obvio|de una|empecemos|arranquemos|empezemos|si dale|si claro|si bueno|si vamos|bueno dale|dale si|d acord|som hi|endavant|vinga|comencem|venga)\b/.test(limpio)) return 'si';
+  if (/^(no|ahora no|manana|mañana|despues|mas tarde|hoy no|no gracias|ara no|dema|despres|mes tard|avui no)\b/.test(limpio)) return 'no';
   return null;
 }
 
@@ -207,6 +210,10 @@ async function manejarConsentimiento(narrador: Narrador, m: MensajeEntrante): Pr
   // no entraban. Y el bot se quedaba MUDO, así que la persona leía la
   // bienvenida, contestaba, no pasaba nada y no volvía a intentar.
   const dijoSi = leerSiNo(m.texto) === 'si';
+  // Un regalo habla en su idioma (ARRANQUE de regalo-textos.ts) y va siempre
+  // por la V3: la bienvenida del banco ya le describió esa entrevista.
+  const esRegalo = narrador.contexto?.regalo === true;
+  const idiomaRegalo = esRegalo ? idiomaDeRegalo(narrador.contexto) : null;
   if (!dijoSi) {
     // Vitácora de viaje: mientras no haya plantilla aprobada, el viajero escribe
     // primero ("hola") y la bienvenida sale como texto libre, dentro de la ventana.
@@ -220,10 +227,15 @@ async function manejarConsentimiento(narrador: Narrador, m: MensajeEntrante): Pr
     // vuelve a intentar. Se le pide de nuevo UNA sola vez — insistir a quien
     // no quiere participar sería peor que no haber preguntado.
     if (narrador.contexto?.sePidioDeNuevo !== true) {
-      const trato = await tratoDe(narrador);
-      await enviarTexto(narrador.telefono_whatsapp, leerSiNo(m.texto) === 'no'
-        ? noQuiereTodavia(narrador.como_le_dicen, trato)
-        : noEntendi(trato));
+      const dijoNo = leerSiNo(m.texto) === 'no';
+      if (idiomaRegalo) {
+        await enviarTexto(narrador.telefono_whatsapp, textoDeArranque(idiomaRegalo, dijoNo ? 'noQuiere' : 'noEntendi', narrador.como_le_dicen));
+      } else {
+        const trato = await tratoDe(narrador);
+        await enviarTexto(narrador.telefono_whatsapp, dijoNo
+          ? noQuiereTodavia(narrador.como_le_dicen, trato)
+          : noEntendi(trato));
+      }
       narrador.contexto = { ...(narrador.contexto ?? {}), sePidioDeNuevo: true };
       await db.from('narradores').update({ contexto: narrador.contexto }).eq('id', narrador.id);
     }
@@ -237,13 +249,17 @@ async function manejarConsentimiento(narrador: Narrador, m: MensajeEntrante): Pr
   const cambios: Record<string, unknown> = { estado: 'acepto' };
   // La bienvenida del regalo (mandarBienvenidaDeRegalo) siempre pide la voz:
   // su SÍ vale como permiso, salvo que esa bienvenida nunca le haya llegado.
-  const regaloPidioVoz = narrador.contexto?.regalo === true && !regaloSinBienvenida;
+  const regaloPidioVoz = esRegalo && !regaloSinBienvenida;
   if (bienvenidaPideVoz() || regaloPidioVoz) cambios.consentimiento_voz_at = new Date().toISOString();
   await db.from('narradores').update(cambios).eq('id', narrador.id);
-  const enseguida = !esViaje(narrador.contexto) && ritmoDe(narrador.contexto) === 'seguido';
+  // Un regalo recibe su primera pregunta con el SÍ, sea cual sea el ritmo: su
+  // aceptación le dice que ya va (la V3 sigue después con su propio reloj).
+  const enseguida = idiomaRegalo !== null || (!esViaje(narrador.contexto) && ritmoDe(narrador.contexto) === 'seguido');
   await enviarTexto(
     narrador.telefono_whatsapp,
-    bienvenidaAceptacion(narrador.como_le_dicen, await tratoDe(narrador), { viaje: esViaje(narrador.contexto), enseguida }),
+    idiomaRegalo
+      ? textoDeArranque(idiomaRegalo, 'aceptacion', narrador.como_le_dicen)
+      : bienvenidaAceptacion(narrador.como_le_dicen, await tratoDe(narrador), { viaje: esViaje(narrador.contexto), enseguida }),
   );
   await mandarHito(narrador, 'acepto');
   // Ritmo «apenas responde» (pedido de Joaquín, 23/09): la primera pregunta sale
@@ -251,8 +267,11 @@ async function manejarConsentimiento(narrador: Narrador, m: MensajeEntrante): Pr
   // prueba eso es un día perdido. Acaba de escribir, así que la ventana de 24 hs
   // está abierta y va como texto libre, sin depender de ninguna plantilla.
   if (enseguida) {
-    await enviarPregunta({ ...narrador, estado: 'acepto' }, 1, { plantilla: false })
-      .catch((err) => { console.error(`consentimiento: no pude mandar la 1 enseguida a ${narrador.id}:`, err); return false; });
+    try {
+      await enviarPregunta({ ...narrador, estado: 'acepto' }, 1, { plantilla: false });
+    } catch (err) {
+      console.error(`consentimiento: no pude mandar la 1 enseguida a ${narrador.id}:`, err);
+    }
   }
 }
 

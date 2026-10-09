@@ -1,5 +1,7 @@
 // Textos del bot para la gift card. Lugar único: los aprueba Naza (plan
-// 2026-10-07-gift-card, Task 0). v1 solo es-AR, de vos.
+// 2026-10-07-gift-card, Task 0; plan 2026-10-09-regalo-idiomas, Task 0).
+
+import type { Idioma } from '../v3/nucleo/entrevista/idioma.js';
 
 export const TEXTOS_REGALO_BOT = {
   // Aprobados por Naza el 07/10 (Task 0, #1 y #2).
@@ -13,3 +15,45 @@ export const TEXTOS_REGALO_BOT = {
   // El mismo texto aprobado que el botón del mail de la web (web/src/lib/regalo-textos.ts, mailBoton).
   botonTarjeta: 'Ver la tarjeta',
 } as const;
+
+export type TextosArranque = { pedidoSi: string; aceptacion: string; noEntendi: string; noQuiere: string };
+export type TextosAvisos = { noExiste: string; usadoPorOtro: string };
+
+// El arranque del regalo: el pedido de SÍ va debajo del BIEN del banco; la
+// aceptación, el «no te entendí» y el «todavía no» contestan al SÍ (o a lo que
+// no es SÍ). {{nombre}} se llena con como_le_dicen (renderizar del banco).
+// Aprobados por Naza el 09/10 (regalo-idiomas, Task 0).
+export const ARRANQUE: Readonly<Record<Idioma, TextosArranque>> = {
+  'es-AR': {
+    pedidoSi: 'Antes de empezar, una cosa. Tus mejores frases van a quedar en el libro tal cual las contaste, como recortes de estos mismos audios, y al responder SÍ nos das permiso para guardar tus audios y usarlos así. Respondé SÍ y arrancamos.',
+    aceptacion: 'Gracias, {{nombre}}. Ahí te mando la primera pregunta. Sin apuro, y no hay respuestas incorrectas.',
+    noEntendi: 'Perdón, no te entendí. Para arrancar necesito que me escribas SÍ. ¿Vamos?',
+    noQuiere: 'Sin problema, {{nombre}}. Cuando tengas ganas me escribís SÍ y arrancamos. Acá voy a estar.',
+  },
+  'es-ES': {
+    pedidoSi: 'Antes de empezar, una cosa. Tus mejores frases quedarán en el libro tal cual las has contado, como recortes de estos mismos audios, y al responder SÍ nos das permiso para guardar tus audios y usarlos así. Responde SÍ y empezamos.',
+    aceptacion: 'Gracias, {{nombre}}. Ahora mismo te mando la primera pregunta. Sin prisa, y no hay respuestas incorrectas.',
+    noEntendi: 'Perdona, no te he entendido. Para empezar necesito que me escribas SÍ. ¿Vamos?',
+    noQuiere: 'Sin problema, {{nombre}}. Cuando te apetezca me escribes SÍ y empezamos. Aquí estaré.',
+  },
+  ca: {
+    pedidoSi: "Abans de començar, una cosa. Les teves millors frases quedaran al llibre tal com les has explicat, com a retalls d'aquests mateixos àudios, i en respondre SÍ ens dones permís per guardar els teus àudios i fer-los servir així. Respon SÍ i comencem.",
+    aceptacion: "Gràcies, {{nombre}}. Ara mateix t'envio la primera pregunta. Sense pressa, i no hi ha respostes incorrectes.",
+    noEntendi: "Perdona, no t'he entès. Per començar necessito que m'escriguis SÍ. Som-hi?",
+    noQuiere: "Cap problema, {{nombre}}. Quan et vingui de gust m'escrius SÍ i comencem. Aquí em tindràs.",
+  },
+};
+
+// «No encuentro ese código» y «ya se usó». El es-AR es el aprobado el 07/10, sin cambios.
+// Aprobados por Naza el 09/10 (regalo-idiomas, Task 0).
+export const AVISOS: Readonly<Record<Idioma, TextosAvisos>> = {
+  'es-AR': { noExiste: TEXTOS_REGALO_BOT.noExiste, usadoPorOtro: TEXTOS_REGALO_BOT.usadoPorOtro },
+  'es-ES': {
+    noExiste: 'No encuentro ese código. Fíjate bien en la tarjeta y mándamelo de nuevo, con las letras y los números tal cual.',
+    usadoPorOtro: 'Ese código ya se ha usado desde otro teléfono. Avisa a quien te hizo el regalo para que nos escriba.',
+  },
+  ca: {
+    noExiste: "No trobo aquest codi. Mira bé la targeta i torna-me'l a enviar, amb les lletres i els números tal com són.",
+    usadoPorOtro: "Aquest codi ja s'ha fet servir des d'un altre telèfon. Avisa qui t'ha fet el regal perquè ens escrigui.",
+  },
+};

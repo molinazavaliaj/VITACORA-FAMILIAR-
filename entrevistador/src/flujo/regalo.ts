@@ -2,15 +2,16 @@
 // escribe con el código de su tarjeta. Se le pone el teléfono al narrador que
 // armó quien regala, pasa a 'invitado' y le llega la bienvenida como texto
 // libre (escribió él primero: la ventana de 24 hs está abierta). Desde ahí,
-// el SÍ y todo lo demás siguen como siempre (procesar.ts).
+// el SÍ sigue en procesar.ts, en el idioma del regalo, y la entrevista va
+// siempre por la V3 (regalo-arranque.ts).
 
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { bienvenida } from '../manual/puro.js';
 import { esTablaAusente } from '../v3/estado.js';
+import { esGenero } from '../v3/tipos.js';
 import { variantesDeTelefono } from '../whatsapp/telefonos.js';
-import { ritmoDe } from './ritmo.js';
+import { bienvenidaDeRegalo, idiomaDeRegalo, idiomaPorTelefono } from './regalo-arranque.js';
 import { extraerCodigo } from './regalo-codigo.js';
-import { TEXTOS_REGALO_BOT } from './regalo-textos.js';
+import { AVISOS, TEXTOS_REGALO_BOT } from './regalo-textos.js';
 import { zonaPorTelefono } from './regalo-zona.js';
 
 export type DepsRegalo = {
@@ -62,13 +63,14 @@ export async function canjearRegalo(deps: DepsRegalo, m: { telefono: string; tex
   }
   if (!regalo) {
     if (puedeContestarNoExiste(m.telefono, deps.ahora?.() ?? Date.now())) {
-      await deps.enviarTexto(m.telefono, TEXTOS_REGALO_BOT.noExiste);
+      // Todavía no se sabe de qué regalo es: el idioma sale del teléfono.
+      await deps.enviarTexto(m.telefono, AVISOS[idiomaPorTelefono(m.telefono)].noExiste);
     } else {
       console.warn(`regalo: ${m.telefono} ya probó ${MAXIMO_NO_EXISTE} códigos que no existen en 24 hs; no se le contesta`);
     }
     return 'no_existe';
   }
-  if (regalo.usado_at) return yaUsado(deps, m, codigo, regalo.usado_por_telefono);
+  if (regalo.usado_at) return yaUsado(deps, m, codigo, regalo.narrador_id, regalo.usado_por_telefono);
 
   // 1. Se toma el regalo. Compare-and-swap: dos mensajes juntos no lo canjean dos veces.
   const ahora = new Date().toISOString();
@@ -83,7 +85,7 @@ export async function canjearRegalo(deps: DepsRegalo, m: { telefono: string; tex
     const { data: ahoraEs, error: errorRelectura } = await db.from('regalos')
       .select('usado_por_telefono').eq('id', regalo.id).maybeSingle();
     if (errorRelectura) throw errorRelectura;
-    return yaUsado(deps, m, codigo, ahoraEs?.usado_por_telefono ?? null);
+    return yaUsado(deps, m, codigo, regalo.narrador_id, ahoraEs?.usado_por_telefono ?? null);
   }
 
   // 2. El narrador: teléfono e invitado, solo si estaba esperando el regalo.
@@ -111,15 +113,23 @@ export async function canjearRegalo(deps: DepsRegalo, m: { telefono: string; tex
   return 'canjeado';
 }
 
-/** El código ya está usado: si fue este mismo teléfono, silencio; si no, se le avisa. */
-async function yaUsado(deps: DepsRegalo, m: { telefono: string }, codigo: string, usadoPor: string | null): Promise<ResultadoCanje> {
+/** El código ya está usado: si fue este mismo teléfono, silencio; si no, se le avisa en el idioma del regalo. */
+async function yaUsado(deps: DepsRegalo, m: { telefono: string }, codigo: string, narradorId: string, usadoPor: string | null): Promise<ResultadoCanje> {
   if (esDeEsteTelefono(usadoPor, m.telefono)) return 'ya_era_suyo';
-  await deps.enviarTexto(m.telefono, TEXTOS_REGALO_BOT.usadoPorOtro);
+  const { data: n, error } = await deps.db.from('narradores').select('contexto').eq('id', narradorId).maybeSingle();
+  // Sin poder leer el regalo, el aviso igual sale (en es-AR): callarse es peor.
+  if (error) console.error(`regalo: no pude leer el idioma de ${narradorId}:`, error.message);
+  await deps.enviarTexto(m.telefono, AVISOS[idiomaDeRegalo(n?.contexto)].usadoPorOtro);
   console.warn(`regalo: ${codigo} ya usado por ${usadoPor}; ahora escribe ${m.telefono}`);
   return 'usado_por_otro';
 }
 
-/** La bienvenida de siempre (con el trato que eligió quien regala), firmada por quien regala, como texto libre. */
+/**
+ * La bienvenida del regalo, como texto libre: el BIEN del banco en el idioma
+ * del regalo y el pedido de SÍ (regalo-arranque.ts). Ya no la vieja
+ * `bienvenida()` de puro.ts: esa describía la entrevista vieja, y un regalo va
+ * siempre por la V3.
+ */
 export async function mandarBienvenidaDeRegalo(deps: DepsRegalo, narradorId: string, telefono: string): Promise<boolean> {
   try {
     const [{ data: n }, { data: r }] = await Promise.all([
@@ -127,9 +137,12 @@ export async function mandarBienvenidaDeRegalo(deps: DepsRegalo, narradorId: str
       deps.db.from('regalos').select('quien_regala').eq('narrador_id', narradorId).maybeSingle(),
     ]);
     if (!n || !r) return false;
-    const enseguida = ritmoDe(n.contexto) === 'seguido';
-    const trato = n.contexto?.trato === 'usted' ? 'usted' : 'vos';
-    const waId = await deps.enviarTexto(telefono, bienvenida(n.como_le_dicen, r.quien_regala, trato, { enseguida }));
+    // El BIEN no tiene marcas de género hoy; si llega a tenerlas, sin género cargado va 'otro'.
+    const genero = esGenero(n.contexto?.genero) ? n.contexto.genero : 'otro';
+    const texto = bienvenidaDeRegalo(idiomaDeRegalo(n.contexto), {
+      nombre: n.como_le_dicen, genero, ...(r.quien_regala ? { quienRegala: r.quien_regala } : {}),
+    });
+    const waId = await deps.enviarTexto(telefono, texto);
     const { error } = await deps.db.from('envios').insert({ narrador_id: narradorId, tipo: 'bienvenida', pregunta_orden: null, wa_message_id: waId });
     if (error) {
       // Salió, pero sin el envío anotado el próximo mensaje la repetiría: se avisa.

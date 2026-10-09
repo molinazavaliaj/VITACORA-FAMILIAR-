@@ -2,8 +2,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { crearBaseFalsa } from './v3/base-falsa.js';
 vi.mock('../src/db/cliente.js', () => ({ db: {} }));
 import { canjearRegalo, mandarBienvenidaDeRegalo, recordarRegalos, reiniciarLimiteDeCodigos } from '../src/flujo/regalo.js';
-import { TEXTOS_REGALO_BOT } from '../src/flujo/regalo-textos.js';
-import { bienvenida } from '../src/manual/puro.js';
+import { AVISOS, TEXTOS_REGALO_BOT } from '../src/flujo/regalo-textos.js';
+import { bienvenidaDeRegalo } from '../src/flujo/regalo-arranque.js';
 
 const TEL = '+5491155551234';
 beforeEach(() => reiniciarLimiteDeCodigos());
@@ -34,23 +34,47 @@ describe('canjearRegalo', () => {
     expect(await canjearRegalo(deps, { telefono: TEL, texto: 'buenas' })).toBe('no_existe');
     expect(enviados).toEqual([{ tel: TEL, texto: TEXTOS_REGALO_BOT.noExiste }]);
   });
-  it('canje: teléfono, invitado, regalo usado, bienvenida de vos con quien regala, y envío anotado', async () => {
+  it('canje: teléfono, invitado, regalo usado, bienvenida del banco en es-AR, y envío anotado', async () => {
     const { base, deps, enviados } = armar();
     expect(await canjearRegalo(deps, { telefono: TEL, texto: 'Hola, quiero empezar mi libro. VF-7K3M2Q' })).toBe('canjeado');
     expect(base.tablas.narradores[0]).toMatchObject({ telefono_whatsapp: TEL, estado: 'invitado' });
     expect(base.tablas.regalos[0]).toMatchObject({ usado_por_telefono: TEL });
     expect(base.tablas.regalos[0].usado_at).toBeTruthy();
     expect(enviados).toHaveLength(1);
-    expect(enviados[0].texto).toBe(bienvenida('abuelo', 'Lucía', 'vos', { enseguida: false }));
-    expect(enviados[0].texto).toContain('Hola abuelo');
-    expect(enviados[0].texto).toContain('Lucía te hizo un regalo');
+    expect(enviados[0].texto).toBe(bienvenidaDeRegalo('es-AR', { nombre: 'abuelo', genero: 'varon' }));
+    expect(enviados[0].texto.startsWith('Hola, abuelo, ¿cómo estás?')).toBe(true);
     expect(enviados[0].texto).toContain('Respondé SÍ');
     expect(base.tablas.envios).toEqual([expect.objectContaining({ narrador_id: 'n1', tipo: 'bienvenida', wa_message_id: 'wa-1' })]);
   });
-  it('con ritmo seguido, la bienvenida no promete "mañana"', async () => {
-    const { deps, enviados } = armar({ contexto: { regalo: true, ritmo: 'seguido' } });
+  it('el ritmo no cambia la bienvenida: la primera pregunta sale siempre con el SÍ', async () => {
+    const { deps, enviados } = armar({ contexto: { regalo: true, ritmo: 'diario', genero: 'varon' } });
     expect(await canjearRegalo(deps, { telefono: TEL, texto: 'VF-7K3M2Q' })).toBe('canjeado');
-    expect(enviados[0].texto).toBe(bienvenida('abuelo', 'Lucía', 'vos', { enseguida: true }));
+    expect(enviados[0].texto).toBe(bienvenidaDeRegalo('es-AR', { nombre: 'abuelo', genero: 'varon' }));
+  });
+  it('un regalo en catalán: la bienvenida en catalán', async () => {
+    const { deps, enviados } = armar({ contexto: { regalo: true, idioma: 'ca', genero: 'mujer' } });
+    expect(await canjearRegalo(deps, { telefono: '+34612345678', texto: 'VF-7K3M2Q' })).toBe('canjeado');
+    expect(enviados[0].texto).toBe(bienvenidaDeRegalo('ca', { nombre: 'abuelo', genero: 'mujer' }));
+  });
+  it('código que no existe desde un +34: se lo dice en castellano de España', async () => {
+    const { deps, enviados } = armar();
+    expect(await canjearRegalo(deps, { telefono: '+34612345678', texto: 'VF-ZZZZZZ' })).toBe('no_existe');
+    expect(enviados).toEqual([{ tel: '+34612345678', texto: AVISOS['es-ES'].noExiste }]);
+  });
+  it('código que no existe desde un +54: es-AR, el texto aprobado de siempre', async () => {
+    const { deps, enviados } = armar();
+    expect(await canjearRegalo(deps, { telefono: TEL, texto: 'VF-ZZZZZZ' })).toBe('no_existe');
+    expect(enviados).toEqual([{ tel: TEL, texto: AVISOS['es-AR'].noExiste }]);
+  });
+  it('usado por otro teléfono, en el idioma del regalo (catalán)', async () => {
+    const { deps, enviados } = armar({ contexto: { regalo: true, idioma: 'ca' }, usado_at: '2026-10-08T10:00:00Z', usado_por_telefono: '+34600000000' });
+    expect(await canjearRegalo(deps, { telefono: '+34612345678', texto: 'VF-7K3M2Q' })).toBe('usado_por_otro');
+    expect(enviados).toEqual([{ tel: '+34612345678', texto: AVISOS.ca.usadoPorOtro }]);
+  });
+  it('usado por otro teléfono, en el idioma del regalo (es-ES), aunque escriba un +54', async () => {
+    const { deps, enviados } = armar({ contexto: { regalo: true, idioma: 'es-ES' }, usado_at: '2026-10-08T10:00:00Z', usado_por_telefono: '+34600000000' });
+    expect(await canjearRegalo(deps, { telefono: TEL, texto: 'VF-7K3M2Q' })).toBe('usado_por_otro');
+    expect(enviados).toEqual([{ tel: TEL, texto: AVISOS['es-ES'].usadoPorOtro }]);
   });
   it('usado por otro teléfono: se lo dice y no toca nada', async () => {
     const { base, deps, enviados } = armar({ usado_at: '2026-10-08T10:00:00Z', usado_por_telefono: '+5491100000000' });
@@ -99,7 +123,7 @@ describe('canjearRegalo: arreglos de la revisión', () => {
     ]);
     expect([...resultados].sort()).toEqual(['canjeado', 'ya_era_suyo']);
     expect(enviados).toHaveLength(1);
-    expect(enviados[0].texto).toContain('Lucía te hizo un regalo');
+    expect(enviados[0].texto).toBe(bienvenidaDeRegalo('es-AR', { nombre: 'abuelo', genero: 'varon' }));
     expect(enviados.some((e) => e.texto === TEXTOS_REGALO_BOT.usadoPorOtro)).toBe(false);
     expect(base.tablas.narradores.filter((n) => n.telefono_whatsapp === TEL)).toHaveLength(1);
     expect(base.tablas.envios).toHaveLength(1);
@@ -181,16 +205,18 @@ describe('canjearRegalo: la zona horaria sale del teléfono que canjea', () => {
 });
 
 describe('mandarBienvenidaDeRegalo', () => {
-  it('con trato usted, la bienvenida sale de usted', async () => {
-    const { deps, enviados } = armar({ contexto: { regalo: true, trato: 'usted' } });
+  it('con idioma ca, manda la bienvenida del banco en catalán', async () => {
+    const { deps, enviados } = armar({ contexto: { regalo: true, idioma: 'ca', genero: 'mujer' } });
     expect(await mandarBienvenidaDeRegalo(deps, 'n1', TEL)).toBe(true);
-    expect(enviados[0].texto).toBe(bienvenida('abuelo', 'Lucía', 'usted', { enseguida: false }));
-    expect(enviados[0].texto).toContain('Responda SÍ');
+    expect(enviados[0].texto).toBe(bienvenidaDeRegalo('ca', { nombre: 'abuelo', genero: 'mujer' }));
+    expect(enviados[0].texto.startsWith('Hola, abuelo, com estàs?')).toBe(true);
   });
-  it('sin trato, de vos', async () => {
+  it('sin idioma, la de es-AR (ya no la bienvenida vieja)', async () => {
     const { deps, enviados } = armar({ contexto: { regalo: true } });
     expect(await mandarBienvenidaDeRegalo(deps, 'n1', TEL)).toBe(true);
-    expect(enviados[0].texto).toBe(bienvenida('abuelo', 'Lucía', 'vos', { enseguida: false }));
+    expect(enviados[0].texto).toBe(bienvenidaDeRegalo('es-AR', { nombre: 'abuelo', genero: 'otro' }));
+    expect(enviados[0].texto).toContain('Una persona que te quiere mucho te regaló');
+    expect(enviados[0].texto).not.toContain('Lucía te hizo un regalo');
   });
   it('si no se puede anotar el envío, lo dice y devuelve false', async () => {
     const { base, deps, enviados } = armar();
