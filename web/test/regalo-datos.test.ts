@@ -65,10 +65,23 @@ describe("leerRegalo", () => {
       mensaje: "Abuelo, quiero tu historia.",
       tieneAudio: false,
       usado: false,
+      idioma: "es-AR",
     });
     expect(consultas[0].tabla).toBe("regalos");
     expect(consultas[0].filtros).toEqual({ codigo: "VF-7K3M2Q" });
-    expect(consultas[0].columnas).toContain("narradores(nombre, como_le_dicen, estado)");
+    expect(consultas[0].columnas).toContain("narradores(nombre, como_le_dicen, estado, contexto)");
+  });
+
+  it("el idioma sale de narradores.contexto.idioma", async () => {
+    const { admin } = crearAdmin([filaBase({ narradores: { nombre: "Osvaldo", como_le_dicen: "abuelo", estado: "regalo_pendiente", contexto: { idioma: "ca" } } })]);
+    expect((await leerRegalo(admin, "VF-7K3M2Q"))?.idioma).toBe("ca");
+  });
+
+  it("sin idioma en el contexto, o con uno desconocido, es es-AR", async () => {
+    for (const contexto of [{ trato: "vos" }, null, { idioma: "en" }, { idioma: 3 }]) {
+      const { admin } = crearAdmin([filaBase({ narradores: { nombre: "Osvaldo", como_le_dicen: "abuelo", estado: "regalo_pendiente", contexto } })]);
+      expect((await leerRegalo(admin, "VF-7K3M2Q"))?.idioma).toBe("es-AR");
+    }
   });
 
   it("con usado_at queda usado", async () => {

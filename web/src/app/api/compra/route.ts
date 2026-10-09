@@ -23,7 +23,7 @@ export type CompraBody = RegistroBody & {
   /** El carrito (21/09, catálogo base + upsells): la base va siempre; se suman impresos y marcos. */
   productos?: { viaje?: boolean; impresos?: number; marcos?: number };
   /** Gift card (08/10): sin teléfono del narrador; nace un código. */
-  regalo?: { mensaje?: string; fechaEntrega?: string; genero?: string };
+  regalo?: { mensaje?: string; fechaEntrega?: string; genero?: string; idioma?: string };
 };
 
 function leerCarrito(crudo: CompraBody["productos"]): Carrito {
@@ -32,6 +32,19 @@ function leerCarrito(crudo: CompraBody["productos"]): Carrito {
     impresos: typeof crudo?.impresos === "number" ? crudo.impresos : 0,
     marcos: typeof crudo?.marcos === "number" ? crudo.marcos : 0,
   };
+}
+
+/**
+ * El contexto del narrador de un regalo (plan 2026-10-09-regalo-idiomas).
+ * es-AR va de vos y sin `idioma` (CONTRATO: es-AR no se escribe); es-ES y ca
+ * llevan `idioma` y no `trato`. Lo que el cuerpo haya pedido de trato o idioma
+ * no cuenta: manda el idioma elegido. Como el contexto se escribe entero,
+ * un reintento con otro idioma también lo actualiza.
+ */
+function contextoDeRegalo(base: Record<string, unknown>, regalo: DatosRegalo): Record<string, unknown> {
+  const { trato: _trato, idioma: _idioma, ...resto } = base;
+  const voz = regalo.idioma === "es-AR" ? { trato: "vos" } : { idioma: regalo.idioma };
+  return { ...resto, regalo: true, ...voz, genero: regalo.genero };
 }
 
 export async function POST(request: NextRequest) {
@@ -61,11 +74,7 @@ export async function POST(request: NextRequest) {
   }
   const { familia: familiaAInsertar } = validacion;
   const narradorAInsertar = datosRegalo
-    ? {
-        ...validacion.narrador,
-        // De vos y sin idioma (es-AR) hasta el plan de España y catalán (Global Constraints).
-        contexto: { ...validacion.narrador.contexto, regalo: true, trato: "vos", genero: datosRegalo.genero },
-      }
+    ? { ...validacion.narrador, contexto: contextoDeRegalo(validacion.narrador.contexto, datosRegalo) }
     : validacion.narrador;
 
   const carrito = leerCarrito(body.productos);

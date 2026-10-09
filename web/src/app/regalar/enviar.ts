@@ -1,6 +1,6 @@
 import type { Region } from "@/lib/precios";
 import type { Genero } from "@/lib/regalo-reglas";
-import { TEXTOS_REGALO } from "@/lib/regalo-textos";
+import { textosComprador, type IdiomaRegalo, type TratoComprador } from "@/lib/regalo-textos";
 
 // El pago del regalo, separado del formulario para probarlo sin navegador:
 // un POST a /api/compra con `regalo`; si salió bien y hay audio, se sube con
@@ -17,6 +17,8 @@ export type PedidoRegalo = {
   vinculoComprador: string;
   email: string;
   region: Region;
+  /** En qué idioma le va a hablar el biógrafo a quien recibe el regalo. */
+  idioma: IdiomaRegalo;
   audio: Blob | null;
 };
 
@@ -26,6 +28,8 @@ export type Dependencias = {
   asignar: (url: string) => void;
   /** Cuánto se espera la subida del audio antes de ir al pago igual. */
   esperaAudioMs?: number;
+  /** El trato de quien compra, para el error genérico (vos si no se dice). */
+  trato?: TratoComprador;
 };
 
 const ESPERA_AUDIO_MS = 30_000;
@@ -38,13 +42,14 @@ export function cuerpoCompra(p: PedidoRegalo) {
     region: p.region,
     email: p.email.trim(),
     narrador: { nombre: p.nombre.trim(), comoLeDicen: p.comoLeDicen.trim() },
-    regalo: { mensaje: p.mensaje.trim(), fechaEntrega: p.fechaEntrega || undefined, genero: p.genero },
+    regalo: { mensaje: p.mensaje.trim(), fechaEntrega: p.fechaEntrega || undefined, genero: p.genero, idioma: p.idioma },
     productos: { impresos: 0, marcos: 0 },
   };
 }
 
 /** Devuelve `{ error }` si no se pudo ir al pago; si se pudo, redirige y devuelve `{ ok: true }`. */
 export async function enviarRegalo(p: PedidoRegalo, deps: Dependencias): Promise<{ ok: true } | { error: string }> {
+  const errorPago = textosComprador(deps.trato ?? "vos").errorPago;
   type Respuesta = { urlPago?: string; narradorId?: string; tokenFotos?: string; error?: string };
   let datos: Respuesta & { urlPago: string };
   try {
@@ -54,10 +59,10 @@ export async function enviarRegalo(p: PedidoRegalo, deps: Dependencias): Promise
       body: JSON.stringify(cuerpoCompra(p)),
     });
     const crudo = (await r.json()) as Respuesta;
-    if (!r.ok || !crudo.urlPago) return { error: crudo.error ?? TEXTOS_REGALO.errorPago };
+    if (!r.ok || !crudo.urlPago) return { error: crudo.error ?? errorPago };
     datos = { ...crudo, urlPago: crudo.urlPago };
   } catch {
-    return { error: TEXTOS_REGALO.errorPago };
+    return { error: errorPago };
   }
 
   if (p.audio && datos.narradorId && datos.tokenFotos) {

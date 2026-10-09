@@ -38,6 +38,7 @@ const regalo = (extra: Partial<RegaloPublico> = {}): RegaloPublico => ({
   codigo: "VF-7K3M2Q",
   nombre: "Osvaldo",
   comoLeDicen: "abuelo",
+  idioma: "es-AR",
   quienRegala: "Lucía",
   mensaje: "Quiero tu historia para siempre.",
   tieneAudio: false,

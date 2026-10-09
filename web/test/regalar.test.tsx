@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { ReactElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { TEXTOS_REGALO } from "../src/lib/regalo-textos";
+import { TEXTOS_REGALO, textosComprador } from "../src/lib/regalo-textos";
 import { catalogo } from "../src/lib/productos";
 
 // Gift card: la compra del regalo en /regalar (Task 8). Render estático: la
@@ -50,7 +50,7 @@ describe("/regalar", () => {
 
   it("desde España también se puede comprar (sin bloqueo por país), en euros", async () => {
     const html = await renderPagina("ES");
-    expect(html).toContain(escapar(TEXTOS_REGALO.aQuien));
+    expect(html).toContain(escapar(textosComprador("tu").aQuien));
     expect(html).toContain(precioBase("ES"));
   });
 
@@ -69,9 +69,10 @@ describe("/regalar", () => {
     const html = await renderPagina("AR");
     expect(html).toContain(escapar(TEXTOS_REGALO.yaCompre));
     for (const region of ["AR", "ES"] as const) {
+      const t = textosComprador(region === "ES" ? "tu" : "vos");
       const pago = renderToStaticMarkup(<FormularioRegalo catalogo={catalogo(region)} region={region} pasoInicial={4} />);
-      expect(pago).toContain(escapar(TEXTOS_REGALO.pagoSeguro(region === "ES" ? "Stripe" : "Mercado Pago")));
-      expect(pago).toMatch(new RegExp(`<a href="/legal/terminos"[^>]*>${escapar(TEXTOS_REGALO.terminos)}</a>\\.`));
+      expect(pago).toContain(escapar(t.pagoSeguro(region === "ES" ? "Stripe" : "Mercado Pago")));
+      expect(pago).toMatch(new RegExp(`<a href="/legal/terminos"[^>]*>${escapar(t.terminos)}</a>\\.`));
     }
   });
 
@@ -91,6 +92,51 @@ describe("/regalar", () => {
     expect(html).toContain(escapar(TEXTOS_REGALO.tuNombre));
     expect(html).toContain(escapar(TEXTOS_REGALO.queEsTuyo));
     expect(html).toContain(escapar(TEXTOS_REGALO.tuCorreo));
+  });
+});
+
+describe("/regalar por región: trato de quien compra e idioma del regalo", () => {
+  beforeEach(() => {
+    estado.pais = null;
+  });
+
+  // El radio marcado, sin depender del orden de los atributos.
+  const marcado = (html: string, idioma: string) =>
+    (html.match(/<input[^>]*name="idioma"[^>]*>/g) ?? []).some((i) => i.includes(`value="${idioma}"`) && i.includes('checked=""'));
+
+  it("desde España todo va de tú y el idioma arranca en Castellano de España", async () => {
+    const tu = textosComprador("tu");
+    const html = await renderPagina("ES");
+    expect(html).toContain(escapar("¿A quién se lo regalas?"));
+    expect(html).not.toContain(escapar("¿A quién se lo regalás?"));
+    expect(html).toContain(escapar(tu.comoLeDecis));
+    expect(html).toContain(escapar(tu.yaCompre));
+    expect(html).toContain(escapar(tu.idioma));
+    for (const etiqueta of Object.values(tu.idiomas)) expect(html).toContain(escapar(etiqueta));
+    expect(html).toContain(escapar("Castellano de España"));
+    expect(marcado(html, "es-ES")).toBe(true);
+    expect(marcado(html, "es-AR")).toBe(false);
+    expect(marcado(html, "ca")).toBe(false);
+  });
+
+  it("desde Argentina todo va de vos y el idioma arranca en Castellano de Argentina", async () => {
+    const html = await renderPagina("AR");
+    expect(html).toContain(escapar("¿A quién se lo regalás?"));
+    expect(html).toContain(escapar(textosComprador("vos").idioma));
+    expect(html).toContain(escapar("Castellano de Argentina"));
+    expect(marcado(html, "es-AR")).toBe(true);
+    expect(marcado(html, "es-ES")).toBe(false);
+    expect(marcado(html, "ca")).toBe(false);
+  });
+
+  it("los pasos de tú usan los textos de tú (mensaje, audio, pago)", () => {
+    const tu = textosComprador("tu");
+    const paso2 = renderToStaticMarkup(<FormularioRegalo catalogo={catalogo("ES")} region="ES" pasoInicial={2} />);
+    expect(paso2).toContain(escapar(tu.audio));
+    expect(paso2).toContain(escapar(tu.grabar));
+    expect(paso2).not.toContain(escapar(textosComprador("vos").audio));
+    const paso4 = renderToStaticMarkup(<FormularioRegalo catalogo={catalogo("ES")} region="ES" pasoInicial={4} />);
+    expect(paso4).toContain(escapar(tu.pagoSeguro("Stripe")));
   });
 });
 

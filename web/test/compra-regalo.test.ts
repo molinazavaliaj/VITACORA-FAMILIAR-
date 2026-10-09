@@ -133,6 +133,59 @@ describe("POST /api/compra con regalo", () => {
     expect(admin.inserts.narradores[0]).toMatchObject({ telefono_whatsapp: null, contexto: { trato: "vos" } });
   });
 
+  it("en catalán el contexto lleva idioma y no trato", async () => {
+    const admin = crearAdmin(secuenciaFeliz());
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+
+    const r = await POST(peticion({ ...CUERPO_REGALO, region: "ES", regalo: { ...CUERPO_REGALO.regalo, idioma: "ca" } }));
+
+    expect(r.status).toBe(200);
+    const contexto = (admin.inserts.narradores[0] as { contexto: Record<string, unknown> }).contexto;
+    expect(contexto).toMatchObject({ idioma: "ca", regalo: true, genero: "varon" });
+    expect(contexto).not.toHaveProperty("trato");
+  });
+
+  it("en castellano de España el contexto lleva idioma es-ES y no trato, aunque el cuerpo pida vos", async () => {
+    const admin = crearAdmin(secuenciaFeliz());
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+
+    await POST(peticion({
+      ...CUERPO_REGALO,
+      narrador: { ...CUERPO_REGALO.narrador, contexto: { trato: "vos" } },
+      regalo: { ...CUERPO_REGALO.regalo, idioma: "es-ES" },
+    }));
+
+    const contexto = (admin.inserts.narradores[0] as { contexto: Record<string, unknown> }).contexto;
+    expect(contexto).toMatchObject({ idioma: "es-ES", regalo: true, genero: "varon" });
+    expect(contexto).not.toHaveProperty("trato");
+  });
+
+  it("con idioma es-AR explícito va de vos y sin idioma, aunque el cuerpo pida otro", async () => {
+    const admin = crearAdmin(secuenciaFeliz());
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+
+    await POST(peticion({
+      ...CUERPO_REGALO,
+      narrador: { ...CUERPO_REGALO.narrador, contexto: { idioma: "ca" } },
+      regalo: { ...CUERPO_REGALO.regalo, idioma: "es-AR" },
+    }));
+
+    const contexto = (admin.inserts.narradores[0] as { contexto: Record<string, unknown> }).contexto;
+    expect(contexto).toMatchObject({ trato: "vos", regalo: true, genero: "varon" });
+    expect(contexto).not.toHaveProperty("idioma");
+  });
+
+  it("un idioma desconocido responde 400 y no toca la base", async () => {
+    const admin = crearAdmin({});
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+
+    const r = await POST(peticion({ ...CUERPO_REGALO, regalo: { ...CUERPO_REGALO.regalo, idioma: "en" } }));
+
+    expect(r.status).toBe(400);
+    expect(((await r.json()) as { error: string }).error).toBe("El idioma no es válido.");
+    expect(admin.from).not.toHaveBeenCalled();
+  });
+
   it("el pedido lleva extras.regalo === true", async () => {
     const admin = crearAdmin(secuenciaFeliz());
     (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
@@ -312,6 +365,19 @@ describe("POST /api/compra con regalo: reintento sin pagar", () => {
     expect(json.codigo).toBe("VF-ABCDEF");
     expect(json.narradorId).toBe("nar-viejo");
     expect(crearCheckout).toHaveBeenCalledWith({ id: "ped-2", email: "lucia@ejemplo.com" }, expect.anything());
+  });
+
+  it("un reintento con otro idioma actualiza el contexto: idioma nuevo y sin trato", async () => {
+    const admin = crearAdmin(secuenciaReintento());
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+
+    const r = await POST(peticion({ ...CUERPO_REGALO, regalo: { ...CUERPO_REGALO.regalo, idioma: "ca" } }));
+
+    expect(r.status).toBe(200);
+    expect(admin.updates.narradores).toHaveLength(1);
+    const contexto = (admin.updates.narradores[0] as { contexto: Record<string, unknown> }).contexto;
+    expect(contexto).toMatchObject({ idioma: "ca", regalo: true, genero: "varon" });
+    expect(contexto).not.toHaveProperty("trato");
   });
 
   it("dos intentos seguidos dan el mismo código", async () => {

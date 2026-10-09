@@ -3,11 +3,15 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { normalizarCodigo } from "./regalo";
+import { esIdiomaRegalo } from "./regalo-reglas";
+import type { IdiomaRegalo } from "./regalo-textos";
 import { esTablaAusente } from "./tabla-ausente";
 
 export type RegaloPublico = {
   codigo: string; nombre: string; comoLeDicen: string; quienRegala: string;
   mensaje: string; tieneAudio: boolean; usado: boolean;
+  /** En qué idioma le habla el biógrafo (narradores.contexto.idioma; sin idioma o desconocido = es-AR). */
+  idioma: IdiomaRegalo;
 };
 
 export async function leerRegalo(admin: SupabaseClient, codigoCrudo: string): Promise<RegaloPublico | null> {
@@ -15,7 +19,7 @@ export async function leerRegalo(admin: SupabaseClient, codigoCrudo: string): Pr
   if (!codigo) return null;
   const { data, error } = await admin
     .from("regalos")
-    .select("codigo, quien_regala, mensaje, audio_path, usado_at, narradores(nombre, como_le_dicen, estado)")
+    .select("codigo, quien_regala, mensaje, audio_path, usado_at, narradores(nombre, como_le_dicen, estado, contexto)")
     .eq("codigo", codigo)
     .maybeSingle();
   if (error) {
@@ -25,12 +29,14 @@ export async function leerRegalo(admin: SupabaseClient, codigoCrudo: string): Pr
   }
   const f = data as null | {
     codigo: string; quien_regala: string; mensaje: string; audio_path: string | null; usado_at: string | null;
-    narradores: { nombre: string; como_le_dicen: string; estado: string } | null;
+    narradores: { nombre: string; como_le_dicen: string; estado: string; contexto?: { idioma?: unknown } | null } | null;
   };
   if (!f?.narradores || f.narradores.estado === "pendiente_pago") return null;
+  const idioma = f.narradores.contexto?.idioma;
   return {
     codigo: f.codigo, nombre: f.narradores.nombre, comoLeDicen: f.narradores.como_le_dicen,
     quienRegala: f.quien_regala, mensaje: f.mensaje, tieneAudio: !!f.audio_path, usado: !!f.usado_at,
+    idioma: esIdiomaRegalo(idioma) ? idioma : "es-AR",
   };
 }
 

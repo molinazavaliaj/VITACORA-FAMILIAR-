@@ -15,6 +15,7 @@ const pedido = (extra: Partial<PedidoRegalo> = {}): PedidoRegalo => ({
   vinculoComprador: " nieta ",
   email: " lucia@example.com ",
   region: "AR",
+  idioma: "es-AR",
   audio: null,
   ...extra,
 });
@@ -49,7 +50,7 @@ describe("enviarRegalo", () => {
       region: "AR",
       email: "lucia@example.com",
       narrador: { nombre: "Osvaldo Pérez", comoLeDicen: "abuelo" },
-      regalo: { mensaje: "Quiero tu historia para siempre.", genero: "varon" },
+      regalo: { mensaje: "Quiero tu historia para siempre.", genero: "varon", idioma: "es-AR" },
       productos: { impresos: 0, marcos: 0 },
     });
   });
@@ -60,6 +61,12 @@ describe("enviarRegalo", () => {
     const cuerpo = JSON.parse(String(d.llamadas[0].init?.body));
     expect(cuerpo.regalo.fechaEntrega).toBe("2026-12-24");
     expect(cuerpo.region).toBe("ES");
+  });
+
+  it("manda el idioma elegido en el regalo", async () => {
+    const d = dobles();
+    await enviarRegalo(pedido({ idioma: "ca", region: "ES" }), d);
+    expect(JSON.parse(String(d.llamadas[0].init?.body)).regalo.idioma).toBe("ca");
   });
 
   it("sin audio no hay subida: una sola llamada y al pago", async () => {
