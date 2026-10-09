@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { crearClienteSesion } from "@/lib/supabase/sesion";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
-import { narradorDeLaSesion, PUEDE, type Rol } from "@/lib/panel";
+import { narradorDeLaSesion, PUEDE, tratoEditable, type Rol } from "@/lib/panel";
 import { validarHorario } from "@/lib/horario";
 import { TRATOS } from "@/lib/registro";
 import {
@@ -122,7 +122,7 @@ export async function PATCH(request: NextRequest) {
   // cambiarlo a mitad de la entrevista rompe el vínculo.
   if (body.accion === "trato") {
     if (!(TRATOS as readonly string[]).includes(body.trato)) return respuesta(400, { error: "El trato no es válido: usted o vos." });
-    if (narrador.dia_actual > 0 || !["invitado", "acepto"].includes(narrador.estado)) return respuesta(400, { error: "El trato se fija con la primera pregunta: ya no se cambia." });
+    if (!tratoEditable(narrador)) return respuesta(400, { error: "El trato se fija con la primera pregunta: ya no se cambia." });
     const { data: fila } = await admin.from("narradores").select("contexto").eq("id", narrador.id).maybeSingle();
     const contexto = ((fila as { contexto?: Record<string, unknown> } | null)?.contexto) ?? {};
     contexto.trato = body.trato;

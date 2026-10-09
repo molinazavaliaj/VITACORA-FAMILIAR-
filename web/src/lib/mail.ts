@@ -7,6 +7,8 @@
 // ⚠️ Textos a aprobar por Naza (regla de la casa). Voz de marca: castellano
 // neutro de "tú".
 
+import { TEXTOS_REGALO } from "./regalo-textos";
+
 const REMITENTE = "Vitácora Familiar <hola@vitacorafamiliar.com>";
 
 function escapar(texto: string): string {
@@ -94,6 +96,24 @@ export async function enviarMailAcceso(opciones: { para: string; comoLeDicen: st
           <div style="margin-top:10px;font-size:14px;color:#78716c;">
             Te pedimos un código de 6 números que llega a este correo. Sin contraseñas.
           </div>
+        </td></tr>
+    `),
+  });
+}
+
+/** Gift card (08/10): llega al confirmar el pago. Lleva al link de la tarjeta. */
+export async function enviarMailRegalo(opciones: { para: string; comoLeDicen: string; codigo: string }): Promise<boolean> {
+  const urlBase = process.env.URL_BASE ?? "https://www.vitacorafamiliar.com";
+  const url = `${urlBase}/regalo/${encodeURIComponent(opciones.codigo)}/tarjeta`;
+  return enviar({
+    para: opciones.para,
+    asunto: TEXTOS_REGALO.mailAsunto(opciones.comoLeDicen),
+    html: envoltorio(`
+        <tr><td style="padding-bottom:24px;">${escapar(TEXTOS_REGALO.mailCuerpo(opciones.comoLeDicen))}</td></tr>
+        <tr><td style="padding-bottom:32px;">
+          <a href="${escapar(url)}" style="display:inline-block;background:#5D3FD3;color:#ffffff;text-decoration:none;padding:14px 28px;font-family:Arial,Helvetica,sans-serif;font-size:15px;">
+            ${escapar(TEXTOS_REGALO.mailBoton)}
+          </a>
         </td></tr>
     `),
   });

@@ -538,6 +538,21 @@ del abuelo — y el que lo recibe pide su copia impresa.
 
 ⚠️ **Mueve la fecha de lanzamiento del 1 al 15 de octubre.**
 
+### 🎁 Gift card (07-08/10, Naza)
+
+La tarjeta de regalo es la forma de regalar la entrevista misma: quien compra no carga el
+teléfono del abuelo, le da una tarjeta con QR y él empieza solo. Código hecho y revisado en la
+rama `regalo` (PR #2). Pase: `docs/regalo/handoff-2026-10-08.md`.
+
+| # | Qué | Quién | Estado |
+|---|---|---|---|
+| R.1 | Revisar la migración `20261008000000_regalos.sql` y la sección «Gift card» de CONTRATO | **J** | ☐ |
+| R.2 | Aplicar la migración en Supabase (✅ 09/10) y cargar `WHATSAPP_NUMERO_PUBLICO` en Vercel | **N** | 🔄 |
+| R.3 | Imprimir una tarjeta real en doble faz y grabar un audio desde un celular real | **N** | ☐ |
+| R.4 | Mergear el PR #2 | **N+J** | ☐ |
+| R.5 | Antes de vender: el reintento de pago no tiene que dejar ver el código a un tercero; piloto real; decidir desde dónde se linkea `/regalar` | **N+J** | ☐ |
+| R.6 | Plan siguiente: España (tú), catalán, sobre físico, dos libros para la misma persona | **N** | ☐ |
+
 ---
 
 ## FRENTE 3ter — El panel del usuario *(nuevo, 12/09 · construido 12-13/09)*

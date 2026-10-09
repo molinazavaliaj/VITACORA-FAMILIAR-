@@ -257,3 +257,50 @@ describe('PATCH /api/narrador/[narradorId]', () => {
     expect(respuesta.status).toBe(401);
   });
 });
+
+// --- el regalo en el panel (gift card, Task 9) -------------------------
+
+import { estadoEnHumano } from '../src/app/tablero/ui';
+import { proximoPaso } from '../src/app/tablero/proximo-paso';
+import { TEXTOS_REGALO } from '@/lib/regalo-textos';
+import type { Historia } from '@/lib/panel';
+
+describe('el regalo en el panel', () => {
+  const historia = (rol: Historia['rol']): Historia =>
+    ({ narrador: { id: 'n-regalo', estado: 'regalo_pendiente', contexto: {} }, rol }) as unknown as Historia;
+  const resumen = { respondidas: 0, total: 30, segundos: 0, tieneAnticipo: false };
+
+  it('regalo_pendiente se lee como el texto aprobado, en los dos mapas', () => {
+    expect(estadoEnHumano('regalo_pendiente', false)).toBe(TEXTOS_REGALO.estadoPanel);
+    expect(estadoEnHumano('regalo_pendiente', true)).toBe(TEXTOS_REGALO.estadoPanel);
+  });
+
+  it('la dueña tiene como próximo paso descargar la tarjeta', () => {
+    expect(proximoPaso(historia('duena'), resumen)).toEqual({
+      href: '/tablero/n-regalo/regalo',
+      texto: TEXTOS_REGALO.proximoPaso,
+    });
+  });
+
+  it('un invitado no tiene próximo paso con el regalo sin abrir', () => {
+    expect(proximoPaso(historia('invitado'), resumen)).toBeNull();
+  });
+});
+
+import { tratoEditable } from '@/lib/panel';
+import { EN_CURSO } from '@/lib/admin/en-curso';
+
+describe('el regalo sin abrir se edita como invitado', () => {
+  it('el trato es editable con el regalo sin abrir, igual que invitado y acepto', () => {
+    expect(tratoEditable({ estado: 'regalo_pendiente', dia_actual: 0 })).toBe(true);
+    expect(tratoEditable({ estado: 'invitado', dia_actual: 0 })).toBe(true);
+    expect(tratoEditable({ estado: 'acepto', dia_actual: 0 })).toBe(true);
+    expect(tratoEditable({ estado: 'activo', dia_actual: 1 })).toBe(false);
+    expect(tratoEditable({ estado: 'acepto', dia_actual: 1 })).toBe(false);
+    expect(tratoEditable({ estado: 'pendiente_pago', dia_actual: 0 })).toBe(false);
+  });
+
+  it('en el admin, el regalo sin abrir va con las historias en curso', () => {
+    expect(EN_CURSO).toContain('regalo_pendiente');
+  });
+});

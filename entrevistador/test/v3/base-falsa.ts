@@ -17,6 +17,7 @@ const UNICOS: Record<string, string[]> = {
   respuestas: ['wa_message_id'],
   entrevistas_v3: ['narrador_id'],
   narradores: ['telefono_whatsapp'],
+  regalos: ['codigo', 'narrador_id'],
 };
 const DEFAULTS: Record<string, () => Fila> = {
   respuestas: () => ({ recibido_at: new Date().toISOString(), es_repregunta: false, clave_v3: null, wa_message_id: null, transcripcion: null, texto_directo: null }),

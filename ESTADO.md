@@ -836,3 +836,23 @@ se lee sin caché (`cacheControl: 0` + `cacheNonce` + `no-store`) y los dos ifra
 Cuando exista el mail de los 15 días (Task 6) vuelve al panel de frases el texto que se sacó, con la
 verdad del mecanismo. Y el "32 de 36" del panel queda aceptado hasta que la PC rehaga los 3 tramos
 (`cita-6`, `cita-16`, `cita-17`): es `git pull` + arrancar el worker en la PC de audio.
+
+## Gift card (branch `regalo`, PR #2, 07-08/10) (Naza)
+
+Quien regala compra en `/regalar` sin el teléfono del narrador y recibe por mail una tarjeta
+(A4 para imprimir en doble faz y una imagen para WhatsApp) con un QR y un código `VF-XXXXXX`.
+El narrador escanea, oye el audio de quien regala, toca Empezar y le escribe al bot con el
+código. El bot le engancha el teléfono y la zona horaria, lo pasa a `invitado` y le manda la
+bienvenida de siempre. Desde el SÍ todo sigue igual que hoy, V3 incluida.
+
+- **Hecho y revisado:** 11 tareas, cada una con revisión, más una revisión de toda la rama.
+  Web 694 pruebas OK (falla solo `admin-pantallas` «Plata», que ya fallaba), `tsc` y build OK.
+  Entrevistador 726 de 726.
+- **Textos:** todos aprobados por Naza (tandas 1 a 3).
+- **Migración aplicada por Naza el 09/10:** `20261008000000_regalos.sql` (tabla `regalos`, estado
+  `regalo_pendiente`, teléfono nullable).
+- **Para Joaquín:** revisar la migración y la sección «Gift card» de `supabase/CONTRATO.md`.
+  El entrevistador ahora escribe `telefono_whatsapp`, `estado` y `zona_horaria` una vez, al
+  canjear.
+- Pendientes y decisiones: `docs/regalo/handoff-2026-10-08.md` y ROADMAP («Gift card»).
+
