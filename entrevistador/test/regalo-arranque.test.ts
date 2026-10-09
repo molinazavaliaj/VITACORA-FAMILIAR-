@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { bienvenidaDeRegalo, idiomaDeRegalo, idiomaPorTelefono, textoDeArranque } from '../src/flujo/regalo-arranque.js';
+import { bienvenidaDeRegalo, idiomaDeRegalo, idiomaPorTelefono, motivoDeFrenoDelRegalo, textoDeArranque } from '../src/flujo/regalo-arranque.js';
 import { ARRANQUE, AVISOS, TEXTOS_REGALO_BOT } from '../src/flujo/regalo-textos.js';
 
 describe('bienvenidaDeRegalo: el BIEN del banco y el pedido de SÍ, en el idioma del regalo', () => {
@@ -62,5 +62,20 @@ describe('los avisos', () => {
     expect(AVISOS['es-AR'].noExiste).toBe('No encuentro ese código. Fijate bien en la tarjeta y mandámelo de nuevo, con las letras y los números tal cual.');
     expect(AVISOS['es-AR'].usadoPorOtro).toBe('Ese código ya se usó desde otro teléfono. Avisale a quien te hizo el regalo para que nos escriba.');
     expect(AVISOS['es-AR'].noExiste).toBe(TEXTOS_REGALO_BOT.noExiste);
+  });
+});
+
+describe('motivoDeFrenoDelRegalo: lo mismo que frena el alta V3', () => {
+  it('con género e idioma conocido (o sin idioma), arranca', () => {
+    expect(motivoDeFrenoDelRegalo({ genero: 'mujer', idioma: 'ca' })).toBeNull();
+    expect(motivoDeFrenoDelRegalo({ genero: 'varon' })).toBeNull();
+  });
+  it('sin género o con un género raro, se frena', () => {
+    expect(motivoDeFrenoDelRegalo({ idioma: 'ca' })).toBe('no tiene género');
+    expect(motivoDeFrenoDelRegalo({ genero: 'x', idioma: 'ca' })).toBe('no tiene género');
+    expect(motivoDeFrenoDelRegalo(null)).toBe('no tiene género');
+  });
+  it('con un idioma desconocido, se frena y dice cuál', () => {
+    expect(motivoDeFrenoDelRegalo({ genero: 'mujer', idioma: 'pt-BR' })).toContain('pt-BR');
   });
 });

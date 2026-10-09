@@ -25,7 +25,7 @@ import { CLAVE_DEL_ARBOL, capituloNoAplica, enviarPregunta, ritmoDe, type Narrad
 import { bienvenidaPideVoz } from '../config.js';
 import { esNarradorV3 } from '../v3/estado.js';
 import { canjearRegalo, mandarBienvenidaDeRegalo } from './regalo.js';
-import { idiomaDeRegalo, textoDeArranque } from './regalo-arranque.js';
+import { idiomaDeRegalo, motivoDeFrenoDelRegalo, textoDeArranque } from './regalo-arranque.js';
 import { extraerCodigo } from './regalo-codigo.js';
 import { avisarSocios } from '../v3/avisos.js';
 
@@ -252,6 +252,20 @@ async function manejarConsentimiento(narrador: Narrador, m: MensajeEntrante): Pr
   const regaloPidioVoz = esRegalo && !regaloSinBienvenida;
   if (bienvenidaPideVoz() || regaloPidioVoz) cambios.consentimiento_voz_at = new Date().toISOString();
   await db.from('narradores').update(cambios).eq('id', narrador.id);
+  // Nunca prometer una pregunta que no va a llegar: si el alta V3 del regalo se
+  // va a frenar (sin género, idioma desconocido), el SÍ queda anotado pero no
+  // sale la aceptación ni el mail «ya le mandamos la primera pregunta». Lo
+  // arregla una persona; después la 1 sale por el camino de siempre.
+  const freno = esRegalo ? motivoDeFrenoDelRegalo(narrador.contexto) : null;
+  if (freno) {
+    await avisarSocios(
+      `regalo-si-frenado:${narrador.id}`,
+      `Regalo frenado: ${narrador.como_le_dicen} dijo que sí y no puede arrancar`,
+      `El narrador ${narrador.id} (regalo) dijo que sí, pero su entrevista V3 no puede arrancar: ${freno}. `
+        + "Quedó en 'acepto' con su permiso anotado; no se le mandó la aceptación ni la primera pregunta. Hay que completar la ficha a mano.",
+    );
+    return;
+  }
   // Un regalo recibe su primera pregunta con el SÍ, sea cual sea el ritmo: su
   // aceptación le dice que ya va (la V3 sigue después con su propio reloj).
   const enseguida = idiomaRegalo !== null || (!esViaje(narrador.contexto) && ritmoDe(narrador.contexto) === 'seguido');

@@ -7,6 +7,7 @@
 // para guardar sus audios.
 
 import type { Genero } from '../v3/nucleo/ficha.js';
+import { esGenero } from '../v3/tipos.js';
 import { mensajePorId } from '../v3/nucleo/entrevista/banco.js';
 import { idiomaDe, type Idioma } from '../v3/nucleo/entrevista/idioma.js';
 import { renderizar } from '../v3/nucleo/entrevista/texto.js';
@@ -38,6 +39,21 @@ export function idiomaDeRegalo(contexto: { idioma?: unknown } | null | undefined
     console.error('regalo: idioma desconocido en la ficha, sigo en es-AR:', err instanceof Error ? err.message : err);
     return 'es-AR';
   }
+}
+
+/**
+ * Por qué el alta V3 de este regalo se va a frenar (altaNuevo: sin género o
+ * con un idioma desconocido), o null si va a salir. Se mira ANTES de mandarle
+ * «ahí te mando la primera pregunta»: nunca prometer una pregunta que no llega.
+ */
+export function motivoDeFrenoDelRegalo(contexto: { genero?: unknown; idioma?: unknown } | null | undefined): string | null {
+  if (!esGenero(contexto?.genero)) return 'no tiene género';
+  try {
+    idiomaDe(contexto ?? undefined);
+  } catch (err) {
+    return err instanceof Error ? err.message : String(err);
+  }
+  return null;
 }
 
 /**

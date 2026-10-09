@@ -759,6 +759,38 @@ describe('el SÍ de un regalo, en su idioma', () => {
     expect(mocks.enviarPregunta).toHaveBeenCalledWith(expect.objectContaining({ estado: 'acepto' }), 1, { plantilla: false });
   });
 
+  // Nunca prometer una pregunta que no va a llegar: si el alta V3 se va a
+  // frenar (sin género o con un idioma desconocido), el SÍ queda anotado pero
+  // no sale la aceptación («ahí te mando la primera pregunta»): avisa a los socios.
+  for (const [caso, contexto] of [
+    ['sin género', { regalo: true, idioma: 'ca', ritmo: 'diario' }],
+    ['con un idioma desconocido', { regalo: true, idioma: 'pt-BR', genero: 'mujer', ritmo: 'diario' }],
+  ] as const) {
+    it(`un regalo ${caso}: anota el SÍ, no promete la pregunta y avisa a los socios`, async () => {
+      delete process.env.WA_BIENVENIDA_PIDE_VOZ;
+      mocks.estado.narrador = narradorEn('invitado', 0, { ...contexto });
+      mocks.enviarPregunta.mockResolvedValue(true);
+      const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+      try {
+        await procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'SÍ', waMessageId: 'w' });
+      } finally {
+        error.mockRestore();
+      }
+      const p = update('narradores')?.p as Record<string, unknown>;
+      expect(p.estado).toBe('acepto');
+      expect(typeof p.consentimiento_voz_at).toBe('string');
+      expect(mocks.enviarTexto).not.toHaveBeenCalled();
+      expect(mocks.enviarPregunta).not.toHaveBeenCalled();
+      // El mail «dijo que sí» de un regalo dice «ya le mandamos la primera pregunta»: tampoco.
+      expect(mocks.mandarHito).not.toHaveBeenCalled();
+      expect(mocks.avisarSocios).toHaveBeenCalledTimes(1);
+      const [clave, asunto, detalle] = mocks.avisarSocios.mock.calls[0];
+      expect(clave).toContain('n1');
+      expect(asunto).toContain('Don Osvaldo');
+      expect(detalle).toContain('n1');
+    });
+  }
+
   it("«Què?» recibe el «no t'he entès» en catalán, una sola vez", async () => {
     mocks.estado.narrador = regaloCa();
     await procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'Què?', waMessageId: 'w' });
