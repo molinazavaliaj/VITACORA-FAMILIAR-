@@ -76,16 +76,15 @@ export async function enviarMailAcceso(opciones: { para: string; comoLeDicen: st
         </td></tr>
         <tr><td style="padding-bottom:24px;">
           En un rato le llega un mensaje nuestro por WhatsApp a tu ${quien},
-          contándole que lo anotaste y pidiéndole permiso. <strong style="font-weight:normal;">No
-          empieza nada hasta que diga que sí.</strong> Si no acepta, escríbenos y te
-          devolvemos el dinero.
+          contándole de qué se trata. <strong style="font-weight:normal;">Arranca
+          cuando quiera.</strong>
         </td></tr>
         <tr><td style="padding-bottom:24px;">
-          Cuando conteste su tercera pregunta te avisamos por acá: vas a poder leer
-          sus primeras páginas y escuchar su voz.
+          Cuando empiece a contar su historia te avisamos por acá, y vas a poder
+          escuchar su voz desde tu panel.
         </td></tr>
         <tr><td style="padding-bottom:12px;">
-          Para seguir el libro día a día, entra con este mismo correo:
+          Para ir escuchando lo que cuenta, entrá a la página con este mismo correo:
         </td></tr>
         <tr><td style="padding-bottom:32px;">
           <a href="${escapar(urlBase)}/entrar" style="display:inline-block;background:#5D3FD3;color:#ffffff;text-decoration:none;padding:14px 28px;font-family:Arial,Helvetica,sans-serif;font-size:15px;">
@@ -121,9 +120,9 @@ export async function enviarMailInvitacion(opciones: {
           <strong style="font-size:22px;font-weight:normal;">Un biógrafo está escribiendo el libro de la vida de ${narrador}.</strong>
         </td></tr>
         <tr><td style="padding-bottom:24px;">
-          ${quien} te invitó a acompañarlo. Vas a poder escuchar lo que va contando,
-          leer sus páginas a medida que se escriben, sumar preguntas que te gustaría
-          que le hagan, y agregar fotos de cada época.
+          ${quien} te invitó a seguir su historia. Vas a poder escuchar lo que va
+          contando, sumar preguntas que te gustaría que le hagan y agregar fotos de
+          cada época.
         </td></tr>
         <tr><td style="padding-bottom:12px;">
           Entrá con este mismo correo:

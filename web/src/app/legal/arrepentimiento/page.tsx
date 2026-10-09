@@ -31,8 +31,8 @@ export default function Arrepentimiento() {
     <Pagina titulo="Botón de arrepentimiento" bajada="Si te arrepentiste de la compra, esto es todo lo que hay que hacer.">
       <Seccion titulo="Cómo se hace">
         <Parrafo>
-          Aprieta el botón: se abre un correo a <Correo cual="hola" /> con el asunto ya
-          escrito. Completa tu correo de compra y el nombre del narrador, y mándalo. No hace
+          Apretá el botón: se abre un correo a <Correo cual="hola" /> con el asunto ya
+          escrito. Completá tu correo de compra y el nombre del narrador, y mandalo. No hace
           falta que expliques por qué.
         </Parrafo>
         <a
@@ -42,7 +42,7 @@ export default function Arrepentimiento() {
           Quiero arrepentirme de mi compra
         </a>
         <Parrafo>
-          Si el botón no te abre el correo, escribe tú a <Correo cual="hola" /> con el asunto
+          Si el botón no te abre el correo, escribí vos a <Correo cual="hola" /> con el asunto
           «{ASUNTO}».
         </Parrafo>
       </Seccion>
@@ -67,13 +67,16 @@ export default function Arrepentimiento() {
               <strong className="font-medium">España</strong>: 14 días naturales desde la compra. Si la entrevista ya empezó a tu pedido, se descuenta la parte ya hecha; el PDF (con sus frases en su voz) ya entregado y los productos a medida (impreso, marcos) no se pueden devolver.
             </>,
             <>
+              {/* TODO abogado (arrepentimiento 4, va con T20 de términos): Naza aprobó la opción a, la
+                  devolución completa solo cuando el narrador NO acepta participar, sin número de
+                  preguntas. Lo redacta el abogado; hasta entonces queda el texto actual. */}
               <strong className="font-medium">Sin plazo</strong>: si el narrador no acepta participar o responde menos de diez preguntas, te devolvemos todo, siempre.
             </>,
           ]}
         />
         <Parrafo>
           El detalle está en la sección{" "}
-          <Enlace href="/legal/terminos#arrepentimiento">«Si te arrepientes» de los términos</Enlace>.
+          <Enlace href="/legal/terminos#arrepentimiento">«Si te arrepentís» de los términos</Enlace>.
         </Parrafo>
       </Seccion>
     </Pagina>

@@ -35,13 +35,13 @@ export default async function Gracias({ searchParams }: PageProps<"/comprar/grac
           </p>
         ) : (
           <p className="mt-6 text-[17px] leading-[1.75] text-[#D4D4CE] [font-family:var(--fuente-cuerpo)] font-light">
-            En un rato le llega un mensaje nuestro por WhatsApp, contándole que lo
-            anotaste y pidiéndole permiso. No empieza nada hasta que diga que sí.
+            En un rato le llega un mensaje nuestro por WhatsApp, contándole de qué
+            se trata. Arranca cuando quiera.
           </p>
         )}
         <p className="mt-4 text-[17px] leading-[1.75] text-[#D4D4CE] [font-family:var(--fuente-cuerpo)] font-light">
-          Te mandamos un correo con todo esto y con cómo entrar a tu panel para
-          seguir el libro día a día. Si no lo ves, mira en promociones o en spam.
+          Te mandamos un correo con todo esto y con cómo entrar a tu panel, donde
+          vas a ir escuchando lo que cuenta. Si no lo ves, mirá en promociones o en spam.
         </p>
         <Link
           href="/entrar"
