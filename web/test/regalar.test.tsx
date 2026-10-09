@@ -131,6 +131,16 @@ describe("/regalar por región: trato de quien compra e idioma del regalo", () =
     expect(marcado(html, "ca")).toBe(false);
   });
 
+  it("solo la opción «Català» va marcada en catalán (lang=ca)", async () => {
+    const html = await renderPagina("ES");
+    const etiquetas = html.match(/<label[^>]*>(?:(?!<\/label>).)*name="idioma"(?:(?!<\/label>).)*<\/label>/g) ?? [];
+    expect(etiquetas).toHaveLength(3);
+    const conLang = etiquetas.filter((l) => /^<label[^>]* lang="ca"/.test(l));
+    expect(conLang).toHaveLength(1);
+    expect(conLang[0]).toContain('value="ca"');
+    expect(conLang[0]).toContain("Català");
+  });
+
   it("los pasos de tú usan los textos de tú (mensaje, audio, pago)", () => {
     const tu = textosComprador("tu");
     const paso2 = renderToStaticMarkup(<FormularioRegalo catalogo={catalogo("ES")} region="ES" pasoInicial={2} />);

@@ -136,7 +136,7 @@ export function FormularioRegalo({
               <legend className={etiqueta}>{T.idioma}</legend>
               <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
                 {IDIOMAS_REGALO.map((i) => (
-                  <label key={i} className={`flex cursor-pointer items-center gap-3 rounded-lg border bg-white px-4 py-3 text-[16px] [font-family:var(--fuente-cuerpo)] ${idioma === i ? "border-2 border-[#14140F]" : "border-[#D4D4CE]"}`}>
+                  <label key={i} lang={i === "ca" ? "ca" : undefined} className={`flex cursor-pointer items-center gap-3 rounded-lg border bg-white px-4 py-3 text-[16px] [font-family:var(--fuente-cuerpo)] ${idioma === i ? "border-2 border-[#14140F]" : "border-[#D4D4CE]"}`}>
                     <input type="radio" name="idioma" value={i} checked={idioma === i} onChange={() => setIdioma(i)} />
                     {T.idiomas[i]}
                   </label>
