@@ -11,7 +11,7 @@ import { esGenero } from '../v3/tipos.js';
 import { variantesDeTelefono } from '../whatsapp/telefonos.js';
 import { bienvenidaDeRegalo, idiomaDeRegalo, idiomaPorTelefono } from './regalo-arranque.js';
 import { extraerCodigo } from './regalo-codigo.js';
-import { AVISOS, TEXTOS_REGALO_BOT } from './regalo-textos.js';
+import { AVISOS, RECORDATORIO, tratoDeComprador } from './regalo-textos.js';
 import { zonaPorTelefono } from './regalo-zona.js';
 
 export type DepsRegalo = {
@@ -206,7 +206,11 @@ export async function recordarRegalos(
     }
     if (!tomado?.length) continue; // lo tomó otra corrida
 
-    const ok = await deps.mandarMail(n.familia_id, TEXTOS_REGALO_BOT.recordatorioAsunto(n.como_le_dicen), TEXTOS_REGALO_BOT.recordatorioCuerpo, r.narrador_id);
+    // De vos o de tú según desde dónde compró (familias.region). Si no se puede
+    // leer, vos: el texto de siempre.
+    const { data: familia } = await deps.db.from('familias').select('region').eq('id', n.familia_id).maybeSingle();
+    const textos = RECORDATORIO[tratoDeComprador((familia as { region?: unknown } | null)?.region)];
+    const ok = await deps.mandarMail(n.familia_id, textos.asunto(n.como_le_dicen), textos.cuerpo, r.narrador_id);
     if (!ok) {
       const { error: errorDevolver } = await deps.db.from('regalos')
         .update({ recordatorio_at: null }).eq('id', r.id).eq('recordatorio_at', marca);

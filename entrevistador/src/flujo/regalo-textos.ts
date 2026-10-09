@@ -16,6 +16,42 @@ export const TEXTOS_REGALO_BOT = {
   botonTarjeta: 'Ver la tarjeta',
 } as const;
 
+/** Cómo se le habla a quien compra: de vos si compra desde Argentina, de tú si desde España. */
+export type TratoComprador = 'vos' | 'tu';
+
+/** `familias.region` → trato. 'ES' da tú; cualquier otra cosa (AR, vacío), vos. */
+export function tratoDeComprador(region: unknown): TratoComprador {
+  return region === 'ES' ? 'tu' : 'vos';
+}
+
+/** El recordatorio de los 15 días a quien regaló, según su trato. */
+export const RECORDATORIO: Readonly<Record<TratoComprador, { asunto: (como: string) => string; cuerpo: string }>> = {
+  vos: { asunto: TEXTOS_REGALO_BOT.recordatorioAsunto, cuerpo: TEXTOS_REGALO_BOT.recordatorioCuerpo },
+  // PROPUESTA (regalo-idiomas)
+  tu: {
+    asunto: (como: string) => `${como} todavía no ha abierto su regalo`,
+    cuerpo: 'Pasaron unos días desde la fecha que pusiste y la tarjeta sigue sin usar. Si ya se la diste, quizá necesita una mano para escanearla. La tarjeta está en tu tablero.',
+  },
+};
+
+/**
+ * El mail «dijo que sí» de un regalo: su primera pregunta sale con el SÍ (no
+ * «mañana») y la V3 no tiene guion para repasar. El de lo que no es regalo
+ * sigue en mail/hitos.ts, sin cambios.
+ */
+export const HITO_ACEPTO_REGALO: Readonly<Record<TratoComprador, { asunto: (quien: string) => string; cuerpo: (quien: string) => string }>> = {
+  // PROPUESTA (regalo-idiomas)
+  vos: {
+    asunto: (quien: string) => `${quien} dijo que sí`,
+    cuerpo: (quien: string) => `${quien} dijo que sí y ya le mandamos la primera pregunta por WhatsApp. Lo que vaya contando lo vas a poder escuchar en tu tablero.`,
+  },
+  // PROPUESTA (regalo-idiomas)
+  tu: {
+    asunto: (quien: string) => `${quien} ha dicho que sí`,
+    cuerpo: (quien: string) => `${quien} ha dicho que sí y ya le hemos mandado la primera pregunta por WhatsApp. Lo que vaya contando lo podrás escuchar en tu tablero.`,
+  },
+};
+
 export type TextosArranque = { pedidoSi: string; aceptacion: string; noEntendi: string; noQuiere: string };
 export type TextosAvisos = { noExiste: string; usadoPorOtro: string };
 

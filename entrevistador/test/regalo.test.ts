@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { crearBaseFalsa } from './v3/base-falsa.js';
 vi.mock('../src/db/cliente.js', () => ({ db: {} }));
 import { canjearRegalo, mandarBienvenidaDeRegalo, recordarRegalos, reiniciarLimiteDeCodigos } from '../src/flujo/regalo.js';
-import { AVISOS, TEXTOS_REGALO_BOT } from '../src/flujo/regalo-textos.js';
+import { AVISOS, RECORDATORIO, TEXTOS_REGALO_BOT } from '../src/flujo/regalo-textos.js';
 import { bienvenidaDeRegalo } from '../src/flujo/regalo-arranque.js';
 
 const TEL = '+5491155551234';
@@ -241,8 +241,9 @@ describe('mandarBienvenidaDeRegalo', () => {
 
 describe('recordarRegalos', () => {
   const ahora = new Date('2026-12-20T12:00:00Z');
-  function armarRec(regalo: Record<string, unknown>, estado = 'regalo_pendiente') {
+  function armarRec(regalo: Record<string, unknown>, estado = 'regalo_pendiente', familias: Record<string, unknown>[] = []) {
     const base = crearBaseFalsa({
+      familias,
       narradores: [{ id: 'n1', familia_id: 'f1', nombre: 'Héctor', como_le_dicen: 'abuelo', telefono_whatsapp: null, estado, contexto: {} }],
       regalos: [{ id: 'r1', codigo: 'VF-7K3M2Q', narrador_id: 'n1', pedido_id: 'p1', quien_regala: 'Lucía', mensaje: 'x', usado_at: null, recordatorio_at: null, fecha_entrega: null, created_at: '2026-10-01T00:00:00Z', ...regalo }],
     });
@@ -260,6 +261,24 @@ describe('recordarRegalos', () => {
     const { deps } = armarRec({ fecha_entrega: '2026-12-05' });
     await recordarRegalos(deps, ahora);
     expect(deps.mandarMail).toHaveBeenCalledWith('f1', 'abuelo todavía no abrió su regalo', TEXTOS_REGALO_BOT.recordatorioCuerpo, 'n1');
+  });
+  it('quien compra en España (familia ES) lo recibe en tú', async () => {
+    const { deps } = armarRec({ fecha_entrega: '2026-12-05' }, 'regalo_pendiente', [{ id: 'f1', region: 'ES', email: 'a@b.es' }]);
+    expect(await recordarRegalos(deps, ahora)).toBe(1);
+    expect(deps.mandarMail).toHaveBeenCalledWith('f1', 'abuelo todavía no ha abierto su regalo',
+      'Pasaron unos días desde la fecha que pusiste y la tarjeta sigue sin usar. Si ya se la diste, quizá necesita una mano para escanearla. La tarjeta está en tu tablero.', 'n1');
+  });
+  it('familia AR o sin región: el texto aprobado de vos, sin cambios', async () => {
+    for (const familias of [[{ id: 'f1', region: 'AR', email: 'a@b.ar' }], [{ id: 'f1', region: null, email: 'a@b.ar' }], []]) {
+      const { deps } = armarRec({ fecha_entrega: '2026-12-05' }, 'regalo_pendiente', familias);
+      expect(await recordarRegalos(deps, ahora)).toBe(1);
+      expect(deps.mandarMail).toHaveBeenCalledWith('f1', 'abuelo todavía no abrió su regalo',
+        'Pasaron unos días desde la fecha que pusiste y la tarjeta sigue sin usar. Si ya se la diste, capaz necesita una mano para escanearla. La tarjeta está en tu tablero.', 'n1');
+    }
+  });
+  it('el de vos es el mismo texto aprobado (TEXTOS_REGALO_BOT)', () => {
+    expect(RECORDATORIO.vos.asunto('abuelo')).toBe(TEXTOS_REGALO_BOT.recordatorioAsunto('abuelo'));
+    expect(RECORDATORIO.vos.cuerpo).toBe(TEXTOS_REGALO_BOT.recordatorioCuerpo);
   });
   it('antes de los 15 días, no', async () => {
     const { deps } = armarRec({ fecha_entrega: '2026-12-10' });
