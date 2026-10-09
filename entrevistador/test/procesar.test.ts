@@ -27,7 +27,7 @@ const mocks = vi.hoisted(() => ({
   canjearRegalo: vi.fn(),
   mandarBienvenidaDeRegalo: vi.fn(),
   avisarSocios: vi.fn(),
-  estado: { narrador: null as any, enviosRepregunta: [] as any[], capturas: [] as any[], ultimoOrden: 30, tieneAdaptativas: true, ofertas: [] as any[], preguntasHoy: [] as any[], capituloVigente: 'La infancia' },
+  estado: { filaV3: null as any, narrador: null as any, enviosRepregunta: [] as any[], capturas: [] as any[], ultimoOrden: 30, tieneAdaptativas: true, ofertas: [] as any[], preguntasHoy: [] as any[], capituloVigente: 'La infancia' },
 }));
 
 // Cliente de base falso: un "constructor de consultas" encadenable que resuelve
@@ -36,6 +36,7 @@ vi.mock('../src/db/cliente.js', () => {
   function resolver(tabla: string, op: string, filtros: Record<string, any> = {}) {
     if (op === 'insert' && tabla === 'respuestas') return { data: { id: 'r-texto' }, error: null };
     if (op === 'insert' || op === 'update') return { data: null, error: null };
+    if (tabla === 'entrevistas_v3') return { data: mocks.estado.filaV3, error: null };
     if (tabla === 'narradores') return { data: mocks.estado.narrador };
     if (tabla === 'envios') {
       if (filtros.tipo === 'oferta_siguiente') return { data: mocks.estado.ofertas };
@@ -121,6 +122,7 @@ const insert = (tabla: string) => mocks.estado.capturas.find((c) => c.op === 'in
 
 beforeEach(() => {
   mocks.estado.narrador = null;
+  mocks.estado.filaV3 = null;
   mocks.estado.enviosRepregunta = [];
   mocks.estado.capturas = [];
   mocks.estado.ultimoOrden = 30;
@@ -793,6 +795,10 @@ describe('el SÍ de un regalo, en su idioma', () => {
       expect(clave).toContain('n1');
       expect(asunto).toBe(`Regalo frenado: Don Osvaldo dijo que sí pero ${motivo}`);
       expect(detalle).toContain('n1');
+      // El paso real para destrabarlo (revisión final, 09/10): completar la ficha y esperar a que escriba.
+      expect(detalle).toContain('narradores.contexto');
+      expect(detalle).toContain('Esperar a que el narrador escriba');
+      expect(detalle).toContain('npm run v3-pasar -- n1');
     });
   }
 
@@ -816,6 +822,134 @@ describe('el SÍ de un regalo, en su idioma', () => {
     expect(mocks.enviarTexto).toHaveBeenCalledWith(TEL, ARRANQUE.ca.noQuiere.replace('{{nombre}}', 'Don Osvaldo'));
     expect(update('narradores')?.p).not.toMatchObject({ estado: 'acepto' });
     expect(mocks.enviarPregunta).not.toHaveBeenCalled();
+  });
+});
+
+// ── El mail «dijo que sí» de un regalo sale después de la 1 (revisión final, 09/10) ──
+// Su texto dice «ya le mandamos la primera pregunta»: solo puede salir si salió.
+describe('el orden del mail «dijo que sí»', () => {
+  beforeEach(() => { mocks.estado.enviosRepregunta = [{ id: 'e-bienvenida' }]; }); // ya tuvo su bienvenida
+  const orden = (fn: { mock: { invocationCallOrder: number[] } }) => fn.mock.invocationCallOrder[0];
+
+  it('un regalo: primero la 1, después el mail', async () => {
+    mocks.estado.narrador = narradorEn('invitado', 0, { regalo: true, idioma: 'es-ES', genero: 'mujer' });
+    mocks.enviarPregunta.mockResolvedValue(true);
+    await procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'Vale', waMessageId: 'w' });
+    expect(mocks.enviarPregunta).toHaveBeenCalledWith(expect.objectContaining({ estado: 'acepto' }), 1, { plantilla: false });
+    expect(mocks.mandarHito).toHaveBeenCalledWith(expect.objectContaining({ id: 'n1' }), 'acepto');
+    expect(orden(mocks.enviarPregunta)).toBeLessThan(orden(mocks.mandarHito));
+  });
+
+  for (const [caso, preparar] of [
+    ['no sale (devuelve false)', () => mocks.enviarPregunta.mockResolvedValue(false)],
+    ['tira', () => mocks.enviarPregunta.mockRejectedValue(new Error('Meta caída'))],
+  ] as const) {
+    it(`un regalo cuya 1 ${caso}: no va el mail y queda en el log`, async () => {
+      mocks.estado.narrador = narradorEn('invitado', 0, { regalo: true, idioma: 'ca', genero: 'mujer' });
+      preparar();
+      const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+      try {
+        await procesarEntrante({ telefono: TEL, tipo: 'texto', texto: "D'acord", waMessageId: 'w' });
+        expect(error.mock.calls.some((c) => String(c[0]).includes('n1') && String(c[0]).includes('dijo que sí'))).toBe(true);
+      } finally {
+        error.mockRestore();
+      }
+      expect(update('narradores')?.p).toMatchObject({ estado: 'acepto' });
+      expect(mocks.mandarHito).not.toHaveBeenCalled();
+    });
+  }
+
+  it('un narrador que no es regalo sigue igual: el mail primero, después la 1 (ritmo seguido)', async () => {
+    mocks.estado.narrador = narradorEn('invitado', 0, { trato: 'vos', ritmo: 'seguido' });
+    mocks.enviarPregunta.mockResolvedValue(true);
+    await procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'Dale', waMessageId: 'w' });
+    expect(orden(mocks.mandarHito)).toBeLessThan(orden(mocks.enviarPregunta));
+  });
+
+  it('un narrador que no es regalo recibe el mail aunque la 1 no salga', async () => {
+    mocks.estado.narrador = narradorEn('invitado', 0, { trato: 'vos', ritmo: 'seguido' });
+    mocks.enviarPregunta.mockResolvedValue(false);
+    await procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'Dale', waMessageId: 'w' });
+    expect(mocks.mandarHito).toHaveBeenCalledWith(expect.objectContaining({ id: 'n1' }), 'acepto');
+  });
+});
+
+// ── Un regalo frenado arranca con su próximo mensaje (revisión final, 09/10) ──
+// En 'acepto' sin fila V3, cualquier mensaje abre la ventana: se intenta la 1
+// como texto libre. Si la ficha sigue incompleta, altaNuevo lo vuelve a frenar.
+describe('un regalo frenado en acepto', () => {
+  const frenado = (extra: Record<string, any> = {}) => narradorEn('acepto', 0, { regalo: true, idioma: 'es-ES', genero: 'varon', ...extra });
+  const callado = async (fn: () => Promise<unknown>) => {
+    const aviso = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      await fn();
+    } finally {
+      aviso.mockRestore();
+      error.mockRestore();
+    }
+  };
+
+  it('cualquier texto intenta la 1 con la ventana abierta y, si sale, manda el mail «dijo que sí»', async () => {
+    mocks.estado.narrador = frenado();
+    mocks.enviarPregunta.mockResolvedValue(true);
+    await callado(() => procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'hola?', waMessageId: 'w' }));
+    expect(mocks.enviarPregunta).toHaveBeenCalledTimes(1);
+    expect(mocks.enviarPregunta).toHaveBeenCalledWith(expect.objectContaining({ id: 'n1', estado: 'acepto' }), 1, { plantilla: false });
+    expect(mocks.mandarHito).toHaveBeenCalledWith(expect.objectContaining({ id: 'n1' }), 'acepto');
+    expect(mocks.enviarTexto).not.toHaveBeenCalled();
+  });
+
+  it('un audio también la intenta', async () => {
+    mocks.estado.narrador = frenado();
+    mocks.enviarPregunta.mockResolvedValue(true);
+    await callado(() => procesarEntrante({ telefono: TEL, tipo: 'audio', mediaId: 'm1', waMessageId: 'w' } as MensajeEntrante));
+    expect(mocks.enviarPregunta).toHaveBeenCalledWith(expect.objectContaining({ id: 'n1' }), 1, { plantilla: false });
+  });
+
+  it('una foto la intenta y además se guarda como siempre', async () => {
+    mocks.estado.narrador = frenado();
+    mocks.enviarPregunta.mockResolvedValue(true);
+    await callado(() => procesarEntrante({ telefono: TEL, tipo: 'imagen', mediaId: 'img1', mimeType: 'image/jpeg', waMessageId: 'w' } as MensajeEntrante));
+    expect(mocks.enviarPregunta).toHaveBeenCalledWith(expect.objectContaining({ id: 'n1' }), 1, { plantilla: false });
+    expect(mocks.recibirFotoFamiliar).toHaveBeenCalled();
+  });
+
+  it('si la ficha sigue incompleta (la 1 no sale), no va el mail y el mensaje se ignora como hoy', async () => {
+    mocks.estado.narrador = frenado({ genero: undefined });
+    mocks.enviarPregunta.mockResolvedValue(false);
+    await callado(() => procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'hola?', waMessageId: 'w' }));
+    expect(mocks.enviarPregunta).toHaveBeenCalledTimes(1);
+    expect(mocks.mandarHito).not.toHaveBeenCalled();
+    expect(mocks.enviarTexto).not.toHaveBeenCalled();
+  });
+
+  it('si la 1 tira, el entrante no se cae ni va el mail', async () => {
+    mocks.estado.narrador = frenado();
+    mocks.enviarPregunta.mockRejectedValue(new Error('Meta caída'));
+    await callado(() => expect(procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'hola?', waMessageId: 'w' })).resolves.toBeUndefined());
+    expect(mocks.mandarHito).not.toHaveBeenCalled();
+  });
+
+  it('un regalo que ya tiene su fila V3 no la intenta de nuevo', async () => {
+    mocks.estado.narrador = frenado();
+    mocks.estado.filaV3 = { narrador_id: 'n1' };
+    await callado(() => procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'hola?', waMessageId: 'w' }));
+    expect(mocks.enviarPregunta).not.toHaveBeenCalled();
+  });
+
+  it('un acepto que no es regalo sigue ignorando los mensajes', async () => {
+    mocks.estado.narrador = narradorEn('acepto', 0, { trato: 'vos', genero: 'varon' });
+    const aviso = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      await procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'hola?', waMessageId: 'w' });
+      expect(aviso).toHaveBeenCalledWith(expect.stringContaining("'acepto'"));
+    } finally {
+      aviso.mockRestore();
+    }
+    expect(mocks.enviarPregunta).not.toHaveBeenCalled();
+    expect(mocks.mandarHito).not.toHaveBeenCalled();
+    expect(mocks.enviarTexto).not.toHaveBeenCalled();
   });
 });
 

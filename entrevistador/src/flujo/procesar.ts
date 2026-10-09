@@ -162,6 +162,11 @@ export async function procesarEntrante(m: MensajeEntrante): Promise<void> {
     return;
   }
 
+  // Gift card: un regalo frenado en 'acepto' arranca con cualquier mensaje suyo
+  // (la ventana está abierta). Después el mensaje sigue como siempre: una foto
+  // se guarda; un texto o un audio en 'acepto' se ignora.
+  await recuperarRegaloFrenado(narrador);
+
   // Una foto por WhatsApp se guarda SIEMPRE, en los dos productos (22/09).
   // En viaje va al álbum del día (la etapa vigente); en el Familiar, al capítulo
   // de la pregunta que está contestando. Antes de hoy la del Familiar se perdía.
@@ -254,8 +259,9 @@ async function manejarConsentimiento(narrador: Narrador, m: MensajeEntrante): Pr
   await db.from('narradores').update(cambios).eq('id', narrador.id);
   // Nunca prometer una pregunta que no va a llegar: si el alta V3 del regalo se
   // va a frenar (sin género, idioma desconocido), el SÍ queda anotado pero no
-  // sale la aceptación ni el mail «ya le mandamos la primera pregunta». Lo
-  // arregla una persona; después la 1 sale por el camino de siempre.
+  // sale la aceptación ni el mail «ya le mandamos la primera pregunta». Una
+  // persona completa la ficha; la 1 sale con el próximo mensaje del narrador
+  // (recuperarRegaloFrenado) o, sin mensaje, por el scheduler.
   const freno = esRegalo ? motivoDeFrenoDelRegalo(narrador.contexto) : null;
   if (freno) {
     await avisarSocios(
@@ -263,7 +269,17 @@ async function manejarConsentimiento(narrador: Narrador, m: MensajeEntrante): Pr
       `Regalo frenado: ${narrador.como_le_dicen} dijo que sí pero ${freno === 'no tiene género' ? 'falta el género' : 'el idioma no es válido'}`,
       `El narrador ${narrador.id} (regalo) dijo que sí, pero su entrevista V3 está frenada: ${freno}. `
         + "Quedó en 'acepto' con su permiso anotado. No se le mandó la aceptación ni la primera pregunta, "
-        + "y a quien regaló no le llegó el mail «dijo que sí». Hay que completar la ficha y mandar las dos cosas a mano.",
+        + 'y a quien regaló no le llegó el mail «dijo que sí». '
+        + 'QUÉ HACER: (1) Completar la ficha en narradores.contexto: genero (varon | mujer | otro) y, si el idioma está mal, '
+        + 'idioma ("es-ES", "ca", o sacarlo para es-AR). (2) Esperar a que el narrador escriba: con cualquier mensaje suyo '
+        + 'el bot le manda la primera pregunta en ese momento y, si sale, el mail «dijo que sí» a quien regaló. '
+        + 'Si no escribe, se le puede escribir a mano para que conteste. '
+        + 'Sin mensaje suyo y con la ficha completa, el scheduler lo intenta a su hora preferida: en es-AR la primera pregunta '
+        + 'sale por plantilla; en es-ES y ca no hay plantilla V3 aprobada y queda en la cola hasta que el narrador escriba. '
+        + 'Por ese camino el mail «dijo que sí» no sale solo: mandarlo a mano cuando la pregunta haya salido. '
+        + `También sirve npm run v3-pasar -- ${narrador.id} --genero <varon|mujer|otro> [--idioma es-ES|ca] --aplicar `
+        + "(acepta narradores en 'acepto'), pero no completa contexto.genero y no manda nada, ni el mail: crea la fila V3 "
+        + 'y la primera pregunta sale en su tanda, con la misma espera por la plantilla en es-ES y ca. Mejor completar la ficha.',
     );
     return;
   }
@@ -276,6 +292,14 @@ async function manejarConsentimiento(narrador: Narrador, m: MensajeEntrante): Pr
       ? textoDeArranque(idiomaRegalo, 'aceptacion', narrador.como_le_dicen)
       : bienvenidaAceptacion(narrador.como_le_dicen, await tratoDe(narrador), { viaje: esViaje(narrador.contexto), enseguida }),
   );
+  // Un regalo: el mail «dijo que sí» dice «ya le mandamos la primera pregunta»,
+  // así que sale DESPUÉS de la 1, y solo si salió. Si no sale, el narrador
+  // queda en 'acepto' sin fila V3 y lo retoma recuperarRegaloFrenado con su
+  // próximo mensaje; el mail sale entonces.
+  if (esRegalo) {
+    await primeraDelRegalo(narrador, 'consentimiento');
+    return;
+  }
   await mandarHito(narrador, 'acepto');
   // Ritmo «apenas responde» (pedido de Joaquín, 23/09): la primera pregunta sale
   // con el SÍ. Antes esperaba al scheduler, o sea hasta 24 horas — y en una
@@ -288,6 +312,40 @@ async function manejarConsentimiento(narrador: Narrador, m: MensajeEntrante): Pr
       console.error(`consentimiento: no pude mandar la 1 enseguida a ${narrador.id}:`, err);
     }
   }
+}
+
+/**
+ * La primera pregunta de un regalo (alta V3 con la ventana abierta) y, solo si
+ * salió, el mail «dijo que sí» a quien regaló (dice que la 1 ya salió;
+ * mandarHito no lo repite). Si no sale o tira, queda en el log y no va el mail.
+ */
+async function primeraDelRegalo(narrador: Narrador, desde: string): Promise<boolean> {
+  let salio = false;
+  try {
+    salio = await enviarPregunta({ ...narrador, estado: 'acepto' }, 1, { plantilla: false });
+  } catch (err) {
+    console.error(`${desde}: no pude mandar la 1 del regalo ${narrador.id}; no va el mail «dijo que sí»:`, err);
+    return false;
+  }
+  if (!salio) {
+    console.error(`${desde}: la 1 del regalo ${narrador.id} no salió (alta V3 frenada); no va el mail «dijo que sí»`);
+    return false;
+  }
+  await mandarHito(narrador, 'acepto');
+  return true;
+}
+
+/**
+ * Un regalo que dijo que sí pero quedó frenado: en 'acepto' y sin fila V3 (la
+ * ficha estaba incompleta, o la 1 falló). Cualquier mensaje suyo abre la
+ * ventana de 24 h, así que se intenta el alta V3 ahora, como texto libre: si la
+ * ficha ya se completó, sale OR1; si no, altaNuevo lo vuelve a frenar (su aviso
+ * a los socios sale una vez por día). Un 'acepto' que no es regalo no pasa por acá.
+ */
+async function recuperarRegaloFrenado(narrador: Narrador): Promise<void> {
+  if (narrador.estado !== 'acepto' || narrador.contexto?.regalo !== true) return;
+  if (await esNarradorV3(db, narrador.id)) return;
+  await primeraDelRegalo(narrador, 'regalo frenado');
 }
 
 // Paso 3: pausado → activo con cualquier mensaje.
