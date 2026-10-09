@@ -22,7 +22,7 @@ const pedido = (extra: Partial<PedidoRegalo> = {}): PedidoRegalo => ({
   ...extra,
 });
 
-const OK = { urlPago: "https://pago.example/abc", narradorId: "n-1", tokenFotos: "tok+/=", codigo: "VF-7K3M2Q" };
+const OK = { urlPago: "https://pago.example/abc", narradorId: "n-1", tokenFotos: "tok+/=" };
 
 function respuesta(cuerpo: unknown, status = 200): Response {
   return new Response(JSON.stringify(cuerpo), { status, headers: { "Content-Type": "application/json" } });
@@ -133,5 +133,79 @@ describe("enviarRegalo", () => {
     const red = (async () => { throw new TypeError("red"); }) as unknown as typeof globalThis.fetch;
     expect(await enviarRegalo(pedido(), { fetch: red, asignar })).toEqual({ error: VOS.errorPago });
     expect(asignar).not.toHaveBeenCalled();
+  });
+});
+
+// 09/10 (antes de vender): el regalo sin pagar se retoma solo con la prueba
+// de la compra anterior. El cliente guarda { narradorId, tokenFotos } en
+// sessionStorage antes de ir al pago y la manda como regalo.retomar.
+describe("enviarRegalo: retomar un regalo sin pagar", () => {
+  const CLAVE = "vitacora-regalo-pendiente";
+
+  function almacenFalso(inicial: Record<string, string> = {}) {
+    const datos = new Map(Object.entries(inicial));
+    return {
+      datos,
+      getItem: vi.fn((k: string) => datos.get(k) ?? null),
+      setItem: vi.fn((k: string, v: string) => void datos.set(k, v)),
+    };
+  }
+
+  it("después de una compra que sale bien guarda narradorId y tokenFotos, antes de ir al pago", async () => {
+    const d = dobles();
+    const almacen = almacenFalso();
+    await enviarRegalo(pedido(), { ...d, almacen: () => almacen });
+    expect(JSON.parse(almacen.datos.get(CLAVE)!)).toEqual({ narradorId: "n-1", tokenFotos: "tok+/=" });
+    expect(almacen.setItem.mock.invocationCallOrder[0]).toBeLessThan(d.asignar.mock.invocationCallOrder[0]);
+  });
+
+  it("el envío siguiente manda lo guardado como regalo.retomar", async () => {
+    const almacen = almacenFalso();
+    const primero = dobles();
+    await enviarRegalo(pedido(), { ...primero, almacen: () => almacen });
+    const segundo = dobles();
+    await enviarRegalo(pedido({ mensaje: "Otro mensaje" }), { ...segundo, almacen: () => almacen });
+    const cuerpo = JSON.parse(String(segundo.llamadas[0].init?.body));
+    expect(cuerpo.regalo.retomar).toEqual({ narradorId: "n-1", token: "tok+/=" });
+    expect(cuerpo.regalo.mensaje).toBe("Otro mensaje");
+  });
+
+  it("sin nada guardado no manda retomar", async () => {
+    const d = dobles();
+    await enviarRegalo(pedido(), { ...d, almacen: () => almacenFalso() });
+    expect(JSON.parse(String(d.llamadas[0].init?.body)).regalo).not.toHaveProperty("retomar");
+  });
+
+  it("lo guardado roto o con otra forma se ignora", async () => {
+    for (const roto of ["{no es json", JSON.stringify({ narradorId: 3 }), JSON.stringify("x"), "null"]) {
+      const d = dobles();
+      await enviarRegalo(pedido(), { ...d, almacen: () => almacenFalso({ [CLAVE]: roto }) });
+      expect(JSON.parse(String(d.llamadas[0].init?.body)).regalo).not.toHaveProperty("retomar");
+      expect(d.asignar).toHaveBeenCalledWith(OK.urlPago);
+    }
+  });
+
+  it("si la compra falla, no guarda nada", async () => {
+    const almacen = almacenFalso();
+    const fetch = (async () => respuesta({ error: "No." }, 400)) as unknown as typeof globalThis.fetch;
+    await enviarRegalo(pedido(), { fetch, asignar: vi.fn(), almacen: () => almacen });
+    expect(almacen.setItem).not.toHaveBeenCalled();
+  });
+
+  it("si el almacenamiento tira error (al pedirlo, al leer o al escribir), la compra sigue igual", async () => {
+    const roto = () => {
+      throw new DOMException("bloqueado", "SecurityError");
+    };
+    const casos = [
+      roto,
+      () => ({ getItem: roto, setItem: roto }),
+    ];
+    for (const almacen of casos) {
+      const d = dobles();
+      const r = await enviarRegalo(pedido(), { ...d, almacen });
+      expect(r).toEqual({ ok: true });
+      expect(JSON.parse(String(d.llamadas[0].init?.body)).regalo).not.toHaveProperty("retomar");
+      expect(d.asignar).toHaveBeenCalledWith(OK.urlPago);
+    }
   });
 });
