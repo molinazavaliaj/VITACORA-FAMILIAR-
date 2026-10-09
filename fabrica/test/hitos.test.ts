@@ -113,7 +113,8 @@ describe('"terminó de contar" de un narrador V3 (Naza, 08/10)', () => {
         expect(t, `${h} ${v}`).not.toMatch(/nombres|orden de los capítulos|propuesta|proponemos/);
       }
     }
-    // El libro listo no cambia con la variante.
-    expect(cuerpoHito('libro_listo', { comoLeDicen: 'Babu', enlace: 'https://x', variante: 'vos' })).toBe(cuerpoHito('libro_listo', { comoLeDicen: 'Babu', enlace: 'https://x' }));
+    // El libro listo: con vos cambia solo «Entrá»; con tú, el de siempre.
+    expect(cuerpoHito('libro_listo', { comoLeDicen: 'Babu', enlace: 'https://x', variante: 'vos' })).toBe(cuerpoHito('libro_listo', { comoLeDicen: 'Babu', enlace: 'https://x' }).replace('Entra cuando', 'Entrá cuando'));
+    expect(cuerpoHito('libro_listo', { comoLeDicen: 'Babu', enlace: 'https://x', variante: 'tu' })).toBe(cuerpoHito('libro_listo', { comoLeDicen: 'Babu', enlace: 'https://x' }));
   });
 });

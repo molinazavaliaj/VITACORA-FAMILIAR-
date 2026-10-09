@@ -225,6 +225,15 @@ const TEXTOS_V3: Record<VarianteV3, Partial<Record<Hito, TextoHito>>> = {
       ],
       boton: 'Cerrar el libro',
     },
+    // Este no es solo V3: va con vos a toda familia de Argentina (familias.region = 'AR'; Naza, 09/10).
+    libro_listo: {
+      asunto: (quien) => `El libro de tu ${quien} está listo`,
+      parrafos: (quien) => [
+        `Ya está. El libro de tu ${quien}, escrito con sus palabras, y sus mejores frases con su voz real, para escuchar cuando quieras.`,
+        'Queda ahí para siempre. Entrá cuando quieras a leerlo, escucharlo o descargarlo.',
+      ],
+      boton: 'Leer el libro',
+    },
     cierre_automatico: {
       asunto: (quien) => `Cerramos el libro de tu ${quien} por vos`,
       parrafos: (quien) => [

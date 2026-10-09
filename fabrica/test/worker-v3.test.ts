@@ -175,3 +175,26 @@ describe('worker: el mail "terminó de contar" de un narrador V3', () => {
     m.idiomasV3.mockResolvedValue(new Map());
   });
 });
+
+describe('worker: "el libro está listo" con vos para Argentina (V3 o no)', () => {
+  it('familia de Argentina con vos; de España, el de siempre', async () => {
+    m.idiomasV3.mockResolvedValue(new Map());
+    m.narradoresConV3.mockResolvedValue(new Set());
+    const t = {
+      narradores: [
+        { id: 'ar', estado: 'activo', como_le_dicen: 'papá', familia_id: 'fa' },
+        { id: 'es', estado: 'activo', como_le_dicen: 'mamá', familia_id: 'fe' },
+      ],
+      pedidos: [
+        { id: 'p1', narrador_id: 'ar', estado: 'entregado' },
+        { id: 'p2', narrador_id: 'es', estado: 'entregado' },
+      ],
+      familias: [{ id: 'fa', email: 'a@ejemplo.com', region: 'AR' }, { id: 'fe', email: 'e@ejemplo.com', region: 'ES' }],
+    };
+    const { db } = base(t as never);
+    m.obtenerClienteDb.mockReturnValue(db);
+    await tick();
+    const listos = m.enviarMailHito.mock.calls.map((c) => (c as unknown as [{ hito: string; para: string; variante?: string }])[0]).filter((o) => o.hito === 'libro_listo');
+    expect(listos.map((o) => [o.para, o.variante])).toEqual([['a@ejemplo.com', 'vos'], ['e@ejemplo.com', undefined]]);
+  });
+});

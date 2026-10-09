@@ -472,19 +472,21 @@ async function mandarHito(
 
   const { data: familia, error: errorFamilia } = await db
     .from('familias')
-    .select('email')
+    .select('email, region')
     .eq('id', narrador.familia_id)
     .single();
   if (errorFamilia || !familia) {
     throw new Error(`No se pudo leer la familia de ${narrador.id}: ${errorFamilia?.message ?? 'sin datos'}`);
   }
 
+  // "El libro está listo" va con vos a toda familia de Argentina, V3 o no (Naza, 09/10).
+  const trato = variante ?? (hito === 'libro_listo' && (familia as { region?: string }).region === 'AR' ? 'vos' : undefined);
   const enviado = await enviarMailHito({
     hito,
     para: (familia as { email: string }).email,
     comoLeDicen: narrador.como_le_dicen,
     enlace,
-    ...(variante ? { variante } : {}),
+    ...(trato ? { variante: trato } : {}),
   });
 
   if (enviado) {
