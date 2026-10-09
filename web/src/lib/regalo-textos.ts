@@ -110,7 +110,7 @@ const ABUELO: Record<IdiomaRegalo, TextosAbuelo> = {
     escucharAudioDe: (quien: string) => `Escuchar el audio de ${quien}`,
   },
 
-  // PROPUESTA (regalo-idiomas, Task 0)
+  // Aprobados por Naza el 09/10 (regalo-idiomas)
   ca: {
     tapaSlogan: "A cada família hi ha un llibre per escriure.",
     esUnRegalo: "Això és un regal.",
@@ -129,7 +129,7 @@ const ABUELO: Record<IdiomaRegalo, TextosAbuelo> = {
   },
 };
 
-// PROPUESTA (regalo-idiomas, Task 0): la pregunta del idioma y sus opciones, iguales en vos y en tú.
+// Aprobados por Naza el 09/10 (regalo-idiomas): la pregunta del idioma y sus opciones, iguales en vos y en tú.
 const PREGUNTA_IDIOMA = {
   idioma: "¿En qué idioma le hablamos?",
   idiomas: {
@@ -198,7 +198,7 @@ const COMPRADOR: Record<TratoComprador, TextosComprador> = {
     ...PREGUNTA_IDIOMA,
   },
 
-  // PROPUESTA (regalo-idiomas, Task 0): cada texto de vos pasado a tú de España, con el mismo sentido.
+  // Aprobados por Naza el 09/10 (regalo-idiomas): cada texto de vos pasado a tú de España, con el mismo sentido.
   tu: {
     mailAsunto: (como: string) => `Tu regalo para ${como} está listo`,
     mailCuerpo: (como: string) =>

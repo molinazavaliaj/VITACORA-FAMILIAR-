@@ -266,7 +266,7 @@ describe('recordarRegalos', () => {
     const { deps } = armarRec({ fecha_entrega: '2026-12-05' }, 'regalo_pendiente', [{ id: 'f1', region: 'ES', email: 'a@b.es' }]);
     expect(await recordarRegalos(deps, ahora)).toBe(1);
     expect(deps.mandarMail).toHaveBeenCalledWith('f1', 'abuelo todavía no ha abierto su regalo',
-      'Pasaron unos días desde la fecha que pusiste y la tarjeta sigue sin usar. Si ya se la diste, quizá necesita una mano para escanearla. La tarjeta está en tu tablero.', 'n1');
+      'Han pasado unos días desde la fecha que pusiste y la tarjeta sigue sin usar. Si ya se la diste, quizá necesita una mano para escanearla. La tarjeta está en tu tablero.', 'n1');
   });
   it('familia AR o sin región: el texto aprobado de vos, sin cambios', async () => {
     for (const familias of [[{ id: 'f1', region: 'AR', email: 'a@b.ar' }], [{ id: 'f1', region: null, email: 'a@b.ar' }], []]) {

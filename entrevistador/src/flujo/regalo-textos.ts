@@ -27,10 +27,10 @@ export function tratoDeComprador(region: unknown): TratoComprador {
 /** El recordatorio de los 15 días a quien regaló, según su trato. */
 export const RECORDATORIO: Readonly<Record<TratoComprador, { asunto: (como: string) => string; cuerpo: string }>> = {
   vos: { asunto: TEXTOS_REGALO_BOT.recordatorioAsunto, cuerpo: TEXTOS_REGALO_BOT.recordatorioCuerpo },
-  // PROPUESTA (regalo-idiomas)
+  // Aprobados por Naza el 09/10 (regalo-idiomas)
   tu: {
     asunto: (como: string) => `${como} todavía no ha abierto su regalo`,
-    cuerpo: 'Pasaron unos días desde la fecha que pusiste y la tarjeta sigue sin usar. Si ya se la diste, quizá necesita una mano para escanearla. La tarjeta está en tu tablero.',
+    cuerpo: 'Han pasado unos días desde la fecha que pusiste y la tarjeta sigue sin usar. Si ya se la diste, quizá necesita una mano para escanearla. La tarjeta está en tu tablero.',
   },
 };
 
@@ -40,12 +40,12 @@ export const RECORDATORIO: Readonly<Record<TratoComprador, { asunto: (como: stri
  * sigue en mail/hitos.ts, sin cambios.
  */
 export const HITO_ACEPTO_REGALO: Readonly<Record<TratoComprador, { asunto: (quien: string) => string; cuerpo: (quien: string) => string }>> = {
-  // PROPUESTA (regalo-idiomas)
+  // Aprobados por Naza el 09/10 (regalo-idiomas)
   vos: {
     asunto: (quien: string) => `${quien} dijo que sí`,
     cuerpo: (quien: string) => `${quien} dijo que sí y ya le mandamos la primera pregunta por WhatsApp. Lo que vaya contando lo vas a poder escuchar en tu tablero.`,
   },
-  // PROPUESTA (regalo-idiomas)
+  // Aprobados por Naza el 09/10 (regalo-idiomas)
   tu: {
     asunto: (quien: string) => `${quien} ha dicho que sí`,
     cuerpo: (quien: string) => `${quien} ha dicho que sí y ya le hemos mandado la primera pregunta por WhatsApp. Lo que vaya contando lo podrás escuchar en tu tablero.`,
