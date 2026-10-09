@@ -136,7 +136,9 @@ function todosLosStrings(v: unknown): string[] {
 
 const IDIOMAS: IdiomaRegalo[] = ["es-AR", "es-ES", "ca"];
 const TRATOS: TratoComprador[] = ["vos", "tu"];
-const PALABRAS_DE_VOS = /\b(vos|querés|contás|mandá|apuntá|decís)\b/i;
+// \b de JS no ve las letras con tilde: se usan lookarounds de letra Unicode.
+const PALABRAS_DE_VOS =
+  /(?<!\p{L})(vos|querés|contás|mandá|apuntá|decís|podés|aceptás|probá|revisalo|elegí|grabale|descargá|regalás|imprimila|mandala)(?!\p{L})/iu;
 
 describe("textos del regalo: es-AR y vos quedan como los aprobó Naza", () => {
   it("textosAbuelo('es-AR') es exactamente lo aprobado", () => {
@@ -155,9 +157,12 @@ describe("textos del regalo: es-AR y vos quedan como los aprobó Naza", () => {
   });
 
   it("TEXTOS_REGALO sigue siendo abuelo es-AR más comprador vos", () => {
-    expect(aplanar(TEXTOS_REGALO)).toEqual(
-      aplanar({ ...textosAbuelo("es-AR"), ...textosComprador("vos") }),
-    );
+    expect(aplanar(TEXTOS_REGALO)).toEqual({
+      ...ABUELO_AR,
+      ...COMPRADOR_VOS,
+      idioma: "¿En qué idioma le hablamos?",
+      idiomas: { "es-AR": "Castellano de Argentina", "es-ES": "Castellano de España", ca: "Català" },
+    });
   });
 });
 
@@ -186,6 +191,16 @@ describe("textos del regalo: las mismas claves en todos los idiomas y tratos", (
 });
 
 describe("textos del regalo: es-ES, ca y tú no hablan de vos", () => {
+  it("el filtro de vos agarra las formas con tilde y deja pasar las de tú", () => {
+    expect("mandá un WhatsApp").toMatch(PALABRAS_DE_VOS);
+    expect("Probá de nuevo.").toMatch(PALABRAS_DE_VOS);
+    expect("Revisalo, ahí te llega.").toMatch(PALABRAS_DE_VOS);
+    expect("Vos le contestás").toMatch(PALABRAS_DE_VOS);
+    expect("manda un WhatsApp").not.toMatch(PALABRAS_DE_VOS);
+    expect("Prueba de nuevo.").not.toMatch(PALABRAS_DE_VOS);
+    expect("Revísalo, ahí te llega.").not.toMatch(PALABRAS_DE_VOS);
+  });
+
   it("ningún texto nuevo usa formas de vos", () => {
     const nuevos = [
       ...todosLosStrings(aplanar(textosAbuelo("es-ES"))),

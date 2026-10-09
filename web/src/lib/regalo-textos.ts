@@ -137,7 +137,7 @@ const PREGUNTA_IDIOMA = {
     "es-ES": "Castellano de España",
     ca: "Català",
   },
-};
+} as const;
 
 const COMPRADOR: Record<TratoComprador, TextosComprador> = {
   vos: {
