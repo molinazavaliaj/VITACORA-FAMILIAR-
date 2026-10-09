@@ -13,6 +13,7 @@ const estado = vi.hoisted(() => ({
   codigos: [] as string[],
   qrs: [] as string[],
   imagen: null as unknown,
+  tratos: [] as string[],
 }));
 
 vi.mock("next/font/google", () => {
@@ -34,6 +35,14 @@ vi.mock("next/og", () => ({
     constructor(public elemento: unknown) { estado.imagen = elemento; }
   },
 }));
+// Los botones de pantalla dicen lo mismo en vos y en tú: se mira con qué trato se pidieron.
+vi.mock("@/lib/regalo-textos", async (importOriginal) => {
+  const real = await importOriginal<typeof import("../src/lib/regalo-textos")>();
+  return {
+    ...real,
+    textosComprador: (trato: Parameters<typeof real.textosComprador>[0]) => { estado.tratos.push(trato); return real.textosComprador(trato); },
+  };
+});
 vi.mock("@/lib/qr", () => ({
   qrDataUri: async (texto: string) => { estado.qrs.push(texto); return "data:image/png;base64,QRFALSO"; },
   urlRegalo: (codigo: string) => `https://www.vitacorafamiliar.com/regalo/${codigo}`,
@@ -50,6 +59,7 @@ const regalo = (extra: Partial<RegaloPublico> = {}): RegaloPublico => ({
   nombre: "Osvaldo",
   comoLeDicen: "abuelo",
   idioma: "es-AR",
+  region: "AR",
   quienRegala: "Lucía",
   mensaje: "Quiero tu historia para siempre.",
   tieneAudio: false,
@@ -70,6 +80,7 @@ describe("la tarjeta imprimible", () => {
     estado.numero = { digitos: "5491100000000", legible: "+54 9 11 0000 0000" };
     estado.codigos = [];
     estado.qrs = [];
+    estado.tratos = [];
   });
 
   it("lleva la tapa, el mensaje, las líneas aprobadas, el QR y el código", async () => {
@@ -136,14 +147,23 @@ describe("la tarjeta imprimible", () => {
     expect(html).toContain('aria-label="Lado de afuera"');
   });
 
-  it("los botones de pantalla van con el trato del idioma del regalo: tú para ca y es-ES", async () => {
-    for (const idioma of ["ca", "es-ES"] as const) {
-      estado.regalo = regalo({ idioma });
+  // Revisión final (09/10): los botones los lee quien compra, así que siguen su
+  // región (familias.region), no el idioma del regalo.
+  for (const [region, idioma, trato] of [
+    ["ES", "es-AR", "tu"],
+    ["ES", "ca", "tu"],
+    ["AR", "ca", "vos"],
+    ["AR", "es-ES", "vos"],
+    [null, "es-ES", "vos"],
+  ] as const) {
+    it(`los botones de pantalla siguen a quien compra: región ${region ?? "sin dato"}, regalo en ${idioma} → ${trato}`, async () => {
+      estado.regalo = regalo({ idioma, region });
       const html = await render();
-      expect(html).toContain(textosComprador("tu").botonImprimir);
-      expect(html).toContain(textosComprador("tu").botonImagen);
-    }
-  });
+      expect(estado.tratos).toEqual([trato]);
+      expect(html).toContain(textosComprador(trato).botonImprimir);
+      expect(html).toContain(textosComprador(trato).botonImagen);
+    });
+  }
 
   it("es-AR sigue idéntica a hoy, con las frases aprobadas literales", async () => {
     const html = await render();

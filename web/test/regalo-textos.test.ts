@@ -4,7 +4,6 @@ import {
   idiomaPorDefecto,
   textosAbuelo,
   textosComprador,
-  tratoDeIdioma,
   tratoDeRegion,
   type IdiomaRegalo,
   type TratoComprador,
@@ -161,10 +160,8 @@ describe("textos del regalo: es-AR y vos quedan como los aprobó Naza", () => {
     expect("TEXTOS_REGALO" in modulo).toBe(false);
   });
 
-  it("tratoDeIdioma: es-AR habla de vos; es-ES y ca, de tú", () => {
-    expect(tratoDeIdioma("es-AR")).toBe("vos");
-    expect(tratoDeIdioma("es-ES")).toBe("tu");
-    expect(tratoDeIdioma("ca")).toBe("tu");
+  it("tratoDeIdioma ya no existe: el trato de quien compra sale de su región, no del idioma del regalo", () => {
+    expect("tratoDeIdioma" in modulo).toBe(false);
   });
 });
 

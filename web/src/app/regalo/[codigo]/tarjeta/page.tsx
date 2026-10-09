@@ -3,7 +3,7 @@ import { Playfair_Display, Archivo, Source_Serif_4 } from "next/font/google";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { leerRegalo, numeroPublico } from "@/lib/regalo-datos";
 import { qrDataUri, urlRegalo } from "@/lib/qr";
-import { textosAbuelo, textosComprador, tratoDeIdioma } from "@/lib/regalo-textos";
+import { textosAbuelo, textosComprador, tratoDeRegion } from "@/lib/regalo-textos";
 import { largoEnTarjeta, numeroSinCortes } from "@/lib/regalo";
 import { Toroide } from "../../../marca";
 import { BotonImprimir } from "./imprimir";
@@ -107,9 +107,9 @@ export default async function PaginaTarjeta({ params }: { params: Promise<{ codi
   const numero = numeroPublico();
   const qr = await qrDataUri(urlRegalo(regalo.codigo));
   // Lo impreso va en el idioma del abuelo. Los botones de pantalla los lee quien
-  // compra, pero la página no sabe quién la mira: van con el trato del idioma.
+  // compra: van con el trato de su región (familias.region; sin región, AR).
   const textos = textosAbuelo(regalo.idioma);
-  const botones = textosComprador(tratoDeIdioma(regalo.idioma));
+  const botones = textosComprador(tratoDeRegion(regalo.region ?? "AR"));
   // Los botones y los nombres de las hojas («Lado de afuera») son de pantalla y
   // están en castellano: la página va en "es" y solo la tarjeta, en su idioma.
   const langTarjeta = regalo.idioma === "ca" ? "ca" : "es";
