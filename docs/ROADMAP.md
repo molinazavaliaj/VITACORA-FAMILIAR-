@@ -547,7 +547,7 @@ rama `regalo` (PR #2). Pase: `docs/regalo/handoff-2026-10-08.md`.
 | # | Qué | Quién | Estado |
 |---|---|---|---|
 | R.1 | Revisar la migración `20261008000000_regalos.sql` y la sección «Gift card» de CONTRATO | **J** | ☐ |
-| R.2 | Aplicar la migración en Supabase y cargar `WHATSAPP_NUMERO_PUBLICO` en Vercel | **N** | ☐ |
+| R.2 | Aplicar la migración en Supabase (✅ 09/10) y cargar `WHATSAPP_NUMERO_PUBLICO` en Vercel | **N** | 🔄 |
 | R.3 | Imprimir una tarjeta real en doble faz y grabar un audio desde un celular real | **N** | ☐ |
 | R.4 | Mergear el PR #2 | **N+J** | ☐ |
 | R.5 | Antes de vender: el reintento de pago no tiene que dejar ver el código a un tercero; piloto real; decidir desde dónde se linkea `/regalar` | **N+J** | ☐ |

@@ -17,7 +17,7 @@ migración en `supabase/migrations/` + actualizar este archivo + avisar al otro 
 | `pedidos` | web y fábrica | — | El entrevistador no la mira. Un pedido por comprador: los invitados y visitantes que compran su copia tienen su propia `familia` y su propio pedido sobre el mismo `narrador_id`. |
 | `envios` | entrevistador | — | Log de salientes; idempotencia del scheduler. **07/10:** `tipo = 'v3'` para cada mensaje de la entrevista V3. |
 | `entrevistas_v3` | entrevistador | fábrica | Nueva 07/10 (propuesta). Una fila por narrador: **prende la V3**. Ver "Entrevista V3 por WhatsApp". |
-| `regalos` | web (crea al comprar; `audio_path`) / entrevistador (solo `usado_at`, `usado_por_telefono` al canjear, y `recordatorio_at`) | ambos | Nueva 08/10 (propuesta, sin aplicar). Gift card: un regalo por narrador. Ver "Gift card". |
+| `regalos` | web (crea al comprar; `audio_path`) / entrevistador (solo `usado_at`, `usado_por_telefono` al canjear, y `recordatorio_at`) | ambos | Nueva 08/10, **aplicada por Naza el 09/10**. Gift card: un regalo por narrador. Ver "Gift card". |
 | `narraciones` | fábrica (crea la fila; y `estado = 'reemplazada'` cuando pide la voz de nuevo — migración 20260920) / worker de voz (`estado`, `motor`, `muestras`, `capitulos_paths`, `error`, `tomada_at`) | fábrica | Nueva 16/09. Buzón con el worker de voz (PC de Naza); ver "Narraciones (voz clonada)". |
 
 ## Transiciones de estado de `narradores.estado`
@@ -731,7 +731,7 @@ Reglas:
 - Cómo se lee: `fallido` = el número o la cuenta tienen un problema · `entregado` sin `leido` = le
   llegó y no lo abrió · `leido` sin respuesta = el problema es lo que dice el mensaje.
 
-## Gift card (08/10, propuesta)
+## Gift card (08/10, migración aplicada el 09/10)
 
 Spec: `docs/superpowers/specs/2026-10-07-gift-card-design.md`.
 
