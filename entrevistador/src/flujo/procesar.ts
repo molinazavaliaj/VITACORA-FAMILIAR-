@@ -260,9 +260,10 @@ async function manejarConsentimiento(narrador: Narrador, m: MensajeEntrante): Pr
   if (freno) {
     await avisarSocios(
       `regalo-si-frenado:${narrador.id}`,
-      `Regalo frenado: ${narrador.como_le_dicen} dijo que sí y no puede arrancar`,
-      `El narrador ${narrador.id} (regalo) dijo que sí, pero su entrevista V3 no puede arrancar: ${freno}. `
-        + "Quedó en 'acepto' con su permiso anotado; no se le mandó la aceptación ni la primera pregunta. Hay que completar la ficha a mano.",
+      `Regalo frenado: ${narrador.como_le_dicen} dijo que sí pero ${freno === 'no tiene género' ? 'falta el género' : 'el idioma no es válido'}`,
+      `El narrador ${narrador.id} (regalo) dijo que sí, pero su entrevista V3 está frenada: ${freno}. `
+        + "Quedó en 'acepto' con su permiso anotado. No se le mandó la aceptación ni la primera pregunta, "
+        + "y a quien regaló no le llegó el mail «dijo que sí». Hay que completar la ficha y mandar las dos cosas a mano.",
     );
     return;
   }

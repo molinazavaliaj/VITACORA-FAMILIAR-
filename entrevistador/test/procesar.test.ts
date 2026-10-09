@@ -186,7 +186,7 @@ describe('procesarEntrante', () => {
     expect(mocks.enviarTexto).not.toHaveBeenCalled();
   });
   it('si la bienvenida de regalo vuelve a fallar, el SÍ no se pierde: sigue el consentimiento', async () => {
-    mocks.estado.narrador = narradorEn('invitado', 0, { regalo: true, trato: 'vos' });
+    mocks.estado.narrador = narradorEn('invitado', 0, { regalo: true, trato: 'vos', genero: 'varon' });
     mocks.estado.enviosRepregunta = [];
     mocks.mandarBienvenidaDeRegalo.mockResolvedValue(false);
     const error = vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -199,6 +199,9 @@ describe('procesarEntrante', () => {
     expect(update('narradores')?.p).toMatchObject({ estado: 'acepto' });
     // No le llegó la bienvenida que pide la voz: su SÍ no vale como ese permiso.
     expect('consentimiento_voz_at' in (update('narradores')?.p as Record<string, unknown>)).toBe(false);
+    // Con la ficha completa, el regalo arranca igual: nada se frena.
+    expect(mocks.avisarSocios).not.toHaveBeenCalled();
+    expect(mocks.enviarPregunta).toHaveBeenCalled();
   });
   it('un número desconocido que ya había canjeado su código (ya_era_suyo) no sigue de largo', async () => {
     mocks.estado.narrador = null;
@@ -249,7 +252,7 @@ describe('procesarEntrante', () => {
   });
   it('el SÍ de un invitado de regalo también anota el permiso de voz (la bienvenida del regalo siempre lo pide)', async () => {
     delete process.env.WA_BIENVENIDA_PIDE_VOZ;
-    mocks.estado.narrador = narradorEn('invitado', 0, { regalo: true, trato: 'vos' });
+    mocks.estado.narrador = narradorEn('invitado', 0, { regalo: true, trato: 'vos', genero: 'varon' });
     mocks.estado.enviosRepregunta = [{ id: 'e-bienvenida' }];
     await procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'SÍ', waMessageId: 'w' });
     const p = update('narradores')?.p as Record<string, unknown>;
@@ -257,12 +260,14 @@ describe('procesarEntrante', () => {
     expect(typeof p.consentimiento_voz_at).toBe('string');
     expect(Number.isNaN(Date.parse(p.consentimiento_voz_at as string))).toBe(false);
   });
-  it('un invitado de regalo que ya tuvo su bienvenida sigue con el SÍ de siempre', async () => {
-    mocks.estado.narrador = narradorEn('invitado', 0, { regalo: true, trato: 'vos' });
+  it('un invitado de regalo que ya tuvo su bienvenida no la recibe de nuevo: su SÍ lo pasa a acepto y sale la 1', async () => {
+    mocks.estado.narrador = narradorEn('invitado', 0, { regalo: true, trato: 'vos', genero: 'varon' });
     mocks.estado.enviosRepregunta = [{ id: 'e-bienvenida' }];
     await procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'SÍ', waMessageId: 'w' });
     expect(mocks.mandarBienvenidaDeRegalo).not.toHaveBeenCalled();
     expect(update('narradores')?.p).toMatchObject({ estado: 'acepto' });
+    expect(mocks.avisarSocios).not.toHaveBeenCalled();
+    expect(mocks.enviarPregunta).toHaveBeenCalledWith(expect.objectContaining({ estado: 'acepto' }), 1, { plantilla: false });
   });
 
   it('(a) un "SÍ" de un invitado lo pasa a acepto y envía la confirmación', async () => {
@@ -762,9 +767,9 @@ describe('el SÍ de un regalo, en su idioma', () => {
   // Nunca prometer una pregunta que no va a llegar: si el alta V3 se va a
   // frenar (sin género o con un idioma desconocido), el SÍ queda anotado pero
   // no sale la aceptación («ahí te mando la primera pregunta»): avisa a los socios.
-  for (const [caso, contexto] of [
-    ['sin género', { regalo: true, idioma: 'ca', ritmo: 'diario' }],
-    ['con un idioma desconocido', { regalo: true, idioma: 'pt-BR', genero: 'mujer', ritmo: 'diario' }],
+  for (const [caso, contexto, motivo] of [
+    ['sin género', { regalo: true, idioma: 'ca', ritmo: 'diario' }, 'falta el género'],
+    ['con un idioma desconocido', { regalo: true, idioma: 'pt-BR', genero: 'mujer', ritmo: 'diario' }, 'el idioma no es válido'],
   ] as const) {
     it(`un regalo ${caso}: anota el SÍ, no promete la pregunta y avisa a los socios`, async () => {
       delete process.env.WA_BIENVENIDA_PIDE_VOZ;
@@ -786,7 +791,7 @@ describe('el SÍ de un regalo, en su idioma', () => {
       expect(mocks.avisarSocios).toHaveBeenCalledTimes(1);
       const [clave, asunto, detalle] = mocks.avisarSocios.mock.calls[0];
       expect(clave).toContain('n1');
-      expect(asunto).toContain('Don Osvaldo');
+      expect(asunto).toBe(`Regalo frenado: Don Osvaldo dijo que sí pero ${motivo}`);
       expect(detalle).toContain('n1');
     });
   }
