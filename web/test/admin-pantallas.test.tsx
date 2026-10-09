@@ -121,7 +121,7 @@ describe("las cinco pantallas, renderizadas", () => {
     expect(html).toContain("¿Quién era el Vasco?");
   });
 
-  it("Cerebros: están los 14 nodos y avisa donde se cortó", async () => {
+  it("Cerebros: están los 16 nodos y avisa donde se cortó", async () => {
     actuales = datosFalsos;
     const html = await render("Cerebros");
     expect(html).toContain("Escribe los capítulos");
