@@ -118,3 +118,18 @@ describe('"terminó de contar" de un narrador V3 (Naza, 08/10)', () => {
     expect(cuerpoHito('libro_listo', { comoLeDicen: 'Babu', enlace: 'https://x', variante: 'tu' })).toBe(cuerpoHito('libro_listo', { comoLeDicen: 'Babu', enlace: 'https://x' }));
   });
 });
+
+describe('mails de la entrega con vos para Argentina (Naza, 09/10)', () => {
+  it('falta la dirección y llegó, con vos; con tú, los de siempre; el "va en camino" no cambia', async () => {
+    const { cuerpoHito, asuntoHito } = await import('../src/mail/hitos.js');
+    const o = { comoLeDicen: 'abuela', enlace: 'https://x' };
+    expect(cuerpoHito('falta_direccion', { ...o, variante: 'vos' })).toContain('Son dos minutos. Entrá y dejanos la dirección de quien lo recibe.');
+    expect(cuerpoHito('falta_direccion', o)).toContain('entra y déjanos la dirección');
+    const llego = cuerpoHito('entregado', { ...o, variante: 'vos' });
+    expect(llego).toContain('Acercá el teléfono a los códigos del libro');
+    expect(llego).toContain('Si te emocionó, contalo.');
+    expect(cuerpoHito('entregado', o)).toContain('Acerca el teléfono');
+    expect(cuerpoHito('enviado', { ...o, variante: 'vos', seguimiento: 'AB123' })).toBe(cuerpoHito('enviado', { ...o, seguimiento: 'AB123' }));
+    expect(asuntoHito('entregado', 'abuela', 'vos')).toBe(asuntoHito('entregado', 'abuela'));
+  });
+});

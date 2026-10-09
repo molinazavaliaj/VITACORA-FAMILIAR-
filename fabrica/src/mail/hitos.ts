@@ -225,7 +225,26 @@ const TEXTOS_V3: Record<VarianteV3, Partial<Record<Hito, TextoHito>>> = {
       ],
       boton: 'Cerrar el libro',
     },
-    // Este no es solo V3: va con vos a toda familia de Argentina (familias.region = 'AR'; Naza, 09/10).
+    // Estos tres no son solo V3: van con vos a toda familia de Argentina (familias.region = 'AR'). Textos con
+    // vos aprobados por Naza el 06/10 (rama web-textos-v3); por país, el 09/10.
+    falta_direccion: {
+      asunto: (quien) => `¿A dónde mandamos el libro de tu ${quien}?`,
+      parrafos: (quien) => [
+        `El libro de tu ${quien} está listo para imprimirse, pero todavía no sabemos a dónde mandarlo.`,
+        'Son dos minutos. Entrá y dejanos la dirección de quien lo recibe. Hasta que no esté, no podemos empezar a imprimir.',
+      ],
+      boton: 'Poner la dirección',
+    },
+    entregado: {
+      asunto: (quien) => `El libro de tu ${quien} ya está en casa`,
+      parrafos: (quien) => [
+        `Llegó. El libro de tu ${quien} está donde tiene que estar: en manos de tu familia.`,
+        // Sin género a propósito, como el de tú.
+        'Acercá el teléfono a los códigos del libro y vas a escuchar su voz contándolo.',
+        'Si te emocionó, contalo. A otra familia le puede pasar lo mismo.',
+      ],
+      boton: 'Contar cómo fue',
+    },
     libro_listo: {
       asunto: (quien) => `El libro de tu ${quien} está listo`,
       parrafos: (quien) => [

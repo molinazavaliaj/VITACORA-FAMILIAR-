@@ -31,7 +31,7 @@ type Entrega = {
 const HACE_DIAS = (n: number) => new Date(Date.now() - n * 24 * 60 * 60 * 1000).toISOString();
 
 /** Base de mentira: entregas, la familia que las compró, y los candados de Storage. */
-function baseFalsa(entregas: Entrega[], candados: string[] = []) {
+function baseFalsa(entregas: Entrega[], candados: string[] = [], region = 'ES') {
   const subidos: string[] = [];
   const db = {
     from: (tabla: string) => ({
@@ -39,7 +39,7 @@ function baseFalsa(entregas: Entrega[], candados: string[] = []) {
         in: async () => ({ data: entregas, error: null }),
         eq: () => ({
           maybeSingle: async () => ({
-            data: tabla === 'familias' ? { email: 'familia@ejemplo.com' } : { como_le_dicen: 'abuela' },
+            data: tabla === 'familias' ? { email: 'familia@ejemplo.com', region } : { como_le_dicen: 'abuela' },
             error: null,
           }),
         }),
@@ -73,6 +73,12 @@ describe('avisarHitosDeEntrega', () => {
     expect(mail.hito).toBe('enviado');
     expect(mail.para).toBe('familia@ejemplo.com');
     expect(mail.seguimiento).toBe('1234ABC');
+  });
+
+  it('a una familia de Argentina le llega con vos; a una de España, con tú (Naza, 09/10)', async () => {
+    await avisarHitosDeEntrega(baseFalsa([{ id: 'e1', narrador_id: 'n1', familia_id: 'f1', estado: 'entregado' }], [], 'AR').db);
+    await avisarHitosDeEntrega(baseFalsa([{ id: 'e2', narrador_id: 'n2', familia_id: 'f2', estado: 'entregado' }], [], 'ES').db);
+    expect(enviarMailHitoMock.mock.calls.map((c) => c[0].variante)).toEqual(['vos', undefined]);
   });
 
   it('cuando llega, el botón lleva a dejar la reseña', async () => {
