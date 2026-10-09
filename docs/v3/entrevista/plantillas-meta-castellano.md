@@ -16,9 +16,9 @@ Reemplazan a las viejas (`bienvenida`, `pregunta_diaria`, `pregunta_diaria_vos`,
 ```
 Hola, {{1}}, ¿cómo estás? Una persona que te quiere mucho te regaló un libro con la historia de tu vida, y yo soy quien te va a entrevistar para armarlo. Lo hacemos acá, por WhatsApp, tranquilos.
 
-Funciona así: te mando una pregunta y vos me la contás en audio, como si me lo estuvieras contando en persona. Mandame todos los audios que quieras. Cuando termines no hace falta que me avises: si pasan unos minutos sin audios nuevos, te mando la pregunta que sigue.
+Funciona así. Te mando una pregunta y vos me la contás en audio, como si me lo estuvieras contando en persona. Mandame todos los audios que quieras. Cuando termines no hace falta que me avises. Si pasan unos minutos sin audios nuevos, te mando la pregunta que sigue.
 
-Si alguna pregunta no tiene que ver con tu vida, me decís que no, o me contás lo que sí te pasó a vos. Y sin apuro: esto lo hacemos al ritmo que vos quieras.
+Si alguna pregunta no tiene que ver con tu vida, me decís que no, o me contás lo que sí te pasó a vos. Y sin apuro, esto lo hacemos al ritmo que vos quieras.
 ```
 Ejemplo {{1}}: Marta
 
@@ -52,9 +52,9 @@ Ejemplos: {{1}} Pablo · {{2}} Marta
 ```
 Hola, {{1}}, ¿cómo estás? Una persona que te quiere mucho te ha regalado un libro con la historia de tu vida, y yo soy quien te va a entrevistar para hacerlo. Lo hacemos aquí, por WhatsApp, con calma.
 
-Funciona así: te mando una pregunta y tú me contestas en un audio, como si me lo estuvieras contando en persona. Mándame todos los audios que quieras. Cuando termines no hace falta que me avises: si pasan unos minutos sin audios nuevos, te mando la pregunta siguiente.
+Funciona así. Te mando una pregunta y tú me contestas en un audio, como si me lo estuvieras contando en persona. Mándame todos los audios que quieras. Cuando termines no hace falta que me avises. Si pasan unos minutos sin audios nuevos, te mando la pregunta siguiente.
 
-Si alguna pregunta no tiene que ver con tu vida, me dices que no, o me cuentas lo que sí te pasó a ti. Y sin prisa: esto lo hacemos al ritmo que tú quieras.
+Si alguna pregunta no tiene que ver con tu vida, me dices que no, o me cuentas lo que sí te pasó a ti. Y sin prisa, esto lo hacemos al ritmo que tú quieras.
 ```
 Ejemplo {{1}}: Carmen
 
