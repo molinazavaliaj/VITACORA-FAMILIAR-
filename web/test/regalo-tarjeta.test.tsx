@@ -128,6 +128,14 @@ describe("la tarjeta imprimible", () => {
     expect(html).not.toContain(AR.apunta);
   });
 
+  it("en catalán: solo la tarjeta va en lang=ca; los botones y los nombres de las hojas, en es", async () => {
+    estado.regalo = regalo({ idioma: "ca" });
+    const html = await render();
+    expect(html).toMatch(/^<div lang="es"/);
+    expect(html.match(/class="tarjeta" lang="ca"/g)).toHaveLength(2);
+    expect(html).toContain('aria-label="Lado de afuera"');
+  });
+
   it("los botones de pantalla van con el trato del idioma del regalo: tú para ca y es-ES", async () => {
     for (const idioma of ["ca", "es-ES"] as const) {
       estado.regalo = regalo({ idioma });

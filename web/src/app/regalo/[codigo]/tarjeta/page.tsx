@@ -110,9 +110,12 @@ export default async function PaginaTarjeta({ params }: { params: Promise<{ codi
   // compra, pero la página no sabe quién la mira: van con el trato del idioma.
   const textos = textosAbuelo(regalo.idioma);
   const botones = textosComprador(tratoDeIdioma(regalo.idioma));
+  // Los botones y los nombres de las hojas («Lado de afuera») son de pantalla y
+  // están en castellano: la página va en "es" y solo la tarjeta, en su idioma.
+  const langTarjeta = regalo.idioma === "ca" ? "ca" : "es";
 
   return (
-    <div lang={regalo.idioma === "ca" ? "ca" : "es"} className={`${playfair.variable} ${archivo.variable} ${sourceSerif.variable} tarjeta-pantalla`}>
+    <div lang="es" className={`${playfair.variable} ${archivo.variable} ${sourceSerif.variable} tarjeta-pantalla`}>
       <style dangerouslySetInnerHTML={{ __html: ESTILOS }} />
       <div className="tarjeta-acciones no-imprimir">
         <BotonImprimir className="tarjeta-boton" texto={botones.botonImprimir} />
@@ -124,7 +127,7 @@ export default async function PaginaTarjeta({ params }: { params: Promise<{ codi
       <div className="tarjeta-hojas">
         <section className="hoja" aria-label="Lado de afuera">
           <Marcas />
-          <div className="tarjeta">
+          <div className="tarjeta" lang={langTarjeta}>
             <div className="cara contratapa">
               <Toroide />
             </div>
@@ -140,7 +143,7 @@ export default async function PaginaTarjeta({ params }: { params: Promise<{ codi
 
         <section className="hoja hoja-interior" aria-label="Lado de adentro">
           <Marcas />
-          <div className="tarjeta">
+          <div className="tarjeta" lang={langTarjeta}>
             <div className="cara izq">
               <div className="saludo">{regalo.comoLeDicen},</div>
               <p className="mensaje" style={{ fontSize: tamanoMensaje(regalo.mensaje) }}>{regalo.mensaje}</p>

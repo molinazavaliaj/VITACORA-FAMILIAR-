@@ -92,7 +92,7 @@ const ABUELO: Record<IdiomaRegalo, TextosAbuelo> = {
     escucharAudioDe: (quien: string) => `Escuchar el audio de ${quien}`,
   },
 
-  // PROPUESTA (regalo-idiomas, Task 0)
+  // Aprobados por Naza el 09/10 (regalo-idiomas, Task 0, tanda 3).
   "es-ES": {
     tapaSlogan: "En cada familia hay un libro sin escribir.",
     esUnRegalo: "Esto es un regalo.",
