@@ -160,7 +160,8 @@ export async function mandarBienvenidaDeRegalo(deps: DepsRegalo, narradorId: str
 
 const DIAS_RECORDATORIO = 15;
 
-export type MandarMailFamilia = (familiaId: string, asunto: string, cuerpo: string, narradorId: string) => Promise<boolean>;
+/** `boton` (por defecto true): el botón «Ver la tarjeta» a la página del regalo en el tablero. */
+export type MandarMailFamilia = (familiaId: string, asunto: string, cuerpo: string, narradorId: string, o?: { boton?: boolean }) => Promise<boolean>;
 
 /**
  * Nunca al narrador: una sola vez a quien regaló, si a los 15 días de la fecha
