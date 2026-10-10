@@ -175,10 +175,10 @@ describe('procesarEntrante', () => {
     await procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'VF-7K3M2Q', waMessageId: 'w' });
     expect(mocks.canjearRegalo).toHaveBeenCalledWith(expect.anything(), { telefono: TEL, texto: 'VF-7K3M2Q' });
   });
-  it('un número desconocido que manda audio no se canjea', async () => {
+  it('un número desconocido que manda audio también va al canje, sin texto (canjea solo si se le mandó el regalo por WhatsApp)', async () => {
     mocks.estado.narrador = null;
     await procesarEntrante({ telefono: TEL, tipo: 'audio', mediaId: 'm', waMessageId: 'w' } as MensajeEntrante);
-    expect(mocks.canjearRegalo).not.toHaveBeenCalled();
+    expect(mocks.canjearRegalo).toHaveBeenCalledWith(expect.anything(), { telefono: TEL, texto: '' });
   });
   it('un invitado de regalo sin bienvenida la recibe en vez de procesar el SÍ', async () => {
     mocks.estado.narrador = narradorEn('invitado', 0, { regalo: true });

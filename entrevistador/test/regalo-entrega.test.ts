@@ -6,6 +6,16 @@ import { ENTREGA_ABUELO, ENTREGA_COMPRADOR } from '../src/flujo/regalo-textos.js
 // El regalo llega solo el día elegido (spec 2026-10-10): la fase del tick de
 // 15 minutos que se lo manda a quien recibe y le avisa a quien compró.
 
+/** Un cliente donde toda consulta a `tabla` (lectura o escritura) da `error`; las demás van a la base falsa. */
+function conTablaRota(base: ReturnType<typeof crearBaseFalsa>, tabla: string, error: { code: string; message: string }) {
+  const rota: any = new Proxy({}, {
+    get: (_t, prop) => prop === 'then'
+      ? (ok: any, ko: any) => Promise.resolve({ data: null, error }).then(ok, ko)
+      : () => rota,
+  });
+  return { from: (t: string) => (t === tabla ? rota : base.cliente.from(t)) } as any;
+}
+
 // 24/12 a las 10 en Buenos Aires = 13:00 UTC.
 const A_LA_HORA = new Date('2026-12-24T13:00:00Z');
 const ANTES = new Date('2026-12-24T12:45:00Z');
@@ -179,11 +189,20 @@ describe('entregarRegalos por mail', () => {
   });
 
   it('sin la migración (columna desconocida) o sin la tabla: 0 y no tira', async () => {
+    const { deps, base, mails } = armar();
+    for (const error of [
+      { code: '42703', message: 'column regalos.entrega_canal does not exist' },
+      { code: 'PGRST204', message: "Could not find the 'entrega_canal' column of 'regalos'" },
+      { code: '42P01', message: 'relation "regalos" does not exist' },
+    ]) {
+      expect(await entregarRegalos({ ...deps, db: conTablaRota(base, 'regalos', error) }, A_LA_HORA)).toBe(0);
+    }
+    expect(mails).toEqual([]);
+  });
+
+  it('otro error de la base: tira (el scheduler lo anota y sigue)', async () => {
     const { deps, base } = armar();
-    base.fallarProxima.set('regalos', { code: '42703', message: 'column regalos.entrega_canal does not exist' });
-    expect(await entregarRegalos(deps, A_LA_HORA)).toBe(0);
-    base.fallarProxima.set('regalos', { code: '42P01', message: 'relation "regalos" does not exist' });
-    expect(await entregarRegalos(deps, A_LA_HORA)).toBe(0);
+    await expect(entregarRegalos({ ...deps, db: conTablaRota(base, 'regalos', { code: '57014', message: 'timeout' }) }, A_LA_HORA)).rejects.toBeTruthy();
   });
 });
 

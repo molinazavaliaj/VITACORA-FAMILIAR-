@@ -124,10 +124,10 @@ export async function procesarEntrante(m: MensajeEntrante): Promise<void> {
   const narrador = await buscarNarrador(m.telefono);
   if (!narrador) {
     // Gift card (08/10): quien escribe puede ser un narrador con su tarjeta en la mano.
-    if (m.tipo === 'texto' && m.texto) {
-      const canje = await canjearRegalo({ db, enviarTexto }, { telefono: m.telefono, texto: m.texto });
-      if (canje !== 'sin_codigo') return;
-    }
+    // Con cualquier mensaje (10/10): si se le mandó el regalo por WhatsApp el día
+    // elegido, contesta con un audio o con el botón y canjea sin el código.
+    const canje = await canjearRegalo({ db, enviarTexto }, { telefono: m.telefono, texto: m.texto ?? '' });
+    if (canje !== 'sin_codigo') return;
     console.warn(`Mensaje de un número no registrado: ${m.telefono}`);
     return;
   }

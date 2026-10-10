@@ -50,10 +50,31 @@ function puedeContestarNoExiste(telefono: string, ahora: number): boolean {
 const esDeEsteTelefono = (usadoPor: string | null | undefined, telefono: string) =>
   usadoPor != null && variantesDeTelefono(telefono).includes(usadoPor);
 
+/**
+ * El regalo que se le mandó por WhatsApp a este número el día elegido (spec
+ * 2026-10-10): quien contesta la plantilla no necesita escribir el código.
+ * Solo si salió y Meta no avisó que falló. Sin la migración, null.
+ */
+async function codigoPorEntrega(db: DepsRegalo['db'], telefono: string): Promise<string | null> {
+  const { data, error } = await db.from('regalos')
+    .select('codigo')
+    .eq('entrega_canal', 'whatsapp').in('entrega_contacto', variantesDeTelefono(telefono))
+    .not('entrega_enviada_at', 'is', null).is('entrega_fallo', null).is('usado_at', null)
+    .limit(1);
+  if (error) {
+    const sinMigracion = esTablaAusente(error) || error.code === '42703' || error.code === 'PGRST204';
+    if (!sinMigracion) console.error('regalo: no pude buscar un regalo mandado a este número:', error.message);
+    return null;
+  }
+  return (data as { codigo: string }[] | null)?.[0]?.codigo ?? null;
+}
+
 export async function canjearRegalo(deps: DepsRegalo, m: { telefono: string; texto: string }): Promise<ResultadoCanje> {
-  const codigo = extraerCodigo(m.texto);
-  if (!codigo) return 'sin_codigo';
   const { db } = deps;
+  // Primero el regalo que se le mandó a este número: así un «buenas» (que
+  // parece un código) no termina en «no encuentro ese código».
+  const codigo = (await codigoPorEntrega(db, m.telefono)) ?? extraerCodigo(m.texto);
+  if (!codigo) return 'sin_codigo';
 
   const { data: regalo, error } = await db.from('regalos')
     .select('id, narrador_id, usado_at, usado_por_telefono').eq('codigo', codigo).maybeSingle();
