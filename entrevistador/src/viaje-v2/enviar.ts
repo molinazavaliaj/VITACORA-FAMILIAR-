@@ -11,7 +11,8 @@
 import { PLANTILLAS_VIAJE_V2, plantillaViajeLista, type CualPlantillaViaje } from '../config.js';
 import { paraPlantilla, VENTANA_MS } from '../v3/enviar.js';
 import type { DepsViaje } from './deps.js';
-import { conReintento, soltarTurno, tomarTurno, TOMA_MS } from './filas.js';
+import { conReintento, soltarTurno, tomarTurno, TOMA_MS, type CambioFila } from './filas.js';
+import { idiomaDe } from './nucleo/idioma.js';
 import { quitarDeSalida, ultimoEntrante, type EstadoBotViaje, type FilaViaje } from './tipos.js';
 
 export const FALLOS_PARA_AVISAR = 3;
@@ -43,7 +44,7 @@ export function elegirEnvio(fila: FilaViaje, ahora: Date): EnvioViaje {
   }
   const conTexto = cola.filter((x) => x.tipo !== 'reaccion');
   if (conTexto.length === 0) return { tipo: 'descartar', ids: cola.map((x) => x.id), motivo: 'las ❤️ no salen con la ventana de 24 h cerrada' };
-  const idioma = fila.idioma;
+  const idioma = idiomaDe(fila.compra); // la compra manda (la columna `idioma` es para consultar)
   const soloRecordatorio = conTexto.every((x) => x.tipo === 'recordatorio');
   const cual: CualPlantillaViaje = !soloRecordatorio ? 'mensaje' : conTexto.some((x) => x.ids.includes('REC1-U')) ? 'recordatorio_ultima' : 'recordatorio';
   const p = PLANTILLAS_VIAJE_V2[idioma][cual];
@@ -89,7 +90,7 @@ export async function drenar(deps: DepsViaje, narradorId: string): Promise<Resul
           // Una ❤️ que Meta rechaza no frena la cola: no es un mensaje que la persona espere.
           if (envio.tipo === 'reaccion') {
             console.warn(`viaje V2: la ❤️ a ${narradorId} no salió y se descarta: ${err instanceof Error ? err.message : err}`);
-            const r = await conReintento<FilaViaje['compra'], EstadoBotViaje, true>(deps.db, narradorId, (f) => ({ cambio: { estado: quitarDeSalida(f.estado, envio.ids) }, resultado: true }));
+            const r = await sacarDeLaCola(deps, narradorId, (f) => ({ estado: quitarDeSalida(f.estado, envio.ids) }));
             if (!r) return resultado;
             fila = r.fila;
             continue;
@@ -101,9 +102,8 @@ export async function drenar(deps: DepsViaje, narradorId: string): Promise<Resul
         if (errorEnvio) console.warn(`viaje V2: no pude anotar el envío ${waId} de ${narradorId} en envios: ${errorEnvio.message}`);
         resultado = 'enviado';
       } else console.warn(`viaje V2: se descarta de la cola de ${narradorId}: ${envio.motivo}`);
-      const r = await conReintento<FilaViaje['compra'], EstadoBotViaje, true>(deps.db, narradorId, (f) => ({
-        cambio: { estado: { ...quitarDeSalida(f.estado, envio.ids), ...(envio.tipo === 'descartar' ? {} : { fallosEnvio: 0, avisoFallos: false }) } },
-        resultado: true,
+      const r = await sacarDeLaCola(deps, narradorId, (f) => ({
+        estado: { ...quitarDeSalida(f.estado, envio.ids), ...(envio.tipo === 'descartar' ? {} : { fallosEnvio: 0, avisoFallos: false }) },
       }));
       if (!r) return resultado;
       fila = r.fila;
@@ -112,6 +112,21 @@ export async function drenar(deps: DepsViaje, narradorId: string): Promise<Resul
     return resultado;
   } finally {
     await soltarTurno(deps.db, narradorId, tomada);
+  }
+}
+
+/**
+ * Saca lo que ya salió de la cola. Meta ya lo aceptó: si la escritura pierde (una ráfaga de mensajes), se insiste
+ * acá en vez de soltar la toma, porque el tick siguiente lo volvería a mandar (revisión 10/10).
+ */
+async function sacarDeLaCola(deps: DepsViaje, narradorId: string, cambio: (f: FilaViaje) => CambioFila<FilaViaje['compra'], EstadoBotViaje>): Promise<{ fila: FilaViaje } | null> {
+  for (let intento = 1; ; intento++) {
+    try {
+      return await conReintento<FilaViaje['compra'], EstadoBotViaje, true>(deps.db, narradorId, (f) => ({ cambio: cambio(f), resultado: true }));
+    } catch (err) {
+      if (intento >= 4) throw err;
+      console.warn(`viaje V2: no pude sacar de la cola de ${narradorId} lo que ya salió (intento ${intento}); insisto`);
+    }
   }
 }
 

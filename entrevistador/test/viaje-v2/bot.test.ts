@@ -241,3 +241,49 @@ describe('viaje V2 en el bot: el reloj', () => {
     expect(r.enviados).toHaveLength(1);
   });
 });
+
+describe('viaje V2 en el bot: revisión del 10/10', () => {
+  async function arrancada() {
+    const r = await preparar({ estado: { bienvenida: { en: AHORA.toISOString(), por: 'plantilla' } } });
+    await r.entra({ waMessageId: 'w-si', texto: 'sí' });
+    r.enviados.length = 0;
+    return r;
+  }
+
+  it('12 fotos a la vez: todas llegan al plan y todas las filas tienen clave', async () => {
+    const r = await arrancada();
+    await Promise.all(Array.from({ length: 12 }, (_, i) => r.entra({ waMessageId: `f${i}`, tipo: 'imagen', mediaId: `foto-${i}`, sha256: `sha${i}` })));
+    expect((await r.leer()).estado.plan!.grupo!.entradas).toHaveLength(12);
+    expect(r.base.tablas.respuestas.filter((x) => !x.clave_viaje)).toEqual([]);
+  });
+
+  it('una fila que quedó sin pasar al plan (el proceso se cayó) la retoma el reloj', async () => {
+    const r = await arrancada();
+    r.base.tablas.respuestas.push({
+      id: 'r-huerfana', narrador_id: 'n1', wa_message_id: 'w-perdido', audio_path: 'n1/dia_01.ogg', transcripcion: 'Me voy con mi hermana',
+      texto_directo: null, clave_viaje: null, recibido_at: new Date(AHORA.getTime() - 10 * MIN).toISOString(), es_repregunta: false,
+    });
+    r.narrador().estado = 'activo';
+    expect(await r.trabajar()).toBe('reconciliar');
+    expect(r.base.tablas.respuestas.find((x) => x.id === 'r-huerfana')!.clave_viaje).toBe('AS1');
+    expect((await r.leer()).estado.plan!.grupo!.entradas.map((e) => e.idMensaje)).toEqual(['w-perdido']);
+    // La siguiente vez ya no la toca.
+    expect(await r.trabajar()).not.toBe('reconciliar');
+  });
+
+  it('dijo SÍ pero quedó en invitado: el reloj lo deja activo y el viaje sigue', async () => {
+    const r = await arrancada();
+    r.narrador().estado = 'invitado';
+    await r.trabajar();
+    expect(r.narrador().estado).toBe('activo');
+  });
+
+  it('la transcripción falla una vez: se reintenta y no sale COR', async () => {
+    const r = await arrancada();
+    let veces = 0;
+    const orig = r.deps.transcribir;
+    r.deps.transcribir = async (a, o) => { if (veces++ === 0) throw new Error('OpenAI 500: prueba'); return orig(a, o); };
+    await r.entra({ waMessageId: 'w1', tipo: 'audio', mediaId: 'Me voy a Madrid' });
+    expect(r.base.tablas.respuestas[0].transcripcion).toBe('Me voy a Madrid');
+  });
+});

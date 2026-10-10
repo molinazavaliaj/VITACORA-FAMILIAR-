@@ -6,6 +6,7 @@
 import { PLANTILLAS_VIAJE_V2, plantillaViajeLista } from '../config.js';
 import type { DepsViaje } from './deps.js';
 import { drenar } from './enviar.js';
+import { reconciliarEnCola } from './entrante.js';
 import { conReintento, listarFilas, soltarTurno, tomarTurno, tomaVigente } from './filas.js';
 import { anotarNotas, mandarAvisos, sumarPaso } from './motor.js';
 import { proximaAccion, queToca, type Paso } from './nucleo/planificador.js';
@@ -16,7 +17,7 @@ import type { EstadoBotViaje, FilaViaje } from './tipos.js';
 
 type Narrador = { id: string; estado: string; telefono_whatsapp: string; contexto?: Record<string, unknown> | null };
 
-export type Trabajo = 'nada' | 'bienvenida' | 'drenar' | 'toca';
+export type Trabajo = 'nada' | 'bienvenida' | 'drenar' | 'toca' | 'reconciliar';
 
 /** ¿El planificador tiene algo para esta hora? (proximaAccion ya pasó) */
 export function tocaAhora(f: FilaViaje, ahora: Date): boolean {
@@ -37,7 +38,19 @@ export async function trabajarViajero(deps: DepsViaje, fila: FilaViaje, n: Narra
     }
     return 'nada';
   }
+  // Dijo SÍ pero el narrador quedó en 'invitado' (falló esa escritura): se arregla acá, si no el viaje no sigue nunca.
+  if (n.estado === 'invitado' || n.estado === 'acepto') {
+    const { error } = await deps.db.from('narradores').update({ estado: 'activo' }).eq('id', n.id).in('estado', ['invitado', 'acepto']);
+    if (error) throw new Error(`reloj viaje V2: ${n.id} dijo SÍ y no lo pude dejar activo: ${error.message}`);
+    console.warn(`reloj viaje V2: ${n.id} tenía el viaje arrancado y seguía en '${n.estado}': queda activo`);
+    n = { ...n, estado: 'activo' };
+  }
   if (n.estado !== 'activo') return 'nada';
+  // Lo que se guardó y no llegó al plan (el proceso se cayó en el medio).
+  if ((await reconciliarEnCola(deps, fila)) > 0) {
+    await drenar(deps, n.id);
+    return 'reconciliar';
+  }
   if (tocaAhora(fila, ahora)) {
     const r = await conReintento<Compra, EstadoBotViaje, Paso>(deps.db, n.id, (f) => {
       if (!f.estado.plan || !tocaAhora(f, ahora) || tomaVigente(f, ahora)) return null;
@@ -51,9 +64,10 @@ export async function trabajarViajero(deps: DepsViaje, fila: FilaViaje, n: Narra
       return 'toca';
     }
   }
-  if (fila.estado.salida.length > 0) {
+  // Con la cola vacía, drenar también deja completado al que terminó (si eso había fallado antes).
+  if (fila.estado.salida.length > 0 || fila.estado.plan.terminado) {
     await drenar(deps, n.id);
-    return 'drenar';
+    return fila.estado.salida.length > 0 ? 'drenar' : 'nada';
   }
   return 'nada';
 }
@@ -90,8 +104,16 @@ export async function mandarBienvenida(deps: DepsViaje, fila: FilaViaje, n: Narr
       return false;
     }
     await deps.db.from('envios').insert({ narrador_id: n.id, tipo: 'bienvenida', pregunta_orden: null, wa_message_id: waId });
-    await conReintento<Compra, EstadoBotViaje, true>(deps.db, n.id, (f) =>
-      f.estado.bienvenida ? null : { cambio: { estado: { ...f.estado, bienvenida: { en: ahora.toISOString(), por: 'plantilla' } } }, resultado: true });
+    // Ya salió: se insiste en anotarla (si no, el minuto siguiente la mandaría otra vez).
+    for (let intento = 1; ; intento++) {
+      try {
+        await conReintento<Compra, EstadoBotViaje, true>(deps.db, n.id, (f) =>
+          f.estado.bienvenida ? null : { cambio: { estado: { ...f.estado, bienvenida: { en: ahora.toISOString(), por: 'plantilla' } } }, resultado: true });
+        break;
+      } catch (err) {
+        if (intento >= 4) throw err;
+      }
+    }
     return true;
   } finally {
     await soltarTurno(deps.db, n.id, tomada);

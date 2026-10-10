@@ -44,7 +44,23 @@ export function bienvenidaComoTexto(compra: Compra, ahora: Date, id: string): Sa
   return { id, tipo: 'texto', desde: ahora.toISOString(), zona: compra.zonaCasa, origen: 'arranque', iniciativa: false, ids: m.ids, texto: m.texto };
 }
 
-export async function procesarEntranteViajeV2(deps: DepsViaje, n: ViajeroV2, m: MensajeEntrante): Promise<void> {
+/**
+ * Lo de un mismo viajero se procesa de a uno (en este proceso): 12 fotos del álbum llegan como 12 webhooks a la
+ * vez, y compitiendo por el compare-and-swap algunas perdían cinco veces y quedaban fuera del plan (revisión
+ * 10/10). Lo que igual quede sin clave (el proceso se cayó) lo retoma el reloj (reconciliar).
+ */
+const colas = new Map<string, Promise<void>>();
+
+export function procesarEntranteViajeV2(deps: DepsViaje, n: ViajeroV2, m: MensajeEntrante): Promise<void> {
+  const antes = colas.get(n.id) ?? Promise.resolve();
+  const esta = antes.catch(() => {}).then(() => procesarUno(deps, n, m));
+  const guardada = esta.catch(() => {});
+  colas.set(n.id, guardada);
+  void guardada.then(() => { if (colas.get(n.id) === guardada) colas.delete(n.id); });
+  return esta;
+}
+
+async function procesarUno(deps: DepsViaje, n: ViajeroV2, m: MensajeEntrante): Promise<void> {
   const fila = await leerFila<Compra, EstadoBotViaje>(deps.db, n.id);
   if (!fila) {
     console.warn(`viaje V2: ${n.id} no tiene fila en viajes_v2: se ignora el mensaje`);
@@ -66,21 +82,73 @@ export async function procesarEntranteViajeV2(deps: DepsViaje, n: ViajeroV2, m: 
   }
   const g = await guardar(deps, n.id, m, fila, true);
   if (g === 'duplicado') return;
-  const r = await conReintento<Compra, EstadoBotViaje, Paso & { clave: string }>(deps.db, n.id, (f) => {
-    if (!f.estado.plan || yaVisto(f.estado, m.waMessageId)) return null;
+  await alPlan(deps, n.id, m.waMessageId, g, ahora, m.sha256);
+  await drenar(deps, n.id);
+}
+
+/** Le pasa la entrada al planificador (alEntrar), le pone la clave a la fila y manda los avisos. */
+async function alPlan(deps: DepsViaje, narradorId: string, waId: string, g: { entrada: Entrada; respuestaId: string | null }, ahora: Date, sha256?: string): Promise<void> {
+  const r = await conReintento<Compra, EstadoBotViaje, Paso & { clave: string }>(deps.db, narradorId, (f) => {
+    if (!f.estado.plan || yaVisto(f.estado, waId)) return null;
     const p = alEntrar(f.compra, f.estado.plan, g.entrada, ahora);
-    let estado = sumarPaso(anotarVisto(f.estado, m.waMessageId), p);
+    let estado = sumarPaso(anotarVisto(f.estado, waId), p);
     // Una foto nueva con el álbum abierto: se recuerda su archivo, para reconocerla si la reenvía (AL3).
-    if (g.entrada.tipo === 'foto' && !g.entrada.reenviaA && m.sha256 && p.clave === 'album') {
-      estado = { ...estado, fotosAlbum: { ...estado.fotosAlbum, [m.sha256]: m.waMessageId } };
+    if (g.entrada.tipo === 'foto' && !g.entrada.reenviaA && sha256 && p.clave === 'album') {
+      estado = { ...estado, fotosAlbum: { ...estado.fotosAlbum, [sha256]: waId } };
     }
     return { cambio: { estado }, resultado: p };
   });
   if (!r) return;
   if (g.respuestaId) await ponerClaveViaje(deps, g.respuestaId, r.resultado.clave === 'album' ? CLAVE_ALBUM : r.resultado.clave);
-  anotarNotas(n.id, r.resultado.notas);
-  await mandarAvisos(deps, n.id, r.resultado.avisos);
-  await drenar(deps, n.id);
+  anotarNotas(narradorId, r.resultado.notas);
+  await mandarAvisos(deps, narradorId, r.resultado.avisos);
+}
+
+/** Una fila sin clave_viaje más vieja que esto la retoma el reloj (el proceso que la guardó se cayó o falló). */
+export const RECONCILIAR_MS = 5 * 60_000;
+
+type FilaRespuesta = { id: string; wa_message_id: string | null; audio_path: string | null; transcripcion: string | null; texto_directo: string | null; recibido_at: string };
+
+/**
+ * Lo que se guardó en `respuestas` y no llegó al plan (la fila sin clave_viaje): se le pasa ahora, con la hora de
+ * ahora (el grupo se arma desde acá). Un audio sin transcripción cuenta como audio malo. Devuelve cuántas retomó.
+ */
+export async function reconciliar(deps: DepsViaje, fila: FilaViaje): Promise<number> {
+  if (!fila.estado.plan) return 0;
+  const ahora = deps.ahora();
+  const { data, error } = await deps.db.from('respuestas').select('id,wa_message_id,audio_path,transcripcion,texto_directo,recibido_at')
+    .eq('narrador_id', fila.narrador_id).is('clave_viaje', null).order('recibido_at');
+  if (error) {
+    console.warn(`viaje V2: no pude buscar respuestas sin clave de ${fila.narrador_id}: ${error.message}`);
+    return 0;
+  }
+  let n = 0;
+  for (const r of (data as FilaRespuesta[] | null) ?? []) {
+    if (!r.wa_message_id || ahora.getTime() - Date.parse(r.recibido_at) < RECONCILIAR_MS) continue;
+    if (yaVisto(fila.estado, r.wa_message_id)) {
+      await ponerClaveViaje(deps, r.id, SIN_CLAVE_VIAJE); // ya está en el plan; no se sabe a qué fue
+      continue;
+    }
+    const id = r.wa_message_id;
+    const entrada: Entrada = r.audio_path ? { tipo: 'audio', idMensaje: id, transcripcion: r.transcripcion?.trim() || null }
+      : r.texto_directo?.startsWith(MARCA_FOTO) ? { tipo: 'foto', idMensaje: id }
+      : { tipo: 'texto', idMensaje: id, texto: r.texto_directo ?? '' };
+    console.warn(`viaje V2: retomo la respuesta ${r.id} de ${fila.narrador_id}, que quedó sin pasar al plan`);
+    await alPlan(deps, fila.narrador_id, id, { entrada, respuestaId: r.id }, ahora);
+    n++;
+  }
+  return n;
+}
+
+/** El reloj: retoma lo pendiente de un viajero de a uno, en la misma cola que lo que llega. */
+export function reconciliarEnCola(deps: DepsViaje, fila: FilaViaje): Promise<number> {
+  let n = 0;
+  const antes = colas.get(fila.narrador_id) ?? Promise.resolve();
+  const esta = antes.catch(() => {}).then(async () => { n = await reconciliar(deps, fila); });
+  const guardada = esta.catch(() => {});
+  colas.set(fila.narrador_id, guardada);
+  void guardada.then(() => { if (colas.get(fila.narrador_id) === guardada) colas.delete(fila.narrador_id); });
+  return esta.then(() => n);
 }
 
 async function antesDelSi(deps: DepsViaje, n: ViajeroV2, m: MensajeEntrante, fila: FilaViaje, ahora: Date): Promise<void> {
@@ -142,14 +210,18 @@ async function guardar(deps: DepsViaje, narradorId: string, m: MensajeEntrante, 
     if (!g) return 'duplicado';
     if (clave) await ponerClaveViaje(deps, g.id, clave);
     let transcripcion: string | null = null;
-    try {
-      const t = await deps.transcribir(audio, { nombre: fila.compra.nombre, idioma: idiomaDe(fila.compra), narradorId });
-      if (t.texto.trim()) {
-        await anotarTranscripcion(deps.db, g.id, t);
-        transcripcion = t.texto.trim();
+    // Dos intentos: un error pasajero de OpenAI no tiene que terminar en «se me cortó el audio» (COR).
+    for (let intento = 1; intento <= 2 && transcripcion === null; intento++) {
+      try {
+        const t = await deps.transcribir(audio, { nombre: fila.compra.nombre, idioma: idiomaDe(fila.compra), narradorId });
+        if (t.texto.trim()) {
+          await anotarTranscripcion(deps.db, g.id, t);
+          transcripcion = t.texto.trim();
+        }
+        break; // vacío no se reintenta: es un audio sin voz
+      } catch (err) {
+        console.error(`viaje V2: no pude transcribir el audio ${id} de ${narradorId} (intento ${intento}):`, err instanceof Error ? err.message : err);
       }
-    } catch (err) {
-      console.error(`viaje V2: no pude transcribir el audio ${id} de ${narradorId}:`, err instanceof Error ? err.message : err);
     }
     return { entrada: { tipo: 'audio', idMensaje: id, transcripcion }, respuestaId: g.id };
   }
