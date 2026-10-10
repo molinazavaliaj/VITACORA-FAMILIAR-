@@ -7,8 +7,8 @@
 //   - no manda la bienvenida (BIEN): el narrador ya está en la conversación;
 //   - los audios se juntan en `borrador` hasta que el reloj cierra la
 //     respuesta (3' de silencio): `recibirAudio` no avanza;
-//   - `cerrarRespuesta` y `avanzar` van separados, para respetar el tope de
-//     la tanda del día (el acuse queda pendiente y sale pegado mañana);
+//   - `cerrarRespuesta` y `avanzar` van separados (hasta el 10/10 había un tope
+//     por día; hoy, si contesta, la siguiente sale siempre: cerrarYSeguir(…, true));
 //   - guarda la pregunta abierta sin acuse, para reenviarla al día siguiente.
 // Lo demás es el script línea por línea (un test lo compara mensaje por mensaje).
 
@@ -79,8 +79,8 @@ export type AudioRecibido = { estado: EstadoV3; clave: string | null; abierta: b
 
 /**
  * Un audio (su transcripción). Con una pregunta abierta, se suma al borrador
- * (`abierta: true`: corre el reloj de silencio). Sin abierta (después del tope
- * de la tanda, entre tandas) no se suma a nada (Naza, 07/10: un "Gracias" no
+ * (`abierta: true`: corre el reloj de silencio). Sin abierta (entre tandas,
+ * o el "Gracias" después de la última) no se suma a nada (Naza, 07/10: un "Gracias" no
  * puede terminar en el libro): `clave: null`, y la fila queda con SIN_CLAVE_V3.
  */
 export function recibirAudio(anterior: EstadoV3, texto: string): AudioRecibido {
@@ -259,7 +259,7 @@ export function avanzar(anterior: EstadoV3, ficha: FichaTexto): Avance {
 
 export type Seguir = { estado: EstadoV3; abrio: boolean; bloqueCerrado?: number };
 
-/** Cierra la abierta y, si la tanda no llegó al tope (`puedeAbrir`), manda lo que sigue. */
+/** Cierra la abierta y, si `puedeAbrir`, manda lo que sigue. En producción siempre es true desde el 10/10 (Naza: si contesta, le llega la siguiente). */
 export function cerrarYSeguir(anterior: EstadoV3, ficha: FichaTexto, puedeAbrir: boolean): Seguir {
   const c = cerrarRespuesta(anterior, ficha);
   const bloque = c.bloqueCerrado !== undefined ? { bloqueCerrado: c.bloqueCerrado } : {};

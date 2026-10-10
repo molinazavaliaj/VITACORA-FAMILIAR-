@@ -64,13 +64,22 @@ describe('cierre por silencio', () => {
     const cortada = { ...cerrarYSeguir(recibirAudio(enOR1(), 'Nací en un pueblo chico.').estado, FICHA, false).estado, salientes: [] };
     const r = await preparar(cortada, { tanda_dia: HOY, tanda_cuenta: 8 });
     expect(await r.trabajar()).toBe('tanda');
-    expect(r.enviados[0].texto?.startsWith(`${textoDelBanco('M3.1', FICHA)}
-`)).toBe(true);
+    expect(r.enviados[0].texto?.startsWith(`${textoDelBanco('M3.1', FICHA)}\n`)).toBe(true);
     expect(r.enviados[0].texto).toContain(renderizar(preguntaPorId('OR2')!.texto, FICHA));
     const f = await r.leer();
     expect(f.estado.esperando).toBe('OR2');
     expect(f).toMatchObject({ tanda_dia: HOY, tanda_cuenta: 9 });
     expect(f.estado.acuse).toBeUndefined();
+    // Una sola vez: el tick siguiente ya tiene la pregunta abierta y no manda nada.
+    expect(await r.trabajar()).toBe('nada');
+    expect(r.enviados).toHaveLength(1);
+  });
+
+  it('el rescate no corre con la entrevista terminada', async () => {
+    const cortada = { ...cerrarYSeguir(recibirAudio(enOR1(), 'Nací en un pueblo chico.').estado, FICHA, false).estado, salientes: [], terminada: true };
+    const r = await preparar(cortada, { tanda_dia: HOY, tanda_cuenta: 8 });
+    expect(await r.trabajar()).toBe('nada');
+    expect(r.enviados).toEqual([]);
   });
 
   it('con otro proceso mandando (toma vigente) no toca nada', async () => {
