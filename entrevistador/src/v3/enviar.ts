@@ -140,7 +140,9 @@ export async function drenar(deps: DepsV3, narradorId: string): Promise<Resultad
     // (10/10): sale cuando la cola se vacía después de mandar algo, o sea cuando
     // OR1 salió de verdad, en el alta o más tarde (el narrador escribió, o un
     // tick la reintentó). mandarHito lo manda una sola vez (toma el hito antes).
-    mailAcepto = resultado === 'enviado' && contexto.regalo === true
+    // Solo si todavía no contestó nada: más tarde el mail ya no sería cierto
+    // («enseguida le llega la primera pregunta»), revisión del 10/10.
+    mailAcepto = resultado === 'enviado' && contexto.regalo === true && fila.estado.respuestas.length === 0
       && !(Array.isArray(contexto.mailsEnviados) && contexto.mailsEnviados.includes('acepto'));
     if (fila.estado.terminada) await completar(deps, narradorId);
     return resultado;

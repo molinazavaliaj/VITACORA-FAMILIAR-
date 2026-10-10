@@ -357,7 +357,8 @@ async function esV3OAvisar(narrador: Narrador, m: MensajeEntrante): Promise<bool
     `La base falló dos veces al mirar si el narrador ${narrador.id} (estado '${narrador.estado}') tiene entrevista V3, `
       + 'así que su mensaje no se procesó por ningún camino y no se le contestó. '
       + `Teléfono ${m.telefono}. Mensaje de WhatsApp ${m.waMessageId}, tipo ${m.tipo}`
-      + (m.texto ? `, texto «${m.texto}»` : '')
+      // El texto, recortado: es parte de un relato de vida y el aviso va por mail (revisión del 10/10).
+      + (m.texto ? `, texto «${m.texto.length > 200 ? `${m.texto.slice(0, 200)}…` : m.texto}»` : '')
       + (m.mediaId ? `, media ${m.mediaId}` : '')
       + `. Error: ${detalleError}`,
   );

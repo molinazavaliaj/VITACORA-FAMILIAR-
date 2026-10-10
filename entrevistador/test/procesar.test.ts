@@ -1081,6 +1081,16 @@ describe('un activo cuando la base falla al mirar la fila V3', () => {
     });
   }
 
+  it('un texto largo: el aviso lleva solo los primeros 200 caracteres (revisión del 10/10)', async () => {
+    mocks.estado.narrador = narradorEn('activo', 3);
+    mocks.estado.errorV3 = errorBase;
+    const largo = 'a'.repeat(200) + 'ZZZ_LO_QUE_NO_VA';
+    await callado(() => procesarEntrante({ telefono: TEL, tipo: 'texto', texto: largo, waMessageId: 'wamid.3' }));
+    const [, , detalle] = mocks.avisarSocios.mock.calls[0];
+    expect(detalle).toContain(`${'a'.repeat(200)}…`);
+    expect(detalle).not.toContain('ZZZ_LO_QUE_NO_VA');
+  });
+
   it('un audio: el aviso lleva el id del audio de Meta', async () => {
     mocks.estado.narrador = narradorEn('activo', 3);
     mocks.estado.errorV3 = errorBase;

@@ -440,6 +440,17 @@ describe('el alta de un regalo y el mail «dijo que sí»', () => {
     expect(hitos).toEqual(['n1:acepto']);
   });
 
+  it('si el narrador ya contestó algo, drenar no manda un «dijo que sí» tardío (diría «enseguida le llega la primera»)', async () => {
+    const ctx = { genero: 'mujer', regalo: true, idioma: 'ca' };
+    const { deps, base, enviados, hitos } = preparar(ctx, { fallarEnvios: 1 });
+    expect(await altaNuevo(deps, narrador(ctx), { ventanaAbierta: true })).toBe('en-cola');
+    // Mientras tanto ya hay una respuesta anotada (p. ej., el mail falló al aceptar y se soltó).
+    base.tablas.entrevistas_v3[0].estado = { ...base.tablas.entrevistas_v3[0].estado, respuestas: [['OR1', 'una respuesta']] };
+    expect(await drenar(deps, 'n1')).toBe('enviado');
+    expect(enviados).toHaveLength(1);
+    expect(hitos).toEqual([]);
+  });
+
   it('un regalo que ya tiene el mail anotado no lo pide de nuevo', async () => {
     const ctx = { genero: 'mujer', regalo: true, mailsEnviados: ['acepto'] };
     const { deps, hitos } = preparar(ctx);
