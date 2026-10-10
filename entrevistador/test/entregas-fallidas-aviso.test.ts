@@ -69,6 +69,14 @@ describe('un mensaje que no llegó avisa a los socios', () => {
     expect(mocks.avisos).toEqual([]);
   });
 
+  it('un fallo que llega después de entregado o leído no avisa (el mensaje llegó)', async () => {
+    for (const entrega of ['entregado', 'leido']) {
+      mocks.fila = { ...mocks.fila!, entrega };
+      await anotarEntrega(fallo(131047));
+    }
+    expect(mocks.avisos).toEqual([]);
+  });
+
   it('un mensaje que no salió de envios no avisa (no sabemos de quién es)', async () => {
     mocks.fila = null;
     await anotarEntrega(fallo(131047));
