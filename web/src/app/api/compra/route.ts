@@ -104,7 +104,10 @@ export async function POST(request: NextRequest) {
   const esRegalo = body.regalo !== undefined;
   let datosRegalo: DatosRegalo | null = null;
   if (esRegalo) {
-    const v = validarRegalo(body.regalo, new Date(), { whatsapp: entregaWhatsAppPrendida() });
+    const v = validarRegalo(body.regalo, new Date(), {
+      whatsapp: entregaWhatsAppPrendida(),
+      trato: body.region === "ES" ? "tu" : "vos",
+    });
     if (!v.ok) return NextResponse.json({ error: v.mensaje }, { status: 400 });
     datosRegalo = v.regalo;
   }

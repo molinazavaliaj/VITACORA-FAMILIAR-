@@ -161,15 +161,37 @@ describe("validarRegalo con entrega", () => {
     expect(validarRegalo({ ...sinFecha, entrega: { canal: "mail", contacto: "a@b.com", hora: 10 } }, HOY)).toEqual({ ok: false, mensaje: "Falta la fecha." });
   });
   it("correo mal escrito", () => {
-    expect(validarRegalo({ ...base, entrega: { canal: "mail", contacto: "abuelo@", hora: 10 } }, HOY)).toEqual({ ok: false, mensaje: "Ese correo parece mal escrito." });
+    expect(validarRegalo({ ...base, entrega: { canal: "mail", contacto: "abuelo@", hora: 10 } }, HOY)).toEqual({ ok: false, mensaje: "Ese correo parece mal escrito. Revisalo." });
   });
   it("celular mal escrito", () => {
-    expect(validarRegalo({ ...base, entrega: { canal: "whatsapp", contacto: "123", hora: 10 } }, HOY, { whatsapp: true })).toEqual({ ok: false, mensaje: "Ese celular parece mal escrito." });
+    expect(validarRegalo({ ...base, entrega: { canal: "whatsapp", contacto: "123", hora: 10 } }, HOY, { whatsapp: true })).toEqual({ ok: false, mensaje: "Ese celular parece mal escrito. Revisalo." });
   });
   it("hoy a una hora que ya pasó en la zona de quien recibe", () => {
     // 12:00 UTC = 9 en Buenos Aires: las 8 ya pasaron, las 10 no.
     const hoy = { ...base, fechaEntrega: "2026-10-10" };
-    expect(validarRegalo({ ...hoy, entrega: { canal: "mail", contacto: "a@b.com", hora: 8 } }, HOY)).toEqual({ ok: false, mensaje: "Esa hora ya pasó." });
+    expect(validarRegalo({ ...hoy, entrega: { canal: "mail", contacto: "a@b.com", hora: 8 } }, HOY)).toEqual({ ok: false, mensaje: "Esa hora ya pasó. Elegí otra." });
     expect(validarRegalo({ ...hoy, entrega: { canal: "mail", contacto: "a@b.com", hora: 10 } }, HOY).ok).toBe(true);
+  });
+});
+
+describe("validarRegalo con entrega: arreglos de la revisión", () => {
+  const HOY = new Date("2026-10-10T12:00:00Z");
+  const base = { mensaje: "Te quiero", genero: "varon", fechaEntrega: "2026-12-24" };
+  const wa = (contacto: string, idioma = "es-ES") =>
+    validarRegalo({ ...base, idioma, entrega: { canal: "whatsapp", contacto, hora: 10 } }, HOY, { whatsapp: true });
+
+  it("un móvil de España escrito con el 34 pero sin el +", () => {
+    expect(wa("34612345678")).toMatchObject({ ok: true, regalo: { entrega: { contacto: "+34612345678" } } });
+    expect(wa("34 612 34 56 78")).toMatchObject({ ok: true, regalo: { entrega: { contacto: "+34612345678" } } });
+  });
+  it("un celular de Argentina escrito con el 54 pero sin el +", () => {
+    expect(wa("5491155551234", "es-AR")).toMatchObject({ ok: true, regalo: { entrega: { contacto: "+5491155551234" } } });
+    expect(wa("541155551234", "es-AR")).toMatchObject({ ok: true, regalo: { entrega: { contacto: "+5491155551234" } } });
+  });
+  it("de tú, los errores de la entrega salen de tú (los textos aprobados)", () => {
+    const r = validarRegalo({ ...base, fechaEntrega: "2026-10-10", entrega: { canal: "mail", contacto: "a@b.com", hora: 8 } }, HOY, { trato: "tu" });
+    expect(r).toEqual({ ok: false, mensaje: "Esa hora ya ha pasado. Elige otra." });
+    expect(validarRegalo({ ...base, entrega: { canal: "whatsapp", contacto: "123", hora: 10 } }, HOY, { whatsapp: true, trato: "tu" }))
+      .toEqual({ ok: false, mensaje: "Ese móvil parece mal escrito. Revísalo." });
   });
 });

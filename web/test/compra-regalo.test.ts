@@ -372,6 +372,16 @@ describe("POST /api/compra con regalo: entrega el día elegido", () => {
     expect(admin.inserts.regalos[0]).toMatchObject({ entrega_canal: "whatsapp", entrega_contacto: "+5491155551234", entrega_hora: 20 });
   });
 
+  it("desde España, el error de la entrega sale de tú", async () => {
+    const admin = crearAdmin(secuenciaFeliz());
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+
+    const r = await POST(peticion({ ...CUERPO_REGALO, region: "ES", regalo: { ...CUERPO_REGALO.regalo, entrega: { ...MAIL, contacto: "abuelo@" } } }));
+
+    expect(r.status).toBe(400);
+    expect(((await r.json()) as { error: string }).error).toBe("Ese correo parece mal escrito. Revísalo.");
+  });
+
   it("una hora que no está entre 8 y 22: 400", async () => {
     const admin = crearAdmin(secuenciaFeliz());
     (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);

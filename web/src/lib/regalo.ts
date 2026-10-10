@@ -4,7 +4,7 @@
 // (son dos servicios aparte): si cambia uno, cambia el otro.
 
 import { randomInt } from "node:crypto";
-import { textosAbuelo, type IdiomaRegalo } from "./regalo-textos";
+import { textosAbuelo, textosComprador, type IdiomaRegalo, type TratoComprador } from "./regalo-textos";
 import {
   CANALES_ENTREGA, GENEROS, HORAS_ENTREGA, MENSAJE_MAXIMO, MENSAJE_FECHA_INVALIDA, MENSAJE_IDIOMA_INVALIDO,
   errorDeFechaEntrega, esIdiomaRegalo, instanteDeEntrega, zonaDeIdioma, type CanalEntrega, type Genero,
@@ -61,33 +61,42 @@ const E164_RE = /^\+\d{8,15}$/;
 
 /** La entrega pedida, ya validada; o el mensaje del problema. */
 function validarEntrega(
-  crudo: unknown, fechaEntrega: string | null, idioma: IdiomaRegalo, hoy: Date, whatsapp: boolean,
+  crudo: unknown, fechaEntrega: string | null, idioma: IdiomaRegalo, hoy: Date, whatsapp: boolean, trato: TratoComprador,
 ): { ok: true; entrega: EntregaRegalo } | { ok: false; mensaje: string } {
+  // Los mismos textos aprobados que muestra el formulario, en el trato de quien compra.
+  const T = textosComprador(trato).entrega;
   const e = (crudo && typeof crudo === "object" ? crudo : {}) as Record<string, unknown>;
   if (!(CANALES_ENTREGA as readonly unknown[]).includes(e.canal)) return { ok: false, mensaje: "Ese canal no está disponible." };
   const canal = e.canal as CanalEntrega;
   if (canal === "whatsapp" && !whatsapp) return { ok: false, mensaje: "Ese canal no está disponible." };
   if (!fechaEntrega) return { ok: false, mensaje: "Falta la fecha." };
-  if (typeof e.hora !== "number" || !HORAS_ENTREGA.includes(e.hora)) return { ok: false, mensaje: "Falta la hora." };
+  if (typeof e.hora !== "number" || !HORAS_ENTREGA.includes(e.hora)) return { ok: false, mensaje: T.faltaHora };
   const crudoContacto = typeof e.contacto === "string" ? e.contacto.trim() : "";
   let contacto: string;
   if (canal === "mail") {
     contacto = crudoContacto.toLowerCase();
-    if (!CORREO_RE.test(contacto)) return { ok: false, mensaje: "Ese correo parece mal escrito." };
+    if (!CORREO_RE.test(contacto)) return { ok: false, mensaje: T.correoMal };
   } else {
-    contacto = crudoContacto ? normalizarTelefono(crudoContacto, idioma === "es-AR" ? "AR" : "ES") : "";
-    if (!E164_RE.test(contacto)) return { ok: false, mensaje: "Ese celular parece mal escrito." };
+    // Con el código de país pero sin el + ("34612345678"): se le pone el +, y
+    // normalizarTelefono arregla el 9 de Argentina.
+    const digitos = crudoContacto.replace(/[\s-]/g, "");
+    const conPais = /^(34\d{9}|549?\d{10})$/.test(digitos) ? `+${digitos}` : crudoContacto;
+    contacto = conPais ? normalizarTelefono(conPais, idioma === "es-AR" ? "AR" : "ES") : "";
+    if (!E164_RE.test(contacto)) return { ok: false, mensaje: T.celularMal };
   }
   const zona = zonaDeIdioma(idioma);
-  if (instanteDeEntrega(fechaEntrega, e.hora, zona).getTime() <= hoy.getTime()) return { ok: false, mensaje: "Esa hora ya pasó." };
+  if (instanteDeEntrega(fechaEntrega, e.hora, zona).getTime() <= hoy.getTime()) return { ok: false, mensaje: T.horaPasada };
   return { ok: true, entrega: { canal, contacto, hora: e.hora, zona } };
 }
 
-/** `o.whatsapp`: si se puede elegir WhatsApp (REGALO_ENTREGA_WHATSAPP en Vercel). */
+/**
+ * `o.whatsapp`: si se puede elegir WhatsApp (REGALO_ENTREGA_WHATSAPP en Vercel).
+ * `o.trato`: el de quien compra, para los errores de la entrega (vos si no se dice).
+ */
 export function validarRegalo(
   crudo: unknown,
   hoy: Date,
-  o: { whatsapp?: boolean } = {},
+  o: { whatsapp?: boolean; trato?: TratoComprador } = {},
 ): { ok: true; regalo: DatosRegalo } | { ok: false; mensaje: string } {
   const r = (crudo && typeof crudo === "object" ? crudo : {}) as Record<string, unknown>;
   const mensaje = typeof r.mensaje === "string" ? r.mensaje.trim() : "";
@@ -110,7 +119,7 @@ export function validarRegalo(
   }
   let entrega: EntregaRegalo | null = null;
   if (r.entrega !== undefined && r.entrega !== null) {
-    const v = validarEntrega(r.entrega, fechaEntrega, idioma, hoy, o.whatsapp === true);
+    const v = validarEntrega(r.entrega, fechaEntrega, idioma, hoy, o.whatsapp === true, o.trato ?? "vos");
     if (!v.ok) return v;
     entrega = v.entrega;
   }
