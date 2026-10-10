@@ -1,5 +1,5 @@
 import { db } from '../db/cliente.js';
-import { HITO_ACEPTO_REGALO, TEXTOS_REGALO_BOT, tratoDeComprador, type TratoComprador } from '../flujo/regalo-textos.js';
+import { HITO_ACEPTO_REGALO, HITO_ACEPTO_VIAJE, TEXTOS_REGALO_BOT, tratoDeComprador, type TratoComprador } from '../flujo/regalo-textos.js';
 
 // Los mails de hitos que manda el entrevistador (docs/panel-usuario.md §9 y
 // §11.6): los momentos de la entrevista que la familia quiere saber. Los del
@@ -42,15 +42,15 @@ function escapar(texto: string): string {
 export function redactarHito(
   hito: Hito,
   n: { nombre?: string; como_le_dicen: string; id: string },
-  o: { regalo?: boolean; trato?: TratoComprador } = {},
+  o: { regalo?: boolean; trato?: TratoComprador; viaje?: boolean } = {},
 ): { asunto: string; cuerpo: string } {
   const quien = n.nombre ?? n.como_le_dicen;
   const panel = `${URL_BASE}/tablero/${n.id}`;
   const tu = o.trato === 'tu';
   switch (hito) {
     case 'acepto':
-      if (o.regalo === true) {
-        const t = HITO_ACEPTO_REGALO[o.trato ?? 'vos'];
+      if (o.viaje === true || o.regalo === true) {
+        const t = (o.viaje === true ? HITO_ACEPTO_VIAJE : HITO_ACEPTO_REGALO)[o.trato ?? 'vos'];
         return { asunto: t.asunto(quien), cuerpo: `<p>${escapar(t.cuerpo(quien))}</p><p><a href="${panel}">${panel}</a></p>` };
       }
       return {
@@ -104,7 +104,7 @@ async function enviar(para: string, asunto: string, html: string): Promise<boole
  * Manda el mail del hito a la familia, una sola vez por narrador. Nunca tira:
  * un mail que falla no puede frenar la entrevista.
  */
-export async function mandarHito(n: NarradorParaMail, hito: Hito): Promise<void> {
+export async function mandarHito(n: NarradorParaMail, hito: Hito, o: { viaje?: boolean } = {}): Promise<void> {
   try {
     // Se relee el contexto: otro módulo puede haberlo escrito entre medio.
     const { data: fresco } = await db.from('narradores').select('contexto').eq('id', n.id).maybeSingle();
@@ -118,6 +118,7 @@ export async function mandarHito(n: NarradorParaMail, hito: Hito): Promise<void>
 
     const { asunto, cuerpo } = redactarHito(hito, n, {
       regalo: contexto.regalo === true,
+      viaje: o.viaje === true,
       trato: tratoDeComprador((familia as { region?: unknown } | null)?.region),
     });
     const mandado = await enviar(para, asunto, envoltorio(cuerpo));

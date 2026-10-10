@@ -39,6 +39,21 @@ export const RECORDATORIO: Readonly<Record<TratoComprador, { asunto: (como: stri
  * «mañana») y la V3 no tiene guion para repasar. El de lo que no es regalo
  * sigue en mail/hitos.ts, sin cambios.
  */
+/**
+ * El «dijo que sí» de la Viaje V2 cuando el viaje es un regalo: va a quien regaló (quien compra para sí no lo
+ * recibe). PROPUESTA del 10/10, falta el OK de Naza.
+ */
+export const HITO_ACEPTO_VIAJE: Readonly<Record<TratoComprador, { asunto: (quien: string) => string; cuerpo: (quien: string) => string }>> = {
+  vos: {
+    asunto: (quien: string) => `${quien} dijo que sí`,
+    cuerpo: (quien: string) => `${quien} dijo que sí y ya le mandamos la primera pregunta de su viaje por WhatsApp. Antes de salir le van a llegar unas pocas más, y en el viaje, dos por día.`,
+  },
+  tu: {
+    asunto: (quien: string) => `${quien} ha dicho que sí`,
+    cuerpo: (quien: string) => `${quien} ha dicho que sí y ya le hemos mandado la primera pregunta de su viaje por WhatsApp. Antes de salir le llegarán unas pocas más, y en el viaje, dos al día.`,
+  },
+};
+
 export const HITO_ACEPTO_REGALO: Readonly<Record<TratoComprador, { asunto: (quien: string) => string; cuerpo: (quien: string) => string }>> = {
   // Aprobados por Naza el 09/10 (regalo-idiomas)
   vos: {

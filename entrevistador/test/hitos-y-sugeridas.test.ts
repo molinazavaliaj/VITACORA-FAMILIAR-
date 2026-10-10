@@ -52,6 +52,14 @@ beforeEach(() => {
 const n = { id: 'n1', nombre: 'Roberto', como_le_dicen: 'Papá', familia_id: 'fam-1', contexto: {} as Record<string, any> };
 
 describe('mails de hitos', () => {
+  it('el «dijo que sí» de un viaje regalado habla del viaje, con vos o con tú', () => {
+    const vos = redactarHito('acepto', n, { viaje: true });
+    expect(vos.asunto).toBe('Roberto dijo que sí');
+    expect(vos.cuerpo).toContain('la primera pregunta de su viaje');
+    expect(vos.cuerpo).toContain('/tablero/n1');
+    expect(redactarHito('acepto', n, { viaje: true, trato: 'tu' }).asunto).toBe('Roberto ha dicho que sí');
+  });
+
   it('redacta cada hito con el nombre y el link al panel', () => {
     expect(redactarHito('acepto', n).asunto).toBe('Roberto dijo que sí');
     expect(redactarHito('silencio', n).cuerpo).toContain('/tablero/n1');

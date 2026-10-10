@@ -21,5 +21,7 @@ export type DepsViaje = {
   transcribir(audio: Buffer, o: { nombre: string; idioma: Idioma; narradorId: string }): Promise<{ texto: string; duracionSegundos: number }>;
   /** Aviso a los socios (consola + mail). Nunca tira. */
   avisar(clave: string, asunto: string, detalle: string): Promise<void>;
+  /** El mail «dijo que sí» a quien regaló el viaje (mail/hitos.ts, una sola vez). Nunca tira. */
+  mailSi(narradorId: string): Promise<void>;
   ahora(): Date;
 };
