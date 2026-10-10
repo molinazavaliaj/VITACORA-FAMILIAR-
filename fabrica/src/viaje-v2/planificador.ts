@@ -52,9 +52,13 @@
 //   · Álbum con cero fotos (Naza, 10/10): aviso a los socios a las 5 horas de
 //     AL1, otra vez a las 48 horas del aviso, y a los 7 días se cierra solo
 //     con DES (respetando la franja: si cae de noche, a las 10:00).
-//   · Lo programado que se atrasa (el bot estuvo caído): sale si no pasaron
-//     más de TOLERANCIA_ATRASO_MS y no es de noche (23-8) en su zona; si no,
-//     queda vencido y no sale.
+//   · Lo programado que se atrasa (el bot estuvo caído) no sale de noche
+//     (23-8 en su zona): espera a las 8. Sale si el atraso, sin contar las
+//     horas de la franja, no pasa de TOLERANCIA_ATRASO_MS; si pasa, queda
+//     vencido y no sale. CA1 no vence nunca: sin CA1 no hay álbum ni
+//     despedida (revisión 10/10).
+//   · Una entrada con un idMensaje que ya está en el grupo o en el álbum es
+//     un reenvío del webhook: no se suma otra vez.
 
 import { HORA_ALBUM_TRAS_FRANJA, iniciarAlbum, pasoAlbum, type EventoAlbum } from './album.js';
 import {
@@ -268,6 +272,26 @@ export function preguntaAbierta(e: EstadoViaje): Envio | null {
 function enFranja(t: Date, zona: Zona): boolean {
   const h = aLocal(t, zona).hora;
   return h >= FRANJA_DESDE || h < FRANJA_HASTA;
+}
+
+const PASO_FRANJA_MS = 5 * 60_000;
+
+/**
+ * El atraso que cuenta: el tiempo entre `desde` y `hasta` fuera de la franja 23-8 de `zona` (de noche no se
+ * manda, así que esas horas no lo vencen). Corta apenas pasa TOLERANCIA_ATRASO_MS (no hace falta más).
+ */
+export function atrasoFueraDeFranja(desde: number, hasta: number, zona: Zona): number {
+  let fuera = 0;
+  for (let t = desde; t < hasta && fuera <= TOLERANCIA_ATRASO_MS; t += PASO_FRANJA_MS) {
+    if (!enFranja(new Date(t), zona)) fuera += Math.min(PASO_FRANJA_MS, hasta - t);
+  }
+  return fuera;
+}
+
+/** ¿Lo programado se atrasó tanto que ya no sale? CA1 nunca (abre el álbum). */
+function vencido(g: ProgramadoGuardado, t: number): boolean {
+  if (g.tipo === 'CA1') return false;
+  return atrasoFueraDeFranja(ms(g.sale), t, g.zona) > TOLERANCIA_ATRASO_MS;
 }
 
 /** Lo que se va armando en un paso: el estado (se reemplaza, nunca se toca el de entrada) y lo que sale. */
@@ -487,7 +511,7 @@ function siguiente(c: Ctx, t: number): Pendiente | null {
     if (p.en > t) return false;
     if (p.que !== 'programado') return true;
     const g = c.e.calendario.find((x) => x.clave === p.clave)!;
-    return t - p.en > TOLERANCIA_ATRASO_MS || !enFranja(new Date(t), g.zona);
+    return vencido(g, t) || !enFranja(new Date(t), g.zona);
   });
   return primero(ps);
 }
@@ -517,7 +541,7 @@ function hacer(c: Ctx, p: Pendiente, ahora: Date) {
     }
     case 'programado': {
       const g = c.e.calendario.find((x) => x.clave === p.clave)!;
-      if (ahora.getTime() - p.en > TOLERANCIA_ATRASO_MS) {
+      if (vencido(g, ahora.getTime())) {
         marcar(c, g.clave, 'vencido');
         nota(c, ahora, g.zona, `${g.ids[0]} (${g.fecha} ${g.hora}) no salió a tiempo: no sale.`);
         return;
@@ -642,10 +666,17 @@ export function cerrarAlbum(compra: Compra, estado: EstadoViaje, ahora: Date): P
  */
 export function alEntrar(compra: Compra, estado: EstadoViaje, entradas: Entrada | Entrada[], ahora: Date, op: Opciones = {}): Paso & { clave: string } {
   const antes = queToca(compra, estado, ahora, op);
-  const lista = Array.isArray(entradas) ? entradas : [entradas];
+  // Lo que ya llegó (el webhook reintenta): no se suma otra vez.
+  const ya = new Set([...(antes.estado.grupo?.entradas.map((x) => x.idMensaje) ?? []), ...(antes.estado.album?.ids ?? [])]);
+  const lista = (Array.isArray(entradas) ? entradas : [entradas]).filter((x) => !ya.has(x.idMensaje));
   const en = iso(ahora);
   const guardadas: EntradaGuardada[] = lista.map((x) => ({ ...x, en }));
   let e = antes.estado;
+  if (guardadas.length === 0) {
+    const u = ultimaPregunta(e);
+    const destino = e.grupo?.destino ?? (e.album || !u ? { tipo: 'album' as const } : { tipo: 'pregunta' as const, clave: u.clave });
+    return { ...antes, clave: destino.tipo === 'album' ? 'album' : destino.clave };
+  }
   let grupo: Grupo;
   if (e.grupo) grupo = { ...e.grupo, ultimoEn: en, entradas: [...e.grupo.entradas, ...guardadas] };
   else {
@@ -704,6 +735,7 @@ function cerrarGrupo(c: Ctx, ahora: Date) {
     if (clase === 'audioMal') {
       const resp: Respuesta = { tipo: 'audio', audioMal: true, idMensaje: primerId };
       const r = reaccion({ tipo: 'cadena', siguiente: 'callada' }, resp, c.compra, c.e.rotacion);
+      c.e = { ...c.e, rotacion: r.rot };
       for (const m of r.mensajes) c.salientes.push(mensaje(c, m, ahora, { tipo: 'texto', zona: casa, origen: 'reaccion', iniciativa: false, respondeA: respondeA(envio.tipo, resp) }));
       return;
     }

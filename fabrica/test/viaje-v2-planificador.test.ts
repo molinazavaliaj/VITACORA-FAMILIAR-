@@ -20,7 +20,7 @@ import {
   type Paso,
   type Saliente,
 } from '../src/viaje-v2/planificador.js';
-import { aInstante, aLocal } from '../src/viaje-v2/horas.js';
+import { aInstante, aLocal, sumarDias } from '../src/viaje-v2/horas.js';
 import type { Compra } from '../src/viaje-v2/tipos.js';
 
 const COMPRA: Compra = {
@@ -403,5 +403,60 @@ describe('viaje v2 planificador: el bot estuvo caído', () => {
     // Vuelve 30 minutos después: sale.
     const r2 = queToca(COMPRA, e, new Date(Date.parse(d2md.sale) + 30 * MIN));
     expect(r2.salientes.map((s) => s.clave)).toContain('D2-mediodia');
+  });
+});
+
+describe('viaje v2 planificador: revisión del 10/10', () => {
+  /** Hasta un minuto antes de `t`, contestando todo; después, el reloj vuelve en `vuelve`. */
+  const hasta = (t: number) => manejar(COMPRA, contestaTodo, { hasta: t - MIN }).e;
+
+  it('CA1 atrasado mucho igual sale (abre el álbum y el viaje termina)', () => {
+    const e0 = hasta(Date.parse(iniciar(COMPRA, SI_EN).estado.calendario.find((x) => x.tipo === 'CA1')!.sale));
+    const ca1 = e0.calendario.find((x) => x.tipo === 'CA1')!;
+    expect(ca1.estado).toBe('pendiente');
+    // El reloj vuelve dos días después, al mediodía de casa.
+    let e = queToca(COMPRA, e0, aInstante(sumarDias(ca1.fecha, 2), '12:00', COMPRA.zonaCasa)).estado;
+    expect(e.calendario.find((x) => x.tipo === 'CA1')!.estado).toBe('enviado');
+    expect(e.al1En).not.toBeNull();
+    // Sin fotos: el álbum termina solo (aviso, 48 h, 7 días) y el viaje queda terminado.
+    for (let i = 0; i < 50 && !e.terminado; i++) {
+      const prox = proximaAccion(COMPRA, e);
+      if (!prox) break;
+      e = queToca(COMPRA, e, new Date(prox)).estado;
+    }
+    expect(e.terminado).toBe(true);
+  });
+
+  it('una caída corta a la hora de la noche no pierde la pregunta: espera a las 8', () => {
+    const compra = { ...COMPRA, horaNoche: '22:30' };
+    const e0 = manejar(compra, contestaTodo, { hasta: aInstante('2026-11-12', '22:00', 'Europe/Madrid').getTime() }).e;
+    const d2 = e0.calendario.find((x) => x.clave === 'D2-noche')!;
+    expect(d2.estado).toBe('pendiente');
+    // El reloj vuelve a las 23:10: es de noche, no sale ni vence.
+    const r1 = queToca(compra, e0, aInstante('2026-11-12', '23:10', 'Europe/Madrid'));
+    expect(r1.salientes.map((s) => s.clave)).not.toContain('D2-noche');
+    expect(r1.estado.calendario.find((x) => x.clave === 'D2-noche')!.estado).toBe('pendiente');
+    // A las 8:05 sale (el atraso fuera de la franja son 35 minutos).
+    const r2 = queToca(compra, r1.estado, aInstante('2026-11-13', '08:05', 'Europe/Madrid'));
+    expect(r2.salientes.map((s) => s.clave)).toContain('D2-noche');
+  });
+
+  it('la misma entrada dos veces (el webhook reintenta) no se suma dos veces', () => {
+    const e0 = hasta(Date.parse(iniciar(COMPRA, SI_EN).estado.calendario.find((x) => x.tipo === 'CA1')!.sale));
+    const ca1 = e0.calendario.find((x) => x.tipo === 'CA1')!;
+    let e = queToca(COMPRA, e0, new Date(ca1.sale)).estado;
+    e = alEntrar(COMPRA, e, audio('llegué'), mas(new Date(ca1.sale), MIN)).estado;
+    e = queToca(COMPRA, e, new Date(e.al1En!)).estado;
+    expect(e.album).not.toBeNull();
+    const f: Entrada = { tipo: 'foto', idMensaje: 'wamid.X' };
+    const t = mas(new Date(e.al1En!), MIN);
+    e = alEntrar(COMPRA, e, f, t).estado;
+    e = alEntrar(COMPRA, e, f, mas(t, 1000)).estado;
+    e = queToca(COMPRA, e, mas(t, 10 * MIN)).estado;
+    expect(e.album!.ids).toEqual(['wamid.X']);
+    // Y si llega de nuevo después de cerrar el grupo, tampoco.
+    e = alEntrar(COMPRA, e, f, mas(t, 20 * MIN)).estado;
+    e = queToca(COMPRA, e, mas(t, 30 * MIN)).estado;
+    expect(e.album!.ids).toEqual(['wamid.X']);
   });
 });
