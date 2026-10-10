@@ -90,6 +90,8 @@ export function Wizard({ narradorId, nombre, edicion: inicial, capitulos, respue
   };
   const pasoId = PASOS[paso][0];
   const ultimo = PASOS.length - 1;
+  // V3: si deja todo afuera no queda nada para escribir (la fábrica lo daría por fallido).
+  const todoAfuera = Boolean(v3 && v3.length > 0 && v3.every((r) => r.ids.some((id) => excluidas.has(id))));
   const puedeSeguir = pasoId === "portada" ? Boolean(titulo.trim()) : paso < ultimo;
 
   async function guardarYSeguir(cambios: Edicion) {
@@ -419,11 +421,11 @@ export function Wizard({ narradorId, nombre, edicion: inicial, capitulos, respue
           {error ? <p className="text-sm text-[var(--alerta)]">{error}</p> : null}
 
           <div className="flex flex-wrap items-center gap-4">
-            <button type="button" disabled={ocupado || !confirmo || faltaDireccion} onClick={cerrar} className={`${boton} h-13 bg-[var(--acento)] px-10 text-[16px] text-[var(--sobre-acento)] hover:opacity-90`}>
+            <button type="button" disabled={ocupado || !confirmo || faltaDireccion || todoAfuera} onClick={cerrar} className={`${boton} h-13 bg-[var(--acento)] px-10 text-[16px] text-[var(--sobre-acento)] hover:opacity-90`}>
               {ocupado ? "Encargando…" : "Encargar"}
             </button>
             <span className="text-sm text-[var(--texto-menor)]">
-              {faltaDireccion ? "Falta la dirección de envío, acá arriba: el libro impreso tiene que llegar a algún lado." : `${propia ? "Tu libro" : `El libro de ${nombre}`}, ${v3 ? "con lo que elegiste" : "tal como lo revisaste"}.`}
+              {todoAfuera ? "Dejaste todo afuera. Para encargar el libro tiene que quedar algo de lo que contó." : faltaDireccion ? "Falta la dirección de envío, acá arriba: el libro impreso tiene que llegar a algún lado." : `${propia ? "Tu libro" : `El libro de ${nombre}`}, ${v3 ? "con lo que elegiste" : "tal como lo revisaste"}.`}
             </span>
             <button type="button" className={chico} disabled={ocupado} onClick={() => irAlPaso(ultimo - 1)}>Volver a revisar</button>
           </div>

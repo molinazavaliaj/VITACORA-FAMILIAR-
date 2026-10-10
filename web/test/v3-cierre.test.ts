@@ -56,3 +56,18 @@ describe("entrevistaV3", () => {
     await expect(entrevistaV3(cliente({ data: null, error: { message: "x" } }), "n1")).rejects.toThrow();
   });
 });
+
+describe("lo que el narrador ya reservó por WhatsApp", () => {
+  it("no aparece (ya está afuera): ni por estado.reservadas ni por la fila reservada entera; un tramo o una repregunta reservada sí aparece", () => {
+    const estado = { respuestas: [["OR1", "Secreto."], ["OR2", "Otro secreto."], ["OR3", "Algo con un tramo."], ["OR4", "Normal."]] as [string, string][], reservadas: ["OR1"] };
+    const filas = [
+      { id: "a", clave_v3: "OR1" },
+      { id: "b", clave_v3: "RP~OR2", reservada: true },
+      { id: "b2", clave_v3: "OR2" },
+      { id: "c", clave_v3: "OR3", reservada: true, reservado_tramo: "un tramo" },
+      { id: "d", clave_v3: "OR4", reservada: false },
+    ];
+    // RP~OR2 reservada sola: OR2 sigue en el libro, así que se puede dejar afuera desde acá.
+    expect(respuestasV3ParaCerrar(estado, filas).map((r) => r.clave)).toEqual(["OR2", "OR3", "OR4"]);
+  });
+});

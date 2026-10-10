@@ -146,7 +146,7 @@ export default async function PaginaLibro({ params, searchParams }: PageProps<"/
   const [{ data: propias }, { data: globales }, { data: respuestas }, { data: fotosData }, { data: paquete }] = await Promise.all([
     admin.from("preguntas").select("orden, texto, capitulo").eq("narrador_id", n.id),
     admin.from("preguntas").select("orden, texto, capitulo").is("narrador_id", null),
-    admin.from("respuestas").select("id, pregunta_orden, transcripcion, texto_directo, es_repregunta, clave_v3").eq("narrador_id", n.id).order("pregunta_orden"),
+    admin.from("respuestas").select("id, pregunta_orden, transcripcion, texto_directo, es_repregunta, clave_v3, reservada, reservado_tramo").eq("narrador_id", n.id).order("pregunta_orden"),
     // `select("*")`: `posicion` y `foco` (3b.6) existen recién con la migración 20260918; pedirlos por nombre tiraría la página antes.
     admin.from("fotos").select("*").eq("narrador_id", n.id).order("principal", { ascending: false }).order("orden"),
     admin.storage.from("audios").list(`${n.id}/paquete`),
@@ -159,7 +159,7 @@ export default async function PaginaLibro({ params, searchParams }: PageProps<"/
   // V3: no hay capítulos del guion (el plan lo arma el escritor).
   const capitulos = v3 ? [] : capitulosDelGuion(guion);
   const respuestasV3: RespuestaV3[] | undefined = v3
-    ? respuestasV3ParaCerrar(v3.estado, ((respuestas as { id: string; clave_v3: string | null }[] | null) ?? []))
+    ? respuestasV3ParaCerrar(v3.estado, ((respuestas as { id: string; clave_v3: string | null; reservada?: boolean | null; reservado_tramo?: string | null }[] | null) ?? []))
     : undefined;
   // Encuadre (3b.6): siempre un foco usable y una posición válida, tenga o no la fila los campos.
   const fotos = (((fotosData as (FotoElegible & { principal: boolean; foco?: unknown; posicion?: unknown })[] | null) ?? []).map((f) => ({

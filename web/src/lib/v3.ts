@@ -11,8 +11,8 @@ const SIN_CLAVE = "∅";
 const MARCAS = /⟦[^⟧]*⟧/g;
 
 type Globo = { de?: string; partes?: { id?: string; texto?: string }[] };
-export type EstadoV3 = { respuestas?: [string, string][]; charla?: unknown[] };
-export type FilaRespuestaV3 = { id: string; clave_v3: string | null };
+export type EstadoV3 = { respuestas?: [string, string][]; charla?: unknown[]; reservadas?: string[] };
+export type FilaRespuestaV3 = { id: string; clave_v3: string | null; reservada?: boolean | null; reservado_tramo?: string | null };
 
 /** Una pregunta contestada, para «Qué dejar afuera»: destildarla saca todas sus filas (`ids`). */
 export type RespuestaV3 = { clave: string; pregunta: string; fragmento: string; ids: string[] };
@@ -31,11 +31,16 @@ function preguntaDe(clave: string, charla: unknown[]): string | null {
 
 /**
  * Lo que contó, agrupado por pregunta, en el orden en que lo contó. Solo lo que tiene filas en `respuestas`
- * (sin ellas no se puede dejar afuera) y algo dicho de verdad (sin marcas del sistema).
+ * (sin ellas no se puede dejar afuera) y algo dicho de verdad (sin marcas del sistema). Lo que el narrador ya
+ * pidió que no vaya al libro (por WhatsApp: `estado.reservadas`, o la fila reservada entera) no aparece: ya está
+ * afuera y no se puede volver a meter desde acá.
  */
 export function respuestasV3ParaCerrar(estado: EstadoV3 | null | undefined, filas: FilaRespuestaV3[]): RespuestaV3[] {
   const respuestas = Array.isArray(estado?.respuestas) ? estado.respuestas : [];
   const charla = Array.isArray(estado?.charla) ? estado.charla : [];
+  const reservadas = new Set((Array.isArray(estado?.reservadas) ? estado.reservadas : []).filter((k) => typeof k === "string").map(claveMadre));
+  // Como en la fábrica: reservar X saca también RP~X y X~2; reservar solo RP~X deja a X en el libro.
+  for (const f of filas) if (f.clave_v3 && f.clave_v3 === claveMadre(f.clave_v3) && f.reservada === true && !f.reservado_tramo?.trim()) reservadas.add(f.clave_v3);
   const idsPorMadre = new Map<string, string[]>();
   for (const f of filas) {
     if (!f.clave_v3 || f.clave_v3 === SIN_CLAVE) continue;
@@ -54,7 +59,7 @@ export function respuestasV3ParaCerrar(estado: EstadoV3 | null | undefined, fila
   for (const [clave, textos] of textoPorMadre) {
     const ids = idsPorMadre.get(clave);
     const texto = textos.join(" ");
-    if (!ids?.length || !texto) continue;
+    if (!ids?.length || !texto || reservadas.has(clave)) continue;
     out.push({
       clave,
       pregunta: preguntaDe(clave, charla) ?? "Algo que contó",
