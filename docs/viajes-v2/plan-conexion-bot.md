@@ -26,7 +26,7 @@ con un viajero nuevo; **Ñako no pasa a la V2** (era de prueba y ya perdió cont
 
 ## Pasos
 
-Estado al cerrar el 10/10: [`handoff-2026-10-10-bot.md`](handoff-2026-10-10-bot.md).
+Estado al cerrar el 10/10: [`handoff-2026-10-10-bot-2.md`](handoff-2026-10-10-bot-2.md) (el anterior: [`handoff-2026-10-10-bot.md`](handoff-2026-10-10-bot.md)).
 
 | # | Paso | Estado |
 |---|---|---|
@@ -34,11 +34,11 @@ Estado al cerrar el 10/10: [`handoff-2026-10-10-bot.md`](handoff-2026-10-10-bot.
 | 3 | `reubicar` (cambio de país), agrupar respuestas, `audioMal` | ✅ 10/10 |
 | 1 | Copia del núcleo al entrevistador + test | ✅ 10/10 |
 | 4 | Migración `viajes_v2` + `respuestas.clave_viaje` + CONTRATO (la aplica Naza) | ✅ escrita; falta aplicarla |
-| 5 | Estado en la base (CAS, toma) + envío con ventana y plantillas + reacción ❤️ | 🔄 la fila en la base hecha; falta el envío |
-| 6 | Entrante + gancho en procesar | |
-| 7 | Reloj + avisos a los socios + script para cerrar el álbum | |
-| 8 | Alta de un viajero nuevo + interruptor | |
-| 10 | Simulación real con un viajero inventado | |
+| 5 | Estado en la base (CAS, toma) + envío con ventana y plantillas + reacción ❤️ | ✅ 10/10 |
+| 6 | Entrante + gancho en procesar | ✅ 10/10 |
+| 7 | Reloj + avisos a los socios + script para cerrar el álbum (y cambio de país) | ✅ 10/10 |
+| 8 | Alta de un viajero nuevo + interruptor | ✅ 10/10 (script; el interruptor frena el viaje viejo) |
+| 10 | Simulación real con un viajero inventado | ✅ en memoria; `--real` espera la migración |
 
 Dependencias: Joaquín carga en Meta las bienvenidas de viaje (`bienvenida_viaje_v2`, `bienvenida_viaje_regalo_v2`)
 antes de prender el interruptor. La compra `/comprar/viaje` V2 (punto 2 del README) es aparte: hasta entonces, una

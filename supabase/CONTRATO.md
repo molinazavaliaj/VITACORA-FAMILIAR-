@@ -674,6 +674,13 @@ el entrevistador sigue como siempre (el viaje viejo, `contexto.modo = 'viaje'`).
 | `version` | Cada escritura es `UPDATE … WHERE version = n`; si cambió, se relee y se reintenta. |
 | `enviando_hasta` | Toma corta del turno (2 minutos): un solo proceso manda la cola. |
 
+`estado` del bot (10/10, `entrevistador/src/viaje-v2/tipos.ts`): `{ plan, salida, bienvenida, bienvenidaRepetida,
+ultimoEntranteAt, fallosEnvio, avisoFallos, fotosAlbum, vistos }`. `plan` es el planificador (null hasta el SÍ);
+`salida` es lo que el planificador ya decidió y falta mandar por WhatsApp; `fotosAlbum` (sha256 → id) reconoce un
+reenvío en AL3; `vistos`, los últimos 200 ids de WhatsApp procesados. El idioma que manda es `compra.idioma`; la
+columna `idioma` es para consultar. Con el SÍ el narrador pasa de `invitado` a `activo` de una vez (con el SÍ sale la
+primera pregunta); no se manda el mail de hito `acepto`. Antes del SÍ no se guarda nada de lo que mande.
+
 `respuestas.clave_viaje` (text): a qué mensaje responde la fila (`AS1`…`VA1`, la clave del calendario como
 `D3-noche`, o `ALBUM`). `∅` = se guardó y quedó afuera a propósito. Una respuesta tardía cuenta para la **última
 pregunta enviada** (Naza, 10/10). `envios.tipo` suma `'viaje_v2'`.
