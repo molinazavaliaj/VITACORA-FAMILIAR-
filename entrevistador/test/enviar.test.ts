@@ -45,6 +45,15 @@ describe('enviar', () => {
     expect(body.template.name).toBe('pregunta_diaria');
     expect(body.template.components[0].parameters).toHaveLength(2);
   });
+  it('plantilla con botón de URL: el sufijo va como parámetro del botón 0 (regalo el día elegido)', async () => {
+    const { enviarPlantilla } = await import('../src/whatsapp/enviar.js');
+    await enviarPlantilla('+5491155551234', 'regalo_entrega_vos', ['abuelo', 'Lucía'], 'es', { botonUrl: 'VF-7K3M2Q' });
+    const body = JSON.parse((fetch as any).mock.calls[0][1].body);
+    expect(body.template.components).toEqual([
+      { type: 'body', parameters: [{ type: 'text', text: 'abuelo' }, { type: 'text', text: 'Lucía' }] },
+      { type: 'button', sub_type: 'url', index: '0', parameters: [{ type: 'text', text: 'VF-7K3M2Q' }] },
+    ]);
+  });
   it('manda botones de respuesta rápida (interactive/button)', async () => {
     const { enviarBotones } = await import('../src/whatsapp/enviar.js');
     await enviarBotones('+5491155551234', '¿Tuviste hermanos?', ['Sí, tuve', 'No tuve hermanos']);

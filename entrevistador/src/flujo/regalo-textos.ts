@@ -93,3 +93,79 @@ export const AVISOS: Readonly<Record<Idioma, TextosAvisos>> = {
     usadoPorOtro: "Aquest codi ja s'ha fet servir des d'un altre telèfon. Avisa qui t'ha fet el regal perquè ens escrigui.",
   },
 };
+
+// ── El regalo llega solo el día elegido (spec 2026-10-10) ─────────────
+// Aprobados por Naza el 10/10 (docs/regalo/dia-de-entrega-textos.md).
+
+/** Los mails a quien compró: «Hoy le llegó» (tandas 1 y 2, fila 9) y «dásela vos» (fila 10). */
+export const ENTREGA_COMPRADOR: Readonly<Record<TratoComprador, {
+  llegoAsunto: (como: string) => string; llegoCuerpo: (contacto: string) => string;
+  falloAsunto: (como: string) => string; falloCuerpo: (contacto: string) => string;
+}>> = {
+  vos: {
+    llegoAsunto: (como) => `Hoy le llegó tu regalo a ${como}`,
+    llegoCuerpo: (contacto) => `Se lo mandamos a ${contacto}. Cuando empiece su entrevista lo vas a ver en tu tablero.`,
+    falloAsunto: (como) => `No pudimos mandarle el regalo a ${como}`,
+    falloCuerpo: (contacto) => `Probamos mandárselo a ${contacto} y no llegó. Dale la tarjeta vos, impresa o por WhatsApp.`,
+  },
+  tu: {
+    llegoAsunto: (como) => `Hoy le ha llegado tu regalo a ${como}`,
+    llegoCuerpo: (contacto) => `Se lo hemos enviado a ${contacto}. Cuando empiece su entrevista lo verás en tu tablero.`,
+    falloAsunto: (como) => `No hemos podido enviarle el regalo a ${como}`,
+    falloCuerpo: (contacto) => `Intentamos enviárselo a ${contacto} y no llegó. Dale tú la tarjeta, impresa o por WhatsApp.`,
+  },
+};
+
+export type TextosEntregaAbuelo = {
+  asunto: (quien: string) => string;
+  /** Copia de `titulo` y `explica` de la tarjeta (web/src/lib/regalo-textos.ts, aprobados el 07/10 y el 09/10). */
+  titulo: (narrador: string, quien: string) => string;
+  explica: readonly string[];
+  antesDelMensaje: string;
+  siHayAudio: string;
+  boton: string;
+  debajoDelBoton: (numero: string) => string;
+};
+
+/** El mail a quien recibe, en el idioma del regalo (tanda 3, filas 1 a 5). */
+export const ENTREGA_ABUELO: Readonly<Record<Idioma, TextosEntregaAbuelo>> = {
+  'es-AR': {
+    asunto: (quien) => `${quien} te hizo un regalo`,
+    titulo: (narrador, quien) => `${narrador}, ${quien} te hizo un regalo.`,
+    explica: [
+      'Un biógrafo te va a hacer preguntas sobre tu vida por WhatsApp.',
+      'Vos le contestás con audios, cuando puedas.',
+      'Con lo que le cuentes se escribe el libro de tu vida.',
+    ],
+    antesDelMensaje: 'Te dejó este mensaje.',
+    siHayAudio: 'También te grabó un audio. Lo escuchás cuando abrís tu regalo.',
+    boton: 'Abrir mi regalo',
+    debajoDelBoton: (numero) => `Si el botón no te anda, mandá un WhatsApp al ${numero} con este código.`,
+  },
+  'es-ES': {
+    asunto: (quien) => `${quien} te ha hecho un regalo`,
+    titulo: (narrador, quien) => `${narrador}, ${quien} te ha hecho un regalo.`,
+    explica: [
+      'Un biógrafo te va a hacer preguntas sobre tu vida por WhatsApp.',
+      'Tú le contestas con audios, cuando puedas.',
+      'Con lo que le cuentes se escribe el libro de tu vida.',
+    ],
+    antesDelMensaje: 'Te ha dejado este mensaje.',
+    siHayAudio: 'También te ha grabado un audio. Lo escucharás cuando abras tu regalo.',
+    boton: 'Abrir mi regalo',
+    debajoDelBoton: (numero) => `Si el botón no te funciona, manda un WhatsApp al ${numero} con este código.`,
+  },
+  ca: {
+    asunto: (quien) => `${quien} t'ha fet un regal`,
+    titulo: (narrador, quien) => `${narrador}, ${quien} t'ha fet un regal.`,
+    explica: [
+      'Un biògraf et farà preguntes sobre la teva vida per WhatsApp.',
+      'Tu li respons amb àudios, quan puguis.',
+      "Amb el que li expliquis s'escriu el llibre de la teva vida.",
+    ],
+    antesDelMensaje: "T'ha deixat aquest missatge.",
+    siHayAudio: "També t'ha gravat un àudio. L'escoltaràs quan obris el teu regal.",
+    boton: 'Obrir el meu regal',
+    debajoDelBoton: (numero) => `Si el botó no et funciona, envia un WhatsApp al ${numero} amb aquest codi.`,
+  },
+};
