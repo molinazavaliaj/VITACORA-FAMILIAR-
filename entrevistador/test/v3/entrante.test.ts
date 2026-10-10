@@ -145,13 +145,14 @@ describe('un botón de un narrador V3', () => {
     expect(enviados.length).toBeGreaterThan(0);
   });
 
-  it('"No" con la tanda en el tope: cierra y no manda nada hasta mañana', async () => {
+  it('"No" aunque ya haya contestado 4 hoy: cierra y le sale la siguiente (Naza 10/10, sin tope)', async () => {
     const { deps, n1, enviados, fila } = await preparar(enCA6(), { tanda: { dia: '2026-10-08', cuenta: 4 } });
     await procesarEntranteV3(deps, n1, texto('No tuve hermanos', true));
-    expect(enviados).toEqual([]);
+    expect(enviados.length).toBeGreaterThan(0);
     const f = await fila();
-    expect(f?.estado.esperando).toBeUndefined();
-    expect(f?.estado.acuse?.familia).toBe('M25');
+    expect(f?.estado.esperando).toBeDefined();
+    expect(f?.estado.esperando).not.toBe('CA6');
+    expect(f?.tanda_cuenta).toBe(5);
   });
 });
 

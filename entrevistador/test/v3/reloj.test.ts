@@ -51,13 +51,26 @@ describe('cierre por silencio', () => {
     expect(r.enviados).toEqual([]);
   });
 
-  it('con la tanda diaria en el tope (4): cierra, guarda el acuse y no manda nada', async () => {
+  it('aunque ya haya contestado 4 hoy (ritmo diario): cierra y le manda la siguiente (Naza 10/10, sin tope)', async () => {
     const r = await preparar({ ...enOR1(), borrador: 'Nací en un pueblo chico.' }, { ultimo_audio_at: hace(4 * MIN), tanda_cuenta: 4 });
     expect(await r.trabajar()).toBe('cierre');
-    expect(r.enviados).toEqual([]);
+    expect(r.enviados.map((e) => e.texto).some((t) => t?.includes(renderizar(preguntaPorId('OR2')!.texto, FICHA)))).toBe(true);
     const f = await r.leer();
-    expect(f.estado.esperando).toBeUndefined();
-    expect(f.estado.acuse).toEqual({ familia: 'M3', n: 0 });
+    expect(f.estado.esperando).toBe('OR2');
+    expect(f).toMatchObject({ tanda_cuenta: 5 });
+  });
+
+  it('quedó cortada hoy por el tope viejo (acuse guardado, nada abierto): le sale la siguiente ya, sin esperar su hora', async () => {
+    const cortada = { ...cerrarYSeguir(recibirAudio(enOR1(), 'Nací en un pueblo chico.').estado, FICHA, false).estado, salientes: [] };
+    const r = await preparar(cortada, { tanda_dia: HOY, tanda_cuenta: 8 });
+    expect(await r.trabajar()).toBe('tanda');
+    expect(r.enviados[0].texto?.startsWith(`${textoDelBanco('M3.1', FICHA)}
+`)).toBe(true);
+    expect(r.enviados[0].texto).toContain(renderizar(preguntaPorId('OR2')!.texto, FICHA));
+    const f = await r.leer();
+    expect(f.estado.esperando).toBe('OR2');
+    expect(f).toMatchObject({ tanda_dia: HOY, tanda_cuenta: 9 });
+    expect(f.estado.acuse).toBeUndefined();
   });
 
   it('con otro proceso mandando (toma vigente) no toca nada', async () => {
