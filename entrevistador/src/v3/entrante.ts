@@ -24,13 +24,30 @@ import {
 } from './filas.js';
 import { leerBoton, respuestaDeBoton } from './nucleo/entrevista/respuesta.js';
 import { cumplirPedido, pedidoDe } from './pedidos.js';
+import { esSaludo } from './saludo.js';
 import { aplicarTanda, hitosDe, puedeAbrirHoy } from './tanda.js';
 import { textoFijo } from './textos-fijos.js';
-import { fichaTexto, MARCA_FOTO, SIN_CLAVE_V3, type FilaV3, type NarradorV3 } from './tipos.js';
+import { fichaTexto, MARCA_FOTO, SIN_CLAVE_V3, type EstadoV3, type FilaV3, type NarradorV3 } from './tipos.js';
 import { anotarVisto, avanzar, cerrarYSeguir, encolar, sumarFamilia, marcarFoto, recibirAudio, reenviarAbierta, sinRecordatorios, textoDelBanco, tocarBoton, yaVisto } from './turno.js';
 
 /** Una fila sin clave_v3 más vieja que esto la retoma el reloj (el proceso que la guardó se cayó o falló). */
 export const RECONCILIAR_MS = 5 * 60_000;
+
+/**
+ * ¿La pregunta abierta todavía no le llegó? Queda en la cola (`salientes`) cuando la ventana de 24 h está
+ * cerrada y no hay plantilla aprobada en su idioma (drenar la retiene y avisa a los socios): el estado ya
+ * dice `esperando`, pero el narrador nunca la vio. Le pasó a Imma el 09/10.
+ */
+export function abiertaSinEntregar(e: Pick<EstadoV3, 'esperando' | 'preguntaAbierta' | 'salientes' | 'charla'>): boolean {
+  const pregunta = e.preguntaAbierta?.partes[0]?.texto;
+  if (!e.esperando || !pregunta) return false;
+  if (!e.salientes.some((s) => s.tipo === 'turno' && s.texto.includes(pregunta))) return false;
+  // Un reenvío (reenviarAbierta: la vuelta de una pausa, o con botones después de salir por plantilla) suma la
+  // pregunta a la charla otra vez: esa ya la vio, y lo que mande la contesta.
+  const id = e.esperando;
+  const veces = e.charla.filter((g) => g.de === 'bio' && g.partes.some((p) => p.id === id)).length;
+  return veces <= 1;
+}
 
 export async function procesarEntranteV3(deps: DepsV3, n: NarradorV3, m: MensajeEntrante): Promise<void> {
   if (n.estado !== 'activo' && n.estado !== 'pausado') {
@@ -54,6 +71,21 @@ export async function procesarEntranteV3(deps: DepsV3, n: NarradorV3, m: Mensaje
   const escrito = m.tipo === 'texto' && !m.esBoton;
   // «Quiero parar» / «que no vaya al libro» escrito (pedidos.ts): no reactiva ni reenvía nada.
   const pedidoEscrito = escrito && pedidoDe((m.texto ?? '').trim(), fila.idioma) !== null;
+  // La pregunta abierta todavía no le llegó (Naza, 09/10, Imma): lo que mande no la contesta. Queda aparte
+  // (∅), sin acuse, y la pregunta sale ahora, que la ventana se acaba de abrir. Un pedido escrito sigue su camino.
+  if (abiertaSinEntregar(fila.estado) && !pedidoEscrito) {
+    console.warn(`V3: ${n.id} escribió con la pregunta ${fila.estado.esperando} todavía sin entregar: queda aparte y la pregunta sale ahora`);
+    await guardarAparte(deps, n, m, fila);
+    // La pregunta sale ahora: M8 cuenta desde ahora (no desde que se trabó) y no hay silencio que cerrar.
+    const ahoraIso = ahora.toISOString();
+    await conReintento(deps.db, n.id, (f) => ({
+      cambio: { estado: { ...f.estado, abiertaDesde: ahoraIso, m8En: undefined }, ultimo_audio_at: null },
+      resultado: true,
+    }));
+    if (pausado) await reactivar(deps, n.id);
+    await drenar(deps, n.id);
+    return;
+  }
   if (pausado && escrito && !pedidoEscrito && fila.estado.esperando) {
     await reactivar(deps, n.id);
     // Vuelve escribiendo con una pregunta abierta: se le reenvía (sin M22). M8 cuenta de
@@ -87,6 +119,49 @@ export async function procesarEntranteV3(deps: DepsV3, n: NarradorV3, m: Mensaje
   }
   // Lo que haya quedado en la cola (también lo que esperaba la ventana) sale ahora.
   await drenar(deps, n.id);
+}
+
+/**
+ * Lo que llegó mientras la pregunta abierta no le había llegado: se guarda con SIN_CLAVE_V3 (no se suma a
+ * nada; el reloj no lo reintenta). Un audio se transcribe igual y se avisa a los socios (puede ser un relato
+ * que vale la pena: lo deciden ellos); la foto queda como foto suelta, sin acuse.
+ */
+async function guardarAparte(deps: DepsV3, n: NarradorV3, m: MensajeEntrante, fila: FilaV3): Promise<void> {
+  const llegada = await numeroDeLlegada(deps.db, n.id);
+  if (m.tipo === 'texto') {
+    const t = m.esBoton ? respuestaDeBoton(m.texto ?? '') : (m.texto ?? '').trim();
+    if (t) await guardarTextoV3(deps.db, n.id, llegada, t, { waMessageId: m.waMessageId, clave: SIN_CLAVE_V3, esBoton: m.esBoton === true });
+    return;
+  }
+  if (m.tipo === 'audio' && m.mediaId) {
+    let dicho = '(no se pudo transcribir)';
+    try {
+      const audio = await deps.wa.descargar(m.mediaId);
+      const g = await guardarAudioV3(deps.db, n.id, llegada, audio, m.waMessageId);
+      if (!g) return; // duplicado
+      await ponerClave(deps.db, g.id, SIN_CLAVE_V3);
+      try {
+        const t = await deps.transcribir(audio, { nombre: fila.ficha.nombre, idioma: fila.idioma, narradorId: n.id });
+        if (t.texto.trim()) {
+          await anotarTranscripcion(deps.db, g.id, t);
+          dicho = t.texto.trim();
+        }
+      } catch (err) {
+        console.error(`V3: no pude transcribir el audio aparte de ${n.id}:`, err instanceof Error ? err.message : err);
+      }
+    } catch (err) {
+      dicho = `(no se pudo bajar ni guardar: ${err instanceof Error ? err.message : String(err)})`;
+    }
+    await deps.avisar(
+      `audio-aparte-${m.waMessageId}`,
+      'Un narrador V3 mandó un audio antes de ver su pregunta',
+      `${n.id} mandó un audio cuando la pregunta ${fila.estado.esperando} todavía no le había llegado. No se sumó a ninguna respuesta (quedó con clave ∅); la pregunta le sale ahora. Lo que dijo: «${dicho.length > 600 ? `${dicho.slice(0, 600)}…` : dicho}». Si vale para el libro, hay que sumarlo a mano.`,
+    );
+    return;
+  }
+  const nueva = await conReintento(deps.db, n.id, (f) =>
+    yaVisto(f.estado, m.waMessageId) ? null : { cambio: { estado: anotarVisto(f.estado, m.waMessageId) }, resultado: true });
+  if (nueva && m.tipo === 'imagen' && m.mediaId) await guardarFotoV3(deps, n.id, m.mediaId, m.mimeType, m.texto, llegada);
 }
 
 /** 'pedido': era «quiero parar» o «que no vaya al libro» (pedidos.ts) y no se sumó a nada. */
@@ -298,6 +373,11 @@ async function aplicarTexto(deps: DepsV3, narradorId: string, idioma: Idioma, te
   if (pedido) {
     await cumplirPedido(deps, narradorId, pedido, guardada);
     return 'pedido';
+  }
+  // Un saludo solo no contesta la pregunta (Naza, 09/10): no se suma, no corre el reloj, no sale M22.
+  if (esSaludo(texto, idioma)) {
+    await ponerClave(deps.db, guardada.id, SIN_CLAVE_V3);
+    return 'mensaje';
   }
   const guardadaAt = deps.ahora().toISOString();
   const r = await conReintento(deps.db, narradorId, (f): Paso<string | null> => {

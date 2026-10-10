@@ -550,6 +550,17 @@ Sin pregunta abierta (Naza, 07/10): un audio o un texto no se suma a la respuest
 sí: un «Gracias» podía terminar en el libro). Queda la fila con `∅` y no sale nada, tampoco M22.
 Después de tocar «Sí» la pregunta sigue abierta: eso se suma como siempre.
 
+**Pregunta abierta que todavía no le llegó (Naza, 09/10, el caso de Imma).** Si la abierta sigue en
+`salientes` (fuera de la ventana de 24 h y sin plantilla aprobada, `drenar` la retiene) y salió una sola
+vez a la cola, lo que mande el narrador no la contesta: la fila queda con `∅`, no sale acuse ni M22, la
+pregunta sale en ese momento, y `abiertaDesde` (M8) y `ultimo_audio_at` arrancan de nuevo. Un audio se
+transcribe igual (queda en `transcripcion`) y se avisa a los socios, por si vale para el libro. Un pedido
+escrito («quiero parar», «que no vaya al libro») sigue su camino.
+
+**Un saludo solo no es respuesta (Naza, 09/10).** Un mensaje escrito que es solo un saludo («Hola»,
+«Buenas tardes, ¿qué tal?», «Bon dia») no se suma a la abierta: fila con `∅`, sin M22 ni reloj. Si dice
+algo más («Hola, nací en Rosario») o tiene un número, se suma como siempre (`entrevistador/src/v3/saludo.ts`).
+
 **«Esto que no vaya al libro» y «quiero parar» por WhatsApp (Naza, 07/10).** El entrevistador V3
 los detecta con frases fijas del núcleo (`pideReserva`, `pidePausa`; sin modelo), en el texto
 escrito o en la transcripción, antes de sumarlo. Ante la duda, no es un pedido (revisión del 07/10).
