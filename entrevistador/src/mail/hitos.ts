@@ -76,13 +76,13 @@ export function redactarHito(
   }
 }
 
-function envoltorio(cuerpo: string): string {
+/** `pie` (por defecto true): la línea de abajo, en castellano (el mail del regalo en catalán va sin ella). */
+function envoltorio(cuerpo: string, pie = true): string {
   return `<!DOCTYPE html><html lang="es"><body style="margin:0;background:#F7F7F5;font-family:Georgia,serif;color:#14140F;">
 <div style="max-width:560px;margin:0 auto;padding:40px 24px;">
 <p style="font-size:11px;letter-spacing:0.3em;text-transform:uppercase;color:#5F5F55;font-family:Helvetica,Arial,sans-serif;">Vitácora Familiar</p>
 <div style="font-size:17px;line-height:1.6;">${cuerpo}</div>
-<p style="margin-top:40px;font-size:12px;color:#83837A;font-family:Helvetica,Arial,sans-serif;">Para las vidas que merecen su propio libro.</p>
-</div></body></html>`;
+${pie ? '<p style="margin-top:40px;font-size:12px;color:#83837A;font-family:Helvetica,Arial,sans-serif;">Para las vidas que merecen su propio libro.</p>\n' : ''}</div></body></html>`;
 }
 
 async function enviar(para: string, asunto: string, html: string): Promise<boolean> {
@@ -136,16 +136,33 @@ export async function mandarHito(n: NarradorParaMail, hito: Hito): Promise<void>
  * el cuerpo escapado y el botón «Ver la tarjeta» a la página del regalo en el
  * tablero. Nunca tira: `false` si no hay mail, falta la key o Resend falla.
  */
-export async function mandarMailFamilia(familiaId: string, asunto: string, cuerpo: string, narradorId: string): Promise<boolean> {
+export async function mandarMailFamilia(
+  familiaId: string, asunto: string, cuerpo: string, narradorId: string, o: { boton?: boolean } = {},
+): Promise<boolean> {
   try {
     const { data: familia } = await db.from('familias').select('email').eq('id', familiaId).maybeSingle();
     const para = (familia as { email?: string } | null)?.email;
     if (!para) return false;
     const link = `${URL_BASE}/tablero/${encodeURIComponent(narradorId)}/regalo`;
-    const html = `<p>${escapar(cuerpo)}</p><p style="margin-top:28px;"><a href="${escapar(link)}" style="display:inline-block;background:#5D3FD3;color:#ffffff;text-decoration:none;padding:14px 28px;font-family:Arial,Helvetica,sans-serif;font-size:15px;">${escapar(TEXTOS_REGALO_BOT.botonTarjeta)}</a></p>`;
+    const boton = o.boton === false ? '' : `<p style="margin-top:28px;"><a href="${escapar(link)}" style="display:inline-block;background:#5D3FD3;color:#ffffff;text-decoration:none;padding:14px 28px;font-family:Arial,Helvetica,sans-serif;font-size:15px;">${escapar(TEXTOS_REGALO_BOT.botonTarjeta)}</a></p>`;
+    const html = `<p>${escapar(cuerpo)}</p>${boton}`;
     return await enviar(para, asunto, envoltorio(html));
   } catch (err) {
     console.error(`mail: falló el mail a la familia ${familiaId} ("${asunto}"):`, err);
+    return false;
+  }
+}
+
+/**
+ * Un mail a cualquier dirección, con el cuerpo ya armado en HTML (el regalo que
+ * llega solo el día elegido, a quien recibe). Nunca tira: false si falta la key
+ * o Resend falla.
+ */
+export async function mandarMail(para: string, asunto: string, html: string, o: { pie?: boolean } = {}): Promise<boolean> {
+  try {
+    return await enviar(para, asunto, envoltorio(html, o.pie !== false));
+  } catch (err) {
+    console.error(`mail: falló "${asunto}":`, err instanceof Error ? err.message : err);
     return false;
   }
 }

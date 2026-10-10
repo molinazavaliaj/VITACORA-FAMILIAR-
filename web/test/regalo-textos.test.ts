@@ -146,7 +146,7 @@ describe("textos del regalo: es-AR y vos quedan como los aprobó Naza", () => {
   });
 
   it("textosComprador('vos') es lo aprobado, más la pregunta del idioma", () => {
-    const { idioma, idiomas, ...resto } = aplanar(textosComprador("vos")) as Record<string, unknown>;
+    const { idioma, idiomas, entrega: _entrega, ...resto } = aplanar(textosComprador("vos")) as Record<string, unknown>;
     expect(resto).toEqual(COMPRADOR_VOS);
     expect(idioma).toBe("¿En qué idioma le hablamos?");
     expect(idiomas).toEqual({
@@ -241,5 +241,73 @@ describe("región de quien compra", () => {
     expect(tratoDeRegion("ES")).toBe("tu");
     expect(idiomaPorDefecto("AR")).toBe("es-AR");
     expect(idiomaPorDefecto("ES")).toBe("es-ES");
+  });
+});
+
+// Aprobados por Naza el 10/10 (docs/regalo/dia-de-entrega-textos.md, tandas 1 y 2).
+function entregaPlana(trato: TratoComprador) {
+  const e = textosComprador(trato).entrega;
+  return {
+    mandarloEseDia: e.mandarloEseDia,
+    canales: e.canales,
+    aQueHora: e.aQueHora,
+    horaAR: e.horaDe("AR"),
+    horaES: e.horaDe("ES"),
+    suCelular: e.suCelular,
+    suCelularPista: e.suCelularPista,
+    suCorreo: e.suCorreo,
+    faltaHora: e.faltaHora,
+    celularMal: e.celularMal,
+    correoMal: e.correoMal,
+    horaPasada: e.horaPasada,
+    leLlega: e.leLlega("abuelo@gmail.com", "24/12", 10),
+  };
+}
+
+describe("textos de la entrega el día elegido", () => {
+  it("de vos, tal cual la tanda 1", () => {
+    expect(entregaPlana("vos")).toEqual({
+      mandarloEseDia: "¿Querés que se lo mandemos ese día?",
+      canales: { nadie: "No, se la doy yo", whatsapp: "Por WhatsApp", mail: "Por mail" },
+      aQueHora: "¿A qué hora?",
+      horaAR: "Es la hora de Argentina.",
+      horaES: "Es la hora de España.",
+      suCelular: "Su celular",
+      suCelularPista: "con código de país, por ejemplo +54 9 11 1234 5678",
+      suCorreo: "Su correo",
+      faltaHora: "Falta la hora.",
+      celularMal: "Ese celular parece mal escrito. Revisalo.",
+      correoMal: "Ese correo parece mal escrito. Revisalo.",
+      horaPasada: "Esa hora ya pasó. Elegí otra.",
+      leLlega: "Le llega a abuelo@gmail.com el 24/12 a las 10.",
+    });
+  });
+
+  it("de tú, tal cual la tanda 2", () => {
+    expect(entregaPlana("tu")).toEqual({
+      mandarloEseDia: "¿Quieres que se lo enviemos ese día?",
+      canales: { nadie: "No, se la doy yo", whatsapp: "Por WhatsApp", mail: "Por correo" },
+      aQueHora: "¿A qué hora?",
+      horaAR: "Es la hora de Argentina.",
+      horaES: "Es la hora de España.",
+      suCelular: "Su móvil",
+      suCelularPista: "con prefijo de país, por ejemplo +34 612 34 56 78",
+      suCorreo: "Su correo",
+      faltaHora: "Falta la hora.",
+      celularMal: "Ese móvil parece mal escrito. Revísalo.",
+      correoMal: "Ese correo parece mal escrito. Revísalo.",
+      horaPasada: "Esa hora ya ha pasado. Elige otra.",
+      leLlega: "Le llega a abuelo@gmail.com el 24/12 a las 10.",
+    });
+  });
+
+  it("ninguno usa dos puntos ni usted, y el de tú no habla de vos", () => {
+    for (const trato of TRATOS) {
+      for (const s of todosLosStrings(entregaPlana(trato))) {
+        expect(s).not.toMatch(/:/);
+        expect(s).not.toMatch(/usted/i);
+      }
+    }
+    for (const s of todosLosStrings(entregaPlana("tu"))) expect(s).not.toMatch(PALABRAS_DE_VOS);
   });
 });

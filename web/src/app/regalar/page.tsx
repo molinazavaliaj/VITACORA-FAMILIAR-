@@ -5,6 +5,7 @@ import { Playfair_Display, Archivo, Source_Serif_4 } from "next/font/google";
 import { catalogo } from "@/lib/productos";
 import { regionDelRequest } from "@/lib/region";
 import { idiomaPorDefecto, textosComprador, tratoDeRegion } from "@/lib/regalo-textos";
+import { entregaWhatsAppPrendida } from "@/lib/regalo-entrega";
 import { Toroide } from "../marca";
 import { FormularioRegalo } from "./formulario";
 
@@ -42,7 +43,7 @@ export default async function PaginaRegalar() {
           </Link>
         </div>
       </header>
-      <FormularioRegalo catalogo={catalogo(region)} region={region} trato={trato} idiomaInicial={idiomaPorDefecto(region)} />
+      <FormularioRegalo catalogo={catalogo(region)} region={region} trato={trato} idiomaInicial={idiomaPorDefecto(region)} entregaWhatsApp={entregaWhatsAppPrendida()} />
     </div>
   );
 }

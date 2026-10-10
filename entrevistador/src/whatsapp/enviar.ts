@@ -29,17 +29,23 @@ export function enviarTexto(telefono: string, texto: string, o: OpcionesEnvio = 
   return postMensaje({ to: telefono, type: 'text', text: { body: texto } }, o);
 }
 
-/** `idioma`: el código de Meta de la plantilla aprobada ('es', 'es_ES', 'ca'). Lo viejo sigue en 'es'. */
-export function enviarPlantilla(telefono: string, nombre: string, variables: string[], idioma = 'es', o: OpcionesEnvio = {}) {
+/**
+ * `idioma`: el código de Meta de la plantilla aprobada ('es', 'es_ES', 'ca'). Lo viejo sigue en 'es'.
+ * `botonUrl` (regalo el día elegido): el sufijo del botón de URL dinámica de la plantilla (el primero).
+ */
+export function enviarPlantilla(
+  telefono: string, nombre: string, variables: string[], idioma = 'es', o: OpcionesEnvio & { botonUrl?: string } = {},
+) {
+  const { botonUrl, ...opciones } = o;
+  const components: Record<string, unknown>[] = [{ type: 'body', parameters: variables.map((v) => ({ type: 'text', text: v })) }];
+  if (botonUrl !== undefined) {
+    components.push({ type: 'button', sub_type: 'url', index: '0', parameters: [{ type: 'text', text: botonUrl }] });
+  }
   return postMensaje({
     to: telefono,
     type: 'template',
-    template: {
-      name: nombre,
-      language: { code: idioma },
-      components: [{ type: 'body', parameters: variables.map((v) => ({ type: 'text', text: v })) }],
-    },
-  }, o);
+    template: { name: nombre, language: { code: idioma }, components },
+  }, opciones);
 }
 
 /**

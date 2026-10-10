@@ -19,6 +19,7 @@ const pedido = (extra: Partial<PedidoRegalo> = {}): PedidoRegalo => ({
   region: "AR",
   idioma: "es-AR",
   audio: null,
+  entrega: null,
   ...extra,
 });
 
@@ -55,6 +56,20 @@ describe("enviarRegalo", () => {
       regalo: { mensaje: "Quiero tu historia para siempre.", genero: "varon", idioma: "es-AR" },
       productos: { impresos: 0, marcos: 0 },
     });
+  });
+
+  it("con entrega, la manda con el contacto sin espacios de más", async () => {
+    const d = dobles();
+    await enviarRegalo(pedido({ fechaEntrega: "2026-12-24", entrega: { canal: "mail", contacto: " a@b.com ", hora: 10 } }), d);
+    const cuerpo = JSON.parse(String(d.llamadas[0].init?.body));
+    expect(cuerpo.regalo.entrega).toEqual({ canal: "mail", contacto: "a@b.com", hora: 10 });
+  });
+
+  it("sin fecha, la entrega no viaja aunque haya quedado elegida", async () => {
+    const d = dobles();
+    await enviarRegalo(pedido({ entrega: { canal: "mail", contacto: "a@b.com", hora: 10 } }), d);
+    const cuerpo = JSON.parse(String(d.llamadas[0].init?.body));
+    expect(cuerpo.regalo).not.toHaveProperty("entrega");
   });
 
   it("con fecha, la manda tal cual", async () => {
