@@ -48,23 +48,30 @@ export function respuestasV3ParaCerrar(estado: EstadoV3 | null | undefined, fila
     const m = claveMadre(f.clave_v3);
     idsPorMadre.set(m, [...(idsPorMadre.get(m) ?? []), f.id]);
   }
+  // Lo reservado no se le muestra a la familia, aunque la pregunta siga en la lista: una repregunta reservada
+  // (RP~X) o una fila con un tramo reservado no aportan texto al fragmento de X.
+  const conReserva = new Set(filas.filter((f) => f.clave_v3 && (f.reservada === true || !!f.reservado_tramo?.trim())).map((f) => f.clave_v3 as string));
+  const ocultaTexto = (k: string) => reservadas.has(k) || reservadas.has(claveMadre(k)) || conReserva.has(k);
   const textoPorMadre = new Map<string, string[]>();
+  const conAlgoOculto = new Set<string>();
   for (const r of respuestas) {
     if (!Array.isArray(r) || typeof r[0] !== "string" || typeof r[1] !== "string") continue;
     const m = claveMadre(r[0]);
     const limpio = r[1].replace(MARCAS, " ").replace(/\s+/g, " ").trim();
     if (!textoPorMadre.has(m)) textoPorMadre.set(m, []);
-    if (limpio) textoPorMadre.get(m)!.push(limpio);
+    if (!limpio) continue;
+    if (ocultaTexto(r[0])) conAlgoOculto.add(m);
+    else textoPorMadre.get(m)!.push(limpio);
   }
   const out: RespuestaV3[] = [];
   for (const [clave, textos] of textoPorMadre) {
     const ids = idsPorMadre.get(clave);
     const texto = textos.join(" ");
-    if (!ids?.length || !texto || reservadas.has(clave)) continue;
+    if (!ids?.length || reservadas.has(clave) || (!texto && !conAlgoOculto.has(clave))) continue;
     out.push({
       clave,
       pregunta: preguntaDe(clave, charla) ?? "Algo que contó",
-      fragmento: texto.length > 140 ? `${texto.slice(0, 140)}…` : texto,
+      fragmento: !texto ? "Pidió que una parte no vaya al libro." : texto.length > 140 ? `${texto.slice(0, 140)}…` : texto,
       ids,
     });
   }

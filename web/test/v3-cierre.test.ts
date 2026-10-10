@@ -150,3 +150,14 @@ describe("historiaV3: las preguntas de verdad (revisión 10/10)", () => {
     expect(llegoAlFinalV3(null)).toBe(false);
   });
 });
+
+describe("respuestasV3ParaCerrar no muestra lo reservado (revisión 10/10)", () => {
+  it("una repregunta reservada no aporta texto a X; un tramo reservado tampoco, pero la pregunta queda para poder sacarla", () => {
+    const estado = { respuestas: [["OR1", "Lo de mamá."], ["RP~OR1", "El secreto."], ["CA6", "Con un tramo secreto."]] as [string, string][], reservadas: ["RP~OR1"] };
+    const filas = [{ id: "a", clave_v3: "OR1" }, { id: "b", clave_v3: "RP~OR1" }, { id: "c", clave_v3: "CA6", reservada: true, reservado_tramo: "secreto" }];
+    const r = respuestasV3ParaCerrar(estado, filas);
+    expect(r.find((x) => x.clave === "OR1")?.fragmento).toBe("Lo de mamá.");
+    expect(r.find((x) => x.clave === "CA6")?.fragmento).toBe("Pidió que una parte no vaya al libro.");
+    expect(JSON.stringify(r)).not.toContain("secreto");
+  });
+});
