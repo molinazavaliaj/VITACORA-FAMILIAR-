@@ -185,3 +185,28 @@ describe('armarLibroDeImprenta', () => {
     expect(Object.keys(subidos)).toHaveLength(0);
   });
 });
+
+describe('armarLibroDeImprenta con el libro del escritor nuevo (V3)', () => {
+  const LIBRO_V3 = ['# Lo que me queda', '', 'Soy de Echesortu.', '', '# I · La persiana de madera', '', 'Texto.', '', '# Sus frases', '', '- Me gusta el mate amargo'].join('\n');
+
+  it('lee {id}/escritor/libro.md (no el borrador ni la estructura viejos) y le pasa frases, voz y tapa', async () => {
+    const { db, subidos } = baseFalsa({
+      archivos: { 'n1/escritor/libro.md': LIBRO_V3, 'n1/paquete/frases.json': FRASES_CONFIRMADAS },
+      narrador: { edicion: { titulo: 'La casa es de todos', subtitulo: null } },
+    });
+    expect(await armarLibroDeImprenta(db, 'n1')).toBe(true);
+    const datos = construirHtmlLibroMock.mock.calls[0][0];
+    expect(datos).toMatchObject({ titulo: 'Lo que me queda', nombreNarrador: 'Roberto Pérez', indice: ['I · La persiana de madera'], idioma: 'es', anioNacimiento: 1945 });
+    expect(datos.tapa).toEqual({ titulo: 'La casa es de todos', subtitulo: null });
+    expect(datos.libroMarkdown.startsWith('Soy de Echesortu.')).toBe(true);
+    expect(datos.frases.capitulos[0].candidatas[0].id).toBe('f1');
+    expect(datos.urlCliente).toContain('/voz/');
+    expect(subidos[RUTA_LIBRO_IMPRENTA('n1')].tipo).toBe('application/pdf');
+  });
+
+  it('sin frases confirmadas, tampoco imprime el libro nuevo', async () => {
+    const { db, subidos } = baseFalsa({ archivos: { 'n1/escritor/libro.md': LIBRO_V3, 'n1/paquete/frases.json': FRASES_SIN_CONFIRMAR } });
+    expect(await armarLibroDeImprenta(db, 'n1')).toBe(false);
+    expect(Object.keys(subidos)).toHaveLength(0);
+  });
+});

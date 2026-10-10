@@ -257,3 +257,83 @@ describe('PATCH /api/narrador/[narradorId]', () => {
     expect(respuesta.status).toBe(401);
   });
 });
+
+// --- el regalo en el panel (gift card, Task 9) -------------------------
+
+import { estadoEnHumano } from '../src/app/tablero/ui';
+import { proximoPaso } from '../src/app/tablero/proximo-paso';
+import { textosComprador } from '@/lib/regalo-textos';
+
+const VOS = textosComprador('vos');
+import type { Historia } from '@/lib/panel';
+
+describe('el regalo en el panel', () => {
+  const historia = (rol: Historia['rol']): Historia =>
+    ({ narrador: { id: 'n-regalo', estado: 'regalo_pendiente', contexto: {} }, rol }) as unknown as Historia;
+  const resumen = { respondidas: 0, total: 30, segundos: 0, tieneAnticipo: false };
+
+  it('regalo_pendiente se lee como el texto aprobado, en los dos mapas', () => {
+    expect(estadoEnHumano('regalo_pendiente', false)).toBe(VOS.estadoPanel);
+    expect(estadoEnHumano('regalo_pendiente', true)).toBe(VOS.estadoPanel);
+  });
+
+  it('la dueña tiene como próximo paso descargar la tarjeta', () => {
+    expect(proximoPaso(historia('duena'), resumen)).toEqual({
+      href: '/tablero/n-regalo/regalo',
+      texto: VOS.proximoPaso,
+    });
+  });
+
+  it('para una familia de España, el próximo paso le habla de tú', () => {
+    expect(proximoPaso(historia('duena'), resumen, 'ES')).toEqual({
+      href: '/tablero/n-regalo/regalo',
+      texto: 'Descarga la tarjeta del regalo',
+    });
+  });
+
+  it('sin región, o en Argentina, sigue el texto aprobado de vos', () => {
+    expect(proximoPaso(historia('duena'), resumen, 'AR')?.texto).toBe('Descargá la tarjeta del regalo');
+    expect(proximoPaso(historia('duena'), resumen)?.texto).toBe('Descargá la tarjeta del regalo');
+  });
+
+  it('un invitado no tiene próximo paso con el regalo sin abrir', () => {
+    expect(proximoPaso(historia('invitado'), resumen)).toBeNull();
+  });
+});
+
+import { tratoEditable } from '@/lib/panel';
+import { EN_CURSO } from '@/lib/admin/en-curso';
+
+describe('el regalo sin abrir se edita como invitado', () => {
+  it('el trato es editable con el regalo sin abrir, igual que invitado y acepto', () => {
+    expect(tratoEditable({ estado: 'regalo_pendiente', dia_actual: 0 })).toBe(true);
+    expect(tratoEditable({ estado: 'invitado', dia_actual: 0 })).toBe(true);
+    expect(tratoEditable({ estado: 'acepto', dia_actual: 0 })).toBe(true);
+    expect(tratoEditable({ estado: 'activo', dia_actual: 1 })).toBe(false);
+    expect(tratoEditable({ estado: 'acepto', dia_actual: 1 })).toBe(false);
+    expect(tratoEditable({ estado: 'pendiente_pago', dia_actual: 0 })).toBe(false);
+  });
+
+  it('en el admin, el regalo sin abrir va con las historias en curso', () => {
+    expect(EN_CURSO).toContain('regalo_pendiente');
+  });
+});
+
+describe('el próximo paso de una historia V3 (10/10)', () => {
+  const h = (estado: string, rol: Historia['rol'] = 'duena'): Historia =>
+    ({ narrador: { id: 'n3', estado, contexto: {}, nombre: 'Dora', como_le_dicen: 'Babu' }, rol }) as unknown as Historia;
+  const r = { respondidas: 3, total: 30, segundos: 0, tieneAnticipo: true, v3: true };
+
+  it('al terminar: elegir la tapa y encargar (sin "últimos retoques")', () => {
+    expect(proximoPaso(h('completado'), r)?.texto).toBe('Ya terminó de contar. Elegí la tapa y encargá su libro');
+  });
+  it('mientras cuenta no promete el capítulo 1 (no hay anticipo)', () => {
+    expect(proximoPaso(h('activo'), r)?.texto).not.toContain('capítulo 1');
+  });
+  it('mientras espera no manda a repasar el guion', () => {
+    expect(proximoPaso(h('acepto'), r)).toEqual({ href: '/tablero/n3', texto: 'Mientras esperás, sumá fotos o una pregunta tuya' });
+  });
+  it('una historia vieja sigue igual', () => {
+    expect(proximoPaso(h('acepto'), { ...r, v3: false })?.href).toBe('/tablero/n3?editar=1');
+  });
+});

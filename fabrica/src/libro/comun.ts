@@ -30,6 +30,20 @@ export function extraerTexto(bloques: Array<{ type: string; text?: string }>): s
 }
 
 /**
+ * Busca el JSON en lo que devolvió el modelo con tolerancia: saca los fences
+ * (```json ... ```) y se queda con lo que hay entre el primer `{` y el
+ * último `}`. Tira si no hay nada parseable. (Vivía en voz/conectores.ts, que
+ * se borró el 23/09; lo usa «Su voz».)
+ */
+export function parsearJsonTolerante(texto: string): unknown {
+  const sinFences = texto.replace(/```[a-zA-Z]*\s*/g, '').replace(/```/g, '');
+  const inicio = sinFences.indexOf('{');
+  const fin = sinFences.lastIndexOf('}');
+  if (inicio === -1 || fin === -1 || fin < inicio) throw new Error('no hay un objeto JSON en la respuesta');
+  return JSON.parse(sinFences.slice(inicio, fin + 1));
+}
+
+/**
  * El pedido del narrador sobre una respuesta puntual: "esto que no vaya al libro"
  * (hallazgo 19). `reservada` = no se publica nada de esa respuesta;
  * `reservado_tramo` = se publica todo menos ese tramo textual.
@@ -420,15 +434,17 @@ export const RUTA_CONECTORES_CAP = (narradorId: string, numeroCapitulo: number) 
   `${narradorId}/paquete/conectores_cap_${String(numeroCapitulo).padStart(2, '0')}.json`;
 
 /**
- * Todos los borradores de un narrador con `cantidadCapitulos` capítulos: lo
- * que se borra al entregar. Incluye los conectores de cada capítulo aunque
- * el pedido no haya sido de voz clonada (o el capítulo no fuera híbrido):
+ * Los borradores de un narrador con `cantidadCapitulos` capítulos que se
+ * borran al entregar. Incluye los conectores de cada capítulo aunque el
+ * pedido no haya sido de voz clonada (o el capítulo no fuera híbrido):
  * Storage no se queja de borrar lo que no está, y así no hay que recordar
- * qué se cacheó.
+ * qué se cacheó. El borrador del libro (`RUTA_BORRADOR_LIBRO`) NO va: la
+ * imprenta lo lee después para armar el libro de imprenta con «Su voz»
+ * (`imprenta.ts`); antes se borraba y el impreso no se podía armar
+ * (revisión del 06/10).
  */
 export const rutasDeBorradores = (narradorId: string, cantidadCapitulos: number): string[] => [
   ...Array.from({ length: cantidadCapitulos }, (_, i) => RUTA_BORRADOR_CAP(narradorId, i + 1)),
-  RUTA_BORRADOR_LIBRO(narradorId),
   ...Array.from({ length: cantidadCapitulos }, (_, i) => RUTA_CONECTORES_CAP(narradorId, i + 1)),
 ];
 

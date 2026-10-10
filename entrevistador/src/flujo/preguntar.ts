@@ -8,6 +8,7 @@ import { capitulosDe, preguntaDeOrden as preguntaDelGuion, tieneAdaptativas, ult
 import { textoEvitar } from '../ia/evitar.js';
 import { tratoDe } from '../ia/trato.js';
 import { mensajeDePregunta } from '../manual/puro.js';
+import { entraALaV3 } from '../config.js';
 
 export type Narrador = {
   id: string;
@@ -65,22 +66,7 @@ export function capituloNoAplica(contexto: Record<string, any>, capitulo: string
   return clave === 'hijos' ? edad < EDAD_SIN_HIJOS : edad < EDAD_SIN_PAREJA;
 }
 
-export type Ritmo = 'diario' | 'dos_por_dia' | 'seguido';
-
-/**
- * El ritmo de la entrevista (docs/panel-usuario.md §6.4): lo elige la familia
- * en el panel. `modoRapido` es el nombre viejo de 'seguido' (los pilotos).
- */
-export function ritmoDe(contexto: Record<string, any>): Ritmo {
-  const r = contexto?.ritmo;
-  if (r === 'diario' || r === 'dos_por_dia' || r === 'seguido') return r;
-  return contexto?.modoRapido === true ? 'seguido' : 'diario';
-}
-
-/** ¿Este narrador está en modo rápido (la siguiente pregunta sale al instante)? */
-export function esModoRapido(contexto: Record<string, any>): boolean {
-  return ritmoDe(contexto) === 'seguido';
-}
+export { ritmoDe, esModoRapido, type Ritmo } from './ritmo.js';
 
 /** La pregunta de ese orden, del guion propio del narrador (o la plantilla si aún no tiene). */
 export async function preguntaDeOrden(narradorId: string, orden: number): Promise<PreguntaDelGuion | null> {
@@ -145,6 +131,20 @@ async function enviarFotoDeLaPregunta(n: Narrador, fotoId: string): Promise<void
 export async function enviarPregunta(
   n: Narrador, orden: number, { plantilla }: { plantilla: boolean },
 ): Promise<boolean> {
+  // Entrevista V3 para los nuevos (spec 2026-10-07): apagada salvo
+  // V3_PARA_NUEVOS=1. Es el paso acepto → activo: en vez de la pregunta 1 vieja,
+  // se crea su fila V3 y sale OR1 con M1. Sin género, se frena y se avisa.
+  // La Vitácora de Viaje (contexto.modo = 'viaje') sigue por su flujo.
+  // Un regalo va SIEMPRE por la V3, con el interruptor apagado o prendido
+  // (regalo-idiomas, 09/10): su bienvenida es el BIEN del banco, que describe
+  // la V3, y solo la V3 habla catalán y castellano de España. Si el alta se
+  // frena ('frenada'), no sale la pregunta vieja: devuelve false.
+  // Un nuevo que recibió la bienvenida vieja (antes de prender el interruptor) sigue entero por el flujo viejo.
+  if (n.estado === 'acepto' && orden === 1 && entraALaV3(n.contexto) && (n.contexto?.regalo === true || n.contexto?.bienvenidaV3 === true)) {
+    const { altaNuevo } = await import('../v3/pasar.js');
+    const { depsReales } = await import('../v3/deps-reales.js');
+    return (await altaNuevo(depsReales(), n, { ventanaAbierta: !plantilla })) === 'mandada';
+  }
   let pregunta = await preguntaDeOrden(n.id, orden);
   // Red de seguridad: las 4 finales se generan al responder la última del guion.
   // Si esa generación falló (el modelo devolvió algo raro, se cayó la API), el

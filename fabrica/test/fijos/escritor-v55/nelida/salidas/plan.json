@@ -1,0 +1,28 @@
+{
+ "titulo_libro": { "texto": "sumá vos", "id": "R03" },
+ "primera_pagina": { "que_dice_de_si_ids": ["R01"], "cosa_concreta": { "que": "la mercería", "ids": ["R02"] } },
+ "capitulos": [
+  { "n": 1, "titulo": { "texto": "La persiana de madera", "id": "R02" }, "etapa": "Echesortu y la mercería", "anios": { "desde": "1948", "hasta": "1980", "seguros": true },
+    "hilo_ids": ["R02", "R03"], "apertura": { "tipo": "escena", "episodio": "E03" }, "cierre": { "tipo": "gesto", "episodio": "E04" },
+    "piezas": [
+     { "episodio": "E01", "forma": "resumen", "peso": "normal" },
+     { "episodio": "E10", "forma": "resumen", "peso": "linea" },
+     { "episodio": "E02", "forma": "resumen", "peso": "normal" },
+     { "episodio": "E03", "forma": "escena", "peso": "clave" },
+     { "episodio": "E04", "forma": "escena", "peso": "normal" }
+    ], "presenta": ["P01", "P02", "P04"] },
+  { "n": 2, "titulo": { "texto": "El bastidor en la falda", "id": "R06" }, "etapa": "Sola", "anios": { "desde": "2014", "hasta": "", "seguros": true },
+    "hilo_ids": ["R05", "R06"], "hilo_de_hoy_ids": ["R06"], "columna": { "texto": "cómo la tarde volvió a ser suya", "ids": ["R06"] },
+    "imagen_final": { "episodio": "E06", "frase_id": "R06", "que": "el bastidor en la falda" },
+    "apertura": { "tipo": "dia_comun", "episodio": "E05" }, "cierre": { "tipo": "imagen", "episodio": "E06" },
+    "piezas": [
+     { "episodio": "E05", "forma": "resumen", "peso": "clave" },
+     { "episodio": "E07", "forma": "media_linea", "peso": "linea" },
+     { "episodio": "E06", "forma": "escena", "peso": "clave" }
+    ], "presenta": [] }
+ ],
+ "antes_de_cerrar": { "ids": ["R09"] },
+ "sus_frases": [],
+ "carta": { "titulo": "Para los míos", "titulo_id": "", "para": "Marcela y Gustavo", "para_personas": ["P02", "P03"], "ids": ["R08"] },
+ "faltantes": []
+}

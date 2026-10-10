@@ -3,26 +3,24 @@ import { obtenerClienteDb, type Narrador } from './db.js';
 import { cargarConfig } from './config.js';
 import { generarAnticipo } from './libro/anticipo.js';
 import { firmarTokenAnticipo } from './libro/token-anticipo.js';
-import { borrarArchivos, descargarJson, rutasDeBorradores, subirTexto } from './libro/comun.js';
+import { subirTexto } from './libro/comun.js';
 import { enviarMailAnticipo } from './mail/anticipo.js';
-import { enviarMailHito, CANDADO_POR_HITO, type Hito } from './mail/hitos.js';
+import { enviarMailHito, CANDADO_POR_HITO, type Hito, type VarianteV3 } from './mail/hitos.js';
 import {
   CANDADO_RECORDATORIO_FRASES,
   DIAS_RECORDATORIO_FRASES,
   enviarMailRecordatorioFrases,
   RUTA_RECORDATORIO_FRASES,
 } from './mail/frases.js';
-import { avisarSocios, asuntoAviso, cuerpoAviso, CANDADO_AVISO, type MotivoAviso } from './mail/socios.js';
 import { generarEstructura } from './libro/estructura.js';
 import { generarPrevisualizacion } from './libro/previsualizar.js';
 import { generarPaquete } from './libro/generar-paquete.js';
 import { leerFrases } from './libro/publicar-frases.js';
-import { narracionesListas, narracionesAtascadas, RUTA_NARRACION_JSON } from './voz/narraciones.js';
-import { ensamblarAudiolibroClonado } from './voz/ensamblar.js';
-import type { NarracionJson } from './voz/narracion-json.js';
 import { anotarLatido } from './latido.js';
 import { mandarEntregasAImprenta, avisarHitosDeEntrega } from './entregas.js';
 import { productosDelPedido } from './libro/productos.js';
+import { idiomasV3, narradoresConV3 } from './v3/candado.js';
+import { alertarLibrosDemorados, hayLugarParaLibroV3, lanzarLibroV3, revisarEtapaAV3, trabajaOtraCopia } from './escritor/produccion/libro-v3.js';
 
 const INTERVALO_MS = 60_000;
 
@@ -48,6 +46,28 @@ const MS_POR_DIA = 24 * 60 * 60 * 1000;
 const MARCA_CIERRE_AUTOMATICO = 'cierre_automatico.txt';
 
 type Db = ReturnType<typeof obtenerClienteDb>;
+
+/**
+ * Los narradores con entrevista V3 (spec 2026-10-07): la fábrica no les arma
+ * nada viejo (anticipo, estructura, previsualización ni paquete); su libro lo
+ * escribe el escritor nuevo (escritor/produccion/libro-v3.ts). Null si no se
+ * pudo leer: la rama que llama no corre este tick.
+ */
+async function conV3OFrenar(db: Db, rama: string): Promise<Set<string> | null> {
+  try {
+    return await narradoresConV3(db);
+  } catch (err) {
+    console.error(`tick: no pude leer entrevistas_v3; la rama '${rama}' no corre este tick:`, err);
+    return null;
+  }
+}
+
+/** Un libro V3 que a las 48 horas del cierre no se entregó: mail a los socios (escritor/produccion/libro-v3.ts). */
+async function alertarDemorados(): Promise<void> {
+  const db = obtenerClienteDb();
+  const v3 = await conV3OFrenar(db, 'alerta de libros demorados');
+  if (v3) await alertarLibrosDemorados(db, v3);
+}
 
 /** Lo que hace falta de un narrador para mandarle un mail de hito a su familia. */
 type NarradorConFamilia = Pick<Narrador, 'id' | 'como_le_dicen' | 'familia_id'>;
@@ -85,8 +105,7 @@ export async function tick(): Promise<void> {
     await generarPrevisualizacionesFaltantes();
     await avisarHitosDeCierre();
     await procesarPedidosPagados();
-    await ensamblarNarracionesListas();
-    await avisarNarracionesAtascadas();
+    await alertarDemorados();
     await avisarLibrosListos();
     await recordarFrasesPendientes();
     // El portón de impresión: con la dirección puesta y las frases confirmadas,
@@ -163,12 +182,17 @@ async function generarAnticiposFaltantes(): Promise<void> {
     return;
   }
 
+  const v3 = await conV3OFrenar(db, 'anticipo');
+  if (!v3) return;
+
   for (const narrador of (narradores ?? []) as {
     id: string;
     como_le_dicen: string;
     familia_id: string;
   }[]) {
     try {
+      // La V3 no tiene anticipo.
+      if (v3.has(narrador.id)) continue;
       const nombresArchivos = await listarPaquete(db, narrador.id);
       if (nombresArchivos.has('anticipo_enviado.txt')) continue;
 
@@ -208,7 +232,7 @@ async function avisarDelAnticipo(narrador: {
 
   const { data: familia, error: errorFamilia } = await db
     .from('familias')
-    .select('email')
+    .select('email, region')
     .eq('id', narrador.familia_id)
     .single();
   if (errorFamilia || !familia) {
@@ -236,6 +260,7 @@ async function avisarDelAnticipo(narrador: {
     comoLeDicen: narrador.como_le_dicen,
     primeraPregunta: (pregunta as { texto: string } | null)?.texto ?? '',
     enlace: `${cargarConfig().urlBase}/anticipo/${firmarTokenAnticipo(narrador.id)}`,
+    vos: (familia as { region?: string }).region === 'AR',
   });
 
   if (enviado) {
@@ -260,8 +285,16 @@ async function generarEstructurasFaltantes(): Promise<void> {
     return;
   }
 
+  const v3 = await conV3OFrenar(db, 'estructura');
+  if (!v3) return;
+
   for (const narrador of (narradores ?? []) as { id: string }[]) {
     try {
+      // V3: en vez de la estructura vieja, la Etapa A del escritor nuevo (en segundo plano; no frena el tick).
+      if (v3.has(narrador.id)) {
+        await revisarEtapaAV3(db, narrador.id);
+        continue;
+      }
       const archivos = await listarPaquete(db, narrador.id);
       if (archivos.has('estructura.json')) continue;
 
@@ -291,8 +324,13 @@ async function generarPrevisualizacionesFaltantes(): Promise<void> {
     return;
   }
 
+  const v3 = await conV3OFrenar(db, 'previsualizacion');
+  if (!v3) return;
+
   for (const narrador of (narradores ?? []) as { id: string }[]) {
     try {
+      // La V3 no tiene previsualización.
+      if (v3.has(narrador.id)) continue;
       const archivos = await listarPaquete(db, narrador.id);
       const tieneEstructura = archivos.has('estructura.json');
       const tieneNombres = archivos.has('nombres.json');
@@ -336,11 +374,23 @@ async function avisarHitosDeCierre(): Promise<void> {
     return;
   }
 
+  // El "terminó de contar" de un narrador V3 tiene su propio texto (y vos en Argentina). Sin poder leer
+  // entrevistas_v3 no se manda nada este tick: a una familia V3 le llegaría el texto viejo.
+  let idiomas: Map<string, string>;
+  try {
+    idiomas = await idiomasV3(db);
+  } catch (err) {
+    console.error('tick: no pude leer entrevistas_v3; los mails de cierre no salen este tick:', err);
+    return;
+  }
+
   for (const narrador of (narradores ?? []) as NarradorTerminado[]) {
     try {
       const archivos = await listarPaquete(db, narrador.id);
       const enlace = `${urlBase}/tablero/${narrador.id}`;
-      const mandar = (hito: Hito) => mandarHito(db, narrador, hito, enlace, archivos);
+      const idiomaV3 = idiomas.get(narrador.id);
+      const variante: VarianteV3 | undefined = idiomaV3 === undefined ? undefined : idiomaV3 === 'es-AR' ? 'vos' : 'tu';
+      const mandar = (hito: Hito) => mandarHito(db, narrador, hito, enlace, archivos, variante);
 
       if (!archivos.has(CANDADO_POR_HITO.terminado)) await mandar('terminado');
 
@@ -417,7 +467,8 @@ async function mandarHito(
   narrador: NarradorConFamilia,
   hito: Hito,
   enlace: string,
-  archivos: Set<string>
+  archivos: Set<string>,
+  variante?: VarianteV3
 ): Promise<boolean> {
   // El candado manda: si ya está, ese mail ya salió (o alguien lo sembró a
   // mano para que no salga, como los 7 de Osvaldo al preparar el redeploy).
@@ -430,18 +481,21 @@ async function mandarHito(
 
   const { data: familia, error: errorFamilia } = await db
     .from('familias')
-    .select('email')
+    .select('email, region')
     .eq('id', narrador.familia_id)
     .single();
   if (errorFamilia || !familia) {
     throw new Error(`No se pudo leer la familia de ${narrador.id}: ${errorFamilia?.message ?? 'sin datos'}`);
   }
 
+  // "El libro está listo" va con vos a toda familia de Argentina, V3 o no (Naza, 09/10).
+  const trato = variante ?? (hito === 'libro_listo' && (familia as { region?: string }).region === 'AR' ? 'vos' : undefined);
   const enviado = await enviarMailHito({
     hito,
     para: (familia as { email: string }).email,
     comoLeDicen: narrador.como_le_dicen,
     enlace,
+    ...(trato ? { variante: trato } : {}),
   });
 
   if (enviado) {
@@ -572,7 +626,7 @@ export async function recordarFrasesPendientes(ahora: Date = new Date()): Promis
 
       const { data: familia, error: errorFamilia } = await db
         .from('familias')
-        .select('email')
+        .select('email, region')
         .eq('id', quien.familia_id)
         .single();
       if (errorFamilia || !familia) {
@@ -587,6 +641,7 @@ export async function recordarFrasesPendientes(ahora: Date = new Date()): Promis
         // desde ahí. Es una línea, el día que la web la publique.
         enlace: `${urlBase}/tablero/${narradorId}`,
         conImpreso: impresoPorNarrador.get(narradorId) === true,
+        vos: (familia as { region?: string }).region === 'AR',
       });
 
       if (enviado) {
@@ -613,15 +668,17 @@ export async function recordarFrasesPendientes(ahora: Date = new Date()): Promis
  * UPDATE, no lo pisamos.
  */
 async function liberarPedidosGenerandoHuerfanos(db: ReturnType<typeof obtenerClienteDb>): Promise<void> {
-  const { data: pedidosGenerando, error } = await db.from('pedidos').select('id').eq('estado', 'generando');
+  const { data: pedidosGenerando, error } = await db.from('pedidos').select('id, narrador_id').eq('estado', 'generando');
 
   if (error) {
     console.error('tick: no se pudieron leer los pedidos en generando:', error.message);
     return;
   }
 
-  for (const pedido of (pedidosGenerando ?? []) as { id: string }[]) {
+  for (const pedido of (pedidosGenerando ?? []) as { id: string; narrador_id?: string }[]) {
     if (pedidosGenerandoClaimados.has(pedido.id)) continue;
+    // Otra copia de la fábrica (un deploy con las dos prendidas) lo está escribiendo: no es huérfano.
+    if (pedido.narrador_id && (await trabajaOtraCopia(db, pedido.narrador_id))) continue;
 
     console.warn(
       `tick: el pedido ${pedido.id} quedó huérfano en 'generando' (el proceso que lo reclamó no lo terminó) — lo devolvemos a 'pagado'.`
@@ -640,7 +697,7 @@ async function liberarPedidosGenerandoHuerfanos(db: ReturnType<typeof obtenerCli
 }
 
 /**
- * Branch (b): pedidos en estado 'pagado' → armar el libro y el audiolibro
+ * Branch (b): pedidos en estado 'pagado' → armar el libro y «Su voz»
  * (generarPaquete). Antes de nada, cada pedido se reclama con un
  * compare-and-swap: `update estado='generando' where id=... and
  * estado='pagado'`, devolviendo la fila afectada. Si no vuelve ninguna fila,
@@ -657,8 +714,7 @@ export async function procesarPedidosPagados(): Promise<void> {
 
   await liberarPedidosGenerandoHuerfanos(db);
 
-  // `extras` viaja hasta generarPaquete: de ahí lee qué se compró (voz
-  // clonada → buzón `narraciones` en vez de armar el audiolibro acá).
+  // `extras` viaja hasta generarPaquete (qué se compró).
   const { data: pedidos, error } = await db
     .from('pedidos')
     .select('id, narrador_id, extras')
@@ -703,7 +759,7 @@ export async function procesarPedidosPagados(): Promise<void> {
   // pedidos posteriores sobre el mismo narrador (extras de la dueña, la
   // copia de un visitante — CONTRATO.md: un pedido por comprador) llegan
   // 'pagado' igual que el primero, pero NO hay nada que generar: repagarle
-  // al modelo y pisar libro.html/libro.pdf/audiolibro sería un error. Se
+  // al modelo y pisar libro.html/libro.pdf sería un error. Se
   // reclaman igual (CAS) y pasan a 'entregado' apuntando a los mismos
   // archivos. Se traen todos los entregados y se filtra acá: el fake de los
   // tests distingue las consultas a `pedidos` por estado.
@@ -723,7 +779,9 @@ export async function procesarPedidosPagados(): Promise<void> {
   }
 
   // Un narrador con un pedido 'esperando_voz' tiene el libro hecho y la voz
-  // en camino (buzón `narraciones`). Un segundo pedido 'pagado' sobre él no
+  // en camino. (Legado: desde el 23/09 la fábrica no deja ningún pedido en
+  // 'esperando_voz' ni ensambla voz clonada; el guardia queda por si aparece
+  // uno viejo, para no reescribir su libro.) Un segundo pedido 'pagado' sobre él no
   // se reclama todavía: generarPaquete volvería a escribir el libro (los
   // borradores ya se borraron → se le paga al modelo de nuevo) y no hay
   // pedido entregado del que copiar rutas. Se deja en 'pagado'; cuando el
@@ -741,9 +799,19 @@ export async function procesarPedidosPagados(): Promise<void> {
 
   const narradoresEsperandoVoz = new Set(((esperandoVoz ?? []) as { narrador_id: string }[]).map((p) => p.narrador_id));
 
+  const v3 = await conV3OFrenar(db, 'pedidos');
+  if (!v3) return;
+
   for (const pedido of pedidosPagados) {
     if (!narradoresListos.has(pedido.narrador_id)) continue;
     if (narradoresEsperandoVoz.has(pedido.narrador_id)) continue;
+    const yaEntregado = entregadoPorNarrador.get(pedido.narrador_id);
+    // V3: el libro corre en segundo plano (horas, por Batch). Sin lugar en la cola —o con un libro de este
+    // narrador ya en marcha— no se reclama: un pedido reclamado sin trabajo quedaría huérfano.
+    const esV3 = v3.has(pedido.narrador_id) && !yaEntregado;
+    if (esV3 && !hayLugarParaLibroV3(pedido.narrador_id)) continue;
+    // Otra copia de la fábrica (deploy con las dos prendidas) está trabajando con este narrador: no se reclama.
+    if (esV3 && (await trabajaOtraCopia(db, pedido.narrador_id))) continue;
     const { data: reclamado, error: errorClaim } = await db
       .from('pedidos')
       .update({ estado: 'generando' })
@@ -763,8 +831,14 @@ export async function procesarPedidosPagados(): Promise<void> {
     }
 
     pedidosGenerandoClaimados.add(pedido.id);
+    if (esV3) {
+      // El trabajo saca el pedido de los reclamados al terminar (entregado o fallido). Si no arrancó,
+      // sale ya: queda en 'generando' y el próximo tick lo ve huérfano y lo devuelve a 'pagado'.
+      const lanzado = lanzarLibroV3(db, pedido, () => pedidosGenerandoClaimados.delete(pedido.id));
+      if (!lanzado) pedidosGenerandoClaimados.delete(pedido.id);
+      continue;
+    }
     try {
-      const yaEntregado = entregadoPorNarrador.get(pedido.narrador_id);
       if (yaEntregado) {
         await entregarConLosMismosArchivos(db, pedido, yaEntregado);
       } else {
@@ -808,159 +882,6 @@ async function entregarConLosMismosArchivos(
     .eq('id', pedido.id);
   if (error) {
     console.error(`tick: no se pudo entregar el pedido ${pedido.id} con los archivos del ${yaEntregado.id}:`, error.message);
-  }
-}
-
-/**
- * Branch (d): narraciones que el worker de voz terminó (`lista`) con su
- * pedido todavía `esperando_voz` → pegar las intros, subir el audiolibro y
- * entregar el pedido con `audiolibro_paths`. Los nombres de los capítulos
- * salen de `narracion.json` — es lo que el worker narró, en ese orden — y
- * no de recomputar la edición. La fila de `narraciones` no se toca (la
- * escribe el worker): si el ensamblado falla, se loguea y la narración
- * sigue `lista`, así el próximo tick lo reintenta — un tropiezo pasajero
- * de Storage o ffmpeg se cura solo. Pero la primera falla avisa a los
- * socios (`ensamblado_fallido`, con candado): si es permanente, alguien
- * tiene que enterarse, porque cada reintento cuesta una intro TTS por
- * capítulo y no hay tope. El UPDATE del pedido exige
- * `estado = 'esperando_voz'`: si alguien lo movió entre el SELECT y acá, no
- * se pisa. Recién con el pedido entregado se borran los borradores
- * (`borrador_cap_NN.md` + `borrador_libro.md`): hasta ese momento son el
- * caché que evita repagarle al modelo si la narración queda `fallida` y
- * alguien vuelve el pedido a `pagado` con `audiolibro: "real"` (CONTRATO,
- * "Narraciones"). El mail `libro_listo` lo manda `avisarLibrosListos`, que
- * corre después en el mismo tick.
- */
-export async function ensamblarNarracionesListas(): Promise<void> {
-  const db = obtenerClienteDb();
-
-  let listas;
-  try {
-    listas = await narracionesListas(db);
-  } catch (err) {
-    console.error('tick: no se pudieron leer las narraciones listas:', err);
-    return;
-  }
-
-  for (const narracion of listas) {
-    try {
-      const narracionJson = await descargarJson<NarracionJson>(
-        db,
-        RUTA_NARRACION_JSON(narracion.narrador_id),
-        'narracion.json'
-      );
-      const audiolibroPaths = await ensamblarAudiolibroClonado(db, {
-        narradorId: narracion.narrador_id,
-        pedidoId: narracion.pedido_id,
-        capitulosPaths: narracion.capitulos_paths,
-        estructura: { capitulos: narracionJson.capitulos.map((c) => ({ nombre: c.nombre })) },
-      });
-
-      const { data: entregado, error } = await db
-        .from('pedidos')
-        .update({ estado: 'entregado', audiolibro_paths: audiolibroPaths })
-        .eq('id', narracion.pedido_id)
-        .eq('estado', 'esperando_voz')
-        .select('id');
-      if (error) throw new Error(`no se pudo entregar el pedido ${narracion.pedido_id}: ${error.message}`);
-      if (!entregado || (entregado as unknown[]).length !== 1) {
-        console.warn(
-          `tick: el audiolibro de la narración ${narracion.id} se armó pero el pedido ${narracion.pedido_id} ya no estaba esperando_voz — no se tocó.`
-        );
-        continue;
-      }
-
-      // Entregado: los borradores ya no hacen falta. Si el borrado falla no
-      // es motivo para deshacer nada (el pedido está bien entregado): se
-      // loguea y se sigue, como `limpiarBorradores` en generar-paquete.ts.
-      try {
-        await borrarArchivos(db, rutasDeBorradores(narracion.narrador_id, narracionJson.capitulos.length));
-      } catch (errorLimpieza) {
-        console.error(`tick: no se pudieron borrar los borradores de ${narracion.narrador_id}:`, errorLimpieza);
-      }
-    } catch (err) {
-      console.error(`tick: falló el ensamblado de la narración ${narracion.id} (pedido ${narracion.pedido_id}):`, err);
-      try {
-        const archivos = await listarPaquete(db, narracion.narrador_id);
-        await mandarAvisoConCandado(
-          db,
-          { id: narracion.id, narrador_id: narracion.narrador_id, motivo: 'ensamblado_fallido', error: mensajeDe(err) },
-          archivos
-        );
-      } catch (errorAviso) {
-        console.error(`tick: no se pudo avisar del ensamblado fallido de ${narracion.id}:`, errorAviso);
-      }
-    }
-  }
-}
-
-const mensajeDe = (err: unknown) => (err instanceof Error ? err.message : String(err));
-
-/**
- * Manda a los socios el aviso de una narración (un motivo) y, si Resend
- * confirmó, deja el candado `aviso_narracion_{id}_{motivo}.txt` en el
- * paquete del narrador (y lo agrega a `archivos`). Con el candado ya puesto
- * no manda nada. Mismo par de pasos que `mandarHito`.
- */
-async function mandarAvisoConCandado(
-  db: Db,
-  aviso: { id: string; narrador_id: string; motivo: MotivoAviso; error: string | null },
-  archivos: Set<string>
-): Promise<void> {
-  const candado = CANDADO_AVISO(aviso.id, aviso.motivo);
-  if (archivos.has(candado)) return;
-
-  const { data: narrador, error: errorNarrador } = await db
-    .from('narradores')
-    .select('como_le_dicen')
-    .eq('id', aviso.narrador_id)
-    .single();
-  if (errorNarrador || !narrador) {
-    throw new Error(`No se pudo leer el narrador: ${errorNarrador?.message ?? 'sin datos'}`);
-  }
-  const comoLeDicen = (narrador as { como_le_dicen: string }).como_le_dicen;
-
-  const enviado = await avisarSocios(asuntoAviso(aviso.motivo, comoLeDicen), cuerpoAviso(aviso, comoLeDicen));
-  if (enviado) {
-    await subirTexto(db, `${aviso.narrador_id}/paquete/${candado}`, new Date().toISOString());
-    archivos.add(candado);
-  }
-}
-
-/**
- * Branch (e): el buzón de voz se atascó (CONTRATO.md, "Atascos") → un mail
- * a los socios por (narración, motivo), con candado
- * `aviso_narracion_{id}_{motivo}.txt` en el paquete del narrador que se
- * deja SOLO si Resend confirmó — el mismo par de pasos que los hitos. Una
- * narración puede avisar dos veces con motivos distintos (pendiente 24 h y
- * después fallida): son candados distintos a propósito.
- */
-export async function avisarNarracionesAtascadas(): Promise<void> {
-  const db = obtenerClienteDb();
-
-  let atascadas;
-  try {
-    atascadas = await narracionesAtascadas(db, new Date());
-  } catch (err) {
-    console.error('tick: no se pudieron leer las narraciones atascadas:', err);
-    return;
-  }
-
-  // El listado del paquete se hace una vez por narrador, aunque tenga varias
-  // narraciones atascadas; los candados que se suben se agregan al Set.
-  const archivosPorNarrador = new Map<string, Set<string>>();
-
-  for (const atascada of atascadas) {
-    try {
-      let archivos = archivosPorNarrador.get(atascada.narrador_id);
-      if (!archivos) {
-        archivos = await listarPaquete(db, atascada.narrador_id);
-        archivosPorNarrador.set(atascada.narrador_id, archivos);
-      }
-      await mandarAvisoConCandado(db, atascada, archivos);
-    } catch (err) {
-      console.error(`tick: falló el aviso de la narración atascada ${atascada.id}:`, err);
-    }
   }
 }
 

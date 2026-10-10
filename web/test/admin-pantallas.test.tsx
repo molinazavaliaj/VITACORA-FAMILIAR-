@@ -101,8 +101,12 @@ describe("las cinco pantallas, renderizadas", () => {
   });
 
   it("Plata: la cuenta está escrita como una cuenta, con el cambio a la vista", async () => {
+    // La pantalla muestra el mes en curso y los datos de mentira son de septiembre: sin fijar la fecha,
+    // el 1/10 quedaron fuera del mes y el test se rompió solo (frenó el deploy de la web, 09/10).
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-09-21T12:00:00Z"));
     actuales = datosFalsos;
-    const html = await render("Plata");
+    const html = await render("Plata").finally(() => vi.useRealTimers());
     expect(html).toContain("Entró");
     expect(html).toContain("Se gastó");
     expect(html).toContain("Ganancia limpia");
@@ -117,7 +121,7 @@ describe("las cinco pantallas, renderizadas", () => {
     expect(html).toContain("¿Quién era el Vasco?");
   });
 
-  it("Cerebros: están los 14 nodos y avisa donde se cortó", async () => {
+  it("Cerebros: están los 16 nodos y avisa donde se cortó", async () => {
     actuales = datosFalsos;
     const html = await render("Cerebros");
     expect(html).toContain("Escribe los capítulos");

@@ -1,0 +1,949 @@
+# Ronda 2, simulación 1: la madre soltera (Nelly, 68, inventada)
+
+**Qué es:** la entrevista de un narrador **inventado** (Nelly), contestada por un agente de IA en personaje, con el código de `fabrica/src/v3/entrevista/` haciendo de WhatsApp (`fabrica/scripts/v3-entrevista-turno.ts`). Plan: [`PLAN.md`](PLAN.md).
+
+**Cuenta:** 89 preguntas del banco contestadas + 1 de la familia · **134 mensajes de WhatsApp del biógrafo** · terminó con el mensaje final.
+
+Cómo leerlo: cada **Biógrafo** es un mensaje de WhatsApp (las líneas citadas van juntas en ese mensaje); **Narrador** es lo que contestó. Los títulos de bloque y los IDs (entre corchetes) son para el equipo: el narrador no los ve.
+
+**Biógrafo** `[BIEN]`:
+> Hola, Nelly, ¿cómo estás? Una persona que te quiere mucho te regaló un libro con la historia de tu vida, y yo soy quien te va a entrevistar para armarlo. Lo hacemos acá, por WhatsApp, tranquilos.
+>
+> Funciona así: te mando una pregunta y vos me la contás en audio, como si me lo estuvieras contando en persona. Mandame todos los audios que quieras. Cuando termines, ya está: con un ratito de silencio, la pregunta que sigue te llega sola.
+>
+> Si alguna pregunta no tiene que ver con tu vida, me decís que no, o me contás lo que sí te pasó a vos. Y sin apuro: esto lo hacemos al ritmo que vos quieras.
+
+## Bloque 1 · Origen y raíces
+
+**Biógrafo** `[OR1 + M1]`:
+> Empecemos por cuando llegaste al mundo, según te contaron. No el día en sí, sino la época: dónde vivían, en qué andaban tu mamá y tu papá, cómo te esperaban. ¿Qué sabés de cómo era la vida de ellos en ese entonces? Contame.
+>
+> _Si no va con vos, decí paso y vamos a otra._
+
+**Narrador** `[OR1]`: Ay, bueno, mis papás me contaron muchas veces esa historia. Yo nací en Villa María, en 1958, en una casa muy modesta que teníamos en un barrio humilde. Papá trabajaba en los ferrocarriles, que en ese entonces era un laburo seguro, viste, con la empresa. Y mamá cosía en casa, junto con amigas que se juntaban a trabajar. Eran tiempos duros, la Argentina andaba complicada, pero ellos estaban contentos de que yo viniera en camino. Ya estaba Rubén, mi hermano mayor, así que para ellos era la segunda. Mamá cosía para poder ayudar con los gastos, porque el sueldo de papá daba pero justo. Me esperaban con ilusión, aunque no con los preparativos de ahora. Eran otros tiempos, mucho más sencillo todo. Mi abuela paterna ayudaba también, creo. La verdad es que mamá hacía todo: la casa, la costura, cuidar a Rubén. Una mujer de esas de verdad, viste.
+
+**Biógrafo** `[M3.1 + OR2 + M1]`:
+> Gracias, Nelly. Ya lo guardé.
+>
+> En todas las familias hay una historia de los de antes, de los abuelos o más atrás, que se contaba en las sobremesas: un viaje, una llegada, alguna hazaña. ¿Cuál sabés de tu familia? Contámela como la escuchaste.
+>
+> _Si no va con vos, decí paso y vamos a otra._
+
+**Narrador** `[OR2]`: Sí, hay una que papá contaba mucho. Su padre, mi abuelo, vino de Italia, de Campania, a principios del veinte. Vino a trabajar en los ferrocarriles, como hacía mucha gente de esos pueblos. Llegó sin nada, viste, con lo que podía cargar. Trabajó como un animal en la vía, en el andén, durísimo. Se casa con mi abuela, que era de una familia de españoles, y así fuimos saliendo adelante entre los dos. Papá me decía que su padre tuvo que aprender el idioma trabajando, que los italianos eran los que construían todo en esa época. Y bueno, papá siguió los pasos de su padre, se metió en los ferrocarriles también. Esa era la historia que contaban en la mesa: que nosotros éramos ferrocarrileros, que el trabajo duro era lo nuestro, que había que salir adelante como sea. Una historia de inmigración y laburo, viste. Eso nos definía como familia.
+
+**Biógrafo** `[M3.2 + OR5 + M1]`:
+> Te escuché. Vamos con la que sigue.
+>
+> ¿Cómo se conocieron tu mamá y tu papá? Seguro en casa lo contaron más de una vez: un baile, una casualidad, alguien que los presentó. Contame ese día como te lo contaron.
+>
+> _Si no va con vos, decí paso y vamos a otra._
+
+**Narrador** `[OR5]`: Ay, esa me la contaba mamá más que nada. Se conocieron en un baile, en el club de la estación de ferrocarril. Papá iba con amigos, de los del trabajo, y mamá fue con amigas también. Mamá cosía muy bien, viste, era la más pedida para las fiestas, así que se arreglaba hermosa. Papá quedó prendado cuando la vio, según me decía mamá con esa sonrisa. Le pidió un baile y bueno, ahí empezó todo. Se enamoraron en ese baile, viste. Se veían en bailes después, en reuniones de vecinos. No era cosa de salir al cine cada semana como ahora, era más que nada los bailes del club, las fiestas de barrio. Fue un noviazgo lindo, según contaban. Se casaron siendo jóvenes, en la iglesia de Villa María, con lo que podían. Mamá hizo el vestido ella misma, por supuesto. Eso es lo que me contaban: una historia de baile, de amor a primera vista, de gente trabajadora que se encontraba en las fiestas del pueblo.
+
+**Biógrafo** `[M26 + CI1 + M31]`:
+> Gracias, Nelly.
+>
+> Con esto cerramos lo de tu familia de antes, la de antes de que llegaras vos. Y me pregunto si se me escapó algo: una historia de tus abuelos, de tus viejos de jóvenes, de esa casa. Si hay una dando vueltas, contámela ahora. Y si algo se te viene más tarde, a cualquier hora, mandámelo cuando quieras: va al libro igual.
+>
+> _Podés tocar el botón de abajo, o contestarme en audio como siempre._
+>
+> [botones: (No, está todo)]
+
+**Narrador** `[CI1]`: [toca: No, está todo]
+
+## Bloque 2 · La casa y la familia de la infancia
+
+**Biógrafo** `[M25.1 + EN2]`:
+> Bien, seguimos.
+>
+> Ahora vamos a tu infancia, Nelly: la casa donde creciste y los de tu casa de entonces.
+
+**Biógrafo** `[CA1]`:
+> Contame el primer recuerdo que tengas de la casa donde creciste: un día, qué estabas haciendo, quién andaba por ahí.
+
+**Narrador** `[CA1]`: Uy, me acuerdo de una cosa que me quedó en la cabeza siempre. Era de noche, papá había llegado del trabajo y mamá estaba cosiendo en la mesa de la cocina con la lámpara. Rubén estaba jugando en el piso con unos carritos de hojalata, muy contento. Yo tendría cuatro o cinco años. Papá entra, cansado como siempre, se saca la gorra del uniforme y mamá le pone la comida en la mesa. Yo estaba de pie en la cocina, creo que viendo nada más, y papá me levanta y me pone en la cadera, y mamá sigue cosiendo mientras nosotros tres estábamos ahí, juntos. Era una escena así, muy simple, pero me quedó grabada: el olor a humo de papá que fumaba sus cigarrillos, la aguja de mamá haciendo click, click en la tela, Rubén que no nos sacaba los ojos de encima. La casa era chica, viste, todo cerca. Eso es de lo primero que me acuerdo.
+
+**Biógrafo** `[M3.4 + CA2]`:
+> Gracias por contármelo. Seguimos.
+>
+> Viajemos un rato a cuando eras chica. ¿Cómo era tu mamá con vos en esa época? Si te viene a la cabeza alguna anécdota con ella, contámela: dónde estaban, qué pasó.
+
+**Narrador** `[CA2]`: Mamá era muy dedicada, viste. Siempre cosiendo, siempre trabajando, pero no era fría. Se paraba en medio de la costura para hacer algo por nosotros. Me acuerdo que un día me duele la panza, y mamá deja todo lo que está haciendo, la costura, el hilo, todo. Me acuesta en la cama y me pone una bolsa de agua caliente en la panza, y se queda ahí en la cama conmigo, hablándome suave. No era de besos y achuchones, era más callada, pero vos sentías que te cuidaba. Y después me acuerdo que teníamos poco dinero, y ella se esforzaba un montón para que Rubén y yo tuviéramos algo nuevo para la escuela. Se hacía ropa a ella con lo que le sobraba de los trabajos. Estoy en la escuela y veo que mi uniforme es del mismo género que el de una señora que la encargó, porque mamá lo cortó de lo que sobró. Eso es mamá: exprimía todo, no tiraba nada. Era inventadora, viste, sacaba maña de la nada.
+
+**Biógrafo** `[M3.5 + CA3]`:
+> Guardado, Nelly. Te mando la próxima.
+>
+> ¿Y tu papá? ¿A qué se dedicaba cuando eras chica? Contame alguna vez que lo acompañaste o lo viste trabajando.
+
+**Narrador** `[CA3]`: Papá trabajaba en el ferrocarril, claro, en la estación de Villa María. Me acuerdo de una vez que me lleva a la estación y me muestra los trenes, todo eso. Estaba orgulloso de lo que hacía. Era como inspector o algo así, no era de trabajar con las manos directamente en la vía, sino que se ocupaba de que todo ande bien, de los horarios, de los vagones. Llevaba un uniforme muy prolijo, con botones bien lustrados. Y la gente lo saludaba, viste, lo respetaban. Me acuerdo de esa vez en la estación que me dice: "Mira, Nelly, todos estos trenes tienen que salir a horario, todo debe funcionar." Tenía una responsabilidad grande. Trabajaba muchas horas, volvía cansado. Pero era ordenado, meticuloso. Cumplía. Eso era papá: el trabajo era sagrado para él, la responsabilidad primero.
+
+**Biógrafo** `[M3.6 + CA6 + M1]`:
+> Lo tengo, gracias. Vamos con otra.
+>
+> ¿Tuviste hermanos? Si ya salieron en la charla no importa, quiero saber más: contame con cuál eras más cercana de chica y alguna aventura que hayan hecho juntos; seguro tienen varias.
+>
+> _Si no va con vos, decí paso y vamos a otra._
+>
+> [botones: (Sí, tuve) (No tuve hermanos)]
+
+**Narrador** `[CA6]`: [toca: Sí, tuve]
+
+**Biógrafo** `[M30]`:
+> Contame, te escucho.
+
+**Narrador** `[CA6]`: Sí, tuve un hermano mayor, Rubén. Él me llevaba varios años, así que cuando yo era chica, él ya estaba en la secundaria, casi adolescente. Pero nos queríamos un montón. Me acuerdo de una vez que nos escapamos de casa sin aviso a mamá y papá, vamos con unos amigos de él a un terreno cerca del río. Rubén me lleva de la mano todo el tiempo, cuidándome, porque había tierra y ramas. Estuvimos ahí mirando el río, jugando con las piedras, y Rubén me dice que algún día viajábamos en tren, que él me llevaba lejos. Eso nunca sucedió, pero quedó eso en mi corazón. Rubén fue muy buen hermano, viste, protector. Después se fue a Buenos Aires a trabajar y la vida nos separó. Nos veíamos menos. Pero siempre fue mi hermanito, aunque sea mayor. Lo perdí en 2012, fue durísimo. Todavía me duele.
+
+**Biógrafo** `[M3.7 + CA16]`:
+> Quedó guardado, Nelly. Sigo con la que viene.
+>
+> Contame un día de chica que esperabas con muchas ganas: qué era, quién estaba, qué pasó. Y si no te vuelve un día en particular, contame qué cosas esperabas con ganas en esa época, que con eso me arreglo.
+
+**Narrador** `[CA16]`: Ay, me acuerdo que esperaba mucho el día del cumpleaños de papá. Se hacía un rato grande, viste, aunque fuera modesto. Mamá se esforzaba para hacer algo especial, una torta que cosía de a pedazos con amigas, porque no había plata para que la hiciera un repostero. Y yo me despertaba temprano ese día, toda emocionada, ayudando a mamá a acomodar la cocina. Rubén traía de la calle flores que conseguía no sé de dónde, y papá llegaba del trabajo sin saber nada. La sorpresa para papá: eso era lo que esperaba. Verlo entrar a la casa y ver la cara que se le ponía, contento. Había poco, pero había alegría. Esos días de cumpleaños eran los que más esperaba siendo chica. Había como una magia. Después todo se va yendo, viste, las cosas no son iguales.
+
+**Biógrafo** `[M26 + CA17]`:
+> Gracias, Nelly.
+>
+> ¿Hubo algún momento difícil de tu infancia que creas que no puede quedar afuera de tu historia? ¿Algo que te marcó? Si querés, contame qué pasó y cómo lo viviste.
+>
+> [botones: (Paso esta)]
+
+**Narrador** `[CA17]`: Sí, hay algo. La pobreza, viste. En esa época no se hablaba como ahora de pobreza, pero la teníamos. Recuerdo que mamá cosía de noche y papá trabajaba todo el día, y aun así había noches que la comida era una sopa muy aguada, o pan con té. Yo tendría seis o siete años, y notaba cosas. Como cuando mamá remendaba la ropa de nosotros sin que nadie le pidiera, porque no había para comprar ropa nueva. O cuando le escucho hablando con papá en la cocina de noche, preocupados por llegar a fin de mes. No era gritos ni pelea, era una preocupación callada que te metía miedo. Esos momentos de silencio económico, de saber que no sobraba nada, eso marca a una persona. No era maltrato ni nada así, pero había una tensión que vos de chica sentís aunque no entiendas bien. Te hace crecer rápido, viste.
+
+**Biógrafo** `[M4.1]`:
+> Gracias por contarme esto, Nelly. Queda guardado con cuidado.
+
+**Biógrafo** `[CI2]`:
+> Ya casi terminamos con tu infancia, y me quedo pensando si te dejé algo afuera. ¿Hubo alguna historia que se te vino a la cabeza mientras contabas y no tuvo dónde entrar? Contámela ahora, tranquila, que hay tiempo.
+>
+> [botones: (No, está todo)]
+
+**Narrador** `[CI2]`: [toca: No, está todo]
+
+## Bloque 3 · La escuela y los juegos
+
+**Biógrafo** `[M25.3 + EN3]`:
+> Bien, entonces.
+>
+> Seguimos con la escuela: la primaria, los maestros y los juegos de esa edad.
+
+**Biógrafo** `[ES1]`:
+> ¿Cómo fue tu primer día de escuela? ¿Quién te llevó hasta la puerta, y qué sentiste cuando se fue? Si ese día no lo tenés, contame lo primero que te acuerdes de la primaria.
+
+**Narrador** `[ES1]`: Me acuerdo que mamá me lleva de la mano. Era temprano de la mañana, todavía con los nervios. Me había peinado con dos trenzas, muy formales. Mamá me compró un uniforme, aunque fuera usado, y un guardapolvo azul que me quedaba grande. Entramos a la escuela y todo me parecía enorme, las puertas altas, los pasillos largos. Llegamos al aula y mamá habla con la maestra, una señora grande que parecía severa. Mamá se me agacha, me da un beso en la cabeza y me dice: "Sé obediente y aprende." Se va. Yo me quedé con ganas de irme con ella, pero no lloraba. La maestra me muestra mi lugar. Había otros chicos asustados como yo, y poco a poco uno se acostumbra. La maestra fue buena después, pero ese primer momento fue raro, quedarse sin mamá.
+
+**Biógrafo** `[M3.1 + ES2]`:
+> Gracias, Nelly. Ya lo guardé.
+>
+> ¿Tuviste una maestra o un maestro que te marcó en la primaria? ¿Cómo era con ustedes? Contame una vez con esa persona que no te olvidás: qué pasó en el aula ese día.
+
+**Narrador** `[ES2]`: Sí, la maestra María. Era de esas maestras que se ve que ama lo que hace. Ella me hizo entender que yo no era una chica que no iba a llegar a ningún lado. Recuerdo que un día nos pregunta quién quería ser de grande, y yo dije que no sabía. Ella se me acerca después de clase y me dice: "Nelly, vos tenés cabeza. Vos podés ser lo que quieras si estudiás." Eso fue así simple, pero para mí fue mucho. Ella era paciente, no gritaba como otros maestros de la época. Te explicaba dos, tres veces si no entendías. Y me daba premios, así, chiquitos, un caramelo, un papel con una estrella, por las cosas bien hechas. La maestra María creyó en mí cuando en casa estábamos preocupados por la comida. Ella me enseñó que había mundo afuera de las dificultades.
+
+**Biógrafo** `[M3.2 + ES5]`:
+> Te escuché. Vamos con la que sigue.
+>
+> De chica, ¿tenías un mejor amigo o una mejor amiga, de la escuela o del barrio? ¿Qué hacían cuando andaban juntos? Contame una tarde con esa persona que todavía te hace sonreír.
+
+**Narrador** `[ES5]`: Ay sí, Graciela. Vivía en la calle de al lado. Éramos prácticamente hermanas. Nos veíamos todo el día, jugábamos en el patio, en la calle. Me acuerdo de una tarde que cogemos barro del patio de su casa después de haber llovido, y hacemos figuritas, muñecas de barro. Cada una hacía la suya y después las dejábamos secar al sol. Graciela me enseñaba cosas, como a hacer trenzas, a saltar la soga. Y de noche nos juntábamos en el zaguán de su casa con más chicos del barrio y jugábamos a la mancha. Eran tardes largas, viste, de esas que cuando oscurece no querés irte. Graciela era mi compañera, mi cómplice en todo. Nos separamos cuando ella se fue del barrio, la familia se mudó. Eso fue duro. Después la vida te va llevando por distintos lados, pero me acuerdo de esa amistad como algo lindo, puro, sin complicaciones.
+
+**Biógrafo** `[M3.3 + ES6]`:
+> Lo anoté, gracias. Sigo con otra.
+>
+> ¿Cuál fue la travesura más grande que hiciste de chica, en la escuela o en el barrio? Esa que todavía te da risa, o un poco de vergüenza. Contame cómo fue y si te agarraron. Y si se te vienen más, contalas también.
+
+**Narrador** `[ES6]`: Uy, me acuerdo de una que Graciela y yo hicimos que todavía me da vergüenza. Sacamos un pollo de un gallinero de un vecino que era muy gruñón, muy antipático. No lo íbamos a lastimar, solo lo queríamos soltar para verlo andar corriendo por el barrio, hacerle una broma. Pero el pollo empieza a volar y a dar vueltas, y nosotras corriendo detrás, y el vecino sale a gritar. La gente salía de las casas pensando que había un incendio. Fue un quilombo. Nos agarraron, claro, a Graciela y a mí. El vecino iba a ir a la casa a contarle a mamá, y yo estaba muerto de miedo. Pero mamá, cuando la entera, casi me mata de risa. Vuelve a ser chica, viste. No me pegó, pero me dejó sin salir una semana. Fue la travesura más grande que me acuerdo de haber hecho, de esas de las que no calculás bien las consecuencias porque sos chica.
+
+**Biógrafo** `[M3.4 + ES7]`:
+> Gracias por contármelo. Seguimos.
+>
+> ¿Qué querías ser cuando fueras grande? ¿De dónde te vino esa idea: alguien que veías, algo que pasó? Si te acordás del momento en que lo decidiste, o de quién te lo metió en la cabeza, contámelo.
+
+**Narrador** `[ES7]`: Ay, de chica quería ser maestra, como la maestra María. Me encantaba la idea de enseñar, de estar frente a los chicos y que aprendan algo de vos. Pero después crecés y ves que el dinero no sobra, y tus viejos no tienen para mandarte a la universidad, y bueno, la vida te lleva por otro lado. Me gustaba también la idea de trabajar en una oficina, con escritorio, rodeada de papeles, viéndome importante. Eso vino porque papá hablaba de los administrativos de la estación con respeto, decía que eran gente de confianza. Así que cuando termino la primaria, mamá me pregunta si quería seguir estudiando, y yo digo que sí, pero lo que pueda. Hago el comercial, que era más corto, y después me voy a trabajar. Siempre quise trabajar en una oficina, con responsabilidad. No fue maestra, pero bueno, la vida te da otras cosas.
+
+**Biógrafo** `[M3.5 + ES9]`:
+> Guardado, Nelly. Te mando la próxima.
+>
+> ¿La religión estaba presente en tu casa cuando eras chica? Si fue así, ¿hubo una ceremonia o una fiesta que te tocó de cerca? Contame ese día: dónde fue, con quién estabas.
+
+**Narrador** `[ES9]`: Sí, la religión estaba ahí, pero no era fanática ni nada. Mamá creía en Dios, teníamos un cuadro de la Virgen en la pared, y papá rezaba aunque fuera poco, viste. Cuando hice la primera comunión, eso fue un día importante. Debe haber sido cuando tendría unos nueve años. Mamá me hizo un vestidito blanco, lindísimo, ella misma lo cosió. Rubén me acompaña en la ceremonia, y papá estaba ahí, todo formal. Fuimos a la iglesia, bien temprano, éramos muchos chicos de la escuela con nuestros padres. Me acuerdo del cura, la voz ronca que tenía, y de ese momento cuando me acerco a comulgar, que sentía una cosa rara, una solemnidad. Después fue una comidita en casa con algunos vecinos. Mamá preparó lo que pudo. Fue un día de esos que marcaban el crecimiento, viste. Después la religión siguió estando, pero no era lo más importante de la casa. Pero ese día fue especial.
+
+**Biógrafo** `[M26 + CI3]`:
+> Gracias, Nelly.
+>
+> Con esto cerramos tus años de escuela. Antes de seguir, ¿te quedó alguna historia de esa época dando vueltas, algo que no entró en ninguna pregunta? Contámela ahora, con calma, que la quiero escuchar.
+>
+> [botones: (No, está todo)]
+
+**Narrador** `[CI3]`: Sí, hay algo que no conté. Cuando tenía como diez años, descubrí la biblioteca de la escuela. La bibliotecaria era una señora muy seria, pero dejaba que buscaras libros. Yo iba y me sacaba cuentos, historias de aventuras. Para mí era como escapar, viste. Lea en el banco del patio durante los recreos, en vez de andar jugando. Los otros chicos se burlaban un poco, me decían "nerd" sin saber la palabra, pero a mí no me importaba. Esos libros me sacaban de la realidad de casa, de la pobreza. Era magia. Eso quedó en mí, ese amor por leer. Después no leí tanto por el trabajo, pero nunca lo perdí del todo.
+
+## Bloque 4 · Adolescencia
+
+**Biógrafo** `[M24.1 + EN4]`:
+> Gracias, Nelly. Eso también va al libro.
+>
+> Ahora vamos a tu adolescencia: esos años en que uno deja de ser chica y todavía no es grande.
+
+**Biógrafo** `[AD2]`:
+> Después de la primaria, ¿dónde pasabas los días a los trece, catorce años? ¿Cómo llegaste ahí? Contame una vez de esos años que te quedó grabada.
+
+**Narrador** `[AD2]`: A esa edad estaba en la secundaria, haciendo el comercial. Pasaba el día en la escuela, y después en casa ayudando a mamá. Pero ya me empezaba a fijar en los chicos, viste, eso que te sale de la nada. Me acuerdo de un día que estoy en clase y entra un chico nuevo, se sienta atrás mío. Le digo a mis amigas que si le veo en el espejo. Qué tontería, pero a esa edad te parece lo más importante del mundo. Después lo veo en los pasillos de la escuela, nos saludamos. Un día me pasa una notita y era un dibujo de dos corazones. Eso fue así, chiquito, pero para mí fue una emoción grande. Obviamente nada pasó, era solo cosa de adolescentes. Pero recuerdo eso como el momento en que dejé de ser chica y empecé a sentir cosas de otra forma.
+
+**Biógrafo** `[M3.7 + AD3]`:
+> Quedó guardado, Nelly. Sigo con la que viene.
+>
+> ¿Tenías una barra de amigos a los quince, dieciséis? ¿Cómo eran, qué hacían cuando se juntaban? Contame una noche o una salida con ellos que todavía te acordás. Es una edad que queda marcada: si se te vienen más historias, contalas todas.
+
+**Narrador** `[AD3]`: Sí, teníamos un grupo de amigas, éramos cuatro o cinco siempre. Nos juntábamos en el patio de la escuela, después de clase, o en casa de alguna. No hacíamos mucho, viste, no era como ahora que se van a lugares. Íbamos al cine a ver películas de romance o suspenso, y después en la puerta del cine nos quedábamos a conversar horas. Hacíamos excusas para salir, a veces decíamos que íbamos a estudiar a casa de una pero en realidad nos juntábamos en algún parque. Un día especial fue cuando una de nosotras, Irene, invitó a un grupo de chicos. Fue a su casa, escondidas de los papás. Había música, bailábamos, muy tímidos todos. Fue lo más atrevido que hacíamos. Después la mamá de Irene casi nos sorprende y todo fue un caos. Hubo risas, vergüenza, emoción. Ese tipo de noches, viste, de esas que quedaban marcadas a fuego porque eran la única aventura que teníamos siendo chicas. Eran tiempos más inocentes.
+
+**Biógrafo** `[M3.8 + AD5]`:
+> Te escuché bien. Vamos por la siguiente.
+>
+> ¿Te acordás de la primera vez que saliste de noche, a un baile o a una fiesta? Contame cómo te preparaste, con quién fuiste y cómo fue esa noche. Y si la primera no te vuelve, contame cómo eran esas salidas en general.
+
+**Narrador** `[AD5]`: Ay, la primera salida de verdad fue a un baile en el club de la estación, como donde mis papás se conocieron. Debe haber sido cuando tenía dieciséis años. Me acuerdo que mamá me ayuda a arreglarme, y papá estaba incómodo, viste, con una chica de su edad saliendo de noche. Mamá me hizo un vestido, le pidió un género a una cliente. Me peiné con ondas, que era la moda, me maquillé poco pero lo que pude. Fui con mis amigas, sin chico, solo entre nosotras. Me acuerdo de los nervios, de las mariposas en la panza. Llegamos al baile y había un montón de gente, música de orquesta en vivo. Nos sentamos al costado las primeras tandas, viendo. Después un chico me saca a bailar, tangos lentos. Me sentía grande, viste, importante. Fue una noche de esas que te cambia, donde sentís que ya no sos chica. Volví a casa a la hora que papá había dicho, pero toda emocionada. Fueron varias noches así después, en esos bailes.
+
+**Biógrafo** `[M3.1 + AD6]`:
+> Gracias, Nelly. Ya lo guardé.
+>
+> ¿Y la primera vez que alguien te gustó en serio? Contame cómo se conocieron, cómo era esa persona, y un momento de los dos que todavía llevás guardado.
+
+**Narrador** `[AD6]`: Ay, sí. Fue un chico que se llamaba Roberto, lo conocí en uno de esos bailes. Él era mayor que yo, tendría unos diecinueve, yo dieciséis. Alto, moreno, con los ojos lindos. Me sacó a bailar y nos pasamos la noche hablando. Después nos veíamos, nos encontrábamos "por casualidad" en el barrio. Un día me da un ramo de flores, lindísimas. Me acuerdo de sentirme en las nubes. Nos besamos por primera vez en el patio de una casa de una amiga. Fue simple, tímido, pero para mí fue el descubrimiento de qué era el amor. Duramos como un año juntos, más o menos. Íbamos a los bailes agarrados de la mano. Me presentó a su familia. Pensé que era para siempre, viste, con la ilusión de los dieciséis. Pero después se enamoró de otra chica, y bueno, se terminó. Me dolió un montón. Lloré en la cama varios días. Pero ese primer amor fue importante, me enseñó qué era sentir por alguien de verdad.
+
+**Biógrafo** `[M3.2 + AD12]`:
+> Te escuché. Vamos con la que sigue.
+>
+> ¿Cuándo sentiste por primera vez que ya no eras chica? Algo que tuviste que decidir o hacer por tu cuenta, una responsabilidad nueva. Contame ese momento.
+
+**Narrador** `[AD12]`: Eso fue cuando termino la secundaria. Me doy cuenta de que mis papás no tenían plata para que siguiera estudiando en la universidad, aunque yo quisiera. Papá tenía problemas en el trabajo, algunos conflictos, y el dinero estaba más ajustado que nunca. Mamá me dice: "Nelly, vos eres fuerte. Tenés que salir a buscar trabajo." Eso fue el antes y el después. Salgo a buscar empleo, toco puertas, dejo currículum en supermercados, en comercios. A los dieciocho años entro a trabajar como cajera en un supermercado grande. Fue la primera vez que tengo mi propio dinero, que puedo ayudar a mamá, que debo ser responsable. Ya no era una adolescente que iba a bailar sin preocupaciones. Era una adulta joven con responsabilidades. Eso no se te olvida, viste. El momento en que dejás de soñar y empezás a vivir de verdad, a trabajar, a mantener a una familia.
+
+**Biógrafo** `[M26 + AD15]`:
+> Gracias, Nelly.
+>
+> ¿Hubo algún momento duro en tu adolescencia que creas que no puede quedar afuera de tu historia? ¿Algo que te marcó? Si querés, contame qué pasó y cómo lo viviste.
+>
+> [botones: (Paso esta)]
+
+**Narrador** `[AD15]`: Sí. Cuando se termina con Roberto, fue difícil. Pero más que eso, fue cuando papá tuvo un problema en el trabajo, un accidente menor pero que lo asustó, y se deprime. Empieza a beber más de lo que bebía. Mamá y yo nos mirábamos preocupadas. Papá no era el mismo, se volvía irritable. Una noche discute con mamá fuerte, y yo me encierro en la pieza, escuchándolos. No era violencia, pero era tensión. Sentía que mi mundo se movía. Eran años también en que la Argentina estaba complicada, hablaban de política en todas partes, de problemas económicos. Vos de adolescente no entendés bien, pero sentís la angustia en el aire. Pensaba que lo culpable era yo de alguna forma, que no servía para nada si mis papás estaban así. Eso te marca, viste. Aprendí a no hacer mucho ruido, a desaparecer casi. Eso quedó en mí.
+
+**Biógrafo** `[M4.2]`:
+> Te escuché. Gracias por confiármelo.
+
+**Biógrafo** `[CI4]`:
+> Con esto cerramos tu adolescencia. Antes de pasar a los años de grande, ¿quedó algo de esa época que no encontró su pregunta? Un recuerdo suelto, una cara, una noche. Contámelo ahora, tranquila, que hay tiempo.
+>
+> [botones: (No, está todo)]
+
+**Narrador** `[CI4]`: [toca: No, está todo]
+
+## Bloque 5 · Juventud
+
+**Biógrafo** `[M25.3 + EN5]`:
+> Bien, entonces.
+>
+> Pasamos a tu juventud, Nelly: cuando empezaste a armar tu propia vida.
+
+**Biógrafo** `[JU1]`:
+> ¿Te acordás del día que te fuiste de la casa de tus viejos? A dónde te fuiste, con quién, cómo fue esa despedida. Y si te quedaste ahí muchos años, contame cómo era esa casa con vos ya de grande.
+
+**Narrador** `[JU1]`: Uy, eso fue en 1990, tenía treinta y dos años. Papá se jubila ese año, y mis papás deciden mudarse a Córdoba capital, donde tenían unos parientes. Un cambio de vida para ellos. Yo tenía mis propios planes. Había estado viviendo en Villa María, pero ya estaba cansada de ese pueblo. Un amigo del trabajo me ofrece un laburo en Córdoba, en una cooperativa eléctrica, como administrativa. Así que me mudo a Córdoba también, pero sola. Fue la primera vez que me fui de verdad, sin mis papás, a vivir mi vida. Mamá estaba nerviosa, papá también. Recuerdo la despedida con mamá, que me abraza fuerte y me dice: "Cuidate, hijita." Papá no era de muchas palabras, pero me estrechó la mano con fuerza. Me fui con una valija, casi toda mi vida en eso. Encontré un departamentito chico, muy humilde, pero era mío. Fue como un renacimiento.
+
+**Biógrafo** `[M3.4 + JU2]`:
+> Gracias por contármelo. Seguimos.
+>
+> ¿Qué hiciste después del colegio? Si seguiste estudiando, contame qué y cómo eran esos años; si la vida te llevó para otro lado, contame en qué andabas. Y un día de esa época que te haya quedado.
+
+**Narrador** `[JU2]`: No, después del comercial no seguí estudiando. Salí del colegio e inmediatamente busqué laburo. No había opción, viste, mis papás no podían. Entré a trabajar como cajera en un supermercado grande de Villa María. Trabajaba de ocho de la mañana a seis de la tarde, seis días a la semana. Era cansador, estar de pie todo el día, sonriendo a los clientes. Pero era mi trabajo, mi responsabilidad. Me acuerdo de un día especial, cuando me vuelven a entregar mi primer sueldo, en un sobre. Salgo del supermercado, lo abro en la calle, miro los billetes, y siento una cosa rara, como orgullo pero también responsabilidad. Ese era mi dinero, ganado con mis manos. Lo primero que hago es darle parte a mamá. Trabajé como cajera durante catorce años, viste. Después, cuando me mudo a Córdoba, entro a la cooperativa eléctrica como administrativa, que era un laburo mejor, con escritorio, responsabilidades más grandes. Eso fue un paso.
+
+**Biógrafo** `[M3.5 + JU4]`:
+> Guardado, Nelly. Te mando la próxima.
+>
+> ¿Cómo aprendiste a hacer eso que es tuyo, lo que más te ocupa o más te gusta, sea tu trabajo o algo que hacés por gusto? Contame cómo fue arrancar: un día de cuando recién empezabas.
+
+**Narrador** `[JU4]`: Bueno, yo tejía. Aprendí de mamá, que tejía desde chica. Mamá me enseñaba viendo, viste, no era con instrucciones. Me pasaba las agujas, me mostraba cómo tensar el hilo, cómo hacer los puntos. Las primeras cosas que teji fueron desastres, llenas de agujeros, los puntos desparejados. Me frustraba. Pero mamá pacientemente me hacía deshacer y empezar de nuevo. Me acuerdo de una tarde que debo tener doce, trece años, estoy sentada en el patio con un ovillo de lana, tratando de hacer una bufanda. El sol estaba bajando, hacía calor. Mamá viene, se sienta al lado mío y toma las agujas, me muestra nuevamente. "Así, mira, relajate. El tejido es como la vida, Nelly: tenés que mantener la tensión justa, ni floja ni apretada." Eso me quedó. Después teji toda mi vida, viste, en las noches de trabajo, después para los nietos. Es lo que me relaja, lo que me mantiene ocupada.
+
+**Biógrafo** `[M3.6 + JU5]`:
+> Lo tengo, gracias. Vamos con otra.
+>
+> ¿Tuviste alguna experiencia con lo militar: la colimba, la mili, un colegio militar? ¿O alguna época de disciplina dura, en tu casa, en un colegio, en un trabajo? Contame cómo era y alguna vez que todavía te acordás.
+
+**Narrador** `[JU5]`: No, yo no hice la mili, que eso era para los hombres en esos tiempos. Pero en la escuela primaria había una disciplina muy dura, viste. Las maestras pegaban con la regla en la mano si te portabas mal. Te hacían arrodillarte si sacabas mala nota. Eso marcaba. En el supermercado también, el gerente era muy severo, tenías que estar presentable, sonriendo, sin queja. En la cooperativa eléctrica era diferente, un ambiente más profesional. Pero viste, la disciplina de la escuela quedó grabada. Aprendí a obedecer, a no rebelarme, a hacer lo que se te dice. Algunos dirían que eso es bueno, otros que te aplasta. Para mí fue parte de crecer.
+
+**Biógrafo** `[M3.7 + JU8 + M1]`:
+> Quedó guardado, Nelly. Sigo con la que viene.
+>
+> ¿Alguna vez te fuiste a vivir a otra ciudad o a otro país? Capaz ya me contaste algo de esa mudanza; ahora contame la llegada: el primer día, dónde dormiste esa noche, quién te esperaba y qué fue lo que más te costó.
+>
+> _Si no va con vos, decí paso y vamos a otra._
+>
+> [botones: (Sí, me mudé) (No, nunca me mudé)]
+
+**Narrador** `[JU8]`: [toca: Sí, me mudé]
+
+**Biógrafo** `[M30]`:
+> Contame, te escucho.
+
+**Narrador** `[JU8]`: Bueno, me mudo a Córdoba en 1990. Tomo un colectivo desde Villa María, un viaje de cuatro o cinco horas, solo. Llego a la terminal de ómnibus de Córdoba y me siento perdida, viste. La ciudad es grande, hay mucha gente, ruido. Mi amigo del trabajo, que me había conseguido el laburo, me estaba esperando en la terminal. Me lleva a un departamentito que habían encontrado para mí, en un barrio humilde pero seguro. El departamento era muy chiquito, una pieza, una cocina pequeñita, un baño. Las paredes tenían humedad. Esa primera noche me siento en la cama, sola en una ciudad que no conozco, y lloro un poco. Tenía miedo. ¿Qué había hecho? ¿Y si no resultaba? Le mando un mensaje a mamá al teléfono del almacén que estaba cerca de su casa, diciéndole que llegué bien. Lo que más me costó fue la soledad. En Villa María estaba rodeada de gente que conocía, mi familia, mis amigas. Acá no tenía nada. Pero bueno, poco a poco empiezo a adaptarme. Hago amigos en el trabajo. La ciudad se vuelve mía.
+
+**Biógrafo** `[M3.8 + JU12]`:
+> Te escuché bien. Vamos por la siguiente.
+>
+> Contame del primer lugar que fue tuyo, donde ya vivías por tu cuenta: cómo era, con qué lo fuiste armando, qué se veía por la ventana. Y esa primera noche ahí, ¿cómo fue? Si la noche justa no te vuelve, contame cómo eran los primeros tiempos ahí. Y si nunca te fuiste de la casa de tus viejos, contame el día en que esa casa pasó a ser tuya, o el rincón que siempre fue tuyo.
+
+**Narrador** `[JU12]`: El departamentito de Córdoba fue mi primer hogar de verdad. Como te dije, era muy chico, pero era mío. Tenía una ventanita que daba a la calle, y veía la vida del barrio desde ahí. Gente que pasaba, vendedores, chicos jugando. Armé la casa con lo que pude: una cama de madera, una mesa chiquita, dos sillas. Pude conseguir una lámpara usada, unos estantes. Mamá me regaló un mantel lindo cuando vino a visitarme. La primera noche es la que recordaba raro, de esa soledad. Pero después le tomé cariño. Venía del trabajo, me hacía un té, me sentaba a tejer en la ventanita. Esos primeros tiempos, cuando llegaba del trabajo cansada pero sabiendo que lo que había en ese departamento era mío, sin explicaciones, sin pedirle permiso a nadie, eso fue importante para mí. Aprendí a vivir sola, a arreglármelas, a no depender de nadie. En ese departamentito criaria a mis hijos después, viste.
+
+**Biógrafo** `[M3.1 + JU15]`:
+> Gracias, Nelly. Ya lo guardé.
+>
+> ¿Y los amigos de esos años, de cuando empezabas a hacer tu vida? Cómo eran, dónde se juntaban, qué hacían. Contame una vez con ellos que te quedó. Y si se te vienen más, contalas también.
+
+**Narrador** `[JU15]`: Cuando llego a Córdoba, los primeros amigos fueron del trabajo. En la cooperativa, una chica me acerca a un grupo que salía los viernes a tomar algo. Me llama Silvina. Ella fue como una hermana en esos primeros años. Me invita a su casa, a su familia, me incluye en todo. Nos sentábamos en una confitería del centro de Córdoba, tomábamos café, comentábamos los chismes de la oficina. Silvina tenía una vida más resuelta, novio, familia grande. A veces iba a sus reuniones de familia los domingos. Fue la puerta para no estar tan sola. Después conocí a otras amigas, gente del barrio. Pero Silvina fue la que más cuenta. Nos veíamos un montón, especialmente cuando empiezo con mis hijos. Ella fue una tía para ellos. Aunque no nos veamos tanto ahora, todavía la quiero mucho. Esa amistad fue importante cuando más la necesitaba.
+
+**Biógrafo** `[M26 + JU17]`:
+> Gracias, Nelly.
+>
+> ¿Hubo algún momento duro en tu juventud que creas que no puede quedar afuera de tu historia? ¿Algo que te marcó? Si querés, contame qué pasó y cómo lo viviste.
+>
+> [botones: (Paso esta)]
+
+**Narrador** `[JU17]`: Sí, hay algo. Cuando quedé embarazada de Pablo. Héctor, que era el papá, se fue. Nos habíamos estado dos años juntos, viste, y cuando me entero de que estoy embarazada, él me dice que se va a trabajar al sur, que no podía ser. Que se iba a hacer de oro en la Patagonia y después volvía. Yo le creí al principio. Pero nunca volvió. Me quedé sola, embarazada, trabajando como cajera. Mamá me apoyaba, pero papá estaba avergonzado. En esos tiempos, una mujer sola con un hijo era casi un escándalo. Cuando nace Pablo en 1981, tengo veintitrés años. Estoy trabajando, criando sola, los vecinos murmuraban. Fue durísimo. Hubo momentos en que no sabía si iba a poder. Pero lo hice. Después Pablo creció, se convirtió en un hombre valiente y trabajador. Eso me da tranquilidad. Pero esos primeros años, viste, fueron agotadores.
+
+**Biógrafo** `[M4.3]`:
+> Lo guardo tal como lo contaste. Gracias.
+
+**Biógrafo** `[CI5]`:
+> Y así llegamos al final de tu juventud, los años en que empezaste a hacer tu vida. Antes de seguir, ¿te quedó algo de esa época sin contar? Un lugar, una persona, una tarde que se te aparece de vez en cuando. Contámelo ahora, con calma.
+>
+> [botones: (No, está todo)]
+
+**Narrador** `[CI5]`: [toca: No, está todo]
+
+## Bloque 6 · Amor y pareja
+
+**Biógrafo** `[M25.1 + AM0 + M1]`:
+> Bien, seguimos.
+>
+> Ahora vamos al amor. ¿Hubo alguien con quien tuviste una historia en serio? Si hubo, haceme un repaso corto: cuántas veces te enamoraste, cuáles llegaron a algo serio, más o menos en qué años. Después te pregunto más de la primera que fue en serio, y de las que vinieron después también va a haber lugar. Y si no hubo, también vale.
+>
+> _Si no va con vos, decí paso y vamos a otra._
+>
+> [botones: (Sí, hubo) (No hubo)]
+
+**Narrador** `[AM0]`: [toca: Sí, hubo]
+
+**Biógrafo** `[M30]`:
+> Contame, te escucho.
+
+**Narrador** `[AM0]`: Sí, bueno, hubo dos hombres importantes, en serio. El primero fue Héctor, con quien estuve dos años, a principios de los ochenta. Fue una historia bonita, pero que terminó mal, como ya te conté. De eso nace Pablo. Después de Héctor no me animé de nuevo por un tiempo. Estaba enfocada en Pablo, en el trabajo, en salir adelante. Pero después, algunos años más tarde, conocí a otro hombre, también en Córdoba. Fue un romance que surgió, pasional, viste, de esos que te enloquecen. Pero bueno, cuando quedé embarazada de Carina en 1987, él no quiso saber nada. Eso fue peor que con Héctor. Héctor al menos se había ido, pero este señor simplemente desapareció cuando le dije que estaba embarazada. No quiso ni verme. Así que Carina nació sin papá en la vida. Fueron dos historias que no resultaron. Después, tuve algunos hombres más, pasajeros, pero nunca nada en serio. Aprendí a vivir sola con mis hijos. No necesitaba un hombre para ser feliz.
+
+**Biógrafo** `[M3.3 + AM1]`:
+> Lo anoté, gracias. Sigo con otra.
+>
+> Vamos a la primera que fue en serio. Contame el día que se conocieron: dónde fue, quién los presentó o cómo se cruzaron, y qué fue lo primero que te llamó la atención de esa persona. Si ya me lo contaste cuando hablamos de tu adolescencia, decímelo y vamos a lo que sigue.
+
+**Narrador** `[AM1]`: Bueno, con Héctor fue en los bailes, como casi todo en esa época. Estaba con mis amigas en un baile, en Villa María, y él llega con unos amigos. Era alto, trabajador de la construcción, moreno, con esa seguridad que tienen algunos hombres que vos de chica te fascina. Me saca a bailar y nos pasamos la noche juntos. Después nos encontramos en otros bailes. Lo que me llamó la atención fue que era educado, que hablaba de sus sueños, de que quería construir una casa propia, de tener una vida mejor. No era como los chicos de mi edad que no sabían para dónde iban. Héctor parecía un hombre con un plan. Fue un romance que pasó rápido a algo serio. Nos veíamos constantemente, él hacía planes conmigo. Me hablaba de futuro, de casarnos algún día. Yo creía que era el hombre de mi vida. Tanto que cuando queda embarazada, le parecía lo natural. Pero bueno, la vida te enseña que los hombres no siempre son lo que parecen.
+
+**Biógrafo** `[M3.4 + AM3]`:
+> Gracias por contármelo. Seguimos.
+>
+> Y después, ¿llegaron a armar la vida juntos: casarse, irse a vivir, lo que haya sido? Si llegaron, contame ese momento: quién lo dijo primero, o si se fue dando solo, dónde estaban, qué se dijeron. Si ya me lo contaste recién, con decírmelo alcanza.
+>
+> [botones: (Sí) (No llegamos a eso)]
+
+**Narrador** `[AM3]`: [toca: No llegamos a eso]
+
+**Biógrafo** `[M25.2 + AM8]`:
+> Bien, seguimos.
+>
+> Imaginate que podés guardar un solo momento con esa persona, ¿cuál sería? Contámelo entero: el lugar, el día, qué hacían. Si se te vienen otros, contalos también.
+
+**Narrador** `[AM8]`: Me gustaría guardar un domingo que fuimos a un rio cerca de Villa María, Héctor y yo. Era temprano de la mañana, el sol recién salía. Él me llevaba de la mano, caminábamos por la orilla. Nos sentamos en unas piedras grandes, viendo el agua. Él me pasa el brazo, me trae cerca de él. Me dice algo que no olvidé: "Nelly, vos sos la mujer con la que quiero criar mis hijos. Vos tenés alma de mamá." En ese momento, yo estaba embarazada de Pablo, aunque él no lo sabía todavía. Me hizo sentir especial, viste, como si él supiera lo que estaba por venir. Esa mañana fue mágica. No había nadie, solo nosotros dos, el río, el sol. Fue uno de los pocos momentos en que me sentí totalmente segura de que estaba en el lugar correcto. Después todo se desmorona, pero ese momento, ese momento quedó intacto en mi corazón. Es lo que salvo de esa historia.
+
+**Biógrafo** `[M26 + AM9 + M1]`:
+> Gracias, Nelly.
+>
+> Si esa historia tuvo un final, una separación o una despedida, ¿querés contármelo? Solo lo que vos quieras. Y si no querés, con decir "paso" alcanza; lo demás de tu historia sigue igual.
+>
+> _Si no va con vos, decí paso y vamos a otra._
+>
+> [botones: (Sí, hubo un final) (Seguimos juntos) (Paso esta)]
+
+**Narrador** `[AM9]`: [toca: Sí, hubo un final]
+
+**Biógrafo** `[M30]`:
+> Contame, te escucho.
+
+**Narrador** `[AM9]`: Cuando le cuento a Héctor que estoy embarazada, todo cambia. Su cara se transforma, viste, como si le hubiera dicho que se moría. Me dice que no puede ser, que él no estaba listo, que tiene que pensar. Unos días después me anuncia que se va al sur, a la Patagonia, a trabajar en la construcción. Me promete que es temporal, que va a ganar dinero y que después volvemos a estar juntos, que casamos. Yo le creo. Me queda esperando. Cada mes pensaba que volvía. Pero nunca lo hace. Después me entero que se casa con otra mujer allá. Eso fue el golpe. Mi hijo nace sin padre. Y yo, sola con un bebé, sin recursos. Héctor ni se comunicó. Alguna vez cuando Pablo tenía unos años le mandé cartas, pero nunca respondió. Eso fue lo más duro que viví, que el padre de mi hijo simplemente lo borrara de su vida. Y Pablo creció sin saber quién era su papá.
+
+**Biógrafo** `[M4.4]`:
+> Gracias por animarte a contarlo. Cuando quieras, seguimos.
+
+**Biógrafo** `[AM19]`:
+> Y después, cuando quedaste por tu cuenta, ¿cómo fueron esos primeros tiempos? Qué cambió en la casa y en los días, quién anduvo cerca. Si ese tiempo es el de ahora, contame igual cómo lo estás llevando. Y si no hubo un tiempo así, con decírmelo alcanza.
+
+**Narrador** `[AM19]`: Fue durísimo. Estoy trabajando como cajera en el supermercado, gano lo justo. Mi mamá me ayuda enormemente, me cuida a Pablo mientras yo trabajo. Papá está avergonzado de la situación, pero no dice nada. Rubén intenta ayudar como puede, pero él estaba en Buenos Aires y no podía mucho. La casa es pequeña, vivimos los cuatro, después cinco cuando nace Carina. Las noches son agotadoras, vuelvo del trabajo cansadísima, y los chicos quieren atención. Lloro de noche, en la cama, preguntándome cómo iba a seguir. Pero mamá fue mi roca, viste. Se ocupaba de que los chicos comieran bien, me ayudaba con la ropa, con todo. Vecinas también me apoyaban. Aprendí a estirarlo todo, a no desperdiciar nada. Cosía de noche para ganar un poco más. En esos años aprendí quién realmente te quiere y quién se va. Y aprendí que yo podía sola, que no necesitaba un hombre para sacar adelante a mis hijos. Eso fue lo que me salvó.
+
+**Biógrafo** `[M3.6 + AM16]`:
+> Lo tengo, gracias. Vamos con otra.
+>
+> Y más adelante, ¿hubo otro amor? Si hubo, contame del que compartís hoy, o del último: el día que se conocieron y un momento de los dos que te haya quedado.
+>
+> [botones: (Sí, hubo otro) (No, nadie más)]
+
+**Narrador** `[AM16]`: [toca: Sí, hubo otro]
+
+**Biógrafo** `[M30]`:
+> Contame, te escucho.
+
+**Narrador** `[AM16]`: Bueno, pasó algunos años. Pablo ya tiene como cinco años. Un día, en el supermercado, conocí a un hombre que venía a comprar regularmente. Se llamaba Marcelo. Era simpático, me hacía reír. Había algo entre nosotros, una química. Un día me invita a tomar café después de mi turno. Empezamos a vernos. Fue bonito, viste, después de tanto dolor con Héctor, poder sentir algo nuevamente. Fue pasional, intenso. Nos veíamos a escondidas porque mamá no estaba del todo de acuerdo. Pasaban los meses y la cosa era seria. Me dejé llevar por las emociones. Quedé embarazada de Carina en 1987. Cuando le cuento, su reacción fue peor que la de Héctor. Me dice directamente que no quería saber nada, que no era su culpa que yo fuera mujer fácil. Me trata mal. Me dice que él no estaba obligado a nada. Y desaparece. No lo vuelvo a ver. Así que Carina nace sin papá también. Fue como recibir la misma traición dos veces. Aprendí que no podía confiar en los hombres, viste. Mejor sola.
+
+**Biógrafo** `[M3.7 + AM20]`:
+> Quedó guardado, Nelly. Sigo con la que viene.
+>
+> Y entre la primera y esta última, ¿hubo otras historias que fueron en serio? Un casamiento, alguien con quien viviste años. Este es su lugar, aunque me las hayas nombrado en el repaso: contame de cada una lo que quieras que quede, cómo se cruzaron y cómo terminó.
+>
+> [botones: (Sí, hubo) (Nadie en el medio)]
+
+**Narrador** `[AM20]`: [toca: Nadie en el medio]
+
+**Biógrafo** `[M25.3 + AM14]`:
+> Bien, entonces.
+>
+> ¿Hubo algún amor que te marcó, aunque haya durado poco o no haya llegado a nada? Si lo hubo, contame cómo se cruzaron y el momento que más te acordás de esa persona. Y si no hubo, con un no alcanza.
+
+**Narrador** `[AM14]`: No, después de Marcelo, no hubo nadie que me marcara. Algunos hombres pasajeros, viste, salidas ocasionales. Pero nada en serio. Aprendí mi lección. Los hombres eran como una tentación que me llevaba a sufrir. Decidí enfocarse en mis hijos, en mi trabajo, en mi vida. Y la verdad, fui más feliz así.
+
+**Biógrafo** `[M26 + CI6]`:
+> Gracias, Nelly.
+>
+> Con esto cerramos el amor. ¿Quedó alguien o algo de este tema que no tuvo su pregunta? Una persona, una carta, un baile, una charla que no entró en ningún lado. Es el momento de contarlo, sin apuro.
+>
+> [botones: (No, está todo)]
+
+**Narrador** `[CI6]`: [toca: No, está todo]
+
+## Bloque 7 · Trabajo y oficio
+
+**Biógrafo** `[M25.1 + EN7]`:
+> Bien, seguimos.
+>
+> Ahora vamos al trabajo y a tu oficio, Nelly: lo que hiciste con tus días.
+
+**Biógrafo** `[TR1]`:
+> ¿Te acordás de la primera vez que te ganaste algo, o que trabajaste sin cobrar? ¿Qué hacías, qué edad tenías? Contame ese primer día, y en qué se fue esa primera plata, si la hubo.
+
+**Narrador** `[TR1]`: Lo primero que trabajé sin cobrar fue en casa, ayudando a mamá desde chica. Cosiendo con ella, ayudando en los quehaceres. Eso era lo normal entonces, viste, los hijos trabajan en la casa sin esperar pago. Pero el primer dinero que me gané fue cuando tenía como dieciséis, diecisiete años. Una vecina me pidió que le cosiera unos visillos para su casa. Mamá me facilitó algunos retazos de tela y aguja. Yo los hago en una tarde. Me paga el equivalente a un día de trabajo de papá, poco, pero para mí fue una fortuna. Ese dinero lo guardé, no lo gasté. Lo tenía en una lata escondida. Sentía que así podía irme de casa si algo malo pasaba. Fue mi primer ahorro, mi sensación de independencia. Después empecé a coser más trabajos, siempre de noche después de la escuela. Cuando entro al supermercado a los dieciocho, gano dinero de verdad.
+
+**Biógrafo** `[M3.1 + TR6]`:
+> Gracias, Nelly. Ya lo guardé.
+>
+> Hagamos el repaso de a qué le diste tus años, en orden y más o menos en qué años. Cuál de todo eso te quedó más grabado, y si fue una sola cosa toda la vida, cómo fue quedarte ahí.
+
+**Narrador** `[TR6]`: Bueno, la costura fue siempre, desde chica, pero como dinero extra, viste. Después, de los dieciocho hasta los treinta y dos, trabaje como cajera en el supermercado. Fueron catorce años. Eso fue lo más duro, estar de pie todo el día, sonriendo, escaneando productos, día tras día. Pero en esa época criaba a Pablo y a Carina, los dos pequeños. De noche cosía. Eso me ayudaba a pagar más gastos. Después me mudo a Córdoba, en 1990, y entro a la cooperativa eléctrica como administrativa. Ese trabajo fue importante porque era escritorio, responsabilidad, algo más profesional. Estuve veinticinco años ahí, hasta jubilarme. Eso fue lo que me dio estabilidad, viste. El supermercado fue la lucha, la desesperación. La cooperativa fue madurez, orden, respeto. Lo que más me quedó grabado fue la época del supermercado, cuando criaba sola a los chicos. El cansancio, pero también la satisfacción de poder poner comida en la mesa.
+
+**Biógrafo** `[M3.2 + TR2]`:
+> Te escuché. Vamos con la que sigue.
+>
+> Pensá en eso a lo que le diste más años. ¿Cómo era un día común? Desde que arrancabas hasta que terminaba, qué hacías, con quién. Y contame uno de esos días que todavía tengas fresco.
+
+**Narrador** `[TR2]`: Un día en la cooperativa eléctrica era así. Me levantaba a las seis de la mañana, me preparaba el café, me maquillaba un poco, me ponía ropa seria. A las ocho estaba en la oficina. Me sentaba en mi escritorio, checaba los papeles del día anterior, organizaba las cuentas de los clientes, procesaba pagos. Trabajaba con dos o tres compañeras más en la misma oficina. Hacía llamadas, conversaba con clientes que venían a pagar o consultar. A las doce de la tarde era la comida, me traía algo de casa o iba a comer algo rápido. Volvía a la tarde, más de lo mismo. A las cinco salía del trabajo. Llegaba a casa, me preparaba algo de comer para los chicos si todavía estaban ahí, porque a veces estaban con papá o en algún lado. Después, si tenía un trabajito de costura, me ponía a coser. Era rutina, viste, pero era mi vida. Recuerdo un día especial cuando me ascienden a supervisora. El gerente me llama a su oficina y me dice que me veía con potencial. Me suben el sueldo, me dan más responsabilidad. Ese día salí del trabajo llorando de emoción. Me lo merecía.
+
+**Biógrafo** `[M3.3 + TR3]`:
+> Lo anoté, gracias. Sigo con otra.
+>
+> ¿Alguien te dio una mano en tu camino? Alguien que te enseñó, te acompañó o te abrió una puerta en lo que hiciste. Contame cómo era esa persona, y una vez con ella que tengas bien clara.
+
+**Narrador** `[TR3]`: Sí, fue mi amiga Silvina. Ella trabajaba en la cooperativa también, ya tenía experiencia cuando yo llego. Me adopta, viste. Me enseña cómo funcionaba todo, me presenta a la gente, me confía en ella desde el primer día. El gerente me mete en la oficina un poco a ciegas, pero Silvina es quien me entrena de verdad. Me muestra los sistemas, los procedimientos, cómo tratar a los clientes difíciles. Y no solo en el trabajo: cuando tengo problemas con los chicos, cuando me siento sola, Silvina estaba. Me invitaba a su casa los domingos con su familia. Sus hijos jugaban con Pablo y Carina. Eso fue más que ayuda, fue amor, viste. Silvina creyó en mí cuando yo no creía en mí misma. Cuando me ascendieron, fue ella quien me empujó a aceptar. Me dice: "Vos lo merecés, Nelly, vos sos fuerte." Eso quedó grabado. Silvina fue mi hermana en Córdoba cuando la verdadera no andaba cerca.
+
+**Biógrafo** `[M3.4 + TR5]`:
+> Gracias por contármelo. Seguimos.
+>
+> ¿Cuál fue el día de trabajo del que estás más orgullosa? No hace falta que haya sido grande: algo que salió bien, que alguien reconoció, o que solo vos sabés lo que costó. Contámelo. Y si no te viene un día puntual, contame de qué parte de tu trabajo estás más orgullosa.
+
+**Narrador** `[TR5]`: Me siento orgullosa de cuando resuelvo un problema que nadie más podía resolver. Hay un cliente grande que está enojado porque sus facturas no cierran, hay un desorden en sus pagos. El gerente está preocupado, piensa en despedir a la chica que lo llevaba. Yo me ofrezco a revisar, trabajo un fin de semana revisando todo desde el principio. Encuentro que hay un error de años atrás que nadie había visto. Lo corrijo, le presento el informe al cliente, y el cliente queda satisfecho. El gerente me felicita enfrente de toda la oficina. Fue pequeño para otros, pero para mí fue enorme. Demostré que podía. Me siento orgullosa de haber sido confiable, de haber llegado a horario todos esos años, de no dejar plantada a mi gente. Cuando me jubilo, mis compañeras me hacen una fiesta, me regalan cosas. Eso fue lo que más me alegró, que la gente me quisiera.
+
+**Biógrafo** `[M26 + TR11]`:
+> Gracias, Nelly.
+>
+> ¿Te quedaste alguna vez sin trabajo sin haberlo elegido, o te tocó una época de plata muy ajustada? Si te pasó, contame un día de ese tiempo que tengas bien presente, y cómo lo fuiste llevando.
+>
+> [botones: (Paso esta)]
+
+**Narrador** `[TR11]`: Sí, me pasó con la crisis de 2001 y 2002 en Argentina. Esos fueron años de horror, viste. La cooperativa casi va a la quiebra, nos reducen el sueldo, algunos compañeros se van. Yo tengo miedo de perder el trabajo. Veo a mis hijos preocupados, porque ven que mamá está asustada. Hay un día que vuelvo a casa y no tengo dinero ni para la comida del fin de semana. Mi mamá me presta lo que puede, pero ella también está mal. Las pensiones se congelan. Es una desesperación. Pongo un bolsa en el patio y empiezo a cultivar verduras para comer. Eso fue los meses más duros. Pero bueno, la cooperativa no quiebra, yo conservo el trabajo, aunque con menos plata. Pasamos los peores meses comiendo poco. Aprendí a no quejarme, a estirar lo que tenía. Esos años me enseñaron que la vida es frágil, viste.
+
+**Biógrafo** `[M4.1]`:
+> Gracias por contarme esto, Nelly. Queda guardado con cuidado.
+
+**Biógrafo** `[TR8]`:
+> Si tuviste un negocio o algo propio, aunque fuera chico, este es su lugar. Si ya me lo contaste, con decírmelo alcanza. Si quedó algo afuera, cómo empezó, de dónde salió la idea, con qué plata, un día de esos, contámelo ahora.
+
+**Narrador** `[TR8]`: La costura fue mi negocio, viste, aunque chiquito. Vecinas, amigas, me traían ropa para remendar o arreglar. Me pagaban lo que podían. Después, cuando tengo más confianza, empiezo a hacer trabajos más grandes: vestidos de fiesta, arreglos finos. Gano un poco extra en las noches. Nunca fue un negocio grande, pero me ayudó a alimentar a mis chicos. Ahora que me jubilo, tengo un taller de tejido en casa. Tejo cosas para vender, para los nietos, para amigas. Es más por hobby que por negocio, pero me relaja.
+
+**Biógrafo** `[M3.6 + CS1]`:
+> Lo tengo, gracias. Vamos con otra.
+>
+> Fuera de lo tuyo, hay cosas que hacés bien y nadie te paga, cocinar para todos, cuidar a alguien, tener la casa andando. ¿Hay alguna que sea tuya? Contame una vez que te lució, que la gente lo notó.
+
+**Narrador** `[CS1]`: Cocino bien, me encanta. Hago empanadas, guisos, cosas de la región que aprendí de mamá. Cuando Carina tenía a Valeria, mi nieta, la traía dos tardes a la semana a mi casa. Valeria quería que le hiciera milanesas. Me da trabajo pelarlas, cocinarlas bien crocantes. Un día Valeria trae una amiga del colegio, y le dice: "Te presento a mi abuela, mi abuela cocina lo más bien." Me hace gracia, pero me pone contenta. Eso me notó. Que mi nieta estuviera orgullosa de mí. Mi departamento no es grande ni hermoso, pero cuando huele a comida cocinada, a pan recién hecho, a cosas hechas con cariño, se llena de calidez. Eso es lo que me gusta, que la gente se sienta bien en mi casa, viste.
+
+**Biógrafo** `[M3.7 + CP1]`:
+> Quedó guardado, Nelly. Sigo con la que viene.
+>
+> ¿Viviste o trabajaste en el campo alguna vez, aunque fuera de chica o por una temporada? Si fue así, contame un día entero ahí, y una vez que el clima mandó: una seca, una helada, una tormenta.
+
+**Narrador** `[CP1]`: No, nunca trabajé en el campo. Villa María es una ciudad chica, pero ciudad. Mi papá trabajaba en la estación de ferrocarril, no en campo. Ahora vivo en Córdoba capital. El único contacto que tengo con lo rural es cuando voy al mercado de verdulería, pero nada más. Mi mundo siempre fue de ciudad, viste.
+
+**Biógrafo** `[M3.8 + TR9]`:
+> Te escuché bien. Vamos por la siguiente.
+>
+> ¿Ya dejaste eso a lo que te dedicaste? Si seguís, con decírmelo alcanza. Si ya lo dejaste, contame el último día: cómo fue, si lo sabías de antes, qué hiciste al salir. Y el día siguiente, el primero sin ir.
+
+**Narrador** `[TR9]`: Sí, dejé el trabajo. Me jubilé hace unos años. El último día en la cooperativa fue especial. Sabía que era mi último día, los chicos de la oficina lo sabían. Silvina lloró. Me hicieron una fiestita, me regalaron cosas. Guardé mis cosas en una caja pequeña y me despedí. Fue raro, después de veinticinco años, dejar ese lugar. Me sentía en el vacío. El día siguiente, me levanto a la misma hora de siempre por costumbre, me preparo un café. Pero no tenía que ir a ningún lado. Eso me da tristeza un poco, también alivio. Ahora estoy sola, con mi jubilación que es poca pero alcanza. La casa es el único lugar a donde ir. Pero bueno, me metí en el tejido, en cuidar a Valeria, en la vida. La jubilación fue un cambio importante. Es como volver a vivir de otra forma.
+
+**Biógrafo** `[M26 + CI7]`:
+> Gracias, Nelly.
+>
+> Con esto cerramos el trabajo. ¿Quedó algo que no tuvo su pregunta? Un lugar, una herramienta, un olor, una persona, una changa de la que nadie sabe. Es el momento de contarlo, sin apuro.
+>
+> [botones: (No, está todo)]
+
+**Narrador** `[CI7]`: [toca: No, está todo]
+
+## Bloque 8 · Hijos y nietos
+
+**Biógrafo** `[M25.2 + EN8]`:
+> Bien, seguimos.
+>
+> Volvemos a la familia, Nelly, pero en tu vida adulta.
+
+**Biógrafo** `[PG1]`:
+> Contame de tus viejos cuando vos ya eras grande, con tu propia vida. Una vez que los notaste más viejos, un gesto, algo chiquito, y qué te pasó a vos. Y si te tocó cuidarlos, contame cómo era un día de esos: qué hacías por ellos, qué te decían. Si no los tuviste cerca, contame cómo fue eso.
+
+**Narrador** `[PG1]`: Mis papás se jubilan en 1990, cuando yo me voy a Córdoba. Papá muere primero, en los noventa. Fue de un infarto, rápido, sin que pudiera estar con él. Mamá quedó sola. Yo visitaba Córdoba donde viven, pero no era lo mismo. Mamá envejece y empezaba a tener problemas de memoria. La veo menos fuerte. Un día vuelvo a visitarla y la encuentro tirada en el patio, había tenido un caída. La levanto y lloro, viste. Mi mamá que me criaba, que cosía de noche, que era fuerte, ahora necesitaba que alguien la cuidara. Durante un tiempo me voy a ayudarla a la casa, la llevo a los médicos, le preparo la comida. Ella me dice: "Nelly, ahora es tu turno de cuidarme." Eso me parte el corazón. En 2003 mamá se enferma gravemente, cáncer. Voy a visitarla para el final. Muere en mis brazos. Eso fue lo más duro que pasé en mi vida, despedir a quien te dio todo.
+
+**Biógrafo** `[M26 + HI0 + M1]`:
+> Gracias, Nelly.
+>
+> Ahora vamos a los hijos. ¿Tuviste hijos, o criaste a alguno como si lo fuera? Presentámelos de a uno, incluso si alguno ya apareció en lo que me venís contando: cómo se llama cada uno y cuándo llegó. Y si no tuviste, seguimos por otro lado.
+>
+> _Si no va con vos, decí paso y vamos a otra._
+>
+> [botones: (Sí, tuve) (No tuve hijos)]
+
+**Narrador** `[HI0]`: [toca: Sí, tuve]
+
+**Biógrafo** `[M30]`:
+> Contame, te escucho.
+
+**Narrador** `[HI0]`: Tuve dos hijos. Pablo nace en 1981, del primer amor del que nunca se casó conmigo. Fue mi primer hijo, mi mayor. Llegó cuando yo tenía veintitrés años, sola, trabajando como cajera. Era difícil, pero Pablo fue mi luz. Creció siendo el hombre de la casa, viste. Después tuve a Carina en 1987, seis años después. Ella también de un hombre que no quiso saber nada. Cuando llega Carina, ya estoy más experimentada como mamá, pero también más cansada. Dos hijos, dos padres que no estaban. Pero bueno, los dos crecieron fuertes, los dos se convirtieron en personas de bien. Pablo es trabajador, tiene familia, dos hijos: Martín y Tomás. Carina también tiene una hija, Valeria, mi nieta querida. Ambos se ocupan de mí, viste. Yo me ocupé de ellos cuando pequeños, y ellos se ocupan de mí ahora en la vejez.
+
+**Biógrafo** `[M3.2 + HI2]`:
+> Te escuché. Vamos con la que sigue.
+>
+> ¿Y el día que llegó tu primer hijo? Contame ese día como si lo estuvieras viendo: dónde fue, quién estaba, y el momento en que lo tuviste en brazos por primera vez.
+
+**Narrador** `[HI2]`: Uy, ese día lo tengo grabado en el corazón. Es en 1981, en un hospital de Villa María. Estoy sola en la sala de parto, viste, mamá me sostiene la mano. Las contracciones son dolorosas, grito. Las enfermeras me dicen que puje, que ya casi. Siento que me desmayo del dolor, pero mamá me habla: "Dale, Nelly, dale, vos podés." Y en un momento, siento que sale, que nace. El doctor pone al bebé en mi pecho, todo mojado, rojo. Ese bebé es mío. Miro esos ojos, esas manitas. Está vivo, es una vida nueva que yo hice. Siento todo a la vez: amor, miedo, responsabilidad, alegría. Mamá llora, viste. El doctor me felicita. Esa noche, sola en la cama del hospital con Pablo dormido al lado, pienso en que ahora mi vida cambió para siempre. Tengo un hijo. Tengo que ser fuerte para dos. Fue el momento más grande y asustador de mi vida, todo junto.
+
+**Biógrafo** `[M3.3 + HI3]`:
+> Lo anoté, gracias. Sigo con otra.
+>
+> ¿Cómo era cada uno de chico? El carácter, las mañas, lo que lo hacía distinto de los demás. Y contame una escena de esa época que todavía te haga sonreír.
+
+**Narrador** `[HI3]`: Pablo era serio desde chico, viste. Le gustaba armar cosas, juntar herramientas. Jugaba con carros, con un camión roto que mamá le regalo. No era de hacer mucho alboroto. Era cuidadoso. Cuando nace Carina, Pablo tiene seis años, y se convierte en su protector. La cuidaba, le enseñaba cosas. Carina es lo contrario, es traviesa, curiosa, quería tocarlo todo. Tenía el pelo rizado, precioso. Se metía en problemas constantemente. Los dos son diferentes, pero se querían un montón. Me acuerdo de un día que Carina desaparece, me asusta mucho. La estoy buscando por toda la casa. La encuentro escondida debajo de la cama con Pablo, contándose secretos, riéndose. Eso me hizo reír después de asustar. Eran hermanos del alma, viste, el uno para el otro.
+
+**Biógrafo** `[M3.4 + HS1]`:
+> Gracias por contármelo. Seguimos.
+>
+> ¿Cómo fue criar a tus hijos? Quién estaba cerca, cómo se repartían las cosas, o si te tocó llevarla sola. Contame un día de esa época que te acuerdes bien.
+
+**Narrador** `[HS1]`: La crianza fue en compañía de mamá, principalmente. Mamá fue mi salvación, viste. Cuando yo estaba en el supermercado, ella se ocupaba de los chicos. Mamá los llevaba a la escuela, les daba de comer, hacía que hicieran las tareas. Papá andaba en su mundo, pero no era malo con ellos. Rubén desde lejos ayudaba como podía. Vecinas también se ocupaban, que es lo que hace la gente en los barrios. Me acuerdo de un día que llego del trabajo, cansadísima, y están esperándome en la puerta: Pablo y Carina. Mamá había hecho un pastel de lo poco que había, una sorpresa porque era mi cumpleaños y casi lo olvido. Los chicos me abrazan, tienen una cartita que hicieron en la escuela. Yo siento que me desmayo de cansancio pero también de amor. Lloro ahí en la vereda. Mamá me dice: "Mirá lo que tenés. Mirá lo que lograste sola." Eso fue de lo más importante. Entendí que no importaba la plata, lo importante era lo que habíamos armado juntos.
+
+**Biógrafo** `[M3.5 + HI6]`:
+> Guardado, Nelly. Te mando la próxima.
+>
+> Contame una vez que se te hinchó el pecho por uno de tus hijos. No hace falta que sea algo que salió en el diario: qué hizo, dónde estabas, qué le dijiste. Y si se te vienen de varios, contalas todas, que hay lugar para cada uno.
+
+**Narrador** `[HI6]`: Ay, hay muchos. Con Pablo, cuando se recibe en la escuela técnica. Se esforzó mucho, estudiando de noche mientras trabajaba. Ese día lo veo en el acto, con su diploma, sonriendo. Me hizo llorar. Crié a un hombre responsable, que se cuida, que trabaja. Con Carina, cuando me dice que está embarazada de Valeria pero que quiere seguir estudiando. No se bajoneó, no se rindió. Continuó sus estudios, trabaja, cría a Valeria sola también. Eso me pone contenta y triste a la vez, viste, porque siguió mi camino de madre soltera. Pero hizo mejor que yo. Tiene una vida más estable. Eso es lo que me hincha el pecho, que mis hijos salieron adelante, que no les falta nada importante, que se quieren entre ellos, que me quieren. Eso es lo que importa. No me importa si tienen plata o no. Lo importante es que son gente de bien.
+
+**Biógrafo** `[M3.6 + HI8 + M1]`:
+> Lo tengo, gracias. Vamos con otra.
+>
+> Ahora, los nietos. ¿Llegaron nietos a tu vida? Puede que ya los hayas mencionado; contame el día que conociste al primero, como si lo estuvieras viendo. Si no hay nietos, pasamos a otra cosa.
+>
+> _Si no va con vos, decí paso y vamos a otra._
+>
+> [botones: (Sí, llegaron) (No hay nietos)]
+
+**Narrador** `[HI8]`: [toca: Sí, llegaron]
+
+**Biógrafo** `[M30]`:
+> Contame, te escucho.
+
+**Narrador** `[HI8]`: El primer nieto que nace es Martín, hijo de Pablo. Pablo me llama y me dice que voy al hospital. Estoy nerviosa como nunca. Llego y veo a mi hijo con un bebé en brazos. Eso me mata de emoción. Pablo me lo pasa, y yo miro a Martín por primera vez. Es igualito a Pablo cuando nace. Pequeño, con los ojos cerrados, dormido. Lloro sin parar. Me digo: ahora soy abuela. La vida da una vuelta completa. Tengo un nieto, viste. Ese bebé es la continuación de mi vida, de lo que hice con Pablo. Después nace Tomás, otro varonón. Y después Valeria, la hija de Carina. Los tres son mi todo. Con Valeria paso las tardes, la ayudo con tareas, le hago cosas ricas. Mis nietos me dan una razón para vivir en la vejez, viste. Me rejuvenecen.
+
+**Biógrafo** `[M3.7 + HI9]`:
+> Quedó guardado, Nelly. Sigo con la que viene.
+>
+> ¿Hay algo que hacés con tus nietos que es de ustedes, que no lo hacen con nadie más? Un juego, por ejemplo. Contame qué es y una vez que tengas bien grabada.
+
+**Narrador** `[HI9]`: Con Valeria, tejemos juntas. Ella tiene diez años, y ya sabe lo básico del tejido que le enseñé. Es nuestro ritual. Los viernes cuando la busco, lleva sus agujas y su ovillo. Nos sentamos en la ventana de mi departamento, ella tejiendo algo chiquito, yo con un trabajo más grande. Hablamos de todo. Me cuenta de la escuela, de sus amigas, de los chicos. Yo le cuento historias de su mamá cuando era chica, de su abuela. Es un momento solo nuestro. Además, cuando termino algo de tejido, es para ella: bufandas, guantes, cosas así. Martín y Tomás, que son varones, no tejen, pero me acompañan a las compras de lana. Es diferente con cada uno, viste. Con ellos me piden que haga cosas raras como un robot tejido, cosas así. Los hago reír.
+
+**Biógrafo** `[M26 + CI8]`:
+> Gracias, Nelly.
+>
+> Con esto cerramos este tema. ¿Quedó alguien o algo que no tuvo su pregunta? Un cumpleaños, una charla en la cocina, alguien que no entró en ningún lado. Es el momento de contarlo, sin apuro.
+>
+> [botones: (No, está todo)]
+
+**Narrador** `[CI8]`: [toca: No, está todo]
+
+## Bloque 9 · Lugares y pasiones
+
+**Biógrafo** `[M25.3 + EN9]`:
+> Bien, entonces.
+>
+> Te llevo a los lugares que fueron tuyos y a las cosas que te apasionaron.
+
+**Biógrafo** `[LU4]`:
+> Ya de grande, ¿cuál fue el viaje más importante de tu vida, o uno que recuerdes con mucha fuerza? Contame si fuiste con alguien, y un día de ese viaje que te haya quedado como una foto.
+
+**Narrador** `[LU4]`: No viajé mucho, la verdad. La plata no sobrada para eso. El único viaje grande que hice fue cuando me mudo a Córdoba, ese viaje en colectivo que ya conté. Pero si me preguntas por un viaje que recuerdo con fuerza, fue cuando Pablo me invita a la costa. Debe haber sido años atrás. Me lleva a Mar del Plata con su familia, con Martín y Tomás. Es la primera vez que veo el mar. Recuerdo que bajo del auto y me quedo mirando el agua, las olas enormes. Me pone triste y contenta a la vez. Pienso en papá y en sus sueños de viajar. Mis nietos corren por la playa, yo los miro. Esa noche, en el apartamento que rentamos, Pablo me abraza y me dice: "Vos que nos criaste trabajando, ahora te llevar nosotros." Eso fue importante. Entendí que había valido la pena, que mis hijos podían darme cosas que yo no tuve.
+
+**Biógrafo** `[M3.1 + PA1]`:
+> Gracias, Nelly. Ya lo guardé.
+>
+> Fuera del trabajo y de la familia, ¿hubo algo que te apasionara de grande? Contame cómo empezó eso, y un día entero que le hayas dedicado, de la mañana a la noche. Si sentís que ya me lo contaste, decímelo.
+
+**Narrador** `[PA1]`: El tejido, siempre el tejido. Cuando me jubilo, me dedico de lleno. Tengo un pequeño taller en mi departamento. La gente de mi barrio viene a pedirme cosas. Hago suéteres, bufandas, mantas. Un día entero de tejido es así: me despierto, me tomo un café, me siento en mi rincón con buena luz. Elijo el patrón, el color de la lana. Empiezo a tejer a las ocho de la mañana. Las agujas hacen su ritmo, click, click. Es como meditación. A veces para para comer algo rápido, para ir al baño. Sigo tejiendo. Hablo con amigas que vienen a visitarme, pero sigo tejiendo mientras converso. Como a las cinco de la tarde termino, me duele un poco los dedos, pero estoy en paz. Es lo que me relaja, viste. Mientras tejía toda la vida, era para otros, para hijos, para dinero. Ahora es para mí. Eso me apasiona, que sea mío.
+
+**Biógrafo** `[M26 + CI9]`:
+> Gracias, Nelly.
+>
+> Con esto cerramos lugares y pasiones. ¿Quedó algún lugar o algo que te gustó mucho y no tuvo su pregunta? Una esquina, un hobby que duró poco, un rincón de tu casa. Contalo ahora, tranquila.
+>
+> [botones: (No, está todo)]
+
+**Narrador** `[CI9]`: [toca: No, está todo]
+
+## Bloque 10 · Amistades y ayudas
+
+**Biógrafo** `[M25.1 + EN10]`:
+> Bien, seguimos.
+>
+> Hablemos de los amigos, Nelly, y de la gente que te dio una mano en la vida.
+
+**Biógrafo** `[AS1]`:
+> Ya de grande, ¿hubo alguien que conociste y se volvió muy importante en tu vida, un amigo o una amiga? Contame cómo se conocieron, y una vez que muestre bien cómo es esa amistad.
+
+**Narrador** `[AS1]`: Silvina, la que ya te conté de la cooperativa. Ella fue como una hermana. Nos conocimos cuando llego a Córdoba, en la oficina. Ella ve a una mujer perdida, asustada, y la acoge. Me invita a su casa, a su familia. Sus hijos jugaban con mis hijos. Nos contábamos todo. Cuando me siento sola, ella estaba. Cuando tengo un problema, ella busca la solución. Nos veía casi todos los días en el trabajo, y después seguíamos viéndonos los fines de semana. Un día especial fue cuando me dice que está enferma, que tiene un cáncer. Eso me destruye. Me ocupo de ella, le llevo comida, la acompaño a los médicos. Ella me dice: "Nelly, vos siempre cuidaste a otros, ahora me toca a mí cuidarte." Pero la verdad es que nos cuidamos mutuamente. Silvina se recupera, pero la enfermedad la marca. Ahora está jubilada también, como yo. Nos vemos cuando podemos, no es lo mismo, pero la quiero mucho.
+
+**Biógrafo** `[M3.3 + AY1]`:
+> Lo anoté, gracias. Sigo con otra.
+>
+> ¿Alguna vez necesitaste ayuda de verdad y alguien te la dio, sea quien sea? Contame qué hizo esa persona ese día, y si después se lo pudiste devolver.
+
+**Narrador** `[AY1]`: Mi mamá. Ella fue la ayuda verdadera. Cuando quedo sola con Pablo, sin dinero, sin una pareja, mamá me salva la vida. Me cuida al bebé, me deja coser en su casa, me esconde de la vergüenza del pueblo. Cuando nace Carina, mamá sigue ahí. Trabaja de noche, pero se levanta de madrugada para cuidar a mis hijos. Cuando mamá envejece, trato de devolverle todo eso. Cuido de ella en los últimos años, la llevo a los médicos, le preparo comida, le doy cariño. Es lo menos que podía hacer. Pero la verdad es que nunca podré devolverle lo que hizo por mí. Mamá me salvó de la desesperación. Sin ella, mis hijos no serían lo que son. Silvina también me ayudó en Córdoba, cuando mamá no estaba. Ahora que Silvina pasó su enfermedad, trato de acompañarla también. Es lo que hacemos los que sabemos lo que es sufrir: nos agarramos entre nosotras.
+
+**Biógrafo** `[M3.4 + AS9]`:
+> Gracias por contármelo. Seguimos.
+>
+> Imaginate que armás una cena y podés invitar a tu gente más cercana. ¿Quiénes se sientan en esa mesa? Contame quién va, y por qué cada uno se ganó su lugar.
+
+**Narrador** `[AS9]`: A la cabecera, mamá. Aunque esté en el cielo, ella estaría. Después Pablo y su familia, con Martín y Tomás. Ellos son mis varones, mi orgullo. Carina y Valeria, mis mujeres, las que siguen mi camino pero haciendo mejor. Silvina estaría ahí, porque es mi hermana del alma. Mi papá, aunque sea difícil, porque también me hizo quien soy. Rubén, mi hermano, aunque no lo vea mucho. Después todas las vecinas que me ayudaron, mis compañeras de trabajo. La maestra María de chica, que creyó en mí. Todos los que me vieron caerme y me ayudaron a levantarme. La mesa sería grande, viste, porque los que quiero son muchos. Cocinaría un guiso grande, empanadas, pan. Tomaríamos vino tinto. Alguien contaría un chiste, habría risas. Eso sería una cena perfecta: gente que te quiere, comida hecha con cariño, historias. Eso es la vida, viste. No es la plata ni la fama. Es eso: la gente que se queda.
+
+**Biógrafo** `[M26 + CI10]`:
+> Gracias, Nelly.
+>
+> Con esto cerramos amistades y ayudas. ¿Quedó alguien que te acompañó y no tuvo su pregunta? Un vecino, alguien del trabajo, una persona que apareció una sola vez. Y si querés contar de otros amigos importantes, de quien sea, es el momento. Contalo tranquila.
+>
+> [botones: (No, está todo)]
+
+**Narrador** `[CI10]`: [toca: No, está todo]
+
+## Bloque 11 · Pérdidas y momentos difíciles
+
+**Biógrafo** `[M25.2 + AV11]`:
+> Bien, seguimos.
+>
+> Ahora vienen unas preguntas sobre momentos difíciles. Si alguna no tiene que ver con tu vida o no querés entrar, con un *paso* alcanza y seguimos. Vos manejás.
+
+**Biógrafo** `[PE1 + M1]`:
+> Puede que ya me hayas hablado de alguna pérdida; acá hay lugar para lo que no entró. Si perdiste a alguien importante, contame de cada uno lo que quieras: qué era para vos, cómo fueron los días de después y cómo lo fuiste llevando. Y si hay un momento con alguna de esas personas que te guste recordar, contámelo también.
+>
+> _Si no va con vos, decí paso y vamos a otra._
+>
+> [botones: (Paso esta)]
+
+**Narrador** `[PE1]`: Bueno, las más importantes ya las conté. Papá muere de infarto, fue rápido. No pude despedirme bien. Mamá muere de cáncer en 2003. Eso fue lo más duro. Estoy con ella cuando se va, le tomo la mano, le pido que no se vaya. Pero se va. Los días después fueron vacíos. Rubén también muere, en 2012. Me entero por una llamada de un primo. Eso fue duro porque nos distanciamos con los años. Un momento que recuerdo de Rubén fue cuando me enseña a manejar un auto, cuando tengo veintitantos años. Está pacienzudo, me enseña, se ríe de mis errores. Me dice: "Vos podés, Nelly." Eso fue lo último bonito que hicimos juntos, porque después la vida nos separó. Lo que aprendí es que el duelo nunca se va. Aprendés a vivir con el dolor. Y cada tanto aparece una canción o un olor que te trae a esos que se fueron. Ahí los recordás, sonreís, y seguís caminando.
+
+**Biógrafo** `[M4.2]`:
+> Te escuché. Gracias por confiármelo.
+
+**Biógrafo** `[PE5 + M1]`:
+> Si alguna vez tu salud te frenó en serio, ¿querés contármelo? Cómo fueron esos días, quién estuvo cerca, y cómo lo fuiste llevando. Y si es algo que todavía llevás, también vale.
+>
+> _Si no va con vos, decí paso y vamos a otra._
+>
+> [botones: (Paso esta)]
+
+**Narrador** `[PE5]`: Sí, tuve una operación de vesícula cuando tenía cuarenta y pico de años. Fue de emergencia, empiezo con un dolor terrible en la panza, pensaba que me moría. Llamo a una ambulancia, me llevan al hospital. Me hacen estudios y yes, la vesícula estaba llena de piedras. Fue puro mala suerte, herencia, quién sabe. Me operan esa misma noche. Los días después fueron duros, con dolor, con cicatriz. Pero gracias a Dios, la operación salió bien. Mis hijos me cuidaban, se preocupaban. Pablo faltó al trabajo para acompañarme. Eso me mostró que cuando de verdad estás mal, aparece la gente que te quiere. Ahora tengo la cicatriz, es como una línea en mi panza que me recuerda que pasé por eso. Y aprendí a no ignorar el dolor del cuerpo, porque el cuerpo habla, viste.
+
+**Biógrafo** `[M4.3]`:
+> Lo guardo tal como lo contaste. Gracias.
+
+**Biógrafo** `[PE4 + M1]`:
+> ¿Hubo alguna época dura en tu vida de grande que creas que no puede quedar afuera de tu historia? ¿Algo que te marcó? Si querés, contame qué pasó y cómo lo viviste. Y si ya me la contaste, con decírmelo alcanza.
+>
+> _Si no va con vos, decí paso y vamos a otra._
+>
+> [botones: (Paso esta)]
+
+**Narrador** `[PE4]`: [toca: Paso esta]
+
+**Biógrafo** `[M27.1 + CI11]`:
+> Está bien, Nelly. Lo dejamos ahí y seguimos por otro lado.
+>
+> Si hay otro momento difícil que sentís que tiene que estar en tu historia y no te lo pregunté, contámelo acá.
+>
+> [botones: (No, está todo)]
+
+**Narrador** `[CI11]`: [toca: No, está todo]
+
+## Bloque 12 · La historia grande
+
+**Biógrafo** `[M25.3 + EN12]`:
+> Bien, entonces.
+>
+> Ahora salimos un poco de tu casa: vamos a las cosas grandes que pasaron en el país y en el mundo mientras vos vivías tu vida.
+
+**Biógrafo** `[HG1]`:
+> Cuando pasó algo grande, en el país o en el mundo, un Mundial, una guerra, ¿cómo lo pasaste vos? Contame lo que recuerdes: dónde estabas, si lo viviste de cerca o te lo contaron, y qué pasó ese día.
+
+**Narrador** `[HG1]`: Ah, viví muchas cosas. La guerra de Malvinas, en 1982. Eso fue lo que más me acuerdo porque estábamos todos asustados. Jóvenes se iban al sur a pelear, murieron muchos. El papá de un amigo de la escuela murió en eso. Estaba todo tenso en el país. Después cuando vuelve la democracia, en 1983, fue una emoción. Recuerdo que salimos a las calles, gente celebrando, llorando de emoción. Fue como respirar de nuevo. El Mundial de 1986, cuando ganamos. Eso fue una fiesta. Todo el barrio saltaba, gritaba. Pablo tendría cinco años, lo recuerdo en mis brazos viendo a Diego. Después la crisis de 2001, que ya te conté. Eso fue lo más duro económicamente. Esos momentos grandes te marcan, viste. Te sacuden. Pero en mi casa lo importante era la familia, el día a día. Lo que pasaba en el país era importante, pero para mí el drama era personal, de mi vida chica.
+
+**Biógrafo** `[M3.6 + HG4]`:
+> Lo tengo, gracias. Vamos con otra.
+>
+> Te quiero pedir un día concreto de la pandemia. No toda esa época: un solo día. Dónde estabas, con quién, qué hiciste, cómo te sentías. Pensá en el que más te haya quedado. Y si ninguno se te separa de los demás, contame cómo eran tus días entonces.
+
+**Narrador** `[HG4]`: Ay, la pandemia. Me acuerdo especialmente de un día cuando nos dicen que tenemos que quedarse en casa. Era como cuando lo cierran todo, como una guerra pero en silencio. Ese día estoy tejiendo, como siempre. La tele dice que hay una enfermedad, que la gente se muere. Me asusta. Pienso en mis hijos, en mis nietos. Les llamo por teléfono, les digo que tengan cuidado. Durante meses estoy sola en el departamento. Me dan permiso para salir a comprar comida, pero mete miedo. Uno sale con guantes, barbijo, como si fuera a la guerra. Un día especial fue cuando mi nieta Valeria me manda un video de la escuela, que está cerrada. Ella no va más a la escuela. Eso me destroza. Una niña sin poder ir a la escuela. Pero bueno, sobrevivimos. Pablo y Carina vienen a verme cuando pueden, con cuidado. La pandemia fue solitaria, viste. Más solitaria que cualquier otra cosa. Pero al menos tenía el tejido, tenía la televisión, tenía que mis seres queridos estaban vivos.
+
+**Biógrafo** `[M3.7 + DE1]`:
+> Quedó guardado, Nelly. Sigo con la que viene.
+>
+> Cuando eras joven había cosas que no se podían hacer, o estaban mal vistas, y hoy nadie se sorprende. ¿Te pasó con alguna? Contame ese día: qué querías hacer y qué te dijeron.
+
+**Narrador** `[DE1]`: Ay, ser madre soltera. Eso era casi un pecado en esa época. Cuando quedo embarazada de Pablo, la gente me señalaba, las mujeres de la iglesia me criticaban, los hombres miraban raro. Había gente que no quería juntarse conmigo. Me acuerdo de ir al supermercado y que la gente murmurara. Pasaba una vecina y apartaba los ojos. Cuando nace Carina, la situación es igual. Gente que no quería hablar conmigo porque era "mujer fácil", así decían. Mi papá no salía a la calle de la vergüenza. Ahora, hay mujeres solas que crían hijos sin problema, y la gente no dice nada. Hay parejas que viven juntas sin casarse, es lo normal. Cuando eras chica no podías salir sin un hombre, tenías que estar acompañada, tenías límites. Ahora las chicas salen solas sin ningún problema. Hay tantas cosas que eran mal vistas. Yo sufrí por ser madre soltera. Hoy veo que mis hijos lo aceptan naturalmente. Eso me pone contenta, que el mundo cambió.
+
+**Biógrafo** `[M3.8 + FI7]`:
+> Te escuché bien. Vamos por la siguiente.
+>
+> ¿Qué es la política para vos? ¿Hubo algún momento de tu vida en que te tocó de cerca? Contame cuál fue y qué pensás hoy.
+
+**Narrador** `[FI7]`: La política siempre fue complicada en Argentina, viste. Crecí con la dictadura, eso que no se podía hablar libremente. Mi papá hablaba bajo, tenía miedo. Después vuelve la democracia y es como respirar. Voto desde que puedo, porque creo que hay que participar. Pero los políticos te decepcionan a todos. Prometen, no cumplen. La crisis de 2001 fue política, gente corrupta que nos arruinó a todos. Eso marcó mi vida. Perdí dinero, estuvimos sin comer bien. Hoy en día veo que la política sigue igual. Los políticos hablan bonito pero no hacen nada por la gente que sufre. Para mí, la política es importante pero no es toda la vida. Lo importante es tu familia, tu trabajo, tu salud. Eso es lo real. Pero voto igual, porque aunque no confíe, votar es lo que te da derecho a quejarte después.
+
+**Biógrafo** `[M26 + CI12]`:
+> Gracias, Nelly.
+>
+> Hasta acá lo del país y el mundo. Si hay algo que te marcó y no salió, mandámelo ahora, aunque sea corto, con dónde estabas cuando pasó.
+>
+> [botones: (No, está todo)]
+
+**Narrador** `[CI12]`: [toca: No, está todo]
+
+## Bloque 13 · Puntos altos, bajos y giros
+
+**Biógrafo** `[M25.1 + EN13]`:
+> Bien, seguimos.
+>
+> Llegamos a los días que te cambiaron algo: los buenos, los que te agarraron de sorpresa, y algunas preguntas para pensar un rato.
+
+**Biógrafo** `[GI1]`:
+> ¿Hay algún día de tu vida que, si pudieras, volverías a vivir tal cual? O un momento en que sentiste que algo hizo clic. Contámelo desde el principio: dónde estabas, con quién, y qué fue lo que pasó. Si es uno que ya me contaste, decímelo y, si querés, agregale lo que te faltó.
+
+**Narrador** `[GI1]`: El día que me jubilo. No es un día que querría vivir de nuevo, pero fue un clic para mí. Ese día salgo del trabajo, los compañeros me despiden, y me doy cuenta de que se termina una época. Tengo varias décadas de trabajar, de levantarme temprano, de ser responsable. De repente, no tengo que hacerlo más. Ese día llegó a mi casa, puse la tetera, me senté en la ventana, y lloro. Lloro porque es fin de un capítulo, pero también porque logré jubilarse, que muchos no llegan a eso. Es el clic de que ahora la vida es mía, que puedo hacer lo que quiero, aunque sea poco tiempo. Pero tiempo es lo que tengo. Y es precioso. A partir de ese día, empecé a tejer más, a cuidar mis nietos, a pasar tiempo con la gente que quiero. Ese día fue el inicio de la mejor parte de mi vida, aunque sea a los sesenta y pico de años.
+
+**Biógrafo** `[M3.2 + GI2]`:
+> Te escuché. Vamos con la que sigue.
+>
+> Pensá en un día que empezó como cualquier otro y terminó cambiándote algo. Contame ese día entero: cómo arrancó la mañana, en qué momento te diste cuenta de que ya no había vuelta atrás, y cómo terminó. Si ya me lo contaste, con decírmelo alcanza. Y si el día justo no te vuelve, contame lo que te acuerdes de esa época.
+
+**Narrador** `[GI2]`: El día que se va Héctor. Arranco la mañana normal, nos vemos, tenemos un desayuno juntos. Él estaba raro, callado. Después de desayunar, me dice que tenemos que hablar. Yo siento un frío en el pecho. Me dice que se va al sur, que necesita trabajar, que vuelve en unos meses. Yo le digo que no se vaya, que estoy preocupada. Él me dice que no hay opción, que es lo que tiene que hacer. Es como si mi vida se dividiera en ese momento: antes de eso y después. Él se va ese mismo día. Me besa, me abraza, promete escribir. Ese día me quedo mirando la puerta cerrada, sin poder creer que se fue. Esa noche descubro que estoy embarazada. El mundo se cae. No sé qué hacer. Lloro toda la noche. Pero al día siguiente, me levanto. Mi mamá me ve la cara y sabe que algo pasó. La abrazo y le digo. Ella me dice: "Ahora no hay vuelta atrás. Vamos a salir adelante las dos." Y bueno, así fue. Ese día fue el final de mi juventud y el comienzo de la maternidad. Nunca lo olvidé.
+
+**Biógrafo** `[M3.3 + HJ1]`:
+> Lo anoté, gracias. Sigo con otra.
+>
+> ¿Te quedó algo que querías hacer con tu vida y al final no se dio? Contame el momento en que te diste cuenta de que ya no iba a pasar: dónde estabas y qué pasó ese día.
+
+**Narrador** `[HJ1]`: Quería ser maestra. De chica me lo imaginaba, me veía dando clases, cambiando vidas como la maestra María cambió la mía. Pero cuando termino el comercial, no tengo dinero para la universidad. Mis papás no pueden. Me tengo que ir a trabajar. Un día, cuando tengo diecinueve, dieciséis años, veo una chica de mi edad que entra a la universidad. Me siento un poquito mal, viste. Porque pienso que pudo haber sido yo. Pero bueno, la vida me dio otro camino. Trabajé, crié hijos, tuve una vida laboral. No fue malo. Pero a veces, de noche, pienso qué hubiera pasado si hubiera sido maestra. Quién sé, tal vez no hubiera tenido hijos, o hubiera sufrido menos. O hubiera sido más feliz. Ahora es tarde para eso. Pero con mis nietos, con Valeria especialmente, trato de darle lo que yo no tuve: que estudie, que persiga sus sueños. Eso es lo que puedo hacer ahora.
+
+**Biógrafo** `[M3.4 + GI9]`:
+> Gracias por contármelo. Seguimos.
+>
+> ¿Hubo algún momento en tu vida en que te sentiste chiquita frente a algo enorme? Un cielo de noche, por ejemplo. Contame ese momento: dónde estabas, con quién, qué había alrededor. Y si no te vuelve un momento puntual, contame frente a qué cosas te pasa eso.
+
+**Narrador** `[GI9]`: Sí, el primer día que veo el mar. Cuando voy a Mar del Plata con Pablo y mis nietos. Bajo del auto y el océano es enorme, infinito. Las olas vienen hacia mí, y me siento diminuta. Pienso que el mundo es muchísimo más grande que mis problemas. Que todas mis angustias de dinero, de hombres, de trabajo, son una nada frente a eso. Las olas seguían viniendo hace millones de años antes de yo nacer y seguirán después de que me muera. Eso me pone melancólica. También el cielo de noche, acá en Córdoba. A veces me siento en el patio del departamento, y miro las estrellas, y pienso en papá, en mamá, en la gente que se fue. La noche es enorme, viste. Acá estoy yo, pequeñita, con mi ropa, mi vejez, mis problemas, y el universo es gigante. Eso me hace sentir chiquita pero también protegida. Como si hubiera algo más grande cuidándome.
+
+**Biógrafo** `[M3.5 + FI1]`:
+> Guardado, Nelly. Te mando la próxima.
+>
+> ¿Qué lugar tiene la soledad en tu vida? ¿Te hace bien tener momentos con vos misma? Contame alguno que te acuerdes: dónde estabas y qué hacías.
+
+**Narrador** `[FI1]`: La soledad fue dura en los años cuando criaba a los chicos sola. Pero ahora, en la vejez, la soledad es diferente. Me hace bien. Me paso horas sola tejiendo, sin necesidad de hablar con nadie. Estoy en mi departamento, con la música de fondo, mis agujas haciendo click, click. Eso es meditación para mí. La soledad me deja pensar, procesar mis sentimientos, estar conmigo misma. A veces veo la tele, tomo un té, miro por la ventana. Eso que antes me asustaba, ahora me da paz. Claro, después mis hijos vienen, mis nietos llegan, y la casa se llena de ruido. Y eso también está bien. Pero necesito momentos de soledad, viste. La gente joven piensa que la soledad es lo peor. Pero la soledad también es libertad. Es poder hacer lo que querés sin rendir cuentas a nadie. En esa soledad, he encontrado tranquilidad que nunca tuve.
+
+**Biógrafo** `[M3.6 + FI2]`:
+> Lo tengo, gracias. Vamos con otra.
+>
+> ¿Hubo un momento en que te diste cuenta, de golpe, de que el tiempo había pasado? Algo chiquito, alguien que te trató de usted, por ejemplo. Contame dónde estabas y qué pasó.
+
+**Narrador** `[FI2]`: Ay, sí. Hace poco, en el supermercado. La cajera era una chica joven, debe tener veinte años. Me trata de usted. "¿Cómo está, señora?" Eso me pega en el pecho. Yo sigo sintiéndome joven en la cabeza. Pero para esa chica, yo soy la señora. Es vieja. Me miro en el espejo del baño esa noche, y veo las arrugas, las manos marcadas. Es cierto, tengo sesenta y ocho años. De repente me doy cuenta de que la vida pasó. Mi hijo mayor tiene cuarenta y pico. Mis nietos están grandes. Los años que pasaron no vuelven. Es como una puñalada, pero también es tranquilidad. Significa que viví, que algo hice con esos años.
+
+**Biógrafo** `[M3.7 + FI3]`:
+> Quedó guardado, Nelly. Sigo con la que viene.
+>
+> ¿Qué cosa sentís que heredaste de tu familia en tu forma de ser? Un carácter, una manera de hacer las cosas. Contame una vez que te diste cuenta de que eso venía de ellos.
+
+**Narrador** `[FI3]`: La resiliencia. Mi mamá y mi papá salieron adelante con lo poco que tenían. Papá llegó a Argentina sin nada, mamá cosía, criaban hijos. Y seguían. Eso heredé. La capacidad de no rendirse. Me veo en mi mamá mucho. Cuando estoy cansada pero sigo adelante, veo a mamá. Cuando estoy cosiendo, veo sus manos. Cuando criaba sola a mis hijos, hacía lo que mamá hizo: trabajar de día y coser de noche, estirar lo poco que hay. Un día, Pablo me ve cosiendo para sacar un dinero extra, cansada, y me dice: "Mamá, no tenés que hacer esto." Yo le digo: "Sí tengo que hacerlo. Tu abuela me enseñó que siempre hay que intentar." Ese día me doy cuenta de que soy mi mamá. Para bien y para mal. Tengo su necesidad de trabajar, su sacrificio, su dignidad. Eso es lo que les paso a mis hijos y mis nietos: que no se rindan nunca.
+
+**Biógrafo** `[M3.8 + FI4]`:
+> Te escuché bien. Vamos por la siguiente.
+>
+> ¿Te importa lo que los demás piensan de vos? ¿Te importó siempre igual? Contame una vez en que eso se notó.
+
+**Narrador** `[FI4]`: Antes me importaba demasiado. Cuando quedo embarazada de Pablo, sufría por lo que decía la gente. Evitaba salir de casa, me avergonzaba. Los vecinos murmuraban y yo sentía eso en la piel. Pasaba años sintiéndome culpable de algo que no hice mal. Era chica, los hombres desaparecieron, ¿y yo era la culpable? Pero con los años, especialmente cuando crío a Carina, dejo de importarme. Veo que la gente es prejuiciosa, que habla sin saber, y dejo de escucharla. Un día, una vecina me dice algo feo sobre mis hijos. Yo la miro a los ojos y le digo: "Vos no conocés mi vida. Mis hijos salen adelante. ¿Y los tuyos qué hacen?" Desde ese día, dejé de importarme. Ahora, a los sesenta y ocho años, no me importa nada lo que piensen. Hice lo mejor que pude. Mis hijos están bien. Eso es lo que importa.
+
+**Biógrafo** `[M3.1 + FI6]`:
+> Gracias, Nelly. Ya lo guardé.
+>
+> ¿Cómo te imaginás el mundo dentro de cien años? Contame cómo lo ves, y qué te gustaría que no se pierda.
+
+**Narrador** `[FI6]`: No sé. Espero que sea mejor que ahora, viste. Espero que las mujeres tengan igualdad, que puedan trabajar sin problemas, que puedan ser madres solas sin ser juzgadas. Espero que no haya tanta pobreza, que todos tengan comida. La tecnología seguro va a avanzar mucho, quién sabe cómo será. Pero hay cosas que espero que no se pierdan. El tejido, por ejemplo. No quiero que la gente pierda la paciencia, el ritmo lento de hacer algo con las manos. La cocina casera, la comida hecha con amor. Las reuniones en familia, el conversador, el estar juntos sin mirar pantallas. Espero que mis nietos cuando tengan hijos les enseñen a valorar eso. Las historias, viste. Que las personas cuenten sus vidas, que no se pierdan las historias. Eso es lo que me importa, que la humanidad no pierda su alma mientras avanza tecnológicamente. Que sienta todavía el calor de estar con gente, de compartir.
+
+**Biógrafo** `[M26 + CI13]`:
+> Gracias, Nelly.
+>
+> Con esto cerramos esta parte. ¿Quedó algún momento importante de tu vida que no tuvo su pregunta? Contámelo ahora, tranquila.
+>
+> [botones: (No, está todo)]
+
+**Narrador** `[CI13]`: [toca: No, está todo]
+
+## Bloque 14 · Hoy
+
+**Biógrafo** `[M25.2 + EN14]`:
+> Bien, seguimos.
+>
+> Dejamos el pasado un rato y venimos a hoy, Nelly: cómo son tus días y qué te gusta ahora.
+
+**Biógrafo** `[HO1]`:
+> Contame un día cualquiera de los de ahora, desde que abrís los ojos hasta que apagás la luz. Qué hacés, a qué hora, con quién. Si querés, el de ayer mismo.
+
+**Narrador** `[HO1]`: Me despierto alrededor de las seis y media, aunque no tengo que estar en ningún lugar. El cuerpo se acostumbra. Me levanto, me preparo un café con leche, tomo el desayuno lentamente. A veces veo el noticiero, a veces solo tomo el café mirando por la ventana. Después me arreglo un poco, limpió el departamento rápido, que es pequeño. A las ocho, me siento a tejer. Ese es el corazón del día. Tejo horas. Si es un día que recojo a Valeria, como a las doce hago algo para almorzar. Las tardes que no tengo a Valeria, hago compras, voy al banco, esas cosas. Cuando viene Valeria, nos sentamos juntas, ella hace tareas, yo tejo. Después hacemos merienda. Por la noche, cenó algo ligero, miro un poco de tele, a veces habló con mis hijos por teléfono. Me duermo temprano, alrededor de las nueve y media. Los fines de semana a veces voy a visitar a mis hijos, o ellos vienen a verme. Es una vida lenta, tranquila. No hay urgencias. Es lo que merecía después de tanto trabajar.
+
+**Biógrafo** `[M3.3 + HO2]`:
+> Lo anoté, gracias. Sigo con otra.
+>
+> ¿Qué cosas te hacen gracia hoy, qué te hace reír? Contame la última vez que te reíste con ganas: dónde estabas y qué había pasado. Y si la última no te vuelve, contame con qué te reís seguido.
+
+**Narrador** `[HO2]`: Mi nieto Tomás me hace reír mucho. Es un chico que hace bromas, es chistoso. La última vez que me reí fue cuando viene con su hermano Martín, y hacen un sketch absurdo donde me imitan tejiendo. Se ponen mis agujas, imitan mi cara concentrada. Yo me muero de risa. Eso me gusta, la risa con los nietos. También me hace gracia cuando estoy viendo tele y salen anuncios raros, o cuando los políticos hacen cosas de locos. A veces me río sola, cosa que me preocupa un poco, viste, porque la gente te ve.
+
+**Biógrafo** `[M3.4 + HO5]`:
+> Gracias por contármelo. Seguimos.
+>
+> ¿Qué es lo que más te gusta de la vida que tenés ahora? Puede ser algo enorme o algo chiquito de todos los días. Contame un momento de esta semana en que lo sentiste.
+
+**Narrador** `[HO5]`: La libertad. La libertad de tejer sin presión, de no tener que estar en un horario. La libertad de pasar tiempo con mis nietos sin estar corriendo. Esta semana, Valeria vino a tejer conmigo, y pasamos tres horas sin hacer nada más que eso. Sin estrés. Eso es lo más lindo. También la libertad de dormir hasta cuando quiera, de no tener a alguien diciendo qué hacer. Eso que antes era soledad me asusta, ahora es libertad y paz. Eso es lo que más amo de ahora: poder vivir en paz, sin urgencias.
+
+**Biógrafo** `[M3.5 + CO1]`:
+> Guardado, Nelly. Te mando la próxima.
+>
+> ¿Tenés un plato que sea tuyo, el que te piden o el que te sale siempre igual? Contame quién te lo enseñó y una vez que lo cocinaste para alguien.
+
+**Narrador** `[CO1]`: Las empanadas. Eso que hago es de mamá, ella me enseñó. Tengo una masa que hago de memoria, relleno con carne, cebolla y comino. Nadie hace empanadas como yo, según mis hijos. Me lo dicen siempre. Cuando van a visitarme o cuando le digo que no hago nada, me dicen: "Mamá, hacé empanadas." Un día especial fue cuando tengo que llevar comida a un evento de la cooperativa, ya jubilada, pero como invitada. Hago un montón de empanadas. Llego y todos quieren probar. El gerente me dice: "Nelly, vos con tus empanadas podés vivir de eso." Fue un momento de orgullo. Eso que aprendí de mamá, que pudo darle a mis hijos, y ahora mis hijos quieren que siga haciendo. Es como una herencia, viste. De mamá a mí a mis hijos. Las empanadas.
+
+**Biógrafo** `[M3.6 + HO9]`:
+> Lo tengo, gracias. Vamos con otra.
+>
+> ¿Cómo es el lugar donde vivís hoy, la casa, el barrio? Contame cómo llegaste ahí y un momento de estos días que lo pinte.
+
+**Narrador** `[HO9]`: Vivo en un departamento en Córdoba capital, en un barrio humilde pero tranquilo. Es un lugar bonito, lleno de árboles. Mi departamento es chiquito, una pieza, cocina, baño. Nada lujo, pero es mío. Lo pinté hace años de color crema, tiene unas mantas en las paredes que tejo yo. La ventana da a la calle, puedo ver a la gente pasar. Hace poco que el departamento se ve más bonito, porque puse plantas en la ventana que mis nietos me trajeron. Un día, Valeria llega y se pone a regar las plantas. Me dice: "Abuela, ahora tu casa huele a vida." Eso me encantó. Ese comentario me cambió la perspectiva. Mi departamento pequeño, humilde, ahora tiene vida. Las plantas, el tejido en las paredes, los cuadros de mis nietos. El barrio es popular, la gente es simpática. Mis vecinas me saludan, a veces tomo mate con alguien. Es tranquilo, es mío.
+
+**Biógrafo** `[M26 + CI14]`:
+> Gracias, Nelly.
+>
+> Con esto cerramos lo de hoy, y ya te conozco un poco más. ¿Quedó algo de tu vida de ahora que no tuvo su pregunta? Una costumbre, alguien que ves seguido, un rato del día que es tuyo. Contámelo ahora, tranquila.
+>
+> [botones: (No, está todo)]
+
+**Narrador** `[CI14]`: [toca: No, está todo]
+
+## Bloque 15 · Legado y cierre
+
+**Biógrafo** `[M25.3 + EN15]`:
+> Bien, entonces.
+>
+> Ya estamos en la última parte, Nelly: lo que te dejó todo esto y lo que querés dejarle a tu familia.
+
+**Biógrafo** `[LE1]`:
+> Mirando toda tu vida hasta hoy, ¿qué es lo que más orgullo te da? Puede ser algo grande o algo que nadie más notó. Contame qué fue y el momento en que te diste cuenta.
+
+**Narrador** `[LE1]`: Mis hijos. Eso es lo que me da más orgullo. Que crecieron sin papá, en la pobreza, que sufrieron, pero que salieron adelante. Que son buenas personas, que trabajan, que cuidan a sus hijos. Mi hijo trabaja en la construcción, es honesto, responsable. Mi hija estudió, trabaja, cría a su hija con dignidad. Si me ves a mí y ves a mis hijos, entendes que hicimos algo bien. Yo los crié sola, sin lujos, pero con valores. Eso es lo que me enorgullece. El momento en que me doy cuenta fue el día de mi jubilación, cuando mis hijos me rodean y me dicen que estaban orgullosos de mí, que yo les enseñé a ser lo que son. Lloré. Eso fue cuando entendí que la vida no fue en vano. Que el sacrificio valió la pena. Que aunque sea gente pobre, humilde, somos gente de bien. Eso es lo que me da orgullo.
+
+**Biógrafo** `[M3.8 + LE2]`:
+> Te escuché bien. Vamos por la siguiente.
+>
+> ¿Qué aprendiste de la vida que te gustaría que tu familia sepa? Decímelo como un consejo, algo que vos misma descifraste viviendo.
+
+**Narrador** `[LE2]`: Que la vida no sale como uno la planea. Uno hace planes, sueños, y la vida te lleva por otro camino. No siempre es el que querías, pero puede ser bueno también. Aprendí a no amargarse por lo que no sucedió. Yo quería ser maestra, quería una pareja estable, quería una vida fácil. Nada de eso pasó. Pero criI dos personas buenas, tengo tres nietos que me quieren. Eso es más de lo que pude soñar cuando era una madre sola, pobre. Otro consejo: no esperes que otros te salven. Mi mamá me ayudó, pero yo tuve que trabajar. Silvina me apoyó, pero yo tuve que decidir seguir adelante. Los hombres no aparecieron, así que tuve que hacerme fuerte sola. Nadie va a venir a resolver tu vida. Aprendí a no esperar. Actuar, trabajar, levantarse cuando caes. Eso es lo que quiero que mis hijos, mis nietos, aprendan: que la vida es dura, pero que se puede. Que no hay nada imposible si tenes ganas y trabajas.
+
+**Biógrafo** `[M3.1 + FU1]`:
+> Gracias, Nelly. Ya lo guardé.
+>
+> ¿Queda algo que todavía querés hacer? Contámelo como si ya estuviera pasando: dónde estás, con quién, qué ves.
+
+**Narrador** `[FU1]`: Me gustaría ir de nuevo al mar, que mis nietos vean lo que yo vi. Estoy imaginando a Valeria, Martín y Tomás en la playa, corriendo, burlándose. Yo sentada en una reposera, tejiendo una bufanda mientras veo el océano. Mis hijos al lado. Eso es lo que me gustaría. Nada complicado. Solo estar con los míos, mirando el mar. También me gustaría que mis hijos vieran mi libro terminado, que supieran toda mi historia. Que Valeria, cuando sea grande, lea sobre su abuela. Que entienda de dónde viene. Eso sería especial. Pero lo más importante es que siga tejiendo mientras pueda, que tenga un poco más de tiempo con mis nietos. Que la vida me dé un poco más. Eso es lo que quiero, nada extraordinario. Solo un poco más de lo que tengo.
+
+**Biógrafo** `[M3.2 + LE7]`:
+> Te escuché. Vamos con la que sigue.
+>
+> Si tu vida fuera un libro, ¿qué título le pondrías? Decímelo y contame por qué ese.
+
+**Narrador** `[LE7]`: "Tejiendo vidas." Porque toda mi vida fue así, tejiendo. Tejiendo ropa, tejiendo dinero, tejiendo familia. Cada punto que hago es una vida, la mía, la de mis hijos. Es lento, requiere paciencia, requiere que no te equivoques mucho o tenés que deshacer y empezar de nuevo. Es como la vida. Nada es perfecto, pero si seguís tejiendo, al final sale una prenda linda. Eso es mi vida: una prenda tejida con cuidado, con sacrificio, pero bonita al final.
+
+**Biógrafo** `[M3.3 + M15]`:
+> Lo anoté, gracias. Sigo con otra.
+>
+> Esta pregunta te la hace tu familia.
+
+**Biógrafo** `[FAM1]`:
+> Mamá, ¿cómo hacías para trabajar todo el día y encima coser de noche? Carina
+
+**Narrador** `[FAM1]`: Ay, Carina. Honestamente no sé cómo lo hacía. Creo que era porque no tenía opción, viste. Vos y tu hermano necesitaban comer. Necesitaban ropa, escuela. Cuando termina el turno en el supermercado, tenía ganas de dormir. Pero llegaba a casa, me tomaba un té rápido, y me sentaba a coser. Mi cuerpo estaba cansado, pero mi mente sabía que tenía que hacerlo. A veces me dormía con la aguja en la mano. Más de una vez pasaste y me veías llorando mientras cosía de pura cansancio. Pero vos eras chica y no lo veías. Lo que me daba fuerzas era veros crecer, veros bien alimentados, veros con posibilidades. Eso superaba el cansancio. Ahora que miro atrás, no sé cómo sobreviví esos años. Creo que la maternidad te da superpoderes. El amor por vos y por Pablo me hacía seguir. Nunca quise que ustedes sintieran la pobreza. Quería que tuvieran lo mejor que yo pudiera darles, aunque fuera cosiendo de noche. Eso es lo que una madre hace, hija. Lo que sea por sus hijos.
+
+**Biógrafo** `[M3.4 + FO1]`:
+> Gracias por contármelo. Seguimos.
+>
+> Otra cosa, Nelly. ¿Hay alguna foto, en el celular o en algún cajón de tu casa, que quieras que quede para siempre en este libro? Si la tenés, sacale una foto y mandámela, y después contame en un audio qué se ve y quiénes están. Tomate el tiempo que necesites para buscarla: la pregunta que sigue te la mando cuando me llegue la foto o me digas algo. Y si no la encontrás, no pasa nada: el libro va igual, y la podés mandar más adelante.
+>
+> [botones: (No tengo foto)]
+
+**Narrador** `[FO1]`: Tengo una. Es con mis tres nietos en mi departamento, en el patio. Martín y Tomás están a los costados, Valeria en el medio. Estoy yo detrás de ella con una manta tejida que hicimos entre las dos. La foto es de un año atrás, más o menos. Todos estamos sonriendo. Es la más reciente que tengo donde estamos los cuatro juntos. Mis nietos crecieron, pero en esa foto están todos felices, rodeados de lo que yo teji. Es la foto que más quiero que quede, porque somos nosotros, la familia que logré, que ahora es mi vida entera.
+
+**Biógrafo** `[M26 + LE9]`:
+> Gracias, Nelly.
+>
+> Llegamos al final. ¿Hay algo que en todo este tiempo no te pregunté y querés que esté en el libro? Una persona, un lugar, una historia que te quedó dando vueltas.
+
+**Narrador** `[LE9]`: Hay algo que se me olvidó. Rubén. Mi hermano. Falleci en 2012, pero fue importante en mi vida. Me gustaría que quedara en el libro que lo quería, que extraño. Que aunque nos alejamos con los años, fue el hermano que me enseñó a vivir. También quería dejar escrito lo que me pasó con Pablo cuando me entero que quería dejar la construcción para estudiar algo nuevo. Eso me cambió la forma de ver sus decisiones. Y un agradecimiento a la maestra María, porque en verdad cambió mi vida sin saberlo. Eso es lo que me gustaría que quedara. Las personas que realmente te cambian la vida, aunque sea de a poco.
+
+**Biógrafo** `[LE8]`:
+> Ahora sí, hablale a tu familia, a los que van a leer este libro. Lo que les dirías y lo que les deseás si los tuvieras sentados enfrente, sin apuro, de a uno. Nadie te corre.
+
+**Narrador** `[LE8]`: A mis hijos, Pablo y Carina: los quiero tanto. Cuando nacieron, tuve miedo. Miedo de no poder criarlos bien, de dejarlos solos, de no tener dinero. Pero vieron lo hice lo mejor que pude. Si en estos años les falté algo, no fue por falta de amor. Fue por circunstancia. Quiero que cuando lean esto, entiendan que cada noche que cosía, cada rato que no dormía, era por ustedes. Estoy tan orgullosa de los hombres y la mujer en que se convirtieron. 
+
+A Martín, Tomás y Valeria, mis nietos: ustedes son la razón de que siga adelante. Cuando estoy cansada, pienso en ustedes. El día que Valeria me dijo que mi casa huele a vida, entendí por qué sigo aquí. Quiero que aprendan de mi historia que la vida es dura, pero que se puede. Que no esperen a que otros las arreglen. Que trabajen, que estudien, que se amen entre ustedes. 
+
+A Silvina, a mis amigas, a la gente que me ayudó: gracias. Sin ustedes no hubiera podido.
+
+Y a los que lean esto en el futuro: no se rindan. La vida va a ser complicada. Va a haber momentos en que piensen que no pueden más. Pero pueden. Trabajen, amen, tengan paciencia. La vida al final vale la pena.
+
+**Biógrafo** `[FIN]`:
+> Hasta acá llegamos, Nelly. Gracias por cada audio, por cada historia y por la confianza de contarlas así. Con todo lo que me contaste vamos a armar un libro que va a quedar en tu familia para siempre. Antes de escribirlo vas a poder repasar lo que contaste, por si querés cambiar o agregar algo. Y si te quedó alguna foto por mandar, mandámela por acá cuando la encuentres: entra igual. Fue un gusto enorme escucharte.

@@ -70,11 +70,13 @@ export async function POST(request: NextRequest) {
   }
 
   // Quién invita: el nombre de la familia (lo que puso al comprar).
-  const { data: familia } = await admin.from("familias").select("nombre").eq("id", narrador.familia_id).maybeSingle();
+  const { data: familia } = await admin.from("familias").select("nombre, region").eq("id", narrador.familia_id).maybeSingle();
   const quienInvita = (familia as { nombre?: string } | null)?.nombre ?? "Alguien de la familia";
+  // De vos o de tú según el país de la familia que invita (Naza, 09/10).
+  const region = (familia as { region?: string } | null)?.region ?? null;
 
   try {
-    await enviarMailInvitacion({ para: email, nombreNarrador: narrador.nombre, quienInvita });
+    await enviarMailInvitacion({ para: email, nombreNarrador: narrador.nombre, quienInvita, region });
   } catch (err) {
     // La invitación existe igual: si el mail falla, entra con su correo cuando quiera.
     console.error("invitados: fallo el mail", err);

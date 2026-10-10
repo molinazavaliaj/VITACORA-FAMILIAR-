@@ -128,7 +128,7 @@ export async function avisarHitosDeEntrega(db: Db): Promise<void> {
 
       const { data: familia } = await db
         .from('familias')
-        .select('email')
+        .select('email, region')
         .eq('id', entrega.familia_id)
         .maybeSingle();
       const para = (familia as { email?: string } | null)?.email;
@@ -151,6 +151,8 @@ export async function avisarHitosDeEntrega(db: Db): Promise<void> {
         // del producto; los otros, al panel.
         enlace: hito === 'entregado' ? URL_RESENA : `${urlBase}/tablero/${entrega.narrador_id}`,
         seguimiento: entrega.seguimiento ?? null,
+        // Con vos a las familias de Argentina (Naza, 09/10); el "va en camino" no tiene verbos de trato.
+        ...((familia as { region?: string } | null)?.region === 'AR' ? { variante: 'vos' as const } : {}),
       });
 
       // Sin candado si el mail no salió: el próximo tick reintenta.

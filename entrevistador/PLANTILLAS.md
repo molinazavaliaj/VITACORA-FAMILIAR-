@@ -36,7 +36,7 @@ La aprobación tarda de horas a días: **cargarlas cuanto antes**.
 Hola {{1}} 👋 Soy su biógrafo. {{2}} le hizo un regalo muy especial: vamos a escribir
 juntos el libro de su vida. Cada mañana le voy a mandar una pregunta, y usted me responde
 con un audio, como le cuenta las cosas a un amigo. Al final, su historia queda en un
-libro para su familia, y sus mejores frases quedan en su propia voz: recortes de estos
+libro para su familia, y sus mejores frases quedan tal cual las contó: recortes de estos
 mismos audios, para escucharlas cuando quieran. Al responder SÍ nos da permiso para
 guardar sus audios y usarlos así. ¿Empezamos? Responda SÍ y arrancamos mañana.
 
@@ -93,7 +93,7 @@ pilotos y la puerta manual.
 Hola {{1}} 👋 Soy tu biógrafo de viaje. Cada noche te voy a mandar una pregunta sobre el
 día, y vos me respondés con un audio, como le contás a un amigo. Mandame también la foto
 del día cuando te la pida, o cuando quieras. Al final, tu viaje queda en un libro, y tus
-mejores frases quedan en tu propia voz: recortes de estos mismos audios, para escucharlas
+mejores frases quedan tal cual las contaste: recortes de estos mismos audios, para escucharlas
 cuando quieras. Al responder SÍ nos das permiso para guardar tus audios y usarlos así.
 ¿Arrancamos? Respondé SÍ y empezamos esta noche.
 
@@ -102,3 +102,87 @@ cuando quieras. Al responder SÍ nos das permiso para guardar tus audios y usarl
 > "hola" al número y el bot le contesta esta misma bienvenida como texto libre. El código
 > en `src/manual/puro.ts` (`bienvenidaViaje`) es este cuerpo con "esta noche" / "ya" según el ritmo.
 
+---
+
+# Plantillas V3 (entrevista V3, 07/10)
+
+La entrevista V3 (`src/v3/`) usa una plantilla de pregunta y una de recordatorio (M8) por idioma.
+Los nombres y el idioma de Meta están en `src/config.ts` (`PLANTILLAS_V3`); fuera de la ventana de
+24 h solo salen las que figuran en `WA_PLANTILLAS_V3_LISTAS` (`es-ES:pregunta`, `ca:recordatorio`, …),
+salvo `pregunta_diaria_vos` (es-AR), que ya está aprobada. Sin la plantilla de su idioma no sale
+nada: nunca otro idioma. Lo que manda el código (`src/v3/enviar.ts`, `elegirEnvio`):
+
+- **pregunta**: una sola variable, {{1}} = la pregunta abierta (sin acuse, entrada, M1 ni M31), en una línea.
+- **recordatorio (M8)**: una sola variable, {{1}} = cómo le dicen (`ficha.nombre`).
+
+Los cuerpos de M8 son el texto de M8 de cada banco (`src/v3/nucleo/entrevista/banco.json`,
+`banco-es-ES.json`, `banco-ca.json`) con `{{nombre}}` cambiado por {{1}}. Si cambia M8 en el banco,
+hay que cambiar la plantilla en Meta (y re-aprobarla).
+
+## pregunta_diaria_vos (es) — variables: {{1}} la pregunta
+
+Ya cargada en Meta el 16/09 (ver `pregunta_diaria` arriba). No cambia.
+
+## pregunta_diaria_es_es (es_ES) — variables: {{1}} la pregunta
+
+La pregunta de hoy: {{1}}
+
+Cuando quieras, me respondes con un audio. Sin prisa. 🎙️
+
+## pregunta_diaria_ca (ca) — variables: {{1}} la pregunta
+
+La pregunta d'avui: {{1}}
+
+Quan vulguis, em respons amb un àudio. Sense pressa. 🎙️
+
+## m8_vos (es) — variables: {{1}} cómo le dicen
+
+Hola, {{1}}. Pasaron unos días y quería saber cómo andás. Tu historia está acá, guardada tal como la dejaste. Cuando tengas un rato me contestás la que quedó pendiente. Sin apuro.
+
+## m8_es_es (es_ES) — variables: {{1}} cómo le dicen
+
+Hola, {{1}}. Han pasado unos días y quería saber cómo estás. Tu historia está aquí, guardada tal como la dejaste. Cuando tengas un rato me contestas la que se ha quedado pendiente. Sin prisa.
+
+## m8_ca (ca) — variables: {{1}} cómo le dicen
+
+Hola, {{1}}. Han passat uns quants dies i volia saber com estàs. La teva història és aquí, guardada tal com la vas deixar. Quan tinguis una estona, em respons a la pregunta que va quedar pendent. Sense pressa.
+
+## Bienvenida V3 de los narradores nuevos (10/10) — variables: {{1}} cómo le dicen
+
+Para prender `V3_PARA_NUEVOS`. El cuerpo es el BIEN del banco más el pedido de SÍ del regalo (los dos aprobados por Naza; el pedido de SÍ pide el permiso de voz, así que el SÍ se anota como consentimiento). Categoría: Utilidad si Meta la acepta (con Marketing, a algunos números no les llega: error 130472). Un botón de respuesta rápida «SÍ». Cuando Meta la apruebe, sumar `<idioma>:bienvenida` a `WA_PLANTILLAS_V3_LISTAS` (por ejemplo `es-AR:bienvenida,es-ES:bienvenida,ca:bienvenida`). Sin eso, con el interruptor prendido, al invitado no le sale nada y llega un aviso a los socios. «La mía» sigue con la bienvenida vieja.
+
+### bienvenida_v3_vos (es)
+
+```
+Hola, {{1}}, ¿cómo estás? Una persona que te quiere mucho te regaló un libro con la historia de tu vida, y yo soy quien te va a entrevistar para armarlo. Lo hacemos acá, por WhatsApp, tranquilos.
+
+Funciona así. Te mando una pregunta y vos me la contás en audio, como si me lo estuvieras contando en persona. Mandame todos los audios que quieras. Cuando termines no hace falta que me avises. Si pasan unos minutos sin audios nuevos, te mando la pregunta que sigue.
+
+Si alguna pregunta no tiene que ver con tu vida, me decís que no, o me contás lo que sí te pasó a vos. Y sin apuro, esto lo hacemos al ritmo que vos quieras.
+
+Antes de empezar, una cosa. Tus mejores frases van a quedar en el libro tal cual las contaste, como recortes de estos mismos audios, y al responder SÍ nos das permiso para guardar tus audios y usarlos así. Respondé SÍ y arrancamos.
+```
+
+### bienvenida_v3_es_es (es_ES)
+
+```
+Hola, {{1}}, ¿cómo estás? Una persona que te quiere mucho te ha regalado un libro con la historia de tu vida, y yo soy quien te va a entrevistar para hacerlo. Lo hacemos aquí, por WhatsApp, con calma.
+
+Funciona así. Te mando una pregunta y tú me contestas en un audio, como si me lo estuvieras contando en persona. Mándame todos los audios que quieras. Cuando termines no hace falta que me avises. Si pasan unos minutos sin audios nuevos, te mando la pregunta siguiente.
+
+Si alguna pregunta no tiene que ver con tu vida, me dices que no, o me cuentas lo que sí te pasó a ti. Y sin prisa, esto lo hacemos al ritmo que tú quieras.
+
+Antes de empezar, una cosa. Tus mejores frases quedarán en el libro tal cual las has contado, como recortes de estos mismos audios, y al responder SÍ nos das permiso para guardar tus audios y usarlos así. Responde SÍ y empezamos.
+```
+
+### bienvenida_v3_ca (ca)
+
+```
+Hola, {{1}}, com estàs? Una persona que t'estima molt t'ha regalat un llibre amb la història de la teva vida, i jo soc qui t'entrevistarà per fer-lo. Ho farem aquí, per WhatsApp, amb calma.
+
+Funciona així. T'envio una pregunta i tu em respons amb un àudio, com si parléssim en persona. Envia'm tots els àudios que vulguis. Quan acabis no cal que m'avisis. Si passen uns minuts sense àudios nous, t'envio la pregunta següent.
+
+Si alguna pregunta no té res a veure amb la teva vida, m'ho dius, o m'expliques el que sí que et va passar a tu. I sense pressa, ho anirem fent al teu ritme.
+
+Abans de començar, una cosa. Les teves millors frases quedaran al llibre tal com les has explicat, com a retalls d'aquests mateixos àudios, i en respondre SÍ ens dones permís per guardar els teus àudios i fer-los servir així. Respon SÍ i comencem.
+```

@@ -42,7 +42,7 @@ const antes = await db.from('consumo_ia').select('id');
 console.log(`Filas en consumo_ia antes: ${antes.data?.length ?? 'error'}`);
 
 console.log('\n1) Opus, por tokens (detectarIntencion)…');
-const intencion = await detectarIntencion('Ya no quiero seguir con esto, muchas gracias.', null);
+const intencion = await detectarIntencion('Ya no quiero seguir con esto, muchas gracias.');
 console.log(`   veredicto: ${intencion}`);
 
 const despues = await db

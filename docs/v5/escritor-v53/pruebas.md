@@ -1,0 +1,67 @@
+# Escritor v5.3 — pruebas
+
+Sigue a [`../escritor-v52/pruebas.md`](../escritor-v52/pruebas.md). Salidas fuera de git (`audios-crudos/v3-web/nazareno/escritor-v5-3-prueba/`, `escritor-v5-3-1-prueba/`). Sin detalles de la vida de nadie: solo números y tipos de problema.
+
+## Por qué la v5.3 (04/10/2026)
+Naza leyó la primera página del libro v5.2: "mal redactado" (sintaxis del audio pasada tal cual, "yo" y "nosotros" mezclados, preposiciones, números como se dicen). Hermes leyó el libro entero: mejor que el puro, pero la primera página repite el capítulo I, una frase suya está en dos capítulos, los capítulos cierran con una moraleja del escritor, hay sujeto borrado en escenas y una persona con dos nombres sin unir.
+
+## Prueba v5.3 sobre el libro v5.2 (04/10/2026)
+`workflow-tres.js` v5.3: sobre una copia del libro v5.2 se reescriben la primera página (al final), el capítulo I y el VI; revisión de hechos, una ronda de arreglo y el corrector de estilo (una pasada). Juicio a ciegas Opus, dos jueces por pieza, contra la v5.2.
+
+| Pieza | v5.2 | v5.3 | Se lee mejor |
+|---|---|---|---|
+| Primera página | 6 | **7** | v5.3 / v5.3 |
+| Capítulo I | **7,5** | 6,75 | v5.2 / v5.2 |
+| Capítulo VI | 5,75 | **7,25** | v5.3 / v5.3 |
+| Promedio | 6,4 | **7,0** | |
+
+- La primera página pasó de 12 tramos repetidos con otras piezas a 0, y de 598 a 301 palabras.
+- **El corrector casi no corrigió**: 1 cambio en la primera página, 4 en el I, 6 en el VI. Quedaron dos de los casos que marcó Naza (un número dicho como en el audio y un "fútbol once") y un sujeto borrado.
+- El capítulo I se achicó (de 1.294 a 1.091 palabras) y perdió escenas: por eso gana la v5.2 ahí.
+
+Siguiente: v5.3.1 (corrector con lista fija y dos pasadas, la baranda lee números en letras, escenas enteras).
+
+## Prueba v5.3.1 sobre el libro v5.2 (04/10/2026)
+Mismo banco; corrector con lista fija y dos pasadas, la baranda lee números en letras, escenas enteras.
+
+| Pieza | v5.2 | v5.3.1 | Se lee mejor |
+|---|---|---|---|
+| Primera página | 5,75 | **7** | v5.3.1 / v5.3.1 |
+| Capítulo I | **7** | 6,75 | v5.2 / v5.2 |
+| Capítulo VI | 6 | **6,5** | v5.2 / v5.3.1 |
+| Promedio | 6,25 | **6,75** | |
+
+- El corrector ahora corrige: 6 cambios en la primera página, 20 en el I, 9 en el VI (dos pasadas), ninguno frenado. Los casos que marcó Naza quedaron arreglados (número del piso, "fútbol 11", sujeto borrado, "siempre donde llego").
+- La primera página comparte un solo tramo con otra pieza (antes 12).
+- El capítulo I sigue perdiendo con la v5.2: achica una escena de los hermanos y los presenta dos veces; queda para la lectura de Naza.
+
+Decisión (pedido de Naza: "si gana, libro entero"): libro entero con la v5.3.1.
+
+## Libro entero v5.3.1 de Naza (04/10/2026)
+`workflow-libro.js` v5.3.1 (`puro`, `soloHechos`), todo con Opus; plan y registro de la v5.2. 8 capítulos, 6.529 palabras, sin marcas impresas. PDF enviado a Naza: falta su lectura.
+
+| Medida (libro entero) | v5.2 | v5.3.1 |
+|---|---|---|
+| Palabras por oración | 23,4 | 21,3 |
+| Oraciones de 10 a 30 palabras | 75 % | 76 % |
+| Más de 40 palabras | 8 | 4 |
+| Arrancan con "Y" / "no" de la entrevista | 0 / 0 | 0 / 0 |
+| Avisos de los controles al final | 60 | 26 |
+| Tramos repetidos entre piezas (C7) | 32 | 3 |
+| Cambios del corrector (2 pasadas) | — | 148 aplicados, 11 frenados por la baranda |
+
+Abierto: C33 en cuatro capítulos (lo que prepara el golpe es de otro capítulo y no quedó marcado como recuerdo); cuatro personas nombradas una vez en la entrevista que no entraron (C21); 4 oraciones de más de 40 palabras. Los casos que marcó Naza no quedan en el cuerpo del libro (uno sigue en "Sus frases", que es literal a propósito).
+
+## Libro entero v5.3.1 de Joaquín, con su entrevista nueva (04–05/10/2026)
+Primera prueba con otro narrador (para ver si la v5.3.1 quedó ajustada solo a Naza). Entrevista V3 nueva con el cazador: 110 respuestas, unas 20.000 palabras (la vieja tenía 34). Ficha y "confirmado" de la prueba anterior. Registro y plan nuevos; todo con Opus. 9 capítulos, 11.665 palabras. PDF enviado: falta la lectura de Joaquín.
+
+| Medida | Joaquín puro (viejo) | Joaquín v5.3.1 | Naza v5.3.1 |
+|---|---|---|---|
+| Palabras por oración | 13,2 | 22,4 | 21,3 |
+| De 10 a 30 palabras | 57 % | 76 % | 76 % |
+| Menos de 6 / arrancan con "Y" | 93 / 39 | 11 / 1 | 11 / 0 |
+| "No" de la entrevista (C32) | 1 | 0 | 0 |
+| Correcciones de estilo | — | 194 (9 frenadas) | 148 (11 frenadas) |
+
+- Lo que pidió el narrador en "confirmado" se respeta (una persona que no va en el libro no aparece).
+- Abierto: una misma persona presentada en varios capítulos (C17, 6 avisos); 9 oraciones de más de 40 palabras; C33 en un capítulo; 22 de los 24 "falta" de C18 son respuestas que enteras son un "no" (bien afuera; C18 tendría que aceptarlas solo) y 2 son datos chicos.

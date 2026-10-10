@@ -215,7 +215,7 @@ export default async function PaginaAnticipo({
       <section className="mx-auto w-full max-w-2xl px-6 py-20 text-center sm:py-24">
         <Etiqueta>Esto recién empieza</Etiqueta>
         <h2 className="mt-5 text-2xl leading-snug [font-family:var(--fuente-titulo)] font-medium sm:text-3xl">
-          Él va a seguir contando, una pregunta por día.
+          Va a seguir contando, a su ritmo.
         </h2>
         <p className="mx-auto mt-6 max-w-lg text-[17px] leading-[1.75] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">
           Desde tu panel vas a ver el libro crecer capítulo a capítulo. Cuando
@@ -230,7 +230,7 @@ export default async function PaginaAnticipo({
             Seguir el libro de {datos.nombre.split(" ")[0]}
           </Link>
           <p className="text-[13px] text-[#5F5F55] [font-family:var(--fuente-micro)]">
-            Entras con tu correo y un código de 6 números.
+            Entrás con tu correo y un código de 6 números.
           </p>
         </div>
       </section>
@@ -259,8 +259,8 @@ function EstadoInvalido() {
     <Marco>
       <h1 className="text-2xl font-semibold">Este enlace no es válido</h1>
       <p className="mt-3 text-[15px] leading-relaxed text-[#45453C]">
-        Puede que esté incompleto. Prueba a abrirlo otra vez desde el correo que
-        te enviamos.
+        Puede que esté incompleto. Probá abrirlo otra vez desde el correo que
+        te mandamos.
       </p>
       <Link href="/" className="mt-8 inline-block text-[15px] text-[#5D3FD3] underline underline-offset-4">
         Ir al inicio

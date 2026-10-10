@@ -1,0 +1,2886 @@
+{
+ "version": 1,
+ "ficha": {
+  "nombre": "Chela",
+  "genero": "mujer"
+ },
+ "familia": [
+  {
+   "id": "FAM1",
+   "texto": "Mamá, ¿de cuál de tus tres casamientos tenés el mejor recuerdo? Paula"
+  }
+ ],
+ "respuestas": [
+  [
+   "OR1",
+   "Ay, qué cosa. Bueno, mi papá era viñatero, toda la vida en las viñas de Mendoza, la faena no paraba. Mi mamá era modista, hacía ropa de gente importante de ahí, así que ella andaba siempre con alfileres en la boca y telas por todos lados. Yo llegué en el 55, en plena vendimia, así que no sé si fue una alegría o un caos, creo que las dos cosas. Ya tenían tres varones, mis hermanos, así que cuando nací yo la casa se alborotó. Mi papá decía que había llegado la nena, che, qué bueno. Y mi mamá, bueno, ahora tenía que hacer ropa para la bebé además de todo lo demás. Eran otros tiempos, no sé bien cómo vivían ellos solos, pero parecía que les gustaba estar juntos, al menos eso me contaban. Las viñas de Mendoza eran todo, viste, era la vida entera."
+  ],
+  [
+   "OR2",
+   "Ah sí, claro. Mi abuelo, el papá de mi papá, vino de Italia, de allá por San Juan o por ahí, creo que fue en los treinta o cuarenta, uno de esos años. Vino con un par de hermanos y se metieron en las viñas, porque claro, en Italia el vino era lo que sabían hacer. Bueno, mi abuelo se plantó en Mendoza y dijo, acá va a haber viña, y resulta que se hizo bastante, bastante bien. Se casó con mi abuela que era de familias de acá, de Mendoza de toda la vida, mendocinas de pura sangre. Y de ahí salieron mis tíos y mi papá, todos metidos en lo mismo de las viñas. Lo que más me contaban en las sobremesas era que mi abuelo había pasado un hambre terrible en Italia, que vino con lo puesto, y que cuando se vio con los pies sobre la tierra acá en Mendoza, con sus viñas creciendo, bueno, lloró. Eso me lo contaba mi papá con los ojos así, con una cosa rara. Eso quedó en la familia."
+  ],
+  [
+   "OR5",
+   "Mi mamá hacía ropa y mi papá andaba en las viñas, típico de Mendoza. Se conocieron en un baile, un viernes a la noche, ella andaba con una amiga y mi papá fue con mis tíos. Según lo que me contaba, mi papá la vio y dijo, esa es, vos sabés cómo son los hombres, un chapalear nada más. Se pusieron a bailar, ella era linda, mi mamá, rubia de los ojos claros, y bueno, mi papá la invitó a tomar algo y de ahí en más fue una cosa natural. Se empezaron a juntar, se enamoraron, se casaron. Nada extraordinario, pero bueno, eso fue."
+  ],
+  [
+   "CI1",
+   "⟦botón:No, está todo⟧"
+  ],
+  [
+   "CA1",
+   "Mi primer recuerdo es de la cocina. Yo tendría unos tres o cuatro años, estaba mi mamá preparando algo con mis tías, estaban todas alrededor de la mesa grande. Era verano, hacía un calor de la patada, y mi abuela estaba hace rato removiendo una olla con agua y vino, no sé bien qué sería. Me acuerdo del olor, viste, eso que no se olvida. Mis hermanos andaban por el patio, esos varones nunca estaban adentro. Yo estaba chiquita y mis tías me decían, vení Chela, sentate acá, querían que probara algo dulce, milanesitas o lo que fuera. Mi papá no estaba, estaría en las viñas, siempre en las viñas. Era una cosa caótica, viste, muchas voces, muchas manos, calor, humo. De eso me acuerdo."
+  ],
+  [
+   "CA2",
+   "Mi mamá era un amor pero eras duro con ella si te le desobedecías. Estaba todo el tiempo con la costura, los alfileres en la boca, cortando telas. Una vez, yo tendría unos seis años, ella estaba cosiendo un vestido hermoso para una señora importante de Mendoza, y yo quería probármelo sin permiso. Me metí a la pieza donde estaba ella trabajando y me lo puse, me miraba en el espejo. Mi mamá me vio y me dijo una palabra fuerte, del tamaño así, y me lo sacó. Después me abrazó pero con esa cosa rara de los papás, que sos amor pero también sos miedo. Me explicó que eso no se tocaba, que era trabajo de ella, que había que respetar. Eso me quedó grabado."
+  ],
+  [
+   "CA3",
+   "Mi papá estaba en las viñas desde que amanecía. Una vez me llevó con él, tendría unos cinco años, y me mostró las plantas, las uvas cómo crecían. Él iba entre las hileras cortando, supervisando, hablando con los peones. A mí me daba un poco de miedo verlo tan ocupado, tan lejos, tan del otro lado de lo que yo conocía. La viña era enorme, no parecía que fuera de mi papá, parecía como que él le pertenecía a ella."
+  ],
+  [
+   "CA6",
+   "Ay sí, claro, tres hermanos varones, todos mayores que yo. Eran la calamidad esos tres. Yo estaba todo el tiempo detrás de ellos queriendo hacer lo que hacían, y me dejaban a veces, a veces no. Con el del medio, que se llamaba Roque, eras muy cercana. Él me llevaba a escondidas a los lugarejos cerca de la viña, lugares donde no debía ir la nena de la casa. Nos metíamos en los pozos de agua, en las estructuras viejas, saltos de altura, cosas de chicos. Él me decía, no le digas a mamá, y yo le prometía. Una vez casi me caigo en un barranco y Roque me atrapó de la mano, me levantó como si nada. Ese día mi mamá se enteró de todas formas y fue un caos, pero Roque se comió todos los gritos para que yo no me asustara más."
+  ],
+  [
+   "CA16",
+   "La Navidad era lo máximo. Mi mamá y mis tías se pasaban las semanas antes cosiendo ropa nueva para toda la familia, el olor a tela fresca y almidonada en la casa. Mi papá traía del casco de la viña las mejores botellas, porque claro, para Navidad el vino tenía que ser especial. Mis hermanos y yo contábamos los días. Una Navidad en particular, tendría yo unos ocho o nueve años, vino toda la familia extendida a la casa, abuelos, tíos, primos, parecía que explotaba la casa. Mi abuela hizo una cosa de comida, empanadas hasta el cielo, cazuela, lo que fuera. Yo recuerdo estar a los pies de mi papá, mirándolo así como en éxtasis, porque ese día él estaba de la viña y estaba para nosotros. Era raro, viste, tenerlo ahí."
+  ],
+  [
+   "CA17",
+   "Sí, hay algo. Mi papá tenía alguien más, en las viñas. Una mujer, viste, una cosa que pasaba cuando una era chica y los grandes creían que uno no se daba cuenta. Mi mamá lo sabía, yo lo sabía, todos lo sabían. Y era raro, porque mi papá seguía viniendo a casa, seguía siendo mi papá, pero había algo roto adentro. Yo recuerdo estar en la cocina con mi mamá a los diez, once años, y ella lloraba mientras planchaba. No me pidió que no mirara, no me ocultó nada. Lloró nada más. Eso me dio una cosa así, de no entender por qué los adultos se hacían daño entre ellos. Pero eso quedó ahí, adentro. No era lo peor que pasaba en otras casas, yo lo sabía, pero igual duele."
+  ],
+  [
+   "CI2",
+   "⟦botón:No, está todo⟧"
+  ],
+  [
+   "ES1",
+   "Mi mamá me llevó de la mano, me compró una mochila nueva de color rojo. Yo tenía miedo, lloraba un poco, pero mi mamá me dijo, vos sos fuerte, vos podés con esto. Se fue, y yo me quedé ahí con una maestra que era muy seria. Recuerdo llorar después de que ella se fue, y una compañera me ofreció una caramelo. Eso fue. Al otro día no quería ir, pero al tercero ya estaba normal. La escuela fue fácil para mí, sacaba buenas notas."
+  ],
+  [
+   "ES2",
+   "Sí, don Roberto. Maravilloso ese hombre. Era maestro de naturales en el cuarto o quinto, no me acuerdo bien. Hacía que los chicos salieran al patio, que vieran las plantas, el cielo, que hicieran preguntas. Una vez me quedé mirando una mariposa y él vino y me explicó toda la historia, metamorfosis y esas cosas que para una chica de diez años eran brujería. Pero me escuchaba, viste, te miraba a los ojos. Una vez en clase le pregunta a un chico, que era un poco bobo, ¿cómo se llama eso?, y el chico no sabía. Don Roberto le dijo, no importa que no sepas, lo importante es que quieras saber. Eso me quedó."
+  ],
+  [
+   "ES5",
+   "Mariana, se llamaba. La conocí en tercer grado, nos sentaban una al lado de la otra en el banco. Nos pasábamos notitas toda la clase, cosas de chicas, qué le parecía tal chico, esas boludeces. Después de la escuela nos íbamos las dos al río que pasaba cerca de Mendoza y nos metíamos en el agua hasta las rodillas, con los uniformes y todo, mojándonos como tontas. Mariana desapareció cuando yo tendría unos doce años, se fue con la familia a Buenos Aires. Nos escribimos cartas un tiempo, después se cortó. Eso duele siempre, ¿viste?"
+  ],
+  [
+   "ES6",
+   "Ay, qué cosa. Una vez, debe haber sido en quinto grado, mi hermano Roque y yo nos metimos en la bodega de mi papá, que estaba prohibido total. Agarramos una botella de vino que estaba ahí, la destapamos y probamos. Era amargo de la patada, pero hicimos que nos encantaba. Nos emborrachamos como cretinas, salimos de ahí caminando como autómatas. Mi mamá me vio inmediatamente, me dijo algo así como maldita, y Roque fue a parar al corral con un alambique a que le enseñaran modales. Yo me encerré en el cuarto, mi papá vino a hablar conmigo, no gritó, nada más me miró, y eso fue mil veces peor. No volví a tocar eso en años."
+  ],
+  [
+   "ES7",
+   "Yo quería ser actriz. No sé de dónde me vino exactamente, pero recuerdo estar viendo una película en una sala de Mendoza, tendría yo unos trece, catorce años, y la chica de la pantalla estaba cantando, bailando, diciéndole cosas bonitas a la cámara, y yo pensé, eso es. Eso quiero hacer. Además, en Mendoza en esos años había teatro, grupos de teatro, y yo empecé a fufurulear por ahí, a ir a ver funciones. Me enloqueció. La idea de ser otra persona, de contar historias en un escenario, de que la gente te mire, eso era libertad para mí, en Mendoza que era tan chiquito, tan apretado. A los diecinueve me arranqué a Buenos Aires a estudiar, sin decirle mucho a mi papá, bueno, con permiso pero casi sin permiso. Fue lo mejor que hice en la vida, aunque después no terminé la carrera, que bueno, eso es otra historia."
+  ],
+  [
+   "ES9",
+   "Mi primera comunión. Fue una cosa grande, toda la familia. Me compraron un vestido blanco que parecía de novia, con un velo, un misalito, el cordón. Mi mamá estaba feliz, mi papá también, me acuerdo de verlos a los dos sentados en el banco de la iglesia, sonriendo. Mi abuela lloraba de emoción. Después fue una comida en casa, toda la familia, champagne, y yo andaba en el medio de todo como una princesa. Eso fue lindo. Después la religión siguió ahí, viste, la iglesia, los domingos, pero nunca fue una cosa así, tan marcada. Era más bien una costumbre."
+  ],
+  [
+   "CI3",
+   "Sí, hay algo. Mis hermanos se fueron antes que yo, uno después del otro. Yo me quedé con mis papás, que para esa edad, viste, era raro. Ellos se fueron a la capital, a Buenos Aires, a buscar mejor vida, trabajo. Yo me sentía abandonada, pero también entendía, para qué iban a quedarse en Mendoza si no había futuro. Recuerdo llorar en mi cama cuando mi hermano mayor se fue, sentir que me dejaban sola en ese lugar tan chiquito. Eso aceleró que yo me fuera también, que me arranque a los diecinueve como te conté. No podía estar sola ahí."
+  ],
+  [
+   "AD2",
+   "Estaba en la escuela, en lo que llamaban entonces el liceo, la secundaria. Iba a clase, venía, estudiaba lo que podía. Pero también andaba en el grupo de teatro que decía, iba a los ensayos, hacíamos funciones. Eso era mi vida. A los catorce o quince conocí a Beto, mi primer amor. Nos vimos en un ensayo, él estaba ahí por amigos, yo estaba ahí porque era mi vida. Él me miraba durante los ensayos y yo fingía que no me daba cuenta, pero me daba cuenta. Una tarde fuimos al río, los dos solos, y nos besamos. Fue lo más hermoso del mundo, viste, ese primer beso. La boca, el río, el cielo. Todo fue hermoso. Eso fue Beto, Mendoza, esos años."
+  ],
+  [
+   "AD3",
+   "Sí, me juntaba con las chicas del grupo de teatro. Éramos como cinco o seis, todas locos por lo mismo, por subirse a un escenario, por contar historias. Una noche, tendría yo unos dieciséis, nos fugamos todas del cine porque una función de teatro en un galpón. Dijimos que íbamos al cine y nos fuimos a ver a dos actores que eran conocidos por ahí. Fue una cosa de mala calidad, viste, pero para nosotras fue el Colón. Después salimos a la calle a las once de la noche, que para chicas de Mendoza eso era como escapar de una cárcel, y hablamos de la vida, de que nos íbamos a ir a Buenos Aires todas juntas a triunfar. Éramos tan ingenuas, tan esperanzadas."
+  ],
+  [
+   "AD5",
+   "Un baile en un club de Mendoza. Mi mamá me dejó, pero con Beto de carabina, viste, como si eso sirviera. Yo me puse un vestido que mi mamá me cosió, me acuerdo que era color fucsia, con unos zapatos negros que me los pedí especialmente. Mi mamá me maquillaba poco, me hizo un rulo en el pelo. Fui con Beto. Ahí, en el baile, bailamos toda la noche, el merengue, la cumbia, él me apretaba por la cintura, yo sentía que volaba. Mi mamá nos vino a buscar a las once, y yo salía del baile como si saliera de un sueño. Beto me besó antes de bajarme del auto, mi mamá fingió que no veía. Eso fue hermoso. Los bailes después fueron cosa normal, pero ese primero, no."
+  ],
+  [
+   "AD6",
+   "Beto, como te conté. Nos conocimos en el grupo de teatro, él no era del grupo pero era amigo de uno de los chicos. Beto era guitarrista, músico de verdad, tenía las manos grandes, callosas. Era raro, silencioso, pero cuando hablaba decía cosas hermosas. Nos vimos todos los días durante un año, dos años. Una noche, debe haber sido en invierno porque hacía frío, nos fuimos al borde de la ciudad, a un lugar donde se veía toda Mendoza de noche con las luces. Él llevaba su guitarra y tocó para mí un tema que había hecho. Yo lloré, sin exagerar. Me pidió que nos casáramos, en ese momento, ahí. Yo le dije que sí, aunque era muy chica, aunque no teníamos nada. Eso fue Beto. Después se vino Buenos Aires y los años y las otras personas, pero eso que pasó en Mendoza, eso es para siempre."
+  ],
+  [
+   "AD12",
+   "Cuando decidí irme a Buenos Aires a los diecinueve. Fue mío, de nadie más. Mi papá no quería, mis hermanos me decían que estaba loca, mis amigas del teatro decían que me acompañaban pero ninguna se animaba. Yo guardé plata, trabajé donde pude, y una mañana agarré una bolsa y me subí a un colectivo. Recuerdo estar sentada en ese colectivo mirando Mendoza desaparecer por la ventana y pensar, no vuelvo. Algo adentro me dijo, vos de acá no te vas a ningún lado si te quedás. Eso fue una cosa de adulta, de decir, yo sé lo que quiero y voy a ir. Años después pasaría de todo, pero eso, esa decisión, eso fue solo mío."
+  ],
+  [
+   "AD15",
+   "Sí, hay algo. Beto se me fue. Se fue con su familia a Córdoba, yo me quedé. Tenía yo diecisiete años, él diecinueve. Fue la cosa más dura que había sentido hasta ese momento, porque yo creía que nos casábamos, que nos íbamos juntos a Buenos Aires. Pero no. Se fue y punto. Fue como que me cortaron una mitad. Estuve varios meses en la cama, medio deprimida, mi mamá preocupada. Recuerdo llorar en el río donde nos besábamos la primera vez, gritando su nombre como una boluda. No volvió. Nos escribimos cartas un tiempo, después nada. Fue mi primer desamor."
+  ],
+  [
+   "CI4",
+   "⟦botón:No, está todo⟧"
+  ],
+  [
+   "JU1",
+   "A los diecinueve me fui a Buenos Aires. Fue una mañana de mediados de los setenta, me acuerdo que hacía frío. Mi papá no me quería dejar ir, pero mi mamá le dijo, déjala que se vaya, que se la lleve el tren si quiere. Agarré una bolsa con ropa, un dinero que había juntado trabajando, y me fui en colectivo. Mi papá me llevó a la estación, no hablamos en el viaje. Cuando me iba a subir, él me abrazó fuerte, me dijo, cuidate, hija. Eso fue todo. Yo nunca más viví en la casa de mis viejos. Llegué a Buenos Aires sin nada, sin conocer a nadie. Dormi en una pensión los primeros meses, después en un conventillo, después empecé a trabajar y a vivir. Buenos Aires me tragó y yo me dejé tragar feliz. Fue lo mejor que hice, aunque fuera difícil."
+  ],
+  [
+   "JU2",
+   "Estudié teatro en Buenos Aires. Entré a una escuela de teatro, estaba feliz, creía que era eso. Pero al tiempo me di cuenta que no era para mí, o que no tenía pasta, o que simplemente se me acabó la plata. Dejé la escuela después de un par de años y empecé a trabajar. Vendedora, secretaria, cualquier cosa que me diera de comer. Un día una amiga me presentó a Raúl, que era músico, y con él empezó todo. Nos enamoramos, nos casamos, tuvimos hijos. El teatro quedó ahí, atrás. A veces siento que dejé algo importante sin terminar, pero bueno, la vida no siempre es como uno quiere."
+  ],
+  [
+   "JU4",
+   "Mi boutique en Palermo. Eso fue mío, de verdad. Yo aprendí a coser con mi mamá de chica, mientras ella hacía ropa para gente importante en Mendoza. Cuando llegué a Buenos Aires vendía ropa, trabajaba en tiendas. Y una vez, una amiga me pidió que le hiciera un vestido, que ella no tenía plata para que la costurera se lo hiciera. Yo le hice un vestido hermoso. Ella lo mostró por ahí y me empezaron a venir encargos. De ahí empecé a alquilar un local en Palermo, un lugar chiquito, y armé mi negocio. Llegué a tener clientela, mujeres lindas, gente de plata, que querían que les hiciera cosas especiales. Fue mi independencia, viste, mi propio dinero, mis propias decisiones. Eso fue importante. La boutique estuvo abierta unos quince años, después la cerré."
+  ],
+  [
+   "JU5",
+   "No, yo era mujer, así que eso no. Pero la escuela en Mendoza era medio marcial, viste, las monjas, el uniforme, el orden. En la escuela de teatro en Buenos Aires también había reglas, horarios, se te exigía. Y en la boutique, bueno, me autoexigía. Pero nada de mili. Supongo que mis hijos varones pasaron por eso, pero yo no."
+  ],
+  [
+   "JU8",
+   "⟦botón:Sí, me mudé⟧ Llegué a Buenos Aires a los diecinueve sin nada. Dormí la primera noche en la estación central, sentada en una banca, con miedo, con frío. Al otro día encontré una pensión por ahí, un lugar espantoso, pero era lo que podía pagar. La madrona era una vieja francesa que alquilaba cuartos a estudiantes. Yo compartía baño con otros cinco, había cucarachas. Lo que más me costó fue la soledad. No conocía a nadie, nadie me esperaba, no tenía teléfono, no había celulares como ahora. Me sentía muy pequeña en esa ciudad grande. Pero al tiempo empecé a encontrar gente, a trabajar, a hacer amigos en la escuela de teatro. Buenos Aires me acogió, aunque tardó un tiempo."
+  ],
+  [
+   "JU12",
+   "Después de la pensión me fui a un conventillo en San Telmo, un lugar de antes, viejo. Ahí tenía un cuartito de verdad, mío. No es que fuera hermoso, pero era mío. Tenía una cama, una silla, una ventana que daba a un patio interior donde había tendederas. La primera noche ahí lloré de felicidad, viste, de tener un espacio. Empecé a arreglarlo poco a poco, con lo que encontraba. Después, cuando empecé a trabajar en la boutique, me mudé a un departamento en Palermo, cerca del local. Ese departamento fue importante, porque ahí vivía sola, verdaderamente sola, y podía hacer lo que quería. No había nadie que me dijera qué hacer. Fue libertad completa."
+  ],
+  [
+   "JU15",
+   "En la escuela de teatro conocí a gente hermosa, apasionada. Había una chica, Miriam, que era mi mejor amiga. Nos juntábamos en un bar en San Telmo, tomábamos café o vino barato, y hablábamos de la vida, de arte, de hombres, de sueños. Había un grupo de cinco o seis de nosotras que íbamos a ver todas las funciones de teatro que podíamos, aunque tuviéramos poco dinero. Comprábamos entrada barata, nos sentábamos en las últimas filas, pero veíamos. Recuerdo una noche que vimos una obra revolucionaria para la época, todos aplaudíamos de pie, gritando. Éramos tan entusiastas. Después, cuando dejé la escuela, los amigos se fueron dispersando. Miriam se casó, otros se fueron del país. La amistad de esos años fue lo más puro que tuve."
+  ],
+  [
+   "JU17",
+   "Miriam, mi mejor amiga, se enamoró de un hombre que no valía. Ella lo quería, de verdad, pero él era infiel, la maltrataba. Yo le decía, Miriam, dejalo, vale más que eso. Pero ella no me escuchaba. Una vez la encontré en el bar llorando, con un cardenal en el brazo que ella decía que se lo había hecho ella misma. Yo supe que era mentira. Eso me marcó porque no pude hacer nada. Después ella se casó con ese tipo y se alejó de mí. Nunca más nos vimos bien. Supe años después que tuvo hijos con él, que finalmente se separaron. Pero eso que pasó en nuestros veinte, eso de verla sufrir y no poder hacer nada, eso quedó. Me enseñó que el amor puede ser una cárcel."
+  ],
+  [
+   "CI5",
+   "⟦botón:No, está todo⟧"
+  ],
+  [
+   "AM0",
+   "⟦botón:Sí, hubo⟧ Ay, te tengo que contar. Tres matrimonios, viste. El primero fue en el 77, con Raúl, un músico hermoso, caótico. Estuvimos juntos siete años, tuvimos dos hijos, Julián en el 78 y Paula en el 80. Pero Raúl me engañaba, eso me destruyó. Nos separamos. Después, en el 86, me casé con Eduardo, un contador, un tipo ordenado, serio. Tuvimos un hijo, Federico. Estuvimos juntos hasta el 95, pero no funcionó, se acabó. Y después, en el 2005, con Alberto, que era viudo, que era un amor diferente, más tranquilo. Él murió en el 2019, eso sí fue duro. Así que tres matrimonios, tres hijos. Y mientras tanto, parejas cortas, un pintor uruguayo, un profesor de tango. Mucho corazón, mucha entrega, pero las historias se rompieron. Eso es lo que es la vida, supongo."
+  ],
+  [
+   "AM1",
+   "Me lo presentó una amiga, de la escuela de teatro. Raúl tocaba en una banda, era músico, guapo, carismático. Mi amiga nos presentó en un bar, y él tenía ese carisma de los músicos, viste, eso que te seduce. Fue en el 76, yo tendría veintiuno. Lo primero que me llamó la atención fue su seguridad, la forma en que hablaba de la música, como si todo lo demás no existiera. Tenía una guitarra que llevaba a todos lados. Nos miramos a los ojos esa noche y hubo algo, una conexión. Empezamos a salir, nos enamoramos rápido. Al año siguiente nos casamos. Fue apasionado, viste, los dos jóvenes, sin dinero, pero con muchas ganas. Nos fuimos a vivir a un departamento chiquito en San Telmo."
+  ],
+  [
+   "AM3",
+   "Sí, nos casamos. Fue rápido, yo tenía veintiuno, él veinticuatro. Mi mamá no quería, decía que era muy rápido, pero yo estaba empecinada. Raúl me pidió que me case en una madrugada, estábamos en la cama, me lo dice así, de repente, querés casarte conmigo? Yo le dije que sí al toque. La boda fue simple, en un juzgado, con amigos. Después la fiesta en un bar. Fue hermoso, viste, de esos momentos que te quedan para siempre. Después nos fuimos a vivir juntos, al departamento en San Telmo. Ahí nació Julián, en el 78, e ahí empezó el caos, porque Raúl empezó a desaparecer, a andar con otras mujeres. Pero ese momento de la propuesta, eso fue hermoso."
+  ],
+  [
+   "AM4",
+   "El día que nos casamos fue en mayo del 77, hacía calor. Me puse un vestido blanco que no era de novia, era un vestido que me había hecho mi mamá, más simple. Raúl tenía un traje gris que le quedaba hermoso. Fuimos los dos al juzgado, con un par de testigos, amigos. El juez nos casó en un cuarto chiquito, gris, nada de lujo. Pero cuando salimos del juzgado, toda la gente que estaba esperando nos abrazó, nos tiró arroz, fue lindo. Después fuimos a un bar en la Boca, tomamos champagne barato, comimos algo. Raúl toco la guitarra en el bar para toda la gente. Fue bohemio, fue nuestro. Esa noche nos fuimos a un hotel para estar solos, un hotelito de mala muerte, pero para nosotros fue un palacio. Recuerdo el olor de las sábanas nuevas, sus manos en mi cuerpo, su cara cuando me miraba. Eso fue."
+  ],
+  [
+   "AM13",
+   "Una vez, Raúl llegó a casa a las cuatro de la mañana, después de tocar en un boliche. Yo estaba furiosa, había estado esperándolo toda la noche, tenía miedo de que le hubiera pasado algo. Me encendí, le grité, le tiré la almohada, una cosa boluda. Él se rió de mí, eso me enojó más. Entonces agarré su guitarra y la acosté en la cama, le dije, si vos no querés estar conmigo, que esté ella. Él vio la guitarra ahí y se largó a reír, se disculpó, y nos terminamos yendo a la cama. Al otro día nos burlábamos del asunto. Eso era divertido cuando estábamos bien."
+  ],
+  [
+   "AM8",
+   "Un domingo, debe haber sido en el 79, después de que nació Julián. Raúl y yo llevamos al bebé a la costanera, al río. Era un día hermoso, de primavera, calor pero con viento. Raúl tenía su guitarra, claro, siempre la llevaba. Se sentó en el pasto, Julián dormía en un cochecito, y él tocó para nosotros. No era una canción que conociera, era algo que estaba inventando mientras tocaba, para mi hijo, para mí. Yo estaba llorando de felicidad, viste, porque en ese momento creía que era para siempre. Él me miraba mientras tocaba, con una dulzura que raramente le veía. En ese momento sentía que éramos una familia, que el mundo era solo eso. No sabía que años después me estaría engañando, que todo eso se iba a romper. Pero ese momento, eso fue puro."
+  ],
+  [
+   "AM9",
+   "⟦botón:Sí, hubo un final⟧ Se acabó cuando me enteré que tenía una amante. No fue de un día para el otro, fue un proceso. Yo empecé a verlo llegar tarde, a hueler diferente, sus manos diferentes. Una amiga mía me lo vio con otra mujer, en la boca. Cuando le pregunté, él lo negó, pero yo sabía. Empezamos a pelear, él decía que era culpa mía, que yo no lo comprendía, que el arte necesitaba libertad. Yo le dije, la libertad se acaba donde empieza el engaño. En el 84 nos separamos. Fue duro porque teníamos dos hijos, Julián de seis y Paula de cuatro. Mi corazón se partió en dos. Raúl se fue a vivir a otro lado, de vez en cuando veía a los chicos. Eso fue lo más duro de mi vida, hasta ese momento. Creí que no iba a sobrevivir."
+  ],
+  [
+   "AM19",
+   "Fue una lucha. Yo tenía que trabajar, cuidar a los dos chicos, no dormía. Mis amigas me ayudaban, mis padres mandaban dinero desde Mendoza. Fue la época en que trabajé de vendedora, de secretaria, de lo que fuera. Los chicos iban a la escuela, yo los llevaba, los recogía. A veces Raúl me pasaba algo para su manutención, pero era inconsistente. Yo en esa época empecé a trabajar más en la costura, porque podía hacerlo desde casa. Empecé a coser para gente conocida. Poco a poco me iba levantando. Los chicos crecían, me veían trabajar, esforzarme, yo creo que eso les enseñó algo. No fue fácil, pero salimos adelante. Fue la época también en la que empecé a pensar que tal vez el amor no era lo mío, que debería estar sola. Pero después llegó Eduardo."
+  ],
+  [
+   "AM16",
+   "⟦botón:Sí, hubo otro⟧ Sí, hubo varios. El segundo fue Eduardo, en el 86. Lo conocí en una fiesta, era contador, organizadísimo, lo opuesto a Raúl. Parecía lo perfecto, viste, un hombre que te cuidaba, que era responsable. Nos casamos, tuvimos a Federico en el 88. Pero Eduardo era demasiado controlador, quería que todo fuera como él decía. A los pocos años nos dimos cuenta que no funcionaba. En el 95 nos separamos. Después tuve un pintor uruguayo, hermoso pero infiel. Después un profesor de tango, eso fue corto. Y luego, en el 2005, conocí a Alberto, un viudo que era tranquilo, mayor que yo. Él fue mi gran amor, el que duró. Estuvimos juntos catorce años hasta que murió en el 2019. Fue el dolor más grande. Ahora tengo a Hugo, que es buen tipo, de mi edad, y estamos juntos pero cada uno en su casa. A los setenta no necesito que nadie me diga qué hacer."
+  ],
+  [
+   "AM20",
+   "⟦botón:Sí, hubo⟧ Sí. Después de Eduardo, estuve unos años de no estar con nadie, enfocada en los chicos y en la boutique. Pero después conocí al pintor uruguayo, se llamaba Martín. Nos conocimos en una galería de arte en Palermo. Él era un hombre hermoso, apasionado, pero infiel de verdad. Estuvimos como dos años, viajamos, pasamos cosas lindas, pero al final me enteré que estaba con otras. Me dolió pero no como con Raúl. Después salí con otro hombre, Diego, profesor de tango en un estudio cerca de la boutique. Nos veíamos, era divertido, pero no era serio. Eso duró unos meses. Entre todo eso, pasó el tiempo, y en el 2005 conocí a Alberto. Él fue diferente. No era pasional como Raúl, ni controlador como Eduardo. Era simplemente un buen hombre que me quería. Y yo lo quería. Eso fue lo mejor."
+  ],
+  [
+   "AM14",
+   "Beto, mi primer amor de Mendoza. Eso no duró en serio porque yo me fui a Buenos Aires y él se fue a Córdoba. Pero me marcó, viste, me marcó mucho. Fue el primer beso, el primer amor, eso que no se olvida. Después en Buenos Aires tuve gente, me enamoré varias veces, pero Beto fue especial. Fue lo puro de la adolescencia, sin maldad. Años después, cuando tenía cuarenta y pico, lo volví a ver en un viaje que hice a Mendoza. Nos cruzamos en la calle, nos reconocimos, nos besamos como locos ahí en el medio de la calle. Fue lindo, viste, volver a eso. Pero después cada uno siguió su camino. Él tenía su familia, yo tenía la mía. Pero ese momento de reencuentro, eso quedó."
+  ],
+  [
+   "CI6",
+   "Sí, hay algo. Todas estas historias de amor, viste, me enseñaron que el amor no es lo que dicen en las películas. El amor es trabajo, es compromiso, es a veces quedarse aunque duela, es a veces irse aunque duela. Muchas de mis amigas de Mendoza, del teatro, se casaron y se quedaron para siempre con el mismo hombre. Yo no pude. Yo necesité cambiar, explorar, conocer gente diferente. Tal vez eso fue un defecto, tal vez fue una virtud. Pero hoy, con Hugo, con mis setenta y uno años, no quiero vivir con nadie. Quiero mi casa, mis cosas, mis tiempos. Y eso está bien. Eso es lo que quería decir."
+  ],
+  [
+   "TR1",
+   "Trabajé de chica en Mendoza, ayudando en las vendimias con mi papá. Me pagaba poco, una moneda que yo agarraba así feliz. Lo primero que hice fue comprarme un listón para el pelo, que era lo que quería. Ya en Buenos Aires, lo primero que cobré fue vendiendo ropa en una tienda, eso fue en el 76. Me pagaban poco, pero lo suficiente para pagar la pensión. Esa plata la usé para ir a ver teatro, para comer algo mejor, para sentir que era mía, que podía decidir qué hacer con ella. Eso fue importante, tener dinero propio."
+  ],
+  [
+   "TR6",
+   "Bueno, empecé vendiendo en tiendas de ropa en los setenta. Después trabajé de secretaria en una oficina, aburrido pero necesario. En los ochenta, cuando me separé de Raúl, me dediqué más a la costura, a hacer ropa para gente que me lo pedía. Y después, en los noventa, armé mi propia boutique en Palermo, eso fue lo mío, viste, lo que me hizo sentir independiente. Estuve quince años con la boutique, hasta 2005, que la cerré porque estaba cansada y porque empecé a estar más con Alberto. Después pasé a hacer menos cosas, trabajar por encargos de costura. Ahora a los setenta casi no trabajo, vivo de lo que junté. Lo que más me quedó grabado fue la boutique, porque fue mío. Fue donde descubrí que podía tener éxito, que no necesitaba un hombre para tener dinero, independencia. Eso fue importante."
+  ],
+  [
+   "TR2",
+   "En la boutique me levantaba temprano, abría a las diez. Mi ayudante era una chica joven que hacía tareas de tienda. Yo atendía a las clientas, les mostraba piezas, tomaba medidas, conversaba. Muchas veces se quedaban horas conmigo, hablando de la vida, mientras les probaba cosas. Yo hacía los bocetos en el mostrador, hablaba con las costureras que iban a hacer las prendas. Cerraba a las ocho. Un día en particular, llegó una clienta importante, empresaria, que quería un vestido para una gala. Pasó toda la tarde conmigo, probándose cosas, hablando de cómo quería verse. Yo le hice un vestido hermoso, ella quedó feliz, me pagó bien. Al final del día, cuando cerré, me sentí como dueña de algo, como que valía la pena."
+  ],
+  [
+   "TR3",
+   "Mi mamá. Ella me enseñó a coser, me enseñó a apreciar la calidad, el trabajo hecho con amor. Ella me mostró que una mujer podía ganar dinero, que no necesitaba estar pegada a un marido. Una vez, siendo yo chica, vino una clienta importante de mi mamá, una señora de dinero, y mi mamá la atendía como a una reina, pero nunca se bajaba de quién era. Le mostraba el trabajo con orgullo. Después que se fue, le pregunté a mi mamá, ¿vos no tenés miedo de que se arrepienta? Y ella me dijo, nena, si vos hacés bien las cosas, si ponés amor en lo que hacés, la gente lo ve. Eso quedó conmigo. Eso es lo que intenté hacer en la boutique."
+  ],
+  [
+   "TR5",
+   "Una clienta me pidió que le hiciera un vestido muy complicado, con un tejido que era difícil de trabajar, con detalles que ella dibujó. Pasé semanas con eso, iba de noche a la boutique después de cerrar, cosía a mano los detalles. Cuando lo terminé, ella vino, se lo puso, y lloró. Me abrazó, me dijo que era exactamente lo que había visto en su mente. Después se fue a una fiesta importante con ese vestido y un chico que después fue su marido le dijo que se veía hermosa. Años después me lo contó, me dijo que ese vestido fue importante en su vida. Eso, viste, eso es de lo que estoy más orgullosa. No es que haya hecho millones de pesos, sino que hice algo que cambió algo en la vida de otra persona."
+  ],
+  [
+   "TR11",
+   "Sí, cuando me separé de Raúl. De la noche a la mañana quedé sola con dos chicos y sin saber qué iba a pasar. Tuve que dejar la escuela de teatro porque no podía mantenerla. Busqué trabajo urgente, cualquier cosa. Trabajé en restaurantes, limpié casas, cosas que me humillaban pero necesitaba hacerlo. Un día particular, me acuerdo que no tenía dinero ni para las cosas del colegio de los chicos. Fui a empeñar una pulsera que me había regalado mi abuela. Lloré en la casa de empeños, delante de la persona, sin poder evitarlo. Pero saqué el dinero, compré lo que necesitaban los chicos. Al día siguiente llamé a todos mis contactos, pedí trabajo de vendedora con desesperación. Y alguien me dio una oportunidad. De ahí fue subiendo. Pero eso, viste, eso no se olvida."
+  ],
+  [
+   "TR8",
+   "Ya te conté de la boutique, pero lo que no conté es de cómo empezó. Una amiga me dijo, vos podés hacerlo, alquilá un local. Yo no tenía plata, estaba asustada. Pero una tía me prestó dinero, me arries mí misma, y en el 90 abrí la puerta. Los primeros años fueron duros, la gente no sabía que existía. Pasé hambre, de nuevo. Pero poco a poco se corrió la voz. Las mujeres venían, se probaban, confiaban en mí. Fue creciendo. A los quince años de funcionamiento, decidí cerrar. Estaba cansada, quería vivir diferente. No me arrepiento. La boutique fue mi independencia, mi orgullo."
+  ],
+  [
+   "CS1",
+   "Cocinar. Yo soy charlatana, soy buena para estar con gente, para hacer que la gente se sienta cómoda. Pero cocinar, eso fue mío. Aprendí con mi mamá, claro, pero lo hice propio. Hago unas empanadas que son famosas en el barrio, mis nietos me las piden. Una vez hice una comida para los amigos de uno de mis hijos, mucha gente, y todos me decían, Chela, qué cosa más rica. Eso, viste, que alguien disfrute de algo que vos hiciste, que coma feliz, eso es importante. La comida es amor, es cuidar a la gente. Eso es lo que hago en la cocina."
+  ],
+  [
+   "CP1",
+   "Sí, en las viñas de Mendoza con mi papá. De chica iba a ayudar en la vendimia, que es cuando se cosechan las uvas. Un día entero ahí empieza al amanecer, oscuro todavía, y te vas entre las plantas. Hace calor de la patada, el sol quema. Cortás uva, la ponés en canastos. Al mediodía parás a comer algo rápido. Sigue el calor, sigue el trabajo. Algunos días llovía, aguaceros de esos que limpian el polvo. Una vez hubo una tormenta eléctrica fuerte, relámpagos, y todos corrimos a un galpón a esperar que pasara. Mi papá estaba tranquilo, como si nada. Para él eso era normal. Recuerdo estar adentro del galpón, mojada, asustada, y mi papá me pasaba la mano por la cabeza, como diciendo, esto es la vida, esto es el trabajo. Las viñas me enseñaron que la naturaleza manda, y vos tenés que hacer lo que podés."
+  ],
+  [
+   "TR9",
+   "Sí, dejé. El último día de la boutique fue en el 2005, ya lo sabía de antes. Pasé todo el día viendo gente, amigos, clientas que venían a despedirse. Lloré un poco, no puedo mentir. Guardé las cosas que tenía valor, ciertas telas, ciertos papeles. Me senté en la silla de la tienda, solo en el local, y me quedé ahí un rato, acordándome. Al otro día no fui. Me desperté sin saber qué hacer. No sé si fue melancolía o libertad. Supongo que fue un poco de las dos. Después empecé a cuidar a Alberto, a disfrutar de tener tiempo. Estuvo bien cerrar eso. No fue el fin del mundo, fue el comienzo de otra cosa."
+  ],
+  [
+   "CI7",
+   "⟦botón:No, está todo⟧"
+  ],
+  [
+   "PG1",
+   "Mi papá envejeció mal. En un momento dejó las viñas, no podía más. Se quedó en Mendoza con mi mamá, que también se puso vieja. Yo los visitaba cuando podía, pero no era fácil. Llegué una vez y noté que mi papá no reconocía bien. Eso me duró, viste, verlo así. Mi mamá lo cuidaba, estaban los dos viejos juntos, juntos toda la vida. Cuando enfermó mi papá, yo iba cada tanto, le llevaba comida, lo veía acostado. Murió cuando yo tendría unos cuarenta, cincuenta años. Mi mamá se quedó viuda, yo le pasaba dinero, le escribía cartas. Después ella se murió también. No fue fácil estar lejos durante eso, pero fue la vida que elegí."
+  ],
+  [
+   "HI0",
+   "⟦botón:Sí, tuve⟧ Tres hijos. Julián es el mayor, nació en el 78 con Raúl. Es abogado, serio, ordena, le cuesta la emoción. Paula nació en el 80, también con Raúl. Ella es más como yo, charlatana, sensible, artística. Es mamá de dos chicos, mis nietos. Después Federico, el más chiquito, nació en el 88 con Eduardo. Él tiene veinticuatro años, es diseñador gráfico, trabajador. Los tres me dieron alegrías y dolores. Julián se casó joven, Paula anduvo con varios chicos antes de encontrar al que es ahora. Federico todavía está soltero pero tiene una novia seria. Con Julián no es tan cercana, viste, él es más distante. Con Paula y Federico soy más cercana. Pero los tres me quieren, eso está claro."
+  ],
+  [
+   "HI2",
+   "Julián nació en el 78, en un hospital en Buenos Aires. Yo estaba joven, tenía veintitrés años. El trabajo de parto fue largo, doloroso, catorce horas. Raúl estaba en la sala de espera fumando, nervioso. Después de tanto tiempo, el doctor me dice, es un varón. No podía creer. Me lo pusieron en los brazos y el mundo se paró. Era rojo, arrugado, una cosa ajena pero mía. Lloré de todo: de cansancio, de alegría, de miedo de que algo le pasara. Raúl entró, vio al nene, lloraba él también. Fue el momento más importante de mi vida hasta ese entonces. Lo bañaron, lo trajeran chiquito como un regalo. Esa noche no dormí, lo miraba nada más, asegurandome que respiraba. Fue una cosa sagrada, viste."
+  ],
+  [
+   "HI3",
+   "Julián era serio desde chiquito, ordenadito. Ayudaba en casa, le gustaba las reglas. Paula era lo opuesto, salvaje, desobediente, me los hacía girar. Los dos se peleaban a muerte. Federico llegó cuando los otros tenían ya edad, así que fue distinto. Él observaba, aprendía de los otros, era más tranquilo. Una escena que me hace reír: Julián en una clase estaba disfrazado de dinosaurio para una obra, y Paula lo vio en la calle por casualidad, no sabía de la obra. Pensó que era un loco y le tiró todo lo que tenía en la mochila, lápices, cuadernos. Julián terminó el acto lleno de cosas. Después se enteró y durante años se lo recordaba. Era así, viste, ellos eran distintos pero se querían de esa manera rara de los hermanos."
+  ],
+  [
+   "HS1",
+   "Fue solo yo. Raúl andaba por ahí, musicalizando su vida. Mis papás mandaban dinero desde Mendoza. Yo trabajaba, los llevaba a la escuela, venía, preparaba la comida, ayudaba con las tareas. Fue caos. Un día en particular, me acuerdo que tenía que ir a una venta de ropa que había en una tienda para conseguir dinero, pero Julián se enfermó, tenía fiebre. No podía dejarlo solo. Llamé a una amiga, me hizo el favor de venir. Mientras esperaba a que llegara, estaba en la cocina haciendo té para el chico, llorando de frustración. Pero lo hice. Esa fue la vida, viste, estar dividida entre trabajar y cuidarlos. Pero salieron buenos, los dos mayores. Eso es lo que importa."
+  ],
+  [
+   "HI6",
+   "Una vez Julián recibió su diploma de abogado, eso fue grande. Yo estaba ahí sentada en la silla viendo a mi hijo, que yo había criado de chiquito sin su papá, recibiendo su diploma. Lloré de emoción. Paula cuando tuvo su primer hijo, eso fue emocionante. Yo estaba en la sala de partos con ella, la sostuve, lloramos las dos. Viste que ella era salvaje, pero resultó una mamá hermosa. Federico cuando me compró un regalo con su primer sueldo, un pañal para mí que costaba muy poco pero que había trabajado por eso. Me lo regaló así, solemne. Eso son cosas que hacen que todo lo que sufriste valga la pena. Ver a los hijos grandes, siendo gente de verdad, eso es lo mejor."
+  ],
+  [
+   "HI8",
+   "⟦botón:Sí, llegaron⟧ Sí, tengo cuatro. El primero fue el hijo de Paula. Recuerdo el día que la llamaron del hospital, que había llegado. Raúl estaba vivo todavía, me acuerdo eso. Yo salí corriendo del trabajo, agarré un taxi, llegué al hospital. Paula estaba en la cama, cansada pero feliz. El bebé estaba durmiendo. Cuando me lo dieron, fue otra vez eso que sentí cuando nació Julián, pero distinto. Porque ya no era responsabilidad mía, era alegría pura. Yo era abuela. No lo podía creer. Lo miré, era bien pequeñito. Le dije, qué rápido crecés. Ahora ese nene tiene veinte años. Los otros tres nietos llegaron después, de Paula y los demás. Cada uno fue una celebración."
+  ],
+  [
+   "HI9",
+   "Las empanadas. Cuando vienen los nietos, lo primero que hacemos es empanadas juntos. Yo hago la masa, ellos ayudan. Les enseño a amasar, a rellenar. Se ensucian todo, hacen un caos, pero es de nosotros. Después las freímos juntos y comemos calentitas, hablamos de sus cosas, de la escuela, de los amigos. Los nietos me vienen a ver y lo primero que dicen es, abuela, ¿hacemos empanadas? Eso es mío con ellos. Es comida, es tiempo juntos, es un ritual. Es lo que dejo."
+  ],
+  [
+   "CI8",
+   "Algo que no conté es que mi relación con Julián es complicada. Él tiene rencor por algunas cosas, por Raúl, por mi segunda relación. Nos vemos poco, hablamos menos. Paula es mi compañera, mi confidente. Federico está en el medio. Eso me duele, viste, que uno de mis hijos tenga esa distancia conmigo. He intentado acercarme pero es difícil. Espero que algún día nos sentemos a hablar de verdad, de las cosas que duelen. Pero eso está ahí pendiente, sin resolver."
+  ],
+  [
+   "LU4",
+   "Un viaje que fue importante fue cuando volví a Mendoza después de muchos años, con Alberto. Debe haber sido hace unos quince años, en invierno. Fui a reencontrarme con mi pasado, viste. Caminé por las calles donde crecí, fui a la escuela, pasé por la casa de Beto. Eso me hizo llorar. Un día en particular, Alberto y yo fuimos a las viñas de mi papá, que ya no eran de él, que las había vendido hace años. Caminamos entre las plantas, el mismo lugar donde yo trabajaba de chica. Fue como cerrar un círculo. Sentía que volvía a ser chica pero vieja al mismo tiempo. Alberto me abrazó y me dijo, qué hermosa eras acá. Eso fue muy importante, volver a Mendoza de la mano de alguien que me quería, no arrancada como cuando me fui."
+  ],
+  [
+   "PA1",
+   "El teatro. Nunca dejé de amarlo, aunque lo abandoné. De grande, cada tanto iba a ver obras en Buenos Aires. A veces me anotaba en talleres de teatro para adultos, iba un tiempo y después desaparecía. Un día entero que lo haya dedicado fue a los treinta y pico, me anotaba en un taller y pasaba la mañana haciendo ejercicios, improvisaciones, trabajando emociones. Después comía algo rápido, iba a la boutique, y por la noche volvía a pensar en lo que había visto en el taller. Fue una época donde sentía que el teatro estaba en mí, que nunca se fue. Pero después volví a dejarlo, porque la vida te reclama otras cosas. Eso es lo que lamento, viste, no haber seguido con eso que me apasionaba de chica."
+  ],
+  [
+   "CI9",
+   "⟦botón:No, está todo⟧"
+  ],
+  [
+   "AS1",
+   "Rosa. La conocí en la época de la boutique, ella venía a comprar ropa. Después de un tiempo nos quedamos charlando, hablando de la vida. Rosa había sido modelo, era viuda, tenía hijos, teníamos historias parecidas. Nos hicimos amigas del alma. Íbamos a cafés en Palermo, hablábamos de todo. Ella era mi confidente. Cuando murió Alberto, fue Rosa quien estuvo conmigo, quien me hizo pasar esos días, quien no me dejó sola. Una tarde en particular, después de la muerte de Alberto, estábamos en un café, y Rosa me tomó la mano sin decir nada. Y yo supe que estaba bien llorar, que estaba bien no estar bien. Eso fue amistad. Rosa murió hace tres años, y aún la extraño."
+  ],
+  [
+   "AY1",
+   "Cuando me separé de Raúl y casi me vuelvo loca. Una tía que vivía en Buenos Aires me dejó quedarme en su casa con los chicos durante un tiempo. Fue fundamental. Sin ella nos habríamos quebrado. Yo podía respirar un poco, los chicos tenían estabilidad. Después que salí adelante, cuando ella envejec ió, yo la cuidé. Le hice la comida, la acompañé a los médicos, estuve ahí. No fue lo mismo en dinero, pero fue en cuidado, en presencia. Eso es lo que hago ahora con mi tía que quedó viuda, cuando puedo."
+  ],
+  [
+   "AS9",
+   "Mis hijos, claro. Julián, Paula, Federico. Los nietos. Hugo, que es mi amor ahora. Uno o dos amigos, gente de verdad, no mucho. Alguien que me haya querido de verdad en la vida. Paula porque es mi compañera, es mi confidente. Julián porque aunque tengamos distancia, es mi hijo y lo quiero. Federico porque es joven y es esperanza. Los nietos porque son el futuro. Hugo porque después de todo, sigue siendo alguien que me quiere y yo lo quiero. Y falta, ¿viste? Falta Alberto. Falta Rosa. Pero no puedo invitarlos. Ellos estarían sentados aunque no estén. La cena sería de gente que pasó, y gente que queda. Eso es."
+  ],
+  [
+   "CI10",
+   "Hay algo, sí. Una vez llegó a la boutique una chica joven, tendría veinte años, que no tenía dinero para un vestido para una fiesta importante. Yo le hice un vestido hermoso, y le dije que me lo pagara cuando pudiera. Tres meses después vino y me lo pagó, trayendo flores. Después años después me escribió, me contó que ese vestido fue importante en su vida, que conoció a alguien esa noche. Eso es gente que te aparece una sola vez pero que deja huella. Eso es bonito."
+  ],
+  [
+   "PE1",
+   "Alberto fue la más grande. Estuvimos juntos catorce años, fue mi amor maduro, el que llegó cuando yo ya conocía de todo. Cuando murió en el 2019, fue como que se apagó algo. Él tenía Alzheimer, estaba internado. Yo lo visitaba todos los días. Un día llegué y él ya no estaba. No pude despedirme bien. Los días después fueron grises, todo me hacía pensar en él. Rosa me sostuvo esos días. Mis hijos también fueron importantes. Mi papá murió cuando yo tendría unos cincuenta, eso fue duro pero más lejano. Mi mamá murió después, la visitaba cuando podía, ella entendía. Lo que más me duele es no haber podido estar más tiempo con ellos al final. La vida te lleva y de repente se cierran capítulos."
+  ],
+  [
+   "PE5",
+   "A los sesenta me detectaron diabetes. Fue un golpe, porque creía que estaba sana. Tuve que cambiar la comida, el estilo de vida. Al principio lo llevé mal, me deprimía. Después hablé con mi doctora, ella me explicó que podía vivir normal con cuidados. Ahora tengo setenta y uno y estoy bien controlada. Fue una lección sobre la vejez, viste. El cuerpo empieza a fallar, a pedirte cosas. Ahora cuido lo que como, aunque me duela porque la comida es lo que amo. Mis hijos me obligaban a cuidarme, Paula especialmente. Eso está ahí, es parte de vivir a esta edad. Pero sigo de pie, sigo cocinando, sigo viviendo."
+  ],
+  [
+   "PE4",
+   "⟦botón:Paso esta⟧"
+  ],
+  [
+   "CI11",
+   "⟦botón:No, está todo⟧"
+  ],
+  [
+   "HG1",
+   "El golpe del 76 en Argentina. Eso cambió todo. Yo estaba en Buenos Aires, acababa de casarme con Raúl, tenía a Julián recién nacido. De repente todo se cerró, había militares en las calles, desaparecidos, miedo en el aire. Yo me encerraba en la casa, tenía miedo de salir, miedo de que me pasara algo a mis hijos. Raúl no andaba, decía que había que cuidarse. Fue un tiempo oscuro, viste, donde la música, el arte, todo se apagó. Después vino el Mundial 78, eso fue un respiro, la gente salía a la calle, Argentina ganaba. Yo vía los partidos en una casa, lloraba de emoción, era como que la gente respiraba un poco. Pero después volvía el miedo. Eso marcó mi vida, esos años de dictadura. No se olvidan."
+  ],
+  [
+   "HG4",
+   "Un día en mayo del 2020, todo cerrado, la pandemia. Yo estaba encerrada en mi casa, fue un día gris, depresivo. Como que no sabía qué hacer. Había dejado a mis hijos, veía las noticias que eran malas. Decidí hacer empanadas aunque no viniera nadie. Pasé el día haciendo la masa, rellenando, como si estuviera de costumbre con los nietos aunque no estaban. Cocté para nadie. Después me senté en la ventana a comer empanadas sola, mirando a la calle vacía de Buenos Aires. Las calles que estaban llenas de gente estaban vacías, como si el mundo se hubiera detenido. Ese día lloré un poco, creo. Fue el primer día que realmente sentí la soledad, la vejez, todo eso que normalemente te distraés. La pandemia te saca las distracciones y te deja solo con vos."
+  ],
+  [
+   "DE1",
+   "Divorciarse. Cuando me separé de Raúl, eso fue una vergüenza. La gente hablaba, decía que yo era mala madre, que abandonaba a mis hijos. Mi mamá lloraba, decía qué van a decir en el pueblo. Mis amigas algunas me apartaban, como si fuera contagioso. Hoy divorcio es normal, es lo natural. Pero en los ochenta, cuando yo lo viví, fue algo que cargaste con vergüenza. Yo no lo veía así, para mí era importante irme con un hombre que no me quería o que no me trataba bien. Pero la sociedad no veía eso. Ahora mis nietas pueden hacer lo que quieran, y es normal. Eso me alegra, viste, que las mujeres de hoy tengan libertades que yo no tuve."
+  ],
+  [
+   "FI7",
+   "La política es algo que me pasó por encima. Durante la dictadura tuve miedo, eso es política. Después he votado, he tenido opiniones, pero nunca me metí en activismo. Soy de dejarme llevar un poco, de sobrevivir nomás. Creo que es importante votar, que la gente se meta en la política, pero a mí me costó mucho. Durante el 76 veía a gente que desaparecía, que sus familias salían a buscarlos. Eso es política pero de verdad, cuando te afecta la vida. Hoy pienso que el país está un caos, que la gente sufre, pero no sé si tengo energía para cambiar nada. Soy vieja, simplemente quiero vivir tranquila."
+  ],
+  [
+   "CI12",
+   "⟦botón:No, está todo⟧"
+  ],
+  [
+   "GI1",
+   "El día que abría la boutique. Fue en el 90, un sábado. Yo estaba ahí con mi tía que me prestó dinero, y con una amiga que me ayudó. Las paredes estaban pintadas de color crema, había un espejo grande, una luz que daba calor. Yo abrí la puerta a las diez de la mañana. Recuerdo el olor de la madera nueva, de la pintura fresca. Me senté en una silla y lloré. Mi tía me abraza, me dice, lo hiciste, lo hiciste. Ese día nadie entró a comprar, pero no importaba. Fue el día que sentí que era mía, que había logrado algo sin depender de un hombre, sin que me lo diera. Sí, viviría ese día mil veces. Ese fue un click. Fue libertad completa."
+  ],
+  [
+   "GI2",
+   "El día que descubrí que Raúl me engañaba. Arrancó normal, me desperté con él durmiendo. Fue un martes, creo. Raúl se levantó, dijo que iba a ensayar con la banda, se fue. Yo acompañé a los chicos a la escuela, volví, estaba haciendo cosas de la casa. Sonó el teléfono, me llamaba una amiga que andaba en la boca. Me dice, Chela, vi a Raúl ayer en la boca con una mina. Yo en ese momento me quedé fría. Colgué, me senté en la cama. No podía moverme. Esa tarde cuando Raúl llegó, lo miré y simplemente no era más mi Raúl, era otro hombre. Le pregunté y negó todo. Pero yo sabía. Esa noche durmió en otro lado. Y de ahí todo fue distinto, la casa cambió, mis hijos lo sintieron. Ese día de martes fue el último día que creí en mi matrimonio con Raúl. Nunca más volvió a ser igual."
+  ],
+  [
+   "HJ1",
+   "El teatro. Hace unos años, debe haber sido en el 2010, vi una obra de una compañía de teatro de Buenos Aires. Yo estaba sentada viendo a las actrices, jóvenes, bellas, viviendo el sueño que yo no pude vivir. Y en ese momento sentí que eso se había cerrado para mí. Que yo tenía sesenta y cinco años, que tenía arrugas, que mi cuerpo no era lo que era. Salí del teatro llorando. Fue el momento en que acepté que eso no iba a pasar. Que la vida me llevó por otro lado, que la boutique fue mi arte, pero que el teatro nunca fue completamente mío. Eso duele aún hoy."
+  ],
+  [
+   "GI9",
+   "Cuando volví a Mendoza con Alberto, subimos a un cerro que pasaba cerca. Era una noche clara, sin luz artificial. Las estrellas estaban todas ahí, la vía láctea entera. Yo nunca había visto así el cielo. Me senté y lloré. Alberto me sostenía. Sentí que yo era un puntito, que todo lo que me había pasado, todos mis problemas, mis amores, mis hijos, era un puntito en eso enorme. Y fue tranquilizador. Me hizo sentir que no era tan importante todo lo que yo creía que era importante. Que la vida era más grande que mis dramas. Eso me cambió algo. Desde ese momento trato de acordarme de ese cielo cuando me ansietan las cosas."
+  ],
+  [
+   "FI1",
+   "La soledad. Ahora es buena. Yo vivo sola en mi departamento en Buenos Aires. Mi rutina es despertar, tomar café, limpiar un poco, cocinar para mí. A veces vengo una amiga, mis nietos vienen. Pero hay momentos donde estoy sola, completamente sola, y eso no me molesta. Antes me asustaba. Cuando era joven y estaba sola, sentía que algo faltaba. Ahora entiendo que necesito ese tiempo para mí. Un día en particular, hace poco, un viernes a la tarde, estaba cosiendo algo, una tela hermosa. Mientras cosía miraba a la calle por la ventana, el movimiento de Buenos Aires. Y sentí una paz rara. No necesitaba nada ni a nadie en ese momento. Solo la aguja, la tela, mi mano. Eso es soledad, pero es buena."
+  ],
+  [
+   "FI2",
+   "Un día en el colectivo de Buenos Aires. Estaba de pie, cansada. Un chico joven, debe haber tenido dieciséis años, se levantó de su asiento y me dijo, abuela, sentese. Abuela. Yo me quedé helada. No pido que me ofrezcan asiento, pero que me llame abuela, eso me pegoó. Me senté sin decir nada. Miré mi reflejo en la ventana del colectivo, y vi a una vieja. Las arrugas, el pelo gris, las manos flacas. En ese momento el tiempo se hizo presente. No fue malo, fue un click de realidad. Ahora tengo setenta y uno, estoy bien con eso, pero ese día en el colectivo fue cuando entendí que ya no soy joven. Y que está bien."
+  ],
+  [
+   "FI3",
+   "Mi mamá era charlatana, como yo. Yo recuerdo verla en las tiendas con sus clientes, hablando, haciendo chistes. Ella vendía su trabajo con historias, no solo con la calidad. Eso lo heredé. Cuando tenía la boutique, yo vendía historias, le contaba a las mujeres cómo se iban a ver, les hablaba de sus vidas. Eso venía de mi mamá. Una vez, una clienta me dijo, vos sos como tu mamá, te das cuenta en la forma de contar las cosas. Ese día sentí que ahí estaba mi mamá en mí, en esa forma de relacionarme con las personas. Mi papá me heredó la fortaleza, esa cosa de aguantar lo difícil sin quejarse. Mi mamá, la calidez. Eso soy yo."
+  ],
+  [
+   "FI4",
+   "De joven me importaba mucho. Cuando me separé de Raúl me importaba lo que la gente decía, sentía vergüenza. Cuando tuve a la boutique me obsesionaba que los clientes estuvieran felices, que pensaran bien de mí. Ahora, a los setenta y uno, me importa cada vez menos. Soy lo que soy. Una vez, hace poco, estaba en un café con Hugo y una conocida nos vio y después alguien me preguntó quién era. Yo simplemente dije, es mi novio. No me importó lo que pensaban. Cuando era joven eso me hubiera importado. Ahora entiendo que la vida es corta y que no puedo estar pendiente de lo que los demás piensan todo el tiempo. Eso es una libertad que te da la edad, viste."
+  ],
+  [
+   "FI6",
+   "El mundo va a estar lleno de máquinas, ya lo veo. La gente va a estar conectada a aparatos y va a perder el tiempo que pasaban los unos con los otros. Lo que me gustaría que no se pierda es el sentido humano, la capacidad de estar con alguien sin pensar en otra cosa. De comer con un otro y mirar a los ojos. De hacer ropa a mano, de cocinar para alguien que amás. Esas cosas que hacen que la vida valga la pena. Mis nietos no saben coser, no saben hacer empanadas, no saben hablar con una persona mayor sin que haya un teléfono en el medio. Eso me asusta. Espero que en cien años sigan existiendo lugares donde la gente puede conectar de verdad."
+  ],
+  [
+   "CI13",
+   "Sí, hay algo. Cuando era joven no valoré estar con mis papás. Creía que tenía toda la vida para estar con ellos. Cuando murieron, fue tarde. Hubiera querido volver y pasar más tiempo. Tener más conversaciones. Preguntarles cosas. Ahora con mis nietos intento hacer eso diferente, aprovecho el tiempo. Y también intento decirles a mis hijos que los quiero, que la vida pasa rápido. Ese es mi aprendizaje."
+  ],
+  [
+   "HO1",
+   "Me despierto alrededor de las siete, naturalmente. Tomo café en mi cocina, viendo a Buenos Aires despertar por la ventana. Camino un rato, aunque sea por el departamento. Después hago cosas de la casa, limpio, ordeno. A las diez u once voy a comprar algo si necesito. Vuelvo, me siento, veo un poco la tele o leo. Alrededor de las dos hago la comida, siempre algo que me cueste hacer, porque cocinar es lo que amo. Como lentamente, sola o con alguien si vino. Por la tarde hago algo con mis manos, costura, bordado, lo que salga. A veces llama Paula o uno de los chicos. A las seis o siete como algo ligero. Por la noche veo tele, charlamos por teléfono con Hugo. A eso de las diez me voy a acostar. Leo un poco en la cama. Me duermo pensando en las cosas que pasaron, en la gente que quiero. Es una vida tranquila, viste. No es emocionante pero es mía."
+  ],
+  [
+   "HO2",
+   "Me reí hace poco con uno de mis nietos. Estábamos haciendo empanadas y el nene, que tiene catorce años, agarró un poco de masa y se la puso en la cara como si fuera una máscara. Yo reía y reía, no podía parar. Después Hugo vino a mi casa y le conté lo que había pasado y volvimos a reír. Me hace gracia la gente, las cosas absurdas que hace la gente cuando está cómoda. Las bromas de Paula que es igual de charlatana que yo. Los comentarios de una amiga que tiene un humor muy raro. Los videos que los nietos me muestran en el celular, aunque no entienda mucho. La vida tiene gracia si sabés verla. Eso es lo que intento hacer ahora, reír más."
+  ],
+  [
+   "HO5",
+   "La libertad. Poder estar sola cuando quiero, poder hacer lo que quiero. Poder invitar a quien quiero a comer, poder decir que no a algo que no me gusta. Un momento de esta semana fue cuando Paula vino con uno de sus chicos, y estuvimos haciendo empanadas los tres, riendo, hablando. Eso es lo que más me gusta. El tiempo con la gente que quiero, elegida. No obligatoria. Cuando era joven estaba tan ocupada en arreglar las cosas, en tratar de que funcionaran los matrimonios, que no disfrutaba de lo simple. Ahora disfruto. Eso es lo que más me gusta de la vida que tengo ahora."
+  ],
+  [
+   "CO1",
+   "Las empanadas. Me las enseñó mi mamá, las hago desde que tengo memoria. Pero las mías tienen mi toque, viste, un poco de comino, un poco de cilantro, carne bien picada. Una vez hice empanadas para la fiesta de jubilación de una profesora que era amiga de Paula. Hice cien empanadas. Al final de la fiesta, todos me pedían la receta. Una señora me dijo que parecía que ella las había hecho con amor en cada una. Eso fue lo que me gustó. No fue por ser buenas, sino porque la gente sentía que había algo ahí."
+  ],
+  [
+   "HO9",
+   "Vivo en un departamento en San Telmo, Buenos Aires. Llegué ahí hace algunos años, después de que Alberto murió. Necesitaba cambiar, necesitaba algo que fuera mío de verdad, no un lugar donde hubiera vivido con un hombre. Es un departamento de dos ambientes, viejo, con los pisos de madera que crujen. Tiene una cocina que da a un patio interno, y una ventana grande en la sala donde se ve el movimiento de la calle. Las paredes tienen fotos de mis hijos, mis nietos, Alberto. Hay una máquina de coser en un rincón, telas, cosas de costura. Es pequeño pero es mío. Un momento de estos días fue ayer, cuando tomé café en mi ventana, mirando la calle mojada porque había llovido. Los vendedores gritaban cosas, la gente pasaba. Sentí que ese departamento era lo que necesitaba, un lugar tranquilo en medio del caos de Buenos Aires."
+  ],
+  [
+   "CI14",
+   "Hay algo. Cada mañana, cuando me despierto, me tomo un momento para mirar el techo, para estar en silencio. No rezo, no soy religiosa de eso, pero es un momento de presencia. Después me levanto. Es algo que empecé a hacer después de que Alberto murió, como una forma de agradecer por estar viva un día más. Eso es mío, de nadie más."
+  ],
+  [
+   "LE1",
+   "La boutique. Eso fue mío completo. Yo sola, sin dinero, sin estudios formales, abrí un negocio y lo mantuve quince años. No fue grande, no hice millones, pero fue mío. Me da orgullo porque no dependí de un hombre para tenerlo. Mis papás murieron viendo que yo había logrado algo con mis manos. Mi mamá vino una vez a la boutique y lloró, me dijo que estaba orgullosa. Eso fue lo que me hizo saber que había logrado algo. Pero también mis hijos. Verlos crecer, siendo gente buena, con valores. Eso me da mucho más orgullo que la boutique. Que mis nietos me quieran, que vengan a mi casa. Que la gente recuerde mis empanadas, mis vestidos. Eso es lo que me da orgullo, dejar algo en las personas."
+  ],
+  [
+   "LE2",
+   "Que no pongan la vida de otros en sus propias decisiones. Cuando sos joven crees que tenés que hacer lo que los demás esperan. Que te cases, que tengas hijos, que estés con alguien. Yo lo hice, lo intenté. Y a veces funcionaba, a veces no. Pero lo importante fue que después aprendí a escucharme. Ahora estoy con Hugo porque quiero, no porque me lo pidió la sociedad. Eso es lo que les quiero decir a mis hijos y nietos: hagan lo que los hace felices, no lo que los demás esperan. Y si se equivocan, bueno, la vida es larga y hay tiempo para corregir. Eso que aprendí sufriendo, que no lo sufran ellos."
+  ],
+  [
+   "FU1",
+   "Una vez más, pasar un fin de semana con todos mis hijos y mis nietos, todos juntos. Estamos en una casa grande en el campo, fuera de Buenos Aires. Hacemos un asado, jugamos, los nietos corren, yo estoy en la cocina haciendo empanadas y mirando la vida que crecí. Mis hijos hablan sin celulares, sin distracciones. Vemos la puesta de sol juntos. Al anochecer nos sentamos alrededor de una mesa y yo cuento historias de cuando eran chicos. Todos ríen. Y después, cuando se va el sol, miramos el cielo de estrellas, como lo hice con Alberto en Mendoza. Es un momento simple pero es lo que quiero. Eso todavía lo quiero hacer."
+  ],
+  [
+   "LE7",
+   "Las manos de Chela. Porque para mí todo se resume en las manos. Mis manos cosiendo, haciendo empanadas, trabajando, acariciando a mis hijos, a mis nietos. Las manos de mi mamá enseñándome a coser. Las manos de Alberto sosteniendo la mía. Las manos en el trabajo, en el amor. Las manos que construyen la vida. Eso es lo que soy, las manos que hacen cosas."
+  ],
+  [
+   "FAM1",
+   "Paula. Ay. Mira, vos sabés que los tres matrimonios tuvieron cosas buenas. Pero si tengo que elegir, es Alberto. El tercero. Porque fue diferente, viste. Con Raúl fue pasión, fue juventud, fue hermoso pero también fue tormenta. Con Eduardo fue seguridad pero fue frío. Alberto llegó cuando yo ya sabía quién era. No necesitaba que me salvara nadie, no necesitaba un padre. Necesitaba un compañero. Y eso fue Alberto. Catorce años juntos, sin pelear, sin drama. Simplemente juntos. El mejor recuerdo es la vida cotidiana con él, desayunando en la cocina, viendo tele, sus manos en las mías. Eso. Por eso te duele más cuando se va, porque era lo más puro."
+  ],
+  [
+   "FO1",
+   "⟦botón:No tengo foto⟧"
+  ],
+  [
+   "LE9",
+   "Quiero hablar de la relación con Julián. Es mi hijo pero es complicada. Él tiene resentimiento, creo, por mis separaciones, por haber criado a Paula y a Federico de forma diferente. No sé bien qué pasó, pero en algún momento se cerró conmigo. Eso me duele mucho. He intentado acercarme pero es difícil. Quiero que quede en el libro que lo quiero mucho. Que aunque no lo vea seguido, él es importante en mi vida. Espero que algún día podamos hablar de verdad, de las cosas que duelen. Y que me perdone por las cosas que hice mal. También quiero decir que no soy una mujer perfecta. He cometido errores, he lastimado gente, he tomado decisiones equivocadas. Pero lo hice lo mejor que pude con lo que tenía. Eso es lo que quiero que se sepa."
+  ],
+  [
+   "LE8",
+   "Bueno, para mis hijos y mis nietos. Quiero decirles que la vida es un camino raro. No es una línea recta, es un garabato. Da vueltas, sube, baja, se cruza con otras líneas. A veces nos perdemos. A veces encontramos gente hermosa y se va. A veces nos equivocamos. Pero lo importante es seguir caminando. Yo no hice todo bien. Me enamoré de gente que no valía. Me separé de gente que tal vez pude haber hecho funcionar. No terminé lo que empecé. Pero hice lo que pude. Y ahora, vieja, estoy orgullosa de lo que soy. Les quiero decir que no tengan miedo de equivocarse. Que no tengan miedo de cambiar de camino. Que vivan su propia vida, no la que otros esperan. Que amen con el corazón abierto. Que celebren las cosas simples. Que me quieran, aunque sea desde lejos. Y que cuando yo no esté, se acuerden de mis empanadas, de mis historias, de mis manos. Eso es lo que pido."
+  ]
+ ],
+ "enviados": [
+  "AV11",
+  "FIN"
+ ],
+ "vueltas": {
+  "M3": 80,
+  "M4": 7,
+  "M24": 6,
+  "M25": 9,
+  "M27": 1
+ },
+ "bloqueActual": 15,
+ "terminada": true,
+ "charla": [
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "BIEN",
+     "texto": "Hola, Chela, ¿cómo estás? Una persona que te quiere mucho te regaló un libro con la historia de tu vida, y yo soy quien te va a entrevistar para armarlo. Lo hacemos acá, por WhatsApp, tranquilos."
+    },
+    {
+     "id": "BIEN",
+     "texto": "Funciona así: te mando una pregunta y vos me la contás en audio, como si me lo estuvieras contando en persona. Mandame todos los audios que quieras. Cuando termines, ya está: con un ratito de silencio, la pregunta que sigue te llega sola."
+    },
+    {
+     "id": "BIEN",
+     "texto": "Si alguna pregunta no tiene que ver con tu vida, me decís que no, o me contás lo que sí te pasó a vos. Y sin apuro: esto lo hacemos al ritmo que vos quieras."
+    }
+   ]
+  },
+  {
+   "de": "bloque",
+   "bloque": 1,
+   "nombre": "Origen y raíces"
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "OR1",
+     "texto": "Empecemos por cuando llegaste al mundo, según te contaron. No el día en sí, sino la época: dónde vivían, en qué andaban tu mamá y tu papá, cómo te esperaban. ¿Qué sabés de cómo era la vida de ellos en ese entonces? Contame."
+    },
+    {
+     "id": "M1",
+     "texto": "_Si no va con vos, decí paso y vamos a otra._"
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "OR1",
+   "texto": "Ay, qué cosa. Bueno, mi papá era viñatero, toda la vida en las viñas de Mendoza, la faena no paraba. Mi mamá era modista, hacía ropa de gente importante de ahí, así que ella andaba siempre con alfileres en la boca y telas por todos lados. Yo llegué en el 55, en plena vendimia, así que no sé si fue una alegría o un caos, creo que las dos cosas. Ya tenían tres varones, mis hermanos, así que cuando nací yo la casa se alborotó. Mi papá decía que había llegado la nena, che, qué bueno. Y mi mamá, bueno, ahora tenía que hacer ropa para la bebé además de todo lo demás. Eran otros tiempos, no sé bien cómo vivían ellos solos, pero parecía que les gustaba estar juntos, al menos eso me contaban. Las viñas de Mendoza eran todo, viste, era la vida entera."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.1",
+     "texto": "Gracias, Chela. Ya lo guardé."
+    },
+    {
+     "id": "OR2",
+     "texto": "En todas las familias hay una historia de los de antes, de los abuelos o más atrás, que se contaba en las sobremesas: un viaje, una llegada, alguna hazaña. ¿Cuál sabés de tu familia? Contámela como la escuchaste."
+    },
+    {
+     "id": "M1",
+     "texto": "_Si no va con vos, decí paso y vamos a otra._"
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "OR2",
+   "texto": "Ah sí, claro. Mi abuelo, el papá de mi papá, vino de Italia, de allá por San Juan o por ahí, creo que fue en los treinta o cuarenta, uno de esos años. Vino con un par de hermanos y se metieron en las viñas, porque claro, en Italia el vino era lo que sabían hacer. Bueno, mi abuelo se plantó en Mendoza y dijo, acá va a haber viña, y resulta que se hizo bastante, bastante bien. Se casó con mi abuela que era de familias de acá, de Mendoza de toda la vida, mendocinas de pura sangre. Y de ahí salieron mis tíos y mi papá, todos metidos en lo mismo de las viñas. Lo que más me contaban en las sobremesas era que mi abuelo había pasado un hambre terrible en Italia, que vino con lo puesto, y que cuando se vio con los pies sobre la tierra acá en Mendoza, con sus viñas creciendo, bueno, lloró. Eso me lo contaba mi papá con los ojos así, con una cosa rara. Eso quedó en la familia."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.2",
+     "texto": "Te escuché. Vamos con la que sigue."
+    },
+    {
+     "id": "OR5",
+     "texto": "¿Cómo se conocieron tu mamá y tu papá? Seguro en casa lo contaron más de una vez: un baile, una casualidad, alguien que los presentó. Contame ese día como te lo contaron."
+    },
+    {
+     "id": "M1",
+     "texto": "_Si no va con vos, decí paso y vamos a otra._"
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "OR5",
+   "texto": "Mi mamá hacía ropa y mi papá andaba en las viñas, típico de Mendoza. Se conocieron en un baile, un viernes a la noche, ella andaba con una amiga y mi papá fue con mis tíos. Según lo que me contaba, mi papá la vio y dijo, esa es, vos sabés cómo son los hombres, un chapalear nada más. Se pusieron a bailar, ella era linda, mi mamá, rubia de los ojos claros, y bueno, mi papá la invitó a tomar algo y de ahí en más fue una cosa natural. Se empezaron a juntar, se enamoraron, se casaron. Nada extraordinario, pero bueno, eso fue."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M26",
+     "texto": "Gracias, Chela."
+    },
+    {
+     "id": "CI1",
+     "texto": "Con esto cerramos lo de tu familia de antes, la de antes de que llegaras vos. Y me pregunto si se me escapó algo: una historia de tus abuelos, de tus viejos de jóvenes, de esa casa. Si hay una dando vueltas, contámela ahora. Y si algo se te viene más tarde, a cualquier hora, mandámelo cuando quieras: va al libro igual."
+    },
+    {
+     "id": "M31",
+     "texto": "_Podés tocar el botón de abajo, o contestarme en audio como siempre._"
+    }
+   ],
+   "botones": [
+    "No, está todo"
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "CI1",
+   "texto": "[toca: No, está todo]",
+   "boton": "No, está todo"
+  },
+  {
+   "de": "bloque",
+   "bloque": 2,
+   "nombre": "La casa y la familia de la infancia"
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M25.1",
+     "texto": "Bien, seguimos."
+    },
+    {
+     "id": "EN2",
+     "texto": "Ahora vamos a tu infancia, Chela: la casa donde creciste y los de tu casa de entonces."
+    }
+   ]
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "CA1",
+     "texto": "Contame el primer recuerdo que tengas de la casa donde creciste: un día, qué estabas haciendo, quién andaba por ahí."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "CA1",
+   "texto": "Mi primer recuerdo es de la cocina. Yo tendría unos tres o cuatro años, estaba mi mamá preparando algo con mis tías, estaban todas alrededor de la mesa grande. Era verano, hacía un calor de la patada, y mi abuela estaba hace rato removiendo una olla con agua y vino, no sé bien qué sería. Me acuerdo del olor, viste, eso que no se olvida. Mis hermanos andaban por el patio, esos varones nunca estaban adentro. Yo estaba chiquita y mis tías me decían, vení Chela, sentate acá, querían que probara algo dulce, milanesitas o lo que fuera. Mi papá no estaba, estaría en las viñas, siempre en las viñas. Era una cosa caótica, viste, muchas voces, muchas manos, calor, humo. De eso me acuerdo."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.4",
+     "texto": "Gracias por contármelo. Seguimos."
+    },
+    {
+     "id": "CA2",
+     "texto": "Viajemos un rato a cuando eras chica. ¿Cómo era tu mamá con vos en esa época? Si te viene a la cabeza alguna anécdota con ella, contámela: dónde estaban, qué pasó."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "CA2",
+   "texto": "Mi mamá era un amor pero eras duro con ella si te le desobedecías. Estaba todo el tiempo con la costura, los alfileres en la boca, cortando telas. Una vez, yo tendría unos seis años, ella estaba cosiendo un vestido hermoso para una señora importante de Mendoza, y yo quería probármelo sin permiso. Me metí a la pieza donde estaba ella trabajando y me lo puse, me miraba en el espejo. Mi mamá me vio y me dijo una palabra fuerte, del tamaño así, y me lo sacó. Después me abrazó pero con esa cosa rara de los papás, que sos amor pero también sos miedo. Me explicó que eso no se tocaba, que era trabajo de ella, que había que respetar. Eso me quedó grabado."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.5",
+     "texto": "Guardado, Chela. Te mando la próxima."
+    },
+    {
+     "id": "CA3",
+     "texto": "¿Y tu papá? ¿A qué se dedicaba cuando eras chica? Contame alguna vez que lo acompañaste o lo viste trabajando."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "CA3",
+   "texto": "Mi papá estaba en las viñas desde que amanecía. Una vez me llevó con él, tendría unos cinco años, y me mostró las plantas, las uvas cómo crecían. Él iba entre las hileras cortando, supervisando, hablando con los peones. A mí me daba un poco de miedo verlo tan ocupado, tan lejos, tan del otro lado de lo que yo conocía. La viña era enorme, no parecía que fuera de mi papá, parecía como que él le pertenecía a ella."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.6",
+     "texto": "Lo tengo, gracias. Vamos con otra."
+    },
+    {
+     "id": "CA6",
+     "texto": "¿Tuviste hermanos? Si ya salieron en la charla no importa, quiero saber más: contame con cuál eras más cercana de chica y alguna aventura que hayan hecho juntos; seguro tienen varias."
+    },
+    {
+     "id": "M1",
+     "texto": "_Si no va con vos, decí paso y vamos a otra._"
+    }
+   ],
+   "botones": [
+    "Sí, tuve",
+    "No tuve hermanos"
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "CA6",
+   "texto": "Ay sí, claro, tres hermanos varones, todos mayores que yo. Eran la calamidad esos tres. Yo estaba todo el tiempo detrás de ellos queriendo hacer lo que hacían, y me dejaban a veces, a veces no. Con el del medio, que se llamaba Roque, eras muy cercana. Él me llevaba a escondidas a los lugarejos cerca de la viña, lugares donde no debía ir la nena de la casa. Nos metíamos en los pozos de agua, en las estructuras viejas, saltos de altura, cosas de chicos. Él me decía, no le digas a mamá, y yo le prometía. Una vez casi me caigo en un barranco y Roque me atrapó de la mano, me levantó como si nada. Ese día mi mamá se enteró de todas formas y fue un caos, pero Roque se comió todos los gritos para que yo no me asustara más."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.7",
+     "texto": "Quedó guardado, Chela. Sigo con la que viene."
+    },
+    {
+     "id": "CA16",
+     "texto": "Contame un día de chica que esperabas con muchas ganas: qué era, quién estaba, qué pasó. Y si no te vuelve un día en particular, contame qué cosas esperabas con ganas en esa época, que con eso me arreglo."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "CA16",
+   "texto": "La Navidad era lo máximo. Mi mamá y mis tías se pasaban las semanas antes cosiendo ropa nueva para toda la familia, el olor a tela fresca y almidonada en la casa. Mi papá traía del casco de la viña las mejores botellas, porque claro, para Navidad el vino tenía que ser especial. Mis hermanos y yo contábamos los días. Una Navidad en particular, tendría yo unos ocho o nueve años, vino toda la familia extendida a la casa, abuelos, tíos, primos, parecía que explotaba la casa. Mi abuela hizo una cosa de comida, empanadas hasta el cielo, cazuela, lo que fuera. Yo recuerdo estar a los pies de mi papá, mirándolo así como en éxtasis, porque ese día él estaba de la viña y estaba para nosotros. Era raro, viste, tenerlo ahí."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M26",
+     "texto": "Gracias, Chela."
+    },
+    {
+     "id": "CA17",
+     "texto": "¿Hubo algún momento difícil de tu infancia que creas que no puede quedar afuera de tu historia? ¿Algo que te marcó? Si querés, contame qué pasó y cómo lo viviste."
+    }
+   ],
+   "botones": [
+    "Paso esta"
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "CA17",
+   "texto": "Sí, hay algo. Mi papá tenía alguien más, en las viñas. Una mujer, viste, una cosa que pasaba cuando una era chica y los grandes creían que uno no se daba cuenta. Mi mamá lo sabía, yo lo sabía, todos lo sabían. Y era raro, porque mi papá seguía viniendo a casa, seguía siendo mi papá, pero había algo roto adentro. Yo recuerdo estar en la cocina con mi mamá a los diez, once años, y ella lloraba mientras planchaba. No me pidió que no mirara, no me ocultó nada. Lloró nada más. Eso me dio una cosa así, de no entender por qué los adultos se hacían daño entre ellos. Pero eso quedó ahí, adentro. No era lo peor que pasaba en otras casas, yo lo sabía, pero igual duele."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M4.1",
+     "texto": "Gracias por contarme esto, Chela. Queda guardado con cuidado."
+    }
+   ]
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "CI2",
+     "texto": "Ya casi terminamos con tu infancia, y me quedo pensando si te dejé algo afuera. ¿Hubo alguna historia que se te vino a la cabeza mientras contabas y no tuvo dónde entrar? Contámela ahora, tranquila, que hay tiempo."
+    }
+   ],
+   "botones": [
+    "No, está todo"
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "CI2",
+   "texto": "[toca: No, está todo]",
+   "boton": "No, está todo"
+  },
+  {
+   "de": "bloque",
+   "bloque": 3,
+   "nombre": "La escuela y los juegos"
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M25.3",
+     "texto": "Bien, entonces."
+    },
+    {
+     "id": "EN3",
+     "texto": "Seguimos con la escuela: la primaria, los maestros y los juegos de esa edad."
+    }
+   ]
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "ES1",
+     "texto": "¿Cómo fue tu primer día de escuela? ¿Quién te llevó hasta la puerta, y qué sentiste cuando se fue? Si ese día no lo tenés, contame lo primero que te acuerdes de la primaria."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "ES1",
+   "texto": "Mi mamá me llevó de la mano, me compró una mochila nueva de color rojo. Yo tenía miedo, lloraba un poco, pero mi mamá me dijo, vos sos fuerte, vos podés con esto. Se fue, y yo me quedé ahí con una maestra que era muy seria. Recuerdo llorar después de que ella se fue, y una compañera me ofreció una caramelo. Eso fue. Al otro día no quería ir, pero al tercero ya estaba normal. La escuela fue fácil para mí, sacaba buenas notas."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.1",
+     "texto": "Gracias, Chela. Ya lo guardé."
+    },
+    {
+     "id": "ES2",
+     "texto": "¿Tuviste una maestra o un maestro que te marcó en la primaria? ¿Cómo era con ustedes? Contame una vez con esa persona que no te olvidás: qué pasó en el aula ese día."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "ES2",
+   "texto": "Sí, don Roberto. Maravilloso ese hombre. Era maestro de naturales en el cuarto o quinto, no me acuerdo bien. Hacía que los chicos salieran al patio, que vieran las plantas, el cielo, que hicieran preguntas. Una vez me quedé mirando una mariposa y él vino y me explicó toda la historia, metamorfosis y esas cosas que para una chica de diez años eran brujería. Pero me escuchaba, viste, te miraba a los ojos. Una vez en clase le pregunta a un chico, que era un poco bobo, ¿cómo se llama eso?, y el chico no sabía. Don Roberto le dijo, no importa que no sepas, lo importante es que quieras saber. Eso me quedó."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.2",
+     "texto": "Te escuché. Vamos con la que sigue."
+    },
+    {
+     "id": "ES5",
+     "texto": "De chica, ¿tenías un mejor amigo o una mejor amiga, de la escuela o del barrio? ¿Qué hacían cuando andaban juntos? Contame una tarde con esa persona que todavía te hace sonreír."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "ES5",
+   "texto": "Mariana, se llamaba. La conocí en tercer grado, nos sentaban una al lado de la otra en el banco. Nos pasábamos notitas toda la clase, cosas de chicas, qué le parecía tal chico, esas boludeces. Después de la escuela nos íbamos las dos al río que pasaba cerca de Mendoza y nos metíamos en el agua hasta las rodillas, con los uniformes y todo, mojándonos como tontas. Mariana desapareció cuando yo tendría unos doce años, se fue con la familia a Buenos Aires. Nos escribimos cartas un tiempo, después se cortó. Eso duele siempre, ¿viste?"
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.3",
+     "texto": "Lo anoté, gracias. Sigo con otra."
+    },
+    {
+     "id": "ES6",
+     "texto": "¿Cuál fue la travesura más grande que hiciste de chica, en la escuela o en el barrio? Esa que todavía te da risa, o un poco de vergüenza. Contame cómo fue y si te agarraron. Y si se te vienen más, contalas también."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "ES6",
+   "texto": "Ay, qué cosa. Una vez, debe haber sido en quinto grado, mi hermano Roque y yo nos metimos en la bodega de mi papá, que estaba prohibido total. Agarramos una botella de vino que estaba ahí, la destapamos y probamos. Era amargo de la patada, pero hicimos que nos encantaba. Nos emborrachamos como cretinas, salimos de ahí caminando como autómatas. Mi mamá me vio inmediatamente, me dijo algo así como maldita, y Roque fue a parar al corral con un alambique a que le enseñaran modales. Yo me encerré en el cuarto, mi papá vino a hablar conmigo, no gritó, nada más me miró, y eso fue mil veces peor. No volví a tocar eso en años."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.4",
+     "texto": "Gracias por contármelo. Seguimos."
+    },
+    {
+     "id": "ES7",
+     "texto": "¿Qué querías ser cuando fueras grande? ¿De dónde te vino esa idea: alguien que veías, algo que pasó? Si te acordás del momento en que lo decidiste, o de quién te lo metió en la cabeza, contámelo."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "ES7",
+   "texto": "Yo quería ser actriz. No sé de dónde me vino exactamente, pero recuerdo estar viendo una película en una sala de Mendoza, tendría yo unos trece, catorce años, y la chica de la pantalla estaba cantando, bailando, diciéndole cosas bonitas a la cámara, y yo pensé, eso es. Eso quiero hacer. Además, en Mendoza en esos años había teatro, grupos de teatro, y yo empecé a fufurulear por ahí, a ir a ver funciones. Me enloqueció. La idea de ser otra persona, de contar historias en un escenario, de que la gente te mire, eso era libertad para mí, en Mendoza que era tan chiquito, tan apretado. A los diecinueve me arranqué a Buenos Aires a estudiar, sin decirle mucho a mi papá, bueno, con permiso pero casi sin permiso. Fue lo mejor que hice en la vida, aunque después no terminé la carrera, que bueno, eso es otra historia."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.5",
+     "texto": "Guardado, Chela. Te mando la próxima."
+    },
+    {
+     "id": "ES9",
+     "texto": "¿La religión estaba presente en tu casa cuando eras chica? Si fue así, ¿hubo una ceremonia o una fiesta que te tocó de cerca? Contame ese día: dónde fue, con quién estabas."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "ES9",
+   "texto": "Mi primera comunión. Fue una cosa grande, toda la familia. Me compraron un vestido blanco que parecía de novia, con un velo, un misalito, el cordón. Mi mamá estaba feliz, mi papá también, me acuerdo de verlos a los dos sentados en el banco de la iglesia, sonriendo. Mi abuela lloraba de emoción. Después fue una comida en casa, toda la familia, champagne, y yo andaba en el medio de todo como una princesa. Eso fue lindo. Después la religión siguió ahí, viste, la iglesia, los domingos, pero nunca fue una cosa así, tan marcada. Era más bien una costumbre."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M26",
+     "texto": "Gracias, Chela."
+    },
+    {
+     "id": "CI3",
+     "texto": "Con esto cerramos tus años de escuela. Antes de seguir, ¿te quedó alguna historia de esa época dando vueltas, algo que no entró en ninguna pregunta? Contámela ahora, con calma, que la quiero escuchar."
+    }
+   ],
+   "botones": [
+    "No, está todo"
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "CI3",
+   "texto": "Sí, hay algo. Mis hermanos se fueron antes que yo, uno después del otro. Yo me quedé con mis papás, que para esa edad, viste, era raro. Ellos se fueron a la capital, a Buenos Aires, a buscar mejor vida, trabajo. Yo me sentía abandonada, pero también entendía, para qué iban a quedarse en Mendoza si no había futuro. Recuerdo llorar en mi cama cuando mi hermano mayor se fue, sentir que me dejaban sola en ese lugar tan chiquito. Eso aceleró que yo me fuera también, que me arranque a los diecinueve como te conté. No podía estar sola ahí."
+  },
+  {
+   "de": "bloque",
+   "bloque": 4,
+   "nombre": "Adolescencia"
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M24.1",
+     "texto": "Gracias, Chela. Eso también va al libro."
+    },
+    {
+     "id": "EN4",
+     "texto": "Ahora vamos a tu adolescencia: esos años en que uno deja de ser chica y todavía no es grande."
+    }
+   ]
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "AD2",
+     "texto": "Después de la primaria, ¿dónde pasabas los días a los trece, catorce años? ¿Cómo llegaste ahí? Contame una vez de esos años que te quedó grabada."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "AD2",
+   "texto": "Estaba en la escuela, en lo que llamaban entonces el liceo, la secundaria. Iba a clase, venía, estudiaba lo que podía. Pero también andaba en el grupo de teatro que decía, iba a los ensayos, hacíamos funciones. Eso era mi vida. A los catorce o quince conocí a Beto, mi primer amor. Nos vimos en un ensayo, él estaba ahí por amigos, yo estaba ahí porque era mi vida. Él me miraba durante los ensayos y yo fingía que no me daba cuenta, pero me daba cuenta. Una tarde fuimos al río, los dos solos, y nos besamos. Fue lo más hermoso del mundo, viste, ese primer beso. La boca, el río, el cielo. Todo fue hermoso. Eso fue Beto, Mendoza, esos años."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.7",
+     "texto": "Quedó guardado, Chela. Sigo con la que viene."
+    },
+    {
+     "id": "AD3",
+     "texto": "¿Tenías una barra de amigos a los quince, dieciséis? ¿Cómo eran, qué hacían cuando se juntaban? Contame una noche o una salida con ellos que todavía te acordás. Es una edad que queda marcada: si se te vienen más historias, contalas todas."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "AD3",
+   "texto": "Sí, me juntaba con las chicas del grupo de teatro. Éramos como cinco o seis, todas locos por lo mismo, por subirse a un escenario, por contar historias. Una noche, tendría yo unos dieciséis, nos fugamos todas del cine porque una función de teatro en un galpón. Dijimos que íbamos al cine y nos fuimos a ver a dos actores que eran conocidos por ahí. Fue una cosa de mala calidad, viste, pero para nosotras fue el Colón. Después salimos a la calle a las once de la noche, que para chicas de Mendoza eso era como escapar de una cárcel, y hablamos de la vida, de que nos íbamos a ir a Buenos Aires todas juntas a triunfar. Éramos tan ingenuas, tan esperanzadas."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.8",
+     "texto": "Te escuché bien. Vamos por la siguiente."
+    },
+    {
+     "id": "AD5",
+     "texto": "¿Te acordás de la primera vez que saliste de noche, a un baile o a una fiesta? Contame cómo te preparaste, con quién fuiste y cómo fue esa noche. Y si la primera no te vuelve, contame cómo eran esas salidas en general."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "AD5",
+   "texto": "Un baile en un club de Mendoza. Mi mamá me dejó, pero con Beto de carabina, viste, como si eso sirviera. Yo me puse un vestido que mi mamá me cosió, me acuerdo que era color fucsia, con unos zapatos negros que me los pedí especialmente. Mi mamá me maquillaba poco, me hizo un rulo en el pelo. Fui con Beto. Ahí, en el baile, bailamos toda la noche, el merengue, la cumbia, él me apretaba por la cintura, yo sentía que volaba. Mi mamá nos vino a buscar a las once, y yo salía del baile como si saliera de un sueño. Beto me besó antes de bajarme del auto, mi mamá fingió que no veía. Eso fue hermoso. Los bailes después fueron cosa normal, pero ese primero, no."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.1",
+     "texto": "Gracias, Chela. Ya lo guardé."
+    },
+    {
+     "id": "AD6",
+     "texto": "¿Y la primera vez que alguien te gustó en serio? Contame cómo se conocieron, cómo era esa persona, y un momento de los dos que todavía llevás guardado."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "AD6",
+   "texto": "Beto, como te conté. Nos conocimos en el grupo de teatro, él no era del grupo pero era amigo de uno de los chicos. Beto era guitarrista, músico de verdad, tenía las manos grandes, callosas. Era raro, silencioso, pero cuando hablaba decía cosas hermosas. Nos vimos todos los días durante un año, dos años. Una noche, debe haber sido en invierno porque hacía frío, nos fuimos al borde de la ciudad, a un lugar donde se veía toda Mendoza de noche con las luces. Él llevaba su guitarra y tocó para mí un tema que había hecho. Yo lloré, sin exagerar. Me pidió que nos casáramos, en ese momento, ahí. Yo le dije que sí, aunque era muy chica, aunque no teníamos nada. Eso fue Beto. Después se vino Buenos Aires y los años y las otras personas, pero eso que pasó en Mendoza, eso es para siempre."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.2",
+     "texto": "Te escuché. Vamos con la que sigue."
+    },
+    {
+     "id": "AD12",
+     "texto": "¿Cuándo sentiste por primera vez que ya no eras chica? Algo que tuviste que decidir o hacer por tu cuenta, una responsabilidad nueva. Contame ese momento."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "AD12",
+   "texto": "Cuando decidí irme a Buenos Aires a los diecinueve. Fue mío, de nadie más. Mi papá no quería, mis hermanos me decían que estaba loca, mis amigas del teatro decían que me acompañaban pero ninguna se animaba. Yo guardé plata, trabajé donde pude, y una mañana agarré una bolsa y me subí a un colectivo. Recuerdo estar sentada en ese colectivo mirando Mendoza desaparecer por la ventana y pensar, no vuelvo. Algo adentro me dijo, vos de acá no te vas a ningún lado si te quedás. Eso fue una cosa de adulta, de decir, yo sé lo que quiero y voy a ir. Años después pasaría de todo, pero eso, esa decisión, eso fue solo mío."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M26",
+     "texto": "Gracias, Chela."
+    },
+    {
+     "id": "AD15",
+     "texto": "¿Hubo algún momento duro en tu adolescencia que creas que no puede quedar afuera de tu historia? ¿Algo que te marcó? Si querés, contame qué pasó y cómo lo viviste."
+    }
+   ],
+   "botones": [
+    "Paso esta"
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "AD15",
+   "texto": "Sí, hay algo. Beto se me fue. Se fue con su familia a Córdoba, yo me quedé. Tenía yo diecisiete años, él diecinueve. Fue la cosa más dura que había sentido hasta ese momento, porque yo creía que nos casábamos, que nos íbamos juntos a Buenos Aires. Pero no. Se fue y punto. Fue como que me cortaron una mitad. Estuve varios meses en la cama, medio deprimida, mi mamá preocupada. Recuerdo llorar en el río donde nos besábamos la primera vez, gritando su nombre como una boluda. No volvió. Nos escribimos cartas un tiempo, después nada. Fue mi primer desamor."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M4.2",
+     "texto": "Te escuché. Gracias por confiármelo."
+    }
+   ]
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "CI4",
+     "texto": "Con esto cerramos tu adolescencia. Antes de pasar a los años de grande, ¿quedó algo de esa época que no encontró su pregunta? Un recuerdo suelto, una cara, una noche. Contámelo ahora, tranquila, que hay tiempo."
+    }
+   ],
+   "botones": [
+    "No, está todo"
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "CI4",
+   "texto": "[toca: No, está todo]",
+   "boton": "No, está todo"
+  },
+  {
+   "de": "bloque",
+   "bloque": 5,
+   "nombre": "Juventud"
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M25.3",
+     "texto": "Bien, entonces."
+    },
+    {
+     "id": "EN5",
+     "texto": "Pasamos a tu juventud, Chela: cuando empezaste a armar tu propia vida."
+    }
+   ]
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "JU1",
+     "texto": "¿Te acordás del día que te fuiste de la casa de tus viejos? A dónde te fuiste, con quién, cómo fue esa despedida. Y si te quedaste ahí muchos años, contame cómo era esa casa con vos ya de grande."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "JU1",
+   "texto": "A los diecinueve me fui a Buenos Aires. Fue una mañana de mediados de los setenta, me acuerdo que hacía frío. Mi papá no me quería dejar ir, pero mi mamá le dijo, déjala que se vaya, que se la lleve el tren si quiere. Agarré una bolsa con ropa, un dinero que había juntado trabajando, y me fui en colectivo. Mi papá me llevó a la estación, no hablamos en el viaje. Cuando me iba a subir, él me abrazó fuerte, me dijo, cuidate, hija. Eso fue todo. Yo nunca más viví en la casa de mis viejos. Llegué a Buenos Aires sin nada, sin conocer a nadie. Dormi en una pensión los primeros meses, después en un conventillo, después empecé a trabajar y a vivir. Buenos Aires me tragó y yo me dejé tragar feliz. Fue lo mejor que hice, aunque fuera difícil."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.4",
+     "texto": "Gracias por contármelo. Seguimos."
+    },
+    {
+     "id": "JU2",
+     "texto": "¿Qué hiciste después del colegio? Si seguiste estudiando, contame qué y cómo eran esos años; si la vida te llevó para otro lado, contame en qué andabas. Y un día de esa época que te haya quedado."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "JU2",
+   "texto": "Estudié teatro en Buenos Aires. Entré a una escuela de teatro, estaba feliz, creía que era eso. Pero al tiempo me di cuenta que no era para mí, o que no tenía pasta, o que simplemente se me acabó la plata. Dejé la escuela después de un par de años y empecé a trabajar. Vendedora, secretaria, cualquier cosa que me diera de comer. Un día una amiga me presentó a Raúl, que era músico, y con él empezó todo. Nos enamoramos, nos casamos, tuvimos hijos. El teatro quedó ahí, atrás. A veces siento que dejé algo importante sin terminar, pero bueno, la vida no siempre es como uno quiere."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.5",
+     "texto": "Guardado, Chela. Te mando la próxima."
+    },
+    {
+     "id": "JU4",
+     "texto": "¿Cómo aprendiste a hacer eso que es tuyo, lo que más te ocupa o más te gusta, sea tu trabajo o algo que hacés por gusto? Contame cómo fue arrancar: un día de cuando recién empezabas."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "JU4",
+   "texto": "Mi boutique en Palermo. Eso fue mío, de verdad. Yo aprendí a coser con mi mamá de chica, mientras ella hacía ropa para gente importante en Mendoza. Cuando llegué a Buenos Aires vendía ropa, trabajaba en tiendas. Y una vez, una amiga me pidió que le hiciera un vestido, que ella no tenía plata para que la costurera se lo hiciera. Yo le hice un vestido hermoso. Ella lo mostró por ahí y me empezaron a venir encargos. De ahí empecé a alquilar un local en Palermo, un lugar chiquito, y armé mi negocio. Llegué a tener clientela, mujeres lindas, gente de plata, que querían que les hiciera cosas especiales. Fue mi independencia, viste, mi propio dinero, mis propias decisiones. Eso fue importante. La boutique estuvo abierta unos quince años, después la cerré."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.6",
+     "texto": "Lo tengo, gracias. Vamos con otra."
+    },
+    {
+     "id": "JU5",
+     "texto": "¿Tuviste alguna experiencia con lo militar: la colimba, la mili, un colegio militar? ¿O alguna época de disciplina dura, en tu casa, en un colegio, en un trabajo? Contame cómo era y alguna vez que todavía te acordás."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "JU5",
+   "texto": "No, yo era mujer, así que eso no. Pero la escuela en Mendoza era medio marcial, viste, las monjas, el uniforme, el orden. En la escuela de teatro en Buenos Aires también había reglas, horarios, se te exigía. Y en la boutique, bueno, me autoexigía. Pero nada de mili. Supongo que mis hijos varones pasaron por eso, pero yo no."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.7",
+     "texto": "Quedó guardado, Chela. Sigo con la que viene."
+    },
+    {
+     "id": "JU8",
+     "texto": "¿Alguna vez te fuiste a vivir a otra ciudad o a otro país? Capaz ya me contaste algo de esa mudanza; ahora contame la llegada: el primer día, dónde dormiste esa noche, quién te esperaba y qué fue lo que más te costó."
+    },
+    {
+     "id": "M1",
+     "texto": "_Si no va con vos, decí paso y vamos a otra._"
+    }
+   ],
+   "botones": [
+    "Sí, me mudé",
+    "No, nunca me mudé"
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "JU8",
+   "texto": "[toca: Sí, me mudé]",
+   "boton": "Sí, me mudé"
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M30",
+     "texto": "Contame, te escucho."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "JU8",
+   "texto": "Llegué a Buenos Aires a los diecinueve sin nada. Dormí la primera noche en la estación central, sentada en una banca, con miedo, con frío. Al otro día encontré una pensión por ahí, un lugar espantoso, pero era lo que podía pagar. La madrona era una vieja francesa que alquilaba cuartos a estudiantes. Yo compartía baño con otros cinco, había cucarachas. Lo que más me costó fue la soledad. No conocía a nadie, nadie me esperaba, no tenía teléfono, no había celulares como ahora. Me sentía muy pequeña en esa ciudad grande. Pero al tiempo empecé a encontrar gente, a trabajar, a hacer amigos en la escuela de teatro. Buenos Aires me acogió, aunque tardó un tiempo."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.8",
+     "texto": "Te escuché bien. Vamos por la siguiente."
+    },
+    {
+     "id": "JU12",
+     "texto": "Contame del primer lugar que fue tuyo, donde ya vivías por tu cuenta: cómo era, con qué lo fuiste armando, qué se veía por la ventana. Y esa primera noche ahí, ¿cómo fue? Si la noche justa no te vuelve, contame cómo eran los primeros tiempos ahí. Y si nunca te fuiste de la casa de tus viejos, contame el día en que esa casa pasó a ser tuya, o el rincón que siempre fue tuyo."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "JU12",
+   "texto": "Después de la pensión me fui a un conventillo en San Telmo, un lugar de antes, viejo. Ahí tenía un cuartito de verdad, mío. No es que fuera hermoso, pero era mío. Tenía una cama, una silla, una ventana que daba a un patio interior donde había tendederas. La primera noche ahí lloré de felicidad, viste, de tener un espacio. Empecé a arreglarlo poco a poco, con lo que encontraba. Después, cuando empecé a trabajar en la boutique, me mudé a un departamento en Palermo, cerca del local. Ese departamento fue importante, porque ahí vivía sola, verdaderamente sola, y podía hacer lo que quería. No había nadie que me dijera qué hacer. Fue libertad completa."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.1",
+     "texto": "Gracias, Chela. Ya lo guardé."
+    },
+    {
+     "id": "JU15",
+     "texto": "¿Y los amigos de esos años, de cuando empezabas a hacer tu vida? Cómo eran, dónde se juntaban, qué hacían. Contame una vez con ellos que te quedó. Y si se te vienen más, contalas también."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "JU15",
+   "texto": "En la escuela de teatro conocí a gente hermosa, apasionada. Había una chica, Miriam, que era mi mejor amiga. Nos juntábamos en un bar en San Telmo, tomábamos café o vino barato, y hablábamos de la vida, de arte, de hombres, de sueños. Había un grupo de cinco o seis de nosotras que íbamos a ver todas las funciones de teatro que podíamos, aunque tuviéramos poco dinero. Comprábamos entrada barata, nos sentábamos en las últimas filas, pero veíamos. Recuerdo una noche que vimos una obra revolucionaria para la época, todos aplaudíamos de pie, gritando. Éramos tan entusiastas. Después, cuando dejé la escuela, los amigos se fueron dispersando. Miriam se casó, otros se fueron del país. La amistad de esos años fue lo más puro que tuve."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M26",
+     "texto": "Gracias, Chela."
+    },
+    {
+     "id": "JU17",
+     "texto": "¿Hubo algún momento duro en tu juventud que creas que no puede quedar afuera de tu historia? ¿Algo que te marcó? Si querés, contame qué pasó y cómo lo viviste."
+    }
+   ],
+   "botones": [
+    "Paso esta"
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "JU17",
+   "texto": "Miriam, mi mejor amiga, se enamoró de un hombre que no valía. Ella lo quería, de verdad, pero él era infiel, la maltrataba. Yo le decía, Miriam, dejalo, vale más que eso. Pero ella no me escuchaba. Una vez la encontré en el bar llorando, con un cardenal en el brazo que ella decía que se lo había hecho ella misma. Yo supe que era mentira. Eso me marcó porque no pude hacer nada. Después ella se casó con ese tipo y se alejó de mí. Nunca más nos vimos bien. Supe años después que tuvo hijos con él, que finalmente se separaron. Pero eso que pasó en nuestros veinte, eso de verla sufrir y no poder hacer nada, eso quedó. Me enseñó que el amor puede ser una cárcel."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M4.3",
+     "texto": "Lo guardo tal como lo contaste. Gracias."
+    }
+   ]
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "CI5",
+     "texto": "Y así llegamos al final de tu juventud, los años en que empezaste a hacer tu vida. Antes de seguir, ¿te quedó algo de esa época sin contar? Un lugar, una persona, una tarde que se te aparece de vez en cuando. Contámelo ahora, con calma."
+    }
+   ],
+   "botones": [
+    "No, está todo"
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "CI5",
+   "texto": "[toca: No, está todo]",
+   "boton": "No, está todo"
+  },
+  {
+   "de": "bloque",
+   "bloque": 6,
+   "nombre": "Amor y pareja"
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M25.1",
+     "texto": "Bien, seguimos."
+    },
+    {
+     "id": "AM0",
+     "texto": "Ahora vamos al amor. ¿Hubo alguien con quien tuviste una historia en serio? Si hubo, haceme un repaso corto: cuántas veces te enamoraste, cuáles llegaron a algo serio, más o menos en qué años. Después te pregunto más de la primera que fue en serio, y de las que vinieron después también va a haber lugar. Y si no hubo, también vale."
+    },
+    {
+     "id": "M1",
+     "texto": "_Si no va con vos, decí paso y vamos a otra._"
+    }
+   ],
+   "botones": [
+    "Sí, hubo",
+    "No hubo"
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "AM0",
+   "texto": "[toca: Sí, hubo]",
+   "boton": "Sí, hubo"
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M30",
+     "texto": "Contame, te escucho."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "AM0",
+   "texto": "Ay, te tengo que contar. Tres matrimonios, viste. El primero fue en el 77, con Raúl, un músico hermoso, caótico. Estuvimos juntos siete años, tuvimos dos hijos, Julián en el 78 y Paula en el 80. Pero Raúl me engañaba, eso me destruyó. Nos separamos. Después, en el 86, me casé con Eduardo, un contador, un tipo ordenado, serio. Tuvimos un hijo, Federico. Estuvimos juntos hasta el 95, pero no funcionó, se acabó. Y después, en el 2005, con Alberto, que era viudo, que era un amor diferente, más tranquilo. Él murió en el 2019, eso sí fue duro. Así que tres matrimonios, tres hijos. Y mientras tanto, parejas cortas, un pintor uruguayo, un profesor de tango. Mucho corazón, mucha entrega, pero las historias se rompieron. Eso es lo que es la vida, supongo."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.3",
+     "texto": "Lo anoté, gracias. Sigo con otra."
+    },
+    {
+     "id": "AM1",
+     "texto": "Vamos a la primera que fue en serio. Contame el día que se conocieron: dónde fue, quién los presentó o cómo se cruzaron, y qué fue lo primero que te llamó la atención de esa persona. Si ya me lo contaste cuando hablamos de tu adolescencia, decímelo y vamos a lo que sigue."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "AM1",
+   "texto": "Me lo presentó una amiga, de la escuela de teatro. Raúl tocaba en una banda, era músico, guapo, carismático. Mi amiga nos presentó en un bar, y él tenía ese carisma de los músicos, viste, eso que te seduce. Fue en el 76, yo tendría veintiuno. Lo primero que me llamó la atención fue su seguridad, la forma en que hablaba de la música, como si todo lo demás no existiera. Tenía una guitarra que llevaba a todos lados. Nos miramos a los ojos esa noche y hubo algo, una conexión. Empezamos a salir, nos enamoramos rápido. Al año siguiente nos casamos. Fue apasionado, viste, los dos jóvenes, sin dinero, pero con muchas ganas. Nos fuimos a vivir a un departamento chiquito en San Telmo."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.4",
+     "texto": "Gracias por contármelo. Seguimos."
+    },
+    {
+     "id": "AM3",
+     "texto": "Y después, ¿llegaron a armar la vida juntos: casarse, irse a vivir, lo que haya sido? Si llegaron, contame ese momento: quién lo dijo primero, o si se fue dando solo, dónde estaban, qué se dijeron. Si ya me lo contaste recién, con decírmelo alcanza."
+    }
+   ],
+   "botones": [
+    "Sí",
+    "No llegamos a eso"
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "AM3",
+   "texto": "Sí, nos casamos. Fue rápido, yo tenía veintiuno, él veinticuatro. Mi mamá no quería, decía que era muy rápido, pero yo estaba empecinada. Raúl me pidió que me case en una madrugada, estábamos en la cama, me lo dice así, de repente, querés casarte conmigo? Yo le dije que sí al toque. La boda fue simple, en un juzgado, con amigos. Después la fiesta en un bar. Fue hermoso, viste, de esos momentos que te quedan para siempre. Después nos fuimos a vivir juntos, al departamento en San Telmo. Ahí nació Julián, en el 78, e ahí empezó el caos, porque Raúl empezó a desaparecer, a andar con otras mujeres. Pero ese momento de la propuesta, eso fue hermoso."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.5",
+     "texto": "Guardado, Chela. Te mando la próxima."
+    },
+    {
+     "id": "AM4",
+     "texto": "Hay días que quedan grabados para siempre: el del casamiento, o el primero viviendo juntos. Contame ese día como si lo estuvieras viendo: el lugar, la gente, la ropa, lo que más te quedó. Si ya me lo contaste recién, con decírmelo alcanza."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "AM4",
+   "texto": "El día que nos casamos fue en mayo del 77, hacía calor. Me puse un vestido blanco que no era de novia, era un vestido que me había hecho mi mamá, más simple. Raúl tenía un traje gris que le quedaba hermoso. Fuimos los dos al juzgado, con un par de testigos, amigos. El juez nos casó en un cuarto chiquito, gris, nada de lujo. Pero cuando salimos del juzgado, toda la gente que estaba esperando nos abrazó, nos tiró arroz, fue lindo. Después fuimos a un bar en la Boca, tomamos champagne barato, comimos algo. Raúl toco la guitarra en el bar para toda la gente. Fue bohemio, fue nuestro. Esa noche nos fuimos a un hotel para estar solos, un hotelito de mala muerte, pero para nosotros fue un palacio. Recuerdo el olor de las sábanas nuevas, sus manos en mi cuerpo, su cara cuando me miraba. Eso fue."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.6",
+     "texto": "Lo tengo, gracias. Vamos con otra."
+    },
+    {
+     "id": "AM13",
+     "texto": "Contame una pelea que tuvieron, de esas que después dan risa: por qué fue, quién aflojó primero y cómo hicieron las paces. Si no hubo ninguna que hoy dé risa, con decírmelo alcanza."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "AM13",
+   "texto": "Una vez, Raúl llegó a casa a las cuatro de la mañana, después de tocar en un boliche. Yo estaba furiosa, había estado esperándolo toda la noche, tenía miedo de que le hubiera pasado algo. Me encendí, le grité, le tiré la almohada, una cosa boluda. Él se rió de mí, eso me enojó más. Entonces agarré su guitarra y la acosté en la cama, le dije, si vos no querés estar conmigo, que esté ella. Él vio la guitarra ahí y se largó a reír, se disculpó, y nos terminamos yendo a la cama. Al otro día nos burlábamos del asunto. Eso era divertido cuando estábamos bien."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.7",
+     "texto": "Quedó guardado, Chela. Sigo con la que viene."
+    },
+    {
+     "id": "AM8",
+     "texto": "Imaginate que podés guardar un solo momento con esa persona, ¿cuál sería? Contámelo entero: el lugar, el día, qué hacían. Si se te vienen otros, contalos también."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "AM8",
+   "texto": "Un domingo, debe haber sido en el 79, después de que nació Julián. Raúl y yo llevamos al bebé a la costanera, al río. Era un día hermoso, de primavera, calor pero con viento. Raúl tenía su guitarra, claro, siempre la llevaba. Se sentó en el pasto, Julián dormía en un cochecito, y él tocó para nosotros. No era una canción que conociera, era algo que estaba inventando mientras tocaba, para mi hijo, para mí. Yo estaba llorando de felicidad, viste, porque en ese momento creía que era para siempre. Él me miraba mientras tocaba, con una dulzura que raramente le veía. En ese momento sentía que éramos una familia, que el mundo era solo eso. No sabía que años después me estaría engañando, que todo eso se iba a romper. Pero ese momento, eso fue puro."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M26",
+     "texto": "Gracias, Chela."
+    },
+    {
+     "id": "AM9",
+     "texto": "Si esa historia tuvo un final, una separación o una despedida, ¿querés contármelo? Solo lo que vos quieras. Y si no querés, con decir \"paso\" alcanza; lo demás de tu historia sigue igual."
+    },
+    {
+     "id": "M1",
+     "texto": "_Si no va con vos, decí paso y vamos a otra._"
+    }
+   ],
+   "botones": [
+    "Sí, hubo un final",
+    "Seguimos juntos",
+    "Paso esta"
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "AM9",
+   "texto": "[toca: Sí, hubo un final]",
+   "boton": "Sí, hubo un final"
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M30",
+     "texto": "Contame, te escucho."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "AM9",
+   "texto": "Se acabó cuando me enteré que tenía una amante. No fue de un día para el otro, fue un proceso. Yo empecé a verlo llegar tarde, a hueler diferente, sus manos diferentes. Una amiga mía me lo vio con otra mujer, en la boca. Cuando le pregunté, él lo negó, pero yo sabía. Empezamos a pelear, él decía que era culpa mía, que yo no lo comprendía, que el arte necesitaba libertad. Yo le dije, la libertad se acaba donde empieza el engaño. En el 84 nos separamos. Fue duro porque teníamos dos hijos, Julián de seis y Paula de cuatro. Mi corazón se partió en dos. Raúl se fue a vivir a otro lado, de vez en cuando veía a los chicos. Eso fue lo más duro de mi vida, hasta ese momento. Creí que no iba a sobrevivir."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M4.4",
+     "texto": "Gracias por animarte a contarlo. Cuando quieras, seguimos."
+    }
+   ]
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "AM19",
+     "texto": "Y después, cuando quedaste por tu cuenta, ¿cómo fueron esos primeros tiempos? Qué cambió en la casa y en los días, quién anduvo cerca. Si ese tiempo es el de ahora, contame igual cómo lo estás llevando. Y si no hubo un tiempo así, con decírmelo alcanza."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "AM19",
+   "texto": "Fue una lucha. Yo tenía que trabajar, cuidar a los dos chicos, no dormía. Mis amigas me ayudaban, mis padres mandaban dinero desde Mendoza. Fue la época en que trabajé de vendedora, de secretaria, de lo que fuera. Los chicos iban a la escuela, yo los llevaba, los recogía. A veces Raúl me pasaba algo para su manutención, pero era inconsistente. Yo en esa época empecé a trabajar más en la costura, porque podía hacerlo desde casa. Empecé a coser para gente conocida. Poco a poco me iba levantando. Los chicos crecían, me veían trabajar, esforzarme, yo creo que eso les enseñó algo. No fue fácil, pero salimos adelante. Fue la época también en la que empecé a pensar que tal vez el amor no era lo mío, que debería estar sola. Pero después llegó Eduardo."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.1",
+     "texto": "Gracias, Chela. Ya lo guardé."
+    },
+    {
+     "id": "AM16",
+     "texto": "Y más adelante, ¿hubo otro amor? Si hubo, contame del que compartís hoy, o del último: el día que se conocieron y un momento de los dos que te haya quedado."
+    }
+   ],
+   "botones": [
+    "Sí, hubo otro",
+    "No, nadie más"
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "AM16",
+   "texto": "[toca: Sí, hubo otro]",
+   "boton": "Sí, hubo otro"
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M30",
+     "texto": "Contame, te escucho."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "AM16",
+   "texto": "Sí, hubo varios. El segundo fue Eduardo, en el 86. Lo conocí en una fiesta, era contador, organizadísimo, lo opuesto a Raúl. Parecía lo perfecto, viste, un hombre que te cuidaba, que era responsable. Nos casamos, tuvimos a Federico en el 88. Pero Eduardo era demasiado controlador, quería que todo fuera como él decía. A los pocos años nos dimos cuenta que no funcionaba. En el 95 nos separamos. Después tuve un pintor uruguayo, hermoso pero infiel. Después un profesor de tango, eso fue corto. Y luego, en el 2005, conocí a Alberto, un viudo que era tranquilo, mayor que yo. Él fue mi gran amor, el que duró. Estuvimos juntos catorce años hasta que murió en el 2019. Fue el dolor más grande. Ahora tengo a Hugo, que es buen tipo, de mi edad, y estamos juntos pero cada uno en su casa. A los setenta no necesito que nadie me diga qué hacer."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.2",
+     "texto": "Te escuché. Vamos con la que sigue."
+    },
+    {
+     "id": "AM20",
+     "texto": "Y entre la primera y esta última, ¿hubo otras historias que fueron en serio? Un casamiento, alguien con quien viviste años. Este es su lugar, aunque me las hayas nombrado en el repaso: contame de cada una lo que quieras que quede, cómo se cruzaron y cómo terminó."
+    }
+   ],
+   "botones": [
+    "Sí, hubo",
+    "Nadie en el medio"
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "AM20",
+   "texto": "[toca: Sí, hubo]",
+   "boton": "Sí, hubo"
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M30",
+     "texto": "Contame, te escucho."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "AM20",
+   "texto": "Sí. Después de Eduardo, estuve unos años de no estar con nadie, enfocada en los chicos y en la boutique. Pero después conocí al pintor uruguayo, se llamaba Martín. Nos conocimos en una galería de arte en Palermo. Él era un hombre hermoso, apasionado, pero infiel de verdad. Estuvimos como dos años, viajamos, pasamos cosas lindas, pero al final me enteré que estaba con otras. Me dolió pero no como con Raúl. Después salí con otro hombre, Diego, profesor de tango en un estudio cerca de la boutique. Nos veíamos, era divertido, pero no era serio. Eso duró unos meses. Entre todo eso, pasó el tiempo, y en el 2005 conocí a Alberto. Él fue diferente. No era pasional como Raúl, ni controlador como Eduardo. Era simplemente un buen hombre que me quería. Y yo lo quería. Eso fue lo mejor."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.3",
+     "texto": "Lo anoté, gracias. Sigo con otra."
+    },
+    {
+     "id": "AM14",
+     "texto": "¿Hubo algún amor que te marcó, aunque haya durado poco o no haya llegado a nada? Si lo hubo, contame cómo se cruzaron y el momento que más te acordás de esa persona. Y si no hubo, con un no alcanza."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "AM14",
+   "texto": "Beto, mi primer amor de Mendoza. Eso no duró en serio porque yo me fui a Buenos Aires y él se fue a Córdoba. Pero me marcó, viste, me marcó mucho. Fue el primer beso, el primer amor, eso que no se olvida. Después en Buenos Aires tuve gente, me enamoré varias veces, pero Beto fue especial. Fue lo puro de la adolescencia, sin maldad. Años después, cuando tenía cuarenta y pico, lo volví a ver en un viaje que hice a Mendoza. Nos cruzamos en la calle, nos reconocimos, nos besamos como locos ahí en el medio de la calle. Fue lindo, viste, volver a eso. Pero después cada uno siguió su camino. Él tenía su familia, yo tenía la mía. Pero ese momento de reencuentro, eso quedó."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M26",
+     "texto": "Gracias, Chela."
+    },
+    {
+     "id": "CI6",
+     "texto": "Con esto cerramos el amor. ¿Quedó alguien o algo de este tema que no tuvo su pregunta? Una persona, una carta, un baile, una charla que no entró en ningún lado. Es el momento de contarlo, sin apuro."
+    }
+   ],
+   "botones": [
+    "No, está todo"
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "CI6",
+   "texto": "Sí, hay algo. Todas estas historias de amor, viste, me enseñaron que el amor no es lo que dicen en las películas. El amor es trabajo, es compromiso, es a veces quedarse aunque duela, es a veces irse aunque duela. Muchas de mis amigas de Mendoza, del teatro, se casaron y se quedaron para siempre con el mismo hombre. Yo no pude. Yo necesité cambiar, explorar, conocer gente diferente. Tal vez eso fue un defecto, tal vez fue una virtud. Pero hoy, con Hugo, con mis setenta y uno años, no quiero vivir con nadie. Quiero mi casa, mis cosas, mis tiempos. Y eso está bien. Eso es lo que quería decir."
+  },
+  {
+   "de": "bloque",
+   "bloque": 7,
+   "nombre": "Trabajo y oficio"
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M24.2",
+     "texto": "Anotado, gracias. Quedó guardado junto con el resto."
+    },
+    {
+     "id": "EN7",
+     "texto": "Ahora vamos al trabajo y a tu oficio, Chela: lo que hiciste con tus días."
+    }
+   ]
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "TR1",
+     "texto": "¿Te acordás de la primera vez que te ganaste algo, o que trabajaste sin cobrar? ¿Qué hacías, qué edad tenías? Contame ese primer día, y en qué se fue esa primera plata, si la hubo."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "TR1",
+   "texto": "Trabajé de chica en Mendoza, ayudando en las vendimias con mi papá. Me pagaba poco, una moneda que yo agarraba así feliz. Lo primero que hice fue comprarme un listón para el pelo, que era lo que quería. Ya en Buenos Aires, lo primero que cobré fue vendiendo ropa en una tienda, eso fue en el 76. Me pagaban poco, pero lo suficiente para pagar la pensión. Esa plata la usé para ir a ver teatro, para comer algo mejor, para sentir que era mía, que podía decidir qué hacer con ella. Eso fue importante, tener dinero propio."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.5",
+     "texto": "Guardado, Chela. Te mando la próxima."
+    },
+    {
+     "id": "TR6",
+     "texto": "Hagamos el repaso de a qué le diste tus años, en orden y más o menos en qué años. Cuál de todo eso te quedó más grabado, y si fue una sola cosa toda la vida, cómo fue quedarte ahí."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "TR6",
+   "texto": "Bueno, empecé vendiendo en tiendas de ropa en los setenta. Después trabajé de secretaria en una oficina, aburrido pero necesario. En los ochenta, cuando me separé de Raúl, me dediqué más a la costura, a hacer ropa para gente que me lo pedía. Y después, en los noventa, armé mi propia boutique en Palermo, eso fue lo mío, viste, lo que me hizo sentir independiente. Estuve quince años con la boutique, hasta 2005, que la cerré porque estaba cansada y porque empecé a estar más con Alberto. Después pasé a hacer menos cosas, trabajar por encargos de costura. Ahora a los setenta casi no trabajo, vivo de lo que junté. Lo que más me quedó grabado fue la boutique, porque fue mío. Fue donde descubrí que podía tener éxito, que no necesitaba un hombre para tener dinero, independencia. Eso fue importante."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.6",
+     "texto": "Lo tengo, gracias. Vamos con otra."
+    },
+    {
+     "id": "TR2",
+     "texto": "Pensá en eso a lo que le diste más años. ¿Cómo era un día común? Desde que arrancabas hasta que terminaba, qué hacías, con quién. Y contame uno de esos días que todavía tengas fresco."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "TR2",
+   "texto": "En la boutique me levantaba temprano, abría a las diez. Mi ayudante era una chica joven que hacía tareas de tienda. Yo atendía a las clientas, les mostraba piezas, tomaba medidas, conversaba. Muchas veces se quedaban horas conmigo, hablando de la vida, mientras les probaba cosas. Yo hacía los bocetos en el mostrador, hablaba con las costureras que iban a hacer las prendas. Cerraba a las ocho. Un día en particular, llegó una clienta importante, empresaria, que quería un vestido para una gala. Pasó toda la tarde conmigo, probándose cosas, hablando de cómo quería verse. Yo le hice un vestido hermoso, ella quedó feliz, me pagó bien. Al final del día, cuando cerré, me sentí como dueña de algo, como que valía la pena."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.7",
+     "texto": "Quedó guardado, Chela. Sigo con la que viene."
+    },
+    {
+     "id": "TR3",
+     "texto": "¿Alguien te dio una mano en tu camino? Alguien que te enseñó, te acompañó o te abrió una puerta en lo que hiciste. Contame cómo era esa persona, y una vez con ella que tengas bien clara."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "TR3",
+   "texto": "Mi mamá. Ella me enseñó a coser, me enseñó a apreciar la calidad, el trabajo hecho con amor. Ella me mostró que una mujer podía ganar dinero, que no necesitaba estar pegada a un marido. Una vez, siendo yo chica, vino una clienta importante de mi mamá, una señora de dinero, y mi mamá la atendía como a una reina, pero nunca se bajaba de quién era. Le mostraba el trabajo con orgullo. Después que se fue, le pregunté a mi mamá, ¿vos no tenés miedo de que se arrepienta? Y ella me dijo, nena, si vos hacés bien las cosas, si ponés amor en lo que hacés, la gente lo ve. Eso quedó conmigo. Eso es lo que intenté hacer en la boutique."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.8",
+     "texto": "Te escuché bien. Vamos por la siguiente."
+    },
+    {
+     "id": "TR5",
+     "texto": "¿Cuál fue el día de trabajo del que estás más orgullosa? No hace falta que haya sido grande: algo que salió bien, que alguien reconoció, o que solo vos sabés lo que costó. Contámelo. Y si no te viene un día puntual, contame de qué parte de tu trabajo estás más orgullosa."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "TR5",
+   "texto": "Una clienta me pidió que le hiciera un vestido muy complicado, con un tejido que era difícil de trabajar, con detalles que ella dibujó. Pasé semanas con eso, iba de noche a la boutique después de cerrar, cosía a mano los detalles. Cuando lo terminé, ella vino, se lo puso, y lloró. Me abrazó, me dijo que era exactamente lo que había visto en su mente. Después se fue a una fiesta importante con ese vestido y un chico que después fue su marido le dijo que se veía hermosa. Años después me lo contó, me dijo que ese vestido fue importante en su vida. Eso, viste, eso es de lo que estoy más orgullosa. No es que haya hecho millones de pesos, sino que hice algo que cambió algo en la vida de otra persona."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M26",
+     "texto": "Gracias, Chela."
+    },
+    {
+     "id": "TR11",
+     "texto": "¿Te quedaste alguna vez sin trabajo sin haberlo elegido, o te tocó una época de plata muy ajustada? Si te pasó, contame un día de ese tiempo que tengas bien presente, y cómo lo fuiste llevando."
+    }
+   ],
+   "botones": [
+    "Paso esta"
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "TR11",
+   "texto": "Sí, cuando me separé de Raúl. De la noche a la mañana quedé sola con dos chicos y sin saber qué iba a pasar. Tuve que dejar la escuela de teatro porque no podía mantenerla. Busqué trabajo urgente, cualquier cosa. Trabajé en restaurantes, limpié casas, cosas que me humillaban pero necesitaba hacerlo. Un día particular, me acuerdo que no tenía dinero ni para las cosas del colegio de los chicos. Fui a empeñar una pulsera que me había regalado mi abuela. Lloré en la casa de empeños, delante de la persona, sin poder evitarlo. Pero saqué el dinero, compré lo que necesitaban los chicos. Al día siguiente llamé a todos mis contactos, pedí trabajo de vendedora con desesperación. Y alguien me dio una oportunidad. De ahí fue subiendo. Pero eso, viste, eso no se olvida."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M4.1",
+     "texto": "Gracias por contarme esto, Chela. Queda guardado con cuidado."
+    }
+   ]
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "TR8",
+     "texto": "Si tuviste un negocio o algo propio, aunque fuera chico, este es su lugar. Si ya me lo contaste, con decírmelo alcanza. Si quedó algo afuera, cómo empezó, de dónde salió la idea, con qué plata, un día de esos, contámelo ahora."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "TR8",
+   "texto": "Ya te conté de la boutique, pero lo que no conté es de cómo empezó. Una amiga me dijo, vos podés hacerlo, alquilá un local. Yo no tenía plata, estaba asustada. Pero una tía me prestó dinero, me arries mí misma, y en el 90 abrí la puerta. Los primeros años fueron duros, la gente no sabía que existía. Pasé hambre, de nuevo. Pero poco a poco se corrió la voz. Las mujeres venían, se probaban, confiaban en mí. Fue creciendo. A los quince años de funcionamiento, decidí cerrar. Estaba cansada, quería vivir diferente. No me arrepiento. La boutique fue mi independencia, mi orgullo."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.2",
+     "texto": "Te escuché. Vamos con la que sigue."
+    },
+    {
+     "id": "CS1",
+     "texto": "Fuera de lo tuyo, hay cosas que hacés bien y nadie te paga, cocinar para todos, cuidar a alguien, tener la casa andando. ¿Hay alguna que sea tuya? Contame una vez que te lució, que la gente lo notó."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "CS1",
+   "texto": "Cocinar. Yo soy charlatana, soy buena para estar con gente, para hacer que la gente se sienta cómoda. Pero cocinar, eso fue mío. Aprendí con mi mamá, claro, pero lo hice propio. Hago unas empanadas que son famosas en el barrio, mis nietos me las piden. Una vez hice una comida para los amigos de uno de mis hijos, mucha gente, y todos me decían, Chela, qué cosa más rica. Eso, viste, que alguien disfrute de algo que vos hiciste, que coma feliz, eso es importante. La comida es amor, es cuidar a la gente. Eso es lo que hago en la cocina."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.3",
+     "texto": "Lo anoté, gracias. Sigo con otra."
+    },
+    {
+     "id": "CP1",
+     "texto": "¿Viviste o trabajaste en el campo alguna vez, aunque fuera de chica o por una temporada? Si fue así, contame un día entero ahí, y una vez que el clima mandó: una seca, una helada, una tormenta."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "CP1",
+   "texto": "Sí, en las viñas de Mendoza con mi papá. De chica iba a ayudar en la vendimia, que es cuando se cosechan las uvas. Un día entero ahí empieza al amanecer, oscuro todavía, y te vas entre las plantas. Hace calor de la patada, el sol quema. Cortás uva, la ponés en canastos. Al mediodía parás a comer algo rápido. Sigue el calor, sigue el trabajo. Algunos días llovía, aguaceros de esos que limpian el polvo. Una vez hubo una tormenta eléctrica fuerte, relámpagos, y todos corrimos a un galpón a esperar que pasara. Mi papá estaba tranquilo, como si nada. Para él eso era normal. Recuerdo estar adentro del galpón, mojada, asustada, y mi papá me pasaba la mano por la cabeza, como diciendo, esto es la vida, esto es el trabajo. Las viñas me enseñaron que la naturaleza manda, y vos tenés que hacer lo que podés."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.4",
+     "texto": "Gracias por contármelo. Seguimos."
+    },
+    {
+     "id": "TR9",
+     "texto": "¿Ya dejaste eso a lo que te dedicaste? Si seguís, con decírmelo alcanza. Si ya lo dejaste, contame el último día: cómo fue, si lo sabías de antes, qué hiciste al salir. Y el día siguiente, el primero sin ir."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "TR9",
+   "texto": "Sí, dejé. El último día de la boutique fue en el 2005, ya lo sabía de antes. Pasé todo el día viendo gente, amigos, clientas que venían a despedirse. Lloré un poco, no puedo mentir. Guardé las cosas que tenía valor, ciertas telas, ciertos papeles. Me senté en la silla de la tienda, solo en el local, y me quedé ahí un rato, acordándome. Al otro día no fui. Me desperté sin saber qué hacer. No sé si fue melancolía o libertad. Supongo que fue un poco de las dos. Después empecé a cuidar a Alberto, a disfrutar de tener tiempo. Estuvo bien cerrar eso. No fue el fin del mundo, fue el comienzo de otra cosa."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M26",
+     "texto": "Gracias, Chela."
+    },
+    {
+     "id": "CI7",
+     "texto": "Con esto cerramos el trabajo. ¿Quedó algo que no tuvo su pregunta? Un lugar, una herramienta, un olor, una persona, una changa de la que nadie sabe. Es el momento de contarlo, sin apuro."
+    }
+   ],
+   "botones": [
+    "No, está todo"
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "CI7",
+   "texto": "[toca: No, está todo]",
+   "boton": "No, está todo"
+  },
+  {
+   "de": "bloque",
+   "bloque": 8,
+   "nombre": "Hijos y nietos"
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M25.2",
+     "texto": "Bien, seguimos."
+    },
+    {
+     "id": "EN8",
+     "texto": "Volvemos a la familia, Chela, pero en tu vida adulta."
+    }
+   ]
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "PG1",
+     "texto": "Contame de tus viejos cuando vos ya eras grande, con tu propia vida. Una vez que los notaste más viejos, un gesto, algo chiquito, y qué te pasó a vos. Y si te tocó cuidarlos, contame cómo era un día de esos: qué hacías por ellos, qué te decían. Si no los tuviste cerca, contame cómo fue eso."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "PG1",
+   "texto": "Mi papá envejeció mal. En un momento dejó las viñas, no podía más. Se quedó en Mendoza con mi mamá, que también se puso vieja. Yo los visitaba cuando podía, pero no era fácil. Llegué una vez y noté que mi papá no reconocía bien. Eso me duró, viste, verlo así. Mi mamá lo cuidaba, estaban los dos viejos juntos, juntos toda la vida. Cuando enfermó mi papá, yo iba cada tanto, le llevaba comida, lo veía acostado. Murió cuando yo tendría unos cuarenta, cincuenta años. Mi mamá se quedó viuda, yo le pasaba dinero, le escribía cartas. Después ella se murió también. No fue fácil estar lejos durante eso, pero fue la vida que elegí."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M26",
+     "texto": "Gracias, Chela."
+    },
+    {
+     "id": "HI0",
+     "texto": "Ahora vamos a los hijos. ¿Tuviste hijos, o criaste a alguno como si lo fuera? Presentámelos de a uno, incluso si alguno ya apareció en lo que me venís contando: cómo se llama cada uno y cuándo llegó. Y si no tuviste, seguimos por otro lado."
+    },
+    {
+     "id": "M1",
+     "texto": "_Si no va con vos, decí paso y vamos a otra._"
+    }
+   ],
+   "botones": [
+    "Sí, tuve",
+    "No tuve hijos"
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "HI0",
+   "texto": "[toca: Sí, tuve]",
+   "boton": "Sí, tuve"
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M30",
+     "texto": "Contame, te escucho."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "HI0",
+   "texto": "Tres hijos. Julián es el mayor, nació en el 78 con Raúl. Es abogado, serio, ordena, le cuesta la emoción. Paula nació en el 80, también con Raúl. Ella es más como yo, charlatana, sensible, artística. Es mamá de dos chicos, mis nietos. Después Federico, el más chiquito, nació en el 88 con Eduardo. Él tiene veinticuatro años, es diseñador gráfico, trabajador. Los tres me dieron alegrías y dolores. Julián se casó joven, Paula anduvo con varios chicos antes de encontrar al que es ahora. Federico todavía está soltero pero tiene una novia seria. Con Julián no es tan cercana, viste, él es más distante. Con Paula y Federico soy más cercana. Pero los tres me quieren, eso está claro."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.6",
+     "texto": "Lo tengo, gracias. Vamos con otra."
+    },
+    {
+     "id": "HI2",
+     "texto": "¿Y el día que llegó tu primer hijo? Contame ese día como si lo estuvieras viendo: dónde fue, quién estaba, y el momento en que lo tuviste en brazos por primera vez."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "HI2",
+   "texto": "Julián nació en el 78, en un hospital en Buenos Aires. Yo estaba joven, tenía veintitrés años. El trabajo de parto fue largo, doloroso, catorce horas. Raúl estaba en la sala de espera fumando, nervioso. Después de tanto tiempo, el doctor me dice, es un varón. No podía creer. Me lo pusieron en los brazos y el mundo se paró. Era rojo, arrugado, una cosa ajena pero mía. Lloré de todo: de cansancio, de alegría, de miedo de que algo le pasara. Raúl entró, vio al nene, lloraba él también. Fue el momento más importante de mi vida hasta ese entonces. Lo bañaron, lo trajeran chiquito como un regalo. Esa noche no dormí, lo miraba nada más, asegurandome que respiraba. Fue una cosa sagrada, viste."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.7",
+     "texto": "Quedó guardado, Chela. Sigo con la que viene."
+    },
+    {
+     "id": "HI3",
+     "texto": "¿Cómo era cada uno de chico? El carácter, las mañas, lo que lo hacía distinto de los demás. Y contame una escena de esa época que todavía te haga sonreír."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "HI3",
+   "texto": "Julián era serio desde chiquito, ordenadito. Ayudaba en casa, le gustaba las reglas. Paula era lo opuesto, salvaje, desobediente, me los hacía girar. Los dos se peleaban a muerte. Federico llegó cuando los otros tenían ya edad, así que fue distinto. Él observaba, aprendía de los otros, era más tranquilo. Una escena que me hace reír: Julián en una clase estaba disfrazado de dinosaurio para una obra, y Paula lo vio en la calle por casualidad, no sabía de la obra. Pensó que era un loco y le tiró todo lo que tenía en la mochila, lápices, cuadernos. Julián terminó el acto lleno de cosas. Después se enteró y durante años se lo recordaba. Era así, viste, ellos eran distintos pero se querían de esa manera rara de los hermanos."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.8",
+     "texto": "Te escuché bien. Vamos por la siguiente."
+    },
+    {
+     "id": "HS1",
+     "texto": "¿Cómo fue criar a tus hijos? Quién estaba cerca, cómo se repartían las cosas, o si te tocó llevarla sola. Contame un día de esa época que te acuerdes bien."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "HS1",
+   "texto": "Fue solo yo. Raúl andaba por ahí, musicalizando su vida. Mis papás mandaban dinero desde Mendoza. Yo trabajaba, los llevaba a la escuela, venía, preparaba la comida, ayudaba con las tareas. Fue caos. Un día en particular, me acuerdo que tenía que ir a una venta de ropa que había en una tienda para conseguir dinero, pero Julián se enfermó, tenía fiebre. No podía dejarlo solo. Llamé a una amiga, me hizo el favor de venir. Mientras esperaba a que llegara, estaba en la cocina haciendo té para el chico, llorando de frustración. Pero lo hice. Esa fue la vida, viste, estar dividida entre trabajar y cuidarlos. Pero salieron buenos, los dos mayores. Eso es lo que importa."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.1",
+     "texto": "Gracias, Chela. Ya lo guardé."
+    },
+    {
+     "id": "HI6",
+     "texto": "Contame una vez que se te hinchó el pecho por uno de tus hijos. No hace falta que sea algo que salió en el diario: qué hizo, dónde estabas, qué le dijiste. Y si se te vienen de varios, contalas todas, que hay lugar para cada uno."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "HI6",
+   "texto": "Una vez Julián recibió su diploma de abogado, eso fue grande. Yo estaba ahí sentada en la silla viendo a mi hijo, que yo había criado de chiquito sin su papá, recibiendo su diploma. Lloré de emoción. Paula cuando tuvo su primer hijo, eso fue emocionante. Yo estaba en la sala de partos con ella, la sostuve, lloramos las dos. Viste que ella era salvaje, pero resultó una mamá hermosa. Federico cuando me compró un regalo con su primer sueldo, un pañal para mí que costaba muy poco pero que había trabajado por eso. Me lo regaló así, solemne. Eso son cosas que hacen que todo lo que sufriste valga la pena. Ver a los hijos grandes, siendo gente de verdad, eso es lo mejor."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.2",
+     "texto": "Te escuché. Vamos con la que sigue."
+    },
+    {
+     "id": "HI8",
+     "texto": "Ahora, los nietos. ¿Llegaron nietos a tu vida? Puede que ya los hayas mencionado; contame el día que conociste al primero, como si lo estuvieras viendo. Si no hay nietos, pasamos a otra cosa."
+    },
+    {
+     "id": "M1",
+     "texto": "_Si no va con vos, decí paso y vamos a otra._"
+    }
+   ],
+   "botones": [
+    "Sí, llegaron",
+    "No hay nietos"
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "HI8",
+   "texto": "[toca: Sí, llegaron]",
+   "boton": "Sí, llegaron"
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M30",
+     "texto": "Contame, te escucho."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "HI8",
+   "texto": "Sí, tengo cuatro. El primero fue el hijo de Paula. Recuerdo el día que la llamaron del hospital, que había llegado. Raúl estaba vivo todavía, me acuerdo eso. Yo salí corriendo del trabajo, agarré un taxi, llegué al hospital. Paula estaba en la cama, cansada pero feliz. El bebé estaba durmiendo. Cuando me lo dieron, fue otra vez eso que sentí cuando nació Julián, pero distinto. Porque ya no era responsabilidad mía, era alegría pura. Yo era abuela. No lo podía creer. Lo miré, era bien pequeñito. Le dije, qué rápido crecés. Ahora ese nene tiene veinte años. Los otros tres nietos llegaron después, de Paula y los demás. Cada uno fue una celebración."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.3",
+     "texto": "Lo anoté, gracias. Sigo con otra."
+    },
+    {
+     "id": "HI9",
+     "texto": "¿Hay algo que hacés con tus nietos que es de ustedes, que no lo hacen con nadie más? Un juego, por ejemplo. Contame qué es y una vez que tengas bien grabada."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "HI9",
+   "texto": "Las empanadas. Cuando vienen los nietos, lo primero que hacemos es empanadas juntos. Yo hago la masa, ellos ayudan. Les enseño a amasar, a rellenar. Se ensucian todo, hacen un caos, pero es de nosotros. Después las freímos juntos y comemos calentitas, hablamos de sus cosas, de la escuela, de los amigos. Los nietos me vienen a ver y lo primero que dicen es, abuela, ¿hacemos empanadas? Eso es mío con ellos. Es comida, es tiempo juntos, es un ritual. Es lo que dejo."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M26",
+     "texto": "Gracias, Chela."
+    },
+    {
+     "id": "CI8",
+     "texto": "Con esto cerramos este tema. ¿Quedó alguien o algo que no tuvo su pregunta? Un cumpleaños, una charla en la cocina, alguien que no entró en ningún lado. Es el momento de contarlo, sin apuro."
+    }
+   ],
+   "botones": [
+    "No, está todo"
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "CI8",
+   "texto": "Algo que no conté es que mi relación con Julián es complicada. Él tiene rencor por algunas cosas, por Raúl, por mi segunda relación. Nos vemos poco, hablamos menos. Paula es mi compañera, mi confidente. Federico está en el medio. Eso me duele, viste, que uno de mis hijos tenga esa distancia conmigo. He intentado acercarme pero es difícil. Espero que algún día nos sentemos a hablar de verdad, de las cosas que duelen. Pero eso está ahí pendiente, sin resolver."
+  },
+  {
+   "de": "bloque",
+   "bloque": 9,
+   "nombre": "Lugares y pasiones"
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M24.3",
+     "texto": "Bien, Chela. Lo sumo a lo que ya me contaste de eso."
+    },
+    {
+     "id": "EN9",
+     "texto": "Te llevo a los lugares que fueron tuyos y a las cosas que te apasionaron."
+    }
+   ]
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "LU4",
+     "texto": "Ya de grande, ¿cuál fue el viaje más importante de tu vida, o uno que recuerdes con mucha fuerza? Contame si fuiste con alguien, y un día de ese viaje que te haya quedado como una foto."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "LU4",
+   "texto": "Un viaje que fue importante fue cuando volví a Mendoza después de muchos años, con Alberto. Debe haber sido hace unos quince años, en invierno. Fui a reencontrarme con mi pasado, viste. Caminé por las calles donde crecí, fui a la escuela, pasé por la casa de Beto. Eso me hizo llorar. Un día en particular, Alberto y yo fuimos a las viñas de mi papá, que ya no eran de él, que las había vendido hace años. Caminamos entre las plantas, el mismo lugar donde yo trabajaba de chica. Fue como cerrar un círculo. Sentía que volvía a ser chica pero vieja al mismo tiempo. Alberto me abrazó y me dijo, qué hermosa eras acá. Eso fue muy importante, volver a Mendoza de la mano de alguien que me quería, no arrancada como cuando me fui."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.5",
+     "texto": "Guardado, Chela. Te mando la próxima."
+    },
+    {
+     "id": "PA1",
+     "texto": "Fuera del trabajo y de la familia, ¿hubo algo que te apasionara de grande? Contame cómo empezó eso, y un día entero que le hayas dedicado, de la mañana a la noche. Si sentís que ya me lo contaste, decímelo."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "PA1",
+   "texto": "El teatro. Nunca dejé de amarlo, aunque lo abandoné. De grande, cada tanto iba a ver obras en Buenos Aires. A veces me anotaba en talleres de teatro para adultos, iba un tiempo y después desaparecía. Un día entero que lo haya dedicado fue a los treinta y pico, me anotaba en un taller y pasaba la mañana haciendo ejercicios, improvisaciones, trabajando emociones. Después comía algo rápido, iba a la boutique, y por la noche volvía a pensar en lo que había visto en el taller. Fue una época donde sentía que el teatro estaba en mí, que nunca se fue. Pero después volví a dejarlo, porque la vida te reclama otras cosas. Eso es lo que lamento, viste, no haber seguido con eso que me apasionaba de chica."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M26",
+     "texto": "Gracias, Chela."
+    },
+    {
+     "id": "CI9",
+     "texto": "Con esto cerramos lugares y pasiones. ¿Quedó algún lugar o algo que te gustó mucho y no tuvo su pregunta? Una esquina, un hobby que duró poco, un rincón de tu casa. Contalo ahora, tranquila."
+    }
+   ],
+   "botones": [
+    "No, está todo"
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "CI9",
+   "texto": "[toca: No, está todo]",
+   "boton": "No, está todo"
+  },
+  {
+   "de": "bloque",
+   "bloque": 10,
+   "nombre": "Amistades y ayudas"
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M25.3",
+     "texto": "Bien, entonces."
+    },
+    {
+     "id": "EN10",
+     "texto": "Hablemos de los amigos, Chela, y de la gente que te dio una mano en la vida."
+    }
+   ]
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "AS1",
+     "texto": "Ya de grande, ¿hubo alguien que conociste y se volvió muy importante en tu vida, un amigo o una amiga? Contame cómo se conocieron, y una vez que muestre bien cómo es esa amistad."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "AS1",
+   "texto": "Rosa. La conocí en la época de la boutique, ella venía a comprar ropa. Después de un tiempo nos quedamos charlando, hablando de la vida. Rosa había sido modelo, era viuda, tenía hijos, teníamos historias parecidas. Nos hicimos amigas del alma. Íbamos a cafés en Palermo, hablábamos de todo. Ella era mi confidente. Cuando murió Alberto, fue Rosa quien estuvo conmigo, quien me hizo pasar esos días, quien no me dejó sola. Una tarde en particular, después de la muerte de Alberto, estábamos en un café, y Rosa me tomó la mano sin decir nada. Y yo supe que estaba bien llorar, que estaba bien no estar bien. Eso fue amistad. Rosa murió hace tres años, y aún la extraño."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.7",
+     "texto": "Quedó guardado, Chela. Sigo con la que viene."
+    },
+    {
+     "id": "AY1",
+     "texto": "¿Alguna vez necesitaste ayuda de verdad y alguien te la dio, sea quien sea? Contame qué hizo esa persona ese día, y si después se lo pudiste devolver."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "AY1",
+   "texto": "Cuando me separé de Raúl y casi me vuelvo loca. Una tía que vivía en Buenos Aires me dejó quedarme en su casa con los chicos durante un tiempo. Fue fundamental. Sin ella nos habríamos quebrado. Yo podía respirar un poco, los chicos tenían estabilidad. Después que salí adelante, cuando ella envejec ió, yo la cuidé. Le hice la comida, la acompañé a los médicos, estuve ahí. No fue lo mismo en dinero, pero fue en cuidado, en presencia. Eso es lo que hago ahora con mi tía que quedó viuda, cuando puedo."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.8",
+     "texto": "Te escuché bien. Vamos por la siguiente."
+    },
+    {
+     "id": "AS9",
+     "texto": "Imaginate que armás una cena y podés invitar a tu gente más cercana. ¿Quiénes se sientan en esa mesa? Contame quién va, y por qué cada uno se ganó su lugar."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "AS9",
+   "texto": "Mis hijos, claro. Julián, Paula, Federico. Los nietos. Hugo, que es mi amor ahora. Uno o dos amigos, gente de verdad, no mucho. Alguien que me haya querido de verdad en la vida. Paula porque es mi compañera, es mi confidente. Julián porque aunque tengamos distancia, es mi hijo y lo quiero. Federico porque es joven y es esperanza. Los nietos porque son el futuro. Hugo porque después de todo, sigue siendo alguien que me quiere y yo lo quiero. Y falta, ¿viste? Falta Alberto. Falta Rosa. Pero no puedo invitarlos. Ellos estarían sentados aunque no estén. La cena sería de gente que pasó, y gente que queda. Eso es."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M26",
+     "texto": "Gracias, Chela."
+    },
+    {
+     "id": "CI10",
+     "texto": "Con esto cerramos amistades y ayudas. ¿Quedó alguien que te acompañó y no tuvo su pregunta? Un vecino, alguien del trabajo, una persona que apareció una sola vez. Y si querés contar de otros amigos importantes, de quien sea, es el momento. Contalo tranquila."
+    }
+   ],
+   "botones": [
+    "No, está todo"
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "CI10",
+   "texto": "Hay algo, sí. Una vez llegó a la boutique una chica joven, tendría veinte años, que no tenía dinero para un vestido para una fiesta importante. Yo le hice un vestido hermoso, y le dije que me lo pagara cuando pudiera. Tres meses después vino y me lo pagó, trayendo flores. Después años después me escribió, me contó que ese vestido fue importante en su vida, que conoció a alguien esa noche. Eso es gente que te aparece una sola vez pero que deja huella. Eso es bonito."
+  },
+  {
+   "de": "bloque",
+   "bloque": 11,
+   "nombre": "Pérdidas y momentos difíciles"
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M24.4",
+     "texto": "Gracias por eso. Cada detalle que agregás suma."
+    },
+    {
+     "id": "AV11",
+     "texto": "Ahora vienen unas preguntas sobre momentos difíciles. Si alguna no tiene que ver con tu vida o no querés entrar, con un *paso* alcanza y seguimos. Vos manejás."
+    }
+   ]
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "PE1",
+     "texto": "Puede que ya me hayas hablado de alguna pérdida; acá hay lugar para lo que no entró. Si perdiste a alguien importante, contame de cada uno lo que quieras: qué era para vos, cómo fueron los días de después y cómo lo fuiste llevando. Y si hay un momento con alguna de esas personas que te guste recordar, contámelo también."
+    },
+    {
+     "id": "M1",
+     "texto": "_Si no va con vos, decí paso y vamos a otra._"
+    }
+   ],
+   "botones": [
+    "Paso esta"
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "PE1",
+   "texto": "Alberto fue la más grande. Estuvimos juntos catorce años, fue mi amor maduro, el que llegó cuando yo ya conocía de todo. Cuando murió en el 2019, fue como que se apagó algo. Él tenía Alzheimer, estaba internado. Yo lo visitaba todos los días. Un día llegué y él ya no estaba. No pude despedirme bien. Los días después fueron grises, todo me hacía pensar en él. Rosa me sostuvo esos días. Mis hijos también fueron importantes. Mi papá murió cuando yo tendría unos cincuenta, eso fue duro pero más lejano. Mi mamá murió después, la visitaba cuando podía, ella entendía. Lo que más me duele es no haber podido estar más tiempo con ellos al final. La vida te lleva y de repente se cierran capítulos."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M4.2",
+     "texto": "Te escuché. Gracias por confiármelo."
+    }
+   ]
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "PE5",
+     "texto": "Si alguna vez tu salud te frenó en serio, ¿querés contármelo? Cómo fueron esos días, quién estuvo cerca, y cómo lo fuiste llevando. Y si es algo que todavía llevás, también vale."
+    },
+    {
+     "id": "M1",
+     "texto": "_Si no va con vos, decí paso y vamos a otra._"
+    }
+   ],
+   "botones": [
+    "Paso esta"
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "PE5",
+   "texto": "A los sesenta me detectaron diabetes. Fue un golpe, porque creía que estaba sana. Tuve que cambiar la comida, el estilo de vida. Al principio lo llevé mal, me deprimía. Después hablé con mi doctora, ella me explicó que podía vivir normal con cuidados. Ahora tengo setenta y uno y estoy bien controlada. Fue una lección sobre la vejez, viste. El cuerpo empieza a fallar, a pedirte cosas. Ahora cuido lo que como, aunque me duela porque la comida es lo que amo. Mis hijos me obligaban a cuidarme, Paula especialmente. Eso está ahí, es parte de vivir a esta edad. Pero sigo de pie, sigo cocinando, sigo viviendo."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M4.3",
+     "texto": "Lo guardo tal como lo contaste. Gracias."
+    }
+   ]
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "PE4",
+     "texto": "¿Hubo alguna época dura en tu vida de grande que creas que no puede quedar afuera de tu historia? ¿Algo que te marcó? Si querés, contame qué pasó y cómo lo viviste. Y si ya me la contaste, con decírmelo alcanza."
+    },
+    {
+     "id": "M1",
+     "texto": "_Si no va con vos, decí paso y vamos a otra._"
+    }
+   ],
+   "botones": [
+    "Paso esta"
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "PE4",
+   "texto": "[toca: Paso esta]",
+   "boton": "Paso esta"
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M27.1",
+     "texto": "Está bien, Chela. Lo dejamos ahí y seguimos por otro lado."
+    },
+    {
+     "id": "CI11",
+     "texto": "Si hay otro momento difícil que sentís que tiene que estar en tu historia y no te lo pregunté, contámelo acá."
+    }
+   ],
+   "botones": [
+    "No, está todo"
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "CI11",
+   "texto": "[toca: No, está todo]",
+   "boton": "No, está todo"
+  },
+  {
+   "de": "bloque",
+   "bloque": 12,
+   "nombre": "La historia grande"
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M25.1",
+     "texto": "Bien, seguimos."
+    },
+    {
+     "id": "EN12",
+     "texto": "Ahora salimos un poco de tu casa: vamos a las cosas grandes que pasaron en el país y en el mundo mientras vos vivías tu vida."
+    }
+   ]
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "HG1",
+     "texto": "Cuando pasó algo grande, en el país o en el mundo, un Mundial, una guerra, ¿cómo lo pasaste vos? Contame lo que recuerdes: dónde estabas, si lo viviste de cerca o te lo contaron, y qué pasó ese día."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "HG1",
+   "texto": "El golpe del 76 en Argentina. Eso cambió todo. Yo estaba en Buenos Aires, acababa de casarme con Raúl, tenía a Julián recién nacido. De repente todo se cerró, había militares en las calles, desaparecidos, miedo en el aire. Yo me encerraba en la casa, tenía miedo de salir, miedo de que me pasara algo a mis hijos. Raúl no andaba, decía que había que cuidarse. Fue un tiempo oscuro, viste, donde la música, el arte, todo se apagó. Después vino el Mundial 78, eso fue un respiro, la gente salía a la calle, Argentina ganaba. Yo vía los partidos en una casa, lloraba de emoción, era como que la gente respiraba un poco. Pero después volvía el miedo. Eso marcó mi vida, esos años de dictadura. No se olvidan."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.2",
+     "texto": "Te escuché. Vamos con la que sigue."
+    },
+    {
+     "id": "HG4",
+     "texto": "Te quiero pedir un día concreto de la pandemia. No toda esa época: un solo día. Dónde estabas, con quién, qué hiciste, cómo te sentías. Pensá en el que más te haya quedado. Y si ninguno se te separa de los demás, contame cómo eran tus días entonces."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "HG4",
+   "texto": "Un día en mayo del 2020, todo cerrado, la pandemia. Yo estaba encerrada en mi casa, fue un día gris, depresivo. Como que no sabía qué hacer. Había dejado a mis hijos, veía las noticias que eran malas. Decidí hacer empanadas aunque no viniera nadie. Pasé el día haciendo la masa, rellenando, como si estuviera de costumbre con los nietos aunque no estaban. Cocté para nadie. Después me senté en la ventana a comer empanadas sola, mirando a la calle vacía de Buenos Aires. Las calles que estaban llenas de gente estaban vacías, como si el mundo se hubiera detenido. Ese día lloré un poco, creo. Fue el primer día que realmente sentí la soledad, la vejez, todo eso que normalemente te distraés. La pandemia te saca las distracciones y te deja solo con vos."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.3",
+     "texto": "Lo anoté, gracias. Sigo con otra."
+    },
+    {
+     "id": "DE1",
+     "texto": "Cuando eras joven había cosas que no se podían hacer, o estaban mal vistas, y hoy nadie se sorprende. ¿Te pasó con alguna? Contame ese día: qué querías hacer y qué te dijeron."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "DE1",
+   "texto": "Divorciarse. Cuando me separé de Raúl, eso fue una vergüenza. La gente hablaba, decía que yo era mala madre, que abandonaba a mis hijos. Mi mamá lloraba, decía qué van a decir en el pueblo. Mis amigas algunas me apartaban, como si fuera contagioso. Hoy divorcio es normal, es lo natural. Pero en los ochenta, cuando yo lo viví, fue algo que cargaste con vergüenza. Yo no lo veía así, para mí era importante irme con un hombre que no me quería o que no me trataba bien. Pero la sociedad no veía eso. Ahora mis nietas pueden hacer lo que quieran, y es normal. Eso me alegra, viste, que las mujeres de hoy tengan libertades que yo no tuve."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.4",
+     "texto": "Gracias por contármelo. Seguimos."
+    },
+    {
+     "id": "FI7",
+     "texto": "¿Qué es la política para vos? ¿Hubo algún momento de tu vida en que te tocó de cerca? Contame cuál fue y qué pensás hoy."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "FI7",
+   "texto": "La política es algo que me pasó por encima. Durante la dictadura tuve miedo, eso es política. Después he votado, he tenido opiniones, pero nunca me metí en activismo. Soy de dejarme llevar un poco, de sobrevivir nomás. Creo que es importante votar, que la gente se meta en la política, pero a mí me costó mucho. Durante el 76 veía a gente que desaparecía, que sus familias salían a buscarlos. Eso es política pero de verdad, cuando te afecta la vida. Hoy pienso que el país está un caos, que la gente sufre, pero no sé si tengo energía para cambiar nada. Soy vieja, simplemente quiero vivir tranquila."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M26",
+     "texto": "Gracias, Chela."
+    },
+    {
+     "id": "CI12",
+     "texto": "Hasta acá lo del país y el mundo. Si hay algo que te marcó y no salió, mandámelo ahora, aunque sea corto, con dónde estabas cuando pasó."
+    }
+   ],
+   "botones": [
+    "No, está todo"
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "CI12",
+   "texto": "[toca: No, está todo]",
+   "boton": "No, está todo"
+  },
+  {
+   "de": "bloque",
+   "bloque": 13,
+   "nombre": "Puntos altos, bajos y giros"
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M25.2",
+     "texto": "Bien, seguimos."
+    },
+    {
+     "id": "EN13",
+     "texto": "Llegamos a los días que te cambiaron algo: los buenos, los que te agarraron de sorpresa, y algunas preguntas para pensar un rato."
+    }
+   ]
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "GI1",
+     "texto": "¿Hay algún día de tu vida que, si pudieras, volverías a vivir tal cual? O un momento en que sentiste que algo hizo clic. Contámelo desde el principio: dónde estabas, con quién, y qué fue lo que pasó. Si es uno que ya me contaste, decímelo y, si querés, agregale lo que te faltó."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "GI1",
+   "texto": "El día que abría la boutique. Fue en el 90, un sábado. Yo estaba ahí con mi tía que me prestó dinero, y con una amiga que me ayudó. Las paredes estaban pintadas de color crema, había un espejo grande, una luz que daba calor. Yo abrí la puerta a las diez de la mañana. Recuerdo el olor de la madera nueva, de la pintura fresca. Me senté en una silla y lloré. Mi tía me abraza, me dice, lo hiciste, lo hiciste. Ese día nadie entró a comprar, pero no importaba. Fue el día que sentí que era mía, que había logrado algo sin depender de un hombre, sin que me lo diera. Sí, viviría ese día mil veces. Ese fue un click. Fue libertad completa."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.6",
+     "texto": "Lo tengo, gracias. Vamos con otra."
+    },
+    {
+     "id": "GI2",
+     "texto": "Pensá en un día que empezó como cualquier otro y terminó cambiándote algo. Contame ese día entero: cómo arrancó la mañana, en qué momento te diste cuenta de que ya no había vuelta atrás, y cómo terminó. Si ya me lo contaste, con decírmelo alcanza. Y si el día justo no te vuelve, contame lo que te acuerdes de esa época."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "GI2",
+   "texto": "El día que descubrí que Raúl me engañaba. Arrancó normal, me desperté con él durmiendo. Fue un martes, creo. Raúl se levantó, dijo que iba a ensayar con la banda, se fue. Yo acompañé a los chicos a la escuela, volví, estaba haciendo cosas de la casa. Sonó el teléfono, me llamaba una amiga que andaba en la boca. Me dice, Chela, vi a Raúl ayer en la boca con una mina. Yo en ese momento me quedé fría. Colgué, me senté en la cama. No podía moverme. Esa tarde cuando Raúl llegó, lo miré y simplemente no era más mi Raúl, era otro hombre. Le pregunté y negó todo. Pero yo sabía. Esa noche durmió en otro lado. Y de ahí todo fue distinto, la casa cambió, mis hijos lo sintieron. Ese día de martes fue el último día que creí en mi matrimonio con Raúl. Nunca más volvió a ser igual."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.7",
+     "texto": "Quedó guardado, Chela. Sigo con la que viene."
+    },
+    {
+     "id": "HJ1",
+     "texto": "¿Te quedó algo que querías hacer con tu vida y al final no se dio? Contame el momento en que te diste cuenta de que ya no iba a pasar: dónde estabas y qué pasó ese día."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "HJ1",
+   "texto": "El teatro. Hace unos años, debe haber sido en el 2010, vi una obra de una compañía de teatro de Buenos Aires. Yo estaba sentada viendo a las actrices, jóvenes, bellas, viviendo el sueño que yo no pude vivir. Y en ese momento sentí que eso se había cerrado para mí. Que yo tenía sesenta y cinco años, que tenía arrugas, que mi cuerpo no era lo que era. Salí del teatro llorando. Fue el momento en que acepté que eso no iba a pasar. Que la vida me llevó por otro lado, que la boutique fue mi arte, pero que el teatro nunca fue completamente mío. Eso duele aún hoy."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.8",
+     "texto": "Te escuché bien. Vamos por la siguiente."
+    },
+    {
+     "id": "GI9",
+     "texto": "¿Hubo algún momento en tu vida en que te sentiste chiquita frente a algo enorme? Un cielo de noche, por ejemplo. Contame ese momento: dónde estabas, con quién, qué había alrededor. Y si no te vuelve un momento puntual, contame frente a qué cosas te pasa eso."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "GI9",
+   "texto": "Cuando volví a Mendoza con Alberto, subimos a un cerro que pasaba cerca. Era una noche clara, sin luz artificial. Las estrellas estaban todas ahí, la vía láctea entera. Yo nunca había visto así el cielo. Me senté y lloré. Alberto me sostenía. Sentí que yo era un puntito, que todo lo que me había pasado, todos mis problemas, mis amores, mis hijos, era un puntito en eso enorme. Y fue tranquilizador. Me hizo sentir que no era tan importante todo lo que yo creía que era importante. Que la vida era más grande que mis dramas. Eso me cambió algo. Desde ese momento trato de acordarme de ese cielo cuando me ansietan las cosas."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.1",
+     "texto": "Gracias, Chela. Ya lo guardé."
+    },
+    {
+     "id": "FI1",
+     "texto": "¿Qué lugar tiene la soledad en tu vida? ¿Te hace bien tener momentos con vos misma? Contame alguno que te acuerdes: dónde estabas y qué hacías."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "FI1",
+   "texto": "La soledad. Ahora es buena. Yo vivo sola en mi departamento en Buenos Aires. Mi rutina es despertar, tomar café, limpiar un poco, cocinar para mí. A veces vengo una amiga, mis nietos vienen. Pero hay momentos donde estoy sola, completamente sola, y eso no me molesta. Antes me asustaba. Cuando era joven y estaba sola, sentía que algo faltaba. Ahora entiendo que necesito ese tiempo para mí. Un día en particular, hace poco, un viernes a la tarde, estaba cosiendo algo, una tela hermosa. Mientras cosía miraba a la calle por la ventana, el movimiento de Buenos Aires. Y sentí una paz rara. No necesitaba nada ni a nadie en ese momento. Solo la aguja, la tela, mi mano. Eso es soledad, pero es buena."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.2",
+     "texto": "Te escuché. Vamos con la que sigue."
+    },
+    {
+     "id": "FI2",
+     "texto": "¿Hubo un momento en que te diste cuenta, de golpe, de que el tiempo había pasado? Algo chiquito, alguien que te trató de usted, por ejemplo. Contame dónde estabas y qué pasó."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "FI2",
+   "texto": "Un día en el colectivo de Buenos Aires. Estaba de pie, cansada. Un chico joven, debe haber tenido dieciséis años, se levantó de su asiento y me dijo, abuela, sentese. Abuela. Yo me quedé helada. No pido que me ofrezcan asiento, pero que me llame abuela, eso me pegoó. Me senté sin decir nada. Miré mi reflejo en la ventana del colectivo, y vi a una vieja. Las arrugas, el pelo gris, las manos flacas. En ese momento el tiempo se hizo presente. No fue malo, fue un click de realidad. Ahora tengo setenta y uno, estoy bien con eso, pero ese día en el colectivo fue cuando entendí que ya no soy joven. Y que está bien."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.3",
+     "texto": "Lo anoté, gracias. Sigo con otra."
+    },
+    {
+     "id": "FI3",
+     "texto": "¿Qué cosa sentís que heredaste de tu familia en tu forma de ser? Un carácter, una manera de hacer las cosas. Contame una vez que te diste cuenta de que eso venía de ellos."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "FI3",
+   "texto": "Mi mamá era charlatana, como yo. Yo recuerdo verla en las tiendas con sus clientes, hablando, haciendo chistes. Ella vendía su trabajo con historias, no solo con la calidad. Eso lo heredé. Cuando tenía la boutique, yo vendía historias, le contaba a las mujeres cómo se iban a ver, les hablaba de sus vidas. Eso venía de mi mamá. Una vez, una clienta me dijo, vos sos como tu mamá, te das cuenta en la forma de contar las cosas. Ese día sentí que ahí estaba mi mamá en mí, en esa forma de relacionarme con las personas. Mi papá me heredó la fortaleza, esa cosa de aguantar lo difícil sin quejarse. Mi mamá, la calidez. Eso soy yo."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.4",
+     "texto": "Gracias por contármelo. Seguimos."
+    },
+    {
+     "id": "FI4",
+     "texto": "¿Te importa lo que los demás piensan de vos? ¿Te importó siempre igual? Contame una vez en que eso se notó."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "FI4",
+   "texto": "De joven me importaba mucho. Cuando me separé de Raúl me importaba lo que la gente decía, sentía vergüenza. Cuando tuve a la boutique me obsesionaba que los clientes estuvieran felices, que pensaran bien de mí. Ahora, a los setenta y uno, me importa cada vez menos. Soy lo que soy. Una vez, hace poco, estaba en un café con Hugo y una conocida nos vio y después alguien me preguntó quién era. Yo simplemente dije, es mi novio. No me importó lo que pensaban. Cuando era joven eso me hubiera importado. Ahora entiendo que la vida es corta y que no puedo estar pendiente de lo que los demás piensan todo el tiempo. Eso es una libertad que te da la edad, viste."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.5",
+     "texto": "Guardado, Chela. Te mando la próxima."
+    },
+    {
+     "id": "FI6",
+     "texto": "¿Cómo te imaginás el mundo dentro de cien años? Contame cómo lo ves, y qué te gustaría que no se pierda."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "FI6",
+   "texto": "El mundo va a estar lleno de máquinas, ya lo veo. La gente va a estar conectada a aparatos y va a perder el tiempo que pasaban los unos con los otros. Lo que me gustaría que no se pierda es el sentido humano, la capacidad de estar con alguien sin pensar en otra cosa. De comer con un otro y mirar a los ojos. De hacer ropa a mano, de cocinar para alguien que amás. Esas cosas que hacen que la vida valga la pena. Mis nietos no saben coser, no saben hacer empanadas, no saben hablar con una persona mayor sin que haya un teléfono en el medio. Eso me asusta. Espero que en cien años sigan existiendo lugares donde la gente puede conectar de verdad."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M26",
+     "texto": "Gracias, Chela."
+    },
+    {
+     "id": "CI13",
+     "texto": "Con esto cerramos esta parte. ¿Quedó algún momento importante de tu vida que no tuvo su pregunta? Contámelo ahora, tranquila."
+    }
+   ],
+   "botones": [
+    "No, está todo"
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "CI13",
+   "texto": "Sí, hay algo. Cuando era joven no valoré estar con mis papás. Creía que tenía toda la vida para estar con ellos. Cuando murieron, fue tarde. Hubiera querido volver y pasar más tiempo. Tener más conversaciones. Preguntarles cosas. Ahora con mis nietos intento hacer eso diferente, aprovecho el tiempo. Y también intento decirles a mis hijos que los quiero, que la vida pasa rápido. Ese es mi aprendizaje."
+  },
+  {
+   "de": "bloque",
+   "bloque": 14,
+   "nombre": "Hoy"
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M24.1",
+     "texto": "Gracias, Chela. Eso también va al libro."
+    },
+    {
+     "id": "EN14",
+     "texto": "Dejamos el pasado un rato y venimos a hoy: cómo son tus días y qué te gusta ahora."
+    }
+   ]
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "HO1",
+     "texto": "Contame un día cualquiera de los de ahora, desde que abrís los ojos hasta que apagás la luz. Qué hacés, a qué hora, con quién. Si querés, el de ayer mismo."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "HO1",
+   "texto": "Me despierto alrededor de las siete, naturalmente. Tomo café en mi cocina, viendo a Buenos Aires despertar por la ventana. Camino un rato, aunque sea por el departamento. Después hago cosas de la casa, limpio, ordeno. A las diez u once voy a comprar algo si necesito. Vuelvo, me siento, veo un poco la tele o leo. Alrededor de las dos hago la comida, siempre algo que me cueste hacer, porque cocinar es lo que amo. Como lentamente, sola o con alguien si vino. Por la tarde hago algo con mis manos, costura, bordado, lo que salga. A veces llama Paula o uno de los chicos. A las seis o siete como algo ligero. Por la noche veo tele, charlamos por teléfono con Hugo. A eso de las diez me voy a acostar. Leo un poco en la cama. Me duermo pensando en las cosas que pasaron, en la gente que quiero. Es una vida tranquila, viste. No es emocionante pero es mía."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.7",
+     "texto": "Quedó guardado, Chela. Sigo con la que viene."
+    },
+    {
+     "id": "HO2",
+     "texto": "¿Qué cosas te hacen gracia hoy, qué te hace reír? Contame la última vez que te reíste con ganas: dónde estabas y qué había pasado. Y si la última no te vuelve, contame con qué te reís seguido."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "HO2",
+   "texto": "Me reí hace poco con uno de mis nietos. Estábamos haciendo empanadas y el nene, que tiene catorce años, agarró un poco de masa y se la puso en la cara como si fuera una máscara. Yo reía y reía, no podía parar. Después Hugo vino a mi casa y le conté lo que había pasado y volvimos a reír. Me hace gracia la gente, las cosas absurdas que hace la gente cuando está cómoda. Las bromas de Paula que es igual de charlatana que yo. Los comentarios de una amiga que tiene un humor muy raro. Los videos que los nietos me muestran en el celular, aunque no entienda mucho. La vida tiene gracia si sabés verla. Eso es lo que intento hacer ahora, reír más."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.8",
+     "texto": "Te escuché bien. Vamos por la siguiente."
+    },
+    {
+     "id": "HO5",
+     "texto": "¿Qué es lo que más te gusta de la vida que tenés ahora? Puede ser algo enorme o algo chiquito de todos los días. Contame un momento de esta semana en que lo sentiste."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "HO5",
+   "texto": "La libertad. Poder estar sola cuando quiero, poder hacer lo que quiero. Poder invitar a quien quiero a comer, poder decir que no a algo que no me gusta. Un momento de esta semana fue cuando Paula vino con uno de sus chicos, y estuvimos haciendo empanadas los tres, riendo, hablando. Eso es lo que más me gusta. El tiempo con la gente que quiero, elegida. No obligatoria. Cuando era joven estaba tan ocupada en arreglar las cosas, en tratar de que funcionaran los matrimonios, que no disfrutaba de lo simple. Ahora disfruto. Eso es lo que más me gusta de la vida que tengo ahora."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.1",
+     "texto": "Gracias, Chela. Ya lo guardé."
+    },
+    {
+     "id": "CO1",
+     "texto": "¿Tenés un plato que sea tuyo, el que te piden o el que te sale siempre igual? Contame quién te lo enseñó y una vez que lo cocinaste para alguien."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "CO1",
+   "texto": "Las empanadas. Me las enseñó mi mamá, las hago desde que tengo memoria. Pero las mías tienen mi toque, viste, un poco de comino, un poco de cilantro, carne bien picada. Una vez hice empanadas para la fiesta de jubilación de una profesora que era amiga de Paula. Hice cien empanadas. Al final de la fiesta, todos me pedían la receta. Una señora me dijo que parecía que ella las había hecho con amor en cada una. Eso fue lo que me gustó. No fue por ser buenas, sino porque la gente sentía que había algo ahí."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.2",
+     "texto": "Te escuché. Vamos con la que sigue."
+    },
+    {
+     "id": "HO9",
+     "texto": "¿Cómo es el lugar donde vivís hoy, la casa, el barrio? Contame cómo llegaste ahí y un momento de estos días que lo pinte."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "HO9",
+   "texto": "Vivo en un departamento en San Telmo, Buenos Aires. Llegué ahí hace algunos años, después de que Alberto murió. Necesitaba cambiar, necesitaba algo que fuera mío de verdad, no un lugar donde hubiera vivido con un hombre. Es un departamento de dos ambientes, viejo, con los pisos de madera que crujen. Tiene una cocina que da a un patio interno, y una ventana grande en la sala donde se ve el movimiento de la calle. Las paredes tienen fotos de mis hijos, mis nietos, Alberto. Hay una máquina de coser en un rincón, telas, cosas de costura. Es pequeño pero es mío. Un momento de estos días fue ayer, cuando tomé café en mi ventana, mirando la calle mojada porque había llovido. Los vendedores gritaban cosas, la gente pasaba. Sentí que ese departamento era lo que necesitaba, un lugar tranquilo en medio del caos de Buenos Aires."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M26",
+     "texto": "Gracias, Chela."
+    },
+    {
+     "id": "CI14",
+     "texto": "Con esto cerramos lo de hoy, y ya te conozco un poco más. ¿Quedó algo de tu vida de ahora que no tuvo su pregunta? Una costumbre, alguien que ves seguido, un rato del día que es tuyo. Contámelo ahora, tranquila."
+    }
+   ],
+   "botones": [
+    "No, está todo"
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "CI14",
+   "texto": "Hay algo. Cada mañana, cuando me despierto, me tomo un momento para mirar el techo, para estar en silencio. No rezo, no soy religiosa de eso, pero es un momento de presencia. Después me levanto. Es algo que empecé a hacer después de que Alberto murió, como una forma de agradecer por estar viva un día más. Eso es mío, de nadie más."
+  },
+  {
+   "de": "bloque",
+   "bloque": 15,
+   "nombre": "Legado y cierre"
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M24.2",
+     "texto": "Anotado, gracias. Quedó guardado junto con el resto."
+    },
+    {
+     "id": "EN15",
+     "texto": "Ya estamos en la última parte, Chela: lo que te dejó todo esto y lo que querés dejarle a tu familia."
+    }
+   ]
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "LE1",
+     "texto": "Mirando toda tu vida hasta hoy, ¿qué es lo que más orgullo te da? Puede ser algo grande o algo que nadie más notó. Contame qué fue y el momento en que te diste cuenta."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "LE1",
+   "texto": "La boutique. Eso fue mío completo. Yo sola, sin dinero, sin estudios formales, abrí un negocio y lo mantuve quince años. No fue grande, no hice millones, pero fue mío. Me da orgullo porque no dependí de un hombre para tenerlo. Mis papás murieron viendo que yo había logrado algo con mis manos. Mi mamá vino una vez a la boutique y lloró, me dijo que estaba orgullosa. Eso fue lo que me hizo saber que había logrado algo. Pero también mis hijos. Verlos crecer, siendo gente buena, con valores. Eso me da mucho más orgullo que la boutique. Que mis nietos me quieran, que vengan a mi casa. Que la gente recuerde mis empanadas, mis vestidos. Eso es lo que me da orgullo, dejar algo en las personas."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.4",
+     "texto": "Gracias por contármelo. Seguimos."
+    },
+    {
+     "id": "LE2",
+     "texto": "¿Qué aprendiste de la vida que te gustaría que tu familia sepa? Decímelo como un consejo, algo que vos misma descifraste viviendo."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "LE2",
+   "texto": "Que no pongan la vida de otros en sus propias decisiones. Cuando sos joven crees que tenés que hacer lo que los demás esperan. Que te cases, que tengas hijos, que estés con alguien. Yo lo hice, lo intenté. Y a veces funcionaba, a veces no. Pero lo importante fue que después aprendí a escucharme. Ahora estoy con Hugo porque quiero, no porque me lo pidió la sociedad. Eso es lo que les quiero decir a mis hijos y nietos: hagan lo que los hace felices, no lo que los demás esperan. Y si se equivocan, bueno, la vida es larga y hay tiempo para corregir. Eso que aprendí sufriendo, que no lo sufran ellos."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.5",
+     "texto": "Guardado, Chela. Te mando la próxima."
+    },
+    {
+     "id": "FU1",
+     "texto": "¿Queda algo que todavía querés hacer? Contámelo como si ya estuviera pasando: dónde estás, con quién, qué ves."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "FU1",
+   "texto": "Una vez más, pasar un fin de semana con todos mis hijos y mis nietos, todos juntos. Estamos en una casa grande en el campo, fuera de Buenos Aires. Hacemos un asado, jugamos, los nietos corren, yo estoy en la cocina haciendo empanadas y mirando la vida que crecí. Mis hijos hablan sin celulares, sin distracciones. Vemos la puesta de sol juntos. Al anochecer nos sentamos alrededor de una mesa y yo cuento historias de cuando eran chicos. Todos ríen. Y después, cuando se va el sol, miramos el cielo de estrellas, como lo hice con Alberto en Mendoza. Es un momento simple pero es lo que quiero. Eso todavía lo quiero hacer."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.6",
+     "texto": "Lo tengo, gracias. Vamos con otra."
+    },
+    {
+     "id": "LE7",
+     "texto": "Si tu vida fuera un libro, ¿qué título le pondrías? Decímelo y contame por qué ese."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "LE7",
+   "texto": "Las manos de Chela. Porque para mí todo se resume en las manos. Mis manos cosiendo, haciendo empanadas, trabajando, acariciando a mis hijos, a mis nietos. Las manos de mi mamá enseñándome a coser. Las manos de Alberto sosteniendo la mía. Las manos en el trabajo, en el amor. Las manos que construyen la vida. Eso es lo que soy, las manos que hacen cosas."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.7",
+     "texto": "Quedó guardado, Chela. Sigo con la que viene."
+    },
+    {
+     "id": "M15",
+     "texto": "Esta pregunta te la hace tu familia."
+    }
+   ]
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "FAM1",
+     "texto": "Mamá, ¿de cuál de tus tres casamientos tenés el mejor recuerdo? Paula"
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "FAM1",
+   "texto": "Paula. Ay. Mira, vos sabés que los tres matrimonios tuvieron cosas buenas. Pero si tengo que elegir, es Alberto. El tercero. Porque fue diferente, viste. Con Raúl fue pasión, fue juventud, fue hermoso pero también fue tormenta. Con Eduardo fue seguridad pero fue frío. Alberto llegó cuando yo ya sabía quién era. No necesitaba que me salvara nadie, no necesitaba un padre. Necesitaba un compañero. Y eso fue Alberto. Catorce años juntos, sin pelear, sin drama. Simplemente juntos. El mejor recuerdo es la vida cotidiana con él, desayunando en la cocina, viendo tele, sus manos en las mías. Eso. Por eso te duele más cuando se va, porque era lo más puro."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M3.8",
+     "texto": "Te escuché bien. Vamos por la siguiente."
+    },
+    {
+     "id": "FO1",
+     "texto": "Otra cosa, Chela. ¿Hay alguna foto, en el celular o en algún cajón de tu casa, que quieras que quede para siempre en este libro? Si la tenés, sacale una foto y mandámela, y después contame en un audio qué se ve y quiénes están. Tomate el tiempo que necesites para buscarla: la pregunta que sigue te la mando cuando me llegue la foto o me digas algo. Y si no la encontrás, no pasa nada: el libro va igual, y la podés mandar más adelante."
+    }
+   ],
+   "botones": [
+    "No tengo foto"
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "FO1",
+   "texto": "[toca: No tengo foto]",
+   "boton": "No tengo foto"
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "M25.3",
+     "texto": "Bien, entonces."
+    },
+    {
+     "id": "LE9",
+     "texto": "Llegamos al final. ¿Hay algo que en todo este tiempo no te pregunté y querés que esté en el libro? Una persona, un lugar, una historia que te quedó dando vueltas."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "LE9",
+   "texto": "Quiero hablar de la relación con Julián. Es mi hijo pero es complicada. Él tiene resentimiento, creo, por mis separaciones, por haber criado a Paula y a Federico de forma diferente. No sé bien qué pasó, pero en algún momento se cerró conmigo. Eso me duele mucho. He intentado acercarme pero es difícil. Quiero que quede en el libro que lo quiero mucho. Que aunque no lo vea seguido, él es importante en mi vida. Espero que algún día podamos hablar de verdad, de las cosas que duelen. Y que me perdone por las cosas que hice mal. También quiero decir que no soy una mujer perfecta. He cometido errores, he lastimado gente, he tomado decisiones equivocadas. Pero lo hice lo mejor que pude con lo que tenía. Eso es lo que quiero que se sepa."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "LE8",
+     "texto": "Ahora sí, hablale a tu familia, a los que van a leer este libro. Lo que les dirías y lo que les deseás si los tuvieras sentados enfrente, sin apuro, de a uno. Nadie te corre."
+    }
+   ]
+  },
+  {
+   "de": "persona",
+   "pregunta": "LE8",
+   "texto": "Bueno, para mis hijos y mis nietos. Quiero decirles que la vida es un camino raro. No es una línea recta, es un garabato. Da vueltas, sube, baja, se cruza con otras líneas. A veces nos perdemos. A veces encontramos gente hermosa y se va. A veces nos equivocamos. Pero lo importante es seguir caminando. Yo no hice todo bien. Me enamoré de gente que no valía. Me separé de gente que tal vez pude haber hecho funcionar. No terminé lo que empecé. Pero hice lo que pude. Y ahora, vieja, estoy orgullosa de lo que soy. Les quiero decir que no tengan miedo de equivocarse. Que no tengan miedo de cambiar de camino. Que vivan su propia vida, no la que otros esperan. Que amen con el corazón abierto. Que celebren las cosas simples. Que me quieran, aunque sea desde lejos. Y que cuando yo no esté, se acuerden de mis empanadas, de mis historias, de mis manos. Eso es lo que pido."
+  },
+  {
+   "de": "bio",
+   "partes": [
+    {
+     "id": "FIN",
+     "texto": "Hasta acá llegamos, Chela. Gracias por cada audio, por cada historia y por la confianza de contarlas así. Con todo lo que me contaste vamos a armar un libro que va a quedar en tu familia para siempre. Antes de escribirlo vas a poder repasar lo que contaste, por si querés cambiar o agregar algo. Y si te quedó alguna foto por mandar, mandámela por acá cuando la encuentres: entra igual. Fue un gusto enorme escucharte."
+    }
+   ]
+  }
+ ]
+}

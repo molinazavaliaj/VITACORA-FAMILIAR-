@@ -125,6 +125,30 @@ describe('normalizarTelefono', () => {
 });
 
 describe('validarYConstruir', () => {
+  // Gift card (08/10): quien regala no carga el teléfono del narrador.
+  const baseRegalo = {
+    nombreComprador: 'Lucía', vinculoComprador: 'nieta', region: 'AR' as const,
+    narrador: { nombre: 'Héctor', comoLeDicen: 'Tito' },
+  };
+
+  it('con sinTelefono no pide el WhatsApp y lo deja en null', () => {
+    const r = validarYConstruir(baseRegalo, { sinTelefono: true });
+    expect(r.ok).toBe(true);
+    if (r.ok) expect(r.narrador.telefono_whatsapp).toBeNull();
+  });
+
+  it('con sinTelefono ignora un WhatsApp que venga igual (no lo valida ni lo guarda)', () => {
+    const r = validarYConstruir({ ...baseRegalo, narrador: { ...baseRegalo.narrador, telefonoWhatsapp: 'cualquier cosa' } }, { sinTelefono: true });
+    expect(r.ok).toBe(true);
+    if (r.ok) expect(r.narrador.telefono_whatsapp).toBeNull();
+  });
+
+  it('sin la opción, sigue pidiendo el WhatsApp', () => {
+    const r = validarYConstruir(baseRegalo);
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.mensaje).toBe('Falta el WhatsApp del narrador.');
+  });
+
   it('paso 5 de la compra: ritmo y temas a evitar van al contexto como los deja el panel', () => {
     const resultado = validarYConstruir(cuerpoValido({ contexto: { ritmo: 'seguido', evitar: '  No preguntar por Rubén.  ' } }) as never);
     expect(resultado.ok).toBe(true);
@@ -279,3 +303,60 @@ describe('validarYConstruir', () => {
 });
 
 // --- POST /api/registro --------------------------------------------------
+
+// Compra V3 (10/10, textos web aprobados el 06/10).
+describe('validarYConstruir: idioma y cómo le escribimos', () => {
+  const cuerpo = (narrador: Record<string, unknown>, extra: Record<string, unknown> = {}) => ({
+    nombreComprador: 'Lucía', vinculoComprador: 'nieta', region: 'AR' as const,
+    narrador: { nombre: 'Héctor Pérez', comoLeDicen: 'Tito', telefonoWhatsapp: '11 5555 1234', ...narrador }, ...extra,
+  });
+
+  it('guarda el idioma elegido (es-AR, es-ES, ca) y rechaza uno que no existe', () => {
+    for (const idioma of ['es-AR', 'es-ES', 'ca']) {
+      const r = validarYConstruir(cuerpo({ contexto: { idioma } }));
+      expect(r.ok).toBe(true);
+      if (r.ok) expect(r.narrador.contexto).toMatchObject({ idioma });
+    }
+    expect(validarYConstruir(cuerpo({ contexto: { idioma: 'en' } })).ok).toBe(false);
+    const sin = validarYConstruir(cuerpo({ contexto: {} }));
+    if (sin.ok) expect(sin.narrador.contexto).not.toHaveProperty('idioma');
+  });
+
+  it('no acepta «papá», «abuela» y parecidos como saludo; sí un apodo que los contiene', () => {
+    for (const comoLeDicen of ['Papá', 'abuela', 'Tía Marta', 'el viejo', 'Nono']) {
+      expect(validarYConstruir(cuerpo({ comoLeDicen })).ok, comoLeDicen).toBe(false);
+    }
+    for (const comoLeDicen of ['Babu', 'Tito', 'Don Roberto', 'Nonato']) {
+      expect(validarYConstruir(cuerpo({ comoLeDicen })).ok, comoLeDicen).toBe(true);
+    }
+  });
+
+  it('en «la mía» y en el regalo no se mira (así lo dejó cada producto)', () => {
+    expect(validarYConstruir(cuerpo({ comoLeDicen: 'Abuela' }, { vinculoComprador: 'yo mismo' })).ok).toBe(true);
+    expect(validarYConstruir({ nombreComprador: 'Lucía', vinculoComprador: 'nieta', region: 'AR', narrador: { nombre: 'Héctor', comoLeDicen: 'abuelo' } }, { sinTelefono: true }).ok).toBe(true);
+  });
+});
+
+import { nombreDePila } from '../src/lib/como-le-dicen';
+describe('nombreDePila', () => {
+  it('la primera palabra con mayúscula inicial', () => {
+    expect(nombreDePila('IMMACULADA COLELL')).toBe('Immaculada');
+    expect(nombreDePila('  roberto fernández ')).toBe('Roberto');
+    expect(nombreDePila('')).toBe('');
+  });
+});
+
+describe('validarYConstruir: género (lo necesita la entrevista V3)', () => {
+  const cuerpo = (contexto: Record<string, unknown>) => ({
+    nombreComprador: 'Lucía', vinculoComprador: 'nieta', region: 'AR' as const,
+    narrador: { nombre: 'Héctor', comoLeDicen: 'Tito', telefonoWhatsapp: '11 5555 1234', contexto },
+  });
+  it('guarda varon, mujer u otro; rechaza otra cosa; sin género no rompe', () => {
+    for (const genero of ['varon', 'mujer', 'otro']) {
+      const r = validarYConstruir(cuerpo({ genero }));
+      if (r.ok) expect(r.narrador.contexto).toMatchObject({ genero }); else throw new Error(r.mensaje);
+    }
+    expect(validarYConstruir(cuerpo({ genero: 'hombre' })).ok).toBe(false);
+    expect(validarYConstruir(cuerpo({})).ok).toBe(true);
+  });
+});

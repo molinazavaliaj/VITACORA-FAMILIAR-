@@ -16,6 +16,7 @@ import {
   subirTexto,
   type Nombres,
 } from './comun.js';
+import { exigirSinV3 } from '../v3/candado.js';
 
 export { formatearNombresCorregidos, capituloMarkdownAHtml, armarMaterial };
 export type { Nombres };
@@ -93,6 +94,7 @@ function construirHtmlPreview(opciones: {
  */
 export async function generarPrevisualizacion(narradorId: string): Promise<void> {
   const db = obtenerClienteDb();
+  await exigirSinV3(db, narradorId, 'generarPrevisualizacion');
 
   const estructura = await descargarJson<Estructura>(db, RUTA_ESTRUCTURA(narradorId), 'estructura.json');
   const nombres = await descargarJson<Nombres>(db, RUTA_NOMBRES(narradorId), 'nombres.json');

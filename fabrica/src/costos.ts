@@ -49,7 +49,10 @@ export type Precio = { input: number; output: number; cache_write: number; cache
  */
 export const PRECIOS_USD_POR_MILLON: Record<string, Precio> = {
   'claude-fable-5': { input: 10, output: 50, cache_write: 12.5, cache_read: 1 },
+  // opus-5-5 antes que opus-5: `claude-opus-5-5-<fecha>` también empieza con `claude-opus-5-`.
+  'claude-opus-5-5': { input: 4, output: 20, cache_write: 5, cache_read: 0.2 },
   'claude-opus-5': { input: 5, output: 25, cache_write: 6.25, cache_read: 0.5 },
+  'claude-sonnet-5-5': { input: 2, output: 10, cache_write: 2.5, cache_read: 0.2 },
   'claude-haiku-4-5': { input: 1, output: 5, cache_write: 1.25, cache_read: 0.1 },
 };
 
@@ -57,7 +60,10 @@ export const RUTA_COSTOS = (narradorId: string) => `${narradorId}/paquete/costos
 
 function precioDe(modelo: string): Precio | null {
   if (PRECIOS_USD_POR_MILLON[modelo]) return PRECIOS_USD_POR_MILLON[modelo];
-  const base = Object.keys(PRECIOS_USD_POR_MILLON).find((clave) => modelo.startsWith(`${clave}-`));
+  // El prefijo más largo gana (no depende del orden de la tabla).
+  const base = Object.keys(PRECIOS_USD_POR_MILLON)
+    .filter((clave) => modelo.startsWith(`${clave}-`))
+    .sort((a, b) => b.length - a.length)[0];
   return base ? PRECIOS_USD_POR_MILLON[base] : null;
 }
 
@@ -175,9 +181,11 @@ function proveedorDe(modelo: string): 'anthropic' | 'openai' | 'local' {
  * o la base no responde, el costo igual queda en el JSON de Storage y el libro sigue
  * su camino — la regla de oro del módulo: la contabilidad no puede frenar el libro.
  */
-async function anotarEnConsumoIa(cliente: Db, narradorId: string, uso: { modelo: string; paso: PasoModelo; usage: Uso }): Promise<void> {
+async function anotarEnConsumoIa(cliente: Db, narradorId: string, uso: { modelo: string; paso: string; usage: Uso; usd?: number }): Promise<void> {
   try {
     const fila = armarFila(uso.modelo, uso.paso, uso.usage);
+    // El escritor trae su propio precio (Batch es la mitad: calcularUsd no lo sabe).
+    if (uso.usd !== undefined) fila.usd = uso.usd;
     const { error } = await cliente.from('consumo_ia').insert({
       servicio: 'fabrica',
       paso: fila.paso,
@@ -197,6 +205,24 @@ async function anotarEnConsumoIa(cliente: Db, narradorId: string, uso: { modelo:
   } catch (err) {
     console.warn(`costos: no se pudo anotar en consumo_ia el paso ${uso.paso}: ${(err as Error).message}`);
   }
+}
+
+/** Una llamada del escritor nuevo (FilaUso de escritor/ejecutor.ts), con el precio que ya calculó. */
+export type UsoEscritor = { clave: string; modelo: string; input: number; output: number; cache_write: number; cache_read: number; usd: number };
+
+/**
+ * El escritor nuevo anota cada llamada en `consumo_ia` con `paso` = `escritor-A`, `escritor-B` o `escritor-C`
+ * (la etapa: tres valores fijos, para que el mapa de /admin los pueda nombrar). El detalle llamada por llamada
+ * queda en `{narrador}/escritor/costos.json` (lo escribe el ejecutor), así que acá no se toca el
+ * `paquete/costos.json` del libro viejo. Nunca tira.
+ */
+export async function anotarUsoEscritor(db: Db, narradorId: string, f: UsoEscritor): Promise<void> {
+  await anotarEnConsumoIa(db, narradorId, {
+    modelo: f.modelo,
+    paso: `escritor-${/^[ABC]\//.test(f.clave) ? f.clave[0] : 'otro'}`,
+    usage: { input_tokens: f.input, output_tokens: f.output, cache_creation_input_tokens: f.cache_write, cache_read_input_tokens: f.cache_read },
+    usd: f.usd,
+  });
 }
 
 export type ResumenCostos = {

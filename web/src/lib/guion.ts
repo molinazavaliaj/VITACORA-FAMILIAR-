@@ -101,7 +101,7 @@ export function validarTexto(texto: unknown): { ok: true; texto: string } | { ok
   if (typeof texto !== "string") return { ok: false, mensaje: "La pregunta tiene que ser un texto." };
   const limpio = texto.trim().replace(/\s+/g, " ");
   if (limpio.length < TEXTO_MINIMO) return { ok: false, mensaje: "La pregunta es muy corta. Contale un poco más qué querés que cuente." };
-  if (limpio.length > TEXTO_MAXIMO) return { ok: false, mensaje: `La pregunta es muy larga (máximo ${TEXTO_MAXIMO} letras). Él la lee en el celular.` };
+  if (limpio.length > TEXTO_MAXIMO) return { ok: false, mensaje: `Es un poco larga (máximo ${TEXTO_MAXIMO} letras). Pensá que la va a leer en el celular: cuanto más simple, mejor la contesta.` };
   return { ok: true, texto: limpio };
 }
 
@@ -196,7 +196,7 @@ export const TIPOS_DE_IMAGEN = ["image/jpeg", "image/png", "image/webp"];
 const TIPOS_HEIC = ["image/heic", "image/heif"];
 
 export const MENSAJE_HEIC =
-  "Esa foto está en formato HEIC. Exporta la foto como JPG (en el iPhone: Ajustes → Cámara → Formatos → Más compatible) y vuelve a subirla.";
+  "Esa foto está en formato HEIC. Exportá la foto como JPG (en el iPhone: Ajustes → Cámara → Formatos → Más compatible) y volvé a subirla.";
 
 export const MENSAJE_TIPO_INVALIDO = "Tiene que ser una imagen (JPG, PNG o WebP).";
 

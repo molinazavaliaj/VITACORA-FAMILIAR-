@@ -8,19 +8,23 @@ migración en `supabase/migrations/` + actualizar este archivo + avisar al otro 
 | Tabla | Escribe | Lee | Nota |
 |---|---|---|---|
 | `familias` | web | entrevistador | |
-| `narradores` | web (crea, edita datos, `edicion`, `libro_aprobado_at`) / entrevistador (solo `estado`, `dia_actual`, `ultima_respuesta_at`, `alerta_silencio`, `consentimiento_voz_at`) / fábrica (solo `libro_aprobado_at`, a los 30 días sin cierre) | ambos | Única tabla compartida. La web también apaga `alerta_silencio`. La fábrica lee `edicion` y **no produce nada sin `libro_aprobado_at`** (ni digital ni impreso). Desde el 13/09, si pasan 30 días desde `ultima_respuesta_at` sin cierre, la fábrica misma pone `libro_aprobado_at` (único caso en que alguien más que la web escribe esa columna). |
+| `narradores` | web (crea, edita datos, `edicion`, `libro_aprobado_at`) / entrevistador (solo `estado`, `dia_actual`, `ultima_respuesta_at`, `alerta_silencio`, `consentimiento_voz_at`, y **una vez** `telefono_whatsapp` + `estado` + `zona_horaria` al canjear un regalo (de null a su número; de `regalo_pendiente` a `invitado`; la zona según el prefijo del teléfono, ver "Gift card")) / fábrica (solo `libro_aprobado_at`, a los 30 días sin cierre) | ambos | Única tabla compartida. La web también apaga `alerta_silencio`. La fábrica lee `edicion` y **no produce nada sin `libro_aprobado_at`** (ni digital ni impreso). Desde el 13/09, si pasan 30 días desde `ultima_respuesta_at` sin cierre, la fábrica misma pone `libro_aprobado_at` (único caso en que alguien más que la web escribe esa columna). |
 | `preguntas` | **web** (copia las fijas al comprar; la familia edita, salta, reordena, agrega) / **entrevistador** (adaptativas y reemplazos) / seed (plantilla global) | ambos | Desde el 12/09 **cada narrador tiene su guion propio**. Las globales (`narrador_id = null`) son solo plantilla. Regla: `orden ≤ dia_actual` está **congelado**, nadie lo toca. |
-| `respuestas` | entrevistador | web, fábrica | La web NUNCA escribe acá. **20/09 (propuesta, sin aplicar):** `reservada` / `reservado_tramo` — "esto que no vaya al libro", ver la sección propia. **21/09 (propuesta, sin aplicar):** `tema_de_orden` / `tema_motivo` — "esto es de otra parte", ver la sección propia. |
-| `saludos` | ~~web / entrevistador~~ | — | **Fuera de la fase 1 (10/09).** Nadie la escribe ni la lee — desde el 13/09 tampoco la fábrica (dejó de leerla en `generarPaquete`/`generarAudiolibro`; el audiolibro ya no tiene bonus de saludos). Se deja por si la fase 2 la revive. |
+| `respuestas` | entrevistador | web, fábrica | La web NUNCA escribe acá. **20/09 (propuesta, sin aplicar):** `reservada` / `reservado_tramo` — "esto que no vaya al libro", ver la sección propia. **21/09 (propuesta, sin aplicar):** `tema_de_orden` / `tema_motivo` — "esto es de otra parte", ver la sección propia. **07/10 (propuesta, sin aplicar):** `clave_v3` / `wa_message_id` — entrevista V3, ver la sección propia. |
+| `saludos` | ~~web / entrevistador~~ | — | **Fuera de la fase 1 (10/09).** Nadie la escribe ni la lee — desde el 13/09 tampoco la fábrica (dejó de leerla en `generarPaquete`; el audiolibro, que se borró el 23/09, ya no tenía bonus de saludos). Se deja por si la fase 2 la revive. |
 | `fotos` | web (sube y ordena) | fábrica | Nueva 12/09. Por capítulo; `principal` abre, el resto cierra. Desde el 13/09 la fábrica las embebe como data URI en `libro.html`. **14/09: `capitulo` nullable** — NULL = foto del álbum del libro (candidata a tapa / contratapa / marco), no va en ningún capítulo; la fábrica la ignora al armar capítulos. |
 | `invitados` | web | web | Nueva 12/09. `rol` (13/09): `'invitado'` (hasta 3, con el libro abierto, ven todo) o `'visitante'` (abrió el link del libro cerrado y lo guardó: ve la muestra y compra su copia, sin tope). |
 | `pedidos` | web y fábrica | — | El entrevistador no la mira. Un pedido por comprador: los invitados y visitantes que compran su copia tienen su propia `familia` y su propio pedido sobre el mismo `narrador_id`. |
-| `envios` | entrevistador | — | Log de salientes; idempotencia del scheduler. |
+| `envios` | entrevistador | — | Log de salientes; idempotencia del scheduler. **07/10:** `tipo = 'v3'` para cada mensaje de la entrevista V3. **10/10 (aplicada):** `tipo = 'regalo_entrega'` para la plantilla del regalo el día elegido. |
+| `entrevistas_v3` | entrevistador | fábrica | Nueva 07/10 (propuesta). Una fila por narrador: **prende la V3**. Ver "Entrevista V3 por WhatsApp". |
+| `regalos` | web (crea al comprar; `audio_path`; las columnas `entrega_canal`, `entrega_contacto`, `entrega_hora`, `entrega_zona`) / entrevistador (solo `usado_at`, `usado_por_telefono` al canjear, `recordatorio_at`, y `entrega_enviada_at`, `entrega_fallo` al mandar el regalo el día elegido) | ambos | Nueva 08/10, **aplicada por Naza el 09/10**. Gift card: un regalo por narrador. Ver "Gift card". Columnas `entrega_*` nuevas el 10/10 (migración `20261010000000_regalos_entrega.sql`, **aplicada por Naza el 10/10** con OK de Joaquín). |
 | `narraciones` | fábrica (crea la fila; y `estado = 'reemplazada'` cuando pide la voz de nuevo — migración 20260920) / worker de voz (`estado`, `motor`, `muestras`, `capitulos_paths`, `error`, `tomada_at`) | fábrica | Nueva 16/09. Buzón con el worker de voz (PC de Naza); ver "Narraciones (voz clonada)". |
 
 ## Transiciones de estado de `narradores.estado`
 
     pendiente_pago → invitado    (web: el pago se confirmó — migración 20260911, pago por adelantado)
+    pendiente_pago → regalo_pendiente   (web: se pagó un regalo — migración 20261008)
+    regalo_pendiente → invitado         (entrevistador: el narrador escribió con su código)
     invitado → acepto            (entrevistador: recibió el "SÍ")
     acepto → activo              (entrevistador: envió la pregunta 1)
     activo → pausado             (entrevistador: el narrador pidió parar)
@@ -36,6 +40,8 @@ de sus listas, así que un narrador sin pagar no recibe WhatsApp. Si el pago no 
 narrador queda ahí y la web lo limpia; no es un estado del que el entrevistador tenga que
 salir.
 
+`regalo_pendiente` tampoco está en ninguna lista del entrevistador: el narrador no tiene teléfono hasta el canje.
+
 `narradores.contexto` — claves que escribe el **entrevistador** (14/09, además de las de
 Naza `preguntasEnviadas` / `repreguntasEnviadas` / `resumenesCapitulos`):
 `mailsEnviados` (lista de hitos ya mandados: `acepto`, `primera`, `mitad`, `silencio`).
@@ -50,8 +56,9 @@ viejos); `copias` = cuántos impresos van en ESE pedido (el primero y las copias
 existen con impreso. Un pedido posterior desde el panel (más copias, marcos) lleva `pdf: false`.
 ```
 {"pdf": true|false, "audiolibro": "clonada" | "narrador" | "real" | null,
- "impreso": "bn" | "color" | null, "copias": 0..N, "marcos": 0..N}
+ "impreso": "bn" | "color" | null, "copias": 0..N, "marcos": 0..N, "regalo": true}
 ```
+`regalo: true` (08/10, propuesta): el pedido es una gift card (ver "Gift card"); sin la clave no lo es.
 Lo escribe la web al crear el pedido; la fábrica lo lee cuando produce. El
 entrevistador sigue sin mirar `pedidos`. `copias`: cuántos libros impresos van en ese
 pedido. Un pedido posterior puede ser de un invitado (su propia `familia`, mismo
@@ -96,6 +103,25 @@ mira.** Sin migración: son claves del jsonb `narradores.contexto`.
 **No cambian QUÉ preguntas existen** — eso son las plantillas de guion (`preguntas.plantilla`, que
 todavía no existe): cambian cómo el biógrafo escribe cada una.
 
+### `contexto.idioma` — en qué idioma se hace la entrevista V3 (04/10, Naza)
+
+`"ca"` = la entrevista en catalán; `"es-ES"` = en castellano de España, de tú (05/10, Naza:
+Argentina va de vos, España de tú, catalán en catalán); ausente (o `"es-AR"`) = la de siempre,
+en castellano rioplatense. **La web lo escribe** en la compra de un regalo (`/regalar`, paso 1):
+«¿En qué idioma le hablamos?», con tres opciones (Castellano de Argentina, Castellano de España,
+Català) que arranca en la del país de quien compra (`ES` → Castellano de España; cualquier otro →
+Castellano de Argentina). Escribe `"es-ES"` o `"ca"`; para es-AR no escribe `idioma` (ver «Gift card»).
+El banco de España ya está (`docs/v3/entrevista/banco-es-ES.md` y su json), así que un regalo
+`"es-ES"` arranca como los otros: ya no está pendiente. La compra de siempre (no regalo) todavía no
+lo pregunta. **El entrevistador lo lee** y
+se lo pasa a todo lo de `fabrica/src/v3/entrevista/`: `EstadoEntrevista.idioma`, la ficha de
+`renderizar` (`idioma`), `mensajesDespues(…, idioma)`, `preguntaPorId`/`mensajePorId(id, idioma)`,
+`cazarBloque({ …, idioma })` y la transcripción (`idioma` → `language: 'ca'`; `es-ES` → `'es'` con vocabulario de España). Sin migración:
+es una clave del jsonb `narradores.contexto`. Un valor que no se conoce es un error
+(`idiomaDe` en `idioma.ts`): mejor frenar que entrevistar en el idioma equivocado. No se
+mezcla con `contexto.trato` (usted/vos del entrevistador viejo). El libro en catalán es otro
+tema (todavía no). Detalle: [`docs/v3/entrevista/catala/diseno.md`](../docs/v3/entrevista/catala/diseno.md).
+
 **Para la fábrica (13/09):** `audiolibro: "clonada"` = narración en primera persona
 con la voz clonada de sus audios; `"narrador"` = TTS con una voz fija; `"real"` = como
 hasta ahora (sus audios). Nada se descarga: el PDF se lee y el audiolibro se escucha en
@@ -109,7 +135,24 @@ sí lee `audiolibro`: `"clonada"` pasa por el buzón `narraciones` (sección sig
 pedido espera en `esperando_voz` hasta que la voz vuelve y la fábrica ensambla. ⚠️ Pendiente
 (3t.14): leer `pdf` y `"narrador"` para producir solo lo comprado.
 
+> **23/09 — la fábrica ya no arma audiolibros.** Ni con los audios crudos (el paso 3 de
+> `generarPaquete` elegía los audios por nombre de archivo y mezcló la voz de Ciro en el
+> libro de Joaquín, bitácora hallazgo 43) ni con voz clonada (se borraron `fabrica/src/voz/`,
+> `fabrica/src/audio/`, el ensamblado de narraciones listas, los avisos de narraciones
+> atascadas y `npm run narracion`). Un pedido que la fábrica entrega queda con
+> **`audiolibro_paths = null`**, aunque sea viejo y haya comprado el audiolibro. Lo que ya
+> estaba entregado no se toca: la web sigue leyendo `audiolibro_paths` y los
+> `audiolibro_cap_NN.mp3` de esos pedidos (lector del tablero, `/api/libro/audio/[indice]`).
+> Un pedido nuevo tampoco copia audio de nadie: el segundo pedido de un narrador ya entregado
+> sigue heredando las rutas del primero, como siempre. La fábrica no lee ni escribe más la
+> tabla `narraciones` (quedan filas viejas: una `lista` de un pedido `fallido` y una
+> `reemplazada`); `esperando_voz` queda en el check pero nada pone un pedido ahí.
+
 ## Narraciones (voz clonada) (migraciones 20260917 y 20260920)
+
+> **Histórico (23/09):** todo lo de esta sección describe un camino que la fábrica ya no
+> tiene (ver la nota de arriba). Queda para leer las filas viejas de `narraciones` y el
+> worker de la PC de música, que todavía sondea la tabla.
 
 ⚠️ **La migración `20260917000000_narraciones.sql` NO se aplica en producción hasta que
 Joaquín lea esta sección.** Toca `pedidos_estado_check` (agrega `esperando_voz`) y agrega
@@ -128,7 +171,7 @@ Quién escribe qué:
 | `narraciones.estado` / `motor` / `muestras` / `capitulos_paths` / `error` / `tomada_at` | worker de voz | fábrica |
 | `narraciones.estado = 'reemplazada'` (+ `error = 'reemplazada por <id nueva>'`) | **fábrica** (`reemplazarNarracion`, migración 20260920) | — (no se narra ni se ensambla) |
 | `narradores.consentimiento_voz_at` | entrevistador (3t.15) — en el piloto, `npm run manual -- ficha <narrador> --voz-si` | worker de voz |
-| `pedidos.estado = 'esperando_voz'` / `'entregado'`, `audiolibro_paths` | fábrica | web |
+| `pedidos.estado = 'esperando_voz'` / `'entregado'`, `audiolibro_paths` | fábrica (desde el 23/09 entrega con `audiolibro_paths = null` y no usa `esperando_voz`) | web |
 | Storage `{narrador}/voz/cap_NN.mp3` (cuerpo narrado, sin intro) | worker de voz | fábrica |
 | Storage `{narrador}/paquete/audiolibro_cap_NN.mp3`, `audiolibro_completo.mp3` | fábrica | web |
 
@@ -285,6 +328,9 @@ no sea `{x, y}` numérico se toma como el centro; fuera de 0..1 se recorta al bo
 
 ## Audiolibro con voz clonada — regla de voz única (Naza, 19/09)
 
+> **Histórico (23/09):** la fábrica ya no arma ningún audiolibro, ni clonado ni con audios
+> reales (la intro TTS también se borró).
+
 En el audiolibro con voz clonada **no suena ninguna voz que no sea la del narrador**:
 ni intro TTS genérica ni conectores con otra voz. La fábrica no antepone nada al mp3
 del worker (solo normaliza volumen); el anuncio del capítulo ("Capítulo uno. La
@@ -294,6 +340,9 @@ reales (`extras.audiolibro = "real"` / pedidos viejos), donde alguien tiene que
 anunciar el capítulo.
 
 ## narracion.json v2 — audiolibro híbrido (decisión de los socios, 20/09)
+
+> **Histórico (23/09):** la fábrica ya no escribe `narracion.json` ni conectores
+> (`fabrica/src/voz/` se borró). Los archivos viejos del paquete no se borran.
 
 **El híbrido es el audiolibro clonado por defecto**: las historias se escuchan con el audio
 REAL del narrador (restaurado por el worker) y la voz clonada narra solo el anuncio del
@@ -352,7 +401,7 @@ libro. Publicar lo que pidió reservar es la peor falla posible del producto.
 
 | Columna | Tipo | Escribe | Lee | Qué es |
 |---|---|---|---|---|
-| `respuestas.reservada` | boolean, `not null default false` | entrevistador (la evaluación de la respuesta) | fábrica y web | El narrador pidió reservar algo de esta respuesta. **Sin `reservado_tramo`, no se publica nada de ella.** |
+| `respuestas.reservada` | boolean, `not null default false` | entrevistador (la evaluación de la respuesta; en la V3, las frases fijas: ver "Entrevista V3 por WhatsApp") | fábrica y web | El narrador pidió reservar algo de esta respuesta. **Sin `reservado_tramo`, no se publica nada de ella.** |
 | `respuestas.reservado_tramo` | text, null | entrevistador | fábrica | Si el pedido es por una PARTE: el tramo textual que no se publica, tal como lo dijo. Con tramo, se publica **todo menos eso** (la reserva parcial es el caso `reservada = true` + `reservado_tramo = '…'`). |
 
 Reglas:
@@ -378,9 +427,8 @@ Reglas:
 - **La fábrica solo lee**, y respeta las dos en el mismo lugar donde arma el material del
   libro (`fabrica/src/libro/comun.ts`, `textoRespuesta`): el escritor nunca ve una respuesta
   `reservada` (ni en el capítulo ni en "la historia completa"), y el tramo se quita del
-  texto. Tampoco entran al audiolibro híbrido (`historiasDelCapitulo` en
-  `fabrica/src/voz/conectores.ts`) ni a la muestra de audio del anticipo (esa muestra se
-  publica en la landing), porque **un tramo no se puede recortar de una grabación**: una
+  texto. Tampoco entraban al audiolibro híbrido (borrado el 23/09) ni entran a la muestra
+  de audio del anticipo (esa muestra se publica en la landing), porque **un tramo no se puede recortar de una grabación**: una
   reserva parcial también deja el audio afuera (`esPublicable`).
 - **La web solo lee**: muestra la respuesta marcada como reservada ("no va al libro", a
   pedido del narrador). Si algún día la familia quiere re-publicarla, sería escritura de la
@@ -461,12 +509,163 @@ fábrica y lo borra el worker recién cuando no queda ninguna frase pendiente.
 - La fábrica **no espera** a que haya audios: el libro se entrega igual y las frases se completan
   cuando la PC corta. Si nadie confirma la selección, a los 15 días va la del biógrafo.
 
+## Entrevista V3 por WhatsApp (migración 20261007000000 — PROPUESTA del 07/10, la aplica Naza)
+
+Spec: `docs/superpowers/specs/2026-10-07-entrevista-v3-whatsapp-design.md`. **Una fila en
+`entrevistas_v3` prende la V3 para ese narrador**; sin fila, el entrevistador sigue como siempre.
+La escribe el entrevistador y la lee la fábrica.
+
+| Columna | Qué guarda |
+|---|---|
+| `narrador_id` | Clave primaria y referencia a `narradores`. |
+| `idioma` | `es-AR`, `es-ES` o `ca`. |
+| `ficha` (jsonb) | `nombre` (= `como_le_dicen`), `genero` (`varon` / `mujer` / `otro`), `formaTrato?`, `quienRegala?`. |
+| `estado` (jsonb) | El motor de `entrevistador/src/v3/turno.ts`: `respuestas` (`[clave, texto][]` en orden de llegada: **es la verdad de la entrevista**), `enviados`, `vueltas`, `acuse`, `esperando`, `tocoSi`, `borrador` (los audios de la abierta, sin cerrar), `preguntaAbierta`, `bloqueActual`, `terminada`, `familia`, `repreguntas`, `cazador`, `charla` (los mensajes tal como salieron), `salientes` (la cola de WhatsApp), y contadores (`seq`, `fallosEnvio`, `ultimoEntranteAt`, `abiertaDesde`, `m8En`, `m22Enviado`). `wamidsVistos`: los últimos 50 `wa_message_id` ya aplicados al estado o dejados de lado (dedupe de lo que no deja fila en `respuestas` y candado de la reconciliación). `abiertaPorPlantilla`: la abierta salió por plantilla, sin botones (al volver a escribir se le reenvía con botones). `reservadas` (07/10): las claves que el narrador pidió que no vayan al libro (ver abajo). `familiaTarde` (07/10): ids de preguntas de la familia que llegaron después de FO1 y ya se avisaron a los socios. |
+| `version` | Cada escritura es `UPDATE … WHERE version = n`; si cambió, se relee y se reintenta. |
+| `ultimo_audio_at` | Cuando **llegó** el último audio de la pregunta abierta y, otra vez, cuando se **guardó** su transcripción (el reloj cierra a los 3'). |
+| `tanda_dia`, `tanda_cuenta` | La tanda del día (en la zona del narrador) y cuántas preguntas salieron. |
+| `enviando_hasta` | Toma corta del turno (2 minutos): un solo proceso manda la cola. |
+| `creada_at`, `migrada_de` | `migrada_de`: null, o `{"de": "v-vieja", "dia_actual": n}` (el `dia_actual` que tenía). |
+
+Columnas nuevas en `respuestas`: `clave_v3` (text, null en las filas viejas; varias filas pueden
+tener la misma clave) y `wa_message_id` (text, único cuando no es null). `envios.tipo` suma `'v3'`.
+
+Reglas de una fila de `respuestas` de un narrador V3: `pregunta_orden` = **número de llegada** (no es
+un orden del guion: el libro viejo no la lee nunca, lo frena el candado de la fábrica);
+`transcripcion` = el texto del audio (o el texto escrito, que cuenta como respuesta); `texto_directo` = la marca
+del botón (`⟦botón:Sí⟧`), el texto escrito o `⟦foto⟧` (la foto de FO1).
+
+`clave_v3` en una fila V3 (07/10, revisión final): se pone **después** de sumar la fila al estado.
+- **null** (y `wa_message_id` no null, llegada después de `entrevistas_v3.creada_at`): todavía no se
+  sumó. Si pasan 5 minutos, el reloj la **reconcilia**: la pasa por el mismo camino que un mensaje
+  nuevo (un audio sin transcripción se transcribe desde Storage) y le pone la clave.
+- **`∅`** (`SIN_CLAVE_V3`): se guardó y **quedó afuera a propósito** (un botón que no es de la
+  abierta, un audio que no se pudo transcribir y se pidió de nuevo con M23, **un audio o texto que
+  llegó sin pregunta abierta** —después del tope del día, entre tandas—, y el mensaje que pidió
+  «quiero parar» o «que no vaya al libro»). El reloj no la reintenta; **la fábrica (`de-base.ts`) y
+  el pase la ignoran**.
+- cualquier otro valor: la pregunta V3 a la que se sumó.
+
+Sin pregunta abierta (Naza, 07/10): un audio o un texto no se suma a la respuesta anterior (antes
+sí: un «Gracias» podía terminar en el libro). Queda la fila con `∅` y no sale nada, tampoco M22.
+Después de tocar «Sí» la pregunta sigue abierta: eso se suma como siempre.
+
+**Pregunta abierta que todavía no le llegó (Naza, 09/10, el caso de Imma).** Si la abierta sigue en
+`salientes` (fuera de la ventana de 24 h y sin plantilla aprobada, `drenar` la retiene) y salió una sola
+vez a la cola, lo que mande el narrador no la contesta: la fila queda con `∅`, no sale acuse ni M22, la
+pregunta sale en ese momento, y `abiertaDesde` (M8) y `ultimo_audio_at` arrancan de nuevo. Un audio se
+transcribe igual (queda en `transcripcion`) y se avisa a los socios, por si vale para el libro. Un pedido
+escrito («quiero parar», «que no vaya al libro») sigue su camino.
+
+**Un saludo solo no es respuesta (Naza, 09/10).** Un mensaje escrito que es solo un saludo («Hola»,
+«Buenas tardes, ¿qué tal?», «Bon dia») no se suma a la abierta: fila con `∅`, sin M22 ni reloj. Si dice
+algo más («Hola, nací en Rosario») o tiene un número, se suma como siempre (`entrevistador/src/v3/saludo.ts`).
+
+**«Esto que no vaya al libro» y «quiero parar» por WhatsApp (Naza, 07/10).** El entrevistador V3
+los detecta con frases fijas del núcleo (`pideReserva`, `pidePausa`; sin modelo), en el texto
+escrito o en la transcripción, antes de sumarlo. Ante la duda, no es un pedido (revisión del 07/10).
+El mensaje que lo pide queda con `clave_v3 = '∅'`.
+- Frases de reserva: las que nombran el libro (libro, llibre, biografía) valen a cualquier largo; las
+  genéricas («no lo escribas», «eso no lo pongas», «no ho posis»…) solo en un mensaje de hasta 15
+  palabras o que nombre el libro en otro lado, y nunca dichas por otro («decía…») ni seguidas de un
+  lugar («…en la pared»).
+- Frases de pausa: solo en un mensaje de hasta 15 palabras; no valen negadas («no quiero parar
+  nunca») ni seguidas de algo que las vuelve otra cosa («paremos acá a comer», «no quiero seguir
+  trabajando»). «Paremos» / «Frenemos» / «Parem» solos, en hasta 8 palabras o seguidos de acá /
+  por hoy / un rato / ya; «Pausa» sola, en hasta 4. «Lo dejamos aquí» (es-ES) y «Ho deixem aquí»
+  (ca) no son pausa: hace falta «por hoy» / «per avui».
+- **Reserva:** se reserva la abierta si tiene borrador o si tocó «Sí» (lo que va a contar); si no,
+  la última respuesta cerrada. En un mensaje de más de 15 palabras sin nada abierto, no se reserva
+  ninguna anterior (queda afuera el mensaje mismo) y se avisa a los socios. El entrevistador V3
+  **escribe `respuestas.reservada = true`** en todas las filas de ese narrador con esa `clave_v3` y
+  sus derivadas (`RP~X`, `X~2`) (si la columna no existe —42703— o el update falla, avisa a los
+  socios y sigue) y
+  la anota en `entrevistas_v3.estado.reservadas`. **La fábrica (`de-base.ts`) saca enteras las
+  claves de `estado.reservadas`** (y las de su pregunta madre: `RP~X` y `X~2` comparten la de `X`)
+  con sus audios, aunque las filas no estén marcadas. Tampoco van al cazador. Sale el texto fijo
+  `reserva`; la entrevista sigue igual.
+- **Pausa:** `narradores.estado` `activo → pausado` (con `.eq('estado','activo')`) y
+  `alerta_silencio = true` (como el flujo viejo), sale el texto fijo `pausa` y se avisa a los socios
+  (red de seguridad: una pausa por error se arregla con que escriba). Lo abierto queda abierto. El reloj no trabaja a los pausados (ni M8). Si dice las
+  dos cosas, se reserva y además se pausa. Un pedido no reactiva a un pausado.
+- **Vuelta de un pausado:** cualquier otro mensaje lo reactiva (`alerta_silencio = false`). Con
+  pregunta abierta, se le reenvía, M8 cuenta de nuevo desde ahora (`abiertaDesde`, `m8En`) y, si
+  había algo contado, el silencio de 3' también. Sin pregunta abierta y con la entrevista sin terminar, **la siguiente sale en el
+  momento** (sin esperar `hora_preferida`) y cuenta en la tanda de hoy, aunque esté en el tope; lo
+  que mandó queda con `∅`. Antes se suman las preguntas de la familia (como al abrir la tanda).
+
+**Preguntas de la familia cargadas después del alta (Naza, 07/10).** Al abrir la tanda del día, el
+reloj lee `preguntas` del narrador con `tipo = 'familia'` (el mismo criterio del alta, id
+`F:<id>`) y suma a `estado.familia` las que no tiene. Solo agrega: si la familia borra o edita una,
+lo ya hecho no se toca. Si la entrevista ya llegó a FO1 (abierta, mandada o contestada), no se
+suman y se avisa a los socios una vez por pregunta (`estado.familiaTarde`).
+
+Lo que no cambia: las transiciones de `narradores.estado` (`activo` durante la V3, `completado`
+después de FIN, `pausado` como arriba); `dia_actual` queda congelado en el valor que tenía.
+
+La fila nace con `npm run v3-pasar -- <narrador> --genero … [--idioma …] --aplicar` (narradores en
+curso, con la tabla de equivalencias aprobada por Naza) o al pasar `acepto → activo` con
+`V3_PARA_NUEVOS=1`, o siempre para un regalo (`contexto.regalo = true`, con el interruptor apagado o
+prendido). En los dos casos necesita `contexto.genero`; sin él, el alta se frena y se avisa a los socios.
+
+**La fábrica:** `fabrica/src/v3/candado.ts` cuida que el camino viejo no toque a ningún narrador con
+fila (anticipo, estructura, previsualización y paquete viejos; desde el 08/10 el worker ya no avisa por
+cada uno, porque el libro lo escribe el escritor V3, abajo) (candado
+`{narrador_id}/paquete/v3_candado_avisado.txt`); `fabrica/src/escritor/material/de-base.ts` lee la
+fila y devuelve el formato de `escritor/material/de-entrevista.ts`.
+
+### Escritor V3 en la fábrica (08/10 — rama `escritor-worker`)
+
+El libro de un narrador V3 lo escribe el escritor nuevo (`fabrica/src/escritor/produccion/libro-v3.ts`,
+etapas A/B/C); el camino viejo (anticipo, estructura, previsualización, generarPaquete) no lo toca.
+**No cambia ninguna tabla.** Cambian los archivos de Storage de abajo y dos lecturas:
+
+- **Cuándo.** Entrevista terminada (`narradores.estado` `completado` o `cerrado_anticipado`) → Etapa A
+  en segundo plano. Pedido `pagado` + `libro_aprobado_at` → el libro entero en segundo plano: el pedido
+  pasa por `generando` (mismo CAS que siempre) y termina `entregado` o `fallido`, como el libro viejo.
+  Un segundo pedido del mismo narrador se entrega con los mismos archivos, como siempre.
+- **La edición de la dueña** (`narradores.edicion`): valen `titulo`, `subtitulo` y `portadaFotoId`.
+  `ordenCapitulos` y `titulosCapitulos` **no** (son nombres del guion viejo; el plan y los títulos los
+  arma el escritor), y no van fotos por capítulo (solo la de tapa).
+  **10/10 (Naza):** también valen `excluidas` y `correcciones`. `excluidas` (ids de `respuestas`, «Qué dejar
+  afuera» del cierre): la clave de cada fila excluida sale **entera** del libro, con su `RP~X` / `X~2` y sus
+  audios, como una reserva («esto que no vaya al libro»); la web manda todos los ids de esa pregunta. Cambiar
+  `excluidas` cambia el material: si la Etapa A ya estaba hecha, se rehace al escribir el libro (se paga de
+  nuevo, ~USD 2,4). `correcciones` (texto libre de la dueña) va a la Etapa B como una corrección más, junto
+  con las de `correcciones.json`.
+- **La ficha del libro**: la de `entrevistas_v3.ficha` más `narradores.contexto` (`anioNacimiento`,
+  `lugarNacimiento`, `dondeVive`, `arbol` como texto libre). `contexto.datosExtra` **no** llega al escritor.
+- **`frases.json`** (el de siempre, en `paquete/`): `respuesta_id` = la fila de `respuestas` de esa
+  pregunta (o su `RP~X` / `X~2`) que dice la frase tal cual, o null si ninguna; `pregunta_orden` = 0
+  (en la V3 no hay orden de guion). El worker de audio corta igual que siempre.
+- **`consumo_ia`**: una fila por llamada del escritor, `servicio = 'fabrica'`, `paso` = `escritor-A`,
+  `escritor-B` o `escritor-C`, con el `usd` que calcula el escritor (Batch a mitad de precio).
+
+`{narrador_id}/escritor/…` (bucket `audios`):
+
+| Archivo | Escribe | Lee | Qué es |
+|---|---|---|---|
+| `pasos/`, `lotes/`, `fallas.json`, `costos.json` | fábrica | fábrica | Cada respuesta del modelo (para retomar sin repagar), los lotes de Batch y el gasto. No se borran. |
+| `carpeta-A.json`, `carpeta-B.json`, `carpeta-C.json` | fábrica | fábrica | La carpeta al terminar cada etapa. `carpeta-A.json` = **Etapa A hecha** (candado). |
+| `fallo-A.json` | fábrica | fábrica / socios | La Etapa A no pasó sus controles (`{motivo, fecha}`). No se reintenta sola: se borra a mano para reintentar. |
+| `dudas-familia.json` | fábrica | socios (y la web, el día que haya pantalla) | `{dudas: [{id: "D01", tipo, que, ids, citas, pregunta, opciones}]}`: las dudas de datos de la Etapa A. |
+| `dudas-avisadas.txt` | fábrica | fábrica | Candado del mail de dudas a los socios. |
+| `correcciones.json` | **socios a mano** (y la web, el día que haya pantalla) | fábrica (Etapa B) | `{"correcciones": [{"dudaId": "D01", "texto": "La Negra se llamaba Ofelia."}]}`. Si la Etapa A encontró dudas, el libro no se escribe hasta 24 horas después del mail de dudas (`ESCRITOR_ESPERA_DUDAS_HORAS`): ese es el rato para escribirlo. Sin archivo, el libro va sin correcciones. Roto → el pedido queda `fallido`. |
+| `libro.md` | fábrica | fábrica, imprenta | El libro final. La imprenta lo prefiere a `paquete/borrador_libro.md` si existe. |
+| `trabajando.json` | fábrica | fábrica | `{proceso, que, latido}`: la copia de la fábrica que está trabajando con ese narrador lo renueva cada minuto. Otra copia (un deploy con las dos prendidas) no toca el narrador ni toma su pedido como huérfano mientras tenga menos de 10 minutos. |
+| `alerta-libro-demorado.txt` | fábrica | fábrica | Candado del mail a los socios cuando el libro no salió a las 48 horas del cierre. |
+| `informe.md` | fábrica | socios | El informe interno de la revisión (no lo ve la familia). |
+
+Variables de la fábrica: `ESCRITOR_ESPERA_DUDAS_HORAS` (24 por defecto: espera tras el mail de dudas), `ESCRITOR_LIBROS_EN_PARALELO` (3 por defecto: trabajos del escritor a la vez),
+`ESCRITOR_TOPE_USD` (15 por defecto: tope de gasto por trabajo), `MAIL_SOCIOS` (avisos).
+
 ## Storage — bucket privado `audios`
 
     {narrador_id}/dia_NN.ogg          respuestas (entrevistador sube; NN = pregunta_orden, 2 dígitos; extras: dia_NN_2.ogg)
     {narrador_id}/fotos/{id}.{ext}    fotos por capítulo, ORIGINAL sin recomprimir (web sube)
     {narrador_id}/sistema/…           audios TTS del entrevistador (entrevistador sube)
     {narrador_id}/paquete/…           estructura, PDF, audiolibro, libro.html y candados de mails (web/fábrica — socio 2 — sube)
+    {narrador_id}/escritor/…          el escritor V3: checkpoints, dudas, correcciones, libro.md (fábrica; ver "Escritor V3 en la fábrica")
 
 El navegador jamás recibe paths directos: solo URLs firmadas que genera la web.
 
@@ -593,3 +792,129 @@ Reglas:
   sigue. Un mensaje que no salió de `envios` (la confirmación de una foto) simplemente no se anota.
 - Cómo se lee: `fallido` = el número o la cuenta tienen un problema · `entregado` sin `leido` = le
   llegó y no lo abrió · `leido` sin respuesta = el problema es lo que dice el mensaje.
+
+## Gift card (08/10, migración aplicada el 09/10)
+
+Spec: `docs/superpowers/specs/2026-10-07-gift-card-design.md`.
+
+- La web crea narrador (sin teléfono, `contexto.regalo = true`, `contexto.genero` y el idioma, ver
+  abajo), pedido (`extras.regalo = true`) y `regalos` en la misma compra.
+- **Idioma del regalo (09/10, spec `2026-10-09-regalo-idiomas-design.md`).** Quien compra lo elige
+  en `/regalar` (es-AR, es-ES o ca). Para es-ES y ca la web escribe `contexto.idioma` (`"es-ES"` o
+  `"ca"`) y no escribe `trato`. Para es-AR escribe `contexto.trato = 'vos'` y no escribe `idioma`
+  (la ausencia es es-AR). Lo que el cuerpo de la compra traiga de `trato` o `idioma` no cuenta:
+  manda el idioma elegido, también en un reintento.
+- Al pagar, la web pasa el narrador a `regalo_pendiente` (no a `invitado`).
+- El entrevistador, ante un número desconocido que escribe un código válido:
+  1. marca el regalo (`usado_at`, `usado_por_telefono`) con compare-and-swap sobre `usado_at is null`;
+  2. pone `telefono_whatsapp` y `estado = 'invitado'` solo si estaba en `regalo_pendiente`, y en el
+     mismo update `zona_horaria` según el prefijo del teléfono que canjea (`+54` →
+     `America/Argentina/Buenos_Aires`, `+34` → `Europe/Madrid`; otro prefijo deja la que había, que
+     la web puso por la región de quien compró). La zona es la del narrador, no la de quien regala;
+  3. manda la bienvenida como texto libre y la anota en `envios` (`tipo = 'bienvenida'`). Desde el
+     09/10 esa bienvenida es el mensaje `BIEN` del banco V3 en el idioma del regalo (renderizado con
+     `como_le_dicen`) y abajo el pedido de SÍ con el permiso de la voz (`ARRANQUE` en
+     `entrevistador/src/flujo/regalo-textos.ts`). Ya no usa la bienvenida vieja ni `trato`.
+- Si esa bienvenida falla (o no se pudo anotar en `envios`), el entrevistador la vuelve a mandar como
+  texto libre con el próximo mensaje del narrador (sigue en `invitado` sin bienvenida en `envios`).
+  Si tampoco sale, se procesa el mensaje como un SÍ de siempre: un SÍ no se pierde.
+- El SÍ de un narrador con `contexto.regalo = true` anota `consentimiento_voz_at` (la bienvenida del
+  regalo siempre pide el permiso de la voz), aunque `WA_BIENVENIDA_PIDE_VOZ` esté apagado. No lo
+  anota si la bienvenida del regalo nunca le llegó.
+- **Los regalos van siempre por la V3 (09/10).** Al SÍ de un regalo, `enviarPregunta` hace el alta
+  V3 (`altaNuevo`) aunque `V3_PARA_NUEVOS` esté apagado, y la primera pregunta sale enseguida, sea
+  cual sea el ritmo. La aceptación, el «no te entendí» y el «todavía no» salen en el idioma del
+  regalo (`ARRANQUE`). `leerSiNo` reconoce también el SÍ en catalán («d'acord», «som-hi»,
+  «endavant», «vinga», «va», «comencem») y en castellano de España («vale», «venga»), y el «no» en
+  catalán («ara no», «demà», «després», «més tard», «avui no»; se comparan sin acentos).
+- «No encuentro ese código» sale según el prefijo del teléfono (`+34` en es-ES, cualquier otro en
+  es-AR), porque todavía no se sabe de qué regalo es. «Ese código ya se usó» sale en el idioma del
+  regalo.
+- El mail «dijo que sí» (hito `acepto`) de un regalo tiene su propio texto (`HITO_ACEPTO_REGALO`):
+  dice que la primera pregunta ya salió y no habla de «mañana» ni del guion. Por eso, en un regalo,
+  sale **después** de que `enviarPregunta` devolvió `true`; si la 1 no sale o falla, queda en el log
+  y el mail no va (un narrador que no es regalo recibe el mail antes de la 1, como siempre). Va de vos o de tú
+  según `familias.region` de quien compró (`ES` → tú). El recordatorio de los 15 días también.
+- **Un regalo que no puede arrancar** (sin `contexto.genero`, o con un `contexto.idioma` que no es
+  es-AR, es-ES ni ca) anota igual el SÍ (`acepto` y `consentimiento_voz_at`), no le manda nada al
+  narrador (ni la aceptación ni la primera pregunta), no manda el mail «dijo que sí» y avisa a los
+  socios (`avisarSocios`, clave `regalo-si-frenado:{narrador_id}`, con el paso a seguir). Lo que
+  pasa de verdad después (09/10):
+  - Una persona completa la ficha (`contexto.genero`, y `contexto.idioma` si estaba mal).
+  - **Con el próximo mensaje del narrador** (cualquiera: texto, audio o foto), si sigue en `acepto`
+    sin fila V3, el entrevistador intenta el alta con la ventana abierta (`enviarPregunta(n, 1,
+    { plantilla: false })`): si la ficha ya está completa, OR1 sale en ese momento y, recién
+    entonces, sale el mail «dijo que sí». Si sigue incompleta, `altaNuevo` lo vuelve a frenar (su
+    aviso sale una vez por día) y el mensaje se ignora como antes. Un `acepto` que no es regalo
+    sigue ignorando los mensajes.
+  - **Sin mensaje suyo**, el scheduler lo reintenta a su hora preferida con `altaNuevo` y la
+    ventana cerrada: crea la fila y lo pasa a `activo`, pero OR1 sale solo si hay plantilla V3
+    aprobada. En es-AR sale; en es-ES y ca todavía no hay plantilla (`WA_PLANTILLAS_V3_LISTAS`), así
+    que OR1 queda en la cola hasta que el narrador escriba. Por este camino el mail «dijo que sí» no
+    sale solo: lo manda una persona.
+  - `npm run v3-pasar -- <narrador> --genero … [--idioma …] --aplicar` también lo destraba (acepta
+    narradores en `acepto`): crea la fila y lo pasa a `activo` sin mandar nada, con la misma espera
+    de la plantilla en es-ES y ca. No completa `contexto.genero` ni manda el mail.
+  - La aceptación al narrador («ahí te mando la primera pregunta») no sale por ninguno de estos
+    caminos.
+- Un teléfono que el entrevistador ya conoce (narrador en `pendiente_pago`, `completado` o
+  `cerrado_anticipado`) que manda un código **no canjea** y no recibe respuesta (no hay texto
+  aprobado): se avisa a los socios (`avisarSocios`, con el teléfono, el narrador y el código) para
+  que lo resuelva una persona. Dos libros para una misma persona es el plan que sigue.
+- El scheduler nunca le manda la plantilla `bienvenida` a un narrador con `contexto.regalo = true`.
+- La web trata `regalo_pendiente` como `invitado` para editar (trato y guion): mientras el regalo no
+  se abre, quien regaló puede cambiar las dos cosas.
+- **Reintento de un regalo sin pagar (09/10, antes de vender).** Se retoma **solo con la prueba de
+  la compra anterior**: el cuerpo trae `regalo.retomar = { narradorId, token }`, donde `token` es el
+  `tokenFotos` que devolvió aquel `/api/compra` (`lib/token-fotos`, una hora). La web lo guarda en
+  `sessionStorage` (`vitacora-regalo-pendiente`) antes de ir al pago y lo manda en el envío
+  siguiente. Se retoma ese narrador solo si el token verifica para él, es de la misma familia,
+  sigue en `pendiente_pago`, tiene `contexto.regalo = true` y es para la misma persona (mismo `nombre`, sin
+  mayúsculas ni espacios de más; un regalo para otra persona en la misma pestaña no pisa el anterior): se actualizan el narrador (también el
+  idioma vía `contexto`), su fila de `regalos` (mismo código; `mensaje`, `fecha_entrega`,
+  `quien_regala` y `pedido_id` al pedido nuevo) y nace un pedido nuevo. Si falta la prueba o algo
+  no cierra, nacen un narrador y un regalo nuevos, como en una primera compra (un token malo no da
+  error). Ya no se busca por correo y nombre: saberlos no alcanza para tocar un regalo ajeno.
+- `/api/compra` **no devuelve el código del regalo** (09/10): responde `urlPago`, `narradorId` y
+  `tokenFotos`. La tarjeta se busca en la base después del pago (`pago/vuelta` y `confirmarPago`).
+- Audio de quien regala: `audios/{narrador_id}/regalo/mensaje`, sin extensión: el tipo lo guarda
+  Storage (`contentType`) y es el que sirve la URL firmada. Regrabar pisa el mismo objeto.
+- Recordatorio: si a los 15 días de `fecha_entrega` (o de `created_at` si no hay fecha) sigue
+  sin usar, el entrevistador le escribe un mail a quien compró y anota `recordatorio_at`.
+
+### El regalo llega solo el día elegido (10/10, migración aplicada por Naza el 10/10)
+
+Spec: `docs/superpowers/specs/2026-10-10-regalo-dia-de-entrega-design.md`.
+
+| Columna | Tipo | Quién escribe | Qué es |
+|---|---|---|---|
+| `entrega_canal` | text, `mail` o `whatsapp`, null | web | null = quien compra se la da en mano (como antes) |
+| `entrega_contacto` | text, null | web | correo de quien recibe, o su celular en E.164 |
+| `entrega_hora` | smallint 8–22, null | web | hora local en punto |
+| `entrega_zona` | text, null | web | `America/Argentina/Buenos_Aires` si el regalo es es-AR; `Europe/Madrid` si es es-ES o ca |
+| `entrega_enviada_at` | timestamptz, null | entrevistador | cuándo tomó el envío (compare-and-swap sobre null): la traba para no mandarlo dos veces |
+| `entrega_fallo` | text, null | entrevistador | motivo corto si no salió o si Meta avisó que no se entregó (`mail`, `whatsapp`, `sin_plantilla`, `dia_vencido`, `interrumpido`, `meta:<código>`). Mientras se manda vale `enviando` y al salir vuelve a null; un `enviando` de más de 30 min es un envío cortado y pasa a `interrumpido` |
+
+- Check: con `entrega_canal` no nulo tienen que estar `fecha_entrega`, `entrega_contacto`,
+  `entrega_hora` y `entrega_zona`.
+- La web escribe las cuatro columnas al comprar, y también al retomar un regalo sin pagar (junto con
+  `fecha_entrega`). `whatsapp` solo si `REGALO_ENTREGA_WHATSAPP=1` en Vercel; si no, 400.
+- El entrevistador, en cada tick de 15 minutos (sale a la hora en punto), toma los regalos con canal, `usado_at` null,
+  `entrega_enviada_at` null y narrador en `regalo_pendiente` cuya fecha y hora ya llegaron en
+  `entrega_zona`. Pone `entrega_enviada_at` antes de mandar. Manda a quien recibe el mail (Resend) o
+  la plantilla `regalo_entrega` del idioma del regalo, y después el mail «Hoy le llegó» a quien
+  compró (`mandarMailFamilia`). Si falla, o si el día local ya pasó, anota `entrega_fallo`, no
+  devuelve la marca (no se reintenta solo) y le manda a quien compró el mail «dásela vos».
+- La plantilla por idioma se da por lista con `WA_PLANTILLAS_V3_LISTAS` (`<idioma>:regalo_entrega`).
+  Si no está, el envío por WhatsApp cuenta como fallo.
+- La plantilla se anota en `envios` con `tipo = 'regalo_entrega'` (valor nuevo del check, misma
+  migración). Si Meta avisa después (`whatsapp/entregas.ts`) que no se entregó, el entrevistador
+  anota `entrega_fallo` y le manda el mail «dásela vos» a quien compró.
+- **Canje sin código.** Un número desconocido que escribe, si coincide con `entrega_contacto` de un
+  regalo `whatsapp` ya enviado, sin `entrega_fallo` y sin usar, canjea ese regalo por el mismo camino
+  que el código (mismos pasos 1 a 3 de arriba). Vale con cualquier mensaje (texto, audio, botón).
+- El mail a quien recibe lleva la línea del número del bot solo si el entrevistador tiene
+  `WHATSAPP_NUMERO_PUBLICO` (Railway); si no, sale con el botón y sin el código.
+- `entrega_contacto` se usa solo para este envío: no pasa a `narradores`. El teléfono del narrador
+  es siempre el del canje.
+- El recordatorio de los 15 días no cambia.

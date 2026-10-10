@@ -5,6 +5,14 @@ import { enviarPlantilla } from '../whatsapp/enviar.js';
 import { enviarPregunta, type Narrador } from './preguntar.js';
 import { mandarHito } from '../mail/hitos.js';
 import { esViaje } from './viaje.js';
+import { fechaLocal, minutosLocales } from './tiempo.js';
+import { narradoresV3 } from '../v3/estado.js';
+import { PLANTILLAS_V3, entraALaV3 } from '../config.js';
+import { plantillaLista } from '../v3/enviar.js';
+import { avisarSocios } from '../v3/avisos.js';
+import { idiomaDeRegalo } from './regalo-arranque.js';
+
+export { fechaLocal, minutosLocales };
 
 export { capituloNoAplica } from './preguntar.js';
 
@@ -13,20 +21,6 @@ const HORAS_RECORDATORIO = 6; // recién después de 6 hs sin responder
 const DIAS_SILENCIO = 3;      // 3 días sin señales → avisamos a la familia
 
 // ── Helpers de tiempo (puros, testeables) ──────────────────────────────
-
-/** 'YYYY-MM-DD' en la zona del narrador. */
-export function fechaLocal(fecha: Date, zona: string): string {
-  return new Intl.DateTimeFormat('sv-SE', { timeZone: zona }).format(fecha);
-}
-
-/** Minutos transcurridos del día en la zona del narrador. */
-export function minutosLocales(fecha: Date, zona: string): number {
-  const hhmm = new Intl.DateTimeFormat('es', {
-    timeZone: zona, hour: '2-digit', minute: '2-digit', hour12: false,
-  }).format(fecha);
-  const [h, m] = hhmm.split(':').map(Number);
-  return h * 60 + m;
-}
 
 /** ¿Estamos en la ventana de 15 min que arranca en su hora preferida? */
 export function esHoraDeEnviar(horaPreferida: string, zona: string, ahora: Date): boolean {
@@ -135,6 +129,9 @@ async function enviarBienvenidas(): Promise<void> {
   for (const n of await narradoresEn(['invitado'])) {
     await aislado(n.id, async () => {
       if (await bienvenidaYaSalio(n.id)) return;
+      // Gift card: la bienvenida sale como texto cuando el narrador escribe con su
+      // código (flujo/regalo.ts). La plantilla nunca: no la esperaría nadie.
+      if (n.contexto?.regalo === true) return;
       // Vitácora de viaje: su plantilla es `bienvenida_viaje` (una variable). Hasta que Meta
       // la apruebe (WA_PLANTILLA_BIENVENIDA_VIAJE=1), el viajero escribe primero y procesar
       // le contesta la bienvenida como texto libre.
@@ -142,6 +139,40 @@ async function enviarBienvenidas(): Promise<void> {
         if (process.env.WA_PLANTILLA_BIENVENIDA_VIAJE !== '1') return;
         try {
           const waId = await enviarPlantilla(n.telefono_whatsapp, 'bienvenida_viaje', [n.como_le_dicen]);
+          await registrarEnvio(n.id, 'bienvenida', waId);
+        } catch (err) {
+          await anotarBienvenidaFallida(n.id, err);
+        }
+        return;
+      }
+      // Entrevista V3 para los nuevos (V3_PARA_NUEVOS=1, 10/10): la bienvenida es la plantilla V3 de su idioma
+      // (una variable, cómo le dicen), no la vieja (de usted, "cada mañana", "arrancamos mañana"). Si Meta
+      // todavía no la aprobó (WA_PLANTILLAS_V3_LISTAS sin "<idioma>:bienvenida"), no sale nada y se avisa:
+      // mandarle la vieja le prometería otra entrevista.
+      if (entraALaV3(n.contexto)) {
+        const idioma = idiomaDeRegalo(n.contexto);
+        const p = PLANTILLAS_V3[idioma].bienvenida;
+        if (!plantillaLista(idioma, 'bienvenida')) {
+          await avisarSocios(`bienvenida-v3-${idioma}`, `No sale la bienvenida V3 en ${idioma}`,
+            `${n.como_le_dicen} (${n.id}) espera la bienvenida, pero la plantilla ${p.nombre} no está marcada como aprobada (WA_PLANTILLAS_V3_LISTAS="${idioma}:bienvenida"). Sale apenas se marque.`);
+          return;
+        }
+        // La marca va ANTES de mandar (revisión 10/10): su SÍ se contesta con los textos de la V3 y vale como
+        // permiso de voz (la plantilla lo pide), procesar.ts. Se relee el contexto para no pisar lo que la web o
+        // un socio hayan escrito en el medio. Si no se puede marcar, no se manda: se reintenta en el próximo tick.
+        if (n.contexto?.bienvenidaV3 !== true) {
+          const { data: fresco, error: errorLectura } = await db.from('narradores').select('contexto').eq('id', n.id).maybeSingle();
+          const contexto = ((fresco as { contexto?: Record<string, unknown> } | null)?.contexto) ?? {};
+          const { error: errorMarca } = errorLectura
+            ? { error: errorLectura }
+            : await db.from('narradores').update({ contexto: { ...contexto, bienvenidaV3: true } }).eq('id', n.id);
+          if (errorMarca) {
+            console.error(`bienvenida V3: no pude marcar a ${n.id}; no mando la plantilla todavía:`, errorMarca.message);
+            return;
+          }
+        }
+        try {
+          const waId = await enviarPlantilla(n.telefono_whatsapp, p.nombre, [n.como_le_dicen], p.idiomaMeta);
           await registrarEnvio(n.id, 'bienvenida', waId);
         } catch (err) {
           await anotarBienvenidaFallida(n.id, err);
@@ -164,7 +195,10 @@ async function enviarBienvenidas(): Promise<void> {
 
 /** 2. La pregunta del día, a la hora de cada uno. */
 async function enviarPreguntasDelDia(ahora: Date): Promise<void> {
+  // Los narradores V3 tienen su propio reloj (v3/reloj.ts): la pregunta vieja no les sale.
+  const v3 = await narradoresV3(db);
   for (const n of await narradoresEn(['acepto', 'activo'])) {
+    if (v3.has(n.id)) continue;
     await aislado(n.id, async () => {
       if (!esHoraDeEnviar(n.hora_preferida, n.zona_horaria, ahora)) return;
 
@@ -183,7 +217,10 @@ async function enviarPreguntasDelDia(ahora: Date): Promise<void> {
 
 /** 3. Recordatorio suave: 6 hs después de la pregunta, si todavía no respondió. */
 async function enviarRecordatorios(ahora: Date): Promise<void> {
+  // Los V3 tienen su propio recordatorio (M8, en v3/reloj.ts).
+  const v3 = await narradoresV3(db);
   for (const n of await narradoresEn(['activo'])) {
+    if (v3.has(n.id)) continue;
     await aislado(n.id, async () => {
       if (n.dia_actual < 1) return;
       const envio = await ultimoEnvio(n.id, 'pregunta', n.dia_actual);
@@ -237,14 +274,68 @@ export async function tick(ahora: Date = new Date()): Promise<void> {
     }
   }
 
+  // Gift card: el recordatorio de los 15 días a quien regaló. Aislado: si
+  // falla (o la tabla regalos no existe todavía), el resto del tick no se entera.
+  try {
+    const { recordarRegalos } = await import('./regalo.js');
+    const { mandarMailFamilia } = await import('../mail/hitos.js');
+    const { enviarTexto } = await import('../whatsapp/enviar.js');
+    await recordarRegalos({ db, enviarTexto, mandarMail: mandarMailFamilia }, ahora);
+  } catch (err) {
+    console.error('scheduler: falló el recordatorio de regalos', err);
+  }
+
+  // Gift card: el regalo que llega solo el día elegido (spec 2026-10-10). El
+  // tick corre a las :00, así que sale a la hora en punto. Aislado como el de arriba.
+  try {
+    const { entregarRegalos } = await import('./regalo-entrega.js');
+    const { mandarMail, mandarMailFamilia } = await import('../mail/hitos.js');
+    const { enviarPlantilla } = await import('../whatsapp/enviar.js');
+    const listas = (process.env.WA_PLANTILLAS_V3_LISTAS ?? '').split(',').map((s) => s.trim());
+    await entregarRegalos({
+      db,
+      mandarMail,
+      mandarMailFamilia,
+      enviarPlantilla: (tel, nombre, variables, idiomaMeta, o) => enviarPlantilla(tel, nombre, variables, idiomaMeta, o),
+      urlBase: process.env.URL_BASE ?? 'https://www.vitacorafamiliar.com',
+      numeroPublico: (process.env.WHATSAPP_NUMERO_PUBLICO ?? '').replace(/\D/g, '') || null,
+      plantillaLista: (idioma) => listas.includes(`${idioma}:regalo_entrega`),
+    }, ahora);
+  } catch (err) {
+    console.error('scheduler: falló la entrega de regalos del día', err);
+  }
+
   // El latido, último y con su try adentro: si no se puede anotar que
   // estamos vivos, el tick no se cae por eso.
   await anotarLatido('entrevistador', { hora: ahora.toISOString() });
 }
 
 let corriendo = false;
+let corriendoV3 = false;
+
+/**
+ * El reloj de la entrevista V3 (spec 2026-10-07): cada 1 minuto, aparte del
+ * tick viejo de 15. Los imports son dinámicos: si algo de la V3 no carga, el
+ * error queda en el log de este tick y el scheduler viejo sigue igual.
+ */
+export function iniciarRelojV3() {
+  return cron.schedule('* * * * *', async () => {
+    if (corriendoV3) return; // que dos ticks no se pisen
+    corriendoV3 = true;
+    try {
+      const { tickV3 } = await import('../v3/reloj.js');
+      const { depsReales } = await import('../v3/deps-reales.js');
+      await tickV3(depsReales());
+    } catch (err) {
+      console.error('Falló el tick del reloj V3:', err);
+    } finally {
+      corriendoV3 = false;
+    }
+  });
+}
 
 export function iniciarScheduler() {
+  iniciarRelojV3();
   return cron.schedule('*/15 * * * *', async () => {
     if (corriendo) return; // que dos ticks no se pisen
     corriendo = true;

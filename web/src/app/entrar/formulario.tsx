@@ -34,7 +34,7 @@ export default function FormularioEntrar() {
     setTrabajando(false);
 
     if (errorEnvio) {
-      setError("No pudimos enviar el código. Prueba de nuevo en un momento.");
+      setError("No pudimos enviar el código. Probá de nuevo en un momento.");
       return;
     }
 
@@ -56,7 +56,7 @@ export default function FormularioEntrar() {
 
     if (errorVerificacion) {
       setTrabajando(false);
-      setError("El código no es correcto o ya venció. Revísalo o pide uno nuevo.");
+      setError("El código no es correcto o ya venció. Revisalo o pedí uno nuevo.");
       return;
     }
 
@@ -73,7 +73,7 @@ export default function FormularioEntrar() {
   return (
     <div className="flex flex-1 flex-col items-center justify-center bg-white px-6 py-24 text-zinc-900">
       <div className="w-full max-w-sm text-center">
-        <h1 className="text-2xl font-semibold text-zinc-900">Entra</h1>
+        <h1 className="text-2xl font-semibold text-zinc-900">Entrá</h1>
         <p className="mt-2 text-sm leading-relaxed text-zinc-600">
           Te mandamos un código de 6 números a tu correo. Sin contraseñas.
         </p>
@@ -101,7 +101,7 @@ export default function FormularioEntrar() {
         ) : (
           <form onSubmit={verificarCodigo} className="mt-8 flex flex-col gap-3">
             <p className="text-sm text-zinc-700">
-              Te enviamos un código a <strong>{email}</strong>. Escríbelo aquí:
+              Te mandamos un código a <strong>{email}</strong>. Escribilo acá:
             </p>
             <input
               type="text"

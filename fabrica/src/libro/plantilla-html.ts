@@ -176,6 +176,10 @@ function iniciales(nombre: string): string {
   return `${partes[0].charAt(0).toUpperCase()}·${partes[partes.length - 1].charAt(0).toUpperCase()}`;
 }
 
+/** El título de la página de frases, en castellano o en catalán (escritor v5.4: "Les seves frases"). */
+const TITULOS_SUS_FRASES = new Set(['sus frases', 'les seves frases']);
+const esSusFrases = (titulo: string | null): boolean => TITULOS_SUS_FRASES.has((titulo ?? '').trim().toLowerCase());
+
 /**
  * La frase héroe de la contratapa: la primera cita de la sección "Sus
  * frases", si existe. El prompt de la pasada de editor no fija el formato
@@ -190,7 +194,7 @@ function iniciales(nombre: string): string {
  * (así lo pide la spec).
  */
 function extraerFraseHeroe(secciones: SeccionLibro[]): string | null {
-  const seccionFrases = secciones.find((s) => (s.titulo ?? '').trim().toLowerCase() === 'sus frases');
+  const seccionFrases = secciones.find((s) => esSusFrases(s.titulo));
   if (!seccionFrases) return null;
   const matchCita = seccionFrases.html.match(/<blockquote>([\s\S]*?)<\/blockquote>/);
   if (matchCita) return matchCita[1];
@@ -1104,6 +1108,8 @@ export async function construirHtmlLibro(datos: {
    *  `token-voz.ts`): el destino del QR de cada frase y del código de la
    *  contratapa. Lo arma quien conoce al narrador, porque acá no se firma nada. */
   urlCliente?: string;
+  /** El idioma del libro (escritor v5.4: catalán). Va en `<html lang>`. Sin esto, castellano. */
+  idioma?: 'es' | 'ca';
 }): Promise<string> {
   const { titulo, tapa = { titulo: null, subtitulo: null }, anioNacimiento, fotoUrl, fotoFoco, indice, libroMarkdown, fotosPorCapitulo, acento = '#6e2618' } = datos;
 
@@ -1118,7 +1124,7 @@ export async function construirHtmlLibro(datos: {
   const contenidoHtml = secciones
     .map((seccion) => {
       const tituloTrim = (seccion.titulo ?? '').trim();
-      if (tituloTrim.toLowerCase() === 'sus frases') {
+      if (esSusFrases(tituloTrim)) {
         return construirSusFrases({ seccion, nombreNarrador, fraseHeroe });
       }
       if (seccion.titulo !== null && indiceSet.has(seccion.titulo)) {
@@ -1145,7 +1151,7 @@ export async function construirHtmlLibro(datos: {
   const contratapaHtml = construirContratapa({ fraseHeroe, nombreNarrador, anioNacimiento, mono });
 
   return `<!DOCTYPE html>
-<html lang="es">
+<html lang="${datos.idioma ?? 'es'}">
 <head>
 <meta charset="utf-8" />
 <title>${escaparHtml(titulo)}</title>

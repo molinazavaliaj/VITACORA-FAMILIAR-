@@ -86,8 +86,8 @@ export function FormularioNombres({ entidades, narradorId }: { entidades: Entida
     <div className="flex flex-col gap-6">
       {sinEntidades ? (
         <p className="text-sm text-[var(--texto-menor)]">
-          Todavía no detectamos nombres para revisar. Puedes confirmar igual para seguir adelante
-          — si más adelante aparece alguno, se puede corregir después.
+          Todavía no detectamos nombres para revisar. Podés confirmar igual para seguir adelante.
+          Si más adelante aparece alguno, se corrige después.
         </p>
       ) : (
         <div className="flex flex-col gap-5">

@@ -1,4 +1,5 @@
-# La fábrica necesita ffmpeg (audiolibro) y Chromium (PDF del libro).
+# La fábrica necesita ffmpeg (las muestras de audio del anticipo y la
+# previsualización) y Chromium (PDF del libro).
 # Railway usa este Dockerfile automáticamente — receta explícita, sin sorpresas
 # de builders (Railpack ignoraba nixpacks.toml y dejaba el runtime sin Chromium).
 

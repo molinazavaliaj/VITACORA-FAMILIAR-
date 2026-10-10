@@ -1,0 +1,65 @@
+{
+ "narrador": {
+  "como_se_presenta": [{ "texto": "Nací en Echesortu, en Rosario", "ids": ["R01"] }],
+  "cosas_concretas_suyas": [{ "que": "la mercería de la calle Mendoza", "ids": ["R02"] }],
+  "repite_sin_que_se_lo_pregunten": [],
+  "conclusiones_propias": [{ "texto": "la vida me dio más de lo que le pedí", "ids": ["R09"] }]
+ },
+ "personas": [
+  { "id": "P01", "nombre": "Raúl", "apodos": [], "relacion": "marido", "estado": "termino", "estado_ids": ["R05"], "hechos": [{ "hecho": "hacía las cuentas de la mercería", "cuando": "desde el 78", "ids": ["R02"] }], "rasgos_hoy": [] },
+  { "id": "P02", "nombre": "Marcela", "apodos": ["la nena"], "relacion": "hija", "estado": "sigue_hoy", "estado_ids": ["R08"], "hechos": [{ "hecho": "nació en el 80", "cuando": "el 80", "ids": ["R04"] }], "rasgos_hoy": [] },
+  { "id": "P03", "nombre": "Gustavo", "apodos": [], "relacion": "hijo", "estado": "sigue_hoy", "estado_ids": ["R08"], "hechos": [], "rasgos_hoy": [] },
+  { "id": "P04", "nombre": "la Negra", "apodos": [], "relacion": "amiga", "estado": "no_se_sabe", "estado_ids": [], "hechos": [{ "hecho": "se sentaban en la vereda a tomar mate", "cuando": "", "ids": ["R10"] }], "rasgos_hoy": [] }
+ ],
+ "lugares": [
+  { "id": "L01", "nombre": "Echesortu", "que_es": "el barrio de Rosario donde nació", "estado": "termino", "ids": ["R01"] },
+  { "id": "L02", "nombre": "la mercería de la calle Mendoza", "que_es": "el negocio", "estado": "termino", "ids": ["R02"] }
+ ],
+ "linea_de_tiempo": [
+  { "orden": 1, "cuando": "1948", "segura": true, "evento": "nace en Echesortu", "ids": ["R01"] },
+  { "orden": 2, "cuando": "el 78", "segura": true, "evento": "abren la mercería", "ids": ["R02"] },
+  { "orden": 3, "cuando": "el 80", "segura": true, "evento": "nace Marcela", "ids": ["R04"] },
+  { "orden": 4, "cuando": "2014", "segura": true, "evento": "muere Raúl", "ids": ["R05"] }
+ ],
+ "episodios": [
+  { "id": "E01", "que": "la casa de la infancia en Echesortu", "cuando": "infancia", "segura": false, "donde": "Echesortu", "personas": [], "tipo": "episodio", "es_escena": false, "estado": "termino", "momento_clave": "", "ids": ["R01"], "variantes": [], "no_poner": false, "a_quien": "nadie", "a_quien_nombres": [], "detalles": [] },
+  { "id": "E02", "que": "abren la mercería con Raúl", "cuando": "el 78", "segura": true, "donde": "calle Mendoza", "personas": ["P01"], "tipo": "episodio", "es_escena": false, "estado": "termino", "momento_clave": "", "ids": ["R02"], "variantes": [], "no_poner": false, "a_quien": "nadie", "a_quien_nombres": [], "detalles": [] },
+  { "id": "E03", "que": "la noche de la calculadora", "cuando": "", "segura": false, "donde": "la cocina", "personas": ["P01"], "tipo": "episodio", "es_escena": true, "estado": "termino", "momento_clave": "giro", "ids": ["R03"], "variantes": [], "no_poner": false, "a_quien": "nadie", "a_quien_nombres": [], "detalles": ["la calculadora en la mesa de la cocina", "sumá vos", "sumé tres veces", "Tito ladraba por el camión de la basura"] },
+  { "id": "E04", "que": "la nena en el cajón de botones", "cuando": "el 80", "segura": false, "donde": "la mercería", "personas": ["P02"], "tipo": "episodio", "es_escena": true, "estado": "termino", "momento_clave": "", "ids": ["R04"], "variantes": [], "no_poner": false, "a_quien": "nadie", "a_quien_nombres": [], "detalles": ["el cajón de botones atrás del mostrador"] },
+  { "id": "E05", "que": "muere Raúl y queda sola con el negocio", "cuando": "2014", "segura": false, "donde": "", "personas": ["P01"], "tipo": "episodio", "es_escena": false, "estado": "termino", "momento_clave": "bajo", "ids": ["R05"], "variantes": [], "no_poner": false, "a_quien": "nadie", "a_quien_nombres": [], "detalles": [] },
+  { "id": "E06", "que": "la tarde del bastidor", "cuando": "hoy", "segura": false, "donde": "el patio", "personas": [], "tipo": "episodio", "es_escena": true, "estado": "sigue_hoy", "momento_clave": "", "ids": ["R06"], "variantes": [], "no_poner": false, "a_quien": "nadie", "a_quien_nombres": [], "detalles": ["el bastidor en la falda", "la radio prendida", "el patio"] },
+  { "id": "E07", "que": "el mate amargo", "cuando": "hoy", "segura": false, "donde": "", "personas": [], "tipo": "gusto", "es_escena": false, "estado": "sigue_hoy", "momento_clave": "", "ids": ["R07"], "variantes": [], "no_poner": false, "a_quien": "nadie", "a_quien_nombres": [], "detalles": [] },
+  { "id": "E08", "que": "que no se peleen por la casa", "cuando": "hoy", "segura": false, "donde": "", "personas": ["P02", "P03"], "tipo": "mensaje", "es_escena": false, "estado": "sigue_hoy", "momento_clave": "", "ids": ["R08"], "variantes": [], "no_poner": false, "a_quien": "familia", "a_quien_nombres": ["Marcela", "Gustavo"], "detalles": [] },
+  { "id": "E09", "que": "la vida me dio más de lo que le pedí", "cuando": "hoy", "segura": false, "donde": "", "personas": [], "tipo": "balance", "es_escena": false, "estado": "sigue_hoy", "momento_clave": "", "ids": ["R09"], "variantes": [], "no_poner": false, "a_quien": "nadie", "a_quien_nombres": [], "detalles": [] },
+  { "id": "E10", "que": "la Negra en la vereda", "cuando": "", "segura": false, "donde": "la vereda", "personas": ["P04"], "tipo": "episodio", "es_escena": false, "estado": "termino", "momento_clave": "", "ids": ["R10"], "variantes": [], "no_poner": false, "a_quien": "nadie", "a_quien_nombres": [], "detalles": [] }
+ ],
+ "hoy": [{ "que": "borda a la tarde en el patio", "ids": ["R06"] }],
+ "dudas": [{ "tipo": "nombre", "que": "No dice el nombre de la Negra", "ids": ["R10"], "resuelta_por_ficha": false }],
+ "confirmados": [],
+ "no_poner": [],
+ "frases_cortadas": [],
+ "voz": {
+  "frases": [
+   { "id": "R01", "texto": "Nací en Echesortu, en Rosario" },
+   { "id": "R01", "texto": "Mi papá era tornero" },
+   { "id": "R01", "texto": "mi mamá cosía para afuera" },
+   { "id": "R02", "texto": "abrimos la mercería con Raúl" },
+   { "id": "R02", "texto": "La persiana de madera se trababa siempre" },
+   { "id": "R02", "texto": "Raúl hacía las cuentas y yo atendía el mostrador" },
+   { "id": "R03", "texto": "Una noche la cuenta no daba" },
+   { "id": "R03", "texto": "me dijo sumá vos" },
+   { "id": "R03", "texto": "Sumé tres veces y no daba" },
+   { "id": "R04", "texto": "La nena dormía en un cajón de botones" },
+   { "id": "R05", "texto": "Lo más difícil fue quedarme sola con el negocio" },
+   { "id": "R06", "texto": "Hoy bordo a la tarde en el patio" },
+   { "id": "R07", "texto": "Me gusta el mate amargo, bien caliente" },
+   { "id": "R08", "texto": "La casa es de todos" },
+   { "id": "R09", "texto": "la vida me dio más de lo que le pedí" }
+  ],
+  "palabras_propias": ["la nena", "sumá vos"],
+  "dichos": [],
+  "trato": "vos",
+  "genero": "f"
+ },
+ "sin_lugar": []
+}

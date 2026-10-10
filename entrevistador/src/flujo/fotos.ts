@@ -7,6 +7,7 @@ import { tratoDe, type Trato } from '../ia/trato.js';
 import { pedidoAbierto } from './objetos.js';
 import { textoObjetoRecibido } from '../manual/puro.js';
 import type { Narrador } from './preguntar.js';
+import { epigrafeDe, extensionDe } from './fotos-texto.js';
 
 /*
  * Las fotos que llegan por WhatsApp.
@@ -18,15 +19,7 @@ import type { Narrador } from './preguntar.js';
  * es de qué capítulo es la foto, y eso lo decide cada uno.
  */
 
-/** La extensión según lo que dijo Meta. Todo lo que no reconocemos se guarda como jpg. */
-export function extensionDe(mimeType: string | undefined): string {
-  return mimeType === 'image/png' ? 'png' : mimeType === 'image/webp' ? 'webp' : 'jpg';
-}
-
-/** El epígrafe: lo que escribió abajo de la foto, recortado. Vacío = null. */
-export function epigrafeDe(caption: string | undefined): string | null {
-  return caption?.trim().slice(0, 300) || null;
-}
+export { epigrafeDe, extensionDe };
 
 /**
  * Baja la foto de Meta, la sube al storage y la anota en `fotos`.

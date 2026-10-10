@@ -13,6 +13,12 @@ function construirAdmin(opciones: {
   narradorArranca?: boolean;
   email?: string | null;
   comoLeDicen?: string;
+  extras?: Record<string, unknown>;
+  codigoRegalo?: string;
+  /** La lectura previa de extras del pedido falla. */
+  errorExtras?: string;
+  /** La región de la familia que compra. */
+  region?: "ES" | "AR";
 }) {
   const updates: { tabla: string; valores: Record<string, unknown>; filtros: [string, unknown][] }[] = [];
 
@@ -29,8 +35,14 @@ function construirAdmin(opciones: {
       return cadena;
     };
     cadena.maybeSingle = () => {
-      if (tabla === "familias") return Promise.resolve({ data: opciones.email === null ? null : { email: opciones.email ?? "martina@ejemplo.com" }, error: null });
+      if (tabla === "familias") return Promise.resolve({ data: opciones.email === null ? null : { email: opciones.email ?? "martina@ejemplo.com", region: opciones.region }, error: null });
       if (tabla === "narradores") return Promise.resolve({ data: { como_le_dicen: opciones.comoLeDicen ?? "papá" }, error: null });
+      if (tabla === "pedidos") {
+        return Promise.resolve(opciones.errorExtras
+          ? { data: null, error: { message: opciones.errorExtras } }
+          : { data: { extras: opciones.extras ?? {}, familia_id: "f1" }, error: null });
+      }
+      if (tabla === "regalos") return Promise.resolve({ data: opciones.codigoRegalo ? { codigo: opciones.codigoRegalo } : null, error: null });
       return Promise.resolve({ data: null, error: null });
     };
     cadena.then = (resolve: (v: unknown) => unknown, reject?: (e: unknown) => unknown) => {
@@ -63,7 +75,7 @@ describe("confirmarPago", () => {
 
     const r = await confirmarPago(admin, { pedidoId: "p1", referenciaExterna: "cs_123", enviarMailAcceso });
 
-    expect(r).toEqual({ ok: true, yaEstaba: false, email: "martina@ejemplo.com" });
+    expect(r).toEqual({ ok: true, yaEstaba: false, email: "martina@ejemplo.com", codigoRegalo: null });
     expect(updates[0]).toMatchObject({
       tabla: "pedidos",
       valores: { estado: "pagado", referencia_externa: "cs_123" },
@@ -83,7 +95,7 @@ describe("confirmarPago", () => {
 
     const r = await confirmarPago(admin, { pedidoId: "p1", referenciaExterna: "cs_123", enviarMailAcceso });
 
-    expect(r).toEqual({ ok: true, yaEstaba: true, email: null });
+    expect(r).toEqual({ ok: true, yaEstaba: true, email: null, codigoRegalo: null });
     expect(updates).toHaveLength(1); // solo el intento sobre pedidos
     expect(enviarMailAcceso).not.toHaveBeenCalled();
   });
@@ -111,7 +123,7 @@ describe("confirmarPago", () => {
 
     const r = await confirmarPago(admin, { pedidoId: "p1", referenciaExterna: "cs_123", enviarMailAcceso });
 
-    expect(r).toEqual({ ok: true, yaEstaba: false, email: null });
+    expect(r).toEqual({ ok: true, yaEstaba: false, email: null, codigoRegalo: null });
     expect(enviarMailAcceso).not.toHaveBeenCalled();
   });
 
@@ -121,8 +133,107 @@ describe("confirmarPago", () => {
 
     const r = await confirmarPago(admin, { pedidoId: "p1", referenciaExterna: "mp_9", enviarMailAcceso });
 
-    expect(r).toEqual({ ok: true, yaEstaba: false, email: "martina@ejemplo.com" });
+    expect(r).toEqual({ ok: true, yaEstaba: false, email: "martina@ejemplo.com", codigoRegalo: null });
     expect(updates.find((u) => u.tabla === "pedidos")?.valores).toMatchObject({ estado: "pagado" });
     expect(enviarMailAcceso).not.toHaveBeenCalled();
+  });
+
+  it("un regalo pasa a regalo_pendiente y manda el mail de la tarjeta, no el de acceso", async () => {
+    const { admin, updates } = construirAdmin({ pedidoActualizado: PEDIDO, extras: { pdf: true, regalo: true }, codigoRegalo: "VF-7K3M2Q", comoLeDicen: "abuelo" });
+    const enviarMailAcceso = vi.fn().mockResolvedValue(true);
+    const enviarMailRegalo = vi.fn().mockResolvedValue(true);
+    const r = await confirmarPago(admin, { pedidoId: "p1", referenciaExterna: "ref", enviarMailAcceso, enviarMailRegalo });
+    expect(r).toMatchObject({ ok: true, yaEstaba: false, codigoRegalo: "VF-7K3M2Q" });
+    const alNarrador = updates.find((u) => u.tabla === "narradores");
+    expect(alNarrador?.valores).toEqual({ estado: "regalo_pendiente" });
+    expect(alNarrador?.filtros).toContainEqual(["estado", "pendiente_pago"]);
+    expect(enviarMailAcceso).not.toHaveBeenCalled();
+    expect(enviarMailRegalo).toHaveBeenCalledWith({ para: "martina@ejemplo.com", comoLeDicen: "abuelo", codigo: "VF-7K3M2Q", trato: "vos" });
+  });
+
+  it("un regalo de una familia de España manda el mail de la tarjeta de tú", async () => {
+    const { admin } = construirAdmin({ pedidoActualizado: PEDIDO, extras: { regalo: true }, codigoRegalo: "VF-7K3M2Q", comoLeDicen: "abuela", region: "ES" });
+    const enviarMailRegalo = vi.fn().mockResolvedValue(true);
+    await confirmarPago(admin, { pedidoId: "p1", referenciaExterna: "ref", enviarMailAcceso: vi.fn(), enviarMailRegalo });
+    expect(enviarMailRegalo).toHaveBeenCalledWith({ para: "martina@ejemplo.com", comoLeDicen: "abuela", codigo: "VF-7K3M2Q", trato: "tu" });
+  });
+
+  it("un pedido normal sigue pasando a invitado y devuelve codigoRegalo null", async () => {
+    const { admin, updates } = construirAdmin({ pedidoActualizado: PEDIDO });
+    const r = await confirmarPago(admin, { pedidoId: "p1", referenciaExterna: "ref", enviarMailAcceso: vi.fn().mockResolvedValue(true) });
+    expect(r).toMatchObject({ ok: true, codigoRegalo: null });
+    expect(updates.find((u) => u.tabla === "narradores")?.valores).toEqual({ estado: "invitado" });
+  });
+
+  it("si falla la lectura de extras, devuelve error sin tocar pedido ni narrador (el reintento es seguro)", async () => {
+    const { admin, updates } = construirAdmin({ pedidoActualizado: PEDIDO, errorExtras: "conexión caída" });
+    const enviarMailAcceso = vi.fn();
+    const r = await confirmarPago(admin, { pedidoId: "p1", referenciaExterna: "ref", enviarMailAcceso });
+    expect(r.ok).toBe(false);
+    expect(updates).toHaveLength(0);
+    expect(enviarMailAcceso).not.toHaveBeenCalled();
+  });
+
+  it("un regalo sin código no manda mail y lo deja logueado", async () => {
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    const { admin } = construirAdmin({ pedidoActualizado: PEDIDO, extras: { regalo: true } });
+    const enviarMailAcceso = vi.fn();
+    const enviarMailRegalo = vi.fn();
+    const r = await confirmarPago(admin, { pedidoId: "p1", referenciaExterna: "ref", enviarMailAcceso, enviarMailRegalo });
+    expect(r).toMatchObject({ ok: true, codigoRegalo: null });
+    expect(enviarMailAcceso).not.toHaveBeenCalled();
+    expect(enviarMailRegalo).not.toHaveBeenCalled();
+    expect(error).toHaveBeenCalledWith(expect.stringMatching(/p1.*n1|n1.*p1/));
+    error.mockRestore();
+  });
+});
+// 3t.26 (22/09): un pedido con algo físico necesita una entrega, que nace acá
+// en `sin_direccion` — la familia la completa desde Encargar libro.
+function adminConEntrega(opciones: { extras: Record<string, unknown>; region: "ES" | "AR"; fallaEntrega?: boolean }) {
+  const inserts: { tabla: string; valores: Record<string, unknown> }[] = [];
+  const from = vi.fn((tabla: string) => {
+    const cadena: Record<string, unknown> = {};
+    cadena.update = () => cadena;
+    cadena.select = () => cadena;
+    cadena.eq = () => cadena;
+    cadena.insert = (valores: Record<string, unknown>) => {
+      inserts.push({ tabla, valores });
+      return Promise.resolve({ error: opciones.fallaEntrega ? { message: "boom" } : null });
+    };
+    cadena.maybeSingle = () => {
+      if (tabla === "pedidos") return Promise.resolve({ data: { extras: opciones.extras, familia_id: "fam-1" }, error: null });
+      if (tabla === "familias") return Promise.resolve({ data: { email: "martina@ejemplo.com", region: opciones.region }, error: null });
+      if (tabla === "narradores") return Promise.resolve({ data: { como_le_dicen: "papá" }, error: null });
+      return Promise.resolve({ data: null, error: null });
+    };
+    cadena.then = (resolve: (v: unknown) => unknown) => {
+      const resultado = tabla === "pedidos"
+        ? { data: [{ id: "ped-1", narrador_id: "nar-1", familia_id: "fam-1" }], error: null }
+        : tabla === "narradores" ? { data: [{ id: "nar-1" }], error: null } : { data: null, error: null };
+      return Promise.resolve(resultado).then(resolve);
+    };
+    return cadena;
+  });
+  return { admin: { from } as unknown as SupabaseClient, inserts };
+}
+
+describe("confirmarPago — la entrega de lo físico", () => {
+  it("con impreso o marcos crea la fila de entregas, con el origen de la región", async () => {
+    const { admin, inserts } = adminConEntrega({ extras: { pdf: true, impreso: "color", copias: 1, marcos: 2 }, region: "ES" });
+    await confirmarPago(admin, { pedidoId: "ped-1", referenciaExterna: "pay-1", enviarMailAcceso: async () => true });
+    const entrega = inserts.find((e) => e.tabla === "entregas");
+    expect(entrega?.valores).toMatchObject({ pedido_id: "ped-1", narrador_id: "nar-1", familia_id: "fam-1", estado: "sin_direccion", origen: "ES" });
+  });
+
+  it("un pedido de solo PDF no crea entrega: no hay nada que mandar", async () => {
+    const { admin, inserts } = adminConEntrega({ extras: { pdf: true, impreso: null, copias: 0, marcos: 0 }, region: "AR" });
+    await confirmarPago(admin, { pedidoId: "ped-1", referenciaExterna: "pay-1", enviarMailAcceso: async () => true });
+    expect(inserts.find((e) => e.tabla === "entregas")).toBeUndefined();
+  });
+
+  it("si la entrega no se puede crear, el pago igual queda confirmado", async () => {
+    const { admin } = adminConEntrega({ extras: { pdf: true, impreso: "color", copias: 1, marcos: 0 }, region: "AR", fallaEntrega: true });
+    const r = await confirmarPago(admin, { pedidoId: "ped-1", referenciaExterna: "pay-1", enviarMailAcceso: async () => true });
+    expect(r.ok).toBe(true);
   });
 });

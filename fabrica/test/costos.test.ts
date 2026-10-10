@@ -58,6 +58,12 @@ afterEach(() => {
 // --- cálculo de USD ---------------------------------------------------------
 
 describe('calcularUsd', () => {
+  it('claude-opus-5-5: 4/20 (cache write 5, cache read 0,2); antes cobraba como opus-5 por prefijo', () => {
+    expect(calcularUsd('claude-opus-5-5', { input_tokens: 1_000_000, output_tokens: 1_000_000, cache_creation_input_tokens: 1_000_000, cache_read_input_tokens: 1_000_000 })).toBe(29.2);
+  });
+  it('claude-sonnet-5-5: 2/10 (cache write 2,5, cache read 0,2)', () => {
+    expect(calcularUsd('claude-sonnet-5-5', { input_tokens: 1_000_000, output_tokens: 1_000_000, cache_creation_input_tokens: 1_000_000, cache_read_input_tokens: 1_000_000 })).toBe(14.7);
+  });
   it('claude-fable-5: 10/50 USD por millón in/out, cache write 12,5, cache read 1', () => {
     // 1M in = 10, 100k out = 5, 200k cache write = 2,5, 500k cache read = 0,5
     expect(calcularUsd('claude-fable-5', USO_FABLE)).toBe(18);
@@ -78,6 +84,10 @@ describe('calcularUsd', () => {
 
   it('un modelo con sufijo de fecha usa el precio del modelo base', () => {
     expect(calcularUsd('claude-haiku-4-5-20251001', { input_tokens: 1_000_000 })).toBe(1);
+  });
+
+  it('claude-opus-5-5 con sufijo de fecha cobra como opus-5-5, no como opus-5 (el prefijo más largo gana)', () => {
+    expect(calcularUsd('claude-opus-5-5-20261001', { input_tokens: 1_000_000, output_tokens: 1_000_000 })).toBe(24);
   });
 
   it('un modelo desconocido vale 0 y avisa (los tokens igual se anotan)', () => {
@@ -256,3 +266,10 @@ describe('resumen', () => {
     expect(resumen(costos).totalUsd).toBe(0.0001);
   });
 });
+
+describe('precio por prefijo (08/10)', () => {
+  it('con fecha en el nombre gana el prefijo más largo: Opus 5.5 no se cobra como Opus 5', () => {
+    expect(calcularUsd('claude-opus-5-5-20261001', { input_tokens: 1_000_000, output_tokens: 1_000_000 })).toBe(24);
+  });
+});
+

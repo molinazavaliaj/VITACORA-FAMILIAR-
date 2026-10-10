@@ -9,14 +9,21 @@ const {
   subirTextoMock,
   firmarTokenMock,
   obtenerClienteDbMock,
+  narradoresConV3Mock,
+  avisarCandadoV3Mock,
 } = vi.hoisted(() => ({
   generarAnticipoMock: vi.fn().mockResolvedValue(undefined),
   enviarMailAnticipoMock: vi.fn().mockResolvedValue(true),
   subirTextoMock: vi.fn().mockResolvedValue(undefined),
   firmarTokenMock: vi.fn(() => 'token-firmado'),
   obtenerClienteDbMock: vi.fn(),
+  narradoresConV3Mock: vi.fn(),
+  avisarCandadoV3Mock: vi.fn(),
 }));
 
+vi.mock('../src/v3/candado.js', () => ({
+  idiomasV3: vi.fn(async () => new Map<string, string>()), narradoresConV3: narradoresConV3Mock, avisarCandadoV3: avisarCandadoV3Mock, exigirSinV3: vi.fn(async () => undefined) }));
+vi.mock('../src/escritor/produccion/libro-v3.js', () => ({ trabajaOtraCopia: vi.fn(async () => false), alertarLibrosDemorados: vi.fn(), revisarEtapaAV3: vi.fn(), hayLugarParaLibroV3: vi.fn(() => true), lanzarLibroV3: vi.fn(() => true) }));
 vi.mock('../src/libro/anticipo.js', () => ({ generarAnticipo: generarAnticipoMock }));
 vi.mock('../src/mail/anticipo.js', () => ({ enviarMailAnticipo: enviarMailAnticipoMock }));
 // Los mails de hitos (rama aparte del tick) no se mandan acá: sin esto el
@@ -46,6 +53,9 @@ vi.mock('../src/db.js', async () => {
 import { tick } from '../src/worker.js';
 
 const NARRADOR = { id: 'n1', como_le_dicen: 'papá', familia_id: 'f1' };
+
+/** La región de la familia en la base falsa (ES = el texto de siempre). */
+let regionFamilia = 'ES';
 
 function construirDb(opciones: { archivos: string[]; respuestas: number }) {
   const list = vi.fn().mockResolvedValue({
@@ -77,7 +87,7 @@ function construirDb(opciones: { archivos: string[]; respuestas: number }) {
     if (tabla === 'familias') {
       return {
         select: () => ({
-          eq: () => ({ single: () => Promise.resolve({ data: { email: 'martina@ejemplo.com' }, error: null }) }),
+          eq: () => ({ single: () => Promise.resolve({ data: { email: 'martina@ejemplo.com', region: regionFamilia }, error: null }) }),
         }),
       };
     }
@@ -102,9 +112,19 @@ function construirDb(opciones: { archivos: string[]; respuestas: number }) {
 beforeEach(() => {
   vi.clearAllMocks();
   enviarMailAnticipoMock.mockResolvedValue(true);
+  narradoresConV3Mock.mockResolvedValue(new Set());
+  avisarCandadoV3Mock.mockResolvedValue(undefined);
 });
 
 describe('rama del anticipo en el tick', () => {
+  it('a una familia de Argentina el anticipo le llega con vos (Naza, 09/10)', async () => {
+    regionFamilia = 'AR';
+    obtenerClienteDbMock.mockReturnValue(construirDb({ archivos: [], respuestas: 3 }));
+    await tick();
+    expect(enviarMailAnticipoMock.mock.calls[0][0]).toMatchObject({ vos: true });
+    regionFamilia = 'ES';
+  });
+
   it('con 3 respuestas y sin anticipo: lo genera y manda el mail', async () => {
     obtenerClienteDbMock.mockReturnValue(construirDb({ archivos: [], respuestas: 3 }));
 
@@ -165,5 +185,23 @@ describe('rama del anticipo en el tick', () => {
 
     expect(enviarMailAnticipoMock).toHaveBeenCalledOnce();
     expect(subirTextoMock).not.toHaveBeenCalled();
+  });
+});
+
+describe('candado V3 (spec 2026-10-07)', () => {
+  it('a un narrador con entrevista V3 no se le arma el anticipo viejo (la V3 no tiene anticipo; ya no se avisa)', async () => {
+    narradoresConV3Mock.mockResolvedValue(new Set(['n1']));
+    obtenerClienteDbMock.mockReturnValue(construirDb({ archivos: [], respuestas: 12 }));
+    await tick();
+    expect(generarAnticipoMock).not.toHaveBeenCalled();
+    expect(enviarMailAnticipoMock).not.toHaveBeenCalled();
+    expect(avisarCandadoV3Mock).not.toHaveBeenCalled();
+  });
+
+  it('si no se puede leer entrevistas_v3, ese tick no arma nada (no le paga al modelo a ciegas)', async () => {
+    narradoresConV3Mock.mockRejectedValue(new Error('No pude leer entrevistas_v3: caída'));
+    obtenerClienteDbMock.mockReturnValue(construirDb({ archivos: [], respuestas: 12 }));
+    await tick();
+    expect(generarAnticipoMock).not.toHaveBeenCalled();
   });
 });

@@ -11,6 +11,18 @@
 | ~2026-09-16 | Mail de empresa en Hostinger (`soporte@vitacorafamiliar.com`, el que usa Resend/login) | 12€ | Naza | Recurrente (confirmar si anual o mensual) |
 | ~2026-09-03 | Créditos API Anthropic + OpenAI del entrevistador (montos a confirmar por Joaquín) | ~USD 10-20 | Joaquín | Consumible |
 | 2026-09-08 | Prueba dirigida del cerebro contra el set dorado (`npm run prueba-cerebro`) | ~USD 1 | Joaquín | Consumible |
+| 2026-10-01 | Prueba del cazador de escenas v2 (Opus 5, 14 bloques de la entrevista V3 de Naza; `fabrica/scripts/v3-cazador-prueba.ts`) | USD 0,91 | key de Naza | Consumible |
+| 2026-10-01 | Prueba del cazador v3 (Opus 5): entrevista V3 de Naza (14 bloques, USD 1,29) y entrevista de prueba de Joaquín (5 tramos, USD 0,63); `fabrica/scripts/v3-cazador-prueba-v3.ts` | USD 1,92 | key de Naza | Consumible |
+| 2026-10-01 | Prueba del cazador v3.1 (Opus 5), solo los bloques 1, 12 y 14 de la entrevista de Naza | USD 0,29 | key de Naza | Consumible |
+| 2026-10-07 | Escritor v5.5 en la fábrica, capítulo VI de Joaquín, Opus 5.5 xhigh en todo (`docs/v5/escritor-v55/pruebas.md`) | USD 6,90 | key de Naza | Consumible |
+| 2026-10-07 | Escritor en la fábrica, capítulo VI de Joaquín con la configuración económica (xhigh solo en el capítulo, Haiku en lo mecánico, todo por Batch) | USD 2,52 | key de Naza | Consumible |
+| 2026-10-07 | Prueba de proveedores con el libro de Naza: capítulos Opus de los perfiles mixtos (`docs/v5/escritor-fabrica/prueba-proveedores-2026-10-07.md`) | USD 0,74 | key de Naza | Consumible |
+| 2026-10-07 | Prueba de proveedores: DeepSeek (saldo 3,94 → 2,78) | USD 1,16 | DeepSeek de Naza (Hermes) | Consumible |
+| 2026-10-07 | Capítulo VI de Joaquín en pensamiento alto y medio (Naza eligió medio) | USD 0,53 | key de Naza | Consumible |
+| 2026-10-07 | Verificador con registro recortado (descartado) y cazador Opus 5.5 medio y alto (3 bloques de Naza) | USD 0,89 | key de Naza | Consumible |
+| 2026-10-07 | Libro entero de Joaquín con la configuración de producción (Etapa A 2,32 + C 6,14; incluye 0,90 de planes repetidos, ya arreglado, y 0,60 por apurar un repaso sin Batch) | USD 8,46 | key de Naza | Consumible |
+| 2026-10-07 | Libro de Joaquín: estilo y títulos de nuevo con las correcciones del repaso aplicadas (Haiku) | USD 0,21 | key de Naza | Consumible |
+| 2026-10-09 | Ensayo del escritor V3 por el camino de producción (Batch, Storage, consumo_ia) con la entrevista V3 web de Naza: Etapa A 2,37 + capítulo 1 con su revisión 0,73 (`fabrica/scripts/escritor-v3-ensayo.ts`; tardó 7 h 07 min, la mayor parte esperando el Batch) | USD 3,10 | key de Naza | Consumible |
 | — | Vercel, Supabase, Resend, GitHub | USD 0 | — | Gratis (planes free) |
 
 **Total puesto por Naza hasta el 18/09: USD 40 + 47€ ≈ USD 91** (USD 20 de crédito

@@ -126,7 +126,7 @@ En la fábrica, y tocan el producto final tanto como los de arriba:
 | Pasada de editor: apertura, cierre y «Sus frases» | `libro/generar-paquete.ts` |
 | **Elige las frases que se imprimen con su QR** | `libro/frases.ts` |
 | Escribe el párrafo del anticipo | `libro/parrafo-anticipo.ts` |
-| Los conectores del audiolibro híbrido | `voz/conectores.ts` |
+| ~~Los conectores del audiolibro híbrido~~ | ~~`voz/conectores.ts`~~ — borrado el 23/09 con el audiolibro |
 
 ---
 

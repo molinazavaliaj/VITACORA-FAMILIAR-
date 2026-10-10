@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
   generarPreguntasAdaptativas: vi.fn(),
@@ -16,6 +16,7 @@ const mocks = vi.hoisted(() => ({
     respuestas: [] as any[],
     preguntas: [{ texto: 'PREGUNTA_1', capitulo: 'La infancia', narrador_id: null }] as any[],
     familias: { nombre: 'Martina' } as any,
+    v3: [] as any[],
   },
   capturas: [] as any[],
   ultimoOrden: 26,
@@ -26,7 +27,7 @@ vi.mock('../src/db/cliente.js', () => {
   function crearBuilder(tabla: string) {
     const b: any = { _op: 'select', _filtros: {} as Record<string, any> };
     const eq = (col: string, val: any) => { b._filtros[col] = val; return b; };
-    b.select = () => b; b.or = () => b; b.order = () => b; b.limit = () => b; b.in = eq;
+    b.select = () => b; b.or = () => b; b.order = () => b; b.limit = () => b; b.in = eq; b.lte = () => b;
     // `.is('wa_message_id', null)` y `.not('wa_message_id','is',null)`: la bienvenida
     // distingue un envío de verdad (con id de Meta) de un intento fallido anotado.
     b.is = (col: string, val: any) => { if (col === 'wa_message_id') b._filtros._conId = val === null ? false : undefined; return b; };
@@ -37,6 +38,7 @@ vi.mock('../src/db/cliente.js', () => {
     b.update = (p: any) => { b._op = 'update'; mocks.capturas.push({ op: 'update', tabla, p }); return b; };
     const resolver = () => {
       if (b._op !== 'select') return { data: null, error: null };
+      if (tabla === 'entrevistas_v3') return { data: mocks.filas.v3 };
       if (tabla === 'narradores') {
         const estados = b._filtros.estado;
         return { data: estados ? mocks.filas.narradores.filter((n) => estados.includes(n.estado)) : mocks.filas.narradores };
@@ -117,6 +119,7 @@ const inserts = (tabla: string) => mocks.capturas.filter((c) => c.op === 'insert
 
 beforeEach(() => {
   mocks.filas.narradores = [];
+  mocks.filas.v3 = [];
   mocks.filas.envios = [];
   mocks.filas.respuestas = [];
   mocks.filas.preguntas = [{ texto: 'PREGUNTA_1', capitulo: 'La infancia', narrador_id: null }];
@@ -329,10 +332,103 @@ describe('la bienvenida', () => {
     expect(anotado?.p.error_detalle).toContain('Template name does not exist');
   });
 
+  // V3 para los nuevos (10/10): la bienvenida es la plantilla V3 de su idioma, y solo si Meta ya la aprobó.
+  describe('con V3_PARA_NUEVOS=1', () => {
+    afterEach(() => { vi.unstubAllEnvs(); });
+
+    it('sale la plantilla V3 de su idioma, con una variable (cómo le dicen)', async () => {
+      vi.stubEnv('V3_PARA_NUEVOS', '1');
+      vi.stubEnv('WA_PLANTILLAS_V3_LISTAS', 'ca:bienvenida,es-AR:bienvenida');
+      mocks.filas.narradores = [{ ...invitado, como_le_dicen: 'Imma', contexto: { idioma: 'ca' } }];
+      mocks.filas.envios = [];
+      await tick(new Date('2026-09-23T12:00:00Z'));
+      expect(mocks.enviarPlantilla).toHaveBeenCalledWith('+5491100000000', 'bienvenida_v3_ca', ['Imma'], 'ca');
+      // Queda marcado: su SÍ se contesta con los textos de la V3 (procesar.ts).
+      expect(mocks.capturas).toContainEqual(expect.objectContaining({ tabla: 'narradores', p: { contexto: expect.objectContaining({ bienvenidaV3: true }) } }));
+    });
+
+    it('«la mía» sigue con la bienvenida de siempre (la V3 dice que fue un regalo)', async () => {
+      vi.stubEnv('V3_PARA_NUEVOS', '1');
+      vi.stubEnv('WA_PLANTILLAS_V3_LISTAS', 'es-AR:bienvenida');
+      mocks.filas.narradores = [{ ...invitado, contexto: { vinculoComprador: 'yo mismo' } }];
+      mocks.filas.envios = [];
+      await tick(new Date('2026-09-23T12:00:00Z'));
+      expect(mocks.enviarPlantilla).toHaveBeenCalledWith('+5491100000000', 'bienvenida', ['papá', expect.any(String)]);
+    });
+
+    it('sin idioma va la de vos (es-AR)', async () => {
+      vi.stubEnv('V3_PARA_NUEVOS', '1');
+      vi.stubEnv('WA_PLANTILLAS_V3_LISTAS', 'es-AR:bienvenida');
+      mocks.filas.narradores = [{ ...invitado, como_le_dicen: 'Beto' }];
+      mocks.filas.envios = [];
+      await tick(new Date('2026-09-23T12:00:00Z'));
+      expect(mocks.enviarPlantilla).toHaveBeenCalledWith('+5491100000000', 'bienvenida_v3_vos', ['Beto'], 'es');
+    });
+
+    it('si la plantilla de su idioma no está aprobada, no sale ninguna (tampoco la vieja)', async () => {
+      vi.stubEnv('V3_PARA_NUEVOS', '1');
+      vi.stubEnv('WA_PLANTILLAS_V3_LISTAS', 'es-AR:bienvenida');
+      mocks.filas.narradores = [{ ...invitado, contexto: { idioma: 'es-ES' } }];
+      mocks.filas.envios = [];
+      const original = console.error;
+      console.error = () => {};
+      try {
+        await tick(new Date('2026-09-23T12:00:00Z'));
+      } finally {
+        console.error = original;
+      }
+      expect(mocks.enviarPlantilla).not.toHaveBeenCalled();
+    });
+  });
+
+  // Gift card (08/10): su bienvenida sale como texto cuando escribe con el código.
+  it('un invitado de regalo no recibe la plantilla de bienvenida', async () => {
+    mocks.filas.narradores = [{ ...invitado, contexto: { regalo: true } }];
+    mocks.filas.envios = [];
+    await tick(new Date('2026-09-23T12:00:00Z'));
+    expect(mocks.enviarPlantilla).not.toHaveBeenCalled();
+  });
+
   it('un intento fallido NO bloquea el reintento del próximo tick', async () => {
     mocks.filas.narradores = [invitado];
     mocks.filas.envios = [{ tipo: 'bienvenida', wa_message_id: null, entrega: 'fallido' }];
     await tick(new Date('2026-09-23T12:00:00Z'));
     expect(mocks.enviarPlantilla).toHaveBeenCalled();
+  });
+});
+
+describe('narradores V3 (spec 2026-10-07)', () => {
+  it('un narrador con fila en entrevistas_v3 no recibe la pregunta ni el recordatorio viejos', async () => {
+    mocks.filas.narradores = [narrador({ estado: 'activo', dia_actual: 0 })];
+    mocks.filas.v3 = [{ narrador_id: 'n1' }];
+    await tick(A_LAS_10_05);
+    expect(mocks.enviarPlantilla).not.toHaveBeenCalled();
+    expect(mocks.enviarTexto).not.toHaveBeenCalled();
+  });
+
+  it('sin fila V3, el mismo narrador recibe su pregunta como siempre', async () => {
+    mocks.filas.narradores = [narrador({ estado: 'activo', dia_actual: 0 })];
+    await tick(A_LAS_10_05);
+    expect(mocks.enviarPlantilla.mock.calls.length + mocks.enviarTexto.mock.calls.length).toBeGreaterThan(0);
+  });
+
+  // 7 h después de la pregunta de las 10:00, sin respuesta: le toca el recordatorio viejo.
+  const A_LAS_17_05 = new Date('2026-09-01T20:05:00Z');
+  const conPreguntaSinResponder = () => {
+    mocks.filas.narradores = [narrador({ estado: 'activo', dia_actual: 1 })];
+    mocks.filas.envios = [{ tipo: 'pregunta', pregunta_orden: 1, enviado_at: '2026-09-01T13:00:00Z', wa_message_id: 'wamid.x' }];
+  };
+
+  it('el recordatorio viejo no le sale a un narrador V3', async () => {
+    conPreguntaSinResponder();
+    mocks.filas.v3 = [{ narrador_id: 'n1' }];
+    await tick(A_LAS_17_05);
+    expect(mocks.enviarPlantilla).not.toHaveBeenCalled();
+  });
+
+  it('sin fila V3, el recordatorio sale como siempre', async () => {
+    conPreguntaSinResponder();
+    await tick(A_LAS_17_05);
+    expect(mocks.enviarPlantilla).toHaveBeenCalledWith('+5491155551234', 'recordatorio', ['Don Osvaldo']);
   });
 });

@@ -1,16 +1,21 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { ReproductorRespuesta } from "./reproductor";
+import { textosComprador } from "@/lib/regalo-textos";
 
 // Piezas compartidas del panel. Todas usan los roles de color de globals.css
 // (--texto, --linea, --acento…), nunca colores crudos, así una pieza sirve en
 // claro y en oscuro sin reescribirla.
 
+// El estado del regalo se dice igual de vos y de tú.
+const REGALO_PENDIENTE = textosComprador("vos").estadoPanel;
+
 export const ESTADO_EN_HUMANO: Record<string, string> = {
   pendiente_pago: "Estamos confirmando el pago — apenas entre, le escribimos",
+  regalo_pendiente: REGALO_PENDIENTE,
   invitado: "Le mandamos la invitación, falta que acepte",
   acepto: "Aceptó — pronto le llega la primera pregunta",
-  activo: "Está respondiendo, día a día",
+  activo: "Está respondiendo, a su ritmo",
   pausado: "Pidió una pausa — un llamado tuyo ayuda",
   completado: "Terminó de contar su historia",
   cerrado_anticipado: "Cerramos la entrevista antes de tiempo",
@@ -19,9 +24,10 @@ export const ESTADO_EN_HUMANO: Record<string, string> = {
 /** Cuando el libro es del que compra ("para mí"): el panel le habla de vos. */
 export const ESTADO_EN_HUMANO_PROPIO: Record<string, string> = {
   pendiente_pago: "Estamos confirmando el pago — apenas entre, te escribimos",
+  regalo_pendiente: REGALO_PENDIENTE,
   invitado: "Te mandamos el primer mensaje por WhatsApp, falta que aceptes",
   acepto: "Aceptaste — pronto te llega la primera pregunta",
-  activo: "Estás respondiendo, día a día",
+  activo: "Estás respondiendo, a tu ritmo",
   pausado: "Pediste una pausa — retomás cuando quieras",
   completado: "Terminaste de contar tu historia",
   cerrado_anticipado: "Cerramos la entrevista antes de tiempo",

@@ -5,6 +5,12 @@ import fs from 'node:fs';
 // Chromium ni ffmpeg ni el modelo se tocan en CI.
 
 const { escribirParrafoMock } = vi.hoisted(() => ({ escribirParrafoMock: vi.fn() }));
+vi.mock('../src/v3/candado.js', () => ({
+  narradoresConV3: vi.fn(async () => new Set<string>()),
+  avisarCandadoV3: vi.fn(async () => undefined),
+  exigirSinV3: vi.fn(async () => undefined),
+}));
+
 vi.mock('../src/libro/parrafo-anticipo.js', () => ({
   escribirParrafoAnticipo: escribirParrafoMock,
 }));

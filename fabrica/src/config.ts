@@ -12,8 +12,6 @@ export type Config = {
   // igual y el envío avisa por consola.
   resendApiKey: string | null;
   urlBase: string;
-  /** A quién van los avisos de la casa (buzón de voz atascado): los socios, no la familia. */
-  mailSocios: string;
 };
 
 export function cargarConfig(): Config {
@@ -35,6 +33,5 @@ export function cargarConfig(): Config {
     openaiApiKey,
     resendApiKey: process.env.RESEND_API_KEY ?? null,
     urlBase: process.env.URL_BASE ?? 'https://www.vitacorafamiliar.com',
-    mailSocios: process.env.MAIL_SOCIOS ?? 'hola@vitacorafamiliar.com',
   };
 }

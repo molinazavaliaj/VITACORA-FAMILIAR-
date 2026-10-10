@@ -157,6 +157,14 @@ export async function historiaAccesible(
   return { historia: null, error: null };
 }
 
+/**
+ * El trato (usted/vos) se fija solo antes de la primera pregunta: con la
+ * invitación mandada, aceptada, o con el regalo pagado y sin abrir todavía.
+ */
+export function tratoEditable(n: { estado: string; dia_actual: number }): boolean {
+  return n.dia_actual === 0 && ["regalo_pendiente", "invitado", "acepto"].includes(n.estado);
+}
+
 /** Lo que cada rol puede hacer. Una sola tabla, la misma que docs/panel-usuario.md §2. */
 export const PUEDE = {
   editarGuion: (rol: Rol) => rol === "duena",
@@ -199,7 +207,7 @@ export async function narradorDeLaSesion(
   } = await sesion.auth.getUser();
   if (errorSesion || !user) return { ok: false, status: 401, error: "No hay sesión activa." };
 
-  const generico = opciones.mensajeError ?? "No pudimos completar la acción. Intenta de nuevo.";
+  const generico = opciones.mensajeError ?? "No pudimos completar la acción. Intentá de nuevo.";
   const pedido = params?.get("narrador");
 
   let historia: Historia | null = null;

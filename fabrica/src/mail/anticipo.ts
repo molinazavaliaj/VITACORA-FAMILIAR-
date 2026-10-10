@@ -26,6 +26,8 @@ export function cuerpoAnticipo(opciones: {
   comoLeDicen: string;
   primeraPregunta: string;
   enlace: string;
+  /** Familia de Argentina: con vos (Naza, 09/10). Cambia solo el trato de la última línea. */
+  vos?: boolean;
 }): string {
   const { comoLeDicen, primeraPregunta, enlace } = opciones;
   const quien = escaparHtml(comoLeDicen);
@@ -71,7 +73,7 @@ export function cuerpoAnticipo(opciones: {
         </td></tr>
 
         <tr><td style="padding-bottom:32px;">
-          Él va a seguir contando. Tú decides si el libro se termina.
+          Él va a seguir contando. ${opciones.vos ? 'Vos decidís' : 'Tú decides'} si el libro se termina.
         </td></tr>
 
         <tr><td style="border-top:1px solid #e7e5e4;padding-top:20px;font-size:14px;color:#78716c;font-style:italic;">
@@ -95,6 +97,7 @@ export async function enviarMailAnticipo(opciones: {
   comoLeDicen: string;
   primeraPregunta: string;
   enlace: string;
+  vos?: boolean;
 }): Promise<boolean> {
   const { resendApiKey } = cargarConfig();
   if (!resendApiKey) {

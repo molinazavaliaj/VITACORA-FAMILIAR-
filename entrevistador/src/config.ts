@@ -31,3 +31,53 @@ export type Config = ReturnType<typeof cargarConfig>;
 export function bienvenidaPideVoz(): boolean {
   return process.env.WA_BIENVENIDA_PIDE_VOZ === '1';
 }
+
+export type PlantillaV3 = { nombre: string; idiomaMeta: string };
+
+/**
+ * Las plantillas de Meta de la entrevista V3 (spec 2026-10-07), por idioma.
+ * `pregunta`: una variable con la pregunta (`pregunta_diaria_vos` ya está
+ * aprobada, PLANTILLAS.md). `recordatorio`: el texto de M8 del idioma, con una
+ * variable (el nombre). Las carga Joaquín en Meta (el cuerpo lo aprueba Naza),
+ * también `m8_vos` (es-AR), y se marcan como aprobadas en
+ * WA_PLANTILLAS_V3_LISTAS (hasta entonces no salen). Si cambia un nombre
+ * en Meta, se cambia acá.
+ */
+export const PLANTILLAS_V3: Readonly<Record<'es-AR' | 'es-ES' | 'ca', { pregunta: PlantillaV3; recordatorio: PlantillaV3; bienvenida: PlantillaV3 }>> = {
+  'es-AR': { pregunta: { nombre: 'pregunta_diaria_vos', idiomaMeta: 'es' }, recordatorio: { nombre: 'm8_vos', idiomaMeta: 'es' }, bienvenida: { nombre: 'bienvenida_v3_vos', idiomaMeta: 'es' } },
+  'es-ES': { pregunta: { nombre: 'pregunta_diaria_es_es', idiomaMeta: 'es_ES' }, recordatorio: { nombre: 'm8_es_es', idiomaMeta: 'es_ES' }, bienvenida: { nombre: 'bienvenida_v3_es_es', idiomaMeta: 'es_ES' } },
+  ca: { pregunta: { nombre: 'pregunta_diaria_ca', idiomaMeta: 'ca' }, recordatorio: { nombre: 'm8_ca', idiomaMeta: 'ca' }, bienvenida: { nombre: 'bienvenida_v3_ca', idiomaMeta: 'ca' } },
+};
+
+/**
+ * La plantilla del regalo que llega solo el día elegido (spec 2026-10-10), una
+ * por idioma. La carga Joaquín en Meta (textos en docs/regalo/dia-de-entrega-textos.md,
+ * tanda 3): cuerpo {{1}} = como_le_dicen, {{2}} = quien regala; botón de URL
+ * con sufijo {{1}} = código. Sale solo si WA_PLANTILLAS_V3_LISTAS incluye
+ * `<idioma>:regalo_entrega`.
+ */
+export const PLANTILLA_REGALO_ENTREGA: Readonly<Record<'es-AR' | 'es-ES' | 'ca', PlantillaV3>> = {
+  'es-AR': { nombre: 'regalo_entrega_vos', idiomaMeta: 'es' },
+  'es-ES': { nombre: 'regalo_entrega_es_es', idiomaMeta: 'es_ES' },
+  ca: { nombre: 'regalo_entrega_ca', idiomaMeta: 'ca' },
+};
+
+/**
+ * ¿Los narradores NUEVOS entran a la entrevista V3? (spec 2026-10-07). Se
+ * prende en Railway con V3_PARA_NUEVOS=1 cuando Naza lo diga; apagado, el alta
+ * es la de siempre. Se lee en el momento (no al arrancar), como bienvenidaPideVoz.
+ */
+export function v3ParaNuevos(): boolean {
+  return process.env.V3_PARA_NUEVOS === '1';
+}
+
+/**
+ * ¿Este narrador nuevo entra a la V3? Con el interruptor prendido, los comprados por la web para otra persona.
+ * «La mía» (vinculoComprador 'yo mismo') sigue por el flujo viejo hasta tener su bienvenida (la V3 dice «una
+ * persona que te quiere mucho te regaló…»); el regalo va siempre por la V3 y el viaje nunca (por su lado).
+ */
+export function entraALaV3(contexto: Record<string, unknown> | null | undefined): boolean {
+  if (contexto?.modo === 'viaje') return false;
+  if (contexto?.regalo === true) return true;
+  return v3ParaNuevos() && contexto?.vinculoComprador !== 'yo mismo';
+}

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { confirmarPago } from "@/lib/confirmar-pago";
-import { enviarMailAcceso } from "@/lib/mail";
+import { enviarMailAcceso, enviarMailRegalo } from "@/lib/mail";
 
 // Stripe firma cada request con STRIPE_WEBHOOK_SECRET; constructEvent es lo
 // que valida esa firma contra el cuerpo crudo (sin parsear) del request.
@@ -34,6 +34,7 @@ export async function POST(request: NextRequest) {
         pedidoId,
         referenciaExterna: session.id,
         enviarMailAcceso,
+        enviarMailRegalo,
       });
       if (!resultado.ok) {
         console.error("webhook stripe: fallo confirmar el pago", resultado.error);

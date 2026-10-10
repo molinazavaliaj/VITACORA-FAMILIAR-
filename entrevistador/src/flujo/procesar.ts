@@ -12,7 +12,7 @@ import { generarPreguntasAdaptativas } from '../ia/adaptativas.js';
 import { preguntaDeOrden, preguntasHechasAntes, tieneAdaptativas, ultimoOrden } from '../db/guion.js';
 import { textoEvitar, sumarTemaEvitado } from '../ia/evitar.js';
 import { tratoDe } from '../ia/trato.js';
-import { bienvenidaAceptacion } from '../manual/puro.js';
+import { bienvenidaAceptacion, noEntendi, noQuiereTodavia } from '../manual/puro.js';
 import { mandarHito } from '../mail/hitos.js';
 import { cerrarBitacora } from './cierre.js';
 import { esOrdenDeCierre, faseDeCierre } from './cierre-abierto.js';
@@ -23,6 +23,11 @@ import { pedidoAbierto, pedirObjeto } from './objetos.js';
 import { bienvenidaViaje } from '../manual/puro.js';
 import { CLAVE_DEL_ARBOL, capituloNoAplica, enviarPregunta, ritmoDe, type Narrador } from './preguntar.js';
 import { bienvenidaPideVoz } from '../config.js';
+import { esNarradorV3 } from '../v3/estado.js';
+import { canjearRegalo, mandarBienvenidaDeRegalo } from './regalo.js';
+import { idiomaDeRegalo, motivoDeFrenoDelRegalo, textoDeArranque } from './regalo-arranque.js';
+import { extraerCodigo } from './regalo-codigo.js';
+import { avisarSocios } from '../v3/avisos.js';
 
 const MAXIMO_POR_DIA_DOS = 2; // ritmo 'dos_por_dia': la segunda se ofrece, no se impone
 
@@ -95,8 +100,11 @@ async function preguntasEnviadasHoy(n: Narrador, ahora = new Date()): Promise<nu
 export function leerSiNo(texto: string): 'si' | 'no' | null {
   const limpio = texto.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z\s]/g, ' ').trim();
   if (!limpio || limpio.split(/\s+/).length > 6) return null;
-  if (/^(si|dale|bueno|ok|okey|claro|de acuerdo|va|vamos|si dale|si claro|si bueno|si vamos|bueno dale|dale si|si si)\b/.test(limpio)) return 'si';
-  if (/^(no|ahora no|manana|mañana|despues|mas tarde|hoy no|no gracias)\b/.test(limpio)) return 'no';
+  // `si+` porque "Sii" y "Siii" son de las formas más comunes y fallaban las dos.
+  // Catalán y castellano de España (regalo-idiomas, 09/10): «D'acord» y
+  // «Som-hi» llegan como «d acord» y «som hi» (el apóstrofo y el guion ya son espacios).
+  if (/^(si+|dale|bueno|ok|okey|oka|claro|de acuerdo|va|vamos|vale|listo|perfecto|obvio|de una|empecemos|arranquemos|empezemos|si dale|si claro|si bueno|si vamos|bueno dale|dale si|d acord|som hi|endavant|vinga|comencem|venga)\b/.test(limpio)) return 'si';
+  if (/^(no|ahora no|manana|mañana|despues|mas tarde|hoy no|no gracias|ara no|dema|despres|mes tard|avui no)\b/.test(limpio)) return 'no';
   return null;
 }
 
@@ -115,9 +123,49 @@ function estimarDuracion(texto: string): number {
 export async function procesarEntrante(m: MensajeEntrante): Promise<void> {
   const narrador = await buscarNarrador(m.telefono);
   if (!narrador) {
+    // Gift card (08/10): quien escribe puede ser un narrador con su tarjeta en la mano.
+    // Con cualquier mensaje (10/10): si se le mandó el regalo por WhatsApp el día
+    // elegido, contesta con un audio o con el botón y canjea sin el código.
+    const canje = await canjearRegalo({ db, enviarTexto }, { telefono: m.telefono, texto: m.texto ?? '' });
+    if (canje !== 'sin_codigo') return;
     console.warn(`Mensaje de un número no registrado: ${m.telefono}`);
     return;
   }
+
+  // Gift card: un teléfono que ya conocemos (libro terminado, cerrado o sin
+  // pagar) manda un código. Hoy no puede canjear: dos libros para una persona
+  // es el plan que sigue. No hay texto aprobado para contestarle, así que no
+  // se le escribe nada; se avisa a los socios para que lo resuelva una persona.
+  if (['pendiente_pago', 'completado', 'cerrado_anticipado'].includes(narrador.estado) && m.tipo === 'texto' && m.texto) {
+    const codigo = extraerCodigo(m.texto);
+    if (codigo) {
+      console.warn(`regalo: ${m.telefono} (narrador ${narrador.id}, '${narrador.estado}') mandó el código ${codigo}; no se canjea, aviso a los socios`);
+      await avisarSocios(
+        `regalo-telefono-conocido:${narrador.id}:${codigo}`,
+        'Un teléfono que ya conocemos mandó un código de regalo',
+        `El teléfono ${m.telefono} ya es del narrador ${narrador.id} (estado '${narrador.estado}') y mandó el código ${codigo}. `
+          + 'El bot no lo canjea ni le contesta: hay que resolverlo a mano.',
+      );
+      return;
+    }
+  }
+
+  // Entrevista V3 (spec 2026-10-07): un narrador con fila en entrevistas_v3 va
+  // entero por la V3, antes de las fotos de la familia, de manejarTexto (que
+  // llama a un modelo) y de la evaluación con Opus. Sin fila —o sin la
+  // migración aplicada— sigue exactamente como hoy. Los imports son dinámicos
+  // para no cargar nada de la V3 si nadie la usa.
+  if ((narrador.estado === 'activo' || narrador.estado === 'pausado') && (await esNarradorV3(db, narrador.id))) {
+    const { procesarEntranteV3 } = await import('../v3/entrante.js');
+    const { depsReales } = await import('../v3/deps-reales.js');
+    await procesarEntranteV3(depsReales(), narrador, m);
+    return;
+  }
+
+  // Gift card: un regalo frenado en 'acepto' arranca con cualquier mensaje suyo
+  // (la ventana está abierta). Después el mensaje sigue como siempre: una foto
+  // se guarda; un texto o un audio en 'acepto' se ignora.
+  await recuperarRegaloFrenado(narrador);
 
   // Una foto por WhatsApp se guarda SIEMPRE, en los dos productos (22/09).
   // En viaje va al álbum del día (la etapa vigente); en el Familiar, al capítulo
@@ -153,16 +201,51 @@ export async function procesarEntrante(m: MensajeEntrante): Promise<void> {
 
 // Paso 2: el "SÍ" del consentimiento.
 async function manejarConsentimiento(narrador: Narrador, m: MensajeEntrante): Promise<void> {
+  // Gift card: si la bienvenida del canje falló, sale ahora (escribió: ventana abierta).
+  // Si tampoco sale ahora, se sigue como siempre: un SÍ nunca se pierde.
+  let regaloSinBienvenida = false;
+  if (narrador.contexto?.regalo === true && !(await ultimaBienvenida(narrador.id))) {
+    if (await mandarBienvenidaDeRegalo({ db, enviarTexto }, narrador.id, narrador.telefono_whatsapp)) return;
+    regaloSinBienvenida = true;
+    console.error(`regalo: la bienvenida de ${narrador.id} volvió a fallar; sigue el consentimiento de siempre`);
+  }
   if (m.tipo !== 'texto' || !m.texto) return; // en 'invitado' solo cuenta el SÍ escrito
-  // Sin acentos y en minúscula: "SÍ", "Sí!", "si dale" valen todos.
-  const limpio = m.texto.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-  const dijoSi = /^si\b/.test(limpio);
+  // Hasta el 23/09 esto tenía su propio `/^si\b/`, más pobre que el `leerSiNo`
+  // que ya vivía en este mismo archivo: "Sii", "Dale", "Ok", "Claro" y "Vamos"
+  // no entraban. Y el bot se quedaba MUDO, así que la persona leía la
+  // bienvenida, contestaba, no pasaba nada y no volvía a intentar.
+  const dijoSi = leerSiNo(m.texto) === 'si';
+  // Un regalo habla en su idioma (ARRANQUE de regalo-textos.ts) y va siempre
+  // por la V3: la bienvenida del banco ya le describió esa entrevista.
+  const esRegalo = narrador.contexto?.regalo === true;
+  // Un narrador nuevo que recibió la bienvenida V3 (scheduler, V3_PARA_NUEVOS): su SÍ se contesta como el del
+  // regalo, en su idioma, y la primera pregunta sale enseguida (10/10).
+  const esV3Nuevo = !esRegalo && narrador.contexto?.bienvenidaV3 === true;
+  const idiomaRegalo = esRegalo || esV3Nuevo ? idiomaDeRegalo(narrador.contexto) : null;
   if (!dijoSi) {
     // Vitácora de viaje: mientras no haya plantilla aprobada, el viajero escribe
     // primero ("hola") y la bienvenida sale como texto libre, dentro de la ventana.
     if (esViaje(narrador.contexto) && !(await ultimaBienvenida(narrador.id))) {
       const waId = await enviarTexto(narrador.telefono_whatsapp, bienvenidaViaje(narrador.como_le_dicen, { enseguida: ritmoDe(narrador.contexto) === 'seguido' }));
       await db.from('envios').insert({ narrador_id: narrador.id, tipo: 'bienvenida', pregunta_orden: null, wa_message_id: waId });
+      return;
+    }
+    // Escribió algo que no entendimos. El silencio es la peor respuesta: la
+    // persona ya hizo su parte y del otro lado no pasa nada, así que no
+    // vuelve a intentar. Se le pide de nuevo UNA sola vez — insistir a quien
+    // no quiere participar sería peor que no haber preguntado.
+    if (narrador.contexto?.sePidioDeNuevo !== true) {
+      const dijoNo = leerSiNo(m.texto) === 'no';
+      if (idiomaRegalo) {
+        await enviarTexto(narrador.telefono_whatsapp, textoDeArranque(idiomaRegalo, dijoNo ? 'noQuiere' : 'noEntendi', narrador.como_le_dicen));
+      } else {
+        const trato = await tratoDe(narrador);
+        await enviarTexto(narrador.telefono_whatsapp, dijoNo
+          ? noQuiereTodavia(narrador.como_le_dicen, trato)
+          : noEntendi(trato));
+      }
+      narrador.contexto = { ...(narrador.contexto ?? {}), sePidioDeNuevo: true };
+      await db.from('narradores').update({ contexto: narrador.contexto }).eq('id', narrador.id);
     }
     return;
   }
@@ -172,22 +255,111 @@ async function manejarConsentimiento(narrador: Narrador, m: MensajeEntrante): Pr
   // pero solo si la bienvenida que recibió ya se lo pedía. Sin fecha, la
   // fábrica no clona nunca (supabase/CONTRATO.md).
   const cambios: Record<string, unknown> = { estado: 'acepto' };
-  if (bienvenidaPideVoz()) cambios.consentimiento_voz_at = new Date().toISOString();
+  // La bienvenida del regalo (mandarBienvenidaDeRegalo) siempre pide la voz:
+  // su SÍ vale como permiso, salvo que esa bienvenida nunca le haya llegado.
+  // La bienvenida V3 (plantilla) también la pide: el pedido de SÍ aprobado (ARRANQUE.pedidoSi) va en su cuerpo.
+  const regaloPidioVoz = (esRegalo && !regaloSinBienvenida) || esV3Nuevo;
+  if (bienvenidaPideVoz() || regaloPidioVoz) cambios.consentimiento_voz_at = new Date().toISOString();
   await db.from('narradores').update(cambios).eq('id', narrador.id);
-  const enseguida = !esViaje(narrador.contexto) && ritmoDe(narrador.contexto) === 'seguido';
+  // Nunca prometer una pregunta que no va a llegar: si el alta V3 del regalo se
+  // va a frenar (sin género, idioma desconocido), el SÍ queda anotado pero no
+  // sale la aceptación ni el mail «ya le mandamos la primera pregunta». Una
+  // persona completa la ficha; la 1 sale con el próximo mensaje del narrador
+  // (recuperarRegaloFrenado) o, sin mensaje, por el scheduler.
+  const freno = esRegalo || esV3Nuevo ? motivoDeFrenoDelRegalo(narrador.contexto) : null;
+  if (freno) {
+    await avisarSocios(
+      `regalo-si-frenado:${narrador.id}`,
+      `Regalo frenado: ${narrador.como_le_dicen} dijo que sí pero ${freno === 'no tiene género' ? 'falta el género' : 'el idioma no es válido'}`,
+      `El narrador ${narrador.id} (regalo) dijo que sí, pero su entrevista V3 está frenada: ${freno}. `
+        + "Quedó en 'acepto' con su permiso anotado. No se le mandó la aceptación ni la primera pregunta, "
+        + 'y a quien regaló no le llegó el mail «dijo que sí». '
+        + 'QUÉ HACER: (1) Completar la ficha en narradores.contexto: genero (varon | mujer | otro) y, si el idioma está mal, '
+        + 'idioma ("es-ES", "ca", o sacarlo para es-AR). (2) Esperar a que el narrador escriba: con cualquier mensaje suyo '
+        + 'el bot le manda la primera pregunta en ese momento y, si sale, el mail «dijo que sí» a quien regaló. '
+        + 'Si no escribe, se le puede escribir a mano para que conteste. '
+        + 'Sin mensaje suyo y con la ficha completa, el scheduler lo intenta a su hora preferida: en es-AR la primera pregunta '
+        + 'sale por plantilla; en es-ES y ca no hay plantilla V3 aprobada y queda en la cola hasta que el narrador escriba. '
+        + 'Por ese camino el mail «dijo que sí» no sale solo: mandarlo a mano cuando la pregunta haya salido. '
+        + `También sirve npm run v3-pasar -- ${narrador.id} --genero <varon|mujer|otro> [--idioma es-ES|ca] --aplicar `
+        + "(acepta narradores en 'acepto'), pero no completa contexto.genero y no manda nada, ni el mail: crea la fila V3 "
+        + 'y la primera pregunta sale en su tanda, con la misma espera por la plantilla en es-ES y ca. Mejor completar la ficha.',
+    );
+    return;
+  }
+  // Un regalo recibe su primera pregunta con el SÍ, sea cual sea el ritmo: su
+  // aceptación le dice que ya va (la V3 sigue después con su propio reloj).
+  const enseguida = idiomaRegalo !== null || (!esViaje(narrador.contexto) && ritmoDe(narrador.contexto) === 'seguido');
   await enviarTexto(
     narrador.telefono_whatsapp,
-    bienvenidaAceptacion(narrador.como_le_dicen, await tratoDe(narrador), { viaje: esViaje(narrador.contexto), enseguida }),
+    idiomaRegalo
+      ? textoDeArranque(idiomaRegalo, 'aceptacion', narrador.como_le_dicen)
+      : bienvenidaAceptacion(narrador.como_le_dicen, await tratoDe(narrador), { viaje: esViaje(narrador.contexto), enseguida }),
   );
+  // Un regalo: el mail «dijo que sí» dice «ya le mandamos la primera pregunta»,
+  // así que sale DESPUÉS de la 1, y solo si salió. Si no sale, el narrador
+  // queda en 'acepto' sin fila V3 y lo retoma recuperarRegaloFrenado con su
+  // próximo mensaje; el mail sale entonces.
+  // El nuevo de la V3 igual: la 1 sale ya y el mail «dijo que sí» (el de siempre) recién si salió.
+  if (esRegalo || esV3Nuevo) {
+    await primeraDelRegalo(narrador, 'consentimiento');
+    return;
+  }
   await mandarHito(narrador, 'acepto');
   // Ritmo «apenas responde» (pedido de Joaquín, 23/09): la primera pregunta sale
   // con el SÍ. Antes esperaba al scheduler, o sea hasta 24 horas — y en una
   // prueba eso es un día perdido. Acaba de escribir, así que la ventana de 24 hs
   // está abierta y va como texto libre, sin depender de ninguna plantilla.
   if (enseguida) {
-    await enviarPregunta({ ...narrador, estado: 'acepto' }, 1, { plantilla: false })
-      .catch((err) => { console.error(`consentimiento: no pude mandar la 1 enseguida a ${narrador.id}:`, err); return false; });
+    try {
+      await enviarPregunta({ ...narrador, estado: 'acepto' }, 1, { plantilla: false });
+    } catch (err) {
+      console.error(`consentimiento: no pude mandar la 1 enseguida a ${narrador.id}:`, err);
+    }
   }
+}
+
+/**
+ * La primera pregunta de un regalo (alta V3 con la ventana abierta) y, solo si
+ * salió, el mail «dijo que sí» a quien regaló (dice que la 1 ya salió;
+ * mandarHito no lo repite). Si no sale o tira, queda en el log y no va el mail.
+ */
+async function primeraDelRegalo(narrador: Narrador, desde: string): Promise<boolean> {
+  let salio = false;
+  try {
+    salio = await enviarPregunta({ ...narrador, estado: 'acepto' }, 1, { plantilla: false });
+  } catch (err) {
+    console.error(`${desde}: no pude mandar la 1 del regalo ${narrador.id}; no va el mail «dijo que sí»:`, err);
+    return false;
+  }
+  if (!salio) {
+    console.error(`${desde}: la 1 del regalo ${narrador.id} no salió (alta V3 frenada); no va el mail «dijo que sí»`);
+    return false;
+  }
+  await mandarHito(narrador, 'acepto');
+  return true;
+}
+
+/**
+ * Un regalo que dijo que sí pero quedó frenado: en 'acepto' y sin fila V3 (la
+ * ficha estaba incompleta, o la 1 falló). Cualquier mensaje suyo abre la
+ * ventana de 24 h, así que se intenta el alta V3 ahora, como texto libre: si la
+ * ficha ya se completó, sale OR1; si no, altaNuevo lo vuelve a frenar (su aviso
+ * a los socios sale una vez por día). Vale igual para un nuevo de la V3 (contexto.bienvenidaV3, 10/10); otro 'acepto' no pasa por acá.
+ */
+async function recuperarRegaloFrenado(narrador: Narrador): Promise<void> {
+  if (narrador.estado !== 'acepto' || (narrador.contexto?.regalo !== true && narrador.contexto?.bienvenidaV3 !== true)) return;
+  // Si la base falla al mirar la fila V3, no se manda nada y el entrante sigue:
+  // con el próximo mensaje se vuelve a intentar.
+  let yaEsV3: boolean;
+  try {
+    yaEsV3 = await esNarradorV3(db, narrador.id);
+  } catch (err) {
+    console.error(`regalo frenado: no pude saber si ${narrador.id} tiene entrevista V3; no se manda nada`, err);
+    return;
+  }
+  if (yaEsV3) return;
+  await primeraDelRegalo(narrador, 'regalo frenado');
 }
 
 // Paso 3: pausado → activo con cualquier mensaje.
