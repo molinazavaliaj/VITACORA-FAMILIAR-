@@ -22,9 +22,9 @@ bienvenida a la despedida, con cero preguntas vencidas y toda respuesta con su `
 
 ## Falta
 
-1. **Naza aplica la migración** `supabase/migrations/20261011000000_viaje_v2.sql` (verificado hoy: la tabla no existe).
-   Sin ella el bot sigue igual que hoy (nadie es V2).
-2. Después: `npm run viaje-v2-simular -- --real` contra la base real (crea y borra un narrador inventado).
+1. ✅ Migración aplicada por Naza el 10/10 (SQL Editor).
+2. ✅ `npm run viaje-v2-simular -- --real` el 10/10: los 3 idiomas terminan (despedida, completado), 22 respuestas
+   con clave y 0 sin clave, 0 vencidos, 3-4 plantillas y 5 ❤️ por viaje; la base quedó limpia (verificado).
 3. Joaquín carga las plantillas de viaje en Meta (`plantillas-meta.md`) y las marca en `WA_PLANTILLAS_VIAJE_V2_LISTAS`.
 4. Mergear `viaje-v2-envio` a main (con el OK de Naza; deploy automático en Railway). Sin migración ni plantillas no
    cambia nada para nadie.
