@@ -1,0 +1,18 @@
+# Viaje V2 · Paso 2, parte 1 aprobada: antes de salir y el viaje de ida (30/09/2026)
+
+Aprobada por Naza, texto por texto (rondas 1 a 6 en `paso-2-parte-1-*.md`). Redactó Fable.
+
+| Orden | ID | Cuándo sale | Texto | Si llega ya de viaje |
+|---|---|---|---|---|
+| 1 | AS1 | Al activarse, después de la bienvenida | Empecemos por el principio, antes de cualquier valija. ¿De dónde salió este viaje, {{nombre}}? Contame el momento en que dejó de ser una idea y pasó a ser algo que iba a pasar de verdad. Puede haber sido una charla o una tarde en que dijiste "lo hago". | Ya estás en camino, pero quiero empezar por antes de cualquier valija. ¿De dónde salió este viaje, {{nombre}}? Contame el momento en que dejó de ser una idea y pasó a ser algo que iba a pasar de verdad. Puede haber sido una charla o una tarde en que dijiste "lo hago". |
+| 2 | AS2 | Apenas contesta AS1 | Ya falta poco, {{nombre}}. ¿Cómo andás con este viaje? Ganas, nervios, cansancio, lo que haya, y qué esperás encontrar allá. Contame el momento, en estos días, en que te cayó la ficha de que se viene en serio: qué estabas haciendo y qué se te cruzó por la cabeza. | Ya saliste, así que esta te agarra en camino. ¿Cómo venías con este viaje los últimos días? Ganas, nervios, cansancio, lo que haya habido, y qué esperabas encontrar allá. Contame el momento en que te cayó la ficha de que se venía en serio: qué estabas haciendo y qué se te cruzó por la cabeza. |
+| 3 | IM1 | Apenas contesta AS2 | Cuando pensás en este viaje, ¿qué imagen se te aparece? No lo que leíste ni lo que hay que ver: la que se te viene sola, aunque sea una calle. Contame esa imagen y de dónde te viene. | Antes de salir, cuando pensabas en este viaje, ¿qué imagen se te aparecía? No lo que habías leído ni lo que había que ver: la que se te venía sola, aunque fuera una calle. Contame esa imagen y de dónde te venía. |
+| 4 | VA1 | Apenas contesta IM1 | Contame una cosa que va en la valija sí o sí, {{nombre}}. No el cargador ni los documentos: algo tuyo. Qué es y por qué va con vos. | Ya estás en camino y la valija está cerrada. Contame una cosa que metiste y que no podía faltar, {{nombre}}. No el cargador ni los documentos: algo tuyo. Qué es y por qué va con vos. |
+| 5 | UC1 | Día de salida, a la mañana (por fecha, no encadenada) | Hoy es el día, {{nombre}}. Antes de cerrar la puerta, contame cómo es este último rato en casa: qué estás haciendo ahora mismo, qué queda dando vueltas. | — (va solo en presente) |
+| 6 | ID1 | Día de salida, a la noche (por fecha) | Hoy fue el día del viaje, {{nombre}}. No me cuentes horarios: contame un rato del camino en el que no estabas haciendo nada, solo yendo, y te diste cuenta de que ya estabas lejos. Qué había del otro lado de la ventanilla y qué pensabas. | Si a la mañana siguiente sigue sin respuesta, se reenvía: Ayer fue el día del viaje, {{nombre}}. No me cuentes horarios: contame un rato del camino en el que no estabas haciendo nada, solo yendo, y te diste cuenta de que ya estabas lejos. Qué había del otro lado de la ventanilla y qué pensabas. |
+
+**Reglas de esta parte:** 1 a 4 se encadenan (cada una sale cuando contesta la anterior). 5 y 6 salen por fecha. Si la cadena no terminó el día de salida, 5 y 6 salen igual y la cadena sigue después con las variantes "ya de viaje". Ninguna se saltea.
+
+**Descartado (queda en las rondas):** el "mostrame" de la previa; la "última mirada para atrás" en UC1; UC1 en pasado (el código no sabe si ya salió); las versiones B y los finales que no eligió Naza.
+
+**Para el paso 3:** la bienvenida tiene que anunciar cuatro preguntas antes de salir, no dos.

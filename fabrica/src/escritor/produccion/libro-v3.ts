@@ -325,6 +325,17 @@ async function esperaPorDudas(db: Db, narradorId: string, almacen: Almacen, ahor
 
 // ---------------------------------------------------------------- el libro (pedido pagado y libro cerrado)
 
+/**
+ * Lo que la dueña escribió en «Correcciones» al cerrar el libro (`narradores.edicion.correcciones`, la web; Naza 10/10):
+ * va a la Etapa B como una corrección más, sin duda asociada. Vacío o no texto, ninguna.
+ */
+export async function correccionesDeLaFamilia(db: Db, narradorId: string): Promise<CorreccionFamilia[]> {
+  const { data, error } = await db.from('narradores').select('edicion').eq('id', narradorId).maybeSingle();
+  if (error) throw new Error(`No pude leer la edición de ${narradorId}: ${error.message}`);
+  const t = (data as { edicion?: { correcciones?: unknown } | null } | null)?.edicion?.correcciones;
+  return typeof t === 'string' && t.trim() ? [{ texto: t.trim() }] : [];
+}
+
 /** Las correcciones (CONTRATO, "Escritor V3"). Sin archivo, ninguna. Roto: tira (un libro sin las correcciones pedidas está mal). */
 export async function leerCorrecciones(almacen: Almacen): Promise<CorreccionFamilia[]> {
   const t = await almacen.leer(CORRECCIONES);
@@ -406,7 +417,7 @@ export async function escribirLibroV3(db: Db, pedido: { id: string; narrador_id:
       x.log(`hay dudas de datos: el libro espera ${Math.ceil(espera / 3_600_000)} horas más por las correcciones`);
       return;
     }
-    const b = await etapaB(x, await leerCorrecciones(almacen));
+    const b = await etapaB(x, [...(await leerCorrecciones(almacen)), ...(await correccionesDeLaFamilia(db, narradorId))]);
     if (!b.ok) throw new FalloDelEscritor(`Etapa B: ${b.motivo}`);
     const r = await etapaC(x);
     x.log(`libro escrito: ${r.capitulos} capítulos, ${r.controlesFinal}, USD ${r.usd.toFixed(2)}`);

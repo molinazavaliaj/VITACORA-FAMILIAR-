@@ -86,7 +86,8 @@ describe('la simulación de punta a punta (base y WhatsApp falsos)', () => {
     expect(p.enviados.filter((e) => (e.texto ?? '').includes(m22)).length).toBe(1);
   });
 
-  it('con ritmo diario nunca manda más de 4 preguntas por día (por lo enviado) y termina', async () => {
+  // Naza 10/10: si contesta, le llega la siguiente siempre. El ritmo no corta a quien está contestando.
+  it('con ritmo diario, si contesta todo, le siguen llegando preguntas (más de 4 en un día) y termina', async () => {
     const n: NarradorV3 = { ...narrador('es-AR'), id: 'sim-diario', contexto: { ritmo: 'diario', genero: 'varon' } };
     const base = crearBaseFalsa({ familias: [{ id: 'f-sim', nombre: 'Prueba' }], narradores: [{ ...n }] });
     const p = depsDePrueba(base);
@@ -111,9 +112,8 @@ describe('la simulación de punta a punta (base y WhatsApp falsos)', () => {
     const r = await simularEntrevista(p.deps, n, { idioma: 'es-AR', pasar, maxPasos: 3000 });
     contar();
     expect(r).toMatchObject({ terminada: true, completado: true });
-    expect(porDia.size).toBeGreaterThan(5);
-    for (const [d, cuantas] of porDia) expect(cuantas, `el día ${d}`).toBeLessThanOrEqual(4);
-    expect(maximo).toBeLessThanOrEqual(4);
+    expect(Math.max(...porDia.values())).toBeGreaterThan(4);
+    expect(maximo).toBeGreaterThan(4);
   });
 
   it('llega a FO1 y recibe una foto; los botones Sí (con M30 y después audio), No y Paso se tocan y hacen su efecto', async () => {

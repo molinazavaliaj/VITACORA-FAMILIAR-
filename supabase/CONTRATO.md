@@ -627,6 +627,12 @@ etapas A/B/C); el camino viejo (anticipo, estructura, previsualización, generar
 - **La edición de la dueña** (`narradores.edicion`): valen `titulo`, `subtitulo` y `portadaFotoId`.
   `ordenCapitulos` y `titulosCapitulos` **no** (son nombres del guion viejo; el plan y los títulos los
   arma el escritor), y no van fotos por capítulo (solo la de tapa).
+  **10/10 (Naza):** también valen `excluidas` y `correcciones`. `excluidas` (ids de `respuestas`, «Qué dejar
+  afuera» del cierre): la clave de cada fila excluida sale **entera** del libro, con su `RP~X` / `X~2` y sus
+  audios, como una reserva («esto que no vaya al libro»); la web manda todos los ids de esa pregunta. Cambiar
+  `excluidas` cambia el material: si la Etapa A ya estaba hecha, se rehace al escribir el libro (se paga de
+  nuevo, ~USD 2,4). `correcciones` (texto libre de la dueña) va a la Etapa B como una corrección más, junto
+  con las de `correcciones.json`.
 - **La ficha del libro**: la de `entrevistas_v3.ficha` más `narradores.contexto` (`anioNacimiento`,
   `lugarNacimiento`, `dondeVive`, `arbol` como texto libre). `contexto.datosExtra` **no** llega al escritor.
 - **`frases.json`** (el de siempre, en `paquete/`): `respuesta_id` = la fila de `respuestas` de esa

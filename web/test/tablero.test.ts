@@ -318,3 +318,22 @@ describe('el regalo sin abrir se edita como invitado', () => {
     expect(EN_CURSO).toContain('regalo_pendiente');
   });
 });
+
+describe('el próximo paso de una historia V3 (10/10)', () => {
+  const h = (estado: string, rol: Historia['rol'] = 'duena'): Historia =>
+    ({ narrador: { id: 'n3', estado, contexto: {}, nombre: 'Dora', como_le_dicen: 'Babu' }, rol }) as unknown as Historia;
+  const r = { respondidas: 3, total: 30, segundos: 0, tieneAnticipo: true, v3: true };
+
+  it('al terminar: elegir la tapa y encargar (sin "últimos retoques")', () => {
+    expect(proximoPaso(h('completado'), r)?.texto).toBe('Ya terminó de contar. Elegí la tapa y encargá su libro');
+  });
+  it('mientras cuenta no promete el capítulo 1 (no hay anticipo)', () => {
+    expect(proximoPaso(h('activo'), r)?.texto).not.toContain('capítulo 1');
+  });
+  it('mientras espera no manda a repasar el guion', () => {
+    expect(proximoPaso(h('acepto'), r)).toEqual({ href: '/tablero/n3', texto: 'Mientras esperás, sumá fotos o una pregunta tuya' });
+  });
+  it('una historia vieja sigue igual', () => {
+    expect(proximoPaso(h('acepto'), { ...r, v3: false })?.href).toBe('/tablero/n3?editar=1');
+  });
+});

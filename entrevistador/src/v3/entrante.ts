@@ -10,7 +10,6 @@
 // reconcilia las que quedaron sin clave (reconciliarV3). Las que se dejan
 // afuera a propósito llevan SIN_CLAVE_V3, para que el reloj no las reintente.
 
-import { ritmoDe } from '../flujo/ritmo.js';
 import { fechaLocal } from '../flujo/tiempo.js';
 import type { MensajeEntrante } from '../whatsapp/webhook.js';
 import { lanzarCazador } from './cazador.js';
@@ -25,7 +24,7 @@ import {
 import { leerBoton, respuestaDeBoton } from './nucleo/entrevista/respuesta.js';
 import { cumplirPedido, pedidoDe } from './pedidos.js';
 import { esSaludo } from './saludo.js';
-import { aplicarTanda, hitosDe, puedeAbrirHoy } from './tanda.js';
+import { aplicarTanda, hitosDe } from './tanda.js';
 import { textoFijo } from './textos-fijos.js';
 import { fichaTexto, MARCA_FOTO, SIN_CLAVE_V3, type EstadoV3, type FilaV3, type NarradorV3 } from './tipos.js';
 import { anotarVisto, avanzar, cerrarYSeguir, encolar, sumarFamilia, marcarFoto, recibirAudio, reenviarAbierta, sinRecordatorios, textoDelBanco, tocarBoton, yaVisto } from './turno.js';
@@ -308,7 +307,7 @@ async function aplicarAudio(
 
 /**
  * Botón de la abierta: "Sí" → M30 y espera el audio; "No"/"Paso" → cierra y
- * sigue en el momento, respetando el tope de la tanda; si cerró un CIn, el
+ * sigue en el momento (siempre: Naza 10/10, si contesta le llega la siguiente); si cerró un CIn, el
  * cazador. Devuelve false si no es un botón de la abierta.
  */
 async function recibirBoton(deps: DepsV3, n: NarradorV3, m: MensajeEntrante, fila: FilaV3, ahora: Date): Promise<boolean> {
@@ -322,7 +321,6 @@ async function recibirBoton(deps: DepsV3, n: NarradorV3, m: MensajeEntrante, fil
 
 async function aplicarBoton(deps: DepsV3, n: NarradorV3, boton: string, guardada: FilaGuardada, ahora: Date): Promise<void> {
   const hoy = fechaLocal(ahora, n.zona_horaria);
-  const ritmo = ritmoDe(n.contexto);
   type Res = { resultado: string | null; bloqueCerrado?: number; cerro: boolean };
   const r = await conReintento(deps.db, n.id, (f): Paso<Res> => {
     if (yaVisto(f.estado, guardada.waMessageId)) return null;
@@ -331,7 +329,7 @@ async function aplicarBoton(deps: DepsV3, n: NarradorV3, boton: string, guardada
     // Ya no es un botón de la abierta (cambió en el medio): se guarda y queda afuera.
     if (!t) return { cambio: { estado: anotarVisto(f.estado, guardada.waMessageId) }, resultado: { resultado: null, cerro: false } };
     if (!t.cerrar) return { cambio: { estado: anotarVisto(t.estado, guardada.waMessageId) }, resultado: { resultado: t.clave, cerro: false } };
-    const s = cerrarYSeguir(t.estado, ficha, puedeAbrirHoy(f, ritmo, hoy));
+    const s = cerrarYSeguir(t.estado, ficha, true);
     const tanda = aplicarTanda(f, s.estado, hoy, s.abrio, ahora);
     return {
       cambio: { estado: anotarVisto(tanda.estado, guardada.waMessageId), ultimo_audio_at: null, tanda_dia: tanda.tanda_dia, tanda_cuenta: tanda.tanda_cuenta },

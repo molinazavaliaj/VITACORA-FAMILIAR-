@@ -25,7 +25,7 @@ export const TIEMPO_MAXIMO_DRENAR_MS = TOMA_MS / 2;
 
 export { PLANTILLAS_V3, type PlantillaV3 } from '../config.js';
 
-export function plantillaLista(idioma: Idioma, cual: 'pregunta' | 'recordatorio', env: NodeJS.ProcessEnv = process.env): boolean {
+export function plantillaLista(idioma: Idioma, cual: 'pregunta' | 'recordatorio' | 'bienvenida', env: NodeJS.ProcessEnv = process.env): boolean {
   if (idioma === 'es-AR' && cual === 'pregunta') return true;
   return (env.WA_PLANTILLAS_V3_LISTAS ?? '').split(',').map((s) => s.trim()).includes(`${idioma}:${cual}`);
 }

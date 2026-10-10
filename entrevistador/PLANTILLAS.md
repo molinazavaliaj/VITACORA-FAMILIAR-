@@ -146,3 +146,43 @@ Hola, {{1}}. Han pasado unos días y quería saber cómo estás. Tu historia est
 ## m8_ca (ca) — variables: {{1}} cómo le dicen
 
 Hola, {{1}}. Han passat uns quants dies i volia saber com estàs. La teva història és aquí, guardada tal com la vas deixar. Quan tinguis una estona, em respons a la pregunta que va quedar pendent. Sense pressa.
+
+## Bienvenida V3 de los narradores nuevos (10/10) — variables: {{1}} cómo le dicen
+
+Para prender `V3_PARA_NUEVOS`. El cuerpo es el BIEN del banco más el pedido de SÍ del regalo (los dos aprobados por Naza; el pedido de SÍ pide el permiso de voz, así que el SÍ se anota como consentimiento). Categoría: Utilidad si Meta la acepta (con Marketing, a algunos números no les llega: error 130472). Un botón de respuesta rápida «SÍ». Cuando Meta la apruebe, sumar `<idioma>:bienvenida` a `WA_PLANTILLAS_V3_LISTAS` (por ejemplo `es-AR:bienvenida,es-ES:bienvenida,ca:bienvenida`). Sin eso, con el interruptor prendido, al invitado no le sale nada y llega un aviso a los socios. «La mía» sigue con la bienvenida vieja.
+
+### bienvenida_v3_vos (es)
+
+```
+Hola, {{1}}, ¿cómo estás? Una persona que te quiere mucho te regaló un libro con la historia de tu vida, y yo soy quien te va a entrevistar para armarlo. Lo hacemos acá, por WhatsApp, tranquilos.
+
+Funciona así. Te mando una pregunta y vos me la contás en audio, como si me lo estuvieras contando en persona. Mandame todos los audios que quieras. Cuando termines no hace falta que me avises. Si pasan unos minutos sin audios nuevos, te mando la pregunta que sigue.
+
+Si alguna pregunta no tiene que ver con tu vida, me decís que no, o me contás lo que sí te pasó a vos. Y sin apuro, esto lo hacemos al ritmo que vos quieras.
+
+Antes de empezar, una cosa. Tus mejores frases van a quedar en el libro tal cual las contaste, como recortes de estos mismos audios, y al responder SÍ nos das permiso para guardar tus audios y usarlos así. Respondé SÍ y arrancamos.
+```
+
+### bienvenida_v3_es_es (es_ES)
+
+```
+Hola, {{1}}, ¿cómo estás? Una persona que te quiere mucho te ha regalado un libro con la historia de tu vida, y yo soy quien te va a entrevistar para hacerlo. Lo hacemos aquí, por WhatsApp, con calma.
+
+Funciona así. Te mando una pregunta y tú me contestas en un audio, como si me lo estuvieras contando en persona. Mándame todos los audios que quieras. Cuando termines no hace falta que me avises. Si pasan unos minutos sin audios nuevos, te mando la pregunta siguiente.
+
+Si alguna pregunta no tiene que ver con tu vida, me dices que no, o me cuentas lo que sí te pasó a ti. Y sin prisa, esto lo hacemos al ritmo que tú quieras.
+
+Antes de empezar, una cosa. Tus mejores frases quedarán en el libro tal cual las has contado, como recortes de estos mismos audios, y al responder SÍ nos das permiso para guardar tus audios y usarlos así. Responde SÍ y empezamos.
+```
+
+### bienvenida_v3_ca (ca)
+
+```
+Hola, {{1}}, com estàs? Una persona que t'estima molt t'ha regalat un llibre amb la història de la teva vida, i jo soc qui t'entrevistarà per fer-lo. Ho farem aquí, per WhatsApp, amb calma.
+
+Funciona així. T'envio una pregunta i tu em respons amb un àudio, com si parléssim en persona. Envia'm tots els àudios que vulguis. Quan acabis no cal que m'avisis. Si passen uns minuts sense àudios nous, t'envio la pregunta següent.
+
+Si alguna pregunta no té res a veure amb la teva vida, m'ho dius, o m'expliques el que sí que et va passar a tu. I sense pressa, ho anirem fent al teu ritme.
+
+Abans de començar, una cosa. Les teves millors frases quedaran al llibre tal com les has explicat, com a retalls d'aquests mateixos àudios, i en respondre SÍ ens dones permís per guardar els teus àudios i fer-los servir així. Respon SÍ i comencem.
+```

@@ -7,6 +7,7 @@ import { proximoPaso, viajeDe, type Resumen } from "./proximo-paso";
 import { BannerAlertaSilencio } from "./acciones";
 import { totalDelGuion } from "@/lib/guion";
 import { diasDelViaje } from "@/lib/viaje";
+import { entrevistaV3 } from "@/lib/v3";
 import {
   BarraProgreso,
   Contenedor,
@@ -55,8 +56,10 @@ async function resumirHistoria(
         TOTAL_PREGUNTAS_BASE,
       );
   const tieneAnticipo = (paquete ?? []).some((a) => a.name.startsWith("anticipo"));
+  // V3 (10/10): sin total ni barra. Si la base falla acá, la tarjeta sale como antes en vez de romper el Inicio.
+  const v3 = viaje ? false : await entrevistaV3(admin, narradorId).then((e) => e !== null, () => false);
 
-  return { respondidas: ordenes.size, total, segundos, tieneAnticipo };
+  return { respondidas: ordenes.size, total, segundos, tieneAnticipo, v3 };
 }
 
 export default async function Inicio() {
@@ -139,9 +142,11 @@ export default async function Inicio() {
                 ) : null}
               </div>
 
-              <div className="mt-5">
-                <BarraProgreso respondidas={r.respondidas} total={r.total} />
-              </div>
+              {r.v3 ? null : (
+                <div className="mt-5">
+                  <BarraProgreso respondidas={r.respondidas} total={r.total} />
+                </div>
+              )}
 
               {paso ? (
                 <div className="mt-5">

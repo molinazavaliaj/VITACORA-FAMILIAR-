@@ -46,7 +46,7 @@ const CUERPO_VALIDO = {
   vinculoComprador: "hija",
   region: "AR",
   email: "Martina@Ejemplo.com",
-  narrador: { nombre: "Roberto Fernández", comoLeDicen: "Papá", telefonoWhatsapp: "11 5555 1234", horaPreferida: "09:00" },
+  narrador: { nombre: "Roberto Fernández", comoLeDicen: "Beto", telefonoWhatsapp: "11 5555 1234", horaPreferida: "09:00" },
   productos: { impresos: 1, marcos: 2 }, // catálogo base + upsells (21/09): la base va siempre
 };
 
@@ -100,7 +100,7 @@ describe("POST /api/compra", () => {
     // la familia nace con el correo normalizado y sin usuario
     expect(admin.inserts.familias[0]).toMatchObject({ email: "martina@ejemplo.com", region: "AR", nombre: "Martina" });
     // EL punto del pago por adelantado: el narrador NO nace invitado
-    expect(admin.inserts.narradores[0]).toMatchObject({ estado: "pendiente_pago", familia_id: "fam-1", como_le_dicen: "Papá" });
+    expect(admin.inserts.narradores[0]).toMatchObject({ estado: "pendiente_pago", familia_id: "fam-1", como_le_dicen: "Beto" });
     // el pedido lleva el total y los extras que sí tenían precio
     expect(admin.inserts.pedidos[0]).toMatchObject({
       estado: "pendiente",

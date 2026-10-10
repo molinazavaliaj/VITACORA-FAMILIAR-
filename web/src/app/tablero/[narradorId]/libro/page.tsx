@@ -16,11 +16,13 @@ import { FotosDelLibro, type FotoElegible } from "./fotos-del-libro";
 import { Extras } from "./extras";
 import { Envio, type EntregaVista } from "./envio";
 import { necesitaEntrega } from "@/lib/entregas";
+import { entrevistaV3, respuestasV3ParaCerrar, type RespuestaV3 } from "@/lib/v3";
 
 // Encargar libro (docs/panel-usuario.md §7 y §15.4): arriba "Su libro" y el
 // estado; el libro en miniatura para hojear cómo va quedando; Tapa ·
 // Contratapa · Marco; al terminar, los últimos retoques y el cierre (solo
 // dueña); y siempre, abajo, lo comprado y lo que se puede sumar.
+// Narrador V3 (10/10): sin miniatura (el libro se escribe recién al encargar) y el cierre en tres pasos.
 
 type Pedido = {
   id: string;
@@ -57,6 +59,7 @@ export default async function PaginaLibro({ params, searchParams }: PageProps<"/
   const propia = esPropia(n);
 
   const terminado = ["completado", "cerrado_anticipado"].includes(n.estado);
+  const v3 = await entrevistaV3(admin, n.id);
 
   const [{ data: filaN }, { data: pedidos }] = await Promise.all([
     admin.from("narradores").select("edicion, libro_aprobado_at").eq("id", n.id).maybeSingle(),
@@ -143,7 +146,7 @@ export default async function PaginaLibro({ params, searchParams }: PageProps<"/
   const [{ data: propias }, { data: globales }, { data: respuestas }, { data: fotosData }, { data: paquete }] = await Promise.all([
     admin.from("preguntas").select("orden, texto, capitulo").eq("narrador_id", n.id),
     admin.from("preguntas").select("orden, texto, capitulo").is("narrador_id", null),
-    admin.from("respuestas").select("id, pregunta_orden, transcripcion, texto_directo, es_repregunta").eq("narrador_id", n.id).order("pregunta_orden"),
+    admin.from("respuestas").select("id, pregunta_orden, transcripcion, texto_directo, es_repregunta, clave_v3, reservada, reservado_tramo").eq("narrador_id", n.id).order("pregunta_orden"),
     // `select("*")`: `posicion` y `foco` (3b.6) existen recién con la migración 20260918; pedirlos por nombre tiraría la página antes.
     admin.from("fotos").select("*").eq("narrador_id", n.id).order("principal", { ascending: false }).order("orden"),
     admin.storage.from("audios").list(`${n.id}/paquete`),
@@ -153,7 +156,11 @@ export default async function PaginaLibro({ params, searchParams }: PageProps<"/
   type PreguntaLibro = { orden: number; texto: string; capitulo: string };
   const guion = armarGuion(globales as PreguntaLibro[] | null, propias as PreguntaLibro[] | null);
   const porOrden = new Map(guion.map((p) => [p.orden, p]));
-  const capitulos = capitulosDelGuion(guion);
+  // V3: no hay capítulos del guion (el plan lo arma el escritor).
+  const capitulos = v3 ? [] : capitulosDelGuion(guion);
+  const respuestasV3: RespuestaV3[] | undefined = v3
+    ? respuestasV3ParaCerrar(v3.estado, ((respuestas as { id: string; clave_v3: string | null; reservada?: boolean | null; reservado_tramo?: string | null }[] | null) ?? []))
+    : undefined;
   // Encuadre (3b.6): siempre un foco usable y una posición válida, tenga o no la fila los campos.
   const fotos = (((fotosData as (FotoElegible & { principal: boolean; foco?: unknown; posicion?: unknown })[] | null) ?? []).map((f) => ({
     ...f, foco: focoDe(f.foco), posicion: validarPosicion(f.posicion) ? f.posicion : POSICION_DEFAULT,
@@ -205,7 +212,11 @@ export default async function PaginaLibro({ params, searchParams }: PageProps<"/
   if (!terminado) {
     estado = (
       <p className="mt-2 max-w-2xl text-[16px] leading-relaxed text-[var(--texto-suave)]">
-        {propia
+        {v3
+          ? propia
+            ? "Cuando termines de contar, te avisamos por mail para que elijas la tapa y lo encargues. Recién ahí escribimos el libro."
+            : "Cuando termine de contar, te avisamos por mail para que elijas la tapa y lo encargues. Recién ahí escribimos el libro."
+          : propia
           ? "Así va quedando, con lo que contaste hasta hoy. Cuando termines, te avisamos por mail para que le des los últimos retoques y lo encargues. Recién ahí se produce."
           : "Así va quedando, con lo que contó hasta hoy. Cuando termine, te avisamos por mail para que le des los últimos retoques y lo encargues. Recién ahí se produce."}
       </p>
@@ -221,7 +232,9 @@ export default async function PaginaLibro({ params, searchParams }: PageProps<"/
           </p>
         ) : null}
         <p className="mt-3 text-[16px] leading-relaxed text-[var(--texto-suave)]">
-          Ya lo estamos armando: el texto, sus mejores frases en su voz{yaTieneImpreso ? ", la impresión" : ""}. Tarda un rato; te avisamos por mail cuando esté. Se lee y se escucha acá mismo, en la web.
+          {v3
+            ? `Ya lo estamos escribiendo, con sus mejores frases en su voz${yaTieneImpreso ? ", y después va a la imprenta" : ""}. Tarda un par de días y te avisamos por mail cuando esté. Se lee y se escucha acá mismo, en la web.`
+            : <>Ya lo estamos armando: el texto, sus mejores frases en su voz{yaTieneImpreso ? ", la impresión" : ""}. Tarda un rato; te avisamos por mail cuando esté. Se lee y se escucha acá mismo, en la web.</>}
         </p>
         <div className="mt-5 flex flex-wrap items-center gap-4">
           <ProximoPaso href={`/tablero/${n.id}/leer`}>Leer el libro y escuchar su voz</ProximoPaso>
@@ -235,9 +248,10 @@ export default async function PaginaLibro({ params, searchParams }: PageProps<"/
     estado = (
       <Tarjeta className="mt-6 border-[var(--acento)]">
         <p className="text-[16px] leading-relaxed text-[var(--texto-suave)]">
-          <strong className="font-medium text-[var(--texto)]">{propia ? "Terminaste de contar tu historia." : `${n.nombre} terminó de contar su historia.`}</strong> Hojeá cómo
-          quedó, elegí las fotos, dale los últimos retoques — o dejá nuestra propuesta tal cual — y encargá el libro. Recién
-          ahí se produce.
+          <strong className="font-medium text-[var(--texto)]">{propia ? "Terminaste de contar tu historia." : `${n.nombre} terminó de contar su historia.`}</strong>{" "}
+          {v3
+            ? "Elegí la tapa, fijate si hay algo que no quieras en el libro y encargalo. Recién ahí lo escribimos."
+            : "Hojeá cómo quedó, elegí las fotos, dale los últimos retoques — o dejá nuestra propuesta tal cual — y encargá el libro. Recién ahí se produce."}
         </p>
         <div className="mt-4">
           <a href="#cerrar" className="text-[15px] text-[var(--acento)] underline decoration-[var(--linea-fuerte)] underline-offset-4 [font-family:var(--fuente-micro)]">Ir a los últimos retoques ↓</a>
@@ -255,15 +269,17 @@ export default async function PaginaLibro({ params, searchParams }: PageProps<"/
       {estado}
 
       {/* ── El libro en miniatura ──────────────────────────────────────── */}
-      <section className="mt-12" aria-label="El libro en miniatura">
-        <LibroMiniatura datos={datosLibro} />
-      </section>
+      {v3 ? null : (
+        <section className="mt-12" aria-label="El libro en miniatura">
+          <LibroMiniatura datos={datosLibro} />
+        </section>
+      )}
 
       {/* ── Tapa · Contratapa · Marco ──────────────────────────────────── */}
       <section className="mt-12">
         <div className="flex items-end justify-between gap-4 border-b border-[var(--linea)] pb-4">
           <h2 className="text-2xl font-medium leading-none [font-family:var(--fuente-titulo)]">Las fotos del libro</h2>
-          <span className="shrink-0 text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.18em]">álbum · capítulos · tapa · marcos</span>
+          <span className="shrink-0 text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.18em]">{v3 ? "álbum · tapa · marcos" : "álbum · capítulos · tapa · marcos"}</span>
         </div>
         <div className="mt-6">
           <FotosDelLibro
@@ -291,6 +307,7 @@ export default async function PaginaLibro({ params, searchParams }: PageProps<"/
             respuestas={resumen}
             fotos={fotos.map(({ id, epigrafe, capitulo }) => ({ id, epigrafe, capitulo }))}
             nombresRevisados={nombresRevisados}
+            v3={respuestasV3}
             upsell={<Extras narradorId={n.id} region={region} catalogo={cat} previos={previos} propia={propia} />}
             envio={entrega ? <Envio narradorId={n.id} entrega={entrega} queViaja={queViaja} /> : undefined}
             faltaDireccion={faltaDireccion}
