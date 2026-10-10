@@ -105,7 +105,9 @@ export async function anotarEntrega(aviso: AvisoDeEntrega): Promise<void> {
       error_detalle: aviso.errorDetalle ?? null,
     }).eq('id', fila.id);
     if (error) console.warn(`entregas: no pude anotar ${aviso.waMessageId} (¿falta la migración?):`, error.message);
-    if (aviso.estado === 'fallido' && fila.narrador_id) await avisarFallo(fila.narrador_id, fila.tipo ?? '?', aviso);
+    // Un "failed" que llega después de "entregado" o "leído" no es un mensaje perdido: no se avisa.
+    const yaLlego = fila.entrega === 'entregado' || fila.entrega === 'leido';
+    if (aviso.estado === 'fallido' && fila.narrador_id && !yaLlego) await avisarFallo(fila.narrador_id, fila.tipo ?? '?', aviso);
   } catch (err) {
     console.warn(`entregas: no pude anotar ${aviso.waMessageId}:`, err);
   }
