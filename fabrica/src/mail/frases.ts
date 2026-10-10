@@ -20,6 +20,7 @@
 // su voz", no "las frases de «Su voz»".
 
 import { cargarConfig } from '../config.js';
+import { TIMEOUT_RESEND_MS } from './resend.js';
 import { escaparHtml } from '../libro/comun.js';
 
 const REMITENTE = 'Vitácora Familiar <hola@vitacorafamiliar.com>';
@@ -157,6 +158,7 @@ export async function enviarMailRecordatorioFrases(opciones: {
 
   const respuesta = await fetch('https://api.resend.com/emails', {
     method: 'POST',
+    signal: AbortSignal.timeout(TIMEOUT_RESEND_MS),
     headers: {
       Authorization: `Bearer ${resendApiKey}`,
       'Content-Type': 'application/json',

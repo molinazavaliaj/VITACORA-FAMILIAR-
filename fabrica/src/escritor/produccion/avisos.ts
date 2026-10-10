@@ -2,6 +2,7 @@
 // las dudas de datos que salieron de la Etapa A, un libro que no se pudo escribir. Son internos: no los ve
 // ninguna familia. Mismo camino que el aviso del candado V3 (v3/candado.ts): Resend directo.
 import { cargarConfig } from '../../config.js';
+import { TIMEOUT_RESEND_MS } from '../../mail/resend.js';
 
 const REMITENTE = process.env.MAIL_FROM ?? 'Vitácora Familiar <hola@vitacorafamiliar.com>';
 
@@ -28,6 +29,7 @@ export async function avisarSocios(asunto: string, texto: string, o: { fetch?: t
     if (!resendApiKey || para.length === 0) return true;
     const r = await (o.fetch ?? fetch)('https://api.resend.com/emails', {
       method: 'POST',
+      signal: AbortSignal.timeout(TIMEOUT_RESEND_MS),
       headers: { Authorization: `Bearer ${resendApiKey}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ from: REMITENTE, to: para, subject: `[Vitácora escritor] ${asunto}`, text: texto }),
     });

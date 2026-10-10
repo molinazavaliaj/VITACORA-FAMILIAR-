@@ -7,6 +7,7 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { cargarConfig } from '../config.js';
+import { TIMEOUT_RESEND_MS } from '../mail/resend.js';
 import { descargarTextoOpcional, subirTexto } from '../libro/comun.js';
 
 export const CANDADO_AVISO_V3 = 'v3_candado_avisado.txt';
@@ -68,6 +69,7 @@ export async function avisarCandadoV3(db: SupabaseClient, narradorId: string, do
     if (resendApiKey && para.length > 0) {
       const r = await (o.fetch ?? fetch)('https://api.resend.com/emails', {
         method: 'POST',
+        signal: AbortSignal.timeout(TIMEOUT_RESEND_MS),
         headers: { Authorization: `Bearer ${resendApiKey}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ from: REMITENTE, to: para, subject: `[Vitácora V3] La fábrica no arma el libro viejo de ${narradorId}`, text: detalle }),
       });
