@@ -29,12 +29,12 @@ Lo que **no** hace: cambiar la fecha, la hora o el contacto después de pagar. U
 ## Qué falta, por persona
 
 **Joaquín**
-1. OK al CONTRATO y a la migración `20261010000000_regalos_entrega.sql`. Son 6 columnas en `regalos` y el valor `regalo_entrega` en el check de `envios.tipo`.
+1. ~~OK al CONTRATO y a la migración~~ HECHO 10/10. Migración `20261010000000_regalos_entrega.sql`. Son 6 columnas en `regalos` y el valor `regalo_entrega` en el check de `envios.tipo`.
 2. Las 3 plantillas en Meta (`regalo_entrega_vos` es, `regalo_entrega_es_es` es_ES, `regalo_entrega_ca` ca). Los textos están en la tanda 3, filas 6 y 7. Aprobadas, se suman a `WA_PLANTILLAS_V3_LISTAS` (`es-AR:regalo_entrega,es-ES:regalo_entrega,ca:regalo_entrega`) en Railway, y `REGALO_ENTREGA_WHATSAPP=1` en Vercel.
 3. `WHATSAPP_NUMERO_PUBLICO` también en Railway (solo dígitos, sin imprimirlo). Sin él, el mail a quien recibe sale sin el código.
 
 **Naza**
-1. Aplicar la migración en el SQL Editor, después del OK de Joaquín.
+1. ~~Aplicar la migración~~ HECHO 10/10 (las 6 columnas verificadas).
 2. Prueba real por mail: comprar un regalo con su correo como «quien recibe», para una hora cercana.
 
 ## Qué NO hacer

@@ -15,9 +15,9 @@ migración en `supabase/migrations/` + actualizar este archivo + avisar al otro 
 | `fotos` | web (sube y ordena) | fábrica | Nueva 12/09. Por capítulo; `principal` abre, el resto cierra. Desde el 13/09 la fábrica las embebe como data URI en `libro.html`. **14/09: `capitulo` nullable** — NULL = foto del álbum del libro (candidata a tapa / contratapa / marco), no va en ningún capítulo; la fábrica la ignora al armar capítulos. |
 | `invitados` | web | web | Nueva 12/09. `rol` (13/09): `'invitado'` (hasta 3, con el libro abierto, ven todo) o `'visitante'` (abrió el link del libro cerrado y lo guardó: ve la muestra y compra su copia, sin tope). |
 | `pedidos` | web y fábrica | — | El entrevistador no la mira. Un pedido por comprador: los invitados y visitantes que compran su copia tienen su propia `familia` y su propio pedido sobre el mismo `narrador_id`. |
-| `envios` | entrevistador | — | Log de salientes; idempotencia del scheduler. **07/10:** `tipo = 'v3'` para cada mensaje de la entrevista V3. **10/10 (sin aplicar):** `tipo = 'regalo_entrega'` para la plantilla del regalo el día elegido. |
+| `envios` | entrevistador | — | Log de salientes; idempotencia del scheduler. **07/10:** `tipo = 'v3'` para cada mensaje de la entrevista V3. **10/10 (aplicada):** `tipo = 'regalo_entrega'` para la plantilla del regalo el día elegido. |
 | `entrevistas_v3` | entrevistador | fábrica | Nueva 07/10 (propuesta). Una fila por narrador: **prende la V3**. Ver "Entrevista V3 por WhatsApp". |
-| `regalos` | web (crea al comprar; `audio_path`; las columnas `entrega_canal`, `entrega_contacto`, `entrega_hora`, `entrega_zona`) / entrevistador (solo `usado_at`, `usado_por_telefono` al canjear, `recordatorio_at`, y `entrega_enviada_at`, `entrega_fallo` al mandar el regalo el día elegido) | ambos | Nueva 08/10, **aplicada por Naza el 09/10**. Gift card: un regalo por narrador. Ver "Gift card". Columnas `entrega_*` nuevas el 10/10 (migración `20261010000000_regalos_entrega.sql`, **sin aplicar**). |
+| `regalos` | web (crea al comprar; `audio_path`; las columnas `entrega_canal`, `entrega_contacto`, `entrega_hora`, `entrega_zona`) / entrevistador (solo `usado_at`, `usado_por_telefono` al canjear, `recordatorio_at`, y `entrega_enviada_at`, `entrega_fallo` al mandar el regalo el día elegido) | ambos | Nueva 08/10, **aplicada por Naza el 09/10**. Gift card: un regalo por narrador. Ver "Gift card". Columnas `entrega_*` nuevas el 10/10 (migración `20261010000000_regalos_entrega.sql`, **aplicada por Naza el 10/10** con OK de Joaquín). |
 | `narraciones` | fábrica (crea la fila; y `estado = 'reemplazada'` cuando pide la voz de nuevo — migración 20260920) / worker de voz (`estado`, `motor`, `muestras`, `capitulos_paths`, `error`, `tomada_at`) | fábrica | Nueva 16/09. Buzón con el worker de voz (PC de Naza); ver "Narraciones (voz clonada)". |
 
 ## Transiciones de estado de `narradores.estado`
@@ -876,7 +876,7 @@ Spec: `docs/superpowers/specs/2026-10-07-gift-card-design.md`.
 - Recordatorio: si a los 15 días de `fecha_entrega` (o de `created_at` si no hay fecha) sigue
   sin usar, el entrevistador le escribe un mail a quien compró y anota `recordatorio_at`.
 
-### El regalo llega solo el día elegido (10/10, propuesta, migración sin aplicar)
+### El regalo llega solo el día elegido (10/10, migración aplicada por Naza el 10/10)
 
 Spec: `docs/superpowers/specs/2026-10-10-regalo-dia-de-entrega-design.md`.
 
