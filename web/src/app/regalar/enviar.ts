@@ -1,6 +1,7 @@
 import type { Region } from "@/lib/precios";
 import type { Genero } from "@/lib/regalo-reglas";
 import { textosComprador, type IdiomaRegalo, type TratoComprador } from "@/lib/regalo-textos";
+import type { EleccionEntrega } from "./entrega";
 
 // El pago del regalo, separado del formulario para probarlo sin navegador:
 // un POST a /api/compra con `regalo`; si salió bien y hay audio, se sube con
@@ -20,6 +21,8 @@ export type PedidoRegalo = {
   /** En qué idioma le va a hablar el biógrafo a quien recibe el regalo. */
   idioma: IdiomaRegalo;
   audio: Blob | null;
+  /** Mandárselo solo el día elegido (10/10). Viaja solo con fecha, canal y hora. */
+  entrega: EleccionEntrega | null;
 };
 
 export type Dependencias = {
@@ -61,6 +64,9 @@ export function cuerpoCompra(p: PedidoRegalo, retomar: Retomar | null = null) {
       fechaEntrega: p.fechaEntrega || undefined,
       genero: p.genero,
       idioma: p.idioma,
+      ...(p.fechaEntrega && p.entrega?.canal && p.entrega.hora !== null
+        ? { entrega: { canal: p.entrega.canal, contacto: p.entrega.contacto.trim(), hora: p.entrega.hora } }
+        : {}),
       ...(retomar ? { retomar } : {}),
     },
     productos: { impresos: 0, marcos: 0 },

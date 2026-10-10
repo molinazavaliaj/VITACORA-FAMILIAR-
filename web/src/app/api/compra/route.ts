@@ -4,7 +4,8 @@ import { validarYConstruir, type RegistroBody } from "@/lib/registro";
 import { calcularCompra, productosParaPedido, validarCarrito, type Carrito } from "@/lib/productos";
 import { crearCheckout } from "@/lib/pagos";
 import { firmarTokenFotos, verificarTokenFotos } from "@/lib/token-fotos";
-import { generarCodigo, validarRegalo, type DatosRegalo } from "@/lib/regalo";
+import { generarCodigo, validarRegalo, type DatosRegalo, type EntregaRegalo } from "@/lib/regalo";
+import { entregaWhatsAppPrendida } from "@/lib/regalo-entrega";
 
 // La compra, sin cuenta previa (pago por adelantado, 11/09). Es la única
 // entrada al producto: aquí nacen la familia, el narrador y el pedido, y de
@@ -32,6 +33,8 @@ export type CompraBody = RegistroBody & {
     fechaEntrega?: string;
     genero?: string;
     idioma?: string;
+    /** Mandárselo solo el día elegido (10/10). La zona no viene: sale del idioma. */
+    entrega?: { canal?: unknown; contacto?: unknown; hora?: unknown };
     retomar?: { narradorId?: unknown; token?: unknown };
   };
 };
@@ -69,6 +72,22 @@ function contextoDeRegalo(base: Record<string, unknown>, regalo: DatosRegalo): R
   return { ...resto, regalo: true, ...voz, genero: regalo.genero };
 }
 
+/** Las columnas de la entrega en `regalos` (migración 20261010000000), o todas en null. */
+function columnasEntrega(e: EntregaRegalo | null) {
+  return {
+    entrega_canal: e?.canal ?? null,
+    entrega_contacto: e?.contacto ?? null,
+    entrega_hora: e?.hora ?? null,
+    entrega_zona: e?.zona ?? null,
+  };
+}
+
+/** PostgREST no conoce la columna: la migración de la entrega todavía no se aplicó. */
+function faltaColumna(error: unknown): boolean {
+  const code = (error as { code?: string } | null)?.code;
+  return code === "PGRST204" || code === "42703";
+}
+
 export async function POST(request: NextRequest) {
   let body: CompraBody;
   try {
@@ -85,7 +104,10 @@ export async function POST(request: NextRequest) {
   const esRegalo = body.regalo !== undefined;
   let datosRegalo: DatosRegalo | null = null;
   if (esRegalo) {
-    const v = validarRegalo(body.regalo, new Date());
+    const v = validarRegalo(body.regalo, new Date(), {
+      whatsapp: entregaWhatsAppPrendida(),
+      trato: body.region === "ES" ? "tu" : "vos",
+    });
     if (!v.ok) return NextResponse.json({ error: v.mensaje }, { status: 400 });
     datosRegalo = v.regalo;
   }
@@ -255,15 +277,23 @@ export async function POST(request: NextRequest) {
     }
     if (previo) {
       const { id: regaloId } = previo as { id: string };
-      const { error: errorRetomar } = await admin
+      const cambios = {
+        mensaje: datosRegalo.mensaje,
+        fecha_entrega: datosRegalo.fechaEntrega,
+        quien_regala: familiaAInsertar.nombre,
+        pedido_id: (pedido as { id: string }).id,
+      };
+      // Siempre con las columnas de la entrega: sin entrega, se borra la que
+      // hubiera elegido antes. Si la migración todavía no está y no pidió
+      // entrega, se reintenta sin ellas (con entrega, el error sigue: no se
+      // puede guardar lo que pidió).
+      let { error: errorRetomar } = await admin
         .from("regalos")
-        .update({
-          mensaje: datosRegalo.mensaje,
-          fecha_entrega: datosRegalo.fechaEntrega,
-          quien_regala: familiaAInsertar.nombre,
-          pedido_id: (pedido as { id: string }).id,
-        })
+        .update({ ...cambios, ...columnasEntrega(datosRegalo.entrega) })
         .eq("id", regaloId);
+      if (errorRetomar && !datosRegalo.entrega && faltaColumna(errorRetomar)) {
+        ({ error: errorRetomar } = await admin.from("regalos").update(cambios).eq("id", regaloId));
+      }
       if (errorRetomar) {
         console.error("compra: fallo retomar el regalo", errorRetomar);
         return NextResponse.json({ error: MENSAJE_ERROR_GENERICO }, { status: 500 });
@@ -282,6 +312,8 @@ export async function POST(request: NextRequest) {
         quien_regala: familiaAInsertar.nombre,
         mensaje: datosRegalo.mensaje,
         fecha_entrega: datosRegalo.fechaEntrega,
+        // Solo si pidió entrega: así un regalo sin entrega anda sin la migración.
+        ...(datosRegalo.entrega ? columnasEntrega(datosRegalo.entrega) : {}),
       });
       if (!error) regaloListo = true;
       else if ((error as { code?: string }).code !== "23505") {

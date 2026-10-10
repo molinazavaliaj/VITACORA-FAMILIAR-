@@ -69,7 +69,29 @@ export type TextosComprador = {
   terminos: string;
   idioma: string;
   idiomas: Record<IdiomaRegalo, string>;
+  entrega: TextosEntrega;
 };
+
+/** Mandárselo solo el día elegido (spec 2026-10-10-regalo-dia-de-entrega), en el paso 2 y el 4. */
+export type TextosEntrega = {
+  mandarloEseDia: string;
+  canales: { nadie: string; whatsapp: string; mail: string };
+  aQueHora: string;
+  /** El país de quien recibe (sale del idioma del regalo), no el de quien compra. */
+  horaDe: (pais: RegionComprador) => string;
+  suCelular: string;
+  suCelularPista: string;
+  suCorreo: string;
+  faltaHora: string;
+  celularMal: string;
+  correoMal: string;
+  horaPasada: string;
+  /** `fecha` como dd/mm. */
+  leLlega: (contacto: string, fecha: string, hora: number) => string;
+};
+
+const HORA_DE = (pais: RegionComprador) => (pais === "AR" ? "Es la hora de Argentina." : "Es la hora de España.");
+const LE_LLEGA = (contacto: string, fecha: string, hora: number) => `Le llega a ${contacto} el ${fecha} a las ${hora}.`;
 
 const ABUELO: Record<IdiomaRegalo, TextosAbuelo> = {
   "es-AR": {
@@ -196,6 +218,22 @@ const COMPRADOR: Record<TratoComprador, TextosComprador> = {
     terminos: "términos",
 
     ...PREGUNTA_IDIOMA,
+
+    // Aprobados por Naza el 10/10 (docs/regalo/dia-de-entrega-textos.md, tanda 1).
+    entrega: {
+      mandarloEseDia: "¿Querés que se lo mandemos ese día?",
+      canales: { nadie: "No, se la doy yo", whatsapp: "Por WhatsApp", mail: "Por mail" },
+      aQueHora: "¿A qué hora?",
+      horaDe: HORA_DE,
+      suCelular: "Su celular",
+      suCelularPista: "con código de país, por ejemplo +54 9 11 1234 5678",
+      suCorreo: "Su correo",
+      faltaHora: "Falta la hora.",
+      celularMal: "Ese celular parece mal escrito. Revisalo.",
+      correoMal: "Ese correo parece mal escrito. Revisalo.",
+      horaPasada: "Esa hora ya pasó. Elegí otra.",
+      leLlega: LE_LLEGA,
+    },
   },
 
   // Aprobados por Naza el 09/10 (regalo-idiomas): cada texto de vos pasado a tú de España, con el mismo sentido.
@@ -247,6 +285,22 @@ const COMPRADOR: Record<TratoComprador, TextosComprador> = {
     terminos: "términos",
 
     ...PREGUNTA_IDIOMA,
+
+    // Aprobados por Naza el 10/10 (docs/regalo/dia-de-entrega-textos.md, tanda 2).
+    entrega: {
+      mandarloEseDia: "¿Quieres que se lo enviemos ese día?",
+      canales: { nadie: "No, se la doy yo", whatsapp: "Por WhatsApp", mail: "Por correo" },
+      aQueHora: "¿A qué hora?",
+      horaDe: HORA_DE,
+      suCelular: "Su móvil",
+      suCelularPista: "con prefijo de país, por ejemplo +34 612 34 56 78",
+      suCorreo: "Su correo",
+      faltaHora: "Falta la hora.",
+      celularMal: "Ese móvil parece mal escrito. Revísalo.",
+      correoMal: "Ese correo parece mal escrito. Revísalo.",
+      horaPasada: "Esa hora ya ha pasado. Elige otra.",
+      leLlega: LE_LLEGA,
+    },
   },
 };
 

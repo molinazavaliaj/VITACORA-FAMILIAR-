@@ -108,6 +108,12 @@ export async function anotarEntrega(aviso: AvisoDeEntrega): Promise<void> {
     // Un "failed" que llega después de "entregado" o "leído" no es un mensaje perdido: no se avisa.
     const yaLlego = fila.entrega === 'entregado' || fila.entrega === 'leido';
     if (aviso.estado === 'fallido' && fila.narrador_id && !yaLlego) await avisarFallo(fila.narrador_id, fila.tipo ?? '?', aviso);
+    // El regalo del día elegido que no llegó: a quien compró le llega el «dásela vos».
+    if (aviso.estado === 'fallido' && fila.narrador_id && !yaLlego && fila.tipo === 'regalo_entrega') {
+      const { fallarEntregaRegalo } = await import('../flujo/regalo-entrega.js');
+      const { mandarMailFamilia } = await import('../mail/hitos.js');
+      await fallarEntregaRegalo({ db, mandarMailFamilia }, fila.narrador_id, `meta:${aviso.errorCodigo ?? 's/código'}`);
+    }
   } catch (err) {
     console.warn(`entregas: no pude anotar ${aviso.waMessageId}:`, err);
   }

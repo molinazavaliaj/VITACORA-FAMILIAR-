@@ -9,6 +9,7 @@ const mocks = vi.hoisted(() => ({
   nombre: 'Babu' as string | null,
   updates: [] as unknown[],
   avisos: [] as { clave: string; asunto: string; detalle: string }[],
+  fallosRegalo: [] as { narradorId: string; motivo: string }[],
 }));
 
 vi.mock('../src/db/cliente.js', () => ({
@@ -25,6 +26,10 @@ vi.mock('../src/db/cliente.js', () => ({
     },
   },
 }));
+vi.mock('../src/flujo/regalo-entrega.js', () => ({
+  fallarEntregaRegalo: async (_deps: unknown, narradorId: string, motivo: string) => { mocks.fallosRegalo.push({ narradorId, motivo }); },
+}));
+vi.mock('../src/mail/hitos.js', () => ({ mandarMailFamilia: async () => true }));
 vi.mock('../src/v3/avisos.js', () => ({
   avisarSocios: async (clave: string, asunto: string, detalle: string) => { mocks.avisos.push({ clave, asunto, detalle }); return true; },
 }));
@@ -39,6 +44,7 @@ beforeEach(() => {
   mocks.nombre = 'Babu';
   mocks.updates = [];
   mocks.avisos = [];
+  mocks.fallosRegalo = [];
   vi.spyOn(console, 'error').mockImplementation(() => {});
   vi.spyOn(console, 'log').mockImplementation(() => {});
 });
@@ -111,5 +117,22 @@ describe('qué dice el aviso según el código de Meta', () => {
   });
   it('sin código igual avisa', () => {
     expect(avisoDeEntregaFallida(base).detalle).toContain('sin código');
+  });
+});
+
+describe('el regalo del día elegido que Meta no entregó', () => {
+  it('anota el fallo del regalo con el código de Meta (y a quien compró le llega el «dásela vos»)', async () => {
+    mocks.fila = { id: 'e1', entrega: 'enviado', narrador_id: NID, tipo: 'regalo_entrega' };
+    await anotarEntrega(fallo(131026));
+    expect(mocks.fallosRegalo).toEqual([{ narradorId: NID, motivo: 'meta:131026' }]);
+  });
+  it('un fallo de otro mensaje no toca el regalo', async () => {
+    await anotarEntrega(fallo(131026));
+    expect(mocks.fallosRegalo).toEqual([]);
+  });
+  it('un fallo que llega después de entregado no cuenta', async () => {
+    mocks.fila = { id: 'e1', entrega: 'entregado', narrador_id: NID, tipo: 'regalo_entrega' };
+    await anotarEntrega(fallo(131026));
+    expect(mocks.fallosRegalo).toEqual([]);
   });
 });

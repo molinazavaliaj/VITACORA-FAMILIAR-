@@ -50,6 +50,19 @@ export const PLANTILLAS_V3: Readonly<Record<'es-AR' | 'es-ES' | 'ca', { pregunta
 };
 
 /**
+ * La plantilla del regalo que llega solo el día elegido (spec 2026-10-10), una
+ * por idioma. La carga Joaquín en Meta (textos en docs/regalo/dia-de-entrega-textos.md,
+ * tanda 3): cuerpo {{1}} = como_le_dicen, {{2}} = quien regala; botón de URL
+ * con sufijo {{1}} = código. Sale solo si WA_PLANTILLAS_V3_LISTAS incluye
+ * `<idioma>:regalo_entrega`.
+ */
+export const PLANTILLA_REGALO_ENTREGA: Readonly<Record<'es-AR' | 'es-ES' | 'ca', PlantillaV3>> = {
+  'es-AR': { nombre: 'regalo_entrega_vos', idiomaMeta: 'es' },
+  'es-ES': { nombre: 'regalo_entrega_es_es', idiomaMeta: 'es_ES' },
+  ca: { nombre: 'regalo_entrega_ca', idiomaMeta: 'ca' },
+};
+
+/**
  * ¿Los narradores NUEVOS entran a la entrevista V3? (spec 2026-10-07). Se
  * prende en Railway con V3_PARA_NUEVOS=1 cuando Naza lo diga; apagado, el alta
  * es la de siempre. Se lee en el momento (no al arrancar), como bienvenidaPideVoz.

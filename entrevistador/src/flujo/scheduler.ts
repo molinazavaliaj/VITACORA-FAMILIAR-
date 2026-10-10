@@ -285,6 +285,26 @@ export async function tick(ahora: Date = new Date()): Promise<void> {
     console.error('scheduler: falló el recordatorio de regalos', err);
   }
 
+  // Gift card: el regalo que llega solo el día elegido (spec 2026-10-10). El
+  // tick corre a las :00, así que sale a la hora en punto. Aislado como el de arriba.
+  try {
+    const { entregarRegalos } = await import('./regalo-entrega.js');
+    const { mandarMail, mandarMailFamilia } = await import('../mail/hitos.js');
+    const { enviarPlantilla } = await import('../whatsapp/enviar.js');
+    const listas = (process.env.WA_PLANTILLAS_V3_LISTAS ?? '').split(',').map((s) => s.trim());
+    await entregarRegalos({
+      db,
+      mandarMail,
+      mandarMailFamilia,
+      enviarPlantilla: (tel, nombre, variables, idiomaMeta, o) => enviarPlantilla(tel, nombre, variables, idiomaMeta, o),
+      urlBase: process.env.URL_BASE ?? 'https://www.vitacorafamiliar.com',
+      numeroPublico: (process.env.WHATSAPP_NUMERO_PUBLICO ?? '').replace(/\D/g, '') || null,
+      plantillaLista: (idioma) => listas.includes(`${idioma}:regalo_entrega`),
+    }, ahora);
+  } catch (err) {
+    console.error('scheduler: falló la entrega de regalos del día', err);
+  }
+
   // El latido, último y con su try adentro: si no se puede anotar que
   // estamos vivos, el tick no se cae por eso.
   await anotarLatido('entrevistador', { hora: ahora.toISOString() });

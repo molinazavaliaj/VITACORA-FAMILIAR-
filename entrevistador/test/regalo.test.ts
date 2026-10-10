@@ -5,6 +5,16 @@ import { canjearRegalo, mandarBienvenidaDeRegalo, recordarRegalos, reiniciarLimi
 import { AVISOS, RECORDATORIO, TEXTOS_REGALO_BOT } from '../src/flujo/regalo-textos.js';
 import { bienvenidaDeRegalo } from '../src/flujo/regalo-arranque.js';
 
+/** Un cliente donde toda consulta a `tabla` (lectura o escritura) da `error`; las demás van a la base falsa. */
+function conTablaRota(base: ReturnType<typeof crearBaseFalsa>, tabla: string, error: { code: string; message: string }) {
+  const rota: any = new Proxy({}, {
+    get: (_t, prop) => prop === 'then'
+      ? (ok: any, ko: any) => Promise.resolve({ data: null, error }).then(ok, ko)
+      : () => rota,
+  });
+  return { from: (t: string) => (t === tabla ? rota : base.cliente.from(t)) } as any;
+}
+
 const TEL = '+5491155551234';
 beforeEach(() => reiniciarLimiteDeCodigos());
 function armar(o: { estado?: string; usado_at?: string | null; usado_por_telefono?: string | null; contexto?: Record<string, unknown>; zona_horaria?: string } = {}) {
@@ -100,11 +110,7 @@ describe('canjearRegalo', () => {
 describe('canjearRegalo: arreglos de la revisión', () => {
   it('sin la tabla regalos, con la forma de PostgREST (PGRST205), se queda callado', async () => {
     const { base, deps, enviados } = armar();
-    const sinTabla = {
-      select: () => sinTabla, eq: () => sinTabla, maybeSingle: () => sinTabla,
-      then: (ok: any, ko: any) => Promise.resolve({ data: null, error: { code: 'PGRST205', message: "Could not find the table 'public.regalos' in the schema cache" } }).then(ok, ko),
-    };
-    const cliente = { from: (t: string) => (t === 'regalos' ? sinTabla : base.cliente.from(t)) } as unknown as typeof deps.db;
+    const cliente = conTablaRota(base, 'regalos', { code: 'PGRST205', message: "Could not find the table 'public.regalos' in the schema cache" });
     expect(await canjearRegalo({ ...deps, db: cliente }, { telefono: TEL, texto: 'VF-7K3M2Q' })).toBe('sin_codigo');
     expect(enviados).toEqual([]);
   });
@@ -330,5 +336,61 @@ describe('recordarRegalos', () => {
     const db = { from: () => ({ select: () => ({ is: () => ({ is: () => ({ lte: async () => ({ data: null, error: { code: 'PGRST205', message: 'no table' } }) }) }) }) }) };
     expect(await recordarRegalos({ ...deps, db: db as never }, ahora)).toBe(0);
     expect(deps.mandarMail).not.toHaveBeenCalled();
+  });
+});
+
+// El regalo llega solo el día elegido (spec 2026-10-10): si se le mandó por
+// WhatsApp, quien recibe no necesita escribir el código.
+describe('canjearRegalo sin código (el regalo le llegó por WhatsApp)', () => {
+  function armarEntrega(regalo: Record<string, unknown> = {}) {
+    const base = crearBaseFalsa({
+      narradores: [{ id: 'n1', familia_id: 'f1', nombre: 'Héctor', como_le_dicen: 'abuelo', telefono_whatsapp: null, estado: 'regalo_pendiente', contexto: { regalo: true, trato: 'vos', genero: 'varon' }, zona_horaria: 'America/Argentina/Buenos_Aires' }],
+      regalos: [{
+        id: 'r1', codigo: 'VF-7K3M2Q', narrador_id: 'n1', pedido_id: 'p1', quien_regala: 'Lucía', mensaje: 'Te quiero', usado_at: null, usado_por_telefono: null,
+        entrega_canal: 'whatsapp', entrega_contacto: '+5491155551234', entrega_enviada_at: '2026-12-24T13:00:00Z', entrega_fallo: null,
+        ...regalo,
+      }],
+      envios: [],
+    });
+    const enviados: { tel: string; texto: string }[] = [];
+    const deps = { db: base.cliente, enviarTexto: async (tel: string, texto: string) => { enviados.push({ tel, texto }); return `wa-${enviados.length}`; } };
+    return { base, deps, enviados };
+  }
+
+  it('contesta «hola» desde el número al que se le mandó: canjea y le llega la bienvenida', async () => {
+    const { base, deps, enviados } = armarEntrega();
+    expect(await canjearRegalo(deps, { telefono: '+5491155551234', texto: 'hola' })).toBe('canjeado');
+    expect(base.tablas.narradores[0]).toMatchObject({ telefono_whatsapp: '+5491155551234', estado: 'invitado' });
+    expect(enviados[0].texto).toBe(bienvenidaDeRegalo('es-AR', { nombre: 'abuelo', genero: 'varon' }));
+  });
+  it('una palabra que parece código («buenas») no le gana: canjea igual', async () => {
+    const { deps } = armarEntrega();
+    expect(await canjearRegalo(deps, { telefono: '+5491155551234', texto: 'buenas' })).toBe('canjeado');
+  });
+  it('un audio (sin texto) también canjea', async () => {
+    const { deps } = armarEntrega();
+    expect(await canjearRegalo(deps, { telefono: '+5491155551234', texto: '' })).toBe('canjeado');
+  });
+  it('Meta lo manda sin el 9: canjea igual', async () => {
+    const { deps } = armarEntrega();
+    expect(await canjearRegalo(deps, { telefono: '+541155551234', texto: 'hola' })).toBe('canjeado');
+  });
+  it('otro número que dice «hola»: nada', async () => {
+    const { deps, enviados } = armarEntrega();
+    expect(await canjearRegalo(deps, { telefono: '+5491199998888', texto: 'hola' })).toBe('sin_codigo');
+    expect(enviados).toEqual([]);
+  });
+  it('todavía no se mandó, o falló, o fue por mail: hace falta el código', async () => {
+    for (const regalo of [{ entrega_enviada_at: null }, { entrega_fallo: 'meta:131026' }, { entrega_fallo: 'enviando' }, { entrega_canal: 'mail', entrega_contacto: 'a@b.com' }]) {
+      const { deps } = armarEntrega(regalo);
+      expect(await canjearRegalo(deps, { telefono: '+5491155551234', texto: 'hola' })).toBe('sin_codigo');
+    }
+  });
+  it('sin la migración (columna desconocida): la búsqueda por número no rompe nada', async () => {
+    const { base, deps, enviados } = armarEntrega();
+    const db = conTablaRota(base, 'regalos', { code: '42703', message: 'column regalos.entrega_canal does not exist' });
+    // Solo con la búsqueda rota no se puede canjear por código (la misma tabla), pero no tira ni contesta.
+    expect(await canjearRegalo({ ...deps, db }, { telefono: '+5491155551234', texto: 'hola' })).toBe('sin_codigo');
+    expect(enviados).toEqual([]);
   });
 });
