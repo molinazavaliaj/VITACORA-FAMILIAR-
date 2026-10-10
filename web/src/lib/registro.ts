@@ -206,7 +206,7 @@ export function validarYConstruir(body: RegistroBody, opciones: { sinTelefono?: 
       return {
         ok: false,
         status: 400,
-        mensaje: 'El WhatsApp no parece un número válido. Revísalo e intenta de nuevo.',
+        mensaje: 'El WhatsApp no parece un número válido. Revisalo e intentá de nuevo.',
       };
     }
   }

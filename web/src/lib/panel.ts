@@ -207,7 +207,7 @@ export async function narradorDeLaSesion(
   } = await sesion.auth.getUser();
   if (errorSesion || !user) return { ok: false, status: 401, error: "No hay sesión activa." };
 
-  const generico = opciones.mensajeError ?? "No pudimos completar la acción. Intenta de nuevo.";
+  const generico = opciones.mensajeError ?? "No pudimos completar la acción. Intentá de nuevo.";
   const pedido = params?.get("narrador");
 
   let historia: Historia | null = null;
