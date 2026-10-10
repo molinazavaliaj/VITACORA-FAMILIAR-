@@ -103,9 +103,20 @@ async function enviar(para: string, asunto: string, html: string): Promise<boole
 /**
  * Manda el mail del hito a la familia, una sola vez por narrador. Nunca tira:
  * un mail que falla no puede frenar la entrevista.
+ *
+ * Una sola vez aunque lleguen dos llamadas casi juntas (dos mensajes del
+ * narrador): el hito se TOMA en la base antes de mandar, con un UPDATE
+ * condicional (`contexto` que todavía no contiene el hito en mailsEnviados).
+ * Postgres reevalúa ese WHERE sobre la fila ya escrita por la otra llamada, así
+ * que solo una recibe la fila de vuelta y manda. Si el envío falla, el hito se
+ * suelta para que un próximo intento lo mande. Sin DDL.
  */
 export async function mandarHito(n: NarradorParaMail, hito: Hito): Promise<void> {
   try {
+    if (!process.env.RESEND_API_KEY) {
+      console.warn(`mail: falta RESEND_API_KEY, no se manda el hito '${hito}' de ${n.id}.`);
+      return;
+    }
     // Se relee el contexto: otro módulo puede haberlo escrito entre medio.
     const { data: fresco } = await db.from('narradores').select('contexto').eq('id', n.id).maybeSingle();
     const contexto = { ...((fresco as { contexto?: Record<string, any> } | null)?.contexto ?? n.contexto) };
@@ -120,14 +131,40 @@ export async function mandarHito(n: NarradorParaMail, hito: Hito): Promise<void>
       regalo: contexto.regalo === true,
       trato: tratoDeComprador((familia as { region?: unknown } | null)?.region),
     });
-    const mandado = await enviar(para, asunto, envoltorio(cuerpo));
-    if (!mandado) return;
 
+    // Tomar el hito. Si la base falla acá, no se manda: mejor un mail de menos
+    // que uno repetido (queda en el log).
     contexto.mailsEnviados = [...enviados, hito];
-    n.contexto = { ...n.contexto, mailsEnviados: contexto.mailsEnviados };
-    await db.from('narradores').update({ contexto }).eq('id', n.id);
+    const marca = JSON.stringify({ mailsEnviados: [hito] });
+    const { data: tomado, error: errorTomar } = await db.from('narradores')
+      .update({ contexto }).eq('id', n.id).not('contexto', 'cs', marca).select('id');
+    if (errorTomar) throw new Error(`no pude anotar el hito antes de mandarlo: ${errorTomar.message}`);
+    if (!Array.isArray(tomado) || tomado.length === 0) return; // otra llamada ya lo tomó
+
+    let mandado = false;
+    try {
+      mandado = await enviar(para, asunto, envoltorio(cuerpo));
+    } finally {
+      if (!mandado) await soltarHito(n.id, hito);
+    }
+    if (mandado) n.contexto = { ...n.contexto, mailsEnviados: contexto.mailsEnviados };
   } catch (err) {
     console.error(`mail: falló el hito '${hito}' de ${n.id}:`, err);
+  }
+}
+
+/** Saca el hito de mailsEnviados (el envío falló): así otro intento lo puede mandar. Nunca tira. */
+async function soltarHito(narradorId: string, hito: Hito): Promise<void> {
+  try {
+    const { data: fresco } = await db.from('narradores').select('contexto').eq('id', narradorId).maybeSingle();
+    const contexto = { ...((fresco as { contexto?: Record<string, any> } | null)?.contexto ?? {}) };
+    const enviados: string[] = Array.isArray(contexto.mailsEnviados) ? contexto.mailsEnviados : [];
+    contexto.mailsEnviados = enviados.filter((h) => h !== hito);
+    const { error } = await db.from('narradores')
+      .update({ contexto }).eq('id', narradorId).contains('contexto', { mailsEnviados: [hito] }).select('id');
+    if (error) throw new Error(error.message);
+  } catch (err) {
+    console.error(`mail: no pude soltar el hito '${hito}' de ${narradorId}; queda como mandado:`, err);
   }
 }
 

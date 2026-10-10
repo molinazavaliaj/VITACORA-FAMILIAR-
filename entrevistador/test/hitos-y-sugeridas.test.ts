@@ -14,9 +14,22 @@ vi.mock('../src/db/cliente.js', () => {
   function builder(tabla: string) {
     const b: any = { _op: 'select' };
     b.select = () => b; b.eq = () => b; b.limit = () => b; b.order = () => b; b.is = () => b;
-    b.update = (p: any) => { b._op = 'update'; estado.updates.push({ tabla, p }); return b; };
+    // Filtros de jsonb (cs = contiene): se evalúan contra el contexto «de la base» al resolver,
+    // como el WHERE de un UPDATE en Postgres (que se reevalúa sobre la fila ya escrita por otro).
+    b.not = (col: string, op: string, v: string) => { if (col === 'contexto' && op === 'cs') b._noContiene = JSON.parse(v); return b; };
+    b.contains = (col: string, v: any) => { if (col === 'contexto') b._contiene = v; return b; };
+    b.update = (p: any) => { b._op = 'update'; b._p = p; return b; };
+    const contiene = (ctx: any, sub: any) => (sub.mailsEnviados as string[]).every((h) => Array.isArray(ctx?.mailsEnviados) && ctx.mailsEnviados.includes(h));
     const resolver = () => {
-      if (b._op === 'update') return { data: null, error: null };
+      if (b._op === 'update') {
+        if (tabla === 'narradores') {
+          if (b._noContiene && contiene(estado.contexto, b._noContiene)) return { data: [], error: null };
+          if (b._contiene && !contiene(estado.contexto, b._contiene)) return { data: [], error: null };
+          estado.contexto = b._p.contexto;
+        }
+        estado.updates.push({ tabla, p: b._p });
+        return { data: [{ id: 'n1' }], error: null };
+      }
       if (tabla === 'narradores') return { data: { contexto: estado.contexto } };
       if (tabla === 'familias') return { data: estado.email ? { email: estado.email, region: estado.region } : null };
       return { data: null };
@@ -87,6 +100,7 @@ describe('mails de hitos', () => {
     await mandarHito({ ...n, contexto: { regalo: true } }, 'acepto');
     expect(JSON.parse(estado.fetch.mock.calls[0][1].body).subject).toBe('Roberto ha dicho que sí');
     estado.region = 'AR';
+    estado.contexto = { regalo: true }; // el mock guarda lo anotado: se limpia para mandar de nuevo
     await mandarHito({ ...n, contexto: { regalo: true } }, 'acepto');
     expect(JSON.parse(estado.fetch.mock.calls[1][1].body).html).toContain('ya le mandamos la primera pregunta');
     estado.contexto = {};
@@ -120,6 +134,32 @@ describe('mails de hitos', () => {
     estado.email = 'martina@mail.com';
     estado.fetch.mockRejectedValue(new Error('caída'));
     await expect(mandarHito({ ...n, contexto: {} }, 'acepto')).resolves.toBeUndefined();
+  });
+
+  it('dos llamadas casi juntas mandan el mail UNA sola vez (el hito se toma en la base antes de mandar)', async () => {
+    estado.contexto = { regalo: true };
+    await Promise.all([
+      mandarHito({ ...n, contexto: { regalo: true } }, 'acepto'),
+      mandarHito({ ...n, contexto: { regalo: true } }, 'acepto'),
+    ]);
+    expect(estado.fetch).toHaveBeenCalledTimes(1);
+    expect(estado.contexto.mailsEnviados).toEqual(['acepto']);
+    expect(estado.contexto.regalo).toBe(true);
+  });
+
+  it('si Resend falla, el hito se suelta para que un próximo intento lo mande', async () => {
+    estado.contexto = { mailsEnviados: ['primera'] };
+    estado.fetch.mockRejectedValueOnce(new Error('caída'));
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      await mandarHito({ ...n, contexto: {} }, 'acepto');
+    } finally {
+      error.mockRestore();
+    }
+    expect(estado.contexto.mailsEnviados).toEqual(['primera']);
+    await mandarHito({ ...n, contexto: {} }, 'acepto');
+    expect(estado.fetch).toHaveBeenCalledTimes(2);
+    expect(estado.contexto.mailsEnviados).toEqual(['primera', 'acepto']);
   });
 });
 
