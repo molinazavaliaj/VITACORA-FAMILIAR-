@@ -294,9 +294,8 @@ async function manejarConsentimiento(narrador: Narrador, m: MensajeEntrante): Pr
         + 'Si no escribe, se le puede escribir a mano para que conteste. '
         + 'Sin mensaje suyo y con la ficha completa, el scheduler lo intenta a su hora preferida: en es-AR la primera pregunta '
         + 'sale por plantilla; en es-ES y ca no hay plantilla V3 aprobada y queda en la cola hasta que el narrador escriba. '
-        + 'Por ese camino el mail «dijo que sí» no sale solo: mandarlo a mano cuando la pregunta haya salido. '
         + `También sirve npm run v3-pasar -- ${narrador.id} --genero <varon|mujer|otro> [--idioma es-ES|ca] --aplicar `
-        + "(acepta narradores en 'acepto'), pero no completa contexto.genero y no manda nada, ni el mail: crea la fila V3 "
+        + "(acepta narradores en 'acepto'), pero no completa contexto.genero y no manda nada: crea la fila V3 "
         + 'y la primera pregunta sale en su tanda, con la misma espera por la plantilla en es-ES y ca. Mejor completar la ficha.',
     );
     return;
@@ -369,6 +368,8 @@ async function esV3OAvisar(narrador: Narrador, m: MensajeEntrante): Promise<bool
  * La primera pregunta de un regalo (alta V3 con la ventana abierta) y, solo si
  * salió, el mail «dijo que sí» a quien regaló (dice que la 1 ya salió;
  * mandarHito no lo repite). Si no sale o tira, queda en el log y no va el mail.
+ * Si OR1 quedó en la cola (Meta la rechazó), el mail lo manda drenar cuando la
+ * saque (v3/enviar.ts); si ya salió por ahí, mandarHito no lo repite.
  */
 async function primeraDelRegalo(narrador: Narrador, desde: string): Promise<boolean> {
   let salio = false;
@@ -379,7 +380,7 @@ async function primeraDelRegalo(narrador: Narrador, desde: string): Promise<bool
     return false;
   }
   if (!salio) {
-    console.error(`${desde}: la 1 del regalo ${narrador.id} no salió (alta V3 frenada); no va el mail «dijo que sí»`);
+    console.error(`${desde}: la 1 del regalo ${narrador.id} no salió (alta V3 frenada, o quedó en la cola); no va el mail «dijo que sí» ahora`);
     return false;
   }
   await mandarHito(narrador, 'acepto');

@@ -92,10 +92,12 @@ export async function drenar(deps: DepsV3, narradorId: string): Promise<Resultad
   const inicio = deps.ahora();
   const tomada = await tomarTurno(deps.db, narradorId, inicio);
   if (!tomada) return 'ocupado';
+  let mailAcepto = false;
   try {
-    const { data, error } = await deps.db.from('narradores').select('id,telefono_whatsapp').eq('id', narradorId).maybeSingle();
+    const { data, error } = await deps.db.from('narradores').select('id,telefono_whatsapp,contexto').eq('id', narradorId).maybeSingle();
     if (error || !data) throw new Error(`drenar: no pude leer el narrador ${narradorId}: ${error?.message ?? 'no existe'}`);
     const telefono = (data as { telefono_whatsapp: string }).telefono_whatsapp;
+    const contexto = (data as { contexto?: Record<string, unknown> | null }).contexto ?? {};
     let fila = tomada;
     let resultado: ResultadoDrenar = 'vacio';
     while (fila.estado.salientes.length > 0) {
@@ -134,10 +136,17 @@ export async function drenar(deps: DepsV3, narradorId: string): Promise<Resultad
       fila = r.fila;
       resultado = 'enviado';
     }
+    // El mail «dijo que sí» de un regalo dice que la primera pregunta ya salió
+    // (10/10): sale cuando la cola se vacía después de mandar algo, o sea cuando
+    // OR1 salió de verdad, en el alta o más tarde (el narrador escribió, o un
+    // tick la reintentó). mandarHito lo manda una sola vez (toma el hito antes).
+    mailAcepto = resultado === 'enviado' && contexto.regalo === true
+      && !(Array.isArray(contexto.mailsEnviados) && contexto.mailsEnviados.includes('acepto'));
     if (fila.estado.terminada) await completar(deps, narradorId);
     return resultado;
   } finally {
     await soltarTurno(deps.db, narradorId, tomada);
+    if (mailAcepto) await deps.hito(narradorId, 'acepto');
   }
 }
 

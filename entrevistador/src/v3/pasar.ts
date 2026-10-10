@@ -15,7 +15,7 @@ import { fechaLocal } from '../flujo/tiempo.js';
 import type { DepsV3 } from './deps.js';
 import { drenar } from './enviar.js';
 import equivalenciasJson from './equivalencias.json' with { type: 'json' };
-import { conReintento, crearFila, esNarradorV3 } from './estado.js';
+import { conReintento, crearFila, esNarradorV3, leerFila } from './estado.js';
 import { leerFamilia } from './filas.js';
 import { preguntaPorId } from './nucleo/entrevista/banco.js';
 import type { PreguntaFamilia } from './nucleo/entrevista/flujo.js';
@@ -373,8 +373,12 @@ export function argumentosDePase(args: string[]): ArgsPase {
 
 // ---------------------------------------------------------------- nuevos
 
-/** Crea la fila (si no está) y manda la primera tanda: OR1 con M1. Sin BIEN: ya recibió la bienvenida. */
-export async function arrancarV3(deps: DepsV3, n: NarradorV3, idioma: Idioma, ficha: FichaFila, o: { ventanaAbierta: boolean }): Promise<void> {
+/**
+ * Crea la fila (si no está) y manda la primera tanda: OR1 con M1. Sin BIEN: ya recibió la bienvenida.
+ * Devuelve true si la cola quedó vacía (OR1 salió: Meta aceptó el envío) y false
+ * si OR1 sigue en la cola (Meta la rechazó, falta la plantilla, u otro proceso la está mandando).
+ */
+export async function arrancarV3(deps: DepsV3, n: NarradorV3, idioma: Idioma, ficha: FichaFila, o: { ventanaAbierta: boolean }): Promise<boolean> {
   const ahora = deps.ahora();
   const hoy = fechaLocal(ahora, n.zona_horaria);
   const inicial: EstadoV3 = { ...estadoInicial((await leerFamilia(deps.db, n.id)) ?? []), ...(o.ventanaAbierta ? { ultimoEntranteAt: ahora.toISOString() } : {}) };
@@ -388,9 +392,17 @@ export async function arrancarV3(deps: DepsV3, n: NarradorV3, idioma: Idioma, fi
   // El reloj solo trabaja a los activos.
   await deps.db.from('narradores').update({ estado: 'activo' }).eq('id', n.id).eq('estado', 'acepto');
   await drenar(deps, n.id);
+  // Si la base falla al releer, cuenta como en la cola: el mail del regalo lo manda drenar igual.
+  const fila = await leerFila(deps.db, n.id).catch(() => null);
+  return fila !== null && fila.estado.salientes.length === 0;
 }
 
-export async function altaNuevo(deps: DepsV3, n: NarradorV3, o: { ventanaAbierta: boolean }): Promise<'mandada' | 'frenada'> {
+/**
+ * 'mandada': OR1 salió. 'en-cola': la fila está creada pero OR1 sigue en la cola
+ * (sale cuando el narrador escriba o en un tick; drenar manda entonces el mail
+ * «dijo que sí» de un regalo). 'frenada': sin género o idioma, no se creó nada.
+ */
+export async function altaNuevo(deps: DepsV3, n: NarradorV3, o: { ventanaAbierta: boolean }): Promise<'mandada' | 'en-cola' | 'frenada'> {
   const genero = n.contexto?.genero;
   if (!esGenero(genero)) {
     await deps.avisar(`alta-sin-genero-${n.id}`, `Alta V3 frenada: ${n.como_le_dicen} no tiene género`,
@@ -405,6 +417,5 @@ export async function altaNuevo(deps: DepsV3, n: NarradorV3, o: { ventanaAbierta
     return 'frenada';
   }
   const regala = await quienRegala(deps.db, n.familia_id);
-  await arrancarV3(deps, n, idioma, fichaDeNarrador(n, genero, regala), o);
-  return 'mandada';
+  return (await arrancarV3(deps, n, idioma, fichaDeNarrador(n, genero, regala), o)) ? 'mandada' : 'en-cola';
 }

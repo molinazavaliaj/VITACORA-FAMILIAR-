@@ -5,6 +5,7 @@ import { leerFila } from '../../src/v3/estado.js';
 import { altaNuevo, aplicarPase, fichaDeNarrador, bloqueosDePase, argumentosDePase, describirPase, leerEquivalencias, normalizarPregunta, planDePase } from '../../src/v3/pasar.js';
 import { tocaM8, tocaTanda, trabajarNarrador } from '../../src/v3/reloj.js';
 import { procesarEntranteV3 } from '../../src/v3/entrante.js';
+import { drenar } from '../../src/v3/enviar.js';
 import { renderizar } from '../../src/v3/nucleo/entrevista/texto.js';
 import { preguntaPorId } from '../../src/v3/nucleo/entrevista/banco.js';
 import { siguientePregunta } from '../../src/v3/nucleo/entrevista/flujo.js';
@@ -384,6 +385,74 @@ describe('el alta de un narrador nuevo', () => {
     const { deps, avisos } = preparar(ctx);
     expect(await altaNuevo(deps, nuevo(ctx), { ventanaAbierta: true })).toBe('frenada');
     expect(avisos[0].clave).toBe('alta-idioma-n1');
+  });
+});
+
+// El mail «dijo que sí» de un regalo dice que la primera pregunta ya salió
+// (robustez, 10/10): altaNuevo da 'mandada' solo si OR1 de verdad salió (Meta
+// aceptó el envío). Si queda en la cola (Meta la rechazó, o no hay plantilla
+// aprobada en es-ES/ca), da 'en-cola' y el mail sale cuando drenar la saca.
+describe('el alta de un regalo y el mail «dijo que sí»', () => {
+  const AHORA = new Date('2026-10-08T13:00:00Z');
+  const narrador = (contexto: Record<string, unknown>): NarradorV3 => ({
+    id: 'n1', familia_id: 'f1', como_le_dicen: 'Prueba', telefono_whatsapp: '+5491100000000', hora_preferida: '10:00:00',
+    zona_horaria: 'America/Argentina/Buenos_Aires', contexto, estado: 'acepto', dia_actual: 0, ultima_respuesta_at: null,
+  });
+  const preparar = (contexto: Record<string, unknown>, o: { fallarEnvios?: number } = {}) => {
+    const base = crearBaseFalsa({ familias: [{ id: 'f1', nombre: 'Laura' }], narradores: [{ ...narrador(contexto) }] });
+    return { base, ...depsDePrueba(base, { ahora: AHORA, ...o }) };
+  };
+  /** El narrador escribe: se abre la ventana de 24 h. */
+  const abrirVentana = (base: ReturnType<typeof crearBaseFalsa>) => {
+    base.tablas.entrevistas_v3[0].estado = { ...base.tablas.entrevistas_v3[0].estado, ultimoEntranteAt: AHORA.toISOString() };
+  };
+
+  it('OR1 sale: «mandada» y el mail sale una vez', async () => {
+    const ctx = { genero: 'mujer', regalo: true, idioma: 'es-ES' };
+    const { deps, enviados, hitos } = preparar(ctx);
+    expect(await altaNuevo(deps, narrador(ctx), { ventanaAbierta: true })).toBe('mandada');
+    expect(enviados).toHaveLength(1);
+    expect(hitos).toEqual(['n1:acepto']);
+  });
+
+  it('Meta rechaza OR1: «en-cola», sin mail; cuando sale en el tick siguiente, sale el mail', async () => {
+    const ctx = { genero: 'mujer', regalo: true, idioma: 'ca' };
+    const { deps, base, enviados, hitos } = preparar(ctx, { fallarEnvios: 1 });
+    expect(await altaNuevo(deps, narrador(ctx), { ventanaAbierta: true })).toBe('en-cola');
+    expect(enviados).toEqual([]);
+    expect(hitos).toEqual([]);
+    expect(await drenar(deps, 'n1')).toBe('enviado');
+    expect(enviados).toHaveLength(1);
+    expect(hitos).toEqual(['n1:acepto']);
+    expect((await leerFila(base.cliente, 'n1'))!.estado.salientes).toEqual([]);
+  });
+
+  it('es-ES fuera de la ventana y sin plantilla: «en-cola», sin mail; cuando el narrador escribe y sale, sale el mail', async () => {
+    const ctx = { genero: 'varon', regalo: true, idioma: 'es-ES' };
+    const { deps, base, enviados, hitos, avisos } = preparar(ctx);
+    expect(await altaNuevo(deps, narrador(ctx), { ventanaAbierta: false })).toBe('en-cola');
+    expect(enviados).toEqual([]);
+    expect(avisos.map((a) => a.clave)).toContain('plantilla-es-ES-pregunta');
+    expect(hitos).toEqual([]);
+    abrirVentana(base);
+    await drenar(deps, 'n1');
+    expect(enviados).toHaveLength(1);
+    expect(hitos).toEqual(['n1:acepto']);
+  });
+
+  it('un regalo que ya tiene el mail anotado no lo pide de nuevo', async () => {
+    const ctx = { genero: 'mujer', regalo: true, mailsEnviados: ['acepto'] };
+    const { deps, hitos } = preparar(ctx);
+    expect(await altaNuevo(deps, narrador(ctx), { ventanaAbierta: true })).toBe('mandada');
+    expect(hitos).toEqual([]);
+  });
+
+  it('un nuevo de la V3 que no es regalo: drenar no manda el mail «dijo que sí» (sale por el camino de siempre)', async () => {
+    const ctx = { genero: 'mujer', bienvenidaV3: true };
+    const { deps, hitos } = preparar(ctx, { fallarEnvios: 1 });
+    expect(await altaNuevo(deps, narrador(ctx), { ventanaAbierta: true })).toBe('en-cola');
+    await drenar(deps, 'n1');
+    expect(hitos).toEqual([]);
   });
 });
 
