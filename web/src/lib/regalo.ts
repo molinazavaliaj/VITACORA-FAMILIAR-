@@ -6,8 +6,10 @@
 import { randomInt } from "node:crypto";
 import { textosAbuelo, type IdiomaRegalo } from "./regalo-textos";
 import {
-  GENEROS, MENSAJE_MAXIMO, MENSAJE_FECHA_INVALIDA, MENSAJE_IDIOMA_INVALIDO, errorDeFechaEntrega, esIdiomaRegalo, type Genero,
+  CANALES_ENTREGA, GENEROS, HORAS_ENTREGA, MENSAJE_MAXIMO, MENSAJE_FECHA_INVALIDA, MENSAJE_IDIOMA_INVALIDO,
+  errorDeFechaEntrega, esIdiomaRegalo, instanteDeEntrega, zonaDeIdioma, type CanalEntrega, type Genero,
 } from "./regalo-reglas";
+import { normalizarTelefono } from "./registro";
 
 /** Sin 0/O, 1/I/L: se leen mal en papel y se dictan mal por teléfono. */
 export const ALFABETO_CODIGO = "23456789ABCDEFGHJKMNPQRSTUVWXYZ";
@@ -46,12 +48,46 @@ export function numeroSinCortes(legible: string): string {
   return legible.replace(/ /g, "\u00A0");
 }
 
-/** `idioma`: en qué idioma le habla el biógrafo a quien recibe el regalo. Si no viene, es-AR. */
-export type DatosRegalo = { mensaje: string; fechaEntrega: string | null; genero: Genero; idioma: IdiomaRegalo };
+/** Mandárselo solo el día elegido (spec 2026-10-10): canal, correo o celular E.164, hora y zona. */
+export type EntregaRegalo = { canal: CanalEntrega; contacto: string; hora: number; zona: string };
 
+/** `idioma`: en qué idioma le habla el biógrafo a quien recibe el regalo. Si no viene, es-AR. */
+export type DatosRegalo = {
+  mensaje: string; fechaEntrega: string | null; genero: Genero; idioma: IdiomaRegalo; entrega: EntregaRegalo | null;
+};
+
+const CORREO_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+const E164_RE = /^\+\d{8,15}$/;
+
+/** La entrega pedida, ya validada; o el mensaje del problema. */
+function validarEntrega(
+  crudo: unknown, fechaEntrega: string | null, idioma: IdiomaRegalo, hoy: Date, whatsapp: boolean,
+): { ok: true; entrega: EntregaRegalo } | { ok: false; mensaje: string } {
+  const e = (crudo && typeof crudo === "object" ? crudo : {}) as Record<string, unknown>;
+  if (!(CANALES_ENTREGA as readonly unknown[]).includes(e.canal)) return { ok: false, mensaje: "Ese canal no está disponible." };
+  const canal = e.canal as CanalEntrega;
+  if (canal === "whatsapp" && !whatsapp) return { ok: false, mensaje: "Ese canal no está disponible." };
+  if (!fechaEntrega) return { ok: false, mensaje: "Falta la fecha." };
+  if (typeof e.hora !== "number" || !HORAS_ENTREGA.includes(e.hora)) return { ok: false, mensaje: "Falta la hora." };
+  const crudoContacto = typeof e.contacto === "string" ? e.contacto.trim() : "";
+  let contacto: string;
+  if (canal === "mail") {
+    contacto = crudoContacto.toLowerCase();
+    if (!CORREO_RE.test(contacto)) return { ok: false, mensaje: "Ese correo parece mal escrito." };
+  } else {
+    contacto = crudoContacto ? normalizarTelefono(crudoContacto, idioma === "es-AR" ? "AR" : "ES") : "";
+    if (!E164_RE.test(contacto)) return { ok: false, mensaje: "Ese celular parece mal escrito." };
+  }
+  const zona = zonaDeIdioma(idioma);
+  if (instanteDeEntrega(fechaEntrega, e.hora, zona).getTime() <= hoy.getTime()) return { ok: false, mensaje: "Esa hora ya pasó." };
+  return { ok: true, entrega: { canal, contacto, hora: e.hora, zona } };
+}
+
+/** `o.whatsapp`: si se puede elegir WhatsApp (REGALO_ENTREGA_WHATSAPP en Vercel). */
 export function validarRegalo(
   crudo: unknown,
   hoy: Date,
+  o: { whatsapp?: boolean } = {},
 ): { ok: true; regalo: DatosRegalo } | { ok: false; mensaje: string } {
   const r = (crudo && typeof crudo === "object" ? crudo : {}) as Record<string, unknown>;
   const mensaje = typeof r.mensaje === "string" ? r.mensaje.trim() : "";
@@ -72,7 +108,13 @@ export function validarRegalo(
     if (!esIdiomaRegalo(r.idioma)) return { ok: false, mensaje: MENSAJE_IDIOMA_INVALIDO };
     idioma = r.idioma;
   }
-  return { ok: true, regalo: { mensaje, fechaEntrega, genero: r.genero as Genero, idioma } };
+  let entrega: EntregaRegalo | null = null;
+  if (r.entrega !== undefined && r.entrega !== null) {
+    const v = validarEntrega(r.entrega, fechaEntrega, idioma, hoy, o.whatsapp === true);
+    if (!v.ok) return v;
+    entrega = v.entrega;
+  }
+  return { ok: true, regalo: { mensaje, fechaEntrega, genero: r.genero as Genero, idioma, entrega } };
 }
 
 /** El link a WhatsApp con el mensaje ya escrito, en el idioma del regalo. */
