@@ -31,7 +31,7 @@ bienvenida a la despedida, con cero preguntas vencidas y toda respuesta con su `
 5. Prender `VIAJE_V2_PARA_NUEVOS` solo con el OK de Naza y las bienvenidas aprobadas.
 6. Pendiente chico: el mail de hito «dijo que sí» a la familia no sale en la V2 (en un regalo puede importar).
 
-## Decisiones para confirmar con Naza
+## Decisiones (Naza dijo que sí a las 4 el 10/10)
 1. Antes del SÍ, si escribe otra cosa: se le repite la bienvenida **una vez**; después, silencio y aviso a los socios.
 2. Antes del SÍ no se guarda nada de lo que mande (la bienvenida dice que el SÍ es el permiso para guardar).
 3. La despedida (DES) con la ventana cerrada sale dentro de `mensaje_viaje_v2`, que termina con «Cuando puedas, me
