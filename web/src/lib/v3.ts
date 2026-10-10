@@ -38,7 +38,8 @@ function preguntaDe(clave: string, charla: unknown[]): string | null {
 export function respuestasV3ParaCerrar(estado: EstadoV3 | null | undefined, filas: FilaRespuestaV3[]): RespuestaV3[] {
   const respuestas = Array.isArray(estado?.respuestas) ? estado.respuestas : [];
   const charla = Array.isArray(estado?.charla) ? estado.charla : [];
-  const reservadas = new Set((Array.isArray(estado?.reservadas) ? estado.reservadas : []).filter((k) => typeof k === "string").map(claveMadre));
+  // Como en la fábrica: reservar X saca también RP~X y X~2; reservar solo RP~X deja a X.
+  const reservadas = new Set((Array.isArray(estado?.reservadas) ? estado.reservadas : []).filter((k) => typeof k === "string"));
   // Como en la fábrica: reservar X saca también RP~X y X~2; reservar solo RP~X deja a X en el libro.
   for (const f of filas) if (f.clave_v3 && f.clave_v3 === claveMadre(f.clave_v3) && f.reservada === true && !f.reservado_tramo?.trim()) reservadas.add(f.clave_v3);
   const idsPorMadre = new Map<string, string[]>();
@@ -104,10 +105,12 @@ export type PreguntaHistoriaV3 = {
 };
 export type BloqueHistoriaV3 = { nombre: string | null; preguntas: PreguntaHistoriaV3[] };
 
-// Las partes de un globo que son preguntas: del banco (OR1, CA16, ES2, OR6.2, OR6-con-apodo), repreguntas
-// (RP~X), segundas oportunidades (X~2) y las de la familia (F:…). No lo son los mensajes (M3.1) ni las
-// entradas a un bloque (EN3).
-const ES_PREGUNTA = /^(?:F:.+|(?:RP~)?(?!EN\d)[A-Z]{2,3}\d+(?:\.\d+)?(?:~\d+)?(?:-[\w-]+)?)$/;
+// Las partes de un globo que son preguntas: del banco (OR1, CA16, OR6.2, OR6-con-apodo, G1, AMH, AD2b),
+// repreguntas (RP~X), segundas oportunidades (X~2) y las de la familia (F:…). No lo son los mensajes (M3.1),
+// las entradas a un bloque (EN3), los avisos (AV11) ni la despedida (FIN).
+const FORMA_PREGUNTA = /^(?:F:.+|(?:RP~)?[A-Z]+\d*[a-z]?(?:\.\d+)?(?:~\d+)?(?:-[\w-]+)?)$/;
+const NO_ES_PREGUNTA = /^(?:M\d|EN\d|AV\d|FIN$)/;
+const esPregunta = (id: string): boolean => FORMA_PREGUNTA.test(id) && !NO_ES_PREGUNTA.test(id.replace(/^RP~/, ""));
 const sinVariante = (id: string): string => (id.startsWith("F:") ? id : id.replace(/-[\w-]+$/, ""));
 
 type GloboHistoria = { de?: string; nombre?: unknown; partes?: { id?: unknown; texto?: unknown }[] };
@@ -120,7 +123,8 @@ type GloboHistoria = { de?: string; nombre?: unknown; partes?: { id?: unknown; t
 export function historiaV3(estado: (EstadoV3 & { esperando?: string }) | null | undefined, filas: FilaHistoriaV3[]): BloqueHistoriaV3[] {
   const charla = (Array.isArray(estado?.charla) ? estado.charla : []) as GloboHistoria[];
   const contestadas = new Set((Array.isArray(estado?.respuestas) ? estado.respuestas : []).map((r) => (Array.isArray(r) ? r[0] : "")));
-  const reservadas = new Set((Array.isArray(estado?.reservadas) ? estado.reservadas : []).filter((k) => typeof k === "string").map(claveMadre));
+  // Como en la fábrica: reservar X saca también RP~X y X~2; reservar solo RP~X deja a X.
+  const reservadas = new Set((Array.isArray(estado?.reservadas) ? estado.reservadas : []).filter((k) => typeof k === "string"));
   const porClave = new Map<string, FilaHistoriaV3[]>();
   for (const f of filas) {
     if (!f.clave_v3 || f.clave_v3 === SIN_CLAVE) continue;
@@ -135,7 +139,7 @@ export function historiaV3(estado: (EstadoV3 & { esperando?: string }) | null | 
     }
     if (g?.de !== "bio" || !Array.isArray(g.partes)) continue;
     for (const p of g.partes) {
-      if (typeof p?.id !== "string" || typeof p.texto !== "string" || !ES_PREGUNTA.test(p.id)) continue;
+      if (typeof p?.id !== "string" || typeof p.texto !== "string" || !esPregunta(p.id)) continue;
       const clave = sinVariante(p.id);
       const ya = vistas.get(clave);
       if (ya) { ya.pregunta = p.texto; continue; } // la reenviada: vale la última, en su lugar de antes
@@ -146,7 +150,8 @@ export function historiaV3(estado: (EstadoV3 & { esperando?: string }) | null | 
   }
   for (const item of vistas.values()) {
     const propias = porClave.get(item.clave) ?? [];
-    item.reservada = reservadas.has(claveMadre(item.clave)) || propias.some((f) => f.reservada === true && !f.reservado_tramo?.trim());
+    // Un tramo reservado también oculta la respuesta entera: ante la duda, se muestra menos.
+    item.reservada = reservadas.has(item.clave) || reservadas.has(claveMadre(item.clave)) || propias.some((f) => f.reservada === true || !!f.reservado_tramo?.trim());
     item.respuestas = item.reservada ? [] : propias.map((f) => {
       const crudo = (f.transcripcion ?? f.texto_directo ?? "").trim();
       const boton = /⟦botón:([^⟧]*)⟧/.exec(crudo)?.[1];
@@ -157,3 +162,21 @@ export function historiaV3(estado: (EstadoV3 & { esperando?: string }) | null | 
   }
   return bloques.filter((b) => b.preguntas.length > 0);
 }
+
+/**
+ * ¿La entrevista ya llegó a la foto del final (FO1) o terminó? Las preguntas de la familia van antes de FO1:
+ * después ya no le llegan (entrevistador/src/v3/turno.ts, pasoFO1).
+ */
+export function llegoAlFinalV3(estado: (EstadoV3 & { esperando?: string; terminada?: boolean; enviados?: string[] }) | null | undefined): boolean {
+  if (!estado) return false;
+  if (estado.terminada === true || estado.esperando === "FO1") return true;
+  if (Array.isArray(estado.enviados) && estado.enviados.includes("FO1")) return true;
+  if (Array.isArray(estado.respuestas) && estado.respuestas.some((r) => Array.isArray(r) && r[0] === "FO1")) return true;
+  const charla = (Array.isArray(estado.charla) ? estado.charla : []) as GloboHistoria[];
+  return charla.some((g) => g?.de === "bio" && Array.isArray(g.partes) && g.partes.some((p) => p?.id === "FO1"));
+}
+
+/** Cuántas preguntas suyas puede sumar la familia en la V3. */
+export const MAXIMO_PREGUNTAS_FAMILIA_V3 = 10;
+/** La banda de `orden` de las preguntas de la familia V3: lejos del guion viejo (1-40) y de los objetos (101-108). */
+export const ORDEN_FAMILIA_V3 = 200;

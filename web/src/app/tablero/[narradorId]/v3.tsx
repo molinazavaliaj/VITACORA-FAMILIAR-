@@ -22,8 +22,10 @@ const MINIMO_RESPUESTAS_CIERRE_ANTICIPADO = 10;
 type Narrador = { id: string; nombre: string; como_le_dicen: string; estado: string; alerta_silencio: boolean };
 
 export function HistoriaV3({
-  n, rol, propia, bloques, fotos, usuarioId, historiasRiel, aprobado, historiaCerrada, linkPublico, invitados, ritmo, horario,
+  n, rol, propia, bloques, fotos, usuarioId, historiasRiel, aprobado, historiaCerrada, linkPublico, invitados, ritmo, horario, alFinal,
 }: {
+  /** Ya llegó a la foto del final (FO1): las preguntas de la familia ya no le llegan. */
+  alFinal: boolean;
   n: Narrador;
   rol: Rol;
   propia: boolean;
@@ -40,9 +42,10 @@ export function HistoriaV3({
 }) {
   const cerrado = ESTADOS_CERRADOS.includes(n.estado);
   const preguntas = bloques.flatMap((b) => b.preguntas);
-  const contestadas = preguntas.filter((p) => p.estado === "contestada").length;
+  // Para el cierre anticipado: solo lo que contó de verdad (con respuesta a la vista o reservado).
+  const contestadas = preguntas.filter((p) => p.respuestas.length > 0 || p.reservada).length;
   const segundosDeVoz = preguntas.flatMap((p) => p.respuestas).reduce((acc, r) => acc + (r.duracion ?? 0), 0);
-  const puedeSumar = !cerrado && PUEDE.agregarPreguntasYFotos(rol);
+  const puedeSumar = !cerrado && !alFinal && PUEDE.agregarPreguntasYFotos(rol);
   const puedeAgregarFotos = !aprobado && !historiaCerrada && PUEDE.agregarPreguntasYFotos(rol);
   const puedeCerrarAnticipado = rol === "duena" && ESTADOS_QUE_PERMITEN_CIERRE.includes(n.estado) && contestadas >= MINIMO_RESPUESTAS_CIERRE_ANTICIPADO;
   const suya = propia ? "tu" : "su";

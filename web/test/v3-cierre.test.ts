@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { claveMadre, entrevistaV3, historiaV3, respuestasV3ParaCerrar, type FilaHistoriaV3 } from "@/lib/v3";
+import { claveMadre, entrevistaV3, historiaV3, llegoAlFinalV3, respuestasV3ParaCerrar, type FilaHistoriaV3 } from "@/lib/v3";
 
 // 10/10: el cierre del libro de un narrador V3 ofrecía el guion viejo. «Qué dejar afuera» ahora lista lo que
 // contó de verdad, por pregunta, y destildar una pregunta saca todas sus filas (la fábrica la saca entera).
@@ -121,5 +121,32 @@ describe("historiaV3: la entrevista en el panel", () => {
   it("aguanta un estado vacío o roto", () => {
     expect(historiaV3(null, [])).toEqual([]);
     expect(historiaV3({ charla: "x" as never }, [])).toEqual([]);
+  });
+});
+
+describe("historiaV3: las preguntas de verdad (revisión 10/10)", () => {
+  const f = (id: string, clave: string, extra: Partial<FilaHistoriaV3> = {}): FilaHistoriaV3 => ({
+    id, clave_v3: clave, audio_path: null, transcripcion: `dicho ${id}`, texto_directo: null, duracion_segundos: null, recibido_at: "2026-10-08T10:00:00Z", ...extra,
+  });
+  it("muestra G1, AMH, AD2b y FO1; no muestra AV11, FIN, M3.1 ni EN3", () => {
+    const charla = [{ de: "bio", partes: ["G1", "AMH", "AD2b", "AV11", "FO1", "FIN", "M3.1", "EN3"].map((id) => ({ id, texto: `¿${id}?` })) }];
+    expect(historiaV3({ charla }, [])[0].preguntas.map((p) => p.clave)).toEqual(["G1", "AMH", "AD2b", "FO1"]);
+  });
+  it("un tramo reservado oculta la respuesta entera; reservar solo RP~X deja a X", () => {
+    const charla = [{ de: "bio", partes: [{ id: "CA6", texto: "¿Hermanos?" }, { id: "OR1", texto: "¿Dónde?" }, { id: "RP~OR1", texto: "¿Y?" }] }];
+    const h = historiaV3({ charla, reservadas: ["RP~OR1"] }, [f("a", "CA6", { reservado_tramo: "lo de Rubén" }), f("b", "OR1"), f("c", "RP~OR1")]);
+    const p = Object.fromEntries(h[0].preguntas.map((x) => [x.clave, x]));
+    expect(p.CA6).toMatchObject({ reservada: true, respuestas: [] });
+    expect(p.OR1).toMatchObject({ reservada: false });
+    expect(p.OR1.respuestas).toHaveLength(1);
+    expect(p["RP~OR1"]).toMatchObject({ reservada: true, respuestas: [] });
+  });
+  it("llegoAlFinalV3: con FO1 en la charla, abierta, contestada o terminada", () => {
+    expect(llegoAlFinalV3({ charla: [{ de: "bio", partes: [{ id: "OR1", texto: "x" }] }] })).toBe(false);
+    expect(llegoAlFinalV3({ charla: [{ de: "bio", partes: [{ id: "FO1", texto: "x" }] }] })).toBe(true);
+    expect(llegoAlFinalV3({ esperando: "FO1" })).toBe(true);
+    expect(llegoAlFinalV3({ respuestas: [["FO1", "⟦foto⟧"]] })).toBe(true);
+    expect(llegoAlFinalV3({ terminada: true })).toBe(true);
+    expect(llegoAlFinalV3(null)).toBe(false);
   });
 });
