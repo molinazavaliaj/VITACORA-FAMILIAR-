@@ -289,6 +289,25 @@ describe('el libro de un pedido (escribirLibroV3)', () => {
     expect(tablas.pedidos[0].estado).toBe('entregado');
   });
 
+  it('las correcciones que escribió la familia al cerrar (edicion.correcciones) también van a B (Naza 10/10)', async () => {
+    const { db, archivos, tablas } = baseFalsa({ tablas: { narradores: [{ ...NARRADOR }], pedidos: [{ id: 'p1', narrador_id: 'n1', estado: 'generando' }] } });
+    const reg = JSON.parse(salidasModeloNelida()['1-registro']);
+    const negra = { ...reg.personas[3], nombre: 'Ofelia', apodos: ['la Negra'] };
+    const { motor, modelo } = motorFalso({
+      ...salidasModeloNelida(),
+      'correccion-registro': JSON.stringify({ personas: [negra], confirmados: [{ texto: 'La Negra se llamaba Ofelia.', usado_en: ['P04'] }] }),
+      'correccion-plan': salidasModeloNelida()['2-plan'],
+    });
+    await revisarEtapaAV3(db, 'n1', { motor });
+    await colaDelEscritor.esperarTodo();
+    tablas.narradores[0].edicion = { titulo: 'Su vida', correcciones: '  La Negra se llamaba Ofelia.  ' };
+    const antes = modelo.llamadas.length;
+    await escribirLibroV3(db, { id: 'p1', narrador_id: 'n1' }, motor);
+    expect(modelo.llamadas.slice(antes)[0].clave).toBe('B/correccion-registro');
+    expect(JSON.parse(String(archivos.get('n1/escritor/carpeta-B.json')))['entradas/confirmado.xml']).toContain('La Negra se llamaba Ofelia.');
+    expect(tablas.pedidos[0].estado).toBe('entregado');
+  });
+
   it('retomar después de un corte no le vuelve a pagar al modelo', async () => {
     const { db, tablas } = baseFalsa({ tablas: { narradores: [{ ...NARRADOR }], pedidos: [{ id: 'p1', narrador_id: 'n1', estado: 'generando' }] } });
     const { motor, modelo } = motorFalso();
