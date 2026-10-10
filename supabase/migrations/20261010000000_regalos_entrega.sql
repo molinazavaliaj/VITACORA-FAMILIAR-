@@ -43,3 +43,9 @@ create index if not exists regalos_entrega_pendiente on regalos (fecha_entrega)
 -- El canje sin código busca por el celular al que se mandó la plantilla.
 create index if not exists regalos_entrega_whatsapp on regalos (entrega_contacto)
   where entrega_canal = 'whatsapp' and usado_at is null;
+
+-- La plantilla a quien recibe se anota en envios para saber si Meta la entregó.
+alter table envios drop constraint if exists envios_tipo_check;
+alter table envios add constraint envios_tipo_check
+  check (tipo in ('bienvenida','pregunta','repregunta','recordatorio','alerta_pausa',
+                  'despedida','saludo_final','oferta_siguiente','objeto','v3','regalo_entrega'));

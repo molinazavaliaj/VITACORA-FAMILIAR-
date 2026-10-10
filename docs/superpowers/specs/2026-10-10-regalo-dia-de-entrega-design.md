@@ -63,7 +63,7 @@ La migración es idempotente y la aplica Naza, con OK de Joaquín.
 
 Check de conjunto: si hay canal, tiene que haber `fecha_entrega`, contacto, hora y zona.
 
-**El ciclo** (cada tick del reloj V3, de un minuto):
+**El ciclo** (en el tick viejo de 15 minutos, que corre a las :00, :15, :30 y :45. Así sale a la hora en punto):
 1. Busca los regalos con `entrega_canal` no nulo, `usado_at` nulo y `entrega_enviada_at`
    nulo. Calcula si la fecha y la hora ya llegaron en `entrega_zona`. La cuenta es una
    función pura, con el cambio de horario incluido.
@@ -74,17 +74,23 @@ Check de conjunto: si hay canal, tiene que haber `fecha_entrega`, contacto, hora
    - Si falla, anota `entrega_fallo` y manda «dásela vos». La marca **no** se devuelve,
      porque un envío fallido no se reintenta solo.
 5. Si un WhatsApp salió pero Meta avisa después que no se entregó (`whatsapp/entregas.ts`),
-   anota el fallo y manda «dásela vos».
+   anota el fallo y manda «dásela vos». Para eso la plantilla se anota en `envios` con
+   `tipo = 'regalo_entrega'`, un valor nuevo del check.
 6. Si se pasó la hora porque el bot estuvo caído, lo manda igual mientras siga siendo el
    mismo día local. Si el día ya pasó, se trata como fallo y va «dásela vos».
 
 El mail o la plantilla a quien recibe y el aviso a quien compra son pasos aparte. Si el
 segundo falla, se loguea y no deshace el primero.
 
+**El número del bot en el mail.** La línea «mandá un WhatsApp al {numero}» usa
+`WHATSAPP_NUMERO_PUBLICO`, que se carga también en Railway. Si falta, el mail sale sin esa
+línea y sin el código, solo con el botón.
+
 **Canje sin código.** Cuando escribe un número desconocido, el bot se fija antes de pedir
 el código si hay un regalo con `entrega_canal = 'whatsapp'`, `entrega_contacto` igual a ese
 número (normalizado como hoy, con y sin el 9), `entrega_enviada_at` no nulo, sin `entrega_fallo`
-y con `usado_at` nulo. Si lo hay, canjea por el mismo camino que con el código.
+y con `usado_at` nulo. Si lo hay, canjea por el mismo camino que con el código. Vale para cualquier mensaje
+(texto, audio o el botón), no solo para un texto.
 
 **El interruptor de WhatsApp.**
 - Web: una variable en Vercel (`REGALO_ENTREGA_WHATSAPP=1`). Si está apagada, la opción no
