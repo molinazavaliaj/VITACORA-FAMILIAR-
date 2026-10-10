@@ -345,7 +345,7 @@ async function primeraDelRegalo(narrador: Narrador, desde: string): Promise<bool
  * ficha estaba incompleta, o la 1 falló). Cualquier mensaje suyo abre la
  * ventana de 24 h, así que se intenta el alta V3 ahora, como texto libre: si la
  * ficha ya se completó, sale OR1; si no, altaNuevo lo vuelve a frenar (su aviso
- * a los socios sale una vez por día). Un 'acepto' que no es regalo no pasa por acá.
+ * a los socios sale una vez por día). Vale igual para un nuevo de la V3 (contexto.bienvenidaV3, 10/10); otro 'acepto' no pasa por acá.
  */
 async function recuperarRegaloFrenado(narrador: Narrador): Promise<void> {
   if (narrador.estado !== 'acepto' || (narrador.contexto?.regalo !== true && narrador.contexto?.bienvenidaV3 !== true)) return;
