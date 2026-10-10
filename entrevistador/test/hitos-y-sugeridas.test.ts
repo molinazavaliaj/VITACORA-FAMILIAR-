@@ -62,7 +62,7 @@ describe('mails de hitos', () => {
     const r = redactarHito('acepto', n);
     expect(r.asunto).toBe('Roberto dijo que sí');
     expect(r.cuerpo).toBe('<p>Roberto aceptó. Enseguida le llega la primera pregunta por WhatsApp.</p><p>Mientras tanto, podés sumar fotos de cada época o preguntas para su entrevista.</p><p><a href="https://www.vitacorafamiliar.com/tablero/n1?editar=1">https://www.vitacorafamiliar.com/tablero/n1</a></p>');
-    expect(redactarHito('acepto', n, { regalo: false, trato: 'tu' }).cuerpo).toBe(r.cuerpo.replace('podés', 'puedes'));
+    expect(redactarHito('acepto', n, { regalo: false, trato: 'tu' }).cuerpo).toBe(r.cuerpo.replace('Roberto aceptó', 'Roberto ha aceptado').replace('podés sumar', 'puedes añadir'));
   });
 
   it('«dijo que sí» de un regalo, de vos: ya le mandamos la primera pregunta, sin guion ni «mañana»', () => {
@@ -94,7 +94,7 @@ describe('mails de hitos', () => {
     await mandarHito({ ...n, contexto: {} }, 'acepto');
     // Sin regalo, de España: el «dijo que sí» de siempre, con tú.
     expect(JSON.parse(estado.fetch.mock.calls[2][1].body).html).toContain('Enseguida le llega la primera pregunta');
-    expect(JSON.parse(estado.fetch.mock.calls[2][1].body).html).toContain('puedes sumar fotos');
+    expect(JSON.parse(estado.fetch.mock.calls[2][1].body).html).toContain('puedes añadir fotos');
   });
 
   it('manda una sola vez por narrador y lo anota en contexto.mailsEnviados', async () => {
@@ -220,17 +220,49 @@ describe('el trato en las sugeridas', () => {
   });
 });
 
-describe('mails de hitos con tú para España (Naza, 09/10)', () => {
-  it('con tú cambian puedes y quieres; con vos (o sin decir), los de siempre; el silencio no cambia', async () => {
+describe('mails de hitos con tú para España (aprobados por Naza el 10/10)', () => {
+  const P = 'https://www.vitacorafamiliar.com/tablero/n1';
+  const n = { nombre: 'Imma', como_le_dicen: 'Imma', id: 'n1' };
+
+  it('de tú, palabra por palabra', async () => {
     const { redactarHito } = await import('../src/mail/hitos.js');
-    const n = { nombre: 'Imma', como_le_dicen: 'Imma', id: 'n1' };
-    expect(redactarHito('acepto', n, { trato: 'tu' }).cuerpo).toContain('Mientras tanto, puedes sumar fotos de cada época o preguntas para su entrevista.');
-    expect(redactarHito('acepto', n).cuerpo).toContain('Enseguida le llega la primera pregunta por WhatsApp.</p><p>Mientras tanto, podés sumar fotos');
-    expect(redactarHito('acepto', n).cuerpo).not.toContain('guion');
-    expect(redactarHito('primera', n, { trato: 'tu' }).asunto).toBe('Ya puedes escuchar a Imma');
-    expect(redactarHito('mitad', n, { trato: 'tu' }).cuerpo).toContain('si quieres, pedirle que cuente más');
-    expect(redactarHito('silencio', n, { trato: 'tu' })).toEqual(redactarHito('silencio', n, { trato: 'vos' }));
+    expect(redactarHito('acepto', n, { trato: 'tu' })).toEqual({
+      asunto: 'Imma ha dicho que sí',
+      cuerpo: `<p>Imma ha aceptado. Enseguida le llega la primera pregunta por WhatsApp.</p><p>Mientras tanto, puedes añadir fotos de cada época o preguntas para su entrevista.</p><p><a href="${P}?editar=1">${P}</a></p>`,
+    });
+    expect(redactarHito('primera', n, { trato: 'tu' })).toEqual({
+      asunto: 'Ya puedes escuchar a Imma',
+      cuerpo: `<p>Imma ha contestado la primera pregunta. Ya hay un audio y su transcripción en el panel.</p><p><a href="${P}">${P}</a></p>`,
+    });
+    expect(redactarHito('mitad', n, { trato: 'tu' })).toEqual({
+      asunto: 'Imma va por la mitad',
+      cuerpo: `<p>Imma ya ha contado la mitad de su historia. Es un buen momento para leer lo que hay y, si quieres, pedirle que cuente más sobre algo.</p><p><a href="${P}">${P}</a></p>`,
+    });
+    expect(redactarHito('silencio', n, { trato: 'tu' })).toEqual({
+      asunto: 'Hace tres días que Imma no responde',
+      cuerpo: `<p>Imma lleva tres días sin contestar. No pasa nada grave, a veces es el móvil y a veces las ganas. Una llamada tuya suele ayudar.</p><p>Cuando vuelva a contestar, la entrevista sigue donde se quedó.</p><p><a href="${P}">${P}</a></p>`,
+    });
+  });
+
+  it('de vos, los de siempre; el silencio sin dos puntos', async () => {
+    const { redactarHito } = await import('../src/mail/hitos.js');
+    expect(redactarHito('acepto', n).asunto).toBe('Imma dijo que sí');
+    expect(redactarHito('acepto', n).cuerpo).toContain('Imma aceptó. Enseguida le llega la primera pregunta por WhatsApp.</p><p>Mientras tanto, podés sumar fotos');
     expect(redactarHito('primera', n).asunto).toBe('Ya podés escuchar a Imma');
-    for (const h of ['acepto', 'primera', 'mitad'] as const) expect(redactarHito(h, n, { trato: 'tu' }).cuerpo + redactarHito(h, n, { trato: 'tu' }).asunto).not.toMatch(/podés|querés/);
+    expect(redactarHito('primera', n).cuerpo).toContain('Imma contestó la primera pregunta.');
+    expect(redactarHito('mitad', n).cuerpo).toContain('Imma ya contó la mitad de su historia. Es un buen momento para leer lo que hay y, si querés, pedirle');
+    expect(redactarHito('silencio', n)).toEqual({
+      asunto: 'Hace tres días que Imma no responde',
+      cuerpo: `<p>Imma lleva tres días sin contestar. No pasa nada grave, a veces es el teléfono y a veces las ganas. Un llamado tuyo suele destrabarlo.</p><p>Cuando retome, la entrevista sigue donde quedó.</p><p><a href="${P}">${P}</a></p>`,
+    });
+  });
+
+  it('de tú, nada de vos ni de dos puntos en el texto', async () => {
+    const { redactarHito } = await import('../src/mail/hitos.js');
+    for (const h of ['acepto', 'primera', 'mitad', 'silencio'] as const) {
+      const { asunto, cuerpo } = redactarHito(h, n, { trato: 'tu' });
+      const texto = (asunto + cuerpo).replace(/<[^>]+>/g, ' ').replace(/https?:\/\/\S+/g, '');
+      expect(texto).not.toMatch(/podés|querés|dijo|aceptó|contestó|contó|llamado|celular|:/);
+    }
   });
 });
