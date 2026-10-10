@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { firmarTokenFotos, verificarTokenFotos } from "../src/lib/token-fotos";
 
 process.env.SUPABASE_SERVICE_ROLE_KEY ??= "clave-de-prueba"; // firma el token de fotos
@@ -315,6 +315,74 @@ describe("POST /api/compra con regalo", () => {
   });
 });
 
+describe("POST /api/compra con regalo: entrega el día elegido", () => {
+  const MAIL = { canal: "mail", contacto: "Abuelo@Gmail.com", hora: 10 };
+  afterEach(() => { delete process.env.REGALO_ENTREGA_WHATSAPP; });
+
+  it("con entrega por mail, la fila del regalo lleva canal, correo, hora y zona", async () => {
+    const admin = crearAdmin(secuenciaFeliz());
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+
+    const r = await POST(peticion({ ...CUERPO_REGALO, regalo: { ...CUERPO_REGALO.regalo, entrega: MAIL } }));
+
+    expect(r.status).toBe(200);
+    expect(admin.inserts.regalos[0]).toMatchObject({
+      fecha_entrega: "2099-12-24",
+      entrega_canal: "mail", entrega_contacto: "abuelo@gmail.com", entrega_hora: 10,
+      entrega_zona: "America/Argentina/Buenos_Aires",
+    });
+  });
+
+  it("la zona sale del idioma del regalo, no de lo que mande el cuerpo", async () => {
+    const admin = crearAdmin(secuenciaFeliz());
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+
+    await POST(peticion({ ...CUERPO_REGALO, regalo: { ...CUERPO_REGALO.regalo, idioma: "ca", entrega: { ...MAIL, zona: "Asia/Tokyo" } } }));
+
+    expect(admin.inserts.regalos[0]).toMatchObject({ entrega_zona: "Europe/Madrid" });
+  });
+
+  it("sin entrega, la fila no lleva las columnas nuevas (anda sin la migración)", async () => {
+    const admin = crearAdmin(secuenciaFeliz());
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+
+    await POST(peticion(CUERPO_REGALO));
+
+    expect(Object.keys(admin.inserts.regalos[0] as object).some((k) => k.startsWith("entrega_"))).toBe(false);
+  });
+
+  it("WhatsApp con el interruptor apagado: 400 y no toca la base", async () => {
+    const admin = crearAdmin(secuenciaFeliz());
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+
+    const r = await POST(peticion({ ...CUERPO_REGALO, regalo: { ...CUERPO_REGALO.regalo, entrega: { canal: "whatsapp", contacto: "+5491155551234", hora: 10 } } }));
+
+    expect(r.status).toBe(400);
+    expect(admin.from).not.toHaveBeenCalled();
+  });
+
+  it("WhatsApp con el interruptor prendido: guarda el celular en E.164", async () => {
+    process.env.REGALO_ENTREGA_WHATSAPP = "1";
+    const admin = crearAdmin(secuenciaFeliz());
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+
+    const r = await POST(peticion({ ...CUERPO_REGALO, regalo: { ...CUERPO_REGALO.regalo, entrega: { canal: "whatsapp", contacto: "11 5555 1234", hora: 20 } } }));
+
+    expect(r.status).toBe(200);
+    expect(admin.inserts.regalos[0]).toMatchObject({ entrega_canal: "whatsapp", entrega_contacto: "+5491155551234", entrega_hora: 20 });
+  });
+
+  it("una hora que no está entre 8 y 22: 400", async () => {
+    const admin = crearAdmin(secuenciaFeliz());
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+
+    const r = await POST(peticion({ ...CUERPO_REGALO, regalo: { ...CUERPO_REGALO.regalo, entrega: { ...MAIL, hora: 3 } } }));
+
+    expect(r.status).toBe(400);
+    expect(((await r.json()) as { error: string }).error).toBe("Falta la hora.");
+  });
+});
+
 describe("POST /api/compra con regalo: reintento sin pagar", () => {
   // 09/10 (antes de vender): un regalo sin pagar se retoma SOLO con la prueba
   // de la compra anterior, `regalo.retomar = { narradorId, token }`, donde el
@@ -384,13 +452,46 @@ describe("POST /api/compra con regalo: reintento sin pagar", () => {
     expect(admin.inserts.pedidos[0]).toMatchObject({ narrador_id: "nar-viejo", extras: { regalo: true } });
     // El código no se toca: la fila se actualiza sin `codigo`.
     expect(admin.updates.regalos).toEqual([
-      { mensaje: "Otro mensaje, abuelo.", fecha_entrega: "2099-12-24", quien_regala: "Lucía", pedido_id: "ped-2" },
+      {
+        mensaje: "Otro mensaje, abuelo.", fecha_entrega: "2099-12-24", quien_regala: "Lucía", pedido_id: "ped-2",
+        // Sin entrega se borra la que hubiera elegido antes.
+        entrega_canal: null, entrega_contacto: null, entrega_hora: null, entrega_zona: null,
+      },
     ]);
     expect(admin.eqs.regalos).toEqual(expect.arrayContaining([["narrador_id", "nar-viejo"], ["id", "reg-1"]]));
     expect(json.narradorId).toBe("nar-viejo");
     expect(verificarTokenFotos(json.tokenFotos, "nar-viejo")).toBe(true);
     expect(json).not.toHaveProperty("codigo");
     expect(crearCheckout).toHaveBeenCalledWith({ id: "ped-2", email: "lucia@ejemplo.com" }, expect.anything());
+  });
+
+  it("(a) retomado con entrega: el update lleva canal, contacto, hora y zona", async () => {
+    const admin = crearAdmin(secuenciaReintento());
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+
+    const r = await POST(peticion(conRetomar(RETOMAR(), { entrega: { canal: "mail", contacto: "a@b.com", hora: 9 } })));
+
+    expect(r.status).toBe(200);
+    expect(admin.updates.regalos[0]).toMatchObject({
+      entrega_canal: "mail", entrega_contacto: "a@b.com", entrega_hora: 9, entrega_zona: "America/Argentina/Buenos_Aires",
+    });
+  });
+
+  it("(a) retomado sin entrega y sin la migración aplicada: reintenta el update sin las columnas nuevas", async () => {
+    const sec = secuenciaReintento();
+    sec.regalos = [
+      { data: { id: "reg-1", codigo: "VF-ABCDEF" }, error: null },
+      { data: null, error: { code: "PGRST204", message: "Could not find the 'entrega_canal' column" } } as never,
+      { data: null, error: null },
+    ];
+    const admin = crearAdmin(sec);
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+
+    const r = await POST(peticion(conRetomar(RETOMAR())));
+
+    expect(r.status).toBe(200);
+    expect(admin.updates.regalos).toHaveLength(2);
+    expect(admin.updates.regalos[1]).toEqual({ mensaje: "Abuelo, quiero que cuentes tu vida.", fecha_entrega: "2099-12-24", quien_regala: "Lucía", pedido_id: "ped-2" });
   });
 
   it("(a) si el viejo se pagó entre la búsqueda y el update (el update filtrado por pendiente_pago no devuelve fila), nace uno nuevo", async () => {
