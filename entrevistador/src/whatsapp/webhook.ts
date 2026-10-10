@@ -11,6 +11,10 @@ export type MensajeEntrante = {
   waMessageId: string;
   /** Vino de un botón (plantilla o interactivo). La V3 lo distingue de un texto escrito. */
   esBoton?: true;
+  /** Imagen: el sha256 que manda Meta (Viaje V2: un reenvío del mismo archivo es una foto que saca del álbum, AL3). */
+  sha256?: string;
+  /** El mensaje que cita (contestó «respondiendo» a otro): su id de WhatsApp. */
+  citaA?: string;
 };
 
 /**
@@ -39,7 +43,11 @@ export function parsearEntrante(body: any): MensajeEntrante | null {
   if (mensaje.type === 'audio') return { ...base, tipo: 'audio', mediaId: mensaje.audio.id };
   if (mensaje.type === 'text') return { ...base, tipo: 'texto', texto: mensaje.text.body };
   // Vitácora de viaje (18/09): las fotos del día llegan por acá, con su epígrafe.
-  if (mensaje.type === 'image') return { ...base, tipo: 'imagen', mediaId: mensaje.image.id, mimeType: mensaje.image.mime_type, texto: mensaje.image.caption };
+  if (mensaje.type === 'image') {
+    const cita = typeof mensaje.context?.id === 'string' ? { citaA: mensaje.context.id as string } : {};
+    const sha = typeof mensaje.image.sha256 === 'string' ? { sha256: mensaje.image.sha256 as string } : {};
+    return { ...base, tipo: 'imagen', mediaId: mensaje.image.id, mimeType: mensaje.image.mime_type, texto: mensaje.image.caption, ...sha, ...cita };
+  }
   // El botón de la plantilla (23/09). Mariano apretó el «SI» que trae la
   // bienvenida de Meta, su respuesta llegó a nuestro número con doble tilde —y
   // acá se tiraba a la basura, porque un botón NO llega como `text`: llega como

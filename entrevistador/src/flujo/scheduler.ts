@@ -7,7 +7,8 @@ import { mandarHito } from '../mail/hitos.js';
 import { esViaje } from './viaje.js';
 import { fechaLocal, minutosLocales } from './tiempo.js';
 import { narradoresV3 } from '../v3/estado.js';
-import { PLANTILLAS_V3, entraALaV3 } from '../config.js';
+import { PLANTILLAS_V3, entraALaV3, viajeV2ParaNuevos } from '../config.js';
+import { viajerosV2 } from '../viaje-v2/filas.js';
 import { plantillaLista } from '../v3/enviar.js';
 import { avisarSocios } from '../v3/avisos.js';
 import { idiomaDeRegalo } from './regalo-arranque.js';
@@ -32,9 +33,15 @@ export function esHoraDeEnviar(horaPreferida: string, zona: string, ahora: Date)
 
 // ── Consultas cortas a la base ─────────────────────────────────────────
 
+/**
+ * Los narradores en esos estados, SIN los de la Viaje V2 (con fila en viajes_v2): esos tienen su propio reloj
+ * (viaje-v2/reloj.ts) y nada de lo viejo les sale. Si la base no deja saber quién es V2, tira: mejor no mandar nada
+ * que mandarle el viaje viejo a uno nuevo.
+ */
 async function narradoresEn(estados: string[]): Promise<Narrador[]> {
   const { data } = await db.from('narradores').select('*').in('estado', estados);
-  return (data as Narrador[] | null) ?? [];
+  const v2 = await viajerosV2(db);
+  return ((data as Narrador[] | null) ?? []).filter((n) => !v2.has(n.id));
 }
 
 async function ultimoEnvio(narradorId: string, tipo: string, orden?: number) {
@@ -136,6 +143,14 @@ async function enviarBienvenidas(): Promise<void> {
       // la apruebe (WA_PLANTILLA_BIENVENIDA_VIAJE=1), el viajero escribe primero y procesar
       // le contesta la bienvenida como texto libre.
       if (esViaje(n.contexto)) {
+        // Viaje V2 para los nuevos (VIAJE_V2_PARA_NUEVOS=1): a un viajero nuevo no le sale el viaje viejo. Hasta que
+        // exista /comprar/viaje V2, su fila la crean los socios (npm run viaje-v2-alta); el reloj V2 le manda la bienvenida.
+        if (viajeV2ParaNuevos()) {
+          await avisarSocios(`viaje-v2-sin-fila-${n.id}`, `Un viajero nuevo espera su alta en la Viaje V2`,
+            `${n.como_le_dicen} (${n.id}) es un viaje nuevo y VIAJE_V2_PARA_NUEVOS está prendido: no se le manda la bienvenida vieja. `
+              + `Hay que crearle la fila con npm run viaje-v2-alta -- ${n.id} … (fechas, zonas, formato) y la bienvenida V2 sale sola.`);
+          return;
+        }
         if (process.env.WA_PLANTILLA_BIENVENIDA_VIAJE !== '1') return;
         try {
           const waId = await enviarPlantilla(n.telefono_whatsapp, 'bienvenida_viaje', [n.como_le_dicen]);
@@ -334,8 +349,28 @@ export function iniciarRelojV3() {
   });
 }
 
+let corriendoViajeV2 = false;
+
+/** El reloj de la Viaje V2 (plan-conexion-bot.md): cada 1 minuto, como el de la V3 y aparte de él. */
+export function iniciarRelojViajeV2() {
+  return cron.schedule('* * * * *', async () => {
+    if (corriendoViajeV2) return;
+    corriendoViajeV2 = true;
+    try {
+      const { tickViajeV2 } = await import('../viaje-v2/reloj.js');
+      const { depsViajeReales } = await import('../viaje-v2/deps-reales.js');
+      await tickViajeV2(depsViajeReales());
+    } catch (err) {
+      console.error('Falló el tick del reloj de la Viaje V2:', err);
+    } finally {
+      corriendoViajeV2 = false;
+    }
+  });
+}
+
 export function iniciarScheduler() {
   iniciarRelojV3();
+  iniciarRelojViajeV2();
   return cron.schedule('*/15 * * * *', async () => {
     if (corriendo) return; // que dos ticks no se pisen
     corriendo = true;

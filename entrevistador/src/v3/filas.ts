@@ -153,7 +153,7 @@ export async function marcarRespondido(db: SupabaseClient, narradorId: string, a
 
 /** Como guardarFoto de flujo/fotos.ts, con las dependencias de la V3: capítulo null (la acomoda la familia). */
 export async function guardarFotoV3(
-  deps: DepsV3, narradorId: string, mediaId: string, mimeType: string | undefined, caption: string | undefined, llegada: number,
+  deps: Pick<DepsV3, 'db'> & { wa: Pick<DepsV3['wa'], 'descargar'> }, narradorId: string, mediaId: string, mimeType: string | undefined, caption: string | undefined, llegada: number,
 ): Promise<string> {
   const bytes = await deps.wa.descargar(mediaId);
   const id = randomUUID();
