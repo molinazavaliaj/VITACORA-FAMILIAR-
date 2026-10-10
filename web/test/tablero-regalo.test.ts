@@ -40,6 +40,13 @@ describe('/tablero/[narradorId]/regalo', () => {
     expect(eq).toHaveBeenCalledWith('narrador_id', 'n1');
   });
 
+  it('ya canjeado, va al panel de la historia y no a la tarjeta (Naza, 10/10)', async () => {
+    historiaAccesible.mockResolvedValue({ historia: { narrador: { id: 'n1' }, rol: 'duena' }, error: null });
+    filaRegalo = { codigo: 'ABC123', usado_at: '2026-10-10T15:00:00Z' };
+    await expect(PaginaRegalo(props)).rejects.toThrow('REDIRECT /tablero/n1');
+    expect(redirect).not.toHaveBeenCalledWith('/regalo/ABC123/tarjeta');
+  });
+
   it('un invitado no la ve', async () => {
     historiaAccesible.mockResolvedValue({ historia: { narrador: { id: 'n1' }, rol: 'invitado' }, error: null });
     await expect(PaginaRegalo(props)).rejects.toThrow('NOT_FOUND');
