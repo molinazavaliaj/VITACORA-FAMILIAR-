@@ -27,6 +27,7 @@ const mocks = vi.hoisted(() => ({
   canjearRegalo: vi.fn(),
   mandarBienvenidaDeRegalo: vi.fn(),
   avisarSocios: vi.fn(),
+  procesarEntranteV3: vi.fn(),
   estado: { errorV3: null as any, filaV3: null as any, narrador: null as any, enviosRepregunta: [] as any[], capturas: [] as any[], ultimoOrden: 30, tieneAdaptativas: true, ofertas: [] as any[], preguntasHoy: [] as any[], capituloVigente: 'La infancia' },
 }));
 
@@ -36,7 +37,11 @@ vi.mock('../src/db/cliente.js', () => {
   function resolver(tabla: string, op: string, filtros: Record<string, any> = {}) {
     if (op === 'insert' && tabla === 'respuestas') return { data: { id: 'r-texto' }, error: null };
     if (op === 'insert' || op === 'update') return { data: null, error: null };
-    if (tabla === 'entrevistas_v3') return { data: mocks.estado.filaV3, error: mocks.estado.errorV3 };
+    // errorV3 puede ser una lista: un error por consulta, en orden (después, sin error).
+    if (tabla === 'entrevistas_v3') {
+      const error = Array.isArray(mocks.estado.errorV3) ? (mocks.estado.errorV3.shift() ?? null) : mocks.estado.errorV3;
+      return { data: error ? null : mocks.estado.filaV3, error };
+    }
     if (tabla === 'narradores') return { data: mocks.estado.narrador };
     if (tabla === 'envios') {
       if (filtros.tipo === 'oferta_siguiente') return { data: mocks.estado.ofertas };
@@ -107,6 +112,9 @@ vi.mock('../src/flujo/objetos.js', () => ({ pedirObjeto: mocks.pedirObjeto, pedi
 // Gift card (08/10): el canje se prueba en regalo.test.ts; acá solo que procesar lo llama.
 vi.mock('../src/flujo/regalo.js', () => ({ canjearRegalo: mocks.canjearRegalo, mandarBienvenidaDeRegalo: mocks.mandarBienvenidaDeRegalo }));
 vi.mock('../src/v3/avisos.js', () => ({ avisarSocios: mocks.avisarSocios }));
+// La V3 entera se prueba en test/v3; acá solo que procesar la llama.
+vi.mock('../src/v3/entrante.js', () => ({ procesarEntranteV3: mocks.procesarEntranteV3 }));
+vi.mock('../src/v3/deps-reales.js', () => ({ depsReales: () => ({}) }));
 // La pregunta de cierre (18/09): por defecto no hay más vueltas → se despide.
 vi.mock('../src/flujo/cierre-abierto.js', () => ({
   faseDeCierre: mocks.faseDeCierre,
@@ -147,6 +155,8 @@ beforeEach(() => {
   mocks.mandarBienvenidaDeRegalo.mockResolvedValue(true);
   mocks.avisarSocios.mockReset();
   mocks.avisarSocios.mockResolvedValue(true);
+  mocks.procesarEntranteV3.mockReset();
+  mocks.procesarEntranteV3.mockResolvedValue(undefined);
   mocks.guardarFotoEntrante.mockResolvedValue('Lisboa');
   for (const fn of [mocks.enviarTexto, mocks.descargarAudio, mocks.guardarRespuestaAudio, mocks.guardarReserva, mocks.transcribirYActualizar, mocks.evaluarRespuesta, mocks.detectarIntencion, mocks.generarPreguntasAdaptativas, mocks.cerrarBitacora, mocks.enviarPregunta]) fn.mockReset();
   mocks.guardarReserva.mockResolvedValue(true);
@@ -1015,6 +1025,79 @@ describe('un regalo frenado en acepto', () => {
     expect(mocks.enviarPregunta).not.toHaveBeenCalled();
     expect(mocks.mandarHito).not.toHaveBeenCalled();
     expect(mocks.enviarTexto).not.toHaveBeenCalled();
+  });
+});
+
+// ── Un activo o pausado: si la base falla al mirar la fila V3 (robustez, 10/10) ──
+// El webhook ya le contestó 200 a Meta (Meta no reintenta): si procesar tira, el
+// mensaje se pierde en el log. Mandarlo por el flujo viejo a un narrador V3 sería
+// peor. Se reintenta la consulta una vez; si sigue fallando, se avisa a los
+// socios con lo necesario para recuperarlo a mano y no se procesa.
+describe('un activo cuando la base falla al mirar la fila V3', () => {
+  const errorBase = { code: '57014', message: 'canceling statement due to statement timeout' };
+  const callado = async (fn: () => Promise<unknown>) => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      await fn();
+    } finally {
+      error.mockRestore();
+    }
+  };
+
+  it('si falla una vez, reintenta y va por la V3', async () => {
+    mocks.estado.narrador = narradorEn('activo', 3);
+    mocks.estado.filaV3 = { narrador_id: 'n1' };
+    mocks.estado.errorV3 = [errorBase];
+    await callado(() => procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'Mi abuela cocinaba', waMessageId: 'wamid.1' }));
+    expect(mocks.procesarEntranteV3).toHaveBeenCalledTimes(1);
+    expect(mocks.avisarSocios).not.toHaveBeenCalled();
+  });
+
+  it('si falla una vez y no tiene fila, sigue por el flujo de siempre', async () => {
+    mocks.estado.narrador = narradorEn('activo', 3);
+    mocks.estado.errorV3 = [errorBase];
+    await callado(() => procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'Mi abuela cocinaba', waMessageId: 'wamid.1' }));
+    expect(mocks.procesarEntranteV3).not.toHaveBeenCalled();
+    expect(mocks.detectarIntencion).toHaveBeenCalled();
+    expect(mocks.avisarSocios).not.toHaveBeenCalled();
+  });
+
+  for (const estado of ['activo', 'pausado']) {
+    it(`un ${estado}: si falla dos veces, no tira, no lo procesa por ningún camino y avisa a los socios con el mensaje`, async () => {
+      mocks.estado.narrador = narradorEn(estado, 3);
+      mocks.estado.errorV3 = errorBase;
+      await callado(() => expect(
+        procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'Mi abuela cocinaba', waMessageId: 'wamid.1' }),
+      ).resolves.toBeUndefined());
+      expect(mocks.procesarEntranteV3).not.toHaveBeenCalled();
+      expect(mocks.detectarIntencion).not.toHaveBeenCalled();
+      expect(mocks.enviarTexto).not.toHaveBeenCalled();
+      expect(mocks.enviarPregunta).not.toHaveBeenCalled();
+      expect(mocks.estado.capturas).toEqual([]); // ni una escritura en la base
+      expect(mocks.avisarSocios).toHaveBeenCalledTimes(1);
+      const [clave, , detalle] = mocks.avisarSocios.mock.calls[0];
+      expect(clave).toContain('wamid.1'); // un aviso por mensaje, no uno por día
+      for (const dato of ['n1', TEL, 'wamid.1', 'texto', 'Mi abuela cocinaba', errorBase.message]) expect(detalle).toContain(dato);
+    });
+  }
+
+  it('un texto largo: el aviso lleva solo los primeros 200 caracteres (revisión del 10/10)', async () => {
+    mocks.estado.narrador = narradorEn('activo', 3);
+    mocks.estado.errorV3 = errorBase;
+    const largo = 'a'.repeat(200) + 'ZZZ_LO_QUE_NO_VA';
+    await callado(() => procesarEntrante({ telefono: TEL, tipo: 'texto', texto: largo, waMessageId: 'wamid.3' }));
+    const [, , detalle] = mocks.avisarSocios.mock.calls[0];
+    expect(detalle).toContain(`${'a'.repeat(200)}…`);
+    expect(detalle).not.toContain('ZZZ_LO_QUE_NO_VA');
+  });
+
+  it('un audio: el aviso lleva el id del audio de Meta', async () => {
+    mocks.estado.narrador = narradorEn('activo', 3);
+    mocks.estado.errorV3 = errorBase;
+    await callado(() => procesarEntrante({ telefono: TEL, tipo: 'audio', mediaId: 'media-77', waMessageId: 'wamid.2' } as MensajeEntrante));
+    expect(mocks.descargarAudio).not.toHaveBeenCalled();
+    const [, , detalle] = mocks.avisarSocios.mock.calls[0];
+    expect(detalle).toContain('media-77');
   });
 });
 

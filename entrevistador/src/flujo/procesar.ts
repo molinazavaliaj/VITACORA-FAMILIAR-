@@ -165,11 +165,15 @@ export async function procesarEntrante(m: MensajeEntrante): Promise<void> {
   // llama a un modelo) y de la evaluación con Opus. Sin fila —o sin la
   // migración aplicada— sigue exactamente como hoy. Los imports son dinámicos
   // para no cargar nada de la V3 si nadie la usa.
-  if ((narrador.estado === 'activo' || narrador.estado === 'pausado') && (await esNarradorV3(db, narrador.id))) {
-    const { procesarEntranteV3 } = await import('../v3/entrante.js');
-    const { depsReales } = await import('../v3/deps-reales.js');
-    await procesarEntranteV3(depsReales(), narrador, m);
-    return;
+  if (narrador.estado === 'activo' || narrador.estado === 'pausado') {
+    const v3 = await esV3OAvisar(narrador, m);
+    if (v3 === 'no-se-sabe') return;
+    if (v3) {
+      const { procesarEntranteV3 } = await import('../v3/entrante.js');
+      const { depsReales } = await import('../v3/deps-reales.js');
+      await procesarEntranteV3(depsReales(), narrador, m);
+      return;
+    }
   }
 
   // Gift card: un regalo frenado en 'acepto' arranca con cualquier mensaje suyo
@@ -290,9 +294,8 @@ async function manejarConsentimiento(narrador: Narrador, m: MensajeEntrante): Pr
         + 'Si no escribe, se le puede escribir a mano para que conteste. '
         + 'Sin mensaje suyo y con la ficha completa, el scheduler lo intenta a su hora preferida: en es-AR la primera pregunta '
         + 'sale por plantilla; en es-ES y ca no hay plantilla V3 aprobada y queda en la cola hasta que el narrador escriba. '
-        + 'Por ese camino el mail «dijo que sí» no sale solo: mandarlo a mano cuando la pregunta haya salido. '
         + `También sirve npm run v3-pasar -- ${narrador.id} --genero <varon|mujer|otro> [--idioma es-ES|ca] --aplicar `
-        + "(acepta narradores en 'acepto'), pero no completa contexto.genero y no manda nada, ni el mail: crea la fila V3 "
+        + "(acepta narradores en 'acepto'), pero no completa contexto.genero y no manda nada: crea la fila V3 "
         + 'y la primera pregunta sale en su tanda, con la misma espera por la plantilla en es-ES y ca. Mejor completar la ficha.',
     );
     return;
@@ -330,9 +333,44 @@ async function manejarConsentimiento(narrador: Narrador, m: MensajeEntrante): Pr
 }
 
 /**
+ * ¿Un activo o pausado va por la V3? Si la base falla (y no es la tabla
+ * ausente), se reintenta una vez. Si vuelve a fallar no se procesa por ningún
+ * camino: el webhook ya le contestó 200 a Meta, que no reintenta, y mandar a
+ * un narrador V3 por el flujo viejo sería peor (otra pregunta, otro guion).
+ * Se avisa a los socios con lo necesario para recuperar el mensaje a mano
+ * (una vez por mensaje) y se devuelve 'no-se-sabe'.
+ */
+async function esV3OAvisar(narrador: Narrador, m: MensajeEntrante): Promise<boolean | 'no-se-sabe'> {
+  let ultimo: unknown;
+  for (let intento = 1; intento <= 2; intento++) {
+    try {
+      return await esNarradorV3(db, narrador.id);
+    } catch (err) {
+      ultimo = err;
+      console.error(`entrante: no pude saber si ${narrador.id} tiene entrevista V3 (intento ${intento} de 2)`, err);
+    }
+  }
+  const detalleError = ultimo instanceof Error ? ultimo.message : String(ultimo);
+  await avisarSocios(
+    `entrante-sin-v3:${narrador.id}:${m.waMessageId}`,
+    'Un mensaje de un narrador quedó sin procesar',
+    `La base falló dos veces al mirar si el narrador ${narrador.id} (estado '${narrador.estado}') tiene entrevista V3, `
+      + 'así que su mensaje no se procesó por ningún camino y no se le contestó. '
+      + `Teléfono ${m.telefono}. Mensaje de WhatsApp ${m.waMessageId}, tipo ${m.tipo}`
+      // El texto, recortado: es parte de un relato de vida y el aviso va por mail (revisión del 10/10).
+      + (m.texto ? `, texto «${m.texto.length > 200 ? `${m.texto.slice(0, 200)}…` : m.texto}»` : '')
+      + (m.mediaId ? `, media ${m.mediaId}` : '')
+      + `. Error: ${detalleError}`,
+  );
+  return 'no-se-sabe';
+}
+
+/**
  * La primera pregunta de un regalo (alta V3 con la ventana abierta) y, solo si
  * salió, el mail «dijo que sí» a quien regaló (dice que la 1 ya salió;
  * mandarHito no lo repite). Si no sale o tira, queda en el log y no va el mail.
+ * Si OR1 quedó en la cola (Meta la rechazó), el mail lo manda drenar cuando la
+ * saque (v3/enviar.ts); si ya salió por ahí, mandarHito no lo repite.
  */
 async function primeraDelRegalo(narrador: Narrador, desde: string): Promise<boolean> {
   let salio = false;
@@ -343,7 +381,7 @@ async function primeraDelRegalo(narrador: Narrador, desde: string): Promise<bool
     return false;
   }
   if (!salio) {
-    console.error(`${desde}: la 1 del regalo ${narrador.id} no salió (alta V3 frenada); no va el mail «dijo que sí»`);
+    console.error(`${desde}: la 1 del regalo ${narrador.id} no salió (alta V3 frenada, o quedó en la cola); no va el mail «dijo que sí» ahora`);
     return false;
   }
   await mandarHito(narrador, 'acepto');
