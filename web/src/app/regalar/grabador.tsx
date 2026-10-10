@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { TEXTOS_REGALO } from "@/lib/regalo-textos";
+import { textosComprador, type TextosComprador } from "@/lib/regalo-textos";
 
 // El audio de quien regala (plan 2026-10-07-gift-card, Task 8): se graba en el
 // navegador con MediaRecorder, con tope de 2 minutos. Si el navegador no sabe
@@ -36,8 +36,11 @@ function tipoAceptado(tipo: string): string | null {
 /**
  * `audio` vive en el formulario: si se va y vuelve al paso, el audio sigue ahí.
  * `etiquetadoPor`: el id del texto que nombra al grupo (la etiqueta 15).
+ * `textos`: los de quien compra, en su trato (vos si no se pasan).
  */
-export function Grabador({ audio, onAudio, etiquetadoPor }: { audio: Blob | null; onAudio: (audio: Blob | null) => void; etiquetadoPor?: string }) {
+export function Grabador({ audio, onAudio, etiquetadoPor, textos = textosComprador("vos") }: {
+  audio: Blob | null; onAudio: (audio: Blob | null) => void; etiquetadoPor?: string; textos?: TextosComprador;
+}) {
   const [puedeGrabar, setPuedeGrabar] = useState(true);
   const [grabando, setGrabando] = useState(false);
   const [sonando, setSonando] = useState(false);
@@ -109,7 +112,7 @@ export function Grabador({ audio, onAudio, etiquetadoPor }: { audio: Blob | null
       setGrabando(false);
       const aceptado = tipoAceptado(r.mimeType || tipo);
       if (!aceptado || partes.length === 0) {
-        setError(TEXTOS_REGALO.audioNoSirve);
+        setError(textos.audioNoSirve);
         return;
       }
       onAudio(new Blob(partes, { type: aceptado }));
@@ -164,7 +167,7 @@ export function Grabador({ audio, onAudio, etiquetadoPor }: { audio: Blob | null
     if (!archivo) return;
     // Sin tipo (pasa con algunos .m4a): decide el servidor. Si lo rechaza, el regalo vale sin audio.
     if ((archivo.type !== "" && !tipoAceptado(archivo.type)) || archivo.size > MAXIMO_BYTES) {
-      setError(TEXTOS_REGALO.audioNoSirve);
+      setError(textos.audioNoSirve);
       return;
     }
     setError(null);
@@ -184,16 +187,16 @@ export function Grabador({ audio, onAudio, etiquetadoPor }: { audio: Blob | null
             onEnded={() => setSonando(false)}
           />
           <button type="button" className={boton} onClick={escuchar} aria-pressed={sonando}>
-            {sonando ? TEXTOS_REGALO.parar : TEXTOS_REGALO.escuchar}
+            {sonando ? textos.parar : textos.escuchar}
           </button>
-          <button type="button" className={boton} onClick={borrar}>{TEXTOS_REGALO.borrar}</button>
+          <button type="button" className={boton} onClick={borrar}>{textos.borrar}</button>
         </div>
       ) : puedeGrabar ? (
         <div className="flex flex-wrap items-center gap-3">
           {grabando ? (
-            <button type="button" className={boton} onClick={parar}>{TEXTOS_REGALO.parar}</button>
+            <button type="button" className={boton} onClick={parar}>{textos.parar}</button>
           ) : (
-            <button type="button" className={boton} onClick={grabar}>{TEXTOS_REGALO.grabar}</button>
+            <button type="button" className={boton} onClick={grabar}>{textos.grabar}</button>
           )}
           {grabando && (
             <span className="flex items-center gap-2 text-[14px] tabular-nums text-[#5F5F55] [font-family:var(--fuente-micro)]">
@@ -204,7 +207,7 @@ export function Grabador({ audio, onAudio, etiquetadoPor }: { audio: Blob | null
         </div>
       ) : (
         <label className="block">
-          <span className="text-[14px] text-[#5F5F55] [font-family:var(--fuente-micro)]">{TEXTOS_REGALO.elegirAudio}</span>
+          <span className="text-[14px] text-[#5F5F55] [font-family:var(--fuente-micro)]">{textos.elegirAudio}</span>
           <input type="file" accept="audio/*" onChange={elegir} className="mt-2 block w-full text-[15px] [font-family:var(--fuente-micro)]" />
         </label>
       )}

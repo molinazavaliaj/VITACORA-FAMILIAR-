@@ -65,10 +65,38 @@ describe("leerRegalo", () => {
       mensaje: "Abuelo, quiero tu historia.",
       tieneAudio: false,
       usado: false,
+      idioma: "es-AR",
+      region: null,
     });
     expect(consultas[0].tabla).toBe("regalos");
     expect(consultas[0].filtros).toEqual({ codigo: "VF-7K3M2Q" });
-    expect(consultas[0].columnas).toContain("narradores(nombre, como_le_dicen, estado)");
+    expect(consultas[0].columnas).toContain("narradores(nombre, como_le_dicen, estado, contexto, familias(region))");
+  });
+
+  it("el idioma sale de narradores.contexto.idioma", async () => {
+    const { admin } = crearAdmin([filaBase({ narradores: { nombre: "Osvaldo", como_le_dicen: "abuelo", estado: "regalo_pendiente", contexto: { idioma: "ca" } } })]);
+    expect((await leerRegalo(admin, "VF-7K3M2Q"))?.idioma).toBe("ca");
+  });
+
+  it("sin idioma en el contexto, o con uno desconocido, es es-AR", async () => {
+    for (const contexto of [{ trato: "vos" }, null, { idioma: "en" }, { idioma: 3 }]) {
+      const { admin } = crearAdmin([filaBase({ narradores: { nombre: "Osvaldo", como_le_dicen: "abuelo", estado: "regalo_pendiente", contexto } })]);
+      expect((await leerRegalo(admin, "VF-7K3M2Q"))?.idioma).toBe("es-AR");
+    }
+  });
+
+  it("la región de quien compró sale de narradores.familias.region", async () => {
+    for (const region of ["ES", "AR"] as const) {
+      const { admin } = crearAdmin([filaBase({ narradores: { nombre: "Osvaldo", como_le_dicen: "abuelo", estado: "regalo_pendiente", contexto: { idioma: "ca" }, familias: { region } } })]);
+      expect((await leerRegalo(admin, "VF-7K3M2Q"))?.region).toBe(region);
+    }
+  });
+
+  it("sin familia o con una región desconocida, la región es null", async () => {
+    for (const familias of [null, undefined, { region: "FR" }, { region: null }]) {
+      const { admin } = crearAdmin([filaBase({ narradores: { nombre: "Osvaldo", como_le_dicen: "abuelo", estado: "regalo_pendiente", familias } })]);
+      expect((await leerRegalo(admin, "VF-7K3M2Q"))?.region).toBeNull();
+    }
   });
 
   it("con usado_at queda usado", async () => {

@@ -49,6 +49,23 @@ describe('alta V3 de los nuevos en enviarPregunta', () => {
     expect(h.altaNuevo).not.toHaveBeenCalled();
   });
 
+  it('apagado, pero un regalo va siempre por la V3', async () => {
+    vi.stubEnv('V3_PARA_NUEVOS', '');
+    const regalo = { ...N, contexto: { genero: 'mujer', regalo: true, idioma: 'ca' } };
+    expect(await enviarPregunta(regalo, 1, { plantilla: false })).toBe(true);
+    expect(h.altaNuevo).toHaveBeenCalledWith({ falsas: true }, regalo, { ventanaAbierta: true });
+    expect(h.preguntaDeOrden).not.toHaveBeenCalled();
+  });
+
+  it('un regalo con el alta frenada (sin género) no recibe la pregunta vieja', async () => {
+    vi.stubEnv('V3_PARA_NUEVOS', '');
+    h.altaNuevo.mockResolvedValueOnce('frenada' as never);
+    const regalo = { ...N, contexto: { regalo: true, idioma: 'ca' } };
+    expect(await enviarPregunta(regalo, 1, { plantilla: false })).toBe(false);
+    expect(h.altaNuevo).toHaveBeenCalled();
+    expect(h.preguntaDeOrden).not.toHaveBeenCalled();
+  });
+
   it('prendido pero no es la 1 de un acepto: flujo viejo', async () => {
     vi.stubEnv('V3_PARA_NUEVOS', '1');
     await enviarPregunta({ ...N, estado: 'activo', dia_actual: 4 }, 5, { plantilla: false });

@@ -2,6 +2,8 @@
 // Sin imports de Node: regalo.ts usa node:crypto y no puede bajar al cliente.
 // regalo.ts las re-exporta, así que el servidor las sigue importando de ahí.
 
+import type { IdiomaRegalo } from "./regalo-textos";
+
 export const GENEROS = ["varon", "mujer", "otro"] as const;
 export type Genero = (typeof GENEROS)[number];
 export const MENSAJE_MAXIMO = 600;
@@ -30,4 +32,13 @@ export function errorDeFechaEntrega(texto: string, hoy: Date): string | null {
   const ayerUtc = new Date(hoy.getTime() - 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
   if (texto < ayerUtc) return MENSAJE_FECHA_PASADA;
   return null;
+}
+
+// Los idiomas en que el biógrafo le puede hablar a quien recibe el regalo
+// (plan 2026-10-09-regalo-idiomas). Iguales a entrevistador/src/v3/nucleo/entrevista/idioma.ts.
+export const IDIOMAS_REGALO = ["es-AR", "es-ES", "ca"] as const satisfies readonly IdiomaRegalo[];
+export const MENSAJE_IDIOMA_INVALIDO = "El idioma no es válido.";
+
+export function esIdiomaRegalo(valor: unknown): valor is IdiomaRegalo {
+  return typeof valor === "string" && (IDIOMAS_REGALO as readonly string[]).includes(valor);
 }

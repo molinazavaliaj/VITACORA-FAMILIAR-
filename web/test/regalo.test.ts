@@ -45,9 +45,9 @@ describe("validarRegalo", () => {
     expect(validarRegalo({ mensaje: "Hola", genero: "x" }, hoy).ok).toBe(false);
   });
   it("la fecha es opcional, y si viene no puede ser pasada", () => {
-    expect(validarRegalo({ mensaje: "Hola", genero: "mujer" }, hoy)).toEqual({ ok: true, regalo: { mensaje: "Hola", genero: "mujer", fechaEntrega: null } });
+    expect(validarRegalo({ mensaje: "Hola", genero: "mujer" }, hoy)).toEqual({ ok: true, regalo: { mensaje: "Hola", genero: "mujer", fechaEntrega: null, idioma: "es-AR" } });
     expect(validarRegalo({ mensaje: "Hola", genero: "mujer", fechaEntrega: "2026-12-24" }, hoy))
-      .toEqual({ ok: true, regalo: { mensaje: "Hola", genero: "mujer", fechaEntrega: "2026-12-24" } });
+      .toEqual({ ok: true, regalo: { mensaje: "Hola", genero: "mujer", fechaEntrega: "2026-12-24", idioma: "es-AR" } });
     expect(validarRegalo({ mensaje: "Hola", genero: "mujer", fechaEntrega: "2026-10-01" }, hoy).ok).toBe(false);
     expect(validarRegalo({ mensaje: "Hola", genero: "mujer", fechaEntrega: "mañana" }, hoy).ok).toBe(false);
   });
@@ -62,6 +62,17 @@ describe("validarRegalo", () => {
   it("acepta un mensaje de exactamente 600", () => {
     expect(validarRegalo({ mensaje: "a".repeat(600), genero: "varon" }, hoy).ok).toBe(true);
   });
+  it("el idioma es opcional: si falta vale es-AR", () => {
+    const r = validarRegalo({ mensaje: "Hola", genero: "varon" }, hoy);
+    expect(r.ok && r.regalo.idioma).toBe("es-AR");
+  });
+  it.each(["es-AR", "es-ES", "ca"] as const)("acepta el idioma %s", (idioma) => {
+    const r = validarRegalo({ mensaje: "Hola", genero: "varon", idioma }, hoy);
+    expect(r.ok && r.regalo.idioma).toBe(idioma);
+  });
+  it.each(["en", "", "CA", 3, null])("cualquier otro idioma (%s) da error", (idioma) => {
+    expect(validarRegalo({ mensaje: "Hola", genero: "varon", idioma }, hoy)).toEqual({ ok: false, mensaje: "El idioma no es válido." });
+  });
   it("rechaza lo que no es un objeto", () => {
     expect(validarRegalo(null, hoy).ok).toBe(false);
     expect(validarRegalo("hola", hoy).ok).toBe(false);
@@ -70,7 +81,12 @@ describe("validarRegalo", () => {
 
 describe("linkWhatsApp", () => {
   it("arma wa.me con el mensaje ya escrito", () => {
-    expect(linkWhatsApp("5491100000000", "VF-7K3M2Q"))
+    expect(linkWhatsApp("5491100000000", "VF-7K3M2Q", "es-AR"))
       .toBe("https://wa.me/5491100000000?text=Hola%2C%20quiero%20empezar%20mi%20libro.%20VF-7K3M2Q");
+  });
+
+  it("en catalán, con el mensaje catalán", () => {
+    expect(linkWhatsApp("34600000000", "VF-7K3M2Q", "ca"))
+      .toBe(`https://wa.me/34600000000?text=${encodeURIComponent("Hola, vull començar el meu llibre. VF-7K3M2Q")}`);
   });
 });

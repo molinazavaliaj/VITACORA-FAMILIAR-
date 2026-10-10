@@ -1,5 +1,5 @@
 import { db } from '../db/cliente.js';
-import { TEXTOS_REGALO_BOT } from '../flujo/regalo-textos.js';
+import { HITO_ACEPTO_REGALO, TEXTOS_REGALO_BOT, tratoDeComprador, type TratoComprador } from '../flujo/regalo-textos.js';
 
 // Los mails de hitos que manda el entrevistador (docs/panel-usuario.md §9 y
 // §11.6): los momentos de la entrevista que la familia quiere saber. Los del
@@ -34,16 +34,25 @@ function escapar(texto: string): string {
   return texto.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
-/** El trato del mail: vos (Argentina) o tú (España). */
-export type Trato = 'vos' | 'tu';
-
-/** Asunto y cuerpo de cada hito. Puro, para probarlo sin red. */
-export function redactarHito(hito: Hito, n: { nombre?: string; como_le_dicen: string; id: string }, trato: Trato = 'vos'): { asunto: string; cuerpo: string } {
+/**
+ * Asunto y cuerpo de cada hito. Puro, para probarlo sin red. Un regalo tiene su
+ * propio «dijo que sí» (la primera pregunta ya salió con el SÍ). Todos van de vos
+ * o de tú según el trato de quien compró (Naza, 09/10: tú para España).
+ */
+export function redactarHito(
+  hito: Hito,
+  n: { nombre?: string; como_le_dicen: string; id: string },
+  o: { regalo?: boolean; trato?: TratoComprador } = {},
+): { asunto: string; cuerpo: string } {
   const quien = n.nombre ?? n.como_le_dicen;
   const panel = `${URL_BASE}/tablero/${n.id}`;
-  const tu = trato === 'tu';
+  const tu = o.trato === 'tu';
   switch (hito) {
     case 'acepto':
+      if (o.regalo === true) {
+        const t = HITO_ACEPTO_REGALO[o.trato ?? 'vos'];
+        return { asunto: t.asunto(quien), cuerpo: `<p>${escapar(t.cuerpo(quien))}</p><p><a href="${panel}">${panel}</a></p>` };
+      }
       return {
         asunto: `${quien} dijo que sí`,
         // Texto aprobado por Naza el 06/10 (rama web-textos-v3): sin "repasar el guion", que en la V3 no existe.
@@ -107,7 +116,10 @@ export async function mandarHito(n: NarradorParaMail, hito: Hito): Promise<void>
     const para = (familia as { email?: string } | null)?.email;
     if (!para) return;
 
-    const { asunto, cuerpo } = redactarHito(hito, n, (familia as { region?: string } | null)?.region === 'ES' ? 'tu' : 'vos');
+    const { asunto, cuerpo } = redactarHito(hito, n, {
+      regalo: contexto.regalo === true,
+      trato: tratoDeComprador((familia as { region?: unknown } | null)?.region),
+    });
     const mandado = await enviar(para, asunto, envoltorio(cuerpo));
     if (!mandado) return;
 

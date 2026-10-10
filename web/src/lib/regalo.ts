@@ -4,8 +4,10 @@
 // (son dos servicios aparte): si cambia uno, cambia el otro.
 
 import { randomInt } from "node:crypto";
-import { TEXTOS_REGALO } from "./regalo-textos";
-import { GENEROS, MENSAJE_MAXIMO, MENSAJE_FECHA_INVALIDA, errorDeFechaEntrega, type Genero } from "./regalo-reglas";
+import { textosAbuelo, type IdiomaRegalo } from "./regalo-textos";
+import {
+  GENEROS, MENSAJE_MAXIMO, MENSAJE_FECHA_INVALIDA, MENSAJE_IDIOMA_INVALIDO, errorDeFechaEntrega, esIdiomaRegalo, type Genero,
+} from "./regalo-reglas";
 
 /** Sin 0/O, 1/I/L: se leen mal en papel y se dictan mal por teléfono. */
 export const ALFABETO_CODIGO = "23456789ABCDEFGHJKMNPQRSTUVWXYZ";
@@ -44,7 +46,8 @@ export function numeroSinCortes(legible: string): string {
   return legible.replace(/ /g, "\u00A0");
 }
 
-export type DatosRegalo = { mensaje: string; fechaEntrega: string | null; genero: Genero };
+/** `idioma`: en qué idioma le habla el biógrafo a quien recibe el regalo. Si no viene, es-AR. */
+export type DatosRegalo = { mensaje: string; fechaEntrega: string | null; genero: Genero; idioma: IdiomaRegalo };
 
 export function validarRegalo(
   crudo: unknown,
@@ -64,9 +67,15 @@ export function validarRegalo(
     if (problema) return { ok: false, mensaje: problema };
     fechaEntrega = r.fechaEntrega;
   }
-  return { ok: true, regalo: { mensaje, fechaEntrega, genero: r.genero as Genero } };
+  let idioma: IdiomaRegalo = "es-AR";
+  if (r.idioma !== undefined) {
+    if (!esIdiomaRegalo(r.idioma)) return { ok: false, mensaje: MENSAJE_IDIOMA_INVALIDO };
+    idioma = r.idioma;
+  }
+  return { ok: true, regalo: { mensaje, fechaEntrega, genero: r.genero as Genero, idioma } };
 }
 
-export function linkWhatsApp(numero: string, codigo: string): string {
-  return `https://wa.me/${numero}?text=${encodeURIComponent(TEXTOS_REGALO.mensajeWhatsApp(codigo))}`;
+/** El link a WhatsApp con el mensaje ya escrito, en el idioma del regalo. */
+export function linkWhatsApp(numero: string, codigo: string, idioma: IdiomaRegalo): string {
+  return `https://wa.me/${numero}?text=${encodeURIComponent(textosAbuelo(idioma).mensajeWhatsApp(codigo))}`;
 }

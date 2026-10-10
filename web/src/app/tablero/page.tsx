@@ -109,7 +109,8 @@ export default async function Inicio() {
       <div className="mt-8 flex flex-col gap-6">
         {panel.historias.map((h, i) => {
           const r = resumenes[i];
-          const paso = proximoPaso(h, r);
+          // El paso del regalo es de la dueña: su familia es la del panel.
+          const paso = proximoPaso(h, r, panel.familia?.region);
           const n = h.narrador;
           return (
             <Tarjeta key={n.id}>

@@ -135,7 +135,11 @@ export async function enviarPregunta(
   // V3_PARA_NUEVOS=1. Es el paso acepto → activo: en vez de la pregunta 1 vieja,
   // se crea su fila V3 y sale OR1 con M1. Sin género, se frena y se avisa.
   // La Vitácora de Viaje (contexto.modo = 'viaje') sigue por su flujo.
-  if (n.estado === 'acepto' && orden === 1 && n.contexto?.modo !== 'viaje' && v3ParaNuevos()) {
+  // Un regalo va SIEMPRE por la V3, con el interruptor apagado o prendido
+  // (regalo-idiomas, 09/10): su bienvenida es el BIEN del banco, que describe
+  // la V3, y solo la V3 habla catalán y castellano de España. Si el alta se
+  // frena ('frenada'), no sale la pregunta vieja: devuelve false.
+  if (n.estado === 'acepto' && orden === 1 && n.contexto?.modo !== 'viaje' && (v3ParaNuevos() || n.contexto?.regalo === true)) {
     const { altaNuevo } = await import('../v3/pasar.js');
     const { depsReales } = await import('../v3/deps-reales.js');
     return (await altaNuevo(depsReales(), n, { ventanaAbierta: !plantilla })) === 'mandada';

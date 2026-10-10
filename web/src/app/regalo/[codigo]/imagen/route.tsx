@@ -2,7 +2,7 @@ import { ImageResponse } from "next/og";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { leerRegalo, numeroPublico } from "@/lib/regalo-datos";
 import { qrDataUri, urlRegalo } from "@/lib/qr";
-import { TEXTOS_REGALO } from "@/lib/regalo-textos";
+import { textosAbuelo } from "@/lib/regalo-textos";
 import { largoEnTarjeta, numeroSinCortes } from "@/lib/regalo";
 
 // La tarjeta del regalo como imagen vertical (1080 × 1920) para mandar por
@@ -67,6 +67,8 @@ export async function GET(_request: Request, { params }: { params: Promise<{ cod
   const numero = numeroPublico();
   const [qr, fonts] = await Promise.all([qrDataUri(urlRegalo(regalo.codigo)), cargarFuentes()]);
 
+  // Las frases de la tarjeta, en el idioma del abuelo.
+  const textos = textosAbuelo(regalo.idioma);
   const titulo = "Playfair Display";
   const cuerpo = "Source Serif 4";
   const micro = "Archivo";
@@ -96,9 +98,9 @@ export async function GET(_request: Request, { params }: { params: Promise<{ cod
 
         <div style={{ display: "flex", height: 1, backgroundColor: TINTA, marginTop: 56, marginBottom: 56 }} />
 
-        <div style={{ display: "flex", fontFamily: titulo, fontWeight: 500, fontSize: 50 }}>{TEXTOS_REGALO.esUnRegalo}</div>
+        <div style={{ display: "flex", fontFamily: titulo, fontWeight: 500, fontSize: 50 }}>{textos.esUnRegalo}</div>
         <div style={{ display: "flex", flexDirection: "column", marginTop: 16, fontSize: 34, lineHeight: 1.45 }}>
-          {TEXTOS_REGALO.explica.map((linea) => <div key={linea} style={{ display: "flex" }}>{linea}</div>)}
+          {textos.explica.map((linea) => <div key={linea} style={{ display: "flex" }}>{linea}</div>)}
         </div>
 
         <div style={{ display: "flex", flex: 1 }} />
@@ -109,13 +111,13 @@ export async function GET(_request: Request, { params }: { params: Promise<{ cod
             fontSize: 26, letterSpacing: 3.6, textTransform: "uppercase",
           }}
         >
-          {TEXTOS_REGALO.apunta}
+          {textos.apunta}
         </div>
         {/* eslint-disable-next-line @next/next/no-img-element -- Satori solo entiende <img> */}
         <img src={qr} alt="" width={420} height={420} style={{ alignSelf: "center", marginTop: 24 }} />
         {numero && (
           <div style={{ display: "flex", justifyContent: "center", textAlign: "center", marginTop: 20, fontSize: 28, lineHeight: 1.4 }}>
-            {TEXTOS_REGALO.respaldo(numeroSinCortes(numero.legible))}
+            {textos.respaldo(numeroSinCortes(numero.legible))}
           </div>
         )}
         <div

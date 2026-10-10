@@ -868,3 +868,13 @@ bienvenida de siempre. Desde el SÍ todo sigue igual que hoy, V3 incluida.
   canjear.
 - Pendientes y decisiones: `docs/regalo/handoff-2026-10-08.md` y ROADMAP («Gift card»).
 
+## Gift card en España y catalán (branch `regalo-idiomas`, PR #4 contra `regalo`, 09/10) (Naza)
+
+La compra pregunta «¿En qué idioma le hablamos?» y el abuelo recibe tarjeta, página, WhatsApp y
+bot en castellano de Argentina, de España o en catalán. Quien compra lee de vos o de tú según su
+país. Los tres idiomas arrancan con la bienvenida `BIEN` del banco más un pedido de SÍ, y los
+regalos van siempre por la V3 (primera pregunta con el SÍ). Todos los textos aprobados por Naza.
+Web 751 OK (más la falla vieja de `admin-pantallas`), entrevistador 783 de 783. Sin migración.
+Aparte, PR #3: la bienvenida `BIEN` sin dos puntos en los tres idiomas. Pase: sección «España y
+catalán (09/10)» de `docs/regalo/handoff-2026-10-08.md`.
+

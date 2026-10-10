@@ -3,8 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import type { Catalogo } from "@/lib/productos";
 import type { Region } from "@/lib/precios";
-import { GENEROS, MENSAJE_MAXIMO, errorDeFechaEntrega, type Genero } from "@/lib/regalo-reglas";
-import { TEXTOS_REGALO as T } from "@/lib/regalo-textos";
+import { GENEROS, IDIOMAS_REGALO, MENSAJE_MAXIMO, errorDeFechaEntrega, type Genero } from "@/lib/regalo-reglas";
+import { idiomaPorDefecto, textosComprador, tratoDeRegion, type IdiomaRegalo, type TextosComprador, type TratoComprador } from "@/lib/regalo-textos";
 import { formatearPrecio } from "../comprar/productos-ui";
 import { Grabador } from "./grabador";
 import { enviarRegalo } from "./enviar";
@@ -15,7 +15,9 @@ import { enviarRegalo } from "./enviar";
 // lo da cuando escanea la tarjeta y le escribe al biógrafo. El pago (compra,
 // audio y redirección) vive en enviar.ts, probado sin navegador.
 //
-// ⚠️ Todos los textos salen de TEXTOS_REGALO y están a aprobar por Naza.
+// Todos los textos salen de textosComprador(trato): de vos en AR, de tú en ES
+// (plan 2026-10-09-regalo-idiomas). El idioma del regalo es el del abuelo y
+// arranca en el de la región de quien compra.
 
 type Paso = 1 | 2 | 3 | 4;
 
@@ -31,8 +33,12 @@ function hoyLocal(): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-export function FormularioRegalo({ catalogo, region, pasoInicial = 1 }: { catalogo: Catalogo; region: Region; pasoInicial?: Paso }) {
+export function FormularioRegalo({
+  catalogo, region, trato = tratoDeRegion(region), idiomaInicial = idiomaPorDefecto(region), pasoInicial = 1,
+}: { catalogo: Catalogo; region: Region; trato?: TratoComprador; idiomaInicial?: IdiomaRegalo; pasoInicial?: Paso }) {
+  const T = textosComprador(trato);
   const [paso, setPaso] = useState<Paso>(pasoInicial);
+  const [idioma, setIdioma] = useState<IdiomaRegalo>(idiomaInicial);
   const [nombre, setNombre] = useState("");
   const [comoLeDicen, setComoLeDicen] = useState("");
   const [genero, setGenero] = useState<Genero | null>(null);
@@ -77,8 +83,8 @@ export function FormularioRegalo({ catalogo, region, pasoInicial = 1 }: { catalo
     setEnviando(true);
     setFalla(null);
     const r = await enviarRegalo(
-      { nombre, comoLeDicen, genero, mensaje, fechaEntrega, nombreComprador, vinculoComprador, email, region, audio },
-      { fetch: (...a) => fetch(...a), asignar: (url) => window.location.assign(url) },
+      { nombre, comoLeDicen, genero, mensaje, fechaEntrega, nombreComprador, vinculoComprador, email, region, idioma, audio },
+      { fetch: (...a) => fetch(...a), asignar: (url) => window.location.assign(url), trato },
     );
     if ("error" in r) {
       fallar(r.error);
@@ -126,7 +132,19 @@ export function FormularioRegalo({ catalogo, region, pasoInicial = 1 }: { catalo
                 ))}
               </div>
             </fieldset>
+            <fieldset className="mt-8">
+              <legend className={etiqueta}>{T.idioma}</legend>
+              <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                {IDIOMAS_REGALO.map((i) => (
+                  <label key={i} lang={i === "ca" ? "ca" : undefined} className={`flex cursor-pointer items-center gap-3 rounded-lg border bg-white px-4 py-3 text-[16px] [font-family:var(--fuente-cuerpo)] ${idioma === i ? "border-2 border-[#14140F]" : "border-[#D4D4CE]"}`}>
+                    <input type="radio" name="idioma" value={i} checked={idioma === i} onChange={() => setIdioma(i)} />
+                    {T.idiomas[i]}
+                  </label>
+                ))}
+              </div>
+            </fieldset>
             <Botones
+              textos={T}
               siguiente={() => {
                 if (!nombre.trim()) return fallar(T.faltaNombre, "nombre");
                 if (!comoLeDicen.trim()) return fallar(T.faltaComoLeDecis, "apodo");
@@ -149,13 +167,14 @@ export function FormularioRegalo({ catalogo, region, pasoInicial = 1 }: { catalo
             </div>
             <div className="mt-6">
               <p id="etiqueta-audio" className={etiqueta}>{T.audio}</p>
-              <Grabador audio={audio} onAudio={setAudio} etiquetadoPor="etiqueta-audio" />
+              <Grabador audio={audio} onAudio={setAudio} etiquetadoPor="etiqueta-audio" textos={T} />
             </div>
             <div className="mt-8 sm:max-w-xs">
               <label className={etiqueta} htmlFor="fecha">{T.cuando}</label>
               <input id="fecha" type="date" {...marca("fecha")} className={`${campo} mt-2`} value={fechaEntrega} min={hoyLocal()} onChange={(e) => setFechaEntrega(e.target.value)} />
             </div>
             <Botones
+              textos={T}
               atras={() => avanzar(1)}
               siguiente={() => {
                 if (!mensaje.trim()) return fallar(T.faltaMensaje, "mensaje");
@@ -188,6 +207,7 @@ export function FormularioRegalo({ catalogo, region, pasoInicial = 1 }: { catalo
               </div>
             </div>
             <Botones
+              textos={T}
               atras={() => avanzar(2)}
               siguiente={() => {
                 if (!nombreComprador.trim()) return fallar(T.faltaTuNombre, "comprador");
@@ -249,7 +269,7 @@ function TarjetaChica({ comoLeDicen, mensaje, firma }: { comoLeDicen: string; me
   );
 }
 
-function Botones({ atras, siguiente, error }: { atras?: () => void; siguiente: () => void; error: string | null }) {
+function Botones({ atras, siguiente, error, textos: T }: { atras?: () => void; siguiente: () => void; error: string | null; textos: TextosComprador }) {
   return (
     <>
       {error && <p id={ID_ERROR} className="mt-6 text-[15px] text-[#B42318] [font-family:var(--fuente-cuerpo)]" role="alert">{error}</p>}

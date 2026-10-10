@@ -107,10 +107,13 @@ todavía no existe): cambian cómo el biógrafo escribe cada una.
 
 `"ca"` = la entrevista en catalán; `"es-ES"` = en castellano de España, de tú (05/10, Naza:
 Argentina va de vos, España de tú, catalán en catalán); ausente (o `"es-AR"`) = la de siempre,
-en castellano rioplatense. **La web lo escribe** en la compra, cuando quien regala lo elige en la ficha
-("¿En qué idioma hacemos la entrevista? Castellano / Català"; para España, "Castellano de
-España" cuando sus textos estén aprobados: hasta que `docs/v3/entrevista/banco-es-ES.md` esté
-y su json generado, una entrevista `"es-ES"` frena con error en vez de mandar rioplatense). **El entrevistador lo lee** y
+en castellano rioplatense. **La web lo escribe** en la compra de un regalo (`/regalar`, paso 1):
+«¿En qué idioma le hablamos?», con tres opciones (Castellano de Argentina, Castellano de España,
+Català) que arranca en la del país de quien compra (`ES` → Castellano de España; cualquier otro →
+Castellano de Argentina). Escribe `"es-ES"` o `"ca"`; para es-AR no escribe `idioma` (ver «Gift card»).
+El banco de España ya está (`docs/v3/entrevista/banco-es-ES.md` y su json), así que un regalo
+`"es-ES"` arranca como los otros: ya no está pendiente. La compra de siempre (no regalo) todavía no
+lo pregunta. **El entrevistador lo lee** y
 se lo pasa a todo lo de `fabrica/src/v3/entrevista/`: `EstadoEntrevista.idioma`, la ficha de
 `renderizar` (`idioma`), `mensajesDespues(…, idioma)`, `preguntaPorId`/`mensajePorId(id, idioma)`,
 `cazarBloque({ …, idioma })` y la transcripción (`idioma` → `language: 'ca'`; `es-ES` → `'es'` con vocabulario de España). Sin migración:
@@ -602,7 +605,8 @@ después de FIN, `pausado` como arriba); `dia_actual` queda congelado en el valo
 
 La fila nace con `npm run v3-pasar -- <narrador> --genero … [--idioma …] --aplicar` (narradores en
 curso, con la tabla de equivalencias aprobada por Naza) o al pasar `acepto → activo` con
-`V3_PARA_NUEVOS=1` (necesita `contexto.genero`; sin él, el alta se frena y se avisa a los socios).
+`V3_PARA_NUEVOS=1`, o siempre para un regalo (`contexto.regalo = true`, con el interruptor apagado o
+prendido). En los dos casos necesita `contexto.genero`; sin él, el alta se frena y se avisa a los socios.
 
 **La fábrica:** `fabrica/src/v3/candado.ts` cuida que el camino viejo no toque a ningún narrador con
 fila (anticipo, estructura, previsualización y paquete viejos; desde el 08/10 el worker ya no avisa por
@@ -787,8 +791,13 @@ Reglas:
 
 Spec: `docs/superpowers/specs/2026-10-07-gift-card-design.md`.
 
-- La web crea narrador (sin teléfono, `contexto.regalo = true`, `contexto.trato = 'vos'`,
-  `contexto.genero`), pedido (`extras.regalo = true`) y `regalos` en la misma compra.
+- La web crea narrador (sin teléfono, `contexto.regalo = true`, `contexto.genero` y el idioma, ver
+  abajo), pedido (`extras.regalo = true`) y `regalos` en la misma compra.
+- **Idioma del regalo (09/10, spec `2026-10-09-regalo-idiomas-design.md`).** Quien compra lo elige
+  en `/regalar` (es-AR, es-ES o ca). Para es-ES y ca la web escribe `contexto.idioma` (`"es-ES"` o
+  `"ca"`) y no escribe `trato`. Para es-AR escribe `contexto.trato = 'vos'` y no escribe `idioma`
+  (la ausencia es es-AR). Lo que el cuerpo de la compra traiga de `trato` o `idioma` no cuenta:
+  manda el idioma elegido, también en un reintento.
 - Al pagar, la web pasa el narrador a `regalo_pendiente` (no a `invitado`).
 - El entrevistador, ante un número desconocido que escribe un código válido:
   1. marca el regalo (`usado_at`, `usado_por_telefono`) con compare-and-swap sobre `usado_at is null`;
@@ -796,14 +805,52 @@ Spec: `docs/superpowers/specs/2026-10-07-gift-card-design.md`.
      mismo update `zona_horaria` según el prefijo del teléfono que canjea (`+54` →
      `America/Argentina/Buenos_Aires`, `+34` → `Europe/Madrid`; otro prefijo deja la que había, que
      la web puso por la región de quien compró). La zona es la del narrador, no la de quien regala;
-  3. manda la bienvenida como texto libre (con `contexto.trato`: `usted` si es `usted`, si no `vos`)
-     y la anota en `envios` (`tipo = 'bienvenida'`).
+  3. manda la bienvenida como texto libre y la anota en `envios` (`tipo = 'bienvenida'`). Desde el
+     09/10 esa bienvenida es el mensaje `BIEN` del banco V3 en el idioma del regalo (renderizado con
+     `como_le_dicen`) y abajo el pedido de SÍ con el permiso de la voz (`ARRANQUE` en
+     `entrevistador/src/flujo/regalo-textos.ts`). Ya no usa la bienvenida vieja ni `trato`.
 - Si esa bienvenida falla (o no se pudo anotar en `envios`), el entrevistador la vuelve a mandar como
   texto libre con el próximo mensaje del narrador (sigue en `invitado` sin bienvenida en `envios`).
   Si tampoco sale, se procesa el mensaje como un SÍ de siempre: un SÍ no se pierde.
 - El SÍ de un narrador con `contexto.regalo = true` anota `consentimiento_voz_at` (la bienvenida del
   regalo siempre pide el permiso de la voz), aunque `WA_BIENVENIDA_PIDE_VOZ` esté apagado. No lo
   anota si la bienvenida del regalo nunca le llegó.
+- **Los regalos van siempre por la V3 (09/10).** Al SÍ de un regalo, `enviarPregunta` hace el alta
+  V3 (`altaNuevo`) aunque `V3_PARA_NUEVOS` esté apagado, y la primera pregunta sale enseguida, sea
+  cual sea el ritmo. La aceptación, el «no te entendí» y el «todavía no» salen en el idioma del
+  regalo (`ARRANQUE`). `leerSiNo` reconoce también el SÍ en catalán («d'acord», «som-hi»,
+  «endavant», «vinga», «va», «comencem») y en castellano de España («vale», «venga»), y el «no» en
+  catalán («ara no», «demà», «després», «més tard», «avui no»; se comparan sin acentos).
+- «No encuentro ese código» sale según el prefijo del teléfono (`+34` en es-ES, cualquier otro en
+  es-AR), porque todavía no se sabe de qué regalo es. «Ese código ya se usó» sale en el idioma del
+  regalo.
+- El mail «dijo que sí» (hito `acepto`) de un regalo tiene su propio texto (`HITO_ACEPTO_REGALO`):
+  dice que la primera pregunta ya salió y no habla de «mañana» ni del guion. Por eso, en un regalo,
+  sale **después** de que `enviarPregunta` devolvió `true`; si la 1 no sale o falla, queda en el log
+  y el mail no va (un narrador que no es regalo recibe el mail antes de la 1, como siempre). Va de vos o de tú
+  según `familias.region` de quien compró (`ES` → tú). El recordatorio de los 15 días también.
+- **Un regalo que no puede arrancar** (sin `contexto.genero`, o con un `contexto.idioma` que no es
+  es-AR, es-ES ni ca) anota igual el SÍ (`acepto` y `consentimiento_voz_at`), no le manda nada al
+  narrador (ni la aceptación ni la primera pregunta), no manda el mail «dijo que sí» y avisa a los
+  socios (`avisarSocios`, clave `regalo-si-frenado:{narrador_id}`, con el paso a seguir). Lo que
+  pasa de verdad después (09/10):
+  - Una persona completa la ficha (`contexto.genero`, y `contexto.idioma` si estaba mal).
+  - **Con el próximo mensaje del narrador** (cualquiera: texto, audio o foto), si sigue en `acepto`
+    sin fila V3, el entrevistador intenta el alta con la ventana abierta (`enviarPregunta(n, 1,
+    { plantilla: false })`): si la ficha ya está completa, OR1 sale en ese momento y, recién
+    entonces, sale el mail «dijo que sí». Si sigue incompleta, `altaNuevo` lo vuelve a frenar (su
+    aviso sale una vez por día) y el mensaje se ignora como antes. Un `acepto` que no es regalo
+    sigue ignorando los mensajes.
+  - **Sin mensaje suyo**, el scheduler lo reintenta a su hora preferida con `altaNuevo` y la
+    ventana cerrada: crea la fila y lo pasa a `activo`, pero OR1 sale solo si hay plantilla V3
+    aprobada. En es-AR sale; en es-ES y ca todavía no hay plantilla (`WA_PLANTILLAS_V3_LISTAS`), así
+    que OR1 queda en la cola hasta que el narrador escriba. Por este camino el mail «dijo que sí» no
+    sale solo: lo manda una persona.
+  - `npm run v3-pasar -- <narrador> --genero … [--idioma …] --aplicar` también lo destraba (acepta
+    narradores en `acepto`): crea la fila y lo pasa a `activo` sin mandar nada, con la misma espera
+    de la plantilla en es-ES y ca. No completa `contexto.genero` ni manda el mail.
+  - La aceptación al narrador («ahí te mando la primera pregunta») no sale por ninguno de estos
+    caminos.
 - Un teléfono que el entrevistador ya conoce (narrador en `pendiente_pago`, `completado` o
   `cerrado_anticipado`) que manda un código **no canjea** y no recibe respuesta (no hay texto
   aprobado): se avisa a los socios (`avisarSocios`, con el teléfono, el narrador y el código) para

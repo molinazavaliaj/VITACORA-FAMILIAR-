@@ -551,7 +551,7 @@ rama `regalo` (PR #2). Pase: `docs/regalo/handoff-2026-10-08.md`.
 | R.3 | Imprimir una tarjeta real en doble faz y grabar un audio desde un celular real | **N** | ☐ |
 | R.4 | Mergear el PR #2 | **N+J** | ☐ |
 | R.5 | Antes de vender: el reintento de pago no tiene que dejar ver el código a un tercero; piloto real; decidir desde dónde se linkea `/regalar` | **N+J** | ☐ |
-| R.6 | Plan siguiente: España (tú), catalán, sobre físico, dos libros para la misma persona | **N** | ☐ |
+| R.6 | España (tú) y catalán: ✅ hecho 09/10 (PR #4). Quedan sobre físico y dos libros para la misma persona | **N** | 🔄 |
 
 ---
 

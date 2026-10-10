@@ -1,6 +1,8 @@
 import { describe, it, expect, vi } from "vitest";
 import { enviarRegalo, type PedidoRegalo } from "../src/app/regalar/enviar";
-import { TEXTOS_REGALO } from "../src/lib/regalo-textos";
+import { textosComprador } from "../src/lib/regalo-textos";
+
+const VOS = textosComprador("vos");
 
 // Gift card, Task 8: el camino de pagar de /regalar, con fetch y la
 // redirección falsos (no hay jsdom en el proyecto).
@@ -15,6 +17,7 @@ const pedido = (extra: Partial<PedidoRegalo> = {}): PedidoRegalo => ({
   vinculoComprador: " nieta ",
   email: " lucia@example.com ",
   region: "AR",
+  idioma: "es-AR",
   audio: null,
   ...extra,
 });
@@ -49,7 +52,7 @@ describe("enviarRegalo", () => {
       region: "AR",
       email: "lucia@example.com",
       narrador: { nombre: "Osvaldo Pérez", comoLeDicen: "abuelo" },
-      regalo: { mensaje: "Quiero tu historia para siempre.", genero: "varon" },
+      regalo: { mensaje: "Quiero tu historia para siempre.", genero: "varon", idioma: "es-AR" },
       productos: { impresos: 0, marcos: 0 },
     });
   });
@@ -60,6 +63,12 @@ describe("enviarRegalo", () => {
     const cuerpo = JSON.parse(String(d.llamadas[0].init?.body));
     expect(cuerpo.regalo.fechaEntrega).toBe("2026-12-24");
     expect(cuerpo.region).toBe("ES");
+  });
+
+  it("manda el idioma elegido en el regalo", async () => {
+    const d = dobles();
+    await enviarRegalo(pedido({ idioma: "ca", region: "ES" }), d);
+    expect(JSON.parse(String(d.llamadas[0].init?.body)).regalo.idioma).toBe("ca");
   });
 
   it("sin audio no hay subida: una sola llamada y al pago", async () => {
@@ -120,9 +129,9 @@ describe("enviarRegalo", () => {
   it("si la compra falla sin mensaje o por red, devuelve el error genérico", async () => {
     const asignar = vi.fn();
     const sinMensaje = (async () => respuesta({}, 500)) as unknown as typeof globalThis.fetch;
-    expect(await enviarRegalo(pedido(), { fetch: sinMensaje, asignar })).toEqual({ error: TEXTOS_REGALO.errorPago });
+    expect(await enviarRegalo(pedido(), { fetch: sinMensaje, asignar })).toEqual({ error: VOS.errorPago });
     const red = (async () => { throw new TypeError("red"); }) as unknown as typeof globalThis.fetch;
-    expect(await enviarRegalo(pedido(), { fetch: red, asignar })).toEqual({ error: TEXTOS_REGALO.errorPago });
+    expect(await enviarRegalo(pedido(), { fetch: red, asignar })).toEqual({ error: VOS.errorPago });
     expect(asignar).not.toHaveBeenCalled();
   });
 });
