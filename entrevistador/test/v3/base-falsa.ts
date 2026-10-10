@@ -12,10 +12,11 @@ type ErrorBase = { code: string; message: string };
 type Resultado = { data: any; error: ErrorBase | null; count?: number | null };
 
 /** La clave primaria de las tablas que no usan `id`. */
-const CLAVE: Record<string, string> = { entrevistas_v3: 'narrador_id' };
+const CLAVE: Record<string, string> = { entrevistas_v3: 'narrador_id', viajes_v2: 'narrador_id' };
 const UNICOS: Record<string, string[]> = {
   respuestas: ['wa_message_id'],
   entrevistas_v3: ['narrador_id'],
+  viajes_v2: ['narrador_id'],
   narradores: ['telefono_whatsapp'],
   regalos: ['codigo', 'narrador_id'],
 };
@@ -23,6 +24,7 @@ const DEFAULTS: Record<string, () => Fila> = {
   respuestas: () => ({ recibido_at: new Date().toISOString(), es_repregunta: false, clave_v3: null, wa_message_id: null, transcripcion: null, texto_directo: null }),
   entrevistas_v3: () => ({ version: 0, tanda_cuenta: 0, ultimo_audio_at: null, tanda_dia: null, enviando_hasta: null, creada_at: new Date().toISOString(), migrada_de: null }),
   envios: () => ({ enviado_at: new Date().toISOString() }),
+  viajes_v2: () => ({ version: 0, enviando_hasta: null, creada_at: new Date().toISOString() }),
   narradores: () => ({ estado: 'invitado', dia_actual: 0, contexto: {}, hora_preferida: '10:00:00', zona_horaria: 'America/Argentina/Buenos_Aires', ultima_respuesta_at: null, alerta_silencio: false }),
 };
 
