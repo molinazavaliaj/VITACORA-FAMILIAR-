@@ -24,7 +24,7 @@ _[texto: SÍ]_
 **21:00 · Marta**  
 _[audio: llevaba años diciendo que quería ir sola a algún sitio; un domingo abrí el ordenador y lo reservé antes de pensarlo dos veces]_
 
-**21:00 · Vitácora** `ACA2` + `AS2`  
+**21:03 · Vitácora** `ACA2` + `AS2`  
 > Lo he escuchado. Vamos con otra.
 >
 > Ya falta poco, Marta. ¿Cómo llevas este viaje? Ganas, nervios, cansancio, lo que haya, y qué esperas encontrar allí. Cuéntame el momento de estos días en que te has dado cuenta de que esto va en serio: qué estabas haciendo y qué se te ha pasado por la cabeza.
@@ -34,7 +34,7 @@ _[audio: llevaba años diciendo que quería ir sola a algún sitio; un domingo a
 **20:10 · Marta**  
 _[audio: con ganas y con algo de vértigo; me di cuenta cuando pedí los días en el trabajo]_
 
-**20:10 · Vitácora** `ACA3` + `IM1`  
+**20:13 · Vitácora** `ACA3` + `IM1`  
 > Queda guardado. Te pregunto una más.
 >
 > Cuando piensas en este viaje, ¿qué imagen se te viene a la cabeza? No lo que has leído ni lo que hay que ver: la que te viene sola, aunque sea una calle. Dime cuál es y de dónde te viene.
@@ -44,7 +44,7 @@ _[audio: con ganas y con algo de vértigo; me di cuenta cuando pedí los días e
 **09:15 · Marta**  
 _[audio: una plaza con una fuente y yo sentada con un café]_
 
-**09:15 · Vitácora** `ACA4` + `VA1`  
+**09:18 · Vitácora** `ACA4` + `VA1`  
 > Gracias. Y ahora...
 >
 > ¿Qué es lo que va en la maleta sí o sí, Marta? No el cargador ni los documentos: algo tuyo. Y por qué va contigo.
@@ -52,7 +52,7 @@ _[audio: una plaza con una fuente y yo sentada con un café]_
 **23:05 · Marta**  
 _[texto: un libro de poemas que era de mi abuela; viaja siempre conmigo]_
 
-**23:05 · Vitácora** `TXT`  
+**23:08 · Vitácora** `TXT`  
 > Lo he leído, gracias. Si puedes, cuéntamelo también en audio: tu voz es lo que va al libro. Y si te resulta más cómodo escribir, escribe sin más.
 
 ## Día 1 · salida · viernes 6/11 (hora de Madrid)
@@ -63,7 +63,7 @@ _[texto: un libro de poemas que era de mi abuela; viaja siempre conmigo]_
 **10:20 · Marta**  
 _[audio: cerrando la maleta sentada encima y repasando que el gas estuviera cerrado]_
 
-**10:20 · Vitácora** `ACM1`  
+**10:23 · Vitácora** `ACM1`  
 > Ya está, gracias.
 
 ## Día 2 del viaje · sábado 7/11 (hora de Rome)
@@ -74,7 +74,7 @@ _[audio: cerrando la maleta sentada encima y repasando que el gas estuviera cerr
 **12:00 · Marta**  
 _[audio: en el tren del aeropuerto, viendo pinos y casas amarillas; ahí supe que ya estaba lejos]_
 
-**12:00 · Vitácora** `ACM2`  
+**12:03 · Vitácora** `ACM2`  
 > Gracias, guardado.
 
 **21:00 · Vitácora** `C1` + `NO1` + `F1`  
@@ -83,7 +83,7 @@ _[audio: en el tren del aeropuerto, viendo pinos y casas amarillas; ahí supe qu
 **22:00 · Marta**  
 _[audio: una carbonara en una trattoria del Trastevere; el dueño me sacó un limoncello sin pedirlo + una foto]_
 
-**22:00 · Vitácora** `ACN1`  
+**22:03 · Vitácora** `ACN1`  
 > Gracias, Marta. A dormir, que mañana seguimos.
 
 ## Día 3 del viaje · domingo 8/11 (hora de Rome)
@@ -94,7 +94,7 @@ _[audio: una carbonara en una trattoria del Trastevere; el dueño me sacó un li
 **13:35 · Marta**  
 _[foto: el cielo entre dos tejados]_
 
-**13:35 · Vitácora** reacciona ❤️ a su mensaje
+**13:38 · Vitácora** reacciona ❤️ a su mensaje
 
 **21:00 · Vitácora** `C2` + `NO2` + `F3`  
 > Ya se ha acabado el día. Cuéntamelo como si alguien de casa te llamara ahora mismo para preguntarte qué tal te ha ido. Empieza por un sitio donde te has quedado un rato, y desde ahí ve por donde te lleve el día. Las fotos que quieras guardar, mándamelas.
@@ -102,7 +102,7 @@ _[foto: el cielo entre dos tejados]_
 **21:40 · Marta**  
 _[audio: me senté una hora en la escalinata de una iglesia a ver pasar a la gente; nadie tenía prisa]_
 
-**21:40 · Vitácora** `ACN2`  
+**21:43 · Vitácora** `ACN2`  
 > Queda guardado. Buenas noches.
 
 ## Día 4 del viaje · lunes 9/11 (hora de Rome)
@@ -113,7 +113,7 @@ _[audio: me senté una hora en la escalinata de una iglesia a ver pasar a la gen
 **13:20 · Marta**  
 _[texto: paso]_
 
-**13:20 · Vitácora** `PAS-V2`  
+**13:23 · Vitácora** `PAS-V2`  
 > Vale, esta nos la saltamos.
 
 **21:00 · Vitácora** `C3` + `NO4` + `F5`  
@@ -127,7 +127,7 @@ _[texto: paso]_
 **13:35 · Marta**  
 _[foto: un cartel de una farmacia antigua]_
 
-**13:35 · Vitácora** reacciona ❤️ a su mensaje
+**13:38 · Vitácora** reacciona ❤️ a su mensaje
 
 _(La noche anterior quedó sin contestar.)_
 
@@ -139,7 +139,7 @@ _(La noche anterior quedó sin contestar.)_
 **21:20 · Marta**  
 _[texto: paso de esta]_
 
-**21:20 · Vitácora** `PAS-V`  
+**21:23 · Vitácora** `PAS-V`  
 > Vale, esta nos la saltamos. Mañana hay otra.
 
 ## Día 6 del viaje · miércoles 11/11 (hora de Rome)
@@ -150,7 +150,7 @@ _[texto: paso de esta]_
 **13:35 · Marta**  
 _[foto: mis zapatillas en los adoquines]_
 
-**13:35 · Vitácora** reacciona ❤️ a su mensaje
+**13:38 · Vitácora** reacciona ❤️ a su mensaje
 
 **21:00 · Vitácora** `C5` + `NO9` + `F4`  
 > Otra noche allí. Cuéntame cómo ha ido hoy, pero como se lo cuentas a alguien que sabe cómo eres y nota enseguida cuando le das la versión corta. Empieza por algo que te ha hecho reír, aunque sea una tontería, y después cuéntame lo demás, lo que se te vaya ocurriendo. Y mándame todas las fotos de hoy que quieras.
@@ -158,7 +158,7 @@ _[foto: mis zapatillas en los adoquines]_
 **22:20 · Marta**  
 _[audio: en el Panteón empezó a llover por el agujero del techo y todo el mundo se quedó mirando hacia arriba + 2 fotos]_
 
-**22:20 · Vitácora** `ACN3`  
+**22:23 · Vitácora** `ACN3`  
 > Lo he escuchado. Hasta mañana, Marta.
 
 ## Día 7 del viaje · jueves 12/11 (hora de Rome)
@@ -169,7 +169,7 @@ _[audio: en el Panteón empezó a llover por el agujero del techo y todo el mund
 **13:35 · Marta**  
 _[foto: el cielo entre dos tejados]_
 
-**13:35 · Vitácora** reacciona ❤️ a su mensaje
+**13:38 · Vitácora** reacciona ❤️ a su mensaje
 
 **21:00 · Vitácora** `FN1`  
 > Mañana vuelves. Antes de hacer la maleta, cuéntame una cosa de este viaje que no quieres que se te olvide, una sola, y por qué esa. Si tienes una foto, mándamela.
@@ -177,7 +177,7 @@ _[foto: el cielo entre dos tejados]_
 **22:00 · Marta**  
 _[audio: la luz naranja sobre los tejados desde el Gianicolo; esa quiero guardarla]_
 
-**22:00 · Vitácora** `ACN4`  
+**22:03 · Vitácora** `ACN4`  
 > Gracias por contármelo. Que descanses.
 
 ## Día 8 · vuelta · viernes 13/11 (hora de Rome)
@@ -188,7 +188,7 @@ _[audio: la luz naranja sobre los tejados desde el Gianicolo; esa quiero guardar
 **13:50 · Marta**  
 _[foto: un paquete de pasta y una postal]_
 
-**13:50 · Vitácora** reacciona ❤️ a su mensaje
+**13:53 · Vitácora** reacciona ❤️ a su mensaje
 
 ## Ya en casa · sábado 14/11 (hora de Madrid)
 
@@ -198,7 +198,7 @@ _[foto: un paquete de pasta y una postal]_
 **11:30 · Marta**  
 _[audio: cuando el avión giró y vi la sierra; ya estaba volviendo]_
 
-**11:30 · Vitácora** `ACM3`  
+**11:33 · Vitácora** `ACM3`  
 > Lo tengo. Hasta la noche.
 
 **21:00 · Vitácora** `CA1`  
@@ -207,7 +207,7 @@ _[audio: cuando el avión giró y vi la sierra; ya estaba volviendo]_
 **21:10 · Marta**  
 _[audio: que mi casa es más silenciosa de lo que pensaba]_
 
-**21:10 · Vitácora** `ACN1`  
+**21:13 · Vitácora** `ACN1`  
 > Gracias, Marta. A dormir, que mañana seguimos.
 
 ## Ya en casa · domingo 15/11 (hora de Madrid)
@@ -224,13 +224,13 @@ _[6 fotos más]_
 **12:35 · Marta**  
 _[texto: ya está]_
 
-**12:35 · Vitácora** `AL3`  
+**12:38 · Vitácora** `AL3`  
 > Has mandado 24 fotos y en el álbum caben 20. Si quieres, elige tú cuáles se quedan fuera: reenvíame las que quieras quitar. Si no me dices nada en unas horas, me quedo con las primeras 20.
 
-**12:55 · Marta**  
+**12:58 · Marta**  
 _[texto: déjalo, elige tú]_
 
-**12:55 · Vitácora** `DES` + `DES+`  
+**13:01 · Vitácora** `DES` + `DES+`  
 > Ya está, Marta: el viaje ha quedado contado, con tu voz. Ahora me toca a mí preparar el libro con lo que me has dado; lo vas a poder leer en tu panel antes de que lo cerremos, y ahí cambias lo que haga falta. Del álbum me he quedado con las primeras 20 que has mandado, que son las que caben. Ha sido bonito acompañarte. Gracias por dejarme entrar en tu viaje.
 
 _(Se cierra el álbum: 24 fotos quedan, guardadas 20, afuera 4.)_

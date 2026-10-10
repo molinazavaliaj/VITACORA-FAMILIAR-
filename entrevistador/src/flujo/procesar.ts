@@ -24,6 +24,7 @@ import { bienvenidaViaje } from '../manual/puro.js';
 import { CLAVE_DEL_ARBOL, capituloNoAplica, enviarPregunta, ritmoDe, type Narrador } from './preguntar.js';
 import { bienvenidaPideVoz } from '../config.js';
 import { esNarradorV3 } from '../v3/estado.js';
+import { esViajeroV2 } from '../viaje-v2/filas.js';
 import { canjearRegalo, mandarBienvenidaDeRegalo } from './regalo.js';
 import { idiomaDeRegalo, motivoDeFrenoDelRegalo, textoDeArranque } from './regalo-arranque.js';
 import { extraerCodigo } from './regalo-codigo.js';
@@ -148,6 +149,15 @@ export async function procesarEntrante(m: MensajeEntrante): Promise<void> {
       );
       return;
     }
+  }
+
+  // Viaje V2 (plan-conexion-bot.md): un viajero con fila en viajes_v2 va entero por la V2, desde la bienvenida
+  // (invitado) hasta después de la despedida. Sin fila —o sin la migración— sigue como hoy.
+  if (narrador.estado !== 'pendiente_pago' && (await esViajeroV2(db, narrador.id))) {
+    const { procesarEntranteViajeV2 } = await import('../viaje-v2/entrante.js');
+    const { depsViajeReales } = await import('../viaje-v2/deps-reales.js');
+    await procesarEntranteViajeV2(depsViajeReales(), narrador, m);
+    return;
   }
 
   // Entrevista V3 (spec 2026-10-07): un narrador con fila en entrevistas_v3 va

@@ -17,6 +17,7 @@ migración en `supabase/migrations/` + actualizar este archivo + avisar al otro 
 | `pedidos` | web y fábrica | — | El entrevistador no la mira. Un pedido por comprador: los invitados y visitantes que compran su copia tienen su propia `familia` y su propio pedido sobre el mismo `narrador_id`. |
 | `envios` | entrevistador | — | Log de salientes; idempotencia del scheduler. **07/10:** `tipo = 'v3'` para cada mensaje de la entrevista V3. **10/10 (aplicada):** `tipo = 'regalo_entrega'` para la plantilla del regalo el día elegido. |
 | `entrevistas_v3` | entrevistador | fábrica | Nueva 07/10 (propuesta). Una fila por narrador: **prende la V3**. Ver "Entrevista V3 por WhatsApp". |
+| `viajes_v2` | entrevistador (`estado`, `version`, `enviando_hasta`) / un script de los socios o, más adelante, la compra (crea la fila con `compra`) | entrevistador, fábrica | Nueva 10/10, **aplicada por Naza el 10/10** (migración 20261011000000). Una fila por viajero: **prende la Viaje V2**. Ver "Viaje V2 por WhatsApp". |
 | `regalos` | web (crea al comprar; `audio_path`; las columnas `entrega_canal`, `entrega_contacto`, `entrega_hora`, `entrega_zona`) / entrevistador (solo `usado_at`, `usado_por_telefono` al canjear, `recordatorio_at`, y `entrega_enviada_at`, `entrega_fallo` al mandar el regalo el día elegido) | ambos | Nueva 08/10, **aplicada por Naza el 09/10**. Gift card: un regalo por narrador. Ver "Gift card". Columnas `entrega_*` nuevas el 10/10 (migración `20261010000000_regalos_entrega.sql`, **aplicada por Naza el 10/10** con OK de Joaquín). |
 | `narraciones` | fábrica (crea la fila; y `estado = 'reemplazada'` cuando pide la voz de nuevo — migración 20260920) / worker de voz (`estado`, `motor`, `muestras`, `capitulos_paths`, `error`, `tomada_at`) | fábrica | Nueva 16/09. Buzón con el worker de voz (PC de Naza); ver "Narraciones (voz clonada)". |
 
@@ -658,6 +659,38 @@ etapas A/B/C); el camino viejo (anticipo, estructura, previsualización, generar
 
 Variables de la fábrica: `ESCRITOR_ESPERA_DUDAS_HORAS` (24 por defecto: espera tras el mail de dudas), `ESCRITOR_LIBROS_EN_PARALELO` (3 por defecto: trabajos del escritor a la vez),
 `ESCRITOR_TOPE_USD` (15 por defecto: tope de gasto por trabajo), `MAIL_SOCIOS` (avisos).
+
+## Viaje V2 por WhatsApp (migración 20261011000000 — **aplicada por Naza el 10/10**)
+
+Plan: `docs/viajes-v2/plan-conexion-bot.md`. Una fila en `viajes_v2` prende la Viaje V2 para ese viajero; sin fila,
+el entrevistador sigue como siempre (el viaje viejo, `contexto.modo = 'viaje'`). Ñako no se pasa.
+
+| Columna | Qué guarda |
+|---|---|
+| `narrador_id` | Clave primaria y referencia a `narradores`. |
+| `idioma` | `es-AR`, `es-ES` o `ca`. |
+| `compra` (jsonb) | La `Compra` de `fabrica/src/viaje-v2/tipos.ts`: fechas de salida y vuelta, zona de la casa y del viaje, hora de la noche, formato (pdf/impreso), fotos del álbum, regalo (quién regala) y preguntas propias. La escribe quien crea la fila (hoy un script; después `/comprar/viaje` V2). Si cambia el país durante el viaje, la corrige un script de los socios y el planificador reubica lo que falta (`reubicar`). |
+| `estado` (jsonb) | El planificador (`entrevistador/src/viaje-v2/nucleo/planificador.ts`, copia byte a byte de la fábrica): el calendario congelado, lo que se mandó y lo que contestó, la cola de salida, el álbum y los avisos. Serializable; **es la verdad del viaje**. |
+| `version` | Cada escritura es `UPDATE … WHERE version = n`; si cambió, se relee y se reintenta. |
+| `enviando_hasta` | Toma corta del turno (2 minutos): un solo proceso manda la cola. |
+
+`estado` del bot (10/10, `entrevistador/src/viaje-v2/tipos.ts`): `{ plan, salida, bienvenida, bienvenidaRepetida,
+ultimoEntranteAt, fallosEnvio, avisoFallos, fotosAlbum, vistos }`. `plan` es el planificador (null hasta el SÍ);
+`salida` es lo que el planificador ya decidió y falta mandar por WhatsApp; `fotosAlbum` (sha256 → id) reconoce un
+reenvío en AL3; `vistos`, los últimos 200 ids de WhatsApp procesados. El idioma que manda es `compra.idioma`; la
+columna `idioma` es para consultar. Con el SÍ el narrador pasa de `invitado` a `activo` de una vez (con el SÍ sale la
+primera pregunta); no se manda el mail de hito `acepto`. Antes del SÍ no se guarda nada de lo que mande.
+
+`respuestas.clave_viaje` (text): a qué mensaje responde la fila (`AS1`…`VA1`, la clave del calendario como
+`D3-noche`, o `ALBUM`). `∅` = se guardó y quedó afuera a propósito. Una respuesta tardía cuenta para la **última
+pregunta enviada** (Naza, 10/10). `envios.tipo` suma `'viaje_v2'`.
+
+Plantillas (ventana de 24 h cerrada): `mensaje_viaje_v2`, `recordatorio_viaje_v2`, `recordatorio_viaje_ultima_v2`
+y las bienvenidas `bienvenida_viaje_v2` / `bienvenida_viaje_regalo_v2`, en los tres idiomas
+(`docs/viajes-v2/plantillas-meta.md`). Se marcan como aprobadas en `WA_PLANTILLAS_VIAJE_V2_LISTAS`; los viajeros
+nuevos entran a la V2 con `VIAJE_V2_PARA_NUEVOS=1`.
+
+Álbum con cero fotos (Naza, 10/10): aviso a los socios, se repite a las 48 h y se cierra solo a los 7 días.
 
 ## Storage — bucket privado `audios`
 
