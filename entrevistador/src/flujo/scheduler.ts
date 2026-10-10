@@ -157,11 +157,23 @@ async function enviarBienvenidas(): Promise<void> {
             `${n.como_le_dicen} (${n.id}) espera la bienvenida, pero la plantilla ${p.nombre} no está marcada como aprobada (WA_PLANTILLAS_V3_LISTAS="${idioma}:bienvenida"). Sale apenas se marque.`);
           return;
         }
+        // La marca va ANTES de mandar (revisión 10/10): su SÍ se contesta con los textos de la V3 y vale como
+        // permiso de voz (la plantilla lo pide), procesar.ts. Se relee el contexto para no pisar lo que la web o
+        // un socio hayan escrito en el medio. Si no se puede marcar, no se manda: se reintenta en el próximo tick.
+        if (n.contexto?.bienvenidaV3 !== true) {
+          const { data: fresco, error: errorLectura } = await db.from('narradores').select('contexto').eq('id', n.id).maybeSingle();
+          const contexto = ((fresco as { contexto?: Record<string, unknown> } | null)?.contexto) ?? {};
+          const { error: errorMarca } = errorLectura
+            ? { error: errorLectura }
+            : await db.from('narradores').update({ contexto: { ...contexto, bienvenidaV3: true } }).eq('id', n.id);
+          if (errorMarca) {
+            console.error(`bienvenida V3: no pude marcar a ${n.id}; no mando la plantilla todavía:`, errorMarca.message);
+            return;
+          }
+        }
         try {
           const waId = await enviarPlantilla(n.telefono_whatsapp, p.nombre, [n.como_le_dicen], p.idiomaMeta);
           await registrarEnvio(n.id, 'bienvenida', waId);
-          // Su SÍ se contesta con los textos de la V3 y vale como permiso de voz (la plantilla lo pide): procesar.ts.
-          await db.from('narradores').update({ contexto: { ...(n.contexto ?? {}), bienvenidaV3: true } }).eq('id', n.id);
         } catch (err) {
           await anotarBienvenidaFallida(n.id, err);
         }
