@@ -19,7 +19,11 @@
     "v3-copiar-nucleo": "tsx scripts/v3-copiar-nucleo.ts",
     "v3-pasar": "tsx scripts/v3-pasar.ts",
     "v3-simular": "tsx scripts/v3-simular.ts",
-    "viaje-v2-copiar-nucleo": "tsx scripts/viaje-v2-copiar-nucleo.ts"
+    "viaje-v2-copiar-nucleo": "tsx scripts/viaje-v2-copiar-nucleo.ts",
+    "viaje-v2-alta": "tsx scripts/viaje-v2-alta.ts",
+    "viaje-v2-cerrar-album": "tsx scripts/viaje-v2-cerrar-album.ts",
+    "viaje-v2-cambiar-pais": "tsx scripts/viaje-v2-cambiar-pais.ts",
+    "viaje-v2-simular": "tsx scripts/viaje-v2-simular.ts"
   },
   "keywords": [],
   "author": "",
