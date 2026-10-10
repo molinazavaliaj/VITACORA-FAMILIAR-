@@ -43,10 +43,10 @@ export type PlantillaV3 = { nombre: string; idiomaMeta: string };
  * WA_PLANTILLAS_V3_LISTAS (hasta entonces no salen). Si cambia un nombre
  * en Meta, se cambia acá.
  */
-export const PLANTILLAS_V3: Readonly<Record<'es-AR' | 'es-ES' | 'ca', { pregunta: PlantillaV3; recordatorio: PlantillaV3 }>> = {
-  'es-AR': { pregunta: { nombre: 'pregunta_diaria_vos', idiomaMeta: 'es' }, recordatorio: { nombre: 'm8_vos', idiomaMeta: 'es' } },
-  'es-ES': { pregunta: { nombre: 'pregunta_diaria_es_es', idiomaMeta: 'es_ES' }, recordatorio: { nombre: 'm8_es_es', idiomaMeta: 'es_ES' } },
-  ca: { pregunta: { nombre: 'pregunta_diaria_ca', idiomaMeta: 'ca' }, recordatorio: { nombre: 'm8_ca', idiomaMeta: 'ca' } },
+export const PLANTILLAS_V3: Readonly<Record<'es-AR' | 'es-ES' | 'ca', { pregunta: PlantillaV3; recordatorio: PlantillaV3; bienvenida: PlantillaV3 }>> = {
+  'es-AR': { pregunta: { nombre: 'pregunta_diaria_vos', idiomaMeta: 'es' }, recordatorio: { nombre: 'm8_vos', idiomaMeta: 'es' }, bienvenida: { nombre: 'bienvenida_v3_vos', idiomaMeta: 'es' } },
+  'es-ES': { pregunta: { nombre: 'pregunta_diaria_es_es', idiomaMeta: 'es_ES' }, recordatorio: { nombre: 'm8_es_es', idiomaMeta: 'es_ES' }, bienvenida: { nombre: 'bienvenida_v3_es_es', idiomaMeta: 'es_ES' } },
+  ca: { pregunta: { nombre: 'pregunta_diaria_ca', idiomaMeta: 'ca' }, recordatorio: { nombre: 'm8_ca', idiomaMeta: 'ca' }, bienvenida: { nombre: 'bienvenida_v3_ca', idiomaMeta: 'ca' } },
 };
 
 /**
@@ -56,4 +56,15 @@ export const PLANTILLAS_V3: Readonly<Record<'es-AR' | 'es-ES' | 'ca', { pregunta
  */
 export function v3ParaNuevos(): boolean {
   return process.env.V3_PARA_NUEVOS === '1';
+}
+
+/**
+ * ¿Este narrador nuevo entra a la V3? Con el interruptor prendido, los comprados por la web para otra persona.
+ * «La mía» (vinculoComprador 'yo mismo') sigue por el flujo viejo hasta tener su bienvenida (la V3 dice «una
+ * persona que te quiere mucho te regaló…»); el regalo va siempre por la V3 y el viaje nunca (por su lado).
+ */
+export function entraALaV3(contexto: Record<string, unknown> | null | undefined): boolean {
+  if (contexto?.modo === 'viaje') return false;
+  if (contexto?.regalo === true) return true;
+  return v3ParaNuevos() && contexto?.vinculoComprador !== 'yo mismo';
 }

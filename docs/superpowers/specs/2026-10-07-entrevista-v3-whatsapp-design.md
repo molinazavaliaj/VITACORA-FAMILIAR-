@@ -16,7 +16,7 @@
 | Narradores en curso | **Dora** (día 3, 3 respuestas) y **Mariano** (día 8, 7 respuestas) pasan a la V3. **Imma** (0 respuestas) pasa a la V3 en **catalán**. |
 | Lo que ya contaron | **Cuenta como contestado**: cada respuesta vieja se carga en la pregunta V3 que cubre, según una tabla de equivalencias que **aprueba Naza** antes del pase. |
 | Usted → vos | **Sin aviso.** Dora deja de recibir el usted y la próxima pregunta le llega de vos. |
-| Ritmo | **De a tandas por día.** A su hora sale la primera pregunta. Mientras contesta, las siguientes salen de corrido, cada una después de 3 minutos de silencio. Tope por día según el ritmo: `diario` 4, `dos_por_dia` 8, `seguido` sin tope. Si deja de contestar, retoma al día siguiente donde quedó. |
+| Ritmo | **De a tandas por día.** A su hora sale la primera pregunta. Mientras contesta, las siguientes salen de corrido, cada una después de 3 minutos de silencio. Tope por día según el ritmo: `diario` 4, `dos_por_dia` 8, `seguido` sin tope (**10/10, Naza: el tope ya no corta a quien contesta; si contesta, le llega la siguiente siempre**). Si deja de contestar, retoma al día siguiente donde quedó. |
 | Cómo se prueba de verdad | **Merge apagado.** El código entra a `main` sin cambiar nada para nadie: la V3 se prende por narrador. Orden: primero el número de Naza, después Dora, Mariano e Imma, y al final todos los nuevos. |
 
 Fuera de esto:
@@ -109,7 +109,7 @@ Tiene una fila por narrador, que es lo que **prende la V3**.
    1. Toma el turno.
    2. Llama a `cerrarRespuesta` (`mensajesDespues` → acuse).
    3. **Si la tanda no llegó al tope**, `avanzar` y manda: acuse, entrada, pregunta y M1 donde corresponde; los botones al último.
-   4. **Si llegó al tope**, guarda el acuse pendiente y no manda nada más. La siguiente sale en la tanda de mañana, con el acuse pegado arriba.
+   4. ~~**Si llegó al tope**, guarda el acuse pendiente y no manda nada más.~~ **Sacado el 10/10 (Naza): si contesta, le llega la siguiente siempre.** El tope por día ya no corta a quien está contestando; el ritmo solo decide a qué hora arranca la tanda.
 2. **Tanda diaria.** A la `hora_preferida` del narrador, en su zona horaria, si no hay pregunta abierta en espera de audio y no terminó: arranca la tanda del día (`tanda_cuenta = 0`) y manda la siguiente.
    - Si la pregunta del día anterior quedó sin contestar, **no se reenvía** (Naza 07/10): se espera, y a los 2 días llega M8.
    - Fuera de la ventana de 24 h sale con plantilla.

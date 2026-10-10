@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { preguntaPorId, mensajePorId } from '../src/v3/entrevista/banco.js';
+import { preguntaPorId, mensajePorId, bancoDe, mensajesDe } from '../src/v3/entrevista/banco.js';
+import { IDIOMAS } from '../src/v3/entrevista/idioma.js';
 import { renderizar, idsEnVariantes, tratoMasculino } from '../src/v3/entrevista/texto.js';
 
 const texto = (id: string) => preguntaPorId(id)!.texto;
@@ -33,6 +34,26 @@ describe('entrevista: renderizar', () => {
     expect(renderizar(mensajePorId('M9')!.texto, mujer)).toMatch(/^Hola, \{\{quien_regala\}\}\./);
     expect(renderizar(mensajePorId('M10')!.texto, mujer)).toBe('Terminamos esta etapa, Elvira. Pasamos a la siguiente.');
     expect(renderizar(mensajePorId('M10')!.texto, mujer)).not.toContain('{{etapa}}'); // 30/09: M10 ya no usa {{etapa}}
+  });
+
+  // Producción 08/10: a Dora le dicen Babu y OR6 le preguntó "¿Por qué te pusieron Babu?"
+  // (y OR6.2 le pregunta por el apodo). OR6 va con el nombre de pila; todo lo demás, con como le dicen.
+  it('OR6 usa el nombre de pila ({{nombre_pila}}); sin nombre de pila, el de siempre', () => {
+    const babu = { nombre: 'Babu', nombrePila: 'Dora', genero: 'mujer' as const };
+    expect(renderizar(texto('OR6'), babu)).toMatch(/^¿Por qué te pusieron Dora\? /);
+    expect(renderizar(texto('OR6'), mujer)).toMatch(/^¿Por qué te pusieron Elvira\? /);
+    expect(renderizar(texto('OR6'), { ...mujer, nombrePila: '  ' })).toMatch(/^¿Por qué te pusieron Elvira\? /);
+    expect(renderizar(preguntaPorId('OR6', 'es-ES')!.texto, babu)).toMatch(/^¿Por qué te pusieron Dora\? /);
+    expect(renderizar(preguntaPorId('OR6', 'ca')!.texto, babu)).toMatch(/^Per què et van posar Dora\? /);
+    expect(renderizar(texto('FO1'), babu)).toMatch(/^Otra cosa, Babu\./);
+    expect(renderizar(mensajePorId('M10')!.texto, babu)).toBe('Terminamos esta etapa, Babu. Pasamos a la siguiente.');
+  });
+
+  it('{{nombre_pila}} está solo en OR6, en los tres idiomas (ni mensajes ni otras preguntas)', () => {
+    for (const idioma of IDIOMAS) {
+      const con = [...bancoDe(idioma), ...mensajesDe(idioma)].filter((p) => p.texto.includes('{{nombre_pila}}')).map((p) => p.id);
+      expect(con, idioma).toEqual(['OR6']);
+    }
   });
 
   // Desde la prueba de Naza en la página (30/09) la variante mira AMH ("¿Hoy estás en pareja?"; antes "¿esa persona sigue hoy a tu lado?"), no AM9.

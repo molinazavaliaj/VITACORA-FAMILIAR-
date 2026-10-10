@@ -1,6 +1,7 @@
 // La tanda del día (spec 2026-10-07, "Ritmo"): a su hora sale la primera
-// pregunta; mientras contesta, las siguientes salen de corrido; el tope por
-// día depende del ritmo. Puro: lo usan entrante.ts, reloj.ts y pasar.ts.
+// pregunta; mientras contesta, las siguientes salen de corrido, sin tope
+// (Naza 10/10: si contesta, le llega la siguiente siempre). TOPE_POR_RITMO y
+// puedeAbrirHoy quedan sin uso en producción. Puro: lo usan entrante.ts, reloj.ts y pasar.ts.
 
 import type { Ritmo } from '../flujo/ritmo.js';
 import { minutosLocales } from '../flujo/tiempo.js';

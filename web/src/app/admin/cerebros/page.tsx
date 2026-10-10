@@ -5,7 +5,7 @@ import { UMBRALES } from "@/lib/admin/frenos";
 import { Chip, Nota, Punto, SinDatos, Titulo, cuando } from "../ui";
 
 // 05 · Cerebros — «qué cerebro trabaja, qué hace y dónde se frenó».
-// Los 14 nodos salen siempre (un robot que nunca se usó es una caja gris, no una alarma).
+// Los 16 nodos salen siempre (un robot que nunca se usó es una caja gris, no una alarma).
 
 const NOMBRE_DEL_MODELO: Record<string, string> = {
   "claude-fable-5": "Fable 5",

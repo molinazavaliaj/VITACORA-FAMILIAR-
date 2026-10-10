@@ -73,12 +73,12 @@ describe('el lector de la entrevista V3 desde la base', () => {
     const db = dbFalsa({
       entrevistas_v3: [fila()],
       respuestas: [
-        { narrador_id: 'n1', clave_v3: 'OR1', audio_path: 'n1/dia_01.ogg', transcripcion: 'Nací…', recibido_at: '2026-10-08T13:00:00Z' },
-        { narrador_id: 'n1', clave_v3: null, audio_path: 'n1/dia_02.ogg', transcripcion: 'vieja', recibido_at: '2026-10-01T13:00:00Z' },
+        { id: 'r-or1', narrador_id: 'n1', clave_v3: 'OR1', audio_path: 'n1/dia_01.ogg', transcripcion: 'Nací…', recibido_at: '2026-10-08T13:00:00Z' },
+        { id: 'r-vieja', narrador_id: 'n1', clave_v3: null, audio_path: 'n1/dia_02.ogg', transcripcion: 'vieja', recibido_at: '2026-10-01T13:00:00Z' },
       ],
     });
     const e = await leerEntrevistaV3(db, 'n1');
-    expect(e?.audios).toEqual([{ clave: 'OR1', audioPath: 'n1/dia_01.ogg', transcripcion: 'Nací…', recibidoAt: '2026-10-08T13:00:00Z' }]);
+    expect(e?.audios).toEqual([{ respuestaId: 'r-or1', clave: 'OR1', audioPath: 'n1/dia_01.ogg', transcripcion: 'Nací…', recibidoAt: '2026-10-08T13:00:00Z' }]);
     expect(await leerEntrevistaV3(db, 'n2')).toBeNull();
   });
 
@@ -154,6 +154,29 @@ describe('el lector de la entrevista V3 desde la base', () => {
     it('también alcanza al borrador abierto', async () => {
       const db = dbFalsa({ entrevistas_v3: [fila({ respuestas: [], esperando: 'OR1', borrador: 'Secreto de familia.' })], respuestas: [{ narrador_id: 'n1', clave_v3: 'OR1', audio_path: null, transcripcion: 'x', recibido_at: '2026-10-08T13:00:00Z', reservada: true }] });
       expect((await leerEntrevistaV3(db, 'n1'))?.respuestas).toEqual([]);
+    });
+  });
+
+  describe('«Qué dejar afuera» de la familia (narradores.edicion.excluidas, Naza 10/10)', () => {
+    const estado = { respuestas: [['OR1', 'Lo del divorcio.'], ['RP~OR1', 'Más del divorcio.'], ['OR2', 'Mi mamá cosía.']] as [string, string][] };
+    const respuestas = [
+      { id: 'r1', narrador_id: 'n1', clave_v3: 'OR1', audio_path: 'n1/dia_01.ogg', transcripcion: 'Lo del divorcio.', recibido_at: '2026-10-08T13:00:00Z' },
+      { id: 'r2', narrador_id: 'n1', clave_v3: 'RP~OR1', audio_path: 'n1/dia_02.ogg', transcripcion: 'Más del divorcio.', recibido_at: '2026-10-08T13:01:00Z' },
+      { id: 'r3', narrador_id: 'n1', clave_v3: 'OR2', audio_path: 'n1/dia_03.ogg', transcripcion: 'Mi mamá cosía.', recibido_at: '2026-10-08T13:02:00Z' },
+    ];
+
+    it('una respuesta que la familia destildó sale entera, con su repregunta y sus audios', async () => {
+      const db = dbFalsa({ entrevistas_v3: [fila(estado)], respuestas, narradores: [{ id: 'n1', edicion: { excluidas: ['r1'] } }] });
+      const e = await leerEntrevistaV3(db, 'n1');
+      expect(e?.respuestas).toEqual([['OR2', 'Mi mamá cosía.']]);
+      expect(e?.audios.filter((a) => a.audioPath).map((a) => a.clave)).toEqual(['OR2']);
+    });
+
+    it('sin edición, o con una lista rota, no saca nada', async () => {
+      for (const edicion of [null, { excluidas: 'r1' }, { excluidas: [3, null] }]) {
+        const db = dbFalsa({ entrevistas_v3: [fila(estado)], respuestas, narradores: [{ id: 'n1', edicion }] });
+        expect((await leerEntrevistaV3(db, 'n1'))?.respuestas).toHaveLength(3);
+      }
     });
   });
 

@@ -46,8 +46,11 @@ export async function leerFila(db: SupabaseClient, narradorId: string): Promise<
   return (data as FilaV3 | null) ?? null;
 }
 
-export async function listarFilas(db: SupabaseClient): Promise<FilaV3[]> {
-  const { data, error } = await db.from(TABLA_V3).select('*');
+/** Las filas V3; con `ids`, solo las de esos narradores (el reloj pide solo las de los activos). */
+export async function listarFilas(db: SupabaseClient, ids?: readonly string[]): Promise<FilaV3[]> {
+  if (ids && ids.length === 0) return [];
+  const consulta = db.from(TABLA_V3).select('*');
+  const { data, error } = ids ? await consulta.in('narrador_id', [...ids]) : await consulta;
   if (error) {
     if (esTablaAusente(error)) return [];
     throw new Error(`No pude listar las entrevistas V3: ${error.message}`);

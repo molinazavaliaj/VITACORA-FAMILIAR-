@@ -172,7 +172,9 @@ describe('entrevista: el banco contra el borrador aprobado', () => {
       // CI11 perdió su primera frase en la ronda 2.
       if (p!.id === 'CI14' || p!.id === 'CI11' || p!.id === 'FO1') continue; // FO1: "Otra cosa" desde la ronda 3
       if (CAMBIADAS_SIMULACIONES.has(p!.id) || CAMBIADAS_PRUEBA_NAZA.has(p!.id) || CAMBIADAS_FABLE_EXTRAS.has(p!.id) || CAMBIADAS_NOMBRES.has(p!.id) || CAMBIADAS_0410.has(p!.id) || CAMBIADAS_0610.has(p!.id)) continue;
-      expect(normalizar(p!.texto), f.clave).toBe(normalizar(f.texto));
+      // OR6 (08/10): solo cambió la marca, {{nombre}} → {{nombre_pila}} (el nombre de pila, no como le dicen).
+      const textoP = p!.id === 'OR6' ? p!.texto.replace('{{nombre_pila}}', '{{nombre}}') : p!.texto;
+      expect(normalizar(textoP), f.clave).toBe(normalizar(f.texto));
     }
   });
 
@@ -264,7 +266,7 @@ describe('entrevista: textos limpios', () => {
       for (const v of viejos) expect(t.includes(v), `${id} tiene ${v}`).toBe(false);
       expect(t, id).not.toMatch(/\[[^\]]+\]/);
       // Solo las marcas nuevas.
-      for (const m of t.matchAll(/\{\{([^}]+)\}\}/g)) expect(['o/a', 'padre/madre', 'nombre', 'etapa', 'quien_regala', 'tema'], `${id}: {{${m[1]}}}`).toContain(m[1]);
+      for (const m of t.matchAll(/\{\{([^}]+)\}\}/g)) expect(['o/a', 'padre/madre', 'nombre', 'nombre_pila', 'etapa', 'quien_regala', 'tema'], `${id}: {{${m[1]}}}`).toContain(m[1]);
     }
   });
 

@@ -26,6 +26,8 @@ import { cargarFotos } from './fotos.js';
 import { leerFrases } from './publicar-frases.js';
 import { urlVozDeNarrador } from './token-voz.js';
 import type { Estructura } from './estructura.js';
+import { htmlLibroV3, idiomaDelLibro, type NarradorParaLibro } from '../escritor/produccion/html.js';
+import { RUTA_LIBRO_MD_V3 } from '../escritor/produccion/libro-v3.js';
 
 type Db = ReturnType<typeof obtenerClienteDb>;
 
@@ -48,6 +50,11 @@ export async function armarLibroDeImprenta(db: Db, narradorId: string): Promise<
     return false;
   }
   if (!frases.confirmado_at) return false;
+
+  // 1b. El libro del escritor nuevo (entrevista V3): `{id}/escritor/libro.md`, con su propia plantilla
+  // (escritor/produccion/html.ts). Si está, manda; si no, es un libro viejo y sigue como siempre.
+  const libroV3 = await descargarTextoOpcional(db, RUTA_LIBRO_MD_V3(narradorId));
+  if (libroV3 !== null) return armarImprentaV3(db, narradorId, libroV3, frases);
 
   // 2. El libro ya escrito. Si no está el borrador, algo se borró: no se reescribe
   // acá (son dólares de modelo y no es el trabajo de este paso), se avisa.
@@ -107,5 +114,27 @@ export async function armarLibroDeImprenta(db: Db, narradorId: string): Promise<
     .upload(RUTA_LIBRO_IMPRENTA(narradorId), pdf, { contentType: 'application/pdf', upsert: true });
   if (errorSubida) throw new Error(`No se pudo subir libro-imprenta.pdf: ${errorSubida.message}`);
 
+  return true;
+}
+
+async function armarImprentaV3(db: Db, narradorId: string, libroMd: string, frases: NonNullable<Awaited<ReturnType<typeof leerFrases>>>): Promise<boolean> {
+  const { data: n, error } = await db.from('narradores').select('id, nombre, contexto, foto_url, edicion').eq('id', narradorId).maybeSingle();
+  if (error || !n) {
+    console.error(`imprenta: no se pudo leer el narrador ${narradorId}: ${error?.message ?? 'no existe'}`);
+    return false;
+  }
+  const { data: e } = await db.from('entrevistas_v3').select('idioma').eq('narrador_id', narradorId).maybeSingle();
+  const html = await htmlLibroV3(db, {
+    narrador: n as NarradorParaLibro,
+    libroMd,
+    idioma: idiomaDelLibro((e as { idioma?: string } | null)?.idioma),
+    frases,
+    urlCliente: urlVozDeNarrador(narradorId),
+  });
+  const pdf = await htmlAPdf(html);
+  const { error: errorSubida } = await db.storage
+    .from('audios')
+    .upload(RUTA_LIBRO_IMPRENTA(narradorId), pdf, { contentType: 'application/pdf', upsert: true });
+  if (errorSubida) throw new Error(`No se pudo subir libro-imprenta.pdf: ${errorSubida.message}`);
   return true;
 }

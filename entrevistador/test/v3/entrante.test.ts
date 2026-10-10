@@ -145,13 +145,14 @@ describe('un botón de un narrador V3', () => {
     expect(enviados.length).toBeGreaterThan(0);
   });
 
-  it('"No" con la tanda en el tope: cierra y no manda nada hasta mañana', async () => {
+  it('"No" aunque ya haya contestado 4 hoy: cierra y le sale la siguiente (Naza 10/10, sin tope)', async () => {
     const { deps, n1, enviados, fila } = await preparar(enCA6(), { tanda: { dia: '2026-10-08', cuenta: 4 } });
     await procesarEntranteV3(deps, n1, texto('No tuve hermanos', true));
-    expect(enviados).toEqual([]);
+    expect(enviados.length).toBeGreaterThan(0);
     const f = await fila();
-    expect(f?.estado.esperando).toBeUndefined();
-    expect(f?.estado.acuse?.familia).toBe('M25');
+    expect(f?.estado.esperando).toBeDefined();
+    expect(f?.estado.esperando).not.toBe('CA6');
+    expect(f?.tanda_cuenta).toBe(5);
   });
 });
 
@@ -699,3 +700,73 @@ function fallarUpdateDeReservada(base: BaseFalsa) {
     return q;
   };
 }
+
+describe('la pregunta abierta todavía no le llegó (Imma, 09/10)', () => {
+  /** OR1 abierta pero todavía en la cola: la ventana estaba cerrada y no había plantilla. */
+  const sinEntregar = (): EstadoV3 => ({ ...avanzar(estadoInicial(), FICHA).estado, ultimoEntranteAt: undefined });
+
+  it('un «Hola» no la contesta: queda aparte, sin acuse, y la pregunta sale ahora (con la ventana abierta)', async () => {
+    const { deps, n1, base, enviados, fila } = await preparar(sinEntregar());
+    const pregunta = (await fila())!.estado.preguntaAbierta!.partes[0].texto;
+    await procesarEntranteV3(deps, n1, texto('Hola'));
+    const f = await fila();
+    expect(f?.estado.esperando).toBe('OR1');
+    expect(f?.estado.respuestas).toEqual([]);
+    expect(f?.estado.borrador).toBeUndefined();
+    expect(f?.estado.salientes).toEqual([]);
+    expect(base.tablas.respuestas.map((r) => [r.clave_v3, r.texto_directo])).toEqual([[SIN_CLAVE_V3, 'Hola']]);
+    expect(enviados.map((e) => e.texto).join('\n')).toContain(pregunta);
+    expect(enviados.some((e) => e.texto === textoDelBanco('M22', FICHA))).toBe(false);
+    expect(f?.ultimo_audio_at).toBeNull();
+  });
+
+  it('un audio tampoco: se guarda aparte (transcripto, para no perderlo), se avisa a los socios y la pregunta sale', async () => {
+    const { deps, n1, base, enviados, avisos, fila } = await preparar(sinEntregar());
+    await procesarEntranteV3(deps, n1, audio('Nací en Rosario.'));
+    const f = await fila();
+    expect(f?.estado.respuestas).toEqual([]);
+    expect(f?.estado.borrador).toBeUndefined();
+    expect(f?.ultimo_audio_at).toBeNull();
+    expect(base.tablas.respuestas.map((r) => [r.clave_v3, r.transcripcion ?? null])).toEqual([[SIN_CLAVE_V3, 'Nací en Rosario.']]);
+    expect(enviados).toHaveLength(1);
+    expect(avisos.map((a) => a.detalle).join(' ')).toContain('«Nací en Rosario.»');
+  });
+
+  it('M8 cuenta desde que la pregunta sale, no desde que se trabó (revisión 09/10)', async () => {
+    const hace3dias = new Date(AHORA.getTime() - 3 * 86400_000).toISOString();
+    const { deps, n1, fila } = await preparar({ ...sinEntregar(), abiertaDesde: hace3dias });
+    await procesarEntranteV3(deps, n1, texto('Hola'));
+    expect((await fila())?.estado.abiertaDesde).toBe(AHORA.toISOString());
+  });
+
+  it('un reenvío de la abierta (ya la vio una vez) no cuenta como sin entregar: lo que manda la contesta', async () => {
+    const base0 = sinEntregar();
+    const bio = base0.charla.find((g) => g.de === 'bio')!;
+    const reenviada: EstadoV3 = { ...base0, charla: [...base0.charla, bio] };
+    const { deps, n1, fila } = await preparar(reenviada);
+    await procesarEntranteV3(deps, n1, audio('Nací en Rosario.'));
+    expect((await fila())?.estado.borrador).toBe('Nací en Rosario.');
+  });
+
+  it('después de que sale, lo que mande sí contesta la pregunta', async () => {
+    const { deps, n1, fila } = await preparar(sinEntregar());
+    await procesarEntranteV3(deps, n1, texto('Hola'));
+    await procesarEntranteV3(deps, n1, audio('Nací en Rosario.'));
+    expect((await fila())?.estado.borrador).toBe('Nací en Rosario.');
+  });
+});
+
+describe('un saludo solo no contesta la pregunta (Naza, 09/10)', () => {
+  it('«Hola» con la pregunta ya entregada: queda aparte, sin M22 ni reloj; lo que cuenta después sí se suma', async () => {
+    const { deps, n1, base, enviados, fila } = await preparar(enOR1());
+    await procesarEntranteV3(deps, n1, texto('Hola!'));
+    let f = await fila();
+    expect(f?.estado.borrador).toBeUndefined();
+    expect(f?.ultimo_audio_at).toBeNull();
+    expect(enviados).toEqual([]);
+    expect(base.tablas.respuestas.map((r) => r.clave_v3)).toEqual([SIN_CLAVE_V3]);
+    await procesarEntranteV3(deps, n1, texto('Hola, nací en Rosario y éramos cuatro.'));
+    f = await fila();
+    expect(f?.estado.borrador).toBe('Hola, nací en Rosario y éramos cuatro.');
+  });
+});

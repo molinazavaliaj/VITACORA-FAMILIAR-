@@ -550,6 +550,17 @@ Sin pregunta abierta (Naza, 07/10): un audio o un texto no se suma a la respuest
 sí: un «Gracias» podía terminar en el libro). Queda la fila con `∅` y no sale nada, tampoco M22.
 Después de tocar «Sí» la pregunta sigue abierta: eso se suma como siempre.
 
+**Pregunta abierta que todavía no le llegó (Naza, 09/10, el caso de Imma).** Si la abierta sigue en
+`salientes` (fuera de la ventana de 24 h y sin plantilla aprobada, `drenar` la retiene) y salió una sola
+vez a la cola, lo que mande el narrador no la contesta: la fila queda con `∅`, no sale acuse ni M22, la
+pregunta sale en ese momento, y `abiertaDesde` (M8) y `ultimo_audio_at` arrancan de nuevo. Un audio se
+transcribe igual (queda en `transcripcion`) y se avisa a los socios, por si vale para el libro. Un pedido
+escrito («quiero parar», «que no vaya al libro») sigue su camino.
+
+**Un saludo solo no es respuesta (Naza, 09/10).** Un mensaje escrito que es solo un saludo («Hola»,
+«Buenas tardes, ¿qué tal?», «Bon dia») no se suma a la abierta: fila con `∅`, sin M22 ni reloj. Si dice
+algo más («Hola, nací en Rosario») o tiene un número, se suma como siempre (`entrevistador/src/v3/saludo.ts`).
+
 **«Esto que no vaya al libro» y «quiero parar» por WhatsApp (Naza, 07/10).** El entrevistador V3
 los detecta con frases fijas del núcleo (`pideReserva`, `pidePausa`; sin modelo), en el texto
 escrito o en la transcripción, antes de sumarlo. Ante la duda, no es un pedido (revisión del 07/10).
@@ -597,10 +608,56 @@ curso, con la tabla de equivalencias aprobada por Naza) o al pasar `acepto → a
 `V3_PARA_NUEVOS=1`, o siempre para un regalo (`contexto.regalo = true`, con el interruptor apagado o
 prendido). En los dos casos necesita `contexto.genero`; sin él, el alta se frena y se avisa a los socios.
 
-**La fábrica:** `fabrica/src/v3/candado.ts` saltea a todo narrador con fila (anticipo, estructura,
-previsualización y paquete viejos) y avisa una vez a los socios (candado
+**La fábrica:** `fabrica/src/v3/candado.ts` cuida que el camino viejo no toque a ningún narrador con
+fila (anticipo, estructura, previsualización y paquete viejos; desde el 08/10 el worker ya no avisa por
+cada uno, porque el libro lo escribe el escritor V3, abajo) (candado
 `{narrador_id}/paquete/v3_candado_avisado.txt`); `fabrica/src/escritor/material/de-base.ts` lee la
 fila y devuelve el formato de `escritor/material/de-entrevista.ts`.
+
+### Escritor V3 en la fábrica (08/10 — rama `escritor-worker`)
+
+El libro de un narrador V3 lo escribe el escritor nuevo (`fabrica/src/escritor/produccion/libro-v3.ts`,
+etapas A/B/C); el camino viejo (anticipo, estructura, previsualización, generarPaquete) no lo toca.
+**No cambia ninguna tabla.** Cambian los archivos de Storage de abajo y dos lecturas:
+
+- **Cuándo.** Entrevista terminada (`narradores.estado` `completado` o `cerrado_anticipado`) → Etapa A
+  en segundo plano. Pedido `pagado` + `libro_aprobado_at` → el libro entero en segundo plano: el pedido
+  pasa por `generando` (mismo CAS que siempre) y termina `entregado` o `fallido`, como el libro viejo.
+  Un segundo pedido del mismo narrador se entrega con los mismos archivos, como siempre.
+- **La edición de la dueña** (`narradores.edicion`): valen `titulo`, `subtitulo` y `portadaFotoId`.
+  `ordenCapitulos` y `titulosCapitulos` **no** (son nombres del guion viejo; el plan y los títulos los
+  arma el escritor), y no van fotos por capítulo (solo la de tapa).
+  **10/10 (Naza):** también valen `excluidas` y `correcciones`. `excluidas` (ids de `respuestas`, «Qué dejar
+  afuera» del cierre): la clave de cada fila excluida sale **entera** del libro, con su `RP~X` / `X~2` y sus
+  audios, como una reserva («esto que no vaya al libro»); la web manda todos los ids de esa pregunta. Cambiar
+  `excluidas` cambia el material: si la Etapa A ya estaba hecha, se rehace al escribir el libro (se paga de
+  nuevo, ~USD 2,4). `correcciones` (texto libre de la dueña) va a la Etapa B como una corrección más, junto
+  con las de `correcciones.json`.
+- **La ficha del libro**: la de `entrevistas_v3.ficha` más `narradores.contexto` (`anioNacimiento`,
+  `lugarNacimiento`, `dondeVive`, `arbol` como texto libre). `contexto.datosExtra` **no** llega al escritor.
+- **`frases.json`** (el de siempre, en `paquete/`): `respuesta_id` = la fila de `respuestas` de esa
+  pregunta (o su `RP~X` / `X~2`) que dice la frase tal cual, o null si ninguna; `pregunta_orden` = 0
+  (en la V3 no hay orden de guion). El worker de audio corta igual que siempre.
+- **`consumo_ia`**: una fila por llamada del escritor, `servicio = 'fabrica'`, `paso` = `escritor-A`,
+  `escritor-B` o `escritor-C`, con el `usd` que calcula el escritor (Batch a mitad de precio).
+
+`{narrador_id}/escritor/…` (bucket `audios`):
+
+| Archivo | Escribe | Lee | Qué es |
+|---|---|---|---|
+| `pasos/`, `lotes/`, `fallas.json`, `costos.json` | fábrica | fábrica | Cada respuesta del modelo (para retomar sin repagar), los lotes de Batch y el gasto. No se borran. |
+| `carpeta-A.json`, `carpeta-B.json`, `carpeta-C.json` | fábrica | fábrica | La carpeta al terminar cada etapa. `carpeta-A.json` = **Etapa A hecha** (candado). |
+| `fallo-A.json` | fábrica | fábrica / socios | La Etapa A no pasó sus controles (`{motivo, fecha}`). No se reintenta sola: se borra a mano para reintentar. |
+| `dudas-familia.json` | fábrica | socios (y la web, el día que haya pantalla) | `{dudas: [{id: "D01", tipo, que, ids, citas, pregunta, opciones}]}`: las dudas de datos de la Etapa A. |
+| `dudas-avisadas.txt` | fábrica | fábrica | Candado del mail de dudas a los socios. |
+| `correcciones.json` | **socios a mano** (y la web, el día que haya pantalla) | fábrica (Etapa B) | `{"correcciones": [{"dudaId": "D01", "texto": "La Negra se llamaba Ofelia."}]}`. Si la Etapa A encontró dudas, el libro no se escribe hasta 24 horas después del mail de dudas (`ESCRITOR_ESPERA_DUDAS_HORAS`): ese es el rato para escribirlo. Sin archivo, el libro va sin correcciones. Roto → el pedido queda `fallido`. |
+| `libro.md` | fábrica | fábrica, imprenta | El libro final. La imprenta lo prefiere a `paquete/borrador_libro.md` si existe. |
+| `trabajando.json` | fábrica | fábrica | `{proceso, que, latido}`: la copia de la fábrica que está trabajando con ese narrador lo renueva cada minuto. Otra copia (un deploy con las dos prendidas) no toca el narrador ni toma su pedido como huérfano mientras tenga menos de 10 minutos. |
+| `alerta-libro-demorado.txt` | fábrica | fábrica | Candado del mail a los socios cuando el libro no salió a las 48 horas del cierre. |
+| `informe.md` | fábrica | socios | El informe interno de la revisión (no lo ve la familia). |
+
+Variables de la fábrica: `ESCRITOR_ESPERA_DUDAS_HORAS` (24 por defecto: espera tras el mail de dudas), `ESCRITOR_LIBROS_EN_PARALELO` (3 por defecto: trabajos del escritor a la vez),
+`ESCRITOR_TOPE_USD` (15 por defecto: tope de gasto por trabajo), `MAIL_SOCIOS` (avisos).
 
 ## Storage — bucket privado `audios`
 
@@ -608,6 +665,7 @@ fila y devuelve el formato de `escritor/material/de-entrevista.ts`.
     {narrador_id}/fotos/{id}.{ext}    fotos por capítulo, ORIGINAL sin recomprimir (web sube)
     {narrador_id}/sistema/…           audios TTS del entrevistador (entrevistador sube)
     {narrador_id}/paquete/…           estructura, PDF, audiolibro, libro.html y candados de mails (web/fábrica — socio 2 — sube)
+    {narrador_id}/escritor/…          el escritor V3: checkpoints, dudas, correcciones, libro.md (fábrica; ver "Escritor V3 en la fábrica")
 
 El navegador jamás recibe paths directos: solo URLs firmadas que genera la web.
 

@@ -10,7 +10,8 @@
 // - tope de gasto por libro (USD 15 por defecto): con el tope alcanzado no sale ninguna llamada nueva;
 //   lo que la API cobró en un intento fallido (rechazo, corte) también suma, y queda en `fallas.json`
 //   para que una corrida nueva lo cuente (si no, volver a correr esquivaría el tope);
-// - una fila de uso por llamada (costos.json);
+// - una fila de uso por llamada (costos.json) y, si se pasa `alAnotar`, la misma fila afuera en el momento (la fábrica
+//   la manda a consumo_ia); lo que sale de la memoria no se vuelve a avisar (ya se pagó y ya se anotó);
 // - fases paralelas: con lote (Batch, mitad de precio) o en paralelo con límite; lo que el lote
 //   devuelve con error se repite sin lote (un corte en el lote ya cuenta como el primer corte);
 //   si la fase falla, ningún trabajador arranca otra llamada;
@@ -35,7 +36,7 @@ export const OPCIONES_CLIENTE = { maxRetries: 0 } as const;
 export type Encargo = { clave: string; llamada: Llamada; json: boolean; maxTokens?: number; esfuerzo?: Esfuerzo };
 /** `falla: true` = un intento que la API cobró pero no sirvió (rechazo, corte); no queda en la memoria. */
 export type FilaUso = { clave: string; modelo: string; lote: boolean; de_memoria: boolean; input: number; output: number; cache_write: number; cache_read: number; usd: number; falla?: boolean };
-export type OpcionesEjecutor = { modelo: Modelo; lote?: Lote; todoPorLote?: boolean; almacen: Almacen; topeUsd?: number; esperar?: (ms: number) => Promise<void>; esperasMs?: number[]; limite?: number; log?: (s: string) => void };
+export type OpcionesEjecutor = { modelo: Modelo; lote?: Lote; todoPorLote?: boolean; almacen: Almacen; topeUsd?: number; esperar?: (ms: number) => Promise<void>; esperasMs?: number[]; limite?: number; log?: (s: string) => void; alAnotar?: (fila: FilaUso) => void | Promise<void> };
 export type ResultadoVarios = { textos: Map<string, string>; fallas: Map<string, string> };
 
 export class TopeDeGasto extends Error {
@@ -131,7 +132,9 @@ export class Ejecutor {
     this.filas.push(fila);
     this.anotadas.add(p.clave);
     // Se guarda aunque el JSON no sirva: el gasto queda anotado y el reintento usa otra clave.
+    // Primero el checkpoint, después el aviso: si el proceso muere en el medio, al retomar no se avisa dos veces.
     await this.o.almacen.escribir(rutaPaso(p.clave), JSON.stringify({ hash: this.hash(p), texto: r.texto, fila } satisfies Memoria));
+    await this.avisar(fila);
   }
 
   /** Las fallas pagas de corridas anteriores (`fallas.json`), una sola vez por ejecutor, antes de cualquier llamada. */
@@ -150,6 +153,7 @@ export class Ejecutor {
     const igual = (f: FilaUso): boolean => !!f.falla && f.de_memoria && f.lote && f.clave === fila.clave && f.input === fila.input && f.output === fila.output && f.cache_write === fila.cache_write && f.cache_read === fila.cache_read;
     if (lote && this.filas.some(igual)) return;
     this.filas.push(fila);
+    await this.avisar(fila);
     // En fila: dos trabajadores en paralelo no se pisan el archivo.
     this.guardandoFallas = this.guardandoFallas.then(async () => {
       const t = await this.o.almacen.leer(RUTA_FALLAS);
@@ -157,6 +161,16 @@ export class Ejecutor {
       await this.o.almacen.escribir(RUTA_FALLAS, JSON.stringify([...previas, fila]));
     });
     await this.guardandoFallas;
+  }
+
+  /** `alAnotar` es contabilidad: si falla, se avisa por el log y la llamada sigue (el libro vale más). */
+  private async avisar(fila: FilaUso): Promise<void> {
+    if (!this.o.alAnotar) return;
+    try {
+      await this.o.alAnotar(fila);
+    } catch (err) {
+      this.o.log?.(`${fila.clave}: no se pudo anotar el uso afuera (${(err as Error).message})`);
+    }
   }
 
   private verificarTope(): void {

@@ -1,4 +1,16 @@
-# Estado del proyecto — actualizado 2026-09-20
+# Estado del proyecto — actualizado 2026-10-09 (arriba lo nuevo; lo de abajo es del 20/09 y puede estar viejo)
+
+## 09/10: el libro V3 ya se escribe solo en producción
+
+- **Entrevista V3 por WhatsApp** en producción desde el 07/10. Narradores en V3: Naza (prueba), Dora, Imma
+  (catalán); los tres con la entrevista en curso y su pedido piloto en `pagado`.
+- **Escritor V3 enchufado al worker** (08–09/10): al terminar la entrevista, Etapa A; con el libro cerrado y
+  pagado, el libro entero en segundo plano por Batch → PDF → «Su voz» → entregado. Dudas de datos por mail a
+  los socios con 24 h para corregir; alerta si a las 48 h no salió. Detalle: `docs/handoff-2026-10-09.md`.
+- **Mails por país**: vos para Argentina, tú para España (`familias.region`), en la fábrica y el entrevistador.
+- **Gift card** (#2) en producción, sin link a `/regalar` hasta el #5.
+- Pendiente: OK de Joaquín al CONTRATO del escritor V3; resultado del ensayo pago con la historia de Naza.
+
 
 ## 🎉 ÚLTIMA HORA: el primer libro completo ya existe
 

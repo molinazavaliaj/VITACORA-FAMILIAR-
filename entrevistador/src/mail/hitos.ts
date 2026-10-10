@@ -13,6 +13,9 @@ import { HITO_ACEPTO_REGALO, TEXTOS_REGALO_BOT, tratoDeComprador, type TratoComp
 // Resend por su API HTTP, igual que la web (web/src/lib/mail.ts): sin SDK.
 // Sin RESEND_API_KEY no se tira: avisa por consola y sigue. Cada hito se
 // manda UNA vez por narrador: queda anotado en `contexto.mailsEnviados`.
+//
+// Trato por país (Naza, 09/10): con vos a las familias de Argentina y con tú a las
+// de España (`familias.region`). Sin región, vos, como siempre.
 
 export type Hito = 'acepto' | 'primera' | 'mitad' | 'silencio';
 
@@ -33,8 +36,8 @@ function escapar(texto: string): string {
 
 /**
  * Asunto y cuerpo de cada hito. Puro, para probarlo sin red. Un regalo tiene su
- * propio «dijo que sí» (la primera pregunta ya salió con el SÍ), de vos o de tú
- * según el trato de quien compró; lo demás no cambia.
+ * propio «dijo que sí» (la primera pregunta ya salió con el SÍ). Todos van de vos
+ * o de tú según el trato de quien compró (Naza, 09/10: tú para España).
  */
 export function redactarHito(
   hito: Hito,
@@ -43,6 +46,7 @@ export function redactarHito(
 ): { asunto: string; cuerpo: string } {
   const quien = n.nombre ?? n.como_le_dicen;
   const panel = `${URL_BASE}/tablero/${n.id}`;
+  const tu = o.trato === 'tu';
   switch (hito) {
     case 'acepto':
       if (o.regalo === true) {
@@ -51,17 +55,18 @@ export function redactarHito(
       }
       return {
         asunto: `${quien} dijo que sí`,
-        cuerpo: `<p>${escapar(quien)} aceptó. Mañana le llega la primera pregunta por WhatsApp.</p><p>Mientras tanto, podés repasar el guion y sumar fotos de cada época: <a href="${panel}?editar=1">${panel}</a></p>`,
+        // Texto aprobado por Naza el 06/10 (rama web-textos-v3): sin "repasar el guion", que en la V3 no existe.
+        cuerpo: `<p>${escapar(quien)} aceptó. Enseguida le llega la primera pregunta por WhatsApp.</p><p>Mientras tanto, ${tu ? 'puedes' : 'podés'} sumar fotos de cada época o preguntas para su entrevista.</p><p><a href="${panel}?editar=1">${panel}</a></p>`,
       };
     case 'primera':
       return {
-        asunto: `Ya podés escuchar a ${quien}`,
+        asunto: `Ya ${tu ? 'puedes' : 'podés'} escuchar a ${quien}`,
         cuerpo: `<p>${escapar(quien)} contestó la primera pregunta. Ya hay un audio y su transcripción en el panel.</p><p><a href="${panel}">${panel}</a></p>`,
       };
     case 'mitad':
       return {
         asunto: `${quien} va por la mitad`,
-        cuerpo: `<p>${escapar(quien)} ya contó la mitad de su historia. Es un buen momento para leer lo que hay y, si querés, pedirle que cuente más sobre algo.</p><p><a href="${panel}">${panel}</a></p>`,
+        cuerpo: `<p>${escapar(quien)} ya contó la mitad de su historia. Es un buen momento para leer lo que hay y, si ${tu ? 'quieres' : 'querés'}, pedirle que cuente más sobre algo.</p><p><a href="${panel}">${panel}</a></p>`,
       };
     case 'silencio':
       return {

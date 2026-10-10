@@ -2,9 +2,11 @@
 // escribe la web — spec docs/panel-usuario.md §7.2). La fábrica aplica
 // SOLO orden de capítulos, título de cada capítulo (`titulosCapitulos`),
 // título, subtítulo y foto de tapa. `excluidas` y `correcciones` existen en
-// el contrato pero se ignoran a propósito: una
+// el contrato pero en el libro viejo se ignoran a propósito: una
 // vez respondida una pregunta no se modifica nada (decisión de Naza,
 // 13/09, ver docs/superpowers/specs/2026-09-13-fabrica-aprobacion-design.md).
+// El escritor V3 sí los lee (10/10): escritor/material/de-base.ts y
+// escritor/produccion/libro-v3.ts.
 //
 // Nunca tira: un jsonb roto no puede tumbar un pedido pagado. Lo que no se
 // entiende se descarta con un aviso y se usa el default.

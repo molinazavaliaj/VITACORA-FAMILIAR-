@@ -44,11 +44,12 @@ export type FilaEntrevistaV3 = {
   };
 };
 
-export type AudioV3 = { clave: string; audioPath: string | null; transcripcion: string | null; recibidoAt: string };
+/** `respuestaId`: la fila de `respuestas` (la usa «Su voz»: el worker de audio corta de esa fila). */
+export type AudioV3 = { respuestaId: string; clave: string; audioPath: string | null; transcripcion: string | null; recibidoAt: string };
 export type EntrevistaDeBase = EstadoEntrevista & { audios: AudioV3[] };
 
 type FilaRespuesta = {
-  clave_v3: string; audio_path: string | null; transcripcion: string | null; recibido_at: string;
+  id: string; clave_v3: string; audio_path: string | null; transcripcion: string | null; recibido_at: string;
   texto_directo?: string | null; reservada?: boolean | null; reservado_tramo?: string | null;
 };
 
@@ -129,21 +130,33 @@ export function entrevistaDeFila(fila: FilaEntrevistaV3): EstadoEntrevista {
   };
 }
 
+/** Los ids de `edicion.excluidas` (la escribe la web). Lo que no es una lista de textos se ignora. */
+function excluidasDe(edicion: unknown): string[] {
+  const lista = edicion && typeof edicion === 'object' ? (edicion as { excluidas?: unknown }).excluidas : undefined;
+  return Array.isArray(lista) ? lista.filter((x): x is string => typeof x === 'string') : [];
+}
+
 export async function leerEntrevistaV3(db: SupabaseClient, narradorId: string): Promise<EntrevistaDeBase | null> {
   const { data, error } = await db.from('entrevistas_v3').select('narrador_id,idioma,ficha,estado').eq('narrador_id', narradorId).maybeSingle();
   if (error) throw new Error(`No pude leer la entrevista V3 de ${narradorId}: ${error.message}`);
   if (!data) return null;
 
   const consulta = (campos: string) => db.from('respuestas').select(campos).eq('narrador_id', narradorId).not('clave_v3', 'is', null).order('recibido_at', { ascending: true });
-  let res = await consulta('clave_v3,audio_path,transcripcion,texto_directo,recibido_at,reservada,reservado_tramo');
+  let res = await consulta('id,clave_v3,audio_path,transcripcion,texto_directo,recibido_at,reservada,reservado_tramo');
   // Sin la migración de las reservas (columna inexistente) nadie pudo reservar nada.
-  if (res.error?.code === '42703') res = await consulta('clave_v3,audio_path,transcripcion,texto_directo,recibido_at');
+  if (res.error?.code === '42703') res = await consulta('id,clave_v3,audio_path,transcripcion,texto_directo,recibido_at');
   if (res.error) throw new Error(`No pude leer las respuestas de ${narradorId}: ${res.error.message}`);
 
   const fila = data as unknown as FilaEntrevistaV3;
+  // «Qué dejar afuera» (Naza 10/10): las filas que la familia destildó al cerrar el libro (narradores.edicion.excluidas,
+  // ids de `respuestas`) se tratan como reservadas enteras: sale la clave, su repregunta y sus audios.
+  const nar = await db.from('narradores').select('edicion').eq('id', narradorId).maybeSingle();
+  if (nar.error) throw new Error(`No pude leer la edición de ${narradorId}: ${nar.error.message}`);
+  const excluidas = new Set(excluidasDe((nar.data as { edicion?: unknown } | null)?.edicion));
   // Las reservas pedidas por WhatsApp quedan en el estado aunque no se haya podido marcar
   // `respuestas.reservada` (falló el update o falta la columna): se tratan como filas reservadas enteras.
   const delEstado = new Set(fila.estado.reservadas ?? []);
+  for (const r of (res.data as unknown as FilaRespuesta[] | null) ?? []) if (excluidas.has(r.id) && r.clave_v3 !== SIN_CLAVE_V3) delEstado.add(claveMadre(r.clave_v3));
   const reservadaEnEstado = (k: string) => delEstado.has(k) || delEstado.has(claveMadre(k));
   const filasResp = ((res.data as unknown as FilaRespuesta[] | null) ?? [])
     .filter((r) => r.clave_v3 !== SIN_CLAVE_V3)
@@ -151,6 +164,7 @@ export async function leerEntrevistaV3(db: SupabaseClient, narradorId: string): 
   const reservas = reservasPorClave(filasResp);
   for (const k of delEstado) reservas.set(k, { total: true, tramos: [] });
   const audios: AudioV3[] = filasResp.map((r) => ({
+    respuestaId: r.id,
     clave: r.clave_v3,
     // Un tramo reservado no se recorta de una grabación: el audio queda afuera.
     audioPath: esPublicable(r) ? r.audio_path : null,

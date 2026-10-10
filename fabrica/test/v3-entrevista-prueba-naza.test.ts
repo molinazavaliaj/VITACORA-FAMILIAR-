@@ -51,7 +51,7 @@ describe('2 y 3. EN2 y la bienvenida', () => {
 
   it('BIEN, párrafo 2: no hace falta avisar; la que sigue llega a los pocos minutos sin audios', () => {
     expect(mensajePorId('BIEN')!.texto.split('\n\n')[1]).toBe(
-      'Funciona así: te mando una pregunta y vos me la contás en audio, como si me lo estuvieras contando en persona. Mandame todos los audios que quieras. Cuando termines no hace falta que me avises: si pasan unos minutos sin audios nuevos, te mando la pregunta que sigue.',
+      'Funciona así. Te mando una pregunta y vos me la contás en audio, como si me lo estuvieras contando en persona. Mandame todos los audios que quieras. Cuando termines no hace falta que me avises. Si pasan unos minutos sin audios nuevos, te mando la pregunta que sigue.',
     );
   });
 });

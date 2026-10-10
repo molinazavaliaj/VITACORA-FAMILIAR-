@@ -51,13 +51,35 @@ describe('cierre por silencio', () => {
     expect(r.enviados).toEqual([]);
   });
 
-  it('con la tanda diaria en el tope (4): cierra, guarda el acuse y no manda nada', async () => {
+  it('aunque ya haya contestado 4 hoy (ritmo diario): cierra y le manda la siguiente (Naza 10/10, sin tope)', async () => {
     const r = await preparar({ ...enOR1(), borrador: 'Nací en un pueblo chico.' }, { ultimo_audio_at: hace(4 * MIN), tanda_cuenta: 4 });
     expect(await r.trabajar()).toBe('cierre');
-    expect(r.enviados).toEqual([]);
+    expect(r.enviados.map((e) => e.texto).some((t) => t?.includes(renderizar(preguntaPorId('OR2')!.texto, FICHA)))).toBe(true);
     const f = await r.leer();
-    expect(f.estado.esperando).toBeUndefined();
-    expect(f.estado.acuse).toEqual({ familia: 'M3', n: 0 });
+    expect(f.estado.esperando).toBe('OR2');
+    expect(f).toMatchObject({ tanda_cuenta: 5 });
+  });
+
+  it('quedó cortada hoy por el tope viejo (acuse guardado, nada abierto): le sale la siguiente ya, sin esperar su hora', async () => {
+    const cortada = { ...cerrarYSeguir(recibirAudio(enOR1(), 'Nací en un pueblo chico.').estado, FICHA, false).estado, salientes: [] };
+    const r = await preparar(cortada, { tanda_dia: HOY, tanda_cuenta: 8 });
+    expect(await r.trabajar()).toBe('tanda');
+    expect(r.enviados[0].texto?.startsWith(`${textoDelBanco('M3.1', FICHA)}\n`)).toBe(true);
+    expect(r.enviados[0].texto).toContain(renderizar(preguntaPorId('OR2')!.texto, FICHA));
+    const f = await r.leer();
+    expect(f.estado.esperando).toBe('OR2');
+    expect(f).toMatchObject({ tanda_dia: HOY, tanda_cuenta: 9 });
+    expect(f.estado.acuse).toBeUndefined();
+    // Una sola vez: el tick siguiente ya tiene la pregunta abierta y no manda nada.
+    expect(await r.trabajar()).toBe('nada');
+    expect(r.enviados).toHaveLength(1);
+  });
+
+  it('el rescate no corre con la entrevista terminada', async () => {
+    const cortada = { ...cerrarYSeguir(recibirAudio(enOR1(), 'Nací en un pueblo chico.').estado, FICHA, false).estado, salientes: [], terminada: true };
+    const r = await preparar(cortada, { tanda_dia: HOY, tanda_cuenta: 8 });
+    expect(await r.trabajar()).toBe('nada');
+    expect(r.enviados).toEqual([]);
   });
 
   it('con otro proceso mandando (toma vigente) no toca nada', async () => {
@@ -142,6 +164,24 @@ describe('el tick', () => {
   it('un narrador pausado no recibe nada', async () => {
     const r = await preparar(enOR1(), { tanda_dia: AYER }, { estado: 'pausado' });
     expect(await r.trabajar()).toBe('nada');
+  });
+
+  it('tickV3 lee solo las filas de los narradores activos (no las de los terminados o pausados)', async () => {
+    const r = await preparar({ ...enOR1(), borrador: 'Algo.' }, { ultimo_audio_at: hace(4 * MIN) });
+    r.base.tablas.narradores.push({ ...narrador({ id: 'n-pausado' }), estado: 'pausado' });
+    await crearFila(r.base.cliente, { narrador_id: 'n-pausado', idioma: 'es-AR', ficha: FICHA, estado: estadoInicial(), ultimo_audio_at: null, tanda_dia: null, tanda_cuenta: 0, migrada_de: null });
+    const pedidas: unknown[][] = [];
+    const desde = r.base.cliente.from.bind(r.base.cliente);
+    (r.base.cliente as any).from = (t: string) => {
+      const q = desde(t);
+      if (t !== 'entrevistas_v3') return q;
+      const enOriginal = q.in?.bind(q);
+      if (enOriginal) q.in = (c: string, vs: unknown[]) => { pedidas.push(vs); return enOriginal(c, vs); };
+      return q;
+    };
+    await tickV3(r.deps);
+    expect(pedidas[0]).toEqual(['n1']);
+    expect((await r.leer()).estado.respuestas).toHaveLength(1);
   });
 
   it('tickV3 recorre las filas y un narrador que falla no frena a los demás', async () => {

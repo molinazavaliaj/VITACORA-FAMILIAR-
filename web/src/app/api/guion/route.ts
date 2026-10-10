@@ -8,6 +8,7 @@ import { TRATOS } from "@/lib/registro";
 import {
   esEditable, puedeAgregar, puedeSaltar, renumerar, reordenar, siguienteOrden,
   validarRitmo, validarTexto, type PreguntaGuion, esPreguntaDeObjeto } from "@/lib/guion";
+import { entrevistaV3, llegoAlFinalV3, MAXIMO_PREGUNTAS_FAMILIA_V3, ORDEN_FAMILIA_V3 } from "@/lib/v3";
 
 // El guion de una historia (docs/panel-usuario.md §6). Una sola ruta, varias
 // acciones, todas sobre el narrador que dice `?narrador=`. Las reglas viven en
@@ -162,6 +163,36 @@ export async function PATCH(request: NextRequest) {
     const { error } = await admin.from("narradores").update({ contexto }).eq("id", narrador.id);
     if (error) { console.error("guion: fallo contexto", error); return respuesta(500, { error: GENERICO }); }
     return respuesta(200, { ok: true });
+  }
+
+  // Entrevista V3 (10/10): no hay guion que copiar ni editar. La familia suma preguntas suyas (tipo 'familia'),
+  // que el bot hace antes de la foto del final (FO1); después ya no le llegan.
+  let v3: Awaited<ReturnType<typeof entrevistaV3>>;
+  try {
+    v3 = await entrevistaV3(admin, narrador.id);
+  } catch (e) {
+    console.error("guion: fallo la lectura V3", e);
+    return respuesta(500, { error: GENERICO });
+  }
+  if (v3) {
+    if (body.accion !== "agregar") return respuesta(400, { error: "En esta entrevista no hay guion para editar. Se suman preguntas." });
+    if (!PUEDE.agregarPreguntasYFotos(rol as Rol)) return respuesta(403, { error: "No autorizado." });
+    if (llegoAlFinalV3(v3.estado)) return respuesta(400, { error: "La entrevista ya está en las últimas preguntas. Las nuevas no llegan a tiempo." });
+    const texto = validarTexto(body.texto);
+    if (!texto.ok) return respuesta(400, { error: texto.mensaje });
+    const { data: propias, error: errorPropias } = await admin.from("preguntas").select("orden, tipo").eq("narrador_id", narrador.id);
+    if (errorPropias) { console.error("guion: fallo la lectura V3", errorPropias); return respuesta(500, { error: GENERICO }); }
+    const filas = (propias as { orden: number; tipo: string }[] | null) ?? [];
+    if (filas.filter((p) => p.tipo === "familia").length >= MAXIMO_PREGUNTAS_FAMILIA_V3) {
+      return respuesta(400, { error: `Ya hay ${MAXIMO_PREGUNTAS_FAMILIA_V3} preguntas de la familia, que es el máximo.` });
+    }
+    const orden = Math.max(ORDEN_FAMILIA_V3, ...filas.map((p) => p.orden + 1));
+    const capitulo = typeof body.capitulo === "string" && body.capitulo.trim() ? body.capitulo.trim() : "Preguntas de la familia";
+    const { data, error } = await admin.from("preguntas")
+      .insert({ narrador_id: narrador.id, orden, texto: texto.texto, capitulo, tipo: "familia", agregada_por: user.id })
+      .select("id, orden").single();
+    if (error) { console.error("guion: fallo agregar V3", error); return respuesta(500, { error: GENERICO }); }
+    return respuesta(200, { ok: true, pregunta: data });
   }
 
   const todas = await guionPropio(admin, narrador.id);

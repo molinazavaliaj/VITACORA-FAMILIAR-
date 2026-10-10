@@ -266,3 +266,50 @@ describe("PATCH /api/guion", () => {
     expect((await PATCH(request({ accion: "evitar", texto: "nada" }))).status).toBe(400);
   });
 });
+
+// Entrevista V3 (10/10): la familia suma preguntas suyas; no hay guion que copiar ni editar.
+describe("PATCH /api/guion con un narrador V3", () => {
+  function armarV3(opciones: { preguntas?: Fila[]; estado?: Fila } = {}) {
+    const { admin, escrituras } = crearAdmin({
+      familias: [{ id: "fam-martina", region: "AR", auth_user_id: "u-martina" }],
+      narradores: [narrador()],
+      preguntas: opciones.preguntas ?? [],
+      invitados: [],
+      entrevistas_v3: [{ narrador_id: "n1", estado: opciones.estado ?? { charla: [], respuestas: [] } }],
+    });
+    (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
+    return escrituras;
+  }
+
+  it("agrega la pregunta como 'familia', sin copiar el guion viejo, en la banda 200", async () => {
+    sesion(martina);
+    const escrituras = armarV3();
+    const r = await PATCH(request({ accion: "agregar", texto: "¿Cómo fue el viaje a Mendoza?", capitulo: "Preguntas de la familia" }));
+    expect(r.status).toBe(200);
+    const inserts = escrituras.filter((e) => e.tabla === "preguntas" && e.op === "insert");
+    expect(inserts).toHaveLength(1);
+    expect(inserts[0].valores).toMatchObject({ narrador_id: "n1", tipo: "familia", orden: 200, texto: "¿Cómo fue el viaje a Mendoza?" });
+  });
+
+  it("con 10 de la familia ya no deja sumar", async () => {
+    sesion(martina);
+    const diez = Array.from({ length: 10 }, (_, i) => ({ id: `f${i}`, narrador_id: "n1", orden: 200 + i, texto: "x", capitulo: "c", tipo: "familia" }));
+    armarV3({ preguntas: diez });
+    const r = await PATCH(request({ accion: "agregar", texto: "¿Una más, larga?", capitulo: "c" }));
+    expect(r.status).toBe(400);
+  });
+
+  it("si la entrevista ya llegó a la foto del final, no la toma (no le llegaría)", async () => {
+    sesion(martina);
+    armarV3({ estado: { charla: [{ de: "bio", partes: [{ id: "FO1", texto: "¿Una foto?" }] }], respuestas: [] } });
+    const r = await PATCH(request({ accion: "agregar", texto: "¿Llega tarde esta?", capitulo: "c" }));
+    expect(r.status).toBe(400);
+  });
+
+  it("editar o saltar no aplica en la V3", async () => {
+    sesion(martina);
+    armarV3();
+    const r = await PATCH(request({ accion: "saltar", id: "p1" }));
+    expect(r.status).toBe(400);
+  });
+});

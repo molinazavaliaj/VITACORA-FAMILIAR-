@@ -10,6 +10,8 @@ import { GaleriaCapitulo, type FotoVista } from "./fotos";
 import { Compartir, type InvitadoVista } from "./compartir";
 import { CerrarEdicion, ReabrirEdicion } from "./cerrar-edicion";
 import { HistoriaViaje } from "./viaje";
+import { HistoriaV3 } from "./v3";
+import { entrevistaV3, historiaV3, llegoAlFinalV3, type FilaHistoriaV3 } from "@/lib/v3";
 import type { Viaje } from "@/lib/viaje";
 import { Riel, type CapituloRiel } from "../riel";
 import { firmarTokenLibro } from "@/lib/token-libro";
@@ -186,6 +188,45 @@ export default async function PaginaHistoria({ params, searchParams }: PageProps
         ritmo={ritmo}
         evitar={evitar}
         horario={horario}
+      />
+    );
+  }
+
+  // Entrevista V3 (WhatsApp, 10/10): otra pantalla. Sin guion de 30 ni capítulos: lo que se le preguntó y lo
+  // que contestó, por bloque (lib/v3.ts).
+  let v3: Awaited<ReturnType<typeof entrevistaV3>>;
+  try {
+    v3 = await entrevistaV3(admin, n.id);
+  } catch (e) {
+    console.error("historia: fallo la lectura V3", e);
+    return <EstadoError />;
+  }
+  if (v3) {
+    const { data: filasV3, error: e4 } = await admin
+      .from("respuestas")
+      .select("id, clave_v3, audio_path, transcripcion, texto_directo, duracion_segundos, recibido_at, reservada, reservado_tramo")
+      .eq("narrador_id", n.id)
+      .order("recibido_at", { ascending: true });
+    if (e4) {
+      console.error("historia: fallo la carga V3", e4);
+      return <EstadoError />;
+    }
+    return (
+      <HistoriaV3
+        n={n}
+        rol={rol}
+        propia={propia}
+        bloques={historiaV3(v3.estado, (filasV3 as FilaHistoriaV3[] | null) ?? [])}
+        fotos={(fotosData as FotoVista[] | null) ?? []}
+        usuarioId={user.id}
+        historiasRiel={historiasRiel}
+        aprobado={aprobado}
+        historiaCerrada={historiaCerrada}
+        linkPublico={linkPublico}
+        invitados={soloInvitados}
+        ritmo={ritmo}
+        horario={horario}
+        alFinal={llegoAlFinalV3(v3.estado)}
       />
     );
   }

@@ -4,8 +4,12 @@
 // Sin RESEND_API_KEY no se tira: se avisa por consola y se devuelve false.
 // Un mail que no sale no puede tumbar un pago que ya se cobró.
 //
-// ⚠️ Textos a aprobar por Naza (regla de la casa). Voz de marca: castellano
-// neutro de "tú".
+// ⚠️ Textos a aprobar por Naza (regla de la casa). Trato por país (Naza, 09/10):
+// vos para Argentina y tú para España (`familias.region`); sin región, vos.
+// El de acceso y la invitación son los aprobados el 06/10 (rama web-textos-v3).
+
+/** `familias.region` → ¿de tú? Solo España. */
+const deTu = (region: string | null | undefined): boolean => region === "ES";
 
 import { textosComprador, type TratoComprador } from "./regalo-textos";
 
@@ -65,7 +69,7 @@ function envoltorio(cuerpo: string): string {
  * entrar al tablero. No lleva link firmado: entra con su correo y el código
  * de 6 dígitos, que es el login que ya existe.
  */
-export async function enviarMailAcceso(opciones: { para: string; comoLeDicen: string }): Promise<boolean> {
+export async function enviarMailAcceso(opciones: { para: string; comoLeDicen: string; region?: string | null }): Promise<boolean> {
   const quien = escapar(opciones.comoLeDicen);
   const urlBase = process.env.URL_BASE ?? "https://www.vitacorafamiliar.com";
 
@@ -78,16 +82,15 @@ export async function enviarMailAcceso(opciones: { para: string; comoLeDicen: st
         </td></tr>
         <tr><td style="padding-bottom:24px;">
           En un rato le llega un mensaje nuestro por WhatsApp a tu ${quien},
-          contándole que lo anotaste y pidiéndole permiso. <strong style="font-weight:normal;">No
-          empieza nada hasta que diga que sí.</strong> Si no acepta, escríbenos y te
-          devolvemos el dinero.
+          contándole de qué se trata. <strong style="font-weight:normal;">Arranca
+          cuando quiera.</strong>
         </td></tr>
         <tr><td style="padding-bottom:24px;">
-          Cuando conteste su tercera pregunta te avisamos por acá: vas a poder leer
-          sus primeras páginas y escuchar su voz.
+          Cuando empiece a contar su historia te avisamos por acá, y vas a poder
+          escuchar su voz desde tu panel.
         </td></tr>
         <tr><td style="padding-bottom:12px;">
-          Para seguir el libro día a día, entra con este mismo correo:
+          Para ir escuchando lo que cuenta, ${deTu(opciones.region) ? "entra" : "entrá"} a la página con este mismo correo:
         </td></tr>
         <tr><td style="padding-bottom:32px;">
           <a href="${escapar(urlBase)}/entrar" style="display:inline-block;background:#5D3FD3;color:#ffffff;text-decoration:none;padding:14px 28px;font-family:Arial,Helvetica,sans-serif;font-size:15px;">
@@ -134,6 +137,7 @@ export async function enviarMailInvitacion(opciones: {
   para: string;
   nombreNarrador: string;
   quienInvita: string;
+  region?: string | null;
 }): Promise<boolean> {
   const narrador = escapar(opciones.nombreNarrador);
   const quien = escapar(opciones.quienInvita);
@@ -147,12 +151,12 @@ export async function enviarMailInvitacion(opciones: {
           <strong style="font-size:22px;font-weight:normal;">Un biógrafo está escribiendo el libro de la vida de ${narrador}.</strong>
         </td></tr>
         <tr><td style="padding-bottom:24px;">
-          ${quien} te invitó a acompañarlo. Vas a poder escuchar lo que va contando,
-          leer sus páginas a medida que se escriben, sumar preguntas que te gustaría
-          que le hagan, y agregar fotos de cada época.
+          ${quien} te invitó a seguir su historia. Vas a poder escuchar lo que va
+          contando, sumar preguntas que te gustaría que le hagan y agregar fotos de
+          cada época.
         </td></tr>
         <tr><td style="padding-bottom:12px;">
-          Entrá con este mismo correo:
+          ${deTu(opciones.region) ? "Entra" : "Entrá"} con este mismo correo:
         </td></tr>
         <tr><td style="padding-bottom:32px;">
           <a href="${escapar(urlBase)}/entrar" style="display:inline-block;background:#5D3FD3;color:#ffffff;text-decoration:none;padding:14px 28px;font-family:Arial,Helvetica,sans-serif;font-size:15px;">

@@ -41,7 +41,7 @@
 | OR1 | Comencem per quan vas arribar al món, segons t'han explicat. No el dia en si, sinó l'època: on vivien, a què es dedicaven la teva mare i el teu pare, com t'esperaven. Què saps de com era la seva vida aleshores? Explica-m'ho. |
 | OR2 | A totes les famílies hi ha una història d'abans, dels avis o de més enrere, que s'explicava a les sobretaules: un viatge, una arribada, alguna proesa. Quina en saps, de la teva família? Explica-me-la tal com la vas sentir, amb el nom de qui la va viure. |
 | OR5 | Com es van conèixer la teva mare i el teu pare? Segur que a casa ho van contar més d'una vegada: un ball, una casualitat, algú que els va presentar. Explica'm aquell dia tal com te'l van contar. |
-| OR6 | Per què et van posar {{nombre}}? A les cases sempre hi ha una història darrere d'un nom: una discussió, un sant, algú que estimaven molt. Explica'm la que et van contar a tu, encara que sigui curteta. |
+| OR6 | Per què et van posar {{nombre_pila}}? A les cases sempre hi ha una història darrere d'un nom: una discussió, un sant, algú que estimaven molt. Explica'm la que et van contar a tu, encara que sigui curteta. |
 | OR6.2 | Tens o has tingut algun sobrenom? Si és així, explica'm com va néixer: qui te'l va posar, per què justament aquest, i si t'agrada. Gairebé sempre hi ha una anècdota al darrere. |
 | CI1 | Fins aquí, la teva família d'abans que arribessis tu. I em pregunto si se m'ha escapat alguna cosa: una història dels teus avis, dels teus pares de joves, d'aquella casa. Si n'hi ha alguna que et ronda pel cap, explica-me-la ara. I si més tard te'n ve alguna, a qualsevol hora, envia-me-la quan vulguis: també anirà al llibre. |
 | CA1 | Explica'm el primer record que tinguis de la casa on vas créixer: un dia, què feies, qui hi havia per allà. |
@@ -292,7 +292,7 @@ Mismo orden que en banco.md (el botón 1 de acá vale lo mismo que el botón 1 d
 
 | ID | Texto |
 |---|---|
-| BIEN | Hola, {{nombre}}, com estàs? Una persona que t'estima molt t'ha regalat un llibre amb la història de la teva vida, i jo soc qui t'entrevistarà per fer-lo. Ho farem aquí, per WhatsApp, amb calma.<br><br>Funciona així: t'envio una pregunta i tu em respons amb un àudio, com si parléssim en persona. Envia'm tots els àudios que vulguis. Quan acabis no cal que m'avisis: si passen uns minuts sense àudios nous, t'envio la pregunta següent.<br><br>Si alguna pregunta no té res a veure amb la teva vida, m'ho dius, o m'expliques el que sí que et va passar a tu. I sense pressa: ho anirem fent al teu ritme. |
+| BIEN | Hola, {{nombre}}, com estàs? Una persona que t'estima molt t'ha regalat un llibre amb la història de la teva vida, i jo soc qui t'entrevistarà per fer-lo. Ho farem aquí, per WhatsApp, amb calma.<br><br>Funciona així. T'envio una pregunta i tu em respons amb un àudio, com si parléssim en persona. Envia'm tots els àudios que vulguis. Quan acabis no cal que m'avisis. Si passen uns minuts sense àudios nous, t'envio la pregunta següent.<br><br>Si alguna pregunta no té res a veure amb la teva vida, m'ho dius, o m'expliques el que sí que et va passar a tu. I sense pressa, ho anirem fent al teu ritme. |
 | M6 | Ara t'explico com funciona l'entrevista, {{nombre}}. T'envio una pregunta i tu m'ho expliques amb un àudio. Si te'n surten dos o tres, millor. Quan passi una estona sense que m'enviïs res, entendré que has acabat i t'enviaré la següent. No hi ha pressa: anirem al ritme que tu marquis. |
 | M1 | _Si no va amb tu, digues «passo» i en fem una altra._ |
 | M3.1 | Gràcies, {{nombre}}. Ja ho tinc guardat. |

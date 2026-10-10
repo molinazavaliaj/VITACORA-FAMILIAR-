@@ -36,11 +36,19 @@ describe('alta V3 de los nuevos en enviarPregunta', () => {
     expect(h.preguntaDeOrden).toHaveBeenCalled();
   });
 
-  it('prendido: la pregunta 1 de un acepto la manda la V3 (con la ventana según la plantilla)', async () => {
+  it('prendido: la pregunta 1 de un acepto que recibió la bienvenida V3 la manda la V3 (con la ventana según la plantilla)', async () => {
     vi.stubEnv('V3_PARA_NUEVOS', '1');
-    expect(await enviarPregunta(N, 1, { plantilla: true })).toBe(true);
-    expect(h.altaNuevo).toHaveBeenCalledWith({ falsas: true }, N, { ventanaAbierta: false });
+    const nuevo = { ...N, contexto: { ...N.contexto, bienvenidaV3: true } };
+    expect(await enviarPregunta(nuevo, 1, { plantilla: true })).toBe(true);
+    expect(h.altaNuevo).toHaveBeenCalledWith({ falsas: true }, nuevo, { ventanaAbierta: false });
     expect(h.preguntaDeOrden).not.toHaveBeenCalled();
+  });
+
+  it('prendido, pero quien recibió la bienvenida vieja (antes de prender) sigue por el flujo viejo', async () => {
+    vi.stubEnv('V3_PARA_NUEVOS', '1');
+    await enviarPregunta(N, 1, { plantilla: true });
+    expect(h.altaNuevo).not.toHaveBeenCalled();
+    expect(h.preguntaDeOrden).toHaveBeenCalled();
   });
 
   it('prendido, pero un viaje sigue por su flujo', async () => {

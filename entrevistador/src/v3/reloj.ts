@@ -6,7 +6,6 @@
 // las preguntas que la familia cargó después del alta (sumarFamilia): una
 // lectura de `preguntas` por narrador y por día, no una por tick.
 
-import { ritmoDe } from '../flujo/ritmo.js';
 import { fechaLocal } from '../flujo/tiempo.js';
 import { lanzarCazador } from './cazador.js';
 import type { DepsV3 } from './deps.js';
@@ -14,7 +13,7 @@ import { reconciliarV3 } from './entrante.js';
 import { drenar } from './enviar.js';
 import { conReintento, listarFilas, tomaVigente } from './estado.js';
 import { avisarFamiliaTarde, leerFamilia } from './filas.js';
-import { aplicarTanda, hitosDe, puedeAbrirHoy, yaEsLaHora } from './tanda.js';
+import { aplicarTanda, cuentaDeHoy, hitosDe, yaEsLaHora } from './tanda.js';
 import { fichaTexto, type FilaV3, type NarradorV3 } from './tipos.js';
 import { avanzar, cerrarYSeguir, encolar, sumarFamilia, textoDelBanco } from './turno.js';
 
@@ -37,6 +36,15 @@ export function silencioCumplido(f: FilaV3, ahora: Date): boolean {
 /** La tanda del día arranca solo si no hay pregunta abierta: la pendiente no se reenvía (Naza, 07/10). */
 export function tocaTanda(f: FilaV3, n: NarradorV3, ahora: Date, hoy: string): boolean {
   return !f.estado.terminada && !f.estado.esperando && f.tanda_dia !== hoy && yaEsLaHora(n.hora_preferida, n.zona_horaria, ahora) && !hayBorrador(f);
+}
+
+/**
+ * Hoy se cerró una respuesta sin abrir la siguiente (el tope por día que había hasta el 10/10: a Imma le pasó
+ * contestando la octava). Queda el acuse guardado y nada abierto. Sale la siguiente en el momento, sin esperar
+ * su hora. Si fue otro día, la tanda de hoy la manda a su hora, como siempre.
+ */
+export function quedoCortada(f: FilaV3, hoy: string): boolean {
+  return !f.estado.terminada && !f.estado.esperando && !hayBorrador(f) && !!f.estado.acuse && f.tanda_dia === hoy;
 }
 
 /**
@@ -66,12 +74,12 @@ export async function trabajarNarrador(deps: DepsV3, fila: FilaV3, n: NarradorV3
   }
   if (fila.estado.terminada) return 'nada';
   const hoy = fechaLocal(ahora, n.zona_horaria);
-  const ritmo = ritmoDe(n.contexto);
 
   if (silencioCumplido(fila, ahora)) {
     const r = await conReintento(deps.db, n.id, (f) => {
       if (!silencioCumplido(f, ahora) || tomaVigente(f, ahora)) return null;
-      const s = cerrarYSeguir(f.estado, fichaTexto(f), puedeAbrirHoy(f, ritmo, hoy));
+      // Si contestó, le llega la siguiente, siempre (Naza 10/10: el tope por día no corta a quien está contestando).
+      const s = cerrarYSeguir(f.estado, fichaTexto(f), true);
       const t = aplicarTanda(f, s.estado, hoy, s.abrio, ahora);
       return { cambio: { estado: t.estado, ultimo_audio_at: null, tanda_dia: t.tanda_dia, tanda_cuenta: t.tanda_cuenta }, resultado: s.bloqueCerrado };
     });
@@ -82,10 +90,11 @@ export async function trabajarNarrador(deps: DepsV3, fila: FilaV3, n: NarradorV3
     return 'cierre';
   }
 
-  if (tocaTanda(fila, n, ahora, hoy)) {
+  if (tocaTanda(fila, n, ahora, hoy) || quedoCortada(fila, hoy)) {
     const familia = (await leerFamilia(deps.db, n.id)) ?? [];
     const r = await conReintento(deps.db, n.id, (f) => {
-      if (!tocaTanda(f, n, ahora, hoy) || tomaVigente(f, ahora)) return null;
+      const cortada = quedoCortada(f, hoy);
+      if ((!tocaTanda(f, n, ahora, hoy) && !cortada) || tomaVigente(f, ahora)) return null;
       // Las preguntas que la familia cargó después del alta, antes de elegir la próxima.
       const conFamilia = sumarFamilia(f.estado, familia);
       // Sigue con la próxima (con el acuse pendiente pegado arriba).
@@ -94,7 +103,7 @@ export async function trabajarNarrador(deps: DepsV3, fila: FilaV3, n: NarradorV3
         cambio: {
           estado: sigue.abrio ? { ...sigue.estado, abiertaDesde: ahora.toISOString() } : sigue.estado,
           tanda_dia: hoy,
-          tanda_cuenta: sigue.abrio ? 1 : 0,
+          tanda_cuenta: (cortada ? cuentaDeHoy(f, hoy) : 0) + (sigue.abrio ? 1 : 0),
         },
         resultado: conFamilia.tarde,
       };
@@ -119,11 +128,14 @@ export async function trabajarNarrador(deps: DepsV3, fila: FilaV3, n: NarradorV3
 }
 
 export async function tickV3(deps: DepsV3): Promise<void> {
-  const filas = await listarFilas(deps.db);
-  if (filas.length === 0) return;
-  const { data, error } = await deps.db.from('narradores').select('*').in('id', filas.map((f) => f.narrador_id));
+  // Primero los narradores activos y después solo SUS filas V3 (el estado completo pesa): trabajarNarrador no
+  // hace nada con uno que no está activo, así que leer los terminados o pausados cada minuto era gastar
+  // tráfico por nada (pendiente del 07/10 antes de prender V3_PARA_NUEVOS).
+  const { data, error } = await deps.db.from('narradores').select('*').eq('estado', 'activo');
   if (error) throw new Error(`reloj V3: no pude leer los narradores: ${error.message}`);
   const porId = new Map(((data as NarradorV3[] | null) ?? []).map((n) => [n.id, n]));
+  const filas = await listarFilas(deps.db, [...porId.keys()]);
+  if (filas.length === 0) return;
   for (const fila of filas) {
     const n = porId.get(fila.narrador_id);
     if (!n) continue;

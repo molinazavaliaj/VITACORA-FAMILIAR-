@@ -1,6 +1,6 @@
 // Llena un texto del banco de la entrevista (docs/v3/entrevista/banco.md,
 // sección "Notación"): {{o/a}} y {{padre/madre}} según el género, {{nombre}},
-// {{etapa}}, {{quien_regala}} y la variante «sino:X: a ‖ b» según la
+// {{nombre_pila}} (solo OR6), {{etapa}}, {{quien_regala}} y la variante «sino:X: a ‖ b» según la
 // respuesta a X. Puro: no lee nada de afuera.
 
 import type { FichaV3 } from '../ficha.js';
@@ -13,12 +13,18 @@ import type { Idioma } from './idioma.js';
  */
 export type FichaEntrevista = FichaV3 & {
   quienRegala?: string;
+  /**
+   * El nombre de pila ("Dora"), para OR6 sola ({{nombre_pila}}: "¿Por qué te
+   * pusieron Dora?"). `nombre` es como le dicen ("Babu") y es lo que se usa en
+   * todo lo demás (Naza, 08/10). Sin nombre de pila, OR6 usa `nombre`.
+   */
+  nombrePila?: string;
   /** El idioma de la entrevista (`contexto.idioma`; Naza, 04/10). Sin idioma, es-AR. */
   idioma?: Idioma;
 };
 
 /** Los campos de la ficha que usan los textos (metodo-entrevista.md §21). */
-export type FichaTexto = Pick<FichaEntrevista, 'nombre' | 'genero' | 'formaTrato' | 'quienRegala' | 'idioma'>;
+export type FichaTexto = Pick<FichaEntrevista, 'nombre' | 'nombrePila' | 'genero' | 'formaTrato' | 'quienRegala' | 'idioma'>;
 
 export type OpcionesTexto = {
   /** Cómo se nombra la etapa en M10 y CI2 ("tu infancia"…). Sin texto aprobado todavía: si no llega, queda {{etapa}}. */
@@ -48,6 +54,7 @@ export function renderizar(texto: string, ficha: FichaTexto, respuestas?: Respue
   const r: Respuestas = respuestas ?? new Map();
   const valores: Record<string, string | undefined> = {
     nombre: ficha.nombre,
+    nombre_pila: ficha.nombrePila?.trim() || ficha.nombre,
     etapa: opciones.etapa,
     quien_regala: ficha.quienRegala,
     tema: opciones.tema,
