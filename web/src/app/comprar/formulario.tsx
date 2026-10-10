@@ -412,7 +412,7 @@ export function Checkout({ catalogo, regionInicial = "AR", promo = null }: { cat
               {paraQuien === "yo" ? "Tu libro, y lo que quieras sumarle." : `El libro de ${comoLeDicen || nombre || "su vida"}, y lo que quieras sumarle.`}
             </h1>
             <p className="mt-3 text-[16px] text-[#45453C] [font-family:var(--fuente-cuerpo)] font-light">
-              {cat.impreso
+              {carritoElegido.impresos > 0
                 ? "Este es el regalo completo: el libro impreso, el PDF y «Su voz». Abajo podés sumarle los marcos."
                 : "El libro en PDF con «Su voz» va siempre. Es donde ocurre la magia."}
             </p>

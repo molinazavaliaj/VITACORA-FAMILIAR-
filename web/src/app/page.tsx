@@ -716,7 +716,7 @@ export default async function Home() {
         </div>
       </footer>
 
-      <CtaSticky precio={precio} />
+      <CtaSticky precio={precio} conImpreso={cat.impreso !== null} />
     </div>
   );
 }
