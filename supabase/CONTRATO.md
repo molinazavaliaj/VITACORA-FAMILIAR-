@@ -887,7 +887,7 @@ Spec: `docs/superpowers/specs/2026-10-10-regalo-dia-de-entrega-design.md`.
 | `entrega_hora` | smallint 8–22, null | web | hora local en punto |
 | `entrega_zona` | text, null | web | `America/Argentina/Buenos_Aires` si el regalo es es-AR; `Europe/Madrid` si es es-ES o ca |
 | `entrega_enviada_at` | timestamptz, null | entrevistador | cuándo tomó el envío (compare-and-swap sobre null): la traba para no mandarlo dos veces |
-| `entrega_fallo` | text, null | entrevistador | motivo corto si no salió o si Meta avisó que no se entregó |
+| `entrega_fallo` | text, null | entrevistador | motivo corto si no salió o si Meta avisó que no se entregó (`mail`, `whatsapp`, `sin_plantilla`, `dia_vencido`, `interrumpido`, `meta:<código>`). Mientras se manda vale `enviando` y al salir vuelve a null; un `enviando` de más de 30 min es un envío cortado y pasa a `interrumpido` |
 
 - Check: con `entrega_canal` no nulo tienen que estar `fecha_entrega`, `entrega_contacto`,
   `entrega_hora` y `entrega_zona`.
