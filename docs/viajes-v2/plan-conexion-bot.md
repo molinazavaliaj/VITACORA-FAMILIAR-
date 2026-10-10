@@ -26,13 +26,15 @@ con un viajero nuevo; **Ñako no pasa a la V2** (era de prueba y ya perdió cont
 
 ## Pasos
 
+Estado al cerrar el 10/10: [`handoff-2026-10-10-bot.md`](handoff-2026-10-10-bot.md).
+
 | # | Paso | Estado |
 |---|---|---|
-| 2 | Fábrica: `planificador.ts` puro (`queToca`, `alEntrar`) + `Estado` ampliado; el simulador corre encima y los 2400 viajes siguen en verde | |
-| 3 | `reubicar` (cambio de país), agrupar respuestas, `audioMal` | |
-| 1 | Copia del núcleo al entrevistador + test | |
-| 4 | Migración `viajes_v2` + `respuestas.clave_viaje` + CONTRATO (la aplica Naza) | |
-| 5 | Estado en la base (CAS, toma) + envío con ventana y plantillas + reacción ❤️ | |
+| 2 | Fábrica: `planificador.ts` puro (`queToca`, `alEntrar`) + `Estado` ampliado; el simulador corre encima y los 2400 viajes siguen en verde | ✅ 10/10 |
+| 3 | `reubicar` (cambio de país), agrupar respuestas, `audioMal` | ✅ 10/10 |
+| 1 | Copia del núcleo al entrevistador + test | ✅ 10/10 |
+| 4 | Migración `viajes_v2` + `respuestas.clave_viaje` + CONTRATO (la aplica Naza) | ✅ escrita; falta aplicarla |
+| 5 | Estado en la base (CAS, toma) + envío con ventana y plantillas + reacción ❤️ | 🔄 la fila en la base hecha; falta el envío |
 | 6 | Entrante + gancho en procesar | |
 | 7 | Reloj + avisos a los socios + script para cerrar el álbum | |
 | 8 | Alta de un viajero nuevo + interruptor | |
