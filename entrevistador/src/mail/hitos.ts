@@ -53,25 +53,34 @@ export function redactarHito(
         const t = HITO_ACEPTO_REGALO[o.trato ?? 'vos'];
         return { asunto: t.asunto(quien), cuerpo: `<p>${escapar(t.cuerpo(quien))}</p><p><a href="${panel}">${panel}</a></p>` };
       }
-      return {
-        asunto: `${quien} dijo que sí`,
-        // Texto aprobado por Naza el 06/10 (rama web-textos-v3): sin "repasar el guion", que en la V3 no existe.
-        cuerpo: `<p>${escapar(quien)} aceptó. Enseguida le llega la primera pregunta por WhatsApp.</p><p>Mientras tanto, ${tu ? 'puedes' : 'podés'} sumar fotos de cada época o preguntas para su entrevista.</p><p><a href="${panel}?editar=1">${panel}</a></p>`,
-      };
+      // De vos: aprobado por Naza el 06/10 (rama web-textos-v3), sin "repasar el guion". De tú: aprobado el 10/10.
+      return tu
+        ? {
+          asunto: `${quien} ha dicho que sí`,
+          cuerpo: `<p>${escapar(quien)} ha aceptado. Enseguida le llega la primera pregunta por WhatsApp.</p><p>Mientras tanto, puedes añadir fotos de cada época o preguntas para su entrevista.</p><p><a href="${panel}?editar=1">${panel}</a></p>`,
+        }
+        : {
+          asunto: `${quien} dijo que sí`,
+          cuerpo: `<p>${escapar(quien)} aceptó. Enseguida le llega la primera pregunta por WhatsApp.</p><p>Mientras tanto, podés sumar fotos de cada época o preguntas para su entrevista.</p><p><a href="${panel}?editar=1">${panel}</a></p>`,
+        };
+    // Los de tú (primera, mitad, silencio) aprobados por Naza el 10/10, en castellano de España.
     case 'primera':
       return {
         asunto: `Ya ${tu ? 'puedes' : 'podés'} escuchar a ${quien}`,
-        cuerpo: `<p>${escapar(quien)} contestó la primera pregunta. Ya hay un audio y su transcripción en el panel.</p><p><a href="${panel}">${panel}</a></p>`,
+        cuerpo: `<p>${escapar(quien)} ${tu ? 'ha contestado' : 'contestó'} la primera pregunta. Ya hay un audio y su transcripción en el panel.</p><p><a href="${panel}">${panel}</a></p>`,
       };
     case 'mitad':
       return {
         asunto: `${quien} va por la mitad`,
-        cuerpo: `<p>${escapar(quien)} ya contó la mitad de su historia. Es un buen momento para leer lo que hay y, si ${tu ? 'quieres' : 'querés'}, pedirle que cuente más sobre algo.</p><p><a href="${panel}">${panel}</a></p>`,
+        cuerpo: `<p>${escapar(quien)} ya ${tu ? 'ha contado' : 'contó'} la mitad de su historia. Es un buen momento para leer lo que hay y, si ${tu ? 'quieres' : 'querés'}, pedirle que cuente más sobre algo.</p><p><a href="${panel}">${panel}</a></p>`,
       };
     case 'silencio':
+      // Sin dos puntos (Naza, 10/10): el link va en su renglón.
       return {
         asunto: `Hace tres días que ${quien} no responde`,
-        cuerpo: `<p>${escapar(quien)} lleva tres días sin contestar. No pasa nada grave: a veces es el teléfono, a veces las ganas. Un llamado tuyo suele destrabarlo.</p><p>Cuando retome, la entrevista sigue donde quedó: <a href="${panel}">${panel}</a></p>`,
+        cuerpo: tu
+          ? `<p>${escapar(quien)} lleva tres días sin contestar. No pasa nada grave, a veces es el móvil y a veces las ganas. Una llamada tuya suele ayudar.</p><p>Cuando vuelva a contestar, la entrevista sigue donde se quedó.</p><p><a href="${panel}">${panel}</a></p>`
+          : `<p>${escapar(quien)} lleva tres días sin contestar. No pasa nada grave, a veces es el teléfono y a veces las ganas. Un llamado tuyo suele destrabarlo.</p><p>Cuando retome, la entrevista sigue donde quedó.</p><p><a href="${panel}">${panel}</a></p>`,
       };
   }
 }
