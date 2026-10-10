@@ -165,11 +165,15 @@ export async function procesarEntrante(m: MensajeEntrante): Promise<void> {
   // llama a un modelo) y de la evaluación con Opus. Sin fila —o sin la
   // migración aplicada— sigue exactamente como hoy. Los imports son dinámicos
   // para no cargar nada de la V3 si nadie la usa.
-  if ((narrador.estado === 'activo' || narrador.estado === 'pausado') && (await esNarradorV3(db, narrador.id))) {
-    const { procesarEntranteV3 } = await import('../v3/entrante.js');
-    const { depsReales } = await import('../v3/deps-reales.js');
-    await procesarEntranteV3(depsReales(), narrador, m);
-    return;
+  if (narrador.estado === 'activo' || narrador.estado === 'pausado') {
+    const v3 = await esV3OAvisar(narrador, m);
+    if (v3 === 'no-se-sabe') return;
+    if (v3) {
+      const { procesarEntranteV3 } = await import('../v3/entrante.js');
+      const { depsReales } = await import('../v3/deps-reales.js');
+      await procesarEntranteV3(depsReales(), narrador, m);
+      return;
+    }
   }
 
   // Gift card: un regalo frenado en 'acepto' arranca con cualquier mensaje suyo
@@ -327,6 +331,38 @@ async function manejarConsentimiento(narrador: Narrador, m: MensajeEntrante): Pr
       console.error(`consentimiento: no pude mandar la 1 enseguida a ${narrador.id}:`, err);
     }
   }
+}
+
+/**
+ * ¿Un activo o pausado va por la V3? Si la base falla (y no es la tabla
+ * ausente), se reintenta una vez. Si vuelve a fallar no se procesa por ningún
+ * camino: el webhook ya le contestó 200 a Meta, que no reintenta, y mandar a
+ * un narrador V3 por el flujo viejo sería peor (otra pregunta, otro guion).
+ * Se avisa a los socios con lo necesario para recuperar el mensaje a mano
+ * (una vez por mensaje) y se devuelve 'no-se-sabe'.
+ */
+async function esV3OAvisar(narrador: Narrador, m: MensajeEntrante): Promise<boolean | 'no-se-sabe'> {
+  let ultimo: unknown;
+  for (let intento = 1; intento <= 2; intento++) {
+    try {
+      return await esNarradorV3(db, narrador.id);
+    } catch (err) {
+      ultimo = err;
+      console.error(`entrante: no pude saber si ${narrador.id} tiene entrevista V3 (intento ${intento} de 2)`, err);
+    }
+  }
+  const detalleError = ultimo instanceof Error ? ultimo.message : String(ultimo);
+  await avisarSocios(
+    `entrante-sin-v3:${narrador.id}:${m.waMessageId}`,
+    'Un mensaje de un narrador quedó sin procesar',
+    `La base falló dos veces al mirar si el narrador ${narrador.id} (estado '${narrador.estado}') tiene entrevista V3, `
+      + 'así que su mensaje no se procesó por ningún camino y no se le contestó. '
+      + `Teléfono ${m.telefono}. Mensaje de WhatsApp ${m.waMessageId}, tipo ${m.tipo}`
+      + (m.texto ? `, texto «${m.texto}»` : '')
+      + (m.mediaId ? `, media ${m.mediaId}` : '')
+      + `. Error: ${detalleError}`,
+  );
+  return 'no-se-sabe';
 }
 
 /**
