@@ -8,7 +8,7 @@ import { capitulosDe, preguntaDeOrden as preguntaDelGuion, tieneAdaptativas, ult
 import { textoEvitar } from '../ia/evitar.js';
 import { tratoDe } from '../ia/trato.js';
 import { mensajeDePregunta } from '../manual/puro.js';
-import { v3ParaNuevos } from '../config.js';
+import { entraALaV3 } from '../config.js';
 
 export type Narrador = {
   id: string;
@@ -139,7 +139,7 @@ export async function enviarPregunta(
   // (regalo-idiomas, 09/10): su bienvenida es el BIEN del banco, que describe
   // la V3, y solo la V3 habla catalán y castellano de España. Si el alta se
   // frena ('frenada'), no sale la pregunta vieja: devuelve false.
-  if (n.estado === 'acepto' && orden === 1 && n.contexto?.modo !== 'viaje' && (v3ParaNuevos() || n.contexto?.regalo === true)) {
+  if (n.estado === 'acepto' && orden === 1 && entraALaV3(n.contexto)) {
     const { altaNuevo } = await import('../v3/pasar.js');
     const { depsReales } = await import('../v3/deps-reales.js');
     return (await altaNuevo(depsReales(), n, { ventanaAbierta: !plantilla })) === 'mandada';

@@ -343,6 +343,17 @@ describe('la bienvenida', () => {
       mocks.filas.envios = [];
       await tick(new Date('2026-09-23T12:00:00Z'));
       expect(mocks.enviarPlantilla).toHaveBeenCalledWith('+5491100000000', 'bienvenida_v3_ca', ['Imma'], 'ca');
+      // Queda marcado: su SÍ se contesta con los textos de la V3 (procesar.ts).
+      expect(mocks.capturas).toContainEqual(expect.objectContaining({ tabla: 'narradores', p: { contexto: expect.objectContaining({ bienvenidaV3: true }) } }));
+    });
+
+    it('«la mía» sigue con la bienvenida de siempre (la V3 dice que fue un regalo)', async () => {
+      vi.stubEnv('V3_PARA_NUEVOS', '1');
+      vi.stubEnv('WA_PLANTILLAS_V3_LISTAS', 'es-AR:bienvenida');
+      mocks.filas.narradores = [{ ...invitado, contexto: { vinculoComprador: 'yo mismo' } }];
+      mocks.filas.envios = [];
+      await tick(new Date('2026-09-23T12:00:00Z'));
+      expect(mocks.enviarPlantilla).toHaveBeenCalledWith('+5491100000000', 'bienvenida', ['papá', expect.any(String)]);
     });
 
     it('sin idioma va la de vos (es-AR)', async () => {

@@ -57,3 +57,14 @@ export const PLANTILLAS_V3: Readonly<Record<'es-AR' | 'es-ES' | 'ca', { pregunta
 export function v3ParaNuevos(): boolean {
   return process.env.V3_PARA_NUEVOS === '1';
 }
+
+/**
+ * ¿Este narrador nuevo entra a la V3? Con el interruptor prendido, los comprados por la web para otra persona.
+ * «La mía» (vinculoComprador 'yo mismo') sigue por el flujo viejo hasta tener su bienvenida (la V3 dice «una
+ * persona que te quiere mucho te regaló…»); el regalo va siempre por la V3 y el viaje nunca (por su lado).
+ */
+export function entraALaV3(contexto: Record<string, unknown> | null | undefined): boolean {
+  if (contexto?.modo === 'viaje') return false;
+  if (contexto?.regalo === true) return true;
+  return v3ParaNuevos() && contexto?.vinculoComprador !== 'yo mismo';
+}

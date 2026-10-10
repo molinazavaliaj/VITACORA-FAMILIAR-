@@ -218,7 +218,10 @@ async function manejarConsentimiento(narrador: Narrador, m: MensajeEntrante): Pr
   // Un regalo habla en su idioma (ARRANQUE de regalo-textos.ts) y va siempre
   // por la V3: la bienvenida del banco ya le describió esa entrevista.
   const esRegalo = narrador.contexto?.regalo === true;
-  const idiomaRegalo = esRegalo ? idiomaDeRegalo(narrador.contexto) : null;
+  // Un narrador nuevo que recibió la bienvenida V3 (scheduler, V3_PARA_NUEVOS): su SÍ se contesta como el del
+  // regalo, en su idioma, y la primera pregunta sale enseguida (10/10).
+  const esV3Nuevo = !esRegalo && narrador.contexto?.bienvenidaV3 === true;
+  const idiomaRegalo = esRegalo || esV3Nuevo ? idiomaDeRegalo(narrador.contexto) : null;
   if (!dijoSi) {
     // Vitácora de viaje: mientras no haya plantilla aprobada, el viajero escribe
     // primero ("hola") y la bienvenida sale como texto libre, dentro de la ventana.
@@ -254,7 +257,8 @@ async function manejarConsentimiento(narrador: Narrador, m: MensajeEntrante): Pr
   const cambios: Record<string, unknown> = { estado: 'acepto' };
   // La bienvenida del regalo (mandarBienvenidaDeRegalo) siempre pide la voz:
   // su SÍ vale como permiso, salvo que esa bienvenida nunca le haya llegado.
-  const regaloPidioVoz = esRegalo && !regaloSinBienvenida;
+  // La bienvenida V3 (plantilla) también la pide: el pedido de SÍ aprobado (ARRANQUE.pedidoSi) va en su cuerpo.
+  const regaloPidioVoz = (esRegalo && !regaloSinBienvenida) || esV3Nuevo;
   if (bienvenidaPideVoz() || regaloPidioVoz) cambios.consentimiento_voz_at = new Date().toISOString();
   await db.from('narradores').update(cambios).eq('id', narrador.id);
   // Nunca prometer una pregunta que no va a llegar: si el alta V3 del regalo se
@@ -262,7 +266,7 @@ async function manejarConsentimiento(narrador: Narrador, m: MensajeEntrante): Pr
   // sale la aceptación ni el mail «ya le mandamos la primera pregunta». Una
   // persona completa la ficha; la 1 sale con el próximo mensaje del narrador
   // (recuperarRegaloFrenado) o, sin mensaje, por el scheduler.
-  const freno = esRegalo ? motivoDeFrenoDelRegalo(narrador.contexto) : null;
+  const freno = esRegalo || esV3Nuevo ? motivoDeFrenoDelRegalo(narrador.contexto) : null;
   if (freno) {
     await avisarSocios(
       `regalo-si-frenado:${narrador.id}`,
@@ -296,7 +300,8 @@ async function manejarConsentimiento(narrador: Narrador, m: MensajeEntrante): Pr
   // así que sale DESPUÉS de la 1, y solo si salió. Si no sale, el narrador
   // queda en 'acepto' sin fila V3 y lo retoma recuperarRegaloFrenado con su
   // próximo mensaje; el mail sale entonces.
-  if (esRegalo) {
+  // El nuevo de la V3 igual: la 1 sale ya y el mail «dijo que sí» (el de siempre) recién si salió.
+  if (esRegalo || esV3Nuevo) {
     await primeraDelRegalo(narrador, 'consentimiento');
     return;
   }
@@ -343,7 +348,7 @@ async function primeraDelRegalo(narrador: Narrador, desde: string): Promise<bool
  * a los socios sale una vez por día). Un 'acepto' que no es regalo no pasa por acá.
  */
 async function recuperarRegaloFrenado(narrador: Narrador): Promise<void> {
-  if (narrador.estado !== 'acepto' || narrador.contexto?.regalo !== true) return;
+  if (narrador.estado !== 'acepto' || (narrador.contexto?.regalo !== true && narrador.contexto?.bienvenidaV3 !== true)) return;
   if (await esNarradorV3(db, narrador.id)) return;
   await primeraDelRegalo(narrador, 'regalo frenado');
 }

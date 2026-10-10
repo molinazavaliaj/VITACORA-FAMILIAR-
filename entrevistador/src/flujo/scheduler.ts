@@ -7,7 +7,7 @@ import { mandarHito } from '../mail/hitos.js';
 import { esViaje } from './viaje.js';
 import { fechaLocal, minutosLocales } from './tiempo.js';
 import { narradoresV3 } from '../v3/estado.js';
-import { PLANTILLAS_V3, v3ParaNuevos } from '../config.js';
+import { PLANTILLAS_V3, entraALaV3 } from '../config.js';
 import { plantillaLista } from '../v3/enviar.js';
 import { avisarSocios } from '../v3/avisos.js';
 import { idiomaDeRegalo } from './regalo-arranque.js';
@@ -149,7 +149,7 @@ async function enviarBienvenidas(): Promise<void> {
       // (una variable, cómo le dicen), no la vieja (de usted, "cada mañana", "arrancamos mañana"). Si Meta
       // todavía no la aprobó (WA_PLANTILLAS_V3_LISTAS sin "<idioma>:bienvenida"), no sale nada y se avisa:
       // mandarle la vieja le prometería otra entrevista.
-      if (v3ParaNuevos()) {
+      if (entraALaV3(n.contexto)) {
         const idioma = idiomaDeRegalo(n.contexto);
         const p = PLANTILLAS_V3[idioma].bienvenida;
         if (!plantillaLista(idioma, 'bienvenida')) {
@@ -160,6 +160,8 @@ async function enviarBienvenidas(): Promise<void> {
         try {
           const waId = await enviarPlantilla(n.telefono_whatsapp, p.nombre, [n.como_le_dicen], p.idiomaMeta);
           await registrarEnvio(n.id, 'bienvenida', waId);
+          // Su SÍ se contesta con los textos de la V3 y vale como permiso de voz (la plantilla lo pide): procesar.ts.
+          await db.from('narradores').update({ contexto: { ...(n.contexto ?? {}), bienvenidaV3: true } }).eq('id', n.id);
         } catch (err) {
           await anotarBienvenidaFallida(n.id, err);
         }

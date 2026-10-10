@@ -825,6 +825,48 @@ describe('el SÍ de un regalo, en su idioma', () => {
   });
 });
 
+// ── El SÍ de un narrador nuevo de la V3 (V3_PARA_NUEVOS, 10/10): como el del regalo ──
+describe('el SÍ de un nuevo que recibió la bienvenida V3', () => {
+  beforeEach(() => { mocks.estado.enviosRepregunta = [{ id: 'e-bienvenida' }]; });
+
+  it('en catalán: acepto con permiso de voz, aceptación V3, la 1 enseguida y después el mail', async () => {
+    delete process.env.WA_BIENVENIDA_PIDE_VOZ;
+    mocks.estado.narrador = narradorEn('invitado', 0, { bienvenidaV3: true, idioma: 'ca', genero: 'mujer', vinculoComprador: 'filla' });
+    mocks.enviarPregunta.mockResolvedValue(true);
+    await procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'Sí', waMessageId: 'w' });
+    const p = update('narradores')?.p as Record<string, unknown>;
+    expect(p.estado).toBe('acepto');
+    expect(typeof p.consentimiento_voz_at).toBe('string');
+    expect(mocks.enviarTexto).toHaveBeenCalledWith(TEL, ARRANQUE.ca.aceptacion.replace('{{nombre}}', 'Don Osvaldo'));
+    expect(mocks.enviarPregunta).toHaveBeenCalledWith(expect.objectContaining({ estado: 'acepto' }), 1, { plantilla: false });
+    expect(mocks.mandarHito).toHaveBeenCalledWith(expect.objectContaining({ id: 'n1' }), 'acepto');
+  });
+
+  it('sin género: anota el SÍ pero no promete la pregunta y avisa', async () => {
+    delete process.env.WA_BIENVENIDA_PIDE_VOZ;
+    mocks.estado.narrador = narradorEn('invitado', 0, { bienvenidaV3: true, idioma: 'es-ES' });
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      await procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'Sí', waMessageId: 'w' });
+    } finally {
+      error.mockRestore();
+    }
+    expect(mocks.enviarTexto).not.toHaveBeenCalled();
+    expect(mocks.enviarPregunta).not.toHaveBeenCalled();
+    expect(mocks.avisarSocios).toHaveBeenCalledTimes(1);
+  });
+
+  it('sin la bienvenida V3 (la recibió antes de prender), sigue el SÍ de siempre', async () => {
+    delete process.env.WA_BIENVENIDA_PIDE_VOZ;
+    mocks.estado.narrador = narradorEn('invitado', 0, { idioma: 'ca', genero: 'mujer', ritmo: 'diario' });
+    await procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'Sí', waMessageId: 'w' });
+    const p = update('narradores')?.p as Record<string, unknown>;
+    expect(p.estado).toBe('acepto');
+    expect('consentimiento_voz_at' in p).toBe(false);
+    expect(mocks.enviarTexto).not.toHaveBeenCalledWith(TEL, ARRANQUE.ca.aceptacion.replace('{{nombre}}', 'Don Osvaldo'));
+  });
+});
+
 // ── El mail «dijo que sí» de un regalo sale después de la 1 (revisión final, 09/10) ──
 // Su texto dice «ya le mandamos la primera pregunta»: solo puede salir si salió.
 describe('el orden del mail «dijo que sí»', () => {
