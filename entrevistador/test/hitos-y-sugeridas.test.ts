@@ -47,7 +47,7 @@ vi.mock('../src/ia/personalizar.js', () => ({ personalizarPregunta: vi.fn() }));
 vi.mock('../src/ia/transcribir.js', () => ({ transcribirYActualizar: vi.fn() }));
 vi.mock('@anthropic-ai/sdk', () => ({ default: class { messages = { create: vi.fn() }; } }));
 
-import { mandarHito, mandarMailFamilia, redactarHito } from '../src/mail/hitos.js';
+import { mandarHito, mandarMail, mandarMailFamilia, redactarHito } from '../src/mail/hitos.js';
 import { leerSiNo } from '../src/flujo/procesar.js';
 import { parsearSugeridas, PROMPT_SUGERIDAS } from '../src/ia/sugeridas.js';
 import { textoEvitar, sumarTemaEvitado } from '../src/ia/evitar.js';
@@ -160,6 +160,30 @@ describe('mails de hitos', () => {
     await mandarHito({ ...n, contexto: {} }, 'acepto');
     expect(estado.fetch).toHaveBeenCalledTimes(2);
     expect(estado.contexto.mailsEnviados).toEqual(['primera', 'acepto']);
+  });
+});
+
+describe('timeout del fetch a Resend', () => {
+  it('mandarHito, mandarMailFamilia y mandarMail le pasan un AbortSignal al fetch', async () => {
+    await mandarHito({ ...n, contexto: {} }, 'primera');
+    await mandarMailFamilia('fam-1', 'a', 'b', 'n1');
+    await mandarMail('x@y.com', 'a', '<p>b</p>');
+    expect(estado.fetch).toHaveBeenCalledTimes(3);
+    for (const llamada of estado.fetch.mock.calls) expect(llamada[1].signal).toBeInstanceOf(AbortSignal);
+  });
+
+  it('un timeout cuenta como fallo: false (o el hito se suelta) y nunca tira', async () => {
+    const timeout = () => Promise.reject(new DOMException('The operation was aborted due to timeout', 'TimeoutError'));
+    estado.fetch.mockImplementation(timeout);
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      expect(await mandarMailFamilia('fam-1', 'a', 'b', 'n1')).toBe(false);
+      expect(await mandarMail('x@y.com', 'a', '<p>b</p>')).toBe(false);
+      await expect(mandarHito({ ...n, contexto: {} }, 'acepto')).resolves.toBeUndefined();
+    } finally {
+      error.mockRestore();
+    }
+    expect(estado.contexto.mailsEnviados ?? []).not.toContain('acepto');
   });
 });
 

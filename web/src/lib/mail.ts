@@ -39,6 +39,9 @@ async function enviar(opciones: { para: string; asunto: string; html: string }):
       subject: opciones.asunto,
       html: opciones.html,
     }),
+    // Un Resend colgado no puede colgar la ruta (webhook de pago): a los 15 s tira
+    // (TimeoutError) como cualquier fallo; quienes llaman ya lo atrapan.
+    signal: AbortSignal.timeout(15_000),
   });
 
   if (!respuesta.ok) {

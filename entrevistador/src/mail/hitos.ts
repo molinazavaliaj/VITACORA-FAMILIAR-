@@ -29,6 +29,7 @@ type NarradorParaMail = {
 
 const REMITENTE = process.env.MAIL_FROM ?? 'Vitácora Familiar <hola@vitacorafamiliar.com>';
 const URL_BASE = process.env.URL_BASE ?? 'https://www.vitacorafamiliar.com';
+const TIMEOUT_RESEND_MS = 15_000;
 
 function escapar(texto: string): string {
   return texto.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -95,6 +96,9 @@ async function enviar(para: string, asunto: string, html: string): Promise<boole
     method: 'POST',
     headers: { Authorization: `Bearer ${clave}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({ from: REMITENTE, to: [para], subject: asunto, html }),
+    // Un Resend colgado no puede colgar el entrante: a los 15 s el fetch tira
+    // (TimeoutError) y cuenta como fallo; todos los que llaman lo atrapan.
+    signal: AbortSignal.timeout(TIMEOUT_RESEND_MS),
   });
   if (!r.ok) throw new Error(`Resend rechazó "${asunto}" (${r.status}): ${await r.text()}`);
   return true;
