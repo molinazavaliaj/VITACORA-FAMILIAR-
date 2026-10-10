@@ -32,8 +32,8 @@ export default function Privacidad() {
     <Pagina titulo="Privacidad" bajada="Qué guardamos de tu familia, quién lo procesa, por cuánto tiempo y cómo borrarlo.">
       <Seccion id="responsables" titulo="1. Quién responde por tus datos">
         <Parrafo>
-          El responsable del tratamiento es el titular del servicio en tu país, el que
-          corresponde al lugar desde el que compraste:
+          El responsable del tratamiento es el titular del servicio en tu región, la que
+          elegiste al comprar:
         </Parrafo>
         <Lista
           items={[
@@ -46,7 +46,7 @@ export default function Privacidad() {
           ]}
         />
         <Parrafo>
-          Para cualquier cosa sobre tus datos escribí a <Correo cual="hola" />. No hace falta
+          Para cualquier cosa sobre tus datos escribe a <Correo cual="hola" />. No hace falta
           formulario ni formalidad: un correo alcanza.
         </Parrafo>
       </Seccion>
@@ -56,13 +56,13 @@ export default function Privacidad() {
         <Lista
           items={[
             <>
-              <F>Quien compra</F> y tiene la cuenta (a quien le hablamos de «vos»).
+              <F>Quien compra</F> y tiene la cuenta (llamémosla «tú»).
             </>,
             <>
               <F>El narrador</F>: la persona a la que entrevistamos por WhatsApp.
             </>,
             <>
-              <F>Los invitados</F>: familiares a los que invitás a leer el libro y subir fotos.
+              <F>Los invitados</F>: familiares a los que invitas a leer el libro y subir fotos.
             </>,
             <>
               <F>Quien visita la web</F> sin cuenta, o abre la muestra pública de un libro.
@@ -73,14 +73,14 @@ export default function Privacidad() {
 
       <Seccion id="que-datos" titulo="3. Qué datos guardamos">
         <Parrafo>
-          <F>De vos</F>: tu nombre, tu correo, tu país, y qué compraste, cuándo y por qué
-          medio. Tu tarjeta no la vemos nunca: la cobra Stripe o Mercado Pago y a nosotros nos
-          llega solo la confirmación. Cuando entrás a tu cuenta guardamos los
+          <F>De ti</F>: tu nombre, tu correo, la región que elegiste, y qué compraste, cuándo y
+          por qué medio. Tu tarjeta no la vemos nunca: la cobra Stripe o Mercado Pago y a
+          nosotros nos llega solo la confirmación. Cuando entras a tu cuenta guardamos los
           registros técnicos normales de cualquier web (dirección IP, navegador, hora).
         </Parrafo>
         <Parrafo>
           <F>Del narrador</F>: su nombre y cómo le gusta que le digan, su número de WhatsApp,
-          su zona horaria, y los datos que nos das para hablarle por su nombre (dónde
+          su zona horaria, y los datos que nos das para que las preguntas le suenen a él (dónde
           y cuándo nació, a qué se dedicó, quién es quién en su familia). Y lo importante: los{" "}
           <F>audios</F> que graba, las <F>transcripciones</F> que hacemos de ellos, los{" "}
           <F>textos</F> del libro y las <F>fotos</F> que sube la familia.
@@ -88,7 +88,9 @@ export default function Privacidad() {
         <Parrafo>
           <F>Su voz</F>: sus mejores frases se recortan de sus propios audios, tal como las dijo,
           para escucharlas en la web y con el código impreso en el libro. No creamos ninguna voz
-          sintética.
+          sintética. Si algún día ofreciéramos un producto con su voz clonada —un{" "}
+          <F>dato biométrico</F>—, solo lo haríamos con el consentimiento explícito del narrador,
+          pedido por WhatsApp para ese fin concreto.
         </Parrafo>
         <Parrafo>
           <F>De los invitados</F>: su correo (para invitarlos), su nombre si entran, y las fotos
@@ -115,7 +117,8 @@ export default function Privacidad() {
             </>,
             <>
               <F>Para avisarte</F> por correo cómo va (cuando acepta, cuando responde la primera,
-              si se queda en silencio, cuando el libro está listo). Es parte del servicio.
+              a mitad de camino, si se queda en silencio, cuando el libro está listo). Es parte
+              del servicio.
             </>,
             <>
               <F>Para facturar y cumplir la ley</F>: guardar los datos de la compra el tiempo que
@@ -149,8 +152,8 @@ export default function Privacidad() {
             ["OpenAI", "Transcribe los audios a texto. Por API: no usa lo que le mandamos para entrenar sus modelos.", "Estados Unidos"],
             ["Anthropic", "Redacta los capítulos a partir de las transcripciones, con las palabras del narrador. Por API: no usa lo que le mandamos para entrenar sus modelos.", "Estados Unidos"],
             ["Stripe / Mercado Pago", "Cobran. Son los únicos que ven tu tarjeta.", "Stripe: UE y EE. UU. · Mercado Pago: Argentina"],
-            ["Resend", "Manda los correos: el código para entrar y los avisos de cómo va el libro.", "Brasil (región de América del Sur)"],
-            ["Imprenta y mensajería", "Solo si comprás el libro impreso o los marcos: reciben el archivo, tu nombre y la dirección de envío.", "En tu país; te decimos cuál antes de mandar a producir"],
+            ["Resend", "Manda los correos: el código para entrar, los avisos, el anticipo.", "Brasil (región de América del Sur)"],
+            ["Imprenta y mensajería", "Solo si compras el libro impreso o los marcos: reciben el archivo, tu nombre y la dirección de envío.", "En tu país; te decimos cuál antes de mandar a producir"],
           ]}
         />
       </Seccion>
@@ -161,8 +164,8 @@ export default function Privacidad() {
           la Unión Europea, esas transferencias se hacen bajo el Marco de Privacidad de Datos
           UE-EE. UU. o con las cláusulas contractuales tipo aprobadas por la Comisión Europea,
           según el proveedor. Argentina tiene decisión de adecuación de la Unión Europea, así que
-          los datos pueden circular entre los dos países sin garantías adicionales. Si querés
-          ver los contratos con un proveedor concreto, pedilos por correo.
+          los datos pueden circular entre los dos países sin garantías adicionales. Si quieres
+          ver los contratos con un proveedor concreto, pídelos por correo.
         </Parrafo>
       </Seccion>
 
@@ -174,13 +177,13 @@ export default function Privacidad() {
               tu cuenta. Están ahí para que la familia vuelva a ellos cuando quiera.
             </>,
             <>
-              <F>Los audios originales</F>: además, se borran en cuanto vos o el narrador lo
+              <F>Los audios originales</F>: además, se borran en cuanto tú o el narrador lo
               pidan, aunque el libro siga en tu cuenta. Sus frases en su voz son recortes de
               esos mismos audios: si pedís borrar los originales, también se borran los recortes,
               y los códigos del libro impreso dejan de sonar.
             </>,
             <>
-              <F>Tu cuenta</F>: hasta que pidas cerrarla. Si la cerrás, borramos todo lo de
+              <F>Tu cuenta</F>: hasta que pidas cerrarla. Si la cierras, borramos todo lo de
               arriba.
             </>,
             <>
@@ -196,8 +199,8 @@ export default function Privacidad() {
 
       <Seccion id="con-quien" titulo="8. Con quién compartimos">
         <Parrafo>
-          Con nadie, salvo los proveedores de la sección 5 y la familia que vos elijas: los
-          invitados ven el libro y las fotos, y quien abra un enlace de muestra que vos
+          Con nadie, salvo los proveedores de la sección 5 y la familia que tú elijas: los
+          invitados ven el libro y las fotos, y quien abra un enlace de muestra que tú
           compartiste ve la portada, los títulos de los capítulos, el primer párrafo y un
           minuto de audio. El libro impreso lleva además un código en la contratapa (y uno al
           lado de cada frase de «Su voz») que abre en el teléfono el libro entero y sus frases,
@@ -209,7 +212,7 @@ export default function Privacidad() {
 
       <Seccion id="derechos" titulo="9. Tus derechos (y los del narrador)">
         <Parrafo>
-          Vos, el narrador y cada invitado pueden pedir en cualquier momento: <F>acceder</F> a
+          Tú, el narrador y cada invitado pueden pedir en cualquier momento: <F>acceder</F> a
           sus datos, <F>corregirlos</F>, <F>borrarlos</F>, <F>llevárselos</F> en un formato
           usable (el libro en PDF, sus frases y los audios originales), <F>oponerse</F> a
           un uso o pedir que lo <F>limitemos</F>, y <F>retirar un consentimiento</F> (por
@@ -217,9 +220,9 @@ export default function Privacidad() {
           entonces.
         </Parrafo>
         <Parrafo>
-          Cómo: un correo a <Correo cual="hola" /> desde la dirección de tu cuenta (o, si sos
+          Cómo: un correo a <Correo cual="hola" /> desde la dirección de tu cuenta (o, si eres
           el narrador, un mensaje por el mismo WhatsApp). Contestamos en un mes como máximo;
-          casi siempre en días. Si creés que no te hicimos caso, podés reclamar ante la{" "}
+          casi siempre en días. Si crees que no te hicimos caso, puedes reclamar ante la{" "}
           <Enlace href={es.autoridad.url}>{es.autoridad.nombre}</Enlace> si estás en España o
           ante la <Enlace href={ar.autoridad.url}>{ar.autoridad.nombre}</Enlace> si estás en
           Argentina.
@@ -249,7 +252,7 @@ export default function Privacidad() {
       <Seccion id="cookies" titulo="12. Cookies">
         <Parrafo>
           Usamos solo cookies técnicas, las imprescindibles para que la web funcione: la que
-          mantiene tu sesión abierta cuando entrás a tu cuenta y la que recuerda si preferís
+          mantiene tu sesión abierta cuando entras a tu cuenta y la que recuerda si prefieres
           el panel en claro o en oscuro. No usamos cookies de publicidad ni de analítica, y por
           eso no te mostramos ningún aviso. Si algún día sumamos una herramienta de medición,
           te pediremos consentimiento antes de activarla y esta sección cambiará.
@@ -262,7 +265,7 @@ export default function Privacidad() {
           redactar los capítulos con las palabras del narrador, y elegir, entre lo que dijo, las
           frases que van en «Su voz». Los modelos son de OpenAI y Anthropic, contratados por API, y ninguno usa
           lo que les mandamos para entrenar. Nosotros tampoco entrenamos nada con tu familia.
-          Las decisiones que importan las toma una persona: vos aprobás el libro antes de que
+          Las decisiones que importan las toma una persona: tú apruebas el libro antes de que
           se cierre, y no hay ninguna decisión automatizada que te afecte legalmente.
         </Parrafo>
       </Seccion>

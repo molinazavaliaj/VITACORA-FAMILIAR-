@@ -16,7 +16,7 @@ export function Pagina({ titulo, bajada, children }: { titulo: string; bajada: s
         <p className="mt-1 text-xs text-zinc-500">Última actualización: {ACTUALIZADO}</p>
         <div className="mt-8 flex flex-col gap-8">{children}</div>
         <p className="mt-12 border-t border-zinc-200 pt-6 text-xs leading-relaxed text-zinc-500">
-          ¿Dudas, una devolución, o querés que borremos algo? Escribí a <Correo cual="hola" /> y te
+          ¿Dudas, una devolución, o quieres que borremos algo? Escribe a <Correo cual="hola" /> y te
           respondemos.
         </p>
       </div>
