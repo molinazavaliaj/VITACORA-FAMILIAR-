@@ -381,7 +381,7 @@ describe('canjearRegalo sin código (el regalo le llegó por WhatsApp)', () => {
     expect(enviados).toEqual([]);
   });
   it('todavía no se mandó, o falló, o fue por mail: hace falta el código', async () => {
-    for (const regalo of [{ entrega_enviada_at: null }, { entrega_fallo: 'meta:131026' }, { entrega_canal: 'mail', entrega_contacto: 'a@b.com' }]) {
+    for (const regalo of [{ entrega_enviada_at: null }, { entrega_fallo: 'meta:131026' }, { entrega_fallo: 'enviando' }, { entrega_canal: 'mail', entrega_contacto: 'a@b.com' }]) {
       const { deps } = armarEntrega(regalo);
       expect(await canjearRegalo(deps, { telefono: '+5491155551234', texto: 'hola' })).toBe('sin_codigo');
     }

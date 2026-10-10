@@ -206,6 +206,38 @@ describe('entregarRegalos por mail', () => {
   });
 });
 
+describe('entregarRegalos: envíos cortados y compras viejas (revisión)', () => {
+  it('mientras se manda queda «enviando» y al salir se limpia', async () => {
+    const { deps, base } = armar();
+    let duranteElEnvio: unknown;
+    const mandarMail = deps.mandarMail;
+    deps.mandarMail = async (...a) => { duranteElEnvio = base.tablas.regalos[0].entrega_fallo; return mandarMail(...a); };
+    await entregarRegalos(deps, A_LA_HORA);
+    expect(duranteElEnvio).toBe('enviando');
+    expect(base.tablas.regalos[0].entrega_fallo).toBeNull();
+  });
+
+  it('un envío cortado (deploy en el medio) se detecta después de 30 minutos y avisa «dásela vos»', async () => {
+    const { deps, base, familia, mails } = armar({ regalo: { entrega_enviada_at: '2026-12-24T13:00:00.000Z', entrega_fallo: 'enviando' } });
+    await entregarRegalos(deps, new Date('2026-12-24T13:15:00Z'));
+    expect(familia).toEqual([]);
+    await entregarRegalos(deps, new Date('2026-12-24T13:30:00Z'));
+    expect(base.tablas.regalos[0].entrega_fallo).toBe('interrumpido');
+    expect(familia).toHaveLength(1);
+    expect(familia[0].asunto).toBe(ENTREGA_COMPRADOR.vos.falloAsunto('abuelo'));
+    expect(mails).toEqual([]);
+  });
+
+  it('una compra sin pagar con fecha de hace días ya no se relee', async () => {
+    const { deps, base } = armar({ narrador: { estado: 'pendiente_pago' }, regalo: { fecha_entrega: '2026-12-20' } });
+    let lecturas = 0;
+    const db = base.cliente as any;
+    deps.db = { from: (t: string) => { if (t === 'narradores') lecturas++; return db.from(t); } } as any;
+    await entregarRegalos(deps, A_LA_HORA);
+    expect(lecturas).toBe(0);
+  });
+});
+
 describe('entregarRegalos por WhatsApp', () => {
   const WA = { entrega_canal: 'whatsapp', entrega_contacto: '+5491155551234' };
 
@@ -240,6 +272,13 @@ describe('entregarRegalos por WhatsApp', () => {
 });
 
 describe('fallarEntregaRegalo', () => {
+  it('Meta avisa el fallo mientras el tick todavía está en «enviando»: igual se anota y se avisa', async () => {
+    const { deps, base, familia } = armar({ regalo: { entrega_canal: 'whatsapp', entrega_contacto: '+5491155551234', entrega_enviada_at: '2026-12-24T13:00:00Z', entrega_fallo: 'enviando' } });
+    await fallarEntregaRegalo(deps, 'n1', 'meta:131026');
+    expect(base.tablas.regalos[0].entrega_fallo).toBe('meta:131026');
+    expect(familia).toHaveLength(1);
+  });
+
   it('anota el fallo una sola vez y avisa una sola vez', async () => {
     const { deps, base, familia } = armar({ regalo: { entrega_canal: 'whatsapp', entrega_contacto: '+5491155551234', entrega_enviada_at: '2026-12-24T13:00:00Z' } });
     await fallarEntregaRegalo(deps, 'n1', 'meta:131026');

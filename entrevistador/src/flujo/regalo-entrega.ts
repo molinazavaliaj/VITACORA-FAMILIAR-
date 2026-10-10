@@ -5,8 +5,11 @@
 //
 // Corre en el tick de 15 minutos del scheduler (sale a la hora en punto). El
 // regalo se toma ANTES de mandar (compare-and-swap sobre entrega_enviada_at):
-// dos ticks a la vez no lo mandan dos veces. Un envío que falla NO se reintenta
-// solo: queda `entrega_fallo` y quien compró se entera para dársela en mano.
+// dos ticks a la vez no lo mandan dos veces. Mientras se manda queda
+// `entrega_fallo = 'enviando'` y al salir se limpia: si el proceso se corta en
+// el medio (un deploy), el tick siguiente lo ve trabado y avisa. Un envío que
+// falla NO se reintenta solo: queda `entrega_fallo` y quien compró se entera
+// para dársela en mano.
 
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { PLANTILLA_REGALO_ENTREGA } from '../config.js';
@@ -45,6 +48,11 @@ export function enmascarar(contacto: string): string {
   if (arroba > 0) return `${contacto.slice(0, Math.min(2, arroba))}***${contacto.slice(arroba)}`;
   return `${contacto.slice(0, 3)}***${contacto.slice(-4)}`;
 }
+
+/** Marca de «se está mandando»: no es un fallo todavía, pero tampoco salió. */
+export const ENVIANDO = 'enviando';
+/** Pasado este tiempo, un «enviando» es un envío que se cortó. */
+const TRABADO_MS = 30 * 60_000;
 
 /** PostgREST no conoce la tabla o la columna: la migración todavía no se aplicó. */
 function faltaLaMigracion(error: { code?: string; message?: string } | null): boolean {
@@ -93,15 +101,22 @@ export async function fallarEntregaRegalo(
   deps: Pick<DepsEntrega, 'db' | 'mandarMailFamilia'>, narradorId: string, motivo: string,
 ): Promise<void> {
   try {
-    const { data, error } = await deps.db.from('regalos')
-      .update({ entrega_fallo: motivo })
-      .eq('narrador_id', narradorId).not('entrega_canal', 'is', null).is('entrega_fallo', null)
-      .select('id, entrega_contacto');
-    if (error) {
-      console.error(`regalo-entrega: no pude anotar el fallo de ${narradorId}:`, error.message);
-      return;
+    // Pisa un null (ya había salido: Meta avisa después) o un «enviando» (el
+    // tick todavía no terminó), nunca otro fallo: así se avisa una sola vez.
+    let fila: { entrega_contacto: string } | undefined;
+    for (const previo of [null, ENVIANDO]) {
+      const base = deps.db.from('regalos')
+        .update({ entrega_fallo: motivo })
+        .eq('narrador_id', narradorId).not('entrega_canal', 'is', null);
+      const { data, error } = await (previo === null ? base.is('entrega_fallo', null) : base.eq('entrega_fallo', previo))
+        .select('id, entrega_contacto');
+      if (error) {
+        console.error(`regalo-entrega: no pude anotar el fallo de ${narradorId}:`, error.message);
+        return;
+      }
+      fila = (data as { entrega_contacto: string }[] | null)?.[0];
+      if (fila) break;
     }
-    const fila = (data as { entrega_contacto: string }[] | null)?.[0];
     if (!fila) return; // ya estaba anotado (o no tenía entrega): ya se avisó
     const { data: n } = await deps.db.from('narradores').select('familia_id, como_le_dicen').eq('id', narradorId).maybeSingle();
     if (!n) return;
@@ -116,12 +131,25 @@ export async function fallarEntregaRegalo(
 /** Manda los regalos cuya fecha y hora ya llegaron. Devuelve cuántos salieron. */
 export async function entregarRegalos(deps: DepsEntrega, ahora: Date): Promise<number> {
   const { db } = deps;
-  // Corte grueso: hasta mañana en UTC (en ninguna zona nuestra el día local va más adelante).
+  // Los envíos que se cortaron en el medio (un deploy): «enviando» hace más de media hora.
+  const { data: trabados, error: errorTrabados } = await db.from('regalos')
+    .select('narrador_id').eq('entrega_fallo', ENVIANDO)
+    .lte('entrega_enviada_at', new Date(ahora.getTime() - TRABADO_MS).toISOString());
+  if (errorTrabados) {
+    if (faltaLaMigracion(errorTrabados)) return 0;
+    throw errorTrabados;
+  }
+  for (const t of (trabados ?? []) as { narrador_id: string }[]) await fallarEntregaRegalo(deps, t.narrador_id, 'interrumpido');
+
+  // Corte grueso: de hace dos días (un bot caído un día igual avisa «dásela
+  // vos»; las compras sin pagar viejas no se releen para siempre) a mañana en
+  // UTC (en ninguna zona nuestra el día local va más adelante).
   const manana = new Date(ahora.getTime() + 24 * 3600_000).toISOString().slice(0, 10);
+  const anteayer = new Date(ahora.getTime() - 2 * 24 * 3600_000).toISOString().slice(0, 10);
   const { data, error } = await db.from('regalos')
     .select('id, codigo, narrador_id, quien_regala, mensaje, audio_path, fecha_entrega, entrega_canal, entrega_contacto, entrega_hora, entrega_zona')
     .not('entrega_canal', 'is', null).is('entrega_enviada_at', null).is('usado_at', null)
-    .lte('fecha_entrega', manana);
+    .gte('fecha_entrega', anteayer).lte('fecha_entrega', manana);
   if (error) {
     if (faltaLaMigracion(error)) return 0;
     throw error;
@@ -138,7 +166,7 @@ export async function entregarRegalos(deps: DepsEntrega, ahora: Date): Promise<n
     if (!narrador || narrador.estado !== 'regalo_pendiente') continue;
 
     const { data: tomado, error: errorTomar } = await db.from('regalos')
-      .update({ entrega_enviada_at: ahora.toISOString() })
+      .update({ entrega_enviada_at: ahora.toISOString(), entrega_fallo: ENVIANDO })
       .eq('id', r.id).is('entrega_enviada_at', null).select('id');
     if (errorTomar) {
       console.error(`regalo-entrega: no pude tomar ${r.id}:`, errorTomar.message);
@@ -183,6 +211,10 @@ export async function entregarRegalos(deps: DepsEntrega, ahora: Date): Promise<n
       continue;
     }
 
+    // Salió: se limpia el «enviando» (si Meta ya avisó un fallo, ese no se pisa).
+    const { error: errorLimpiar } = await db.from('regalos')
+      .update({ entrega_fallo: null }).eq('id', r.id).eq('entrega_fallo', ENVIANDO);
+    if (errorLimpiar) console.error(`regalo-entrega: salió el regalo de ${r.narrador_id} pero no pude limpiar la marca:`, errorLimpiar.message);
     mandados++;
     console.log(`regalo-entrega: salió el regalo de ${r.narrador_id} por ${r.entrega_canal} a ${enmascarar(r.entrega_contacto)}`);
     const t = ENTREGA_COMPRADOR[await tratoDeLaFamilia(db, narrador.familia_id)];
