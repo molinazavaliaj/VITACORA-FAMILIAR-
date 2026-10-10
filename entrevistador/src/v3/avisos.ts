@@ -32,6 +32,7 @@ export async function avisarSocios(
       method: 'POST',
       headers: { Authorization: `Bearer ${claveResend}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ from: REMITENTE, to: para, subject: `[Vitácora V3] ${asunto}`, text: detalle }),
+      signal: AbortSignal.timeout(15_000), // un Resend colgado no cuelga el aviso: tira y se atrapa abajo
     });
     if (!r.ok) console.error(`avisos: Resend rechazó el aviso «${asunto}» (${r.status}).`);
   } catch (err) {

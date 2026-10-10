@@ -39,6 +39,17 @@ describe("enviarMailRegalo", () => {
     expect(cuerpo.html).not.toContain("podés");
   });
 
+  it("el fetch a Resend lleva timeout (AbortSignal); un timeout tira como cualquier fallo de Resend", async () => {
+    vi.stubEnv("RESEND_API_KEY", "re_prueba");
+    const fetchFalso = vi.fn().mockResolvedValue({ ok: true, status: 200, text: async () => "" });
+    vi.stubGlobal("fetch", fetchFalso);
+    await enviarMailRegalo({ para: "a@b.com", comoLeDicen: "abuela", codigo: "VF-AAAAAA", trato: "vos" });
+    expect(fetchFalso.mock.calls[0][1].signal).toBeInstanceOf(AbortSignal);
+
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new DOMException("The operation was aborted due to timeout", "TimeoutError")));
+    await expect(enviarMailRegalo({ para: "a@b.com", comoLeDicen: "abuela", codigo: "VF-AAAAAA", trato: "vos" })).rejects.toThrow(/timeout/);
+  });
+
   it("sin RESEND_API_KEY no tira: devuelve false", async () => {
     vi.stubEnv("RESEND_API_KEY", "");
     const fetchFalso = vi.fn();

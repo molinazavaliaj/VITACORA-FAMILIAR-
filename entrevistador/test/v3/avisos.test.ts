@@ -21,7 +21,8 @@ describe('avisar a los socios', () => {
     expect(await avisarSocios('plantilla-ca-pregunta', 'Falta la plantilla', 'detalle', { ahora: AHORA, fetch })).toBe(true);
     const [url, init] = fetch.mock.calls[0] as unknown as [string, RequestInit];
     expect(url).toBe('https://api.resend.com/emails');
-    expect(JSON.parse(String(init.body))).toMatchObject({ to: ['uno@ejemplo.com', 'dos@ejemplo.com'], subject: '[Vitácora V3] Falta la plantilla', text: 'detalle' });
+    expect(JSON.parse(String(init.body))).toMatchObject({ to: ['uno@ejemplo.com', 'dos@ejemplo.com'], subject: '[Vitácora V3] Falta la plantilla', text: 'detalle' });    // Con timeout: un Resend colgado no deja colgado el aviso.
+    expect(init.signal).toBeInstanceOf(AbortSignal);
   });
 
   it('una sola vez por clave y por día', async () => {
