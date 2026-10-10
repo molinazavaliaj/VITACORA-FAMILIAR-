@@ -10,6 +10,7 @@
 import { describe, it, expect } from 'vitest';
 import { correr, correrMuchos, INVARIANTES, HALLAZGOS, lecturaUnDia, lecturaDosDias, lecturaTreintaDias, lecturaCa, lecturaEsES, revisar, escenario, simular, PersonaSimulada } from '../scripts/viaje-v2-simular.js';
 import { porId } from '../src/viaje-v2/banco.js';
+import { SILENCIO_GRUPO_MS } from '../src/viaje-v2/planificador.js';
 
 const CORRIDAS = correrMuchos(300);
 
@@ -246,10 +247,13 @@ describe('viaje v2: las dos lecturas nuevas (personas inventadas)', () => {
     expect(res.compra.regalo).toBeUndefined();
     for (const id of ['BIEN-1', 'PAS-V', 'ATR1', 'AL3', 'DES+']) expect(md, id).toContain(`\`${id}\``);
     expect(md).toContain('un libro en PDF');
-    // Escribe VA1 a las 23:05: TXT le contesta enseguida, no a las 8:00 del otro día.
+    // Escribe VA1 a las 23:05: TXT le contesta enseguida, no a las 8:00 del otro día. "Enseguida" es
+    // cuando se cierra su respuesta: a los 3' de silencio (el grupo del planificador), a las 23:08.
     const txt = res.enviados.find((m) => m.ids[0] === 'TXT')!;
     expect(txt.en).toEqual(txt.respondeEn);
-    expect(md).toMatch(/\*\*23:05 · Marta\*\* {2}\n_\[texto: un libro de poemas[^\n]*\n\n\*\*23:05 · Vitácora\*\* `TXT`/);
+    const escribio = res.lineas.find((l) => l.de === 'persona' && l.texto.startsWith('texto: un libro de poemas'))!;
+    expect(txt.en.getTime() - escribio.instante.getTime()).toBe(SILENCIO_GRUPO_MS);
+    expect(md).toMatch(/\*\*23:05 · Marta\*\* {2}\n_\[texto: un libro de poemas[^\n]*\n\n\*\*23:08 · Vitácora\*\* `TXT`/);
     expect(md).not.toContain('{{');
   });
 });

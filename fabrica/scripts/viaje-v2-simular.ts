@@ -12,49 +12,53 @@
 // persona). Lo que la persona escribe ("paso", "ja està", "vale"…) pasa por el
 // detector de verdad (palabras.ts): si no lo entiende, invariante l3.
 //
-// El "planificador" de acá imita a lectura.ts (el que falta conectar a
-// WhatsApp lo va a hacer Joaquín), con estas decisiones propias, anotadas en
-// docs/viajes-v2/simulaciones/resumen.md:
-//   · BIEN-1 sale al comprar (corrido a las 8:00 si cae en la franja).
-//   · UC1 con un SÍ tardío el día de salida: 2 horas después (momentoUC1);
-//     lo demás programado que ya pasó cuando dice SÍ no sale (queda "vencido").
-//   · AL1 sale a las 10:00 del día siguiente de CA1 (momentoAL1); AL1-P si CA1
-//     fue "paso" o quedó sin respuesta.
-//   · El calendario definitivo se arma justo antes de ID1 (o IV1): recién ahí
-//     se sabe qué quedó pendiente de antes de salir.
-//   · La persona contesta cada pregunta antes de que llegue la siguiente.
+// Quien decide qué sale y cuándo es el planificador de verdad
+// (src/viaje-v2/planificador.ts), el mismo que va a correr el bot: acá hay un
+// loop que avanza el reloj hasta lo próximo (lo que manda la persona, o
+// proximaAccion del planificador) y llama alEntrar / queToca. Lo único que
+// queda de este lado es la persona (cuándo y qué contesta) y BIEN-1 (sale al
+// comprar, corrido a las 8:00 si cae en la franja; el planificador arranca
+// con el SÍ). Decisiones de la persona, anotadas en resumen.md:
+//   · Contesta cada pregunta antes de que llegue la siguiente (lo que
+//     contestaría después no lo manda).
+//   · Una respuesta (un audio con sus fotos) llega toda junta: un grupo.
+//   · Una foto suelta que cae con una pregunta abierta, o pegada a otra cosa
+//     que manda (menos de 3'), el bot no la puede distinguir: es parte de la
+//     respuesta. Se manda igual, pero no cuenta como suelta para d9.
+//   · Si ya contestó (por ejemplo, con una de esas fotos), no vuelve a contestar.
 //
 // Personas y viajes INVENTADOS. Nunca usar acá la vida de un narrador real.
 
 import { mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { iniciarAlbum, pasoAlbum, type EstadoAlbum, type EventoAlbum } from '../src/viaje-v2/album.js';
+import type { EstadoAlbum } from '../src/viaje-v2/album.js';
 import { porId } from '../src/viaje-v2/banco.js';
 import { idiomaDe, IDIOMAS, type Idioma } from '../src/viaje-v2/idioma.js';
 import { entender, type Entendido } from '../src/viaje-v2/palabras.js';
-import {
-  armarCalendario,
-  CADENA_ANTES,
-  momentoAL1,
-  quedaAL1EseDia,
-  momentoUC1,
-  validarCompra,
-  momentoDeLaSiguiente,
-  momentoRecordatorio,
-  pendientesAntes,
-  quedaNocheEseDia,
-  quedaOtraEseDia,
-  siguienteDeLaCadena,
-  type Calendario,
-  type IdAntes,
-  type Programado,
-} from '../src/viaje-v2/calendario.js';
-import { anotarEnvio, anotarRespuesta, contestadasAntes, nocheAnterior, nochesSinContestar, nuevoEstado, pendientesParaElViaje, type Estado } from '../src/viaje-v2/estado.js';
+import { armarCalendario, CADENA_ANTES, validarCompra, type Calendario, type IdAntes, type Programado } from '../src/viaje-v2/calendario.js';
+import { contestado, type Estado } from '../src/viaje-v2/estado.js';
 import { aInstante, aLocal, diaDeSemana, diasEntre, nombreDeZona, respetarFranja, sumarDias } from '../src/viaje-v2/horas.js';
-import { alDecirSi, arranque, mensajeAlbum, momentoDeLaReaccion, partirDes, preguntaProgramada, reaccion, recordatorioAntes, type ReaccionEmoji, type Respuesta } from '../src/viaje-v2/mensajes.js';
+import { arranque, partirDes, type Respuesta } from '../src/viaje-v2/mensajes.js';
+import {
+  alEntrar,
+  aProgramado,
+  calendarioDe,
+  cerrarAlbum,
+  iniciar,
+  proximaAccion,
+  proximaDelCalendario,
+  queToca,
+  SILENCIO_GRUPO_MS,
+  type Entrada,
+  type EstadoViaje,
+  type Origen,
+  type Paso,
+} from '../src/viaje-v2/planificador.js';
 import { datosDeCompra, renderizar } from '../src/viaje-v2/texto.js';
 import type { Compra, Mensaje, Zona } from '../src/viaje-v2/tipos.js';
+
+export type { Origen } from '../src/viaje-v2/planificador.js';
 
 // ── Azar con semilla ─────────────────────────────────────────────────────────
 
@@ -102,8 +106,6 @@ export interface Persona {
 
 // ── Lo que queda del viaje ───────────────────────────────────────────────────
 
-export type Origen = 'arranque' | 'cadena' | 'reaccion' | 'programado' | 'recordatorio' | 'album-reloj' | 'album-reaccion' | 'naza';
-
 export type Enviado = {
   en: Date;
   zona: Zona;
@@ -114,7 +116,7 @@ export type Enviado = {
   iniciativa: boolean;
   programado?: Programado;
   reaccionA?: { tipo: string; respuesta: Respuesta };
-  /** Si contesta a algo que escribió la persona: cuándo lo escribió. */
+  /** Si contesta a algo que escribió la persona: cuándo se cerró su respuesta (el grupo, a los 3' de silencio). */
   respondeEn?: Date;
 };
 
@@ -122,7 +124,8 @@ export type Linea = { instante: Date; zona: Zona; de: 'vita' | 'persona' | 'nota
 /**
  * Una reacción ❤️ de WhatsApp (no es un mensaje): a qué tipo de pregunta
  * respondía, a qué mensaje apunta (`aMensaje`, lo que devolvió el código) y a
- * cuál tenía que apuntar (`esperado`, el id del mensaje de la persona).
+ * cuál tenía que apuntar (`esperado`, el id del primer mensaje de la persona
+ * en ese grupo).
  */
 export type Corazon = { en: Date; zona: Zona; a: string; aMensaje: string | null; esperado: string };
 
@@ -132,10 +135,13 @@ export type Resultado = {
   corazones: Corazon[];
   /** Los ids de las fotos sueltas que llegaron fuera del álbum (cada una tiene que llevar su ❤️). */
   sueltasIds: string[];
+  /** Fotos sueltas que cayeron con una pregunta abierta o pegadas a otra cosa: el bot las toma como parte de la respuesta. */
+  sueltasEnRespuesta: Date[];
   lineas: Linea[];
   calPrevio: Calendario;
   cal: Calendario | null;
-  estado: Estado;
+  /** El estado del planificador al terminar (es un `Estado` de estado.ts, ampliado). */
+  estado: EstadoViaje | Estado;
   album: EstadoAlbum | null;
   siEn: Date;
   al1En: Date | null;
@@ -149,13 +155,14 @@ export type Resultado = {
   error?: string;
 };
 
-// ── La cola de eventos ───────────────────────────────────────────────────────
+// ── La cola de la persona ────────────────────────────────────────────────────
 
+/** Lo que va a hacer la persona (y Naza), en orden de tiempo; a la misma hora, en el orden en que se agendó. */
 class Cola {
-  private evs: { t: number; n: number; f: () => void }[] = [];
+  private evs: { t: number; n: number; entra: boolean; f: () => void }[] = [];
   private n = 0;
-  push(t: Date, f: () => void) {
-    const ev = { t: t.getTime(), n: this.n++, f };
+  push(t: Date, f: () => void, entra = true) {
+    const ev = { t: t.getTime(), n: this.n++, entra, f };
     let i = this.evs.length;
     while (i > 0 && (this.evs[i - 1].t > ev.t || (this.evs[i - 1].t === ev.t && this.evs[i - 1].n > ev.n))) i--;
     this.evs.splice(i, 0, ev);
@@ -163,48 +170,48 @@ class Cola {
   pop() {
     return this.evs.shift();
   }
+  primero(): number | null {
+    return this.evs.length ? this.evs[0].t : null;
+  }
+  /** ¿La persona manda algo en [desde, hasta)? */
+  entraEntre(desde: number, hasta: number): boolean {
+    return this.evs.some((x) => x.entra && x.t >= desde && x.t < hasta);
+  }
 }
 
 const NOCHES = new Set(['noche', 'antes-en-viaje', 'propia', 'FN1']);
 export const esCadena = (id: string): id is IdAntes => (CADENA_ANTES as readonly string[]).includes(id);
 
-/** Un viaje de punta a punta con el código de verdad. */
-export function simular(compra: Compra, compraEn: Date, persona: Persona): Resultado {
+/** Lo que escribió (si `dice` es "texto: …"). */
+const loEscrito = (dice: string): string | null => (dice.startsWith('texto: ') ? dice.slice('texto: '.length) : null);
+
+/**
+ * Un viaje de punta a punta con el planificador de verdad. `silencioMs`: el
+ * silencio que cierra el grupo (por defecto el del bot, 3'); 0 sirve para
+ * comparar con el simulador viejo, que contestaba en el mismo instante.
+ */
+export function simular(compra: Compra, compraEn: Date, persona: Persona, opciones: { silencioMs?: number } = {}): Resultado {
+  const op = { silencioMs: opciones.silencioMs ?? SILENCIO_GRUPO_MS };
   const cola = new Cola();
   const casa = compra.zonaCasa;
   const enviados: Enviado[] = [];
   const corazones: Corazon[] = [];
   const sueltasIds: string[] = [];
+  const sueltasEnRespuesta: Date[] = [];
   let idsPersona = 0;
   /** Un id de WhatsApp inventado para cada mensaje de la persona. */
   const nuevoId = () => `wamid.${++idsPersona}`;
   const lineas: Linea[] = [];
-  let estado: Estado = nuevoEstado();
   const calPrevio = armarCalendario(compra, [...CADENA_ANTES]);
-  let cal: Calendario | null = null;
-  let album: EstadoAlbum | null = null;
-  const vencidos: Programado[] = [];
+  let plan: EstadoViaje | null = null;
   const avisosAlbum: Date[] = [];
   let al1En: Date | null = null;
   let desEn: Date | null = null;
   let nazaDecide: Date | null = null;
-  let fotosTarde = 0;
-  const programados = () => (cal ?? calPrevio).programados;
   const idioma = idiomaDe(compra);
   const malEntendidos: string[] = [];
-  /** Lo que escribió (si `dice` es "texto: …"), por el detector del idioma. */
-  const escrito = (dice: string): string | null => (dice.startsWith('texto: ') ? dice.slice('texto: '.length) : null);
-  /** La respuesta como la entiende el sistema: "paso" solo si el detector lo entiende. */
-  const leer = (it: Intento): Intento => {
-    const t = escrito(it.dice);
-    if (t === null) return it;
-    const e = entender(t, idioma);
-    const quiso: Entendido | null = it.respuesta.tipo === 'paso' ? 'paso' : null;
-    if (e !== quiso && !(quiso === null && e !== 'paso')) malEntendidos.push(`"${t}" (${idioma}): quiso ${quiso ?? 'contar'} y entendió ${e ?? 'nada'}`);
-    if (quiso === 'paso' && e !== 'paso') return { ...it, respuesta: { ...it.respuesta, tipo: 'texto' } };
-    if (quiso === null && e === 'paso') return { ...it, respuesta: { ...it.respuesta, tipo: 'paso' } };
-    return it;
-  };
+  /** El primer mensaje de cada grupo (por `abiertoEn`): a ese apunta la ❤️. */
+  const primeroDelGrupo = new Map<string, string>();
 
   const mandar = (en: Date, zona: Zona, m: Mensaje, origen: Origen, iniciativa: boolean, extra: Partial<Enviado> = {}) => {
     enviados.push({ en, zona, ids: m.ids, texto: m.texto, origen, iniciativa, ...extra });
@@ -212,256 +219,219 @@ export function simular(compra: Compra, compraEn: Date, persona: Persona): Resul
   };
   const decir = (en: Date, zona: Zona, dice: string) => lineas.push({ instante: en, zona, de: 'persona', texto: dice });
   const nota = (en: Date, zona: Zona, texto: string) => lineas.push({ instante: en, zona, de: 'nota', texto });
-  const corazon = (en: Date, zona: Zona, x: ReaccionEmoji, a: string, esperado: string) => {
-    corazones.push({ en, zona, a, aMensaje: x.aMensaje, esperado });
-    lineas.push({ instante: en, zona, de: 'corazon', texto: x.emoji });
+  const delPlan = (): EstadoViaje => {
+    if (!plan) throw new Error('El planificador todavía no arrancó');
+    return plan;
   };
-  const vencido = (p: Programado) => vencidos.includes(p);
-  /** Lo próximo que llega por reloj después de t (del calendario vigente). */
-  const proxima = (t: Date): Date | null => {
-    let min: Date | null = null;
-    for (const p of programados()) if (p.instante > t && !vencido(p) && (!min || p.instante < min)) min = p.instante;
-    return min;
-  };
-  const minDate = (a: Date | null, b: Date | null) => (!a ? b : !b ? a : a < b ? a : b);
+
+  /** Lo que devolvió el planificador: lo manda (en orden, con sus notas) y le avisa a la persona lo que le llegó. */
+  function emitir(r: Paso, t: Date) {
+    const antes = plan;
+    plan = r.estado;
+    let k = 0;
+    const notasHasta = (n: number) => {
+      for (; k < r.notas.length && r.notas[k].tras <= n; k++) nota(t, r.notas[k].zona, r.notas[k].texto);
+    };
+    r.salientes.forEach((s, i) => {
+      notasHasta(i);
+      if (s.tipo === 'reaccion') {
+        const esperado = s.respondeA ? (primeroDelGrupo.get(s.respondeA.abiertoEn) ?? '?') : '?';
+        corazones.push({ en: t, zona: s.zona, a: s.respondeA?.tipo ?? '?', aMensaje: s.aMensaje ?? null, esperado });
+        lineas.push({ instante: t, zona: s.zona, de: 'corazon', texto: s.emoji ?? '❤️' });
+        return;
+      }
+      const g = s.origen === 'programado' ? plan!.calendario.find((x) => x.clave === s.clave) : undefined;
+      mandar(t, s.zona, { ids: s.ids, texto: s.texto }, s.origen, s.iniciativa, {
+        ...(g ? { programado: aProgramado(g, true) } : {}),
+        ...(s.respondeA ? { reaccionA: { tipo: s.respondeA.tipo, respuesta: s.respondeA.respuesta }, respondeEn: new Date(s.respondeA.cerradoEn) } : {}),
+      });
+      if (s.tipo === 'pregunta' && s.clave && esCadena(s.clave)) preguntarCadena(s.clave, t);
+      else if (g) preguntarProgramado(g.clave, t);
+      else if (s.tipo === 'recordatorio') {
+        const q = preguntaCadena(s.clave as IdAntes, t);
+        for (const it of persona.trasRecordatorio(q)) if (it.en > t && (!q.limite || it.en < q.limite)) cola.push(it.en, () => contestar(q, it));
+      } else if (s.ids[0] === 'AL1' || s.ids[0] === 'AL1-P') {
+        al1En = t;
+        for (const gesto of persona.album(t)) cola.push(gesto.en, () => gestoAlbum(gesto));
+      } else if (s.ids.includes('AL2')) {
+        const gesto = persona.alAL2(t, plan!.album!.al2Mandados);
+        if (gesto) cola.push(gesto.en, () => gestoAlbum(gesto));
+      } else if (s.ids.includes('AL3')) {
+        const gesto = persona.alAL3(t, plan!.album!.ids, compra.fotosAlbum);
+        if (gesto) cola.push(gesto.en, () => gestoAlbum(gesto));
+      }
+      if (s.ids.includes('DES')) desEn = t;
+    });
+    notasHasta(Infinity);
+    for (const a of r.avisos) {
+      if (a.clave !== 'album-cero') continue;
+      avisosAlbum.push(t);
+      const d = persona.nazaCierra(t);
+      nazaDecide = d;
+      cola.push(
+        d,
+        () => {
+          nota(d, casa, 'Naza decide cerrar el álbum.');
+          emitir(cerrarAlbum(compra, delPlan(), d), d);
+        },
+        false,
+      );
+    }
+    // Recién armado el calendario: ya está de viaje, puede mandar fotos sueltas.
+    if (antes && !antes.armado && plan.armado) {
+      const armarEn = new Date(plan.armarEn);
+      for (const s of persona.sueltas(calendarioDe(plan).programados)) {
+        if (s.en <= armarEn) continue; // antes de armar el calendario todavía no está de viaje
+        cola.push(s.en, () => suelta(s));
+      }
+    }
+  }
+
+  /** Le llega algo de la persona al planificador. */
+  function entrar(entradas: Entrada[], t: Date) {
+    const r = alEntrar(compra, delPlan(), entradas, t, op);
+    emitir(r, t);
+    // Si estas entradas abrieron el grupo, la ❤️ de ese grupo va a la primera.
+    const g = r.estado.grupo!;
+    if (g.entradas.length === entradas.length) primeroDelGrupo.set(g.abiertoEn, entradas[0].idMensaje);
+  }
 
   // ── Arranque ──
   const bien1En = respetarFranja(compraEn, casa);
   mandar(bien1En, casa, arranque(compra), 'arranque', true);
   const si = persona.si(bien1En);
   const siEn = si.en;
-  // El primero en el tiempo (no en la lista: con la noche a las 07:00, la noche del día 1 sale antes que ID1).
-  const primeroEnViaje = Math.min(...calPrevio.programados.filter((p) => p.dia >= 1).map((p) => p.instante.getTime()));
-  const armarEn = new Date(Math.max(primeroEnViaje - 1, siEn.getTime() + 1));
-  const limiteCadena = (t: Date) => minDate(proxima(t), armarEn);
-
   cola.push(siEn, () => {
     decir(siEn, casa, si.dice);
-    const t = escrito(si.dice);
+    const t = loEscrito(si.dice);
     if (t !== null && entender(t, idioma) !== 'si') malEntendidos.push(`"${t}" (${idioma}): quiso SÍ y entendió ${entender(t, idioma) ?? 'nada'}`);
-    const [b2, as1] = alDecirSi(compra, siEn);
-    mandar(siEn, casa, b2, 'reaccion', false);
-    mandar(siEn, casa, as1, 'arranque', false);
-    const yaDeViaje = aLocal(siEn, casa).fecha > compra.salida;
-    estado = anotarEnvio(estado, { clave: 'AS1', tipo: 'cadena', ids: ['AS1'], en: siEn.toISOString(), ...(yaDeViaje ? { yaDeViaje } : {}) });
-    preguntarCadena('AS1', siEn);
+    emitir(iniciar(compra, siEn), siEn);
   });
 
-  for (const p of calPrevio.programados.filter((x) => x.dia === 0)) {
-    const t = p.tipo === 'UC1' ? momentoUC1(p, siEn, compra) : p.instante >= siEn ? p.instante : null;
-    if (!t) {
-      vencidos.push(p);
-      nota(siEn, casa, `${p.ids[0]} ya pasó (${p.hora}) cuando dijo SÍ: no sale.`);
-    } else if (t.getTime() !== p.instante.getTime()) {
-      const corrido = { ...p, instante: t, ...aLocal(t, p.zona) };
-      nota(siEn, casa, `${p.ids[0]} ya pasó (${p.hora}) cuando dijo SÍ: sale 2 horas después.`);
-      cola.push(t, () => enviarProgramado(corrido));
-    } else cola.push(p.instante, () => enviarProgramado(p));
+  // ── Lo que contesta ──
+  /** Hasta cuándo contesta: lo próximo del calendario (y, en la cadena, el armado). */
+  const proxima = (t: Date) => proximaDelCalendario(delPlan(), t);
+  function preguntaCadena(id: IdAntes, t: Date): Pregunta {
+    const prox = proxima(t);
+    const armarEn = new Date(delPlan().armarEn);
+    return { clave: id, tipo: 'cadena', ids: [id], enviada: t, zona: casa, fecha: aLocal(t, casa).fecha, limite: prox && prox < armarEn ? prox : armarEn };
   }
-
-  cola.push(armarEn, () => {
-    cal = armarCalendario(compra, pendientesParaElViaje(estado));
-    for (const aviso of cal.avisosNaza) nota(armarEn, casa, `Aviso a Naza: ${aviso}`);
-    for (const p of cal.programados.filter((x) => x.dia >= 1)) {
-      if (p.instante.getTime() < armarEn.getTime()) {
-        vencidos.push(p);
-        nota(armarEn, p.zona, `${p.ids[0]} ya pasó: no sale.`);
-      } else cola.push(p.instante, () => enviarProgramado(p));
-    }
-    for (const s of persona.sueltas(cal.programados)) {
-      if (s.en <= armarEn) continue; // antes de armar el calendario todavía no está de viaje
-      cola.push(s.en, () => {
-        if (al1En) return; // ya está el álbum abierto: esas van al álbum, no son sueltas
-        decir(s.en, compra.zonaViaje, s.dice);
-        const idMensaje = nuevoId();
-        sueltasIds.push(idMensaje);
-        const r = reaccion({ tipo: 'foto-suelta', quedaNoche: quedaNocheEseDia(programados(), s.en) }, { tipo: 'foto', idMensaje }, compra, estado.rotacion);
-        estado = { ...estado, rotacion: r.rot, fotosSueltas: estado.fotosSueltas + 1 };
-        for (const m of r.mensajes) mandar(s.en, compra.zonaViaje, m, 'reaccion', false, { reaccionA: { tipo: 'foto-suelta', respuesta: { tipo: 'foto' } }, respondeEn: s.en });
-        for (const x of r.reacciones) corazon(s.en, compra.zonaViaje, x, 'foto-suelta', idMensaje);
-      });
-    }
-  });
-
-  // ── Antes de salir ──
   function preguntarCadena(id: IdAntes, t: Date) {
-    const q: Pregunta = { clave: id, tipo: 'cadena', ids: [id], enviada: t, zona: casa, fecha: aLocal(t, casa).fecha, limite: limiteCadena(t) };
-    for (const it of persona.contestar(q)) if (it.en > t && (!q.limite || it.en < q.limite)) cola.push(it.en, () => responderCadena(id, it));
-    const rec = momentoRecordatorio(t, compra, estado.recordatorioAntes);
-    if (rec && (!q.limite || rec < q.limite)) cola.push(rec, () => recordar(id, rec));
+    const q = preguntaCadena(id, t);
+    for (const it of persona.contestar(q)) if (it.en > t && (!q.limite || it.en < q.limite)) cola.push(it.en, () => contestar(q, it));
+  }
+  function preguntarProgramado(clave: string, t: Date) {
+    const e = delPlan();
+    const p = aProgramado(e.calendario.find((x) => x.clave === clave)!, true);
+    const limite = p.tipo === 'CA1' ? new Date(e.al1En!) : proxima(t);
+    const q: Pregunta = { clave: p.clave, tipo: p.tipo, ids: p.ids, enviada: t, zona: p.zona, fecha: aLocal(t, p.zona).fecha, limite, dia: p.dia };
+    for (const it of persona.contestar(q)) if (it.en > t && (!q.limite || it.en < q.limite)) cola.push(it.en, () => contestar(q, it));
   }
 
-  function recordar(id: IdAntes, en: Date) {
-    const ultima = estado.envios.filter((x) => x.tipo === 'cadena').pop();
-    if (estado.recordatorioAntes || ultima?.clave !== id || contestadasAntes(estado).has(id)) return;
-    nota(en, casa, `${id} lleva 3 días sin respuesta.`);
-    mandar(en, casa, recordatorioAntes(compra, id), 'recordatorio', true);
-    estado = { ...estado, recordatorioAntes: true };
-    const q: Pregunta = { clave: id, tipo: 'cadena', ids: [id], enviada: en, zona: casa, fecha: aLocal(en, casa).fecha, limite: limiteCadena(en) };
-    for (const it of persona.trasRecordatorio(q)) if (it.en > en && (!q.limite || it.en < q.limite)) cola.push(it.en, () => responderCadena(id, it));
+  /** Lo que escribió, por el detector del idioma: si no entiende lo que quiso decir, l3. */
+  function revisarDicho(it: Intento) {
+    const t = loEscrito(it.dice);
+    if (t === null) return;
+    const e = entender(t, idioma);
+    const quiso: Entendido | null = it.respuesta.tipo === 'paso' ? 'paso' : null;
+    if (e !== quiso && !(quiso === null && e !== 'paso')) malEntendidos.push(`"${t}" (${idioma}): quiso ${quiso ?? 'contar'} y entendió ${e ?? 'nada'}`);
   }
 
-  function responderCadena(id: IdAntes, it0: Intento) {
-    if (contestadasAntes(estado).has(id)) return;
-    const it = leer(it0);
-    decir(it.en, casa, it.dice);
-    estado = anotarRespuesta(estado, id, { ...it.respuesta, en: it.en.toISOString() });
-    const reaccionA = { tipo: 'cadena', respuesta: it.respuesta };
-    if (it.respuesta.audioMal) {
-      const r = reaccion({ tipo: 'cadena', siguiente: 'callada' }, it.respuesta, compra, estado.rotacion);
-      estado = { ...estado, rotacion: r.rot };
-      for (const m of r.mensajes) mandar(it.en, casa, m, 'reaccion', false, { reaccionA, respondeEn: it.en });
-      return;
-    }
-    const sig = siguienteDeLaCadena(id);
-    const cuando = momentoDeLaSiguiente(it.en, compra);
-    const r = reaccion({ tipo: 'cadena', siguiente: !cuando ? 'callada' : (sig ?? 'fin') }, it.respuesta, compra, estado.rotacion);
-    estado = { ...estado, rotacion: r.rot };
-    // Lo que contesta sale enseguida (TXT, acuse solo); lo que trae la siguiente, a su hora (momentoDeLaReaccion).
-    for (const m of r.mensajes) {
-      const en = momentoDeLaReaccion(m, it.en, cuando);
-      const salir = () => mandar(en, casa, m, m.ids.some(esCadena) ? 'cadena' : 'reaccion', false, { reaccionA, respondeEn: it.en });
-      if (en > it.en) cola.push(en, salir);
-      else salir();
-    }
-    if (sig && cuando) {
-      const anotar = () => {
-        estado = anotarEnvio(estado, { clave: sig, tipo: 'cadena', ids: [sig], en: cuando.toISOString() });
-        preguntarCadena(sig, cuando);
-      };
-      if (cuando > it.en) cola.push(cuando, anotar);
-      else anotar();
-    }
+  function contestar(q: Pregunta, it: Intento) {
+    const envio = delPlan().envios.filter((x) => x.clave === q.clave).pop();
+    if (envio && contestado(envio)) return; // ya contestó: no vuelve a contestar
+    revisarDicho(it);
+    decir(it.en, q.zona, it.fotos ? `${it.dice} + ${it.fotos === 1 ? 'una foto' : `${it.fotos} fotos`}` : it.dice);
+    const id = nuevoId();
+    const r = it.respuesta;
+    const principal: Entrada =
+      r.tipo === 'audio'
+        ? { tipo: 'audio', idMensaje: id, transcripcion: r.audioMal ? null : it.dice }
+        : r.tipo === 'foto'
+          ? { tipo: 'foto', idMensaje: id }
+          : { tipo: 'texto', idMensaje: id, texto: loEscrito(it.dice) ?? it.dice };
+    const fotos: Entrada[] = Array.from({ length: it.fotos ?? 0 }, () => ({ tipo: 'foto', idMensaje: nuevoId() }));
+    entrar([principal, ...fotos], it.en);
   }
 
-  // ── El viaje ──
-  function enviarProgramado(p: Programado) {
-    const q0 = preguntaProgramada(p, compra, nochesSinContestar(estado), estado.rotacion, nocheAnterior(estado)?.ids);
-    estado = { ...estado, rotacion: q0.rot };
-    if (q0.mensaje.ids.some((id) => id.startsWith('ATR'))) nota(p.instante, p.zona, 'La noche anterior quedó sin contestar.');
-    mandar(p.instante, p.zona, q0.mensaje, 'programado', true, { programado: p });
-    estado = anotarEnvio(estado, { clave: p.clave, tipo: p.tipo, ids: p.ids, en: p.instante.toISOString() });
-    const al1 = p.tipo === 'CA1' ? momentoAL1(p, compra) : null;
-    const q: Pregunta = { clave: p.clave, tipo: p.tipo, ids: p.ids, enviada: p.instante, zona: p.zona, fecha: p.fecha, limite: al1 ?? proxima(p.instante), dia: p.dia };
-    for (const it of persona.contestar(q)) if (it.en > p.instante && (!q.limite || it.en < q.limite)) cola.push(it.en, () => responder(p, it));
-    if (al1) {
-      // AL1 a las 10:00 del día siguiente: AL1 si contestó CA1; AL1-P si dijo "paso" o no contestó.
-      cola.push(al1, () => {
-        const envio = estado.envios.filter((x) => x.clave === p.clave).pop();
-        const contesto = envio?.respuestas.some((r) => !r.audioMal && r.tipo !== 'paso') ?? false;
-        if (!envio?.respuestas.some((r) => !r.audioMal)) nota(al1, casa, 'CA1 quedó sin respuesta: sale AL1-P igual.');
-        mandar(al1, casa, mensajeAlbum(compra, contesto ? 'AL1' : 'AL1-P'), 'album-reloj', true);
-        abrirAlbum(al1);
-      });
-    }
-  }
-
-  function responder(p: Programado, it0: Intento) {
-    const it = leer(it0);
-    const envio = estado.envios.filter((x) => x.clave === p.clave).pop();
-    if (envio?.respuestas.some((r) => !r.audioMal)) return;
-    decir(it.en, p.zona, it.fotos ? `${it.dice} + ${it.fotos === 1 ? 'una foto' : `${it.fotos} fotos`}` : it.dice);
-    const idMensaje = nuevoId();
-    const r = reaccion(
-      {
-        tipo: p.tipo,
-        quedaNoche: quedaNocheEseDia(programados(), it.en),
-        quedaOtra: quedaOtraEseDia(programados(), it.en) || (p.tipo === 'CA1' && quedaAL1EseDia(p, it.en, compra)),
-      },
-      { ...it.respuesta, idMensaje },
-      compra,
-      estado.rotacion,
-    );
-    estado = { ...estado, rotacion: r.rot, fotosSueltas: estado.fotosSueltas + (it.fotos ?? 0) };
-    estado = anotarRespuesta(estado, p.clave, { ...it.respuesta, en: it.en.toISOString() });
-    for (const m of r.mensajes) mandar(it.en, p.zona, m, 'reaccion', false, { reaccionA: { tipo: p.tipo, respuesta: it.respuesta }, respondeEn: it.en });
-    for (const x of r.reacciones) corazon(it.en, p.zona, x, p.tipo, idMensaje);
+  function suelta(s: { en: Date; dice: string }) {
+    const e = delPlan();
+    if (e.album) return; // ya está el álbum abierto: esas van al álbum, no son sueltas
+    decir(s.en, compra.zonaViaje, s.dice);
+    const id = nuevoId();
+    // Con una pregunta abierta, o pegada a otra cosa que manda, el bot la toma como parte de la respuesta.
+    const abierta = e.envios.length > 0 && !contestado(e.envios[e.envios.length - 1]);
+    const pegada = e.grupo !== null || cola.entraEntre(s.en.getTime(), s.en.getTime() + op.silencioMs);
+    if (abierta || pegada) sueltasEnRespuesta.push(s.en);
+    else sueltasIds.push(id);
+    entrar([{ tipo: 'foto', idMensaje: id }], s.en);
   }
 
   // ── El álbum ──
-  function abrirAlbum(t: Date) {
-    al1En = t;
-    album = iniciarAlbum(t, compra);
-    reloj();
-    for (const g of persona.album(t)) cola.push(g.en, () => gesto(g));
-  }
-
-  function reloj() {
-    if (album?.vence) {
-      const v = new Date(album.vence);
-      cola.push(v, () => aplicar({ tipo: 'reloj', en: v }, 'album-reloj'));
-    }
-  }
-
-  function gesto(g: GestoAlbum) {
+  function gestoAlbum(g: GestoAlbum) {
     decir(g.en, casa, g.dice);
-    if (!album) return;
-    // Lo escrito pasa por el detector: "listo", "sí", "no" o cualquier otra cosa.
-    let evento = g.evento;
-    const t = escrito(g.dice);
-    if (t !== null && evento !== 'foto' && evento !== 'reenvio') {
+    if (!delPlan().album) return;
+    const t = loEscrito(g.dice);
+    if (t !== null && g.evento !== 'foto' && g.evento !== 'reenvio') {
       const e = entender(t, idioma);
       const leido = e === 'listo' || e === 'si' || e === 'no' ? e : 'otra';
-      if (leido !== evento) malEntendidos.push(`"${t}" (${idioma}, álbum): quiso ${evento} y entendió ${leido}`);
-      evento = leido;
+      if (leido !== g.evento) malEntendidos.push(`"${t}" (${idioma}, álbum): quiso ${g.evento} y entendió ${leido}`);
     }
-    const ev: EventoAlbum =
-      evento === 'foto'
-        ? { tipo: 'foto', en: g.en, cantidad: g.cantidad }
-        : evento === 'reenvio'
-          ? { tipo: 'reenvio', en: g.en, ids: g.ids ?? [] }
-          : { tipo: evento, en: g.en };
-    aplicar(ev, 'album-reaccion');
+    const entradas: Entrada[] =
+      g.evento === 'foto'
+        ? Array.from({ length: g.cantidad ?? 1 }, () => ({ tipo: 'foto', idMensaje: nuevoId() }))
+        : g.evento === 'reenvio'
+          ? (g.ids ?? []).map((reenviaA) => ({ tipo: 'foto', idMensaje: nuevoId(), reenviaA }))
+          : [{ tipo: 'texto', idMensaje: nuevoId(), texto: t ?? g.dice }];
+    if (entradas.length) entrar(entradas, g.en);
   }
 
-  function aplicar(ev: EventoAlbum, origen: Origen) {
-    if (!album) return;
-    const antes = album.vence;
-    const r = pasoAlbum(album, ev, compra);
-    album = r.estado;
-    for (const s of r.salidas) {
-      if (s.tipo === 'mensaje') {
-        mandar(ev.en, casa, s.mensaje, origen, origen !== 'album-reaccion');
-        if (s.mensaje.ids.includes('AL2')) {
-          const g = persona.alAL2(ev.en, album.al2Mandados);
-          if (g) cola.push(g.en, () => gesto(g));
-        }
-        if (s.mensaje.ids.includes('AL3')) {
-          const g = persona.alAL3(ev.en, album.ids, compra.fotosAlbum);
-          if (g) cola.push(g.en, () => gesto(g));
-        }
-        if (s.mensaje.ids.includes('DES')) desEn = ev.en;
-      } else if (s.tipo === 'avisar-naza') {
-        avisosAlbum.push(ev.en);
-        nota(ev.en, casa, `Aviso a Naza: ${s.motivo}`);
-        const d = persona.nazaCierra(ev.en);
-        nazaDecide = d;
-        cola.push(d, () => {
-          nota(d, casa, 'Naza decide cerrar el álbum.');
-          aplicar({ tipo: 'naza-cierra', en: d }, 'naza');
-        });
-      } else if (s.tipo === 'cerrado') {
-        nota(ev.en, casa, `Se cierra el álbum: ${album.fotos} fotos quedan, guardadas ${s.guardadas}, afuera ${s.descartadas}.`);
-      } else {
-        fotosTarde += s.cantidad;
-        nota(ev.en, casa, `${s.cantidad} fotos después del cierre: al panel, sin contestar.`);
-      }
-    }
-    if (album.vence && album.vence !== antes) reloj();
-  }
-
+  // ── El reloj ──
   let error: string | undefined;
   try {
     let pasos = 0;
-    for (let ev = cola.pop(); ev; ev = cola.pop()) {
-      ev.f();
-      if (++pasos > 100_000) throw new Error('El viaje no termina (más de 100.000 eventos)');
+    for (;;) {
+      if (++pasos > 200_000) throw new Error('El viaje no termina (más de 200.000 pasos)');
+      const tPersona = cola.primero();
+      const prox = plan ? proximaAccion(compra, plan, op) : null;
+      const tPlan = prox ? Date.parse(prox) : null;
+      if (tPersona === null && tPlan === null) break;
+      // A la misma hora, primero el reloj (lo que ya tenía que salir sale antes de lo que llega).
+      if (tPlan !== null && (tPersona === null || tPlan <= tPersona)) {
+        const t = new Date(tPlan);
+        const r = queToca(compra, plan!, t, op);
+        if (r.estado === plan) {
+          throw new Error(`El planificador no avanza a las ${prox}`);
+        }
+        emitir(r, t);
+      } else cola.pop()!.f();
     }
   } catch (e) {
     error = e instanceof Error ? e.message : String(e);
   }
 
-  return { compra, enviados, corazones, sueltasIds, lineas, calPrevio, cal, estado, album, siEn, al1En, desEn, avisosAlbum, nazaDecide, vencidos, fotosTarde, malEntendidos, error };
+  const e = plan as EstadoViaje | null;
+  return {
+    compra,
+    enviados,
+    corazones,
+    sueltasIds,
+    sueltasEnRespuesta,
+    lineas,
+    calPrevio,
+    cal: e?.armado ? calendarioDe(e) : null,
+    estado: e ?? { envios: [], rotacion: { txtUsados: 0 }, recordatorioAntes: false, fotosSueltas: 0, album: null },
+    album: e?.album ?? null,
+    siEn,
+    al1En,
+    desEn,
+    avisosAlbum,
+    nazaDecide,
+    vencidos: e ? e.calendario.filter((g) => g.estado === 'vencido').map((g) => aProgramado(g)) : [],
+    fotosTarde: e?.fotosAlPanel ?? 0,
+    malEntendidos,
+    error,
+  };
 }
 
 // ── Los viajes inventados ────────────────────────────────────────────────────
@@ -1213,11 +1183,14 @@ export function resumenMd(corridas: Corrida[], otros: Corrida[] = []): string {
     '- Conducta: contesta todo · no contesta nunca · al azar · "paso" seguido · escribe · audios cortados · se saltea noches seguidas · manda fotos sueltas.',
     '- Álbum: 0 fotos · pocas · justas · de más · de a tandas con pausas de 6 a 30 horas. Al AL2: sí, no, más fotos o silencio. Al AL3: reenvía las que sobran, reenvía menos, contesta otra cosa o nada.',
     '',
-    '## Decisiones del simulador (el planificador todavía no existe)',
+    '## Decisiones del simulador',
+    '- Qué sale y cuándo lo decide el planificador de verdad (`src/viaje-v2/planificador.ts`, el que va a correr el bot): el simulador solo avanza el reloj y hace de persona.',
     '- BIEN-1 sale al comprar (corrido a las 8:00 si cae en la franja). La persona siempre dice SÍ (a veces 8 a 26 horas después).',
     '- Con un SÍ tardío el día de salida, UC1 sale 2 horas después (i13); lo demás programado que ya pasó cuando dice SÍ no sale ("vencido"; ver i5). Un SÍ después del día de salida trae AS1 "ya de viaje".',
     '- AL1 sale a las 10:00 del día siguiente de CA1 (hora de casa); AL1-P si CA1 fue "paso" o quedó sin respuesta (i7).',
     '- El calendario definitivo se arma justo antes de ID1 (o IV1), con lo que quedó pendiente de antes de salir. La persona contesta cada pregunta antes de que llegue la siguiente.',
+    '- Lo que manda la persona se junta en un grupo hasta 3 minutos de silencio: la reacción sale al cerrarse el grupo (a2 la compara con ese momento). Lo que llega cuenta para la última pregunta enviada.',
+    '- Una foto suelta que cae con una pregunta abierta, o pegada a otra cosa que manda, el bot no la puede distinguir: es parte de la respuesta (no cuenta como suelta para d9).',
     '- Mensajes "por reloj" (los que revisa la invariante a): todo lo programado, BIEN-1, REC1, AL1/AL1-P, AL2, AL3 y DES por reloj o por Naza, y las de la cadena. Las reacciones inmediatas (acuses, COR, DES con "listo") no.',
     '- Las reacciones ❤️ (mediodía, VU0, fotos sueltas) no son mensajes: no cuentan en los totales y van en su propia columna.',
     '- Naza cierra un álbum con cero fotos al día siguiente del aviso, a las 12:00 (hora de casa).',
