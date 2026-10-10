@@ -89,7 +89,7 @@ y con `usado_at` nulo. Si lo hay, canjea por el mismo camino que con el código.
 **El interruptor de WhatsApp.**
 - Web: una variable en Vercel (`REGALO_ENTREGA_WHATSAPP=1`). Si está apagada, la opción no
   aparece y la API rechaza el canal.
-- Bot: las plantillas se anotan en `WA_PLANTILLAS_V3_LISTAS` como `regalo_entrega:<idioma>`.
+- Bot: las plantillas se anotan en `WA_PLANTILLAS_V3_LISTAS` como `<idioma>:regalo_entrega`.
   Si falta la del idioma, el regalo se trata como fallo (la compra pasó con el interruptor
   prendido y después algo se apagó).
 

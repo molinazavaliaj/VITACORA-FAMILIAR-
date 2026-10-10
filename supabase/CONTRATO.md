@@ -17,7 +17,7 @@ migración en `supabase/migrations/` + actualizar este archivo + avisar al otro 
 | `pedidos` | web y fábrica | — | El entrevistador no la mira. Un pedido por comprador: los invitados y visitantes que compran su copia tienen su propia `familia` y su propio pedido sobre el mismo `narrador_id`. |
 | `envios` | entrevistador | — | Log de salientes; idempotencia del scheduler. **07/10:** `tipo = 'v3'` para cada mensaje de la entrevista V3. |
 | `entrevistas_v3` | entrevistador | fábrica | Nueva 07/10 (propuesta). Una fila por narrador: **prende la V3**. Ver "Entrevista V3 por WhatsApp". |
-| `regalos` | web (crea al comprar; `audio_path`) / entrevistador (solo `usado_at`, `usado_por_telefono` al canjear, y `recordatorio_at`) | ambos | Nueva 08/10, **aplicada por Naza el 09/10**. Gift card: un regalo por narrador. Ver "Gift card". |
+| `regalos` | web (crea al comprar; `audio_path`; las columnas `entrega_canal`, `entrega_contacto`, `entrega_hora`, `entrega_zona`) / entrevistador (solo `usado_at`, `usado_por_telefono` al canjear, `recordatorio_at`, y `entrega_enviada_at`, `entrega_fallo` al mandar el regalo el día elegido) | ambos | Nueva 08/10, **aplicada por Naza el 09/10**. Gift card: un regalo por narrador. Ver "Gift card". Columnas `entrega_*` nuevas el 10/10 (migración `20261010000000_regalos_entrega.sql`, **sin aplicar**). |
 | `narraciones` | fábrica (crea la fila; y `estado = 'reemplazada'` cuando pide la voz de nuevo — migración 20260920) / worker de voz (`estado`, `motor`, `muestras`, `capitulos_paths`, `error`, `tomada_at`) | fábrica | Nueva 16/09. Buzón con el worker de voz (PC de Naza); ver "Narraciones (voz clonada)". |
 
 ## Transiciones de estado de `narradores.estado`
@@ -875,3 +875,37 @@ Spec: `docs/superpowers/specs/2026-10-07-gift-card-design.md`.
   Storage (`contentType`) y es el que sirve la URL firmada. Regrabar pisa el mismo objeto.
 - Recordatorio: si a los 15 días de `fecha_entrega` (o de `created_at` si no hay fecha) sigue
   sin usar, el entrevistador le escribe un mail a quien compró y anota `recordatorio_at`.
+
+### El regalo llega solo el día elegido (10/10, propuesta, migración sin aplicar)
+
+Spec: `docs/superpowers/specs/2026-10-10-regalo-dia-de-entrega-design.md`.
+
+| Columna | Tipo | Quién escribe | Qué es |
+|---|---|---|---|
+| `entrega_canal` | text, `mail` o `whatsapp`, null | web | null = quien compra se la da en mano (como antes) |
+| `entrega_contacto` | text, null | web | correo de quien recibe, o su celular en E.164 |
+| `entrega_hora` | smallint 8–22, null | web | hora local en punto |
+| `entrega_zona` | text, null | web | `America/Argentina/Buenos_Aires` si el regalo es es-AR; `Europe/Madrid` si es es-ES o ca |
+| `entrega_enviada_at` | timestamptz, null | entrevistador | cuándo tomó el envío (compare-and-swap sobre null): la traba para no mandarlo dos veces |
+| `entrega_fallo` | text, null | entrevistador | motivo corto si no salió o si Meta avisó que no se entregó |
+
+- Check: con `entrega_canal` no nulo tienen que estar `fecha_entrega`, `entrega_contacto`,
+  `entrega_hora` y `entrega_zona`.
+- La web escribe las cuatro columnas al comprar, y también al retomar un regalo sin pagar (junto con
+  `fecha_entrega`). `whatsapp` solo si `REGALO_ENTREGA_WHATSAPP=1` en Vercel; si no, 400.
+- El entrevistador, en cada tick del reloj V3, toma los regalos con canal, `usado_at` null,
+  `entrega_enviada_at` null y narrador en `regalo_pendiente` cuya fecha y hora ya llegaron en
+  `entrega_zona`. Pone `entrega_enviada_at` antes de mandar. Manda a quien recibe el mail (Resend) o
+  la plantilla `regalo_entrega` del idioma del regalo, y después el mail «Hoy le llegó» a quien
+  compró (`mandarMailFamilia`). Si falla, o si el día local ya pasó, anota `entrega_fallo`, no
+  devuelve la marca (no se reintenta solo) y le manda a quien compró el mail «dásela vos».
+- La plantilla por idioma se da por lista con `WA_PLANTILLAS_V3_LISTAS` (`<idioma>:regalo_entrega`).
+  Si no está, el envío por WhatsApp cuenta como fallo.
+- Si Meta avisa después (`whatsapp/entregas.ts`) que la plantilla no se entregó, el entrevistador
+  anota `entrega_fallo` y le manda el mail «dásela vos» a quien compró.
+- **Canje sin código.** Un número desconocido que escribe, si coincide con `entrega_contacto` de un
+  regalo `whatsapp` ya enviado, sin `entrega_fallo` y sin usar, canjea ese regalo por el mismo camino
+  que el código (mismos pasos 1 a 3 de arriba).
+- `entrega_contacto` se usa solo para este envío: no pasa a `narradores`. El teléfono del narrador
+  es siempre el del canje.
+- El recordatorio de los 15 días no cambia.
