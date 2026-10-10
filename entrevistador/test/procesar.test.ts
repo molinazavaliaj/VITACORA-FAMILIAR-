@@ -27,7 +27,7 @@ const mocks = vi.hoisted(() => ({
   canjearRegalo: vi.fn(),
   mandarBienvenidaDeRegalo: vi.fn(),
   avisarSocios: vi.fn(),
-  estado: { filaV3: null as any, narrador: null as any, enviosRepregunta: [] as any[], capturas: [] as any[], ultimoOrden: 30, tieneAdaptativas: true, ofertas: [] as any[], preguntasHoy: [] as any[], capituloVigente: 'La infancia' },
+  estado: { errorV3: null as any, filaV3: null as any, narrador: null as any, enviosRepregunta: [] as any[], capturas: [] as any[], ultimoOrden: 30, tieneAdaptativas: true, ofertas: [] as any[], preguntasHoy: [] as any[], capituloVigente: 'La infancia' },
 }));
 
 // Cliente de base falso: un "constructor de consultas" encadenable que resuelve
@@ -36,7 +36,7 @@ vi.mock('../src/db/cliente.js', () => {
   function resolver(tabla: string, op: string, filtros: Record<string, any> = {}) {
     if (op === 'insert' && tabla === 'respuestas') return { data: { id: 'r-texto' }, error: null };
     if (op === 'insert' || op === 'update') return { data: null, error: null };
-    if (tabla === 'entrevistas_v3') return { data: mocks.estado.filaV3, error: null };
+    if (tabla === 'entrevistas_v3') return { data: mocks.estado.filaV3, error: mocks.estado.errorV3 };
     if (tabla === 'narradores') return { data: mocks.estado.narrador };
     if (tabla === 'envios') {
       if (filtros.tipo === 'oferta_siguiente') return { data: mocks.estado.ofertas };
@@ -123,6 +123,7 @@ const insert = (tabla: string) => mocks.estado.capturas.find((c) => c.op === 'in
 beforeEach(() => {
   mocks.estado.narrador = null;
   mocks.estado.filaV3 = null;
+  mocks.estado.errorV3 = null;
   mocks.estado.enviosRepregunta = [];
   mocks.estado.capturas = [];
   mocks.estado.ultimoOrden = 30;
@@ -929,6 +930,28 @@ describe('un regalo frenado en acepto', () => {
     mocks.enviarPregunta.mockRejectedValue(new Error('Meta caída'));
     await callado(() => expect(procesarEntrante({ telefono: TEL, tipo: 'texto', texto: 'hola?', waMessageId: 'w' })).resolves.toBeUndefined());
     expect(mocks.mandarHito).not.toHaveBeenCalled();
+  });
+
+  it('si la base falla al mirar la fila V3 (no por tabla ausente), se anota, no manda nada y el entrante sigue', async () => {
+    mocks.estado.narrador = frenado();
+    mocks.estado.errorV3 = { code: '57014', message: 'canceling statement due to statement timeout' };
+    mocks.enviarPregunta.mockResolvedValue(true);
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const aviso = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      await expect(
+        procesarEntrante({ telefono: TEL, tipo: 'imagen', mediaId: 'img1', mimeType: 'image/jpeg', waMessageId: 'w' } as MensajeEntrante),
+      ).resolves.toBeUndefined();
+      expect(error).toHaveBeenCalledWith(expect.stringContaining('n1'), expect.anything());
+    } finally {
+      error.mockRestore();
+      aviso.mockRestore();
+    }
+    expect(mocks.enviarPregunta).not.toHaveBeenCalled();
+    expect(mocks.mandarHito).not.toHaveBeenCalled();
+    expect(mocks.enviarTexto).not.toHaveBeenCalled();
+    // El resto del entrante sigue como antes: la foto se guarda igual.
+    expect(mocks.recibirFotoFamiliar).toHaveBeenCalled();
   });
 
   it('un regalo que ya tiene su fila V3 no la intenta de nuevo', async () => {
