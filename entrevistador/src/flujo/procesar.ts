@@ -349,7 +349,16 @@ async function primeraDelRegalo(narrador: Narrador, desde: string): Promise<bool
  */
 async function recuperarRegaloFrenado(narrador: Narrador): Promise<void> {
   if (narrador.estado !== 'acepto' || (narrador.contexto?.regalo !== true && narrador.contexto?.bienvenidaV3 !== true)) return;
-  if (await esNarradorV3(db, narrador.id)) return;
+  // Si la base falla al mirar la fila V3, no se manda nada y el entrante sigue:
+  // con el próximo mensaje se vuelve a intentar.
+  let yaEsV3: boolean;
+  try {
+    yaEsV3 = await esNarradorV3(db, narrador.id);
+  } catch (err) {
+    console.error(`regalo frenado: no pude saber si ${narrador.id} tiene entrevista V3; no se manda nada`, err);
+    return;
+  }
+  if (yaEsV3) return;
   await primeraDelRegalo(narrador, 'regalo frenado');
 }
 

@@ -864,10 +864,19 @@ Spec: `docs/superpowers/specs/2026-10-07-gift-card-design.md`.
 - El scheduler nunca le manda la plantilla `bienvenida` a un narrador con `contexto.regalo = true`.
 - La web trata `regalo_pendiente` como `invitado` para editar (trato y guion): mientras el regalo no
   se abre, quien regaló puede cambiar las dos cosas.
-- Un reintento de compra del mismo regalo sin pagar (misma familia, narrador en `pendiente_pago` con
-  `contexto.regalo = true` y el mismo `nombre`, sin mayúsculas ni espacios de más) retoma ese
-  narrador y su fila de `regalos` (mismo código; se actualizan `mensaje`, `fecha_entrega`,
-  `quien_regala` y `pedido_id` al pedido nuevo). No nacen narradores ni regalos nuevos.
+- **Reintento de un regalo sin pagar (09/10, antes de vender).** Se retoma **solo con la prueba de
+  la compra anterior**: el cuerpo trae `regalo.retomar = { narradorId, token }`, donde `token` es el
+  `tokenFotos` que devolvió aquel `/api/compra` (`lib/token-fotos`, una hora). La web lo guarda en
+  `sessionStorage` (`vitacora-regalo-pendiente`) antes de ir al pago y lo manda en el envío
+  siguiente. Se retoma ese narrador solo si el token verifica para él, es de la misma familia,
+  sigue en `pendiente_pago`, tiene `contexto.regalo = true` y es para la misma persona (mismo `nombre`, sin
+  mayúsculas ni espacios de más; un regalo para otra persona en la misma pestaña no pisa el anterior): se actualizan el narrador (también el
+  idioma vía `contexto`), su fila de `regalos` (mismo código; `mensaje`, `fecha_entrega`,
+  `quien_regala` y `pedido_id` al pedido nuevo) y nace un pedido nuevo. Si falta la prueba o algo
+  no cierra, nacen un narrador y un regalo nuevos, como en una primera compra (un token malo no da
+  error). Ya no se busca por correo y nombre: saberlos no alcanza para tocar un regalo ajeno.
+- `/api/compra` **no devuelve el código del regalo** (09/10): responde `urlPago`, `narradorId` y
+  `tokenFotos`. La tarjeta se busca en la base después del pago (`pago/vuelta` y `confirmarPago`).
 - Audio de quien regala: `audios/{narrador_id}/regalo/mensaje`, sin extensión: el tipo lo guarda
   Storage (`contentType`) y es el que sirve la URL firmada. Regrabar pisa el mismo objeto.
 - Recordatorio: si a los 15 días de `fecha_entrega` (o de `created_at` si no hay fecha) sigue

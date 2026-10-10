@@ -30,21 +30,63 @@ export type Dependencias = {
   esperaAudioMs?: number;
   /** El trato de quien compra, para el error genérico (vos si no se dice). */
   trato?: TratoComprador;
+  /**
+   * Dónde se recuerda la compra sin pagar para retomarla (en el navegador,
+   * `() => window.sessionStorage`). Es una función porque pedir el almacén
+   * también puede tirar error; cualquier error se ignora.
+   */
+  almacen?: () => Almacen;
 };
+
+/** Lo poco de Storage que se usa. */
+export type Almacen = Pick<Storage, "getItem" | "setItem">;
+
+/** La prueba de la compra anterior sin pagar (09/10): solo con ella se retoma. */
+export type Retomar = { narradorId: string; token: string };
+
+export const CLAVE_PENDIENTE = "vitacora-regalo-pendiente";
 
 const ESPERA_AUDIO_MS = 30_000;
 
 /** Lo que va a /api/compra. */
-export function cuerpoCompra(p: PedidoRegalo) {
+export function cuerpoCompra(p: PedidoRegalo, retomar: Retomar | null = null) {
   return {
     nombreComprador: p.nombreComprador.trim(),
     vinculoComprador: p.vinculoComprador.trim(),
     region: p.region,
     email: p.email.trim(),
     narrador: { nombre: p.nombre.trim(), comoLeDicen: p.comoLeDicen.trim() },
-    regalo: { mensaje: p.mensaje.trim(), fechaEntrega: p.fechaEntrega || undefined, genero: p.genero, idioma: p.idioma },
+    regalo: {
+      mensaje: p.mensaje.trim(),
+      fechaEntrega: p.fechaEntrega || undefined,
+      genero: p.genero,
+      idioma: p.idioma,
+      ...(retomar ? { retomar } : {}),
+    },
     productos: { impresos: 0, marcos: 0 },
   };
+}
+
+function leerPendiente(almacen: Dependencias["almacen"]): Retomar | null {
+  if (!almacen) return null;
+  try {
+    const crudo = almacen().getItem(CLAVE_PENDIENTE);
+    if (!crudo) return null;
+    const v = JSON.parse(crudo) as { narradorId?: unknown; tokenFotos?: unknown } | null;
+    if (!v || typeof v !== "object" || typeof v.narradorId !== "string" || typeof v.tokenFotos !== "string") return null;
+    return { narradorId: v.narradorId, token: v.tokenFotos };
+  } catch {
+    return null;
+  }
+}
+
+function guardarPendiente(almacen: Dependencias["almacen"], narradorId: string, tokenFotos: string) {
+  if (!almacen) return;
+  try {
+    almacen().setItem(CLAVE_PENDIENTE, JSON.stringify({ narradorId, tokenFotos }));
+  } catch {
+    // Sin almacenamiento: un reintento hará un regalo nuevo, nada más.
+  }
 }
 
 /** Devuelve `{ error }` si no se pudo ir al pago; si se pudo, redirige y devuelve `{ ok: true }`. */
@@ -56,7 +98,7 @@ export async function enviarRegalo(p: PedidoRegalo, deps: Dependencias): Promise
     const r = await deps.fetch("/api/compra", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(cuerpoCompra(p)),
+      body: JSON.stringify(cuerpoCompra(p, leerPendiente(deps.almacen))),
     });
     const crudo = (await r.json()) as Respuesta;
     if (!r.ok || !crudo.urlPago) return { error: crudo.error ?? errorPago };
@@ -64,6 +106,10 @@ export async function enviarRegalo(p: PedidoRegalo, deps: Dependencias): Promise
   } catch {
     return { error: errorPago };
   }
+
+  // Si el pago falla o se cierra la pestaña, el próximo envío retoma este
+  // mismo regalo (mismo código) en vez de hacer otro.
+  if (datos.narradorId && datos.tokenFotos) guardarPendiente(deps.almacen, datos.narradorId, datos.tokenFotos);
 
   if (p.audio && datos.narradorId && datos.tokenFotos) {
     const fd = new FormData();

@@ -84,7 +84,7 @@ export function FormularioRegalo({
     setFalla(null);
     const r = await enviarRegalo(
       { nombre, comoLeDicen, genero, mensaje, fechaEntrega, nombreComprador, vinculoComprador, email, region, idioma, audio },
-      { fetch: (...a) => fetch(...a), asignar: (url) => window.location.assign(url), trato },
+      { fetch: (...a) => fetch(...a), asignar: (url) => window.location.assign(url), trato, almacen: () => window.sessionStorage },
     );
     if ("error" in r) {
       fallar(r.error);
