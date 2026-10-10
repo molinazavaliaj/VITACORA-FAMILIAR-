@@ -5,6 +5,8 @@
 import { EVITAR_MAXIMO, validarRitmo } from './guion';
 import { validarViaje } from './viaje';
 import { validarImprescindible, validarTemas } from './temas';
+import { esIdiomaRegalo, MENSAJE_IDIOMA_INVALIDO } from './regalo-reglas';
+import { esPalabraDeFamilia, MENSAJE_PALABRA_DE_FAMILIA } from './como-le-dicen';
 
 export type Region = 'ES' | 'AR';
 
@@ -32,6 +34,8 @@ export interface ContextoInput {
   /** 3t.22 (21/09): dónde vive hoy (texto libre corto) y el trato que eligió el comprador. */
   dondeVive?: string;
   trato?: string;
+  /** «¿Cómo le hablamos?» de la compra V3: es-AR, es-ES o ca. */
+  idioma?: unknown;
   /** 22/09: de qué querés que le preguntemos más, y lo que no puede faltar. */
   temas?: unknown;
   imprescindible?: unknown;
@@ -163,6 +167,10 @@ export function validarYConstruir(body: RegistroBody, opciones: { sinTelefono?: 
   if (!esNoVacio(narrador.comoLeDicen)) {
     return { ok: false, status: 400, mensaje: 'Falta contar cómo le dicen al narrador.' };
   }
+  // Compra (no regalo, no "la mía"): así lo saluda el biógrafo; «papá» o «abuela» es cómo le dice la familia.
+  if (!opciones.sinTelefono && body.vinculoComprador.trim() !== 'yo mismo' && esPalabraDeFamilia(narrador.comoLeDicen)) {
+    return { ok: false, status: 400, mensaje: MENSAJE_PALABRA_DE_FAMILIA };
+  }
   // Gift card (08/10): quien regala no sabe ni carga el teléfono; lo pone el
   // entrevistador cuando el narrador escribe con su código.
   if (!opciones.sinTelefono && !esNoVacio(narrador.telefonoWhatsapp)) {
@@ -193,6 +201,10 @@ export function validarYConstruir(body: RegistroBody, opciones: { sinTelefono?: 
   }
   if (esNoVacio(contexto.trato) && !(TRATOS as readonly string[]).includes(contexto.trato.trim())) {
     return { ok: false, status: 400, mensaje: 'El trato no es válido: usted o vos.' };
+  }
+  // «¿Cómo le hablamos?» (V3): de vos (es-AR), de tú (es-ES) o en catalán (ca). Lo lee el entrevistador V3.
+  if (contexto.idioma !== undefined && contexto.idioma !== null && contexto.idioma !== '' && !esIdiomaRegalo(contexto.idioma)) {
+    return { ok: false, status: 400, mensaje: MENSAJE_IDIOMA_INVALIDO };
   }
   const temasOk = validarTemas(contexto.temas);
   if (!temasOk.ok) return { ok: false, status: 400, mensaje: temasOk.mensaje };
@@ -252,6 +264,7 @@ export function validarYConstruir(body: RegistroBody, opciones: { sinTelefono?: 
   if (esNoVacio(contexto.trato)) {
     contextoFinal.trato = contexto.trato.trim();
   }
+  if (esIdiomaRegalo(contexto.idioma)) contextoFinal.idioma = contexto.idioma;
   if (temasOk.temas.length > 0) contextoFinal.temas = temasOk.temas;
   if (imprescindibleOk.texto) contextoFinal.imprescindible = imprescindibleOk.texto;
   if (contexto.anioNacimiento !== undefined) {

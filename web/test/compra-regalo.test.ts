@@ -303,7 +303,7 @@ describe("POST /api/compra con regalo", () => {
     (crearClienteServidor as unknown as ReturnType<typeof vi.fn>).mockReturnValue(admin);
 
     const { regalo: _regalo, ...sinRegalo } = CUERPO_REGALO;
-    const r = await POST(peticion({ ...sinRegalo, narrador: { ...sinRegalo.narrador, telefonoWhatsapp: "11 5555 1234" } }));
+    const r = await POST(peticion({ ...sinRegalo, narrador: { ...sinRegalo.narrador, telefonoWhatsapp: "11 5555 1234", comoLeDicen: "Tito" } }));
     const json = await r.json();
 
     expect(r.status).toBe(200);
