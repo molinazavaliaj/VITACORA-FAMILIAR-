@@ -8,6 +8,7 @@ import { idiomaPorDefecto, textosComprador, tratoDeRegion, type IdiomaRegalo, ty
 import { formatearPrecio } from "../comprar/productos-ui";
 import { Grabador } from "./grabador";
 import { enviarRegalo } from "./enviar";
+import { CamposEntrega, errorDeEleccion, lineaLeLlega, SIN_ENTREGA, type EleccionEntrega } from "./entrega";
 
 // La compra del regalo (plan 2026-10-07-gift-card, Task 8), en cuatro pasos:
 // a quién · tu mensaje · tus datos · pagar. Imita el checkout chico de
@@ -34,8 +35,12 @@ function hoyLocal(): string {
 }
 
 export function FormularioRegalo({
-  catalogo, region, trato = tratoDeRegion(region), idiomaInicial = idiomaPorDefecto(region), pasoInicial = 1,
-}: { catalogo: Catalogo; region: Region; trato?: TratoComprador; idiomaInicial?: IdiomaRegalo; pasoInicial?: Paso }) {
+  catalogo, region, trato = tratoDeRegion(region), idiomaInicial = idiomaPorDefecto(region), pasoInicial = 1, entregaWhatsApp = false,
+}: {
+  catalogo: Catalogo; region: Region; trato?: TratoComprador; idiomaInicial?: IdiomaRegalo; pasoInicial?: Paso;
+  /** Si se ofrece mandarlo por WhatsApp el día elegido (REGALO_ENTREGA_WHATSAPP). */
+  entregaWhatsApp?: boolean;
+}) {
   const T = textosComprador(trato);
   const [paso, setPaso] = useState<Paso>(pasoInicial);
   const [idioma, setIdioma] = useState<IdiomaRegalo>(idiomaInicial);
@@ -45,6 +50,7 @@ export function FormularioRegalo({
   const [mensaje, setMensaje] = useState("");
   const [audio, setAudio] = useState<Blob | null>(null);
   const [fechaEntrega, setFechaEntrega] = useState("");
+  const [entrega, setEntrega] = useState<EleccionEntrega>(SIN_ENTREGA);
   const [nombreComprador, setNombreComprador] = useState("");
   const [vinculoComprador, setVinculoComprador] = useState("");
   const [email, setEmail] = useState("");
@@ -83,7 +89,7 @@ export function FormularioRegalo({
     setEnviando(true);
     setFalla(null);
     const r = await enviarRegalo(
-      { nombre, comoLeDicen, genero, mensaje, fechaEntrega, nombreComprador, vinculoComprador, email, region, idioma, audio },
+      { nombre, comoLeDicen, genero, mensaje, fechaEntrega, nombreComprador, vinculoComprador, email, region, idioma, audio, entrega },
       { fetch: (...a) => fetch(...a), asignar: (url) => window.location.assign(url), trato, almacen: () => window.sessionStorage },
     );
     if ("error" in r) {
@@ -171,8 +177,13 @@ export function FormularioRegalo({
             </div>
             <div className="mt-8 sm:max-w-xs">
               <label className={etiqueta} htmlFor="fecha">{T.cuando}</label>
-              <input id="fecha" type="date" {...marca("fecha")} className={`${campo} mt-2`} value={fechaEntrega} min={hoyLocal()} onChange={(e) => setFechaEntrega(e.target.value)} />
+              <input id="fecha" type="date" {...marca("fecha")} className={`${campo} mt-2`} value={fechaEntrega} min={hoyLocal()} onChange={(e) => {
+                setFechaEntrega(e.target.value);
+                // Sin fecha no hay día en que mandarlo: vuelve a «se la doy yo».
+                if (!e.target.value) setEntrega(SIN_ENTREGA);
+              }} />
             </div>
+            <CamposEntrega fecha={fechaEntrega} idioma={idioma} eleccion={entrega} onCambio={setEntrega} whatsapp={entregaWhatsApp} textos={T} marca={marca} />
             <Botones
               textos={T}
               atras={() => avanzar(1)}
@@ -181,6 +192,8 @@ export function FormularioRegalo({
                 // La misma regla que el servidor: real y desde ayer en UTC.
                 const problemaFecha = fechaEntrega ? errorDeFechaEntrega(fechaEntrega, new Date()) : null;
                 if (problemaFecha) return fallar(problemaFecha, "fecha");
+                const problemaEntrega = errorDeEleccion(entrega, fechaEntrega, idioma, new Date(), T.entrega);
+                if (problemaEntrega) return fallar(problemaEntrega.texto, problemaEntrega.campo);
                 avanzar(3);
               }}
               error={error}
@@ -227,6 +240,9 @@ export function FormularioRegalo({
             <div className="mt-8">
               <TarjetaChica comoLeDicen={comoLeDicen.trim()} mensaje={mensaje.trim()} firma={nombreComprador.trim()} />
             </div>
+            {lineaLeLlega(entrega, fechaEntrega, T.entrega) && (
+              <p className="mt-6 text-center text-[15px] text-[#45453C] [font-family:var(--fuente-cuerpo)]">{lineaLeLlega(entrega, fechaEntrega, T.entrega)}</p>
+            )}
             <div className="mt-8 flex items-baseline justify-between gap-4 rounded-lg border border-[#EBEBE7] bg-white p-5">
               <p className="text-[17px] [font-family:var(--fuente-titulo)]">{catalogo.base.nombre}</p>
               <p className="text-[22px] tabular-nums [font-family:var(--fuente-titulo)]">{precio}</p>
