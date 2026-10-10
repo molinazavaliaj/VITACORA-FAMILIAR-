@@ -25,7 +25,7 @@ _[texto: SÍ]_
 **20:40 · Ramiro**  
 _[audio: Celeste lo planeó todo a escondidas; yo me enteré con el pasaje impreso arriba de la almohada]_
 
-**20:40 · Vitácora** `ACA2` + `AS2`  
+**20:43 · Vitácora** `ACA2` + `AS2`  
 > Lo escuché. Sigo con esto.
 >
 > Ya falta poco, Ramiro. ¿Cómo andás con este viaje? Ganas, nervios, cansancio, lo que haya, y qué esperás encontrar allá. Contame el momento, en estos días, en que te cayó la ficha de que se viene en serio: qué estabas haciendo y qué se te cruzó por la cabeza.
@@ -35,7 +35,7 @@ _[audio: Celeste lo planeó todo a escondidas; yo me enteré con el pasaje impre
 **19:10 · Ramiro**  
 _[audio: ganas; y un poco de culpa por dejar el taller dos días]_
 
-**19:10 · Vitácora** `ACA3` + `IM1`  
+**19:13 · Vitácora** `ACA3` + `IM1`  
 > Quedó guardado. Te pregunto una más.
 >
 > Cuando pensás en este viaje, ¿qué imagen se te aparece? No lo que leíste ni lo que hay que ver: la que se te viene sola, aunque sea una calle. Decime cuál es y de dónde te viene.
@@ -45,7 +45,7 @@ _[audio: ganas; y un poco de culpa por dejar el taller dos días]_
 **09:30 · Ramiro**  
 _[texto: paso]_
 
-**09:30 · Vitácora** `PAS-A` + `VA1`  
+**09:33 · Vitácora** `PAS-A` + `VA1`  
 > Perfecto, Ramiro, sin problema. Seguimos con la próxima.
 >
 > ¿Qué es lo que va en la valija sí o sí, Ramiro? No el cargador ni los documentos: algo tuyo. Y por qué va con vos.
@@ -53,7 +53,7 @@ _[texto: paso]_
 **22:05 · Ramiro**  
 _[texto: el mate de mi viejo, el de calabaza, que no se lo presto a nadie]_
 
-**22:05 · Vitácora** `TXT`  
+**22:08 · Vitácora** `TXT`  
 > Lo leí, gracias. Si podés, contámelo también en audio: tu voz es lo que va al libro. Y si te queda más cómodo escribir, escribí nomás.
 
 ## Día 1 · salida · sábado 5/12 (hora de Buenos Aires)
@@ -64,7 +64,7 @@ _[texto: el mate de mi viejo, el de calabaza, que no se lo presto a nadie]_
 **10:40 · Ramiro**  
 _[audio: regando las plantas a las apuradas y buscando el pasaporte que estaba en la campera]_
 
-**10:40 · Vitácora** `ACM1`  
+**10:43 · Vitácora** `ACM1`  
 > Ya está, gracias.
 
 ## Día 2 · vuelta · domingo 6/12 (hora de Buenos Aires)
@@ -79,7 +79,7 @@ _(Aviso a Naza: No entran 1 preguntas propias: «¿Qué te hizo acordar a nosotr
 **12:00 · Ramiro**  
 _[audio: el buque saliendo del puerto, el agua marrón, y nadie hablando en la cubierta]_
 
-**12:00 · Vitácora** `ACM2`  
+**12:03 · Vitácora** `ACM2`  
 > Gracias, quedó.
 
 **13:00 · Vitácora** `VU0`  
@@ -88,7 +88,7 @@ _[audio: el buque saliendo del puerto, el agua marrón, y nadie hablando en la c
 **13:35 · Ramiro**  
 _[foto: una bolsa con alfajores y una tabla de picar de madera]_
 
-**13:35 · Vitácora** reacciona ❤️ a su mensaje
+**13:38 · Vitácora** reacciona ❤️ a su mensaje
 
 ## Ya en casa · lunes 7/12 (hora de Buenos Aires)
 
@@ -98,7 +98,7 @@ _[foto: una bolsa con alfajores y una tabla de picar de madera]_
 **10:50 · Ramiro**  
 _[audio: cuando vi la costanera de acá desde el barco; se me cerró algo en el pecho]_
 
-**10:50 · Vitácora** `ACM3`  
+**10:53 · Vitácora** `ACM3`  
 > Lo tengo. Hasta la noche.
 
 **21:30 · Vitácora** `CA1`  
@@ -107,7 +107,7 @@ _[audio: cuando vi la costanera de acá desde el barco; se me cerró algo en el 
 **21:40 · Ramiro**  
 _[audio: el olor a encierro y el reloj de la cocina, que no había notado nunca que hacía tanto ruido]_
 
-**21:40 · Vitácora** `ACN1`  
+**21:43 · Vitácora** `ACN1`  
 > Gracias, Ramiro. A dormir, que mañana sigue.
 
 ## Ya en casa · martes 8/12 (hora de Buenos Aires)
@@ -127,7 +127,7 @@ _[5 fotos más, a la tarde]_
 **20:40 · Ramiro**  
 _[texto: sí, están todas]_
 
-**20:40 · Vitácora** `DES`  
+**20:43 · Vitácora** `DES`  
 > Ya está, Ramiro: el viaje quedó contado, con tu voz. Ahora me toca a mí armar el libro con lo que me diste; lo vas a poder leer en tu panel antes de que se cierre, y ahí cambiás lo que haga falta. Fue lindo acompañarte. Gracias por dejarme entrar en tu viaje.
 
 _(Se cierra el álbum: 17 fotos quedan, guardadas 17, afuera 0.)_
