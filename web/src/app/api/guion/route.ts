@@ -175,9 +175,9 @@ export async function PATCH(request: NextRequest) {
     return respuesta(500, { error: GENERICO });
   }
   if (v3) {
-    if (body.accion !== "agregar") return respuesta(400, { error: "En esta entrevista no hay guion para editar: se suman preguntas." });
+    if (body.accion !== "agregar") return respuesta(400, { error: "En esta entrevista no hay guion para editar. Se suman preguntas." });
     if (!PUEDE.agregarPreguntasYFotos(rol as Rol)) return respuesta(403, { error: "No autorizado." });
-    if (llegoAlFinalV3(v3.estado)) return respuesta(400, { error: "La entrevista ya está en las últimas preguntas: las nuevas no llegan a tiempo." });
+    if (llegoAlFinalV3(v3.estado)) return respuesta(400, { error: "La entrevista ya está en las últimas preguntas. Las nuevas no llegan a tiempo." });
     const texto = validarTexto(body.texto);
     if (!texto.ok) return respuesta(400, { error: texto.mensaje });
     const { data: propias, error: errorPropias } = await admin.from("preguntas").select("orden, tipo").eq("narrador_id", narrador.id);
