@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
   generarPreguntasAdaptativas: vi.fn(),
@@ -330,6 +330,44 @@ describe('la bienvenida', () => {
     const anotado = mocks.capturas.find((c: any) => c.tabla === 'envios' && c.p?.tipo === 'bienvenida');
     expect(anotado?.p).toMatchObject({ entrega: 'fallido', wa_message_id: null });
     expect(anotado?.p.error_detalle).toContain('Template name does not exist');
+  });
+
+  // V3 para los nuevos (10/10): la bienvenida es la plantilla V3 de su idioma, y solo si Meta ya la aprobó.
+  describe('con V3_PARA_NUEVOS=1', () => {
+    afterEach(() => { vi.unstubAllEnvs(); });
+
+    it('sale la plantilla V3 de su idioma, con una variable (cómo le dicen)', async () => {
+      vi.stubEnv('V3_PARA_NUEVOS', '1');
+      vi.stubEnv('WA_PLANTILLAS_V3_LISTAS', 'ca:bienvenida,es-AR:bienvenida');
+      mocks.filas.narradores = [{ ...invitado, como_le_dicen: 'Imma', contexto: { idioma: 'ca' } }];
+      mocks.filas.envios = [];
+      await tick(new Date('2026-09-23T12:00:00Z'));
+      expect(mocks.enviarPlantilla).toHaveBeenCalledWith('+5491100000000', 'bienvenida_v3_ca', ['Imma'], 'ca');
+    });
+
+    it('sin idioma va la de vos (es-AR)', async () => {
+      vi.stubEnv('V3_PARA_NUEVOS', '1');
+      vi.stubEnv('WA_PLANTILLAS_V3_LISTAS', 'es-AR:bienvenida');
+      mocks.filas.narradores = [{ ...invitado, como_le_dicen: 'Beto' }];
+      mocks.filas.envios = [];
+      await tick(new Date('2026-09-23T12:00:00Z'));
+      expect(mocks.enviarPlantilla).toHaveBeenCalledWith('+5491100000000', 'bienvenida_v3_vos', ['Beto'], 'es');
+    });
+
+    it('si la plantilla de su idioma no está aprobada, no sale ninguna (tampoco la vieja)', async () => {
+      vi.stubEnv('V3_PARA_NUEVOS', '1');
+      vi.stubEnv('WA_PLANTILLAS_V3_LISTAS', 'es-AR:bienvenida');
+      mocks.filas.narradores = [{ ...invitado, contexto: { idioma: 'es-ES' } }];
+      mocks.filas.envios = [];
+      const original = console.error;
+      console.error = () => {};
+      try {
+        await tick(new Date('2026-09-23T12:00:00Z'));
+      } finally {
+        console.error = original;
+      }
+      expect(mocks.enviarPlantilla).not.toHaveBeenCalled();
+    });
   });
 
   // Gift card (08/10): su bienvenida sale como texto cuando escribe con el código.

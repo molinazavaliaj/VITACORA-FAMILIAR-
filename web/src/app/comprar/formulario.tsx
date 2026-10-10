@@ -7,6 +7,7 @@ import { HORAS_FAMILIAR as HORAS } from "@/lib/horario";
 import { TAMANO_MAXIMO_BYTES, errorDeTipoDeFoto } from "@/lib/guion";
 import { esPalabraDeFamilia, MENSAJE_PALABRA_DE_FAMILIA, nombreDePila } from "@/lib/como-le-dicen";
 import type { IdiomaRegalo } from "@/lib/regalo-textos";
+import { GENEROS, type Genero } from "@/lib/regalo-reglas";
 import { medirImagen } from "@/lib/medir-imagen";
 
 // El paso a paso de la compra. Estado en el cliente, un solo POST al final.
@@ -66,6 +67,8 @@ export function Checkout({ catalogo, regionInicial = "AR", promo = null }: { cat
   const [dondeVive, setDondeVive] = useState("");
   // «¿Cómo le hablamos?» (V3): marcado de entrada según el país desde donde compra; se puede cambiar.
   const [idioma, setIdioma] = useState<IdiomaRegalo>(regionInicial === "ES" ? "es-ES" : "es-AR");
+  // La entrevista V3 lo necesita para hablarle bien (sin él, el alta se frena). Los textos son los del regalo.
+  const [genero, setGenero] = useState<Genero | null>(null);
   const [telefono, setTelefono] = useState("");
   const [hora, setHora] = useState("09:00");
 
@@ -104,6 +107,7 @@ export function Checkout({ catalogo, regionInicial = "AR", promo = null }: { cat
     if (!nombre.trim()) return paraQuien === "yo" ? "Decinos tu nombre." : "Falta el nombre del narrador.";
     if (!comoLeDicen.trim()) return "¿Cómo le escribimos? Poné su nombre o su apodo.";
     if (paraQuien === "otro" && esPalabraDeFamilia(comoLeDicen)) return MENSAJE_PALABRA_DE_FAMILIA;
+    if (!genero) return paraQuien === "yo" ? "¿Sos hombre o mujer? Lo necesita el biógrafo para hablarte bien." : "¿Es hombre o mujer? Lo necesita el biógrafo para hablarle bien.";
     if (anioNacimiento.trim() && (Number(anioNacimiento) < 1900 || Number(anioNacimiento) > 2015)) return "El año de nacimiento no parece bien (entre 1900 y 2015).";
     if (!telefono.trim()) return "Falta el WhatsApp.";
     return null;
@@ -158,6 +162,7 @@ export function Checkout({ catalogo, regionInicial = "AR", promo = null }: { cat
               horaPreferida: hora,
               contexto: {
                 idioma,
+                ...(genero ? { genero } : {}),
                 ...(anioNacimiento.trim() ? { anioNacimiento: Number(anioNacimiento) } : {}),
                 ...(estadoCivil ? { estadoCivil } : {}),
                 // "no tiene hijos" = arbol.hijos 'no tuvo': el capítulo «Los hijos» se reemplaza sin preguntar.
@@ -299,6 +304,17 @@ export function Checkout({ catalogo, regionInicial = "AR", promo = null }: { cat
                   </p>
                 </div>
               </div>
+
+              <fieldset>
+                <legend className={etiqueta}>{paraQuien === "yo" ? "¿Sos hombre o mujer? Lo necesita el biógrafo para hablarte bien." : "¿Es hombre o mujer? Lo necesita el biógrafo para hablarle bien."}</legend>
+                <div className="mt-2 flex flex-wrap gap-2" role="group">
+                  {GENEROS.map((g) => (
+                    <button key={g} type="button" aria-pressed={genero === g} onClick={() => setGenero(g)} className={chip(genero === g)}>
+                      {g === "varon" ? "Hombre" : g === "mujer" ? "Mujer" : "Prefiero no decirlo"}
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
 
               <div className="grid gap-6 sm:grid-cols-2">
                 <div>

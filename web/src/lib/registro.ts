@@ -5,7 +5,7 @@
 import { EVITAR_MAXIMO, validarRitmo } from './guion';
 import { validarViaje } from './viaje';
 import { validarImprescindible, validarTemas } from './temas';
-import { esIdiomaRegalo, MENSAJE_IDIOMA_INVALIDO } from './regalo-reglas';
+import { esIdiomaRegalo, GENEROS, MENSAJE_IDIOMA_INVALIDO } from './regalo-reglas';
 import { esPalabraDeFamilia, MENSAJE_PALABRA_DE_FAMILIA } from './como-le-dicen';
 
 export type Region = 'ES' | 'AR';
@@ -36,6 +36,8 @@ export interface ContextoInput {
   trato?: string;
   /** «¿Cómo le hablamos?» de la compra V3: es-AR, es-ES o ca. */
   idioma?: unknown;
+  /** Lo necesita la entrevista V3 para hablarle bien (sin género, el alta V3 se frena): varon, mujer u otro. */
+  genero?: unknown;
   /** 22/09: de qué querés que le preguntemos más, y lo que no puede faltar. */
   temas?: unknown;
   imprescindible?: unknown;
@@ -206,6 +208,10 @@ export function validarYConstruir(body: RegistroBody, opciones: { sinTelefono?: 
   if (contexto.idioma !== undefined && contexto.idioma !== null && contexto.idioma !== '' && !esIdiomaRegalo(contexto.idioma)) {
     return { ok: false, status: 400, mensaje: MENSAJE_IDIOMA_INVALIDO };
   }
+  const genero = contexto.genero;
+  if (genero !== undefined && genero !== null && genero !== '' && !(GENEROS as readonly unknown[]).includes(genero)) {
+    return { ok: false, status: 400, mensaje: 'El género no es válido.' };
+  }
   const temasOk = validarTemas(contexto.temas);
   if (!temasOk.ok) return { ok: false, status: 400, mensaje: temasOk.mensaje };
   const imprescindibleOk = validarImprescindible(contexto.imprescindible);
@@ -265,6 +271,7 @@ export function validarYConstruir(body: RegistroBody, opciones: { sinTelefono?: 
     contextoFinal.trato = contexto.trato.trim();
   }
   if (esIdiomaRegalo(contexto.idioma)) contextoFinal.idioma = contexto.idioma;
+  if ((GENEROS as readonly unknown[]).includes(contexto.genero)) contextoFinal.genero = contexto.genero;
   if (temasOk.temas.length > 0) contextoFinal.temas = temasOk.temas;
   if (imprescindibleOk.texto) contextoFinal.imprescindible = imprescindibleOk.texto;
   if (contexto.anioNacimiento !== undefined) {

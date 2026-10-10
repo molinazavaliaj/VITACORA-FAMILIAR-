@@ -7,6 +7,10 @@ import { mandarHito } from '../mail/hitos.js';
 import { esViaje } from './viaje.js';
 import { fechaLocal, minutosLocales } from './tiempo.js';
 import { narradoresV3 } from '../v3/estado.js';
+import { PLANTILLAS_V3, v3ParaNuevos } from '../config.js';
+import { plantillaLista } from '../v3/enviar.js';
+import { avisarSocios } from '../v3/avisos.js';
+import { idiomaDeRegalo } from './regalo-arranque.js';
 
 export { fechaLocal, minutosLocales };
 
@@ -135,6 +139,26 @@ async function enviarBienvenidas(): Promise<void> {
         if (process.env.WA_PLANTILLA_BIENVENIDA_VIAJE !== '1') return;
         try {
           const waId = await enviarPlantilla(n.telefono_whatsapp, 'bienvenida_viaje', [n.como_le_dicen]);
+          await registrarEnvio(n.id, 'bienvenida', waId);
+        } catch (err) {
+          await anotarBienvenidaFallida(n.id, err);
+        }
+        return;
+      }
+      // Entrevista V3 para los nuevos (V3_PARA_NUEVOS=1, 10/10): la bienvenida es la plantilla V3 de su idioma
+      // (una variable, cómo le dicen), no la vieja (de usted, "cada mañana", "arrancamos mañana"). Si Meta
+      // todavía no la aprobó (WA_PLANTILLAS_V3_LISTAS sin "<idioma>:bienvenida"), no sale nada y se avisa:
+      // mandarle la vieja le prometería otra entrevista.
+      if (v3ParaNuevos()) {
+        const idioma = idiomaDeRegalo(n.contexto);
+        const p = PLANTILLAS_V3[idioma].bienvenida;
+        if (!plantillaLista(idioma, 'bienvenida')) {
+          await avisarSocios(`bienvenida-v3-${idioma}`, `No sale la bienvenida V3 en ${idioma}`,
+            `${n.como_le_dicen} (${n.id}) espera la bienvenida, pero la plantilla ${p.nombre} no está marcada como aprobada (WA_PLANTILLAS_V3_LISTAS="${idioma}:bienvenida"). Sale apenas se marque.`);
+          return;
+        }
+        try {
+          const waId = await enviarPlantilla(n.telefono_whatsapp, p.nombre, [n.como_le_dicen], p.idiomaMeta);
           await registrarEnvio(n.id, 'bienvenida', waId);
         } catch (err) {
           await anotarBienvenidaFallida(n.id, err);

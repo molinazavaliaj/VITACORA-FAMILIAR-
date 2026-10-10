@@ -345,3 +345,18 @@ describe('nombreDePila', () => {
     expect(nombreDePila('')).toBe('');
   });
 });
+
+describe('validarYConstruir: género (lo necesita la entrevista V3)', () => {
+  const cuerpo = (contexto: Record<string, unknown>) => ({
+    nombreComprador: 'Lucía', vinculoComprador: 'nieta', region: 'AR' as const,
+    narrador: { nombre: 'Héctor', comoLeDicen: 'Tito', telefonoWhatsapp: '11 5555 1234', contexto },
+  });
+  it('guarda varon, mujer u otro; rechaza otra cosa; sin género no rompe', () => {
+    for (const genero of ['varon', 'mujer', 'otro']) {
+      const r = validarYConstruir(cuerpo({ genero }));
+      if (r.ok) expect(r.narrador.contexto).toMatchObject({ genero }); else throw new Error(r.mensaje);
+    }
+    expect(validarYConstruir(cuerpo({ genero: 'hombre' })).ok).toBe(false);
+    expect(validarYConstruir(cuerpo({})).ok).toBe(true);
+  });
+});

@@ -128,11 +128,14 @@ export async function trabajarNarrador(deps: DepsV3, fila: FilaV3, n: NarradorV3
 }
 
 export async function tickV3(deps: DepsV3): Promise<void> {
-  const filas = await listarFilas(deps.db);
-  if (filas.length === 0) return;
-  const { data, error } = await deps.db.from('narradores').select('*').in('id', filas.map((f) => f.narrador_id));
+  // Primero los narradores activos y después solo SUS filas V3 (el estado completo pesa): trabajarNarrador no
+  // hace nada con uno que no está activo, así que leer los terminados o pausados cada minuto era gastar
+  // tráfico por nada (pendiente del 07/10 antes de prender V3_PARA_NUEVOS).
+  const { data, error } = await deps.db.from('narradores').select('*').eq('estado', 'activo');
   if (error) throw new Error(`reloj V3: no pude leer los narradores: ${error.message}`);
   const porId = new Map(((data as NarradorV3[] | null) ?? []).map((n) => [n.id, n]));
+  const filas = await listarFilas(deps.db, [...porId.keys()]);
+  if (filas.length === 0) return;
   for (const fila of filas) {
     const n = porId.get(fila.narrador_id);
     if (!n) continue;

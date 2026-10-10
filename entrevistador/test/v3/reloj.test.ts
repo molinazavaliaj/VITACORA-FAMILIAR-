@@ -166,6 +166,24 @@ describe('el tick', () => {
     expect(await r.trabajar()).toBe('nada');
   });
 
+  it('tickV3 lee solo las filas de los narradores activos (no las de los terminados o pausados)', async () => {
+    const r = await preparar({ ...enOR1(), borrador: 'Algo.' }, { ultimo_audio_at: hace(4 * MIN) });
+    r.base.tablas.narradores.push({ ...narrador({ id: 'n-pausado' }), estado: 'pausado' });
+    await crearFila(r.base.cliente, { narrador_id: 'n-pausado', idioma: 'es-AR', ficha: FICHA, estado: estadoInicial(), ultimo_audio_at: null, tanda_dia: null, tanda_cuenta: 0, migrada_de: null });
+    const pedidas: unknown[][] = [];
+    const desde = r.base.cliente.from.bind(r.base.cliente);
+    (r.base.cliente as any).from = (t: string) => {
+      const q = desde(t);
+      if (t !== 'entrevistas_v3') return q;
+      const enOriginal = q.in?.bind(q);
+      if (enOriginal) q.in = (c: string, vs: unknown[]) => { pedidas.push(vs); return enOriginal(c, vs); };
+      return q;
+    };
+    await tickV3(r.deps);
+    expect(pedidas[0]).toEqual(['n1']);
+    expect((await r.leer()).estado.respuestas).toHaveLength(1);
+  });
+
   it('tickV3 recorre las filas y un narrador que falla no frena a los demás', async () => {
     const r = await preparar({ ...enOR1(), borrador: 'Algo.' }, { ultimo_audio_at: hace(4 * MIN) });
     await crearFila(r.base.cliente, { narrador_id: 'n-sin-narrador', idioma: 'es-AR', ficha: FICHA, estado: estadoInicial(), ultimo_audio_at: null, tanda_dia: null, tanda_cuenta: 0, migrada_de: null });
