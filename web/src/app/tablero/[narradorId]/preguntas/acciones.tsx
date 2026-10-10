@@ -639,8 +639,11 @@ export function SubirFoto({ narradorId, capitulos, capituloInicial, children, va
 // cambia acá. Rige desde el próximo envío (el scheduler lo lee en cada corrida).
 // `trato` (3t.22): usted o vos. Editable solo hasta la primera pregunta; después
 // se muestra en gris con el porqué. Sin valor: lo decide el biógrafo con la ficha.
-export function Ajustes({ narradorId, ritmo, evitar, sinRitmo = false, horario, propia = false, trato, pedirFotos, objetos = [] }: {
+export function Ajustes({ narradorId, ritmo, evitar, sinRitmo = false, horario, propia = false, trato, pedirFotos, objetos = [], v3 = false }: {
   narradorId: string;
+  /** Entrevista V3 (10/10): sin ritmo (si contesta, le llega la siguiente siempre) ni «Temas que no se
+   *  preguntan» (el bot V3 no lo lee todavía). Queda la hora. */
+  v3?: boolean;
   ritmo: Ritmo;
   evitar: string;
   sinRitmo?: boolean;
@@ -686,7 +689,7 @@ export function Ajustes({ narradorId, ritmo, evitar, sinRitmo = false, horario, 
 
   return (
     <div className="flex flex-col gap-8">
-      {sinRitmo ? null : (
+      {sinRitmo || v3 ? null : (
       <fieldset>
         <legend className="text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.24em]">Ritmo</legend>
         <div className="mt-3 flex flex-col gap-2">
@@ -793,6 +796,7 @@ export function Ajustes({ narradorId, ritmo, evitar, sinRitmo = false, horario, 
         </fieldset>
       )}
 
+      {v3 ? null : (
       <div>
         <label className="flex flex-col gap-2">
           <span className="text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.24em]">Temas que no se preguntan</span>
@@ -805,6 +809,66 @@ export function Ajustes({ narradorId, ritmo, evitar, sinRitmo = false, horario, 
           </button>
           {guardado === "evitar" ? <span className="text-sm text-[var(--texto-menor)]">Guardado</span> : null}
         </div>
+      </div>
+      )}
+      <Error_ mensaje={error} />
+    </div>
+  );
+}
+
+// ── Sumar una pregunta, entrevista V3 (10/10) ─────────────────────────────
+// En la V3 no hay guion que editar: la familia solo suma preguntas suyas
+// (`preguntas.tipo = 'familia'`), que el bot hace antes de la foto del final
+// (FO1). El capítulo lo pide la API vieja; en la V3 no se usa.
+
+export const CAPITULO_FAMILIA_V3 = "Preguntas de la familia";
+
+export function SumarPreguntaV3({ narradorId, propia = false }: { narradorId: string; propia?: boolean }) {
+  const router = useRouter();
+  const [abierto, setAbierto] = useState(false);
+  const [texto, setTexto] = useState("");
+  const [ocupado, setOcupado] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [listo, setListo] = useState(false);
+
+  async function guardar() {
+    setOcupado(true);
+    setError(null);
+    try {
+      await patchGuion(narradorId, { accion: "agregar", texto, capitulo: CAPITULO_FAMILIA_V3 });
+      setTexto("");
+      setAbierto(false);
+      setListo(true);
+      router.refresh();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "No pudimos guardar la pregunta.");
+    } finally {
+      setOcupado(false);
+    }
+  }
+
+  if (!abierto) {
+    return (
+      <div className="flex flex-wrap items-center gap-3">
+        <button type="button" className={botonSecundario} onClick={() => { setAbierto(true); setListo(false); }}>
+          + Sumar una pregunta
+        </button>
+        {listo ? <span className="text-sm text-[var(--texto-menor)]">Guardada. {propia ? "Te la hacemos" : "Se la hacemos"} antes de terminar la entrevista.</span> : null}
+      </div>
+    );
+  }
+  return (
+    <div className="flex flex-col gap-3 rounded-xl border border-[var(--linea)] p-5">
+      <label className="flex flex-col gap-2">
+        <span className="text-[11px] uppercase text-[var(--texto-menor)] [font-family:var(--fuente-micro)] [letter-spacing:0.24em]">Tu pregunta</span>
+        <textarea value={texto} onChange={(e) => setTexto(e.target.value)} rows={3} className={campo} maxLength={500} placeholder="Por ejemplo, ¿cómo fue el viaje a Mendoza con los chicos?" />
+      </label>
+      <p className="text-sm text-[var(--texto-menor)]">{propia ? "Te la hacemos" : "Se la hacemos"} antes de terminar la entrevista, con tus palabras.</p>
+      <div className="flex items-center gap-3">
+        <button type="button" className={botonSecundario} disabled={ocupado || !texto.trim()} onClick={guardar}>
+          {ocupado ? "Guardando…" : "Guardar la pregunta"}
+        </button>
+        <button type="button" className="text-sm text-[var(--texto-menor)] underline underline-offset-4" disabled={ocupado} onClick={() => setAbierto(false)}>Cancelar</button>
       </div>
       <Error_ mensaje={error} />
     </div>

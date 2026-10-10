@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { claveMadre, entrevistaV3, respuestasV3ParaCerrar } from "@/lib/v3";
+import { claveMadre, entrevistaV3, historiaV3, respuestasV3ParaCerrar, type FilaHistoriaV3 } from "@/lib/v3";
 
 // 10/10: el cierre del libro de un narrador V3 ofrecía el guion viejo. «Qué dejar afuera» ahora lista lo que
 // contó de verdad, por pregunta, y destildar una pregunta saca todas sus filas (la fábrica la saca entera).
@@ -69,5 +69,57 @@ describe("lo que el narrador ya reservó por WhatsApp", () => {
     ];
     // RP~OR2 reservada sola: OR2 sigue en el libro, así que se puede dejar afuera desde acá.
     expect(respuestasV3ParaCerrar(estado, filas).map((r) => r.clave)).toEqual(["OR2", "OR3", "OR4"]);
+  });
+});
+
+describe("historiaV3: la entrevista en el panel", () => {
+  const fila = (id: string, clave: string, extra: Partial<FilaHistoriaV3> = {}): FilaHistoriaV3 => ({
+    id, clave_v3: clave, audio_path: `n/${id}.ogg`, transcripcion: `dicho ${id}`, texto_directo: null, duracion_segundos: 30, recibido_at: "2026-10-08T10:00:00Z", ...extra,
+  });
+  const charla = [
+    { de: "bio", partes: [{ id: "M0", texto: "Hola." }, { id: "CA1", texto: "¿Cómo era tu casa?" }] },
+    { de: "persona", pregunta: "CA1", texto: "dicho a" },
+    { de: "bloque", bloque: 1, nombre: "Origen y raíces" },
+    { de: "bio", partes: [{ id: "M3.1", texto: "Gracias." }, { id: "EN1", texto: "Vamos a los orígenes." }] },
+    { de: "bio", partes: [{ id: "OR6-con-apodo", texto: "¿Por qué te pusieron Babu?" }] },
+    { de: "bio", partes: [{ id: "OR6.2", texto: "¿Tenés apodo?" }, { id: "RP~CA1", texto: "¿Y la cocina?" }] },
+    { de: "bio", partes: [{ id: "CA6", texto: "¿Hermanos?" }] },
+    { de: "bio", partes: [{ id: "F:p1", texto: "¿Qué te acordás de la abuela?" }] },
+    { de: "bio", partes: [{ id: "OR7", texto: "¿Y el barrio?" }] },
+    { de: "bio", partes: [{ id: "OR7", texto: "¿Y el barrio? (de nuevo)" }] },
+  ];
+  const estado = {
+    charla, esperando: "OR7", reservadas: ["CA6"],
+    respuestas: [["CA1", "dicho a"], ["OR6", "dicho b"], ["OR6.2", "x"], ["RP~CA1", "y"], ["CA6", "secreto"], ["F:p1", "⟦botón:No⟧"]] as [string, string][],
+  };
+  const filas = [
+    fila("a", "CA1"), fila("b", "OR6"), fila("z", "∅"), fila("c", "RP~CA1"), fila("s", "CA6", { transcripcion: "secreto" }),
+    fila("f", "F:p1", { audio_path: null, transcripcion: null, texto_directo: "⟦botón:No⟧" }),
+  ];
+  const h = historiaV3(estado, filas);
+
+  it("arma los bloques en orden, sin mensajes ni entradas, y lo de antes del primer bloque va sin nombre", () => {
+    expect(h.map((b) => b.nombre)).toEqual([null, "Origen y raíces"]);
+    expect(h[0].preguntas.map((p) => p.clave)).toEqual(["CA1"]);
+    expect(h[1].preguntas.map((p) => p.clave)).toEqual(["OR6", "OR6.2", "RP~CA1", "CA6", "F:p1", "OR7"]);
+  });
+
+  it("la pregunta va como le llegó (con apodo, la última vez que salió), con sus respuestas y audios; ∅ no aparece", () => {
+    const or6 = h[1].preguntas[0];
+    expect(or6).toMatchObject({ pregunta: "¿Por qué te pusieron Babu?", estado: "contestada" });
+    expect(or6.respuestas).toEqual([{ id: "b", texto: "dicho b", audio: true, duracion: 30, recibidoAt: "2026-10-08T10:00:00Z" }]);
+    expect(h[1].preguntas.find((p) => p.clave === "OR7")).toMatchObject({ pregunta: "¿Y el barrio? (de nuevo)", estado: "esperando", respuestas: [] });
+    expect(h.flatMap((b) => b.preguntas).flatMap((p) => p.respuestas).map((r) => r.id)).not.toContain("z");
+  });
+
+  it("lo reservado se marca y no se muestra; un botón se ve como lo que tocó; sin fila, contestada igual si está en el estado", () => {
+    expect(h[1].preguntas.find((p) => p.clave === "CA6")).toMatchObject({ reservada: true, respuestas: [], estado: "contestada" });
+    expect(h[1].preguntas.find((p) => p.clave === "F:p1")?.respuestas[0].texto).toBe("«No»");
+    expect(h[1].preguntas.find((p) => p.clave === "OR6.2")).toMatchObject({ estado: "contestada", respuestas: [] });
+  });
+
+  it("aguanta un estado vacío o roto", () => {
+    expect(historiaV3(null, [])).toEqual([]);
+    expect(historiaV3({ charla: "x" as never }, [])).toEqual([]);
   });
 });

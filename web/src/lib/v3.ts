@@ -84,3 +84,76 @@ export async function entrevistaV3(admin: ClienteMinimo, narradorId: string): Pr
   if (!data) return null;
   return data as { estado: EstadoV3 };
 }
+
+// ── La historia en el panel (10/10): lo que se le preguntó y lo que contestó, en orden, por bloque ──
+
+export type FilaHistoriaV3 = FilaRespuestaV3 & {
+  audio_path: string | null; transcripcion: string | null; texto_directo: string | null;
+  duracion_segundos: number | null; recibido_at: string;
+};
+export type RespuestaHistoriaV3 = { id: string; texto: string; audio: boolean; duracion: number | null; recibidoAt: string };
+export type PreguntaHistoriaV3 = {
+  clave: string;
+  /** El texto tal como le llegó (la última vez que salió). */
+  pregunta: string;
+  /** contestada · esperando (es la abierta) · sin respuesta (pasó de largo o la cerró sin contar). */
+  estado: "contestada" | "esperando" | "sin respuesta";
+  /** El narrador pidió que no vaya al libro: no se muestra lo que dijo. */
+  reservada: boolean;
+  respuestas: RespuestaHistoriaV3[];
+};
+export type BloqueHistoriaV3 = { nombre: string | null; preguntas: PreguntaHistoriaV3[] };
+
+// Las partes de un globo que son preguntas: del banco (OR1, CA16, ES2, OR6.2, OR6-con-apodo), repreguntas
+// (RP~X), segundas oportunidades (X~2) y las de la familia (F:…). No lo son los mensajes (M3.1) ni las
+// entradas a un bloque (EN3).
+const ES_PREGUNTA = /^(?:F:.+|(?:RP~)?(?!EN\d)[A-Z]{2,3}\d+(?:\.\d+)?(?:~\d+)?(?:-[\w-]+)?)$/;
+const sinVariante = (id: string): string => (id.startsWith("F:") ? id : id.replace(/-[\w-]+$/, ""));
+
+type GloboHistoria = { de?: string; nombre?: unknown; partes?: { id?: unknown; texto?: unknown }[] };
+
+/**
+ * La entrevista como la ve la familia: por bloque, cada pregunta con lo que contestó (sus filas de
+ * `respuestas`, con audio). Lo que quedó afuera a propósito (∅) no aparece. Lo reservado por WhatsApp se
+ * marca y no se muestra.
+ */
+export function historiaV3(estado: (EstadoV3 & { esperando?: string }) | null | undefined, filas: FilaHistoriaV3[]): BloqueHistoriaV3[] {
+  const charla = (Array.isArray(estado?.charla) ? estado.charla : []) as GloboHistoria[];
+  const contestadas = new Set((Array.isArray(estado?.respuestas) ? estado.respuestas : []).map((r) => (Array.isArray(r) ? r[0] : "")));
+  const reservadas = new Set((Array.isArray(estado?.reservadas) ? estado.reservadas : []).filter((k) => typeof k === "string").map(claveMadre));
+  const porClave = new Map<string, FilaHistoriaV3[]>();
+  for (const f of filas) {
+    if (!f.clave_v3 || f.clave_v3 === SIN_CLAVE) continue;
+    porClave.set(f.clave_v3, [...(porClave.get(f.clave_v3) ?? []), f]);
+  }
+  const bloques: BloqueHistoriaV3[] = [{ nombre: null, preguntas: [] }];
+  const vistas = new Map<string, PreguntaHistoriaV3>();
+  for (const g of charla) {
+    if (g?.de === "bloque") {
+      bloques.push({ nombre: typeof g.nombre === "string" ? g.nombre : null, preguntas: [] });
+      continue;
+    }
+    if (g?.de !== "bio" || !Array.isArray(g.partes)) continue;
+    for (const p of g.partes) {
+      if (typeof p?.id !== "string" || typeof p.texto !== "string" || !ES_PREGUNTA.test(p.id)) continue;
+      const clave = sinVariante(p.id);
+      const ya = vistas.get(clave);
+      if (ya) { ya.pregunta = p.texto; continue; } // la reenviada: vale la última, en su lugar de antes
+      const item: PreguntaHistoriaV3 = { clave, pregunta: p.texto, estado: "sin respuesta", reservada: false, respuestas: [] };
+      vistas.set(clave, item);
+      bloques[bloques.length - 1].preguntas.push(item);
+    }
+  }
+  for (const item of vistas.values()) {
+    const propias = porClave.get(item.clave) ?? [];
+    item.reservada = reservadas.has(claveMadre(item.clave)) || propias.some((f) => f.reservada === true && !f.reservado_tramo?.trim());
+    item.respuestas = item.reservada ? [] : propias.map((f) => {
+      const crudo = (f.transcripcion ?? f.texto_directo ?? "").trim();
+      const boton = /⟦botón:([^⟧]*)⟧/.exec(crudo)?.[1];
+      const texto = crudo.replace(MARCAS, " ").replace(/\s+/g, " ").trim() || (boton ? `«${boton}»` : "");
+      return { id: f.id, texto, audio: Boolean(f.audio_path), duracion: f.duracion_segundos, recibidoAt: f.recibido_at };
+    }).filter((r) => r.texto || r.audio);
+    item.estado = estado?.esperando === item.clave ? "esperando" : contestadas.has(item.clave) || item.respuestas.length > 0 || item.reservada ? "contestada" : "sin respuesta";
+  }
+  return bloques.filter((b) => b.preguntas.length > 0);
+}
