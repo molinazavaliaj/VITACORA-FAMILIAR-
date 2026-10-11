@@ -1,0 +1,3 @@
+# Los fijos de los tests de la fábrica se comparan byte a byte: siempre LF, también en Windows
+# (con core.autocrlf=true salían con CRLF y fallaban los tests que guardan y releen).
+fabrica/test/fijos/** text eol=lf
