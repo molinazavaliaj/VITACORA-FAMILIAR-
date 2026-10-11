@@ -22,3 +22,6 @@ fabrica/muestra-identidad.*
 .autopilot/
 .agents/
 skills-lock.json
+
+# Salida de entrevistador/scripts/v3-recazar.ts (citas de narradores): nunca al repo
+recazar-*.json

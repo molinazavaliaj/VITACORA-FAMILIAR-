@@ -26,8 +26,16 @@ export function sinErrores(e: EstadoV3, bloques: number[]): EstadoV3 {
  */
 export function aplicarRecaza(e: EstadoV3, resultados: ResultadoCaza[]): EstadoV3 {
   for (const r of resultados) if (r.error) throw new Error(`la caza del bloque ${r.bloque} falló otra vez: no se aplica`);
-  const pendientes = bloquesConError(e);
-  let final = sinErrores(e, pendientes);
-  for (const r of resultados) if (pendientes.includes(r.bloque)) final = sumarCaza(final, r);
+  const aplicables = bloquesAplicables(e, resultados);
+  // Solo se limpian los bloques que traen su resultado: uno que falló después
+  // del dry-run conserva su marca de error (revisión del 11/10).
+  let final = sinErrores(e, aplicables);
+  for (const r of resultados) if (aplicables.includes(r.bloque)) final = sumarCaza(final, r);
   return final;
+}
+
+/** Los bloques de `resultados` que siguen con error en `e` (los que se aplican y cuyo costo se registra). */
+export function bloquesAplicables(e: EstadoV3, resultados: ResultadoCaza[]): number[] {
+  const conError = bloquesConError(e);
+  return resultados.map((r) => r.bloque).filter((b) => conError.includes(b));
 }

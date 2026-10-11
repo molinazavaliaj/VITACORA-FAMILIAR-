@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { aplicarRecaza, bloquesConError, sinErrores } from '../../src/v3/recazar.js';
+import { aplicarRecaza, bloquesAplicables, bloquesConError, sinErrores } from '../../src/v3/recazar.js';
 import type { EstadoV3 } from '../../src/v3/tipos.js';
 import type { ResultadoCaza } from '../../src/v3/nucleo/entrevista/cazador.js';
 
@@ -54,6 +54,17 @@ describe('volver a cazar los bloques con error', () => {
     const final = aplicarRecaza(e, [resultado(1, ['RP~A'])]);
     expect(final.cazador!.registro.filter((r) => r.bloque === 1)).toHaveLength(1);
     expect(final.repreguntas!.map((r) => r.clave)).not.toContain('RP~A');
+  });
+
+  it('un bloque con error que no vino en los resultados conserva su marca (no queda sin rastro)', () => {
+    const final = aplicarRecaza(estado(), [resultado(1, ['RP~A'])]);
+    expect(bloquesConError(final)).toEqual([3]);
+  });
+
+  it('aplicar dos veces lo mismo no cambia nada la segunda: no hay bloques aplicables', () => {
+    const una = aplicarRecaza(estado(), [resultado(1, ['RP~A']), resultado(3, ['RP~B'])]);
+    expect(bloquesAplicables(una, [resultado(1, ['RP~A']), resultado(3, ['RP~B'])])).toEqual([]);
+    expect(aplicarRecaza(una, [resultado(1, ['RP~A'])])).toEqual(una);
   });
 
   it('un resultado que volvió a fallar no se aplica', () => {
