@@ -24,6 +24,7 @@
 | 2026-10-07 | Libro de Joaquín: estilo y títulos de nuevo con las correcciones del repaso aplicadas (Haiku) | USD 0,21 | key de Naza | Consumible |
 | 2026-10-09 | Ensayo del escritor V3 por el camino de producción (Batch, Storage, consumo_ia) con la entrevista V3 web de Naza: Etapa A 2,37 + capítulo 1 con su revisión 0,73 (`fabrica/scripts/escritor-v3-ensayo.ts`; tardó 7 h 07 min, la mayor parte esperando el Batch) | USD 3,10 | key de Naza | Consumible |
 | 2026-10-11 | Cazador V3 recuperado para Imma: los 7 bloques que habían fallado con la key revocada de Railway (`entrevistador/scripts/v3-recazar.ts`, Opus 5.5), 12 repreguntas aplicadas a su entrevista | USD 0,45 | key de Naza (fabrica-local) | Consumible |
+| 2026-10-11 | Cazador V3 recuperado para Dora (Babu): el bloque 1 que había fallado con la key revocada, 1 repregunta aplicada (`v3-recazar`) | USD 0,06 | key de Naza (fabrica-local) | Consumible |
 | — | Vercel, Supabase, Resend, GitHub | USD 0 | — | Gratis (planes free) |
 
 **Total puesto por Naza hasta el 18/09: USD 40 + 47€ ≈ USD 91** (USD 20 de crédito
