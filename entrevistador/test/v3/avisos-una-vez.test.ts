@@ -69,6 +69,14 @@ describe('el aviso a los socios sobrevive a los reinicios', () => {
     expect(fetch).toHaveBeenCalledTimes(1);
   });
 
+  it('si el Storage se cuelga, no traba: a los pocos segundos avisa igual', async () => {
+    const colgado = { storage: { from: () => ({ upload: () => new Promise(() => {}) }) } };
+    usarMarcaPersistente(marcaEnStorage(colgado as never, 20));
+    const fetch = vi.fn(async () => new Response('{}', { status: 200 }));
+    expect(await avisarSocios('x', 'a', 'b', { ahora: AHORA, fetch })).toBe(true);
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
   it('sin marca persistente configurada (tests, scripts), se queda con la memoria como antes', async () => {
     const fetch = vi.fn(async () => new Response('{}', { status: 200 }));
     await avisarSocios('x', 'a', 'b', { ahora: AHORA, fetch });

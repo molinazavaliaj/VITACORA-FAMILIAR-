@@ -26,11 +26,20 @@ export function usarMarcaPersistente(m: Marca | null): void {
  * (el nombre no muestra la clave, que puede llevar ids de WhatsApp). Subir sin
  * pisar es atómico: si ya existe, Storage contesta 409 y ya se avisó.
  */
-export function marcaEnStorage(db: Pick<SupabaseClient, 'storage'>): Marca {
+export function marcaEnStorage(db: Pick<SupabaseClient, 'storage'>, esperaMs = 6_000): Marca {
   return async (dia, clave) => {
     try {
       const path = `avisos/${dia}/${createHash('sha1').update(clave).digest('hex')}.txt`;
-      const { error } = await db.storage.from('audios').upload(path, new Blob([dia]), { contentType: 'text/plain', upsert: false });
+      // Con tope: el aviso se espera en el camino del mensaje entrante y un Storage colgado no puede trabarlo.
+      let reloj: ReturnType<typeof setTimeout> | undefined;
+      const tarde = new Promise<'tarde'>((r) => { reloj = setTimeout(() => r('tarde'), esperaMs); });
+      const subida = db.storage.from('audios').upload(path, new Blob([dia]), { contentType: 'text/plain', upsert: false });
+      const res = await Promise.race([subida, tarde]).finally(() => clearTimeout(reloj));
+      if (res === 'tarde') {
+        console.warn('avisos: el Storage no contestó a tiempo la marca del aviso; avisa igual.');
+        return 'no-se';
+      }
+      const { error } = res;
       if (!error) return 'nueva';
       const e = error as { message?: string; statusCode?: string | number };
       if (String(e.statusCode) === '409' || /already exists|duplicate/i.test(e.message ?? '')) return 'ya';
