@@ -14,6 +14,7 @@
  * cualquier cosa— gana `usted`: con un desconocido el usted nunca ofende.
  */
 import Anthropic from '@anthropic-ai/sdk';
+import { vigilarClave } from './alarma.js';
 import { cargarConfig } from '../config.js';
 import { db } from '../db/cliente.js';
 import { fichaEnTexto } from './ficha.js';
@@ -81,7 +82,7 @@ Ante la duda, usted: con un desconocido el usted nunca ofende, el vos sí puede.
 Respondé SOLO con una palabra: usted o vos.`;
 
 let _cliente: Anthropic | null = null;
-const cliente = () => (_cliente ??= new Anthropic({ apiKey: cargarConfig().anthropicKey }));
+const cliente = () => (_cliente ??= vigilarClave(new Anthropic({ apiKey: cargarConfig().anthropicKey }), 'trato'));
 
 /** null = no se pudo decidir (y entonces no se guarda nada: se reintenta después). */
 async function decidir(n: NarradorParaTrato): Promise<Trato | null> {

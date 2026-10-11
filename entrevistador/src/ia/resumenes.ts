@@ -29,6 +29,7 @@
  * cada resumen (hallazgo 16, "lo último manda").
  */
 import Anthropic from '@anthropic-ai/sdk';
+import { vigilarClave } from './alarma.js';
 import { registrarUso, cuentaDeEsteServicio } from '../costos.js';
 import { cargarConfig } from '../config.js';
 import { db } from '../db/cliente.js';
@@ -220,7 +221,7 @@ async function materialDeCapitulo(
 }
 
 let _cliente: Anthropic | null = null;
-const cliente = () => (_cliente ??= new Anthropic({ apiKey: cargarConfig().anthropicKey }));
+const cliente = () => (_cliente ??= vigilarClave(new Anthropic({ apiKey: cargarConfig().anthropicKey }), 'resumenes'));
 
 /**
  * El bloque de memoria para personalizar la pregunta `orden`: los resúmenes de

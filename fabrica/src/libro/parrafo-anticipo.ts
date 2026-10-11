@@ -1,4 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
+import { vigilarClave } from '../alarma-anthropic.js';
 import { cargarConfig } from '../config.js';
 import { registrarUso } from '../costos.js';
 import { obtenerClienteDb } from '../db.js';
@@ -40,7 +41,7 @@ export async function escribirParrafoAnticipo(
   material: string
 ): Promise<string> {
   const config = cargarConfig();
-  const cliente = new Anthropic({ apiKey: config.anthropicApiKey });
+  const cliente = vigilarClave(new Anthropic({ apiKey: config.anthropicApiKey }), 'el anticipo');
 
   const mensaje = await cliente.messages.create({
     model: MODELO,

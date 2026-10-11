@@ -16,6 +16,7 @@
 // si el proceso se corta (Railway reinicia), volver a correr retoma sin pagar de nuevo.
 import { randomUUID } from 'node:crypto';
 import Anthropic from '@anthropic-ai/sdk';
+import { vigilarClave } from '../../alarma-anthropic.js';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { cargarConfig } from '../../config.js';
 import { anotarUsoEscritor } from '../../costos.js';
@@ -75,7 +76,7 @@ export type Motor = {
 export function motorReal(db: Db): Motor {
   return {
     ejecutor({ almacen, narradorId, log }) {
-      const cliente = new Anthropic({ ...OPCIONES_CLIENTE, apiKey: cargarConfig().anthropicApiKey });
+      const cliente = vigilarClave(new Anthropic({ ...OPCIONES_CLIENTE, apiKey: cargarConfig().anthropicApiKey }), 'el escritor');
       const tope = Number(process.env.ESCRITOR_TOPE_USD ?? 15);
       const ej = new Ejecutor({
         modelo: new ModeloAnthropic(cliente as unknown as ClienteMensajes),
