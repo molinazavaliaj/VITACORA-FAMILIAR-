@@ -154,3 +154,19 @@ Se aprueban de a 10 en el chat (Naza, 06/10: "de a 10, me pierdo en el PDF"). La
   - T18: «…menos la parte proporcional a lo ya hecho de la entrevista»; el abogado define cómo se mide.
 - **Privacidad**: todas las filas (1–17) como están, salvo PR6 «…para hablarle por su nombre» y PR8 «Manda los correos: el código para entrar y los avisos de cómo va el libro.». Se saca la frase «Si algún día ofreciéramos…» (voz sintética, producto descartado).
 - **Arrepentimiento**: filas 1–3 como están (vos); la 4 va con T20.
+
+## Portada, segunda pasada (11/10)
+
+Lo que quedó viejo en la portada después del 06/10: los dibujos del WhatsApp hablaban de usted, y el bloque de Vitácora de Viaje estaba en tú y prometía un capítulo por ciudad (el bot de Viaje no sabe de ciudades y el libro de Viaje todavía no está hecho). Las preguntas de los dibujos salen del banco de la entrevista nueva (CA1 y OR2), sin dos puntos. Naza aprobó las 7.
+
+| # | dónde | texto anterior | aprobado |
+|---|---|---|---|
+| 1 | maquetas.tsx, la pregunta del WhatsApp de arriba | Cuénteme de la casa donde pasó su infancia. Si cierra los ojos y entra por la puerta, ¿qué ve, qué huele, quién está? | Contame el primer recuerdo que tengas de la casa donde creciste. Un día, qué estabas haciendo, quién andaba por ahí. |
+| 2 | maquetas.tsx, la respuesta del biógrafo | Qué lindo eso del patio con el limonero. Cuando quiera, seguimos con sus padres. | Qué lindo eso del patio con el limonero. Cuando quieras, seguimos con tus papás. |
+| 3 | page.tsx, el dibujo de «Solo tiene que mandar un audio» | Ahora cuénteme ESA historia: la que se cuenta en las sobremesas cuando todos ya se rieron dos veces. Todos tenemos una. ¿Cuál es la suya? | En todas las familias hay una historia de los de antes que se contaba en las sobremesas. Un viaje, una llegada, alguna hazaña. ¿Cuál sabés de tu familia? |
+| 4 | page.tsx, bloque de Viaje, texto | El mismo biógrafo, pero de viaje contigo: cada noche te pregunta por el día, guarda la foto que le mandas con su historia, y al volver, tu viaje es un libro. Cada ciudad, un capítulo. | El mismo biógrafo, pero de viaje con vos. Cada noche te pregunta por el día, guarda las fotos que le mandás con su historia, y al volver tu viaje es un libro. |
+| 5 | page.tsx, bloque de Viaje, tarjeta «Cada noche, una pregunta» | Por WhatsApp, cuando el día terminó. Le respondes con un audio, como a un amigo. | Por WhatsApp, cuando el día terminó. Le respondés con un audio, como a un amigo. |
+| 6 | page.tsx, bloque de Viaje, tarjeta «Tus fotos, con su historia» | Le mandas la foto del día y le cuentas qué pasaba. Queda guardada en su etapa. | Le mandás la foto del día y le contás qué pasaba. Queda guardada con su historia. |
+| 7 | page.tsx, bloque de Viaje, tercera tarjeta | Cada etapa, un capítulo · Lisboa, Oporto, el camino: el libro se ordena por donde estuviste, no por fechas. | Al volver, un libro · Con lo que contaste cada noche y tus fotos, el biógrafo escribe el libro de tu viaje. |
+
+Quedan para otra tanda (mismo problema, fuera de la portada): la landing `/viaje` y la compra de Viaje («Cada ciudad, un capítulo», «Cada etapa es un capítulo del libro», «te devolvemos el dinero», «contigo»), el panel de etapas de Viaje, y los ejemplos de preguntas de la familia en el panel (en usted).

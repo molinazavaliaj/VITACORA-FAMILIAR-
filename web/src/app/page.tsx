@@ -389,7 +389,7 @@ export default async function Home() {
           <ChatWhatsApp
             dia={12}
             duracion="5:48"
-            pregunta="Ahora cuénteme ESA historia: la que se cuenta en las sobremesas cuando todos ya se rieron dos veces. Todos tenemos una. ¿Cuál es la suya?"
+            pregunta="En todas las familias hay una historia de los de antes que se contaba en las sobremesas. Un viaje, una llegada, alguna hazaña. ¿Cuál sabés de tu familia?"
           />
         </Aparece>
       </section>
@@ -426,8 +426,8 @@ export default async function Home() {
             <Capitulo numero="✈" clara>Vitácora de viaje</Capitulo>
             <Titulo clara grande>También hay un libro en cada viaje.</Titulo>
             <Cuerpo clara className="mt-6 max-w-xl">
-              El mismo biógrafo, pero de viaje contigo: cada noche te pregunta por el día, guarda la foto que le mandas con
-              su historia, y al volver, tu viaje es un libro. Cada ciudad, un capítulo.
+              El mismo biógrafo, pero de viaje con vos. Cada noche te pregunta por el día, guarda las fotos que le mandás
+              con su historia, y al volver tu viaje es un libro.
             </Cuerpo>
             <div className="mt-9 flex flex-wrap items-center gap-5">
               <Link
@@ -444,9 +444,9 @@ export default async function Home() {
           <Aparece>
             <ul className="grid gap-px overflow-hidden rounded-2xl border border-[#45453C] bg-[#45453C]">
               {[
-                ["Cada noche, una pregunta", "Por WhatsApp, cuando el día terminó. Le respondes con un audio, como a un amigo."],
-                ["Tus fotos, con su historia", "Le mandas la foto del día y le cuentas qué pasaba. Queda guardada en su etapa."],
-                ["Cada etapa, un capítulo", "Lisboa, Oporto, el camino: el libro se ordena por donde estuviste, no por fechas."],
+                ["Cada noche, una pregunta", "Por WhatsApp, cuando el día terminó. Le respondés con un audio, como a un amigo."],
+                ["Tus fotos, con su historia", "Le mandás la foto del día y le contás qué pasaba. Queda guardada con su historia."],
+                ["Al volver, un libro", "Con lo que contaste cada noche y tus fotos, el biógrafo escribe el libro de tu viaje."],
               ].map(([t, d]) => (
                 <li key={t} className="flex flex-col gap-2 bg-[#14140F] p-6">
                   <p className="text-[19px] [font-family:var(--fuente-titulo)] font-medium">{t}</p>

@@ -82,7 +82,7 @@ type ChatProps = {
  */
 export function ChatWhatsApp({
   animado = false,
-  pregunta = "Cuénteme de la casa donde pasó su infancia. Si cierra los ojos y entra por la puerta, ¿qué ve, qué huele, quién está?",
+  pregunta = "Contame el primer recuerdo que tengas de la casa donde creciste. Un día, qué estabas haciendo, quién andaba por ahí.",
   dia = 1,
   duracion = "2:14",
   className = "",
@@ -132,7 +132,7 @@ export function ChatWhatsApp({
 
             <div className={`max-w-[88%] self-start rounded-2xl rounded-tl-sm bg-[#2B2B24] px-3.5 py-2.5 ${paso(4)}`}>
               <p className="text-[13.5px] leading-[1.5] [font-family:var(--fuente-cuerpo)]">
-                Qué lindo eso del patio con el limonero. Cuando quiera, seguimos con sus padres.
+                Qué lindo eso del patio con el limonero. Cuando quieras, seguimos con tus papás.
               </p>
             </div>
           </div>
