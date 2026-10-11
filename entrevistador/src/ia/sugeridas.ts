@@ -1,4 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
+import { vigilarClave } from './alarma.js';
 import { cargarConfig } from '../config.js';
 import { db } from '../db/cliente.js';
 import { armarHistoria } from '../db/historia.js';
@@ -53,7 +54,7 @@ export function parsearSugeridas(crudo: string, capitulosValidos: string[]): Sug
 }
 
 let _cliente: Anthropic | null = null;
-const cliente = () => (_cliente ??= new Anthropic({ apiKey: cargarConfig().anthropicKey }));
+const cliente = () => (_cliente ??= vigilarClave(new Anthropic({ apiKey: cargarConfig().anthropicKey }), 'sugeridas'));
 
 export async function sugerirPreguntas(narradorId: string): Promise<Sugerida[]> {
   const { data: narrador } = await db.from('narradores').select('como_le_dicen, contexto').eq('id', narradorId).maybeSingle();

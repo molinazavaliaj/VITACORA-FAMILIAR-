@@ -33,6 +33,7 @@
  * aparte (ver `recordarEnviada`).
  */
 import Anthropic from '@anthropic-ai/sdk';
+import { vigilarClave } from './alarma.js';
 import { registrarUso, cuentaDeEsteServicio } from '../costos.js';
 import { textoEvitar } from './evitar.js';
 import { cargarConfig } from '../config.js';
@@ -317,7 +318,7 @@ async function personalizarViaje(n: NarradorParaPersonalizar, original: string, 
 export type Resultado = { texto: string; personalizada: boolean; motivo?: string };
 
 let _cliente: Anthropic | null = null;
-const cliente = () => (_cliente ??= new Anthropic({ apiKey: cargarConfig().anthropicKey }));
+const cliente = () => (_cliente ??= vigilarClave(new Anthropic({ apiKey: cargarConfig().anthropicKey }), 'personalizar'));
 
 /**
  * La pregunta del día, personalizada con lo que ya contó.

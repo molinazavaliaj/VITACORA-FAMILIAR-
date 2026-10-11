@@ -3,6 +3,7 @@ import { cargarConfig } from './config.js';
 import { registrarWebhook } from './whatsapp/webhook.js';
 import { procesarEntrante } from './flujo/procesar.js';
 import { iniciarScheduler } from './flujo/scheduler.js';
+import { chequearClaveAlArrancar } from './ia/alarma.js';
 
 const config = cargarConfig();
 export const app = Fastify({ logger: true });
@@ -29,6 +30,9 @@ app.post<{ Body: { narradorId?: string } }>('/sugeridas', async (req, reply) => 
 registrarWebhook(app, procesarEntrante);
 
 if (process.env.NODE_ENV !== 'test') {
+  // Prueba la clave de Anthropic (models.list, gratis); si da 401 avisa a los socios.
+  // Sin await: nunca frena el arranque (timeout de 10 s, nunca tira).
+  void chequearClaveAlArrancar();
   iniciarScheduler(); // el reloj: cada 15 min revisa a quién le toca qué
   app.listen({ port: config.puerto, host: '0.0.0.0' });
 }

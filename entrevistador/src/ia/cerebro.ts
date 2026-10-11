@@ -1,4 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
+import { vigilarClave } from './alarma.js';
 import { cargarConfig } from '../config.js';
 import { db } from '../db/cliente.js';
 import { registrarUso, cuentaDeEsteServicio } from '../costos.js';
@@ -23,7 +24,7 @@ const MODELO = 'claude-opus-5';
  * y volver a medir — no cambiar el modelo a ciegas.
  */
 const MODELO_EVALUACION = 'claude-opus-5';
-const cliente = new Anthropic({ apiKey: cargarConfig().anthropicKey });
+const cliente = vigilarClave(new Anthropic({ apiKey: cargarConfig().anthropicKey }), 'cerebro');
 
 /**
  * El estilo con el que el cerebro le escribe al narrador.
