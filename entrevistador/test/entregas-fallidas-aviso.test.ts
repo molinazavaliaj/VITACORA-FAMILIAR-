@@ -10,6 +10,7 @@ const mocks = vi.hoisted(() => ({
   updates: [] as unknown[],
   avisos: [] as { clave: string; asunto: string; detalle: string }[],
   fallosRegalo: [] as { narradorId: string; motivo: string }[],
+  noLlega: [] as { narradorId: string; codigo: number | undefined }[],
 }));
 
 vi.mock('../src/db/cliente.js', () => ({
@@ -30,7 +31,11 @@ vi.mock('../src/flujo/regalo-entrega.js', () => ({
   fallarEntregaRegalo: async (_deps: unknown, narradorId: string, motivo: string) => { mocks.fallosRegalo.push({ narradorId, motivo }); },
 }));
 vi.mock('../src/mail/hitos.js', () => ({ mandarMailFamilia: async () => true }));
+vi.mock('../src/mail/no-llega.js', () => ({
+  avisarFamiliaNoLlega: async (_deps: unknown, narradorId: string, codigo: number | undefined) => { mocks.noLlega.push({ narradorId, codigo }); return true; },
+}));
 vi.mock('../src/v3/avisos.js', () => ({
+  marcaEnStorage: () => async () => 'nueva',
   avisarSocios: async (clave: string, asunto: string, detalle: string) => { mocks.avisos.push({ clave, asunto, detalle }); return true; },
 }));
 
@@ -45,6 +50,7 @@ beforeEach(() => {
   mocks.updates = [];
   mocks.avisos = [];
   mocks.fallosRegalo = [];
+  mocks.noLlega = [];
   vi.spyOn(console, 'error').mockImplementation(() => {});
   vi.spyOn(console, 'log').mockImplementation(() => {});
 });
@@ -134,5 +140,22 @@ describe('el regalo del día elegido que Meta no entregó', () => {
     mocks.fila = { id: 'e1', entrega: 'entregado', narrador_id: NID, tipo: 'regalo_entrega' };
     await anotarEntrega(fallo(131026));
     expect(mocks.fallosRegalo).toEqual([]);
+  });
+});
+
+describe('el mail a la familia cuando no le llega (11/10)', () => {
+  it('un mensaje fallido que no es del regalo: se le pasa el código a avisarFamiliaNoLlega', async () => {
+    await anotarEntrega(fallo(130472));
+    expect(mocks.noLlega).toEqual([{ narradorId: NID, codigo: 130472 }]);
+  });
+  it('el regalo del día elegido no: ese ya tiene su «dásela vos»', async () => {
+    mocks.fila = { id: 'e1', entrega: 'enviado', narrador_id: NID, tipo: 'regalo_entrega' };
+    await anotarEntrega(fallo(131026));
+    expect(mocks.noLlega).toEqual([]);
+  });
+  it('si ya se había entregado, no', async () => {
+    mocks.fila = { id: 'e1', entrega: 'leido', narrador_id: NID, tipo: 'v3' };
+    await anotarEntrega(fallo(131026));
+    expect(mocks.noLlega).toEqual([]);
   });
 });
