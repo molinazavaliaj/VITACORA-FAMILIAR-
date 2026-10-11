@@ -1,5 +1,6 @@
 import { registrarUso } from '../costos.js';
 import Anthropic from '@anthropic-ai/sdk';
+import { vigilarClave } from '../alarma-anthropic.js';
 import { cargarConfig } from '../config.js';
 import { obtenerClienteDb, type Narrador, type Pregunta, type Respuesta } from '../db.js';
 import { escribirCapitulo } from './escribir-capitulo.js';
@@ -214,7 +215,7 @@ export async function generarPaquete(pedido: { id: string; narrador_id: string; 
       libroMarkdown = libroCacheado;
     } else {
       const config = cargarConfig();
-      const cliente = new Anthropic({ apiKey: config.anthropicApiKey });
+      const cliente = vigilarClave(new Anthropic({ apiKey: config.anthropicApiKey }), 'el paquete (edición del libro)');
       libroMarkdown = await editarLibro(cliente, borrador, narradorId);
       await subirTexto(db, rutaBorradorLibro, libroMarkdown);
     }
@@ -251,7 +252,7 @@ export async function generarPaquete(pedido: { id: string; narrador_id: string; 
     // eligiéndolos por NOMBRE de archivo en la carpeta del narrador (todo `dia_NN*.ogg`), sin mirar
     // la base: ni reservas ni cuál era la respuesta buena. El audio de Ciro cargado por error en
     // Joaquín (bitácora, hallazgo 43) sonaba en su audiolibro. El producto se descartó el 20/09.
-    const frases = await elegirFrases(new Anthropic({ apiKey: cargarConfig().anthropicApiKey }), {
+    const frases = await elegirFrases(vigilarClave(new Anthropic({ apiKey: cargarConfig().anthropicApiKey }), 'el paquete (frases)'), {
       narradorId,
       pedidoId: pedido.id,
       nombre: narrador.nombre,

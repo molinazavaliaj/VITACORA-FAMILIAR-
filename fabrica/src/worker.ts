@@ -21,6 +21,7 @@ import { mandarEntregasAImprenta, avisarHitosDeEntrega } from './entregas.js';
 import { productosDelPedido } from './libro/productos.js';
 import { idiomasV3, narradoresConV3 } from './v3/candado.js';
 import { alertarLibrosDemorados, hayLugarParaLibroV3, lanzarLibroV3, revisarEtapaAV3, trabajaOtraCopia } from './escritor/produccion/libro-v3.js';
+import { chequearClaveAlArrancar } from './alarma-anthropic.js';
 
 const INTERVALO_MS = 60_000;
 
@@ -886,6 +887,9 @@ async function entregarConLosMismosArchivos(
 }
 
 export function iniciarWorker(): void {
+  // Prueba la clave de Anthropic (models.list, gratis); si da 401 avisa a los socios.
+  // Sin await: nunca frena el arranque (timeout de 10 s, nunca tira).
+  void chequearClaveAlArrancar();
   setInterval(() => {
     void tick();
   }, INTERVALO_MS);

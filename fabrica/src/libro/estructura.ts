@@ -1,4 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
+import { vigilarClave } from '../alarma-anthropic.js';
 import { cargarConfig } from '../config.js';
 import { registrarUso } from '../costos.js';
 import { obtenerClienteDb, type Narrador, type Pregunta, type Respuesta } from '../db.js';
@@ -166,7 +167,7 @@ export async function generarEstructura(narradorId: string): Promise<Estructura>
   const db = obtenerClienteDb();
   await exigirSinV3(db, narradorId, 'generarEstructura');
   const config = cargarConfig();
-  const cliente = new Anthropic({ apiKey: config.anthropicApiKey });
+  const cliente = vigilarClave(new Anthropic({ apiKey: config.anthropicApiKey }), 'la estructura');
 
   const { data: narrador, error: errorNarrador } = await db
     .from('narradores')
