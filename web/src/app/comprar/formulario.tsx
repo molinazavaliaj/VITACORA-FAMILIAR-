@@ -9,6 +9,7 @@ import { esPalabraDeFamilia, MENSAJE_PALABRA_DE_FAMILIA, nombreDePila } from "@/
 import type { IdiomaRegalo } from "@/lib/regalo-textos";
 import { GENEROS, type Genero } from "@/lib/regalo-reglas";
 import { medirImagen } from "@/lib/medir-imagen";
+import { SugerenciaRegalo } from "../link-regalar";
 
 // El paso a paso de la compra. Estado en el cliente, un solo POST al final.
 // Los precios llegan resueltos del servidor: acá solo se suman para mostrar
@@ -250,6 +251,8 @@ export function Checkout({ catalogo, regionInicial = "AR", promo = null }: { cat
                 </button>
               ))}
             </div>
+            {/* Para otra persona se pide su WhatsApp: si es sorpresa, la tarjeta del regalo (Naza, 11/10). */}
+            {paraQuien === "otro" && <SugerenciaRegalo />}
             <Botones
               siguiente={() => {
                 if (!paraQuien) return setError("Elegí una de las dos.");

@@ -5,6 +5,7 @@ import { Aparece } from "./aparece";
 import { SelectorProducto } from "./selector-producto";
 import { ChatWhatsApp, Indice, MailAnticipo, PaginaEscrita, PanelMini, Reproductor, TapaLibro } from "./maquetas";
 import { CtaSticky } from "./cta-sticky";
+import { LinkRegalarLanding } from "./link-regalar";
 import { catalogo } from "@/lib/productos";
 import { obtenerPrecioViaje } from "@/lib/precios";
 import { regionDelRequest } from "@/lib/region";
@@ -293,6 +294,7 @@ export default async function Home() {
                 Cómo funciona ↓
               </a>
             </div>
+            <LinkRegalarLanding />
             <MicrocopyCta clara />
           </div>
 
