@@ -24,7 +24,8 @@ import bancoEsEsJson from '../src/viaje-v2/banco-es-ES.json' with { type: 'json'
 import type { Compra } from '../src/viaje-v2/tipos.js';
 
 const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
-const leer = (...p: string[]) => readFileSync(path.join(RAIZ, 'docs', 'viajes-v2', ...p), 'utf8');
+// Los .md se editan a mano: en Windows (core.autocrlf) salen con \r\n; se comparan con \n.
+const leer = (...p: string[]) => readFileSync(path.join(RAIZ, 'docs', 'viajes-v2', ...p), 'utf8').replace(/\r\n/g, '\n');
 const FILAS = parsearBancoViajeMd(leer('banco.md'));
 const OTROS = ['ca', 'es-ES'] as const;
 const MD_IDIOMA: Record<(typeof OTROS)[number], ReturnType<typeof parsearTextosIdiomaMd>> = {
