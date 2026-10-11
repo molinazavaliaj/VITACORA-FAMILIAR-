@@ -170,3 +170,17 @@ Lo que quedó viejo en la portada después del 06/10: los dibujos del WhatsApp h
 | 7 | page.tsx, bloque de Viaje, tercera tarjeta | Cada etapa, un capítulo · Lisboa, Oporto, el camino: el libro se ordena por donde estuviste, no por fechas. | Al volver, un libro · Con lo que contaste cada noche y tus fotos, el biógrafo escribe el libro de tu viaje. |
 
 Quedan para otra tanda (mismo problema, fuera de la portada): la landing `/viaje` y la compra de Viaje («Cada ciudad, un capítulo», «Cada etapa es un capítulo del libro», «te devolvemos el dinero», «contigo»), el panel de etapas de Viaje, y los ejemplos de preguntas de la familia en el panel (en usted).
+
+## Viaje y panel, tanda del 11/10
+
+La página `/viaje` y la compra de Viaje describen el Viaje viejo (ciudades, etapas, «con quién viajás»), que es lo que recibe hoy quien compra: Viaje V2 está apagado para clientes nuevos (`VIAJE_V2_PARA_NUEVOS`). Por eso no se reescriben ahora: solo se arregla lo que está mal en las dos versiones. Naza aprobó 5; se aplicaron 3.
+
+| # | dónde | texto anterior | aprobado |
+|---|---|---|---|
+| 1 | viaje/page.tsx, texto de arriba | Un biógrafo que viaja contigo por WhatsApp… | Un biógrafo que viaja con vos por WhatsApp… |
+| 2 | viaje/page.tsx, pregunta «¿Me trata de vos?» | …como te hablaría un amigo que viaja contigo. | …como te hablaría un amigo que viaja con vos. |
+| 3 | comprar/viaje/formulario.tsx, «Qué pasa después de pagar» | …Respondés SÍ y arranca la primera noche. Si algo no te cierra antes de salir, nos escribís y te devolvemos el dinero. | …Respondés SÍ y arranca la primera noche. |
+
+**Aprobados pero no aplicados (4 y 5):** el texto que se completa solo al subir una foto («Cuénteme todo lo que le venga a la cabeza…» → «Contame todo lo que se te venga a la cabeza…») y el ejemplo «Cuénteme de aquel verano…» → «Contame de aquel verano…». Están en `AgregarPregunta`, el panel del guion viejo, que hoy usan los clientes nuevos de Familiar; ese bot trata de usted a algunos narradores, y el texto de la foto le llega tal cual: en vos quedaría mezclado. El panel de la V3 (`SumarPreguntaV3`) ya no tiene ese problema. Cuando la V3 se prenda para nuevos, el panel viejo deja de usarse y estos dos se caen solos.
+
+**Pendiente, el día que se prenda Viaje V2 para nuevos:** reescribir `/viaje` y la compra de Viaje con lo que hace la V2 (fecha de salida y vuelta, país principal, para mí o regalo, preguntas propias, PDF o impreso, álbum de 20 o 40; sin ciudades ni «con quién viajás»; ver `docs/viajes-v2/flujo-vigente.md` §1 y §9), junto con la compra nueva de Joaquín. Incluye «Cada ciudad, un capítulo», «Cada etapa, un capítulo del libro», «Guardada en Lisboa», la pregunta de las fechas y el panel de etapas.
