@@ -8,6 +8,8 @@ import { BannerAlertaSilencio } from "./acciones";
 import { totalDelGuion } from "@/lib/guion";
 import { diasDelViaje } from "@/lib/viaje";
 import { entrevistaV3 } from "@/lib/v3";
+import { hayDudasSinContestar, leerCorreccionesGuardadas, leerDudas } from "@/lib/dudas";
+import { leerDelEscritor } from "@/lib/dudas-archivos";
 import {
   BarraProgreso,
   Contenedor,
@@ -25,6 +27,22 @@ import {
 // Inicio (docs/panel-usuario.md §4): una tarjeta por historia con su estado,
 // su progreso, UN solo próximo paso, y el dato emocional de cuánta voz hay
 // guardada. Las historias donde es invitada van después, marcadas.
+
+/**
+ * ¿Queda alguna duda sin contestar? Si dudas-familia.json está roto o no se
+ * pudo leer, no hay a dónde mandarlos: sin aviso. Si lo que falla es leer las
+ * correcciones, el aviso queda (mejor de más que perder el plazo).
+ */
+async function quedanDudas(admin: ReturnType<typeof crearClienteServidor>, narradorId: string): Promise<boolean> {
+  const [archivoDudas, archivoCorrecciones] = await Promise.all([
+    leerDelEscritor(admin, narradorId, "dudas-familia.json"),
+    leerDelEscritor(admin, narradorId, "correcciones.json"),
+  ]);
+  const dudas = archivoDudas.texto !== null ? leerDudas(archivoDudas.texto) : null;
+  if (!dudas) return false;
+  const correcciones = archivoCorrecciones.texto !== null ? leerCorreccionesGuardadas(archivoCorrecciones.texto) ?? [] : [];
+  return hayDudasSinContestar(dudas, correcciones);
+}
 
 async function resumirHistoria(
   admin: ReturnType<typeof crearClienteServidor>,
@@ -61,10 +79,11 @@ async function resumirHistoria(
   const v3 = viaje ? false : await entrevistaV3(admin, narradorId).then((e) => e !== null, () => false);
 
   // Dudas del escritor sin contestar: hay dudas, el libro todavía no se escribió
-  // y nadie dejó correcciones. Es un listado de Storage, sin descargar nada.
+  // y queda alguna sin respuesta (no alcanza con que alguien haya contestado una).
+  // El listado decide si hace falta bajar los dos archivos.
   const enEscritor = new Set((escritor ?? []).map((a) => a.name));
   const dudasPendientes =
-    enEscritor.has("dudas-familia.json") && !enEscritor.has("libro.md") && !enEscritor.has("correcciones.json");
+    enEscritor.has("dudas-familia.json") && !enEscritor.has("libro.md") && (await quedanDudas(admin, narradorId));
 
   return { respondidas: ordenes.size, total, segundos, tieneAnticipo, v3, dudasPendientes };
 }

@@ -341,7 +341,11 @@ describe('el próximo paso de una historia V3 (10/10)', () => {
   // que ganan a elegir la tapa, que no vence.
   it('con dudas sin contestar, el paso es contestarlas y no encargar el libro', () => {
     const paso = proximoPaso(h('completado'), { ...r, dudasPendientes: true });
-    expect(paso).toEqual({ href: '/tablero/n3/dudas', texto: 'Hay dudas sobre lo que contó — contestalas antes de que escribamos el libro' });
+    expect(paso).toEqual({ href: '/tablero/n3/dudas', texto: 'Hay dudas sobre lo que contó Babu. Contestalas antes de que se escriba el libro.' });
+  });
+  it('si el libro es para quien lo compró, le habla de vos', () => {
+    const propia = { ...h('completado'), narrador: { ...h('completado').narrador, contexto: { vinculoComprador: 'yo mismo' } } } as unknown as Historia;
+    expect(proximoPaso(propia, { ...r, dudasPendientes: true })?.texto).toBe('Hay dudas sobre lo que contaste. Contestalas antes de que se escriba el libro.');
   });
   it('un invitado también las ve: son los que saben los datos', () => {
     expect(proximoPaso(h('completado', 'invitado'), { ...r, dudasPendientes: true })?.href).toBe('/tablero/n3/dudas');
