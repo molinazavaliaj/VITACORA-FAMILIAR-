@@ -7,6 +7,18 @@ import { TIMEOUT_RESEND_MS } from '../../mail/resend.js';
 const REMITENTE = process.env.MAIL_FROM ?? 'Vitácora Familiar <hola@vitacorafamiliar.com>';
 
 /**
+ * La clave de Resend. Si falta otra variable obligatoria, cargarConfig tira; el aviso
+ * igual tiene que poder salir (es justo el que avisa que falta algo, variables.ts).
+ */
+function claveResend(): string | null {
+  try {
+    return cargarConfig().resendApiKey;
+  } catch {
+    return process.env.RESEND_API_KEY?.trim() || null;
+  }
+}
+
+/**
  * Devuelve true si el mail salió o si no hay a quién mandarlo (sin MAIL_SOCIOS o sin clave de Resend:
  * se loguea y no se insiste). Devuelve false si Resend lo rechazó o la red falló: quien llama decide si
  * reintenta. Nunca tira.
@@ -15,7 +27,7 @@ const REMITENTE = process.env.MAIL_FROM ?? 'Vitácora Familiar <hola@vitacorafam
 export function hayAQuienAvisar(): boolean {
   try {
     const para = (process.env.MAIL_SOCIOS ?? '').split(',').map((s) => s.trim()).filter(Boolean);
-    return Boolean(cargarConfig().resendApiKey) && para.length > 0;
+    return Boolean(claveResend()) && para.length > 0;
   } catch {
     return false;
   }
@@ -24,7 +36,7 @@ export function hayAQuienAvisar(): boolean {
 export async function avisarSocios(asunto: string, texto: string, o: { fetch?: typeof fetch } = {}): Promise<boolean> {
   try {
     console.warn(`aviso a socios: ${asunto}`);
-    const { resendApiKey } = cargarConfig();
+    const resendApiKey = claveResend();
     const para = (process.env.MAIL_SOCIOS ?? '').split(',').map((s) => s.trim()).filter(Boolean);
     if (!resendApiKey || para.length === 0) return true;
     const r = await (o.fetch ?? fetch)('https://api.resend.com/emails', {
