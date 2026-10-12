@@ -22,6 +22,7 @@ import { productosDelPedido } from './libro/productos.js';
 import { idiomasV3, narradoresConV3 } from './v3/candado.js';
 import { alertarLibrosDemorados, hayLugarParaLibroV3, lanzarLibroV3, revisarEtapaAV3, trabajaOtraCopia } from './escritor/produccion/libro-v3.js';
 import { chequearClaveAlArrancar } from './alarma-anthropic.js';
+import { avisarVariablesAlArrancar } from './variables.js';
 
 const INTERVALO_MS = 60_000;
 
@@ -890,6 +891,9 @@ export function iniciarWorker(): void {
   // Prueba la clave de Anthropic (models.list, gratis); si da 401 avisa a los socios.
   // Sin await: nunca frena el arranque (timeout de 10 s, nunca tira).
   void chequearClaveAlArrancar();
+  // Revisa las variables de Railway; si falta alguna, avisa a los socios (una vez por día).
+  // Sin await: no frena el arranque y nunca tira.
+  void avisarVariablesAlArrancar();
   setInterval(() => {
     void tick();
   }, INTERVALO_MS);
