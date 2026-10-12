@@ -1,17 +1,18 @@
 import Link from "next/link";
+import type { TratoComprador } from "@/lib/regalo-textos";
 
 // Los links a /regalar (Naza, 11/10): textos aprobados, de vos como el resto de
 // la landing y de /comprar. El violeta queda para «Comprar el libro»: estos van
 // sin color de botón.
 
-/** Debajo de los botones del hero de la landing (fondo oscuro). */
-export function LinkRegalarLanding() {
+/** Debajo de los botones del hero de la landing (fondo oscuro). España lee de tú (13/10). */
+export function LinkRegalarLanding({ trato = "vos" }: { trato?: TratoComprador }) {
   return (
     <Link
       href="/regalar"
       className="self-start text-[15px] text-[#D4D4CE] underline decoration-[#5F5F55] underline-offset-4 transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white [font-family:var(--fuente-micro)]"
     >
-      Regalalo con una tarjeta →
+      {trato === "tu" ? "Regálalo con una tarjeta →" : "Regalalo con una tarjeta →"}
     </Link>
   );
 }
