@@ -173,6 +173,8 @@ export const PUEDE = {
   cambiarRitmo: (rol: Rol) => rol === "duena",
   invitar: (rol: Rol) => rol === "duena",
   cerrarLibro: (rol: Rol) => rol === "duena",
+  /** Contestar las dudas del escritor V3: los invitados también, son los que saben los datos. */
+  contestarDudas: (rol: Rol) => rol !== "visitante",
   /** Leer el libro terminado y escuchar su voz (antes: descargar). */
   descargar: (rol: Rol) => rol === "duena",
   verLoQuePago: (rol: Rol) => rol === "duena",
