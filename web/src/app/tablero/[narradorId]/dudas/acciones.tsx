@@ -2,30 +2,33 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import type { CorreccionFamilia, DudaFamilia } from "@/lib/dudas";
+import type { DudaFamilia } from "@/lib/dudas";
+import { pedidosDeLoQueCambio } from "@/lib/dudas-formulario";
 
 export type DudaPrefill = DudaFamilia & {
-  /** Lo guardado antes, de cualquiera de la familia. */
-  guardada?: CorreccionFamilia;
+  /**
+   * Lo guardado antes, de cualquiera de la familia. `quien` solo si la base
+   * tenía su nombre; `fecha` ya armada en el servidor, en la zona de la
+   * historia, para que el servidor y el navegador muestren lo mismo.
+   */
+  guardada?: { texto: string; quien?: string; fecha: string | null };
 };
 
 export function FormularioDudas({
   dudas,
   narradorId,
-  quien,
   soloLectura,
 }: {
   dudas: DudaPrefill[];
   narradorId: string;
-  /** Quién contesta, para que la familia vea de quién fue cada respuesta. */
-  quien: string;
   soloLectura: boolean;
 }) {
   const router = useRouter();
   // Por id de duda: cada una es independiente y no comparten clave.
-  const [valores, setValores] = useState<Record<string, string>>(
+  const [iniciales, setIniciales] = useState<Record<string, string>>(
     Object.fromEntries(dudas.map((d) => [d.id, d.guardada?.texto ?? ""])),
   );
+  const [valores, setValores] = useState<Record<string, string>>(iniciales);
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [guardado, setGuardado] = useState(false);
@@ -35,11 +38,7 @@ export function FormularioDudas({
     setError(null);
     setGuardado(false);
 
-    // Se manda todo lo que tiene texto, no solo lo que cambió: el archivo se
-    // reescribe entero y lo que no viaje se perdería.
-    const correcciones = dudas
-      .map((d) => ({ dudaId: d.id, texto: (valores[d.id] ?? "").trim(), quien }))
-      .filter((c) => c.texto !== "");
+    const correcciones = pedidosDeLoQueCambio(dudas, iniciales, valores);
 
     try {
       const respuesta = await fetch(`/api/dudas?narrador=${encodeURIComponent(narradorId)}`, {
@@ -52,6 +51,8 @@ export function FormularioDudas({
         setError(cuerpo.error ?? "No pudimos guardar tus respuestas. Intenta de nuevo.");
         return;
       }
+      // Lo guardado pasa a ser el punto de partida del próximo guardado.
+      setIniciales({ ...valores });
       setGuardado(true);
       router.refresh();
     } catch {
@@ -126,7 +127,7 @@ export function FormularioDudas({
           {duda.guardada?.quien ? (
             <p className="text-xs text-[var(--texto-menor)]">
               Contestó {duda.guardada.quien}
-              {duda.guardada.cuando ? ` · ${new Date(duda.guardada.cuando).toLocaleDateString("es-AR")}` : ""}
+              {duda.guardada.fecha ? ` · ${duda.guardada.fecha}` : ""}
             </p>
           ) : null}
         </div>

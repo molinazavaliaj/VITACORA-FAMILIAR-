@@ -1,0 +1,56 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+// Los archivos del escritor en Storage (`{narrador}/escritor/...`), para la
+// pantalla de dudas, su API y el aviso del Inicio. Lo escriben la fábrica, los
+// socios a mano y la web: cada lectura pide una URL distinta y sin caché (como
+// lib/frases.ts), porque una lectura vieja antes de escribir pisaría lo de otro.
+
+/**
+ * ¿Este error de Storage dice "el objeto no está"? Copia de
+ * `esErrorDeNoEncontrado` de la fábrica (fabrica/src/libro/comun.ts): según la
+ * versión, Storage responde 404, o 400 con `error: 'not_found'`, y un mensaje
+ * "Object not found". Cualquier otra cosa (red, 500, permisos) NO es "no está".
+ */
+export function esNoEncontrado(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const e = error as { message?: unknown; statusCode?: unknown; status?: unknown; error?: unknown };
+  if (typeof e.message === "string" && /not found/i.test(e.message)) return true;
+  if (e.statusCode === 404 || e.statusCode === "404" || e.status === 404) return true;
+  if (e.error === "not_found") return true;
+  return false;
+}
+
+/**
+ * Un archivo del escritor como texto. `texto: null` sin error es que no existe
+ * (la fábrica los crea a su ritmo). Cualquier otra falla vuelve como error: no
+ * es lo mismo "no hay dudas" que "no pudimos leerlas".
+ */
+export async function leerDelEscritor(
+  admin: SupabaseClient,
+  narradorId: string,
+  archivo: string,
+): Promise<{ texto: string | null; error: string | null }> {
+  const { data, error } = await admin.storage
+    .from("audios")
+    .download(
+      `${narradorId}/escritor/${archivo}`,
+      { cacheNonce: `${Date.now()}-${Math.random().toString(36).slice(2)}` },
+      { cache: "no-store" },
+    );
+  if (data) return { texto: await data.text(), error: null };
+  if (!error || esNoEncontrado(error)) return { texto: null, error: null };
+  return { texto: null, error: (error as { message?: string }).message ?? String(error) };
+}
+
+/**
+ * Lo que hay en la carpeta del escritor, por nombre (un listado, sin descargar).
+ * Sirve para saber si `libro.md` ya está sin bajarse el libro entero.
+ */
+export async function archivosDelEscritor(
+  admin: SupabaseClient,
+  narradorId: string,
+): Promise<{ nombres: Set<string>; error: string | null }> {
+  const { data, error } = await admin.storage.from("audios").list(`${narradorId}/escritor`);
+  if (error) return { nombres: new Set(), error: error.message };
+  return { nombres: new Set((data ?? []).map((a) => a.name)), error: null };
+}

@@ -94,6 +94,11 @@ const REGION_CONFIG: Record<Region, { zonaHoraria: string }> = {
   AR: { zonaHoraria: 'America/Argentina/Buenos_Aires' },
 };
 
+/** La zona horaria por defecto de una región (la misma que toma el narrador al registrarse sin elegir otra). */
+export function zonaDeRegion(region: Region): string {
+  return REGION_CONFIG[region].zonaHoraria;
+}
+
 const HORA_PREFERIDA_DEFAULT = '10:00';
 // HH:MM de 24hs. Un string basura acá rompe el scheduler del entrevistador
 // (cruza servicios vía la base compartida), así que se valida en la frontera.
