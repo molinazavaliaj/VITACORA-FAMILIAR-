@@ -32,7 +32,7 @@ async function resumirHistoria(
 ): Promise<Resumen> {
   const narradorId = h.narrador.id;
   const viaje = viajeDe(h);
-  const [{ data: respuestas }, { data: propias }, { data: globales }, { data: paquete }] = await Promise.all([
+  const [{ data: respuestas }, { data: propias }, { data: globales }, { data: paquete }, { data: escritor }] = await Promise.all([
     admin
       .from("respuestas")
       .select("pregunta_orden, duracion_segundos, es_repregunta")
@@ -40,6 +40,7 @@ async function resumirHistoria(
     admin.from("preguntas").select("orden").eq("narrador_id", narradorId),
     admin.from("preguntas").select("orden").is("narrador_id", null),
     admin.storage.from("audios").list(`${narradorId}/paquete`),
+    admin.storage.from("audios").list(`${narradorId}/escritor`),
   ]);
 
   const filas = (respuestas as { pregunta_orden: number; duracion_segundos: number | null; es_repregunta: boolean }[] | null) ?? [];
@@ -59,7 +60,13 @@ async function resumirHistoria(
   // V3 (10/10): sin total ni barra. Si la base falla acá, la tarjeta sale como antes en vez de romper el Inicio.
   const v3 = viaje ? false : await entrevistaV3(admin, narradorId).then((e) => e !== null, () => false);
 
-  return { respondidas: ordenes.size, total, segundos, tieneAnticipo, v3 };
+  // Dudas del escritor sin contestar: hay dudas, el libro todavía no se escribió
+  // y nadie dejó correcciones. Es un listado de Storage, sin descargar nada.
+  const enEscritor = new Set((escritor ?? []).map((a) => a.name));
+  const dudasPendientes =
+    enEscritor.has("dudas-familia.json") && !enEscritor.has("libro.md") && !enEscritor.has("correcciones.json");
+
+  return { respondidas: ordenes.size, total, segundos, tieneAnticipo, v3, dudasPendientes };
 }
 
 export default async function Inicio() {

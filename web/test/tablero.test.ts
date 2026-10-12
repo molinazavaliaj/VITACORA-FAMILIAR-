@@ -336,4 +336,20 @@ describe('el próximo paso de una historia V3 (10/10)', () => {
   it('una historia vieja sigue igual', () => {
     expect(proximoPaso(h('acepto'), { ...r, v3: false })?.href).toBe('/tablero/n3?editar=1');
   });
+
+  // Las dudas del escritor tienen plazo: el libro se escribe con o sin ellas, así
+  // que ganan a elegir la tapa, que no vence.
+  it('con dudas sin contestar, el paso es contestarlas y no encargar el libro', () => {
+    const paso = proximoPaso(h('completado'), { ...r, dudasPendientes: true });
+    expect(paso).toEqual({ href: '/tablero/n3/dudas', texto: 'Hay dudas sobre lo que contó — contestalas antes de que escribamos el libro' });
+  });
+  it('un invitado también las ve: son los que saben los datos', () => {
+    expect(proximoPaso(h('completado', 'invitado'), { ...r, dudasPendientes: true })?.href).toBe('/tablero/n3/dudas');
+  });
+  it('un visitante no', () => {
+    expect(proximoPaso(h('completado', 'visitante'), { ...r, dudasPendientes: true })?.href).toBe('/tablero/n3/libro');
+  });
+  it('sin dudas pendientes, el paso sigue siendo el de siempre', () => {
+    expect(proximoPaso(h('completado'), r)?.href).toBe('/tablero/n3/libro');
+  });
 });

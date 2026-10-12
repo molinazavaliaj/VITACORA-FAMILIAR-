@@ -12,6 +12,8 @@ export type Resumen = {
   tieneAnticipo: boolean;
   /** Entrevista V3 (10/10): sin guion de 30, sin anticipo, y se cierra eligiendo la tapa. */
   v3?: boolean;
+  /** Dudas del escritor sin contestar (CONTRATO, "Escritor V3 en la fábrica"). */
+  dudasPendientes?: boolean;
 };
 
 export function viajeDe(h: Historia): Viaje | null {
@@ -32,6 +34,16 @@ export function proximoPaso(h: Historia, r: Resumen, region: RegionComprador = "
     case "completado":
     case "cerrado_anticipado":
       if (h.rol === "visitante") return { href: `/tablero/${id}/libro`, texto: "Pedí tu copia impresa" };
+      // Las dudas tienen plazo: pasado el rato de espera el libro se escribe con
+      // o sin ellas. Elegir la tapa no vence, así que las dudas van primero.
+      if (r.dudasPendientes) {
+        return {
+          href: `/tablero/${id}/dudas`,
+          texto: propia
+            ? "Hay dudas sobre lo que contaste — contestalas antes de que escribamos el libro"
+            : "Hay dudas sobre lo que contó — contestalas antes de que escribamos el libro",
+        };
+      }
       if (esDuena && r.v3) return { href: `/tablero/${id}/libro`, texto: propia ? "Ya terminaste de contar. Elegí la tapa y encargá tu libro" : "Ya terminó de contar. Elegí la tapa y encargá su libro" };
       return esDuena
         ? { href: `/tablero/${id}/libro`, texto: propia ? "Ya terminaste de contar — dale los últimos retoques y encargá tu libro" : "Ya terminó de contar — dale los últimos retoques y encargá su libro" }
