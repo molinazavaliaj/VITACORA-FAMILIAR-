@@ -353,7 +353,7 @@ export function crearManejador(o: OpcionesWeb): RequestListener {
       const estado = r.estado as EstadoWeb;
       const bloqueCerrado = r.bloqueCerrado;
       if (pendientes.length > 0) {
-        const globo = estado.charla.findLast((g) => g.de === 'persona') as GloboPersonaWeb;
+        const globo = [...estado.charla].reverse().find((g) => g.de === 'persona') as GloboPersonaWeb;
         globo.audios = pendientes.map((x) => x.archivo);
       }
       estado.pendientes = [];
