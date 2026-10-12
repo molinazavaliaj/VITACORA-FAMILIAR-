@@ -63,15 +63,16 @@ describe('revisarVariables', () => {
     expect(revisarVariables(env)).toEqual([]);
   });
 
-  it('REGALO_ENTREGA_WHATSAPP prendido sin regalo_entrega en la lista: falta, por idioma', () => {
+  it('SUGERIDAS_CLAVE es opcional a propósito (sin ella la ruta /sugeridas no existe): no es una falta', () => {
+    const env = envCompleto();
+    delete env.SUGERIDAS_CLAVE;
+    expect(revisarVariables(env)).toEqual([]);
+  });
+
+  it('REGALO_ENTREGA_WHATSAPP vive en Vercel: el entrevistador no la revisa', () => {
     const env = envCompleto();
     env.REGALO_ENTREGA_WHATSAPP = '1';
-    env.WA_PLANTILLAS_V3_LISTAS = 'es-AR:recordatorio,es-AR:bienvenida,es-AR:regalo_entrega';
-    const faltas = revisarVariables(env);
-    expect(faltas.map((f) => f.variable)).toEqual(['WA_PLANTILLAS_V3_LISTAS', 'WA_PLANTILLAS_V3_LISTAS']);
-    expect(faltas.map((f) => f.problema).join(' ')).toMatch(/es-ES:regalo_entrega/);
-    expect(faltas.map((f) => f.problema).join(' ')).toMatch(/ca:regalo_entrega/);
-    expect(faltas[0].problema).toMatch(/REGALO_ENTREGA_WHATSAPP/);
+    expect(revisarVariables(env)).toEqual([]);
   });
 
   it('V3_PARA_NUEVOS prendido sin la bienvenida es-AR en la lista: falta', () => {

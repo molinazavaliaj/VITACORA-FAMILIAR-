@@ -13,9 +13,10 @@
 // plantillas (no son secretas y sin verlas no se encuentra el error de tipeo).
 //
 // Los interruptores apagados (V3_PARA_NUEVOS, VIAJE_V2_PARA_NUEVOS,
-// REGALO_ENTREGA_WHATSAPP, WA_BIENVENIDA_PIDE_VOZ, WA_PLANTILLA_BIENVENIDA_VIAJE,
-// V3_CAZADOR=0) están así a propósito: no son una falta. Prendidos, se revisa que
-// tengan lo que necesitan.
+// WA_BIENVENIDA_PIDE_VOZ, WA_PLANTILLA_BIENVENIDA_VIAJE, V3_CAZADOR=0) están así a
+// propósito: no son una falta. Prendidos, se revisa que tengan lo que necesitan.
+// SUGERIDAS_CLAVE es opcional a propósito (sin ella la ruta /sugeridas no existe) y
+// REGALO_ENTREGA_WHATSAPP vive solo en Vercel (CONTRATO.md): ninguna se revisa acá.
 
 import { createHash } from 'node:crypto';
 import { PLANTILLAS_V3, PLANTILLAS_VIAJE_V2, PLANTILLA_REGALO_ENTREGA } from './config.js';
@@ -42,7 +43,6 @@ const NECESARIAS: ReadonlyArray<readonly [string, string]> = [
   ['MAIL_SOCIOS', 'Los avisos a los socios quedan solo en el log de Railway y nadie se entera.'],
   ['WA_PLANTILLAS_V3_LISTAS', 'Fuera de la ventana de 24 h no sale ninguna plantilla V3 salvo la pregunta en es-AR. Ni recordatorios, ni bienvenidas V3 y de regalo, ni preguntas en es-ES y ca, ni el regalo por WhatsApp el día elegido.'],
   ['WHATSAPP_NUMERO_PUBLICO', 'El mail del regalo del día elegido sale sin el código para escribirle al bot.'],
-  ['SUGERIDAS_CLAVE', 'La ruta /sugeridas no existe y el panel de la web no puede pedir sugerencias de preguntas.'],
 ];
 
 const VALIDAS_V3 = new Set(IDIOMAS.flatMap((i) => [...Object.keys(PLANTILLAS_V3[i]), 'regalo_entrega'].map((c) => `${i}:${c}`)));
@@ -124,11 +124,6 @@ export function revisarVariables(env: Env = process.env): Falta[] {
     'Los narradores nuevos entran a la V3 y sin esa plantilla no les sale la bienvenida o el recordatorio.'));
   faltas.push(...faltanEnLista(env, 'VIAJE_V2_PARA_NUEVOS', 'WA_PLANTILLAS_VIAJE_V2_LISTAS', ['es-AR:bienvenida', 'es-AR:mensaje'],
     'Los viajeros nuevos van a la Viaje V2 y sin esa plantilla no les sale la bienvenida o los mensajes.'));
-  // REGALO_ENTREGA_WHATSAPP vive en Vercel (la web ofrece WhatsApp). Si también está en
-  // Railway, se revisa acá que el bot tenga las tres plantillas: sin ellas el regalo cae en «dásela vos».
-  faltas.push(...faltanEnLista(env, 'REGALO_ENTREGA_WHATSAPP', 'WA_PLANTILLAS_V3_LISTAS', IDIOMAS.map((i) => `${i}:regalo_entrega`),
-    'La web ofrece mandar el regalo por WhatsApp el día elegido y en ese idioma no sale.'));
-
   // Si la lista de Viaje V2 falta del todo con el interruptor prendido, se dice una vez.
   if (prendido(env, 'VIAJE_V2_PARA_NUEVOS') && vacia(env, 'WA_PLANTILLAS_VIAJE_V2_LISTAS')) {
     const sinDuplicar = faltas.filter((f) => f.variable !== 'WA_PLANTILLAS_VIAJE_V2_LISTAS');
