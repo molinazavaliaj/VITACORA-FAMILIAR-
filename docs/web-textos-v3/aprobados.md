@@ -202,4 +202,4 @@ Quien entra desde España (o desde Europa: `regionDelRequest`) veía la portada 
 | 9 | page.tsx, «¿Y si el libro es el tuyo?» | …las preguntas te llegan a vos… | …las preguntas te llegan a ti… |
 | 10 | page.tsx y link-regalar.tsx, preguntas y link de regalo | ¿Mi papá va a saber usarlo? · …si querés. · Regalalo con una tarjeta → | ¿Mi padre va a saber usarlo? · …si quieres. · Regálalo con una tarjeta → |
 
-Sin tocar, a decidir: el saludo del WhatsApp de ejemplo dice «Buen día, Roberto.» en las dos versiones (en España se dice «Buenos días»). Siguen en vos para España: `/viaje`, el panel (salvo próximo paso y preguntas), los mensajes de error y los legales.
+Aprobado aparte el mismo día: el saludo del WhatsApp de ejemplo, «Buen día, Roberto.» → «Buenos días, Roberto.» para España. Siguen en vos para España: `/viaje`, el panel (salvo próximo paso y preguntas), los mensajes de error y los legales.

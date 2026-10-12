@@ -117,7 +117,7 @@ export function ChatWhatsApp({
 
             <div className={`max-w-[88%] self-start rounded-2xl rounded-tl-sm bg-[#2B2B24] px-3.5 py-2.5 ${paso(1)}`}>
               <p className="text-[13.5px] leading-[1.5] [font-family:var(--fuente-cuerpo)]">
-                Buen día, {NARRADOR}. {pregunta}
+                {trato === "tu" ? "Buenos días" : "Buen día"}, {NARRADOR}. {pregunta}
               </p>
             </div>
 
