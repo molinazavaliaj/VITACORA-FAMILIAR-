@@ -13,7 +13,7 @@ import { historiaAccesible, PUEDE } from "@/lib/panel";
 import { fusionarCorrecciones, leerCorreccionesGuardadas, leerDudas, validarCorreccionesFamilia } from "@/lib/dudas";
 import { archivosDelEscritor, leerDelEscritor } from "@/lib/dudas-archivos";
 
-const MENSAJE_ERROR_GENERICO = "No pudimos guardar tus respuestas. Intenta de nuevo.";
+const MENSAJE_ERROR_GENERICO = "No pudimos guardar tus respuestas. Intentá de nuevo.";
 
 export async function POST(request: NextRequest) {
   const narradorId = request.nextUrl.searchParams.get("narrador");

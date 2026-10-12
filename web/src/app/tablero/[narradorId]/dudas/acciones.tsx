@@ -48,7 +48,7 @@ export function FormularioDudas({
       });
       if (!respuesta.ok) {
         const cuerpo = (await respuesta.json().catch(() => ({}))) as { error?: string };
-        setError(cuerpo.error ?? "No pudimos guardar tus respuestas. Intenta de nuevo.");
+        setError(cuerpo.error ?? "No pudimos guardar tus respuestas. Intentá de nuevo.");
         return;
       }
       // Lo guardado pasa a ser el punto de partida del próximo guardado.
@@ -65,7 +65,7 @@ export function FormularioDudas({
   if (dudas.length === 0) {
     return (
       <p className="text-sm text-[var(--texto-suave)]">
-        No quedó ninguna duda: el biógrafo entendió todo lo que contó.
+        No quedó ninguna duda. El biógrafo entendió todo lo que contó.
       </p>
     );
   }

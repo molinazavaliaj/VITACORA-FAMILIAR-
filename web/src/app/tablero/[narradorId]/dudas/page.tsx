@@ -134,8 +134,8 @@ export default async function TableroDudas({ params }: PageProps<"/tablero/[narr
         </h1>
         <p className="mt-2 text-sm leading-relaxed text-[var(--texto-suave)]">
           Al escuchar los audios quedaron algunas cosas sin resolver: un nombre que se oye de dos
-          formas, una fecha que no cierra. Lo que sepas entra al libro; lo que dejes vacío lo
-          escribimos tal como lo contó.
+          formas, una fecha que no cierra. Lo que sepas entra al libro. Lo que dejes vacío queda
+          tal como lo contó.
         </p>
 
         <AvisoDelPlazo estado={plazo.estado} venceAt={plazo.venceAt} zona={zona} />
@@ -164,16 +164,19 @@ function AvisoDelPlazo({
   if (estado === "libro_escrito") {
     return (
       <p className="mt-6 rounded-md border border-[var(--linea-fuerte)] px-4 py-3 text-sm leading-relaxed text-[var(--texto-suave)]">
-        El libro ya está escrito, así que esto queda como estaba. Si algo salió mal, escribinos y
-        lo corregimos a mano.
+        El libro ya está escrito, así que esto queda como estaba. Si algo salió mal, escribinos a{" "}
+        <a href="mailto:hola@vitacorafamiliar.com" className="underline">
+          hola@vitacorafamiliar.com
+        </a>{" "}
+        y lo corregimos a mano.
       </p>
     );
   }
   if (estado === "vencido") {
     return (
       <p className="mt-6 rounded-md border border-[var(--linea-fuerte)] px-4 py-3 text-sm leading-relaxed text-[var(--texto-suave)]">
-        Pasó el tiempo que esperábamos, pero el libro todavía no se escribió: si contestás ahora,
-        llegamos.
+        El plazo ya pasó, pero el libro todavía no se escribió. Si contestás ahora, todavía puede
+        entrar.
       </p>
     );
   }
@@ -181,7 +184,7 @@ function AvisoDelPlazo({
   const cuando = fechaDelPlazo(venceAt, zona);
   return (
     <p className="mt-6 rounded-md border border-[var(--linea-fuerte)] px-4 py-3 text-sm leading-relaxed text-[var(--texto-suave)]">
-      Tenés tiempo hasta el {cuando}. Después escribimos el libro con lo que haya.
+      Contestá antes del {cuando}. Lo que llegue después puede quedar afuera del libro.
     </p>
   );
 }
@@ -198,7 +201,7 @@ function EstadoSinDudas({ comoLeDicen, narradorId }: { comoLeDicen: string; narr
   return (
     <div className="flex flex-1 flex-col items-center justify-center bg-[var(--fondo)] px-6 py-16 text-center text-[var(--texto)]">
       <p className="text-sm text-[var(--texto-suave)]">
-        Todavía no hay dudas sobre lo que contó {comoLeDicen}. Si aparecen, te avisamos.
+        Todavía no hay dudas sobre lo que contó {comoLeDicen}.
       </p>
       <div className="mt-6">
         <VolverAlTablero narradorId={narradorId} />

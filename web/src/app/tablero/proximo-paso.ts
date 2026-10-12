@@ -39,9 +39,7 @@ export function proximoPaso(h: Historia, r: Resumen, region: RegionComprador = "
       if (r.dudasPendientes) {
         return {
           href: `/tablero/${id}/dudas`,
-          texto: propia
-            ? "Hay dudas sobre lo que contaste — contestalas antes de que escribamos el libro"
-            : "Hay dudas sobre lo que contó — contestalas antes de que escribamos el libro",
+          texto: `Hay dudas sobre lo que contó ${h.narrador.como_le_dicen}. Contestalas antes de que se escriba el libro.`,
         };
       }
       if (esDuena && r.v3) return { href: `/tablero/${id}/libro`, texto: propia ? "Ya terminaste de contar. Elegí la tapa y encargá tu libro" : "Ya terminó de contar. Elegí la tapa y encargá su libro" };
