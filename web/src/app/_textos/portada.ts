@@ -341,7 +341,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       marco: {
         nota: "Para cada uno",
         nombre: "Marcos con su voz",
-        detalle: "Un marco con su foto y un chip: acercas el móvil y suena su voz. Van con el libro impreso.",
+        detalle: "Un marco con su foto y un chip. Acercas el móvil y suena su voz. Van con el libro impreso.",
       },
       mas: (p) => `+ ${p}`,
     },
@@ -644,7 +644,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       marco: {
         nota: "Para cada uno",
         nombre: "Marcos con su voz",
-        detalle: "Un marco con su foto y un chip: acercás el celular y suena su voz. Van con el libro impreso.",
+        detalle: "Un marco con su foto y un chip. Acercás el celular y suena su voz. Van con el libro impreso.",
       },
       mas: (p) => `+ ${p}`,
     },

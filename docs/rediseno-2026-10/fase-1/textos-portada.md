@@ -13,6 +13,11 @@ está marcado `// ca: PENDIENTE REVISIÓN NATIVA` y no se lista acá frase por f
   también el PDF con «Su voz».»; cita del limonero con «el olor de los limones»; bajada de
   /ejemplo; explicación de «Su voz» en /ejemplo.
 
+- **14/10, tanda 4** (todos OK): «Desde {precio} · pago único»; la banda de confianza; «La voz, lo
+  que vivió y cómo lo cuenta, no la guarda nadie.»; «Lo que recibe él» y «Lo que recibes tú»; la
+  bajada de «Para quién es» y sus dos tarjetas; la conversación «a la hora que prefiere»; el precio
+  «Un solo pago. Sin sorpresas después.»; el marco sin dos puntos.
+
 ## 0. Textos aprobados que el diseño nuevo ya NO usa
 
 | Texto aprobado | Por qué sale | Test |
