@@ -316,6 +316,21 @@ export const esperaPorDudasMs = (): number => {
   const h = Number(process.env.ESCRITOR_ESPERA_DUDAS_HORAS ?? 24);
   return (Number.isFinite(h) && h >= 0 ? h : 24) * 60 * 60 * 1000;
 };
+/**
+ * ¿Cada duda tiene una respuesta con texto en correcciones.json? Como `hayDudasSinContestar` de la web
+ * (web/src/lib/dudas.ts). Si el archivo falta o está roto, no: mejor esperar el plazo que escribir sin ellas.
+ */
+async function todasContestadas(dudas: unknown[], almacen: Almacen): Promise<boolean> {
+  let correcciones: CorreccionFamilia[];
+  try {
+    correcciones = await leerCorrecciones(almacen);
+  } catch {
+    return false;
+  }
+  const conTexto = new Set(correcciones.filter((c) => c.dudaId && c.texto.trim()).map((c) => c.dudaId));
+  return dudas.every((d) => typeof (d as { id?: unknown })?.id === 'string' && conTexto.has((d as { id: string }).id));
+}
+
 /** Si el mail de dudas no salió, el libro reintenta mandarlo en este rato (no se escribe sin que las veamos). */
 const REINTENTO_AVISO_DUDAS_MS = 60 * 60 * 1000;
 
@@ -324,11 +339,18 @@ const REINTENTO_AVISO_DUDAS_MS = 60 * 60 * 1000;
  * así hay tiempo de escribir correcciones.json. Sin dudas, 0 (arranca ya). Si el mail todavía no salió (no hay
  * `dudas-avisadas.txt`, o quedó vacío porque la Etapa A se rehízo), lo manda acá. Sin a quién avisar (falta
  * MAIL_SOCIOS o la clave de Resend), no se espera: nadie iba a ver las dudas. Devuelve cuántos ms faltan.
+ *
+ * Naza, 13/10: si todas las dudas ya tienen respuesta en correcciones.json, no hay nada que esperar: el libro
+ * se escribe en cuanto se encarga.
  */
 async function esperaPorDudas(db: Db, narradorId: string, almacen: Almacen, ahora: number = Date.now()): Promise<number> {
   const t = await almacen.leer(DUDAS);
   const dudas = (t ? (JSON.parse(t) as { dudas?: unknown[] }).dudas : []) ?? [];
   if (!dudas.length || esperaPorDudasMs() === 0) return 0;
+  if (await todasContestadas(dudas, almacen)) {
+    console.log(`escritor ${narradorId}: las ${dudas.length} dudas tienen respuesta; el libro no espera`);
+    return 0;
+  }
   if (!hayAQuienAvisar()) {
     console.warn(`escritor ${narradorId}: hay ${dudas.length} dudas pero no hay a quién avisarlas (MAIL_SOCIOS); el libro no espera`);
     return 0;
