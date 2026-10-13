@@ -50,10 +50,10 @@ export default function Terminos() {
 
       <Seccion id="que-es" titulo="2. Qué es el servicio">
         <Parrafo>
-          Entrevistamos por WhatsApp a la persona que nos indicas (el «narrador»): una pregunta
-          por día durante unos treinta días, que responde con un audio, sin instalar nada. Con
-          sus respuestas escribimos el libro de su vida, en primera persona y con sus propias
-          palabras.
+          Entrevistamos por WhatsApp a la persona que nos indicas (el «narrador»): le llega una
+          pregunta, la responde con un audio cuando quiere, sin instalar nada, y cuando termina de
+          contar le llega la siguiente. Con sus respuestas escribimos el libro de su vida, en
+          primera persona y con sus propias palabras.
         </Parrafo>
         <Parrafo>Lo que puedes comprar:</Parrafo>
         <Lista
