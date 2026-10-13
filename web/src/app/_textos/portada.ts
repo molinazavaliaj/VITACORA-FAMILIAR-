@@ -949,7 +949,7 @@ export const TEXTOS_PORTADA: Textos<TextosPortada> = {
       marco: {
         nota: "Per a cadascú",
         nombre: "Marcs amb la seva veu",
-        detalle: "Un marc amb la seva foto i un xip: hi apropes el mòbil i sona la seva veu. Van amb el llibre imprès.",
+        detalle: "Un marc amb la seva foto i un xip. Hi apropes el mòbil i sona la seva veu. Van amb el llibre imprès.",
       },
       mas: (p) => `+ ${p}`,
     },
