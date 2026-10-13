@@ -1,38 +1,8 @@
-import type { Metadata } from "next";
-import Link from "next/link";
-import { catalogo } from "@/lib/productos";
-import { regionDelRequest } from "@/lib/region";
-import { promoPorcentaje } from "@/lib/promo";
-import { headers } from "next/headers";
-import { Toroide } from "../../marca";
-import { CheckoutViaje, type CatalogoViaje } from "./formulario";
+import { PaginaComprarViaje, metadataViaje } from "../../_checkout/pagina-viaje";
 
-// La Vitácora de viaje (docs/vitacora-de-viaje.md, 18/09): producto aparte, con
-// su compra propia en tres pasos — vos · el viaje · pagar. El resto (pago,
-// cuenta, panel, bot) es el mismo camino que el libro de una vida.
+// /comprar/viaje: la compra de viaje en castellano de España (la pantalla vive en _checkout).
+export const metadata = metadataViaje("es");
 
-export const metadata: Metadata = {
-  title: "Vitácora de viaje",
-  description: "Tu biógrafo te escribe cada noche del viaje, guarda tus fotos y, al volver, tu viaje es un libro.",
-};
-
-export default async function PaginaComprarViaje() {
-  // El catálogo por región: la base del viaje y los mismos upsells del Familiar (21/09).
-  const catalogos: CatalogoViaje = { ES: catalogo("ES"), AR: catalogo("AR") };
-  return (
-    <div className="flex flex-1 flex-col bg-[#F7F7F5] text-[#14140F]">
-      <header className="border-b border-[#EBEBE7] bg-white">
-        <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-5">
-          <Link href="/viaje" className="flex items-center gap-3">
-            <Toroide className="h-6 w-auto" />
-            <span className="text-[11px] uppercase [font-family:var(--fuente-micro)] [letter-spacing:0.3em]">Vitácora de viaje</span>
-          </Link>
-          <Link href="/entrar" className="text-sm text-[#5F5F55] underline decoration-[#D4D4CE] underline-offset-4 hover:text-[#14140F] [font-family:var(--fuente-micro)]">
-            Ya compré · Entrar
-          </Link>
-        </div>
-      </header>
-      <CheckoutViaje catalogo={catalogos} regionInicial={regionDelRequest(await headers())} promo={promoPorcentaje()} />
-    </div>
-  );
+export default function Page() {
+  return <PaginaComprarViaje idioma="es" />;
 }
